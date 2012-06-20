@@ -1,0 +1,56 @@
+//===== rAthena Script ======================================= 
+//= Izlude Airport NPCs
+//===== By: ================================================== 
+//= rAthena Dev Team
+//===== Compatible With: ===================================== 
+//= rAthena SVN
+//===== Description: ========================================= 
+//= Izlude Airport NPCs
+//===== Additional Comments: ================================= 
+//= Official NPCs.
+//============================================================ 
+//===== Translated By: ======================================= 
+//= iwangunner
+//============================================================ 
+
+
+
+izlude,206,55,3	script	Airship Staff#izlude	90,{
+	mes "[Airship Staff]";
+	mes "Selamat datang! Apakah kamu suka";
+	mes "naik Airship itu";
+	mes "untuk keberangkatan pesawat yang berhenti";
+	mes "di Juno and Rachel?";
+	next;
+	if (select("Board the Airship to Juno/Rachel.:Cancel.") == 1) {
+		mes "[Airship Staff]";
+		mes "Bayaran untuk penerbangan adalah";
+		mes "1,200 zeny. namun,";
+		mes "bayaran ini bisa dihapuskan jika kamu menggunakan";
+		mes "sebuah Free Ticket untuk Airship. Sekarang,";
+		mes "Kamu masih ingin melakukan penerbangan?";
+		next;
+		if (select("tentu saja:lain kali deh") == 1) {
+			if (countitem(7311) > 0) {
+				delitem 7311,1; //Free_Flying_Ship_Ticket
+				warp "airplane_01",244,58;
+				end;
+			}
+			if (Zeny >= 1200) {
+				set Zeny, Zeny - 1200;
+				warp "airplane_01",244,58;
+				end;
+			}
+			mes "[Airship Staff]";
+			mes "Maaf tapi kamu tidak";
+			mes "mempunyai 1,200 zeny untuk membayar";
+			mes "untuk membayar penerbangan ini.";
+			close;
+		}
+	}
+	mes "[Airship Staff]";
+	mes "Terimakasih dan";
+	mes "Silahkan datang lagi.";
+	mes "Semoga hari mu menyenagkan~";
+	close;
+}

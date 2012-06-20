@@ -1,0 +1,111 @@
+//===== rAthena Script ======================================= 
+//= Bandara Einbroch Staff
+//===== By: ================================================== 
+//= L0ne_W0lf, andaad_Dib
+//===== Compatible With: ===================================== 
+//= rAthena SVN
+//===== Description: ========================================= 
+//= Bandara Einbroch Staff
+//===== Additional Comments: ================================= 
+//= Official NPCs.
+//============================================================ 
+//===== Translated By: ======================================= 
+//= iwangunner
+//============================================================ 
+
+airport,143,43,5	script	Airport Staff#airport1a::airport1	90,{
+	mes "[Airport Staff]";
+	mes "Selamat datang di";
+	mes "Bandara Einbroch,";
+	mes "dimana kita tidak berhenti menawarkan";
+	mes "penerbangan ke kota-kota seperti";
+	mes "Juno, Lighthalzen and Hugel.";
+	next;
+	if (select("Board the Airship:Cancel") == 1) {
+		mes "[Airport Staff]";
+		mes "Pembayaran untuk Airship";
+		mes "adalah 1,200 zeny, tapi jika anda";
+		mes "membawa sebuah Free Ticket untuk Airship,";
+		mes "biaya tersebut akan dihapuskan";
+		mes "anda akan naik Airship?";
+		next;
+		if (select("Yup:Ga ah mahal") == 1) {
+			if (countitem(7311) > 0) {
+				delitem 7311,1; //Free_Flying_Ship_Ticket
+				warp "airport",148,51;
+				end;
+			}
+			if (Zeny >= 1200) {
+				set Zeny, Zeny - 1200;
+				warp "airport",148,51;
+				end;
+			}
+			mes "[Airport Staff]";
+			mes "saya minta maaf, tapi anda tidak";
+			mes "memiliki sebuah Free Ticket untuk";
+			mes "Airship dan anda tidak memiliki";
+			mes "cukup zeny untuk naik";
+			mes " Airship. inget, ";
+			mes "biaya penerbangan adalah 1,200 zeny.";
+			close;
+		}
+	}
+	mes "[Airport Staff]";
+	mes "Terima kasih dan";
+	mes "semoga hari anda menyenangkan.";
+	close;
+}
+
+airport,158,43,5	duplicate(airport1)	Airport Staff#airport1b	90
+airport,126,43,5	duplicate(airport1)	Airport Staff#airport1c	90
+
+airport,143,49,3	script	Arrival Staff#airport2a::airport2	90,{
+	mes "[Arrival Staff]";
+	mes "Selamat datang di Bandara Einbroch.";
+	mes "jika anda tiba dari";
+	mes "penerbangan, biarkan Saya memandu anda ke";
+	mes "terminal utama. jika tidak, silahkan naik ke Airship untuk pergi ke";
+	mes "Juno, Lighthalzen and Hugel.";
+	next;
+	if (select("Exit to main terminal.:Cancel.") == 1) {
+		mes "[Arrival Staff]";
+		mes "Setelah Anda di terminal utama, Anda akan perlu membayar biaya lagi";
+		mes "untuk naik ke Airship. anda harus";
+		mes "keluar jika kota Einbroch";
+		mes "adalah tempat tujuan anda.";
+		mes "ingin ke terminal utama?";
+		next;
+		if (select("Yup:Nanti deh lagi pewe") == 1) {
+			warp "airport",142,40;
+			end;
+		}
+	}
+	mes "[Arrival Staff]";
+	mes "tentu saja, terimakasih";
+	mes "untuk dukungan anda";
+	mes "dan Saya berharap anda memiliki ";
+	mes "sebuah penerbangan yang nyaman~";
+	close;
+}
+
+airport,126,51,3	duplicate(airport2)	Arrival Staff#airport2b	90
+airport,158,50,3	duplicate(airport2)	Arrival Staff#airport2c	90
+
+einbroch,94,267,3	script	Airship Staff#ein01	91,{
+	mes "[Airship Staff]";
+	mes "Selamat datang di";
+	mes "Bandara Einbroch.";
+	mes "silahkan gunakan pintu ini untuk";
+	mes "naik ke Airship yang berhenti";
+	mes "sampai Juno, Lighthalzen dan";
+	mes "Hugel di republik Schwaltzvalt.";
+	next;
+	mes "[Airship Staff]";
+	mes "jika tidak, jika Einbroch adalah";
+	mes "tujuan anda,";
+	mes "silahkan ke tangga bawah";
+	mes " dan tanya Arrival Staff untuk memandu";
+	mes "anda ke terminal utama , terima kasih";
+	mes "dan selamat berpergian.";
+	close;
+}
