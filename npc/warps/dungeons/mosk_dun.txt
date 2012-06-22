@@ -200,7 +200,7 @@ mosk_dun01,264,191,3	script	Milestone#1-3	111,{
 	mes "^3131FF- Orang yang terlebih dahulu maju dengan berani akan terluka, tapi orang yang mundur akan tetap aman.";
 	mes "Jika kamu memiliki keberanian, majulah. tetapi jika tidak, mundurlah. -^000000";
 	next;
-	if(select(Maju.:Diam di tempat.") == 1) {
+	if(select("Maju.:Diam di tempat.") == 1) {
 		mes "- Kamu menyusuri jalan selangkah demi selangkah. -";
 		close2;
 		warp "mosk_dun03",117,36;

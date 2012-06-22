@@ -124,7 +124,7 @@ bat_room,167,178,5	script	Guillaume Knight#kvm	417,{
 		close;
 	case 4:
 		mes "[Guillaume Knight]";
-		mes  Kreiger Points kamu adalah:";
+		mes "Kreiger Points kamu adalah:";
 		mes ""+kvm_point+".";
 		close;
 	}

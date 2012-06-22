@@ -630,7 +630,7 @@ airplane,50,66,5	script	Apple Merchant#airplane	86,{
 		mes "trus yah aku teh mikir";
 		mes "kalo menang terus yah!";
 		mes "aku jadi bisa dapet banyak apple";
-		mes "dan bisa memulai bisnis perapplean
+		mes "dan bisa memulai bisnis perapplean";
 		mes "di Airship ini. Aneh yah ama aku?";
 		next;
 		mes "[Fruitz]";
@@ -1339,8 +1339,8 @@ function	script	applegamble	{
 		next;
 		if (select("Yup:Kaga ah") == 2) {
 			mes "["+getarg(0)+"]";
-			mes "Mm, mebuat kesalahan
-			mes "Baiklah, silahkan masukan
+			mes "Mm, mebuat kesalahan";
+			mes "Baiklah, silahkan masukan";
 			mes "jumlah Apples yang kamu";
 			mes "harapkan untuk dipertaruhkan";
 			next;
