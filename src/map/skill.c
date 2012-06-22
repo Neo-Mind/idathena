@@ -1158,7 +1158,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	 **/
 	case AB_ADORAMUS:
 		if( tsc && !tsc->data[SC_DECREASEAGI] ) //Prevent duplicate agi-down effect.
-			sc_start(bl, SC_ADORAMUS, 100, skilllv, skill_get_time(skillid, skilllv));
+			sc_start(bl, SC_ADORAMUS, 4*skilllv+sd->status.job_level/2, skilllv, skill_get_time(skillid, skilllv));
 		break;
 	/**
 	 * Warlock
@@ -7447,8 +7447,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case AB_CLEMENTIA:
 	case AB_CANTO:
 		{
-			int bless_lv = pc_checkskill(sd,AL_BLESSING);
-			int agi_lv = pc_checkskill(sd,AL_INCAGI);
+			int bless_lv = pc_checkskill(sd,AL_BLESSING)+sd->status.job_level/10;
+			int agi_lv = pc_checkskill(sd,AL_INCAGI)+sd->status.job_level/10;
 			if( sd == NULL || sd->status.party_id == 0 || flag&1 )
 				clif_skill_nodamage(bl, bl, skillid, skilllv, sc_start(bl,type,100,
 					(skillid == AB_CLEMENTIA)? bless_lv : (skillid == AB_CANTO)? agi_lv : skilllv, skill_get_time(skillid,skilllv)));
@@ -7534,7 +7534,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		if( flag&1 || (i = skill_get_splash(skillid, skilllv)) < 1 )
 		{ //As of the behavior in official server Clearance is just a super version of Dispell skill. [Jobbie]
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if((dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) || rnd()%100 >= 30 + 10 * skilllv)
+			if((dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) || rnd()%100 >= 60 + 8 * skilllv)
 			{
 				if (sd)
 					clif_skill_fail(sd,skillid,USESKILL_FAIL_LEVEL,0);

@@ -3322,8 +3322,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			 * Arch Bishop
 			 **/
 			case AB_RENOVATIO:
-				//Damage calculation from iRO wiki. [Jobbie]
-				ad.damage = (int)((15 * status_get_lv(src)) + (1.5 * sstatus->int_));
+				ad.damage = status_get_lv(src) * 10 + sstatus->int_;
 				break;
 			default:
 			{
