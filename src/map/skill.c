@@ -1151,7 +1151,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		sc_start(bl,SC_FEAR,3+2*skilllv,skilllv,skill_get_time(skillid,skilllv));
 		break;
 	case RK_DRAGONBREATH:
-		sc_start4(bl,SC_BURNING,5+5*skilllv,skilllv,1000,src->id,0,skill_get_time(skillid,skilllv));
+		sc_start4(bl,SC_BURNING,15,skilllv,1000,src->id,0,skill_get_time(skillid,skilllv));
 		break;
 	/**
 	 * Arch Bishop

@@ -4246,7 +4246,7 @@ int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int
 
 				if( distance_bl(src,bl) <= 0 || !map_check_dir(dir,t_dir) ) {
 					rd1 = min(damage,status_get_max_hp(bl)) * sc->data[SC_DEATHBOUND]->val2 / 100; // Amplify damage.
-					*dmg = rd1 * 30 / 100; // // Player receives 30% of the amplified damage.
+					*dmg = rd1 * 30 / 100; // Player receives 30% of the amplified damage.
 					clif_skill_damage(src,bl,gettick(), status_get_amotion(src), 0, -30000, 1, RK_DEATHBOUND, sc->data[SC_DEATHBOUND]->val1,6);
 					status_change_end(bl,SC_DEATHBOUND,INVALID_TIMER);
 					rdamage += rd1 * 70 / 100; // Target receives 70% of the amplified damage.
