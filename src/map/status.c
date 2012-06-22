@@ -529,7 +529,11 @@ void initChangeTables(void) {
 	set_sc( RK_MILLENNIUMSHIELD  , SC_MILLENNIUMSHIELD  , SI_REUSE_MILLENNIUMSHIELD  , SCB_NONE );
 	set_sc( RK_REFRESH           , SC_REFRESH           , SI_REFRESH           , SCB_NONE );
 	set_sc( RK_GIANTGROWTH       , SC_GIANTGROWTH       , SI_GIANTGROWTH       , SCB_STR );
-	set_sc( RK_STONEHARDSKIN     , SC_STONEHARDSKIN     , SI_STONEHARDSKIN     , SCB_NONE );
+#ifdef RENEWAL
+	set_sc( RK_STONEHARDSKIN     , SC_STONEHARDSKIN     , SI_STONEHARDSKIN     , SCB_DEF2|SCB_MDEF2 );
+#else
+	set_sc( RK_STONEHARDSKIN     , SC_STONEHARDSKIN     , SI_STONEHARDSKIN     , SCB_DEF|SCB_MDEF );
+#endif
 	set_sc( RK_VITALITYACTIVATION, SC_VITALITYACTIVATION, SI_VITALITYACTIVATION, SCB_REGEN );
 	set_sc( RK_FIGHTINGSPIRIT    , SC_FIGHTINGSPIRIT    , SI_FIGHTINGSPIRIT    , SCB_WATK|SCB_ASPD );
 	set_sc( RK_ABUNDANCE         , SC_ABUNDANCE         , SI_ABUNDANCE         , SCB_NONE );
@@ -4615,8 +4619,10 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 		def -= def * sc->data[SC_STRIPSHIELD]->val2/100;
 	if (sc->data[SC_FLING])
 		def -= def * (sc->data[SC_FLING]->val2)/100;
+#ifndef RENEWAL
 	if(sc->data[SC_STONEHARDSKIN])// Final DEF increase divided by 10 since were using classic (pre-renewal) mechanics. [Rytech]
 		def += sc->data[SC_STONEHARDSKIN]->val1;
+#endif
 	if( sc->data[SC_FREEZING] )
 		def -= def * 10 / 100;
 	if( sc->data[SC_MARSHOFABYSS] )
@@ -4691,8 +4697,10 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 		def2 += (5 + sc->data[SC_BANDING]->val1) * (sc->data[SC_BANDING]->val2);
 	if( sc->data[SC_GT_REVITALIZE] )
 		def2 += def2 * ( 50 + 10 * sc->data[SC_GT_REVITALIZE]->val1 ) / 100;
-
 #ifdef RENEWAL
+	if( sc->data[SC_STONEHARDSKIN] )
+		def2 += sc->data[SC_STONEHARDSKIN]->val3;
+
 	return (short)cap_value(def2,SHRT_MIN,SHRT_MAX);
 #else
 	return (short)cap_value(def2,1,SHRT_MAX);
@@ -4725,8 +4733,10 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 		mdef += (sc->data[SC_ENDURE]->val4 == 0) ? sc->data[SC_ENDURE]->val1 : 1;
 	if(sc->data[SC_CONCENTRATION])
 		mdef += 1; //Skill info says it adds a fixed 1 Mdef point.
+#ifndef RENEWAL
 	if(sc->data[SC_STONEHARDSKIN])// Final MDEF increase divided by 10 since were using classic (pre-renewal) mechanics. [Rytech]
 		mdef += sc->data[SC_STONEHARDSKIN]->val1;
+#endif
 	if( sc->data[SC_MARSHOFABYSS] )
 		mdef -= mdef * ( 6 + 6 * sc->data[SC_MARSHOFABYSS]->val3/10 + (bl->type == BL_MOB ? 5 : 3) * sc->data[SC_MARSHOFABYSS]->val2/36 ) / 100;
 	if(sc->data[SC_ANALYZE])
@@ -4763,8 +4773,10 @@ static signed short status_calc_mdef2(struct block_list *bl, struct status_chang
 		mdef2 -= mdef2 * sc->data[SC_MINDBREAKER]->val3/100;
 	if(sc->data[SC_ANALYZE])
 		mdef2 -= mdef2 * ( 14 * sc->data[SC_ANALYZE]->val1 ) / 100;
-
 #ifdef RENEWAL
+	if(sc->data[SC_STONEHARDSKIN] )
+		mdef2 += sc->data[SC_STONEHARDSKIN]->val3;
+
 	return (short)cap_value(mdef2,SHRT_MIN,SHRT_MAX);
 #else
 	return (short)cap_value(mdef2,1,SHRT_MAX);
@@ -5990,7 +6002,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		case SC_DECREASEAGI:
 		case SC_BURNING:
 		case SC_FREEZING:
-		//case SC_WHITEIMPRISON://Need confirm. Protected against this in the past. [Rytech]
+		case SC_WHITEIMPRISON://Need confirm. Protected against this in the past. [Rytech]
 		case SC_MARSHOFABYSS:
 		case SC_TOXIN:
 		case SC_PARALYSE:
@@ -5999,7 +6011,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		case SC_DEATHHURT:
 		case SC_PYREXIA:
 		case SC_OBLIVIONCURSE:
-		//case SC_LEECHESEND://Need confirm. If it protects against nearly every Guillotine poison, it should work on this too right? [Rytech]
+		case SC_LEECHESEND://Need confirm. If it protects against nearly every Guillotine poison, it should work on this too right? [Rytech]
 		case SC_CRYSTALIZE:
 		case SC_DEEPSLEEP:
 		case SC_MANDRAGORA:
@@ -7507,8 +7519,32 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		/**
 		 * Rune Knight
 		 **/
+		case SC_ENCHANTBLADE:
+			val_flag |= 2;
+			break;
 		case SC_DEATHBOUND:
 			val2 = 500 + 100 * val1;
+			break;
+		case SC_MILLENNIUMSHIELD:
+			val2 = (rand()%100<20) ? 4 : ((rand()%100<30) ? 3 : ((rand()%100<50) ? 2 : 0)); // 20% for 4, 30% for 3, 50% for 2
+			val3 = 1000; // Initial Sheild health. (Additional sheilds health are set in battle.c when shield is broken.)
+			if( sd && val2 > 0)
+			clif_millenniumshield(sd,0);
+			break;
+		case SC_VITALITYACTIVATION:
+			val2 = 50; // Increase HP recovery effects by 50%
+			val3 = 50; // Reduce SP recovery effects by 50%
+			break;
+		case SC_STONEHARDSKIN:
+#ifdef RENEWAL
+			val2 = (status->hp * 20 / 100); 
+			if( val2 > 0 )
+				status_heal(bl, -val2, 0, 0); // Reduce health by 20%
+			if ( sd )
+				val3 = (sd->status.job_level * pc_checkskill(sd,RK_RUNEMASTERY)) / 4; //DEF2/MDEF2 Increase
+#else
+			val1 = sd->status.job_level * pc_checkskill(sd, RK_RUNEMASTERY) / 4 / 10; //DEF/MDEF Increase
+#endif
 			break;
 		case SC_FIGHTINGSPIRIT:
 			val_flag |= 1|2;
@@ -8816,9 +8852,6 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		/**
 		 * 3rd Stuff
 		 **/
-		case SC_MILLENNIUMSHIELD:
-			clif_millenniumshield(sd,0);
-			break;
 		case SC_HALLUCINATIONWALK:
 			sc_start(bl,SC_HALLUCINATIONWALK_POSTDELAY,100,sce->val1,skill_get_time2(GC_HALLUCINATIONWALK,sce->val1));
 			break;

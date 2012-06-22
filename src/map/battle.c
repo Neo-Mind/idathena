@@ -673,6 +673,14 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			//Reduction: 6% + 6% every 20%
 			damage -= damage * 6 * (1+per) / 100;
 		}
+		
+		if( (sce = sc->data[SC_STONEHARDSKIN]) && flag&BF_WEAPON && damage > 0 )
+		{
+			sce->val2 -= damage;
+			skill_break_equip(src,EQP_WEAPON,3000,BCT_SELF);
+
+			if( sce->val2 <= 0 ) status_change_end(bl, SC_STONEHARDSKIN, INVALID_TIMER);
+		}
 /**
  * In renewal steel body reduces all incoming damage by 1/10
  **/
@@ -2077,45 +2085,67 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += ((skill_lv-1)%5+1)*100;
 					break;
 				case RK_SONICWAVE:
-						skillratio += 400 + 100 * skill_lv;
-						RE_LVL_DMOD(100);
+					skillratio += (skill_lv + 5) * 100;
+					RE_LVL_DMOD(100);
 					break;
 				case RK_HUNDREDSPEAR:
-						skillratio += 500 + 40 * skill_lv;
+					{ 
+						int weight = 1, dmg = 0;
+						if (sd) {
+							short index = sd->equip_index[EQI_HAND_R];
+
+							if (index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
+								weight = sd->inventory_data[index]->weight; //80% of weight
+						}
+
+						dmg = (600 + (skill_lv * 80) + (1000 - (weight>1000?1000:weight)));
+
+						skillratio += dmg;
 						RE_LVL_DMOD(100);
+						
+						if(sd) // Add clashing spiral bonus damage (Skill level * 50% damage)
+							skillratio += pc_checkskill(sd,LK_SPIRALPIERCE) * (skillratio * 50 /100);
+						break;
+					}
 					break;
 				case RK_WINDCUTTER:
-						skillratio += 50 * skill_lv;
-						RE_LVL_DMOD(100);
+					skillratio += (skill_lv + 2) * 50;
+					RE_LVL_DMOD(100);
 					break;
 				case RK_IGNITIONBREAK:
+					{
+						int dmg = 300; // Base maximum damage at less than 3 cells.
 						i = distance_bl(src,target);
-						if( i < 2 )
-							skillratio = 200 + 200 * skill_lv;
-						else if( i < 4 )
-							skillratio = 100 + 200 * skill_lv;
-						else
-							skillratio = 100 + 100 * skill_lv;
+						if( i > 7 )
+							dmg -= 100; // Greather than 7 cells. (200 damage)
+						else if( i > 3 )
+							dmg -= 50; // Greater than 3 cells, less than 7. (250 damage)
+
+						dmg = (dmg * skill_lv);
+
+						skillratio += dmg;
 						RE_LVL_DMOD(100);
-						if( sstatus->rhw.ele == ELE_FIRE )
-							skillratio +=  skillratio / 2;
-					break;
+						
+						// Elemental check, +100% damage if your element is fire.
+						if( sstatus->rhw.ele  == ELE_FIRE )
+							skillratio += skill_lv * 100 / 100;
+						break;
+					}
 				case RK_CRUSHSTRIKE:
 					if( sd )
 					{//ATK [{Weapon Level * (Weapon Upgrade Level + 6) * 100} + (Weapon ATK) + (Weapon Weight)]%
 						short index = sd->equip_index[EQI_HAND_R];
 						if( index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON )
-							skillratio = sd->inventory_data[index]->weight/10 + sstatus->rhw.atk +
+							skillratio += sd->inventory_data[index]->weight/10 + sstatus->rhw.atk +
 								100 * sd->inventory_data[index]->wlv * (sd->status.inventory[index].refine + 6);
 					}
 					break;
 				case RK_STORMBLAST:
-					skillratio = 100 * (sd ? pc_checkskill(sd,RK_RUNEMASTERY) : 1) +  100 * (sstatus->int_ / 4);
+					skillratio += ((sd ? pc_checkskill(sd,RK_RUNEMASTERY) : 1) + (sstatus->int_ / 8)) * 100;
 					break;
 				case RK_PHANTOMTHRUST:
-					skillratio = 50 * skill_lv + 10 * ( sd ? pc_checkskill(sd,KN_SPEARMASTERY) : 10);
-					//if( s_level > 100 ) skillratio += skillratio * s_level / 150;	// Base level bonus. This is official, but is disabled until I can confirm something with was changed or not. [Rytech]
-					//if( s_level > 100 ) skillratio += skillratio * (s_level - 100) / 200;	// Base level bonus.
+					skillratio += 50 * skill_lv + 10 * ( sd ? pc_checkskill(sd,KN_SPEARMASTERY) : 10);
+					RE_LVL_DMOD(150);
 					break;
 				/**
 				 * GC Guilotine Cross
@@ -4216,10 +4246,10 @@ int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int
 
 				if( distance_bl(src,bl) <= 0 || !map_check_dir(dir,t_dir) ) {
 					rd1 = min(damage,status_get_max_hp(bl)) * sc->data[SC_DEATHBOUND]->val2 / 100; // Amplify damage.
-					*dmg = rd1 * 30 / 100; // Received damge = 30% of amplifly damage.
+					*dmg = rd1 * 30 / 100; // // Player receives 30% of the amplified damage.
 					clif_skill_damage(src,bl,gettick(), status_get_amotion(src), 0, -30000, 1, RK_DEATHBOUND, sc->data[SC_DEATHBOUND]->val1,6);
 					status_change_end(bl,SC_DEATHBOUND,INVALID_TIMER);
-					rdamage += rd1;
+					rdamage += rd1 * 70 / 100; // Target receives 70% of the amplified damage.
 					if (rdamage < 1) rdamage = 1;
 				}
 			}
