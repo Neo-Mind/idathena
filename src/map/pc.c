@@ -3064,7 +3064,16 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			sd->sprateskill[i].id = type2;
 			sd->sprateskill[i].val = val;
 		}
-		break;			
+		break;
+	case SP_COOLDOWN:
+		ARR_FIND(0, ARRAYLENGTH(sd->cooldown), i, sd->cooldown[i].id == 0 || sd->cooldown[i].id == type2);
+		if(i == ARRAYLENGTH(sd->cooldown)) {
+			ShowWarning("pc_bonus2: Reached max (%d) number of cooldown bonuses per character!\n", ARRAYLENGTH(sd->cooldown));
+			break;
+		}
+		sd->cooldown[i].id   = type2;
+		sd->cooldown[i].val += val;
+		break;
 	default:
 		ShowWarning("pc_bonus2: unknown type %d %d %d!\n",type,type2,val);
 		break;

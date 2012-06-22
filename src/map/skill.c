@@ -218,7 +218,24 @@ int	skill_get_unit_target( int id )       { skill_get (skill_db[id].unit_target&
 int	skill_get_unit_bl_target( int id )    { skill_get (skill_db[id].unit_target&BL_ALL, id, 1); }
 int	skill_get_unit_flag( int id )         { skill_get (skill_db[id].unit_flag, id, 1); }
 int	skill_get_unit_layout_type( int id ,int lv ){ skill_get (skill_db[id].unit_layout_type[lv-1], id, lv); }
-int	skill_get_cooldown( int id ,int lv )     { skill_get (skill_db[id].cooldown[lv-1], id, lv); }
+int	skill_get_cooldown( struct map_session_data *sd, int id ,int lv )
+{
+	int i, cooldown;
+
+	skill_chk(&id, lv);
+	if (!id)
+		return 0;
+
+	cooldown = skill_db[id].cooldown[lv-1];
+	for (i = 0; i < ARRAYLENGTH(sd->cooldown) && sd->cooldown[i].id; i++) {
+		if (sd->cooldown[i].id == id) {
+			cooldown += sd->cooldown[i].val;
+			break;
+		}
+	}
+
+	return cooldown;
+}
 #ifdef RENEWAL_CAST
 int	skill_get_fixed_cast( int id ,int lv ){ skill_get (skill_db[id].fixed_cast[lv-1], id, lv); }
 #endif
@@ -8836,8 +8853,8 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 
 		if( !sd || sd->skillitem != ud->skillid || skill_get_delay(ud->skillid,ud->skilllv) )
 			ud->canact_tick = tick + skill_delayfix(src, ud->skillid, ud->skilllv); //Tests show wings don't overwrite the delay but skill scrolls do. [Inkfish]
-		if( sd && skill_get_cooldown(ud->skillid,ud->skilllv) > 0 )
-			skill_blockpc_start(sd, ud->skillid, skill_get_cooldown(ud->skillid, ud->skilllv));
+		if( sd && (inf = skill_get_cooldown(sd, ud->skillid,ud->skilllv)) > 0 )
+			skill_blockpc_start(sd, ud->skillid, inf);
 		if( battle_config.display_status_timers && sd )
 			clif_status_change(src, SI_ACTIONDELAY, 1, skill_delayfix(src, ud->skillid, ud->skilllv), 0, 0, 0);
 		if( sd )
