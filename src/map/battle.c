@@ -3519,14 +3519,20 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					 * Warlock
 					 **/
 					case WL_SOULEXPANSION:
-						skillratio += 300 + 100 * skill_lv + sstatus->int_;
+						{
+						struct status_change *tsc = status_get_sc(target);
+						skillratio = (skill_lv + 4 ) * 100 + sstatus->int_;
 						RE_LVL_DMOD(100);
+						if( tsc && tsc->data[SC_WHITEIMPRISON] )
+							skillratio <<= 1;
+						}
 						break;
 					case WL_FROSTMISTY:
 						skillratio += 100 + 100 * skill_lv;
 						RE_LVL_DMOD(100);
 						break;
-					case WL_JACKFROST: {
+					case WL_JACKFROST:
+						{
 							struct status_change *tsc = status_get_sc(target);
 							if( tsc && tsc->data[SC_FREEZING] ){
 								skillratio += 900 + 300 * skill_lv;
@@ -3552,23 +3558,24 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 							skillratio = 240 * skill_lv;
 						RE_LVL_DMOD(100);
 						break;
-					case WL_COMET: {
+					case WL_COMET:
+						{
 						struct status_change * sc = status_get_sc(src);
 						if( sc )
 							i = distance_xy(target->x, target->y, sc->comet_x, sc->comet_y);
 						else
 							i = 8;
-						if( i < 2 ) skillratio = 2500 + 500 * skill_lv;
+						if( i < 4 ) skillratio = 2500 + 500 * skill_lv;
 						else
-						if( i < 4 ) skillratio = 1600 + 400 * skill_lv;
+						if( i < 6 ) skillratio = 2000 + 500 * skill_lv;
 						else
-						if( i < 6 ) skillratio = 1200 + 300 * skill_lv;
+						if( i < 8 ) skillratio = 1500 + 500 * skill_lv;
 						else
-						skillratio = 800 + 200 * skill_lv;
+						skillratio = 1000 + 500 * skill_lv;
 						}
 						break;
 					case WL_CHAINLIGHTNING_ATK:
-						skillratio += 100 + 300 * skill_lv;
+						skillratio += 400 + 100 * skill_lv + 500;
 						RE_LVL_DMOD(100);
 						break;
 					case WL_EARTHSTRAIN:

@@ -341,14 +341,16 @@ int skill_get_range2 (struct block_list *bl, int id, int lv)
 	 **/
 	case WL_WHITEIMPRISON:
 	case WL_SOULEXPANSION:
-	case WL_FROSTMISTY:
+	//case WL_FROSTMISTY:
 	case WL_MARSHOFABYSS:
 	case WL_SIENNAEXECRATE:
 	case WL_DRAINLIFE:
 	case WL_CRIMSONROCK:
 	case WL_HELLINFERNO:
 	case WL_COMET:
+	case WL_JACKFROST:
 	case WL_CHAINLIGHTNING:
+	case WL_EARTHSTRAIN:
 	case WL_TETRAVORTEX:
 	case WL_RELEASE:
 			if( bl->type == BL_PC )
@@ -1173,7 +1175,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		{
 			int rate = 0, i;
 			const int pos[5] = { EQP_WEAPON, EQP_HELM, EQP_SHIELD, EQP_ARMOR, EQP_ACC };
-			rate = 6 * skilllv + sstatus->dex / 10 + (sd? sd->status.job_level / 4 : 0) - tstatus->dex /5;// The tstatus->dex / 5 part is unofficial, but players gotta have some kind of way to have resistance. [Rytech]
+			rate = (5 + skilllv) * skilllv + sstatus->dex / 10 - tstatus->dex /5;// The tstatus->dex / 5 part is unofficial, but players gotta have some kind of way to have resistance. [Rytech]
 			//rate -= rate * tstatus->dex / 200; // Disabled until official resistance is found.
 
 			for( i = 0; i < skilllv; i++ )
@@ -4217,7 +4219,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		if( tsc && (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) || tsc->data[SC__INVISIBILITY]) )
 			break; // Doesn't hit/cause Freezing to invisible enemy
 		// Causes Freezing status through walls.
-		sc_start(bl,status_skill2sc(skillid),20+12*skilllv+(sd ? sd->status.job_level : 50)/5,skilllv,skill_get_time(skillid,skilllv));
+		sc_start(bl,status_skill2sc(skillid),25+5*skilllv,skilllv,skill_get_time(skillid,skilllv));
 		// Doesn't deal damage through non-shootable walls.
 		if( path_search(NULL,src->m,src->x,src->y,bl->x,bl->y,1,CELL_CHKWALL) )
 			skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);

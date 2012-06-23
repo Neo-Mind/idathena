@@ -564,11 +564,16 @@ void initChangeTables(void) {
 	/**
 	 * Warlock
 	 **/
-	add_sc( WL_WHITEIMPRISON     , SC_WHITEIMPRISON );
+	add_sc( WL_WHITEIMPRISON     , SC_WHITEIMPRISON	  );
 	set_sc_with_vfx( WL_FROSTMISTY        , SC_FREEZING        , SI_FROSTMISTY      , SCB_ASPD|SCB_SPEED|SCB_DEF|SCB_DEF2 );
+	add_sc( WL_JACKFROST         , SC_FREEZE		  );
 	set_sc( WL_MARSHOFABYSS      , SC_MARSHOFABYSS    , SI_MARSHOFABYSS    , SCB_SPEED|SCB_FLEE|SCB_DEF|SCB_MDEF );
 	set_sc( WL_RECOGNIZEDSPELL   , SC_RECOGNIZEDSPELL , SI_RECOGNIZEDSPELL , SCB_NONE );
+	add_sc( WL_SIENNAEXECRATE    , SC_STONE			  );
 	set_sc( WL_STASIS            , SC_STASIS          , SI_STASIS          , SCB_NONE );
+	add_sc( WL_CRIMSONROCK       , SC_STUN            );
+	add_sc( WL_HELLINFERNO       , SC_BURNING         );
+	add_sc( WL_COMET             , SC_BURNING         );
 	/**
 	 * Ranger
 	 **/
@@ -4686,7 +4691,7 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 	if(sc->data[SC_FLING])
 		def2 -= def2 * (sc->data[SC_FLING]->val3)/100;
 	if( sc->data[SC_FREEZING] )
-		def2 -= def2 * 3 / 10;
+		def2 -= def2 * 10 / 10;
 	if(sc->data[SC_ANALYZE])
 		def2 -= def2 * ( 14 * sc->data[SC_ANALYZE]->val1 ) / 100;
 	if( sc->data[SC_ECHOSONG] )
@@ -4868,7 +4873,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 				if( sc->data[SC_SWOO] )
 					val = max( val, 300 );
 				if( sc->data[SC_FREEZING] )
-					val = max( val, 70 );
+					val = max( val, 50 );
 				if( sc->data[SC_MARSHOFABYSS] )
 					val = max( val, 40 + 10 * sc->data[SC_MARSHOFABYSS]->val1 );
 				if( sc->data[SC_CAMOUFLAGE] && (sc->data[SC_CAMOUFLAGE]->val3&1) == 0 )
@@ -5073,7 +5078,7 @@ static short status_calc_aspd_rate(struct block_list *bl, struct status_change *
 			aspd_rate += 100;
 	}
 	if( sc->data[SC_FREEZING] )
-		aspd_rate += 300;
+		aspd_rate += 150;
 	if( sc->data[SC_HALLUCINATIONWALK_POSTDELAY] )
 		aspd_rate += 500;
 	if( sc->data[SC_FIGHTINGSPIRIT] && sc->data[SC_FIGHTINGSPIRIT]->val2 )
@@ -5842,11 +5847,11 @@ int status_get_sc_def(struct block_list *bl, enum sc_type type, int rate, int ti
 	case SC_BURNING:
 		// From iROwiki : http://forums.irowiki.org/showpost.php?p=577240&postcount=583
 		tick -= 50*status->luk + 60*status->int_ + 170*status->vit;
-		tick = max(tick,10000); // Minimum Duration 10s.
+		tick = max(tick,5000); // Minimum Duration 5s.
 		break;
 	case SC_FREEZING:
 		tick -= 1000 * ((status->vit + status->dex) / 20);
-		tick = max(tick,10000); // Minimum Duration 10s.
+		tick = max(tick,6000); // Minimum Duration 6s.
 		break;
 	case SC_OBLIVIONCURSE:
 		sc_def = status->int_*4/5; //FIXME: info said this is the formula of status chance. Check again pls. [Jobbie]
@@ -6067,7 +6072,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 	case SC_FREEZING:
 		if (sc->opt1)
 			return 0; //Cannot override other opt1 status changes. [Skotlex]
-		if((type == SC_FREEZE || type == SC_FREEZING) && sc->data[SC_WARMER])
+		if((type == SC_FREEZE || type == SC_FREEZING || type == SC_CRYSTALIZE) && sc->data[SC_WARMER])
 			return 0; //Immune to Frozen and Freezing status if under Warmer status. [Jobbie]
 	break;
 		
