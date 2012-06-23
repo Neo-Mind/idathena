@@ -2154,14 +2154,14 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += 900 + 100 * skill_lv;
 					RE_LVL_DMOD(120);
 					break;
-				case GC_PHANTOMMENACE:
-					skillratio += 200;
-					break;
 				case GC_COUNTERSLASH:
 					//ATK [{(Skill Level x 100) + 300} x Caster's Base Level / 120]% + ATK [(AGI x 2) + (Caster's Job Level x 4)]%
 					skillratio += 200 + (100 * skill_lv);
 					RE_LVL_DMOD(120);
-					skillratio += sstatus->agi + (sd?sd->status.job_level:0) * 4;
+					skillratio += sstatus->agi * 2 + (sd ? sd->status.job_level : 50) * 4;
+					break;
+				case GC_PHANTOMMENACE:
+					skillratio += 200;
 					break;
 				case GC_ROLLINGCUTTER:
 					skillratio += -50 + 50 * skill_lv;
