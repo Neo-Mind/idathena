@@ -795,8 +795,8 @@
 2250,3,6,2,1,0x43,2,1,1,no,0,0x80,1,misc,0,	RA_COBALTTRAP,Cobalt Trap
 2251,3,6,2,2,0x43,2,1,1,no,0,0x80,1,misc,0,	RA_MAIZETRAP,Maize Trap
 2252,3,6,2,4,0x43,2,1,1,no,0,0x80,1,misc,0,	RA_VERDURETRAP,Verdure Trap
-2253,3,6,2,0,0x42,2,5,1,no,0,0x80,2,misc,0,	RA_FIRINGTRAP,Firing Trap
-2254,3,6,2,0,0x42,2,5,1,no,0,0x80,2,misc,0,	RA_ICEBOUNDTRAP,Icebound Trap
+2253,3,6,2,3,0x42,2,5,1,no,0,0x80,2,misc,0,	RA_FIRINGTRAP,Firing Trap
+2254,3,6,2,1,0x42,2,5,1,no,0,0x80,2,misc,0,	RA_ICEBOUNDTRAP,Icebound Trap
 
 //****
 // NC Mechanic

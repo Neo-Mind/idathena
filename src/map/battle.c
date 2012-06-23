@@ -1443,7 +1443,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			wd.type = 0x08;
 		}
 		else if(sc && sc->data[SC_FEARBREEZE] && sd->weapontype1==W_BOW && (i = sd->equip_index[EQI_AMMO]) >= 0 && sd->inventory_data[i] && sd->status.inventory[i].amount > 1){
-			short rate[] = { 4, 4, 7, 9, 10 };
+			short rate[] = { 12, 12, 21, 27, 30 };
 			if(sc->data[SC_FEARBREEZE]->val1 > 0 && sc->data[SC_FEARBREEZE]->val1 < 6 && rand()%100 < rate[sc->data[SC_FEARBREEZE]->val1-1]) {
 				wd.type = 0x08;
 				wd.div_ = 2;
@@ -2196,7 +2196,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += 100 + 100 * skill_lv;
 					break;
 				case RA_WUGDASH:
-					skillratio = 500;
+					skillratio = 300;
 					break;
 				case RA_WUGSTRIKE:
 					skillratio = 200 * skill_lv;
@@ -2490,10 +2490,14 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					ATK_ADD(4*skill_lv);
 					break;
 				case RA_WUGDASH:
+					if(sd)
+						ATK_ADD(sd->weight / 8);
 				case RA_WUGSTRIKE:
 				case RA_WUGBITE:
 					if(sd)
 						ATK_ADD(30*pc_checkskill(sd, RA_TOOTHOFWUG));
+						if( sc && sc->data[SC_DANCEWITHWUG] )
+						ATK_ADDRATE(skill_lv * 10 * sc->data[SC_DANCEWITHWUG]->val2);
 					break;
 				case LG_RAYOFGENESIS:
 					if( sc && sc->data[SC_BANDING] ) {// Increase only if the RG is under Banding.
