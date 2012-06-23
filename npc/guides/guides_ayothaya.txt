@@ -12,51 +12,55 @@
 //===== Additional Comments: ================================= 
 //= 1.0 First version, Renewal guide.
 //============================================================ 
-
+//
+// this script translated by :
+// newsubzero @idAthena
+//
+//============================================================
 ayothaya,203,169,4	script	Ayothaya Guide Noi#01ay	839,{
 	mes "[Noi]";
-	mes "Hello~";
-	mes "Welcome to ^8B4513Ayothaya^000000.";
-	mes "This town is linked to a river through the wild forest.";
-	mes "It's a really calm country.";
-	mes "Take your time to look around.";
+	mes "Halo~";
+	mes "Selamat datang di ^8B4513Ayothaya^000000.";
+	mes "Kota ini terhubung ke sungai melalui hutan yang liar.";
+	mes "ini merupakan negara yang tenang";
+	mes "Luangkan waktu anda untuk melihat-lihat.";
 	while (1) {
 		next;
-		switch(select("[ Weapon Shop ]:[ Tool Shop ]:[ Tavern ]:[ Shrine ]:[ Fishing Spot ]:Remove Marks from Mini-Map:Cancel")) {
+		switch(select("[ Toko Senjata ]:[ Toko Peralatan ]:[ Kedai minuman ]:[ Kuil ]:[ Tempat memancing ]:Hapus tanda di Mini-Map:Batal")) {
 		case 1:
 			mes "[Noi]";
-			mes "The ^0000FFWeapon Shop^000000";
-			mes "in Ayothaya has special weapons.";
-			mes "You can find great weapons there.";
-			mes "Is there anything else I can do for you?";
+			mes "^0000FFToko Senjata^000000";
+			mes "di Ayothaya merupakan senjata yang spesial.";
+			mes "Kamu dapat mencari senjata yang Dahsyat di sini.";
+			mes "Ada lagi yang bisa saya bantu?";
 			viewpoint 1,163,90,0,0x0A82FF;
 			break;
 		case 2:
 			mes "[Noi]";
-			mes "Our citizens purchase many products in the ^006400Tool Shop^000000.";
-			mes "Make sure you get all you need there.";
-			mes "Do you need anything else??";
+			mes "Warga kita banyak membeli peralatan di ^006400Toko Peralatan^000000.";
+			mes "Pastika anda mendapatkan semua yang anda butuhkan di sana.";
+			mes "Apakah kamu butuh yang lain???";
 			viewpoint 1,131,86,1,0xAAFF00;
 			break;
 		case 3:
 			mes "[Noi]";
-			mes "Part of adventuring is collecting information.";
-			mes "The ^008080Tavern^000000 is crowded with lots of travelers where you can get useful information.";
-			mes "Is there anything else I can do for you?";
+			mes "Bagian dari petualangan adalah mengumpulkan informasi.";
+			mes "^008080Kedai minuman^0000 ramai dengan para pelancong yang dapat memberikan informasi untuk kamu.";
+			mes "Ada lagi yang bisa saya bantu?";
 			viewpoint 1,229,72,2,0x008080;
 			break;
 		case 4:
 			mes "[Noi]";
-			mes "To calm your heart, go to the ^FF1493Shrine^000000 and say a prayer.";
-			mes "Is there anything else I can do for you?";
+			mes "untuk menenangkan hati, pergilah ke ^FF1493Kuil^000000 dan berdoa lah.";
+			mes "Ada lagi yang bisa saya bantu?";
 			viewpoint 1,208,280,3,0xFF1493;
 			break;
 		case 5:
 			mes "[Noi]";
-			mes "Ayothaya is close to the beach, so most people enjoy fishing.";
-			mes "They really love to fish.";
-			mes "Go ^8B4513fishing^000000 and try to grab a big fish.";
-			mes "Is there anything else I can do for you?";
+			mes "Ayothaya dekat dengan pantai, sehingga sebagian besar orang senang akan memancing";
+			mes "mereka sangat menyukai ikan.";
+			mes "pergilah ^8B4513memancing^000000 and try to grab a big fish.";
+			mes "Ada lagi yang bisa saya bantu?";
 			viewpoint 1,255,99,4,0x8B4513;
 			break;
 		case 6:
@@ -64,13 +68,13 @@ ayothaya,203,169,4	script	Ayothaya Guide Noi#01ay	839,{
 			mes "If you want to return home";
 			mes "find ^00BFFFAibakthing^000000";
 			mes "and ask him to send you back.";
-			mes "Is there anything else I can do for you?";
+			mes "Ada lagi yang bisa saya bantu?";
 			viewpoint 1,151,68,5,0x00BFFF;
 			break;
 		case 7:
 			mes "[Noi]";
-			mes "I'll remove all marks from your mini-map.";
-			mes "Do you need anything else??";
+			mes "Saya akan hapus semua tanda di mini-map kamu.";
+			mes "Apakah kamu butuh yang lain???";
 			viewpoint 2,1,1,0,0xFFFFFF;
 			viewpoint 2,1,1,1,0xFFFFFF;
 			viewpoint 2,1,1,2,0xFFFFFF;
@@ -80,7 +84,7 @@ ayothaya,203,169,4	script	Ayothaya Guide Noi#01ay	839,{
 			break;
 		case 8:
 			mes "[Noi]";
-			mes "Enjoy your trip~!";
+			mes "Selamat menikmati perjalanan kamu~!";
 			close;
 		}
 	}
@@ -89,69 +93,69 @@ ayothaya,203,169,4	script	Ayothaya Guide Noi#01ay	839,{
 ayothaya,146,86,4	script	Ayothaya Guide Noa#01ay	839,{
 	mes "[Noa]";
 	mes "Hello~";
-	mes "Welcome to ^8B4513Ayothaya^000000.";
+	mes "Selamat datang di ^8B4513Ayothaya^000000.";
 	mes "This town is linked to a river through the wild forest.";
 	mes "It's a really calm country.";
 	mes "Take your time to look around.";
 	while (1) {
 		next;
-		switch(select("[ Kafra Employee ]:[ Weapon Shop ]:[ Tool Shop ]:[ Tavern ]:[ Shrine ]:[ Fishing Spot ]:Remove Marks from Mini-Map:Cancel")) {
+		switch(select("[ Kafra Employee ]:[ Toko Senjata ]:[ Toko Peralatan ]:[ Kedai minuman ]:[ Kuil ]:[ Tempat memancing ]:Hapus tanda di Mini-Map:Batal")) {
 		case 1:
 			mes "[Noa]";
-			mes "The ^0000FFKafra Employee^000000 is";
-			mes "marked on your mini-map.";
+			mes "^0000FFKafra Employee^0000";
+			mes "Telah di tandai di mini-ap kamu";
 			mes "Check your mini-map.";
-			mes "Is there anything else I can do for you?";
+			mes "Ada lagi yang bisa saya bantu?";
 			viewpoint 1,212,169,0,0x0A82FF;
 			break;
 		case 2:
 			mes "[Noa]";
-			mes "The ^0000FFWeapon Shop^000000";
+			mes "^0000FFToko Senjata^000000";
 			mes "in Ayothaya has special weapons.";
 			mes "You can find great weapons there.";
-			mes "Is there anything else I can do for you?";
+			mes "Ada lagi yang bisa saya bantu?";
 			viewpoint 1,163,90,1,0xAAFF00;
 			break;
 		case 3:
 			mes "[Noa]";
-			mes "Our citizens purchase many products in the ^006400Tool Shop^000000.";
+			mes "Our citizens purchase many products in the ^006400Toko Peralatan^000000.";
 			mes "Make sure you get all you need there.";
-			mes "Do you need anything else??";
+			mes "Apakah kamu butuh yang lain???";
 			viewpoint 1,131,86,2,0x008080;
 			break;
 		case 4:
 			mes "[Noa]";
 			mes "Part of adventuring is collecting information.";
-			mes "The ^008080Tavern^000000 is crowded with lots of travelers where you can get useful information.";
-			mes "Is there anything else I can do for you?";
+			mes "^008080Kedai minuman^0000 crowded with lots of travelers where you can get useful information.";
+			mes "Ada lagi yang bisa saya bantu?";
 			viewpoint 1,229,72,3,0xFF1493;
 			break;
 		case 5:
 			mes "[Noa]";
-			mes "To calm your heart, go to the ^FF1493Shrine^000000 and say a prayer.";
-			mes "Is there anything else I can do for you?";
+			mes "To calm your heart, go to the ^FF1493Kuil^000000 and say a prayer.";
+			mes "Ada lagi yang bisa saya bantu?";
 			viewpoint 1,208,280,4,0x8B4513;
 			break;
 		case 6:
 			mes "[Noa]";
-			mes "Ayothaya is close to the beach, so most people enjoy fishing.";
+			mes "Ayothaya is close to the beach, so most people enjoy memancing.";
 			mes "They really love to fish.";
-			mes "Go ^8B4513fishing^000000 and try to grab a big fish.";
-			mes "Is there anything else I can do for you?";
+			mes "Go ^8B4513memancing^000000 dan coba tangkap ikan yang besar.";
+			mes "Ada lagi yang bisa saya bantu?";
 			viewpoint 1,255,99,5,0x9400D3;
 			break;
 		case 7:
 			mes "[Noa]";
-			mes "If you want to return home";
-			mes "find ^00BFFFAibakthing^000000";
-			mes "and ask him to send you back.";
-			mes "Is there anything else I can do for you?";
+			mes "Jika kamu ingin pulang kerumah";
+			mes "carilah ^00BFFFAibakthing^000000";
+			mes "dan bilang pada dia untuk memulangkan kamu.";
+			mes "Ada lagi yang bisa saya bantu?";
 			viewpoint 1,151,68,6,0x00BFFF;
 			break;
 		case 8:
 			mes "[Noa]";
-			mes "I'll remove all marks from your mini-map.";
-			mes "Do you need anything else??";
+			mes "Saya akan hapus semua tanda di mini-map kamu.";
+			mes "Apakah kamu butuh yang lain???";
 			viewpoint 2,1,1,0,0xFFFFFF;
 			viewpoint 2,1,1,1,0xFFFFFF;
 			viewpoint 2,1,1,2,0xFFFFFF;
@@ -162,7 +166,7 @@ ayothaya,146,86,4	script	Ayothaya Guide Noa#01ay	839,{
 			break;
 		case 9:
 			mes "[Noa]";
-			mes "Enjoy your trip~!";
+			mes "Selamat menikmati perjalanan kamu~!";
 			close;
 		}
 	}

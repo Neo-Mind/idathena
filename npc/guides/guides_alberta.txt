@@ -12,71 +12,75 @@
 //===== Additional Comments: ================================= 
 //= 1.0 First version, Renewal guides.
 //============================================================ 
-
+//
+// this script translated by :
+// newsubzero @idAthena
+//
+//============================================================
 alberta,23,238,4	script	Guide#01alberta::AlbertaGuide	105,{
 	cutin "prt_soldier",2;
 	mes "[Alberta Guide]";
-	mes "Welcome to ^8B4513Alberta^000000,";
-	mes "the Port City.";
-	mes "Do you need help navigating the city?";
+	mes "Selamat datang di ^8B4513Alberta^000000,";
+	mes "Kota pelabuhan.";
+	mes "Apakah kamu butuh petunjuk?";
 	next;
 	while (1) {
-		switch(select("[ Main Facilities ]:[ Merchants & Helpers ]:[ Destination Ports ]:Remove Marks from Mini-Map:Cancel")) {
+		switch(select("[ Fasilitas utama ]:[ Pedagang & Bantuan ]:[ Tujuan Pelabuhan ]:Hapus tanda dari Mini-Map:Batal")) {
 		case 1:
 			set .@loop,1;
 			while (.@loop) {
-				switch(select("[ Tool Shop ]:[ Forge ]:[ Weapon & Armor Shop ]:[ Inn ]:[ Beauty Salon ]:[ Merchant Guild ]:Previous Menu")) {
+				switch(select("[ Toko Alat2 ]:[ Penempa ]:[ Toko senjata & baju ]:[ Penginapan ]:[ Salon kecantikan ]:[ Guild Pedagang (Merchant) ]:Menu Sebelumnya")) {
 				case 1:
 					mes "[Alberta Guide]";
-					mes "Let me mark the location of the";
-					mes "the ^0000FFTool Shop^000000";
-					mes "on your mini-map.";
-					mes "Would you like to check any other locations?";
+					mes "Mari saya tandai lokasi";
+					mes "untuk ^0000FFToko Alat2^000000";
+					mes "di mini-map kamu.";
+					mes "Apakah kamu mau periksa lokasi yang lain?";
 					viewpoint 1,98,154,0,0x0A82FF;
 					next;
 					break;
 				case 2:
 					mes "[Alberta Guide]";
-					mes "The ^B9062FForge^000000 is currently";
-					mes "located inside the Merchant Guild building.";
-					mes "Would you like to check any other locations?";
+					mes "untuk ^B9062FPenempa^000000 sekarang";
+					mes "berada di dalam bangunan Guild pedagang (Merchant).";
+					mes "Apakah kamu mau periksa lokasi yang lain?";
 					viewpoint 1,35,41,1,0xFF0000;
 					next;
 					break;
 				case 3:
 					mes "[Alberta Guide]";
-					mes "Let me mark the location of the";
-					mes "the ^FF5400Weapon & Armor Shop^000000";
-					mes "on your mini-map.";
-					mes "Would you like to check any other locations?";
+					mes "Mari saya tandai lokasi";
+					mes "untuk ^FF5400Toko senjata & baju^000000";
+					mes "di mini-map kamu.";
+					mes "Apakah kamu mau periksa lokasi yang lain?";
 					viewpoint 1,117,37,2,0xFFB400;
 					next;
 					break;
 				case 4:
 					mes "[Alberta Guide]";
-					mes "Let me mark the location of the";
-					mes "the ^006400Inn^000000";
-					mes "on your mini-map.";
-					mes "Would you like to check any other locations?";
+					mes "Mari saya tandai lokasi";
+					mes "untuk ^006400Penginapan^000000";
+					mes "di mini-map kamu.";
+					mes "Apakah kamu mau periksa lokasi yang lain?";
 					viewpoint 1,65,233,3,0xAAFF00;
 					next;
 					break;
 				case 5:
 					mes "[Alberta Guide]";
-					mes "Let me mark the location of the";
-					mes "the ^7F3300Beauty Salon^000000";
-					mes "on your mini-map.";
-					mes "Would you like to check any other locations?";
+					mes "Mari saya tandai lokasi";
+					mes "untuk ^7F3300Salon kecantikan^000000";
+					mes "di mini-map kamu.";
+					mes "Apakah kamu mau periksa lokasi yang lain?";
 					viewpoint 1,48,145,4,0xD2691E;
 					next;
 					break;
 				case 6:
 					mes "[Alberta Guide]";
-					mes "The Merchant Guild is where";
-					mes "you can change your job to ^800080Merchant.";
-					mes "Let me mark its location";
-					mes "on your mini-map.";
-					mes "Would you like to check any other locations?";
+					mes "Untuk Guild pedagang dimana";
+					mes "kamu dapat berubah menjadi ^800080Merchant.";
+					mes "Mari saya tandai lokasinya";
+					mes "di mini-map kamu.";
+					mes "Apakah kamu mau periksa lokasi yang lain?";
 					viewpoint 1,33,41,5,0xDA70D6;
 					next;
 					break;
@@ -89,50 +93,50 @@ alberta,23,238,4	script	Guide#01alberta::AlbertaGuide	105,{
 		case 2:
 			set .@loop,1;
 			while (.@loop) {
-				switch(select("[ Eden Teleport Officer ]:[ Kafra Employee ]:[ Cool Event Employee ]:[ Bullet Merchant ]:[ Cooking Ingredient Merchant ]:Previous Menu")) {
+				switch(select("[ Petugas Teleport Eden ]:[ Kafra Employee ]:[ Cool Event Employee ]:[ Pedagang Peluru ]:[ Pedangang bahan2 masakan ]:Kafra Employee")) {
 				case 1:
 					mes "[Alberta Guide]";
-					mes "^B9062FEden Teleport Officers^000000 are located in south Alberta";
-					mes "and inside the Merchant Guild building.";
-					mes "Let me mark their locations on your mini-map.";
-					mes "Would you like to check any other locations?";
+					mes "^B9062FPetugas Teleport Edens^000000 berada di selatan Alberta";
+					mes "dan di dalam bangunan Guild pedagang.";
+					mes "Mari saya tandai lokasi di mini-map kamu.";
+					mes "Apakah kamu mau periksa lokasi yang lain?";
 					viewpoint 1,33,41,6,0xFF0000;
 					viewpoint 1,121,68,7,0xFF0000;
 					next;
 					break;
 				case 2:
 					mes "[Alberta Guide]";
-					mes "Let me mark the location of the";
+					mes "Mari saya tandai lokasi";
 					mes "^0000FFKafra Employees^000000";
-					mes "on your mini-map.";
-					mes "Would you like to check any other locations?";
+					mes "di mini-map kamu.";
+					mes "Apakah kamu mau periksa lokasi yang lain?";
 					viewpoint 1,33,41,8,0x0A82FF;
 					viewpoint 1,113,60,9,0x0A82FF;
 					next;
 					break;
 				case 3:
 					mes "[Alberta Guide]";
-					mes "When you win event items,";
-					mes "you can claim them through the ^FF5400Cool Event Employee^000000.";
-					mes "Would you like to check any other locations?";
+					mes "Jika kamu memenangkan item Event,";
+					mes "Kamu dapat mengambil hadiahnya melalui ^FF5400Cool Event Employee^000000.";
+					mes "Apakah kamu mau periksa lokasi yang lain?";
 					viewpoint 1,148,57,10,0xFFB400;
 					next;
 					break;
 				case 4:
 					mes "[Alberta Guide]";
-					mes "The ^7F3300Bullet Merchants^000000 for ^7F3300Gunslingers^000000";
-					mes "are located";
-					mes "near the center of the city.";
-					mes "Would you like to check any other locations?";
+					mes "Untuk ^7F3300Pedagang Peluru^000000 untuk ^7F3300Gunslingers^000000";
+					mes "berlokasi di";
+					mes "dekat tengah kota.";
+					mes "Apakah kamu mau periksa lokasi yang lain?";
 					viewpoint 1,117,158,11,0xD2691E;
 					next;
 					break;
 				case 5:
 					mes "[Alberta Guide]";
-					mes "The ^006400Chef Assistant^000000 in Alberta";
-					mes "has many regular customers,";
-					mes "especially for his ^006400Delicious Fishes^000000.";
-					mes "Would you like to check any other locations?";
+					mes "untuk ^006400Chef Assistant^000000 di Alberta";
+					mes "memiliki pelanggan tetap yang banyak,";
+					mes "terutama untuk ^006400Ikan yang lezat^000000.";
+					mes "Apakah kamu mau periksa lokasi yang lain?";
 					viewpoint 1,167,135,12,0xAAFF00;
 					next;
 					break;
@@ -145,73 +149,73 @@ alberta,23,238,4	script	Guide#01alberta::AlbertaGuide	105,{
 		case 3:
 			set .@loop,1;
 			while (.@loop) {
-				switch(select("[ Port - Northern Dock ]:[ Port - Brasilis ]:[ Port - Amatsu ]:[ Port - Kunlun ]:[ Port - Moscovia ]:[ Port - Louyang ]:[ Port - Ayothaya ]:Previous Menu")) {
+				switch(select("[ Pelabuhan -  Dock Paling utara ]:[ Pelabuhan - Brasilis ]:[ Pelabuhan - Amatsu ]:[ Pelabuhan - Kunlun ]:[ Pelabuhan - Moscovia ]:[ Pelabuhan - Louyang ]:[ Pelabuhan - Ayothaya ]:Kafra Employee")) {
 				case 1:
 					mes "[Alberta Guide]";
-					mes "You can use";
-					mes "the ^B9062FNorthern Dock^000000";
-					mes "to go to the ^B9062FSunken Ship^000000 or ^B9062FIzlude Marina^000000.";
-					mes "Would you like to check any other locations?";
+					mes "Kamu dapat menggunakan";
+					mes "^B9062F Dock Paling utara^000000";
+					mes "Untuk pergi ke ^B9062FSunken Ship^000000 atau ^B9062FIzlude Marina^000000.";
+					mes "Apakah kamu mau periksa lokasi yang lain?";
 					viewpoint 1,192,151,13,0xFF0000;
 					next;
 					break;
 				case 2:
 					mes "[Alberta Guide]";
-					mes "Please talk to the ^800080Crewman^000000 at the Alberta Port";
-					mes "if you'd like to visit ^800080Brasilis^000000,";
-					mes "the City of Passion.";
-					mes "Would you like to check any other locations?";
+					mes "Silahkan berbicara kepada ^800080Crewman^000000 di Pelabuhan Alberta";
+					mes "Jika kamu mau mengunjungi ^800080Brasilis^000000,";
+					mes "the city of passion";
+					mes "Apakah kamu mau periksa lokasi yang lain?";
 					viewpoint 1,246,82,14,0xDA70D6;
 					next;
 					break;
 				case 3:
 					mes "[Alberta Guide]";
-					mes "Please talk to the";
-					mes "the ^0000FFSea Captain^000000 at the Alberta Port";
-					mes "if you'd like to enjoy viewing cherry blossoms";
-					mes "in ^0000FFAmatsu^000000.";
-					mes "Would you like to check any other locations?";
+					mes "Silahkan berbicara kepada";
+					mes "^0000FFSea Captain^000000 di Pelabuhan Alberta";
+					mes "jika kamu ingin menikmati bunga sakura";
+					mes "di ^0000FFAmatsu^000000.";
+					mes "Apakah kamu mau periksa lokasi yang lain?";
 					viewpoint 1,246,74,15,0x0A82FF;
 					next;
 					break;
 				case 4:
 					mes "[Alberta Guide]";
-					mes "Please talk to the";
-					mes "^B9062FKunlun Envoy^000000 at the Alberta Port";
-					mes "if you'd like to experience the exotic atmosphere of ^B9062FKunlun^000000.";
-					mes "Would you like to check any other locations?";
+					mes "Silahkan berbicara kepada";
+					mes "^B9062FKunlun Envoy^000000 di Pelabuhan Alberta";
+					mes "Jika kamu ingin menikmati suasana eksotis ^B9062FKunlun^000000.";
+					mes "Apakah kamu mau periksa lokasi yang lain?";
 					viewpoint 1,246,62,16,0xFF0000;
 					next;
 					break;
 				case 5:
 					mes "[Alberta Guide]";
-					mes "Please talk to the";
-					mes "^FF5400Moscovia P.R. Officer^000000 at the Alberta Port";
-					mes "if you'd like to move to";
+					mes "Silahkan berbicara kepada";
+					mes "^FF5400Moscovia P.R. Officer^000000 di Pelabuhan Alberta";
+					mes "jika kamu mau pergi ke";
 					mes "^FF5400Moscovia^000000,";
 					mes "the Eden on the ocean.";
-					mes "Would you like to check any other locations?";
+					mes "Apakah kamu mau periksa lokasi yang lain?";
 					viewpoint 1,246,51,17,0xFFB400;
 					next;
 					break;
 				case 6:
 					mes "[Alberta Guide]";
-					mes "Please talk to the";
-					mes "^7F3300Girl^000000 at the Alberta Port";
-					mes "if you'd like to move to the historical city,";
+					mes "Silahkan berbicara kepada";
+					mes "^7F3300Girl^000000 di Pelabuhan Alberta";
+					mes "jika kamu mau mengunjungi kota penuh sejarah(historical city),";
 					mes "^7F3300Louyang^000000.";
-					mes "Would you like to check any other locations?";
+					mes "Apakah kamu mau periksa lokasi yang lain?";
 					viewpoint 1,246,40,18,0xD2691E;
 					next;
 					break;
 				case 7:
 					mes "[Alberta Guide]";
-					mes "Please talk to";
-					mes "^800080Aibakthing^000000 at the Alberta Port";
-					mes "if you'd like to move to";
+					mes "Silahkan berbicara kepada";
+					mes "^800080Aibakthing^000000 di Pelabuhan Alberta";
+					mes "Jika kamu mau ngunjungi";
 					mes "^800080Ayothaya^000000,";
 					mes "the religious city.";
-					mes "Would you like to check any other locations?";
+					mes "Apakah kamu mau periksa lokasi yang lain?";
 					viewpoint 1,246,29,19,0xDA70D6;
 					next;
 					break;
@@ -223,8 +227,8 @@ alberta,23,238,4	script	Guide#01alberta::AlbertaGuide	105,{
 			break;
 		case 4:
 			mes "[Alberta Guide]";
-			mes "Sure, I'll remove all marks from your mini-map.";
-			mes "Is there anything else I can do for you?";
+			mes "tentu saja, saya akan hapus semua tanda di mini-map kamu.";
+			mes "ada lagi yang bisa saya lakukan untuk kamu?";
 			viewpoint 2,1,1,0,0xFFFF00;
 			viewpoint 2,1,1,1,0x000000;
 			viewpoint 2,1,1,2,0xFF0000;
@@ -249,7 +253,7 @@ alberta,23,238,4	script	Guide#01alberta::AlbertaGuide	105,{
 			break;
 		case 5:
 			mes "[Alberta Guide]";
-			mes "Enjoy your stay.";
+			mes "Selamat menikmati hari yang cerah.";
 			close2;
 			cutin "prt_soldier",255;
 			end;
