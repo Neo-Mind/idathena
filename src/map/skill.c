@@ -11839,10 +11839,10 @@ int skill_check_condition_castbegin(struct map_session_data* sd, short skill, sh
 		return 0;
 
 	switch( skill ) { // Turn off check.
-		case BS_MAXIMIZE:		case NV_TRICKDEAD:	case TF_HIDING:			case AS_CLOAKING:		case CR_AUTOGUARD:
-		case ML_AUTOGUARD:		case CR_DEFENDER:	case ML_DEFENDER:		case ST_CHASEWALK:		case PA_GOSPEL:
+		case BS_MAXIMIZE:		case NV_TRICKDEAD:	case TF_HIDING:		case AS_CLOAKING:	case CR_AUTOGUARD:
+		case ML_AUTOGUARD:		case CR_DEFENDER:	case ML_DEFENDER:	case ST_CHASEWALK:	case PA_GOSPEL:
 		case CR_SHRINK:			case TK_RUN:		case GS_GATLINGFEVER:	case TK_READYCOUNTER:	case TK_READYDOWN:
-		case TK_READYSTORM:		case TK_READYTURN:	case SG_FUSION:			case RA_WUGDASH:
+		case TK_READYSTORM:		case TK_READYTURN:	case SG_FUSION:		case RA_WUGDASH:
 			if( sc && sc->data[status_skill2sc(skill)] )
 				return 1;
 	}
@@ -11850,12 +11850,12 @@ int skill_check_condition_castbegin(struct map_session_data* sd, short skill, sh
 	// Check the skills that can be used while mounted on a warg
 	if( pc_isridingwug(sd) ) {
 		switch( skill ) {
-			case HT_SKIDTRAP:		case HT_LANDMINE:	case HT_ANKLESNARE:		case HT_SHOCKWAVE:
-			case HT_SANDMAN:		case HT_FLASHER:	case HT_FREEZINGTRAP:	case HT_BLASTMINE:
-			case HT_CLAYMORETRAP:	case HT_SPRINGTRAP:	case RA_DETONATOR:		case RA_ELECTRICSHOCKER:
-			case RA_CLUSTERBOMB:	case RA_WUGDASH:	case RA_WUGRIDER:		case RA_WUGSTRIKE:
-			case RA_MAGENTATRAP:	case RA_COBALTTRAP:	case RA_MAIZETRAP:		case RA_VERDURETRAP:
-			case RA_FIRINGTRAP:		case RA_ICEBOUNDTRAP:
+			case HT_SKIDTRAP:	case HT_LANDMINE:	case HT_ANKLESNARE:	case HT_SHOCKWAVE:
+			case HT_SANDMAN:	case HT_FLASHER:	case HT_FREEZINGTRAP:	case HT_BLASTMINE:
+			case HT_CLAYMORETRAP:	case HT_SPRINGTRAP:	case RA_DETONATOR:	case RA_ELECTRICSHOCKER:
+			case RA_CLUSTERBOMB:	case RA_WUGDASH:	case RA_WUGRIDER:	case RA_WUGSTRIKE:
+			case RA_MAGENTATRAP:	case RA_COBALTTRAP:	case RA_MAIZETRAP:	case RA_VERDURETRAP:
+			case RA_FIRINGTRAP:	case RA_ICEBOUNDTRAP:
 				break;
 			default:
 				clif_skill_fail(sd,skill,USESKILL_FAIL_LEVEL,0);
@@ -15732,7 +15732,7 @@ int skill_magicdecoy(struct map_session_data *sd, int nameid) {
 	sd->sc.comet_x = sd->sc.comet_y = 0;
 	sd->menuskill_val = 0;
 
-	class_ = (nameid == 990 || nameid == 991) ? 2043 + nameid - 990 : (nameid == 992) ? 2046 : 2045;
+	class_ = (nameid == 6360 || nameid == 6361) ? 2043 + nameid - 6360 : (nameid == 6362) ? 2046 : 2045;
 
 
 	md =  mob_once_spawn_sub(&sd->bl, sd->bl.m, x, y, sd->status.name, class_, "");
