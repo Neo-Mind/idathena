@@ -1001,7 +1001,7 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 	if( (skill = pc_checkskill(sd,NC_RESEARCHFE)) > 0 && (status->def_ele == ELE_FIRE || status->def_ele == ELE_EARTH) )
 		damage += (skill * 10);
 	if( pc_ismadogear(sd) )
-		damage += 20 + 20 * pc_checkskill(sd, NC_MADOLICENCE);
+		damage += 15 * pc_checkskill(sd, NC_MADOLICENCE);
 
 	if((skill = pc_checkskill(sd,HT_BEASTBANE)) > 0 && (status->race==RC_BRUTE || status->race==RC_INSECT) ) {
 		damage += (skill * 4);
@@ -1055,7 +1055,7 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 			if((skill = pc_checkskill(sd,PR_MACEMASTERY)) > 0)
 				damage += (skill * 3);
 			if((skill = pc_checkskill(sd,NC_TRAININGAXE)) > 0)
-				damage += (skill * 5);
+				damage += (skill * 4);
 			break;
 		case W_FIST:
 			if((skill = pc_checkskill(sd,TK_RUN)) > 0)
@@ -2230,15 +2230,15 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					break;
 				case NC_ARMSCANNON:
 					switch( tstatus->size ) {
-						case SZ_SMALL: skillratio += 100 + 500 * skill_lv; break;// Small
-						case SZ_MEDIUM: skillratio += 100 + 400 * skill_lv; break;// Medium
-						case SZ_BIG: skillratio += 100 + 300 * skill_lv; break;// Large
+						case SZ_SMALL: skillratio += 200 + 400 * skill_lv; break;// Small
+						case SZ_MEDIUM: skillratio += 200 + 350 * skill_lv; break;// Medium
+						case SZ_BIG: skillratio += 200 + 300 * skill_lv; break;// Large
 					}
 					RE_LVL_DMOD(100);
 					//NOTE: Their's some other factors that affects damage, but not sure how exactly. Will recheck one day. [Rytech]
 					break;
 				case NC_AXEBOOMERANG:
-					skillratio += 60 + 40 * skill_lv;
+					skillratio += 150 + 50 * skill_lv;
 					if( sd ) {
 						short index = sd->equip_index[EQI_HAND_R];
 						if( index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON )
@@ -2247,12 +2247,16 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					RE_LVL_DMOD(100);
 					break;
 				case NC_POWERSWING:
-					skillratio += 80 + 20 * skill_lv + sstatus->str + sstatus->dex;
+					skillratio += 200 + 100 * skill_lv + sstatus->str + sstatus->dex;
 					RE_LVL_DMOD(100);
 					break;
 				case NC_AXETORNADO:
 					skillratio += 100 + 100 * skill_lv + sstatus->vit;
 					RE_LVL_DMOD(100);
+					if( sstatus->rhw.ele == ELE_WIND )
+						skillratio +=  skillratio * 25 / 100;
+					i = distance_bl(src,target);
+						if( i > 2 ) skillratio = skillratio * 75 / 100;
 					break;
 				case SC_FATALMENACE:
 					skillratio += 100 * skill_lv;

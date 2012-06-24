@@ -2802,6 +2802,10 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 			status->rhw.range += skill;
 		}
 	}
+	if( (sd->status.weapon == W_1HAXE || sd->status.weapon == W_2HAXE) && (skill = pc_checkskill(sd,NC_TRAININGAXE)) > 0 )
+		status->hit += skill * 3;
+	if( (sd->status.weapon == W_MACE || sd->status.weapon == W_2HMACE) && (skill = pc_checkskill(sd,NC_TRAININGAXE)) > 0 )
+		status->hit += skill * 2;
 
 // ----- FLEE CALCULATION -----
 
@@ -2819,6 +2823,9 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		i =  status->def * sd->def_rate/100;
 		status->def = cap_value(i, DEFTYPE_MIN, DEFTYPE_MAX);
 	}
+	
+	if( pc_isriding(sd) && pc_checkskill(sd, NC_MAINFRAME)>0)
+		status->def += 20 + (pc_checkskill(sd, NC_MAINFRAME) * 20);
 
 #ifndef RENEWAL
 	if (!battle_config.weapon_defense_type && status->def > battle_config.max_def)
@@ -2931,6 +2938,22 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		sd->left_weapon.addrace[RC_DRAGON]+=skill;
 		sd->magic_addrace[RC_DRAGON]+=skill;
 		sd->subrace[RC_DRAGON]+=skill;
+	}
+	if( (skill = pc_checkskill(sd, AB_EUCHARISTICA)) > 0 )
+	{
+		sd->right_weapon.addrace[RC_DEMON] += skill;
+		sd->right_weapon.addele[ELE_DARK] += skill;
+		sd->left_weapon.addrace[RC_DEMON] += skill;
+		sd->left_weapon.addele[ELE_DARK] += skill;
+		sd->magic_addrace[RC_DEMON] += skill;
+		sd->magic_addele[ELE_DARK] += skill;
+		sd->subrace[RC_DEMON] += skill;
+		sd->subele[ELE_DARK] += skill;
+	}
+	if( (skill = pc_checkskill(sd,NC_RESEARCHFE)) > 0 )
+	{
+		sd->subele[ELE_FIRE] += skill * 10;
+		sd->subele[ELE_EARTH] += skill * 10;
 	}
 
 	if(sc->count){
@@ -4880,7 +4903,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 				if( sc->data[SC__GROOMY] )
 					val = max( val, sc->data[SC__GROOMY]->val2);
 				if( sc->data[SC_STEALTHFIELD_MASTER] )
-					val = max( val, 30 );
+					val = max( val, 20 );
 				if( sc->data[SC_BANDING_DEFENCE] )
 					val = max( val, sc->data[SC_BANDING_DEFENCE]->val1 );//+90% walking speed.
 				if( sc->data[SC_ROCK_CRUSHER_ATK] )
@@ -9857,7 +9880,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				break; // Time out
 			if( sce->val2 == bl->id )
 			{
-				if( !status_charge(bl,0,14 + (3 * sce->val1)) )
+				if( !status_charge(bl,0,50) )
 					break; // No more SP status should end, and in the next second will end for the other affected players
 			}
 			else

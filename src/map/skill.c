@@ -1215,23 +1215,30 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	 **/
 	case NC_PILEBUNKER:
 		if( rnd()%100 < 5 + 15*skilllv )
-		{ //Deactivatable Statuses: Kyrie Eleison, Auto Guard, Steel Body, Assumptio, and Millennium Shield
+		{ //Status's Deactivated By Pile Bunker
 			status_change_end(bl, SC_KYRIE, INVALID_TIMER);
-			status_change_end(bl, SC_AUTOGUARD, INVALID_TIMER);
-			status_change_end(bl, SC_STEELBODY, INVALID_TIMER);
 			status_change_end(bl, SC_ASSUMPTIO, INVALID_TIMER);
+			status_change_end(bl, SC_STEELBODY, INVALID_TIMER);
+			status_change_end(bl, SC_AUTOGUARD, INVALID_TIMER);
 			status_change_end(bl, SC_MILLENNIUMSHIELD, INVALID_TIMER);
+			status_change_end(bl, SC_GT_CHANGE, INVALID_TIMER);
+			status_change_end(bl, SC_GT_REVITALIZE, INVALID_TIMER);
+			status_change_end(bl, SC_REFLECTSHIELD, INVALID_TIMER);
+			status_change_end(bl, SC_DEFENDER, INVALID_TIMER);
+			status_change_end(bl, SC_REFLECTDAMAGE, INVALID_TIMER);
+			status_change_end(bl, SC_PRESTIGE, INVALID_TIMER);
+			status_change_end(bl, SC_BANDING, INVALID_TIMER);
 		}
 		break;
 	case NC_FLAMELAUNCHER:
-		sc_start4(bl, SC_BURNING, 50 + 10 * skilllv, skilllv, 1000, src->id, 0, skill_get_time2(skillid, skilllv));
+		sc_start4(bl, SC_BURNING, 20 + 10 * skilllv, skilllv, 1000, src->id, 0, skill_get_time2(skillid, skilllv));
 		break;
 	case NC_COLDSLOWER:
 		sc_start(bl, SC_FREEZE, 10 * skilllv, skilllv, skill_get_time(skillid, skilllv));
 		sc_start(bl, SC_FREEZING, 20 + 10 * skilllv, skilllv, skill_get_time2(skillid, skilllv));
 		break;
 	case NC_POWERSWING:
-		sc_start(bl, SC_STUN, 5*skilllv, skilllv, skill_get_time(skillid, skilllv));
+		sc_start(bl, SC_STUN, 10, skilllv, skill_get_time(skillid, skilllv));
 		if( rnd()%100 < 5*skilllv )
 			skill_castend_damage_id(src, bl, NC_AXEBOOMERANG, pc_checkskill(sd, NC_AXEBOOMERANG), tick, 1);
 		break;
@@ -3449,7 +3456,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	 **/
 	case NC_BOOSTKNUCKLE:
 	case NC_PILEBUNKER:
-	case NC_VULCANARM:
 	case NC_COLDSLOWER:
 	case NC_ARMSCANNON:
 		if (sd) pc_overheat(sd,1);
@@ -3652,6 +3658,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case WL_COMET:
 	case RA_ARROWSTORM:
 	case RA_WUGDASH:
+	case NC_VULCANARM:
 	case NC_SELFDESTRUCTION:
 	case NC_AXETORNADO:
 	case GC_ROLLINGCUTTER:
@@ -3707,6 +3714,10 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 				skill_area_temp[4] = bl->x;
 				skill_area_temp[5] = bl->y;
 			}
+			
+			if( skillid == NC_VULCANARM )
+					if (sd) pc_overheat(sd,1);
+					
 			// if skill damage should be split among targets, count them
 			//SD_LEVEL -> Forced splash damage for Auto Blitz-Beat -> count targets
 			//special case: Venom Splasher uses a different range for searching than for splashing
@@ -4270,8 +4281,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case NC_INFRAREDSCAN:
 		if( flag&1 )
 		{ //TODO: Need a confirmation if the other type of hidden status is included to be scanned. [Jobbie]
-			if( rnd()%100 < 50 )
-				sc_start(bl, SC_INFRAREDSCAN, 10000, skilllv, skill_get_time(skillid, skilllv));
+			sc_start(bl, SC_INFRAREDSCAN, 10000, skilllv, skill_get_time(skillid, skilllv));
 			status_change_end(bl, SC_HIDING, INVALID_TIMER);
 			status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
 			status_change_end(bl, SC_CLOAKINGEXCEED, INVALID_TIMER); // Need confirm it.
@@ -11840,10 +11850,12 @@ int skill_check_condition_castbegin(struct map_session_data* sd, short skill, sh
 	// Check the skills that can be used while mounted on a warg
 	if( pc_isridingwug(sd) ) {
 		switch( skill ) {
-			case HT_SKIDTRAP:     case HT_LANDMINE:     case HT_ANKLESNARE:     case HT_SHOCKWAVE:
-			case HT_SANDMAN:      case HT_FLASHER:      case HT_FREEZINGTRAP:   case HT_BLASTMINE:
-			case HT_CLAYMORETRAP: case HT_SPRINGTRAP:   case RA_DETONATOR:      case RA_CLUSTERBOMB:
-			case RA_WUGDASH:      case RA_WUGRIDER:
+			case HT_SKIDTRAP:		case HT_LANDMINE:	case HT_ANKLESNARE:		case HT_SHOCKWAVE:
+			case HT_SANDMAN:		case HT_FLASHER:	case HT_FREEZINGTRAP:	case HT_BLASTMINE:
+			case HT_CLAYMORETRAP:	case HT_SPRINGTRAP:	case RA_DETONATOR:		case RA_ELECTRICSHOCKER:
+			case RA_CLUSTERBOMB:	case RA_WUGDASH:	case RA_WUGRIDER:		case RA_WUGSTRIKE:
+			case RA_MAGENTATRAP:	case RA_COBALTTRAP:	case RA_MAIZETRAP:		case RA_VERDURETRAP:
+			case RA_FIRINGTRAP:		case RA_ICEBOUNDTRAP:
 				break;
 			default:
 				clif_skill_fail(sd,skill,USESKILL_FAIL_LEVEL,0);
