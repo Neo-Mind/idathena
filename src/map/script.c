@@ -48,6 +48,7 @@
 #include "mail.h"
 #include "script.h"
 #include "quest.h"
+#include "elemental.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12371,6 +12372,8 @@ BUILDIN_FUNC(getsavepoint)
   *                                2 - Pet coord
   *                                3 - Mob coord (not released)
   *                                4 - Homun coord
+  *								   5 - Mercenary coord
+  *                                6 - Elemental coord
   *                     CharName$ - Name object. If miss or "this" the current object
   *
   *             Return:
@@ -12447,6 +12450,22 @@ BUILDIN_FUNC(getmapxy)
 
 			if (sd && sd->hd)
 				bl = &sd->hd->bl;
+			break;
+		case 5: //Get Mercenary Position 
+				if(script_hasdata(st,6))
+						sd=map_nick2sd(script_getstr(st,6));
+				else
+						sd=script_rid2sd(st);
+				if (sd && sd->md)
+						bl = &sd->md->bl;
+				break;
+		case 6: //Get Elemental Position
+				if(script_hasdata(st,6))
+						sd=map_nick2sd(script_getstr(st,6));
+				else
+						sd=script_rid2sd(st);
+				if (sd && sd->ed)
+						bl = &sd->ed->bl;
 			break;
 		default:
 			ShowWarning("script: buildin_getmapxy: Invalid type %d\n", type);

@@ -30,9 +30,7 @@ bat_room,164,178,5	script	KVM Mercenary Officer#1	418,{
 		mes "Saya tahu bahwa Anda sudah bergabung dengan Croix. Kembali dan bergabung dengan tim mereka. Kami tidak akan menerima pengkhianat untuk berperang bagi kami.";
 		close;
 	}
-	else if (.@kvm == 2) {
-		erasequest 6026;
-	}
+	else if (.@kvm == 2) erasequest 6026;
 	*/
 	set .@permit,checkquest(6025,PLAYTIME);
 	if ((.@permit == 0) || (.@permit == 1)) {
@@ -40,9 +38,7 @@ bat_room,164,178,5	script	KVM Mercenary Officer#1	418,{
 		mes "Sepertinya Anda baru saja berpartisipasi dalam pertempuran KVM. Anda harus menunggu 5 menit sebelum mendaftar lagi.";
 		close;
 	}
-	else if (.@permit == 2) {
-		erasequest 6025;
-	}
+	else if (.@permit == 2) erasequest 6025;
 	mes "[Guillaume Mercenary Officer]";
 	mes "Biarkan mereka mengetahui kekuatan sebenarnya dari Guillaume!";
 	next;
@@ -53,19 +49,13 @@ bat_room,164,178,5	script	KVM Mercenary Officer#1	418,{
 		mes "Hari ini, semua orang akan mendengar teriakan kemenangan dari Guillaume!";
 		close2;
 		//setquest 6025;
-		if (BaseLevel > 79) {
-			warp "bat_room",169,223;
-		}
-		else if (BaseLevel < 60) {
-			warp "bat_room",197,223;
-		}
-		else {
-			warp "bat_room",225,223;
-		}
+		if (BaseLevel > 79)  warp "bat_room",169,223;
+		else if (BaseLevel < 60) warp "bat_room",197,223;
+		else warp "bat_room",225,223;
 		close;
 	case 2:
 		mes "[Guillaume Mercenary Officer]";
-		mes "kami akan menang!";
+		mes "Kami akan menang!";
 		close;
 	}
 }
@@ -140,9 +130,7 @@ bat_room,164,121,1	script	KVM Mercenary Officer#2	414,{
 		mes "Saya tahu bahwa Anda sudah bergabung dengan Guillaume. Kembali dan bergabung dengan tim mereka. Kami tidak akan menerima pengkhianat untuk berperang bagi kami.";
 		close;
 	}
-	else if (.@kvm == 2) {
-		erasequest 6025;
-	}
+	else if (.@kvm == 2) erasequest 6025;
 	*/
 	set .@permit,checkquest(6025,PLAYTIME);
 	if ((.@permit == 0) || (.@permit == 1)) {
@@ -150,9 +138,7 @@ bat_room,164,121,1	script	KVM Mercenary Officer#2	414,{
 		mes "Sepertinya Anda baru saja berpartisipasi dalam pertempuran KVM. Anda harus menunggu 5 menit sebelum mendaftar lagi.";
 		close;
 	}
-	else if (.@permit == 2) {
-		erasequest 6025;
-	}
+	else if (.@permit == 2) erasequest 6025;
 	mes "[Croix Mercenary Officer]";
 	mes "Biarkan mereka mengetahui kekuatan sebenarnya dari Croix!";
 	next;
@@ -163,19 +149,13 @@ bat_room,164,121,1	script	KVM Mercenary Officer#2	414,{
 		mes "Hari ini, semua orang akan mendengar teriakan kemenangan dari Croix!";
 		close2;
 		//setquest 6026;
-		if (BaseLevel > 79) {
-			warp "bat_room",169,207;
-		}
-		else if (BaseLevel < 60) {
-			warp "bat_room",197,207;
-		}
-		else {
-			warp "bat_room",225,207;
-		}
+		if (BaseLevel > 79) warp "bat_room",169,207;
+		else if (BaseLevel < 60) warp "bat_room",197,207;
+		else warp "bat_room",225,207;
 		close;
 	case 2:
 		mes "[Croix Mercenary Officer]";
-		mes "kami akan menang!";
+		mes "Kami akan menang!";
 		close;
 	}
 }

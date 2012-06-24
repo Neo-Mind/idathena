@@ -2089,6 +2089,9 @@ int parse_fromlogin(int fd)
 						else if( class_[i] == JOB_KAGEROU || class_[i] == JOB_OBORO )
 							class_[i] = (sex ? JOB_KAGEROU : JOB_OBORO);
 					}
+					
+					if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `class`='%d', `weapon`='0', `shield`='0', `head_top`='0', `head_mid`='0', `head_bottom`='0' WHERE `char_id`='%d'", char_db, class_[i], char_id[i]) )  
+							Sql_ShowDebug(sql_handle);  
 
 					if( guild_id[i] )// If there is a guild, update the guild_member data [Skotlex]
 						inter_guild_sex_changed(guild_id[i], acc, char_id[i], sex);
@@ -2283,7 +2286,7 @@ void char_read_fame_list(void)
 	memset(chemist_fame_list, 0, sizeof(chemist_fame_list));
 	memset(taekwon_fame_list, 0, sizeof(taekwon_fame_list));
 	// Build Blacksmith ranking list
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `fame`>0 AND (`class`='%d' OR `class`='%d' OR `class`='%d') ORDER BY `fame` DESC LIMIT 0,%d", char_db, JOB_BLACKSMITH, JOB_WHITESMITH, JOB_BABY_BLACKSMITH, fame_list_size_smith) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `fame`>0 AND (`class`='%d' OR `class`='%d' OR `class`='%d' OR `class`='%d' OR `class`='%d' OR `class`='%d') ORDER BY `fame` DESC LIMIT 0,%d", char_db, JOB_BLACKSMITH, JOB_WHITESMITH, JOB_BABY_BLACKSMITH, JOB_MECHANIC, JOB_MECHANIC_T, JOB_BABY_MECHANIC, fame_list_size_smith) ) 
 		Sql_ShowDebug(sql_handle);
 	for( i = 0; i < fame_list_size_smith && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
 	{
@@ -2298,7 +2301,7 @@ void char_read_fame_list(void)
 		memcpy(smith_fame_list[i].name, data, min(len, NAME_LENGTH));
 	}
 	// Build Alchemist ranking list
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `fame`>0 AND (`class`='%d' OR `class`='%d' OR `class`='%d') ORDER BY `fame` DESC LIMIT 0,%d", char_db, JOB_ALCHEMIST, JOB_CREATOR, JOB_BABY_ALCHEMIST, fame_list_size_chemist) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `fame`>0 AND (`class`='%d' OR `class`='%d' OR `class`='%d' OR `class`='%d' OR `class`='%d' OR `class`='%d') ORDER BY `fame` DESC LIMIT 0,%d", char_db, JOB_ALCHEMIST, JOB_CREATOR, JOB_BABY_ALCHEMIST, JOB_GENETIC, JOB_GENETIC_T, JOB_BABY_GENETIC, fame_list_size_chemist) ) 
 		Sql_ShowDebug(sql_handle);
 	for( i = 0; i < fame_list_size_chemist && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
 	{

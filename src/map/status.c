@@ -863,6 +863,7 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_PETROLOGY] = SI_PETROLOGY;
 	StatusIconChangeTable[SC_CURSED_SOIL] = SI_CURSED_SOIL;
 	StatusIconChangeTable[SC_UPHEAVAL] = SI_UPHEAVAL;
+	StatusIconChangeTable[SC_PUSH_CART] = SI_ON_PUSH_CART;
 
 	//Other SC which are not necessarily associated to skills.
 	StatusChangeFlagTable[SC_ASPDPOTION0] = SCB_ASPD;
@@ -956,7 +957,6 @@ void initChangeTables(void) {
 	StatusChangeStateTable[SC_TRICKDEAD]           |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_BLADESTOP]           |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_BLADESTOP_WAIT]      |= SCS_NOMOVE;
-	StatusChangeStateTable[SC_SPIDERWEB]           |= SCS_NOMOVE|SCS_NOMOVECOND;
 	StatusChangeStateTable[SC_DANCING]             |= SCS_NOMOVE|SCS_NOMOVECOND;
 	StatusChangeStateTable[SC_GOSPEL]              |= SCS_NOMOVE|SCS_NOMOVECOND;
 	StatusChangeStateTable[SC_BASILICA]            |= SCS_NOMOVE|SCS_NOMOVECOND;
@@ -3372,8 +3372,7 @@ void status_calc_state( struct block_list *bl, struct status_change *sc, enum sc
 		if( !(flag&SCS_NOMOVECOND) ) {
 			sc->cant.move += ( start ? 1 : -1 );
 		} else if(
-				  (sc->data[SC_SPIDERWEB] && sc->data[SC_SPIDERWEB]->val1)
-				  || (sc->data[SC_DANCING] && sc->data[SC_DANCING]->val4 && (
+				 (sc->data[SC_DANCING] && sc->data[SC_DANCING]->val4 && (
 																			 !sc->data[SC_LONGING] ||
 																			 (sc->data[SC_DANCING]->val1&0xFFFF) == CG_MOONLIT ||
 																			 (sc->data[SC_DANCING]->val1&0xFFFF) == CG_HERMODE
@@ -9322,7 +9321,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		if (--(sce->val4) >= 0) {
 			int hp =  rnd()%600 + 200;
 			map_freeblock_lock();
-			status_fix_damage(NULL, bl, sd||hp<status->hp?hp:status->hp-1, 0);
+			status_fix_damage(NULL, bl, sd||hp<status->hp?hp:status->hp-1, 1);
 			if( sc->data[type] ) {
 				if( status->hp == 1 ) break;
 				sc_timer_next(10000 + tick, status_change_timer, bl->id, data);

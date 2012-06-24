@@ -5200,7 +5200,7 @@ static const struct _battle_data {
 	{ "arrow_decrement",                    &battle_config.arrow_decrement,                 1,      0,      2,              },
 	{ "max_aspd",                           &battle_config.max_aspd,                        199,    100,    199,            },
 	{ "max_walk_speed",                     &battle_config.max_walk_speed,                  300,    100,    100*DEFAULT_WALK_SPEED, },
-	{ "max_lv",                             &battle_config.max_lv,                          99,     0,      127,            },
+	{ "max_lv",                             &battle_config.max_lv,                          99,     0,      MAX_LEVEL,				},
 	{ "aura_lv",                            &battle_config.aura_lv,                         99,     0,      INT_MAX,        },
 	{ "max_hp",                             &battle_config.max_hp,                          32500,  100,    1000000000,     },
 	{ "max_sp",                             &battle_config.max_sp,                          32500,  100,    1000000000,     },
@@ -5447,6 +5447,7 @@ static const struct _battle_data {
 	{ "mvp_tomb_enabled",					&battle_config.mvp_tomb_enabled,				1,      0,      1				},
 	{ "feature.atcommand_suggestions",		&battle_config.atcommand_suggestions_enabled,	0,      0,      1				},
 	{ "min_npc_vending_distance",           &battle_config.min_npc_vending_distance,		3,		0,		100				},
+	{ "atcommand_mobinfo_type",				&battle_config.atcommand_mobinfo_type,			0,		0,		1				},
 };
 
 
