@@ -12372,7 +12372,7 @@ BUILDIN_FUNC(getsavepoint)
   *                                2 - Pet coord
   *                                3 - Mob coord (not released)
   *                                4 - Homun coord
-  *								   5 - Mercenary coord
+  *                                5 - Mercenary coord
   *                                6 - Elemental coord
   *                     CharName$ - Name object. If miss or "this" the current object
   *
