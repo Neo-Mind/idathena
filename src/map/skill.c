@@ -13070,8 +13070,6 @@ int skill_castfix_sc (struct block_list *bl, int time, int skill_id, int skill_l
 			fixed -= fixed * sc->data[SC_SECRAMENT]->val2 / 100;
 		if( sc->data[SC_MANDRAGORA] )
 			fixed += 500 * sc->data[SC_MANDRAGORA]->val1;
-		if( (skill_id >= SM_BASH && skill_id <= RETURN_TO_ELDICASTES) )
-			fixed += 2000;
 #endif
 	}
 #ifdef RENEWAL_CAST
