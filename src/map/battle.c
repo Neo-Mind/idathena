@@ -2540,8 +2540,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			if (sc->data[SC_EDP]) { 
 			// FIX ME: Should Rolling Cutter be affected by EDP? 
 				switch(skill_num) { 
-					case AS_SPLASHER:       case AS_VENOMKNIFE: 
-					case AS_GRIMTOOTH:      case GC_ROLLINGCUTTER: 
+					case AS_SPLASHER:       case AS_VENOMKNIFE:
+					case AS_GRIMTOOTH:
 					break; 
 #ifndef RENEWAL_EDP 
 					case ASC_BREAKER:       case ASC_METEORASSAULT: break; 
@@ -3557,11 +3557,12 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						RE_LVL_DMOD(100);
 						break;
 					case WL_HELLINFERNO:
-						if( status_get_element(target) == ELE_FIRE )
-							skillratio = 60 * skill_lv;
-						else
-							skillratio = 240 * skill_lv;
+						skillratio = 300 * skill_lv;
 						RE_LVL_DMOD(100);
+						// Shadow: MATK [{( Skill Level x 300 ) x ( Caster?s Base Level / 100 ) x 4/5 }] %
+						// Fire : MATK [{( Skill Level x 300 ) x ( Caster?s Base Level / 100 ) /5 }] %
+						if( mflag&ELE_DARK ){ skillratio *= 4; s_ele = ELE_DARK; }
+						skillratio /= 5;
 						break;
 					case WL_COMET:
 						{
@@ -3639,7 +3640,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						break;
 					case SO_EARTHGRAVE: {
 						struct status_change * sc = status_get_sc(src);
-						skillratio = sstatus->int_ * skill_lv + 200 * ( sd ? pc_checkskill(sd, SA_SEISMICWEAPON) : 10 );
+						skillratio = sstatus->int_ * skill_lv + 200 * ( sd ? pc_checkskill(sd, SA_SEISMICWEAPON) : 5 );
 						RE_LVL_DMOD(100);
 						if( sc && sc->data[SC_CURSED_SOIL_OPTION] )
 							skillratio += skillratio * sc->data[SC_CURSED_SOIL_OPTION]->val2 / 100;
@@ -3647,7 +3648,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						break;
 					case SO_DIAMONDDUST: {
 						struct status_change * sc = status_get_sc(src);
-						skillratio = sstatus->int_ * skill_lv + 200 * ( sd ? pc_checkskill(sd, SA_FROSTWEAPON) : 10 );
+						skillratio = sstatus->int_ * skill_lv + 200 * ( sd ? pc_checkskill(sd, SA_FROSTWEAPON) : 5 );
 						RE_LVL_DMOD(100);
 						if( sc && sc->data[SC_COOLER_OPTION] )
 							skillratio += skillratio * sc->data[SC_COOLER_OPTION]->val3 / 100;

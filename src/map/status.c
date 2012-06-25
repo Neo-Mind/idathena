@@ -944,8 +944,8 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_EXTRACT_SALAMINE_JUICE] |= SCB_ASPD;	
 
 #ifdef RENEWAL_EDP
-	// renewal EDP increases your atk and weapon atk
-	StatusChangeFlagTable[SC_EDP] |= SCB_BATK|SCB_WATK;
+	// renewal EDP increases your weapon atk and equipment atk
+	StatusChangeFlagTable[SC_EDP] |= SCB_WATK;
 #endif
 	
 	if( !battle_config.display_hallucination ) //Disable Hallucination.
@@ -1736,6 +1736,7 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 	{	//Check for chase-walk/hiding/cloaking opponents.
 	case BL_PC:
 		if ( tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS) )
+			return 0;
 		if( (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) || tsc->data[SC__INVISIBILITY] || tsc->data[SC_CAMOUFLAGE]) && !(status->mode&MD_BOSS) &&
 			( ((TBL_PC*)target)->special_state.perfect_hiding || !(status->mode&MD_DETECTOR) ) )
 			return 0;
@@ -4151,7 +4152,7 @@ static unsigned short status_calc_int(struct block_list *bl, struct status_chang
 	if(sc->data[SC_MARIONETTE2])
 		int_ += ((sc->data[SC_MARIONETTE2]->val4)>>16)&0xFF;
 	if(sc->data[SC_MANDRAGORA])
-		int_ -= 5 + 5 * sc->data[SC_MANDRAGORA]->val1;
+		int_ -= 4 * sc->data[SC_MANDRAGORA]->val1;
 	if(sc->data[SC__STRIPACCESSORY])
 		int_ -= int_ * sc->data[SC__STRIPACCESSORY]->val2 / 100;
 	if(sc->data[SC_HARMONIZE])
@@ -4320,11 +4321,11 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk += sc->data[SC_FULL_SWING_K]->val1;
 	if(sc->data[SC_ODINS_POWER])
 		batk += 70;
-#ifdef RENEWAL_EDP
-	// renewal EDP increases your base atk by atk x skill level
+/*#ifdef RENEWAL_EDP
+	// Renewal EDP not increase base atk
 	if( sc->data[SC_EDP] )
 		batk = batk * sc->data[SC_EDP]->val1;
-#endif
+#endif*/
 	return (unsigned short)cap_value(batk,0,USHRT_MAX);
 }
 
@@ -4405,9 +4406,9 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 		watk += watk * sc->data[SC_TIDAL_WEAPON]->val2 / 100;
 
 #ifdef RENEWAL_EDP
-	// renewal EDP increases your weapon atk by watk x Skill Level - 1
-	if( sc->data[SC_EDP] && sc->data[SC_EDP]->val1 > 1 )
-		watk = watk * (sc->data[SC_EDP]->val1 - 1);
+	// renewal EDP increases your weapon atk by watk x Skill Level
+	if( sc->data[SC_EDP] )
+		watk = watk * (sc->data[SC_EDP]->val1);
 #endif
 
 	return (unsigned short)cap_value(watk,0,USHRT_MAX);
@@ -9286,6 +9287,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		if(sc->opt1 == OPT1_STONEWAIT && sce->val3) {
 			sce->val4 = 0;
 			unit_stop_walking(bl,1);
+			unit_stop_attack(bl);
 			sc->opt1 = OPT1_STONE;
 			clif_changeoption(bl);
 			sc_timer_next(1000+tick,status_change_timer, bl->id, data );

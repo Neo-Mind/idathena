@@ -3835,7 +3835,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case AB_RENOVATIO:
 	case AB_HIGHNESSHEAL:
 	case AB_DUPLELIGHT_MAGIC:
-	case WL_HELLINFERNO:
 	case WM_METALICSOUND:
 		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
 		break;
@@ -4243,6 +4242,10 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 			break; // Do not hit invisible enemy
 		skill_attack(skill_get_type(skillid), src, src, bl, skillid, skilllv, tick, flag);
 		}
+		break;
+	case WL_HELLINFERNO:
+		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag|ELE_DARK);
 		break;
 	case RA_WUGSTRIKE:
 	case RA_WUGBITE:
@@ -13065,7 +13068,9 @@ int skill_castfix_sc (struct block_list *bl, int time, int skill_id, int skill_l
 		 **/
 		if( sc->data[SC_SECRAMENT] )
 			fixed -= fixed * sc->data[SC_SECRAMENT]->val2 / 100;
-		if( sc->data[SC_MANDRAGORA] && (skill_id >= SM_BASH && skill_id <= RETURN_TO_ELDICASTES) )
+		if( sc->data[SC_MANDRAGORA] )
+			fixed += 500 * sc->data[SC_MANDRAGORA]->val1;
+		if( (skill_id >= SM_BASH && skill_id <= RETURN_TO_ELDICASTES) )
 			fixed += 2000;
 #endif
 	}
