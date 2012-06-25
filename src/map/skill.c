@@ -5182,14 +5182,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 			
 	case SO_STRIKING:
-		if (sd) {
-			int bonus = 25 + 10 * skilllv;
-			bonus += (pc_checkskill(sd, SA_FLAMELAUNCHER)+pc_checkskill(sd, SA_FROSTWEAPON)+pc_checkskill(sd, SA_LIGHTNINGLOADER)+pc_checkskill(sd, SA_SEISMICWEAPON))*5;
-			clif_skill_nodamage( src, bl, skillid, skilllv,
-								battle_check_target(src,bl,BCT_PARTY) ?
-								sc_start2(bl, type, 100, skilllv, bonus, skill_get_time(skillid,skilllv)) :
-								0
-				);
+		{
+			int bonus = 0;
+			if( dstsd )
+			{
+				short index = dstsd->equip_index[EQI_HAND_R];
+				if( index >= 0 && dstsd->inventory_data[index] && dstsd->inventory_data[index]->type == IT_WEAPON )
+				bonus = (8 + 2 * skilllv) * dstsd->inventory_data[index]->wlv;
+			}
+			bonus += 5 * (pc_checkskill(sd, SA_FLAMELAUNCHER) + pc_checkskill(sd, SA_FROSTWEAPON) + pc_checkskill(sd, SA_LIGHTNINGLOADER) + pc_checkskill(sd, SA_SEISMICWEAPON));
+			clif_skill_nodamage( src, bl, skillid, skilllv, sc_start2(bl, type, 100, skilllv, bonus, skill_get_time(skillid,skilllv)) );
 		}
 		break;			
 			
@@ -11290,10 +11292,12 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			
 		case UNT_WARMER:
 			if( bl->type == BL_PC && !battle_check_undead(tstatus->race, tstatus->def_ele) && tstatus->race != RC_DEMON ) {
-				int hp = 125 * sg->skill_lv; // Officially is 125 * skill_lv.
+				int hp = 0;
 				struct status_change *ssc = status_get_sc(ss);
 				if( ssc && ssc->data[SC_HEATER_OPTION] )
-					hp += hp * ssc->data[SC_HEATER_OPTION]->val3 / 100;
+					hp = tstatus->max_hp * 3 * sg->skill_lv / 100;
+				else
+					hp = tstatus->max_hp * sg->skill_lv / 100;
 				status_heal(bl, hp, 0, 0);
 				if( tstatus->hp != tstatus->max_hp )
 					clif_skill_nodamage(&src->bl, bl, AL_HEAL, hp, 0);
@@ -11852,10 +11856,8 @@ int skill_check_condition_castbegin(struct map_session_data* sd, short skill, sh
 		switch( skill ) {
 			case HT_SKIDTRAP:	case HT_LANDMINE:	case HT_ANKLESNARE:	case HT_SHOCKWAVE:
 			case HT_SANDMAN:	case HT_FLASHER:	case HT_FREEZINGTRAP:	case HT_BLASTMINE:
-			case HT_CLAYMORETRAP:	case HT_SPRINGTRAP:	case RA_DETONATOR:	case RA_ELECTRICSHOCKER:
-			case RA_CLUSTERBOMB:	case RA_WUGDASH:	case RA_WUGRIDER:	case RA_WUGSTRIKE:
-			case RA_MAGENTATRAP:	case RA_COBALTTRAP:	case RA_MAIZETRAP:	case RA_VERDURETRAP:
-			case RA_FIRINGTRAP:	case RA_ICEBOUNDTRAP:
+			case HT_CLAYMORETRAP:	case HT_SPRINGTRAP:	case RA_DETONATOR:	case RA_CLUSTERBOMB:
+			case RA_WUGDASH:	case RA_WUGRIDER:	case RA_FIRINGTRAP:	case RA_ICEBOUNDTRAP:
 				break;
 			default:
 				clif_skill_fail(sd,skill,USESKILL_FAIL_LEVEL,0);
@@ -12373,12 +12375,12 @@ int skill_check_condition_castbegin(struct map_session_data* sd, short skill, sh
 				return 0;
 			}
 			break;
-		case RETURN_TO_ELDICASTES:
+		/*case RETURN_TO_ELDICASTES:
 			if( pc_ismadogear(sd) ) { //Cannot be used if Mado is equipped.
 				clif_skill_fail(sd,skill,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}
-			break;			
+			break;*/		
 	}
 
 	switch(require.state) {
