@@ -10567,6 +10567,9 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 
 	case UNT_PNEUMA:
 	case UNT_CHAOSPANIC:
+		if (!sce)
+			sc_start4(bl,type,30+15*sg->skill_lv,sg->skill_lv,sg->group_id,0,0,sg->limit);
+		break;
 	case UNT_MAELSTROM:
 		if (!sce)
 			sc_start4(bl,type,100,sg->skill_lv,sg->group_id,0,0,sg->limit);

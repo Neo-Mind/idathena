@@ -5858,9 +5858,15 @@ int status_get_sc_def(struct block_list *bl, enum sc_type type, int rate, int ti
 			return tick;
 		sc_def = 3 +(status->vit + status->int_)/2;
 		break;
+#ifdef RENEWAL
+	case SC_CONFUSION:
+		sc_def = 0;
+		break;
+#else
 	case SC_CONFUSION:
 		sc_def = 3 +(status->str + status->int_)/2;
 		break;
+#endif
 	case SC_ANKLE:
 		if(status->mode&MD_BOSS) // Lasts 5 times less on bosses
 			tick /= 5;
@@ -6629,7 +6635,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			case SC__IGNORANCE:
 			case SC__LAZINESS:
 			case SC__WEAKNESS:
-			case SC__UNLUCKY:		
+			case SC__UNLUCKY:
 				return 0;
 			case SC_COMBO: 
 			case SC_DANCING:
@@ -10118,11 +10124,46 @@ int status_change_clear_buffs (struct block_list* bl, int type)
 			case SC_VITALITYACTIVATION:
 			case SC_FIGHTINGSPIRIT:
 			case SC_ABUNDANCE:
+			// Extra large skills cooldowns
+			case SC_SAVAGE_STEAK:
+			case SC_COCKTAIL_WARG_BLOOD:
+			case SC_MINOR_BBQ:
+			case SC_SIROMA_ICE_TEA:
+			case SC_DROCERA_HERB_STEAMED:
+			case SC_PUTTI_TAILS_NOODLES:
 			case SC_CURSEDCIRCLE_ATKER:
 			case SC_CURSEDCIRCLE_TARGET:
 				continue;
 				
 			//Debuffs that can be removed.
+			case SC_STRIPWEAPON:
+			case SC_STRIPSHIELD:
+			case SC_STRIPARMOR:
+			case SC_STRIPHELM:
+				if( type&4 )	// Don't remove it by Refresh.
+					continue;
+			case SC_STUN:
+			case SC_CURSE:
+			case SC_STONE:
+			case SC_POISON:
+			case SC_BLIND:
+			case SC_BLEEDING:
+			case SC_SILENCE:
+			case SC_CONFUSION:
+			case SC_FREEZE:
+			case SC_DEEPSLEEP:
+			case SC_BURNING:
+			case SC_FREEZING:
+			case SC_CRYSTALIZE:
+			case SC_TOXIN:
+			case SC_PARALYSE:
+			case SC_VENOMBLEED:
+			case SC_MAGICMUSHROOM:
+			case SC_DEATHHURT:
+			case SC_PYREXIA:
+			case SC_OBLIVIONCURSE:
+			case SC_MARSHOFABYSS:
+			case SC_MANDRAGORA:
 			case SC_HALLUCINATION:
 			case SC_QUAGMIRE:
 			case SC_SIGNUMCRUCIS:
@@ -10132,14 +10173,9 @@ int status_change_clear_buffs (struct block_list* bl, int type)
 			case SC_WINKCHARM:
 			case SC_STOP:
 			case SC_ORCISH:
-			case SC_STRIPWEAPON:
-			case SC_STRIPSHIELD:
-			case SC_STRIPARMOR:
-			case SC_STRIPHELM:
 			case SC_BITE:
 			case SC_ADORAMUS:
 			case SC_VACUUM_EXTREME:
-			case SC_BURNING:
 			case SC_FEAR:
 			case SC_MAGNETICFIELD:
 				if (!(type&2))
