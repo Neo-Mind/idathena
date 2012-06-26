@@ -355,7 +355,11 @@ void initChangeTables(void) {
 	set_sc( LK_CONCENTRATION     , SC_CONCENTRATION   , SI_CONCENTRATION   , SCB_BATK|SCB_WATK|SCB_HIT|SCB_DEF|SCB_DEF2|SCB_MDEF|SCB_DSPD );
 	set_sc( LK_TENSIONRELAX      , SC_TENSIONRELAX    , SI_TENSIONRELAX    , SCB_REGEN );
 	set_sc( LK_BERSERK           , SC_BERSERK         , SI_BERSERK         , SCB_DEF|SCB_DEF2|SCB_MDEF|SCB_MDEF2|SCB_FLEE|SCB_SPEED|SCB_ASPD|SCB_MAXHP|SCB_REGEN );
+#ifdef RENEWAL
+	set_sc( HP_ASSUMPTIO         , SC_ASSUMPTIO       , SI_ASSUMPTIO       , SCB_DEF2|SCB_MDEF2 );
+#else	
 	set_sc( HP_ASSUMPTIO         , SC_ASSUMPTIO       , SI_ASSUMPTIO       , SCB_NONE );
+#endif	
 	add_sc( HP_BASILICA          , SC_BASILICA        );
 	set_sc( HW_MAGICPOWER        , SC_MAGICPOWER      , SI_MAGICPOWER      , SCB_MATK );
 	add_sc( PA_SACRIFICE         , SC_SACRIFICE       );
@@ -4728,6 +4732,8 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 #ifdef RENEWAL
 	if( sc->data[SC_STONEHARDSKIN] )
 		def2 += sc->data[SC_STONEHARDSKIN]->val3;
+	if( sc->data[SC_ASSUMPTIO] )
+		def2 *= 2;
 
 	return (short)cap_value(def2,SHRT_MIN,SHRT_MAX);
 #else
@@ -4804,6 +4810,8 @@ static signed short status_calc_mdef2(struct block_list *bl, struct status_chang
 #ifdef RENEWAL
 	if(sc->data[SC_STONEHARDSKIN] )
 		mdef2 += sc->data[SC_STONEHARDSKIN]->val3;
+	if( sc->data[SC_ASSUMPTIO] )
+		mdef2 *= 2;
 
 	return (short)cap_value(mdef2,SHRT_MIN,SHRT_MAX);
 #else

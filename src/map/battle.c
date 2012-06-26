@@ -612,8 +612,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			if( sc->data[SC_VOICEOFSIREN] )
 				status_change_end(bl,SC_VOICEOFSIREN,INVALID_TIMER);
 		}
-
-
+#ifndef RENEWAL
 		//Finally damage reductions....
 		if( sc->data[SC_ASSUMPTIO] ) {
 			if( map_flag_vs(bl->m) )
@@ -621,6 +620,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			else
 				damage >>= 1; //Receive 50% damage
 		}
+#endif
 
 		if(sc->data[SC_DEFENDER] &&
 			(flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON))
@@ -2704,8 +2704,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				 **/
 				if (def1 > 900) def1 = 900;
 				ATK_RATE2(
-					flag.idef ?100:(flag.pdef ?(int)(flag.pdef *(def1+vit_def)):(1+(900-def1)/9)),
-			 		flag.idef2?100:(flag.pdef2?(int)(flag.pdef2*(def1+vit_def)):(1+(900-def1)/9))
+					flag.idef ?100:(flag.pdef ?(int)(flag.pdef *(def1/2)):(1+(900-def1)/9)),
+			 		flag.idef2?100:(flag.pdef2?(int)(flag.pdef2*(def1/2)):(1+(900-def1)/9))
 				);
 			#else
 				if (def1 > 100) def1 = 100;
