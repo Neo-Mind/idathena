@@ -454,6 +454,10 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}
+		if( ( sc->data[SC_NEUTRALBARRIER] && (flag&(BF_MAGIC|BF_LONG)) == BF_LONG ) || ( sc->data[SC_NEUTRALBARRIER] && (flag&(BF_MAGIC|BF_LONG)) == BF_MAGIC ) ) {
+			d->dmg_lv = ATK_BLOCK;
+			return 0;
+		}
 		if( sc->data[SC_WEAPONBLOCKING] && flag&(BF_SHORT|BF_WEAPON) && rnd()%100 < sc->data[SC_WEAPONBLOCKING]->val2 )
 		{
 			clif_skill_nodamage(bl,src,GC_WEAPONBLOCKING,1,1);

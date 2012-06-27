@@ -9398,7 +9398,9 @@ int skill_castend_pos2(struct block_list* src, int x, int y, int skillid, int sk
 	case MO_BODYRELOCATION:
 		if (unit_movepos(src, x, y, 1, 1)) {
 			clif_skill_poseffect(src,skillid,skilllv,src->x,src->y,tick);
-//			clif_slide(src, src->x, src->y); //Poseffect is the one that makes the char snap on the client...
+#if PACKETVER >= 20111102
+			clif_slide(src, src->x, src->y); //Poseffect is the one that makes the char snap on the client...
+#endif
 			if (sd) skill_blockpc_start (sd, MO_EXTREMITYFIST, 2000);
 		}
 		break;
@@ -10565,11 +10567,11 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 			sc_start4(bl,type,100,sg->skill_lv,sg->group_id,sg->group_id,0,sg->limit);
 		break;
 
-	case UNT_PNEUMA:
 	case UNT_CHAOSPANIC:
 		if (!sce)
 			sc_start4(bl,type,30+15*sg->skill_lv,sg->skill_lv,sg->group_id,0,0,sg->limit);
 		break;
+	case UNT_PNEUMA:
 	case UNT_MAELSTROM:
 		if (!sce)
 			sc_start4(bl,type,100,sg->skill_lv,sg->group_id,0,0,sg->limit);
