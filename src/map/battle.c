@@ -186,7 +186,7 @@ struct block_list* battle_getenemyarea(struct block_list *src, int x, int y, int
 // ƒ_??[ƒW‚Ì’x‰„
 struct delay_damage {
 	struct block_list *src;
-	int target;
+	struct block_list *target;
 	int damage;
 	int delay;
 	unsigned short distance;
@@ -199,31 +199,70 @@ struct delay_damage {
 int battle_delay_damage_sub(int tid, unsigned int tick, int id, intptr_t data)
 {
 	struct delay_damage *dat = (struct delay_damage *)data;
-	struct block_list *target = map_id2bl(dat->target);
 
-	if ( target && dat && target->prev != NULL && !status_isdead(target) ) {
-		if( id == dat->src->id &&
-			target->m == dat->src->m &&
-			(target->type != BL_PC || ((TBL_PC*)target)->invincible_timer == INVALID_TIMER) &&
-			check_distance_bl(dat->src, target, dat->distance) ) //Check to see if you haven't teleported. [Skotlex]
+	if ( dat && dat->target && dat->target->prev != NULL && !status_isdead(dat->target) ) {
+		if( dat->src && dat->src->prev != NULL && id == dat->src->id &&
+			dat->target->m == dat->src->m &&
+			(dat->target->type != BL_PC || ((TBL_PC*)dat->target)->invincible_timer == INVALID_TIMER) &&
+			check_distance_bl(dat->src, dat->target, dat->distance) ) //Check to see if you haven't teleported. [Skotlex]
 		{
 			map_freeblock_lock();
-			status_fix_damage(dat->src, target, dat->damage, dat->delay);
-			if( dat->attack_type && !status_isdead(target) )
-				skill_additional_effect(dat->src,target,dat->skill_id,dat->skill_lv,dat->attack_type,dat->dmg_lv,tick);
+			status_fix_damage(dat->src, dat->target, dat->damage, dat->delay);
+			if( dat->attack_type && !status_isdead(dat->target) )
+				skill_additional_effect(dat->src,dat->target,dat->skill_id,dat->skill_lv,dat->attack_type,dat->dmg_lv,tick);
 			if( dat->dmg_lv > ATK_BLOCK && dat->attack_type )
-				skill_counter_additional_effect(dat->src,target,dat->skill_id,dat->skill_lv,dat->attack_type,tick);
+				skill_counter_additional_effect(dat->src,dat->target,dat->skill_id,dat->skill_lv,dat->attack_type,tick);
 			map_freeblock_unlock();
 		} else if( dat->skill_id == CR_REFLECTSHIELD && !map_id2bl(id) ) {
 			/**
 			 * it was monster reflected damage, and the monster died, we pass the damage to the character as expected
 			 **/
 			map_freeblock_lock();
-			status_fix_damage(target, target, dat->damage, dat->delay);
+			status_fix_damage(dat->target, dat->target, dat->damage, dat->delay);
 			map_freeblock_unlock();
 		}
 	}
 	ers_free(delay_damage_ers, dat);
+	return 0;
+}
+
+int battle_delay_damage (unsigned int tick, int amotion, struct block_list *src, struct block_list *target, int attack_type, int skill_id, int skill_lv, int damage, enum damage_lv dmg_lv, int ddelay)
+{
+	struct delay_damage *dat;
+	struct status_change *sc;
+	nullpo_ret(src);
+	nullpo_ret(target);
+
+	sc = status_get_sc(target);
+
+	if( sc && sc->data[SC_DEVOTION] && damage > 0 && skill_id != PA_PRESSURE && skill_id != CR_REFLECTSHIELD )
+		damage = 0;
+
+	if ( !battle_config.delay_battle_damage || amotion <= 1 ) {
+		map_freeblock_lock();
+		status_fix_damage(src, target, damage, ddelay); // We have to seperate here between reflect damage and others [icescope]
+		if( attack_type && !status_isdead(target) )
+			skill_additional_effect(src, target, skill_id, skill_lv, attack_type, dmg_lv, gettick());
+		if( dmg_lv > ATK_BLOCK && attack_type )
+			skill_counter_additional_effect(src, target, skill_id, skill_lv, attack_type, gettick());
+		map_freeblock_unlock();
+		return 0;
+	}
+	dat = ers_alloc(delay_damage_ers, struct delay_damage);
+	dat->src = src;
+	dat->target = target;
+	dat->skill_id = skill_id;
+	dat->skill_lv = skill_lv;
+	dat->attack_type = attack_type;
+	dat->damage = damage;
+	dat->dmg_lv = dmg_lv;
+	dat->delay = ddelay;
+	dat->distance = distance_bl(src, target)+10; //Attack should connect regardless unless you teleported.
+	if (src->type != BL_PC && amotion > 1000)
+		amotion = 1000; //Aegis places a damage-delay cap of 1 sec to non player attacks. [Skotlex]
+
+	add_timer(tick+amotion, battle_delay_damage_sub, src->id, (intptr_t)dat);
+	
 	return 0;
 }
 

@@ -9318,6 +9318,10 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		npc_touch_areanpc(sd,sd->bl.m,sd->bl.x,sd->bl.y);
 	else
 		sd->areanpc_id = 0;
+		
+	/* it broke at some point (e.g. during a crash), so we make it visibly dead again. */
+	if( !sd->status.hp && !pc_isdead(sd) && status_isdead(&sd->bl) )
+			pc_setdead(sd);
 
 	// If player is dead, and is spawned (such as @refresh) send death packet. [Valaris]
 	if(pc_isdead(sd))
@@ -15855,8 +15859,10 @@ int clif_spellbook_list(struct map_session_data *sd)
 		sd->menuskill_id = WL_READING_SB;
 		sd->menuskill_val = c;
 	}
-	else
+	else {
 		status_change_end(&sd->bl,SC_STOP,INVALID_TIMER);
+		clif_skill_fail(sd, WL_READING_SB, USESKILL_FAIL_SPELLBOOK, 0);
+	}
 
 	return 1;
 }

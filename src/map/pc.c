@@ -3758,7 +3758,21 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount,e_l
 	sd->weight += w;
 	clif_updatestatus(sd,SP_WEIGHT);
 	//Auto-equip
-	if(data->flag.autoequip) pc_equipitem(sd, i, data->equip);
+	if(data->flag.autoequip)
+			pc_equipitem(sd, i, data->equip);
+	
+	/* rental item check */
+	if( item_data->expire_time ) {
+			if( time(NULL) > item_data->expire_time ) {
+					clif_rental_expired(sd->fd, i, sd->status.inventory[i].nameid);
+					pc_delitem(sd, i, sd->status.inventory[i].amount, 1, 0, LOG_TYPE_OTHER);
+			} else {
+					int seconds = (int)( item_data->expire_time - time(NULL) );
+					clif_rental_time(sd->fd, sd->status.inventory[i].nameid, seconds);
+					pc_inventory_rental_add(sd, seconds);
+			}
+	}
+	
 	return 0;
 }
 
@@ -4504,11 +4518,10 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 
 	sd->state.changemap = (sd->mapindex != mapindex);
 	sd->state.warping = 1;
-	if( sd->state.changemap )
-	{ // Misc map-changing settings
+	if( sd->state.changemap ) { // Misc map-changing settings
+		int i;
 		sd->state.pmap = sd->bl.m;
-		if (sd->sc.count)
-		{ // Cancel some map related stuff.
+		if (sd->sc.count) { // Cancel some map related stuff.
 			if (sd->sc.data[SC_JAILED])
 				return 1; //You may not get out!
 			status_change_end(&sd->bl, SC_BOSSMAPINFO, INVALID_TIMER);
@@ -4523,6 +4536,11 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 					delete_timer(sce->timer, status_change_timer);
 				sce->timer = add_timer(gettick() + skill_get_time(SG_KNOWLEDGE, sce->val1), status_change_timer, sd->bl.id, SC_KNOWLEDGE);
 			}
+		}
+		for( i = 0; i < EQI_MAX; i++ ) {
+				if( sd->equip_index[ i ] >= 0 )
+						if( !pc_isequip( sd , sd->equip_index[ i ] ) )
+								pc_unequipitem( sd , sd->equip_index[ i ] , 2 );
 		}
 		if (battle_config.clear_unit_onwarp&BL_PC)
 			skill_clear_unitgroup(&sd->bl);
