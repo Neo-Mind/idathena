@@ -793,7 +793,7 @@
 1487,Lance_C,Lance,4,0,,0,220,,3,0,0x00004082,7,2,34,3,1,0,5,{ bonus2 bAddSize,0,50; bonus2 bAddSize,1,50; bonus2 bAddSize,2,50; },{},{}
 1488,Ahlspiess_C,Ahlspiess,4,20,,0,135,,3,0,0x00004080,7,2,34,4,1,1,5,{ bonus bIgnoreDefRace,RC_NonBoss; bonus bIgnoreDefRace,RC_Boss; bonus2 bAddRace,RC_DemiHuman,10; bonus3 bAutoSpell,"KN_PIERCE",5,30; },{},{}
 1489,Marlin,Marlin,4,0,,0,220,,3,0,0x00004082,2,2,34,1,50,0,5,{ bonus bUnbreakableWeapon,0; bonus3 bAddEffOnSkill,"KN_PIERCE",Eff_Bleeding,1000; bonus3 bAddEffOnSkill,"LK_SPIRALPIERCE",Eff_Bleeding,1000; bonus2 bSkillAtk,"LK_SPIRALPIERCE",100; /* bonus2 bSkillAtk,"LG_INSPIRATION",50; */ if(BaseLevel > 99) { bonus bBaseAtk,30; } },{},{}
-1490,Gigantic_Lance,Gigantic Lance,4,20,,20000,20,,3,0,0x00000080,7,2,34,4,140,1,5,{ bonus bAspd,-10; if(readparam(bStr)>=120){ bonus bBaseAtk,300; } },{},{ heal 0,-600; }
+1490,Gigantic_Lance,Gigantic Lance,4,20,,20000,20,,3,0,0x00000080,7,2,34,4,140,1,5,{ bonus bAspd,-10; bonus2 bCooldown,"LK_SPIRALPIERCE",20000; if(readparam(bStr)>=120){ bonus bBaseAtk,300; } },{},{ heal 0,-600; }
 //1491,
 1492,Bellum_Glave,Bellum Glave,4,20,,4500,250,,3,0,0x00004082,7,2,34,4,95,1,5,{ bonus2 bAddRace,RC_DemiHuman,80; if(getrefine()>=6) { bonus2 bSkillAtk,"LK_SPIRALPIERCE",100; bonus2 bSkillAtk,"KN_SPEARBOOMERANG",50; } if(getrefine()>=9) { autobonus2 "{ bonus bShortWeaponDamageReturn,20; bonus bMagicDamageReturn,20; }",100,2000,BF_WEAPON|BF_MAGIC,"{ specialeffect2 EF_REFLECTSHIELD; }"; } },{},{}
 // Maces
@@ -1603,7 +1603,7 @@
 //2579,
 2580,White_Wing_Manteau,White Wing Manteau,5,20,,200,,15,,0,0x00000800,7,2,4,,100,1,0,{ bonus bAgi,2; bonus bFlee,10; autobonus2 "{ bonus bFlee,20; }",10,7000,BF_LONG,"{ specialeffect2 EF_WIND; }"; },{},{}
 2581,Black_Wing_Manteau,Black Wing Manteau,5,20,,200,,15,,0,0x00000800,8,2,4,,100,1,0,{ bonus bInt,2; if(getequiprefinerycnt(EQI_GARMENT)>6) bonus bFlee2,getequiprefinerycnt(EQI_GARMENT)-6; },{},{}
-2582,Salvage_Cape,Salvage Cape,5,56000,,400,,1,,0,0x00000300,7,2,4,,130,1,0,{ skill "NJ_UTSUSEMI",1; bonus bUseSPrate,100; },{},{ heal 0,-1200; }
+2582,Salvage_Cape,Salvage Cape,5,56000,,400,,1,,0,0x00000300,7,2,4,,130,1,0,{ skill "NJ_UTSUSEMI",1; bonus2 bCooldown,"NJ_UTSUSEMI",30000; bonus bUseSPrate,100; },{},{ heal 0,-1200; }
 //2583,
 //2584,
 //2585,
