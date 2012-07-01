@@ -1904,7 +1904,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += 20*skill_lv;
 					break;
 				case AM_ACIDTERROR:
-					skillratio += 40*skill_lv;
+					skillratio += 100 * skill_lv;
+					if(tstatus->mode&MD_BOSS)
+						skillratio >>= 1;
 					break;
 				case MO_FINGEROFFENSIVE:
 					skillratio+= 50 * skill_lv;
@@ -2702,7 +2704,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						def2 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
 					}
 				}
-				if(skill_num == AM_ACIDTERROR) def1 = 0; //Acid Terror ignores only armor defense. [Skotlex]
+				if(skill_num == AM_ACIDTERROR) def2 = 0; //Acid Terror ignores only status defense. [FatalEror]
 				if(def2 < 1) def2 = 1;
 			}
 			//Vitality reduction from rodatazone: http://rodatazone.simgaming.net/mechanics/substats.php#def
@@ -3164,6 +3166,13 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			wd.damage-=wd.damage2;
 		}
 	}
+	
+	if(skill_num==AM_ACIDTERROR)
+	{
+		struct Damage ad = battle_calc_magic_attack(src, target, skill_num, skill_lv, wflag);
+		wd.damage += ad.damage;
+	}
+	
 	//Reject Sword bugreport:4493 by Daegaladh
 	if(wd.damage && tsc && tsc->data[SC_REJECTSWORD] &&
 		(src->type!=BL_PC || (
@@ -4043,16 +4052,28 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	case PA_GOSPEL:
 		md.damage = 1+rnd()%9999;
 		break;
-	case CR_ACIDDEMONSTRATION: // updated the formula based on a Japanese formula found to be exact [Reddozen]
-		if(tstatus->vit+sstatus->int_) //crash fix
-			md.damage = (int)((int64)7*tstatus->vit*sstatus->int_*sstatus->int_ / (10*(tstatus->vit+sstatus->int_)));
-		else
-			md.damage = 0;
-		if (tsd) md.damage>>=1;
-		if (md.damage < 0 || md.damage > INT_MAX>>1)
-	  	//Overflow prevention, will anyone whine if I cap it to a few billion?
-		//Not capped to INT_MAX to give some room for further damage increase.
-			md.damage = INT_MAX>>1;
+	case CR_ACIDDEMONSTRATION:
+		{
+			short atk, matk, size_mod, bonus;
+			atk  = sstatus->batk + sstatus->rhw.atk;
+			matk = sstatus->matk_max + sd ? sstatus->matk_min : 0;
+			size_mod  = sd ? sd->right_weapon.atkmods[tstatus->size] : 100;
+			bonus = sd ? sd->bonus.long_attack_atk_rate : 0; // Long ATK Bonus. Likes : Archer Skeleton Card
+
+			if ((atk != 0 && size_mod != 0) || matk != 0)
+				md.damage = (int)(((7 * atk * tstatus->vit) * size_mod / 100 + (7 * matk * tstatus->vit)) / 100);	
+			else
+				md.damage = 0;
+
+			if (tsd || is_boss(target))
+				md.damage >>= 1;
+			if (md.damage < 0)
+				md.damage = 0;
+			if (md.damage > INT_MAX>>1)
+				md.damage = INT_MAX>>1; //Overflow prevention
+			if (sd && bonus != 0)
+				md.damage += md.damage * bonus / 100;
+		}
 		break;
 	case NJ_ZENYNAGE:
 		md.damage = skill_get_zeny(skill_num ,skill_lv);
@@ -4295,11 +4316,11 @@ int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int
 					*dmg = rd1 * 30 / 100; // Player receives 30% of the amplified damage.
 					clif_skill_damage(src,bl,gettick(), status_get_amotion(src), 0, -30000, 1, RK_DEATHBOUND, sc->data[SC_DEATHBOUND]->val1,6);
 					status_change_end(bl,SC_DEATHBOUND,INVALID_TIMER);
-					rdamage += rd1 * 70 / 100; // Target receives 70% of the amplified damage.
+					rdamage += rd1 * 70 / 100; // Target receives 70% of the amplified damage. [Rytech]
 					if (rdamage < 1) rdamage = 1;
 				}
 			}
-			if( sc && sc->data[SC_REFLECTDAMAGE] && rand()%100 < 30 + 10 * sc->data[SC_REFLECTDAMAGE]->val1)
+			if( sc && sc->data[SC_REFLECTDAMAGE] && rnd()%100 < 30 + 10 * sc->data[SC_REFLECTDAMAGE]->val1)
 			{
 				max_damage = max_damage * status_get_lv(bl) / 100;
 				rdamage = (*dmg) * sc->data[SC_REFLECTDAMAGE]->val2 / 100;

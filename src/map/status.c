@@ -2291,6 +2291,8 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 	sd->critical_rate = sd->hit_rate = sd->flee_rate = sd->flee2_rate = 100;
 	sd->def_rate = sd->def2_rate = sd->mdef_rate = sd->mdef2_rate = 100;
 	sd->regen.state.block = 0;
+	sd->fixcastrate=100;
+	sd->varcastrate=100;
 
 	// zeroed arrays, order follows the order in pc.h.
 	// add new arrays to the end of zeroed area in pc.h (see comments) and size here. [zzo]
@@ -2933,6 +2935,10 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		sd->hprecov_rate = 0;
 	if(sd->sprecov_rate < 0)
 		sd->sprecov_rate = 0;
+	if(sd->fixcastrate < 0)
+		sd->fixcastrate = 0;
+	if(sd->varcastrate < 0)
+		sd->varcastrate = 0;
 
 	// Anti-element and anti-race
 	if((skill=pc_checkskill(sd,CR_TRUST))>0)

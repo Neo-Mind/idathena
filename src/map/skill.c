@@ -11196,24 +11196,29 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 		case UNT_EPICLESIS:
 			if( bl->type == BL_PC && !battle_check_undead(tstatus->race, tstatus->def_ele) && tstatus->race != RC_DEMON )
 			{
-				if( ++sg->val2 % 3 == 0 ) {
-					int hp, sp;
-					switch( sg->skill_lv )
-					{
-						case 1: case 2: hp = 3; sp = 2; break;
-						case 3: case 4: hp = 4; sp = 3; break;
-						case 5: default: hp = 5; sp = 4; break;
-					}
-					hp = tstatus->max_hp * hp / 100;
-					sp = tstatus->max_sp * sp / 100;
-					status_heal(bl, hp, sp, 2);
-					sc_start(bl, type, 100, sg->skill_lv, sg->interval + 100);
+				int hp, sp;
+				switch( sg->skill_lv )
+				{
+					case 1: case 2: hp = 3; sp = 2; break;
+					case 3: case 4: hp = 4; sp = 3; break;
+					case 5: default: hp = 5; sp = 4; break;
 				}
+				hp = tstatus->max_hp * hp / 100;
+				sp = tstatus->max_sp * sp / 100;
+				status_heal(bl, hp, sp, 0);
+				if( tstatus->hp < tstatus->max_hp )
+					clif_skill_nodamage(&src->bl, bl, AL_HEAL, hp, 1);
+				if( tstatus->sp < tstatus->max_sp )
+					clif_skill_nodamage(&src->bl, bl, MG_SRECOVERY, sp, 1);
+				sc_start(bl, type, 100, sg->skill_lv, sg->interval + 100);
+				sg->val2++;
 				// Reveal hidden players every 5 seconds.
-				if( sg->val2 % 5 == 0 ) {
+				if( sg->val2 >= 5 )
+				{
+					sg->val2 = 0;
 					// TODO: check if other hidden status can be removed.
-					status_change_end(bl,SC_HIDING,INVALID_TIMER);
-					status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
+					status_change_end(bl,SC_HIDING,-1);
+					status_change_end(bl,SC_CLOAKING,-1);
 				}
 			}
 			/* Enable this if kRO fix the current skill. Currently no damage on undead and demon monster. [Jobbie]
@@ -13071,11 +13076,23 @@ int skill_castfix (struct block_list *bl, int skill_id, int skill_lv)
  *------------------------------------------*/
 int skill_castfix_sc (struct block_list *bl, int time, int skill_id, int skill_lv) {
 	struct status_change *sc = status_get_sc(bl);
+	struct map_session_data *sd = BL_CAST(BL_PC,bl);
 #ifdef RENEWAL_CAST
 	int fixed = skill_get_fixed_cast(skill_id, skill_lv);
 	if( !fixed ) {
 		fixed = skill_get_cast(skill_id, skill_lv);
 		fixed = ( fixed > 1 ? ( fixed * 20 / 100 ) : 0 );
+	}
+	if(sd){// Increases/Decreases fixed cast time of a skill by item/card bonuses.
+		int i;
+		if( sd->fixcastrate != 100 )
+			fixed = fixed * sd->fixcastrate / 100;
+		for (i = 0; i < ARRAYLENGTH(sd->skillfixcast) && sd->skillfixcast[i].id; i++) { 
+			if (sd->skillfixcast[i].id == skill_id){
+				fixed += sd->skillfixcast[i].val;
+				break;
+			}
+		}
 	}
 #endif
 	if (sc && sc->count) {
@@ -13108,7 +13125,7 @@ int skill_castfix_sc (struct block_list *bl, int time, int skill_id, int skill_l
 	/**
 	 * WL_RADIUS decreases 10/15/20% fixed cast time from warlock skills
 	 **/
-	if( bl->type == BL_PC && skill_id >= WL_WHITEIMPRISON && skill_id <= WL_FREEZE_SP && ( skill_lv = pc_checkskill((TBL_PC*)bl, WL_RADIUS) ) )
+	if( sd && skill_id >= WL_WHITEIMPRISON && skill_id <= WL_FREEZE_SP && ( skill_lv = pc_checkskill(sd, WL_RADIUS) ) )
 		fixed -= fixed * (5+(skill_lv*5)) / 100;
 	return (time > 0 || fixed > 0) ? cap_value( time , fixed , INT_MAX ) : 0;
 #else
