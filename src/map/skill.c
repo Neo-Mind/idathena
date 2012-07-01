@@ -11217,8 +11217,8 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				{
 					sg->val2 = 0;
 					// TODO: check if other hidden status can be removed.
-					status_change_end(bl,SC_HIDING,-1);
-					status_change_end(bl,SC_CLOAKING,-1);
+					status_change_end(bl,SC_HIDING,INVALID_TIMER);
+					status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
 				}
 			}
 			/* Enable this if kRO fix the current skill. Currently no damage on undead and demon monster. [Jobbie]
