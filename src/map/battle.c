@@ -2569,7 +2569,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				skill_num == LG_SHIELDPRESS))
 				ATK_ADDRATE(sc->data[SC_GLOOMYDAY_SK]->val2);
 			if (sc->data[SC_EDP]) { 
-			// FIX ME: Should Rolling Cutter be affected by EDP? 
 				switch(skill_num) { 
 					case AS_SPLASHER:       case AS_VENOMKNIFE:
 					case AS_GRIMTOOTH:
