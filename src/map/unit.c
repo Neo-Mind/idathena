@@ -322,7 +322,9 @@ int unit_walktoxy( struct block_list *bl, short x, short y, int flag)
 	ud = unit_bl2ud(bl);
 	
 	if( ud == NULL) return 0;
-
+#ifdef OFFICIAL_WALKPATH 
+	if( !path_search_long(NULL, bl->m, bl->x, bl->y, x, y, CELL_CHKWALL) ) return 0;
+#endif
 	if (flag&4 && DIFF_TICK(ud->canmove_tick, gettick()) > 0 &&
 		DIFF_TICK(ud->canmove_tick, gettick()) < 2000)
   	{	// Delay walking command. [Skotlex]
@@ -1712,7 +1714,11 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 		return 0;
 
 	if( status_isdead(src) || status_isdead(target) ||
-			battle_check_target(src,target,BCT_ENEMY) <= 0 || !status_check_skilluse(src, target, 0, 0) )
+			battle_check_target(src,target,BCT_ENEMY) <= 0 || !status_check_skilluse(src, target, 0, 0)
+#ifdef OFFICIAL_WALKPATH 
+			|| !path_search_long(NULL, src->m, src->x, src->y, target->x, target->y, CELL_CHKWALL)
+#endif
+			)
 		return 0; // can't attack under these conditions
 
 	if( src->m != target->m )
@@ -2404,14 +2410,12 @@ int unit_free(struct block_list *bl, clr_type clrtype)
 		case BL_ELEM: {
 			struct elemental_data *ed = (TBL_ELEM*)bl;
 			struct map_session_data *sd = ed->master;
-			if( clrtype >= 0 ) {
-				if( elemental_get_lifetime(ed) > 0 )
-					elemental_save(ed);
-				else {
-					intif_elemental_delete(ed->elemental.elemental_id);
-					if( sd )
-						sd->status.ele_id = 0;
-				}
+			if( elemental_get_lifetime(ed) > 0 )
+				elemental_save(ed);
+			else {
+				intif_elemental_delete(ed->elemental.elemental_id);
+				if( sd )
+					sd->status.ele_id = 0;
 			}
 			if( sd )
 				sd->ed = NULL;
