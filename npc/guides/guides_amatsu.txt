@@ -88,7 +88,7 @@ amatsu,202,91,3	script	Amatsu Guide#amatsu	758,{
 	end;
 L_Mark:
 	mes "[Amachang]";
-	mes "getarg(0)+"^000000 is";
+	mes getarg(0)+"^000000 is";
 	mes "Telah di tandai di mini-ap kamu";
 	mes "Ada lagi yang bisa saya bantu?";
 	return;
