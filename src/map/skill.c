@@ -8014,7 +8014,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 								sc_start2(bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def * 10 * 1000);
 								break;
 							case 3:
-								val = 10 * shield_data->def; //Weapon Attack Increase.
+								val = shield_data->def; //Weapon Attack Increase.
 								sc_start2(bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def * 10 * 3000);
 								break;
 						}
