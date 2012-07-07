@@ -2796,8 +2796,9 @@ static int skill_check_unit_range_sub (struct block_list *bl, va_list ap)
 		case RA_FIRINGTRAP:
 		case RA_ICEBOUNDTRAP:
 		case SC_DIMENSIONDOOR:
+		case SC_BLOODYLUST:
 			//Non stackable on themselves and traps (including venom dust which does not has the trap inf2 set)
-			if (skillid != g_skillid && !(skill_get_inf2(g_skillid)&INF2_TRAP) && g_skillid != AS_VENOMDUST)
+			if (skillid != g_skillid && !(skill_get_inf2(g_skillid)&INF2_TRAP) && g_skillid != AS_VENOMDUST && g_skillid != MH_POISON_MIST)
 				return 0;
 			break;
 		default: //Avoid stacking with same kind of trap. [Skotlex]
@@ -4700,7 +4701,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 						dstsd = sd;
 					}
 				} else
-				if (tsc->data[SC_BERSERK])
+				if (tsc->data[SC_BERSERK] || tsc->data[SC_SATURDAYNIGHTFEVER])
 					heal = 0; //Needed so that it actually displays 0 when healing.
 			}
 			heal_get_jobexp = status_heal(bl,heal,0,0);
@@ -6283,7 +6284,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 						continue;
 					break;
 				}
-				if(i==SC_BERSERK) tsc->data[i]->val2=0; //Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
+				if( i == SC_BERSERK || i == SC_SATURDAYNIGHTFEVER ) tsc->data[i]->val2=0; //Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
 				status_change_end(bl, (sc_type)i, INVALID_TIMER);
 			}
 			break;
@@ -6484,7 +6485,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case NPC_REBIRTH:
 		if( md && md->state.rebirth )
 			break; // only works once
-		sc_start(bl,type,100,skilllv,-1);
+		sc_start(bl,type,100,skilllv,INVALID_TIMER);
 		break;
 
 	case NPC_DARKBLESSING:
@@ -7608,7 +7609,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 						continue;
 					break;
 				}
-				if(i==SC_BERSERK /*|| i==SC_SATURDAYNIGHTFEVER*/) tsc->data[i]->val2=0; //Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
+				if( i == SC_BERSERK || i == SC_SATURDAYNIGHTFEVER ) tsc->data[i]->val2=0; //Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
 				status_change_end(bl,(sc_type)i,INVALID_TIMER);
 			}
 			break;
@@ -7889,7 +7890,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case SC_AUTOSHADOWSPELL:
 		if( sd ) {
 			if( sd->status.skill[sd->reproduceskill_id].id || sd->status.skill[sd->cloneskill_id].id ) {
-				sc_start(src,SC_STOP,100,skilllv,-1);// The skilllv is stored in val1 used in skill_select_menu to determine the used skill lvl [Xazax]
+				sc_start(src,SC_STOP,100,skilllv,INVALID_TIMER);// The skilllv is stored in val1 used in skill_select_menu to determine the used skill lvl [Xazax]
 				clif_autoshadowspell_list(sd);
 				clif_skill_nodamage(src,bl,skillid,1,1);
 			}
@@ -10584,7 +10585,13 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 		if (!sce)
 			sc_start4(bl,type,100,sg->skill_lv,sg->group_id,sg->group_id,0,sg->limit);
 		break;
-
+	
+	case UNT_BLOODYLUST:
+		if( sg->src_id == bl->id )
+			return 0; //Does not affect the caster.
+		if (!sce)
+			sc_start4(bl,type,100,sg->skill_lv,sg->group_id,0,0,sg->limit);
+		break;
 	case UNT_CHAOSPANIC:
 		if (!sce)
 			sc_start4(bl,type,30+15*sg->skill_lv,sg->skill_lv,sg->group_id,0,0,sg->limit);

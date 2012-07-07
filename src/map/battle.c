@@ -457,6 +457,13 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}
+		if( sc->data[SC__MAELSTROM] && map_getcell(bl->m,bl->x,bl->y,CELL_CHKMAELSTROM) && (flag&BF_MAGIC) && skill_num && (skill_get_inf(skill_num)&INF_GROUND_SKILL) )
+		{
+			int sp = damage * 20 / 100; // Steel need official value.
+			status_heal(bl,0,sp,3);
+			d->dmg_lv = ATK_BLOCK;
+			return 0;
+		}
 		if( sc->data[SC_WEAPONBLOCKING] && flag&(BF_SHORT|BF_WEAPON) && rnd()%100 < sc->data[SC_WEAPONBLOCKING]->val2 )
 		{
 			clif_skill_nodamage(bl,src,GC_WEAPONBLOCKING,1,1);
@@ -521,11 +528,6 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 
 		if(sc->data[SC_TATAMIGAESHI] && (flag&(BF_MAGIC|BF_LONG)) == BF_LONG)
 			return 0;
-
-		if( sc->data[SC_NEUTRALBARRIER] && (flag&(BF_MAGIC|BF_LONG)) == (BF_MAGIC|BF_LONG) ) {
-			d->dmg_lv = ATK_MISS;
-			return 0;
-		}
 
 		if((sce=sc->data[SC_KAUPE]) && rnd()%100 < sce->val2)
 		{	//Kaupe blocks damage (skill or otherwise) from players, mobs, homuns, mercenaries.
