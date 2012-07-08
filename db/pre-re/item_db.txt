@@ -1618,6 +1618,12 @@
 2797,Magical_Stone_,Rocks,5,0,,200,,0,,0,0x00810204,7,2,136,,99,0,0,{ bonus2 bAddDamageClass,2049,10; bonus2 bAddDefClass,2050,-10; bonus3 bAddClassDropItem,6151,2049,70; },{},{}
 2798,Will_Of_Exhausted_Angel,Will Of Exhausted Angel,5,0,,200,,0,,0,0x00008100,7,2,136,,99,0,0,{ getmapxy .@map$,.@x,.@y,0; if(.@map$ == "job3_arch02") { bonus2 bAddDefClass,1761,50; bonus2 bAddDefClass,1762,50; } },{},{}
 2799,Kuirpenring,Kuirpenring,5,0,,100,,0,,1,0xFFFFFFFF,7,2,136,,0,0,0,{ bonus bMdef,1; },{},{}
+2819,Swordman_Manual,Swordsman Manual,5,0,,100,,0,,0,0x00000001,7,2,136,,1,0,0,{ bonus bMaxSP,100; skill "SM_BASH",1; skill "SM_PROVOKE",1; skill "SM_MAGNUM",1; },{},{}
+2820,Thief_Manual,Thief Manual,5,0,,100,,0,,0,0x00000001,7,2,136,,1,0,0,{ bonus bMaxSP,100; skill "TF_DOUBLE",3; skill "TF_STEAL",1; skill "TF_HIDING",1; skill "TF_POISON",1; },{},{}
+2821,Acolyte_Manual,Acolyte Manual,5,0,,100,,0,,0,0x00000001,7,2,136,,1,0,0,{ bonus bMaxSP,100; skill "AL_HEAL",1; skill "AL_INCAGI",1; skill "AL_BLESSING",1; },{},{}
+2822,Archer_Manual,Archer Manual,5,0,,100,,0,,0,0x00000001,7,2,136,,1,0,0,{ bonus bMaxSP,100; skill "AC_OWL",1; skill "AC_CONCENTRATION",1; },{},{}
+2823,Merchant_Manual,Merchant Manual,5,0,,100,,0,,0,0x00000001,7,2,136,,1,0,0,{ bonus bMaxSP,100; skill "MC_DISCOUNT",1; skill "MC_OVERCHARGE",10; skill "MC_IDENTIFY",1; skill "MC_MAMMONITE",1; },{},{}
+2824,Mage_Manual,Mage Manual,5,0,,100,,0,,0,0x00000001,7,2,136,,1,0,0,{ bonus bMaxSP,100; skill "MG_SRECOVERY",1; skill "MG_COLDBOLT",1; skill "MG_FIREWALL",1; skill "MG_FIREBOLT",1; },{},{}
 // Cards
 //===================================================================
 4001,Poring_Card,Poring Card,6,20,,10,,,,,,,,16,,,,,{ bonus bLuk,2; bonus bFlee2,1; },{},{}
@@ -4752,7 +4758,7 @@
 12210,Bubble_Gum,Bubble Gum,2,2,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_ITEMBOOST,1800000,200; },{},{}
 12211,Kafra_Card,Kafra Card,2,2,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ callfunc "F_CashStore"; },{},{}
 12212,Giant_Fly_Wing,Giant Fly Wing,2,2,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ callfunc "F_CashPartyCall"; },{},{}
-12213,Neuralizer,Neuralizer,2,2,,0,,,,,0xFFFFFFFF,7,2,,,,,,{ callfunc "F_CashReset"; },{},{}
+12213,Neuralizer,Neuralizer,11,2,,0,,,,,0xFFFFFFFF,7,2,,,,,,{ callfunc "F_CashReset"; },{},{}
 12214,Convex_Mirror,Convex Mirror,2,2,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_BOSSMAPINFO,600000,0; },{},{}
 12215,Blessing_10_Scroll,LV10 Blessing Scroll,2,2,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ skilleffect "AL_BLESSING",0; sc_start SC_BLESSING,240000,10; },{},{}
 12216,Inc_Agi_10_Scroll,LV10 Agil Scroll,2,2,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ if (Hp > 15) { skilleffect "AL_INCAGI",0; sc_start SC_INCREASEAGI,240000,10; heal -15,0; } },{},{}
@@ -6528,7 +6534,7 @@
 //
 18595,Horn_Of_Ancient,Horn of Ancient,5,40,,200,,8,,1,0xFFFFFFFF,7,2,256,,50,1,757,{ autobonus "{ bonus bAtk,100; }",5,10000,0,"{ specialeffect2 EF_POTION_BERSERK; }"; },{},{}
 18596,Sprout_Hat,Sprout Hat,5,20,,200,,4,,0,0xFFFFFFFF,7,2,256,,70,1,758,{ skill "WZ_HEAVENDRIVE", 3; },{},{}
-18597,Mercury_Riser,Mercury Riser,5,40,,200,,10,,1,0xFFFFFFFF,7,2,256,,0,,759,{ bonus bAspdRate,3; bonus bCritical,3; if(getrefine() == 7 || getrefine() == 8) { bonus bAspdRate,2; bonus bCritical,2; } if(getrefine() >= 9) { bonus bAspdRate,4; bonus bCritical,4; }},{},{}
+18597,Mercury_Riser,Mercury Riser,5,40,,200,,10,,1,0xFFFFFFFF,7,2,256,,0,,759,{ bonus bAspdRate,3; bonus bCritical,3; if(getrefine() >= 7) { bonus bAspdRate,2; bonus bCritical,2; } if(getrefine() >= 9) { bonus bAspdRate,2; bonus bCritical,2; }},{},{}
 //
 18600,Cat_Ear_Beret,Cat Ear Beret,5,20,,100,,5,,0,0xFFFFFFFF,7,2,256,,0,1,761,{ bonus bAtkRate,5; if(getrefine() > 5 && getrefine() <= 12) { bonus2 bAddRace,RC_DemiHuman,(getrefine() - 5); bonus2 bSubRace,RC_DemiHuman,(getrefine() - 5); } if(getrefine() > 12) { bonus2 bAddRace,RC_DemiHuman,7; bonus2 bSubRace,RC_DemiHuman,7; } },{},{}
 //
