@@ -14239,9 +14239,6 @@ struct skill_unit *skill_initunit (struct skill_unit_group *group, int idx, int 
 		case HP_BASILICA:
 			skill_unitsetmapcell(unit,HP_BASILICA,group->skill_lv,CELL_BASILICA,true);
 			break;
-		case SC_MAELSTROM:
-			skill_unitsetmapcell(unit,SC_MAELSTROM,group->skill_lv,CELL_MAELSTROM,true);
-			break;
 		default:
 			if (group->state.song_dance&0x1) //Check for dissonance.
 				skill_dance_overlap(unit, 1);
@@ -14299,9 +14296,6 @@ int skill_delunit (struct skill_unit* unit)
 				if( target )
 					status_change_end(target, SC_ELECTRICSHOCKER, INVALID_TIMER);	
 			}
-			break;
-		case SC_MAELSTROM:
-			skill_unitsetmapcell(unit,SC_MAELSTROM,group->skill_lv,CELL_MAELSTROM,false);
 			break;
 		case SC_MANHOLE: // Note : Removing the unit don't remove the status (official info)
 			if( group->val2 ) { // Someone Traped
