@@ -230,7 +230,7 @@ static void display_title(void)
 	ShowMessage(""CL_PASS"        "CL_BOLD"                                                              "CL_PASS""CL_CLL""CL_NORMAL"\n");
 	ShowMessage(""CL_PASS"          "CL_BT_WHITE"            idAthena Development Team presents            "CL_PASS""CL_CLL""CL_NORMAL"\n");
 	ShowMessage(""CL_PASS"        "CL_BOLD"                                                              "CL_PASS""CL_CLL""CL_NORMAL"\n");  
-	ShowMessage(""CL_PASS"          "CL_WHITE"                http://idAthena.co.cc                "CL_PASS""CL_CLL""CL_NORMAL"\n");
+	ShowMessage(""CL_PASS"          "CL_WHITE"                http://idathena.org                "CL_PASS""CL_CLL""CL_NORMAL"\n");
 	ShowMessage(""CL_PASS"        "CL_BOLD"                                                              "CL_PASS""CL_CLL""CL_NORMAL"\n"); 
 
 	ShowInfo("SVN Revision: '"CL_WHITE"%s"CL_RESET"'.\n", get_svn_revision());
