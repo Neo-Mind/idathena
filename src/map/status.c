@@ -720,9 +720,9 @@ void initChangeTables(void) {
 	set_sc( EL_GUST            , SC_GUST_OPTION          , SI_GUST_OPTION          , SCB_NONE );
 	set_sc( EL_BLAST           , SC_BLAST_OPTION         , SI_BLAST_OPTION         , SCB_NONE );
 	set_sc( EL_WILD_STORM      , SC_WILD_STORM_OPTION    , SI_WILD_STORM_OPTION    , SCB_NONE );
-	set_sc( EL_PETROLOGY       , SC_PETROLOGY_OPTION     , SI_PETROLOGY_OPTION     , SCB_NONE );
-	set_sc( EL_CURSED_SOIL     , SC_CURSED_SOIL_OPTION   , SI_CURSED_SOIL_OPTION   , SCB_NONE );
-	set_sc( EL_UPHEAVAL        , SC_UPHEAVAL_OPTION      , SI_UPHEAVAL_OPTION      , SCB_NONE );
+	set_sc( EL_PETROLOGY       , SC_PETROLOGY_OPTION     , SI_PETROLOGY_OPTION     , SCB_MAXHP );
+	set_sc( EL_CURSED_SOIL     , SC_CURSED_SOIL_OPTION   , SI_CURSED_SOIL_OPTION   , SCB_MAXHP );
+	set_sc( EL_UPHEAVAL        , SC_UPHEAVAL_OPTION      , SI_UPHEAVAL_OPTION      , SCB_MAXHP );
 	set_sc( EL_TIDAL_WEAPON    , SC_TIDAL_WEAPON_OPTION  , SI_TIDAL_WEAPON_OPTION  , SCB_ALL );
 	set_sc( EL_ROCK_CRUSHER    , SC_ROCK_CRUSHER         , SI_ROCK_CRUSHER         , SCB_DEF );
 	set_sc( EL_ROCK_CRUSHER_ATK, SC_ROCK_CRUSHER_ATK     , SI_ROCK_CRUSHER_ATK     , SCB_SPEED );	
@@ -5374,10 +5374,16 @@ static unsigned int status_calc_maxhp(struct block_list *bl, struct status_chang
 		maxhp += maxhp * (3 * sc->data[SC_GT_REVITALIZE]->val1) / 100;
 	if(sc->data[SC_MUSTLE_M])
 		maxhp += maxhp * sc->data[SC_MUSTLE_M]->val1/100;
+	if(sc->data[SC_PETROLOGY_OPTION])
+		maxhp += maxhp * sc->data[SC_PETROLOGY_OPTION]->val2 / 100;
+	if(sc->data[SC_CURSED_SOIL_OPTION])
+		maxhp += maxhp * sc->data[SC_CURSED_SOIL_OPTION]->val2 / 100;
+	if(sc->data[SC_UPHEAVAL_OPTION])
+		maxhp += maxhp * sc->data[SC_UPHEAVAL_OPTION]->val3 / 100;
 	if(sc->data[SC_SOLID_SKIN_OPTION])
 		maxhp += 2000;// Fix amount.
 	if(sc->data[SC_POWER_OF_GAIA])
-		maxhp += 3000;
+		maxhp += maxhp * sc->data[SC_POWER_OF_GAIA]->val3 / 100;
 	if(sc->data[SC_MYSTERIOUS_POWDER])
 		maxhp -= sc->data[SC_MYSTERIOUS_POWDER]->val1 / 100;
 	if(sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 2)
@@ -6533,6 +6539,14 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 				return 0;
 		}
 		if (tick == 1) return 1; //Minimal duration: Only strip without causing the SC
+	break;
+	case SC_MAGNETICFIELD:
+		if(sc->data[SC_HOVERING])
+			return 0;
+	break;
+	case SC_BLEEDING:
+		if(sc->data[SC_POWER_OF_GAIA])
+			return 0;
 	break;
 	}
 
@@ -8212,6 +8226,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			break;
 		case SC_UPHEAVAL_OPTION:
 			val2 = WZ_EARTHSPIKE;
+			val3 = 15; // Increase summoner's maxHP
 			val_flag |= 1|2;
 			break;
 		case SC_CIRCLE_OF_FIRE_OPTION:
@@ -8250,6 +8265,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		case SC_ROCK_CRUSHER_ATK:
 		case SC_POWER_OF_GAIA:
 			val2 = 33;
+			val3 = 20; // Increase summoners's HP
 			break;
 		case SC_MELON_BOMB:
 		case SC_BANANA_BOMB:

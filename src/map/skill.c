@@ -10586,17 +10586,12 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 			sc_start4(bl,type,100,sg->skill_lv,sg->group_id,sg->group_id,0,sg->limit);
 		break;
 	
-	case UNT_BLOODYLUST:
-		if( sg->src_id == bl->id )
-			return 0; //Does not affect the caster.
-		if (!sce)
-			sc_start4(bl,type,100,sg->skill_lv,sg->group_id,0,0,sg->limit);
-		break;
 	case UNT_CHAOSPANIC:
 		if (!sce)
 			sc_start4(bl,type,30+15*sg->skill_lv,sg->skill_lv,sg->group_id,0,0,sg->limit);
 		break;
 	case UNT_PNEUMA:
+	case UNT_BLOODYLUST:
 	case UNT_MAELSTROM:
 		if (!sce)
 			sc_start4(bl,type,100,sg->skill_lv,sg->group_id,0,0,sg->limit);
