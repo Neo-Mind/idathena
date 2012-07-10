@@ -13125,6 +13125,8 @@ int skill_castfix_sc (struct block_list *bl, int time, int skill_id, int skill_l
 			fixed -= fixed * sc->data[SC_SECRAMENT]->val2 / 100;
 		if( sc->data[SC_MANDRAGORA] )
 			fixed += 500 * sc->data[SC_MANDRAGORA]->val1;
+		if( sc->data[SC_GUST_OPTION] || sc->data[SC_BLAST_OPTION] || sc->data[SC_WILD_STORM_OPTION] )
+			fixed -= 1000;
 #endif
 	}
 #ifdef RENEWAL_CAST
