@@ -5149,9 +5149,9 @@ static short status_calc_aspd(struct block_list *bl, struct status_change *sc, s
 	if( sc->data[SC_PARALYSE] )
 		skills2 -= 10;
 	if( sc->data[SC__BODYPAINT] )
-		skills2 -=  2 + 5 * sc->data[SC__BODYPAINT]->val1;
+		skills2 -=  5 * sc->data[SC__BODYPAINT]->val1;
 	if( sc->data[SC__INVISIBILITY] )
-		skills2 -= sc->data[SC__INVISIBILITY]->val2 ;
+		skills2 -= sc->data[SC__INVISIBILITY]->val2;
 	if( sc->data[SC__GROOMY] )
 		skills2 -= sc->data[SC__GROOMY]->val2;
 	if( sc->data[SC_SWINGDANCE] )
@@ -5251,6 +5251,10 @@ static short status_calc_aspd_rate(struct block_list *bl, struct status_change *
 
 		if(sc->data[SC_MADNESSCANCEL])
 			aspd_rate -= 200;
+		else
+			
+		if((sc->data[SC_GUST_OPTION] || sc->data[SC_BLAST_OPTION] || sc->data[SC_WILD_STORM_OPTION]))
+			aspd_rate -= 150;
 	}
 
 	if( sc->data[i=SC_ASPDPOTION3] ||
@@ -5288,7 +5292,7 @@ static short status_calc_aspd_rate(struct block_list *bl, struct status_change *
 	if( sc->data[SC_PARALYSE] )
 		aspd_rate += 100;
 	if( sc->data[SC__BODYPAINT] )
-		aspd_rate +=  200 + 50 * sc->data[SC__BODYPAINT]->val1;
+		aspd_rate += 50 * sc->data[SC__BODYPAINT]->val1;
 	if( sc->data[SC__INVISIBILITY] )
 		aspd_rate += sc->data[SC__INVISIBILITY]->val2 * 10 ;
 	if( sc->data[SC__GROOMY] )
