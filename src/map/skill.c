@@ -2648,7 +2648,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				battle_delay_damage(tick, dmg.amotion,bl,src,0,CR_REFLECTSHIELD,0,rdamage,ATK_DEF,0);
 			else
 				status_fix_damage(bl,src,rdamage,0);
-			clif_damage(src,src,tick, dmg.amotion,0,rdamage,dmg.div_>1?dmg.div_:1,4,0);
+			clif_damage(src,src,tick, dmg.amotion,0,rdamage,1,4,0); // in aegis damage reflected is shown in single hit.
 			//Use Reflect Shield to signal this kind of skill trigger. [Skotlex]
 			if( tsd && src != bl )
 				battle_drain(tsd, src, rdamage, rdamage, sstatus->race, is_boss(src));
@@ -2666,7 +2666,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			case GC_VENOMPRESSURE: {
 					struct status_change *ssc = status_get_sc(src);
 					if( ssc && ssc->data[SC_POISONINGWEAPON] && rnd()%100 < 70 + 5*skilllv ) {
-						sc_start(bl,ssc->data[SC_POISONINGWEAPON]->val2,100,ssc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON,ssc->data[SC_POISONINGWEAPON]->val1));
+						sc_start(bl,ssc->data[SC_POISONINGWEAPON]->val2,100,ssc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON, 1));
 						status_change_end(src,SC_POISONINGWEAPON,INVALID_TIMER);
 						clif_skill_nodamage(src,bl,skillid,skilllv,1);
 					}
@@ -3263,9 +3263,8 @@ static int skill_ative_reverberation( struct block_list *bl, va_list ap) {
 	if( bl->type != BL_SKILL )
 		return 0;
 	if( su->alive && (sg = su->group) && sg->skill_id == WM_REVERBERATION ) {
-		clif_changetraplook(bl, UNT_USED_TRAPS);
 		map_foreachinrange(skill_trap_splash, bl, skill_get_splash(sg->skill_id, sg->skill_lv), sg->bl_flag, bl, gettick());
-		su->limit=DIFF_TICK(gettick(),sg->tick)+1500;
+		su->limit=DIFF_TICK(gettick(),sg->tick);
 		sg->unit_id = UNT_USED_TRAPS;
 	}
 	return 0;
@@ -3417,7 +3416,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case NPC_HELLPOWER:
 	case RK_SONICWAVE:
 	case RK_HUNDREDSPEAR:
-	case RK_WINDCUTTER:
 	case AB_DUPLELIGHT_MELEE:
 	case RA_AIMEDBOLT:
 	case NC_AXEBOOMERANG:
@@ -3431,7 +3429,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case LG_RAGEBURST:
 	case LG_RAYOFGENESIS:
 	case LG_HESPERUSLIT:
-	case SR_SKYNETBLOW:
 	case SR_FALLENEMPIRE:
 	case SR_CRESCENTELBOW_AUTOSPELL:
 	case SR_GATEOFHELL:
@@ -3451,7 +3448,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case NC_COLDSLOWER:
 	case NC_ARMSCANNON:
 		if (sd) pc_overheat(sd,1);
-		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+	case RK_WINDCUTTER:
+		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag|SD_ANIMATION);
 		break;
 
 	case LK_JOINTBEAT: // decide the ailment first (affects attack damage and effect)
@@ -3648,6 +3646,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case WL_SOULEXPANSION:
 	case WL_CRIMSONROCK:
 	case WL_COMET:
+	case WL_JACKFROST:
 	case RA_ARROWSTORM:
 	case RA_WUGDASH:
 	case NC_VULCANARM:
@@ -3659,6 +3658,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case LG_EARTHDRIVE:
 	case SR_TIGERCANNON:
 	case SR_RAMPAGEBLASTER:
+	case SR_SKYNETBLOW:
 	case SR_WINDMILL:
 	case SR_RIDEINLIGHTNING:
 	case WM_SOUND_OF_DESTRUCTION:
@@ -3695,7 +3695,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 					break;
 				case NPC_EARTHQUAKE://FIXME: Isn't EarthQuake a ground skill after all?
 					skill_addtimerskill(src,tick+250,src->id,0,0,skillid,skilllv,2,flag|BCT_ENEMY|SD_SPLASH|1);
-					break;
 				default:
 					break;
 			}
@@ -3710,7 +3709,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 			
 			if( skillid == NC_VULCANARM )
 					if (sd) pc_overheat(sd,1);
-					
+			if( skillid == WM_REVERBERATION_MELEE || skillid == WM_REVERBERATION_MAGIC )
+				skill_area_temp[1] = 0;
 			// if skill damage should be split among targets, count them
 			//SD_LEVEL -> Forced splash damage for Auto Blitz-Beat -> count targets
 			//special case: Venom Splasher uses a different range for searching than for splashing
@@ -4137,6 +4137,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 
 				for(i = SC_MAXSPELLBOOK; i >= SC_SPELLBOOK1; i--) // List all available spell to be released
 					if( sc->data[i] ) spell[s++] = i;
+					
+				if ( s == 0 )
+					break;
 
 				i = spell[s==1?0:rand()%s];// Random select of spell to be released.
 				if( s && sc->data[i] ){// Now extract the data from the preserved spell
@@ -4215,24 +4218,11 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		}
 		break;
 	case WL_FROSTMISTY:
-		{
-		struct status_change *tsc = status_get_sc(bl);
-		if( tsc && (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) || tsc->data[SC__INVISIBILITY]) )
-			break; // Doesn't hit/cause Freezing to invisible enemy
 		// Causes Freezing status through walls.
 		sc_start(bl,status_skill2sc(skillid),25+5*skilllv,skilllv,skill_get_time(skillid,skilllv));
 		// Doesn't deal damage through non-shootable walls.
 		if( path_search(NULL,src->m,src->x,src->y,bl->x,bl->y,1,CELL_CHKWALL) )
-			skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
-		}
-		break;
-
-	case WL_JACKFROST: {
-		struct status_change *tsc = status_get_sc(bl);
-		if( tsc && (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) || tsc->data[SC__INVISIBILITY]) )
-			break; // Do not hit invisible enemy
-		skill_attack(skill_get_type(skillid), src, src, bl, skillid, skilllv, tick, flag);
-		}
+			skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag|SD_ANIMATION);
 		break;
 	case WL_HELLINFERNO:
 		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
@@ -4356,7 +4346,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 			status_change_end(bl, SC_MELODYOFSINK, INVALID_TIMER);
 			status_change_end(bl, SC_BEYONDOFWARCRY, INVALID_TIMER);
 			status_change_end(bl, SC_UNLIMITEDHUMMINGVOICE, INVALID_TIMER);
-			skill_attack(BF_WEAPON, src, src, bl, skillid, skilllv, tick, flag);
+			skill_attack(BF_WEAPON, src, src, bl, skillid, skilllv, tick, flag|SD_ANIMATION);
 		break;
 
 	case SR_EARTHSHAKER:
@@ -4914,7 +4904,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				clif_skill_fail(sd,skillid,USESKILL_FAIL_LEVEL,0);
 				break;
 			}
-			class_ = skillid==SA_MONOCELL?1002:mob_get_random_id(2, 1, 0);
+			class_ = skillid==SA_MONOCELL?1002:mob_get_random_id(4, 1, 0);
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			mob_class_change(dstmd,class_);
 			if( tsc && dstmd->status.mode&MD_BOSS )
@@ -9621,7 +9611,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, int skillid, int sk
 		}
 		clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skillid,skilllv,6);
 		skill_unitsetting(src, skillid, skilllv, x, y, flag);
-		status_change_end(src,SC_POISONINGWEAPON,INVALID_TIMER);
+		//status_change_end(src,SC_POISONINGWEAPON,INVALID_TIMER); // 08/31/2011 - When using poison smoke, you no longer lose the poisoning weapon effect.
 		break;
 	/**
 	 * Arch Bishop
@@ -10354,7 +10344,6 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, short skilli
 	case GC_POISONSMOKE:
 		if( !(sc && sc->data[SC_POISONINGWEAPON]) )
 			return NULL;
-		val1 = sc->data[SC_POISONINGWEAPON]->val1; // Level of Poison, to determine poisoning time
 		val2 = sc->data[SC_POISONINGWEAPON]->val2; // Type of Poison
 		limit = skill_get_time(skillid,skilllv);
 		break;
@@ -11207,7 +11196,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 		 **/
 		case UNT_POISONSMOKE:
 			if( battle_check_target(ss,bl,BCT_ENEMY) > 0 && !(tsc && tsc->data[sg->val2]) && rnd()%100 < 50 )
-				sc_start(bl,sg->val2,100,sg->val1,skill_get_time2(GC_POISONINGWEAPON,sg->val1));
+				sc_start(bl,sg->val2,100,sg->val1,skill_get_time2(GC_POISONINGWEAPON, 1));
 			break;
 
 		case UNT_EPICLESIS:
@@ -11260,7 +11249,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 		case UNT_REVERBERATION:
 			clif_changetraplook(&src->bl,UNT_USED_TRAPS);
 			map_foreachinrange(skill_trap_splash,&src->bl, skill_get_splash(sg->skill_id, sg->skill_lv), sg->bl_flag, &src->bl,tick);
-			sg->limit = DIFF_TICK(tick,sg->tick) + 1500;
+			sg->limit = DIFF_TICK(tick,sg->tick)+1000;
 			sg->unit_id = UNT_USED_TRAPS;
 			break;
 
@@ -11269,9 +11258,12 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				skill_attack(BF_WEAPON,ss,&src->bl,bl,WM_SEVERE_RAINSTORM_MELEE,sg->skill_lv,tick,0);
 			break;
 		case UNT_NETHERWORLD:
-			if( !(status_get_mode(bl)&MD_BOSS) ) {
-				if( !(tsc && tsc->data[type]) )
+			if( !(status_get_mode(bl)&MD_BOSS) && ss != bl && battle_check_target(&src->bl, bl, BCT_PARTY) ) {
+				if( !(tsc && tsc->data[type]) ){
 					sc_start(bl, type, 100, sg->skill_lv, skill_get_time2(sg->skill_id,sg->skill_lv));
+					sg->limit = DIFF_TICK(tick,sg->tick);
+					sg->unit_id = UNT_USED_TRAPS;
+				}
 			}
 			break;
 		case UNT_THORNS_TRAP:
@@ -12385,7 +12377,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, short skill, sh
 			break;
 		case SR_CRESCENTELBOW:
 			if( sc && sc->data[SC_CRESCENTELBOW] ) {
-				clif_skill_fail(sd,skill,0,0);
+				clif_skill_fail(sd, skill, USESKILL_FAIL_DUPLICATE, 0);
 				return 0;
 			}
 			break;
@@ -14105,8 +14097,8 @@ static int skill_trap_splash (struct block_list *bl, va_list ap)
 				clif_skill_damage(src,bl,tick,0,0,-30000,1,sg->skill_id,sg->skill_lv,5);
 			break;
 		case UNT_REVERBERATION:
-			skill_addtimerskill(ss,tick+50,bl->id,0,0,WM_REVERBERATION_MELEE,sg->skill_lv,BF_WEAPON,SD_LEVEL); // for proper skill delay animation when use with Dominion Impulse
-			skill_addtimerskill(ss,tick+250,bl->id,0,0,WM_REVERBERATION_MAGIC,sg->skill_lv,BF_MAGIC,SD_LEVEL);
+			skill_addtimerskill(ss,tick+50,bl->id,0,0,WM_REVERBERATION_MELEE,sg->skill_lv,BF_WEAPON,0); // for proper skill delay animation when use with Dominion Impulse
+			skill_addtimerskill(ss,tick+250,bl->id,0,0,WM_REVERBERATION_MAGIC,sg->skill_lv,BF_MAGIC,0);
 			break;
 		case UNT_SEVERE_RAINSTORM:
 			skill_attack(BF_WEAPON,ss,ss,bl,WM_SEVERE_RAINSTORM_MELEE,sg->skill_lv,tick,0);
@@ -15730,7 +15722,7 @@ int skill_arrow_create (struct map_session_data *sd, int nameid)
 }
 int skill_poisoningweapon( struct map_session_data *sd, int nameid) {
 	sc_type type;
-	int t_lv = 0, chance, i;
+	int chance, i;
 	nullpo_ret(sd);
 	if( nameid <= 0 || (i = pc_search_inventory(sd,nameid)) < 0 || pc_delitem(sd,i,1,0,0,LOG_TYPE_CONSUME) ) {
 		clif_skill_fail(sd,GC_POISONINGWEAPON,USESKILL_FAIL_LEVEL,0);
@@ -15738,21 +15730,22 @@ int skill_poisoningweapon( struct map_session_data *sd, int nameid) {
 	}
 	switch( nameid )
 	{ // t_lv used to take duration from skill_get_time2
-		case PO_PARALYSE:      type = SC_PARALYSE;      t_lv = 1; break;
-		case PO_PYREXIA:       type = SC_PYREXIA;       t_lv = 2; break;
-		case PO_DEATHHURT:     type = SC_DEATHHURT;     t_lv = 3; break;
-		case PO_LEECHESEND:    type = SC_LEECHESEND;    t_lv = 4; break;
-		case PO_VENOMBLEED:    type = SC_VENOMBLEED;    t_lv = 6; break;
-		case PO_TOXIN:         type = SC_TOXIN;         t_lv = 7; break;
-		case PO_MAGICMUSHROOM: type = SC_MAGICMUSHROOM; t_lv = 8; break;
-		case PO_OBLIVIONCURSE: type = SC_OBLIVIONCURSE; t_lv = 9; break;
+		case PO_PARALYSE:      type = SC_PARALYSE;      break;
+		case PO_PYREXIA:       type = SC_PYREXIA;       break;
+		case PO_DEATHHURT:     type = SC_DEATHHURT;     break;
+		case PO_LEECHESEND:    type = SC_LEECHESEND;    break;
+		case PO_VENOMBLEED:    type = SC_VENOMBLEED;    break;
+		case PO_TOXIN:         type = SC_TOXIN;         break;
+		case PO_MAGICMUSHROOM: type = SC_MAGICMUSHROOM; break;
+		case PO_OBLIVIONCURSE: type = SC_OBLIVIONCURSE; break;
 		default:
 			clif_skill_fail(sd,GC_POISONINGWEAPON,USESKILL_FAIL_LEVEL,0);
 			return 0;
 	}
 
 	chance = 2 + 2 * sd->menuskill_val; // 2 + 2 * skill_lv
-	sc_start4(&sd->bl,SC_POISONINGWEAPON,100,t_lv,type,chance,0,skill_get_time(GC_POISONINGWEAPON,sd->menuskill_val));
+	sc_start4(&sd->bl, SC_POISONINGWEAPON, 100, pc_checkskill(sd, GC_RESEARCHNEWPOISON), //in Aegis it store the level of GC_RESEARCHNEWPOISON in val1
+		type, chance, 0, skill_get_time(GC_POISONINGWEAPON, sd->menuskill_val));
 
 	return 0;
 }
