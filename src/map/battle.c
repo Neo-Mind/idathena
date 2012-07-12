@@ -2489,6 +2489,12 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				case EL_ROCK_CRUSHER:
 					skillratio += 700;
 					break;
+				case MH_STAHL_HORN:
+					skillratio += 500 + 100 * skill_lv;
+					break;
+				case MH_LAVA_SLIDE:
+					skillratio = 70 * skill_lv;
+					break;
 			}
 
 			ATK_RATE(skillratio);
@@ -3765,7 +3771,12 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					case EL_TYPOON_MIS_ATK:
 						skillratio += 1100;
 						break;
-
+					case MH_ERASER_CUTTER:
+						if (skill_lv >= 3)
+							skillratio += 800 + 200 * skill_lv ;
+						else
+							skillratio += 500 + 400 * skill_lv;
+						break;
 				}
 
 				MATK_RATE(skillratio);
@@ -3927,9 +3938,13 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		ad.damage=battle_calc_bg_damage(src,target,ad.damage,ad.div_,skill_num,skill_lv,ad.flag);
 	
 	
-	if( skill_num == SO_VARETYR_SPEAR ) { // Physical damage.
-		struct Damage wd = battle_calc_weapon_attack(src,target,skill_num,skill_lv,mflag);
-		ad.damage += wd.damage;
+	switch( skill_num ) { /* post-calc modifiers */
+		case SO_VARETYR_SPEAR: { // Physical damage.
+			struct Damage wd = battle_calc_weapon_attack(src,target,skill_num,skill_lv,mflag);
+			ad.damage += wd.damage;
+			break;
+		}
+		//case HM_ERASER_CUTTER:
 	}
 	
 	return ad;
