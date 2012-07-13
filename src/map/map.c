@@ -2462,21 +2462,22 @@ int map_random_dir(struct block_list *bl, short *x, short *y)
 }
 
 // gatån
-inline static struct mapcell map_gat2cell(int gat)
-{
-	struct mapcell cell = {0};
-	switch( gat )
-	{
-	case 0: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; // walkable ground
-	case 1: cell.walkable = 0; cell.shootable = 0; cell.water = 0; break; // non-walkable ground
-	case 2: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; // ???
-	case 3: cell.walkable = 1; cell.shootable = 1; cell.water = 1; break; // walkable water
-	case 4: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; // ???
-	case 5: cell.walkable = 0; cell.shootable = 1; cell.water = 0; break; // gap (snipable)
-	case 6: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; // ???
-	default:
-		ShowWarning("map_gat2cell: unrecognized gat type '%d'\n", gat);
-		break;
+inline static struct mapcell map_gat2cell(int gat) {
+	struct mapcell cell;
+	
+	memset(&cell,0,sizeof(struct mapcell));
+	
+	switch( gat ) {
+		case 0: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; // walkable ground
+		case 1: cell.walkable = 0; cell.shootable = 0; cell.water = 0; break; // non-walkable ground
+		case 2: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; // ???
+		case 3: cell.walkable = 1; cell.shootable = 1; cell.water = 1; break; // walkable water
+		case 4: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; // ???
+		case 5: cell.walkable = 0; cell.shootable = 1; cell.water = 0; break; // gap (snipable)
+		case 6: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; // ???
+		default:
+			ShowWarning("map_gat2cell: unrecognized gat type '%d'\n", gat);
+			break;
 	}
 
 	return cell;
@@ -3334,6 +3335,58 @@ int map_config_read(char *cfgName)
 	return 0;
 }
 
+void map_reloadnpc_sub(char *cfgName)
+{
+	char line[1024], w1[1024], w2[1024];
+	FILE *fp;
+
+	fp = fopen(cfgName,"r");
+	if( fp == NULL )
+	{
+		ShowError("Map configuration file not found at: %s\n", cfgName);
+		return;
+	}
+
+	while( fgets(line, sizeof(line), fp) )
+	{
+		char* ptr;
+
+		if( line[0] == '/' && line[1] == '/' )
+			continue;
+		if( (ptr = strstr(line, "//")) != NULL )
+			*ptr = '\n'; //Strip comments
+		if( sscanf(line, "%[^:]: %[^\t\r\n]", w1, w2) < 2 )
+			continue;
+
+		//Strip trailing spaces
+		ptr = w2 + strlen(w2);
+		while (--ptr >= w2 && *ptr == ' ');
+		ptr++;
+		*ptr = '\0';
+			
+		if (strcmpi(w1, "npc") == 0)
+			npc_addsrcfile(w2);
+		else if (strcmpi(w1, "import") == 0)
+			map_reloadnpc_sub(w2);
+		else
+			ShowWarning("Unknown setting '%s' in file %s\n", w1, cfgName);
+	}
+
+	fclose(fp);
+}
+
+void map_reloadnpc(bool clear)
+{
+	if (clear)
+		npc_addsrcfile("clear"); // this will clear the current script list
+
+#ifdef RENEWAL
+	map_reloadnpc_sub("npc/re/scripts_main.conf");
+#else
+	map_reloadnpc_sub("npc/pre-re/scripts_main.conf");
+#endif
+}
+
 int inter_config_read(char *cfgName)
 {
 	char line[1024],w1[1024],w2[1024];
@@ -3836,11 +3889,10 @@ int do_init(int argc, char *argv[])
 	}
 
 	map_config_read(MAP_CONF_NAME);
-#ifdef RENEWAL
-	map_config_read("npc/re/scripts_main.conf");
-#else
-	map_config_read("npc/pre-re/scripts_main.conf");
-#endif
+	/* only temporary until sirius's datapack patch is complete  */
+	
+	// loads npcs
+	map_reloadnpc(false);
 
 	chrif_checkdefaultlogin();
 

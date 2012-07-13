@@ -962,8 +962,10 @@ int mob_spawn (struct mob_data *md)
 
 	memset(md->dmglog, 0, sizeof(md->dmglog));
 	md->tdmg = 0;
+	
 	if (md->lootitem)
 		memset(md->lootitem, 0, sizeof(md->lootitem));
+		
 	md->lootitem_count = 0;
 
 	if(md->db->option)
@@ -1793,7 +1795,7 @@ static struct item_drop* mob_setdropitem(int nameid, int qty)
 	drop->item_data.identify = itemdb_isidentified(nameid);
 	drop->next = NULL;
 	return drop;
-};
+}
 
 /*==========================================
  * Initializes the delay drop structure for mob-looted items.
@@ -1804,7 +1806,7 @@ static struct item_drop* mob_setlootitem(struct item* item)
 	memcpy(&drop->item_data, item, sizeof(struct item));
 	drop->next = NULL;
 	return drop;
-};
+}
 
 /*==========================================
  * item drop with delay (timer function)

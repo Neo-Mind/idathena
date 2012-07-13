@@ -5569,12 +5569,12 @@ int pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned int
 unsigned int pc_maxbaselv(struct map_session_data *sd)
 {
   	return max_level[pc_class2idx(sd->status.class_)][0];
-};
+}
 
 unsigned int pc_maxjoblv(struct map_session_data *sd)
 {
   	return max_level[pc_class2idx(sd->status.class_)][1];
-};
+}
 
 /*==========================================
  * base level側必要??値計算
@@ -6972,6 +6972,7 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 		pc_setglobalreg(sd, "CLONE_SKILL", 0);
 		pc_setglobalreg(sd, "CLONE_SKILL_LV", 0);
 	}
+	
 	if(sd->reproduceskill_id) {
 		if( sd->status.skill[sd->reproduceskill_id].flag == SKILL_FLAG_PLAGIARIZED ) {
 			sd->status.skill[sd->reproduceskill_id].id = 0;
@@ -6983,8 +6984,8 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 		pc_setglobalreg(sd, "REPRODUCE_SKILL",0);
 		pc_setglobalreg(sd, "REPRODUCE_SKILL_LV",0);
 	}
-	if ((b_class&&MAPID_UPPERMASK) != (sd->class_&MAPID_UPPERMASK))
-	{ //Things to remove when changing class tree.
+	
+	if ( (b_class&MAPID_UPPERMASK) != (sd->class_&MAPID_UPPERMASK) ) { //Things to remove when changing class tree.
 		const int class_ = pc_class2idx(sd->status.class_);
 		short id;
 		for(i = 0; i < MAX_SKILL_TREE && (id = skill_tree[class_][i].id) > 0; i++) {
@@ -7998,14 +7999,15 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 			run_script(id->equip_script,0,sd->bl.id,fake_nd->bl.id);
 		if(itemdb_isspecial(sd->status.inventory[n].card[0]))
 			; //No cards
-		else
-		for(i=0;i<id->slot; i++)
-		{
-			if (!sd->status.inventory[n].card[i])
-				continue;
-			data = itemdb_exists(sd->status.inventory[n].card[i]);
-			if (data && data->equip_script)
-				run_script(data->equip_script,0,sd->bl.id,fake_nd->bl.id);
+		else {
+			for( i = 0; i < id->slot; i++ ) {
+				if (!sd->status.inventory[n].card[i])
+					continue;
+				if ( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
+						if( data->equip_script )
+							run_script(data->equip_script,0,sd->bl.id,fake_nd->bl.id);
+				}
+			}
 		}
 	}
 	return 0;
@@ -8126,14 +8128,16 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag)
 			run_script(sd->inventory_data[n]->unequip_script,0,sd->bl.id,fake_nd->bl.id);
 		if(itemdb_isspecial(sd->status.inventory[n].card[0]))
 			; //No cards
-		else
-		for(i=0;i<sd->inventory_data[n]->slot; i++)
-		{
-			if (!sd->status.inventory[n].card[i])
-				continue;
-			data = itemdb_exists(sd->status.inventory[n].card[i]);
-			if (data && data->unequip_script)
-				run_script(data->unequip_script,0,sd->bl.id,fake_nd->bl.id);
+		else {
+			for( i = 0; i < sd->inventory_data[n]->slot; i++ ) {
+				if (!sd->status.inventory[n].card[i])
+					continue;
+				
+				if ( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
+					if( data->unequip_script )
+						run_script(data->unequip_script,0,sd->bl.id,fake_nd->bl.id);
+				}
+			}
 		}
 	}
 

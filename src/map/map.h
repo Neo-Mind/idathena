@@ -678,6 +678,9 @@ struct map_session_data * map_nick2sd(const char*);
 struct mob_data * map_getmob_boss(int m);
 struct mob_data * map_id2boss(int id);
 
+// reload config file looking only for npcs
+void map_reloadnpc(bool clear);
+
 /// Bitfield of flags for the iterator.
 enum e_mapitflags
 {

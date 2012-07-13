@@ -9846,7 +9846,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		if( --(sce->val4) >= 0 ) {
 			int damage = status->max_hp/100; // {Target VIT x (New Poison Research Skill Level - 3)} + (Target HP/100)
 			damage += status->vit * (sce->val1 - 3);
-			unit_skillcastcancel(bl,0);
+			unit_skillcastcancel(bl,2);
 			map_freeblock_lock();
 			status_damage(bl, bl, damage, 0, clif_damage(bl,bl,tick,status_get_amotion(bl),status_get_dmotion(bl)+500,damage,1,0,0), 1);
 			if( sc->data[type] ) {
@@ -10768,9 +10768,9 @@ static int status_natural_heal_timer(int tid, unsigned int tick, int id, intptr_
  * @param refine The target refine level
  * @return The chance to refine the item, in percent (0~100)
  **/
-int status_get_refine_chance(enum refine_type wlv, int refine)
-{
-	 if (wlv < 0 || wlv > REFINE_TYPE_MAX || refine < 0 || refine >= MAX_REFINE)
+int status_get_refine_chance(enum refine_type wlv, int refine) {
+
+	 if ( refine < 0 || refine >= MAX_REFINE)
 		return 0;
 
 	return refine_info[wlv].chance[refine];
