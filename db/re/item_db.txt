@@ -2067,14 +2067,14 @@
 4159,Nine_Tail_Card,Nine Tail Card,6,20,,10,,,,,,,,4,,,,,{ bonus bAgi,2; if(getrefine()>8) bonus bFlee,20; },{},{}
 4160,Antique_Firelock_Card,Firelock Soldier Card,6,20,,10,,,,,,,,64,,,,,{ bonus bStr,2; if(getrefine()>8) { bonus bMaxHPrate,10; bonus bMaxSPrate,10; } },{},{}
 4161,Grand_Peco_Card,Grand Peco Card,6,20,,10,,,,,,,,769,,,,,{ bonus3 bAutoSpellWhenHit,"PR_GLORIA",1,50; },{},{}
-4162,Grizzly_Card,Grizzly Card,6,20,,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Blind,300 },{},{}
+4162,Grizzly_Card,Grizzly Card,6,20,,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Blind,300; },{},{}
 4163,Gryphon_Card,Gryphon Card,6,20,,10,,,,,,,,2,,,,,{ bonus bFlee,2; bonus bCritical,7; if(BaseClass==Job_Swordman) bonus3 bAutoSpell,"KN_BOWLINGBASH",5,10; },{},{}
 4164,Gullinbursti_Card,Gullinbursti Card,6,20,,10,,,,,,,,64,,,,,{ bonus2 bSubRace,RC_Fish,-20; bonus2 bExpAddRace,RC_Fish,10; },{},{}
 4165,Gig_Card,Gig Card,6,20,,10,,,,,,,,2,,,,,{ bonus2 bSPGainRace,RC_Insect,5; },{},{ heal 0,-5; }
-4166,Nightmare_Terror_Card,Nightmare Terror Card,6,20,,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Curse,300 },{},{}
+4166,Nightmare_Terror_Card,Nightmare Terror Card,6,20,,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Curse,300; },{},{}
 4167,Neraid_Card,Nereid Card,6,20,,10,,,,,,,,2,,,,,{ bonus2 bSPGainRace,RC_Brute,5; },{},{ heal 0,-5; }
 4168,Dark_Lord_Card,Dark Lord Card,6,20,,10,,,,,,,,64,,,,,{ bonus3 bAutoSpellWhenHit,"WZ_METEOR",5,100; },{},{}
-4169,Dark_Illusion_Card,Dark Illusion Card,6,20,,10,,,,,,,,769,,,,,{ bonus bMaxHPrate,-10; bonus bMaxSPrate,-10; bonus bCastrate,-10 },{},{}
+4169,Dark_Illusion_Card,Dark Illusion Card,6,20,,10,,,,,,,,769,,,,,{ bonus bMaxHPrate,-10; bonus bMaxSPrate,-10; bonus bCastrate,-10; },{},{}
 4170,Dark_Frame_Card,Dark Frame Card,6,20,,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Stone,600; },{},{}
 4171,Dark_Priest_Card,Dark Priest Card,6,20,,10,,,,,,,,2,,,,,{ bonus2 bSPVanishRate,50,10; if(BaseJob==Job_Sage) bonus bSPDrainValue,1; },{},{}
 4172,The_Paper_Card,The Paper Card,6,20,,10,,,,,,,,2,,,,,{ bonus bCritAtkRate,20; bonus2 bSPDrainValue,-1,0; },{},{}
@@ -2127,7 +2127,7 @@
 4219,Sageworm_Card,Sage Worm Card,6,20,,10,,,,,,,,136,,,,,{ bonus2 bAddMonsterDropItem,715,30; bonus2 bAddMonsterDropItem,716,30; bonus2 bAddMonsterDropItem,717,30; },{},{}
 4220,Solider_Card,Solider Card,6,20,,10,,,,,,,,16,,,,,{ bonus bDef,2; bonus bMdef,2; },{},{}
 4221,Skeleton_General_Card,Skeleton General Card,6,20,,10,,,,,,,,64,,,,,{ bonus2 bSubRace,RC_Insect,-20; bonus2 bExpAddRace,RC_Insect,10; },{},{}
-4222,Skel_Prisoner_Card,Skeleton Prisoner Card,6,20,,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Sleep,300 },{},{}
+4222,Skel_Prisoner_Card,Skeleton Prisoner Card,6,20,,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Sleep,300; },{},{}
 4223,Stalactic_Golem_Card,Stalactic Golem Card,6,20,,10,,,,,,,,769,,,,,{ bonus bDef,1; bonus2 bResEff,Eff_Stun,2000; },{},{}
 4224,Stem_Worm_Card,Stem Worm Card,6,20,,10,,,,,,,,136,,,,,{ bonus3 bAddMonsterDropItem,12032,RC_Brute,100; },{},{}
 4225,Stone_Shooter_Card,Stone Shooter Card,6,20,,10,,,,,,,,2,,,,,{ bonus bBaseAtk,10; bonus bHit,10; },{},{}
@@ -2228,7 +2228,7 @@
 4320,Bloody_Knight_Card,Bloody Knight Card,6,20,,10,,,,,,,,2,,,,,{ bonus3 bAutoSpell,"WZ_METEOR",1,20; },{},{}
 4321,Hylozoist_Card,Hylozoist Card,6,20,,10,,,,,,,,136,,,,,{ bonus bClassChange,100; },{},{}
 4322,High_Orc_Card,High Orc Card,6,20,,10,,,,,,,,32,,,,,{ bonus bDef,1; bonus bShortWeaponDamageReturn,5; },{},{}
-4323,Garm_Baby_Card,Hatii Babe Card,6,20,,10,,,,,,,,2,,,,,{ bonus3 bAutoSpell,"MG_FROSTDIVER",3,50 },{},{}
+4323,Garm_Baby_Card,Hatii Babe Card,6,20,,10,,,,,,,,2,,,,,{ bonus3 bAutoSpell,"MG_FROSTDIVER",3,50; },{},{}
 4324,Garm_Card,Hatii Card,6,20,,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Freeze,5000; },{},{}
 4325,Harpy_Card,Harpy Card,6,20,,10,,,,,,,,4,,,,,{ bonus2 bSubEle,Ele_Neutral,15; bonus2 bSkillAtk,"MG_NAPALMBEAT",5; },{},{}
 4326,See_Otter_Card,Sea-Otter Card,6,20,,10,,,,,,,,136,,,,,{ bonus2 bAddItemHealRate,IG_Fish,50; bonus3 bAddMonsterDropItem,551,RC_Fish,300; bonus3 bAddMonsterDropItem,544,RC_Fish,300; },{},{}
