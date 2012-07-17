@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Current Version: =====================================
-//= $Revision: 16418 $
+//= $Revision: 16428 $
 //===== Last Updated: ========================================
-//= $LastChangedDate: 2012-07-13 01:57:02 +0700 (Fri, 13 Jul 2012) $
+//= $LastChangedDate: 2012-07-15 00:25:43 +0700 (Sun, 15 Jul 2012) $
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -5313,6 +5313,20 @@ If it doesn't work, the /swt emotion is shown.
 To evolve a homunculus, the invoking player must have a homunculus,
 the homunculus must not be the last evolution and
 the homunculus must have above 91000 intimacy with it's owner.
+
+---------------------------------------
+
+*hommutate {<ID>};
+
+This command will try to evolve the current player's homunculus into the
+new Homunculus S. If it doesn't work, the /swt emotion is shown.
+
+To mutate a homunculus, the invoking player must have an evolved
+homunculus and it must be at least level 99.
+
+If the optional parameter <ID> is set, the invoking player's homunculus will
+change into the given homunculus ID. Otherwise, a random Homunculus S
+will be chosen.
 
 ---------------------------------------
 
