@@ -604,7 +604,7 @@ void initChangeTables(void) {
 	set_sc( NC_INFRAREDSCAN      , SC_INFRAREDSCAN    , SI_INFRAREDSCAN    , SCB_FLEE );
 	set_sc( NC_ANALYZE           , SC_ANALYZE         , SI_ANALYZE         , SCB_DEF|SCB_DEF2|SCB_MDEF|SCB_MDEF2 );
 	set_sc( NC_MAGNETICFIELD     , SC_MAGNETICFIELD   , SI_MAGNETICFIELD   , SCB_NONE );
-	set_sc( NC_NEUTRALBARRIER    , SC_NEUTRALBARRIER  , SI_NEUTRALBARRIER  , SCB_NONE );
+	set_sc( NC_NEUTRALBARRIER    , SC_NEUTRALBARRIER  , SI_NEUTRALBARRIER  , SCB_DEF|SCB_DEF2|SCB_MDEF|SCB_MDEF2 );
 	set_sc( NC_STEALTHFIELD      , SC_STEALTHFIELD    , SI_STEALTHFIELD    , SCB_NONE );
 	/**
 	 * Royal Guard
@@ -4730,6 +4730,8 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 		def -= def * ( 6 + 6 * sc->data[SC_MARSHOFABYSS]->val3/10 + (bl->type == BL_MOB ? 5 : 3) * sc->data[SC_MARSHOFABYSS]->val2/36 ) / 100;
 	if( sc->data[SC_ANALYZE] )
 		def -= def * ( 14 * sc->data[SC_ANALYZE]->val1 ) / 100;
+	if( sc->data[SC_NEUTRALBARRIER] )
+		def += def * ( 10 + 5 * sc->data[SC_NEUTRALBARRIER]->val1 ) / 100;
 	if( sc->data[SC__BLOODYLUST] )
 		def -= def * 55 / 100;
 	if( sc->data[SC_SHIELDSPELL_REF] && sc->data[SC_SHIELDSPELL_REF]->val1 == 1 )
@@ -4790,11 +4792,13 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 			  + def2 * ( sc->data[SC_JOINTBEAT]->val2&BREAK_WAIST ? 25 : 0 ) / 100;
 	if(sc->data[SC_FLING])
 		def2 -= def2 * (sc->data[SC_FLING]->val3)/100;
-	if( sc->data[SC_FREEZING] )
+	if(sc->data[SC_FREEZING])
 		def2 -= def2 * 10 / 10;
 	if(sc->data[SC_ANALYZE])
 		def2 -= def2 * ( 14 * sc->data[SC_ANALYZE]->val1 ) / 100;
-	if( sc->data[SC_ECHOSONG] )
+	if(sc->data[SC_NEUTRALBARRIER])
+		def2 += def2 * ( 10 + 5 * sc->data[SC_NEUTRALBARRIER]->val1 ) / 100;
+	if(sc->data[SC_ECHOSONG])
 		def2 += def2 * sc->data[SC_ECHOSONG]->val2/100;
 #ifdef RENEWAL
 	if( sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 0 )
@@ -4848,10 +4852,12 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 	if(sc->data[SC_STONEHARDSKIN])// Final MDEF increase divided by 10 since were using classic (pre-renewal) mechanics. [Rytech]
 		mdef += sc->data[SC_STONEHARDSKIN]->val1;
 #endif
-	if( sc->data[SC_MARSHOFABYSS] )
+	if(sc->data[SC_MARSHOFABYSS])
 		mdef -= mdef * ( 6 + 6 * sc->data[SC_MARSHOFABYSS]->val3/10 + (bl->type == BL_MOB ? 5 : 3) * sc->data[SC_MARSHOFABYSS]->val2/36 ) / 100;
 	if(sc->data[SC_ANALYZE])
 		mdef -= mdef * ( 14 * sc->data[SC_ANALYZE]->val1 ) / 100;
+	if(sc->data[SC_NEUTRALBARRIER])
+		mdef += mdef * ( 10 + 5 * sc->data[SC_NEUTRALBARRIER]->val1 ) / 100;
 	if(sc->data[SC_SYMPHONYOFLOVER])
 		mdef += mdef * sc->data[SC_SYMPHONYOFLOVER]->val2 / 100;
 	if(sc->data[SC_GT_CHANGE] && sc->data[SC_GT_CHANGE]->val4)
@@ -4884,6 +4890,8 @@ static signed short status_calc_mdef2(struct block_list *bl, struct status_chang
 		mdef2 -= mdef2 * sc->data[SC_MINDBREAKER]->val3/100;
 	if(sc->data[SC_ANALYZE])
 		mdef2 -= mdef2 * ( 14 * sc->data[SC_ANALYZE]->val1 ) / 100;
+	if(sc->data[SC_NEUTRALBARRIER])
+		mdef2 += mdef2 * ( 10 + 5 * sc->data[SC_NEUTRALBARRIER]->val1 ) / 100;
 #ifdef RENEWAL
 	if(sc->data[SC_STONEHARDSKIN] )
 		mdef2 += sc->data[SC_STONEHARDSKIN]->val3;
