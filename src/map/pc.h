@@ -677,7 +677,7 @@ int pc_getrefinebonus(int lv,int type);
 bool pc_can_give_items(struct map_session_data *sd);
 
 bool pc_can_use_command(struct map_session_data *sd, const char *command, AtCommandType type);
-bool pc_has_permission(struct map_session_data *sd, int permission);
+#define pc_has_permission(sd, permission) ( ((sd)->permissions&permission) != 0 )
 bool pc_should_log_commands(struct map_session_data *sd);
 
 int pc_setrestartvalue(struct map_session_data *sd,int type);
