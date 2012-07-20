@@ -2822,7 +2822,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				
 			if(sc->data[SC_GT_CHANGE] && sc->data[SC_GT_CHANGE]->val2){
 				struct block_list *bl; // ATK increase: ATK [{(Caster?s DEX / 4) + (Caster?s STR / 2)} x Skill Level / 5]
-				if( bl = map_id2bl(sc->data[SC_GT_CHANGE]->val2) )
+				if( (bl = map_id2bl(sc->data[SC_GT_CHANGE]->val2)) )
 					ATK_ADD( ( status_get_dex(bl)/4 + status_get_str(bl)/2 ) * sc->data[SC_GT_CHANGE]->val1 / 5 );
 			}
 		}
@@ -4923,6 +4923,21 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 
 	if( (s_bl = battle_get_master(src)) == NULL )
 		s_bl = src;
+		
+	if ( s_bl->type == BL_PC ) {
+		switch( t_bl->type ) {
+			case BL_MOB: // Source => PC, Target => MOB
+				if ( pc_has_permission((TBL_PC*)s_bl, PC_PERM_DISABLE_PVM) )
+					return 0;
+				break;
+			case BL_PC:
+				if (pc_has_permission((TBL_PC*)s_bl, PC_PERM_DISABLE_PVP))
+					return 0;
+				break;
+			default:/* anything else goes */
+				break;
+		}
+	}
 
 	switch( target->type ) { // Checks on actual target
 			case BL_PC: {

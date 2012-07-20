@@ -1,13 +1,12 @@
 Import folder ini apa gunanya sih?
+-------------------------------------------------------------------------------
 
-Kebanyakan orang tidak begitu mengetahui dengan baik akan kegunaan import folder ini. Setelah anda tahu manfaatnya, mungkin anda akan bertanya-tanya
-kenapa tidak dari dahulu saja memakai import folder ini.
-
-import folder sangat berguna, dan menyediakan cara bagi anda untuk merubah  pengaturan konfigurasi tanpa harus terus menerus 
+Folder ini menyediakan cara bagi anda untuk merubah pengaturan konfigurasi tanpa harus terus menerus 
 memperbarui file .conf setiap kali anda memperbarui server. Anda menyimpan perubahan anda disini, dan
 sisanya diperbarui dengan idAthena (biasanya melalui SVN).
 
 Lalu , bagaimana cara ini bekerja?
+-------------------------------------------------------------------------------
 
 Jadi, Anda hanya cukup menempatkan setting yang telah diubah dalam file impor. Saya akan menggunakan
 battle_athena.conf dan battle_conf.txt untuk contohnya. Setiap kali Anda memperbarui conf 
