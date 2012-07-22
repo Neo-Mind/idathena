@@ -941,7 +941,7 @@
 1651,P_Staff2,Eden Staff II,4,0,,0,60:150,,1,0,0x00818314,7,2,2,2,40,0,10,{ bonus bInt,3; },{},{}
 1652,Tourist_Staff,Tourist Staff,4,0,,500,35:0,,1,0,0x00818315,7,2,2,1,1,0,10,{ bonus bInt,2; bonus bAgi,1; },{},{}
 1653,Staff_Of_Healing_C,Staff of Healing,4,20,,0,10:100,,1,0,0x00008110,7,2,2,3,1,0,10,{ bonus bAtkEle,Ele_Holy; },{},{}
-1654,Mental_Stick,Mental Stick,4,20,,500,40:170,,1,1,0x00818315,7,2,2,3,102,1,10,{ if (getrefine() > 5) { /* bonus bSkillAtk,"SO_PSYCHIC_WAVE",(getrefine()-5)*2; */ bonus bMaxHPRate,-(getrefine()-5)*2; } /* bonus2 bSkillVariableCast,"SO_PSYCHIC_WAVE",-3000; bonus2 bUseSPAmount,"SO_PSYCHIC_WAVE",-60; */ },{},{ itemheal 0,-100; }
+1654,Mental_Stick,Mental Stick,4,20,,500,40:170,,1,1,0x00818315,7,2,2,3,102,1,10,{ if(getrefine()>5) { bonus2 bSkillAtk,"SO_PSYCHIC_WAVE",(getrefine()-5)*2; bonus bMaxHPRate,-(getrefine()-5)*2; } bonus2 bSkillVariableCast,"SO_PSYCHIC_WAVE",-3000; bonus2 bSkillUseSP,"SO_PSYCHIC_WAVE",-60; },{},{ itemheal 0,-100; }
 //1655,
 //1656,
 1657,Mercy_Staff1,Mercy Staff I,4,20,,500,30:160,,1,2,0x00000100,7,2,2,3,100,1,10,{ bonus bInt,2; bonus bAtkEle,Ele_Holy; bonus bHealPower,10; if(isequipped(2471,2569,15029)){ bonus bHealPower,25; }; },{},{}
@@ -5471,7 +5471,7 @@
 12425,SP_Increase_Potion_(Small),SP Increase Potion (Small),0,10,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_INCMSPRATE,500000,2; percentheal 0,2; },{},{}
 12426,SP_Increase_Potion_(Medium),SP Increase Potion (Medium),0,10,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_INCMSPRATE,500000,4; percentheal 0,4; },{},{}
 12427,SP_Increase_Potion_(Large),SP Increase Potion (Large),0,10,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_INCMSPRATE,500000,8; percentheal 0,8; },{},{}
-12428,Concentrated_White_Potion_Z,Concentrated White Potion Z,0,10,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_EXTRACT_WHITE_POTION_Z,500000,0; itemheal 1000,0; },{},{}
+12428,Concentrated_White_Potion_Z,Concentrated White Potion Z,0,10,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_EXTRACT_WHITE_POTION_Z,500000,0; heal 1000,0; },{},{}
 12429,Savage_Full_Roast,Savage Full Roast,2,,,50,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_SAVAGE_STEAK, 300000, 20; },{},{}
 12430,Cocktail_Warg_Blood,Cocktail Warg Blood,2,,,50,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_COCKTAIL_WARG_BLOOD, 300000, 20; },{},{}
 12431,Minor_Stew,Minor Stew,2,,,50,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_MINOR_BBQ, 300000, 20; },{},{}
@@ -5998,13 +5998,13 @@
 13272,Cure_Free_To_Throw,Throwing Cure Free,10,100,,50,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_end SC_Bleeding; sc_end SC_Curse; sc_end SC_Silence; itemheal rand(1000,1200),0; },{},{}
 13273,Stamina_Up_M_To_Throw,Throwing Muramura M,10,100,,10,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_MUSTLE_M,500000,5; },{},{}
 13274,Digestive_F_To_Throw,Throwing Falmons F,10,100,,10,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_LIFE_FORCE_F,500000,5; },{},{}
-13275,HP_Inc_PotS_To_Throw,Throwing Increase HP Potion (Small),10,100,,20,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_INCMHPRATE,500000,1; percentheal 1,0; },{},{}//HP and SP pots need a recheck later to correct max increases.
-13276,HP_Inc_PotM_To_Throw,Throwing Increase HP Potion (Medium),10,100,,40,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_INCMHPRATE,500000,2; percentheal 2,0; },{},{}
-13277,HP_Inc_PotL_To_Throw,Throwing Increase HP Potion (Large),10,100,,80,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_INCMHPRATE,500000,5; percentheal 5,0; },{},{}
+13275,HP_Inc_PotS_To_Throw,Throwing Increase HP Potion (Small),10,100,,20,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_INCMHPRATE,500000,1; sc_start SC_INCMHP,500000,(500+(10/3)*BaseLevel); percentheal 2,0; },{},{}
+13276,HP_Inc_PotM_To_Throw,Throwing Increase HP Potion (Medium),10,100,,40,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_INCMHPRATE,500000,2; sc_start SC_INCMHP,500000,(1500+(10/3)*BaseLevel); percentheal 3,0; },{},{}
+13277,HP_Inc_PotL_To_Throw,Throwing Increase HP Potion (Large),10,100,,80,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_INCMHPRATE,500000,5; sc_start SC_INCMHP,500000,(2500+(10/3)*BaseLevel); percentheal 5,0; },{},{}
 13278,SP_Inc_PotS_To_Throw,Throwing Increase SP Potion (Small),10,100,,20,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_INCMSPRATE,500000,2; percentheal 0,2; },{},{}
 13279,SP_Inc_PotM_To_Throw,Throwing Increase SP Potion (Medium),10,100,,40,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_INCMSPRATE,500000,4; percentheal 0,4; },{},{}
 13280,SP_Inc_PotL_To_Throw,Throwing Increase SP Potion (Large),10,100,,80,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_INCMSPRATE,500000,8; percentheal 0,8; },{},{}
-13281,En_White_PotZ_To_Throw,Throwing Concentrated White Potion Z,10,100,,70,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_EXTRACT_WHITE_POTION_Z,500000,20; itemheal 1000,0; },{},{}
+13281,En_White_PotZ_To_Throw,Throwing Concentrated White Potion Z,10,100,,70,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_EXTRACT_WHITE_POTION_Z,500000,20; heal 1000,0; },{},{}
 13282,Vitata500_To_Throw,Throwing Vitata 500,10,100,,50,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_VITATA_500,500000,20; },{},{}
 13283,En_Cel_Juice_To_Throw,Throwing Ceromain Soup,10,100,,50,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_EXTRACT_SALAMINE_JUICE,500000,10; },{},{}
 13284,Savage_BBQ_To_Throw,Throwing Savage Full Roast,10,100,,50,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_SAVAGE_STEAK,300000,20; },{},{}
