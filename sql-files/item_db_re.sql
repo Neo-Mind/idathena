@@ -103,7 +103,7 @@ REPLACE INTO `item_db_re` VALUES (1650,'P_Staff1','Eden Staff I',4,0,NULL,0,'60:
 REPLACE INTO `item_db_re` VALUES (1651,'P_Staff2','Eden Staff II',4,0,NULL,0,'60:150',NULL,1,0,0x00818314,7,2,2,2,40,0,10,'bonus bInt,3;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (1652,'Tourist_Staff','Tourist Staff',4,0,NULL,500,'35:0',NULL,1,0,0x00818315,7,2,2,1,1,0,10,'bonus bInt,2; bonus bAgi,1;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (1653,'Staff_Of_Healing_C','Staff of Healing',4,20,NULL,0,'10:100',NULL,1,0,0x00008110,7,2,2,3,1,0,10,'bonus bAtkEle,Ele_Holy;',NULL,NULL);
-REPLACE INTO `item_db_re` VALUES (1654,'Mental_Stick','Mental Stick',4,20,NULL,500,'40:170',NULL,1,1,0x00818315,7,2,2,3,102,1,10,'if (getrefine() > 5) { /* bonus bSkillAtk,\"SO_PSYCHIC_WAVE\",(getrefine()-5)*2; */ bonus bMaxHPRate,-(getrefine()-5)*2; } /* bonus2 bVariableCastTime,\"SO_PSYCHIC_WAVE\",-3000; bonus2 bUseSPAmount,\"SO_PSYCHIC_WAVE\",-60; */',NULL,'itemheal 0,-100;');
+REPLACE INTO `item_db_re` VALUES (1654,'Mental_Stick','Mental Stick',4,20,NULL,500,'40:170',NULL,1,1,0x00818315,7,2,2,3,102,1,10,'if(getrefine()>5) { bonus2 bSkillAtk,"SO_PSYCHIC_WAVE",(getrefine()-5)*2; bonus bMaxHPRate,-(getrefine()-5)*2; } bonus2 bSkillVariableCast,"SO_PSYCHIC_WAVE",-3000; bonus2 bSkillUseSP,"SO_PSYCHIC_WAVE",-60;',NULL,'itemheal 0,-100;');
 # 1655,
 # 1656,
 REPLACE INTO `item_db_re` VALUES (1657,'Mercy_Staff1','Mercy Staff I',4,20,NULL,500,'30:160',NULL,1,2,0x00000100,7,2,2,3,100,1,10,'bonus bInt,2; bonus bAtkEle,Ele_Holy; bonus bHealPower,10; if(isequipped(2471,2569,15029)){ bonus bHealPower,25; };',NULL,NULL);
@@ -385,9 +385,14 @@ REPLACE INTO `item_db_re` VALUES (2564,'Feral_Tail','Feral Tail',5,20,NULL,0,NUL
 
 #  Accessories
 REPLACE INTO `item_db_re` VALUES (2629,'Magingiorde','Megingjard',5,20,NULL,8000,NULL,2,NULL,0,0xFFFFFFFF,7,2,136,NULL,94,0,0,'bonus bStr,40+BaseLevel/5; bonus bMdef,7; if(readparam(bStr)==120) bonus2 bAddRace,RC_Boss,10;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (2789,'Bradium_Ring','Bradium Ring',5,20,NULL,200,NULL,0,NULL,1,0xFFFFFFFF,2,2,136,NULL,0,0,0,'bonus2 bAddRace,RC_Boss,2; bonus2 bAddRace,RC_NonBoss,2; bonus bStr,1; bonus bVit,1;',NULL,NULL);
 
 # Cards
 REPLACE INTO `item_db_re` VALUES (4302,'Tao_Gunka_Card','Tao Gunka Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,16,NULL,NULL,NULL,NULL,'bonus bMaxHPrate,100; bonus bDefRate,-50; bonus bMdefRate,-50;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (4450,'Banshee_Master_Card','Banshee Master Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,16,NULL,NULL,NULL,NULL,'bonus bInt,1; bonus bMatk,10;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (4451,'Entweihen_Card','Entweihen Crothen Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,16,NULL,NULL,NULL,NULL,'bonus bMatk,100;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (4452,'Centipede_Larva_Card','Centipede Larva Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus bInt,1;  bonus bMatk,3;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (4505,'Scaraba_Card','Scaraba Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,136,NULL,NULL,NULL,NULL,'bonus bMatk,20; bonus bMaxSPrate,-1;',NULL,NULL);
 
 # More Armors
 REPLACE INTO `item_db_re` VALUES (15000,'Bone_Plate','Bone Plate',5,20,NULL,1000,NULL,60,NULL,1,0x000654E2,2,2,16,NULL,85,1,0,'bonus bStr,1; bonus bMdef,3; bonus2 bIgnoreDefRate,RC_DemiHuman,10; bonus2 bIgnoreDefRate,RC_Brute,10; bonus3 bAutoSpellWhenHit,\"NPC_WIDEBLEEDING\",1,10;',NULL,NULL);
