@@ -57,6 +57,8 @@
 typedef struct AtCommandInfo AtCommandInfo;
 typedef struct AliasInfo AliasInfo;
 
+int atcmd_binding_count = 0;
+
 struct AtCommandInfo {
 	char command[ATCOMMAND_LENGTH]; 
 	AtCommandFunc func;
@@ -84,6 +86,18 @@ static char atcmd_player_name[NAME_LENGTH];
 static AtCommandInfo* get_atcommandinfo_byname(const char *name); // @help
 static const char* atcommand_checkalias(const char *aliasname); // @help
 static void atcommand_get_suggestions(struct map_session_data* sd, const char *name, bool atcommand); // @help
+
+// @commands (script-based)
+struct atcmd_binding_data* get_atcommandbind_byname(const char* name) {
+	int i = 0;
+	
+	if( *name == atcommand_symbol || *name == charcommand_symbol )
+		name++; // for backwards compatibility
+		
+	ARR_FIND( 0, atcmd_binding_count, i, strcmp(atcmd_binding[i]->command, name) == 0 );
+	
+	return ( i < atcmd_binding_count ) ? atcmd_binding[i] : NULL;
+}
 
 //-----------------------------------------------------------
 // Return the message string of the specified number by [Yor]
@@ -6407,6 +6421,7 @@ ACMD_FUNC(adjgroup)
 	}
 	
 	sd->group_id = new_group;
+	pc_group_pc_load(sd);/* update cache */
 	clif_displaymessage(fd, "Group changed successfully.");
 	clif_displaymessage(sd->fd, "Your group has changed.");
 	return 0;
@@ -8986,7 +9001,7 @@ bool is_atcommand(const int fd, struct map_session_data* sd, const char* message
 	
 	TBL_PC * ssd = NULL; //sd for target
 	AtCommandInfo * info;
-
+	
 	nullpo_retr(false, sd);
 	
 	//Shouldn't happen
@@ -9063,6 +9078,32 @@ bool is_atcommand(const int fd, struct map_session_data* sd, const char* message
 	//check to see if any params exist within this command
 	if( sscanf(atcmd_msg, "%99s %99[^\n]", command, params) < 2 )
 		params[0] = '\0';
+	// @commands (script based)
+	if(type == 1 && atcmd_binding_count > 0) {
+		struct atcmd_binding_data * binding;
+		
+		// Check if the command initiated is a character command
+		if ( *message == charcommand_symbol && 
+			 (ssd = map_nick2sd(charname)) == NULL && (ssd = map_nick2sd(charname2)) == NULL ) {
+			sprintf(output, "%s failed. Player not found.", command);
+			clif_displaymessage(fd, output);
+			return true;
+		}
+		
+		// Get atcommand binding
+		binding = get_atcommandbind_byname(command);
+		
+		// Check if the binding isn't NULL and there is a NPC event, level of usage met, et cetera
+		if( binding != NULL && binding->npc_event[0] &&
+			((*atcmd_msg == atcommand_symbol && pc_get_group_level(sd) >= binding->level) ||
+			 (*atcmd_msg == charcommand_symbol && pc_get_group_level(sd) >= binding->level2)) )
+		{
+			// Check if self or character invoking; if self == character invoked, then self invoke.
+			bool invokeFlag = ((*atcmd_msg == atcommand_symbol) ? 1 : 0);
+			npc_do_atcmd_event((invokeFlag ? sd : ssd), command, params, binding->npc_event);
+			return true;
+		}
+	}
 	
 	//Grab the command information and check for the proper GM level required to use it or if the command exists
 	info = get_atcommandinfo_byname(atcommand_checkalias(command + 1));

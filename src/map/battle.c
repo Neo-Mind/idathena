@@ -1286,10 +1286,14 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 	//Initial flag
 	flag.rh=1;
 	flag.weapon=1;
-	flag.infdef=(tstatus->mode&MD_PLANT&&skill_num!=RA_CLUSTERBOMB?1:0);
+	flag.infdef=(tstatus->mode&MD_PLANT && skill_num != RA_CLUSTERBOMB
+#ifdef RENEWAL
+		&& skill_num != HT_FREEZINGTRAP
+#endif
+		?1:0);
 	if (target->type == BL_SKILL) {
 		TBL_SKILL *su = (TBL_SKILL*)target;
-		if (su->group && su->group->skill_id == WM_REVERBERATION)
+		if( su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD) )
 			flag.infdef = 1;
  	}
 
@@ -1477,6 +1481,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			if(flag.arrow)
 				cri += sd->bonus.arrow_cri;
 		}
+		if( sc && sc->data[SC_CAMOUFLAGE] )
+			cri += 10 * (10-sc->data[SC_CAMOUFLAGE]->val4);
 		//The official equation is *2, but that only applies when sd's do critical.
 		//Therefore, we use the old value 3 on cases when an sd gets attacked by a mob
 		cri -= tstatus->luk*(!sd&&tsd?3:2);
@@ -1808,10 +1814,12 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				case MA_CHARGEARROW:
 					skillratio += 50;
 					break;
+#ifndef RENEWAL
 				case HT_FREEZINGTRAP:
 				case MA_FREEZINGTRAP:
 					skillratio += -50+10*skill_lv;
 					break;
+#endif
 				case KN_PIERCE:
 				case ML_PIERCE:
 					skillratio += 10*skill_lv;
@@ -2111,24 +2119,16 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					RE_LVL_DMOD(100);
 					break;
 				case RK_HUNDREDSPEAR:
-					{ 
-						int weight = 1, dmg = 0;
-						if (sd) {
+					skillratio += 500 + (80 * skill_lv);
+						if( sd )
+						{
 							short index = sd->equip_index[EQI_HAND_R];
-
-							if (index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
-								weight = sd->inventory_data[index]->weight; //80% of weight
-						}
-
-						dmg = (600 + (skill_lv * 80) + (1000 - (weight>1000?1000:weight)));
-
-						skillratio += dmg;
-						RE_LVL_DMOD(100);
-						
-						if(sd) // Add clashing spiral bonus damage (Skill level * 50% damage)
-							skillratio += pc_checkskill(sd,LK_SPIRALPIERCE) * (skillratio * 50 /100);
-						break;
-					}
+							if( index >= 0 && sd->inventory_data[index] 
+								&& sd->inventory_data[index]->type == IT_WEAPON )
+								skillratio += max(10000 - sd->inventory_data[index]->weight, 0);
+							skillratio += 50 * pc_checkskill(sd,LK_SPIRALPIERCE);
+						} // (1 + [(Caster’s Base Level - 100) / 200])
+						skillratio = skillratio * (100 + (status_get_lv(src)-100) / 2) / 100;
 					break;
 				case RK_WINDCUTTER:
 					skillratio += (skill_lv + 2) * 50;
@@ -2212,13 +2212,13 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += 400 + 50 * skill_lv;
 					RE_LVL_DMOD(100);
 					if( tsc && (tsc->data[SC_BITE] || tsc->data[SC_ANKLE] || tsc->data[SC_ELECTRICSHOCKER]) )
-						wd.div_ = tstatus->size + 2 + rnd()%2;
+						wd.div_ = tstatus->size + 2 + ( (rnd()%100 < 50-tstatus->size*10) ? 1 : 0 );
 					break;
 				case RA_CLUSTERBOMB:
 					skillratio += 100 + 100 * skill_lv;
 					break;
-				case RA_WUGDASH:
-					skillratio = 300;
+				case RA_WUGDASH:// ATK 300%
+					skillratio += 200;
 					break;
 				case RA_WUGSTRIKE:
 					skillratio = 200 * skill_lv;
@@ -2563,9 +2563,13 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				case NJ_SYURIKEN:
 					ATK_ADD(4*skill_lv);
 					break;
-				case RA_WUGDASH:
+				case HT_FREEZINGTRAP:
 					if(sd)
-						ATK_ADD(sd->weight / 8); //Dont need to divide weight here since official formula takes current weight * 10. [Rytech]
+						ATK_ADD( 40 * pc_checkskill(sd, RA_RESEARCHTRAP) );
+					break;
+				case RA_WUGDASH://(Caster?s Current Weight x 10 / 8)
+					if( sd && sd->weight )
+						ATK_ADD( sd->weight / 8 );
 				case RA_WUGSTRIKE:
 				case RA_WUGBITE:
 					if(sd)
@@ -2739,6 +2743,12 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			
 			if( tsc && tsc->data[SC_GT_REVITALIZE] && tsc->data[SC_GT_REVITALIZE]->val4 )
 				def2 += 2 * tsc->data[SC_GT_REVITALIZE]->val4;
+				
+			if( tsc && tsc->data[SC_CAMOUFLAGE] ){
+				i = 5 * (10-tsc->data[SC_CAMOUFLAGE]->val4);
+				def1 -= def1 * i / 100;
+				def2 -= def2 * i / 100;
+			}
 
 			if( battle_config.vit_penalty_type && battle_config.vit_penalty_target&target->type ) {
 				unsigned char target_count; //256 max targets should be a sane max
@@ -2825,6 +2835,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				if( (bl = map_id2bl(sc->data[SC_GT_CHANGE]->val2)) )
 					ATK_ADD( ( status_get_dex(bl)/4 + status_get_str(bl)/2 ) * sc->data[SC_GT_CHANGE]->val1 / 5 );
 			}
+			
+			if(sc->data[SC_CAMOUFLAGE])
+				ATK_ADD(30 * (10-sc->data[SC_CAMOUFLAGE]->val4) );
 		}
 
 		//Refine bonus
@@ -3363,7 +3376,12 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	//Skill Range Criteria
 	ad.flag |= battle_range_type(src, target, skill_num, skill_lv);
 	flag.infdef=(tstatus->mode&MD_PLANT?1:0);
-		
+	if( target->type == BL_SKILL){
+		TBL_SKILL *su = (TBL_SKILL*)target;
+		if( su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD) )
+			flag.infdef = 1;
+	}
+	
 	switch(skill_num)
 	{
 		case MG_FIREWALL:
@@ -4056,12 +4074,9 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	case MA_LANDMINE:
 	case HT_BLASTMINE:
 	case HT_CLAYMORETRAP:
-		{
-			int level = sd?sd->status.base_level:status_get_lv(src);
-			md.damage = skill_lv*sstatus->dex*(3+level/100)*(1+sstatus->int_/35);
-			md.damage+= md.damage*(rnd()%20-10)/100;
-			md.damage+= 40*(sd?pc_checkskill(sd,RA_RESEARCHTRAP):0);
-		}
+		md.damage = skill_lv * sstatus->dex * (3+status_get_lv(src)/100) * (1+sstatus->int_/35);
+		md.damage += md.damage * (rnd()%20-10) / 100;
+		md.damage += 40 * (sd?pc_checkskill(sd,RA_RESEARCHTRAP):0);
 		break;
 #else
 	case HT_LANDMINE:
@@ -4179,10 +4194,10 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	case RA_CLUSTERBOMB:
 	case RA_FIRINGTRAP:
  	case RA_ICEBOUNDTRAP:
-		md.damage = (2 * skill_lv * (sstatus->dex + 100));
-		md.damage = md.damage * 2;// Without BaseLv Bonus
+		md.damage = skill_lv * sstatus->dex + sstatus->int_ * 5 ;
 		RE_LVL_TMDMOD();
-		md.damage = md.damage + (5 * sstatus->int_) + (40 * ( sd ? pc_checkskill(sd,RA_RESEARCHTRAP) : 10 ) );
+		md.damage = md.damage * (20 * ( sd ? pc_checkskill(sd,RA_RESEARCHTRAP) : 10 ) );
+		md.damage = (md.damage?md.damage:1) / (skill_num == RA_CLUSTERBOMB?50:100);
 		break;
 	/**
 	 * Mechanic
@@ -4293,8 +4308,24 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 
 	if(md.damage < 0)
 		md.damage = 0;
-	else if(md.damage && tstatus->mode&MD_PLANT)
-		md.damage = 1;
+	else if(md.damage && tstatus->mode&MD_PLANT){
+		switch(skill_num){
+			case HT_LANDMINE:
+			case MA_LANDMINE:
+			case HT_BLASTMINE:
+			case HT_CLAYMORETRAP:
+			case RA_CLUSTERBOMB:
+#ifdef RENEWAL
+			break;
+#endif
+			default:
+				md.damage = 1;
+		}
+	} else if( target->type == BL_SKILL ){
+		TBL_SKILL *su = (TBL_SKILL*)target;
+		if( su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD) )
+			md.damage = 1;
+	}
 
 	if(!(nk&NK_NO_ELEFIX))
 		md.damage=battle_attr_fix(src, target, md.damage, s_ele, tstatus->def_ele, tstatus->ele_lv);
@@ -4306,9 +4337,10 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		md.damage=battle_calc_bg_damage(src,target,md.damage,md.div_,skill_num,skill_lv,md.flag);
 
 	switch( skill_num ) {
-		case RA_CLUSTERBOMB:
 		case RA_FIRINGTRAP:
  		case RA_ICEBOUNDTRAP:
+			if( md.damage == 1 ) break;
+		case RA_CLUSTERBOMB:
 			{
 				struct Damage wd;
 				wd = battle_calc_weapon_attack(src,target,skill_num,skill_lv,mflag);
@@ -4677,7 +4709,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		if( sc->data[SC_GIANTGROWTH] && (wd.flag&BF_SHORT) && rnd()%100 < sc->data[SC_GIANTGROWTH]->val2 )
 			wd.damage *= 3; // Triple Damage
 		
-		if( sc->data[SC_FEARBREEZE] && sc->data[SC_FEARBREEZE]->val4 > 0 && sd->status.inventory[sd->equip_index[EQI_AMMO]].amount >= sc->data[SC_FEARBREEZE]->val4 && battle_config.arrow_decrement){
+		if( sd && sc->data[SC_FEARBREEZE] && sc->data[SC_FEARBREEZE]->val4 > 0 && sd->status.inventory[sd->equip_index[EQI_AMMO]].amount >= sc->data[SC_FEARBREEZE]->val4 && battle_config.arrow_decrement){
 			pc_delitem(sd,sd->equip_index[EQI_AMMO],sc->data[SC_FEARBREEZE]->val4,0,1,LOG_TYPE_CONSUME);
 			sc->data[SC_FEARBREEZE]->val4 = 0;
 		}
@@ -4715,7 +4747,11 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 
 	if (sd && sd->bonus.splash_range > 0 && damage > 0)
 		skill_castend_damage_id(src, target, 0, 1, tick, 0);
-
+	if ( target->type == BL_SKILL && damage > 0 ){
+		TBL_SKILL *su = (TBL_SKILL*)target;
+		if( su->group && su->group->skill_id == HT_BLASTMINE)
+			skill_blown(src, target, 3, -1, 0);
+	}
 	map_freeblock_lock();
 
 	battle_delay_damage(tick, wd.amotion, src, target, wd.flag, 0, 0, damage, wd.dmg_lv, wd.dmotion);
@@ -4966,6 +5002,9 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				return 0;
 			if( skill_get_inf2(su->group->skill_id)&INF2_TRAP ) { //Only a few skills can target traps...
 				switch( battle_getcurrentskill(src) ) {
+					case RK_DRAGONBREATH:// it can only hit traps in pvp/gvg maps
+						if( !map[m].flag.pvp && !map[m].flag.gvg )
+						break;
 					case 0://you can hit them without skills
 					case MA_REMOVETRAP:
 					case HT_REMOVETRAP:
@@ -4978,15 +5017,37 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 					case RA_DETONATOR:
 					case RA_SENSITIVEKEEN:
 					case GN_CRAZYWEED:
+					case RK_STORMBLAST:
+					case RK_PHANTOMTHRUST:
+					case SR_RAMPAGEBLASTER:
+					case NC_COLDSLOWER:
+					case NC_SELFDESTRUCTION:
+#ifdef RENEWAL
+					case KN_BOWLINGBASH:
+					case KN_SPEARSTAB:
+					case LK_SPIRALPIERCE:
+					case ML_SPIRALPIERCE:
+					case MO_FINGEROFFENSIVE:
+					case MO_INVESTIGATE:
+					case MO_TRIPLEATTACK:
+					case MO_EXTREMITYFIST:
+					case CR_HOLYCROSS:
+					case ASC_METEORASSAULT:
+					case RG_RAID:
+					case MC_CARTREVOLUTION:
+#endif
 						state |= BCT_ENEMY;
 						strip_enemy = 0;
 						break;
 					default:
-						return 0;
+						if(su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD){
+							state |= BCT_ENEMY;
+							strip_enemy = 0;
+						}else
+							return 0;
 				}
 			} else if (su->group->skill_id==WZ_ICEWALL ||
-					   su->group->skill_id == GN_WALLOFTHORN ||
-					   su->group->skill_id == WM_REVERBERATION) {
+					   su->group->skill_id == GN_WALLOFTHORN) {
 				state |= BCT_ENEMY;
 				strip_enemy = 0;
 			} else	//Excepting traps and icewall, you should not be able to target skills.
@@ -5432,6 +5493,8 @@ static const struct _battle_data {
 	{ "buyer_name",                         &battle_config.buyer_name,                      1,      0,      1,              },
 	{ "skill_wall_check",                   &battle_config.skill_wall_check,                1,      0,      1,              },
 	{ "cell_stack_limit",                   &battle_config.cell_stack_limit,                1,      1,      255,            },
+	{ "dancing_weaponswitch_fix",           &battle_config.dancing_weaponswitch_fix,        1,      0,      1,              },
+	
 // eAthena additions
 	{ "item_logarithmic_drops",             &battle_config.logarithmic_drops,               0,      0,      1,              },
 	{ "item_drop_common_min",               &battle_config.item_drop_common_min,            1,      1,      10000,          },

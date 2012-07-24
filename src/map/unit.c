@@ -920,7 +920,15 @@ int unit_can_move(struct block_list *bl)
 		return 0; //Can't move
 	
 	if (sc) {
-		if( sc->cant.move || (sc->data[SC_FEAR] && sc->data[SC_FEAR]->val2 > 0) || (sc->data[SC_SPIDERWEB] && sc->data[SC_SPIDERWEB]->val1) )
+		if( sc->cant.move /* status placed here are ones that cannot be cached by sc->cant.move for they depend on other conditions other than their availability */
+			|| (sc->data[SC_FEAR] && sc->data[SC_FEAR]->val2 > 0)
+			|| (sc->data[SC_SPIDERWEB] && sc->data[SC_SPIDERWEB]->val1)
+			|| (sc->data[SC_DANCING] && sc->data[SC_DANCING]->val4 && (
+																	!sc->data[SC_LONGING] ||
+																	(sc->data[SC_DANCING]->val1&0xFFFF) == CG_MOONLIT ||
+																	(sc->data[SC_DANCING]->val1&0xFFFF) == CG_HERMODE
+																	) )
+			)
 			return 0;
 		
 		if (sc->opt1 > 0 && sc->opt1 != OPT1_STONEWAIT && sc->opt1 != OPT1_BURNING && (sc->opt1 != OPT1_CRYSTALIZE && bl->type != BL_MOB))
@@ -1245,11 +1253,11 @@ int unit_skilluse_id2(struct block_list *src, int target_id, short skill_num, sh
 	// moved here to prevent Suffragium from ending if skill fails
 	if (!(skill_get_castnodex(skill_num, skill_lv)&2))
 		casttime = skill_castfix_sc(src, casttime, skill_num, skill_lv);
-
+	// in official this is triggered even if no cast time.
+	clif_skillcasting(src, src->id, target_id, 0,0, skill_num, skill_get_ele(skill_num, skill_lv), casttime);
 	if( casttime > 0 || temp )
 	{ 
 		unit_stop_walking(src,1);
-		clif_skillcasting(src, src->id, target_id, 0,0, skill_num, skill_get_ele(skill_num, skill_lv), casttime);
 
 		if (sd && target->type == BL_MOB)
 		{
@@ -1310,8 +1318,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, short skill_num, sh
 		} else if( sc->data[SC_CLOAKINGEXCEED] && !(sc->data[SC_CLOAKINGEXCEED]->val4&4) && skill_num != GC_CLOAKINGEXCEED ) {
 			status_change_end(src,SC_CLOAKINGEXCEED, INVALID_TIMER);
 			if (!src->prev) return 0;
-		} else if( sc->data[SC_CAMOUFLAGE] && skill_num != RA_CAMOUFLAGE )
-			status_change_end(src,SC_CAMOUFLAGE,INVALID_TIMER);
+		}
 	}
 
 
@@ -1432,13 +1439,13 @@ int unit_skilluse_pos2( struct block_list *src, short skill_x, short skill_y, sh
 		} else if (sc->data[SC_CLOAKINGEXCEED] && !(sc->data[SC_CLOAKINGEXCEED]->val4&4)) {
 			status_change_end(src, SC_CLOAKINGEXCEED, INVALID_TIMER);
 			if (!src->prev) return 0;
-		} else if( sc->data[SC_CAMOUFLAGE] && skill_num != RA_CAMOUFLAGE )
-			status_change_end(src,SC_CAMOUFLAGE,INVALID_TIMER);
+		}
 	}
+	// in official this is triggered even if no cast time.
+	clif_skillcasting(src, src->id, 0, skill_x, skill_y, skill_num, skill_get_ele(skill_num, skill_lv), casttime);
 	if( casttime > 0 )
 	{
 		unit_stop_walking(src,1);
-		clif_skillcasting(src, src->id, 0, skill_x, skill_y, skill_num, skill_get_ele(skill_num, skill_lv), casttime);
 		ud->skilltimer = add_timer( tick+casttime, skill_castend_pos, src->id, 0 );
 		if( (sd && pc_checkskill(sd,SA_FREECAST) > 0) || skill_num == LG_EXEEDBREAK)
 			status_calc_bl(&sd->bl, SCB_SPEED);

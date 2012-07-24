@@ -3956,14 +3956,14 @@ void script_setarray_pc(struct map_session_data* sd, const char* varname, uint8 
 /*==========================================
  * èIóπ
  *------------------------------------------*/
-int do_final_script()
-{
+int do_final_script() {
+	int i;
 #ifdef DEBUG_HASH
 	if (battle_config.etc_log)
 	{
 		FILE *fp = fopen("hash_dump.txt","wt");
 		if(fp) {
-			int i,count[SCRIPT_HASH_SIZE];
+			int count[SCRIPT_HASH_SIZE];
 			int count2[SCRIPT_HASH_SIZE]; // number of buckets with a certain number of items
 			int n=0;
 			int min=INT_MAX,max=0,zero=0;
@@ -4032,6 +4032,13 @@ int do_final_script()
 		aFree(str_data);
 	if (str_buf)
 		aFree(str_buf);
+		
+	for( i = 0; i < atcmd_binding_count; i++ ) {
+		aFree(atcmd_binding[i]);
+	}
+	
+	if( atcmd_binding_count != 0 )
+		aFree(atcmd_binding);
 
 	return 0;
 }
@@ -4050,9 +4057,21 @@ int do_init_script()
 }
 
 int script_reload() {
+	int i;
 	userfunc_db->clear(userfunc_db, db_script_free_code_sub);
 	db_clear(scriptlabel_db);
 
+	// @commands (script based)
+	// Clear bindings
+	for( i = 0; i < atcmd_binding_count; i++ ) {
+		aFree(atcmd_binding[i]);
+	}
+	
+	if( atcmd_binding_count != 0 )
+		aFree(atcmd_binding);
+		
+	atcmd_binding_count = 0;
+	
 	if(sleep_db) {
 		struct linkdb_node *n = (struct linkdb_node *)sleep_db;
 		while(n) {
@@ -16345,6 +16364,192 @@ BUILDIN_FUNC(freeloop) {
 
 	return 0;
 }
+
+/**
+ * @commands (script based)
+ **/
+BUILDIN_FUNC(bindatcmd) {
+	const char* atcmd;
+	const char* eventName;
+	int i, level = 0, level2 = 0;
+	bool create = false;
+	
+	atcmd = script_getstr(st,2);
+	eventName = script_getstr(st,3);
+
+	if( *atcmd == atcommand_symbol || *atcmd == charcommand_symbol )
+		atcmd++;
+	
+	if( script_hasdata(st,4) ) level = script_getnum(st,4);
+	if( script_hasdata(st,5) ) level2 = script_getnum(st,5);
+
+	if( atcmd_binding_count == 0 ) {
+		CREATE(atcmd_binding,struct atcmd_binding_data*,1);
+		
+		create = true;
+	} else {
+		ARR_FIND(0, atcmd_binding_count, i, strcmp(atcmd_binding[i]->command,atcmd) == 0);
+		if( i < atcmd_binding_count ) {/* update existent entry */
+			safestrncpy(atcmd_binding[i]->npc_event, eventName, 50);
+			atcmd_binding[i]->level = level;
+			atcmd_binding[i]->level2 = level2;
+		} else
+			create = true;
+	}
+	
+	if( create ) {
+		i = atcmd_binding_count;
+		
+		if( atcmd_binding_count++ != 0 )
+			RECREATE(atcmd_binding,struct atcmd_binding_data*,atcmd_binding_count);
+		
+		CREATE(atcmd_binding[i],struct atcmd_binding_data,1);
+		
+		safestrncpy(atcmd_binding[i]->command, atcmd, 50);
+		safestrncpy(atcmd_binding[i]->npc_event, eventName, 50);
+		atcmd_binding[i]->level = level;
+		atcmd_binding[i]->level2 = level2;
+	}
+	
+	return 0;
+}
+
+BUILDIN_FUNC(unbindatcmd) {
+	const char* atcmd;
+	int i =  0;
+
+	atcmd = script_getstr(st, 2);
+
+	if( *atcmd == atcommand_symbol || *atcmd == charcommand_symbol )
+		atcmd++;
+	
+	if( atcmd_binding_count == 0 ) {
+		script_pushint(st, 0);
+		return 0;
+	}
+	
+	ARR_FIND(0, atcmd_binding_count, i, strcmp(atcmd_binding[i]->command, atcmd) == 0);
+	if( i < atcmd_binding_count ) {
+		int cursor = 0;
+		aFree(atcmd_binding[i]);
+		atcmd_binding[i] = NULL;
+		/* compact the list now that we freed a slot somewhere */
+		for( i = 0, cursor = 0; i < atcmd_binding_count; i++ ) {
+			if( atcmd_binding[i] == NULL )
+				continue;
+			
+			if( cursor != i ) {
+				memmove(&atcmd_binding[cursor], &atcmd_binding[i], sizeof(struct atcmd_binding_data*));
+			}
+			
+			cursor++;
+		}
+
+		if( (atcmd_binding_count = cursor) == 0 )
+			aFree(atcmd_binding);
+				
+		script_pushint(st, 1);
+	} else
+		script_pushint(st, 0);/* not found */
+	
+	return 0;
+}
+
+BUILDIN_FUNC(useatcmd)
+{
+	TBL_PC dummy_sd;
+	TBL_PC* sd;
+	int fd;
+	const char* cmd;
+
+	cmd = script_getstr(st,2);
+
+	if( st->rid )
+	{
+		sd = script_rid2sd(st);
+		fd = sd->fd;
+	}
+	else
+	{ // Use a dummy character.
+		sd = &dummy_sd;
+		fd = 0;
+
+		memset(&dummy_sd, 0, sizeof(TBL_PC));
+		if( st->oid )
+		{
+			struct block_list* bl = map_id2bl(st->oid);
+			memcpy(&dummy_sd.bl, bl, sizeof(struct block_list));
+			if( bl->type == BL_NPC )
+				safestrncpy(dummy_sd.status.name, ((TBL_NPC*)bl)->name, NAME_LENGTH);
+		}
+	}
+
+	// compatibility with previous implementation (deprecated!)
+	if( cmd[0] != atcommand_symbol )
+	{
+		cmd += strlen(sd->status.name);
+		while( *cmd != atcommand_symbol && *cmd != 0 )
+			cmd++;
+	}
+
+	is_atcommand(fd, sd, cmd, 1);
+	return 0;
+}
+
+BUILDIN_FUNC(checkre)
+{
+	int num;
+
+	num=script_getnum(st,2);
+	switch(num){
+		case 0:
+			#ifdef RENEWAL
+				script_pushint(st, 1);
+			#endif
+			break;
+		case 1:
+			#ifdef RENEWAL_CAST
+				script_pushint(st, 1);
+			#endif
+			break;
+		case 2:
+			#ifdef RENEWAL_DROP
+				script_pushint(st, 1);
+			#endif
+			break;
+		case 3:
+			#ifdef RENEWAL_EXP
+				script_pushint(st, 1);
+			#endif
+			break;
+		case 4:
+			#ifdef RENEWAL_LVDMG
+				script_pushint(st, 1);
+			#endif
+			break;
+		case 5:
+			#ifdef RENEWAL_CAST_VMIN
+				script_pushint(st, 1);
+			#endif
+			break;
+		case 6:
+			#ifdef RENEWAL_EDP
+				script_pushint(st, 1);
+			#endif
+			break;
+		case 7:
+			#ifdef RENEWAL_ASPD
+				script_pushint(st, 1);
+			#endif
+			break;
+		default:
+			ShowWarning("buildin_checkre: unknown parameter.\n");
+			break;
+	}
+	script_pushint(st, 0);
+	return 0;
+}
+
 // declarations that were supposed to be exported from npc_chat.c
 #ifdef PCRE_SUPPORT
 BUILDIN_FUNC(defpattern);
@@ -16773,6 +16978,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(setdragon,"?"),//[Ind]
 	BUILDIN_DEF(ismounting,""),//[Ind]
 	BUILDIN_DEF(setmounting,""),//[Ind]
+	BUILDIN_DEF(checkre,"i"),
 	/**
 	 * rAthena and beyond!
 	 **/
@@ -16780,6 +16986,13 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(is_function,"s"),
 	BUILDIN_DEF(get_revision,""),
 	BUILDIN_DEF(freeloop,"i"),
+	/**
+	 * @commands (script based)
+	 **/
+	BUILDIN_DEF(bindatcmd, "ss??"),
+	BUILDIN_DEF(unbindatcmd, "s"),
+	BUILDIN_DEF(useatcmd, "s"),
+	
 	//Quest Log System [Inkfish]
 	BUILDIN_DEF(setquest, "i"),
 	BUILDIN_DEF(erasequest, "i"),

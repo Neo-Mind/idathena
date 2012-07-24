@@ -588,7 +588,7 @@ void initChangeTables(void) {
 	set_sc( RA_FEARBREEZE        , SC_FEARBREEZE      , SI_FEARBREEZE      , SCB_NONE );
 	set_sc( RA_ELECTRICSHOCKER   , SC_ELECTRICSHOCKER , SI_ELECTRICSHOCKER , SCB_NONE );
 	set_sc( RA_WUGDASH           , SC_WUGDASH         , SI_WUGDASH         , SCB_SPEED );
-	set_sc( RA_CAMOUFLAGE        , SC_CAMOUFLAGE      , SI_CAMOUFLAGE      , SCB_CRI|SCB_SPEED );
+	set_sc( RA_CAMOUFLAGE        , SC_CAMOUFLAGE      , SI_CAMOUFLAGE      , SCB_SPEED );
 	add_sc( RA_MAGENTATRAP       , SC_ELEMENTALCHANGE );
 	add_sc( RA_COBALTTRAP        , SC_ELEMENTALCHANGE );
 	add_sc( RA_MAIZETRAP         , SC_ELEMENTALCHANGE );
@@ -987,7 +987,6 @@ void initChangeTables(void) {
 	StatusChangeStateTable[SC_TRICKDEAD]           |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_BLADESTOP]           |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_BLADESTOP_WAIT]      |= SCS_NOMOVE;
-	StatusChangeStateTable[SC_DANCING]             |= SCS_NOMOVE|SCS_NOMOVECOND;
 	StatusChangeStateTable[SC_GOSPEL]              |= SCS_NOMOVE|SCS_NOMOVECOND;
 	StatusChangeStateTable[SC_BASILICA]            |= SCS_NOMOVE|SCS_NOMOVECOND;
 	StatusChangeStateTable[SC_STOP]                |= SCS_NOMOVE;
@@ -1007,6 +1006,7 @@ void initChangeTables(void) {
 	StatusChangeStateTable[SC_CURSEDCIRCLE_TARGET] |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_CRYSTALIZE]          |= SCS_NOMOVE|SCS_NOMOVECOND;
 	StatusChangeStateTable[SC_NETHERWORLD]         |= SCS_NOMOVE;
+	StatusChangeStateTable[SC_CAMOUFLAGE]          |= SCS_NOMOVE|SCS_NOMOVECOND;
 	
 	/* StatusChangeState (SCS_) NOPICKUPITEMS */
 	StatusChangeStateTable[SC_HIDING]              |= SCS_NOPICKITEM;
@@ -3455,17 +3455,14 @@ void status_calc_state( struct block_list *bl, struct status_change *sc, enum sc
 		if( !(flag&SCS_NOMOVECOND) ) {
 			sc->cant.move += ( start ? 1 : -1 );
 		} else if(
-				 (sc->data[SC_DANCING] && sc->data[SC_DANCING]->val4 && (
-																			 !sc->data[SC_LONGING] ||
-																			 (sc->data[SC_DANCING]->val1&0xFFFF) == CG_MOONLIT ||
-																			 (sc->data[SC_DANCING]->val1&0xFFFF) == CG_HERMODE
-																			 ) )
-				  || (sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF)	// cannot move while gospel is in effect
+					 (sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF)	// cannot move while gospel is in effect
 				  || (sc->data[SC_BASILICA] && sc->data[SC_BASILICA]->val4 == bl->id) // Basilica caster cannot move
 				  || (sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF)
 				  || (sc->data[SC_CLOAKING] && //Need wall at level 1-2
 							sc->data[SC_CLOAKING]->val1 < 3 && !(sc->data[SC_CLOAKING]->val4&1))
 				  || (sc->data[SC_CRYSTALIZE] && bl->type != BL_MOB)
+				  || (sc->data[SC_CAMOUFLAGE] && sc->data[SC_CAMOUFLAGE]->val1 < 3
+							&& !(sc->data[SC_CAMOUFLAGE]->val3&1))
 				 ) {
 			sc->cant.move += ( start ? 1 : -1 );
 		}
@@ -4539,8 +4536,6 @@ static signed short status_calc_critical(struct block_list *bl, struct status_ch
 		critical += critical * sc->data[SC_STRIKING]->val1 / 100;
 	if(sc->data[SC__INVISIBILITY])
 		critical += critical * sc->data[SC__INVISIBILITY]->val3 / 100;
-	if(sc->data[SC_CAMOUFLAGE])
-		critical += 100;
 	if(sc->data[SC__UNLUCKY])
 		critical -= critical * sc->data[SC__UNLUCKY]->val2 / 100;
 #ifdef RENEWAL
@@ -4997,7 +4992,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 				if( sc->data[SC_MARSHOFABYSS] )
 					val = max( val, 40 + 10 * sc->data[SC_MARSHOFABYSS]->val1 );
 				if( sc->data[SC_CAMOUFLAGE] && (sc->data[SC_CAMOUFLAGE]->val3&1) == 0 )
-					val = max( val, sc->data[SC_CAMOUFLAGE]->val1 < 3 ? 300 : 25 * (6 - sc->data[SC_CAMOUFLAGE]->val1) );
+					val = max( val, sc->data[SC_CAMOUFLAGE]->val1 < 3 ? 0 : 25 * (5 - sc->data[SC_CAMOUFLAGE]->val1) );
 				if( sc->data[SC__GROOMY] )
 					val = max( val, sc->data[SC__GROOMY]->val2);
 				if( sc->data[SC_STEALTHFIELD_MASTER] )
@@ -6115,13 +6110,13 @@ int status_get_sc_def(struct block_list *bl, enum sc_type type, int rate, int ti
 		sc_def = 100 - ( 100 - status->int_* 8 / 10 );
 		sc_def = max(sc_def, 5); // minimum of 5%
 		break;
+	case SC_BITE: // {(Base Success chance) - (Target's AGI / 4)}
+		rate -= status->agi*1000/4;
+		rate = max(rate,50000); // minimum of 50%
+		break;
 	case SC_ELECTRICSHOCKER:
-	case SC_BITE: {
-			if( bl->type == BL_MOB )
-				tick -= 1000 * (status->agi/10);
-			if( sd && type != SC_ELECTRICSHOCKER )
-				tick >>= 1;
-		}
+		if( bl->type == BL_MOB )
+			tick -= 1000 * (status->agi/10);
 		break;
 	case SC_CRYSTALIZE:
 		tick -= (1000*(status->vit/10))+(status_get_lv(bl)/50);
@@ -7977,7 +7972,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			tick_time = 1000; // [GodLesZ] tick time
 			break;
 		case SC_CAMOUFLAGE:
-			//val3 |= battle_config.pc_camouflage_check_type&7;
+			val4 = tick/1000;
 			tick_time = 1000; // [GodLesZ] tick time
 			break;
 		case SC_WUGDASH:
@@ -9007,9 +9002,11 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				if(sce->val4 && sce->val4 != BCT_SELF && (dsd=map_id2sd(sce->val4)))
 				{// end status on partner as well
 					dsc = dsd->sc.data[SC_DANCING];
-					if(dsc)
-					{	//This will prevent recursive loops. 
+					if(dsc) {
+						
+						//This will prevent recursive loops.
 						dsc->val2 = dsc->val4 = 0;
+						
 						status_change_end(&dsd->bl, SC_DANCING, INVALID_TIMER);
 					}
 				}
@@ -10025,10 +10022,12 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		break;
 
 	case SC_CAMOUFLAGE:
-		if( !status_charge(bl,0,7 - sce->val1) )
-			break;
-		sc_timer_next(1000 + tick, status_change_timer, bl->id, data);
-		return 0;
+		if(--(sce->val4) > 0){
+			status_charge(bl,0,7 - sce->val1);
+			sc_timer_next(1000 + tick, status_change_timer, bl->id, data);
+			return 0;
+		}
+		break;
 
 	case SC__REPRODUCE:
 		if(!status_charge(bl, 0, 1))
