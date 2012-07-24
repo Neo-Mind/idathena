@@ -1924,9 +1924,13 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += 20*skill_lv;
 					break;
 				case AM_ACIDTERROR:
+#ifdef RENEWAL
 					skillratio += 100 * skill_lv;
 					if(tstatus->mode&MD_BOSS)
 						skillratio >>= 1;
+#else
+					skillratio += 40*skill_lv;
+#endif
 					break;
 				case MO_FINGEROFFENSIVE:
 					skillratio+= 50 * skill_lv;
@@ -2764,7 +2768,11 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						def2 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
 					}
 				}
+#ifdef RENEWAL
 				if(skill_num == AM_ACIDTERROR) def2 = 0; //Acid Terror ignores only status defense. [FatalEror]
+#else
+				if(skill_num == AM_ACIDTERROR) def1 = 0; //Acid Terror ignores only armor defense. [Skotlex]
+#endif
 				if(def2 < 1) def2 = 1;
 			}
 			//Vitality reduction from rodatazone: http://rodatazone.simgaming.net/mechanics/substats.php#def
@@ -3237,11 +3245,13 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		}
 	}
 	
+#ifdef RENEWAL
 	if(skill_num==AM_ACIDTERROR)
 	{
 		struct Damage ad = battle_calc_magic_attack(src, target, skill_num, skill_lv, wflag);
 		wd.damage += ad.damage;
 	}
+#endif
 	
 	//Reject Sword bugreport:4493 by Daegaladh
 	if(wd.damage && tsc && tsc->data[SC_REJECTSWORD] &&
@@ -4134,6 +4144,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		md.damage = 1+rnd()%9999;
 		break;
 	case CR_ACIDDEMONSTRATION:
+#ifdef RENEWAL
 		{
 			short atk, matk, size_mod, bonus;
 			atk  = sstatus->batk + sstatus->rhw.atk;
@@ -4155,6 +4166,17 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			if (sd && bonus != 0)
 				md.damage += md.damage * bonus / 100;
 		}
+#else
+		if(tstatus->vit+sstatus->int_) //crash fix
+			md.damage = (int)((int64)7*tstatus->vit*sstatus->int_*sstatus->int_ / (10*(tstatus->vit+sstatus->int_)));
+		else
+			md.damage = 0;
+		if (tsd) md.damage>>=1;
+		if (md.damage < 0 || md.damage > INT_MAX>>1)
+		//Overflow prevention, will anyone whine if I cap it to a few billion?
+		//Not capped to INT_MAX to give some room for further damage increase.
+			md.damage = INT_MAX>>1;
+#endif
 		break;
 	case NJ_ZENYNAGE:
 		md.damage = skill_get_zeny(skill_num ,skill_lv);

@@ -2427,7 +2427,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	default:
 		if( flag&SD_ANIMATION && dmg.div_ < 2 ) //Disabling skill animation doesn't works on multi-hit.
 			type = 5;
-		dmg.dmotion = clif_skill_damage((bl->type==BL_PC)?dsrc:src,bl,tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skillid, flag&SD_LEVEL?-1:skilllv, type);
+		dmg.dmotion = clif_skill_damage(dsrc,bl,tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skillid, flag&SD_LEVEL?-1:skilllv, type);
 		break;
 	}
 
@@ -5043,7 +5043,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if (sd)
 				clif_skill_fail(sd,skillid,USESKILL_FAIL_LEVEL,0);
 			if (skill_break_equip(bl, EQP_WEAPON, 10000, BCT_PARTY) && sd && sd != dstsd)
-				clif_displaymessage(sd->fd,"You broke target's weapon");
+				clif_displaymessage(sd->fd, msg_txt(669));
 		}
 		break;
 
@@ -6230,42 +6230,42 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				if (!tsc->data[i])
 					continue;
 				switch (i) {
-				case SC_WEIGHT50:				case SC_WEIGHT90:				case SC_HALLUCINATION:
-				case SC_STRIPWEAPON:			case SC_STRIPSHIELD:			case SC_STRIPARMOR:
-				case SC_STRIPHELM:				case SC_CP_WEAPON:				case SC_CP_SHIELD:
-				case SC_CP_ARMOR:				case SC_CP_HELM:				case SC_COMBO:
-				case SC_STRFOOD:				case SC_AGIFOOD:				case SC_VITFOOD:
-				case SC_INTFOOD:				case SC_DEXFOOD:				case SC_LUKFOOD:
-				case SC_HITFOOD:				case SC_FLEEFOOD:				case SC_BATKFOOD:
-				case SC_WATKFOOD:				case SC_MATKFOOD:				case SC_DANCING:
-				case SC_EDP:					case SC_AUTOBERSERK:
-				case SC_CARTBOOST:				case SC_MELTDOWN:				case SC_SAFETYWALL:
-				case SC_SMA:					case SC_SPEEDUP0:				case SC_NOCHAT:
-				case SC_ANKLE:					case SC_SPIDERWEB:				case SC_JAILED:
-				case SC_ITEMBOOST:				case SC_EXPBOOST:				case SC_LIFEINSURANCE:
-				case SC_BOSSMAPINFO:			case SC_PNEUMA:					case SC_AUTOSPELL:
-				case SC_INCHITRATE:				case SC_INCATKRATE:				case SC_NEN:
-				case SC_READYSTORM:				case SC_READYDOWN:				case SC_READYTURN:
-				case SC_READYCOUNTER:			case SC_DODGE:					case SC_WARM:
-				case SC_SPEEDUP1:				case SC_AUTOTRADE:				case SC_CRITICALWOUND:
-				case SC_JEXPBOOST:				case SC_INVINCIBLE:				case SC_INVINCIBLEOFF:
-				case SC_HELLPOWER:				case SC_MANU_ATK:				case SC_MANU_DEF:
-				case SC_SPL_ATK:				case SC_SPL_DEF:				case SC_MANU_MATK:
-				case SC_SPL_MATK:				case SC_RICHMANKIM:				case SC_ETERNALCHAOS:
-				case SC_DRUMBATTLE:				case SC_NIBELUNGEN:				case SC_ROKISWEIL:
-				case SC_INTOABYSS:				case SC_SIEGFRIED:				/*case SC_FOOD_STR_CASH:
-				case SC_FOOD_AGI_CASH:			case SC_FOOD_VIT_CASH:			case SC_FOOD_DEX_CASH:
-				case SC_FOOD_INT_CASH:			case SC_FOOD_LUK_CASH:*/		case SC_SEVENWIND:
-				case SC_MIRACLE:				case SC_S_LIFEPOTION:			case SC_L_LIFEPOTION:
-				case SC_INCHEALRATE:			case SC_ELECTRICSHOCKER:		case SC__STRIPACCESSORY:
+				case SC_WEIGHT50:			case SC_WEIGHT90:		case SC_HALLUCINATION:
+				case SC_STRIPWEAPON:			case SC_STRIPSHIELD:		case SC_STRIPARMOR:
+				case SC_STRIPHELM:			case SC_CP_WEAPON:		case SC_CP_SHIELD:
+				case SC_CP_ARMOR:			case SC_CP_HELM:		case SC_COMBO:
+				case SC_STRFOOD:			case SC_AGIFOOD:		case SC_VITFOOD:
+				case SC_INTFOOD:			case SC_DEXFOOD:		case SC_LUKFOOD:
+				case SC_HITFOOD:			case SC_FLEEFOOD:		case SC_BATKFOOD:
+				case SC_WATKFOOD:			case SC_MATKFOOD:		case SC_DANCING:
+				case SC_EDP:				case SC_AUTOBERSERK:
+				case SC_CARTBOOST:			case SC_MELTDOWN:		case SC_SAFETYWALL:
+				case SC_SMA:				case SC_SPEEDUP0:		case SC_NOCHAT:
+				case SC_ANKLE:				case SC_SPIDERWEB:		case SC_JAILED:
+				case SC_ITEMBOOST:			case SC_EXPBOOST:		case SC_LIFEINSURANCE:
+				case SC_BOSSMAPINFO:			case SC_PNEUMA:			case SC_AUTOSPELL:
+				case SC_INCHITRATE:			case SC_INCATKRATE:		case SC_NEN:
+				case SC_READYSTORM:			case SC_READYDOWN:		case SC_READYTURN:
+				case SC_READYCOUNTER:			case SC_DODGE:			case SC_WARM:
+				case SC_SPEEDUP1:			case SC_AUTOTRADE:		case SC_CRITICALWOUND:
+				case SC_JEXPBOOST:			case SC_INVINCIBLE:		case SC_INVINCIBLEOFF:
+				case SC_HELLPOWER:			case SC_MANU_ATK:		case SC_MANU_DEF:
+				case SC_SPL_ATK:			case SC_SPL_DEF:		case SC_MANU_MATK:
+				case SC_SPL_MATK:			case SC_RICHMANKIM:		case SC_ETERNALCHAOS:
+				case SC_DRUMBATTLE:			case SC_NIBELUNGEN:		case SC_ROKISWEIL:
+				case SC_INTOABYSS:			case SC_SIEGFRIED:		/*case SC_FOOD_STR_CASH:
+				case SC_FOOD_AGI_CASH:			case SC_FOOD_VIT_CASH:		case SC_FOOD_DEX_CASH:
+				case SC_FOOD_INT_CASH:			case SC_FOOD_LUK_CASH:*/	case SC_SEVENWIND:
+				case SC_MIRACLE:			case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:
+				case SC_INCHEALRATE:			case SC_ELECTRICSHOCKER:	case SC__STRIPACCESSORY:
 				case SC_SAVAGE_STEAK:			case SC_COCKTAIL_WARG_BLOOD:	case SC_MINOR_BBQ:
 				case SC_SIROMA_ICE_TEA:			case SC_DROCERA_HERB_STEAMED:	case SC_PUTTI_TAILS_NOODLES:
-				case SC_NEUTRALBARRIER_MASTER:	case SC_NEUTRALBARRIER:			case SC_STEALTHFIELD_MASTER:
-				case SC_STEALTHFIELD:			case SC_GIANTGROWTH:			case SC_MILLENNIUMSHIELD:
-				case SC_REFRESH:				case SC_STONEHARDSKIN:			case SC_VITALITYACTIVATION:
-				case SC_FIGHTINGSPIRIT:			case SC_ABUNDANCE:				case SC__SHADOWFORM:
-				case SC_RECOGNIZEDSPELL:		case SC_LEADERSHIP:				case SC_GLORYWOUNDS:
-				case SC_SOULCOLD:				case SC_HAWKEYES:				case SC_GUILDAURA:
+				case SC_NEUTRALBARRIER_MASTER:		case SC_NEUTRALBARRIER:		case SC_STEALTHFIELD_MASTER:
+				case SC_STEALTHFIELD:			case SC_GIANTGROWTH:		case SC_MILLENNIUMSHIELD:
+				case SC_REFRESH:			case SC_STONEHARDSKIN:		case SC_VITALITYACTIVATION:
+				case SC_FIGHTINGSPIRIT:			case SC_ABUNDANCE:		case SC__SHADOWFORM:
+				case SC_RECOGNIZEDSPELL:		case SC_LEADERSHIP:		case SC_GLORYWOUNDS:
+				case SC_SOULCOLD:			case SC_HAWKEYES:		case SC_GUILDAURA:
 				case SC_PUSH_CART:
 					continue;
 				/**
@@ -7280,6 +7280,19 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				skill_castend_nodamage_id);
 		}
 		break;
+	case ALL_PARTYFLEE:
+		if( sd  && !(flag&1) )
+		{
+			if( !sd->status.party_id )
+			{
+				clif_skill_fail(sd,skillid,USESKILL_FAIL_LEVEL,0);
+				break;
+			}
+			party_foreachsamemap(skill_area_sub, sd, skill_get_splash(skillid, skilllv), src, skillid, skilllv, tick, flag|BCT_PARTY|1, skill_castend_nodamage_id);
+		}
+		else
+			clif_skill_nodamage(src,bl,skillid,skilllv,sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv)));
+		break;
 	case NPC_TALK:
 	case ALL_WEWISH:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
@@ -7574,45 +7587,45 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				if (!tsc->data[i])
 					continue;
 				switch (i) {
-				case SC_WEIGHT50:				case SC_WEIGHT90:				case SC_HALLUCINATION:
-				case SC_STRIPWEAPON:			case SC_STRIPSHIELD:			case SC_STRIPARMOR:
-				case SC_STRIPHELM:				case SC_CP_WEAPON:				case SC_CP_SHIELD:
-				case SC_CP_ARMOR:				case SC_CP_HELM:				case SC_COMBO:
-				case SC_STRFOOD:				case SC_AGIFOOD:				case SC_VITFOOD:
-				case SC_INTFOOD:				case SC_DEXFOOD:				case SC_LUKFOOD:
-				case SC_HITFOOD:				case SC_FLEEFOOD:				case SC_BATKFOOD:
-				case SC_WATKFOOD:				case SC_MATKFOOD:				case SC_DANCING:
-				case SC_SPIRIT:					case SC_AUTOBERSERK:
-				case SC_CARTBOOST:				case SC_MELTDOWN:				case SC_SAFETYWALL:
-				case SC_SMA:					case SC_SPEEDUP0:				case SC_NOCHAT:
-				case SC_ANKLE:					case SC_SPIDERWEB:				case SC_JAILED:
-				case SC_ITEMBOOST:				case SC_EXPBOOST:				case SC_LIFEINSURANCE:
-				case SC_BOSSMAPINFO:			case SC_PNEUMA:					case SC_AUTOSPELL:
-				case SC_INCHITRATE:				case SC_INCATKRATE:				case SC_NEN:
-				case SC_READYSTORM:				case SC_READYDOWN:				case SC_READYTURN:
-				case SC_READYCOUNTER:			case SC_DODGE:					case SC_WARM:
-				case SC_SPEEDUP1:				case SC_AUTOTRADE:				case SC_CRITICALWOUND:
-				case SC_JEXPBOOST:				case SC_INVINCIBLE:				case SC_INVINCIBLEOFF:
-				case SC_HELLPOWER:				case SC_MANU_ATK:				case SC_MANU_DEF:
-				case SC_SPL_ATK:				case SC_SPL_DEF:				case SC_MANU_MATK:
-				case SC_SPL_MATK:				case SC_RICHMANKIM:				case SC_ETERNALCHAOS:
-				case SC_DRUMBATTLE:				case SC_NIBELUNGEN:				case SC_ROKISWEIL:
-				case SC_INTOABYSS:				case SC_SIEGFRIED:				case SC_WHISTLE:
-				case SC_ASSNCROS:				case SC_POEMBRAGI:				case SC_APPLEIDUN:
-				case SC_HUMMING:				case SC_DONTFORGETME:			case SC_FORTUNE:
-				case SC_SERVICE4U:				case SC_FOOD_STR_CASH:			case SC_FOOD_AGI_CASH:
-				case SC_FOOD_VIT_CASH:			case SC_FOOD_DEX_CASH:			case SC_FOOD_INT_CASH:
-				case SC_FOOD_LUK_CASH:			case SC_ELECTRICSHOCKER:		case SC_BITE:
-				case SC__STRIPACCESSORY:		case SC__ENERVATION:			case SC__GROOMY:
-				case SC__IGNORANCE: 			case SC__LAZINESS:				case SC__UNLUCKY:
-				case SC__WEAKNESS:				case SC_SAVAGE_STEAK:			case SC_COCKTAIL_WARG_BLOOD:
-				case SC_MAGNETICFIELD:			case SC_MINOR_BBQ:				case SC_SIROMA_ICE_TEA:
+				case SC_WEIGHT50:		case SC_WEIGHT90:		case SC_HALLUCINATION:
+				case SC_STRIPWEAPON:		case SC_STRIPSHIELD:		case SC_STRIPARMOR:
+				case SC_STRIPHELM:		case SC_CP_WEAPON:		case SC_CP_SHIELD:
+				case SC_CP_ARMOR:		case SC_CP_HELM:		case SC_COMBO:
+				case SC_STRFOOD:		case SC_AGIFOOD:		case SC_VITFOOD:
+				case SC_INTFOOD:		case SC_DEXFOOD:		case SC_LUKFOOD:
+				case SC_HITFOOD:		case SC_FLEEFOOD:		case SC_BATKFOOD:
+				case SC_WATKFOOD:		case SC_MATKFOOD:		case SC_DANCING:
+				case SC_SPIRIT:			case SC_AUTOBERSERK:
+				case SC_CARTBOOST:		case SC_MELTDOWN:		case SC_SAFETYWALL:
+				case SC_SMA:			case SC_SPEEDUP0:		case SC_NOCHAT:
+				case SC_ANKLE:			case SC_SPIDERWEB:		case SC_JAILED:
+				case SC_ITEMBOOST:		case SC_EXPBOOST:		case SC_LIFEINSURANCE:
+				case SC_BOSSMAPINFO:		case SC_PNEUMA:			case SC_AUTOSPELL:
+				case SC_INCHITRATE:		case SC_INCATKRATE:		case SC_NEN:
+				case SC_READYSTORM:		case SC_READYDOWN:		case SC_READYTURN:
+				case SC_READYCOUNTER:		case SC_DODGE:			case SC_WARM:
+				case SC_SPEEDUP1:		case SC_AUTOTRADE:		case SC_CRITICALWOUND:
+				case SC_JEXPBOOST:		case SC_INVINCIBLE:		case SC_INVINCIBLEOFF:
+				case SC_HELLPOWER:		case SC_MANU_ATK:		case SC_MANU_DEF:
+				case SC_SPL_ATK:		case SC_SPL_DEF:		case SC_MANU_MATK:
+				case SC_SPL_MATK:		case SC_RICHMANKIM:		case SC_ETERNALCHAOS:
+				case SC_DRUMBATTLE:		case SC_NIBELUNGEN:		case SC_ROKISWEIL:
+				case SC_INTOABYSS:		case SC_SIEGFRIED:		case SC_WHISTLE:
+				case SC_ASSNCROS:		case SC_POEMBRAGI:		case SC_APPLEIDUN:
+				case SC_HUMMING:		case SC_DONTFORGETME:		case SC_FORTUNE:
+				case SC_SERVICE4U:		case SC_FOOD_STR_CASH:		case SC_FOOD_AGI_CASH:
+				case SC_FOOD_VIT_CASH:		case SC_FOOD_DEX_CASH:		case SC_FOOD_INT_CASH:
+				case SC_FOOD_LUK_CASH:		case SC_ELECTRICSHOCKER:	case SC_BITE:
+				case SC__STRIPACCESSORY:	case SC__ENERVATION:		case SC__GROOMY:
+				case SC__IGNORANCE: 		case SC__LAZINESS:		case SC__UNLUCKY:
+				case SC__WEAKNESS:		case SC_SAVAGE_STEAK:		case SC_COCKTAIL_WARG_BLOOD:
+				case SC_MAGNETICFIELD:		case SC_MINOR_BBQ:		case SC_SIROMA_ICE_TEA:
 				case SC_DROCERA_HERB_STEAMED:	case SC_PUTTI_TAILS_NOODLES:	case SC_NEUTRALBARRIER_MASTER:
-				case SC_NEUTRALBARRIER:			case SC_STEALTHFIELD_MASTER:	case SC_STEALTHFIELD:
-				case SC_LEADERSHIP:				case SC_GLORYWOUNDS:			case SC_SOULCOLD:
-				case SC_HAWKEYES:				case SC_GUILDAURA:				case SC_SEVENWIND:
-				case SC_MIRACLE:				case SC_S_LIFEPOTION:			case SC_L_LIFEPOTION:
-				case SC_INCHEALRATE:			case SC_PUSH_CART:
+				case SC_NEUTRALBARRIER:		case SC_STEALTHFIELD_MASTER:	case SC_STEALTHFIELD:
+				case SC_LEADERSHIP:		case SC_GLORYWOUNDS:		case SC_SOULCOLD:
+				case SC_HAWKEYES:		case SC_GUILDAURA:		case SC_SEVENWIND:
+				case SC_MIRACLE:		case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:
+				case SC_INCHEALRATE:		case SC_PUSH_CART:		case SC_PARTYFLEE:
 					continue;
 				case SC_ASSUMPTIO:
 					if( bl->type == BL_MOB )
@@ -11950,9 +11963,9 @@ int skill_check_condition_castbegin(struct map_session_data* sd, short skill, sh
 		switch( skill ) {
 			case HT_SKIDTRAP:	case HT_LANDMINE:	case HT_ANKLESNARE:	case HT_SHOCKWAVE:
 			case HT_SANDMAN:	case HT_FLASHER:	case HT_FREEZINGTRAP:	case HT_BLASTMINE:
-			case HT_CLAYMORETRAP:	case HT_SPRINGTRAP:	case RA_DETONATOR:	case RA_CLUSTERBOMB:
-			case RA_WUGDASH:	case RA_WUGRIDER:	case RA_WUGSTRIKE:	case RA_FIRINGTRAP:
-			case RA_ICEBOUNDTRAP:
+			case HT_CLAYMORETRAP:	case HT_SPRINGTRAP:	case HT_TALKIEBOX:	case RA_DETONATOR:
+			case RA_CLUSTERBOMB:	case RA_WUGDASH:	case RA_WUGRIDER:	case RA_WUGSTRIKE:
+			case RA_FIRINGTRAP:	case RA_ICEBOUNDTRAP:
 				break;
 			default: // in official there is no message.
 				return 0;
