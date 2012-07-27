@@ -1368,6 +1368,9 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	case MH_STAHL_HORN:
 		sc_start(bl,SC_STUN,(20 + 4 * skilllv),skilllv,skill_get_time2(skillid,skilllv));
 		break;
+	case KO_JYUMONJIKIRI: // needs more info
+		sc_start(bl,SC_JYUMONJIKIRI,25,skilllv,skill_get_time(skillid,skilllv));
+		break;
 	}
 
 	if (md && battle_config.summons_trigger_autospells && md->master_id && md->special_state.ai)
@@ -2362,6 +2365,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		break;
 	case WL_SOULEXPANSION:
 	case WL_COMET:
+	case KO_MUCHANAGE:
+	case NJ_HUUMA:
 		dmg.dmotion = clif_skill_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skillid,skilllv,8);
 		break;
 	case WL_CHAINLIGHTNING_ATK:
@@ -2393,6 +2398,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	case EL_HURRICANE_ATK:
 	case EL_TYPOON_MIS:
 	case EL_TYPOON_MIS_ATK:
+	case KO_BAKURETSU:
 		dmg.dmotion = clif_skill_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skillid,-1,5);
 		break;
 	case GN_SLINGITEM_RANGEMELEEATK:
@@ -2427,6 +2433,11 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	default:
 		if( flag&SD_ANIMATION && dmg.div_ < 2 ) //Disabling skill animation doesn't works on multi-hit.
 			type = 5;
+		if( bl->type == BL_SKILL ){
+			TBL_SKILL *su = (TBL_SKILL*)bl;
+			if( su->group && skill_get_inf2(su->group->skill_id)&INF2_TRAP )// show damage on trap targets
+				clif_skill_damage(src,bl,tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skillid, flag&SD_LEVEL?-1:skilllv, 5);
+		}
 		dmg.dmotion = clif_skill_damage(dsrc,bl,tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skillid, flag&SD_LEVEL?-1:skilllv, type);
 		break;
 	}
@@ -3446,6 +3457,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case WM_GREAT_ECHO:
 	case GN_SLINGITEM_RANGEMELEEATK:	
 	case MH_STAHL_HORN:
+	case KO_JYUMONJIKIRI:
+	case KO_SETSUDAN:
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 	break;
 
@@ -3677,6 +3690,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case GN_CART_TORNADO:
 	case GN_CARTCANNON:
 	case MH_LAVA_SLIDE:
+	case KO_HAPPOKUNAI:
+	case KO_HUUMARANKA:
 		if( flag&1 ) {//Recursive invocation
 			// skill_area_temp[0] holds number of targets in area
 			// skill_area_temp[1] holds the id of the original target
@@ -5491,11 +5506,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case SR_SKYNETBLOW:
 	case SR_RAMPAGEBLASTER:
 	case SR_HOWLINGOFLION:
+	case KO_HAPPOKUNAI:
 		skill_area_temp[1] = 0;
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		i = map_foreachinrange(skill_area_sub, bl, skill_get_splash(skillid, skilllv), splash_target(src), 
 			src, skillid, skilllv, tick, flag|BCT_ENEMY|SD_SPLASH|1, skill_castend_damage_id);
-		if( !i && ( skillid == NC_AXETORNADO || skillid == SR_SKYNETBLOW ) )
+		if( !i && ( skillid == NC_AXETORNADO || skillid == SR_SKYNETBLOW || skillid == KO_HAPPOKUNAI ) )
 			clif_skill_damage(src,src,tick, status_get_amotion(src), 0, -30000, 1, skillid, skilllv, 6);
 		break;
 
@@ -5648,6 +5664,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 	case TF_HIDING:
 	case ST_CHASEWALK:
+	case KO_YAMIKUMO:
 		if (tsce)
 		{
 			clif_skill_nodamage(src,bl,skillid,-1,status_change_end(bl, type, INVALID_TIMER)); //Hide skill-scream animation.
@@ -9360,6 +9377,9 @@ int skill_castend_pos2(struct block_list* src, int x, int y, int skillid, int sk
 	case NJ_HYOUSYOURAKU:
 	case NJ_RAIGEKISAI:
 	case NJ_KAMAITACHI:
+#ifdef RENEWAL
+	case NJ_HUUMA:
+#endif
 	case NPC_EVILLAND:
 	case RA_ELECTRICSHOCKER:
 	case RA_CLUSTERBOMB:
@@ -9390,6 +9410,9 @@ int skill_castend_pos2(struct block_list* src, int x, int y, int skillid, int sk
 	case SO_WIND_INSIGNIA:
 	case SO_EARTH_INSIGNIA:
 	case MH_POISON_MIST:
+	case KO_HUUMARANKA:
+	case KO_MUCHANAGE:
+	case KO_BAKURETSU:
 		flag|=1;//Set flag to 1 to prevent deleting ammo (it will be deleted on group-delete).
 	case GS_GROUNDDRIFT: //Ammo should be deleted right away.
 		skill_unitsetting(src,skillid,skilllv,x,y,0);
@@ -10399,6 +10422,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, short skilli
 		if( !(sc && sc->data[SC_POISONINGWEAPON]) )
 			return NULL;
 		val2 = sc->data[SC_POISONINGWEAPON]->val2; // Type of Poison
+		val3 = sc->data[SC_POISONINGWEAPON]->val1;
 		limit = skill_get_time(skillid,skilllv);
 		break;
 	case GD_LEADERSHIP:
@@ -10973,6 +10997,8 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				default:
 					skill_attack(skill_get_type(sg->skill_id),ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 			}
+			if( skill_get_unit_interval(sg->skill_id) >= skill_get_time(sg->skill_id,sg->skill_lv) )
+				sg->unit_id = UNT_USED_TRAPS;
 			break;
 
 		case UNT_FIREPILLAR_WAITING:
@@ -11256,7 +11282,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 		 **/
 		case UNT_POISONSMOKE:
 			if( battle_check_target(ss,bl,BCT_ENEMY) > 0 && !(tsc && tsc->data[sg->val2]) && rnd()%100 < 50 )
-				sc_start(bl,sg->val2,100,sg->val1,skill_get_time2(GC_POISONINGWEAPON, 1));
+				sc_start(bl,sg->val2,100,sg->val3,skill_get_time2(GC_POISONINGWEAPON, 1));
 			break;
 
 		case UNT_EPICLESIS:
@@ -11950,10 +11976,10 @@ int skill_check_condition_castbegin(struct map_session_data* sd, short skill, sh
 		return 0;
 
 	switch( skill ) { // Turn off check.
-		case BS_MAXIMIZE:		case NV_TRICKDEAD:	case TF_HIDING:		case AS_CLOAKING:	case CR_AUTOGUARD:
-		case ML_AUTOGUARD:		case CR_DEFENDER:	case ML_DEFENDER:	case ST_CHASEWALK:	case PA_GOSPEL:
-		case CR_SHRINK:			case TK_RUN:		case GS_GATLINGFEVER:	case TK_READYCOUNTER:	case TK_READYDOWN:
-		case TK_READYSTORM:		case TK_READYTURN:	case SG_FUSION:		case RA_WUGDASH:
+		case BS_MAXIMIZE:	case NV_TRICKDEAD:	case TF_HIDING:	case AS_CLOAKING:	case CR_AUTOGUARD:
+		case ML_AUTOGUARD:	case CR_DEFENDER:	case ML_DEFENDER:	case ST_CHASEWALK:	case PA_GOSPEL:
+		case CR_SHRINK:		case TK_RUN:	case GS_GATLINGFEVER:	case TK_READYCOUNTER:	case TK_READYDOWN:
+		case TK_READYSTORM:	case TK_READYTURN:	case SG_FUSION:	case RA_WUGDASH:	case KO_YAMIKUMO:
 			if( sc && sc->data[status_skill2sc(skill)] )
 				return 1;
 	}
@@ -12261,6 +12287,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, short skill, sh
 			break;
 
 		case NJ_ZENYNAGE:
+		case KO_MUCHANAGE:
 			if(sd->status.zeny < require.zeny) {
 				clif_skill_fail(sd,skill,USESKILL_FAIL_MONEY,0);
 				return 0;
@@ -12876,10 +12903,10 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, short 
 
 	switch( skill )
 	{ // Turn off check.
-	case BS_MAXIMIZE:		case NV_TRICKDEAD:	case TF_HIDING:			case AS_CLOAKING:		case CR_AUTOGUARD:
-	case ML_AUTOGUARD:		case CR_DEFENDER:	case ML_DEFENDER:		case ST_CHASEWALK:		case PA_GOSPEL:
-	case CR_SHRINK:			case TK_RUN:		case GS_GATLINGFEVER:	case TK_READYCOUNTER:	case TK_READYDOWN:
-	case TK_READYSTORM:		case TK_READYTURN:	case SG_FUSION:
+	case BS_MAXIMIZE:	case NV_TRICKDEAD:	case TF_HIDING:	case AS_CLOAKING:	case CR_AUTOGUARD:
+	case ML_AUTOGUARD:	case CR_DEFENDER:	case ML_DEFENDER:	case ST_CHASEWALK:	case PA_GOSPEL:
+	case CR_SHRINK:	case TK_RUN:	case GS_GATLINGFEVER:	case TK_READYCOUNTER:	case TK_READYDOWN:
+	case TK_READYSTORM:	case TK_READYTURN:	case SG_FUSION:	case KO_YAMIKUMO:
 		if( sc && sc->data[status_skill2sc(skill)] )
 			return req;
 	}
@@ -13501,16 +13528,16 @@ void skill_repairweapon (struct map_session_data *sd, int idx)
 	if(idx < 0 || idx >= MAX_INVENTORY)
 		return; //Invalid index??
 
-   item = &target_sd->status.inventory[idx];
+	item = &target_sd->status.inventory[idx];
 	if(item->nameid <= 0 || item->attribute == 0)
 		return; //Again invalid item....
 
 	if(sd!=target_sd && !battle_check_range(&sd->bl,&target_sd->bl,skill_get_range2(&sd->bl, sd->menuskill_id,pc_checkskill(sd, sd->menuskill_id)))){
-		clif_item_repaireffect(sd,item->nameid,1);
+		clif_item_repaireffect(sd,idx,1);
 		return;
 	}
 
-	if (itemdb_type(item->nameid)==IT_WEAPON)
+	if ( sd->inventory_data[idx]->type == IT_WEAPON)
 		material = materials [itemdb_wlv(item->nameid)-1]; // Lv1/2/3/4 weapons consume 1 Iron Ore/Iron/Steel/Rough Oridecon
 	else
 		material = materials [2]; // Armors consume 1 Steel
@@ -13522,9 +13549,9 @@ void skill_repairweapon (struct map_session_data *sd, int idx)
 	item->attribute=0;
 	clif_equiplist(target_sd);
 	pc_delitem(sd,pc_search_inventory(sd,material),1,0,0,LOG_TYPE_CONSUME);
-	clif_item_repaireffect(sd,item->nameid,0);
+	clif_item_repaireffect(sd,idx,0);
 	if(sd!=target_sd)
-		clif_item_repaireffect(target_sd,item->nameid,0);
+		clif_item_repaireffect(target_sd,idx,0);
 }
 
 /*==========================================

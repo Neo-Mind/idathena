@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Current Version: =====================================
-//= $Revision: 16478 $
+//= $Revision: 16505 $
 //===== Last Updated: ========================================
-//= $LastChangedDate: 2012-07-23 08:10:15 +0700 (Mon, 23 Jul 2012) $
+//= $LastChangedDate: 2012-07-26 23:37:30 +0700 (Thu, 26 Jul 2012) $
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -2113,8 +2113,7 @@ array, shifting all the elements beyond this towards the beginning.
 *bindatcmd("command","<NPC object name>::<event label>"{,<atcommand level>,<charcommand level>});
 
 This command will bind a NPC event label to an atcommand. Upon execution of
-the atcommand, the user will invoke the NPC event label. Note that a hardcoded
-limit of bindings is set in /src/map/atcommand.h, with 100 as the default value.
+the atcommand, the user will invoke the NPC event label.
 
 Example:
 When a user types the command "@test", an angel effect will be shown.

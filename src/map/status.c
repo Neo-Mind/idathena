@@ -730,6 +730,8 @@ void initChangeTables(void) {
 	set_sc( EL_TIDAL_WEAPON    , SC_TIDAL_WEAPON_OPTION  , SI_TIDAL_WEAPON_OPTION  , SCB_ALL );
 	set_sc( EL_ROCK_CRUSHER    , SC_ROCK_CRUSHER         , SI_ROCK_CRUSHER         , SCB_DEF );
 	set_sc( EL_ROCK_CRUSHER_ATK, SC_ROCK_CRUSHER_ATK     , SI_ROCK_CRUSHER_ATK     , SCB_SPEED );
+	add_sc( KO_YAMIKUMO        , SC_HIDING );
+	set_sc( KO_JYUMONJIKIRI    , SC_JYUMONJIKIRI         , SI_KO_JYUMONJIKIRI      , SCB_NONE );
 	
 	add_sc( MH_STAHL_HORN		 , SC_STUN            );
 	set_sc( MH_ANGRIFFS_MODUS	 , SC_ANGRIFFS_MODUS  , SI_ANGRIFFS_MODUS	, SCB_BATK|SCB_WATK|SCB_DEF|SCB_FLEE );
@@ -1661,6 +1663,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 			case RG_RAID:
 			case NJ_SHADOWJUMP:
 			case NJ_KIRIKAGE:
+			case KO_YAMIKUMO:
 				break;
 			default:
 				//Non players can use all skills while hidden.
@@ -2016,6 +2019,8 @@ int status_calc_mob_(struct mob_data* md, bool first)
 		if (mstatus &&
 			battle_config.slaves_inherit_speed&(mstatus->mode&MD_CANMOVE?1:2))
 			status->speed = mstatus->speed;
+		if( status->speed < 2 ) /* minimum for the unit to function properly */
+			status->speed = 2;
 	}
 
 	if (flag&16 && mbl)
@@ -2521,6 +2526,15 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 				run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
 			sd->state.lr_flag = 0;
 			if (!calculating) //Abort, run_script retriggered status_calc_pc. [Skotlex]
+				return 1;
+		}
+	}
+	
+	/* we've got combos to process */
+	if( sd->combos.count ) {
+		for( i = 0; i < sd->combos.count; i++ ) {
+			run_script(sd->combos.bonus[i],0,sd->bl.id,0);
+			if (!calculating) //Abort, run_script retriggered this.
 				return 1;
 		}
 	}

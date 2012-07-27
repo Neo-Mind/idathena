@@ -53,7 +53,17 @@ void trade_traderequest(struct map_session_data *sd, struct map_session_data *ta
 			return;
 		}
 	}
-
+	
+	if ( sd->trade_partner != 0 ) { // If a character tries to trade to another one then cancel the previous one
+		struct map_session_data *previous_sd = map_id2sd(sd->trade_partner);
+		if( previous_sd ){
+			previous_sd->trade_partner = 0;
+			clif_tradecancelled(previous_sd);
+		} // Once cancelled then continue to the new one.
+		sd->trade_partner = 0;
+		clif_tradecancelled(sd);
+	}
+	
 	if (target_sd->trade_partner != 0) {
 		clif_tradestart(sd, 2); // person is in another trade
 		return;

@@ -5821,22 +5821,19 @@ void clif_item_repair_list(struct map_session_data *sd,struct map_session_data *
 
 /// Notifies the client about the result of a item repair request (ZC_ACK_ITEMREPAIR).
 /// 01fe <index>.W <result>.B
-void clif_item_repaireffect(struct map_session_data *sd,int nameid,int flag)
+void clif_item_repaireffect(struct map_session_data *sd,int idx,int flag)
 {
-	int view,fd;
+	int fd;
 
 	nullpo_retv(sd);
-	fd=sd->fd;
+	fd = sd->fd;
 
 	WFIFOHEAD(fd,packet_len(0x1fe));
 	WFIFOW(fd, 0)=0x1fe;
-	// FIXME: this is inventory index
-	if((view = itemdb_viewid(nameid)) > 0)
-		WFIFOW(fd, 2)=view;
-	else
-		WFIFOW(fd, 2)=nameid;
+	WFIFOW(fd, 2)=idx+2;
 	WFIFOB(fd, 4)=flag;
 	WFIFOSET(fd,packet_len(0x1fe));
+	
 }
 
 
@@ -9223,7 +9220,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		if (sd->sc.option&OPTION_RIDING)
 			clif_status_load(&sd->bl, SI_RIDING, 1);
 			
-		if (sd->sc.option&OPTION_WUGRIDER)
+		else if (sd->sc.option&OPTION_WUGRIDER)
 			clif_status_load(&sd->bl, SI_WUGRIDER, 1);
 
 		if(sd->status.manner < 0)
@@ -9243,12 +9240,11 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		if(merc_is_hom_active(sd->hd))
 			merc_hom_init_timers(sd->hd);
 
-		if (night_flag && map[sd->bl.m].flag.nightenabled)
-		{
+		if (night_flag && map[sd->bl.m].flag.nightenabled) {
 			sd->state.night = 1;
 			clif_status_load(&sd->bl, SI_NIGHT, 1);
 		}
-
+		
 		// Notify everyone that this char logged in [Skotlex].
 		map_foreachpc(clif_friendslist_toggle_sub, sd->status.account_id, sd->status.char_id, 1);
 
