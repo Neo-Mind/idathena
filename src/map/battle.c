@@ -350,6 +350,24 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 			if( atk_elem == ELE_FIRE )
 				status_change_end(target, SC_CRYSTALIZE, INVALID_TIMER);
 		}
+		if( src && src->type == BL_PC ){
+			struct map_session_data *sd = BL_CAST(BL_PC, src);
+			int s;
+			
+			ARR_FIND(1, 6, s, sd->talisman[s] > 0);
+			
+			if( s < 5 && atk_elem == s )
+				ratio += sd->talisman[s] * 2; // +2% custom value
+		}
+		if( target && target->type == BL_PC ) {
+			struct map_session_data *tsd = BL_CAST(BL_PC, target);
+			int t;
+			
+			ARR_FIND(1, 6, t, tsd->talisman[t] > 0);
+			
+			if( t < 5 && atk_elem == t )
+				damage -= damage * tsd->talisman[t] * 3 / 100; // -3% custom value
+		}
 	}
 	return damage*ratio/100;
 }
@@ -715,6 +733,9 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			if((--sce->val3)<=0 || (sce->val2<=0) || skill_num == AL_HOLYLIGHT)
 				status_change_end(bl, SC_KYRIE, INVALID_TIMER);
 		}
+		
+		if( sc->data[SC_MEIKYOUSISUI] && rand()%100 < 40 ) // custom value
+			damage = 0;
 
 		if (!damage) return 0;
 
@@ -1408,6 +1429,10 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 	{ //Take weapon's element
 		s_ele = sstatus->rhw.ele;
 		s_ele_ = sstatus->lhw.ele;
+		if( sd ){ //Summoning 10 talisman will endow your weapon.
+			ARR_FIND(1, 6, i, sd->talisman[i] >= 10);
+			if( i < 5) s_ele = s_ele_ = i;
+		}
 		if( flag.arrow && sd && sd->bonus.arrow_ele )
 			s_ele = sd->bonus.arrow_ele;
 		if( battle_config.attack_attr_none&src->type )
@@ -3389,9 +3414,13 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		//Initialize variables that will be used afterwards
 		s_ele = skill_get_ele(skill_num, skill_lv);
 
-		if (s_ele == -1) // pl=-1 : the skill takes the weapon's element
+		if (s_ele == -1){ // pl=-1 : the skill takes the weapon's element
 			s_ele = sstatus->rhw.ele;
-		else if (s_ele == -2) //Use status element
+			if( sd ){ //Summoning 10 talisman will endow your weapon
+				ARR_FIND(1, 6, i, sd->talisman[i] > 0);
+				if( i < 5) s_ele = i;
+			}
+		}else if (s_ele == -2) //Use status element
 			s_ele = status_get_attack_sc_element(src,status_get_sc(src));
 		else if( s_ele == -3 ) //Use random element
 			s_ele = rnd()%ELE_MAX;
@@ -4284,6 +4313,9 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			md.damage -= totaldef;
 		}
 		break;
+	case KO_MAKIBISHI:
+		md.damage = 20 * skill_lv;
+		break;
 	}
 
 	if (nk&NK_SPLASHSPLIT){ // Divide ATK among targets
@@ -5054,9 +5086,9 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			}
 			break;
 		case BL_MOB:
-			if((((TBL_MOB*)target)->special_state.ai == 2 || //Marine Spheres
+			if(((((TBL_MOB*)target)->special_state.ai == 2 || //Marine Spheres
 				(((TBL_MOB*)target)->special_state.ai == 3 && battle_config.summon_flora&1)) && //Floras
-				s_bl->type == BL_PC && src->type != BL_MOB)
+				s_bl->type == BL_PC && src->type != BL_MOB) || ((TBL_MOB*)target)->special_state.ai == 4) //Zanzoe
 			{	//Targettable by players
 				state |= BCT_ENEMY;
 				strip_enemy = 0;
@@ -5220,8 +5252,9 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				return 0; // Disable guardians/emperium owned by Guilds on non-woe times.
 
 			if( !md->special_state.ai )
-			{ //Normal mobs.
-				if( t_bl->type == BL_MOB && !((TBL_MOB*)t_bl)->special_state.ai )
+			{ //Normal mobs
+				if( (target->type == BL_MOB && t_bl->type == BL_PC && ((TBL_MOB*)target)->special_state.ai < 4) ||
+						( t_bl->type == BL_MOB && !((TBL_MOB*)t_bl)->special_state.ai ) )
 					state |= BCT_PARTY; //Normal mobs with no ai are friends.
 				else
 					state |= BCT_ENEMY; //However, all else are enemies.

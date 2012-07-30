@@ -413,6 +413,7 @@ static DBData create_charstatus(DBKey key, va_list args)
 	return db_ptr2data(cp);
 }
 
+int inventory_to_sql(const struct item items[], int max, int id);
 
 int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
 {
@@ -432,17 +433,15 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
 	memset(save_status, 0, sizeof(save_status));
 
 	//map inventory data
-	if( memcmp(p->inventory, cp->inventory, sizeof(p->inventory)) )
-	{
-		if (!memitemdata_to_sql(p->inventory, MAX_INVENTORY, p->char_id, TABLE_INVENTORY))
+	if( memcmp(p->inventory, cp->inventory, sizeof(p->inventory)) ) {
+		if (!inventory_to_sql(p->inventory, MAX_INVENTORY, p->char_id))
 			strcat(save_status, " inventory");
 		else
 			errors++;
 	}
 
 	//map cart data
-	if( memcmp(p->cart, cp->cart, sizeof(p->cart)) )
-	{
+	if( memcmp(p->cart, cp->cart, sizeof(p->cart)) ) {
 		if (!memitemdata_to_sql(p->cart, MAX_CART, p->char_id, TABLE_CART))
 			strcat(save_status, " cart");
 		else
@@ -450,8 +449,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
 	}
 
 	//map storage data
-	if( memcmp(p->storage.items, cp->storage.items, sizeof(p->storage.items)) )
-	{
+	if( memcmp(p->storage.items, cp->storage.items, sizeof(p->storage.items)) ) {
 		if (!memitemdata_to_sql(p->storage.items, MAX_STORAGE, p->account_id, TABLE_STORAGE))
 			strcat(save_status, " storage");
 		else
@@ -849,6 +847,142 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 
 	return errors;
 }
+/* pretty much a copy of memitemdata_to_sql except it handles inventory_db exclusively,
+ * - this is required because inventory db is the only one with the 'favorite' column. */
+int inventory_to_sql(const struct item items[], int max, int id) {
+	StringBuf buf;
+	SqlStmt* stmt;
+	int i;
+	int j;
+	struct item item; // temp storage variable
+	bool* flag; // bit array for inventory matching
+	bool found;
+	int errors = 0;
+		
+	
+	// The following code compares inventory with current database values
+	// and performs modification/deletion/insertion only on relevant rows.
+	// This approach is more complicated than a trivial delete&insert, but
+	// it significantly reduces cpu load on the database server.
+	
+	StringBuf_Init(&buf);
+	StringBuf_AppendStr(&buf, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `expire_time`, `favorite`");
+	for( j = 0; j < MAX_SLOTS; ++j )
+		StringBuf_Printf(&buf, ", `card%d`", j);
+	StringBuf_Printf(&buf, " FROM `%s` WHERE `char_id`='%d'", inventory_db, id);
+	
+	stmt = SqlStmt_Malloc(sql_handle);
+	if( SQL_ERROR == SqlStmt_PrepareStr(stmt, StringBuf_Value(&buf))
+	   ||  SQL_ERROR == SqlStmt_Execute(stmt) )
+	{
+		SqlStmt_ShowDebug(stmt);
+		SqlStmt_Free(stmt);
+		StringBuf_Destroy(&buf);
+		return 1;
+	}
+	
+	SqlStmt_BindColumn(stmt, 0, SQLDT_INT,       &item.id,          0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 1, SQLDT_SHORT,     &item.nameid,      0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 2, SQLDT_SHORT,     &item.amount,      0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 3, SQLDT_USHORT,    &item.equip,       0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 4, SQLDT_CHAR,      &item.identify,    0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 5, SQLDT_CHAR,      &item.refine,      0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 6, SQLDT_CHAR,      &item.attribute,   0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 7, SQLDT_UINT,      &item.expire_time, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 8, SQLDT_CHAR,      &item.favorite,    0, NULL, NULL);
+	for( j = 0; j < MAX_SLOTS; ++j )
+		SqlStmt_BindColumn(stmt, 9+j, SQLDT_SHORT, &item.card[j], 0, NULL, NULL);
+	
+	// bit array indicating which inventory items have already been matched
+	flag = (bool*) aCalloc(max, sizeof(bool));
+	
+	while( SQL_SUCCESS == SqlStmt_NextRow(stmt) ) {
+		found = false;
+		// search for the presence of the item in the char's inventory
+		for( i = 0; i < max; ++i ) {
+			// skip empty and already matched entries
+			if( items[i].nameid == 0 || flag[i] )
+				continue;
+			
+			if( items[i].nameid == item.nameid
+			   &&  items[i].card[0] == item.card[0]
+			   &&  items[i].card[2] == item.card[2]
+			   &&  items[i].card[3] == item.card[3]
+			   ) {	//They are the same item.
+				ARR_FIND( 0, MAX_SLOTS, j, items[i].card[j] != item.card[j] );
+				if( j == MAX_SLOTS &&
+				   items[i].amount == item.amount &&
+				   items[i].equip == item.equip &&
+				   items[i].identify == item.identify &&
+				   items[i].refine == item.refine &&
+				   items[i].attribute == item.attribute &&
+				   items[i].expire_time == item.expire_time &&
+				   items[i].favorite == item.favorite )
+					;	//Do nothing.
+				else {
+					// update all fields.
+					StringBuf_Clear(&buf);
+					StringBuf_Printf(&buf, "UPDATE `%s` SET `amount`='%d', `equip`='%d', `identify`='%d', `refine`='%d',`attribute`='%d', `expire_time`='%u', `favorite`='%d'",
+									 inventory_db, items[i].amount, items[i].equip, items[i].identify, items[i].refine, items[i].attribute, items[i].expire_time, items[i].favorite);
+					for( j = 0; j < MAX_SLOTS; ++j )
+						StringBuf_Printf(&buf, ", `card%d`=%d", j, items[i].card[j]);
+					StringBuf_Printf(&buf, " WHERE `id`='%d' LIMIT 1", item.id);
+					
+					if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) ) {
+						Sql_ShowDebug(sql_handle);
+						errors++;
+					}
+				}
+				
+				found = flag[i] = true; //Item dealt with,
+				break; //skip to next item in the db.
+			}
+		}
+		if( !found ) {// Item not present in inventory, remove it.
+			if( SQL_ERROR == Sql_Query(sql_handle, "DELETE from `%s` where `id`='%d' LIMIT 1", inventory_db, item.id) ) {
+				Sql_ShowDebug(sql_handle);
+				errors++;
+			}
+		}
+	}
+	SqlStmt_Free(stmt);
+	
+	StringBuf_Clear(&buf);
+	StringBuf_Printf(&buf, "INSERT INTO `%s` (`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `expire_time`, `favorite`", inventory_db);
+	for( j = 0; j < MAX_SLOTS; ++j )
+		StringBuf_Printf(&buf, ", `card%d`", j);
+	StringBuf_AppendStr(&buf, ") VALUES ");
+	
+	found = false;
+	// insert non-matched items into the db as new items
+	for( i = 0; i < max; ++i ) {
+		// skip empty and already matched entries
+		if( items[i].nameid == 0 || flag[i] )
+			continue;
+		
+		if( found )
+			StringBuf_AppendStr(&buf, ",");
+		else
+			found = true;
+		
+		StringBuf_Printf(&buf, "('%d', '%d', '%d', '%d', '%d', '%d', '%d', '%u', '%d'",
+						 id, items[i].nameid, items[i].amount, items[i].equip, items[i].identify, items[i].refine, items[i].attribute, items[i].expire_time, items[i].favorite);
+		for( j = 0; j < MAX_SLOTS; ++j )
+			StringBuf_Printf(&buf, ", '%d'", items[i].card[j]);
+		StringBuf_AppendStr(&buf, ")");
+	}
+	
+	if( found && SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) ) {
+		Sql_ShowDebug(sql_handle);
+		errors++;
+	}
+	
+	StringBuf_Destroy(&buf);
+	aFree(flag);
+	
+	return errors;
+}
+
 
 int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
 
@@ -1071,7 +1205,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 	//read inventory
 	//`inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
 	StringBuf_Init(&buf);
-	StringBuf_AppendStr(&buf, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `expire_time`");
+	StringBuf_AppendStr(&buf, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `expire_time`, `favorite`");
 	for( i = 0; i < MAX_SLOTS; ++i )
 		StringBuf_Printf(&buf, ", `card%d`", i);
 	StringBuf_Printf(&buf, " FROM `%s` WHERE `char_id`=? LIMIT %d", inventory_db, MAX_INVENTORY);
@@ -1086,10 +1220,11 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 4, SQLDT_CHAR,      &tmp_item.identify, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 5, SQLDT_CHAR,      &tmp_item.refine, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 6, SQLDT_CHAR,      &tmp_item.attribute, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 7, SQLDT_UINT,      &tmp_item.expire_time, 0, NULL, NULL) )
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 7, SQLDT_UINT,      &tmp_item.expire_time, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 8, SQLDT_CHAR,      &tmp_item.favorite, 0, NULL, NULL) )
 		SqlStmt_ShowDebug(stmt);
 	for( i = 0; i < MAX_SLOTS; ++i )
-		if( SQL_ERROR == SqlStmt_BindColumn(stmt, 8+i, SQLDT_SHORT, &tmp_item.card[i], 0, NULL, NULL) )
+		if( SQL_ERROR == SqlStmt_BindColumn(stmt, 9+i, SQLDT_SHORT, &tmp_item.card[i], 0, NULL, NULL) )
 			SqlStmt_ShowDebug(stmt);
 
 	for( i = 0; i < MAX_INVENTORY && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
@@ -1335,6 +1470,7 @@ int make_new_char_sql(struct char_session_data* sd, char* name_, int slot, int h
 #else
 int make_new_char_sql(struct char_session_data* sd, char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style) {
 #endif
+
 	char name[NAME_LENGTH];
 	char esc_name[NAME_LENGTH*2+1];
 	int char_id, flag;
@@ -1402,7 +1538,7 @@ int make_new_char_sql(struct char_session_data* sd, char* name_, int str, int ag
 	{
 		Sql_ShowDebug(sql_handle);
 		return -2; //No, stop the procedure!
-	}
+	}	
 #endif
 	//Retrieve the newly auto-generated char id
 	char_id = (int)Sql_LastInsertId(sql_handle);
@@ -2089,10 +2225,10 @@ int parse_fromlogin(int fd)
 						else if( class_[i] == JOB_KAGEROU || class_[i] == JOB_OBORO )
 							class_[i] = (sex ? JOB_KAGEROU : JOB_OBORO);
 					}
-					
-					if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `class`='%d', `weapon`='0', `shield`='0', `head_top`='0', `head_mid`='0', `head_bottom`='0' WHERE `char_id`='%d'", char_db, class_[i], char_id[i]) )  
-							Sql_ShowDebug(sql_handle);  
 
+					if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `class`='%d', `weapon`='0', `shield`='0', `head_top`='0', `head_mid`='0', `head_bottom`='0' WHERE `char_id`='%d'", char_db, class_[i], char_id[i]) ) 
+						Sql_ShowDebug(sql_handle); 
+					
 					if( guild_id[i] )// If there is a guild, update the guild_member data [Skotlex]
 						inter_guild_sex_changed(guild_id[i], acc, char_id[i], sex);
 				}
@@ -2286,7 +2422,7 @@ void char_read_fame_list(void)
 	memset(chemist_fame_list, 0, sizeof(chemist_fame_list));
 	memset(taekwon_fame_list, 0, sizeof(taekwon_fame_list));
 	// Build Blacksmith ranking list
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `fame`>0 AND (`class`='%d' OR `class`='%d' OR `class`='%d' OR `class`='%d' OR `class`='%d' OR `class`='%d') ORDER BY `fame` DESC LIMIT 0,%d", char_db, JOB_BLACKSMITH, JOB_WHITESMITH, JOB_BABY_BLACKSMITH, JOB_MECHANIC, JOB_MECHANIC_T, JOB_BABY_MECHANIC, fame_list_size_smith) ) 
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `fame`>0 AND (`class`='%d' OR `class`='%d' OR `class`='%d' OR `class`='%d' OR `class`='%d' OR `class`='%d') ORDER BY `fame` DESC LIMIT 0,%d", char_db, JOB_BLACKSMITH, JOB_WHITESMITH, JOB_BABY_BLACKSMITH, JOB_MECHANIC, JOB_MECHANIC_T, JOB_BABY_MECHANIC, fame_list_size_smith) )
 		Sql_ShowDebug(sql_handle);
 	for( i = 0; i < fame_list_size_smith && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
 	{
@@ -2301,7 +2437,7 @@ void char_read_fame_list(void)
 		memcpy(smith_fame_list[i].name, data, min(len, NAME_LENGTH));
 	}
 	// Build Alchemist ranking list
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `fame`>0 AND (`class`='%d' OR `class`='%d' OR `class`='%d' OR `class`='%d' OR `class`='%d' OR `class`='%d') ORDER BY `fame` DESC LIMIT 0,%d", char_db, JOB_ALCHEMIST, JOB_CREATOR, JOB_BABY_ALCHEMIST, JOB_GENETIC, JOB_GENETIC_T, JOB_BABY_GENETIC, fame_list_size_chemist) ) 
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `fame`>0 AND (`class`='%d' OR `class`='%d' OR `class`='%d' OR `class`='%d' OR `class`='%d' OR `class`='%d') ORDER BY `fame` DESC LIMIT 0,%d", char_db, JOB_ALCHEMIST, JOB_CREATOR, JOB_BABY_ALCHEMIST, JOB_GENETIC, JOB_GENETIC_T, JOB_BABY_GENETIC, fame_list_size_chemist) )
 		Sql_ShowDebug(sql_handle);
 	for( i = 0; i < fame_list_size_chemist && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
 	{

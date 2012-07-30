@@ -336,6 +336,8 @@ struct map_session_data {
 
 	short spiritball, spiritball_old;
 	int spirit_timer[MAX_SKILL_LEVEL];
+	short talisman[ELE_POISON+1]; // There are actually 5 talisman Fire, Ice, Wind, Earth & Poison maybe because its color violet.
+	int talisman_timer[ELE_POISON+1][10];
 
 	unsigned char potion_success_counter; //Potion successes in row counter
 	unsigned char mission_count; //Stores the bounty kill count for TK_MISSION
@@ -921,5 +923,8 @@ int pc_banding(struct map_session_data *sd, short skill_lv);
 void pc_itemcd_do(struct map_session_data *sd, bool load);
 
 int pc_load_combo(struct map_session_data *sd);
+
+int pc_add_talisman(struct map_session_data *sd,int interval,int max,int type);
+int pc_del_talisman(struct map_session_data *sd,int count,int type);
 
 #endif /* _PC_H_ */
