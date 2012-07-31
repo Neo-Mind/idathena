@@ -1692,7 +1692,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				status_set_hp(src, sstatus->max_hp/100, 0);//1% of max HP.
 				if(sc && sc->data[SC_BUNSINJYUTSU] && sc->data[SC_BUNSINJYUTSU]->val2 > 0) {
 					ATK_ADDRATE(sc->data[SC_BUNSINJYUTSU]->val2*25);//25% per mirror image.
-				wd.div_ += sc->data[SC_BUNSINJYUTSU]->val2;
+				//wd.div_ += sc->data[SC_BUNSINJYUTSU]->val2; Needs more info for the split damage
 				}
 #endif
 				break;
