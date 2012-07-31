@@ -1222,6 +1222,8 @@ int pc_reg_received(struct map_session_data *sd)
 	map_delnickdb(sd->status.char_id, sd->status.name);
 	if (!chrif_auth_finished(sd))
 		ShowError("pc_reg_received: Failed to properly remove player %d:%d from logging db!\n", sd->status.account_id, sd->status.char_id);
+		
+	pc_load_combo(sd);
 
 	status_calc_pc(sd,1);
 	chrif_scdata_request(sd->status.account_id, sd->status.char_id);
@@ -8200,8 +8202,8 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 				if (!sd->status.inventory[n].card[i])
 					continue;
 				if ( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
-						if( data->equip_script )
-							run_script(data->equip_script,0,sd->bl.id,fake_nd->bl.id);
+					if( data->equip_script )
+						run_script(data->equip_script,0,sd->bl.id,fake_nd->bl.id);
 				}
 			}
 		}
