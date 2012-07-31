@@ -740,6 +740,8 @@ void initChangeTables(void) {
 	set_sc( KO_MEIKYOUSISUI    , SC_MEIKYOUSISUI         , SI_MEIKYOUSISUI         , SCB_NONE );
 	set_sc( KO_KYOUGAKU        , SC_KYOUGAKU             , SI_KYOUGAKU             , SCB_STR|SCB_AGI|SCB_VIT|SCB_INT|SCB_DEX|SCB_LUK );
 	add_sc( KO_JYUSATSU        , SC_CURSE                );
+	set_sc( KO_ZENKAI          , SC_ZENKAI               , SI_ZENKAI               , SCB_NONE );
+	set_sc( KO_IZAYOI          , SC_IZAYOI               , SI_IZAYOI               , SCB_MATK );
 	
 	add_sc( MH_STAHL_HORN		 , SC_STUN            );
 	set_sc( MH_ANGRIFFS_MODUS	 , SC_ANGRIFFS_MODUS  , SI_ANGRIFFS_MODUS	, SCB_BATK|SCB_WATK|SCB_DEF|SCB_FLEE );
@@ -4544,6 +4546,8 @@ static unsigned short status_calc_matk(struct block_list *bl, struct status_chan
 		matk += 50;	
 	if(sc->data[SC_ODINS_POWER])
 		matk += 70;
+	if(sc->data[SC_IZAYOI])
+		matk += 50 * sc->data[SC_IZAYOI]->val1;
 
 	return (unsigned short)cap_value(matk,0,USHRT_MAX);
 }
@@ -6387,6 +6391,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 	case SC_SLEEP:
 	case SC_STUN:
 	case SC_FREEZING:
+	case SC_CRYSTALIZE:
 		if (sc->opt1)
 			return 0; //Cannot override other opt1 status changes. [Skotlex]
 		if((type == SC_FREEZE || type == SC_FREEZING || type == SC_CRYSTALIZE) && sc->data[SC_WARMER])
@@ -8411,7 +8416,10 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			val2 = 2*val1 + rand()%val1;
 			clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,0,1002,0,0); // Temporarily shows Poring need official [malufett]
 			break;
-
+		case SC_IZAYOI:
+			val2 = tick/1000;
+			tick_time = 1000;
+			break;
 		default:
 			if( calc_flag == SCB_NONE && StatusSkillChangeTable[type] == 0 && StatusIconChangeTable[type] == 0 )
 			{	//Status change with no calc, no icon, and no skill associated...? 
@@ -10355,6 +10363,17 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			sc_timer_next(1000 + tick, status_change_timer, bl->id, data);
 			return 0;
 		}
+		break;
+	case SC_IZAYOI:
+	case SC_KAGEMUSYA:
+		if( --(sce->val2) > 0 )
+		{ 
+			if(!status_charge(bl, 0, 1))
+				break;
+			sc_timer_next(1000+tick, status_change_timer, bl->id, data);
+			return 0;
+		}
+		break;
 	}
 
 	// default for all non-handled control paths is to end the status

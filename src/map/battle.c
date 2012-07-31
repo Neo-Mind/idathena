@@ -1431,7 +1431,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		s_ele_ = sstatus->lhw.ele;
 		if( sd ){ //Summoning 10 talisman will endow your weapon.
 			ARR_FIND(1, 6, i, sd->talisman[i] >= 10);
-			if( i < 5) s_ele = s_ele_ = i;
+			if( i < 5 ) s_ele = s_ele_ = i;
 		}
 		if( flag.arrow && sd && sd->bonus.arrow_ele )
 			s_ele = sd->bonus.arrow_ele;
@@ -1802,6 +1802,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				skillratio += sc->data[SC_MAXOVERTHRUST]->val2;
 			if(sc->data[SC_BERSERK])
 				skillratio += 100;
+			if(sc->data[SC_ZENKAI] && sstatus->rhw.ele == sc->data[SC_ZENKAI]->val2 )
+				skillratio += sc->data[SC_ZENKAI]->val1 * 2;
 		}
 		if( !skill_num )
 		{
@@ -2665,6 +2667,16 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						status_change_end(target,SC_SPIRIT,INVALID_TIMER);
 					}
 					break;
+				case KO_KAIHOU:
+					if( sd ){
+						ARR_FIND(1, 6, i, sd->talisman[i] > 0);
+						if( i < 5 ){
+							s_ele = i;
+							ATK_ADDRATE(100 * sd->talisman[i]);// +100% custom value.
+							pc_del_talisman(sd, sd->talisman[i], i);
+						}
+					}
+					break;
 			}
 		}
 		//Div fix.
@@ -3417,8 +3429,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		if (s_ele == -1){ // pl=-1 : the skill takes the weapon's element
 			s_ele = sstatus->rhw.ele;
 			if( sd ){ //Summoning 10 talisman will endow your weapon
-				ARR_FIND(1, 6, i, sd->talisman[i] > 0);
-				if( i < 5) s_ele = i;
+				ARR_FIND(1, 6, i, sd->talisman[i] >= 10);
+				if( i < 5 ) s_ele = i;
 			}
 		}else if (s_ele == -2) //Use status element
 			s_ele = status_get_attack_sc_element(src,status_get_sc(src));
