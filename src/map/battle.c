@@ -3671,7 +3671,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					case NPC_EARTHQUAKE:
 						skillratio += 100 +100*skill_lv +100*(skill_lv/2);
 						break;
-					#ifdef RENEWAL
+#ifdef RENEWAL
 					case WZ_HEAVENDRIVE:
 					case WZ_METEOR:
 						skillratio += 25;
@@ -3691,11 +3691,11 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					case NJ_HUUJIN:
 						skillratio += 50;
 						break;
-				#else	
+#else	
 					case WZ_VERMILION:
 						skillratio += 20*skill_lv-20;
 						break;
-				#endif
+#endif
 					/**
 					 * Arch Bishop
 					 **/
