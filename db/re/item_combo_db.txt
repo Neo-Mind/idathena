@@ -69,7 +69,7 @@
 2169:2491:2590:15051,{ bonus bMaxHPrate,20; bonus bMaxSPrate,10; }
 2171:15053,{ bonus bAgi,2; }
 2171:15056,{ bonus bAgi,2; }
-2172:15054,{ bonus bAtkRate,10; bonus bStr,2; }
+2172:15054,{ bonus2 bAddRace,RC_NonBoss,10; bonus2 bAddRace,RC_Boss,10; bonus bStr,2; }
 2173:15055,{ bonus bFlee,10; bonus bFlee2,10; }
 2278:18527,{ bonus2 bAddMonsterDropItem,12192,20; }
 2281:18527,{ bonus bFlee,10; }
