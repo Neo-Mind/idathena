@@ -223,8 +223,7 @@ const char* get_svn_revision(void)
  *	CORE : Display title
  *  ASCII By CalciumKid 1/12/2011
  *--------------------------------------*/
-static void display_title(void)
-{
+static void display_title(void) {
 	//ClearScreen(); // clear screen and go up/left (0, 0 position in text)
 	ShowMessage("\n");
 	ShowMessage(""CL_PASS"        "CL_BOLD"                                                              "CL_PASS""CL_CLL""CL_NORMAL"\n");

@@ -734,7 +734,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 				status_change_end(bl, SC_KYRIE, INVALID_TIMER);
 		}
 		
-		if( sc->data[SC_MEIKYOUSISUI] && rand()%100 < 40 ) // custom value
+		if( sc->data[SC_MEIKYOUSISUI] && rnd()%100 < 40 ) // custom value
 			damage = 0;
 
 		if (!damage) return 0;
@@ -1465,9 +1465,10 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 
 	if( sd && !skill_num ) {	//Check for double attack.
 		if( ( ( skill_lv = pc_checkskill(sd,TF_DOUBLE) ) > 0 && sd->weapontype1 == W_DAGGER )
-			|| ( sd->bonus.double_rate > 0 && sd->weapontype1 != W_FIST ) ) //Will fail bare-handed 
+			|| ( sd->bonus.double_rate > 0 && sd->weapontype1 != W_FIST ) //Will fail bare-handed
+			|| ( sc && sc->data[SC_KAGEMUSYA] && sd->weapontype1 != W_FIST )) // Need confirmation			
 		{	//Success chance is not added, the higher one is used [Skotlex]
-			if( rnd()%100 < ( 5*skill_lv > sd->bonus.double_rate ? 5*skill_lv : sd->bonus.double_rate ) )
+			if( rnd()%100 < ( 5*skill_lv > sd->bonus.double_rate ? 5*skill_lv : sc && sc->data[SC_KAGEMUSYA]?sc->data[SC_KAGEMUSYA]->val1*3:sd->bonus.double_rate ) )
 			{
 				wd.div_ = skill_get_num(TF_DOUBLE,skill_lv?skill_lv:1);
 				wd.type = 0x08;
@@ -1480,11 +1481,11 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		}
 		else if(sc && sc->data[SC_FEARBREEZE] && sd->weapontype1==W_BOW && (i = sd->equip_index[EQI_AMMO]) >= 0 && sd->inventory_data[i] && sd->status.inventory[i].amount > 1){
 			short rate[] = { 12, 12, 21, 27, 30 };
-			if(sc->data[SC_FEARBREEZE]->val1 > 0 && sc->data[SC_FEARBREEZE]->val1 < 6 && rand()%100 < rate[sc->data[SC_FEARBREEZE]->val1-1]) {
+			if(sc->data[SC_FEARBREEZE]->val1 > 0 && sc->data[SC_FEARBREEZE]->val1 < 6 && rnd()%100 < rate[sc->data[SC_FEARBREEZE]->val1-1]) {
 				wd.type = 0x08;
 				wd.div_ = 2;
 				if(sc->data[SC_FEARBREEZE]->val1 > 2){
-					int chance = rand()%100;
+					int chance = rnd()%100;
 					wd.div_ += (chance >= 40) + (chance >= 70) + (chance >= 90);
 					wd.div_ = min(wd.div_,sc->data[SC_FEARBREEZE]->val1);
 				}
@@ -4259,7 +4260,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	case KO_MUCHANAGE:
 			md.damage = skill_get_zeny(skill_num ,skill_lv);
 			if (!md.damage) md.damage = 2;
-			md.damage = rand()%md.damage + md.damage / (skill_num==NJ_ZENYNAGE?1:2) ;
+			md.damage = rnd()%md.damage + md.damage / (skill_num==NJ_ZENYNAGE?1:2) ;
 			if (is_boss(target))
 				md.damage=md.damage / (skill_num==NJ_ZENYNAGE?3:2);
 			else if (tsd) // need confirmation for KO_MUCHANAGE
@@ -4566,6 +4567,10 @@ int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int
 			if (rdamage < 1) rdamage = 1;
 		}
 	}
+	
+	if( sc && sc->data[SC_KYOMU] ) // Nullify reflecting ability
+		rdamage = 0;
+		
 	return rdamage;
 }
 
