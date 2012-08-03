@@ -556,6 +556,10 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 					status_change_end(bl, SC_KAUPE, INVALID_TIMER);
 			return 0;
 		}
+		
+		if( sc->data[SC_KAITE] && (flag&BF_SHORT) ) {
+			damage <<= 2; //400% damage receive
+		}
 
 		if( flag&BF_MAGIC && (sce=sc->data[SC_PRESTIGE]) && rnd()%100 < sce->val2) {
 			clif_specialeffect(bl, 462, AREA); // Still need confirm it.
