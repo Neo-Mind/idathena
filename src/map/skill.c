@@ -11082,7 +11082,6 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				clif_skill_nodamage(&src->bl, bl, AL_HEAL, heal, 1);
 				if( tsc && tsc->data[SC_AKAITSUKI] && heal )
 					heal = ~heal + 1;
-				}
 				status_heal(bl, heal, 0, 0);
 				if( diff >= 500 )
 					sg->val1--;
