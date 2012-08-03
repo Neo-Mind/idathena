@@ -14,7 +14,7 @@
 
 geffen,115,107,5	script	Lord Kaho's Servant	61,{
 
-	setarray .@Items[0],7005, 968, 923, 734, 724,2268,7036,7020,5053,7018,741,742,743,750,751,752,753,754; 
+	setarray .@Items[0],7005, 968, 923, 734, 724,2268,7036,7020,5053,7018,741,742,743,750,751,752,753,754;
 	setarray .@Drops[0],1272,1087,1039,1260,1046,1115,1252,1147,1038,1059;
 	set .@n$, "[Lord Kaho's Servant]";
 
@@ -31,7 +31,7 @@ geffen,115,107,5	script	Lord Kaho's Servant	61,{
 	mes "I also forgot to mention these...";
 	next;
 	mes .@n$;
- 	for(set .@i,0; .@i<10; set .@i,.@i+1)
+	for(set .@i,0; .@i<10; set .@i,.@i+1)
 		mes "1x ^0055FF"+getitemname(.@Items[.@i])+"^000000 (from "+strmobinfo(1,.@Drops[.@i])+")";
 	next;
 	mes .@n$;
@@ -40,11 +40,11 @@ geffen,115,107,5	script	Lord Kaho's Servant	61,{
 	for(set .@i,10; .@i<18; set .@i,.@i+1)
 		mes "1x ^0055FF"+getitemname(.@Items[.@i])+"^000000";
 	next;
-	mes .@n$; 
-	mes "Finally, I've worked hard to make these horns for my master with all the items mentioned above..."; 
-	mes "Please include ^0055FF5 million Zeny^000000 for my efforts.";  
-	next; 
-	mes .@n$; 
+	mes .@n$;
+	mes "Finally, I've worked hard to make these horns for my master with all the items mentioned above...";
+	mes "Please include ^0055FF5 million Zeny^000000 for my efforts."; 
+	next;
+	mes .@n$;
 	mes "Are you ready for me to make this special item?";
 	next;
 	if(select("Sure am!:These requirements are unfathomable!")==2) {
