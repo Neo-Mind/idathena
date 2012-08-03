@@ -4261,6 +4261,10 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			md.damage = skill_get_zeny(skill_num ,skill_lv);
 			if (!md.damage) md.damage = 2;
 			md.damage = rnd()%md.damage + md.damage / (skill_num==NJ_ZENYNAGE?1:2) ;
+			if (sd) {
+				if ( skill_num==KO_MUCHANAGE && (pc_checkskill(sd,NJ_TOBIDOUGU)==0) )
+					md.damage = md.damage/2;
+			}
 			if (is_boss(target))
 				md.damage=md.damage / (skill_num==NJ_ZENYNAGE?3:2);
 			else if (tsd) // need confirmation for KO_MUCHANAGE
