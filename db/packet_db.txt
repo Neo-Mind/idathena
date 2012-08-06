@@ -1666,6 +1666,7 @@ packet_ver: 28
 0x08ab,-1,searchstoreinfo,2:4:5:9:13:14:15
 0x088b,2,searchstoreinfonextpage,0
 0x08a2,12,searchstoreinfolistitemclick,2:6:10
+0x08CF,10 //Amulet spirits
 
 //2012-03-07fRagexeRE
 packet_ver:29
@@ -1697,6 +1698,7 @@ packet_ver:29
 0x0835,2,searchstoreinfonextpage,0
 0x0838,12,searchstoreinfolistitemclick,2:6:10
 0x0439,8,useitem,2:4
+0x08CF,10 //Amulet spirits
 
 //2012-04-10aRagexeRE
 packet_ver: 30
