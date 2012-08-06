@@ -7947,11 +7947,11 @@ int pc_checkcombo(struct map_session_data *sd, struct item_data *data ) {
 }
 
 /* called when a item with combo is removed */
-void pc_removecombo(struct map_session_data *sd, struct item_data *data ) {
-	int i;
+int pc_removecombo(struct map_session_data *sd, struct item_data *data ) {
+	int i, retval = 0;
 	
 	if( sd->combos.bonus == NULL )
-		return;/* nothing to do here, player has no combos */
+		return 0;/* nothing to do here, player has no combos */
 	for( i = 0; i < data->combos_count; i++ ) {
 		/* check if this combo exists in this user */
 		int x = 0, cursor = 0, j;
@@ -7962,7 +7962,7 @@ void pc_removecombo(struct map_session_data *sd, struct item_data *data ) {
 
 		sd->combos.bonus[x] = NULL;
 		sd->combos.id[x] = 0;
-		
+		retval++;
 		for( j = 0, cursor = 0; j < sd->combos.count; j++ ) {
 			if( sd->combos.bonus[j] == NULL )
 				continue;
@@ -7981,11 +7981,12 @@ void pc_removecombo(struct map_session_data *sd, struct item_data *data ) {
 			aFree(sd->combos.id);
 			sd->combos.bonus = NULL;
 			sd->combos.id = NULL;
-			return; /* we also can return at this point for we have no more combos to check */
+			return retval; /* we also can return at this point for we have no more combos to check */
 		}
 
 	}
 	
+	return retval;
 }
 int pc_load_combo(struct map_session_data *sd) {
 	int i, ret = 0;
@@ -8219,9 +8220,9 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
  * 1 - calculate status after unequipping
  * 2 - force unequip
  *------------------------------------------*/
-int pc_unequipitem(struct map_session_data *sd,int n,int flag)
-{
+int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 	int i;
+	bool status_cacl = false;
 	nullpo_ret(sd);
 
 	if( n < 0 || n >= MAX_INVENTORY ) {
@@ -8235,7 +8236,7 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag)
 		clif_unequipitemack(sd,n,0,0);
 		return 0;
 	}
-	
+
 	if( !(flag&2) && sd->sc.count && sd->sc.data[SC_KYOUGAKU] )
 	{
 		clif_unequipitemack(sd,n,0,0);
@@ -8320,28 +8321,30 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag)
 
 	sd->status.inventory[n].equip=0;
 
-	if(flag&1) {
+	/* check for combos (MUST be before status_calc_pc) */
+	if ( sd->inventory_data[n] ) {
+		struct item_data *data;
 		
-		/* check for combos (MUST be before status_calc_pc) */
-		if ( sd->inventory_data[n] ) {
-			struct item_data *data;
-
-			if( sd->inventory_data[n]->combos_count )
-				pc_removecombo(sd,sd->inventory_data[n]);
-			if(itemdb_isspecial(sd->status.inventory[n].card[0]))
-				; //No cards
-			else {
-				for( i = 0; i < sd->inventory_data[n]->slot; i++ ) {
-					if (!sd->status.inventory[n].card[i])
-						continue;
-					if ( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
-						if( data->combos_count )
-							pc_removecombo(sd,data);
+		if( sd->inventory_data[n]->combos_count ) {
+			if( pc_removecombo(sd,sd->inventory_data[n]) )
+				status_cacl = true;
+		} if(itemdb_isspecial(sd->status.inventory[n].card[0]))
+			; //No cards
+		else {
+			for( i = 0; i < sd->inventory_data[n]->slot; i++ ) {
+				if (!sd->status.inventory[n].card[i])
+					continue;
+				if ( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
+					if( data->combos_count ) {
+						if( pc_removecombo(sd,data) )
+							status_cacl = true;
 					}
 				}
 			}
 		}
-		
+	}
+	
+	if(flag&1 || status_cacl) {
 		pc_checkallowskill(sd);
 		status_calc_pc(sd,0);
 	}
@@ -8360,11 +8363,12 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag)
 			for( i = 0; i < sd->inventory_data[n]->slot; i++ ) {
 				if (!sd->status.inventory[n].card[i])
 					continue;
-				
+
 				if ( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
 					if( data->unequip_script )
 						run_script(data->unequip_script,0,sd->bl.id,fake_nd->bl.id);
 				}
+				
 			}
 		}
 	}

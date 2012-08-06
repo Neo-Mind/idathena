@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Current Version: =====================================
-//= $Revision: 16553 $
+//= $Revision: 16570 $
 //===== Last Updated: ========================================
-//= $LastChangedDate: 2012-08-02 06:44:04 +0700 (Thu, 02 Aug 2012) $
+//= $LastChangedDate: 2012-08-04 02:40:21 +0700 (Sat, 04 Aug 2012) $
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -5480,6 +5480,9 @@ the invoking NPC's actions, such as using an emotion or talking.
 
 Whichever of the both NPCs is talked to, both will show a random emotion at the
 same time. 
+
+As of r16564, command now returns 1 or 0 on success and failure.
+A debug message also shows on the console when no events are triggered.
 
 ---------------------------------------
 
