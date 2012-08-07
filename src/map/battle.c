@@ -2696,8 +2696,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				skill_num == CR_SHIELDBOOMERANG || skill_num == PA_SHIELDCHAIN ||
 				skill_num == RK_HUNDREDSPEAR || skill_num == LG_SHIELDPRESS))
 				ATK_ADDRATE(sc->data[SC_GLOOMYDAY_SK]->val2);
-			if (sc->data[SC_EDP]) { 
-				switch(skill_num) { 
+			if (sc->data[SC_EDP]) {
+				switch(skill_num) {
 					case AS_SPLASHER:       case AS_VENOMKNIFE:
 					case AS_GRIMTOOTH:
 					break; 

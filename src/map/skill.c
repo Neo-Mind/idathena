@@ -13463,7 +13463,7 @@ int skill_castfix_sc (struct block_list *bl, int time, int skill_id, int skill_l
 		 **/
 		if( sc->data[SC_SECRAMENT] )
 			fixed -= fixed * sc->data[SC_SECRAMENT]->val2 / 100;
-		if( sc->data[SC_MANDRAGORA] && (skill_id >= SM_BASH && skill_id <= RETURN_TO_ELDICASTES) )
+		if( sc->data[SC_MANDRAGORA] && (skill_id >= SM_BASH && skill_id <= OB_AKAITSUKI) )
 			fixed += 500 * sc->data[SC_MANDRAGORA]->val1;
 		if( sc->data[SC_GUST_OPTION] || sc->data[SC_BLAST_OPTION] || sc->data[SC_WILD_STORM_OPTION] )
 			fixed -= 1000;
