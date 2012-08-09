@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= L0ne_W0lf
 //===== Current Version: =====================================
-//= 2.4
+//= 2.4a
 //===== Compatible With: =====================================
 //= rAthena SVN
 //===== Description: =========================================
@@ -42,6 +42,7 @@
 //= 2.2 Added a missing close. (bugreport:4520) [L0ne_W0lf]
 //= 2.3 Fixed EF_Wind not showing. (bugreport:5149) [Masao]
 //= 2.4 Optimized (6000+ lines reduced!). [Euphy]
+//= 2.4a Fixed an invisible NPC clashing with a warp portal. [Euphy]
 //============================================================ 
 
 // Cat Hand Addition.
@@ -388,21 +389,22 @@ function Catwarp {
 		mes "[Cat Hand Agent]";
 		mes "Don't play with money.";
 		close; }
+	close2;
 	set Zeny, Zeny-getarg(0);
 	switch(getarg(1)) {
-		case 1: warp "alberta",117,56; close;
-		case 2: warp "prontera",116,72; close;
-		case 3: warp "izlude",91,105; close;
-		case 4: warp "geffen",120,39; close;
-		case 5: warp "payon",161,58; close;
-		case 6: warp "morocc",156,46; close;
-		case 7: warp "aldebaran",168,112; close;
-		case 8: warp "yuno",158,125; close;
-		case 9: warp "einbroch",158,301; close;
-		case 10: warp "lighthalzen",163,64; close;
-		case 11: warp "spl_fild02",32,225; close;
-		case 12: warp "man_fild02",129,61; close;
-		case 13: warp "mid_camp",62,127; close;
+		case 1: warp "alberta",117,56; end;
+		case 2: warp "prontera",116,72; end;
+		case 3: warp "izlude",91,105; end;
+		case 4: warp "geffen",120,39; end;
+		case 5: warp "payon",161,58; end;
+		case 6: warp "morocc",156,46; end;
+		case 7: warp "aldebaran",168,112; end;
+		case 8: warp "yuno",158,125; end;
+		case 9: warp "einbroch",158,301; end;
+		case 10: warp "lighthalzen",163,64; end;
+		case 11: warp "spl_fild02",32,225; end;
+		case 12: warp "man_fild02",129,61; end;
+		case 13: warp "mid_camp",62,127; end;
 	}
 }
 }
@@ -1434,7 +1436,7 @@ manuk,278,177,5	script	Villager#ep13_11	454,{
 		mes "[Villager]";
 		mes "Das?";
 		mes "idh sd!";
-		mes "Dh apa sd��is Das idh.";
+		mes "Dh apa sd!-is Das idh.";
 		close;
 	}
 }
@@ -2864,7 +2866,6 @@ man_in01,378,276,3	script	Manuk Engineer#ep13_2	453,{
 					mes "[Manuk Engineer]";
 					mes "To prevent our bodies from becoming numb, we need Bradium.";
 					mes "From the Bradium we can extract a special element that we need to survive.";
-					//mes "��?����???�������'��";
 					next;
 					mes "[Manuk Engineer]";
 					mes "The mining industry is primary here since our lives depend on it.";
@@ -5376,7 +5377,7 @@ OnTimer60000:
 	end;
 }
 
-ve_fild03,351,219,0	script	#ve_find_1	-1,5,5,{
+ve_fild03,351,219,0	script	#ve_find_1	-1,3,3,{
 	end;
 
 OnTouch:

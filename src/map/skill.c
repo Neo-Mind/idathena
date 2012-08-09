@@ -8810,6 +8810,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				if (unit_movepos(bl,x,y,0,0))
 				{
 					clif_skill_damage(bl,bl,tick, status_get_amotion(src), 0, -30000, 1, skillid, -1, 6);
+					if( sd && pc_issit(sd))
+						clif_sitting(bl); //Avoid sitting sync problem
 					clif_slide(bl,x,y);
 					sc_start(bl,SC_CONFUSION,80,skilllv,skill_get_time(skillid,skilllv));
 				}
@@ -10602,7 +10604,9 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, short skilli
 	case SO_WARMER:
 		skill_clear_group(src, 8);
 		break;
-		
+	case SO_VACUUM_EXTREME:
+		range++;
+		break;
 	case GN_WALLOFTHORN:
 		if( flag&1 )
 			limit = 3000;
@@ -11608,9 +11612,35 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;			
 			
 		case UNT_VACUUM_EXTREME:
-			if ( tsc && tsc->data[SC_HALLUCINATIONWALK]) 
-				return 0;
-			sc_start(bl, SC_VACUUM_EXTREME, 100, sg->skill_lv, sg->limit);
+			{// TODO: official behavior in gvg area. [malufett]
+				int sec = sg->limit - DIFF_TICK(tick, sg->tick); 
+				int range = skill_get_unit_range(sg->skill_id, sg->skill_lv);
+				
+				if ( tsc && tsc->data[SC_HALLUCINATIONWALK]) 
+					return 0;
+
+				if( tsc && !tsc->data[type] &&
+					distance_xy(src->bl.x, src->bl.y, bl->x, bl->y) <= range)// don't consider outer bounderies
+					sc_start(bl, type, 100, sg->skill_lv, sec);
+
+				if( unit_is_walking(bl) && // wait until target stop walking
+					( tsc && tsc->data[type] && tsc->data[type]->val4 >= tsc->data[type]->val3-range ))
+						break; 
+
+				if( tsc && ( !tsc->data[type] || (tsc->data[type] && tsc->data[type]->val4 < 1 ) ) )
+					break;
+
+				if( unit_is_walking(bl) && 
+					distance_xy(src->bl.x, src->bl.y, bl->x, bl->y) > range )// going outside of boundaries? then force it to stop
+						unit_stop_walking(bl,1);
+
+				if(	!unit_is_walking(bl) && 
+					distance_xy(src->bl.x, src->bl.y, bl->x, bl->y) <= range &&  // only snap if the target is inside the range or
+					src->bl.x != bl->x && src->bl.y != bl->y){// diagonal position parallel to VE's center
+					unit_movepos(bl, src->bl.x, src->bl.y, 0, 0);
+					clif_fixpos(bl);
+				}		
+			}
 			break;
 			
 		case UNT_BANDING:

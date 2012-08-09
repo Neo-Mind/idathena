@@ -109,8 +109,7 @@ moc_para01,27,35,5	script	Secretary Lime Evenor	952,{
 			mes "[Lime Evenor]";
 			mes "Do you want to register some missions that you want us to do?";
 			next;
-			switch (select("Yes, I want to register.:No, I don't.")) {
-			case 1:
+			if(select("Yes, I want to register.:No, I don't.") == 1) {
 				mes "[Lime Evenor]";
 				mes "Alrigh. Please write down your name on it.";
 				input .@input$;
@@ -161,9 +160,6 @@ moc_para01,27,35,5	script	Secretary Lime Evenor	952,{
 				mes "Missions are fully booked. You have to wait for an spot to clear up.";
 				mes "Please kindly wait until your turn.";
 				next;
-				break;
-			case 2:
-				break;
 			}
 			break;
 		case 4:
@@ -264,7 +260,7 @@ OnTouch:
 		case 17: warp "morocc",156,93; end;
 		case 18: warp "comodo",209,143; end;
 		case 19: warp "umbala",99,155; end;
-		case 20: warp "veins",215,115; end;
+		case 20: warp "veins",216,123; end;
 		case 21: warp "lighthalzen",158,92; end;
 		case 22: warp "einbroch",245,210; end;
 		case 23: warp "hugel",95,145; end;
