@@ -2700,15 +2700,16 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				switch(skill_num) {
 					case AS_SPLASHER:       case AS_VENOMKNIFE:
 					case AS_GRIMTOOTH:
-					break; 
+						break;
 #ifndef RENEWAL_EDP 
-					case ASC_BREAKER:       case ASC_METEORASSAULT: break; 
+					case ASC_BREAKER:       case ASC_METEORASSAULT:
+						break;
 #else 
-					case AS_SONICBLOW: 
-					case ASC_BREAKER: 
-					case GC_COUNTERSLASH: 
-					case GC_CROSSIMPACT: 
-						ATK_RATE(50); // only modifier is halved but still benefit with the damage bonus 
+					case AS_SONICBLOW:
+					case ASC_BREAKER:
+					case GC_COUNTERSLASH:
+					case GC_CROSSIMPACT:
+						ATK_ADDRATE(50); // only modifier is halved but still benefit with the damage bonus 
 						break;
 #endif
 					default: 
