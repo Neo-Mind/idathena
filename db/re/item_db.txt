@@ -7078,7 +7078,7 @@
 16014,P_Mace3,Eden Mace III,4,0,,0,172,,1,0,0x0004C5B3,7,2,2,3,60,0,8,{},{},{}
 //16015,
 16016,Tuna,Tuna,4,0,,0,180,,1,0,0x0004C5B3,7,2,2,1,50,0,8,{ bonus bUnbreakableWeapon,0; bonus2 bAddEff,Eff_Stun,100; bonus3 bAutoSpell,"SM_BASH",5+5*(getskilllv("SM_BASH")==10),10; if(BaseLevel>99) { bonus bBaseAtk,20; } },{},{}
-16017,Bloody_Cross,Bloody Cross,4,20,,1500,170,,1,0,0x00008110,7,2,2,4,100,1,8,{ bonus bAtkEle,Ele_Dark; /* bonus3 bAutoSpell,"WL_HELLINFERNO",1,10+(getrefine()*5); */ },{},{}
+16017,Bloody_Cross,Bloody Cross,4,20,,1500,170,,1,0,0x00008110,7,2,2,4,100,1,8,{ bonus bAtkEle,Ele_Dark; bonus3 bAutoSpell,"WL_HELLINFERNO",1,10+(getrefine()*5); },{},{}
 16018,Judgement_Mace2,Judgement Mace II,4,20,,1200,170:180,,1,1,0x00000100,2,2,2,3,130,1,8,{ bonus bStr,2; bonus bInt,2; autobonus "{ bonus2 bAddRace,RC_Demon,40; }",10,7000,BF_WEAPON|BF_MAGIC,"{ specialeffect2 EF_BLOODDRAIN; }"; },{},{}
 //16019,
 16020,Bellum_Stunner,Bellum Stunner,4,20,,1500,170,,1,0,0x0004C5B3,7,2,2,4,95,1,8,{ bonus bUnbreakableWeapon,0; bonus2 bAddEff,Eff_Stun,1000+getrefine(); bonus bAspdRate,getrefine(); },{},{}
