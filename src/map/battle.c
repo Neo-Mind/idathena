@@ -2713,9 +2713,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						break;
 #endif
 					default: 
-						ATK_ADDRATE(sc->data[SC_EDP]->val3);  
-				} 
-			} 
+						ATK_ADDRATE(sc->data[SC_EDP]->val3);
+				}
+			}
 		}
 
 		switch (skill_num) {
