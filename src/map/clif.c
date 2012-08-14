@@ -2082,7 +2082,7 @@ void clif_viewpoint(struct map_session_data *sd, int npc_id, int type, int x, in
 void clif_cutin(struct map_session_data* sd, const char* image, int type)
 {
 	int fd;
-
+	
 	nullpo_retv(sd);
 
 	fd=sd->fd;
