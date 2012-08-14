@@ -1188,17 +1188,17 @@ int status_damage(struct block_list *src,struct block_list *target,int hp, int s
 			struct status_change_entry *sce;
 			if (sc->data[SC_STONE] && sc->opt1 == OPT1_STONE)
 				status_change_end(target, SC_STONE, INVALID_TIMER);
-			status_change_end(target, SC_FREEZE, INVALID_TIMER);
-			status_change_end(target, SC_SLEEP, INVALID_TIMER);
-			status_change_end(target, SC_WINKCHARM, INVALID_TIMER);
-			status_change_end(target, SC_CONFUSION, INVALID_TIMER);
-			status_change_end(target, SC_TRICKDEAD, INVALID_TIMER);
-			status_change_end(target, SC_HIDING, INVALID_TIMER);
-			status_change_end(target, SC_CLOAKING, INVALID_TIMER);
-			status_change_end(target, SC_CHASEWALK, INVALID_TIMER);
-			status_change_end(target, SC_CAMOUFLAGE, INVALID_TIMER);
-			status_change_end(target, SC__INVISIBILITY, INVALID_TIMER);
-			status_change_end(target, SC_DEEPSLEEP, INVALID_TIMER);
+				status_change_end(target, SC_FREEZE, INVALID_TIMER);
+				status_change_end(target, SC_SLEEP, INVALID_TIMER);
+				status_change_end(target, SC_WINKCHARM, INVALID_TIMER);
+				status_change_end(target, SC_CONFUSION, INVALID_TIMER);
+				status_change_end(target, SC_TRICKDEAD, INVALID_TIMER);
+				status_change_end(target, SC_HIDING, INVALID_TIMER);
+				status_change_end(target, SC_CLOAKING, INVALID_TIMER);
+				status_change_end(target, SC_CHASEWALK, INVALID_TIMER);
+				status_change_end(target, SC_CAMOUFLAGE, INVALID_TIMER);
+				status_change_end(target, SC__INVISIBILITY, INVALID_TIMER);
+				status_change_end(target, SC_DEEPSLEEP, INVALID_TIMER);
 			if ((sce=sc->data[SC_ENDURE]) && !sce->val4) {
 				//Endure count is only reduced by non-players on non-gvg maps.
 				//val4 signals infinite endure. [Skotlex]
