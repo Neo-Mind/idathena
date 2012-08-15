@@ -2723,10 +2723,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					case ASC_BREAKER:
 					case GC_COUNTERSLASH:
 					case GC_CROSSIMPACT:
-						ATK_ADDRATE(50); // only modifier is halved but still benefit with the damage bonus 
-						break;
+						ATK_RATE(50); // only modifier is halved but still benefit with the damage bonus
 #endif
-					default: 
+					default:
 						ATK_ADDRATE(sc->data[SC_EDP]->val3);
 				}
 			}
@@ -5235,7 +5234,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		//Valid targets with no special checks here.
 		case BL_MER:
 		case BL_HOM:
-		case BL_ELEM:			
+		case BL_ELEM:
 			break;
 		//All else not specified is an invalid target.
 		default:

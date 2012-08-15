@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Current Version: =====================================
-//= $Revision: 16631 $
+//= $Revision: 16636 $
 //===== Last Updated: ========================================
-//= $LastChangedDate: 2012-08-14 01:57:51 +0700 (Tue, 14 Aug 2012) $
+//= $LastChangedDate: 2012-08-15 08:12:36 +0700 (Wed, 15 Aug 2012) $
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -3465,12 +3465,20 @@ bird and 0 if they aren't.
 
 ---------------------------------------
 
-*setdragon {<flag>};
+*setdragon {<color>};
+*checkdragon()
 
-If <flag> is 0 this command will remove the mount from the character.
-Otherwise it gives the invoking character a dragon mount, which is
-checked using checkriding().
-Note: the character needs to have the skill KN_RIDING to gain a mount
+The 'setdragon' function toggles mounting a dragon for the invoking character.
+It will return 1 if successful, 0 otherwise.
+
+If the character can mount a dragon, the <color> options are:
+ 1 - Green Dragon (default when omitted)
+ 2 - Brown Dragon
+ 3 - Gray Dragon
+ 4 - Blue Dragon
+ 5 - Red Dragon
+
+Note: the character must be a Rune Knight and have the skill RK_DRAGONTRAINING to gain a mount
 
 The accompanying function will return 1 if the invoking character is riding a 
 dragon and 0 if they aren't.
@@ -3491,11 +3499,13 @@ Mado and 0 if they don't.
 *setmounting;
 *ismounting()
 
-Gives the invoking character a cash mount.  Unlike the other mount
-commands, it cannot be used to remove a cash mount.
+The 'setmounting' function toggles cash mount for the invoking character.
+It will return 1 if successful, 0 otherwise.
+
+Note: Character must not be mounting a non-cash mount (eg. dragon, peco, wug, etc.)
 
 The accompanying function will return 1 if the invoking character has a
-mount and 0 if they don't.
+cash mount and 0 if they don't.
 
 ---------------------------------------
 
@@ -3691,7 +3701,7 @@ There are also three special 'map names' you can use.
 
 ---------------------------------------
 
-*areawarp "<from map name>",<x1>,<y1>,<x2>,<y2>,"<to map name>",<x3>,<y3>;
+*areawarp "<from map name>",<x1>,<y1>,<x2>,<y2>,"<to map name>",<x3>,<y3>{,<x4>,<y4>};
 
 This command is similar to 'warp', however, it will not refer to the invoking 
 character, but instead, all characters within a specified area, defined by the 
@@ -3708,6 +3718,11 @@ Y 150
 
 By using ,0,0; as the destination coordinates it will take all the characters in 
 the affected area to a random set of co-ordinates on "place2".
+
+	areawarp "place",10,10,120,120,"place2",150,150,200,200;
+
+By using the optional x4 and y4 parameters, the destination coordinates will be a 
+random place within the defined x3/y3-x4/y4 square.
 
 Like 'warp', areawarp will also explicitly warp characters randomly into the 
 current map if you give the 'to map name' as "Random".
