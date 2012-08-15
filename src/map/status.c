@@ -6854,15 +6854,13 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		status_change_end(bl, SC_ASPDPOTION2, INVALID_TIMER);
 		status_change_end(bl, SC_ASPDPOTION3, INVALID_TIMER);
 		break;
+	//Group A Status
 	case SC_SWINGDANCE:
 	case SC_SYMPHONYOFLOVER:
 	case SC_MOONLITSERENADE:
 	case SC_RUSHWINDMILL:
 	case SC_ECHOSONG:
 	case SC_HARMONIZE:
-	case SC_VOICEOFSIREN:
-	case SC_DEEPSLEEP:
-	case SC_SIRCLEOFNATURE:
 		if( sc->data[type] ) // Don't remove same sc.
 			break;
 		status_change_end(bl, SC_SWINGDANCE, INVALID_TIMER);
@@ -6871,10 +6869,13 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		status_change_end(bl, SC_RUSHWINDMILL, INVALID_TIMER);
 		status_change_end(bl, SC_ECHOSONG, INVALID_TIMER);
 		status_change_end(bl, SC_HARMONIZE, INVALID_TIMER);
-		status_change_end(bl, SC_VOICEOFSIREN, INVALID_TIMER);
-		status_change_end(bl, SC_DEEPSLEEP, INVALID_TIMER);
-		status_change_end(bl, SC_SIRCLEOFNATURE, INVALID_TIMER);
 			break;
+	//Group B Status
+	case SC_VOICEOFSIREN:
+	case SC_DEEPSLEEP:
+	case SC_SIRCLEOFNATURE:
+	case SC_GLOOMYDAY:
+	case SC_GLOOMYDAY_SK:
 	case SC_SONGOFMANA:
 	case SC_DANCEWITHWUG:
 	case SC_LERADSDEW:
@@ -6883,6 +6884,11 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 	case SC_UNLIMITEDHUMMINGVOICE:
 		if( sc->data[type] ) // Don't remove same sc.
 			break;
+		status_change_end(bl, SC_VOICEOFSIREN, INVALID_TIMER);
+		status_change_end(bl, SC_DEEPSLEEP, INVALID_TIMER);
+		status_change_end(bl, SC_SIRCLEOFNATURE, INVALID_TIMER);
+		status_change_end(bl, SC_GLOOMYDAY, INVALID_TIMER);
+		status_change_end(bl, SC_GLOOMYDAY_SK, INVALID_TIMER);
 		status_change_end(bl, SC_SONGOFMANA, INVALID_TIMER);
 		status_change_end(bl, SC_DANCEWITHWUG, INVALID_TIMER);
 		status_change_end(bl, SC_LERADSDEW, INVALID_TIMER);

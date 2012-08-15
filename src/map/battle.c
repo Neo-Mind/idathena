@@ -1356,13 +1356,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		chorusbonus = 5;//Maximum effect possiable from 7 or more Minstrel's/Wanderer's
 	else if( sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 2)
 		chorusbonus = party_foreachsamemap(party_sub_count_chorus, sd, 0) - 2;//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
-	
-	// Minstrel/Wanderer number check for chorus skills.
-	// Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
-	if( sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 7)
-		chorusbonus = 5;//Maximum effect possiable from 7 or more Minstrel's/Wanderer's
-	else if( sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 2)
-		chorusbonus = party_foreachsamemap(party_sub_count_chorus, sd, 0) - 2;//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
 
 	if(sd)
 		wd.blewcount += battle_blewcount_bonus(sd, skill_num);

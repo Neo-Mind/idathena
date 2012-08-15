@@ -8355,16 +8355,28 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 		
-	case WM_SIRCLEOFNATURE:
-		flag |= BCT_SELF|BCT_PARTY|BCT_GUILD;
-	case WM_VOICEOFSIREN:
-		if( skillid != WM_SIRCLEOFNATURE )
-			flag &= ~BCT_SELF;
-		if( flag&1 ) {
-			sc_start2(bl,type,(skillid==WM_VOICEOFSIREN)?20+10*skilllv:100,skilllv,(skillid==WM_VOICEOFSIREN)?src->id:0,skill_get_time(skillid,skilllv));
-		} else {
-			map_foreachinrange(skill_area_sub, src, skill_get_splash(skillid,skilllv),(skillid==WM_VOICEOFSIREN)?BL_CHAR|BL_SKILL:BL_PC, src, skillid, skilllv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
+	case WM_SIRCLEOFNATURE:// I need to confirm if this skill affects friendly's or enemy's. [Rytech]
+		if( flag&1 )
+			sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv));
+		else if ( sd )
+		{
+			map_foreachinrange(skill_area_sub, src, skill_get_splash(skillid,skilllv),BL_PC, src, skillid, skilllv, tick, flag|BCT_NOENEMY|1, skill_castend_nodamage_id);
+			sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv));
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		}
+		break;
+
+	case WM_VOICEOFSIREN:
+		if( flag&1 )
+			sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv));
+		else if ( sd )
+		{
+				rate = 6 * skilllv + (sd ? pc_checkskill(sd,WM_LESSON) : 1) + sd->status.job_level / 2;
+			if ( rnd()%100 < rate )
+			{
+			map_foreachinrange(skill_area_sub, src, skill_get_splash(skillid,skilllv),BL_CHAR, src, skillid, skilllv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			}
 		}
 		break;
 
@@ -10093,6 +10105,7 @@ int skill_castend_map (struct map_session_data *sd, short skill_num, const char 
 		sd->sc.data[SC_WHITEIMPRISON] ||
 		(sd->sc.data[SC_STASIS] && skill_block_check(&sd->bl, SC_STASIS, skill_num)) ||
 		(sd->sc.data[SC_KAGEHUMI] && skill_block_check(&sd->bl, SC_KAGEHUMI, skill_num)) ||
+		sd->sc.data[SC_OBLIVIONCURSE] ||
 		sd->sc.data[SC_CRYSTALIZE] ||
 		sd->sc.data[SC__MANHOLE]
 	 )) {
