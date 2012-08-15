@@ -3088,13 +3088,19 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 		}
 		break;
 	case SP_COOLDOWN:
+		if(sd->state.lr_flag == 2)
+			break;
 		ARR_FIND(0, ARRAYLENGTH(sd->cooldown), i, sd->cooldown[i].id == 0 || sd->cooldown[i].id == type2);
 		if(i == ARRAYLENGTH(sd->cooldown)) {
 			ShowWarning("pc_bonus2: Reached max (%d) number of cooldown bonuses per character!\n", ARRAYLENGTH(sd->cooldown));
 			break;
 		}
-		sd->cooldown[i].id   = type2;
-		sd->cooldown[i].val += val;
+		if (sd->cooldown[i].id   = type2)
+			sd->cooldown[i].val += val;
+		else {
+			sd->cooldown[i].id   = type2;
+			sd->cooldown[i].val += val;
+		}
 		break;
 	case SP_SKILL_FIXEDCAST:
 		if(sd->state.lr_flag == 2)
