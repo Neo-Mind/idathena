@@ -6083,7 +6083,6 @@ int status_get_sc_def(struct block_list *bl, enum sc_type type, int rate, int ti
 			case SC_STONE:
 			case SC_QUAGMIRE:
 			case SC_SUITON:
-			case SC_SWINGDANCE:
 			case SC__ENERVATION:
 			case SC__GROOMY:
 			case SC__IGNORANCE:

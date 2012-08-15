@@ -1281,6 +1281,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 	short s_ele, s_ele_, t_class;
 	int i, nk;
 	bool n_ele = false; // non-elemental
+	int chorusbonus = 0;//Chorus bonus value for chorus skills. Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 
 	struct map_session_data *sd, *tsd;
 	struct Damage wd;
@@ -1348,6 +1349,20 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 
 	sd = BL_CAST(BL_PC, src);
 	tsd = BL_CAST(BL_PC, target);
+	
+	// Minstrel/Wanderer number check for chorus skills.
+	// Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
+	if( sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 7)
+		chorusbonus = 5;//Maximum effect possiable from 7 or more Minstrel's/Wanderer's
+	else if( sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 2)
+		chorusbonus = party_foreachsamemap(party_sub_count_chorus, sd, 0) - 2;//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
+	
+	// Minstrel/Wanderer number check for chorus skills.
+	// Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
+	if( sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 7)
+		chorusbonus = 5;//Maximum effect possiable from 7 or more Minstrel's/Wanderer's
+	else if( sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 2)
+		chorusbonus = party_foreachsamemap(party_sub_count_chorus, sd, 0) - 2;//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
 
 	if(sd)
 		wd.blewcount += battle_blewcount_bonus(sd, skill_num);
@@ -2488,11 +2503,17 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio = 50 + 50 * skill_lv;
 					break;
 				case WM_GREAT_ECHO:
-					skillratio += 800 + 100 * skill_lv;
-					if( sd ) {	// Still need official value [pakpil]
-						short lv = (short)skill_lv;
-						skillratio += 100 * skill_check_pc_partner(sd,skill_num,&lv,skill_get_splash(skill_num,skill_lv),0);
-					}
+					skillratio += 300 + 200 * skill_lv;
+					if ( chorusbonus == 1 )//Chorus bonus dont count the first 2 Minstrel's/Wanderer's and only increases when their's 3 or more. [Rytech]
+					skillratio += 100;
+					else if ( chorusbonus == 2 )
+					skillratio += 200;
+					else if ( chorusbonus == 3 )
+					skillratio += 400;
+					else if ( chorusbonus == 4 )
+					skillratio += 800;
+					else if ( chorusbonus == 5 )
+					skillratio += 1600;
 					break;
 				case WM_SOUND_OF_DESTRUCTION:
 					skillratio += 400;
@@ -2626,7 +2647,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					if(sd)
 						ATK_ADD(30*pc_checkskill(sd, RA_TOOTHOFWUG));
 						if( sc && sc->data[SC_DANCEWITHWUG] )
-						ATK_ADDRATE(skill_lv * 10 * sc->data[SC_DANCEWITHWUG]->val2);
+						ATK_ADDRATE(skill_lv * 10 * (2 + chorusbonus));
 					break;
 				case LG_SHIELDPRESS:
 					if( sd )
@@ -3821,14 +3842,11 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 							skillratio = 0;	
 						break;
 					case WM_METALICSOUND:
-						skillratio += 120 * skill_lv + 60 * ( sd? pc_checkskill(sd, WM_LESSON) : 10 ) - 100;
-						break;
-					case WM_SEVERE_RAINSTORM:
-						skillratio += 50 * skill_lv;
+						skillratio = 120 * skill_lv + 60 * pc_checkskill(sd, WM_LESSON);
 						break;
 					case WM_REVERBERATION_MAGIC:
 						// MATK [{(Skill Level x 100) + 100} x Caster?s Base Level / 100] %
-						skillratio += 100 * (sd ? pc_checkskill(sd, WM_REVERBERATION) : 1);
+						skillratio += 100 * skill_lv;
 						RE_LVL_DMOD(100);
 						break;
 					case SO_FIREWALK: {
@@ -4120,6 +4138,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	int skill;
 	short i, nk;
 	short s_ele;
+	int chorusbonus = 0;//Chorus bonus value for chorus skills. Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 
 	struct map_session_data *sd, *tsd;
 	struct Damage md; //DO NOT CONFUSE with md of mob_data!
@@ -4145,6 +4164,13 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	
 	sd = BL_CAST(BL_PC, src);
 	tsd = BL_CAST(BL_PC, target);
+	
+	// Minstrel/Wanderer number check for chorus skills.
+	// Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
+	if( sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 7)
+		chorusbonus = 5;//Maximum effect possiable from 7 or more Minstrel's/Wanderer's
+	else if( sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 2)
+		chorusbonus = party_foreachsamemap(party_sub_count_chorus, sd, 0) - 2;//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
 	
 	if(sd) {
 		sd->state.arrow_atk = 0;
@@ -4319,6 +4345,10 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			RE_LVL_MDMOD(100);
 			md.damage += sstatus->hp - totaldef;
 		}
+		break;
+	case WM_SOUND_OF_DESTRUCTION:
+		md.damage = 1000 * skill_lv + sstatus->int_ * pc_checkskill(sd,WM_LESSON);
+		md.damage += md.damage * ( 10 * chorusbonus ) / 100;
 		break;
 	case GN_THORNS_TRAP:
 		md.damage = 100 + 200 * skill_lv + sstatus->int_;
