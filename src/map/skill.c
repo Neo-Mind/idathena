@@ -3300,6 +3300,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	struct map_session_data *sd = NULL, *tsd = NULL;
 	struct status_data *tstatus;
 	struct status_change *sc, *tsc;
+	int rate;
 	int chorusbonus = 0;//Chorus bonus value for chorus skills. Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 
 	if (skillid > 0 && skilllv <= 0) return 0;
@@ -4402,8 +4403,10 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case WM_LULLABY_DEEPSLEEP:
-		if( bl != src && rnd()%100 < 88 + 2 * skilllv )
-			sc_start(bl,status_skill2sc(skillid),100,skilllv,skill_get_time(skillid,skilllv));
+		{
+		rate = skilllv * 4 + (sd ? pc_checkskill(sd, WM_LESSON) : 5) * 2 + (status_get_lv(src) / 15) + sd->status.job_level / 5;
+		clif_skill_nodamage(src,bl,skillid,skilllv,sc_start2(bl, SC_DEEPSLEEP, rate, skilllv, 1, skill_get_time(skillid, skilllv)));
+		}
 		break;
 		
 	case WM_SOUND_OF_DESTRUCTION:
