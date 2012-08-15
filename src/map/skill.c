@@ -4403,9 +4403,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case WM_LULLABY_DEEPSLEEP:
-		{
 		rate = skilllv * 4 + (sd ? pc_checkskill(sd, WM_LESSON) : 5) * 2 + (status_get_lv(src) / 15) + sd->status.job_level / 5;
-		clif_skill_nodamage(src,bl,skillid,skilllv,sc_start2(bl, SC_DEEPSLEEP, rate, skilllv, 1, skill_get_time(skillid, skilllv)));
+		if( bl != src ) {
+			clif_skill_nodamage(src,bl,skillid,skilllv,sc_start2(bl, SC_DEEPSLEEP, rate, skilllv, 1, skill_get_time(skillid, skilllv)));
 		}
 		break;
 		
