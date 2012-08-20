@@ -259,7 +259,6 @@ struct s_pet {
 	int char_id;
 	int pet_id;
 	short class_;
-	short prev_class;
 	short level;
 	short egg_id;//pet egg id
 	short equip;//pet equip name_id
@@ -275,6 +274,7 @@ struct s_homunculus {	//[orn]
 	int hom_id;
 	int char_id;
 	short class_;
+	short prev_class;
 	int hp,max_hp,sp,max_sp;
 	unsigned int intimacy;	//[orn]
 	short hunger;

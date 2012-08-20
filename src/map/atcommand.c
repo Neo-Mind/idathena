@@ -9105,7 +9105,7 @@ void atcommand_basecommands(void) {
 		ACMD_DEF(sizeguild),
 		ACMD_DEF(addperm),
 		ACMD_DEF2("rmvperm", addperm),
-		ACMD_DEF(unloadnpcfile)
+		ACMD_DEF(unloadnpcfile),
 		/**
 		 * For Testing Purposes, not going to be here after we're done.
 		 **/
