@@ -395,18 +395,17 @@ unsigned char pc_famerank(int char_id, int job)
 	return 0;
 }
 
-int pc_setrestartvalue(struct map_session_data *sd,int type)
-{
+int pc_setrestartvalue(struct map_session_data *sd,int type) {
 	struct status_data *status, *b_status;
 	nullpo_ret(sd);
 
 	b_status = &sd->base_status;
 	status = &sd->battle_status;
 
-	if (type&1)
-	{	//Normal resurrection
+	if (type&1) {	//Normal resurrection
 		status->hp = 1; //Otherwise status_heal may fail if dead.
-		status_heal(&sd->bl, b_status->hp, b_status->sp>status->sp?b_status->sp-status->sp:0, 1);
+		status_heal(&sd->bl, b_status->hp, 0, 1);
+		status_set_sp(&sd->bl, b_status->sp, 1);
 	} else { //Just for saving on the char-server (with values as if respawned)
 		sd->status.hp = b_status->hp;
 		sd->status.sp = (status->sp < b_status->sp)?b_status->sp:status->sp;
@@ -2599,11 +2598,11 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		break;
 	case SP_FIXCASTRATE:
 		if(sd->state.lr_flag != 2)
-			sd->fixcastrate+=val;
+			sd->bonus.fixcastrate -= val;
 		break;
 	case SP_VARCASTRATE:
 		if(sd->state.lr_flag != 2)
-			sd->varcastrate+=val;
+			sd->bonus.varcastrate -= val;
 		break;
 	default:
 		ShowWarning("pc_bonus: unknown type %d %d !\n",type,val);
@@ -3095,7 +3094,7 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			ShowWarning("pc_bonus2: Reached max (%d) number of cooldown bonuses per character!\n", ARRAYLENGTH(sd->cooldown));
 			break;
 		}
-		if (sd->cooldown[i].id   = type2)
+		if (sd->cooldown[i].id  == type2)
 			sd->cooldown[i].val += val;
 		else {
 			sd->cooldown[i].id   = type2;
@@ -3111,11 +3110,11 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			ShowDebug("run_script: bonus2 bSkillFixedCast reached it's limit (%d skills per character), bonus skill %d (+%d%%) lost.\n", ARRAYLENGTH(sd->skillfixcast), type2, val);
 			break;
 		}
-		if (sd->skillfixcast[i].id == type2)
+		if (sd->skillfixcast[i].id  == type2)
 			sd->skillfixcast[i].val += val;
 		else {
-			sd->skillfixcast[i].id = type2;
-			sd->skillfixcast[i].val = val;
+			sd->skillfixcast[i].id   = type2;
+			sd->skillfixcast[i].val  = val;
 		}
 		break;
 	case SP_SKILL_VARIABLECAST:
@@ -3127,11 +3126,27 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			ShowDebug("run_script: bonus2 bSkillVariableCast reached it's limit (%d skills per character), bonus skill %d (+%d%%) lost.\n", ARRAYLENGTH(sd->skillvarcast), type2, val);
 			break;
 		}
-		if (sd->skillvarcast[i].id == type2)
+		if (sd->skillvarcast[i].id  == type2)
 			sd->skillvarcast[i].val += val;
 		else {
-			sd->skillvarcast[i].id = type2;
-			sd->skillvarcast[i].val = val;
+			sd->skillvarcast[i].id   = type2;
+			sd->skillvarcast[i].val  = val;
+		}
+		break;
+	case SP_VARCASTRATE:
+		if(sd->state.lr_flag == 2)
+			break;
+		ARR_FIND(0, ARRAYLENGTH(sd->skillcast), i, sd->skillcast[i].id == 0 || sd->skillcast[i].id == type2);
+		if (i == ARRAYLENGTH(sd->skillcast))
+		{
+			ShowDebug("run_script: bonus2 bVariableCastrate reached it's limit (%d skills per character), bonus skill %d (+%d%%) lost.\n",ARRAYLENGTH(sd->skillcast), type2, val);
+			break;
+		}
+		if(sd->skillcast[i].id   == type2)
+			sd->skillcast[i].val -= val;
+		else {
+			sd->skillcast[i].id   = type2;
+			sd->skillcast[i].val -= val;
 		}
 		break;
 	case SP_SKILL_USE_SP: //bonus2 bSkillUseSP,n,x;
@@ -3142,11 +3157,11 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			ShowDebug("run_script: bonus2 bSkillUseSP reached it's limit (%d skills per character), bonus skill %d (+%d%%) lost.\n", ARRAYLENGTH(sd->skillusesp), type2, val);
 			break;
 		}
-		if (sd->skillusesp[i].id == type2)
+		if (sd->skillusesp[i].id  == type2)
 			sd->skillusesp[i].val += val;
 		else {
-			sd->skillusesp[i].id = type2;
-			sd->skillusesp[i].val = val;
+			sd->skillusesp[i].id   = type2;
+			sd->skillusesp[i].val  = val;
 		}
 		break;
 	default:

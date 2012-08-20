@@ -259,6 +259,7 @@ struct s_pet {
 	int char_id;
 	int pet_id;
 	short class_;
+	short prev_class;
 	short level;
 	short egg_id;//pet egg id
 	short equip;//pet equip name_id
