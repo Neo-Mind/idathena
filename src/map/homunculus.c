@@ -391,7 +391,6 @@ int hom_mutate(struct homun_data *hd, int homun_id)
 {
 	struct s_homunculus *hom;
 	struct map_session_data *sd;
-	int m_class, m_id;
 	int m_class, m_id, prev_class = 0;
 	nullpo_ret(hd);
 
