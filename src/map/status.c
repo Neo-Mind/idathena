@@ -621,11 +621,12 @@ void initChangeTables(void) {
 #else
 	set_sc( LG_BANDING           , SC_BANDING         , SI_BANDING         , SCB_WATK|SCB_DEF );
 #endif
-	set_sc( LG_PIETY             , SC_BENEDICTIO      , SI_BENEDICTIO      , SCB_DEF_ELE );
-	set_sc( LG_EARTHDRIVE        , SC_EARTHDRIVE      , SI_EARTHDRIVE      , SCB_DEF|SCB_ASPD );
-	set_sc( LG_INSPIRATION       , SC_INSPIRATION     , SI_INSPIRATION     , SCB_STR|SCB_AGI|SCB_VIT|SCB_INT|SCB_DEX|SCB_LUK|SCB_WATK|SCB_HIT|SCB_MAXHP);
-	set_sc( LG_SHIELDSPELL       , SC_SHIELDSPELL_DEF , SI_SHIELDSPELL_DEF , SCB_WATK );
-	set_sc( LG_SHIELDSPELL       , SC_SHIELDSPELL_REF , SI_SHIELDSPELL_REF , SCB_DEF );
+	set_sc( LG_PIETY             , SC_BENEDICTIO       , SI_BENEDICTIO       , SCB_DEF_ELE );
+	set_sc( LG_EARTHDRIVE        , SC_EARTHDRIVE       , SI_EARTHDRIVE       , SCB_DEF|SCB_ASPD );
+	set_sc( LG_INSPIRATION       , SC_INSPIRATION      , SI_INSPIRATION      , SCB_STR|SCB_AGI|SCB_VIT|SCB_INT|SCB_DEX|SCB_LUK|SCB_WATK|SCB_HIT|SCB_MAXHP);
+	set_sc( LG_SHIELDSPELL       , SC_SHIELDSPELL_DEF  , SI_SHIELDSPELL_DEF  , SCB_WATK );
+	set_sc( LG_SHIELDSPELL       , SC_SHIELDSPELL_MDEF , SI_SHIELDSPELL_MDEF , SCB_NONE );
+	set_sc( LG_SHIELDSPELL       , SC_SHIELDSPELL_REF  , SI_SHIELDSPELL_REF  , SCB_DEF );
 	/**
 	 * Shadow Chaser
 	 **/
@@ -858,9 +859,6 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_OBLIVIONCURSE] = SI_OBLIVIONCURSE;
 	StatusIconChangeTable[SC_LEECHESEND] = SI_LEECHESEND;
 
-	StatusIconChangeTable[SC_SHIELDSPELL_DEF] = SI_SHIELDSPELL_DEF;
-	StatusIconChangeTable[SC_SHIELDSPELL_MDEF] = SI_SHIELDSPELL_MDEF;
-	StatusIconChangeTable[SC_SHIELDSPELL_REF] = SI_SHIELDSPELL_REF;
 	StatusIconChangeTable[SC_BANDING_DEFENCE] = SI_BANDING_DEFENCE;
 
 	StatusIconChangeTable[SC_GLOOMYDAY_SK] = SI_GLOOMYDAY;
@@ -4789,7 +4787,7 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 		def += def * ( 10 + 5 * sc->data[SC_NEUTRALBARRIER]->val1 ) / 100;
 	if( sc->data[SC__BLOODYLUST] )
 		def -= def * 55 / 100;
-	if( sc->data[SC_SHIELDSPELL_REF] && sc->data[SC_SHIELDSPELL_REF]->val1 == 1 )
+	if( sc->data[SC_SHIELDSPELL_REF] && sc->data[SC_SHIELDSPELL_REF]->val1 == 2 )
 		def += sc->data[SC_SHIELDSPELL_REF]->val2;
 	if( sc->data[SC_PRESTIGE] )
 		def += sc->data[SC_PRESTIGE]->val1 / 100;
