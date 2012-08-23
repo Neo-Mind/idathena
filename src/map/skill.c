@@ -536,6 +536,7 @@ int skillnotok (int skillid, struct map_session_data *sd)
 		case AL_WARP:
 		case RETURN_TO_ELDICASTES:
 		case ALL_GUARDIAN_RECALL:
+		case ECLAGE_RECALL:
 			if(map[m].flag.nowarp) {
 				clif_skill_teleportmessage(sd,0);
 				return 1;
@@ -1268,16 +1269,16 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		sc_start(bl, SC_EARTHDRIVE, 100, skilllv, skill_get_time(skillid, skilllv));
 		break;
 	case SR_DRAGONCOMBO:
-		sc_start(bl, SC_STUN, 1 + skilllv, skilllv, skill_get_time(skillid, skilllv));
+		sc_start(bl, SC_STUN, 2 * skilllv, skilllv, skill_get_time(skillid, skilllv));
 		break;
 	case SR_FALLENEMPIRE:
 		sc_start(bl, SC_STOP, 100, skilllv, skill_get_time(skillid, skilllv));
 		break;
 	case SR_WINDMILL:
 		if( dstsd )
-			skill_addtimerskill(src,tick+status_get_amotion(src),bl->id,0,0,skillid,skilllv,BF_WEAPON,0);
+			skill_addtimerskill(src,tick+500,bl->id,0,0,skillid,skilllv,BF_WEAPON,0);
 		else if( dstmd && !is_boss(bl) )
-			sc_start(bl, SC_STUN, 100, skilllv, 1000 + 1000 * (rnd() %3));
+			sc_start(bl, SC_STUN, 100, skilllv, 1000 * rnd() %4);
 		break;
 	case SR_GENTLETOUCH_QUIET:  //  [(Skill Level x 5) + (Caster?s DEX + Caster?s Base Level) / 10]
 		sc_start(bl, SC_SILENCE, 5 * skilllv + (sstatus->dex + status_get_lv(src)) / 10, skilllv, skill_get_time(skillid, skilllv));
@@ -3134,7 +3135,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 						}
 
 						if( nbl )
-							skill_addtimerskill(src,tick+status_get_adelay(src),nbl->id,skl->x,0,WL_CHAINLIGHTNING_ATK,skl->skill_lv,skl->type-1,skl->flag);
+							skill_addtimerskill(src,tick+650,nbl->id,skl->x,0,WL_CHAINLIGHTNING_ATK,skl->skill_lv,skl->type-1,skl->flag);
 					}
 					break;
 				case WL_TETRAVORTEX_FIRE:
@@ -4176,7 +4177,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 					case WLS_STONE: subskill = WL_TETRAVORTEX_GROUND; k |= 8; break;
 				}
 
-				skill_addtimerskill(src,tick+status_get_adelay(src)*i,bl->id,k,0,subskill,skilllv,i,flag);
+				skill_addtimerskill(src,tick+250*i,bl->id,k,0,subskill,skilllv,i,flag);
 				status_change_end(src, spheres[i], INVALID_TIMER);
 			}
 		}
@@ -4411,9 +4412,14 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 			status_change_end(bl, SC_RUSHWINDMILL, INVALID_TIMER);
 			status_change_end(bl, SC_ECHOSONG, INVALID_TIMER);
 			status_change_end(bl, SC_HARMONIZE, INVALID_TIMER);
+			status_change_end(bl, SC_VOICEOFSIREN, INVALID_TIMER);
+			status_change_end(bl, SC_DEEPSLEEP, INVALID_TIMER);
 			status_change_end(bl, SC_SIRCLEOFNATURE, INVALID_TIMER);
-			status_change_end(bl, SC_SATURDAYNIGHTFEVER, INVALID_TIMER);
+			status_change_end(bl, SC_GLOOMYDAY, INVALID_TIMER);
+			status_change_end(bl, SC_GLOOMYDAY_SK, INVALID_TIMER);
+			status_change_end(bl, SC_SONGOFMANA, INVALID_TIMER);
 			status_change_end(bl, SC_DANCEWITHWUG, INVALID_TIMER);
+			status_change_end(bl, SC_SATURDAYNIGHTFEVER, INVALID_TIMER);
 			status_change_end(bl, SC_LERADSDEW, INVALID_TIMER);
 			status_change_end(bl, SC_MELODYOFSINK, INVALID_TIMER);
 			status_change_end(bl, SC_BEYONDOFWARCRY, INVALID_TIMER);
@@ -4798,7 +4804,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 						dstsd = sd;
 					}
 				} else
-				if (tsc->data[SC_BERSERK] || tsc->data[SC_SATURDAYNIGHTFEVER])
+				if (tsc->data[SC_BERSERK])
 					heal = 0; //Needed so that it actually displays 0 when healing.
 			}
 			clif_skill_nodamage (src, bl, skillid, heal, 1);
@@ -5270,6 +5276,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case AB_EXPIATIO:
 	case AB_DUPLELIGHT:
 	case AB_SECRAMENT:
+	case RA_FEARBREEZE:
 	case NC_ACCELERATION:
 	case NC_HOVERING:
 	case NC_SHAPESHIFT:
@@ -7474,9 +7481,17 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case RK_MILLENNIUMSHIELD:
 		if( sd && pc_checkskill(sd,RK_RUNEMASTERY) >= 9 )
 		{
-			short shields = (rnd()%100<50) ? 4 : ((rnd()%100<80) ? 3 : 2);
-			sc_start4(bl,type,100,skilllv,shields,1000,0,skill_get_time(skillid,skilllv));
-			clif_millenniumshield(sd,shields);
+			short generate = 0;
+			short shieldnumber = 0;
+			generate = rnd()%100 + 1;//Generates a random number between 1 - 100 which is then used to determine how many shields will generate.
+			if ( generate >= 1 && generate <= 20 )//20% chance for 4 shields.
+				shieldnumber = 4;
+			else if ( generate >= 21 && generate <= 50 )//30% chance for 3 shields.
+				shieldnumber = 3;
+			else if ( generate >= 51 && generate <= 100 )//50% chance for 2 shields.
+				shieldnumber = 2;
+			sc_start4(bl,type,100,skilllv,shieldnumber,1000,0,skill_get_time(skillid,skilllv));
+			clif_millenniumshield(sd,shieldnumber);
 			clif_skill_nodamage(src,bl,skillid,1,1);
 		}
 		break;
@@ -7911,11 +7926,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	/**
 	 * Ranger
 	 **/
-	case RA_FEARBREEZE:
-		clif_skill_damage(src, src, tick, status_get_amotion(src), 0, -30000, 1, skillid, skilllv, 6);
-		clif_skill_nodamage(src, bl, skillid, skilllv, sc_start(bl, type, 100, skilllv, skill_get_time(skillid, skilllv)));
-		break;
-
 	case RA_WUGMASTERY:
 		if( sd ) {
 			if( !pc_iswug(sd) )
@@ -8114,31 +8124,25 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		if( flag&1 ) 
 			sc_start(bl,SC_SILENCE,100,skilllv,sd->bonus.shieldmdef * 5000);
 		 else if( sd ) {
-			int opt = skilllv;
-			int val;
+			int opt = 0;
+			int val = 0;
+			struct item_data *shield_data = sd->inventory_data[sd->equip_index[EQI_HAND_L]];
+			if( !shield_data || shield_data->type != IT_ARMOR )
+			{//Skill will first check if a shield is equipped. If none is found on the caster the skill will fail.
+				clif_skill_fail(sd, skillid, USESKILL_FAIL_LEVEL, 0);
+				break;
+			}
+			opt = rnd()%3 + 1;//Generates a number between 1 - 3. The number generated will determine which effect will be triggered.
 			switch( skilllv ) {
 				case 1:
 					{
 						int splashrange = 0;
-						struct item_data *shield_data = sd->inventory_data[sd->equip_index[EQI_HAND_L]];
-						if( !shield_data || shield_data->type != IT_ARMOR )
-						{	// No shield?
-							clif_skill_fail(sd, skillid, USESKILL_FAIL_LEVEL, 0);
-							break;
-						}
 						if ( shield_data->def >= 0 && shield_data->def <= 4 )
 							splashrange = 1;
 						else if ( shield_data->def >= 5 && shield_data->def <= 9 )
 							splashrange = 2;
 						else
 							splashrange = 3;
-						if( rand()%100 <= 33 )
-							opt = 1;
-						else if( rand()%100 <= 33 )
-							opt = 2;
-						else
-							opt = 3;
-
 						switch( opt )
 						{
 							case 1:
@@ -8148,11 +8152,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 								status_change_end(bl,SC_SHIELDSPELL_DEF,INVALID_TIMER);
 								break;
 							case 2:
-								val = shield_data->def; //Damage Reflecting Increase.
+								val = shield_data->def;//Damage Reflecting Increase.
 								sc_start2(bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def * 10 * 1000);
 								break;
 							case 3:
-								val = shield_data->def; //Weapon Attack Increase.
+								val = shield_data->def;//Weapon Attack Increase.
 								sc_start2(bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def * 10 * 3000);
 								break;
 						}
@@ -8168,12 +8172,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 							splashrange = 2;
 						else
 							splashrange = 3;
-						if( rand()%100 <= 33 )
-							opt = 1;
-						else if( rand()%100 <= 33 )
-							opt = 2;
-						else
-							opt = 3;
 						switch( opt )
 						{
 							case 1:
@@ -8198,18 +8196,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 				case 3:
 					{
-						struct item *it = &sd->status.inventory[sd->equip_index[EQI_HAND_L]];
-						if( !it )
-						{	// No shield?
-							clif_skill_fail(sd, skillid, USESKILL_FAIL_LEVEL, 0);
-							break;
-						}
-						if( rand()%100 <= 33 )
-							opt = 1;
-						else if( rand()%100 <= 33 )
-							opt = 2;
-						else
-							opt = 3;
+						struct item *shield = &sd->status.inventory[sd->equip_index[EQI_HAND_L]];
 						switch( opt )
 						{
 							case 1:
@@ -8218,13 +8205,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 								status_change_end(bl,SC_SHIELDSPELL_REF,INVALID_TIMER);
 								break;
 							case 2:
-								val = it->refine;//DEF Increase / Using Converted DEF Increase Formula Here.
-								sc_start2(bl,SC_SHIELDSPELL_REF,100,opt,val,it->refine * 20000);
+								val = shield->refine;//DEF Increase / Using Converted DEF Increase Formula Here.
+								sc_start2(bl,SC_SHIELDSPELL_REF,100,opt,val,shield->refine * 20000);
 								break;
 							case 3:
 								sc_start(bl,SC_SHIELDSPELL_REF,100,opt,INVALID_TIMER);//HP Recovery
-									val = sstatus->max_hp * (status_get_lv(src) / 10 + it->refine) / 100;
-								status_heal(bl, val, 0, 3);
+									val = sstatus->max_hp * (status_get_lv(src) / 10 + shield->refine) / 100;
+								status_heal(bl, val, 0, 2);
 								status_change_end(bl,SC_SHIELDSPELL_REF,INVALID_TIMER);
 							break;
 						}
@@ -8280,7 +8267,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case SR_RAISINGDRAGON:
 		if( sd ) {
 			short max = 5 + skilllv;
-			sc_start(bl, SC_EXPLOSIONSPIRITS, 100, skilllv, skill_get_time(skillid, skilllv));				
+			if ( pc_checkskill(sd,MO_EXPLOSIONSPIRITS) > 0 )//Only starts the status at the highest learned level if you learned it.
+				sc_start(bl, SC_EXPLOSIONSPIRITS, 100, pc_checkskill(sd,MO_EXPLOSIONSPIRITS), skill_get_time(skillid, skilllv));
 			for( i = 0; i < max; i++ ) // Don't call more than max available spheres.
 				pc_addspiritball(sd, skill_get_time(skillid, skilllv), max);
 			clif_skill_nodamage(src, bl, skillid, skilllv, sc_start(bl, type, 100, skilllv,skill_get_time(skillid, skilllv)));
@@ -8338,8 +8326,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				status_change_end(bl, SC_SILENCE, INVALID_TIMER);
 				status_change_end(bl, SC_BLIND, INVALID_TIMER);
 				status_change_end(bl, SC_HALLUCINATION, INVALID_TIMER);
-				status_change_end(bl, SC_BURNING, INVALID_TIMER);
-				status_change_end(bl, SC_FREEZING, INVALID_TIMER);
 			}
 
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
@@ -8514,6 +8500,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case RETURN_TO_ELDICASTES:
 	case ALL_GUARDIAN_RECALL:
+	case ECLAGE_RECALL:
 		if( sd )
 		{
 			short x, y; // Destiny position.
@@ -8525,15 +8512,21 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				y = 187;
 				mapindex  = mapindex_name2id(MAP_DICASTES);
 			}
-			else
+			else if ( skillid == ALL_GUARDIAN_RECALL )
 			{
 				x = 44;
 				y = 151;
 				mapindex  = mapindex_name2id(MAP_MORA);
 			}
+			else if ( skillid == ECLAGE_RECALL )
+			{
+				x = 110;
+				y = 39;
+				mapindex  = mapindex_name2id(MAP_ECLAGE);
+			}
 
 			if(!mapindex)
-			{ //Given map not found?
+			{// If the map is not found, fail the skill to prevent warping the player to a non existing map.
 				clif_skill_fail(sd,skillid,USESKILL_FAIL_LEVEL,0);
 				map_freeblock_unlock();
 				return 0;
@@ -12773,12 +12766,6 @@ int skill_check_condition_castbegin(struct map_session_data* sd, short skill, sh
 				return 0;
 			}
 			break;
-		/*case RETURN_TO_ELDICASTES:
-			if( pc_ismadogear(sd) ) { //Cannot be used if Mado is equipped.
-				clif_skill_fail(sd,skill,USESKILL_FAIL_LEVEL,0);
-				return 0;
-			}
-			break;*/
 		case LG_REFLECTDAMAGE:
 		case CR_REFLECTSHIELD:
 			if( sc && sc->data[SC_KYOMU] && rnd()%100 < 30){

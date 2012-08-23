@@ -1491,18 +1491,21 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			wd.div_ = skill_get_num(GS_CHAINACTION,skill_lv);
 			wd.type = 0x08;
 		}
-		else if(sc && sc->data[SC_FEARBREEZE] && sd->weapontype1==W_BOW && (i = sd->equip_index[EQI_AMMO]) >= 0 && sd->inventory_data[i] && sd->status.inventory[i].amount > 1){
-			short rate[] = { 12, 12, 21, 27, 30 };
-			if(sc->data[SC_FEARBREEZE]->val1 > 0 && sc->data[SC_FEARBREEZE]->val1 < 6 && rnd()%100 < rate[sc->data[SC_FEARBREEZE]->val1-1]) {
+		else if( sc && sc->data[SC_FEARBREEZE] && sd->weapontype1 == W_BOW && (i = sd->equip_index[EQI_AMMO]) >= 0 ) {
+			short generate = 0;
+			short shotnumber = 0;
+			generate = rnd()%100 + 1;//Generates a random number between 1 - 100 which is then used to determine how many hits will be applied.
+			if ( sc->data[SC_FEARBREEZE]->val1 >= 5 && generate >= 1 && generate <= 3 )//3% chance to deal 5 hits.
+				shotnumber = 5;
+			else if ( sc->data[SC_FEARBREEZE]->val1 >= 4 && generate >= 4 && generate <= 9 )//6% chance to deal 4 hits.
+				shotnumber = 4;
+			else if ( sc->data[SC_FEARBREEZE]->val1 >= 3 && generate >= 10 && generate <= 18 )//9% chance to deal 3 hits.
+				shotnumber = 3;
+			else if ( sc->data[SC_FEARBREEZE]->val1 >= 1 && generate >= 19 && generate <= 30 )//12% chance to deal 2 hits.
+				shotnumber = 2;
+			if ( generate >= 1 && generate <= 30 ) {//Needed to allow critical attacks to hit when not hitting more then once.
+				wd.div_ = shotnumber;
 				wd.type = 0x08;
-				wd.div_ = 2;
-				if(sc->data[SC_FEARBREEZE]->val1 > 2){
-					int chance = rnd()%100;
-					wd.div_ += (chance >= 40) + (chance >= 70) + (chance >= 90);
-					wd.div_ = min(wd.div_,sc->data[SC_FEARBREEZE]->val1);
-				}
-				wd.div_ = min(wd.div_,sd->status.inventory[i].amount);
-				sc->data[SC_FEARBREEZE]->val4 = wd.div_-1;
 			}
 		}
 	}
@@ -4836,16 +4839,26 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			return ATK_MISS;
 		}
 		if( sc->data[SC_GT_ENERGYGAIN] ) {
-			if( sd && rnd()%100 < 10 + 5 * sc->data[SC_GT_ENERGYGAIN]->val1)
+			int spheremax = 0;
+				if( sd && sc->data[SC_RAISINGDRAGON] )
+					spheremax = 5 + sc->data[SC_RAISINGDRAGON]->val1;
+				else
+					spheremax = 5;
+			if( sd && rnd()%100 < sc->data[SC_GT_ENERGYGAIN]->val2)
 				pc_addspiritball(sd,
-								 skill_get_time(MO_CALLSPIRITS, sc->data[SC_GT_ENERGYGAIN]->val1),
-								 sc->data[SC_GT_ENERGYGAIN]->val1);
+								 skill_get_time2(SR_GENTLETOUCH_ENERGYGAIN, sc->data[SC_GT_ENERGYGAIN]->val1),
+								 spheremax);
 		}
 		if( tsc && tsc->data[SC_GT_ENERGYGAIN] ) {
-			if( tsd && rnd()%100 < 10 + 5 * tsc->data[SC_GT_ENERGYGAIN]->val1)
+			int spheremax = 0;
+				if( sd && sc->data[SC_RAISINGDRAGON] )
+					spheremax = 5 + sc->data[SC_RAISINGDRAGON]->val1;
+				else
+					spheremax = 5;
+			if( tsd && rnd()%100 < tsc->data[SC_GT_ENERGYGAIN]->val2)
 				pc_addspiritball(tsd,
-									skill_get_time(MO_CALLSPIRITS, tsc->data[SC_GT_ENERGYGAIN]->val1),
-									tsc->data[SC_GT_ENERGYGAIN]->val1);
+									skill_get_time2(SR_GENTLETOUCH_ENERGYGAIN, tsc->data[SC_GT_ENERGYGAIN]->val1),
+									spheremax);
 		}
 		
 	}

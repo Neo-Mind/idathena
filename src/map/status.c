@@ -651,6 +651,7 @@ void initChangeTables(void) {
 	 **/
 	add_sc( SR_DRAGONCOMBO           , SC_STUN            );
 	add_sc( SR_EARTHSHAKER           , SC_STUN            );
+	set_sc( SR_FALLENEMPIRE          , SC_STOP               , SI_FALLENEMPIRE          , SCB_NONE );
 	set_sc( SR_CRESCENTELBOW         , SC_CRESCENTELBOW      , SI_CRESCENTELBOW         , SCB_NONE );
 	set_sc_with_vfx( SR_CURSEDCIRCLE , SC_CURSEDCIRCLE_TARGET, SI_CURSEDCIRCLE_TARGET   , SCB_NONE );
 	set_sc( SR_LIGHTNINGWALK         , SC_LIGHTNINGWALK      , SI_LIGHTNINGWALK         , SCB_NONE );
@@ -8312,6 +8313,9 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		case SC_RAISINGDRAGON:
 			val3 = tick / 5000;
 			tick_time = 5000; // [GodLesZ] tick time
+			break;
+		case SC_GT_ENERGYGAIN:
+			val2 = 10 + 5 * val1;//Sphere gain chance.
 			break;
 		case SC_GT_CHANGE:
 			{// take note there is no def increase as skill desc says. [malufett]
