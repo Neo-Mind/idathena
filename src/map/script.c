@@ -1328,15 +1328,15 @@ const char* parse_subexpr(const char* p,int limit)
 
 	p=skip_space(p);
 
-	if(*p=='-'){
-		tmpp=skip_space(p+1);
-		if(*tmpp==';' || *tmpp==','){
+	if( *p == '-' ){
+		 tmpp = skip_space(p+1);
+		if( *tmpp == ';' || *tmpp == ',' ){
 			add_scriptl(LABEL_NEXTLINE);
 			p++;
 			return p;
 		}
 	}
-	tmpp=p;
+	
 	if((op=C_NEG,*p=='-') || (op=C_LNOT,*p=='!') || (op=C_NOT,*p=='~')){
 		p=parse_subexpr(p+1,10);
 		add_scriptc(op);
@@ -11235,7 +11235,7 @@ BUILDIN_FUNC(mapwarp)	// Added by RoVeRT
 			}
 			break;
 		default:
-			map_foreachinmap(buildin_areawarp_sub,m,BL_PC,index,x,y);
+			map_foreachinmap(buildin_areawarp_sub,m,BL_PC,index,x,y,0,0);
 			break;
 	}
 

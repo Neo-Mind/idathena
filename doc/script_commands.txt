@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Current Version: =====================================
-//= $Revision: 16661 $
+//= $Revision: 16685 $
 //===== Last Updated: ========================================
-//= $LastChangedDate: 2012-08-18 14:52:11 +0700 (Sat, 18 Aug 2012) $
+//= $LastChangedDate: 2012-08-23 02:21:01 +0700 (Thu, 23 Aug 2012) $
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -4976,6 +4976,8 @@ executed on attack (or when attacked in the case of autobonus2).
 Rate is the trigger rate of the script (1000 = 100%). 
 
 Duration is the time that the bonus will last for since the script has triggered.
+
+Skill ID/skill name the skill which will be used as trigger to start the bonus. (autobonus3)
 
 The optional argument 'flag' is used to classify the type of attack where the script
 can trigger (it shares the same flags as the bAutoSpell bonus script):
