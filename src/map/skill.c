@@ -8503,8 +8503,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case ECLAGE_RECALL:
 		if( sd )
 		{
-			short x, y; // Destiny position.
-			unsigned short mapindex;
+			short x = 0;
+			short y = 0;
+			unsigned short mapindex = 0;
 
 			if( skillid == RETURN_TO_ELDICASTES)
 			{
