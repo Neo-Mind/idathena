@@ -704,8 +704,8 @@ void initChangeTables(void) {
 	set_sc( GN_THORNS_TRAP                , SC_THORNSTRAP  , SI_THORNTRAP                  , SCB_NONE );
 	set_sc_with_vfx( GN_BLOOD_SUCKER      , SC_BLOODSUCKER , SI_BLOODSUCKER                , SCB_NONE );
 	set_sc( GN_WALLOFTHORN                , SC_STOP        , SI_BLANK                      , SCB_NONE );
-	set_sc( GN_FIRE_EXPANSION_SMOKE_POWDER, SC_SMOKEPOWDER , SI_FIRE_EXPANSION_SMOKE_POWDER, SCB_NONE );
-	set_sc( GN_FIRE_EXPANSION_TEAR_GAS    , SC_TEARGAS     , SI_FIRE_EXPANSION_TEAR_GAS    , SCB_NONE );
+	set_sc( GN_FIRE_EXPANSION_SMOKE_POWDER, SC_SMOKEPOWDER , SI_FIRE_EXPANSION_SMOKE_POWDER, SCB_FLEE );
+	set_sc( GN_FIRE_EXPANSION_TEAR_GAS    , SC_TEARGAS     , SI_FIRE_EXPANSION_TEAR_GAS    , SCB_HIT|SCB_FLEE );
 	set_sc( GN_MANDRAGORA                 , SC_MANDRAGORA  , SI_MANDRAGORA                 , SCB_INT );
 
 	// Elemental Spirit summoner's 'side' status changes.
@@ -4630,6 +4630,8 @@ static signed short status_calc_hit(struct block_list *bl, struct status_change 
 		hit -= hit * 20 / 100;
 	if(sc->data[SC_INSPIRATION])
 		hit += 5 * sc->data[SC_INSPIRATION]->val1 + 25;
+	if(sc->data[SC_TEARGAS])
+		hit -= hit * 50 / 100;
 
 	return (short)cap_value(hit,1,SHRT_MAX);
 }
@@ -4693,6 +4695,10 @@ static signed short status_calc_flee(struct block_list *bl, struct status_change
 		flee -= flee * sc->data[SC_GLOOMYDAY]->val2 / 100;
 	if( sc->data[SC_SATURDAYNIGHTFEVER] )
 		flee -= flee * (40 + 10 * sc->data[SC_SATURDAYNIGHTFEVER]->val1) / 100;
+	if( sc->data[SC_SMOKEPOWDER] )
+		flee += flee * 20 / 100;
+	if( sc->data[SC_TEARGAS] )
+		flee -= flee * 50 / 100;
 	if( sc->data[SC_WATER_BARRIER] )
 		flee -= sc->data[SC_WATER_BARRIER]->val3;
 	if( sc->data[SC_WIND_STEP_OPTION] )

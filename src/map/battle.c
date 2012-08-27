@@ -663,6 +663,13 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			else if ((flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON))
 				damage >>= 2; //75% reduction
 		}
+		
+		if( sc->data[SC_SMOKEPOWDER] ) {
+			if( (flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON) )
+				damage -= 15 * damage / 100;//15% reduction to physical melee attacks
+			else if( (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
+				damage -= 50 * damage / 100;//50% reduction to physical ranged attacks
+		}
 
 		// Compressed code, fixed by map.h [Epoque]
 		if (src->type == BL_MOB) {
@@ -1503,7 +1510,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				shotnumber = 3;
 			else if ( sc->data[SC_FEARBREEZE]->val1 >= 1 && generate >= 19 && generate <= 30 )//12% chance to deal 2 hits.
 				shotnumber = 2;
-			if ( generate >= 1 && generate <= 30 ) {//Needed to allow critical attacks to hit when not hitting more then once.
+			if ( shotnumber > 1 )//Needed to allow critical attacks to hit when not hitting more then once.
 				wd.div_ = shotnumber;
 				wd.type = 0x08;
 			}
@@ -1652,8 +1659,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			case MC_CARTREVOLUTION:
 			case GN_CART_TORNADO:
 			case GN_CARTCANNON:
-				if( sd && pc_checkskill(sd, GN_REMODELING_CART) )
-					hitrate += pc_checkskill(sd, GN_REMODELING_CART) * 4;
+				if( sd && pc_checkskill(sd, GN_REMODELING_CART) > 0 )
+					hitrate += 4 * pc_checkskill(sd, GN_REMODELING_CART);
 				break;				
 			case GC_VENOMPRESSURE:
 				hitrate += 10 + 4 * skill_lv;
@@ -1671,8 +1678,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			if ((skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
 				hitrate += hitrate * ( 2 * skill ) / 100;
 			
-			if( (sd->status.weapon == W_1HSWORD || sd->status.weapon == W_DAGGER) && 
-			   (skill = pc_checkskill(sd, GN_TRAINING_SWORD))>0 )
+			if( (sd->status.weapon == W_DAGGER || sd->status.weapon == W_1HSWORD) && 
+			   (skill = pc_checkskill(sd, GN_TRAINING_SWORD)) > 0 )
 				hitrate += 3 * skill;
 		}
 		
@@ -2530,7 +2537,11 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					if( sd ) skillratio += pc_checkskill(sd, GN_REMODELING_CART) * 50 * (sstatus->int_ / 40);
 					break;
 				case GN_SPORE_EXPLOSION:
-					skillratio += 200 + 100 * skill_lv;
+					skillratio = ( 100 * skill_lv ) + ( 200 + sstatus->int_ );
+					RE_LVL_DMOD(100);
+					break;
+				case GN_WALLOFTHORN:
+					skillratio += 10 * skill_lv;
 					break;
 				case GN_CRAZYWEED_ATK:
 					skillratio += 400 + 100 * skill_lv;
@@ -2539,20 +2550,27 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					if( sd ) {
 						switch( sd->itemid ) {
 							case 13260: // Apple Bomob
-							case 13261: // Coconut Bomb
+								skillratio = sstatus->str + sstatus->dex + 300;
+								break;
 							case 13262: // Melon Bomb
+								skillratio = sstatus->str + sstatus->dex + 500;
+								break;
+							case 13261: // Coconut Bomb
 							case 13263: // Pinapple Bomb
-								skillratio += 400;	// Unconfirded
+							case 13264: // Banana Bomb
+								skillratio = sstatus->str + sstatus->dex + 800;
 								break;
-							case 13264: // Banana Bomb 2000%
-								skillratio += 1900;
+							case 13265: // Black Lump
+								skillratio = (sstatus->str + sstatus->agi + sstatus->dex) / 3;
 								break;
-							case 13265: skillratio -= 75; break; // Black Lump 25%
-							case 13266: skillratio -= 25; break; // Hard Black Lump 75%
-							case 13267: skillratio += 100; break; // Extremely Hard Black Lump 200%
+							case 13266: // Hard Black Lump
+								skillratio = (sstatus->str + sstatus->agi + sstatus->dex) / 2;
+								break;
+							case 13267: // Extremely Hard Black Lump
+								skillratio = sstatus->str + sstatus->agi + sstatus->dex;
+								break;
 						}
-					} else
-						skillratio += 300;	// Bombs
+					}
 					break;
 				case SO_VARETYR_SPEAR:
 					skillratio = 50 * (sd ? pc_checkskill(sd, SO_STRIKING) : 5) + skill_lv * 50;
@@ -3921,16 +3939,13 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						}
 						break;
 					case GN_DEMONIC_FIRE:
-						if( skill_lv > 20)
-						{	// Fire expansion Lv.2
-							skillratio += 110 + 20 * (skill_lv - 20) + status_get_int(src) * 3;	// Need official INT bonus. [LimitLine]
-						}
-						else if( skill_lv > 10 )
-						{	// Fire expansion Lv.1
-							skillratio += 110 + 20 * (skill_lv - 10) / 2;
-						}
-						else
-							skillratio += 110 + 20 * skill_lv;
+						if ( skill_lv > 20 )// Fire Expansion Level 2
+							skillratio += 10 + 20 * (skill_lv - 20) + 10 * sstatus->int_;
+						else if ( skill_lv > 10 )// Fire Expansion Level 1
+							skillratio += 10 + 20 * (skill_lv - 10) + sstatus->int_;
+							RE_LVL_DMOD(100);
+						else // Normal Demonic Fire Damage
+							skillratio += 10 + 20 * skill_lv;
 						break;
 						// Magical Elemental Spirits Attack Skills
 					case EL_FIRE_MANTLE:
