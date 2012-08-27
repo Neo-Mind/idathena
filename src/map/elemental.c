@@ -670,6 +670,9 @@ int read_elementaldb(void) {
 		k++;
 		if( line[0] == '/' && line[1] == '/' )
 			continue;
+			
+		if( line[0] == '\0' || line[0] == '\n' || line[0] == '\r')
+			continue;
 		
 		i = 0;
 		p = strtok(line, ",");
@@ -754,6 +757,9 @@ int read_elemental_skilldb(void) {
 	while( fgets(line, sizeof(line), fp) ) {
 		k++;
 		if( line[0] == '/' && line[1] == '/' )
+			continue;
+			
+		if( line[0] == '\0' || line[0] == '\n' || line[0] == '\r')
 			continue;
 		
 		i = 0;

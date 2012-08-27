@@ -1968,7 +1968,7 @@ static void npc_parsename(struct npc_data* nd, const char* name, const char* sta
 			CREATE(npd->path, char, strlen(filepath)+1);
 			safestrncpy(npd->path, filepath, strlen(filepath)+1);
 			
-			npd->references = 1;
+			npd->references = 0;
 		}
 		
 		nd->path = npd->path;
@@ -3647,11 +3647,15 @@ bool npc_unloadfile( const char* path ) {
 	for( nd = dbi_first(iter); dbi_exists(iter); nd = dbi_next(iter) ) {
 		if( nd->path && strcasecmp(nd->path,path) == 0 ) {
 			found = true;
+			npc_unload_duplicates(nd);/* unload any npcs which could duplicate this but be in a different file */
 			npc_unload(nd, true);
 		}
 	}
 	
 	dbi_destroy(iter);
+	
+	if( found ) /* refresh event cache */
+		npc_read_event_script();
 	
 	return found;
 }
