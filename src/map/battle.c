@@ -1513,7 +1513,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			if ( shotnumber > 1 )//Needed to allow critical attacks to hit when not hitting more then once.
 				wd.div_ = shotnumber;
 				wd.type = 0x08;
-			}
 		}
 	}
 
@@ -3939,11 +3938,15 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						}
 						break;
 					case GN_DEMONIC_FIRE:
-						if ( skill_lv > 20 )// Fire Expansion Level 2
+						if ( skill_lv > 20 ) // Fire Expansion Level 2
+						{
 							skillratio += 10 + 20 * (skill_lv - 20) + 10 * sstatus->int_;
-						else if ( skill_lv > 10 )// Fire Expansion Level 1
+						}
+						else if ( skill_lv > 10 ) // Fire Expansion Level 1
+						{
 							skillratio += 10 + 20 * (skill_lv - 10) + sstatus->int_;
 							RE_LVL_DMOD(100);
+						}
 						else // Normal Demonic Fire Damage
 							skillratio += 10 + 20 * skill_lv;
 						break;
