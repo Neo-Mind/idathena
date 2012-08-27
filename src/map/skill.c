@@ -10881,11 +10881,16 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 		if (!sce)
 			sc_start4(bl,type,30+15*sg->skill_lv,sg->skill_lv,sg->group_id,0,0,sg->limit);
 		break;
-	case UNT_PNEUMA:
+		
 	case UNT_BLOODYLUST:
+		if (bl->type == BL_MOB)
+		break;
+		
 	case UNT_MAELSTROM:
-		if (!sce)
+	case UNT_PNEUMA:
+		if (!sce){
 			sc_start4(bl,type,100,sg->skill_lv,sg->group_id,0,0,sg->limit);
+		}
 		break;
 
 	case UNT_WARP_WAITING: {
