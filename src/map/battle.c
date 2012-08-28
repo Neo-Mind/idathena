@@ -1510,9 +1510,10 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				shotnumber = 3;
 			else if ( sc->data[SC_FEARBREEZE]->val1 >= 1 && generate >= 19 && generate <= 30 )//12% chance to deal 2 hits.
 				shotnumber = 2;
-			if ( shotnumber > 1 )//Needed to allow critical attacks to hit when not hitting more then once.
+			if ( shotnumber > 1 ) {//Needed to allow critical attacks to hit when not hitting more then once.
 				wd.div_ = shotnumber;
 				wd.type = 0x08;
+			}
 		}
 	}
 
