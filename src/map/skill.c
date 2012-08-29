@@ -13603,8 +13603,8 @@ int skill_vfcastfix (struct block_list *bl, double time, int skill_id, int skill
 	time = max(time, 0) + (1 - (float)min(fixcast_r, 100) / 100) * fixed;
 
 	return (int)time;
-#endif
 }
+#endif
 
 /*==========================================
  * Does delay reductions based on dex/agi, sc data, item bonuses, ...
