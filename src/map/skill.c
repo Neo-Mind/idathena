@@ -11547,8 +11547,8 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;
 
 		case UNT_STEALTHFIELD:
-			if( bl->id == sg->src_id )
-				break; // Dont work on Self (video shows that)
+			if( (bl->id == sg->src_id) || (bl->type == BL_MOB) )
+				break; // Dont work on Self and only character is affected.
 		case UNT_NEUTRALBARRIER:
 			sc_start(bl,type,100,sg->skill_lv,sg->interval + 100);
 			break;
