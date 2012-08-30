@@ -1200,7 +1200,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		sc_start(bl,SC_FREEZE,100,skilllv,skill_get_time(skillid,skilllv));
 		break;
 	case RA_WUGBITE:
-		sc_start(bl, SC_BITE,  (sd ? pc_checkskill(sd,RA_TOOTHOFWUG)*2 : 0), skilllv, (skilllv*1000 + (sd ? pc_checkskill(sd,RA_TOOTHOFWUG)*500 : 0)) );
+		sc_start(bl, SC_BITE,  (sd ? pc_checkskill(sd,RA_TOOTHOFWUG)*2 : 0), skilllv, (skill_get_time(skillid,skilllv) + (sd ? pc_checkskill(sd,RA_TOOTHOFWUG)*500 : 0)) );
 		break;
 	case RA_SENSITIVEKEEN:
 		if( rnd()%100 < 8 * skilllv )
@@ -1232,7 +1232,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 	case NC_COLDSLOWER:
 		sc_start(bl, SC_FREEZE, 10 * skilllv, skilllv, skill_get_time(skillid, skilllv));
-		sc_start(bl, SC_FREEZING, 20 + 10 * skilllv, skilllv, skill_get_time2(skillid, skilllv));
+		sc_start(bl, SC_FREEZING, 20 + 10 * skilllv, skilllv, skill_get_time(skillid, skilllv));
 		break;
 	case NC_POWERSWING:
 		sc_start(bl, SC_STUN, 10, skilllv, skill_get_time(skillid, skilllv));
@@ -7469,7 +7469,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			i = skill_get_splash(skillid,skilllv);
 			if( skillid == LG_EARTHDRIVE ) {
 				int dummy = 1;
-				map_foreachinarea(skill_cell_overlap, src->m, src->x-i, src->y-i, src->x+i, src->y+i, BL_SKILL, LG_EARTHDRIVE, src);
+				map_foreachinarea(skill_cell_overlap, src->m, src->x-i, src->y-i, src->x+i, src->y+i, BL_SKILL, LG_EARTHDRIVE, &dummy, src);
 			}
 			map_foreachinrange(skill_area_sub, bl,i,BL_CHAR,
 				src,skillid,skilllv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
@@ -7862,13 +7862,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if( tsc && tsc->data[SC_STONE] )
 				status_change_end(bl,SC_STONE,INVALID_TIMER);
 			else
-				status_change_start(bl,SC_STONE,10000,skilllv,0,0,1000,(8+2*skilllv)*1000,2);
+				status_change_start(bl,SC_STONE,10000,skilllv,0,0,1000,skill_get_time(skillid, skilllv),2);
 		} else {
 			int rate = 40 + 8 * skilllv + ( sd? sd->status.job_level : 50 ) / 4;
 			// IroWiki says Rate should be reduced by target stats, but currently unknown
 			if( rnd()%100 < rate ) { // Success on First Target
 				if( !tsc->data[SC_STONE] )
-					rate = status_change_start(bl,SC_STONE,10000,skilllv,0,0,1000,(8+2*skilllv)*1000,2);
+					rate = status_change_start(bl,SC_STONE,10000,skilllv,0,0,1000,skill_get_time(skillid, skilllv),2);
 				else {
 					rate = 1;
 					status_change_end(bl,SC_STONE,INVALID_TIMER);
@@ -9789,7 +9789,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, int skillid, int sk
 			int dummy = 1;
 			clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
 			i = skill_get_splash(skillid, skilllv);
-			map_foreachinarea(skill_cell_overlap, src->m, x-i, y-i, x+i, y+i, BL_SKILL, HW_GANBANTEIN, src);
+			map_foreachinarea(skill_cell_overlap, src->m, x-i, y-i, x+i, y+i, BL_SKILL, HW_GANBANTEIN, &dummy, src);
 		} else {
 			if (sd) clif_skill_fail(sd,skillid,USESKILL_FAIL_LEVEL,0);
 			return 1;
@@ -10790,7 +10790,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, short skilli
 		}
 
 		if( range <= 0 )
-			map_foreachincell(skill_cell_overlap,src->m,ux,uy,BL_SKILL,skillid, src);
+			map_foreachincell(skill_cell_overlap,src->m,ux,uy,BL_SKILL,skillid, &alive, src);
 		if( !alive )
 			continue;
 
@@ -13528,9 +13528,11 @@ int skill_vfcastfix (struct block_list *bl, double time, int skill_id, int skill
 	if( time < 0 )
 		return 0;
 
-	if( !fixed )
+	if( fixed == 0 ){
 		fixed = (int)time * 20 / 100; // fixed time
-	time = time * 80 / 100; // variable time
+		time = time * 80 / 100; // variable time
+	}else if( fixed < 0 ) // no fixed cast time
+		fixed = 0;
 	
 	if(sd  && !(skill_get_castnodex(skill_id, skill_lv)&4) ){ // Increases/Decreases fixed/variable cast time of a skill by item/card bonuses.
 		if( sd->bonus.varcastrate < 0 )
@@ -13583,7 +13585,7 @@ int skill_vfcastfix (struct block_list *bl, double time, int skill_id, int skill
 			fixcast_r = max(fixcast_r, 5 + skill_lv * 5);
 		// Fixed cast non percentage bonuses
 		if( sc->data[SC_MANDRAGORA] && (skill_id >= SM_BASH && skill_id <= OB_AKAITSUKI) )
-			fixed += 500 * sc->data[SC_MANDRAGORA]->val1;
+			fixed += sc->data[SC_MANDRAGORA]->val1 * 1000 / 2;
 		if( sc->data[SC_GUST_OPTION] || sc->data[SC_BLAST_OPTION] || sc->data[SC_WILD_STORM_OPTION] )
 			fixed -= 1000;
 		if( sc->data[SC_IZAYOI] && (skill_id >= NJ_TOBIDOUGU && skill_id <= NJ_ISSEN) )
@@ -15585,12 +15587,12 @@ int skill_can_produce_mix (struct map_session_data *sd, int nameid, int trigger,
 			if((j=skill_produce_db[i].req_skill)>0 &&
 				pc_checkskill(sd,j) < skill_produce_db[i].req_skill_lv)
 					continue; // must iterate again to check other skills that produce it. [malufett]
-			if( j > 0 && sd->skillid_old > 0 && sd->skillid_old != j )
+			if( j > 0 && sd->menuskill_id > 0 && sd->menuskill_id != j )
 				continue; // special case
 			break;
 		}
 	}
-	sd->skillid_old = sd->skilllv_old = 0;
+	
 	if( i >= MAX_SKILL_PRODUCE_DB )
 		return 0;
 
@@ -15644,11 +15646,9 @@ int skill_produce_mix (struct map_session_data *sd, int skill_id, int nameid, in
 
 	nullpo_ret(sd);
 	status = status_get_status_data(&sd->bl);
-	
+
 	if( sd->skillid_old == skill_id ) 
 		skilllv = sd->skilllv_old;
-	else
-		sd->skillid_old = skill_id;
 
 	if( !(idx=skill_can_produce_mix(sd,nameid,-1, qty)) )
 		return 0;
@@ -16465,7 +16465,7 @@ int skill_changematerial(struct map_session_data *sd, int n, unsigned short *ite
 	
 	nullpo_ret(sd);
 	nullpo_ret(item_list);
-	
+
 	// Search for objects that can be created.
 	for( i = 0; i < MAX_SKILL_PRODUCE_DB; i++ ) {
 		if( skill_produce_db[i].itemlv == 26 ) {
