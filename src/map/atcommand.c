@@ -1389,7 +1389,7 @@ ACMD_FUNC(heal)
 ACMD_FUNC(item)
 {
 	char item_name[100];
-	int number = 0, item_id, flag;
+	int number = 0, item_id, flag = 0;
 	struct item item_tmp;
 	struct item_data *item_data;
 	int get_count, i;
@@ -1433,7 +1433,8 @@ ACMD_FUNC(item)
 		}
 	}
 
-	clif_displaymessage(fd, msg_txt(18)); // Item created.
+	if (flag == 0)
+		clif_displaymessage(fd, msg_txt(18)); // Item created.
 	return 0;
 }
 
@@ -1448,7 +1449,7 @@ ACMD_FUNC(item2)
 	int item_id, number = 0;
 	int identify = 0, refine = 0, attr = 0;
 	int c1 = 0, c2 = 0, c3 = 0, c4 = 0;
-	int flag;
+	int flag = 0;
 	int loop, get_count, i;
 	nullpo_retr(-1, sd);
 
@@ -1504,7 +1505,8 @@ ACMD_FUNC(item2)
 				clif_additem(sd, 0, 0, flag);
 		}
 
-		clif_displaymessage(fd, msg_txt(18)); // Item created.
+		if (flag == 0)
+			clif_displaymessage(fd, msg_txt(18)); // Item created.
 	} else {
 		clif_displaymessage(fd, msg_txt(19)); // Invalid item ID or name.
 		return -1;
@@ -3264,11 +3266,11 @@ ACMD_FUNC(doommap)
  *------------------------------------------*/
 static void atcommand_raise_sub(struct map_session_data* sd)
 {
-	if (!status_isdead(&sd->bl))
-		return;
+	if(pc_isdead(sd))
+		status_revive(&sd->bl, 100, 100);
+	else
+		status_percent_heal(&sd->bl, 100, 100);
 
-	if(!status_revive(&sd->bl, 100, 100))
-		return;
 	clif_skill_nodamage(&sd->bl,&sd->bl,ALL_RESURRECTION,4,1);
 	clif_displaymessage(sd->fd, msg_txt(63)); // Mercy has been shown.
 }
@@ -4602,21 +4604,21 @@ char* txt_time(unsigned int duration)
 	minutes = duration / 60;
 	seconds = duration - (60 * minutes);
 
-	if (days < 2)
+	if (days == 1)
 		sprintf(temp, msg_txt(219), days); // %d day
-	else
+	else if (days > 1)
 		sprintf(temp, msg_txt(220), days); // %d days
-	if (hours < 2)
+	if (hours == 1)
 		sprintf(temp1, msg_txt(221), temp, hours); // %s %d hour
-	else
+	else if (hours > 1)
 		sprintf(temp1, msg_txt(222), temp, hours); // %s %d hours
-	if (minutes < 2)
+	if (minutes == 1)
 		sprintf(temp, msg_txt(223), temp1, minutes); // %s %d minute
-	else
+	else if (minutes > 1)
 		sprintf(temp, msg_txt(224), temp1, minutes); // %s %d minutes
-	if (seconds < 2)
+	if (seconds == 1)
 		sprintf(temp1, msg_txt(225), temp, seconds); // %s and %d second
-	else
+	else if (seconds > 1)
 		sprintf(temp1, msg_txt(226), temp, seconds); // %s and %d seconds
 
 	return temp1;
@@ -6324,6 +6326,12 @@ ACMD_FUNC(pettalk)
 	struct pet_data *pd;
 
 	nullpo_retr(-1, sd);
+	
+	if ( battle_config.min_chat_delay ) {
+		if( DIFF_TICK(sd->cantalk_tick, gettick()) > 0 )
+			return 0;
+		sd->cantalk_tick = gettick() + battle_config.min_chat_delay;
+	}
 
 	if(!sd->status.pet_id || !(pd=sd->pd))
 	{
@@ -7086,6 +7094,12 @@ ACMD_FUNC(homtalk)
 	char mes[100],temp[100];
 
 	nullpo_retr(-1, sd);
+	
+	if ( battle_config.min_chat_delay ) {
+		if( DIFF_TICK(sd->cantalk_tick, gettick()) > 0 )
+			return 0;
+		sd->cantalk_tick = gettick() + battle_config.min_chat_delay;
+	}
 
 	if (sd->sc.count && //no "chatting" while muted.
 		(sd->sc.data[SC_BERSERK] ||
@@ -8081,6 +8095,12 @@ ACMD_FUNC(main)
 			if (sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOCHAT) {
 				clif_displaymessage(fd, msg_txt(387));
 				return -1;
+			}
+			
+			if ( battle_config.min_chat_delay ) {
+				if( DIFF_TICK(sd->cantalk_tick, gettick()) > 0 )
+					return 0;
+				sd->cantalk_tick = gettick() + battle_config.min_chat_delay;
 			}
 
 			// send the message using inter-server system
