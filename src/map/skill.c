@@ -8169,7 +8169,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 								status_change_end(bl,SC_SHIELDSPELL_DEF,INVALID_TIMER);
 								break;
 							case 2:
-								val = shield_data->def;//Damage Reflecting Increase.
+								val = shield_data->def / 10; // % Damage Reflecting Increase.
 								sc_start2(bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def * 10 * 1000);
 								break;
 							case 3:

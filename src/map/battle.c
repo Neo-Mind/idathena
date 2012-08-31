@@ -2385,7 +2385,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						if( shield_data )
 							skillratio += shield_data->def * 10;
 					} else
-						skillratio = 0;					
+						skillratio = 0;
 					break;
 				case LG_OVERBRAND:
 					skillratio = 200 * skill_lv + (sd ? pc_checkskill(sd,CR_SPEARQUICKEN) : 10) * 50;
@@ -3856,7 +3856,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						if( sd && skill_lv == 2 ) { 
 							skillratio = status_get_lv(src) * 4 + sd->bonus.shieldmdef * 100 + status_get_int(src) * 2;
 						} else
-							skillratio = 0;	
+							skillratio = 0;
 						break;
 					case WM_METALICSOUND:
 						skillratio = 120 * skill_lv + 60 * pc_checkskill(sd, WM_LESSON);
