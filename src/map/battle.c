@@ -2049,6 +2049,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					ATK_ADD(weight * skill_lv)
 					skillratio += 50*skill_lv;
 				}
+					break;
 #endif
 				case ASC_METEORASSAULT:
 					skillratio += 40*skill_lv-60;
