@@ -225,12 +225,18 @@ const char* get_svn_revision(void)
  *--------------------------------------*/
 static void display_title(void) {
 	//ClearScreen(); // clear screen and go up/left (0, 0 position in text)
+	
 	ShowMessage("\n");
-	ShowMessage(""CL_PASS"        "CL_BOLD"                                                              "CL_PASS""CL_CLL""CL_NORMAL"\n");
-	ShowMessage(""CL_PASS"          "CL_BT_WHITE"            idAthena Development Team presents            "CL_PASS""CL_CLL""CL_NORMAL"\n");
-	ShowMessage(""CL_PASS"        "CL_BOLD"                                                              "CL_PASS""CL_CLL""CL_NORMAL"\n");  
-	ShowMessage(""CL_PASS"          "CL_WHITE"                http://idathena.org                "CL_PASS""CL_CLL""CL_NORMAL"\n");
-	ShowMessage(""CL_PASS"        "CL_BOLD"                                                              "CL_PASS""CL_CLL""CL_NORMAL"\n"); 
+	ShowMessage(""CL_PASS"        "CL_BOLD"                                                             "CL_PASS""CL_CLL""CL_NORMAL"\n");
+	ShowMessage(""CL_PASS"        "CL_BT_WHITE"            Pengembangan idAthena mempersembahkan        "CL_PASS""CL_CLL""CL_NORMAL"\n");
+	ShowMessage(""CL_PASS"        "CL_BOLD"       _      _     ___   __  __                             "CL_PASS""CL_CLL""CL_NORMAL"\n");
+	ShowMessage(""CL_PASS"        "CL_BOLD"      |_| ___| |   /   | / /_/ /_  ___  ____  ____ _         "CL_PASS""CL_CLL""CL_NORMAL"\n");
+	ShowMessage(""CL_PASS"        "CL_BOLD"      | ||  _  |  / /| |/ __/ __ \\/ _ \\/ __ \\/ __ `/      "CL_PASS""CL_CLL""CL_NORMAL"\n");
+	ShowMessage(""CL_PASS"        "CL_BOLD"      | || |_| | / ___ / /_/ / / /  __/ / / / // /_  /       "CL_PASS""CL_CLL""CL_NORMAL"\n");
+	ShowMessage(""CL_PASS"        "CL_BOLD"      |_||____ //_/  |_\\__/_/ /_/\\___/_/ /_/\\__,_/        "CL_PASS""CL_CLL""CL_NORMAL"\n");
+	ShowMessage(""CL_PASS"        "CL_BOLD"                                                             "CL_PASS""CL_CLL""CL_NORMAL"\n");  
+	ShowMessage(""CL_PASS"        "CL_GREEN"               http://idAthena.org                          "CL_PASS""CL_CLL""CL_NORMAL"\n");
+	ShowMessage(""CL_PASS"        "CL_BOLD"                                                             "CL_PASS""CL_CLL""CL_NORMAL"\n");
 
 	ShowInfo("SVN Revision: '"CL_WHITE"%s"CL_RESET"'.\n", get_svn_revision());
 }
