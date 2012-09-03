@@ -1,11 +1,11 @@
-﻿//===== rAthena Doc ===========================================
+﻿//===== rAthena Documentation ================================
 //= rAthena Script Commands
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Current Version: =====================================
-//= $Revision: 16685 $
+//= $Revision: 16726 $
 //===== Last Updated: ========================================
-//= $LastChangedDate: 2012-08-23 02:21:01 +0700 (Thu, 23 Aug 2012) $
+//= $LastChangedDate: 2012-09-01 04:49:48 +0700 (Sat, 01 Sep 2012) $
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.

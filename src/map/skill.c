@@ -2396,6 +2396,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	case EL_TYPOON_MIS:
 	case EL_TYPOON_MIS_ATK:
 	case KO_BAKURETSU:
+	case GN_CRAZYWEED_ATK:
 		dmg.dmotion = clif_skill_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skillid,-1,5);
 		break;
 	case GN_SLINGITEM_RANGEMELEEATK:
@@ -3243,6 +3244,11 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					else if( path_search_long(NULL, src->m, src->x, src->y, skl->x, skl->y, CELL_CHKWALL) )
 						skill_unitsetting(src,skl->skill_id,skl->skill_lv,skl->x,skl->y,skl->flag);
 					break;
+				case GN_CRAZYWEED_ATK:
+					{
+						int dummy = 1, i = skill_get_unit_range(skl->skill_id,skl->skill_lv);
+						map_foreachinarea(skill_cell_overlap, src->m, skl->x-i, skl->y-i, skl->x+i, skl->y+i, BL_SKILL, skl->skill_id, &dummy, src);
+					}
 				case WL_EARTHSTRAIN:
 					skill_unitsetting(src,skl->skill_id,skl->skill_lv,skl->x,skl->y,(skl->type<<16)|skl->flag);
 					break;
@@ -4512,41 +4518,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 			skill_addtimerskill(src, gettick() + skill_get_time(skillid, skilllv), bl->id, 0, 0, skillid, skilllv, 0, 0);
 		}
 		break;
-		
-	case GN_CRAZYWEED:
-		if( rnd()%100 < 75 ) {
-			if( bl->type == BL_SKILL ) {
-				struct skill_unit *su = (struct skill_unit *)bl;
-				if( !su )
-					break;
-				if( skill_get_inf2(su->group->skill_id)&INF2_TRAP ) {// Still need confirm it.
-					skill_delunit(su);
-					break;
-				}
-				
-				switch( su->group->skill_id ) {// Unconfirmed list, based on info from irowiki.
-					case GN_WALLOFTHORN:
-					case GN_THORNS_TRAP:
-					case SC_BLOODYLUST:
-					case SC_CHAOSPANIC:
-					case SC_MAELSTROM:
-					case WZ_FIREPILLAR:
-					case SA_LANDPROTECTOR:
-					case SA_VOLCANO:
-					case SA_DELUGE:
-					case SA_VIOLENTGALE:
-					case MG_SAFETYWALL:
-					case AL_PNEUMA:
-						skill_delunit(su);
-						break;
-				}
-				break;
-			}
-			else
-				skill_attack(BF_WEAPON,src,src,bl,GN_CRAZYWEED_ATK,skilllv,tick,flag);
-		}
-		break;
-		
+
 	case EL_FIRE_BOMB:
 	case EL_FIRE_WAVE:
 	case EL_WATER_SCREW:
@@ -4651,10 +4623,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		return 1;
 	}
 
-	if( sc && sc->data[SC_CURSEDCIRCLE_ATKER] ) { //Should only remove after the skill has been casted.
-		sc->data[SC_CURSEDCIRCLE_ATKER]->val3 = 1;
+	if( sc && sc->data[SC_CURSEDCIRCLE_ATKER] ) //Should only remove after the skill has been casted.
 		status_change_end(src,SC_CURSEDCIRCLE_ATKER,INVALID_TIMER);
-	}
 
 	map_freeblock_unlock();
 	
@@ -8919,10 +8889,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	if(skillid != SR_CURSEDCIRCLE){
 		struct status_change *sc = status_get_sc(src);
-		if( sc && sc->data[SC_CURSEDCIRCLE_ATKER] ) { //Should only remove after the skill had been casted.
-			sc->data[SC_CURSEDCIRCLE_ATKER]->val3 = 1;
+		if( sc && sc->data[SC_CURSEDCIRCLE_ATKER] ) //Should only remove after the skill had been casted.
 			status_change_end(src,SC_CURSEDCIRCLE_ATKER,INVALID_TIMER);
-		}
 	}
 
 	if (dstmd) { //Mob skill event for no damage skills (damage ones are handled in battle_calc_damage) [Skotlex]
@@ -10016,13 +9984,17 @@ int skill_castend_pos2(struct block_list* src, int x, int y, int skillid, int sk
 			src->m, x-i, y-i, x+i,y+i,BL_SKILL);
 		break;
 
-	case GN_CRAZYWEED:
-		i = skill_get_splash(skillid,skilllv);
-		map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,BL_CHAR|BL_SKILL,
-						  src,skillid,skilllv,tick,flag|BCT_ENEMY|1,
-						  skill_castend_damage_id);
-		break;
+	case GN_CRAZYWEED: {
+			int area = skill_get_splash(GN_CRAZYWEED_ATK, skilllv);
+			short x1 = 0, y1 = 0;
 		
+			for( i = 0; i < 3 + (skilllv/2); i++ ) {
+				x1 = x - area + rnd()%(area * 2 + 1);
+				y1 = y - area + rnd()%(area * 2 + 1);
+				skill_addtimerskill(src,tick+i*150,0,x1,y1,GN_CRAZYWEED_ATK,skilllv,-1,0);
+			}
+		}
+		break;
 	case GN_FIRE_EXPANSION: {
 		int i;
 		int aciddemocast = 5;//If player doesent know Acid Demonstration or knows level 5 or lower, effect 5 will cast level 5 Acid Demo.
@@ -10078,10 +10050,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, int skillid, int sk
 		return 1;
 	}
 
-	if( sc && sc->data[SC_CURSEDCIRCLE_ATKER] ) { //Should only remove after the skill has been casted.
-		sc->data[SC_CURSEDCIRCLE_ATKER]->val3 = 1;
+	if( sc && sc->data[SC_CURSEDCIRCLE_ATKER] ) //Should only remove after the skill has been casted.
 		status_change_end(src,SC_CURSEDCIRCLE_ATKER,INVALID_TIMER);
-	}
 
 	if( sd )
 	{// ensure that the skill last-cast tick is recorded
@@ -11222,7 +11192,12 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 					if (rnd()%100 < src->val1)
 						skill_attack(BF_WEAPON,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 				break;
-
+				case GN_CRAZYWEED_ATK:
+					if( bl->type == BL_SKILL ){
+						struct skill_unit *su = (struct skill_unit *)bl;
+						if( su && !(skill_get_inf2(su->group->skill_id)&INF2_TRAP) )
+							break;
+					}
 				default:
 					skill_attack(skill_get_type(sg->skill_id),ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 			}
@@ -14469,6 +14444,24 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 				return 1;
 			}
 			break;
+		case GN_CRAZYWEED_ATK:
+			switch(unit->group->unit_id){ //TODO: look for other ground skills that are affected.
+				case UNT_WALLOFTHORN:
+				case UNT_THORNS_TRAP:
+				case UNT_BLOODYLUST:
+				case UNT_CHAOSPANIC:
+				case UNT_MAELSTROM:
+				case UNT_FIREPILLAR_ACTIVE:
+				case UNT_LANDPROTECTOR:
+				case UNT_VOLCANO:
+				case UNT_DELUGE:
+				case UNT_VIOLENTGALE:
+				case UNT_SAFETYWALL:
+				case UNT_PNEUMA:
+					skill_delunit(unit);
+					return 1;
+			}
+			break;
 	}
 
 	if (unit->group->skill_id == SA_LANDPROTECTOR && !(skill_get_inf2(skillid)&(INF2_SONG_DANCE|INF2_TRAP))) {	//It deletes everything except songs/dances/traps
@@ -17616,8 +17609,8 @@ int do_init_skill (void)
 	skillunit_db = idb_alloc(DB_OPT_BASE);
 	skillcd_db = idb_alloc(DB_OPT_RELEASE_DATA);
 	skillusave_db = idb_alloc(DB_OPT_RELEASE_DATA);
-	skill_unit_ers = ers_new(sizeof(struct skill_unit_group));
-	skill_timer_ers  = ers_new(sizeof(struct skill_timerskill));
+	skill_unit_ers = ers_new(sizeof(struct skill_unit_group),"skill.c::skill_unit_ers",ERS_OPT_NONE);
+	skill_timer_ers  = ers_new(sizeof(struct skill_timerskill),"skill.c::skill_timer_ers",ERS_OPT_NONE);
 
 	add_timer_func_list(skill_unit_timer,"skill_unit_timer");
 	add_timer_func_list(skill_castend_id,"skill_castend_id");

@@ -3629,6 +3629,10 @@ int npc_reload(void) {
 	//Re-read the NPC Script Events cache.
 	npc_read_event_script();
 	
+	/* refresh guild castle flags on both woe setups */
+	npc_event_doall("OnAgitInit");
+	npc_event_doall("OnAgitInit2");
+	
 	//Execute the OnInit event for freshly loaded npcs. [Skotlex]
 	ShowStatus("Event '"CL_WHITE"OnInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n",npc_event_doall("OnInit"));
 	
@@ -3730,7 +3734,7 @@ int do_init_npc(void)
 	
 	npc_path_db = strdb_alloc(DB_OPT_BASE|DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA,80);
 
-	timer_event_ers = ers_new(sizeof(struct timer_event_data));
+	timer_event_ers = ers_new(sizeof(struct timer_event_data),"clif.c::timer_event_ers",ERS_OPT_NONE);
 	
 	// process all npc files
 	ShowStatus("Loading NPCs...\r");
