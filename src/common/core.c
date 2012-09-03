@@ -232,8 +232,8 @@ static void display_title(void) {
 	ShowMessage(""CL_PASS"        "CL_BOLD"       _      _     ___   __  __                             "CL_PASS""CL_CLL""CL_NORMAL"\n");
 	ShowMessage(""CL_PASS"        "CL_BOLD"      |_| ___| |   /   | / /_/ /_  ___  ____  ____ _         "CL_PASS""CL_CLL""CL_NORMAL"\n");
 	ShowMessage(""CL_PASS"        "CL_BOLD"      | ||  _  |  / /| |/ __/ __ \\/ _ \\/ __ \\/ __ `/      "CL_PASS""CL_CLL""CL_NORMAL"\n");
-	ShowMessage(""CL_PASS"        "CL_BOLD"      | || |_| | / ___ / /_/ / / /  __/ / / / // /_  /       "CL_PASS""CL_CLL""CL_NORMAL"\n");
-	ShowMessage(""CL_PASS"        "CL_BOLD"      |_||____ //_/  |_\\__/_/ /_/\\___/_/ /_/\\__,_/        "CL_PASS""CL_CLL""CL_NORMAL"\n");
+	ShowMessage(""CL_PASS"        "CL_BOLD"      | || |_| | / ___ / /_/ / / /  __/ / / / /_/ /          "CL_PASS""CL_CLL""CL_NORMAL"\n");
+	ShowMessage(""CL_PASS"        "CL_BOLD"      |_||____/ /_/  |_\\__/_/ /_/\\___/_/ /_/\\__,_/        "CL_PASS""CL_CLL""CL_NORMAL"\n");
 	ShowMessage(""CL_PASS"        "CL_BOLD"                                                             "CL_PASS""CL_CLL""CL_NORMAL"\n");  
 	ShowMessage(""CL_PASS"        "CL_GREEN"               http://idAthena.org                          "CL_PASS""CL_CLL""CL_NORMAL"\n");
 	ShowMessage(""CL_PASS"        "CL_BOLD"                                                             "CL_PASS""CL_CLL""CL_NORMAL"\n");
