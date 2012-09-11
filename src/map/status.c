@@ -1404,7 +1404,7 @@ int status_heal(struct block_list *bl,int hp,int sp, int flag)
 	switch(bl->type) {
 	case BL_PC:  pc_heal((TBL_PC*)bl,hp,sp,flag&2?1:0); break;
 	case BL_MOB: mob_heal((TBL_MOB*)bl,hp); break;
-	case BL_HOM: merc_hom_heal((TBL_HOM*)bl,hp,sp); break;
+	case BL_HOM: merc_hom_heal((TBL_HOM*)bl); break;
 	case BL_MER: mercenary_heal((TBL_MER*)bl,hp,sp); break;
 	case BL_ELEM: elemental_heal((TBL_ELEM*)bl,hp,sp); break;
 	}
