@@ -10908,7 +10908,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 		break;
 
 	case UNT_QUAGMIRE:
-		if(!sce)
+		if( !sce && battle_check_target(&sg->unit->bl,bl,sg->target_flag) > 0 )
 			sc_start4(bl,type,100,sg->skill_lv,sg->group_id,0,0,sg->limit);
 		break;
 
@@ -11915,13 +11915,10 @@ static int skill_unit_effect (struct block_list* bl, va_list ap)
 	skill_id = group->skill_id;
 
 	//Target-type check.
-	if( !(group->bl_flag&bl->type && battle_check_target(&unit->bl,bl,group->target_flag)>0) )
-	{
-		if( flag&4 && group->src_id == bl->id && group->state.song_dance&0x2 )
+	if( !(group->bl_flag&bl->type && battle_check_target(&unit->bl,bl,group->target_flag)>0) && (flag&4) ) {
+		if( group->state.song_dance&0x1 || (group->src_id == bl->id && group->state.song_dance&0x2) )
 			skill_unit_onleft(skill_id, bl, tick);//Ensemble check to terminate it.
-	}
-	else
-	{
+	} else {
 		if( flag&1 )
 			skill_unit_onplace(unit,bl,tick);
 		else

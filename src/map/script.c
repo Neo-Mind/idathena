@@ -1336,7 +1336,7 @@ const char* parse_subexpr(const char* p,int limit)
 			return p;
 		}
 	}
-	
+
 	if((op=C_NEG,*p=='-') || (op=C_LNOT,*p=='!') || (op=C_NOT,*p=='~')){
 		p=parse_subexpr(p+1,10);
 		add_scriptc(op);
@@ -4215,7 +4215,7 @@ int do_final_script() {
 		aFree(str_data);
 	if (str_buf)
 		aFree(str_buf);
-		
+
 	for( i = 0; i < atcmd_binding_count; i++ ) {
 		aFree(atcmd_binding[i]);
 	}
@@ -4245,7 +4245,7 @@ int do_final_script() {
 	
 	aFree(logThreadData.entry);	
 #endif
-
+	
 	return 0;
 }
 /*==========================================
@@ -4279,13 +4279,13 @@ int do_init_script() {
 	}
 
 	add_timer_func_list(queryThread_timer, "queryThread_timer");
-#endif	
+#endif
 	return 0;
 }
 
 int script_reload() {
 	int i;
-	
+
 #ifdef BETA_THREAD_TEST
 	/* we're reloading so any queries undergoing should be...exterminated. */
 	EnterSpinLock(&queryThreadLock);
@@ -4303,7 +4303,7 @@ int script_reload() {
 	LeaveSpinLock(&queryThreadLock);
 #endif
 
-
+	
 	userfunc_db->clear(userfunc_db, db_script_free_code_sub);
 	db_clear(scriptlabel_db);
 
@@ -4315,9 +4315,9 @@ int script_reload() {
 	
 	if( atcmd_binding_count != 0 )
 		aFree(atcmd_binding);
-		
-	atcmd_binding_count = 0;
 	
+	atcmd_binding_count = 0;
+
 	if(sleep_db) {
 		struct linkdb_node *n = (struct linkdb_node *)sleep_db;
 		while(n) {
@@ -5078,7 +5078,6 @@ BUILDIN_FUNC(areawarp)
 	return 0;
 }
 
-
 /*==========================================
  * areapercentheal <map>,<x1>,<y1>,<x2>,<y2>,<hp>,<sp>
  *------------------------------------------*/
@@ -5355,10 +5354,10 @@ BUILDIN_FUNC(percentheal)
 	if( sd->sc.data[SC_EXTREMITYFIST] ){
 		const struct TimerData *timer;
 		int tick = skill_get_time2(MO_EXTREMITYFIST, sd->sc.data[SC_EXTREMITYFIST]->val1);
-		
+
 		timer = get_timer(sd->sc.data[SC_EXTREMITYFIST]->timer);
 		if( DIFF_TICK(tick, DIFF_TICK(timer->tick, gettick())) < 10000 )// 10 sec
-			sp = 10;
+			sp = 0;
 	}
 #endif
 	pc_percentheal(sd,hp,sp);
@@ -6441,7 +6440,7 @@ BUILDIN_FUNC(rentitem)
 		clif_additem(sd, 0, 0, flag);
 		return 1;
 	}
-
+	
 	return 0;
 }
 
@@ -7725,7 +7724,7 @@ BUILDIN_FUNC(bonus)
 		case SP_CASTRATE:
 		case SP_ADDEFF_ONSKILL:
 		case SP_SKILL_USE_SP_RATE:
-		case SP_COOLDOWN:
+		case SP_SKILL_COOLDOWN:
 		case SP_SKILL_FIXEDCAST:
 		case SP_SKILL_VARIABLECAST:
 		case SP_VARCASTRATE:
@@ -12347,7 +12346,7 @@ BUILDIN_FUNC(nude)
 		}
 	}
 
-	if(calcflag)
+	if( calcflag )
 		status_calc_pc(sd,0);
 
 	return 0;
@@ -12854,21 +12853,23 @@ BUILDIN_FUNC(getmapxy)
 			if (sd && sd->hd)
 				bl = &sd->hd->bl;
 			break;
-		case 5: //Get Mercenary Position 
-				if(script_hasdata(st,6))
-						sd=map_nick2sd(script_getstr(st,6));
-				else
-						sd=script_rid2sd(st);
-				if (sd && sd->md)
-						bl = &sd->md->bl;
-				break;
+		case 5: //Get Mercenary Position
+			if(script_hasdata(st,6))
+				sd=map_nick2sd(script_getstr(st,6));
+			else
+				sd=script_rid2sd(st);
+
+			if (sd && sd->md)
+				bl = &sd->md->bl;
+			break;
 		case 6: //Get Elemental Position
-				if(script_hasdata(st,6))
-						sd=map_nick2sd(script_getstr(st,6));
-				else
-						sd=script_rid2sd(st);
-				if (sd && sd->ed)
-						bl = &sd->ed->bl;
+			if(script_hasdata(st,6))
+				sd=map_nick2sd(script_getstr(st,6));
+			else
+				sd=script_rid2sd(st);
+
+			if (sd && sd->ed)
+				bl = &sd->ed->bl;
 			break;
 		default:
 			ShowWarning("script: buildin_getmapxy: Invalid type %d\n", type);
@@ -13969,7 +13970,7 @@ BUILDIN_FUNC(replacestr)
 	}
 
 	if(script_hasdata(st, 5)) {
-		if(script_isint(st,5))
+		if( !script_isstring(st,5) )
 			usecase = script_getnum(st, 5) != 0;
 		else {
 			ShowError("script:replacestr: Invalid usecase value. Expected int got string\n");
@@ -14050,7 +14051,7 @@ BUILDIN_FUNC(countstr)
 	}
 
 	if(script_hasdata(st, 4)) {
-		if(script_isint(st,4))
+		if( !script_isstring(st,4) )
 			usecase = script_getnum(st, 4) != 0;
 		else {
 			ShowError("script:countstr: Invalid usecase value. Expected int got string\n");
@@ -16915,6 +16916,49 @@ BUILDIN_FUNC(checkre)
 	return 0;
 }
 
+/* getrandgroupitem <group_id>,<quantity> */
+BUILDIN_FUNC(getrandgroupitem) {
+	TBL_PC* sd;
+	int i, get_count = 0, flag, nameid, group = script_getnum(st, 2), qty = script_getnum(st,3);
+	struct item item_tmp;
+	
+	if( !( sd = script_rid2sd(st) ) )
+		return 0;
+	
+	if( qty <= 0 ) {
+		ShowError("getrandgroupitem: qty is <= 0!\n");
+		return 1;
+	}
+	if( (nameid = itemdb_searchrandomid(group)) == UNKNOWN_ITEM_ID ) {
+		return 1;/* itemdb_searchrandomid will already scream a error */
+	}
+	
+	memset(&item_tmp,0,sizeof(item_tmp));
+	
+	item_tmp.nameid   = nameid;
+	item_tmp.identify = itemdb_isidentified(nameid);
+	
+	//Check if it's stackable.
+	if (!itemdb_isstackable(nameid))
+		get_count = 1;
+	else
+		get_count = qty;
+	
+	for (i = 0; i < qty; i += get_count) {
+		// if not pet egg
+		if (!pet_create_egg(sd, nameid)) {
+			if ((flag = pc_additem(sd, &item_tmp, get_count, LOG_TYPE_SCRIPT))) {
+				clif_additem(sd, 0, 0, flag);
+				if( pc_candrop(sd,&item_tmp) )
+					map_addflooritem(&item_tmp,get_count,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
+			}
+		}
+	}
+	
+	return 0;
+}
+
+
 // declarations that were supposed to be exported from npc_chat.c
 #ifdef PCRE_SUPPORT
 BUILDIN_FUNC(defpattern);
@@ -17352,13 +17396,14 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(is_function,"s"),
 	BUILDIN_DEF(get_revision,""),
 	BUILDIN_DEF(freeloop,"i"),
+	BUILDIN_DEF(getrandgroupitem, "ii"),
 	/**
 	 * @commands (script based)
 	 **/
 	BUILDIN_DEF(bindatcmd, "ss??"),
 	BUILDIN_DEF(unbindatcmd, "s"),
 	BUILDIN_DEF(useatcmd, "s"),
-	
+
 	//Quest Log System [Inkfish]
 	BUILDIN_DEF(setquest, "i"),
 	BUILDIN_DEF(erasequest, "i"),

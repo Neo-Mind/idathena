@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Current Version: =====================================
-//= $Revision: 16740 $
+//= $Revision: 16773 $
 //===== Last Updated: ========================================
-//= $LastChangedDate: 2012-09-03 23:50:10 +0700 (Mon, 03 Sep 2012) $
+//= $LastChangedDate: 2012-09-11 03:33:57 +0700 (Tue, 11 Sep 2012) $
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -3718,7 +3718,7 @@ Y 150
 By using ,0,0; as the destination coordinates it will take all the characters in 
 the affected area to a random set of co-ordinates on "place2".
 
-	areawarp "place",10,10,120,120,"place2",150,150,200,200;
+    areawarp "place",10,10,120,120,"place2",150,150,200,200;
 
 By using the optional x4 and y4 parameters, the destination coordinates will be a 
 random place within the defined x3/y3-x4/y4 square.
@@ -3892,9 +3892,9 @@ changing jobs, which can be checked for later in scripts.
 
 This command retrieves the name of the given job using the msg_athena entries 550->650.
 
-		mes "[Kid]";
-		mes "I never thought I'd met a "+jobname(Class)+" here of all places.";
-		close;
+	mes "[Kid]";
+	mes "I never thought I'd met a "+jobname(Class)+" here of all places.";
+	close;
 
 ---------------------------------------
 
@@ -4378,12 +4378,24 @@ Check 'getitem2' to understand the arguments of the function.
 *groupranditem <group id>;
 
 Returns the item_id of a random item picked from the group specified. The
-different groups and their group number are specified in db/item_group_db.txt
+different groups and their group number are specified in db/(pre-)re/item_group_db.txt
 
 When used in conjunction with other functions, you can get a random item. For
 example, for a random pet lure:
 
 getitem groupranditem(15),1;
+
+---------------------------------------
+
+*getrandgroupitem <group id>,<quantity>;
+
+Similar to the above example, this command allows players to obtain the specified
+quantity of a random item from the group "<group id>". The different groups and 
+their group number are specified in db/(pre-)re/item_group_db.txt
+
+For example, obtaining three of the same random item from Old Blue Box:
+
+getrandgroupitem(1,3);
 
 ---------------------------------------
 
@@ -6085,10 +6097,10 @@ Battle flags are the flags found in the battle/*.conf files and is also used in 
 
 Example(s):
 
-//will set the base experience rate to 20x (2000%)
+// Will set the base experience rate to 20x (2000%)
 	setBattleFlag "base_exp_rate",2000;
 	
-//will return the value of the base experience rate (when used after the above example, it would print 2000).
+// Will return the value of the base experience rate (when used after the above example, it would print 2000).
 	mes getBattleFlag("base_exp_rate");
 
 ---------------------------------------
@@ -6101,17 +6113,28 @@ The mapname and second x and y is the target area of the warp portal.
 
 Example(s):
 
-//Will create a warp portal on the NPC's map at 150,150 leading to prontera, coords 150,180.
-	warpPortal 150,150,"prontera",150,180;
+// Will create a warp portal on the NPC's map at 150,150 leading to prontera, coords 150,180.
+	warpportal 150,150,"prontera",150,180;
 
 ---------------------------------------
 
-*mapwarp "<from map>","<to map>",<x>,<y>;
+*mapwarp "<from map>","<to map>",<x>,<y>{,<type>,<ID>};
 
 This command will collect all characters located on the From map and warp them 
 wholesale to the same point on the To map, or randomly distribute them there if 
 the coordinates are zero. "Random" is understood as a special To map name and 
 will mean randomly shuffling everyone on the same map.
+
+Optionally, a type and ID can be specified. Available types are:
+
+ 0 - Everyone
+ 1 - Guild
+ 2 - Party
+
+Example:
+
+// Will warp all members of guild with ID 63 on map prontera to map alberta.
+	mapwarp "prontera","alberta",150,150,1,63;
 
 ---------------------------------------
 \\
@@ -7374,10 +7397,10 @@ and max are optional parameters and doesn't need to be set. You will find below 
 little List for an explenation of what those values are for.
 
 Values:
-Party ID : Party ID of the invoking character. [Required Parameter]
-amount : Amount of needed Partymembers for the Instance. [Optional Parameter]
-min : Minimum Level needed to join the Instance. [Optional Parameter]
-max : Maxium Level allowed to join the Instance. [Optional Parameter]
+Party ID: Party ID of the invoking character. [Required Parameter]
+amount: Amount of needed Partymembers for the Instance. [Optional Parameter]
+min: Minimum Level needed to join the Instance. [Optional Parameter]
+max: Maxium Level allowed to join the Instance. [Optional Parameter]
 
 If no amount is given the Memorial Dungeon will of course at least need 1 Player to enter.
 If no min Level requirement is given, the Player has at least to be Level 1 to enter the Memorial Dungeon.
@@ -7388,22 +7411,22 @@ but one of them is offline, the other Player won't be able to join the Memorial 
 
 Also, here are some examples of how this Command will work inside a script:
 
-if(instance_check_party(getcharid(1),2,2,149)){
+if (instance_check_party(getcharid(1),2,2,149)) {
 	mes "Ok, your party is complete and meets the Memorial Dungeons requirement.",
-	mes	"Members have a Baselevel between 1 and 150 and there are at least 2 Players inside the Party.";
+	mes "Members have a Baselevel between 1 and 150 and there are at least 2 Players inside the Party.";
 	close;
-}else{
+} else {
 	mes "Sorry, but it seems like your Party does not meet the Memorial Dungeon requirements.";
 	close;
 }
 
 You also can use set .@party_id,getcharid(1); for example to save the Players Party ID.
 
-if(instance_check_party(.@party_id,2,2,149)){
+if (instance_check_party(.@party_id,2,2,149)) {
 	mes "Ok, your party is complete and meets the Memorial Dungeons requirement.",
-	mes	"Members have a Baselevel between 1 and 150 and there are at least 2 Players inside the Party.";
+	mes "Members have a Baselevel between 1 and 150 and there are at least 2 Players inside the Party.";
 	close;
-}else{
+} else {
 	mes "Sorry, but it seems like your Party does not meet the Memorial Dungeon requirements.";
 	close;
 }

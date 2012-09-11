@@ -3179,6 +3179,13 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 
 			if( wd.flag&BF_LONG )
 				cardfix = cardfix * ( 100 + sd->bonus.long_attack_atk_rate ) / 100;
+				
+#ifdef RENEWAL_EDP
+			if( sc && sc->data[SC_EDP] ){
+				cardfix = cardfix * (100 + sc->data[SC_EDP]->val1 * 60 ) / 100;
+				cardfix_ = cardfix_ * (100 + sc->data[SC_EDP]->val1 * 60 ) / 100;
+			}
+#endif
 
 			if( cardfix != 1000 || cardfix_ != 1000 )
 				ATK_RATE2(cardfix/10, cardfix_/10);	//What happens if you use right-to-left and there's no right weapon, only left?

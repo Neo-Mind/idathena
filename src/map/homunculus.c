@@ -81,8 +81,7 @@ int hom_class2mapid(int hom_class)
 	}
 }
 
-void merc_damage(struct homun_data *hd,struct block_list *src,int hp,int sp)
-{
+void merc_damage(struct homun_data *hd) {
 	clif_hominfo(hd->master,hd,0);
 }
 
@@ -406,7 +405,7 @@ int hom_mutate(struct homun_data *hd, int homun_id)
 		return 0;
 
 	prev_class = hd->homunculus.class_;
-		
+	
 	if (!merc_hom_change_class(hd, homun_id)) {
 		ShowError("hom_mutate: Can't evolve homunc from %d to %d", hd->homunculus.class_, homun_id);
 		return 0;
@@ -499,8 +498,7 @@ int merc_hom_decrease_intimacy(struct homun_data * hd, unsigned int value)
 	return hd->homunculus.intimacy;
 }
 
-void merc_hom_heal(struct homun_data *hd,int hp,int sp)
-{
+void merc_hom_heal(struct homun_data *hd) {
 	clif_hominfo(hd->master,hd,0);
 }
 

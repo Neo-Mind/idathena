@@ -457,7 +457,7 @@ int elemental_change_mode(struct elemental_data *ed, int mode) {
 	return 1;
 }
 
-void elemental_damage(struct elemental_data *ed, struct block_list *src, int hp, int sp) {
+void elemental_damage(struct elemental_data *ed, int hp, int sp) {
 	if( hp )
 		clif_elemental_updatestatus(ed->master, SP_HP);
 	if( sp )
@@ -670,7 +670,7 @@ int read_elementaldb(void) {
 		k++;
 		if( line[0] == '/' && line[1] == '/' )
 			continue;
-			
+		
 		if( line[0] == '\0' || line[0] == '\n' || line[0] == '\r')
 			continue;
 		
@@ -758,9 +758,9 @@ int read_elemental_skilldb(void) {
 		k++;
 		if( line[0] == '/' && line[1] == '/' )
 			continue;
-			
+
 		if( line[0] == '\0' || line[0] == '\n' || line[0] == '\r')
-			continue;
+			continue; 
 		
 		i = 0;
 		p = strtok(line, ",");

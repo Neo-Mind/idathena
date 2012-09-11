@@ -1241,9 +1241,9 @@ int status_damage(struct block_list *src,struct block_list *target,int hp, int s
 	switch (target->type) {
 		case BL_PC:  pc_damage((TBL_PC*)target,src,hp,sp); break;
 		case BL_MOB: mob_damage((TBL_MOB*)target, src, hp); break;
-		case BL_HOM: merc_damage((TBL_HOM*)target,src,hp,sp); break;
-		case BL_MER: mercenary_damage((TBL_MER*)target,src,hp,sp); break;
-		case BL_ELEM: elemental_damage((TBL_ELEM*)target,src,hp,sp); break;
+		case BL_HOM: merc_damage((TBL_HOM*)target); break;
+		case BL_MER: mercenary_damage((TBL_MER*)target,hp,sp); break;
+		case BL_ELEM: elemental_damage((TBL_ELEM*)target,hp,sp); break;
 	}
 
 	if( src && target->type == BL_PC && ((TBL_PC*)target)->disguise ) {// stop walking when attacked in disguise to prevent walk-delay bug
@@ -4429,11 +4429,6 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk += 70;
 	if(sc->data[SC_ANGRIFFS_MODUS])
 		batk += batk * sc->data[SC_ANGRIFFS_MODUS]->val2/100;
-/*#ifdef RENEWAL_EDP
-	// Renewal EDP not increase base atk
-	if( sc->data[SC_EDP] )
-		batk = batk * sc->data[SC_EDP]->val1;
-#endif*/
 
 	if( sc->data[SC_ZANGETSU] )
 		batk += batk * sc->data[SC_ZANGETSU]->val2 / 100;
@@ -4522,9 +4517,8 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 	if(sc->data[SC_ANGRIFFS_MODUS])
 		watk += watk * sc->data[SC_ANGRIFFS_MODUS]->val2/100;
 #ifdef RENEWAL_EDP
-	// renewal EDP increases your weapon atk by watk x Skill Level
 	if( sc->data[SC_EDP] )
-		watk = watk * (sc->data[SC_EDP]->val1);
+		watk = watk * (100 + sc->data[SC_EDP]->val1 * 80) / 100;
 #endif
 
 	return (unsigned short)cap_value(watk,0,USHRT_MAX);
@@ -7090,7 +7084,9 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			break;
 		case SC_EDP:	// [Celest]
 			val2 = val1 + 2; //Chance to Poison enemies.
+#ifndef RENEWAL_EDP
 			val3 = 50*(val1+1); //Damage increase (+50 +50*lv%)
+#endif
 			if( sd )//[Ind] - iROwiki says each level increases its duration by 3 seconds
 				tick += pc_checkskill(sd,GC_RESEARCHNEWPOISON)*3000;
 			break;
