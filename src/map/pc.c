@@ -6956,14 +6956,8 @@ int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 			sp += sp / 10;
 		}
 #ifdef RENEWAL
-		if( sd->sc.data[SC_EXTREMITYFIST] ){
-			const struct TimerData *timer;
-			int tick = skill_get_time2(MO_EXTREMITYFIST, sd->sc.data[SC_EXTREMITYFIST]->val1);
-			
-			timer = get_timer(sd->sc.data[SC_EXTREMITYFIST]->timer);
-			if( DIFF_TICK(tick, DIFF_TICK(timer->tick, gettick())) < 10000 )// 10 sec
-				sp = 0;
-		}
+		if( sd->sc.data[SC_EXTREMITYFIST2] )
+			sp = 0;
 #endif
 	}
 
