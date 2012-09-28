@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Current Version: =====================================
-//= $Revision: 16773 $
+//= $Revision: 16801 $
 //===== Last Updated: ========================================
-//= $LastChangedDate: 2012-09-11 03:33:57 +0700 (Tue, 11 Sep 2012) $
+//= $LastChangedDate: 2012-09-27 02:59:54 +0700 (Thu, 27 Sep 2012) $
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -6638,7 +6638,7 @@ by default.
 set number in this case will deactivate all pattern sets defined.
 
 'deletepset' will delete a pattern set from memory, so you can create a new 
-pattern set in it's place.
+pattern set in its place.
 
 Using regular expressions is high wizardry. But with this high wizardry comes 
 unparalleled power of text manipulation. For an explanation of what a regular 

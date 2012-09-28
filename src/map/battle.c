@@ -8,6 +8,7 @@
 #include "../common/showmsg.h"
 #include "../common/ers.h"
 #include "../common/random.h"
+#include "../common/socket.h"
 #include "../common/strlib.h"
 #include "../common/utils.h"
 
@@ -27,6 +28,7 @@
 #include "party.h"
 #include "battle.h"
 #include "battleground.h"
+#include "chrif.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,7 +69,7 @@ static int battle_gettargeted_sub(struct block_list *bl, va_list ap)
 
 	if (bl->id == target_id)
 		return 0;
-	if (*c >= 24)
+	if (*c >= 23)
 		return 0;
 
 	ud = unit_bl2ud(bl);
@@ -88,7 +90,7 @@ struct block_list* battle_gettargeted(struct block_list *target)
 
 	memset(bl_list, 0, sizeof(bl_list));
 	map_foreachinrange(battle_gettargeted_sub, target, AREA_SIZE, BL_CHAR, bl_list, &c, target->id);
-	if (c == 0 || c > 24)
+	if (c == 0 || c > 23)
 		return NULL;
 	return bl_list[rnd()%c];
 }
@@ -185,8 +187,8 @@ struct block_list* battle_getenemyarea(struct block_list *src, int x, int y, int
 
 // ƒ_??[ƒW‚Ì’x‰„
 struct delay_damage {
-	struct block_list *src;
-	struct block_list *target;
+	int src_id;
+	int target_id;
 	int damage;
 	int delay;
 	unsigned short distance;
@@ -196,29 +198,37 @@ struct delay_damage {
 	unsigned short attack_type;
 };
 
-int battle_delay_damage_sub(int tid, unsigned int tick, int id, intptr_t data)
-{
+int battle_delay_damage_sub(int tid, unsigned int tick, int id, intptr_t data) {
 	struct delay_damage *dat = (struct delay_damage *)data;
-
-	if ( dat && dat->target && dat->target->prev != NULL && !status_isdead(dat->target) ) {
-		if( dat->src && dat->src->prev != NULL && id == dat->src->id &&
-			dat->target->m == dat->src->m &&
-			(dat->target->type != BL_PC || ((TBL_PC*)dat->target)->invincible_timer == INVALID_TIMER) &&
-			check_distance_bl(dat->src, dat->target, dat->distance) ) //Check to see if you haven't teleported. [Skotlex]
+	
+	if ( dat ) {
+		struct block_list* src;
+		struct block_list* target = map_id2bl(dat->target_id);
+		
+		if( !target || status_isdead(target) ) {/* nothing we can do */
+			ers_free(delay_damage_ers, dat);
+			return 0;
+		}
+			
+		src = map_id2bl(dat->src_id);
+		
+		if( src && target && target->m == src->m &&
+			(target->type != BL_PC || ((TBL_PC*)target)->invincible_timer == INVALID_TIMER) &&
+			check_distance_bl(src, target, dat->distance) ) //Check to see if you haven't teleported. [Skotlex]
 		{
 			map_freeblock_lock();
-			status_fix_damage(dat->src, dat->target, dat->damage, dat->delay);
-			if( dat->attack_type && !status_isdead(dat->target) )
-				skill_additional_effect(dat->src,dat->target,dat->skill_id,dat->skill_lv,dat->attack_type,dat->dmg_lv,tick);
+			status_fix_damage(src, target, dat->damage, dat->delay);
+			if( dat->attack_type && !status_isdead(target) )
+				skill_additional_effect(src,target,dat->skill_id,dat->skill_lv,dat->attack_type,dat->dmg_lv,tick);
 			if( dat->dmg_lv > ATK_BLOCK && dat->attack_type )
-				skill_counter_additional_effect(dat->src,dat->target,dat->skill_id,dat->skill_lv,dat->attack_type,tick);
+				skill_counter_additional_effect(src,target,dat->skill_id,dat->skill_lv,dat->attack_type,tick);
 			map_freeblock_unlock();
-		} else if( dat->skill_id == CR_REFLECTSHIELD && !map_id2bl(id) ) {
+		} else if( target && !src && dat->skill_id == CR_REFLECTSHIELD ) {
 			/**
 			 * it was monster reflected damage, and the monster died, we pass the damage to the character as expected
 			 **/
 			map_freeblock_lock();
-			status_fix_damage(dat->target, dat->target, dat->damage, dat->delay);
+			status_fix_damage(target, target, dat->damage, dat->delay);
 			map_freeblock_unlock();
 		}
 	}
@@ -249,8 +259,8 @@ int battle_delay_damage (unsigned int tick, int amotion, struct block_list *src,
 		return 0;
 	}
 	dat = ers_alloc(delay_damage_ers, struct delay_damage);
-	dat->src = src;
-	dat->target = target;
+	dat->src_id = src->id;
+	dat->target_id = target->id;
 	dat->skill_id = skill_id;
 	dat->skill_lv = skill_lv;
 	dat->attack_type = attack_type;
@@ -261,7 +271,7 @@ int battle_delay_damage (unsigned int tick, int amotion, struct block_list *src,
 	if (src->type != BL_PC && amotion > 1000)
 		amotion = 1000; //Aegis places a damage-delay cap of 1 sec to non player attacks. [Skotlex]
 
-	add_timer(tick+amotion, battle_delay_damage_sub, src->id, (intptr_t)dat);
+	add_timer(tick+amotion, battle_delay_damage_sub, 0, (intptr_t)dat);
 	
 	return 0;
 }
@@ -5909,7 +5919,141 @@ static const struct _battle_data {
 	{ "homunculus_max_level",               &battle_config.hom_max_level,                   99,     0,      MAX_LEVEL,      },
 	{ "homunculus_S_max_level",             &battle_config.hom_S_max_level,                 150,    0,      MAX_LEVEL,      },
 };
+#ifndef STATS_OPT_OUT
+/**
+ * rAthena anonymous statistic usage report -- packet is built here, and sent to char server to report.
+ **/
+void rAthena_report(char* date, char *time_c) {
+	int i, rev = 0, bd_size = ARRAYLENGTH(battle_data);
+	unsigned int config = 0;
+	const char* rev_str;
+	char timestring[25];
+	time_t curtime;
+	char* buf;
 
+	enum config_table {
+		C_CIRCULAR_AREA         = 0x0001,
+		C_CELLNOSTACK           = 0x0002,
+		C_BETA_THREAD_TEST      = 0x0004,
+		C_SCRIPT_CALLFUNC_CHECK = 0x0008,
+		C_OFFICIAL_WALKPATH     = 0x0010,
+		C_RENEWAL               = 0x0020,
+		C_RENEWAL_CAST          = 0x0040,
+		C_RENEWAL_DROP          = 0x0080,
+		C_RENEWAL_EXP           = 0x0100,
+		C_RENEWAL_LVDMG         = 0x0200,
+		C_RENEWAL_EDP           = 0x0400,
+		C_RENEWAL_ASPD          = 0x0800,
+		C_SECURE_NPCTIMEOUT     = 0x1000,
+		C_SQL_DBS               = 0x2000,
+		C_SQL_LOGS              = 0x4000,
+	};
+		
+	if( (rev_str = get_svn_revision()) != 0 )
+		rev = atoi(rev_str);
+	
+	/* we get the current time */
+	time(&curtime);
+	strftime(timestring, 24, "%Y-%m-%d %H:%M:%S", localtime(&curtime));
+	
+	
+#ifdef CIRCULAR_AREA
+	config |= C_CIRCULAR_AREA;
+#endif
+	
+#ifdef CELL_NOSTACK
+	config |= C_CELLNOSTACK;
+#endif
+	
+#ifdef BETA_THREAD_TEST
+	config |= C_BETA_THREAD_TEST;
+#endif
+
+#ifdef SCRIPT_CALLFUNC_CHECK
+	config |= C_SCRIPT_CALLFUNC_CHECK;
+#endif
+
+#ifdef OFFICIAL_WALKPATH
+	config |= C_OFFICIAL_WALKPATH;
+#endif
+
+#ifdef RENEWAL
+	config |= C_RENEWAL;
+#endif
+	
+#ifdef RENEWAL_CAST
+	config |= C_RENEWAL_CAST;
+#endif
+
+#ifdef RENEWAL_DROP
+	config |= C_RENEWAL_DROP;
+#endif
+
+#ifdef RENEWAL_EXP
+	config |= C_RENEWAL_EXP;
+#endif
+	
+#ifdef RENEWAL_LVDMG
+	config |= C_RENEWAL_LVDMG;
+#endif
+
+#ifdef RENEWAL_EDP
+	config |= C_RENEWAL_EDP;
+#endif
+	
+#ifdef RENEWAL_ASPD
+	config |= C_RENEWAL_ASPD;
+#endif
+	
+/* not a ifdef because SECURE_NPCTIMEOUT is always defined, but either as 0 or higher */
+#if SECURE_NPCTIMEOUT
+	config |= C_SECURE_NPCTIMEOUT;
+#endif
+	/* non-define part */
+	if( db_use_sqldbs )
+		config |= C_SQL_DBS;
+	
+	if( log_config.sql_logs )
+		config |= C_SQL_LOGS;
+	
+#define BFLAG_LENGTH 35
+	
+	CREATE(buf, char, 6 + 12 + 9 + 24 + 4 + 4 + 4 + 4 + ( bd_size * ( BFLAG_LENGTH + 4 ) ) + 1 );
+	
+	/* build packet */
+
+	WBUFW(buf,0) = 0x3000;
+	WBUFW(buf,2) = 6 + 12 + 9 + 24 + 4 + 4 + 4 + 4 + ( bd_size * ( BFLAG_LENGTH + 4 ) );
+	WBUFW(buf,4) = 0x9c;
+
+	safestrncpy((char*)WBUFP(buf,6), date, 12);
+	safestrncpy((char*)WBUFP(buf,6 + 12), time_c, 9);
+	safestrncpy((char*)WBUFP(buf,6 + 12 + 9), timestring, 24);
+	
+	WBUFL(buf,6 + 12 + 9 + 24)         = rev;	
+	WBUFL(buf,6 + 12 + 9 + 24 + 4)     = map_getusers();
+	
+	WBUFL(buf,6 + 12 + 9 + 24 + 4 + 4) = config;
+	WBUFL(buf,6 + 12 + 9 + 24 + 4 + 4 + 4) = bd_size;
+	
+	for( i = 0; i < bd_size; i++ ) {
+		safestrncpy((char*)WBUFP(buf,6 + 12 + 9+ 24  + 4 + 4 + 4 + 4 + ( i * ( BFLAG_LENGTH + 4 ) ) ), battle_data[i].str, 35);
+		WBUFL(buf,6 + 12 + 9 + 24 + 4 + 4 + 4 + 4 + BFLAG_LENGTH + ( i * ( BFLAG_LENGTH + 4 )  )  ) = *battle_data[i].val;
+	}	
+		
+	chrif_send_report(buf,  6 + 12 + 9 + 24 + 4 + 4 + 4 + 4 + ( bd_size * ( BFLAG_LENGTH + 4 ) ) );
+	
+	aFree(buf);
+	
+#undef BFLAG_LENGTH
+}
+static int rAthena_report_timer(int tid, unsigned int tick, int id, intptr_t data) {
+	if( chrif_isconnected() ) {/* char server relays it, so it must be online. */
+		rAthena_report(__DATE__,__TIME__);
+	}
+	return 0;
+}
+#endif
 
 int battle_set_value(const char* w1, const char* w2)
 {
@@ -6033,6 +6177,12 @@ void do_init_battle(void)
 {
 	delay_damage_ers = ers_new(sizeof(struct delay_damage),"battle.c::delay_damage_ers",ERS_OPT_CLEAR);
 	add_timer_func_list(battle_delay_damage_sub, "battle_delay_damage_sub");
+	
+#ifndef STATS_OPT_OUT
+	add_timer_func_list(rAthena_report_timer, "rAthena_report_timer");
+	add_timer_interval(gettick()+30000, rAthena_report_timer, 0, 0, 60000 * 30);
+#endif
+
 }
 
 void do_final_battle(void)
