@@ -8216,6 +8216,8 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			break;
 		case SC_SATURDAYNIGHTFEVER:
 			val2 = 12000 - 2000 * val1;//HP/SP Drain Timer
+			if ( val2 < 1000 )
+				val2 = 1000;//Added to prevent val3 from dividing by 0 when using level 6 or higher through commands. [Rytech]
 			val3 = tick/val2;
 			tick = val2;
 			break;
