@@ -10479,13 +10479,9 @@ int status_change_timer_sub(struct block_list* bl, va_list ap)
 
 	switch( type ) {
 	case SC_SIGHT:	/* サイト */
-		if ( sce->val4 == 2000 && tsc && tsc->data[SC__SHADOWFORM] && rnd()%100 < 100 - 10 * tsc->data[SC__SHADOWFORM]->val1)
-		{//Attempt to remove Shadow Form status by chance every 2 seconds. [Rytech]
-			status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
-			sce->val4 = 0;
-		}
-		else if ( sce->val4 >= 2000 )//Reset check to 0 seconds only if above condition fails.
-			sce->val4 = 0;//No break after this since other invisiable character status's are removed as well.
+		if( tsc && tsc->data[SC__SHADOWFORM] && (sce && sce->val4 >0 && sce->val4%2000 == 0) && // for every 2 seconds do the checking
+			rnd()%100 < 100-tsc->data[SC__SHADOWFORM]->val1*10 ) // [100 - (Skill Level x 10)] %
+				status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
 	case SC_CONCENTRATE:
 		status_change_end(bl, SC_HIDING, INVALID_TIMER);
 		status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
@@ -10493,15 +10489,6 @@ int status_change_timer_sub(struct block_list* bl, va_list ap)
 		status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
 		break;
 	case SC_RUWACH:	/* ルアフ */
-		if ( sce->val4 == 2000 && tsc && tsc->data[SC__SHADOWFORM] && rnd()%100 < 100 - 10 * tsc->data[SC__SHADOWFORM]->val1)
-		{//Attempt to remove Shadow Form status by chance every 2 seconds. [Rytech]
-			status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
-			if(battle_check_target( src, bl, BCT_ENEMY ) > 0)
-				skill_attack(BF_MAGIC,src,src,bl,AL_RUWACH,1,tick,0);
-			sce->val4 = 0;
-		}
-		else if ( sce->val4 >= 2000 )//Reset check to 0 seconds only if above condition fails.
-			sce->val4 = 0;//No break after this since other invisiable character status's are removed as well.
 		if (tsc && (tsc->data[SC_HIDING] || tsc->data[SC_CLOAKING] ||
 				tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_CLOAKINGEXCEED])) {
 			status_change_end(bl, SC_HIDING, INVALID_TIMER);
@@ -10511,6 +10498,11 @@ int status_change_timer_sub(struct block_list* bl, va_list ap)
 			if(battle_check_target( src, bl, BCT_ENEMY ) > 0)
 				skill_attack(BF_MAGIC,src,src,bl,AL_RUWACH,1,tick,0);
 		}
+		if( tsc && tsc->data[SC__SHADOWFORM] && (sce && sce->val4 >0 && sce->val4%2000 == 0) && // for every 2 seconds do the checking
+			rnd()%100 < 100-tsc->data[SC__SHADOWFORM]->val1*10 ) // [100 - (Skill Level x 10)] %
+				status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
+				if(battle_check_target( src, bl, BCT_ENEMY ) > 0)
+					skill_attack(BF_MAGIC,src,src,bl,AL_RUWACH,1,tick,0);
 		break;
 	case SC_SIGHTBLASTER:
 		if (battle_check_target( src, bl, BCT_ENEMY ) > 0 &&
