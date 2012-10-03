@@ -794,7 +794,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		if( sd && (sce = sc->data[SC_FORCEOFVANGUARD]) && flag&BF_WEAPON && rnd()%100 < sce->val2 )
 			pc_addspiritball(sd,skill_get_time(LG_FORCEOFVANGUARD,sce->val1),sce->val3);
 		
-		if( sc->data[SC__DEADLYINFECT] && damage > 0 && rnd()%100 < 65 + 5 * sc->data[SC__DEADLYINFECT]->val1 )
+		if( sc->data[SC__DEADLYINFECT] && flag&BF_SHORT && damage > 0 && rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 )
 			status_change_spread(bl, src); // Deadly infect attacked side
 
 		if( sc && sc->data[SC__SHADOWFORM] ) {
@@ -850,7 +850,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		}
 		if( sc->data[SC_POISONINGWEAPON] && skill_num != GC_VENOMPRESSURE && (flag&BF_WEAPON) && damage > 0 && rnd()%100 < sc->data[SC_POISONINGWEAPON]->val3 )
 				sc_start(bl,sc->data[SC_POISONINGWEAPON]->val2,100,sc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON, 1));
-		if( sc->data[SC__DEADLYINFECT] && damage > 0 && rnd()%100 < 65 + 5 * sc->data[SC__DEADLYINFECT]->val1 )
+		if( sc->data[SC__DEADLYINFECT] && flag&BF_SHORT && damage > 0 && rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 )
 			status_change_spread(src, bl);
 	}
 
@@ -1688,7 +1688,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				hitrate += 10 + 4 * skill_lv;
 				break;
 			case SC_FATALMENACE:
-					hitrate -= (35 - skill_lv * 5);
+					hitrate -= 35 - 5 * skill_lv;
 				break;
 			case LG_BANISHINGPOINT:
 					hitrate += 3 * skill_lv;
@@ -2365,12 +2365,15 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					break;
 				case SC_FATALMENACE:
 					skillratio += 100 * skill_lv;
+					RE_LVL_DMOD(100);
 					break;
 				case SC_TRIANGLESHOT:
-					skillratio += 270 + 30 * skill_lv;
+					skillratio += 200 + (skill_lv - 1) * sstatus->agi / 2;
+					RE_LVL_DMOD(120);
 					break;
 				case SC_FEINTBOMB:
-					skillratio += 100 + 100 * skill_lv;
+					skillratio = (1 + skill_lv) * sstatus->dex / 2 * sd->status.job_level / 10;
+					RE_LVL_DMOD(120);
 					break;
 				case LG_CANNONSPEAR:// Stimated formula. Still need confirm it.
 					skillratio = (50  + sstatus->str) * skill_lv;
@@ -5044,7 +5047,6 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			int r_skill = sd->status.skill[sc->data[SC__AUTOSHADOWSPELL]->val1].id,
 				r_lv = sc->data[SC__AUTOSHADOWSPELL]->val2, type;
 
-			if (r_skill != AL_HOLYLIGHT && r_skill != PR_MAGNUS) {
 				if( (type = skill_get_casttype(r_skill)) == CAST_GROUND ) {
 					int maxcount = 0;
 
@@ -5081,18 +5083,17 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 				case CAST_GROUND:
 					skill_castend_pos2(src, target->x, target->y, r_skill, r_lv, tick, flag);
 					break;
-				case CAST_NODAMAGE:
-					skill_castend_nodamage_id(src, target, r_skill, r_lv, tick, flag);
-					break;
 				case CAST_DAMAGE:
 					skill_castend_damage_id(src, target, r_skill, r_lv, tick, flag);
+					break;
+				case CAST_NODAMAGE:
+					skill_castend_nodamage_id(src, target, r_skill, r_lv, tick, flag);
 					break;
 				}
 				sd->state.autocast = 0;
 
 				sd->ud.canact_tick = tick + skill_delayfix(src, r_skill, r_lv);
 				clif_status_change(src, SI_ACTIONDELAY, 1, skill_delayfix(src, r_skill, r_lv), 0, 0, 1);
-			}
 		}
 
 		if (wd.flag & BF_WEAPON && src != target && damage > 0) {

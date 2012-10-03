@@ -147,6 +147,11 @@
 2213	// Comet
 2214	// Chain Lightning
 2216	// Earth Strain
+2217	// Tetra Vortex
+2222	// Summon Fire Ball
+2223	// Summon Lightning Ball
+2224	// Summon Water Ball
+2229	// Summon Stone
 
 // Ranger
 2233	// Arrow Storm
@@ -202,3 +207,4 @@
 2482	// Wall of Thorns
 2483	// Crazy Weed
 2490	// Hell's Plant
+2493	// Sling Item
