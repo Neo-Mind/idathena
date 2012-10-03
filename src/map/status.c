@@ -10501,8 +10501,6 @@ int status_change_timer_sub(struct block_list* bl, va_list ap)
 		if( tsc && tsc->data[SC__SHADOWFORM] && (sce && sce->val4 >0 && sce->val4%2000 == 0) && // for every 2 seconds do the checking
 			rnd()%100 < 100-tsc->data[SC__SHADOWFORM]->val1*10 ) // [100 - (Skill Level x 10)] %
 				status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
-				if(battle_check_target( src, bl, BCT_ENEMY ) > 0)
-					skill_attack(BF_MAGIC,src,src,bl,AL_RUWACH,1,tick,0);
 		break;
 	case SC_SIGHTBLASTER:
 		if (battle_check_target( src, bl, BCT_ENEMY ) > 0 &&
