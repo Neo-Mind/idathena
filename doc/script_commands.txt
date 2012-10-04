@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Current Version: =====================================
-//= $Revision: 16801 $
+//= $Revision: 16813 $
 //===== Last Updated: ========================================
-//= $LastChangedDate: 2012-09-27 02:59:54 +0700 (Thu, 27 Sep 2012) $
+//= $LastChangedDate: 2012-10-04 06:13:33 +0700 (Thu, 04 Oct 2012) $
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -908,8 +908,7 @@ OnPCLogoutEvent:
 OnPCBaseLvUpEvent:
 OnPCJobLvUpEvent:
 
-It's pretty obvious when these four special labels will be invoked. For more
-information, see 'doc/sample/PCLoginEvent.txt'
+It's pretty obvious when these four special labels will be invoked.
 
 OnPCDieEvent:
 
