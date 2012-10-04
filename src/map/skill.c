@@ -2500,6 +2500,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			case GN_SLINGITEM_RANGEMELEEATK:
 				copy_skill = GN_SLINGITEM;
 				break;
+			case KO_MUCHANAGE:
+				copy_skill = KO_MUCHANAGE;
 		}
 
 		if ((tsd->status.skill[copy_skill].id == 0 || tsd->status.skill[copy_skill].flag == SKILL_FLAG_PLAGIARIZED) &&
