@@ -2086,7 +2086,7 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 			status->mdef = cap_value(bonus, CHAR_MIN, CHAR_MAX);
 #endif
 			if( sd->state.lr_flag == 3 ) {//Shield, used for royal guard
-				sd->bonus.shieldmdef += bonus;
+				sd->bonus.shieldmdef = val;
 			}
 		}
 		break;
@@ -4144,6 +4144,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 		sd->sc.data[SC_TRICKDEAD] ||
 		sd->sc.data[SC_HIDING] ||
 		sd->sc.data[SC__SHADOWFORM] ||
+		sd->sc.data[SC__MANHOLE] ||
 		sd->sc.data[SC_KAGEHUMI] ||
 		(sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOITEM)
 	))

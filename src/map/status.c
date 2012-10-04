@@ -581,7 +581,7 @@ void initChangeTables(void) {
 	add_sc( WL_WHITEIMPRISON     , SC_WHITEIMPRISON	  );
 	set_sc_with_vfx( WL_FROSTMISTY        , SC_FREEZING        , SI_FROSTMISTY      , SCB_ASPD|SCB_SPEED|SCB_DEF|SCB_DEF2 );
 	add_sc( WL_JACKFROST         , SC_FREEZE		  );
-	set_sc( WL_MARSHOFABYSS      , SC_MARSHOFABYSS    , SI_MARSHOFABYSS    , SCB_SPEED|SCB_FLEE|SCB_DEF|SCB_MDEF );
+	set_sc( WL_MARSHOFABYSS      , SC_MARSHOFABYSS    , SI_MARSHOFABYSS    , SCB_AGI|SCB_DEX|SCB_SPEED );
 	set_sc( WL_RECOGNIZEDSPELL   , SC_RECOGNIZEDSPELL , SI_RECOGNIZEDSPELL , SCB_NONE );
 	add_sc( WL_SIENNAEXECRATE    , SC_STONE			  );
 	set_sc( WL_STASIS            , SC_STASIS          , SI_STASIS          , SCB_NONE );
@@ -1649,7 +1649,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 				sc->data[SC_BERSERK] ||
 				sc->data[SC_OBLIVIONCURSE] ||
 				sc->data[SC_WHITEIMPRISON] ||
-				(sc->data[SC_STASIS] && skill_block_check(src, SC_STASIS, skill_num)) ||
+				sc->data[SC_STASIS] ||
 				sc->data[SC__INVISIBILITY] ||
 				sc->data[SC_CRYSTALIZE] ||
 				sc->data[SC__IGNORANCE] ||
@@ -4180,6 +4180,8 @@ static unsigned short status_calc_agi(struct block_list *bl, struct status_chang
 		agi += ((sc->data[SC_MARIONETTE2]->val3)>>8)&0xFF;
 	if(sc->data[SC_ADORAMUS])
 		agi -= sc->data[SC_ADORAMUS]->val2;
+	if(sc->data[SC_MARSHOFABYSS])
+		agi -= agi * sc->data[SC_MARSHOFABYSS]->val2 / 100;
 	if(sc->data[SC_HARMONIZE])
 		agi -= sc->data[SC_HARMONIZE]->val2;
 	if(sc->data[SC_DROCERA_HERB_STEAMED])
@@ -4329,6 +4331,8 @@ static unsigned short status_calc_dex(struct block_list *bl, struct status_chang
 		dex -= ((sc->data[SC_MARIONETTE]->val4)>>8)&0xFF;
 	if(sc->data[SC_MARIONETTE2])
 		dex += ((sc->data[SC_MARIONETTE2]->val4)>>8)&0xFF;
+	if(sc->data[SC_MARSHOFABYSS])
+		dex -= dex * sc->data[SC_MARSHOFABYSS]->val2 / 100;
 	if(sc->data[SC__STRIPACCESSORY])
 		dex -= dex * sc->data[SC__STRIPACCESSORY]->val2 / 100;
 	if(sc->data[SC_HARMONIZE])
@@ -4711,8 +4715,6 @@ static signed short status_calc_flee(struct block_list *bl, struct status_change
 		flee += flee * sc->data[SC_WIND_STEP_OPTION]->val2 / 100;
 	if( sc->data[SC_ZEPHYR] )
 		flee += flee * sc->data[SC_ZEPHYR]->val2 / 100;
-	if( sc->data[SC_MARSHOFABYSS] )
-		flee -= (9 * sc->data[SC_MARSHOFABYSS]->val3 / 10 + sc->data[SC_MARSHOFABYSS]->val2 / 10) * (bl->type == BL_MOB ? 2 : 1);
 	if( sc->data[SC_ANGRIFFS_MODUS] )
 		flee -= flee * sc->data[SC_ANGRIFFS_MODUS]->val3 / 100;
 	if( sc->data[SC_GOLDENE_FERSE ] )
@@ -4791,8 +4793,6 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 #endif
 	if( sc->data[SC_FREEZING] )
 		def -= def * 10 / 100;
-	if( sc->data[SC_MARSHOFABYSS] )
-		def -= def * ( 6 + 6 * sc->data[SC_MARSHOFABYSS]->val3/10 + (bl->type == BL_MOB ? 5 : 3) * sc->data[SC_MARSHOFABYSS]->val2/36 ) / 100;
 	if( sc->data[SC_ANALYZE] )
 		def -= def * ( 14 * sc->data[SC_ANALYZE]->val1 ) / 100;
 	if( sc->data[SC_NEUTRALBARRIER] )
@@ -4922,8 +4922,6 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 	if(sc->data[SC_STONEHARDSKIN])// Final MDEF increase divided by 10 since were using classic (pre-renewal) mechanics. [Rytech]
 		mdef += sc->data[SC_STONEHARDSKIN]->val1;
 #endif
-	if(sc->data[SC_MARSHOFABYSS])
-		mdef -= mdef * ( 6 + 6 * sc->data[SC_MARSHOFABYSS]->val3/10 + (bl->type == BL_MOB ? 5 : 3) * sc->data[SC_MARSHOFABYSS]->val2/36 ) / 100;
 	if(sc->data[SC_ANALYZE])
 		mdef -= mdef * ( 14 * sc->data[SC_ANALYZE]->val1 ) / 100;
 	if(sc->data[SC_NEUTRALBARRIER])
@@ -5061,7 +5059,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 				if( sc->data[SC_FREEZING] )
 					val = max( val, 50 );
 				if( sc->data[SC_MARSHOFABYSS] )
-					val = max( val, 40 + 10 * sc->data[SC_MARSHOFABYSS]->val1 );
+					val = max( val, sc->data[SC_MARSHOFABYSS]->val3 );
 				if( sc->data[SC_CAMOUFLAGE] && (sc->data[SC_CAMOUFLAGE]->val3&1) == 0 )
 					val = max( val, sc->data[SC_CAMOUFLAGE]->val1 < 3 ? 0 : 25 * (5 - sc->data[SC_CAMOUFLAGE]->val1) );
 				if( sc->data[SC_STEALTHFIELD_MASTER] )
@@ -6185,9 +6183,6 @@ int status_get_sc_def(struct block_list *bl, enum sc_type type, int rate, int ti
 		break;
 	case SC_CRYSTALIZE:
 		tick -= (1000*(status->vit/10))+(status_get_lv(bl)/50);
-		break;
-	case SC_MANDRAGORA:
-		sc_def = (status->vit+status->luk)/5;
 		break;
 	case SC_KYOUGAKU:
 		tick -= 30*status->int_;
@@ -8025,6 +8020,10 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			break;
 		case SC_FREEZING:
 			status_change_end(bl, SC_BURNING, INVALID_TIMER);
+			break;
+		case SC_MARSHOFABYSS:
+			val2 = 3 * val1;//AGI and DEX Reduction
+			val3 = 10 * val1;//Movement Speed Reduction
 			break;
 		case SC_READING_SB:
 			// val2 = sp reduction per second
