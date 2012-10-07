@@ -8081,11 +8081,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case SC_BODYPAINT:
 		if( flag&1 ) {
-			if( tsc && (tsc->data[SC_HIDING] || tsc->data[SC_CLOAKING] ||
-						tsc->data[SC_CHASEWALK] || tsc->data[SC_CLOAKINGEXCEED]) ) {
+			if( tsc && (tsc->data[SC_HIDING] || tsc->data[SC_CLOAKING] || tsc->data[SC_CLOAKINGEXCEED]) ) {
 				status_change_end(bl, SC_HIDING, INVALID_TIMER);
 				status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
-				status_change_end(bl, SC_CHASEWALK, INVALID_TIMER);
 				status_change_end(bl, SC_CLOAKINGEXCEED, INVALID_TIMER);
 				sc_start(bl,type,20 + 5 * skilllv,skilllv,skill_get_time(skillid,skilllv));
 			}
@@ -11569,6 +11567,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 					// TODO: check if other hidden status can be removed.
 					status_change_end(bl,SC_HIDING,INVALID_TIMER);
 					status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
+					status_change_end(bl,SC_CLOAKINGEXCEED, INVALID_TIMER);
 				}
 			}
 			/* Enable this if kRO fix the current skill. Currently no damage on undead and demon monster. [Jobbie]
@@ -14705,14 +14704,8 @@ bool skill_check_camouflage(struct block_list *bl, struct status_change_entry *s
 	{
 		if( !wall )
 		{
-			if( sce->val1 < 3 ) //End camouflage.
+			if( sce->val1 < 2 ) //End camouflage.
 				status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
-			else
-			if( sce->val3&1 )
-			{	//Remove wall bonus
-				sce->val3&=~1;
-				status_calc_bl(bl,SCB_SPEED);
-			}
 		}
 	}
 

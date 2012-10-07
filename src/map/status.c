@@ -5060,8 +5060,8 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 					val = max( val, 50 );
 				if( sc->data[SC_MARSHOFABYSS] )
 					val = max( val, sc->data[SC_MARSHOFABYSS]->val3 );
-				if( sc->data[SC_CAMOUFLAGE] && (sc->data[SC_CAMOUFLAGE]->val3&1) == 0 )
-					val = max( val, sc->data[SC_CAMOUFLAGE]->val1 < 3 ? 0 : 25 * (5 - sc->data[SC_CAMOUFLAGE]->val1) );
+				if( sc->data[SC_CAMOUFLAGE] && sc->data[SC_CAMOUFLAGE]->val1 > 2 )
+					val = max( val, 25 * (5 - sc->data[SC_CAMOUFLAGE]->val1));
 				if( sc->data[SC_STEALTHFIELD_MASTER] )
 					val = max( val, 20 );
 				if( sc->data[SC__LAZINESS] )
@@ -6620,7 +6620,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			return 0;
 	break;
 	case SC_CAMOUFLAGE:
-		if( sd && pc_checkskill(sd, RA_CAMOUFLAGE) < 3 && !skill_check_camouflage(bl,NULL) )
+		if( sd && pc_checkskill(sd, RA_CAMOUFLAGE) < 2 && !skill_check_camouflage(bl,NULL) )
 			return 0;
 	break;
 	case SC__STRIPACCESSORY:
@@ -6697,7 +6697,10 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			case SC_BITE:
 			case SC_ELECTRICSHOCKER:
 			case SC_MAGNETICFIELD:
-
+			
+			// Other Effects
+			case SC_VACUUM_EXTREME:
+			case SC_CRYSTALIZE:
 				return 0;
 		}
 	}
@@ -8526,6 +8529,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		case SC_SPIDERWEB:
 		case SC_ELECTRICSHOCKER:
 		case SC_BITE:
+		case SC_CAMOUFLAGE:
 		case SC_THORNSTRAP:
 		case SC__MANHOLE:
 		case SC_CRYSTALIZE:
@@ -8542,7 +8546,6 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		case SC_CLOAKINGEXCEED:
 		case SC_CHASEWALK:
 		case SC_WEIGHT90:
-		case SC_CAMOUFLAGE:
 		case SC_VOICEOFSIREN:
 			unit_stop_attack(bl);
 		break;
@@ -8578,6 +8581,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		case SC_ANGELUS:      sc->opt2 |= OPT2_ANGELUS;      break;
 		case SC_BLEEDING:     sc->opt2 |= OPT2_BLEEDING;     break;
 		case SC_DPOISON:      sc->opt2 |= OPT2_DPOISON;      break;
+		case SC_FEAR:         sc->opt2 |= OPT2_FEAR;         break;
 		//OPT3
 		case SC_TWOHANDQUICKEN:
 		case SC_ONEHAND:
