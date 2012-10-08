@@ -4058,6 +4058,10 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 			status_percent_damage(src, src, 0, 100, false);
 		}
 		break;
+		
+	case KO_MAKIBISHI:
+		skill_castend_pos2(src,bl->x,bl->y,skillid,skilllv,tick,0);
+		break;
 
 	case NPC_BLOODDRAIN:
 	case NPC_ENERGYDRAIN:
@@ -9634,7 +9638,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, int skillid, int sk
 	case KO_HUUMARANKA:
 	case KO_MUCHANAGE:
 	case KO_BAKURETSU:
-	//case KO_MAKIBISHI:
+	case KO_MAKIBISHI:
 	case KO_ZENKAI:
 		flag|=1;//Set flag to 1 to prevent deleting ammo (it will be deleted on group-delete).
 	case GS_GROUNDDRIFT: //Ammo should be deleted right away.

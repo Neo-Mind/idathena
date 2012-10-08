@@ -975,6 +975,7 @@ int battle_calc_gvg_damage(struct block_list *src,struct block_list *bl,int dama
 			case MO_TRIPLEATTACK:
 #endif
 			case HW_GRAVITATION:
+			case KO_MAKIBISHI:
 				break;
 			default:
 				return 0;
