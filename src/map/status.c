@@ -1649,7 +1649,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 				sc->data[SC_BERSERK] ||
 				sc->data[SC_OBLIVIONCURSE] ||
 				sc->data[SC_WHITEIMPRISON] ||
-				sc->data[SC_STASIS] ||
+				(sc->data[SC_STASIS] && skill_block_check(src, SC_STASIS, skill_num)) ||
 				sc->data[SC__INVISIBILITY] ||
 				sc->data[SC_CRYSTALIZE] ||
 				sc->data[SC__IGNORANCE] ||
