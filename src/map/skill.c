@@ -2373,7 +2373,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	case WL_TETRAVORTEX_WATER:
 	case WL_TETRAVORTEX_WIND:
 	case WL_TETRAVORTEX_GROUND:
-		dmg.dmotion = clif_skill_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,1,WL_TETRAVORTEX_FIRE,-2,type);
+		clif_skill_nodamage(src, bl, skillid, -2, 1);
+		clif_skill_damage(src,bl,tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skillid, -2, 5);
 		break;
 	case SC_FEINTBOMB:
 		dmg.dmotion = clif_skill_damage(dsrc,bl,tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skillid, -1, 5);
@@ -4333,6 +4334,12 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case WL_HELLINFERNO:
 		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
 		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag|ELE_DARK);
+		break;
+	case WL_TETRAVORTEX_FIRE:
+	case WL_TETRAVORTEX_WATER:
+	case WL_TETRAVORTEX_WIND:
+	case WL_TETRAVORTEX_GROUND:
+		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 	case RA_WUGSTRIKE:
 		if( sd && pc_isridingwug(sd) ){
