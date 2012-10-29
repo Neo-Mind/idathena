@@ -8334,12 +8334,13 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		case SC_GT_CHANGE:
 			{// take note there is no def increase as skill desc says. [malufett]
 				struct block_list * src;
-				int casterint = status_get_int(src);
-				if ( casterint <= 0 )
-					casterint = 1; //Prevents dividing by 0 since its possiable to reduce players stats to 0; [Rytech]
 				val3 = status->agi * val1 / 60; // ASPD increase: [(Target?s AGI x Skill Level) / 60] %
-				if( (src = map_id2bl(val2)) )
-					val4 = ( 200/casterint ) * val1;// MDEF decrease: MDEF [(200 / Casters INT) x Skill Level]
+				if( (src = map_id2bl(val2)) ) {
+					int casterint = status_get_int(src);
+					if ( casterint <= 0 )
+						casterint = 1; //Prevents dividing by 0 since its possiable to reduce players stats to 0; [Rytech]
+					val4 = ( 200/casterint ) * val1; // MDEF decrease: MDEF [(200 / Casters INT) x Skill Level]
+				}
 			}
 			break;
 		case SC_GT_REVITALIZE:
