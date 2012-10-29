@@ -1163,11 +1163,9 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		sc_start(bl,SC_CRITICALWOUND,100,skilllv,skill_get_time2(skillid,skilllv));
 		break;
 	case RK_HUNDREDSPEAR:
-		if( !sd || pc_checkskill(sd,KN_SPEARBOOMERANG) == 0 )
-			break; // Spear Boomerang auto cast chance only works if you have mastered Spear Boomerang.
-		rate = 10 + 3 * skilllv;
-		if( rnd()%100 < rate )
-			skill_castend_damage_id(src,bl,KN_SPEARBOOMERANG,1,tick,0);
+		if ( pc_checkskill(sd,KN_SPEARBOOMERANG) > 0 )
+			if( rnd()%100 < 10 + 3 * skilllv )
+				skill_castend_damage_id(src,bl,KN_SPEARBOOMERANG,pc_checkskill(sd,KN_SPEARBOOMERANG),tick,0);
 		break;
 	case RK_WINDCUTTER:
 		sc_start(bl,SC_FEAR,3+2*skilllv,skilllv,skill_get_time(skillid,skilllv));
@@ -10007,9 +10005,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, int skillid, int sk
 	case SC_FEINTBOMB:
 		clif_skill_nodamage(src,src,skillid,skilllv,1);
 		skill_unitsetting(src,skillid,skilllv,x,y,0); // Set bomb on current Position
-		skill_blown(src,src,3*skilllv,unit_getdir(src),0);
-		//After back sliding, the player goes into hiding. Hiding level used is throught to be the learned level.
-		sc_start(src,SC_HIDING,100,pc_checkskill(sd,TF_HIDING),skill_get_time(TF_HIDING,pc_checkskill(sd,TF_HIDING)));
+		if( skill_blown(src,src,6,unit_getdir(src),0) )
+			skill_castend_nodamage_id(src,src,TF_HIDING,1,tick,0);
 		break;
 
 	case LG_OVERBRAND:
@@ -15273,7 +15270,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 			case UNT_FEINTBOMB: {
 				struct block_list *src =  map_id2bl(group->src_id);
 				if( src )
-					map_foreachinrange(skill_area_sub, &group->unit->bl, unit->range, splash_target(src), src, SC_FEINTBOMB, group->skill_lv, tick, BCT_ENEMY|1, skill_castend_damage_id);
+					map_foreachinrange(skill_area_sub, &group->unit->bl, unit->range, splash_target(src), src, SC_FEINTBOMB, group->skill_lv, tick, BCT_ENEMY|SD_ANIMATION|1, skill_castend_damage_id);
 				skill_delunit(unit);
 				break;
 			}
@@ -15743,7 +15740,7 @@ int skill_produce_mix (struct map_session_data *sd, int skill_id, int nameid, in
 		data = itemdb_search(nameid);
 		
 		if( skill_lv == 10 ) temp_qty = 1 + rnd()%3;
-		else if( skill_lv > 5 ) temp_qty = 1 + rnd()%2;
+		else if( skill_lv >= 5 ) temp_qty = 1 + rnd()%2;
 		else temp_qty = 1;
 		
 		if (data->stack.inventory) {
@@ -15874,14 +15871,38 @@ int skill_produce_mix (struct map_session_data *sd, int skill_id, int nameid, in
 			 * Rune Knight
 			 **/
 			case RK_RUNEMASTERY:
-				make_per = 5 * (sd->itemid + pc_checkskill(sd,skill_id)) * 100;
+				make_per = (50 + 2 * pc_checkskill(sd,skill_id)) * 100 // Base success rate and success rate increase from learned Rune Mastery level.
+						       + status->dex / 3 * 10 + status->luk * 10 + s_job_level * 10 // Success increase from DEX, LUK, and job level.
+							   + sd->itemid * 100;// Quality of the rune ore used. Values are 2, 5, 8, 11, and 14.
+				switch ( nameid )// Success reduction from rune stone rank. Each rune has a different rank. Values are 5, 10, 15, and 20.
+				{
+					case 12727:// Verkana / RK_MILLENNIUMSHIELD
+						make_per -= 20 * 100;//S-Rank Reduction
+						break;
+					case 12725:// Nosiege / RK_REFRESH
+					case 12730:// Urj / RK_ABUNDANCE
+						make_per -= 15 * 100;//A-Rank Reduction
+						break;
+					case 12728:// Isia / RK_VITALITYACTIVATION
+					case 12732:// Pertz / RK_STORMBLAST
+						make_per -= 10 * 100;//B-Rank Reduction
+						break;
+					case 12726:// Rhydo / RK_CRUSHSTRIKE
+					case 12729:// Asir / RK_FIGHTINGSPIRIT
+					case 12731:// Turisus / RK_GIANTGROWTH
+					case 12733:// Hagalas / RK_STONEHARDSKIN
+						make_per -= 5 * 100;//C-Rank Reduction
+						break;
+				}
+				qty = temp_qty;
 				break;
 			/**
 			 * Guilotine Cross
 			 **/
 			case GC_CREATENEWPOISON:
-				make_per = 3000 + 500 * pc_checkskill(sd,GC_RESEARCHNEWPOISON);
-				qty = 1+rnd()%pc_checkskill(sd,GC_RESEARCHNEWPOISON);
+				make_per = 3000 + 500 * pc_checkskill(sd,GC_RESEARCHNEWPOISON)
+								+ status->dex / 3 * 10 + status->luk * 10 + s_job_level * 10;// Success increase from DEX, LUK, and job level.
+				qty = rnd_value( (3 + pc_checkskill(sd,GC_RESEARCHNEWPOISON)) / 2, (8 + pc_checkskill(sd,GC_RESEARCHNEWPOISON)) / 2 );
 				break;
 			case GN_CHANGEMATERIAL: 
 				for(i=0; i<MAX_SKILL_PRODUCE_DB; i++)
