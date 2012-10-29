@@ -15872,7 +15872,7 @@ int skill_produce_mix (struct map_session_data *sd, int skill_id, int nameid, in
 			 **/
 			case RK_RUNEMASTERY:
 				make_per = (50 + 2 * pc_checkskill(sd,skill_id)) * 100 // Base success rate and success rate increase from learned Rune Mastery level.
-					       + status->dex / 3 * 10 + status->luk * 10 + s_job_level * 10 // Success increase from DEX, LUK, and job level.
+					       + status->dex / 3 * 10 + status->luk * 10 + sd->status.job_level * 10 // Success increase from DEX, LUK, and job level.
 					       + sd->itemid * 100;// Quality of the rune ore used. Values are 2, 5, 8, 11, and 14.
 				switch ( nameid )// Success reduction from rune stone rank. Each rune has a different rank. Values are 5, 10, 15, and 20.
 				{
@@ -15894,14 +15894,13 @@ int skill_produce_mix (struct map_session_data *sd, int skill_id, int nameid, in
 						make_per -= 5 * 100;//C-Rank Reduction
 						break;
 				}
-				qty = temp_qty;
 				break;
 			/**
 			 * Guilotine Cross
 			 **/
 			case GC_CREATENEWPOISON:
 				make_per = 3000 + 500 * pc_checkskill(sd,GC_RESEARCHNEWPOISON)
-						+ status->dex / 3 * 10 + status->luk * 10 + s_job_level * 10;// Success increase from DEX, LUK, and job level.
+						+ status->dex / 3 * 10 + status->luk * 10 + sd->status.job_level * 10;// Success increase from DEX, LUK, and job level.
 				qty = rnd_value( (3 + pc_checkskill(sd,GC_RESEARCHNEWPOISON)) / 2, (8 + pc_checkskill(sd,GC_RESEARCHNEWPOISON)) / 2 );
 				break;
 			case GN_CHANGEMATERIAL: 
