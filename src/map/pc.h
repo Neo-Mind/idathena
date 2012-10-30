@@ -174,7 +174,7 @@ struct map_session_data {
 	unsigned short mapindex;
 	unsigned char head_dir; //0: Look forward. 1: Look right, 2: Look left.
 	unsigned int client_tick;
-	int npc_id,areanpc_id,npc_shopid,touching_id;
+	int npc_id,areanpc_id,npc_shopid,touching_id; //for script follow scriptoid ,npcid
 	int npc_item_flag; //Marks the npc_id with which you can use items during interactions with said npc (see script command enable_itemuse)
 	int npc_menu; // internal variable, used in npc menu handling
 	int npc_amount;
@@ -908,4 +908,7 @@ int pc_del_talisman(struct map_session_data *sd,int count,int type);
 
 void pc_baselevelchanged(struct map_session_data *sd);
 
+#if defined(RENEWAL_DROP) || defined(RENEWAL_EXP)
+	int pc_level_penalty_mod(struct map_session_data *sd, struct mob_data * md, int type);
+#endif
 #endif /* _PC_H_ */

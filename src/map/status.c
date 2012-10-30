@@ -68,7 +68,7 @@ static struct {
 	int randombonus_max[MAX_REFINE]; // cumulative maximum random bonus damage
 } refine_info[REFINE_TYPE_MAX];
 
-static int atkmods[3][MAX_WEAPON_TYPE];	// 武器ATKサイズ修正(size_fix.txt)
+static int atkmods[3][MAX_WEAPON_TYPE];	// ATK weapon modification for size (size_fix.txt)
 static char job_bonus[CLASS_COUNT][MAX_LEVEL];
 
 static struct eri *sc_data_ers; //For sc_data entries
@@ -2093,7 +2093,7 @@ int status_calc_mob_(struct mob_data* md, bool first)
 
 	if (flag&2)
 	{	// change for sized monsters [Valaris]
-		if (md->special_state.size==1) {
+		if (md->special_state.size==SZ_MEDIUM) {
 			status->max_hp>>=1;
 			status->max_sp>>=1;
 			if (!status->max_hp) status->max_hp = 1;
@@ -2112,7 +2112,7 @@ int status_calc_mob_(struct mob_data* md, bool first)
 			if (!status->int_) status->int_ = 1;
 			if (!status->dex) status->dex = 1;
 			if (!status->luk) status->luk = 1;
-		} else if (md->special_state.size==2) {
+		} else if (md->special_state.size==SZ_BIG) {
 			status->max_hp<<=1;
 			status->max_sp<<=1;
 			status->hp=status->max_hp;
@@ -8334,12 +8334,12 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		case SC_GT_CHANGE:
 			{// take note there is no def increase as skill desc says. [malufett]
 				struct block_list * src;
-				val3 = status->agi * val1 / 60; // ASPD increase: [(Target?s AGI x Skill Level) / 60] %
+				val3 = status->agi * val1 / 60; // ASPD increase: [(Target AGI x Skill Level) / 60] %
 				if( (src = map_id2bl(val2)) ) {
 					int casterint = status_get_int(src);
 					if ( casterint <= 0 )
 						casterint = 1; //Prevents dividing by 0 since its possiable to reduce players stats to 0; [Rytech]
-					val4 = ( 200/casterint ) * val1; // MDEF decrease: MDEF [(200 / Casters INT) x Skill Level]
+					val4 = ( 200/casterint ) * val1; // MDEF decrease: MDEF [(200 / Caster INT) x Skill Level]
 				}
 			}
 			break;
@@ -8348,7 +8348,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 				struct block_list * src;
 				val3 = val1 * 30 + 150; // Natural HP recovery increase: [(Skill Level x 30) + 50] %
 				if( (src = map_id2bl(val2)) ) // the stat def is not shown in the status window and it is process differently
-					val4 = ( status_get_vit(src)/4 ) * val1; // STAT DEF increase: [(Casters VIT / 4) x Skill Level]
+					val4 = ( status_get_vit(src)/4 ) * val1; // STAT DEF increase: [(Caster VIT / 4) x Skill Level]
 			}
 			break;
 		case SC_PYROTECHNIC_OPTION:
@@ -11091,7 +11091,13 @@ static bool status_readdb_refine(char* fields[], int columns, int current)
 	}
 	return true;
 }
-
+/*
+* Read status db
+* job1.txt
+* job2.txt
+* size_fixe.txt
+* refine_db.txt
+*/
 int status_readdb(void)
 {
 	int i, j;
@@ -11099,13 +11105,13 @@ int status_readdb(void)
 	// initialize databases to default
 	//
 
-	// job_db1.txt
+	// reset job_db1.txt data
 	memset(max_weight_base, 0, sizeof(max_weight_base));
 	memset(hp_coefficient, 0, sizeof(hp_coefficient));
 	memset(hp_coefficient2, 0, sizeof(hp_coefficient2));
 	memset(sp_coefficient, 0, sizeof(sp_coefficient));
 	memset(aspd_base, 0, sizeof(aspd_base));
-	// job_db2.txt
+	// reset job_db2.txt data
 	memset(job_bonus,0,sizeof(job_bonus)); // Job-specific stats bonus
 
 	// size_fix.txt
@@ -11141,7 +11147,7 @@ int status_readdb(void)
 }
 
 /*==========================================
- * スキル関係初期化処理
+ * Status db init and destroy.
  *------------------------------------------*/
 int do_init_status(void)
 {
