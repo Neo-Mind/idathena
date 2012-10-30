@@ -561,7 +561,7 @@ int pc_makesavestatus(struct map_session_data *sd)
 }
 
 /*==========================================
- * Off init ? Connection?
+ * Off init ? Connection ?
  *------------------------------------------*/
 int pc_setnewpc(struct map_session_data *sd, int account_id, int char_id, int login_id1, unsigned int client_tick, int sex, int fd)
 {
@@ -5733,6 +5733,7 @@ unsigned int pc_nextbaseexp(struct map_session_data *sd)
 }
 
 //Base exp needed for this level.
+unsigned int pc_thisbaseexp(struct map_session_data *sd)
 {
 	if(sd->status.base_level>pc_maxbaselv(sd) || sd->status.base_level<=1)
 		return 0;

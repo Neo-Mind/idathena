@@ -1370,7 +1370,7 @@ int guild_reqalliance(struct map_session_data *sd,struct map_session_data *tsd)
 	int i;
 
 	if(agit_flag || agit2_flag)	{	// Disable alliance creation during woe [Valaris]
-		clclif_displaymessage(sd->fd,msg_txt(676)); //"Alliances cannot be made during Guild Wars!"
+		clif_displaymessage(sd->fd,msg_txt(676)); //"Alliances cannot be made during Guild Wars!"
 		return 0;
 	}	// end addition [Valaris]
 

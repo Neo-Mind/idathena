@@ -3574,7 +3574,7 @@ void npc_read_event_script(void)
 
 void npc_clear_pathlist(void) {
 	struct npc_path_data *npd = NULL;
-	DBIterator *path_list = db_iterator(npc_path_db)
+	DBIterator *path_list = db_iterator(npc_path_db);
 	
 	/* free all npc_path_data filepaths */
 	for( npd = dbi_first(path_list); dbi_exists(path_list); npd = dbi_next(path_list) ) {
