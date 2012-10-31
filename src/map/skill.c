@@ -3095,19 +3095,19 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 
 	do {
 		if(src->prev == NULL)
-			break;
+			break; // Source not on Map
 		if(skl->target_id) {
 			target = map_id2bl(skl->target_id);
 			if( ( skl->skill_id == RG_INTIMIDATE || skl->skill_id == SC_FATALMENACE ) && (!target || target->prev == NULL || !check_distance_bl(src,target,AREA_SIZE)) )
 				target = src; //Required since it has to warp.
 			if(target == NULL)
-				break;
+				break; // Target offline?
 			if(target->prev == NULL)
-				break;
+				break; // Target not on Map
 			if(src->m != target->m)
-				break;
+				break; // Different Maps
 			if(status_isdead(src))
-				break;
+				break; // Caster is Dead
 			if(status_isdead(target) && skl->skill_id != RG_INTIMIDATE && skl->skill_id != WZ_WATERBALL)
 				break;
 
@@ -11702,7 +11702,24 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 		case UNT_EARTH_INSIGNIA:
 		case UNT_ZEPHYR:
 			sc_start(bl,type, 100, sg->skill_lv, sg->interval);
-			break;			
+			if (!battle_check_undead(tstatus->race, tstatus->def_ele)) {
+				int hp = tstatus->max_hp / 100; //+1% each 5s
+				if ((sg->val3) % 5) { //each 5s
+					if (tstatus->def_ele == skill_get_ele(sg->skill_id,sg->skill_lv)){
+						status_heal(bl, hp, 0, 2);
+					} else if((sg->unit_id ==  UNT_FIRE_INSIGNIA && tstatus->def_ele == ELE_EARTH)
+						||(sg->unit_id ==  UNT_WATER_INSIGNIA && tstatus->def_ele == ELE_FIRE)
+						||(sg->unit_id ==  UNT_WIND_INSIGNIA && tstatus->def_ele == ELE_WATER)
+						||(sg->unit_id ==  UNT_EARTH_INSIGNIA && tstatus->def_ele == ELE_WIND)
+					){
+						status_heal(bl, -hp, 0, 0);
+					}
+				}
+			}
+			sg->val3++; //timer
+			if (sg->val3 > 5)
+				sg->val3 = 0;
+			break;
 			
 		case UNT_VACUUM_EXTREME:
 			{// TODO: official behavior in gvg area. [malufett]
@@ -12690,19 +12707,6 @@ int skill_check_condition_castbegin(struct map_session_data* sd, short skill, sh
 				return 0;
 			}
 			break;
-		case GC_CROSSRIPPERSLASHER:
-			if( !(sc && sc->data[SC_ROLLINGCUTTER]) ) {
-				clif_skill_fail(sd, skill, USESKILL_FAIL_CONDITION, 0);
-				return 0;
-			}
-			break;
-		case GC_POISONSMOKE:
-		case GC_VENOMPRESSURE:
-			if( !(sc && sc->data[SC_POISONINGWEAPON]) ) {
-				clif_skill_fail(sd, skill, USESKILL_FAIL_GC_POISONINGWEAPON, 0);
-				return 0;
-			}
-			break;
 		/**
 		 * Ranger
 		 **/
@@ -12977,6 +12981,18 @@ int skill_check_condition_castbegin(struct map_session_data* sd, short skill, sh
 			return 0;
 		}
 		break;
+	case ST_POISONINGWEAPON:
+		if (!(sc && sc->data[SC_POISONINGWEAPON])) {
+			clif_skill_fail(sd, skill, USESKILL_FAIL_GC_POISONINGWEAPON, 0);
+			return 0;
+		}
+		break;
+	case ST_ROLLINGCUTTER:
+		if (!(sc && sc->data[SC_ROLLINGCUTTER])) {
+			clif_skill_fail(sd, skill, USESKILL_FAIL_CONDITION, 0);
+			return 0;
+		}
+	break;        
 	}
 
 	if(require.mhp > 0 && get_percentage(status->hp, status->max_hp) > require.mhp) {
@@ -13356,6 +13372,10 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, short 
 			case SO_SUMMON_AQUA:
 			case SO_SUMMON_VENTUS:
 			case SO_SUMMON_TERA:
+			case SO_WATER_INSIGNIA:
+			case SO_FIRE_INSIGNIA:
+			case SO_WIND_INSIGNIA:
+			case SO_EARTH_INSIGNIA:
 				if( i < 3 )
 					continue;
 				break;
@@ -13396,6 +13416,10 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, short 
 		case SO_SUMMON_AQUA:
 		case SO_SUMMON_VENTUS:
 		case SO_SUMMON_TERA:
+		case SO_WATER_INSIGNIA:
+		case SO_FIRE_INSIGNIA:
+		case SO_WIND_INSIGNIA:
+		case SO_EARTH_INSIGNIA:
 			req.itemid[lv-1] = skill_db[j].itemid[lv-1];
 			req.amount[lv-1] = skill_db[j].amount[lv-1];
 			break;
@@ -13524,7 +13548,10 @@ int skill_castfix (struct block_list *bl, int skill_id, int skill_lv) {
 	if (battle_config.cast_rate != 100)
 		time = time * battle_config.cast_rate / 100;
 	// return final cast time
-	return (time > 0) ? time : 0;
+	time = max(time, 0);
+
+//	ShowInfo("Castime castfix = %d\n",time);
+	return time;
 }
 
 /*==========================================
@@ -13555,8 +13582,10 @@ int skill_castfix_sc (struct block_list *bl, int time)
 			time -= time * 50 / 100;
 	}
 	
-	return (time > 0) ? time : 0;
+	time = max(time, 0);
 	
+//	ShowInfo("Castime castfix_sc = %d\n",time);
+	return time;
 }
 #ifdef RENEWAL_CAST
 int skill_vfcastfix (struct block_list *bl, double time, int skill_id, int skill_lv)
@@ -13614,6 +13643,8 @@ int skill_vfcastfix (struct block_list *bl, double time, int skill_id, int skill
 			VARCAST_REDUCTION(sc->data[SC_POEMBRAGI]->val2);
 		if (sc->data[SC_IZAYOI])
 			VARCAST_REDUCTION(50);
+		if (sc->data[SC_WATER_INSIGNIA] && sc->data[SC_WATER_INSIGNIA]->val1 == 3 && (skill_get_ele(skill_id, skill_lv) == ELE_WATER))
+			VARCAST_REDUCTION(30); //Reduces 30% Variable Cast Time of Water spells.
 		// Fixed cast reduction bonuses
 		if( sc->data[SC__LAZINESS] )
 			fixcast_r = max(fixcast_r, sc->data[SC__LAZINESS]->val3);
@@ -13643,7 +13674,8 @@ int skill_vfcastfix (struct block_list *bl, double time, int skill_id, int skill
 		time = (1 - sqrt( ((float)(status_get_dex(bl)*2 + status_get_int(bl)) / battle_config.vcast_stat_scale) )) * time;
 	// underflow checking/capping
 	time = max(time, 0) + (1 - (float)min(fixcast_r, 100) / 100) * fixed;
-
+	
+//	ShowInfo("Casttime vfcastfix = %d\n",time);
 	return (int)time;
 }
 #endif
@@ -13723,6 +13755,8 @@ int skill_delayfix (struct block_list *bl, int skill_id, int skill_lv)
 		if (sc && sc->count) {
 			if (sc->data[SC_POEMBRAGI])
 				time -= time * sc->data[SC_POEMBRAGI]->val3 / 100;
+			if (sc->data[SC_WIND_INSIGNIA] && sc->data[SC_WIND_INSIGNIA]->val1 == 3 && (skill_get_ele(skill_id, skill_lv) == ELE_WIND))
+				time /= 2; // After Delay of Wind element spells reduced by 50%.
 		}
 	}
 
@@ -13732,10 +13766,12 @@ int skill_delayfix (struct block_list *bl, int skill_id, int skill_lv)
 	if (battle_config.delay_rate != 100)
 		time = time * battle_config.delay_rate / 100;
 
-	if (time < status_get_amotion(bl))
-		time = status_get_amotion(bl); // Delay can never be below amotion [Playtester]
+	//min delay
+	time = max(time, status_get_amotion(bl)); // Delay can never be below amotion [Playtester]
+	time = max(time, battle_config.min_skill_delay_limit);
 
-	return max(time, battle_config.min_skill_delay_limit);
+//	ShowInfo("Delay delayfix = %d\n",time);
+	return time;
 }
 
 /*=========================================
@@ -16446,7 +16482,7 @@ int skill_spellbook (struct map_session_data *sd, int nameid) {
 
 	return 1;
 }
-int skill_select_menu(struct map_session_data *sd,int flag,int skill_id) {
+int skill_select_menu(struct map_session_data *sd,int skill_id) {
 	int id, lv, prob, aslvl = 0;
 	nullpo_ret(sd);
 	
@@ -17196,16 +17232,8 @@ void skill_cooldown_load(struct map_session_data * sd)
 }
 
 /*==========================================
- * DB reading.
+ * sub-function of DB reading.
  * skill_db.txt
- * skill_require_db.txt
- * skill_cast_db.txt
- * skill_castnodex_db.txt
- * skill_nocast_db.txt
- * skill_unit_db.txt
- * produce_db.txt
- * create_arrow_db.txt
- * abra_db.txt
  *------------------------------------------*/
 
 static bool skill_parse_row_skilldb(char* split[], int columns, int current)
@@ -17273,7 +17301,7 @@ static bool skill_parse_row_requiredb(char* split[], int columns, int current)
 	skill_split_atoi(split[5],skill_db[i].sp_rate);
 	skill_split_atoi(split[6],skill_db[i].zeny);
 
-	//FIXME: document this
+	//Wich weapon type are required, see doc/item_db for types
 	p = split[7];
 	for( j = 0; j < 32; j++ )
 	{
@@ -17331,6 +17359,9 @@ static bool skill_parse_row_requiredb(char* split[], int columns, int current)
 	else if( strcmpi(split[10],"ridingwarg")==0 ) skill_db[i].state = ST_RIDINGWUG;
 	else if( strcmpi(split[10],"mado")==0 ) skill_db[i].state = ST_MADO;
 	else if( strcmpi(split[10],"elementalspirit")==0 ) skill_db[i].state = ST_ELEMENTALSPIRIT;
+	else if (strcmpi(split[10], "poisonweapon") == 0) skill_db[i].state = ST_POISONINGWEAPON;
+	else if (strcmpi(split[10], "rollingcutter") == 0) skill_db[i].state = ST_ROLLINGCUTTER;
+	
 	/**
 	 * Unknown or no state
 	 **/
@@ -17607,6 +17638,18 @@ static bool skill_parse_row_changematerialdb(char* split[], int columns, int cur
 	return true;
 }
 
+/*===============================
+ * DB reading.
+ * skill_db.txt
+ * skill_require_db.txt
+ * skill_cast_db.txt
+ * skill_castnodex_db.txt
+ * skill_nocast_db.txt
+ * skill_unit_db.txt
+ * produce_db.txt
+ * create_arrow_db.txt
+ * abra_db.txt
+ *------------------------------*/
 static void skill_readdb(void)
 {
 	// init skill db structures
