@@ -946,7 +946,8 @@ int party_exp_share(struct party_data* p, struct block_list* src, unsigned int b
 			job_exp = (unsigned int)cap_value(job_exp * rate / 100, 1, UINT_MAX);
 		}
 #endif
-
+		pc_gainexp(sd[i], src, base_exp, job_exp, false);
+		
 		if (zeny) // zeny from mobs [Valaris]
 			pc_getzeny(sd[i],zeny);
 	}
