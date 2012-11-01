@@ -246,11 +246,11 @@ int map_freeblock_timer(int tid, unsigned int tick, int id, intptr_t data)
 }
 
 //
-// block化?理
+// blocklist
 //
 /*==========================================
- * map[]のblock_listから?がっている場合に
- * bl->prevにbl_headのアドレスを入れておく
+ * Handling of map_bl[]
+ * The adresse of bl_heal is set in bl->prev
  *------------------------------------------*/
 static struct block_list bl_head;
 
@@ -351,6 +351,7 @@ int map_delblock(struct block_list* bl)
 	if (bl->next)
 		bl->next->prev = bl->prev;
 	if (bl->prev == &bl_head) {
+		//Since the head of the list, update the block_list map of []
 		if (bl->type == BL_MOB) {
 			map[bl->m].block_mob[pos] = bl->next;
 		} else {
@@ -443,7 +444,7 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 				if( sc->data[SC__SHADOWFORM] ) {//Shadow Form Caster Moving
 					struct block_list *d_bl;
 					if( (d_bl = map_id2bl(sc->data[SC__SHADOWFORM]->val2)) == NULL || bl->m != d_bl->m || !check_distance_bl(bl,d_bl,10) )
-						status_change_end(bl,SC__SHADOWFORM,INVALID_TIMER);	
+						status_change_end(bl,SC__SHADOWFORM,INVALID_TIMER);
 				}
 				
 				if (sc->data[SC_PROPERTYWALK]
@@ -866,11 +867,9 @@ int map_forcountinarea(int (*func)(struct block_list*,va_list), int m, int x0, i
 }
 
 /*==========================================
- * 矩形(x0,y0)-(x1,y1)が(dx,dy)移動した暫?
- * 領域外になる領域(矩形かL字形)?のobjに
- * ?してfuncを呼ぶ
- *
- * dx,dyは-1,0,1のみとする（どんな値でもいいっぽい？）
+ * For what I get
+ * Move bl and do func* with va_list while moving.
+ * Movement is set by dx dy wich are distance in x and y
  *------------------------------------------*/
 int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_list* center, int range, int dx, int dy, int type, ...)
 {
@@ -1070,19 +1069,19 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 //   x
 //  S
 //////////////////////////////////////////////////////////////
-// Methodology: 
-// My trigonometrics and math are a little rusty... so the approach I am writing 
-// here is basicly do a double for to check for all targets in the square that 
-// contains the initial and final positions (area range increased to match the 
-// radius given), then for each object to test, calculate the distance to the 
+// Methodology:
+// My trigonometrics and math are a little rusty... so the approach I am writing
+// here is basicly do a double for to check for all targets in the square that
+// contains the initial and final positions (area range increased to match the
+// radius given), then for each object to test, calculate the distance to the
 // path and include it if the range fits and the target is in the line (0<k<1,
 // as they call it).
-// The implementation I took as reference is found at 
-// http://astronomy.swin.edu.au/~pbourke/geometry/pointline/ 
+// The implementation I took as reference is found at
+// http://astronomy.swin.edu.au/~pbourke/geometry/pointline/
 // (they have a link to a C implementation, too)
-// This approach is a lot like #2 commented on this function, which I have no 
+// This approach is a lot like #2 commented on this function, which I have no
 // idea why it was commented. I won't use doubles/floats, but pure int math for
-// speed purposes. The range considered is always the same no matter how 
+// speed purposes. The range considered is always the same no matter how
 // close/far the target is because that's how SharpShooting works currently in
 // kRO.
 
@@ -1382,8 +1381,8 @@ static int map_count_sub(struct block_list *bl,va_list ap)
 }
 
 /*==========================================
- * Locates a random spare cell around the object given, using range as max 
- * distance from that spot. Used for warping functions. Use range < 0 for 
+ * Locates a random spare cell around the object given, using range as max
+ * distance from that spot. Used for warping functions. Use range < 0 for
  * whole map range.
  * Returns 1 on success. when it fails and src is available, x/y are set to src's
  * src can be null as long as flag&1
@@ -1600,7 +1599,7 @@ void map_reqnickdb(struct map_session_data * sd, int charid)
 }
 
 /*==========================================
- * id_dbへblを追加
+ * add bl to id_db
  *------------------------------------------*/
 void map_addiddb(struct block_list *bl)
 {
@@ -1628,7 +1627,7 @@ void map_addiddb(struct block_list *bl)
 }
 
 /*==========================================
- * id_dbからblを削除
+ * remove bl from id_db
  *------------------------------------------*/
 void map_deliddb(struct block_list *bl)
 {
@@ -1680,7 +1679,7 @@ int map_quit(struct map_session_data *sd) {
 
 	npc_script_event(sd, NPCE_LOGOUT);
 
-	//Unit_free handles clearing the player related data, 
+	//Unit_free handles clearing the player related data,
 	//map_quit handles extra specific data which is related to quitting normally
 	//(changing map-servers invokes unit_free but bypasses map_quit)
 	if( sd->sc.count ) {
@@ -1689,6 +1688,7 @@ int map_quit(struct map_session_data *sd) {
 		status_change_end(&sd->bl, SC_AUTOTRADE, INVALID_TIMER);
 		status_change_end(&sd->bl, SC_SPURT, INVALID_TIMER);
 		status_change_end(&sd->bl, SC_BERSERK, INVALID_TIMER);
+		status_change_end(&sd->bl, SC__BLOODYLUST, INVALID_TIMER);
 		status_change_end(&sd->bl, SC_TRICKDEAD, INVALID_TIMER);
 		status_change_end(&sd->bl, SC_LEADERSHIP, INVALID_TIMER);
 		status_change_end(&sd->bl, SC_GLORYWOUNDS, INVALID_TIMER);
@@ -1698,6 +1698,7 @@ int map_quit(struct map_session_data *sd) {
 			status_change_end(&sd->bl, SC_ENDURE, INVALID_TIMER); //No need to save infinite endure.
 		status_change_end(&sd->bl, SC_WEIGHT50, INVALID_TIMER);
 		status_change_end(&sd->bl, SC_WEIGHT90, INVALID_TIMER);
+		status_change_end(&sd->bl, SC_SATURDAYNIGHTFEVER, INVALID_TIMER);
 		status_change_end(&sd->bl, SC_KYOUGAKU, INVALID_TIMER);
 		if (battle_config.debuff_on_logout&1) {
 			status_change_end(&sd->bl, SC_ORCISH, INVALID_TIMER);
@@ -2191,7 +2192,7 @@ bool mapit_exists(struct s_mapiterator* mapit)
 }
 
 /*==========================================
- * map.npcへ追加 (warp等の領域持ちのみ)
+ * Add npc-bl to id_db, basically register npc to map
  *------------------------------------------*/
 bool map_addnpc(int m,struct npc_data *nd)
 {
@@ -2314,7 +2315,7 @@ void map_removemobs(int m)
 }
 
 /*==========================================
- * map名からmap番?へ?換
+ * Hookup, get map_id from map_name
  *------------------------------------------*/
 int map_mapname2mapid(const char* name)
 {
@@ -2342,7 +2343,7 @@ int map_mapindex2mapid(unsigned short mapindex)
 }
 
 /*==========================================
- * 他鯖map名からip,port?換
+ * Switching Ip, port ? (like changing map_server) get ip/port from map_name
  *------------------------------------------*/
 int map_mapname2ipport(unsigned short name, uint32* ip, uint16* port)
 {
@@ -2422,7 +2423,7 @@ uint8 map_calc_dir(struct block_list* src, int x, int y)
 }
 
 /*==========================================
- * Randomizes target cell x,y to a random walkable cell that 
+ * Randomizes target cell x,y to a random walkable cell that
  * has the same distance from object as given coordinates do. [Skotlex]
  *------------------------------------------*/
 int map_random_dir(struct block_list *bl, short *x, short *y)
@@ -2454,7 +2455,7 @@ int map_random_dir(struct block_list *bl, short *x, short *y)
 	return 0;
 }
 
-// gat系
+// gat system
 inline static struct mapcell map_gat2cell(int gat) {
 	struct mapcell cell;
 	
@@ -2739,7 +2740,7 @@ static DBData create_map_data_other_server(DBKey key, va_list args)
 }
 
 /*==========================================
- * 他鯖管理のマップをdbに追加
+ * Add mapindex to db of another map server
  *------------------------------------------*/
 int map_setipport(unsigned short mapindex, uint32 ip, uint16 port)
 {
@@ -2760,7 +2761,7 @@ int map_setipport(unsigned short mapindex, uint32 ip, uint16 port)
 }
 
 /**
- * 他鯖管理のマップを全て削除
+ * Delete all the other maps server management
  * @see DBApply
  */
 int map_eraseallipport_sub(DBKey key, DBData *data, va_list va)
@@ -2780,7 +2781,7 @@ int map_eraseallipport(void)
 }
 
 /*==========================================
- * 他鯖管理のマップをdbから削除
+ * Delete mapindex from db of another map server
  *------------------------------------------*/
 int map_eraseipport(unsigned short mapindex, uint32 ip, uint16 port)
 {
@@ -3178,7 +3179,7 @@ int parse_console(const char* buf)
 			return 0;
 		}
 		sd.bl.m = m;
-		map_search_freecell(&sd.bl, m, &sd.bl.x, &sd.bl.y, -1, -1, 0); 
+		map_search_freecell(&sd.bl, m, &sd.bl.x, &sd.bl.y, -1, -1, 0);
 		if( x > 0 )
 			sd.bl.x = x;
 		if( y > 0 )
@@ -3223,7 +3224,7 @@ int parse_console(const char* buf)
 }
 
 /*==========================================
- * 設定ファイルを?み?む
+ * Read map server configuration files (conf/map_athena.conf...)
  *------------------------------------------*/
 int map_config_read(char *cfgName)
 {
@@ -3587,7 +3588,7 @@ static int cleanup_db_sub(DBKey key, DBData *data, va_list va)
 }
 
 /*==========================================
- * map鯖終了・理
+ * map destructor
  *------------------------------------------*/
 void do_final(void)
 {

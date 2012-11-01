@@ -44,12 +44,24 @@ enum E_MAPSERVER_ST
 #define MAX_IGNORE_LIST 20 // official is 14
 #define MAX_VENDING 12
 #define MAX_MAP_SIZE 512*512 // Wasn't there something like this already? Can't find it.. [Shinryo]
-#define MOBID_EMPERIUM 1288
+
 // Added definitions for WoESE objects. [L0ne_W0lf]
-#define MOBID_BARRICADE1 1905
-#define MOBID_BARRICADE2 1906
-#define MOBID_GUARIDAN_STONE1 1907
-#define MOBID_GUARIDAN_STONE2 1908
+enum MOBID {
+	MOBID_EMPERIUM = 1288,
+	MOBID_TREAS01 = 1324,
+	MOBID_TREAS40 = 1363,
+	MOBID_BARRICADE1 = 1905,
+	MOBID_BARRICADE2,
+	MOBID_GUARIDAN_STONE1,
+	MOBID_GUARIDAN_STONE2,
+	MOBID_FOOD_STOR,
+	MOBID_BLUE_CRYST = 1914,
+	MOBID_PINK_CRYST,
+	MOBID_TREAS41 = 1938,
+	MOBID_TREAS49 = 1946,
+	MOBID_SILVERSNIPER = 2042,
+	MOBID_MAGICDECOY_WIND = 2046,
+};
 
 //The following system marks a different job ID system used by the map server,
 //which makes a lot more sense than the normal one. [Skotlex]
@@ -220,9 +232,9 @@ enum {
 // No Kill Steal Protection
 #define map_flag_ks(m) (map[m].flag.town || map[m].flag.pvp || map[m].flag.gvg || map[m].flag.battleground)
 
-//This stackable implementation does not means a BL can be more than one type at a time, but it's 
+//This stackable implementation does not means a BL can be more than one type at a time, but it's
 //meant to make it easier to check for multiple types at a time on invocations such as map_foreach* calls [Skotlex]
-enum bl_type { 
+enum bl_type {
 	BL_NUL   = 0x000,
 	BL_PC    = 0x001,
 	BL_MOB   = 0x002,
@@ -440,7 +452,7 @@ typedef enum {
 	CELL_CHKREACH,		// Same as PASS, but ignores the cell-stacking mod.
 	CELL_CHKNOPASS,		// non-passable cell (gat types 1 and 5)
 	CELL_CHKNOREACH,	// Same as NOPASS, but ignores the cell-stacking mod.
-	CELL_CHKSTACK,		// whether cell is full (reached cell stacking limit) 
+	CELL_CHKSTACK,		// whether cell is full (reached cell stacking limit)
 
 	CELL_CHKNPC,
 	CELL_CHKBASILICA,

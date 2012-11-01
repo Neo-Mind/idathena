@@ -227,7 +227,7 @@ int mobdb_checkid(const int id)
 /*==========================================
  * Returns the view data associated to this mob class.
  *------------------------------------------*/
-struct view_data * mob_get_viewdata(int class_) 
+struct view_data * mob_get_viewdata(int class_)
 {
 	if (mob_db(class_) == mob_dummy)
 		return 0;
@@ -588,7 +588,7 @@ int mob_once_spawn_area(struct map_session_data* sd,int m,int x0,int y0,int x1,i
 static int mob_spawn_guardian_sub(int tid, unsigned int tick, int id, intptr_t data)
 {	//Needed because the guild_data may not be available at guardian spawn time.
 	struct block_list* bl = map_id2bl(id);
-	struct mob_data* md; 
+	struct mob_data* md;
 	struct guild* g;
 	int guardup_lv;
 
@@ -1175,7 +1175,7 @@ static int mob_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 	target= va_arg(ap,struct block_list**);
 
 	dist=distance_bl(&md->bl, bl);
-	if(mob_can_reach(md,bl,dist+1, MSS_LOOT) && 
+	if(mob_can_reach(md,bl,dist+1, MSS_LOOT) &&
 		((*target) == NULL || !check_distance_bl(&md->bl, *target, dist)) //New target closer than previous one.
 	) {
 		(*target) = bl;
@@ -1238,7 +1238,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		md->master_dist=distance_bl(&md->bl, bl);
 
 		// Since the master was in near immediately before, teleport is carried out and it pursues.
-		if(bl->m != md->bl.m || 
+		if(bl->m != md->bl.m ||
 			(old_dist<10 && md->master_dist>18) ||
 			md->master_dist > MAX_MINCHASE
 		){
@@ -1683,7 +1683,7 @@ static int mob_ai_sub_hard_timer(struct block_list *bl,va_list ap)
 {
 	struct mob_data *md = (struct mob_data*)bl;
 	unsigned int tick = va_arg(ap, unsigned int);
-	if (mob_ai_sub_hard(md, tick)) 
+	if (mob_ai_sub_hard(md, tick))
 	{	//Hard AI triggered.
 		if(!md->state.spotted)
 			md->state.spotted = 1;
@@ -1948,7 +1948,7 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 
 	switch( src->type )
 	{
-		case BL_PC: 
+		case BL_PC:
 		{
 			struct map_session_data *sd = (TBL_PC*)src;
 			char_id = sd->status.char_id;
@@ -2013,7 +2013,7 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 			if( damage )
 				md->attacked_id = src->id;
 			break;
-		}			
+		}
 		default: //For all unhandled types.
 			md->attacked_id = src->id;
 	}
@@ -2251,12 +2251,12 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		}
 
 		if (map[m].flag.nobaseexp || !md->db->base_exp)
-			base_exp = 0; 
+			base_exp = 0;
 		else
 			base_exp = (unsigned int)cap_value(md->db->base_exp * per * bonus/100. * map[m].bexp/100., 1, UINT_MAX);
 		
 		if (map[m].flag.nojobexp || !md->db->job_exp || md->dmglog[i].flag == MDLF_HOMUN) //Homun earned job-exp is always lost.
-			job_exp = 0; 
+			job_exp = 0;
 		else
 			job_exp = (unsigned int)cap_value(md->db->job_exp * per * bonus/100. * map[m].jexp/100., 1, UINT_MAX);
 		
@@ -2361,7 +2361,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				//Drops affected by luk as a fixed increase [Valaris]
 				if (battle_config.drops_by_luk)
 					drop_rate += status_get_luk(src)*battle_config.drops_by_luk/100;
-				//Drops affected by luk as a % increase [Skotlex] 
+				//Drops affected by luk as a % increase [Skotlex]
 				if (battle_config.drops_by_luk2)
 					drop_rate += (int)(0.5+drop_rate*status_get_luk(src)*battle_config.drops_by_luk2/10000.);
 			}
@@ -2477,7 +2477,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		
 		//mapflag: noexp check [Lorky]
 		if (map[m].flag.nobaseexp || type&2)
-			exp =1; 
+			exp =1;
 		else {
 			exp = md->db->mexp;
 			if (count > 1)
@@ -2652,7 +2652,7 @@ void mob_revive(struct mob_data *md, unsigned int hp)
 	md->next_walktime = tick+rnd()%50+5000;
 	md->last_linktime = tick;
 	md->last_pcneartime = 0;
-	memset(md->dmglog, 0, sizeof(md->dmglog));	// Reset the damage done on the rebirthed monster, otherwise will grant full exp + damage done. [Valaris] 
+	memset(md->dmglog, 0, sizeof(md->dmglog));	// Reset the damage done on the rebirthed monster, otherwise will grant full exp + damage done. [Valaris]
 	md->tdmg = 0;
 	if (!md->bl.prev)
 		map_addblock(&md->bl);
@@ -2743,7 +2743,7 @@ int mob_class_change (struct mob_data *md, int class_)
 	if (md->guardian_data)
 		return 0; //Guardians/Emperium
 
-	if( (md->class_ >= 1324 && md->class_ <= 1363) || (md->class_ >= 1938 && md->class_ <= 1946) )
+	if( mob_is_treasure(md) )
 		return 0; //Treasure Boxes
 
 	if( md->special_state.ai > 1 )
@@ -2795,7 +2795,7 @@ int mob_class_change (struct mob_data *md, int class_)
 }
 
 /*==========================================
- * mob‰ñ•œ
+ * mob heal, update display hp info of mob for players
  *------------------------------------------*/
 void mob_heal(struct mob_data *md,unsigned int heal)
 {
@@ -3198,7 +3198,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					break;
 				case MST_MASTER:
 					bl = &md->bl;
-					if (md->master_id) 
+					if (md->master_id)
 						bl = map_id2bl(md->master_id);
 					if (bl) //Otherwise, fall through.
 						break;
@@ -3240,7 +3240,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					break;
 				case MST_MASTER:
 					bl = &md->bl;
-					if (md->master_id) 
+					if (md->master_id)
 						bl = map_id2bl(md->master_id);
 					if (bl) //Otherwise, fall through.
 						break;
@@ -3267,7 +3267,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 				continue;
 			}
 		}
-		//Skill used. Post-setups... 
+		//Skill used. Post-setups...
 		if ( ms[ i ].msg_id ){ //Display color message [SnakeDrak]
 			struct mob_chat *mc = mob_chat(ms[i].msg_id);
 			char temp[CHAT_SIZE_MAX];
@@ -3367,9 +3367,9 @@ int mob_clone_spawn(struct map_session_data *sd, int m, int x, int y, const char
 		status->lhw.atk = status->dex; //Min ATK
 	}
 	if (mode) //User provided mode.
-		status->mode = mode; 
+		status->mode = mode;
 	else if (flag&1) //Friendly Character, remove looting.
-		status->mode &= ~MD_LOOTER; 
+		status->mode &= ~MD_LOOTER;
 	status->hp = status->max_hp;
 	status->sp = status->max_sp;
 	memcpy(&db->vd, &sd->vd, sizeof(struct view_data));
@@ -3397,7 +3397,7 @@ int mob_clone_spawn(struct map_session_data *sd, int m, int x, int y, const char
 		)
 			continue;
 		//Normal aggressive mob, disable skills that cannot help them fight
-		//against players (those with flags UF_NOMOB and UF_NOPC are specific 
+		//against players (those with flags UF_NOMOB and UF_NOPC are specific
 		//to always aid players!) [Skotlex]
 		if (!(flag&1) &&
 			skill_get_unit_id(skill_id, 0) &&
@@ -3631,6 +3631,9 @@ static void item_dropratio_adjust(int nameid, int mob_id, int *rate_adjust)
 	}
 }
 
+//
+// Initialization
+//
 /*==========================================
  * processes one mobdb entry
  *------------------------------------------*/
@@ -3757,10 +3760,10 @@ static bool mob_parse_dbrow(char** str)
 	//Now that we know if it is an mvp or not, apply battle_config modifiers [Skotlex]
 	maxhp = (double)status->max_hp;
 	if (db->mexp > 0) { //Mvp
-		if (battle_config.mvp_hp_rate != 100) 
+		if (battle_config.mvp_hp_rate != 100)
 			maxhp = maxhp * (double)battle_config.mvp_hp_rate / 100.;
 	} else //Normal mob
-		if (battle_config.monster_hp_rate != 100) 
+		if (battle_config.monster_hp_rate != 100)
 			maxhp = maxhp * (double)battle_config.monster_hp_rate / 100.;
 	
 	status->max_hp = (unsigned int)cap_value(maxhp, 1, UINT_MAX);
@@ -4135,7 +4138,7 @@ static void mob_readchatdb(void)
 	char line[1024], path[256];
 	int i, tmp=0;
 	FILE *fp;
-	sprintf(path, "%s/%s", db_path, arc); 
+	sprintf(path, "%s/%s", db_path, arc);
 	fp=fopen(path, "r");
 	if(fp == NULL)
 	{
@@ -4379,7 +4382,7 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 	//Cond2
 	// numeric value
 	ms->cond2 = atoi(str[11]);
-	// or special constant 
+	// or special constant
 	ARR_FIND( 0, ARRAYLENGTH(cond2), j, strcmp(str[11],cond2[j].str) == 0 );
 	if( j < ARRAYLENGTH(cond2) )
 		ms->cond2 = cond2[j].id;
@@ -4399,7 +4402,7 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 	if(ms->skill_id == NPC_EMOTION_ON && mob_id>0 && ms->val[1])
 	{	//Adds a mode to the mob.
 		//Remove aggressive mode when the new mob type is passive.
-		if (!(ms->val[1]&MD_AGGRESSIVE)) 
+		if (!(ms->val[1]&MD_AGGRESSIVE))
 			ms->val[3]|=MD_AGGRESSIVE;
 		ms->val[2]|= ms->val[1]; //Add the new mode.
 		ms->val[1] = 0; //Do not "set" it.
