@@ -2369,13 +2369,6 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	case WL_CHAINLIGHTNING_ATK:
 		dmg.dmotion = clif_skill_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,1,WL_CHAINLIGHTNING,-2,6);
 		break;
-	case WL_TETRAVORTEX_FIRE:
-	case WL_TETRAVORTEX_WATER:
-	case WL_TETRAVORTEX_WIND:
-	case WL_TETRAVORTEX_GROUND:
-		clif_skill_nodamage(src, bl, skillid, -2, 1);
-		clif_skill_damage(src,bl,tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skillid, -2, 5);
-		break;
 	case SC_FEINTBOMB:
 		dmg.dmotion = clif_skill_damage(dsrc,bl,tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skillid, -1, 5);
 		break;
@@ -3176,7 +3169,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case WL_TETRAVORTEX_WATER:
 				case WL_TETRAVORTEX_WIND:
 				case WL_TETRAVORTEX_GROUND:
-					skill_attack(BF_MAGIC,src,src,target,skl->skill_id,skl->skill_lv,tick,skl->flag);
+					skill_attack(BF_MAGIC,src,src,target,skl->skill_id,skl->skill_lv,tick,skl->flag|SD_ANIMATION);
 					skill_toggle_magicpower(src, skl->skill_id); // only the first hit will be amplify
 					if( skl->type >= 3 )
 					{ // Final Hit
@@ -4222,8 +4215,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 					case WLS_WATER: subskill = WL_TETRAVORTEX_WATER; k |= 2; break;
 					case WLS_STONE: subskill = WL_TETRAVORTEX_GROUND; k |= 8; break;
 				}
-
-				skill_addtimerskill(src,tick+250*i,bl->id,k,0,subskill,skilllv,i,flag);
+				
+				skill_addtimerskill(src, tick + i * 200, bl->id, k, 0, subskill, skilllv, i, flag);
+				clif_skill_nodamage(src, bl, subskill, skilllv, 1);
 				status_change_end(src, spheres[i], INVALID_TIMER);
 			}
 		}
@@ -4331,12 +4325,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case WL_HELLINFERNO:
 		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
 		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag|ELE_DARK);
-		break;
-	case WL_TETRAVORTEX_FIRE:
-	case WL_TETRAVORTEX_WATER:
-	case WL_TETRAVORTEX_WIND:
-	case WL_TETRAVORTEX_GROUND:
-		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 	case RA_WUGSTRIKE:
 		if( sd && pc_isridingwug(sd) ){
@@ -6410,6 +6398,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				case SC_RECOGNIZEDSPELL:		case SC_LEADERSHIP:		case SC_GLORYWOUNDS:
 				case SC_SOULCOLD:			case SC_HAWKEYES:		case SC_GUILDAURA:
 				case SC_PUSH_CART:
+#ifdef RENEWAL
+				case SC_EXTREMITYFIST2:
+#endif
 					continue;
 				/**
 				 * bugreport:4888 these songs may only be dispelled if you're not in their song area anymore
@@ -6965,6 +6956,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 #ifdef  RENEWAL
 			sp1 = sp1 / 2;
 			sp2 = sp2 / 2;
+			if( tsc && tsc->data[SC_EXTREMITYFIST2] )
+				sp1 = tstatus->sp;
 #endif
 			status_set_sp(src, sp2, 3);
 			status_set_sp(bl, sp1, 3);
@@ -7788,6 +7781,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				case SC_HAWKEYES:		case SC_GUILDAURA:		case SC_SEVENWIND:
 				case SC_MIRACLE:		case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:
 				case SC_INCHEALRATE:		case SC_PUSH_CART:		case SC_PARTYFLEE:
+#ifdef RENEWAL
+				case SC_EXTREMITYFIST2:
+#endif
 					continue;
 				case SC_ASSUMPTIO:
 					if( bl->type == BL_MOB )
@@ -9257,6 +9253,9 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 		{	//End states
 			status_change_end(src, SC_EXPLOSIONSPIRITS, INVALID_TIMER);
 			status_change_end(src, SC_BLADESTOP, INVALID_TIMER);
+#ifdef RENEWAL
+			sc_start(src, SC_EXTREMITYFIST2, 100, ud->skilllv, skill_get_time(ud->skillid, ud->skilllv));
+#endif
 		}
 		if (target && target->m == src->m)
 		{	//Move character to target anyway.
