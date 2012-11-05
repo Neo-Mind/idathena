@@ -1434,6 +1434,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 #endif
 			case LG_SHIELDPRESS:
 			case LG_EARTHDRIVE:
+			case NC_SELFDESTRUCTION:
 				flag.weapon = 0;
 				break;
 
@@ -1805,6 +1806,17 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						ATK_ADD(sd->inventory_data[index]->weight/10);
 				} else
 					ATK_ADD(sstatus->rhw.atk2); //Else use Atk2
+				break;
+			case NC_SELFDESTRUCTION:
+				{
+					int damagevalue = 0;
+					wd.damage = 0;
+					damagevalue = (1 + skill_lv) * ( (sd?pc_checkskill(sd,NC_MAINFRAME):10) + 8 ) * (status_get_sp(src) + sstatus->vit);
+					RE_LVL_MDMOD(100);
+					damagevalue = damagevalue + sstatus->hp;
+					ATK_ADD(damagevalue);
+					if (sd) status_set_sp(src, 0, 0);
+				}
 				break;
 			case HFLI_SBR44:	//[orn]
 				if(src->type == BL_HOM) {
@@ -4402,17 +4414,6 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		RE_LVL_TMDMOD();
 		md.damage = md.damage * (20 * ( sd ? pc_checkskill(sd,RA_RESEARCHTRAP) : 10 ) );
 		md.damage = (md.damage?md.damage:1) / (skill_num == RA_CLUSTERBOMB?50:100);
-		break;
-	/**
-	 * Mechanic
-	 **/
-	case NC_SELFDESTRUCTION:
-		{
-			short totaldef = tstatus->def2 + (short)status_get_def(target);
-			md.damage = ( (sd?pc_checkskill(sd,NC_MAINFRAME):10) + 8 ) * ( skill_lv + 1 ) * ( status_get_sp(src) + sstatus->vit );
-			RE_LVL_MDMOD(100);
-			md.damage += sstatus->hp - totaldef;
-		}
 		break;
 	case WM_SOUND_OF_DESTRUCTION:
 		md.damage = 1000 * skill_lv + sstatus->int_ * pc_checkskill(sd,WM_LESSON);
