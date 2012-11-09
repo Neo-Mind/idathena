@@ -6282,6 +6282,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				clif_skill_nodamage(NULL,bl,AL_HEAL,hp,1);
 			if( sp > 0 )
 				clif_skill_nodamage(NULL,bl,MG_SRECOVERY,sp,1);
+#ifdef RENEWAL
+			if( tsc && tsc->data[SC_EXTREMITYFIST2] )
+				sp = 0;
+#endif
 			status_heal(bl,hp,sp,0);
 		}
 		break;
@@ -6394,7 +6398,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				case SC_FIGHTINGSPIRIT:			case SC_ABUNDANCE:		case SC__SHADOWFORM:
 				case SC_RECOGNIZEDSPELL:		case SC_LEADERSHIP:		case SC_GLORYWOUNDS:
 				case SC_SOULCOLD:			case SC_HAWKEYES:		case SC_GUILDAURA:
-				case SC_PUSH_CART:
+				case SC_PUSH_CART:			case SC_RAISINGDRAGON:		case SC_GT_ENERGYGAIN:
+				case SC_GT_CHANGE:			case SC_GT_REVITALIZE:
 #ifdef RENEWAL
 				case SC_EXTREMITYFIST2:
 #endif
@@ -7778,6 +7783,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				case SC_HAWKEYES:		case SC_GUILDAURA:		case SC_SEVENWIND:
 				case SC_MIRACLE:		case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:
 				case SC_INCHEALRATE:		case SC_PUSH_CART:		case SC_PARTYFLEE:
+				case SC_RAISINGDRAGON:		case SC_GT_REVITALIZE:		case SC_GT_ENERGYGAIN:
+				case SC_GT_CHANGE:
 #ifdef RENEWAL
 				case SC_EXTREMITYFIST2:
 #endif
@@ -8347,7 +8354,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		
 			heal = 120 * skilllv + status_get_max_hp(bl) * (2 + skilllv) / 100;
 			status_heal(bl, heal, 0, 0);
-			clif_skill_nodamage(src, bl, AL_HEAL, heal, 1);
 
 			if( (tsc && tsc->opt1) && (rnd()%100 < ((skilllv * 5) + (status_get_dex(src) + status_get_lv(src)) / 4) - (1 + (rnd() % 10))) )
 			{
@@ -12033,8 +12039,8 @@ static int skill_unit_effect (struct block_list* bl, va_list ap)
 	skill_id = group->skill_id;
 
 	//Target-type check.
-	if( !(group->bl_flag&bl->type && battle_check_target(&unit->bl,bl,group->target_flag)>0) && (flag&4) ) {
-		if( group->state.song_dance&0x1 || (group->src_id == bl->id && group->state.song_dance&0x2) )
+	if( !(group->bl_flag&bl->type && battle_check_target(&unit->bl,bl,group->target_flag)>0) ) {
+		if( flag&4 && ((group->src_id == bl->id && group->state.song_dance&0x2) || skill_get_inf2(skill_id)&INF2_SONG_DANCE) )
 			skill_unit_onleft(skill_id, bl, tick);//Ensemble check to terminate it.
 	} else {
 		if( flag&1 )
