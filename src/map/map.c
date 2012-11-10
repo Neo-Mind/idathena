@@ -258,7 +258,7 @@ static struct block_list bl_head;
  * These pair of functions update the counter of how many objects
  * lie on a tile.
  *------------------------------------------*/
-void map_addblcell(struct block_list *bl)
+static void map_addblcell(struct block_list *bl)
 {
 	if( bl->m<0 || bl->x<0 || bl->x>=map[bl->m].xs || bl->y<0 || bl->y>=map[bl->m].ys || !(bl->type&BL_CHAR) )
 		return;
@@ -266,7 +266,7 @@ void map_addblcell(struct block_list *bl)
 	return;
 }
 
-void map_delblcell(struct block_list *bl)
+static void map_delblcell(struct block_list *bl)
 {
 	if( bl->m <0 || bl->x<0 || bl->x>=map[bl->m].xs || bl->y<0 || bl->y>=map[bl->m].ys || !(bl->type&BL_CHAR) )
 		return;
@@ -687,21 +687,16 @@ int map_foreachinarea(int (*func)(struct block_list*,va_list), int m, int x0, in
 		return 0;
 	if (x1 < x0)
 	{	//Swap range
-		bx = x0;
-		x0 = x1;
-		x1 = bx;
+		swap(x0, x1);
 	}
 	if (y1 < y0)
 	{
-		bx = y0;
-		y0 = y1;
-		y1 = bx;
+		swap(y0, y1);
 	}
-	if (x0 < 0) x0 = 0;
-	if (y0 < 0) y0 = 0;
-	if (x1 >= map[m].xs) x1 = map[m].xs-1;
-	if (y1 >= map[m].ys) y1 = map[m].ys-1;
-	
+	x0 = max(x0, 0);
+	y0 = max(y0, 0);
+	x1 = min(x1, map[m].xs-1);
+	y1 = min(y1, map[m].ys-1);
 	if (type&~BL_MOB)
 		for(by = y0 / BLOCK_SIZE; by <= y1 / BLOCK_SIZE; by++)
 			for(bx = x0 / BLOCK_SIZE; bx <= x1 / BLOCK_SIZE; bx++)
@@ -814,21 +809,17 @@ int map_forcountinarea(int (*func)(struct block_list*,va_list), int m, int x0, i
 		return 0;
 	if (x1 < x0)
 	{	//Swap range
-		bx = x0;
-		x0 = x1;
-		x1 = bx;
+		swap(x0, x1);
 	}
 	if (y1 < y0)
 	{
-		bx = y0;
-		y0 = y1;
-		y1 = bx;
+		swap(y0, y1);
 	}
-	if (x0 < 0) x0 = 0;
-	if (y0 < 0) y0 = 0;
-	if (x1 >= map[m].xs) x1 = map[m].xs-1;
-	if (y1 >= map[m].ys) y1 = map[m].ys-1;
-	
+	x0 = max(x0, 0);
+	y0 = max(y0, 0);
+	x1 = min(x1, map[m].xs-1);
+	y1 = min(y1, map[m].ys-1);
+
 	if (type&~BL_MOB)
 		for(by = y0 / BLOCK_SIZE; by <= y1 / BLOCK_SIZE; by++)
 			for(bx = x0 / BLOCK_SIZE; bx <= x1 / BLOCK_SIZE; bx++)
@@ -889,15 +880,11 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_
 
 	if (x1 < x0)
 	{	//Swap range
-		bx = x0;
-		x0 = x1;
-		x1 = bx;
+		swap(x0, x1);
 	}
 	if (y1 < y0)
 	{
-		bx = y0;
-		y0 = y1;
-		y1 = bx;
+		swap(y0, y1);
 	}
 	if(dx==0 || dy==0){
 		//Movement along one axis only.
@@ -912,10 +899,10 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_
 			else //East
 				x1=x0+dx-1;
 		}
-		if(x0<0) x0=0;
-		if(y0<0) y0=0;
-		if(x1>=map[m].xs) x1=map[m].xs-1;
-		if(y1>=map[m].ys) y1=map[m].ys-1;
+		x0 = max(x0, 0);
+		y0 = max(y0, 0);
+		x1 = min(x1, map[m].xs-1);
+		y1 = min(y1, map[m].ys-1);
 		for(by=y0/BLOCK_SIZE;by<=y1/BLOCK_SIZE;by++){
 			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
 				if (type&~BL_MOB) {
@@ -941,10 +928,10 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_
 		}
 	}else{
 		// Diagonal movement
-		if(x0<0) x0=0;
-		if(y0<0) y0=0;
-		if(x1>=map[m].xs) x1=map[m].xs-1;
-		if(y1>=map[m].ys) y1=map[m].ys-1;
+		x0 = max(x0, 0);
+		y0 = max(y0, 0);
+		x1 = min(x1, map[m].xs-1);
+		y1 = min(y1, map[m].ys-1);
 		for(by=y0/BLOCK_SIZE;by<=y1/BLOCK_SIZE;by++){
 			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
 				if (type & ~BL_MOB) {
@@ -982,7 +969,7 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_
 	if(bl_list_count>=BL_LIST_MAX)
 		ShowWarning("map_foreachinmovearea: block count too many!\n");
 
-	map_freeblock_lock();   // Prohibit the release from memory
+	map_freeblock_lock();	// Prohibit the release from memory
 
 	for(i=blockcount;i<bl_list_count;i++)
 		if(bl_list[i]->prev)
@@ -993,7 +980,7 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_
 			va_end(ap);
 		}
 
-	 map_freeblock_unlock(); // Allow Free
+	map_freeblock_unlock();	// Allow Free
 
 	bl_list_count = blockcount;
 	return returnCount;
@@ -1092,10 +1079,10 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 	int magnitude2, len_limit; //The square of the magnitude
 	int k, xi, yi, xu, yu;
 	int mx0 = x0, mx1 = x1, my0 = y0, my1 = y1;
-	
+
 	//Avoid needless calculations by not getting the sqrt right away.
 	#define MAGNITUDE2(x0, y0, x1, y1) (((x1)-(x0))*((x1)-(x0)) + ((y1)-(y0))*((y1)-(y0)))
-	
+
 	if (m < 0)
 		return 0;
 
@@ -1132,24 +1119,20 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 	//The two fors assume mx0 < mx1 && my0 < my1
 	if (mx0 > mx1)
 	{
-		k = mx1;
-		mx1 = mx0;
-		mx0 = k;
+		swap(mx0, mx1);
 	}
 	if (my0 > my1)
 	{
-		k = my1;
-		my1 = my0;
-		my0 = k;
+		swap(my0, my1);
 	}
-	
-	if (mx0 < 0) mx0 = 0;
-	if (my0 < 0) my0 = 0;
-	if (mx1 >= map[m].xs) mx1 = map[m].xs-1;
-	if (my1 >= map[m].ys) my1 = map[m].ys-1;
-	
+
+	mx0 = max(mx0, 0);
+	my0 = max(my0, 0);
+	mx1 = min(mx1, map[m].xs-1);
+	my1 = min(my1, map[m].ys-1);
+
 	range*=range<<8; //Values are shifted later on for higher precision using int math.
-	
+
 	if (type & ~BL_MOB)
 		for (by = my0 / BLOCK_SIZE; by <= my1 / BLOCK_SIZE; by++) {
 			for(bx=mx0/BLOCK_SIZE;bx<=mx1/BLOCK_SIZE;bx++){
@@ -1159,11 +1142,11 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 					{
 						xi = bl->x;
 						yi = bl->y;
-					
+
 						k = (xi-x0)*(x1-x0) + (yi-y0)*(y1-y0);
 						if (k < 0 || k > len_limit) //Since more skills use this, check for ending point as well.
 							continue;
-						
+
 						if (k > magnitude2 && !path_search_long(NULL,m,x0,y0,xi,yi,CELL_CHKWALL))
 							continue; //Targets beyond the initial ending point need the wall check.
 
@@ -1175,7 +1158,7 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 						xu= (x0<<4) +k*(x1-x0);
 						yu= (y0<<4) +k*(y1-y0);
 						k = MAGNITUDE2(xi, yi, xu, yu);
-						
+
 						//If all dot coordinates were <<4 the square of the magnitude is <<8
 						if (k > range)
 							continue;
@@ -1198,17 +1181,17 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 						k = (xi-x0)*(x1-x0) + (yi-y0)*(y1-y0);
 						if (k < 0 || k > len_limit)
 							continue;
-				
+
 						if (k > magnitude2 && !path_search_long(NULL,m,x0,y0,xi,yi,CELL_CHKWALL))
 							continue; //Targets beyond the initial ending point need the wall check.
-	
+
 						k = (k<<4)/magnitude2; //k will be between 1~16 instead of 0~1
 						xi<<=4;
 						yi<<=4;
 						xu= (x0<<4) +k*(x1-x0);
 						yu= (y0<<4) +k*(y1-y0);
 						k = MAGNITUDE2(xi, yi, xu, yu);
-						
+
 						//If all dot coordinates were <<4 the square of the magnitude is <<8
 						if (k > range)
 							continue;
@@ -1321,23 +1304,23 @@ int map_get_new_object_id(void)
 int map_clearflooritem_timer(int tid, unsigned int tick, int id, intptr_t data)
 {
 	struct flooritem_data* fitem = (struct flooritem_data*)idb_get(id_db, id);
-	if( fitem==NULL || fitem->bl.type!=BL_ITEM || (!data && fitem->cleartimer != tid) )
+	
+	if (fitem == NULL || fitem->bl.type != BL_ITEM || (!data && fitem->cleartimer != tid))
 	{
 		ShowError("map_clearflooritem_timer : error\n");
 		return 1;
 	}
 
-	if(data)
+	if (data)
 		delete_timer(fitem->cleartimer,map_clearflooritem_timer);
-	else
-	if(fitem->item_data.card[0] == CARD0_PET) // pet egg
-		intif_delete_petdata( MakeDWord(fitem->item_data.card[1],fitem->item_data.card[2]) );
-
-	clif_clearflooritem(fitem,0);
+	
+	if (search_petDB_index(fitem->item_data.nameid, PET_EGG) >= 0)
+		intif_delete_petdata(MakeDWord(fitem->item_data.card[1], fitem->item_data.card[2]));
+		
+	clif_clearflooritem(fitem, 0);
 	map_deliddb(&fitem->bl);
 	map_delblock(&fitem->bl);
 	map_freeblock(&fitem->bl);
-
 	return 0;
 }
 
