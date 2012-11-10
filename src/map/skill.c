@@ -8587,7 +8587,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case SO_ARRULLO:
 		if( flag&1 )
-			sc_start2(bl, type, 88 + 2 * skilllv, skilllv, 1, skill_get_time(skillid, skilllv));
+		{
+			rate = 15 + 5 * skilllv + sstatus->int_ / 5 + sd->status.job_level / 5 - tstatus->int_ / 6 - tstatus->luk / 10;
+			sc_start(bl, type, rate, skilllv, skill_get_time(skillid, skilllv));
+		}
 		else {
 			clif_skill_nodamage(src, bl, skillid, 0, 1);
 			map_foreachinrange(skill_area_sub, bl, skill_get_splash(skillid, skilllv), BL_CHAR,

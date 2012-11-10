@@ -2273,7 +2273,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					}
 					break;
 				case RK_STORMBLAST:
-					skillratio += ((sd ? pc_checkskill(sd,RK_RUNEMASTERY) : 1) + (sstatus->int_ / 8)) * 100;
+					skillratio = 100 * sstatus->int_ / 8 + 100 * (sd ? pc_checkskill(sd,RK_RUNEMASTERY) : 10);
 					break;
 				case RK_PHANTOMTHRUST:
 					skillratio += 50 * skill_lv + 10 * ( sd ? pc_checkskill(sd,KN_SPEARMASTERY) : 10);
@@ -3817,8 +3817,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					 * Arch Bishop
 					 **/
 					case AB_JUDEX:
-						skillratio += 180 + 20 * skill_lv;
-						if (skill_lv > 4) skillratio += 20;
+						skillratio = 300 + 20 * skill_lv;
 						RE_LVL_DMOD(100);
 						break;
 					case AB_ADORAMUS:
