@@ -2077,6 +2077,7 @@ ACMD_FUNC(monster)
 	int count;
 	int i, k, range;
 	short mx, my;
+	unsigned int size;
 	nullpo_retr(-1, sd);
 
 	memset(name, '\0', sizeof(name));
@@ -2128,9 +2129,11 @@ ACMD_FUNC(monster)
 		number = battle_config.atc_spawn_quantity_limit;
 
 	if (strcmp(command+1, "monstersmall") == 0)
-		strcpy(eventname, "2");
+		size = SZ_MEDIUM; // This is just gorgeous [mkbu95]
 	else if (strcmp(command+1, "monsterbig") == 0)
-		strcpy(eventname, "4");
+		size = SZ_BIG;
+	else
+		size = SZ_SMALL;
 
 	if (battle_config.etc_log)
 		ShowInfo("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, sd->bl.x, sd->bl.y);
@@ -2139,7 +2142,7 @@ ACMD_FUNC(monster)
 	range = (int)sqrt((float)number) +2; // calculation of an odd number (+ 4 area around)
 	for (i = 0; i < number; i++) {
 		map_search_freecell(&sd->bl, 0, &mx,  &my, range, range, 0);
-		k = mob_once_spawn(sd, sd->bl.m, mx, my, name, mob_id, 1, eventname);
+		k = mob_once_spawn(sd, sd->bl.m, mx, my, name, mob_id, 1, eventname, size, AI_NONE);
 		count += (k != 0) ? 1 : 0;
 	}
 
@@ -6156,7 +6159,7 @@ ACMD_FUNC(mobsearch)
 static int atcommand_cleanmap_sub(struct block_list *bl, va_list ap)
 {
 	nullpo_ret(bl);
-	map_clearflooritem(bl->id);
+	map_clearflooritem(bl);
 
 	return 0;
 }
@@ -6370,7 +6373,7 @@ ACMD_FUNC(summon)
 		return -1;
 	}
 
-	md = mob_once_spawn_sub(&sd->bl, sd->bl.m, -1, -1, "--ja--", mob_id, "");
+	md = mob_once_spawn_sub(&sd->bl, sd->bl.m, -1, -1, "--ja--", mob_id, "", SZ_SMALL, AI_NONE);
 
 	if(!md)
 		return -1;

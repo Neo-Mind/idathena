@@ -319,22 +319,21 @@ struct block_list {
 // Expanded to specify all mob-related spawn data by [Skotlex]
 struct spawn_data {
 	short class_; //Class, used because a mob can change it's class
-	unsigned short m,x,y;	//Spawn information (map, point, spawn-area around point)
-	signed short xs,ys;
+	unsigned short m, x, y;	//Spawn information (map, point, spawn-area around point)
+	signed short xs, ys;
 	unsigned short num; //Number of mobs using this structure
 	unsigned short active; //Number of mobs that are already spawned (for mob_remove_damaged: no)
-	unsigned int delay1,delay2; //Spawn delay (fixed base + random variance)
+	unsigned int delay1, delay2; //Spawn delay (fixed base + random variance)
 	struct {
-		unsigned int size :2; //Holds if mob has to be tiny/large
-		unsigned int ai :2;	//Holds if mob is special ai.
-		unsigned int dynamic :1; //Whether this data is indexed by a map's dynamic mob list
-		unsigned int boss : 1;
+		unsigned int size : 2; //Holds if mob has to be tiny/large
+		unsigned int ai : 4; //Holds if mob is special ai.
+								//0: Normal mob | 1: Standard summon, attacks mobs
+								//2: Alchemist Marine Sphere | 3: Alchemist Summon Flora | 4: Summon Zanzou
+		unsigned int dynamic : 1; //Whether this data is indexed by a map's dynamic mob list
+		unsigned int boss : 1; //0: Non-boss monster | 1: Boss monster
 	} state;
-	char name[NAME_LENGTH],eventname[EVENT_NAME_LENGTH]; //Name/event
+	char name[NAME_LENGTH], eventname[EVENT_NAME_LENGTH]; //Name/event
 };
-
-
-
 
 struct flooritem_data {
 	struct block_list bl;
@@ -655,7 +654,7 @@ bool map_addnpc(int,struct npc_data *);
 // map item
 int map_clearflooritem_timer(int tid, unsigned int tick, int id, intptr_t data);
 int map_removemobs_timer(int tid, unsigned int tick, int id, intptr_t data);
-#define map_clearflooritem(id) map_clearflooritem_timer(0,0,id,1)
+void map_clearflooritem(struct block_list* bl);
 int map_addflooritem(struct item *item_data,int amount,int m,int x,int y,int first_charid,int second_charid,int third_charid,int flags);
 
 // player to map session
