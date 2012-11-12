@@ -856,7 +856,7 @@ int intif_homunculus_requestdelete(int homun_id)
 
 // Wisp/Page reception // rewritten by [Yor]
 int intif_parse_WisMessage(int fd)
-{ 
+{
 	struct map_session_data* sd;
 	char *wisp_source;
 	char name[NAME_LENGTH];
@@ -1426,7 +1426,7 @@ int intif_parse_questlog(int fd)
 		sd->quest_index[i] = quest_search_db(sd->quest_log[i].quest_id);
 
 		if( sd->quest_index[i] < 0 )
-		{  
+		{
 			ShowError("intif_parse_questlog: quest %d not found in DB.\n",sd->quest_log[i].quest_id);
 			sd->avail_quests--;
 			sd->num_quests--;
@@ -1827,8 +1827,7 @@ static void intif_parse_Auction_register(int fd)
 		clif_Auction_message(sd->fd, 4);
 		pc_additem(sd, &auction.item, auction.item.amount, LOG_TYPE_AUCTION);
 
-		log_zeny(sd, LOG_TYPE_AUCTION, sd, zeny);
-		pc_getzeny(sd, zeny);
+		pc_getzeny(sd, zeny, LOG_TYPE_AUCTION,NULL);
 	}
 }
 
@@ -1925,8 +1924,7 @@ static void intif_parse_Auction_bid(int fd)
 	clif_Auction_message(sd->fd, result);
 	if( bid > 0 )
 	{
-		log_zeny(sd, LOG_TYPE_AUCTION, sd, bid);
-		pc_getzeny(sd, bid);
+		pc_getzeny(sd, bid, LOG_TYPE_AUCTION,NULL);
 	}
 	if( result == 1 )
 	{ // To update the list, display your buy list

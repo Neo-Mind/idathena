@@ -74,7 +74,7 @@ void trade_traderequest(struct map_session_data *sd, struct map_session_data *ta
 		clif_displaymessage(sd->fd, msg_txt(246));
 		clif_tradestart(sd, 2); // GM is not allowed to trade
 		return;
-	} 
+	}
 	
 	// Players can not request trade from far away, unless they are allowed to use @trade.
 	if (!pc_can_use_command(sd, "trade", COMMAND_ATCOMMAND) &&
@@ -580,20 +580,11 @@ void trade_tradecommit(struct map_session_data *sd)
 
 	if( sd->deal.zeny || tsd->deal.zeny )
 	{
-		sd->status.zeny += tsd->deal.zeny - sd->deal.zeny;
-		tsd->status.zeny += sd->deal.zeny - tsd->deal.zeny;
-
-		//Logs Zeny (T)rade [Lupus]
-		if( sd->deal.zeny )
-			log_zeny(tsd, LOG_TYPE_TRADE, sd, sd->deal.zeny);
-		if( tsd->deal.zeny )
-			log_zeny(sd, LOG_TYPE_TRADE, tsd, tsd->deal.zeny);
+		pc_getzeny(sd,tsd->deal.zeny - sd->deal.zeny,LOG_TYPE_TRADE, tsd);
+		pc_getzeny(tsd,sd->deal.zeny - tsd->deal.zeny,LOG_TYPE_TRADE, sd);
 
 		sd->deal.zeny = 0;
 		tsd->deal.zeny = 0;
-
-		clif_updatestatus(sd, SP_ZENY);
-		clif_updatestatus(tsd, SP_ZENY);
 	}
 	
 	sd->state.deal_locked = 0;
@@ -610,7 +601,7 @@ void trade_tradecommit(struct map_session_data *sd)
 	// save both player to avoid crash: they always have no advantage/disadvantage between the 2 players
 	if (save_settings&1)
   	{
-		chrif_save(sd,0); 
+		chrif_save(sd,0);
 		chrif_save(tsd,0);
 	}
 }

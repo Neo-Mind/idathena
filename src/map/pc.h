@@ -74,7 +74,7 @@ struct s_addeffectonskill {
 	unsigned char target;
 };
 
-struct s_add_drop { 
+struct s_add_drop {
 	short id, group;
 	int race, rate;
 };
@@ -354,7 +354,7 @@ struct map_session_data {
 	struct script_regstr *regstr;
 
 	int trade_partner;
-	struct { 
+	struct {
 		struct {
 			short index, amount;
 		} item[10];
@@ -537,7 +537,7 @@ enum ammo_type {
 
 //Equip position constants
 enum equip_pos {
-	EQP_HEAD_LOW = 0x0001, 
+	EQP_HEAD_LOW = 0x0001,
 	EQP_HEAD_MID = 0x0200, //512
 	EQP_HEAD_TOP = 0x0100, //256
 	EQP_HAND_R   = 0x0002,
@@ -612,7 +612,7 @@ enum equip_index {
 #define pc_is50overweight(sd) ( (sd)->weight*100 >= (sd)->max_weight*battle_config.natural_heal_weight_rate )
 #define pc_is90overweight(sd) ( (sd)->weight*10 >= (sd)->max_weight*9 )
 #define pc_maxparameter(sd)   ( ((((sd)->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) || (sd)->class_&JOBL_THIRD ? ((sd)->class_&JOBL_BABY ? battle_config.max_baby_third_parameter : battle_config.max_third_parameter) : ((sd)->class_&JOBL_BABY ? battle_config.max_baby_parameter : battle_config.max_parameter)) )
-/** 
+/**
  * Ranger
  **/
 #define pc_iswug(sd)       ( (sd)->sc.option&OPTION_WUG )
@@ -653,7 +653,7 @@ enum equip_index {
 	#define pc_leftside_atk(sd) ((sd)->battle_status.batk + (sd)->battle_status.rhw.atk + (sd)->battle_status.lhw.atk)
 	#define pc_rightside_atk(sd) ((sd)->battle_status.rhw.atk2 + (sd)->battle_status.lhw.atk2)
 	#define pc_leftside_def(sd) ((sd)->battle_status.def)
-	#define pc_rightside_def(sd) ((sd)->battle_status.def2)	
+	#define pc_rightside_def(sd) ((sd)->battle_status.def2)
 	#define pc_leftside_mdef(sd) ((sd)->battle_status.mdef)
 	#define pc_rightside_mdef(sd) ( (sd)->battle_status.mdef2 - ((sd)->battle_status.vit>>1) )
 #endif
@@ -699,9 +699,9 @@ int pc_memo(struct map_session_data* sd, int pos);
 int pc_checkadditem(struct map_session_data*,int,int);
 int pc_inventoryblank(struct map_session_data*);
 int pc_search_inventory(struct map_session_data *sd,int item_id);
-int pc_payzeny(struct map_session_data*,int);
+int pc_payzeny(struct map_session_data*,int, enum e_log_pick_type type, struct map_session_data*);
 int pc_additem(struct map_session_data*,struct item*,int,e_log_pick_type);
-int pc_getzeny(struct map_session_data*,int);
+int pc_getzeny(struct map_session_data*,int, enum e_log_pick_type, struct map_session_data*);
 int pc_delitem(struct map_session_data*,int,int,int,short,e_log_pick_type);
 
 // Special Shop System
