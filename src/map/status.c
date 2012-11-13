@@ -682,7 +682,7 @@ void initChangeTables(void) {
 	set_sc( SR_RAISINGDRAGON         , SC_RAISINGDRAGON      , SI_RAISINGDRAGON         , SCB_REGEN|SCB_MAXHP|SCB_MAXSP );
 	set_sc( SR_GENTLETOUCH_ENERGYGAIN, SC_GT_ENERGYGAIN      , SI_GENTLETOUCH_ENERGYGAIN, SCB_NONE );
 	set_sc( SR_GENTLETOUCH_CHANGE    , SC_GT_CHANGE          , SI_GENTLETOUCH_CHANGE    , SCB_ASPD|SCB_MDEF|SCB_MAXHP );
-	set_sc( SR_GENTLETOUCH_REVITALIZE, SC_GT_REVITALIZE      , SI_GENTLETOUCH_REVITALIZE, SCB_MAXHP|SCB_REGEN );
+	set_sc( SR_GENTLETOUCH_REVITALIZE, SC_GT_REVITALIZE      , SI_GENTLETOUCH_REVITALIZE, SCB_DEF2|SCB_MAXHP|SCB_REGEN );
 	/**
 	 * Wanderer / Minstrel
 	 **/
@@ -4918,7 +4918,7 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 		def2 += (5 + sc->data[SC_BANDING]->val1) * sc->data[SC_BANDING]->val2;
 #endif	
 	if(sc->data[SC_GT_REVITALIZE] && sc->data[SC_GT_REVITALIZE]->val4)
-		def2 += def2 * sc->data[SC_GT_REVITALIZE]->val4 / 100;
+		def2 += sc->data[SC_GT_REVITALIZE]->val4;
 	if(sc->data[SC_ASH] && (bl->type==BL_MOB)){
 		if(status_get_race(bl)==RC_PLANT)
 			def2 /= 2;
@@ -4977,8 +4977,11 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 		mdef += mdef * ( 10 + 5 * sc->data[SC_NEUTRALBARRIER]->val1 ) / 100;
 	if(sc->data[SC_SYMPHONYOFLOVER])
 		mdef += mdef * sc->data[SC_SYMPHONYOFLOVER]->val3 / 100;
-	if(sc->data[SC_GT_CHANGE] && sc->data[SC_GT_CHANGE]->val4)
-		mdef -= mdef * sc->data[SC_GT_CHANGE]->val4 / 100;
+	if(sc->data[SC_GT_CHANGE] && sc->data[SC_GT_CHANGE]->val4) {
+		mdef -= sc->data[SC_GT_CHANGE]->val4;
+		if ( mdef < 0 )
+			mdef = 0;
+	}
 	if(sc->data[SC_WATER_BARRIER])
 		mdef += sc->data[SC_WATER_BARRIER]->val2;
 	if(sc->data[SC_ODINS_POWER])
