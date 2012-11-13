@@ -3719,7 +3719,7 @@ int pc_getzeny(struct map_session_data *sd,int zeny, enum e_log_pick_type type, 
 	sd->status.zeny += zeny;
 	clif_updatestatus(sd,SP_ZENY);
 
-	if(!sd) tsd = sd;
+	if(!tsd) tsd = sd;
 	log_zeny(sd, type, tsd, zeny);
 	if( zeny > 0 && sd->state.showzeny ) {
 		char output[255];
