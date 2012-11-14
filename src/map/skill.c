@@ -3492,9 +3492,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case MO_TRIPLEATTACK:
 	case CH_CHAINCRUSH:
 	case CH_TIGERFIST:
-	case PA_SHIELDCHAIN:	// Shield Chain
+	case PA_SHIELDCHAIN: // Shield Chain
 	case PA_SACRIFICE:
-	case WS_CARTTERMINATION:	// Cart Termination
+	case WS_CARTTERMINATION: // Cart Termination
 	case AS_VENOMKNIFE:
 	case HT_PHANTASMIC:
 	case HT_POWER:
@@ -3507,17 +3507,18 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case GS_PIERCINGSHOT:
 	case GS_RAPIDSHOWER:
 	case GS_DUST:
-	case GS_DISARM:				// Added disarm. [Reddozen]
+	case GS_DISARM: // Added disarm. [Reddozen]
 	case GS_FULLBUSTER:
 	case NJ_SYURIKEN:
 	case NJ_KUNAI:
 	case ASC_BREAKER:
-	case HFLI_MOON:	//[orn]
-	case HFLI_SBR44:	//[orn]
+	case HFLI_MOON: //[orn]
+	case HFLI_SBR44: //[orn]
 	case NPC_BLEEDING:
 	case NPC_CRITICALWOUND:
 	case NPC_HELLPOWER:
 	case RK_SONICWAVE:
+	case RK_WINDCUTTER:
 	case RK_HUNDREDSPEAR:
 	case AB_DUPLELIGHT_MELEE:
 	case RA_AIMEDBOLT:
@@ -3550,10 +3551,12 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	 **/
 	case NC_BOOSTKNUCKLE:
 	case NC_PILEBUNKER:
+		if (sd) pc_overheat(sd,1);
+		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+		break;
 	case NC_COLDSLOWER:
 	case NC_ARMSCANNON:
 		if (sd) pc_overheat(sd,1);
-	case RK_WINDCUTTER:
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag|SD_ANIMATION);
 		break;
 
