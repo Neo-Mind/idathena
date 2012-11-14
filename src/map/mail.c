@@ -45,14 +45,13 @@ int mail_removeitem(struct map_session_data *sd, short flag)
 int mail_removezeny(struct map_session_data *sd, short flag)
 {
 	nullpo_ret(sd);
-
+	
 	if (flag && sd->mail.zeny > 0)
 	{  //Zeny send
 		pc_payzeny(sd,sd->mail.zeny,LOG_TYPE_MAIL, NULL);
 	}
 	sd->mail.zeny = 0;
-	clif_updatestatus(sd, SP_ZENY);
-
+	
 	return 1;
 }
 

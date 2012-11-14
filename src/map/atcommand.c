@@ -2522,7 +2522,7 @@ ACMD_FUNC(skillpoint)
 }
 
 /*==========================================
- * @zeny (Rewritten by [Yor])
+ * @zeny
  *------------------------------------------*/
 ACMD_FUNC(zeny)
 {
@@ -2533,10 +2533,13 @@ ACMD_FUNC(zeny)
 		clif_displaymessage(fd, msg_txt(1012)); // Please enter an amount (usage: @zeny <amount>).
 		return -1;
 	}
-	if(zeny > 0)
-		pc_getzeny(sd,zeny,LOG_TYPE_COMMAND,NULL);
-	else
-		pc_payzeny(sd,-zeny,LOG_TYPE_COMMAND,NULL);
+	if(zeny > 0) {
+		if(pc_getzeny(sd,zeny,LOG_TYPE_COMMAND,NULL) == 1)
+			clif_displaymessage(fd, msg_txt(149)); // Unable to increase the number/value.
+	}
+	else if(pc_payzeny(sd,-zeny,LOG_TYPE_COMMAND,NULL) == 1) {
+		clif_displaymessage(fd, msg_txt(41)); // Unable to decrease the number/value.
+	}
 	return 0;
 }
 
@@ -7862,38 +7865,47 @@ ACMD_FUNC(cash)
 {
 	char output[128];
 	int value;
+	int ret=0;
 	nullpo_retr(-1, sd);
-
+	
 	if( !message || !*message || (value = atoi(message)) == 0 ) {
 		clif_displaymessage(fd, msg_txt(1322)); // Please enter an amount.
 		return -1;
 	}
-
+	
 	if( !strcmpi(command+1,"cash") )
 	{
 		if( value > 0 ) {
-			pc_getcash(sd, value, 0);
-			sprintf(output, msg_txt(505), value, sd->cashPoints);
-			clif_disp_onlyself(sd, output, strlen(output));
+			if( (ret=pc_getcash(sd, value, 0)) >= 0) {
+				sprintf(output, msg_txt(505), ret, sd->cashPoints);
+				clif_disp_onlyself(sd, output, strlen(output));
+			}
+			else clif_displaymessage(fd, msg_txt(149)); // Unable to decrease the number/value.
 		} else {
-			pc_paycash(sd, -value, 0);
-			sprintf(output, msg_txt(410), value, sd->cashPoints);
-			clif_disp_onlyself(sd, output, strlen(output));
+			if( (ret=pc_paycash(sd, -value, 0)) >= 0) {
+				sprintf(output, msg_txt(410), ret, sd->cashPoints);
+				clif_disp_onlyself(sd, output, strlen(output));
+			}
+			else clif_displaymessage(fd, msg_txt(41)); // Unable to decrease the number/value.
 		}
 	}
 	else
 	{ // @points
 		if( value > 0 ) {
-			pc_getcash(sd, 0, value);
-			sprintf(output, msg_txt(506), value, sd->kafraPoints);
-			clif_disp_onlyself(sd, output, strlen(output));
+			if( (ret=pc_getcash(sd, 0, value)) >= 0) {
+				sprintf(output, msg_txt(506), ret, sd->kafraPoints);
+				clif_disp_onlyself(sd, output, strlen(output));
+			}
+			else clif_displaymessage(fd, msg_txt(149)); // Unable to decrease the number/value.
 		} else {
-			pc_paycash(sd, -value, -value);
-			sprintf(output, msg_txt(411), -value, sd->kafraPoints);
-			clif_disp_onlyself(sd, output, strlen(output));
+			if( (ret=pc_paycash(sd, -value, -value)) >= 0) {
+				sprintf(output, msg_txt(411), ret, sd->kafraPoints);
+				clif_disp_onlyself(sd, output, strlen(output));
+			}
+			else clif_displaymessage(fd, msg_txt(41)); // Unable to decrease the number/value.
 		}
 	}
-
+	
 	return 0;
 }
 
