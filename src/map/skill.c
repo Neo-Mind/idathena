@@ -12907,7 +12907,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, short skill, sh
 		 * Ranger
 		 **/
 		case RA_WUGMASTERY:
-			if( pc_isfalcon(sd) || pc_isridingwug(sd) || sc && sc->data[SC__GROOMY] ) {
+			if( pc_isfalcon(sd) || pc_isridingwug(sd) || (sc && sc->data[SC__GROOMY]) ) {
 				clif_skill_fail(sd,skill,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}
@@ -13518,13 +13518,14 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, short 
 
 	req.zeny = skill_db[j].zeny[lv-1];
 
-	if( sc && sc->data[SC__UNLUCKY] )
+	if( sc && sc->data[SC__UNLUCKY] ) {
 		if ( sc->data[SC__UNLUCKY]->val1 == 1 )
 			req.zeny += 250;
 		else if ( sc->data[SC__UNLUCKY]->val1 == 2 )
 			req.zeny += 500;
 		else
 			req.zeny += 1000;
+	}
 
 	req.spiritball = skill_db[j].spiritball[lv-1];
 
@@ -16699,8 +16700,8 @@ int skill_select_menu(struct map_session_data *sd,int skill_id) {
 	}
 
 	if( (id = sd->status.skill[skill_id].id) == 0 || sd->status.skill[skill_id].flag != SKILL_FLAG_PLAGIARIZED ||
-			!( skill_id >= MG_NAPALMBEAT && skill_id <=MG_THUNDERSTORM || skill_id == AL_HEAL || 
-				skill_id >= WZ_FIREPILLAR && skill_id <= WZ_HEAVENDRIVE ) ) {
+			!( (skill_id >= MG_NAPALMBEAT && skill_id <=MG_THUNDERSTORM) || skill_id == AL_HEAL || 
+				(skill_id >= WZ_FIREPILLAR && skill_id <= WZ_HEAVENDRIVE) ) ) {
 		clif_skill_fail(sd,SC_AUTOSHADOWSPELL,0,0);
 		return 0;
 	}
