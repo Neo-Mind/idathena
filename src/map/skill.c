@@ -4797,8 +4797,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				ret = skill_castend_pos2(src,src->x,src->y,skillid,skilllv,tick,flag); //cast on homon
 			if(s_src && !skill_check_unit_range(s_src, s_src->x, s_src->y, skillid, skilllv))
 				ret |= skill_castend_pos2(s_src,s_src->x,s_src->y,skillid,skilllv,tick,flag); //cast on master
-			if (hd)
-				skill_blockhomun_start(hd, skillid, skill_get_cooldown(hd, skillid, skilllv));
+			if (sd || hd)
+				skill_blockhomun_start(hd, skillid, skill_get_cooldown(sd, skillid, skilllv));
 			return ret;
 			}
 			break;
@@ -9015,12 +9015,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if(msc && !msc->data[SC_SILENCE]) //put inavoidable silence on master
 				status_change_start(m_bl, SC_SILENCE, 100, skilllv, 0,0,0, skill_get_time(skillid, skilllv),1|2|8);
 		}
-		if (hd)
-			skill_blockhomun_start(hd, skillid, skill_get_cooldown(hd, skillid, skilllv));
+		if (sd || hd)
+			skill_blockhomun_start(hd, skillid, skill_get_cooldown(sd, skillid, skilllv));
 		}
 		break;
 	case MH_OVERED_BOOST:
-		if (hd){
+		if (sd || hd){
 			struct block_list *s_bl = battle_get_master(src);
 			if(hd->homunculus.hunger>50) //reduce hunger
 				hd->homunculus.hunger = hd->homunculus.hunger/2;
@@ -9032,7 +9032,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				sc_start(s_bl, type, 100, skilllv, skill_get_time(skillid, skilllv)); //gene bonus
 			}
 			sc_start(bl, type, 100, skilllv, skill_get_time(skillid, skilllv));
-			skill_blockhomun_start(hd, skillid, skill_get_cooldown(hd, skillid, skilllv));
+			skill_blockhomun_start(hd, skillid, skill_get_cooldown(sd, skillid, skilllv));
 		}
 		break;
 	case MH_GRANITIC_ARMOR:
@@ -9040,7 +9040,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		struct block_list *s_bl = battle_get_master(src);
 		if(s_bl) sc_start2(s_bl, type, 100, skilllv, hd->homunculus.level, skill_get_time(skillid, skilllv)); //start on master
 		sc_start2(bl, type, 100, skilllv, hd->homunculus.level, skill_get_time(skillid, skilllv));
-		if (hd) skill_blockhomun_start(hd, skillid, skill_get_cooldown(hd, skillid, skilllv));
+		if (sd || hd) skill_blockhomun_start(hd, skillid, skill_get_cooldown(sd, skillid, skilllv));
 		}
 		break;
 
@@ -9054,8 +9054,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case MH_MAGMA_FLOW:
 	case MH_PAIN_KILLER:
 		sc_start(bl, type, 100, skilllv, skill_get_time(skillid, skilllv));
-		if (hd)
-			skill_blockhomun_start(hd, skillid, skill_get_cooldown(hd, skillid, skilllv));
+		if (sd || hd)
+			skill_blockhomun_start(hd, skillid, skill_get_cooldown(sd, skillid, skilllv));
 		break;
 	case MH_SUMMON_LEGION:
 		{
@@ -9075,8 +9075,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					sc_start4(&md->bl, SC_MODECHANGE, 100, 1, 0, MD_ASSIST, 0, 60000);
 				}
 			}
-			if (hd)
-				skill_blockhomun_start(hd, skillid, skill_get_cooldown(hd, skillid, skilllv));
+			if (sd || hd)
+				skill_blockhomun_start(hd, skillid, skill_get_cooldown(sd, skillid, skilllv));
 		}
 		break;
 	default:
@@ -12907,7 +12907,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, short skill, sh
 		 * Ranger
 		 **/
 		case RA_WUGMASTERY:
-			if( pc_isfalcon(sd) || pc_isridingwug(sd) || (sc && sc->data[SC__GROOMY]) ) {
+			if( pc_isfalcon(sd) || pc_isridingwug(sd) || sc && sc->data[SC__GROOMY] ) {
 				clif_skill_fail(sd,skill,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}
@@ -13518,14 +13518,13 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, short 
 
 	req.zeny = skill_db[j].zeny[lv-1];
 
-	if( sc && sc->data[SC__UNLUCKY] ) {
+	if( sc && sc->data[SC__UNLUCKY] )
 		if ( sc->data[SC__UNLUCKY]->val1 == 1 )
 			req.zeny += 250;
 		else if ( sc->data[SC__UNLUCKY]->val1 == 2 )
 			req.zeny += 500;
 		else
 			req.zeny += 1000;
-	}
 
 	req.spiritball = skill_db[j].spiritball[lv-1];
 
@@ -16700,8 +16699,8 @@ int skill_select_menu(struct map_session_data *sd,int skill_id) {
 	}
 
 	if( (id = sd->status.skill[skill_id].id) == 0 || sd->status.skill[skill_id].flag != SKILL_FLAG_PLAGIARIZED ||
-			!( (skill_id >= MG_NAPALMBEAT && skill_id <=MG_THUNDERSTORM) || skill_id == AL_HEAL || 
-				(skill_id >= WZ_FIREPILLAR && skill_id <= WZ_HEAVENDRIVE) ) ) {
+			!( skill_id >= MG_NAPALMBEAT && skill_id <=MG_THUNDERSTORM || skill_id == AL_HEAL || 
+				skill_id >= WZ_FIREPILLAR && skill_id <= WZ_HEAVENDRIVE ) ) {
 		clif_skill_fail(sd,SC_AUTOSHADOWSPELL,0,0);
 		return 0;
 	}
