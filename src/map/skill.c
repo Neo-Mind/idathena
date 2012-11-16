@@ -4797,7 +4797,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				ret = skill_castend_pos2(src,src->x,src->y,skillid,skilllv,tick,flag); //cast on homon
 			if(s_src && !skill_check_unit_range(s_src, s_src->x, s_src->y, skillid, skilllv))
 				ret |= skill_castend_pos2(s_src,s_src->x,s_src->y,skillid,skilllv,tick,flag); //cast on master
-			if (sd || hd)
+			if (hd)
 				skill_blockhomun_start(hd, skillid, skill_get_cooldown(sd, skillid, skilllv));
 			return ret;
 			}
@@ -9015,12 +9015,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if(msc && !msc->data[SC_SILENCE]) //put inavoidable silence on master
 				status_change_start(m_bl, SC_SILENCE, 100, skilllv, 0,0,0, skill_get_time(skillid, skilllv),1|2|8);
 		}
-		if (sd || hd)
+		if (hd)
 			skill_blockhomun_start(hd, skillid, skill_get_cooldown(sd, skillid, skilllv));
 		}
 		break;
 	case MH_OVERED_BOOST:
-		if (sd || hd){
+		if (hd){
 			struct block_list *s_bl = battle_get_master(src);
 			if(hd->homunculus.hunger>50) //reduce hunger
 				hd->homunculus.hunger = hd->homunculus.hunger/2;
@@ -9040,7 +9040,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		struct block_list *s_bl = battle_get_master(src);
 		if(s_bl) sc_start2(s_bl, type, 100, skilllv, hd->homunculus.level, skill_get_time(skillid, skilllv)); //start on master
 		sc_start2(bl, type, 100, skilllv, hd->homunculus.level, skill_get_time(skillid, skilllv));
-		if (sd || hd) skill_blockhomun_start(hd, skillid, skill_get_cooldown(sd, skillid, skilllv));
+		if (hd) skill_blockhomun_start(hd, skillid, skill_get_cooldown(sd, skillid, skilllv));
 		}
 		break;
 
@@ -9054,7 +9054,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case MH_MAGMA_FLOW:
 	case MH_PAIN_KILLER:
 		sc_start(bl, type, 100, skilllv, skill_get_time(skillid, skilllv));
-		if (sd || hd)
+		if (hd)
 			skill_blockhomun_start(hd, skillid, skill_get_cooldown(sd, skillid, skilllv));
 		break;
 	case MH_SUMMON_LEGION:
@@ -9075,7 +9075,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					sc_start4(&md->bl, SC_MODECHANGE, 100, 1, 0, MD_ASSIST, 0, 60000);
 				}
 			}
-			if (sd || hd)
+			if (hd)
 				skill_blockhomun_start(hd, skillid, skill_get_cooldown(sd, skillid, skilllv));
 		}
 		break;
