@@ -29,7 +29,7 @@
 
 
 #define WISDATA_TTL (60*1000)	//Wis data Time To Live (60 seconds)
-#define WISDELLIST_MAX 256			// Number of elements in the list Delete data Wis
+#define WISDELLIST_MAX 256		// Number of elements in the list Delete data Wis
 
 
 Sql* sql_handle = NULL;
@@ -424,7 +424,7 @@ void inter_to_fd(int fd, int u_fd, int aid, char* msg, ...) {
 	va_start(ap,msg);
 		len += vsnprintf(msg_out, 512, msg, ap);
 	va_end(ap);
-	
+		
 	WFIFOHEAD(fd,12 + len);
 	
 	WFIFOW(fd,0) = 0x3807;
@@ -698,8 +698,6 @@ static int inter_config_read(const char* cfgName)
 		return 1;
 	}
 
-	ShowInfo("reading file %s...\n", cfgName);
-
 	while(fgets(line, sizeof(line), fp))
 	{
 		i = sscanf(line, "%[^:]: %[^\r\n]", w1, w2);
@@ -708,27 +706,21 @@ static int inter_config_read(const char* cfgName)
 
 		if(!strcmpi(w1,"char_server_ip")) {
 			strcpy(char_server_ip,w2);
-			ShowStatus ("set char_server_ip : %s\n", w2);
 		} else
 		if(!strcmpi(w1,"char_server_port")) {
 			char_server_port = atoi(w2);
-			ShowStatus ("set char_server_port : %s\n", w2);
 		} else
 		if(!strcmpi(w1,"char_server_id")) {
 			strcpy(char_server_id,w2);
-			ShowStatus ("set char_server_id : %s\n", w2);
 		} else
 		if(!strcmpi(w1,"char_server_pw")) {
 			strcpy(char_server_pw,w2);
-			ShowStatus ("set char_server_pw : %s\n", w2);
 		} else
 		if(!strcmpi(w1,"char_server_db")) {
 			strcpy(char_server_db,w2);
-			ShowStatus ("set char_server_db : %s\n", w2);
 		} else
 		if(!strcmpi(w1,"default_codepage")) {
 			strcpy(default_codepage,w2);
-			ShowStatus ("set default_codepage : %s\n", w2);
 		}
 		else if(!strcmpi(w1,"party_share_level"))
 			party_share_level = atoi(w2);
@@ -741,7 +733,7 @@ static int inter_config_read(const char* cfgName)
 	}
 	fclose(fp);
 
-	ShowInfo ("done reading %s.\n", cfgName);
+	ShowInfo ("Done reading %s.\n", cfgName);
 
 	return 0;
 }
@@ -769,7 +761,6 @@ int inter_init_sql(const char *file)
 {
 	//int i;
 
-	ShowInfo ("interserver initialize...\n");
 	inter_config_read(file);
 
 	//DB connection initialized
