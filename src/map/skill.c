@@ -5103,7 +5103,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 	case SA_FORTUNE:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if(sd) pc_getzeny(sd,status_get_lv(bl)*100,LOG_TYPE_OTHER,NULL);
+		if(sd) pc_getzeny(sd,status_get_lv(bl)*100,LOG_TYPE_STEAL,NULL);
 		break;
 	case SA_TAMINGMONSTER:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
@@ -11096,10 +11096,12 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 		if (!sce) {
 			TBL_PC *sd = BL_CAST(BL_PC, bl); //prevent fullheal exploit
 			if (sd && sd->bloodylust_tick && DIFF_TICK(gettick(), sd->bloodylust_tick) < skill_get_time2(SC_BLOODYLUST, 1))
-				sc_start4(bl, type, 100, sg->skill_lv, 1, 0, 0, skill_get_time(LK_BERSERK, sg->skill_lv)); //do not refull heal
+				clif_skill_nodamage(&src->bl,bl,sg->skill_id,sg->skill_lv,
+					sc_start4(bl, type, 100, sg->skill_lv, 1, 0, 0, skill_get_time(LK_BERSERK, sg->skill_lv)));
 			else {
 				if (sd) sd->bloodylust_tick = gettick();
-				sc_start4(bl, type, 100, sg->skill_lv, 0, 0, 0, skill_get_time(LK_BERSERK, sg->skill_lv));
+				clif_skill_nodamage(&src->bl,bl,sg->skill_id,sg->skill_lv,
+					sc_start4(bl, type, 100, sg->skill_lv, 0, 0, 0, skill_get_time(LK_BERSERK, sg->skill_lv)));
 			}
 		}
 		break;
@@ -13413,7 +13415,7 @@ int skill_consume_requirement( struct map_session_data *sd, short skill, short l
 				req.zeny = 0; //Zeny is reduced on skill_attack.
 			if( sd->status.zeny < req.zeny )
 				req.zeny = sd->status.zeny;
-			pc_payzeny(sd,req.zeny,LOG_TYPE_OTHER,NULL); //@Need proper type
+			pc_payzeny(sd,req.zeny,LOG_TYPE_CONSUME,NULL);
 		}
 	}
 
