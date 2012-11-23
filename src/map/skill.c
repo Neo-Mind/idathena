@@ -242,13 +242,15 @@ int	skill_get_cooldown( struct map_session_data *sd, int id ,int lv )
 		return 0;
 
 	cooldown = skill_db[id].cooldown[lv-1];
+	if (!sd)
+		return cooldown;
+
 	for (i = 0; i < ARRAYLENGTH(sd->cooldown) && sd->cooldown[i].id; i++) {
 		if (sd->cooldown[i].id == id) {
 			cooldown += sd->cooldown[i].val;
 			break;
 		}
 	}
-
 	return cooldown;
 }
 #ifdef RENEWAL_CAST
@@ -4798,7 +4800,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if(s_src && !skill_check_unit_range(s_src, s_src->x, s_src->y, skillid, skilllv))
 				ret |= skill_castend_pos2(s_src,s_src->x,s_src->y,skillid,skilllv,tick,flag); //cast on master
 			if (hd)
-				skill_blockhomun_start(hd, skillid, skill_get_cooldown(sd, skillid, skilllv));
+				skill_blockhomun_start(hd, skillid, skill_get_cooldown(NULL, skillid, skilllv));
 			return ret;
 			}
 			break;
@@ -9016,7 +9018,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				status_change_start(m_bl, SC_SILENCE, 100, skilllv, 0,0,0, skill_get_time(skillid, skilllv),1|2|8);
 		}
 		if (hd)
-			skill_blockhomun_start(hd, skillid, skill_get_cooldown(sd, skillid, skilllv));
+			skill_blockhomun_start(hd, skillid, skill_get_cooldown(NULL, skillid, skilllv));
 		}
 		break;
 	case MH_OVERED_BOOST:
@@ -9032,7 +9034,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				sc_start(s_bl, type, 100, skilllv, skill_get_time(skillid, skilllv)); //gene bonus
 			}
 			sc_start(bl, type, 100, skilllv, skill_get_time(skillid, skilllv));
-			skill_blockhomun_start(hd, skillid, skill_get_cooldown(sd, skillid, skilllv));
+			skill_blockhomun_start(hd, skillid, skill_get_cooldown(NULL, skillid, skilllv));
 		}
 		break;
 	case MH_GRANITIC_ARMOR:
@@ -9040,7 +9042,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		struct block_list *s_bl = battle_get_master(src);
 		if(s_bl) sc_start2(s_bl, type, 100, skilllv, hd->homunculus.level, skill_get_time(skillid, skilllv)); //start on master
 		sc_start2(bl, type, 100, skilllv, hd->homunculus.level, skill_get_time(skillid, skilllv));
-		if (hd) skill_blockhomun_start(hd, skillid, skill_get_cooldown(sd, skillid, skilllv));
+		if (hd) skill_blockhomun_start(hd, skillid, skill_get_cooldown(NULL, skillid, skilllv));
 		}
 		break;
 
@@ -9055,7 +9057,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case MH_PAIN_KILLER:
 		sc_start(bl, type, 100, skilllv, skill_get_time(skillid, skilllv));
 		if (hd)
-			skill_blockhomun_start(hd, skillid, skill_get_cooldown(sd, skillid, skilllv));
+			skill_blockhomun_start(hd, skillid, skill_get_cooldown(NULL, skillid, skilllv));
 		break;
 	case MH_SUMMON_LEGION:
 		{
@@ -9076,7 +9078,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				}
 			}
 			if (hd)
-				skill_blockhomun_start(hd, skillid, skill_get_cooldown(sd, skillid, skilllv));
+				skill_blockhomun_start(hd, skillid, skill_get_cooldown(NULL, skillid, skilllv));
 		}
 		break;
 	default:
