@@ -1607,7 +1607,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 
 	if( sc && sc->count ) {
 		
-		if( sc->opt1 >0 && (sc->opt1 != OPT1_CRYSTALIZE && src->type != BL_MOB) && sc->opt1 != OPT1_BURNING && skill_num != SR_GENTLETOUCH_CURE ) {	//Stuned/Frozen/etc
+		if( sc->opt1 > 0 && (sc->opt1 != OPT1_CRYSTALIZE && src->type != BL_MOB) && sc->opt1 != OPT1_BURNING && skill_num != SR_GENTLETOUCH_CURE ) {	//Stuned/Frozen/etc
 			if (flag != 1) //Can't cast, casted stuff can't damage.
 				return 0;
 			if (!(skill_get_inf(skill_num)&INF_GROUND_SKILL))
@@ -10777,9 +10777,9 @@ int status_change_clear_buffs (struct block_list* bl, int type)
 			case SC_ITEMBOOST:
 			case SC_ELECTRICSHOCKER:
 			case SC__MANHOLE:
-			case SC_GIANTGROWTH:
 			case SC_MILLENNIUMSHIELD:
 			case SC_REFRESH:
+			case SC_GIANTGROWTH:
 			case SC_STONEHARDSKIN:
 			case SC_VITALITYACTIVATION:
 			case SC_FIGHTINGSPIRIT:
@@ -10795,13 +10795,6 @@ int status_change_clear_buffs (struct block_list* bl, int type)
 			case SC_CURSEDCIRCLE_TARGET:
 				continue;
 				
-			//Debuffs that can be removed.
-			case SC_STRIPWEAPON:
-			case SC_STRIPSHIELD:
-			case SC_STRIPARMOR:
-			case SC_STRIPHELM:
-				if( type&4 )	// Don't remove it by Refresh.
-					continue;
 			case SC_STUN:
 			case SC_CURSE:
 			case SC_STONE:
@@ -10833,6 +10826,10 @@ int status_change_clear_buffs (struct block_list* bl, int type)
 			case SC_WINKCHARM:
 			case SC_STOP:
 			case SC_ORCISH:
+			case SC_STRIPWEAPON:
+			case SC_STRIPSHIELD:
+			case SC_STRIPARMOR:
+			case SC_STRIPHELM:
 			case SC_BITE:
 			case SC_ADORAMUS:
 			case SC_VACUUM_EXTREME:
