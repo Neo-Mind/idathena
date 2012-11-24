@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Current Version: =====================================
-//= $Revision: 16947 $
+//= $Revision: 16961 $
 //===== Last Updated: ========================================
-//= $LastChangedDate: 2012-11-23 10:22:28 +0700 (Fri, 23 Nov 2012) $
+//= $LastChangedDate: 2012-11-24 22:00:41 +0700 (Sat, 24 Nov 2012) $
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -2423,6 +2423,22 @@ Available information types are:
  1 - X coordinate
  2 - Y coordinate
 
+ ---------------------------------------
+ 
+ *getcharip{(<Character Name/Account ID/Char ID>)}
+
+ This function will return the IP address of the currently attached player
+ or the currently attached Character Name/Account ID/Character ID. This command
+ returns a blank str if there is no player attached.
+ 
+Example 1: Sets the variable, @ip$, into the IP address of currently attached player.
+ 
+	@ip$ = getcharip;
+
+Example 2: Sets the variable, @ip$, into the IP address of character "Silver".
+
+	@ip$ = getcharip("Silver");
+ 
 ---------------------------------------
 \\
 2,2 Item-related commands
