@@ -10179,9 +10179,6 @@ void clif_parse_UseItem(int fd, struct map_session_data *sd)
 		clif_clearunit_area(&sd->bl, CLR_DEAD);
 		return;
 	}
-
-	if (sd->sc.opt1 > 0 && sd->sc.opt1 != OPT1_STONEWAIT && sd->sc.opt1 != OPT1_BURNING)
-		return;
 	
 	//This flag enables you to use items while in an NPC. [Skotlex]
 	if (sd->npc_id) {
