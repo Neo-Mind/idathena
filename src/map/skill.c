@@ -10347,7 +10347,8 @@ int skill_castend_map (struct map_session_data *sd, short skill_num, const char 
 		(sd->sc.data[SC_KAGEHUMI] && skill_block_check(&sd->bl, SC_KAGEHUMI, skill_num)) ||
 		sd->sc.data[SC_OBLIVIONCURSE] ||
 		sd->sc.data[SC_CRYSTALIZE] ||
-		sd->sc.data[SC__MANHOLE]
+		sd->sc.data[SC__MANHOLE] ||
+		(sd->sc.data[SC_ASH] && rnd()%2) //50% fail chance under ASH
 	 )) {
 		skill_failed(sd);
 		return 0;
@@ -11271,7 +11272,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 		
 	case UNT_VOLCANIC_ASH:
 		if (!sce)
-			sc_start(bl, SC_ASH, 50, sg->skill_lv, skill_get_time(MH_VOLCANIC_ASH, sg->skill_lv)); //50% chance
+			sc_start(bl, SC_ASH, 100, sg->skill_lv, skill_get_time(MH_VOLCANIC_ASH, sg->skill_lv));
 		break;
 			
 	case UNT_GD_LEADERSHIP:
@@ -12938,7 +12939,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, short skill, sh
 		 * Ranger
 		 **/
 		case RA_WUGMASTERY:
-			if( pc_isfalcon(sd) || pc_isridingwug(sd) || sc && sc->data[SC__GROOMY] ) {
+			if( pc_isfalcon(sd) || pc_isridingwug(sd) || ( sc && sc->data[SC__GROOMY] ) ) {
 				clif_skill_fail(sd,skill,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}
@@ -16148,30 +16149,35 @@ int skill_produce_mix (struct map_session_data *sd, int skill_id, int nameid, in
 			 * Rune Knight
 			 **/
 			case RK_RUNEMASTERY:
-				make_per = (50 + 2 * pc_checkskill(sd,skill_id)) * 100 // Base success rate and success rate increase from learned Rune Mastery level.
-					       + status->dex / 3 * 10 + status->luk * 10 + sd->status.job_level * 10 // Success increase from DEX, LUK, and job level.
-					       + sd->itemid * 100;// Quality of the rune ore used. Values are 2, 5, 8, 11, and 14.
-				switch ( nameid )// Success reduction from rune stone rank. Each rune has a different rank. Values are 5, 10, 15, and 20.
-				{
-					case 12727:// Verkana / RK_MILLENNIUMSHIELD
-						make_per -= 20 * 100;//S-Rank Reduction
-						break;
-					case 12725:// Nosiege / RK_REFRESH
-					case 12730:// Urj / RK_ABUNDANCE
-						make_per -= 15 * 100;//A-Rank Reduction
-						break;
-					case 12728:// Isia / RK_VITALITYACTIVATION
-					case 12732:// Pertz / RK_STORMBLAST
-						make_per -= 10 * 100;//B-Rank Reduction
-						break;
-					case 12726:// Rhydo / RK_CRUSHSTRIKE
-					case 12729:// Asir / RK_FIGHTINGSPIRIT
-					case 12731:// Turisus / RK_GIANTGROWTH
-					case 12733:// Hagalas / RK_STONEHARDSKIN
-						make_per -= 5 * 100;//C-Rank Reduction
-						break;
-				}
-				break;
+			    {
+					int A = 100 * (51 + 2 * pc_checkskill(sd, skill_id));
+					int B = 100 * status->dex / 30 + 10 * (status->luk + sd->status.job_level);
+					int C = 100 * cap_value(sd->itemid,0,100); //itemid depend on makerune()
+					int D = 0;
+					switch (nameid) { //rune rank it_diff 9 craftable rune
+						case ITEMID_BERKANA:
+							D = -2000;
+							break; //Rank S
+						case ITEMID_NAUTHIZ:
+						case ITEMID_URUZ:
+							D = -1500;
+							break; //Rank A
+						case ITEMID_ISA:
+						case ITEMID_WYRD:
+							D = -1000;
+							break; //Rank B
+						case ITEMID_RAIDO:
+						case ITEMID_THURISAZ:
+						case ITEMID_HAGALAZ:
+						case ITEMID_OTHILA:
+							D = -500;
+							break; //Rank C
+						default: D = -1500;
+							break; //not specified =-15%
+					}
+					make_per = A + B + C + D;
+					break;
+			    }
 			/**
 			 * Guilotine Cross
 			 **/
