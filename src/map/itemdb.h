@@ -39,17 +39,17 @@ enum item_itemid {
  * Rune Knight
  **/
 
-enum {
+enum rune_stones {
 	ITEMID_NAUTHIZ = 12725,
 	ITEMID_RAIDO,
 	ITEMID_BERKANA,
 	ITEMID_ISA,
-	ITEMID_OTHILA,
+	ITEMID_EIHWAZ,
 	ITEMID_URUZ,
 	ITEMID_THURISAZ,
-	ITEMID_WYRD,
+	ITEMID_PERTHRO,
 	ITEMID_HAGALAZ,
-} rune_list;
+};
 
 /**
  * Mechanic

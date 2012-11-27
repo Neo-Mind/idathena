@@ -1204,7 +1204,7 @@
 2153,Imperial_Guard,Imperial Guard,5,20,,2500,,120,,1,0x00004000,7,2,32,,102,1,4,{ bonus bMdef,5; if(getrefine()>=6){ bonus2 bSkillAtk,"LG_SHIELDPRESS",20+((getrefine()-5)*2); } else { bonus2 bSkillAtk,"LG_SHIELDPRESS",20; } },{},{}
 2154,Toy_Shield,Toy Shield,5,0,,500,,1,,1,0xFFFFFFFF,7,2,32,,10,1,1,{},{},{}
 //2155,
-2156,Bible_Of_Promise1,Bible Of Promise Vol1,5,20,,500,,10,,1,0x00000100,7,2,32,,110,1,5,{ skill "ALL_ODINS_POWER",1; },{},{}
+2156,Bible_Of_Promise1,Bible Of Promise Vol1,5,20,,500,,10,,1,0x00000100,7,2,32,,110,1,5,{ bonus bMdef,2; skill "ALL_ODINS_POWER",1; },{},{}
 //2157,
 //2158,
 //2159,
@@ -1846,7 +1846,7 @@
 2830,Magingiorde_C,Megingjard,5,20,,0,,2,,0,0xFFFFFFFF,7,2,136,,94,0,0,{ bonus bStr,40; bonus bMdef,7; },{},{}
 2831,Brysinggamen_C,Brisingamen,5,20,,0,,1,,0,0xFFFFFFFF,7,2,136,,94,0,0,{ bonus bStr,6; bonus bInt,6; bonus bVit,6; bonus bAgi,6; bonus bLuk,10; bonus bMdef,5; },{},{}
 2832,Freyja_Ring,Freyja's Ring,5,20,,0,,0,,0,0xFFFFFFFF,7,2,136,,1,0,0,{},{},{}
-2833,Odin's_Recall,Odin's Recall,5,0,,0,,0,,0,0xFFFFFFFF,7,2,136,,1,0,0,{ bonus bAllStats,1; },{},{}
+2833,Odin's_Recall,Odin's Recall,5,0,,0,,0,,0,0xFFFFFFFF,7,2,136,,1,0,0,{ bonus bAllStats,1; skill "ALL_ODINS_RECALL",1; },{},{}
 2834,F_All_In_One_Ring,All In One Ring,5,20,,0,,0,,0,0xFFFFFFFF,7,2,136,,0,0,0,{ bonus bAllStats,1; bonus bNoCastCancel,0; bonus bVariableCastrate,10; skill "AL_HEAL",1; skill "AL_TELEPORT",1; },{},{}
 2835,F_Critical_Ring_C,Critical Ring,5,1,,0,,0,,0,0xFFFFFFFE,7,2,136,,1,0,0,{ bonus bCritical,10; },{},{}
 2836,F_Glove_C,Glove,5,1,,0,,0,,0,0xFFFFFFFE,7,2,136,,1,0,0,{ bonus bDex,4; },{},{}
@@ -5681,10 +5681,10 @@
 12726,Runstone_Rhydo,Raido Rune,11,100,,100,,,,,0xFFFFFFFF,8,2,,,,,,{ itemskill "RK_CRUSHSTRIKE",1; },{},{}
 12727,Runstone_Verkana,Berkana Rune,11,100,,100,,,,,0xFFFFFFFF,8,2,,,,,,{ itemskill "RK_MILLENNIUMSHIELD",1; },{},{}
 12728,Runstone_Isia,Isa Rune,11,100,,100,,,,,0xFFFFFFFF,8,2,,,,,,{ itemskill "RK_VITALITYACTIVATION",1; },{},{}
-12729,Runstone_Asir,Othila Rune,11,100,,100,,,,,0xFFFFFFFF,8,2,,,,,,{ itemskill "RK_FIGHTINGSPIRIT",1; },{},{}
+12729,Runstone_Asir,Eihwaz Rune,11,100,,100,,,,,0xFFFFFFFF,8,2,,,,,,{ itemskill "RK_FIGHTINGSPIRIT",1; },{},{}
 12730,Runstone_Urj,Uruz Rune,11,100,,100,,,,,0xFFFFFFFF,8,2,,,,,,{ itemskill "RK_ABUNDANCE",1; },{},{}
 12731,Runstone_Turisus,Thurisaz Rune,11,100,,100,,,,,0xFFFFFFFF,8,2,,,,,,{ itemskill "RK_GIANTGROWTH",1; },{},{}
-12732,Runstone_Pertz,Wyrd Rune,11,100,,100,,,,,0xFFFFFFFF,8,2,,,,,,{ itemskill "RK_STORMBLAST",1; },{},{}
+12732,Runstone_Pertz,Perthro Rune,11,100,,100,,,,,0xFFFFFFFF,8,2,,,,,,{ itemskill "RK_STORMBLAST",1; },{},{}
 12733,Runstone_Hagalas,Hagalaz Rune,11,100,,100,,,,,0xFFFFFFFF,8,2,,,,,,{ itemskill "RK_STONEHARDSKIN",1; },{},{}
 
 // Rune Knight Rune Ores

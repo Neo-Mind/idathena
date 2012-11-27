@@ -554,6 +554,7 @@ int skillnotok (int skillid, struct map_session_data *sd)
 		case AL_TELEPORT:
 		case SC_FATALMENACE:
 		case SC_DIMENSIONDOOR:
+		case ALL_ODINS_RECALL:
 			if(map[m].flag.noteleport) {
 				clif_skill_teleportmessage(sd,0);
 				return 1;
@@ -6093,6 +6094,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case AL_TELEPORT:
+	case ALL_ODINS_RECALL:
 		if(sd)
 		{
 			if (map[bl->m].flag.noteleport && skilllv <= 2) {
@@ -6107,7 +6109,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 			if( sd->state.autocast || ( (sd->skillitem == AL_TELEPORT || battle_config.skip_teleport_lv1_menu) && skilllv == 1 ) || skilllv == 3 )
 			{
-				if( skilllv == 1 )
+				if( skilllv == 1 && skillid != ALL_ODINS_RECALL )
 					pc_randomwarp(sd,CLR_TELEPORT);
 				else
 					pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,CLR_TELEPORT);
@@ -10368,9 +10370,10 @@ int skill_castend_map (struct map_session_data *sd, short skill_num, const char 
 	switch(skill_num)
 	{
 	case AL_TELEPORT:
+	case ALL_ODINS_RECALL:
 		if(strcmp(map,"Random")==0)
 			pc_randomwarp(sd,CLR_TELEPORT);
-		else if (sd->menuskill_val > 1) //Need lv2 to be able to warp here.
+		else if (sd->menuskill_val > 1 || skill_num == ALL_ODINS_RECALL) //Need lv2 to be able to warp here.
 			pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,CLR_TELEPORT);
 		break;
 
@@ -16163,13 +16166,13 @@ int skill_produce_mix (struct map_session_data *sd, int skill_id, int nameid, in
 							D = -1500;
 							break; //Rank A
 						case ITEMID_ISA:
-						case ITEMID_WYRD:
+						case ITEMID_PERTHRO:
 							D = -1000;
 							break; //Rank B
 						case ITEMID_RAIDO:
 						case ITEMID_THURISAZ:
 						case ITEMID_HAGALAZ:
-						case ITEMID_OTHILA:
+						case ITEMID_EIHWAZ:
 							D = -500;
 							break; //Rank C
 						default: D = -1500;

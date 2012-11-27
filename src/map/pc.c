@@ -4186,12 +4186,16 @@ int pc_useitem(struct map_session_data *sd,int n)
 		return 0;
 
 	if (sd->sc.count && (
-			sd->sc.data[SC_BERSERK] || sd->sc.data[SC__BLOODYLUST] ||
+			sd->sc.data[SC_BERSERK] || sd->sc.data[SC__BLOODYLUST] || sd->sc.data[SC_SATURDAYNIGHTFEVER] ||
 			(sd->sc.data[SC_GRAVITATION] && sd->sc.data[SC_GRAVITATION]->val3 == BCT_SELF) ||
 			sd->sc.data[SC_TRICKDEAD] ||
 			sd->sc.data[SC_HIDING] ||
+			sd->sc.data[SC_WHITEIMPRISON] ||
 			sd->sc.data[SC__SHADOWFORM] ||
+			sd->sc.data[SC__INVISIBILITY] ||
 			sd->sc.data[SC__MANHOLE] ||
+			sd->sc.data[SC_CRYSTALIZE] ||
+			sd->sc.data[SC_DEEPSLEEP] ||
 			sd->sc.data[SC_KAGEHUMI] ||
 			(sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOITEM)
 		))

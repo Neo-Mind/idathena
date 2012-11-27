@@ -481,7 +481,7 @@ void initChangeTables(void) {
 #endif
 
 	set_sc( ALL_PARTYFLEE        , SC_INCFLEE         , SI_PARTYFLEE       , SCB_NONE );
-	set_sc( ALL_ODINS_POWER      , SC_ODINS_POWER     , SI_ODINS_POWER     , SCB_MATK|SCB_BATK|SCB_MDEF|SCB_DEF );
+	set_sc( ALL_ODINS_POWER      , SC_ODINS_POWER     , SI_ODINS_POWER     , SCB_WATK|SCB_MATK|SCB_DEF|SCB_MDEF );
 
 	set_sc( CR_SHRINK            , SC_SHRINK          , SI_SHRINK          , SCB_NONE );
 	set_sc( RG_CLOSECONFINE      , SC_CLOSECONFINE2   , SI_CLOSECONFINE2   , SCB_NONE );
@@ -1593,6 +1593,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 				return 0;
 			break;
 		case AL_TELEPORT:
+		case ALL_ODINS_POWER:
 			//Should fail when used on top of Land Protector [Skotlex]
 			if (src && map_getcell(src->m, src->x, src->y, CELL_CHKLANDPROTECTOR)
 				&& !(status->mode&MD_BOSS)
@@ -1769,7 +1770,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 					((sd->special_state.perfect_hiding || !is_detect) ||
 					(tsc->data[SC_CLOAKINGEXCEED] && is_detect)))
 					return 0;
-				if( tsc->data[SC_CAMOUFLAGE] && !(is_boss || is_detect) && !skill_num )
+				if( tsc->data[SC_CAMOUFLAGE] && !(is_boss || is_detect) )
 					return 0;
 				if( tsc->data[SC_STEALTHFIELD] && !is_boss )
 					return 0;
@@ -4477,8 +4478,6 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk += batk / 5;
 	if(sc->data[SC_FULL_SWING_K])
 		batk += sc->data[SC_FULL_SWING_K]->val1;
-	if(sc->data[SC_ODINS_POWER])
-		batk += 70;
 	if(sc->data[SC_ZANGETSU])
 		batk += batk * sc->data[SC_ZANGETSU]->val2 / 100;
 	if(sc->data[SC_ASH] && (bl->type==BL_MOB)){
@@ -4552,6 +4551,8 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 		watk += sc->data[SC_RUSHWINDMILL]->val3;
 	if(sc->data[SC_SATURDAYNIGHTFEVER])
 		watk += 100 * sc->data[SC_SATURDAYNIGHTFEVER]->val1;
+	if(sc->data[SC_ODINS_POWER])
+		watk += 40 + 30 * sc->data[SC_ODINS_POWER]->val1;
 	if( sc->data[SC_TROPIC_OPTION] )
 		watk += sc->data[SC_TROPIC_OPTION]->val2;
 	if( sc->data[SC_HEATER_OPTION] )
@@ -4862,7 +4863,7 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 	if(sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 2)
 		def += 50;
 	if(sc->data[SC_ODINS_POWER])
-		def -= 20;
+		def -= 2 * sc->data[SC_ODINS_POWER]->val1;
 	if(sc->data[SC_ANGRIFFS_MODUS])
 		def -= 30 + 20 * sc->data[SC_ANGRIFFS_MODUS]->val1;
 	if(sc->data[SC_ASH] && (bl->type==BL_MOB)){
@@ -4988,7 +4989,7 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 	if(sc->data[SC_WATER_BARRIER])
 		mdef += sc->data[SC_WATER_BARRIER]->val2;
 	if(sc->data[SC_ODINS_POWER])
-		mdef -= 20 * sc->data[SC_ODINS_POWER]->val1;
+		mdef -= 2 * sc->data[SC_ODINS_POWER]->val1;
 	if(sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 3)
 		mdef += 50;	
 
