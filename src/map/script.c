@@ -17235,7 +17235,7 @@ static int atcommand_cleanfloor_sub(struct block_list *bl, va_list ap)
 BUILDIN_FUNC(cleanmap)
 {
     const char *map;
-    int m, index;
+    int m = 0, index = 0;
     short x0, y0, x1, y1;
     
     map = script_getstr(st, 2);
