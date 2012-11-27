@@ -897,10 +897,10 @@ int pc_isequip(struct map_session_data *sd,int n)
 
 			if (sd->status.base_level > 96 && item->equip & EQP_ARMS && item->type == IT_WEAPON && item->wlv == 4)
 				switch(item->look) { //In weapons, the look determines type of weapon.
-					case W_DAGGER: //Level 4 Knives are equippable.. this means all knives, I'd guess?
+					case W_DAGGER: //All daggers
 					case W_1HSWORD: //All 1H swords
 					case W_1HAXE: //All 1H Axes
-					case W_2HAXE: //All 1H Axes
+					case W_2HAXE: //All 2H Axes
 					case W_MACE: //All 1H Maces
 					case W_STAFF: //All 1H Staves
 					case W_2HSTAFF: //All 2H Staves
