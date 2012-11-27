@@ -1204,7 +1204,7 @@
 2153,Imperial_Guard,Imperial Guard,5,20,,2500,,120,,1,0x00004000,7,2,32,,102,1,4,{ bonus bMdef,5; if(getrefine()>=6){ bonus2 bSkillAtk,"LG_SHIELDPRESS",20+((getrefine()-5)*2); } else { bonus2 bSkillAtk,"LG_SHIELDPRESS",20; } },{},{}
 2154,Toy_Shield,Toy Shield,5,0,,500,,1,,1,0xFFFFFFFF,7,2,32,,10,1,1,{},{},{}
 //2155,
-2156,Bible_Of_Promise1,Bible Of Promise Vol1,5,20,,500,,10,,1,0x00000100,7,2,32,,110,1,5,{ bonus bMdef,2; skill "ALL_ODINS_POWER",1; },{},{}
+2156,Bible_Of_Promise1,Bible Of Promise Vol1,5,20,,500,,10,,1,0x00000100,7,2,32,,110,1,5,{ skill "ALL_ODINS_POWER",1; },{},{}
 //2157,
 //2158,
 //2159,

@@ -4863,7 +4863,7 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 	if(sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 2)
 		def += 50;
 	if(sc->data[SC_ODINS_POWER])
-		def -= 2 * sc->data[SC_ODINS_POWER]->val1;
+		def -= 20;
 	if(sc->data[SC_ANGRIFFS_MODUS])
 		def -= 30 + 20 * sc->data[SC_ANGRIFFS_MODUS]->val1;
 	if(sc->data[SC_ASH] && (bl->type==BL_MOB)){
@@ -4989,7 +4989,7 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 	if(sc->data[SC_WATER_BARRIER])
 		mdef += sc->data[SC_WATER_BARRIER]->val2;
 	if(sc->data[SC_ODINS_POWER])
-		mdef -= 2 * sc->data[SC_ODINS_POWER]->val1;
+		mdef -= 20;
 	if(sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 3)
 		mdef += 50;	
 
