@@ -602,7 +602,7 @@ void initChangeTables(void) {
 	set_sc_with_vfx( WL_FROSTMISTY        , SC_FREEZING        , SI_FROSTMISTY      , SCB_ASPD|SCB_SPEED|SCB_DEF|SCB_DEF2 );
 	add_sc( WL_JACKFROST         , SC_FREEZE		  );
 	set_sc( WL_MARSHOFABYSS      , SC_MARSHOFABYSS    , SI_MARSHOFABYSS    , SCB_AGI|SCB_DEX|SCB_SPEED );
-	set_sc( WL_RECOGNIZEDSPELL   , SC_RECOGNIZEDSPELL , SI_RECOGNIZEDSPELL , SCB_NONE );
+	set_sc( WL_RECOGNIZEDSPELL   , SC_RECOGNIZEDSPELL , SI_RECOGNIZEDSPELL , SCB_MATK );
 	add_sc( WL_SIENNAEXECRATE    , SC_STONE			  );
 	set_sc( WL_STASIS            , SC_STASIS          , SI_STASIS          , SCB_NONE );
 	add_sc( WL_CRIMSONROCK       , SC_STUN            );
@@ -1935,29 +1935,12 @@ static unsigned short status_base_atk(const struct block_list *bl, const struct 
 	return cap_value(str, 0, USHRT_MAX);
 }
 
-
-static inline unsigned short status_base_matk_max(const struct status_data* status)
-{
-#ifdef RENEWAL
-	return status->matk_max; // in RE maximum MATK signs weapon matk, which we store in this var
+#ifndef RENEWAL 
+	static inline unsigned short status_base_matk_min(const struct status_data* status){ return status->int_+(status->int_/7)*(status->int_/7); }
+	static inline unsigned short status_base_matk_max(const struct status_data* status){ return status->int_+(status->int_/5)*(status->int_/5); }
 #else
-	return status->int_+(status->int_/5)*(status->int_/5);
+	unsigned short status_base_matk(const struct status_data* status, int level){ return status->int_+(status->int_/2)+(status->dex/5)+(status->luk/3)+(level/4); }
 #endif
-}
-
-#ifdef RENEWAL
-static inline unsigned short status_base_matk_min(const struct status_data* status, int lvl)
-#else
-static inline unsigned short status_base_matk_min(const struct status_data* status)
-#endif
-{
-#ifdef RENEWAL
-	return status->int_+(status->int_/2)+(status->dex/5)+(status->luk/3)+(lvl/4);
-#else
-	return status->int_+(status->int_/7)*(status->int_/7);
-#endif
-}
-
 
 //Fills in the misc data that can be calculated from the other status info (except for level)
 void status_calc_misc(struct block_list *bl, struct status_data *status, int level)
@@ -1968,19 +1951,16 @@ void status_calc_misc(struct block_list *bl, struct status_data *status, int lev
 		status->hit = status->flee =
 		status->def2 = status->mdef2 =
 		status->cri = status->flee2 = 0;
-#ifdef RENEWAL
-	status->matk_min = status_base_matk_min(status, level);
-#else
-	status->matk_min = status_base_matk_min(status);
-#endif
-	status->matk_max = status_base_matk_max(status);
 
 #ifdef RENEWAL // renewal formulas
+	status->matk_min = status->matk_max = status_base_matk(status, level);
 	status->hit += level + status->dex + status->luk/3 + 175; //base level + ( every 1 dex = +1 hit ) + (every 3 luk = +1 hit) + 175
 	status->flee += level + status->agi + status->luk/5 + 100; //base level + ( every 1 agi = +1 flee ) + (every 5 luk = +1 flee) + 100
 	status->def2 += (int)(((float)level + status->vit)/2 + ((float)status->agi/5)); //base level + (every 2 vit = +1 def) + (every 5 agi = +1 def)
 	status->mdef2 += (int)(status->int_ + ((float)level/4) + ((float)status->dex/5) + ((float)status->vit/5)); //(every 4 base level = +1 mdef) + (every 1 int = +1 mdef) + (every 5 dex = +1 mdef) + (every 5 vit = +1 mdef)
 #else
+	status->matk_min = status_base_matk_min(status);
+    status->matk_max = status_base_matk_max(status);
 	status->hit += level + status->dex;
 	status->flee += level + status->agi;
 	status->def2 += status->vit;
@@ -2524,16 +2504,10 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 				wa->atk2 = refine_info[wlv].bonus[r-1] / 100;
 
 #ifdef RENEWAL
-			// in renewal max MATK is the weapon MATK
-			status->matk_max += sd->inventory_data[index]->matk;
-
-			if( r )
-			{// renewal magic attack refine bonus
-				status->matk_max += refine_info[wlv].bonus[r-1] / 100;
-			}
-			
-			// record the weapon level for future usage
-			status->wlv = wlv;
+			wa->matk += sd->inventory_data[index]->matk;
+			wa->wlv = wlv;
+			if( r ) // renewal magic attack refine bonus
+				wa->matk += refine_info[wlv].bonus[r-1] / 100;
 #endif
 
 			//Overrefine bonus.
@@ -2606,11 +2580,6 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 	memset(sd->param_bonus, 0, sizeof(sd->param_bonus));
 
 	status->def += (refinedef+50)/100;
-	
-#ifdef RENEWAL
-	// increment the weapon ATK using the MATK max value
-	status->matk_max += sd->bonus.sp_weapon_matk;
-#endif
 
 	//Parse Cards
 	for(i=0;i<EQI_MAX-1;i++) {
@@ -3841,35 +3810,49 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		}
 	}
 
-	if(flag&SCB_MATK) {
-#ifdef RENEWAL
-		status->matk_min = status_base_matk_min(status,status_get_lv(bl));
-		if( sd )
-			status->matk_min += sd->bonus.sp_base_matk;
+	if (flag&SCB_MATK) {
+#ifndef RENEWAL
+		status->matk_min = status_base_matk_min(status) + (sd?sd->bonus.ematk:0);
+		status->matk_max = status_base_matk_max(status) + (sd?sd->bonus.ematk:0);
 #else
-		status->matk_min = status_base_matk_min(status);
-#endif
-		status->matk_max = status_base_matk_max(status);
-		
-		if( bl->type&BL_PC && sd->matk_rate != 100 )
-		{
-			//Bonuses from previous matk
-#ifndef RENEWAL // only changed in non-renewal [Ind]
-			status->matk_max = status->matk_max * sd->matk_rate/100;
-#endif
-			status->matk_min = status->matk_min * sd->matk_rate/100;
+		/**
+		 * RE MATK Formula (from irowiki:http://irowiki.org/wiki/MATK)
+		 * MATK = (sMATK + wMATK + eMATK) * Multiplicative Modifiers
+		 **/
+		status->matk_min = status->matk_max = status_base_matk(status, status_get_lv(bl));
+		if( bl->type&BL_PC ){
+			if( sd->bonus.ematk > 0 ){
+				status->matk_max += sd->bonus.ematk;
+				status->matk_min += sd->bonus.ematk;
+			}
+			if( status->rhw.matk > 0 ){
+				int wMatk = status->rhw.matk;
+				int variance = wMatk * status->rhw.wlv / 10;
+				status->matk_min += wMatk - variance;
+				status->matk_max += wMatk + variance;
+			}
 		}
-			
-		status->matk_min = status_calc_matk(bl, sc, status->matk_min);
+#endif
+        if (bl->type&BL_PC && sd->matk_rate != 100) {
+            status->matk_max = status->matk_max * sd->matk_rate/100;
+            status->matk_min = status->matk_min * sd->matk_rate/100;
+        }
 
-#ifndef RENEWAL // only changed in non-renewal [Ind]
-		status->matk_max = status_calc_matk(bl, sc, status->matk_max);
+        status->matk_min = status_calc_matk(bl, sc, status->matk_min);
+        status->matk_max = status_calc_matk(bl, sc, status->matk_max);
+
+        if (bl->type&BL_HOM && battle_config.hom_setting&0x20  //Hom Min Matk is always the same as Max Matk
+			|| ( sc && sc->data[SC_RECOGNIZEDSPELL] ))
+            status->matk_min = status->matk_max;
+
+#ifdef RENEWAL
+		if( sd && sd->right_weapon.overrefine > 0){
+			status->matk_min++;
+			status->matk_max += sd->right_weapon.overrefine - 1;
+		}
 #endif
 
-		if( bl->type&BL_HOM && battle_config.hom_setting&0x20 ) //Hom Min Matk is always the same as Max Matk
-			status->matk_min = status->matk_max;
-
-	}
+    }
 
 	if(flag&SCB_ASPD) {
 		int amotion;
@@ -4055,10 +4038,17 @@ void status_calc_bl_(struct block_list* bl, enum scb_flag flag, bool first)
 			clif_updatestatus(sd,SP_FLEE2);
 		if(b_status.cri != status->cri)
 			clif_updatestatus(sd,SP_CRITICAL);
+#ifndef RENEWAL
 		if(b_status.matk_max != status->matk_max)
 			clif_updatestatus(sd,SP_MATK1);
 		if(b_status.matk_min != status->matk_min)
 			clif_updatestatus(sd,SP_MATK2);
+#else
+		if(b_status.matk_max != status->matk_max || b_status.matk_min != status->matk_min){
+			clif_updatestatus(sd,SP_MATK2);
+			clif_updatestatus(sd,SP_MATK1);
+		}
+#endif
 		if(b_status.mdef != status->mdef){
 			clif_updatestatus(sd,SP_MDEF1);
 #ifdef RENEWAL
@@ -6229,6 +6219,14 @@ int status_get_sc_def(struct block_list *bl, enum sc_type type, int rate, int ti
 			tick /= 15;
 		//No defense against it (buff).
 		rate -= (status_get_lv(bl) / 5 + status->vit / 4 + status->agi / 10)*100; // Lineal Reduction of Rate
+		break;
+	case SC_MARSHOFABYSS:
+		//5 second (Fixed) + 25 second - {( INT + LUK ) / 20 second }
+		tick -= (status->int_ + status->luk) / 20 * 1000;
+		break;
+	case SC_STASIS:
+		//5 second (fixed) + { Stasis Skill level * 5 - (Target?s VIT + DEX) / 20 }
+		tick -= (status->vit + status->dex) / 20 * 1000;
 		break;
 	case SC_WHITEIMPRISON:
 		if( tick == 5000 ) // 100% on caster
@@ -10721,6 +10719,7 @@ int status_change_timer_sub(struct block_list* bl, va_list ap)
 /*==========================================
  * Clears buffs/debuffs of a character.
  * type&1 -> buffs, type&2 -> debuffs
+ * type&4 -> especific debuffs(implemented with refresh)
  *------------------------------------------*/
 int status_change_clear_buffs (struct block_list* bl, int type)
 {
@@ -10730,18 +10729,10 @@ int status_change_clear_buffs (struct block_list* bl, int type)
 	if (!sc || !sc->count)
 		return 0;
 
-	if (type&2) //Debuffs
-	for (i = SC_COMMON_MIN; i <= SC_COMMON_MAX; i++) {
-		if(sc->data[i])
+	if (type&6) //Debuffs
+		for (i = SC_COMMON_MIN; i <= SC_COMMON_MAX; i++)
 			status_change_end(bl, (sc_type)i, INVALID_TIMER);
-	}
-	
-	if(type&6) //Toxins
-	for (i = SC_TOXIN; i <= SC_LEECHESEND; ++i) {
-		if (sc->data[i])
-			status_change_end(bl, (sc_type)i, INVALID_TIMER);
-	}	
-	
+
 	for( i = SC_COMMON_MAX+1; i < SC_MAX; i++ ) {
 		if(!sc->data[i])
 			continue;
@@ -10809,17 +10800,21 @@ int status_change_clear_buffs (struct block_list* bl, int type)
 				continue;
 
 			//Debuffs that can be removed.
-			case SC_CRYSTALIZE:
 			case SC_DEEPSLEEP:
-			case SC_MANDRAGORA:
-			case SC_MARSHOFABYSS:
-				if(!(type&6))
-					continue;
-				break;
-			case SC_QUAGMIRE:
-			case SC_DECREASEAGI:
 			case SC_BURNING:
-				if(!(type&2))
+			case SC_FREEZING:
+			case SC_CRYSTALIZE:
+			case SC_TOXIN:
+			case SC_PARALYSE:
+			case SC_VENOMBLEED:
+			case SC_MAGICMUSHROOM:
+			case SC_DEATHHURT:
+			case SC_PYREXIA:
+			case SC_OBLIVIONCURSE:
+			case SC_LEECHESEND:
+			case SC_MARSHOFABYSS:
+			case SC_MANDRAGORA:
+				if(!(type&4))
 					continue;
 				break;
 			case SC_STUN:
@@ -10831,16 +10826,10 @@ int status_change_clear_buffs (struct block_list* bl, int type)
 			case SC_SILENCE:
 			case SC_CONFUSION:
 			case SC_FREEZE:
-			case SC_FREEZING:
-			case SC_TOXIN:
-			case SC_PARALYSE:
-			case SC_VENOMBLEED:
-			case SC_MAGICMUSHROOM:
-			case SC_DEATHHURT:
-			case SC_PYREXIA:
-			case SC_OBLIVIONCURSE:
 			case SC_HALLUCINATION:
+			case SC_QUAGMIRE:
 			case SC_SIGNUMCRUCIS:
+			case SC_DECREASEAGI:
 			case SC_SLOWDOWN:
 			case SC_MINDBREAKER:
 			case SC_WINKCHARM:
@@ -10856,7 +10845,7 @@ int status_change_clear_buffs (struct block_list* bl, int type)
 			case SC_FEAR:
 			case SC_MAGNETICFIELD:
 			case SC_NETHERWORLD:
-				if (!(type&2) || type == 6) //RK_Refresh is not supposed to remove these
+				if (!(type&2))
 					continue;
 				break;
 			//The rest are buffs that can be removed.
