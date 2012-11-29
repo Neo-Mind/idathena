@@ -1960,7 +1960,7 @@ void status_calc_misc(struct block_list *bl, struct status_data *status, int lev
 	status->mdef2 += (int)(status->int_ + ((float)level/4) + ((float)status->dex/5) + ((float)status->vit/5)); //(every 4 base level = +1 mdef) + (every 1 int = +1 mdef) + (every 5 dex = +1 mdef) + (every 5 vit = +1 mdef)
 #else
 	status->matk_min = status_base_matk_min(status);
-    status->matk_max = status_base_matk_max(status);
+	status->matk_max = status_base_matk_max(status);
 	status->hit += level + status->dex;
 	status->flee += level + status->agi;
 	status->def2 += status->vit;

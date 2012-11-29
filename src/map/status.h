@@ -1569,8 +1569,10 @@ struct weapon_atk {
 	unsigned short atk, atk2;
 	unsigned short range;
 	unsigned char ele;
+#ifdef RENEWAL
+	unsigned short matk, wlv;
+#endif
 };
-
 
 //For holding basic status (which can be modified by status changes)
 struct status_data {

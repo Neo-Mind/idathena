@@ -3771,27 +3771,27 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			case ALL_RESURRECTION:
 			case PR_TURNUNDEAD:
 				//Undead check is on skill_castend_damageid code.
-			#ifdef RENEWAL
+#ifdef RENEWAL
 				i = 10*skill_lv + sstatus->luk + sstatus->int_ + status_get_lv(src)
 				  	+ 300 - 300*tstatus->hp/tstatus->max_hp;
-			#else
+#else
 				i = 20*skill_lv + sstatus->luk + sstatus->int_ + status_get_lv(src)
 				  	+ 200 - 200*tstatus->hp/tstatus->max_hp;
-			#endif
+#endif
 				if(i > 700) i = 700;
 				if(rnd()%1000 < i && !(tstatus->mode&MD_BOSS))
 					ad.damage = tstatus->hp;
 				else {
-				#ifdef RENEWAL
+#ifdef RENEWAL
 					if (sstatus->matk_max > sstatus->matk_min) {
 						MATK_ADD(sstatus->matk_min+rnd()%(sstatus->matk_max-sstatus->matk_min));
 					} else {
 						MATK_ADD(sstatus->matk_min);
 					}
 					MATK_RATE(skill_lv);
-				#else
+#else
 					ad.damage = status_get_lv(src) + sstatus->int_ + skill_lv * 10;
-				#endif
+#endif
 				}
 				break;
 			case PF_SOULBURN:
