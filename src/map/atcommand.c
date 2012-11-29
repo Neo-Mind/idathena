@@ -6177,6 +6177,9 @@ ACMD_FUNC(cleanarea)
 	else if (sscanf(message, "%d %d %d %d", &x0, &y0, &x1, &y1) == 4) {
 		map_foreachinarea(atcommand_cleanfloor_sub, sd->bl.m, x0, y0, x1, y1, BL_ITEM);
 	}
+	
+	clif_displaymessage(fd, msg_txt(1221)); // All dropped items have been cleaned up.
+	return 0;
 }
 
 /*==========================================
