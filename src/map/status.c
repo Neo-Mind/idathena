@@ -1935,7 +1935,7 @@ static unsigned short status_base_atk(const struct block_list *bl, const struct 
 	return cap_value(str, 0, USHRT_MAX);
 }
 
-#ifndef RENEWAL 
+#ifndef RENEWAL
 	static inline unsigned short status_base_matk_min(const struct status_data* status){ return status->int_+(status->int_/7)*(status->int_/7); }
 	static inline unsigned short status_base_matk_max(const struct status_data* status){ return status->int_+(status->int_/5)*(status->int_/5); }
 #else
