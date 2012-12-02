@@ -1201,7 +1201,7 @@ dew_in01,15,49,5	script	Tribal Chief Paiko#dew_	540,{
 			mes "But if you eat more you won't be";
 			mes "able to share ^4AA02CSatay^000000 with our friends.";
 			changequest 9159,9160;
-			getitem 11533,2;
+			getitem 11533,1;
 			close; }
 		else if (checkquest(9160) >= 0) goto chiefrequest;
 		else if (checkquest(9161) >= 0) {
@@ -1235,7 +1235,7 @@ dew_in01,15,49,5	script	Tribal Chief Paiko#dew_	540,{
 			mes "And just like before, don't give";
 			mes "in to the smell and try not to eat the ^4AA02CSatay^000000.";
 			changequest 9163,9164;
-			getitem 11533,2;
+			getitem 11533,1;
 			close; }
 		else if (checkquest(9164) >= 0) goto chiefrequest;
 		else if (checkquest(9165) >= 0) {
@@ -1282,7 +1282,6 @@ dew_in01,15,49,5	script	Tribal Chief Paiko#dew_	540,{
 			mes "you the best of luck!!";
 			set dewata_legend,6;
 			erasequest 9165;
-			getitem 11533,5;
 			getitem 18520,1;
 			close; }
 		mes .@n$;
@@ -1424,7 +1423,7 @@ dew_in01,22,48,3	script	Sage Kasyapa#dew_	541,{
 			mes "Anyway, I really thank you.";
 			set dewata_legend,5;
 			erasequest 9157;
-			getitem 6406,1;
+			getitem 6405,1;
 			close; }
 		mes "[Sage Kasyapa]";
 		mes "I've been waiting for you.";
