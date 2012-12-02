@@ -422,7 +422,7 @@ enum _look {
 	LOOK_SHOES,
 	LOOK_BODY,
 	LOOK_FLOOR,
-	LOOK_ROBE,
+	LOOK_ROBE
 };
 
 // used by map_setcell()
@@ -436,7 +436,7 @@ typedef enum {
 	CELL_LANDPROTECTOR,
 	CELL_NOVENDING,
 	CELL_NOCHAT,
-	CELL_ICEWALL,
+	CELL_ICEWALL
 
 } cell_t;
 
@@ -459,7 +459,7 @@ typedef enum {
 	CELL_CHKLANDPROTECTOR,
 	CELL_CHKNOVENDING,
 	CELL_CHKNOCHAT,
-	CELL_CHKICEWALL,
+	CELL_CHKICEWALL
 
 } cell_chk;
 
