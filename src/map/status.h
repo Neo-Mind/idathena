@@ -618,7 +618,7 @@ typedef enum sc_type {
 	/* Max HP & SP */
 	SC_INCMHP,
 	SC_INCMSP,
-	SC_PARTYFLEE, // 531
+	SC_PARTYFLEE, // 529
 	/**
 	* Kagerou & Oboro [malufett]
 	**/
