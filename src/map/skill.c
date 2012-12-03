@@ -8498,13 +8498,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 		
 	case WM_LULLABY_DEEPSLEEP:
-		if ( flag&1 )
-			sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv));
-		else if ( sd ) {
+		if ( flag&1 ) {
+			if (bl != src)
+				sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv));
+		} else if ( sd ) {
 			rate = skilllv * 4 + pc_checkskill(sd,WM_LESSON) * 2 + (status_get_lv(src) / 15) + sd->status.job_level / 5;
 			if( rate > 60 ) rate = 60;
 			if ( rnd()%100 < rate ) {
-				map_foreachinrange(skill_area_sub, src, skill_get_splash(skillid, skilllv), BL_CHAR, src, skillid, skilllv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
+				map_foreachinrange(skill_area_sub, src, skill_get_splash(skillid, skilllv), BL_CHAR, src, skillid, skilllv, tick, flag|BCT_ALL|1, skill_castend_nodamage_id);
 				clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			}
 		}
@@ -8514,7 +8515,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		if( flag&1 )
 			sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv));
 		else if ( sd ) {
-			map_foreachinrange(skill_area_sub, src, skill_get_splash(skillid,skilllv), BL_PC, src, skillid, skilllv, tick, flag|BCT_NOENEMY|1, skill_castend_nodamage_id);
+			map_foreachinrange(skill_area_sub, src, skill_get_splash(skillid,skilllv), BL_PC, src, skillid, skilllv, tick, flag|BCT_ALL|1, skill_castend_nodamage_id);
 			sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv));
 		}
 		break;
@@ -8523,9 +8524,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		if( flag&1 )
 			sc_start2(bl,type,100,skilllv,src->id,skill_get_time(skillid,skilllv));
 		else if ( sd ) {
-			rate = skilllv * 6 + (sd ? pc_checkskill(sd,WM_LESSON) : 1) + sd->status.job_level / 2;
+			rate = skilllv * 6 + pc_checkskill(sd,WM_LESSON) * 2 + sd->status.job_level / 2;
 			if ( rnd()%100 < rate ) {
-				map_foreachinrange(skill_area_sub, src, skill_get_splash(skillid,skilllv), BL_CHAR, src, skillid, skilllv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
+				map_foreachinrange(skill_area_sub, src, skill_get_splash(skillid,skilllv), BL_CHAR|BL_SKILL, src, skillid, skilllv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
 				clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			}
 		}

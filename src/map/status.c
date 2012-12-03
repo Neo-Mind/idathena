@@ -6298,6 +6298,9 @@ int status_get_sc_def(struct block_list *bl, enum sc_type type, int rate, int ti
 	case SC_CRYSTALIZE:
 		tick -= (1000*(status->vit/10))+(status_get_lv(bl)/50);
 		break;
+	case SC_VOICEOFSIREN:
+		tick_def = status_get_lv(bl) / 10 + sd->status.job_level / 5;
+		break;
 	case SC_KYOUGAKU:
 		tick -= 30*status->int_;
 		break;
