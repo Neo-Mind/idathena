@@ -1953,7 +1953,11 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 	if (flag.cri)
 	{
 		wd.type = 0x0a;
+#ifdef RENEWAL
+		flag.hit = 1;
+#else
 		flag.idef = flag.idef2 = flag.hit = 1;
+#endif
 	} else {	//Check for Perfect Hit
 		if(sd && sd->bonus.perfect_hit > 0 && rnd()%100 < sd->bonus.perfect_hit)
 			flag.hit = 1;
@@ -2202,19 +2206,30 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						ShowError("0 enemies targeted by %d:%s, divide per 0 avoided!\n", skill_num, skill_get_name(skill_num));
 				}
 
-				//Add any bonuses that modify the base baseatk+watk (pre-skills)
-				if(sd) {
+				//Add any bonuses that modify the base baseatk+watk
+				if (sd) {
 					if (sd->bonus.atk_rate)
 						ATK_ADDRATE(sd->bonus.atk_rate);
-
-					if(flag.cri && sd->bonus.crit_atk_rate)
-						ATK_ADDRATE(sd->bonus.crit_atk_rate);
-
-					if(sd->status.party_id && (skill=pc_checkskill(sd,TK_POWER)) > 0){
-						if( (i = party_foreachsamemap(party_sub_count, sd, 0)) > 1 ) // exclude the player himself [Inkfish]
+					if (flag.cri) {
+#ifdef RENEWAL
+						if (sd->bonus.crit_atk_rate) {
+							ATK_ADDRATE(40 + sd->bonus.crit_atk_rate);
+						} else
+							ATK_ADDRATE(40);
+#else
+						if(sd->bonus.crit_atk_rate)
+							ATK_ADDRATE(sd->bonus.crit_atk_rate);
+#endif
+					}
+					if (sd->status.party_id && (skill=pc_checkskill(sd,TK_POWER)) > 0) {
+						if ((i = party_foreachsamemap(party_sub_count, sd, 0)) > 1) // exclude the player himself [Inkfish]
 							ATK_ADDRATE(2*skill*i);
 					}
 				}
+#ifdef RENEWAL
+				else if (flag.cri)
+					ATK_ADDRATE(40);
+#endif
 				break;
 			}	//End default case
 		} //End switch(skill_num)
