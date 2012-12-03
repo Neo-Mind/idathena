@@ -2217,7 +2217,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						} else
 							ATK_ADDRATE(40);
 #else
-						if(sd->bonus.crit_atk_rate)
+						if (sd->bonus.crit_atk_rate)
 							ATK_ADDRATE(sd->bonus.crit_atk_rate);
 #endif
 					}
