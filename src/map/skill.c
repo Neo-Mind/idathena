@@ -646,7 +646,7 @@ int skillnotok (int skillid, struct map_session_data *sd)
 			}
 			break;
 			
-		case WM_SIRCLEOFNATURE:
+		//case WM_SIRCLEOFNATURE:
 		case WM_SOUND_OF_DESTRUCTION:
 		case SC_MANHOLE:
 		case WM_SATURDAY_NIGHT_FEVER:
@@ -2785,9 +2785,6 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			case WM_METALICSOUND:
 				status_zap(bl, 0, damage*100/(100*(110-pc_checkskill(sd,WM_LESSON)*10)));
 				break;
-			case SR_TIGERCANNON:
-				status_zap(bl, 0, damage/10); // 10% of damage dealt
-				break;
 		}
 		if( sd )
 			skill_onskillusage(sd, bl, skillid, tick);
@@ -3418,7 +3415,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	struct map_session_data *sd = NULL, *tsd = NULL;
 	struct status_data *tstatus;
 	struct status_change *sc, *tsc;
-	int rate;
+	int rate = 0;
 	int chorusbonus = 0;//Chorus bonus value for chorus skills. Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 
 	if (skillid > 0 && skilllv <= 0) return 0;
@@ -3803,7 +3800,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case GC_COUNTERSLASH:
 	case LG_MOONSLASHER:
 	case LG_EARTHDRIVE:
-	case SR_TIGERCANNON:
 	case SR_RAMPAGEBLASTER:
 	case SR_SKYNETBLOW:
 	case SR_WINDMILL:
@@ -4533,16 +4529,24 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 			clif_skill_damage(src, src, tick, status_get_amotion(src), 0, -30000, 1, skillid, skilllv, 6);
 		}
 		break;
-
-	case WM_LULLABY_DEEPSLEEP:
-		rate = skilllv * 4 + pc_checkskill(sd,WM_LESSON) * 2 + (status_get_lv(src) / 15) + sd->status.job_level / 5;
-		if( rate > 60 )
-			rate = 60;
-		if( bl != src ) {
-			clif_skill_nodamage(src,bl,skillid,skilllv,sc_start2(bl, SC_DEEPSLEEP, rate, skilllv, 1, skill_get_time(skillid, skilllv)));
+		
+	case SR_TIGERCANNON:
+		if ( flag&1 ) {
+			skill_attack(BF_WEAPON, src, src, bl, skillid, skilllv, tick, flag);
+			status_zap(bl, 0, status_get_max_sp(bl) * 10 / 100);
+		} else if ( sd ) {
+			int hpcost, spcost;
+			hpcost = 10 + 2 * skilllv;
+			spcost = 5 + 1 * skilllv;
+			if (!status_charge(src, status_get_max_hp(src) * hpcost / 100, status_get_max_sp(src) * spcost / 100)) {
+				if (sd) clif_skill_fail(sd, skillid, USESKILL_FAIL_LEVEL, 0);
+				break;
+			}
+			map_foreachinrange(skill_area_sub, bl, skill_get_splash(skillid, skilllv), splash_target(src), src, skillid, skilllv, tick, flag|BCT_ENEMY|SD_SPLASH|1, skill_castend_damage_id);
+			status_zap(src, hpcost, spcost);
 		}
 		break;
-		
+
 	case WM_SOUND_OF_DESTRUCTION:
 		if( tsc && ( tsc->data[SC_SWINGDANCE] || tsc->data[SC_SYMPHONYOFLOVER] || tsc->data[SC_MOONLITSERENADE] || 
 		tsc->data[SC_RUSHWINDMILL] || tsc->data[SC_ECHOSONG] || tsc->data[SC_HARMONIZE] || 
@@ -8493,16 +8497,37 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 		
+	case WM_LULLABY_DEEPSLEEP:
+		if ( flag&1 )
+			sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv));
+		else if ( sd ) {
+			rate = skilllv * 4 + pc_checkskill(sd,WM_LESSON) * 2 + (status_get_lv(src) / 15) + sd->status.job_level / 5;
+			if( rate > 60 ) rate = 60;
+			if ( rnd()%100 < rate ) {
+				map_foreachinrange(skill_area_sub, src, skill_get_splash(skillid, skilllv), BL_CHAR, src, skillid, skilllv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
+				clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			}
+		}
+		break;
+		
 	case WM_SIRCLEOFNATURE:
-		flag |= BCT_SELF|BCT_PARTY|BCT_GUILD;
+		if( flag&1 )
+			sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv));
+		else if ( sd ) {
+			map_foreachinrange(skill_area_sub, src, skill_get_splash(skillid,skilllv), BL_PC, src, skillid, skilllv, tick, flag|BCT_NOENEMY|1, skill_castend_nodamage_id);
+			sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv));
+		}
+		break;
+		
 	case WM_VOICEOFSIREN:
-		if( skillid != WM_SIRCLEOFNATURE )
-			flag &= ~BCT_SELF;
-		if( flag&1 ) {
-			sc_start2(bl,type,(skillid==WM_VOICEOFSIREN)?20+10*skilllv:100,skilllv,(skillid==WM_VOICEOFSIREN)?src->id:0,skill_get_time(skillid,skilllv));
-		} else {
-			map_foreachinrange(skill_area_sub, src, skill_get_splash(skillid,skilllv),(skillid==WM_VOICEOFSIREN)?BL_CHAR|BL_SKILL:BL_PC, src, skillid, skilllv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		if( flag&1 )
+			sc_start2(bl,type,100,skilllv,src->id,skill_get_time(skillid,skilllv));
+		else if ( sd ) {
+			rate = skilllv * 6 + (sd ? pc_checkskill(sd,WM_LESSON) : 1) + sd->status.job_level / 2;
+			if ( rnd()%100 < rate ) {
+				map_foreachinrange(skill_area_sub, src, skill_get_splash(skillid,skilllv), BL_CHAR, src, skillid, skilllv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
+				clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			}
 		}
 		break;
 
@@ -10092,12 +10117,10 @@ int skill_castend_pos2(struct block_list* src, int x, int y, int skillid, int sk
 	case NC_ARMSCANNON:
 	case RK_DRAGONBREATH:
 	case RK_WINDCUTTER:
-	case WM_LULLABY_DEEPSLEEP:
 	case WM_GREAT_ECHO:
 	case WM_SOUND_OF_DESTRUCTION:
 		i = skill_get_splash(skillid,skilllv);
-		map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,splash_target(src),
-			src,skillid,skilllv,tick,flag|(skillid==WM_LULLABY_DEEPSLEEP?BCT_ALL:BCT_ENEMY)|1,skill_castend_damage_id);
+		map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,splash_target(src),src,skillid,skilllv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 		break;
 	/**
 	 * Guilotine Cross
