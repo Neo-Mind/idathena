@@ -4095,6 +4095,8 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 	ud = unit_bl2ud(bl);
 	len = ( ud && ud->walktimer != INVALID_TIMER ) ? clif_set_unit_walking(bl,ud,buf) : clif_set_unit_idle(bl,buf,false);
 	clif_send(buf,len,&sd->bl,SELF);
+	
+	clif_changelook(&sd->bl,LOOK_ROBE,sd->status.robe); //Fix Robe's View by [B.O.X]
 
 	if (vd->cloth_color)
 		clif_refreshlook(&sd->bl,bl->id,LOOK_CLOTHES_COLOR,vd->cloth_color,SELF);
