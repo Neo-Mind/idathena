@@ -1770,7 +1770,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 					((sd->special_state.perfect_hiding || !is_detect) ||
 					(tsc->data[SC_CLOAKINGEXCEED] && is_detect)))
 					return 0;
-				if( tsc->data[SC_CAMOUFLAGE] && !(is_boss || is_detect) )
+				if( tsc->data[SC_CAMOUFLAGE] && !(is_boss || is_detect) && !skill_num )
 					return 0;
 				if( tsc->data[SC_STEALTHFIELD] && !is_boss )
 					return 0;
