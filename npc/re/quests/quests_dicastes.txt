@@ -4491,7 +4491,7 @@ dicastes01,112,248,5	script	Resting Piom#ep133_16	491,{
 	close;
 }
 
-dicastes01,249,140,3	script	Training Galten#ep133_17	450,
+dicastes01,249,140,3	script	Training Galten#ep133_17	450,{
 	if (!isequipped(2782)) {
 		mes "[Training Galten]";
 		mes "¡ø¡ô¡ü ¡ø ¡ø¡ô¡ü";
