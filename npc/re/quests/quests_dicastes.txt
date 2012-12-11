@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Gennosuke Kouga, Muad_Dib
 //===== Current Version: =====================================
-//= 1.7
+//= 1.8
 //===== Compatible With: =====================================
 //= rAthena SVN
 //===== Description: =========================================
@@ -23,6 +23,7 @@
 //= 1.5 Removed "Mysterious Documents" duplicated in magic_books. [Euphy]
 //= 1.6 Fixed missing checks for quest: Sapha's Visit. [Joseph]
 //= 1.7 Updated to match the official script. [Joseph]
+//= 1.8 Fix wrong checkquest 7188,7189,7190 and typo in "close". [Exneval]
 //============================================================
 
 // Entrance
@@ -1205,7 +1206,7 @@ dic_in01,138,225,3	script	Diel Guard#ep133_19	492,{
 		mes "Ah, you are " + strcharinfo(0) + "..";
 		mes "I received an order from Ahat to let you through anytime.";
 		mes "Please go up.";
-		close;
+		close2;
 		warp "dic_in01",241,177;
 		end;
 	}
@@ -4345,7 +4346,7 @@ dicastes01,207,210,5	script	Walking Knit#ep133_15	449,{
 			mes "Ah, did you see the group of cats in front of the castle?";
 			mes "They are really soft and cuddly unlike us.";
 			next;
-			if (checkquest(7188) >= 0) {
+			if (checkquest(7188) == -1) {
 				mes "[Knit]";
 				mes "And especially their ear and tail!!";
 				next;
@@ -4434,7 +4435,7 @@ dicastes01,112,248,5	script	Resting Piom#ep133_16	491,{
 		mes "Huh? You're... human!";
 		mes "Why are you here?";
 		next;
-		if (checkquest(7189) >= 0) {
+		if (checkquest(7189) == -1) {
 			select("About a human with cat ears..");
 			mes "[Piom]";
 			mes "HAHAHAHA!!!";
@@ -4506,7 +4507,7 @@ dicastes01,249,140,3	script	Training Galten#ep133_17	450,{
 		mes "Hmm? Aren't you the outsider that came here awhile ago?";
 		mes "Have you come to see the training grounds?";
 		next;
-		if (checkquest(7190) >= 0) {
+		if (checkquest(7190) == -1) {
 			select("About a human with cat ears..");
 			mes "[Galten]";
 			mes "Cat ears?";
