@@ -7,7 +7,7 @@
 //===== Compatible With: =====================================
 //= rAthena SVN
 //===== Description: =========================================
-//= Quest NPCs related to Dewata:
+//= Quest NPCs related to El Dicastes:
 //== Sapha's Visit, Doha's Secrect Order, Frede's Request,
 //== Department Quests, Document Quests,
 //== Chesire's Call, Cat Hands Enchantment
@@ -3609,6 +3609,7 @@ mid_campin,168,170,3	script	Inspector Doha#ep133	59,{
 	mes "[Doha]";
 	mes "There won't be any changes to the current policy.";
 	mes "Home land will continue to review the contents of your reports.";
+	next;
 	mes "[Doha]";
 	mes "All we can do for now is";
 	mes "do our best, right?";
