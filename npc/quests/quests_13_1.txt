@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= L0ne_W0lf
 //===== Current Version: ===================================== 
-//= 2.6
+//= 2.7
 //===== Compatible With: ===================================== 
 //= rAthena SVN
 //===== Description: ========================================= 
@@ -44,6 +44,7 @@
 //= 2.5 Yet more optimization (-22kb). [Euphy]
 //= 2.5a Minor fixes. [Euphy]
 //= 2.6 Disabled "Ash Vacuum Warper" as it's no longer in iRO. [Euphy]
+//= 2.7 Correct some dialogs. [Exneval]
 //============================================================ 
 
 // Onward to the New World
@@ -9979,8 +9980,8 @@ mid_campin,94,118,3	script	Staff Officer Abidal	755,{
 		case 2:
 			mes "[Staff Officer Abidal]";
 			mes "Let's see how far we've progressed on the report's restoration.";
+			next;
 			if ((countitem(11013) == 1) && (countitem(11014) == 1) && (countitem(11015) == 1) && (countitem(11016) == 1)) {
-				next;
 				mes "[Staff Officer Abidal]";
 				mes "Oh, great! Every volume of the report has been restored. I'll bind them into one book for you.";
 				next;
@@ -10055,6 +10056,11 @@ mid_campin,94,118,3	script	Staff Officer Abidal	755,{
 			else if ((countitem(11013) == 1) && (countitem(11014) == 1) && (countitem(11015) == 1) && (countitem(11016) == 0)) {
 				mes "[Staff Officer Abidal]";
 				mes "You have restored the first, second and third volume of the report. There is 1 volume left to restore.";
+				close;
+			}
+			else if ((countitem(11013) == 1) && (countitem(11014) == 0) && (countitem(11015) == 1) && (countitem(11016) == 1)) {
+				mes "[Staff Officer Abidal]";
+				mes "You have restored the first, third and fourth volume of the report. There is 1 volume left to restore.";
 				close;
 			}
 			else if ((countitem(11013) == 0) && (countitem(11014) == 1) && (countitem(11015) == 1) && (countitem(11016) == 1)) {
@@ -10149,7 +10155,7 @@ mid_camp,206,286,3	script	Expedition Messenger	997,{
 	if ((ep13_1_edq == 3) && (countitem(11012) > 0)) {
 		mes "[Expedition Messenger]";
 		mes "Welcome, I've been waiting for you.";
-		mes "You must be" + strcharinfo(0) + ". Nice to meet you.";
+		mes "You must be " + strcharinfo(0) + ". Nice to meet you.";
 		next;
 		mes "[Expedition Messenger]";
 		mes "Let me check something quicly. You received the report directly from the commander, didn't you? May I see it?";
@@ -10412,7 +10418,7 @@ man_fild01,315,95,3	script	Expedition Scout#1	707,{
 			set .@ep13_search_lotto,rand(1,6);
 			if (.@ep13_search_lotto == 4) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 5 pieces of paper that appear to be part of the report.";
@@ -10427,7 +10433,7 @@ man_fild01,315,95,3	script	Expedition Scout#1	707,{
 			}
 			else if ((.@ep13_search_lotto == 1) || (.@ep13_search_lotto == 6)) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 2 pieces of paper that appear to be part of the report.";
@@ -10442,7 +10448,7 @@ man_fild01,315,95,3	script	Expedition Scout#1	707,{
 			}
 			else if (.@ep13_search_lotto == 3) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 3 pieces of paper that appear to be part of the report.";
@@ -10457,7 +10463,7 @@ man_fild01,315,95,3	script	Expedition Scout#1	707,{
 			}
 			else {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "I'm doing my best, but I haven't found any pages yet.";
@@ -10472,7 +10478,7 @@ man_fild01,315,95,3	script	Expedition Scout#1	707,{
 		}
 		else if (((ep13_1_edq == 71) || (ep13_1_edq == 72)) && ((.@ep13_search_control == 0) || (.@ep13_search_control == 1))) {
 			mes "[Expedition Scout]";
-			mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+			mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 			next;
 			mes "[Expedition Scout]";
 			mes "Searching for lost pages was tougher then I expected. Please come back later when I'm finished making one round.";
@@ -10482,7 +10488,7 @@ man_fild01,315,95,3	script	Expedition Scout#1	707,{
 			set .@ep13_search_lotto,rand(1,6);
 			if (.@ep13_search_lotto == 4) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 5 pieces of paper that appear to be part of the report.";
@@ -10496,7 +10502,7 @@ man_fild01,315,95,3	script	Expedition Scout#1	707,{
 			}
 			else if ((.@ep13_search_lotto == 1) || (.@ep13_search_lotto == 6)) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 2 pieces of paper that appear to be part of the report.";
@@ -10510,7 +10516,7 @@ man_fild01,315,95,3	script	Expedition Scout#1	707,{
 			}
 			else if (.@ep13_search_lotto == 3) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 3 pieces of paper that appear to be part of the report.";
@@ -10524,7 +10530,7 @@ man_fild01,315,95,3	script	Expedition Scout#1	707,{
 			}
 			else {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "I'm doing my best, but I haven't found any pages yet.";
@@ -10587,7 +10593,7 @@ man_fild03,202,251,3	script	Expedition Scout#2	707,{
 			set .@ep13_search_lotto,rand(1,6);
 			if (.@ep13_search_lotto == 4) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 5 pieces of paper that appear to be part of the report.";
@@ -10602,7 +10608,7 @@ man_fild03,202,251,3	script	Expedition Scout#2	707,{
 			}
 			else if ((.@ep13_search_lotto == 1) || (.@ep13_search_lotto == 6)) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 2 piece of paper that appear to be part of the report.";
@@ -10617,7 +10623,7 @@ man_fild03,202,251,3	script	Expedition Scout#2	707,{
 			}
 			else if (.@ep13_search_lotto == 3) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 3 pieces of paper that appear to be part of the report.";
@@ -10632,7 +10638,7 @@ man_fild03,202,251,3	script	Expedition Scout#2	707,{
 			}
 			else {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "I'm doing my best, but I haven't found any pages yet.";
@@ -10647,7 +10653,7 @@ man_fild03,202,251,3	script	Expedition Scout#2	707,{
 		}
 		else if (((ep13_1_edq == 71) || (ep13_1_edq == 72)) && ((.@ep13_search_control == 0) || (.@ep13_search_control == 1))) {
 			mes "[Expedition Scout]";
-			mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+			mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 			next;
 			mes "[Expedition Scout]";
 			mes "Searching for lost pages was tougher then I expected. Please come back later when I'm finished making one round.";
@@ -10657,7 +10663,7 @@ man_fild03,202,251,3	script	Expedition Scout#2	707,{
 			set .@ep13_search_lotto,rand(1,6);
 			if (.@ep13_search_lotto == 4) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 5 pieces of paper that appear to be part of the report.";
@@ -10671,7 +10677,7 @@ man_fild03,202,251,3	script	Expedition Scout#2	707,{
 			}
 			else if ((.@ep13_search_lotto == 1) || (.@ep13_search_lotto == 6)) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 2 pieces of paper that appear to be part of the report.";
@@ -10685,7 +10691,7 @@ man_fild03,202,251,3	script	Expedition Scout#2	707,{
 			}
 			else if (.@ep13_search_lotto == 3) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 3 pieces of paper that appear to be part of the report.";
@@ -10699,7 +10705,7 @@ man_fild03,202,251,3	script	Expedition Scout#2	707,{
 			}
 			else {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "I'm doing my best, but I haven't found any pages yet.";
@@ -10752,7 +10758,7 @@ spl_fild02,295,368,3	script	Expedition Scout#3	707,{
 			set .@ep13_search_lotto,rand(1,6);
 			if (.@ep13_search_lotto == 4) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 5 pieces of paper that appear to be part of the report.";
@@ -10767,7 +10773,7 @@ spl_fild02,295,368,3	script	Expedition Scout#3	707,{
 			}
 			else if ((.@ep13_search_lotto == 1) || (.@ep13_search_lotto == 6)) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 2 pieces of paper that appear to be part of the report.";
@@ -10782,7 +10788,7 @@ spl_fild02,295,368,3	script	Expedition Scout#3	707,{
 			}
 			else if (.@ep13_search_lotto == 3) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 3 pieces of paper that appear to be part of the report.";
@@ -10797,7 +10803,7 @@ spl_fild02,295,368,3	script	Expedition Scout#3	707,{
 			}
 			else {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "I'm doing my best, but I haven't found any pages yet.";
@@ -10812,7 +10818,7 @@ spl_fild02,295,368,3	script	Expedition Scout#3	707,{
 		}
 		else if (((ep13_1_edq == 71) || (ep13_1_edq == 72)) && ((.@ep13_search_control == 0) || (.@ep13_search_control == 1))) {
 			mes "[Expedition Scout]";
-			mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+			mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 			next;
 			mes "[Expedition Scout]";
 			mes "Searching for lost pages was tougher then I expected. Please come back later when I'm finished making one round.";
@@ -10822,7 +10828,7 @@ spl_fild02,295,368,3	script	Expedition Scout#3	707,{
 			set .@ep13_search_lotto,rand(1,6);
 			if (.@ep13_search_lotto == 4) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 5 pieces of paper that appear to be part of the report.";
@@ -10836,7 +10842,7 @@ spl_fild02,295,368,3	script	Expedition Scout#3	707,{
 			}
 			else if ((.@ep13_search_lotto == 1) || (.@ep13_search_lotto == 6)) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 2 piece of paper that appear to be part of the report.";
@@ -10850,7 +10856,7 @@ spl_fild02,295,368,3	script	Expedition Scout#3	707,{
 			}
 			else if (.@ep13_search_lotto == 3) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 3 pieces of paper that appear to be part of the report.";
@@ -10864,7 +10870,7 @@ spl_fild02,295,368,3	script	Expedition Scout#3	707,{
 			}
 			else {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "I'm doing my best, but I haven't found any pages yet.";
@@ -10927,7 +10933,7 @@ spl_fild03,172,71,3	script	Expedition Scout#4	707,{
 			set .@ep13_search_lotto,rand(1,6);
 			if (.@ep13_search_lotto == 4) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 5 pieces of paper that appear to be part of the report.";
@@ -10942,7 +10948,7 @@ spl_fild03,172,71,3	script	Expedition Scout#4	707,{
 			}
 			else if ((.@ep13_search_lotto == 1) || (.@ep13_search_lotto == 6)) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 2 pieces of paper that appear to be part of the report.";
@@ -10957,7 +10963,7 @@ spl_fild03,172,71,3	script	Expedition Scout#4	707,{
 			}
 			else if (.@ep13_search_lotto == 3) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 3 pieces of paper that appear to be part of the report.";
@@ -10972,7 +10978,7 @@ spl_fild03,172,71,3	script	Expedition Scout#4	707,{
 			}
 			else {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "I'm doing my best, but I haven't found any pages yet.";
@@ -10987,7 +10993,7 @@ spl_fild03,172,71,3	script	Expedition Scout#4	707,{
 		}
 		else if (((ep13_1_edq == 71) || (ep13_1_edq == 72)) && ((.@ep13_search_control == 0) || (.@ep13_search_control == 1))) {
 			mes "[Expedition Scout]";
-			mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+			mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 			next;
 			mes "[Expedition Scout]";
 			mes "Searching for lost pages was tougher then I expected. Please come back later when I'm finished making one round.";
@@ -10997,7 +11003,7 @@ spl_fild03,172,71,3	script	Expedition Scout#4	707,{
 			set .@ep13_search_lotto,rand(1,6);
 			if (.@ep13_search_lotto == 4) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 5 pieces of paper that appear to be part of the report.";
@@ -11011,7 +11017,7 @@ spl_fild03,172,71,3	script	Expedition Scout#4	707,{
 			}
 			else if ((.@ep13_search_lotto == 1) || (.@ep13_search_lotto == 6)) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 2 pieces of paper that appear to be part of the report.";
@@ -11025,7 +11031,7 @@ spl_fild03,172,71,3	script	Expedition Scout#4	707,{
 			}
 			else if (.@ep13_search_lotto == 3) {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "Good news! I've found 3 pieces of paper that appear to be part of the report.";
@@ -11039,7 +11045,7 @@ spl_fild03,172,71,3	script	Expedition Scout#4	707,{
 			}
 			else {
 				mes "[Expedition Scout]";
-				mes "Oh, you must be" + strcharinfo(0) + ". I heard that you'll be delivering the report.";
+				mes "Oh, you must be " + strcharinfo(0) + ". I heard that you'll be delivering the report.";
 				next;
 				mes "[Expedition Scout]";
 				mes "I'm doing my best, but I haven't found any pages yet.";

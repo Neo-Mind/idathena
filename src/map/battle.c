@@ -2995,11 +2995,11 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						}
 					}
 					break;
-				case SO_VARETYR_SPEAR:
-					skillratio = 50 * (sd ? pc_checkskill(sd, SO_STRIKING) : 5) + skill_lv * 50;
+				case SO_VARETYR_SPEAR://ATK [{( Striking Level x 50 ) + ( Varetyr Spear Skill Level x 50 )} x Caster?s Base Level / 100 ] %
+					skillratio = 50 * skill_lv + ( sd ? pc_checkskill(sd, SO_STRIKING) * 50 : 0 );
 					RE_LVL_DMOD(100);
 					if( sc && sc->data[SC_BLAST_OPTION] )
-						skillratio += skillratio * sc->data[SC_BLAST_OPTION]->val2 / 100;
+						skillratio += sd ? sd->status.job_level * 5 : 0;
 					break;
 					// Physical Elemantal Spirits Attack Skills
 				case EL_CIRCLE_OF_FIRE:
@@ -3669,6 +3669,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 	TBL_PC *sd;
 //	TBL_PC *tsd;
+	struct status_change *sc, *tsc;
 	struct Damage ad;
 	struct status_data *sstatus = status_get_status_data(src);
 	struct status_data *tstatus = status_get_status_data(target);
@@ -3686,6 +3687,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		return ad;
 	}
 	//Initial Values
+	ad.damage = 1;
 	ad.div_=skill_get_num(skill_num,skill_lv);
 	ad.amotion=skill_get_inf(skill_num)&INF_GROUND_SKILL?0:sstatus->amotion; //Amotion should be 0 for ground skills.
 	ad.dmotion=tstatus->dmotion;
@@ -3697,43 +3699,32 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 	sd = BL_CAST(BL_PC, src);
 //	tsd = BL_CAST(BL_PC, target);
+	sc = status_get_sc(src);
+	tsc = status_get_sc(target);
+	
+	//Initialize variables that will be used afterwards
+	s_ele = skill_get_ele(skill_num, skill_lv);
+	
+	if (s_ele == -1) { // pl=-1 : the skill takes the weapon's element
+		s_ele = sstatus->rhw.ele;
+		if( sd ) { //Summoning 10 talisman will endow your weapon
+			ARR_FIND(1, 6, i, sd->talisman[i] >= 10);
+			if( i < 5 ) s_ele = i;
+		}
+	} else if (s_ele == -2) //Use status element
+		s_ele = status_get_attack_sc_element(src,status_get_sc(src));
+	else if( s_ele == -3 ) //Use random element
+		s_ele = rnd()%ELE_MAX;
 
 	if( skill_num == SO_PSYCHIC_WAVE ) {
-		struct status_change *sc = status_get_sc(src);
-		if( sc && sc->count && ( sc->data[SC_HEATER_OPTION] || sc->data[SC_COOLER_OPTION] ||
-								sc->data[SC_BLAST_OPTION] || sc->data[SC_CURSED_SOIL_OPTION] ) ) {
+		if( sc && sc->count ) {
 			if( sc->data[SC_HEATER_OPTION] ) s_ele = sc->data[SC_HEATER_OPTION]->val4;
 			else if( sc->data[SC_COOLER_OPTION] ) s_ele = sc->data[SC_COOLER_OPTION]->val4;
 			else if( sc->data[SC_BLAST_OPTION] ) s_ele = sc->data[SC_BLAST_OPTION]->val3;
 			else if( sc->data[SC_CURSED_SOIL_OPTION] ) s_ele = sc->data[SC_CURSED_SOIL_OPTION]->val4;
-		} else {
-			//#HALP# I didn't get a clue on how to do this without unnecessary adding a overhead of status_change on every call while this is a per-skill case.
-			//, - so i duplicated this code. make yourself comfortable to fix if you have any better ideas.
-			//Initialize variables that will be used afterwards
-			s_ele = skill_get_ele(skill_num, skill_lv);
-			
-			if (s_ele == -1) // pl=-1 : the skill takes the weapon's element
-				s_ele = sstatus->rhw.ele;
-			else if (s_ele == -2) //Use status element
-				s_ele = status_get_attack_sc_element(src,status_get_sc(src));
-			else if( s_ele == -3 ) //Use random element
-				s_ele = rnd()%ELE_MAX;
 		}
-	} else {
-		//Initialize variables that will be used afterwards
-		s_ele = skill_get_ele(skill_num, skill_lv);
-
-		if (s_ele == -1){ // pl=-1 : the skill takes the weapon's element
-			s_ele = sstatus->rhw.ele;
-			if( sd ){ //Summoning 10 talisman will endow your weapon
-				ARR_FIND(1, 6, i, sd->talisman[i] >= 10);
-				if( i < 5 ) s_ele = i;
-			}
-		}else if (s_ele == -2) //Use status element
-			s_ele = status_get_attack_sc_element(src,status_get_sc(src));
-		else if( s_ele == -3 ) //Use random element
-			s_ele = rnd()%ELE_MAX;
 	}
+	
 	//Set miscellaneous data that needs be filled
 	if(sd) {
 		sd->state.arrow_atk = 0;
@@ -3764,7 +3755,9 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 	if (!flag.infdef) //No need to do the math for plants
 	{
-
+#ifdef RENEWAL
+	ad.damage = 0; //reinitialize..
+#endif
 //MATK_RATE scales the damage. 100 = no change. 50 is halved, 200 is doubled, etc
 #define MATK_RATE( a ) { ad.damage= ad.damage*(a)/100; }
 //Adds dmg%. 100 = +100% (double) damage. 10 = +10% damage
@@ -3849,66 +3842,26 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						if (battle_check_undead(tstatus->race,tstatus->def_ele))
 							skillratio += 5*skill_lv;
 						break;
-					case MG_FIREWALL: {
-							struct status_change *sc = status_get_sc(src);
-							skillratio -= 50;
-							if( sc && sc->data[SC_PYROTECHNIC_OPTION] )
-								skillratio += skillratio * sc->data[SC_PYROTECHNIC_OPTION]->val3 / 100;
+					case MG_FIREWALL:
+						skillratio -= 50;
+						break;
+					case MG_FIREBOLT:
+					case MG_COLDBOLT:
+					case MG_LIGHTNINGBOLT:
+						if ( sc && sc->data[SC_SPELLFIST] && mflag&BF_SHORT )  {
+							skillratio += (sc->data[SC_SPELLFIST]->val4 * 100) + (sc->data[SC_SPELLFIST]->val2 * 100) - 100;// val4 = used bolt level, val2 = used spellfist level. [Rytech]
+							ad.div_ = 1;// ad mods, to make it work similar to regular hits [Xazax]
+							ad.flag = BF_WEAPON|BF_SHORT;
+							ad.type = 0;
 						}
 						break;
-					case MG_COLDBOLT: {
-							struct status_change *sc = status_get_sc(src);
-							if ( sc && sc->count ) {
-								if ( sc->data[SC_SPELLFIST] && mflag&BF_SHORT )  {
-									skillratio = sc->data[SC_SPELLFIST]->val2 * 50 + sc->data[SC_SPELLFIST]->val4 * 100;//val2 = used spellfist level and val4 = used bolt level. [Rytech]
-									ad.div_ = 1;// ad mods, to make it work similar to regular hits [Xazax]
-									ad.flag = BF_WEAPON|BF_SHORT;
-									ad.type = 0;
-								}
-								if( sc->data[SC_AQUAPLAY_OPTION] )
-									skillratio += skillratio * sc->data[SC_AQUAPLAY_OPTION]->val3 / 100;
-							}
-						}
-						break;
-					case MG_FIREBOLT: {
-							struct status_change *sc = status_get_sc(src);
-							if ( sc && sc->count ) {
-								if ( sc->data[SC_SPELLFIST] && mflag&BF_SHORT ) {
-									skillratio = sc->data[SC_SPELLFIST]->val2 * 50 + sc->data[SC_SPELLFIST]->val4 * 100;
-									ad.div_ = 1;
-									ad.flag = BF_WEAPON|BF_SHORT;
-									ad.type = 0;
-								}
-								if( sc->data[SC_PYROTECHNIC_OPTION] )
-									skillratio += skillratio * sc->data[SC_PYROTECHNIC_OPTION]->val3 / 100;
-							}
-						}
-						break;
-					case MG_LIGHTNINGBOLT: {
-							struct status_change *sc = status_get_sc(src);
-							if ( sc && sc->count ) {
-								if ( sc->data[SC_SPELLFIST] && mflag&BF_SHORT ) {
-									skillratio = sc->data[SC_SPELLFIST]->val2 * 50 + sc->data[SC_SPELLFIST]->val4 * 100;
-									ad.div_ = 1;
-									ad.flag = BF_WEAPON|BF_SHORT;
-									ad.type = 0;
-								}
-								if( sc->data[SC_GUST_OPTION] )
-									skillratio += skillratio * sc->data[SC_GUST_OPTION]->val2 / 100;
-							}
-						}
-						break;
-					case MG_THUNDERSTORM: {
-						struct status_change *sc = status_get_sc(src);
+					case MG_THUNDERSTORM:
 						/**
 						 * in Renewal Thunder Storm boost is 100% (in pre-re, 80%)
 						 **/
-						#ifndef RENEWAL
+#ifndef RENEWAL
 							skillratio -= 20;
-						#endif
-						if( sc && sc->data[SC_GUST_OPTION] )
-							skillratio += skillratio * sc->data[SC_GUST_OPTION]->val2 / 100;
-						}
+#endif
 						break;
 					case MG_FROSTDIVER:
 						skillratio += 10*skill_lv;
@@ -4016,28 +3969,22 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					 * Warlock
 					 **/
 					case WL_SOULEXPANSION:
-						{
-						struct status_change *tsc = status_get_sc(target);
 						skillratio = (skill_lv + 4 ) * 100 + sstatus->int_;
 						RE_LVL_DMOD(100);
 						if( tsc && tsc->data[SC_WHITEIMPRISON] )
 							skillratio <<= 1;
-						}
 						break;
 					case WL_FROSTMISTY:
 						skillratio += 100 + 100 * skill_lv;
 						RE_LVL_DMOD(100);
 						break;
 					case WL_JACKFROST:
-						{
-							struct status_change *tsc = status_get_sc(target);
-							if( tsc && tsc->data[SC_FREEZING] ){
-								skillratio += 900 + 300 * skill_lv;
-								RE_LVL_DMOD(100);
-							}else{
-								skillratio += 400 + 100 * skill_lv;
-								RE_LVL_DMOD(150);
-							}
+						if( tsc && tsc->data[SC_FREEZING] ) {
+							skillratio += 900 + 300 * skill_lv;
+							RE_LVL_DMOD(100);
+						} else {
+							skillratio += 400 + 100 * skill_lv;
+							RE_LVL_DMOD(150);
 						}
 						break;
 					case WL_DRAINLIFE:
@@ -4111,77 +4058,61 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						skillratio += 100 * skill_lv;
 						RE_LVL_DMOD(100);
 						break;
-					case SO_FIREWALK: {
-						struct status_change * sc = status_get_sc(src);
+					case SO_FIREWALK:
 						skillratio = 60 * skill_lv;
 						RE_LVL_DMOD(100);
 						if( sc && sc->data[SC_HEATER_OPTION] )
-							skillratio += skillratio * sc->data[SC_HEATER_OPTION]->val3 / 100;
-						}
+							skillratio += sc->data[SC_HEATER_OPTION]->val3;
 						break;
-					case SO_ELECTRICWALK: {
-						struct status_change * sc = status_get_sc(src);
+					case SO_ELECTRICWALK:
 						skillratio = 60 * skill_lv;
 						RE_LVL_DMOD(100);
 						if( sc && sc->data[SC_BLAST_OPTION] )
-							skillratio += skillratio * sc->data[SC_BLAST_OPTION]->val2 / 100;
-						}
+							skillratio += sd ? sd->status.job_level / 2 : 0;
 						break;
-					case SO_EARTHGRAVE: {
-						struct status_change * sc = status_get_sc(src);
+					case SO_EARTHGRAVE:
 						skillratio = sstatus->int_ * skill_lv + 200 * ( sd ? pc_checkskill(sd, SA_SEISMICWEAPON) : 5 );
 						RE_LVL_DMOD(100);
 						if( sc && sc->data[SC_CURSED_SOIL_OPTION] )
-							skillratio += skillratio * sc->data[SC_CURSED_SOIL_OPTION]->val2 / 100;
-						}
+							skillratio += sc->data[SC_CURSED_SOIL_OPTION]->val2;
 						break;
-					case SO_DIAMONDDUST: {
-						struct status_change * sc = status_get_sc(src);
+					case SO_DIAMONDDUST:
 						skillratio = sstatus->int_ * skill_lv + 200 * ( sd ? pc_checkskill(sd, SA_FROSTWEAPON) : 5 );
 						RE_LVL_DMOD(100);
 						if( sc && sc->data[SC_COOLER_OPTION] )
-							skillratio += skillratio * sc->data[SC_COOLER_OPTION]->val3 / 100;
-						}
+							skillratio += sc->data[SC_COOLER_OPTION]->val3;
 						break;
-					case SO_POISON_BUSTER: {
-						struct status_change * sc = status_get_sc(src);
+					case SO_POISON_BUSTER:
 						skillratio += 900 + 300 * skill_lv;
 						RE_LVL_DMOD(120);
 						if( sc && sc->data[SC_CURSED_SOIL_OPTION] )
-							skillratio += skillratio * sc->data[SC_CURSED_SOIL_OPTION]->val2 / 100;
-						}
+							skillratio += sc->data[SC_CURSED_SOIL_OPTION]->val2;
 						break;
-					case SO_PSYCHIC_WAVE: {
-						struct status_change * sc = status_get_sc(src);
+					case SO_PSYCHIC_WAVE:
 						skillratio = 70 * skill_lv + 3 * sstatus->int_;
 						RE_LVL_DMOD(100);
 						if( sc ){
 							if( sc->data[SC_HEATER_OPTION] )
-								skillratio += skillratio * sc->data[SC_HEATER_OPTION]->val3 / 100;
+								skillratio += sc->data[SC_HEATER_OPTION]->val3;
 							else if(sc->data[SC_COOLER_OPTION] )
-								skillratio += skillratio * sc->data[SC_COOLER_OPTION]->val3 / 100;
+								skillratio += sc->data[SC_COOLER_OPTION]->val3;
 							else if(sc->data[SC_BLAST_OPTION] )
-								skillratio += skillratio * sc->data[SC_BLAST_OPTION]->val2 / 100;
+								skillratio += sc->data[SC_BLAST_OPTION]->val2;
 							else if(sc->data[SC_CURSED_SOIL_OPTION] )
-								skillratio += skillratio * sc->data[SC_CURSED_SOIL_OPTION]->val3 / 100;
-						}
+								skillratio += sc->data[SC_CURSED_SOIL_OPTION]->val3;
 						}
 						break;
-					case SO_CLOUD_KILL: {
-						struct status_change * sc = status_get_sc(src);
+					case SO_CLOUD_KILL:
 						skillratio = 40 * skill_lv;
 						RE_LVL_DMOD(100);
 						if( sc && sc->data[SC_CURSED_SOIL_OPTION] )
-							skillratio += skillratio * sc->data[SC_CURSED_SOIL_OPTION]->val2 / 100;
-						}
+							skillratio += sc->data[SC_CURSED_SOIL_OPTION]->val2;
 						break;
-					case SO_VARETYR_SPEAR: {
-						struct status_change * sc = status_get_sc(src);
-						skillratio = sstatus->int_ * skill_lv + 50 * ( sd ? pc_checkskill(sd, SA_LIGHTNINGLOADER) : 5 );
+					case SO_VARETYR_SPEAR: //MATK [{( Endow Tornado skill level x 50 ) + ( Caster?s INT x Varetyr Spear Skill level )} x Caster?s Base Level / 100 ] %
+						skillratio = status_get_int(src) * skill_lv + ( sd ? pc_checkskill(sd, SA_LIGHTNINGLOADER) * 50 : 0 );
 						RE_LVL_DMOD(100);
 						if( sc && sc->data[SC_BLAST_OPTION] )
-							skillratio += skillratio * sc->data[SC_BLAST_OPTION]->val2 / 100;
-						}
+							sskillratio += sd ? sd->status.job_level * 5 : 0;
 						break;
 					case GN_DEMONIC_FIRE:
 						if ( skill_lv > 20 ) // Fire Expansion Level 2
@@ -4241,7 +4172,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 #ifdef RENEWAL
 	ad.damage = battle_calc_cardfix(BF_MAGIC, src, target, nk, s_ele, 0, ad.damage, 0, ad.flag);
 #endif
-		if(sd) {
+		if (sd) {
 			//Damage bonuses
 			if ((i = pc_skillatk_bonus(sd, skill_num)))
 				ad.damage += (int64)ad.damage*i/100;
@@ -4255,10 +4186,10 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				flag.imdef = 1;
 		}
 
-		if(!flag.imdef){
+		if (!flag.imdef) {
 			defType mdef = tstatus->mdef;
 			int mdef2= tstatus->mdef2;
-			if(sd) {
+			if (sd) {
 				i = sd->ignore_mdef[is_boss(target)?RC_BOSS:RC_NONBOSS];
 				i+= sd->ignore_mdef[tstatus->race];
 				if (i)
@@ -4274,10 +4205,10 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			 * Damage from magic = Magic Attack * 111.5/(111.5+eMDEF) 
 			 * Damage = Magic Attack * 111.5/(111.5+eMDEF) - sMDEF
 			 **/
-			if(mdef < -111) mdef = -111; // value smaller -111 brings back the damage to origin up to -223.
+			if (mdef < -111) mdef = -111; // value smaller -111 brings back the damage to origin up to -223.
 			ad.damage = ad.damage * 1115 / (1115 + mdef * 10) - mdef2;
 #else
-			if(battle_config.magic_defense_type)
+			if (battle_config.magic_defense_type)
 				ad.damage = ad.damage - mdef*battle_config.magic_defense_type - mdef2;
 			else
 				ad.damage = ad.damage * (100-mdef)/100 - mdef2;
@@ -4287,14 +4218,31 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		if (skill_num == NPC_EARTHQUAKE)
 		{	//Adds atk2 to the damage, should be influenced by number of hits and skill-ratio, but not mdef reductions. [Skotlex]
 			//Also divide the extra bonuses from atk2 based on the number in range [Kevin]
-			if(mflag>0)
+			if (mflag > 0)
 				ad.damage+= (sstatus->rhw.atk2*skillratio/100)/mflag;
 			else
 				ShowError("Zero range by %d:%s, divide per 0 avoided!\n", skill_num, skill_get_name(skill_num));
 		}
 
-		if(ad.damage<1)
-			ad.damage=1;
+		if (ad.damage < 1)
+			ad.damage = 1;
+		else if (sc) {//only applies when hit
+			// TODO: there is another factor that contribute with the damage and need to be formulated. [malufett]
+			switch (skill_num) {
+				case MG_LIGHTNINGBOLT:
+				case MG_THUNDERSTORM:
+				case MG_FIREBOLT:
+				case MG_FIREWALL:
+				case MG_COLDBOLT:
+				case MG_FROSTDIVER:
+				case WZ_EARTHSPIKE:
+				case WZ_HEAVENDRIVE:
+					if(sc->data[SC_GUST_OPTION] || sc->data[SC_PETROLOGY_OPTION] 
+						|| sc->data[SC_PYROTECHNIC_OPTION] || sc->data[SC_AQUAPLAY_OPTION])
+						ad.damage += (6 + sstatus->int_/4) + max(sstatus->dex-10,0)/30;
+					break;
+			}
+		}
 
 		if (!(nk&NK_NO_ELEFIX))
 			ad.damage=battle_attr_fix(src, target, ad.damage, s_ele, tstatus->def_ele, tstatus->ele_lv);
@@ -4331,7 +4279,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	switch( skill_num ) { /* post-calc modifiers */
 		case SO_VARETYR_SPEAR: { // Physical damage.
 			struct Damage wd = battle_calc_weapon_attack(src,target,skill_num,skill_lv,mflag);
-			ad.damage += wd.damage;
+			if (!flag.infdef && ad.damage > 1)
+				ad.damage += wd.damage;
 			break;
 		}
 		//case HM_ERASER_CUTTER:

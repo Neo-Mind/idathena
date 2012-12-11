@@ -609,7 +609,7 @@ typedef enum sc_type {
 	SC_SPELLBOOK3,
 	SC_SPELLBOOK4,
 	SC_SPELLBOOK5,
-	SC_SPELLBOOK6,
+	SC_SPELLBOOK6, //525
 /**
  * In official server there are only 7 maximum number of spell books that can be memorized
  * To increase the maximum value just add another status type before SC_MAXSPELLBOOK (ex. SC_SPELLBOOK7, SC_SPELLBOOK8 and so on)
@@ -622,7 +622,7 @@ typedef enum sc_type {
 	/**
 	* Kagerou & Oboro [malufett]
 	**/
-	SC_MEIKYOUSISUI,
+	SC_MEIKYOUSISUI, // 530
 	SC_JYUMONJIKIRI,
 	SC_KYOUGAKU,
 	SC_IZAYOI,
@@ -632,7 +632,7 @@ typedef enum sc_type {
 	SC_KAGEMUSYA,
 	SC_ZANGETSU,
 	SC_GENSOU,
-	SC_AKAITSUKI,
+	SC_AKAITSUKI, // 540
 	
 	//homon S
 	SC_STYLE_CHANGE,        
@@ -644,7 +644,7 @@ typedef enum sc_type {
 	SC_ASH,
 	SC_GRANITIC_ARMOR,
 	SC_MAGMA_FLOW,
-	SC_PYROCLASTIC,
+	SC_PYROCLASTIC, // 550
 	SC_PARALYSIS,
 	SC_PAIN_KILLER,
 	
@@ -1556,11 +1556,11 @@ enum scb_flag
 };
 
 //Define to determine who gets HP/SP consumed on doing skills/etc. [Skotlex]
-#define BL_CONSUME (BL_PC|BL_HOM|BL_MER)
+#define BL_CONSUME (BL_PC|BL_HOM|BL_MER|BL_ELEM)
 //Define to determine who has regen
-#define BL_REGEN (BL_PC|BL_HOM|BL_MER)
+#define BL_REGEN (BL_PC|BL_HOM|BL_MER|BL_ELEM)
 //Define to determine who will receive a clif_status_change packet for effects that require one to display correctly
-#define BL_SCEFFECT (BL_PC|BL_HOM|BL_MER|BL_MOB)
+#define BL_SCEFFECT (BL_PC|BL_HOM|BL_MER|BL_MOB|BL_ELEM)
 
 //Basic damage info of a weapon
 //Required because players have two of these, one in status_data

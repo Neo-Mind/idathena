@@ -80,9 +80,9 @@
 #define MAX_FAME 1000000000
 #define MAX_CART 100
 #define MAX_SKILL 3100
-#define GLOBAL_REG_NUM 256	// max permanent character variables per char
-#define ACCOUNT_REG_NUM 64	// max permanent local account variables per account
-#define ACCOUNT_REG2_NUM 16	// max permanent global account variables per account
+#define GLOBAL_REG_NUM 256   // max permanent character variables per char
+#define ACCOUNT_REG_NUM 64   // max permanent local account variables per account
+#define ACCOUNT_REG2_NUM 16  // max permanent global account variables per account
 //Should hold the max of GLOBAL/ACCOUNT/ACCOUNT2 (needed for some arrays that hold all three)
 #define MAX_REG_NUM 256
 #define DEFAULT_WALK_SPEED 150
@@ -155,12 +155,12 @@
 #define MAX_MERCENARY_CLASS 44
 
 //Elemental System
-#define EL_SKILLBASE 8401
 #define MAX_ELEMENTALSKILL 42
+#define EL_SKILLBASE 8401
+#define MAX_ELESKILLTREE 3
 #define MAX_ELEMENTAL_CLASS 12
 #define EL_CLASS_BASE 2114
 #define EL_CLASS_MAX (EL_CLASS_BASE+MAX_ELEMENTAL_CLASS-1)
-#define MAX_ELESKILLTREE 3
 
 enum item_types {
 	IT_HEALING = 0,
@@ -306,7 +306,8 @@ struct s_elemental {
 	int char_id;
 	short class_;
 	int mode;
-	int hp, sp, max_hp, max_sp, str, agi, vit, int_, dex, luk;
+	int hp, sp, max_hp, max_sp, matk, atk, atk2;
+	short hit, flee, amotion, def, mdef;
 	int life_time;
 };
 
@@ -536,7 +537,7 @@ struct fame_list {
 	char name[NAME_LENGTH];
 };
 
-enum { //Change Guild Infos
+enum { //Change Guild Infos 
 	GBI_EXP	=1,		// Guild Experience (EXP)
 	GBI_GUILDLV,		// Guild level
 	GBI_SKILLPOINT,		// Guild skillpoints
@@ -544,7 +545,7 @@ enum { //Change Guild Infos
 };
 
 enum { //Change Member Infos
-	GMI_POSITION	=0,
+	GMI_POSITION	=0,		
 	GMI_EXP,
 	GMI_HAIR,
 	GMI_HAIR_COLOR,
