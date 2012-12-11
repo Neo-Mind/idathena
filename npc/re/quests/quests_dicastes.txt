@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Gennosuke Kouga, Muad_Dib
 //===== Current Version: =====================================
-//= 1.8
+//= 1.9
 //===== Compatible With: =====================================
 //= rAthena SVN
 //===== Description: =========================================
@@ -24,6 +24,7 @@
 //= 1.6 Fixed missing checks for quest: Sapha's Visit. [Joseph]
 //= 1.7 Updated to match the official script. [Joseph]
 //= 1.8 Optimized and fixed invalid checkquest. [Joseph]
+//= 1.9 Fixed wrong algorithm dialog. [Exneval]
 //============================================================
 
 // Entrance
@@ -596,7 +597,7 @@ dic_in01,51,270,7	script	Supply Dept. 1 Manager	449,{
 		mes "Cannot proceed because the weight of your items is too heavy. Let's try again after you get rid of some weight.";
 		close;
 	}
-	if (!isequipped(2782) < 1) {
+	if (!isequipped(2782)) {
 		mes "¡õ¢£¡ô";
 		mes "¡ö¡ø¡ó ¢£ ¡ö¡ñ¡ï ¡ù ¡ð¢²¢£";
 		next;
@@ -2279,7 +2280,7 @@ dic_in01,158,188,3	script	Jarute HesLanta#ep133_2	451,{
 dicastes01,223,190,1	script	Calyon#pa8029	453,{
 	mes "[Calyon]";
 	if (isequipped(2782)) {
-		if (ep13_3_invite == 5) {
+		if (ep13_3_invite < 6) {
 			if (BaseLevel < 80) {
 				mes "Sorry, a minimum base level of 80 or higher is required to obtain my request.";
 				close; }
@@ -4263,7 +4264,7 @@ dicastes01,207,210,5	script	Walking Knit#ep133_15	449,{
 			mes "Ah, did you see the group of cats in front of the castle?";
 			mes "They are really soft and cuddly unlike us.";
 			next;
-			if (checkquest(7188) >= -1) {
+			if (checkquest(7188) == -1) {
 				mes "[Knit]";
 				mes "And especially their ear and tail!!";
 				next;
@@ -4337,8 +4338,8 @@ dicastes01,207,210,5	script	Walking Knit#ep133_15	449,{
 }
 
 dicastes01,112,248,5	script	Resting Piom#ep133_16	491,{
-	mes "[Piom]";
 	if (!isequipped(2782)) {
+		mes "[Piom]";
 		mes "¡ñ¡÷¢¤ ¡ö ¢±¡ñ¡ú?";
 		mes "¡ò¢³~!";
 		mes "¡Ð¢²¢¤ ¢± ¡ü¡ñ¡õ ¢³ ¡ð !!!";
@@ -4352,7 +4353,7 @@ dicastes01,112,248,5	script	Resting Piom#ep133_16	491,{
 		mes "Huh? You're... human!";
 		mes "Why are you here?";
 		next;
-		if (checkquest(7189) >= -1) {
+		if (checkquest(7189) == -1) {
 			select("About a human with cat ears..");
 			mes "[Piom]";
 			mes "HAHAHAHA!!!";
@@ -4424,7 +4425,7 @@ dicastes01,249,140,3	script	Training Galten#ep133_17	450,{
 		mes "Hmm? Aren't you the outsider that came here awhile ago?";
 		mes "Have you come to see the training grounds?";
 		next;
-		if (checkquest(7190) >= -1) {
+		if (checkquest(7190) == -1) {
 			select("About a human with cat ears..");
 			mes "[Galten]";
 			mes "Cat ears?";
