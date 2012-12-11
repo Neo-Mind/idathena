@@ -4112,7 +4112,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						skillratio = status_get_int(src) * skill_lv + ( sd ? pc_checkskill(sd, SA_LIGHTNINGLOADER) * 50 : 0 );
 						RE_LVL_DMOD(100);
 						if( sc && sc->data[SC_BLAST_OPTION] )
-							sskillratio += sd ? sd->status.job_level * 5 : 0;
+							skillratio += sd ? sd->status.job_level * 5 : 0;
 						break;
 					case GN_DEMONIC_FIRE:
 						if ( skill_lv > 20 ) // Fire Expansion Level 2
