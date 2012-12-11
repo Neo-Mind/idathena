@@ -3,11 +3,11 @@
 //===== By: ==================================================
 //= Gennosuke Kouga, Muad_Dib
 //===== Current Version: =====================================
-//= 1.8
+//= 1.9
 //===== Compatible With: =====================================
 //= rAthena SVN
 //===== Description: =========================================
-//= Quest NPCs related to Dewata:
+//= Quest NPCs related to El Dicastes:
 //== Sapha's Visit, Doha's Secrect Order, Frede's Request,
 //== Department Quests, Document Quests,
 //== Chesire's Call, Cat Hands Enchantment
@@ -24,6 +24,7 @@
 //= 1.6 Fixed missing checks for quest: Sapha's Visit. [Joseph]
 //= 1.7 Updated to match the official script. [Joseph]
 //= 1.8 Fix wrong checkquest 7188,7189,7190 and typo in "close". [Exneval]
+//= 1.9 Fix checkquest logical in ep13_3_secret 19 and ep13_3_secret 20. [Exneval]
 //============================================================
 
 // Entrance
@@ -597,7 +598,7 @@ dic_in01,51,270,7	script	Supply Dept. 1 Manager	449,{
 		mes "Cannot proceed because the weight of your items is too heavy. Let's try again after you get rid of some weight.";
 		close;
 	}
-	if (!isequipped(2782) < 1) {
+	if (!isequipped(2782)) {
 		mes "¡õ¢£¡ô";
 		mes "¡ö¡ø¡ó ¢£ ¡ö¡ñ¡ï ¡ù ¡ð¢²¢£";
 		next;
@@ -1827,7 +1828,7 @@ dic_in01,158,188,3	script	Jarute HesLanta#ep133_2	451,{
 		mes "Haha.. good luck.";
 		close;
 	}
-	else if (ep13_3_secret == 19 && ep13_3_secret == 20) {
+	else if (ep13_3_secret == 19 || ep13_3_secret == 20) {
 		if (ep13_3_secret == 19) {
 			mes "[HesLanta]";
 			mes "I'm sorry to bring you here suddenly.";
