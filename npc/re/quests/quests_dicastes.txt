@@ -5883,6 +5883,7 @@ dic_dun01,58,225,4	script	Lash#13_3	491,{
 				mes "[Lash]";
 				mes "Wow!!!!";
 				mes "You've saved me!";
+				next;
 				mes "[Lash]";
 				mes "I would have perished into ashes here if it weren't for you!";
 				close;
