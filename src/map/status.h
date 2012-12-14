@@ -1570,7 +1570,8 @@ struct weapon_atk {
 	unsigned short range;
 	unsigned char ele;
 #ifdef RENEWAL
-	unsigned short matk, wlv;
+	unsigned short matk;
+	unsigned char wlv;
 #endif
 };
 
