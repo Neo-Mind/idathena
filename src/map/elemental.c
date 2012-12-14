@@ -97,7 +97,7 @@ int elemental_create(struct map_session_data *sd, int class_, unsigned int lifet
 	ele.flee = sd->status.base_level / (5-i);
 	//Caster’s HIT + (Caster’s Base Level )
 	ele.hit = sd->battle_status.hit + sd->status.base_level;
-	
+
 	//per individual bonuses
 	switch(db->class_){
 	case 2114:	case 2115:
@@ -123,7 +123,6 @@ int elemental_create(struct map_session_data *sd, int class_, unsigned int lifet
 		ele.atk2 += i * 5;
 		break;
 	}
-	ele.life_time = lifetime;
 
 	if( (i=pc_checkskill(sd,SO_EL_SYMPATHY)) > 0 ){
 		ele.hp = ele.max_hp = ele.max_hp * 5 * i / 100;
@@ -133,9 +132,11 @@ int elemental_create(struct map_session_data *sd, int class_, unsigned int lifet
 		ele.matk += 25 * i;
 	}
 
+	ele.life_time = lifetime;
+
 	// Request Char Server to create this elemental
 	intif_elemental_create(&ele);
-	
+
 	return 1;
 }
 
