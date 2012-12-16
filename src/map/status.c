@@ -986,9 +986,11 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_MERC_SPUP] |= SCB_MAXSP;
 	StatusChangeFlagTable[SC_MERC_HITUP] |= SCB_HIT;
 	// Guillotine Cross Poison Effects
-	StatusChangeFlagTable[SC_PARALYSE] |= SCB_ASPD|SCB_FLEE|SCB_SPEED;
+	StatusChangeFlagTable[SC_PARALYSE] |= SCB_FLEE|SCB_SPEED|SCB_ASPD;
 	StatusChangeFlagTable[SC_DEATHHURT] |= SCB_REGEN;
 	StatusChangeFlagTable[SC_VENOMBLEED] |= SCB_MAXHP;
+	StatusChangeFlagTable[SC_MAGICMUSHROOM] |= SCB_REGEN;
+	StatusChangeFlagTable[SC_PYREXIA] |= SCB_HIT|SCB_FLEE;
 	StatusChangeFlagTable[SC_OBLIVIONCURSE] |= SCB_REGEN;
 
 	StatusChangeFlagTable[SC_SAVAGE_STEAK] |= SCB_STR;
@@ -6285,10 +6287,6 @@ int status_get_sc_def(struct block_list *bl, enum sc_type type, int rate, int ti
 		tick -= 1000 * ((status->vit + status->dex) / 20);
 		tick = max(tick,6000); // Minimum Duration 6s.
 		break;
-	case SC_OBLIVIONCURSE: // 100% - (100 - 0.8 x INT)
-		sc_def = 100 - ( 100 - status->int_* 8 / 10 );
-		sc_def = max(sc_def, 5); // minimum of 5%
-		break;
 	case SC_BITE: // {(Base Success chance) - (Target's AGI / 4)}
 		rate -= status->agi*1000/4;
 		rate = max(rate,50000); // minimum of 50%
@@ -7116,6 +7114,16 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			case SC_MARIONETTE2:
 			case SC_NOCHAT:
 			case SC_CHANGE: //Otherwise your Hp/Sp would get refilled while still within effect of the last invocation.
+			case SC_ABUNDANCE:
+			case SC_FEAR:
+			case SC_TOXIN:
+			case SC_PARALYSE:
+			case SC_VENOMBLEED:
+			case SC_MAGICMUSHROOM:
+			case SC_DEATHHURT:
+			case SC_PYREXIA:
+			case SC_OBLIVIONCURSE:
+			case SC_LEECHESEND:
 			//case SC__INVISIBILITY:
 			case SC__ENERVATION:
 			case SC__GROOMY:
