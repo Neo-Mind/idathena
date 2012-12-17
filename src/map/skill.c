@@ -1471,7 +1471,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		if( sc->data[SC_WILD_STORM_OPTION] )
 			skill = sc->data[SC_WILD_STORM_OPTION]->val2;
 		else if( sc->data[SC_UPHEAVAL_OPTION] )
-			skill = sc->data[SC_WILD_STORM_OPTION]->val2;
+			skill = sc->data[SC_UPHEAVAL_OPTION]->val2;
 		else if( sc->data[SC_TROPIC_OPTION] )
 			skill = sc->data[SC_TROPIC_OPTION]->val3;
 		else if( sc->data[SC_CHILLY_AIR_OPTION] )
@@ -3584,7 +3584,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case NPC_CRITICALWOUND:
 	case NPC_HELLPOWER:
 	case RK_SONICWAVE:
-	case RK_WINDCUTTER:
 	case RK_HUNDREDSPEAR:
 	case AB_DUPLELIGHT_MELEE:
 	case RA_AIMEDBOLT:
@@ -3623,6 +3622,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case NC_COLDSLOWER:
 	case NC_ARMSCANNON:
 		if (sd) pc_overheat(sd,1);
+	case RK_WINDCUTTER:
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag|SD_ANIMATION);
 		break;
 
@@ -7643,6 +7643,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case RK_GIANTGROWTH:
 	case RK_VITALITYACTIVATION:
 	case RK_ABUNDANCE:
+	case RK_CRUSHSTRIKE:
 		if( sd )
 		{
 			int lv = 1; // RK_GIANTGROWTH
@@ -7650,6 +7651,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				lv = 2;
 			else if( skillid == RK_ABUNDANCE )
 				lv = 6;
+			else if( skillid == RK_CRUSHSTRIKE )
+				lv = 7;
 			if( pc_checkskill(sd,RK_RUNEMASTERY) >= lv )
 				clif_skill_nodamage(src,bl,skillid,skilllv,sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv)));
 		}
@@ -10147,10 +10150,11 @@ int skill_castend_pos2(struct block_list* src, int x, int y, int skillid, int sk
 		}
 		break;
 
+	case RK_WINDCUTTER:
+		clif_skill_damage(src, src, tick, status_get_amotion(src), 0, -30000, 1, skillid, skilllv, 6);
 	case NC_COLDSLOWER:
 	case NC_ARMSCANNON:
 	case RK_DRAGONBREATH:
-	case RK_WINDCUTTER:
 	case WM_GREAT_ECHO:
 	case WM_SOUND_OF_DESTRUCTION:
 		i = skill_get_splash(skillid,skilllv);
@@ -13544,6 +13548,28 @@ int skill_consume_requirement( struct map_session_data *sd, short skill, short l
 
 			if( itemid_isgemstone(req.itemid[i]) && skill != HW_GANBANTEIN && sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_WIZARD )
 				continue; //Gemstones are checked, but not substracted from inventory.
+				
+			switch( skill ){
+				case SA_SEISMICWEAPON:
+					if( sc && sc->data[SC_UPHEAVAL_OPTION] && rnd()%100 < 50 )
+						continue;
+					break;
+				case SA_FLAMELAUNCHER:
+				case SA_VOLCANO:
+					if( sc && sc->data[SC_TROPIC_OPTION] && rnd()%100 < 50 )
+						continue;
+					break;
+				case SA_FROSTWEAPON:
+				case SA_DELUGE:
+					if( sc && sc->data[SC_CHILLY_AIR_OPTION] && rnd()%100 < 50 )
+						continue;
+					break;
+				case SA_LIGHTNINGLOADER:
+				case SA_VIOLENTGALE:
+					if( sc && sc->data[SC_WILD_STORM_OPTION] && rnd()%100 < 50 )
+						continue;
+					break;
+			}
 
 			if( (n = pc_search_inventory(sd,req.itemid[i])) >= 0 )
 				pc_delitem(sd,n,req.amount[i],0,1,LOG_TYPE_CONSUME);
@@ -13695,25 +13721,6 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, short 
 			case SO_WIND_INSIGNIA:
 			case SO_EARTH_INSIGNIA:
 				if( i < 3 )
-					continue;
-				break;
-			case SA_SEISMICWEAPON:
-				if( sc->data[SC_UPHEAVAL_OPTION] && rnd()%100 < 50 )
-					continue;
-				break;
-			case SA_FLAMELAUNCHER:
-			case SA_VOLCANO:
-				if( sc->data[SC_TROPIC_OPTION] && rnd()%100 < 50 )
-					continue;
-				break;
-			case SA_FROSTWEAPON:
-			case SA_DELUGE:
-				if( sc->data[SC_CHILLY_AIR_OPTION] && rnd()%100 < 50 )
-					continue;
-				break;
-			case SA_LIGHTNINGLOADER:
-			case SA_VIOLENTGALE:
-				if( sc && sc->data[SC_WILD_STORM_OPTION] && rnd()%100 < 50 )
 					continue;
 				break;
 		}

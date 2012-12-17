@@ -4996,7 +4996,13 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 									skill_get_time2(SR_GENTLETOUCH_ENERGYGAIN, tsc->data[SC_GT_ENERGYGAIN]->val1),
 									spheremax);
 		}
-		
+		if( sc && sc->data[SC_CRUSHSTRIKE] ){
+			int skilllv = sc->data[SC_CRUSHSTRIKE]->val1;
+			status_change_end(src, SC_CRUSHSTRIKE, INVALID_TIMER);
+			if( skill_attack(BF_WEAPON,src,src,target,RK_CRUSHSTRIKE,skilllv,tick,0) )
+				return ATK_DEF;
+			return ATK_MISS;
+		}
 	}
 
 	if(tsc && tsc->data[SC_KAAHI] && tsc->data[SC_KAAHI]->val4 == INVALID_TIMER && tstatus->hp < tstatus->max_hp)
