@@ -8545,7 +8545,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if (bl != src)
 				sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv));
 		} else if ( sd ) {
-			rate = skilllv * 4 + pc_checkskill(sd,WM_LESSON) * 2 + (status_get_lv(src) / 15) + sd->status.job_level / 5;
+			rate = 4 * skilllv + 2 * (sd ? pc_checkskill(sd,WM_LESSON) : 1) + (status_get_lv(src) / 15) + sd->status.job_level / 5;
 			if( rate > 60 ) rate = 60;
 			if ( rnd()%100 < rate ) {
 				map_foreachinrange(skill_area_sub, src, skill_get_splash(skillid, skilllv), BL_CHAR, src, skillid, skilllv, tick, flag|BCT_ALL|1, skill_castend_nodamage_id);
@@ -8567,7 +8567,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		if( flag&1 )
 			sc_start2(bl,type,100,skilllv,src->id,skill_get_time(skillid,skilllv));
 		else if ( sd ) {
-			rate = skilllv * 6 + pc_checkskill(sd,WM_LESSON) * 2 + sd->status.job_level / 2;
+			rate = 6 * skilllv + 2 * (sd ? pc_checkskill(sd,WM_LESSON) : 1) + sd->status.job_level / 2;
 			if ( rnd()%100 < rate ) {
 				map_foreachinrange(skill_area_sub, src, skill_get_splash(skillid,skilllv), BL_CHAR|BL_SKILL, src, skillid, skilllv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
 				clif_skill_nodamage(src,bl,skillid,skilllv,1);
