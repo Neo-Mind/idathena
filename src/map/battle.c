@@ -3130,9 +3130,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				case SR_GATEOFHELL:
 					ATK_ADD (sstatus->max_hp - sstatus->hp);
 					if( sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE ) {
-						ATK_ADD ( ((int64)sstatus->sp * (1 + skill_lv * 2 / 10)) + 10 * status_get_lv(src) );
-					} else {
 						ATK_ADD ( ((int64)sstatus->max_sp * (1 + skill_lv * 2 / 10)) + 40 * status_get_lv(src) );
+					} else {
+						ATK_ADD ( ((int64)sstatus->sp * (1 + skill_lv * 2 / 10)) + 10 * status_get_lv(src) );
 					}
 					break;
 				case SR_TIGERCANNON: // (Tiger Cannon skill level x 240) + (Target Base Level x 40)
