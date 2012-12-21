@@ -822,7 +822,7 @@
 2263,0,6,4,0,0x1,0,1,1,no,0,0,0,none,0,		NC_HOVERING,Hovering
 2264,0,6,4,0,0x1,0,1,1,no,0,0,0,none,7,		NC_F_SIDESLIDE,Front-Side Slide
 2265,0,6,4,0,0x1,0,1,1,no,0,0,0,none,7,		NC_B_SIDESLIDE,Back-Side Slide
-2266,0,0,0,0,0,0,4,0,no,0,0,0,none,0,		NC_MAINFRAME,Mainframe Restructure // Check me. Part of the code notes translated to "The amount of fuel have".
+2266,0,0,0,0,0,0,4,0,no,0,0,0,none,0,		NC_MAINFRAME,Mainframe Restructure
 2267,0,6,4,0,0x4A,2:3:4,3,1,no,0,0,0,weapon,5,	NC_SELFDESTRUCTION,Self Destruction
 2268,0,6,4,0,0x1,0,4,1,yes,0,0,0,none,0,	NC_SHAPESHIFT,Shape Shift
 2269,0,6,4,0,0x1,0,1,1,no,0,0,0,none,0,		NC_EMERGENCYCOOL,Emergency Cool
@@ -836,9 +836,9 @@
 2277,0,0,0,0,0,0,5,0,no,0,0,0,none,0,		NC_RESEARCHFE,Research Fire/Earth
 2278,5:6:7:8:9,6,1,-1,0,0,5,1,no,0,0,0,weapon,2:3:4:5:6,	NC_AXEBOOMERANG,Axe Boomerang
 2279,1,6,1,-1,0,0,5,1,no,0,0,0,weapon,0,	NC_POWERSWING,Power Swing
-2280,0,8,4,-1,0x2,2:2:3:3:3,5,-6,no,0,0,0,weapon,0,	NC_AXETORNADO,Axe Tornado // Check me. Takes 20 * Skill LV amount of HP each use.
+2280,0,8,4,-1,0x2,2:2:3:3:3,5,-6,no,0,0,0,weapon,0,	NC_AXETORNADO,Axe Tornado
 2281,2,6,2,0,0x1,0,5,1,yes,0,0,2,none,0,	NC_SILVERSNIPER,FAW - Silver Sniper
-2282,2,6,2,0,0x1,0,5,1,yes,0,0,2,none,0,	NC_MAGICDECOY,FAW - Magic Decoy //CHECK FIX ME!!!! Wind and Earth stones spawning opposite decoys.
+2282,2,6,2,0,0x1,0,5,1,yes,0,0,2,none,0,	NC_MAGICDECOY,FAW - Magic Decoy
 2283,2,6,1,0,0x1,0,1,1,no,0,0,0,none,0,		NC_DISJOINT,FAW Removal
 
 //****
@@ -879,7 +879,7 @@
 2316,0,6,4,0,0x1,0,5,1,yes,0,0,0,none,0,	LG_EXEEDBREAK,Exceed Break
 2317,1,6,2,-1,0x2,5,5,1,yes,0,0,0,weapon,0,	LG_OVERBRAND,Over Brand
 2318,0,6,4,0,0x1,0,5,1,yes,0,0,0,none,0,	LG_PRESTIGE,Prestige
-2319,0,6,4,0,0x1,3,5,1,no,0,0,0,weapon,0,	LG_BANDING,Banding //CHECK Splash isnt needed right? Banding has its own UNIT ID.
+2319,0,6,4,0,0x1,3,5,1,no,0,0,0,weapon,0,	LG_BANDING,Banding
 2320,0,6,4,-1,0x2,3,5,1,yes,0,0,0,weapon,0,	LG_MOONSLASHER,Moon Slasher
 2321,1,8,2,6,0x2,5,5,-7,yes,0,0,0,weapon,0,	LG_RAYOFGENESIS,Ray of Genesis
 2322,0,6,16,0,0x3,1,5,1,yes,0,0,0,none,0,	LG_PIETY,Piety
@@ -940,7 +940,7 @@
 2416,0,6,1,0,0x6,1,5,1,no,0,0,0,magic,0,	WM_REVERBERATION_MAGIC,Reverberation Magic
 2417,11,6,2,0,0x3,5,1,1,no,0,0,0,none,0,	WM_DOMINION_IMPULSE,Dominion Impulse
 2418,9,6,2,0,0x1,0,5,1,yes,0,0,0,none,0,	WM_SEVERE_RAINSTORM,Severe Rainstorm
-2419,9,6,2,0,0x3,1,5,1,yes,0,0x80,5,none,0,	WM_POEMOFNETHERWORLD,Poem of The Netherworld //CHECK May need to recode too.
+2419,9,6,2,0,0x3,1,5,1,yes,0,0x80,5,none,0,	WM_POEMOFNETHERWORLD,Poem of The Netherworld
 2420,0,6,4,0,0x2,2:3:4:5:6,5,1,yes,0,0,0,none,0,	WM_VOICEOFSIREN,Voice of Siren
 2421,7,6,16,0,0x1,0,5,1,yes,0,0,0,none,0,	WM_DEADHILLHERE,Valley of Death
 2422,0,6,4,0,0x3,5:6:7:8:9,5,1,yes,0,0,0,none,0,	WM_LULLABY_DEEPSLEEP,Deep Sleep Lullaby
@@ -960,7 +960,7 @@
 
 //****
 // SO Sorcerer
-2443,0,6,4,3,0,0,5,1,yes,0,0,8:10:12:14:16,magic,0,	SO_FIREWALK,Fire Walk //CHECK Video and data shows each cell only hits once.
+2443,0,6,4,3,0,0,5,1,yes,0,0,8:10:12:14:16,magic,0,	SO_FIREWALK,Fire Walk
 2444,0,6,4,4,0,0,5,1,yes,0,0,8:10:12:14:16,magic,0,	SO_ELECTRICWALK,Electric Walk
 2445,0,6,4,0,0x1,0,5,1,no,0,0,0,none,0,		SO_SPELLFIST,Spell Fist
 2446,9,6,2,2,0,0,5,-3,yes,0,0,0,magic,0,	SO_EARTHGRAVE,Earth Grave
@@ -968,7 +968,7 @@
 2448,9,6,1,5,0x2,1:1:1:1:2,5,1,yes,0,0,0,magic,0,	SO_POISON_BUSTER,Poison Buster
 2449,9,6,2,0,0,0,5,1,yes,0,0,0,magic,0,		SO_PSYCHIC_WAVE,Psychic Wave
 2450,9,6,2,5,0,0,5,1,yes,0,0,0,magic,0,		SO_CLOUD_KILL,Cloud Kill
-2451,9,6,16,0,0x1,0,5,1,yes,0,0,0,none,0,	SO_STRIKING,Striking //CHECK Data shows a % for increased successful refine rate. Is this true?
+2451,9,6,16,0,0x1,0,5,1,yes,0,0,0,none,0,	SO_STRIKING,Striking
 2452,9,6,2,3,0x1,0,5,1,yes,0,0,0,magic,0,	SO_WARMER,Warmer
 2453,9,6,2,0,0x1,0,5,1,yes,0,0,0,magic,0,	SO_VACUUM_EXTREME,Vacuum Extreme
 2454,9,6,1,4,0x2,1:1:2:2:3,5,1,yes,0,0,0,magic,0,	SO_VARETYR_SPEAR,Varetyr Spear
@@ -982,8 +982,8 @@
 2462,0,6,4,0,0x1,0,2,1,yes,0,0,0,none,0,	SO_EL_ANALYSIS,Four Spirit Analysis
 2463,0,0,0,0,0,0,5,0,no,0,0,0,none,0,		SO_EL_SYMPATHY,Spirit Sympathy
 2464,0,6,4,0,0x1,0,1,1,yes,0,0,0,none,0,	SO_EL_CURE,Spirit Recovery
-2465,9,6,2,3,0x1,0,3,1,yes,0,0,1,magic,0,	SO_FIRE_INSIGNIA,Fire Insignia //CHECK All 4 insignia skills can be targeted and animations work
-2466,9,6,2,1,0x1,0,3,1,yes,0,0,1,magic,0,	SO_WATER_INSIGNIA,Water Insignia // but its effects havent been coded yet.
+2465,9,6,2,3,0x1,0,3,1,yes,0,0,1,magic,0,	SO_FIRE_INSIGNIA,Fire Insignia
+2466,9,6,2,1,0x1,0,3,1,yes,0,0,1,magic,0,	SO_WATER_INSIGNIA,Water Insignia
 2467,9,6,2,4,0x1,0,3,1,yes,0,0,1,magic,0,	SO_WIND_INSIGNIA,Wind Insignia
 2468,9,6,2,2,0x1,0,3,1,yes,0,0,1,magic,0,	SO_EARTH_INSIGNIA,Earth Insignia
 
