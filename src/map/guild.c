@@ -1797,7 +1797,7 @@ int guild_break(struct map_session_data *sd,char *name)
 	}
 
 	intif_guild_break(g->guild_id);
-	return 0;
+	return 1;
 }
 
 /**
