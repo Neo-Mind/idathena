@@ -6584,7 +6584,6 @@ ACMD_FUNC(refresh)
 	return 0;
 }
 
-
 ACMD_FUNC(refreshall)
 {
 	struct map_session_data* iter_sd;
