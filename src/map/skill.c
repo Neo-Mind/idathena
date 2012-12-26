@@ -14013,9 +14013,8 @@ int skill_vfcastfix (struct block_list *bl, double time, int skill_id, int skill
 	if( !(skill_get_castnodex(skill_id, skill_lv)&1) )// reduction from status point
 		time = (1 - sqrt( ((float)(status_get_dex(bl)*2 + status_get_int(bl)) / battle_config.vcast_stat_scale) )) * time;
 	// underflow checking/capping
-	time = max(time, 0) + (1 - (float)min(fixcast_r, 100) / 100) * fixed;
-	
-//	ShowInfo("Casttime vfcastfix = %d\n",time);
+	time = max(time, 0) + (1 - (float)min(fixcast_r, 100) / 100) * max(fixed,0);
+
 	return (int)time;
 }
 #endif

@@ -3582,11 +3582,11 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 
 	if(flag&SCB_AGI) {
 		status->agi = status_calc_agi(bl, sc, b_status->agi);
-#ifndef RENEWAL
-		flag|=SCB_FLEE;
-#else
-		flag|=SCB_FLEE|SCB_DEF2;
+		flag|=SCB_FLEE
+#ifdef RENEWAL
+			|SCB_DEF2
 #endif
+			;
 		if( bl->type&(BL_PC|BL_HOM) )
 			flag |= SCB_ASPD|SCB_DSPD;
 	}
@@ -3611,11 +3611,11 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 
 	if(flag&SCB_DEX) {
 		status->dex = status_calc_dex(bl, sc, b_status->dex);
-#ifndef RENEWAL
-		flag|=SCB_BATK|SCB_HIT;
-#else
-		flag|=SCB_BATK|SCB_HIT|SCB_MATK|SCB_MDEF2;
+		flag|=SCB_BATK|SCB_HIT
+#ifdef RENEWAL
+			|SCB_MATK|SCB_MDEF2
 #endif
+			;
 		if( bl->type&(BL_PC|BL_HOM) )
 			flag |= SCB_ASPD;
 		if( bl->type&BL_HOM )
@@ -3624,7 +3624,11 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 
 	if(flag&SCB_LUK) {
 		status->luk = status_calc_luk(bl, sc, b_status->luk);
-		flag|=SCB_BATK|SCB_CRI|SCB_FLEE2;
+		flag|=SCB_BATK|SCB_CRI|SCB_FLEE2
+#ifdef RENEWAL
+			|SCB_MATK|SCB_HIT|SCB_FLEE
+#endif
+			;
 	}
 
 	if(flag&SCB_BATK && b_status->batk) {
@@ -3665,25 +3669,33 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 	}
 
 	if(flag&SCB_HIT) {
-#ifndef RENEWAL
-		if (status->dex == b_status->dex)
+		if (status->dex == b_status->dex
+#ifdef RENEWAL
+			&& status->luk == b_status->luk
+#endif
+			)
 			status->hit = status_calc_hit(bl, sc, b_status->hit);
 		else
-			status->hit = status_calc_hit(bl, sc, b_status->hit +(status->dex - b_status->dex));
-#else
-		status->hit = status_calc_hit(bl, sc, b_status->hit + (status->dex - b_status->dex) + (status->luk/3 - b_status->luk/3));
+			status->hit = status_calc_hit(bl, sc, b_status->hit + (status->dex - b_status->dex)
+#ifdef RENEWAL
+			 + (status->luk/3 - b_status->luk/3)
 #endif
+			 );
 	}
 
 	if(flag&SCB_FLEE) {
-#ifndef RENEWAL
-		if (status->agi == b_status->agi)
+		if (status->agi == b_status->agi
+#ifdef RENEWAL
+			&& status->luk == b_status->luk
+#endif
+			)
 			status->flee = status_calc_flee(bl, sc, b_status->flee);
 		else
-			status->flee = status_calc_flee(bl, sc, b_status->flee +(status->agi - b_status->agi));
-#else
-		status->flee = status_calc_flee(bl, sc, b_status->flee + (status->agi - b_status->agi) + (status->luk/5 - b_status->luk/5));
+			status->flee = status_calc_flee(bl, sc, b_status->flee +(status->agi - b_status->agi)
+#ifdef RENEWAL
+			+ (status->luk/5 - b_status->luk/5)
 #endif
+			);
 	}
 
 	if(flag&SCB_DEF)
@@ -3695,14 +3707,20 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 	}
 
 	if(flag&SCB_DEF2) {
-#ifndef RENEWAL
-		if (status->vit == b_status->vit)
+		if (status->vit == b_status->vit
+#ifdef RENEWAL
+			&& status->agi == b_status->agi
+#endif
+			)
 			status->def2 = status_calc_def2(bl, sc, b_status->def2);
 		else
-			status->def2 = status_calc_def2(bl, sc, b_status->def2 + (status->vit - b_status->vit));
+			status->def2 = status_calc_def2(bl, sc, b_status->def2 
+#ifdef RENEWAL
+			+ (int)( ((float)status->vit/2 + (float)b_status->vit/2) + ((float)status->agi/5 + (float)b_status->agi/5) )
 #else
-		status->def2 = status_calc_def2(bl, sc, b_status->def2 + (status->vit/2 - b_status->vit/2) + (status->agi/5 - b_status->agi/5));
+			+ (status->vit - b_status->vit)
 #endif
+		);
 	}
 
 	if(flag&SCB_MDEF)
@@ -3714,14 +3732,20 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 	}
 		
 	if(flag&SCB_MDEF2) {
-#ifndef RENEWAL
-		if (status->int_ == b_status->int_ && status->vit == b_status->vit)
+		if (status->int_ == b_status->int_ && status->vit == b_status->vit
+#ifdef RENEWAL
+			&& status->dex == b_status->dex
+#endif
+			)
 			status->mdef2 = status_calc_mdef2(bl, sc, b_status->mdef2);
 		else
-			status->mdef2 = status_calc_mdef2(bl, sc, b_status->mdef2 +(status->int_ - b_status->int_) +((status->vit - b_status->vit)>>1));
+			status->mdef2 = status_calc_mdef2(bl, sc, b_status->mdef2 +(status->int_ - b_status->int_) 
+#ifdef RENEWAL
+			+ (int)( ((float)status->dex/5 - (float)b_status->dex/5) + ((float)status->vit/5 + (float)b_status->vit/5) )
 #else
-		status->mdef2 = status_calc_mdef2(bl, sc, b_status->mdef2 + (status->int_ - b_status->int_) + (status->dex/5 - b_status->dex/5) + (status->vit/5 - b_status->vit/5));
+			+ ((status->vit - b_status->vit)>>1)
 #endif
+			);
 	}
 
 	if(flag&SCB_SPEED) {
