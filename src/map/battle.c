@@ -1160,7 +1160,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 					if( s_bl->type == BL_PC )
 						((TBL_PC*)s_bl)->shadowform_id = 0;
 				} else {
-					status_damage(src, s_bl, damage, 0, clif_damage(s_bl, s_bl, gettick(), 500, 500, damage, -1, 0, 0), 0);
+					status_damage(bl, s_bl, damage, 0, clif_damage(s_bl, s_bl, gettick(), 500, 500, damage, -1, 0, 0), 0);
 					return ATK_NONE;
 				}
 			}
@@ -2945,7 +2945,10 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					RE_LVL_DMOD(100);
 					break;
 				case WM_SEVERE_RAINSTORM_MELEE:
-					skillratio = 50 + 50 * skill_lv;
+					//ATK [{(Caster DEX + AGI) x (Skill Level / 5)} x Caster Base Level / 100] %
+					skillratio = (sstatus->dex + sstatus->agi) * (skill_lv * 2);
+					RE_LVL_DMOD(100);
+					skillratio /= 10;
 					break;
 				case WM_GREAT_ECHO:
 					skillratio += 300 + 200 * skill_lv;
@@ -3010,7 +3013,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						}
 					}
 					break;
-				case SO_VARETYR_SPEAR://ATK [{( Striking Level x 50 ) + ( Varetyr Spear Skill Level x 50 )} x Casters Base Level / 100 ] %
+				case SO_VARETYR_SPEAR://ATK [{( Striking Level x 50 ) + ( Varetyr Spear Skill Level x 50 )} x Caster Base Level / 100 ] %
 					skillratio = 50 * skill_lv + ( sd ? pc_checkskill(sd, SO_STRIKING) * 50 : 0 );
 					RE_LVL_DMOD(100);
 					if( sc && sc->data[SC_BLAST_OPTION] )
@@ -4124,7 +4127,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						if( sc && sc->data[SC_CURSED_SOIL_OPTION] )
 							skillratio += sc->data[SC_CURSED_SOIL_OPTION]->val2;
 						break;
-					case SO_VARETYR_SPEAR: //MATK [{( Endow Tornado skill level x 50 ) + ( Casters INT x Varetyr Spear Skill level )} x Casters Base Level / 100 ] %
+					case SO_VARETYR_SPEAR: //MATK [{( Endow Tornado skill level x 50 ) + ( Caster INT x Varetyr Spear Skill level )} x Caster Base Level / 100 ] %
 						skillratio = status_get_int(src) * skill_lv + ( sd ? pc_checkskill(sd, SA_LIGHTNINGLOADER) * 50 : 0 );
 						RE_LVL_DMOD(100);
 						if( sc && sc->data[SC_BLAST_OPTION] )
