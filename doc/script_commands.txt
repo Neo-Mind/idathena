@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Current Version: =====================================
-//= $Revision: 17039 $
+//= $Revision: 17055 $
 //===== Last Updated: ========================================
-//= $LastChangedDate: 2012-12-24 04:11:29 +0700 (Mon, 24 Dec 2012) $
+//= $LastChangedDate: 2012-12-28 11:10:17 +0700 (Fri, 28 Dec 2012) $
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -6336,9 +6336,8 @@ Example:
 This command will send the message to the server console (map-server window). It 
 will not be displayed anywhere else.
 
-    debugmes strcharinfo(0)+" has just done this that and the other";
-    // You would see in the map-server window "NAME has just done this that and 
-    // the other"
+    // Displays "NAME has clicked me!" in the map-server window.
+    debugmes strcharinfo(0)+" has clicked me!";
 
 ---------------------------------------
 
@@ -6620,6 +6619,24 @@ GID as the other unit* commands (See 'GID').
 
 Skill ID is the ID of the skill, skill level is the level of the skill.
 For the position, the x and y are given in the unitSkillUsePos.
+
+---------------------------------------
+
+*npcskill <skill id>,<skill lvl>,<stat point>,<NPC level>;
+*npcskill "<skill name>",<skill lvl>,<stat point>,<NPC level>;
+
+This command causes the attached NPC object to cast a skill on the attached
+player. The skill will have no cast time or cooldown. The player must be
+within the default skill range or the command will fail silently.
+
+The "stat point" parameter temporarily sets all NPC stats to the given value,
+and "NPC level" is the temporary level of the NPC (used in some skills).
+Neither value can be greater than the max level defined in config, and will
+not work properly if the NPC has a mob sprite.
+
+    // Casts Level 10 Heal on the attached player, calculated with
+    // all stats 99 and base level 60.
+    npcskill "AL_HEAL",10,99,60;
 
 ---------------------------------------
 
