@@ -516,10 +516,11 @@ void initChangeTables(void) {
 	add_sc(MH_LAVA_SLIDE         , SC_BURNING );
 	set_sc(MH_NEEDLE_OF_PARALYZE , SC_PARALYSIS       , SI_NEEDLE_OF_PARALYZE , SCB_DEF2 );
 	add_sc(MH_POISON_MIST        , SC_BLIND );
-	set_sc(MH_PAIN_KILLER        , SC_PAIN_KILLER     , SI_PAIN_KILLER, SCB_ASPD );
+	set_sc(MH_PAIN_KILLER        , SC_PAIN_KILLER     , SI_PAIN_KILLER     , SCB_ASPD );
 	
-	add_sc(MH_STYLE_CHANGE       , SC_STYLE_CHANGE );
-	
+	add_sc( MH_STYLE_CHANGE      , SC_STYLE_CHANGE );
+	set_sc( MH_TINDER_BREAKER    , SC_CLOSECONFINE2   , SI_CLOSECONFINE2   , SCB_NONE );
+	set_sc( MH_TINDER_BREAKER    , SC_CLOSECONFINE    , SI_CLOSECONFINE    , SCB_FLEE );
 
 	add_sc( MER_CRASH            , SC_STUN            );
 	set_sc( MER_PROVOKE          , SC_PROVOKE         , SI_PROVOKE         , SCB_DEF|SCB_DEF2|SCB_BATK|SCB_WATK );
@@ -4049,13 +4050,13 @@ void status_calc_bl_(struct block_list* bl, enum scb_flag flag, bool first)
 
 	if( flag&SCB_BASE ) {// calculate the object's base status too
 		switch( bl->type ) {
-		case BL_PC:  status_calc_pc_(BL_CAST(BL_PC,bl), first);				break;
-		case BL_MOB: status_calc_mob_(BL_CAST(BL_MOB,bl), first);			break;
-		case BL_PET: status_calc_pet_(BL_CAST(BL_PET,bl), first);			break;
+		case BL_PC:  status_calc_pc_(BL_CAST(BL_PC,bl), first);			break;
+		case BL_MOB: status_calc_mob_(BL_CAST(BL_MOB,bl), first);		break;
+		case BL_PET: status_calc_pet_(BL_CAST(BL_PET,bl), first);		break;
 		case BL_HOM: status_calc_homunculus_(BL_CAST(BL_HOM,bl), first);	break;
 		case BL_MER: status_calc_mercenary_(BL_CAST(BL_MER,bl), first);		break;
 		case BL_ELEM: status_calc_elemental_(BL_CAST(BL_ELEM,bl), first);	break;
-		case BL_NPC: status_calc_npc_(BL_CAST(BL_NPC,bl), first);			break;
+		case BL_NPC: status_calc_npc_(BL_CAST(BL_NPC,bl), first);		break;
 		}
 	}
 
@@ -8758,6 +8759,11 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			if(sc->data[SC_PARALYSIS])
 				sc_start(bl, SC_ENDURE, 100, val1, tick); //start endure for same duration
 			break;
+		case SC_STYLE_CHANGE: //[Lighta] need real info
+			tick = -1;
+			if(val2 == MH_MD_FIGHTING) val2 = MH_MD_GRAPPLING;
+			else val2 = MH_MD_FIGHTING;
+			break;
 		default:
 			if( calc_flag == SCB_NONE && StatusSkillChangeTable[type] == 0 && StatusIconChangeTable[type] == 0 )
 			{	//Status change with no calc, no icon, and no skill associated...?
@@ -9212,7 +9218,7 @@ int status_change_clear(struct block_list* bl, int type)
 			continue;
 
 		}
-		
+
 		if( type == 3 )
 		{
 			switch (i)

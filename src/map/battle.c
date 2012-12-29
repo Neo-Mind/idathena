@@ -1138,7 +1138,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 
 		if( sd && (sce = sc->data[SC_FORCEOFVANGUARD]) && flag&BF_WEAPON && rnd()%100 < sce->val2 )
 			pc_addspiritball(sd,skill_get_time(LG_FORCEOFVANGUARD,sce->val1),sce->val3);
-		if (sc->data[SC_STYLE_CHANGE] && rnd() % 100 < 50) {
+		if (sc->data[SC_STYLE_CHANGE] && rnd()%2) {
 			TBL_HOM *hd = BL_CAST(BL_HOM,bl);
 			if (hd) hom_addspiritball(hd, 10); //add a sphere
 		}
@@ -1214,7 +1214,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		
 		if( sc->data[SC__DEADLYINFECT] && flag&BF_SHORT && damage > 0 && rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 )
 			status_change_spread(src, bl);
-		if (sc->data[SC_STYLE_CHANGE] && rnd() % 100 < 50) {
+		if (sc->data[SC_STYLE_CHANGE] && rnd()%2) {
 			TBL_HOM *hd = BL_CAST(BL_HOM,bl);
 			if (hd) hom_addspiritball(hd, 10);
 		}
@@ -3069,6 +3069,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				case MH_LAVA_SLIDE:
 					skillratio = 70 * skill_lv;
 					break;
+				case MH_TINDER_BREAKER:
 				case MH_MAGMA_FLOW:
 					skillratio += -100 + 100 * skill_lv;
 					break;
@@ -3205,9 +3206,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			}
 			if(sc->data[SC_STYLE_CHANGE]){
 				TBL_HOM *hd = BL_CAST(BL_HOM,src);
-				if (hd) ATK_ADD(hd->spiritball * 3);
+				if (hd) ATK_ADD(hd->homunculus.spiritball * 3);
 			}
-			
 		}
 
 		switch (skill_num) {
