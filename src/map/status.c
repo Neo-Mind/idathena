@@ -6388,7 +6388,7 @@ int status_get_sc_def(struct block_list *bl, enum sc_type type, int rate, int ti
 		tick -= (1000*(status->vit/10))+(status_get_lv(bl)/50);
 		break;
 	case SC_VOICEOFSIREN:
-		tick_def = status_get_lv(bl) / 10 + (sd ? sd->status.job_level : 0) / 5;
+		tick_def = status_get_lv(bl) / 10 + (sd ? sd->status.job_level : 50) / 5;
 		break;
 	case SC_KYOUGAKU:
 		tick -= 30*status->int_;
