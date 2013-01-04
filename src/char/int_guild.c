@@ -1830,7 +1830,7 @@ int mapif_parse_GuildMasterChange(int fd, int guild_id, const char* name, int le
 //- Shouldn't do checking and packet length, RFIFOSKIP is done by the caller
 // Must Return
 //	1 : ok
-//  0 : error
+//	0 : error
 int inter_guild_parse_frommap(int fd)
 {
 	RFIFOHEAD(fd);
