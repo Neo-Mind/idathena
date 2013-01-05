@@ -2424,7 +2424,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						//You'd need something like 6K SP to reach this max, so should be fine for most purposes.
 						if (ratio > 60000) ratio = 60000; //We leave some room here in case skillratio gets further increased.
 						skillratio = (unsigned short)ratio;
-						status_set_sp(src, 0, 0);
 					}
 					break;
 				case MO_TRIPLEATTACK:
@@ -2573,6 +2572,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += 50 + 150*skill_lv;
 					break;
 				case NJ_TATAMIGAESHI:
+#ifdef RENEWAL
+					ATK_RATE(200);
+#endif
 					skillratio += 10*skill_lv;
 					break;
 				case NJ_KASUMIKIRI:
