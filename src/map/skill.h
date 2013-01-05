@@ -275,7 +275,7 @@ const char*	skill_get_desc( uint16 skill_id ); 	// [Skotlex]
 
 int skill_name2id(const char* name);
 
-int skill_isammotype(struct map_session_data *sd, int skill);
+int skill_isammotype(struct map_session_data *sd, uint16 skill_id);
 int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data);
 int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data);
 int skill_castend_map( struct map_session_data *sd,uint16 skill_id, const char *map);
@@ -311,10 +311,10 @@ int skill_vfcastfix( struct block_list *bl, double time, uint16 skill_id, uint16
 int skill_delayfix( struct block_list *bl, uint16 skill_id, uint16 skill_lv);
 
 // Skill conditions check and remove [Inkfish]
-int skill_check_condition_castbegin(struct map_session_data *sd, short skill, short lv);
-int skill_check_condition_castend(struct map_session_data *sd, short skill, short lv);
-int skill_consume_requirement(struct map_session_data *sd, short skill, short lv, short type);
-struct skill_condition skill_get_requirement(struct map_session_data *sd, short skill, short lv);
+int skill_check_condition_castbegin(struct map_session_data *sd, uint16 skill_id, uint16 skill_lv);
+int skill_check_condition_castend(struct map_session_data *sd, uint16 skill_id, uint16 skill_lv);
+int skill_consume_requirement(struct map_session_data *sd, uint16 skill_id, uint16 skill_lv, short type);
+struct skill_condition skill_get_requirement(struct map_session_data *sd, uint16 skill_id, uint16 skill_lv);
 
 int skill_check_pc_partner(struct map_session_data *sd, uint16 skill_id, short* skill_lv, int range, int cast_flag);
 // -- moonsoul	(added skill_check_unit_cell)

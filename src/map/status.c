@@ -8692,7 +8692,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			tick_time = 10000; // [GodLesZ] tick time
 			break;
 		case SC_KYOUGAKU:
-			val2 = 2*val1 + rand()%val1;
+			val2 = 2*val1 + rnd()%val1;
 			clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,0,1002,0,0);
 			break;
 		case SC_KAGEMUSYA:
