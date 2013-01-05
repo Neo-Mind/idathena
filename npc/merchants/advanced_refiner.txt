@@ -24,7 +24,7 @@
 //= 1.4 Removed unnecessary dialogs [Zephyrus]
 //============================================================
 
-payon,174,138,0	script	Suhnbi#cash	85,{
+payon,174,138,4	script	Suhnbi#cash	85,{
 	mes "[Suhnbi]";
 	mes "I am the Armsmith";
 	mes "I can refine all kinds of weapons,";

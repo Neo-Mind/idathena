@@ -16686,7 +16686,7 @@ BUILDIN_FUNC(pushpc)
 	}
 
 	dir = script_getnum(st,2);
-	cells     = script_getnum(st,3);
+	cells = script_getnum(st,3);
 
 	if(dir>7)
 	{
