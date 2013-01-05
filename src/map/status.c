@@ -4271,7 +4271,7 @@ static unsigned short status_calc_agi(struct block_list *bl, struct status_chang
 	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH && agi < 50)
 		return 50;
 	if(sc->data[SC_CONCENTRATE] && !sc->data[SC_QUAGMIRE])
-		agi += (agi-sc->data[SC_CONCENTRATE]->val3)*sc->data[SC_CONCENTRATE]->val2/100;
+		agi += (agi-sc->data[SC_CONCENTRATE]->val3) * sc->data[SC_CONCENTRATE]->val2 / 100;
 	if(sc->data[SC_INCALLSTATUS])
 		agi += sc->data[SC_INCALLSTATUS]->val1;
 	if(sc->data[SC_INCAGI])
@@ -4355,7 +4355,7 @@ static unsigned short status_calc_vit(struct block_list *bl, struct status_chang
 		vit -= sc->data[SC_KYOUGAKU]->val2;
 
 	if(sc->data[SC_STRIPARMOR])
-		vit -= vit * sc->data[SC_STRIPARMOR]->val2/100;
+		vit -= vit * sc->data[SC_STRIPARMOR]->val2 / 100;
 
 	return (unsigned short)cap_value(vit,0,USHRT_MAX);
 }
@@ -4409,7 +4409,7 @@ static unsigned short status_calc_int(struct block_list *bl, struct status_chang
 		int_ -= sc->data[SC_KYOUGAKU]->val2;
 
 	if(sc->data[SC_STRIPHELM])
-		int_ -= int_ * sc->data[SC_STRIPHELM]->val2/100;
+		int_ -= int_ * sc->data[SC_STRIPHELM]->val2 / 100;
 	if(sc->data[SC__STRIPACCESSORY])
 		int_ -= int_ * sc->data[SC__STRIPACCESSORY]->val2 / 100;
 
@@ -4424,7 +4424,7 @@ static unsigned short status_calc_dex(struct block_list *bl, struct status_chang
 	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH && dex < 50)
 		return 50;
 	if(sc->data[SC_CONCENTRATE] && !sc->data[SC_QUAGMIRE])
-		dex += (dex-sc->data[SC_CONCENTRATE]->val4)*sc->data[SC_CONCENTRATE]->val2/100;
+		dex += (dex-sc->data[SC_CONCENTRATE]->val4) * sc->data[SC_CONCENTRATE]->val2 / 100;
 	if(sc->data[SC_INCALLSTATUS])
 		dex += sc->data[SC_INCALLSTATUS]->val1;
 	if(sc->data[SC_INCDEX])
@@ -4554,24 +4554,24 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk += sc->data[SC_ANGRIFFS_MODUS]->val2;
 
 	if(sc->data[SC_INCATKRATE])
-		batk += batk * sc->data[SC_INCATKRATE]->val1/100;
+		batk += batk * sc->data[SC_INCATKRATE]->val1 / 100;
 	if(sc->data[SC_PROVOKE])
-		batk += batk * sc->data[SC_PROVOKE]->val3/100;
+		batk += batk * sc->data[SC_PROVOKE]->val3 / 100;
 	if(sc->data[SC_CONCENTRATION])
-		batk += batk * sc->data[SC_CONCENTRATION]->val2/100;
+		batk += batk * sc->data[SC_CONCENTRATION]->val2 / 100;
 	if(sc->data[SC_SKE])
 		batk += batk * 3;
 	if(sc->data[SC_BLOODLUST])
-		batk += batk * sc->data[SC_BLOODLUST]->val2/100;
+		batk += batk * sc->data[SC_BLOODLUST]->val2 / 100;
 	if(sc->data[SC_JOINTBEAT] && sc->data[SC_JOINTBEAT]->val2&BREAK_WAIST)
-		batk -= batk * 25/100;
+		batk -= batk * 25 / 100;
 	if(sc->data[SC_CURSE])
-		batk -= batk * 25/100;
+		batk -= batk * 25 / 100;
 //Curse shouldn't effect on this?  <- Curse OR Bleeding??
 //	if(sc->data[SC_BLEEDING])
 //		batk -= batk * 25/100;
 	if(sc->data[SC_FLEET])
-		batk += batk * sc->data[SC_FLEET]->val3/100;
+		batk += batk * sc->data[SC_FLEET]->val3 / 100;
 	if(sc->data[SC__ENERVATION])
 		batk -= batk * sc->data[SC__ENERVATION]->val2 / 100;
 	if(sc->data[SC_ZANGETSU])
@@ -4631,21 +4631,21 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 	}
 
 	if(sc->data[SC_INCATKRATE])
-		watk += watk * sc->data[SC_INCATKRATE]->val1/100;
+		watk += watk * sc->data[SC_INCATKRATE]->val1 / 100;
 	if(sc->data[SC_PROVOKE])
-		watk += watk * sc->data[SC_PROVOKE]->val3/100;
+		watk += watk * sc->data[SC_PROVOKE]->val3 / 100;
 	if(sc->data[SC_CONCENTRATION])
-		watk += watk * sc->data[SC_CONCENTRATION]->val2/100;
+		watk += watk * sc->data[SC_CONCENTRATION]->val2 / 100;
 	if(sc->data[SC_SKE])
 		watk += watk * 3;
 	if(sc->data[SC__ENERVATION])
 		watk -= watk * sc->data[SC__ENERVATION]->val2 / 100;
 	if(sc->data[SC_FLEET])
-		watk += watk * sc->data[SC_FLEET]->val3/100;
+		watk += watk * sc->data[SC_FLEET]->val3 / 100;
 	if(sc->data[SC_CURSE])
-		watk -= watk * 25/100;
+		watk -= watk * 25 / 100;
 	if(sc->data[SC_STRIPWEAPON])
-		watk -= watk * sc->data[SC_STRIPWEAPON]->val2/100;
+		watk -= watk * sc->data[SC_STRIPWEAPON]->val2 / 100;
 	if(sc->data[SC__ENERVATION])
 		watk -= watk * sc->data[SC__ENERVATION]->val2 / 100;
 	if((sc->data[SC_FIRE_INSIGNIA] && sc->data[SC_FIRE_INSIGNIA]->val1 == 2)
@@ -4657,7 +4657,7 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 	if( sc && sc->data[SC_TIDAL_WEAPON] )
 		watk += watk * sc->data[SC_TIDAL_WEAPON]->val2 / 100;
 	if(sc->data[SC_ANGRIFFS_MODUS])
-		watk += watk * sc->data[SC_ANGRIFFS_MODUS]->val2/100;
+		watk += watk * sc->data[SC_ANGRIFFS_MODUS]->val2 / 100;
 #ifdef RENEWAL_EDP
 	if( sc->data[SC_EDP] )
 		watk = watk * (100 + sc->data[SC_EDP]->val1 * 80) / 100;
@@ -4721,11 +4721,11 @@ static unsigned short status_calc_matk(struct block_list *bl, struct status_chan
         matk += 50 * sc->data[SC_IZAYOI]->val1;
 #endif
     if (sc->data[SC_MAGICPOWER])
-        matk += matk * sc->data[SC_MAGICPOWER]->val3/100;
+        matk += matk * sc->data[SC_MAGICPOWER]->val3 / 100;
     if (sc->data[SC_MINDBREAKER])
-        matk += matk * sc->data[SC_MINDBREAKER]->val2/100;
+        matk += matk * sc->data[SC_MINDBREAKER]->val2 / 100;
     if (sc->data[SC_INCMATKRATE])
-        matk += matk * sc->data[SC_INCMATKRATE]->val1/100;
+        matk += matk * sc->data[SC_INCMATKRATE]->val1 / 100;
     if (sc->data[SC_MOONLITSERENADE])
         matk += sc->data[SC_MOONLITSERENADE]->val3;
     if (sc->data[SC_ZANGETSU])
@@ -4792,9 +4792,9 @@ static signed short status_calc_hit(struct block_list *bl, struct status_change 
 		hit += sc->data[SC_MERC_HITUP]->val2;
 		
 	if(sc->data[SC_INCHITRATE])
-		hit += hit * sc->data[SC_INCHITRATE]->val1/100;
+		hit += hit * sc->data[SC_INCHITRATE]->val1 / 100;
 	if(sc->data[SC_BLIND])
-		hit -= hit * 25/100;
+		hit -= hit * 25 / 100;
 	if(sc->data[SC__GROOMY])
 		hit -= hit * sc->data[SC__GROOMY]->val2 / 100;
 	if(sc->data[SC_FEAR])
@@ -4812,9 +4812,9 @@ static signed short status_calc_flee(struct block_list *bl, struct status_change
 	if( bl->type == BL_PC )
 	{
 		if( map_flag_gvg(bl->m) )
-			flee -= flee * battle_config.gvg_flee_penalty/100;
+			flee -= flee * battle_config.gvg_flee_penalty / 100;
 		else if( map[bl->m].flag.battleground )
-			flee -= flee * battle_config.bg_flee_penalty/100;
+			flee -= flee * battle_config.bg_flee_penalty / 100;
 	}
 
 	if(!sc || !sc->count)
@@ -4858,13 +4858,13 @@ static signed short status_calc_flee(struct block_list *bl, struct status_change
 #endif
 
 	if(sc->data[SC_INCFLEERATE])
-		flee += flee * sc->data[SC_INCFLEERATE]->val1/100;
+		flee += flee * sc->data[SC_INCFLEERATE]->val1 / 100;
 	if(sc->data[SC_SPIDERWEB] && sc->data[SC_SPIDERWEB]->val1)
-		flee -= flee * 50/100;
+		flee -= flee * 50 / 100;
 	if(sc->data[SC_BERSERK] || sc->data[SC__BLOODYLUST])
-		flee -= flee * 50/100;
+		flee -= flee * 50 / 100;
 	if(sc->data[SC_BLIND])
-		flee -= flee * 25/100;
+		flee -= flee * 25 / 100;
 	if(sc->data[SC_FEAR])
 		flee -= flee * 20 / 100;
 	if(sc->data[SC_PARALYSE])
@@ -4901,7 +4901,7 @@ static signed short status_calc_flee2(struct block_list *bl, struct status_chang
 	if(sc->data[SC_INCFLEE2])
 		flee2 += sc->data[SC_INCFLEE2]->val2;
 	if(sc->data[SC_WHISTLE])
-		flee2 += sc->data[SC_WHISTLE]->val3*10;
+		flee2 += sc->data[SC_WHISTLE]->val3 * 10;
 	if(sc->data[SC__UNLUCKY])
 		flee2 -= flee2 * sc->data[SC__UNLUCKY]->val2 / 100;
 
@@ -4932,7 +4932,7 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 	if(sc->data[SC_DEFENCE])	//[orn]
 		def += sc->data[SC_DEFENCE]->val2 ;
 	if(sc->data[SC_INCDEFRATE])
-		def += def * sc->data[SC_INCDEFRATE]->val1/100;
+		def += def * sc->data[SC_INCDEFRATE]->val1 / 100;
 	if(sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 2)
 		def += 50;
 	if(sc->data[SC_ODINS_POWER])
@@ -4952,17 +4952,17 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 		def *= 2;
 #endif
 	if(sc->data[SC_SIGNUMCRUCIS])
-		def -= def * sc->data[SC_SIGNUMCRUCIS]->val2/100;
+		def -= def * sc->data[SC_SIGNUMCRUCIS]->val2 / 100;
 	if(sc->data[SC_CONCENTRATION])
-		def -= def * sc->data[SC_CONCENTRATION]->val4/100;
+		def -= def * sc->data[SC_CONCENTRATION]->val4 / 100;
 	if(sc->data[SC_SKE])
 		def >>=1;
 	if(sc->data[SC_PROVOKE] && bl->type != BL_PC) // Provoke doesn't alter player defense->
-		def -= def * sc->data[SC_PROVOKE]->val4/100;
+		def -= def * sc->data[SC_PROVOKE]->val4 / 100;
 	if(sc->data[SC_STRIPSHIELD])
-		def -= def * sc->data[SC_STRIPSHIELD]->val2/100;
+		def -= def * sc->data[SC_STRIPSHIELD]->val2 / 100;
 	if (sc->data[SC_FLING])
-		def -= def * (sc->data[SC_FLING]->val2)/100;
+		def -= def * (sc->data[SC_FLING]->val2) / 100;
 	if( sc->data[SC_FREEZING] )
 		def -= def * 10 / 100;
 	if( sc->data[SC_ANALYZE] )
@@ -5003,7 +5003,7 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 #else
 		return (short)cap_value(def2,1,SHRT_MAX);
 #endif
-	
+
 	if(sc->data[SC_BERSERK] || sc->data[SC__BLOODYLUST])
 		return 0;
 	if(sc->data[SC_ETERNALCHAOS])
@@ -5017,25 +5017,25 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 
 	if(sc->data[SC_ANGELUS])
 #ifdef RENEWAL //in renewal only the VIT stat bonus is boosted by angelus
-		def2 += status_get_vit(bl) / 2 * sc->data[SC_ANGELUS]->val2/100;
+		def2 += status_get_vit(bl) / 2 * sc->data[SC_ANGELUS]->val2 / 100;
 #else
-		def2 += def2 * sc->data[SC_ANGELUS]->val2/100;
+		def2 += def2 * sc->data[SC_ANGELUS]->val2 / 100;
 #endif
 	if(sc->data[SC_CONCENTRATION])
 		def2 -= def2 * sc->data[SC_CONCENTRATION]->val4/100;
 	if(sc->data[SC_POISON])
-		def2 -= def2 * 25/100;
+		def2 -= def2 * 25 / 100;
 	if(sc->data[SC_DPOISON])
-		def2 -= def2 * 25/100;
+		def2 -= def2 * 25 / 100;
 	if(sc->data[SC_SKE])
-		def2 -= def2 * 50/100;
+		def2 -= def2 * 50 / 100;
 	if(sc->data[SC_PROVOKE])
-		def2 -= def2 * sc->data[SC_PROVOKE]->val4/100;
+		def2 -= def2 * sc->data[SC_PROVOKE]->val4 / 100;
 	if(sc->data[SC_JOINTBEAT])
 		def2 -= def2 * ( sc->data[SC_JOINTBEAT]->val2&BREAK_SHOULDER ? 50 : 0 ) / 100
 			  + def2 * ( sc->data[SC_JOINTBEAT]->val2&BREAK_WAIST ? 25 : 0 ) / 100;
 	if(sc->data[SC_FLING])
-		def2 -= def2 * (sc->data[SC_FLING]->val3)/100;
+		def2 -= def2 * (sc->data[SC_FLING]->val3) / 100;
 	if(sc->data[SC_FREEZING])
 		def2 -= def2 * 10 / 10;
 	if(sc->data[SC_ANALYZE])
@@ -5100,9 +5100,9 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 #endif
 
 	if(sc->data[SC_STONE] && sc->opt1 == OPT1_STONE)
-		mdef += 25*mdef/100;
+		mdef += 25 * mdef / 100;
 	if(sc->data[SC_FREEZE])
-		mdef += 25*mdef/100;
+		mdef += 25 * mdef / 100;
 	if(sc->data[SC_ANALYZE])
 		mdef -= mdef * ( 14 * sc->data[SC_ANALYZE]->val1 ) / 100;
 	if(sc->data[SC_NEUTRALBARRIER])
@@ -5135,7 +5135,7 @@ static signed short status_calc_mdef2(struct block_list *bl, struct status_chang
 	if(sc->data[SC_SKA])
 		return 90;
 	if(sc->data[SC_MINDBREAKER])
-		mdef2 -= mdef2 * sc->data[SC_MINDBREAKER]->val3/100;
+		mdef2 -= mdef2 * sc->data[SC_MINDBREAKER]->val3 / 100;
 	if(sc->data[SC_ANALYZE])
 		mdef2 -= mdef2 * ( 14 * sc->data[SC_ANALYZE]->val1 ) / 100;
 	if(sc->data[SC_NEUTRALBARRIER])
@@ -8261,7 +8261,12 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			status_change_end(bl, SC_BURNING, INVALID_TIMER);
 			break;
 		case SC_MARSHOFABYSS:
-			val2 = 3 * val1;//AGI and DEX Reduction
+			if( sd )
+			{//AGI and DEX Reduction
+				val2 = 3 * val1;
+			}
+			else
+				val2 = 6 * val1;
 			val3 = 10 * val1;//Movement Speed Reduction
 			break;
 		case SC_READING_SB:
