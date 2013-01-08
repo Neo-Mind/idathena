@@ -73,7 +73,7 @@ int unit_walktoxy_sub(struct block_list *bl)
 		return 0;
 
 	memcpy(&ud->walkpath,&wpd,sizeof(wpd));
-	
+
 	if (ud->target_to && ud->chaserange>1) {
 		//Generally speaking, the walk path is already to an adjacent tile
 		//so we only need to shorten the path if the range is greater than 1.
@@ -390,17 +390,18 @@ static int unit_walktobl_sub(int tid, unsigned int tick, int id, intptr_t data)
 // if flag&2, start attacking upon arrival within range, otherwise just walk to that character.
 int unit_walktobl(struct block_list *bl, struct block_list *tbl, int range, int flag)
 {
-	struct unit_data        *ud = NULL;
-	struct status_change		*sc = NULL;
+	struct unit_data *ud = NULL;
+	struct status_change *sc = NULL;
+
 	nullpo_ret(bl);
 	nullpo_ret(tbl);
-	
+
 	ud = unit_bl2ud(bl);
 	if( ud == NULL) return 0;
 
 	if (!(status_get_mode(bl)&MD_CANMOVE))
 		return 0;
-	
+
 	if (!unit_can_reach_bl(bl, tbl, distance_bl(bl, tbl)+1, flag&1, &ud->to_x, &ud->to_y)) {
 		ud->to_x = bl->x;
 		ud->to_y = bl->y;

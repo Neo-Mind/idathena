@@ -3836,6 +3836,10 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount,e_l
 		sd->inventory_data[i] = data;
 		clif_additem(sd,i,amount,0);
 	}
+#ifdef NSI_UNIQUE_ID
+	if( !itemdb_isstackable2(data) && !item_data->unique_id )
+		sd->status.inventory[i].unique_id = itemdb_unique_id(0,0);
+#endif
 	log_pick_pc(sd, log_type, amount, &sd->status.inventory[i]);
 
 	sd->weight += w;
@@ -5523,6 +5527,7 @@ int pc_stop_following (struct map_session_data *sd)
 		sd->followtimer = INVALID_TIMER;
 	}
 	sd->followtarget = -1;
+	sd->ud.target_to = 0;
 
 	return 0;
 }

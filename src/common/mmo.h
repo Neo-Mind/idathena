@@ -201,6 +201,7 @@ struct item {
 	short card[MAX_SLOTS];
 	unsigned int expire_time;
 	char favorite;
+	uint64 unique_id;
 };
 
 struct point {
