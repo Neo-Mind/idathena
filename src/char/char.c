@@ -1592,7 +1592,7 @@ int delete_char_sql(int char_id)
 	char *data;
 	size_t len;
 
-	if (SQL_ERROR == Sql_Query(sql_handle, "SELECT `name`,`account_id`,`party_id`,`guild_id`,`base_level`,`homun_id`,`partner_id`,`father`,`mother`,`elemental_id` FROM `%s` WHERE `char_id`='%d'", char_db, char_id))
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `name`,`account_id`,`party_id`,`guild_id`,`base_level`,`homun_id`,`partner_id`,`father`,`mother`,`elemental_id` FROM `%s` WHERE `char_id`='%d'", char_db, char_id) )
 		Sql_ShowDebug(sql_handle);
 
 	if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
@@ -1611,8 +1611,7 @@ int delete_char_sql(int char_id)
 	Sql_GetData(sql_handle, 6, &data, NULL); partner_id = atoi(data);
 	Sql_GetData(sql_handle, 7, &data, NULL); father_id = atoi(data);
 	Sql_GetData(sql_handle, 8, &data, NULL); mother_id = atoi(data);
-        Sql_GetData(sql_handle, 9, &data, NULL);
-        elemental_id = atoi(data);
+	Sql_GetData(sql_handle, 9, &data, NULL); elemental_id = atoi(data);
 
 	Sql_EscapeStringLen(sql_handle, esc_name, name, min(len, NAME_LENGTH));
 	Sql_FreeResult(sql_handle);
@@ -1666,9 +1665,9 @@ int delete_char_sql(int char_id)
 	if( hom_id )
 		mapif_homunculus_delete(hom_id);
 
-    /* remove elemental */
-    if (elemental_id)
-        mapif_elemental_delete(elemental_id);
+	/* remove elemental */
+	if (elemental_id)
+		mapif_elemental_delete(elemental_id);
 
 	/* remove mercenary data */
 	mercenary_owner_delete(char_id);
@@ -1709,7 +1708,7 @@ int delete_char_sql(int char_id)
 		Sql_ShowDebug(sql_handle);
 
 	/* delete mails (only received) */
-	if (SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `dest_id`='%d'", mail_db, char_id))
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `dest_id`='%d'", mail_db, char_id) )
 		Sql_ShowDebug(sql_handle);
 
 #ifdef ENABLE_SC_SAVING

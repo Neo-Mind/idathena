@@ -1301,12 +1301,12 @@ int itemdb_uid_load(){
  * read all item-related databases
  *------------------------------------*/
 static void itemdb_read(void) {
-	
+
 	if (db_use_sqldbs)
 		itemdb_read_sqldb();
 	else
 		itemdb_readdb();
-	
+
 	itemdb_read_combos();
 	itemdb_read_itemgroup();
 	sv_readdb(db_path, "item_avail.txt",         ',', 2, 2, -1, &itemdb_read_itemavail);
