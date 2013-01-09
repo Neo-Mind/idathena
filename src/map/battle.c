@@ -1662,37 +1662,6 @@ static int battle_blewcount_bonus(struct map_session_data *sd, uint16 skill_id)
 	return 0;
 }
 
-static int battle_SAD(struct map_session_data *sd, struct block_list *target, uint16 skill_id)
-{
-	int dmg = 0;
-	int flag = map[sd->bl.m].flag.restricted?8*map[sd->bl.m].zone:0;
-
-	if((skill_db[skill_id].flag&1 && !map_flag_vs(sd->bl.m)) ||
-		(skill_db[skill_id].flag&2 && map[sd->bl.m].flag.pvp) ||
-		(skill_db[skill_id].flag&4 && map_flag_gvg(sd->bl.m)) ||
-		(skill_db[skill_id].flag&8 && map[sd->bl.m].flag.battleground) ||
-		(map[sd->bl.m].flag.restricted && skill_db[skill_id].flag&flag))
-	{
-
-		switch(target->type)
-		{
-			case BL_PC:
-				dmg = skill_db[skill_id].pc_damage;
-				break;
-			case BL_MOB:
-				if(((TBL_MOB*)target)->status.mode&MD_BOSS)
-					dmg = skill_db[skill_id].boss_damage;
-				else
-					dmg = skill_db[skill_id].mob_damage;
-				break;
-			default:
-				dmg = skill_db[skill_id].other_damage;
-				break;
-		}
-	}
-
-	return dmg;
-}
 struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv,int mflag);
 struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv,int mflag);
 
@@ -2159,7 +2128,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			case NJ_ISSEN:
 				wd.damage = 40*sstatus->str +skill_lv*(sstatus->hp/10 + 35);
 				wd.damage2 = 0;
-				status_set_hp(src, 1, 0);
 				break;
 			case LK_SPIRALPIERCE:
 			case ML_SPIRALPIERCE:
@@ -2455,7 +2423,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						//You'd need something like 6K SP to reach this max, so should be fine for most purposes.
 						if (ratio > 60000) ratio = 60000; //We leave some room here in case skillratio gets further increased.
 						skillratio = (unsigned short)ratio;
-						status_set_sp(src, 0, 0);
 					}
 					break;
 				case MO_TRIPLEATTACK:
@@ -2604,6 +2571,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += 50 + 150*skill_lv;
 					break;
 				case NJ_TATAMIGAESHI:
+#ifdef RENEWAL
+					ATK_RATE(200);
+#endif
 					skillratio += 10*skill_lv;
 					break;
 				case NJ_KASUMIKIRI:
@@ -3131,7 +3101,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					// Damage = (current HP + atk * skill_lv) - (sdef+edef)
 					ATK_ADD(sstatus->hp);
 					wd.damage2 = 0;// needs more info if this really 0 for dual weilding KG/OB. [malufett]
-					status_set_hp(src, max(sstatus->hp/100, 1), 0);
 					if( sc && sc->data[SC_BUNSINJYUTSU] && (i=sc->data[SC_BUNSINJYUTSU]->val2) > 0){
 						wd.div_ = -( i + 2 ); // mirror image number of hits + 2
 						ATK_ADDRATE(20 + i*20); // (20 + 20 * mirror image) %
@@ -3263,9 +3232,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		
 		if( sd )
 		{
-
-			ATK_ADDRATE(battle_SAD(sd, target, skill_id));
-
 			if (skill_id && (i = pc_skillatk_bonus(sd, skill_id)))
 				ATK_ADDRATE(i);
 
@@ -3408,23 +3374,23 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			/**
 			* RE DEF Reduction
 			* Damage = Attack * (4000+eDEF)/(4000+eDEF) - sDEF
-			* Icepick no longer bypasses defense, but gains 1 atk per def/2
+			* Pierce defence gains 1 atk per def/2
 			**/
 
 			ATK_ADD2(
 				flag.pdef ?(def1/2):0,
 				flag.pdef2?(def1/2):0
 			);
-			if( !flag.idef )
+			if( !flag.idef && !flag.pdef )
 				wd.damage = wd.damage * (4000+def1) / (4000+10*def1) - vit_def;
-			if( flag.lh && !flag.idef2 )
+			if( flag.lh && !flag.idef2 && !flag.pdef2 )
 				wd.damage2 = wd.damage2 * (4000+def1) / (4000+10*def1) - vit_def;
 
 #else
 				if (def1 > 100) def1 = 100;
 				ATK_RATE2(
-					flag.idef ?100:(flag.pdef ? (flag.pdef*(def1+vit_def)) : (100-def1)),
-			 		flag.idef2?100:(flag.pdef2? (flag.pdef2*(def1+vit_def)) : (100-def1))
+					flag.idef ?100:(flag.pdef ? (int64)flag.pdef*(def1+vit_def) : (100-def1)),
+			 		flag.idef2?100:(flag.pdef2? (int64)flag.pdef2*(def1+vit_def) : (100-def1))
 				);
 				ATK_ADD2(
 					flag.idef ||flag.pdef ?0:-vit_def,
@@ -4253,8 +4219,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	ad.damage = battle_calc_cardfix(BF_MAGIC, src, target, nk, s_ele, 0, ad.damage, 0, ad.flag);
 #endif
 		if (sd) {
-			
-			MATK_ADDRATE(battle_SAD(sd, target, skill_id));
 			//Damage bonuses
 			if ((i = pc_skillatk_bonus(sd, skill_id)))
 				ad.damage += (int64)ad.damage*i/100;
@@ -4375,8 +4339,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv,int mflag)
 {
 	int skill;
-	short i = 0;
-	short nk;
+	short i, nk;
 	short s_ele;
 	int chorusbonus = 0;//Chorus bonus value for chorus skills. Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 
@@ -4660,13 +4623,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 
 	md.damage =  battle_calc_cardfix(BF_MISC, src, target, nk, s_ele, 0, md.damage, 0, md.flag);
 
-	if (sd)
-	{
-		if(i == pc_skillatk_bonus(sd, skill_id))
-			md.damage += (int64)md.damage*i/100;
-
-		md.damage += (int64)md.damage*battle_SAD(sd, target, skill_id)/100;
-	}
+	if (sd && (i = pc_skillatk_bonus(sd, skill_id)))
+		md.damage += (int64)md.damage*i/100;
 
 	if(md.damage < 0)
 		md.damage = 0;
@@ -6098,14 +6056,6 @@ static const struct _battle_data {
 	{ "homunculus_max_level",               &battle_config.hom_max_level,                   99,     0,      MAX_LEVEL,      },
 	{ "homunculus_S_max_level",             &battle_config.hom_S_max_level,                 150,    0,      MAX_LEVEL,      },
 	{ "mob_size_influence",                 &battle_config.mob_size_influence,              0,      0,      1,              },
-	/**
-	 * Extended Vending system [Lilith]
-	 **/
-	{ "extended_vending",                   &battle_config.extended_vending,                1,      0,      1,              },
-	{ "show_item_vending",                  &battle_config.show_item_vending,               1,      0,      1,              },
-	{ "ex_vending_info",                    &battle_config.ex_vending_info,                 1,      0,      1,              },
-	{ "item_zeny",                          &battle_config.item_zeny,                       0,      0,      MAX_ITEMDB,     },
-	{ "item_cash",                          &battle_config.item_cash,                       0,      0,      MAX_ITEMDB,     },
 };
 #ifndef STATS_OPT_OUT
 /**
