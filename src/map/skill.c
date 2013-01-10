@@ -3736,11 +3736,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		break;
 
 	case NJ_ISSEN:
-#ifndef RENEWAL
-		status_set_hp(src, 1, 0);
-#else
-		status_set_hp(src, max(sstatus->hp/100, 1), 0);
-#endif
 		status_change_end(src, SC_NEN, INVALID_TIMER);
 		status_change_end(src, SC_HIDING, INVALID_TIMER);
 		// fall through
@@ -3762,7 +3757,14 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 #ifdef RENEWAL
 				sc_start(src,SC_EXTREMITYFIST2,100,skill_lv,skill_get_time(skill_id,skill_lv));
 #endif
-			}
+			} else
+				status_set_hp(src,
+#ifdef RENEWAL
+				max(status_get_max_hp(src)/100, 1)
+#else
+				1
+#endif
+				, 0);
 
 			dir = map_calc_dir(src,bl->x,bl->y);
 			if( dir > 0 && dir < 4) x = -i;
@@ -12062,8 +12064,6 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 		case UNT_ZENKAI_LAND:
 		case UNT_ZENKAI_FIRE:
 		case UNT_ZENKAI_WIND:
-			if( status_get_mode(bl)&MD_BOSS )
-				break;
 			if( battle_check_target(&src->bl,bl,BCT_ENEMY) > 0 ){
 				switch( sg->unit_id ){
 					case UNT_ZENKAI_WATER:
