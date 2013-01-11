@@ -3510,14 +3510,14 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				wd.damage2 += battle_attr_fix(src, target, damage, sc->data[SC_WATK_ELEMENT]->val1, tstatus->def_ele, tstatus->ele_lv);
 			}
 		}
-	#ifdef RENEWAL
+#ifdef RENEWAL
 		/**
 		 * In RE Shield Bommerang takes weapon element only for damage calculation,
 		 * - resist calculation is always against neutral
 		 **/
 		if ( skill_id == CR_SHIELDBOOMERANG )
 			s_ele = s_ele_ = ELE_NEUTRAL;
-	#endif
+#endif
 	}
 
 	if(skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS)
