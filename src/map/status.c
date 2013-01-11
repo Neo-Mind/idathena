@@ -6901,6 +6901,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			case SC_MARSHOFABYSS:
 			case SC_ADORAMUS:
 			case SC_PARALYSIS:
+			case SC_VACUUM_EXTREME:
 			case SC_DEEPSLEEP:
 			case SC_CRYSTALIZE:
 
@@ -6918,10 +6919,6 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			case SC_BITE:
 			case SC_ELECTRICSHOCKER:
 			case SC_MAGNETICFIELD:
-			
-			// Other Effects
-			case SC_VACUUM_EXTREME:
-			case SC_CRYSTALIZE:
 				return 0;
 		}
 	}
