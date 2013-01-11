@@ -362,7 +362,7 @@ void initChangeTables(void) {
 	set_sc( LK_TENSIONRELAX      , SC_TENSIONRELAX    , SI_TENSIONRELAX    , SCB_REGEN );
 	set_sc( LK_BERSERK           , SC_BERSERK         , SI_BERSERK         , SCB_DEF|SCB_DEF2|SCB_MDEF|SCB_MDEF2|SCB_FLEE|SCB_SPEED|SCB_ASPD|SCB_MAXHP|SCB_REGEN );
 #ifdef RENEWAL
-	set_sc( HP_ASSUMPTIO         , SC_ASSUMPTIO       , SI_ASSUMPTIO2      , SCB_DEF|SCB_DEF2|SCB_MDEF|SCB_MDEF2 );
+	set_sc( HP_ASSUMPTIO         , SC_ASSUMPTIO       , SI_ASSUMPTIO2      , SCB_NONE );
 #else	
 	set_sc( HP_ASSUMPTIO         , SC_ASSUMPTIO       , SI_ASSUMPTIO       , SCB_NONE );
 #endif	
@@ -475,7 +475,7 @@ void initChangeTables(void) {
 	set_sc( CASH_BLESSING        , SC_BLESSING        , SI_BLESSING        , SCB_STR|SCB_INT|SCB_DEX );
 	set_sc( CASH_INCAGI          , SC_INCREASEAGI     , SI_INCREASEAGI     , SCB_AGI|SCB_SPEED );
 #ifdef RENEWAL
-	set_sc( CASH_ASSUMPTIO       , SC_ASSUMPTIO       , SI_ASSUMPTIO2       , SCB_DEF|SCB_DEF2|SCB_MDEF|SCB_MDEF2 );
+	set_sc( CASH_ASSUMPTIO       , SC_ASSUMPTIO       , SI_ASSUMPTIO2      , SCB_NONE );
 #else
 	set_sc( CASH_ASSUMPTIO       , SC_ASSUMPTIO       , SI_ASSUMPTIO       , SCB_NONE );
 #endif
@@ -4947,10 +4947,6 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 		def >>=1;
 	if(sc->data[SC_FREEZE])
 		def >>=1;
-#ifdef RENEWAL
-	if( sc->data[SC_ASSUMPTIO] )
-		def *= 2;
-#endif
 	if(sc->data[SC_SIGNUMCRUCIS])
 		def -= def * sc->data[SC_SIGNUMCRUCIS]->val2 / 100;
 	if(sc->data[SC_CONCENTRATION])
@@ -5054,8 +5050,6 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 #ifdef RENEWAL
 	if(sc->data[SC_STONEHARDSKIN])
 		def2 += sc->data[SC_STONEHARDSKIN]->val3;
-	if(sc->data[SC_ASSUMPTIO])
-		def2 *= 2;
 
 	return (short)cap_value(def2,SHRT_MIN,SHRT_MAX);
 #else
@@ -5093,11 +5087,6 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 #endif
 	if(sc->data[SC_WATER_BARRIER])
 		mdef += sc->data[SC_WATER_BARRIER]->val2;
-
-#ifdef RENEWAL
-	if( sc->data[SC_ASSUMPTIO] )
-		mdef *= 2;
-#endif
 
 	if(sc->data[SC_STONE] && sc->opt1 == OPT1_STONE)
 		mdef += 25 * mdef / 100;
@@ -5143,8 +5132,6 @@ static signed short status_calc_mdef2(struct block_list *bl, struct status_chang
 #ifdef RENEWAL
 	if(sc->data[SC_STONEHARDSKIN] )
 		mdef2 += sc->data[SC_STONEHARDSKIN]->val3;
-	if( sc->data[SC_ASSUMPTIO] )
-		mdef2 *= 2;
 
 	return (short)cap_value(mdef2,SHRT_MIN,SHRT_MAX);
 #else
@@ -6358,7 +6345,7 @@ int status_get_sc_def(struct block_list *bl, enum sc_type type, int rate, int ti
 		tick -= (status->int_ + status->luk) / 20 * 1000;
 		break;
 	case SC_STASIS:
-		//5 second (fixed) + { Stasis Skill level * 5 - (Target?s VIT + DEX) / 20 }
+		//5 second (fixed) + { Stasis Skill level * 5 - (Target VIT + DEX) / 20 }
 		tick -= (status->vit + status->dex) / 20 * 1000;
 		break;
 	case SC_WHITEIMPRISON:
