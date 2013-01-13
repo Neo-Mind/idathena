@@ -8545,15 +8545,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		
 	case WM_LULLABY_DEEPSLEEP:
 		if ( flag&1 ) {
-			if (bl != src)
-				sc_start(bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
-		} else if ( sd ) {
-			rate = 4 * skill_lv + 2 * (sd ? pc_checkskill(sd,WM_LESSON) : 1) + (status_get_lv(src) / 15) + sd->status.job_level / 5;
-			if( rate > 60 ) rate = 60;
-			if ( rnd()%100 < rate ) {
-				map_foreachinrange(skill_area_sub, src, skill_get_splash(skill_id, skill_lv), BL_CHAR, src, skill_id, skill_lv, tick, flag|BCT_ALL|1, skill_castend_nodamage_id);
-				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-			}
+			//[(Skill Level x 4) + (Voice Lessons Skill Level x 2) + (Caster Base Level / 15) + (Caster Job Level / 5)] %
+			rate = ( 4 * skill_lv ) + ( (sd) ? pc_checkskill(sd,WM_LESSON)*2 + sd->status.job_level/5 : 0 ) + status_get_lv(src) / 15;
+			if ( bl != src )
+				sc_start(bl,type,rate,skill_lv,skill_get_time(skill_id,skill_lv));
+		} else {
+			clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
+			map_foreachinrange(skill_area_sub, bl, skill_get_splash(skill_id, skill_lv), BL_CHAR,
+				src, skill_id, skill_lv, tick, flag|BCT_ALL|1, skill_castend_nodamage_id);
 		}
 		break;
 		
@@ -8738,18 +8737,15 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		break;
 
 	case SO_ARRULLO:
-		if( flag&1 )
 		{
-			rate = 15 + 5 * skill_lv + sstatus->int_ / 5 + sd->status.job_level / 5 - tstatus->int_ / 6 - tstatus->luk / 10;
-			sc_start(bl, type, rate, skill_lv, skill_get_time(skill_id, skill_lv));
-		}
-		else {
-			clif_skill_nodamage(src, bl, skill_id, 0, 1);
-			map_foreachinrange(skill_area_sub, bl, skill_get_splash(skill_id, skill_lv), BL_CHAR,
-							   src, skill_id, skill_lv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
+			// [(15 + 5 * Skill Level) + ( Caster INT / 5 ) + ( Caster Job Level / 5 ) - ( Target INT / 6 ) - ( Target LUK / 10 )] %
+			rate = ( 15 + 5 * skill_lv ) + status_get_int(src)/5 + ( (sd) ? sd->status.job_level/5 : 0 );
+			rate -= status_get_int(bl)/6 - status_get_luk(bl)/10;
+			clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
+			sc_start2(bl, type, rate, skill_lv, 1, skill_get_time(skill_id, skill_lv));
 		}
 		break;
-		
+
 	case SO_SUMMON_AGNI:
 	case SO_SUMMON_AQUA:
 	case SO_SUMMON_VENTUS:
@@ -9963,6 +9959,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 				(skill_lv >= 4) ? sd->status.memo_point[2].map : 0
 			);
 		}
+		if( sc && sc->data[SC_CURSEDCIRCLE_ATKER] ) //Should only remove after the skill has been casted.
+			status_change_end(src,SC_CURSEDCIRCLE_ATKER,INVALID_TIMER);
 		return 0; // not to consume item.
 
 	case MO_BODYRELOCATION:
@@ -10147,13 +10145,15 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 	case RK_WINDCUTTER:
 		clif_skill_damage(src, src, tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
+	case RK_DRAGONBREATH:
 	case NC_COLDSLOWER:
 	case NC_ARMSCANNON:
-	case RK_DRAGONBREATH:
+	case SO_ARRULLO:
 	case WM_GREAT_ECHO:
 	case WM_SOUND_OF_DESTRUCTION:
 		i = skill_get_splash(skill_id,skill_lv);
-		map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
+		map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,splash_target(src),
+			src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 		break;
 	/**
 	 * Guilotine Cross
