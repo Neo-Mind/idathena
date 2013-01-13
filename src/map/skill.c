@@ -8547,6 +8547,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		if ( flag&1 ) {
 			//[(Skill Level x 4) + (Voice Lessons Skill Level x 2) + (Caster Base Level / 15) + (Caster Job Level / 5)] %
 			rate = ( 4 * skill_lv ) + ( (sd) ? pc_checkskill(sd,WM_LESSON)*2 + sd->status.job_level/5 : 0 ) + status_get_lv(src) / 15;
+			if ( rate > 60 ) rate = 60;
 			if ( bl != src )
 				sc_start(bl,type,rate,skill_lv,skill_get_time(skill_id,skill_lv));
 		} else {
