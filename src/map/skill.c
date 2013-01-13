@@ -10151,13 +10151,13 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 	case WM_GREAT_ECHO:
 	case WM_SOUND_OF_DESTRUCTION:
 		i = skill_get_splash(skill_id,skill_lv);
-		map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,splash_target(src),
-			src, skill_id, skill_lv, tick,flag|BCT_ENEMY|1, skill_castend_damage_id);
+		map_foreachinarea(skill_area_sub, src->m, x-i, y-i, x+i, y+i, splash_target(src),
+			src, skill_id, skill_lv, tick, flag|BCT_ENEMY|1, skill_castend_damage_id);
 		break;
 		
 	case SO_ARRULLO:
 		i = skill_get_splash(skill_id,skill_lv);
-		map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,splash_target(src),
+		map_foreachinarea(skill_area_sub, src->m, x-i,y-i, x+i, y+i, splash_target(src),
 			src, skill_id, skill_lv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
 		break;
 	/**
