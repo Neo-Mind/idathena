@@ -810,7 +810,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 				/**
 				 * in RE, SW possesses a lifetime equal to 3 times the caster's health
 				 **/
-			#ifdef RENEWAL
+#ifdef RENEWAL
 				if ( ( group->val2 - damage) > 0 ) {
 					group->val2 -= damage;
 					d->dmg_lv = ATK_BLOCK;
@@ -818,12 +818,12 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 				} else
 					damage -= group->val2;
 				skill_delunitgroup(group);
-			#else
+#else
 				if (--group->val2<=0)
 					skill_delunitgroup(group);
 				d->dmg_lv = ATK_BLOCK;
 				return 0;
-			#endif
+#endif
 			}
 			status_change_end(bl, SC_SAFETYWALL, INVALID_TIMER);
 		}
@@ -837,7 +837,8 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			return 0;
 		}
 		if( sc->data[SC__MAELSTROM] && (flag&BF_MAGIC) && skill_id && (skill_get_inf(skill_id)&INF_GROUND_SKILL) ) {
-			int sp = damage * 20 / 100; // Steel need official value.
+			// Unofficial Absorbtion Value
+			int sp = (( sc->data[SC__MAELSTROM]->val1 * 10 ) + (sd ? sd->status.job_level/5 : 50)) / 2;
 			status_heal(bl,0,sp,3);
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
