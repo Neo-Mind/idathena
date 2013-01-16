@@ -16395,7 +16395,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 						;// Food/Bomb creation fails.
 					else if( make_per >= 30 && make_per < difficulty)
 						qty = 5;
-		
+
 					if( qty < 0 || (skill_lv == 1 && make_per < difficulty)){
 						qty = ~qty + 1;
 						make_per = 0;
