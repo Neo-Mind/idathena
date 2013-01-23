@@ -2174,8 +2174,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				{
 					int damagevalue = 0;
 					wd.damage = 0;
-					damagevalue = (1 + skill_lv) * ( (sd?pc_checkskill(sd,NC_MAINFRAME):10) + 8 ) * (status_get_sp(src) + sstatus->vit);
-					damagevalue = damagevalue * status_get_lv(src) / 100 + sstatus->hp;
+					damagevalue = (skill_lv + 1) * ((sd ? pc_checkskill(sd,NC_MAINFRAME):4) + 8) * (status_get_sp(src) + sstatus->vit);
+					damagevalue = (damagevalue * (status_get_lv(src) / 100 )) + status_get_hp(src);
 					ATK_ADD(damagevalue);
 					if (sd) status_set_sp(src, 0, 0);
 				}
