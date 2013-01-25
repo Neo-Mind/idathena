@@ -11421,6 +11421,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			case UNT_FREEZINGTRAP:
 			case UNT_BLASTMINE:
 			case UNT_CLAYMORETRAP:
+			case UNT_GRAVITATION:
 			case UNT_ELECTRICWALK:
 			case UNT_FIREWALK:
 			case UNT_VACUUM_EXTREME:
