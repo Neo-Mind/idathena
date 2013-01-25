@@ -10565,6 +10565,11 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			}
 			map_freeblock_unlock();
 			status_heal(src, damage*(5 + 5 * sce->val1)/100, 0, 0); // 5 + 5% per level
+			if (sc && (sc->data[SC_HIDING] || sc->data[SC_CLOAKING] || sc->data[SC_CLOAKINGEXCEED])) {
+				status_change_end(bl, SC_HIDING, INVALID_TIMER);
+				status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
+				status_change_end(bl, SC_CLOAKINGEXCEED, INVALID_TIMER);
+			}
 			return 0;
 		}
 		break;
