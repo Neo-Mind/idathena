@@ -3289,15 +3289,20 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					break;
 				case LG_MOONSLASHER:
 				case SR_WINDMILL:
-					if( target->type == BL_PC ) {
-						struct map_session_data *tsd = NULL;
-						if( (tsd = ((TBL_PC*)target)) && !pc_issit(tsd) ) {
-							pc_setsit(tsd);
-							skill_sit(tsd,1);
-							clif_sitting(&tsd->bl);
+					{
+						struct status_change* tsc = status_get_sc(target);
+						if( tsc && tsc->data[SC_HOVERING] )
+							break;
+						if( target->type == BL_PC ) {
+							struct map_session_data *tsd = NULL;
+							if( (tsd = ((TBL_PC*)target)) && !pc_issit(tsd) ) {
+								pc_setsit(tsd);
+								skill_sit(tsd,1);
+								clif_sitting(&tsd->bl);
+							}
 						}
+						break;
 					}
-					break;
 				case LG_OVERBRAND_BRANDISH:
 				case LG_OVERBRAND_PLUSATK:
 				case SR_KNUCKLEARROW:
@@ -11392,9 +11397,37 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 	nullpo_ret(ss=map_id2bl(sg->src_id));
 	tsd = BL_CAST(BL_PC, bl);
 	tsc = status_get_sc(bl);
-	
-	if ( tsc && tsc->data[SC_HOVERING] )
-		return 0; //Under hovering characters are immune to trap and ground target skills.
+
+	if ( tsc && tsc->data[SC_HOVERING] ) {
+		switch (sg->unit_id) {
+			case UNT_STEALTHFIELD:
+			case UNT_NEUTRALBARRIER:
+				break;
+			case UNT_SKIDTRAP:
+			case UNT_LANDMINE:
+			case UNT_ANKLESNARE:
+			case UNT_FLASHER:
+			case UNT_SHOCKWAVE:
+			case UNT_SANDMAN:
+			case UNT_FREEZINGTRAP:
+			case UNT_BLASTMINE:
+			case UNT_CLAYMORETRAP:
+			case UNT_QUAGMIRE:
+			case UNT_GRAVITATION:
+			case UNT_VOLCANO:
+			case UNT_DELUGE:
+			case UNT_VIOLENTGALE:
+			case UNT_SUITON:
+			case UNT_ELECTRICWALK:
+			case UNT_FIREWALK:
+			case UNT_VACUUM_EXTREME:
+			case UNT_ZENKAI_WATER:
+			case UNT_ZENKAI_LAND:
+			case UNT_ZENKAI_FIRE:
+			case UNT_ZENKAI_WIND:
+				return 0;
+		}
+	}
 
 	tstatus = status_get_status_data(bl);
 	type = status_skill2sc(sg->skill_id);
