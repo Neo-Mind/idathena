@@ -11167,6 +11167,18 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 
 	sc = status_get_sc(bl);
 
+	if ( sc && sc->data[SC_HOVERING] ) {
+		switch (sg->unit_id) {
+			case UNT_QUAGMIRE:
+			case UNT_GRAVITATION:
+			case UNT_VOLCANO:
+			case UNT_DELUGE:
+			case UNT_VIOLENTGALE:
+			case UNT_SUITON:
+				return 0;
+		}
+	}
+
 	if (sc && sc->option&OPTION_HIDE && sg->skill_id != WZ_HEAVENDRIVE && sg->skill_id != WL_EARTHSTRAIN )
 		return 0; //Hidden characters are immune to AoE skills except to these. [Skotlex]
 
@@ -11400,9 +11412,6 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 
 	if ( tsc && tsc->data[SC_HOVERING] ) {
 		switch (sg->unit_id) {
-			case UNT_STEALTHFIELD:
-			case UNT_NEUTRALBARRIER:
-				break;
 			case UNT_SKIDTRAP:
 			case UNT_LANDMINE:
 			case UNT_ANKLESNARE:
@@ -11412,12 +11421,6 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			case UNT_FREEZINGTRAP:
 			case UNT_BLASTMINE:
 			case UNT_CLAYMORETRAP:
-			case UNT_QUAGMIRE:
-			case UNT_GRAVITATION:
-			case UNT_VOLCANO:
-			case UNT_DELUGE:
-			case UNT_VIOLENTGALE:
-			case UNT_SUITON:
 			case UNT_ELECTRICWALK:
 			case UNT_FIREWALK:
 			case UNT_VACUUM_EXTREME:
