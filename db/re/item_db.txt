@@ -2022,7 +2022,7 @@
 4114,Argiope_Card,Argiope Card,6,20,,10,,,,,,,,16,,,,,{ bonus bDefEle,Ele_Poison; bonus bDef,1; },{},{}
 4115,Hunter_Fly_Card,Hunter Fly Card,6,20,,10,,,,,,,,2,,,,,{ bonus2 bHpDrainRate,30,15; },{},{}
 4116,Isis_Card,Isis Card,6,20,,10,,,,,,,,4,,,,,{ bonus2 bSubEle,Ele_Dark,30; bonus bFlee,5; },{},{}
-4117,Side_Winder_Card,Sidewinder Card,6,20,,10,,,,,,,,2,,,,,{ skill "TF_DOUBLE",1; bonus bDoubleRate,5; },{},{}
+4117,Side_Winder_Card,Sidewinder Card,6,20,,10,,,,,,,,2,,,,,{ if(BaseClass==Job_Thief) { skill "TF_DOUBLE",getskilllv("TF_DOUBLE"); bonus bDoubleRate,5*(getskilllv("TF_DOUBLE")); } else { skill "TF_DOUBLE",1; bonus bDoubleRate,5; } },{},{}
 4118,Petit_Card,Earth Petite Card,6,20,,10,,,,,,,,2,,,,,{ bonus2 bAddRace,RC_Dragon,20; },{},{}
 4119,Bathory_Card,Bathory Card,6,20,,10,,,,,,,,16,,,,,{ bonus bDefEle,Ele_Dark; },{},{}
 4120,Petit__Card,Sky Petite Card,6,20,,10,,,,,,,,32,,,,,{ bonus2 bSubRace,RC_Dragon,30; },{},{}
