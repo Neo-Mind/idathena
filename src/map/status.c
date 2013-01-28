@@ -6380,7 +6380,7 @@ int status_get_sc_def(struct block_list *bl, enum sc_type type, int rate, int ti
 		rate = max(rate,50000); // minimum of 50%
 		break;
 	case SC_ELECTRICSHOCKER:
-		tick -= 1000 * ((status->agi + status->vit) / 10) * 0.7;
+		tick -= 700 * ((status->agi + status->vit) / 10);
 		break;
 	case SC_CRYSTALIZE:
 		tick -= (1000*(status->vit/10))+(status_get_lv(bl)/50);
