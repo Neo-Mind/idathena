@@ -1762,7 +1762,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 #endif
 			case LG_SHIELDPRESS:
 			case LG_EARTHDRIVE:
-			case NC_SELFDESTRUCTION:
 				flag.weapon = 0;
 				break;
 
@@ -2145,16 +2144,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						ATK_ADD(sd->inventory_data[index]->weight/10);
 				} else
 					ATK_ADD(sstatus->rhw.atk2); //Else use Atk2
-				break;
-			case NC_SELFDESTRUCTION:
-				{
-					int damagevalue = 0;
-					wd.damage = 0;
-					damagevalue = (skill_lv + 1) * ((sd ? pc_checkskill(sd,NC_MAINFRAME):4) + 8) * (status_get_sp(src) + sstatus->vit) * (status_get_lv(src) / 100);
-					damagevalue += status_get_hp(src);
-					ATK_ADD(damagevalue);
-					if (sd) status_set_sp(src, 0, 0);
-				}
 				break;
 			case HFLI_SBR44:	//[orn]
 				if(src->type == BL_HOM) {
@@ -3212,8 +3201,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			if (skill_id && (i = pc_skillatk_bonus(sd, skill_id)))
 				ATK_ADDRATE(i);
 
-			if( skill_id != PA_SACRIFICE && skill_id != MO_INVESTIGATE && skill_id != CR_GRANDCROSS && skill_id != NPC_GRANDDARKNESS &&
-				skill_id != PA_SHIELDCHAIN && skill_id != NC_SELFDESTRUCTION && skill_id != KO_HAPPOKUNAI && !flag.cri )
+			if( skill_id != PA_SACRIFICE && skill_id != MO_INVESTIGATE && skill_id != CR_GRANDCROSS && skill_id != NPC_GRANDDARKNESS && skill_id != PA_SHIELDCHAIN && !flag.cri )
 			{ //Elemental/Racial adjustments
 				if( sd->right_weapon.def_ratio_atk_ele & (1<<tstatus->def_ele) ||
 					sd->right_weapon.def_ratio_atk_race & (1<<tstatus->race) ||
@@ -4531,6 +4519,17 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	case WM_SOUND_OF_DESTRUCTION:
 		md.damage = 1000 * skill_lv + sstatus->int_ * pc_checkskill(sd,WM_LESSON);
 		md.damage += md.damage * ( 10 * chorusbonus ) / 100;
+		break;
+	/**
+	 * Mechanic
+	 **/
+	case NC_SELFDESTRUCTION:
+		{
+			short totaldef = tstatus->def2 + (short)status_get_def(target);
+			md.damage = (skill_lv + 1) * ((sd ? pc_checkskill(sd,NC_MAINFRAME):4) + 8) * (status_get_sp(src) + sstatus->vit);
+			RE_LVL_MDMOD(100);
+			md.damage += status_get_hp(src) - totaldef;
+		}
 		break;
 	case GN_THORNS_TRAP:
 		md.damage = 100 + 200 * skill_lv + sstatus->int_;
