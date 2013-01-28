@@ -6363,6 +6363,18 @@ int status_get_sc_def(struct block_list *bl, enum sc_type type, int rate, int ti
 		tick -= 1000 * ((status->vit + status->dex) / 20);
 		tick = max(tick,6000); // Minimum Duration 6s.
 		break;
+	case SC_OBLIVIONCURSE: // 100% - (100 - 0.8 x INT)
+		sc_def = 100 - ( 100 - status->int_ * 4 / 5 );
+		sc_def = max(sc_def, 5); // minimum of 5%
+	case SC_TOXIN:
+	case SC_PARALYSE:
+	case SC_VENOMBLEED:
+	case SC_MAGICMUSHROOM:
+	case SC_DEATHHURT:
+	case SC_PYREXIA:
+	case SC_LEECHESEND:
+		tick -= 1000 * (status->vit + status->luk) / 2;
+		break;
 	case SC_BITE: // {(Base Success chance) - (Target's AGI / 4)}
 		rate -= status->agi*1000/4;
 		rate = max(rate,50000); // minimum of 50%

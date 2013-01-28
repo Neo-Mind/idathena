@@ -1198,21 +1198,8 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 						break;
 					}
 		}
-		if( sc->data[SC_POISONINGWEAPON] )
-		{
-			struct status_data *tstatus;
-			short rate = 100;
-			tstatus = status_get_status_data(bl);
-			if ( !(flag&BF_SKILL) && (flag&BF_WEAPON) && damage > 0 && rnd()%100 < sc->data[SC_POISONINGWEAPON]->val3 )
-			{
-				if ( sc->data[SC_POISONINGWEAPON]->val1 == 9 ) {//Oblivion Curse gives a 2nd success chance after the 1st one passes which is reduceable. [Rytech]
-					rate = 100 - tstatus->int_ * 4 / 5 ;
-					if ( rate < 5 ) rate = 5;
-				}
-				sc_start(bl,sc->data[SC_POISONINGWEAPON]->val2,rate,sc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON, 1) - (tstatus->vit + tstatus->luk) / 2 * 1000);
-			}
-		}
-		
+		if( sc->data[SC_POISONINGWEAPON] && skill_id != GC_VENOMPRESSURE && (flag&BF_WEAPON) && damage > 0 && rnd()%100 < sc->data[SC_POISONINGWEAPON]->val3 )
+			sc_start(bl,sc->data[SC_POISONINGWEAPON]->val2,100,sc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON, 1));
 		if( sc->data[SC__DEADLYINFECT] && flag&BF_SHORT && damage > 0 && rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 )
 			status_change_spread(src, bl);
 		if (sc->data[SC_STYLE_CHANGE] && rnd()%2) {
