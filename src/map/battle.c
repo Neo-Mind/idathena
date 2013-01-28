@@ -828,7 +828,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}
-		if( ( sc->data[SC_NEUTRALBARRIER] && (flag&BF_LONG) ) || ( sc->data[SC_NEUTRALBARRIER] && (flag&BF_MAGIC) ) ) {
+		if( sc->data[SC_NEUTRALBARRIER] && (flag&(BF_MAGIC|BF_LONG)) == BF_LONG && skill_id != CR_ACIDDEMONSTRATION ) {
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}
@@ -2150,8 +2150,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				{
 					int damagevalue = 0;
 					wd.damage = 0;
-					damagevalue = (skill_lv + 1) * ((sd ? pc_checkskill(sd,NC_MAINFRAME):4) + 8) * (status_get_sp(src) + sstatus->vit);
-					damagevalue = (damagevalue * (status_get_lv(src) / 100 )) + status_get_hp(src);
+					damagevalue = (skill_lv + 1) * ((sd ? pc_checkskill(sd,NC_MAINFRAME):4) + 8) * (status_get_sp(src) + sstatus->vit) * (status_get_lv(src) / 100 );
+					damagevalue += status_get_hp(src);
 					ATK_ADD(damagevalue);
 					if (sd) status_set_sp(src, 0, 0);
 				}
