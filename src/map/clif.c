@@ -1348,7 +1348,8 @@ int clif_spawn(struct block_list *bl)
 
 	if (vd->cloth_color)
 		clif_refreshlook(bl,bl->id,LOOK_CLOTHES_COLOR,vd->cloth_color,AREA_WOS);
-		
+
+
 	switch (bl->type)
 	{
 	case BL_PC:
@@ -1375,10 +1376,8 @@ int clif_spawn(struct block_list *bl)
 			if( sd->sc.data[SC_PUSH_CART] )
 				clif_status_load_notick(&sd->bl, SI_ON_PUSH_CART, 2, sd->sc.data[SC_PUSH_CART]->val1, 0, 0);
 		#endif
-		#if PACKETVER <= 20120207
 			if (sd->status.robe)
 				clif_refreshlook(bl,bl->id,LOOK_ROBE,sd->status.robe,AREA);
-		#endif
 		}
 		break;
 	case BL_MOB:
@@ -4094,12 +4093,9 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 	ud = unit_bl2ud(bl);
 	len = ( ud && ud->walktimer != INVALID_TIMER ) ? clif_set_unit_walking(bl,ud,buf) : clif_set_unit_idle(bl,buf,false);
 	clif_send(buf,len,&sd->bl,SELF);
-	
-	clif_changelook(&sd->bl,LOOK_ROBE,sd->status.robe); //Fix Robe's View by [B.O.X]
 
 	if (vd->cloth_color)
 		clif_refreshlook(&sd->bl,bl->id,LOOK_CLOTHES_COLOR,vd->cloth_color,SELF);
-
 	switch (bl->type)
 	{
 	case BL_PC:
@@ -4114,6 +4110,8 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 				clif_sendbgemblem_single(sd->fd,tsd);
 			if( tsd->sc.data[SC_CAMOUFLAGE] )
 				clif_status_load(bl,SI_CAMOUFLAGE,1);
+			if ( tsd->status.robe )
+				clif_refreshlook(&sd->bl,bl->id,LOOK_ROBE,tsd->status.robe,SELF);
 		}
 		break;
 	case BL_MER: // Devotion Effects
@@ -9130,7 +9128,6 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 
 	if(sd->vd.cloth_color)
 		clif_refreshlook(&sd->bl,sd->bl.id,LOOK_CLOTHES_COLOR,sd->vd.cloth_color,SELF);
-
 	// item
 	clif_inventorylist(sd);  // inventory list first, otherwise deleted items in pc_checkitem show up as 'unknown item'
 	pc_checkitem(sd);
