@@ -2864,7 +2864,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 							sp = sstatus->max_sp * (6 + skill_lv) / 100;
 						skillratio = (hp+sp) / 4;
 						if( sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE ) // ATK [((Caster consumed HP + SP) / 2) x Caster Base Level / 100] %
-							skillratio = hp+sp / 2;
+							skillratio = (hp+sp) / 2;
 						RE_LVL_DMOD(100);
 					}
 					break;
