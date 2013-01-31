@@ -4971,7 +4971,7 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 	if( sc->data[SC_SHIELDSPELL_REF] && sc->data[SC_SHIELDSPELL_REF]->val1 == 2 )
 		def += sc->data[SC_SHIELDSPELL_REF]->val2;
 	if( sc->data[SC_PRESTIGE] )
-		def += sc->data[SC_PRESTIGE]->val1 / 100;
+		def += sc->data[SC_PRESTIGE]->val1;
 #ifndef RENEWAL
 	if( sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 0 )
 		def += (5 + sc->data[SC_BANDING]->val1) * sc->data[SC_BANDING]->val2 / 10;
@@ -8514,7 +8514,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			break;
 		case SC_PRESTIGE:
 			val2 = (status->int_ + status->luk) * (val1 / 20) * (status_get_lv(bl) / 200) + val1;// Chance to evade magic damage.
-			val1 = 15 * val1 + 10 * pc_checkskill(sd,CR_DEFENDER);// Defence added
+			val1 = (15 * val1) + (10 * pc_checkskill(sd,CR_DEFENDER));// Defence added
 #ifdef RENEWAL
 			val1 = val1 * status_get_lv(bl) / 100;
 #else
