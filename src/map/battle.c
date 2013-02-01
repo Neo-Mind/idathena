@@ -284,12 +284,12 @@ int battle_delay_damage (unsigned int tick, int amotion, struct block_list *src,
 		amotion = 1000; //Aegis places a damage-delay cap of 1 sec to non player attacks. [Skotlex]
 
 	add_timer(tick+amotion, battle_delay_damage_sub, 0, (intptr_t)dat);
-	
+
 	return 0;
 }
 int battle_attr_ratio(int atk_elem,int def_type, int def_lv)
 {
-	
+
 	if (atk_elem < 0 || atk_elem >= ELE_MAX)
 		return 100;
 
@@ -308,7 +308,7 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 {
 	struct status_change *sc=NULL, *tsc=NULL;
 	int ratio;
-	
+
 	if (src) sc = status_get_sc(src);
 	if (target) tsc = status_get_sc(target);
 	
@@ -399,9 +399,9 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 	if( target && target->type == BL_PC ) {
 		struct map_session_data *tsd = BL_CAST(BL_PC, target);
 		int t;
-		
+
 		ARR_FIND(1, 6, t, tsd->talisman[t] > 0);
-		
+
 		if( t < 5 && atk_elem == t )
 			damage -= damage * ( tsd->talisman[t] * 3 ) / 100; // -3% custom value
 	}
