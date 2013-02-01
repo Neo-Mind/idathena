@@ -5529,6 +5529,8 @@ int pc_stop_following (struct map_session_data *sd)
 	sd->followtarget = -1;
 	sd->ud.target_to = 0;
 
+	unit_stop_walking(&sd->bl, 1);
+
 	return 0;
 }
 
