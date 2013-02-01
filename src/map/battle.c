@@ -4468,7 +4468,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		break;
 	case NJ_ZENYNAGE:
 	case KO_MUCHANAGE:
-			md.damage = skill_get_zeny(skill_id ,skill_lv);
+			md.damage = skill_get_zeny(skill_id, skill_lv);
 			if (!md.damage) md.damage = 2;
 			md.damage = md.damage * rnd_value( 50, 100 ) / (skill_id==NJ_ZENYNAGE?1:100);
 			if (sd) {
