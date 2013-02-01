@@ -394,7 +394,7 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 		ARR_FIND(1, 6, s, sd->talisman[s] > 0);
 
 		if( s < 5 && atk_elem == s )
-			ratio += sd->talisman[s] * 2; // +2% custom value
+			ratio += sd->talisman[s] * 15; // +15% custom value
 	}
 	if( target && target->type == BL_PC ) {
 		struct map_session_data *tsd = BL_CAST(BL_PC, target);
@@ -403,7 +403,7 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 		ARR_FIND(1, 6, t, tsd->talisman[t] > 0);
 
 		if( t < 5 && atk_elem == t )
-			damage -= damage * ( tsd->talisman[t] * 3 ) / 100; // -3% custom value
+			damage -= damage * ( tsd->talisman[t] * 15 ) / 100; // -15% custom value
 	}
 	return damage*ratio/100;
 }
@@ -2795,7 +2795,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					RE_LVL_DMOD(100);
 					break;
 				case LG_OVERBRAND_PLUSATK:
-					skillratio = 100 * skill_lv + rnd_value( 1, 100);
+					skillratio = 100 * skill_lv + rnd_value( 1, 100 );
 					RE_LVL_DMOD(100);
 					break;
 				case LG_MOONSLASHER:
@@ -3009,17 +3009,21 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += 700;
 					break;
 				case KO_JYUMONJIKIRI:
-					if( tsc && tsc->data[SC_JYUMONJIKIRI] )
-						wd.div_ = wd.div_ * -1;// needs more info
 					skillratio += -100 + 150 * skill_lv;
+					RE_LVL_DMOD(120);
+					if( tsc && tsc->data[SC_JYUMONJIKIRI] )
+						skillratio += skill_lv * status_get_lv(target);
+					break;
 				case KO_HUUMARANKA:
-					skillratio += -100 + 150 * skill_lv + sstatus->dex/2 + sstatus->agi/2; // needs more info
+					skillratio += -100 + 150 * skill_lv + sstatus->agi + sstatus->dex + 100 * (sd?pc_checkskill(sd,NJ_HUUMA):5);
 					break;
 				case KO_SETSUDAN:
 					skillratio += 100 * (skill_lv-1);
+					RE_LVL_DMOD(100);
 					break;
 				case KO_BAKURETSU:
-					skillratio = 50 * skill_lv * (sd?pc_checkskill(sd,NJ_TOBIDOUGU):10);
+					skillratio = (50 + sstatus->dex / 4) * skill_lv * (sd?pc_checkskill(sd,NJ_TOBIDOUGU):10) * 4 / 10;
+					RE_LVL_DMOD(120);
 					break;
 				case MH_NEEDLE_OF_PARALYZE:
 					skillratio += 600 + 100 * skill_lv;
@@ -3121,7 +3125,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					break;
 				case KO_SETSUDAN:
 					if( tsc && tsc->data[SC_SPIRIT] ){
-						ATK_ADDRATE(10*tsc->data[SC_SPIRIT]->val1);// +10% custom value.
+						ATK_ADDRATE(200*tsc->data[SC_SPIRIT]->val1);// +200%.
 						status_change_end(target,SC_SPIRIT,INVALID_TIMER);
 					}
 					break;
@@ -3130,7 +3134,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						ARR_FIND(1, 6, i, sd->talisman[i] > 0);
 						if( i < 5 ){
 							s_ele = i;
-							ATK_ADDRATE(100 * sd->talisman[i]);// +100% custom value.
+							ATK_ADDRATE(200 * sd->talisman[i]);// +200%.
 							pc_del_talisman(sd, sd->talisman[i], i);
 						}
 					}
@@ -4466,7 +4470,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	case KO_MUCHANAGE:
 			md.damage = skill_get_zeny(skill_id ,skill_lv);
 			if (!md.damage) md.damage = 2;
-			md.damage = rnd()%md.damage + md.damage / (skill_id==NJ_ZENYNAGE?1:2) ;
+			md.damage = md.damage * rnd_value( 50, 100 ) / (skill_id==NJ_ZENYNAGE?1:100);
 			if (sd) {
 				if ( skill_id==KO_MUCHANAGE && (pc_checkskill(sd,NJ_TOBIDOUGU)==0) )
 					md.damage = md.damage/2;
