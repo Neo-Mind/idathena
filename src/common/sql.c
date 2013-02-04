@@ -1016,5 +1016,5 @@ void Sql_inter_server_read(const char* cfgName, bool first) {
 }
 
 void Sql_init(void) {
-	Sql_inter_server_read("conf/inter-server.conf",true);
+	Sql_inter_server_read("conf/inter_athena.conf",true);
 }
