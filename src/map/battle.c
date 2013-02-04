@@ -807,13 +807,12 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 				 * in RE, SW possesses a lifetime equal to 3 times the caster's health
 				 **/
 #ifdef RENEWAL
+				d->dmg_lv = ATK_BLOCK;
 				if ( ( group->val2 - damage) > 0 ) {
 					group->val2 -= damage;
-					d->dmg_lv = ATK_BLOCK;
-					return 0;
 				} else
-					damage -= group->val2;
-				skill_delunitgroup(group);
+					skill_delunitgroup(group);
+				return 0;
 #else
 				if (--group->val2<=0)
 					skill_delunitgroup(group);
@@ -5865,7 +5864,7 @@ static const struct _battle_data {
 	{ "cell_stack_limit",                   &battle_config.cell_stack_limit,                1,      1,      255,            },
 	{ "dancing_weaponswitch_fix",           &battle_config.dancing_weaponswitch_fix,        1,      0,      1,              },
 	
-// eAthena additions
+	// eAthena additions
 	{ "item_logarithmic_drops",             &battle_config.logarithmic_drops,               0,      0,      1,              },
 	{ "item_drop_common_min",               &battle_config.item_drop_common_min,            1,      1,      10000,          },
 	{ "item_drop_common_max",               &battle_config.item_drop_common_max,            10000,  1,      10000,          },
@@ -6021,7 +6020,7 @@ static const struct _battle_data {
 	{ "cashshop_show_points",               &battle_config.cashshop_show_points,            0,      0,      1,              },
 	{ "mail_show_status",                   &battle_config.mail_show_status,                0,      0,      2,              },
 	{ "client_limit_unit_lv",               &battle_config.client_limit_unit_lv,            0,      0,      BL_ALL,         },
-// BattleGround Settings
+	// BattleGround Settings
 	{ "bg_update_interval",                 &battle_config.bg_update_interval,              1000,   100,    INT_MAX,        },
 	{ "bg_short_attack_damage_rate",        &battle_config.bg_short_damage_rate,            80,     0,      INT_MAX,        },
 	{ "bg_long_attack_damage_rate",         &battle_config.bg_long_damage_rate,             80,     0,      INT_MAX,        },
@@ -6047,6 +6046,7 @@ static const struct _battle_data {
 	* Hercules
 	**/
 	{ "skill_trap_type",                    &battle_config.skill_trap_type,                 0,      0,      1,              },
+	{ "item_restricted_consumption_type",   &battle_config.item_restricted_consumption_type,1,      0,      1,              },
 };
 #ifndef STATS_OPT_OUT
 /**

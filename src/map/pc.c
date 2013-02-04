@@ -249,6 +249,7 @@ int pc_delspiritball(struct map_session_data *sd,int count,int type)
 	}
 	return 0;
 }
+
 static int pc_check_banding( struct block_list *bl, va_list ap ) {
 	int *c, *b_sd;
 	struct block_list *src;
@@ -277,6 +278,7 @@ static int pc_check_banding( struct block_list *bl, va_list ap ) {
 
 	return 0;
 }
+
 int pc_banding(struct map_session_data *sd, uint16 skill_lv) {
 	int c;
 	int b_sd[MAX_PARTY]; // In case of a full Royal Guard party.
@@ -701,23 +703,23 @@ int pc_setequipindex(struct map_session_data *sd)
 	return 0;
 }
 
-static int pc_isAllowedCardOn(struct map_session_data *sd,int s,int eqindex,int flag)
+/*static int pc_isAllowedCardOn(struct map_session_data *sd,int s,int eqindex,int flag)
 {
 	int i;
 	struct item *item = &sd->status.inventory[eqindex];
 	struct item_data *data;
-	
-	//Crafted/made/hatched items.
+
+	// crafted/made/hatched items.
 	if (itemdb_isspecial(item->card[0]))
 		return 1;
 
-	/* scan for enchant armor gems */
+	// scan for enchant armor gems
 	if( item->card[MAX_SLOTS - 1] && s < MAX_SLOTS - 1 )
 		s = MAX_SLOTS - 1;
-	
+
 	ARR_FIND( 0, s, i, item->card[i] && (data = itemdb_exists(item->card[i])) != NULL && data->flag.no_equip&flag );
 	return( i < s ) ? 0 : 1;
-}
+}*/
 
 bool pc_isequipped(struct map_session_data *sd, int nameid)
 {
@@ -860,20 +862,6 @@ int pc_isequip(struct map_session_data *sd,int n)
 #endif
 	if(item->sex != 2 && sd->status.sex != item->sex)
 		return 0;
-	if(!map_flag_vs(sd->bl.m) && ((item->flag.no_equip&1) || !pc_isAllowedCardOn(sd,item->slot,n,1)))
-		return 0;
-	if(map[sd->bl.m].flag.pvp && ((item->flag.no_equip&2) || !pc_isAllowedCardOn(sd,item->slot,n,2)))
-		return 0;
-	if(map_flag_gvg(sd->bl.m) && ((item->flag.no_equip&4) || !pc_isAllowedCardOn(sd,item->slot,n,4)))
-		return 0;
-	if(map[sd->bl.m].flag.battleground && ((item->flag.no_equip&8) || !pc_isAllowedCardOn(sd,item->slot,n,8)))
-		return 0;
-	if(map[sd->bl.m].flag.restricted)
-	{
-		int flag =8*map[sd->bl.m].zone;
-		if (item->flag.no_equip&flag || !pc_isAllowedCardOn(sd,item->slot,n,flag))
-			return 0;
-	}
 
 	if (sd->sc.count) {
 			
@@ -4133,16 +4121,6 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 	else if( itemdb_is_poison(nameid) && (sd->class_&MAPID_THIRDMASK) != MAPID_GUILLOTINE_CROSS )
 		return 0;
 
-	//added item_noequip.txt items check by Maya&[Lupus]
-	if (
-		(!map_flag_vs(sd->bl.m) && item->flag.no_equip&1) || // Normal
-		(map[sd->bl.m].flag.pvp && item->flag.no_equip&2) || // PVP
-		(map_flag_gvg(sd->bl.m) && item->flag.no_equip&4) || // GVG
-		(map[sd->bl.m].flag.battleground && item->flag.no_equip&8) || // Battleground
-		(map[sd->bl.m].flag.restricted && item->flag.no_equip&(8*map[sd->bl.m].zone)) // Zone restriction
-	)
-		return 0;
-
 	//Gender check
 	if(item->sex != 2 && sd->status.sex != item->sex)
 		return 0;
@@ -4275,6 +4253,21 @@ int pc_useitem(struct map_session_data *sd,int n)
 			}
 		}
 	}
+
+	/* on restricted maps the item is consumed but the effect is not used */
+	if (
+		(!map_flag_vs(sd->bl.m) && sd->inventory_data[n]->flag.no_equip&1) || // Normal
+		(map[sd->bl.m].flag.pvp && sd->inventory_data[n]->flag.no_equip&2) || // PVP
+		(map_flag_gvg(sd->bl.m) && sd->inventory_data[n]->flag.no_equip&4) || // GVG
+		(map[sd->bl.m].flag.battleground && sd->inventory_data[n]->flag.no_equip&8) || // Battleground
+		(map[sd->bl.m].flag.restricted && sd->inventory_data[n]->flag.no_equip&(8*map[sd->bl.m].zone)) // Zone restriction
+		) {
+			if( battle_config.item_restricted_consumption_type ) {
+				clif_useitemack(sd,n,sd->status.inventory[n].amount-1,true);
+				pc_delitem(sd,n,1,1,0,LOG_TYPE_CONSUME);
+			}
+			return 0;/* regardless, effect is not run */
+		}
 
 	sd->itemid = sd->status.inventory[n].nameid;
 	sd->itemindex = n;
@@ -8109,7 +8102,7 @@ int pc_checkcombo(struct map_session_data *sd, struct item_data *data ) {
 	int index, idx, success = 0;
 
 	for( i = 0; i < data->combos_count; i++ ) {
-		
+
 		/* ensure this isn't a duplicate combo */
 		if( sd->combos.bonus != NULL ) {
 			int x;
@@ -8119,21 +8112,21 @@ int pc_checkcombo(struct map_session_data *sd, struct item_data *data ) {
 			if( x < sd->combos.count )
 				continue;
 		}
-		
+
 		for( j = 0; j < data->combos[i]->count; j++ ) {
 			int id = data->combos[i]->nameid[j];
 			bool found = false;
-			
+
 			for( k = 0; k < EQI_MAX; k++ ) {
 				index = sd->equip_index[k];
 				if( index < 0 ) continue;
 				if( k == EQI_HAND_R   &&  sd->equip_index[EQI_HAND_L] == index ) continue;
 				if( k == EQI_HEAD_MID &&  sd->equip_index[EQI_HEAD_LOW] == index ) continue;
 				if( k == EQI_HEAD_TOP && (sd->equip_index[EQI_HEAD_MID] == index || sd->equip_index[EQI_HEAD_LOW] == index) ) continue;
-				
+
 				if(!sd->inventory_data[index])
 					continue;
-				
+
 				if ( itemdb_type(id) != IT_CARD ) {
 					if ( sd->inventory_data[index]->nameid != id )
 						continue;
@@ -8143,12 +8136,12 @@ int pc_checkcombo(struct map_session_data *sd, struct item_data *data ) {
 				} else { //Cards
 					if ( sd->inventory_data[index]->slot == 0 || itemdb_isspecial(sd->status.inventory[index].card[0]) )
 						continue;
-					
+
 					for (z = 0; z < sd->inventory_data[index]->slot; z++) {
 
 						if (sd->status.inventory[index].card[z] != id)
 							continue;
-												
+			
 						// We have found a match
 						found = true;
 						break;
@@ -8160,15 +8153,15 @@ int pc_checkcombo(struct map_session_data *sd, struct item_data *data ) {
 			if( !found )
 				break;/* we haven't found all the ids for this combo, so we can return */
 		}
-		
+
 		/* means we broke out of the count loop w/o finding all ids, we can move to the next combo */
 		if( j < data->combos[i]->count )
 			continue;
-		
+
 		/* we got here, means all items in the combo are matching */
-		
+
 		idx = sd->combos.count;
-		
+
 		if( sd->combos.bonus == NULL ) {
 			CREATE(sd->combos.bonus, struct script_code *, 1);
 			CREATE(sd->combos.id, unsigned short, 1);
@@ -8177,12 +8170,12 @@ int pc_checkcombo(struct map_session_data *sd, struct item_data *data ) {
 			RECREATE(sd->combos.bonus, struct script_code *, ++sd->combos.count);
 			RECREATE(sd->combos.id, unsigned short, sd->combos.count);
 		}
-				
+
 		/* we simply copy the pointer */
 		sd->combos.bonus[idx] = data->combos[i]->script;
 		/* save this combo's id */
 		sd->combos.id[idx] = data->combos[i]->id;
-		
+
 		success++;
 	}
 	return success;
@@ -8191,7 +8184,7 @@ int pc_checkcombo(struct map_session_data *sd, struct item_data *data ) {
 /* called when a item with combo is removed */
 int pc_removecombo(struct map_session_data *sd, struct item_data *data ) {
 	int i, retval = 0;
-	
+
 	if( sd->combos.bonus == NULL )
 		return 0;/* nothing to do here, player has no combos */
 	for( i = 0; i < data->combos_count; i++ ) {
@@ -8208,14 +8201,18 @@ int pc_removecombo(struct map_session_data *sd, struct item_data *data ) {
 		for( j = 0, cursor = 0; j < sd->combos.count; j++ ) {
 			if( sd->combos.bonus[j] == NULL )
 				continue;
-			
+
 			if( cursor != j ) {
 				sd->combos.bonus[cursor] = sd->combos.bonus[j];
 				sd->combos.id[cursor]    = sd->combos.id[j];
 			}
-			
+
 			cursor++;
 		}
+
+		/* check if combo requirements still fit */
+		if( pc_checkcombo( sd, data ) )
+			continue;
 
 		/* it's empty, we can clear all the memory */
 		if( (sd->combos.count = cursor) == 0 ) {
@@ -8626,41 +8623,33 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 int pc_checkitem(struct map_session_data *sd)
 {
 	int i,id,calc_flag = 0;
-	struct item_data *it=NULL;
 
 	nullpo_ret(sd);
 
 	if( sd->state.vending ) //Avoid reorganizing items when we are vending, as that leads to exploits (pointed out by End of Exam)
 		return 0;
 
-	if( battle_config.item_check )
-	{// check for invalid(ated) items
-		for( i = 0; i < MAX_INVENTORY; i++ )
-		{
+	if( battle_config.item_check ) { // check for invalid(ated) items
+		for( i = 0; i < MAX_INVENTORY; i++ ) {
 			id = sd->status.inventory[i].nameid;
 
-			if( id && !itemdb_available(id) )
-			{
+			if( id && !itemdb_available(id) ) {
 				ShowWarning("Removed invalid/disabled item id %d from inventory (amount=%d, char_id=%d).\n", id, sd->status.inventory[i].amount, sd->status.char_id);
 				pc_delitem(sd, i, sd->status.inventory[i].amount, 0, 0, LOG_TYPE_OTHER);
 			}
 		}
 
-		for( i = 0; i < MAX_CART; i++ )
-		{
+		for( i = 0; i < MAX_CART; i++ ) {
 			id = sd->status.cart[i].nameid;
 
-			if( id && !itemdb_available(id) )
-			{
+			if( id && !itemdb_available(id) ) {
 				ShowWarning("Removed invalid/disabled item id %d from cart (amount=%d, char_id=%d).\n", id, sd->status.cart[i].amount, sd->status.char_id);
 				pc_cart_delitem(sd, i, sd->status.cart[i].amount, 0, LOG_TYPE_OTHER);
 			}
 		}
 	}
 
-	for( i = 0; i < MAX_INVENTORY; i++)
-	{
-		it = sd->inventory_data[i];
+	for( i = 0; i < MAX_INVENTORY; i++) {
 
 		if( sd->status.inventory[i].nameid == 0 )
 			continue;
@@ -8668,31 +8657,15 @@ int pc_checkitem(struct map_session_data *sd)
 		if( !sd->status.inventory[i].equip )
 			continue;
 
-		if( sd->status.inventory[i].equip&~pc_equippoint(sd,i) )
-		{
+		if( sd->status.inventory[i].equip&~pc_equippoint(sd,i) ) {
 			pc_unequipitem(sd, i, 2);
 			calc_flag = 1;
 			continue;
 		}
 
-		if( it )
-		{ // check for forbiden items.
-			int flag =
-					(map[sd->bl.m].flag.restricted?(8*map[sd->bl.m].zone):0)
-					| (!map_flag_vs(sd->bl.m)?1:0)
-					| (map[sd->bl.m].flag.pvp?2:0)
-					| (map_flag_gvg(sd->bl.m)?4:0)
-					| (map[sd->bl.m].flag.battleground?8:0);
-			if( flag && (it->flag.no_equip&flag || !pc_isAllowedCardOn(sd,it->slot,i,flag)) )
-			{
-				pc_unequipitem(sd, i, 2);
-				calc_flag = 1;
-			}
-		}
 	}
 
-	if( calc_flag && sd->state.active )
-	{
+	if( calc_flag && sd->state.active ) {
 		pc_checkallowskill(sd);
 		status_calc_pc(sd,0);
 	}
