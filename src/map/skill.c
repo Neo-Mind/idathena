@@ -3832,6 +3832,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 	case GN_CARTCANNON:
 	case KO_HAPPOKUNAI:
 	case KO_HUUMARANKA:
+	case KO_MUCHANAGE:
 	case KO_BAKURETSU:
 		if( flag&1 ) {//Recursive invocation
 			// skill_area_temp[0] holds number of targets in area
@@ -9895,7 +9896,6 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 	case SO_WIND_INSIGNIA:
 	case SO_EARTH_INSIGNIA:
 	case KO_HUUMARANKA:
-	case KO_MUCHANAGE:
 	case KO_BAKURETSU:
 	case KO_ZENKAI:
 	case MH_LAVA_SLIDE:
@@ -13202,13 +13202,13 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 				return 0;
 			}
 			break;
-		/*case LG_REFLECTDAMAGE:
+		case LG_REFLECTDAMAGE:
 		case CR_REFLECTSHIELD:
 			if( sc && sc->data[SC_KYOMU] && rnd()%100 < 5 * sc->data[SC_KYOMU]->val1){
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}
-			break;*/
+			break;
 		case KO_KAHU_ENTEN:
 		case KO_HYOUHU_HUBUKI:
 		case KO_KAZEHU_SEIRAN:

@@ -1684,7 +1684,6 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 				sc->data[SC_DEEPSLEEP] ||
 				sc->data[SC_CURSEDCIRCLE_TARGET] ||
 				sc->data[SC__SHADOWFORM] ||
-				(sc->data[SC_KYOMU] && rnd()%100 < 5 * sc->data[SC_KYOMU]->val1) ||
 				(sc->data[SC_KAGEHUMI] && skill_block_check(src, SC_KAGEHUMI, skill_id))
 			))
 				return 0;
