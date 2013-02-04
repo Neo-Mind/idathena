@@ -1684,6 +1684,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 				sc->data[SC_DEEPSLEEP] ||
 				sc->data[SC_CURSEDCIRCLE_TARGET] ||
 				sc->data[SC__SHADOWFORM] ||
+				(sc->data[SC_KYOMU] && rnd()%100 < 5 * sc->data[SC_KYOMU]->val1) ||
 				(sc->data[SC_KAGEHUMI] && skill_block_check(src, SC_KAGEHUMI, skill_id))
 			))
 				return 0;
@@ -2074,12 +2075,14 @@ int status_calc_mob_(struct mob_data* md, bool first)
 		if (ud)
 		{	// different levels of HP according to skill level
 			if (ud->skill_id == AM_SPHEREMINE) {
-				status->max_hp = 2000 + 400*ud->skill_lv;
+				status->max_hp = 2000 + 400 * ud->skill_lv;
 			} else if(ud->skill_id == KO_ZANZOU){
 				status->max_hp = 3000 + 3000 * ud->skill_lv;
-			} else { //AM_CANNIBALIZE
-				status->max_hp = 1500 + 200*ud->skill_lv + 10*status_get_lv(mbl);
+			} else if( ud->skill_id == AM_CANNIBALIZE ) {
+				status->max_hp = 1500 + 200 * ud->skill_lv + 10 * status_get_lv(mbl);
 				status->mode|= MD_CANATTACK|MD_AGGRESSIVE;
+			} else if( ud->skill_id == NC_SILVERSNIPER ) {
+				status->rhw.atk = status->rhw.atk2 = 200 * ud->skill_lv;
 			}
 			status->hp = status->max_hp;
 		}

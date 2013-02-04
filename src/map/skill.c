@@ -3811,7 +3811,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 	case AB_JUDEX:
 	case WL_SOULEXPANSION:
 	case WL_CRIMSONROCK:
-	//case WL_COMET:
 	case WL_JACKFROST:
 	case RA_ARROWSTORM:
 	case RA_WUGDASH:
@@ -3833,7 +3832,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 	case GN_CARTCANNON:
 	case KO_HAPPOKUNAI:
 	case KO_HUUMARANKA:
-	case KO_MUCHANAGE:
 	case KO_BAKURETSU:
 		if( flag&1 ) {//Recursive invocation
 			// skill_area_temp[0] holds number of targets in area
@@ -4169,9 +4167,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		break;
 		
 	case RK_STORMBLAST:
-	case RK_CRUSHSTRIKE:
 		if( sd ) {
-			if( pc_checkskill(sd,RK_RUNEMASTERY) >= ( skill_id == RK_CRUSHSTRIKE ? 7 : 3 ) )
+			if( pc_checkskill(sd,RK_RUNEMASTERY) >= 3 )
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			else
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -10389,6 +10386,21 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			skill_unitsetting(src,skill_id,skill_lv,x,y,0);
 		}
 		break;
+
+	case KO_MUCHANAGE: {
+			struct status_data *sstatus;
+			int rate = 0;
+			sstatus = status_get_status_data(src);
+			i = skill_get_splash(skill_id,skill_lv);
+			rate = (100 - (1000 / (sstatus->dex + sstatus->luk) * 5)) * (skill_lv / 2 + 5) / 10;
+			if ( rate < 0 )
+				rate = 0;
+			skill_area_temp[0] = map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i, BL_CHAR, src, skill_id, skill_lv, tick, BCT_ENEMY, skill_area_sub_count);
+			if ( rnd()%100 < rate )
+				map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
+		}
+		break;
+
 	default:
 		ShowWarning("skill_castend_pos2: Unknown skill used:%d\n",skill_id);
 		return 1;
@@ -13190,13 +13202,13 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 				return 0;
 			}
 			break;
-		case LG_REFLECTDAMAGE:
+		/*case LG_REFLECTDAMAGE:
 		case CR_REFLECTSHIELD:
-			if( sc && sc->data[SC_KYOMU] && rnd()%100 < 30){
+			if( sc && sc->data[SC_KYOMU] && rnd()%100 < 5 * sc->data[SC_KYOMU]->val1){
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}
-			break;
+			break;*/
 		case KO_KAHU_ENTEN:
 		case KO_HYOUHU_HUBUKI:
 		case KO_KAZEHU_SEIRAN:
