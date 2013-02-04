@@ -8857,10 +8857,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		
 	case GN_MANDRAGORA:
 		if( flag&1 ) {
-			if( bl->type == BL_MOB ) break;
 			int chance = 25 + 10 * skill_lv - (tstatus->vit + tstatus->luk) / 5;
 			if ( chance < 10 )
 				chance = 10;//Minimal chance is 10%.
+			if( bl->type == BL_MOB ) break;
 			if ( rnd()%100 < chance ) {
 				//Coded to both inflect the status and drain the target's SP only when successful. [Rytech]
 				sc_start(bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
