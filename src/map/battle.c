@@ -3246,8 +3246,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			}
 		}
 
-		if (!flag.idef || !flag.idef2)
-		{	//Defense reduction
+		if (!flag.idef || !flag.idef2) {
+			//Defense reduction
 			short vit_def;
 			defType def1 = status_get_def(target); //Don't use tstatus->def1 due to skill timer reductions.
 			short def2 = tstatus->def2;
@@ -3255,19 +3255,22 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			if( tsc && tsc->data[SC_ASSUMPTIO] )
 				def1 <<= 1; // only eDEF is doubled
 #endif
-			if( sd )
-			{
+			if( sd ) {
+				int type;
 				i = sd->ignore_def[is_boss(target)?RC_BOSS:RC_NONBOSS];
 				i += sd->ignore_def[tstatus->race];
-				if( i )
-				{
+				ARR_FIND(1, 6, type, sd->talisman[type] > 0);
+				if( i ) {
 					if( i > 100 ) i = 100;
 					def1 -= def1 * i / 100;
 					def2 -= def2 * i / 100;
 				}
+				if( type == 2 ) {
+					def1 += def1 * (5 * sd->talisman[type]) / 100; //+5% eDEF
+				}
 			}
 
-			if( sc && sc->data[SC_EXPIATIO] ){
+			if( sc && sc->data[SC_EXPIATIO] ) {
 				i = 5 * sc->data[SC_EXPIATIO]->val1; // 5% per level
 				def1 -= def1 * i / 100;
 				def2 -= def2 * i / 100;
@@ -3276,7 +3279,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			if( tsc && tsc->data[SC_GT_REVITALIZE] && tsc->data[SC_GT_REVITALIZE]->val4 )
 				def2 += 2 * tsc->data[SC_GT_REVITALIZE]->val4;
 				
-			if( tsc && tsc->data[SC_CAMOUFLAGE] ){
+			if( tsc && tsc->data[SC_CAMOUFLAGE] ) {
 				i = 5 * (10-tsc->data[SC_CAMOUFLAGE]->val4);
 				def1 -= def1 * i / 100;
 				def2 -= def2 * i / 100;
@@ -3304,8 +3307,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				if(def2 < 1) def2 = 1;
 			}
 			//Vitality reduction from rodatazone: http://rodatazone.simgaming.net/mechanics/substats.php#def
-			if (tsd)	//Sd vit-eq
-			{
+			if (tsd) {
+				//Sd vit-eq
 #ifndef RENEWAL
 				//[VIT*0.5] + rnd([VIT*0.3], max([VIT*0.3],[VIT^2/150]-1))
 				vit_def = def2*(def2-15)/150;
@@ -3320,13 +3323,14 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					(sstatus->race == RC_BRUTE || sstatus->race == RC_FISH || sstatus->race == RC_PLANT) )
 					vit_def += skill*5;
 #ifdef RENEWAL
-				if( skill == NJ_ISSEN ){//TODO: do better implementation if other skills(same func) are found [malufett]
+				if( skill == NJ_ISSEN ) {
+					//TODO: do better implementation if other skills(same func) are found [malufett]
 					vit_def += def1;
 					def1 = 0;
 				}
 #endif
-			}
-			else { //Mob-Pet vit-eq
+			} else {
+				//Mob-Pet vit-eq
 #ifndef RENEWAL
 				//VIT + rnd(0,[VIT/20]^2-1)
 				vit_def = (def2/20)*(def2/20);
@@ -3371,38 +3375,44 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		}
 
 		//Post skill/vit reduction damage increases
-		if( sc )
-		{	//SC skill damages
+		if( sc ) {
+			//SC skill damages
 			if(sc->data[SC_AURABLADE]
 #ifndef RENEWAL
 					&& skill_id != LK_SPIRALPIERCE && skill_id != ML_SPIRALPIERCE
 #endif
-			){
+			) {
 				int lv = sc->data[SC_AURABLADE]->val1;
 #ifdef RENEWAL
 				lv *= ((skill_id == LK_SPIRALPIERCE || skill_id == ML_SPIRALPIERCE)?wd.div_:1); // +100 per hit in lv 5
 #endif
 				ATK_ADD(20*lv);
 			}
-			
+
 			if(sc->data[SC_GN_CARTBOOST])
 				ATK_ADD(10*sc->data[SC_GN_CARTBOOST]->val1);
-				
-			if(sc->data[SC_GT_CHANGE] && sc->data[SC_GT_CHANGE]->val2){
-				struct block_list *bl; // ATK increase: ATK [{(Caster?s DEX / 4) + (Caster?s STR / 2)} x Skill Level / 5]
+
+			if(sc->data[SC_GT_CHANGE] && sc->data[SC_GT_CHANGE]->val2) {
+				struct block_list *bl; // ATK increase: ATK [{(Caster DEX / 4) + (Caster STR / 2)} x Skill Level / 5]
 				if( (bl = map_id2bl(sc->data[SC_GT_CHANGE]->val2)) )
 					ATK_ADD( ( status_get_dex(bl)/4 + status_get_str(bl)/2 ) * sc->data[SC_GT_CHANGE]->val1 / 5 );
 			}
-			
+
 			if(sc->data[SC_CAMOUFLAGE])
 				ATK_ADD(30 * (10-sc->data[SC_CAMOUFLAGE]->val4) );
 		}
 
+		if( sd ) {
+			ARR_FIND(1, 6, i, sd->talisman[i] > 0);
+			if( i == 2 ){
+				ATK_ADDRATE(15 * sd->talisman[i]); //+15% Weapon Attack
+			}
+		}
+
 		//Refine bonus
-		if( sd && flag.weapon && skill_id != MO_INVESTIGATE && skill_id != MO_EXTREMITYFIST )
-		{ // Counts refine bonus multiple times
-			if( skill_id == MO_FINGEROFFENSIVE )
-			{
+		if( sd && flag.weapon && skill_id != MO_INVESTIGATE && skill_id != MO_EXTREMITYFIST ) {
+			// Counts refine bonus multiple times
+			if( skill_id == MO_FINGEROFFENSIVE ) {
 				ATK_ADD2(wd.div_*sstatus->rhw.atk2, wd.div_*sstatus->lhw.atk2);
 			} else {
 				ATK_ADD2(sstatus->rhw.atk2, sstatus->lhw.atk2);
@@ -3416,11 +3426,11 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		if (sd && flag.weapon &&
 			skill_id != MO_INVESTIGATE &&
 		  	skill_id != MO_EXTREMITYFIST &&
-		  	skill_id != CR_GRANDCROSS)
-		{	//Add mastery damage
+		  	skill_id != CR_GRANDCROSS) {
+			//Add mastery damage
 			if(skill_id != ASC_BREAKER && sd->status.weapon == W_KATAR &&
-				(skill=pc_checkskill(sd,ASC_KATAR)) > 0)
-		  	{	//Adv Katar Mastery is does not applies to ASC_BREAKER,
+				(skill=pc_checkskill(sd,ASC_KATAR)) > 0) {
+				//Adv Katar Mastery is does not applies to ASC_BREAKER,
 				// but other masteries DO apply >_>
 				ATK_ADDRATE(10+ 2*skill);
 			}
@@ -3432,8 +3442,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			if (sc && sc->data[SC_MIRACLE]) i = 2; //Star anger
 			else
 			ARR_FIND(0, MAX_PC_FEELHATE, i, t_class == sd->hate_mob[i]);
-			if (i < MAX_PC_FEELHATE && (skill=pc_checkskill(sd,sg_info[i].anger_id)))
-			{
+			if (i < MAX_PC_FEELHATE && (skill=pc_checkskill(sd,sg_info[i].anger_id))) {
 				skillratio = sd->status.base_level + sstatus->dex + sstatus->luk;
 				if (i == 2) skillratio += sstatus->str; //Star Anger
 				if (skill<4)
@@ -3455,8 +3464,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 	if(skill_id==TF_POISON)
 		ATK_ADD(15*skill_lv);
 
-	if( !(nk&NK_NO_ELEFIX) && !n_ele )
-	{	//Elemental attribute fix
+	if( !(nk&NK_NO_ELEFIX) && !n_ele ) {
+		//Elemental attribute fix
 		if( wd.damage > 0 )
 		{
 			wd.damage=battle_attr_fix(src,target,wd.damage,s_ele,tstatus->def_ele, tstatus->ele_lv);
@@ -3467,13 +3476,12 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		}
 		if( flag.lh && wd.damage2 > 0 )
 			wd.damage2 = battle_attr_fix(src,target,wd.damage2,s_ele_,tstatus->def_ele, tstatus->ele_lv);
-		if( sc && sc->data[SC_WATK_ELEMENT] )
-		{ // Descriptions indicate this means adding a percent of a normal attack in another element. [Skotlex]
+		if( sc && sc->data[SC_WATK_ELEMENT] ) {
+			// Descriptions indicate this means adding a percent of a normal attack in another element. [Skotlex]
 			int damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, (flag.arrow?2:0)) * sc->data[SC_WATK_ELEMENT]->val2 / 100;
 			wd.damage += battle_attr_fix(src, target, damage, sc->data[SC_WATK_ELEMENT]->val1, tstatus->def_ele, tstatus->ele_lv);
 
-			if( flag.lh )
-			{
+			if( flag.lh ) {
 				damage = battle_calc_base_damage(sstatus, &sstatus->lhw, sc, tstatus->size, sd, (flag.arrow?2:0)) * sc->data[SC_WATK_ELEMENT]->val2 / 100;
 				wd.damage2 += battle_attr_fix(src, target, damage, sc->data[SC_WATK_ELEMENT]->val1, tstatus->def_ele, tstatus->ele_lv);
 			}
@@ -3491,8 +3499,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 	if(skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS)
 		return wd; //Enough, rest is not needed.
 
-	if (sd)
-	{
+	if (sd) {
 		if (skill_id != CR_SHIELDBOOMERANG) //Only Shield boomerang doesn't takes the Star Crumbs bonus.
 			ATK_ADD2(wd.div_*sd->right_weapon.star, wd.div_*sd->left_weapon.star);
 		if (skill_id==MO_FINGEROFFENSIVE) { //The finger offensive spheres on moment of attack do count. [Skotlex]
@@ -3506,8 +3513,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		if( flag.lh )
 			wd.damage2 = battle_calc_cardfix(BF_WEAPON, src, target, nk, s_ele, s_ele_, wd.damage2, 3, wd.flag);
 		
-		if( skill_id == CR_SHIELDBOOMERANG || skill_id == PA_SHIELDCHAIN )
-		{ //Refine bonus applies after cards and elements.
+		if( skill_id == CR_SHIELDBOOMERANG || skill_id == PA_SHIELDCHAIN ) {
+			//Refine bonus applies after cards and elements.
 			short index= sd->equip_index[EQI_HAND_L];
 			if( index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR )
 				ATK_ADD(10*sd->status.inventory[index].refine);
@@ -3518,8 +3525,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 	if(tsd)
 		wd.damage = battle_calc_cardfix(BF_WEAPON, src, target, nk, s_ele, s_ele_, wd.damage, flag.lh, wd.flag);
 
-	if( flag.infdef )
-	{ //Plants receive 1 damage when hit
+	if( flag.infdef ) {
+		//Plants receive 1 damage when hit
 		short class_ = status_get_class(target);
 		if( flag.hit || wd.damage > 0 )
 			wd.damage = wd.div_; // In some cases, right hand no need to have a weapon to increase damage
