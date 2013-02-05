@@ -3404,7 +3404,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 
 		if( sd ) {
 			ARR_FIND(1, 6, i, sd->talisman[i] > 0);
-			if( i == 2 ){
+			if( i == 2 ) {
 				ATK_ADDRATE(15 * sd->talisman[i]); //+15% Weapon Attack
 			}
 		}
