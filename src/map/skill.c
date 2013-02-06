@@ -8688,33 +8688,27 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 	case RETURN_TO_ELDICASTES:
 	case ALL_GUARDIAN_RECALL:
 	case ECLAGE_RECALL:
-		if( sd )
-		{
+		if( sd ) {
 			short x = 0;
 			short y = 0;
 			unsigned short mapindex = 0;
 
-			if( skill_id == RETURN_TO_ELDICASTES)
-			{
+			if( skill_id == RETURN_TO_ELDICASTES ) {
 				x = 198;
 				y = 187;
 				mapindex = mapindex_name2id(MAP_DICASTES);
-			}
-			else if ( skill_id == ALL_GUARDIAN_RECALL )
-			{
+			} else if ( skill_id == ALL_GUARDIAN_RECALL ) {
 				x = 44;
 				y = 151;
 				mapindex = mapindex_name2id(MAP_MORA);
-			}
-			else if ( skill_id == ECLAGE_RECALL )
-			{
+			} else if ( skill_id == ECLAGE_RECALL ) {
 				x = 47;
 				y = 31;
 				mapindex = mapindex_name2id("ecl_in01");
 			}
 
-			if(!mapindex)
-			{// If the map is not found, fail the skill to prevent warping the player to a non existing map.
+			if(!mapindex) {
+				// If the map is not found, fail the skill to prevent warping the player to a non existing map.
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				map_freeblock_unlock();
 				return 0;

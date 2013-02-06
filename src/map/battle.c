@@ -2794,7 +2794,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					RE_LVL_DMOD(100);
 					break;
 				case LG_OVERBRAND_PLUSATK:
-					skillratio = 100 * skill_lv + rnd_value( 1, 100 );
+					skillratio = 100 * skill_lv + rnd_value(1, 100);
 					RE_LVL_DMOD(100);
 					break;
 				case LG_MOONSLASHER:
@@ -4476,7 +4476,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	case KO_MUCHANAGE:
 			md.damage = skill_get_zeny(skill_id, skill_lv);
 			if (!md.damage) md.damage = 2;
-			md.damage = md.damage * rnd_value( 50, 100 ) / (skill_id==NJ_ZENYNAGE?1:100);
+			md.damage = (skill_id==NJ_ZENYNAGE?rnd()%md.damage+md.damage:md.damage*rnd_value(50, 100)) / (skill_id==NJ_ZENYNAGE?1:100);
 			if (sd) {
 				if ( skill_id==KO_MUCHANAGE && (pc_checkskill(sd,NJ_TOBIDOUGU)==0) )
 					md.damage = md.damage/2;
