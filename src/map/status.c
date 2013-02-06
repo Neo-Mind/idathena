@@ -4772,7 +4772,7 @@ static signed short status_calc_critical(struct block_list *bl, struct status_ch
 	if(sc->data[SC_CLOAKING])
 		critical += critical;
 	if(sc->data[SC_STRIKING])
-		critical += sc->data[SC_STRIKING]->val1;
+		critical += critical * sc->data[SC_STRIKING]->val1 / 100;
 #ifdef RENEWAL
 	if (sc->data[SC_SPEARQUICKEN])
 		critical += 3*sc->data[SC_SPEARQUICKEN]->val1*10;
@@ -8405,7 +8405,6 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			status_change_end(bl, SC_CRYSTALIZE, INVALID_TIMER);
 			break;
 		case SC_STRIKING:
-			val1 = 6 - val1;//spcost = 6 - level (lvl1:5 ... lvl 5: 1)
 			val4 = tick / 1000;
 			tick_time = 1000; // [GodLesZ] tick time
 			break;
