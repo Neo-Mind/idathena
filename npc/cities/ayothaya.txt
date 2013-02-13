@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= MasterOfMuppets
 //===== Current Version: =====================================
-//= 1.8
+//= 1.9
 //===== Compatible With: ===================================== 
 //= rAthena SVN
 //===== Description: ========================================= 
@@ -13,6 +13,7 @@
 //= 1.6 Rescripted to Aegis 10.3 standards. [L0ne_W0lf]
 //= 1.7 Fixed character's anme bugs [Lupus]
 //= 1.8 Moved Alberta NPC to pre-re/re paths. [Euphy]
+//= 1.9 Updated Warp coordinates to Alberta
 //============================================================ 
 
 // Ayothaya Transportation NPC
@@ -93,9 +94,9 @@ ayothaya,152,68,1	script	Aibakthing#ayo2	843,{
 		mes "You will be welcome to come back whenever you please. I hope that we will see each other again sometime soon. Thank you~";
 		close2;
 		if (checkre(0))
-			warp "alberta",238,22;
-		else
 			warp "alberta",235,45;
+		else
+			warp "alberta",238,22;
 		end;
 	}
 	mes "[Aibakthing]";
@@ -297,13 +298,13 @@ ayothaya,241,264,5	script	Young Man#5ayothaya2	843,{
 	close;
 }
 
-//============================================================ 
+//============================================================
 // Old changelog
-//============================================================ 
+//============================================================
 //= 0.1 Added a Sailor NPC to get back to Alberta [ZoDIaC]
 //= 0.2 fixed coords, dialogues
-//= 0.3 Fixed Warp name, ayotaya doesn't exist, even though iRO 
-//= 	decided to call it Ayotaya, it really is Ayothaya, like 
+//= 0.3 Fixed Warp name, ayotaya doesn't exist, even though iRO
+//= 	decided to call it Ayotaya, it really is Ayothaya, like
 //=	that Yuno/Juno thing
 //= 0.4 Added the official warp npc for Ayothaya. [MasterOfMuppets]
 //= 1.0 Added most of the official npcs. The following quests were added: [MasterOfMuppets]
@@ -315,4 +316,4 @@ ayothaya,241,264,5	script	Young Man#5ayothaya2	843,{
 //= 1.3 Removed Duplicates [Silent]
 //= 1.4 Moved quests to quests/quests_ayothaya.txt [Evera]
 //= 1.5 Moved a few NPC's to quests/quests_ayothaya.txt [MasterOfMuppets]
-//============================================================ 
+//============================================================
