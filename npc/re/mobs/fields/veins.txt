@@ -48,8 +48,8 @@ ve_fild02,0,0,0,0	monster	Yellow Plant	1081,10,10000,0,1
 ve_fild03,0,0,0,0	monster	Magmaring	1836,130,5000,0,0
 ve_fild03,0,0,0,0	monster	Muscipular	1780,35,5000,0,0
 ve_fild03,0,0,0,0	monster	Drosera	1781,35,5000,0,0
-ve_fild03,200,212,114,60	monster	Red Plant	1078,10000,0,0,1
-ve_fild03,0,0,0,0	monster	Yellow Plant	1081,10000,0,0,1
+ve_fild03,200,212,114,60	monster	Red Plant	1078,10,10000,0,1
+ve_fild03,0,0,0,0	monster	Yellow Plant	1081,10,10000,0,1
 
 //==================================================
 // ve_fild04 - Veins Field 
