@@ -17206,29 +17206,26 @@ BUILDIN_FUNC(getrandgroupitem) {
 	TBL_PC* sd;
 	int i, get_count = 0, flag, nameid, group = script_getnum(st, 2), qty = script_getnum(st,3);
 	struct item item_tmp;
-	
+
 	if( !( sd = script_rid2sd(st) ) )
 		return 0;
-	
+
 	if( qty <= 0 ) {
 		ShowError("getrandgroupitem: qty is <= 0!\n");
 		return 1;
 	}
-	if( (nameid = itemdb_searchrandomid(group)) == UNKNOWN_ITEM_ID ) {
-		return 1;/* itemdb_searchrandomid will already scream a error */
-	}
-	
+
+	nameid = itemdb_searchrandomid(group);
 	memset(&item_tmp,0,sizeof(item_tmp));
-	
 	item_tmp.nameid   = nameid;
 	item_tmp.identify = itemdb_isidentified(nameid);
-	
+
 	//Check if it's stackable.
 	if (!itemdb_isstackable(nameid))
 		get_count = 1;
 	else
 		get_count = qty;
-	
+
 	for (i = 0; i < qty; i += get_count) {
 		// if not pet egg
 		if (!pet_create_egg(sd, nameid)) {
@@ -17239,7 +17236,7 @@ BUILDIN_FUNC(getrandgroupitem) {
 			}
 		}
 	}
-	
+
 	return 0;
 }
 
