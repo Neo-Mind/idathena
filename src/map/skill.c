@@ -12081,7 +12081,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				int sec = sg->limit - DIFF_TICK(tick, sg->tick);
 				int range = skill_get_unit_range(sg->skill_id, sg->skill_lv);
 				
-				if ( tsc && tsc->data[SC_HALLUCINATIONWALK]) 
+				if ( tsc && tsc->data[SC_HALLUCINATIONWALK])
 					return 0;
 
 				if( tsc && !tsc->data[type] &&
