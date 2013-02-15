@@ -5334,7 +5334,7 @@ mid_camp,212,237,5	script	Camp Guard Captain#man1	852,{
 				mes "I'll discuss this more with the expedition management.";
 				mes "Thank you for your valuable information.";
 				completequest 2159;
-				if (checkre(0))
+				if(checkre(0))
 					getexp 90000,0;
 				else
 					getexp 900000,0;
