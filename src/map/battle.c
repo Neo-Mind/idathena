@@ -4638,13 +4638,11 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	md.damage =  battle_calc_cardfix(BF_MISC, src, target, nk, s_ele, 0, md.damage, 0, md.flag);
 
 	if (sd) {
-		if (i = pc_skillatk_bonus(sd, skill_id)) {
+		if( (i = pc_skillatk_bonus(sd, skill_id)) )
 			md.damage += md.damage * i / 100;
-		}
 
-		if (i = battle_adjust_skill_damage(sd->bl.m,skill_id)) {
+		if( (i = battle_adjust_skill_damage(sd->bl.m,skill_id)) )
 			md.damage = md.damage * i / 100;
-		}
 	}
 
 	if(md.damage < 0)
