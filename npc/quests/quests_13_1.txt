@@ -5322,31 +5322,6 @@ mid_camp,212,237,5	script	Camp Guard Captain#man1	852,{
 			mes "Sorry to bother you.";
 			close;
 		}
-		else if (checkquest(2158) == 2) {
-			if (checkquest(2159) == 1) {
-				mes "- You report your encounter with a tree giant in the Manuk area to the guard captain. -";
-				next;
-				mes "[Captain]";
-				mes "That sounds very important.";
-				mes "It's too early to say this, but we might have to dispatch an investigation group to the area.";
-				next;
-				mes "[Captain]";
-				mes "I'll discuss this more with the expedition management.";
-				mes "Thank you for your valuable information.";
-				completequest 2159;
-				if(checkre(0))
-					getexp 90000,0;
-				else
-					getexp 900000,0;
-				close;
-			}
-			else {
-				mes "["+strcharinfo(0)+"]";
-				mes "Oh, nothing.";
-				mes "Sorry to bother you.";
-				close;
-			}
-		}
 		else {
 			if (checkquest(2159) == 1) {
 				mes "- You report your encounter with a tree giant in the Manuk area to the guard captain. -";
@@ -5359,7 +5334,7 @@ mid_camp,212,237,5	script	Camp Guard Captain#man1	852,{
 				mes "I'll discuss this more with the expedition management.";
 				mes "Thank you for your valuable information.";
 				completequest 2159;
-				if(checkre(0))
+				if (checkre(0))
 					getexp 90000,0;
 				else
 					getexp 900000,0;
