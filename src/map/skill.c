@@ -10707,6 +10707,14 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 	target = skill_get_unit_target(skill_id);
 	unit_flag = skill_get_unit_flag(skill_id);
 	layout = skill_get_unit_layout(skill_id,skill_lv,src,x,y);
+	
+	if( map[src->m].unit_count ) {
+		ARR_FIND(0, map[src->m].unit_count, i, map[src->m].units[i]->skill_id == skill_id );
+
+		if( i < map[src->m].unit_count ) {
+			limit = limit * map[src->m].units[i]->modifier / 100;
+		}
+	}
 
 	sd = BL_CAST(BL_PC, src);
 	status = status_get_status_data(src);
@@ -11048,8 +11056,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 	}
 
 	limit = group->limit;
-	for( i = 0; i < layout->count; i++ )
-	{
+	for( i = 0; i < layout->count; i++ ) {
 		struct skill_unit *unit;
 		int ux = x + layout->dx[i];
 		int uy = y + layout->dy[i];
@@ -11064,63 +11071,63 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 
 		switch( skill_id )
 		{
-		case MG_FIREWALL:
-		case NJ_KAENSIN:
-			val2=group->val2;
-			break;
-		case WZ_ICEWALL:
-			val1 = (skill_lv <= 1) ? 500 : 200 + 200*skill_lv;
-			val2 = map_getcell(src->m, ux, uy, CELL_GETTYPE);
-			break;
-		case HT_LANDMINE:
-		case MA_LANDMINE:
-		case HT_ANKLESNARE:
-		case HT_SHOCKWAVE:
-		case HT_SANDMAN:
-		case MA_SANDMAN:
-		case HT_FLASHER:
-		case HT_FREEZINGTRAP:
-		case MA_FREEZINGTRAP:
-		case HT_TALKIEBOX:
-		case HT_SKIDTRAP:
-		case MA_SKIDTRAP:
-		case HT_CLAYMORETRAP:
-		case HT_BLASTMINE:
-		/**
-		 * Ranger
-		 **/
-		case RA_ELECTRICSHOCKER:
-		case RA_CLUSTERBOMB:
-		case RA_MAGENTATRAP:
-		case RA_COBALTTRAP:
-		case RA_MAIZETRAP:
-		case RA_VERDURETRAP:
-		case RA_FIRINGTRAP:
-		case RA_ICEBOUNDTRAP:
-			val1 = 3500;
-			break;
-		case GS_DESPERADO:
-			val1 = abs(layout->dx[i]);
-			val2 = abs(layout->dy[i]);
-			if (val1 < 2 || val2 < 2) { //Nearby cross, linear decrease with no diagonals
-				if (val2 > val1) val1 = val2;
-				if (val1) val1--;
-				val1 = 36 -12*val1;
-			} else //Diagonal edges
-				val1 = 28 -4*val1 -4*val2;
-			if (val1 < 1) val1 = 1;
-			val2 = 0;
-			break;
-		case WM_REVERBERATION:
-			val1 = 1 + skill_lv;
-			break;
-		case GN_WALLOFTHORN:
-			val1 = 2000 + 2000 * skill_lv;//Thorn Walls HP
-			break;
-		default:
-			if (group->state.song_dance&0x1)
-				val2 = unit_flag&(UF_DANCE|UF_SONG); //Store whether this is a song/dance
-			break;
+			case MG_FIREWALL:
+			case NJ_KAENSIN:
+				val2=group->val2;
+				break;
+			case WZ_ICEWALL:
+				val1 = (skill_lv <= 1) ? 500 : 200 + 200*skill_lv;
+				val2 = map_getcell(src->m, ux, uy, CELL_GETTYPE);
+				break;
+			case HT_LANDMINE:
+			case MA_LANDMINE:
+			case HT_ANKLESNARE:
+			case HT_SHOCKWAVE:
+			case HT_SANDMAN:
+			case MA_SANDMAN:
+			case HT_FLASHER:
+			case HT_FREEZINGTRAP:
+			case MA_FREEZINGTRAP:
+			case HT_TALKIEBOX:
+			case HT_SKIDTRAP:
+			case MA_SKIDTRAP:
+			case HT_CLAYMORETRAP:
+			case HT_BLASTMINE:
+			/**
+			 * Ranger
+			 **/
+			case RA_ELECTRICSHOCKER:
+			case RA_CLUSTERBOMB:
+			case RA_MAGENTATRAP:
+			case RA_COBALTTRAP:
+			case RA_MAIZETRAP:
+			case RA_VERDURETRAP:
+			case RA_FIRINGTRAP:
+			case RA_ICEBOUNDTRAP:
+				val1 = 3500;
+				break;
+			case GS_DESPERADO:
+				val1 = abs(layout->dx[i]);
+				val2 = abs(layout->dy[i]);
+				if (val1 < 2 || val2 < 2) { //Nearby cross, linear decrease with no diagonals
+					if (val2 > val1) val1 = val2;
+					if (val1) val1--;
+					val1 = 36 -12*val1;
+				} else //Diagonal edges
+					val1 = 28 -4*val1 -4*val2;
+				if (val1 < 1) val1 = 1;
+				val2 = 0;
+				break;
+			case WM_REVERBERATION:
+				val1 = 1 + skill_lv;
+				break;
+			case GN_WALLOFTHORN:
+				val1 = 2000 + 2000 * skill_lv;//Thorn Walls HP
+				break;
+			default:
+				if (group->state.song_dance&0x1)
+					val2 = unit_flag&(UF_DANCE|UF_SONG); //Store whether this is a song/dance
+				break;
 		}
 		if (skill_get_unit_flag(skill_id) & UF_RANGEDSINGLEUNIT && i == (layout->count / 2))
 			val2 |= UF_RANGEDSINGLEUNIT; // center.

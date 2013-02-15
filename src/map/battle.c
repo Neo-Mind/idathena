@@ -1624,6 +1624,19 @@ static int battle_range_type(
 		return BF_SHORT;
 	return BF_LONG;
 }
+static inline int battle_adjust_skill_damage(int m, unsigned short skill_id) {
+
+	if( map[m].skill_count ) {
+		int i;
+		ARR_FIND(0, map[m].skill_count, i, map[m].skills[i]->skill_id == skill_id );
+
+		if( i < map[m].skill_count ) {
+			return map[m].skills[i]->modifier;
+		}
+	}
+
+	return 0;
+}
 
 static int battle_blewcount_bonus(struct map_session_data *sd, uint16 skill_id)
 {
@@ -3204,6 +3217,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			if (skill_id && (i = pc_skillatk_bonus(sd, skill_id)))
 				ATK_ADDRATE(i);
 
+			if( (i = battle_adjust_skill_damage(sd->bl.m,skill_id)) )
+				ATK_RATE(i);
+
 			if( skill_id != PA_SACRIFICE && skill_id != MO_INVESTIGATE && skill_id != CR_GRANDCROSS && skill_id != NPC_GRANDDARKNESS && skill_id != PA_SHIELDCHAIN && !flag.cri )
 			{ //Elemental/Racial adjustments
 				if( sd->right_weapon.def_ratio_atk_ele & (1<<tstatus->def_ele) ||
@@ -4201,6 +4217,9 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			if ((i = pc_skillatk_bonus(sd, skill_id)))
 				ad.damage += ad.damage*i/100;
 
+			if( (i = battle_adjust_skill_damage(sd->bl.m,skill_id)) )
+				MATK_RATE(i);
+
 			//Ignore Defense?
 			if (!flag.imdef && (
 				sd->bonus.ignore_mdef_ele & ( 1 << tstatus->def_ele ) ||
@@ -4618,6 +4637,9 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 
 	if (sd && (i = pc_skillatk_bonus(sd, skill_id)))
 		md.damage += md.damage*i/100;
+
+	if( (i = battle_adjust_skill_damage(sd->bl.m,skill_id)) )
+		md.damage = md.damage * i / 100;
 
 	if(md.damage < 0)
 		md.damage = 0;
