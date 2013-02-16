@@ -3215,7 +3215,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		}
 
 		if( (i = battle_adjust_skill_damage(src->m,skill_id)) )
-				ATK_RATE(i);
+			ATK_RATE(i);
 
 		if( sd ) {
 			if (skill_id && (i = pc_skillatk_bonus(sd, skill_id)))
@@ -4636,13 +4636,13 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 
 	md.damage =  battle_calc_cardfix(BF_MISC, src, target, nk, s_ele, 0, md.damage, 0, md.flag);
 
-	if (sd && (i = pc_skillatk_bonus(sd, skill_id)))
+	if( sd && (i = pc_skillatk_bonus(sd, skill_id)) )
 		md.damage += md.damage * i / 100;
 
 	if( (i = battle_adjust_skill_damage(src->m,skill_id)) )
 		md.damage = md.damage * i / 100;
 
-	if(md.damage < 0)
+	if( md.damage < 0 )
 		md.damage = 0;
 	else if(md.damage && tstatus->mode&MD_PLANT){
 		switch(skill_id){

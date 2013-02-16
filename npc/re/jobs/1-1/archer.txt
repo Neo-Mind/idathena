@@ -10,7 +10,7 @@
 //= Job Change to Archer Class
 //===== Additional Comments: ================================= 
 //= 1.0 First Version. [Kisuka]
-//= 1.1 Added Baby Job compatibility [Streusel]
+//= 1.1 Added support for Baby classes. [Euphy]
 //============================================================ 
 payon_in02,64,71,4	script	Archer Guildsman#archer	85,{
 	if (Upper == 1) {
@@ -64,18 +64,17 @@ payon_in02,64,71,4	script	Archer Guildsman#archer	85,{
 	next;
 	switch(select("I want to be an Archer.:I need the requirements, please.:Nothing, thanks.")) {
 	case 1:
-		if(Class != Job_Novice && Class != Job_Baby) {
-			mes "[Archer Guildsman]";
-			if(Class == Job_Archer) {
-				mes "Haha, you are kidding me..";
-			}else{
+		mes "[Archer Guildsman]";
+		if(BaseJob != Job_Novice) {
+			if(BaseJob == Job_Archer)
+				mes "Haha, you are kidding me...";
+			else {
 				mes "I feel sorry but only Novices can change their job.";
 				mes "You already have your own decent job, don't you?";
 			}
 			close;
 		}else{
-			mes "[Archer Guildsman]";
-			mes "You are... "+strcharinfo(0)+". right?";
+			mes "You are... "+strcharinfo(0)+", right?";
 			next;
 			if (getskilllv("NV_BASIC") < 9) {
 				mes "[Archer Guildsman]";

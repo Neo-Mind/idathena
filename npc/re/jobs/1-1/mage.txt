@@ -10,7 +10,7 @@
 //= Job Change to Mage Class
 //===== Additional Comments: ================================= 
 //= 1.0 First Version. [Kisuka]
-//= 1.1 Added Baby Job compatibility [Streusel]
+//= 1.1 Added support for Baby classes. [Euphy]
 //============================================================ 
 geffen_in,164,124,4	script	Mage Guildsman#mage	123,{
 	if (Upper == 1) {
@@ -53,17 +53,15 @@ geffen_in,164,124,4	script	Mage Guildsman#mage	123,{
 			close;
 		}
 	}
-	if(Class != Job_Novice && Class != Job_Baby) {
-		mes "[Mage Guildsman]";
-		if(Class == Job_Mage) {
+	mes "[Mage Guildsman]";
+	if(BaseJob != Job_Novice) {
+		if(BaseJob == Job_Mage) {
 			mes "Hey, haven't you realized? You're already a Mage, silly!";
 			mes "One of these days you'll realize the power inside of you when you can make Fire with your mind!";
-		}else{
+		} else
 			mes "Hey~ C'mon. Quit playing games. You can't be a Mage because you already have another Job.";
-		}
 		close;
 	}else{
-		mes "[Mage Guildsman]";
 		mes "Hey?";
 		next;
 		switch(select("I want to be a Mage:What are the requirements to be a Mage?:Nothing, thanks.")) {
@@ -106,7 +104,7 @@ geffen_in,164,124,4	script	Mage Guildsman#mage	123,{
 			mes "'Welcome to the Mage Guild~'";
 			mes "Congratulations on becoming a member of the Mage Guild! Go for it!";
 			callfunc "Job_Change",Job_Mage;
-			getitem	1639,1; // N_Rod
+			getitem 1639,1;	// N_Rod
 			close;
 		case 2:
 			mes "[Mage Guildsman]";
