@@ -4216,7 +4216,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		if (sd) {
 			//Damage bonuses
 			if ((i = pc_skillatk_bonus(sd, skill_id)))
-				ad.damage += ad.damage*i/100;
+				ad.damage += ad.damage * i / 100;
 
 			if( (i = battle_adjust_skill_damage(src->m,skill_id)) )
 				MATK_RATE(i);
