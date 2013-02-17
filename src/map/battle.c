@@ -4366,17 +4366,17 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	md.flag=BF_MISC|BF_SKILL;
 
 	nk = skill_get_nk(skill_id);
-	
+
 	sd = BL_CAST(BL_PC, src);
 	tsd = BL_CAST(BL_PC, target);
-	
+
 	// Minstrel/Wanderer number check for chorus skills.
 	// Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 	if( sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 7)
 		chorusbonus = 5;//Maximum effect possiable from 7 or more Minstrel's/Wanderer's
 	else if( sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 2)
 		chorusbonus = party_foreachsamemap(party_sub_count_chorus, sd, 0) - 2;//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
-	
+
 	if(sd) {
 		sd->state.arrow_atk = 0;
 		md.blewcount += battle_blewcount_bonus(sd, skill_id);
@@ -4391,197 +4391,196 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	//Skill Range Criteria
 	md.flag |= battle_range_type(src, target, skill_id, skill_lv);
 
-	switch( skill_id )
-	{
+	switch( skill_id ) {
 #ifdef RENEWAL
-	case HT_LANDMINE:
-	case MA_LANDMINE:
-	case HT_BLASTMINE:
-	case HT_CLAYMORETRAP:
-		md.damage = skill_lv * sstatus->dex * (3+status_get_lv(src)/100) * (1+sstatus->int_/35);
-		md.damage += md.damage * (rnd()%20-10) / 100;
-		md.damage += 40 * (sd?pc_checkskill(sd,RA_RESEARCHTRAP):0);
-		break;
+		case HT_LANDMINE:
+		case MA_LANDMINE:
+		case HT_BLASTMINE:
+		case HT_CLAYMORETRAP:
+			md.damage = skill_lv * sstatus->dex * (3+status_get_lv(src)/100) * (1+sstatus->int_/35);
+			md.damage += md.damage * (rnd()%20-10) / 100;
+			md.damage += 40 * (sd?pc_checkskill(sd,RA_RESEARCHTRAP):0);
+			break;
 #else
-	case HT_LANDMINE:
-	case MA_LANDMINE:
-		md.damage=skill_lv*(sstatus->dex+75)*(100+sstatus->int_)/100;
-		break;
-	case HT_BLASTMINE:
-		md.damage=skill_lv*(sstatus->dex/2+50)*(100+sstatus->int_)/100;
-		break;
-	case HT_CLAYMORETRAP:
-		md.damage=skill_lv*(sstatus->dex/2+75)*(100+sstatus->int_)/100;
-		break;
+		case HT_LANDMINE:
+		case MA_LANDMINE:
+			md.damage=skill_lv*(sstatus->dex+75)*(100+sstatus->int_)/100;
+			break;
+		case HT_BLASTMINE:
+			md.damage=skill_lv*(sstatus->dex/2+50)*(100+sstatus->int_)/100;
+			break;
+		case HT_CLAYMORETRAP:
+			md.damage=skill_lv*(sstatus->dex/2+75)*(100+sstatus->int_)/100;
+			break;
 #endif
-	case HT_BLITZBEAT:
-	case SN_FALCONASSAULT:
-		//Blitz-beat Damage.
-		if(!sd || (skill = pc_checkskill(sd,HT_STEELCROW)) <= 0)
-			skill=0;
-		md.damage=(sstatus->dex/10+sstatus->int_/2+skill*3+40)*2;
-		if(mflag > 1) //Autocasted Blitz.
-			nk|=NK_SPLASHSPLIT;
-		
-		if (skill_id == SN_FALCONASSAULT)
-		{
-			//Div fix of Blitzbeat
-			skill = skill_get_num(HT_BLITZBEAT, 5);
-			damage_div_fix(md.damage, skill);
+		case HT_BLITZBEAT:
+		case SN_FALCONASSAULT:
+			//Blitz-beat Damage.
+			if(!sd || (skill = pc_checkskill(sd,HT_STEELCROW)) <= 0)
+				skill=0;
+			md.damage=(sstatus->dex/10+sstatus->int_/2+skill*3+40)*2;
+			if(mflag > 1) //Autocasted Blitz.
+				nk|=NK_SPLASHSPLIT;
+			
+			if (skill_id == SN_FALCONASSAULT)
+			{
+				//Div fix of Blitzbeat
+				skill = skill_get_num(HT_BLITZBEAT, 5);
+				damage_div_fix(md.damage, skill);
 
-			//Falcon Assault Modifier
-			md.damage=md.damage*(150+70*skill_lv)/100;
-		}
-		break;
-	case TF_THROWSTONE:
-		md.damage=50;
-		break;
-	case BA_DISSONANCE:
-		md.damage=30+skill_lv*10;
-		if (sd)
-			md.damage+= 3*pc_checkskill(sd,BA_MUSICALLESSON);
-		break;
-	case NPC_SELFDESTRUCTION:
-		md.damage = sstatus->hp;
-		break;
-	case NPC_SMOKING:
-		md.damage=3;
-		break;
-	case NPC_DARKBREATH:
-		md.damage = 500 + (skill_lv-1)*1000 + rnd()%1000;
-		if(md.damage > 9999) md.damage = 9999;
-		break;
-	case PA_PRESSURE:
-		md.damage=500+300*skill_lv;
-		break;
-	case PA_GOSPEL:
-		md.damage = 1+rnd()%9999;
-		break;
-	case CR_ACIDDEMONSTRATION:
-#ifdef RENEWAL
-		{
-			short atk, matk, size_mod, bonus;
-			atk  = sstatus->batk + sstatus->rhw.atk;
-			matk = sstatus->matk_max + sd ? sstatus->matk_min : 0;
-			size_mod  = sd ? sd->right_weapon.atkmods[tstatus->size] : 100;
-			bonus = sd ? sd->bonus.long_attack_atk_rate : 0; // Long ATK Bonus. Likes : Archer Skeleton Card
-
-			if ((atk != 0 && size_mod != 0) || matk != 0)
-				md.damage = (int)(((7 * atk * tstatus->vit) * size_mod / 100 + (7 * matk * tstatus->vit)) / 100);
-			else
-				md.damage = 0;
-
-			if (tsd || is_boss(target))
-				md.damage >>= 1;
-			if (md.damage < 0)
-				md.damage = 0;
-			if (md.damage > INT_MAX>>1)
-				md.damage = INT_MAX>>1; //Overflow prevention
-			if (sd && bonus != 0)
-				md.damage += md.damage * bonus / 100;
-		}
-#else
-		if(tstatus->vit+sstatus->int_) //crash fix
-			md.damage = (int)(7*tstatus->vit*sstatus->int_*sstatus->int_ / (10*(tstatus->vit+sstatus->int_)));
-		else
-			md.damage = 0;
-		if (tsd) md.damage>>=1;
-		if (md.damage < 0 || md.damage > INT_MAX>>1)
-		//Overflow prevention, will anyone whine if I cap it to a few billion?
-		//Not capped to INT_MAX to give some room for further damage increase.
-			md.damage = INT_MAX>>1;
-#endif
-		break;
-	case NJ_ZENYNAGE:
-	case KO_MUCHANAGE:
-			md.damage = skill_get_zeny(skill_id, skill_lv);
-			if (!md.damage) md.damage = 2;
-			md.damage = (skill_id==NJ_ZENYNAGE?rnd()%md.damage+md.damage:md.damage*rnd_value(50, 100)) / (skill_id==NJ_ZENYNAGE?1:100);
-			if (sd) {
-				if ( skill_id==KO_MUCHANAGE && (pc_checkskill(sd,NJ_TOBIDOUGU)==0) )
-					md.damage = md.damage/2;
+				//Falcon Assault Modifier
+				md.damage=md.damage*(150+70*skill_lv)/100;
 			}
-			if (is_boss(target))
-				md.damage=md.damage / (skill_id==NJ_ZENYNAGE?3:2);
-			else if (tsd) // need confirmation for KO_MUCHANAGE
-				md.damage=md.damage/2;
-		break;
-	case GS_FLING:
-		md.damage = sd?sd->status.job_level:status_get_lv(src);
-		break;
-	case HVAN_EXPLOSION:	//[orn]
-		md.damage = sstatus->max_hp * (50 + 50 * skill_lv) / 100;
-		break ;
-	case ASC_BREAKER:
-		md.damage = 500+rnd()%500 + 5*skill_lv * sstatus->int_;
-		nk|=NK_IGNORE_FLEE|NK_NO_ELEFIX; //These two are not properties of the weapon based part.
-		break;
-	case HW_GRAVITATION:
-		md.damage = 200+200*skill_lv;
-		md.dmotion = 0; //No flinch animation.
-		break;
-	case NPC_EVILLAND:
-		md.damage = skill_calc_heal(src,target,skill_id,skill_lv,false);
-		break;
-	case RK_DRAGONBREATH:
-		md.damage = ((sstatus->hp / 50) + (status_get_max_sp(src) / 4)) * skill_lv;
-		RE_LVL_MDMOD(150);
-		if (sd) md.damage = md.damage * (100 + 5 * (pc_checkskill(sd,RK_DRAGONTRAINING) - 1)) / 100;
-		md.flag |= BF_LONG|BF_WEAPON;
-		break;
-	/**
-	 * Ranger
-	 **/
-	case RA_CLUSTERBOMB:
-	case RA_FIRINGTRAP:
- 	case RA_ICEBOUNDTRAP:
-		md.damage = skill_lv * sstatus->dex + sstatus->int_ * 5 ;
-		RE_LVL_TMDMOD();
-		if (sd) {
-			int researchskill_lv = pc_checkskill(sd,RA_RESEARCHTRAP);
-			if(researchskill_lv)
-				md.damage = md.damage * 20 * researchskill_lv / (skill_id == RA_CLUSTERBOMB?50:100);
+			break;
+		case TF_THROWSTONE:
+			md.damage=50;
+			break;
+		case BA_DISSONANCE:
+			md.damage=30+skill_lv*10;
+			if (sd)
+				md.damage+= 3*pc_checkskill(sd,BA_MUSICALLESSON);
+			break;
+		case NPC_SELFDESTRUCTION:
+			md.damage = sstatus->hp;
+			break;
+		case NPC_SMOKING:
+			md.damage=3;
+			break;
+		case NPC_DARKBREATH:
+			md.damage = 500 + (skill_lv-1)*1000 + rnd()%1000;
+			if(md.damage > 9999) md.damage = 9999;
+			break;
+		case PA_PRESSURE:
+			md.damage=500+300*skill_lv;
+			break;
+		case PA_GOSPEL:
+			md.damage = 1+rnd()%9999;
+			break;
+		case CR_ACIDDEMONSTRATION:
+#ifdef RENEWAL
+			{
+				short atk, matk, size_mod, bonus;
+				atk  = sstatus->batk + sstatus->rhw.atk;
+				matk = sstatus->matk_max + sd ? sstatus->matk_min : 0;
+				size_mod  = sd ? sd->right_weapon.atkmods[tstatus->size] : 100;
+				bonus = sd ? sd->bonus.long_attack_atk_rate : 0; // Long ATK Bonus. Likes : Archer Skeleton Card
+
+				if ((atk != 0 && size_mod != 0) || matk != 0)
+					md.damage = (int)(((7 * atk * tstatus->vit) * size_mod / 100 + (7 * matk * tstatus->vit)) / 100);
+				else
+					md.damage = 0;
+
+				if (tsd || is_boss(target))
+					md.damage >>= 1;
+				if (md.damage < 0)
+					md.damage = 0;
+				if (md.damage > INT_MAX>>1)
+					md.damage = INT_MAX>>1; //Overflow prevention
+				if (sd && bonus != 0)
+					md.damage += md.damage * bonus / 100;
+			}
+#else
+			if(tstatus->vit+sstatus->int_) //crash fix
+				md.damage = (int)(7*tstatus->vit*sstatus->int_*sstatus->int_ / (10*(tstatus->vit+sstatus->int_)));
 			else
 				md.damage = 0;
-		} else
-			md.damage = md.damage * 200 / (skill_id == RA_CLUSTERBOMB?50:100);
-		break;
-	case WM_SOUND_OF_DESTRUCTION:
-		md.damage = 1000 * skill_lv + sstatus->int_ * pc_checkskill(sd,WM_LESSON);
-		md.damage += md.damage * ( 10 * chorusbonus ) / 100;
-		break;
-	/**
-	 * Mechanic
-	 **/
-	case NC_SELFDESTRUCTION:
-		{
-			short totaldef = tstatus->def2 + (short)status_get_def(target);
-			md.damage = (skill_lv + 1) * ((sd ? pc_checkskill(sd,NC_MAINFRAME):4) + 8) * (status_get_sp(src) + sstatus->vit);
-			RE_LVL_MDMOD(100);
-			md.damage += status_get_hp(src) - totaldef;
-		}
-		break;
-	case GN_THORNS_TRAP:
-		md.damage = 100 + 200 * skill_lv + sstatus->int_;
-		break;
-	case GN_HELLS_PLANT_ATK:
-		//[{( Hell Plant Skill Level x Caster Base Level ) x 10 } + {( Caster INT x 7 ) / 2 } x { 18 + ( Caster Job Level / 4 )] x ( 5 / ( 10 - Summon Flora Skill Level ))
-		md.damage = ( skill_lv * status_get_lv(src) * 10 ) + ( sstatus->int_ * 7 / 2 ) * ( 18 + (sd?sd->status.job_level:0) / 4 ) * ( 5 / (10 - (sd?pc_checkskill(sd,AM_CANNIBALIZE):0)) );
-		break;
-	case KO_HAPPOKUNAI:
-		{
-			struct Damage wd = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
-			short totaldef = tstatus->def2 + (short)status_get_def(target);
-			md.damage = wd.damage * 60 * (5 + skill_lv) / 100;
-			md.damage -= totaldef;
-		}
-		break;
-	case KO_MAKIBISHI:
-		md.damage = 20 * skill_lv;
-		break;
+			if (tsd) md.damage>>=1;
+			if (md.damage < 0 || md.damage > INT_MAX>>1)
+			//Overflow prevention, will anyone whine if I cap it to a few billion?
+			//Not capped to INT_MAX to give some room for further damage increase.
+				md.damage = INT_MAX>>1;
+#endif
+			break;
+		case NJ_ZENYNAGE:
+		case KO_MUCHANAGE:
+				md.damage = skill_get_zeny(skill_id, skill_lv);
+				if (!md.damage) md.damage = 2;
+				md.damage = (skill_id==NJ_ZENYNAGE?rnd()%md.damage+md.damage:md.damage*rnd_value(50, 100)) / (skill_id==NJ_ZENYNAGE?1:100);
+				if (sd) {
+					if ( skill_id==KO_MUCHANAGE && (pc_checkskill(sd,NJ_TOBIDOUGU)==0) )
+						md.damage = md.damage/2;
+				}
+				if (is_boss(target))
+					md.damage=md.damage / (skill_id==NJ_ZENYNAGE?3:2);
+				else if (tsd) // need confirmation for KO_MUCHANAGE
+					md.damage=md.damage/2;
+			break;
+		case GS_FLING:
+			md.damage = sd?sd->status.job_level:status_get_lv(src);
+			break;
+		case HVAN_EXPLOSION:	//[orn]
+			md.damage = sstatus->max_hp * (50 + 50 * skill_lv) / 100;
+			break ;
+		case ASC_BREAKER:
+			md.damage = 500+rnd()%500 + 5*skill_lv * sstatus->int_;
+			nk|=NK_IGNORE_FLEE|NK_NO_ELEFIX; //These two are not properties of the weapon based part.
+			break;
+		case HW_GRAVITATION:
+			md.damage = 200+200*skill_lv;
+			md.dmotion = 0; //No flinch animation.
+			break;
+		case NPC_EVILLAND:
+			md.damage = skill_calc_heal(src,target,skill_id,skill_lv,false);
+			break;
+		case RK_DRAGONBREATH:
+			md.damage = ((sstatus->hp / 50) + (status_get_max_sp(src) / 4)) * skill_lv;
+			RE_LVL_MDMOD(150);
+			if (sd) md.damage = md.damage * (100 + 5 * (pc_checkskill(sd,RK_DRAGONTRAINING) - 1)) / 100;
+			md.flag |= BF_LONG|BF_WEAPON;
+			break;
+		/**
+		 * Ranger
+		 **/
+		case RA_CLUSTERBOMB:
+		case RA_FIRINGTRAP:
+		case RA_ICEBOUNDTRAP:
+			md.damage = skill_lv * sstatus->dex + sstatus->int_ * 5 ;
+			RE_LVL_TMDMOD();
+			if (sd) {
+				int researchskill_lv = pc_checkskill(sd,RA_RESEARCHTRAP);
+				if(researchskill_lv)
+					md.damage = md.damage * 20 * researchskill_lv / (skill_id == RA_CLUSTERBOMB?50:100);
+				else
+					md.damage = 0;
+			} else
+				md.damage = md.damage * 200 / (skill_id == RA_CLUSTERBOMB?50:100);
+			break;
+		case WM_SOUND_OF_DESTRUCTION:
+			md.damage = 1000 * skill_lv + sstatus->int_ * pc_checkskill(sd,WM_LESSON);
+			md.damage += md.damage * ( 10 * chorusbonus ) / 100;
+			break;
+		/**
+		 * Mechanic
+		 **/
+		case NC_SELFDESTRUCTION:
+			{
+				short totaldef = tstatus->def2 + (short)status_get_def(target);
+				md.damage = (skill_lv + 1) * ((sd ? pc_checkskill(sd,NC_MAINFRAME):4) + 8) * (status_get_sp(src) + sstatus->vit);
+				RE_LVL_MDMOD(100);
+				md.damage += status_get_hp(src) - totaldef;
+			}
+			break;
+		case GN_THORNS_TRAP:
+			md.damage = 100 + 200 * skill_lv + sstatus->int_;
+			break;
+		case GN_HELLS_PLANT_ATK:
+			//[{( Hell Plant Skill Level x Caster Base Level ) x 10 } + {( Caster INT x 7 ) / 2 } x { 18 + ( Caster Job Level / 4 )] x ( 5 / ( 10 - Summon Flora Skill Level ))
+			md.damage = ( skill_lv * status_get_lv(src) * 10 ) + ( sstatus->int_ * 7 / 2 ) * ( 18 + (sd?sd->status.job_level:0) / 4 ) * ( 5 / (10 - (sd?pc_checkskill(sd,AM_CANNIBALIZE):0)) );
+			break;
+		case KO_HAPPOKUNAI:
+			{
+				struct Damage wd = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
+				short totaldef = tstatus->def2 + (short)status_get_def(target);
+				md.damage = wd.damage * 60 * (5 + skill_lv) / 100;
+				md.damage -= totaldef;
+			}
+			break;
+		case KO_MAKIBISHI:
+			md.damage = 20 * skill_lv;
+			break;
 	}
 
-	if (nk&NK_SPLASHSPLIT){ // Divide ATK among targets
+	if (nk&NK_SPLASHSPLIT) { // Divide ATK among targets
 		if(mflag>0)
 			md.damage/= mflag;
 		else
@@ -4589,7 +4588,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	}
 
 	damage_div_fix(md.damage, md.div_);
-	
+
 	if (!(nk&NK_IGNORE_FLEE))
 	{
 		struct status_change *sc = status_get_sc(target);
@@ -4701,13 +4700,13 @@ struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct bl
 {
 	struct Damage d;
 	switch(attack_type) {
-	case BF_WEAPON: d = battle_calc_weapon_attack(bl,target,skill_id,skill_lv,count); break;
-	case BF_MAGIC:  d = battle_calc_magic_attack(bl,target,skill_id,skill_lv,count);  break;
-	case BF_MISC:   d = battle_calc_misc_attack(bl,target,skill_id,skill_lv,count);   break;
-	default:
-		ShowError("battle_calc_attack: unknown attack type! %d\n",attack_type);
-		memset(&d,0,sizeof(d));
-		break;
+		case BF_WEAPON: d = battle_calc_weapon_attack(bl,target,skill_id,skill_lv,count); break;
+		case BF_MAGIC:  d = battle_calc_magic_attack(bl,target,skill_id,skill_lv,count);  break;
+		case BF_MISC:   d = battle_calc_misc_attack(bl,target,skill_id,skill_lv,count);   break;
+		default:
+			ShowError("battle_calc_attack: unknown attack type! %d\n",attack_type);
+			memset(&d,0,sizeof(d));
+			break;
 	}
 	if( d.damage + d.damage2 < 1 )
 	{	//Miss/Absorbed
@@ -4792,10 +4791,10 @@ int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int
 			if (rdamage < 1) rdamage = 1;
 		}
 	}
-	
+
 	if( sc && sc->data[SC_KYOMU] ) // Nullify reflecting ability
 		rdamage = 0;
-		
+
 	return rdamage;
 }
 
@@ -4813,7 +4812,7 @@ void battle_drain(TBL_PC *sd, struct block_list *tbl, int rdamage, int ldamage, 
 			type = race;
 		else
 			type = boss?RC_BOSS:RC_NONBOSS;
-		
+
 		hp = wd->hp_drain[type].value;
 		if (wd->hp_drain[type].rate)
 			hp += battle_calc_drain(*damage, wd->hp_drain[type].rate, wd->hp_drain[type].per);
@@ -4821,7 +4820,7 @@ void battle_drain(TBL_PC *sd, struct block_list *tbl, int rdamage, int ldamage, 
 		sp = wd->sp_drain[type].value;
 		if (wd->sp_drain[type].rate)
 			sp += battle_calc_drain(*damage, wd->sp_drain[type].rate, wd->sp_drain[type].per);
-		
+
 		if (hp) {
 			if (wd->hp_drain[type].type)
 				rhp += hp;
@@ -4845,7 +4844,7 @@ void battle_drain(TBL_PC *sd, struct block_list *tbl, int rdamage, int ldamage, 
 	if (!thp && !tsp) return;
 
 	status_heal(&sd->bl, thp, tsp, battle_config.show_hp_sp_drain?3:1);
-	
+
 	if (rhp || rsp)
 		status_zap(tbl, rhp, rsp);
 }
