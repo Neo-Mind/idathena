@@ -33,6 +33,7 @@
 1629:5045,{ bonus bDex,2; bonus bInt,2; bonus bSPrecovRate,5; bonus bMatkRate,getrefine(); }
 1631:2129,{ bonus2 bSkillAtk,"PR_MAGNUS",20; bonus3 bAutoSpellWhenHit,"PR_TURNUNDEAD",1,20; }
 1636:18539,{ bonus bMatk,10*getequiprefinerycnt(EQI_HAND_R); bonus bVariableCastrate,-10; }
+1646:2161,{ if(getrefine()>=4) { bonus2 bFixedCastrate,"WZ_STORMGUST",-getrefine(); bonus2 bFixedCastrate,"WL_FROSTMISTY",-getrefine(); bonus2 bFixedCastrate,"WL_JACKFROST",-getrefine(); }  }
 1657:2471:2569:15029,{ bonus bHealPower,25; }
 1660:2471:2569:15029,{ bonus bHealPower,45; bonus3 bAutoSpellWhenHit,"AB_SILENTIUM",1,10; }
 1718:1774,{ bonus bLongAtkRate,50; }
