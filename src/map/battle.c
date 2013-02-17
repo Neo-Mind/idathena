@@ -4421,9 +4421,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			md.damage=(sstatus->dex/10+sstatus->int_/2+skill*3+40)*2;
 			if(mflag > 1) //Autocasted Blitz.
 				nk|=NK_SPLASHSPLIT;
-			
-			if (skill_id == SN_FALCONASSAULT)
-			{
+
+			if (skill_id == SN_FALCONASSAULT) {
 				//Div fix of Blitzbeat
 				skill = skill_get_num(HT_BLITZBEAT, 5);
 				damage_div_fix(md.damage, skill);

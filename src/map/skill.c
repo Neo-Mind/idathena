@@ -316,73 +316,72 @@ int skill_get_range2 (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 	}
 
 	//TODO: Find a way better than hardcoding the list of skills affected by AC_VULTURE
-	switch( skill_id )
-	{
-	case AC_SHOWER:			case MA_SHOWER:
-	case AC_DOUBLE:			case MA_DOUBLE:
-	case HT_BLITZBEAT:
-	case AC_CHARGEARROW:
-	case MA_CHARGEARROW:
-	case SN_FALCONASSAULT:
-	case HT_POWER:
-	/**
-	 * Ranger
-	 **/
-	case RA_ARROWSTORM:
-	case RA_AIMEDBOLT:
-	case RA_WUGBITE:
-		if( bl->type == BL_PC )
-			range += pc_checkskill((TBL_PC*)bl, AC_VULTURE);
-		else
-			range += 10; //Assume level 10?
-		break;
-	// added to allow GS skills to be effected by the range of Snake Eyes [Reddozen]
-	case GS_RAPIDSHOWER:
-	case GS_PIERCINGSHOT:
-	case GS_FULLBUSTER:
-	case GS_SPREADATTACK:
-	case GS_GROUNDDRIFT:
-		if (bl->type == BL_PC)
-			range += pc_checkskill((TBL_PC*)bl, GS_SNAKEEYE);
-		else
-			range += 10; //Assume level 10?
-		break;
-	case NJ_KIRIKAGE:
-		if (bl->type == BL_PC)
-			range = skill_get_range(NJ_SHADOWJUMP,pc_checkskill((TBL_PC*)bl,NJ_SHADOWJUMP));
-		break;
-	/**
-	 * Warlock
-	 **/
-	case WL_WHITEIMPRISON:
-	case WL_SOULEXPANSION:
-	//case WL_FROSTMISTY:
-	case WL_MARSHOFABYSS:
-	case WL_SIENNAEXECRATE:
-	case WL_DRAINLIFE:
-	case WL_CRIMSONROCK:
-	case WL_HELLINFERNO:
-	case WL_COMET:
-	case WL_JACKFROST:
-	case WL_CHAINLIGHTNING:
-	case WL_EARTHSTRAIN:
-	case WL_TETRAVORTEX:
-	case WL_RELEASE:
+	switch( skill_id ) {
+		case AC_SHOWER:			case MA_SHOWER:
+		case AC_DOUBLE:			case MA_DOUBLE:
+		case HT_BLITZBEAT:
+		case AC_CHARGEARROW:
+		case MA_CHARGEARROW:
+		case SN_FALCONASSAULT:
+		case HT_POWER:
+		/**
+		 * Ranger
+		 **/
+		case RA_ARROWSTORM:
+		case RA_AIMEDBOLT:
+		case RA_WUGBITE:
 			if( bl->type == BL_PC )
-				range += pc_checkskill((TBL_PC*)bl, WL_RADIUS);
+				range += pc_checkskill((TBL_PC*)bl, AC_VULTURE);
+			else
+				range += 10; //Assume level 10?
 			break;
-	/**
-	 * Ranger Bonus
-	 **/
-	case HT_LANDMINE:
-	case HT_FREEZINGTRAP:
-	case HT_BLASTMINE:
-	case HT_CLAYMORETRAP:
-	case RA_CLUSTERBOMB:
-	case RA_FIRINGTRAP:
-	case RA_ICEBOUNDTRAP:
-		if( bl->type == BL_PC )
-			range += (1 + pc_checkskill((TBL_PC*)bl, RA_RESEARCHTRAP))/2;
+		// added to allow GS skills to be effected by the range of Snake Eyes [Reddozen]
+		case GS_RAPIDSHOWER:
+		case GS_PIERCINGSHOT:
+		case GS_FULLBUSTER:
+		case GS_SPREADATTACK:
+		case GS_GROUNDDRIFT:
+			if (bl->type == BL_PC)
+				range += pc_checkskill((TBL_PC*)bl, GS_SNAKEEYE);
+			else
+				range += 10; //Assume level 10?
+			break;
+		case NJ_KIRIKAGE:
+			if (bl->type == BL_PC)
+				range = skill_get_range(NJ_SHADOWJUMP,pc_checkskill((TBL_PC*)bl,NJ_SHADOWJUMP));
+			break;
+		/**
+		 * Warlock
+		 **/
+		case WL_WHITEIMPRISON:
+		case WL_SOULEXPANSION:
+		//case WL_FROSTMISTY:
+		case WL_MARSHOFABYSS:
+		case WL_SIENNAEXECRATE:
+		case WL_DRAINLIFE:
+		case WL_CRIMSONROCK:
+		case WL_HELLINFERNO:
+		case WL_COMET:
+		case WL_JACKFROST:
+		case WL_CHAINLIGHTNING:
+		case WL_EARTHSTRAIN:
+		case WL_TETRAVORTEX:
+		case WL_RELEASE:
+				if( bl->type == BL_PC )
+					range += pc_checkskill((TBL_PC*)bl, WL_RADIUS);
+				break;
+		/**
+		 * Ranger Bonus
+		 **/
+		case HT_LANDMINE:
+		case HT_FREEZINGTRAP:
+		case HT_BLASTMINE:
+		case HT_CLAYMORETRAP:
+		case RA_CLUSTERBOMB:
+		case RA_FIRINGTRAP:
+		case RA_ICEBOUNDTRAP:
+			if( bl->type == BL_PC )
+				range += (1 + pc_checkskill((TBL_PC*)bl, RA_RESEARCHTRAP))/2;
 	}
 
 	if( !range && bl->type != BL_PC )
@@ -397,38 +396,38 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 	struct status_change* sc;
 
 	switch( skill_id ) {
-	case BA_APPLEIDUN:
+		case BA_APPLEIDUN:
 #ifdef RENEWAL
-		hp = 100+5*skill_lv+5*(status_get_vit(src)/10); // HP recovery
+			hp = 100+5*skill_lv+5*(status_get_vit(src)/10); // HP recovery
 #else
-		hp = 30+5*skill_lv+5*(status_get_vit(src)/10); // HP recovery
+			hp = 30+5*skill_lv+5*(status_get_vit(src)/10); // HP recovery
 #endif
-		if( sd )
-				hp += 5*pc_checkskill(sd,BA_MUSICALLESSON);
-			break;
-		case PR_SANCTUARY:
-			hp = (skill_lv>6)?777:skill_lv*100;
-			break;
-		case NPC_EVILLAND:
-			hp = (skill_lv>6)?666:skill_lv*100;
-			break;
-		default:
-			if (skill_lv >= battle_config.max_heal_lv)
-				return battle_config.max_heal;
+			if( sd )
+					hp += 5*pc_checkskill(sd,BA_MUSICALLESSON);
+				break;
+			case PR_SANCTUARY:
+				hp = (skill_lv>6)?777:skill_lv*100;
+				break;
+			case NPC_EVILLAND:
+				hp = (skill_lv>6)?666:skill_lv*100;
+				break;
+			default:
+				if (skill_lv >= battle_config.max_heal_lv)
+					return battle_config.max_heal;
 #ifdef RENEWAL
-			/**
-			 * Renewal Heal Formula
-			 * Formula: ( [(Base Level + INT) / 5] × 30 ) × (Heal Level / 10) × (Modifiers) + MATK
-			 **/
-			hp = (status_get_lv(src) + status_get_int(src)) / 5 * 30  * skill_lv / 10;
+				/**
+				 * Renewal Heal Formula
+				 * Formula: ( [(Base Level + INT) / 5] × 30 ) × (Heal Level / 10) × (Modifiers) + MATK
+				 **/
+				hp = (status_get_lv(src) + status_get_int(src)) / 5 * 30  * skill_lv / 10;
 #else
-			hp = ( status_get_lv(src) + status_get_int(src) ) / 8 * (4 + ( skill_id == AB_HIGHNESSHEAL ? ( sd ? pc_checkskill(sd,AL_HEAL) : 10 ) : skill_lv ) * 8);
+				hp = ( status_get_lv(src) + status_get_int(src) ) / 8 * (4 + ( skill_id == AB_HIGHNESSHEAL ? ( sd ? pc_checkskill(sd,AL_HEAL) : 10 ) : skill_lv ) * 8);
 #endif
-			if( sd && ((skill = pc_checkskill(sd, HP_MEDITATIO)) > 0) )
-				hp += hp * skill * 2 / 100;
-			else if( src->type == BL_HOM && (skill = merc_hom_checkskill(((TBL_HOM*)src), HLIF_BRAIN)) > 0 )
-				hp += hp * skill * 2 / 100;
-			break;
+				if( sd && ((skill = pc_checkskill(sd, HP_MEDITATIO)) > 0) )
+					hp += hp * skill * 2 / 100;
+				else if( src->type == BL_HOM && (skill = merc_hom_checkskill(((TBL_HOM*)src), HLIF_BRAIN)) > 0 )
+					hp += hp * skill * 2 / 100;
+				break;
 	}
 
 	if( ( (target && target->type == BL_MER) || !heal ) && skill_id != NPC_EVILLAND )
