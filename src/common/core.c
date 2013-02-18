@@ -176,10 +176,10 @@ const char* get_svn_revision(void)
 	// - since it's a cache column, the data might not even exist
 	if( (fp = fopen(".svn"PATHSEP_STR"wc.db", "rb")) != NULL || (fp = fopen(".."PATHSEP_STR".svn"PATHSEP_STR"wc.db", "rb")) != NULL )
 	{
-	#ifndef SVNNODEPATH
+#ifndef SVNNODEPATH
 		//not sure how to handle branches, so i'll leave this overridable define until a better solution comes up
 		#define SVNNODEPATH trunk
-	#endif
+#endif
 		const char* prefix = "!svn/ver/";
 		const char* postfix = "/"EXPAND_AND_QUOTE(SVNNODEPATH)")"; // there should exist only 1 entry like this
 		size_t prefix_len = strlen(prefix);

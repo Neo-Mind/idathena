@@ -337,13 +337,13 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 			struct skill_unit *su = (struct skill_unit*)target;
 			struct skill_unit_group *sg;
 			struct block_list *src;
-			int x,y;
 			
 			if( !su || !su->alive || (sg = su->group) == NULL || !sg || sg->val3 == -1 ||
 			   (src = map_id2bl(sg->src_id)) == NULL || status_isdead(src) )
 				return 0;
 			
 			if( sg->unit_id != UNT_FIREWALL ) {
+				int x,y;
 				x = sg->val3 >> 16;
 				y = sg->val3 & 0xffff;
 				skill_unitsetting(src,su->group->skill_id,su->group->skill_lv,x,y,1);
@@ -2108,7 +2108,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 #define ATK_ADD( a ) { wd.damage += a; if (flag.lh) wd.damage2+= a; }
 #define ATK_ADD2( a , b ) { wd.damage += a; if (flag.lh) wd.damage2+= b; }
 
-		switch (skill_id) {	//Calc base damage according to skill
+		switch (skill_id) { //Calc base damage according to skill
 			case PA_SACRIFICE:
 				wd.damage = sstatus->max_hp* 9/100;
 				wd.damage2 = 0;
@@ -4721,7 +4721,7 @@ struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct bl
 
 //Calculates BF_WEAPON returned damage.
 int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int *dmg, int flag, uint16 skill_id){
-	struct map_session_data* sd = NULL;
+	struct map_session_data* sd;
 	int rdamage = 0, damage = *dmg, max_damage = status_get_max_hp(bl);
 	struct status_change *sc;
 	struct status_change *ssc = status_get_sc(src);
@@ -4752,11 +4752,10 @@ int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int
 				if (rdamage < 1) rdamage = 1;
 			}
 			if(sc->data[SC_DEATHBOUND] && skill_id != WS_CARTTERMINATION && !(src->type == BL_MOB && is_boss(src)) ) {
-				uint8 dir = map_calc_dir(bl,src->x,src->y),
-					t_dir = unit_getdir(bl);
-					int rd1 = 0;
+				uint8 dir = map_calc_dir(bl,src->x,src->y), t_dir = unit_getdir(bl);
 
 				if( distance_bl(src,bl) <= 0 || !map_check_dir(dir,t_dir) ) {
+					int rd1 = 0;
 					rd1 = min(damage,status_get_max_hp(bl)) * sc->data[SC_DEATHBOUND]->val2 / 100; // Amplify damage.
 					*dmg = rd1 * 30 / 100; // Player receives 30% of the amplified damage.
 					clif_skill_damage(src,bl,gettick(), status_get_amotion(src), 0, -30000, 1, RK_DEATHBOUND, sc->data[SC_DEATHBOUND]->val1,6);
@@ -6293,7 +6292,6 @@ void battle_adjust_conf()
 
 int battle_config_read(const char* cfgName)
 {
-	char line[1024], w1[1024], w2[1024];
 	FILE* fp;
 	static int count = 0;
 
@@ -6307,6 +6305,7 @@ int battle_config_read(const char* cfgName)
 		ShowError("File not found: %s\n", cfgName);
 	else
 	{
+		char line[1024], w1[1024], w2[1024];
 		while(fgets(line, sizeof(line), fp))
 		{
 			if (line[0] == '/' && line[1] == '/')

@@ -4711,11 +4711,11 @@ static unsigned short status_calc_ematk(struct block_list *bl, struct status_cha
 	if(sc->data[SC_ODINS_POWER])
 		matk += 40 + 30 * sc->data[SC_ODINS_POWER]->val1; //70 lvl1, 100 lvl2
 	if (sc->data[SC_MOONLITSERENADE])
-        matk += sc->data[SC_MOONLITSERENADE]->val3;
+		matk += sc->data[SC_MOONLITSERENADE]->val3;
 	if(sc->data[SC_IZAYOI])
 		matk += 25 * sc->data[SC_IZAYOI]->val1;
 	if (sc->data[SC_ZANGETSU])
-        matk += sc->data[SC_ZANGETSU]->val3;
+		matk += sc->data[SC_ZANGETSU]->val3;
 
 	return (unsigned short)cap_value(matk,0,USHRT_MAX);
 }
@@ -4744,11 +4744,11 @@ static unsigned short status_calc_matk(struct block_list *bl, struct status_chan
     if (sc->data[SC_ODINS_POWER])
         matk += 40 + 30 * sc->data[SC_ODINS_POWER]->val1; //70 lvl1, 100lvl2
 	if (sc->data[SC_MOONLITSERENADE])
-        matk += sc->data[SC_MOONLITSERENADE]->val3;
+		matk += sc->data[SC_MOONLITSERENADE]->val3;
     if (sc->data[SC_IZAYOI])
         matk += 25 * sc->data[SC_IZAYOI]->val1;
 	if (sc->data[SC_ZANGETSU])
-        matk += sc->data[SC_ZANGETSU]->val3;
+		matk += sc->data[SC_ZANGETSU]->val3;
 #endif
     if (sc->data[SC_MAGICPOWER])
         matk += matk * sc->data[SC_MAGICPOWER]->val3 / 100;
