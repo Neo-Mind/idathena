@@ -2108,8 +2108,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 #define ATK_ADD( a ) { wd.damage += a; if (flag.lh) wd.damage2+= a; }
 #define ATK_ADD2( a , b ) { wd.damage += a; if (flag.lh) wd.damage2+= b; }
 
-		switch (skill_id)
-		{	//Calc base damage according to skill
+		switch (skill_id) {	//Calc base damage according to skill
 			case PA_SACRIFICE:
 				wd.damage = sstatus->max_hp* 9/100;
 				wd.damage2 = 0;
@@ -2158,6 +2157,15 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						ATK_ADD(sd->inventory_data[index]->weight/10);
 				} else
 					ATK_ADD(sstatus->rhw.atk2); //Else use Atk2
+				break;
+			case KO_HAPPOKUNAI:
+				if( sd ) {
+					short index = sd->equip_index[EQI_AMMO];
+					wd.damage = 0;
+					if( index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_AMMO )
+						ATK_ADD((3 * (sstatus->batk + sstatus->rhw.atk + sd->inventory_data[index]->atk)) * (skill_lv + 5) / 5);
+				} else
+					ATK_ADD(5000);
 				break;
 			case HFLI_SBR44:	//[orn]
 				if(src->type == BL_HOM) {
@@ -3026,7 +3034,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += -100 + 150 * skill_lv;
 					RE_LVL_DMOD(120);
 					if( tsc && tsc->data[SC_JYUMONJIKIRI] )
-						skillratio += skill_lv * status_get_lv(target);
+						skillratio += skill_lv * status_get_lv(src);
 					break;
 				case KO_HUUMARANKA:
 					skillratio += -100 + 150 * skill_lv + sstatus->agi + sstatus->dex + 100 * (sd?pc_checkskill(sd,NJ_HUUMA):5);
@@ -4565,14 +4573,6 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		case GN_HELLS_PLANT_ATK:
 			//[{( Hell Plant Skill Level x Caster Base Level ) x 10 } + {( Caster INT x 7 ) / 2 } x { 18 + ( Caster Job Level / 4 )] x ( 5 / ( 10 - Summon Flora Skill Level ))
 			md.damage = ( skill_lv * status_get_lv(src) * 10 ) + ( sstatus->int_ * 7 / 2 ) * ( 18 + (sd?sd->status.job_level:0) / 4 ) * ( 5 / (10 - (sd?pc_checkskill(sd,AM_CANNIBALIZE):0)) );
-			break;
-		case KO_HAPPOKUNAI:
-			{
-				struct Damage wd = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
-				short totaldef = tstatus->def2 + (short)status_get_def(target);
-				md.damage = wd.damage * 60 * (5 + skill_lv) / 100;
-				md.damage -= totaldef;
-			}
 			break;
 		case KO_MAKIBISHI:
 			md.damage = 20 * skill_lv;

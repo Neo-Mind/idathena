@@ -1037,8 +1037,8 @@
 3003,0,0,0,0,0,0,5,0,no,0,0,0,weapon,0,		KO_LEFT,Left Hand Mastery
 3004,3:4:5:6:7,8,1,-1,0,0,5,-2,no,0,0,0,weapon,0,	KO_JYUMONJIKIRI,Cross Strike
 3005,2,6,1,-1,0,0,5,1,no,0,0,0,weapon,0,		KO_SETSUDAN,Soul Sever
-3006,7:8:9:10:11,6,2,0,0x2,2,5,0,no,0,0,0,weapon,0,	KO_BAKURETSU,Bakuretsu Kunai
-3007,5,6,4,-1,0x42,4:4:4:4:5,5,0,no,0,0,0,misc,0,	KO_HAPPOKUNAI,Happo Kunai
+3006,7:8:9:10:11,6,2,0,0x42,2,5,1,no,0,0,0,weapon,0,	KO_BAKURETSU,Bakuretsu Kunai
+3007,5,6,4,-1,0x42,4:4:4:4:5,5,1,no,0,0,0,weapon,0,	KO_HAPPOKUNAI,Happo Kunai
 3008,11,8,2,0,0x56,1:1:1:1:1:1:1:1:1:2,10,-10,no,0,0,0,misc,0,	KO_MUCHANAGE,Mucha Nage
 3009,9:10:11:12:13,8,2,-1,0x2,3,5,2,no,0,0,0,weapon,0,	KO_HUUMARANKA,Huuma Shuriken Ranka 
 3010,3,6,4,0,0x43,0,5,1,no,0,0x80,0,misc,0,	KO_MAKIBISHI,Makibishi

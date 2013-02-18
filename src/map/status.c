@@ -772,7 +772,7 @@ void initChangeTables(void) {
 	set_sc( KG_KYOMU           , SC_KYOMU                , SI_KYOMU                , SCB_NONE );
 	set_sc( KG_KAGEMUSYA       , SC_KAGEMUSYA            , SI_KAGEMUSYA            , SCB_NONE );
 	set_sc( KG_KAGEHUMI        , SC_KAGEHUMI             , SI_KG_KAGEHUMI          , SCB_NONE );
-	set_sc( OB_ZANGETSU        , SC_ZANGETSU             , SI_ZANGETSU             , SCB_MATK|SCB_BATK );
+	set_sc( OB_ZANGETSU        , SC_ZANGETSU             , SI_ZANGETSU             , SCB_MATK|SCB_WATK );
 	set_sc_with_vfx( OB_AKAITSUKI, SC_AKAITSUKI          , SI_AKAITSUKI            , SCB_NONE );
 	set_sc( OB_OBOROGENSOU       , SC_GENSOU             , SI_GENSOU               , SCB_NONE );
 	
@@ -4596,8 +4596,6 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk += batk * sc->data[SC_FLEET]->val3 / 100;
 	if(sc->data[SC__ENERVATION])
 		batk -= batk * sc->data[SC__ENERVATION]->val2 / 100;
-	if(sc->data[SC_ZANGETSU])
-		batk += batk * sc->data[SC_ZANGETSU]->val2 / 100;
 
 	return (unsigned short)cap_value(batk,0,USHRT_MAX);
 }
@@ -4684,6 +4682,8 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 	if( sc->data[SC_EDP] )
 		watk = watk * (100 + sc->data[SC_EDP]->val1 * 80) / 100;
 #endif
+	if(sc->data[SC_ZANGETSU])
+		watk += sc->data[SC_ZANGETSU]->val2;
 
 	return (unsigned short)cap_value(watk,0,USHRT_MAX);
 }
@@ -4710,8 +4710,12 @@ static unsigned short status_calc_ematk(struct block_list *bl, struct status_cha
 		matk += 50;
 	if(sc->data[SC_ODINS_POWER])
 		matk += 40 + 30 * sc->data[SC_ODINS_POWER]->val1; //70 lvl1, 100 lvl2
+	if (sc->data[SC_MOONLITSERENADE])
+        matk += sc->data[SC_MOONLITSERENADE]->val3;
 	if(sc->data[SC_IZAYOI])
 		matk += 25 * sc->data[SC_IZAYOI]->val1;
+	if (sc->data[SC_ZANGETSU])
+        matk += sc->data[SC_ZANGETSU]->val3;
 
 	return (unsigned short)cap_value(matk,0,USHRT_MAX);
 }
@@ -4739,8 +4743,12 @@ static unsigned short status_calc_matk(struct block_list *bl, struct status_chan
         matk += 50;
     if (sc->data[SC_ODINS_POWER])
         matk += 40 + 30 * sc->data[SC_ODINS_POWER]->val1; //70 lvl1, 100lvl2
+	if (sc->data[SC_MOONLITSERENADE])
+        matk += sc->data[SC_MOONLITSERENADE]->val3;
     if (sc->data[SC_IZAYOI])
         matk += 25 * sc->data[SC_IZAYOI]->val1;
+	if (sc->data[SC_ZANGETSU])
+        matk += sc->data[SC_ZANGETSU]->val3;
 #endif
     if (sc->data[SC_MAGICPOWER])
         matk += matk * sc->data[SC_MAGICPOWER]->val3 / 100;
@@ -4748,10 +4756,6 @@ static unsigned short status_calc_matk(struct block_list *bl, struct status_chan
         matk += matk * sc->data[SC_MINDBREAKER]->val2 / 100;
     if (sc->data[SC_INCMATKRATE])
         matk += matk * sc->data[SC_INCMATKRATE]->val1 / 100;
-    if (sc->data[SC_MOONLITSERENADE])
-        matk += sc->data[SC_MOONLITSERENADE]->val3;
-    if (sc->data[SC_ZANGETSU])
-        matk += matk * sc->data[SC_ZANGETSU]->val2 / 100;
 
     return (unsigned short)cap_value(matk,0,USHRT_MAX);
 }
@@ -8720,10 +8724,15 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			tick_time = 1000;
 			break;
 		case SC_ZANGETSU:
-			if( (status_get_hp(bl)+status_get_sp(bl)) % 2 == 0)
-				val2 = status_get_lv(bl) / 2 + 50;
+			if( status_get_hp(bl) % 2 == 0 )
+				val2 = (status_get_lv(bl) / 3) + (20 * val1); //+Watk
 			else
-				val2 -= 50;
+				val2 -= (status_get_lv(bl) / 3) + (20 * val1);
+
+			if( status_get_sp(bl) % 2 == 0 )
+				val3 = (status_get_lv(bl) / 3) + (20 * val1); //+Matk
+			else
+				val3 -= (status_get_lv(bl) / 3) + (20 * val1);
 			break;
 		case SC_GENSOU:
 			{
