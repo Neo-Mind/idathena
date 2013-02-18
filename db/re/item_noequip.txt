@@ -37,7 +37,6 @@
 12218,8 //LV5 Assumptio Scroll
 14590,8 //Party Assumptio 5 Scroll
 
-
 //Zone 1 - Aldebaran Turbo Track
 601,32 //Fly Wing
 605,32 //Anodyne
