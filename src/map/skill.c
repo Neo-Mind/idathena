@@ -3216,7 +3216,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				 **/
 				case WL_CHAINLIGHTNING_ATK:
 					{
-						struct block_list *nbl; // Next Target of Chain
+						struct block_list *nbl = NULL; // Next Target of Chain
 						skill_attack(BF_MAGIC,src,src,target,skl->skill_id,skl->skill_lv,tick,skl->flag); // Hit a Lightning on the current Target
 						skill_toggle_magicpower(src, skl->skill_id); // only the first hit will be amplify
 						if( skl->type > 1 )
