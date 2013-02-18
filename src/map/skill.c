@@ -5416,8 +5416,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		clif_skill_nodamage(src,bl,skill_id,skill_lv,
 			sc_start(bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 		break;
-			
-	case SO_STRIKING: {
+
+	case SO_STRIKING: 
+		if( src == bl || battle_check_target(src,bl,BCT_PARTY) > 0 ) {
 			int bonus = 0;
 			if( dstsd ) {
 				short index = dstsd->equip_index[EQI_HAND_R];
@@ -5425,10 +5426,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				bonus = (8 + 2 * skill_lv) * dstsd->inventory_data[index]->wlv;
 			}
 			bonus += 5 * (pc_checkskill(sd, SA_FLAMELAUNCHER) + pc_checkskill(sd, SA_FROSTWEAPON) + pc_checkskill(sd, SA_LIGHTNINGLOADER) + pc_checkskill(sd, SA_SEISMICWEAPON));
-			clif_skill_nodamage( src, bl, skill_id, skill_lv, battle_check_target(src,bl,BCT_PARTY) ? sc_start2(bl, type, 100, skill_lv, bonus, skill_get_time(skill_id,skill_lv)) : 0 );
-		}
-		break;			
-			
+			clif_skill_nodamage( src, bl, skill_id, skill_lv, sc_start2(bl, type, 100, skill_lv, bonus, skill_get_time(skill_id,skill_lv)) );
+		} else if ( sd )
+			clif_skill_fail(sd,skill_id,USESKILL_FAIL_TOTARGET,0);
+		break;
+
 	case NPC_STOP:
 		if( clif_skill_nodamage(src,bl,skill_id,skill_lv,
 			sc_start2(bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv)) ) )
@@ -8736,7 +8738,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 	case SO_ARRULLO:
 		{
 			// [(15 + 5 * Skill Level) + ( Caster INT / 5 ) + ( Caster Job Level / 5 ) - ( Target INT / 6 ) - ( Target LUK / 10 )] %
-			rate = ( 15 + 5 * skill_lv ) + status_get_int(src)/5 + ( (sd) ? sd->status.job_level/5 : 0 );
+			rate = (15 + 5 * skill_lv) + status_get_int(src)/5 + (sd ? sd->status.job_level/5 : 0);
 			rate -= status_get_int(bl)/6 - status_get_luk(bl)/10;
 			clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
 			sc_start2(bl, type, rate, skill_lv, 1, skill_get_time(skill_id, skill_lv));
