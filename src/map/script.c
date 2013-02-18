@@ -17279,6 +17279,7 @@ BUILDIN_FUNC(cleanmap)
 
     return 0;
 }
+
 /* Cast a skill on the attached player.
  * npcskill <skill id>, <skill lvl>, <stat point>, <NPC level>;
  * npcskill "<skill name>", <skill lvl>, <stat point>, <NPC level>; */
@@ -17324,6 +17325,47 @@ BUILDIN_FUNC(npcskill)
 	} else {
 		unit_skilluse_id(&nd->bl, sd->bl.id, skill_id, skill_level);
 	}
+
+	return 0;
+}
+
+/* Consumes a item
+ * consumeitem <item id>
+ * consumeitem "<item name>"
+*/
+BUILDIN_FUNC(consumeitem)
+{
+	TBL_NPC *nd;
+	TBL_PC *sd;
+	struct script_data *data;
+	struct item_data *item_data;
+
+	nullpo_retr( 1, ( sd = script_rid2sd( st ) ) );
+	nullpo_retr( 1, ( nd = (TBL_NPC *)map_id2bl( sd->npc_id ) ) );
+
+	data = script_getdata( st, 2 );
+	get_val( st, data );
+
+	if( data_isstring( data ) ) {
+		const char *name = conv_str( st, data );
+
+		if( ( item_data = itemdb_searchname( name ) ) == NULL ) {
+			ShowError( "buildin_consumeitem: Nonexistant item %s requested.\n", name );
+			return 1;
+		}
+	} else if( data_isint( data ) ) {
+		int nameid = conv_num( st, data );
+
+		if( ( item_data = itemdb_exists( nameid ) ) == NULL ) {
+			ShowError("buildin_consumeitem: Nonexistant item %d requested.\n", nameid );
+			return 1;
+		}
+	} else {
+		ShowError("buildin_consumeitem: invalid data type for argument #1 (%d).", data->type );
+		return 1;
+	}
+
+	run_script( item_data->script, 0, sd->bl.id, nd->bl.id );
 
 	return 0;
 }
@@ -17772,6 +17814,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(cleanmap,"s"),
 	BUILDIN_DEF2(cleanmap,"cleanarea","siiii"),
 	BUILDIN_DEF(npcskill,"viii"),
+	BUILDIN_DEF(consumeitem,"v"),
 	/**
 	 * @commands (script based)
 	 **/
