@@ -623,6 +623,11 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 					cardfix_ = cardfix_ * (100 + sd->sc.data[SC_EDP]->val1 * 60 ) / 100;
 				}
 #endif
+				if( sd->sc.data[SC_ZENKAI] && sstatus->rhw.ele == sd->sc.data[SC_ZENKAI]->val2 ){
+					cardfix += sd->sc.data[SC_ZENKAI]->val1 * 20;
+					cardfix_ += sd->sc.data[SC_ZENKAI]->val1 * 20;
+				}
+
 				if( (left&1) && cardfix_ != 1000 )
 					damage = damage * cardfix_ / 1000;
 				else if( cardfix != 1000 )
@@ -2239,8 +2244,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				skillratio += sc->data[SC_MAXOVERTHRUST]->val2;
 			if(sc->data[SC_BERSERK] || sc->data[SC_SATURDAYNIGHTFEVER] || sc->data[SC__BLOODYLUST])
 				skillratio += 100;
-			if(sc->data[SC_ZENKAI] && sstatus->rhw.ele == sc->data[SC_ZENKAI]->val2 )
-				skillratio += sc->data[SC_ZENKAI]->val1 * 2;
 		}
 		if( !skill_id )
 		{
