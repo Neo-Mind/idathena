@@ -5649,7 +5649,7 @@ ACMD_FUNC(changelook)
 ACMD_FUNC(autotrade)
 {
 	nullpo_retr(-1, sd);
-	
+
 	if( map[sd->bl.m].flag.autotrade != battle_config.autotrade_mapflag ) {
 		clif_displaymessage(fd, msg_txt(1179)); // Autotrade is not allowed on this map.
 		return -1;
@@ -5659,20 +5659,19 @@ ACMD_FUNC(autotrade)
 		clif_displaymessage(fd, msg_txt(1180)); // You cannot autotrade when dead.
 		return -1;
 	}
-	
+
 	if( !sd->state.vending && !sd->state.buyingstore ) { //check if player is vending or buying
 		clif_displaymessage(fd, msg_txt(549)); // "You should have a shop open to use @autotrade."
 		return -1;
 	}
-	
+
 	sd->state.autotrade = 1;
-	if( battle_config.at_timeout )
-	{
+	if( battle_config.at_timeout ) {
 		int timeout = atoi(message);
 		status_change_start(&sd->bl, SC_AUTOTRADE, 10000, 0, 0, 0, 0, ((timeout > 0) ? min(timeout,battle_config.at_timeout) : battle_config.at_timeout) * 60000, 0);
 	}
-	clif_authfail_fd(fd, 15);
-		
+	clif_authfail_fd(sd->fd, 15);
+
 	return 0;
 }
 
