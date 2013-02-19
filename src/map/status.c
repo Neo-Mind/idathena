@@ -2694,8 +2694,8 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 	sd->left_weapon.atkmods[1] = atkmods[1][sd->weapontype2];
 	sd->left_weapon.atkmods[2] = atkmods[2][sd->weapontype2];
 
-	if(pc_isriding(sd) &&
-		(sd->status.weapon==W_1HSPEAR || sd->status.weapon==W_2HSPEAR))
+	if( (pc_isriding(sd) || pc_isridingdragon(sd)) &&
+		(sd->status.weapon==W_1HSPEAR || sd->status.weapon==W_2HSPEAR) )
 	{	//When Riding with spear, damage modifier to mid-class becomes
 		//same as versus large size.
 		sd->right_weapon.atkmods[1] = sd->right_weapon.atkmods[2];
@@ -3548,7 +3548,7 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		} else
 			regen->flag&=~sce->val4; //Remove regen as specified by val4
 	}
-	if(sc->data[SC_GT_REVITALIZE]){
+	if (sc->data[SC_GT_REVITALIZE]) {
 		regen->hp = cap_value(regen->hp*sc->data[SC_GT_REVITALIZE]->val3/100, 1, SHRT_MAX);
 		regen->state.walk= 1;
 	}
@@ -3557,7 +3557,9 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 			|| (sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 1)
 			|| (sc->data[SC_WIND_INSIGNIA] && sc->data[SC_WIND_INSIGNIA]->val1 == 1))
 		regen->rate.hp *= 2;
-	
+	if (sc->data[SC_VITALITYACTIVATION])
+		regen->flag &=~RGN_SP;
+
 }
 void status_calc_state( struct block_list *bl, struct status_change *sc, enum scs_flag flag, bool start ) {
 	
@@ -6549,24 +6551,29 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		if( type >= SC_COMMON_MIN && type <= SC_COMMON_MAX) // Confirmed.
 			return 0; // Immune to status ailements
 		switch( type ) {
-		case SC_QUAGMIRE://Tester said it protects against this and decrease agi.
-		case SC_DECREASEAGI:
-		case SC_BURNING:
-		case SC_FREEZING:
-		case SC_WHITEIMPRISON://Need confirm. Protected against this in the past. [Rytech]
-		case SC_MARSHOFABYSS:
-		case SC_TOXIN:
-		case SC_PARALYSE:
-		case SC_VENOMBLEED:
-		case SC_MAGICMUSHROOM:
-		case SC_DEATHHURT:
-		case SC_PYREXIA:
-		case SC_OBLIVIONCURSE:
-		case SC_LEECHESEND://08/31/2011 - Class Balance Changes
-		case SC_CRYSTALIZE:
-		case SC_DEEPSLEEP:
-		case SC_MANDRAGORA:
-			return 0;
+			case SC_STUN:
+			case SC_SLEEP:
+			case SC_CURSE:
+			case SC_STONE:
+			case SC_POISON:
+			case SC_BLIND:
+			case SC_SILENCE:
+			case SC_BLEEDING:
+			case SC_FREEZE:
+			case SC_DEEPSLEEP:
+			case SC_BURNING:
+			case SC_FREEZING:
+			case SC_CRYSTALIZE:
+			case SC_TOXIN:
+			case SC_PARALYSE:
+			case SC_VENOMBLEED:
+			case SC_MAGICMUSHROOM:
+			case SC_DEATHHURT:
+			case SC_PYREXIA:
+			case SC_OBLIVIONCURSE:
+			case SC_MARSHOFABYSS:
+			case SC_MANDRAGORA:
+				return 0;
 		}
 	}
 	else if( sc->data[SC_INSPIRATION] ) {
@@ -8205,7 +8212,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			tick_time = 10000; // [GodLesZ] tick time
 			break;
 		case SC_GIANTGROWTH:
-			val2 = 10; // Triple damage success rate.
+			val2 = 15; // Triple damage success rate.
 			break;
 		/**
 		 * Arch Bishop

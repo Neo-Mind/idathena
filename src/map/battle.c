@@ -1346,6 +1346,7 @@ int battle_calc_gvg_damage(struct block_list *src,struct block_list *bl,int dama
 		case HW_GRAVITATION:
 		case NJ_ZENYNAGE:
 		case KO_MUCHANAGE:
+		case RK_DRAGONBREATH:
 			break;
 		default:
 			/* Uncomment if you want god-mode Emperiums at 100 defense. [Kisuka]
@@ -1429,10 +1430,10 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 	switch(weapon)
 	{
 		case W_1HSWORD:
-			#ifdef RENEWAL
+#ifdef RENEWAL
 				if((skill = pc_checkskill(sd,AM_AXEMASTERY)) > 0)
 					damage += (skill * 3);
-			#endif
+#endif
 		case W_DAGGER:
 			if((skill = pc_checkskill(sd,SM_SWORD)) > 0)
 				damage += (skill * 4);
@@ -1440,20 +1441,23 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 				damage += skill * 10;
 			break;
 		case W_2HSWORD:
-			#ifdef RENEWAL
+#ifdef RENEWAL
 				if((skill = pc_checkskill(sd,AM_AXEMASTERY)) > 0)
 					damage += (skill * 3);
-			#endif
+#endif
 			if((skill = pc_checkskill(sd,SM_TWOHAND)) > 0)
 				damage += (skill * 4);
 			break;
 		case W_1HSPEAR:
 		case W_2HSPEAR:
 			if((skill = pc_checkskill(sd,KN_SPEARMASTERY)) > 0) {
-				if(!pc_isriding(sd))
+				if(!pc_isriding(sd) || !pc_isridingdragon(sd))
 					damage += (skill * 4);
 				else
 					damage += (skill * 5);
+				// Increase damage by level of KN_SPEARMASTERY * 10
+				if(pc_checkskill(sd,RK_DRAGONTRAINING) > 0)
+					damage += (skill * 10);
 			}
 			break;
 		case W_1HAXE:
@@ -2596,27 +2600,29 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += ((skill_lv-1)%5+1)*100;
 					break;
 				case RK_SONICWAVE:
-					skillratio += (skill_lv + 5) * 100;
-					RE_LVL_DMOD(100);
+					// ATK = {((Skill Level + 5) x 100) x (1 + [(Caster Base Level - 100) / 200])} %
+					skillratio = (skill_lv + 5) * 100;
+					skillratio = skillratio * (100 + (status_get_lv(src) - 100) / 2) / 100;
 					break;
 				case RK_HUNDREDSPEAR:
 					skillratio += 500 + (80 * skill_lv);
-						if( sd )
-						{
-							short index = sd->equip_index[EQI_HAND_R];
-							if( index >= 0 && sd->inventory_data[index] 
-								&& sd->inventory_data[index]->type == IT_WEAPON )
-								skillratio += max(10000 - sd->inventory_data[index]->weight, 0) / 10;
-							skillratio += 50 * pc_checkskill(sd,LK_SPIRALPIERCE);
-						} // (1 + [(Caster Base Level - 100) / 200])
-						skillratio = skillratio * (100 + (status_get_lv(src)-100) / 2) / 100;
+					if( sd ) {
+						short index = sd->equip_index[EQI_HAND_R];
+						if( index >= 0 && sd->inventory_data[index] 
+							&& sd->inventory_data[index]->type == IT_WEAPON )
+							skillratio += max(10000 - sd->inventory_data[index]->weight, 0) / 10;
+						skillratio += 50 * pc_checkskill(sd,LK_SPIRALPIERCE);
+					} // (1 + [(Caster Base Level - 100) / 200])
+					skillratio = skillratio * (100 + (status_get_lv(src) - 100) / 2) / 100;
 					break;
 				case RK_WINDCUTTER:
-					skillratio += (skill_lv + 2) * 50;
+					skillratio = (skill_lv + 2) * 50;
 					RE_LVL_DMOD(100);
 					break;
-				case RK_IGNITIONBREAK:
-					{
+				case RK_IGNITIONBREAK: {
+						// 3x3 cell Damage = ATK [{(Skill Level x 300) x (1 + [(Caster Base Level - 100) / 100])}] %
+						// 7x7 cell Damage = ATK [{(Skill Level x 250) x (1 + [(Caster Base Level - 100) / 100])}] %
+						// 11x11 cell Damage = ATK [{(Skill Level x 200) x (1 + [(Caster Base Level - 100) / 100])}] %
 						int dmg = 300; // Base maximum damage at less than 3 cells.
 						i = distance_bl(src,target);
 						if( i > 7 )
@@ -2624,19 +2630,16 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						else if( i > 3 )
 							dmg -= 50; // Greater than 3 cells, less than 7. (250 damage)
 
-						dmg = (dmg * skill_lv);
-
-						skillratio += dmg;
-						RE_LVL_DMOD(100);
-						
+						dmg = (dmg * skill_lv) * (100 + (status_get_lv(src) - 100) / 12) / 100;
 						// Elemental check, +100% damage if your element is fire.
 						if( sstatus->rhw.ele  == ELE_FIRE )
-							skillratio += skill_lv * 100 / 100;
-						break;
+							dmg += skill_lv * 100 / 100;
+						skillratio = dmg;
 					}
+					break;
 				case RK_CRUSHSTRIKE:
-					if( sd )
-					{//ATK [{Weapon Level * (Weapon Upgrade Level + 6) * 100} + (Weapon ATK) + (Weapon Weight)]%
+					if( sd ) {
+						//ATK [{Weapon Level * (Weapon Upgrade Level + 6) * 100} + (Weapon ATK) + (Weapon Weight)]%
 						short index = sd->equip_index[EQI_HAND_R];
 						if( index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON )
 							skillratio += sd->inventory_data[index]->weight/10 + sstatus->rhw.atk +
@@ -2644,10 +2647,12 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					}
 					break;
 				case RK_STORMBLAST:
-					skillratio = 100 * sstatus->int_ / 8 + 100 * (sd ? pc_checkskill(sd,RK_RUNEMASTERY) : 10);
+					// ATK = [{Rune Mastery Skill Level + (Caster INT / 8)} x 100] %
+					skillratio = ((sd ? pc_checkskill(sd,RK_RUNEMASTERY) : 1) + (sstatus->int_ / 8)) * 100;
 					break;
 				case RK_PHANTOMTHRUST:
-					skillratio += 50 * skill_lv + 10 * ( sd ? pc_checkskill(sd,KN_SPEARMASTERY) : 10);
+					// ATK = [{(Skill Level x 50) + (Spear Master Level x 10)} x Caster Base Level / 150] %
+					skillratio = 50 * skill_lv + 10 * (sd ? pc_checkskill(sd,KN_SPEARMASTERY) : 5);
 					RE_LVL_DMOD(150);
 					break;
 				/**
@@ -4764,7 +4769,6 @@ int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int
 					clif_skill_damage(src,bl,gettick(), status_get_amotion(src), 0, -30000, 1, RK_DEATHBOUND, sc->data[SC_DEATHBOUND]->val1,6);
 					status_change_end(bl,SC_DEATHBOUND,INVALID_TIMER);
 					rdamage += rd1 * 70 / 100; // Target receives 70% of the amplified damage. [Rytech]
-					if (rdamage < 1) rdamage = 1;
 				}
 			}
 			if( sc && sc->data[SC_REFLECTDAMAGE] && rnd()%100 < 30 + 10 * sc->data[SC_REFLECTDAMAGE]->val1)
@@ -5386,8 +5390,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				strip_enemy = 0;
 			}
 			break;
-		case BL_SKILL:
-		{
+		case BL_SKILL: {
 			TBL_SKILL *su = (TBL_SKILL*)target;
 			if( !su->group )
 				return 0;
@@ -5409,7 +5412,6 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 					case RA_SENSITIVEKEEN:
 					case GN_CRAZYWEED_ATK:
 					case RK_STORMBLAST:
-					case RK_PHANTOMTHRUST:
 					case SR_RAMPAGEBLASTER:
 					case NC_COLDSLOWER:
 					case NC_SELFDESTRUCTION:
