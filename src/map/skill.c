@@ -9772,14 +9772,11 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case SA_VIOLENTGALE: {
 			//Does not consumes if the skill is already active. [Skotlex]
 			struct skill_unit_group *sg;
-			if ((sg= skill_locate_element_field(src)) != NULL && ( sg->skill_id == SA_VOLCANO || sg->skill_id == SA_DELUGE || sg->skill_id == SA_VIOLENTGALE ))
-			{
-				if (sg->limit - DIFF_TICK(gettick(), sg->tick) > 0)
-				{
+			if ((sg= skill_locate_element_field(src)) != NULL && ( sg->skill_id == SA_VOLCANO || sg->skill_id == SA_DELUGE || sg->skill_id == SA_VIOLENTGALE )) {
+				if (sg->limit - DIFF_TICK(gettick(), sg->tick) > 0) {
 					skill_unitsetting(src,skill_id,skill_lv,x,y,0);
 					return 0; // not to consume items
-				}
-				else
+				} else
 					sg->limit = 0; //Disable it.
 			}
 			skill_unitsetting(src,skill_id,skill_lv,x,y,0);
@@ -9957,8 +9954,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case AL_WARP:
-			if(sd)
-			{
+			if(sd) {
 				clif_skill_warppoint(sd, skill_id, skill_lv, sd->status.save_point.map,
 					(skill_lv >= 2) ? sd->status.memo_point[0].map : 0,
 					(skill_lv >= 3) ? sd->status.memo_point[1].map : 0,
@@ -10085,8 +10081,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		// Plant Cultivation [Celest]
 		case CR_CULTIVATION:
 			if (sd) {
-				if( map_count_oncell(src->m,x,y,BL_CHAR) > 0 )
-				{
+				if( map_count_oncell(src->m,x,y,BL_CHAR) > 0 ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					return 1;
 				}
@@ -10097,8 +10092,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 					TBL_MOB* md = mob_once_spawn_sub(src, src->m, x, y, "--ja--",(skill_lv < 2 ? 1084+rnd()%2 : 1078+rnd()%6),"", SZ_SMALL, AI_NONE);
 					int i;
 					if (!md) break;
-					if ((i = skill_get_time(skill_id, skill_lv)) > 0)
-					{
+					if ((i = skill_get_time(skill_id, skill_lv)) > 0) {
 						if( md->deletetimer != INVALID_TIMER )
 							delete_timer(md->deletetimer, mob_timer_delete);
 						md->deletetimer = add_timer (tick + i, mob_timer_delete, md->bl.id, 0);
@@ -10118,13 +10112,10 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case PA_GOSPEL:
-			if (sce && sce->val4 == BCT_SELF)
-			{
+			if (sce && sce->val4 == BCT_SELF) {
 				status_change_end(src, SC_GOSPEL, INVALID_TIMER);
 				return 0;
-			}
-			else
-			{
+			} else {
 				sg = skill_unitsetting(src,skill_id,skill_lv,src->x,src->y,0);
 				if (!sg) break;
 				if (sce)
@@ -10139,10 +10130,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case AM_RESURRECTHOMUN:	//[orn]
-			if (sd)
-			{
-				if (!merc_resurrect_homunculus(sd, 20*skill_lv, x, y))
-				{
+			if (sd) {
+				if (!merc_resurrect_homunculus(sd, 20*skill_lv, x, y)) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
@@ -10201,13 +10190,11 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			skill_unitsetting(src,skill_id,skill_lv,x,y,0);
 			break;
 
-		case WL_EARTHSTRAIN:
-			{
+		case WL_EARTHSTRAIN: {
 				int i, wave = skill_lv + 4, dir = map_calc_dir(src,x,y);
 				int sx = x = src->x, sy = y = src->y; // Store first caster's location to avoid glitch on unit setting
 
-				for( i = 1; i <= wave; i++ )
-				{
+				for( i = 1; i <= wave; i++ ) {
 					switch( dir ){
 						case 0: case 1: case 7: sy = y + i; break;
 						case 3: case 4: case 5: sy = y - i; break;
@@ -10238,8 +10225,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			}
 			break;
 
-		case NC_SILVERSNIPER:
-			{
+		case NC_SILVERSNIPER: {
 				int class_ = 2042;
 				struct mob_data *md;
 
@@ -10267,8 +10253,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 				skill_castend_nodamage_id(src,src,TF_HIDING,1,tick,0);
 			break;
 
-		case LG_OVERBRAND:
-			{
+		case LG_OVERBRAND: {
 				int width;//according to data from irowiki it actually is a square
 				for( width = 0; width < 7; width++ )
 					for( i = 0; i < 7; i++ )
@@ -10360,12 +10345,12 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			clif_skill_nodamage(src, src ,skill_id, skill_lv,
 								sc_start2(src, type, 100, skill_id, skill_lv, skill_get_time(skill_id, skill_lv)));
 			break;
-			
+
 		case SC_BLOODYLUST: //set in another group so instance will move if recasted
 			flag |= 33;
 			skill_unitsetting(src, skill_id, skill_lv, x, y, 0);
 			break;
-			
+
 		case KO_MAKIBISHI:
 			for( i = 0; i < (skill_lv+2); i++ ) {
 				x = src->x - 1 + rnd()%3;
