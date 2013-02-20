@@ -8171,7 +8171,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			val2 = 500 + 100 * val1;
 			break;
 		case SC_MILLENNIUMSHIELD:
-			if( sd && val2 > 0)
+			if( sd )
 				clif_millenniumshield(sd,0);
 			break;
 		case SC_VITALITYACTIVATION:

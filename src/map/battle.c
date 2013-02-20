@@ -886,8 +886,8 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			return 0;
 		}
 
-		if( (sce=sc->data[SC_PARRYING]) && flag&BF_WEAPON && skill_id != WS_CARTTERMINATION && rnd()%100 < sce->val2 )
-		{ // attack blocked by Parrying
+		if( (sce=sc->data[SC_PARRYING]) && flag&BF_WEAPON && skill_id != WS_CARTTERMINATION && rnd()%100 < sce->val2 ) {
+			// attack blocked by Parrying
 			clif_skill_nodamage(bl, bl, LK_PARRYING, sce->val1,1);
 			return 0;
 		}
@@ -1067,13 +1067,13 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			//Reduction: 6% + 6% every 20%
 			damage -= damage * (6 * (1+per)) / 100;
 		}
-		if(sc->data[SC_GRANITIC_ARMOR]){
+		if(sc->data[SC_GRANITIC_ARMOR]) {
 			damage -= damage * sc->data[SC_GRANITIC_ARMOR]->val2 / 100;
 		}
-		if(sc->data[SC_PAIN_KILLER]){
+		if(sc->data[SC_PAIN_KILLER]) {
 			damage -= damage * sc->data[SC_PAIN_KILLER]->val3 / 100;
 		}
-		if((sce=sc->data[SC_MAGMA_FLOW]) && (rnd()%100 <= sce->val2) ){
+		if((sce=sc->data[SC_MAGMA_FLOW]) && (rnd()%100 <= sce->val2) ) {
 			skill_castend_damage_id(bl,src,MH_MAGMA_FLOW,sce->val1,gettick(),0);
 		}
 		if( (sce = sc->data[SC_STONEHARDSKIN]) && flag&BF_WEAPON && damage > 0 ) {
