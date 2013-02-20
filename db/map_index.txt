@@ -814,10 +814,10 @@ dic_dun03
 1@lhz
 lhz_dun04
 que_lhz
-evt_swar_b
-evt_swar_r
-evt_swar_s
-evt_swar_t
+//evt_swar_b
+//evt_swar_r
+//evt_swar_s
+//evt_swar_t
 gld2_ald
 gld2_gef
 gld2_pay
