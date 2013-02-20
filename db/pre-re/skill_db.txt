@@ -782,7 +782,6 @@
 2231,0,6,4,0,0x1,0,1,1,yes,0,0,0,magic,0,	WL_READING_SB,Reading Spellbook
 2232,0,0,0,0,0,0,5,0,no,0,0,0,none,0,		WL_FREEZE_SP,Freeze Spell
 
-
 //****
 // RA Ranger
 //****

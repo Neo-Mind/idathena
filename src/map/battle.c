@@ -872,19 +872,19 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			clif_skill_nodamage(bl, bl, RK_MILLENNIUMSHIELD, 1, 1);
 			sce->val3 -= damage; // absorb damage
 			d->dmg_lv = ATK_BLOCK;
-			sc_start(bl,SC_STUN,15,0,skill_get_time2(RK_MILLENNIUMSHIELD,sce->val1)); // There is a chance to be stuned when one shield is broken.
+			// There is a chance to be stuned when one shield is broken.
+			sc_start(bl,SC_STUN,15,0,skill_get_time2(RK_MILLENNIUMSHIELD,sce->val1));
 			if( sce->val3 <= 0 ) { // Shield Down
 				sce->val2--;
 				if( sce->val2 > 0 ) {
 					if( sd )
 						clif_millenniumshield(sd,sce->val2);
-					sce->val3 = 1000; // Next Shield
+						sce->val3 = 1000; // Next Shield
 				} else
 					status_change_end(bl,SC_MILLENNIUMSHIELD,INVALID_TIMER); // All shields down
 			}
 			return 0;
 		}
-
 
 		if( (sce=sc->data[SC_PARRYING]) && flag&BF_WEAPON && skill_id != WS_CARTTERMINATION && rnd()%100 < sce->val2 )
 		{ // attack blocked by Parrying
@@ -1076,13 +1076,19 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		if((sce=sc->data[SC_MAGMA_FLOW]) && (rnd()%100 <= sce->val2) ){
 			skill_castend_damage_id(bl,src,MH_MAGMA_FLOW,sce->val1,gettick(),0);
 		}
-		
-		if( (sce = sc->data[SC_STONEHARDSKIN]) && flag&BF_WEAPON && damage > 0 )
-		{
+		if( (sce = sc->data[SC_STONEHARDSKIN]) && flag&BF_WEAPON && damage > 0 ) {
 			sce->val2 -= damage;
-			skill_break_equip(src,EQP_WEAPON,3000,BCT_SELF);
-
-			if( sce->val2 <= 0 ) status_change_end(bl, SC_STONEHARDSKIN, INVALID_TIMER);
+			if( src->type == BL_PC ) {
+				TBL_PC *ssd = BL_CAST(BL_PC, src);
+				if (ssd && ssd->status.weapon != W_BOW)
+					skill_break_equip(src, EQP_WEAPON, 3000, BCT_SELF);
+			}
+					skill_break_equip(src, EQP_WEAPON, 3000, BCT_SELF);
+			// 30% chance to reduce monster's ATK by 25% for 10 seconds.
+			if( src->type == BL_MOB )
+				sc_start(src, SC_STRIPWEAPON, 30, 0, skill_get_time2(RK_STONEHARDSKIN, sce->val1));
+			if( sce->val2 <= 0 )
+				status_change_end(bl, SC_STONEHARDSKIN, INVALID_TIMER);
 		}
 /**
  * In renewal steel body reduces all incoming damage by 1/10
