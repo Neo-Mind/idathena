@@ -10832,8 +10832,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 /*==========================================
  * Foreach iteration of repetitive status
  *------------------------------------------*/
-int status_change_timer_sub(struct block_list* bl, va_list ap)
-{
+int status_change_timer_sub(struct block_list* bl, va_list ap) {
 	struct status_change* tsc;
 
 	struct block_list* src = va_arg(ap,struct block_list*);
@@ -10847,54 +10846,54 @@ int status_change_timer_sub(struct block_list* bl, va_list ap)
 	tsc = status_get_sc(bl);
 
 	switch( type ) {
-	case SC_SIGHT: /* Reveal hidden enemy on 3*3 range */
-		if( tsc && tsc->data[SC__SHADOWFORM] && (sce && sce->val4 >0 && sce->val4%2000 == 0) && // for every 2 seconds do the checking
-			rnd()%100 < 100-tsc->data[SC__SHADOWFORM]->val1*10 ) // [100 - (Skill Level x 10)] %
-				status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
-	case SC_CONCENTRATE:
-		status_change_end(bl, SC_HIDING, INVALID_TIMER);
-		status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
-		status_change_end(bl, SC_CLOAKINGEXCEED, INVALID_TIMER);
-		status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
-		break;
-	case SC_RUWACH: /* Reveal hidden target and deal little dammages if enemy */
-		if (tsc && (tsc->data[SC_HIDING] || tsc->data[SC_CLOAKING] ||
-				tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_CLOAKINGEXCEED])) {
+		case SC_SIGHT: /* Reveal hidden enemy on 3*3 range */
+			if( tsc && tsc->data[SC__SHADOWFORM] && (sce && sce->val4 >0 && sce->val4%2000 == 0) && // for every 2 seconds do the checking
+				rnd()%100 < 100-tsc->data[SC__SHADOWFORM]->val1*10 ) // [100 - (Skill Level x 10)] %
+					status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
+		case SC_CONCENTRATE:
 			status_change_end(bl, SC_HIDING, INVALID_TIMER);
 			status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
-			status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
 			status_change_end(bl, SC_CLOAKINGEXCEED, INVALID_TIMER);
-			if(battle_check_target( src, bl, BCT_ENEMY ) > 0)
-				skill_attack(BF_MAGIC,src,src,bl,AL_RUWACH,1,tick,0);
-		}
-		if( tsc && tsc->data[SC__SHADOWFORM] && (sce && sce->val4 >0 && sce->val4%2000 == 0) && // for every 2 seconds do the checking
-			rnd()%100 < 100-tsc->data[SC__SHADOWFORM]->val1*10 ) // [100 - (Skill Level x 10)] %
-				status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
-		break;
-	case SC_SIGHTBLASTER:
-		if (battle_check_target( src, bl, BCT_ENEMY ) > 0 &&
-			status_check_skilluse(src, bl, WZ_SIGHTBLASTER, 2))
-		{
-			if (sce && !(bl->type&BL_SKILL) //The hit is not counted if it's against a trap
-				&& skill_attack(BF_MAGIC,src,src,bl,WZ_SIGHTBLASTER,1,tick,0)){
-				sce->val2 = 0; //This signals it to end.
+			status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
+			break;
+		case SC_RUWACH: /* Reveal hidden target and deal little dammages if enemy */
+			if (tsc && (tsc->data[SC_HIDING] || tsc->data[SC_CLOAKING] ||
+					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_CLOAKINGEXCEED])) {
+				status_change_end(bl, SC_HIDING, INVALID_TIMER);
+				status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
+				status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
+				status_change_end(bl, SC_CLOAKINGEXCEED, INVALID_TIMER);
+				if(battle_check_target( src, bl, BCT_ENEMY ) > 0)
+					skill_attack(BF_MAGIC,src,src,bl,AL_RUWACH,1,tick,0);
 			}
+			if( tsc && tsc->data[SC__SHADOWFORM] && (sce && sce->val4 >0 && sce->val4%2000 == 0) && // for every 2 seconds do the checking
+				rnd()%100 < 100-tsc->data[SC__SHADOWFORM]->val1*10 ) // [100 - (Skill Level x 10)] %
+					status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
+			break;
+		case SC_SIGHTBLASTER:
+			if (battle_check_target( src, bl, BCT_ENEMY ) > 0 &&
+				status_check_skilluse(src, bl, WZ_SIGHTBLASTER, 2))
+			{
+				if (sce && !(bl->type&BL_SKILL) //The hit is not counted if it's against a trap
+					&& skill_attack(BF_MAGIC,src,src,bl,WZ_SIGHTBLASTER,1,tick,0)){
+					sce->val2 = 0; //This signals it to end.
+				}
+			}
+			break;
+		case SC_CLOSECONFINE:
+			//Lock char has released the hold on everyone...
+			if (tsc && tsc->data[SC_CLOSECONFINE2] && tsc->data[SC_CLOSECONFINE2]->val2 == src->id) {
+				tsc->data[SC_CLOSECONFINE2]->val2 = 0;
+				status_change_end(bl, SC_CLOSECONFINE2, INVALID_TIMER);
+			}
+			break;
+		case SC_CURSEDCIRCLE_TARGET:
+			if( tsc && tsc->data[SC_CURSEDCIRCLE_TARGET] && tsc->data[SC_CURSEDCIRCLE_TARGET]->val2 == src->id ) {
+				clif_bladestop(bl, tsc->data[SC_CURSEDCIRCLE_TARGET]->val2, 0);
+				status_change_end(bl, type, INVALID_TIMER);
+			}
+			break;
 		}
-		break;
-	case SC_CLOSECONFINE:
-		//Lock char has released the hold on everyone...
-		if (tsc && tsc->data[SC_CLOSECONFINE2] && tsc->data[SC_CLOSECONFINE2]->val2 == src->id) {
-			tsc->data[SC_CLOSECONFINE2]->val2 = 0;
-			status_change_end(bl, SC_CLOSECONFINE2, INVALID_TIMER);
-		}
-		break;
-	case SC_CURSEDCIRCLE_TARGET:
-		if( tsc && tsc->data[SC_CURSEDCIRCLE_TARGET] && tsc->data[SC_CURSEDCIRCLE_TARGET]->val2 == src->id ) {
-			clif_bladestop(bl, tsc->data[SC_CURSEDCIRCLE_TARGET]->val2, 0);
-			status_change_end(bl, type, INVALID_TIMER);
-		}
-		break;
-	}
 	return 0;
 }
 
