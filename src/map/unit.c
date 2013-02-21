@@ -341,7 +341,7 @@ int unit_walktoxy( struct block_list *bl, short x, short y, int flag)
 
 	if(!(flag&2) && (!(status_get_mode(bl)&MD_CANMOVE) || !unit_can_move(bl)))
 		return 0;
-	
+
 	ud->state.walk_easy = flag&1;
 	ud->to_x = x;
 	ud->to_y = y;
@@ -436,8 +436,7 @@ int unit_walktobl(struct block_list *bl, struct block_list *tbl, int range, int 
 		return 1;
 	}
 
-	if(DIFF_TICK(ud->canmove_tick, gettick()) > 0)
-	{	//Can't move, wait a bit before invoking the movement.
+	if(DIFF_TICK(ud->canmove_tick, gettick()) > 0) { //Can't move, wait a bit before invoking the movement.
 		add_timer(ud->canmove_tick+1, unit_walktobl_sub, bl->id, ud->target);
 		return 1;
 	}
@@ -2081,10 +2080,14 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 		skill_cleartimerskill(bl);
 	}
 
-	switch( bl->type ) {
+	switch(bl->type) {
 		case BL_PC: {
 			struct map_session_data *sd = (struct map_session_data*)bl;
-
+			if(sd->shadowform_id) {
+				struct block_list *d_bl = map_id2bl(sd->shadowform_id);
+				if(d_bl)
+					status_change_end(d_bl,SC__SHADOWFORM,INVALID_TIMER);
+			}
 			//Leave/reject all invitations.
 			if(sd->chatID)
 				chat_leavechat(sd,0);
@@ -2109,8 +2112,7 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 				npc_touchnext_areanpc(sd,true);
 				
 			// Check if warping and not changing the map.
-			if ( sd->state.warping && !sd->state.changemap )
-			{
+			if ( sd->state.warping && !sd->state.changemap ) {
 				status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
 				status_change_end(bl, SC_CLOAKINGEXCEED, INVALID_TIMER);
 			}
@@ -2136,8 +2138,7 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 
 			if( map[bl->m].users <= 0 || sd->state.debug_remove_map )
 			{// this is only place where map users is decreased, if the mobs were removed too soon then this function was executed too many times [FlavioJS]
-				if( sd->debug_file == NULL || !(sd->state.debug_remove_map) )
-				{
+				if( sd->debug_file == NULL || !(sd->state.debug_remove_map) ) {
 					sd->debug_file = "";
 					sd->debug_line = 0;
 					sd->debug_func = "";
@@ -2151,16 +2152,12 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 					sd->state.active, sd->state.connect_new, sd->state.rewarp, sd->state.changemap, sd->state.debug_remove_map,
 					map[bl->m].name, map[bl->m].users,
 					sd->debug_file, sd->debug_line, sd->debug_func, file, line, func);
-			}
-			else
-			if (--map[bl->m].users == 0 && battle_config.dynamic_mobs)	//[Skotlex]
+			} else if (--map[bl->m].users == 0 && battle_config.dynamic_mobs)	//[Skotlex]
 				map_removemobs(bl->m);
-			if( !(sd->sc.option&OPTION_INVISIBLE) )
-			{// decrement the number of active pvp players on the map
+			if( !(sd->sc.option&OPTION_INVISIBLE) ) {// decrement the number of active pvp players on the map
 				--map[bl->m].users_pvp;
 			}
-			if( map[bl->m].instance_id )
-			{
+			if( map[bl->m].instance_id ) {
 				instance[map[bl->m].instance_id].users--;
 				instance_check_idle(map[bl->m].instance_id);
 			}

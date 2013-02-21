@@ -1156,7 +1156,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 
 		if( sc && sc->data[SC__SHADOWFORM] ) {
 			struct block_list *s_bl = map_id2bl(sc->data[SC__SHADOWFORM]->val2);
-			if( !s_bl ) { // If the shadow form target is not present remove the sc.
+			if( !s_bl || s_bl->m != bl->m ) { // If the shadow form target is not present remove the sc.
 				status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
 			} else if( status_isdead(s_bl) || !battle_check_target(src,s_bl,BCT_ENEMY)) { // If the shadow form target is dead or not your enemy remove the sc in both.
 				status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
@@ -1907,8 +1907,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			dachance = 5 * pc_checkskill(sd,GS_CHAINACTION);
 
 		// This checks if the generated value is within fear breeze's success chance range for the level used as set by gendetect.
-		if ( sc && sc->data[SC_FEARBREEZE] && generate <= gendetect[sc->data[SC_FEARBREEZE]->val1 - 1] && sd->weapontype1 == W_BOW )
-		{
+		if ( sc && sc->data[SC_FEARBREEZE] && generate <= gendetect[sc->data[SC_FEARBREEZE]->val1 - 1] && sd->weapontype1 == W_BOW ) {
 				if ( generate >= 1 && generate <= 12 )//12% chance to deal 2 hits.
 					hitnumber = 2;
 				else if ( generate >= 13 && generate <= 21 )//9% chance to deal 3 hits.
