@@ -6881,7 +6881,7 @@ ACMD_FUNC(showmobs)
 ACMD_FUNC(homlevel)
 {
 	TBL_HOM * hd;
-	int level = 0, i = 0;
+	int level = 0;
 
 	nullpo_retr(-1, sd);
 
@@ -6897,12 +6897,13 @@ ACMD_FUNC(homlevel)
 
 	hd = sd->hd;
 
-	for (i = 1; i <= level && hd->exp_next; i++) {
+	if ( battle_config.hom_max_level == hd->homunculus.level ) // Already reach maximum level
+		return 0;
+
+	do {
 		hd->homunculus.exp += hd->exp_next;
-		if( !merc_hom_levelup(hd) ) {
-			break;
-		}
-	}
+	} while( hd->homunculus.level < level && merc_hom_levelup(hd) );
+
 	status_calc_homunculus(hd,0);
 	status_percent_heal(&hd->bl, 100, 100);
 	clif_specialeffect(&hd->bl,568,AREA);
