@@ -3043,25 +3043,24 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		sd->sprecov_rate = 0;
 
 	// Anti-element and anti-race
-	if((skill=pc_checkskill(sd,CR_TRUST))>0)
+	if( (skill = pc_checkskill(sd, CR_TRUST)) > 0 )
 		sd->subele[ELE_HOLY] += skill*5;
-	if((skill=pc_checkskill(sd,BS_SKINTEMPER))>0) {
+	if( (skill = pc_checkskill(sd, BS_SKINTEMPER)) > 0 ) {
 		sd->subele[ELE_NEUTRAL] += skill;
 		sd->subele[ELE_FIRE] += skill*4;
 	}
-	if((skill=pc_checkskill(sd,NC_RESEARCHFE))>0) {
+	if( (skill = pc_checkskill(sd, NC_RESEARCHFE)) > 0 ) {
 		sd->subele[ELE_EARTH] += skill*10;
 		sd->subele[ELE_FIRE] += skill*10;
 	}
-	if((skill=pc_checkskill(sd,SA_DRAGONOLOGY))>0 ){
+	if( (skill = pc_checkskill(sd, SA_DRAGONOLOGY)) > 0 ) {
 		skill = skill*4;
 		sd->right_weapon.addrace[RC_DRAGON]+=skill;
 		sd->left_weapon.addrace[RC_DRAGON]+=skill;
 		sd->magic_addrace[RC_DRAGON]+=skill;
 		sd->subrace[RC_DRAGON]+=skill;
 	}
-	if( (skill = pc_checkskill(sd, AB_EUCHARISTICA)) > 0 )
-	{
+	if( (skill = pc_checkskill(sd, AB_EUCHARISTICA)) > 0 ) {
 		sd->right_weapon.addrace[RC_DEMON] += skill;
 		sd->right_weapon.addele[ELE_DARK] += skill;
 		sd->left_weapon.addrace[RC_DEMON] += skill;
@@ -3071,18 +3070,17 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		sd->subrace[RC_DEMON] += skill;
 		sd->subele[ELE_DARK] += skill;
 	}
-	if( (skill = pc_checkskill(sd,NC_RESEARCHFE)) > 0 )
-	{
+	if( (skill = pc_checkskill(sd,NC_RESEARCHFE)) > 0 ) {
 		sd->subele[ELE_FIRE] += skill * 10;
 		sd->subele[ELE_EARTH] += skill * 10;
 	}
 
-	if(sc->count){
+	if( sc->count ) {
      	if(sc->data[SC_CONCENTRATE]) { //Update the card-bonus data
 			sc->data[SC_CONCENTRATE]->val3 = sd->param_bonus[1]; //Agi
 			sc->data[SC_CONCENTRATE]->val4 = sd->param_bonus[4]; //Dex
 		}
-     	if(sc->data[SC_SIEGFRIED]){
+     	if( sc->data[SC_SIEGFRIED] ) {
 			i = sc->data[SC_SIEGFRIED]->val2;
 			sd->subele[ELE_WATER] += i;
 			sd->subele[ELE_EARTH] += i;
@@ -3094,17 +3092,17 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 			sd->subele[ELE_GHOST] += i;
 			sd->subele[ELE_UNDEAD] += i;
 		}
-		if(sc->data[SC_PROVIDENCE]){
+		if( sc->data[SC_PROVIDENCE] ) {
 			sd->subele[ELE_HOLY] += sc->data[SC_PROVIDENCE]->val2;
 			sd->subrace[RC_DEMON] += sc->data[SC_PROVIDENCE]->val2;
 		}
-		if(sc->data[SC_ARMOR_ELEMENT]) {	//This status change should grant card-type elemental resist.
+		if( sc->data[SC_ARMOR_ELEMENT] ) {	//This status change should grant card-type elemental resist.
 			sd->subele[ELE_WATER] += sc->data[SC_ARMOR_ELEMENT]->val1;
 			sd->subele[ELE_EARTH] += sc->data[SC_ARMOR_ELEMENT]->val2;
 			sd->subele[ELE_FIRE] += sc->data[SC_ARMOR_ELEMENT]->val3;
 			sd->subele[ELE_WIND] += sc->data[SC_ARMOR_ELEMENT]->val4;
 		}
-		if(sc->data[SC_ARMOR_RESIST]) { // Undead Scroll
+		if( sc->data[SC_ARMOR_RESIST] ) { // Undead Scroll
 			sd->subele[ELE_WATER] += sc->data[SC_ARMOR_RESIST]->val1;
 			sd->subele[ELE_EARTH] += sc->data[SC_ARMOR_RESIST]->val2;
 			sd->subele[ELE_FIRE] += sc->data[SC_ARMOR_RESIST]->val3;
@@ -5157,15 +5155,12 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 	if( sc == NULL )
 		return cap_value(speed,10,USHRT_MAX);
 
-	if( sd && sd->ud.skilltimer != INVALID_TIMER && (pc_checkskill(sd,SA_FREECAST) > 0 || sd->ud.skill_id == LG_EXEEDBREAK) )
-	{
+	if( sd && sd->ud.skilltimer != INVALID_TIMER && (pc_checkskill(sd,SA_FREECAST) > 0 || sd->ud.skill_id == LG_EXEEDBREAK) ) {
 		if( sd->ud.skill_id == LG_EXEEDBREAK )
 			speed_rate = 160 + 10 - sd->ud.skill_lv;
 		else
 			speed_rate = 175 - 5 * pc_checkskill(sd,SA_FREECAST);
-	}
-	else
-	{
+	} else {
 		speed_rate = 100;
 
 		//GetMoveHasteValue2()
@@ -5198,8 +5193,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 			else
 			if( sd && sc->data[SC_CHASEWALK] && sc->data[SC_CHASEWALK]->val3 < 0 )
 				val = sc->data[SC_CHASEWALK]->val3;
-			else
-			{
+			else {
 				// Longing for Freedom cancels song/dance penalty
 				if( sc->data[SC_LONGING] )
 					val = max( val, 50 - 10 * sc->data[SC_LONGING]->val1 );
@@ -5207,7 +5201,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 				if( sd && sc->data[SC_DANCING] )
 					val = max( val, 500 - (40 + 10 * (sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER)) * pc_checkskill(sd,(sd->status.sex?BA_MUSICALLESSON:DC_DANCINGLESSON)) );
 
-				if( sc->data[SC_DECREASEAGI] )
+				if( sc->data[SC_DECREASEAGI] || sc->data[SC_ADORAMUS] )
 					val = max( val, 25 );
 				if( sc->data[SC_QUAGMIRE] || sc->data[SC_HALLUCINATIONWALK_POSTDELAY] || (sc->data[SC_GLOOMYDAY] && sc->data[SC_GLOOMYDAY]->val4) )
 					val = max( val, 50 );
@@ -6677,6 +6671,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			return 0;
 		if (sc->data[SC_QUAGMIRE] ||
 			sc->data[SC_DECREASEAGI] ||
+			sc->data[SC_ADORAMUS] ||
 			sc->option&OPTION_MADOGEAR //Adrenaline doesn't affect Mado Gear [Ind]
 		)
 			return 0;
@@ -6685,7 +6680,8 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		if(sd && !pc_check_weapontype(sd,skill_get_weapontype(BS_ADRENALINE2)))
 			return 0;
 		if (sc->data[SC_QUAGMIRE] ||
-			sc->data[SC_DECREASEAGI]
+			sc->data[SC_DECREASEAGI] ||
+			sc->data[SC_ADORAMUS]
 		)
 			return 0;
 	break;
@@ -6696,14 +6692,14 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 	case SC_ONEHAND:
 	case SC_MERC_QUICKEN:
 	case SC_TWOHANDQUICKEN:
-		if(sc->data[SC_DECREASEAGI])
+		if(sc->data[SC_DECREASEAGI] || sc->data[SC_ADORAMUS])
 			return 0;
-	
+
 	case SC_INCREASEAGI:
-		 if(sd && pc_issit(sd)){
+		 if(sd && pc_issit(sd)) {
 			 pc_setstand(sd);
 		 }
-	
+
 	case SC_CONCENTRATE:
 	case SC_SPEARQUICKEN:
 	case SC_TRUESIGHT:
@@ -6963,6 +6959,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		break;
 	case SC_INCREASEAGI:
 		status_change_end(bl, SC_DECREASEAGI, INVALID_TIMER);
+		status_change_end(bl, SC_ADORAMUS, INVALID_TIMER);
 		break;
 	case SC_QUAGMIRE:
 		status_change_end(bl, SC_CONCENTRATE, INVALID_TIMER);
@@ -6970,6 +6967,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		status_change_end(bl, SC_WINDWALK, INVALID_TIMER);
 		//Also blocks the ones below...
 	case SC_DECREASEAGI:
+	case SC_ADORAMUS:
 		status_change_end(bl, SC_CARTBOOST, INVALID_TIMER);
 		//Also blocks the ones below...
 	case SC_DONTFORGETME:
@@ -7033,8 +7031,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		status_change_end(bl, SC_ASSUMPTIO, INVALID_TIMER);
 		break;
 	case SC_CARTBOOST:
-		if(sc->data[SC_DECREASEAGI])
-		{	//Cancel Decrease Agi, but take no further effect [Skotlex]
+		if(sc->data[SC_DECREASEAGI] || sc->data[SC_ADORAMUS]) { //Cancel Decrease Agi, but take no further effect [Skotlex]
 			status_change_end(bl, SC_DECREASEAGI, INVALID_TIMER);
 			return 0;
 		}
@@ -7300,22 +7297,21 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 	vd = status_get_viewdata(bl);
 	calc_flag = StatusChangeFlagTable[type];
 	if(!(flag&4)) //&4 - Do not parse val settings when loading SCs
-	switch(type)
-	{
+	switch(type) {
 		case SC_DECREASEAGI:
 		case SC_INCREASEAGI:
+		case SC_ADORAMUS:
 			val2 = 2 + val1; //Agi change
+			if( type == SC_ADORAMUS )
+				sc_start(bl,SC_BLIND,val1 * 4 + (sd ? sd->status.job_level : 50) / 2,val1,skill_get_time(status_sc2skill(type),val1));
 			break;
 		case SC_ENDURE:
 			val2 = 7; // Hit-count [Celest]
-			if( !(flag&1) && (bl->type&(BL_PC|BL_MER)) && !map_flag_gvg(bl->m) && !map[bl->m].flag.battleground && !val4 )
-			{
+			if( !(flag&1) && (bl->type&(BL_PC|BL_MER)) && !map_flag_gvg(bl->m) && !map[bl->m].flag.battleground && !val4 ) {
 				struct map_session_data *tsd;
-				if( sd )
-				{
+				if( sd ) {
 					int i;
-					for( i = 0; i < 5; i++ )
-					{
+					for( i = 0; i < 5; i++ ) {
 						if( sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])) )
 							status_change_start(&tsd->bl, type, 10000, val1, val2, val3, val4, tick, 1);
 					}
@@ -7358,13 +7354,17 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			val2 = val1*20; //SP gained
 			break;
 		case SC_KYRIE:
-			val2 = (int64)status->max_hp * (val1 * 2 + 10) / 100; //%Max HP to absorb
-			if( !val4 )	// val4 signals it as Praefatio, which has a different # of hits formula. [LimitLine]
-				val3 = (val1 / 2 + 5); //Hits
-			else
+			if( sd )
+				val1 = min(val1,pc_checkskill(sd,PR_KYRIE)); // use skill level to determine barrier health.
+			val2 = status->max_hp * (val1 * 2 + 10) / 100; //%Max HP to absorb
+			// val4 holds current amount of party members when casting Praefatio
+			// as Praefatio's barrier has more health and blocks more hits than Kyrie Elesion.
+			if( val4 < 1 ) //== PR_KYRIE
+				val3 = (val1 / 2 + 5);
+			else { //== AB_PRAEFATIO
 				val2 += val4 * 2; //Increase barrier strength per party member.
 				val3 = 6 + val1;
-			if( sd ) val1 = min(val1,pc_checkskill(sd,PR_KYRIE));
+			}
 			break;
 		case SC_MAGICPOWER:
 			//val1: Skill lv
@@ -9335,13 +9335,13 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 
 	if ( StatusChangeStateTable[type] )
 		status_calc_state(bl,sc,( enum scs_flag ) StatusChangeStateTable[type],false);
-	
+
 	sc->data[type] = NULL;
 
 	vd = status_get_viewdata(bl);
 	calc_flag = StatusChangeFlagTable[type];
-	switch(type){
-		case SC_GRANITIC_ARMOR:{
+	switch(type) {
+		case SC_GRANITIC_ARMOR: {
 			int dammage = status->max_hp*sce->val3/100;
 			if(status->hp < dammage) //to not kill him
 				dammage = status->hp-1;
@@ -9356,8 +9356,8 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_XMAS:
 		case SC_SUMMER:
 			if (!vd) break;
-			if (sd)
-			{	//Load data from sd->status.* as the stored values could have changed.
+			if (sd) {
+				//Load data from sd->status.* as the stored values could have changed.
 				//Must remove OPTION to prevent class being rechanged.
 				sc->option &= type==SC_WEDDING?~OPTION_WEDDING:type==SC_XMAS?~OPTION_XMAS:~OPTION_SUMMER;
 				clif_changeoption(&sd->bl);
@@ -9374,8 +9374,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			clif_changelook(bl,LOOK_SHIELD,vd->shield);
 			if(sd) clif_skillinfoblock(sd);
 		break;
-		case SC_RUN:
-		{
+		case SC_RUN: {
 			struct unit_data *ud = unit_bl2ud(bl);
 			bool begin_spurt = true;
 			if (ud) {
@@ -9403,25 +9402,20 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_AUTOGUARD:
 			{
 				struct map_session_data *tsd;
-				if( bl->type == BL_PC )
-				{ // Clear Status from others
+				if( bl->type == BL_PC ) { // Clear Status from others
 					int i;
-					for( i = 0; i < 5; i++ )
-					{
+					for( i = 0; i < 5; i++ ) {
 						if( sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])) && tsd->sc.data[type] )
 							status_change_end(&tsd->bl, type, INVALID_TIMER);
 					}
-				}
-				else if( bl->type == BL_MER && ((TBL_MER*)bl)->devotion_flag )
-				{ // Clear Status from Master
+				} else if( bl->type == BL_MER && ((TBL_MER*)bl)->devotion_flag ) { // Clear Status from Master
 					tsd = ((TBL_MER*)bl)->master;
 					if( tsd && tsd->sc.data[type] )
 						status_change_end(&tsd->bl, type, INVALID_TIMER);
 				}
 			}
 			break;
-		case SC_DEVOTION:
-			{
+		case SC_DEVOTION: {
 				struct block_list *d_bl = map_id2bl(sce->val1);
 				if( d_bl )
 				{
@@ -9440,45 +9434,37 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			break;
 
 		case SC_BLADESTOP:
-			if(sce->val4)
-			{
+			if(sce->val4) {
 				int tid = sce->val4;
 				struct block_list *tbl = map_id2bl(tid);
 				struct status_change *tsc = status_get_sc(tbl);
 				sce->val4 = 0;
-				if(tbl && tsc && tsc->data[SC_BLADESTOP])
-				{
+				if(tbl && tsc && tsc->data[SC_BLADESTOP]) {
 					tsc->data[SC_BLADESTOP]->val4 = 0;
 					status_change_end(tbl, SC_BLADESTOP, INVALID_TIMER);
 				}
 				clif_bladestop(bl, tid, 0);
 			}
 			break;
-		case SC_DANCING:
-			{
+		case SC_DANCING: {
 				const char* prevfile = "<unknown>";
 				int prevline = 0;
 				struct map_session_data *dsd;
 				struct status_change_entry *dsc;
 				struct skill_unit_group *group;
 
-				if( sd )
-				{
-					if( sd->delunit_prevfile )
-					{// initially this is NULL, when a character logs in
+				if( sd ) {
+					if( sd->delunit_prevfile ) { // initially this is NULL, when a character logs in
 						prevfile = sd->delunit_prevfile;
 						prevline = sd->delunit_prevline;
-					}
-					else
-					{
+					} else {
 						prevfile = "<none>";
 					}
 					sd->delunit_prevfile = file;
 					sd->delunit_prevline = line;
 				}
 
-				if(sce->val4 && sce->val4 != BCT_SELF && (dsd=map_id2sd(sce->val4)))
-				{// end status on partner as well
+				if(sce->val4 && sce->val4 != BCT_SELF && (dsd=map_id2sd(sce->val4))) { // end status on partner as well
 					dsc = dsd->sc.data[SC_DANCING];
 					if(dsc) {
 						
@@ -9489,12 +9475,10 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 					}
 				}
 
-				if(sce->val2)
-				{// erase associated land skill
+				if(sce->val2) { // erase associated land skill
 					group = skill_id2group(sce->val2);
 
-					if( group == NULL )
-					{
+					if( group == NULL ) {
 						ShowDebug("status_change_end: SC_DANCING is missing skill unit group (val1=%d, val2=%d, val3=%d, val4=%d, timer=%d, tid=%d, char_id=%d, map=%s, x=%d, y=%d, prev=%s:%d, from=%s:%d). Please report this! (#3504)\n",
 							sce->val1, sce->val2, sce->val3, sce->val4, sce->timer, tid,
 							sd ? sd->status.char_id : 0,
@@ -9516,21 +9500,18 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_NOCHAT:
 			if (sd && sd->status.manner < 0 && tid != INVALID_TIMER)
 				sd->status.manner = 0;
-			if (sd && tid == INVALID_TIMER)
-			{
+			if (sd && tid == INVALID_TIMER) {
 				clif_changestatus(sd,SP_MANNER,sd->status.manner);
 				clif_updatestatus(sd,SP_MANNER);
 			}
 			break;
-		case SC_SPLASHER:
-			{
+		case SC_SPLASHER: {
 				struct block_list *src=map_id2bl(sce->val3);
 				if(src && tid != INVALID_TIMER)
 					skill_castend_damage_id(src, bl, sce->val2, sce->val1, gettick(), SD_LEVEL );
 			}
 			break;
-		case SC_CLOSECONFINE2:
-			{
+		case SC_CLOSECONFINE2: {
 				struct block_list *src = sce->val2?map_id2bl(sce->val2):NULL;
 				struct status_change *sc2 = src?status_get_sc(src):NULL;
 				if (src && sc2 && sc2->data[SC_CLOSECONFINE]) {
@@ -9573,15 +9554,13 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			break;
 
 		case SC_MARIONETTE:
-		case SC_MARIONETTE2:	/// Marionette target
-			if (sce->val1)
-			{	// check for partner and end their marionette status as well
+		case SC_MARIONETTE2: /// Marionette target
+			if (sce->val1) { // check for partner and end their marionette status as well
 				enum sc_type type2 = (type == SC_MARIONETTE) ? SC_MARIONETTE2 : SC_MARIONETTE;
 				struct block_list *pbl = map_id2bl(sce->val1);
 				struct status_change* sc2 = pbl?status_get_sc(pbl):NULL;
 				
-				if (sc2 && sc2->data[type2])
-				{
+				if (sc2 && sc2->data[type2]) {
 					sc2->data[type2]->val1 = 0;
 					status_change_end(pbl, type2, INVALID_TIMER);
 				}
@@ -9592,8 +9571,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			//If val2 is removed, no HP penalty (dispelled?) [Skotlex]
 			if (status->hp > 100 && sce->val2)
 				status_set_hp(bl, 100, 0);
-			if(sc->data[SC_ENDURE] && sc->data[SC_ENDURE]->val4 == 2)
-			{
+			if(sc->data[SC_ENDURE] && sc->data[SC_ENDURE]->val4 == 2) {
 				sc->data[SC_ENDURE]->val4 = 0;
 				status_change_end(bl, SC_ENDURE, INVALID_TIMER);
 			}
@@ -9656,8 +9634,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			return 1;
 			break;
 		case SC_STOP:
-			if( sce->val2 )
-			{
+			if( sce->val2 ) {
 				struct block_list* tbl = map_id2bl(sce->val2);
 				sce->val2 = 0;
 				if( tbl && (sc = status_get_sc(tbl)) && sc->data[SC_STOP] && sc->data[SC_STOP]->val2 == bl->id )
@@ -9673,16 +9650,14 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_ADORAMUS:
 			status_change_end(bl, SC_BLIND, INVALID_TIMER);
 			break;
-		case SC_WHITEIMPRISON:
-			{
+		case SC_WHITEIMPRISON: {
 				struct block_list* src = map_id2bl(sce->val2);
 				if( tid == -1 || !src)
 					break; // Terminated by Damage
 				status_fix_damage(src,bl,400*sce->val1,clif_damage(bl,bl,gettick(),0,0,400*sce->val1,0,0,0));
 			}
 			break;
-		case SC_WUGDASH:
-			{
+		case SC_WUGDASH: {
 				struct unit_data *ud = unit_bl2ud(bl);
 				if (ud) {
 					ud->state.running = 0;
@@ -9740,8 +9715,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				clif_standing(bl);
 			}
 			break;
-		case SC_CURSEDCIRCLE_TARGET:		
-			{
+		case SC_CURSEDCIRCLE_TARGET: {
 				struct block_list *src = map_id2bl(sce->val2);
 				struct status_change *sc = status_get_sc(src);
 				if( sc && sc->data[SC_CURSEDCIRCLE_ATKER] && --(sc->data[SC_CURSEDCIRCLE_ATKER]->val2) == 0 ){
@@ -9751,7 +9725,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			}
 			break;
 		case SC_BLOODSUCKER:
-			if( sce->val2 ){
+			if( sce->val2 ) {
 				struct block_list *src = map_id2bl(sce->val2);
 				if(src){
 					struct status_change *sc = status_get_sc(src);

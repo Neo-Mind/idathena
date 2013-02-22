@@ -3889,11 +3889,11 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						skillratio += skill_lv*10-30;
 						break;
 					case MG_FIREBALL:
-				#ifdef RENEWAL
+#ifdef RENEWAL
 						skillratio += 20*skill_lv;
-				#else
+#else
 						skillratio += skill_lv*10-30;
-				#endif
+#endif
 						break;
 					case MG_SOULSTRIKE:
 						if (battle_check_undead(tstatus->race,tstatus->def_ele))
@@ -4012,7 +4012,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					 * Arch Bishop
 					 **/
 					case AB_JUDEX:
-						skillratio = 300 + 20 * skill_lv;
+						skillratio += 200 + 20 * skill_lv;
 						RE_LVL_DMOD(100);
 						break;
 					case AB_ADORAMUS:
