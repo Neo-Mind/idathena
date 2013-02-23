@@ -4935,7 +4935,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					heal = ~heal + 1;
 				heal_get_jobexp = status_heal(bl,heal,0,0);
 
-				if(sd && dstsd && heal > 0 && sd != dstsd && battle_config.heal_exp > 0){
+				if(sd && dstsd && heal > 0 && sd != dstsd && battle_config.heal_exp > 0) {
 					heal_get_jobexp = heal_get_jobexp * battle_config.heal_exp / 100;
 					if (heal_get_jobexp <= 0)
 						heal_get_jobexp = 1;
@@ -6216,37 +6216,37 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if (i < 5) i = 5; //Minimum rate 5%
 
 			//Duration in ms
-			if( skill_id == GC_WEAPONCRUSH){
+			if( skill_id == GC_WEAPONCRUSH) {
 				d = skill_get_time(skill_id,skill_lv);
 				if(bl->type == BL_PC)
 					d += skill_lv * 15 + (sstatus->dex - tstatus->dex);
 				else
 					d += skill_lv * 30 + (sstatus->dex - tstatus->dex) / 2;
-			}else
+			} else
 				d = skill_get_time(skill_id,skill_lv) + (sstatus->dex - tstatus->dex)*500;
 
 			if (d < 0) d = 0; //Minimum duration 0ms
 
 			switch (skill_id) {
-			case RG_STRIPWEAPON:
-			case GC_WEAPONCRUSH:
-				location = EQP_WEAPON;
-				break;
-			case RG_STRIPSHIELD:
-				location = EQP_SHIELD;
-				break;
-			case RG_STRIPARMOR:
-				location = EQP_ARMOR;
-				break;
-			case RG_STRIPHELM:
-				location = EQP_HELM;
-				break;
-			case ST_FULLSTRIP:
-				location = EQP_WEAPON|EQP_SHIELD|EQP_ARMOR|EQP_HELM;
-				break;
-			case SC_STRIPACCESSARY:
-				location = EQP_ACC;
-				break;
+				case RG_STRIPWEAPON:
+				case GC_WEAPONCRUSH:
+					location = EQP_WEAPON;
+					break;
+				case RG_STRIPSHIELD:
+					location = EQP_SHIELD;
+					break;
+				case RG_STRIPARMOR:
+					location = EQP_ARMOR;
+					break;
+				case RG_STRIPHELM:
+					location = EQP_HELM;
+					break;
+				case ST_FULLSTRIP:
+					location = EQP_WEAPON|EQP_SHIELD|EQP_ARMOR|EQP_HELM;
+					break;
+				case SC_STRIPACCESSARY:
+					location = EQP_ACC;
+					break;
 			}
 
 			//Special message when trying to use strip on FCP [Jobbie]

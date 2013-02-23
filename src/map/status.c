@@ -8720,15 +8720,14 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			if( status_get_hp(bl) % 2 == 0 )
 				val2 = (status_get_lv(bl) / 3) + (20 * val1); //+Watk
 			else
-				val2 -= (status_get_lv(bl) / 3) + (20 * val1);
+				val2 -= (status_get_lv(bl) / 3) + (30 * val1); //-Watk
 
 			if( status_get_sp(bl) % 2 == 0 )
 				val3 = (status_get_lv(bl) / 3) + (20 * val1); //+Matk
 			else
-				val3 -= (status_get_lv(bl) / 3) + (20 * val1);
+				val3 -= (status_get_lv(bl) / 3) + (30 * val1); //-matk
 			break;
-		case SC_GENSOU:
-			{
+		case SC_GENSOU: {
 				int hp = status_get_hp(bl), lv = 5;
 				short per = 100 / (status_get_max_hp(bl) / hp);
 
