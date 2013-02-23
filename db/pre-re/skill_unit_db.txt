@@ -35,7 +35,7 @@
  79,0x84,    , -1, 1,3000,enemy, 0x018	//PR_MAGNUS
  80,0x87,0x88,  0, 1,2000,enemy, 0x006	//WZ_FIREPILLAR
  83,0x86,    ,  0, 3,1000,enemy, 0x010	//WZ_METEOR
- 85,0x86,    ,  0, 6:6:6:6:6:6:6:6:6:6:8,1250,enemy,0x018	//WZ_VERMILION
+ 85,0x86,    ,  0, 6:6:6:6:6:6:6:6:6:6:8,1250,enemy, 0x018 //WZ_VERMILION
  87,0x8d,    , -1, 0,  -1,all,   0x010	//WZ_ICEWALL
  89,0x86,    ,  0, 5, 450,enemy, 0x018	//WZ_STORMGUST
  91,0x86,    ,  0, 2,1000,enemy, 0x010	//WZ_HEAVENDRIVE
@@ -57,8 +57,8 @@
 285,0x9a,    ,  3, 0,  -1,all,   0x010	//SA_VOLCANO
 286,0x9b,    ,  3, 0,  -1,all,   0x010	//SA_DELUGE
 287,0x9c,    ,  3, 0,  -1,all,   0x010	//SA_VIOLENTGALE
-288,0x9d,    ,  3:3:4:4:5,0, -1,all,   0x010	//SA_LANDPROTECTOR
-306,0x9e,    ,  4, 0,6000,enemy,   0x200	//BD_LULLABY
+288,0x9d,    ,  3:3:4:4:5,0, -1,all,   0x010 //SA_LANDPROTECTOR
+306,0x9e,    ,  4, 0,6000,enemy, 0x200	//BD_LULLABY
 307,0x9f,    ,  4, 0,  -1,enemy, 0x220	//BD_RICHMANKIM
 308,0xa0,    ,  4, 0,  -1,enemy, 0x200	//BD_ETERNALCHAOS
 309,0xa1,    ,  4, 0,  -1,party, 0x200	//BD_DRUMBATTLEFIELD
@@ -94,8 +94,8 @@
 521,0xbe,    ,  0, 1,1000,enemy, 0x000	//GS_GROUNDDRIFT
 527,0xbc,    , -1, 0,2000,enemy, 0x018	//NJ_TATAMIGAESHI
 535,0xbd,    , -1, 0,  20,enemy, 0x010	//NJ_KAENSIN
-538,0xbb,    ,  1:1:1:2:2:2:3:3:3:4,0,-1,all,0x010	//NJ_SUITON
-670,0xc7,    ,  1, 4:7:10:13:16:19:22:25:28:31,1000,all,0x008	//NPC_EVILLAND
+538,0xbb,    ,  1:1:1:2:2:2:3:3:3:4,0,-1,all, 0x010 //NJ_SUITON
+670,0xc7,    ,  1, 4:7:10:13:16:19:22:25:28:31,1000,all, 0x008 //NPC_EVILLAND
 
 //706,0xfd,    ,  0, 0,1000,all, 0x000  //NPC_VENOMFOG
 
@@ -154,16 +154,16 @@
 2490,0xea,    ,  0, 1,1000,enemy, 0x006	//GN_HELLS_PLANT
 
 3006,0x86,    ,  0, 1, 100,enemy, 0x018	//KO_BAKURETSU
-3008,0x86,    ,  0, 1:1:1:1:1:1:1:1:1:2, 100,enemy, 0x018	//KO_MUCHANAGE
+3008,0x86,    ,  0, 1:1:1:1:1:1:1:1:1:2, 100,enemy, 0x018 //KO_MUCHANAGE
 3009,0x86,    ,  0, 3, 500,enemy, 0x018 //KO_HUUMARANKA
 3010,0xfc,    ,  0, 1,1000,enemy, 0x020 //KO_MAKIBISHI
 3020,0xf8,    ,  0, 2, 100,all, 0x018   //KO_ZENKAI
 
-8020,0xf5,    ,  0, 3,2300:2100:1900:1700:1500,enemy,   0x018	//MH_POISON_MIST
-8033,0x7e,    ,  0, 0,  -1,all,   0x003	//MH_STEINWAND 
+8020,0xf5,    ,  0, 3,2300:2100:1900:1700:1500,enemy, 0x018 //MH_POISON_MIST
+8033,0x7e,    ,  0, 0,  -1,all, 0x003 //MH_STEINWAND 
 8025,0x86,    ,  0, 2:2:3:3:4,1000,enemy, 0x018	//MH_XENO_SLASHER
-8041,0xf6,    ,  1:1:2:2:3, 0,2000,enemy,   0x01A	//MH_LAVA_SLIDE
-8043,0xf7,    ,  1, 0,-1,enemy,   0x2018	//MH_VOLCANIC_ASH
+8041,0xf6,    ,  1:1:2:2:3, 0,2000,enemy, 0x01A	//MH_LAVA_SLIDE
+8043,0xf7,    ,  1, 0,-1,enemy, 0x2018	//MH_VOLCANIC_ASH
 
 8208,0x86,    ,  0, 2,1000,enemy, 0x080	//MA_SHOWER
 8209,0x90,    ,  0, 1,1000,enemy, 0x006	//MA_SKIDTRAP
