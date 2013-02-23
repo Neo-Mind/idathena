@@ -7782,11 +7782,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case AB_CLEARANCE:
 			if( flag&1 || (i = skill_get_splash(skill_id, skill_lv)) < 1 ) {
 				//As of the behavior in official server Clearance is just a super version of Dispell skill. [Jobbie]
-				if( (status_get_mode(bl)&MD_BOSS) || bl->type == BL_MOB || battle_check_target(src,bl,BCT_GUILD) > 0 || battle_check_target(src,bl,BCT_PARTY) > 0 )
+				if( (status_get_mode(bl)&MD_BOSS) || bl->type == BL_MOB || src == bl || battle_check_target(src,bl,BCT_PARTY) > 0 )
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				else
 					break;
-
 				if( (dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) || rnd()%100 >= 30 + 10 * skill_lv ) {
 					if (sd)
 						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -7867,12 +7866,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		 * Warlock
 		 **/
 		case WL_WHITEIMPRISON:
-			if( (src == bl || battle_check_target(src, bl, BCT_ENEMY) > 0) && !is_boss(bl) )// Should not work with bosses.
-			{
+			if( (src == bl || battle_check_target(src, bl, BCT_ENEMY) > 0) && !is_boss(bl) ) { // Should not work with bosses.
 				int rate = ( sd? sd->status.job_level : 50 ) / 4;
 
 				if( src == bl ) rate = 100; // Success Chance: On self, 100%
-				else if(bl->type == BL_PC) rate += 20 + 10 * skill_lv; // On Players, (20 + 10 * Skill Level) %
+				else if( bl->type == BL_PC ) rate += 20 + 10 * skill_lv; // On Players, (20 + 10 * Skill Level) %
 				else rate += 40 + 10 * skill_lv; // On Monsters, (40 + 10 * Skill Level) %
 
 				if( sd )
@@ -7898,13 +7896,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			map_foreachinshootrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),BL_CHAR|BL_SKILL,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 			break;
 
-		case WL_MARSHOFABYSS:
-			{
-			int timereduct = skill_get_time(skill_id, skill_lv) - (tstatus->int_ + tstatus->dex) / 20 * 1000;
-			if ( timereduct < 5000 )
-				timereduct = 5000;//Duration cant go below 5 seconds.
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-			sc_start(bl, type, 100, skill_lv, timereduct);
+		case WL_MARSHOFABYSS: {
+				int timereduct = skill_get_time(skill_id, skill_lv) - (tstatus->int_ + tstatus->dex) / 20 * 1000;
+				if ( timereduct < 5000 )
+					timereduct = 5000;//Duration cant go below 5 seconds.
+				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+				sc_start(bl, type, 100, skill_lv, timereduct);
 			}
 			break;
 
