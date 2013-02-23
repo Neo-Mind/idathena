@@ -1228,8 +1228,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 	case WL_COMET:
 		sc_start4(bl,SC_BURNING,100,skill_lv,1000,src->id,0,skill_get_time2(skill_id,skill_lv));
 		break;
-	case WL_EARTHSTRAIN:
-		{
+	case WL_EARTHSTRAIN: {
 			int rate = 0, i;
 			const int pos[5] = { EQP_WEAPON, EQP_HELM, EQP_SHIELD, EQP_ARMOR, EQP_ACC };
 			rate = (5 + skill_lv) * skill_lv + sstatus->dex / 10 - tstatus->dex /5;// The tstatus->dex / 5 part is unofficial, but players gotta have some kind of way to have resistance. [Rytech]
@@ -1240,10 +1239,10 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		}
 		break;
 	case WL_JACKFROST:
-		sc_start(bl,SC_FREEZE,100,skill_lv,skill_get_time(skill_id,skill_lv));
+		sc_start(bl, SC_FREEZE, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 		break;
 	case RA_WUGBITE:
-		sc_start(bl, SC_BITE,  (sd ? pc_checkskill(sd,RA_TOOTHOFWUG)*2 : 0), skill_lv, (skill_get_time(skill_id,skill_lv) + (sd ? pc_checkskill(sd,RA_TOOTHOFWUG)*500 : 0)) );
+		sc_start(bl, SC_BITE, (sd ? pc_checkskill(sd,RA_TOOTHOFWUG) * 2 : 0), skill_lv, (skill_get_time(skill_id,skill_lv) + (sd ? pc_checkskill(sd,RA_TOOTHOFWUG) * 500 : 0)) );
 		break;
 	case RA_SENSITIVEKEEN:
 		if( rnd()%100 < 8 * skill_lv )
@@ -1254,8 +1253,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		sc_start(bl, (skill_id == RA_FIRINGTRAP) ? SC_BURNING:SC_FREEZING, 50 + 10 * skill_lv, skill_lv, skill_get_time2(skill_id, skill_lv));
 		break;
 	case NC_PILEBUNKER:
-		if( rnd()%100 < 5 + 15*skill_lv )
-		{ //Status's Deactivated By Pile Bunker
+		if( rnd()%100 < 5 + 15 * skill_lv ) { //Status's Deactivated By Pile Bunker
 			status_change_end(bl, SC_KYRIE, INVALID_TIMER);
 			status_change_end(bl, SC_ASSUMPTIO, INVALID_TIMER);
 			status_change_end(bl, SC_STEELBODY, INVALID_TIMER);
@@ -1274,8 +1272,12 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		sc_start4(bl, SC_BURNING, 20 + 10 * skill_lv, skill_lv, 1000, src->id, 0, skill_get_time2(skill_id, skill_lv));
 		break;
 	case NC_COLDSLOWER:
+		//Status chances are applied officially through a check.
+		//The skill first trys to give the frozen status to targets that are hit.
 		sc_start(bl, SC_FREEZE, 10 * skill_lv, skill_lv, skill_get_time(skill_id, skill_lv));
-		sc_start(bl, SC_FREEZING, 20 + 10 * skill_lv, skill_lv, skill_get_time(skill_id, skill_lv));
+		//If it fails to give the frozen status, it will attempt to give the freezing status.
+		if ( tsc && !tsc->data[SC_FREEZE] )
+			sc_start(bl, SC_FREEZING, 20 + 10 * skill_lv, skill_lv, skill_get_time2(skill_id, skill_lv));
 		break;
 	case NC_POWERSWING:
 		sc_start(bl, SC_STUN, 10, skill_lv, skill_get_time(skill_id, skill_lv));
@@ -1349,7 +1351,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		sc_start(bl, SC_CRYSTALIZE, rate, skill_lv, skill_get_time2(skill_id, skill_lv));
 		break;
 	case SO_VARETYR_SPEAR:
-		sc_start(bl, SC_STUN, 5 + 5 * skill_lv, skill_lv, skill_get_time2(skill_id, skill_lv));
+		sc_start(bl, SC_STUN, 5 + 5 * skill_lv, skill_lv, skill_get_time(skill_id, skill_lv));
 		break;
 	case GN_SLINGITEM_RANGEMELEEATK:
 		if( sd ) {
@@ -1394,7 +1396,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		sc_start(bl, SC_STUN, 100, skill_lv, skill_get_time2(skill_id,skill_lv));
 		break;
 	case MH_LAVA_SLIDE:
-		if (tsc && !tsc->data[SC_BURNING]) sc_start4(bl, SC_BURNING, 10 * skill_lv, skill_lv, 1000, src->id, 0, skill_get_time(skill_id, skill_lv));
+		if (tsc && !tsc->data[SC_BURNING])
+			sc_start4(bl, SC_BURNING, 10 * skill_lv, skill_lv, 1000, src->id, 0, skill_get_time(skill_id, skill_lv));
 		break;
 	case MH_STAHL_HORN:
 		sc_start(bl, SC_STUN, (20 + 4 * (skill_lv-1)), skill_lv, skill_get_time(skill_id, skill_lv));
@@ -7672,7 +7675,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case GC_HALLUCINATIONWALK: {
-				int heal = status_get_max_hp(bl) / 10;
+				int heal = status_get_max_hp(bl) * ( 18 - 2 * skill_lv ) / 100;
 				if( status_get_hp(bl) < heal ) { // if you haven't enough HP skill fails.
 					if( sd ) clif_skill_fail(sd,skill_id,USESKILL_FAIL_HP_INSUFFICIENT,0);
 					break;
@@ -7753,7 +7756,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					status_change_end(bl, SC_BURNING, INVALID_TIMER);
 					status_change_end(bl, SC_FREEZING, INVALID_TIMER);
 					status_change_end(bl, SC_CRYSTALIZE, INVALID_TIMER);
-				}else //Success rate only applies to the curing effect and not stat bonus. Bonus status only applies to non infected targets
+				} else //Success rate only applies to the curing effect and not stat bonus. Bonus status only applies to non infected targets
 					clif_skill_nodamage(bl, bl, skill_id, skill_lv,
 						sc_start(bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv)));
 			} else if( sd )
@@ -10119,7 +10122,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 						case 2: sx = x - i; break;
 						case 6: sx = x + i; break;
 					}
-					skill_addtimerskill(src,gettick() + (150 * i),0,sx,sy,skill_id,skill_lv,dir,flag&2);
+					skill_addtimerskill(src,gettick() + (140 * i),0,sx,sy,skill_id,skill_lv,dir,flag&2);
 				}
 			}
 			break;
