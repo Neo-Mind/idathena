@@ -9472,15 +9472,14 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 		return 0;
 	}
 
-	if( ud->skilltimer != tid )
-	{
+	if( ud->skilltimer != tid ) {
 		ShowError("skill_castend_pos: Timer mismatch %d!=%d\n", ud->skilltimer, tid);
 		ud->skilltimer = INVALID_TIMER;
 		return 0;
 	}
 
-	if( sd && ud->skilltimer != INVALID_TIMER && ( pc_checkskill(sd,SA_FREECAST) > 0 || ud->skill_id == LG_EXEEDBREAK ) )
-	{// restore original walk speed
+	if( sd && ud->skilltimer != INVALID_TIMER && ( pc_checkskill(sd,SA_FREECAST) > 0 || ud->skill_id == LG_EXEEDBREAK ) ) {
+		// restore original walk speed
 		ud->skilltimer = INVALID_TIMER;
 		status_calc_bl(&sd->bl, SCB_SPEED);
 	}
@@ -9514,15 +9513,13 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 				if(ud->skillunit[i]->skill_id == ud->skill_id)
 					maxcount--;
 			}
-			if( maxcount == 0 )
-			{
+			if( maxcount == 0 ) {
 				if (sd) clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
 				break;
 			}
 		}
 
-		if(tid != INVALID_TIMER)
-		{	//Avoid double checks on instant cast skills. [Skotlex]
+		if(tid != INVALID_TIMER) { //Avoid double checks on instant cast skills. [Skotlex]
 			if (!status_check_skilluse(src, NULL, ud->skill_id, 1))
 				break;
 			if(battle_config.skill_add_range &&
@@ -9533,9 +9530,8 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 			}
 		}
 
-		if( sd )
-		{
-			if( !skill_check_condition_castend(sd, ud->skill_id, ud->skill_lv) )
+		if( sd ) {
+			if( ud->skill_id != AL_WARP && !skill_check_condition_castend(sd, ud->skill_id, ud->skill_lv) )
 				break;
 			else
 				skill_consume_requirement(sd,ud->skill_id,ud->skill_lv,1);
