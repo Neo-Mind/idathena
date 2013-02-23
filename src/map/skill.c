@@ -8468,10 +8468,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case WM_LULLABY_DEEPSLEEP:
 			if ( flag&1 ) {
 				//[(Skill Level x 4) + (Voice Lessons Skill Level x 2) + (Caster Base Level / 15) + (Caster Job Level / 5)] %
-				rate = ( 4 * skill_lv ) + ( (sd) ? pc_checkskill(sd,WM_LESSON)*2 + sd->status.job_level/5 : 0 ) + status_get_lv(src) / 15;
+				rate = ( 4 * skill_lv ) + ( (sd) ? pc_checkskill(sd,WM_LESSON) * 2 + sd->status.job_level / 5 : 0 ) + status_get_lv(src) / 15;
+				tick = status_get_lv(bl) / 20 + status_get_int(bl) / 20;
 				if ( rate > 60 ) rate = 60;
 				if ( bl != src )
-					sc_start(bl,type,rate,skill_lv,skill_get_time(skill_id,skill_lv));
+					sc_start(bl, type, rate, skill_lv, skill_get_time(skill_id, skill_lv) - (1000 * tick));
 			} else {
 				clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
 				map_foreachinrange(skill_area_sub, bl, skill_get_splash(skill_id, skill_lv), BL_CHAR,
@@ -8659,7 +8660,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				rate -= status_get_int(bl) / 6 - status_get_luk(bl) / 10;
 				tick = status_get_lv(bl) / 20 + status_get_int(bl) / 40;
 				clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
-				sc_start2(bl, type, rate, skill_lv, 1, skill_get_time(skill_id, skill_lv) - 1000 * tick);
+				sc_start2(bl, type, rate, skill_lv, 1, skill_get_time(skill_id, skill_lv) - (1000 * tick));
 			break;
 
 		case SO_SUMMON_AGNI:
