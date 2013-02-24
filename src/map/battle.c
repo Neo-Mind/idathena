@@ -3013,7 +3013,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio = 50 * skill_lv + ( sd ? pc_checkskill(sd, SO_STRIKING) * 50 : 0 );
 					RE_LVL_DMOD(100);
 					if( sc && sc->data[SC_BLAST_OPTION] )
-						skillratio += sd ? sd->status.job_level * 5 : 0;
+						skillratio += (sd ? sd->status.job_level * 5 : 0);
 					break;
 					// Physical Elemantal Spirits Attack Skills
 				case EL_CIRCLE_OF_FIRE:
@@ -3074,7 +3074,10 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += -100 + 100 * skill_lv;
 					break;
 			}
-
+#ifdef RENEWAL
+			if( sc && sc->data[SC_TRUESIGHT] )
+				skillratio += 2*sc->data[SC_TRUESIGHT]->val1;
+#endif
 			ATK_RATE(skillratio);
 
 			//Constant/misc additions from skills
@@ -3181,8 +3184,10 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 
 		//The following are applied on top of current damage and are stackable.
 		if (sc) {
+#ifndef RENEWAL
 			if (sc->data[SC_TRUESIGHT])
 				ATK_ADDRATE(2*sc->data[SC_TRUESIGHT]->val1);
+#endif
 			if (sc->data[SC_GLOOMYDAY_SK] &&
 				(skill_id == LK_SPIRALPIERCE || skill_id == KN_BRANDISHSPEAR ||
 				skill_id == CR_SHIELDBOOMERANG || skill_id == PA_SHIELDCHAIN ||
@@ -3209,7 +3214,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						ATK_ADDRATE(sc->data[SC_EDP]->val3);
 				}
 			}
-			if(sc->data[SC_STYLE_CHANGE]){
+			if(sc->data[SC_STYLE_CHANGE]) {
 				TBL_HOM *hd = BL_CAST(BL_HOM,src);
 				if (hd) ATK_ADD(hd->homunculus.spiritball * 3);
 			}
@@ -3262,8 +3267,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				}
 			}
 
-			if (skill_id != CR_GRANDCROSS && skill_id != NPC_GRANDDARKNESS)
-		  	{	//Ignore Defense?
+			if (skill_id != CR_GRANDCROSS && skill_id != NPC_GRANDDARKNESS) {
+				//Ignore Defense?
 				if (!flag.idef && (
 					sd->right_weapon.ignore_def_ele & (1<<tstatus->def_ele) ||
 					sd->right_weapon.ignore_def_race & (1<<tstatus->race) ||

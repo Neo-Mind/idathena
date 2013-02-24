@@ -9527,7 +9527,7 @@ void clif_parse_progressbar(int fd, struct map_session_data * sd)
 		sd->st->state = END;
 
 	sd->progressbar.npc_id = sd->progressbar.timeout = 0;
-	npc_scriptcont(sd, npc_id);
+	npc_scriptcont(sd, npc_id, false);
 }
 
 
@@ -10191,12 +10191,8 @@ void clif_parse_UseItem(int fd, struct map_session_data *sd)
 		clif_clearunit_area(&sd->bl, CLR_DEAD);
 		return;
 	}
-	
-	//This flag enables you to use items while in an NPC. [Skotlex]
-	if (sd->npc_id) {
-		if (sd->npc_id != sd->npc_item_flag)
-			return;
-	} else if ( pc_istrading(sd) || sd->chatID )
+
+	if ( (!sd->npc_id && pc_istrading(sd)) || sd->chatID )
 		return;
 
 	//Whether the item is used or not is irrelevant, the char ain't idle. [Skotlex]
@@ -10792,20 +10788,25 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 	if (tmp&INF_GROUND_SKILL || !tmp)
 		return; //Using a ground/passive skill on a target? WRONG.
 
-	if( skill_id >= HM_SKILLBASE && skill_id < HM_SKILLBASE + MAX_HOMUNSKILL )
-	{
+	if( skill_id >= HM_SKILLBASE && skill_id < HM_SKILLBASE + MAX_HOMUNSKILL ) {
 		clif_parse_UseSkillToId_homun(sd->hd, sd, tick, skill_id, skill_lv, target_id);
 		return;
 	}
 
-	if( skill_id >= MC_SKILLBASE && skill_id < MC_SKILLBASE + MAX_MERCSKILL )
-	{
+	if( skill_id >= MC_SKILLBASE && skill_id < MC_SKILLBASE + MAX_MERCSKILL ) {
 		clif_parse_UseSkillToId_mercenary(sd->md, sd, tick, skill_id, skill_lv, target_id);
 		return;
 	}
 
 	// Whether skill fails or not is irrelevant, the char ain't idle. [Skotlex]
 	sd->idletime = last_tick;
+
+	if( sd->npc_id ) {
+#ifdef RENEWAL
+		clif_msg(sd, 0x783); // TODO look for the client date that has this message.
+#endif
+		return;
+	}
 
 	if( pc_cant_act(sd) && skill_id != RK_REFRESH && !(skill_id == SR_GENTLETOUCH_CURE && (sd->sc.opt1 == OPT1_STONE || sd->sc.opt1 == OPT1_FREEZE || sd->sc.opt1 == OPT1_STUN)) )
 		return;
@@ -10821,15 +10822,11 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 	if( target_id < 0 && -target_id == sd->bl.id ) // for disguises [Valaris]
 		target_id = sd->bl.id;
 	
-	if( sd->ud.skilltimer != INVALID_TIMER )
-	{
+	if( sd->ud.skilltimer != INVALID_TIMER ) {
 		if( skill_id != SA_CASTCANCEL && skill_id != SO_SPELLFIST )
 			return;
-	}
-	else if( DIFF_TICK(tick, sd->ud.canact_tick) < 0 )
-	{
-		if( sd->skillitem != skill_id )
-		{
+	} else if( DIFF_TICK(tick, sd->ud.canact_tick) < 0 ) {
+		if( sd->skillitem != skill_id ) {
 			clif_skill_fail(sd, skill_id, USESKILL_FAIL_SKILLINTERVAL, 0);
 			return;
 		}
@@ -11141,7 +11138,7 @@ void clif_parse_NpcSelectMenu(int fd,struct map_session_data *sd)
 	}
 
 	sd->npc_menu = select;
-	npc_scriptcont(sd,npc_id);
+	npc_scriptcont(sd, npc_id, false);
 }
 
 
@@ -11149,7 +11146,7 @@ void clif_parse_NpcSelectMenu(int fd,struct map_session_data *sd)
 /// 00b9 <npc id>.L
 void clif_parse_NpcNextClicked(int fd,struct map_session_data *sd)
 {
-	npc_scriptcont(sd,RFIFOL(fd,2));
+	npc_scriptcont(sd, RFIFOL(fd,2), false);
 }
 
 
@@ -11161,7 +11158,7 @@ void clif_parse_NpcAmountInput(int fd,struct map_session_data *sd)
 	int amount = (int)RFIFOL(fd,6);
 
 	sd->npc_amount = amount;
-	npc_scriptcont(sd, npcid);
+	npc_scriptcont(sd, npcid, false);
 }
 
 
@@ -11177,7 +11174,7 @@ void clif_parse_NpcStringInput(int fd, struct map_session_data* sd)
 		return; // invalid input
 
 	safestrncpy(sd->npc_str, message, min(message_len,CHATBOX_SIZE));
-	npc_scriptcont(sd, npcid);
+	npc_scriptcont(sd, npcid, false);
 }
 
 
@@ -11187,7 +11184,7 @@ void clif_parse_NpcCloseClicked(int fd,struct map_session_data *sd)
 {
 	if (!sd->npc_id) //Avoid parsing anything when the script was done with. [Skotlex]
 		return;
-	npc_scriptcont(sd,RFIFOL(fd,2));
+	npc_scriptcont(sd, RFIFOL(fd,2), true);
 }
 
 

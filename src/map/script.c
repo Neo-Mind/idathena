@@ -4391,7 +4391,7 @@ BUILDIN_FUNC(close)
 	if( sd == NULL )
 		return 0;
 
-	st->state = END;
+	st->state = STOP;
 	clif_scriptclose(sd, st->oid);
 	return 0;
 }
@@ -6818,19 +6818,15 @@ BUILDIN_FUNC(delitem)
 	struct item it;
 	struct script_data *data;
 
-	if( script_hasdata(st,4) )
-	{
+	if( script_hasdata(st,4) ) {
 		int account_id = script_getnum(st,4);
 		sd = map_id2sd(account_id); // <account id>
-		if( sd == NULL )
-		{
+		if( sd == NULL ) {
 			ShowError("script:delitem: player not found (AID=%d).\n", account_id);
 			st->state = END;
 			return 1;
 		}
-	}
-	else
-	{
+	} else {
 		sd = script_rid2sd(st);// attached player
 		if( sd == NULL )
 			return 0;
@@ -6838,23 +6834,18 @@ BUILDIN_FUNC(delitem)
 
 	data = script_getdata(st,2);
 	get_val(st,data);
-	if( data_isstring(data) )
-	{
+	if( data_isstring(data) ) {
 		const char* item_name = conv_str(st,data);
 		struct item_data* id = itemdb_searchname(item_name);
-		if( id == NULL )
-		{
+		if( id == NULL ) {
 			ShowError("script:delitem: unknown item \"%s\".\n", item_name);
 			st->state = END;
 			return 1;
 		}
 		it.nameid = id->nameid;// "<item name>"
-	}
-	else
-	{
+	} else {
 		it.nameid = conv_num(st,data);// <item id>
-		if( !itemdb_exists( it.nameid ) )
-		{
+		if( !itemdb_exists( it.nameid ) ) {
 			ShowError("script:delitem: unknown item \"%d\".\n", it.nameid);
 			st->state = END;
 			return 1;
@@ -6866,8 +6857,7 @@ BUILDIN_FUNC(delitem)
 	if( it.amount <= 0 )
 		return 0;// nothing to do
 
-	if( buildin_delitem_search(sd, &it, false) )
-	{// success
+	if( buildin_delitem_search(sd, &it, false) ) { // success
 		return 0;
 	}
 
@@ -6887,19 +6877,15 @@ BUILDIN_FUNC(delitem2)
 	struct item it;
 	struct script_data *data;
 
-	if( script_hasdata(st,11) )
-	{
+	if( script_hasdata(st,11) ) {
 		int account_id = script_getnum(st,11);
 		sd = map_id2sd(account_id); // <account id>
-		if( sd == NULL )
-		{
+		if( sd == NULL ) {
 			ShowError("script:delitem2: player not found (AID=%d).\n", account_id);
 			st->state = END;
 			return 1;
 		}
-	}
-	else
-	{
+	} else {
 		sd = script_rid2sd(st);// attached player
 		if( sd == NULL )
 			return 0;
@@ -6907,23 +6893,18 @@ BUILDIN_FUNC(delitem2)
 
 	data = script_getdata(st,2);
 	get_val(st,data);
-	if( data_isstring(data) )
-	{
+	if( data_isstring(data) ) {
 		const char* item_name = conv_str(st,data);
 		struct item_data* id = itemdb_searchname(item_name);
-		if( id == NULL )
-		{
+		if( id == NULL ) {
 			ShowError("script:delitem2: unknown item \"%s\".\n", item_name);
 			st->state = END;
 			return 1;
 		}
 		it.nameid = id->nameid;// "<item name>"
-	}
-	else
-	{
+	} else {
 		it.nameid = conv_num(st,data);// <item id>
-		if( !itemdb_exists( it.nameid ) )
-		{
+		if( !itemdb_exists( it.nameid ) ) {
 			ShowError("script:delitem: unknown item \"%d\".\n", it.nameid);
 			st->state = END;
 			return 1;
@@ -6942,8 +6923,7 @@ BUILDIN_FUNC(delitem2)
 	if( it.amount <= 0 )
 		return 0;// nothing to do
 
-	if( buildin_delitem_search(sd, &it, true) )
-	{// success
+	if( buildin_delitem_search(sd, &it, true) ) { // success
 		return 0;
 	}
 

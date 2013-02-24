@@ -1193,11 +1193,11 @@ int npc_click(struct map_session_data* sd, struct npc_data* nd)
 /*==========================================
  *
  *------------------------------------------*/
-int npc_scriptcont(struct map_session_data* sd, int id)
+int npc_scriptcont(struct map_session_data* sd, int id, bool closing)
 {
 	nullpo_retr(1, sd);
 
-	if( id != sd->npc_id ){
+	if( id != sd->npc_id ) {
 		TBL_NPC* nd_sd=(TBL_NPC*)map_id2bl(sd->npc_id);
 		TBL_NPC* nd=(TBL_NPC*)map_id2bl(id);
 		ShowDebug("npc_scriptcont: %s (sd->npc_id=%d) is not %s (id=%d).\n",
@@ -1207,7 +1207,7 @@ int npc_scriptcont(struct map_session_data* sd, int id)
 	}
 	
 	if(id != fake_nd->bl.id) { // Not item script
-		if ((npc_checknear(sd,map_id2bl(id))) == NULL){
+		if ((npc_checknear(sd,map_id2bl(id))) == NULL) {
 			ShowWarning("npc_scriptcont: failed npc_checknear test.\n");
 			return 1;
 		}
@@ -1227,6 +1227,9 @@ int npc_scriptcont(struct map_session_data* sd, int id)
 	 **/
 	if( sd->progressbar.npc_id && DIFF_TICK(sd->progressbar.timeout,gettick()) > 0 )
 		return 1;
+
+	if( closing )
+		sd->st->state = END;
 
 	run_script_main(sd->st);
 
