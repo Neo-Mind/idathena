@@ -12495,8 +12495,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 	struct status_data *status;
 	struct status_change *sc;
 	struct skill_condition require;
-	int i;
-	uint inf2;
+	int i, inf2;
 
 	nullpo_ret(sd);
 
