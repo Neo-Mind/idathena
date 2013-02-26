@@ -11804,11 +11804,9 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;
 
 		case UNT_EPICLESIS:
-			if( bl->type == BL_PC && !battle_check_undead(tstatus->race, tstatus->def_ele) && tstatus->race != RC_DEMON )
-			{
+			if( bl->type == BL_PC && !battle_check_undead(tstatus->race, tstatus->def_ele) && tstatus->race != RC_DEMON ) {
 				int hp, sp;
-				switch( sg->skill_lv )
-				{
+				switch( sg->skill_lv ) {
 					case 1: case 2: hp = 3; sp = 2; break;
 					case 3: case 4: hp = 4; sp = 3; break;
 					case 5: default: hp = 5; sp = 4; break;
@@ -11823,8 +11821,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				sc_start(bl, type, 100, sg->skill_lv, sg->interval + 100);
 				sg->val2++;
 				// Reveal hidden players every 5 seconds.
-				if( sg->val2 >= 5 )
-				{
+				if( sg->val2 >= 5 ) {
 					sg->val2 = 0;
 					// TODO: check if other hidden status can be removed.
 					status_change_end(bl,SC_HIDING,INVALID_TIMER);
@@ -12905,8 +12902,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			}
 			break;
 		case AM_REST: //Can't vapo homun if you don't have an active homunc or it's hp is < 80%
-			if (!merc_is_hom_active(sd->hd) || sd->hd->battle_status.hp < (sd->hd->battle_status.max_hp*80/100))
-			{
+			if (!merc_is_hom_active(sd->hd) || sd->hd->battle_status.hp < (sd->hd->battle_status.max_hp*80/100)) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}
@@ -12914,8 +12910,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 		/**
 		 * Arch Bishop
 		 **/
-		case AB_ANCILLA:
-			{
+		case AB_ANCILLA: {
 				int count = 0;
 				for( i = 0; i < MAX_INVENTORY; i ++ )
 					if( sd->status.inventory[i].nameid == ITEMID_ANCILLA )
@@ -12954,11 +12949,9 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 		case WL_SUMMONBL:
 		case WL_SUMMONWB:
 		case WL_SUMMONSTONE:
-			if( sc )
-			{
+			if( sc ) {
 				ARR_FIND(SC_SPHERE_1,SC_SPHERE_5+1,i,!sc->data[i]);
-				if( i == SC_SPHERE_5+1 )
-				{ // No more free slots
+				if( i == SC_SPHERE_5+1 ) { // No more free slots
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_SUMMON,0);
 					return 0;
 				}
