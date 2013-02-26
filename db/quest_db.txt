@@ -2283,8 +2283,6 @@
 1115,0,0,0,0,0,0,0,"Ropewa & Yuridi - Song of the Abyss"
 1116,0,0,0,0,0,0,0,"Ropewa & Yuridi - Dead Man's Song"
 1117,0,0,0,0,0,0,0,"Ropewa & Yuridi - Eternal Promise, Broken Ring"
-
-// Ropewa Clue Quest
 1118,0,0,0,0,0,0,0,"Neighborhood Knight - I Need Clues"
 
 // Researcher's Quest
@@ -2355,3 +2353,6 @@
 7360,0,0,0,0,0,0,0,"Deliver Holy Item to Old Man"
 7363,0,0,0,0,0,0,0,"Deliver Holy Item to Little Kid"
 7364,0,0,0,0,0,0,0,"Deliver Holy Item to Middle-aged Man"
+
+// Malangdo
+4197,10800,0,0,0,0,0,0,"Octopus"

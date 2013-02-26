@@ -523,6 +523,7 @@ int can_copy (struct map_session_data *sd, uint16 skill_id, struct block_list* b
 }
 
 // [MouseJstr] - skill ok to cast? and when?
+// done before check_condition_begin, requirement
 int skillnotok (uint16 skill_id, struct map_session_data *sd)
 {
 	int16 idx,m;
@@ -11886,7 +11887,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 					skill_attack(skill_get_type(GN_THORNS_TRAP), ss, ss, bl, sg->skill_id, sg->skill_lv, tick, SD_LEVEL|SD_ANIMATION);
 			}
 			break;
-			
+
 		case UNT_DEMONIC_FIRE: {
 				TBL_PC* sd =  BL_CAST(BL_PC, ss);
 				switch( sg->val2 ) {
@@ -11906,28 +11907,28 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				}
 			}
 			break;
-			
+
 		case UNT_FIRE_EXPANSION_SMOKE_POWDER:
 			sc_start(bl, SC_SMOKEPOWDER, 100, sg->skill_lv, 1000);
 			break;
-			
+
 		case UNT_FIRE_EXPANSION_TEAR_GAS:
 			sc_start(bl, SC_TEARGAS, 100, sg->skill_lv, 1000);
 			break;
-			
+
 		case UNT_HELLS_PLANT:
 			if( battle_check_target(&src->bl,bl,BCT_ENEMY) > 0 )
 				skill_attack(skill_get_type(GN_HELLS_PLANT_ATK), ss, &src->bl, bl, GN_HELLS_PLANT_ATK, sg->skill_lv, tick, 0);
 			if( ss != bl) //The caster is the only one who can step on the Plants, without destroying them
 				sg->limit = DIFF_TICK(tick, sg->tick) + 100;
 			break;
-			
+
 		case UNT_CLOUD_KILL:
 			if(tsc && !tsc->data[type])
 				status_change_start(bl,type,10000,sg->skill_lv,sg->group_id,0,0,skill_get_time2(sg->skill_id,sg->skill_lv),8);
 			skill_attack(skill_get_type(sg->skill_id),ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 			break;
-			
+
 		case UNT_WARMER:
 			if( bl->type == BL_PC && !battle_check_undead(tstatus->race, tstatus->def_ele) && tstatus->race != RC_DEMON ) {
 				int hp = 0;
@@ -11944,7 +11945,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				sc_start(bl, SC_WARMER, 100, sg->skill_lv, skill_get_time2(sg->skill_id,sg->skill_lv));
 			}
 			break;
-			
+
 		case UNT_FIRE_INSIGNIA:
 		case UNT_WATER_INSIGNIA:
 		case UNT_WIND_INSIGNIA:
@@ -11969,8 +11970,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			}
 			break;
 			
-		case UNT_VACUUM_EXTREME:
-			{// TODO: official behavior in gvg area. [malufett]
+		case UNT_VACUUM_EXTREME: { // TODO: official behavior in gvg area. [malufett]
 				int sec = sg->limit - DIFF_TICK(tick, sg->tick);
 				int range = skill_get_unit_range(sg->skill_id, sg->skill_lv);
 				
@@ -12000,9 +12000,8 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				}		
 			}
 			break;
-			
-		case UNT_BANDING:
-			{
+
+		case UNT_BANDING: {
 			int rate = 0;
 				if( battle_check_target(ss,bl,BCT_ENEMY) > 0 && !(status_get_mode(bl)&MD_BOSS) && !(tsc && tsc->data[SC_BANDING_DEFENCE]) )
 				{
@@ -12011,7 +12010,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				}
 			}
 			break;
-			
+
 		case UNT_FIRE_MANTLE:
 			if( battle_check_target(&src->bl, bl, BCT_ENEMY) > 0 )
 				skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
@@ -12044,13 +12043,13 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			} else
 				sc_start2(bl,type,100,sg->val1,sg->val2,skill_get_time2(sg->skill_id, sg->skill_lv));
 			break;
-			
+
 		case UNT_MAKIBISHI:
 			skill_attack(BF_MISC, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
 			sg->limit = DIFF_TICK(tick, sg->tick);
 			sg->unit_id = UNT_USED_TRAPS;
 			break;
-		
+
 		case UNT_LAVA_SLIDE:
 			skill_attack(BF_WEAPON, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
 			if(++sg->val1 > 4) //after 5 stop hit and destroy me
@@ -12481,8 +12480,7 @@ static int skill_check_condition_mob_master_sub (struct block_list *bl, va_list 
  * Determines if a given skill should be made to consume ammo
  * when used by the player. [Skotlex]
  *------------------------------------------*/
-int skill_isammotype (struct map_session_data *sd, uint16 skill_id)
-{
+int skill_isammotype (struct map_session_data *sd, uint16 skill_id) {
 	return (
 		battle_config.arrow_decrement==2 &&
 		(sd->status.weapon == W_BOW || (sd->status.weapon >= W_REVOLVER && sd->status.weapon <= W_GRENADE)) &&
@@ -12498,13 +12496,14 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 	struct status_change *sc;
 	struct skill_condition require;
 	int i;
+	uint inf2;
 
 	nullpo_ret(sd);
 
 	if (sd->chatID) return 0;
 
 	if( pc_has_permission(sd, PC_PERM_SKILL_UNCONDITIONAL) && sd->skillitem != skill_id ) {
-	//GMs don't override the skillItem check, otherwise they can use items without them being consumed! [Skotlex]
+		//GMs don't override the skillItem check, otherwise they can use items without them being consumed! [Skotlex]
 		sd->state.arrow_atk = skill_get_ammotype(skill_id)?1:0; //Need to do arrow state check.
 		sd->spiritball_old = sd->spiritball; //Need to do Spiritball check.
 		return 1;
@@ -12535,12 +12534,10 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 	if( !sc->count )
 		sc = NULL;
 
-	if( sd->skillitem == skill_id )
-	{
+	if( sd->skillitem == skill_id ) {
 		if( sd->state.abra_flag ) // Hocus-Pocus was used. [Inkfish]
 			sd->state.abra_flag = 0;
-		else
-		{ // When a target was selected, consume items that were skipped in pc_use_item [Skotlex]
+		else { // When a target was selected, consume items that were skipped in pc_use_item [Skotlex]
 			if( (i = sd->itemindex) == -1 ||
 				sd->status.inventory[i].nameid != sd->itemid ||
 				sd->inventory_data[i] == NULL ||
@@ -12610,10 +12607,24 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 
 	require = skill_get_requirement(sd,skill_id,skill_lv);
 
-	//Can only update state when weapon/arrow info is checked.
+	// Can only update state when weapon/arrow info is checked.
 	sd->state.arrow_atk = require.ammo?1:0;
-	
-	// perform skill-specific checks (and actions)
+
+	// Perform skill-group checks
+	inf2 = skill_get_inf2(skill_id);
+	if( inf2&INF2_CHORUS_SKILL ) {
+		if( skill_check_pc_partner(sd,skill_id,&skill_lv,skill_get_splash(skill_id,skill_lv),0) < 1 ) {
+			clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+			return 0;
+		}
+	} else if( inf2&INF2_ENSEMBLE_SKILL ) {
+		if( skill_check_pc_partner(sd, skill_id, &skill_lv, 1, 0 ) < 1) {
+			clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+			return 0;
+		}
+	}
+
+	// Perform skill-specific checks (and actions)
 	switch( skill_id ) {
 		case SO_SPELLFIST:
 			if(sd->skill_id_old != MG_FIREBOLT && sd->skill_id_old != MG_COLDBOLT && sd->skill_id_old != MG_LIGHTNINGBOLT){
@@ -12673,12 +12684,11 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 				return 0;
 			break;
 		case MO_EXTREMITYFIST:
-	//		if(sc && sc->data[SC_EXTREMITYFIST]) //To disable Asura during the 5 min skill block uncomment this...
-	//			return 0;
+//			if(sc && sc->data[SC_EXTREMITYFIST]) //To disable Asura during the 5 min skill block uncomment this...
+//				return 0;
 			if( sc && (sc->data[SC_BLADESTOP] || sc->data[SC_CURSEDCIRCLE_ATKER]) )
 				break;
-			if( sc && sc->data[SC_COMBO] )
-			{
+			if( sc && sc->data[SC_COMBO] ) {
 				switch(sc->data[SC_COMBO]->val1) {
 					case MO_COMBOFINISH:
 					case CH_TIGERFIST:
@@ -12687,17 +12697,14 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 					default:
 						return 0;
 				}
-			}
-			else if( !unit_can_move(&sd->bl) )
-			{	//Placed here as ST_MOVE_ENABLE should not apply if rooted or on a combo. [Skotlex]
+			} else if( !unit_can_move(&sd->bl) ) { //Placed here as ST_MOVE_ENABLE should not apply if rooted or on a combo. [Skotlex]
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}
 			break;
 
 		case TK_MISSION:
-			if( (sd->class_&MAPID_UPPERMASK) != MAPID_TAEKWON )
-			{// Cannot be used by Non-Taekwon classes
+			if( (sd->class_&MAPID_UPPERMASK) != MAPID_TAEKWON ) { // Cannot be used by Non-Taekwon classes
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}
@@ -12708,8 +12715,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 		case TK_READYSTORM:
 		case TK_READYTURN:
 		case TK_JUMPKICK:
-			if( (sd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER )
-			{// Soul Linkers cannot use this skill
+			if( (sd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER ) { // Soul Linkers cannot use this skill
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}
@@ -12736,11 +12742,9 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 				return 0;
 			}
 			break; //Combo ready.
-		case BD_ADAPTATION:
-			{
+		case BD_ADAPTATION: {
 				int time;
-				if(!(sc && sc->data[SC_DANCING]))
-				{
+				if(!(sc && sc->data[SC_DANCING])) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					return 0;
 				}
@@ -12757,8 +12761,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			break;
 
 		case PR_BENEDICTIO:
-			if (skill_check_pc_partner(sd, skill_id, &skill_lv, 1, 0) < 2)
-			{
+			if (skill_check_pc_partner(sd, skill_id, &skill_lv, 1, 0) < 2) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}
@@ -12775,14 +12778,12 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			break;
 
 		case CG_HERMODE:
-			if(!npc_check_areanpc(1,sd->bl.m,sd->bl.x,sd->bl.y,skill_get_splash(skill_id, skill_lv)))
-			{
+			if(!npc_check_areanpc(1,sd->bl.m,sd->bl.x,sd->bl.y,skill_get_splash(skill_id, skill_lv))) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}
 			break;
-		case CG_MOONLIT: //Check there's no wall in the range+1 area around the caster. [Skotlex]
-			{
+		case CG_MOONLIT: { //Check there's no wall in the range+1 area around the caster. [Skotlex]
 				int i,x,y,range = skill_get_splash(skill_id, skill_lv)+1;
 				int size = range*2+1;
 				for (i=0;i<size*size;i++) {
@@ -12795,8 +12796,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 				}
 			}
 			break;
-		case PR_REDEMPTIO:
-			{
+		case PR_REDEMPTIO: {
 				int exp;
 				if( ((exp = pc_nextbaseexp(sd)) > 0 && get_percentage(sd->status.base_exp, exp) < 1) ||
 					((exp = pc_nextjobexp(sd)) > 0 && get_percentage(sd->status.job_exp, exp) < 1)) {
@@ -12807,8 +12807,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			}
 		case AM_TWILIGHT2:
 		case AM_TWILIGHT3:
-			if (!party_skill_check(sd, sd->status.party_id, skill_id, skill_lv))
-			{
+			if (!party_skill_check(sd, sd->status.party_id, skill_id, skill_lv)) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}
@@ -12840,8 +12839,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 				break;
 			//Auron insists we should implement SP consumption when you are not Soul Linked. [Skotlex]
 			//Only invoke on skill begin cast (instant cast skill). [Kevin]
-			if( require.sp > 0 )
-			{
+			if( require.sp > 0 ) {
 				if (status->sp < (unsigned int)require.sp)
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_SP_INSUFFICIENT,0);
 				else
