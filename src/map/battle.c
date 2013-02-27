@@ -2186,8 +2186,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					wd.damage = ((TBL_HOM*)src)->homunculus.intimacy ;
 					break;
 				}
-			default:
-			{
+			default: {
 				i = (flag.cri?1:0)|
 					(flag.arrow?2:0)|
 					(skill_id == HW_MAGICCRASHER?4:0)|
@@ -2245,8 +2244,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		} //End switch(skill_id)
 
 		//Skill damage modifiers that stack linearly
-		if(sc && skill_id != PA_SACRIFICE)
-		{
+		if(sc && skill_id != PA_SACRIFICE) {
 			if(sc->data[SC_OVERTHRUST])
 				skillratio += sc->data[SC_OVERTHRUST]->val3;
 			if(sc->data[SC_MAXOVERTHRUST])
@@ -2254,14 +2252,10 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			if(sc->data[SC_BERSERK] || sc->data[SC_SATURDAYNIGHTFEVER] || sc->data[SC__BLOODYLUST])
 				skillratio += 100;
 		}
-		if( !skill_id )
-		{
+		if( !skill_id ) {
 			ATK_RATE(skillratio);
-		}
-		else
-		{
-			switch( skill_id )
-			{
+		} else {
+			switch( skill_id ) {
 				case SM_BASH:
 				case MS_BASH:
 					skillratio += 30*skill_lv;
@@ -2417,8 +2411,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += 75*skill_lv;
 					flag.pdef = flag.pdef2 = 2;
 					break;
-				case MO_EXTREMITYFIST:
-					{	//Overflow check. [Skotlex]
+				case MO_EXTREMITYFIST: { //Overflow check. [Skotlex]
 						unsigned int ratio = skillratio + 100*(8 + sstatus->sp/10);
 						//You'd need something like 6K SP to reach this max, so should be fine for most purposes.
 						if (ratio > 60000) ratio = 60000; //We leave some room here in case skillratio gets further increased.
@@ -2459,7 +2452,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 #ifdef RENEWAL
 				case LK_SPIRALPIERCE:
 				case ML_SPIRALPIERCE:
-				{// Formula: Floor[Floor(Weapon Weight/2)*skill level + ATK ]*(100%+50%*s.lvl) * 5 multi-hits
+				{ // Formula: Floor[Floor(Weapon Weight/2)*skill level + ATK ]*(100%+50%*s.lvl) * 5 multi-hits
 					short index = sd?sd->equip_index[EQI_HAND_R]:0;
 					int weight = 0;
 
@@ -2521,8 +2514,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += -70 + 10*skill_lv;
 					if (sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == skill_id)
 						skillratio += 10*status_get_lv(src)/3; //Tumble bonus
-					if (wflag)
-					{
+					if (wflag) {
 						skillratio += 10*status_get_lv(src)/3; //Running bonus (TODO: What is the real bonus?)
 						if( sc && sc->data[SC_SPURT] )  // Spurt bonus
 							skillratio *= 2;
@@ -2582,11 +2574,10 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				case NJ_KIRIKAGE:
 					skillratio += 100*(skill_lv-1);
 					break;
-				case KN_CHARGEATK:
-					{
-					int k = (wflag-1)/3; //+100% every 3 cells of distance
-					if( k > 2 ) k = 2; // ...but hard-limited to 300%.
-					skillratio += 100 * k;
+				case KN_CHARGEATK: {
+						int k = (wflag-1)/3; //+100% every 3 cells of distance
+						if( k > 2 ) k = 2; // ...but hard-limited to 300%.
+						skillratio += 100 * k;
 					}
 					break;
 				case HT_PHANTASMIC:
@@ -6090,6 +6081,7 @@ static const struct _battle_data {
 	{ "skill_trap_type",                    &battle_config.skill_trap_type,                 0,      0,      1,              },
 	{ "item_restricted_consumption_type",   &battle_config.item_restricted_consumption_type,1,      0,      1,              },
 	{ "max_walk_path",                      &battle_config.max_walk_path,                  17,      1,      MAX_WALKPATH,   },
+	{ "item_enabled_npc",                   &battle_config.item_enabled_npc,                1,      0,      1,              },
 };
 #ifndef STATS_OPT_OUT
 /**

@@ -3016,6 +3016,7 @@ struct script_state* script_alloc_state(struct script_code* script, int pos, int
 	st->rid = rid;
 	st->oid = oid;
 	st->sleep.timer = INVALID_TIMER;
+	st->npc_item_flag = battle_config.item_enabled_npc;
 	return st;
 }
 
@@ -3630,12 +3631,9 @@ static void script_attach_state(struct script_state* st)
 {
 	struct map_session_data* sd;
 
-	if(st->rid && (sd = map_id2sd(st->rid))!=NULL)
-	{
-		if(st!=sd->st)
-		{
-			if(st->bk_st)
-			{// there is already a backup
+	if(st->rid && (sd = map_id2sd(st->rid))!=NULL) {
+		if(st!=sd->st) {
+			if(st->bk_st) { // there is already a backup
 				ShowDebug("script_free_state: Previous script state lost (rid=%d, oid=%d, state=%d, bk_npcid=%d).\n", st->bk_st->rid, st->bk_st->oid, st->bk_st->state, st->bk_npcid);
 			}
 			st->bk_st = sd->st;
@@ -3643,6 +3641,7 @@ static void script_attach_state(struct script_state* st)
 		}
 		sd->st = st;
 		sd->npc_id = st->oid;
+		sd->npc_item_flag = st->npc_item_flag; // load default.
 /**
  * For the Secure NPC Timeout option (check config/Secure.h) [RR]
  **/
@@ -6941,7 +6940,7 @@ BUILDIN_FUNC(enableitemuse)
 	TBL_PC *sd;
 	sd=script_rid2sd(st);
 	if (sd)
-		sd->npc_item_flag = st->oid;
+		st->npc_item_flag = sd->npc_item_flag = 1;
 	return 0;
 }
 
@@ -6950,7 +6949,7 @@ BUILDIN_FUNC(disableitemuse)
 	TBL_PC *sd;
 	sd=script_rid2sd(st);
 	if (sd)
-		sd->npc_item_flag = 0;
+		st->npc_item_flag = sd->npc_item_flag = 0;
 	return 0;
 }
 

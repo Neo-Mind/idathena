@@ -3739,16 +3739,14 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		status_change_end(src, SC_NEN, INVALID_TIMER);
 		status_change_end(src, SC_HIDING, INVALID_TIMER);
 		// fall through
-	case MO_EXTREMITYFIST:
-		{
+	case MO_EXTREMITYFIST: {
 			short x, y, i = 2; // Move 2 cells for Issen(from target)
 			struct block_list *mbl = bl;
 			short dir = 0;
 
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 
-			if( skill_id == MO_EXTREMITYFIST )
-			{
+			if( skill_id == MO_EXTREMITYFIST ) {
 				mbl = src;
 				i = 3; // for Asura(from caster)
 				status_set_sp(src, 0, 0);
@@ -6116,8 +6114,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case MC_VENDING:
-			if(sd)
-			{	//Prevent vending of GMs with unnecessary Level to trade/drop. [Skotlex]
+			if(sd) { //Prevent vending of GMs with unnecessary Level to trade/drop. [Skotlex]
 				if ( !pc_can_give_items(sd) )
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				else {
@@ -8167,36 +8164,35 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SC_LAZINESS:
 		case SC_UNLUCKY:
 		case SC_WEAKNESS:
-			if( !(tsc && tsc->data[type]) )
-			{
-			int joblvbonus = 0;
-			if (is_boss(bl)) break;
-				joblvbonus = ( sd ? sd->status.job_level : 50 );
-			//First we set the success chance based on the caster's build which increases the chance.
-			rate = 10 * skill_lv + rnd_value( sstatus->dex / 12, sstatus->dex / 4 ) + joblvbonus + status_get_lv(src) / 10 - 
-			//We then reduce the success chance based on the target's build.
-			rnd_value( tstatus->agi / 6, tstatus->agi / 3 ) - tstatus->luk / 10 - ( dstsd ? (dstsd->max_weight / 10 - dstsd->weight / 10 ) / 100 : 0 ) - status_get_lv(bl) / 10;
-			//Finally we set the minimum success chance cap based on the caster's skill level and DEX.
-			rate = cap_value( rate, skill_lv + sstatus->dex / 20, 100);
-				clif_skill_nodamage(src,bl,skill_id,0,sc_start(bl,type,rate,skill_lv,skill_get_time(skill_id,skill_lv)));
-			if ( tsc && tsc->data[SC__IGNORANCE] && skill_id == SC_IGNORANCE)//If the target was successfully inflected with the Ignorance status, drain some of the targets SP.
-				{
-					int sp = 100 * skill_lv;
-					if( dstmd ) sp = dstmd->level * 2;
-					if( status_zap(bl,0,sp) )
-						status_heal(src,0,sp/2,3);//What does flag 3 do? [Rytech]
-				}
-			if ( tsc && tsc->data[SC__UNLUCKY] && skill_id == SC_UNLUCKY)//If the target was successfully inflected with the Unlucky status, give 1 of 3 random status's.
-				switch(rnd()%3) {//Targets in the Unlucky status will be affected by one of the 3 random status's reguardless of resistance.
-					case 0:
-						status_change_start(bl,SC_POISON,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),10);
-						break;
-					case 1:
-						status_change_start(bl,SC_SILENCE,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),10);
-						break;
-					case 2:
-						status_change_start(bl,SC_BLIND,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),10);
+			if( !(tsc && tsc->data[type]) ) {
+				int joblvbonus = 0;
+				if (is_boss(bl)) break;
+					joblvbonus = ( sd ? sd->status.job_level : 50 );
+				//First we set the success chance based on the caster's build which increases the chance.
+				rate = 10 * skill_lv + rnd_value( sstatus->dex / 12, sstatus->dex / 4 ) + joblvbonus + status_get_lv(src) / 10 - 
+				//We then reduce the success chance based on the target's build.
+				rnd_value( tstatus->agi / 6, tstatus->agi / 3 ) - tstatus->luk / 10 - ( dstsd ? (dstsd->max_weight / 10 - dstsd->weight / 10 ) / 100 : 0 ) - status_get_lv(bl) / 10;
+				//Finally we set the minimum success chance cap based on the caster's skill level and DEX.
+				rate = cap_value( rate, skill_lv + sstatus->dex / 20, 100);
+					clif_skill_nodamage(src,bl,skill_id,0,sc_start(bl,type,rate,skill_lv,skill_get_time(skill_id,skill_lv)));
+				if ( tsc && tsc->data[SC__IGNORANCE] && skill_id == SC_IGNORANCE)//If the target was successfully inflected with the Ignorance status, drain some of the targets SP.
+					{
+						int sp = 100 * skill_lv;
+						if( dstmd ) sp = dstmd->level * 2;
+						if( status_zap(bl,0,sp) )
+							status_heal(src,0,sp/2,3);//What does flag 3 do? [Rytech]
 					}
+				if ( tsc && tsc->data[SC__UNLUCKY] && skill_id == SC_UNLUCKY)//If the target was successfully inflected with the Unlucky status, give 1 of 3 random status's.
+					switch(rnd()%3) {//Targets in the Unlucky status will be affected by one of the 3 random status's reguardless of resistance.
+						case 0:
+							status_change_start(bl,SC_POISON,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),10);
+							break;
+						case 1:
+							status_change_start(bl,SC_SILENCE,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),10);
+							break;
+						case 2:
+							status_change_start(bl,SC_BLIND,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),10);
+						}
 			}
 			else if( sd )
 				clif_skill_fail(sd,skill_id,0,0);
@@ -8222,15 +8218,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				int opt = 0;
 				int val = 0;
 				struct item_data *shield_data = sd->inventory_data[sd->equip_index[EQI_HAND_L]];
-				if( !shield_data || shield_data->type != IT_ARMOR )
-				{//Skill will first check if a shield is equipped. If none is found on the caster the skill will fail.
+				if( !shield_data || shield_data->type != IT_ARMOR ) {
+					//Skill will first check if a shield is equipped. If none is found on the caster the skill will fail.
 					clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 					break;
 				}
 				opt = rnd()%3 + 1;//Generates a number between 1 - 3. The number generated will determine which effect will be triggered.
 				switch( skill_lv ) {
-					case 1:
-						{
+					case 1: {
 							int splashrange = 0;
 							if ( shield_data->def >= 0 && shield_data->def <= 4 )
 								splashrange = 1;
@@ -8238,8 +8233,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 								splashrange = 2;
 							else
 								splashrange = 3;
-							switch( opt )
-							{
+							switch( opt ) {
 								case 1:
 									sc_start(bl,SC_SHIELDSPELL_DEF,100,opt,INVALID_TIMER);//Splash AoE ATK
 									clif_skill_damage(src,bl,tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
@@ -8258,8 +8252,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						}
 						break;
 
-					case 2:
-						{
+					case 2: {
 							int splashrange = 0;
 							if ( sd->bonus.shieldmdef >= 1 && sd->bonus.shieldmdef <= 3 )
 								splashrange = 1;
@@ -8267,8 +8260,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 								splashrange = 2;
 							else
 								splashrange = 3;
-							switch( opt )
-							{
+							switch( opt ) {
 								case 1:
 									sc_start(bl,SC_SHIELDSPELL_MDEF,100,opt,INVALID_TIMER);//Splash AoE MATK
 									clif_skill_damage(src,bl,tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
@@ -8289,11 +8281,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						}
 						break;
 
-					case 3:
-						{
+					case 3: {
 							struct item *shield = &sd->status.inventory[sd->equip_index[EQI_HAND_L]];
-							switch( opt )
-							{
+							switch( opt ) {
 								case 1:
 									sc_start(bl,SC_SHIELDSPELL_REF,100,opt,INVALID_TIMER);
 									//Status Resistance Increase Needs To Be Coded Here.
@@ -9265,13 +9255,17 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 			else
 				inf = 0;
 
-			if(inf2 & (INF2_PARTY_ONLY|INF2_GUILD_ONLY) && src != target)
-			{
+			if(inf2 & (INF2_PARTY_ONLY|INF2_GUILD_ONLY) && src != target) {
 				inf |=
 					(inf2&INF2_PARTY_ONLY?BCT_PARTY:0)|
 					(inf2&INF2_GUILD_ONLY?BCT_GUILD:0);
 				//Remove neutral targets (but allow enemy if skill is designed to be so)
 				inf &= ~BCT_NEUTRAL;
+			}
+
+			if( sd && (inf2&INF2_CHORUS_SKILL) && skill_check_pc_partner(sd, ud->skill_id, &ud->skill_lv, 1, 0) < 1 ) {
+				clif_skill_fail(sd, ud->skill_id, USESKILL_FAIL_NEED_HELPER, 0);
+				break;
 			}
 
 			if( ud->skill_id >= SL_SKE && ud->skill_id <= SL_SKA && target->type == BL_MOB ) {
@@ -11862,7 +11856,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;
 		case UNT_NETHERWORLD:
 			if( !(status_get_mode(bl)&MD_BOSS) && ss != bl && battle_check_target(&src->bl, bl, BCT_PARTY) > 0 ) {
-				if( !(tsc && tsc->data[type]) ){
+				if( !(tsc && tsc->data[type]) ) {
 					sc_start(bl, type, 100, sg->skill_lv, skill_get_time2(sg->skill_id,sg->skill_lv));
 					sg->limit = DIFF_TICK(tick,sg->tick);
 					sg->unit_id = UNT_USED_TRAPS;
@@ -12495,7 +12489,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 	struct status_data *status;
 	struct status_change *sc;
 	struct skill_condition require;
-	int i, inf2;
+	int i;
 
 	nullpo_ret(sd);
 
@@ -12608,20 +12602,6 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 
 	// Can only update state when weapon/arrow info is checked.
 	sd->state.arrow_atk = require.ammo?1:0;
-
-	// Perform skill-group checks
-	inf2 = skill_get_inf2(skill_id);
-	if( inf2&INF2_CHORUS_SKILL ) {
-		if( skill_check_pc_partner(sd,skill_id,&skill_lv,skill_get_splash(skill_id,skill_lv),0) < 1 ) {
-			clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
-			return 0;
-		}
-	} else if( inf2&INF2_ENSEMBLE_SKILL ) {
-		if( skill_check_pc_partner(sd, skill_id, &skill_lv, 1, 0 ) < 1) {
-			clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
-			return 0;
-		}
-	}
 
 	// Perform skill-specific checks (and actions)
 	switch( skill_id ) {
