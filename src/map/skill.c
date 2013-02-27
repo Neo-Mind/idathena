@@ -8175,15 +8175,15 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				//Finally we set the minimum success chance cap based on the caster's skill level and DEX.
 				rate = cap_value( rate, skill_lv + sstatus->dex / 20, 100);
 					clif_skill_nodamage(src,bl,skill_id,0,sc_start(bl,type,rate,skill_lv,skill_get_time(skill_id,skill_lv)));
-				if ( tsc && tsc->data[SC__IGNORANCE] && skill_id == SC_IGNORANCE)//If the target was successfully inflected with the Ignorance status, drain some of the targets SP.
+				if ( tsc && tsc->data[SC__IGNORANCE] && skill_id == SC_IGNORANCE) //If the target was successfully inflected with the Ignorance status, drain some of the targets SP.
 					{
 						int sp = 100 * skill_lv;
 						if( dstmd ) sp = dstmd->level * 2;
 						if( status_zap(bl,0,sp) )
-							status_heal(src,0,sp/2,3);//What does flag 3 do? [Rytech]
+							status_heal(src,0,sp/2,3); //What does flag 3 do? [Rytech]
 					}
-				if ( tsc && tsc->data[SC__UNLUCKY] && skill_id == SC_UNLUCKY)//If the target was successfully inflected with the Unlucky status, give 1 of 3 random status's.
-					switch(rnd()%3) {//Targets in the Unlucky status will be affected by one of the 3 random status's reguardless of resistance.
+				if ( tsc && tsc->data[SC__UNLUCKY] && skill_id == SC_UNLUCKY) //If the target was successfully inflected with the Unlucky status, give 1 of 3 random status's.
+					switch(rnd()%3) { //Targets in the Unlucky status will be affected by one of the 3 random status's reguardless of resistance.
 						case 0:
 							status_change_start(bl,SC_POISON,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),10);
 							break;
