@@ -2833,8 +2833,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					RE_LVL_DMOD(100);
 					break;
 				case LG_EARTHDRIVE:
-					if( sd )
-					{
+					if( sd ) {
 						short index = sd->equip_index[EQI_HAND_L];
 						if( index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR )
 						skillratio = (1 + skill_lv) * sd->inventory_data[index]->weight / 10;
@@ -2859,11 +2858,11 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					break;
 				case SR_EARTHSHAKER:
 					if( tsc && (tsc->data[SC_HIDING] || tsc->data[SC_CLOAKING] || // [(Skill Level x 150) x (Caster Base Level / 100) + (Caster INT x 3)] %
-						tsc->data[SC_CHASEWALK] || tsc->data[SC_CLOAKINGEXCEED] || tsc->data[SC__INVISIBILITY]) ){
+						tsc->data[SC_CHASEWALK] || tsc->data[SC_CLOAKINGEXCEED] || tsc->data[SC__INVISIBILITY]) ) {
 						skillratio = 150 * skill_lv;
 						RE_LVL_DMOD(100);
 						skillratio += sstatus->int_ * 3;
-					}else{ //[(Skill Level x 50) x (Caster Base Level / 100) + (Caster INT x 2)] %
+					} else { //[(Skill Level x 50) x (Caster Base Level / 100) + (Caster INT x 2)] %
 						skillratio += 50 * (skill_lv-2);
 						RE_LVL_DMOD(100);
 						skillratio += sstatus->int_ * 2;
@@ -2873,8 +2872,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += 150 *skill_lv;
 					RE_LVL_DMOD(150);
 					break;
-				case SR_TIGERCANNON: // ATK [((Caster consumed HP + SP) / 4) x Caster Base Level / 100] %
-					{
+				case SR_TIGERCANNON: { // ATK [((Caster consumed HP + SP) / 4) x Caster Base Level / 100] %
 						int hp = sstatus->max_hp * (10 + 2 * skill_lv) / 100,
 							sp = sstatus->max_sp * (6 + skill_lv) / 100;
 						skillratio = (hp+sp) / 4;
@@ -2888,15 +2886,15 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					if( sc && sc->data[SC_EXPLOSIONSPIRITS] ){ 
 						skillratio += sc->data[SC_EXPLOSIONSPIRITS]->val1 * 20;
 						RE_LVL_DMOD(120);
-					}else
+					} else
 						RE_LVL_DMOD(150);
 					break;
 				case SR_KNUCKLEARROW:
-					if( wflag&4 ){  // ATK [(Skill Level x 150) + (1000 x Target current weight / Maximum weight) + (Target Base Level x 5) x (Caster Base Level / 150)] %
+					if( wflag&4 ) {  // ATK [(Skill Level x 150) + (1000 x Target current weight / Maximum weight) + (Target Base Level x 5) x (Caster Base Level / 150)] %
 						skillratio = 150 * skill_lv + status_get_lv(target) * 5 * (status_get_lv(src) / 100) ;
 						if( tsd && tsd->weight )
 							skillratio += 100 * (tsd->weight / tsd->max_weight);
-					}else // ATK [(Skill Level x 100 + 500) x Caster Base Level / 100] %
+					} else // ATK [(Skill Level x 100 + 500) x Caster Base Level / 100] %
 						skillratio += 400 + (100 * skill_lv);
 					RE_LVL_DMOD(100);
 					break;
@@ -4568,8 +4566,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		/**
 		 * Mechanic
 		 **/
-		case NC_SELFDESTRUCTION:
-			{
+		case NC_SELFDESTRUCTION: {
 				short totaldef = tstatus->def2 + (short)status_get_def(target);
 				md.damage = (skill_lv + 1) * ((sd ? pc_checkskill(sd,NC_MAINFRAME):4) + 8) * (status_get_sp(src) + sstatus->vit);
 				RE_LVL_MDMOD(100);
@@ -4597,8 +4594,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 
 	damage_div_fix(md.damage, md.div_);
 
-	if (!(nk&NK_IGNORE_FLEE))
-	{
+	if (!(nk&NK_IGNORE_FLEE)) {
 		struct status_change *sc = status_get_sc(target);
 		i = 0; //Temp for "hit or no hit"
 		if(sc && sc->opt1 && sc->opt1 != OPT1_STONEWAIT && sc->opt1 != OPT1_BURNING)
@@ -4615,8 +4611,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			if(battle_config.agi_penalty_type && battle_config.agi_penalty_target&target->type) {
 				unsigned char attacker_count; //256 max targets should be a sane max
 				attacker_count = unit_counttargeted(target);
-				if(attacker_count >= battle_config.agi_penalty_count)
-				{
+				if(attacker_count >= battle_config.agi_penalty_count) {
 					if (battle_config.agi_penalty_type == 1)
 						flee = (flee * (100 - (attacker_count - (battle_config.agi_penalty_count - 1))*battle_config.agi_penalty_num))/100;
 					else //asume type 2: absolute reduction
@@ -4651,8 +4646,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 
 	if( md.damage < 0 )
 		md.damage = 0;
-	else if(md.damage && tstatus->mode&MD_PLANT){
-		switch(skill_id){
+	else if(md.damage && tstatus->mode&MD_PLANT) {
+		switch(skill_id) {
 			case HT_LANDMINE:
 			case MA_LANDMINE:
 			case HT_BLASTMINE:
@@ -4664,7 +4659,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			default:
 				md.damage = 1;
 		}
-	} else if( target->type == BL_SKILL ){
+	} else if( target->type == BL_SKILL ) {
 		TBL_SKILL *su = (TBL_SKILL*)target;
 		if( su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD) )
 			md.damage = 1;
@@ -4683,8 +4678,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		case RA_FIRINGTRAP:
  		case RA_ICEBOUNDTRAP:
 			if( md.damage == 1 ) break;
-		case RA_CLUSTERBOMB:
-			{
+		case RA_CLUSTERBOMB: {
 				struct Damage wd;
 				wd = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
 				md.damage += wd.damage;
