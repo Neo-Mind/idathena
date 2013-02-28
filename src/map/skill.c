@@ -2752,7 +2752,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		dmg.flag |= BF_WEAPON;
 
 	if( sd && src != bl && damage > 0 && ( dmg.flag&BF_WEAPON ||
-		(dmg.flag&BF_MISC && (skill_id == RA_CLUSTERBOMB || skill_id == RA_FIRINGTRAP || skill_id == RA_ICEBOUNDTRAP || skill_id == RK_DRAGONBREATH)) ) )
+		(dmg.flag&BF_MISC && (skill_id == RA_CLUSTERBOMB || skill_id == RA_FIRINGTRAP || skill_id == RA_ICEBOUNDTRAP)) ) )
 	{
 		if (battle_config.left_cardfix_to_right)
 			battle_drain(sd, bl, dmg.damage, dmg.damage, tstatus->race, tstatus->mode&MD_BOSS);
@@ -3921,18 +3921,18 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case TK_TURNKICK:
-		case MO_BALKYOUNG: //Active part of the attack. Skill-attack [Skotlex]
-		{
-			skill_area_temp[1] = bl->id; //NOTE: This is used in skill_castend_nodamage_id to avoid affecting the target.
-			if (skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag))
-				map_foreachinrange(skill_area_sub,bl,
-					skill_get_splash(skill_id, skill_lv),BL_CHAR,
-					src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,
-					skill_castend_nodamage_id);
-		}
+		case MO_BALKYOUNG: // Active part of the attack. Skill-attack [Skotlex]
+			{
+				skill_area_temp[1] = bl->id; // NOTE: This is used in skill_castend_nodamage_id to avoid affecting the target.
+				if (skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag))
+					map_foreachinrange(skill_area_sub,bl,
+						skill_get_splash(skill_id, skill_lv),BL_CHAR,
+						src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,
+						skill_castend_nodamage_id);
+			}
 			break;
-		case CH_PALMSTRIKE: //	Palm Strike takes effect 1sec after casting. [Skotlex]
-		//	clif_skill_nodamage(src,bl,skill_id,skill_lv,0); //Can't make this one display the correct attack animation delay :/
+		case CH_PALMSTRIKE: // Palm Strike takes effect 1sec after casting. [Skotlex]
+			//clif_skill_nodamage(src,bl,skill_id,skill_lv,0); //Can't make this one display the correct attack animation delay :/
 			clif_damage(src,bl,tick,status_get_amotion(src),0,-1,1,4,0); //Display an absorbed damage attack.
 			skill_addtimerskill(src, tick + (1000+status_get_amotion(src)), bl->id, 0, 0, skill_id, skill_lv, BF_WEAPON, flag);
 			break;
@@ -4059,7 +4059,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				if( (tsc = status_get_sc(bl)) && (tsc->data[SC_HIDING] )) {
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 				} else
-					skill_attack(BF_MISC,src,src,bl,skill_id,skill_lv,tick,flag);
+					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			}
 			break;
 
@@ -8442,31 +8442,25 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case WM_UNLIMITED_HUMMING_VOICE:
 				if( flag&1 )
 					sc_start2(bl,type,100,skill_lv,chorusbonus,skill_get_time(skill_id,skill_lv));
-				else if( sd )
-				{
+				else if( sd ) {
 					party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
 					sc_start2(bl,type,100,skill_lv,chorusbonus,skill_get_time(skill_id,skill_lv));
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				}
 				break;
 
-		case WM_SATURDAY_NIGHT_FEVER:
-			{
+		case WM_SATURDAY_NIGHT_FEVER: {
 				int madnesscheck = 0;
 				if ( sd )//Required to check if the lord of madness effect will be applied.
 					madnesscheck = map_foreachinrange(skill_area_sub, src, skill_get_splash(skill_id,skill_lv),BL_PC, src, skill_id, skill_lv, tick, flag|BCT_ENEMY, skill_area_sub_count);
-				if( flag&1 )
-				{
+				if( flag&1 ) {
 					sc_start(bl, type, 100, skill_lv,skill_get_time(skill_id, skill_lv));
 					if ( madnesscheck >= 8 )//The god of madness deals 9999 fixed unreduceable damage when 8 or more enemy players are affected.
 						status_fix_damage(src, bl, 9999, clif_damage(src, bl, tick, 0, 0, 9999, 0, 0, 0));
 						//skill_attack(BF_MISC,src,src,bl,skill_id,skill_lv,tick,flag);//To renable when I can confirm it deals damage like this. Data shows its dealed as reflected damage which I dont have it coded like that yet. [Rytech]
-				}
-				else if( sd )
-				{
+				} else if( sd ) {
 						rate = sstatus->int_ / 6 + sd->status.job_level / 5 + skill_lv * 4;
-					if ( rnd()%100 < rate )
-					{
+					if ( rnd()%100 < rate ) {
 						map_foreachinrange(skill_area_sub, src, skill_get_splash(skill_id,skill_lv),BL_PC, src, skill_id, skill_lv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
 						clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
 					}
@@ -8478,10 +8472,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case WM_BEYOND_OF_WARCRY:
 			if( flag&1 )
 				sc_start2(bl,type,100,skill_lv,chorusbonus,skill_get_time(skill_id,skill_lv));
-			else if( sd )
-			{
-				if ( rnd()%100 < 15 + 5 * skill_lv + 5 * chorusbonus )
-				{
+			else if( sd ) {
+				if ( rnd()%100 < 15 + 5 * skill_lv + 5 * chorusbonus ) {
 					map_foreachinrange(skill_area_sub, src, skill_get_splash(skill_id,skill_lv),BL_PC, src, skill_id, skill_lv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				}
@@ -11384,35 +11376,29 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;
 
 		case UNT_DUMMYSKILL:
-			switch (sg->skill_id)
-			{
+			switch (sg->skill_id) {
 				case SG_SUN_WARM: //SG skills [Komurka]
 				case SG_MOON_WARM:
 				case SG_STAR_WARM:
-				{
-					int count = 0;
-					const int x = bl->x, y = bl->y;
-
-					//If target isn't knocked back it should hit every "interval" ms [Playtester]
-					do
 					{
-						if( bl->type == BL_PC )
-							status_zap(bl, 0, 15); // sp damage to players
-						else // mobs
-						if( status_charge(ss, 0, 2) ) // costs 2 SP per hit
-						{
-							if( !skill_attack(BF_WEAPON,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick+count*sg->interval,0) )
-								status_charge(ss, 0, 8); //costs additional 8 SP if miss
+						int count = 0;
+						const int x = bl->x, y = bl->y;
+
+						//If target isn't knocked back it should hit every "interval" ms [Playtester]
+						do {
+							if( bl->type == BL_PC )
+								status_zap(bl, 0, 15); // sp damage to players
+							else if( status_charge(ss, 0, 2) ) { // costs 2 SP per hit to mobs
+								if( !skill_attack(BF_WEAPON,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick+count*sg->interval,0) )
+									status_charge(ss, 0, 8); //costs additional 8 SP if miss
+							} else { //should end when out of sp.
+								sg->limit = DIFF_TICK(tick,sg->tick);
+								break;
+							}
+						} while( x == bl->x && y == bl->y &&
+							++count < SKILLUNITTIMER_INTERVAL/sg->interval && !status_isdead(bl) );
 						}
-						else
-						{ //should end when out of sp.
-							sg->limit = DIFF_TICK(tick,sg->tick);
-							break;
-						}
-					} while( x == bl->x && y == bl->y &&
-						++count < SKILLUNITTIMER_INTERVAL/sg->interval && !status_isdead(bl) );
-				}
-				break;
+					break;
 				/**
 				* The storm gust counter was dropped in renewal
 				**/

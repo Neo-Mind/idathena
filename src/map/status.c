@@ -4784,7 +4784,7 @@ static signed short status_calc_critical(struct block_list *bl, struct status_ch
 	if(sc->data[SC__UNLUCKY])
 		critical -= sc->data[SC__UNLUCKY]->val2;
 	if(sc->data[SC_BEYONDOFWARCRY])
-		critical += 10 * sc->data[SC_BEYONDOFWARCRY]->val3;
+		critical += sc->data[SC_BEYONDOFWARCRY]->val3;
 
 	return (short)cap_value(critical,10,SHRT_MAX);
 }
@@ -6948,236 +6948,236 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 
 	//Before overlapping fail, one must check for status cured.
 	switch (type) {
-	case SC_BLESSING:
-		//TO-DO Blessing and Agi up should do 1 damage against players on Undead Status, even on PvM
-		//but cannot be plagiarized (this requires aegis investigation on packets and official behavior) [Brainstorm]
-		if ((!undead_flag && status->race!=RC_DEMON) || bl->type == BL_PC) {
-			status_change_end(bl, SC_CURSE, INVALID_TIMER);
-			if (sc->data[SC_STONE] && sc->opt1 == OPT1_STONE)
-				status_change_end(bl, SC_STONE, INVALID_TIMER);
-		}
-		break;
-	case SC_INCREASEAGI:
-		status_change_end(bl, SC_DECREASEAGI, INVALID_TIMER);
-		status_change_end(bl, SC_ADORAMUS, INVALID_TIMER);
-		break;
-	case SC_QUAGMIRE:
-		status_change_end(bl, SC_CONCENTRATE, INVALID_TIMER);
-		status_change_end(bl, SC_TRUESIGHT, INVALID_TIMER);
-		status_change_end(bl, SC_WINDWALK, INVALID_TIMER);
-		//Also blocks the ones below...
-	case SC_DECREASEAGI:
-	case SC_ADORAMUS:
-		status_change_end(bl, SC_CARTBOOST, INVALID_TIMER);
-		//Also blocks the ones below...
-	case SC_DONTFORGETME:
-		status_change_end(bl, SC_INCREASEAGI, INVALID_TIMER);
-		status_change_end(bl, SC_ADRENALINE, INVALID_TIMER);
-		status_change_end(bl, SC_ADRENALINE2, INVALID_TIMER);
-		status_change_end(bl, SC_SPEARQUICKEN, INVALID_TIMER);
-		status_change_end(bl, SC_TWOHANDQUICKEN, INVALID_TIMER);
-		status_change_end(bl, SC_ONEHAND, INVALID_TIMER);
-		status_change_end(bl, SC_MERC_QUICKEN, INVALID_TIMER);
-		status_change_end(bl, SC_ACCELERATION, INVALID_TIMER);
-		break;
-	case SC_ONEHAND:
-	  	//Removes the Aspd potion effect, as reported by Vicious. [Skotlex]
-		status_change_end(bl, SC_ASPDPOTION0, INVALID_TIMER);
-		status_change_end(bl, SC_ASPDPOTION1, INVALID_TIMER);
-		status_change_end(bl, SC_ASPDPOTION2, INVALID_TIMER);
-		status_change_end(bl, SC_ASPDPOTION3, INVALID_TIMER);
-		break;
-	case SC_MAXOVERTHRUST:
-	  	//Cancels Normal Overthrust. [Skotlex]
-		status_change_end(bl, SC_OVERTHRUST, INVALID_TIMER);
-		break;
-	case SC_KYRIE:
-		//Cancels Assumptio
-		status_change_end(bl, SC_ASSUMPTIO, INVALID_TIMER);
-		break;
-	case SC_DELUGE:
-		if (sc->data[SC_FOGWALL] && sc->data[SC_BLIND])
-			status_change_end(bl, SC_BLIND, INVALID_TIMER);
-		break;
-	case SC_SILENCE:
-		if (sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF)
-			status_change_end(bl, SC_GOSPEL, INVALID_TIMER);
-		break;
-	case SC_HIDING:
-		status_change_end(bl, SC_CLOSECONFINE, INVALID_TIMER);
-		status_change_end(bl, SC_CLOSECONFINE2, INVALID_TIMER);
-		break;
-	case SC__BLOODYLUST:
-	case SC_BERSERK:
-		if(battle_config.berserk_cancels_buffs) {
-			status_change_end(bl, SC_ONEHAND, INVALID_TIMER);
-			status_change_end(bl, SC_TWOHANDQUICKEN, INVALID_TIMER);
-			status_change_end(bl, SC_CONCENTRATION, INVALID_TIMER);
-			status_change_end(bl, SC_PARRYING, INVALID_TIMER);
-			status_change_end(bl, SC_AURABLADE, INVALID_TIMER);
-			status_change_end(bl, SC_MERC_QUICKEN, INVALID_TIMER);
-		}
-#ifdef RENEWAL
-		else {
-			status_change_end(bl, SC_TWOHANDQUICKEN, INVALID_TIMER);
-		}
-#endif
-		break;
-	case SC_ASSUMPTIO:
-		status_change_end(bl, SC_KYRIE, INVALID_TIMER);
-		status_change_end(bl, SC_KAITE, INVALID_TIMER);
-		break;
-	case SC_KAITE:
-		status_change_end(bl, SC_ASSUMPTIO, INVALID_TIMER);
-		break;
-	case SC_CARTBOOST:
-		if(sc->data[SC_DECREASEAGI] || sc->data[SC_ADORAMUS]) { //Cancel Decrease Agi, but take no further effect [Skotlex]
-			status_change_end(bl, SC_DECREASEAGI, INVALID_TIMER);
-			return 0;
-		}
-		break;
-	case SC_FUSION:
-		status_change_end(bl, SC_SPIRIT, INVALID_TIMER);
-		break;
-	case SC_ADJUSTMENT:
-		status_change_end(bl, SC_MADNESSCANCEL, INVALID_TIMER);
-		break;
-	case SC_MADNESSCANCEL:
-		status_change_end(bl, SC_ADJUSTMENT, INVALID_TIMER);
-		break;
-	//NPC_CHANGEUNDEAD will debuff Blessing and Agi Up
-	case SC_CHANGEUNDEAD:
-		status_change_end(bl, SC_BLESSING, INVALID_TIMER);
-		status_change_end(bl, SC_INCREASEAGI, INVALID_TIMER);
-		break;
-	case SC_STRFOOD:
-		status_change_end(bl, SC_FOOD_STR_CASH, INVALID_TIMER);
-		break;
-	case SC_AGIFOOD:
-		status_change_end(bl, SC_FOOD_AGI_CASH, INVALID_TIMER);
-		break;
-	case SC_VITFOOD:
-		status_change_end(bl, SC_FOOD_VIT_CASH, INVALID_TIMER);
-		break;
-	case SC_INTFOOD:
-		status_change_end(bl, SC_FOOD_INT_CASH, INVALID_TIMER);
-		break;
-	case SC_DEXFOOD:
-		status_change_end(bl, SC_FOOD_DEX_CASH, INVALID_TIMER);
-		break;
-	case SC_LUKFOOD:
-		status_change_end(bl, SC_FOOD_LUK_CASH, INVALID_TIMER);
-		break;
-	case SC_FOOD_STR_CASH:
-		status_change_end(bl, SC_STRFOOD, INVALID_TIMER);
-		break;
-	case SC_FOOD_AGI_CASH:
-		status_change_end(bl, SC_AGIFOOD, INVALID_TIMER);
-		break;
-	case SC_FOOD_VIT_CASH:
-		status_change_end(bl, SC_VITFOOD, INVALID_TIMER);
-		break;
-	case SC_FOOD_INT_CASH:
-		status_change_end(bl, SC_INTFOOD, INVALID_TIMER);
-		break;
-	case SC_FOOD_DEX_CASH:
-		status_change_end(bl, SC_DEXFOOD, INVALID_TIMER);
-		break;
-	case SC_FOOD_LUK_CASH:
-		status_change_end(bl, SC_LUKFOOD, INVALID_TIMER);
-		break;
-	case SC_FIGHTINGSPIRIT:
-		status_change_end(bl, type, INVALID_TIMER); // Remove previous one.
-		break;
-	case SC_MARSHOFABYSS:
-		status_change_end(bl, SC_INCAGI, INVALID_TIMER);
-		status_change_end(bl, SC_WINDWALK, INVALID_TIMER);
-		status_change_end(bl, SC_ASPDPOTION0, INVALID_TIMER);
-		status_change_end(bl, SC_ASPDPOTION1, INVALID_TIMER);
-		status_change_end(bl, SC_ASPDPOTION2, INVALID_TIMER);
-		status_change_end(bl, SC_ASPDPOTION3, INVALID_TIMER);
-		break;
-	case SC_SWINGDANCE:
-	case SC_SYMPHONYOFLOVER:
-	case SC_MOONLITSERENADE:
-	case SC_RUSHWINDMILL:
-	case SC_ECHOSONG:
-	case SC_HARMONIZE: //group A doesn't overlap
-		if (type != SC_SWINGDANCE) status_change_end(bl, SC_SWINGDANCE, INVALID_TIMER);
-		if (type != SC_SYMPHONYOFLOVER) status_change_end(bl, SC_SYMPHONYOFLOVER, INVALID_TIMER);
-		if (type != SC_MOONLITSERENADE) status_change_end(bl, SC_MOONLITSERENADE, INVALID_TIMER);
-		if (type != SC_RUSHWINDMILL) status_change_end(bl, SC_RUSHWINDMILL, INVALID_TIMER);
-		if (type != SC_ECHOSONG) status_change_end(bl, SC_ECHOSONG, INVALID_TIMER);
-		if (type != SC_HARMONIZE) status_change_end(bl, SC_HARMONIZE, INVALID_TIMER);
-		break;
-	case SC_VOICEOFSIREN:
-	case SC_DEEPSLEEP:
-	case SC_GLOOMYDAY:
-	case SC_SONGOFMANA:
-	case SC_DANCEWITHWUG:
-	case SC_SATURDAYNIGHTFEVER:
-	case SC_LERADSDEW:
-	case SC_MELODYOFSINK:
-	case SC_BEYONDOFWARCRY:
-	case SC_UNLIMITEDHUMMINGVOICE: //group B
-		if (type != SC_VOICEOFSIREN) status_change_end(bl, SC_VOICEOFSIREN, INVALID_TIMER);
-		if (type != SC_DEEPSLEEP) status_change_end(bl, SC_DEEPSLEEP, INVALID_TIMER);
-		if (type != SC_LERADSDEW) status_change_end(bl, SC_LERADSDEW, INVALID_TIMER);
-		if (type != SC_MELODYOFSINK) status_change_end(bl, SC_MELODYOFSINK, INVALID_TIMER);
-		if (type != SC_BEYONDOFWARCRY) status_change_end(bl, SC_BEYONDOFWARCRY, INVALID_TIMER);
-		if (type != SC_UNLIMITEDHUMMINGVOICE) status_change_end(bl, SC_UNLIMITEDHUMMINGVOICE, INVALID_TIMER);
-		if (type != SC_GLOOMYDAY) {
-			status_change_end(bl, SC_GLOOMYDAY, INVALID_TIMER);
-			status_change_end(bl, SC_GLOOMYDAY_SK, INVALID_TIMER);
-		}
-		if (type != SC_SONGOFMANA) status_change_end(bl, SC_SONGOFMANA, INVALID_TIMER);
-		if (type != SC_DANCEWITHWUG) status_change_end(bl, SC_DANCEWITHWUG, INVALID_TIMER);
-		if (type != SC_SATURDAYNIGHTFEVER) {
-			if (sc->data[SC_SATURDAYNIGHTFEVER]) {
-				sc->data[SC_SATURDAYNIGHTFEVER]->val2 = 0; //mark to not lose hp
-				status_change_end(bl, SC_SATURDAYNIGHTFEVER, INVALID_TIMER);
+		case SC_BLESSING:
+			//TO-DO Blessing and Agi up should do 1 damage against players on Undead Status, even on PvM
+			//but cannot be plagiarized (this requires aegis investigation on packets and official behavior) [Brainstorm]
+			if ((!undead_flag && status->race!=RC_DEMON) || bl->type == BL_PC) {
+				status_change_end(bl, SC_CURSE, INVALID_TIMER);
+				if (sc->data[SC_STONE] && sc->opt1 == OPT1_STONE)
+					status_change_end(bl, SC_STONE, INVALID_TIMER);
 			}
-		}
-		break;
-	case SC_REFLECTSHIELD:
-		status_change_end(bl, SC_REFLECTDAMAGE, INVALID_TIMER);
-		break;
-	case SC_REFLECTDAMAGE:
-		status_change_end(bl, SC_REFLECTSHIELD, INVALID_TIMER);
-		break;
-	case SC_SHIELDSPELL_DEF:
-	case SC_SHIELDSPELL_MDEF:
-	case SC_SHIELDSPELL_REF:
-		status_change_end(bl, SC_MAGNIFICAT, INVALID_TIMER);
-		if( type != SC_SHIELDSPELL_DEF )
-			status_change_end(bl, SC_SHIELDSPELL_DEF, INVALID_TIMER);
-		if( type != SC_SHIELDSPELL_MDEF )
-			status_change_end(bl, SC_SHIELDSPELL_MDEF, INVALID_TIMER);
-		if( type != SC_SHIELDSPELL_REF )
-			status_change_end(bl, SC_SHIELDSPELL_REF, INVALID_TIMER);
-		break;
-	case SC_BANDING:
-		status_change_end(bl, SC_PRESTIGE, INVALID_TIMER);
-		break;
-	case SC_GT_ENERGYGAIN:
-	case SC_GT_CHANGE:
-	case SC_GT_REVITALIZE:
-		if( type != SC_GT_REVITALIZE )
-			status_change_end(bl, SC_GT_REVITALIZE, INVALID_TIMER);
-		if( type != SC_GT_ENERGYGAIN )
-			status_change_end(bl, SC_GT_ENERGYGAIN, INVALID_TIMER);
-		if( type != SC_GT_CHANGE )
-			status_change_end(bl, SC_GT_CHANGE, INVALID_TIMER);
-		break;
-	case SC_INVINCIBLE:
-		status_change_end(bl, SC_INVINCIBLEOFF, INVALID_TIMER);
-		break;
-	case SC_INVINCIBLEOFF:
-		status_change_end(bl, SC_INVINCIBLE, INVALID_TIMER);
-		break;
-	case SC_MAGICPOWER:
-		status_change_end(bl, type, INVALID_TIMER);
-		break;
+			break;
+		case SC_INCREASEAGI:
+			status_change_end(bl, SC_DECREASEAGI, INVALID_TIMER);
+			status_change_end(bl, SC_ADORAMUS, INVALID_TIMER);
+			break;
+		case SC_QUAGMIRE:
+			status_change_end(bl, SC_CONCENTRATE, INVALID_TIMER);
+			status_change_end(bl, SC_TRUESIGHT, INVALID_TIMER);
+			status_change_end(bl, SC_WINDWALK, INVALID_TIMER);
+			//Also blocks the ones below...
+		case SC_DECREASEAGI:
+		case SC_ADORAMUS:
+			status_change_end(bl, SC_CARTBOOST, INVALID_TIMER);
+			//Also blocks the ones below...
+		case SC_DONTFORGETME:
+			status_change_end(bl, SC_INCREASEAGI, INVALID_TIMER);
+			status_change_end(bl, SC_ADRENALINE, INVALID_TIMER);
+			status_change_end(bl, SC_ADRENALINE2, INVALID_TIMER);
+			status_change_end(bl, SC_SPEARQUICKEN, INVALID_TIMER);
+			status_change_end(bl, SC_TWOHANDQUICKEN, INVALID_TIMER);
+			status_change_end(bl, SC_ONEHAND, INVALID_TIMER);
+			status_change_end(bl, SC_MERC_QUICKEN, INVALID_TIMER);
+			status_change_end(bl, SC_ACCELERATION, INVALID_TIMER);
+			break;
+		case SC_ONEHAND:
+			//Removes the Aspd potion effect, as reported by Vicious. [Skotlex]
+			status_change_end(bl, SC_ASPDPOTION0, INVALID_TIMER);
+			status_change_end(bl, SC_ASPDPOTION1, INVALID_TIMER);
+			status_change_end(bl, SC_ASPDPOTION2, INVALID_TIMER);
+			status_change_end(bl, SC_ASPDPOTION3, INVALID_TIMER);
+			break;
+		case SC_MAXOVERTHRUST:
+			//Cancels Normal Overthrust. [Skotlex]
+			status_change_end(bl, SC_OVERTHRUST, INVALID_TIMER);
+			break;
+		case SC_KYRIE:
+			//Cancels Assumptio
+			status_change_end(bl, SC_ASSUMPTIO, INVALID_TIMER);
+			break;
+		case SC_DELUGE:
+			if (sc->data[SC_FOGWALL] && sc->data[SC_BLIND])
+				status_change_end(bl, SC_BLIND, INVALID_TIMER);
+			break;
+		case SC_SILENCE:
+			if (sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF)
+				status_change_end(bl, SC_GOSPEL, INVALID_TIMER);
+			break;
+		case SC_HIDING:
+			status_change_end(bl, SC_CLOSECONFINE, INVALID_TIMER);
+			status_change_end(bl, SC_CLOSECONFINE2, INVALID_TIMER);
+			break;
+		case SC__BLOODYLUST:
+		case SC_BERSERK:
+			if(battle_config.berserk_cancels_buffs) {
+				status_change_end(bl, SC_ONEHAND, INVALID_TIMER);
+				status_change_end(bl, SC_TWOHANDQUICKEN, INVALID_TIMER);
+				status_change_end(bl, SC_CONCENTRATION, INVALID_TIMER);
+				status_change_end(bl, SC_PARRYING, INVALID_TIMER);
+				status_change_end(bl, SC_AURABLADE, INVALID_TIMER);
+				status_change_end(bl, SC_MERC_QUICKEN, INVALID_TIMER);
+			}
+#ifdef RENEWAL
+			else {
+				status_change_end(bl, SC_TWOHANDQUICKEN, INVALID_TIMER);
+			}
+#endif
+			break;
+		case SC_ASSUMPTIO:
+			status_change_end(bl, SC_KYRIE, INVALID_TIMER);
+			status_change_end(bl, SC_KAITE, INVALID_TIMER);
+			break;
+		case SC_KAITE:
+			status_change_end(bl, SC_ASSUMPTIO, INVALID_TIMER);
+			break;
+		case SC_CARTBOOST:
+			if(sc->data[SC_DECREASEAGI] || sc->data[SC_ADORAMUS]) { //Cancel Decrease Agi, but take no further effect [Skotlex]
+				status_change_end(bl, SC_DECREASEAGI, INVALID_TIMER);
+				return 0;
+			}
+			break;
+		case SC_FUSION:
+			status_change_end(bl, SC_SPIRIT, INVALID_TIMER);
+			break;
+		case SC_ADJUSTMENT:
+			status_change_end(bl, SC_MADNESSCANCEL, INVALID_TIMER);
+			break;
+		case SC_MADNESSCANCEL:
+			status_change_end(bl, SC_ADJUSTMENT, INVALID_TIMER);
+			break;
+		//NPC_CHANGEUNDEAD will debuff Blessing and Agi Up
+		case SC_CHANGEUNDEAD:
+			status_change_end(bl, SC_BLESSING, INVALID_TIMER);
+			status_change_end(bl, SC_INCREASEAGI, INVALID_TIMER);
+			break;
+		case SC_STRFOOD:
+			status_change_end(bl, SC_FOOD_STR_CASH, INVALID_TIMER);
+			break;
+		case SC_AGIFOOD:
+			status_change_end(bl, SC_FOOD_AGI_CASH, INVALID_TIMER);
+			break;
+		case SC_VITFOOD:
+			status_change_end(bl, SC_FOOD_VIT_CASH, INVALID_TIMER);
+			break;
+		case SC_INTFOOD:
+			status_change_end(bl, SC_FOOD_INT_CASH, INVALID_TIMER);
+			break;
+		case SC_DEXFOOD:
+			status_change_end(bl, SC_FOOD_DEX_CASH, INVALID_TIMER);
+			break;
+		case SC_LUKFOOD:
+			status_change_end(bl, SC_FOOD_LUK_CASH, INVALID_TIMER);
+			break;
+		case SC_FOOD_STR_CASH:
+			status_change_end(bl, SC_STRFOOD, INVALID_TIMER);
+			break;
+		case SC_FOOD_AGI_CASH:
+			status_change_end(bl, SC_AGIFOOD, INVALID_TIMER);
+			break;
+		case SC_FOOD_VIT_CASH:
+			status_change_end(bl, SC_VITFOOD, INVALID_TIMER);
+			break;
+		case SC_FOOD_INT_CASH:
+			status_change_end(bl, SC_INTFOOD, INVALID_TIMER);
+			break;
+		case SC_FOOD_DEX_CASH:
+			status_change_end(bl, SC_DEXFOOD, INVALID_TIMER);
+			break;
+		case SC_FOOD_LUK_CASH:
+			status_change_end(bl, SC_LUKFOOD, INVALID_TIMER);
+			break;
+		case SC_FIGHTINGSPIRIT:
+			status_change_end(bl, type, INVALID_TIMER); // Remove previous one.
+			break;
+		case SC_MARSHOFABYSS:
+			status_change_end(bl, SC_INCAGI, INVALID_TIMER);
+			status_change_end(bl, SC_WINDWALK, INVALID_TIMER);
+			status_change_end(bl, SC_ASPDPOTION0, INVALID_TIMER);
+			status_change_end(bl, SC_ASPDPOTION1, INVALID_TIMER);
+			status_change_end(bl, SC_ASPDPOTION2, INVALID_TIMER);
+			status_change_end(bl, SC_ASPDPOTION3, INVALID_TIMER);
+			break;
+		case SC_SWINGDANCE:
+		case SC_SYMPHONYOFLOVER:
+		case SC_MOONLITSERENADE:
+		case SC_RUSHWINDMILL:
+		case SC_ECHOSONG:
+		case SC_HARMONIZE: //group A doesn't overlap
+			if (type != SC_SWINGDANCE) status_change_end(bl, SC_SWINGDANCE, INVALID_TIMER);
+			if (type != SC_SYMPHONYOFLOVER) status_change_end(bl, SC_SYMPHONYOFLOVER, INVALID_TIMER);
+			if (type != SC_MOONLITSERENADE) status_change_end(bl, SC_MOONLITSERENADE, INVALID_TIMER);
+			if (type != SC_RUSHWINDMILL) status_change_end(bl, SC_RUSHWINDMILL, INVALID_TIMER);
+			if (type != SC_ECHOSONG) status_change_end(bl, SC_ECHOSONG, INVALID_TIMER);
+			if (type != SC_HARMONIZE) status_change_end(bl, SC_HARMONIZE, INVALID_TIMER);
+			break;
+		case SC_VOICEOFSIREN:
+		case SC_DEEPSLEEP:
+		case SC_GLOOMYDAY:
+		case SC_SONGOFMANA:
+		case SC_DANCEWITHWUG:
+		case SC_SATURDAYNIGHTFEVER:
+		case SC_LERADSDEW:
+		case SC_MELODYOFSINK:
+		case SC_BEYONDOFWARCRY:
+		case SC_UNLIMITEDHUMMINGVOICE: //group B
+			if (type != SC_VOICEOFSIREN) status_change_end(bl, SC_VOICEOFSIREN, INVALID_TIMER);
+			if (type != SC_DEEPSLEEP) status_change_end(bl, SC_DEEPSLEEP, INVALID_TIMER);
+			if (type != SC_LERADSDEW) status_change_end(bl, SC_LERADSDEW, INVALID_TIMER);
+			if (type != SC_MELODYOFSINK) status_change_end(bl, SC_MELODYOFSINK, INVALID_TIMER);
+			if (type != SC_BEYONDOFWARCRY) status_change_end(bl, SC_BEYONDOFWARCRY, INVALID_TIMER);
+			if (type != SC_UNLIMITEDHUMMINGVOICE) status_change_end(bl, SC_UNLIMITEDHUMMINGVOICE, INVALID_TIMER);
+			if (type != SC_GLOOMYDAY) {
+				status_change_end(bl, SC_GLOOMYDAY, INVALID_TIMER);
+				status_change_end(bl, SC_GLOOMYDAY_SK, INVALID_TIMER);
+			}
+			if (type != SC_SONGOFMANA) status_change_end(bl, SC_SONGOFMANA, INVALID_TIMER);
+			if (type != SC_DANCEWITHWUG) status_change_end(bl, SC_DANCEWITHWUG, INVALID_TIMER);
+			if (type != SC_SATURDAYNIGHTFEVER) {
+				if (sc->data[SC_SATURDAYNIGHTFEVER]) {
+					sc->data[SC_SATURDAYNIGHTFEVER]->val2 = 0; //mark to not lose hp
+					status_change_end(bl, SC_SATURDAYNIGHTFEVER, INVALID_TIMER);
+				}
+			}
+			break;
+		case SC_REFLECTSHIELD:
+			status_change_end(bl, SC_REFLECTDAMAGE, INVALID_TIMER);
+			break;
+		case SC_REFLECTDAMAGE:
+			status_change_end(bl, SC_REFLECTSHIELD, INVALID_TIMER);
+			break;
+		case SC_SHIELDSPELL_DEF:
+		case SC_SHIELDSPELL_MDEF:
+		case SC_SHIELDSPELL_REF:
+			status_change_end(bl, SC_MAGNIFICAT, INVALID_TIMER);
+			if( type != SC_SHIELDSPELL_DEF )
+				status_change_end(bl, SC_SHIELDSPELL_DEF, INVALID_TIMER);
+			if( type != SC_SHIELDSPELL_MDEF )
+				status_change_end(bl, SC_SHIELDSPELL_MDEF, INVALID_TIMER);
+			if( type != SC_SHIELDSPELL_REF )
+				status_change_end(bl, SC_SHIELDSPELL_REF, INVALID_TIMER);
+			break;
+		case SC_BANDING:
+			status_change_end(bl, SC_PRESTIGE, INVALID_TIMER);
+			break;
+		case SC_GT_ENERGYGAIN:
+		case SC_GT_CHANGE:
+		case SC_GT_REVITALIZE:
+			if( type != SC_GT_REVITALIZE )
+				status_change_end(bl, SC_GT_REVITALIZE, INVALID_TIMER);
+			if( type != SC_GT_ENERGYGAIN )
+				status_change_end(bl, SC_GT_ENERGYGAIN, INVALID_TIMER);
+			if( type != SC_GT_CHANGE )
+				status_change_end(bl, SC_GT_CHANGE, INVALID_TIMER);
+			break;
+		case SC_INVINCIBLE:
+			status_change_end(bl, SC_INVINCIBLEOFF, INVALID_TIMER);
+			break;
+		case SC_INVINCIBLEOFF:
+			status_change_end(bl, SC_INVINCIBLE, INVALID_TIMER);
+			break;
+		case SC_MAGICPOWER:
+			status_change_end(bl, type, INVALID_TIMER);
+			break;
 	}
 
 	//Check for overlapping fails
@@ -7400,14 +7400,11 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			break;
 		case SC_REFLECTSHIELD:
 			val2=10+val1*3; // %Dmg reflected
-			if( !(flag&1) && (bl->type&(BL_PC|BL_MER)) )
-			{
+			if( !(flag&1) && (bl->type&(BL_PC|BL_MER)) ) {
 				struct map_session_data *tsd;
-				if( sd )
-				{
+				if( sd ) {
 					int i;
-					for( i = 0; i < 5; i++ )
-					{
+					for( i = 0; i < 5; i++ ) {
 						if( sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])) )
 							status_change_start(&tsd->bl, type, 10000, val1, val2, 0, 0, tick, 1);
 					}
@@ -8473,7 +8470,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			tick_time = 1000;
 			break;
 		case SC_BEYONDOFWARCRY:
-			val3 = val1 * (2 + val2);//STR And Crit Reduction. Formula Includes Caster And 2nd Performer.
+			val3 = val1 * (2 + val2);//STR And Crit Increase. Formula Includes Caster And 2nd Performer.
 			val4 = 4 * val1 + 4 * val2;//MaxHP Reduction
 			break;
 		case SC_UNLIMITEDHUMMINGVOICE: {
