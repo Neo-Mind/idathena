@@ -11873,11 +11873,11 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				if (sg->val3 > 5) sg->val3 = 0;
 			}
 			break;
-			
+
 		case UNT_VACUUM_EXTREME: { // TODO: official behavior in gvg area. [malufett]
 				int sec = sg->limit - DIFF_TICK(tick, sg->tick);
 				int range = skill_get_unit_range(sg->skill_id, sg->skill_lv);
-				
+
 				if ( tsc && tsc->data[SC_HALLUCINATIONWALK])
 					return 0;
 
