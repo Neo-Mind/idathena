@@ -1394,7 +1394,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		sc_start(bl,SC_JYUMONJIKIRI,25,skill_lv,skill_get_time(skill_id,skill_lv));
 		break;
 	case KO_MAKIBISHI:
-		sc_start(bl, SC_STUN, 100, skill_lv, skill_get_time2(skill_id,skill_lv));
+		sc_start(bl, SC_STUN, 10 * skill_lv, skill_lv, skill_get_time2(skill_id,skill_lv));
 		break;
 	case MH_LAVA_SLIDE:
 		if (tsc && !tsc->data[SC_BURNING])
@@ -4087,7 +4087,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				status_percent_damage(src, src, 0, 100, false);
 			}
 			break;
-			
+
 		case KO_MAKIBISHI:
 			skill_castend_pos2(src,bl->x,bl->y,skill_id,skill_lv,tick,0);
 			break;
@@ -4862,8 +4862,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							bl = src;
 							dstsd = sd;
 						}
-					}
-					else if (tsc->data[SC_BERSERK] || tsc->data[SC__BLOODYLUST])
+					} else if (tsc->data[SC_BERSERK] || tsc->data[SC__BLOODYLUST])
 						heal = 0; //Needed so that it actually displays 0 when healing.
 				}
 				clif_skill_nodamage (src, bl, skill_id, heal, 1);
@@ -10066,8 +10065,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 				struct mob_data *md;
 
 				md = mob_once_spawn_sub(src, src->m, x, y, status_get_name(src), class_, "", SZ_SMALL, AI_NONE);
-				if( md )
-				{
+				if( md ) {
 					md->master_id = src->id;
 					md->special_state.ai = AI_FLORA;
 					if( md->deletetimer != INVALID_TIMER )
@@ -11044,8 +11042,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 					map_moveblock(bl, src->bl.x, src->bl.y, tick);
 					clif_fixpos(bl);
 					sg->val2 = bl->id;
-				}
-				else
+				} else
 					sec = 3000; //Couldn't trap it?
 				sg->limit = DIFF_TICK(tick,sg->tick)+sec;
 			}
@@ -11062,7 +11059,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 
 		case UNT_BLOODYLUST:
 			if ( sg->src_id == bl->id )
-			break; //Does not affect the caster.
+				break; //Does not affect the caster.
 			if (!sce) {
 				TBL_PC *sd = BL_CAST(BL_PC, bl); //prevent fullheal exploit
 				if (sd && sd->bloodylust_tick && DIFF_TICK(gettick(), sd->bloodylust_tick) < skill_get_time2(SC_BLOODYLUST, 1))
@@ -11952,7 +11949,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;
 
 		case UNT_MAKIBISHI:
-			skill_attack(BF_MISC, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
+			skill_attack(BF_WEAPON, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
 			sg->limit = DIFF_TICK(tick, sg->tick);
 			sg->unit_id = UNT_USED_TRAPS;
 			break;

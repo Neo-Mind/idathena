@@ -1325,16 +1325,16 @@ int battle_calc_gvg_damage(struct block_list *src,struct block_list *bl,int dama
 
 	if(md && md->guardian_data) {
 		if(class_ == MOBID_EMPERIUM && flag&BF_SKILL) {
-		//Skill immunity.
+			//Skill immunity.
 			switch (skill_id) {
 #ifndef RENEWAL
-			case MO_TRIPLEATTACK:
+				case MO_TRIPLEATTACK:
 #endif
-			case HW_GRAVITATION:
-			case KO_MAKIBISHI:
-				break;
-			default:
-				return 0;
+				case HW_GRAVITATION:
+				case KO_MAKIBISHI:
+					break;
+				default:
+					return 0;
 			}
 		}
 		if(src->type != BL_MOB) {
@@ -3036,6 +3036,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio = (50 + sstatus->dex / 4) * skill_lv * (sd?pc_checkskill(sd,NJ_TOBIDOUGU):10) * 4 / 10;
 					RE_LVL_DMOD(120);
 					break;
+				case KO_MAKIBISHI:
+					skillratio = 20 * skill_lv;
+					break;
 				case MH_NEEDLE_OF_PARALYZE:
 					skillratio += 600 + 100 * skill_lv;
 					break;
@@ -4553,9 +4556,6 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		case GN_HELLS_PLANT_ATK:
 			//[{( Hell Plant Skill Level x Caster Base Level ) x 10 } + {( Caster INT x 7 ) / 2 } x { 18 + ( Caster Job Level / 4 )] x ( 5 / ( 10 - Summon Flora Skill Level ))
 			md.damage = ( skill_lv * status_get_lv(src) * 10 ) + ( sstatus->int_ * 7 / 2 ) * ( 18 + (sd?sd->status.job_level:0) / 4 ) * ( 5 / (10 - (sd?pc_checkskill(sd,AM_CANNIBALIZE):0)) );
-			break;
-		case KO_MAKIBISHI:
-			md.damage = 20 * skill_lv;
 			break;
 	}
 
