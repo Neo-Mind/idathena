@@ -7782,6 +7782,8 @@ BUILDIN_FUNC(delequip)
 		pc_unequipitem(sd,i,3); //Recalculate bonus
 		pc_delitem(sd,i,1,0,2,LOG_TYPE_SCRIPT);
 	}
+
+	return 0;
 }
 
 /*==========================================
