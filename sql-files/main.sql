@@ -438,6 +438,7 @@ CREATE TABLE IF NOT EXISTS `login` (
   `lastlogin` datetime NOT NULL default '0000-00-00 00:00:00',
   `last_ip` varchar(100) NOT NULL default '',
   `birthdate` DATE NOT NULL DEFAULT '0000-00-00',
+  `character_slots` TINYINT( 3 ) unsigned NOT NULL,
   PRIMARY KEY  (`account_id`),
   KEY `name` (`userid`)
 ) ENGINE=MyISAM AUTO_INCREMENT=2000000; 
@@ -646,6 +647,7 @@ CREATE TABLE IF NOT EXISTS `sql_updates` (
 -- Existent updates to enter
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1360858500);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1360951560);
+INSERT INTO `sql_updates` (`timestamp`) VALUES (1362445531);
 
 --
 -- Table structure for table `sstatus`
