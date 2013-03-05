@@ -3630,14 +3630,14 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			wd.damage-=wd.damage2;
 		}
 	}
-	
+
 #ifdef RENEWAL
 	if(skill_id==AM_ACIDTERROR) {
 		struct Damage ad = battle_calc_magic_attack(src, target, skill_id, skill_lv, wflag);
 		wd.damage += ad.damage;
 	}
 #endif
-	
+
 	//Reject Sword bugreport:4493 by Daegaladh
 	if(wd.damage && tsc && tsc->data[SC_REJECTSWORD] &&
 		(src->type!=BL_PC || (
@@ -3714,8 +3714,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	memset(&ad,0,sizeof(ad));
 	memset(&flag,0,sizeof(flag));
 
-	if(src==NULL || target==NULL)
-	{
+	if(src==NULL || target==NULL) {
 		nullpo_info(NLP_MARK);
 		return ad;
 	}
@@ -3767,14 +3766,13 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	//Skill Range Criteria
 	ad.flag |= battle_range_type(src, target, skill_id, skill_lv);
 	flag.infdef=(tstatus->mode&MD_PLANT?1:0);
-	if( target->type == BL_SKILL){
+	if( target->type == BL_SKILL) {
 		TBL_SKILL *su = (TBL_SKILL*)target;
 		if( su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD) )
 			flag.infdef = 1;
 	}
-	
-	switch(skill_id)
-	{
+
+	switch(skill_id) {
 		case MG_FIREWALL:
 		case NJ_KAENSIN:
 			ad.dmotion = 0; //No flinch animation.
@@ -3786,8 +3784,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			break;
 	}
 
-	if (!flag.infdef) //No need to do the math for plants
-	{
+	if (!flag.infdef) { //No need to do the math for plants
 #ifdef RENEWAL
 	ad.damage = 0; //reinitialize..
 #endif
@@ -3798,8 +3795,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 //Adds an absolute value to damage. 100 = +100 damage
 #define MATK_ADD( a ) { ad.damage+= a; }
 
-		switch (skill_id)
-		{	//Calc base damage according to skill
+		switch (skill_id) { //Calc base damage according to skill
 			case AL_HEAL:
 			case PR_BENEDICTIO:
 			case PR_SANCTUARY:
@@ -3853,14 +3849,14 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				} else {
 					MATK_ADD(sstatus->matk_min);
 				}
-				if(nk&NK_SPLASHSPLIT){ // Divide MATK in case of multiple targets skill
+				if(nk&NK_SPLASHSPLIT) { // Divide MATK in case of multiple targets skill
 					if(mflag>0)
 						ad.damage/= mflag;
 					else
 						ShowError("0 enemies targeted by %d:%s, divide per 0 avoided!\n", skill_id, skill_get_name(skill_id));
 				}
 
-				switch(skill_id){
+				switch(skill_id) {
 					case MG_NAPALMBEAT:
 						skillratio += skill_lv*10-30;
 						break;
@@ -3964,10 +3960,9 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					case WZ_METEOR:
 						skillratio += 25;
 						break;
-					case WZ_VERMILION:
-						{
+					case WZ_VERMILION: {
     						int interval = 0, per = interval, ratio = per;
-    						while( (per++) < skill_lv ){
+    						while( (per++) < skill_lv ) {
      							ratio += interval;
      							if(per%3==0) interval += 20;
     						}
@@ -4036,20 +4031,19 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						if( mflag&ELE_DARK ){ skillratio *= 4; s_ele = ELE_DARK; }
 						skillratio /= 5;
 						break;
-					case WL_COMET:
-						{
-						struct status_change * sc = status_get_sc(src);
-						if( sc )
-							i = distance_xy(target->x, target->y, sc->comet_x, sc->comet_y);
-						else
-							i = 8;
-						if( i < 4 ) skillratio = 2500 + 500 * skill_lv;
-						else
-						if( i < 6 ) skillratio = 2000 + 500 * skill_lv;
-						else
-						if( i < 8 ) skillratio = 1500 + 500 * skill_lv;
-						else
-						skillratio = 1000 + 500 * skill_lv;
+					case WL_COMET: {
+							struct status_change * sc = status_get_sc(src);
+							if( sc )
+								i = distance_xy(target->x, target->y, sc->comet_x, sc->comet_y);
+							else
+								i = 8;
+							if( i < 4 ) skillratio = 2500 + 500 * skill_lv;
+							else
+							if( i < 6 ) skillratio = 2000 + 500 * skill_lv;
+							else
+							if( i < 8 ) skillratio = 1500 + 500 * skill_lv;
+							else
+							skillratio = 1000 + 500 * skill_lv;
 						}
 						break;
 					case WL_CHAINLIGHTNING_ATK:
@@ -4073,8 +4067,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						skillratio = (1 + skill_lv) / 2 * (status_get_lv(src) + ( sd ? sd->status.job_level : 50 ));
 						RE_LVL_DMOD(100);
 						break;
-					case LG_RAYOFGENESIS:
-						{
+					case LG_RAYOFGENESIS: {
 							int16 lv = skill_lv;
 							int bandingBonus = 0;
 							if( sc && sc->data[SC_BANDING] )
@@ -4129,7 +4122,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					case SO_PSYCHIC_WAVE:
 						skillratio = 70 * skill_lv + 3 * sstatus->int_;
 						RE_LVL_DMOD(100);
-						if( sc ){
+						if( sc ) {
 							if( sc->data[SC_HEATER_OPTION] )
 								skillratio += sc->data[SC_HEATER_OPTION]->val3;
 							else if(sc->data[SC_COOLER_OPTION] )
@@ -4153,16 +4146,12 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 							skillratio += sd ? sd->status.job_level * 5 : 0;
 						break;
 					case GN_DEMONIC_FIRE:
-						if ( skill_lv > 20 ) // Fire Expansion Level 2
-						{
+						if ( skill_lv > 20 ) { // Fire Expansion Level 2
 							skillratio += 10 + 20 * (skill_lv - 20) + 10 * sstatus->int_;
-						}
-						else if ( skill_lv > 10 ) // Fire Expansion Level 1
-						{
+						} else if ( skill_lv > 10 ) { // Fire Expansion Level 1
 							skillratio += 10 + 20 * (skill_lv - 10) + sstatus->int_;
 							RE_LVL_DMOD(100);
-						}
-						else // Normal Demonic Fire Damage
+						} else // Normal Demonic Fire Damage
 							skillratio += 10 + 20 * skill_lv;
 						break;
 						// Magical Elemental Spirits Attack Skills
@@ -4201,7 +4190,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				}
 
 				MATK_RATE(skillratio);
-			
+
 				//Constant/misc additions from skills
 				if (skill_id == WZ_FIREPILLAR)
 					MATK_ADD(50);
@@ -4237,8 +4226,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			if (sd) {
 				i = sd->ignore_mdef[is_boss(target)?RC_BOSS:RC_NONBOSS];
 				i+= sd->ignore_mdef[tstatus->race];
-				if (i)
-				{
+				if (i) {
 					if (i > 100) i = 100;
 					mdef -= mdef * i/100;
 					//mdef2-= mdef2* i/100;
@@ -4258,8 +4246,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 #endif
 		}
 		
-		if (skill_id == NPC_EARTHQUAKE)
-		{	//Adds atk2 to the damage, should be influenced by number of hits and skill-ratio, but not mdef reductions. [Skotlex]
+		if (skill_id == NPC_EARTHQUAKE) {
+			//Adds atk2 to the damage, should be influenced by number of hits and skill-ratio, but not mdef reductions. [Skotlex]
 			//Also divide the extra bonuses from atk2 based on the number in range [Kevin]
 			if (mflag > 0)
 				ad.damage+= (sstatus->rhw.atk2*skillratio/100)/mflag;
@@ -4290,12 +4278,11 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		if (!(nk&NK_NO_ELEFIX))
 			ad.damage=battle_attr_fix(src, target, ad.damage, s_ele, tstatus->def_ele, tstatus->ele_lv);
 
-		if( skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS )
-		{ //Apply the physical part of the skill's damage. [Skotlex]
+		if( skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS ) {
+			//Apply the physical part of the skill's damage. [Skotlex]
 			struct Damage wd = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
 			ad.damage = battle_attr_fix(src, target, wd.damage + ad.damage, s_ele, tstatus->def_ele, tstatus->ele_lv) * (100 + 40*skill_lv)/100;
-			if( src == target )
-			{
+			if( src == target ) {
 				if( src->type == BL_PC )
 					ad.damage = ad.damage/2;
 				else
