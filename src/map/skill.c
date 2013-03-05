@@ -7716,8 +7716,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case AB_CLEARANCE:
 			if( flag&1 || (i = skill_get_splash(skill_id, skill_lv)) < 1 ) {
 				//As of the behavior in official server Clearance is just a super version of Dispell skill. [Jobbie]
-				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-
+				if( bl->type == BL_MOB || src == bl || battle_check_target(src,bl,BCT_PARTY) > 0 )
+					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+				else
+					break;
 				if( (dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) || rnd()%100 >= 60 + 8 * skill_lv ) {
 					if (sd)
 						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -8313,12 +8315,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
 			break;
 
-		case SR_GENTLETOUCH_CURE:
-			{
+		case SR_GENTLETOUCH_CURE: {
 				int heal;
 
-				if( status_isimmune(bl) )
-				{
+				if( status_isimmune(bl) ) {
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,0);
 					break;
 				}
@@ -8352,8 +8352,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case MI_ECHOSONG:
 			if( flag&1 )
 					sc_start2(bl,type,100,skill_lv,pc_checkskill(sd,WM_LESSON),skill_get_time(skill_id,skill_lv));
-				else if( sd )
-				{
+				else if( sd ) {
 					party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
 					sc_start2(bl,type,100,skill_lv,pc_checkskill(sd,WM_LESSON),skill_get_time(skill_id,skill_lv));
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
