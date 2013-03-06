@@ -6715,6 +6715,7 @@ ACMD_FUNC(mobinfo)
 	struct mob_db *mob, *mob_array[MAX_SEARCH];
 	int count;
 	int i, j, k;
+	unsigned int base_exp, job_exp;
 
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 	memset(atcmd_output2, '\0', sizeof(atcmd_output2));
@@ -6741,6 +6742,7 @@ ACMD_FUNC(mobinfo)
 		clif_displaymessage(fd, atcmd_output);
 		count = MAX_SEARCH;
 	}
+
 	for (k = 0; k < count; k++) {
 		mob = mob_array[k];
 		base_exp = mob->base_exp;
