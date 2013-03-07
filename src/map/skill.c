@@ -8820,12 +8820,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case KO_ZANZOU:
-			if(sd){
+			if(sd) {
 				struct mob_data *md;
 
 				md = mob_once_spawn_sub(src, src->m, src->x, src->y, status_get_name(src), 2308, "", SZ_SMALL, AI_NONE);
-				if( md )
-				{
+				if( md ) {
 					md->master_id = src->id;
 					md->special_state.ai = AI_ZANZOU;
 					if( md->deletetimer != INVALID_TIMER )
@@ -8840,40 +8839,39 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case KO_KYOUGAKU:
-			if( dstsd && tsc && !tsc->data[type] && rnd()%100 < tstatus->int_/2 ){
+			if( dstsd && tsc && !tsc->data[type] && rnd()%100 < tstatus->int_/2 ) {
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,
 					sc_start(bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
-			}else if( sd )
+			} else if( sd )
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
 
 		case KO_JYUSATSU:
 			if( dstsd && tsc && !tsc->data[type] &&
-				rnd()%100 < ((45+5*skill_lv) + skill_lv*5 - status_get_int(bl)/2) ){//[(Base chance of success) + (Skill Level x 5) - (int / 2)]%.
+				rnd()%100 < ((45+5*skill_lv) + skill_lv*5 - status_get_int(bl)/2) ) { //[(Base chance of success) + (Skill Level x 5) - (int / 2)]%.
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,
 					status_change_start(bl,type,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),1));
 				status_zap(bl, tstatus->max_hp*skill_lv*5/100 , 0);
 				if( status_get_lv(bl) <= status_get_lv(src) )
 					status_change_start(bl,SC_COMA,10,skill_lv,0,src->id,0,0,0);
-			}else if( sd )
+			} else if( sd )
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
-			
+
 		case KO_GENWAKU:
 			if ( !map_flag_gvg(src->m) && ( dstsd || dstmd ) && battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
 				int x = src->x, y = src->y;
-				
+
 				if( sd && rnd()%100 > ((45+5*skill_lv) - status_get_int(bl)/10) ){//[(Base chance of success) - (Intelligence Objectives / 10)]%.
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
-				
+
 				if (unit_movepos(src,bl->x,bl->y,0,0)) {
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 					clif_slide(src,bl->x,bl->y);
 					sc_start(src,SC_CONFUSION,80,skill_lv,skill_get_time(skill_id,skill_lv));
-					if (unit_movepos(bl,x,y,0,0))
-					{
+					if (unit_movepos(bl,x,y,0,0)) {
 						clif_skill_damage(bl,bl,tick, status_get_amotion(src), 0, -30000, 1, skill_id, -1, 6);
 						if( bl->type == BL_PC && pc_issit((TBL_PC*)bl))
 							clif_sitting(bl); //Avoid sitting sync problem
@@ -8887,7 +8885,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case OB_AKAITSUKI:
 		case OB_OBOROGENSOU:
 			if( sd && ( (skill_id == OB_OBOROGENSOU && bl->type == BL_MOB) // This skill does not work on monsters.
-				|| is_boss(bl) ) ){ // Does not work on Boss monsters.
+				|| is_boss(bl) ) ) { // Does not work on Boss monsters.
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				break;
 			}
@@ -8901,10 +8899,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 			
 		case KG_KAGEHUMI:
-			if( flag&1 ){
+			if( flag&1 ) {
 				if(tsc && ( tsc->option&(OPTION_CLOAK|OPTION_HIDE) ||
 					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC__SHADOWFORM] ||
-					tsc->data[SC_MARIONETTE] || tsc->data[SC_HARMONIZE])){
+					tsc->data[SC_MARIONETTE] || tsc->data[SC_HARMONIZE])) {
 						sc_start(src, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 						sc_start(bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 						status_change_end(bl, SC_HIDING, INVALID_TIMER);
@@ -8915,11 +8913,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						status_change_end(bl, SC_MARIONETTE, INVALID_TIMER);
 						status_change_end(bl, SC_HARMONIZE, INVALID_TIMER);
 				}
-				if( skill_area_temp[2] == 1 ){
+				if( skill_area_temp[2] == 1 ) {
 					clif_skill_damage(src,src,tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
 					sc_start(src, SC_STOP, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 				}
-			}else{
+			} else {
 				skill_area_temp[2] = 0;
 				map_foreachinrange(skill_area_sub, bl, skill_get_splash(skill_id, skill_lv), splash_target(src), src, skill_id, skill_lv, tick, flag|BCT_ENEMY|SD_SPLASH|1, skill_castend_nodamage_id);
 			}
@@ -13673,15 +13671,12 @@ int skill_castfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv) {
 		}
 
 		// calculate cast time reduced by item/card bonuses
-		if( !(skill_get_castnodex(skill_id, skill_lv)&4) && sd )
-		{
+		if( !(skill_get_castnodex(skill_id, skill_lv)&4) && sd ) {
 			int i;
 			if( sd->castrate != 100 )
 				time = time * sd->castrate / 100;
-			for( i = 0; i < ARRAYLENGTH(sd->skillcast) && sd->skillcast[i].id; i++ )
-			{
-				if( sd->skillcast[i].id == skill_id )
-				{
+			for( i = 0; i < ARRAYLENGTH(sd->skillcast) && sd->skillcast[i].id; i++ ) {
+				if( sd->skillcast[i].id == skill_id ) {
 					time+= time * sd->skillcast[i].val / 100;
 					break;
 				}
@@ -13706,10 +13701,10 @@ int skill_castfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv) {
 int skill_castfix_sc (struct block_list *bl, int time)
 {
 	struct status_change *sc = status_get_sc(bl);
-	
+
 	if( time < 0 )
 		return 0;
-		
+
 	if (sc && sc->count) {
 		if (sc->data[SC_SLOWCAST])
 			time += time * sc->data[SC_SLOWCAST]->val2 / 100;
@@ -13729,9 +13724,9 @@ int skill_castfix_sc (struct block_list *bl, int time)
 		if (sc->data[SC_IZAYOI])
 			time -= time * 50 / 100;
 	}
-	
+
 	time = max(time, 0);
-	
+
 //	ShowInfo("Castime castfix_sc = %d\n",time);
 	return time;
 }
@@ -13745,13 +13740,13 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 	if( time < 0 )
 		return 0;
 
-	if( fixed == 0 ){
+	if( fixed == 0 ) {
 		fixed = (int)time * 20 / 100; // fixed time
 		time = time * 80 / 100; // variable time
-	}else if( fixed < 0 ) // no fixed cast time
+	} else if( fixed < 0 ) // no fixed cast time
 		fixed = 0;
 	
-	if(sd  && !(skill_get_castnodex(skill_id, skill_lv)&4) ){ // Increases/Decreases fixed/variable cast time of a skill by item/card bonuses.
+	if(sd  && !(skill_get_castnodex(skill_id, skill_lv)&4) ) { // Increases/Decreases fixed/variable cast time of a skill by item/card bonuses.
 		if( sd->bonus.varcastrate < 0 )
 			VARCAST_REDUCTION(sd->bonus.varcastrate);
 		if( sd->bonus.add_varcast != 0 ) // bonus bVariableCast
@@ -13759,23 +13754,23 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 		if( sd->bonus.add_fixcast != 0 ) // bonus bFixedCast
 			fixed += sd->bonus.add_fixcast;
 		for (i = 0; i < ARRAYLENGTH(sd->skillfixcast) && sd->skillfixcast[i].id; i++)
-			if (sd->skillfixcast[i].id == skill_id){ // bonus2 bSkillFixedCast
+			if (sd->skillfixcast[i].id == skill_id) { // bonus2 bSkillFixedCast
 				fixed += sd->skillfixcast[i].val;
 				break;
 			}
 		for( i = 0; i < ARRAYLENGTH(sd->skillvarcast) && sd->skillvarcast[i].id; i++ )
-			if( sd->skillvarcast[i].id == skill_id ){ // bonus2 bSkillVariableCast
+			if( sd->skillvarcast[i].id == skill_id ) { // bonus2 bSkillVariableCast
 				time += sd->skillvarcast[i].val;
 				break;
 			}
 		for( i = 0; i < ARRAYLENGTH(sd->skillcast) && sd->skillcast[i].id; i++ )
-			if( sd->skillcast[i].id == skill_id ){ // bonus2 bVariableCastrate
+			if( sd->skillcast[i].id == skill_id ) { // bonus2 bVariableCastrate
 				if( (i=sd->skillcast[i].val) < 0)
 					VARCAST_REDUCTION(i);
 				break;
 			}
 		for( i = 0; i < ARRAYLENGTH(sd->skillfixcastrate) && sd->skillfixcastrate[i].id; i++ )
-			if( sd->skillfixcastrate[i].id == skill_id ){ // bonus2 bFixedCastrate
+			if( sd->skillfixcastrate[i].id == skill_id ) { // bonus2 bFixedCastrate
 				fixcast_r = sd->skillfixcastrate[i].val; // just speculation
 				break;
 			}
@@ -13819,7 +13814,7 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 		if( sc->data[SC_IZAYOI] && (skill_id >= NJ_TOBIDOUGU && skill_id <= NJ_ISSEN) )
 			fixed = 0;
 	}
-	
+
 	if( sd && !(skill_get_castnodex(skill_id, skill_lv)&4) ){
 		VARCAST_REDUCTION( max(sd->bonus.varcastrate, 0) + max(i, 0) );
 		fixcast_r = max(fixcast_r, sd->bonus.fixcastrate) + min(sd->bonus.fixcastrate,0);
@@ -13860,40 +13855,37 @@ int skill_delayfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 
 	// Delay reductions
 	switch (skill_id) {	//Monk combo skills have their delay reduced by agi/dex.
-	case MO_TRIPLEATTACK:
-	case MO_CHAINCOMBO:
-	case MO_COMBOFINISH:
-	case CH_TIGERFIST:
-	case CH_CHAINCRUSH:
-	case SR_DRAGONCOMBO:
-	case SR_FALLENEMPIRE:
-		time -= 4*status_get_agi(bl) - 2*status_get_dex(bl);
-		break;
-	case HP_BASILICA:
-		if( sc && !sc->data[SC_BASILICA] )
-			time = 0; // There is no Delay on Basilica creation, only on cancel
-		break;
-	default:
-		if (battle_config.delay_dependon_dex && !(delaynodex&1))
-		{	// if skill delay is allowed to be reduced by dex
-			int scale = battle_config.castrate_dex_scale - status_get_dex(bl);
-			if (scale > 0)
-				time = time * scale / battle_config.castrate_dex_scale;
-			else //To be capped later to minimum.
-				time = 0;
-		}
-		if (battle_config.delay_dependon_agi && !(delaynodex&1))
-		{	// if skill delay is allowed to be reduced by agi
-			int scale = battle_config.castrate_dex_scale - status_get_agi(bl);
-			if (scale > 0)
-				time = time * scale / battle_config.castrate_dex_scale;
-			else //To be capped later to minimum.
-				time = 0;
-		}
+		case MO_TRIPLEATTACK:
+		case MO_CHAINCOMBO:
+		case MO_COMBOFINISH:
+		case CH_TIGERFIST:
+		case CH_CHAINCRUSH:
+		case SR_DRAGONCOMBO:
+		case SR_FALLENEMPIRE:
+			time -= 4*status_get_agi(bl) - 2*status_get_dex(bl);
+			break;
+		case HP_BASILICA:
+			if( sc && !sc->data[SC_BASILICA] )
+				time = 0; // There is no Delay on Basilica creation, only on cancel
+			break;
+		default:
+			if (battle_config.delay_dependon_dex && !(delaynodex&1)) { // if skill delay is allowed to be reduced by dex
+				int scale = battle_config.castrate_dex_scale - status_get_dex(bl);
+				if (scale > 0)
+					time = time * scale / battle_config.castrate_dex_scale;
+				else //To be capped later to minimum.
+					time = 0;
+			}
+			if (battle_config.delay_dependon_agi && !(delaynodex&1)) { // if skill delay is allowed to be reduced by agi
+				int scale = battle_config.castrate_dex_scale - status_get_agi(bl);
+				if (scale > 0)
+					time = time * scale / battle_config.castrate_dex_scale;
+				else //To be capped later to minimum.
+					time = 0;
+			}
 	}
 
-	if ( sc && sc->data[SC_SPIRIT] )
-	{
+	if ( sc && sc->data[SC_SPIRIT] ) {
 		switch (skill_id) {
 			case CR_SHIELDBOOMERANG:
 				if (sc->data[SC_SPIRIT]->val2 == SL_CRUSADER)
@@ -13906,8 +13898,7 @@ int skill_delayfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 		}
 	}
 
-	if (!(delaynodex&2))
-	{
+	if (!(delaynodex&2)) {
 		if (sc && sc->count) {
 			if (sc->data[SC_POEMBRAGI])
 				time -= time * sc->data[SC_POEMBRAGI]->val3 / 100;
@@ -14046,10 +14037,8 @@ static void skill_brandishspear_dir (struct square* tc, uint8 dir, int are)
 	int c;
 	nullpo_retv(tc);
 
-	for( c = 0; c < 5; c++ )
-	{
-		switch( dir )
-		{
+	for( c = 0; c < 5; c++ ) {
+		switch( dir ) {
 			case 0:                   tc->val2[c]+=are; break;
 			case 1: tc->val1[c]-=are; tc->val2[c]+=are; break;
 			case 2: tc->val1[c]-=are;                   break;
@@ -14072,35 +14061,35 @@ void skill_brandishspear(struct block_list* src, struct block_list* bl, uint16 s
 	skill_brandishspear_dir(&tc,dir,4);
 	skill_area_temp[1] = bl->id;
 
-	if(skill_lv > 9){
-		for(c=1;c<4;c++){
+	if(skill_lv > 9) {
+		for(c=1;c<4;c++) {
 			map_foreachincell(skill_area_sub,
 				bl->m,tc.val1[c],tc.val2[c],BL_CHAR,
 				src,skill_id,skill_lv,tick, flag|BCT_ENEMY|n,
 				skill_castend_damage_id);
 		}
 	}
-	if(skill_lv > 6){
+	if(skill_lv > 6) {
 		skill_brandishspear_dir(&tc,dir,-1);
 		n--;
-	}else{
+	} else {
 		skill_brandishspear_dir(&tc,dir,-2);
 		n-=2;
 	}
 
-	if(skill_lv > 3){
-		for(c=0;c<5;c++){
+	if(skill_lv > 3) {
+		for(c=0;c<5;c++) {
 			map_foreachincell(skill_area_sub,
 				bl->m,tc.val1[c],tc.val2[c],BL_CHAR,
 				src,skill_id,skill_lv,tick, flag|BCT_ENEMY|n,
 				skill_castend_damage_id);
-			if(skill_lv > 6 && n==3 && c==4){
+			if(skill_lv > 6 && n==3 && c==4) {
 				skill_brandishspear_dir(&tc,dir,-1);
 				n--;c=-1;
 			}
 		}
 	}
-	for(c=0;c<10;c++){
+	for(c=0;c<10;c++) {
 		if(c==0||c==5) skill_brandishspear_dir(&tc,dir,-1);
 		map_foreachincell(skill_area_sub,
 			bl->m,tc.val1[c%5],tc.val2[c%5],BL_CHAR,
@@ -14185,16 +14174,14 @@ void skill_weaponrefine (struct map_session_data *sd, int idx)
 {
 	nullpo_retv(sd);
 
-	if (idx >= 0 && idx < MAX_INVENTORY)
-	{
+	if (idx >= 0 && idx < MAX_INVENTORY) {
 		int i = 0, ep = 0, per;
 		int material[5] = { 0, 1010, 1011, 984, 984 };
 		struct item *item;
 		struct item_data *ditem = sd->inventory_data[idx];
 		item = &sd->status.inventory[idx];
 
-		if(item->nameid > 0 && ditem->type == IT_WEAPON)
-		{
+		if(item->nameid > 0 && ditem->type == IT_WEAPON) {
 			if( item->refine >= sd->menuskill_val
 			||  item->refine >= 10		// if it's no longer refineable
 			||  ditem->flag.no_refine 	// if the item isn't refinable
@@ -14273,17 +14260,14 @@ int skill_autospell (struct map_session_data *sd, uint16 skill_id)
 		else if(skill_lv==2) maxlv=1;
 		else if(skill_lv==3) maxlv=2;
 		else if(skill_lv>=4) maxlv=3;
-	}
-	else if(skill_id==MG_SOULSTRIKE){
+	} else if(skill_id==MG_SOULSTRIKE) {
 		if(skill_lv==5) maxlv=1;
 		else if(skill_lv==6) maxlv=2;
 		else if(skill_lv>=7) maxlv=3;
-	}
-	else if(skill_id==MG_FIREBALL){
+	} else if(skill_id==MG_FIREBALL) {
 		if(skill_lv==8) maxlv=1;
 		else if(skill_lv>=9) maxlv=2;
-	}
-	else if(skill_id==MG_FROSTDIVER) maxlv=1;
+	} else if(skill_id==MG_FROSTDIVER) maxlv=1;
 	else return 0;
 
 	if(maxlv > lv)
@@ -14328,8 +14312,7 @@ static int skill_sit_in (struct block_list *bl, va_list ap)
 	if(type&1 && pc_checkskill(sd,RG_GANGSTER) > 0)
 		sd->state.gangsterparadise=1;
 
-	if(type&2 && (pc_checkskill(sd,TK_HPTIME) > 0 || pc_checkskill(sd,TK_SPTIME) > 0 ))
-	{
+	if(type&2 && (pc_checkskill(sd,TK_HPTIME) > 0 || pc_checkskill(sd,TK_SPTIME) > 0 )) {
 		sd->state.rest=1;
 		status_calc_regen(bl, &sd->battle_status, &sd->regen);
 		status_calc_regen_rate(bl, &sd->regen, &sd->sc);

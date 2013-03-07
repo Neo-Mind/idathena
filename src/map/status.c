@@ -7650,22 +7650,17 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			break;
 
 		case SC_AUTOGUARD:
-			if( !(flag&1) )
-			{
+			if( !(flag&1) ) {
 				struct map_session_data *tsd;
 				int i,t;
-				for( i = val2 = 0; i < val1; i++)
-				{
+				for( i = val2 = 0; i < val1; i++) {
 					t = 5-(i>>1);
 					val2 += (t < 0)? 1:t;
 				}
 
-				if( bl->type&(BL_PC|BL_MER) )
-				{
-					if( sd )
-					{
-						for( i = 0; i < 5; i++ )
-						{
+				if( bl->type&(BL_PC|BL_MER) ) {
+					if( sd ) {
+						for( i = 0; i < 5; i++ ) {
 							if( sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])) )
 								status_change_start(&tsd->bl, type, 10000, val1, val2, 0, 0, tick, 1);
 						}
@@ -7677,18 +7672,15 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			break;
 
 		case SC_DEFENDER:
-			if (!(flag&1))
-			{
+			if (!(flag&1)) {
 				val2 = 5 + 15*val1; //Damage reduction
 				val3 = 0; // unused, previously speed adjustment
 				val4 = 250 - 50*val1; //Aspd adjustment
 
-				if (sd)
-				{
+				if (sd) {
 					struct map_session_data *tsd;
 					int i;
-					for (i = 0; i < 5; i++)
-					{	//See if there are devoted characters, and pass the status to them. [Skotlex]
+					for (i = 0; i < 5; i++) { //See if there are devoted characters, and pass the status to them. [Skotlex]
 						if (sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])))
 							status_change_start(&tsd->bl,type,10000,val1,5+val1*5,val3,val4,tick,1);
 					}
@@ -8308,7 +8300,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			break;
 		case SC__REPRODUCE:
 			val4 = tick / 1000;
-			tick = 1000;
+			tick = -1;
 			break;
 		case SC__SHADOWFORM: {
 				struct map_session_data * s_sd = map_id2sd(val2);
@@ -8323,6 +8315,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			val2 = 20 * val1;// Critical Amount Increase
 			val3 = 50 - 10 * val1;// ASPD Reduction
 			val4 = tick / 1000;
+			tick = -1;
 			tick_time = 1000; // [GodLesZ] tick time
 			val_flag |= 1|2;
 			break;
@@ -8505,8 +8498,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 				val1 += 10 * sd->status.job_level;
 				if( index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON )
 						val1 += sd->inventory_data[index]->weight / 10 * sd->inventory_data[index]->wlv * status_get_lv(bl) / 100;
-			}
-			else // Monster Use
+			} else // Monster Use
 				val1 += 500;
 			break;
 		case SC_PRESTIGE:
@@ -8533,8 +8525,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			tick_time = 1000; // [GodLesZ] tick time
 			break;
 		case SC_INSPIRATION:
-			if( sd )
-			{
+			if( sd ) {
 				val2 = 40 * val1 + 3 * sd->status.job_level; // ATK bonus
 				val3 = sd->status.base_level / 10 + sd->status.job_level / 5; // All stat bonus
 			}
@@ -8561,8 +8552,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		case SC_GT_ENERGYGAIN:
 			val2 = 10 + 5 * val1;//Sphere gain chance.
 			break;
-		case SC_GT_CHANGE:
-			{// take note there is no def increase as skill desc says. [malufett]
+		case SC_GT_CHANGE: { // take note there is no def increase as skill desc says. [malufett]
 				struct block_list * src;
 				val3 = status->agi * val1 / 60; // ASPD increase: [(Target AGI x Skill Level) / 60] %
 				if( (src = map_id2bl(val2)) ) {
@@ -8573,8 +8563,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 				}
 			}
 			break;
-		case SC_GT_REVITALIZE:
-			{// take note there is no vit,aspd,speed increase as skill desc says. [malufett]
+		case SC_GT_REVITALIZE: { // take note there is no vit,aspd,speed increase as skill desc says. [malufett]
 				struct block_list * src;
 				val3 = val1 * 30 + 150; // Natural HP recovery increase: [(Skill Level x 30) + 50] %
 				if( (src = map_id2bl(val2)) ) // the stat def is not shown in the status window and it is process differently
@@ -8773,29 +8762,26 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 				ShowError("UnknownStatusChange [%d]\n", type);
 				return 0;
 			}
-	}
-	else //Special considerations when loading SC data.
-	switch( type )
-	{
-		case SC_WEDDING:
-		case SC_XMAS:
-		case SC_SUMMER:
-			clif_changelook(bl,LOOK_WEAPON,0);
-			clif_changelook(bl,LOOK_SHIELD,0);
-			clif_changelook(bl,LOOK_BASE,type==SC_WEDDING?JOB_WEDDING:type==SC_XMAS?JOB_XMAS:JOB_SUMMER);
-			clif_changelook(bl,LOOK_CLOTHES_COLOR,val4);
-			break;
-		case SC_KAAHI:
-			val4 = INVALID_TIMER;
-			break;
-		case SC_BANDING:
-			{
-				struct skill_unit_group *sg;
-				if( (sg = skill_unitsetting(bl,LG_BANDING,val1,bl->x,bl->y,0)) != NULL )
-					val4 = sg->group_id;
-			}
-			break;
-	}
+	} else //Special considerations when loading SC data.
+		switch( type ) {
+			case SC_WEDDING:
+			case SC_XMAS:
+			case SC_SUMMER:
+				clif_changelook(bl,LOOK_WEAPON,0);
+				clif_changelook(bl,LOOK_SHIELD,0);
+				clif_changelook(bl,LOOK_BASE,type==SC_WEDDING?JOB_WEDDING:type==SC_XMAS?JOB_XMAS:JOB_SUMMER);
+				clif_changelook(bl,LOOK_CLOTHES_COLOR,val4);
+				break;
+			case SC_KAAHI:
+				val4 = INVALID_TIMER;
+				break;
+			case SC_BANDING: {
+					struct skill_unit_group *sg;
+					if( (sg = skill_unitsetting(bl,LG_BANDING,val1,bl->x,bl->y,0)) != NULL )
+						val4 = sg->group_id;
+				}
+				break;
+		}
 
 	//Those that make you stop attacking/walking....
 	switch (type) {
@@ -10594,7 +10580,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			break;
 
 		case SC_FORCEOFVANGUARD:
-			if( !status_charge(bl,0,24 - 4 * sce->val1))
+			if( !status_charge(bl,0,24 - 4 * sce->val1) )
 				break;
 			sc_timer_next(10000 + tick, status_change_timer, bl->id, data);
 			return 0;
