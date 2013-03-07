@@ -40,7 +40,6 @@ dewata,202,184,6	script	Kafra Employee::kaf_dewata	117,{
 	callfunc "F_KafEnd",0,1,"on Dewata Island";
 }
 
-
 // Izlude
 //============================================================
 izlude,128,148,6	duplicate(kaf_izlude)	Kafra Employee	117
