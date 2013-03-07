@@ -2604,7 +2604,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				clif_addskill(tsd,copy_skill);
 			} else {
 				lv = skill_lv;
-				if (tsd->cloneskill_id && tsd->status.skill[tsd->cloneskill_id].flag == SKILL_FLAG_PLAGIARIZED){
+				if (tsd->cloneskill_id && tsd->status.skill[tsd->cloneskill_id].flag == SKILL_FLAG_PLAGIARIZED) {
 					tsd->status.skill[tsd->cloneskill_id].id = 0;
 					tsd->status.skill[tsd->cloneskill_id].lv = 0;
 					tsd->status.skill[tsd->cloneskill_id].flag = 0;

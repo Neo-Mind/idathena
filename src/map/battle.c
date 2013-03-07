@@ -1526,10 +1526,8 @@ static int battle_calc_base_damage(struct status_data *status, struct weapon_atk
 	short type = 0;
 	int damage = 0;
 
-	if (!sd)
-	{	//Mobs/Pets
-		if(flag&4)
-		{
+	if (!sd) { //Mobs/Pets
+		if(flag&4) {
 			atkmin = status->matk_min;
 			atkmax = status->matk_max;
 		} else {
@@ -1538,12 +1536,11 @@ static int battle_calc_base_damage(struct status_data *status, struct weapon_atk
 		}
 		if (atkmin > atkmax)
 			atkmin = atkmax;
-	} else {	//PCs
+	} else { //PCs
 		atkmax = wa->atk;
 		type = (wa == &status->lhw)?EQI_HAND_L:EQI_HAND_R;
 
-		if (!(flag&1) || (flag&2))
-		{	//Normal attacks
+		if (!(flag&1) || (flag&2)) { //Normal attacks
 			atkmin = status->dex;
 			
 			if (sd->equip_index[type] >= 0 && sd->inventory_data[sd->equip_index[type]])
@@ -1552,26 +1549,24 @@ static int battle_calc_base_damage(struct status_data *status, struct weapon_atk
 			if (atkmin > atkmax)
 				atkmin = atkmax;
 			
-			if(flag&2 && !(flag&16))
-			{	//Bows
+			if(flag&2 && !(flag&16)) { //Bows
 				atkmin = atkmin*atkmax/100;
 				if (atkmin > atkmax)
 					atkmax = atkmin;
 			}
 		}
 	}
-	
+
 	if (sc && sc->data[SC_MAXIMIZEPOWER])
 		atkmin = atkmax;
-	
+
 	//Weapon Damage calculation
 	if (!(flag&1))
 		damage = (atkmax>atkmin? rnd()%(atkmax-atkmin):0)+atkmin;
 	else
 		damage = atkmax;
-	
-	if (sd)
-	{
+
+	if (sd) {
 		//rodatazone says the range is 0~arrow_atk-1 for non crit
 		if (flag&2 && sd->bonus.arrow_atk)
 			damage += ( (flag&1) ? sd->bonus.arrow_atk : rnd()%sd->bonus.arrow_atk );
@@ -1580,13 +1575,13 @@ static int battle_calc_base_damage(struct status_data *status, struct weapon_atk
 		if (!(sd->special_state.no_sizefix || (flag&8)))
 			damage = damage * ( type == EQI_HAND_L ? sd->left_weapon.atkmods[t_size] : sd->right_weapon.atkmods[t_size] ) / 100;
 	}
-	
+
 	//Finally, add baseatk
 	if(flag&4)
 		damage += status->matk_min;
 	else
 		damage += status->batk;
-	
+
 	//rodatazone says that Overrefine bonuses are part of baseatk
 	//Here we also apply the weapon_atk_rate bonus so it is correctly applied on left/right hands.
 	if(sd) {
@@ -2149,7 +2144,11 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 #endif
 			case CR_SHIELDBOOMERANG:
 			case PA_SHIELDCHAIN:
+#ifdef RENEWAL
+				wd.damage = (2 * sstatus->batk);
+#else
 				wd.damage = sstatus->batk;
+#endif
 				if (sd) {
 					short index = sd->equip_index[EQI_HAND_L];
 
@@ -2203,32 +2202,21 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						ShowError("0 enemies targeted by %d:%s, divide per 0 avoided!\n", skill_id, skill_get_name(skill_id));
 				}
 
-				//Add any bonuses that modify the base baseatk+watk
+				//Add any bonuses that modify the base baseatk+watk (pre-skills)
 				if (sd) {
 					if (sd->bonus.atk_rate)
 						ATK_ADDRATE(sd->bonus.atk_rate);
-					if (flag.cri) {
-#ifdef RENEWAL
-						if (sd->bonus.crit_atk_rate) {
-							ATK_ADDRATE(40 + sd->bonus.crit_atk_rate);
-						} else
-							ATK_ADDRATE(40);
-#else
-						if (sd->bonus.crit_atk_rate)
-							ATK_ADDRATE(sd->bonus.crit_atk_rate);
-#endif
-					}
+
+					if (flag.cri && sd->bonus.crit_atk_rate)
+						ATK_ADDRATE(sd->bonus.crit_atk_rate);
+
 					if (sd->status.party_id && (skill=pc_checkskill(sd,TK_POWER)) > 0) {
-						if ((i = party_foreachsamemap(party_sub_count, sd, 0)) > 1) // exclude the player himself [Inkfish]
+						if( (i = party_foreachsamemap(party_sub_count, sd, 0)) > 1 ) //Exclude the player himself [Inkfish]
 							ATK_ADDRATE(2*skill*i);
 					}
 				}
-#ifdef RENEWAL
-				else if (flag.cri)
-					ATK_ADDRATE(40);
-#endif
 				break;
-			}	//End default case
+			} //End default case
 		} //End switch(skill_id)
 
 		//Skill damage modifiers that stack linearly
@@ -2371,15 +2359,15 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					break;
 				case NPC_DARKCROSS:
 				case CR_HOLYCROSS:
-				{
-					int ratio = 35*skill_lv;
-					#ifdef RENEWAL
-						if(sd && sd->status.weapon == W_2HSPEAR)
-							ratio *= 2;
-					#endif
-					skillratio += ratio;
-					break;
-				}
+					{
+						int ratio = 35*skill_lv;
+#ifdef RENEWAL
+							if(sd && sd->status.weapon == W_2HSPEAR)
+								ratio *= 2;
+#endif
+						skillratio += ratio;
+						break;
+					}
 				case AM_DEMONSTRATION:
 					skillratio += 20*skill_lv;
 					break;
@@ -3533,7 +3521,10 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		wd.damage = battle_calc_cardfix(BF_WEAPON, src, target, nk, s_ele, s_ele_, wd.damage, 2, wd.flag);
 		if( flag.lh )
 			wd.damage2 = battle_calc_cardfix(BF_WEAPON, src, target, nk, s_ele, s_ele_, wd.damage2, 3, wd.flag);
-		
+#ifdef RENEWAL
+		if( flag.cri )
+			ATK_ADDRATE(sd->bonus.crit_atk_rate>=100?sd->bonus.crit_atk_rate-60:40);
+#endif
 		if( skill_id == CR_SHIELDBOOMERANG || skill_id == PA_SHIELDCHAIN ) {
 			//Refine bonus applies after cards and elements.
 			short index= sd->equip_index[EQI_HAND_L];
@@ -4443,7 +4434,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 #ifdef RENEWAL
 			{
 				short atk, matk, size_mod, bonus;
-				atk  = sstatus->batk + sstatus->rhw.atk;
+				atk  = (2 * sstatus->batk) + sstatus->rhw.atk;
 				matk = sstatus->matk_max + sd ? sstatus->matk_min : 0;
 				size_mod  = sd ? sd->right_weapon.atkmods[tstatus->size] : 100;
 				bonus = sd ? sd->bonus.long_attack_atk_rate : 0; // Long ATK Bonus. Likes : Archer Skeleton Card

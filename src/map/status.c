@@ -481,7 +481,7 @@ void initChangeTables(void) {
 #endif
 
 	set_sc( ALL_PARTYFLEE        , SC_INCFLEE         , SI_PARTYFLEE       , SCB_NONE );
-	set_sc( ALL_ODINS_POWER      , SC_ODINS_POWER     , SI_ODINS_POWER     , SCB_BATK|SCB_MATK|SCB_DEF|SCB_MDEF );
+	set_sc( ALL_ODINS_POWER      , SC_ODINS_POWER     , SI_ODINS_POWER     , SCB_WATK|SCB_MATK|SCB_DEF|SCB_MDEF );
 
 	set_sc( CR_SHRINK            , SC_SHRINK          , SI_SHRINK          , SCB_NONE );
 	set_sc( RG_CLOSECONFINE      , SC_CLOSECONFINE2   , SI_CLOSECONFINE2   , SCB_NONE );
@@ -4561,9 +4561,7 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk += batk / 5;
 	if(sc->data[SC_FULL_SWING_K])
 		batk += sc->data[SC_FULL_SWING_K]->val1;
-	if(sc->data[SC_ODINS_POWER])
-		batk += 40 + 30 * sc->data[SC_ODINS_POWER]->val1;
-	if(sc->data[SC_ASH] && (bl->type==BL_MOB)){
+	if(sc->data[SC_ASH] && (bl->type==BL_MOB)) {
 		if(status_get_element(bl) == ELE_WATER) //water type
 			batk /= 2;
 	}
@@ -4586,9 +4584,9 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk -= batk * 25 / 100;
 	if(sc->data[SC_CURSE])
 		batk -= batk * 25 / 100;
-//Curse shouldn't effect on this?  <- Curse OR Bleeding??
-//	if(sc->data[SC_BLEEDING])
-//		batk -= batk * 25/100;
+/*Curse shouldn't effect on this?  <- Curse OR Bleeding??
+	if(sc->data[SC_BLEEDING])
+		batk -= batk * 25/100;*/
 	if(sc->data[SC_FLEET])
 		batk += batk * sc->data[SC_FLEET]->val3 / 100;
 	if(sc->data[SC__ENERVATION])
@@ -4681,6 +4679,8 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 #endif
 	if(sc->data[SC_ZANGETSU])
 		watk += sc->data[SC_ZANGETSU]->val2;
+	if(sc->data[SC_ODINS_POWER])
+		watk += 40 + 30 * sc->data[SC_ODINS_POWER]->val1;
 
 	return (unsigned short)cap_value(watk,0,USHRT_MAX);
 }
@@ -4791,7 +4791,7 @@ static signed short status_calc_critical(struct block_list *bl, struct status_ch
 
 static signed short status_calc_hit(struct block_list *bl, struct status_change *sc, int hit)
 {
-	
+
 	if(!sc || !sc->count)
 		return cap_value(hit,1,SHRT_MAX);
 
@@ -4813,7 +4813,7 @@ static signed short status_calc_hit(struct block_list *bl, struct status_change 
 		hit += 20; // RockmanEXE; changed based on updated [Reddozen]
 	if(sc->data[SC_MERC_HITUP])
 		hit += sc->data[SC_MERC_HITUP]->val2;
-		
+
 	if(sc->data[SC_INCHITRATE])
 		hit += hit * sc->data[SC_INCHITRATE]->val1 / 100;
 	if(sc->data[SC_BLIND])
@@ -4832,8 +4832,7 @@ static signed short status_calc_hit(struct block_list *bl, struct status_change 
 
 static signed short status_calc_flee(struct block_list *bl, struct status_change *sc, int flee)
 {
-	if( bl->type == BL_PC )
-	{
+	if( bl->type == BL_PC ) {
 		if( map_flag_gvg(bl->m) )
 			flee -= flee * battle_config.gvg_flee_penalty / 100;
 		else if( map[bl->m].flag.battleground )
