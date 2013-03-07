@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Current Version: =====================================
-//= $Revision: 17168 $
+//= $Revision: 17179 $
 //===== Last Updated: ========================================
-//= $LastChangedDate: 2013-03-04 11:32:43 +0700 (Mon, 04 Mar 2013) $
+//= $LastChangedDate: 2013-03-07 09:24:19 +0700 (Thu, 07 Mar 2013) $
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -2768,15 +2768,15 @@ It will return -1 if there is no such item.
 
 Valid types are:
 	0 - Buy Price; 1 - Sell Price; 2 - Item Type;
-	3 - maxchance (Max drop chance of this item e.g. 1 = 0.01% , etc..
+	3 - maxchance (max drop chance of this item, e.g. 1 = 0.01%)
 		if = 0, then monsters don't drop it at all (rare or a quest item)
 		if = 10000, then this item is sold in NPC shops only
 	4 - sex; 5 - equip; 6 - weight; 7 - atk; 8 - def; 9 - range;
-	10 - slot; 11 - look; 12 - elv; 13 - wlv; 14 - view id
+	10 - slot; 11 - look; 12 - elv; 13 - wlv; 14 - view id (from 'db/item_avail.txt')
 	
 	If RENEWAL is defined, 15 - matk
 
-Check sample in doc/sample/getiteminfo.txt
+See the sample in 'doc/sample/getiteminfo.txt'.
 
 ---------------------------------------
 
@@ -3887,7 +3887,7 @@ changing jobs, which can be checked for later in scripts.
 
 ---------------------------------------
 
-*jobname (<job number>)
+*jobname(<job number>)
 
 This command retrieves the name of the given job using the map_msg entries 550->655.
 
@@ -3897,7 +3897,7 @@ This command retrieves the name of the given job using the map_msg entries 550->
 
 ---------------------------------------
 
-*eaclass ({<job number>})
+*eaclass({<job number>})
 
 This commands returns the "eA job-number" corresponding to the given class, and
 uses the invoking player's class if none is given. The eA job-number is also a
@@ -3917,7 +3917,7 @@ For more information on the eA Job System, see the docs/ea_job_system.txt file.
 
 ---------------------------------------
 
-*roclass <job number> {,<gender>}
+*roclass(<job number>{,<gender>})
 
 Does the opposite of eaclass. That is, given an eA job-number, it returns the
 corresponding RO class number. A gender is required because both Bard and Dancers
@@ -5084,6 +5084,14 @@ This command will unequip anything equipped on the invoking character.
 
 It is not required to do this when changing jobs since 'jobchange' will unequip 
 everything not equippable by the new job class anyway.
+
+---------------------------------------
+
+*sit {"<character name>"};
+*stand {"<character name>"};
+
+These commands will make a character sit if standing and stand if sitting.
+If no character is specified, the command will run for the invoking character.
 
 ---------------------------------------
 
@@ -6817,46 +6825,47 @@ The first letter is position 0.
 *charat(<string>,<index>)
 
 Returns char at specified index. If index is out of range, returns empty string.
-	
+The first letter of a string is index 0.
+
 Example:
 	
 	charat("This is a string", 10); //returns "s"
-	
+
 ---------------------------------------
-	
+
 *setchar(<string>,<char>,<index>)
 
 Returns the original string with the char at the specified index set to the
 specified char. If index out of range, the original string will be returned.
 Only the 1st char in the <char> parameter will be used.
-	
+
 Example:
 	
 	setchar("Cat", "B", 0); //returns "Bat"
-	
+
 ---------------------------------------
 
 *insertchar(<string>,<char>,<index>)
-	
+
 Returns the original string with the specified char inserted at the specified
 index. If index is out of range, the char will be inserted on the end of the
 string that it is closest. Only the 1st char in the <char> parameter will be used.
-	
+
 Example:
 	
 	insertchar("laughter", "s", 0); //returns "slaughter"
-	
+
 ---------------------------------------
 
 *delchar(<string>,<index>)
 
 Returns the original string with the char at the specified index removed.
 If index is out of range, original string will be returned.
-	
+
 Example:
 	
 	delchar("Diet", 3); //returns "Die"
-	
+
 ---------------------------------------
 
 *strtoupper(<string>)
@@ -6864,7 +6873,7 @@ Example:
 
 Returns the specified string in it's uppercase/lowercase form.
 All non-alpha characters will be preserved.
-	
+
 Example:
 	
 	strtoupper("The duck is blue!!"); //returns "THE DUCK IS BLUE!!"
@@ -6875,16 +6884,16 @@ Example:
 *charislower(<string>,<index>)
 
 Returns 1 if character at specified index of specified string is
-uppercase/lowercase. Otherwise, 0. Characters not of the alphabelt will return 0.
+uppercase/lowercase. Otherwise, 0. Characters not of the alphabet will return 0.
 
 Example:
 	
 	charisupper("rAthena", 1); //returns 1
-	
+
 ---------------------------------------
 
 *substr(<string>,<start_index>,<end_index>)
-	
+
 Returns the sub-string of the specified string inclusively between the set
 indexes. If indexes are out of range, or the start index is after the end
 index, an empty string will be returned.
@@ -6892,7 +6901,7 @@ index, an empty string will be returned.
 Example:
 	
 	substr("foobar", 3, 5); //returns "bar"
-	
+
 ---------------------------------------
 
 *explode(<dest_array>,<string>,<delimiter>)
@@ -6918,28 +6927,28 @@ Example:
 
 Combines all substrings within the specified string array into a single string.
 If the glue parameter is specified, it will be inserted inbetween each substring.
-	
+
 Example:
 	setarray .@my_array$[0], "This", "is", "a", "test";
 	implode(.@my_array$, " "); //returns "This is a test"
 
 ---------------------------------------
 
-*sprintf(<format>[,param[,param[,...]]]) [Mirei]
+*sprintf(<format>[,param[,param[,...]]])
 
 C style sprintf. The resulting string is returned same as in PHP. All C format 
 specifiers are supported except %n. More info: sprintf @ www.cplusplus.com. 
 The number of params is only limited by rA's script engine.
 
 Example:
-	.@format$ = 'The %s contains %d monkeys';
+	set .@format$, "The %s contains %d monkeys";
 	dispbottom(sprintf(.@format$, "zoo", 5));        //prints "The zoo contains 5 monkeys"
 	dispbottom(sprintf(.@format$, "barrel", 82));    //prints "The barrel contains 82 monkeys"
-	
+
 ---------------------------------------
 
-*sscanf(<string>,<format>[,param[,param[,...]]]) [Mirei]
-	
+*sscanf(<string>,<format>[,param[,param[,...]]])
+
 C style sscanf. All C format specifiers are supported. 
 More info: sscanf @ www.cplusplus.com. The number of params is only limited 
 by rA's script engine.
@@ -6947,7 +6956,7 @@ by rA's script engine.
 Example:
 	sscanf("This is a test: 42 foobar", "This is a test: %d %s", .@num, .@str$);
 	dispbottom(.@num + " " + .@str$); //prints "42 foobar"
-	
+
 ---------------------------------------
 
 *strpos(<haystack>,<needle>{,<offset>})
@@ -6961,7 +6970,7 @@ Example:
 	strpos("foobar", "bar", 0); //returns 3
 	strpos("foobarfoo", "foo", 0); //returns 0
 	strpos("foobarfoo", "foo", 1); //returns 6
-	
+
 ---------------------------------------
 
 *replacestr(<input>, <search>, <replace>{, <usecase>{, <count>}})
@@ -6975,7 +6984,7 @@ Example:
 	replacestr("testing tester", "test", "dash"); //returns "dashing dasher"
 	replacestr("Donkey", "don", "mon", 0);	//returns "monkey"
 	replacestr("test test test test test", "yay", 0, 3); //returns "yay yay yay test test"
-	
+
 ---------------------------------------
 
 *countstr(<input>, <search>{, <usecase>})
