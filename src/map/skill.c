@@ -684,77 +684,77 @@ int skillnotok_hom(uint16 skill_id, struct homun_data *hd)
 			if(hd->sc.data[SC_GOLDENE_FERSE])
 				return 1;
 		case MH_TINDER_BREAKER:
-	    case MH_CBC:
-	    case MH_EQC:
-	    case MH_SONIC_CRAW:
-	    case MH_SILVERVEIN_RUSH:
-	    case MH_MIDNIGHT_FRENZY: {
-		    struct status_change_entry *sce = hd->sc.data[SC_STYLE_CHANGE];
-		    TBL_PC *sd;
-		    if(!(sd=hd->master)) return 1; //we need a master
-		    if(!sce || !sce->val3){ //homon doesn't have status or it's not a combo
-			if(skill_id != MH_SONIC_CRAW && skill_id != MH_TINDER_BREAKER)
-			    return 1;
-		    }
-
-		    switch(skill_id) {
-			case MH_SONIC_CRAW:
-			case MH_SILVERVEIN_RUSH:
-			case MH_TINDER_BREAKER:
-			case MH_CBC:
-			    if(!hd->homunculus.spiritball) {
-					clif_colormes(sd,COLOR_RED,"Homon need some spiritballs");
+		case MH_CBC:
+		case MH_EQC:
+		case MH_SONIC_CRAW:
+		case MH_SILVERVEIN_RUSH:
+		case MH_MIDNIGHT_FRENZY: {
+				struct status_change_entry *sce = hd->sc.data[SC_STYLE_CHANGE];
+				TBL_PC *sd;
+				if(!(sd=hd->master)) return 1; //we need a master
+				if(!sce || !sce->val3){ //homon doesn't have status or it's not a combo
+				if(skill_id != MH_SONIC_CRAW && skill_id != MH_TINDER_BREAKER)
 					return 1;
-			    }
-			    break;
+				}
 
-			case MH_MIDNIGHT_FRENZY:
-			case MH_EQC:
-			    if(hd->homunculus.spiritball < 2) {
-					clif_colormes(sd,COLOR_RED,"Homon need at least 2 spiritballs");
-					return 1;
-			    }
-			    break;
-		    }
+				switch(skill_id) {
+					case MH_SONIC_CRAW:
+					case MH_SILVERVEIN_RUSH:
+					case MH_TINDER_BREAKER:
+					case MH_CBC:
+						if(!hd->homunculus.spiritball) {
+							clif_colormes(sd,COLOR_RED,"Homon need some spiritballs");
+							return 1;
+						}
+						break;
 
-		    switch(skill_id) {
-				case MH_SONIC_CRAW:
-				case MH_SILVERVEIN_RUSH:
-				case MH_MIDNIGHT_FRENZY:
-					if (!(sce->val1 == MH_MD_FIGHTING)) {
-						clif_colormes(sd,COLOR_RED,"Homon need to be in fighting mode to use that skill");
+					case MH_MIDNIGHT_FRENZY:
+					case MH_EQC:
+						if(hd->homunculus.spiritball < 2) {
+							clif_colormes(sd,COLOR_RED,"Homon need at least 2 spiritballs");
+							return 1;
+						}
+						break;
+				}
+
+				switch(skill_id) {
+					case MH_SONIC_CRAW:
+					case MH_SILVERVEIN_RUSH:
+					case MH_MIDNIGHT_FRENZY:
+						if (!(sce->val1 == MH_MD_FIGHTING)) {
+							clif_colormes(sd,COLOR_RED,"Homon need to be in fighting mode to use that skill");
+							return 1;
+						}
+						break;
+
+					case MH_TINDER_BREAKER:
+					case MH_CBC:
+					case MH_EQC:
+						if (!(sce->val1 == MH_MD_GRAPPLING)) {
+							clif_colormes(sd,COLOR_RED,"Homon need to be in grappling mode to use that skill");
+							return 1;
+						}
+						break;
+				}
+
+				//now let really be specific
+				switch(skill_id) {
+					case MH_TINDER_BREAKER:
+						if(sce->val3 == MH_EQC && (gettick() - sce->val4 <= 2000)) break;
+						else break; //im not a combo what should I do ??
+					case MH_CBC: if(sce->val3 == MH_TINDER_BREAKER && (gettick() - sce->val4 <= 2000)) break;
+					case MH_EQC: if(sce->val3 == MH_CBC && (gettick() - sce->val4 <= 2000)) break;
+
+					case MH_SONIC_CRAW:
+						if(sce->val3 == MH_MIDNIGHT_FRENZY && (gettick() - sce->val4 <= 2000)) break;
+						else break; //im not a combo what should I do ??
+					case MH_SILVERVEIN_RUSH: if(sce->val3 == MH_SONIC_CRAW && (gettick() - sce->val4 <= 2000)) break;
+					case MH_MIDNIGHT_FRENZY: if(sce->val3 == MH_SILVERVEIN_RUSH && (gettick() - sce->val4 <= 2000)) break;
+					default:
 						return 1;
-					}
-					break;
-
-				case MH_TINDER_BREAKER:
-				case MH_CBC:
-				case MH_EQC:
-					if (!(sce->val1 == MH_MD_GRAPPLING)) {
-						clif_colormes(sd,COLOR_RED,"Homon need to be in grappling mode to use that skill");
-						return 1;
-					}
-					break;
-		    }
-
-		    //now let really be specific
-		    switch(skill_id) {
-				case MH_TINDER_BREAKER:
-					if(sce->val3 == MH_EQC && (gettick() - sce->val4 <= 2000)) break;
-					else break; //im not a combo what should I do ??
-				case MH_CBC: if(sce->val3 == MH_TINDER_BREAKER && (gettick() - sce->val4 <= 2000)) break;
-				case MH_EQC: if(sce->val3 == MH_CBC && (gettick() - sce->val4 <= 2000)) break;
-
-				case MH_SONIC_CRAW:
-					if(sce->val3 == MH_MIDNIGHT_FRENZY && (gettick() - sce->val4 <= 2000)) break;
-					else break; //im not a combo what should I do ??
-				case MH_SILVERVEIN_RUSH: if(sce->val3 == MH_SONIC_CRAW && (gettick() - sce->val4 <= 2000)) break;
-				case MH_MIDNIGHT_FRENZY: if(sce->val3 == MH_SILVERVEIN_RUSH && (gettick() - sce->val4 <= 2000)) break;
-				default:
-					return 1;
-		    }
-		}
-		break;
+				}
+			}
+			break;
 	}
 
 	//Use master's criteria.
@@ -9141,12 +9141,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						sum_md->deletetimer = add_timer(gettick() + skill_get_time(skill_id, skill_lv), mob_timer_delete, sum_md->bl.id, 0);
 						mob_spawn(sum_md); //Now it is ready for spawning.
 						sc_start4(&sum_md->bl, SC_MODECHANGE, 100, 1, 0, MD_CANATTACK|MD_AGGRESSIVE, 0, 60000);
-                    }
-                }
+					}
+				}
 				if (hd)
 					skill_blockhomun_start(hd, skill_id, skill_get_cooldown(NULL, skill_id, skill_lv));
-            }
-            break;
+			}
+			break;
 		default:
 			ShowWarning("skill_castend_nodamage_id: Unknown skill used:%d\n",skill_id);
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -13873,7 +13873,7 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 
 	if( bl->type == BL_MOB )
 		fixed = 0; //mob as no fixed time
-	else if( fixed == 0 ){
+	else if( fixed == 0 ) {
 		fixed = (int)time * 20 / 100; // fixed time
 		time = time * 80 / 100; // variable time
 	} else if( fixed < 0 ) // no fixed cast time
