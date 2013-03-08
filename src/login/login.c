@@ -1,17 +1,17 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include "../common/cli.h"
 #include "../common/core.h"
 #include "../common/db.h"
 #include "../common/malloc.h"
 #include "../common/md5calc.h"
-#include "../common/msg_conf.h"
 #include "../common/random.h"
 #include "../common/showmsg.h"
 #include "../common/socket.h"
 #include "../common/strlib.h"
 #include "../common/timer.h"
+#include "../common/cli.h"
+#include "../common/msg_conf.h"
 #include "account.h"
 #include "ipban.h"
 #include "login.h"

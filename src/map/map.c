@@ -2,7 +2,6 @@
 // For more information, see LICENCE in the main folder
 
 #include "../common/cbasetypes.h"
-#include "../common/cli.h"
 #include "../common/core.h"
 #include "../common/timer.h"
 #include "../common/grfio.h"
@@ -13,6 +12,7 @@
 #include "../common/random.h"
 #include "../common/strlib.h"
 #include "../common/utils.h"
+#include "../common/cli.h"
 
 #include "map.h"
 #include "path.h"

@@ -7,9 +7,9 @@
 #include "../common/cbasetypes.h"
 #include "../common/core.h" // CORE_ST_LAST
 #include "../common/mmo.h"
-#include "../common/msg_conf.h"
 #include "../common/mapindex.h"
 #include "../common/db.h"
+#include "../common/msg_conf.h"
 
 /**
  * [rAthena.org]
