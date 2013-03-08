@@ -644,7 +644,7 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 				return 1;
 			}
 			break;
-			
+
 		//case WM_SIRCLEOFNATURE:
 		case WM_SOUND_OF_DESTRUCTION:
 		case SC_MANHOLE:
@@ -692,9 +692,9 @@ int skillnotok_hom(uint16 skill_id, struct homun_data *hd)
 				struct status_change_entry *sce = hd->sc.data[SC_STYLE_CHANGE];
 				TBL_PC *sd;
 				if(!(sd=hd->master)) return 1; //we need a master
-				if(!sce || !sce->val3){ //homon doesn't have status or it's not a combo
-				if(skill_id != MH_SONIC_CRAW && skill_id != MH_TINDER_BREAKER)
-					return 1;
+				if(!sce || !sce->val3) { //homon doesn't have status or it's not a combo
+					if(skill_id != MH_SONIC_CRAW && skill_id != MH_TINDER_BREAKER)
+						return 1;
 				}
 
 				switch(skill_id) {
