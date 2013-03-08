@@ -500,7 +500,7 @@ void initChangeTables(void) {
 	set_sc( HFLI_SPEED           , SC_SPEED           , SI_BLANK           , SCB_FLEE );
 	set_sc( HAMI_DEFENCE         , SC_DEFENCE         , SI_BLANK           , SCB_DEF );
 	set_sc( HAMI_BLOODLUST       , SC_BLOODLUST       , SI_BLANK           , SCB_BATK|SCB_WATK );
-	
+
 	// Homunculus S
 	add_sc( MH_STAHL_HORN         , SC_STUN );
 	set_sc( MH_ANGRIFFS_MODUS     , SC_ANGRIFFS_MODUS  , SI_ANGRIFFS_MODUS     , SCB_BATK | SCB_DEF | SCB_FLEE | SCB_MAXHP );
@@ -517,10 +517,11 @@ void initChangeTables(void) {
 	set_sc( MH_NEEDLE_OF_PARALYZE , SC_PARALYSIS       , SI_NEEDLE_OF_PARALYZE , SCB_DEF2 );
 	add_sc( MH_POISON_MIST        , SC_BLIND );
 	set_sc( MH_PAIN_KILLER        , SC_PAIN_KILLER     , SI_PAIN_KILLER     , SCB_ASPD );
-	
+
 	add_sc( MH_STYLE_CHANGE       , SC_STYLE_CHANGE );
-	set_sc( MH_TINDER_BREAKER     , SC_CLOSECONFINE2   , SI_CLOSECONFINE2   , SCB_NONE );
-	set_sc( MH_TINDER_BREAKER     , SC_CLOSECONFINE    , SI_CLOSECONFINE    , SCB_FLEE );
+	set_sc( MH_TINDER_BREAKER     , SC_TINDER_BREAKER  , SI_TINDER_BREAKER  , SCB_FLEE );
+	set_sc( MH_CBC                , SC_CBC             , SI_CBC             , SCB_FLEE );
+	set_sc( MH_EQC                , SC_EQC             , SI_EQC             , SCB_DEF2|SCB_BATK );
 
 	add_sc( MER_CRASH            , SC_STUN            );
 	set_sc( MER_PROVOKE          , SC_PROVOKE         , SI_PROVOKE         , SCB_DEF|SCB_DEF2|SCB_BATK|SCB_WATK );
@@ -4591,6 +4592,8 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk += batk * sc->data[SC_FLEET]->val3 / 100;
 	if(sc->data[SC__ENERVATION])
 		batk -= batk * sc->data[SC__ENERVATION]->val2 / 100;
+	if(sc->data[SC_EQC])
+		batk -= batk * sc->data[SC_EQC]->val3 / 100;
 
 	return (unsigned short)cap_value(batk,0,USHRT_MAX);
 }
@@ -5063,6 +5066,8 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 	}
 	if(sc->data[SC_PARALYSIS])
 		def2 -= def2 * sc->data[SC_PARALYSIS]->val2 / 100;
+	if(sc->data[SC_EQC])
+		def2 -= def2 * sc->data[SC_EQC]->val2 / 100;
 
 #ifdef RENEWAL
 	return (short)cap_value(def2,SHRT_MIN,SHRT_MAX);
@@ -8753,12 +8758,27 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			break;
 		case SC_STYLE_CHANGE: //[Lighta] need real info
 			tick = -1;
-			if(val2 == MH_MD_FIGHTING) val2 = MH_MD_GRAPPLING;
-			else val2 = MH_MD_FIGHTING;
+			break;
+		case SC_CBC:
+			val2 = 10; //hp % dmg [not sure]
+			val3 = 10; //sp % dmg [not sure]
+			tick = max(tick,5000); //min 5s (test)
+			val4 = tick/1000; //dmg each sec
+			tick = 1000;
+			break;
+		case SC_EQC:
+			val2 = 25; //def % reduc [not sure]
+			val3 = 25; //atk % reduc [not sure]
+			tick = max(tick,5000); //min 5s (test)
+			break;
+		case SC_TINDER_BREAKER:
+			//val1 = skilllv
+			//val2 = src->id
+			tick = max(tick,5000); //min 5s (test)
 			break;
 		default:
 			if( calc_flag == SCB_NONE && StatusSkillChangeTable[type] == 0 && StatusIconChangeTable[type] == 0 )
-			{	//Status change with no calc, no icon, and no skill associated...?
+			{ //Status change with no calc, no icon, and no skill associated...?
 				ShowError("UnknownStatusChange [%d]\n", type);
 				return 0;
 			}
@@ -9075,11 +9095,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		case SC_MERC_SPUP:
 			status_percent_heal(bl, 0, 100); // Recover Full SP
 			break;
-		/**
-		 * Ranger
-		 **/
-		case SC_WUGDASH:
-			{
+		case SC_WUGDASH: {
 				struct unit_data *ud = unit_bl2ud(bl);
 				if( ud )
 					ud->state.running = unit_wugdash(bl, sd);
@@ -9114,7 +9130,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 						clif_skillinfo(sd,SR_DRAGONCOMBO, INF_SELF_SKILL);
 					break;
 				case SR_FALLENEMPIRE:
-					if (sd){
+					if (sd) {
 						clif_skillinfo(sd,SR_GATEOFHELL, INF_SELF_SKILL);
 						clif_skillinfo(sd,SR_TIGERCANNON, INF_SELF_SKILL);
 					}
@@ -9123,6 +9139,12 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			break;
 		case SC_RAISINGDRAGON:
 			sce->val2 = status->max_hp / 100;// Officially tested its 1%hp drain. [Jobbie]
+			break;
+		case SC_TINDER_BREAKER:
+			sc_start2(map_id2bl(val2),SC_CLOSECONFINE2,100,val1,bl->id,tick);
+			break;
+		case SC_EQC:
+			status_change_end(bl,SC_TINDER_BREAKER,INVALID_TIMER);
 			break;
 	}
 
@@ -9476,6 +9498,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 					skill_castend_damage_id(src, bl, sce->val2, sce->val1, gettick(), SD_LEVEL );
 			}
 			break;
+		case SC_TINDER_BREAKER:
 		case SC_CLOSECONFINE2: {
 				struct block_list *src = sce->val2?map_id2bl(sce->val2):NULL;
 				struct status_change *sc2 = src?status_get_sc(src):NULL;
@@ -10726,6 +10749,15 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				return 0;
 			}
 			break;
+		case SC_CBC:
+			if(--(sce->val4) >= 0) { //drain hp/sp
+				int hp = (status->max_hp * sce->val2) / 100;
+				int sp = (status->max_sp * sce->val3) / 100;
+				if( !status_charge(bl,hp,sp) ) break;
+				sc_timer_next(1000+tick,status_change_timer,bl->id, data);
+				return 0;
+			}
+			break;
 	}
 
 	// default for all non-handled control paths is to end the status
@@ -11086,35 +11118,29 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 
 	if(flag&(RGN_SHP|RGN_SSP) && regen->ssregen &&
 		(vd = status_get_viewdata(bl)) && vd->dead_sit == 2)
-	{	//Apply sitting regen bonus.
+	{ //Apply sitting regen bonus.
 		sregen = regen->ssregen;
-		if(flag&(RGN_SHP))
-		{	//Sitting HP regen
+		if(flag&(RGN_SHP)) { //Sitting HP regen
 			val = natural_heal_diff_tick * sregen->rate.hp;
 			if (regen->state.overweight)
 				val>>=1; //Half as fast when overweight.
 			sregen->tick.hp += val;
-			while(sregen->tick.hp >= (unsigned int)battle_config.natural_heal_skill_interval)
-			{
+			while(sregen->tick.hp >= (unsigned int)battle_config.natural_heal_skill_interval) {
 				sregen->tick.hp -= battle_config.natural_heal_skill_interval;
-				if(status_heal(bl, sregen->hp, 0, 3) < sregen->hp)
-				{	//Full
+				if(status_heal(bl, sregen->hp, 0, 3) < sregen->hp) { //Full
 					flag&=~(RGN_HP|RGN_SHP);
 					break;
 				}
 			}
 		}
-		if(flag&(RGN_SSP))
-		{	//Sitting SP regen
+		if(flag&(RGN_SSP)) { //Sitting SP regen
 			val = natural_heal_diff_tick * sregen->rate.sp;
 			if (regen->state.overweight)
 				val>>=1; //Half as fast when overweight.
 			sregen->tick.sp += val;
-			while(sregen->tick.sp >= (unsigned int)battle_config.natural_heal_skill_interval)
-			{
+			while(sregen->tick.sp >= (unsigned int)battle_config.natural_heal_skill_interval) {
 				sregen->tick.sp -= battle_config.natural_heal_skill_interval;
-				if(status_heal(bl, 0, sregen->sp, 3) < sregen->sp)
-				{	//Full
+				if(status_heal(bl, 0, sregen->sp, 3) < sregen->sp) { //Full
 					flag&=~(RGN_SP|RGN_SSP);
 					break;
 				}
@@ -11127,8 +11153,7 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 
 	ud = unit_bl2ud(bl);
 
-	if (flag&(RGN_HP|RGN_SHP|RGN_SSP) && ud && ud->walktimer != INVALID_TIMER)
-	{
+	if (flag&(RGN_HP|RGN_SHP|RGN_SSP) && ud && ud->walktimer != INVALID_TIMER) {
 		flag&=~(RGN_SHP|RGN_SSP);
 		if(!regen->state.walk)
 			flag&=~RGN_HP;
@@ -11137,8 +11162,7 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 	if (!flag)
 		return 0;
 
-	if (flag&(RGN_HP|RGN_SP))
-	{
+	if (flag&(RGN_HP|RGN_SP)) {
 		if(!vd) vd = status_get_viewdata(bl);
 		if(vd && vd->dead_sit == 2)
 			bonus++;
@@ -11147,8 +11171,7 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 	}
 
 	//Natural Hp regen
-	if (flag&RGN_HP)
-	{
+	if (flag&RGN_HP) {
 		rate = natural_heal_diff_tick*(regen->rate.hp+bonus);
 		if (ud && ud->walktimer != INVALID_TIMER)
 			rate/=2;
@@ -11157,8 +11180,7 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 
 		regen->tick.hp += rate;
 		
-		if(regen->tick.hp >= (unsigned int)battle_config.natural_healhp_interval)
-		{
+		if(regen->tick.hp >= (unsigned int)battle_config.natural_healhp_interval) {
 			val = 0;
 			do {
 				val += regen->hp;
@@ -11170,16 +11192,14 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 	}
 
 	//Natural SP regen
-	if(flag&RGN_SP)
-	{
+	if(flag&RGN_SP) {
 		rate = natural_heal_diff_tick*(regen->rate.sp+bonus);
 		// Homun SP regen fix (they should regen as if they were sitting (twice as fast)
 		if(bl->type==BL_HOM) rate *=2;
 
 		regen->tick.sp += rate;
 		
-		if(regen->tick.sp >= (unsigned int)battle_config.natural_healsp_interval)
-		{
+		if(regen->tick.sp >= (unsigned int)battle_config.natural_healsp_interval) {
 			val = 0;
 			do {
 				val += regen->sp;
@@ -11196,22 +11216,18 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 	//Skill regen
 	sregen = regen->sregen;
 
-	if(flag&RGN_SHP)
-	{	//Skill HP regen
+	if(flag&RGN_SHP) { //Skill HP regen
 		sregen->tick.hp += natural_heal_diff_tick * sregen->rate.hp;
 		
-		while(sregen->tick.hp >= (unsigned int)battle_config.natural_heal_skill_interval)
-		{
+		while(sregen->tick.hp >= (unsigned int)battle_config.natural_heal_skill_interval) {
 			sregen->tick.hp -= battle_config.natural_heal_skill_interval;
 			if(status_heal(bl, sregen->hp, 0, 3) < sregen->hp)
 				break; //Full
 		}
 	}
-	if(flag&RGN_SSP)
-	{	//Skill SP regen
+	if(flag&RGN_SSP) { //Skill SP regen
 		sregen->tick.sp += natural_heal_diff_tick * sregen->rate.sp;
-		while(sregen->tick.sp >= (unsigned int)battle_config.natural_heal_skill_interval)
-		{
+		while(sregen->tick.sp >= (unsigned int)battle_config.natural_heal_skill_interval) {
 			val = sregen->sp;
 			if (sd && sd->state.doridori) {
 				val*=2;
@@ -11274,8 +11290,7 @@ static bool status_readdb_job1(char* fields[], int columns, int current)
 
 	class_ = atoi(fields[0]);
 
-	if(!pcdb_checkid(class_))
-	{
+	if(!pcdb_checkid(class_)) {
 		ShowWarning("status_readdb_job1: Invalid job class %d specified.\n", class_);
 		return false;
 	}
@@ -11302,15 +11317,13 @@ static bool status_readdb_job2(char* fields[], int columns, int current)
 
 	class_ = atoi(fields[0]);
 
-	if(!pcdb_checkid(class_))
-	{
+	if(!pcdb_checkid(class_)) {
 		ShowWarning("status_readdb_job2: Invalid job class %d specified.\n", class_);
 		return false;
 	}
 	idx = pc_class2idx(class_);
 
-	for(i = 1; i < columns; i++)
-	{
+	for(i = 1; i < columns; i++) {
 		job_bonus[idx][i-1] = atoi(fields[i]);
 	}
 	return true;
@@ -11320,8 +11333,7 @@ static bool status_readdb_sizefix(char* fields[], int columns, int current)
 {
 	unsigned int i;
 
-	for(i = 0; i < MAX_WEAPON_TYPE; i++)
-	{
+	for(i = 0; i < MAX_WEAPON_TYPE; i++) {
 		atkmods[current][i] = atoi(fields[i]);
 	}
 	return true;
@@ -11340,8 +11352,7 @@ static bool status_readdb_refine(char* fields[], int columns, int current)
 	random_bonus_start_level = atoi(fields[2]);
 	random_bonus = atoi(fields[3]);
 
-	for(i = 0; i < MAX_REFINE; i++)
-	{
+	for(i = 0; i < MAX_REFINE; i++) {
 		char* delim;
 
 		if (!(delim = strchr(fields[4+i], ':')))

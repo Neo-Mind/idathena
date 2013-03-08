@@ -1208,13 +1208,12 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		if( sc->data[SC__DEADLYINFECT] && flag&BF_SHORT && damage > 0 && rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 )
 			status_change_spread(src, bl);
 		if (sc->data[SC_STYLE_CHANGE] && rnd()%2) {
-			TBL_HOM *hd = BL_CAST(BL_HOM,bl);
+			TBL_HOM *hd = BL_CAST(BL_HOM,src);
 			if (hd) hom_addspiritball(hd, 10);
 		}
 	}
 
-	if (battle_config.pk_mode && sd && bl->type == BL_PC && damage && map[bl->m].flag.pvp)
-  	{
+	if (battle_config.pk_mode && sd && bl->type == BL_PC && damage && map[bl->m].flag.pvp) {
 		if (flag & BF_SKILL) { //Skills get a different reduction than non-skills. [Skotlex]
 			if (flag&BF_WEAPON)
 				damage = damage * battle_config.pk_weapon_damage_rate / 100;
@@ -1231,8 +1230,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		if(!damage) damage  = 1;
 	}
 
-	if(battle_config.skill_min_damage && damage > 0 && damage < div_)
-	{
+	if(battle_config.skill_min_damage && damage > 0 && damage < div_) {
 		if ((flag&BF_WEAPON && battle_config.skill_min_damage&1)
 			|| (flag&BF_MAGIC && battle_config.skill_min_damage&2)
 			|| (flag&BF_MISC && battle_config.skill_min_damage&4)
@@ -2124,7 +2122,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						sd->inventory_data[index] &&
 						sd->inventory_data[index]->type == IT_WEAPON)
 						wd.damage = sd->inventory_data[index]->weight*8/100; //80% of weight
-					
+
 					ATK_ADDRATE(50*skill_lv); //Skill modifier applies to weight only.
 				} else {
 					wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, i); //Monsters have no weight and use ATK instead
@@ -3037,7 +3035,16 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += 400 + 100 * skill_lv;
 					break;
 				case MH_LAVA_SLIDE:
-					skillratio = 70 * skill_lv;
+					skillratio += -100 + 70 * skill_lv;
+					break;
+				case MH_SONIC_CRAW:
+					skillratio += -100 + 40 * skill_lv;
+					break;
+				case MH_SILVERVEIN_RUSH:
+					skillratio += -100 + 150 * skill_lv;
+					break;
+				case MH_MIDNIGHT_FRENZY:
+					skillratio += -100 + 300 * skill_lv;
 					break;
 				case MH_TINDER_BREAKER:
 				case MH_MAGMA_FLOW:

@@ -33,7 +33,7 @@ enum refine_type {
 
 int status_get_refine_chance(enum refine_type wlv, int refine);
 
-// Status changes listing. These code are for use by the server. 
+// Status changes listing. These code are for use by the server.
 typedef enum sc_type {
 	SC_NONE = -1,
 
@@ -51,7 +51,7 @@ typedef enum sc_type {
 	SC_BLEEDING,
 	SC_DPOISON, //10
 	SC_COMMON_MAX = 10, // end
-	
+
 	//Next up, we continue on 20, to leave enough room for additional "common" ailments in the future.
 	SC_PROVOKE = 20,
 	SC_ENDURE,
@@ -292,7 +292,7 @@ typedef enum sc_type {
 	SC_SUMMER,
 	SC_EXPBOOST,
 	SC_ITEMBOOST,
-	SC_BOSSMAPINFO, 
+	SC_BOSSMAPINFO,
 	SC_LIFEINSURANCE, //260
 	SC_INCCRI,
 	//SC_INCDEF,
@@ -635,7 +635,10 @@ typedef enum sc_type {
 	SC_AKAITSUKI, // 540
 	
 	//homon S
-	SC_STYLE_CHANGE,        
+	SC_STYLE_CHANGE,
+	SC_TINDER_BREAKER,
+	SC_CBC,
+	SC_EQC,
 	SC_GOLDENE_FERSE,
 	SC_ANGRIFFS_MODUS,
 	SC_ERASER_CUTTER,
@@ -647,8 +650,8 @@ typedef enum sc_type {
 	SC_PYROCLASTIC, // 550
 	SC_PARALYSIS,
 	SC_PAIN_KILLER,
-	
-	
+
+
 #ifdef RENEWAL	
 	SC_EXTREMITYFIST2,
 #endif
@@ -1040,10 +1043,10 @@ enum si_type {
 	SI_NEUTRALBARRIER_MASTER = 378,
 	SI_STEALTHFIELD = 379,
 	SI_STEALTHFIELD_MASTER = 380,
-	SI_MANU_ATK = 381, 
-	SI_MANU_DEF = 382, 
-	SI_SPL_ATK = 383, 
-	SI_SPL_DEF = 384, 
+	SI_MANU_ATK = 381,
+	SI_MANU_DEF = 382,
+	SI_SPL_ATK = 383,
+	SI_SPL_DEF = 384,
 	SI_REPRODUCE = 385,
 	SI_MANU_MATK = 386,
 	SI_SPL_MATK = 387,
@@ -1476,18 +1479,18 @@ enum {
 	OPTION_DRAGON4   = 0x02000000,
 	OPTION_DRAGON5   = 0x04000000,
 	OPTION_MOUNTING  = 0x08000000,
-	
+
 #ifndef NEW_CARTS
 	OPTION_CART1     = 0x00000008,
 	OPTION_CART2     = 0x00000080,
 	OPTION_CART3     = 0x00000100,
 	OPTION_CART4     = 0x00000200,
 	OPTION_CART5     = 0x00000400,
-	
+
 	/*  compound constant for older carts */
 	OPTION_CART      = OPTION_CART1|OPTION_CART2|OPTION_CART3|OPTION_CART4|OPTION_CART5,
 #endif
-	
+
 	// compound constants
 	OPTION_DRAGON    = OPTION_DRAGON1|OPTION_DRAGON2|OPTION_DRAGON3|OPTION_DRAGON4|OPTION_DRAGON5,
 	OPTION_MASK      = ~OPTION_INVISIBLE,
@@ -1511,7 +1514,7 @@ enum scs_flag {
 	SCS_NOPICKITEM      = 0x00000008, /* player unable to pick up items */
 	SCS_NODROPITEMCOND  = 0x00000010, /* cond flag for nodropitem */
 	SCS_NODROPITEM      = 0x00000020, /* player unable to drop items */
-	SCS_NOCASTCOND      = 0x00000040, /* cond flag for nocast */	
+	SCS_NOCASTCOND      = 0x00000040, /* cond flag for nocast */
 	SCS_NOCAST          = 0x00000080, /* unit unable to cast skills */
 };
 
@@ -1587,7 +1590,7 @@ struct status_data {
 		speed,
 		amotion, adelay, dmotion,
 		mode;
-	short 
+	short
 		hit, flee, cri, flee2,
 		def2, mdef2,
 #ifdef RENEWAL_ASPD
@@ -1615,7 +1618,7 @@ struct regen_data_sub {
 	struct {
 		unsigned int hp,sp;
 	} tick;
-	
+
 	//Regen rates (where every 1 means +100% regen)
 	struct {
 		unsigned char hp,sp;
@@ -1632,13 +1635,13 @@ struct regen_data {
 	struct {
 		unsigned int hp,sp,shp,ssp;
 	} tick;
-	
+
 	//Regen rates (where every 1 means +100% regen)
 	struct {
 		unsigned char
 		hp,sp,shp,ssp;
 	} rate;
-	
+
 	struct {
 		unsigned walk:1; //Can you regen even when walking?
 		unsigned gc:1;	//Tags when you should have double regen due to GVG castle
