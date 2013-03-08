@@ -4206,14 +4206,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				skill_castend_damage_id(src,bl,KN_SPEARBOOMERANG,1,tick,0);
 			}
 			break;
-		case RK_PHANTOMTHRUST:
-			unit_setdir(src,map_calc_dir(src, bl->x, bl->y));
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-
-			skill_blown(src,bl,distance_bl(src,bl)-1,unit_getdir(src),0);
-			if( battle_check_target(src,bl,BCT_ENEMY) > 0 )
-				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
-			break;
 		case RK_STORMBLAST:
 			if( sd ) {
 				if( pc_checkskill(sd,RK_RUNEMASTERY) >= 3 )
@@ -7583,6 +7575,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					skill_castend_nodamage_id);
 			}
 			break;
+		case RK_PHANTOMTHRUST:
+			unit_setdir(src,map_calc_dir(src, bl->x, bl->y));
+			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+
+			skill_blown(src,bl,distance_bl(src,bl)-1,unit_getdir(src),0);
+			if( battle_check_target(src,bl,BCT_ENEMY) > 0 )
+				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
+			break;
 		case RK_IGNITIONBREAK:
 		case LG_EARTHDRIVE:
 				clif_skill_damage(src,bl,tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
@@ -10266,9 +10266,9 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			int i;
 			int aciddemocast = 5;//If player doesent know Acid Demonstration or knows level 5 or lower, effect 5 will cast level 5 Acid Demo.
 			struct unit_data *ud = unit_bl2ud(src);
-			
+
 			if( !ud ) break;
-			
+
 			for( i = 0; i < MAX_SKILLUNITGROUP && ud->skillunit[i]; i ++ ) {
 				if( ud->skillunit[i]->skill_id == GN_DEMONIC_FIRE &&
 				   distance_xy(x, y, ud->skillunit[i]->unit->bl.x, ud->skillunit[i]->unit->bl.y) < 3 ) {
@@ -10299,7 +10299,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 				}
 			}
 			break;
-			
+
 		case SO_FIREWALK:
 		case SO_ELECTRICWALK:
 			if( sc && sc->data[type] )

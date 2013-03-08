@@ -2429,17 +2429,17 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 #ifdef RENEWAL
 				case LK_SPIRALPIERCE:
 				case ML_SPIRALPIERCE:
-				{ // Formula: Floor[Floor(Weapon Weight/2)*skill level + ATK ]*(100%+50%*s.lvl) * 5 multi-hits
-					short index = sd?sd->equip_index[EQI_HAND_R]:0;
-					int weight = 0;
+					{ // Formula: Floor[Floor(Weapon Weight/2)*skill level + ATK ]*(100%+50%*s.lvl) * 5 multi-hits
+						short index = sd?sd->equip_index[EQI_HAND_R]:0;
+						int weight = 0;
 
-					if (sd && index >= 0 &&
-						sd->inventory_data[index] &&
-						sd->inventory_data[index]->type == IT_WEAPON)
-							weight = sd->inventory_data[index]->weight/20;
-					ATK_ADD(weight * skill_lv)
-					skillratio += 50*skill_lv;
-				}
+						if (sd && index >= 0 &&
+							sd->inventory_data[index] &&
+							sd->inventory_data[index]->type == IT_WEAPON)
+								weight = sd->inventory_data[index]->weight/20;
+						ATK_ADD(weight * skill_lv)
+						skillratio += 50*skill_lv;
+					}
 					break;
 #endif
 				case ASC_METEORASSAULT:
