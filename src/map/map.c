@@ -2,6 +2,7 @@
 // For more information, see LICENCE in the main folder
 
 #include "../common/cbasetypes.h"
+#include "../common/cli.h"
 #include "../common/core.h"
 #include "../common/timer.h"
 #include "../common/grfio.h"
@@ -84,15 +85,6 @@ Sql* logmysql_handle;
 // messages like whispers to this nick. [LuzZza]
 char main_chat_nick[16] = "Main";
 
-char *INTER_CONF_NAME;
-char *LOG_CONF_NAME;
-char *MAP_CONF_NAME;
-char *BATTLE_CONF_FILENAME;
-char *ATCOMMAND_CONF_FILENAME;
-char *SCRIPT_CONF_NAME;
-char *MSG_CONF_NAME;
-char *GRF_PATH_FILENAME;
-
 // DBMap declaartion
 static DBMap* id_db=NULL; // int id -> struct block_list*
 static DBMap* pc_db=NULL; // int id -> struct map_session_data*
@@ -113,6 +105,9 @@ static int block_free_count = 0, block_free_lock = 0;
 #define BL_LIST_MAX 1048576
 static struct block_list *bl_list[BL_LIST_MAX];
 static int bl_list_count = 0;
+
+#define MAX_MSG 1500
+static char* msg_table[MAX_MSG]; // map Server messages
 
 struct map_data map[MAX_MAP_PER_SERVER];
 int map_num = 0;
@@ -3674,7 +3669,7 @@ void do_final(void)
 	iwall_db->destroy(iwall_db, NULL);
 	regen_db->destroy(regen_db, NULL);
 
-    map_sql_close();
+	map_sql_close();
 
 	ShowStatus("Finished.\n");
 }
@@ -3711,9 +3706,9 @@ void do_abort(void)
 }
 
 /*======================================================
- * Map-Server Version Screen [MC Cameri]
+ * Map-Server help options screen
  *------------------------------------------------------*/
-static void map_helpscreen(bool do_exit)
+void display_helpscreen(bool do_exit)
 {
 	ShowInfo("Usage: %s [options]\n", SERVER_NAME);
 	ShowInfo("\n");
@@ -3734,19 +3729,6 @@ static void map_helpscreen(bool do_exit)
 }
 
 /*======================================================
- * Map-Server Version Screen [MC Cameri]
- *------------------------------------------------------*/
-static void map_versionscreen(bool do_exit)
-{
-	ShowInfo(CL_WHITE"rAthena SVN version: %s" CL_RESET"\n", get_svn_revision());
-	ShowInfo(CL_GREEN"Website/Forum:"CL_RESET"\thttp://rathena.org/\n");
-	ShowInfo(CL_GREEN"IRC Channel:"CL_RESET"\tirc://irc.rathena.net/#rathena\n");
-	ShowInfo("Open "CL_WHITE"readme.txt"CL_RESET" for more information.\n");
-	if( do_exit )
-		exit(EXIT_SUCCESS);
-}
-
-/*======================================================
  * Map-Server Init and Command-line Arguments [Valaris]
  *------------------------------------------------------*/
 void set_server_type(void)
@@ -3758,11 +3740,9 @@ void set_server_type(void)
 /// Called when a terminate signal is received.
 void do_shutdown(void)
 {
-	if( runflag != MAPSERVER_ST_SHUTDOWN )
-	{
+	if( runflag != MAPSERVER_ST_SHUTDOWN ) {
 		runflag = MAPSERVER_ST_SHUTDOWN;
-		ShowStatus("Shutting down...\n");
-		{
+		ShowStatus("Shutting down...\n"); {
 			struct map_session_data* sd;
 			struct s_mapiterator* iter = mapit_getallusers();
 			for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) )
@@ -3774,21 +3754,8 @@ void do_shutdown(void)
 	}
 }
 
-static bool map_arg_next_value(const char* option, int i, int argc)
-{
-	if( i >= argc-1 )
-	{
-		ShowWarning("Missing value for option '%s'.\n", option);
-		return false;
-	}
-
-	return true;
-}
-
 int do_init(int argc, char *argv[])
 {
-	int i;
-
 #ifdef GCOLLECT
 	GC_enable_incremental();
 #endif
@@ -3799,97 +3766,12 @@ int do_init(int argc, char *argv[])
 	BATTLE_CONF_FILENAME = "conf/battle_athena.conf";
 	ATCOMMAND_CONF_FILENAME = "conf/atcommand_athena.conf";
 	SCRIPT_CONF_NAME = "conf/script_athena.conf";
-	MSG_CONF_NAME = "conf/msg_athena.conf";
+	MSG_CONF_NAME = "conf/msg_conf/map_msg.conf";
 	GRF_PATH_FILENAME = "conf/grf-files.txt";
 
+	cli_get_options(argc,argv);
+
 	rnd_init();
-
-	for( i = 1; i < argc ; i++ )
-	{
-		const char* arg = argv[i];
-
-		if( arg[0] != '-' && ( arg[0] != '/' || arg[1] == '-' ) )
-		{// -, -- and /
-			ShowError("Unknown option '%s'.\n", argv[i]);
-			exit(EXIT_FAILURE);
-		}
-		else if( (++arg)[0] == '-' )
-		{// long option
-			arg++;
-
-			if( strcmp(arg, "help") == 0 )
-			{
-				map_helpscreen(true);
-			}
-			else if( strcmp(arg, "version") == 0 )
-			{
-				map_versionscreen(true);
-			}
-			else if( strcmp(arg, "map-config") == 0 )
-			{
-				if( map_arg_next_value(arg, i, argc) )
-					MAP_CONF_NAME = argv[++i];
-			}
-			else if( strcmp(arg, "battle-config") == 0 )
-			{
-				if( map_arg_next_value(arg, i, argc) )
-					BATTLE_CONF_FILENAME = argv[++i];
-			}
-			else if( strcmp(arg, "atcommand-config") == 0 )
-			{
-				if( map_arg_next_value(arg, i, argc) )
-					ATCOMMAND_CONF_FILENAME = argv[++i];
-			}
-			else if( strcmp(arg, "script-config") == 0 )
-			{
-				if( map_arg_next_value(arg, i, argc) )
-					SCRIPT_CONF_NAME = argv[++i];
-			}
-			else if( strcmp(arg, "msg-config") == 0 )
-			{
-				if( map_arg_next_value(arg, i, argc) )
-					MSG_CONF_NAME = argv[++i];
-			}
-			else if( strcmp(arg, "grf-path-file") == 0 )
-			{
-				if( map_arg_next_value(arg, i, argc) )
-					GRF_PATH_FILENAME = argv[++i];
-			}
-			else if( strcmp(arg, "inter-config") == 0 )
-			{
-				if( map_arg_next_value(arg, i, argc) )
-					INTER_CONF_NAME = argv[++i];
-			}
-			else if( strcmp(arg, "log-config") == 0 )
-			{
-				if( map_arg_next_value(arg, i, argc) )
-					LOG_CONF_NAME = argv[++i];
-			}
-			else if( strcmp(arg, "run-once") == 0 ) // close the map-server as soon as its done.. for testing [Celest]
-			{
-				runflag = CORE_ST_STOP;
-			}
-			else
-			{
-				ShowError("Unknown option '%s'.\n", argv[i]);
-				exit(EXIT_FAILURE);
-			}
-		}
-		else switch( arg[0] )
-		{// short option
-			case '?':
-			case 'h':
-				map_helpscreen(true);
-				break;
-			case 'v':
-				map_versionscreen(true);
-				break;
-			default:
-				ShowError("Unknown option '%s'.\n", argv[i]);
-				exit(EXIT_FAILURE);
-		}
-	}
-
 	map_config_read(MAP_CONF_NAME);
 	/* only temporary until sirius's datapack patch is complete  */
 	
@@ -3975,8 +3857,7 @@ int do_init(int argc, char *argv[])
 	
 	npc_event_do_oninit();	// Init npcs (OnInit)
 
-	if( console )
-	{
+	if( console ) {
 		//##TODO invoke a CONSOLE_START plugin event
 	}
 
@@ -3987,8 +3868,7 @@ int do_init(int argc, char *argv[])
 
 	ShowStatus("Server is '"CL_GREEN"ready"CL_RESET"' and listening on port '"CL_WHITE"%d"CL_RESET"'.\n\n", map_port);
 
-	if( runflag != CORE_ST_STOP )
-	{
+	if( runflag != CORE_ST_STOP ) {
 		shutdown_callback = do_shutdown;
 		runflag = MAPSERVER_ST_RUNNING;
 	}
@@ -3998,4 +3878,14 @@ int do_init(int argc, char *argv[])
 #endif
 
 	return 0;
+}
+
+int map_msg_config_read(char *cfgName) {
+	return _msg_config_read(cfgName,MAP_MAX_MSG,msg_table);
+}
+const char* map_msg_txt(int msg_number) {
+	return _msg_txt(msg_number,MAP_MAX_MSG,msg_table);
+}
+void map_do_final_msg(void) {
+	_do_final_msg(MAP_MAX_MSG,msg_table);
 }

@@ -2,6 +2,7 @@
 // For more information, see LICENCE in the main folder
 
 #include "../common/cbasetypes.h"
+#include "../common/cli.h"
 #include "../common/core.h"
 #include "../common/db.h"
 #include "../common/malloc.h"
@@ -29,10 +30,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// private declarations
-#define CHAR_CONF_NAME	"conf/char_athena.conf"
-#define LAN_CONF_NAME	"conf/subnet_athena.conf"
-#define SQL_CONF_NAME	"conf/inter_athena.conf"
+#define CHAR_MAX_MSG 200
+static char* msg_table[CHAR_MAX_MSG]; // Login Server messages_conf
 
 char char_db[256] = "char";
 char scdata_db[256] = "sc_data";
@@ -836,7 +835,7 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 		for( j = 0; j < MAX_SLOTS; ++j )
 			StringBuf_Printf(&buf, ", '%d'", items[i].card[j]);
 		StringBuf_AppendStr(&buf, ")");
-		
+
 		updateLastUid(items[i].unique_id); // Unique Non Stackable Item ID
 	}
 	dbUpdateUid(sql_handle); // Unique Non Stackable Item ID
@@ -4024,11 +4023,11 @@ int parse_char(int fd)
 				char esc_name[NAME_LENGTH*2+1];
 				safestrncpy(name, (char *)RFIFOP(fd,6), NAME_LENGTH);
 				RFIFOSKIP(fd,30);
-				
+
 				ARR_FIND( 0, MAX_CHARS, i, sd->found_char[i] == cid );
 				if( i == MAX_CHARS )
 					break;
-				
+
 				normalize_name(name,TRIM_CHARS);
 				Sql_EscapeStringLen(sql_handle, esc_name, name, strnlen(name, NAME_LENGTH));
 				if( !check_char_name(name,esc_name) ) {
@@ -4036,7 +4035,7 @@ int parse_char(int fd)
 					safestrncpy(sd->new_name, name, NAME_LENGTH);
 				} else
 					i = 0;
-				
+
 				WFIFOHEAD(fd, 4);
 				WFIFOW(fd,0) = 0x28e;
 				WFIFOW(fd,2) = i;
@@ -4710,6 +4709,7 @@ void do_final(void)
 
 	flush_fifos();
 
+	do_final_msg();
 	do_final_mapif();
 	do_final_loginif();
 
@@ -4720,8 +4720,7 @@ void do_final(void)
 	online_char_db->destroy(online_char_db, NULL);
 	auth_db->destroy(auth_db, NULL);
 
-	if( char_fd != -1 )
-	{
+	if( char_fd != -1 ) {
 		do_close(char_fd);
 		char_fd = -1;
 	}
@@ -4749,8 +4748,7 @@ void set_server_type(void)
 /// Called when a terminate signal is received.
 void do_shutdown(void)
 {
-	if( runflag != CHARSERVER_ST_SHUTDOWN )
-	{
+	if( runflag != CHARSERVER_ST_SHUTDOWN ) {
 		int id;
 		runflag = CHARSERVER_ST_SHUTDOWN;
 		ShowStatus("Shutting down...\n");
@@ -4770,8 +4768,16 @@ int do_init(int argc, char **argv)
 	mapindex_init();
 	start_point.map = mapindex_name2id("new_zone01");
 
-	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
-	char_lan_config_read((argc > 3) ? argv[3] : LAN_CONF_NAME);
+	CHAR_CONF_NAME = "conf/char_athena.conf";
+	LAN_CONF_NAME = "conf/subnet_athena.conf";
+	SQL_CONF_NAME = "conf/inter_athena.conf";
+	MSG_CONF_NAME = "conf/msg_conf/char_msg.conf";
+
+	cli_get_options(argc,argv);
+
+	msg_config_read(MSG_CONF_NAME);
+	char_config_read(CHAR_CONF_NAME);
+	char_lan_config_read(LAN_CONF_NAME);
 	sql_config_read(SQL_CONF_NAME);
 
 	if (strcmp(userid, "s1")==0 && strcmp(passwd, "p1")==0) {
@@ -4787,8 +4793,7 @@ int do_init(int argc, char **argv)
 	mmo_char_sql_init();
 	char_read_fame_list(); //Read fame lists.
 
-	if ((naddr_ != 0) && (!login_ip || !char_ip))
-	{
+	if ((naddr_ != 0) && (!login_ip || !char_ip)) {
 		char ip_str[16];
 		ip2str(addr_[0], ip_str);
 
@@ -4820,8 +4825,7 @@ int do_init(int argc, char **argv)
 	add_timer_func_list(online_data_cleanup, "online_data_cleanup");
 	add_timer_interval(gettick() + 1000, online_data_cleanup, 0, 0, 600 * 1000);
 
-	if( console )
-	{
+	if( console ) {
 		//##TODO invoke a CONSOLE_START plugin event
 	}
 
@@ -4849,11 +4853,39 @@ int do_init(int argc, char **argv)
 
 	ShowStatus("The char-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %d).\n\n", char_port);
 
-	if( runflag != CORE_ST_STOP )
-	{
+	if( runflag != CORE_ST_STOP ) {
 		shutdown_callback = do_shutdown;
 		runflag = CHARSERVER_ST_RUNNING;
 	}
 
 	return 0;
+}
+
+int char_msg_config_read(char *cfgName) {
+	return _msg_config_read(cfgName,CHAR_MAX_MSG,msg_table);
+}
+const char* char_msg_txt(int msg_number) {
+	return _msg_txt(msg_number,CHAR_MAX_MSG,msg_table);
+}
+void char_do_final_msg(void) {
+	_do_final_msg(CHAR_MAX_MSG,msg_table);
+}
+
+/*======================================================
+ * Login-Server help option info
+ *------------------------------------------------------*/
+void display_helpscreen(bool do_exit)
+{
+	ShowInfo("Usage: %s [options]\n", SERVER_NAME);
+	ShowInfo("\n");
+	ShowInfo("Options:\n");
+	ShowInfo("  -?, -h [--help]\t\tDisplays this help screen.\n");
+	ShowInfo("  -v [--version]\t\tDisplays the server's version.\n");
+	ShowInfo("  --run-once\t\t\tCloses server after loading (testing).\n");
+	ShowInfo("  --char-config <file>\t\tAlternative char-server configuration.\n");
+	ShowInfo("  --lan-config <file>\t\tAlternative lag configuration.\n");
+	ShowInfo("  --inter-config <file>\t\tAlternative inter-server configuration.\n");
+	ShowInfo("  --msg-config <file>\t\tAlternative message configuration.\n");
+	if( do_exit )
+		exit(EXIT_SUCCESS);
 }

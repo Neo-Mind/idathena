@@ -1,10 +1,12 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
+#include "../common/cli.h"
 #include "../common/core.h"
 #include "../common/db.h"
 #include "../common/malloc.h"
 #include "../common/md5calc.h"
+#include "../common/msg_conf.h"
 #include "../common/random.h"
 #include "../common/showmsg.h"
 #include "../common/socket.h"
@@ -19,6 +21,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define LOGIN_MAX_MSG 30
+static char* msg_table[LOGIN_MAX_MSG]; // Login Server messages_conf
 struct Login_Config login_config;
 
 int login_fd; // login server socket
@@ -184,7 +188,7 @@ static int online_data_cleanup(int tid, unsigned int tick, int id, intptr_t data
 {
 	online_db->foreach(online_db, online_data_cleanup_sub);
 	return 0;
-} 
+}
 
 
 //--------------------------------------------------------------------
@@ -274,15 +278,12 @@ bool check_encrypted(const char* str1, const char* str2, const char* passwd)
 
 bool check_password(const char* md5key, int passwdenc, const char* passwd, const char* refpass)
 {
-	if(passwdenc == 0)
-	{
+	if(passwdenc == 0) {
 		return (0==strcmp(passwd, refpass));
-	}
-	else
-	{
+	} else {
 		// password mode set to 1 -> md5(md5key, refpass) enable with <passwordencrypt></passwordencrypt>
 		// password mode set to 2 -> md5(refpass, md5key) enable with <passwordencrypt2></passwordencrypt2>
-		
+
 		return ((passwdenc&0x01) && check_encrypted(md5key, refpass, passwd)) ||
 		       ((passwdenc&0x02) && check_encrypted(refpass, md5key, passwd));
 	}
@@ -1025,7 +1026,7 @@ int mmo_auth(struct login_session_data* sd, bool isServer) {
 				return result;// Failed to make account. [Skotlex].
 		}
 	}
-	
+
 	if( !accounts->load_str(accounts, &acc, sd->userid) ) {
 		ShowNotice("Unknown account (account: %s, received pass: %s, ip: %s)\n", sd->userid, sd->passwd, ip);
 		return 0; // 0 = Unregistered ID
@@ -1052,7 +1053,7 @@ int mmo_auth(struct login_session_data* sd, bool isServer) {
 		ShowNotice("Connection refused (account: %s, pass: %s, state: %d, ip: %s)\n", sd->userid, sd->passwd, acc.state, ip);
 		return acc.state - 1;
 	}
-	
+
 	if( login_config.client_hash_check && !isServer ) {
 		struct client_hash_node *node = login_config.client_hash_nodes;
 		bool match = false;
@@ -1117,8 +1118,7 @@ void login_auth_ok(struct login_session_data* sd)
 	struct auth_node* node;
 	int i;
 
-	if( runflag != LOGINSERVER_ST_RUNNING )
-	{
+	if( runflag != LOGINSERVER_ST_RUNNING ) {
 		// players can only login while running
 		WFIFOHEAD(fd,3);
 		WFIFOW(fd,0) = 0x81;
@@ -1140,7 +1140,7 @@ void login_auth_ok(struct login_session_data* sd)
 		WFIFOW(fd,0) = 0x81;
 		WFIFOB(fd,2) = 1; // 01 = Server closed
 		WFIFOSET(fd,3);
-		return;		
+		return;
 	}
 
 	server_num = 0;
@@ -1148,8 +1148,7 @@ void login_auth_ok(struct login_session_data* sd)
 		if( session_isActive(server[i].fd) )
 			server_num++;
 
-	if( server_num == 0 )
-	{// if no char-server, don't send void list of servers, just disconnect the player with proper message
+	if( server_num == 0 ) { // if no char-server, don't send void list of servers, just disconnect the player with proper message
 		ShowStatus("Connection refused: there is no char-server online (account: %s).\n", sd->userid);
 		WFIFOHEAD(fd,3);
 		WFIFOW(fd,0) = 0x81;
@@ -1160,10 +1159,8 @@ void login_auth_ok(struct login_session_data* sd)
 
 	{
 		struct online_login_data* data = (struct online_login_data*)idb_get(online_db, sd->account_id);
-		if( data )
-		{// account is already marked as online!
-			if( data->char_server > -1 )
-			{// Request char servers to kick this account out. [Skotlex]
+		if( data ) { // account is already marked as online!
+			if( data->char_server > -1 ) { // Request char servers to kick this account out. [Skotlex]
 				uint8 buf[6];
 				ShowNotice("User '%s' is already online - Rejected.\n", sd->userid);
 				WBUFW(buf,0) = 0x2734;
@@ -1177,10 +1174,7 @@ void login_auth_ok(struct login_session_data* sd)
 				WFIFOB(fd,2) = 8; // 08 = Server still recognizes your last login
 				WFIFOSET(fd,3);
 				return;
-			}
-			else
-			if( data->char_server == -1 )
-			{// client has authed but did not access char-server yet
+			} else if( data->char_server == -1 ) { // client has authed but did not access char-server yet
 				// wipe previous session
 				idb_remove(auth_db, sd->account_id);
 				remove_online_user(sd->account_id);
@@ -1241,41 +1235,45 @@ void login_auth_ok(struct login_session_data* sd)
 	}
 }
 
+/* Log the result of a failed connection attempt by sd
+ * result: nb (msg define in conf)
+    0 = Unregistered ID
+    1 = Incorrect Password
+    2 = This ID is expired
+    3 = Rejected from Server
+    4 = You have been blocked by the GM Team
+    5 = Your Game's EXE file is not the latest version
+    6 = Your are Prohibited to log in until %s
+    7 = Server is jammed due to over populated
+    8 = No more accounts may be connected from this company
+    9 = MSI_REFUSE_BAN_BY_DBA
+    10 = MSI_REFUSE_EMAIL_NOT_CONFIRMED
+    11 = MSI_REFUSE_BAN_BY_GM
+    12 = MSI_REFUSE_TEMP_BAN_FOR_DBWORK
+    13 = MSI_REFUSE_SELF_LOCK
+    14 = MSI_REFUSE_NOT_PERMITTED_GROUP
+    15 = MSI_REFUSE_NOT_PERMITTED_GROUP
+    99 = This ID has been totally erased
+    100 = Login information remains at %s
+    101 = Account has been locked for a hacking investigation. Please contact the GM Team for more information
+    102 = This account has been temporarily prohibited from login due to a bug-related investigation
+    103 = This character is being deleted. Login is temporarily unavailable for the time being
+    104 = This character is being deleted. Login is temporarily unavailable for the time being
+     default = Unknown Error.
+ */
+
 void login_auth_failed(struct login_session_data* sd, int result)
 {
 	int fd = sd->fd;
 	uint32 ip = session[fd]->client_addr;
 
-	if (login_config.log_login)
-	{
-		const char* error;
-		switch( result ) {
-		case   0: error = "Unregistered ID."; break; // 0 = Unregistered ID
-		case   1: error = "Incorrect Password."; break; // 1 = Incorrect Password
-		case   2: error = "Account Expired."; break; // 2 = This ID is expired
-		case   3: error = "Rejected from server."; break; // 3 = Rejected from Server
-		case   4: error = "Blocked by GM."; break; // 4 = You have been blocked by the GM Team
-		case   5: error = "Not latest game EXE."; break; // 5 = Your Game's EXE file is not the latest version
-		case   6: error = "Banned."; break; // 6 = Your are Prohibited to log in until %s
-		case   7: error = "Server Over-population."; break; // 7 = Server is jammed due to over populated
-		case   8: error = "Account limit from company"; break; // 8 = No more accounts may be connected from this company
-		case   9: error = "Ban by DBA"; break; // 9 = MSI_REFUSE_BAN_BY_DBA
-		case  10: error = "Email not confirmed"; break; // 10 = MSI_REFUSE_EMAIL_NOT_CONFIRMED
-		case  11: error = "Ban by GM"; break; // 11 = MSI_REFUSE_BAN_BY_GM
-		case  12: error = "Working in DB"; break; // 12 = MSI_REFUSE_TEMP_BAN_FOR_DBWORK
-		case  13: error = "Self Lock"; break; // 13 = MSI_REFUSE_SELF_LOCK
-		case  14: error = "Not Permitted Group"; break; // 14 = MSI_REFUSE_NOT_PERMITTED_GROUP
-		case  15: error = "Not Permitted Group"; break; // 15 = MSI_REFUSE_NOT_PERMITTED_GROUP
-		case  99: error = "Account gone."; break; // 99 = This ID has been totally erased
-		case 100: error = "Login info remains."; break; // 100 = Login information remains at %s
-		case 101: error = "Hacking investigation."; break; // 101 = Account has been locked for a hacking investigation. Please contact the GM Team for more information
-		case 102: error = "Bug investigation."; break; // 102 = This account has been temporarily prohibited from login due to a bug-related investigation
-		case 103: error = "Deleting char."; break; // 103 = This character is being deleted. Login is temporarily unavailable for the time being
-		case 104: error = "Deleting spouse char."; break; // 104 = This character is being deleted. Login is temporarily unavailable for the time being
-		default : error = "Unknown Error."; break;
-		}
-
-		login_log(ip, sd->userid, result, error);
+	if (login_config.log_login) {
+		if(result >= 0 && result <= 15)
+		    login_log(ip, sd->userid, result, msg_txt(result));
+		else if(result >= 99 && result <= 104)
+		    login_log(ip, sd->userid, result, msg_txt(result-83)); //-83 offset
+		else
+		    login_log(ip, sd->userid, result, msg_txt(22)); //unknow error
 	}
 
 	if( result == 1 && login_config.dynamic_pass_failure_ban )
@@ -1286,8 +1284,7 @@ void login_auth_failed(struct login_session_data* sd, int result)
 	WFIFOB(fd,2) = (uint8)result;
 	if( result != 6 )
 		memset(WFIFOP(fd,3), '\0', 20);
-	else
-	{// 6 = Your are Prohibited to log in until %s
+	else { // 6 = Your are Prohibited to log in until %s
 		struct mmo_account acc;
 		time_t unban_time = ( accounts->load_str(accounts, &acc, sd->userid) ) ? acc.unban_time : 0;
 		timestamp2string((char*)WFIFOP(fd,3), 20, unban_time, login_config.date_format);
@@ -1734,8 +1731,7 @@ void do_final(void)
 	int i;
 	struct client_hash_node *hn = login_config.client_hash_nodes;
 
-	while (hn)
-	{
+	while (hn) {
 		struct client_hash_node *tmp = hn;
 		hn = hn->next;
 		aFree(tmp);
@@ -1747,13 +1743,12 @@ void do_final(void)
 	if( login_config.log_login )
 		loginlog_final();
 
+	do_final_msg();
 	ipban_final();
 
-	for( i = 0; account_engines[i].constructor; ++i )
-	{// destroy all account engines
+	for( i = 0; account_engines[i].constructor; ++i ) { // destroy all account engines
 		AccountDB* db = account_engines[i].db;
-		if( db )
-		{
+		if( db ) {
 			db->destroy(db);
 			account_engines[i].db = NULL;
 		}
@@ -1761,12 +1756,11 @@ void do_final(void)
 	accounts = NULL; // destroyed in account_engines
 	online_db->destroy(online_db, NULL);
 	auth_db->destroy(auth_db, NULL);
-	
+
 	for( i = 0; i < ARRAYLENGTH(server); ++i )
 		chrif_server_destroy(i);
 
-	if( login_fd != -1 )
-	{
+	if( login_fd != -1 ) {
 		do_close(login_fd);
 		login_fd = -1;
 	}
@@ -1818,11 +1812,19 @@ int do_init(int argc, char** argv)
 
 	// read login-server configuration
 	login_set_defaults();
-	login_config_read((argc > 1) ? argv[1] : LOGIN_CONF_NAME);
-	login_lan_config_read((argc > 2) ? argv[2] : LAN_CONF_NAME);
+
+	LOGIN_CONF_NAME = "conf/login_athena.conf";
+	LAN_CONF_NAME = "conf/subnet_athena.conf";
+	MSG_CONF_NAME = "conf/msg_conf/login_msg.conf";
+
+	cli_get_options(argc,argv);
+
+	msg_config_read(MSG_CONF_NAME);
+	login_config_read(LOGIN_CONF_NAME);
+	login_lan_config_read(LAN_CONF_NAME);
 
 	rnd_init();
-	
+
 	for( i = 0; i < ARRAYLENGTH(server); ++i )
 		chrif_server_init(i);
 
@@ -1887,4 +1889,32 @@ int do_init(int argc, char** argv)
 	login_log(0, "login server", 100, "login server started");
 
 	return 0;
+}
+
+int login_msg_config_read(char *cfgName) {
+	return _msg_config_read(cfgName,LOGIN_MAX_MSG,msg_table);
+}
+const char* login_msg_txt(int msg_number) {
+	return _msg_txt(msg_number,LOGIN_MAX_MSG,msg_table);
+}
+void login_do_final_msg(void) {
+	_do_final_msg(LOGIN_MAX_MSG,msg_table);
+}
+
+/*======================================================
+ * Login-Server help option info
+ *------------------------------------------------------*/
+void display_helpscreen(bool do_exit)
+{
+	ShowInfo("Usage: %s [options]\n", SERVER_NAME);
+	ShowInfo("\n");
+	ShowInfo("Options:\n");
+	ShowInfo("  -?, -h [--help]\t\tDisplays this help screen.\n");
+	ShowInfo("  -v [--version]\t\tDisplays the server's version.\n");
+	ShowInfo("  --run-once\t\t\tCloses server after loading (testing).\n");
+	ShowInfo("  --login-config <file>\t\tAlternative login-server configuration.\n");
+	ShowInfo("  --lan-config <file>\t\tAlternative lag configuration.\n");
+	ShowInfo("  --msg-config <file>\t\tAlternative message configuration.\n");
+	if( do_exit )
+		exit(EXIT_SUCCESS);
 }

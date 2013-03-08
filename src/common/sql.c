@@ -15,6 +15,8 @@
 #include <string.h>// strlen/strnlen/memcpy/memset
 #include <stdlib.h>// strtoul
 
+#define SQL_CONF_NAME "conf/inter_athena.conf"
+
 void hercules_mysql_error_handler(unsigned int ecode);
 
 int mysql_reconnect_type;
@@ -412,10 +414,9 @@ void Sql_ShowDebug_(Sql* self, const char* debug_file, const unsigned long debug
 
 
 /// Frees a Sql handle returned by Sql_Malloc.
-void Sql_Free(Sql* self) 
+void Sql_Free(Sql* self)
 {
-	if( self )
-	{
+	if( self ) {
 		Sql_FreeResult(self);
 		StringBuf_Destroy(&self->buf);
 		if( self->keepalive != INVALID_TIMER ) delete_timer(self->keepalive, Sql_P_KeepaliveTimer);
@@ -559,7 +560,7 @@ static void Sql_P_ShowDebugMysqlFieldInfo(const char* prefix, enum enum_field_ty
 	SHOW_DEBUG_OF(MYSQL_TYPE_NULL);
 #undef SHOW_DEBUG_TYPE_OF
 	}
-	ShowDebug("%stype=%s%s, length=%d%s\n", prefix, sign, type_string, length, length_postfix); 
+	ShowDebug("%stype=%s%s, length=%d%s\n", prefix, sign, type_string, length, length_postfix);
 }
 
 
@@ -1066,5 +1067,5 @@ void Sql_HerculesUpdateCheck(Sql* self) {
 }
 
 void Sql_init(void) {
-	Sql_inter_server_read("conf/inter_athena.conf",true);
+	Sql_inter_server_read(SQL_CONF_NAME,true);
 }
