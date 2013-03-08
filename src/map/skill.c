@@ -6526,7 +6526,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					case SC_DRUMBATTLE:			case SC_NIBELUNGEN:		case SC_ROKISWEIL:
 					case SC_INTOABYSS:			case SC_SIEGFRIED:		case SC_FOOD_STR_CASH:
 					case SC_FOOD_AGI_CASH:			case SC_FOOD_VIT_CASH:		case SC_FOOD_DEX_CASH:
-					case SC_FOOD_INT_CASH:			case SC_FOOD_LUK_CASH:	case SC_SEVENWIND:
+					case SC_FOOD_INT_CASH:			case SC_FOOD_LUK_CASH:		case SC_SEVENWIND:
 					case SC_MIRACLE:			case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:
 					case SC_INCHEALRATE:			case SC_ELECTRICSHOCKER:	case SC__STRIPACCESSORY:
 					case SC_SAVAGE_STEAK:			case SC_COCKTAIL_WARG_BLOOD:	case SC_MINOR_BBQ:
