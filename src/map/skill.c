@@ -6477,8 +6477,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 		case SA_DISPELL:
-			if (flag&1 || (i = skill_get_splash(skill_id, skill_lv)) < 1)
-			{
+			if (flag&1 || (i = skill_get_splash(skill_id, skill_lv)) < 1) {
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				if((dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER)
 					|| (tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_ROGUE) //Rogue's spirit defends againt dispel.
@@ -6525,9 +6524,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					case SC_SPL_ATK:			case SC_SPL_DEF:		case SC_MANU_MATK:
 					case SC_SPL_MATK:			case SC_RICHMANKIM:		case SC_ETERNALCHAOS:
 					case SC_DRUMBATTLE:			case SC_NIBELUNGEN:		case SC_ROKISWEIL:
-					case SC_INTOABYSS:			case SC_SIEGFRIED:		/*case SC_FOOD_STR_CASH:
+					case SC_INTOABYSS:			case SC_SIEGFRIED:		case SC_FOOD_STR_CASH:
 					case SC_FOOD_AGI_CASH:			case SC_FOOD_VIT_CASH:		case SC_FOOD_DEX_CASH:
-					case SC_FOOD_INT_CASH:			case SC_FOOD_LUK_CASH:*/	case SC_SEVENWIND:
+					case SC_FOOD_INT_CASH:			case SC_FOOD_LUK_CASH:	case SC_SEVENWIND:
 					case SC_MIRACLE:			case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:
 					case SC_INCHEALRATE:			case SC_ELECTRICSHOCKER:	case SC__STRIPACCESSORY:
 					case SC_SAVAGE_STEAK:			case SC_COCKTAIL_WARG_BLOOD:	case SC_MINOR_BBQ:
