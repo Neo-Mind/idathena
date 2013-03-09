@@ -3800,11 +3800,10 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			case AL_HEAL:
 			case PR_BENEDICTIO:
 			case PR_SANCTUARY:
-			/**
-			 * Arch Bishop
-			 **/
 			case AB_HIGHNESSHEAL:
-				ad.damage = skill_calc_heal(src, target, skill_id, skill_lv, false);
+				ad.damage = skill_calc_heal(src, target, (skill_id == AB_HIGHNESSHEAL)?AL_HEAL:skill_id, (skill_id == AB_HIGHNESSHEAL)?10:skill_lv, false);
+				if( skill_id == AB_HIGHNESSHEAL )
+					ad.damage = ad.damage * ( 17 + 3 * skill_lv ) / 10;
 				break;
 			case PR_ASPERSIO:
 				ad.damage = 40;
@@ -3838,9 +3837,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			case PF_SOULBURN:
 				ad.damage = tstatus->sp * 2;
 				break;
-			/**
-			 * Arch Bishop
-			 **/
 			case AB_RENOVATIO:
 				ad.damage = status_get_lv(src) * 10 + sstatus->int_;
 				break;
@@ -3980,9 +3976,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						skillratio += 20*skill_lv-20;
 						break;
 #endif
-					/**
-					 * Arch Bishop
-					 **/
+
 					case AB_JUDEX:
 						skillratio += 200 + 20 * skill_lv;
 						RE_LVL_DMOD(100);
@@ -3994,9 +3988,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					case AB_DUPLELIGHT_MAGIC:
 						skillratio += 100 + 20 * skill_lv;
 						break;
-					/**
-					 * Warlock
-					 **/
 					case WL_SOULEXPANSION:
 						skillratio = (skill_lv + 4 ) * 100 + sstatus->int_;
 						RE_LVL_DMOD(100);

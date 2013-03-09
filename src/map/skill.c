@@ -4906,9 +4906,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
  		case AL_HEAL:
 		case ALL_RESURRECTION:
 		case PR_ASPERSIO:
-		/**
-		 * Arch Bishop
-		 **/
 		case AB_RENOVATIO:
 		case AB_HIGHNESSHEAL:
 			//Apparently only player casted skills can be offensive like this.
@@ -4955,16 +4952,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 	switch(skill_id) {
 		case HLIF_HEAL:	//[orn]
 		case AL_HEAL:
-		/**
-		 * Arch Bishop
-		 **/
 		case AB_HIGHNESSHEAL: {
 				int heal = skill_calc_heal(src, bl, (skill_id == AB_HIGHNESSHEAL)?AL_HEAL:skill_id, (skill_id == AB_HIGHNESSHEAL)?10:skill_lv, true);
 				int heal_get_jobexp;
 				//Highness Heal: starts at 1.7 boost + 0.3 for each level
-				if( skill_id == AB_HIGHNESSHEAL ) {
+				if( skill_id == AB_HIGHNESSHEAL )
 					heal = heal * ( 17 + 3 * skill_lv ) / 10;
-				}
+
 				if( status_isimmune(bl) ||
 						(dstmd && (dstmd->class_ == MOBID_EMPERIUM || mob_is_battleground(dstmd))) ||
 						(dstsd && pc_ismadogear(dstsd)) )//Mado is immune to heal
