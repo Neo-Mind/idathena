@@ -7839,45 +7839,48 @@ ACMD_FUNC(cash)
 	int value;
 	int ret=0;
 	nullpo_retr(-1, sd);
-	
+
 	if( !message || !*message || (value = atoi(message)) == 0 ) {
 		clif_displaymessage(fd, msg_txt(1322)); // Please enter an amount.
 		return -1;
 	}
-	
-	if( !strcmpi(command+1,"cash") )
-	{
+
+	if( !strcmpi(command+1,"cash") ) {
 		if( value > 0 ) {
 			if( (ret=pc_getcash(sd, value, 0)) >= 0) {
-				sprintf(output, msg_txt(505), ret, sd->cashPoints);
-				clif_disp_onlyself(sd, output, strlen(output));
-			}
-			else clif_displaymessage(fd, msg_txt(149)); // Unable to decrease the number/value.
+				// If this option is set, the message is already sent by pc function
+				if( !battle_config.cashshop_show_points ) {
+					sprintf(output, msg_txt(505), ret, sd->cashPoints);
+					clif_disp_onlyself(sd, output, strlen(output));
+				}
+			} else
+				clif_displaymessage(fd, msg_txt(149)); // Unable to decrease the number/value.
 		} else {
 			if( (ret=pc_paycash(sd, -value, 0)) >= 0) {
-				sprintf(output, msg_txt(410), ret, sd->cashPoints);
-				clif_disp_onlyself(sd, output, strlen(output));
-			}
-			else clif_displaymessage(fd, msg_txt(41)); // Unable to decrease the number/value.
+				// If this option is set, the message is already sent by pc function
+				if( !battle_config.cashshop_show_points ) {
+					sprintf(output, msg_txt(410), ret, sd->cashPoints);
+					clif_disp_onlyself(sd, output, strlen(output));
+				}
+			} else
+				clif_displaymessage(fd, msg_txt(41)); // Unable to decrease the number/value.
 		}
-	}
-	else
-	{ // @points
+	} else { // @points
 		if( value > 0 ) {
 			if( (ret=pc_getcash(sd, 0, value)) >= 0) {
 				sprintf(output, msg_txt(506), ret, sd->kafraPoints);
 				clif_disp_onlyself(sd, output, strlen(output));
-			}
-			else clif_displaymessage(fd, msg_txt(149)); // Unable to decrease the number/value.
+			} else
+				clif_displaymessage(fd, msg_txt(149)); // Unable to decrease the number/value.
 		} else {
 			if( (ret=pc_paycash(sd, -value, -value)) >= 0) {
 				sprintf(output, msg_txt(411), ret, sd->kafraPoints);
 				clif_disp_onlyself(sd, output, strlen(output));
-			}
-			else clif_displaymessage(fd, msg_txt(41)); // Unable to decrease the number/value.
+			} else
+				clif_displaymessage(fd, msg_txt(41)); // Unable to decrease the number/value.
 		}
 	}
-	
+
 	return 0;
 }
 

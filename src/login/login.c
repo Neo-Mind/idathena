@@ -546,8 +546,8 @@ int parse_fromchar(int fd){
 					struct mmo_account acc;
 					time_t expiration_time = 0;
 					char email[40] = "";
-					uint8 char_slots = 0;
 					int group_id = 0;
+					uint8 char_slots = 0;
 					char birthdate[10+1] = "";
 					char pincode[4+1] = "";
 

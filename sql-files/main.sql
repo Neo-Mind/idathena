@@ -106,6 +106,7 @@ CREATE TABLE IF NOT EXISTS `char` (
   `fame` int(11) unsigned NOT NULL default '0',
   `rename` SMALLINT(3) unsigned NOT NULL default '0',
   `delete_date` INT(11) UNSIGNED NOT NULL DEFAULT '0',
+  `moves` int(11) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`char_id`),
   UNIQUE KEY `name_key` (`name`),
   KEY `account_id` (`account_id`),
@@ -651,6 +652,7 @@ INSERT INTO `sql_updates` (`timestamp`) VALUES (1360858500);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1360951560);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1362445531);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1362528000);
+INSERT INTO `sql_updates` (`timestamp`) VALUES (1362794218);
 
 --
 -- Table structure for table `sstatus`
