@@ -9115,7 +9115,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					if(sce->val1 == MH_MD_FIGHTING) sce->val1 = MH_MD_GRAPPLING;
 					else sce->val1 = MH_MD_FIGHTING;
 					if(hd->master && hd->sc.data[SC_STYLE_CHANGE]) {
-						int mode = hd->sc.data[SC_STYLE_CHANGE]->val1;
+						//int mode = hd->sc.data[SC_STYLE_CHANGE]->val1;
 						char output[128];
 						safesnprintf(output,sizeof(output),"Eleanor is now in %s mode",(sce->val1==MH_MD_FIGHTING?"fighthing":"grappling"));
 						clif_colormes(hd->master,COLOR_RED,output);
