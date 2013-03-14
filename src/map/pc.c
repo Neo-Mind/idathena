@@ -9613,9 +9613,9 @@ int pc_readdb(void)
 			continue; //Classes that do not need exp tables.
 		j = pc_class2idx(i);
 		if (!max_level[j][0])
-			ShowWarning("Class %s (%d) does not has a base exp table.\n", job_name(i), i);
+			ShowWarning("Class %s (%d) does not have a base exp table.\n", job_name(i), i);
 		if (!max_level[j][1])
-			ShowWarning("Class %s (%d) does not has a job exp table.\n", job_name(i), i);
+			ShowWarning("Class %s (%d) does not have a job exp table.\n", job_name(i), i);
 	}
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","exp.txt");
 

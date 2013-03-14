@@ -16699,28 +16699,23 @@ BUILDIN_FUNC(pushpc)
 	int cells, dx, dy;
 	struct map_session_data* sd;
 
-	if((sd = script_rid2sd(st))==NULL)
-	{
+	if((sd = script_rid2sd(st))==NULL) {
 		return 0;
 	}
 
 	dir = script_getnum(st,2);
 	cells = script_getnum(st,3);
 
-	if(dir>7)
-	{
+	if(dir>7) {
 		ShowWarning("buildin_pushpc: Invalid direction %d specified.\n", dir);
 		script_reportsrc(st);
 
 		dir%= 8;  // trim spin-over
 	}
 
-	if(!cells)
-	{// zero distance
+	if(!cells) { // zero distance
 		return 0;
-	}
-	else if(cells<0)
-	{// pushing backwards
+	} else if(cells<0) { // pushing backwards
 		dir = (dir+4)%8;  // turn around
 		cells     = -cells;
 	}
@@ -16739,14 +16734,21 @@ BUILDIN_FUNC(buyingstore)
 {
 	struct map_session_data* sd;
 
-	if( ( sd = script_rid2sd(st) ) == NULL )
-	{
+	if( ( sd = script_rid2sd(st) ) == NULL ) {
+		return 0;
+	}
+
+	if( npc_isnear(&sd->bl) ) {
+		char output[150];
+		sprintf(output, msg_txt(662), battle_config.min_npc_vendchat_distance);
+		clif_displaymessage(sd->fd, output);
 		return 0;
 	}
 
 	buyingstore_setup(sd, script_getnum(st,2));
 	return 0;
 }
+
 
 
 /// Invokes search store info window
@@ -16757,22 +16759,19 @@ BUILDIN_FUNC(searchstores)
 	unsigned int uses;
 	struct map_session_data* sd;
 
-	if( ( sd = script_rid2sd(st) ) == NULL )
-	{
+	if( ( sd = script_rid2sd(st) ) == NULL ) {
 		return 0;
 	}
 
 	uses   = script_getnum(st,2);
 	effect = script_getnum(st,3);
 
-	if( !uses )
-	{
+	if( !uses ) {
 		ShowError("buildin_searchstores: Amount of uses cannot be zero.\n");
 		return 1;
 	}
 
-	if( effect > 1 )
-	{
+	if( effect > 1 ) {
 		ShowError("buildin_searchstores: Invalid effect id %hu, specified.\n", effect);
 		return 1;
 	}
@@ -16788,19 +16787,16 @@ BUILDIN_FUNC(showdigit)
 	int value;
 	struct map_session_data* sd;
 
-	if( ( sd = script_rid2sd(st) ) == NULL )
-	{
+	if( ( sd = script_rid2sd(st) ) == NULL ) {
 		return 0;
 	}
 
 	value = script_getnum(st,2);
 
-	if( script_hasdata(st,3) )
-	{
+	if( script_hasdata(st,3) ) {
 		type = script_getnum(st,3);
 
-		if( type > 3 )
-		{
+		if( type > 3 ) {
 			ShowError("buildin_showdigit: Invalid type %u.\n", type);
 			return 1;
 		}

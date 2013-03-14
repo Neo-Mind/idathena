@@ -522,15 +522,14 @@ static bool mmo_auth_fromsql(AccountDB_SQL* db, struct mmo_account* acc, int acc
 
 	// retrieve login entry for the specified account
 	if( SQL_ERROR == Sql_Query(sql_handle,
-	    "SELECT `account_id`,`userid`,`user_pass`,`sex`,`email`,`group_id`,`state`,`unban_time`,`expiration_time`,`logincount`,`lastlogin`,`last_ip`,`birthdate`,`character_slots` FROM `%s` WHERE `account_id` = %d",
+	    "SELECT `account_id`,`userid`,`user_pass`,`sex`,`email`,`group_id`,`state`,`unban_time`,`expiration_time`,`logincount`,`lastlogin`,`last_ip`,`birthdate`,`character_slots`,`pincode`, `pincode_change` FROM `%s` WHERE `account_id` = %d",
 		db->account_db, account_id )
 	) {
 		Sql_ShowDebug(sql_handle);
 		return false;
 	}
 
-	if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
-	{// no such entry
+	if( SQL_SUCCESS != Sql_NextRow(sql_handle) ) { // no such entry
 		Sql_FreeResult(sql_handle);
 		return false;
 	}
@@ -549,9 +548,10 @@ static bool mmo_auth_fromsql(AccountDB_SQL* db, struct mmo_account* acc, int acc
 	Sql_GetData(sql_handle, 11, &data, NULL); safestrncpy(acc->last_ip, data, sizeof(acc->last_ip));
 	Sql_GetData(sql_handle, 12, &data, NULL); safestrncpy(acc->birthdate, data, sizeof(acc->birthdate));
 	Sql_GetData(sql_handle, 13, &data, NULL); acc->char_slots = atoi(data);
+	Sql_GetData(sql_handle, 14, &data, NULL); safestrncpy(acc->pincode, data, sizeof(acc->pincode));
+	Sql_GetData(sql_handle, 15, &data, NULL); acc->pincode_change = atol(data);
 
 	Sql_FreeResult(sql_handle);
-
 
 	// retrieve account regs for the specified user
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `str`,`value` FROM `%s` WHERE `type`='1' AND `account_id`='%d'", db->accreg_db, acc->account_id) )
@@ -562,8 +562,7 @@ static bool mmo_auth_fromsql(AccountDB_SQL* db, struct mmo_account* acc, int acc
 
 	acc->account_reg2_num = (int)Sql_NumRows(sql_handle);
 
-	while( SQL_SUCCESS == Sql_NextRow(sql_handle) )
-	{
+	while( SQL_SUCCESS == Sql_NextRow(sql_handle) ) {
 		char* data;
 		Sql_GetData(sql_handle, 0, &data, NULL); safestrncpy(acc->account_reg2[i].str, data, sizeof(acc->account_reg2[i].str));
 		Sql_GetData(sql_handle, 1, &data, NULL); safestrncpy(acc->account_reg2[i].value, data, sizeof(acc->account_reg2[i].value));
@@ -585,91 +584,92 @@ static bool mmo_auth_tosql(AccountDB_SQL* db, const struct mmo_account* acc, boo
 	int i;
 
 	// try
-	do
-	{
+	do {
 
-	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
-	{
-		Sql_ShowDebug(sql_handle);
-		break;
-	}
+		if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") ) {
+			Sql_ShowDebug(sql_handle);
+			break;
+		}
 
-	if( is_new )
-	{// insert into account table
-		if( SQL_SUCCESS != SqlStmt_Prepare(stmt,
-			"INSERT INTO `%s` (`account_id`, `userid`, `user_pass`, `sex`, `email`, `group_id`, `state`, `unban_time`, `expiration_time`, `logincount`, `lastlogin`, `last_ip`, `birthdate`, `character_slots`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-			db->account_db)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  0, SQLDT_INT,    (void*)&acc->account_id,      sizeof(acc->account_id))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  1, SQLDT_STRING, (void*)acc->userid,           strlen(acc->userid))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  2, SQLDT_STRING, (void*)acc->pass,             strlen(acc->pass))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  3, SQLDT_ENUM,   (void*)&acc->sex,             sizeof(acc->sex))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  4, SQLDT_STRING, (void*)&acc->email,           strlen(acc->email))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  5, SQLDT_INT,    (void*)&acc->group_id,        sizeof(acc->group_id))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  6, SQLDT_UINT,   (void*)&acc->state,           sizeof(acc->state))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  7, SQLDT_LONG,   (void*)&acc->unban_time,      sizeof(acc->unban_time))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  8, SQLDT_INT,    (void*)&acc->expiration_time, sizeof(acc->expiration_time))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  9, SQLDT_UINT,   (void*)&acc->logincount,      sizeof(acc->logincount))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 10, SQLDT_STRING, (void*)&acc->lastlogin,       strlen(acc->lastlogin))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 11, SQLDT_STRING, (void*)&acc->last_ip,         strlen(acc->last_ip))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 12, SQLDT_STRING, (void*)&acc->birthdate,       strlen(acc->birthdate))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 13, SQLDT_UCHAR,  (void*)&acc->char_slots,      sizeof(acc->char_slots))
-		||  SQL_SUCCESS != SqlStmt_Execute(stmt)
-		) {
+		if( is_new ) { // insert into account table
+			if( SQL_SUCCESS != SqlStmt_Prepare(stmt,
+				"INSERT INTO `%s` (`account_id`, `userid`, `user_pass`, `sex`, `email`, `group_id`, `state`, `unban_time`, `expiration_time`, `logincount`, `lastlogin`, `last_ip`, `birthdate`, `character_slots`, `pincode`, `pincode_change`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+				db->account_db)
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  0, SQLDT_INT,    (void*)&acc->account_id,      sizeof(acc->account_id))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  1, SQLDT_STRING, (void*)acc->userid,           strlen(acc->userid))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  2, SQLDT_STRING, (void*)acc->pass,             strlen(acc->pass))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  3, SQLDT_ENUM,   (void*)&acc->sex,             sizeof(acc->sex))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  4, SQLDT_STRING, (void*)&acc->email,           strlen(acc->email))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  5, SQLDT_INT,    (void*)&acc->group_id,        sizeof(acc->group_id))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  6, SQLDT_UINT,   (void*)&acc->state,           sizeof(acc->state))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  7, SQLDT_LONG,   (void*)&acc->unban_time,      sizeof(acc->unban_time))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  8, SQLDT_INT,    (void*)&acc->expiration_time, sizeof(acc->expiration_time))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  9, SQLDT_UINT,   (void*)&acc->logincount,      sizeof(acc->logincount))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 10, SQLDT_STRING, (void*)&acc->lastlogin,       strlen(acc->lastlogin))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 11, SQLDT_STRING, (void*)&acc->last_ip,         strlen(acc->last_ip))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 12, SQLDT_STRING, (void*)&acc->birthdate,       strlen(acc->birthdate))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 13, SQLDT_UCHAR,  (void*)&acc->char_slots,      sizeof(acc->char_slots))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 14, SQLDT_STRING, (void*)&acc->pincode,         strlen(acc->pincode))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 15, SQLDT_LONG,   (void*)&acc->pincode_change,  sizeof(acc->pincode_change))
+			||  SQL_SUCCESS != SqlStmt_Execute(stmt)
+			) {
+				SqlStmt_ShowDebug(stmt);
+				break;
+			}
+		} else { // update account table
+			if( SQL_SUCCESS != SqlStmt_Prepare(stmt,
+				"UPDATE `%s` SET `userid`=?,`user_pass`=?,`sex`=?,`email`=?,`group_id`=?,`state`=?,`unban_time`=?,`expiration_time`=?,`logincount`=?,`lastlogin`=?,`last_ip`=?,`birthdate`=?,`character_slots`=?,`pincode`=?, `pincode_change`=? WHERE `account_id` = '%d'",
+				db->account_db, acc->account_id)
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  0, SQLDT_STRING, (void*)acc->userid,           strlen(acc->userid))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  1, SQLDT_STRING, (void*)acc->pass,             strlen(acc->pass))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  2, SQLDT_ENUM,   (void*)&acc->sex,             sizeof(acc->sex))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  3, SQLDT_STRING, (void*)acc->email,            strlen(acc->email))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  4, SQLDT_INT,    (void*)&acc->group_id,        sizeof(acc->group_id))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  5, SQLDT_UINT,   (void*)&acc->state,           sizeof(acc->state))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  6, SQLDT_LONG,   (void*)&acc->unban_time,      sizeof(acc->unban_time))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  7, SQLDT_LONG,   (void*)&acc->expiration_time, sizeof(acc->expiration_time))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  8, SQLDT_UINT,   (void*)&acc->logincount,      sizeof(acc->logincount))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  9, SQLDT_STRING, (void*)&acc->lastlogin,       strlen(acc->lastlogin))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 10, SQLDT_STRING, (void*)&acc->last_ip,         strlen(acc->last_ip))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 11, SQLDT_STRING, (void*)&acc->birthdate,       strlen(acc->birthdate))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 12, SQLDT_UCHAR,  (void*)&acc->char_slots,      sizeof(acc->char_slots))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 13, SQLDT_STRING, (void*)&acc->pincode,         strlen(acc->pincode))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 14, SQLDT_LONG,   (void*)&acc->pincode_change,  sizeof(acc->pincode_change))
+			||  SQL_SUCCESS != SqlStmt_Execute(stmt)
+			) {
+				SqlStmt_ShowDebug(stmt);
+				break;
+			}
+		}
+
+		// remove old account regs
+		if( SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `type`='1' AND `account_id`='%d'", db->accreg_db, acc->account_id) )
+		{
+			Sql_ShowDebug(sql_handle);
+			break;
+		}
+		// insert new account regs
+		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES ( 1 , '%d' , ? , ? );",  db->accreg_db, acc->account_id) )
+		{
 			SqlStmt_ShowDebug(stmt);
 			break;
 		}
-	} else { // update account table
-		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "UPDATE `%s` SET `userid`=?,`user_pass`=?,`sex`=?,`email`=?,`group_id`=?,`state`=?,`unban_time`=?,`expiration_time`=?,`logincount`=?,`lastlogin`=?,`last_ip`=?,`birthdate`=?,`character_slots`=? WHERE `account_id` = '%d'", db->account_db, acc->account_id)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  0, SQLDT_STRING, (void*)acc->userid,           strlen(acc->userid))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  1, SQLDT_STRING, (void*)acc->pass,             strlen(acc->pass))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  2, SQLDT_ENUM,   (void*)&acc->sex,             sizeof(acc->sex))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  3, SQLDT_STRING, (void*)acc->email,            strlen(acc->email))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  4, SQLDT_INT,    (void*)&acc->group_id,        sizeof(acc->group_id))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  5, SQLDT_UINT,   (void*)&acc->state,           sizeof(acc->state))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  6, SQLDT_LONG,   (void*)&acc->unban_time,      sizeof(acc->unban_time))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  7, SQLDT_LONG,   (void*)&acc->expiration_time, sizeof(acc->expiration_time))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  8, SQLDT_UINT,   (void*)&acc->logincount,      sizeof(acc->logincount))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  9, SQLDT_STRING, (void*)&acc->lastlogin,       strlen(acc->lastlogin))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 10, SQLDT_STRING, (void*)&acc->last_ip,         strlen(acc->last_ip))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 11, SQLDT_STRING, (void*)&acc->birthdate,       strlen(acc->birthdate))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 12, SQLDT_UCHAR,  (void*)&acc->char_slots,      sizeof(acc->char_slots))
-		||  SQL_SUCCESS != SqlStmt_Execute(stmt)
-		) {
-			SqlStmt_ShowDebug(stmt);
+		for( i = 0; i < acc->account_reg2_num; ++i ) {
+			if( SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_STRING, (void*)acc->account_reg2[i].str, strlen(acc->account_reg2[i].str))
+			||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (void*)acc->account_reg2[i].value, strlen(acc->account_reg2[i].value))
+			||  SQL_SUCCESS != SqlStmt_Execute(stmt)
+			) {
+				SqlStmt_ShowDebug(stmt);
+				break;
+			}
+		}
+		if( i < acc->account_reg2_num ) {
+			result = false;
 			break;
 		}
-	}
 
-	// remove old account regs
-	if( SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `type`='1' AND `account_id`='%d'", db->accreg_db, acc->account_id) )
-	{
-		Sql_ShowDebug(sql_handle);
-		break;
-	}
-	// insert new account regs
-	if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES ( 1 , '%d' , ? , ? );",  db->accreg_db, acc->account_id) )
-	{
-		SqlStmt_ShowDebug(stmt);
-		break;
-	}
-	for( i = 0; i < acc->account_reg2_num; ++i )
-	{
-		if( SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_STRING, (void*)acc->account_reg2[i].str, strlen(acc->account_reg2[i].str))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (void*)acc->account_reg2[i].value, strlen(acc->account_reg2[i].value))
-		||  SQL_SUCCESS != SqlStmt_Execute(stmt)
-		) {
-			SqlStmt_ShowDebug(stmt);
-			break;
-		}
-	}
-	if( i < acc->account_reg2_num )
-	{
-		result = false;
-		break;
-	}
-
-	// if we got this far, everything was successful
-	result = true;
+		// if we got this far, everything was successful
+		result = true;
 
 	} while(0);
 	// finally

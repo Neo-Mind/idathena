@@ -6841,7 +6841,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case NPC_EMOTION_ON:
 		case NPC_EMOTION:
-			//va[0] is the emotion to use.
+			//val[0] is the emotion to use.
 			//NPC_EMOTION & NPC_EMOTION_ON can change a mob's mode 'permanently' [Skotlex]
 			//val[1] 'sets' the mode
 			//val[2] adds to the current mode
@@ -6851,6 +6851,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				clif_emotion(bl, md->db->skill[md->skill_idx].val[0]);
 				if(md->db->skill[md->skill_idx].val[4] && tsce)
 					status_change_end(bl, type, INVALID_TIMER);
+
+				//If mode gets set by NPC_EMOTION then the target should be reset [Playtester]
+				if(skill_id == NPC_EMOTION && md->db->skill[md->skill_idx].val[1])
+					mob_unlocktarget(md,tick);
 
 				if(md->db->skill[md->skill_idx].val[1] || md->db->skill[md->skill_idx].val[2])
 					sc_start4(src, type, 100, skill_lv,
@@ -17408,28 +17412,26 @@ void skill_init_unit_layout (void)
 		pos++;
 	}
 	earthstrain_unit_pos = pos;
-	for( i = 0; i < 8; i++ )
-	{ // For each Direction
+	for( i = 0; i < 8; i++ ) { // For each Direction
 		skill_unit_layout[pos].count = 15;
-		switch( i )
-		{
-		case 0: case 1: case 3: case 4: case 5: case 7:
-			{
-				int dx[] = {-7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7};
-				int dy[] = { 0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0};
-				memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
-				memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
-			}
-			break;
-		case 2:
-		case 6:
-			{
-				int dx[] = { 0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0};
-				int dy[] = {-7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7};
-				memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
-				memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
-			}
-			break;
+		switch( i ) {
+			case 0: case 1: case 3: case 4: case 5: case 7:
+				{
+					int dx[] = {-7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7};
+					int dy[] = { 0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0};
+					memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
+				}
+				break;
+			case 2:
+			case 6:
+				{
+					int dx[] = { 0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0};
+					int dy[] = {-7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7};
+					memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
+				}
+				break;
 		}
 		pos++;
 	}
@@ -17443,7 +17445,7 @@ int skill_block_check(struct block_list *bl, sc_type type , uint16 skill_id) {
 	if( !sc || !bl || !skill_id )
 		return 0; // Can do it
 
-	switch(type){
+	switch(type) {
 		case SC_STASIS:
 			inf = skill_get_inf2(skill_id);
 			//Song, Dance, Ensemble, Chorus, and all magic skills will not work in Stasis status. [Rytech]
@@ -17452,7 +17454,7 @@ int skill_block_check(struct block_list *bl, sc_type type , uint16 skill_id) {
 			break;
 			
 		case SC_KAGEHUMI:
-			switch(skill_id){
+			switch(skill_id) {
 				case TF_HIDING:		case AS_CLOAKING:	case GC_CLOAKINGEXCEED:	case SC_SHADOWFORM:
 				case MI_HARMONIZE:	case CG_MARIONETTE:	case AL_TELEPORT:		case TF_BACKSLIDING:
 				case RA_CAMOUFLAGE: case ST_CHASEWALK:	case GD_EMERGENCYCALL:
@@ -17491,14 +17493,12 @@ void skill_cooldown_load(struct map_session_data * sd)
 	// always check to make sure the session properly exists
 	nullpo_retv(sd);
 
-	if( !(cd = idb_get(skillcd_db, sd->status.char_id)) )
-	{// no skill cooldown is associated with this character
+	if( !(cd = idb_get(skillcd_db, sd->status.char_id)) ) { // no skill cooldown is associated with this character
 		return;
 	}
 	
 	// process each individual cooldown associated with the character
-	for( i = 0; i < cd->cursor; i++ )
-	{
+	for( i = 0; i < cd->cursor; i++ ) {
 		// block the skill from usage but ensure it is not recorded (load = true)
 		skill_blockpc_start_( sd, cd->nameid[i], cd->duration[i], true );
 	}
@@ -17576,11 +17576,9 @@ static bool skill_parse_row_requiredb(char* split[], int columns, int current)
 
 	//Wich weapon type are required, see doc/item_db for types
 	p = split[7];
-	for( j = 0; j < 32; j++ )
-	{
+	for( j = 0; j < 32; j++ ) {
 		int l = atoi(p);
-		if( l == 99 ) // Any weapon
-		{
+		if( l == 99 ) { // Any weapon
 			skill_db[idx].weapon = 0;
 			break;
 		}
@@ -17594,15 +17592,12 @@ static bool skill_parse_row_requiredb(char* split[], int columns, int current)
 
 	//FIXME: document this
 	p = split[8];
-	for( j = 0; j < 32; j++ )
-	{
+	for( j = 0; j < 32; j++ ) {
 		int l = atoi(p);
-		if( l == 99 ) // Any ammo type
-		{
+		if( l == 99 ) { // Any ammo type
 			skill_db[idx].ammo = 0xFFFFFFFF;
 			break;
-		}
-		else if( l ) // 0 stands for no requirement
+		} else if( l ) // 0 stands for no requirement
 			skill_db[idx].ammo |= 1<<l;
 		p = strchr(p,':');
 		if( !p )
