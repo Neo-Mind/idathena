@@ -1848,7 +1848,7 @@ int status_base_amotion_pc(struct map_session_data* sd, struct status_data* stat
 #ifdef RENEWAL_ASPD
 	short mod = -1;
 
-	switch( sd->weapontype2 ){ // adjustment for dual weilding
+	switch( sd->weapontype2 ) { // adjustment for dual weilding
 		case W_DAGGER:	mod = 0;	break; // 0, 1, 1
 		case W_1HSWORD:
 		case W_1HAXE:	mod = 1;
@@ -1895,7 +1895,7 @@ static unsigned short status_base_atk(const struct block_list *bl, const struct 
 		return 0;
 
 	if (bl->type == BL_PC)
-	switch(((TBL_PC*)bl)->status.weapon){
+	switch(((TBL_PC*)bl)->status.weapon) {
 		case W_BOW:
 		case W_MUSICAL:
 		case W_WHIP:
@@ -5373,18 +5373,17 @@ static short status_calc_aspd(struct block_list *bl, struct status_change *sc, s
 			if (bl->type!=BL_PC)
 				skills1 = 4+1*sc->data[SC_ASSNCROS]->val1;
 			else
-			switch(((TBL_PC*)bl)->status.weapon)
-			{
-				case W_BOW:
-				case W_REVOLVER:
-				case W_RIFLE:
-				case W_GATLING:
-				case W_SHOTGUN:
-				case W_GRENADE:
-					break;
-				default:
-					skills1 = 5+1*sc->data[SC_ASSNCROS]->val1;
-			}
+				switch(((TBL_PC*)bl)->status.weapon) {
+					case W_BOW:
+					case W_REVOLVER:
+					case W_RIFLE:
+					case W_GATLING:
+					case W_SHOTGUN:
+					case W_GRENADE:
+						break;
+					default:
+						skills1 = 5+1*sc->data[SC_ASSNCROS]->val1;
+				}
 		}
 	}
 
@@ -5455,18 +5454,18 @@ static short status_calc_aspd(struct block_list *bl, struct status_change *sc, s
 static short status_calc_fix_aspd(struct block_list *bl, struct status_change *sc, int aspd) {
 	if (!sc || !sc->count)
 		return cap_value(aspd, 0, 2000);
-		
+
 	if (!sc->data[SC_QUAGMIRE]) {
 		if (sc->data[SC_OVERED_BOOST])
 			aspd = 2000 - sc->data[SC_OVERED_BOOST]->val3*10;
     }
-	
+
 	if ((sc->data[SC_GUST_OPTION] || sc->data[SC_BLAST_OPTION]
 		|| sc->data[SC_WILD_STORM_OPTION]))
 		aspd -= 50; // +5 ASPD
 	if( sc && sc->data[SC_FIGHTINGSPIRIT] && sc->data[SC_FIGHTINGSPIRIT]->val2 )
 		aspd -= (bl->type==BL_PC?pc_checkskill((TBL_PC *)bl, RK_RUNEMASTERY):10) / 10 * 40;
-	
+
     return cap_value(aspd, 0, 2000); // will be recap for proper bl anyway
 }
 
@@ -7478,7 +7477,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		case SC_MERC_QUICKEN:
 			val2 = 300;
 			break;
-#ifndef RENEWAL
+#ifndef RENEWAL_ASPD
 		case SC_SPEARQUICKEN:
 			val2 = 200+10*val1;
 			break;
