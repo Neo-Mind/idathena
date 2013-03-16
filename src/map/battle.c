@@ -3168,13 +3168,13 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			if (sc->data[SC_TRUESIGHT])
 				ATK_ADDRATE(2*sc->data[SC_TRUESIGHT]->val1);
 #endif
-			if (sc->data[SC_GLOOMYDAY_SK] &&
-				(skill_id == LK_SPIRALPIERCE || skill_id == KN_BRANDISHSPEAR ||
+			if (sc->data[SC_GLOOMYDAY_SK] && (
+				skill_id == LK_SPIRALPIERCE || skill_id == KN_BRANDISHSPEAR ||
 				skill_id == CR_SHIELDBOOMERANG || skill_id == PA_SHIELDCHAIN ||
 				skill_id == RK_HUNDREDSPEAR || skill_id == LG_SHIELDPRESS))
-				ATK_ADDRATE(sc->data[SC_GLOOMYDAY_SK]->val2);
+					ATK_ADDRATE(sc->data[SC_GLOOMYDAY_SK]->val2);
 			if (sc->data[SC_EDP]) {
-				switch(skill_id) {
+				switch (skill_id) {
 					case AS_SPLASHER:
 					case AS_VENOMKNIFE:
 						break;
@@ -3194,7 +3194,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						ATK_ADDRATE(sc->data[SC_EDP]->val3);
 				}
 			}
-			if(sc->data[SC_STYLE_CHANGE]) {
+			if (sc->data[SC_STYLE_CHANGE]) {
 				TBL_HOM *hd = BL_CAST(BL_HOM,src);
 				if (hd) ATK_ADD(hd->homunculus.spiritball * 3);
 			}

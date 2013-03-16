@@ -6453,7 +6453,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case AM_TWILIGHT3:
 			if (sd) {
 				int ebottle = pc_search_inventory(sd,713);
-				if( ebottle >= 0 )
+				if (ebottle >= 0)
 					ebottle = sd->status.inventory[ebottle].amount;
 				//check if you can produce all three, if not, then fail:
 				if (!skill_can_produce_mix(sd,970,-1, 100) //100 Alcohol
@@ -6471,18 +6471,18 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 		case SA_DISPELL:
-			if (flag&1 || (i = skill_get_splash(skill_id, skill_lv)) < 1) {
+			if( flag&1 || (i = skill_get_splash(skill_id, skill_lv)) < 1 ) {
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				if((dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER)
+				if( (dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER)
 					|| (tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_ROGUE) //Rogue's spirit defends againt dispel.
 					|| rnd()%100 >= 50+10*skill_lv
-					|| ( tsc && tsc->option&OPTION_MADOGEAR ) )//Mado Gear is immune to dispell according to bug report 49 [Ind]
+					|| ( tsc && tsc->option&OPTION_MADOGEAR ) ) //Mado Gear is immune to dispell according to bug report 49 [Ind]
 				{
-					if (sd)
+					if( sd )
 						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
-				if(status_isimmune(bl) || !tsc || !tsc->count)
+				if( status_isimmune(bl) || !tsc || !tsc->count )
 					break;
 
 				if( sd && dstsd && !map_flag_vs(sd->bl.m) && sd->status.guild_id == dstsd->status.guild_id ) {
@@ -6490,75 +6490,74 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					break;
 				}
 
-				for(i=0;i<SC_MAX;i++)
-				{
-					if (!tsc->data[i])
+				for( i=0; i<SC_MAX; i++ ) {
+					if( !tsc->data[i] )
 						continue;
-					switch (i) {
-					case SC_WEIGHT50:			case SC_WEIGHT90:		case SC_HALLUCINATION:
-					case SC_STRIPWEAPON:			case SC_STRIPSHIELD:		case SC_STRIPARMOR:
-					case SC_STRIPHELM:			case SC_CP_WEAPON:		case SC_CP_SHIELD:
-					case SC_CP_ARMOR:			case SC_CP_HELM:		case SC_COMBO:
-					case SC_STRFOOD:			case SC_AGIFOOD:		case SC_VITFOOD:
-					case SC_INTFOOD:			case SC_DEXFOOD:		case SC_LUKFOOD:
-					case SC_HITFOOD:			case SC_FLEEFOOD:		case SC_BATKFOOD:
-					case SC_WATKFOOD:			case SC_MATKFOOD:		case SC_DANCING:
-					case SC_EDP:				case SC_AUTOBERSERK:
-					case SC_CARTBOOST:			case SC_MELTDOWN:		case SC_SAFETYWALL:
-					case SC_SMA:				case SC_SPEEDUP0:		case SC_NOCHAT:
-					case SC_ANKLE:				case SC_SPIDERWEB:		case SC_JAILED:
-					case SC_ITEMBOOST:			case SC_EXPBOOST:		case SC_LIFEINSURANCE:
-					case SC_BOSSMAPINFO:			case SC_PNEUMA:			case SC_AUTOSPELL:
-					case SC_INCHITRATE:			case SC_INCATKRATE:		case SC_NEN:
-					case SC_READYSTORM:			case SC_READYDOWN:		case SC_READYTURN:
-					case SC_READYCOUNTER:			case SC_DODGE:			case SC_WARM:
-					case SC_SPEEDUP1:			case SC_AUTOTRADE:		case SC_CRITICALWOUND:
-					case SC_JEXPBOOST:			case SC_INVINCIBLE:		case SC_INVINCIBLEOFF:
-					case SC_HELLPOWER:			case SC_MANU_ATK:		case SC_MANU_DEF:
-					case SC_SPL_ATK:			case SC_SPL_DEF:		case SC_MANU_MATK:
-					case SC_SPL_MATK:			case SC_RICHMANKIM:		case SC_ETERNALCHAOS:
-					case SC_DRUMBATTLE:			case SC_NIBELUNGEN:		case SC_ROKISWEIL:
-					case SC_INTOABYSS:			case SC_SIEGFRIED:		case SC_FOOD_STR_CASH:
-					case SC_FOOD_AGI_CASH:			case SC_FOOD_VIT_CASH:		case SC_FOOD_DEX_CASH:
-					case SC_FOOD_INT_CASH:			case SC_FOOD_LUK_CASH:		case SC_SEVENWIND:
-					case SC_MIRACLE:			case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:
-					case SC_INCHEALRATE:			case SC_ELECTRICSHOCKER:	case SC__STRIPACCESSORY:
-					case SC_SAVAGE_STEAK:			case SC_COCKTAIL_WARG_BLOOD:	case SC_MINOR_BBQ:
-					case SC_SIROMA_ICE_TEA:			case SC_DROCERA_HERB_STEAMED:	case SC_PUTTI_TAILS_NOODLES:
-					case SC_NEUTRALBARRIER_MASTER:		case SC_NEUTRALBARRIER:		case SC_STEALTHFIELD_MASTER:
-					case SC_STEALTHFIELD:			case SC_GIANTGROWTH:		case SC_MILLENNIUMSHIELD:
-					case SC_REFRESH:			case SC_STONEHARDSKIN:		case SC_VITALITYACTIVATION:
-					case SC_FIGHTINGSPIRIT:			case SC_ABUNDANCE:		case SC__SHADOWFORM:
-					case SC_RECOGNIZEDSPELL:		case SC_LEADERSHIP:		case SC_GLORYWOUNDS:
-					case SC_SOULCOLD:			case SC_HAWKEYES:		case SC_GUILDAURA:
-					case SC_PUSH_CART:			case SC_RAISINGDRAGON:		case SC_GT_ENERGYGAIN:
-					case SC_GT_CHANGE:			case SC_GT_REVITALIZE:		case SC_REFLECTDAMAGE:
-					case SC_INSPIRATION:			case SC_EXEEDBREAK:		case SC_FORCEOFVANGUARD:
-					case SC_BANDING:			case SC_DUPLELIGHT:		case SC_EXPIATIO:
-					case SC_LAUDAAGNUS:			case SC_LAUDARAMUS:		case SC_GATLINGFEVER:
-					case SC_INCREASING:			case SC_ADJUSTMENT:		case SC_MADNESSCANCEL:
+					switch( i ) {
+						case SC_WEIGHT50:			case SC_WEIGHT90:		case SC_HALLUCINATION:
+						case SC_STRIPWEAPON:			case SC_STRIPSHIELD:		case SC_STRIPARMOR:
+						case SC_STRIPHELM:			case SC_CP_WEAPON:		case SC_CP_SHIELD:
+						case SC_CP_ARMOR:			case SC_CP_HELM:		case SC_COMBO:
+						case SC_STRFOOD:			case SC_AGIFOOD:		case SC_VITFOOD:
+						case SC_INTFOOD:			case SC_DEXFOOD:		case SC_LUKFOOD:
+						case SC_HITFOOD:			case SC_FLEEFOOD:		case SC_BATKFOOD:
+						case SC_WATKFOOD:			case SC_MATKFOOD:		case SC_DANCING:
+						case SC_EDP:				case SC_AUTOBERSERK:
+						case SC_CARTBOOST:			case SC_MELTDOWN:		case SC_SAFETYWALL:
+						case SC_SMA:				case SC_SPEEDUP0:		case SC_NOCHAT:
+						case SC_ANKLE:				case SC_SPIDERWEB:		case SC_JAILED:
+						case SC_ITEMBOOST:			case SC_EXPBOOST:		case SC_LIFEINSURANCE:
+						case SC_BOSSMAPINFO:			case SC_PNEUMA:			case SC_AUTOSPELL:
+						case SC_INCHITRATE:			case SC_INCATKRATE:		case SC_NEN:
+						case SC_READYSTORM:			case SC_READYDOWN:		case SC_READYTURN:
+						case SC_READYCOUNTER:			case SC_DODGE:			case SC_WARM:
+						case SC_SPEEDUP1:			case SC_AUTOTRADE:		case SC_CRITICALWOUND:
+						case SC_JEXPBOOST:			case SC_INVINCIBLE:		case SC_INVINCIBLEOFF:
+						case SC_HELLPOWER:			case SC_MANU_ATK:		case SC_MANU_DEF:
+						case SC_SPL_ATK:			case SC_SPL_DEF:		case SC_MANU_MATK:
+						case SC_SPL_MATK:			case SC_RICHMANKIM:		case SC_ETERNALCHAOS:
+						case SC_DRUMBATTLE:			case SC_NIBELUNGEN:		case SC_ROKISWEIL:
+						case SC_INTOABYSS:			case SC_SIEGFRIED:		case SC_FOOD_STR_CASH:
+						case SC_FOOD_AGI_CASH:			case SC_FOOD_VIT_CASH:		case SC_FOOD_DEX_CASH:
+						case SC_FOOD_INT_CASH:			case SC_FOOD_LUK_CASH:		case SC_SEVENWIND:
+						case SC_MIRACLE:			case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:
+						case SC_INCHEALRATE:			case SC_ELECTRICSHOCKER:	case SC__STRIPACCESSORY:
+						case SC_SAVAGE_STEAK:			case SC_COCKTAIL_WARG_BLOOD:	case SC_MINOR_BBQ:
+						case SC_SIROMA_ICE_TEA:			case SC_DROCERA_HERB_STEAMED:	case SC_PUTTI_TAILS_NOODLES:
+						case SC_NEUTRALBARRIER_MASTER:		case SC_NEUTRALBARRIER:		case SC_STEALTHFIELD_MASTER:
+						case SC_STEALTHFIELD:			case SC_GIANTGROWTH:		case SC_MILLENNIUMSHIELD:
+						case SC_REFRESH:			case SC_STONEHARDSKIN:		case SC_VITALITYACTIVATION:
+						case SC_FIGHTINGSPIRIT:			case SC_ABUNDANCE:		case SC__SHADOWFORM:
+						case SC_RECOGNIZEDSPELL:		case SC_LEADERSHIP:		case SC_GLORYWOUNDS:
+						case SC_SOULCOLD:			case SC_HAWKEYES:		case SC_GUILDAURA:
+						case SC_PUSH_CART:			case SC_RAISINGDRAGON:		case SC_GT_ENERGYGAIN:
+						case SC_GT_CHANGE:			case SC_GT_REVITALIZE:		case SC_REFLECTDAMAGE:
+						case SC_INSPIRATION:			case SC_EXEEDBREAK:		case SC_FORCEOFVANGUARD:
+						case SC_BANDING:			case SC_DUPLELIGHT:		case SC_EXPIATIO:
+						case SC_LAUDAAGNUS:			case SC_LAUDARAMUS:		case SC_GATLINGFEVER:
+						case SC_INCREASING:			case SC_ADJUSTMENT:		case SC_MADNESSCANCEL:
 #ifdef RENEWAL
-					case SC_EXTREMITYFIST2:
+						case SC_EXTREMITYFIST2:
 #endif
-						continue;
-					/**
-					 * bugreport:4888 these songs may only be dispelled if you're not in their song area anymore
-					 **/
-					case SC_WHISTLE:
-					case SC_ASSNCROS:
-					case SC_POEMBRAGI:
-					case SC_APPLEIDUN:
-					case SC_HUMMING:
-					case SC_DONTFORGETME:
-					case SC_FORTUNE:
-					case SC_SERVICE4U:
-						if( tsc->data[i]->val4 ) //val4 = out-of-song-area
 							continue;
-						break;
-					case SC_ASSUMPTIO:
-						if( bl->type == BL_MOB )
-							continue;
-						break;
+						/**
+						 * bugreport:4888 these songs may only be dispelled if you're not in their song area anymore
+						 **/
+						case SC_WHISTLE:
+						case SC_ASSNCROS:
+						case SC_POEMBRAGI:
+						case SC_APPLEIDUN:
+						case SC_HUMMING:
+						case SC_DONTFORGETME:
+						case SC_FORTUNE:
+						case SC_SERVICE4U:
+							if( !tsc->data[i]->val4 )
+								continue; //if in song-area don't end it
+							break;
+						case SC_ASSUMPTIO:
+							if( bl->type == BL_MOB )
+								continue;
+							break;
 					}
 					if( i == SC_BERSERK ) tsc->data[i]->val2=0; //Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
 					status_change_end(bl, (sc_type)i, INVALID_TIMER);
@@ -7847,16 +7846,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				else
 					break;
 				if( (dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) || rnd()%100 >= 60 + 8 * skill_lv ) {
-					if (sd)
+					if( sd )
 						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
 				if( status_isimmune(bl) || !tsc || !tsc->count )
 					break;
 				for( i = 0; i < SC_MAX ; i++ ) {
-					if (!tsc->data[i])
+					if( !tsc->data[i] )
 						continue;
-					switch (i) {
+					switch( i ) {
 						case SC_WEIGHT50:		case SC_WEIGHT90:		case SC_HALLUCINATION:
 						case SC_STRIPWEAPON:		case SC_STRIPSHIELD:		case SC_STRIPARMOR:
 						case SC_STRIPHELM:		case SC_CP_WEAPON:		case SC_CP_SHIELD:
@@ -11278,11 +11277,10 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 			if (!sc) return 0;
 			if (!sce)
 				sc_start4(bl,type,100,sg->skill_lv,sg->val1,sg->val2,0,sg->limit);
-			else if (sce->val4 == 1) {
-				//Readjust timers since the effect will not last long.
-				sce->val4 = 0;
+			else if (sce->val4 == 1) { //Readjust timers since the effect will not last long.
+				sce->val4 = 0; //Remove the mark that we stepped out
 				delete_timer(sce->timer, status_change_timer);
-				sce->timer = add_timer(tick+sg->limit, status_change_timer, bl->id, type);
+				sce->timer = add_timer(tick+sg->limit, status_change_timer, bl->id, type); //Put duration back to 3min
 			}
 			break;
 
@@ -15704,7 +15702,10 @@ int skill_unit_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 static int skill_unit_temp[20];  // temporary storage for tracking skill unit skill ids as players move in/out of them
 /*==========================================
- *
+ * flag :
+ *	1 : store that skill_unit in array
+ *	2 : clear that skill_unit
+ *	4 : call_on_left
  *------------------------------------------*/
 int skill_unit_move_sub (struct block_list* bl, va_list ap)
 {
