@@ -45,8 +45,7 @@
 
 /// renewal level modifier on damage
 /// (disable by commenting the line)
-///
-// leave this line to enable renewal base level modifier on skill damage (selected skills only)
+/// leave this line to enable renewal base level modifier on skill damage (selected skills only)
 #define RENEWAL_LVDMG
 
 /// renewal enchant deadly poison algorithm
@@ -54,8 +53,7 @@
 /// leave this line to enable the renewed EDP algorithm
 /// under renewal mode:
 ///  - damage is NOT increased by 400%
-///  - it does NOT affect grimtooth
-///  - weapon and status ATK are increased
+///  - wATK and eATK are increased
 #define RENEWAL_EDP
 
 /// renewal ASPD [malufett]

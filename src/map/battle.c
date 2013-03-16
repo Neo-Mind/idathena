@@ -495,14 +495,11 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 			break;
 		case BF_WEAPON:
 			t_race2 = status_get_race2(target);
-			if( sd && !(nk&NK_NO_CARDFIX_ATK) && (left&2) )
-			{
+			if( sd && !(nk&NK_NO_CARDFIX_ATK) && (left&2) ) {
 				short cardfix_ = 1000;
-				if(sd->state.arrow_atk)
-				{
+				if(sd->state.arrow_atk) {
 					cardfix=cardfix*(100+sd->right_weapon.addrace[tstatus->race]+sd->arrow_addrace[tstatus->race])/100;
-					if (!(nk&NK_NO_ELEFIX))
-					{
+					if (!(nk&NK_NO_ELEFIX)) {
 						int ele_fix = sd->right_weapon.addele[tstatus->def_ele] + sd->arrow_addele[tstatus->def_ele];
 						for (i = 0; ARRAYLENGTH(sd->right_weapon.addele2) > i && sd->right_weapon.addele2[i].rate != 0; i++) {
 							if (sd->right_weapon.addele2[i].ele != tstatus->def_ele) continue;
@@ -519,11 +516,8 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 					cardfix=cardfix*(100+sd->right_weapon.addrace[is_boss(target)?RC_BOSS:RC_NONBOSS]+sd->arrow_addrace[is_boss(target)?RC_BOSS:RC_NONBOSS])/100;
 					if( tstatus->race != RC_DEMIHUMAN )
 						cardfix=cardfix*(100+sd->right_weapon.addrace[RC_NONDEMIHUMAN]+sd->arrow_addrace[RC_NONDEMIHUMAN])/100;
-				}
-				else
-				{ // Melee attack
-					if( !battle_config.left_cardfix_to_right )
-					{
+				} else { // Melee attack
+					if( !battle_config.left_cardfix_to_right ) {
 						cardfix=cardfix*(100+sd->right_weapon.addrace[tstatus->race])/100;
 						if (!(nk&NK_NO_ELEFIX)) {
 							int ele_fix = sd->right_weapon.addele[tstatus->def_ele];
@@ -543,8 +537,7 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 						if( tstatus->race != RC_DEMIHUMAN )
 							cardfix=cardfix*(100+sd->right_weapon.addrace[RC_NONDEMIHUMAN])/100;
 
-						if( left&1 )
-						{
+						if( left&1 ) {
 							cardfix_=cardfix_*(100+sd->left_weapon.addrace[tstatus->race])/100;
 							if (!(nk&NK_NO_ELEFIX))	{
 								int ele_fix_lh = sd->left_weapon.addele[tstatus->def_ele];
@@ -564,11 +557,9 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 							if( tstatus->race != RC_DEMIHUMAN )
 								cardfix_=cardfix_*(100+sd->left_weapon.addrace[RC_NONDEMIHUMAN])/100;
 						}
-					}
-					else
-					{
+					} else {
 						int ele_fix = sd->right_weapon.addele[tstatus->def_ele] + sd->left_weapon.addele[tstatus->def_ele];
-					for (i = 0; ARRAYLENGTH(sd->right_weapon.addele2) > i && sd->right_weapon.addele2[i].rate != 0; i++) {
+						for (i = 0; ARRAYLENGTH(sd->right_weapon.addele2) > i && sd->right_weapon.addele2[i].rate != 0; i++) {
 							if (sd->right_weapon.addele2[i].ele != tstatus->def_ele) continue;
 							if(!(sd->right_weapon.addele2[i].flag&flag&BF_WEAPONMASK &&
 								 sd->right_weapon.addele2[i].flag&flag&BF_RANGEMASK &&
@@ -594,21 +585,16 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 							cardfix=cardfix*(100+sd->right_weapon.addrace[RC_NONDEMIHUMAN]+sd->left_weapon.addrace[RC_NONDEMIHUMAN])/100;
 					}
 				}
-				for( i = 0; i < ARRAYLENGTH(sd->right_weapon.add_dmg) && sd->right_weapon.add_dmg[i].rate; i++ )
-				{
-					if( sd->right_weapon.add_dmg[i].class_ == t_class )
-					{
+				for( i = 0; i < ARRAYLENGTH(sd->right_weapon.add_dmg) && sd->right_weapon.add_dmg[i].rate; i++ ) {
+					if( sd->right_weapon.add_dmg[i].class_ == t_class ) {
 						cardfix=cardfix*(100+sd->right_weapon.add_dmg[i].rate)/100;
 						break;
 					}
 				}
 
-				if( left&1 )
-				{
-					for( i = 0; i < ARRAYLENGTH(sd->left_weapon.add_dmg) && sd->left_weapon.add_dmg[i].rate; i++ )
-					{
-						if( sd->left_weapon.add_dmg[i].class_ == t_class )
-						{
+				if( left&1 ) {
+					for( i = 0; i < ARRAYLENGTH(sd->left_weapon.add_dmg) && sd->left_weapon.add_dmg[i].rate; i++ ) {
+						if( sd->left_weapon.add_dmg[i].class_ == t_class ) {
 							cardfix_=cardfix_*(100+sd->left_weapon.add_dmg[i].rate)/100;
 							break;
 						}
@@ -618,12 +604,12 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 				if( flag&BF_LONG )
 					cardfix = cardfix * ( 100 + sd->bonus.long_attack_atk_rate ) / 100;
 #ifdef RENEWAL_EDP
-				if( sd->sc.data[SC_EDP] ){
+				if( sd->sc.data[SC_EDP] ) {
 					cardfix = cardfix * (100 + sd->sc.data[SC_EDP]->val1 * 60 ) / 100;
 					cardfix_ = cardfix_ * (100 + sd->sc.data[SC_EDP]->val1 * 60 ) / 100;
 				}
 #endif
-				if( sd->sc.data[SC_ZENKAI] && sstatus->rhw.ele == sd->sc.data[SC_ZENKAI]->val2 ){
+				if( sd->sc.data[SC_ZENKAI] && sstatus->rhw.ele == sd->sc.data[SC_ZENKAI]->val2 ) {
 					cardfix += sd->sc.data[SC_ZENKAI]->val1 * 20;
 					cardfix_ += sd->sc.data[SC_ZENKAI]->val1 * 20;
 				}
@@ -633,12 +619,10 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 				else if( cardfix != 1000 )
 					damage = damage * cardfix / 1000;
 
-		}else if( tsd && !(nk&NK_NO_CARDFIX_DEF) ){
-			if( !(nk&NK_NO_ELEFIX) )
-			{
+		} else if( tsd && !(nk&NK_NO_CARDFIX_DEF) ) {
+			if( !(nk&NK_NO_ELEFIX) ) {
 				int ele_fix = tsd->subele[s_ele];
-				for (i = 0; ARRAYLENGTH(tsd->subele2) > i && tsd->subele2[i].rate != 0; i++)
-				{
+				for (i = 0; ARRAYLENGTH(tsd->subele2) > i && tsd->subele2[i].rate != 0; i++) {
 					if(tsd->subele2[i].ele != s_ele) continue;
 					if(!(tsd->subele2[i].flag&flag&BF_WEAPONMASK &&
 						 tsd->subele2[i].flag&flag&BF_RANGEMASK &&
@@ -647,11 +631,9 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 					ele_fix += tsd->subele2[i].rate;
 				}
 				cardfix=cardfix*(100-ele_fix)/100;
-				if( left&1 && s_ele_ != s_ele )
-				{
+				if( left&1 && s_ele_ != s_ele ) {
 					int ele_fix_lh = tsd->subele[s_ele_];
-					for (i = 0; ARRAYLENGTH(tsd->subele2) > i && tsd->subele2[i].rate != 0; i++)
-					{
+					for (i = 0; ARRAYLENGTH(tsd->subele2) > i && tsd->subele2[i].rate != 0; i++) {
 						if(tsd->subele2[i].ele != s_ele_) continue;
 						if(!(tsd->subele2[i].flag&flag&BF_WEAPONMASK &&
 							 tsd->subele2[i].flag&flag&BF_RANGEMASK &&
@@ -3188,10 +3170,13 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					case ASC_BREAKER:
 					case GC_COUNTERSLASH:
 					case GC_CROSSIMPACT:
-						ATK_RATE(50); // only modifier is halved but still benefit with the damage bonus
+						ATK_RATE(50);
+						break;
 #endif
+#ifndef RENEWAL_EDP
 					default:
 						ATK_ADDRATE(sc->data[SC_EDP]->val3);
+#endif
 				}
 			}
 			if (sc->data[SC_STYLE_CHANGE]) {
@@ -4667,14 +4652,12 @@ struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct bl
 			memset(&d,0,sizeof(d));
 			break;
 	}
-	if( d.damage + d.damage2 < 1 )
-	{	//Miss/Absorbed
+	if( d.damage + d.damage2 < 1 ) { //Miss/Absorbed
 		//Weapon attacks should go through to cause additional effects.
 		if (d.dmg_lv == ATK_DEF /*&& attack_type&(BF_MAGIC|BF_MISC)*/) // Isn't it that additional effects don't apply if miss?
 			d.dmg_lv = ATK_MISS;
 		d.dmotion = 0;
-	}
-	else // Some skills like Weaponry Research will cause damage even if attack is dodged
+	} else // Some skills like Weaponry Research will cause damage even if attack is dodged
 		d.dmg_lv = ATK_DEF;
 	return d;
 }
@@ -5384,10 +5367,10 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 						strip_enemy = 0;
 						break;
 					default:
-						if(su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD){
+						if(su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD) {
 							state |= BCT_ENEMY;
 							strip_enemy = 0;
-						}else
+						} else
 							return 0;
 				}
 			} else if (su->group->skill_id==WZ_ICEWALL ||
@@ -5408,10 +5391,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			return 0;
 	} //end switch actual target
 
-	switch( t_bl->type )
-	{	//Checks on target master
-		case BL_PC:
-		{
+	switch( t_bl->type ) { //Checks on target master
+		case BL_PC: {
 			struct map_session_data *sd;
 			if( t_bl == s_bl ) break;
 			sd = BL_CAST(BL_PC, t_bl);
@@ -5426,8 +5407,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			}
 			break;
 		}
-		case BL_MOB:
-		{
+		case BL_MOB: {
 			struct mob_data *md = BL_CAST(BL_MOB, t_bl);
 
 			if( !((agit_flag || agit2_flag) && map[m].flag.gvg_castle) && md->guardian_data && md->guardian_data->guild_id )
@@ -5464,19 +5444,14 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			break;
 	} //end switch actual src
 
-	switch( s_bl->type )
-	{	//Checks on source master
-		case BL_PC:
-		{
+	switch( s_bl->type ) { //Checks on source master
+		case BL_PC: {
 			struct map_session_data *sd = BL_CAST(BL_PC, s_bl);
-			if( s_bl != t_bl )
-			{
-				if( sd->state.killer )
-				{
+			if( s_bl != t_bl ) {
+				if( sd->state.killer ) {
 					state |= BCT_ENEMY; // Can kill anything
 					strip_enemy = 0;
-				}
-				else if( sd->duel_group && !((!battle_config.duel_allow_pvp && map[m].flag.pvp) || (!battle_config.duel_allow_gvg && map_flag_gvg(m))) )
+				} else if( sd->duel_group && !((!battle_config.duel_allow_pvp && map[m].flag.pvp) || (!battle_config.duel_allow_gvg && map_flag_gvg(m))) )
 		  		{
 					if( t_bl->type == BL_PC && (sd->duel_group == ((TBL_PC*)t_bl)->duel_group) )
 						return (BCT_ENEMY&flag)?1:-1; // Duel targets can ONLY be your enemy, nothing else.
@@ -5490,14 +5465,12 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				state |= BCT_ENEMY; //Natural enemy.
 			break;
 		}
-		case BL_MOB:
-		{
+		case BL_MOB: {
 			struct mob_data *md = BL_CAST(BL_MOB, s_bl);
 			if( !((agit_flag || agit2_flag) && map[m].flag.gvg_castle) && md->guardian_data && md->guardian_data->guild_id )
 				return 0; // Disable guardians/emperium owned by Guilds on non-woe times.
 
-			if( !md->special_state.ai )
-			{ //Normal mobs
+			if( !md->special_state.ai ) { //Normal mobs
 				if(
 					( target->type == BL_MOB && t_bl->type == BL_PC && ( ((TBL_MOB*)target)->special_state.ai != 4 && ((TBL_MOB*)target)->special_state.ai != 1 ) ) ||
 					( t_bl->type == BL_MOB && !((TBL_MOB*)t_bl)->special_state.ai )
@@ -5505,9 +5478,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 					state |= BCT_PARTY; //Normal mobs with no ai are friends.
 				else
 					state |= BCT_ENEMY; //However, all else are enemies.
-			}
-			else
-			{
+			} else {
 				if( t_bl->type == BL_MOB && !((TBL_MOB*)t_bl)->special_state.ai )
 					state |= BCT_ENEMY; //Natural enemy for AI mobs are normal mobs.
 			}
@@ -5520,8 +5491,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			break;
 	} //end switch on src master
 	
-	if( (flag&BCT_ALL) == BCT_ALL )
-	{ //All actually stands for all attackable chars
+	if( (flag&BCT_ALL) == BCT_ALL ) { //All actually stands for all attackable chars
 		if( target->type&BL_CHAR )
 			return 1;
 		else
@@ -5530,32 +5500,27 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	if( flag == BCT_NOONE ) //Why would someone use this? no clue.
 		return -1;
 	
-	if( t_bl == s_bl )
-	{ //No need for further testing.
+	if( t_bl == s_bl ) { //No need for further testing.
 		state |= BCT_SELF|BCT_PARTY|BCT_GUILD;
 		if( state&BCT_ENEMY && strip_enemy )
 			state&=~BCT_ENEMY;
 		return (flag&state)?1:-1;
 	}
 	
-	if( map_flag_vs(m) )
-	{ //Check rivalry settings.
+	if( map_flag_vs(m) ) { //Check rivalry settings.
 		int sbg_id = 0, tbg_id = 0;
-		if( map[m].flag.battleground )
-		{
+		if( map[m].flag.battleground ) {
 			sbg_id = bg_team_get_id(s_bl);
 			tbg_id = bg_team_get_id(t_bl);
 		}
-		if( flag&(BCT_PARTY|BCT_ENEMY) )
-		{
+		if( flag&(BCT_PARTY|BCT_ENEMY) ) {
 			int s_party = status_get_party_id(s_bl);
 			if( s_party && s_party == status_get_party_id(t_bl) && !(map[m].flag.pvp && map[m].flag.pvp_noparty) && !(map_flag_gvg(m) && map[m].flag.gvg_noparty) && (!map[m].flag.battleground || sbg_id == tbg_id) )
 				state |= BCT_PARTY;
 			else
 				state |= BCT_ENEMY;
 		}
-		if( flag&(BCT_GUILD|BCT_ENEMY) )
-		{
+		if( flag&(BCT_GUILD|BCT_ENEMY) ) {
 			int s_guild = status_get_guild_id(s_bl);
 			int t_guild = status_get_guild_id(t_bl);
 			if( !(map[m].flag.pvp && map[m].flag.pvp_noguild) && s_guild && t_guild && (s_guild == t_guild || guild_isallied(s_guild, t_guild)) && (!map[m].flag.battleground || sbg_id == tbg_id) )
@@ -5566,8 +5531,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		if( state&BCT_ENEMY && map[m].flag.battleground && sbg_id && sbg_id == tbg_id )
 			state &= ~BCT_ENEMY;
 
-		if( state&BCT_ENEMY && battle_config.pk_mode && !map_flag_gvg(m) && s_bl->type == BL_PC && t_bl->type == BL_PC )
-		{ // Prevent novice engagement on pk_mode (feature by Valaris)
+		if( state&BCT_ENEMY && battle_config.pk_mode && !map_flag_gvg(m) && s_bl->type == BL_PC && t_bl->type == BL_PC ) {
+			// Prevent novice engagement on pk_mode (feature by Valaris)
 			TBL_PC *sd = (TBL_PC*)s_bl, *sd2 = (TBL_PC*)t_bl;
 			if (
 				(sd->class_&MAPID_UPPERMASK) == MAPID_NOVICE ||
@@ -5579,16 +5544,13 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				state &= ~BCT_ENEMY;
 		}
 	}//end map_flag_vs chk rivality
-	else
-	{ //Non pvp/gvg, check party/guild settings.
-		if( flag&BCT_PARTY || state&BCT_ENEMY )
-		{
+	else { //Non pvp/gvg, check party/guild settings.
+		if( flag&BCT_PARTY || state&BCT_ENEMY ) {
 			int s_party = status_get_party_id(s_bl);
 			if(s_party && s_party == status_get_party_id(t_bl))
 				state |= BCT_PARTY;
 		}
-		if( flag&BCT_GUILD || state&BCT_ENEMY )
-		{
+		if( flag&BCT_GUILD || state&BCT_ENEMY ) {
 			int s_guild = status_get_guild_id(s_bl);
 			int t_guild = status_get_guild_id(t_bl);
 			if(s_guild && t_guild && (s_guild == t_guild || guild_isallied(s_guild, t_guild)))

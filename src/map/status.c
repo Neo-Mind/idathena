@@ -7317,12 +7317,12 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			tick_time = val2 = tick>0?tick:60000;
 			tick = -1; // duration sent to the client should be infinite
 			break;
-		case SC_EDP:	// [Celest]
+		case SC_EDP: // [Celest]
 			val2 = val1 + 2; //Chance to Poison enemies.
 #ifndef RENEWAL_EDP
 			val3 = 50*(val1+1); //Damage increase (+50 +50*lv%)
 #endif
-			if( sd )//[Ind] - iROwiki says each level increases its duration by 3 seconds
+			if( sd ) //[Ind] - iROwiki says each level increases its duration by 3 seconds
 				tick += pc_checkskill(sd,GC_RESEARCHNEWPOISON)*3000;
 			break;
 		case SC_POISONREACT:
@@ -9147,72 +9147,67 @@ int status_change_clear(struct block_list* bl, int type)
 
 	sc = status_get_sc(bl);
 
-	if (!sc || !sc->count)
+	if(!sc || !sc->count)
 		return 0;
 
-	for(i = 0; i < SC_MAX; i++)
-	{
+	for(i = 0; i < SC_MAX; i++) {
 		if(!sc->data[i])
 		  continue;
 
 		if(type == 0)
-		switch (i)
-		{	//Type 0: PC killed -> Place here statuses that do not dispel on death.
-		case SC_ELEMENTALCHANGE://Only when its Holy or Dark that it doesn't dispell on death
-			if( sc->data[i]->val2 != ELE_HOLY && sc->data[i]->val2 != ELE_DARK )
-				break;
-		case SC_WEIGHT50:
-		case SC_WEIGHT90:
-		case SC_EDP:
-		case SC_MELTDOWN:
-		case SC_XMAS:
-		case SC_SUMMER:
-		case SC_NOCHAT:
-		case SC_FUSION:
-		case SC_EARTHSCROLL:
-		case SC_READYSTORM:
-		case SC_READYDOWN:
-		case SC_READYCOUNTER:
-		case SC_READYTURN:
-		case SC_DODGE:
-		case SC_JAILED:
-		case SC_EXPBOOST:
-		case SC_ITEMBOOST:
-		case SC_HELLPOWER:
-		case SC_JEXPBOOST:
-		case SC_AUTOTRADE:
-		case SC_WHISTLE:
-		case SC_ASSNCROS:
-		case SC_POEMBRAGI:
-		case SC_APPLEIDUN:
-		case SC_HUMMING:
-		case SC_DONTFORGETME:
-		case SC_FORTUNE:
-		case SC_SERVICE4U:
-		case SC_FOOD_STR_CASH:
-		case SC_FOOD_AGI_CASH:
-		case SC_FOOD_VIT_CASH:
-		case SC_FOOD_DEX_CASH:
-		case SC_FOOD_INT_CASH:
-		case SC_FOOD_LUK_CASH:
-		case SC_DEF_RATE:
-		case SC_MDEF_RATE:
-		case SC_INCHEALRATE:
-		case SC_INCFLEE2:
-		case SC_INCHIT:
-		case SC_ATKPOTION:
-		case SC_MATKPOTION:
-		case SC_S_LIFEPOTION:
-		case SC_L_LIFEPOTION:
-		case SC_PUSH_CART:
-			continue;
+			switch(i) { //Type 0: PC killed -> Place here statuses that do not dispel on death.
+				case SC_ELEMENTALCHANGE: //Only when its Holy or Dark that it doesn't dispell on death
+					if( sc->data[i]->val2 != ELE_HOLY && sc->data[i]->val2 != ELE_DARK )
+						break;
+				case SC_WEIGHT50:
+				case SC_WEIGHT90:
+				case SC_EDP:
+				case SC_MELTDOWN:
+				case SC_XMAS:
+				case SC_SUMMER:
+				case SC_NOCHAT:
+				case SC_FUSION:
+				case SC_EARTHSCROLL:
+				case SC_READYSTORM:
+				case SC_READYDOWN:
+				case SC_READYCOUNTER:
+				case SC_READYTURN:
+				case SC_DODGE:
+				case SC_JAILED:
+				case SC_EXPBOOST:
+				case SC_ITEMBOOST:
+				case SC_HELLPOWER:
+				case SC_JEXPBOOST:
+				case SC_AUTOTRADE:
+				case SC_WHISTLE:
+				case SC_ASSNCROS:
+				case SC_POEMBRAGI:
+				case SC_APPLEIDUN:
+				case SC_HUMMING:
+				case SC_DONTFORGETME:
+				case SC_FORTUNE:
+				case SC_SERVICE4U:
+				case SC_FOOD_STR_CASH:
+				case SC_FOOD_AGI_CASH:
+				case SC_FOOD_VIT_CASH:
+				case SC_FOOD_DEX_CASH:
+				case SC_FOOD_INT_CASH:
+				case SC_FOOD_LUK_CASH:
+				case SC_DEF_RATE:
+				case SC_MDEF_RATE:
+				case SC_INCHEALRATE:
+				case SC_INCFLEE2:
+				case SC_INCHIT:
+				case SC_ATKPOTION:
+				case SC_MATKPOTION:
+				case SC_S_LIFEPOTION:
+				case SC_L_LIFEPOTION:
+				case SC_PUSH_CART:
+					continue;
+			}
 
-		}
-
-		if( type == 3 )
-		{
-			switch (i)
-			{// TODO: This list may be incomplete
+		if( type == 3 ) {
+			switch( i ) { // TODO: This list may be incomplete
 				case SC_WEIGHT50:
 				case SC_WEIGHT90:
 				case SC_NOCHAT:
@@ -9223,8 +9218,8 @@ int status_change_clear(struct block_list* bl, int type)
 
 		status_change_end(bl, (sc_type)i, INVALID_TIMER);
 
-		if( type == 1 && sc->data[i] )
-		{	//If for some reason status_change_end decides to still keep the status when quitting. [Skotlex]
+		if( type == 1 && sc->data[i] ) {
+			//If for some reason status_change_end decides to still keep the status when quitting. [Skotlex]
 			(sc->count)--;
 			if (sc->data[i]->timer != INVALID_TIMER)
 				delete_timer(sc->data[i]->timer, status_change_timer);
@@ -10789,7 +10784,7 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 				status_check_skilluse(src, bl, WZ_SIGHTBLASTER, 2))
 			{
 				if (sce && !(bl->type&BL_SKILL) //The hit is not counted if it's against a trap
-					&& skill_attack(BF_MAGIC,src,src,bl,WZ_SIGHTBLASTER,1,tick,0)){
+					&& skill_attack(BF_MAGIC,src,src,bl,WZ_SIGHTBLASTER,1,tick,0)) {
 					sce->val2 = 0; //This signals it to end.
 				}
 			}
