@@ -308,8 +308,7 @@ int skill_get_range2 (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 
 	range = skill_get_range(skill_id, skill_lv);
 
-	if( range < 0 )
-	{
+	if( range < 0 ) {
 		if( battle_config.use_weapon_skill_range&bl->type )
 			return status_get_range(bl);
 		range *=-1;
@@ -324,9 +323,6 @@ int skill_get_range2 (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 		case MA_CHARGEARROW:
 		case SN_FALCONASSAULT:
 		case HT_POWER:
-		/**
-		 * Ranger
-		 **/
 		case RA_ARROWSTORM:
 		case RA_AIMEDBOLT:
 		case RA_WUGBITE:
@@ -350,9 +346,6 @@ int skill_get_range2 (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 			if (bl->type == BL_PC)
 				range = skill_get_range(NJ_SHADOWJUMP,pc_checkskill((TBL_PC*)bl,NJ_SHADOWJUMP));
 			break;
-		/**
-		 * Warlock
-		 **/
 		case WL_WHITEIMPRISON:
 		case WL_SOULEXPANSION:
 		//case WL_FROSTMISTY:
@@ -370,9 +363,6 @@ int skill_get_range2 (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 				if( bl->type == BL_PC )
 					range += pc_checkskill((TBL_PC*)bl, WL_RADIUS);
 				break;
-		/**
-		 * Ranger Bonus
-		 **/
 		case HT_LANDMINE:
 		case HT_FREEZINGTRAP:
 		case HT_BLASTMINE:
@@ -457,13 +447,12 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 	switch( skill_id ) {
 		case BA_APPLEIDUN:	case PR_SANCTUARY:
 		case NPC_EVILLAND:	break;
-		default:
-			{
+		default: {
 				struct status_data *status = status_get_status_data(src);
 				int min, max;
 
 				min = max = status_base_matk(status, status_get_lv(src));
-				if( status->rhw.matk > 0 ){
+				if( status->rhw.matk > 0 ) {
 					int wMatk, variance;
 					wMatk = status->rhw.matk;
 					variance = wMatk * status->rhw.wlv / 10;
@@ -474,7 +463,7 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 				if( sc && sc->data[SC_RECOGNIZEDSPELL] )
 					min = max;
 
-				if( sd && sd->right_weapon.overrefine > 0 ){
+				if( sd && sd->right_weapon.overrefine > 0 ) {
 					min++;
 					max += sd->right_weapon.overrefine - 1;
 				}
@@ -498,8 +487,7 @@ int can_copy (struct map_session_data *sd, uint16 skill_id, struct block_list* b
 		return 0;
 
 	// High-class skills
-	if((skill_id >= LK_AURABLADE && skill_id <= ASC_CDP) || (skill_id >= ST_PRESERVE && skill_id <= CR_CULTIVATION))
-	{
+	if((skill_id >= LK_AURABLADE && skill_id <= ASC_CDP) || (skill_id >= ST_PRESERVE && skill_id <= CR_CULTIVATION)) {
 		if(battle_config.copyskill_restrict == 2)
 			return 0;
 		else if(battle_config.copyskill_restrict)
@@ -546,7 +534,7 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 	// AC_DOUBLE which do not have a skill delay and are not regarded in terms of attack motion.
 	if( !sd->state.autocast && sd->skillitem != skill_id && sd->canskill_tick &&
 		DIFF_TICK(gettick(), sd->canskill_tick) < (sd->battle_status.amotion * (battle_config.skill_amotion_leniency) / 100) )
-	{// attempted to cast a skill before the attack motion has finished
+	{ // attempted to cast a skill before the attack motion has finished
 		return 1;
 	}
 
@@ -571,7 +559,7 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 	}
 
 	if( sd->sc.option&OPTION_MOUNTING )
-		return 1;//You can't use skills while in the new mounts (The client doesn't let you, this is to make cheat-safe)
+		return 1; //You can't use skills while in the new mounts (The client doesn't let you, this is to make cheat-safe)
 
 	switch (skill_id) {
 		case AL_WARP:
@@ -603,7 +591,7 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 		case MC_VENDING:
 		case ALL_BUYING_STORE:
 			if( npc_isnear(&sd->bl) ) {
-				// uncomment for more verbose message.
+				// Uncomment for more verbose message.
 				//char output[150];
 				//sprintf(output, msg_txt(662), battle_config.min_npc_vendchat_distance);
 				//clif_displaymessage(sd->fd, output);
@@ -843,21 +831,19 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		//So if the target can't be inflicted with statuses, this is pointless.
 		return 0;
 
-	if( sd )
-	{ // These statuses would be applied anyway even if the damage was blocked by some skills. [Inkfish]
+	if( sd ) { // These statuses would be applied anyway even if the damage was blocked by some skills. [Inkfish]
 		if( skill_id != WS_CARTTERMINATION && skill_id != AM_DEMONSTRATION && skill_id != CR_REFLECTSHIELD && skill_id != MS_REFLECTSHIELD && skill_id != ASC_BREAKER )
 		{ // Trigger status effects
 			enum sc_type type;
 			int i;
-			for( i = 0; i < ARRAYLENGTH(sd->addeff) && sd->addeff[i].flag; i++ )
-			{
+			for( i = 0; i < ARRAYLENGTH(sd->addeff) && sd->addeff[i].flag; i++ ) {
 				rate = sd->addeff[i].rate;
 				if( attack_type&BF_LONG ) // Any ranged physical attack takes status arrows into account (Grimtooth...) [DracoRPG]
 					rate += sd->addeff[i].arrow_rate;
 				if( !rate ) continue;
 
-				if( (sd->addeff[i].flag&(ATF_WEAPON|ATF_MAGIC|ATF_MISC)) != (ATF_WEAPON|ATF_MAGIC|ATF_MISC) )
-				{ // Trigger has attack type consideration.
+				if( (sd->addeff[i].flag&(ATF_WEAPON|ATF_MAGIC|ATF_MISC)) != (ATF_WEAPON|ATF_MAGIC|ATF_MISC) ) {
+					// Trigger has attack type consideration.
 					if( (sd->addeff[i].flag&ATF_WEAPON && attack_type&BF_WEAPON) ||
 						(sd->addeff[i].flag&ATF_MAGIC && attack_type&BF_MAGIC) ||
 						(sd->addeff[i].flag&ATF_MISC && attack_type&BF_MISC) ) ;
@@ -865,8 +851,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 						continue;
 				}
 
-				if( (sd->addeff[i].flag&(ATF_LONG|ATF_SHORT)) != (ATF_LONG|ATF_SHORT) )
-				{ // Trigger has range consideration.
+				if( (sd->addeff[i].flag&(ATF_LONG|ATF_SHORT)) != (ATF_LONG|ATF_SHORT) ) { // Trigger has range consideration.
 					if((sd->addeff[i].flag&ATF_LONG && !(attack_type&BF_LONG)) ||
 						(sd->addeff[i].flag&ATF_SHORT && !(attack_type&BF_SHORT)))
 						continue; //Range Failed.
@@ -883,12 +868,10 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			}
 		}
 
-		if( skill_id )
-		{ // Trigger status effects on skills
+		if( skill_id ) { // Trigger status effects on skills
 			enum sc_type type;
 			int i;
-			for( i = 0; i < ARRAYLENGTH(sd->addeff3) && sd->addeff3[i].skill; i++ )
-			{
+			for( i = 0; i < ARRAYLENGTH(sd->addeff3) && sd->addeff3[i].skill; i++ ) {
 				if( skill_id != sd->addeff3[i].skill || !sd->addeff3[i].rate )
 					continue;
 				type = sd->addeff3[i].id;
@@ -4743,8 +4726,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				}
 				if(hd->sc.count && (sce = hd->sc.data[SC_STYLE_CHANGE])) {
 					//val1 = mode
-					if(!(sce && sce->val2))
-						sce->val2 = bl->id; //memo target (only sonic slaw and tinder shouldn't)
+					if(!sce->val2) sce->val2 = bl->id; //memo target (only sonic slaw and tinder shouldn't)
 					tbl = map_id2bl(sce->val2);
 					if(!tbl) {
 						sce->val2 = bl->id;
