@@ -6360,8 +6360,8 @@ int status_get_sc_def(struct block_list *bl, enum sc_type type, int rate, int ti
 			tick -= 1000 * (status->vit + status->luk) / 2;
 			break;
 		case SC_BITE: // {(Base Success chance) - (Target's AGI / 4)}
-			rate -= status->agi*1000/4;
-			rate = max(rate,50000); // minimum of 50%
+			rate -= status->agi*100/4;
+			rate = max(rate,5000); // minimum of 50%
 			break;
 		case SC_ELECTRICSHOCKER:
 			tick -= 700 * ((status->agi + status->vit) / 10);
@@ -8523,7 +8523,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			val2 = 94 + val1;
 			val_flag |= 1|2;
 			break;
-		case SC_LIGHTNINGWALK: //  [(Job Level / 2) + (40 + 5 * Skill Level)] %
+		case SC_LIGHTNINGWALK: // [(Job Level / 2) + (40 + 5 * Skill Level)] %
 			val1 = (sd?sd->status.job_level:2)/2 + 40 + 5 * val1;
 			val_flag |= 1;
 			break;
@@ -8532,7 +8532,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			tick_time = 5000; // [GodLesZ] tick time
 			break;
 		case SC_GT_ENERGYGAIN:
-			val2 = 10 + 5 * val1;//Sphere gain chance.
+			val2 = 10 + 5 * val1; //Sphere gain chance.
 			break;
 		case SC_GT_CHANGE: { // take note there is no def increase as skill desc says. [malufett]
 				struct block_list * src;

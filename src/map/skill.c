@@ -699,8 +699,8 @@ int skillnotok_hom(uint16 skill_id, struct homun_data *hd)
 		case MH_MIDNIGHT_FRENZY: {
 				struct status_change_entry *sce = hd->sc.data[SC_STYLE_CHANGE];
 				TBL_PC *sd;
-				if(!(sd=hd->master)) return 1; //we need a master
-				if(!sce || !sce->val3) { //homon doesn't have status or it's not a combo
+				if(!(sd = hd->master)) return 1; //we need a master
+				if(!sce || !(sce && sce->val3)) { //homon doesn't have status or it's not a combo
 					if(skill_id != MH_SONIC_CRAW && skill_id != MH_TINDER_BREAKER)
 						return 1;
 				}
@@ -729,7 +729,7 @@ int skillnotok_hom(uint16 skill_id, struct homun_data *hd)
 					case MH_SONIC_CRAW:
 					case MH_SILVERVEIN_RUSH:
 					case MH_MIDNIGHT_FRENZY:
-						if (!(sce->val1 == MH_MD_FIGHTING)) {
+						if (!(sce && sce->val1 == MH_MD_FIGHTING)) {
 							clif_colormes(sd,COLOR_RED,"Homon need to be in fighting mode to use that skill");
 							return 1;
 						}
@@ -738,7 +738,7 @@ int skillnotok_hom(uint16 skill_id, struct homun_data *hd)
 					case MH_TINDER_BREAKER:
 					case MH_CBC:
 					case MH_EQC:
-						if (!(sce->val1 == MH_MD_GRAPPLING)) {
+						if (!(sce && sce->val1 == MH_MD_GRAPPLING)) {
 							clif_colormes(sd,COLOR_RED,"Homon need to be in grappling mode to use that skill");
 							return 1;
 						}
@@ -748,16 +748,16 @@ int skillnotok_hom(uint16 skill_id, struct homun_data *hd)
 				//now let really be specific
 				switch(skill_id) {
 					case MH_TINDER_BREAKER:
-						if(sce->val3 == MH_EQC && (gettick() - sce->val4 <= 2000)) break;
+						if(sce && sce->val3 == MH_EQC && (gettick() - sce->val4 <= 2000)) break;
 						else break; //im not a combo what should I do ??
-					case MH_CBC: if(sce->val3 == MH_TINDER_BREAKER && (gettick() - sce->val4 <= 2000)) break;
-					case MH_EQC: if(sce->val3 == MH_CBC && (gettick() - sce->val4 <= 2000)) break;
+					case MH_CBC: if(sce && sce->val3 == MH_TINDER_BREAKER && (gettick() - sce->val4 <= 2000)) break;
+					case MH_EQC: if(sce && sce->val3 == MH_CBC && (gettick() - sce->val4 <= 2000)) break;
 
 					case MH_SONIC_CRAW:
-						if(sce->val3 == MH_MIDNIGHT_FRENZY && (gettick() - sce->val4 <= 2000)) break;
+						if(sce && sce->val3 == MH_MIDNIGHT_FRENZY && (gettick() - sce->val4 <= 2000)) break;
 						else break; //im not a combo what should I do ??
-					case MH_SILVERVEIN_RUSH: if(sce->val3 == MH_SONIC_CRAW && (gettick() - sce->val4 <= 2000)) break;
-					case MH_MIDNIGHT_FRENZY: if(sce->val3 == MH_SILVERVEIN_RUSH && (gettick() - sce->val4 <= 2000)) break;
+					case MH_SILVERVEIN_RUSH: if(sce && sce->val3 == MH_SONIC_CRAW && (gettick() - sce->val4 <= 2000)) break;
+					case MH_MIDNIGHT_FRENZY: if(sce && sce->val3 == MH_SILVERVEIN_RUSH && (gettick() - sce->val4 <= 2000)) break;
 					default:
 						return 1;
 				}
@@ -1570,8 +1570,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 	}
 
 	// Autospell when attacking
-	if( sd && !status_isdead(bl) && sd->autospell[0].id )
-	{
+	if( sd && !status_isdead(bl) && sd->autospell[0].id ) {
 		struct block_list *tbl;
 		struct unit_data *ud;
 		int i, skill_lv, type, notok;
@@ -1667,11 +1666,9 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 	}
 
 	//Autobonus when attacking
-	if( sd && sd->autobonus[0].rate )
-	{
+	if( sd && sd->autobonus[0].rate ) {
 		int i;
-		for( i = 0; i < ARRAYLENGTH(sd->autobonus); i++ )
-		{
+		for( i = 0; i < ARRAYLENGTH(sd->autobonus); i++ ) {
 			if( rnd()%1000 >= sd->autobonus[i].rate )
 				continue;
 			if( sd->autobonus[i].active != INVALID_TIMER )
@@ -4566,7 +4563,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				clif_skill_damage(src, src, tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
 			}
 			break;
-			
+
 		case SR_TIGERCANNON:
 			if ( flag&1 ) {
 				skill_attack(BF_WEAPON, src, src, bl, skill_id, skill_lv, tick, flag);
@@ -4629,7 +4626,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				}
 			}
 			break;
-			
+
 		case GN_SPORE_EXPLOSION:
 			if( flag&1 )
 				skill_attack(BF_WEAPON, src, src, bl, skill_id, skill_lv, tick, flag);
@@ -4656,7 +4653,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag);
 			}
 			break;
-			
+
 		case EL_ROCK_CRUSHER:
 			clif_skill_nodamage(src,battle_get_master(src),skill_id,skill_lv,1);
 			clif_skill_damage(src, src, tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
@@ -4665,7 +4662,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			else
 				skill_attack(BF_WEAPON,src,src,bl,EL_ROCK_CRUSHER_ATK,skill_lv,tick,flag);
 			break;
-			
+
 		case EL_STONE_RAIN:
 			if( flag&1 )
 				skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag);
@@ -4679,7 +4676,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag);
 			}
 			break;
-			
+
 		case EL_FIRE_ARROW:
 		case EL_ICE_NEEDLE:
 		case EL_WIND_SLASH:
@@ -4688,7 +4685,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			clif_skill_damage(src, bl, tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
 			skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
-			
+
 		case EL_TIDAL_WEAPON:
 			if( src->type == BL_ELEM ) {
 				struct elemental_data *ele = BL_CAST(BL_ELEM,src);
@@ -4696,7 +4693,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				struct status_change *tsc = status_get_sc(bl);
 				sc_type type = status_skill2sc(skill_id), type2;
 				type2 = type-1;
-				
+
 				clif_skill_nodamage(src,battle_get_master(src),skill_id,skill_lv,1);
 				clif_skill_damage(src, src, tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
 				if( (sc && sc->data[type2]) || (tsc && tsc->data[type]) ) {
@@ -4744,10 +4741,15 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					map_freeblock_unlock();
 					return 1;
 				}
-				if(hd->sc.count && (sce=hd->sc.data[SC_STYLE_CHANGE])) {
+				if(hd->sc.count && (sce = hd->sc.data[SC_STYLE_CHANGE])) {
 					//val1 = mode
-					if(!sce->val2) sce->val2 = bl->id; //memo target (only sonic slaw and tinder should)
+					if(!(sce && sce->val2))
+						sce->val2 = bl->id; //memo target (only sonic slaw and tinder shouldn't)
 					tbl = map_id2bl(sce->val2);
+					if(!tbl) {
+						sce->val2 = bl->id;
+						tbl = map_id2bl(sce->val2);
+					}
 					sce->val3 = skill_id;
 					sce->val4 = gettick();
 				}
@@ -4755,7 +4757,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					case MH_SONIC_CRAW: {
 							int nb_sphere = hd->homunculus.spiritball;
 							for(k=0; k<=nb_sphere; k++) { //attack for each sphere active
-								skill_attack(BF_WEAPON, src, src, bl, skill_id, skill_lv, tick, flag);
+								skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 							}
 //						    hom_delspiritball(hd, nb_sphere, 0); //remove them all if we remove can't coninue combo
 							break;
@@ -4766,23 +4768,25 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 						skill_attack(skill_get_type(skill_id),src,src,tbl,skill_id,skill_lv,tick,flag);
 						break;
 					case MH_TINDER_BREAKER:
-					if (unit_movepos(src, bl->x, bl->y, 1, 1)) {
+						if (unit_movepos(src, bl->x, bl->y, 1, 1)) {
 #if PACKETVER >= 20111005
-						clif_snap(src, bl->x, bl->y);
+							clif_snap(src, bl->x, bl->y);
 #else
-						clif_skill_poseffect(src,skill_id,skill_lv,bl->x,bl->y,tick);
+							clif_skill_poseffect(src,skill_id,skill_lv,bl->x,bl->y,tick);
 #endif
-					}
+						}
 
 					case MH_CBC:
 					case MH_EQC:
 						duration = (status_get_str(src)*2 - status_get_str(bl))/10;//custom need real formula
 						hom_delspiritball(hd,skill_id==MH_EQC?2:1,0); //only EQC consume 2 in grp 2
-						if(skill_id==MH_TINDER_BREAKER)
+						if(skill_id==MH_TINDER_BREAKER) {
 							sc_start2(src,status_skill2sc(skill_id),100,skill_lv,bl->id,duration);
-						else
+							skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag);
+						} else {
 							sc_start(bl,status_skill2sc(skill_id),100,skill_lv,duration);
-						skill_attack(skill_get_type(skill_id),src,src,tbl,skill_id,skill_lv,tick,flag);
+							skill_attack(skill_get_type(skill_id),src,src,tbl,skill_id,skill_lv,tick,flag);
+						}
 						//TODO add bonus for dmg SP ? on battle
 						break;
 				}
@@ -9110,7 +9114,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			//don't break need to start status and start block timer
 		case MH_STYLE_CHANGE: {
 				struct status_change_entry *sce;
-				if(hd && (sce=hd->sc.data[SC_STYLE_CHANGE])) { //in preparation for other bl usage
+				if(hd && (sce = hd->sc.data[SC_STYLE_CHANGE])) { //in preparation for other bl usage
 					if(sce->val1 == MH_MD_FIGHTING) sce->val1 = MH_MD_GRAPPLING;
 					else sce->val1 = MH_MD_FIGHTING;
 					if(hd->master && hd->sc.data[SC_STYLE_CHANGE]) {
@@ -15480,10 +15484,9 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 	nullpo_ret(group);
 
 	// check for expiration
-	if( !group->state.guildaura && (DIFF_TICK(tick,group->tick) >= group->limit || DIFF_TICK(tick,group->tick) >= unit->limit) )
-	{// skill unit expired (inlined from skill_unit_onlimit())
-		switch( group->unit_id )
-		{
+	if( !group->state.guildaura && (DIFF_TICK(tick,group->tick) >= group->limit || DIFF_TICK(tick,group->tick) >= unit->limit) ) {
+		// Skill unit expired (inlined from skill_unit_onlimit())
+		switch( group->unit_id ) {
 			case UNT_BLASTMINE:
 #ifdef RENEWAL
 			case UNT_CLAYMORETRAP:
@@ -15523,20 +15526,19 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 			case UNT_VERDURETRAP:
 			case UNT_FIRINGTRAP:
 			case UNT_ICEBOUNDTRAP:
-
-			{
-				struct block_list* src;
-				if( unit->val1 > 0 && (src = map_id2bl(group->src_id)) != NULL && src->type == BL_PC )
-				{ // revert unit back into a trap
-					struct item item_tmp;
-					memset(&item_tmp,0,sizeof(item_tmp));
-					item_tmp.nameid = group->item_id?group->item_id:ITEMID_TRAP;
-					item_tmp.identify = 1;
-					map_addflooritem(&item_tmp,1,bl->m,bl->x,bl->y,0,0,0,0);
+				{
+					struct block_list* src;
+					if( unit->val1 > 0 && (src = map_id2bl(group->src_id)) != NULL && src->type == BL_PC ) { 
+						// Revert unit back into a trap
+						struct item item_tmp;
+						memset(&item_tmp,0,sizeof(item_tmp));
+						item_tmp.nameid = group->item_id?group->item_id:ITEMID_TRAP;
+						item_tmp.identify = 1;
+						map_addflooritem(&item_tmp,1,bl->m,bl->x,bl->y,0,0,0,0);
+					}
+					skill_delunit(unit);
 				}
-				skill_delunit(unit);
-			}
-			break;
+				break;
 
 			case UNT_WARP_ACTIVE:
 				// warp portal opens (morph to a UNT_WARP_WAITING cell)
@@ -15547,26 +15549,25 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 				unit->limit = skill_get_time(group->skill_id,group->skill_lv);
 				// apply effect to all units standing on it
 				map_foreachincell(skill_unit_effect,unit->bl.m,unit->bl.x,unit->bl.y,group->bl_flag,&unit->bl,gettick(),1);
-			break;
+				break;
 
-			case UNT_CALLFAMILY:
-			{
-				struct map_session_data *sd = NULL;
-				if(group->val1) {
-		  			sd = map_charid2sd(group->val1);
-					group->val1 = 0;
-					if (sd && !map[sd->bl.m].flag.nowarp)
-						pc_setpos(sd,map_id2index(unit->bl.m),unit->bl.x,unit->bl.y,CLR_TELEPORT);
+			case UNT_CALLFAMILY: {
+					struct map_session_data *sd = NULL;
+					if(group->val1) {
+						sd = map_charid2sd(group->val1);
+						group->val1 = 0;
+						if (sd && !map[sd->bl.m].flag.nowarp)
+							pc_setpos(sd,map_id2index(unit->bl.m),unit->bl.x,unit->bl.y,CLR_TELEPORT);
+					}
+					if(group->val2) {
+						sd = map_charid2sd(group->val2);
+						group->val2 = 0;
+						if (sd && !map[sd->bl.m].flag.nowarp)
+							pc_setpos(sd,map_id2index(unit->bl.m),unit->bl.x,unit->bl.y,CLR_TELEPORT);
+					}
+					skill_delunit(unit);
 				}
-				if(group->val2) {
-					sd = map_charid2sd(group->val2);
-					group->val2 = 0;
-					if (sd && !map[sd->bl.m].flag.nowarp)
-						pc_setpos(sd,map_id2index(unit->bl.m),unit->bl.x,unit->bl.y,CLR_TELEPORT);
-				}
-				skill_delunit(unit);
-			}
-			break;
+				break;
 
 			case UNT_REVERBERATION:
 				if( unit->val1 <= 0 ) { // If it was deactivated.
@@ -15578,7 +15579,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 				group->limit = DIFF_TICK(tick,group->tick) + 1500;
 				unit->limit = DIFF_TICK(tick,group->tick) + 1500;
 				group->unit_id = UNT_USED_TRAPS;
-			break;
+				break;
 
 			case UNT_FEINTBOMB: {
 				struct block_list *src =  map_id2bl(group->src_id);
@@ -15588,29 +15589,24 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 				break;
 			}
 			
-			case UNT_BANDING:
-			{
-				struct block_list *src = map_id2bl(group->src_id);
-				struct status_change *sc;
-				if( !src || (sc = status_get_sc(src)) == NULL || !sc->data[SC_BANDING] )
-				{
-					skill_delunit(unit);
-					break;
+			case UNT_BANDING: {
+					struct block_list *src = map_id2bl(group->src_id);
+					struct status_change *sc;
+					if( !src || (sc = status_get_sc(src)) == NULL || !sc->data[SC_BANDING] ) {
+						skill_delunit(unit);
+						break;
+					}
+					// This unit isn't removed while SC_BANDING is active.
+					group->limit = DIFF_TICK(tick+group->interval,group->tick);
+					unit->limit = DIFF_TICK(tick+group->interval,group->tick);
 				}
-				// This unit isn't removed while SC_BANDING is active.
-				group->limit = DIFF_TICK(tick+group->interval,group->tick);
-				unit->limit = DIFF_TICK(tick+group->interval,group->tick);
-			}
-			break;
+				break;
 
 			default:
 				skill_delunit(unit);
 		}
-	}
-	else
-	{// skill unit is still active
-		switch( group->unit_id )
-		{
+	} else { // skill unit is still active
+		switch( group->unit_id ) {
 			case UNT_ICEWALL:
 				// icewall loses 50 hp every second
 				unit->val1 -= SKILLUNITTIMER_INTERVAL/20; // trap's hp
