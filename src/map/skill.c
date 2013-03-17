@@ -8519,9 +8519,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			
 		case WM_VOICEOFSIREN:
 			if( flag&1 )
-				sc_start2(bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv));
+				tick = status_get_lv(bl) / 10 + ( sd ? sd->status.job_level : 0 ) / 5;
+				sc_start2(bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv) - (1000 * tick));
 			else if ( sd ) {
-				rate = 6 * skill_lv + 2 * (sd ? pc_checkskill(sd,WM_LESSON) : 1) + sd->status.job_level / 2;
+				rate = 6 * skill_lv + 2 * pc_checkskill(sd,WM_LESSON) + sd->status.job_level / 2;
 				if ( rnd()%100 < rate ) {
 					map_foreachinrange(skill_area_sub, src, skill_get_splash(skill_id,skill_lv), BL_CHAR|BL_SKILL, src, skill_id, skill_lv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -8541,7 +8542,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				}
 			sc_start(bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 			break;
-			
+
 		case WM_SONG_OF_MANA:
 		case WM_DANCE_WITH_WUG:
 		case WM_LERADS_DEW:
@@ -8629,7 +8630,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				}
 			}
 			break;
-
 
 		case RETURN_TO_ELDICASTES:
 		case ALL_GUARDIAN_RECALL:
