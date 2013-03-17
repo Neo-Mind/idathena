@@ -4726,7 +4726,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				}
 				if(hd->sc.count && (sce = hd->sc.data[SC_STYLE_CHANGE])) {
 					//val1 = mode
-					if(!sce->val2) sce->val2 = bl->id; //memo target (only sonic slaw and tinder shouldn't)
+					if(!sce->val2) sce->val2 = bl->id; //memo target (only sonic craw and tinder shouldn't)
 					tbl = map_id2bl(sce->val2);
 					if(!tbl) {
 						sce->val2 = bl->id;
@@ -5057,7 +5057,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case AL_DECAGI:
 		case MER_DECAGI:
 			clif_skill_nodamage (src, bl, skill_id, skill_lv,
-				sc_start(bl, type, (40 + skill_lv * 2 + (status_get_lv(src) + sstatus->int_)/5), skill_lv, skill_get_time(skill_id,skill_lv)));
+				sc_start(bl, type, (50 + skill_lv * 3 + (status_get_lv(src) + sstatus->int_)/5), skill_lv, skill_get_time(skill_id,skill_lv)));
 			break;
 
 		case AL_CRUCIS:
@@ -8231,8 +8231,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						case 2:
 							status_change_start(bl,SC_BLIND,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),10);
 						}
-			}
-			else if( sd )
+			} else if( sd )
 				clif_skill_fail(sd,skill_id,0,0);
 			break;
 
@@ -8795,7 +8794,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if( flag&1 ) {
 				int chance = 25 + 10 * skill_lv - (tstatus->vit + tstatus->luk) / 5;
 				if ( chance < 10 )
-					chance = 10;//Minimal chance is 10%.
+					chance = 10; //Minimal chance is 10%.
 				if( bl->type == BL_MOB ) break;
 				if ( rnd()%100 < chance ) {
 					//Coded to both inflect the status and drain the target's SP only when successful. [Rytech]
