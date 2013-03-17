@@ -6290,9 +6290,6 @@ int status_get_sc_def(struct block_list *bl, enum sc_type type, int rate, int ti
 			sc_def = status->int_*100;
 			sc_def2 = status->luk*10;
 			break;
-		case SC_DEEPSLEEP:
-			sc_def = status->int_*50;
-			break;
 		case SC_DECREASEAGI:
 		case SC_ADORAMUS: //Arch Bishop
 			if (sd) tick>>=1; //Half duration for players.
