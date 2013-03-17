@@ -7194,7 +7194,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							if (count == -1)
 								count = 3;
 							else
-								count++; //Should not retrigger this one.
+								count++; // should not retrigger this one.
 							break;
 						case 7:	{ // stop freeze or stoned
 								enum sc_type sc[] = { SC_STOP, SC_FREEZE, SC_STONE };
@@ -7209,21 +7209,21 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						case 9:	// confusion
 							sc_start(bl,SC_CONFUSION,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 							break;
-						case 10:	// 6666 damage, atk matk halved, cursed
+						case 10: // 6666 damage, atk matk halved, cursed
 							status_fix_damage(src, bl, 6666, 0);
 							clif_damage(src,bl,tick,0,0,6666,0,0,0);
 							sc_start(bl,SC_INCATKRATE,100,-50,skill_get_time2(skill_id,skill_lv));
 							sc_start(bl,SC_INCMATKRATE,100,-50,skill_get_time2(skill_id,skill_lv));
 							sc_start(bl,SC_CURSE,skill_lv,100,skill_get_time2(skill_id,skill_lv));
 							break;
-						case 11:	// 4444 damage
+						case 11: // 4444 damage
 							status_fix_damage(src, bl, 4444, 0);
 							clif_damage(src,bl,tick,0,0,4444,0,0,0);
 							break;
-						case 12:	// stun
+						case 12: // stun
 							sc_start(bl,SC_STUN,100,skill_lv,5000);
 							break;
-						case 13:	// atk,matk,hit,flee,def reduced
+						case 13: // atk,matk,hit,flee,def reduced
 							sc_start(bl,SC_INCATKRATE,100,-20,skill_get_time2(skill_id,skill_lv));
 							sc_start(bl,SC_INCMATKRATE,100,-20,skill_get_time2(skill_id,skill_lv));
 							sc_start(bl,SC_INCHITRATE,100,-20,skill_get_time2(skill_id,skill_lv));
@@ -7258,8 +7258,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				break;
 			}
-			if (skill_id == SL_SUPERNOVICE && dstsd && dstsd->die_counter && !(rnd()%100))
-			{	//Erase death count 1% of the casts
+			if (skill_id == SL_SUPERNOVICE && dstsd && dstsd->die_counter && !(rnd()%100)) { //Erase death count 1% of the casts
 				dstsd->die_counter = 0;
 				pc_setglobalreg(dstsd,"PC_DIE_COUNTER", 0);
 				clif_specialeffect(bl, 0x152, AREA);
@@ -11997,25 +11996,25 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			if( battle_check_target(&src->bl,bl,BCT_ENEMY) > 0 ) {
 				switch( sg->unit_id ) {
 					case UNT_ZENKAI_WATER:
-						sc_start(bl, SC_CRYSTALIZE, 25, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
-						sc_start(bl, SC_FREEZE, 25, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
-						sc_start(bl, SC_FREEZING, 25, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
+						sc_start(bl, SC_CRYSTALIZE, sg->val1, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
+						sc_start(bl, SC_FREEZE, sg->val1, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
+						sc_start(bl, SC_FREEZING, sg->val1, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
 						break;
 					case UNT_ZENKAI_LAND:
-						sc_start(bl, SC_STONE, 25, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
-						sc_start(bl, SC_POISON, 25, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
+						sc_start(bl, SC_STONE, sg->val1, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
+						sc_start(bl, SC_POISON, sg->val1, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
 						break;
 					case UNT_ZENKAI_FIRE:
-						sc_start(bl, SC_BURNING, 25, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
+						sc_start(bl, SC_BURNING, sg->val1, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
 						break;
 					case UNT_ZENKAI_WIND:
-						sc_start(bl, SC_SILENCE, 25, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
-						sc_start(bl, SC_SLEEP, 25, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
-						sc_start(bl, SC_DEEPSLEEP, 25, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
+						sc_start(bl, SC_SILENCE, sg->val1, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
+						sc_start(bl, SC_SLEEP, sg->val1, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
+						sc_start(bl, SC_DEEPSLEEP, sg->val1, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
 						break;
 				}
 			} else
-				sc_start2(bl,type,100,sg->val1,sg->val2,skill_get_time2(sg->skill_id, sg->skill_lv));
+				sc_start2(bl, type, 100, sg->val1, sg->val2, skill_get_time2(sg->skill_id, sg->skill_lv));
 			break;
 
 		case UNT_MAKIBISHI:
