@@ -6377,8 +6377,7 @@ int status_get_sc_def(struct block_list *bl, enum sc_type type, int rate, int ti
 			tick_def2 = 0; //No duration reduction
 			break;
 		case SC_ELECTRICSHOCKER:
-			if( bl->type == BL_MOB )
-				tick_def2 = status->agi*100;
+			tick_def2 = status->agi*70;
 			break;
 		case SC_CRYSTALIZE:
 			tick_def2 = status->vit*100 + status_get_lv(bl)*20;
