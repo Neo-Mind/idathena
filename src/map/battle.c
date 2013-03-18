@@ -4663,7 +4663,7 @@ struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct bl
 }
 
 //Calculates BF_WEAPON returned damage.
-int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int *dmg, int flag, uint16 skill_id){
+int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int *dmg, int flag, uint16 skill_id) {
 	struct map_session_data* sd;
 	int rdamage = 0, damage = *dmg, max_damage = status_get_max_hp(bl);
 	struct status_change *sc;
@@ -4672,7 +4672,7 @@ int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int
 	sd = BL_CAST(BL_PC, bl);
 	sc = status_get_sc(bl);
 	
-	if( sc && sc->data[SC_CRESCENTELBOW] && !is_boss(src) && rnd()%100 < sc->data[SC_CRESCENTELBOW]->val2 ){
+	if( sc && sc->data[SC_CRESCENTELBOW] && !is_boss(src) && rnd()%100 < sc->data[SC_CRESCENTELBOW]->val2 ) {
 		//ATK [{(Target HP / 100) x Skill Level} x Caster Base Level / 125] % + [Received damage x {1 + (Skill Level x 0.2)}]
 		int ratio = (status_get_hp(src) / 100) * sc->data[SC_CRESCENTELBOW]->val1 * status_get_lv(bl) / 125;
 		if (ratio > 5000) ratio = 5000; // Maximum of 5000% ATK
@@ -4692,7 +4692,7 @@ int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int
 		if( sc && sc->count ) {
 			if ( sc->data[SC_REFLECTSHIELD] && skill_id != WS_CARTTERMINATION ) {
 				rdamage += damage * sc->data[SC_REFLECTSHIELD]->val2 / 100;
-				if (rdamage < 1) rdamage = 1;
+				rdamage = cap_value(rdamage,1,max_damage);
 			}
 			if(sc->data[SC_DEATHBOUND] && skill_id != WS_CARTTERMINATION && !(src->type == BL_MOB && is_boss(src)) ) {
 				uint8 dir = map_calc_dir(bl,src->x,src->y), t_dir = unit_getdir(bl);
@@ -4706,21 +4706,18 @@ int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int
 					rdamage += rd1 * 70 / 100; // Target receives 70% of the amplified damage. [Rytech]
 				}
 			}
-			if( sc && sc->data[SC_REFLECTDAMAGE] && rnd()%100 < 30 + 10 * sc->data[SC_REFLECTDAMAGE]->val1)
-			{
+			if( sc && sc->data[SC_REFLECTDAMAGE] && rnd()%100 < 30 + 10 * sc->data[SC_REFLECTDAMAGE]->val1) {
 				max_damage = max_damage * status_get_lv(bl) / 100;
-				rdamage = (*dmg) * sc->data[SC_REFLECTDAMAGE]->val2 / 100;
-				if( rdamage > max_damage ) rdamage = max_damage;
+				rdamage += (*dmg) * sc->data[SC_REFLECTDAMAGE]->val2 / 100;
+				rdamage = cap_value(rdamage,1,max_damage);
 				if ((--sc->data[SC_REFLECTDAMAGE]->val3) <= 0)
 					status_change_end(bl,SC_REFLECTDAMAGE,INVALID_TIMER);
 			}
-			if( sc && sc->data[SC_SHIELDSPELL_DEF] && sc->data[SC_SHIELDSPELL_DEF]->val1 == 2 )
-			{
+			if( sc && sc->data[SC_SHIELDSPELL_DEF] && sc->data[SC_SHIELDSPELL_DEF]->val1 == 2 ) {
 				rdamage += (*dmg) * sc->data[SC_SHIELDSPELL_DEF]->val2 / 100;
 				rdamage = cap_value(rdamage,1,max_damage);
 			}
-			if( ssc && ssc->data[SC_INSPIRATION] )
-			{
+			if( ssc && ssc->data[SC_INSPIRATION] ) {
 				rdamage += (*dmg) / 100;
 				rdamage = cap_value(rdamage,1,max_damage);
 			}

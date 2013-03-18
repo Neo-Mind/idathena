@@ -8147,8 +8147,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					sc_start(src,SC_STOP,100,skill_lv,INVALID_TIMER);// The skill_lv is stored in val1 used in skill_select_menu to determine the used skill lvl [Xazax]
 					clif_autoshadowspell_list(sd);
 					clif_skill_nodamage(src,bl,skill_id,1,1);
-				}
-				else
+				} else
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_IMITATION_SKILL_NONE,0);
 			}
 			break;
