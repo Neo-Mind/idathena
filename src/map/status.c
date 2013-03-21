@@ -8713,10 +8713,15 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 				else if( per <= 75 )
 					lv = 4;
 
-				if( hp % 2 == 0)
-					status_heal(bl, hp * (val1 + (6-lv) * 4) / 100, sp * (val1 + (6-lv) * 3) / 100, 1);
+				if( hp % 2 == 0 )
+					status_heal(bl, hp * (val1 + (6-lv) * 4) / 100, 0, 1);
 				else
-					status_zap(bl, hp * (val1 + (lv*4)) / 100, sp * (val1 +(lv*3)) / 100);
+					status_zap(bl, hp * (val1 + (lv*4)) / 100, 0);
+
+				if( sp % 2 == 0 )
+					status_heal(bl, 0, sp * (val1 + (6-lv) * 3) / 100, 1);
+				else
+					status_zap(bl, 0, sp * (val1 +(lv*3)) / 100);
 			}
 			break;
 		case SC_ANGRIFFS_MODUS:
@@ -10608,12 +10613,12 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				return 0;
 			}
 			break;
-			
+
 		case SC_REFLECTDAMAGE:
 			if( --(sce->val4) >= 0 ) {
 				if( !status_charge(bl,0,20 + 10 * sce->val1) )
 					break;
-				sc_timer_next(10000 + tick, status_change_timer, bl->id, data);
+				sc_timer_next(1000 + tick, status_change_timer, bl->id, data);
 				return 0;
 			}
 			break;

@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Current Version: =====================================
-//= $Revision: 17179 $
+//= $Revision: 17204 $
 //===== Last Updated: ========================================
-//= $LastChangedDate: 2013-03-07 09:24:19 +0700 (Thu, 07 Mar 2013) $
+//= $LastChangedDate: 2013-03-21 14:16:39 +0700 (Thu, 21 Mar 2013) $
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -6982,8 +6982,8 @@ in the count parameter.
 
 Example:
 	replacestr("testing tester", "test", "dash"); //returns "dashing dasher"
-	replacestr("Donkey", "don", "mon", 0);	//returns "monkey"
-	replacestr("test test test test test", "yay", 0, 3); //returns "yay yay yay test test"
+	replacestr("Donkey", "don", "mon", 0); //returns "monkey"
+	replacestr("test test test test test", "test", "yay", 0, 3); //returns "yay yay yay test test"
 
 ---------------------------------------
 

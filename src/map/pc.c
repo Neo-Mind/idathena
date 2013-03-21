@@ -8414,7 +8414,7 @@ int pc_load_combo(struct map_session_data *sd) {
  *------------------------------------------*/
 int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 {
-	int i,pos,flag=0;
+	int i,pos,flag=0,iflag;
 	struct item_data *id;
 
 	nullpo_ret(sd);
@@ -8424,8 +8424,7 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 		return 0;
 	}
 
-	if( DIFF_TICK(sd->canequip_tick,gettick()) > 0 )
-	{
+	if( DIFF_TICK(sd->canequip_tick,gettick()) > 0 ) {
 		clif_equipitemack(sd,n,0,0);
 		return 0;
 	}
@@ -8441,8 +8440,7 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 		return 0;
 	}
 
-	if (sd->sc.data[SC_BERSERK] || sd->sc.data[SC_SATURDAYNIGHTFEVER] || sd->sc.data[SC__BLOODYLUST])
-	{
+	if (sd->sc.data[SC_BERSERK] || sd->sc.data[SC_SATURDAYNIGHTFEVER] || sd->sc.data[SC__BLOODYLUST]) {
 		clif_equipitemack(sd,n,0,0);	// fail
 		return 0;
 	}
@@ -8453,15 +8451,14 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 			pos = sd->equip_index[EQI_ACC_R] >= 0 ? EQP_ACC_L : EQP_ACC_R;
 	}
 
-	if(pos == EQP_ARMS && id->equip == EQP_HAND_R)
-	{	//Dual wield capable weapon.
+	if(pos == EQP_ARMS && id->equip == EQP_HAND_R) { //Dual wield capable weapon.
 	  	pos = (req_pos&EQP_ARMS);
 		if (pos == EQP_ARMS) //User specified both slots, pick one for them.
 			pos = sd->equip_index[EQI_HAND_R] >= 0 ? EQP_HAND_L : EQP_HAND_R;
 	}
 
-	if (pos&EQP_HAND_R && battle_config.use_weapon_skill_range&BL_PC)
-	{	//Update skill-block range database when weapon range changes. [Skotlex]
+	if (pos&EQP_HAND_R && battle_config.use_weapon_skill_range&BL_PC) {
+		//Update skill-block range database when weapon range changes. [Skotlex]
 		i = sd->equip_index[EQI_HAND_R];
 		if (i < 0 || !sd->inventory_data[i]) //No data, or no weapon equipped
 			flag = 1;
@@ -8478,11 +8475,10 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 		}
 	}
 
-	if(pos==EQP_AMMO){
+	if(pos==EQP_AMMO) {
 		clif_arrowequip(sd,n);
 		clif_arrow_fail(sd,3);
-	}
-	else
+	} else
 		clif_equipitemack(sd,n,pos,1);
 
 	sd->status.inventory[n].equip=pos;
@@ -8500,14 +8496,12 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 			if(id->type == IT_WEAPON) {
 				sd->status.shield = 0;
 				sd->weapontype2 = id->look;
-			}
-			else
+			} else
 			if(id->type == IT_ARMOR) {
 				sd->status.shield = id->look;
 				sd->weapontype2 = 0;
 			}
-		}
-		else
+		} else
 			sd->status.shield = sd->weapontype2 = 0;
 		pc_calcweapontype(sd);
 		clif_changelook(&sd->bl,LOOK_SHIELD,sd->status.shield);
@@ -8536,21 +8530,21 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
 	}
 	if(pos & EQP_COSTUME_HEAD_TOP) {
-		if(id){
+		if(id) {
 			sd->status.head_top = id->look;
 		} else
 			sd->status.head_top = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_TOP,sd->status.head_top);
 	}
 	if(pos & EQP_COSTUME_HEAD_MID) {
-		if(id && !(pos&EQP_HEAD_TOP)){
+		if(id && !(pos&EQP_HEAD_TOP)) {
 			sd->status.head_mid = id->look;
 		} else
 			sd->status.head_mid = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
 	}
 	if(pos & EQP_COSTUME_HEAD_LOW) {
-		if(id && !(pos&(EQP_HEAD_TOP|EQP_HEAD_MID))){
+		if(id && !(pos&(EQP_HEAD_TOP|EQP_HEAD_MID))) {
 			sd->status.head_bottom = id->look;
 		} else
 			sd->status.head_bottom = 0;
@@ -8558,13 +8552,13 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 	}
 	if(pos & EQP_SHOES)
 		clif_changelook(&sd->bl,LOOK_SHOES,0);
-	if( pos&EQP_GARMENT )
-	{
+	if( pos&EQP_GARMENT ) {
 		sd->status.robe = id ? id->look : 0;
 		clif_changelook(&sd->bl, LOOK_ROBE, sd->status.robe);
 	}
 
 	pc_checkallowskill(sd); //Check if status changes should be halted.
+	iflag = sd->npc_item_flag;
 
 	/* check for combos (MUST be before status_calc_pc) */
 	if ( id ) {
@@ -8607,6 +8601,8 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 			}
 		}
 	}
+	sd->npc_item_flag = iflag;
+
 	return 0;
 }
 
@@ -8618,7 +8614,7 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
  *	2 - force unequip
  *------------------------------------------*/
 int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
-	int i;
+	int i,iflag;
 	bool status_cacl = false;
 	nullpo_ret(sd);
 
@@ -8634,8 +8630,7 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		return 0;
 	}
 
-	if( !(flag&2) && sd->sc.count && sd->sc.data[SC_KYOUGAKU] )
-	{
+	if( !(flag&2) && sd->sc.count && sd->sc.data[SC_KYOUGAKU] ) {
 		clif_unequipitemack(sd,n,0,0);
 		return 0;
 	}
@@ -8643,7 +8638,7 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 	if(battle_config.battle_log)
 		ShowInfo("unequip %d %x:%x\n",n,pc_equippoint(sd,n),sd->status.inventory[n].equip);
 
-	if(!sd->status.inventory[n].equip){ //Nothing to unequip
+	if(!sd->status.inventory[n].equip) { //Nothing to unequip
 		clif_unequipitemack(sd,n,0,0);
 		return 0;
 	}
@@ -8695,8 +8690,7 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 
 	if(sd->status.inventory[n].equip & EQP_SHOES)
 		clif_changelook(&sd->bl,LOOK_SHOES,0);
-	if( sd->status.inventory[n].equip&EQP_GARMENT )
-	{
+	if( sd->status.inventory[n].equip&EQP_GARMENT ) {
 		sd->status.robe = 0;
 		clif_changelook(&sd->bl, LOOK_ROBE, 0);
 	}
@@ -8717,6 +8711,7 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		sd->state.autobonus &= ~sd->status.inventory[n].equip; //Check for activated autobonus [Inkfish]
 
 	sd->status.inventory[n].equip=0;
+	iflag = sd->npc_item_flag;
 
 	/* check for combos (MUST be before status_calc_pc) */
 	if ( sd->inventory_data[n] ) {
@@ -8768,6 +8763,7 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 			}
 		}
 	}
+	sd->npc_item_flag = iflag;
 
 	return 0;
 }
