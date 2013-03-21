@@ -382,8 +382,7 @@ int merc_hom_evolution(struct homun_data *hd)
 	struct map_session_data *sd;
 	nullpo_ret(hd);
 
-	if(!hd->homunculusDB->evo_class || hd->homunculus.class_ == hd->homunculusDB->evo_class)
-	{
+	if(!hd->homunculusDB->evo_class || hd->homunculus.class_ == hd->homunculusDB->evo_class) {
 		clif_emotion(&hd->bl, E_SWT);
 		return 0 ;
 	}
@@ -450,9 +449,13 @@ int hom_mutate(struct homun_data *hd, int homun_id)
 	prev_class = hd->homunculus.class_;
 
 	if (!merc_hom_change_class(hd, homun_id)) {
-		ShowError("hom_mutate: Can't evolve homunc from %d to %d", hd->homunculus.class_, homun_id);
+		ShowError("hom_mutate: Can't mutate homunc from %d to %d", hd->homunculus.class_, homun_id);
 		return 0;
 	}
+
+	// Its said the player can rename the homunculus again after mutation.
+	// This might be true since the homunculus's form completely changes.
+	hd->homunculus.rename_flag = 0;
 
 	unit_remove_map(&hd->bl, CLR_OUTSIGHT);
 	map_addblock(&hd->bl);
@@ -460,7 +463,6 @@ int hom_mutate(struct homun_data *hd, int homun_id)
 	clif_spawn(&hd->bl);
 	clif_emotion(&sd->bl, E_NO1);
 	clif_specialeffect(&hd->bl,568,AREA);
-
 
 	//status_Calc flag&1 will make current HP/SP be reloaded from hom structure
 	hom = &hd->homunculus;
@@ -809,8 +811,7 @@ int merc_call_homunculus(struct map_session_data *sd)
 
 	merc_hom_init_timers(hd);
 	hd->homunculus.vaporize = 0;
-	if (hd->bl.prev == NULL)
-	{	//Spawn him
+	if (hd->bl.prev == NULL) { //Spawn him
 		hd->bl.x = sd->bl.x;
 		hd->bl.y = sd->bl.y;
 		hd->bl.m = sd->bl.m;
@@ -838,8 +839,7 @@ int merc_hom_recv_data(int account_id, struct s_homunculus *sh, int flag)
 	sd = map_id2sd(account_id);
 	if(!sd)
 		return 0;
-	if (sd->status.char_id != sh->char_id)
-	{
+	if (sd->status.char_id != sh->char_id) {
 		if (sd->status.hom_id == sh->hom_id)
 			sh->char_id = sd->status.char_id; //Correct char id.
 		else
@@ -858,8 +858,7 @@ int merc_hom_recv_data(int account_id, struct s_homunculus *sh, int flag)
 		merc_hom_alloc(sd, sh);
 
 	hd = sd->hd;
-	if(hd && hd->homunculus.hp && !hd->homunculus.vaporize && hd->bl.prev == NULL && sd->bl.prev != NULL)
-	{
+	if(hd && hd->homunculus.hp && !hd->homunculus.vaporize && hd->bl.prev == NULL && sd->bl.prev != NULL) {
 		map_addblock(&hd->bl);
 		clif_spawn(&hd->bl);
 		clif_send_homdata(sd,SP_ACK,0);

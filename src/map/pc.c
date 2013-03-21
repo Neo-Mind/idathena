@@ -8734,7 +8734,7 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 			}
 		}
 	}
-	
+
 	if(flag&1 || status_cacl) {
 		pc_checkallowskill(sd);
 		status_calc_pc(sd,0);

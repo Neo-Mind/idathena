@@ -4303,7 +4303,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 
 	memset(&md,0,sizeof(md));
 
-	if( src == NULL || target == NULL ){
+	if( src == NULL || target == NULL ) {
 		nullpo_info(NLP_MARK);
 		return md;
 	}
@@ -4383,25 +4383,25 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			}
 			break;
 		case TF_THROWSTONE:
-			md.damage=50;
+			md.damage = 50;
 			break;
 		case BA_DISSONANCE:
-			md.damage=30+skill_lv*10;
+			md.damage = 30+skill_lv*10;
 			if (sd)
-				md.damage+= 3*pc_checkskill(sd,BA_MUSICALLESSON);
+				md.damage += 3*pc_checkskill(sd,BA_MUSICALLESSON);
 			break;
 		case NPC_SELFDESTRUCTION:
 			md.damage = sstatus->hp;
 			break;
 		case NPC_SMOKING:
-			md.damage=3;
+			md.damage = 3;
 			break;
 		case NPC_DARKBREATH:
 			md.damage = 500 + (skill_lv-1)*1000 + rnd()%1000;
 			if(md.damage > 9999) md.damage = 9999;
 			break;
 		case PA_PRESSURE:
-			md.damage=500+300*skill_lv;
+			md.damage = 500+300*skill_lv;
 			break;
 		case PA_GOSPEL:
 			md.damage = 1+rnd()%9999;
@@ -4778,7 +4778,7 @@ int battle_damage_area( struct block_list *bl, va_list ap) {
 	struct block_list *src;
 
 	nullpo_ret(bl);
-	
+
 	tick=va_arg(ap, unsigned int);
 	src=va_arg(ap,struct block_list *);
 	amotion=va_arg(ap,int);
@@ -4832,11 +4832,9 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	if (tsc && !tsc->count)
 		tsc = NULL;
 	
-	if (sd)
-	{
+	if (sd) {
 		sd->state.arrow_atk = (sd->status.weapon == W_BOW || (sd->status.weapon >= W_REVOLVER && sd->status.weapon <= W_GRENADE));
-		if (sd->state.arrow_atk)
-		{
+		if (sd->state.arrow_atk) {
 			int index = sd->equip_index[EQI_AMMO];
 			if (index<0) {
 				clif_arrow_fail(sd,0);
@@ -4880,8 +4878,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		uint8 dir = map_calc_dir(target,src->x,src->y);
 		int t_dir = unit_getdir(target);
 		int dist = distance_bl(src, target);
-		if(dist <= 0 || (!map_check_dir(dir,t_dir) && dist <= tstatus->rhw.range+1))
-		{
+		if(dist <= 0 || (!map_check_dir(dir,t_dir) && dist <= tstatus->rhw.range+1)) {
 			uint16 skill_lv = tsc->data[SC_AUTOCOUNTER]->val1;
 			clif_skillcastcancel(target); //Remove the casting bar. [Skotlex]
 			clif_damage(src, target, tick, sstatus->amotion, 1, 0, 1, 0, 0); //Display MISS.
@@ -4964,7 +4961,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 									skill_get_time2(SR_GENTLETOUCH_ENERGYGAIN, tsc->data[SC_GT_ENERGYGAIN]->val1),
 									spheremax);
 		}
-		if( sc && sc->data[SC_CRUSHSTRIKE] ){
+		if( sc && sc->data[SC_CRUSHSTRIKE] ) {
 			uint16 skill_lv = sc->data[SC_CRUSHSTRIKE]->val1;
 			status_change_end(src, SC_CRUSHSTRIKE, INVALID_TIMER);
 			if( skill_attack(BF_WEAPON,src,src,target,RK_CRUSHSTRIKE,skill_lv,tick,0) )
@@ -4977,7 +4974,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		tsc->data[SC_KAAHI]->val4 = add_timer(tick + skill_get_time2(SL_KAAHI,tsc->data[SC_KAAHI]->val1), kaahi_heal_timer, target->id, SC_KAAHI); //Activate heal.
 
 	wd = battle_calc_attack(BF_WEAPON, src, target, 0, 0, flag);
-	
+
 	if( sc && sc->count ) {
 		if (sc->data[SC_EXEEDBREAK]) {
 			ATK_RATER(sc->data[SC_EXEEDBREAK]->val1)
@@ -5194,12 +5191,10 @@ int battle_check_undead(int race,int element)
 	if(battle_config.undead_detect_type == 0) {
 		if(element == ELE_UNDEAD)
 			return 1;
-	}
-	else if(battle_config.undead_detect_type == 1) {
+	} else if(battle_config.undead_detect_type == 1) {
 		if(race == RC_UNDEAD)
 			return 1;
-	}
-	else {
+	} else {
 		if(element == ELE_UNDEAD || race == RC_UNDEAD)
 			return 1;
 	}
