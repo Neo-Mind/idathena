@@ -1629,8 +1629,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		}
 
 		if (sc->data[SC_BLADESTOP]) {
-			switch (sc->data[SC_BLADESTOP]->val1)
-			{
+			switch (sc->data[SC_BLADESTOP]->val1) {
 				case 5: if (skill_id == MO_EXTREMITYFIST) break;
 				case 4: if (skill_id == MO_CHAINCOMBO) break;
 				case 3: if (skill_id == MO_INVESTIGATE) break;
@@ -3874,22 +3873,18 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 
 			if( status->max_hp > (unsigned int)battle_config.max_hp )
 				status->max_hp = (unsigned int)battle_config.max_hp;
-		}
-		else
-		{
+		} else {
 			status->max_hp = status_calc_maxhp(bl, sc, b_status->max_hp);
 		}
 
-		if( status->hp > status->max_hp ) //FIXME: Should perhaps a status_zap should be issued?
-		{
+		if( status->hp > status->max_hp ) { //FIXME: Should perhaps a status_zap should be issued?
 			status->hp = status->max_hp;
 			if( sd ) clif_updatestatus(sd,SP_HP);
 		}
 	}
 
 	if(flag&SCB_MAXSP) {
-		if( bl->type&BL_PC )
-		{
+		if( bl->type&BL_PC ) {
 			status->max_sp = status_base_pc_maxsp(sd,status);
 			status->max_sp += b_status->max_sp - sd->status.max_sp;
 
@@ -3897,14 +3892,11 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 
 			if( status->max_sp > (unsigned int)battle_config.max_sp )
 				status->max_sp = (unsigned int)battle_config.max_sp;
-		}
-		else
-		{
+		} else {
 			status->max_sp = status_calc_maxsp(bl, sc, b_status->max_sp);
 		}
 
-		if( status->sp > status->max_sp )
-		{
+		if( status->sp > status->max_sp ) {
 			status->sp = status->max_sp;
 			if( sd ) clif_updatestatus(sd,SP_SP);
 		}
@@ -6389,7 +6381,7 @@ int status_get_sc_def(struct block_list *bl, enum sc_type type, int rate, int ti
 			//Effect that cannot be reduced? Likely a buff.
 			if (!(rnd()%10000 < rate))
 				return 0;
-			return tick?tick:1;
+			return tick ? tick : 1;
 	}
 
 	if (sd) {
@@ -7310,7 +7302,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		case SC_ADORAMUS:
 			val2 = 2 + val1; //Agi change
 			if( type == SC_ADORAMUS )
-				sc_start(bl,SC_BLIND,val1 * 4 + (sd ? sd->status.job_level : 50) / 2,val1,skill_get_time(status_sc2skill(type),val1));
+				sc_start(bl,SC_BLIND,val1 * 4 + (sd ? sd->status.job_level / 2 : 0),val1,skill_get_time(status_sc2skill(type),val1));
 			break;
 		case SC_ENDURE:
 			val2 = 7; // Hit-count [Celest]
@@ -8441,7 +8433,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			break; 
 		case SC_GLOOMYDAY_SK: 
 			// Random number between [15 ~ (Voice Lesson Skill Level x 5) + (Skill Level x 10)] %. 
-			val2 = 15 + rnd()%( (sd?pc_checkskill(sd, WM_LESSON)*5:0) + val1*10 );
+			val2 = 15 + rnd()%( (sd ? pc_checkskill(sd, WM_LESSON) * 5 : 0) + val1 * 10 );
 			break;
 		case SC_SONGOFMANA:
 			val3 = 10 + 5 * val2;
@@ -8552,7 +8544,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			val_flag |= 1|2;
 			break;
 		case SC_LIGHTNINGWALK: // [(Job Level / 2) + (40 + 5 * Skill Level)] %
-			val1 = (sd?sd->status.job_level:2)/2 + 40 + 5 * val1;
+			val1 = (sd ? sd->status.job_level / 2 : 0) + 40 + 5 * val1;
 			val_flag |= 1;
 			break;
 		case SC_RAISINGDRAGON:
@@ -8709,7 +8701,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 				val3 -= (status_get_lv(bl) / 3) + (30 * val1); //-Matk
 			break;
 		case SC_GENSOU: {
-				int hp = status_get_hp(bl), lv = 5;
+				int hp = status_get_hp(bl), lv = 5, sp = status_get_sp(bl);
 				short per = 100 / (status_get_max_hp(bl) / hp);
 
 				if( per <= 15 )
@@ -8720,10 +8712,11 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 					lv = 3;
 				else if( per <= 75 )
 					lv = 4;
+
 				if( hp % 2 == 0)
-					status_heal(bl, hp * (6-lv) * 4 / 100, status_get_sp(bl) * (6-lv) * 3 / 100, 1);
+					status_heal(bl, hp * (val1 + (6-lv) * 4) / 100, sp * (val1 + (6-lv) * 3) / 100, 1);
 				else
-					status_zap(bl, hp * (lv*4) / 100, status_get_sp(bl) * (lv*3) / 100);
+					status_zap(bl, hp * (val1 + (lv*4)) / 100, sp * (val1 +(lv*3)) / 100);
 			}
 			break;
 		case SC_ANGRIFFS_MODUS:

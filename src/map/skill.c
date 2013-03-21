@@ -411,7 +411,7 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 				 **/
 				hp = (status_get_lv(src) + status_get_int(src)) / 5 * 30  * skill_lv / 10;
 #else
-				hp = ( status_get_lv(src) + status_get_int(src) ) / 8 * (4 + ( skill_id == AB_HIGHNESSHEAL ? ( sd ? pc_checkskill(sd,AL_HEAL) : 10 ) : skill_lv ) * 8);
+				hp = ( status_get_lv(src) + status_get_int(src) ) / 8 * (4 + ( skill_id == AB_HIGHNESSHEAL ? ( sd ? pc_checkskill(sd,AL_HEAL) : 0 ) : skill_lv ) * 8);
 #endif
 				if( sd && ((skill = pc_checkskill(sd, HP_MEDITATIO)) > 0) )
 					hp += hp * skill * 2 / 100;
@@ -1280,7 +1280,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			break;
 		case AB_ADORAMUS:
 			if( tsc && !tsc->data[SC_DECREASEAGI] ) //Prevent duplicate agi-down effect.
-				sc_start(bl, SC_ADORAMUS, skill_lv * 4 + (sd ? sd->status.job_level : 50) / 2, skill_lv, skill_get_time(skill_id, skill_lv));
+				sc_start(bl, SC_ADORAMUS, skill_lv * 4 + (sd ? sd->status.job_level / 2 : 0), skill_lv, skill_get_time(skill_id, skill_lv));
 			break;
 		case WL_CRIMSONROCK:
 			sc_start(bl, SC_STUN, 40, skill_lv, skill_get_time(skill_id, skill_lv));
@@ -1351,7 +1351,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			sc_start(bl, SC_STUN, 30 + 8 * skill_lv + + sstatus->dex / 10 + sd->status.job_level / 4, skill_lv, skill_get_time(skill_id,skill_lv));
 			break;
 		case LG_PINPOINTATTACK:
-			rate = 30 + (((5 * (sd?pc_checkskill(sd,LG_PINPOINTATTACK):skill_lv)) + (sstatus->agi + status_get_lv(src))) / 10);
+			rate = 30 + (((sd ? pc_checkskill(sd,LG_PINPOINTATTACK) * 5 : 0) + (sstatus->agi + status_get_lv(src))) / 10);
 			switch( skill_lv ) {
 				case 1:
 					sc_start2(bl,SC_BLEEDING,rate,skill_lv,src->id,skill_get_time(skill_id,skill_lv));
@@ -2282,11 +2282,9 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	dmg = battle_calc_attack(attack_type,src,bl,skill_id,skill_lv,flag&0xFFF);
 
 	//Skotlex: Adjusted to the new system
-	if(src->type==BL_PET)
-	{ // [Valaris]
+	if(src->type==BL_PET) { // [Valaris]
 		struct pet_data *pd = (TBL_PET*)src;
-		if (pd->a_skill && pd->a_skill->div_ && pd->a_skill->id == skill_id)
-		{
+		if (pd->a_skill && pd->a_skill->div_ && pd->a_skill->id == skill_id) {
 			int element = skill_get_ele(skill_id, skill_lv);
 			/*if (skill_id == -1) Does it ever worked?
 				element = sstatus->rhw.ele;*/
@@ -2301,8 +2299,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 	if( dmg.flag&BF_MAGIC && ( skill_id != NPC_EARTHQUAKE || (battle_config.eq_single_target_reflectable && (flag&0xFFF) == 1) ) )
 	{ // Earthquake on multiple targets is not counted as a target skill. [Inkfish]
-		if( (dmg.damage || dmg.damage2) && (type = skill_magic_reflect(src, bl, src==dsrc)) )
-		{	//Magic reflection, switch caster/target
+		if( (dmg.damage || dmg.damage2) && (type = skill_magic_reflect(src, bl, src==dsrc)) ) {
+			//Magic reflection, switch caster/target
 			struct block_list *tbl = bl;
 			rmdamage = 1;
 			bl = src;
@@ -2317,8 +2315,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			flag |= 2;
 
 			//Spirit of Wizard blocks Kaite's reflection
-			if( type == 2 && sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_WIZARD )
-			{	//Consume one Fragment per hit of the casted skill? [Skotlex]
+			if( type == 2 && sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_WIZARD ) { 
+			//Consume one Fragment per hit of the casted skill? [Skotlex]
 			  	type = tsd?pc_search_inventory (tsd, 7321):0;
 				if (type >= 0) {
 					if ( tsd ) pc_delitem(tsd, type, 1, 0, 1, LOG_TYPE_CONSUME);
@@ -2333,10 +2331,10 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		/**
 		 * Official Magic Reflection Behavior : damage reflected depends on gears caster wears, not target
 		 **/
-		#if MAGIC_REFLECTION_TYPE
+#if MAGIC_REFLECTION_TYPE
 			if( dmg.dmg_lv != ATK_MISS )//Wiz SL cancelled and consumed fragment
 				dmg = battle_calc_attack(BF_MAGIC,bl,bl,skill_id,skill_lv,flag&0xFFF);
-		#endif
+#endif
 		}
 		if(sc && sc->data[SC_MAGICROD] && src == dsrc) {
 			int sp = skill_get_sp(skill_id,skill_lv);
@@ -2360,10 +2358,10 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			|| (sc && sc->data[SC_REFLECTDAMAGE])) )
 		rdamage = battle_calc_return_damage(bl,src, &damage, dmg.flag, skill_id);
 		
-	if( damage && sc && sc->data[SC_GENSOU] && dmg.flag&BF_MAGIC ){
+	if( damage && sc && sc->data[SC_GENSOU] && dmg.flag&BF_MAGIC ) {
 		struct block_list *nbl;
 		nbl = battle_getenemyarea(bl,bl->x,bl->y,2,BL_CHAR,bl->id);
-		if( nbl ){ // Only one target is chosen.
+		if( nbl ) { // Only one target is chosen.
 			damage = damage / 2; // Deflect half of the damage to a target nearby
 			clif_skill_damage(bl, nbl, tick, status_get_amotion(src), 0, status_fix_damage(bl,nbl,damage,0), dmg.div_, OB_OBOROGENSOU_TRANSITION_ATK, -1, 6);
 		}
@@ -4111,9 +4109,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case GN_HELLS_PLANT_ATK:
 			skill_attack(BF_MISC,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
-		/**
-		 * Rune Knight
-		 **/
+
 		case RK_DRAGONBREATH: {
 				struct status_change *tsc = NULL;
 				if( (tsc = status_get_sc(bl)) && (tsc->data[SC_HIDING] )) {
@@ -4300,7 +4296,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 						case WLS_WATER: subskill = WL_TETRAVORTEX_WATER; k |= 2; break;
 						case WLS_STONE: subskill = WL_TETRAVORTEX_GROUND; k |= 8; break;
 					}
-					
+
 					skill_addtimerskill(src, tick + i * 200, bl->id, k, 0, subskill, skill_lv, i, flag);
 					clif_skill_nodamage(src, bl, subskill, skill_lv, 1);
 					status_change_end(src, spheres[i], INVALID_TIMER);
@@ -4318,7 +4314,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 					for(i = SC_MAXSPELLBOOK; i >= SC_SPELLBOOK1; i--) // List all available spell to be released
 						if( sc->data[i] ) spell[s++] = i;
-						
+
 					if ( s == 0 )
 						break;
 
@@ -4371,7 +4367,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 						clif_skill_fail(sd,skill_id,USESKILL_FAIL_SUMMON_NONE,0);
 						break;
 					}
-					
+
 					// Sphere Sort
 					for( i = 0; i <= j - 2; i++ )
 						for( k = i + 1; k <= j - 1; k++ )
@@ -6588,7 +6584,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			unit_skillcastcancel(src,1);
 			if(sd) {
 				int sp = skill_get_sp(sd->skill_id_old,sd->skill_lv_old);
-				if( skill_id == SO_SPELLFIST ){
+				if( skill_id == SO_SPELLFIST ) {
 					sc_start4(src,type,100,skill_lv+1,skill_lv,sd->skill_id_old,sd->skill_lv_old,skill_get_time(skill_id,skill_lv));
 					sd->skill_id_old = sd->skill_lv_old = 0;
 					break;
@@ -6598,8 +6594,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				status_zap(src, 0, sp);
 			}
 			break;
-		case SA_SPELLBREAKER:
-			{
+		case SA_SPELLBREAKER: {
 				int sp;
 				if(tsc && tsc->data[SC_MAGICROD]) {
 					sp = skill_get_sp(skill_id,skill_lv);
@@ -6614,10 +6609,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						break; //Nothing to cancel.
 					bl_skill_id = ud->skill_id;
 					bl_skill_lv = ud->skill_lv;
-					if (tstatus->mode & MD_BOSS)
-					{	//Only 10% success chance against bosses. [Skotlex]
-						if (rnd()%100 < 90)
-						{
+					if (tstatus->mode & MD_BOSS) { //Only 10% success chance against bosses. [Skotlex]
+						if (rnd()%100 < 90) {
 							if (sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 							break;
 						}
@@ -7733,8 +7726,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case AB_CLEMENTIA:
 		case AB_CANTO: {
-				int bless_lv = pc_checkskill(sd,AL_BLESSING) + ((sd ? sd->status.job_level : 50) / 10);
-				int agi_lv = pc_checkskill(sd,AL_INCAGI) + ((sd ? sd->status.job_level : 50) / 10);
+				int bless_lv = pc_checkskill(sd,AL_BLESSING) + (sd ? sd->status.job_level / 10 : 0);
+				int agi_lv = pc_checkskill(sd,AL_INCAGI) + (sd ? sd->status.job_level / 10 : 0);
 				if( sd == NULL || sd->status.party_id == 0 || flag&1 )
 					clif_skill_nodamage(bl, bl, skill_id, skill_lv, sc_start(bl,type,100,
 						(skill_id == AB_CLEMENTIA)? bless_lv : (skill_id == AB_CANTO)? agi_lv : skill_lv, skill_get_time(skill_id,skill_lv)));
@@ -7902,7 +7895,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case WL_WHITEIMPRISON:
 			if( (src == bl || battle_check_target(src, bl, BCT_ENEMY) > 0) && !is_boss(bl) ) { // Should not work with bosses.
-				int rate = ( sd? sd->status.job_level : 50 ) / 4;
+				int rate = ( sd ? sd->status.job_level / 4 : 0 );
 
 				if( src == bl ) rate = 100; // Success Chance: On self, 100%
 				else if( bl->type == BL_PC ) rate += 20 + 10 * skill_lv; // On Players, (20 + 10 * Skill Level) %
@@ -7953,7 +7946,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				else
 					status_change_start(bl,SC_STONE,10000,skill_lv,0,0,1000,skill_get_time(skill_id, skill_lv),2);
 			} else {
-				int rate = 40 + 8 * skill_lv + ( sd? sd->status.job_level : 50 ) / 4;
+				int rate = 40 + 8 * skill_lv + ( sd ? sd->status.job_level / 4 : 0 );
 				// IroWiki says Rate should be reduced by target stats, but currently unknown
 				if( rnd()%100 < rate ) { // Success on First Target
 					if( !tsc->data[SC_STONE] )
@@ -8186,7 +8179,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if( !(tsc && tsc->data[type]) ) {
 				int joblvbonus = 0;
 				if (is_boss(bl)) break;
-					joblvbonus = ( sd ? sd->status.job_level : 50 );
+					joblvbonus = ( sd ? sd->status.job_level : 0 );
 				//First we set the success chance based on the caster's build which increases the chance.
 				rate = 10 * skill_lv + rnd_value( sstatus->dex / 12, sstatus->dex / 4 ) + joblvbonus + status_get_lv(src) / 10 - 
 				//We then reduce the success chance based on the target's build.
@@ -8500,7 +8493,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case WM_VOICEOFSIREN:
 			if( flag&1 ) {
-				tick = status_get_lv(bl) / 10 + ( dstsd ? dstsd->status.job_level : 0 ) / 5;
+				tick = status_get_lv(bl) / 10 + ( dstsd ? dstsd->status.job_level / 5 : 0 );
 				sc_start2(bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv) - (1000 * tick));
 			} else if ( sd ) {
 				rate = 6 * skill_lv + 2 * pc_checkskill(sd,WM_LESSON) + sd->status.job_level / 2;
@@ -8973,13 +8966,19 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 
-		case OB_AKAITSUKI:
 		case OB_OBOROGENSOU:
-			if( sd && ( (skill_id == OB_OBOROGENSOU && bl->type == BL_MOB) // This skill does not work on monsters.
-				|| is_boss(bl) ) ) { // Does not work on Boss monsters.
+			if( sd && ( bl->type == BL_MOB || is_boss(bl) ) ) {  // This skill does not work on monsters.
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				break;
 			}
+			int chance = 25 + (10 * skill_lv) - (status_get_int(bl) / 2);
+			if (chance < 5) chance = 5;
+			clif_skill_nodamage(src,bl,skill_id,skill_lv,
+				sc_start(bl,type,chance,skill_lv,skill_get_time(skill_id,skill_lv)));
+			clif_skill_damage(src, bl, tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
+			break;
+
+		case OB_AKAITSUKI:
 		case KO_IZAYOI:
 		case OB_ZANGETSU:
 		case KG_KYOMU:
@@ -11873,7 +11872,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 						break;
 					case 3:
 						skill_attack(skill_get_type(CR_ACIDDEMONSTRATION), ss, &src->bl, bl,
-									 CR_ACIDDEMONSTRATION, sd ? pc_checkskill(sd, CR_ACIDDEMONSTRATION) : sg->skill_lv, tick, 0);
+									 CR_ACIDDEMONSTRATION, (sd ? pc_checkskill(sd, CR_ACIDDEMONSTRATION) : sg->skill_lv), tick, 0);
 						break;
 						
 				}
@@ -13407,8 +13406,7 @@ int skill_consume_requirement( struct map_session_data *sd, uint16 skill_id, uin
 
 	req = skill_get_requirement(sd,skill_id,skill_lv);
 
-	if( type&1 )
-	{
+	if( type&1 ) {
 		if( skill_id == CG_TAROTCARD || sd->state.autocast )
 			req.sp = 0; // TarotCard will consume sp in skill_cast_nodamage_id [Inkfish]
 		if(req.hp || req.sp)
@@ -13417,8 +13415,7 @@ int skill_consume_requirement( struct map_session_data *sd, uint16 skill_id, uin
 		if(req.spiritball > 0)
 			pc_delspiritball(sd,req.spiritball,0);
 
-		if(req.zeny > 0)
-		{
+		if(req.zeny > 0) {
 			if( skill_id == NJ_ZENYNAGE )
 				req.zeny = 0; //Zeny is reduced on skill_attack.
 			if( sd->status.zeny < req.zeny )
@@ -16667,8 +16664,7 @@ int skill_spellbook (struct map_session_data *sd, int nameid) {
 	status_change_end(&sd->bl, SC_STOP, INVALID_TIMER);
 
 	for(i=SC_SPELLBOOK1; i <= SC_MAXSPELLBOOK; i++) if( sc && !sc->data[i] ) break;
-	if( i > SC_MAXSPELLBOOK ) 
-	{
+	if( i > SC_MAXSPELLBOOK ) {
 		clif_skill_fail(sd, WL_READING_SB, USESKILL_FAIL_SPELLBOOK_READING, 0);
 		return 0;
 	}
@@ -16676,8 +16672,7 @@ int skill_spellbook (struct map_session_data *sd, int nameid) {
 	ARR_FIND(0,MAX_SKILL_SPELLBOOK_DB,i,skill_spellbook_db[i].nameid == nameid); // Search for information of this item
 	if( i == MAX_SKILL_SPELLBOOK_DB ) return 0;
 
-	if( !pc_checkskill(sd, (skill_id = skill_spellbook_db[i].skill_id)) )
-	{ // User don't know the skill
+	if( !pc_checkskill(sd, (skill_id = skill_spellbook_db[i].skill_id)) ) { // User don't know the skill
 		sc_start(&sd->bl, SC_SLEEP, 100, 1, skill_get_time(WL_READING_SB, pc_checkskill(sd,WL_READING_SB)));
 		clif_skill_fail(sd, WL_READING_SB, USESKILL_FAIL_SPELLBOOK_DIFFICULT_SLEEP, 0);
 		return 0;
@@ -16686,20 +16681,19 @@ int skill_spellbook (struct map_session_data *sd, int nameid) {
 	max_preserve = 4 * pc_checkskill(sd, WL_FREEZE_SP) + status_get_int(&sd->bl) / 10 + sd->status.base_level / 10;
 	point = skill_spellbook_db[i].point;
 
-	if( sc && sc->data[SC_READING_SB] ){
-		if( (sc->data[SC_READING_SB]->val2 + point) > max_preserve )
-		{
+	if( sc && sc->data[SC_READING_SB] ) {
+		if( (sc->data[SC_READING_SB]->val2 + point) > max_preserve ) {
 			clif_skill_fail(sd, WL_READING_SB, USESKILL_FAIL_SPELLBOOK_PRESERVATION_POINT, 0);
 			return 0;
 		}
-		for(i = SC_MAXSPELLBOOK; i >= SC_SPELLBOOK1; i--){ // This is how official saves spellbook. [malufett]
+		for(i = SC_MAXSPELLBOOK; i >= SC_SPELLBOOK1; i--) { // This is how official saves spellbook. [malufett]
 			if( !sc->data[i] ){
 				sc->data[SC_READING_SB]->val2 += point; // increase points
 				sc_start4(&sd->bl, (sc_type)i, 100, skill_id, pc_checkskill(sd,skill_id), point, 0, INVALID_TIMER);
 				break;
 			}
 		}
-	}else{
+	} else {
 		sc_start2(&sd->bl, SC_READING_SB, 100, 0, point, INVALID_TIMER);
 		sc_start4(&sd->bl, SC_MAXSPELLBOOK, 100, skill_id, pc_checkskill(sd,skill_id), point, 0, INVALID_TIMER);
 	}

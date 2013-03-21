@@ -1058,7 +1058,7 @@
 3025,7,6,16,0,0x1,0,5,1,no,0,0,0,none,0,        KG_KAGEMUSYA,Kagemusha
 3026,7,6,16,0,0x1,0,5,1,no,0,0,0,none,0,        OB_ZANGETSU,Zangetsu
 3027,7,6,16,0,0x1,0,5,1,no,0,0,0,none,0,        OB_OBOROGENSOU,Oboro Gensou
-3028,1,6,4,0,0x2,3,1,1,no,0,0,0,weapon,0,       OB_OBOROGENSOU_TRANSITION_ATK,
+3028,1,6,4,0,0x2,3,1,1,no,0,0,0,weapon,0,       OB_OBOROGENSOU_TRANSITION_ATK,Oboro Gensou Transition Attack
 3029,7,6,1,0,0x1,0,5,0,no,0,0,0,none,0,         OB_AKAITSUKI,Akaitsuki
 
 8001,9,6,4,0,0x1,0,5,1,no,0,0,0,magic,0,	HLIF_HEAL,Healing Touch
