@@ -8483,8 +8483,8 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		case SC_REFLECTDAMAGE:
 			val2 = 15 + 5 * val1; //Reflect Amount
 			val3 = 25 + 5 * val1; //Number of Reflects
-			val4 = tick / 10000;
-			tick_time = 10000; // [GodLesZ] tick time
+			val4 = tick / 1000;
+			tick_time = 1000; // [GodLesZ] tick time
 			break;
 		case SC_FORCEOFVANGUARD: // This is not the official way to handle it but I think we should use it. [pakpil]
 			val2 = 8 + 12 * val1;//Chance Of Getting A Rage Counter
@@ -10616,7 +10616,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		case SC_REFLECTDAMAGE:
 			if( --(sce->val4) >= 0 ) {
-				if( !status_charge(bl,0,20 + 10 * sce->val1) )
+				if( !status_charge(bl,0,10) )
 					break;
 				sc_timer_next(1000 + tick, status_change_timer, bl->id, data);
 				return 0;
