@@ -6194,20 +6194,16 @@ int pc_resetlvl(struct map_session_data* sd,int type)
 int pc_resetstate(struct map_session_data* sd)
 {
 	nullpo_ret(sd);
-	
-	if (battle_config.use_statpoint_table)
-	{	// New statpoint table used here - Dexity
-		if (sd->status.base_level > MAX_LEVEL)
-		{	//statp[] goes out of bounds, can't reset!
+
+	if (battle_config.use_statpoint_table) { // New statpoint table used here - Dexity
+		if (sd->status.base_level > MAX_LEVEL) { //statp[] goes out of bounds, can't reset!
 			ShowError("pc_resetstate: Can't reset stats of %d:%d, the base level (%d) is greater than the max level supported (%d)\n",
 				sd->status.account_id, sd->status.char_id, sd->status.base_level, MAX_LEVEL);
 			return 0;
 		}
-		
+
 		sd->status.status_point = statp[sd->status.base_level] + ( sd->class_&JOBL_UPPER ? 52 : 0 ); // extra 52+48=100 stat points
-	}
-	else
-	{
+	} else {
 		int add=0;
 		add += pc_need_status_point(sd, SP_STR, 1-pc_getstat(sd, SP_STR));
 		add += pc_need_status_point(sd, SP_AGI, 1-pc_getstat(sd, SP_AGI));
@@ -6239,7 +6235,7 @@ int pc_resetstate(struct map_session_data* sd)
 	clif_updatestatus(sd,SP_UINT);
 	clif_updatestatus(sd,SP_UDEX);
 	clif_updatestatus(sd,SP_ULUK);	// End Addition
-	
+
 	clif_updatestatus(sd,SP_STATUSPOINT);
 
 	if( sd->mission_mobid ) { //bugreport:2200
@@ -6306,8 +6302,7 @@ int pc_resetskill(struct map_session_data* sd, int flag)
 			merc_hom_vaporize(sd, 0);
 	}
 
-	for( i = 1; i < MAX_SKILL; i++ )
-	{
+	for( i = 1; i < MAX_SKILL; i++ ) {
 		lv = sd->status.skill[i].lv;
 		if (lv < 1) continue;
 
@@ -6315,10 +6310,9 @@ int pc_resetskill(struct map_session_data* sd, int flag)
 
 		if( inf2&(INF2_WEDDING_SKILL|INF2_SPIRIT_SKILL) ) //Avoid reseting wedding/linker skills.
 			continue;
-		
+
 		// Don't reset trick dead if not a novice/baby
-		if( i == NV_TRICKDEAD && (sd->class_&MAPID_UPPERMASK) != MAPID_NOVICE )
-		{
+		if( i == NV_TRICKDEAD && (sd->class_&MAPID_UPPERMASK) != MAPID_NOVICE ) {
 			sd->status.skill[i].lv = 0;
 			sd->status.skill[i].flag = 0;
 			continue;
@@ -6334,10 +6328,9 @@ int pc_resetskill(struct map_session_data* sd, int flag)
 		if( flag&4 && !skill_ischangesex(i) )
 			continue;
 
-		if( inf2&INF2_QUEST_SKILL && !battle_config.quest_skill_learn )
-		{ //Only handle quest skills in a special way when you can't learn them manually
-			if( battle_config.quest_skill_reset && !(flag&2) )
-			{	//Wipe them
+		if( inf2&INF2_QUEST_SKILL && !battle_config.quest_skill_learn ) {
+			//Only handle quest skills in a special way when you can't learn them manually
+			if( battle_config.quest_skill_reset && !(flag&2) ) { //Wipe them
 				sd->status.skill[i].lv = 0;
 				sd->status.skill[i].flag = 0;
 			}
@@ -6345,23 +6338,20 @@ int pc_resetskill(struct map_session_data* sd, int flag)
 		}
 		if( sd->status.skill[i].flag == SKILL_FLAG_PERMANENT )
 			skill_point += lv;
-		else
-		if( sd->status.skill[i].flag == SKILL_FLAG_REPLACED_LV_0 )
+		else if( sd->status.skill[i].flag == SKILL_FLAG_REPLACED_LV_0 )
 			skill_point += (sd->status.skill[i].flag - SKILL_FLAG_REPLACED_LV_0);
 
-		if( !(flag&2) )
-		{// reset
+		if( !(flag&2) ) { // reset
 			sd->status.skill[i].lv = 0;
 			sd->status.skill[i].flag = 0;
 		}
 	}
-	
+
 	if( flag&2 || !skill_point ) return skill_point;
 
 	sd->status.skill_point += skill_point;
 
-	if( flag&1 )
-	{
+	if( flag&1 ) {
 		clif_updatestatus(sd,SP_SKILLPOINT);
 		clif_skillinfoblock(sd);
 		status_calc_pc(sd,0);

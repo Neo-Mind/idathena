@@ -8748,8 +8748,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 			
-		case GN_BLOOD_SUCKER:
-			{
+		case GN_BLOOD_SUCKER: {
 				struct status_change *sc = status_get_sc(src);
 						
 				if( sc && sc->bs_counter < skill_get_maxcount( skill_id , skill_lv) ) {
@@ -8769,7 +8768,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			
 		case GN_MANDRAGORA:
 			if( flag&1 ) {
-				int chance = 25 + 10 * skill_lv - (tstatus->vit + tstatus->luk) / 5;
+				int chance = 25 + (10 * skill_lv) - (tstatus->vit + tstatus->luk) / 5;
 				if ( chance < 10 )
 					chance = 10; //Minimal chance is 10%.
 				if( bl->type == BL_MOB ) break;
@@ -8972,13 +8971,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case OB_OBOROGENSOU:
 			if( sd && ( bl->type == BL_MOB || is_boss(bl) ) ) {  // This skill does not work on monsters.
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
-				break;
+			} else {
+				int chance = 25 + (10 * skill_lv) - (status_get_int(bl) / 2);
+				if (chance < 5) chance = 5;
+				clif_skill_nodamage(src,bl,skill_id,skill_lv,
+					sc_start(bl,type,chance,skill_lv,skill_get_time(skill_id,skill_lv)));
+				clif_skill_damage(src, bl, tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
 			}
-			int chance = 25 + (10 * skill_lv) - (status_get_int(bl) / 2);
-			if (chance < 5) chance = 5;
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,
-				sc_start(bl,type,chance,skill_lv,skill_get_time(skill_id,skill_lv)));
-			clif_skill_damage(src, bl, tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
 			break;
 
 		case OB_AKAITSUKI:
@@ -16565,8 +16564,7 @@ int skill_poisoningweapon( struct map_session_data *sd, int nameid) {
 		clif_skill_fail(sd,GC_POISONINGWEAPON,USESKILL_FAIL_LEVEL,0);
 		return 0;
 	}
-	switch( nameid )
-	{ // t_lv used to take duration from skill_get_time2
+	switch( nameid ) { // t_lv used to take duration from skill_get_time2
 		case PO_PARALYSE:      type = SC_PARALYSE;      break;
 		case PO_PYREXIA:       type = SC_PYREXIA;       break;
 		case PO_DEATHHURT:     type = SC_DEATHHURT;     break;
