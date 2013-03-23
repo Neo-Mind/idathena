@@ -2244,6 +2244,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	struct status_data *sstatus, *tstatus;
 	struct status_change *sc;
 	struct map_session_data *sd, *tsd;
+	struct skill_unit *unit;
 	int type,damage,rdamage=0;
 	int8 rmdamage=0;//magic reflected
 	bool additional_effects = true;
