@@ -4307,6 +4307,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case WL_RELEASE:
 			if( sd ) {
 				int i;
+				if (sc && sc->data[SC_MAGICPOWER]) {
+					status_change_end(src, SC_MAGICPOWER, INVALID_TIMER);
+				}
 				// Priority is to release SpellBook
 				if( sc && sc->data[SC_READING_SB] ) { // SpellBook
 					uint16 skill_id, skill_lv, point, s = 0;
@@ -4318,7 +4321,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					if ( s == 0 )
 						break;
 
-					i = spell[s==1?0:rand()%s]; // Random select of spell to be released.
+					i = spell[s==1?0:rnd()%s]; // Random select of spell to be released.
 					if( s && sc->data[i] ) { // Now extract the data from the preserved spell
 						skill_id = sc->data[i]->val1;
 						skill_lv = sc->data[i]->val2;
@@ -7033,7 +7036,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 				unit_skillcastcancel(bl,0);
 
-				if(tsc && tsc->count){
+				if(tsc && tsc->count) {
 					status_change_end(bl, SC_FREEZE, INVALID_TIMER);
 					if(tsc->data[SC_STONE] && tsc->opt1 == OPT1_STONE)
 						status_change_end(bl, SC_STONE, INVALID_TIMER);
@@ -9415,22 +9418,20 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 	} while(0);
 
 	//Skill failed.
-	if (ud->skill_id == MO_EXTREMITYFIST && sd && !(sc && sc->data[SC_FOGWALL]))
-  	{	//When Asura fails... (except when it fails from Fog of Wall)
+	if (ud->skill_id == MO_EXTREMITYFIST && sd && !(sc && sc->data[SC_FOGWALL])) {
+		//When Asura fails... (except when it fails from Fog of Wall)
 		//Consume SP/spheres
 		skill_consume_requirement(sd,ud->skill_id, ud->skill_lv,1);
 		status_set_sp(src, 0, 0);
 		sc = &sd->sc;
-		if (sc->count)
-		{	//End states
+		if (sc->count) { //End states
 			status_change_end(src, SC_EXPLOSIONSPIRITS, INVALID_TIMER);
 			status_change_end(src, SC_BLADESTOP, INVALID_TIMER);
 #ifdef RENEWAL
 			sc_start(src, SC_EXTREMITYFIST2, 100, ud->skill_lv, skill_get_time(ud->skill_id, ud->skill_lv));
 #endif
 		}
-		if (target && target->m == src->m)
-		{	//Move character to target anyway.
+		if (target && target->m == src->m) { //Move character to target anyway.
 			int dir, x, y;
 			dir = map_calc_dir(src,target->x,target->y);
 			if( dir > 0 && dir < 4) x = -2;
@@ -9439,8 +9440,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 			if( dir > 2 && dir < 6 ) y = -2;
 			else if( dir == 7 || dir < 2 ) y = 2;
 			else y = 0;
-			if (unit_movepos(src, src->x+x, src->y+y, 1, 1))
-			{	//Display movement + animation.
+			if (unit_movepos(src, src->x+x, src->y+y, 1, 1)) { //Display movement + animation.
 				clif_slide(src,src->x,src->y);
 				clif_skill_damage(src,target,tick,sd->battle_status.amotion,0,0,1,ud->skill_id, ud->skill_lv, 5);
 			}
@@ -16596,14 +16596,10 @@ static void skill_toggle_magicpower(struct block_list *bl, uint16 skill_id)
 	if (skill_get_nk(skill_id)&NK_NO_DAMAGE || !(skill_get_type(skill_id)&BF_MAGIC))
 		return;
 
-	if (sc && sc->count && sc->data[SC_MAGICPOWER])
-	{
-		if (sc->data[SC_MAGICPOWER]->val4)
-		{
+	if (sc && sc->count && sc->data[SC_MAGICPOWER]) {
+		if (sc->data[SC_MAGICPOWER]->val4) {
 			status_change_end(bl, SC_MAGICPOWER, INVALID_TIMER);
-		}
-		else
-		{
+		} else {
 			sc->data[SC_MAGICPOWER]->val4 = 1;
 			status_calc_bl(bl, status_sc2scb_flag(SC_MAGICPOWER));
 #ifndef RENEWAL
@@ -16687,7 +16683,7 @@ int skill_spellbook (struct map_session_data *sd, int nameid) {
 			return 0;
 		}
 		for(i = SC_MAXSPELLBOOK; i >= SC_SPELLBOOK1; i--) { // This is how official saves spellbook. [malufett]
-			if( !sc->data[i] ){
+			if( !sc->data[i] ) {
 				sc->data[SC_READING_SB]->val2 += point; // increase points
 				sc_start4(&sd->bl, (sc_type)i, 100, skill_id, pc_checkskill(sd,skill_id), point, 0, INVALID_TIMER);
 				break;

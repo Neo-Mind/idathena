@@ -681,16 +681,14 @@ int pc_setequipindex(struct map_session_data *sd)
 				if(sd->status.inventory[i].equip & equip_pos[j])
 					sd->equip_index[j] = i;
 
-			if(sd->status.inventory[i].equip & EQP_HAND_R)
-			{
+			if(sd->status.inventory[i].equip & EQP_HAND_R) {
 				if(sd->inventory_data[i])
 					sd->weapontype1 = sd->inventory_data[i]->look;
 				else
 					sd->weapontype1 = 0;
 			}
 
-			if( sd->status.inventory[i].equip & EQP_HAND_L )
-			{
+			if( sd->status.inventory[i].equip & EQP_HAND_L ) {
 				if( sd->inventory_data[i] && sd->inventory_data[i]->type == IT_WEAPON )
 					sd->weapontype2 = sd->inventory_data[i]->look;
 				else
@@ -725,15 +723,14 @@ bool pc_isequipped(struct map_session_data *sd, int nameid)
 {
 	int i, j, index;
 
-	for( i = 0; i < EQI_MAX; i++ )
-	{
+	for( i = 0; i < EQI_MAX; i++ ) {
 		index = sd->equip_index[i];
 		if( index < 0 ) continue;
 
 		if( i == EQI_HAND_R && sd->equip_index[EQI_HAND_L] == index ) continue;
 		if( i == EQI_HEAD_MID && sd->equip_index[EQI_HEAD_LOW] == index ) continue;
 		if( i == EQI_HEAD_TOP && (sd->equip_index[EQI_HEAD_MID] == index || sd->equip_index[EQI_HEAD_LOW] == index) ) continue;
-	
+
 		if( !sd->inventory_data[index] ) continue;
 
 		if( sd->inventory_data[index]->nameid == nameid )
@@ -810,8 +807,8 @@ bool pc_adoption(struct map_session_data *p1_sd, struct map_session_data *p2_sd,
 	jobexp = b_sd->status.job_exp;
 
 	job = pc_mapid2jobid(b_sd->class_|JOBL_BABY, b_sd->status.sex);
-	if( job != -1 && !pc_jobchange(b_sd, job, 0) )
-	{ // Success, proceed to configure parents and baby skills
+	if( job != -1 && !pc_jobchange(b_sd, job, 0) ) {
+		// Success, proceed to configure parents and baby skills
 		p1_sd->status.child = b_sd->status.char_id;
 		p2_sd->status.child = b_sd->status.char_id;
 		b_sd->status.father = p1_sd->status.char_id;
@@ -830,7 +827,7 @@ bool pc_adoption(struct map_session_data *p1_sd, struct map_session_data *p2_sd,
 		// Parents Skills
 		pc_skill(p1_sd, WE_CALLBABY, 1, 0);
 		pc_skill(p2_sd, WE_CALLBABY, 1, 0);
-		
+
 		return true;
 	}
 
@@ -864,7 +861,7 @@ int pc_isequip(struct map_session_data *sd,int n)
 		return 0;
 
 	if (sd->sc.count) {
-			
+
 		if(item->equip & EQP_ARMS && item->type == IT_WEAPON && sd->sc.data[SC_STRIPWEAPON]) // Also works with left-hand weapons [DracoRPG]
 			return 0;
 		if(item->equip & EQP_SHIELD && item->type == IT_ARMOR && sd->sc.data[SC_STRIPSHIELD])
@@ -946,16 +943,13 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	// Checks and fixes to character status data, that are required
 	// in case of configuration change or stuff, which cannot be
 	// checked on char-server.
-	if( sd->status.hair < MIN_HAIR_STYLE || sd->status.hair > MAX_HAIR_STYLE )
-	{
+	if( sd->status.hair < MIN_HAIR_STYLE || sd->status.hair > MAX_HAIR_STYLE ) {
 		sd->status.hair = MIN_HAIR_STYLE;
 	}
-	if( sd->status.hair_color < MIN_HAIR_COLOR || sd->status.hair_color > MAX_HAIR_COLOR )
-	{
+	if( sd->status.hair_color < MIN_HAIR_COLOR || sd->status.hair_color > MAX_HAIR_COLOR ) {
 		sd->status.hair_color = MIN_HAIR_COLOR;
 	}
-	if( sd->status.clothes_color < MIN_CLOTH_COLOR || sd->status.clothes_color > MAX_CLOTH_COLOR )
-	{
+	if( sd->status.clothes_color < MIN_CLOTH_COLOR || sd->status.clothes_color > MAX_CLOTH_COLOR ) {
 		sd->status.clothes_color = MIN_CLOTH_COLOR;
 	}
 
@@ -1118,8 +1112,7 @@ int pc_set_hate_mob(struct map_session_data *sd, int pos, struct block_list *bl)
 	int class_;
 	if (!sd || !bl || pos < 0 || pos > 2)
 		return 0;
-	if (sd->hate_mob[pos] != -1)
-	{	//Can't change hate targets.
+	if (sd->hate_mob[pos] != -1) { //Can't change hate targets.
 		clif_hate_info(sd, pos, sd->hate_mob[pos], 0); //Display current
 		return 0;
 	}
@@ -1163,8 +1156,7 @@ int pc_reg_received(struct map_session_data *sd)
 	}
 
 	//SG map and mob read [Komurka]
-	for(i=0;i<MAX_PC_FEELHATE;i++) //for now - someone need to make reading from txt/sql
-	{
+	for(i=0;i<MAX_PC_FEELHATE;i++) { //for now - someone need to make reading from txt/sql
 		if ((j = pc_readglobalreg(sd,sg_info[i].feel_var))!=0) {
 			sd->feel_map[i].index = j;
 			sd->feel_map[i].m = map_mapindex2mapid(j);
@@ -1204,7 +1196,7 @@ int pc_reg_received(struct map_session_data *sd)
 		party_member_joined(sd);
 	if (sd->status.guild_id)
 		guild_member_joined(sd);
-	
+
 	// pet
 	if (sd->status.pet_id > 0)
 		intif_request_petdata(sd->status.account_id, sd->status.char_id, sd->status.pet_id);
@@ -1216,12 +1208,12 @@ int pc_reg_received(struct map_session_data *sd)
 		intif_mercenary_request(sd->status.mer_id, sd->status.char_id);
 	if( sd->status.ele_id > 0 )
 		intif_elemental_request(sd->status.ele_id, sd->status.char_id);
-	
+
 	map_addiddb(&sd->bl);
 	map_delnickdb(sd->status.char_id, sd->status.name);
 	if (!chrif_auth_finished(sd))
 		ShowError("pc_reg_received: Failed to properly remove player %d:%d from logging db!\n", sd->status.account_id, sd->status.char_id);
-		
+
 	pc_load_combo(sd);
 
 	status_calc_pc(sd,1);
@@ -1230,8 +1222,7 @@ int pc_reg_received(struct map_session_data *sd)
 	intif_Mail_requestinbox(sd->status.char_id, 0); // MAIL SYSTEM - Request Mail Inbox
 	intif_request_questlog(sd);
 
-	if (sd->state.connect_new == 0 && sd->fd)
-	{	//Character already loaded map! Gotta trigger LoadEndAck manually.
+	if (sd->state.connect_new == 0 && sd->fd) { //Character already loaded map! Gotta trigger LoadEndAck manually.
 		sd->state.connect_new = 1;
 		clif_parse_LoadEndAck(sd->fd, sd);
 	}
@@ -1361,8 +1352,7 @@ int pc_calc_skilltree(struct map_session_data *sd)
 
 	do {
 		flag = 0;
-		for( i = 0; i < MAX_SKILL_TREE && (id = skill_tree[c][i].id) > 0; i++ )
-		{
+		for( i = 0; i < MAX_SKILL_TREE && (id = skill_tree[c][i].id) > 0; i++ ) {
 			int f;
 			if( sd->status.skill[id].id )
 				continue; //Skill already known.
@@ -1372,17 +1362,14 @@ int pc_calc_skilltree(struct map_session_data *sd)
 				int j;
 				for(j = 0; j < MAX_PC_SKILL_REQUIRE; j++) {
 					int k;
-					if((k=skill_tree[c][i].need[j].id))
-					{
+					if((k=skill_tree[c][i].need[j].id)) {
 						if (sd->status.skill[k].id == 0 || sd->status.skill[k].flag == SKILL_FLAG_TEMPORARY || sd->status.skill[k].flag == SKILL_FLAG_PLAGIARIZED)
 							k = 0; //Not learned.
-						else
-						if (sd->status.skill[k].flag >= SKILL_FLAG_REPLACED_LV_0) //Real lerned level
+						else if (sd->status.skill[k].flag >= SKILL_FLAG_REPLACED_LV_0) //Real lerned level
 							k = sd->status.skill[skill_tree[c][i].need[j].id].flag - SKILL_FLAG_REPLACED_LV_0;
 						else
 							k = pc_checkskill(sd,k);
-						if (k < skill_tree[c][i].need[j].lv)
-						{
+						if (k < skill_tree[c][i].need[j].lv) {
 							f = 0;
 							break;
 						}
@@ -1423,18 +1410,14 @@ int pc_calc_skilltree(struct map_session_data *sd)
 		- (c > 0) to avoid grant Novice Skill Tree in case of Skill Reset (need more logic)
 		- (sd->status.skill_point == 0) to wait until all skill points are asigned to avoid problems with Job Change quest. */
 
-		for( i = 0; i < MAX_SKILL_TREE && (id = skill_tree[c][i].id) > 0; i++ )
-		{
+		for( i = 0; i < MAX_SKILL_TREE && (id = skill_tree[c][i].id) > 0; i++ ) {
 			if( (skill_get_inf2(id)&(INF2_QUEST_SKILL|INF2_WEDDING_SKILL)) )
 				continue; //Do not include Quest/Wedding skills.
 
-			if( sd->status.skill[id].id == 0 )
-			{
+			if( sd->status.skill[id].id == 0 ) {
 				sd->status.skill[id].id = id;
 				sd->status.skill[id].flag = SKILL_FLAG_TEMPORARY; // So it is not saved, and tagged as a "bonus" skill.
-			}
-			else
-			{
+			} else if( id != NV_BASIC) {
 				sd->status.skill[id].flag = SKILL_FLAG_REPLACED_LV_0 + sd->status.skill[id].lv; // Remember original level
 			}
 
