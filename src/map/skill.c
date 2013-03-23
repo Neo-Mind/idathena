@@ -2244,7 +2244,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	struct status_data *sstatus, *tstatus;
 	struct status_change *sc;
 	struct map_session_data *sd, *tsd;
-	struct skill_unit *unit;
+	struct skill_unit *unit = NULL;
 	int type,damage,rdamage=0;
 	int8 rmdamage=0;//magic reflected
 	bool additional_effects = true;
@@ -6964,7 +6964,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case HT_SPRINGTRAP:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			{
-				struct skill_unit *su=NULL;
+				struct skill_unit *su = NULL;
 				if((bl->type==BL_SKILL) && (su=(struct skill_unit *)bl) && (su->group) ) {
 					switch(su->group->unit_id){
 						case UNT_ANKLESNARE:	// ankle snare
