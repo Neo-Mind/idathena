@@ -2247,6 +2247,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	int type,damage,rdamage=0;
 	int8 rmdamage=0;//magic reflected
 	bool additional_effects = true;
+	uint16 g_skill_id;
 
 	if(skill_id > 0 && !skill_lv) return 0;
 
@@ -2264,12 +2265,14 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			return 0;
 	}
 
+	g_skill_id = unit->group->skill_id;
+
 	sd = BL_CAST(BL_PC, src);
 	tsd = BL_CAST(BL_PC, bl);
 
 	sstatus = status_get_status_data(src);
 	tstatus = status_get_status_data(bl);
-	sc= status_get_sc(bl);
+	sc = status_get_sc(bl);
 	if (sc && !sc->count) sc = NULL; //Don't need it.
 
 	// Is this check really needed? FrostNova won't hurt you if you step right where the caster is?
@@ -2355,9 +2358,9 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		damage = 1;
 
 	if( damage > 0 && (( dmg.flag&BF_WEAPON && src != bl && ( src == dsrc || ( dsrc->type == BL_SKILL && ( skill_id == SG_SUN_WARM || skill_id == SG_MOON_WARM || skill_id == SG_STAR_WARM ) ) ))
-			|| (sc && sc->data[SC_REFLECTDAMAGE])) )
+			|| (sc && sc->data[SC_REFLECTDAMAGE] && !(skill_get_inf2(g_skill_id)&INF2_TRAP))) )
 		rdamage = battle_calc_return_damage(bl,src, &damage, dmg.flag, skill_id);
-		
+
 	if( damage && sc && sc->data[SC_GENSOU] && dmg.flag&BF_MAGIC ) {
 		struct block_list *nbl;
 		nbl = battle_getenemyarea(bl,bl->x,bl->y,2,BL_CHAR,bl->id);
@@ -2568,7 +2571,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	default:
 		if( flag&SD_ANIMATION && dmg.div_ < 2 ) //Disabling skill animation doesn't works on multi-hit.
 			type = 5;
-		if( bl->type == BL_SKILL ){
+		if( bl->type == BL_SKILL ) {
 			TBL_SKILL *su = (TBL_SKILL*)bl;
 			if( su->group && skill_get_inf2(su->group->skill_id)&INF2_TRAP )// show damage on trap targets
 				clif_skill_damage(src,bl,tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, flag&SD_LEVEL?-1:skill_lv, 5);
