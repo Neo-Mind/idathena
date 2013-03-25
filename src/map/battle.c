@@ -449,13 +449,10 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 					damage = damage * cardfix / 1000;
 			}
 
-			if( tsd && !(nk&NK_NO_CARDFIX_DEF) )
-			{ // Target cards.
-				if (!(nk&NK_NO_ELEFIX))
-				{
+			if( tsd && !(nk&NK_NO_CARDFIX_DEF) ) { // Target cards.
+				if (!(nk&NK_NO_ELEFIX)) {
 					int ele_fix = tsd->subele[s_ele];
-					for (i = 0; ARRAYLENGTH(tsd->subele2) > i && tsd->subele2[i].rate != 0; i++)
-					{
+					for (i = 0; ARRAYLENGTH(tsd->subele2) > i && tsd->subele2[i].rate != 0; i++) {
 						if(tsd->subele2[i].ele != s_ele) continue;
 						if(!(tsd->subele2[i].flag&flag&BF_WEAPONMASK &&
 							 tsd->subele2[i].flag&flag&BF_RANGEMASK &&
@@ -5468,7 +5465,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				state |= BCT_ENEMY;
 			break;
 	} //end switch on src master
-	
+
 	if( (flag&BCT_ALL) == BCT_ALL ) { //All actually stands for all attackable chars
 		if( target->type&BL_CHAR )
 			return 1;
@@ -5477,14 +5474,14 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	}
 	if( flag == BCT_NOONE ) //Why would someone use this? no clue.
 		return -1;
-	
+
 	if( t_bl == s_bl ) { //No need for further testing.
 		state |= BCT_SELF|BCT_PARTY|BCT_GUILD;
 		if( state&BCT_ENEMY && strip_enemy )
 			state&=~BCT_ENEMY;
 		return (flag&state)?1:-1;
 	}
-	
+
 	if( map_flag_vs(m) ) { //Check rivalry settings.
 		int sbg_id = 0, tbg_id = 0;
 		if( map[m].flag.battleground ) {
@@ -5535,7 +5532,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				state |= BCT_GUILD;
 		}
 	} //end non pvp/gvg chk rivality
-	
+
 	if( !state ) //If not an enemy, nor a guild, nor party, nor yourself, it's neutral.
 		state = BCT_NEUTRAL;
 	//Alliance state takes precedence over enemy one.
@@ -6116,8 +6113,7 @@ int battle_set_value(const char* w1, const char* w2)
 	if (i == ARRAYLENGTH(battle_data))
 		return 0; // not found
 
-	if (val < battle_data[i].min || val > battle_data[i].max)
-	{
+	if (val < battle_data[i].min || val > battle_data[i].max) {
 		ShowWarning("Value for setting '%s': %s is invalid (min:%i max:%i)! Defaulting to %i...\n", w1, w2, battle_data[i].min, battle_data[i].max, battle_data[i].defval);
 		val = battle_data[i].defval;
 	}
@@ -6198,19 +6194,17 @@ int battle_config_read(const char* cfgName)
 	fp = fopen(cfgName,"r");
 	if (fp == NULL)
 		ShowError("File not found: %s\n", cfgName);
-	else
-	{
+	else {
 		char line[1024], w1[1024], w2[1024];
-		while(fgets(line, sizeof(line), fp))
-		{
+		while(fgets(line, sizeof(line), fp)) {
 			if (line[0] == '/' && line[1] == '/')
 				continue;
 			if (sscanf(line, "%1023[^:]:%1023s", w1, w2) != 2)
 				continue;
 			if (strcmpi(w1, "import") == 0)
 				battle_config_read(w2);
-			else
-			if (battle_set_value(w1, w2) == 0)
+			else if
+				(battle_set_value(w1, w2) == 0)
 				ShowWarning("Unknown setting '%s' in file %s\n", w1, cfgName);
 		}
 

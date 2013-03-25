@@ -679,6 +679,7 @@ int skillnotok_hom(uint16 skill_id, struct homun_data *hd)
 		case MH_ANGRIFFS_MODUS:
 			if(hd->sc.data[SC_GOLDENE_FERSE])
 				return 1;
+			break;
 		case MH_TINDER_BREAKER:
 		case MH_CBC:
 		case MH_EQC:
@@ -2266,8 +2267,6 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			return 0;
 	}
 
-	g_skill_id = unit->group->skill_id;
-
 	sd = BL_CAST(BL_PC, src);
 	tsd = BL_CAST(BL_PC, bl);
 
@@ -2352,6 +2351,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	}
 
 	damage = dmg.damage + dmg.damage2;
+	g_skill_id = unit->group->skill_id;
 
 	if( (skill_id == AL_INCAGI || skill_id == AL_BLESSING ||
 		skill_id == CASH_BLESSING || skill_id == CASH_INCAGI ||
@@ -10088,9 +10088,6 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			map_foreachinarea(skill_area_sub, src->m, x-i,y-i, x+i, y+i, splash_target(src),
 				src, skill_id, skill_lv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
 			break;
-		/**
-		 * Guilotine Cross
-		 **/
 		case GC_POISONSMOKE:
 			if( !(sc && sc->data[SC_POISONINGWEAPON]) ) {
 				if( sd )
@@ -10101,18 +10098,12 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			skill_unitsetting(src, skill_id, skill_lv, x, y, flag);
 			//status_change_end(src,SC_POISONINGWEAPON,INVALID_TIMER); // 08/31/2011 - When using poison smoke, you no longer lose the poisoning weapon effect.
 			break;
-		/**
-		 * Arch Bishop
-		 **/
 		case AB_EPICLESIS:
 			if( (sg = skill_unitsetting(src, skill_id, skill_lv, x, y, 0)) ) {
 				i = sg->unit->range;
 				map_foreachinarea(skill_area_sub, src->m, x - i, y - i, x + i, y + i, BL_CHAR, src, ALL_RESURRECTION, 1, tick, flag|BCT_NOENEMY|1,skill_castend_nodamage_id);
 			}
 			break;
-		/**
-		 * Warlock
-		 **/
 		case WL_COMET:
 			if( sc ) {
 				sc->comet_x = x;
@@ -10139,17 +10130,11 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 				}
 			}
 			break;
-		/**
-		 * Ranger
-		 **/
 		case RA_DETONATOR:
 			i = skill_get_splash(skill_id, skill_lv);
 			map_foreachinarea(skill_detonator, src->m, x-i, y-i, x+i, y+i, BL_SKILL, src);
 			clif_skill_damage(src, src, tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
 			break;
-		/**
-		 * Mechanic
-		 **/
 		case NC_NEUTRALBARRIER:
 		case NC_STEALTHFIELD:
 			skill_clear_unitgroup(src); // To remove previous skills - cannot used combined
@@ -12328,12 +12313,12 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 				return 1;
 			}
 			case AB_ADORAMUS:
-			// Adoramus does not consume Blue Gemstone when there is at least 1 Priest class next to the caster
+				// Adoramus does not consume Blue Gemstone when there is at least 1 Priest class next to the caster
 				if( (tsd->class_&MAPID_UPPERMASK) == MAPID_PRIEST )
 					p_sd[(*c)++] = tsd->bl.id;
 				return 1;
 			case WL_COMET:
-			// Comet does not consume Red Gemstones when there is at least 1 Warlock class next to the caster
+				// Comet does not consume Red Gemstones when there is at least 1 Warlock class next to the caster
 				if( ( sd->class_&MAPID_THIRDMASK ) == MAPID_WARLOCK )
 					p_sd[(*c)++] = tsd->bl.id;
 				return 1;
@@ -12342,8 +12327,7 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 					tsd->sc.data[SC_BANDING] )
 					p_sd[(*c)++] = tsd->bl.id;
 				return 1;
-			default: //Warning: Assuming Ensemble Dance/Songs for code speed. [Skotlex]
-				{
+			default: { //Warning: Assuming Ensemble Dance/Songs for code speed. [Skotlex]
 					uint16 skill_lv;
 					if(pc_issit(tsd) || !unit_can_move(&tsd->bl))
 						return 0;
@@ -12858,9 +12842,6 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 				return 0;
 			}
 			break;
-		/**
-		 * Arch Bishop
-		 **/
 		case AB_ANCILLA: {
 				int count = 0;
 				for( i = 0; i < MAX_INVENTORY; i ++ )
@@ -12885,9 +12866,6 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 		//	break;
 
 		case AB_ADORAMUS:
-		/**
-		 * Warlock
-		 **/
 		case WL_COMET:
 			if( skill_check_pc_partner(sd,skill_id,&skill_lv,1,0) <= 0 && ((i = pc_search_inventory(sd,require.itemid[0])) < 0 || sd->status.inventory[i].amount < require.amount[0]) )
 			{
@@ -12908,9 +12886,6 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 				}
 			}
 			break;
-		/**
-		 * Guilotine Cross
-		 **/
 		case GC_HALLUCINATIONWALK:
 			if( sc && (sc->data[SC_HALLUCINATIONWALK] || sc->data[SC_HALLUCINATIONWALK_POSTDELAY]) ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -12924,9 +12899,6 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 				return 0;
 			}
 			break;
-		/**
-		 * Ranger
-		 **/
 		case RA_WUGMASTERY:
 			if( pc_isfalcon(sd) || pc_isridingwug(sd) || ( sc && sc->data[SC__GROOMY] ) ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -12951,9 +12923,6 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 				return 0;
 			}
 			break;
-		/**
-		 * Royal Guard
-		 **/
 		case LG_BANDING:
 			if( sc && sc->data[SC_INSPIRATION] ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -16635,7 +16604,6 @@ int skill_magicdecoy(struct map_session_data *sd, int nameid) {
 	sd->menuskill_val = 0;
 
 	class_ = (nameid == 6360 || nameid == 6361) ? 2043 + nameid - 6360 : (nameid == 6362) ? 2046 : 2045;
-
 
 	md =  mob_once_spawn_sub(&sd->bl, sd->bl.m, x, y, sd->status.name, class_, "", SZ_SMALL, AI_NONE);
 	if( md ) {
