@@ -4307,9 +4307,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case WL_RELEASE:
 			if( sd ) {
 				int i;
-				if (sc && sc->data[SC_MAGICPOWER]) {
-					status_change_end(src, SC_MAGICPOWER, INVALID_TIMER);
-				}
 				// Priority is to release SpellBook
 				if( sc && sc->data[SC_READING_SB] ) { // SpellBook
 					uint16 skill_id, skill_lv, point, s = 0;
@@ -4338,6 +4335,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
 					if( !skill_check_condition_castbegin(sd, skill_id, skill_lv) )
 						break;
+
+					skill_toggle_magicpower(src, skill_id);
 
 					switch( skill_get_casttype(skill_id) ) {
 						case CAST_GROUND:
