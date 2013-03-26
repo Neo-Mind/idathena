@@ -3229,9 +3229,11 @@ int status_calc_homunculus_(struct homun_data *hd, bool first)
 	if((skill = merc_hom_checkskill(hd,HLIF_BRAIN)) > 0)
 		status->max_sp += (1 +skill/2 -skill/4 +skill/5) * status->max_sp / 100 ;
 
-	if (first) {
+	if(first) {
 		hd->battle_status.hp = hom->hp ;
 		hd->battle_status.sp = hom->sp ;
+		if(hom->class_ == 6052) //eleanor
+			sc_start(&hd->bl, SC_STYLE_CHANGE, 100, MH_MD_FIGHTING, INVALID_TIMER);
 	}
 
 	status->rhw.atk = status->dex;
