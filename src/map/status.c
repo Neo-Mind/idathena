@@ -4860,7 +4860,6 @@ static signed short status_calc_flee(struct block_list *bl, struct status_change
 		flee -= flee * sc->data[SC_ASH]->val4 / 100;
 	if( sc->data[SC_GOLDENE_FERSE] )
 		flee += flee * sc->data[SC_GOLDENE_FERSE]->val2 / 100;
-	}
 
 	return (short)cap_value(flee,1,SHRT_MAX);
 }
