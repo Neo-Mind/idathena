@@ -4953,7 +4953,9 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 	if(sc->data[SC_POWER_OF_GAIA])
 		def += def * sc->data[SC_POWER_OF_GAIA]->val2 / 100;
 	if(sc->data[SC_ASH])
-		def2 -= def2 * sc->data[SC_ASH]->val3 / 100;
+		def -= def * sc->data[SC_ASH]->val3 / 100;
+	if(sc->data[SC_OVERED_BOOST])
+		def -= def * sc->data[SC_OVERED_BOOST]->val3 / 100;
 
 	return (defType)cap_value(def,DEFTYPE_MIN,DEFTYPE_MAX);;
 }
@@ -5003,11 +5005,8 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 		def2 -= def2 * 10 / 10;
 	if(sc->data[SC_ANALYZE])
 		def2 -= def2 * ( 14 * sc->data[SC_ANALYZE]->val1 ) / 100;
-
-	if(sc->data[SC_ASH] && (bl->type==BL_MOB)) {
-		if(status_get_race(bl)==RC_PLANT)
-			def2 /= 2;
-	}
+	if(sc->data[SC_ASH])
+		def2 -= def2 * sc->data[SC_ASH]->val3 / 100;
 	if(sc->data[SC_PARALYSIS])
 		def2 -= def2 * sc->data[SC_PARALYSIS]->val2 / 100;
 	if(sc->data[SC_EQC])
