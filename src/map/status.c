@@ -10902,6 +10902,7 @@ int status_change_clear_buffs (struct block_list* bl, int type)
 			case SC_EXPBOOST:
 			case SC_JEXPBOOST:
 			case SC_ITEMBOOST:
+			case SC_PUSH_CART:
 			case SC_ELECTRICSHOCKER:
 			case SC__MANHOLE:
 			case SC_MILLENNIUMSHIELD:
