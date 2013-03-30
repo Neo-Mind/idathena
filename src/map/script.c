@@ -7323,10 +7323,10 @@ BUILDIN_FUNC(strnpcinfo)
 
 
 // aegis->athena slot position conversion table
-static unsigned int equip[] = {EQP_HEAD_TOP,EQP_ARMOR,EQP_HAND_L,EQP_HAND_R,EQP_GARMENT,EQP_SHOES,EQP_ACC_L,EQP_ACC_R,EQP_HEAD_MID,EQP_HEAD_LOW,EQP_COSTUME_HEAD_LOW,EQP_COSTUME_HEAD_MID,EQP_COSTUME_HEAD_TOP};
+static unsigned int equip[] = {EQP_HEAD_TOP,EQP_ARMOR,EQP_HAND_L,EQP_HAND_R,EQP_GARMENT,EQP_SHOES,EQP_ACC_L,EQP_ACC_R,EQP_HEAD_MID,EQP_HEAD_LOW,EQP_COSTUME_HEAD_LOW,EQP_COSTUME_HEAD_MID,EQP_COSTUME_HEAD_TOP,EQP_COSTUME_GARMENT};
 
 /*==========================================
- * GetEquipID(Pos);     Pos: 1-13
+ * GetEquipID(Pos);     Pos: 1-14
  *------------------------------------------*/
 BUILDIN_FUNC(getequipid)
 {
@@ -10103,31 +10103,84 @@ BUILDIN_FUNC(homunculus_evolution)
 }
 
 /*==========================================
- * [Xantara]
+ * Checks for vaporized morph state
+ * and deletes ITEMID_STRANGE_EMBRYO.
  *------------------------------------------*/
 BUILDIN_FUNC(homunculus_mutate)
 {
-	int homun_id, m_class, m_id;
+	int homun_id, m_class, m_id, i;
 	TBL_PC *sd;
 
 	sd = script_rid2sd(st);
 	if( sd == NULL )
 		return 0;
 
-	if(script_hasdata(st,2))
+	if( script_hasdata(st,2) )
 		homun_id = script_getnum(st,2);
 	else
 		homun_id = 6048 + (rnd() % 4);
 
-	if(merc_is_hom_active(sd->hd)) {
+	if( sd->hd->homunculus.vaporize == HOM_ST_MORPH ) {
 		m_class = hom_class2mapid(sd->hd->homunculus.class_);
 		m_id    = hom_class2mapid(homun_id);
 		
-		if ( m_class != -1 && m_id != -1 && m_class&HOM_EVO && m_id&HOM_S && sd->hd->homunculus.level >= 99 )
+		i = pc_search_inventory(sd, ITEMID_STRANGE_EMBRYO);
+
+		if ( m_class != -1 && m_id != -1 && m_class&HOM_EVO && m_id&HOM_S && sd->hd->homunculus.level >= 99 && i >= 0 ) {
+			sd->hd->homunculus.vaporize = HOM_ST_REST; // Remove morph st
+			merc_call_homunculus(sd); // Respawn homunculus.
 			hom_mutate(sd->hd, homun_id);
-		else
+			pc_delitem(sd, i, 1, 0, 0, LOG_TYPE_SCRIPT);
+			script_pushint(st, 1);
+			return 0;
+			
+		} else
 			clif_emotion(&sd->hd->bl, E_SWT);
-	}
+	} else
+		clif_emotion(&sd->bl, E_SWT);
+
+	script_pushint(st, 0);
+
+	return 0;
+}
+
+/*==========================================
+ * Puts homunculus into morph state
+ * and gives ITEMID_STRANGE_EMBRYO.
+ *------------------------------------------*/
+BUILDIN_FUNC(morphembryo)
+{
+	struct item item_tmp;
+	int m_class, i=0;
+	TBL_PC *sd;
+
+	sd = script_rid2sd(st);
+	if( sd == NULL )
+		return 0;
+
+	if( merc_is_hom_active(sd->hd) ) {
+		m_class = hom_class2mapid(sd->hd->homunculus.class_);
+
+		if ( m_class != -1 && m_class&HOM_EVO && sd->hd->homunculus.level >= 99 ) {
+			memset(&item_tmp, 0, sizeof(item_tmp));
+			item_tmp.nameid = ITEMID_STRANGE_EMBRYO;
+			item_tmp.identify = 1;
+
+			if( item_tmp.nameid==0 || (i = pc_additem(sd, &item_tmp, 1, LOG_TYPE_SCRIPT)) ) {
+				clif_additem(sd, 0, 0, i);
+				clif_emotion(&sd->bl, E_SWT); // Fail to avoid item drop exploit.
+			} else {
+				merc_hom_vaporize(sd, HOM_ST_MORPH);
+				script_pushint(st, 1);
+				return 0;
+			}
+		} else
+			clif_emotion(&sd->hd->bl, E_SWT);
+	} else
+		clif_emotion(&sd->bl, E_SWT);
+
+	script_pushint(st, 0);
+
 	return 0;
 }
 
@@ -10142,6 +10195,32 @@ BUILDIN_FUNC(homunculus_shuffle)
 
 	if(merc_is_hom_active(sd->hd))
 		merc_hom_shuffle(sd->hd);
+
+	return 0;
+}
+
+/*==========================================
+ * Check for homunculus state.
+ * Return:
+ *	-1 = No homunculus
+ *	 0 = Homunculus is active
+ *	 1 = Homunculus is vaporized (rest)
+ *	 2 = Homunculus is in morph state
+ *------------------------------------------*/
+BUILDIN_FUNC(checkhomcall)
+{
+	TBL_PC *sd = script_rid2sd(st);
+	TBL_HOM *hd;
+
+	if( sd == NULL )
+		return 0;
+
+	hd = sd->hd;
+
+	if( !hd )
+		script_pushint(st, -1);
+	else
+		script_pushint(st, hd->homunculus.vaporize);
 
 	return 0;
 }
@@ -12681,8 +12760,7 @@ BUILDIN_FUNC(gethominfo)
 	int type=script_getnum(st,2);
 
 	hd = sd?sd->hd:NULL;
-	if(!merc_is_hom_active(hd))
-	{
+	if(!hd) {
 		if (type == 2)
 			script_pushconststr(st,"null");
 		else
@@ -12927,26 +13005,27 @@ BUILDIN_FUNC(npcstop)
  *------------------------------------------*/
 BUILDIN_FUNC(getlook)
 {
-        int type,val;
-        TBL_PC *sd;
-        sd=script_rid2sd(st);
+	int type,val;
+	TBL_PC *sd;
+	sd=script_rid2sd(st);
 
-        type=script_getnum(st,2);
-        val=-1;
-        switch(type) {
-        case LOOK_HAIR: val=sd->status.hair; break; //1
-        case LOOK_WEAPON: val=sd->status.weapon; break; //2
-        case LOOK_HEAD_BOTTOM: val=sd->status.head_bottom; break; //3
-        case LOOK_HEAD_TOP: val=sd->status.head_top; break; //4
-        case LOOK_HEAD_MID: val=sd->status.head_mid; break; //5
-        case LOOK_HAIR_COLOR: val=sd->status.hair_color; break; //6
-        case LOOK_CLOTHES_COLOR: val=sd->status.clothes_color; break; //7
-        case LOOK_SHIELD: val=sd->status.shield; break; //8
-        case LOOK_SHOES: break; //9
-        }
+	type=script_getnum(st,2);
+	val=-1;
+	switch(type) {
+		case LOOK_HAIR:     	val=sd->status.hair; break; //1
+		case LOOK_WEAPON:   	val=sd->status.weapon; break; //2
+		case LOOK_HEAD_BOTTOM:	val=sd->status.head_bottom; break; //3
+		case LOOK_HEAD_TOP: 	val=sd->status.head_top; break; //4
+		case LOOK_HEAD_MID: 	val=sd->status.head_mid; break; //5
+		case LOOK_HAIR_COLOR:	val=sd->status.hair_color; break; //6
+		case LOOK_CLOTHES_COLOR:	val=sd->status.clothes_color; break; //7
+		case LOOK_SHIELD:   	val=sd->status.shield; break; //8
+		case LOOK_SHOES:    	break; //9
+		case LOOK_ROBE:     	val=sd->status.robe; break; //12
+	}
 
-        script_pushint(st,val);
-        return 0;
+	script_pushint(st,val);
+	return 0;
 }
 
 /*==========================================
@@ -17758,7 +17837,9 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(warpportal,"iisii"),
 	BUILDIN_DEF2(homunculus_evolution,"homevolution",""),	//[orn]
 	BUILDIN_DEF2(homunculus_mutate,"hommutate","?"),
+	BUILDIN_DEF(morphembryo,""),
 	BUILDIN_DEF2(homunculus_shuffle,"homshuffle",""),	//[Zephyrus]
+	BUILDIN_DEF(checkhomcall,""),
 	BUILDIN_DEF(eaclass,"?"),	//[Skotlex]
 	BUILDIN_DEF(roclass,"i?"),	//[Skotlex]
 	BUILDIN_DEF(checkvending,"?"),

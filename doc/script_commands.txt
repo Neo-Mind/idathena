@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Current Version: =====================================
-//= $Revision: 17204 $
+//= $Revision: 17221 $
 //===== Last Updated: ========================================
-//= $LastChangedDate: 2013-03-21 14:16:39 +0700 (Thu, 21 Mar 2013) $
+//= $LastChangedDate: 2013-03-29 12:20:53 +0700 (Fri, 29 Mar 2013) $
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -428,16 +428,13 @@ temporary - They cease to exist when the server resets.
 
 Prefix: scope and extent
 nothing  - A permanent variable attached to the character, the default variable
-           type. They are stored with all the account data in "save\athena.txt"
-           in TXT versions and in the SQL versions in the `global_reg_value`
-           table using type 3.
+           type. They are stored in the `global_reg_value` table using type 3.
 "@"      - A temporary variable attached to the character.
            SVN versions before 2094 revision and RC5 version will also treat
            'l' as a temporary variable prefix, so beware of having variable
            names starting with 'l' if you want full backward compatibility.
 "$"      - A global permanent variable.
-           They are stored in "save\mapreg.txt" or database table `mapreg`,
-           depending on server type.
+           They are stored in database table `mapreg`.
 "$@"     - A global temporary variable.
            This is important for scripts which are called with no RID
            attached, that is, not triggered by a specific character object.
@@ -457,16 +454,13 @@ nothing  - A permanent variable attached to the character, the default variable
            These are used with the instancing system, and are unique to each 
            party's instance.
 "#"      - A permanent local account variable.
-           They are stored with all the account data in "save\accreg.txt" in
-           TXT versions and in the SQL versions in the 'global_reg_value'
-           table using type 2.
+           They are stored in the `global_reg_value` table using type 2.
 "##"     - A permanent global account variable stored by the login server.
-           They are stored in "save\account.txt" and in the SQL versions in the
-           'global_reg_value' table, using type 1. The only difference you will
-           note from normal # variables is when you have multiple char-servers
-           connected to the same login server. The # variables are unique to
-           each char-server, while the ## variables are shared by all these
-           char-servers.
+           They are stored in the `global_reg_value` table using type 1.
+           The only difference you will note from normal # variables is when
+           you have multiple char-servers connected to the same login server.
+           The # variables are unique to each char-server, while the ## variables
+           are shared by all these char-servers.
 
 Postfix: integer or string
 nothing - integer variable, can store positive and negative numbers, but only 
@@ -2468,6 +2462,7 @@ EQI_HEAD_LOW (10)         - Lower Headgear (beards, some masks)
 EQI_COSTUME_HEAD_LOW (11) - Lower Costume Headgear
 EQI_COSTUME_HEAD_MID (12) - Middle Costume Headgear
 EQI_COSTUME_HEAD_TOP (13) - Upper Costume Headgear
+EQI_COSTUME_GARMENT (14) - Costume Garment
 
 Notice that a few items occupy several equipment slots, and if the character is 
 wearing such an item, 'getequipid' will return it's ID number for either slot.
@@ -4568,9 +4563,9 @@ since jAthena, so probably nobody knows for sure why is it so.
 
 *downrefitem <equipment slot>;
 
-This command will downgrade an item by - 1 in the specified equipment slot of the 
-invoking character. So the item will not be destroyed unlike in the failedrefitem script command.
-This will also display a 'refine failure' effect on the character and put appropriate
+This command will downgrade an item in the specified equipment slot of the invoking
+character by -1. For a list of equipment slots see 'getequipid'. This command will
+also display a 'refine failure' effect on the character and put appropriate
 messages into their chat window.
 
 The official scripts seems to use the 'downrefitem' command as a function 
@@ -7359,20 +7354,20 @@ If parameter "HUNTING" is supplied:
 *showevent <state>, <color>;
 
 Show a colored mark in the mini-map like "viewpoint" and an emotion on top of a NPC.
-This is used to indicate that a NPC has a quest or an event to certain player/s.
+This is used to indicate that a NPC has a quest or an event to certain players.
 
 state can be:
-	0 = disable ( Used to disable and remove the mark and the emotion from the NPC. )
-	1 = exclamation emotion ( Used to show an important quest event to certain player. )
-	2 = interrogation emotion ( Used to show an non-important quest event to certain player. )
-	Other value may cause client crashes.
+	0 = disable (Used to disable and remove the mark and the emotion from the NPC.)
+	1 = exclamation emotion (Used to show an important quest event to certain player.)
+	2 = interrogation emotion (Used to show an non-important quest event to certain player.)
+	Other values may cause client crashes.
 
 color can be:
 	0 = yellow "Quest"
 	1 = orange "Job"
 	2 = green "Event"
 	3 = an MVP flag
-	other values show a transparent mark in the mini-map.
+	Other values show a transparent mark in the mini-map.
 
 ---------------------------------------
 
@@ -7696,23 +7691,56 @@ the homunculus must have above 91000 intimacy with its owner.
 
 ---------------------------------------
 
+*morphembryo;
+
+This command will try to put the invoking player's Homunculus in an
+uncallable state, required for mutation into a Homunculus S. The player
+will also receive a Strange Embryo (ID 6415) in their inventory if
+successful, which is deleted upon mutation.
+
+The command will fail if the invoking player does not have an evolved
+Homunculus at level 99 or above. The /swt emotion is shown upon failure.
+
+Returns 1 upon success and 0 for all failures.
+
+---------------------------------------
+
 *hommutate {<ID>};
 
-This command will try to evolve the current player's homunculus into the
-new Homunculus S. If it doesn't work, the /swt emotion is shown.
+This command will try to mutate the invoking player's Homunculus into
+a Homunculus S. The Strange Embryo (ID 6415) is deleted upon success.
 
-To mutate a homunculus, the invoking player must have an evolved
-homunculus and it must be at least level 99.
+The command will fail if the invoking player does not have an evolved
+Homunculus at level 99 or above, if it is not in the embryo state
+(from the 'morphembryo' command), or if the invoking player does not
+possess a Strange Embryo. The /swt emotion is shown upon failure.
 
-If the optional parameter <ID> is set, the invoking player's homunculus will
-change into the given homunculus ID. Otherwise, a random Homunculus S
-will be chosen.
+If the optional parameter <ID> is set, the invoking player's Homunculus
+will change into the specified Homunculus ID. Otherwise, a random Homunculus S
+will be chosen. See 'db/homunculus_db.txt' for a full list of IDs.
+
+Returns 1 upon success and 0 for all failures.
+
+---------------------------------------
+
+*checkhomcall()
+
+This function checks if the attached player's Homunculus is active,
+and will return the following values:
+ -1: The player has no Homunculus.
+  0: The player's Homunculus is active.
+  1: The player's Homunculus is vaporized.
+  2: The player's Homunculus is in morph state.
 
 ---------------------------------------
 
 *gethominfo(<type>)
 
-This function works as a direct counterpart of 'getpetinfo':
+This function will return Homunculus information for the Homunculus of the
+invoking character, regardless of its vaporize state. It returns zero or
+"null" if the player does not own a Homunculus.
+
+Valid types are:
  0 - Homunculus unique ID
  1 - Homunculus Class
  2 - Name

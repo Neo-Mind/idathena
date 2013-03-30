@@ -2121,19 +2121,18 @@ int intif_parse_elemental_saved(int fd)
 	return 0;
 }
 
-void intif_request_accinfo( int u_fd, int aid, int group_id, char* query ) {
-
+void intif_request_accinfo( int u_fd, int aid, int group_lv, char* query ) {
 
 	WFIFOHEAD(inter_fd,2 + 4 + 4 + 4 + NAME_LENGTH);
-	
+
 	WFIFOW(inter_fd,0) = 0x3007;
 	WFIFOL(inter_fd,2) = u_fd;
 	WFIFOL(inter_fd,6) = aid;
-	WFIFOL(inter_fd,10) = group_id;
+	WFIFOL(inter_fd,10) = group_lv;
 	safestrncpy((char *)WFIFOP(inter_fd,14), query, NAME_LENGTH);
-	
+
 	WFIFOSET(inter_fd,2 + 4 + 4 + 4 + NAME_LENGTH);
-	
+
 	return;
 }
 	

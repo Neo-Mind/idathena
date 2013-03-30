@@ -969,9 +969,9 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 
 		case SM_BASH:
 			if( sd && skill_lv > 5 && pc_checkskill(sd,SM_FATALBLOW)>0 ) {
-				//TODO: How much % per base level it actually is?
-				sc_start(src,bl,SC_STUN,(5*(skill_lv-5)+(int)sd->status.base_level/10),
-					skill_lv,skill_get_time2(SM_FATALBLOW,skill_lv));
+				//BaseChance gets multiplied with BaseLevel/50.0; 500/50 simplifies to 10 [Playtester]
+				status_change_start(src,bl,SC_STUN,(skill_lv-5)*sd->status.base_level*10,
+					skill_lv,0,0,0,skill_get_time2(SM_FATALBLOW,skill_lv),0);
 			}
 			break;
 
@@ -4344,7 +4344,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					else // Last spell to be released
 						status_change_end(src, SC_READING_SB, INVALID_TIMER);
 
-					clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
+					if( bl->type != BL_SKILL ) /* skill types will crash the client */
+						clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
 					if( !skill_check_condition_castbegin(sd, skill_id, skill_lv) )
 						break;
 
@@ -6373,7 +6374,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						sp += sp * i / 100;
 					}
 				} else {
-					hp = (1 + rnd()%400) * (100 + skill_lv*10) / 100;
+					//Maybe replace with potion_hp, but I'm unsure how that works [Playtester]
+					switch (skill_lv) {
+						case 1: hp = 45; break;
+						case 2: hp = 105; break;
+						case 3: hp = 175; break;
+						default: hp = 325; break;
+					}
+					hp = (hp + rnd()%(skill_lv*20+1)) * (150 + skill_lv*10) / 100;
 					hp = hp * (100 + (tstatus->vit<<1)) / 100;
 					if( dstsd )
 						hp = hp * (100 + pc_checkskill(dstsd,SM_RECOVERY)*10) / 100;
@@ -7415,7 +7423,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case AM_REST:
 			if (sd) {
-				if (merc_hom_vaporize(sd,1))
+				if (merc_hom_vaporize(sd,HOM_ST_REST))
 					clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
 				else
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -12215,6 +12223,7 @@ static int skill_unit_effect (struct block_list* bl, va_list ap)
 	unsigned int flag = va_arg(ap,unsigned int);
 	uint16 skill_id;
 	bool dissonance;
+	bool isTarget = false;
 
 	if( (!unit->alive && !(flag&4)) || bl->prev == NULL )
 		return 0;
@@ -12226,12 +12235,8 @@ static int skill_unit_effect (struct block_list* bl, va_list ap)
 	//Necessary in case the group is deleted after calling on_place/on_out [Skotlex]
 	skill_id = group->skill_id;
 	//Target-type check.
-	if( !(group->bl_flag&bl->type && battle_check_target(&unit->bl,bl,group->target_flag)>0) && (flag&4) ) {
-		if( group->src_id == bl->id && group->state.song_dance&0x2 )
-			skill_unit_onleft(skill_id, bl, tick); //Ensemble check to terminate it.
-		else if ( group->state.song_dance&0x1 )
-			skill_unit_onleft(unit->val1, bl, tick);
-	} else {
+	isTarget = group->bl_flag & bl->type && battle_check_target( &unit->bl, bl, group->target_flag ) > 0;
+	if( isTarget ) {
 		if( flag&1 )
 			skill_unit_onplace(unit,bl,tick);
 		else
@@ -12239,9 +12244,12 @@ static int skill_unit_effect (struct block_list* bl, va_list ap)
 
 		if( flag&4 )
 	  		skill_unit_onleft(skill_id, bl, tick);
+	} else if( !isTarget && flag&4 && ( group->state.song_dance&0x1 || ( group->src_id == bl->id && group->state.song_dance&0x2 ) ) ) {
+		skill_unit_onleft(skill_id, bl, tick); //Ensemble check to terminate it.
 	}
 
-	if( dissonance ) skill_dance_switch(unit, 1);
+	if( dissonance )
+		skill_dance_switch(unit, 1);
 
 	return 0;
 }
@@ -15760,15 +15768,13 @@ int skill_unit_move (struct block_list *bl, unsigned int tick, int flag)
 	if( bl->prev == NULL )
 		return 0;
 
-	if( flag&2 && !(flag&1) )
-	{	//Onout, clear data
+	if( flag&2 && !(flag&1) ) { //Onout, clear data
 		memset(skill_unit_temp, 0, sizeof(skill_unit_temp));
 	}
 
 	map_foreachincell(skill_unit_move_sub,bl->m,bl->x,bl->y,BL_SKILL,bl,tick,flag);
 
-	if( flag&2 && flag&1 )
-	{	//Onplace, check any skill units you have left.
+	if( flag&2 && flag&1 ) { //Onplace, check any skill units you have left.
 		int i;
 		for( i = 0; i < ARRAYLENGTH(skill_unit_temp); i++ )
 			if( skill_unit_temp[i] )

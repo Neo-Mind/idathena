@@ -8337,7 +8337,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				if( pc_isfalcon(sd) ) pc_setoption(sd, sd->sc.option&~OPTION_FALCON);
 				if( pc_iswug(sd) ) pc_setoption(sd, sd->sc.option&~OPTION_WUG);
 				if( sd->status.pet_id > 0 ) pet_menu(sd, 3);
-				if( merc_is_hom_active(sd->hd) ) merc_hom_vaporize(sd,1);
+				if( merc_is_hom_active(sd->hd) ) merc_hom_vaporize(sd,HOM_ST_REST);
 				//if( sd->md ) merc_delete(sd->md,3);//Info shows nothing about Merc's being removed. Probely true since their not a animal. [Rytech]
 				//Are rental mounts stripped as well? Well find out once I add them in.
 			}

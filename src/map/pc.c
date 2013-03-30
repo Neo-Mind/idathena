@@ -65,7 +65,7 @@ struct fame_list smith_fame_list[MAX_FAME_LIST];
 struct fame_list chemist_fame_list[MAX_FAME_LIST];
 struct fame_list taekwon_fame_list[MAX_FAME_LIST];
 
-static unsigned short equip_pos[EQI_MAX]={EQP_ACC_L,EQP_ACC_R,EQP_SHOES,EQP_GARMENT,EQP_HEAD_LOW,EQP_HEAD_MID,EQP_HEAD_TOP,EQP_ARMOR,EQP_HAND_L,EQP_HAND_R,EQP_COSTUME_HEAD_TOP,EQP_COSTUME_HEAD_MID,EQP_COSTUME_HEAD_LOW,EQP_AMMO};
+static unsigned short equip_pos[EQI_MAX]={EQP_ACC_L,EQP_ACC_R,EQP_SHOES,EQP_GARMENT,EQP_HEAD_LOW,EQP_HEAD_MID,EQP_HEAD_TOP,EQP_ARMOR,EQP_HAND_L,EQP_HAND_R,EQP_COSTUME_HEAD_TOP,EQP_COSTUME_HEAD_MID,EQP_COSTUME_HEAD_LOW,EQP_COSTUME_GARMENT,EQP_AMMO};
 
 #define MOTD_LINE_SIZE 128
 static char motd_text[MOTD_LINE_SIZE][CHAT_SIZE_MAX]; // Message of the day buffer [Valaris]
@@ -1417,7 +1417,7 @@ int pc_calc_skilltree(struct map_session_data *sd)
 			if( sd->status.skill[id].id == 0 ) {
 				sd->status.skill[id].id = id;
 				sd->status.skill[id].flag = SKILL_FLAG_TEMPORARY; // So it is not saved, and tagged as a "bonus" skill.
-			} else if( id != NV_BASIC) {
+			} else if( id != NV_BASIC ) {
 				sd->status.skill[id].flag = SKILL_FLAG_REPLACED_LV_0 + sd->status.skill[id].lv; // Remember original level
 			}
 
@@ -6304,7 +6304,7 @@ int pc_resetskill(struct map_session_data* sd, int flag)
 			pc_setoption(sd, i);
 
 		if( merc_is_hom_active(sd->hd) && pc_checkskill(sd, AM_CALLHOMUN) )
-			merc_hom_vaporize(sd, 0);
+			merc_hom_vaporize(sd, HOM_ST_ACTIVE);
 	}
 
 	for( i = 1; i < MAX_SKILL; i++ ) {
@@ -6527,7 +6527,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 
 	if (sd->status.hom_id > 0) {
 		if(battle_config.homunculus_auto_vapor && sd->hd && !sd->hd->sc.data[SC_LIGHT_OF_REGENE])
-			merc_hom_vaporize(sd, 0);
+			merc_hom_vaporize(sd, HOM_ST_ACTIVE);
 	}
 
 	if( sd->md )
@@ -7456,7 +7456,7 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 		pc_setoption(sd, i);
 
 	if(merc_is_hom_active(sd->hd) && !pc_checkskill(sd, AM_CALLHOMUN))
-		merc_hom_vaporize(sd, 0);
+		merc_hom_vaporize(sd, HOM_ST_ACTIVE);
 	
 	if(sd->status.manner < 0)
 		clif_changestatus(sd,SP_MANNER,sd->status.manner);
@@ -7496,7 +7496,7 @@ int pc_equiplookall(struct map_session_data *sd)
 	clif_changelook(&sd->bl,LOOK_HEAD_BOTTOM,sd->status.head_bottom);
 	clif_changelook(&sd->bl,LOOK_HEAD_TOP,sd->status.head_top);
 	clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
-	clif_changelook(&sd->bl, LOOK_ROBE, sd->status.robe);
+	clif_changelook(&sd->bl,LOOK_ROBE, sd->status.robe);
 
 	return 0;
 }
@@ -8540,7 +8540,11 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 		clif_changelook(&sd->bl,LOOK_SHOES,0);
 	if( pos&EQP_GARMENT ) {
 		sd->status.robe = id ? id->look : 0;
-		clif_changelook(&sd->bl, LOOK_ROBE, sd->status.robe);
+		clif_changelook(&sd->bl,LOOK_ROBE,sd->status.robe);
+	}
+	if(pos & EQP_COSTUME_GARMENT) {
+		sd->status.robe = id ? id->look : 0;
+		clif_changelook(&sd->bl,LOOK_ROBE,sd->status.robe);
 	}
 
 	pc_checkallowskill(sd); //Check if status changes should be halted.
@@ -8676,9 +8680,13 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 
 	if(sd->status.inventory[n].equip & EQP_SHOES)
 		clif_changelook(&sd->bl,LOOK_SHOES,0);
-	if( sd->status.inventory[n].equip&EQP_GARMENT ) {
+	if(sd->status.inventory[n].equip&EQP_GARMENT && pc_checkequip(sd,EQP_COSTUME_GARMENT) == -1) {
 		sd->status.robe = 0;
 		clif_changelook(&sd->bl, LOOK_ROBE, 0);
+	}
+	if(sd->status.inventory[n].equip & EQP_COSTUME_GARMENT) {
+		sd->status.robe = ( pc_checkequip(sd,EQP_GARMENT) >= 0 ) ? sd->inventory_data[pc_checkequip(sd,EQP_GARMENT)]->look : 0;
+		clif_changelook(&sd->bl,LOOK_ROBE,sd->status.robe);
 	}
 
 	clif_unequipitemack(sd,n,sd->status.inventory[n].equip,1);
