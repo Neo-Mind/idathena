@@ -1022,8 +1022,7 @@ static int clif_set_unit_idle(struct block_list* bl, unsigned char* buffer, bool
 	WBUFW(buf,24) = vd->head_top;
 	WBUFW(buf,26) = vd->head_mid;
 
-	if( bl->type == BL_NPC && vd->class_ == FLAG_CLASS )
-	{	//The hell, why flags work like this?
+	if( bl->type == BL_NPC && vd->class_ == FLAG_CLASS ) { //The hell, why flags work like this?
 		WBUFW(buf,22) = status_get_emblem_id(bl);
 		WBUFW(buf,24) = GetWord(status_get_guild_id(bl), 1);
 		WBUFW(buf,26) = GetWord(status_get_guild_id(bl), 0);
@@ -2987,24 +2986,21 @@ void clif_changelook(struct block_list *bl,int type,int val)
 	vd = status_get_viewdata(bl);
 	//nullpo_ret(vd);
 	if( vd ) //temp hack to let Warp Portal change appearance
-	switch(type)
-	{
+	switch(type) {
 		case LOOK_WEAPON:
-			if (sd)
-			{
+			if (sd) {
 				clif_get_weapon_view(sd, &vd->weapon, &vd->shield);
 				val = vd->weapon;
-			}
-			else vd->weapon = val;
-		break;
+			} else
+				vd->weapon = val;
+			break;
 		case LOOK_SHIELD:
-			if (sd)
-			{
+			if (sd) {
 				clif_get_weapon_view(sd, &vd->weapon, &vd->shield);
 				val = vd->shield;
-			}
-			else vd->shield = val;
-		break;
+			} else
+				vd->shield = val;
+			break;
 		case LOOK_BASE:
 			vd->class_ = val;
 			if (vd->class_ == JOB_WEDDING || vd->class_ == JOB_XMAS || vd->class_ == JOB_SUMMER)
@@ -3015,22 +3011,22 @@ void clif_changelook(struct block_list *bl,int type,int val)
 				(vd->class_ == JOB_SUMMER && battle_config.summer_ignorepalette)
 			))
 				clif_changelook(bl,LOOK_CLOTHES_COLOR,0);
-		break;
+			break;
 		case LOOK_HAIR:
 			vd->hair_style = val;
-		break;
+			break;
 		case LOOK_HEAD_BOTTOM:
 			vd->head_bottom = val;
-		break;
+			break;
 		case LOOK_HEAD_TOP:
 			vd->head_top = val;
-		break;
+			break;
 		case LOOK_HEAD_MID:
 			vd->head_mid = val;
-		break;
+			break;
 		case LOOK_HAIR_COLOR:
 			vd->hair_color = val;
-		break;
+			break;
 		case LOOK_CLOTHES_COLOR:
 			if (val && (
 				(vd->class_ == JOB_WEDDING && battle_config.wedding_ignorepalette) ||
@@ -3039,7 +3035,7 @@ void clif_changelook(struct block_list *bl,int type,int val)
 			))
 				val = 0;
 			vd->cloth_color = val;
-		break;
+			break;
 		case LOOK_SHOES:
 #if PACKETVER > 3
 			if (sd) {
@@ -3054,11 +3050,11 @@ void clif_changelook(struct block_list *bl,int type,int val)
 			}
 #endif
 			//Shoes? No packet uses this....
-		break;
+			break;
 		case LOOK_BODY:
 		case LOOK_FLOOR:
 			// unknown purpose
-		break;
+			break;
 		case LOOK_ROBE:
 #if PACKETVER < 20110111
 			return;
@@ -8751,8 +8747,7 @@ void clif_viewequip_ack(struct map_session_data* sd, struct map_session_data* ts
 	WBUFW(buf,40) = tsd->vd.cloth_color;
 	WBUFB(buf,42) = tsd->vd.sex;
 	
-	for(i=0,n=0; i < MAX_INVENTORY; i++)
-	{
+	for(i=0,n=0; i < MAX_INVENTORY; i++) {
 		if (tsd->status.inventory[i].nameid <= 0 || tsd->inventory_data[i] == NULL)	// Item doesn't exist
 			continue;
 		if (!itemdb_isequip2(tsd->inventory_data[i])) // Is not equippable

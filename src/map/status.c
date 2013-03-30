@@ -3188,7 +3188,7 @@ int status_calc_homunculus_(struct homun_data *hd, bool first)
 	status->int_ = hom->int_ / 10;
 	status->luk = hom->luk / 10;
 
-	if (first) {	//[orn]
+	if(first) {	//[orn]
 		const struct s_homunculus_db *db = hd->homunculusDB;
 		status->def_ele =  db->element;
 		status->ele_lv = 1;
@@ -3217,8 +3217,7 @@ int status_calc_homunculus_(struct homun_data *hd, bool first)
 	if((skill=merc_hom_checkskill(hd,HAMI_SKIN)) > 0)
 		status->def +=	skill * 4;
 
-	if((skill = merc_hom_checkskill(hd,HVAN_INSTRUCT)) > 0)
-	{
+	if((skill = merc_hom_checkskill(hd,HVAN_INSTRUCT)) > 0) {
 		status->int_ += 1 +skill/2 +skill/4 +skill/5;
 		status->str  += 1 +skill/3 +skill/3 +skill/4;
 	}
@@ -3389,11 +3388,9 @@ void status_calc_regen(struct block_list *bl, struct status_data *status, struct
 
 	regen->sp = cap_value(val, reg_flag, SHRT_MAX);
 
-	if( sd )
-	{
+	if( sd ) {
 		struct regen_data_sub *sregen;
-		if( (skill=pc_checkskill(sd,HP_MEDITATIO)) > 0 )
-		{
+		if( (skill=pc_checkskill(sd,HP_MEDITATIO)) > 0 ) {
 			val = regen->sp*(100+3*skill)/100;
 			regen->sp = cap_value(val, 1, SHRT_MAX);
 		}
@@ -3427,8 +3424,7 @@ void status_calc_regen(struct block_list *bl, struct status_data *status, struct
 		sregen->hp = cap_value(val, 0, SHRT_MAX);
 
 		val = 0;
-		if( (skill=pc_checkskill(sd,TK_SPTIME)) > 0 && sd->state.rest )
-		{
+		if( (skill=pc_checkskill(sd,TK_SPTIME)) > 0 && sd->state.rest ) {
 			val += skill*3 + skill*status->max_sp/500;
 			if ((skill=pc_checkskill(sd,SL_KAINA)) > 0) //Power up Enjoyable Rest
 				val += (30+10*skill)*val/100;
@@ -3470,8 +3466,7 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		return;
 
 	regen->flag = RGN_HP|RGN_SP;
-	if(regen->sregen)
-	{
+	if(regen->sregen) {
 		if (regen->sregen->hp)
 			regen->flag|=RGN_SHP;
 
@@ -3479,8 +3474,7 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 			regen->flag|=RGN_SSP;
 		regen->sregen->rate.hp = regen->sregen->rate.sp = 1;
 	}
-	if (regen->ssregen)
-	{
+	if (regen->ssregen) {
 		if (regen->ssregen->hp)
 			regen->flag|=RGN_SHP;
 
@@ -3521,16 +3515,13 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		if (regen->sregen)
 			regen->sregen->rate.hp += 3;
 	}
-	if (sc->data[SC_MAGNIFICAT])
-	{
+	if (sc->data[SC_MAGNIFICAT]) {
 		regen->rate.hp += 1;
 		regen->rate.sp += 1;
 	}
-	if (sc->data[SC_REGENERATION])
-	{
+	if (sc->data[SC_REGENERATION]) {
 		const struct status_change_entry *sce = sc->data[SC_REGENERATION];
-		if (!sce->val4)
-		{
+		if (!sce->val4) {
 			regen->rate.hp += sce->val2;
 			regen->rate.sp += sce->val3;
 		} else
@@ -3577,7 +3568,7 @@ void status_calc_state( struct block_list *bl, struct status_change *sc, enum sc
 	if( flag&SCS_NOCAST ) {
 		if( !(flag&SCS_NOCASTCOND) ) {
 			sc->cant.cast += ( start ? 1 : -1 );
-		} else if( (sc->data[SC_CRYSTALIZE] && bl->type != BL_MOB) ){
+		} else if( (sc->data[SC_CRYSTALIZE] && bl->type != BL_MOB) ) {
 			sc->cant.cast += ( start ? 1 : -1 );
 		}
 	}
