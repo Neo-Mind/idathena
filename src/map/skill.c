@@ -4583,7 +4583,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			rnd()%100 < 4 * skill_lv + 2 * pc_checkskill(sd,WM_LESSON) + 10 * chorusbonus)
 			{
 				skill_attack(BF_MISC,src,src,bl,skill_id,skill_lv,tick,flag);
-				status_change_start(bl,SC_STUN,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),8);
+				status_change_start(src,bl,SC_STUN,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),8);
 				status_change_end(bl, SC_SWINGDANCE, INVALID_TIMER);
 				status_change_end(bl, SC_SYMPHONYOFLOVER, INVALID_TIMER);
 				status_change_end(bl, SC_MOONLITSERENADE, INVALID_TIMER);
@@ -6604,7 +6604,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if(sd) {
 				int sp = skill_get_sp(sd->skill_id_old,sd->skill_lv_old);
 				if( skill_id == SO_SPELLFIST ) {
-					sc_start4(src,hsrc,type,100,skill_lv+1,skill_lv,sd->skill_id_old,sd->skill_lv_old,skill_get_time(skill_id,skill_lv));
+					sc_start4(src,src,type,100,skill_lv+1,skill_lv,sd->skill_id_old,sd->skill_lv_old,skill_get_time(skill_id,skill_lv));
 					sd->skill_id_old = sd->skill_lv_old = 0;
 					break;
 				}
