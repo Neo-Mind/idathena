@@ -4496,7 +4496,7 @@ ACMD_FUNC(jail)
 	}
 
 	//Duration of INT_MAX to specify infinity.
-	sc_start4(&pl_sd->bl,SC_JAILED,100,INT_MAX,m_index,x,y,1000);
+	sc_start4(NULL,&pl_sd->bl,SC_JAILED,100,INT_MAX,m_index,x,y,1000);
 	clif_displaymessage(pl_sd->fd, msg_txt(117)); // GM has send you in jails.
 	clif_displaymessage(fd, msg_txt(118)); // Player warped in jails.
 	return 0;
@@ -4535,7 +4535,7 @@ ACMD_FUNC(unjail)
 	}
 
 	//Reset jail time to 1 sec.
-	sc_start(&pl_sd->bl,SC_JAILED,100,1,1000);
+	sc_start(NULL,&pl_sd->bl,SC_JAILED,100,1,1000);
 	clif_displaymessage(pl_sd->fd, msg_txt(120)); // A GM has discharged you from jail.
 	clif_displaymessage(fd, msg_txt(121)); // Player unjailed.
 	return 0;
@@ -4636,8 +4636,7 @@ ACMD_FUNC(jailfor)
 	}
 
 	//Jail locations, add more as you wish.
-	switch(rnd()%2)
-	{
+	switch(rnd()%2) {
 		case 1: //Jail #1
 			m_index = mapindex_name2id(MAP_JAIL);
 			x = 49; y = 75;
@@ -4648,7 +4647,7 @@ ACMD_FUNC(jailfor)
 			break;
 	}
 
-	sc_start4(&pl_sd->bl,SC_JAILED,100,jailtime,m_index,x,y,jailtime?60000:1000); //jailtime = 0: Time was reset to 0. Wait 1 second to warp player out (since it's done in status_change_timer).
+	sc_start4(NULL,&pl_sd->bl,SC_JAILED,100,jailtime,m_index,x,y,jailtime?60000:1000); //jailtime = 0: Time was reset to 0. Wait 1 second to warp player out (since it's done in status_change_timer).
 	return 0;
 }
 
@@ -5598,7 +5597,7 @@ ACMD_FUNC(autotrade)
 	sd->state.autotrade = 1;
 	if( battle_config.at_timeout ) {
 		int timeout = atoi(message);
-		status_change_start(&sd->bl, SC_AUTOTRADE, 10000, 0, 0, 0, 0, ((timeout > 0) ? min(timeout,battle_config.at_timeout) : battle_config.at_timeout) * 60000, 0);
+		status_change_start(NULL, &sd->bl, SC_AUTOTRADE, 10000, 0, 0, 0, 0, ((timeout > 0) ? min(timeout,battle_config.at_timeout) : battle_config.at_timeout) * 60000, 0);
 	}
 	clif_authfail_fd(sd->fd, 15);
 
@@ -6328,7 +6327,7 @@ ACMD_FUNC(summon)
 	md->deletetimer=add_timer(tick+(duration*60000),mob_timer_delete,md->bl.id,0);
 	clif_specialeffect(&md->bl,344,AREA);
 	mob_spawn(md);
-	sc_start4(&md->bl, SC_MODECHANGE, 100, 1, 0, MD_AGGRESSIVE, 0, 60000);
+	sc_start4(NULL, &md->bl, SC_MODECHANGE, 100, 1, 0, MD_AGGRESSIVE, 0, 60000);
 	clif_skill_poseffect(&sd->bl,AM_CALLHOMUN,1,md->bl.x,md->bl.y,tick);
 	clif_displaymessage(fd, msg_txt(39));	// All monster summoned!
 	
@@ -6495,14 +6494,12 @@ ACMD_FUNC(mute)
 		return -1;
 	}
 
-	if ( (pl_sd = map_nick2sd(atcmd_player_name)) == NULL )
-	{
+	if ( (pl_sd = map_nick2sd(atcmd_player_name)) == NULL ) {
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
 	}
 
-	if ( pc_get_group_level(sd) < pc_get_group_level(pl_sd) )
-	{
+	if ( pc_get_group_level(sd) < pc_get_group_level(pl_sd) ) {
 		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
 		return -1;
 	}
@@ -6512,7 +6509,7 @@ ACMD_FUNC(mute)
 
 	if( pl_sd->status.manner < manner ) {
 		pl_sd->status.manner -= manner;
-		sc_start(&pl_sd->bl,SC_NOCHAT,100,0,0);
+		sc_start(NULL,&pl_sd->bl,SC_NOCHAT,100,0,0);
 	} else {
 		pl_sd->status.manner = 0;
 		status_change_end(&pl_sd->bl, SC_NOCHAT, INVALID_TIMER);
@@ -7323,7 +7320,7 @@ static int atcommand_mutearea_sub(struct block_list *bl,va_list ap)
 	if (id != bl->id && !pc_get_group_level(pl_sd)) {
 		pl_sd->status.manner -= time;
 		if (pl_sd->status.manner < 0)
-			sc_start(&pl_sd->bl,SC_NOCHAT,100,0,0);
+			sc_start(NULL,&pl_sd->bl,SC_NOCHAT,100,0,0);
 		else
 			status_change_end(&pl_sd->bl, SC_NOCHAT, INVALID_TIMER);
 	}

@@ -9840,20 +9840,19 @@ BUILDIN_FUNC(sc_start)
 	else
 		bl = map_id2bl(st->rid);
 
-	if( tick == 0 && val1 > 0 && type > SC_NONE && type < SC_MAX && status_sc2skill(type) != 0 )
-	{// When there isn't a duration specified, try to get it from the skill_db
+	if( tick == 0 && val1 > 0 && type > SC_NONE && type < SC_MAX && status_sc2skill(type) != 0 ) {
+		// When there isn't a duration specified, try to get it from the skill_db
 		tick = skill_get_time(status_sc2skill(type), val1);
 	}
 
-	if( potion_flag == 1 && potion_target )
-	{	//skill.c set the flags before running the script, this must be a potion-pitched effect.
+	if( potion_flag == 1 && potion_target ) { //skill.c set the flags before running the script, this must be a potion-pitched effect.
 		bl = map_id2bl(potion_target);
 		tick /= 2;// Thrown potions only last half.
 		val4 = 1;// Mark that this was a thrown sc_effect
 	}
 
 	if( bl )
-		status_change_start(bl, type, 10000, val1, 0, 0, val4, tick, 2);
+		status_change_start(NULL, bl, type, 10000, val1, 0, 0, val4, tick, 2);
 
 	return 0;
 }
@@ -9879,20 +9878,19 @@ BUILDIN_FUNC(sc_start2)
 	else
 		bl = map_id2bl(st->rid);
 
-	if( tick == 0 && val1 > 0 && type > SC_NONE && type < SC_MAX && status_sc2skill(type) != 0 )
-	{// When there isn't a duration specified, try to get it from the skill_db
+	if( tick == 0 && val1 > 0 && type > SC_NONE && type < SC_MAX && status_sc2skill(type) != 0 ) {
+		// When there isn't a duration specified, try to get it from the skill_db
 		tick = skill_get_time(status_sc2skill(type), val1);
 	}
 
-	if( potion_flag == 1 && potion_target )
-	{	//skill.c set the flags before running the script, this must be a potion-pitched effect.
+	if( potion_flag == 1 && potion_target ) { //skill.c set the flags before running the script, this must be a potion-pitched effect.
 		bl = map_id2bl(potion_target);
 		tick /= 2;// Thrown potions only last half.
 		val4 = 1;// Mark that this was a thrown sc_effect
 	}
 
 	if( bl )
-		status_change_start(bl, type, rate, val1, 0, 0, val4, tick, 2);
+		status_change_start(NULL, bl, type, rate, val1, 0, 0, val4, tick, 2);
 
 	return 0;
 }
@@ -9921,19 +9919,18 @@ BUILDIN_FUNC(sc_start4)
 	else
 		bl = map_id2bl(st->rid);
 
-	if( tick == 0 && val1 > 0 && type > SC_NONE && type < SC_MAX && status_sc2skill(type) != 0 )
-	{// When there isn't a duration specified, try to get it from the skill_db
+	if( tick == 0 && val1 > 0 && type > SC_NONE && type < SC_MAX && status_sc2skill(type) != 0 ) {
+		// When there isn't a duration specified, try to get it from the skill_db
 		tick = skill_get_time(status_sc2skill(type), val1);
 	}
 
-	if( potion_flag == 1 && potion_target )
-	{	//skill.c set the flags before running the script, this must be a potion-pitched effect.
+	if( potion_flag == 1 && potion_target ) { //skill.c set the flags before running the script, this must be a potion-pitched effect.
 		bl = map_id2bl(potion_target);
 		tick /= 2;// Thrown potions only last half.
 	}
 
 	if( bl )
-		status_change_start(bl, type, 10000, val1, val2, val3, val4, tick, 2);
+		status_change_start(NULL, bl, type, 10000, val1, val2, val3, val4, tick, 2);
 
 	return 0;
 }
@@ -10001,7 +9998,7 @@ BUILDIN_FUNC(getscrate)
 		bl = map_id2bl(st->rid);
 
 	if (bl)
-		rate = status_get_sc_def(bl, (sc_type)type, 10000, 10000, 0);
+		rate = status_get_sc_def(NULL, bl, (sc_type)type, 10000, 10000, 0);
 
 	script_pushint(st,rate);
 	return 0;
@@ -13190,7 +13187,7 @@ BUILDIN_FUNC(summon)
 		md->deletetimer = add_timer(tick+(timeout>0?timeout*1000:60000),mob_timer_delete,md->bl.id,0);
 		mob_spawn (md); //Now it is ready for spawning.
 		clif_specialeffect(&md->bl,344,AREA);
-		sc_start4(&md->bl, SC_MODECHANGE, 100, 1, 0, MD_AGGRESSIVE, 0, 60000);
+		sc_start4(NULL, &md->bl, SC_MODECHANGE, 100, 1, 0, MD_AGGRESSIVE, 0, 60000);
 	}
 	return 0;
 }
@@ -15740,7 +15737,7 @@ BUILDIN_FUNC(mercenary_sc_start)
 	tick = script_getnum(st,3);
 	val1 = script_getnum(st,4);
 
-	status_change_start(&sd->md->bl, type, 10000, val1, 0, 0, 0, tick, 2);
+	status_change_start(NULL, &sd->md->bl, type, 10000, val1, 0, 0, 0, tick, 2);
 	return 0;
 }
 

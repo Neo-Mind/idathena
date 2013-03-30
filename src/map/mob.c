@@ -395,8 +395,7 @@ bool mob_ksprotected (struct block_list *src, struct block_list *target)
 			return false; // No KS Protected, but normal players should be protected too
 
 		// Message to KS
-		if( DIFF_TICK(sd->ks_floodprotect_tick, tick) <= 0 )
-		{
+		if( DIFF_TICK(sd->ks_floodprotect_tick, tick) <= 0 ) {
 			sprintf(output, "[KS Warning!! - Owner : %s]", pl_sd->status.name);
 			clif_disp_onlyself(sd, output, strlen(output));
 
@@ -404,8 +403,7 @@ bool mob_ksprotected (struct block_list *src, struct block_list *target)
 		}
 
 		// Message to Owner
-		if( DIFF_TICK(pl_sd->ks_floodprotect_tick, tick) <= 0 )
-		{
+		if( DIFF_TICK(pl_sd->ks_floodprotect_tick, tick) <= 0 ) {
 			sprintf(output, "[Watch out! %s is trying to KS you!]", sd->status.name);
 			clif_disp_onlyself(pl_sd, output, strlen(output));
 
@@ -415,7 +413,7 @@ bool mob_ksprotected (struct block_list *src, struct block_list *target)
 		return true;
 	} while(0);
 
-	status_change_start(target, SC_KSPROTECTED, 10000, sd->bl.id, sd->state.noks, sd->status.party_id, sd->status.guild_id, battle_config.ksprotection, 0);
+	status_change_start(src, target, SC_KSPROTECTED, 10000, sd->bl.id, sd->state.noks, sd->status.party_id, sd->status.guild_id, battle_config.ksprotection, 0);
 
 	return false;
 }
@@ -471,30 +469,25 @@ int mob_once_spawn(struct map_session_data* sd, int16 m, int16 x, int16 y, const
 
 	lv = (sd) ? sd->status.base_level : 255;
 
-	for (count = 0; count < amount; count++)
-	{
+	for (count = 0; count < amount; count++) {
 		int c = (class_ >= 0) ? class_ : mob_get_random_id(-class_ - 1, (battle_config.random_monster_checklv) ? 3 : 1, lv);
 		md = mob_once_spawn_sub((sd) ? &sd->bl : NULL, m, x, y, mobname, c, event, size, ai);
 
 		if (!md)
 			continue;
 
-		if (class_ == MOBID_EMPERIUM)
-		{
+		if (class_ == MOBID_EMPERIUM) {
 			struct guild_castle* gc = guild_mapindex2gc(map[m].index);
 			struct guild* g = (gc) ? guild_search(gc->guild_id) : NULL;
-			if (gc)
-			{
+			if (gc) {
 				md->guardian_data = (struct guardian_data*)aCalloc(1, sizeof(struct guardian_data));
 				md->guardian_data->castle = gc;
 				md->guardian_data->number = MAX_GUARDIANS;
 				md->guardian_data->guild_id = gc->guild_id;
-				if (g)
-				{
+				if (g) {
 					md->guardian_data->emblem_id = g->emblem_id;
 					memcpy(md->guardian_data->guild_name, g->name, NAME_LENGTH);
-				}
-				else if (gc->guild_id) //Guild not yet available, retry in 5.
+				} else if (gc->guild_id) //Guild not yet available, retry in 5.
 					add_timer(gettick()+5000,mob_spawn_guardian_sub,md->bl.id,md->guardian_data->guild_id);
 			}
 		}	// end addition [Valaris]
@@ -504,7 +497,7 @@ int mob_once_spawn(struct map_session_data* sd, int16 m, int16 x, int16 y, const
 		if (class_ < 0 && battle_config.dead_branch_active)
 			//Behold Aegis's masterful decisions yet again...
 			//"I understand the "Aggressive" part, but the "Can Move" and "Can Attack" is just stupid" - Poki#3
-			sc_start4(&md->bl, SC_MODECHANGE, 100, 1, 0, MD_AGGRESSIVE|MD_CANATTACK|MD_CANMOVE|MD_ANGRY, 0, 60000);
+			sc_start4(NULL, &md->bl, SC_MODECHANGE, 100, 1, 0, MD_AGGRESSIVE|MD_CANATTACK|MD_CANMOVE|MD_ANGRY, 0, 60000);
 	}
 
 	return (md) ? md->bl.id : 0; // id of last spawned mob
@@ -2926,23 +2919,22 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,uint16 skill_id)
 			md->status.hp = md->status.max_hp*hp_rate/100;
 
 		//Inherit the aggressive mode of the master.
-		if (battle_config.slaves_inherit_mode && md->master_id)
-	  	{
+		if (battle_config.slaves_inherit_mode && md->master_id) {
 			switch (battle_config.slaves_inherit_mode) {
-			case 1: //Always aggressive
-				if (!(md->status.mode&MD_AGGRESSIVE))
-					sc_start4(&md->bl, SC_MODECHANGE, 100,1,0, MD_AGGRESSIVE, 0, 0);
-				break;
-			case 2: //Always passive
-				if (md->status.mode&MD_AGGRESSIVE)
-					sc_start4(&md->bl, SC_MODECHANGE, 100,1,0, 0, MD_AGGRESSIVE, 0);
-				break;
-			default: //Copy master.
-				if (md2->status.mode&MD_AGGRESSIVE)
-					sc_start4(&md->bl, SC_MODECHANGE, 100,1,0, MD_AGGRESSIVE, 0, 0);
-				else
-					sc_start4(&md->bl, SC_MODECHANGE, 100,1,0, 0, MD_AGGRESSIVE, 0);
-				break;
+				case 1: //Always aggressive
+					if (!(md->status.mode&MD_AGGRESSIVE))
+						sc_start4(NULL, &md->bl, SC_MODECHANGE, 100,1,0, MD_AGGRESSIVE, 0, 0);
+					break;
+				case 2: //Always passive
+					if (md->status.mode&MD_AGGRESSIVE)
+						sc_start4(NULL, &md->bl, SC_MODECHANGE, 100,1,0, 0, MD_AGGRESSIVE, 0);
+					break;
+				default: //Copy master.
+					if (md2->status.mode&MD_AGGRESSIVE)
+						sc_start4(NULL, &md->bl, SC_MODECHANGE, 100,1,0, MD_AGGRESSIVE, 0, 0);
+					else
+						sc_start4(NULL, &md->bl, SC_MODECHANGE, 100,1,0, 0, MD_AGGRESSIVE, 0);
+					break;
 			}
 		}
 

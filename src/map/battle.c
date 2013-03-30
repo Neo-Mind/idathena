@@ -827,7 +827,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		if( sc->data[SC_WEAPONBLOCKING] && flag&(BF_SHORT|BF_WEAPON) && rnd()%100 < sc->data[SC_WEAPONBLOCKING]->val2 ) {
 			clif_skill_nodamage(bl,src,GC_WEAPONBLOCKING,1,1);
 			d->dmg_lv = ATK_BLOCK;
-			sc_start2(bl,SC_COMBO,100,GC_WEAPONBLOCKING,src->id,2000);
+			sc_start2(src,bl,SC_COMBO,100,GC_WEAPONBLOCKING,src->id,2000);
 			return 0;
 		}
 		if( (sce=sc->data[SC_AUTOGUARD]) && flag&BF_WEAPON && !(skill_get_nk(skill_id)&NK_NO_CARDFIX_ATK) && rnd()%100 < sce->val2 ) {
@@ -852,7 +852,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			sce->val3 -= damage; // absorb damage
 			d->dmg_lv = ATK_BLOCK;
 			// There is a chance to be stuned when one shield is broken.
-			sc_start(bl,SC_STUN,15,0,skill_get_time2(RK_MILLENNIUMSHIELD,sce->val1));
+			sc_start(src,bl,SC_STUN,15,0,skill_get_time2(RK_MILLENNIUMSHIELD,sce->val1));
 			if( sce->val3 <= 0 ) { // Shield Down
 				sce->val2--;
 				if( sce->val2 > 0 ) {
@@ -877,7 +877,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			if (sd && pc_issit(sd)) pc_setstand(sd); //Stand it to dodge.
 			clif_skill_nodamage(bl,bl,TK_DODGE,1,1);
 			if (!sc->data[SC_COMBO])
-				sc_start4(bl, SC_COMBO, 100, TK_JUMPKICK, src->id, 1, 0, 2000);
+				sc_start4(src, bl, SC_COMBO, 100, TK_JUMPKICK, src->id, 1, 0, 2000);
 			return 0;
 		}
 
@@ -887,8 +887,8 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		if(sc->data[SC_TATAMIGAESHI] && (flag&(BF_MAGIC|BF_LONG)) == BF_LONG)
 			return 0;
 
-		if((sce=sc->data[SC_KAUPE]) && rnd()%100 < sce->val2)
-		{	//Kaupe blocks damage (skill or otherwise) from players, mobs, homuns, mercenaries.
+		if((sce=sc->data[SC_KAUPE]) && rnd()%100 < sce->val2) {
+			//Kaupe blocks damage (skill or otherwise) from players, mobs, homuns, mercenaries.
 			clif_specialeffect(bl, 462, AREA);
 			//Shouldn't end until Breaker's non-weapon part connects.
 			if (skill_id != ASC_BREAKER || !(flag&BF_WEAPON))
@@ -1060,12 +1060,12 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			if( src->type == BL_PC ) {
 				TBL_PC *ssd = BL_CAST(BL_PC, src);
 				if (ssd && ssd->status.weapon != W_BOW)
-					skill_break_equip(src, EQP_WEAPON, 3000, BCT_SELF);
+					skill_break_equip(src, src, EQP_WEAPON, 3000, BCT_SELF);
 			}
-					skill_break_equip(src, EQP_WEAPON, 3000, BCT_SELF);
+					skill_break_equip(src, src, EQP_WEAPON, 3000, BCT_SELF);
 			// 30% chance to reduce monster's ATK by 25% for 10 seconds.
 			if( src->type == BL_MOB )
-				sc_start(src, SC_STRIPWEAPON, 30, 0, skill_get_time2(RK_STONEHARDSKIN, sce->val1));
+				sc_start(src, src, SC_STRIPWEAPON, 30, 0, skill_get_time2(RK_STONEHARDSKIN, sce->val1));
 			if( sce->val2 <= 0 )
 				status_change_end(bl, SC_STONEHARDSKIN, INVALID_TIMER);
 		}
@@ -1183,7 +1183,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 					}
 		}
 		if( sc->data[SC_POISONINGWEAPON] && skill_id != GC_VENOMPRESSURE && (flag&BF_WEAPON) && damage > 0 && rnd()%100 < sc->data[SC_POISONINGWEAPON]->val3 )
-			sc_start(bl,sc->data[SC_POISONINGWEAPON]->val2,100,sc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON, 1));
+			sc_start(src,bl,sc->data[SC_POISONINGWEAPON]->val2,100,sc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON, 1));
 		if( sc->data[SC__DEADLYINFECT] && flag&BF_SHORT && damage > 0 && rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 )
 			status_change_spread(src, bl);
 		if (sc->data[SC_STYLE_CHANGE] && rnd()%2) {
@@ -4890,11 +4890,11 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		uint16 skill_lv = tsc->data[SC_BLADESTOP_WAIT]->val1;
 		int duration = skill_get_time2(MO_BLADESTOP,skill_lv);
 		status_change_end(target, SC_BLADESTOP_WAIT, INVALID_TIMER);
-		if(sc_start4(src, SC_BLADESTOP, 100, sd ? pc_checkskill(sd, MO_BLADESTOP) : 0, 0, 0, target->id, duration))
-	  	{	//Target locked.
+		if(sc_start4(src, src, SC_BLADESTOP, 100, sd ? pc_checkskill(sd, MO_BLADESTOP) : 0, 0, 0, target->id, duration)) {
+			//Target locked.
 			clif_damage(src, target, tick, sstatus->amotion, 1, 0, 1, 0, 0); //Display MISS.
 			clif_bladestop(target, src->id, 1);
-			sc_start4(target, SC_BLADESTOP, 100, skill_lv, 0, 0, src->id, duration);
+			sc_start4(src, target, SC_BLADESTOP, 100, skill_lv, 0, 0, src->id, duration);
 			return ATK_BLOCK;
 		}
 	}

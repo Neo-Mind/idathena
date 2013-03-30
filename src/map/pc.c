@@ -1613,9 +1613,9 @@ int pc_updateweightstatus(struct map_session_data *sd)
 
 	// start new status change
 	if( new_overweight == 1 )
-		sc_start(&sd->bl, SC_WEIGHT50, 100, 0, 0);
+		sc_start(&sd->bl, &sd->bl, SC_WEIGHT50, 100, 0, 0);
 	else if( new_overweight == 2 )
-		sc_start(&sd->bl, SC_WEIGHT90, 100, 0, 0);
+		sc_start(&sd->bl, &sd->bl, SC_WEIGHT90, 100, 0, 0);
 
 	// update overweight status
 	sd->regen.state.overweight = new_overweight;
@@ -5604,16 +5604,16 @@ int pc_checkbaselevelup(struct map_session_data *sd) {
 	status_percent_heal(&sd->bl,100,100);
 
 	if((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE) {
-		sc_start(&sd->bl,status_skill2sc(PR_KYRIE),100,1,skill_get_time(PR_KYRIE,1));
-		sc_start(&sd->bl,status_skill2sc(PR_IMPOSITIO),100,1,skill_get_time(PR_IMPOSITIO,1));
-		sc_start(&sd->bl,status_skill2sc(PR_MAGNIFICAT),100,1,skill_get_time(PR_MAGNIFICAT,1));
-		sc_start(&sd->bl,status_skill2sc(PR_GLORIA),100,1,skill_get_time(PR_GLORIA,1));
-		sc_start(&sd->bl,status_skill2sc(PR_SUFFRAGIUM),100,1,skill_get_time(PR_SUFFRAGIUM,1));
+		sc_start(&sd->bl,&sd->bl,status_skill2sc(PR_KYRIE),100,1,skill_get_time(PR_KYRIE,1));
+		sc_start(&sd->bl,&sd->bl,status_skill2sc(PR_IMPOSITIO),100,1,skill_get_time(PR_IMPOSITIO,1));
+		sc_start(&sd->bl,&sd->bl,status_skill2sc(PR_MAGNIFICAT),100,1,skill_get_time(PR_MAGNIFICAT,1));
+		sc_start(&sd->bl,&sd->bl,status_skill2sc(PR_GLORIA),100,1,skill_get_time(PR_GLORIA,1));
+		sc_start(&sd->bl,&sd->bl,status_skill2sc(PR_SUFFRAGIUM),100,1,skill_get_time(PR_SUFFRAGIUM,1));
 		if (sd->state.snovice_dead_flag)
 			sd->state.snovice_dead_flag = 0; //Reenable steelbody resurrection on dead.
 	} else if( (sd->class_&MAPID_BASEMASK) == MAPID_TAEKWON ) {
-		sc_start(&sd->bl,status_skill2sc(AL_INCAGI),100,10,600000);
-		sc_start(&sd->bl,status_skill2sc(AL_BLESSING),100,10,600000);
+		sc_start(&sd->bl,&sd->bl,status_skill2sc(AL_INCAGI),100,10,600000);
+		sc_start(&sd->bl,&sd->bl,status_skill2sc(AL_BLESSING),100,10,600000);
 	}
 	clif_misceffect(&sd->bl,0);
 	npc_script_event(sd, NPCE_BASELVUP); //LORDALFA - LVLUPEVENT
@@ -6505,15 +6505,15 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	int i=0,j=0,k=0;
 	unsigned int tick = gettick();
 		
-	for(k = 0; k < 5; k++)
-		if (sd->devotion[k]){
+	for( k = 0; k < 5; k++ )
+		if( sd->devotion[k] ) {
 			struct map_session_data *devsd = map_id2sd(sd->devotion[k]);
 			if (devsd)
 				status_change_end(&devsd->bl, SC_DEVOTION, INVALID_TIMER);
 			sd->devotion[k] = 0;
 		}
 
-	if(sd->status.pet_id > 0 && sd->pd) {
+	if( sd->status.pet_id > 0 && sd->pd ) {
 		struct pet_data *pd = sd->pd;
 		if( !map[sd->bl.m].flag.noexppenalty ) {
 			pet_set_intimate(pd, pd->pet.intimate - pd->petDB->die);
@@ -6525,7 +6525,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			pet_unlocktarget(sd->pd);
 	}
 
-	if (sd->status.hom_id > 0){
+	if (sd->status.hom_id > 0) {
 		if(battle_config.homunculus_auto_vapor && sd->hd && !sd->hd->sc.data[SC_LIGHT_OF_REGENE])
 			merc_hom_vaporize(sd, 0);
 	}
@@ -6537,10 +6537,10 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		elemental_delete(sd->ed, 0);
 	
 	// Leave duel if you die [LuzZza]
-	if(battle_config.duel_autoleave_when_die) {
-		if(sd->duel_group > 0)
+	if( battle_config.duel_autoleave_when_die ) {
+		if( sd->duel_group > 0 )
 			duel_leave(sd->duel_group, sd);
-		if(sd->duel_invite > 0)
+		if( sd->duel_invite > 0 )
 			duel_reject(sd->duel_invite, sd);
 	}
 
@@ -6555,7 +6555,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 
 	// Clear anything NPC-related when you die and was interacting with one.
 	if( sd->npc_id ) {
-		if (sd->state.using_fake_npc){
+		if (sd->state.using_fake_npc) {
 			clif_clearunit_single(sd->npc_id, CLR_OUTSIGHT, sd->fd);
 			sd->state.using_fake_npc = 0;
 		}
@@ -6565,7 +6565,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			sd->npc_menu = 0;
 
 		sd->npc_id = 0;
-		if(sd->st && sd->st->state != END)
+		if( sd->st && sd->st->state != END )
 			sd->st->state = END;
 	}
 
@@ -6585,57 +6585,54 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	//Reset ticks.
 	sd->hp_loss.tick = sd->sp_loss.tick = sd->hp_regen.tick = sd->sp_regen.tick = 0;
 
-	if ( sd && sd->spiritball )
+	if( sd && sd->spiritball )
 		pc_delspiritball(sd,sd->spiritball,0);
 		
-	for(i = 1; i < 5; i++)
+	for( i = 1; i < 5; i++ )
 		pc_del_talisman(sd, sd->talisman[i], i);
 
 	if (src)
-	switch (src->type) {
-	case BL_MOB:
-	{
-		struct mob_data *md=(struct mob_data *)src;
-		if(md->target_id==sd->bl.id)
-			mob_unlocktarget(md,tick);
-		if(battle_config.mobs_level_up && md->status.hp &&
-			(unsigned int)md->level < pc_maxbaselv(sd) &&
-			!md->guardian_data && !md->special_state.ai// Guardians/summons should not level. [Skotlex]
-		) { 	// monster level up [Valaris]
-			clif_misceffect(&md->bl,0);
-			md->level++;
-			status_calc_mob(md, 0);
-			status_percent_heal(src,10,0);
+		switch (src->type) {
+			case BL_MOB: {
+					struct mob_data *md=(struct mob_data *)src;
+					if( md->target_id==sd->bl.id )
+						mob_unlocktarget(md,tick);
+					if( battle_config.mobs_level_up && md->status.hp &&
+						(unsigned int)md->level < pc_maxbaselv(sd) &&
+						!md->guardian_data && !md->special_state.ai// Guardians/summons should not level. [Skotlex]
+					) { 	// monster level up [Valaris]
+						clif_misceffect(&md->bl,0);
+						md->level++;
+						status_calc_mob(md, 0);
+						status_percent_heal(src,10,0);
 
-			if( battle_config.show_mob_info&4 )
-			{// update name with new level
-				clif_charnameack(0, &md->bl);
-			}
+						if( battle_config.show_mob_info&4 ) { // update name with new level
+							clif_charnameack(0, &md->bl);
+						}
+					}
+					src = battle_get_master(src); // Maybe Player Summon
+				}
+				break;
+			case BL_PET: //Pass on to master...
+				src = &((TBL_PET*)src)->msd->bl;
+				break;
+			case BL_HOM:
+				src = &((TBL_HOM*)src)->master->bl;
+				break;
+			case BL_MER:
+				src = &((TBL_MER*)src)->master->bl;
+				break;
 		}
-		src = battle_get_master(src); // Maybe Player Summon
-	}
-	break;
-	case BL_PET: //Pass on to master...
-		src = &((TBL_PET*)src)->msd->bl;
-	break;
-	case BL_HOM:
-		src = &((TBL_HOM*)src)->master->bl;
-	break;
-	case BL_MER:
-		src = &((TBL_MER*)src)->master->bl;
-	break;
-	}
 
-	if (src && src->type == BL_PC)
-	{
+	if (src && src->type == BL_PC) {
 		struct map_session_data *ssd = (struct map_session_data *)src;
 		pc_setparam(ssd, SP_KILLEDRID, sd->bl.id);
 		npc_script_event(ssd, NPCE_KILLPC);
 
 		if (battle_config.pk_mode&2) {
 			ssd->status.manner -= 5;
-			if(ssd->status.manner < 0)
-				sc_start(src,SC_NOCHAT,100,0,0);
+			if( ssd->status.manner < 0 )
+				sc_start(&sd->bl,src,SC_NOCHAT,100,0,0);
 #if 0
 			// PK/Karma system code (not enabled yet) [celest]
 			// originally from Kade Online, so i don't know if any of these is correct ^^;
@@ -6646,8 +6643,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			if (sd->status.karma > ssd->status.karma) {	// If player killed was more evil
 				sd->status.karma--;
 				ssd->status.karma--;
-			}
-			else if (sd->status.karma < ssd->status.karma)	// If player killed was more good
+			} else if (sd->status.karma < ssd->status.karma)	// If player killed was more good
 				ssd->status.karma++;
 	
 
@@ -6662,7 +6658,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		}
 	}
 
-	if(battle_config.bone_drop==2
+	if( battle_config.bone_drop==2
 		|| (battle_config.bone_drop==1 && map[sd->bl.m].flag.pvp))
 	{
 		struct item item_tmp;
@@ -6677,8 +6673,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	}
 
 	// activate Steel body if a super novice dies at 99+% exp [celest]
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && !sd->state.snovice_dead_flag)
-  	{
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && !sd->state.snovice_dead_flag) {
 		unsigned int next = pc_nextbaseexp(sd);
 		if( next == 0 ) next = pc_thisbaseexp(sd);
 		if( get_percentage(sd->status.base_exp,next) >= 99 ) {
@@ -6688,7 +6683,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			clif_resurrection(&sd->bl, 1);
 			if(battle_config.pc_invincible_time)
 				pc_setinvincibletimer(sd, battle_config.pc_invincible_time);
-			sc_start(&sd->bl,status_skill2sc(MO_STEELBODY),100,1,skill_get_time(MO_STEELBODY,1));
+			sc_start(&sd->bl,&sd->bl,status_skill2sc(MO_STEELBODY),100,1,skill_get_time(MO_STEELBODY,1));
 			if(map_flag_gvg(sd->bl.m))
 				pc_respawn_timer(INVALID_TIMER, gettick(), sd->bl.id, 0);
 			return 0;
@@ -7715,7 +7710,7 @@ int pc_setcart(struct map_session_data *sd,int type) {
 			if( !sd->sc.data[SC_PUSH_CART] ) /* first time, so fill cart data */
 				clif_cartlist(sd);
 			clif_updatestatus(sd, SP_CARTINFO);
-			sc_start(&sd->bl, SC_PUSH_CART, 100, type, 0);
+			sc_start(&sd->bl, &sd->bl, SC_PUSH_CART, 100, type, 0);
 			clif_status_load_notick(&sd->bl, SI_ON_PUSH_CART,   2 , type, 0, 0);
 			if( sd->sc.data[SC_PUSH_CART] )/* forcefully update */
 				sd->sc.data[SC_PUSH_CART]->val1 = type;
@@ -9198,9 +9193,9 @@ void pc_overheat(struct map_session_data *sd, int val) {
 
 	heat = max(0,heat); // Avoid negative HEAT
 	if( heat >= limit[skill] )
-		sc_start(&sd->bl,SC_OVERHEAT,100,0,1000);
+		sc_start(&sd->bl,&sd->bl,SC_OVERHEAT,100,0,1000);
 	else
-		sc_start(&sd->bl,SC_OVERHEAT_LIMITPOINT,100,heat,30000);
+		sc_start(&sd->bl,&sd->bl,SC_OVERHEAT_LIMITPOINT,100,heat,30000);
 
 	return;
 }
