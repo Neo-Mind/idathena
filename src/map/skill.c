@@ -4580,8 +4580,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			tsc->data[SC_GLOOMYDAY] || tsc->data[SC_GLOOMYDAY_SK] || tsc->data[SC_SONGOFMANA] || 
 			tsc->data[SC_DANCEWITHWUG] || tsc->data[SC_SATURDAYNIGHTFEVER] || tsc->data[SC_LERADSDEW] || 
 			tsc->data[SC_MELODYOFSINK] || tsc->data[SC_BEYONDOFWARCRY] || tsc->data[SC_UNLIMITEDHUMMINGVOICE] ) && 
-			rnd()%100 < 4 * skill_lv + 2 * pc_checkskill(sd,WM_LESSON) + 10 * chorusbonus)
-			{
+			rnd()%100 < 4 * skill_lv + 2 * pc_checkskill(sd,WM_LESSON) + 10 * chorusbonus) {
 				skill_attack(BF_MISC,src,src,bl,skill_id,skill_lv,tick,flag);
 				status_change_start(src,bl,SC_STUN,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),8);
 				status_change_end(bl, SC_SWINGDANCE, INVALID_TIMER);
