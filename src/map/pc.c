@@ -6643,13 +6643,13 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			if (sd->status.karma > ssd->status.karma) {	// If player killed was more evil
 				sd->status.karma--;
 				ssd->status.karma--;
-			} else if (sd->status.karma < ssd->status.karma)	// If player killed was more good
+			} else if (sd->status.karma < ssd->status.karma) // If player killed was more good
 				ssd->status.karma++;
 	
 
 			// or the PK System way...
 	
-			if (sd->status.karma > 0)	// player killed is dishonourable?
+			if (sd->status.karma > 0) // player killed is dishonourable?
 				ssd->status.karma--; // honour points earned
 			sd->status.karma++;	// honour points lost
 		
