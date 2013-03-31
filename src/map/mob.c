@@ -2061,9 +2061,9 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 		return;
 	
 #if PACKETVER >= 20120404
-	if( !(md->status.mode&MD_BOSS) ){
+	if( !(md->status.mode&MD_BOSS) ) {
 		int i;
-		for(i = 0; i < DAMAGELOG_SIZE; i++){ // must show hp bar to all char who already hit the mob.
+		for(i = 0; i < DAMAGELOG_SIZE; i++) { // must show hp bar to all char who already hit the mob.
 			struct map_session_data *sd = map_charid2sd(md->dmglog[i].id);
 			if( sd && check_distance_bl(&md->bl, &sd->bl, AREA_SIZE) ) // check if in range
 				clif_monster_hp_bar(md, sd->fd);
@@ -2071,7 +2071,7 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 	}
 #endif
 	
-	if( md->special_state.ai == 2 ) {//LOne WOlf explained that ANYONE can trigger the marine countdown skill. [Skotlex]
+	if( md->special_state.ai == 2 ) { //LOne WOlf explained that ANYONE can trigger the marine countdown skill. [Skotlex]
 		md->state.alchemist = 1;
 		mobskill_use(md, gettick(), MSC_ALCHEMIST);
 	}
@@ -2086,6 +2086,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	struct status_data *status;
 	struct map_session_data *sd = NULL, *tmpsd[DAMAGELOG_SIZE];
 	struct map_session_data *mvp_sd = NULL, *second_sd = NULL, *third_sd = NULL;
+	struct status_change *sc;
 	
 	struct {
 		struct party_data *p;
@@ -2098,9 +2099,9 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	bool rebirth, homkillonly;
 
 	status = &md->status;
+	sc = &md->sc;
 
-	if( src && src->type == BL_PC )
-	{
+	if( src && src->type == BL_PC ) {
 		sd = (struct map_session_data *)src;
 		mvp_sd = sd;
 	}
@@ -2108,8 +2109,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	if( md->guardian_data && md->guardian_data->number >= 0 && md->guardian_data->number < MAX_GUARDIANS )
 		guild_castledatasave(md->guardian_data->castle->castle_id, 10+md->guardian_data->number,0);
 
-	if( src )
-	{ // Use Dead skill only if not killed by Script or Command
+	if( src ) { // Use Dead skill only if not killed by Script or Command
 		md->state.skillstate = MSS_DEAD;
 		mobskill_use(md,tick,-1);
 	}
@@ -2123,8 +2123,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		
 	// filter out entries not eligible for exp distribution
 	memset(tmpsd,0,sizeof(tmpsd));
-	for(i = 0, count = 0, mvp_damage = 0; i < DAMAGELOG_SIZE && md->dmglog[i].id; i++)
-	{
+	for(i = 0, count = 0, mvp_damage = 0; i < DAMAGELOG_SIZE && md->dmglog[i].id; i++) {
 		struct map_session_data* tsd = map_charid2sd(md->dmglog[i].id);
 
 		if(tsd == NULL)
@@ -2158,8 +2157,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	// determines, if the monster was killed by homunculus' damage only
 	homkillonly = (bool)( ( dmgbltypes&BL_HOM ) && !( dmgbltypes&~BL_HOM ) );
 
-	if(!battle_config.exp_calc_type && count > 1)
-	{	//Apply first-attacker 200% exp share bonus
+	if(!battle_config.exp_calc_type && count > 1) { //Apply first-attacker 200% exp share bonus
 		//TODO: Determine if this should go before calculating the MVP player instead of after.
 		if (UINT_MAX - md->dmglog[0].dmg > md->tdmg) {
 			md->tdmg += md->dmglog[0].dmg;
@@ -2277,8 +2275,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		if(base_exp && md->dmglog[i].flag == MDLF_HOMUN) //tmpsd[i] is null if it has no homunc.
 			merc_hom_gainexp(tmpsd[i]->hd, base_exp);
 		if(flag) {
-			if(base_exp || job_exp)
-			{
+			if(base_exp || job_exp) {
 				if( md->dmglog[i].flag != MDLF_PET || battle_config.pet_attack_exp_to_master ) {
 #ifdef RENEWAL_EXP
 					int rate = pc_level_penalty_mod(tmpsd[i], md->level, md->status.race, md->status.mode, 1);
@@ -2322,8 +2319,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		dlist->third_charid = (third_sd ? third_sd->status.char_id : 0);
 		dlist->item = NULL;
 
-		for (i = 0; i < MAX_MOB_DROP; i++)
-		{
+		for (i = 0; i < MAX_MOB_DROP; i++) {
 			if (md->db->dropitem[i].nameid <= 0)
 				continue;
 			if ( !(it = itemdb_exists(md->db->dropitem[i].nameid)) )
@@ -2336,8 +2332,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			}
 
 			// change drops depending on monsters size [Valaris]
-			if (battle_config.mob_size_influence)
-			{
+			if (battle_config.mob_size_influence) {
 				if (md->special_state.size == SZ_MEDIUM && drop_rate >= 2)
 					drop_rate /= 2;
 				else if( md->special_state.size == SZ_BIG)
@@ -2398,8 +2393,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		if(sd) {
 			// process script-granted extra drop bonuses
 			int itemid = 0;
-			for (i = 0; i < ARRAYLENGTH(sd->add_drop) && (sd->add_drop[i].id || sd->add_drop[i].group); i++)
-			{
+			for (i = 0; i < ARRAYLENGTH(sd->add_drop) && (sd->add_drop[i].id || sd->add_drop[i].group); i++) {
 				if ( sd->add_drop[i].race == -md->class_ ||
 					( sd->add_drop[i].race > 0 && (
 						sd->add_drop[i].race & (1<<status->race) ||
@@ -2413,8 +2407,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 						drop_rate = -sd->add_drop[i].rate*(md->level/10)+1;
 						drop_rate = cap_value(drop_rate, battle_config.item_drop_adddrop_min, battle_config.item_drop_adddrop_max);
 						if (drop_rate > 10000) drop_rate = 10000;
-					}
-					else
+					} else
 						//it's positive, then it goes as it is
 						drop_rate = sd->add_drop[i].rate;
 					
@@ -2627,6 +2620,10 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	// MvP tomb [GreenBox]
 	if (battle_config.mvp_tomb_enabled && md->spawn->state.boss)
 		mvptomb_create(md, mvp_sd ? mvp_sd->status.name : NULL, time(NULL));
+
+	// Remove all status changes before creating a respawn
+	if( sc )
+		memset(sc, 0, sizeof(struct status_change));
 
 	if( !rebirth )
 		mob_setdelayspawn(md); //Set respawning.
