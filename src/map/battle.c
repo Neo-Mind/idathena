@@ -2091,7 +2091,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 
 					ATK_ADDRATE(50*skill_lv); //Skill modifier applies to weight only.
 				} else {
-					wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, i); //Monsters have no weight and use ATK instead
+					wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, 0); //Monsters have no weight and use ATK instead
 				}
 
 				ATK_ADDRATE(50*skill_lv); //Skill modifier applies to weight only.
@@ -2344,7 +2344,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					break;
 				case AM_ACIDTERROR:
 #ifdef RENEWAL
-					skillratio += 100 * skill_lv;
+					skillratio += 100*skill_lv;
 					if(tstatus->mode&MD_BOSS)
 						skillratio >>= 1;
 #else
@@ -2352,7 +2352,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 #endif
 					break;
 				case MO_FINGEROFFENSIVE:
-					skillratio+= 50 * skill_lv;
+					skillratio+= 50*skill_lv;
 					break;
 				case MO_INVESTIGATE:
 					skillratio += 75*skill_lv;

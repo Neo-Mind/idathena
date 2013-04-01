@@ -15674,8 +15674,7 @@ BUILDIN_FUNC(warpportal)
 	struct block_list* bl;
 
 	bl = map_id2bl(st->oid);
-	if( bl == NULL )
-	{
+	if( bl == NULL ) {
 		ShowError("script:warpportal: npc is needed\n");
 		return 1;
 	}
@@ -15692,6 +15691,7 @@ BUILDIN_FUNC(warpportal)
 	group = skill_unitsetting(bl, AL_WARP, 4, spx, spy, 0);
 	if( group == NULL )
 		return 0;// failed
+	group->val1 = (group->val1<<16)|(short)0;
 	group->val2 = (tpx<<16) | tpy;
 	group->val3 = mapindex;
 

@@ -1846,26 +1846,26 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		}
 	}
 
-	switch(skill_id){
-	case MO_EXTREMITYFIST:
-		sc_start(src,src,SC_EXTREMITYFIST,100,skill_lv,skill_get_time2(skill_id,skill_lv));
-		break;
-	case GS_FULLBUSTER:
-		sc_start(src,src,SC_BLIND,2*skill_lv,skill_lv,skill_get_time2(skill_id,skill_lv));
-		break;
-	case HFLI_SBR44:	//[orn]
-	case HVAN_EXPLOSION:
-		if(src->type == BL_HOM){
-			TBL_HOM *hd = (TBL_HOM*)src;
-			hd->homunculus.intimacy = 200;
-			if (hd->master)
-				clif_send_homdata(hd->master,SP_INTIMATE,hd->homunculus.intimacy/100);
-		}
-		break;
-	case CR_GRANDCROSS:
-	case NPC_GRANDDARKNESS:
-		attack_type |= BF_WEAPON;
-		break;
+	switch(skill_id) {
+		case MO_EXTREMITYFIST:
+			sc_start(src,src,SC_EXTREMITYFIST,100,skill_lv,skill_get_time2(skill_id,skill_lv));
+			break;
+		case GS_FULLBUSTER:
+			sc_start(src,src,SC_BLIND,2*skill_lv,skill_lv,skill_get_time2(skill_id,skill_lv));
+			break;
+		case HFLI_SBR44:	//[orn]
+		case HVAN_EXPLOSION:
+			if(src->type == BL_HOM){
+				TBL_HOM *hd = (TBL_HOM*)src;
+				hd->homunculus.intimacy = 200;
+				if (hd->master)
+					clif_send_homdata(hd->master,SP_INTIMATE,hd->homunculus.intimacy/100);
+			}
+			break;
+		case CR_GRANDCROSS:
+		case NPC_GRANDDARKNESS:
+			attack_type |= BF_WEAPON;
+			break;
 	}
 
 	if(sd && (sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR &&
@@ -1875,7 +1875,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	if(sd && skill_id && attack_type&BF_MAGIC && status_isdead(bl) &&
 	 	!(skill_get_inf(skill_id)&(INF_GROUND_SKILL|INF_SELF_SKILL)) &&
 		(rate=pc_checkskill(sd,HW_SOULDRAIN))>0
-	){	//Soul Drain should only work on targetted spells [Skotlex]
+	) { //Soul Drain should only work on targetted spells [Skotlex]
 		if (pc_issit(sd)) pc_setstand(sd); //Character stuck in attacking animation while 'sitting' fix. [Skotlex]
 		clif_skill_nodamage(src,bl,HW_SOULDRAIN,rate,1);
 		status_heal(src, 0, status_get_lv(bl)*(95+15*rate)/100, 2);
@@ -13696,14 +13696,11 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 				req.spiritball = 0;
 			break;
 		case MO_EXTREMITYFIST:
-			if( sc )
-			{
+			if( sc ) {
 				if( sc->data[SC_BLADESTOP] )
 					req.spiritball--;
-				else if( sc->data[SC_COMBO] )
-				{
-					switch( sc->data[SC_COMBO]->val1 )
-					{
+				else if( sc->data[SC_COMBO] ) {
+					switch( sc->data[SC_COMBO]->val1 ) {
 						case MO_COMBOFINISH:
 							req.spiritball = 4;
 							break;
@@ -13714,7 +13711,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 							req.spiritball = sd->spiritball?sd->spiritball:1;
 							break;
 					}
-				}else if( sc->data[SC_RAISINGDRAGON] && sd->spiritball > 5)
+				} else if( sc->data[SC_RAISINGDRAGON] && sd->spiritball > 5)
 					req.spiritball = sd->spiritball; // must consume all regardless of the amount required
 			}
 			break;
