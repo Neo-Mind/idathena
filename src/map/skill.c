@@ -1853,7 +1853,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		case GS_FULLBUSTER:
 			sc_start(src,src,SC_BLIND,2*skill_lv,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-		case HFLI_SBR44:	//[orn]
+		case HFLI_SBR44: //[orn]
 		case HVAN_EXPLOSION:
 			if(src->type == BL_HOM){
 				TBL_HOM *hd = (TBL_HOM*)src;

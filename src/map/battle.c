@@ -2250,17 +2250,17 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					break;
 				case KN_BRANDISHSPEAR:
 				case ML_BRANDISH:
-				{
-					int ratio = 100+20*skill_lv;
-					skillratio += ratio-100;
-					if(skill_lv>3 && wflag==1) skillratio += ratio/2;
-					if(skill_lv>6 && wflag==1) skillratio += ratio/4;
-					if(skill_lv>9 && wflag==1) skillratio += ratio/8;
-					if(skill_lv>6 && wflag==2) skillratio += ratio/2;
-					if(skill_lv>9 && wflag==2) skillratio += ratio/4;
-					if(skill_lv>9 && wflag==3) skillratio += ratio/2;
-					break;
-				}
+					{
+						int ratio = 100+20*skill_lv;
+						skillratio += ratio-100;
+						if(skill_lv>3 && wflag==1) skillratio += ratio/2;
+						if(skill_lv>6 && wflag==1) skillratio += ratio/4;
+						if(skill_lv>9 && wflag==1) skillratio += ratio/8;
+						if(skill_lv>6 && wflag==2) skillratio += ratio/2;
+						if(skill_lv>9 && wflag==2) skillratio += ratio/4;
+						if(skill_lv>9 && wflag==3) skillratio += ratio/2;
+						break;
+					}
 				case KN_BOWLINGBASH:
 				case MS_BOWLINGBASH:
 					skillratio+= 40*skill_lv;
@@ -2352,17 +2352,15 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 #endif
 					break;
 				case MO_FINGEROFFENSIVE:
-					skillratio+= 50*skill_lv;
+					skillratio += 50*skill_lv;
 					break;
 				case MO_INVESTIGATE:
 					skillratio += 75*skill_lv;
 					flag.pdef = flag.pdef2 = 2;
 					break;
-				case MO_EXTREMITYFIST: { //Overflow check. [Skotlex]
-						unsigned int ratio = skillratio + 100*(8 + sstatus->sp/10);
-						//You'd need something like 6K SP to reach this max, so should be fine for most purposes.
-						if (ratio > 60000) ratio = 60000; //We leave some room here in case skillratio gets further increased.
-						skillratio = (unsigned short)ratio;
+				case MO_EXTREMITYFIST: {
+						unsigned int ratio = 100*(8+sstatus->sp/10);
+						skillratio += -100+ratio;
 					}
 					break;
 				case MO_TRIPLEATTACK:
@@ -2425,7 +2423,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				case AS_SPLASHER:
 					skillratio += 400+50*skill_lv;
 					if(sd)
-						skillratio += 20 * pc_checkskill(sd,AS_POISONREACT);
+						skillratio += 20*pc_checkskill(sd,AS_POISONREACT);
 					break;
 				case ASC_BREAKER:
 					skillratio += 100*skill_lv-100;
@@ -2437,28 +2435,28 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += 30*skill_lv;
 					break;
 				case WS_CARTTERMINATION:
-					i = 10 * (16 - skill_lv);
+					i = 10*(16-skill_lv);
 					if (i < 1) i = 1;
 					//Preserve damage ratio when max cart weight is changed.
 					if(sd && sd->cart_weight)
-						skillratio += sd->cart_weight/i * 80000/battle_config.max_cart_weight - 100;
+						skillratio += sd->cart_weight/i*80000/battle_config.max_cart_weight-100;
 					else if (!sd)
-						skillratio += 80000 / i - 100;
+						skillratio += 80000/i-100;
 					break;
 				case TK_DOWNKICK:
-					skillratio += 60 + 20*skill_lv;
+					skillratio += 60+20*skill_lv;
 					break;
 				case TK_STORMKICK:
-					skillratio += 60 + 20*skill_lv;
+					skillratio += 60+20*skill_lv;
 					break;
 				case TK_TURNKICK:
-					skillratio += 90 + 30*skill_lv;
+					skillratio += 90+30*skill_lv;
 					break;
 				case TK_COUNTER:
-					skillratio += 90 + 30*skill_lv;
+					skillratio += 90+30*skill_lv;
 					break;
 				case TK_JUMPKICK:
-					skillratio += -70 + 10*skill_lv;
+					skillratio += -70+10*skill_lv;
 					if (sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == skill_id)
 						skillratio += 10*status_get_lv(src)/3; //Tumble bonus
 					if (wflag) {
@@ -2477,7 +2475,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						skillratio += 400;
 					break;
 				case GS_TRACKING:
-					skillratio += 100 *(skill_lv+1);
+					skillratio += 100*(skill_lv+1);
 					break;
 				case GS_PIERCINGSHOT:
 					skillratio += 20*skill_lv;
@@ -2503,11 +2501,11 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					break;
 #ifdef RENEWAL
 				case NJ_ISSEN:
-					skillratio += 100 * (skill_lv-1);
+					skillratio += 100*(skill_lv-1);
 					break;
 #endif
 				case NJ_HUUMA:
-					skillratio += 50 + 150*skill_lv;
+					skillratio += 50+150*skill_lv;
 					break;
 				case NJ_TATAMIGAESHI:
 #ifdef RENEWAL
@@ -2524,7 +2522,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				case KN_CHARGEATK: {
 						int k = (wflag-1)/3; //+100% every 3 cells of distance
 						if( k > 2 ) k = 2; // ...but hard-limited to 300%.
-						skillratio += 100 * k;
+						skillratio += 100*k;
 					}
 					break;
 				case HT_PHANTASMIC:
@@ -2533,11 +2531,11 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				case MO_BALKYOUNG:
 					skillratio += 200;
 					break;
-				case HFLI_MOON:	//[orn]
+				case HFLI_MOON: //[orn]
 					skillratio += 10+110*skill_lv;
 					break;
-				case HFLI_SBR44:	//[orn]
-					skillratio += 100 *(skill_lv-1);
+				case HFLI_SBR44: //[orn]
+					skillratio += 100*(skill_lv-1);
 					break;
 				case NPC_VAMPIRE_GIFT:
 					skillratio += ((skill_lv-1)%5+1)*100;
