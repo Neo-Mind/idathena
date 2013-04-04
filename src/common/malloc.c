@@ -530,8 +530,7 @@ static FILE *log_fp;
 
 static void memmgr_log (char *buf)
 {
-	if( !log_fp )
-	{
+	if( !log_fp ) {
 		time_t raw;
 		struct tm* t;
 
@@ -562,16 +561,13 @@ bool memmgr_verify(void* ptr)
 		return false;// never valid
 
 	// search small blocks
-	while( block )
-	{
-		if( (char*)ptr >= (char*)block && (char*)ptr < ((char*)block) + sizeof(struct block) )
-		{// found memory block
-			if( block->unit_used && (char*)ptr >= block->data )
-			{// memory block is being used and ptr points to a sub-unit
+	while( block ) {
+		if( (char*)ptr >= (char*)block && (char*)ptr < ((char*)block) + sizeof(struct block) ) { // found memory block
+			if( block->unit_used && (char*)ptr >= block->data ) { // memory block is being used and ptr points to a sub-unit
 				size_t i = (size_t)((char*)ptr - block->data)/block->unit_size;
 				struct unit_head* head = block2unit(block, i);
-				if( i < block->unit_maxused && head->block != NULL )
-				{// memory unit is allocated, check if ptr points to the usable part
+				if( i < block->unit_maxused && head->block != NULL ) {
+					// memory unit is allocated, check if ptr points to the usable part
 					return ( (char*)ptr >= ((char*)head) + sizeof(struct unit_head) - sizeof(long)
 						&& (char*)ptr < ((char*)head) + sizeof(struct unit_head) - sizeof(long) + head->size );
 				}
@@ -582,10 +578,9 @@ bool memmgr_verify(void* ptr)
 	}
 
 	// search large blocks
-	while( large )
-	{
-		if( (char*)ptr >= (char*)large && (char*)ptr < ((char*)large) + large->size )
-		{// found memory block, check if ptr points to the usable part
+	while( large ) {
+		if( (char*)ptr >= (char*)large && (char*)ptr < ((char*)large) + large->size ) {
+			// found memory block, check if ptr points to the usable part
 			return ( (char*)ptr >= ((char*)large) + sizeof(struct unit_head_large) - sizeof(long)
 				&& (char*)ptr < ((char*)large) + sizeof(struct unit_head_large) - sizeof(long) + large->size );
 		}

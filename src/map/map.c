@@ -4,6 +4,7 @@
 #include "../common/cbasetypes.h"
 #include "../common/core.h"
 #include "../common/timer.h"
+#include "../common/ers.h"
 #include "../common/grfio.h"
 #include "../common/malloc.h"
 #include "../common/socket.h" // WFIFO*()
@@ -3173,19 +3174,15 @@ int parse_console(const char* buf)
 	memset(&sd, 0, sizeof(struct map_session_data));
 	strcpy(sd.status.name, "console");
 
-	if( ( n = sscanf(buf, "%63[^:]:%63[^:]:%63s %hd %hd[^\n]", type, command, map, &x, &y) ) < 5 )
-	{
-		if( ( n = sscanf(buf, "%63[^:]:%63[^\n]", type, command) ) < 2 )
-		{
+	if( ( n = sscanf(buf, "%63[^:]:%63[^:]:%63s %hd %hd[^\n]", type, command, map, &x, &y) ) < 5 ) {
+		if( ( n = sscanf(buf, "%63[^:]:%63[^\n]", type, command) ) < 2 ) {
 			n = sscanf(buf, "%63[^\n]", type);
 		}
 	}
 
-	if( n == 5 )
-	{
+	if( n == 5 ) {
 		m = map_mapname2mapid(map);
-		if( m < 0 )
-		{
+		if( m < 0 ) {
 			ShowWarning("Console: Unknown map.\n");
 			return 0;
 		}
@@ -3195,9 +3192,7 @@ int parse_console(const char* buf)
 			sd.bl.x = x;
 		if( y > 0 )
 			sd.bl.y = y;
-	}
-	else
-	{
+	} else {
 		map[0] = '\0';
 		if( n < 2 )
 			command[0] = '\0';
@@ -3207,20 +3202,16 @@ int parse_console(const char* buf)
 
 	ShowNotice("Type of command: '%s' || Command: '%s' || Map: '%s' Coords: %d %d\n", type, command, map, x, y);
 
-	if( n == 5 && strcmpi("admin",type) == 0 )
-	{
+	if( n == 5 && strcmpi("admin",type) == 0 ) {
 		if( !is_atcommand(sd.fd, &sd, command, 0) )
 			ShowInfo("Console: not atcommand\n");
-	}
-	else if( n == 2 && strcmpi("server", type) == 0 )
-	{
-		if( strcmpi("shutdown", command) == 0 || strcmpi("exit", command) == 0 || strcmpi("quit", command) == 0 )
-		{
+	} else if( n == 2 && strcmpi("server", type) == 0 ) {
+		if( strcmpi("shutdown", command) == 0 || strcmpi("exit", command) == 0 || strcmpi("quit", command) == 0 ) {
 			runflag = 0;
 		}
-	}
-	else if( strcmpi("help", type) == 0 )
-	{
+	} else if( strcmpi("ers_report", type) == 0 )
+		ers_report();
+	else if( strcmpi("help", type) == 0 ) {
 		ShowInfo("To use GM commands:\n");
 		ShowInfo("  admin:<gm command>:<map of \"gm\"> <x> <y>\n");
 		ShowInfo("You can use any GM command that doesn't require the GM.\n");
@@ -3243,14 +3234,12 @@ int map_config_read(char *cfgName)
 	FILE *fp;
 
 	fp = fopen(cfgName,"r");
-	if( fp == NULL )
-	{
+	if( fp == NULL ) {
 		ShowError("Map configuration file not found at: %s\n", cfgName);
 		return 1;
 	}
 
-	while( fgets(line, sizeof(line), fp) )
-	{
+	while( fgets(line, sizeof(line), fp) ) {
 		char* ptr;
 
 		if( line[0] == '/' && line[1] == '/' )
