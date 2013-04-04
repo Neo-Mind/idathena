@@ -2192,8 +2192,7 @@ int skill_blown(struct block_list* src, struct block_list* target, int count, in
 	if (dir == -1) // <optimized>: do the computation here instead of outside
 		dir = map_calc_dir(target, src->x, src->y); // direction from src to target, reversed
 
-	if (dir >= 0 && dir < 8)
-	{	// take the reversed 'direction' and reverse it
+	if (dir >= 0 && dir < 8) { // take the reversed 'direction' and reverse it
 		dx = -dirx[dir];
 		dy = -diry[dir];
 	}
@@ -15605,8 +15604,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 
 	dissonance = skill_dance_switch(unit, 0);
 
-	if( unit->range >= 0 && group->interval != -1 )
-	{
+	if( unit->range >= 0 && group->interval != -1 ) {
 		if( battle_config.skill_wall_check )
 			map_foreachinshootrange(skill_unit_timer_sub_onplace, bl, unit->range, group->bl_flag, bl,tick);
 		else
@@ -15615,11 +15613,10 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 		if(unit->range == -1) //Unit disabled, but it should not be deleted yet.
 			group->unit_id = UNT_USED_TRAPS;
 
-		if( group->unit_id == UNT_TATAMIGAESHI )
-		{
+		if( group->unit_id == UNT_TATAMIGAESHI ) {
 			unit->range = -1; //Disable processed cell.
-			if (--group->val1 <= 0) // number of live cells
-	  		{	//All tiles were processed, disable skill.
+			if (--group->val1 <= 0) { // number of live cells
+	  			//All tiles were processed, disable skill.
 				group->target_flag=BCT_NOONE;
 				group->bl_flag= BL_NUL;
 			}
