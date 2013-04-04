@@ -3429,7 +3429,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 
 			if (sc && sc->data[SC_MIRACLE]) i = 2; //Star anger
 			else
-			ARR_FIND(0, MAX_PC_FEELHATE, i, t_class == sd->hate_mob[i]);
+				ARR_FIND(0, MAX_PC_FEELHATE, i, t_class == sd->hate_mob[i]);
 			if (i < MAX_PC_FEELHATE && (skill=pc_checkskill(sd,sg_info[i].anger_id))) {
 				skillratio = sd->status.base_level + sstatus->dex + sstatus->luk;
 				if (i == 2) skillratio += sstatus->str; //Star Anger
@@ -3441,15 +3441,14 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				ATK_ADD(3*skill);
 			if (skill_id == NJ_KUNAI)
 				ATK_ADD(60);
-		}
-	} //Here ends flag.hit section, the rest of the function applies to both hitting and missing attacks
-  	else if(wd.div_ < 0) //Since the attack missed...
+		} //Here ends flag.hit section, the rest of the function applies to both hitting and missing attacks
+	} else if (wd.div_ < 0) //Since the attack missed...
 		wd.div_ *= -1;
 
-	if(sd && (skill=pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
+	if (sd && (skill=pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
 		ATK_ADD(skill*2);
 
-	if(skill_id==TF_POISON)
+	if (skill_id==TF_POISON)
 		ATK_ADD(15*skill_lv);
 
 	if( !(nk&NK_NO_ELEFIX) && !n_ele ) {
