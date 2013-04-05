@@ -263,17 +263,17 @@ uint16 clif_getport(void)
 #if PACKETVER >= 20071106
 static inline unsigned char clif_bl_type(struct block_list *bl) {
 	switch (bl->type) {
-	case BL_PC:    return disguised(bl) && pcdb_checkid(status_get_viewdata(bl)->class_)? 0x1:0x0; //PC_TYPE
-	case BL_ITEM:  return 0x2; //ITEM_TYPE
-	case BL_SKILL: return 0x3; //SKILL_TYPE
-	case BL_CHAT:  return 0x4; //UNKNOWN_TYPE
-	case BL_MOB:   return pcdb_checkid(status_get_viewdata(bl)->class_)?0x0:0x5; //NPC_MOB_TYPE
-	case BL_NPC:   return 0x6; //NPC_EVT_TYPE
-	case BL_PET:   return pcdb_checkid(status_get_viewdata(bl)->class_)?0x0:0x7; //NPC_PET_TYPE
-	case BL_HOM:   return 0x8; //NPC_HOM_TYPE
-	case BL_MER:   return 0x9; //NPC_MERSOL_TYPE
-	case BL_ELEM:  return 0xa; //NPC_ELEMENTAL_TYPE
-	default:       return 0x1; //NPC_TYPE
+		case BL_PC:    return (disguised(bl) && !pcdb_checkid(status_get_viewdata(bl)->class_))? 0x1:0x0; //PC_TYPE
+		case BL_ITEM:  return 0x2; //ITEM_TYPE
+		case BL_SKILL: return 0x3; //SKILL_TYPE
+		case BL_CHAT:  return 0x4; //UNKNOWN_TYPE
+		case BL_MOB:   return pcdb_checkid(status_get_viewdata(bl)->class_)?0x0:0x5; //NPC_MOB_TYPE
+		case BL_NPC:   return 0x6; //NPC_EVT_TYPE
+		case BL_PET:   return pcdb_checkid(status_get_viewdata(bl)->class_)?0x0:0x7; //NPC_PET_TYPE
+		case BL_HOM:   return 0x8; //NPC_HOM_TYPE
+		case BL_MER:   return 0x9; //NPC_MERSOL_TYPE
+		case BL_ELEM:  return 0xa; //NPC_ELEMENTAL_TYPE
+		default:       return 0x1; //NPC_TYPE
 	}
 }
 #endif
@@ -307,30 +307,27 @@ static int clif_send_sub(struct block_list *bl, va_list ap)
 	nullpo_ret(src_bl = va_arg(ap,struct block_list*));
 	type = va_arg(ap,int);
 
-	switch(type)
-	{
-	case AREA_WOS:
-		if (bl == src_bl)
-			return 0;
-	break;
-	case AREA_WOC:
-		if (sd->chatID || bl == src_bl)
-			return 0;
-	break;
-	case AREA_WOSC:
-	{
-		if(src_bl->type == BL_PC){
-			struct map_session_data *ssd = (struct map_session_data *)src_bl;
-			if (ssd && sd->chatID && (sd->chatID == ssd->chatID))
-			return 0;
+	switch(type) {
+		case AREA_WOS:
+			if (bl == src_bl)
+				return 0;
+		break;
+		case AREA_WOC:
+			if (sd->chatID || bl == src_bl)
+				return 0;
+		break;
+		case AREA_WOSC: {
+			if(src_bl->type == BL_PC) {
+				struct map_session_data *ssd = (struct map_session_data *)src_bl;
+				if (ssd && sd->chatID && (sd->chatID == ssd->chatID))
+				return 0;
+			} else if(src_bl->type == BL_NPC) {
+				struct npc_data *nd = (struct npc_data *)src_bl;
+				if (nd && sd->chatID && (sd->chatID == nd->chat_id))
+				return 0;
+			}
 		}
-		else if(src_bl->type == BL_NPC) {
-			struct npc_data *nd = (struct npc_data *)src_bl;
-			if (nd && sd->chatID && (sd->chatID == nd->chat_id))
-			return 0;
-		}
-	}
-	break;
+		break;
 	}
 
 	if (session[fd] == NULL)
@@ -453,7 +450,7 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 			p = party_search(sd->status.party_id);
 			
 		if (p) {
-			for(i=0;i<MAX_PARTY;i++){
+			for(i=0;i<MAX_PARTY;i++) {
 				if( (sd = p->data[i].sd) == NULL )
 					continue;
 
@@ -9847,10 +9844,11 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data* sd)
 		WFIFOHEAD(fd,mylen + 12);
 		WFIFOW(fd,0) = 0x2C1;
 		WFIFOW(fd,2) = mylen + 12;
-		WFIFOL(fd,4) = -sd->bl.id;
+		WFIFOL(fd,4) = sd->bl.id;
 		WFIFOL(fd,8) = raChSys.colors[sd->fontcolor - 1];
 		safestrncpy((char*)WFIFOP(fd,12), mout, mylen);
 		clif_send(WFIFOP(fd,0), WFIFOW(fd,2), &sd->bl, AREA_WOS);
+		WFIFOL(fd,4) = -sd->bl.id;
 		WFIFOSET(fd, mylen + 12);
 		return;
 	}

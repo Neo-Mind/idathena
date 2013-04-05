@@ -13378,8 +13378,8 @@ BUILDIN_FUNC(isequipped)
 					itemdb_isspecial(sd->status.inventory[index].card[0]))
 					continue;
 
-				for (k = 0; k < sd->inventory_data[index]->slot; k++)
-				{	//New hash system which should support up to 4 slots on any equipment. [Skotlex]
+				for (k = 0; k < sd->inventory_data[index]->slot; k++) {
+					//New hash system which should support up to 4 slots on any equipment. [Skotlex]
 					unsigned int hash = 0;
 					if (sd->status.inventory[index].card[k] != id)
 						continue;
@@ -13407,7 +13407,7 @@ BUILDIN_FUNC(isequipped)
 			ret &= flag;
 		if (!ret) break;
 	}
-	if (!ret) {//When check fails, restore original hash values. [Skotlex]
+	if (!ret) { //When check fails, restore original hash values. [Skotlex]
 		sd->bonus.setitem_hash = setitem_hash;
 		sd->bonus.setitem_hash2 = setitem_hash2;
 	}
@@ -13463,7 +13463,7 @@ BUILDIN_FUNC(cardscnt)
 BUILDIN_FUNC(getrefine)
 {
 	TBL_PC *sd;
-	if ((sd = script_rid2sd(st))!= NULL)
+	if ((sd = script_rid2sd(st)) != NULL)
 		script_pushint(st,sd->status.inventory[current_equip_item_index].refine);
 	else
 		script_pushint(st,0);
@@ -13495,8 +13495,7 @@ BUILDIN_FUNC(unequip)
 
 	num = script_getnum(st,2);
 	sd = script_rid2sd(st);
-	if( sd != NULL && num >= 1 && num <= ARRAYLENGTH(equip) )
-	{
+	if( sd != NULL && num >= 1 && num <= ARRAYLENGTH(equip) ) {
 		i = pc_checkequip(sd,equip[num-1]);
 		if (i >= 0)
 			pc_unequipitem(sd,i,1|2);
@@ -13513,8 +13512,7 @@ BUILDIN_FUNC(equip)
 	sd = script_rid2sd(st);
 
 	nameid=script_getnum(st,2);
-	if((item_data = itemdb_exists(nameid)) == NULL)
-	{
+	if((item_data = itemdb_exists(nameid)) == NULL) {
 		ShowError("wrong item ID : equipitem(%i)\n",nameid);
 		return 1;
 	}
@@ -13532,14 +13530,12 @@ BUILDIN_FUNC(autoequip)
 	nameid=script_getnum(st,2);
 	flag=script_getnum(st,3);
 
-	if( ( item_data = itemdb_exists(nameid) ) == NULL )
-	{
+	if( ( item_data = itemdb_exists(nameid) ) == NULL ) {
 		ShowError("buildin_autoequip: Invalid item '%d'.\n", nameid);
 		return 1;
 	}
 
-	if( !itemdb_isequip2(item_data) )
-	{
+	if( !itemdb_isequip2(item_data) ) {
 		ShowError("buildin_autoequip: Item '%d' cannot be equipped.\n", nameid);
 		return 1;
 	}

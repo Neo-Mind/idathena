@@ -8076,35 +8076,26 @@ ACMD_FUNC(itemlist)
 
 	nullpo_retr(-1, sd);
 
-	if( strcmp(command+1, "storagelist") == 0 )
-	{
+	if( strcmp(command+1, "storagelist") == 0 ) {
 		location = "storage";
 		items = sd->status.storage.items;
 		size = MAX_STORAGE;
-	}
-	else
-	if( strcmp(command+1, "cartlist") == 0 )
-	{
+	} else if( strcmp(command+1, "cartlist") == 0 ) {
 		location = "cart";
 		items = sd->status.cart;
 		size = MAX_CART;
-	}
-	else
-	if( strcmp(command+1, "itemlist") == 0 )
-	{
+	} else if( strcmp(command+1, "itemlist") == 0 ) {
 		location = "inventory";
 		items = sd->status.inventory;
 		size = MAX_INVENTORY;
-	}
-	else
+	} else
 		return 1;
 
 	StringBuf_Init(&buf);
 
 	count = 0; // total slots occupied
 	counter = 0; // total items found
-	for( i = 0; i < size; ++i )
-	{
+	for( i = 0; i < size; ++i ) {
 		const struct item* it = &items[i];
 		struct item_data* itd;
 
@@ -8114,8 +8105,7 @@ ACMD_FUNC(itemlist)
 		counter += it->amount;
 		count++;
 
-		if( count == 1 )
-		{
+		if( count == 1 ) {
 			StringBuf_Printf(&buf, msg_txt(1332), location, sd->status.name); // ------ %s items list of '%s' ------
 			clif_displaymessage(fd, StringBuf_Value(&buf));
 			StringBuf_Clear(&buf);
@@ -8126,8 +8116,7 @@ ACMD_FUNC(itemlist)
 		else
 			StringBuf_Printf(&buf, "%d %s (%s, id: %d)", it->amount, itd->jname, itd->name, it->nameid);
 
-		if( it->equip )
-		{
+		if( it->equip ) {
 			char equipstr[CHAT_SIZE_MAX];
 			strcpy(equipstr, msg_txt(1333)); //  | equipped:
 			if( it->equip & EQP_GARMENT )
@@ -8166,29 +8155,19 @@ ACMD_FUNC(itemlist)
 		clif_displaymessage(fd, StringBuf_Value(&buf));
 		StringBuf_Clear(&buf);
 
-		if( it->card[0] == CARD0_PET )
-		{// pet egg
+		if( it->card[0] == CARD0_PET ) { // pet egg
 			if (it->card[3])
 				StringBuf_Printf(&buf, msg_txt(1348), (unsigned int)MakeDWord(it->card[1], it->card[2])); //  -> (pet egg, pet id: %u, named)
 			else
 				StringBuf_Printf(&buf, msg_txt(1349), (unsigned int)MakeDWord(it->card[1], it->card[2])); //  -> (pet egg, pet id: %u, unnamed)
-		}
-		else
-		if(it->card[0] == CARD0_FORGE)
-		{// forged item
+		} else if(it->card[0] == CARD0_FORGE) { // forged item
 			StringBuf_Printf(&buf, msg_txt(1350), (unsigned int)MakeDWord(it->card[2], it->card[3]), it->card[1]>>8, it->card[1]&0x0f); //  -> (crafted item, creator id: %u, star crumbs %d, element %d)
-		}
-		else
-		if(it->card[0] == CARD0_CREATE)
-		{// created item
+		} else if(it->card[0] == CARD0_CREATE) { // created item
 			StringBuf_Printf(&buf, msg_txt(1351), (unsigned int)MakeDWord(it->card[2], it->card[3])); //  -> (produced item, creator id: %u)
-		}
-		else
-		{// normal item
+		} else { // normal item
 			int counter2 = 0;
 
-			for( j = 0; j < itd->slot; ++j )
-			{
+			for( j = 0; j < itd->slot; ++j ) {
 				struct item_data* card;
 
 				if( it->card[j] == 0 || (card = itemdb_exists(it->card[j])) == NULL )
@@ -8304,12 +8283,9 @@ ACMD_FUNC(delitem)
 		return -1;
 	}
 
-	if( ( id = itemdb_searchname(item_name) ) != NULL || ( id = itemdb_exists(atoi(item_name)) ) != NULL )
-	{
+	if( ( id = itemdb_searchname(item_name) ) != NULL || ( id = itemdb_exists(atoi(item_name)) ) != NULL ) {
 		nameid = id->nameid;
-	}
-	else
-	{
+	} else {
 		clif_displaymessage(fd, msg_txt(19)); // Invalid item ID or name.
 		return -1;
 	}
@@ -8317,12 +8293,10 @@ ACMD_FUNC(delitem)
 	total = amount;
 
 	// delete items
-	while( amount && ( idx = pc_search_inventory(sd, nameid) ) != -1 )
-	{
+	while( amount && ( idx = pc_search_inventory(sd, nameid) ) != -1 ) {
 		int delamount = ( amount < sd->status.inventory[idx].amount ) ? amount : sd->status.inventory[idx].amount;
 
-		if( sd->inventory_data[idx]->type == IT_PETEGG && sd->status.inventory[idx].card[0] == CARD0_PET )
-		{// delete pet
+		if( sd->inventory_data[idx]->type == IT_PETEGG && sd->status.inventory[idx].card[0] == CARD0_PET ) { // delete pet
 			intif_delete_petdata(MakeDWord(sd->status.inventory[idx].card[1], sd->status.inventory[idx].card[2]));
 		}
 		pc_delitem(sd, idx, delamount, 0, 0, LOG_TYPE_COMMAND);
@@ -8335,17 +8309,12 @@ ACMD_FUNC(delitem)
 	clif_displaymessage(sd->fd, atcmd_output);
 
 	// notify source
-	if( amount == total )
-	{
+	if( amount == total ) {
 		clif_displaymessage(fd, msg_txt(116)); // Character does not have the item.
-	}
-	else if( amount )
-	{
+	} else if( amount ) {
 		sprintf(atcmd_output, msg_txt(115), total-amount, total-amount, total); // %d item(s) removed. Player had only %d on %d items.
 		clif_displaymessage(fd, atcmd_output);
-	}
-	else
-	{
+	} else {
 		sprintf(atcmd_output, msg_txt(114), total); // %d item(s) removed from the player.
 		clif_displaymessage(fd, atcmd_output);
 	}
@@ -8362,29 +8331,22 @@ ACMD_FUNC(font)
 	nullpo_retr(-1,sd);
 
 	font_id = atoi(message);
-	if( font_id == 0 )
-	{
-		if( sd->user_font )
-		{
+	if( font_id == 0 ) {
+		if( sd->user_font ) {
 			sd->user_font = 0;
 			clif_displaymessage(fd, msg_txt(1356)); // Returning to normal font.
 			clif_font(sd);
-		}
-		else
-		{
+		} else {
 			clif_displaymessage(fd, msg_txt(1357)); // Use @font <1-9> to change your message font.
 			clif_displaymessage(fd, msg_txt(1358)); // Use 0 or no parameter to return to normal font.
 		}
-	}
-	else if( font_id < 0 || font_id > 9 )
+	} else if( font_id < 0 || font_id > 9 )
 		clif_displaymessage(fd, msg_txt(1359)); // Invalid font. Use a value from 0 to 9.
-	else if( font_id != sd->user_font )
-	{
+	else if( font_id != sd->user_font ) {
 		sd->user_font = font_id;
 		clif_font(sd);
 		clif_displaymessage(fd, msg_txt(1360)); // Font changed.
-	}
-	else
+	} else
 		clif_displaymessage(fd, msg_txt(1361)); // Already using this font.
 
 	return 0;
@@ -8426,8 +8388,7 @@ static void atcommand_commands_sub(struct map_session_data* sd, const int fd, At
 		slen = strlen(cmd->command);
 
 		// flush the text buffer if this command won't fit into it
-		if ( slen + cur - line_buff >= CHATBOX_SIZE )
-		{
+		if ( slen + cur - line_buff >= CHATBOX_SIZE ) {
 			clif_displaymessage(fd,line_buff);
 			cur = line_buff;
 			memset(line_buff,' ',CHATBOX_SIZE);
