@@ -4268,8 +4268,11 @@ static unsigned short status_calc_agi(struct block_list *bl, struct status_chang
 		agi += ((sc->data[SC_MARIONETTE2]->val3)>>8)&0xFF;
 	if(sc->data[SC_ADORAMUS])
 		agi -= sc->data[SC_ADORAMUS]->val2;
-	if(sc->data[SC_MARSHOFABYSS])
+	if(sc->data[SC_MARSHOFABYSS]) {
 		agi -= agi * sc->data[SC_MARSHOFABYSS]->val2 / 100;
+		if (agi < 0)
+			agi = 0;
+	}
 	if(sc->data[SC_HARMONIZE])
 		agi -= sc->data[SC_HARMONIZE]->val2;
 	if(sc->data[SC_DROCERA_HERB_STEAMED])
@@ -4409,7 +4412,7 @@ static unsigned short status_calc_dex(struct block_list *bl, struct status_chang
 		dex += 5;
 	if(sc->data[SC_QUAGMIRE])
 		dex -= sc->data[SC_QUAGMIRE]->val2;
-	if(sc->data[SC_BLESSING]){
+	if(sc->data[SC_BLESSING]) {
 		if (sc->data[SC_BLESSING]->val2)
 			dex += sc->data[SC_BLESSING]->val2;
 		else
@@ -4421,8 +4424,11 @@ static unsigned short status_calc_dex(struct block_list *bl, struct status_chang
 		dex -= ((sc->data[SC_MARIONETTE]->val4)>>8)&0xFF;
 	if(sc->data[SC_MARIONETTE2])
 		dex += ((sc->data[SC_MARIONETTE2]->val4)>>8)&0xFF;
-	if(sc->data[SC_MARSHOFABYSS])
+	if(sc->data[SC_MARSHOFABYSS]) {
 		dex -= dex * sc->data[SC_MARSHOFABYSS]->val2 / 100;
+		if (dex < 0)
+			dex = 0;
+	}
 	if(sc->data[SC_HARMONIZE])
 		dex -= sc->data[SC_HARMONIZE]->val2;
 	if(sc->data[SC_SIROMA_ICE_TEA])
@@ -5060,7 +5066,7 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 		mdef += mdef * sc->data[SC_SYMPHONYOFLOVER]->val3 / 100;
 	if(sc->data[SC_GT_CHANGE] && sc->data[SC_GT_CHANGE]->val4) {
 		mdef -= sc->data[SC_GT_CHANGE]->val4;
-		if ( mdef < 0 )
+		if (mdef < 0)
 			mdef = 0;
 	}
 	if(sc->data[SC_ODINS_POWER])
@@ -5137,15 +5143,13 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 
 			if( sd && sc->data[SC_HIDING] && pc_checkskill(sd,RG_TUNNELDRIVE) > 0 )
 				val = 120 - 6 * pc_checkskill(sd,RG_TUNNELDRIVE);
-			else
-			if( sd && sc->data[SC_CHASEWALK] && sc->data[SC_CHASEWALK]->val3 < 0 )
+			else if( sd && sc->data[SC_CHASEWALK] && sc->data[SC_CHASEWALK]->val3 < 0 )
 				val = sc->data[SC_CHASEWALK]->val3;
 			else {
 				// Longing for Freedom cancels song/dance penalty
 				if( sc->data[SC_LONGING] )
 					val = max( val, 50 - 10 * sc->data[SC_LONGING]->val1 );
-				else
-				if( sd && sc->data[SC_DANCING] )
+				else if( sd && sc->data[SC_DANCING] )
 					val = max( val, 500 - (40 + 10 * (sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER)) * pc_checkskill(sd,(sd->status.sex?BA_MUSICALLESSON:DC_DANCINGLESSON)) );
 
 				if( sc->data[SC_DECREASEAGI] || sc->data[SC_ADORAMUS] )
@@ -5199,6 +5203,9 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 
 			speed_rate += val;
 		}
+
+		if( sc->data[SC_MARSHOFABYSS] && speed_rate > 50)
+			speed_rate = 50;
 
 		//GetMoveHasteValue1()
 		{
@@ -8245,12 +8252,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			status_change_end(bl, SC_BURNING, INVALID_TIMER);
 			break;
 		case SC_MARSHOFABYSS:
-			if( sd ) { //AGI and DEX Reduction
+			if( sd ) // AGI and DEX Reduction
 				val2 = 3 * val1;
-			}
 			else
 				val2 = 6 * val1;
-			val3 = 10 * val1;//Movement Speed Reduction
+			val3 = 10 * val1; // Movement Speed Reduction
 			break;
 		case SC_READING_SB:
 			// val2 = sp reduction per second
@@ -8262,7 +8268,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_SPHERE_4:
 		case SC_SPHERE_5:
 			if( !sd )
-				return 0;	// Should only work on players.
+				return 0; // Should only work on players.
 			val4 = tick / 1000;
 			if( val4 < 1 )
 				val4 = 1;
@@ -8295,7 +8301,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			tick_time = 1000; // [GodLesZ] tick time
 			break;
 		case SC_WUGDASH:
-			val4 = gettick(); //Store time at which you started running.
+			val4 = gettick(); // Store time at which you started running.
 			tick = -1;
 			break;
 		case SC__REPRODUCE:
