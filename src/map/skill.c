@@ -12912,10 +12912,14 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 				return 0;
 			}
 			break;
+		case GC_CROSSIMPACT:
 		case GC_COUNTERSLASH:
-			if( !(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == GC_WEAPONBLOCKING) ) {
+			if( skill_id == GC_COUNTERSLASH && !(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == GC_WEAPONBLOCKING) ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_GC_WEAPONBLOCKING,0);
 				return 0;
+			}
+			if ( sc && sc->data[SC_EDP] ) {
+				status_zap(&sd->bl, 0, require.sp);
 			}
 			break;
 		case RA_WUGMASTERY:
