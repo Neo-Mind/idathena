@@ -52,7 +52,7 @@ extern struct s_packet_db packet_db[MAX_PACKET_VER+1][MAX_PACKET_DB+1];
 typedef enum send_target {
 	ALL_CLIENT,
 	ALL_SAMEMAP,
-	AREA                // area
+	AREA,               // area
 	AREA_WOS,           // area, without self
 	AREA_WOC,           // area, without chatrooms
 	AREA_WOSC,          // area, without own chatroom
@@ -76,7 +76,7 @@ typedef enum send_target {
 	DUEL_WOS,
 	SELF,
 
-	BG,                  // BattleGround System
+	BG,                 // BattleGround System
 	BG_WOS,
 	BG_SAMEMAP,
 	BG_SAMEMAP_WOS,
