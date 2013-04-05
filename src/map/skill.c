@@ -539,7 +539,7 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 		return 1;
 	}
 
-	if (sd->blockskill[idx] > 0){
+	if (sd->blockskill[idx] > 0) {
 		clif_skill_fail(sd,skill_id,USESKILL_FAIL_SKILLINTERVAL,0);
 		return 1;
 	}
@@ -656,7 +656,7 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 	return (map[m].flag.noskill);
 }
 
-int skillnotok_hom(uint16 skill_id, struct homun_data *hd)
+int skillnotok_hom (uint16 skill_id, struct homun_data *hd)
 {
 	uint16 idx = skill_get_index(skill_id);
 	nullpo_retr(1,hd);
@@ -770,7 +770,7 @@ int skillnotok_hom(uint16 skill_id, struct homun_data *hd)
 	return skillnotok(skill_id, hd->master);
 }
 
-int skillnotok_mercenary(uint16 skill_id, struct mercenary_data *md)
+int skillnotok_mercenary (uint16 skill_id, struct mercenary_data *md)
 {
 	uint16 idx = skill_get_index(skill_id);
 	nullpo_retr(1,md);
@@ -5741,6 +5741,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				src, skill_id, skill_lv, tick, flag|BCT_ENEMY|SD_SPLASH|1, skill_castend_damage_id);
 			if( !i && ( skill_id == NC_AXETORNADO || skill_id == SR_SKYNETBLOW || skill_id == KO_HAPPOKUNAI ) )
 				clif_skill_damage(src,src,tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
+			if( skill_id == GC_COUNTERSLASH )
+				status_change_end(src,SC_WEAPONBLOCKING,INVALID_TIMER);
 			break;
 
 		case NC_EMERGENCYCOOL:
