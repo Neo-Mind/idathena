@@ -7231,27 +7231,21 @@ BUILDIN_FUNC(strcharinfo)
 		return 0;
 	}
 	num=script_getnum(st,2);
-	switch(num){
+	switch(num) {
 		case 0:
 			script_pushstrcopy(st,sd->status.name);
 			break;
 		case 1:
-			if( ( p = party_search(sd->status.party_id) ) != NULL )
-			{
+			if( ( p = party_search(sd->status.party_id) ) != NULL ) {
 				script_pushstrcopy(st,p->party.name);
-			}
-			else
-			{
+			} else {
 				script_pushconststr(st,"");
 			}
 			break;
 		case 2:
-			if( ( g = guild_search(sd->status.guild_id) ) != NULL )
-			{
+			if( ( g = guild_search(sd->status.guild_id) ) != NULL ) {
 				script_pushstrcopy(st,g->name);
-			}
-			else
-			{
+			} else {
 				script_pushconststr(st,"");
 			}
 			break;
@@ -12939,12 +12933,11 @@ BUILDIN_FUNC(npctalk)
 	struct npc_data* nd = (struct npc_data *)map_id2bl(st->oid);
 	str = script_getstr(st,2);
 
-	if(nd)
-	{
+	if(nd) {
 		safestrncpy(name, nd->name, sizeof(name));
 		strtok(name, "#"); // discard extra name identifier if present
 		safesnprintf(message, sizeof(message), "%s : %s", name, str);
-		clif_message(&nd->bl, message);
+		clif_disp_overhead(&nd->bl, message);
 	}
 
 	return 0;
@@ -15425,12 +15418,11 @@ BUILDIN_FUNC(unittalk)
 	message = script_getstr(st, 3);
 
 	bl = map_id2bl(unit_id);
-	if( bl != NULL )
-	{
+	if( bl != NULL ) {
 		struct StringBuf sbuf;
 		StringBuf_Init(&sbuf);
 		StringBuf_Printf(&sbuf, "%s : %s", status_get_name(bl), message);
-		clif_message(bl, StringBuf_Value(&sbuf));
+		clif_disp_overhead(bl, StringBuf_Value(&sbuf));
 		if( bl->type == BL_PC )
 			clif_displaymessage(((TBL_PC*)bl)->fd, StringBuf_Value(&sbuf));
 		StringBuf_Destroy(&sbuf);

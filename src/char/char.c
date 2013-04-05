@@ -1417,8 +1417,7 @@ int rename_char_sql(struct char_session_data *sd, int char_id)
 	Sql_EscapeStringLen(sql_handle, esc_name, sd->new_name, strnlen(sd->new_name, NAME_LENGTH));
 
 	// check if the char exist
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT 1 FROM `%s` WHERE `name` LIKE '%s' LIMIT 1", char_db, esc_name) )
-	{
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT 1 FROM `%s` WHERE `name` LIKE '%s' LIMIT 1", char_db, esc_name) ) {
 		Sql_ShowDebug(sql_handle);
 		return 4;
 	}
@@ -1437,8 +1436,7 @@ int rename_char_sql(struct char_session_data *sd, int char_id)
 	memset(sd->new_name,0,sizeof(sd->new_name));
 
 	// log change
-	if( log_char )
-	{
+	if( log_char ) {
 		if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
 			"VALUES (NOW(), '%s', '%d', '%d', '%s', '0', '0', '0', '0', '0', '0', '0', '0')",
 			charlog_db, "change char name", sd->account_id, char_dat.slot, esc_name) )
@@ -1466,18 +1464,15 @@ int check_char_name(char * name, char * esc_name)
 		return -2; // control chars in name
 
 	// check for reserved names
-	if( strcmpi(name, main_chat_nick) == 0 || strcmpi(name, wisp_server_name) == 0 )
+	if( strcmpi(name, wisp_server_name) == 0 )
 		return -1; // nick reserved for internal server messages
 
 	// Check Authorised letters/symbols in the name of the character
-	if( char_name_option == 1 )
-	{ // only letters/symbols in char_name_letters are authorised
+	if( char_name_option == 1 ) { // only letters/symbols in char_name_letters are authorised
 		for( i = 0; i < NAME_LENGTH && name[i]; i++ )
 			if( strchr(char_name_letters, name[i]) == NULL )
 				return -2;
-	}
-	else if( char_name_option == 2 )
-	{ // letters/symbols in char_name_letters are forbidden
+	} else if( char_name_option == 2 ) { // letters/symbols in char_name_letters are forbidden
 		for( i = 0; i < NAME_LENGTH && name[i]; i++ )
 			if( strchr(char_name_letters, name[i]) != NULL )
 				return -2;

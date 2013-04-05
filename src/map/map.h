@@ -20,6 +20,7 @@
 
 struct npc_data;
 struct item_data;
+struct raChSysCh;
 
 enum E_MAPSERVER_ST
 {
@@ -570,11 +571,12 @@ struct map_data {
 		unsigned nodrop : 1;
 		unsigned novending : 1;
 		unsigned loadevent : 1;
-		unsigned nochat :1;
-		unsigned partylock :1;
-		unsigned guildlock :1;
+		unsigned nochat : 1;
+		unsigned partylock : 1;
+		unsigned guildlock : 1;
 		unsigned src4instance : 1; // To flag this map when it's used as a src map for instances
-		unsigned reset :1; // [Daegaladh]
+		unsigned reset : 1; // [Daegaladh]
+		unsigned chsysnolocalaj : 1;
 	} flag;
 	struct point save;
 	struct npc_data *npc[MAX_NPC_PER_MAP];
@@ -600,6 +602,9 @@ struct map_data {
 	// Instance Variables
 	int instance_id;
 	int instance_src_map;
+
+	/* rAthena Local Chat */
+	struct raChSysCh *channel;
 
 	/* adjust_unit_duration mapflag */
 	struct mapflag_skill_adjust **units;
@@ -782,9 +787,6 @@ typedef struct elemental_data	TBL_ELEM;
 
 #define BL_CAST(type_, bl) \
 	( ((bl) == (struct block_list*)NULL || (bl)->type != (type_)) ? (T ## type_ *)NULL : (T ## type_ *)(bl) )
-
-
-extern char main_chat_nick[16];
 
 #ifdef BETA_THREAD_TEST
 

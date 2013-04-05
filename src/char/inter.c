@@ -43,7 +43,6 @@ char default_codepage[32] = ""; //Feature by irmin.
 
 static struct accreg *accreg_pt;
 unsigned int party_share_level = 10;
-char main_chat_nick[16] = "Main";
 
 // recv. packet list
 int inter_recv_packet_length[] = {
@@ -639,8 +638,7 @@ static int inter_config_read(const char* cfgName)
 		return 1;
 	}
 
-	while(fgets(line, sizeof(line), fp))
-	{
+	while(fgets(line, sizeof(line), fp)) {
 		i = sscanf(line, "%[^:]: %[^\r\n]", w1, w2);
 		if(i != 2)
 			continue;
@@ -662,13 +660,10 @@ static int inter_config_read(const char* cfgName)
 		} else
 		if(!strcmpi(w1,"default_codepage")) {
 			strcpy(default_codepage,w2);
-		}
-		else if(!strcmpi(w1,"party_share_level"))
+		} else if(!strcmpi(w1,"party_share_level"))
 			party_share_level = atoi(w2);
 		else if(!strcmpi(w1,"log_inter"))
 			log_inter = atoi(w2);
-		else if(!strcmpi(w1,"main_chat_nick"))
-			safestrncpy(main_chat_nick, w2, sizeof(main_chat_nick));
 		else if(!strcmpi(w1,"import"))
 			inter_config_read(w2);
 	}

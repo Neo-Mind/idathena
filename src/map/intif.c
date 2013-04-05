@@ -170,10 +170,7 @@ int intif_broadcast(const char* mes, int len, int type)
 int intif_broadcast2(const char* mes, int len, unsigned long fontColor, short fontType, short fontSize, short fontAlign, short fontY)
 {
 	// Send to the local players
-	if (fontColor == 0xFE000000) // This is main chat message [LuzZza]
-		clif_MainChatMessage(mes);
-	else
-		clif_broadcast2(NULL, mes, len, fontColor, fontType, fontSize, fontAlign, fontY, ALL_CLIENT);
+	clif_broadcast2(NULL, mes, len, fontColor, fontType, fontSize, fontAlign, fontY, ALL_CLIENT);
 
 	if (CheckForCharServer())
 		return 0;
@@ -2164,101 +2161,99 @@ int intif_parse(int fd)
 	cmd = RFIFOW(fd,0);
 	// Verify ID of the packet
 	if(cmd<0x3800 || cmd>=0x3800+(sizeof(packet_len_table)/sizeof(packet_len_table[0])) ||
-	   packet_len_table[cmd-0x3800]==0){
+	   packet_len_table[cmd-0x3800]==0) {
 	   	return 0;
 	}
 	// Check the length of the packet
 	packet_len = packet_len_table[cmd-0x3800];
-	if(packet_len==-1){
+	if(packet_len==-1) {
 		if(RFIFOREST(fd)<4)
 			return 2;
 		packet_len = RFIFOW(fd,2);
 	}
-	if((int)RFIFOREST(fd)<packet_len){
+	if((int)RFIFOREST(fd)<packet_len) {
 		return 2;
 	}
 	// Processing branch
-	switch(cmd){
-	case 0x3800:
-		if (RFIFOL(fd,4) == 0xFF000000) //Normal announce.
-			clif_broadcast(NULL, (char *) RFIFOP(fd,16), packet_len-16, 0, ALL_CLIENT);
-		else if (RFIFOL(fd,4) == 0xFE000000) //Main chat message [LuzZza]
-			clif_MainChatMessage((char *)RFIFOP(fd,16));
-		else //Color announce.
-			clif_broadcast2(NULL, (char *) RFIFOP(fd,16), packet_len-16, RFIFOL(fd,4), RFIFOW(fd,8), RFIFOW(fd,10), RFIFOW(fd,12), RFIFOW(fd,14), ALL_CLIENT);
-		break;
-	case 0x3801:	intif_parse_WisMessage(fd); break;
-	case 0x3802:	intif_parse_WisEnd(fd); break;
-	case 0x3803:	mapif_parse_WisToGM(fd); break;
-	case 0x3804:	intif_parse_Registers(fd); break;
-	case 0x3806:	intif_parse_ChangeNameOk(fd); break;
-	case 0x3807:	intif_parse_MessageToFD(fd); break;
-	case 0x3818:	intif_parse_LoadGuildStorage(fd); break;
-	case 0x3819:	intif_parse_SaveGuildStorage(fd); break;
-	case 0x3820:	intif_parse_PartyCreated(fd); break;
-	case 0x3821:	intif_parse_PartyInfo(fd); break;
-	case 0x3822:	intif_parse_PartyMemberAdded(fd); break;
-	case 0x3823:	intif_parse_PartyOptionChanged(fd); break;
-	case 0x3824:	intif_parse_PartyMemberWithdraw(fd); break;
-	case 0x3825:	intif_parse_PartyMove(fd); break;
-	case 0x3826:	intif_parse_PartyBroken(fd); break;
-	case 0x3827:	intif_parse_PartyMessage(fd); break;
-	case 0x3830:	intif_parse_GuildCreated(fd); break;
-	case 0x3831:	intif_parse_GuildInfo(fd); break;
-	case 0x3832:	intif_parse_GuildMemberAdded(fd); break;
-	case 0x3834:	intif_parse_GuildMemberWithdraw(fd); break;
-	case 0x3835:	intif_parse_GuildMemberInfoShort(fd); break;
-	case 0x3836:	intif_parse_GuildBroken(fd); break;
-	case 0x3837:	intif_parse_GuildMessage(fd); break;
-	case 0x3839:	intif_parse_GuildBasicInfoChanged(fd); break;
-	case 0x383a:	intif_parse_GuildMemberInfoChanged(fd); break;
-	case 0x383b:	intif_parse_GuildPosition(fd); break;
-	case 0x383c:	intif_parse_GuildSkillUp(fd); break;
-	case 0x383d:	intif_parse_GuildAlliance(fd); break;
-	case 0x383e:	intif_parse_GuildNotice(fd); break;
-	case 0x383f:	intif_parse_GuildEmblem(fd); break;
-	case 0x3840:	intif_parse_GuildCastleDataLoad(fd); break;
-	case 0x3843:	intif_parse_GuildMasterChanged(fd); break;
+	switch(cmd) {
+		case 0x3800:
+			if (RFIFOL(fd,4) == 0xFF000000) //Normal announce.
+				clif_broadcast(NULL, (char *) RFIFOP(fd,16), packet_len-16, 0, ALL_CLIENT);
+			else //Color announce.
+				clif_broadcast2(NULL, (char *) RFIFOP(fd,16), packet_len-16, RFIFOL(fd,4), RFIFOW(fd,8), RFIFOW(fd,10), RFIFOW(fd,12), RFIFOW(fd,14), ALL_CLIENT);
+			break;
+		case 0x3801:	intif_parse_WisMessage(fd); break;
+		case 0x3802:	intif_parse_WisEnd(fd); break;
+		case 0x3803:	mapif_parse_WisToGM(fd); break;
+		case 0x3804:	intif_parse_Registers(fd); break;
+		case 0x3806:	intif_parse_ChangeNameOk(fd); break;
+		case 0x3807:	intif_parse_MessageToFD(fd); break;
+		case 0x3818:	intif_parse_LoadGuildStorage(fd); break;
+		case 0x3819:	intif_parse_SaveGuildStorage(fd); break;
+		case 0x3820:	intif_parse_PartyCreated(fd); break;
+		case 0x3821:	intif_parse_PartyInfo(fd); break;
+		case 0x3822:	intif_parse_PartyMemberAdded(fd); break;
+		case 0x3823:	intif_parse_PartyOptionChanged(fd); break;
+		case 0x3824:	intif_parse_PartyMemberWithdraw(fd); break;
+		case 0x3825:	intif_parse_PartyMove(fd); break;
+		case 0x3826:	intif_parse_PartyBroken(fd); break;
+		case 0x3827:	intif_parse_PartyMessage(fd); break;
+		case 0x3830:	intif_parse_GuildCreated(fd); break;
+		case 0x3831:	intif_parse_GuildInfo(fd); break;
+		case 0x3832:	intif_parse_GuildMemberAdded(fd); break;
+		case 0x3834:	intif_parse_GuildMemberWithdraw(fd); break;
+		case 0x3835:	intif_parse_GuildMemberInfoShort(fd); break;
+		case 0x3836:	intif_parse_GuildBroken(fd); break;
+		case 0x3837:	intif_parse_GuildMessage(fd); break;
+		case 0x3839:	intif_parse_GuildBasicInfoChanged(fd); break;
+		case 0x383a:	intif_parse_GuildMemberInfoChanged(fd); break;
+		case 0x383b:	intif_parse_GuildPosition(fd); break;
+		case 0x383c:	intif_parse_GuildSkillUp(fd); break;
+		case 0x383d:	intif_parse_GuildAlliance(fd); break;
+		case 0x383e:	intif_parse_GuildNotice(fd); break;
+		case 0x383f:	intif_parse_GuildEmblem(fd); break;
+		case 0x3840:	intif_parse_GuildCastleDataLoad(fd); break;
+		case 0x3843:	intif_parse_GuildMasterChanged(fd); break;
 
-//Quest system
-	case 0x3860:	intif_parse_questlog(fd); break;
-	case 0x3861:	intif_parse_questsave(fd); break;
+		//Quest system
+		case 0x3860:	intif_parse_questlog(fd); break;
+		case 0x3861:	intif_parse_questsave(fd); break;
 
-// Mail System
-	case 0x3848:	intif_parse_Mail_inboxreceived(fd); break;
-	case 0x3849:	intif_parse_Mail_new(fd); break;
-	case 0x384a:	intif_parse_Mail_getattach(fd); break;
-	case 0x384b:	intif_parse_Mail_delete(fd); break;
-	case 0x384c:	intif_parse_Mail_return(fd); break;
-	case 0x384d:	intif_parse_Mail_send(fd); break;
-// Auction System
-	case 0x3850:	intif_parse_Auction_results(fd); break;
-	case 0x3851:	intif_parse_Auction_register(fd); break;
-	case 0x3852:	intif_parse_Auction_cancel(fd); break;
-	case 0x3853:	intif_parse_Auction_close(fd); break;
-	case 0x3854:	intif_parse_Auction_message(fd); break;
-	case 0x3855:	intif_parse_Auction_bid(fd); break;
+		// Mail System
+		case 0x3848:	intif_parse_Mail_inboxreceived(fd); break;
+		case 0x3849:	intif_parse_Mail_new(fd); break;
+		case 0x384a:	intif_parse_Mail_getattach(fd); break;
+		case 0x384b:	intif_parse_Mail_delete(fd); break;
+		case 0x384c:	intif_parse_Mail_return(fd); break;
+		case 0x384d:	intif_parse_Mail_send(fd); break;
+		// Auction System
+		case 0x3850:	intif_parse_Auction_results(fd); break;
+		case 0x3851:	intif_parse_Auction_register(fd); break;
+		case 0x3852:	intif_parse_Auction_cancel(fd); break;
+		case 0x3853:	intif_parse_Auction_close(fd); break;
+		case 0x3854:	intif_parse_Auction_message(fd); break;
+		case 0x3855:	intif_parse_Auction_bid(fd); break;
 
-// Mercenary System
-	case 0x3870:	intif_parse_mercenary_received(fd); break;
-	case 0x3871:	intif_parse_mercenary_deleted(fd); break;
-	case 0x3872:	intif_parse_mercenary_saved(fd); break;
-// Elemental System
-	case 0x387c:	intif_parse_elemental_received(fd); break;
-	case 0x387d:	intif_parse_elemental_deleted(fd); break;
-	case 0x387e:	intif_parse_elemental_saved(fd); break;
-			
-	case 0x3880:	intif_parse_CreatePet(fd); break;
-	case 0x3881:	intif_parse_RecvPetData(fd); break;
-	case 0x3882:	intif_parse_SavePetOk(fd); break;
-	case 0x3883:	intif_parse_DeletePetOk(fd); break;
-	case 0x3890:	intif_parse_CreateHomunculus(fd); break;
-	case 0x3891:	intif_parse_RecvHomunculusData(fd); break;
-	case 0x3892:	intif_parse_SaveHomunculusOk(fd); break;
-	case 0x3893:	intif_parse_DeleteHomunculusOk(fd); break;
-	default:
-		ShowError("intif_parse : unknown packet %d %x\n",fd,RFIFOW(fd,0));
-		return 0;
+		// Mercenary System
+		case 0x3870:	intif_parse_mercenary_received(fd); break;
+		case 0x3871:	intif_parse_mercenary_deleted(fd); break;
+		case 0x3872:	intif_parse_mercenary_saved(fd); break;
+		// Elemental System
+		case 0x387c:	intif_parse_elemental_received(fd); break;
+		case 0x387d:	intif_parse_elemental_deleted(fd); break;
+		case 0x387e:	intif_parse_elemental_saved(fd); break;
+
+		case 0x3880:	intif_parse_CreatePet(fd); break;
+		case 0x3881:	intif_parse_RecvPetData(fd); break;
+		case 0x3882:	intif_parse_SavePetOk(fd); break;
+		case 0x3883:	intif_parse_DeletePetOk(fd); break;
+		case 0x3890:	intif_parse_CreateHomunculus(fd); break;
+		case 0x3891:	intif_parse_RecvHomunculusData(fd); break;
+		case 0x3892:	intif_parse_SaveHomunculusOk(fd); break;
+		case 0x3893:	intif_parse_DeleteHomunculusOk(fd); break;
+		default:
+			ShowError("intif_parse : unknown packet %d %x\n",fd,RFIFOW(fd,0));
+			return 0;
 	}
 	// Skip packet
 	RFIFOSKIP(fd,packet_len);
