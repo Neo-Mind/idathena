@@ -1187,7 +1187,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 
 		case LK_SPIRALPIERCE:
 		case ML_SPIRALPIERCE:
-			sc_start(src,bl,SC_STOP,(15+skill_lv*5),0,skill_get_time2(skill_id,skill_lv));
+			sc_start(src,bl,SC_STOP,100,0,skill_get_time2(skill_id,skill_lv));
 			break;
 
 		case ST_REJECTSWORD:

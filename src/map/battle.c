@@ -2566,15 +2566,14 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						// 11x11 cell Damage = ATK [{(Skill Level x 200) x (1 + [(Caster Base Level - 100) / 100])}] %
 						int dmg = 300; // Base maximum damage at less than 3 cells.
 						i = distance_bl(src,target);
-						if( i > 7 )
-							dmg -= 100; // Greather than 7 cells. (200 damage)
-						else if( i > 3 )
+						if( i > 3 && i <= 7 )
 							dmg -= 50; // Greater than 3 cells, less than 7. (250 damage)
-
-						dmg = (dmg * skill_lv) * (100 + (status_get_lv(src) - 100) / 12) / 100;
-						// Elemental check, +100% damage if your element is fire.
+						else if( i > 7 && <= 11 )
+							dmg -= 100; // Greather than 7 cells. (200 damage)
+						dmg = (skill_lv * dmg) * (1 + (status_get_lv(src) - 100) / 100);
+						// Elemental check, +(Skill Level x 100)% damage if your element is fire.
 						if( sstatus->rhw.ele  == ELE_FIRE )
-							dmg += skill_lv * 100 / 100;
+							dmg += skill_lv * 100;
 						skillratio = dmg;
 					}
 					break;

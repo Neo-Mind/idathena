@@ -5204,7 +5204,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 			speed_rate += val;
 		}
 
-		if( sc->data[SC_MARSHOFABYSS] && speed_rate > 50)
+		if( sc->data[SC_MARSHOFABYSS] && speed_rate > 50 )
 			speed_rate = 50;
 
 		//GetMoveHasteValue1()
