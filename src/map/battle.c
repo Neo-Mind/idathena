@@ -3327,17 +3327,22 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 #endif
 			}
 
-
 			if (battle_config.weapon_defense_type) {
 				vit_def += def1*battle_config.weapon_defense_type;
 				def1 = 0;
 			}
+
 #ifdef RENEWAL
 			/**
 			* RE DEF Reduction
 			* Damage = Attack * (4000+eDEF)/(4000+eDEF) - sDEF
 			* Pierce defence gains 1 atk per def/2
 			**/
+
+			/* being hit by a gazillion units, you hit the jackpot and got -400
+			which creates a division by 0 and subsequently crashes */
+			if( def1 == -400 )
+				def1 = -399;
 
 			ATK_ADD2(
 				flag.pdef ?(def1/2):0,
@@ -3347,7 +3352,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				wd.damage = wd.damage * (4000+def1) / (4000+10*def1) - vit_def;
 			if( flag.lh && !flag.idef2 && !flag.pdef2 )
 				wd.damage2 = wd.damage2 * (4000+def1) / (4000+10*def1) - vit_def;
-
 #else
 				if (def1 > 100) def1 = 100;
 				ATK_RATE2(
@@ -3523,8 +3527,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			if(wd.damage2 > 0) {
 				wd.damage2 = battle_attr_fix(src,target,wd.damage2,s_ele_,tstatus->def_ele, tstatus->ele_lv);
 				wd.damage2 = battle_calc_gvg_damage(src,target,wd.damage2,wd.div_,skill_id,skill_lv,wd.flag);
-			}
-			else if(wd.damage > 0) {
+			} else if(wd.damage > 0) {
 				wd.damage = battle_attr_fix(src,target,wd.damage,s_ele_,tstatus->def_ele, tstatus->ele_lv);
 				wd.damage = battle_calc_gvg_damage(src,target,wd.damage,wd.div_,skill_id,skill_lv,wd.flag);
 			}
@@ -3556,7 +3559,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					ATK_RATEL(50 + (skill * 10))
 				if(wd.damage2 < 1) wd.damage2 = 1;
 			}
-		} else if(sd->status.weapon == W_KATAR && !skill_id) { //Katars (offhand damage only applies to normal attacks, tested on Aegis 10.2)
+		} else if(sd->status.weapon == W_KATAR && !skill_id) {
+			//Katars (offhand damage only applies to normal attacks, tested on Aegis 10.2)
 			skill = pc_checkskill(sd,TF_DOUBLE);
 			wd.damage2 = wd.damage * (1 + (skill * 2))/100;
 
@@ -3619,7 +3623,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		if( --(tsc->data[SC_REJECTSWORD]->val3) <= 0 )
 			status_change_end(target, SC_REJECTSWORD, INVALID_TIMER);
 	}
-	if(skill_id == ASC_BREAKER) {	//Breaker's int-based damage (a misc attack?)
+	if(skill_id == ASC_BREAKER) { //Breaker's int-based damage (a misc attack?)
 		struct Damage md = battle_calc_misc_attack(src, target, skill_id, skill_lv, wflag);
 		wd.damage += md.damage;
 	}
@@ -3639,9 +3643,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		 * affecting non-skills
 		 **/
 		if( !skill_id ) {
-			/**
-			 * RK Enchant Blade
-			 **/
 			if( sc->data[SC_ENCHANTBLADE] && sd && ( (flag.rh && sd->weapontype1) || (flag.lh && sd->weapontype2) ) ) {
 				//[( ( Skill Lv x 20 ) + 100 ) x ( casterBaseLevel / 150 )] + casterInt
 				ATK_ADD( ( sc->data[SC_ENCHANTBLADE]->val1*20+100 ) * status_get_lv(src) / 150 + status_get_int(src) );
@@ -4032,7 +4033,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 							skillratio = ((300 * skill_lv) + bandingBonus) * (sd ? sd->status.job_level : 1) / 25;
 						}
 						break;
-					case LG_SHIELDSPELL:// [(Caster Base Level x 4) + (Shield MDEF x 100) + (Caster INT x 2)] %
+					case LG_SHIELDSPELL: // [(Caster Base Level x 4) + (Shield MDEF x 100) + (Caster INT x 2)] %
 						if( sd && skill_lv == 2 ) {
 							skillratio = status_get_lv(src) * 4 + sd->bonus.shieldmdef * 100 + status_get_int(src) * 2;
 						} else

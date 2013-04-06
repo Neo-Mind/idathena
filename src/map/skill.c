@@ -15972,11 +15972,11 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 		j = pc_search_inventory(sd,slot[i]);
 		if(j < 0)
 			continue;
-		if(slot[i]==1000) {	/* Star Crumb */
+		if(slot[i]==1000) { /* Star Crumb */
 			pc_delitem(sd,j,1,1,0,LOG_TYPE_PRODUCE);
 			sc++;
 		}
-		if(slot[i]>=994 && slot[i]<=997 && ele==0) {	/* Flame Heart . . . Great Nature */
+		if(slot[i]>=994 && slot[i]<=997 && ele==0) { /* Flame Heart . . . Great Nature */
 			static const int ele_table[4]={3,1,4,2};
 			pc_delitem(sd,j,1,1,0,LOG_TYPE_PRODUCE);
 			ele=ele_table[slot[i]-994];
