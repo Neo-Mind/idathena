@@ -505,7 +505,7 @@ struct map_session_data {
 	unsigned char channel_count;
 	struct raChSysCh *gcbind;
 	bool stealth;
-	unsigned char fontcolor; /* debug-only */
+	unsigned char fontcolor;
 
 	// temporary debugging of bug #3504
 	const char* delunit_prevfile;

@@ -337,11 +337,11 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 			struct skill_unit *su = (struct skill_unit*)target;
 			struct skill_unit_group *sg;
 			struct block_list *src;
-			
+
 			if( !su || !su->alive || (sg = su->group) == NULL || !sg || sg->val3 == -1 ||
 			   (src = map_id2bl(sg->src_id)) == NULL || status_isdead(src) )
 				return 0;
-			
+
 			if( sg->unit_id != UNT_FIREWALL ) {
 				int x,y;
 				x = sg->val3 >> 16;

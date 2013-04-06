@@ -4470,29 +4470,27 @@ ACMD_FUNC(jail)
 		return -1;
 	}
 
-	if (pc_get_group_level(sd) < pc_get_group_level(pl_sd))
-  	{ // you can jail only lower or same GM
+	if (pc_get_group_level(sd) < pc_get_group_level(pl_sd)) { // you can jail only lower or same GM
 		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
 		return -1;
 	}
 
-	if (pl_sd->sc.data[SC_JAILED])
-	{
+	if (pl_sd->sc.data[SC_JAILED]) {
 		clif_displaymessage(fd, msg_txt(118)); // Player warped in jails.
 		return -1;
 	}
 
 	switch(rnd() % 2) { //Jail Locations
-	case 0:
-		m_index = mapindex_name2id(MAP_JAIL);
-		x = 24;
-		y = 75;
-		break;
-	default:
-		m_index = mapindex_name2id(MAP_JAIL);
-		x = 49;
-		y = 75;
-		break;
+		case 0:
+			m_index = mapindex_name2id(MAP_JAIL);
+			x = 24;
+			y = 75;
+			break;
+		default:
+			m_index = mapindex_name2id(MAP_JAIL);
+			x = 49;
+			y = 75;
+			break;
 	}
 
 	//Duration of INT_MAX to specify infinity.
@@ -4528,8 +4526,7 @@ ACMD_FUNC(unjail)
 		return -1;
 	}
 
-	if (!pl_sd->sc.data[SC_JAILED])
-	{
+	if (!pl_sd->sc.data[SC_JAILED]) {
 		clif_displaymessage(fd, msg_txt(119)); // This player is not in jails.
 		return -1;
 	}
@@ -4607,7 +4604,7 @@ ACMD_FUNC(jailfor)
 		return -1;
 	}
 
-	jailtime = year*12*30*24*60 + month*30*24*60 + day*24*60 + hour*60 + minute;	//In minutes
+	jailtime = year*12*30*24*60 + month*30*24*60 + day*24*60 + hour*60 + minute; //In minutes
 
 	if(jailtime==0) {
 		clif_displaymessage(fd, msg_txt(1136)); // Invalid time for jail command.
@@ -4696,27 +4693,23 @@ ACMD_FUNC(disguise)
 		return -1;
 	}
 
-	if ((id = atoi(message)) > 0)
-	{	//Acquired an ID
+	if ((id = atoi(message)) > 0) { //Acquired an ID
 		if (!mobdb_checkid(id) && !npcdb_checkid(id))
 			id = 0; //Invalid id for either mobs or npcs.
-	}	else	{ //Acquired a Name
-		if ((id = mobdb_searchname(message)) == 0)
-		{
+	} else { //Acquired a Name
+		if ((id = mobdb_searchname(message)) == 0) {
 			struct npc_data* nd = npc_name2id(message);
 			if (nd != NULL)
 				id = nd->class_;
 		}
 	}
 
-	if (id == 0)
-	{
+	if (id == 0) {
 		clif_displaymessage(fd, msg_txt(123));	// Invalid Monster/NPC name/ID specified.
 		return -1;
 	}
 
-	if(pc_isriding(sd))
-	{
+	if(pc_isriding(sd)) {
 		clif_displaymessage(fd, msg_txt(1144)); // Character cannot be disguised while mounted.
 		return -1;
 	}
@@ -5071,18 +5064,16 @@ ACMD_FUNC(npcmove)
 		return -1;
 	}
 
-	if ((nd = npc_name2id(atcmd_player_name)) == NULL)
-	{
+	if ((nd = npc_name2id(atcmd_player_name)) == NULL) {
 		clif_displaymessage(fd, msg_txt(111)); // This NPC doesn't exist.
 		return -1;
 	}
 
-	if ((m=nd->bl.m) < 0 || nd->bl.prev == NULL)
-	{
+	if ((m=nd->bl.m) < 0 || nd->bl.prev == NULL) {
 		clif_displaymessage(fd, msg_txt(1154)); // NPC is not on this map.
 		return -1;	//Not on a map.
 	}
-	
+
 	x = cap_value(x, 0, map[m].xs-1);
 	y = cap_value(y, 0, map[m].ys-1);
 	map_foreachinrange(clif_outsight, &nd->bl, AREA_SIZE, BL_PC, &nd->bl);
@@ -5113,8 +5104,7 @@ ACMD_FUNC(addwarp)
 	}
 
 	m = mapindex_name2id(mapname);
-	if( m == 0 )
-	{
+	if( m == 0 ) {
 		sprintf(atcmd_output, msg_txt(1157), mapname); // Unknown map '%s'.
 		clif_displaymessage(fd, atcmd_output);
 		return -1;
@@ -5147,8 +5137,7 @@ ACMD_FUNC(follow)
 		return 0;
 	}
 	
-	if ( (pl_sd = map_nick2sd((char *)message)) == NULL )
-	{
+	if ( (pl_sd = map_nick2sd((char *)message)) == NULL ) {
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
 	}
@@ -5258,7 +5247,7 @@ ACMD_FUNC(cleargstorage)
 	}
 
 	gstorage = guild2storage2(sd->status.guild_id);
-	if (gstorage == NULL) {// Doesn't have opened @gstorage yet, so we skip the deletion since *shouldn't* have any item there.
+	if (gstorage == NULL) { // Doesn't have opened @gstorage yet, so we skip the deletion since *shouldn't* have any item there.
 		return -1;
 	}
 
@@ -5305,7 +5294,8 @@ ACMD_FUNC(clearcart)
  *------------------------------------------*/
 #define MAX_SKILLID_PARTIAL_RESULTS 5
 #define MAX_SKILLID_PARTIAL_RESULTS_LEN 74 /* "skill " (6) + "%d:" (up to 5) + "%s" (up to 30) + " (%s)" (up to 33) */
-ACMD_FUNC(skillid) {
+ACMD_FUNC(skillid)
+{
 	int skillen, idx, i, found = 0;
 	DBIterator* iter;
 	DBKey key;
@@ -5366,13 +5356,12 @@ ACMD_FUNC(useskill)
 	}
 
 	if(!strcmp(target,"self")) pl_sd = sd; //quick keyword
-	else if ( (pl_sd = map_nick2sd(target)) == NULL ){
+	else if ( (pl_sd = map_nick2sd(target)) == NULL ) {
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
 	}
 
-	if ( pc_get_group_level(sd) < pc_get_group_level(pl_sd) )
-	{
+	if ( pc_get_group_level(sd) < pc_get_group_level(pl_sd) ) {
 		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
 		return -1;
 	}
@@ -5404,8 +5393,7 @@ ACMD_FUNC(displayskill)
 	uint16 skill_lv = 1;
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message || sscanf(message, "%hu %hu", &skill_id, &skill_lv) < 1)
-	{
+	if (!message || !*message || sscanf(message, "%hu %hu", &skill_id, &skill_lv) < 1) {
 		clif_displaymessage(fd, msg_txt(1166)); // Usage: @displayskill <skill ID> {<skill level>}
 		return -1;
 	}
@@ -5435,8 +5423,7 @@ ACMD_FUNC(skilltree)
 		return -1;
 	}
 
-	if ( (pl_sd = map_nick2sd(target)) == NULL )
-	{
+	if ( (pl_sd = map_nick2sd(target)) == NULL ) {
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
 	}
@@ -5448,8 +5435,7 @@ ACMD_FUNC(skilltree)
 	clif_displaymessage(fd, atcmd_output);
 
 	ARR_FIND( 0, MAX_SKILL_TREE, j, skill_tree[c][j].id == 0 || skill_tree[c][j].id == skill_id );
-	if( j == MAX_SKILL_TREE || skill_tree[c][j].id == 0 )
-	{
+	if( j == MAX_SKILL_TREE || skill_tree[c][j].id == 0 ) {
 		clif_displaymessage(fd, msg_txt(1169)); // The player cannot use that skill.
 		return 0;
 	}
@@ -5457,10 +5443,8 @@ ACMD_FUNC(skilltree)
 	ent = &skill_tree[c][j];
 
 	meets = 1;
-	for(j=0;j<MAX_PC_SKILL_REQUIRE;j++)
-	{
-		if( ent->need[j].id && pc_checkskill(sd,ent->need[j].id) < ent->need[j].lv)
-		{
+	for(j=0;j<MAX_PC_SKILL_REQUIRE;j++) {
+		if( ent->need[j].id && pc_checkskill(sd,ent->need[j].id) < ent->need[j].lv) {
 			sprintf(atcmd_output, msg_txt(1170), ent->need[j].lv, skill_db[ent->need[j].id].desc); // Player requires level %d of skill %s.
 			clif_displaymessage(fd, atcmd_output);
 			meets = 0;
@@ -5501,7 +5485,6 @@ ACMD_FUNC(marry)
 {
 	struct map_session_data *pl_sd = NULL;
 	char player_name[NAME_LENGTH] = "";
-	
 	nullpo_retr(-1, sd);
 	
 	if (!message || !*message || sscanf(message, "%23s", player_name) != 1) {
@@ -5533,7 +5516,6 @@ ACMD_FUNC(marry)
 ACMD_FUNC(divorce)
 {
 	nullpo_retr(-1, sd);
-
 	if (pc_divorce(sd) != 0) {
 		sprintf(atcmd_output, msg_txt(1175), sd->status.name); // '%s' is not married.
 		clif_displaymessage(fd, atcmd_output);
@@ -5577,6 +5559,7 @@ ACMD_FUNC(changelook)
  *------------------------------------------*/
 ACMD_FUNC(autotrade)
 {
+	int i;
 	nullpo_retr(-1, sd);
 
 	if( map[sd->bl.m].flag.autotrade != battle_config.autotrade_mapflag ) {
@@ -5599,6 +5582,30 @@ ACMD_FUNC(autotrade)
 		int timeout = atoi(message);
 		status_change_start(NULL, &sd->bl, SC_AUTOTRADE, 10000, 0, 0, 0, 0, ((timeout > 0) ? min(timeout,battle_config.at_timeout) : battle_config.at_timeout) * 60000, 0);
 	}
+
+	// Leave all chat channels.
+	if( raChSys.ally && sd->status.guild_id ) {
+		struct guild *g = sd->guild, *sg;
+		if( g ) {
+			if( idb_exists(((struct raChSysCh *)g->channel)->users, sd->status.char_id) )
+				clif_chsys_left((struct raChSysCh *)g->channel,sd);
+			for (i = 0; i < MAX_GUILDALLIANCE; i++) {
+				if( g->alliance[i].guild_id && (sg = guild_search(g->alliance[i].guild_id) ) ) {
+					if( idb_exists(((struct raChSysCh *)sg->channel)->users, sd->status.char_id) )
+						clif_chsys_left((struct raChSysCh *)sg->channel,sd);
+					break;
+				}
+			}
+		}
+	}
+
+	if( sd->channel_count ) {
+		for( i = 0; i < sd->channel_count; i++ ) {
+			if( sd->channels[i] != NULL )
+				clif_chsys_left(sd->channels[i],sd);
+		}
+	}
+
 	clif_authfail_fd(sd->fd, 15);
 
 	return 0;
@@ -5645,9 +5652,7 @@ ACMD_FUNC(changegm)
 ACMD_FUNC(changeleader)
 {
 	nullpo_retr(-1, sd);
-	
-	if( !message[0] )
-	{
+	if( !message[0] ) {
 		clif_displaymessage(fd, msg_txt(1185)); // Usage: @changeleader <party_member_name>
 		return -1;
 	}
@@ -5668,8 +5673,7 @@ ACMD_FUNC(partyoption)
 	char w1[16], w2[16];
 	nullpo_retr(-1, sd);
 
-	if (sd->status.party_id == 0 || (p = party_search(sd->status.party_id)) == NULL)
-	{
+	if (sd->status.party_id == 0 || (p = party_search(sd->status.party_id)) == NULL) {
 		clif_displaymessage(fd, msg_txt(282));
 		return -1;
 	}
@@ -5678,14 +5682,12 @@ ACMD_FUNC(partyoption)
 	if (mi == MAX_PARTY)
 		return -1; //Shouldn't happen
 
-	if (!p->party.member[mi].leader)
-	{
+	if (!p->party.member[mi].leader) {
 		clif_displaymessage(fd, msg_txt(282));
 		return -1;
 	}
 
-	if(!message || !*message || sscanf(message, "%15s %15s", w1, w2) < 2)
-	{
+	if(!message || !*message || sscanf(message, "%15s %15s", w1, w2) < 2) {
 		clif_displaymessage(fd, msg_txt(1186)); // Usage: @partyoption <pickup share: yes/no> <item distribution: yes/no>
 		return -1;
 	}
@@ -5709,9 +5711,9 @@ ACMD_FUNC(autoloot)
 {
 	int rate;
 	nullpo_retr(-1, sd);
+
 	// autoloot command without value
-	if(!message || !*message)
-	{
+	if(!message || !*message) {
 		if (sd->state.autoloot)
 			rate = 0;
 		else
@@ -5728,7 +5730,7 @@ ACMD_FUNC(autoloot)
 	if (sd->state.autoloot) {
 		snprintf(atcmd_output, sizeof atcmd_output, msg_txt(1187),((double)sd->state.autoloot)/100.); // Autolooting items with drop rates of %0.02f%% and below.
 		clif_displaymessage(fd, atcmd_output);
-	}else
+	} else
 		clif_displaymessage(fd, msg_txt(1188)); // Autoloot is now off.
 
 	return 0;
@@ -5747,17 +5749,14 @@ ACMD_FUNC(autolootitem)
 		if (message[0] == '+') {
 			message++;
 			action = 1;
-		}
-		else if (message[0] == '-') {
+		} else if (message[0] == '-') {
 			message++;
 			action = 2;
-		}
-		else if (!strcmp(message,"reset"))
+		} else if (!strcmp(message,"reset"))
 			action = 4;
 	}
 
-	if (action < 3) // add or remove
-	{
+	if (action < 3) { // add or remove
 		if ((item_data = itemdb_exists(atoi(message))) == NULL)
 			item_data = itemdb_searchname(message);
 		if (!item_data) {
@@ -5768,64 +5767,64 @@ ACMD_FUNC(autolootitem)
 	}
 
 	switch(action) {
-	case 1:
-		ARR_FIND(0, AUTOLOOTITEM_SIZE, i, sd->state.autolootid[i] == item_data->nameid);
-		if (i != AUTOLOOTITEM_SIZE) {
-			clif_displaymessage(fd, msg_txt(1190)); // You're already autolooting this item.
-			return -1;
-		}
-		ARR_FIND(0, AUTOLOOTITEM_SIZE, i, sd->state.autolootid[i] == 0);
-		if (i == AUTOLOOTITEM_SIZE) {
-			clif_displaymessage(fd, msg_txt(1191)); // Your autolootitem list is full. Remove some items first with @autolootid -<item name or ID>.
-			return -1;
-		}
-		sd->state.autolootid[i] = item_data->nameid; // Autoloot Activated
-		sprintf(atcmd_output, msg_txt(1192), item_data->name, item_data->jname, item_data->nameid); // Autolooting item: '%s'/'%s' {%d}
-		clif_displaymessage(fd, atcmd_output);
-		sd->state.autolooting = 1;
-		break;
-	case 2:
-		ARR_FIND(0, AUTOLOOTITEM_SIZE, i, sd->state.autolootid[i] == item_data->nameid);
-		if (i == AUTOLOOTITEM_SIZE) {
-			clif_displaymessage(fd, msg_txt(1193)); // You're currently not autolooting this item.
-			return -1;
-		}
-		sd->state.autolootid[i] = 0;
-		sprintf(atcmd_output, msg_txt(1194), item_data->name, item_data->jname, item_data->nameid); // Removed item: '%s'/'%s' {%d} from your autolootitem list.
-		clif_displaymessage(fd, atcmd_output);
-		ARR_FIND(0, AUTOLOOTITEM_SIZE, i, sd->state.autolootid[i] != 0);
-		if (i == AUTOLOOTITEM_SIZE) {
-			sd->state.autolooting = 0;
-		}
-		break;
-	case 3:
-		sprintf(atcmd_output, msg_txt(1195), AUTOLOOTITEM_SIZE); // You can have %d items on your autolootitem list.
-		clif_displaymessage(fd, atcmd_output);
-		clif_displaymessage(fd, msg_txt(1196)); // To add an item to the list, use "@alootid +<item name or ID>". To remove an item, use "@alootid -<item name or ID>".
-		clif_displaymessage(fd, msg_txt(1197)); // "@alootid reset" will clear your autolootitem list.
-		ARR_FIND(0, AUTOLOOTITEM_SIZE, i, sd->state.autolootid[i] != 0);
-		if (i == AUTOLOOTITEM_SIZE) {
-			clif_displaymessage(fd, msg_txt(1198)); // Your autolootitem list is empty.
-		} else {
-			clif_displaymessage(fd, msg_txt(1199)); // Items on your autolootitem list:
-			for(i = 0; i < AUTOLOOTITEM_SIZE; i++)
-			{
-				if (sd->state.autolootid[i] == 0)
-					continue;
-				if (!(item_data = itemdb_exists(sd->state.autolootid[i]))) {
-					ShowDebug("Non-existant item %d on autolootitem list (account_id: %d, char_id: %d)", sd->state.autolootid[i], sd->status.account_id, sd->status.char_id);
-					continue;
-				}
-				sprintf(atcmd_output, "'%s'/'%s' {%d}", item_data->name, item_data->jname, item_data->nameid);
-				clif_displaymessage(fd, atcmd_output);
+		case 1:
+			ARR_FIND(0, AUTOLOOTITEM_SIZE, i, sd->state.autolootid[i] == item_data->nameid);
+			if (i != AUTOLOOTITEM_SIZE) {
+				clif_displaymessage(fd, msg_txt(1190)); // You're already autolooting this item.
+				return -1;
 			}
-		}
-		break;
-	case 4:
-		memset(sd->state.autolootid, 0, sizeof(sd->state.autolootid));
-		clif_displaymessage(fd, msg_txt(1200)); // Your autolootitem list has been reset.
-		sd->state.autolooting = 0;
-		break;
+			ARR_FIND(0, AUTOLOOTITEM_SIZE, i, sd->state.autolootid[i] == 0);
+			if (i == AUTOLOOTITEM_SIZE) {
+				clif_displaymessage(fd, msg_txt(1191)); // Your autolootitem list is full. Remove some items first with @autolootid -<item name or ID>.
+				return -1;
+			}
+			sd->state.autolootid[i] = item_data->nameid; // Autoloot Activated
+			sprintf(atcmd_output, msg_txt(1192), item_data->name, item_data->jname, item_data->nameid); // Autolooting item: '%s'/'%s' {%d}
+			clif_displaymessage(fd, atcmd_output);
+			sd->state.autolooting = 1;
+			break;
+		case 2:
+			ARR_FIND(0, AUTOLOOTITEM_SIZE, i, sd->state.autolootid[i] == item_data->nameid);
+			if (i == AUTOLOOTITEM_SIZE) {
+				clif_displaymessage(fd, msg_txt(1193)); // You're currently not autolooting this item.
+				return -1;
+			}
+			sd->state.autolootid[i] = 0;
+			sprintf(atcmd_output, msg_txt(1194), item_data->name, item_data->jname, item_data->nameid); // Removed item: '%s'/'%s' {%d} from your autolootitem list.
+			clif_displaymessage(fd, atcmd_output);
+			ARR_FIND(0, AUTOLOOTITEM_SIZE, i, sd->state.autolootid[i] != 0);
+			if (i == AUTOLOOTITEM_SIZE) {
+				sd->state.autolooting = 0;
+			}
+			break;
+		case 3:
+			sprintf(atcmd_output, msg_txt(1195), AUTOLOOTITEM_SIZE); // You can have %d items on your autolootitem list.
+			clif_displaymessage(fd, atcmd_output);
+			clif_displaymessage(fd, msg_txt(1196)); // To add an item to the list, use "@alootid +<item name or ID>". To remove an item, use "@alootid -<item name or ID>".
+			clif_displaymessage(fd, msg_txt(1197)); // "@alootid reset" will clear your autolootitem list.
+			ARR_FIND(0, AUTOLOOTITEM_SIZE, i, sd->state.autolootid[i] != 0);
+			if (i == AUTOLOOTITEM_SIZE) {
+				clif_displaymessage(fd, msg_txt(1198)); // Your autolootitem list is empty.
+			} else {
+				clif_displaymessage(fd, msg_txt(1199)); // Items on your autolootitem list:
+				for(i = 0; i < AUTOLOOTITEM_SIZE; i++)
+				{
+					if (sd->state.autolootid[i] == 0)
+						continue;
+					if (!(item_data = itemdb_exists(sd->state.autolootid[i]))) {
+						ShowDebug("Non-existant item %d on autolootitem list (account_id: %d, char_id: %d)", sd->state.autolootid[i], sd->status.account_id, sd->status.char_id);
+						continue;
+					}
+					sprintf(atcmd_output, "'%s'/'%s' {%d}", item_data->name, item_data->jname, item_data->nameid);
+					clif_displaymessage(fd, atcmd_output);
+				}
+			}
+			break;
+		case 4:
+			memset(sd->state.autolootid, 0, sizeof(sd->state.autolootid));
+			clif_displaymessage(fd, msg_txt(1200)); // Your autolootitem list has been reset.
+			sd->state.autolooting = 0;
+			break;
 	}
 	return 0;
 }
@@ -8945,7 +8944,7 @@ ACMD_FUNC(channel) {
 
 	return 0;
 }
-/* debug only, delete after */
+
 ACMD_FUNC(fontcolor) {
 	unsigned char k;
 

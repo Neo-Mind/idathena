@@ -727,6 +727,7 @@ void guild_member_joined(struct map_session_data *sd)
 {
 	struct guild* g;
 	int i;
+
 	g=sd->guild;
 
 	if (!g) {
@@ -771,7 +772,7 @@ int guild_member_added(int guild_id,int account_id,int char_id,int flag)
 	if( (g=guild_search(guild_id))==NULL )
 		return 0;
 
-	if(sd==NULL || sd->guild_invite==0){
+	if(sd==NULL || sd->guild_invite==0) {
 		// cancel if player not present or invalide guild_id invitation
 		if (flag == 0) {
 			ShowError("guild: member added error %d is not online\n",account_id);
@@ -783,7 +784,7 @@ int guild_member_added(int guild_id,int account_id,int char_id,int flag)
 	sd->guild_invite = 0;
 	sd->guild_invite_account = 0;
 
-	if(flag==1){ //failure
+	if(flag==1) { //failure
 		if( sd2!=NULL )
 			clif_guild_inviteack(sd2,3);
 		return 0;
