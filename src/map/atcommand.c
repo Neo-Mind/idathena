@@ -6818,6 +6818,7 @@ ACMD_FUNC(homlevel)
 	hd = sd->hd;
 
 	if ( battle_config.hom_max_level == hd->homunculus.level ) // Already reach maximum level
+		clif_displaymessage(fd, "Homunculus already reach its maximum level");
 		return 0;
 
 	do {
