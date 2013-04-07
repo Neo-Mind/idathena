@@ -1016,7 +1016,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	struct map_session_data *sd = NULL;
 	struct block_list * target = NULL;
 	unsigned int tick = gettick();
-	int temp = 0, range;
+	int combo = 0, range;
 
 	nullpo_ret(src);
 	if(status_isdead(src))
@@ -1037,18 +1037,18 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 			target_id = sc->data[SC_COMBO]->val2;
 		else
 			target_id = ud->target;
-			
+
 		if( skill_get_inf(skill_id)&INF_SELF_SKILL && skill_get_nk(skill_id)&NK_NO_DAMAGE ) // exploit fix
 			target_id = src->id;
-		temp = 1;
+		combo = 1;
 	} else if ( target_id == src->id &&
 		skill_get_inf(skill_id)&INF_SELF_SKILL &&
 		skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF )
 	{
 		target_id = ud->target; //Auto-select target. [Skotlex]
-		temp = 1;
+		combo = 1;
 	}
-	
+
 	if( sd ) {
 		//Target_id checking.
 		if(skillnotok(skill_id, sd)) // [MouseJstr]
@@ -1074,17 +1074,26 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		}
 		if (target)
 			target_id = target->id;
-	}
-	if (src->type==BL_HOM)
-	switch(skill_id) { //Homun-auto-target skills.
-		case HLIF_HEAL:
-		case HLIF_AVOID:
-		case HAMI_DEFENCE:
-		case HAMI_CASTLE:
-			target = battle_get_master(src);
-			if (!target) return 0;
-			target_id = target->id;
-	}
+	} else if (src->type==BL_HOM)
+		switch (skill_id) { //Homun-auto-target skills.
+			case HLIF_HEAL:
+			case HLIF_AVOID:
+			case HAMI_DEFENCE:
+			case HAMI_CASTLE:
+				target = battle_get_master(src);
+				if (!target) return 0;
+				target_id = target->id;
+				break;
+			case MH_SONIC_CRAW:
+			case MH_TINDER_BREAKER: {
+					int skill_id2 = ((skill_id==MH_SONIC_CRAW)?MH_MIDNIGHT_FRENZY:MH_EQC);
+					if (sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == skill_id2) { //it,s a combo
+						target_id = sc->data[SC_COMBO]->val2;
+						combo = 1;
+					}
+					break;
+				}
+		}
 
 	if( !target ) // choose default target
 		target = map_id2bl(target_id);
@@ -1162,7 +1171,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 
 	//Check range when not using skill on yourself or is a combo-skill during attack
 	//(these are supposed to always have the same range as your attack)
-	if( src->id != target_id && (!temp || ud->attacktimer == INVALID_TIMER) ) {
+	if( src->id != target_id && (!combo || ud->attacktimer == INVALID_TIMER) ) {
 		if( skill_get_state(ud->skill_id) == ST_MOVE_ENABLE ) {
 			if( !unit_can_reach_bl(src, target, range + 1, 1, NULL, NULL) )
 				return 0; // Walk-path check failed.
@@ -1174,63 +1183,63 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		}
 	}
 
-	if (!temp) //Stop attack on non-combo skills [Skotlex]
+	if (!combo) //Stop attack on non-combo skills [Skotlex]
 		unit_stop_attack(src);
 	else if(ud->attacktimer != INVALID_TIMER) //Elsewise, delay current attack sequence
 		ud->attackabletime = tick + status_get_adelay(src);
 	
 	ud->state.skillcastcancel = castcancel;
 
-	//temp: Used to signal force cast now.
-	temp = 0;
-	
+	//combo: Used to signal force cast now.
+	combo = 0;
+
 	switch(skill_id) {
 		case ALL_RESURRECTION:
 			if(battle_check_undead(tstatus->race,tstatus->def_ele)) {
-				temp = 1;
+				combo = 1;
 			} else if (!status_isdead(target))
 				return 0; //Can't cast on non-dead characters.
-		break;
+			break;
 		case MO_FINGEROFFENSIVE:
 			if(sd)
 				casttime += casttime * min(skill_lv, sd->spiritball);
-		break;
+			break;
 		case MO_EXTREMITYFIST:
 			if (sc && sc->data[SC_COMBO] &&
 			   (sc->data[SC_COMBO]->val1 == MO_COMBOFINISH ||
 				sc->data[SC_COMBO]->val1 == CH_TIGERFIST ||
 				sc->data[SC_COMBO]->val1 == CH_CHAINCRUSH))
 				casttime = -1;
-			temp = 1;
-		break;
+			combo = 1;
+			break;
 		case SR_GATEOFHELL:
 		case SR_TIGERCANNON:
 			if (sc && sc->data[SC_COMBO] &&
 			   sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE)
 				casttime = -1;
-			temp = 1;
-		break;
+			combo = 1;
+			break;
 		case SA_SPELLBREAKER:
-			temp = 1;
-		break;
+			combo = 1;
+			break;
 		case ST_CHASEWALK:
 			if (sc && sc->data[SC_CHASEWALK])
 				casttime = -1;
-		break;
+			break;
 		case TK_RUN:
 			if (sc && sc->data[SC_RUN])
 				casttime = -1;
-		break;
+			break;
 		case HP_BASILICA:
 			if( sc && sc->data[SC_BASILICA] )
 				casttime = -1; // No Casting time on basilica cancel
-		break;
+			break;
 		case KN_CHARGEATK: {
 				unsigned int k = (distance_bl(src,target)-1)/3; //+100% every 3 cells of distance
 				if( k > 2 ) k = 2; // ...but hard-limited to 300%.
 				casttime += casttime * k;
 			}
-		break;
+			break;
 		case GD_EMERGENCYCALL: //Emergency Call double cast when the user has learned Leap [Daegaladh]
 			if( sd && pc_checkskill(sd,TK_HIGHJUMP) )
 				casttime *= 2;
@@ -1257,7 +1266,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 			}
 			break;
 	}
-	
+
 	// moved here to prevent Suffragium from ending if skill fails
 #ifndef RENEWAL_CAST
 	if (!(skill_get_castnodex(skill_id, skill_lv)&2))
@@ -1274,7 +1283,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		unit_stop_walking(src,1);// eventhough this is not how official works but this will do the trick. bugreport:6829
 	// in official this is triggered even if no cast time.
 	clif_skillcasting(src, src->id, target_id, 0,0, skill_id, skill_get_ele(skill_id, skill_lv), casttime);
-	if( casttime > 0 || temp ) {
+	if( casttime > 0 || combo ) {
 		if (sd && target->type == BL_MOB) {
 			TBL_MOB *md = (TBL_MOB*)target;
 			mobskill_event(md, src, tick, -1); //Cast targetted skill event.
@@ -1308,6 +1317,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 
 	if( !sd || sd->skillitem != skill_id || skill_get_cast(skill_id,skill_lv) )
 		ud->canact_tick = tick + casttime + 100;
+
 	if( sd ) {
 		switch( skill_id ) {
 			case CG_ARROWVULCAN:
@@ -1315,6 +1325,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 				break;
 		}
 	}
+
 	ud->skilltarget  = target_id;
 	ud->skillx       = 0;
 	ud->skilly       = 0;
@@ -1333,7 +1344,6 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 			if (!src->prev) return 0;
 		}
 	}
-
 
 	if( casttime > 0 ) {
 		ud->skilltimer = add_timer( tick+casttime, skill_castend_id, src->id, 0 );
@@ -1763,16 +1773,14 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 	if( ud->skilltimer != INVALID_TIMER && !(sd && pc_checkskill(sd,SA_FREECAST) > 0) )
 		return 0; // can't attack while casting
 	
-	if( !battle_config.sdelay_attack_enable && DIFF_TICK(ud->canact_tick,tick) > 0 && !(sd && pc_checkskill(sd,SA_FREECAST) > 0) )
-	{ // attacking when under cast delay has restrictions:
-		if( tid == INVALID_TIMER )
-		{ //requested attack.
+	if( !battle_config.sdelay_attack_enable && DIFF_TICK(ud->canact_tick,tick) > 0 && !(sd && pc_checkskill(sd,SA_FREECAST) > 0) ) {
+		// attacking when under cast delay has restrictions:
+		if( tid == INVALID_TIMER ) { //requested attack.
 			if(sd) clif_skill_fail(sd,1,USESKILL_FAIL_SKILLINTERVAL,0);
 			return 0;
 		}
 		//Otherwise, we are in a combo-attack, delay this until your canact time is over. [Skotlex]
-		if( ud->state.attack_continue )
-		{
+		if( ud->state.attack_continue ) {
 			if( DIFF_TICK(ud->canact_tick, ud->attackabletime) > 0 )
 				ud->attackabletime = ud->canact_tick;
 			ud->attacktimer=add_timer(ud->attackabletime,unit_attack_timer,src->id,0);
@@ -2023,10 +2031,11 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 		status_change_end(bl, SC_MARIONETTE2, INVALID_TIMER);
 		status_change_end(bl, SC_CLOSECONFINE, INVALID_TIMER);
 		status_change_end(bl, SC_CLOSECONFINE2, INVALID_TIMER);
+		status_change_end(bl, SC_TINDER_BREAKER, INVALID_TIMER);
+		status_change_end(bl, SC_TINDER_BREAKER2, INVALID_TIMER);
 		status_change_end(bl, SC_HIDING, INVALID_TIMER);
 		// Ensure the bl is a PC; if so, we'll handle the removal of cloaking and cloaking exceed later
-		if ( bl->type != BL_PC )
-		{
+		if ( bl->type != BL_PC ) {
 			status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
 			status_change_end(bl, SC_CLOAKINGEXCEED, INVALID_TIMER);
 		}

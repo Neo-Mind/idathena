@@ -1460,11 +1460,12 @@ int clif_homskillinfoblock(struct map_session_data *sd)
 		return 0 ;
 
 	WFIFOW(fd,0)=0x235;
-	for ( i = 0; i < MAX_HOMUNSKILL; i++){
-		if( (id = hd->homunculus.hskill[i].id) != 0 ){
+	for ( i = 0; i < MAX_HOMUNSKILL; i++) {
+		if( (id = hd->homunculus.hskill[i].id) != 0 ) {
+			int combo = (hd->homunculus.hskill[i].flag)&SKILL_FLAG_TMP_COMBO;
 			j = id - HM_SKILLBASE;
 			WFIFOW(fd,len  ) = id;
-			WFIFOW(fd,len+2) = skill_get_inf(id);
+			WFIFOW(fd,len+2) = ((combo)?INF_SELF_SKILL:skill_get_inf(id));
 			WFIFOW(fd,len+4) = 0;
 			WFIFOW(fd,len+6) = hd->homunculus.hskill[j].lv;
 			WFIFOW(fd,len+8) = skill_get_sp(id,hd->homunculus.hskill[j].lv);
@@ -4087,9 +4088,9 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 				else if(md->special_state.size==SZ_MEDIUM)
 					clif_specialeffect_single(bl,421,sd->fd);
 #if PACKETVER >= 20120404
-				if( !(md->status.mode&MD_BOSS) ){
+				if( !(md->status.mode&MD_BOSS) ) {
 					int i;
-					for(i = 0; i < DAMAGELOG_SIZE; i++)// must show hp bar to all char who already hit the mob.
+					for(i = 0; i < DAMAGELOG_SIZE; i++) // must show hp bar to all char who already hit the mob.
 						if( md->dmglog[i].id == sd->status.char_id )
 						clif_monster_hp_bar(md, sd->fd);
 				}
@@ -4117,14 +4118,14 @@ static int clif_calc_walkdelay(struct block_list *bl,int delay, int type, int da
 {
 	if (type == 4 || type == 9 || damage <=0)
 		return 0;
-	
+
 	if (bl->type == BL_PC) {
 		if (battle_config.pc_walk_delay_rate != 100)
 			delay = delay*battle_config.pc_walk_delay_rate/100;
 	} else
 		if (battle_config.walk_delay_rate != 100)
 			delay = delay*battle_config.walk_delay_rate/100;
-	
+
 	if (div_ > 1) //Multi-hit skills mean higher delays.
 		delay += battle_config.multihit_delay*(div_-1);
 
@@ -4341,45 +4342,69 @@ void clif_getareachar_item(struct map_session_data* sd,struct flooritem_data* fi
 /// Notifies the client of a skill unit.
 /// 011f <id>.L <creator id>.L <x>.W <y>.W <unit id>.B <visible>.B (ZC_SKILL_ENTRY)
 /// 01c9 <id>.L <creator id>.L <x>.W <y>.W <unit id>.B <visible>.B <has msg>.B <msg>.80B (ZC_SKILL_ENTRY2)
-static void clif_getareachar_skillunit(struct map_session_data *sd, struct skill_unit *unit)
+/// 08c7 <lenght>.W <id> L <creator id>.L <x>.W <y>.W <unit id>.B <range>.W <visible>.B (ZC_SKILL_ENTRY3)
+/// 099f <lenght>.W <id> L <creator id>.L <x>.W <y>.W <unit id>.L <range>.W <visible>.B (ZC_SKILL_ENTRY4)
+static void clif_getareachar_skillunit(int type, struct map_session_data *sd, struct skill_unit *unit)
 {
 	int fd = sd->fd;
+	int header = 0, unit_id = 0, pos = 0;
 
 	if( unit->group->state.guildaura )
 		return;
+	if( battle_config.traps_setting&1 && skill_get_inf2(unit->group->skill_id)&INF2_TRAP )
+		unit_id = UNT_DUMMYSKILL; //Use invisible unit id for traps.
+	else if( skill_get_unit_flag(unit->group->skill_id) & UF_RANGEDSINGLEUNIT && !(unit->val2 & UF_RANGEDSINGLEUNIT) )
+		unit_id = UNT_DUMMYSKILL; //Use invisible unit id for other case of rangedsingle unit
+	else
+		unit_id=unit->group->unit_id;
+
+	switch( type ) {
+		case 2: header = 0x1c9; break;
+		case 3: header = 0x8c7; break;
+		case 4: header = 0x99f; break;
+		default: case 1: header = 0x11f; break;
+	}
 
 #if PACKETVER >= 3
-	if(unit->group->unit_id==UNT_GRAFFITI)	{ // Graffiti [Valaris]
-		WFIFOHEAD(fd,packet_len(0x1c9));
-		WFIFOW(fd, 0)=0x1c9;
-		WFIFOL(fd, 2)=unit->bl.id;
-		WFIFOL(fd, 6)=unit->group->src_id;
-		WFIFOW(fd,10)=unit->bl.x;
-		WFIFOW(fd,12)=unit->bl.y;
-		WFIFOB(fd,14)=unit->group->unit_id;
-		WFIFOB(fd,15)=1;
-		WFIFOB(fd,16)=1;
-		safestrncpy((char*)WFIFOP(fd,17),unit->group->valstr,MESSAGE_SIZE);
-		WFIFOSET(fd,packet_len(0x1c9));
-		return;
+	if( unit->group->unit_id==UNT_GRAFFITI ) { // Graffiti [Valaris]
+		clif_getareachar_skillunit(2,sd,unit);
 	}
 #endif
-	WFIFOHEAD(fd,packet_len(0x11f));
-	WFIFOW(fd, 0)=0x11f;
-	WFIFOL(fd, 2)=unit->bl.id;
-	WFIFOL(fd, 6)=unit->group->src_id;
-	WFIFOW(fd,10)=unit->bl.x;
-	WFIFOW(fd,12)=unit->bl.y;
-	if (battle_config.traps_setting&1 && skill_get_inf2(unit->group->skill_id)&INF2_TRAP)
-		WFIFOB(fd,14)=UNT_DUMMYSKILL; //Use invisible unit id for traps.
-	else if (skill_get_unit_flag(unit->group->skill_id) & UF_RANGEDSINGLEUNIT && !(unit->val2 & UF_RANGEDSINGLEUNIT))
-		WFIFOB(fd,14)=UNT_DUMMYSKILL; //Use invisible unit id for traps.
-	else
-		WFIFOB(fd,14)=unit->group->unit_id;
-	WFIFOB(fd,15)=1; // ignored by client (always gets set to 1)
-	WFIFOSET(fd,packet_len(0x11f));
+	WFIFOHEAD(fd,packet_len(header));
+	WFIFOW(fd,pos)=header;
+	if( type==3 || type==4 ) {
+		WFIFOW(fd, pos+2)=packet_len(header);
+		pos += 2;
+	}
+	WFIFOL(fd,pos+2) = unit->bl.id;
+	WFIFOL(fd,pos+6) = unit->group->src_id;
+	WFIFOW(fd,pos+10) = unit->bl.x;
+	WFIFOW(fd,pos+12) = unit->bl.y;
+	switch( type ) {
+		case 1:
+			WFIFOB(fd,pos+14) = unit_id;
+			WFIFOB(fd,pos+15) = 1;
+			break;
+		case 2:
+			WFIFOB(fd,pos+14) = unit_id;
+			WFIFOB(fd,pos+15) = 1;
+			WFIFOB(fd,pos+16) = 1;
+			safestrncpy((char*)WFIFOP(fd,pos+17),unit->group->valstr,MESSAGE_SIZE);
+			break;
+		case 3:
+			WFIFOB(fd,pos+14) = unit_id;
+			WFIFOW(fd,pos+15) = unit->range;
+			WFIFOB(fd,pos+17) = 1; //visible
+			break;
+		case 4:
+			WFIFOL(fd,pos+14) = unit_id; pos += 3;
+			WFIFOW(fd,pos+15) = unit->range;
+			WFIFOB(fd,pos+17) = 1;
+			break;
+	}
+	WFIFOSET(fd,packet_len(header));
 
-	if(unit->group->skill_id == WZ_ICEWALL)
+	if( unit->group->skill_id == WZ_ICEWALL )
 		clif_changemapcell(fd,unit->bl.m,unit->bl.x,unit->bl.y,5,SELF);
 }
 
@@ -4436,26 +4461,25 @@ void clif_skillunit_update(struct block_list* bl)
 static int clif_getareachar(struct block_list* bl,va_list ap)
 {
 	struct map_session_data *sd;
-
 	nullpo_ret(bl);
 
-	sd=va_arg(ap,struct map_session_data*);
+	sd = va_arg(ap,struct map_session_data*);
 
 	if (sd == NULL || !sd->fd)
 		return 0;
 
-	switch(bl->type){
-	case BL_ITEM:
-		clif_getareachar_item(sd,(struct flooritem_data*) bl);
-		break;
-	case BL_SKILL:
-		clif_getareachar_skillunit(sd,(TBL_SKILL*)bl);
-		break;
-	default:
-		if(&sd->bl == bl)
+	switch(bl->type) {
+		case BL_ITEM:
+			clif_getareachar_item(sd,(struct flooritem_data*) bl);
 			break;
-		clif_getareachar_unit(sd,bl);
-		break;
+		case BL_SKILL:
+			clif_getareachar_skillunit(1,sd,(TBL_SKILL*)bl);
+			break;
+		default:
+			if(&sd->bl == bl)
+				break;
+			clif_getareachar_unit(sd,bl);
+			break;
 	}
 	return 0;
 }
@@ -4468,7 +4492,7 @@ int clif_outsight(struct block_list *bl,va_list ap)
 	struct block_list *tbl;
 	struct view_data *vd;
 	TBL_PC *sd, *tsd;
-	tbl=va_arg(ap,struct block_list*);
+	tbl = va_arg(ap,struct block_list*);
 	if(bl == tbl) return 0;
 	sd = BL_CAST(BL_PC, bl);
 	tsd = BL_CAST(BL_PC, tbl);
@@ -4520,7 +4544,7 @@ int clif_insight(struct block_list *bl,va_list ap)
 {
 	struct block_list *tbl;
 	TBL_PC *sd, *tsd;
-	tbl=va_arg(ap,struct block_list*);
+	tbl = va_arg(ap,struct block_list*);
 
 	if (bl == tbl) return 0;
 	
@@ -4533,7 +4557,7 @@ int clif_insight(struct block_list *bl,va_list ap)
 				clif_getareachar_item(tsd,(struct flooritem_data*)bl);
 				break;
 			case BL_SKILL:
-				clif_getareachar_skillunit(tsd,(TBL_SKILL*)bl);
+				clif_getareachar_skillunit(1,tsd,(TBL_SKILL*)bl);
 				break;
 			default:
 				clif_getareachar_unit(tsd,bl);
@@ -4553,18 +4577,15 @@ void clif_skillinfoblock(struct map_session_data *sd)
 {
 	int fd;
 	int i,len,id;
-
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	if (!fd) return;
 
 	WFIFOHEAD(fd, MAX_SKILL * 37 + 4);
 	WFIFOW(fd,0) = 0x10f;
-	for ( i = 0, len = 4; i < MAX_SKILL; i++)
-	{
-		if( (id = sd->status.skill[i].id) != 0 )
-		{
+	for ( i = 0, len = 4; i < MAX_SKILL; i++) {
+		if( (id = sd->status.skill[i].id) != 0 ) {
 			// workaround for bugreport:5348
 			if (len + 37 > 8192)
 				break;
@@ -4582,14 +4603,12 @@ void clif_skillinfoblock(struct map_session_data *sd)
 			len += 37;
 		}
 	}
-	WFIFOW(fd,2)=len;
+	WFIFOW(fd,2) = len;
 	WFIFOSET(fd,len);
 
 	// workaround for bugreport:5348; send the remaining skills one by one to bypass packet size limit
-	for ( ; i < MAX_SKILL; i++)
-	{
-		if( (id = sd->status.skill[i].id) != 0 )
-		{
+	for ( ; i < MAX_SKILL; i++) {
+		if( (id = sd->status.skill[i].id) != 0 ) {
 			clif_addskill(sd, id);
 			clif_skillinfo(sd, id, 0);
 		}
@@ -4604,7 +4623,6 @@ void clif_skillinfoblock(struct map_session_data *sd)
 void clif_addskill(struct map_session_data *sd, int id)
 {
 	int fd;
-
 	nullpo_retv(sd);
 
 	fd = sd->fd;
@@ -4635,8 +4653,8 @@ void clif_deleteskill(struct map_session_data *sd, int id)
 {
 #if PACKETVER >= 20081217
 	int fd;
-
 	nullpo_retv(sd);
+
 	fd = sd->fd;
 	if( !fd ) return;
 
@@ -4654,17 +4672,16 @@ void clif_deleteskill(struct map_session_data *sd, int id)
 void clif_skillup(struct map_session_data *sd,uint16 skill_id)
 {
 	int fd;
-
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x10e));
 	WFIFOW(fd,0) = 0x10e;
 	WFIFOW(fd,2) = skill_id;
-	WFIFOW(fd,4) = sd->status.skill[skill_id].lv;
-	WFIFOW(fd,6) = skill_get_sp(skill_id,sd->status.skill[skill_id].lv);
-	WFIFOW(fd,8) = skill_get_range2(&sd->bl,skill_id,sd->status.skill[skill_id].lv);
-	WFIFOB(fd,10) = (sd->status.skill[skill_id].lv < skill_tree_get_max(sd->status.skill[skill_id].id, sd->status.class_)) ? 1 : 0;
+	WFIFOW(fd,4) = lv;
+	WFIFOW(fd,6) = skill_get_sp(skill_id, lv);
+	WFIFOW(fd,8) = range;
+	WFIFOB(fd,10) = upgradable;
 	WFIFOSET(fd,packet_len(0x10e));
 }
 
@@ -7867,40 +7884,17 @@ void clif_guild_message(struct guild *g,int account_id,const char *mes,int len)
 }
 
 
-/*==========================================
- * Server tells client 'sd' that his guild skill 'skill_id' gone to level 'lv'
- *------------------------------------------*/
-int clif_guild_skillup(struct map_session_data *sd,uint16 skill_id,int lv)
-{// TODO: Merge with clif_skillup (same packet).
-	int fd;
-
-	nullpo_ret(sd);
-
-	fd=sd->fd;
-	WFIFOHEAD(fd,11);
-	WFIFOW(fd,0) = 0x10e;
-	WFIFOW(fd,2) = skill_id;
-	WFIFOW(fd,4) = lv;
-	WFIFOW(fd,6) = skill_get_sp(skill_id,lv);
-	WFIFOW(fd,8) = skill_get_range(skill_id,lv);
-	WFIFOB(fd,10) = 1;
-	WFIFOSET(fd,11);
-	return 0;
-}
-
-
 /// Request for guild alliance (ZC_REQ_ALLY_GUILD).
 /// 0171 <inviter account id>.L <guild name>.24B
 void clif_guild_reqalliance(struct map_session_data *sd,int account_id,const char *name)
 {
 	int fd;
-
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x171));
-	WFIFOW(fd,0)=0x171;
-	WFIFOL(fd,2)=account_id;
+	WFIFOW(fd,0) = 0x171;
+	WFIFOL(fd,2) = account_id;
 	memcpy(WFIFOP(fd,6),name,NAME_LENGTH);
 	WFIFOSET(fd,packet_len(0x171));
 }
@@ -7918,13 +7912,12 @@ void clif_guild_reqalliance(struct map_session_data *sd,int account_id,const cha
 void clif_guild_allianceack(struct map_session_data *sd,int flag)
 {
 	int fd;
-
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x173));
-	WFIFOW(fd,0)=0x173;
-	WFIFOL(fd,2)=flag;
+	WFIFOW(fd,0) = 0x173;
+	WFIFOL(fd,2) = flag;
 	WFIFOSET(fd,packet_len(0x173));
 }
 
@@ -7937,16 +7930,15 @@ void clif_guild_allianceack(struct map_session_data *sd,int flag)
 void clif_guild_delalliance(struct map_session_data *sd,int guild_id,int flag)
 {
 	int fd;
-
 	nullpo_retv(sd);
 
 	fd = sd->fd;
 	if (fd <= 0)
 		return;
 	WFIFOHEAD(fd,packet_len(0x184));
-	WFIFOW(fd,0)=0x184;
-	WFIFOL(fd,2)=guild_id;
-	WFIFOL(fd,6)=flag;
+	WFIFOW(fd,0) = 0x184;
+	WFIFOL(fd,2) = guild_id;
+	WFIFOL(fd,6) = flag;
 	WFIFOSET(fd,packet_len(0x184));
 }
 
@@ -7964,10 +7956,10 @@ void clif_guild_oppositionack(struct map_session_data *sd,int flag)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x181));
-	WFIFOW(fd,0)=0x181;
-	WFIFOB(fd,2)=flag;
+	WFIFOW(fd,0) = 0x181;
+	WFIFOB(fd,2) = flag;
 	WFIFOSET(fd,packet_len(0x181));
 }
 
@@ -7995,13 +7987,12 @@ void clif_guild_allianceadded(struct guild *g,int idx)
 void clif_guild_broken(struct map_session_data *sd,int flag)
 {
 	int fd;
-
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x15e));
-	WFIFOW(fd,0)=0x15e;
-	WFIFOL(fd,2)=flag;
+	WFIFOW(fd,0) = 0x15e;
+	WFIFOL(fd,2) = flag;
 	WFIFOSET(fd,packet_len(0x15e));
 }
 
@@ -8013,12 +8004,11 @@ void clif_guild_broken(struct map_session_data *sd,int flag)
 void clif_emotion(struct block_list *bl,int type)
 {
 	unsigned char buf[8];
-
 	nullpo_retv(bl);
 
-	WBUFW(buf,0)=0xc0;
-	WBUFL(buf,2)=bl->id;
-	WBUFB(buf,6)=type;
+	WBUFW(buf,0) = 0xc0;
+	WBUFL(buf,2) = bl->id;
+	WBUFB(buf,6) = type;
 	clif_send(buf,packet_len(0xc0),bl,AREA);
 }
 
@@ -12241,7 +12231,7 @@ void clif_parse_GuildRequestEmblem(int fd,struct map_session_data *sd)
 	struct guild* g;
 	int guild_id = RFIFOL(fd,2);
 
-	if( (g = guild_search(guild_id)) != NULL )
+	if( (g = sd->guild) != NULL )
 		clif_guild_emblem(sd,g);
 }
 

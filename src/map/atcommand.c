@@ -3129,8 +3129,7 @@ ACMD_FUNC(lostskill)
 	uint16 skill_id;
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message || (skill_id = atoi(message)) <= 0)
-	{// also send a list of skills applicable to this command
+	if (!message || !*message || (skill_id = atoi(message)) <= 0) { // also send a list of skills applicable to this command
 		const char* text;
 
 		// attempt to find the text corresponding to this command
@@ -3139,8 +3138,7 @@ ACMD_FUNC(lostskill)
 		// send the error message as always
 		clif_displaymessage(fd, msg_txt(1027)); // Please enter a quest skill number.
 
-		if( text )
-		{// send the skill ID list associated with this command
+		if( text ) { // send the skill ID list associated with this command
 			clif_displaymessage( fd, text );
 		}
 
@@ -3160,7 +3158,7 @@ ACMD_FUNC(lostskill)
 	}
 
 	sd->status.skill[skill_id].lv = 0;
-	sd->status.skill[skill_id].flag = 0;
+	sd->status.skill[skill_id].flag = SKILL_FLAG_PERMANENT;
 	clif_deleteskill(sd,skill_id);
 	clif_displaymessage(fd, msg_txt(71)); // You have forgotten the skill.
 
@@ -8645,11 +8643,11 @@ ACMD_FUNC(cart) {
 #define MC_CART_MDFY(x) \
 	sd->status.skill[MC_PUSHCART].id = x?MC_PUSHCART:0; \
 	sd->status.skill[MC_PUSHCART].lv = x?1:0; \
-	sd->status.skill[MC_PUSHCART].flag = x?1:0;
+	sd->status.skill[MC_PUSHCART].flag = x?SKILL_FLAG_TEMPORARY:SKILL_FLAG_PERMANENT;
 
 	int val = atoi(message);
 	bool need_skill = pc_checkskill(sd, MC_PUSHCART) ? false : true;
-	
+
 	if( !message || !*message || val < 0 || val > MAX_CARTS ) {
 		sprintf(atcmd_output, msg_txt(1390),command,MAX_CARTS); // Unknown Cart (usage: %s <0-%d>).
 		clif_displaymessage(fd, atcmd_output);
@@ -8660,24 +8658,24 @@ ACMD_FUNC(cart) {
 		clif_displaymessage(fd, msg_txt(1391)); // You do not possess a cart to be removed
 		return -1;
 	}
-	
+
 	if( need_skill ) {
 		MC_CART_MDFY(1);
 	}
-	
+
 	if( pc_setcart(sd, val) ) {
 		if( need_skill ) {
 			MC_CART_MDFY(0);
 		}
 		return -1;/* @cart failed */
 	}
-	
+
 	if( need_skill ) {
 		MC_CART_MDFY(0);
 	}
-	
+
 	clif_displaymessage(fd, msg_txt(1392)); // Cart Added
-	
+
 	return 0;
 	#undef MC_CART_MDFY
 }

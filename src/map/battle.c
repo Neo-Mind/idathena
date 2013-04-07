@@ -1728,9 +1728,14 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 	)
 		flag.arrow = 1;
 	
-	if(skill_id){
+	if(skill_id) {
 		wd.flag |= battle_range_type(src, target, skill_id, skill_lv);
 		switch(skill_id) {
+			case MH_SONIC_CRAW: {
+					TBL_HOM *hd = BL_CAST(BL_HOM,src);
+					wd.div_ = hd->homunculus.spiritball;
+				}
+				break;
 			case MO_FINGEROFFENSIVE:
 				if(sd) {
 					if (battle_config.finger_offensive_type)
