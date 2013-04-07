@@ -5312,20 +5312,34 @@ void clif_status_change(struct block_list *bl,int type,int flag,int tick,int val
 	if (!(status_type2relevant_bl_types(type)&bl->type)) // only send status changes that actually matter to the client
 		return;
 
-#if PACKETVER >= 20090121
+#if PACKETVER >= 20120618
 	if(flag && battle_config.display_status_timers && sd)
-		WBUFW(buf,0)=0x43f;
+		WBUFW(buf,0) = 0x983;
+	else
+#elif PACKETVER >= 20090121
+	if(flag && battle_config.display_status_timers && sd)
+		WBUFW(buf,0) = 0x43f;
 	else
 #endif
-		WBUFW(buf,0)=0x196;
-	WBUFW(buf,2)=type;
-	WBUFL(buf,4)=bl->id;
-	WBUFB(buf,8)=flag;
-#if PACKETVER >= 20090121
-	if(flag && battle_config.display_status_timers && sd)
-	{
+	WBUFW(buf,0) = 0x196;
+	WBUFW(buf,2) = type;
+	WBUFL(buf,4) = bl->id;
+	WBUFB(buf,8) = flag;
+#if PACKETVER >= 20120618
+	WBUFL(buf,9) = tick; /* at this stage remain and total are the same value I believe */
+	WBUFL(buf,13) = tick;
+	if(flag && battle_config.display_status_timers && sd) {
 		if (tick <= 0)
-				tick = 9999; // this is indeed what official servers do
+			tick = 9999; // this is indeed what official servers do
+
+		WBUFL(buf,17) = val1;
+		WBUFL(buf,21) = val2;
+		WBUFL(buf,25) = val3;
+	}
+#elif PACKETVER >= 20090121
+	if(flag && battle_config.display_status_timers && sd) {
+		if (tick <= 0)
+			tick = 9999; // this is indeed what official servers do
 
 		WBUFL(buf,9) = tick;
 		WBUFL(buf,13) = val1;
@@ -6657,9 +6671,10 @@ void clif_party_option(struct party_data *p,struct map_session_data *sd,int flag
 
 	nullpo_retv(p);
 
-	if(!sd && flag==0){
+	if(!sd && flag==0) {
 		int i;
-		for(i=0;i<MAX_PARTY && !p->data[i].sd;i++);
+		for(i=0;i<MAX_PARTY && !p->data[i].sd;i++)
+			;
 		if (i < MAX_PARTY)
 			sd = p->data[i].sd;
 	}
@@ -6689,12 +6704,12 @@ void clif_party_withdraw(struct party_data* p, struct map_session_data* sd, int 
 
 	nullpo_retv(p);
 
-	if(!sd && (flag&0xf0)==0)
-	{
+	if(!sd && (flag&0xf0)==0) {
 		int i;
-		for(i=0;i<MAX_PARTY && !p->data[i].sd;i++);
-			if (i < MAX_PARTY)
-				sd = p->data[i].sd;
+		for(i=0;i<MAX_PARTY && !p->data[i].sd;i++)
+			;
+		if (i < MAX_PARTY)
+			sd = p->data[i].sd;
 	}
 
 	if(!sd) return;
@@ -8441,7 +8456,7 @@ void clif_refresh(struct map_session_data *sd)
 
 	clif_changemap(sd,sd->mapindex,sd->bl.x,sd->bl.y);
 	clif_inventorylist(sd);
-	if(pc_iscarton(sd)) {
+	if( pc_iscarton(sd) ) {
 		clif_cartlist(sd);
 		clif_updatestatus(sd,SP_CARTINFO);
 	}
@@ -8453,15 +8468,15 @@ void clif_refresh(struct map_session_data *sd)
 	clif_updatestatus(sd,SP_INT);
 	clif_updatestatus(sd,SP_DEX);
 	clif_updatestatus(sd,SP_LUK);
-	if (sd->spiritball)
+	if ( sd->spiritball )
 		clif_spiritball_single(sd->fd, sd);
-	for(i = 1; i < 5; i++){
+	for( i = 1; i < 5; i++ ) {
 		if( sd->talisman[i] > 0 )
 			clif_talisman_single(sd->fd, sd, i);
 	}
-	if (sd->vd.cloth_color)
+	if( sd->vd.cloth_color )
 		clif_refreshlook(&sd->bl,sd->bl.id,LOOK_CLOTHES_COLOR,sd->vd.cloth_color,SELF);
-	if(merc_is_hom_active(sd->hd))
+	if( merc_is_hom_active(sd->hd) )
 		clif_send_homdata(sd,SP_ACK,0);
 	if( sd->md ) {
 		clif_mercenary_info(sd);
@@ -8486,6 +8501,13 @@ void clif_refresh(struct map_session_data *sd)
 	buyingstore_close(sd);
 
 	mail_clear(sd);
+
+	if( disguised(&sd->bl) ) { /* refresh-da */
+		short disguise = sd->disguise;
+		pc_disguise(sd, 0);
+		pc_disguise(sd, disguise);
+	}
+
 }
 
 
@@ -16858,6 +16880,11 @@ static int packetdb_readdb(void)
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0, 14,  0,  0,  0,  0,  0,  0,  0,  0,
+	//#0x0980 
+		0,  0,  0, 29,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+		0,  0,  0,  0,  0,  0,  0, 14,  0,  0,  0,  0,  0,  0,  0,  0,
 	};
 	struct {
 		void (*func)(int, struct map_session_data *);
@@ -17070,48 +17097,40 @@ static int packetdb_readdb(void)
 		packet_len(i) = packet_len_table[i];
 
 	sprintf(line, "%s/packet_db.txt", db_path);
-	if( (fp=fopen(line,"r"))==NULL ){
+	if( (fp=fopen(line,"r"))==NULL ) {
 		ShowFatalError("can't read %s\n", line);
 		exit(EXIT_FAILURE);
 	}
 
 	clif_config.packet_db_ver = MAX_PACKET_VER;
 	packet_ver = MAX_PACKET_VER;	// read into packet_db's version by default
-	while( fgets(line, sizeof(line), fp) )
-	{
+	while( fgets(line, sizeof(line), fp) ) {
 		ln++;
 		if(line[0]=='/' && line[1]=='/')
 			continue;
-		if (sscanf(line,"%256[^:]: %256[^\r\n]",w1,w2) == 2)
-		{
+		if (sscanf(line,"%256[^:]: %256[^\r\n]",w1,w2) == 2) {
 			if(strcmpi(w1,"packet_ver")==0) {
 				int prev_ver = packet_ver;
 				skip_ver = 0;
 				packet_ver = atoi(w2);
-				if ( packet_ver > MAX_PACKET_VER )
-				{	//Check to avoid overflowing. [Skotlex]
+				if ( packet_ver > MAX_PACKET_VER ) { //Check to avoid overflowing. [Skotlex]
 					if( (warned&1) == 0 )
 						ShowWarning("The packet_db table only has support up to version %d.\n", MAX_PACKET_VER);
 					warned &= 1;
 					skip_ver = 1;
-				}
-				else if( packet_ver < 0 )
-				{
+				} else if( packet_ver < 0 ) {
 					if( (warned&2) == 0 )
 						ShowWarning("Negative packet versions are not supported.\n");
 					warned &= 2;
 					skip_ver = 1;
-				}
-				else if( packet_ver == SERVER )
-				{
+				} else if( packet_ver == SERVER ) {
 					if( (warned&4) == 0 )
 						ShowWarning("Packet version %d is reserved for server use only.\n", SERVER);
 					warned &= 4;
 					skip_ver = 1;
 				}
 
-				if( skip_ver )
-				{
+				if( skip_ver ) {
 					ShowWarning("Skipping packet version %d.\n", packet_ver);
 					packet_ver = prev_ver;
 					continue;
@@ -17125,7 +17144,6 @@ static int packetdb_readdb(void)
 					clif_config.packet_db_ver = MAX_PACKET_VER;
 				else // to manually set the packet DB version
 					clif_config.packet_db_ver = cap_value(atoi(w2), 0, MAX_PACKET_VER);
-				
 				continue;
 			}
 		}
@@ -17134,8 +17152,7 @@ static int packetdb_readdb(void)
 			continue; // Skipping current packet version
 
 		memset(str,0,sizeof(str));
-		for(j=0,p=line;j<4 && p; ++j)
-		{
+		for(j=0,p=line;j<4 && p; ++j) {
 			str[j]=p;
 			p=strchr(p,',');
 			if(p) *p++=0;
@@ -17143,11 +17160,12 @@ static int packetdb_readdb(void)
 		if(str[0]==NULL)
 			continue;
 		cmd=strtol(str[0],(char **)NULL,0);
+
 		if(max_cmd < cmd)
 			max_cmd = cmd;
 		if(cmd <= 0 || cmd > MAX_PACKET_DB)
 			continue;
-		if(str[1]==NULL){
+		if(str[1]==NULL) {
 			ShowError("packet_db: packet len error\n");
 			continue;
 		}
@@ -17169,11 +17187,11 @@ static int packetdb_readdb(void)
 		if (strcmp(str[2],"wanttoconnection")==0)
 			clif_config.connect_cmd[packet_ver] = cmd;
 			
-		if(str[3]==NULL){
+		if(str[3]==NULL) {
 			ShowError("packet_db: packet error\n");
 			exit(EXIT_FAILURE);
 		}
-		for(j=0,p2=str[3];p2;j++){
+		for(j=0,p2=str[3];p2;j++) {
 			short k;
 			str2[j]=p2;
 			p2=strchr(p2,':');
@@ -17181,8 +17199,7 @@ static int packetdb_readdb(void)
 			k = atoi(str2[j]);
 			// if (packet_db[packet_ver][cmd].pos[j] != k && clif_config.prefer_packet_db)	// not used for now
 
-			if( j >= MAX_PACKET_POS )
-			{
+			if( j >= MAX_PACKET_POS ) {
 				ShowError("Too many positions found for packet 0x%04x (max=%d).\n", cmd, MAX_PACKET_POS);
 				break;
 			}
@@ -17191,18 +17208,17 @@ static int packetdb_readdb(void)
 		}
 	}
 	fclose(fp);
-	if(max_cmd > MAX_PACKET_DB)
-	{
+	if(max_cmd > MAX_PACKET_DB) {
 		ShowWarning("Found packets up to 0x%X, ignored 0x%X and above.\n", max_cmd, MAX_PACKET_DB);
 		ShowWarning("Please increase MAX_PACKET_DB and recompile.\n");
 	}
-	if (!clif_config.connect_cmd[clif_config.packet_db_ver])
-	{	//Locate the nearest version that we still support. [Skotlex]
+	if (!clif_config.connect_cmd[clif_config.packet_db_ver]) { //Locate the nearest version that we still support. [Skotlex]
 		for(j = clif_config.packet_db_ver; j >= 0 && !clif_config.connect_cmd[j]; j--);
 		
 		clif_config.packet_db_ver = j?j:MAX_PACKET_VER;
 	}
-	ShowStatus("Done reading packet database from '"CL_WHITE"%s"CL_RESET"'. Using default packet version: "CL_WHITE"%d"CL_RESET".\n", "packet_db.txt", clif_config.packet_db_ver);
+	ShowStatus("Done reading packet database from '"CL_WHITE"%s"CL_RESET"'.\n","packet_db.txt");
+	ShowStatus("Using default packet version: "CL_WHITE"%d"CL_RESET".\n", clif_config.packet_db_ver);
 	return 0;
 }
 

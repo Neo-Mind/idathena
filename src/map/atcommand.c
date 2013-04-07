@@ -8734,33 +8734,33 @@ ACMD_FUNC(join) {
 	return 0;
 }
 
-inline void atcmd_channel_help(int fd, const char *command, bool can_create) {
-	clif_displaymessage(fd, msg_txt(1414));// ---- Available options:
+static inline void atcmd_channel_help(int fd, const char *command, bool can_create) {
+	clif_displaymessage(fd, msg_txt(1414)); // ---- Available options:
 	if( can_create ) {
-		sprintf(atcmd_output, msg_txt(1415),command);// * %s create <#channel_name> <channel_password>
+		sprintf(atcmd_output, msg_txt(1415),command); // * %s create <#channel_name> <channel_password>
 		clif_displaymessage(fd, atcmd_output);
-		clif_displaymessage(fd, msg_txt(1416));// -- Creates a new channel.
+		clif_displaymessage(fd, msg_txt(1416)); // -- Creates a new channel.
 	}
-	sprintf(atcmd_output, msg_txt(1417),command);// * %s list
+	sprintf(atcmd_output, msg_txt(1417),command); // * %s list
 	clif_displaymessage(fd, atcmd_output);
-	clif_displaymessage(fd, msg_txt(1418));// -- Lists all public channels.
+	clif_displaymessage(fd, msg_txt(1418)); // -- Lists all public channels.
 	if( can_create ) {
-		sprintf(atcmd_output, msg_txt(1419),command);// * %s list colors
+		sprintf(atcmd_output, msg_txt(1419),command); // * %s list colors
 		clif_displaymessage(fd, atcmd_output);
-		clif_displaymessage(fd, msg_txt(1420));// -- Lists all available colors for custom channels.
-		sprintf(atcmd_output, msg_txt(1421),command);// * %s setcolor <#channel_name> <color_name>
+		clif_displaymessage(fd, msg_txt(1420)); // -- Lists all available colors for custom channels.
+		sprintf(atcmd_output, msg_txt(1421),command); // * %s setcolor <#channel_name> <color_name>
 		clif_displaymessage(fd, atcmd_output);
-		clif_displaymessage(fd, msg_txt(1422));// -- Changes channel text to the specified color (channel owners only).
+		clif_displaymessage(fd, msg_txt(1422)); // -- Changes channel text to the specified color (channel owners only).
 	}
-	sprintf(atcmd_output, msg_txt(1423),command);// * %s leave <#channel_name>
+	sprintf(atcmd_output, msg_txt(1423),command); // * %s leave <#channel_name>
 	clif_displaymessage(fd, atcmd_output);
-	clif_displaymessage(fd, msg_txt(1424));// -- Leaves the specified channel.
-	sprintf(atcmd_output, msg_txt(1427),command);// * %s bindto <#channel_name>
+	clif_displaymessage(fd, msg_txt(1424)); // -- Leaves the specified channel.
+	sprintf(atcmd_output, msg_txt(1427),command); // * %s bindto <#channel_name>
 	clif_displaymessage(fd, atcmd_output);
-	clif_displaymessage(fd, msg_txt(1428));// -- Binds your global chat to the specified channel, sending all global messages to that channel.
-	sprintf(atcmd_output, msg_txt(1429),command);// * %s unbind
+	clif_displaymessage(fd, msg_txt(1428)); // -- Binds your global chat to the specified channel, sending all global messages to that channel.
+	sprintf(atcmd_output, msg_txt(1429),command); // * %s unbind
 	clif_displaymessage(fd, atcmd_output);
-	clif_displaymessage(fd, msg_txt(1430));// -- Unbinds your global chat from the attached channel, if any.
+	clif_displaymessage(fd, msg_txt(1430)); // -- Unbinds your global chat from the attached channel, if any.
 	sprintf(atcmd_output, msg_txt(1404),command); // %s failed.
 	clif_displaymessage(fd, atcmd_output);
 }
@@ -8779,10 +8779,10 @@ ACMD_FUNC(channel) {
 
 	if( strcmpi(key,"create") == 0 && ( raChSys.allow_user_channel_creation || pc_has_permission(sd, PC_PERM_CHANNEL_ADMIN) ) ) {
 		if( sub1[0] != '#' ) {
-			clif_displaymessage(fd, msg_txt(1405));// Channel name must start with '#'.
+			clif_displaymessage(fd, msg_txt(1405)); // Channel name must start with '#'.
 			return -1;
 		} else if ( strlen(sub1) < 3 || strlen(sub1) > RACHSYS_NAME_LENGTH ) {
-			sprintf(atcmd_output, msg_txt(1406), RACHSYS_NAME_LENGTH);// Channel length must be between 3 and %d.
+			sprintf(atcmd_output, msg_txt(1406), RACHSYS_NAME_LENGTH); // Channel length must be between 3 and %d.
 			clif_displaymessage(fd, atcmd_output);
 			return -1;
 		} else if ( sub3[0] != '\0' ) {
@@ -8790,7 +8790,7 @@ ACMD_FUNC(channel) {
 			return -1;
 		}
 		if( strcmpi(sub1 + 1,raChSys.local_name) == 0 || strcmpi(sub1 + 1,raChSys.ally_name) == 0 || strdb_exists(channel_db, sub1 + 1) ) {
-			sprintf(atcmd_output, msg_txt(1407), sub1);// Channel '%s' is not available.
+			sprintf(atcmd_output, msg_txt(1407), sub1); // Channel '%s' is not available.
 			clif_displaymessage(fd, atcmd_output);
 			return -1;
 		}
@@ -8849,18 +8849,18 @@ ACMD_FUNC(channel) {
 	} else if ( strcmpi(key,"setcolor") == 0 ) {
 
 		if( sub1[0] != '#' ) {
-			clif_displaymessage(fd, msg_txt(1405));// Channel name must start with '#'.
+			clif_displaymessage(fd, msg_txt(1405)); // Channel name must start with '#'.
 			return -1;
 		}
 
 		if( !(channel = strdb_get(channel_db, sub1 + 1)) ) {
-			sprintf(atcmd_output, msg_txt(1407), sub1);// Channel '%s' is not available.
+			sprintf(atcmd_output, msg_txt(1407), sub1); // Channel '%s' is not available.
 			clif_displaymessage(fd, atcmd_output);
 			return -1;
 		}
 
 		if( channel->owner != sd->status.char_id && !pc_has_permission(sd, PC_PERM_CHANNEL_ADMIN) ) {
-			sprintf(atcmd_output, msg_txt(1412), sub1);// You're not the owner of channel '%s'.
+			sprintf(atcmd_output, msg_txt(1412), sub1); // You're not the owner of channel '%s'.
 			clif_displaymessage(fd, atcmd_output);
 			return -1;
 		}
@@ -8870,17 +8870,17 @@ ACMD_FUNC(channel) {
 				break;
 		}
 		if( k == raChSys.colors_count ) {
-			sprintf(atcmd_output, msg_txt(1411), sub2);// Unknown color '%s'.
+			sprintf(atcmd_output, msg_txt(1411), sub2); // Unknown color '%s'.
 			clif_displaymessage(fd, atcmd_output);
 			return -1;
 		}
 		channel->color = k;
-		sprintf(atcmd_output, msg_txt(1413),sub1,raChSys.colors_name[k]);// '%s' channel color updated to '%s'.
+		sprintf(atcmd_output, msg_txt(1413),sub1,raChSys.colors_name[k]); // '%s' channel color updated to '%s'.
 		clif_displaymessage(fd, atcmd_output);
 	} else if ( strcmpi(key,"leave") == 0 ) {
 
 		if( sub1[0] != '#' ) {
-			clif_displaymessage(fd, msg_txt(1405));// Channel name must start with '#'.
+			clif_displaymessage(fd, msg_txt(1405)); // Channel name must start with '#'.
 			return -1;
 		}
 
@@ -8889,7 +8889,7 @@ ACMD_FUNC(channel) {
 				break;
 		}
 		if( k == sd->channel_count ) {
-			sprintf(atcmd_output, msg_txt(1425),sub1);// You're not part of the '%s' channel.
+			sprintf(atcmd_output, msg_txt(1425),sub1); // You're not part of the '%s' channel.
 			clif_displaymessage(fd, atcmd_output);
 			return -1;
 		}
@@ -8899,7 +8899,7 @@ ACMD_FUNC(channel) {
 	} else if ( strcmpi(key,"bindto") == 0 ) {
 
 		if( sub1[0] != '#' ) {
-			clif_displaymessage(fd, msg_txt(1405));// Channel name must start with '#'.
+			clif_displaymessage(fd, msg_txt(1405)); // Channel name must start with '#'.
 			return -1;
 		}
 
@@ -8908,7 +8908,7 @@ ACMD_FUNC(channel) {
 				break;
 		}
 		if( k == sd->channel_count ) {
-			sprintf(atcmd_output, msg_txt(1425),sub1);// You're not part of the '%s' channel.
+			sprintf(atcmd_output, msg_txt(1425),sub1); // You're not part of the '%s' channel.
 			clif_displaymessage(fd, atcmd_output);
 			return -1;
 		}
@@ -8919,7 +8919,7 @@ ACMD_FUNC(channel) {
 	} else if ( strcmpi(key,"unbind") == 0 ) {
 
 		if( sd->gcbind == NULL ) {
-			clif_displaymessage(fd, msg_txt(1432));// Your global chat is not binded to any channel.
+			clif_displaymessage(fd, msg_txt(1432)); // Your global chat is not binded to any channel.
 			return -1;
 		}
 
