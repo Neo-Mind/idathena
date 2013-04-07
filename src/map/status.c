@@ -503,7 +503,7 @@ void initChangeTables(void) {
 
 	// Homunculus S
 	add_sc( MH_STAHL_HORN         , SC_STUN );
-	set_sc( MH_ANGRIFFS_MODUS     , SC_ANGRIFFS_MODUS  , SI_ANGRIFFS_MODUS     , SCB_BATK | SCB_DEF | SCB_FLEE | SCB_MAXHP );
+	set_sc( MH_ANGRIFFS_MODUS     , SC_ANGRIFFS_MODUS  , SI_ANGRIFFS_MODUS     , SCB_BATK|SCB_DEF|SCB_FLEE|SCB_MAXHP );
 	set_sc( MH_GOLDENE_FERSE      , SC_GOLDENE_FERSE   , SI_GOLDENE_FERSE      , SCB_ASPD|SCB_FLEE );
 	add_sc( MH_STEINWAND          , SC_SAFETYWALL );
 	set_sc( MH_OVERED_BOOST       , SC_OVERED_BOOST    , SI_BLANK              , SCB_FLEE|SCB_ASPD );
@@ -511,7 +511,7 @@ void initChangeTables(void) {
 	set_sc( MH_VOLCANIC_ASH       , SC_ASH             , SI_VOLCANIC_ASH       , SCB_DEF|SCB_DEF2|SCB_HIT|SCB_BATK|SCB_FLEE );
 	set_sc( MH_GRANITIC_ARMOR     , SC_GRANITIC_ARMOR  , SI_GRANITIC_ARMOR     , SCB_NONE );
 	set_sc( MH_MAGMA_FLOW         , SC_MAGMA_FLOW      , SI_MAGMA_FLOW         , SCB_NONE );
-	set_sc( MH_PYROCLASTIC        , SC_PYROCLASTIC     , SI_PYROCLASTIC        , SCB_BATK|SCB_ATK_ELE );
+	set_sc( MH_PYROCLASTIC        , SC_PYROCLASTIC     , SI_PYROCLASTIC        , SCB_WATK|SCB_ATK_ELE );
 	add_sc( MH_LAVA_SLIDE         , SC_BURNING );
 	set_sc( MH_NEEDLE_OF_PARALYZE , SC_PARALYSIS       , SI_NEEDLE_OF_PARALYZE , SCB_DEF2 );
 	add_sc( MH_POISON_MIST        , SC_BLIND );
@@ -4509,8 +4509,6 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk += sc->data[SC_FULL_SWING_K]->val1;
 	if(sc->data[SC_ASH])
 		batk -= batk * sc->data[SC_ASH]->val4 / 100;
-	if(sc->data[SC_PYROCLASTIC])
-		batk += sc->data[SC_PYROCLASTIC]->val2;
 	if (sc->data[SC_ANGRIFFS_MODUS])
 		batk += sc->data[SC_ANGRIFFS_MODUS]->val2;
 
@@ -4627,6 +4625,8 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 		watk += sc->data[SC_ZANGETSU]->val2;
 	if(sc->data[SC_ODINS_POWER])
 		watk += 40 + 30 * sc->data[SC_ODINS_POWER]->val1;
+	if(sc->data[SC_PYROCLASTIC])
+		watk += sc->data[SC_PYROCLASTIC]->val2;
 
 	return (unsigned short)cap_value(watk,0,USHRT_MAX);
 }
