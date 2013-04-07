@@ -8728,7 +8728,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_ANGRIFFS_MODUS:
 			val2 = 50 + 20 * val1; //Atk bonus
 			val3 = 40 + 20 * val1; // Flee reduction.
-			val4 = tick/1000; // hp/sp reduction timer
+			val4 = tick / 1000; // hp/sp reduction timer
 			tick_time = 1000;
 			break;
 		case SC_GOLDENE_FERSE:
@@ -8737,25 +8737,25 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			val4 = 2 + 2 * val1; // Chance of holy attack
 			break;
 		case SC_OVERED_BOOST:
-			val2 = 300 + 40*val1; //flee bonus
-			val3 = 179 + 2*val1; //aspd bonus
+			val2 = 300 + 40 * val1; //flee bonus
+			val3 = 179 + 2 * val1; //aspd bonus
 			val4 = 50; //def reduc %
 			break;
 		case SC_GRANITIC_ARMOR:
-			val2 = 2*val1; //dmg hp reduction
-			val3 = (6*status_get_max_hp(src))/100; //dmg hp on status end
+			val2 = 2 * val1; //dmg hp reduction
+			val3 = (6 * status_get_max_hp(src)) / 100; //dmg hp on status end
 			val4 = 5 * val1; //unknow formula
 			break;
 		case SC_MAGMA_FLOW:
-			val2 = 3*val1; //activation chance
+			val2 = 3 * val1; //activation chance
 			break;
 		case SC_PYROCLASTIC:
-			val2 += 10*val1*status_get_lv(src); //atk bonus
-			val3 = 2*val1;//Chance To AutoCast Hammer Fall %
+			val2 = status_get_lv(src) + (10 * val1); //atk bonus
+			val3 = 2 * val1; //Chance To AutoCast Hammer Fall %
 			break;
 		case SC_PARALYSIS: //[Lighta] need real info
-			val2 = 2*val1; //def reduction
-			val3 = 500*val1; //varcast augmentation
+			val2 = 2 * val1; //def reduction
+			val3 = 500 * val1; //varcast augmentation
 			break;
 		case SC_LIGHT_OF_REGENE: //Yommy leak need confirm
 			val2 = 20 * val1; //hp reco on death %
@@ -8763,7 +8763,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_PAIN_KILLER: //Yommy leak need confirm
 			val2 = 10 * val1; //aspd reduction %
 			val3 = (( 200 * val1 ) * status_get_lv(src)) / 150; //dmg reduction linear
-			if(sc->data[SC_PARALYSIS])
+			if( sc->data[SC_PARALYSIS] )
 				sc_start(src, bl, SC_ENDURE, 100, val1, tick); //start endure for same duration
 			break;
 		case SC_STYLE_CHANGE: //[Lighta] need real info
@@ -8782,11 +8782,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 		case SC_ASH:
 			val2 = 50; //hit % reduc
-			val3 = 0;//def % reduc
-			val4 = 0;//atk flee & reduc
-			if(status_get_race(bl) == RC_PLANT) //plant type
+			val3 = 0; //def % reduc
+			val4 = 0; //atk flee & reduc
+			if( status_get_race(bl) == RC_PLANT ) //plant type
 				val3 = 50;
-			if(status_get_element(bl) == ELE_WATER) // defense water type
+			if( status_get_element(bl) == ELE_WATER ) // defense water type
 				val4 = 50;
 			break;
 		default:
