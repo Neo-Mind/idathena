@@ -6802,32 +6802,40 @@ ACMD_FUNC(showmobs)
 ACMD_FUNC(homlevel)
 {
 	TBL_HOM * hd;
-	int level = 0;
+	int level = 0, m_class;
 	nullpo_retr(-1, sd);
 
-	if ( !message || !*message || ( level = atoi(message) ) < 1 ) {
+	if (!message || !*message || ( level = atoi(message) ) < 1) {
 		clif_displaymessage(fd, msg_txt(1253)); // Please enter a level adjustment (usage: @homlevel <number of levels>).
 		return -1;
 	}
 
-	if ( !merc_is_hom_active(sd->hd) ) {
+	if (!merc_is_hom_active(sd->hd)) {
 		clif_displaymessage(fd, msg_txt(1254)); // You do not have a homunculus.
 		return -1;
 	}
 
 	hd = sd->hd;
 
-	if ( battle_config.hom_max_level == hd->homunculus.level ) // Already reach maximum level
-		clif_displaymessage(fd, "Homunculus already reach its maximum level");
+	if ((m_class = hom_class2mapid(hd->homunculus.class_)) == -1) {
+		ShowError("homlevel: Invalid class %d. \n", hd->homunculus.class_);
 		return 0;
+	}
+
+	if (((m_class&HOM_REG) && battle_config.hom_max_level <= hd->homunculus.level) ||
+		((m_class&HOM_S) && battle_config.hom_S_max_level <= hd->homunculus.level)) {
+		clif_displaymessage(fd, "Homunculus already reached its maximum level");
+		return 0;
+	}
 
 	do {
 		hd->homunculus.exp += hd->exp_next;
-	} while( hd->homunculus.level < level && merc_hom_levelup(hd) );
+	} while (hd->homunculus.level < level && merc_hom_levelup(hd));
 
 	status_calc_homunculus(hd,0);
 	status_percent_heal(&hd->bl, 100, 100);
 	clif_specialeffect(&hd->bl,568,AREA);
+
 	return 0;
 }
 

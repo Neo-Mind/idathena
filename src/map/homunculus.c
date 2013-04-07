@@ -50,7 +50,7 @@ static unsigned int hexptbl[MAX_LEVEL];
 static struct view_data hom_viewdb[MAX_HOMUNCULUS_CLASS];
 
 struct view_data* merc_get_hom_viewdata(int class_)
-{	//Returns the viewdata for homunculus
+{ //Returns the viewdata for homunculus
 	if (homdb_checkid(class_))
 		return &hom_viewdb[class_-HM_CLASS_BASE];
 	return NULL;
@@ -488,9 +488,9 @@ int merc_hom_gainexp(struct homun_data *hd,int exp)
 		return 0;
 	}
 
-	if( hd->exp_next == 0 ||
-	   ((m_class&HOM_REG) && hd->homunculus.level >= battle_config.hom_max_level) ||
-	   ((m_class&HOM_S)   && hd->homunculus.level >= battle_config.hom_S_max_level) ) {
+	if(hd->exp_next == 0 ||
+		((m_class&HOM_REG) && hd->homunculus.level >= battle_config.hom_max_level) ||
+		((m_class&HOM_S)   && hd->homunculus.level >= battle_config.hom_S_max_level)) {
 	  	hd->homunculus.exp = 0;
 		return 0;
 	}
@@ -502,10 +502,15 @@ int merc_hom_gainexp(struct homun_data *hd,int exp)
 		return 0;
 	}
 
-	//levelup
- 	while( hd->homunculus.exp > hd->exp_next && merc_hom_levelup(hd) );
+	//Level up
+ 	do {
+		if(((m_class&HOM_REG) && hd->homunculus.level <= battle_config.hom_max_level) || ((m_class&HOM_S) && hd->homunculus.level <= battle_config.hom_S_max_level))
+			merc_hom_levelup(hd);
+		else
+			hd->homunculus.exp = 0;
+	} while(hd->homunculus.exp > hd->exp_next && hd->exp_next != 0);
 
-	if( hd->exp_next == 0 )
+	if(hd->exp_next == 0)
 		hd->homunculus.exp = 0 ;
 
 	clif_specialeffect(&hd->bl,568,AREA);
@@ -629,7 +634,7 @@ static int merc_hom_hungry(int tid, unsigned int tick, int id, intptr_t data)
 	struct map_session_data *sd;
 	struct homun_data *hd;
 
-	sd=map_id2sd(id);
+	sd = map_id2sd(id);
 	if(!sd)
 		return 1;
 
@@ -928,8 +933,7 @@ int merc_resurrect_homunculus(struct map_session_data* sd, unsigned char per, sh
 
 	merc_hom_init_timers(hd);
 
-	if (!hd->bl.prev)
-	{	//Add it back to the map.
+	if (!hd->bl.prev) { //Add it back to the map.
 		hd->bl.m = sd->bl.m;
 		hd->bl.x = x;
 		hd->bl.y = y;
@@ -983,7 +987,7 @@ int merc_hom_shuffle(struct homun_data *hd)
 	unsigned int exp;
 	struct s_skill b_skill[MAX_HOMUNSKILL];
 
-	if (!merc_is_hom_active(hd))
+	if( !merc_is_hom_active(hd) )
 		return 0;
 
 	sd = hd->master;
@@ -993,12 +997,13 @@ int merc_hom_shuffle(struct homun_data *hd)
 	skillpts = hd->homunculus.skillpts;
 	//Reset values to level 1.
 	merc_reset_stats(hd);
+
 	//Level it back up
 	do {
 		hd->homunculus.exp += hd->exp_next;
 	} while( hd->homunculus.level < lv && merc_hom_levelup(hd) );
 
-	if(hd->homunculus.class_ == hd->homunculusDB->evo_class) {
+	if( hd->homunculus.class_ == hd->homunculusDB->evo_class ) {
 		//Evolved bonuses
 		struct s_homunculus *hom = &hd->homunculus;
 		struct h_stats *max = &hd->homunculusDB->emax, *min = &hd->homunculusDB->emin;
@@ -1030,16 +1035,14 @@ static bool read_homunculusdb_sub(char* str[], int columns, int current)
 
 	//Base Class,Evo Class
 	classid = atoi(str[0]);
-	if (classid < HM_CLASS_BASE || classid > HM_CLASS_MAX)
-	{
+	if (classid < HM_CLASS_BASE || classid > HM_CLASS_MAX) {
 		ShowError("read_homunculusdb : Invalid class %d\n", classid);
 		return false;
 	}
 	db = &homunculus_db[current];
 	db->base_class = classid;
 	classid = atoi(str[1]);
-	if (classid < HM_CLASS_BASE || classid > HM_CLASS_MAX)
-	{
+	if (classid < HM_CLASS_BASE || classid > HM_CLASS_MAX) {
 		db->base_class = 0;
 		ShowError("read_homunculusdb : Invalid class %d\n", classid);
 		return false;
@@ -1173,8 +1176,7 @@ static bool read_homunculus_skilldb_sub(char* split[], int columns, int current)
 
 	// check for bounds [celest]
 	classid = atoi(split[0]) - HM_CLASS_BASE;
-	if ( classid >= MAX_HOMUNCULUS_CLASS )
-	{
+	if ( classid >= MAX_HOMUNCULUS_CLASS ) {
 		ShowWarning("read_homunculus_skilldb: Invalud homunculus class %d.\n", atoi(split[0]));
 		return false;
 	}
@@ -1182,8 +1184,7 @@ static bool read_homunculus_skilldb_sub(char* split[], int columns, int current)
 	k = atoi(split[1]); //This is to avoid adding two lines for the same skill. [Skotlex]
 	// Search an empty line or a line with the same skill_id (stored in j)
 	ARR_FIND( 0, MAX_SKILL_TREE, j, !hskill_tree[classid][j].id || hskill_tree[classid][j].id == k );
-	if (j == MAX_SKILL_TREE)
-	{
+	if (j == MAX_SKILL_TREE) {
 		ShowWarning("Unable to load skill %d into homunculus %d's tree. Maximum number of skills per class has been reached.\n", k, classid);
 		return false;
 	}
