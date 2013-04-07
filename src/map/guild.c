@@ -1666,7 +1666,7 @@ int guild_broken_sub(DBKey key, DBData *data, va_list ap)
 	struct map_session_data *sd=NULL;
 	nullpo_ret(g);
 
-	for(i=0;i<MAX_GUILDALLIANCE;i++) {	// Destroy all relationships
+	for(i=0;i<MAX_GUILDALLIANCE;i++) { // Destroy all relationships
 		if(g->alliance[i].guild_id==guild_id) {
 			for(j=0;j<g->max_member;j++)
 				if( (sd=g->member[j].sd)!=NULL )
@@ -1712,7 +1712,7 @@ int guild_broken(int guild_id,int flag)
 	if(flag!=0 || g==NULL)
 		return 0;
 
-	for(i=0;i<g->max_member;i++) {	// Destroy all relationships
+	for(i=0;i<g->max_member;i++) { // Destroy all relationships
 		if((sd=g->member[i].sd)!=NULL) {
 			if(sd->state.storage_flag == 2)
 				storage_guild_storage_quit(sd,1);

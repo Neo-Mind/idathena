@@ -2212,7 +2212,7 @@ void skill_combo_toogle_inf(struct block_list* bl, uint16 skill_id, int inf) {
 	}
 }
 
-void skill_combo(struct block_list* src,struct block_list *dsrc, struct block_list *bl, uint16 skill_id, uint16 skill_lv, int tick) {
+void skill_combo(struct block_list* src, struct block_list *dsrc, struct block_list *bl, uint16 skill_id, uint16 skill_lv, int tick) {
 	int duration = 0, delay = 0; //Used to signal if this skill can be combo'ed later on.
 	struct status_change_entry *sce;
 	TBL_PC *sd = BL_CAST(BL_PC,src);
@@ -2456,7 +2456,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 	switch(skill_id) {
 		case SC_TRIANGLESHOT:
-			if(rnd()%100 > (1 + skill_lv) ) dmg.blewcount = 0;
+			if(rnd()%100 > (1 + skill_lv)) dmg.blewcount = 0;
 			break;
 		default:
 			if(damage < dmg.div_ && skill_lv != CH_PALMSTRIKE)
