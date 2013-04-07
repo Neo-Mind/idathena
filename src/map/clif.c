@@ -4688,7 +4688,7 @@ void clif_skillup(struct map_session_data *sd, uint16 skill_id, int lv, int rang
 
 /// Updates a skill in the skill tree (ZC_SKILLINFO_UPDATE2).
 /// 07e1 <skill id>.W <type>.L <level>.W <sp cost>.W <attack range>.W <upgradable>.B
-void clif_skillinfo(struct map_session_data *sd,int skill, int inf)
+void clif_skillinfo(struct map_session_data *sd, int skill, int inf)
 {
 	const int fd = sd->fd;
 
