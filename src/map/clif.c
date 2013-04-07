@@ -4050,60 +4050,56 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 
 	if (vd->cloth_color)
 		clif_refreshlook(&sd->bl,bl->id,LOOK_CLOTHES_COLOR,vd->cloth_color,SELF);
-	switch (bl->type)
-	{
-	case BL_PC:
-		{
-			TBL_PC* tsd = (TBL_PC*)bl;
-			clif_getareachar_pc(sd, tsd);
-			if(tsd->state.size==SZ_BIG) // tiny/big players [Valaris]
-				clif_specialeffect_single(bl,423,sd->fd);
-			else if(tsd->state.size==SZ_MEDIUM)
-				clif_specialeffect_single(bl,421,sd->fd);
-			if( tsd->bg_id && map[tsd->bl.m].flag.battleground )
-				clif_sendbgemblem_single(sd->fd,tsd);
-			if( tsd->sc.data[SC_CAMOUFLAGE] )
-				clif_status_load(bl,SI_CAMOUFLAGE,1);
-			if ( tsd->status.robe )
-				clif_refreshlook(&sd->bl,bl->id,LOOK_ROBE,tsd->status.robe,SELF);
-		}
-		break;
-	case BL_MER: // Devotion Effects
-		if( ((TBL_MER*)bl)->devotion_flag )
-			clif_devotion(bl, sd);
-		break;
-	case BL_NPC:
-		{
-			TBL_NPC* nd = (TBL_NPC*)bl;
-			if( nd->chat_id )
-				clif_dispchat((struct chat_data*)map_id2bl(nd->chat_id),sd->fd);
-			if( nd->size == SZ_BIG )
-				clif_specialeffect_single(bl,423,sd->fd);
-			else if( nd->size == SZ_MEDIUM )
-				clif_specialeffect_single(bl,421,sd->fd);
-		}
-		break;
-	case BL_MOB:
-		{
-			TBL_MOB* md = (TBL_MOB*)bl;
-			if(md->special_state.size==SZ_BIG) // tiny/big mobs [Valaris]
-				clif_specialeffect_single(bl,423,sd->fd);
-			else if(md->special_state.size==SZ_MEDIUM)
-				clif_specialeffect_single(bl,421,sd->fd);
-#if PACKETVER >= 20120404
-			if( !(md->status.mode&MD_BOSS) ){
-				int i;
-				for(i = 0; i < DAMAGELOG_SIZE; i++)// must show hp bar to all char who already hit the mob.
-					if( md->dmglog[i].id == sd->status.char_id )
-					clif_monster_hp_bar(md, sd->fd);
+	switch (bl->type) {
+		case BL_PC: {
+				TBL_PC* tsd = (TBL_PC*)bl;
+				clif_getareachar_pc(sd, tsd);
+				if(tsd->state.size==SZ_BIG) // tiny/big players [Valaris]
+					clif_specialeffect_single(bl,423,sd->fd);
+				else if(tsd->state.size==SZ_MEDIUM)
+					clif_specialeffect_single(bl,421,sd->fd);
+				if( tsd->bg_id && map[tsd->bl.m].flag.battleground )
+					clif_sendbgemblem_single(sd->fd,tsd);
+				if( tsd->sc.data[SC_CAMOUFLAGE] )
+					clif_status_load(bl,SI_CAMOUFLAGE,1);
+				if ( tsd->status.robe )
+					clif_refreshlook(&sd->bl,bl->id,LOOK_ROBE,tsd->status.robe,SELF);
 			}
+			break;
+		case BL_MER: // Devotion Effects
+			if( ((TBL_MER*)bl)->devotion_flag )
+				clif_devotion(bl, sd);
+			break;
+		case BL_NPC: {
+				TBL_NPC* nd = (TBL_NPC*)bl;
+				if( nd->chat_id )
+					clif_dispchat((struct chat_data*)map_id2bl(nd->chat_id),sd->fd);
+				if( nd->size == SZ_BIG )
+					clif_specialeffect_single(bl,423,sd->fd);
+				else if( nd->size == SZ_MEDIUM )
+					clif_specialeffect_single(bl,421,sd->fd);
+			}
+			break;
+		case BL_MOB: {
+				TBL_MOB* md = (TBL_MOB*)bl;
+				if(md->special_state.size==SZ_BIG) // tiny/big mobs [Valaris]
+					clif_specialeffect_single(bl,423,sd->fd);
+				else if(md->special_state.size==SZ_MEDIUM)
+					clif_specialeffect_single(bl,421,sd->fd);
+#if PACKETVER >= 20120404
+				if( !(md->status.mode&MD_BOSS) ){
+					int i;
+					for(i = 0; i < DAMAGELOG_SIZE; i++)// must show hp bar to all char who already hit the mob.
+						if( md->dmglog[i].id == sd->status.char_id )
+						clif_monster_hp_bar(md, sd->fd);
+				}
 #endif
-		}
-		break;
-	case BL_PET:
-		if (vd->head_bottom)
-			clif_pet_equip(sd, (TBL_PET*)bl); // needed to display pet equip properly
-		break;
+			}
+			break;
+		case BL_PET:
+			if (vd->head_bottom)
+				clif_pet_equip(sd, (TBL_PET*)bl); // needed to display pet equip properly
+			break;
 	}
 }
 

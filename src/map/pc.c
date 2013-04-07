@@ -1238,7 +1238,7 @@ static int pc_calc_skillpoint(struct map_session_data* sd)
 
 	nullpo_ret(sd);
 
-	for(i=1;i<MAX_SKILL;i++){
+	for(i=1;i<MAX_SKILL;i++) {
 		if( (skill = pc_checkskill(sd,i)) > 0) {
 			inf2 = skill_get_inf2(i);
 			if((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
@@ -1246,8 +1246,7 @@ static int pc_calc_skillpoint(struct map_session_data* sd)
 				) {
 				if(sd->status.skill[i].flag == SKILL_FLAG_PERMANENT)
 					skill_point += skill;
-				else
-				if(sd->status.skill[i].flag == SKILL_FLAG_REPLACED_LV_0)
+				else if(sd->status.skill[i].flag == SKILL_FLAG_REPLACED_LV_0)
 					skill_point += (sd->status.skill[i].flag - SKILL_FLAG_REPLACED_LV_0);
 			}
 		}
@@ -1495,15 +1494,12 @@ static void pc_check_skilltree(struct map_session_data *sd, int skill)
 int pc_clean_skilltree(struct map_session_data *sd)
 {
 	int i;
-	for (i = 0; i < MAX_SKILL; i++){
-		if (sd->status.skill[i].flag == SKILL_FLAG_TEMPORARY || sd->status.skill[i].flag == SKILL_FLAG_PLAGIARIZED)
-		{
+	for (i = 0; i < MAX_SKILL; i++) {
+		if (sd->status.skill[i].flag == SKILL_FLAG_TEMPORARY || sd->status.skill[i].flag == SKILL_FLAG_PLAGIARIZED) {
 			sd->status.skill[i].id = 0;
 			sd->status.skill[i].lv = 0;
 			sd->status.skill[i].flag = 0;
-		}
-		else
-		if (sd->status.skill[i].flag == SKILL_FLAG_REPLACED_LV_0){
+		} else if (sd->status.skill[i].flag == SKILL_FLAG_REPLACED_LV_0) {
 			sd->status.skill[i].lv = sd->status.skill[i].flag - SKILL_FLAG_REPLACED_LV_0;
 			sd->status.skill[i].flag = 0;
 		}
@@ -1525,18 +1521,14 @@ int pc_calc_skilltree_normalize_job(struct map_session_data *sd)
 	novice_skills = max_level[pc_class2idx(JOB_NOVICE)][1] - 1;
 
 	// limit 1st class and above to novice job levels
-	if(skill_point < novice_skills)
-	{
+	if(skill_point < novice_skills) {
 		c = MAPID_NOVICE;
 	}
 	// limit 2nd class and above to first class job levels (super novices are exempt)
-	else if ((sd->class_&JOBL_2) && (sd->class_&MAPID_UPPERMASK) != MAPID_SUPER_NOVICE)
-	{
+	else if ((sd->class_&JOBL_2) && (sd->class_&MAPID_UPPERMASK) != MAPID_SUPER_NOVICE) {
 		// regenerate change_level_2nd
-		if (!sd->change_level_2nd)
-		{
-			if (sd->class_&JOBL_THIRD)
-			{
+		if (!sd->change_level_2nd) {
+			if (sd->class_&JOBL_THIRD) {
 				// if neither 2nd nor 3rd jobchange levels are known, we have to assume a default for 2nd
 				if (!sd->change_level_3rd)
 					sd->change_level_2nd = max_level[pc_class2idx(pc_mapid2jobid(sd->class_&MAPID_UPPERMASK, sd->status.sex))][1];
@@ -1545,9 +1537,7 @@ int pc_calc_skilltree_normalize_job(struct map_session_data *sd)
 						- (sd->status.job_level - 1)
 						- (sd->change_level_3rd - 1)
 						- novice_skills;
-			}
-			else
-			{
+			} else {
 				sd->change_level_2nd = 1 + skill_point + sd->status.skill_point
 						- (sd->status.job_level - 1)
 						- novice_skills;
@@ -1557,16 +1547,13 @@ int pc_calc_skilltree_normalize_job(struct map_session_data *sd)
 			pc_setglobalreg (sd, "jobchange_level", sd->change_level_2nd);
 		}
 
-		if (skill_point < novice_skills + (sd->change_level_2nd - 1))
-		{
+		if (skill_point < novice_skills + (sd->change_level_2nd - 1)) {
 			c &= MAPID_BASEMASK;
 		}
 		// limit 3rd class to 2nd class/trans job levels
-		else if(sd->class_&JOBL_THIRD)
-		{
+		else if(sd->class_&JOBL_THIRD) {
 			// regenerate change_level_3rd
-			if (!sd->change_level_3rd)
-			{
+			if (!sd->change_level_3rd) {
 					sd->change_level_3rd = 1 + skill_point + sd->status.skill_point
 						- (sd->status.job_level - 1)
 						- (sd->change_level_2nd - 1)
@@ -1630,8 +1617,7 @@ int pc_disguise(struct map_session_data *sd, int class_)
 	if (class_ && sd->disguise == class_)
 		return 0;
 
-	if(sd->sc.option&OPTION_INVISIBLE)
-  	{	//Character is invisible. Stealth class-change. [Skotlex]
+	if(sd->sc.option&OPTION_INVISIBLE) { //Character is invisible. Stealth class-change. [Skotlex]
 		sd->disguise = class_; //viewdata is set on uncloaking.
 		return 2;
 	}
@@ -1652,8 +1638,7 @@ int pc_disguise(struct map_session_data *sd, int class_)
 
 	if (sd->bl.prev != NULL) {
 		clif_spawn(&sd->bl);
-		if (class_ == sd->status.class_ && pc_iscarton(sd))
-		{	//It seems the cart info is lost on undisguise.
+		if (class_ == sd->status.class_ && pc_iscarton(sd)) { //It seems the cart info is lost on undisguise.
 			clif_cartlist(sd);
 			clif_updatestatus(sd,SP_CARTINFO);
 		}
@@ -1668,17 +1653,15 @@ static int pc_bonus_autospell(struct s_autospell *spell, int max, short id, shor
 	if( !rate )
 		return 0;
 
-	for( i = 0; i < max && spell[i].id; i++ )
-	{
-		if( (spell[i].card_id == card_id || spell[i].rate < 0 || rate < 0) && spell[i].id == id && spell[i].lv == lv )
-		{
+	for( i = 0; i < max && spell[i].id; i++ ) {
+		if( (spell[i].card_id == card_id || spell[i].rate < 0 || rate < 0) && spell[i].id == id && spell[i].lv == lv ) {
 			if( !battle_config.autospell_stacking && spell[i].rate > 0 && rate > 0 )
 				return 0;
 			rate += spell[i].rate;
 			break;
 		}
 	}
-	if (i == max) {
+	if( i == max ) {
 		ShowWarning("pc_bonus: Reached max (%d) number of autospells per character!\n", max);
 		return 0;
 	}
@@ -1704,13 +1687,11 @@ static int pc_bonus_autospell_onskill(struct s_autospell *spell, int max, short 
 	if( !rate )
 		return 0;
 
-	for( i = 0; i < max && spell[i].id; i++ )
-	{
-		;  // each autospell works independently
+	for( i = 0; i < max && spell[i].id; i++ ) {
+		; // each autospell works independently
 	}
 
-	if( i == max )
-	{
+	if( i == max ) {
 		ShowWarning("pc_bonus: Reached max (%d) number of autospells per character!\n", max);
 		return 0;
 	}
@@ -1734,8 +1715,7 @@ static int pc_bonus_addeff(struct s_addeffect* effect, int max, enum sc_type id,
 		flag|=ATF_WEAPON; //Default type: weapon.
 
 	for (i = 0; i < max && effect[i].flag; i++) {
-		if (effect[i].id == id && effect[i].flag == flag)
-		{
+		if (effect[i].id == id && effect[i].flag == flag) {
 			effect[i].rate += rate;
 			effect[i].arrow_rate += arrow_rate;
 			return 1;
@@ -1755,10 +1735,8 @@ static int pc_bonus_addeff(struct s_addeffect* effect, int max, enum sc_type id,
 static int pc_bonus_addeff_onskill(struct s_addeffectonskill* effect, int max, enum sc_type id, short rate, short skill, unsigned char target)
 {
 	int i;
-	for( i = 0; i < max && effect[i].skill; i++ )
-	{
-		if( effect[i].id == id && effect[i].skill == skill && effect[i].target == target )
-		{
+	for( i = 0; i < max && effect[i].skill; i++ ) {
+		if( effect[i].id == id && effect[i].skill == skill && effect[i].target == target ) {
 			effect[i].rate += rate;
 			return 1;
 		}
@@ -1798,8 +1776,7 @@ static int pc_bonus_item_drop(struct s_add_drop *drop, const short max, short id
 			&& race > 0
 		) {
 			drop[i].race |= race;
-			if(drop[i].rate > 0 && rate > 0)
-			{	//Both are absolute rates.
+			if(drop[i].rate > 0 && rate > 0) { //Both are absolute rates.
 				if (drop[i].rate < rate)
 					drop[i].rate = rate;
 			} else
@@ -1828,20 +1805,17 @@ int pc_addautobonus(struct s_autobonus *bonus,char max,const char *script,short 
 	int i;
 
 	ARR_FIND(0, max, i, bonus[i].rate == 0);
-	if( i == max )
-	{
+	if( i == max ) {
 		ShowWarning("pc_addautobonus: Reached max (%d) number of autobonus per character!\n", max);
 		return 0;
 	}
 
-	if( !onskill )
-	{
+	if( !onskill ) {
 		if( !(flag&BF_RANGEMASK) )
 			flag|=BF_SHORT|BF_LONG; //No range defined? Use both.
 		if( !(flag&BF_WEAPONMASK) )
 			flag|=BF_WEAPON; //No attack type defined? Use weapon.
-		if( !(flag&BF_SKILLMASK) )
-		{
+		if( !(flag&BF_SKILLMASK) ) {
 			if( flag&(BF_MAGIC|BF_MISC) )
 				flag|=BF_SKILL; //These two would never trigger without BF_SKILL
 			if( flag&BF_WEAPON )
@@ -1864,23 +1838,17 @@ int pc_delautobonus(struct map_session_data* sd, struct s_autobonus *autobonus,c
 	int i;
 	nullpo_ret(sd);
 
-	for( i = 0; i < max; i++ )
-	{
-		if( autobonus[i].active != INVALID_TIMER )
-		{
-			if( restore && sd->state.autobonus&autobonus[i].pos )
-			{
-				if( autobonus[i].bonus_script )
-				{
+	for( i = 0; i < max; i++ ) {
+		if( autobonus[i].active != INVALID_TIMER ) {
+			if( restore && sd->state.autobonus&autobonus[i].pos ) {
+				if( autobonus[i].bonus_script ) {
 					int j;
 					ARR_FIND( 0, EQI_MAX-1, j, sd->equip_index[j] >= 0 && sd->status.inventory[sd->equip_index[j]].equip == autobonus[i].pos );
 					if( j < EQI_MAX-1 )
 						script_run_autobonus(autobonus[i].bonus_script,sd->bl.id,sd->equip_index[j]);
 				}
 				continue;
-			}
-			else
-			{ // Logout / Unequipped an item with an activated bonus
+			} else { // Logout / Unequipped an item with an activated bonus
 				delete_timer(autobonus[i].active,pc_endautobonus);
 				autobonus[i].active = INVALID_TIMER;
 			}
@@ -1901,8 +1869,7 @@ int pc_exeautobonus(struct map_session_data *sd,struct s_autobonus *autobonus)
 	nullpo_ret(sd);
 	nullpo_ret(autobonus);
 
-	if( autobonus->other_script )
-	{
+	if( autobonus->other_script ) {
 		int j;
 		ARR_FIND( 0, EQI_MAX-1, j, sd->equip_index[j] >= 0 && sd->status.inventory[sd->equip_index[j]].equip == autobonus->pos );
 		if( j < EQI_MAX-1 )
@@ -1939,8 +1906,7 @@ int pc_bonus_addele(struct map_session_data* sd, unsigned char ele, short rate, 
 
 	ARR_FIND(0, MAX_PC_BONUS, i, wd->addele2[i].rate == 0);
 
-	if (i == MAX_PC_BONUS)
-	{
+	if (i == MAX_PC_BONUS) {
 		ShowWarning("pc_addele: Reached max (%d) possible bonuses for this player.\n", MAX_PC_BONUS);
 		return 0;
 	}
@@ -1949,8 +1915,7 @@ int pc_bonus_addele(struct map_session_data* sd, unsigned char ele, short rate, 
 		flag |= BF_SHORT|BF_LONG;
 	if (!(flag&BF_WEAPONMASK))
 		flag |= BF_WEAPON;
-	if (!(flag&BF_SKILLMASK))
-	{
+	if (!(flag&BF_SKILLMASK)) {
 		if (flag&(BF_MAGIC|BF_MISC))
 			flag |= BF_SKILL;
 		if (flag&BF_WEAPON)
@@ -1970,8 +1935,7 @@ int pc_bonus_subele(struct map_session_data* sd, unsigned char ele, short rate, 
 	
 	ARR_FIND(0, MAX_PC_BONUS, i, sd->subele2[i].rate == 0);
 
-	if (i == MAX_PC_BONUS)
-	{
+	if (i == MAX_PC_BONUS) {
 		ShowWarning("pc_subele: Reached max (%d) possible bonuses for this player.\n", MAX_PC_BONUS);
 		return 0;
 	}
@@ -1980,8 +1944,7 @@ int pc_bonus_subele(struct map_session_data* sd, unsigned char ele, short rate, 
 		flag |= BF_SHORT|BF_LONG;
 	if (!(flag&BF_WEAPONMASK))
 		flag |= BF_WEAPON;
-	if (!(flag&BF_SKILLMASK))
-	{
+	if (!(flag&BF_SKILLMASK)) {
 		if (flag&(BF_MAGIC|BF_MISC))
 			flag |= BF_SKILL;
 		if (flag&BF_WEAPON)
@@ -2006,7 +1969,7 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 
 	status = &sd->base_status;
 
-	switch(type){
+	switch(type) {
 		case SP_STR:
 		case SP_AGI:
 		case SP_VIT:
@@ -3417,45 +3380,44 @@ int pc_skill(TBL_PC* sd, int id, int level, int flag)
 		return 0;
 	}
 
-	switch( flag ){
-	case 0: //Set skill data overwriting whatever was there before.
-		sd->status.skill[id].id   = id;
-		sd->status.skill[id].lv   = level;
-		sd->status.skill[id].flag = SKILL_FLAG_PERM_GRANTED;
-		if( level == 0 ) //Remove skill.
-		{
-			sd->status.skill[id].id = 0;
-			clif_deleteskill(sd,id);
-		}
-		else
-			clif_addskill(sd,id);
-		if( !skill_get_inf(id) ) //Only recalculate for passive skills.
-			status_calc_pc(sd, 0);
-	break;
-	case 1: //Item bonus skill.
-		if( sd->status.skill[id].id == id ){
-			if( sd->status.skill[id].lv >= level )
-				return 0;
-			if( sd->status.skill[id].flag == SKILL_FLAG_PERMANENT ) //Non-granted skill, store it's level.
-				sd->status.skill[id].flag = SKILL_FLAG_REPLACED_LV_0 + sd->status.skill[id].lv;
-		} else {
+	switch( flag ) {
+		case 0: //Set skill data overwriting whatever was there before.
 			sd->status.skill[id].id   = id;
-			sd->status.skill[id].flag = SKILL_FLAG_TEMPORARY;
-		}
-		sd->status.skill[id].lv = level;
-	break;
-	case 2: //Add skill bonus on top of what you had.
-		if( sd->status.skill[id].id == id ){
-			if( sd->status.skill[id].flag == SKILL_FLAG_PERMANENT )
-				sd->status.skill[id].flag = SKILL_FLAG_REPLACED_LV_0 + sd->status.skill[id].lv; // Store previous level.
-		} else {
-			sd->status.skill[id].id   = id;
-			sd->status.skill[id].flag = SKILL_FLAG_TEMPORARY; //Set that this is a bonus skill.
-		}
-		sd->status.skill[id].lv += level;
-	break;
-	default: //Unknown flag?
-		return 0;
+			sd->status.skill[id].lv   = level;
+			//Set skill flag to 4, because the skill'd been learned through script.
+			sd->status.skill[id].flag = SKILL_FLAG_PERM_GRANTED;
+			if( level == 0 ) { //Remove skill.
+				sd->status.skill[id].id = 0;
+				clif_deleteskill(sd,id);
+			} else
+				clif_addskill(sd,id);
+			if( !skill_get_inf(id) ) //Only recalculate for passive skills.
+				status_calc_pc(sd, 0);
+			break;
+		case 1: //Item bonus skill.
+			if( sd->status.skill[id].id == id ) {
+				if( sd->status.skill[id].lv >= level )
+					return 0;
+				if( sd->status.skill[id].flag == SKILL_FLAG_PERMANENT ) //Non-granted skill, store it's level.
+					sd->status.skill[id].flag = SKILL_FLAG_REPLACED_LV_0 + sd->status.skill[id].lv;
+			} else {
+				sd->status.skill[id].id   = id;
+				sd->status.skill[id].flag = SKILL_FLAG_TEMPORARY;
+			}
+			sd->status.skill[id].lv = level;
+			break;
+		case 2: //Add skill bonus on top of what you had.
+			if( sd->status.skill[id].id == id ) {
+				if( sd->status.skill[id].flag == SKILL_FLAG_PERMANENT )
+					sd->status.skill[id].flag = SKILL_FLAG_REPLACED_LV_0 + sd->status.skill[id].lv; // Store previous level.
+			} else {
+				sd->status.skill[id].id   = id;
+				sd->status.skill[id].flag = SKILL_FLAG_TEMPORARY; //Set that this is a bonus skill.
+			}
+			sd->status.skill[id].lv += level;
+			break;
+		default: //Unknown flag?
+			return 0;
 	}
 	return 1;
 }

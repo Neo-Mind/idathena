@@ -2312,14 +2312,14 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		sd->regen.sregen = &sd->sregen;
 		sd->regen.ssregen = &sd->ssregen;
 		sd->weight=0;
-		for(i=0;i<MAX_INVENTORY;i++){
+		for(i=0;i<MAX_INVENTORY;i++) {
 			if(sd->status.inventory[i].nameid==0 || sd->inventory_data[i] == NULL)
 				continue;
 			sd->weight += sd->inventory_data[i]->weight*sd->status.inventory[i].amount;
 		}
 		sd->cart_weight=0;
 		sd->cart_num=0;
-		for(i=0;i<MAX_CART;i++){
+		for(i=0;i<MAX_CART;i++) {
 			if(sd->status.cart[i].nameid==0)
 				continue;
 			sd->cart_weight+=itemdb_weight(sd->status.cart[i].nameid)*sd->status.cart[i].amount;
@@ -2390,8 +2390,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		if (sd->class_&JOBL_BABY) {
 			if (battle_config.character_size&SZ_BIG)
 				status->size++;
-		} else
-		if(battle_config.character_size&SZ_MEDIUM)
+		} else if (battle_config.character_size&SZ_MEDIUM)
 			status->size++;
 	}
 	status->aspd_rate = 1000;
@@ -2469,8 +2468,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 
 		status->def += sd->inventory_data[index]->def;
 
-		if(first && sd->inventory_data[index]->equip_script)
-	  	{	//Execute equip-script on login
+		if (first && sd->inventory_data[index]->equip_script) { //Execute equip-script on login
 			run_script(sd->inventory_data[index]->equip_script,0,sd->bl.id,0);
 			if (!calculating)
 				return 1;
@@ -2480,7 +2478,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		if (sd->status.inventory[index].refine > MAX_REFINE)
 			sd->status.inventory[index].refine = MAX_REFINE;
 
-		if(sd->inventory_data[index]->type == IT_WEAPON) {
+		if (sd->inventory_data[index]->type == IT_WEAPON) {
 			int r,wlv = sd->inventory_data[index]->wlv;
 			struct weapon_data *wd;
 			struct weapon_atk *wa;
@@ -2494,13 +2492,13 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 				wa = &status->rhw;
 			}
 			wa->atk += sd->inventory_data[index]->atk;
-			if ( (r = sd->status.inventory[index].refine) )
+			if ((r = sd->status.inventory[index].refine))
 				wa->atk2 = refine_info[wlv].bonus[r-1] / 100;
 
 #ifdef RENEWAL
 			wa->matk += sd->inventory_data[index]->matk;
 			wa->wlv = wlv;
-			if( r ) // renewal magic attack refine bonus
+			if (r) // renewal magic attack refine bonus
 				wa->matk += refine_info[wlv].bonus[r-1] / 100;
 #endif
 
@@ -2509,7 +2507,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 				wd->overrefine = refine_info[wlv].randombonus_max[r-1] / 100;
 
 			wa->range += sd->inventory_data[index]->range;
-			if(sd->inventory_data[index]->script) {
+			if (sd->inventory_data[index]->script) {
 				if (wd == &sd->left_weapon) {
 					sd->state.lr_flag = 1;
 					run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
@@ -2520,42 +2518,40 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 					return 1;
 			}
 
-			if(sd->status.inventory[index].card[0]==CARD0_FORGE)
-			{	// Forged weapon
+			if(sd->status.inventory[index].card[0]==CARD0_FORGE) { // Forged weapon
 				wd->star += (sd->status.inventory[index].card[1]>>8);
 				if(wd->star >= 15) wd->star = 40; // 3 Star Crumbs now give +40 dmg
 				if(pc_famerank(MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]) ,MAPID_BLACKSMITH))
 					wd->star += 10;
 				
-				if (!wa->ele) //Do not overwrite element from previous bonuses.
+				if(!wa->ele) //Do not overwrite element from previous bonuses.
 					wa->ele = (sd->status.inventory[index].card[1]&0x0f);
 			}
-		}
-		else if(sd->inventory_data[index]->type == IT_ARMOR) {
+		} else if(sd->inventory_data[index]->type == IT_ARMOR) {
 			int r;
-			if ( (r = sd->status.inventory[index].refine) )
+			if((r = sd->status.inventory[index].refine))
 				refinedef += refine_info[REFINE_TYPE_ARMOR].bonus[r-1];
 			if(sd->inventory_data[index]->script) {
-				if( i == EQI_HAND_L ) //Shield
+				if(i == EQI_HAND_L) //Shield
 					sd->state.lr_flag = 3;
 				run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
-				if( i == EQI_HAND_L ) //Shield
+				if(i == EQI_HAND_L) //Shield
 					sd->state.lr_flag = 0;
-				if (!calculating) //Abort, run_script retriggered this. [Skotlex]
+				if(!calculating) //Abort, run_script retriggered this. [Skotlex]
 					return 1;
 			}
 		}
 	}
 
-	if(sd->equip_index[EQI_AMMO] >= 0){
+	if(sd->equip_index[EQI_AMMO] >= 0) {
 		index = sd->equip_index[EQI_AMMO];
-		if(sd->inventory_data[index]){		// Arrows
+		if(sd->inventory_data[index]) { // Arrows
 			sd->bonus.arrow_atk += sd->inventory_data[index]->atk;
 			sd->state.lr_flag = 2;
-			if( !itemdb_is_GNthrowable(sd->inventory_data[index]->nameid) ) //don't run scripts on throwable items
+			if(!itemdb_is_GNthrowable(sd->inventory_data[index]->nameid)) //don't run scripts on throwable items
 				run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
 			sd->state.lr_flag = 0;
-			if (!calculating) //Abort, run_script retriggered status_calc_pc. [Skotlex]
+			if(!calculating) //Abort, run_script retriggered status_calc_pc. [Skotlex]
 				return 1;
 		}
 	}
@@ -2601,10 +2597,9 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 				data = itemdb_exists(c);
 				if(!data)
 					continue;
-				if(first && data->equip_script)
-			  	{	//Execute equip-script on login
+				if(first && data->equip_script) { //Execute equip-script on login
 					run_script(data->equip_script,0,sd->bl.id,0);
-					if (!calculating)
+					if(!calculating)
 						return 1;
 				}
 				if(!data->script)
@@ -2621,28 +2616,25 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 					if(map[sd->bl.m].flag.battleground && data->flag.no_equip&8)
 						continue;
 				}
-				if(i == EQI_HAND_L && sd->status.inventory[index].equip == EQP_HAND_L)
-				{	//Left hand status.
+				if(i == EQI_HAND_L && sd->status.inventory[index].equip == EQP_HAND_L) { //Left hand status.
 					sd->state.lr_flag = 1;
 					run_script(data->script,0,sd->bl.id,0);
 					sd->state.lr_flag = 0;
 				} else
 					run_script(data->script,0,sd->bl.id,0);
-				if (!calculating) //Abort, run_script his function. [Skotlex]
+				if(!calculating) //Abort, run_script his function. [Skotlex]
 					return 1;
 			}
 		}
 	}
 
-	if( sc->count && sc->data[SC_ITEMSCRIPT] )
-	{
+	if( sc->count && sc->data[SC_ITEMSCRIPT] ) {
 		struct item_data *data = itemdb_exists(sc->data[SC_ITEMSCRIPT]->val1);
 		if( data && data->script )
 			run_script(data->script,0,sd->bl.id,0);
 	}
 
-	if( sd->pd )
-	{ // Pet Bonus
+	if( sd->pd ) { // Pet Bonus
 		struct pet_data *pd = sd->pd;
 		if( pd && pd->petDB && pd->petDB->equip_script && pd->pet.intimate >= battle_config.pet_equip_min_friendly )
 			run_script(pd->petDB->equip_script,0,sd->bl.id,0);
@@ -2680,7 +2672,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 
 	// Job bonuses
 	index = pc_class2idx(sd->status.class_);
-	for(i=0;i<(int)sd->status.job_level && i<MAX_LEVEL;i++){
+	for(i=0;i<(int)sd->status.job_level && i<MAX_LEVEL;i++) {
 		if(!job_bonus[index][i])
 			continue;
 		switch(job_bonus[index][i]) {
@@ -2694,7 +2686,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 	}
 
 	// If a Super Novice has never died and is at least joblv 70, he gets all stats +10
-	if((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && sd->die_counter == 0 && sd->status.job_level >= 70){
+	if(((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && (sd->status.job_level >= 70 || sd->class_&JOBL_THIRD)) && sd->die_counter == 0) {
 		status->str += 10;
 		status->agi += 10;
 		status->vit += 10;
@@ -2773,14 +2765,14 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 
 	// Absolute modifiers from passive skills
 	if((skill=pc_checkskill(sd,SL_KAINA))>0)
-		status->max_sp += 30*skill;
+		status->max_sp += 30 * skill;
 	if((skill=pc_checkskill(sd,HP_MEDITATIO))>0)
 		status->max_sp += (int64)status->max_sp * skill/100;
 	if((skill=pc_checkskill(sd,HW_SOULDRAIN))>0)
-		status->max_sp += (int64)status->max_sp * 2*skill/100;
-	if( (skill = pc_checkskill(sd,RA_RESEARCHTRAP)) > 0 )
+		status->max_sp += (int64)status->max_sp * 2 * skill/100;
+	if((skill = pc_checkskill(sd,RA_RESEARCHTRAP)) > 0)
 		status->max_sp += 200 + 20 * skill;
-	if( (skill = pc_checkskill(sd,WM_LESSON)) > 0 )
+	if((skill = pc_checkskill(sd,WM_LESSON)) > 0)
 		status->max_sp += 30 * skill;
 
 
@@ -2800,8 +2792,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 // ----- RESPAWN HP/SP -----
 //
 	//Calc respawn hp and store it on base_status
-	if (sd->special_state.restart_full_recover)
-	{
+	if(sd->special_state.restart_full_recover) {
 		status->hp = status->max_hp;
 		status->sp = status->max_sp;
 	} else {
@@ -2815,7 +2806,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 
 		status->sp = (int64)status->max_sp * battle_config.restart_sp_rate /100;
 		
-		if( !status->sp ) /* the minimum for the respawn setting is SP:1 */
+		if(!status->sp) /* the minimum for the respawn setting is SP:1 */
 			status->sp = 1;
 	}
 
@@ -2826,7 +2817,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 	if(sd->matk_rate < 0)
 		sd->matk_rate = 0;
 
-	if(sd->matk_rate != 100){
+	if(sd->matk_rate != 100) {
 		status->matk_max = status->matk_max * sd->matk_rate/100;
 		status->matk_min = status->matk_min * sd->matk_rate/100;
 	}
@@ -2865,18 +2856,17 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 
 	// Absolute modifiers from passive skills
 	if((skill=pc_checkskill(sd,BS_WEAPONRESEARCH))>0)
-		status->hit += skill*2;
-	if((skill=pc_checkskill(sd,AC_VULTURE))>0){
+		status->hit += skill * 2;
+	if((skill=pc_checkskill(sd,AC_VULTURE))>0) {
 #ifndef RENEWAL
 		status->hit += skill;
 #endif
 		if(sd->status.weapon == W_BOW)
 			status->rhw.range += skill;
 	}
-	if(sd->status.weapon >= W_REVOLVER && sd->status.weapon <= W_GRENADE)
-  	{
+	if(sd->status.weapon >= W_REVOLVER && sd->status.weapon <= W_GRENADE) {
 		if((skill=pc_checkskill(sd,GS_SINGLEACTION))>0)
-			status->hit += 2*skill;
+			status->hit += 2 * skill;
 		if((skill=pc_checkskill(sd,GS_SNAKEEYE))>0) {
 			status->hit += skill;
 			status->rhw.range += skill;
@@ -2891,9 +2881,9 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 
 	// Absolute modifiers from passive skills
 	if((skill=pc_checkskill(sd,TF_MISS))>0)
-		status->flee += skill*(sd->class_&JOBL_2 && (sd->class_&MAPID_BASEMASK) == MAPID_THIEF? 4 : 3);
+		status->flee += skill * (sd->class_&JOBL_2 && (sd->class_&MAPID_BASEMASK) == MAPID_THIEF? 4 : 3);
 	if((skill=pc_checkskill(sd,MO_DODGE))>0)
-		status->flee += (skill*3)>>1;
+		status->flee += (skill * 3)>>1;
 // ----- EQUIPMENT-DEF CALCULATION -----
 
 	// Apply relative modifiers from equipment
@@ -2904,12 +2894,11 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		status->def = cap_value(i, DEFTYPE_MIN, DEFTYPE_MAX);
 	}
 	
-	if( pc_isriding(sd) && pc_checkskill(sd, NC_MAINFRAME)>0)
+	if(pc_isriding(sd) && pc_checkskill(sd, NC_MAINFRAME)>0)
 		status->def += 20 + (pc_checkskill(sd, NC_MAINFRAME) * 20);
 
 #ifndef RENEWAL
-	if (!battle_config.weapon_defense_type && status->def > battle_config.max_def)
-	{
+	if (!battle_config.weapon_defense_type && status->def > battle_config.max_def) {
 		status->def2 += battle_config.over_def_bonus*(status->def -battle_config.max_def);
 		status->def = (unsigned char)battle_config.max_def;
 	}
@@ -2926,8 +2915,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 	}
 
 #ifndef RENEWAL
-	if (!battle_config.magic_defense_type && status->mdef > battle_config.max_def)
-	{
+	if (!battle_config.magic_defense_type && status->mdef > battle_config.max_def) {
 		status->mdef2 += battle_config.over_def_bonus*(status->mdef -battle_config.max_def);
 		status->mdef = (signed char)battle_config.max_def;
 	}
@@ -2948,7 +2936,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		status->aspd_rate -= 30*skill;
 	if((skill=pc_checkskill(sd,GS_SINGLEACTION))>0 &&
 		(sd->status.weapon >= W_REVOLVER && sd->status.weapon <= W_GRENADE))
-		status->aspd_rate -= ((skill+1)/2) * 10;
+		status->aspd_rate -= ((skill+1)/2)*10;
 	if(pc_isriding(sd))
 		status->aspd_rate += 500-100*pc_checkskill(sd,KN_CAVALIERMASTERY);
 	else if(pc_isridingdragon(sd))
