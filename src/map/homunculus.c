@@ -58,8 +58,7 @@ struct view_data* merc_get_hom_viewdata(int class_)
 
 int hom_class2mapid(int hom_class)
 {
-	switch(hom_class)
-	{
+	switch(hom_class) {
 		// Normal Homunculus
 		case 6001: case 6005:                return MAPID_LIF;
 		case 6002: case 6006:                return MAPID_AMISTR;
@@ -314,12 +313,12 @@ int merc_hom_levelup(struct homun_data *hd)
 		return 0;
 
 	hom = &hd->homunculus;
-	hom->level++ ;
+	hom->level++;
 	if (!(hom->level % 3))
-		hom->skillpts++ ;	//1 skillpoint each 3 base level
+		hom->skillpts++;	//1 skillpoint each 3 base level
 
-	hom->exp -= hd->exp_next ;
-	hd->exp_next = hexptbl[hom->level - 1] ;
+	hom->exp -= hd->exp_next;
+	hd->exp_next = hexptbl[hom->level - 1];
 
 	max  = &hd->homunculusDB->gmax;
 	min  = &hd->homunculusDB->gmin;
