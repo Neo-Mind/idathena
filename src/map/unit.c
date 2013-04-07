@@ -168,7 +168,7 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 	if (bl->x != x || bl->y != y || ud->walktimer != INVALID_TIMER)
 		return 0; //map_moveblock has altered the object beyond what we expected (moved/warped it)
 
-	ud->walktimer = -2; // arbitrary non-INVALID_TIMER value to make the clif code send walking packets
+	ud->walktimer = CLIF_WALK_TIMER; // arbitrary non-INVALID_TIMER value to make the clif code send walking packets
 	map_foreachinmovearea(clif_insight, bl, AREA_SIZE, -dx, -dy, sd?BL_ALL:BL_PC, bl);
 	ud->walktimer = INVALID_TIMER;
 	
@@ -620,7 +620,7 @@ int unit_movepos(struct block_list *bl, short dst_x, short dst_y, int easy, bool
 
 	ud->to_x = dst_x;
 	ud->to_y = dst_y;
-	
+
 	dir = map_calc_dir(bl, dst_x, dst_y);
 	ud->dir = dir;
 
@@ -630,11 +630,11 @@ int unit_movepos(struct block_list *bl, short dst_x, short dst_y, int easy, bool
 	map_foreachinmovearea(clif_outsight, bl, AREA_SIZE, dx, dy, sd?BL_ALL:BL_PC, bl);
 
 	map_moveblock(bl, dst_x, dst_y, gettick());
-	
-	ud->walktimer = -2; // arbitrary non-INVALID_TIMER value to make the clif code send walking packets
+
+	ud->walktimer = CLIF_WALK_TIMER; // arbitrary non-INVALID_TIMER value to make the clif code send walking packets
 	map_foreachinmovearea(clif_insight, bl, AREA_SIZE, -dx, -dy, sd?BL_ALL:BL_PC, bl);
 	ud->walktimer = INVALID_TIMER;
-		
+
 	if(sd) {
 		if( sd->touching_id )
 			npc_touchnext_areanpc(sd,false);
@@ -645,16 +645,14 @@ int unit_movepos(struct block_list *bl, short dst_x, short dst_y, int easy, bool
 		} else
 			sd->areanpc_id=0;
 
-		if( sd->status.pet_id > 0 && sd->pd && sd->pd->pet.intimate > 0 )
-		{ // Check if pet needs to be teleported. [Skotlex]
+		if( sd->status.pet_id > 0 && sd->pd && sd->pd->pet.intimate > 0 ) { // Check if pet needs to be teleported. [Skotlex]
 			int flag = 0;
 			struct block_list* bl = &sd->pd->bl;
 			if( !checkpath && !path_search(NULL,bl->m,bl->x,bl->y,dst_x,dst_y,0,CELL_CHKNOPASS) )
 				flag = 1;
 			else if (!check_distance_bl(&sd->bl, bl, AREA_SIZE)) //Too far, teleport.
 				flag = 2;
-			if( flag )
-			{
+			if( flag ) {
 				unit_movepos(bl,sd->bl.x,sd->bl.y, 0, 0);
 				clif_slide(bl,bl->x,bl->y);
 			}
@@ -1423,12 +1421,10 @@ int unit_skilluse_pos2( struct block_list *src, short skill_x, short skill_y, ui
 	else
 		range = skill_get_range2(src, skill_id, skill_lv); // Skill cast distance from database
 
-	if( skill_get_state(ud->skill_id) == ST_MOVE_ENABLE )
-	{
+	if( skill_get_state(ud->skill_id) == ST_MOVE_ENABLE ) {
 		if( !unit_can_reach_bl(src, &bl, range + 1, 1, NULL, NULL) )
 			return 0; //Walk-path check failed.
-	}
-	else if( !battle_check_range(src, &bl, range + 1) )
+	} else if( !battle_check_range(src, &bl, range + 1) )
 		return 0; //Arrow-path check failed.
 
 	unit_stop_attack(src);
@@ -1478,14 +1474,11 @@ int unit_skilluse_pos2( struct block_list *src, short skill_x, short skill_y, ui
 	unit_stop_walking(src,1);
 	// in official this is triggered even if no cast time.
 	clif_skillcasting(src, src->id, 0, skill_x, skill_y, skill_id, skill_get_ele(skill_id, skill_lv), casttime);
-	if( casttime > 0 )
-	{
+	if( casttime > 0 ) {
 		ud->skilltimer = add_timer( tick+casttime, skill_castend_pos, src->id, 0 );
 		if( (sd && pc_checkskill(sd,SA_FREECAST) > 0) || skill_id == LG_EXEEDBREAK)
 			status_calc_bl(&sd->bl, SCB_SPEED);
-	}
-	else
-	{
+	} else {
 		ud->skilltimer = INVALID_TIMER;
 		skill_castend_pos(ud->skilltimer,tick,src->id,0);
 	}
@@ -1874,9 +1867,9 @@ int unit_skillcastcancel(struct block_list *bl,int type)
 {
 	struct map_session_data *sd = NULL;
 	struct unit_data *ud = unit_bl2ud( bl);
-	unsigned int tick=gettick();
-	int ret=0, skill;
-	
+	unsigned int tick = gettick();
+	int ret = 0, skill_id;
+
 	nullpo_ret(bl);
 	if (!ud || ud->skilltimer == INVALID_TIMER)
 		return 0; //Nothing to cancel.
@@ -1892,37 +1885,35 @@ int unit_skillcastcancel(struct block_list *bl,int type)
 		((sd->sc.data[SC_UNLIMITEDHUMMINGVOICE] || sd->special_state.no_castcancel) && !map_flag_gvg(bl->m) && !map[bl->m].flag.battleground))) //fixed flags being read the wrong way around [blackhole89]
 			return 0;
 	}
-	
+
 	ud->canact_tick = tick;
 
-	if(type&1 && sd)
-		skill = sd->skill_id_old;
+	if (type&1 && sd)
+		skill_id = sd->skill_id_old;
 	else
-		skill = ud->skill_id;
-	
-	if (skill_get_inf(skill) & INF_GROUND_SKILL)
-		ret=delete_timer( ud->skilltimer, skill_castend_pos );
+		skill_id = ud->skill_id;
+
+	if (skill_get_inf(skill_id) & INF_GROUND_SKILL)
+		ret = delete_timer( ud->skilltimer, skill_castend_pos );
 	else
-		ret=delete_timer( ud->skilltimer, skill_castend_id );
-	if(ret<0)
+		ret = delete_timer( ud->skilltimer, skill_castend_id );
+	if (ret < 0)
 		ShowError("delete timer error : skill_id : %d\n",ret);
 
 	ud->skilltimer = INVALID_TIMER;
 
-	if( sd && pc_checkskill(sd,SA_FREECAST) > 0 )
+	if (sd && pc_checkskill(sd,SA_FREECAST) > 0)
 		status_calc_bl(&sd->bl, SCB_SPEED);
 
-	if( sd )
-	{
-		switch( skill )
-		{
-		case CG_ARROWVULCAN:
-			sd->canequip_tick = tick;
-			break;
+	if (sd) {
+		switch (skill_id) {
+			case CG_ARROWVULCAN:
+				sd->canequip_tick = tick;
+				break;
 		}
 	}
 
-	if(bl->type==BL_MOB) ((TBL_MOB*)bl)->skill_idx  = -1;
+	if (bl->type == BL_MOB) ((TBL_MOB*)bl)->skill_idx = -1;
 
 	clif_skillcastcancel(bl);
 	return 1;
@@ -2049,7 +2040,7 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 		status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
 		status_change_end(bl, SC__MANHOLE, INVALID_TIMER);
 		status_change_end(bl, SC_VACUUM_EXTREME, INVALID_TIMER);
-		status_change_end(bl, SC_CURSEDCIRCLE_ATKER, INVALID_TIMER); //callme before warp
+		status_change_end(bl, SC_CURSEDCIRCLE_ATKER, INVALID_TIMER); //Callme before warp
 	}
 
 	if (bl->type&(BL_CHAR|BL_PET)) {
@@ -2061,7 +2052,7 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 		case BL_PC: {
 			struct map_session_data *sd = (struct map_session_data*)bl;
 
-			if(sd->shadowform_id) {
+			if(sd->shadowform_id) { //If shadow target has leave the map
 				struct block_list *d_bl = map_id2bl(sd->shadowform_id);
 				if(d_bl)
 					status_change_end(d_bl,SC__SHADOWFORM,INVALID_TIMER);

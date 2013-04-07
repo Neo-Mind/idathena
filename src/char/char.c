@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define CHAR_MAX_MSG 200
+#define CHAR_MAX_MSG 300
 static char* msg_table[CHAR_MAX_MSG]; // Login Server messages_conf
 
 char char_db[256] = "char";
@@ -2674,7 +2674,6 @@ int parse_frommap(int fd)
 	}
 
 	while(RFIFOREST(fd) >= 2) {
-
 		switch(RFIFOW(fd,0)) {
 
 			case 0x2afa: // Receiving map names list from the map-server
@@ -2896,7 +2895,7 @@ int parse_frommap(int fd)
 
 						{
 							struct online_char_data* character = (struct online_char_data*)idb_get(online_char_db, account_id);
-							
+
 							if( character != NULL ) {
 								character->pincode_success = true;
 							}

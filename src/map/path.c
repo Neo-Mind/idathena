@@ -304,8 +304,7 @@ bool path_search(struct walkpath_data *wpd,int16 m,int16 x0,int16 y0,int16 x1,in
 	x = x0;
 	y = y0;
 	i = 0;
-	while( i < ARRAYLENGTH(wpd->path) )
-	{
+	while( i < ARRAYLENGTH(wpd->path) ) {
 		wpd->path[i] = walk_choices[-dy + 1][dx + 1];
 		i++;
 
@@ -321,8 +320,7 @@ bool path_search(struct walkpath_data *wpd,int16 m,int16 x0,int16 y0,int16 x1,in
 			break; // obstacle = failure
 	}
 
-	if( x == x1 && y == y1 )
-	{ //easy path successful.
+	if( x == x1 && y == y1 ) { //easy path successful.
 		wpd->path_len = i;
 		wpd->path_pos = 0;
 		return true;
@@ -345,8 +343,7 @@ bool path_search(struct walkpath_data *wpd,int16 m,int16 x0,int16 y0,int16 x1,in
 	xs = md->xs - 1; // Place by subtracting a pre-
 	ys = md->ys-1;
 
-	for(;;)
-	{
+	for(;;) {
 		int e=0,f=0,dist,cost,dc[4]={0,0,0,0};
 
 		if(heap[0]==0)

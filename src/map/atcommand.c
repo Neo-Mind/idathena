@@ -665,14 +665,12 @@ ACMD_FUNC(whogm)
 	level = pc_get_group_level(sd);
 
 	iter = mapit_getallusers();
-	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
-	{
+	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
 		pl_level = pc_get_group_level(pl_sd);
 		if (!pl_level)
 			continue;
 
-		if (match_text[0])
-		{
+		if (match_text[0]) {
 			memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
 			for (j = 0; player_name[j]; j++)
 				player_name[j] = TOLOWER(player_name[j]);
@@ -2484,7 +2482,7 @@ ACMD_FUNC(guildlevelup)
 		return -1;
 	}
 
-	if (sd->status.guild_id <= 0 || (guild_info = guild_search(sd->status.guild_id)) == NULL) {
+	if (sd->status.guild_id <= 0 || (guild_info = sd->guild) == NULL) {
 		clif_displaymessage(fd, msg_txt(43)); // You're not in a guild.
 		return -1;
 	}
@@ -2911,10 +2909,8 @@ ACMD_FUNC(doom)
 	nullpo_retr(-1, sd);
 
 	iter = mapit_getallusers();
-	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
-	{
-		if (pl_sd->fd != fd && pc_get_group_level(sd) >= pc_get_group_level(pl_sd))
-		{
+	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
+		if (pl_sd->fd != fd && pc_get_group_level(sd) >= pc_get_group_level(pl_sd)) {
 			status_kill(&pl_sd->bl);
 			clif_specialeffect(&pl_sd->bl,450,AREA);
 			clif_displaymessage(pl_sd->fd, msg_txt(61)); // The holy messenger has given judgement.
@@ -2938,10 +2934,8 @@ ACMD_FUNC(doommap)
 	nullpo_retr(-1, sd);
 
 	iter = mapit_getallusers();
-	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
-	{
-		if (pl_sd->fd != fd && sd->bl.m == pl_sd->bl.m && pc_get_group_level(sd) >= pc_get_group_level(pl_sd))
-		{
+	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
+		if (pl_sd->fd != fd && sd->bl.m == pl_sd->bl.m && pc_get_group_level(sd) >= pc_get_group_level(pl_sd)) {
 			status_kill(&pl_sd->bl);
 			clif_specialeffect(&pl_sd->bl,450,AREA);
 			clif_displaymessage(pl_sd->fd, msg_txt(61)); // The holy messenger has given judgement.
@@ -3049,8 +3043,7 @@ ACMD_FUNC(kickall)
 	nullpo_retr(-1, sd);
 
 	iter = mapit_getallusers();
-	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
-	{
+	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
 		if (pc_get_group_level(sd) >= pc_get_group_level(pl_sd)) { // you can kick only lower or same gm level
 			if (sd->status.account_id != pl_sd->status.account_id)
 				clif_GM_kick(NULL, pl_sd);
@@ -3718,7 +3711,7 @@ ACMD_FUNC(reloadscript)
  * 0 = no additional information
  * 1 = Show users in that map and their location
  * 2 = Shows NPCs in that map
- * 3 = Shows the shops/chats in that map (not implemented)
+ * 3 = Shows the chats in that map
  *------------------------------------------*/
 ACMD_FUNC(mapinfo)
 {
@@ -3727,7 +3720,7 @@ ACMD_FUNC(mapinfo)
 	struct npc_data *nd = NULL;
 	struct chat_data *cd = NULL;
 	char direction[12];
-	int i, m_id, chat_num, list = 0;
+	int i, m_id, chat_num = 0, list = 0, vend_num = 0;
 	unsigned short m_index;
 	char mapname[24];
 
@@ -3762,12 +3755,17 @@ ACMD_FUNC(mapinfo)
 	// count chats (for initial message)
 	chat_num = 0;
 	iter = mapit_getallusers();
-	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
-		if( (cd = (struct chat_data*)map_id2bl(pl_sd->chatID)) != NULL && pl_sd->mapindex == m_index && cd->usersd[0] == pl_sd )
-			chat_num++;
+	for (pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter)) {
+		if (pl_sd->mapindex == m_index) {
+			if (pl_sd->state.vending)
+				vend_num++;
+			else if ((cd = (struct chat_data*)map_id2bl(pl_sd->chatID)) != NULL && cd->usersd[0] == pl_sd)
+				chat_num++;
+		}
+	}
 	mapit_free(iter);
 
-	sprintf(atcmd_output, msg_txt(1040), mapname, map[m_id].users, map[m_id].npc_num, chat_num); // Map Name: %s | Players In Map: %d | NPCs In Map: %d | Chats In Map: %d
+	sprintf(atcmd_output, msg_txt(1040), mapname, map[m_id].users, map[m_id].npc_num, chat_num, vend_num); // Map: %s | Players: %d | NPCs: %d | Chats: %d | Vendings: %d
 	clif_displaymessage(fd, atcmd_output);
 	clif_displaymessage(fd, msg_txt(1041)); // ------ Map Flags ------
 	if (map[m_id].flag.town)
@@ -3855,11 +3853,6 @@ ACMD_FUNC(mapinfo)
 		strcat(atcmd_output, msg_txt(1077)); // Fireworks |
 	if (map[m_id].flag.leaves)
 		strcat(atcmd_output, msg_txt(1078)); // Leaves |
-	/**
-	 * No longer available, keeping here just in case it's back someday. [Ind]
-	 **/
-	//if (map[m_id].flag.rain)
-	//	strcat(atcmd_output, msg_txt(1079)); // Rain |
 	if (map[m_id].flag.nightenabled)
 		strcat(atcmd_output, msg_txt(1080)); // Displays Night |
 	clif_displaymessage(fd, atcmd_output);
@@ -3901,71 +3894,68 @@ ACMD_FUNC(mapinfo)
 	clif_displaymessage(fd, atcmd_output);
 
 	switch (list) {
-	case 0:
-		// Do nothing. It's list 0, no additional display.
-		break;
-	case 1:
-		clif_displaymessage(fd, msg_txt(1098)); // ----- Players in Map -----
-		iter = mapit_getallusers();
-		for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
-		{
-			if (pl_sd->mapindex == m_index) {
-				sprintf(atcmd_output, msg_txt(1099), // Player '%s' (session #%d) | Location: %d,%d
-				        pl_sd->status.name, pl_sd->fd, pl_sd->bl.x, pl_sd->bl.y);
+		case 0:
+			// Do nothing. It's list 0, no additional display.
+			break;
+		case 1:
+			clif_displaymessage(fd, msg_txt(1098)); // ----- Players in Map -----
+			iter = mapit_getallusers();
+			for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
+				if (pl_sd->mapindex == m_index) {
+					sprintf(atcmd_output, msg_txt(1099), // Player '%s' (session #%d) | Location: %d,%d
+							pl_sd->status.name, pl_sd->fd, pl_sd->bl.x, pl_sd->bl.y);
+					clif_displaymessage(fd, atcmd_output);
+				}
+			}
+			mapit_free(iter);
+			break;
+		case 2:
+			clif_displaymessage(fd, msg_txt(1100)); // ----- NPCs in Map -----
+			for (i = 0; i < map[m_id].npc_num;) {
+				nd = map[m_id].npc[i];
+				switch(nd->ud.dir) {
+					case 0:  strcpy(direction, msg_txt(1101)); break; // North
+					case 1:  strcpy(direction, msg_txt(1102)); break; // North West
+					case 2:  strcpy(direction, msg_txt(1103)); break; // West
+					case 3:  strcpy(direction, msg_txt(1104)); break; // South West
+					case 4:  strcpy(direction, msg_txt(1105)); break; // South
+					case 5:  strcpy(direction, msg_txt(1106)); break; // South East
+					case 6:  strcpy(direction, msg_txt(1107)); break; // East
+					case 7:  strcpy(direction, msg_txt(1108)); break; // North East
+					case 9:  strcpy(direction, msg_txt(1109)); break; // North
+					default: strcpy(direction, msg_txt(1110)); break; // Unknown
+				}
+				if(strcmp(nd->name,nd->exname) == 0)
+					sprintf(atcmd_output, msg_txt(1111), // NPC %d: %s | Direction: %s | Sprite: %d | Location: %d %d
+						++i, nd->name, direction, nd->class_, nd->bl.x, nd->bl.y);
+				else
+					sprintf(atcmd_output, msg_txt(1112), // NPC %d: %s::%s | Direction: %s | Sprite: %d | Location: %d %d
+						++i, nd->name, nd->exname, direction, nd->class_, nd->bl.x, nd->bl.y);
 				clif_displaymessage(fd, atcmd_output);
 			}
-		}
-		mapit_free(iter);
-		break;
-	case 2:
-		clif_displaymessage(fd, msg_txt(1100)); // ----- NPCs in Map -----
-		for (i = 0; i < map[m_id].npc_num;)
-		{
-			nd = map[m_id].npc[i];
-			switch(nd->ud.dir) {
-			case 0:  strcpy(direction, msg_txt(1101)); break; // North
-			case 1:  strcpy(direction, msg_txt(1102)); break; // North West
-			case 2:  strcpy(direction, msg_txt(1103)); break; // West
-			case 3:  strcpy(direction, msg_txt(1104)); break; // South West
-			case 4:  strcpy(direction, msg_txt(1105)); break; // South
-			case 5:  strcpy(direction, msg_txt(1106)); break; // South East
-			case 6:  strcpy(direction, msg_txt(1107)); break; // East
-			case 7:  strcpy(direction, msg_txt(1108)); break; // North East
-			case 9:  strcpy(direction, msg_txt(1109)); break; // North
-			default: strcpy(direction, msg_txt(1110)); break; // Unknown
+			break;
+		case 3:
+			clif_displaymessage(fd, msg_txt(1113)); // ----- Chats in Map -----
+			iter = mapit_getallusers();
+			for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
+				if ((cd = (struct chat_data*)map_id2bl(pl_sd->chatID)) != NULL &&
+					pl_sd->mapindex == m_index &&
+					cd->usersd[0] == pl_sd)
+				{
+					sprintf(atcmd_output, msg_txt(1114), // Chat: %s | Player: %s | Location: %d %d
+							cd->title, pl_sd->status.name, cd->bl.x, cd->bl.y);
+					clif_displaymessage(fd, atcmd_output);
+					sprintf(atcmd_output, msg_txt(1115), //    Users: %d/%d | Password: %s | Public: %s
+							cd->users, cd->limit, cd->pass, (cd->pub) ? msg_txt(1116) : msg_txt(1117)); // Yes / No
+					clif_displaymessage(fd, atcmd_output);
+				}
 			}
-			if(strcmp(nd->name,nd->exname) == 0)
-				sprintf(atcmd_output, msg_txt(1111), // NPC %d: %s | Direction: %s | Sprite: %d | Location: %d %d
-				    ++i, nd->name, direction, nd->class_, nd->bl.x, nd->bl.y);
-			else
-				sprintf(atcmd_output, msg_txt(1112), // NPC %d: %s::%s | Direction: %s | Sprite: %d | Location: %d %d
-			        ++i, nd->name, nd->exname, direction, nd->class_, nd->bl.x, nd->bl.y);
-			clif_displaymessage(fd, atcmd_output);
-		}
-		break;
-	case 3:
-		clif_displaymessage(fd, msg_txt(1113)); // ----- Chats in Map -----
-		iter = mapit_getallusers();
-		for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
-		{
-			if ((cd = (struct chat_data*)map_id2bl(pl_sd->chatID)) != NULL &&
-			    pl_sd->mapindex == m_index &&
-			    cd->usersd[0] == pl_sd)
-			{
-				sprintf(atcmd_output, msg_txt(1114), // Chat: %s | Player: %s | Location: %d %d
-				        cd->title, pl_sd->status.name, cd->bl.x, cd->bl.y);
-				clif_displaymessage(fd, atcmd_output);
-				sprintf(atcmd_output, msg_txt(1115), //    Users: %d/%d | Password: %s | Public: %s
-				        cd->users, cd->limit, cd->pass, (cd->pub) ? msg_txt(1116) : msg_txt(1117)); // Yes / No
-				clif_displaymessage(fd, atcmd_output);
-			}
-		}
-		mapit_free(iter);
-		break;
-	default: // normally impossible to arrive here
-		clif_displaymessage(fd, msg_txt(1118)); // Please enter at least one valid list number (usage: @mapinfo <0-3> <map>).
-		return -1;
-		break;
+			mapit_free(iter);
+			break;
+		default: // normally impossible to arrive here
+			clif_displaymessage(fd, msg_txt(1118)); // Please enter at least one valid list number (usage: @mapinfo <0-3> <map>).
+			return -1;
+			break;
 	}
 
 	return 0;
@@ -5599,8 +5589,9 @@ ACMD_FUNC(autotrade)
 		}
 	}
 
-	if( sd->channel_count ) {
-		for( i = 0; i < sd->channel_count; i++ ) {
+	if( sd->channel_count ) { //quit all chan
+		uint8 count = sd->channel_count;
+		for( i = 0; i < count; i++ ) {
 			if( sd->channels[i] != NULL )
 				clif_chsys_left(sd->channels[i],sd);
 		}
@@ -5621,7 +5612,7 @@ ACMD_FUNC(changegm)
 	struct map_session_data *pl_sd;
 	nullpo_retr(-1, sd);
 
-	if (sd->status.guild_id == 0 || (g = guild_search(sd->status.guild_id)) == NULL || strcmp(g->master,sd->status.name)) {
+	if (sd->status.guild_id == 0 || (g = sd->guild) == NULL || strcmp(g->master,sd->status.name)) {
 		clif_displaymessage(fd, msg_txt(1181)); // You need to be a Guild Master to use this command.
 		return -1;
 	}
@@ -8733,6 +8724,8 @@ ACMD_FUNC(join) {
 }
 
 static inline void atcmd_channel_help(int fd, const char *command, bool can_create) {
+	sprintf(atcmd_output, msg_txt(1404),command); // %s failed.
+	clif_displaymessage(fd, atcmd_output);
 	clif_displaymessage(fd, msg_txt(1414)); // ---- Available options:
 	if( can_create ) {
 		sprintf(atcmd_output, msg_txt(1415),command); // * %s create <#channel_name> <channel_password>
@@ -8759,8 +8752,6 @@ static inline void atcmd_channel_help(int fd, const char *command, bool can_crea
 	sprintf(atcmd_output, msg_txt(1429),command); // * %s unbind
 	clif_displaymessage(fd, atcmd_output);
 	clif_displaymessage(fd, msg_txt(1430)); // -- Unbinds your global chat from the attached channel, if any.
-	sprintf(atcmd_output, msg_txt(1404),command); // %s failed.
-	clif_displaymessage(fd, atcmd_output);
 }
 
 ACMD_FUNC(channel) {
@@ -8882,10 +8873,8 @@ ACMD_FUNC(channel) {
 			return -1;
 		}
 
-		for(k = 0; k < sd->channel_count; k++) {
-			if( strcmpi(sub1+1,sd->channels[k]->name) == 0 )
-				break;
-		}
+		ARR_FIND(0, sd->channel_count, k, strcmpi(sub1+1,sd->channels[k]->name) == 0);
+
 		if( k == sd->channel_count ) {
 			sprintf(atcmd_output, msg_txt(1425),sub1); // You're not part of the '%s' channel.
 			clif_displaymessage(fd, atcmd_output);
@@ -8901,10 +8890,8 @@ ACMD_FUNC(channel) {
 			return -1;
 		}
 
-		for(k = 0; k < sd->channel_count; k++) {
-			if( strcmpi(sub1+1,sd->channels[k]->name) == 0 )
-				break;
-		}
+		ARR_FIND(0, sd->channel_count, k, strcmpi(sub1+1,sd->channels[k]->name) == 0);
+
 		if( k == sd->channel_count ) {
 			sprintf(atcmd_output, msg_txt(1425),sub1); // You're not part of the '%s' channel.
 			clif_displaymessage(fd, atcmd_output);

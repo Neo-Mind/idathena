@@ -4788,7 +4788,7 @@ static signed short status_calc_flee(struct block_list *bl, struct status_change
 	if(!sc || !sc->count)
 		return cap_value(flee,1,SHRT_MAX);
 	if(sc->data[SC_TINDER_BREAKER] || sc->data[SC_TINDER_BREAKER2])
-		return 0; //0 flee
+		return 1; //1 = min flee
 
 	if(sc->data[SC_INCFLEE])
 		flee += sc->data[SC_INCFLEE]->val1;
@@ -9622,7 +9622,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				struct unit_data *ud = unit_bl2ud(bl);
 				if (ud) {
 					ud->state.running = 0;
-					if (ud->walktimer != -1)
+					if (ud->walktimer != INVALID_TIMER)
 						unit_stop_walking(bl,1);
 				}
 			}

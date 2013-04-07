@@ -634,10 +634,10 @@ typedef enum sc_type {
 	SC_GENSOU,
 	SC_AKAITSUKI, // 540
 	
-	//homon S
+	//Homon S
 	SC_STYLE_CHANGE,
-	SC_TINDER_BREAKER, //@TODO rewritte me plz
-	SC_TINDER_BREAKER2, //for rewritte and other icone
+	SC_TINDER_BREAKER,
+	SC_TINDER_BREAKER2,
 	SC_CBC,
 	SC_EQC,
 	SC_GOLDENE_FERSE,

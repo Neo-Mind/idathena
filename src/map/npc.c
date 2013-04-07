@@ -96,15 +96,13 @@ static DBMap *npc_path_db;
 //For holding the view data of npc classes. [Skotlex]
 static struct view_data npc_viewdb[MAX_NPC_CLASS];
 
-static struct script_event_s
-{	//Holds pointers to the commonly executed scripts for speedup. [Skotlex]
+static struct script_event_s { //Holds pointers to the commonly executed scripts for speedup. [Skotlex]
 	struct event_data *event[UCHAR_MAX];
 	const char *event_name[UCHAR_MAX];
 	uint8 event_count;
 } script_event[NPCE_MAX];
 
-struct view_data* npc_get_viewdata(int class_)
-{	//Returns the viewdata for normal npc classes.
+struct view_data* npc_get_viewdata(int class_) { //Returns the viewdata for normal npc classes.
 	if( class_ == INVISIBLE_CLASS )
 		return &npc_viewdb[0];
 	if (npcdb_checkid(class_) || class_ == WARP_CLASS)
@@ -130,8 +128,7 @@ bool npc_isnear(struct block_list * bl) {
 	return false;
 }
 
-int npc_ontouch_event(struct map_session_data *sd, struct npc_data *nd)
-{
+int npc_ontouch_event(struct map_session_data *sd, struct npc_data *nd) {
 	char name[EVENT_NAME_LENGTH];
 
 	if( nd->touching_id )
@@ -144,8 +141,7 @@ int npc_ontouch_event(struct map_session_data *sd, struct npc_data *nd)
 	return npc_event(sd,name,1);
 }
 
-int npc_ontouch2_event(struct map_session_data *sd, struct npc_data *nd)
-{
+int npc_ontouch2_event(struct map_session_data *sd, struct npc_data *nd) {
 	char name[EVENT_NAME_LENGTH];
 
 	if( sd->areanpc_id == nd->bl.id )
@@ -3231,23 +3227,19 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 	else if (!strcmpi(w3,"nopenalty")) {
 		map[m].flag.noexppenalty=state;
 		map[m].flag.nozenypenalty=state;
-	}
-	else if (!strcmpi(w3,"pvp")) {
+	} else if (!strcmpi(w3,"pvp")) {
 		map[m].flag.pvp = state;
-		if( state && (map[m].flag.gvg || map[m].flag.gvg_dungeon || map[m].flag.gvg_castle) )
-		{
+		if( state && (map[m].flag.gvg || map[m].flag.gvg_dungeon || map[m].flag.gvg_castle) ) {
 			map[m].flag.gvg = 0;
 			map[m].flag.gvg_dungeon = 0;
 			map[m].flag.gvg_castle = 0;
 			ShowWarning("npc_parse_mapflag: You can't set PvP and GvG flags for the same map! Removing GvG flags from %s (file '%s', line '%d').\n", map[m].name, filepath, strline(buffer,start-buffer));
 		}
-		if( state && map[m].flag.battleground )
-		{
+		if( state && map[m].flag.battleground ) {
 			map[m].flag.battleground = 0;
 			ShowWarning("npc_parse_mapflag: You can't set PvP and BattleGround flags for the same map! Removing BattleGround flag from %s (file '%s', line '%d').\n", map[m].name, filepath, strline(buffer,start-buffer));
 		}
-	}
-	else if (!strcmpi(w3,"pvp_noparty"))
+	} else if (!strcmpi(w3,"pvp_noparty"))
 		map[m].flag.pvp_noparty=state;
 	else if (!strcmpi(w3,"pvp_noguild"))
 		map[m].flag.pvp_noguild=state;
@@ -3267,7 +3259,7 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 			else if (!strcmpi(drop_arg2,"all"))
 				drop_type = 3;
 
-			if (drop_id != 0){
+			if (drop_id != 0) {
 				int i;
 				for (i = 0; i < MAX_DROP_PER_MAP; i++) {
 					if (map[m].drop_list[i].drop_id == 0){
@@ -3281,57 +3273,46 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 			}
 		} else if (!state) //Disable
 			map[m].flag.pvp_nightmaredrop = 0;
-	}
-	else if (!strcmpi(w3,"pvp_nocalcrank"))
+	} else if (!strcmpi(w3,"pvp_nocalcrank"))
 		map[m].flag.pvp_nocalcrank=state;
 	else if (!strcmpi(w3,"gvg")) {
 		map[m].flag.gvg = state;
-		if( state && map[m].flag.pvp )
-		{
+		if( state && map[m].flag.pvp ) {
 			map[m].flag.pvp = 0;
 			ShowWarning("npc_parse_mapflag: You can't set PvP and GvG flags for the same map! Removing PvP flag from %s (file '%s', line '%d').\n", map[m].name, filepath, strline(buffer,start-buffer));
 		}
-		if( state && map[m].flag.battleground )
-		{
+		if( state && map[m].flag.battleground ) {
 			map[m].flag.battleground = 0;
 			ShowWarning("npc_parse_mapflag: You can't set GvG and BattleGround flags for the same map! Removing BattleGround flag from %s (file '%s', line '%d').\n", map[m].name, filepath, strline(buffer,start-buffer));
 		}
-	}
-	else if (!strcmpi(w3,"gvg_noparty"))
+	} else if (!strcmpi(w3,"gvg_noparty"))
 		map[m].flag.gvg_noparty=state;
 	else if (!strcmpi(w3,"gvg_dungeon")) {
 		map[m].flag.gvg_dungeon=state;
 		if (state) map[m].flag.pvp=0;
-	}
-	else if (!strcmpi(w3,"gvg_castle")) {
+	} else if (!strcmpi(w3,"gvg_castle")) {
 		map[m].flag.gvg_castle=state;
 		if (state) map[m].flag.pvp=0;
-	}
-	else if (!strcmpi(w3,"battleground")) {
-		if( state )
-		{
+	} else if (!strcmpi(w3,"battleground")) {
+		if( state ) {
 			if( sscanf(w4, "%d", &state) == 1 )
 				map[m].flag.battleground = state;
 			else
 				map[m].flag.battleground = 1; // Default value
-		}
-		else
+		} else
 			map[m].flag.battleground = 0;
 
-		if( map[m].flag.battleground && map[m].flag.pvp )
-		{
+		if( map[m].flag.battleground && map[m].flag.pvp ) {
 			map[m].flag.pvp = 0;
 			ShowWarning("npc_parse_mapflag: You can't set PvP and BattleGround flags for the same map! Removing PvP flag from %s (file '%s', line '%d').\n", map[m].name, filepath, strline(buffer,start-buffer));
 		}
-		if( map[m].flag.battleground && (map[m].flag.gvg || map[m].flag.gvg_dungeon || map[m].flag.gvg_castle) )
-		{
+		if( map[m].flag.battleground && (map[m].flag.gvg || map[m].flag.gvg_dungeon || map[m].flag.gvg_castle) ) {
 			map[m].flag.gvg = 0;
 			map[m].flag.gvg_dungeon = 0;
 			map[m].flag.gvg_castle = 0;
 			ShowWarning("npc_parse_mapflag: You can't set GvG and BattleGround flags for the same map! Removing GvG flag from %s (file '%s', line '%d').\n", map[m].name, filepath, strline(buffer,start-buffer));
 		}
-	}
-	else if (!strcmpi(w3,"noexppenalty"))
+	} else if (!strcmpi(w3,"noexppenalty"))
 		map[m].flag.noexppenalty=state;
 	else if (!strcmpi(w3,"nozenypenalty"))
 		map[m].flag.nozenypenalty=state;
@@ -3359,11 +3340,6 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 		map[m].flag.sakura=state;
 	else if (!strcmpi(w3,"leaves"))
 		map[m].flag.leaves=state;
-	/**
-	 * No longer available, keeping here just in case it's back someday. [Ind]
-	 **/
-	//else if (!strcmpi(w3,"rain"))
-	//	map[m].flag.rain=state;
 	else if (!strcmpi(w3,"nightenabled"))
 		map[m].flag.nightenabled=state;
 	else if (!strcmpi(w3,"nogo"))
@@ -3371,16 +3347,14 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 	else if (!strcmpi(w3,"noexp")) {
 		map[m].flag.nobaseexp=state;
 		map[m].flag.nojobexp=state;
-	}
-	else if (!strcmpi(w3,"nobaseexp"))
+	} else if (!strcmpi(w3,"nobaseexp"))
 		map[m].flag.nobaseexp=state;
 	else if (!strcmpi(w3,"nojobexp"))
 		map[m].flag.nojobexp=state;
 	else if (!strcmpi(w3,"noloot")) {
 		map[m].flag.nomobloot=state;
 		map[m].flag.nomvploot=state;
-	}
-	else if (!strcmpi(w3,"nomobloot"))
+	} else if (!strcmpi(w3,"nomobloot"))
 		map[m].flag.nomobloot=state;
 	else if (!strcmpi(w3,"nomvploot"))
 		map[m].flag.nomvploot=state;
@@ -3392,8 +3366,7 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 				map[m].nocommand =100;
 		} else
 			map[m].nocommand=0;
-	}
-	else if (!strcmpi(w3,"restricted")) {
+	} else if (!strcmpi(w3,"restricted")) {
 		if (state) {
 			map[m].flag.restricted=1;
 			sscanf(w4, "%d", &state);
@@ -3402,18 +3375,15 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 			map[m].flag.restricted=0;
 			map[m].zone = 0;
 		}
-	}
-	else if (!strcmpi(w3,"jexp")) {
+	} else if (!strcmpi(w3,"jexp")) {
 		map[m].jexp = (state) ? atoi(w4) : 100;
 		if( map[m].jexp < 0 ) map[m].jexp = 100;
 		map[m].flag.nojobexp = (map[m].jexp==0)?1:0;
-	}
-	else if (!strcmpi(w3,"bexp")) {
+	} else if (!strcmpi(w3,"bexp")) {
 		map[m].bexp = (state) ? atoi(w4) : 100;
 		if( map[m].bexp < 0 ) map[m].bexp = 100;
 		 map[m].flag.nobaseexp = (map[m].bexp==0)?1:0;
-	}
-	else if (!strcmpi(w3,"loadevent"))
+	} else if (!strcmpi(w3,"loadevent"))
 		map[m].flag.loadevent=state;
 	else if (!strcmpi(w3,"nochat"))
 		map[m].flag.nochat=state;
@@ -3482,8 +3452,7 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 
 	// read whole file to buffer
 	fp = fopen(filepath, "rb");
-	if( fp == NULL )
-	{
+	if( fp == NULL ) {
 		ShowError("npc_parsesrcfile: File not found '%s'.\n", filepath);
 		return;
 	}
@@ -3493,8 +3462,7 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 	fseek(fp, 0, SEEK_SET);
 	len = fread(buffer, sizeof(char), len, fp);
 	buffer[len] = '\0';
-	if( ferror(fp) )
-	{
+	if( ferror(fp) ) {
 		ShowError("npc_parsesrcfile: Failed to read file '%s' - %s\n", filepath, strerror(errno));
 		aFree(buffer);
 		fclose(fp);
@@ -3503,8 +3471,7 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 	fclose(fp);
 
 	// parse buffer
-	for( p = skip_space(buffer); p && *p ; p = skip_space(p) )
-	{
+	for( p = skip_space(buffer); p && *p ; p = skip_space(p) ) {
 		int pos[9];
 		char w1[2048], w2[2048], w3[2048], w4[2048];
 		int i, count;
@@ -3512,8 +3479,7 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 
 		// w1<TAB>w2<TAB>w3<TAB>w4
 		count = sv_parse(p, len+buffer-p, 0, '\t', pos, ARRAYLENGTH(pos), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF));
-		if( count < 0 )
-		{
+		if( count < 0 ) {
 			ShowError("npc_parsesrcfile: Parse error in file '%s', line '%d'. Stopping...\n", filepath, strline(buffer,p-buffer));
 			break;
 		}
@@ -3538,33 +3504,26 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 		// fill w4 (to end of line)
 		if( pos[1]-pos[8] > ARRAYLENGTH(w4)-1 )
 			ShowWarning("npc_parsesrcfile: w4 truncated, too much data (%d) in file '%s', line '%d'.\n", pos[1]-pos[8], filepath, strline(buffer,p-buffer));
-		if( pos[8] != -1 )
-		{
+		if( pos[8] != -1 ) {
 			i = min(pos[1]-pos[8], ARRAYLENGTH(w4)-1);
 			memcpy(w4, p+pos[8], i*sizeof(char));
 			w4[i] = '\0';
-		}
-		else
+		} else
 			w4[0] = '\0';
 
-		if( count < 3 )
-		{// Unknown syntax
+		if( count < 3 ) { // Unknown syntax
 			ShowError("npc_parsesrcfile: Unknown syntax in file '%s', line '%d'. Stopping...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer,p-buffer), w1, w2, w3, w4);
 			break;
 		}
 
-		if( strcmp(w1,"-") !=0 && strcasecmp(w1,"function") != 0 )
-		{// w1 = <map name>,<x>,<y>,<facing>
+		if( strcmp(w1,"-") !=0 && strcasecmp(w1,"function") != 0 ) { // w1 = <map name>,<x>,<y>,<facing>
 			char mapname[MAP_NAME_LENGTH*2];
 			x = y = 0;
 			sscanf(w1,"%23[^,],%hd,%hd[^,]",mapname,&x,&y);
-			if( !mapindex_name2id(mapname) )
-			{// Incorrect map, we must skip the script info...
+			if( !mapindex_name2id(mapname) ) { // Incorrect map, we must skip the script info...
 				ShowError("npc_parsesrcfile: Unknown map '%s' in file '%s', line '%d'. Skipping line...\n", mapname, filepath, strline(buffer,p-buffer));
-				if( strcasecmp(w2,"script") == 0 && count > 3 )
-				{
-					if((p = npc_skip_script(p,buffer,filepath)) == NULL)
-					{
+				if( strcasecmp(w2,"script") == 0 && count > 3 ) {
+					if((p = npc_skip_script(p,buffer,filepath)) == NULL) {
 						break;
 					}
 				}
@@ -3572,12 +3531,9 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 				continue;
 			}
 			m = map_mapname2mapid(mapname);
-			if( m < 0 )
-			{// "mapname" is not assigned to this server, we must skip the script info...
-				if( strcasecmp(w2,"script") == 0 && count > 3 )
-				{
-					if((p = npc_skip_script(p,buffer,filepath)) == NULL)
-					{
+			if( m < 0 ) { // "mapname" is not assigned to this server, we must skip the script info...
+				if( strcasecmp(w2,"script") == 0 && count > 3 ) {
+					if((p = npc_skip_script(p,buffer,filepath)) == NULL) {
 						break;
 					}
 				}
@@ -3586,10 +3542,8 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 			}
 			if (x < 0 || x >= map[m].xs || y < 0 || y >= map[m].ys) {
 				ShowError("npc_parsesrcfile: Unknown coordinates ('%d', '%d') for map '%s' in file '%s', line '%d'. Skipping line...\n", x, y, mapname, filepath, strline(buffer,p-buffer));
-				if( strcasecmp(w2,"script") == 0 && count > 3 )
-				{
-					if((p = npc_skip_script(p,buffer,filepath)) == NULL)
-					{
+				if( strcasecmp(w2,"script") == 0 && count > 3 ) {
+					if((p = npc_skip_script(p,buffer,filepath)) == NULL) {
 						break;
 					}
 				}
@@ -3598,39 +3552,27 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 			}
 		}
 
-		if( strcasecmp(w2,"warp") == 0 && count > 3 )
-		{
+		if( strcasecmp(w2,"warp") == 0 && count > 3 ) {
 			p = npc_parse_warp(w1,w2,w3,w4, p, buffer, filepath);
-		}
-		else if( (!strcasecmp(w2,"shop") || !strcasecmp(w2,"cashshop")) && count > 3 )
-		{
+		} else if( (!strcasecmp(w2,"shop") || !strcasecmp(w2,"cashshop")) && count > 3 ) {
 			p = npc_parse_shop(w1,w2,w3,w4, p, buffer, filepath);
-		}
-		else if( strcasecmp(w2,"script") == 0 && count > 3 )
-		{
+		} else if( strcasecmp(w2,"script") == 0 && count > 3 ) {
 			if( strcasecmp(w1,"function") == 0 )
 				p = npc_parse_function(w1, w2, w3, w4, p, buffer, filepath);
 			else
 				p = npc_parse_script(w1,w2,w3,w4, p, buffer, filepath,runOnInit);
-		}
-		else if( (i=0, sscanf(w2,"duplicate%n",&i), (i > 0 && w2[i] == '(')) && count > 3 )
-		{
+		} else if( (i=0, sscanf(w2,"duplicate%n",&i), (i > 0 && w2[i] == '(')) && count > 3 ) {
 			p = npc_parse_duplicate(w1,w2,w3,w4, p, buffer, filepath);
-		}
-		else if( (strcmpi(w2,"monster") == 0 || strcmpi(w2,"boss_monster") == 0) && count > 3 )
-		{
+		} else if( (strcmpi(w2,"monster") == 0 || strcmpi(w2,"boss_monster") == 0) && count > 3 ) {
 			p = npc_parse_mob(w1, w2, w3, w4, p, buffer, filepath);
-		}
-		else if( strcmpi(w2,"mapflag") == 0 && count >= 3 )
-		{
+		} else if( strcmpi(w2,"mapflag") == 0 && count >= 3 ) {
 			p = npc_parse_mapflag(w1, w2, trim(w3), trim(w4), p, buffer, filepath);
-		}
-		else
-		{
+		} else {
 			ShowError("npc_parsesrcfile: Unable to parse, probably a missing or extra TAB in file '%s', line '%d'. Skipping line...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer,p-buffer), w1, w2, w3, w4);
 			p = strchr(p,'\n');// skip and continue
 		}
 	}
+
 	aFree(buffer);
 
 	return;

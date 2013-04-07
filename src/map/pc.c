@@ -113,7 +113,7 @@ static int pc_invincible_timer(int tid, unsigned int tick, int id, intptr_t data
 	if( (sd=(struct map_session_data *)map_id2sd(id)) == NULL || sd->bl.type!=BL_PC )
 		return 1;
 
-	if(sd->invincible_timer != tid){
+	if(sd->invincible_timer != tid) {
 		ShowError("invincible_timer %d != %d\n",sd->invincible_timer,tid);
 		return 0;
 	}
@@ -136,8 +136,7 @@ void pc_delinvincibletimer(struct map_session_data* sd)
 {
 	nullpo_retv(sd);
 
-	if( sd->invincible_timer != INVALID_TIMER )
-	{
+	if( sd->invincible_timer != INVALID_TIMER ) {
 		delete_timer(sd->invincible_timer,pc_invincible_timer);
 		sd->invincible_timer = INVALID_TIMER;
 		skill_unit_move(&sd->bl,gettick(),1);
@@ -152,16 +151,14 @@ static int pc_spiritball_timer(int tid, unsigned int tick, int id, intptr_t data
 	if( (sd=(struct map_session_data *)map_id2sd(id)) == NULL || sd->bl.type!=BL_PC )
 		return 1;
 
-	if( sd->spiritball <= 0 )
-	{
+	if( sd->spiritball <= 0 ) {
 		ShowError("pc_spiritball_timer: %d spiritball's available. (aid=%d cid=%d tid=%d)\n", sd->spiritball, sd->status.account_id, sd->status.char_id, tid);
 		sd->spiritball = 0;
 		return 0;
 	}
 
 	ARR_FIND(0, sd->spiritball, i, sd->spirit_timer[i] == tid);
-	if( i == sd->spiritball )
-	{
+	if( i == sd->spiritball ) {
 		ShowError("pc_spiritball_timer: timer not found (aid=%d cid=%d tid=%d)\n", sd->status.account_id, sd->status.char_id, tid);
 		return 0;
 	}
@@ -182,13 +179,12 @@ int pc_addspiritball(struct map_session_data *sd,int interval,int max)
 
 	nullpo_ret(sd);
 
-	if(max > MAX_SKILL_LEVEL)
+	if( max > MAX_SKILL_LEVEL )
 		max = MAX_SKILL_LEVEL;
-	if(sd->spiritball < 0)
+	if( sd->spiritball < 0 )
 		sd->spiritball = 0;
 
-	if( sd->spiritball && sd->spiritball >= max )
-	{
+	if( sd->spiritball && sd->spiritball >= max ) {
 		if(sd->spirit_timer[0] != INVALID_TIMER)
 			delete_timer(sd->spirit_timer[0],pc_spiritball_timer);
 		sd->spiritball--;
@@ -1234,18 +1230,18 @@ int pc_reg_received(struct map_session_data *sd)
 
 static int pc_calc_skillpoint(struct map_session_data* sd)
 {
-	int  i,skill,inf2,skill_point=0;
+	int i,skill_lv,inf2,skill_point=0;
 
 	nullpo_ret(sd);
 
 	for(i=1;i<MAX_SKILL;i++) {
-		if( (skill = pc_checkskill(sd,i)) > 0) {
+		if((skill_lv = pc_checkskill(sd,i)) > 0) {
 			inf2 = skill_get_inf2(i);
 			if((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
 				!(inf2&(INF2_WEDDING_SKILL|INF2_SPIRIT_SKILL)) //Do not count wedding/link skills. [Skotlex]
 				) {
 				if(sd->status.skill[i].flag == SKILL_FLAG_PERMANENT)
-					skill_point += skill;
+					skill_point += skill_lv;
 				else if(sd->status.skill[i].flag == SKILL_FLAG_REPLACED_LV_0)
 					skill_point += (sd->status.skill[i].flag - SKILL_FLAG_REPLACED_LV_0);
 			}
@@ -1353,6 +1349,7 @@ int pc_calc_skilltree(struct map_session_data *sd)
 		flag = 0;
 		for( i = 0; i < MAX_SKILL_TREE && (id = skill_tree[c][i].id) > 0; i++ ) {
 			int f;
+
 			if( sd->status.skill[id].id )
 				continue; //Skill already known.
 
@@ -4132,7 +4129,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 	//This flag enables you to use items while in an NPC. [Skotlex]
 	if( sd->npc_id ) {
 #ifdef RENEWAL
-		clif_msg(sd, 0x783); // TODO look for the client date that has this message.
+		clif_msg(sd, USAGE_FAIL); // TODO look for the client date that has this message.
 #endif
 		return 0;
 	}
@@ -6410,8 +6407,7 @@ void pc_damage(struct map_session_data *sd,struct block_list *src,unsigned int h
 	if( !src || src == &sd->bl )
 		return;
 
-	if( pc_issit(sd) )
-	{
+	if( pc_issit(sd) ) {
 		pc_setstand(sd);
 		skill_sit(sd,0);
 	}

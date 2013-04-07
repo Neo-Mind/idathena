@@ -893,7 +893,8 @@ int guild_member_withdraw(int guild_id, int account_id, int char_id, int flag, c
 			storage_guild_storageclose(sd);
 		guild_send_dot_remove(sd);
 		if( raChSys.ally ) {
-			for (i = 0; i < sd->channel_count; i++) {
+			uint8 ch_count = sd->channel_count;
+			for (i = 0; i < ch_count; i++) {
 				if( sd->channels[i] && sd->channels[i]->type == raChSys_ALLY )
 					clif_chsys_left(sd->channels[i],sd);
 			}
@@ -2182,6 +2183,6 @@ void do_final_guild(void) {
 	guild_expcache_db->destroy(guild_expcache_db,guild_expcache_db_final);
 	guild_infoevent_db->destroy(guild_infoevent_db,eventlist_db_final);
 	ers_destroy(expcache_ers);
-	
+
 	aFree(guild_flags);/* never empty; created on boot */
 }

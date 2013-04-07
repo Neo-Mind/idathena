@@ -837,7 +837,6 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 
 	switch(skill_id) {
 		case 0: { // Normal attacks (no skill used)
-			
 				if( attack_type&BF_SKILL )
 					break; // If a normal attack is a skill, it's splash damage. [Inkfish]
 				if(sd) {
@@ -1938,11 +1937,9 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	}
 
 	//Autobonus when attacked
-	if( dstsd && !status_isdead(bl) && dstsd->autobonus2[0].rate && !(skill_id && skill_get_nk(skill_id)&NK_NO_DAMAGE) )
-	{
+	if( dstsd && !status_isdead(bl) && dstsd->autobonus2[0].rate && !(skill_id && skill_get_nk(skill_id)&NK_NO_DAMAGE) ) {
 		int i;
-		for( i = 0; i < ARRAYLENGTH(dstsd->autobonus2); i++ )
-		{
+		for( i = 0; i < ARRAYLENGTH(dstsd->autobonus2); i++ ) {
 			if( rnd()%1000 >= dstsd->autobonus2[i].rate )
 				continue;
 			if( dstsd->autobonus2[i].active != INVALID_TIMER )
@@ -14911,23 +14908,16 @@ bool skill_check_cloaking(struct block_list *bl, struct status_change_entry *sce
 			wall = false;
 	}
 
-	if( sce )
-	{
-		if( !wall )
-		{
+	if( sce ) {
+		if( !wall ) {
 			if( sce->val1 < 3 ) //End cloaking.
 				status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
-			else
-			if( sce->val4&1 )
-			{	//Remove wall bonus
+			else if( sce->val4&1 ) { //Remove wall bonus
 				sce->val4&=~1;
 				status_calc_bl(bl,SCB_SPEED);
 			}
-		}
-		else
-		{
-			if( !(sce->val4&1) )
-			{	//Add wall speed bonus
+		} else {
+			if( !(sce->val4&1) ) { //Add wall speed bonus
 				sce->val4|=1;
 				status_calc_bl(bl,SCB_SPEED);
 			}
@@ -14942,18 +14932,15 @@ bool skill_check_camouflage(struct block_list *bl, struct status_change_entry *s
 	static int dy[] = {-1, 0, 1,  0, -1, -1, 1,  1};
 	bool wall = true;
 
-	if( bl->type == BL_PC )
-	{	//Check for walls.
+	if( bl->type == BL_PC ) { //Check for walls.
 		int i;
 		ARR_FIND( 0, 8, i, map_getcell(bl->m, bl->x+dx[i], bl->y+dy[i], CELL_CHKNOPASS) != 0 );
 		if( i == 8 )
 			wall = false;
 	}
 		
-	if( sce )
-	{
-		if( !wall )
-		{
+	if( sce ) {
+		if( !wall ) {
 			if( sce->val1 < 2 ) //End camouflage.
 				status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
 		}
@@ -15130,13 +15117,12 @@ struct skill_unit_group* skill_initunitgroup (struct block_list* src, int count,
 
 	// find a free spot to store the new unit group
 	ARR_FIND( 0, MAX_SKILLUNITGROUP, i, ud->skillunit[i] == NULL );
-	if(i == MAX_SKILLUNITGROUP)
-	{
+	if(i == MAX_SKILLUNITGROUP) {
 		// array is full, make room by discarding oldest group
 		int j=0;
 		unsigned maxdiff=0,x,tick=gettick();
 		for(i=0;i<MAX_SKILLUNITGROUP && ud->skillunit[i];i++)
-			if((x=DIFF_TICK(tick,ud->skillunit[i]->tick))>maxdiff){
+			if((x=DIFF_TICK(tick,ud->skillunit[i]->tick))>maxdiff) {
 				maxdiff=x;
 				j=i;
 			}
@@ -15286,8 +15272,7 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 			skill_delunit(&group->unit[i]);
 
 	// clear Talkie-box string
-	if( group->valstr != NULL )
-	{
+	if( group->valstr != NULL ) {
 		aFree(group->valstr);
 		group->valstr = NULL;
 	}
@@ -15301,13 +15286,11 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 	// locate this group, swap with the last entry and delete it
 	ARR_FIND( 0, MAX_SKILLUNITGROUP, i, ud->skillunit[i] == group );
 	ARR_FIND( i, MAX_SKILLUNITGROUP, j, ud->skillunit[j] == NULL ); j--;
-	if( i < MAX_SKILLUNITGROUP )
-	{
+	if( i < MAX_SKILLUNITGROUP ) {
 		ud->skillunit[i] = ud->skillunit[j];
 		ud->skillunit[j] = NULL;
 		ers_free(skill_unit_ers, group);
-	}
-	else
+	} else
 		ShowError("skill_delunitgroup: Group not found! (src_id: %d skill_id: %d)\n", group->src_id, group->skill_id);
 
 	return 1;
@@ -15590,12 +15573,11 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 		else
 			map_foreachinrange(skill_unit_timer_sub_onplace, bl, unit->range, group->bl_flag, bl,tick);
 
-		if(unit->range == -1) //Unit disabled, but it should not be deleted yet.
+		if( unit->range == -1 ) //Unit disabled, but it should not be deleted yet.
 			group->unit_id = UNT_USED_TRAPS;
-
-		if( group->unit_id == UNT_TATAMIGAESHI ) {
+		else if( group->unit_id == UNT_TATAMIGAESHI ) {
 			unit->range = -1; //Disable processed cell.
-			if (--group->val1 <= 0) { // number of live cells
+			if( --group->val1 <= 0 ) { // number of live cells
 	  			//All tiles were processed, disable skill.
 				group->target_flag=BCT_NOONE;
 				group->bl_flag= BL_NUL;
@@ -16893,10 +16875,8 @@ int skill_blockpc_start_(struct map_session_data *sd, uint16 skill_id, int tick,
 	if( battle_config.display_status_timers )
 		clif_skill_cooldown(sd, idx, tick);
 
-	if( !load )
-	{// not being loaded initially so ensure the skill delay is recorded
-		if( !(cd = idb_get(skillcd_db,sd->status.char_id)) )
-		{// create a new skill cooldown object for map storage
+	if( !load ) { // not being loaded initially so ensure the skill delay is recorded
+		if( !(cd = idb_get(skillcd_db,sd->status.char_id)) ) { // create a new skill cooldown object for map storage
 			CREATE( cd, struct skill_cd, 1 );
 			idb_put( skillcd_db, sd->status.char_id, cd );
 		}
@@ -17001,8 +16981,7 @@ int skill_split_str (char *str, char **val, int num)
 {
 	int i;
 
-	for( i = 0; i < num && str; i++ )
-	{
+	for( i = 0; i < num && str; i++ ) {
 		val[i] = str;
 		str = strchr(str,',');
 		if( str )
@@ -17018,7 +16997,7 @@ int skill_split_atoi (char *str, int *val)
 {
 	int i, j, diff, step = 1;
 
-	for (i=0; i<MAX_SKILL_LEVEL; i++) {
+	for(i=0; i<MAX_SKILL_LEVEL; i++) {
 		if (!str) break;
 		val[i] = atoi(str);
 		str = strchr(str,':');
@@ -17027,28 +17006,29 @@ int skill_split_atoi (char *str, int *val)
 	}
 	if(i==0) //No data found.
 		return 0;
-	if(i==1)
-	{	//Single value, have the whole range have the same value.
+	if(i==1) { //Single value, have the whole range have the same value.
 		for (; i < MAX_SKILL_LEVEL; i++)
 			val[i] = val[i-1];
 		return i;
 	}
 	//Check for linear change with increasing steps until we reach half of the data acquired.
-	for (step = 1; step <= i/2; step++)
-	{
+	for(step = 1; step <= i/2; step++) {
 		diff = val[i-1] - val[i-step-1];
 		for(j = i-1; j >= step; j--)
 			if ((val[j]-val[j-step]) != diff)
 				break;
 
-		if (j>=step) //No match, try next step.
+		if(j>=step) //No match, try next step.
 			continue;
 
-		for(; i < MAX_SKILL_LEVEL; i++)
-		{	//Apply linear increase
+		for(; i < MAX_SKILL_LEVEL; i++) { //Apply linear increase
 			val[i] = val[i-step]+diff;
-			if (val[i] < 1 && val[i-1] >=0) //Check if we have switched from + to -, cap the decrease to 0 in said cases.
-			{ val[i] = 1; diff = 0; step = 1; }
+			if(val[i] < 1 && val[i-1] >=0) {
+				//Check if we have switched from + to -, cap the decrease to 0 in said cases.
+				val[i] = 1;
+				diff = 0;
+				step = 1;
+			}
 		}
 		return i;
 	}
@@ -17408,7 +17388,7 @@ void skill_cooldown_load(struct map_session_data * sd)
  *------------------------------------------*/
 
 static bool skill_parse_row_skilldb(char* split[], int columns, int current)
-{// id,range,hit,inf,element,nk,splash,max,list_num,castcancel,cast_defence_rate,inf2,maxcount,skill_type,blow_count,name,description
+{ // id,range,hit,inf,element,nk,splash,max,list_num,castcancel,cast_defence_rate,inf2,maxcount,skill_type,blow_count,name,description
 	uint16 skill_id = atoi(split[0]);
 	uint16 idx;
 	if( (skill_id >= GD_SKILLRANGEMIN && skill_id <= GD_SKILLRANGEMAX)
@@ -17479,8 +17459,7 @@ static bool skill_parse_row_requiredb(char* split[], int columns, int current)
 		if( l == 99 ) { // Any weapon
 			skill_db[idx].weapon = 0;
 			break;
-		}
-		else
+		} else
 			skill_db[idx].weapon |= 1<<l;
 		p = strchr(p,':');
 		if(!p)
@@ -17626,10 +17605,10 @@ static bool skill_parse_row_unitdb(char* split[], int columns, int current)
 }
 
 static bool skill_parse_row_producedb(char* split[], int columns, int current)
-{// ProduceItemID,ItemLV,RequireSkill,Requireskill_lv,MaterialID1,MaterialAmount1,......
+{ // ProduceItemID,ItemLV,RequireSkill,Requireskill_lv,MaterialID1,MaterialAmount1,......
 	int x,y;
-
 	int i = atoi(split[0]);
+
 	if( !i )
 		return false;
 
@@ -17638,8 +17617,7 @@ static bool skill_parse_row_producedb(char* split[], int columns, int current)
 	skill_produce_db[current].req_skill = atoi(split[2]);
 	skill_produce_db[current].req_skill_lv = atoi(split[3]);
 
-	for( x = 4, y = 0; x+1 < columns && split[x] && split[x+1] && y < MAX_PRODUCE_RESOURCE; x += 2, y++ )
-	{
+	for( x = 4, y = 0; x+1 < columns && split[x] && split[x+1] && y < MAX_PRODUCE_RESOURCE; x += 2, y++ ) {
 		skill_produce_db[current].mat_id[y] = atoi(split[x]);
 		skill_produce_db[current].mat_amount[y] = atoi(split[x+1]);
 	}
@@ -17648,17 +17626,16 @@ static bool skill_parse_row_producedb(char* split[], int columns, int current)
 }
 
 static bool skill_parse_row_createarrowdb(char* split[], int columns, int current)
-{// SourceID,MakeID1,MakeAmount1,...,MakeID5,MakeAmount5
+{ // SourceID,MakeID1,MakeAmount1,...,MakeID5,MakeAmount5
 	int x,y;
-
 	int i = atoi(split[0]);
+
 	if( !i )
 		return false;
 
 	skill_arrow_db[current].nameid = i;
 
-	for( x = 1, y = 0; x+1 < columns && split[x] && split[x+1] && y < MAX_ARROW_RESOURCE; x += 2, y++ )
-	{
+	for( x = 1, y = 0; x+1 < columns && split[x] && split[x+1] && y < MAX_ARROW_RESOURCE; x += 2, y++ ) {
 		skill_arrow_db[current].cre_id[y] = atoi(split[x]);
 		skill_arrow_db[current].cre_amount[y] = atoi(split[x+1]);
 	}
@@ -17666,8 +17643,7 @@ static bool skill_parse_row_createarrowdb(char* split[], int columns, int curren
 	return true;
 }
 static bool skill_parse_row_spellbookdb(char* split[], int columns, int current)
-{// skill_id,PreservePoints
-
+{ // skill_id,PreservePoints
 	uint16 skill_id = atoi(split[0]);
 	int points = atoi(split[1]);
 	int nameid = atoi(split[2]);
@@ -17678,8 +17654,7 @@ static bool skill_parse_row_spellbookdb(char* split[], int columns, int current)
 		ShowError("spellbook_db: Passive skills cannot be memorized (%d/%s)\n", skill_id, skill_get_name(skill_id));
 	if( points < 1 )
 		ShowError("spellbook_db: PreservePoints have to be 1 or above! (%d/%s)\n", skill_id, skill_get_name(skill_id));
-	else
-	{
+	else {
 		skill_spellbook_db[current].skill_id = skill_id;
 		skill_spellbook_db[current].point = points;
 		skill_spellbook_db[current].nameid = nameid;
@@ -17690,7 +17665,7 @@ static bool skill_parse_row_spellbookdb(char* split[], int columns, int current)
 	return false;
 }
 static bool skill_parse_row_improvisedb(char* split[], int columns, int current)
-{// SkillID,Rate
+{ // SkillID,Rate
 	uint16 skill_id = atoi(split[0]);
 	short j = atoi(split[1]);
 
@@ -17715,16 +17690,14 @@ static bool skill_parse_row_improvisedb(char* split[], int columns, int current)
 	return true;
 }
 static bool skill_parse_row_magicmushroomdb(char* split[], int column, int current)
-{// SkillID
+{ // SkillID
 	uint16 skill_id = atoi(split[0]);
 
-	if( !skill_get_index(skill_id) || !skill_get_max(skill_id) )
-	{
+	if( !skill_get_index(skill_id) || !skill_get_max(skill_id) ) {
 		ShowError("magicmushroom_db: Invalid skill ID %d\n", skill_id);
 		return false;
 	}
-	if ( !skill_get_inf(skill_id) )
-	{
+	if ( !skill_get_inf(skill_id) ) {
 		ShowError("magicmushroom_db: Passive skills cannot be casted (%d/%s)\n", skill_id, skill_get_name(skill_id));
 		return false;
 	}
@@ -17747,15 +17720,13 @@ static bool skill_parse_row_reproducedb(char* split[], int column, int current) 
 
 
 static bool skill_parse_row_abradb(char* split[], int columns, int current)
-{// skill_id,DummyName,RequiredHocusPocusLevel,Rate
+{ // skill_id,DummyName,RequiredHocusPocusLevel,Rate
 	uint16 skill_id = atoi(split[0]);
-	if( !skill_get_index(skill_id) || !skill_get_max(skill_id) )
-	{
+	if( !skill_get_index(skill_id) || !skill_get_max(skill_id) ) {
 		ShowError("abra_db: Invalid skill ID %d\n", skill_id);
 		return false;
 	}
-	if ( !skill_get_inf(skill_id) )
-	{
+	if ( !skill_get_inf(skill_id) ) {
 		ShowError("abra_db: Passive skills cannot be casted (%d/%s)\n", skill_id, skill_get_name(skill_id));
 		return false;
 	}
@@ -17768,18 +17739,18 @@ static bool skill_parse_row_abradb(char* split[], int columns, int current)
 }
 
 static bool skill_parse_row_changematerialdb(char* split[], int columns, int current)
-{// ProductID,BaseRate,MakeAmount1,MakeAmountRate1...,MakeAmount5,MakeAmountRate5
+{ // ProductID,BaseRate,MakeAmount1,MakeAmountRate1...,MakeAmount5,MakeAmountRate5
 	uint16 skill_id = atoi(split[0]);
 	short j = atoi(split[1]);
 	int x,y;
 
-	for(x=0; x<MAX_SKILL_PRODUCE_DB; x++){
+	for(x=0; x<MAX_SKILL_PRODUCE_DB; x++) {
 		if( skill_produce_db[x].nameid == skill_id )
 			if( skill_produce_db[x].req_skill == GN_CHANGEMATERIAL )
 				break;
 	}
 
-	if( x >= MAX_SKILL_PRODUCE_DB ){
+	if( x >= MAX_SKILL_PRODUCE_DB ) {
 		ShowError("changematerial_db: Not supported item ID(%d) for Change Material. \n", skill_id);
 		return false;
 	}
@@ -17791,8 +17762,7 @@ static bool skill_parse_row_changematerialdb(char* split[], int columns, int cur
 	skill_changematerial_db[current].itemid = skill_id;
 	skill_changematerial_db[current].rate = j;
 
-	for( x = 2, y = 0; x+1 < columns && split[x] && split[x+1] && y < 5; x += 2, y++ )
-	{
+	for( x = 2, y = 0; x+1 < columns && split[x] && split[x+1] && y < 5; x += 2, y++ ) {
 		skill_changematerial_db[current].qty[y] = atoi(split[x]);
 		skill_changematerial_db[current].qty_rate[y] = atoi(split[x+1]);
 	}
