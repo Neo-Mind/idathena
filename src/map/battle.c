@@ -2200,7 +2200,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			if(sc->data[SC_BERSERK] || sc->data[SC_SATURDAYNIGHTFEVER] || sc->data[SC__BLOODYLUST])
 				skillratio += 100;
 #ifdef RENEWAL
-			if( sc && sc->data[SC_TRUESIGHT] )
+			if(sc && sc->data[SC_TRUESIGHT])
 				skillratio += 2*sc->data[SC_TRUESIGHT]->val1;
 #endif
 		}

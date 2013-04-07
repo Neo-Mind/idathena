@@ -4669,7 +4669,7 @@ void clif_deleteskill(struct map_session_data *sd, int id)
 
 /// Updates a skill in the skill tree (ZC_SKILLINFO_UPDATE).
 /// 010e <skill id>.W <level>.W <sp cost>.W <attack range>.W <upgradable>.B
-void clif_skillup(struct map_session_data *sd,uint16 skill_id)
+void clif_skillup(struct map_session_data *sd, uint16 skill_id, int lv, int range, int upgradable)
 {
 	int fd;
 	nullpo_retv(sd);
