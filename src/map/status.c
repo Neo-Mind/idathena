@@ -9320,12 +9320,12 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 	calc_flag = StatusChangeFlagTable[type];
 	switch(type) {
 		case SC_GRANITIC_ARMOR: {
-			int dammage = status->max_hp*sce->val3/100;
-			if(status->hp < dammage) //to not kill him
-				dammage = status->hp-1;
-			status_damage(NULL, bl, dammage,0,0,1);
-			break;
-		}
+				int damage = sce->val3;
+				if(status->hp < damage) //don't kill
+					damage = status->hp - 1;
+				status_damage(NULL,bl,damage,0,0,1);
+				break;
+			}
 		case SC_PYROCLASTIC:
 			if(bl->type == BL_PC)
 				skill_break_equip(bl,bl,EQP_WEAPON,10000,BCT_SELF);
@@ -9352,24 +9352,24 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			clif_changelook(bl,LOOK_WEAPON,vd->weapon);
 			clif_changelook(bl,LOOK_SHIELD,vd->shield);
 			if(sd) clif_skillinfoblock(sd);
-		break;
+			break;
 		case SC_RUN: {
-			struct unit_data *ud = unit_bl2ud(bl);
-			bool begin_spurt = true;
-			if (ud) {
-				if(!ud->state.running)
-					begin_spurt = false;
-				ud->state.running = 0;
-				if (ud->walktimer != INVALID_TIMER)
-					unit_stop_walking(bl,1);
+				struct unit_data *ud = unit_bl2ud(bl);
+				bool begin_spurt = true;
+				if (ud) {
+					if(!ud->state.running)
+						begin_spurt = false;
+					ud->state.running = 0;
+					if (ud->walktimer != INVALID_TIMER)
+						unit_stop_walking(bl,1);
+				}
+				if (begin_spurt && sce->val1 >= 7 &&
+					DIFF_TICK(gettick(), sce->val4) <= 1000 &&
+					(!sd || (sd->weapontype1 == 0 && sd->weapontype2 == 0))
+				)
+					sc_start(bl,bl,SC_SPURT,100,sce->val1,skill_get_time2(status_sc2skill(type), sce->val1));
 			}
-			if (begin_spurt && sce->val1 >= 7 &&
-				DIFF_TICK(gettick(), sce->val4) <= 1000 &&
-				(!sd || (sd->weapontype1 == 0 && sd->weapontype2 == 0))
-			)
-				sc_start(bl,bl,SC_SPURT,100,sce->val1,skill_get_time2(status_sc2skill(type), sce->val1));
-		}
-		break;
+			break;
 		case SC_AUTOBERSERK:
 			if (sc->data[SC_PROVOKE] && sc->data[SC_PROVOKE]->val2 == 1)
 				status_change_end(bl, SC_PROVOKE, INVALID_TIMER);
