@@ -924,16 +924,25 @@ ACMD_FUNC(jobchange)
 	const char* text;
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message || sscanf(message, "%d %d", &job, &upper) < 1)
-	{
-		int i, found = 0;
+	if (!message || !*message || sscanf(message, "%d %d", &job, &upper) < 1) {
+		int i;
+		bool found = false;
 
-		for (i = JOB_NOVICE; i < JOB_MAX; ++i) {
+		upper = 0;
+
+		// Normal Jobs
+		for( i = JOB_NOVICE; i < JOB_MAX_BASIC && !found; i++ ) {
 			if (strncmpi(message, job_name(i), 16) == 0) {
 				job = i;
-				upper = 0;
-				found = 1;
-				break;
+				found = true;
+			}
+		}
+
+		// High Jobs, Babys and Third
+		for( i = JOB_NOVICE_HIGH; i < JOB_MAX && !found; i++ ) {
+			if (strncmpi(message, job_name(i), 16) == 0) {
+				job = i;
+				found = true;
 			}
 		}
 
@@ -948,12 +957,12 @@ ACMD_FUNC(jobchange)
 	if (job == JOB_KNIGHT2 || job == JOB_CRUSADER2 || job == JOB_WEDDING || job == JOB_XMAS || job == JOB_SUMMER || job == JOB_HANBOK
 		|| job == JOB_LORD_KNIGHT2 || job == JOB_PALADIN2 || job == JOB_BABY_KNIGHT2 || job == JOB_BABY_CRUSADER2 || job == JOB_STAR_GLADIATOR2
 		|| (job >= JOB_RUNE_KNIGHT2 && job <= JOB_MECHANIC_T2) || (job >= JOB_BABY_RUNE2 && job <= JOB_BABY_MECHANIC2)
-	) // Deny direct transformation into dummy jobs
-		{clif_displaymessage(fd, msg_txt(923)); //"You can not change to this job by command."
-		return 0;}
+	) { // Deny direct transformation into dummy jobs
+		clif_displaymessage(fd, msg_txt(923)); //"You can not change to this job by command."
+		return 0;
+	}
 
-	if (pcdb_checkid(job))
-	{
+	if (pcdb_checkid(job)) {
 		if (pc_jobchange(sd, job, upper) == 0)
 			clif_displaymessage(fd, msg_txt(12)); // Your job has been changed.
 		else {
@@ -6816,15 +6825,11 @@ ACMD_FUNC(homlevel)
 	}
 
 	hd = sd->hd;
-
-	if ((m_class = hom_class2mapid(hd->homunculus.class_)) == -1) {
-		ShowError("homlevel: Invalid class %d. \n", hd->homunculus.class_);
-		return 0;
-	}
+	m_class = hom_class2mapid(hd->homunculus.class_);
 
 	if (((m_class&HOM_REG) && battle_config.hom_max_level <= hd->homunculus.level) ||
 		((m_class&HOM_S) && battle_config.hom_S_max_level <= hd->homunculus.level)) {
-		clif_displaymessage(fd, "Homunculus already reached its maximum level");
+		clif_displaymessage(fd, "Homunculus already reached its maximum level.");
 		return 0;
 	}
 
