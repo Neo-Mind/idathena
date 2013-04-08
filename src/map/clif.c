@@ -2250,6 +2250,7 @@ void clif_item_sub(unsigned char *buf, int n, struct item *i, struct item_data *
 	}
 
 }
+
 void clif_favorite_item(struct map_session_data* sd, unsigned short index);
 //Unified inventory function which sends all of the inventory (requires two packets, one for equipable items and one for stackable ones. [Skotlex]
 void clif_inventorylist(struct map_session_data *sd)
@@ -2276,13 +2277,11 @@ void clif_inventorylist(struct map_session_data *sd)
 	buf = (unsigned char*)aMalloc(MAX_INVENTORY * s + 4);
 	bufe = (unsigned char*)aMalloc(MAX_INVENTORY * se + 4);
 	
-	for( i = 0, n = 0, ne = 0; i < MAX_INVENTORY; i++ )
-	{
+	for( i = 0, n = 0, ne = 0; i < MAX_INVENTORY; i++ ) {
 		if( sd->status.inventory[i].nameid <=0 || sd->inventory_data[i] == NULL )
 			continue;
 
-		if( !itemdb_isstackable2(sd->inventory_data[i]) )
-		{	//Non-stackable (Equippable)
+		if( !itemdb_isstackable2(sd->inventory_data[i]) ) { //Non-stackable (Equippable)
 			WBUFW(bufe,ne*se+4)=i+2;
 			clif_item_sub(bufe, ne*se+6, &sd->status.inventory[i], sd->inventory_data[i], pc_equippoint(sd,i));
 			clif_addcards(WBUFP(bufe, ne*se+16), &sd->status.inventory[i]);
@@ -2297,9 +2296,7 @@ void clif_inventorylist(struct map_session_data *sd)
 				WBUFW(bufe,ne*se+30)=0;
 #endif
 			ne++;
-		}
-		else
-		{ //Stackable.
+		} else { //Stackable.
 			WBUFW(buf,n*s+4)=i+2;
 			clif_item_sub(buf, n*s+6, &sd->status.inventory[i], sd->inventory_data[i], -2);
 			if( sd->inventory_data[i]->equip == EQP_AMMO && sd->status.inventory[i].equip )
@@ -2313,8 +2310,7 @@ void clif_inventorylist(struct map_session_data *sd)
 			n++;
 		}
 	}
-	if( n )
-	{
+	if( n ) {
 #if PACKETVER < 5
 		WBUFW(buf,0)=0xa3;
 #elif PACKETVER < 20080102
@@ -2328,8 +2324,7 @@ void clif_inventorylist(struct map_session_data *sd)
 	if( arrow >= 0 )
 		clif_arrowequip(sd,arrow);
 
-	if( ne )
-	{
+	if( ne ) {
 #if PACKETVER < 20071002
 		WBUFW(bufe,0)=0xa4;
 #else
@@ -9018,8 +9013,7 @@ static bool clif_process_message(struct map_session_data* sd, int format, char**
 
 	packetlen = RFIFOW(fd,2);
 	// basic structure checks
-	if( packetlen < 4 + 1 )
-	{	// 4-byte header and at least an empty string is expected
+	if( packetlen < 4 + 1 ) { // 4-byte header and at least an empty string is expected
 		ShowWarning("clif_process_message: Received malformed packet from player '%s' (no message data)!\n", sd->status.name);
 		return false;
 	}
@@ -9028,8 +9022,7 @@ static bool clif_process_message(struct map_session_data* sd, int format, char**
 	textlen = packetlen - 4;
 
 	// process <name> part of the packet
-	if( format == 0 )
-	{// name and message are separated by ' : '
+	if( format == 0 ) { // name and message are separated by ' : '
 		// validate name
 		name = text;
 		namelen = strnlen(sd->status.name, NAME_LENGTH-1); // name length (w/o zero byte)
@@ -9045,11 +9038,8 @@ static bool clif_process_message(struct map_session_data* sd, int format, char**
 
 		message = name + namelen + 3;
 		messagelen = textlen - namelen - 3; // this should be the message length (w/ zero byte included)
-	}
-	else
-	{// name has fixed width
-		if( textlen < NAME_LENGTH + 1 )
-		{
+	} else { // name has fixed width
+		if( textlen < NAME_LENGTH + 1 ) {
 			ShowWarning("clif_process_message: Received malformed packet from player '%s' (packet length is incorrect)!\n", sd->status.name);
 			return false;
 		}
@@ -9058,8 +9048,7 @@ static bool clif_process_message(struct map_session_data* sd, int format, char**
 		name = text;
 		namelen = strnlen(name, NAME_LENGTH-1); // name length (w/o zero byte)
 
-		if( name[namelen] != '\0' )
-		{	// only restriction is that the name must be zero-terminated
+		if( name[namelen] != '\0' ) { // only restriction is that the name must be zero-terminated
 			ShowWarning("clif_process_message: Player '%s' sent an unterminated name!\n", sd->status.name);
 			return false;
 		}
@@ -9068,19 +9057,17 @@ static bool clif_process_message(struct map_session_data* sd, int format, char**
 		messagelen = textlen - NAME_LENGTH; // this should be the message length (w/ zero byte included)
 	}
 
-	if( messagelen != strnlen(message, messagelen)+1 )
-	{	// the declared length must match real length
+	if( messagelen != strnlen(message, messagelen)+1 ) { // the declared length must match real length
 		ShowWarning("clif_process_message: Received malformed packet from player '%s' (length is incorrect)!\n", sd->status.name);
 		return false;
 	}
 	// verify <message> part of the packet
-	if( message[messagelen-1] != '\0' )
-	{	// message must be zero-terminated
+	if( message[messagelen-1] != '\0' ) { // message must be zero-terminated
 		ShowWarning("clif_process_message: Player '%s' sent an unterminated message string!\n", sd->status.name);
 		return false;
 	}
-	if( messagelen > CHAT_SIZE_MAX-1 )
-	{	// messages mustn't be too long
+	if( messagelen > CHAT_SIZE_MAX-1 ) {
+		// messages mustn't be too long
 		// Normally you can only enter CHATBOX_SIZE-1 letters into the chat box, but Frost Joke / Dazzler's text can be longer.
 		// Also, the physical size of strings that use multibyte encoding can go multiple times over the chatbox capacity.
 		// Neither the official client nor server place any restriction on the length of the data in the packet,
@@ -16052,28 +16039,24 @@ void clif_parse_debug(int fd,struct map_session_data *sd)
 	// clif_parse ensures, that there is at least 2 bytes of data
 	cmd = RFIFOW(fd,0);
 
-	if( sd )
-	{
+	if( sd ) {
 		packet_len = packet_db[sd->packet_ver][cmd].len;
 
-		if( packet_len == 0 )
-		{// unknown
+		if( packet_len == 0 ) { // unknown
 			packet_len = RFIFOREST(fd);
-		}
-		else if( packet_len == -1 )
-		{// variable length
+		} else if( packet_len == -1 ) { // variable length
 			packet_len = RFIFOW(fd,2);  // clif_parse ensures, that this amount of data is already received
 		}
 		ShowDebug("Packet debug of 0x%04X (length %d), %s session #%d, %d/%d (AID/CID)\n", cmd, packet_len, sd->state.active ? "authed" : "unauthed", fd, sd->status.account_id, sd->status.char_id);
-	}
-	else
-	{
+	} else {
 		packet_len = RFIFOREST(fd);
 		ShowDebug("Packet debug of 0x%04X (length %d), session #%d\n", cmd, packet_len, fd);
 	}
 
 	ShowDump(RFIFOP(fd,0), packet_len);
 }
+
+
 /*==========================================
  * Server tells client to display a window similar to Magnifier (item) one
  * Server populates the window with avilable elemental converter options according to player's inventory
@@ -16107,9 +16090,8 @@ int clif_elementalconverter_list(struct map_session_data *sd) {
 
 	return 0;
 }
-/**
- * Rune Knight
- **/
+
+
 void clif_millenniumshield(struct map_session_data *sd, short shields ) {
 #if PACKETVER >= 20081217
 	unsigned char buf[10];
@@ -16121,9 +16103,8 @@ void clif_millenniumshield(struct map_session_data *sd, short shields ) {
 	clif_send(buf,packet_len(0x440),&sd->bl,AREA);
 #endif
 }
-/**
- * Warlock
- **/
+
+
 /*==========================================
  * Spellbook list [LimitLine/3CeAM]
  *------------------------------------------*/
@@ -16138,32 +16119,27 @@ int clif_spellbook_list(struct map_session_data *sd)
 	WFIFOHEAD(fd, 8 * 8 + 8);
 	WFIFOW(fd,0) = 0x1ad;
 
-	for( i = 0, c = 0; i < MAX_INVENTORY; i ++ )
-	{
-		if( itemdb_is_spellbook(sd->status.inventory[i].nameid) )
-		{
+	for( i = 0, c = 0; i < MAX_INVENTORY; i ++ ) {
+		if( itemdb_is_spellbook(sd->status.inventory[i].nameid) ) {
 			WFIFOW(fd, c * 2 + 4) = sd->status.inventory[i].nameid;
 			c ++;
 		}
 	}
 	
-	if( c > 0 )
-	{
+	if( c > 0 ) {
 		WFIFOW(fd,2) = c * 2 + 4;
 		WFIFOSET(fd, WFIFOW(fd, 2));
 		sd->menuskill_id = WL_READING_SB;
 		sd->menuskill_val = c;
-	}
-	else {
+	} else {
 		status_change_end(&sd->bl,SC_STOP,INVALID_TIMER);
 		clif_skill_fail(sd, WL_READING_SB, USESKILL_FAIL_SPELLBOOK, 0);
 	}
 
 	return 1;
 }
-/**
- * Mechanic
- **/
+
+
 /*==========================================
  * Magic Decoy Material List
  *------------------------------------------*/
@@ -16197,9 +16173,8 @@ int clif_magicdecoy_list(struct map_session_data *sd, uint16 skill_lv, short x, 
 
 	return 1;
 }
-/**
- * Guilotine Cross
- **/
+
+
 /*==========================================
  * Guillotine Cross Poisons List
  *------------------------------------------*/
@@ -16231,6 +16206,8 @@ int clif_poison_list(struct map_session_data *sd, uint16 skill_lv) {
 
 	return 1;
 }
+
+
 int clif_autoshadowspell_list(struct map_session_data *sd) {
 	int fd, i, c;
 	nullpo_ret(sd);
@@ -16264,6 +16241,8 @@ int clif_autoshadowspell_list(struct map_session_data *sd) {
 
 	return 1;
 }
+
+
 /*===========================================
  * Skill list for Four Elemental Analysis
  * and Change Material skills.
@@ -16272,27 +16251,27 @@ int clif_skill_itemlistwindow( struct map_session_data *sd, uint16 skill_id, uin
 {
 #if PACKETVER >= 20090922
 	int fd;
-	
 	nullpo_ret(sd);
-	
+
 	sd->menuskill_id = skill_id; // To prevent hacking.
 	sd->menuskill_val = skill_lv;
 	
 	if( skill_id == GN_CHANGEMATERIAL )
 		skill_lv = 0; // Changematerial
-	
+
 	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x7e3));
 	WFIFOW(fd,0) = 0x7e3;
 	WFIFOL(fd,2) = skill_lv;
 	WFIFOL(fd,4) = 0;
 	WFIFOSET(fd,packet_len(0x7e3));
-	
+
 #endif
-	
+
 	return 1;
-	
 }
+
+
 /**
  * Sends a new status without a tick (currently used by the new mounts)
  **/
@@ -16301,10 +16280,10 @@ int clif_status_load_notick(struct block_list *bl,int type,int flag,int val1, in
 
 	nullpo_ret(bl);
 
-	WBUFW(buf,0)=0x043f;
-	WBUFW(buf,2)=type;
-	WBUFL(buf,4)=bl->id;
-	WBUFB(buf,8)=flag;
+	WBUFW(buf,0)  = 0x043f;
+	WBUFW(buf,2)  = type;
+	WBUFL(buf,4)  = bl->id;
+	WBUFB(buf,8)  = flag;
 	WBUFL(buf,9)  = 0;
 	WBUFL(buf,13) = val1;
 	WBUFL(buf,17) = val2;
@@ -16313,20 +16292,22 @@ int clif_status_load_notick(struct block_list *bl,int type,int flag,int val1, in
 	clif_send(buf,packet_len(0x043f),bl,AREA);
 	return 0;
 }
+
 //Notifies FD of ID's type
 int clif_status_load_single(int fd, int id,int type,int flag,int val1, int val2, int val3) {
-	WFIFOHEAD(fd, packet_len(0x043f));
-	WFIFOW(fd,0)=0x043f;
-	WFIFOW(fd,2)=type;
-	WFIFOL(fd,4)=id;
-	WFIFOB(fd,8)=flag;
+	WFIFOHEAD(fd,packet_len(0x043f));
+	WFIFOW(fd,0)  = 0x043f;
+	WFIFOW(fd,2)  = type;
+	WFIFOL(fd,4)  = id;
+	WFIFOB(fd,8)  = flag;
 	WFIFOL(fd,9)  = 0;
 	WFIFOL(fd,13) = val1;
 	WFIFOL(fd,17) = val2;
 	WFIFOL(fd,21) = val3;
-	WFIFOSET(fd, packet_len(0x043f));
+	WFIFOSET(fd,packet_len(0x043f));
 	return 0;
 }
+
 // msgstringtable.txt
 // 0x291 <line>.W
 void clif_msgtable(int fd, int line) {
@@ -16347,6 +16328,8 @@ void clif_msgtable_num(int fd, int line, int num) {
 	WFIFOSET(fd, packet_len(0x7e2));
 #endif
 }
+
+
 /*==========================================
  * used by SC_AUTOSHADOWSPELL
  * RFIFOL(fd,2) - flag (currently not used)
@@ -16366,6 +16349,8 @@ void clif_parse_SkillSelectMenu(int fd, struct map_session_data *sd) {
 	
 	clif_menuskill_clear(sd);
 }
+
+
 /*==========================================
  * Kagerou/Oboro amulet spirit
  *------------------------------------------*/
@@ -16381,6 +16366,8 @@ void clif_talisman(struct map_session_data *sd,short type)
 	WBUFW(buf,8)=sd->talisman[type];
 	clif_send(buf,packet_len(0x08cf),&sd->bl,AREA);
 }
+
+
 /// Move Item from or to Personal Tab (CZ_WHATSOEVER) [FE]
 /// 0907 <index>.W
 ///
@@ -16396,12 +16383,12 @@ void clif_parse_MoveItem(int fd, struct map_session_data *sd) {
 	if(pc_isdead(sd)) {
 		return;
 	}
-	
+
 	index = RFIFOW(fd,2)-2;
-	
+
 	if (index < 0 || index >= MAX_INVENTORY)
 		return;
-	
+
 	if ( sd->status.inventory[index].favorite && RFIFOB(fd, 4) == 1 )
 		sd->status.inventory[index].favorite = 0;
 	else if( RFIFOB(fd, 4) == 0 )
@@ -16418,7 +16405,7 @@ void clif_parse_MoveItem(int fd, struct map_session_data *sd) {
 /// 0900 <index>.W <favorite>.B
 void clif_favorite_item(struct map_session_data* sd, unsigned short index) {
 	int fd = sd->fd;
-	
+
 	WFIFOHEAD(fd,packet_len(0x908));
 	WFIFOW(fd,0) = 0x908;
 	WFIFOW(fd,2) = index+2;
@@ -16426,28 +16413,45 @@ void clif_favorite_item(struct map_session_data* sd, unsigned short index) {
 	WFIFOSET(fd,packet_len(0x908));
 }
 
-void clif_snap( struct block_list *bl, short x, short y ) {
+void clif_snap(struct block_list *bl, short x, short y) {
 	unsigned char buf[10];
-	
+
 	WBUFW(buf,0) = 0x8d2;
 	WBUFL(buf,2) = bl->id;
 	WBUFW(buf,6) = x;
 	WBUFW(buf,8) = y;
-	
+
 	clif_send(buf,packet_len(0x8d2),bl,AREA);
 }
 
-void clif_monster_hp_bar( struct mob_data* md, int fd ) {
+void clif_monster_hp_bar(struct mob_data* md, int fd) {
 #if PACKETVER >= 20120404
 	WFIFOHEAD(fd,packet_len(0x977));
-	
+
 	WFIFOW(fd,0)  = 0x977;
 	WFIFOL(fd,2)  = md->bl.id;
 	WFIFOL(fd,6)  = md->status.hp;
 	WFIFOL(fd,10) = md->status.max_hp;
-	
+
 	WFIFOSET(fd,packet_len(0x977));
 #endif
+}
+
+/* [Ind] placeholder for unsupported incoming packets (avoids server disconnecting client) */
+void __attribute__ ((unused)) clif_parse_dull(int fd, struct map_session_data *sd) {
+	return;
+}
+
+void clif_parse_CashShopOpen(int fd, struct map_session_data *sd) {
+	WFIFOHEAD(fd,10);
+	WFIFOW(fd,0) = 0x845;
+	WFIFOL(fd,2) = 0;
+	WFIFOL(fd,6) = 0;
+	WFIFOSET(fd,10);
+}
+
+void clif_parse_CashShopClose(int fd, struct map_session_data *sd) {
+
 }
 
 /*==========================================
@@ -16462,141 +16466,140 @@ static int clif_parse(int fd)
 	//TODO apply delays or disconnect based on packet throughput [FlavioJS]
 	// Note: "click masters" can do 80+ clicks in 10 seconds
 
-	for( pnum = 0; pnum < 3; ++pnum )// Limit max packets per cycle to 3 (delay packet spammers) [FlavioJS]  -- This actually aids packet spammers, but stuff like /str+ gets slow without it [Ai4rei]
-	{ // begin main client packet processing loop
+	// Limit max packets per cycle to 3 (delay packet spammers) [FlavioJS]  -- This actually aids packet spammers, but stuff like /str+ gets slow without it [Ai4rei]
+	for( pnum = 0; pnum < 3; ++pnum ) { // begin main client packet processing loop
 
-	sd = (TBL_PC *)session[fd]->session_data;
-	if (session[fd]->flag.eof) {
+		sd = (TBL_PC *)session[fd]->session_data;
+		if (session[fd]->flag.eof) {
+			if (sd) {
+				if (sd->state.autotrade) {
+					//Disassociate character from the socket connection.
+					session[fd]->session_data = NULL;
+					sd->fd = 0;
+					ShowInfo("Character '"CL_WHITE"%s"CL_RESET"' logged off (using @autotrade).\n", sd->status.name);
+				} else if (sd->state.active) {
+					// Player logout display [Valaris]
+					ShowInfo("Character '"CL_WHITE"%s"CL_RESET"' logged off.\n", sd->status.name);
+					clif_quitsave(fd, sd);
+				} else {
+					//Unusual logout (during log on/off/map-changer procedure)
+					ShowInfo("Player AID:%d/CID:%d logged off.\n", sd->status.account_id, sd->status.char_id);
+					map_quit(sd);
+				}
+			} else {
+				ShowInfo("Closed connection from '"CL_WHITE"%s"CL_RESET"'.\n", ip2str(session[fd]->client_addr, NULL));
+			}
+			do_close(fd);
+			return 0;
+		}
+
+		if (RFIFOREST(fd) < 2)
+			return 0;
+
+		cmd = RFIFOW(fd,0);
+
+		// identify client's packet version
 		if (sd) {
-			if (sd->state.autotrade) {
-				//Disassociate character from the socket connection.
-				session[fd]->session_data = NULL;
-				sd->fd = 0;
-				ShowInfo("Character '"CL_WHITE"%s"CL_RESET"' logged off (using @autotrade).\n", sd->status.name);
-			} else
-			if (sd->state.active) {
-				// Player logout display [Valaris]
-				ShowInfo("Character '"CL_WHITE"%s"CL_RESET"' logged off.\n", sd->status.name);
-				clif_quitsave(fd, sd);
-			} else {
-				//Unusual logout (during log on/off/map-changer procedure)
-				ShowInfo("Player AID:%d/CID:%d logged off.\n", sd->status.account_id, sd->status.char_id);
-				map_quit(sd);
-			}
+			packet_ver = sd->packet_ver;
 		} else {
-			ShowInfo("Closed connection from '"CL_WHITE"%s"CL_RESET"'.\n", ip2str(session[fd]->client_addr, NULL));
-		}
-		do_close(fd);
-		return 0;
-	}
-
-	if (RFIFOREST(fd) < 2)
-		return 0;
-
-	cmd = RFIFOW(fd,0);
-
-	// identify client's packet version
-	if (sd) {
-		packet_ver = sd->packet_ver;
-	} else {
-		// check authentification packet to know packet version
-		packet_ver = clif_guess_PacketVer(fd, 0, &err);
-		if( err ) {// failed to identify packet version
-			ShowInfo("clif_parse: Disconnecting session #%d with unknown packet version%s (p:0x%04x|l:%d).\n", fd, (
-				err == 1 ? "" :
-				err == 2 ? ", possibly for having an invalid account_id" :
-				err == 3 ? ", possibly for having an invalid char_id." :
-				/* Uncomment when checks are added in clif_guess_PacketVer. [FlavioJS]
-				err == 4 ? ", possibly for having an invalid login_id1." :
-				err == 5 ? ", possibly for having an invalid client_tick." :
-				*/
-				err == 6 ? ", possibly for having an invalid sex." :
-				". ERROR invalid error code"), cmd, RFIFOREST(fd));
-			WFIFOHEAD(fd,packet_len(0x6a));
-			WFIFOW(fd,0) = 0x6a;
-			WFIFOB(fd,2) = 3; // Rejected from Server
-			WFIFOSET(fd,packet_len(0x6a));
-			
+			// check authentification packet to know packet version
+			packet_ver = clif_guess_PacketVer(fd, 0, &err);
+			if( err ) {// failed to identify packet version
+				ShowInfo("clif_parse: Disconnecting session #%d with unknown packet version%s (p:0x%04x|l:%d).\n", fd, (
+					err == 1 ? "" :
+					err == 2 ? ", possibly for having an invalid account_id" :
+					err == 3 ? ", possibly for having an invalid char_id." :
+					/* Uncomment when checks are added in clif_guess_PacketVer. [FlavioJS]
+					err == 4 ? ", possibly for having an invalid login_id1." :
+					err == 5 ? ", possibly for having an invalid client_tick." :
+					*/
+					err == 6 ? ", possibly for having an invalid sex." :
+					". ERROR invalid error code"), cmd, RFIFOREST(fd));
+				WFIFOHEAD(fd,packet_len(0x6a));
+				WFIFOW(fd,0) = 0x6a;
+				WFIFOB(fd,2) = 3; // Rejected from Server
+				WFIFOSET(fd,packet_len(0x6a));
+				
 #ifdef DUMP_INVALID_PACKET
-			ShowDump(RFIFOP(fd,0), RFIFOREST(fd));
+				ShowDump(RFIFOP(fd,0), RFIFOREST(fd));
 #endif
-			
-			RFIFOSKIP(fd, RFIFOREST(fd));
-			set_eof(fd);
-			return 0;
+
+				RFIFOSKIP(fd, RFIFOREST(fd));
+				set_eof(fd);
+				return 0;
+			}
 		}
-	}
 
-	// filter out invalid / unsupported packets
-	if (cmd > MAX_PACKET_DB || packet_db[packet_ver][cmd].len == 0) {
-		ShowWarning("clif_parse: Received unsupported packet (packet 0x%04x, %d bytes received), disconnecting session #%d.\n", cmd, RFIFOREST(fd), fd);
-#ifdef DUMP_INVALID_PACKET
-		ShowDump(RFIFOP(fd,0), RFIFOREST(fd));
-#endif
-		set_eof(fd);
-		return 0;
-	}
-
-	// determine real packet length
-	packet_len = packet_db[packet_ver][cmd].len;
-	if (packet_len == -1) { // variable-length packet
-		if (RFIFOREST(fd) < 4)
-			return 0;
-
-		packet_len = RFIFOW(fd,2);
-		if (packet_len < 4 || packet_len > 32768) {
-			ShowWarning("clif_parse: Received packet 0x%04x specifies invalid packet_len (%d), disconnecting session #%d.\n", cmd, packet_len, fd);
+		// filter out invalid / unsupported packets
+		if (cmd > MAX_PACKET_DB || packet_db[packet_ver][cmd].len == 0) {
+			ShowWarning("clif_parse: Received unsupported packet (packet 0x%04x, %d bytes received), disconnecting session #%d.\n", cmd, RFIFOREST(fd), fd);
 #ifdef DUMP_INVALID_PACKET
 			ShowDump(RFIFOP(fd,0), RFIFOREST(fd));
 #endif
 			set_eof(fd);
 			return 0;
 		}
-	}
-	if ((int)RFIFOREST(fd) < packet_len)
-		return 0; // not enough data received to form the packet
 
-	if( packet_db[packet_ver][cmd].func == clif_parse_debug )
-		packet_db[packet_ver][cmd].func(fd, sd);
-	else if( packet_db[packet_ver][cmd].func != NULL ) {
-		if( !sd && packet_db[packet_ver][cmd].func != clif_parse_WantToConnection )
-			; //Only valid packet when there is no session
-		else if( sd && sd->bl.prev == NULL && packet_db[packet_ver][cmd].func != clif_parse_LoadEndAck )
-			; //Only valid packet when player is not on a map
-		else
-			packet_db[packet_ver][cmd].func(fd, sd); 
-	}
+		// determine real packet length
+		packet_len = packet_db[packet_ver][cmd].len;
+		if (packet_len == -1) { // variable-length packet
+			if (RFIFOREST(fd) < 4)
+				return 0;
+
+			packet_len = RFIFOW(fd,2);
+			if (packet_len < 4 || packet_len > 32768) {
+				ShowWarning("clif_parse: Received packet 0x%04x specifies invalid packet_len (%d), disconnecting session #%d.\n", cmd, packet_len, fd);
+#ifdef DUMP_INVALID_PACKET
+				ShowDump(RFIFOP(fd,0), RFIFOREST(fd));
+#endif
+				set_eof(fd);
+				return 0;
+			}
+		}
+		if ((int)RFIFOREST(fd) < packet_len)
+			return 0; // not enough data received to form the packet
+
+		if( packet_db[packet_ver][cmd].func == clif_parse_debug )
+			packet_db[packet_ver][cmd].func(fd, sd);
+		else if( packet_db[packet_ver][cmd].func != NULL ) {
+			if( !sd && packet_db[packet_ver][cmd].func != clif_parse_WantToConnection )
+				; //Only valid packet when there is no session
+			else if( sd && sd->bl.prev == NULL && packet_db[packet_ver][cmd].func != clif_parse_LoadEndAck )
+				; //Only valid packet when player is not on a map
+			else
+				packet_db[packet_ver][cmd].func(fd, sd); 
+		}
 #ifdef DUMP_UNKNOWN_PACKET
-	else {
-		const char* packet_txt = "save/packet.txt";
-		FILE* fp;
+		else {
+			const char* packet_txt = "save/packet.txt";
+			FILE* fp;
 
-		if( ( fp = fopen( packet_txt , "a" ) ) != NULL ) {
-			if( sd ) {
-				fprintf(fp, "Unknown packet 0x%04X (length %d), %s session #%d, %d/%d (AID/CID)\n", cmd, packet_len, sd->state.active ? "authed" : "unauthed", fd, sd->status.account_id, sd->status.char_id);
+			if( ( fp = fopen( packet_txt , "a" ) ) != NULL ) {
+				if( sd ) {
+					fprintf(fp, "Unknown packet 0x%04X (length %d), %s session #%d, %d/%d (AID/CID)\n", cmd, packet_len, sd->state.active ? "authed" : "unauthed", fd, sd->status.account_id, sd->status.char_id);
+				} else {
+					fprintf(fp, "Unknown packet 0x%04X (length %d), session #%d\n", cmd, packet_len, fd);
+				}
+
+				WriteDump(fp, RFIFOP(fd,0), packet_len);
+				fprintf(fp, "\n");
+				fclose(fp);
 			} else {
-				fprintf(fp, "Unknown packet 0x%04X (length %d), session #%d\n", cmd, packet_len, fd);
+				ShowError("Failed to write '%s'.\n", packet_txt);
+
+				// Dump on console instead
+				if( sd ) {
+					ShowDebug("Unknown packet 0x%04X (length %d), %s session #%d, %d/%d (AID/CID)\n", cmd, packet_len, sd->state.active ? "authed" : "unauthed", fd, sd->status.account_id, sd->status.char_id);
+				} else {
+					ShowDebug("Unknown packet 0x%04X (length %d), session #%d\n", cmd, packet_len, fd);
+				}
+
+				ShowDump(RFIFOP(fd,0), packet_len);
 			}
-
-			WriteDump(fp, RFIFOP(fd,0), packet_len);
-			fprintf(fp, "\n");
-			fclose(fp);
-		} else {
-			ShowError("Failed to write '%s'.\n", packet_txt);
-
-			// Dump on console instead
-			if( sd ) {
-				ShowDebug("Unknown packet 0x%04X (length %d), %s session #%d, %d/%d (AID/CID)\n", cmd, packet_len, sd->state.active ? "authed" : "unauthed", fd, sd->status.account_id, sd->status.char_id);
-			} else {
-				ShowDebug("Unknown packet 0x%04X (length %d), session #%d\n", cmd, packet_len, fd);
-			}
-
-			ShowDump(RFIFOP(fd,0), packet_len);
 		}
-	}
 #endif
 
-	RFIFOSKIP(fd, packet_len);
+		RFIFOSKIP(fd, packet_len);
 
 	}; // main loop end
 
@@ -17052,8 +17055,11 @@ static int packetdb_readdb(void)
 		{clif_parse_SearchStoreInfoNextPage,"searchstoreinfonextpage"},
 		{clif_parse_CloseSearchStoreInfo,"closesearchstoreinfo"},
 		{clif_parse_SearchStoreInfoListItemClick,"searchstoreinfolistitemclick"},
-		/* */
-		{ clif_parse_MoveItem , "moveitem" },
+		// Future Feature
+		{clif_parse_MoveItem,"moveitem"},
+		{clif_parse_dull,"dull"},
+		{clif_parse_CashShopOpen,"cashshopopen"},
+		{clif_parse_CashShopClose,"cashshopclose"},
 		{NULL,NULL}
 	};
 

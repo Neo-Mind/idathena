@@ -1740,22 +1740,22 @@ packet_ver: 30
 0x08EC,73
 0x08ED,43
 0x08EE,6
-0x08EF,6,bookingignorereq,2
+0x08EF,6,dull,2 //bookingignorereq
 0x08F0,6
-0x08F1,6,bookingjoinpartyreq,2
+0x08F1,6,dull,2 //bookingjoinpartyreq
 0x08F2,36
 0x08F3,-1
 0x08F4,6
-0x08F5,-1,bookingsummonmember,2:4
+0x08F5,-1,dull,2:4 //bookingsummonmember
 0x08F6,22
 0x08F7,3
 0x08F8,7
 0x08F9,6
 0x08FA,6
-0x08FB,6,bookingcanceljoinparty,2
+0x08FB,6,dull,2 //bookingcanceljoinparty
 0x0907,5,moveitem,2:4
 0x0908,5
-0x08D7,28,battlegroundreg,2:4 //Added to prevent disconnections
+0x08D7,28,dull,2:4 //battlegroundreg
 0x08CF,10 //Amulet spirits
 0x0977,14 //Monster HP Bar
 
@@ -1800,7 +1800,7 @@ packet_ver: 33
 0x089e,6,dropitem,2:4
 0x089f,6,takeitem,2
 0x08a0,8,movetokafra,2:4
-0x08CF,10 //Amulet spirits
+0x08cf,10 //Amulet spirits
 0x094a,6,getcharnamerequest,2
 0x0953,5,walktoxy,2
 0x0960,5,changedir,2:4
@@ -1843,6 +1843,8 @@ packet_ver: 34
 0x094E,-1,searchstoreinfo,2:4:5:9:13:14:15
 //0x0835,2,searchstoreinfonextpage,0
 //0x0838,12,searchstoreinfolistitemclick,2:6:10
+0x0844,2,cashshopopen,0
+0x084A,2,cashshopclose,0
 
 //Add new packets here
 //packet_ver: 35
