@@ -2836,7 +2836,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 	if( rdamage > 0 ) {
 		if( sc && sc->data[SC_REFLECTDAMAGE] ) {
-			if( src != bl )// Don't reflect your own damage (Grand Cross)
+			if( src != bl ) // Don't reflect your own damage (Grand Cross)
 				map_foreachinshootrange(battle_damage_area,bl,skill_get_splash(LG_REFLECTDAMAGE,1),BL_CHAR,tick,bl,dmg.amotion,sstatus->dmotion,rdamage,tstatus->race);
 		} else {
 			if( dmg.amotion )
@@ -2851,16 +2851,14 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		}
 	}
 	if( damage > 0 ) {
-		/**
-		 * Post-damage effects
-		 **/
+		// Post-damage effects
 		switch( skill_id ) {
 			case RK_CRUSHSTRIKE:
 				skill_break_equip(src,src,EQP_WEAPON,2000,BCT_SELF); // 20% chance to destroy the weapon.
 				break;
 			case GC_VENOMPRESSURE: {
 					struct status_change *ssc = status_get_sc(src);
-					if( ssc && ssc->data[SC_POISONINGWEAPON] && rnd()%100 < 70 + 5*skill_lv ) {
+					if( ssc && ssc->data[SC_POISONINGWEAPON] && rnd()%100 < 70 + 5 * skill_lv ) {
 						sc_start(src,bl,ssc->data[SC_POISONINGWEAPON]->val2,100,ssc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON, 1));
 						status_change_end(src,SC_POISONINGWEAPON,INVALID_TIMER);
 						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -2868,7 +2866,10 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				}
 				break;
 			case WM_METALICSOUND:
-				status_zap(bl, 0, damage*100/(100*(110-pc_checkskill(sd,WM_LESSON)*10)));
+				status_zap(bl, 0, damage * 100 / (100 * (110 - pc_checkskill(sd,WM_LESSON) * 10)));
+				break;
+			case SR_TIGERCANNON:
+				status_zap(bl, 0, damage / 10); // 10% of damage dealt
 				break;
 		}
 		if( sd )
@@ -4562,7 +4563,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case SR_TIGERCANNON:
 			if ( flag&1 ) {
 				skill_attack(BF_WEAPON, src, src, bl, skill_id, skill_lv, tick, flag);
-				status_zap(bl, 0, status_get_max_sp(bl) * 10 / 100);
 			} else if ( sd ) {
 				int hpcost, spcost;
 				hpcost = 10 + 2 * skill_lv;

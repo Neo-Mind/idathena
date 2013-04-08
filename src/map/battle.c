@@ -3095,9 +3095,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					break;
 				case SR_TIGERCANNON: // (Tiger Cannon skill level x 240) + (Target Base Level x 40)
 					ATK_ADD( skill_lv * 240 + status_get_lv(target) * 40 );
-					if( sc && sc->data[SC_COMBO]
-						&& sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE ) // (Tiger Cannon skill level x 500) + (Target Base Level x 40)
-							ATK_ADD( skill_lv * 500 + status_get_lv(target) * 40 );
+					if( sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE )
+						// (Tiger Cannon skill level x 500) + (Target Base Level x 40)
+						ATK_ADD( skill_lv * 500 + status_get_lv(target) * 40 );
 					break;
 				case SR_FALLENEMPIRE:// [(Target Size value + Skill Level - 1) x Caster STR] + [(Target current weight x Caster DEX / 120)]
 					ATK_ADD( ((tstatus->size+1)*2 + skill_lv - 1) * sstatus->str);
