@@ -6049,122 +6049,118 @@ void status_set_viewdata(struct block_list *bl, int class_)
 		vd = NULL;
 
 	switch (bl->type) {
-	case BL_PC:
-		{
-			TBL_PC* sd = (TBL_PC*)bl;
-			if (pcdb_checkid(class_)) {
-				if (sd->sc.option&OPTION_WEDDING)
-					class_ = JOB_WEDDING;
-				else if (sd->sc.option&OPTION_SUMMER)
-					class_ = JOB_SUMMER;
-				else if (sd->sc.option&OPTION_XMAS)
-					class_ = JOB_XMAS;
-				else if (sd->sc.option&OPTION_RIDING) {
-					switch (class_) {	//Adapt class to a Mounted one.
-						case JOB_KNIGHT:
-							class_ = JOB_KNIGHT2;
-							break;
-						case JOB_CRUSADER:
-							class_ = JOB_CRUSADER2;
-							break;
-						case JOB_LORD_KNIGHT:
-							class_ = JOB_LORD_KNIGHT2;
-							break;
-						case JOB_PALADIN:
-							class_ = JOB_PALADIN2;
-							break;
-						case JOB_BABY_KNIGHT:
-							class_ = JOB_BABY_KNIGHT2;
-							break;
-						case JOB_BABY_CRUSADER:
-							class_ = JOB_BABY_CRUSADER2;
-							break;
+		case BL_PC: {
+				TBL_PC* sd = (TBL_PC*)bl;
+				if (pcdb_checkid(class_)) {
+					if (sd->sc.option&OPTION_WEDDING)
+						class_ = JOB_WEDDING;
+					else if (sd->sc.option&OPTION_SUMMER)
+						class_ = JOB_SUMMER;
+					else if (sd->sc.option&OPTION_HANBOK)
+						class_ = JOB_HANBOK;
+					else if (sd->sc.option&OPTION_XMAS)
+						class_ = JOB_XMAS;
+					else if (sd->sc.option&OPTION_RIDING) {
+						switch (class_) { //Adapt class to a Mounted one.
+							case JOB_KNIGHT:
+								class_ = JOB_KNIGHT2;
+								break;
+							case JOB_CRUSADER:
+								class_ = JOB_CRUSADER2;
+								break;
+							case JOB_LORD_KNIGHT:
+								class_ = JOB_LORD_KNIGHT2;
+								break;
+							case JOB_PALADIN:
+								class_ = JOB_PALADIN2;
+								break;
+							case JOB_BABY_KNIGHT:
+								class_ = JOB_BABY_KNIGHT2;
+								break;
+							case JOB_BABY_CRUSADER:
+								class_ = JOB_BABY_CRUSADER2;
+								break;
+						}
 					}
-				}
-				sd->vd.class_ = class_;
-				clif_get_weapon_view(sd, &sd->vd.weapon, &sd->vd.shield);
-				sd->vd.head_top = sd->status.head_top;
-				sd->vd.head_mid = sd->status.head_mid;
-				sd->vd.head_bottom = sd->status.head_bottom;
-				sd->vd.hair_style = cap_value(sd->status.hair,0,battle_config.max_hair_style);
-				sd->vd.hair_color = cap_value(sd->status.hair_color,0,battle_config.max_hair_color);
-				sd->vd.cloth_color = cap_value(sd->status.clothes_color,0,battle_config.max_cloth_color);
-				sd->vd.robe = sd->status.robe;
-				sd->vd.sex = sd->status.sex;
-			} else if (vd)
-				memcpy(&sd->vd, vd, sizeof(struct view_data));
-			else
-				ShowError("status_set_viewdata (PC): No view data for class %d\n", class_);
-		}
-	break;
-	case BL_MOB:
-		{
-			TBL_MOB* md = (TBL_MOB*)bl;
-			if (vd)
-				md->vd = vd;
-			else
-				ShowError("status_set_viewdata (MOB): No view data for class %d\n", class_);
-		}
-	break;
-	case BL_PET:
-		{
-			TBL_PET* pd = (TBL_PET*)bl;
-			if (vd) {
-				memcpy(&pd->vd, vd, sizeof(struct view_data));
-				if (!pcdb_checkid(vd->class_)) {
-					pd->vd.hair_style = battle_config.pet_hair_style;
-					if(pd->pet.equip) {
-						pd->vd.head_bottom = itemdb_viewid(pd->pet.equip);
-						if (!pd->vd.head_bottom)
-							pd->vd.head_bottom = pd->pet.equip;
+					sd->vd.class_ = class_;
+					clif_get_weapon_view(sd, &sd->vd.weapon, &sd->vd.shield);
+					sd->vd.head_top = sd->status.head_top;
+					sd->vd.head_mid = sd->status.head_mid;
+					sd->vd.head_bottom = sd->status.head_bottom;
+					sd->vd.hair_style = cap_value(sd->status.hair,0,battle_config.max_hair_style);
+					sd->vd.hair_color = cap_value(sd->status.hair_color,0,battle_config.max_hair_color);
+					sd->vd.cloth_color = cap_value(sd->status.clothes_color,0,battle_config.max_cloth_color);
+					sd->vd.robe = sd->status.robe;
+					sd->vd.sex = sd->status.sex;
+				} else if (vd)
+					memcpy(&sd->vd, vd, sizeof(struct view_data));
+				else
+					ShowError("status_set_viewdata (PC): No view data for class %d\n", class_);
+			}
+			break;
+		case BL_MOB: {
+				TBL_MOB* md = (TBL_MOB*)bl;
+				if (vd)
+					md->vd = vd;
+				else
+					ShowError("status_set_viewdata (MOB): No view data for class %d\n", class_);
+			}
+			break;
+		case BL_PET: {
+				TBL_PET* pd = (TBL_PET*)bl;
+				if (vd) {
+					memcpy(&pd->vd, vd, sizeof(struct view_data));
+					if (!pcdb_checkid(vd->class_)) {
+						pd->vd.hair_style = battle_config.pet_hair_style;
+						if(pd->pet.equip) {
+							pd->vd.head_bottom = itemdb_viewid(pd->pet.equip);
+							if (!pd->vd.head_bottom)
+								pd->vd.head_bottom = pd->pet.equip;
+						}
 					}
-				}
-			} else
-				ShowError("status_set_viewdata (PET): No view data for class %d\n", class_);
-		}
-	break;
-	case BL_NPC:
-		{
-			TBL_NPC* nd = (TBL_NPC*)bl;
-			if (vd)
-				nd->vd = vd;
-			else
-				ShowError("status_set_viewdata (NPC): No view data for class %d\n", class_);
-		}
-	break;
-	case BL_HOM:		//[blackhole89]
-		{
-			struct homun_data *hd = (struct homun_data*)bl;
-			if (vd)
-				hd->vd = vd;
-			else
-				ShowError("status_set_viewdata (HOMUNCULUS): No view data for class %d\n", class_);
-		}
-		break;
-	case BL_MER:
-		{
-			struct mercenary_data *md = (struct mercenary_data*)bl;
-			if (vd)
-				md->vd = vd;
-			else
-				ShowError("status_set_viewdata (MERCENARY): No view data for class %d\n", class_);
-		}
-		break;
-	case BL_ELEM:
-		{
-			struct elemental_data *ed = (struct elemental_data*)bl;
-			if (vd)
-				ed->vd = vd;
-			else
-				ShowError("status_set_viewdata (ELEMENTAL): No view data for class %d\n", class_);
-		}
-		break;
+				} else
+					ShowError("status_set_viewdata (PET): No view data for class %d\n", class_);
+			}
+			break;
+		case BL_NPC: {
+				TBL_NPC* nd = (TBL_NPC*)bl;
+				if (vd)
+					nd->vd = vd;
+				else
+					ShowError("status_set_viewdata (NPC): No view data for class %d\n", class_);
+			}
+			break;
+		case BL_HOM: { //[blackhole89]
+				struct homun_data *hd = (struct homun_data*)bl;
+				if (vd)
+					hd->vd = vd;
+				else
+					ShowError("status_set_viewdata (HOMUNCULUS): No view data for class %d\n", class_);
+			}
+			break;
+		case BL_MER: {
+				struct mercenary_data *md = (struct mercenary_data*)bl;
+				if (vd)
+					md->vd = vd;
+				else
+					ShowError("status_set_viewdata (MERCENARY): No view data for class %d\n", class_);
+			}
+			break;
+		case BL_ELEM: {
+				struct elemental_data *ed = (struct elemental_data*)bl;
+				if (vd)
+					ed->vd = vd;
+				else
+					ShowError("status_set_viewdata (ELEMENTAL): No view data for class %d\n", class_);
+			}
+			break;
 	}
 	vd = status_get_viewdata(bl);
 	if (vd && vd->cloth_color && (
 		(vd->class_==JOB_WEDDING && battle_config.wedding_ignorepalette)
 		|| (vd->class_==JOB_XMAS && battle_config.xmas_ignorepalette)
 		|| (vd->class_==JOB_SUMMER && battle_config.summer_ignorepalette)
+		|| (vd->class_==JOB_HANBOK && battle_config.hanbok_ignorepalette)
 	))
 		vd->cloth_color = 0;
 }
@@ -7509,6 +7505,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_WEDDING:
 		case SC_XMAS:
 		case SC_SUMMER:
+		case SC_HANBOK:
 			if (!vd) return 0;
 			//Store previous values as they could be removed.
 			val1 = vd->class_;
@@ -7518,15 +7515,14 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			unit_stop_attack(bl);
 			clif_changelook(bl,LOOK_WEAPON,0);
 			clif_changelook(bl,LOOK_SHIELD,0);
-			clif_changelook(bl,LOOK_BASE,type==SC_WEDDING?JOB_WEDDING:type==SC_XMAS?JOB_XMAS:JOB_SUMMER);
+			clif_changelook(bl,LOOK_BASE,type==SC_WEDDING?JOB_WEDDING:type==SC_XMAS?JOB_XMAS:type==SC_SUMMER?JOB_SUMMER:JOB_HANBOK);
 			clif_changelook(bl,LOOK_CLOTHES_COLOR,vd->cloth_color);
 			break;
 		case SC_NOCHAT:
 			// [GodLesZ] FIXME: is this correct? a hardcoded interval of 60sec? what about configuration ?_?
 			tick = 60000;
 			val1 = battle_config.manner_system; //Mute filters.
-			if (sd)
-			{
+			if (sd) {
 				clif_changestatus(sd,SP_MANNER,sd->status.manner);
 				clif_updatestatus(sd,SP_MANNER);
 			}
@@ -8802,7 +8798,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_SUMMER:
 				clif_changelook(bl,LOOK_WEAPON,0);
 				clif_changelook(bl,LOOK_SHIELD,0);
-				clif_changelook(bl,LOOK_BASE,type==SC_WEDDING?JOB_WEDDING:type==SC_XMAS?JOB_XMAS:JOB_SUMMER);
+				clif_changelook(bl,LOOK_BASE,type==SC_WEDDING?JOB_WEDDING:type==SC_XMAS?JOB_XMAS:type==SC_SUMMER?JOB_SUMMER:SC_HANBOK);
 				clif_changelook(bl,LOOK_CLOTHES_COLOR,val4);
 				break;
 			case SC_KAAHI:
@@ -9022,6 +9018,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_SUMMER:
 			sc->option |= OPTION_SUMMER;
 			break;
+		case SC_HANBOK:
+			sc->option |= OPTION_HANBOK;
+			break;
 		case SC_ORCISH:
 			sc->option |= OPTION_ORCISH;
 			break;
@@ -9183,6 +9182,7 @@ int status_change_clear(struct block_list* bl, int type)
 				case SC_MELTDOWN:
 				case SC_XMAS:
 				case SC_SUMMER:
+				case SC_HANBOK:
 				case SC_NOCHAT:
 				case SC_FUSION:
 				case SC_EARTHSCROLL:
@@ -9333,11 +9333,12 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_WEDDING:
 		case SC_XMAS:
 		case SC_SUMMER:
+		case SC_HANBOK:
 			if (!vd) break;
 			if (sd) {
 				//Load data from sd->status.* as the stored values could have changed.
 				//Must remove OPTION to prevent class being rechanged.
-				sc->option &= type==SC_WEDDING?~OPTION_WEDDING:type==SC_XMAS?~OPTION_XMAS:~OPTION_SUMMER;
+				sc->option &= type==SC_WEDDING?~OPTION_WEDDING:type==SC_XMAS?~OPTION_XMAS:type==SC_SUMMER?~OPTION_SUMMER:~OPTION_HANBOK;
 				clif_changeoption(&sd->bl);
 				status_set_viewdata(bl, sd->status.class_);
 			} else {
@@ -9758,6 +9759,9 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			break;
 		case SC_SUMMER:
 			sc->option &= ~OPTION_SUMMER;
+			break;
+		case SC_HANBOK:
+			sc->option &= ~OPTION_HANBOK;
 			break;
 		case SC_ORCISH:
 			sc->option &= ~OPTION_ORCISH;

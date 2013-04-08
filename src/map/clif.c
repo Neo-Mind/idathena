@@ -824,8 +824,7 @@ void clif_clearunit_delayed(struct block_list* bl, clr_type type, unsigned int t
 
 void clif_get_weapon_view(struct map_session_data* sd, unsigned short *rhand, unsigned short *lhand)
 {
-	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS|OPTION_SUMMER))
-	{
+	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS|OPTION_SUMMER|OPTION_HANBOK)) {
 		*rhand = *lhand = 0;
 		return;
 	}
@@ -2958,12 +2957,13 @@ void clif_changelook(struct block_list *bl,int type,int val)
 			break;
 		case LOOK_BASE:
 			vd->class_ = val;
-			if (vd->class_ == JOB_WEDDING || vd->class_ == JOB_XMAS || vd->class_ == JOB_SUMMER)
+			if (vd->class_ == JOB_WEDDING || vd->class_ == JOB_XMAS || vd->class_ == JOB_SUMMER || vd->class_ == JOB_HANBOK)
 				vd->weapon = vd->shield = 0;
 			if (vd->cloth_color && (
 				(vd->class_ == JOB_WEDDING && battle_config.wedding_ignorepalette) ||
 				(vd->class_ == JOB_XMAS && battle_config.xmas_ignorepalette) ||
-				(vd->class_ == JOB_SUMMER && battle_config.summer_ignorepalette)
+				(vd->class_ == JOB_SUMMER && battle_config.summer_ignorepalette) ||
+				(vd->class_ == JOB_HANBOK && battle_config.hanbok_ignorepalette)
 			))
 				clif_changelook(bl,LOOK_CLOTHES_COLOR,0);
 			break;
@@ -2986,7 +2986,8 @@ void clif_changelook(struct block_list *bl,int type,int val)
 			if (val && (
 				(vd->class_ == JOB_WEDDING && battle_config.wedding_ignorepalette) ||
 				(vd->class_ == JOB_XMAS && battle_config.xmas_ignorepalette) ||
-				(vd->class_ == JOB_SUMMER && battle_config.summer_ignorepalette)
+				(vd->class_ == JOB_SUMMER && battle_config.summer_ignorepalette) ||
+				(vd->class_ == JOB_HANBOK && battle_config.hanbok_ignorepalette)
 			))
 				val = 0;
 			vd->cloth_color = val;
@@ -10012,69 +10013,68 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 	if(target_id<0 && -target_id == sd->bl.id) // for disguises [Valaris]
 		target_id = sd->bl.id;
 
-	switch(action_type)
-	{
-	case 0x00: // once attack
-	case 0x07: // continuous attack
+	switch(action_type) {
+		case 0x00: // once attack
+		case 0x07: // continuous attack
 
-		if( pc_cant_act(sd) || sd->sc.option&OPTION_HIDE )
-			return;
+			if( pc_cant_act(sd) || sd->sc.option&OPTION_HIDE )
+				return;
 
-		if( sd->sc.option&(OPTION_WEDDING|OPTION_XMAS|OPTION_SUMMER) )
-			return;
+			if( sd->sc.option&(OPTION_WEDDING|OPTION_XMAS|OPTION_SUMMER|OPTION_HANBOK) )
+				return;
 
-		if( sd->sc.data[SC_BASILICA] || sd->sc.data[SC__SHADOWFORM] )
-			return;
+			if( sd->sc.data[SC_BASILICA] || sd->sc.data[SC__SHADOWFORM] )
+				return;
 
-		if (!battle_config.sdelay_attack_enable && pc_checkskill(sd, SA_FREECAST) <= 0) {
-			if (DIFF_TICK(tick, sd->ud.canact_tick) < 0) {
-				clif_skill_fail(sd, 1, USESKILL_FAIL_SKILLINTERVAL, 0);
+			if (!battle_config.sdelay_attack_enable && pc_checkskill(sd, SA_FREECAST) <= 0) {
+				if (DIFF_TICK(tick, sd->ud.canact_tick) < 0) {
+					clif_skill_fail(sd, 1, USESKILL_FAIL_SKILLINTERVAL, 0);
+					return;
+				}
+			}
+
+			pc_delinvincibletimer(sd);
+			sd->idletime = last_tick;
+			unit_attack(&sd->bl, target_id, action_type != 0);
+			break;
+		case 0x02: // sitdown
+			if (battle_config.basic_skill_check && pc_checkskill(sd, NV_BASIC) < 3) {
+				clif_skill_fail(sd, 1, USESKILL_FAIL_LEVEL, 2);
+				break;
+			}
+
+			if(pc_issit(sd)) {
+				//Bugged client? Just refresh them.
+				clif_sitting(&sd->bl);
 				return;
 			}
-		}
 
-		pc_delinvincibletimer(sd);
-		sd->idletime = last_tick;
-		unit_attack(&sd->bl, target_id, action_type != 0);
-	break;
-	case 0x02: // sitdown
-		if (battle_config.basic_skill_check && pc_checkskill(sd, NV_BASIC) < 3) {
-			clif_skill_fail(sd, 1, USESKILL_FAIL_LEVEL, 2);
-			break;
-		}
+			if (sd->ud.skilltimer != INVALID_TIMER || (sd->sc.opt1 && sd->sc.opt1 != OPT1_BURNING ))
+				break;
 
-		if(pc_issit(sd)) {
-			//Bugged client? Just refresh them.
+			if (sd->sc.count && (
+				sd->sc.data[SC_DANCING] ||
+				(sd->sc.data[SC_GRAVITATION] && sd->sc.data[SC_GRAVITATION]->val3 == BCT_SELF)
+			)) //No sitting during these states either.
+				break;
+
+			sd->idletime = last_tick;
+			pc_setsit(sd);
+			skill_sit(sd,1);
 			clif_sitting(&sd->bl);
-			return;
-		}
-
-		if (sd->ud.skilltimer != INVALID_TIMER || (sd->sc.opt1 && sd->sc.opt1 != OPT1_BURNING ))
 			break;
+		case 0x03: // standup
+			if (!pc_issit(sd)) {
+				//Bugged client? Just refresh them.
+				clif_standing(&sd->bl);
+				return;
+			}
 
-		if (sd->sc.count && (
-			sd->sc.data[SC_DANCING] ||
-			(sd->sc.data[SC_GRAVITATION] && sd->sc.data[SC_GRAVITATION]->val3 == BCT_SELF)
-		)) //No sitting during these states either.
-			break;
-
-		sd->idletime = last_tick;
-		pc_setsit(sd);
-		skill_sit(sd,1);
-		clif_sitting(&sd->bl);
-	break;
-	case 0x03: // standup
-		if (!pc_issit(sd)) {
-			//Bugged client? Just refresh them.
+			sd->idletime = last_tick;
+			pc_setstand(sd);
+			skill_sit(sd,0);
 			clif_standing(&sd->bl);
-			return;
-		}
-
-		sd->idletime = last_tick;
-		pc_setstand(sd);
-		skill_sit(sd,0);
-		clif_standing(&sd->bl);
-	break;
+		break;
 	}
 }
 
@@ -11020,7 +11020,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 		}
 	}
 
-	if( sd->sc.option&(OPTION_WEDDING|OPTION_XMAS|OPTION_SUMMER) )
+	if( sd->sc.option&(OPTION_WEDDING|OPTION_XMAS|OPTION_SUMMER|OPTION_HANBOK) )
 		return;
 
 	if( sd->sc.data[SC_BASILICA] && (skill_id != HP_BASILICA || sd->sc.data[SC_BASILICA]->val4 != sd->bl.id) )
@@ -11104,7 +11104,7 @@ static void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, uin
 		}
 	}
 
-	if( sd->sc.option&(OPTION_WEDDING|OPTION_XMAS|OPTION_SUMMER) )
+	if( sd->sc.option&(OPTION_WEDDING|OPTION_XMAS|OPTION_SUMMER|OPTION_HANBOK) )
 		return;
 
 	if( sd->sc.data[SC_BASILICA] && (skill_id != HP_BASILICA || sd->sc.data[SC_BASILICA]->val4 != sd->bl.id) )

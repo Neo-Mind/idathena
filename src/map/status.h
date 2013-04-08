@@ -651,6 +651,7 @@ typedef enum sc_type {
 	SC_PARALYSIS,
 	SC_PAIN_KILLER,
 
+	SC_HANBOK = 600,
 
 #ifdef RENEWAL	
 	SC_EXTREMITYFIST2,

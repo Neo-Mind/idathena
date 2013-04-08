@@ -457,6 +457,7 @@ extern struct Battle_Config
 	int client_limit_unit_lv;
 	int hom_max_level;
 	int hom_S_max_level;
+	int hanbok_ignorepalette;
 
 	// [BattleGround Settings]
 	int bg_update_interval;
