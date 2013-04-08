@@ -14540,8 +14540,7 @@ int skill_clear_group (struct block_list *bl, int flag)
 	if (!ud) return 0;
 
 	//All groups to be deleted are first stored on an array since the array elements shift around when you delete them. [Skotlex]
-	for (i=0;i<MAX_SKILLUNITGROUP && ud->skillunit[i];i++)
-	{
+	for (i=0;i<MAX_SKILLUNITGROUP && ud->skillunit[i];i++) {
 		switch (ud->skillunit[i]->skill_id) {
 			case SA_DELUGE:
 			case SA_VOLCANO:
