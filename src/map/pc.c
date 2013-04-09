@@ -1023,11 +1023,11 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 		sd->hate_mob[i] = -1;
 
 	// warp player
-	if ((i=pc_setpos(sd,sd->status.last_point.map, sd->status.last_point.x, sd->status.last_point.y, CLR_OUTSIGHT)) != 0) {
+	if( (i = pc_setpos(sd,sd->status.last_point.map, sd->status.last_point.x, sd->status.last_point.y, CLR_OUTSIGHT)) != 0 ) {
 		ShowError ("Last_point_map %s - id %d not found (error code %d)\n", mapindex_id2name(sd->status.last_point.map), sd->status.last_point.map, i);
 
 		// try warping to a default map instead (church graveyard)
-		if (pc_setpos(sd, mapindex_name2id(MAP_PRONTERA), 273, 354, CLR_OUTSIGHT) != 0) {
+		if( pc_setpos(sd, mapindex_name2id(MAP_PRONTERA), 273, 354, CLR_OUTSIGHT) != 0 ) {
 			// if we fail again
 			clif_authfail_fd(sd->fd, 0);
 			return false;
@@ -5432,6 +5432,12 @@ const char* job_name(int class_)
 	}
 }
 
+/*====================================================
+ * Timered function to make id follow a target.
+ * @id = bl.id (player only atm)
+ * target is define in sd->followtarget (bl.id)
+ * used by pc_follow.
+ *----------------------------------------------------*/
 int pc_follow_timer(int tid, unsigned int tick, int id, intptr_t data)
 {
 	struct map_session_data *sd;
@@ -5440,7 +5446,7 @@ int pc_follow_timer(int tid, unsigned int tick, int id, intptr_t data)
 	sd = map_id2sd(id);
 	nullpo_ret(sd);
 
-	if (sd->followtimer != tid){
+	if (sd->followtimer != tid) {
 		ShowError("pc_follow_timer %d != %d\n",sd->followtimer,tid);
 		sd->followtimer = INVALID_TIMER;
 		return 0;

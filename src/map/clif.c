@@ -4347,12 +4347,19 @@ static void clif_getareachar_skillunit(int type, struct map_session_data *sd, st
 
 	if( unit->group->state.guildaura )
 		return;
+
 	if( battle_config.traps_setting&1 && skill_get_inf2(unit->group->skill_id)&INF2_TRAP )
 		unit_id = UNT_DUMMYSKILL; //Use invisible unit id for traps.
 	else if( skill_get_unit_flag(unit->group->skill_id) & UF_RANGEDSINGLEUNIT && !(unit->val2 & UF_RANGEDSINGLEUNIT) )
 		unit_id = UNT_DUMMYSKILL; //Use invisible unit id for other case of rangedsingle unit
 	else
-		unit_id=unit->group->unit_id;
+		unit_id = unit->group->unit_id;
+
+#if PACKETVER >= 3
+	if( unit->group->unit_id==UNT_GRAFFITI ) { // Graffiti [Valaris]
+		type = 2;
+	}
+#endif
 
 	switch( type ) {
 		case 2: header = 0x1c9; break;
@@ -4361,21 +4368,19 @@ static void clif_getareachar_skillunit(int type, struct map_session_data *sd, st
 		default: case 1: header = 0x11f; break;
 	}
 
-#if PACKETVER >= 3
-	if( unit->group->unit_id==UNT_GRAFFITI ) { // Graffiti [Valaris]
-		clif_getareachar_skillunit(2,sd,unit);
-	}
-#endif
 	WFIFOHEAD(fd,packet_len(header));
 	WFIFOW(fd,pos)=header;
+
 	if( type==3 || type==4 ) {
 		WFIFOW(fd, pos+2)=packet_len(header);
 		pos += 2;
 	}
+
 	WFIFOL(fd,pos+2) = unit->bl.id;
 	WFIFOL(fd,pos+6) = unit->group->src_id;
 	WFIFOW(fd,pos+10) = unit->bl.x;
 	WFIFOW(fd,pos+12) = unit->bl.y;
+
 	switch( type ) {
 		case 1:
 			WFIFOB(fd,pos+14) = unit_id;
@@ -4398,6 +4403,7 @@ static void clif_getareachar_skillunit(int type, struct map_session_data *sd, st
 			WFIFOB(fd,pos+17) = 1;
 			break;
 	}
+
 	WFIFOSET(fd,packet_len(header));
 
 	if( unit->group->skill_id == WZ_ICEWALL )
@@ -5055,7 +5061,7 @@ void clif_skill_setunit(struct skill_unit *unit)
 		return;
 
 #if PACKETVER >= 3
-	if(unit->group->unit_id==UNT_GRAFFITI)	{ // Graffiti [Valaris]
+	if( unit->group->unit_id==UNT_GRAFFITI ) { // Graffiti [Valaris]
 		WBUFW(buf, 0)=0x1c9;
 		WBUFL(buf, 2)=unit->bl.id;
 		WBUFL(buf, 6)=unit->group->src_id;

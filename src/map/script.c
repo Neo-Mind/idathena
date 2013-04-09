@@ -2505,19 +2505,14 @@ void get_val(struct script_state* st, struct script_data* data)
 	postfix = name[strlen(name) - 1];
 
 	//##TODO use reference_tovariable(data) when it's confirmed that it works [FlavioJS]
-	if( !reference_toconstant(data) && not_server_variable(prefix) )
-	{
+	if( !reference_toconstant(data) && not_server_variable(prefix) ) {
 		sd = script_rid2sd(st);
-		if( sd == NULL )
-		{// needs player attached
-			if( postfix == '$' )
-			{// string variable
+		if( sd == NULL ) { // needs player attached
+			if( postfix == '$' ) { // string variable
 				ShowWarning("script:get_val: cannot access player variable '%s', defaulting to \"\"\n", name);
 				data->type = C_CONSTSTR;
 				data->u.str = "";
-			}
-			else
-			{// integer variable
+			} else { // integer variable
 				ShowWarning("script:get_val: cannot access player variable '%s', defaulting to 0\n", name);
 				data->type = C_INT;
 				data->u.num = 0;
@@ -2526,112 +2521,98 @@ void get_val(struct script_state* st, struct script_data* data)
 		}
 	}
 
-	if( postfix == '$' )
-	{// string variable
+	if( postfix == '$' ) { // string variable
 
-		switch( prefix )
-		{
-		case '@':
-			data->u.str = pc_readregstr(sd, data->u.num);
-			break;
-		case '$':
-			data->u.str = mapreg_readregstr(data->u.num);
-			break;
-		case '#':
-			if( name[1] == '#' )
-				data->u.str = pc_readaccountreg2str(sd, name);// global
-			else
-				data->u.str = pc_readaccountregstr(sd, name);// local
-			break;
-		case '.':
-			{
-				struct DBMap* n =
-					data->ref      ? *data->ref:
-					name[1] == '@' ?  st->stack->var_function:// instance/scope variable
-					                  st->script->script_vars;// npc variable
-				if( n )
-					data->u.str = (char*)idb_get(n,reference_getuid(data));
+		switch( prefix ) {
+			case '@':
+				data->u.str = pc_readregstr(sd, data->u.num);
+				break;
+			case '$':
+				data->u.str = mapreg_readregstr(data->u.num);
+				break;
+			case '#':
+				if( name[1] == '#' )
+					data->u.str = pc_readaccountreg2str(sd, name); // global
 				else
-					data->u.str = NULL;
-			}
-			break;
-		case '\'':
-				if (st->instance_id) {
-					data->u.str = (char*)idb_get(instance[st->instance_id].vars,reference_getuid(data));
-				} else {
-					ShowWarning("script:get_val: cannot access instance variable '%s', defaulting to \"\"\n", name);
-					data->u.str = NULL;
+					data->u.str = pc_readaccountregstr(sd, name); // local
+				break;
+			case '.': {
+					struct DBMap* n =
+						data->ref      ? *data->ref:
+						name[1] == '@' ?  st->stack->var_function: // instance/scope variable
+										  st->script->script_vars; // npc variable
+					if( n )
+						data->u.str = (char*)idb_get(n,reference_getuid(data));
+					else
+						data->u.str = NULL;
 				}
-			break;
-		default:
-			data->u.str = pc_readglobalreg_str(sd, name);
-			break;
+				break;
+			case '\'':
+					if (st->instance_id) {
+						data->u.str = (char*)idb_get(instance[st->instance_id].vars,reference_getuid(data));
+					} else {
+						ShowWarning("script:get_val: cannot access instance variable '%s', defaulting to \"\"\n", name);
+						data->u.str = NULL;
+					}
+				break;
+			default:
+				data->u.str = pc_readglobalreg_str(sd, name);
+				break;
 		}
 
-		if( data->u.str == NULL || data->u.str[0] == '\0' )
-		{// empty string
+		if( data->u.str == NULL || data->u.str[0] == '\0' ) { // empty string
 			data->type = C_CONSTSTR;
 			data->u.str = "";
-		}
-		else
-		{// duplicate string
+		} else { // duplicate string
 			data->type = C_STR;
 			data->u.str = aStrdup(data->u.str);
 		}
 
-	}
-	else
-	{// integer variable
+	} else { // integer variable
 
 		data->type = C_INT;
 
-		if( reference_toconstant(data) )
-		{
+		if( reference_toconstant(data) ) {
 			data->u.num = reference_getconstant(data);
-		}
-		else if( reference_toparam(data) )
-		{
+		} else if( reference_toparam(data) ) {
 			data->u.num = pc_readparam(sd, reference_getparamtype(data));
-		}
-		else
-		switch( prefix )
-		{
-		case '@':
-			data->u.num = pc_readreg(sd, data->u.num);
-			break;
-		case '$':
-			data->u.num = mapreg_readreg(data->u.num);
-			break;
-		case '#':
-			if( name[1] == '#' )
-				data->u.num = pc_readaccountreg2(sd, name);// global
-			else
-				data->u.num = pc_readaccountreg(sd, name);// local
-			break;
-		case '.':
-			{
-				struct DBMap* n =
-					data->ref      ? *data->ref:
-					name[1] == '@' ?  st->stack->var_function:// instance/scope variable
-					                  st->script->script_vars;// npc variable
-				if( n )
-					data->u.num = (int)idb_iget(n,reference_getuid(data));
-				else
-					data->u.num = 0;
+		} else
+			switch( prefix ) {
+				case '@':
+					data->u.num = pc_readreg(sd, data->u.num);
+					break;
+				case '$':
+					data->u.num = mapreg_readreg(data->u.num);
+					break;
+				case '#':
+					if( name[1] == '#' )
+						data->u.num = pc_readaccountreg2(sd, name); // global
+					else
+						data->u.num = pc_readaccountreg(sd, name); // local
+					break;
+				case '.': {
+						struct DBMap* n =
+							data->ref      ? *data->ref:
+							name[1] == '@' ?  st->stack->var_function: // instance/scope variable
+											  st->script->script_vars; // npc variable
+						if( n )
+							data->u.num = (int)idb_iget(n,reference_getuid(data));
+						else
+							data->u.num = 0;
+					}
+					break;
+				case '\'':
+					if( st->instance_id )
+						data->u.num = (int)idb_iget(instance[st->instance_id].vars,reference_getuid(data));
+					else {
+						ShowWarning("script:get_val: cannot access instance variable '%s', defaulting to 0\n", name);
+						data->u.num = 0;
+					}
+					break;
+				default:
+					data->u.num = pc_readglobalreg(sd, name);
+					break;
 			}
-			break;
-		case '\'':
-				if( st->instance_id )
-					data->u.num = (int)idb_iget(instance[st->instance_id].vars,reference_getuid(data));
-				else {
-					ShowWarning("script:get_val: cannot access instance variable '%s', defaulting to 0\n", name);
-					data->u.num = 0;
-				}
-			break;
-		default:
-			data->u.num = pc_readglobalreg(sd, name);
-			break;
-		}
 
 	}
 
@@ -2659,47 +2640,40 @@ static int set_reg(struct script_state* st, TBL_PC* sd, int num, const char* nam
 {
 	char prefix = name[0];
 
-	if( is_string_variable(name) )
-	{// string variable
+	if( is_string_variable(name) ) { // string variable
 		const char* str = (const char*)value;
 		switch (prefix) {
-		case '@':
-			return pc_setregstr(sd, num, str);
-		case '$':
-			return mapreg_setregstr(num, str);
-		case '#':
-			return (name[1] == '#') ?
-				pc_setaccountreg2str(sd, name, str) :
-				pc_setaccountregstr(sd, name, str);
-		case '.':
-			{
-				struct DBMap* n;
-				n = (ref) ? *ref : (name[1] == '@') ? st->stack->var_function : st->script->script_vars;
-				if( n ) {
-					idb_remove(n, num);
-					if (str[0]) idb_put(n, num, aStrdup(str));
+			case '@':
+				return pc_setregstr(sd, num, str);
+			case '$':
+				return mapreg_setregstr(num, str);
+			case '#':
+				return (name[1] == '#') ?
+					pc_setaccountreg2str(sd, name, str) :
+					pc_setaccountregstr(sd, name, str);
+			case '.': {
+					struct DBMap* n;
+					n = (ref) ? *ref : (name[1] == '@') ? st->stack->var_function : st->script->script_vars;
+					if( n ) {
+						idb_remove(n, num);
+						if (str[0]) idb_put(n, num, aStrdup(str));
+					}
 				}
+				return 1;
+			case '\'':
+				if( st->instance_id ) {
+					idb_remove(instance[st->instance_id].vars, num);
+					if( str[0] ) idb_put(instance[st->instance_id].vars, num, aStrdup(str));
+				}
+				return 1;
+			default:
+				return pc_setglobalreg_str(sd, name, str);
 			}
-			return 1;
-		case '\'':
-			if( st->instance_id ) {
-				idb_remove(instance[st->instance_id].vars, num);
-				if( str[0] ) idb_put(instance[st->instance_id].vars, num, aStrdup(str));
-			}
-			return 1;
-		default:
-			return pc_setglobalreg_str(sd, name, str);
-		}
-	}
-	else
-	{// integer variable
+	} else { // integer variable
 		int val = (int)__64BPRTSIZE(value);
-		if(str_data[num&0x00ffffff].type == C_PARAM)
-		{
-			if( pc_setparam(sd, str_data[num&0x00ffffff].val, val) == 0 )
-			{
-				if( st != NULL )
-				{
+		if(str_data[num&0x00ffffff].type == C_PARAM) {
+			if( pc_setparam(sd, str_data[num&0x00ffffff].val, val) == 0 ) {
+				if( st != NULL ) {
 					ShowError("script:set_reg: failed to set param '%s' to %d.\n", name, val);
 					script_reportsrc(st);
 					st->state = END;
@@ -2710,34 +2684,33 @@ static int set_reg(struct script_state* st, TBL_PC* sd, int num, const char* nam
 		}
 
 		switch (prefix) {
-		case '@':
-			return pc_setreg(sd, num, val);
-		case '$':
-			return mapreg_setreg(num, val);
-		case '#':
-			return (name[1] == '#') ?
-				pc_setaccountreg2(sd, name, val) :
-				pc_setaccountreg(sd, name, val);
-		case '.':
-			{
-				struct DBMap* n;
-				n = (ref) ? *ref : (name[1] == '@') ? st->stack->var_function : st->script->script_vars;
-				if( n ) {
-					idb_remove(n, num);
-					if( val != 0 )
-						idb_iput(n, num, val);
+			case '@':
+				return pc_setreg(sd, num, val);
+			case '$':
+				return mapreg_setreg(num, val);
+			case '#':
+				return (name[1] == '#') ?
+					pc_setaccountreg2(sd, name, val) :
+					pc_setaccountreg(sd, name, val);
+			case '.': {
+					struct DBMap* n;
+					n = (ref) ? *ref : (name[1] == '@') ? st->stack->var_function : st->script->script_vars;
+					if( n ) {
+						idb_remove(n, num);
+						if( val != 0 )
+							idb_iput(n, num, val);
+					}
 				}
-			}
-			return 1;
-		case '\'':
-			if( st->instance_id ) {
-				idb_remove(instance[st->instance_id].vars, num);
-				if( val != 0 )
-					idb_iput(instance[st->instance_id].vars, num, val);
-			}
-			return 1;
-		default:
-			return pc_setglobalreg(sd, name, val);
+				return 1;
+			case '\'':
+				if( st->instance_id ) {
+					idb_remove(instance[st->instance_id].vars, num);
+					if( val != 0 )
+						idb_iput(instance[st->instance_id].vars, num, val);
+				}
+				return 1;
+			default:
+				return pc_setglobalreg(sd, name, val);
 		}
 	}
 }
@@ -2758,31 +2731,26 @@ const char* conv_str(struct script_state* st, struct script_data* data)
 	char* p;
 
 	get_val(st, data);
-	if( data_isstring(data) )
-	{// nothing to convert
-	}
-	else if( data_isint(data) )
-	{// int -> string
+	if( data_isstring(data) ) {
+		// nothing to convert
+	} else if( data_isint(data) ) { // int -> string
 		CREATE(p, char, ITEM_NAME_LENGTH);
 		snprintf(p, ITEM_NAME_LENGTH, "%d", data->u.num);
 		p[ITEM_NAME_LENGTH-1] = '\0';
 		data->type = C_STR;
 		data->u.str = p;
-	}
-	else if( data_isreference(data) )
-	{// reference -> string
+	} else if( data_isreference(data) ) { // reference -> string
 		//##TODO when does this happen (check get_val) [FlavioJS]
 		data->type = C_CONSTSTR;
 		data->u.str = reference_getname(data);
-	}
-	else
-	{// unsupported data type
+	} else { // unsupported data type
 		ShowError("script:conv_str: cannot convert to string, defaulting to \"\"\n");
 		script_reportdata(data);
 		script_reportsrc(st);
 		data->type = C_CONSTSTR;
 		data->u.str = "";
 	}
+
 	return data->u.str;
 }
 
@@ -2793,11 +2761,9 @@ int conv_num(struct script_state* st, struct script_data* data)
 	long num;
 
 	get_val(st, data);
-	if( data_isint(data) )
-	{// nothing to convert
-	}
-	else if( data_isstring(data) )
-	{// string -> int
+	if( data_isint(data) ) {
+		// nothing to convert
+	} else if( data_isstring(data) ) { // string -> int
 		// the result does not overflow or underflow, it is capped instead
 		// ex: 999999999999 is capped to INT_MAX (2147483647)
 		p = data->u.str;
@@ -2809,13 +2775,10 @@ int conv_num(struct script_state* st, struct script_data* data)
 #endif
 			)
 		{
-			if( num <= INT_MIN )
-			{
+			if( num <= INT_MIN ) {
 				num = INT_MIN;
 				ShowError("script:conv_num: underflow detected, capping to %ld\n", num);
-			}
-			else//if( num >= INT_MAX )
-			{
+			} else /*if( num >= INT_MAX )*/ {
 				num = INT_MAX;
 				ShowError("script:conv_num: overflow detected, capping to %ld\n", num);
 			}
@@ -2830,8 +2793,7 @@ int conv_num(struct script_state* st, struct script_data* data)
 #if 0
 	// FIXME this function is being used to retrieve the position of labels and
 	// probably other stuff [FlavioJS]
-	else
-	{// unsupported data type
+	else { // unsupported data type
 		ShowError("script:conv_num: cannot convert to number, defaulting to 0\n");
 		script_reportdata(data);
 		script_reportsrc(st);
@@ -2898,25 +2860,24 @@ struct script_data* push_retinfo(struct script_stack* stack, struct script_retin
 /// Pushes a copy of the target position into the stack
 struct script_data* push_copy(struct script_stack* stack, int pos)
 {
-	switch( stack->stack_data[pos].type )
-	{
-	case C_CONSTSTR:
-		return push_str(stack, C_CONSTSTR, stack->stack_data[pos].u.str);
-		break;
-	case C_STR:
-		return push_str(stack, C_STR, aStrdup(stack->stack_data[pos].u.str));
-		break;
-	case C_RETINFO:
-		ShowFatalError("script:push_copy: can't create copies of C_RETINFO. Exiting...\n");
-		exit(1);
-		break;
-	default:
-		return push_val2(
-			stack,stack->stack_data[pos].type,
-			stack->stack_data[pos].u.num,
-			stack->stack_data[pos].ref
-		);
-		break;
+	switch( stack->stack_data[pos].type ) {
+		case C_CONSTSTR:
+			return push_str(stack, C_CONSTSTR, stack->stack_data[pos].u.str);
+			break;
+		case C_STR:
+			return push_str(stack, C_STR, aStrdup(stack->stack_data[pos].u.str));
+			break;
+		case C_RETINFO:
+			ShowFatalError("script:push_copy: can't create copies of C_RETINFO. Exiting...\n");
+			exit(1);
+			break;
+		default:
+			return push_val2(
+				stack,stack->stack_data[pos].type,
+				stack->stack_data[pos].u.num,
+				stack->stack_data[pos].ref
+			);
+			break;
 	}
 }
 
@@ -2936,13 +2897,11 @@ void pop_stack(struct script_state* st, int start, int end)
 		return;// nothing to pop
 
 	// free stack elements
-	for( i = start; i < end; i++ )
-	{
+	for( i = start; i < end; i++ ) {
 		data = &stack->stack_data[i];
 		if( data->type == C_STR )
 			aFree(data->u.str);
-		if( data->type == C_RETINFO )
-		{
+		if( data->type == C_RETINFO ) {
 			struct script_retinfo* ri = data->u.ri;
 			if( ri->var_function )
 				script_free_vars(ri->var_function);
@@ -2953,8 +2912,7 @@ void pop_stack(struct script_state* st, int start, int end)
 		data->type = C_NOP;
 	}
 	// move the rest of the elements
-	if( stack->sp > end )
-	{
+	if( stack->sp > end ) {
 		memmove(&stack->stack_data[start], &stack->stack_data[end], sizeof(stack->stack_data[0])*(stack->sp - end));
 		for( i = start + stack->sp - end; i < stack->sp; ++i )
 			stack->stack_data[i].type = C_NOP;
@@ -2978,8 +2936,7 @@ void pop_stack(struct script_state* st, int start, int end)
  *------------------------------------------*/
 void script_free_vars(struct DBMap* storage)
 {
-	if( storage )
-	{// destroy the storage construct containing the variables
+	if( storage ) { // destroy the storage construct containing the variables
 		db_destroy(storage);
 	}
 }
@@ -3024,8 +2981,7 @@ struct script_state* script_alloc_state(struct script_code* script, int pos, int
 /// @param st Script state
 void script_free_state(struct script_state* st)
 {
-	if(st->bk_st)
-	{// backup was not restored
+	if(st->bk_st) { // backup was not restored
 		ShowDebug("script_free_state: Previous script state lost (rid=%d, oid=%d, state=%d, bk_npcid=%d).\n", st->bk_st->rid, st->bk_st->oid, st->bk_st->state, st->bk_npcid);
 	}
 	if( st->sleep.timer != INVALID_TIMER )
@@ -3049,10 +3005,10 @@ c_op get_com(unsigned char *script,int *pos)
 {
 	int i = 0, j = 0;
 
-	if(script[*pos]>=0x80){
+	if(script[*pos]>=0x80) {
 		return C_INT;
 	}
-	while(script[*pos]>=0x40){
+	while(script[*pos]>=0x40) {
 		i=script[(*pos)++]<<j;
 		j+=6;
 	}
@@ -3066,7 +3022,7 @@ int get_num(unsigned char *script,int *pos)
 {
 	int i,j;
 	i=0; j=0;
-	while(script[*pos]>=0xc0){
+	while(script[*pos]>=0xc0) {
 		i+=(script[(*pos)++]&0x7f)<<j;
 		j+=6;
 	}
@@ -10105,7 +10061,7 @@ BUILDIN_FUNC(homunculus_mutate)
 	TBL_PC *sd;
 
 	sd = script_rid2sd(st);
-	if( sd == NULL )
+	if( sd == NULL || sd->hd == NULL )
 		return 0;
 
 	if( script_hasdata(st,2) )
@@ -10148,7 +10104,7 @@ BUILDIN_FUNC(morphembryo)
 	TBL_PC *sd;
 
 	sd = script_rid2sd(st);
-	if( sd == NULL )
+	if( sd == NULL || sd->hd == NULL )
 		return 0;
 
 	if( merc_is_hom_active(sd->hd) ) {
@@ -10159,7 +10115,7 @@ BUILDIN_FUNC(morphembryo)
 			item_tmp.nameid = ITEMID_STRANGE_EMBRYO;
 			item_tmp.identify = 1;
 
-			if( item_tmp.nameid==0 || (i = pc_additem(sd, &item_tmp, 1, LOG_TYPE_SCRIPT)) ) {
+			if( item_tmp.nameid == 0 || (i = pc_additem(sd, &item_tmp, 1, LOG_TYPE_SCRIPT)) ) {
 				clif_additem(sd, 0, 0, i);
 				clif_emotion(&sd->bl, E_SWT); // Fail to avoid item drop exploit.
 			} else {
@@ -12015,8 +11971,7 @@ BUILDIN_FUNC(petskillbonus)
 		return 0;
 
 	pd=sd->pd;
-	if (pd->bonus)
-	{ //Clear previous bonus
+	if (pd->bonus) { //Clear previous bonus
 		if (pd->bonus->timer != INVALID_TIMER)
 			delete_timer(pd->bonus->timer, pet_skill_bonus_timer);
 	} else //init
@@ -12366,8 +12321,7 @@ BUILDIN_FUNC(petrecovery)
 
 	pd=sd->pd;
 	
-	if (pd->recovery)
-	{ //Halt previous bonus
+	if (pd->recovery) { //Halt previous bonus
 		if (pd->recovery->timer != INVALID_TIMER)
 			delete_timer(pd->recovery->timer, pet_recovery_timer);
 	} else //Init
@@ -12392,10 +12346,8 @@ BUILDIN_FUNC(petheal)
 		return 0;
 
 	pd=sd->pd;
-	if (pd->s_skill)
-	{ //Clear previous skill
-		if (pd->s_skill->timer != INVALID_TIMER)
-		{
+	if (pd->s_skill) { //Clear previous skill
+		if (pd->s_skill->timer != INVALID_TIMER) {
 			if (pd->s_skill->id)
 				delete_timer(pd->s_skill->timer, pet_skill_support_timer);
 			else
@@ -12486,10 +12438,8 @@ BUILDIN_FUNC(petskillsupport)
 		return 0;
 
 	pd=sd->pd;
-	if (pd->s_skill)
-	{ //Clear previous skill
-		if (pd->s_skill->timer != INVALID_TIMER)
-		{
+	if (pd->s_skill) { //Clear previous skill
+		if (pd->s_skill->timer != INVALID_TIMER) {
 			if (pd->s_skill->id)
 				delete_timer(pd->s_skill->timer, pet_skill_support_timer);
 			else
@@ -13099,8 +13049,7 @@ BUILDIN_FUNC(getmapxy)
 				bl = &sd->bl;
 			break;
 		case 1:	//Get NPC Position
-			if( script_hasdata(st,6) )
-			{
+			if( script_hasdata(st,6) ) {
 				struct npc_data *nd;
 				nd=npc_name2id(script_getstr(st,6));
 				if (nd)
