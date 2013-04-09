@@ -4728,22 +4728,21 @@ BUILDIN_FUNC(callfunc)
 	DBMap **ref = NULL;
 
 	scr = (struct script_code*)strdb_get(userfunc_db, str);
-	if( !scr )
-	{
+	if( !scr ) {
 		ShowError("script:callfunc: function not found! [%s]\n", str);
 		st->state = END;
 		return 1;
 	}
 
-	for( i = st->start+3, j = 0; i < st->end; i++, j++ )
-	{
+	for( i = st->start+3, j = 0; i < st->end; i++, j++ ) {
 		struct script_data* data = push_copy(st->stack,i);
-		if( data_isreference(data) && !data->ref )
-		{
+		if( data_isreference(data) && !data->ref ) {
 			const char* name = reference_getname(data);
 			if( name[0] == '.' ) {
-				ref = (struct DBMap**)aCalloc(sizeof(struct DBMap*), 1);
-				ref[0] = (name[1] == '@' ? st->stack->var_function : st->script->script_vars);
+				if( !ref ) {
+					ref = (struct DBMap**)aCalloc(sizeof(struct DBMap*), 1);
+					ref[0] = (name[1] == '@' ? st->stack->var_function : st->script->script_vars);
+				}
 				data->ref = ref;
 			}
 		}
@@ -4775,19 +4774,16 @@ BUILDIN_FUNC(callsub)
 	int pos = script_getnum(st,2);
 	DBMap **ref = NULL;
 
-	if( !data_islabel(script_getdata(st,2)) && !data_isfunclabel(script_getdata(st,2)) )
-	{
+	if( !data_islabel(script_getdata(st,2)) && !data_isfunclabel(script_getdata(st,2)) ) {
 		ShowError("script:callsub: argument is not a label\n");
 		script_reportdata(script_getdata(st,2));
 		st->state = END;
 		return 1;
 	}
 
-	for( i = st->start+3, j = 0; i < st->end; i++, j++ )
-	{
+	for( i = st->start+3, j = 0; i < st->end; i++, j++ ) {
 		struct script_data* data = push_copy(st->stack,i);
-		if( data_isreference(data) && !data->ref )
-		{
+		if( data_isreference(data) && !data->ref ) {
 			const char* name = reference_getname(data);
 			if( name[0] == '.' && name[1] == '@' ) {
 				if ( !ref ) {

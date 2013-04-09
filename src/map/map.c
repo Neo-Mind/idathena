@@ -14,6 +14,7 @@
 #include "../common/strlib.h"
 #include "../common/utils.h"
 #include "../common/cli.h"
+#include "../common/ers.h"
 
 #include "map.h"
 #include "path.h"
@@ -1480,13 +1481,12 @@ void map_addnickdb(int charid, const char* nick)
 	struct map_session_data* sd;
 
 	if( map_charid2sd(charid) )
-		return;// already online
+		return; // already online
 
 	p = idb_ensure(nick_db, charid, create_charid2nick);
 	safestrncpy(p->nick, nick, sizeof(p->nick));
 
-	while( p->requests )
-	{
+	while( p->requests ) {
 		req = p->requests;
 		p->requests = req->next;
 		sd = map_charid2sd(req->charid);
@@ -1508,8 +1508,7 @@ void map_delnickdb(int charid, const char* name)
 	if (!nick_db->remove(nick_db, db_i2key(charid), &data) || (p = db_data2ptr(&data)) == NULL)
 		return;
 
-	while( p->requests )
-	{
+	while( p->requests ) {
 		req = p->requests;
 		p->requests = req->next;
 		sd = map_charid2sd(req->charid);
@@ -1713,7 +1712,8 @@ int map_quit(struct map_session_data *sd) {
 	}
 
 	if( sd->channel_count ) {
-		for( i = 0; i < sd->channel_count; i++ ) {
+		uint8 ch_count = sd->channel_count;
+		for( i = 0; i < ch_count; i++ ) {
 			if( sd->channels[i] != NULL )
 				clif_chsys_left(sd->channels[i],sd);
 		}
@@ -2636,8 +2636,7 @@ bool map_iwall_set(int16 m, int16 x, int16 y, int size, int8 dir, bool shootable
 	iwall->shootable = shootable;
 	safestrncpy(iwall->wall_name, wall_name, sizeof(iwall->wall_name));
 
-	for( i = 0; i < size; i++ )
-	{
+	for( i = 0; i < size; i++ ) {
 		map_iwall_nextxy(x, y, dir, i, &x1, &y1);
 
 		if( map_getcell(m, x1, y1, CELL_CHKNOREACH) )
@@ -2668,13 +2667,11 @@ void map_iwall_get(struct map_session_data *sd)
 		return;
 
 	iter = db_iterator(iwall_db);
-	for( iwall = dbi_first(iter); dbi_exists(iter); iwall = dbi_next(iter) )
-	{
+	for( iwall = dbi_first(iter); dbi_exists(iter); iwall = dbi_next(iter) ) {
 		if( iwall->m != sd->bl.m )
 			continue;
 
-		for( i = 0; i < iwall->size; i++ )
-		{
+		for( i = 0; i < iwall->size; i++ ) {
 			map_iwall_nextxy(iwall->x, iwall->y, iwall->dir, i, &x1, &y1);
 			clif_changemapcell(sd->fd, iwall->m, x1, y1, map_getcell(iwall->m, x1, y1, CELL_GETTYPE), SELF);
 		}
@@ -2690,8 +2687,7 @@ void map_iwall_remove(const char *wall_name)
 	if( (iwall = (struct iwall_data *)strdb_get(iwall_db, wall_name)) == NULL )
 		return; // Nothing to do
 
-	for( i = 0; i < iwall->size; i++ )
-	{
+	for( i = 0; i < iwall->size; i++ ) {
 		map_iwall_nextxy(iwall->x, iwall->y, iwall->dir, i, &x1, &y1);
 
 		map_setcell(iwall->m, x1, y1, CELL_SHOOTABLE, true);
@@ -3761,8 +3757,7 @@ int do_init(int argc, char *argv[])
 
 	rnd_init();
 	map_config_read(MAP_CONF_NAME);
-	/* only temporary until sirius's datapack patch is complete  */
-	
+
 	// loads npcs
 	map_reloadnpc(false);
 

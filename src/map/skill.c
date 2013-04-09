@@ -1241,7 +1241,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 				int rate = 0, i;
 				const int pos[5] = { EQP_WEAPON, EQP_HELM, EQP_SHIELD, EQP_ARMOR, EQP_ACC };
 				// The tstatus->dex / 5 part is unofficial, but players gotta have some kind of way to have resistance. [Rytech]
-				rate = (5 + skill_lv) * skill_lv + sstatus->dex / 10 - tstatus->dex /5;
+				rate = (5 + skill_lv) * skill_lv + sstatus->dex / 10 - tstatus->dex / 5;
 				//rate -= rate * tstatus->dex / 200; // Disabled until official resistance is found.
 
 				for( i = 0; i < skill_lv; i++ )
@@ -1331,7 +1331,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			sc_start(src, bl, SC_EARTHDRIVE, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 			break;
 		case SR_DRAGONCOMBO:
-			sc_start(src, bl, SC_STUN, 1 * skill_lv, skill_lv, skill_get_time(skill_id, skill_lv));
+			sc_start(src, bl, SC_STUN, skill_lv, skill_lv, skill_get_time(skill_id, skill_lv));
 			break;
 		case SR_FALLENEMPIRE:
 			sc_start(src, bl, SC_STOP, 100, skill_lv, skill_get_time(skill_id, skill_lv));
@@ -7937,10 +7937,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case WL_STASIS:
 			if( flag&1 )
-				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id, skill_lv));
+				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 			else {
-				map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id, skill_lv),BL_CHAR,src,skill_id,skill_lv,tick,(map_flag_vs(src->m)?BCT_ALL:BCT_ENEMY|BCT_SELF)|flag|1,skill_castend_nodamage_id);
-				clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
+				map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_CHAR,src,skill_id,skill_lv,tick,(map_flag_vs(src->m)?BCT_ALL:BCT_ENEMY|BCT_SELF)|flag|1,skill_castend_nodamage_id);
+				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			}
 			break;
 

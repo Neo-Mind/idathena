@@ -442,13 +442,11 @@ int parse_fromchar(int fd){
 		uint16 command = RFIFOW(fd,0);
 
 		switch( command ) {
-
 			case 0x2712: // request from char-server to authenticate an account
 				if( RFIFOREST(fd) < 23 )
 					return 0;
 				else {
 					struct auth_node* node;
-
 					int account_id = RFIFOL(fd,2);
 					uint32 login_id1 = RFIFOL(fd,6);
 					uint32 login_id2 = RFIFOL(fd,10);
@@ -497,7 +495,7 @@ int parse_fromchar(int fd){
 						WFIFOSET(fd,25);
 					}
 				}
-			break;
+				break;
 
 			case 0x2714:
 				if( RFIFOREST(fd) < 6 )
@@ -513,7 +511,7 @@ int parse_fromchar(int fd){
 						server[id].users = users;
 					}
 				}
-			break;
+				break;
 
 			case 0x2715: // request from char server to change e-email from default "a@a.com"
 				if (RFIFOREST(fd) < 46)
@@ -537,7 +535,7 @@ int parse_fromchar(int fd){
 						accounts->save(accounts, &acc);
 					}
 				}
-			break;
+				break;
 
 			case 0x2716: // request account data
 				if( RFIFOREST(fd) < 6 )
@@ -549,9 +547,11 @@ int parse_fromchar(int fd){
 					int group_id = 0;
 					uint8 char_slots = 0;
 					char birthdate[10+1] = "";
-					char pincode[4+1] = "";
-
+					char pincode[PINCODE_LENGTH+1];
 					int account_id = RFIFOL(fd,2);
+
+					memset(pincode, 0, PINCODE_LENGTH+1);
+
 					RFIFOSKIP(fd,6);
 
 					if( !accounts->load_num(accounts, &acc, account_id) )
@@ -577,7 +577,7 @@ int parse_fromchar(int fd){
 					WFIFOL(fd,68) = (uint32)acc.pincode_change;
 					WFIFOSET(fd,72);
 				}
-			break;
+				break;
 
 			case 0x2719: // ping request from charserver
 				RFIFOSKIP(fd,2);
@@ -585,7 +585,7 @@ int parse_fromchar(int fd){
 				WFIFOHEAD(fd,2);
 				WFIFOW(fd,0) = 0x2718;
 				WFIFOSET(fd,2);
-			break;
+				break;
 
 			// Map server send information to change an email of an account via char-server
 			case 0x2722:	// 0x2722 <account_id>.L <actual_e-mail>.40B <new_e-mail>.40B
@@ -618,7 +618,7 @@ int parse_fromchar(int fd){
 						accounts->save(accounts, &acc);
 					}
 				}
-			break;
+				break;
 
 			case 0x2724: // Receiving an account state update request from a map-server (relayed via char-server)
 				if (RFIFOREST(fd) < 10)
@@ -652,7 +652,7 @@ int parse_fromchar(int fd){
 						}
 					}
 				}
-			break;
+				break;
 
 			case 0x2725: // Receiving of map-server via char-server a ban request
 				if (RFIFOREST(fd) < 18)
@@ -709,7 +709,7 @@ int parse_fromchar(int fd){
 						}
 					}
 				}
-			break;
+				break;
 
 			case 0x2727: // Change of sex (sex is reversed)
 				if( RFIFOREST(fd) < 6 )
@@ -741,7 +741,7 @@ int parse_fromchar(int fd){
 						charif_sendallwos(-1, buf, 7);
 					}
 				}
-			break;
+				break;
 
 			case 0x2728:	// We receive account_reg2 from a char-server, and we send them to other map-servers.
 				if( RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2) )
@@ -778,7 +778,7 @@ int parse_fromchar(int fd){
 					}
 					RFIFOSKIP(fd,RFIFOW(fd,2));
 				}
-			break;
+				break;
 
 			case 0x272a:	// Receiving of map-server via char-server an unban request
 				if( RFIFOREST(fd) < 6 )
@@ -799,21 +799,21 @@ int parse_fromchar(int fd){
 						accounts->save(accounts, &acc);
 					}
 				}
-			break;
+				break;
 
 			case 0x272b:    // Set account_id to online [Wizputer]
 				if( RFIFOREST(fd) < 6 )
 					return 0;
 				add_online_user(id, RFIFOL(fd,2));
 				RFIFOSKIP(fd,6);
-			break;
+				break;
 
 			case 0x272c:   // Set account_id to offline [Wizputer]
 				if( RFIFOREST(fd) < 6 )
 					return 0;
 				remove_online_user(RFIFOL(fd,2));
 				RFIFOSKIP(fd,6);
-			break;
+				break;
 
 			case 0x272d:	// Receive list of all online accounts. [Skotlex]
 				if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
@@ -836,7 +836,7 @@ int parse_fromchar(int fd){
 
 					RFIFOSKIP(fd,RFIFOW(fd,2));
 				}
-			break;
+				break;
 
 			case 0x272e: //Request account_reg2 for a character.
 				if (RFIFOREST(fd) < 10)
@@ -868,7 +868,7 @@ int parse_fromchar(int fd){
 					WFIFOW(fd,2) = (uint16)off;
 					WFIFOSET(fd,WFIFOW(fd,2));
 				}
-			break;
+				break;
 
 			case 0x2736: // WAN IP update from char-server
 				if( RFIFOREST(fd) < 6 )
@@ -876,13 +876,13 @@ int parse_fromchar(int fd){
 				server[id].ip = ntohl(RFIFOL(fd,2));
 				ShowInfo("Updated IP of Server #%d to %d.%d.%d.%d.\n",id, CONVIP(server[id].ip));
 				RFIFOSKIP(fd,6);
-			break;
+				break;
 
 			case 0x2737: //Request to set all offline.
 				ShowInfo("Setting accounts from char-server %d offline.\n", id);
 				online_db->foreach(online_db, online_db_setoffline, id);
 				RFIFOSKIP(fd,2);
-			break;
+				break;
 
 			case 0x2738: //Change PIN Code for a account
 				if( RFIFOREST(fd) < 11 )
@@ -898,7 +898,7 @@ int parse_fromchar(int fd){
 
 					RFIFOSKIP(fd,11);
 				}
-			break;
+				break;
 
 			case 0x2739: // PIN Code was entered wrong too often
 				if( RFIFOREST(fd) < 6 )
@@ -921,7 +921,7 @@ int parse_fromchar(int fd){
 
 					RFIFOSKIP(fd,6);
 				}
-			break;
+				break;
 
 			default:
 				ShowError("parse_fromchar: Unknown packet 0x%x from a char-server! Disconnecting!\n", command);
