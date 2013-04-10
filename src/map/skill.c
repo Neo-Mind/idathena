@@ -3365,8 +3365,11 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case CH_PALMSTRIKE: {
 						struct status_change* tsc = status_get_sc(target);
 						struct status_change* sc = status_get_sc(src);
-						if( ( tsc && tsc->option&OPTION_HIDE ) ||
-							( sc && sc->option&OPTION_HIDE ) ){
+						if( ( tsc && tsc->option&OPTION_HIDE ) || ( sc && sc->option&OPTION_HIDE ) ) {
+							skill_blown(src,target,skill_get_blewcount(skl->skill_id, skl->skill_lv), -1, 0x0 );
+							break;
+						} else if( tsc && tsc->data[SC_SAFETYWALL] ) {
+							skill_attack(skl->type,src,src,target,skl->skill_id,skl->skill_lv,tick,skl->flag);
 							skill_blown(src,target,skill_get_blewcount(skl->skill_id, skl->skill_lv), -1, 0x0 );
 							break;
 						}
@@ -4001,7 +4004,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case CH_PALMSTRIKE: // Palm Strike takes effect 1sec after casting. [Skotlex]
 			//clif_skill_nodamage(src,bl,skill_id,skill_lv,0); //Can't make this one display the correct attack animation delay :/
 			clif_damage(src,bl,tick,status_get_amotion(src),0,-1,1,4,0); //Display an absorbed damage attack.
-			skill_addtimerskill(src, tick + (1000+status_get_amotion(src)), bl->id, 0, 0, skill_id, skill_lv, BF_WEAPON, flag);
+			skill_addtimerskill(src,tick+(1000+status_get_amotion(src)),bl->id,0,0,skill_id,skill_lv,BF_WEAPON,flag);
 			break;
 
 		case PR_TURNUNDEAD:
