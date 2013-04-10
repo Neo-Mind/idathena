@@ -745,7 +745,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 	if( sc && sc->data[SC_INVINCIBLE] && !sc->data[SC_INVINCIBLEOFF] )
 		return 1;
 
-	if (skill_id == PA_PRESSURE)
+	if( skill_id == PA_PRESSURE )
 		return damage; //This skill bypass everything else.
 
 	if( sc && sc->count ) {
@@ -754,15 +754,14 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}
-		if( sc->data[SC_WHITEIMPRISON] && skill_id != HW_GRAVITATION ) { // Gravitation and Pressure do damage without removing the effect
+		// Gravitation and Pressure do damage without removing the effect
+		if( sc->data[SC_WHITEIMPRISON] && skill_id != HW_GRAVITATION ) {
 			if( skill_id == MG_NAPALMBEAT ||
 				skill_id == MG_SOULSTRIKE ||
 				skill_id == WL_SOULEXPANSION ||
 				(skill_id && skill_get_ele(skill_id, skill_lv) == ELE_GHOST) ||
 				(!skill_id && (status_get_status_data(src))->rhw.ele == ELE_GHOST)
 					) {
-				if( skill_id == WL_SOULEXPANSION )
-					damage <<= 1; // If used against a player in White Imprison, the skill deals double damage.
 				status_change_end(bl,SC_WHITEIMPRISON,INVALID_TIMER); // Those skills do damage and removes effect
 			} else {
 				d->dmg_lv = ATK_BLOCK;
@@ -770,7 +769,8 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			}
 		}
 
-		if( sc->data[SC_ZEPHYR] && (flag&(BF_LONG|BF_SHORT) == BF_LONG ) ) {
+		if( sc->data[SC_ZEPHYR] && (((flag&(BF_SHORT|BF_LONG)) == BF_LONG) ||
+			((flag&BF_MAGIC) && skill_id && !(skill_get_inf(skill_id)&INF_GROUND_SKILL))) ) {
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}
@@ -817,7 +817,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			sc_start2(src,bl,SC_COMBO,100,GC_WEAPONBLOCKING,src->id,2000);
 			return 0;
 		}
-		if( (sce=sc->data[SC_AUTOGUARD]) && flag&BF_WEAPON && !(skill_get_nk(skill_id)&NK_NO_CARDFIX_ATK) && rnd()%100 < sce->val2 ) {
+		if( (sce = sc->data[SC_AUTOGUARD]) && flag&BF_WEAPON && !(skill_get_nk(skill_id)&NK_NO_CARDFIX_ATK) && rnd()%100 < sce->val2 ) {
 			int delay;
 			clif_skill_nodamage(bl,bl,CR_AUTOGUARD,sce->val1,1);
 			// different delay depending on skill level [celest]
@@ -852,7 +852,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			return 0;
 		}
 
-		if( (sce=sc->data[SC_PARRYING]) && flag&BF_WEAPON && skill_id != WS_CARTTERMINATION && rnd()%100 < sce->val2 ) {
+		if( (sce = sc->data[SC_PARRYING]) && flag&BF_WEAPON && skill_id != WS_CARTTERMINATION && rnd()%100 < sce->val2 ) {
 			// attack blocked by Parrying
 			clif_skill_nodamage(bl, bl, LK_PARRYING, sce->val1,1);
 			return 0;
@@ -874,7 +874,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		if(sc->data[SC_TATAMIGAESHI] && (flag&(BF_MAGIC|BF_LONG)) == BF_LONG)
 			return 0;
 
-		if((sce=sc->data[SC_KAUPE]) && rnd()%100 < sce->val2) {
+		if((sce = sc->data[SC_KAUPE]) && rnd()%100 < sce->val2) {
 			//Kaupe blocks damage (skill or otherwise) from players, mobs, homuns, mercenaries.
 			clif_specialeffect(bl, 462, AREA);
 			//Shouldn't end until Breaker's non-weapon part connects.
@@ -893,7 +893,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			return 0;
 		}
 
-		if (((sce=sc->data[SC_UTSUSEMI]) || sc->data[SC_BUNSINJYUTSU])
+		if (((sce = sc->data[SC_UTSUSEMI]) || sc->data[SC_BUNSINJYUTSU])
 		&& flag&BF_WEAPON && !(skill_get_nk(skill_id)&NK_NO_CARDFIX_ATK)) {
 			
 			skill_additional_effect (src, bl, skill_id, skill_lv, flag, ATK_BLOCK, gettick() );

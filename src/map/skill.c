@@ -6018,7 +6018,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,0);
 				break;
 			}
-			if (tsc && tsc->opt1) {
+			if(tsc && tsc->opt1) {
 				status_change_end(bl, SC_FREEZE, INVALID_TIMER);
 				status_change_end(bl, SC_STONE, INVALID_TIMER);
 				status_change_end(bl, SC_SLEEP, INVALID_TIMER);
