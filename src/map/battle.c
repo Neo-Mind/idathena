@@ -4406,7 +4406,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			{
 				short atk, matk, size_mod, bonus;
 				atk  = (2 * sstatus->batk) + sstatus->rhw.atk;
-				matk = sstatus->matk_max + sd ? sstatus->matk_min : 0;
+				matk = sstatus->matk_max + (sd ? sstatus->matk_min : 0);
 				size_mod  = sd ? sd->right_weapon.atkmods[tstatus->size] : 100;
 				bonus = sd ? sd->bonus.long_attack_atk_rate : 0; // Long ATK Bonus. Likes : Archer Skeleton Card
 
@@ -4425,8 +4425,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 					md.damage += md.damage * bonus / 100;
 			}
 #else
-			if(tstatus->vit+sstatus->int_) //crash fix
-				md.damage = (int)(7*tstatus->vit*sstatus->int_*sstatus->int_ / (10*(tstatus->vit+sstatus->int_)));
+			if (tstatus->vit + sstatus->int_) //crash fix
+				md.damage = (int)(7 * tstatus->vit * sstatus->int_ * sstatus->int_ / (10 * (tstatus->vit + sstatus->int_)));
 			else
 				md.damage = 0;
 			if (tsd) md.damage>>=1;
@@ -4442,7 +4442,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				if (!md.damage) md.damage = 2;
 				md.damage = (skill_id==NJ_ZENYNAGE?rnd()%md.damage+md.damage:md.damage*rnd_value(50, 100)) / (skill_id==NJ_ZENYNAGE?1:100);
 				if (sd) {
-					if ( skill_id==KO_MUCHANAGE && (pc_checkskill(sd,NJ_TOBIDOUGU)==0) )
+					if (skill_id==KO_MUCHANAGE && (pc_checkskill(sd,NJ_TOBIDOUGU)==0))
 						md.damage = md.damage/2;
 				}
 				if (is_boss(target))
@@ -4457,11 +4457,11 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			md.damage = sstatus->max_hp * (50 + 50 * skill_lv) / 100;
 			break ;
 		case ASC_BREAKER:
-			md.damage = 500+rnd()%500 + 5*skill_lv * sstatus->int_;
+			md.damage = 500 + rnd()%500 + 5 * skill_lv * sstatus->int_;
 			nk|=NK_IGNORE_FLEE|NK_NO_ELEFIX; //These two are not properties of the weapon based part.
 			break;
 		case HW_GRAVITATION:
-			md.damage = 200+200*skill_lv;
+			md.damage = 200 + 200*skill_lv;
 			md.dmotion = 0; //No flinch animation.
 			break;
 		case NPC_EVILLAND:
@@ -4482,11 +4482,11 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			if (sd) {
 				int researchskill_lv = pc_checkskill(sd,RA_RESEARCHTRAP);
 				if(researchskill_lv)
-					md.damage = md.damage * 20 * researchskill_lv / (skill_id == RA_CLUSTERBOMB?50:100);
+					md.damage = md.damage * 20 * researchskill_lv / (skill_id == RA_CLUSTERBOMB ? 50 : 100);
 				else
 					md.damage = 0;
 			} else
-				md.damage = md.damage * 200 / (skill_id == RA_CLUSTERBOMB?50:100);
+				md.damage = md.damage * 200 / (skill_id == RA_CLUSTERBOMB ? 50 : 100);
 			break;
 		case WM_SOUND_OF_DESTRUCTION:
 			md.damage = 1000 * skill_lv + sstatus->int_ * pc_checkskill(sd,WM_LESSON);
