@@ -10,6 +10,7 @@
 #include "itemdb.h"
 #include "map.h"
 #include "battle.h" // struct battle_config
+#include "cashshop.h"
 #include "script.h" // item script processing
 #include "pc.h"     // W_MUSICAL, W_WHIP
 
@@ -1374,7 +1375,7 @@ void itemdb_reload(void)
 	struct map_session_data* sd;
 
 	int i,d,k;
-	
+
 	// clear the previous itemdb data
 	for( i = 0; i < ARRAYLENGTH(itemdb_array); ++i )
 		if( itemdb_array[i] )
@@ -1383,10 +1384,11 @@ void itemdb_reload(void)
 	itemdb_other->clear(itemdb_other, itemdb_final_sub);
 
 	memset(itemdb_array, 0, sizeof(itemdb_array));
-		
+
 	// read new data
 	itemdb_read();
-	
+	cashshop_reloaddb();
+
 	//Epoque's awesome @reloaditemdb fix - thanks! [Ind]
 	//- Fixes the need of a @reloadmobdb after a @reloaditemdb to re-link monster drop data
 	for( i = 0; i < MAX_MOB_DB; i++ ) {

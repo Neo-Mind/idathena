@@ -48,6 +48,7 @@
 #include "atcommand.h"
 #include "log.h"
 #include "mail.h"
+#include "cashshop.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -70,6 +71,8 @@ int db_use_sqldbs = 0;
 char item_db_db[32] = "item_db";
 char item_db2_db[32] = "item_db2";
 char item_db_re_db[32] = "item_db_re";
+char item_cash_db_db[32] = "item_cash_db";
+char item_cash_db2_db[32] = "item_cash_db2";
 char mob_db_db[32] = "mob_db";
 char mob_db2_db[32] = "mob_db2";
 char mob_skill_db_db[32] = "mob_skill_db";
@@ -3424,6 +3427,10 @@ int inter_config_read(char *cfgName)
 			strcpy(item_db_re_db,w2);
 		else if(strcmpi(w1,"mob_db2_db")==0)
 			strcpy(mob_db2_db,w2);
+		else if(strcmpi(w1,"item_cash_db_db")==0)
+			strcpy(item_cash_db_db,w2);
+		else if(strcmpi(w1,"item_cash_db2_db" )==0)
+			strcpy(item_cash_db2_db,w2);
 		//Map Server SQL DB
 		else if(strcmpi(w1,"map_server_ip")==0)
 			strcpy(map_server_ip, w2);
@@ -3636,6 +3643,7 @@ void do_final(void)
 	do_final_battleground();
 	do_final_duel();
 	do_final_elemental();
+	do_final_cashshop();
 	do_final_maps();
 
 	map_db->destroy(map_db, map_db_final);
@@ -3821,6 +3829,7 @@ int do_init(int argc, char *argv[])
 	do_init_clif();
 	do_init_script();
 	do_init_itemdb();
+	do_init_cashshop();
 	do_init_skill();
 	do_init_mob();
 	do_init_pc();

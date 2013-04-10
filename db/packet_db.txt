@@ -1940,8 +1940,12 @@ packet_ver: 34
 0x094E,-1,searchstoreinfo,2:4:5:9:13:14:15
 //0x0835,2,searchstoreinfonextpage,0
 //0x0838,12,searchstoreinfolistitemclick,2:6:10
+
+// New cashshop
 0x0844,2,cashshopopen,0
 0x084A,2,cashshopclose,0
+0x08C9,4,cashshopitemlist,0
+0x0848,-1,cashshopbuy,0
 
 //Add new packets here
 //packet_ver: 35

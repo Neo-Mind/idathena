@@ -709,9 +709,9 @@ bool pc_should_log_commands(struct map_session_data *sd);
 
 int pc_setrestartvalue(struct map_session_data *sd,int type);
 int pc_makesavestatus(struct map_session_data *);
-void pc_respawn(struct map_session_data* sd, clr_type clrtype);
+void pc_respawn(struct map_session_data* sd,clr_type clrtype);
 int pc_setnewpc(struct map_session_data*,int,int,int,unsigned int,int,int);
-bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_time, int group_id, struct mmo_charstatus *st, bool changing_mapservers);
+bool pc_authok(struct map_session_data *sd,int login_id2,time_t expiration_time,int group_id,struct mmo_charstatus *st,bool changing_mapservers);
 void pc_authfail(struct map_session_data *);
 int pc_reg_received(struct map_session_data *sd);
 
@@ -730,22 +730,22 @@ int pc_clean_skilltree(struct map_session_data *sd);
 #define pc_checkoverhp(sd) ((sd)->battle_status.hp == (sd)->battle_status.max_hp)
 #define pc_checkoversp(sd) ((sd)->battle_status.sp == (sd)->battle_status.max_sp)
 
-int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y, clr_type clrtype);
+int pc_setpos(struct map_session_data* sd,unsigned short mapindex,int x,int y,clr_type clrtype);
 int pc_setsavepoint(struct map_session_data*,short,int,int);
 int pc_randomwarp(struct map_session_data *sd,clr_type type);
-int pc_memo(struct map_session_data* sd, int pos);
+int pc_memo(struct map_session_data* sd,int pos);
 
 int pc_checkadditem(struct map_session_data*,int,int);
 int pc_inventoryblank(struct map_session_data*);
 int pc_search_inventory(struct map_session_data *sd,int item_id);
-int pc_payzeny(struct map_session_data*,int, enum e_log_pick_type type, struct map_session_data*);
+int pc_payzeny(struct map_session_data*,int,enum e_log_pick_type type,struct map_session_data*);
 int pc_additem(struct map_session_data*,struct item*,int,e_log_pick_type);
-int pc_getzeny(struct map_session_data*,int, enum e_log_pick_type, struct map_session_data*);
+int pc_getzeny(struct map_session_data*,int,enum e_log_pick_type,struct map_session_data*);
 int pc_delitem(struct map_session_data*,int,int,int,short,e_log_pick_type);
 
 // Special Shop System
-int pc_paycash(struct map_session_data *sd, int price, int points);
-int pc_getcash(struct map_session_data *sd, int cash, int points);
+int pc_paycash(struct map_session_data *sd,int price,int points,e_log_pick_type type);
+int pc_getcash(struct map_session_data *sd,int cash,int points,e_log_pick_type type);
 
 int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amount,e_log_pick_type log_type);
 int pc_cart_delitem(struct map_session_data *sd,int n,int amount,int type,e_log_pick_type log_type);
@@ -764,7 +764,7 @@ int pc_updateweightstatus(struct map_session_data *sd);
 
 int pc_addautobonus(struct s_autobonus *bonus,char max,const char *script,short rate,unsigned int dur,short atk_type,const char *o_script,unsigned short pos,bool onskill);
 int pc_exeautobonus(struct map_session_data* sd,struct s_autobonus *bonus);
-int pc_endautobonus(int tid, unsigned int tick, int id, intptr_t data);
+int pc_endautobonus(int tid, unsigned int tick,int id,intptr_t data);
 int pc_delautobonus(struct map_session_data* sd,struct s_autobonus *bonus,char max,bool restore);
 
 int pc_bonus(struct map_session_data*,int,int);
@@ -772,7 +772,7 @@ int pc_bonus2(struct map_session_data *sd,int,int,int);
 int pc_bonus3(struct map_session_data *sd,int,int,int,int);
 int pc_bonus4(struct map_session_data *sd,int,int,int,int,int);
 int pc_bonus5(struct map_session_data *sd,int,int,int,int,int,int);
-int pc_skill(struct map_session_data* sd, int id, int level, int flag);
+int pc_skill(struct map_session_data* sd,int id,int level,int flag);
 
 int pc_insert_card(struct map_session_data *sd,int idx_card,int idx_equip);
 

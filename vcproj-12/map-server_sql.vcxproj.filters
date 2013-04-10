@@ -13,6 +13,9 @@
     <ClCompile Include="..\src\map\buyingstore.c">
       <Filter>map_sql</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\map\cashshop.c">
+      <Filter>map_sql</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\map\chat.c">
       <Filter>map_sql</Filter>
     </ClCompile>
@@ -181,7 +184,13 @@
     <ClCompile Include="..\3rdparty\libconfig\strbuf.c">
       <Filter>3rdparty\libconfig</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\common\cli.c" />
+      <Filter>common</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\common\thread.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\msg_conf.c" />
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\common\mutex.c">
@@ -205,6 +214,9 @@
       <Filter>map_sql</Filter>
     </ClInclude>
     <ClInclude Include="..\src\map\buyingstore.h">
+      <Filter>map_sql</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\map\cashshop.h">
       <Filter>map_sql</Filter>
     </ClInclude>
     <ClInclude Include="..\src\map\chat.h">
@@ -395,10 +407,16 @@
     <ClInclude Include="..\src\common\thread.h">
       <Filter>common</Filter>
     </ClInclude>
+	<ClInclude Include="..\src\common\cli.h" />
+      <Filter>common</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\common\mutex.h">
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\common\mempool.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\common\msg_conf.h" />
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\common\raconf.h">

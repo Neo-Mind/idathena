@@ -1291,81 +1291,76 @@ int npc_buysellsel(struct map_session_data* sd, int id, int type)
 *------------------------------------------*/
 int npc_cashshop_buylist(struct map_session_data *sd, int points, int count, unsigned short* item_list)
 {
-    int i, j, nameid, amount, new_, w, vt;
-    struct npc_data *nd = (struct npc_data *)map_id2bl(sd->npc_shopid);
+	int i, j, nameid, amount, new_, w, vt;
+	struct npc_data *nd = (struct npc_data *)map_id2bl(sd->npc_shopid);
 
-    if( !nd || nd->subtype != CASHSHOP )
-        return 1;
+	if( !nd || nd->subtype != CASHSHOP )
+		return 1;
 
-    if( sd->state.trading )
-        return 4;
+	if( sd->state.trading )
+		return 4;
 
-    new_ = 0;
-    w = 0;
-    vt = 0; // Global Value
+	new_ = 0;
+	w = 0;
+	vt = 0; // Global Value
 
-    // Validating Process ----------------------------------------------------
-    for( i = 0; i < count; i++ )
-    {
-        nameid = item_list[i*2+1];
-        amount = item_list[i*2+0];
+	// Validating Process ----------------------------------------------------
+	for( i = 0; i < count; i++ ) {
+		nameid = item_list[i*2+1];
+		amount = item_list[i*2+0];
 
-        if( !itemdb_exists(nameid) || amount <= 0 )
-            return 5;
+		if( !itemdb_exists(nameid) || amount <= 0 )
+			return 5;
 
-        ARR_FIND(0,nd->u.shop.count,j,nd->u.shop.shop_item[j].nameid == nameid);
-        if( j == nd->u.shop.count || nd->u.shop.shop_item[j].value <= 0 )
-            return 5;
+		ARR_FIND(0,nd->u.shop.count,j,nd->u.shop.shop_item[j].nameid == nameid);
+		if( j == nd->u.shop.count || nd->u.shop.shop_item[j].value <= 0 )
+			return 5;
 
-        if( !itemdb_isstackable(nameid) && amount > 1 )
-        {
-            ShowWarning("Player %s (%d:%d) sent a hexed packet trying to buy %d of nonstackable item %d!\n", sd->status.name, sd->status.account_id, sd->status.char_id, amount, nameid);
-            amount = item_list[i*2+0] = 1;
-        }
+		if( !itemdb_isstackable(nameid) && amount > 1 ) {
+			ShowWarning("Player %s (%d:%d) sent a hexed packet trying to buy %d of nonstackable item %d!\n", sd->status.name, sd->status.account_id, sd->status.char_id, amount, nameid);
+			amount = item_list[i*2+0] = 1;
+		}
 
-        switch( pc_checkadditem(sd,nameid,amount) )
-        {
-            case ADDITEM_NEW:
-                new_++;
-                break;
-            case ADDITEM_OVERAMOUNT:
-                return 3;
-        }
+		switch( pc_checkadditem(sd,nameid,amount) ) {
+			case ADDITEM_NEW:
+				new_++;
+				break;
+			case ADDITEM_OVERAMOUNT:
+				return 3;
+		}
 
-        vt += nd->u.shop.shop_item[j].value * amount;
-        w += itemdb_weight(nameid) * amount;
-    }
+		vt += nd->u.shop.shop_item[j].value * amount;
+		w += itemdb_weight(nameid) * amount;
+	}
 
-    if( w + sd->weight > sd->max_weight )
-        return 3;
-    if( pc_inventoryblank(sd) < new_ )
-        return 3;
-    if( points > vt ) points = vt;
+	if( w + sd->weight > sd->max_weight )
+		return 3;
+	if( pc_inventoryblank(sd) < new_ )
+		return 3;
+	if( points > vt ) points = vt;
 
-    // Payment Process ----------------------------------------------------
-    if( sd->kafraPoints < points || sd->cashPoints < (vt - points) )
-        return 6;
-    pc_paycash(sd,vt,points);
+	// Payment Process ----------------------------------------------------
+	if( sd->kafraPoints < points || sd->cashPoints < (vt - points) )
+		return 6;
+	pc_paycash(sd,vt,points,LOG_TYPE_NPC);
 
-    // Delivery Process ----------------------------------------------------
-    for( i = 0; i < count; i++ )
-    {
-        struct item item_tmp;
+	// Delivery Process ----------------------------------------------------
+	for( i = 0; i < count; i++ ) {
+		struct item item_tmp;
 
-        nameid = item_list[i*2+1];
-        amount = item_list[i*2+0];
+		nameid = item_list[i*2+1];
+		amount = item_list[i*2+0];
 
-        memset(&item_tmp,0,sizeof(item_tmp));
+		memset(&item_tmp,0,sizeof(item_tmp));
 
-        if( !pet_create_egg(sd,nameid) )
-        {
-            item_tmp.nameid = nameid;
-            item_tmp.identify = 1;
-            pc_additem(sd,&item_tmp,amount,LOG_TYPE_NPC);
-        }
-    }
+		if( !pet_create_egg(sd,nameid) ) {
+			item_tmp.nameid = nameid;
+			item_tmp.identify = 1;
+			pc_additem(sd,&item_tmp,amount,LOG_TYPE_NPC);
+		}
+	}
 
-    return 0;
+	return 0;
 }
 
 //npc_buylist for script-controlled shops.
@@ -1424,15 +1419,13 @@ int npc_cashshop_buy(struct map_session_data *sd, int nameid, int amount, int po
 	if( nd->u.shop.shop_item[i].value <= 0 )
 		return 5;
 
-	if(!itemdb_isstackable(nameid) && amount > 1)
-	{
+	if(!itemdb_isstackable(nameid) && amount > 1) {
 		ShowWarning("Player %s (%d:%d) sent a hexed packet trying to buy %d of nonstackable item %d!\n",
 			sd->status.name, sd->status.account_id, sd->status.char_id, amount, nameid);
 		amount = 1;
 	}
 
-	switch( pc_checkadditem(sd, nameid, amount) )
-	{
+	switch( pc_checkadditem(sd, nameid, amount) ) {
 		case ADDITEM_NEW:
 			if( pc_inventoryblank(sd) == 0 )
 				return 3;
@@ -1445,8 +1438,7 @@ int npc_cashshop_buy(struct map_session_data *sd, int nameid, int amount, int po
 	if( w + sd->weight > sd->max_weight )
 		return 3;
 
-	if( (double)nd->u.shop.shop_item[i].value * amount > INT_MAX )
-	{
+	if( (double)nd->u.shop.shop_item[i].value * amount > INT_MAX ) {
 		ShowWarning("npc_cashshop_buy: Item '%s' (%d) price overflow attempt!\n", item->name, nameid);
 		ShowDebug("(NPC:'%s' (%s,%d,%d), player:'%s' (%d/%d), value:%d, amount:%d)\n",
 					nd->exname, map[nd->bl.m].name, nd->bl.x, nd->bl.y, sd->status.name, sd->status.account_id, sd->status.char_id, nd->u.shop.shop_item[i].value, amount);
@@ -1460,10 +1452,9 @@ int npc_cashshop_buy(struct map_session_data *sd, int nameid, int amount, int po
 	if( (sd->kafraPoints < points) || (sd->cashPoints < price - points) )
 		return 6;
 
-	pc_paycash(sd, price, points);
+	pc_paycash(sd, price, points, LOG_TYPE_NPC);
 
-	if( !pet_create_egg(sd, nameid) )
-	{
+	if( !pet_create_egg(sd, nameid) ) {
 		struct item item_tmp;
 		memset(&item_tmp, 0, sizeof(struct item));
 		item_tmp.nameid = nameid;

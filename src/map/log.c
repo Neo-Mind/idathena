@@ -54,8 +54,7 @@ struct Log_Config log_config;
 /// obtain log type character for item/zeny logs
 static char log_picktype2char(e_log_pick_type type)
 {
-	switch( type )
-	{
+	switch( type ) {
 		case LOG_TYPE_TRADE:            return 'T';  // (T)rade
 		case LOG_TYPE_VENDING:          return 'V';  // (V)ending
 		case LOG_TYPE_PICKDROP_PLAYER:  return 'P';  // (P)player
@@ -74,6 +73,7 @@ static char log_picktype2char(e_log_pick_type type)
 		case LOG_TYPE_BUYING_STORE:     return 'B';  // (B)uying Store
 		case LOG_TYPE_LOOT:             return 'L';  // (L)oot (consumed monster pick/drop)
 		case LOG_TYPE_OTHER:			return 'X';  // Other
+		case LOG_TYPE_CASH:             return '$';  // Cash
 	}
 
 	// should not get here, fallback
@@ -85,8 +85,7 @@ static char log_picktype2char(e_log_pick_type type)
 /// obtain log type character for chat logs
 static char log_chattype2char(e_log_chat_type type)
 {
-	switch( type )
-	{
+	switch( type ) {
 		case LOG_CHAT_GLOBAL:   return 'O';  // Gl(O)bal
 		case LOG_CHAT_WHISPER:  return 'W';  // (W)hisper
 		case LOG_CHAT_PARTY:    return 'P';  // (P)arty
@@ -95,6 +94,20 @@ static char log_chattype2char(e_log_chat_type type)
 	}
 
 	// should not get here, fallback
+	ShowDebug("log_chattype2char: Unknown chat type %d.\n", type);
+	return 'O';
+}
+
+
+static char log_cashtype2char( e_log_cash_type type )
+{
+	switch( type ) {
+		case LOG_CASH_TYPE_CASH:
+			return 'C';
+		case LOG_CASH_TYPE_KAFRA:
+			return 'K';
+	}
+
 	ShowDebug("log_chattype2char: Unknown chat type %d.\n", type);
 	return 'O';
 }
@@ -155,9 +168,7 @@ void log_branch(struct map_session_data* sd)
 		}
 		SqlStmt_Free(stmt);
 #endif
-	}
-	else
-	{
+	} else {
 		char timestring[255];
 		time_t curtime;
 		FILE* logfp;
@@ -175,16 +186,14 @@ void log_branch(struct map_session_data* sd)
 void log_pick(int id, int16 m, e_log_pick_type type, int amount, struct item* itm)
 {
 	nullpo_retv(itm);
-	if( ( log_config.enable_logs&type ) == 0 )
-	{// disabled
+	if( ( log_config.enable_logs&type ) == 0 ) { // disabled
 		return;
 	}
 
 	if( !should_log_item(itm->nameid, amount, itm->refine) )
 		return; //we skip logging this item set - it doesn't meet our logging conditions [Lupus]
 
-	if( log_config.sql_logs )
-	{
+	if( log_config.sql_logs ) {
 #ifdef BETA_THREAD_TEST
 		char entry[512];
 		int e_length = 0;
@@ -199,9 +208,7 @@ void log_pick(int id, int16 m, e_log_pick_type type, int amount, struct item* it
 			return;
 		}
 #endif
-	}
-	else
-	{
+	} else {
 		char timestring[255];
 		time_t curtime;
 		FILE* logfp;
@@ -238,8 +245,7 @@ void log_zeny(struct map_session_data* sd, e_log_pick_type type, struct map_sess
 	if( !log_config.zeny || ( log_config.zeny != 1 && abs(amount) < log_config.zeny ) )
 		return;
 
-	if( log_config.sql_logs )
-	{
+	if( log_config.sql_logs ) {
 #ifdef BETA_THREAD_TEST
 		char entry[512];
 		int e_length = 0;
@@ -254,9 +260,7 @@ void log_zeny(struct map_session_data* sd, e_log_pick_type type, struct map_sess
 			return;
 		}
 #endif
-	}
-	else
-	{
+	} else {
 		char timestring[255];
 		time_t curtime;
 		FILE* logfp;
@@ -279,8 +283,7 @@ void log_mvpdrop(struct map_session_data* sd, int monster_id, int* log_mvp)
 	if( !log_config.mvpdrop )
 		return;
 
-	if( log_config.sql_logs )
-	{
+	if( log_config.sql_logs ) {
 #ifdef BETA_THREAD_TEST
 		char entry[512];
 		int e_length = 0;
@@ -295,9 +298,7 @@ void log_mvpdrop(struct map_session_data* sd, int monster_id, int* log_mvp)
 			return;
 		}
 #endif
-	}
-	else
-	{
+	} else {
 		char timestring[255];
 		time_t curtime;
 		FILE* logfp;
@@ -321,8 +322,7 @@ void log_atcommand(struct map_session_data* sd, const char* message)
 	    !pc_should_log_commands(sd) )
 		return;
 
-	if( log_config.sql_logs )
-	{
+	if( log_config.sql_logs ) {
 #ifdef BETA_THREAD_TEST
 		char entry[512];
 		int e_length = 0;
@@ -343,9 +343,7 @@ void log_atcommand(struct map_session_data* sd, const char* message)
 		}
 		SqlStmt_Free(stmt);
 #endif
-	}
-	else
-	{
+	} else {
 		char timestring[255];
 		time_t curtime;
 		FILE* logfp;
@@ -368,8 +366,7 @@ void log_npc(struct map_session_data* sd, const char* message)
 	if( !log_config.npc )
 		return;
 
-	if( log_config.sql_logs )
-	{
+	if( log_config.sql_logs ) {
 #ifdef BETA_THREAD_TEST
 		char entry[512];
 		int e_length = 0;
@@ -389,9 +386,7 @@ void log_npc(struct map_session_data* sd, const char* message)
 		}
 		SqlStmt_Free(stmt);
 #endif
-	}
-	else
-	{
+	} else {
 		char timestring[255];
 		time_t curtime;
 		FILE* logfp;
@@ -409,13 +404,11 @@ void log_npc(struct map_session_data* sd, const char* message)
 /// logs chat
 void log_chat(e_log_chat_type type, int type_id, int src_charid, int src_accid, const char* map, int x, int y, const char* dst_charname, const char* message)
 {
-	if( ( log_config.chat&type ) == 0 )
-	{// disabled
+	if( ( log_config.chat&type ) == 0 ) { // disabled
 		return;
 	}
 
-	if( log_config.log_chat_woe_disable && ( agit_flag || agit2_flag ) )
-	{// no chat logging during woe
+	if( log_config.log_chat_woe_disable && ( agit_flag || agit2_flag ) ) { // no chat logging during woe
 		return;
 	}
 
@@ -440,9 +433,7 @@ void log_chat(e_log_chat_type type, int type_id, int src_charid, int src_accid, 
 		}
 		SqlStmt_Free(stmt);
 #endif
-	}
-	else
-	{
+	} else {
 		char timestring[255];
 		time_t curtime;
 		FILE* logfp;
@@ -453,6 +444,43 @@ void log_chat(e_log_chat_type type, int type_id, int src_charid, int src_accid, 
 		strftime(timestring, sizeof(timestring), "%m/%d/%Y %H:%M:%S", localtime(&curtime));
 		fprintf(logfp, "%s - %c,%d,%d,%d,%s,%d,%d,%s,%s\n", timestring, log_chattype2char(type), type_id, src_charid, src_accid, map, x, y, dst_charname, message);
 		fclose(logfp);
+	}
+}
+
+
+/// logs cash transactions
+void log_cash( struct map_session_data* sd, e_log_pick_type type, e_log_cash_type cash_type, int amount ) {
+	nullpo_retv( sd );
+
+	if( !log_config.cash )
+		return;
+
+	if( log_config.sql_logs ) {
+#ifdef BETA_THREAD_TEST
+		char entry[512];
+		int e_length = 0;
+		e_length = sprintf( entry,  LOG_QUERY " INTO `%s` ( `time`, `char_id`, `type`, `cash_type`, `amount`, `map` ) VALUES ( NOW(), '%d', '%c', '%c', '%d', '%s' )",
+			log_config.log_cash, sd->status.char_id, log_picktype2char( type ), log_cashtype2char( cash_type ), amount, mapindex_id2name( sd->mapindex ) );
+		queryThread_log( entry, e_length );
+#else
+		if( SQL_ERROR == Sql_Query( logmysql_handle, LOG_QUERY " INTO `%s` ( `time`, `char_id`, `type`, `cash_type`, `amount`, `map` ) VALUES ( NOW(), '%d', '%c', '%c', '%d', '%s' )",
+			log_config.log_cash, sd->status.char_id, log_picktype2char( type ), log_cashtype2char( cash_type ), amount, mapindex_id2name( sd->mapindex ) ) )
+		{
+			Sql_ShowDebug( logmysql_handle );
+			return;
+		}
+#endif
+	} else {
+		char timestring[255];
+		time_t curtime;
+		FILE* logfp;
+
+		if( ( logfp = fopen( log_config.log_cash, "a" ) ) == NULL )
+			return;
+		time( &curtime );
+		strftime( timestring, sizeof( timestring ), "%m/%d/%Y %H:%M:%S", localtime( &curtime ) );
+		fprintf( logfp, "%s - %s[%d]\t%d(%c)\t\n", timestring, sd->status.name, sd->status.account_id, amount, log_cashtype2char( cash_type ) );
+		fclose( logfp );
 	}
 }
 
@@ -478,19 +506,16 @@ int log_config_read(const char* cfgName)
 	if( count++ == 0 )
 		log_set_defaults();
 
-	if( ( fp = fopen(cfgName, "r") ) == NULL )
-	{
+	if( ( fp = fopen(cfgName, "r") ) == NULL ) {
 		ShowError("Log configuration file not found at: %s\n", cfgName);
 		return 1;
 	}
 
-	while( fgets(line, sizeof(line), fp) )
-	{
+	while( fgets(line, sizeof(line), fp) ) {
 		if( line[0] == '/' && line[1] == '/' )
 			continue;
 
-		if( sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2 )
-		{
+		if( sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2 ) {
 			if( strcmpi(w1, "enable_logs") == 0 )
 				log_config.enable_logs = (e_log_pick_type)config_switch(w2);
 			else if( strcmpi(w1, "sql_logs") == 0 )
@@ -504,13 +529,15 @@ int log_config_read(const char* cfgName)
 				log_config.price_items_log = atoi(w2);
 			else if( strcmpi(w1, "amount_items_log") == 0 )
 				log_config.amount_items_log = atoi(w2);
-//end of common filter settings
+			//end of common filter settings
 			else if( strcmpi(w1, "log_branch") == 0 )
 				log_config.branch = config_switch(w2);
 			else if( strcmpi(w1, "log_filter") == 0 )
 				log_config.filter = config_switch(w2);
 			else if( strcmpi(w1, "log_zeny") == 0 )
 				log_config.zeny = config_switch(w2);
+			else if( strcmpi( w1, "log_cash" ) == 0 )
+				log_config.cash = config_switch( w2 );
 			else if( strcmpi(w1, "log_commands") == 0 )
 				log_config.commands = config_switch(w2);
 			else if( strcmpi(w1, "log_npc") == 0 )
@@ -535,6 +562,8 @@ int log_config_read(const char* cfgName)
 				safestrncpy(log_config.log_npc, w2, sizeof(log_config.log_npc));
 			else if( strcmpi(w1, "log_chat_db") == 0 )
 				safestrncpy(log_config.log_chat, w2, sizeof(log_config.log_chat));
+			else if( strcmpi( w1, "log_cash_db" ) == 0 )
+				safestrncpy( log_config.log_cash, w2, sizeof( log_config.log_cash ) );
 			//support the import command, just like any other config
 			else if( strcmpi(w1,"import") == 0 )
 				log_config_read(w2);
@@ -545,37 +574,32 @@ int log_config_read(const char* cfgName)
 
 	fclose(fp);
 
-	if( --count == 0 )
-	{// report final logging state
+	if( --count == 0 ) { // report final logging state
 		const char* target = log_config.sql_logs ? "table" : "file";
 
-		if( log_config.enable_logs && log_config.filter )
-		{
+		if( log_config.enable_logs && log_config.filter ) {
 			ShowInfo("Logging item transactions to %s '%s'.\n", target, log_config.log_pick);
 		}
-		if( log_config.branch )
-		{
+		if( log_config.branch ) {
 			ShowInfo("Logging monster summon item usage to %s '%s'.\n", target, log_config.log_pick);
 		}
-		if( log_config.chat )
-		{
+		if( log_config.chat ) {
 			ShowInfo("Logging chat to %s '%s'.\n", target, log_config.log_chat);
 		}
-		if( log_config.commands )
-		{
+		if( log_config.commands ) {
 			ShowInfo("Logging commands to %s '%s'.\n", target, log_config.log_gm);
 		}
-		if( log_config.mvpdrop )
-		{
+		if( log_config.mvpdrop ) {
 			ShowInfo("Logging MVP monster rewards to %s '%s'.\n", target, log_config.log_mvpdrop);
 		}
-		if( log_config.npc )
-		{
+		if( log_config.npc ) {
 			ShowInfo("Logging 'logmes' messages to %s '%s'.\n", target, log_config.log_npc);
 		}
-		if( log_config.zeny )
-		{
+		if( log_config.zeny ) {
 			ShowInfo("Logging Zeny transactions to %s '%s'.\n", target, log_config.log_zeny);
+		}
+		if( log_config.cash ) {
+			ShowInfo("Logging Cash transactions to %s '%s'.\n", target, log_config.log_cash);
 		}
 	}
 
