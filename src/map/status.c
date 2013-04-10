@@ -4691,6 +4691,8 @@ static unsigned short status_calc_ematk(struct block_list *bl, struct status_cha
 		matk += sc->data[SC_AQUAPLAY_OPTION]->val2;
 	if(sc->data[SC_CHILLY_AIR_OPTION])
 		matk += sc->data[SC_CHILLY_AIR_OPTION]->val2;
+	if(sc->data[SC_COOLER_OPTION])
+		matk += sc->data[SC_COOLER_OPTION]->val2;
 	if(sc->data[SC_WATER_BARRIER])
 		matk -= sc->data[SC_WATER_BARRIER]->val3;
 	if(sc->data[SC_FIRE_INSIGNIA] && sc->data[SC_FIRE_INSIGNIA]->val1 == 3)
@@ -4724,6 +4726,8 @@ static unsigned short status_calc_matk(struct block_list *bl, struct status_chan
         matk += sc->data[SC_AQUAPLAY_OPTION]->val2;
     if (sc->data[SC_CHILLY_AIR_OPTION])
         matk += sc->data[SC_CHILLY_AIR_OPTION]->val2;
+	if (sc->data[SC_COOLER_OPTION])
+		matk += sc->data[SC_COOLER_OPTION]->val2;
     if (sc->data[SC_WATER_BARRIER])
         matk -= sc->data[SC_WATER_BARRIER]->val3;
     if (sc->data[SC_FIRE_INSIGNIA] && sc->data[SC_FIRE_INSIGNIA]->val1 == 3)
@@ -4898,7 +4902,7 @@ static signed short status_calc_flee(struct block_list *bl, struct status_change
 	if( sc->data[SC_WIND_STEP_OPTION] )
 		flee += flee * sc->data[SC_WIND_STEP_OPTION]->val2 / 100;
 	if( sc->data[SC_ZEPHYR] )
-		flee += flee * sc->data[SC_ZEPHYR]->val2 / 100;
+		flee += sc->data[SC_ZEPHYR]->val2;
 	if( sc->data[SC_ASH] )
 		flee -= flee * sc->data[SC_ASH]->val4 / 100;
 	if( sc->data[SC_GOLDENE_FERSE] )
@@ -8496,7 +8500,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			tick_time = 3000; // [GodLesZ] tick time
 			break;
 		case SC_LERADSDEW:
-			val3 = 200 * val1 + 300 * val2;//MaxHP Increase
+			val3 = 200 * val1 + 300 * val2; //MaxHP Increase
 			break;
 		case SC_MELODYOFSINK:
 			val3 = val1 * (2 + val2);//INT Reduction. Formula Includes Caster And 2nd Performer.
@@ -8622,9 +8626,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			val_flag |= 1|2|4;
 			break;
 		case SC_HEATER_OPTION:
-			val2 = 120; // Watk. TODO: Renewal (Atk2)
-			val3 = 33;	// % Increase effects.
-			val4 = 3;	// Change into fire element.
+			val2 = 120; // Bonus Watk.
+			val3 = (sd ? sd->status.job_level : 0); // % Increase damage.
+			val4 = 3; // Change into fire element.
 			val_flag |= 1|2|4;
 			break;
 		case SC_TROPIC_OPTION:
@@ -8636,13 +8640,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			val_flag |= 1|2|4;
 			break;
 		case SC_COOLER_OPTION:
-			val2 = 80;	// % Freezing chance
-			val3 = 33;	// % increased damage
-			val4 = 1;	// Change into water elemet
+			val2 = 80; // Bonus Matk
+			val3 = (sd ? sd->status.job_level : 0); // % Freezing chance
+			val4 = 1; // Change into water elemet
 			val_flag |= 1|2|4;
 			break;
 		case SC_CHILLY_AIR_OPTION:
-			val2 = 120; // Matk. TODO: Renewal (Matk1)
+			val2 = 120;
 			val3 = MG_COLDBOLT;
 			val_flag |= 1|2;
 			break;
@@ -8650,10 +8654,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			val_flag |= 1|2;
 			break;
 		case SC_WIND_STEP_OPTION:
-			val2 = 50;	// % Increase speed and flee.
+			val2 = 50; // % Increase speed and flee.
 			break;
 		case SC_BLAST_OPTION:
-			val2 = 20;
+			val2 = (sd ? sd->status.job_level : 0); // % Increase damage
 			val3 = ELE_WIND;
 			val_flag |= 1|2|4;
 			break;
@@ -8667,14 +8671,14 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			val_flag |= 1|2|4;
 			break;
 		case SC_CURSED_SOIL_OPTION:
-			val2 = 10;
-			val3 = 33;
+			val2 = 10; // Bonus MaxHP
+			val3 = (sd ? sd->status.job_level : 0); // % Increase Damage
 			val4 = 2;
 			val_flag |= 1|2|4;
 			break;
 		case SC_UPHEAVAL_OPTION:
 			val2 = WZ_EARTHSPIKE;
-			val3 = 15; // Increase summoner's maxHP
+			val3 = 15; // Bonus MaxHP
 			val_flag |= 1|2;
 			break;
 		case SC_CIRCLE_OF_FIRE_OPTION:
@@ -8685,7 +8689,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_WATER_DROP_OPTION:
 		case SC_WIND_CURTAIN_OPTION:
 		case SC_STONE_SHIELD_OPTION:
-			val2 = 20;	// Elemental modifier. Not confirmed.
+			val2 = 20; // Elemental modifier. Not confirmed.
 			break;
 		case SC_CIRCLE_OF_FIRE:
 		case SC_FIRE_CLOAK:
@@ -8704,7 +8708,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			val_flag |= 1|2|4;
 			break;
 		case SC_ZEPHYR:
-			val2 = 22; // Flee.
+			val2 = 25; // Flee.
 			break;
 		case SC_TIDAL_WEAPON:
 			val2 = 20; // Increase Elemental's attack.
@@ -8816,7 +8820,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_CBC:
 			val3 = 10; //drain sp % dmg
 			tick = max(tick,5000); //min 5s (test)
-			val4 = tick/1000; //dmg each sec
+			val4 = tick / 1000; //dmg each sec
 			tick = 1000;
 			break;
 		case SC_EQC:
@@ -9588,7 +9592,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				status_change_end(bl, SC_ENDURE, INVALID_TIMER);
 			}
 		case SC__BLOODYLUST:
-			sc_start4(bl, bl, SC_REGENERATION, 100, 10,0,0,(RGN_HP|RGN_SP), skill_get_time(LK_BERSERK, sce->val1));
+			sc_start4(bl, bl, SC_REGENERATION, 100, 10, 0, 0, (RGN_HP|RGN_SP), skill_get_time(LK_BERSERK, sce->val1));
 			break;
 		case SC_GOSPEL:
 			if (sce->val3) { //Clear the group.

@@ -889,11 +889,11 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 				if (sc) {
 					struct status_change_entry *sce;
 					// Enchant Poison gives a chance to poison attacked enemies
-					if((sce=sc->data[SC_ENCPOISON])) //Don't use sc_start since chance comes in 1/10000 rate.
+					if((sce = sc->data[SC_ENCPOISON])) //Don't use sc_start since chance comes in 1/10000 rate.
 						status_change_start(src, bl, SC_POISON, sce->val2, sce->val1, src->id, 0, 0,
 							skill_get_time2(AS_ENCHANTPOISON,sce->val1), 0);
 					// Enchant Deadly Poison gives a chance to deadly poison attacked enemies
-					if((sce=sc->data[SC_EDP]))
+					if((sce = sc->data[SC_EDP]))
 						sc_start4(src, bl, SC_DPOISON, sce->val2, sce->val1, src->id, 0, 0,
 							skill_get_time2(ASC_EDP,sce->val1));
 				}
@@ -918,8 +918,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		case TF_POISON:
 		case AS_SPLASHER:
 			if(!sc_start2(src,bl,SC_POISON,(4*skill_lv+10),skill_lv,src->id,skill_get_time2(skill_id,skill_lv))
-				&&	sd && skill_id==TF_POISON
-			)
+				&&	sd && skill_id == TF_POISON)
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
 
@@ -945,9 +944,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 #endif
 				
 		case WZ_STORMGUST:
-			/**
-			 * Storm Gust counter was dropped in renewal
-			 **/
+			 //Storm Gust counter was dropped in renewal
 #ifdef RENEWAL
 			sc_start(src,bl,SC_FREEZE,65-(5*skill_lv),skill_lv,skill_get_time2(skill_id,skill_lv));
 #else
@@ -955,9 +952,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			if(tsc->sg_counter >= 3 &&
 				sc_start(src,bl,SC_FREEZE,150,skill_lv,skill_get_time2(skill_id,skill_lv)))
 				tsc->sg_counter = 0;
-			/**
-			 * being it only resets on success it'd keep stacking and eventually overflowing on mvps, so we reset at a high value
-			 **/
+			//being it only resets on success it'd keep stacking and eventually overflowing on mvps, so we reset at a high value
 			else if( tsc->sg_counter > 250 )
 				tsc->sg_counter = 0;
 #endif
@@ -1357,7 +1352,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		case SO_DIAMONDDUST:
 			rate = 5 + 5 * skill_lv;
 			if( sc && sc->data[SC_COOLER_OPTION] )
-				rate += rate * sc->data[SC_COOLER_OPTION]->val2 / 100;
+				rate += sc->data[SC_COOLER_OPTION]->val3 / 5;
 			sc_start(src, bl, SC_CRYSTALIZE, rate, skill_lv, skill_get_time2(skill_id, skill_lv));
 			break;
 		case SO_VARETYR_SPEAR:
@@ -1365,7 +1360,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			break;
 		case GN_SLINGITEM_RANGEMELEEATK:
 			if( sd ) {
-				switch( sd->itemid ) {	// Starting SCs here instead of do it in skill_additional_effect to simplify the code.
+				switch( sd->itemid ) { // Starting SCs here instead of do it in skill_additional_effect to simplify the code.
 					case 13261:
 						sc_start(src, bl, SC_STUN, 100, skill_lv, 5000); // 5 seconds until I get official
 						sc_start2(src, bl, SC_BLEEDING, 100, skill_lv, src->id, 10000);
@@ -10309,7 +10304,7 @@ int skill_castend_map (struct map_session_data *sd, uint16 skill_id, const char 
 
 //Simplify skill_failed code.
 #define skill_failed(sd) { sd->menuskill_id = sd->menuskill_val = 0; }
-	if(skill_id != sd->menuskill_id)
+	if( skill_id != sd->menuskill_id )
 		return 0;
 
 	if( sd->bl.prev == NULL || pc_isdead(sd) ) {
@@ -10321,7 +10316,7 @@ int skill_castend_map (struct map_session_data *sd, uint16 skill_id, const char 
 		skill_failed(sd);
 		return 0;
 	}
-	if(sd->sc.count && (//Note: If any of these status's are active, any skill you use will fail. So be careful when adding new status's here.
+	if( sd->sc.count && ( //Note: If any of these status's are active, any skill you use will fail. So be careful when adding new status's here.
 		sd->sc.data[SC_SILENCE] ||
 		sd->sc.data[SC_ROKISWEIL] ||
 		sd->sc.data[SC_AUTOCOUNTER] ||
@@ -10338,7 +10333,7 @@ int skill_castend_map (struct map_session_data *sd, uint16 skill_id, const char 
 		sd->sc.data[SC_CRYSTALIZE] ||
 		sd->sc.data[SC__MANHOLE] ||
 		(sd->sc.data[SC_ASH] && rnd()%2) //50% fail chance under ASH
-	 )) {
+	 ) ) {
 		skill_failed(sd);
 		return 0;
 	}
@@ -10346,10 +10341,10 @@ int skill_castend_map (struct map_session_data *sd, uint16 skill_id, const char 
 	pc_stop_attack(sd);
 	pc_stop_walking(sd,0);
 
-	if(battle_config.skill_log && battle_config.skill_log&BL_PC)
-		ShowInfo("PC %d skill castend skill =%d map=%s\n",sd->bl.id,skill_id,map);
+	if( battle_config.skill_log && battle_config.skill_log&BL_PC )
+		ShowInfo( "PC %d skill castend skill =%d map=%s\n",sd->bl.id,skill_id,map );
 
-	if(strcmp(map,"cancel")==0) {
+	if( strcmp(map,"cancel")==0 ) {
 		skill_failed(sd);
 		return 0;
 	}
@@ -11106,10 +11101,10 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 			break;
 
 		case UNT_BLOODYLUST:
-			if ( sg->src_id == bl->id )
+			if (sg->src_id == bl->id)
 				break; //Does not affect the caster.
 			if (!sce) {
-				TBL_PC *sd = BL_CAST(BL_PC, bl); //prevent fullheal exploit
+				TBL_PC *sd = BL_CAST(BL_PC, bl); //Prevent fullheal exploit
 				if (sd && sd->bloodylust_tick && DIFF_TICK(gettick(), sd->bloodylust_tick) < skill_get_time2(SC_BLOODYLUST, 1))
 					clif_skill_nodamage(&src->bl,bl,sg->skill_id,sg->skill_lv,
 						sc_start4(ss, bl, type, 100, sg->skill_lv, 1, 0, 0, skill_get_time(LK_BERSERK, sg->skill_lv)));
@@ -11142,12 +11137,12 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 
 						if( --count <= 0 )
 							skill_delunitgroup(sg);
-						
+
 						if ( map_mapindex2mapid(sg->val3) == sd->bl.m && x == sd->bl.x && y == sd->bl.y )
 							working = 1;/* we break it because officials break it, lovely stuff. */
 
 						sg->val1 = (count<<16)|working;
-						
+
 						pc_setpos(sd,m,x,y,CLR_TELEPORT);
 					}
 				} else if(bl->type == BL_MOB && battle_config.mob_warp&2) {
@@ -12871,14 +12866,10 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 				return 0;
 			}
 			break;
-		case GC_CROSSIMPACT:
 		case GC_COUNTERSLASH:
-			if( skill_id == GC_COUNTERSLASH && !(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == GC_WEAPONBLOCKING) ) {
+			if( !(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == GC_WEAPONBLOCKING) ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_GC_WEAPONBLOCKING,0);
 				return 0;
-			}
-			if ( sc && sc->data[SC_EDP] ) {
-				status_zap(&sd->bl, 0, require.sp);
 			}
 			break;
 		case RA_WUGMASTERY:
@@ -13443,14 +13434,13 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 	if( !sc->count )
 		sc = NULL;
 
-	switch( skill_id )
-	{ // Turn off check.
-	case BS_MAXIMIZE:	case NV_TRICKDEAD:	case TF_HIDING:	case AS_CLOAKING:	case CR_AUTOGUARD:
-	case ML_AUTOGUARD:	case CR_DEFENDER:	case ML_DEFENDER:	case ST_CHASEWALK:	case PA_GOSPEL:
-	case CR_SHRINK:	case TK_RUN:	case GS_GATLINGFEVER:	case TK_READYCOUNTER:	case TK_READYDOWN:
-	case TK_READYSTORM:	case TK_READYTURN:	case SG_FUSION:	case KO_YAMIKUMO:
-		if( sc && sc->data[status_skill2sc(skill_id)] )
-			return req;
+	switch( skill_id ) { // Turn off check.
+		case BS_MAXIMIZE:	case NV_TRICKDEAD:	case TF_HIDING:	case AS_CLOAKING:	case CR_AUTOGUARD:
+		case ML_AUTOGUARD:	case CR_DEFENDER:	case ML_DEFENDER:	case ST_CHASEWALK:	case PA_GOSPEL:
+		case CR_SHRINK:	case TK_RUN:	case GS_GATLINGFEVER:	case TK_READYCOUNTER:	case TK_READYDOWN:
+		case TK_READYSTORM:	case TK_READYTURN:	case SG_FUSION:	case KO_YAMIKUMO:
+			if( sc && sc->data[status_skill2sc(skill_id)] )
+				return req;
 	}
 
 	idx = skill_get_index(skill_id);
@@ -13520,8 +13510,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 	if (req.ammo_qty)
 		req.ammo = skill_db[idx].ammo;
 
-	if (!req.ammo && skill_id && skill_isammotype(sd, skill_id))
-	{	//Assume this skill is using the weapon, therefore it requires arrows.
+	if (!req.ammo && skill_id && skill_isammotype(sd, skill_id)) { //Assume this skill is using the weapon, therefore it requires arrows.
 		req.ammo = 0xFFFFFFFF; //Enable use on all ammo types.
 		req.ammo_qty = 1;
 	}
@@ -13571,15 +13560,12 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 		req.itemid[i] = skill_db[idx].itemid[i];
 		req.amount[i] = skill_db[idx].amount[i];
 
-		if( itemid_isgemstone(req.itemid[i]) && skill_id != HW_GANBANTEIN )
-		{
-			if( sd->special_state.no_gemstone )
-			{	//Make it substract 1 gem rather than skipping the cost.
+		if( itemid_isgemstone(req.itemid[i]) && skill_id != HW_GANBANTEIN ) {
+			if( sd->special_state.no_gemstone ) { //Make it substract 1 gem rather than skipping the cost.
 				if( --req.amount[i] < 1 )
 					req.itemid[i] = 0;
 			}
-			if(sc && sc->data[SC_INTOABYSS])
-			{
+			if(sc && sc->data[SC_INTOABYSS]) {
 				if( skill_id != SA_ABRACADABRA )
 					req.itemid[i] = req.amount[i] = 0;
 				else if( --req.amount[i] < 1 )
@@ -13626,18 +13612,18 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 		case SL_SMA:
 		case SL_STUN:
 		case SL_STIN:
-		{
-			int kaina_lv = pc_checkskill(sd,SL_KAINA);
+			{
+				int kaina_lv = pc_checkskill(sd,SL_KAINA);
 
-			if(kaina_lv==0 || sd->status.base_level<70)
-				break;
-			if(sd->status.base_level>=90)
-				req.sp -= req.sp*7*kaina_lv/100;
-			else if(sd->status.base_level>=80)
-				req.sp -= req.sp*5*kaina_lv/100;
-			else if(sd->status.base_level>=70)
-				req.sp -= req.sp*3*kaina_lv/100;
-		}
+				if(kaina_lv==0 || sd->status.base_level<70)
+					break;
+				if(sd->status.base_level>=90)
+					req.sp -= req.sp*7*kaina_lv/100;
+				else if(sd->status.base_level>=80)
+					req.sp -= req.sp*5*kaina_lv/100;
+				else if(sd->status.base_level>=70)
+					req.sp -= req.sp*3*kaina_lv/100;
+			}
 			break;
 		case MO_TRIPLEATTACK:
 		case MO_CHAINCOMBO:
@@ -13664,15 +13650,20 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 							req.spiritball = 3;
 							break;
 						case CH_CHAINCRUSH:	//It should consume whatever is left as long as it's at least 1.
-							req.spiritball = sd->spiritball?sd->spiritball:1;
+							req.spiritball = sd->spiritball ? sd->spiritball : 1;
 							break;
 					}
 				} else if( sc->data[SC_RAISINGDRAGON] && sd->spiritball > 5)
 					req.spiritball = sd->spiritball; // must consume all regardless of the amount required
 			}
 			break;
+		case GC_CROSSIMPACT:
+		case GC_COUNTERSLASH:
+			if( sc && sc->data[SC_EDP] )
+				req.sp += req.sp;
+			break;
 		case SR_RAMPAGEBLASTER:
-			req.spiritball = sd->spiritball?sd->spiritball:15;
+			req.spiritball = sd->spiritball ? sd->spiritball : 15;
 			break;
 		case SR_GATEOFHELL:
 			if( sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE )
@@ -13685,8 +13676,9 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 			req.sp -= req.sp * (5 + 5 * pc_checkskill(sd,SO_EL_SYMPATHY)) / 100;
 			break;
 		case SO_PSYCHIC_WAVE:
-			if( sc && sc->data[SC_BLAST_OPTION] )
-				req.sp += req.sp * 150 / 100;
+			if( sc && sc->data[SC_HEATER_OPTION] || sc->data[SC_COOLER_OPTION] ||
+				sc->data[SC_BLAST_OPTION] ||  sc->data[SC_CURSED_SOIL_OPTION] )
+				req.sp += req.sp / 2; //1.5x SP cost
 			break;
 	}
 	

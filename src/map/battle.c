@@ -4062,57 +4062,51 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						skillratio = 60 * skill_lv;
 						RE_LVL_DMOD(100);
 						if( sc && sc->data[SC_HEATER_OPTION] )
-							skillratio += sc->data[SC_HEATER_OPTION]->val3;
+							skillratio += sc->data[SC_HEATER_OPTION]->val3 / 2;
 						break;
 					case SO_ELECTRICWALK:
 						skillratio = 60 * skill_lv;
 						RE_LVL_DMOD(100);
 						if( sc && sc->data[SC_BLAST_OPTION] )
-							skillratio += (sd ? sd->status.job_level / 2 : 0);
+							skillratio += sc->data[SC_BLAST_OPTION]->val2 / 2;
 						break;
 					case SO_EARTHGRAVE:
 						skillratio = sstatus->int_ * skill_lv + ( sd ? pc_checkskill(sd, SA_SEISMICWEAPON) * 200 : 0 );
 						RE_LVL_DMOD(100);
 						if( sc && sc->data[SC_CURSED_SOIL_OPTION] )
-							skillratio += sc->data[SC_CURSED_SOIL_OPTION]->val2;
+							skillratio += sc->data[SC_CURSED_SOIL_OPTION]->val3 * 5;
 						break;
 					case SO_DIAMONDDUST:
 						skillratio = sstatus->int_ * skill_lv + ( sd ? pc_checkskill(sd, SA_FROSTWEAPON) * 200 : 0 );
 						RE_LVL_DMOD(100);
 						if( sc && sc->data[SC_COOLER_OPTION] )
-							skillratio += sc->data[SC_COOLER_OPTION]->val3;
+							skillratio += sc->data[SC_COOLER_OPTION]->val3 * 5;
 						break;
 					case SO_POISON_BUSTER:
 						skillratio += 900 + 300 * skill_lv;
 						RE_LVL_DMOD(120);
 						if( sc && sc->data[SC_CURSED_SOIL_OPTION] )
-							skillratio += sc->data[SC_CURSED_SOIL_OPTION]->val2;
+							skillratio += sc->data[SC_CURSED_SOIL_OPTION]->val3 * 5;
 						break;
 					case SO_PSYCHIC_WAVE:
 						skillratio = 70 * skill_lv + 3 * sstatus->int_;
 						RE_LVL_DMOD(100);
-						if( sc ) {
-							if( sc->data[SC_HEATER_OPTION] )
-								skillratio += sc->data[SC_HEATER_OPTION]->val3;
-							else if(sc->data[SC_COOLER_OPTION] )
-								skillratio += sc->data[SC_COOLER_OPTION]->val3;
-							else if(sc->data[SC_BLAST_OPTION] )
-								skillratio += sc->data[SC_BLAST_OPTION]->val2;
-							else if(sc->data[SC_CURSED_SOIL_OPTION] )
-								skillratio += sc->data[SC_CURSED_SOIL_OPTION]->val3;
-						}
+						if( sc )
+							if( sc->data[SC_HEATER_OPTION] || sc->data[SC_COOLER_OPTION] ||
+								sc->data[SC_BLAST_OPTION] || sc->data[SC_CURSED_SOIL_OPTION] )
+								skillratio += 20;
 						break;
 					case SO_CLOUD_KILL:
 						skillratio = 40 * skill_lv;
 						RE_LVL_DMOD(100);
 						if( sc && sc->data[SC_CURSED_SOIL_OPTION] )
-							skillratio += sc->data[SC_CURSED_SOIL_OPTION]->val2;
+							skillratio += sc->data[SC_CURSED_SOIL_OPTION]->val3;
 						break;
 					case SO_VARETYR_SPEAR: //MATK [{( Endow Tornado skill level x 50 ) + ( Caster INT x Varetyr Spear Skill level )} x Caster Base Level / 100 ] %
 						skillratio = status_get_int(src) * skill_lv + ( sd ? pc_checkskill(sd, SA_LIGHTNINGLOADER) * 50 : 0 );
 						RE_LVL_DMOD(100);
 						if( sc && sc->data[SC_BLAST_OPTION] )
-							skillratio += (sd ? sd->status.job_level * 5 : 0);
+							skillratio += sc->data[SC_BLAST_OPTION]->val2 * 5;
 						break;
 					case GN_DEMONIC_FIRE:
 						if ( skill_lv > 20 ) { // Fire Expansion Level 2
