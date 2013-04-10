@@ -313,8 +313,8 @@ int elemental_clean_single_effect(struct elemental_data *ed, uint16 skill_id) {
 			case SC_UPHEAVAL_OPTION:
 			case SC_CIRCLE_OF_FIRE_OPTION:
 			case SC_TIDAL_WEAPON_OPTION:
-				if( bl ) status_change_end(bl,type,INVALID_TIMER);	// Master
-				status_change_end(&ed->bl,type-1,INVALID_TIMER);	// Elemental Spirit
+				if( bl ) status_change_end(bl,type,INVALID_TIMER); // Master
+				status_change_end(&ed->bl,type-1,INVALID_TIMER); // Elemental Spirit
 				break;
 			case SC_ZEPHYR:
 				if( bl ) status_change_end(bl,type,INVALID_TIMER);
@@ -417,7 +417,7 @@ int elemental_action(struct elemental_data *ed, struct block_list *bl, unsigned 
 	else if( DIFF_TICK(tick, ed->ud.canact_tick) < 0 )
 		return 0;
 
-	ed->target_id = ed->ud.skilltarget = bl->id;	// Set new target
+	ed->target_id = ed->ud.skilltarget = bl->id; // Set new target
 	ed->last_thinktime = tick;
 
 	// Not in skill range.
@@ -647,10 +647,10 @@ static int elemental_ai_sub_timer(struct elemental_data *ed, struct map_session_
 		return 0;
 
 	// Check if caster can sustain the summoned elemental
-	if( DIFF_TICK(tick,ed->last_spdrain_time) >= 10000 ){// Drain SP every 10 seconds
+	if( DIFF_TICK(tick,ed->last_spdrain_time) >= 10000 ) { // Drain SP every 10 seconds
 		int sp = 5;
 
-		switch(ed->vd->class_){
+		switch(ed->vd->class_) {
 			case 2115:	case 2118:
 			case 2121:	case 2124:
 				sp = 8;
@@ -661,7 +661,7 @@ static int elemental_ai_sub_timer(struct elemental_data *ed, struct map_session_
 				break;
 		}
 
-		if( status_get_sp(&sd->bl) < sp ){ // Can't sustain delete it.
+		if( status_get_sp(&sd->bl) < sp ) { // Can't sustain delete it.
 			elemental_delete(sd->ed,0);
 			return 0;
 		}

@@ -213,8 +213,7 @@ int map_freeblock_unlock (void)
 {
 	if ((--block_free_lock) == 0) {
 		int i;
-		for (i = 0; i < block_free_count; i++)
-		{
+		for (i = 0; i < block_free_count; i++) {
 			aFree(block_free[i]);
 			block_free[i] = NULL;
 		}

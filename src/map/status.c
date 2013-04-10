@@ -511,7 +511,7 @@ void initChangeTables(void) {
 	set_sc( MH_VOLCANIC_ASH       , SC_ASH             , SI_VOLCANIC_ASH       , SCB_DEF|SCB_DEF2|SCB_HIT|SCB_BATK|SCB_FLEE );
 	set_sc( MH_GRANITIC_ARMOR     , SC_GRANITIC_ARMOR  , SI_GRANITIC_ARMOR     , SCB_NONE );
 	set_sc( MH_MAGMA_FLOW         , SC_MAGMA_FLOW      , SI_MAGMA_FLOW         , SCB_NONE );
-	set_sc( MH_PYROCLASTIC        , SC_PYROCLASTIC     , SI_PYROCLASTIC        , SCB_BATK|SCB_ATK_ELE );
+	set_sc( MH_PYROCLASTIC        , SC_PYROCLASTIC     , SI_PYROCLASTIC        , SCB_BATK|SCB_WATK|SCB_ATK_ELE );
 	add_sc( MH_LAVA_SLIDE         , SC_BURNING );
 	set_sc( MH_NEEDLE_OF_PARALYZE , SC_PARALYSIS       , SI_NEEDLE_OF_PARALYZE , SCB_DEF2 );
 	add_sc( MH_POISON_MIST        , SC_BLIND );
@@ -1138,12 +1138,12 @@ int status_charge(struct block_list* bl, int hp, int sp)
 //If flag&2, fail if target does not has enough to substract.
 //If flag&4, if killed, mob must not give exp/loot.
 //flag will be set to &8 when damaging sp of a dead character
-int status_damage(struct block_list *src,struct block_list *target,int hp, int sp, int walkdelay, int flag)
+int status_damage(struct block_list *src, struct block_list *target, int hp, int sp, int walkdelay, int flag)
 {
 	struct status_data *status;
 	struct status_change *sc;
 
-	if(sp && !(target->type&BL_CONSUME))
+	if (sp && !(target->type&BL_CONSUME))
 		sp = 0; //Not a valid SP target.
 
 	if (hp < 0) { //Assume absorbed damage.
@@ -1160,7 +1160,7 @@ int status_damage(struct block_list *src,struct block_list *target,int hp, int s
 		return skill_unit_ondamaged((struct skill_unit *)target, src, hp, gettick());
 
 	status = status_get_status_data(target);
-	if( status == &dummy_status )
+	if (status == &dummy_status)
 		return 0;
 
 	if ((unsigned int)hp >= status->hp) {
@@ -1176,7 +1176,7 @@ int status_damage(struct block_list *src,struct block_list *target,int hp, int s
 	if (!hp && !sp)
 		return 0;
 
-	if( !status->hp )
+	if (!status->hp)
 		flag |= 8;
 
 // Let through. battle.c/skill.c have the whole logic of when it's possible or
@@ -1415,11 +1415,11 @@ int status_heal(struct block_list *bl,int hp,int sp, int flag)
 
 	// send hp update to client
 	switch(bl->type) {
-	case BL_PC:  pc_heal((TBL_PC*)bl,hp,sp,flag&2?1:0); break;
-	case BL_MOB: mob_heal((TBL_MOB*)bl,hp); break;
-	case BL_HOM: merc_hom_heal((TBL_HOM*)bl); break;
-	case BL_MER: mercenary_heal((TBL_MER*)bl,hp,sp); break;
-	case BL_ELEM: elemental_heal((TBL_ELEM*)bl,hp,sp); break;
+		case BL_PC:  pc_heal((TBL_PC*)bl,hp,sp,flag&2?1:0); break;
+		case BL_MOB: mob_heal((TBL_MOB*)bl,hp); break;
+		case BL_HOM: merc_hom_heal((TBL_HOM*)bl); break;
+		case BL_MER: mercenary_heal((TBL_MER*)bl,hp,sp); break;
+		case BL_ELEM: elemental_heal((TBL_ELEM*)bl,hp,sp); break;
 	}
 
 	return hp+sp;
@@ -4559,7 +4559,7 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk += sc->data[SC_FULL_SWING_K]->val1;
 	if(sc->data[SC_ASH])
 		batk -= batk * sc->data[SC_ASH]->val4 / 100;
-	if(sc->data[SC_PYROCLASTIC])
+	if(bl->type == BL_HOM && sc->data[SC_PYROCLASTIC])
 		batk += sc->data[SC_PYROCLASTIC]->val2;
 	if(sc->data[SC_ANGRIFFS_MODUS])
 		batk += sc->data[SC_ANGRIFFS_MODUS]->val2;
@@ -4612,7 +4612,7 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 		watk += sc->data[SC_STRIKING]->val2;
 	if(sc->data[SC_SHIELDSPELL_DEF] && sc->data[SC_SHIELDSPELL_DEF]->val1 == 3)
 		watk += sc->data[SC_SHIELDSPELL_DEF]->val2;
-	if( sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 0 )
+	if(sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 0)
 		watk += (10 + 10 * sc->data[SC_BANDING]->val1) * sc->data[SC_BANDING]->val2;
 	if(sc->data[SC_INSPIRATION])
 		watk += sc->data[SC_INSPIRATION]->val2;
@@ -4620,13 +4620,13 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 		watk += sc->data[SC_RUSHWINDMILL]->val3;
 	if(sc->data[SC_SATURDAYNIGHTFEVER])
 		watk += 100 * sc->data[SC_SATURDAYNIGHTFEVER]->val1;
-	if( sc->data[SC_TROPIC_OPTION] )
+	if(sc->data[SC_TROPIC_OPTION])
 		watk += sc->data[SC_TROPIC_OPTION]->val2;
-	if( sc->data[SC_HEATER_OPTION] )
+	if(sc->data[SC_HEATER_OPTION])
 		watk += sc->data[SC_HEATER_OPTION]->val2;
-	if( sc->data[SC_WATER_BARRIER] )
+	if(sc->data[SC_WATER_BARRIER])
 		watk -= sc->data[SC_WATER_BARRIER]->val3;
-	if( sc->data[SC_PYROTECHNIC_OPTION] )
+	if(sc->data[SC_PYROTECHNIC_OPTION])
 		watk += sc->data[SC_PYROTECHNIC_OPTION]->val2;
 	if(sc->data[SC_NIBELUNGEN]) {
 		if (bl->type != BL_PC)
@@ -4665,12 +4665,14 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 	   || (sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 2)
 	   )
 		watk += watk / 10;
-	if( sc && sc->data[SC_TIDAL_WEAPON] )
+	if(sc && sc->data[SC_TIDAL_WEAPON])
 		watk += watk * sc->data[SC_TIDAL_WEAPON]->val2 / 100;
+	if(bl->type == BL_PC && sc->data[SC_PYROCLASTIC])
+		watk += sc->data[SC_PYROCLASTIC]->val2;
 	if(sc->data[SC_ANGRIFFS_MODUS])
 		watk += watk * sc->data[SC_ANGRIFFS_MODUS]->val2 / 100;
 #ifdef RENEWAL_EDP
-	if( sc->data[SC_EDP] )
+	if(sc->data[SC_EDP])
 		watk = watk * (100 + sc->data[SC_EDP]->val1 * 80) / 100;
 #endif
 	if(sc->data[SC_ZANGETSU])
@@ -5001,6 +5003,8 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 		def -= def * (10 + 10 * sc->data[SC_SATURDAYNIGHTFEVER]->val1) / 100;
 	if(sc->data[SC_EARTHDRIVE])
 		def -= def * 25 / 100;
+	if(sc->data[SC_SOLID_SKIN_OPTION])
+		def += def * sc->data[SC_SOLID_SKIN_OPTION]->val2 / 100;
 	if(sc->data[SC_ROCK_CRUSHER])
 		def -= def * sc->data[SC_ROCK_CRUSHER]->val2 / 100;
 	if(sc->data[SC_POWER_OF_GAIA])
@@ -5467,7 +5471,7 @@ static short status_calc_fix_aspd(struct block_list *bl, struct status_change *s
 	if ((sc->data[SC_GUST_OPTION] || sc->data[SC_BLAST_OPTION]
 		|| sc->data[SC_WILD_STORM_OPTION]))
 		aspd -= 50; // +5 ASPD
-	if( sc && sc->data[SC_FIGHTINGSPIRIT] && sc->data[SC_FIGHTINGSPIRIT]->val2 )
+	if (sc && sc->data[SC_FIGHTINGSPIRIT] && sc->data[SC_FIGHTINGSPIRIT]->val2)
 		aspd -= (bl->type==BL_PC?pc_checkskill((TBL_PC *)bl, RK_RUNEMASTERY):10) / 10 * 40;
 
     return cap_value(aspd, 0, 2000); // will be recap for proper bl anyway
@@ -5647,7 +5651,7 @@ static unsigned int status_calc_maxhp(struct block_list *bl, struct status_chang
 	if(sc->data[SC_MARIONETTE])
 		maxhp -= 1000;
 	if(sc->data[SC_SOLID_SKIN_OPTION])
-		maxhp += 2000;// Fix amount.
+		maxhp += 2000; // Fix amount.
 	if(sc->data[SC_POWER_OF_GAIA])
 		maxhp += maxhp * sc->data[SC_POWER_OF_GAIA]->val3 / 100;
 	if(sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 2)
@@ -7454,10 +7458,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			val3 = 0; // Not need to keep this info.
 			break;
 		case SC_PROVIDENCE:
-			val2=val1*5; //Race/Ele resist
+			val2 = val1*5; //Race/Ele resist
 			break;
 		case SC_REFLECTSHIELD:
-			val2=10+val1*3; // %Dmg reflected
+			val2 = 10+val1*3; // %Dmg reflected
 			if( !(flag&1) && (bl->type&(BL_PC|BL_MER)) ) {
 				struct map_session_data *tsd;
 				if( sd ) {
@@ -8628,21 +8632,21 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			}
 			break;
 		case SC_PYROTECHNIC_OPTION:
-			val2 = 60;
+			val2 = 60; //Bonus Watk
 			val_flag |= 1|2|4;
 			break;
 		case SC_HEATER_OPTION:
-			val2 = 120; // Bonus Watk.
-			val3 = (sd ? sd->status.job_level : 0); // % Increase damage.
-			val4 = 3; // Change into fire element.
+			val2 = 120; // Bonus Watk
+			val3 = (sd ? sd->status.job_level : 0); // % Increase damage
+			val4 = 3; // Change into fire element
 			val_flag |= 1|2|4;
 			break;
 		case SC_TROPIC_OPTION:
-			val2 = 180; // Watk. TODO: Renewal (Atk2)
+			val2 = 180; // Bonus Watk
 			val3 = MG_FIREBOLT;
 			break;
 		case SC_AQUAPLAY_OPTION:
-			val2 = 40;
+			val2 = 40; //Bonus Matk
 			val_flag |= 1|2|4;
 			break;
 		case SC_COOLER_OPTION:
@@ -8660,7 +8664,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			val_flag |= 1|2;
 			break;
 		case SC_WIND_STEP_OPTION:
-			val2 = 50; // % Increase speed and flee.
+			val2 = 50; // % Increase speed and flee
 			break;
 		case SC_BLAST_OPTION:
 			val2 = (sd ? sd->status.job_level : 0); // % Increase damage
@@ -8672,9 +8676,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			val_flag |= 1|2;
 			break;
 		case SC_PETROLOGY_OPTION:
-			val2 = 5;
-			val3 = 50;
+			val2 = 5; //Bonus MaxHP
+			val3 = 50; // % Increase Chance
 			val_flag |= 1|2|4;
+			break;
+		case SC_SOLID_SKIN_OPTION:
+			val2 = 33; // % Increase DEF
 			break;
 		case SC_CURSED_SOIL_OPTION:
 			val2 = 10; // Bonus MaxHP
@@ -8695,7 +8702,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_WATER_DROP_OPTION:
 		case SC_WIND_CURTAIN_OPTION:
 		case SC_STONE_SHIELD_OPTION:
-			val2 = 20; // Elemental modifier. Not confirmed.
+			val2 = 100; // Elemental Resistance
 			break;
 		case SC_CIRCLE_OF_FIRE:
 		case SC_FIRE_CLOAK:
@@ -8705,32 +8712,32 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_WIND_STEP:
 		case SC_STONE_SHIELD:
 		case SC_SOLID_SKIN:
-			val2 = 10;
+			val2 = 10; // Drain Values
 			tick_time = 2000; // [GodLesZ] tick time
 			break;
 		case SC_WATER_BARRIER:
-			val2 = 40;	// Increasement. Mdef1 ???
-			val3 = 20;	// Reductions. Atk2, Flee1, Matk1 ????
+			val2 = 40; // Increase Mdef (?)
+			val3 = 30; // Reduce Atk, Flee, Matk
 			val_flag |= 1|2|4;
 			break;
 		case SC_ZEPHYR:
-			val2 = 25; // Flee.
+			val2 = 25; // Flee
 			break;
 		case SC_TIDAL_WEAPON:
-			val2 = 20; // Increase Elemental's attack.
+			val2 = 20; // Increase Elemental attack
 			break;
 		case SC_ROCK_CRUSHER:
 		case SC_ROCK_CRUSHER_ATK:
 		case SC_POWER_OF_GAIA:
-			val2 = 33;
-			val3 = 20; // Increase summoners's HP
+			val2 = 33; // % Increase/Reduce Def/Speed
+			val3 = 20; // % Increase summoner HP
 			break;
 		case SC_MELON_BOMB:
 		case SC_BANANA_BOMB:
 			val1 = 20;
 			break;
 		case SC_STOMACHACHE:
-			val2 = 8; // SP consume.
+			val2 = 8; // SP consume
 			val4 = tick / 10000;
 			tick_time = 10000; // [GodLesZ] tick time
 			break;
@@ -9093,10 +9100,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	if(opt_flag)
 		clif_changeoption(bl);
 
-	if (calc_flag&SCB_DYE)
-	{	//Reset DYE color
-		if (vd && vd->cloth_color)
-		{
+	if (calc_flag&SCB_DYE) { //Reset DYE color
+		if (vd && vd->cloth_color) {
 			val4 = vd->cloth_color;
 			clif_changelook(bl,LOOK_CLOTHES_COLOR,0);
 		}
@@ -9112,11 +9117,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		tick = tick_time;
 
 	//Don't trust the previous sce assignment, in case the SC ended somewhere between there and here.
-	if((sce=sc->data[type])) {// reuse old sc
+	if((sce=sc->data[type])) { // reuse old sc
 		if( sce->timer != INVALID_TIMER )
 			delete_timer(sce->timer, status_change_timer);
 		sc_isnew = false;
-	} else {// new sc
+	} else { // new sc
 		++(sc->count);
 		sce = sc->data[type] = ers_alloc(sc_data_ers, struct status_change_entry);
 	}
@@ -10744,7 +10749,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		case SC_STOMACHACHE:
 			if( --(sce->val4) > 0 ) {
-				status_charge(bl,0,sce->val2); // Reduce SP 8 every 10 seconds.
+				status_charge(bl,0,sce->val2); // Reduce 8 SP every 10 seconds.
 				if( sd && !pc_issit(sd) ) { // Force to sit every 10 seconds.
 					pc_stop_walking(sd,1|4);
 					pc_stop_attack(sd);

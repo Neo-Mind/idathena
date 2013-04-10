@@ -1474,7 +1474,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 				skill_break_equip(src, bl, EQP_ARMOR, rate, BCT_ENEMY);
 		}
 	}
-	
+
 	if( sd && sd->ed && sc && !status_isdead(bl) && !skill_id ) {
 		struct unit_data *ud = unit_bl2ud(src);
 
@@ -1495,7 +1495,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			if( ud ) {
 				rate = skill_delayfix(src, skill, skill_lv);
 				if( DIFF_TICK(ud->canact_tick, tick + rate ) < 0) {
-					ud->canact_tick = tick+rate;
+					ud->canact_tick = tick + rate;
 					if( battle_config.display_status_timers )
 						clif_status_change(src, SI_ACTIONDELAY, 1, rate, 0, 0, 0);
 				}
@@ -8811,18 +8811,18 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case EL_SOLID_SKIN:
 		case EL_STONE_SHIELD:
 		case EL_WIND_STEP: {
-				struct elemental_data *ele = BL_CAST(BL_ELEM, src);
+				struct elemental_data *ele = BL_CAST(BL_ELEM,src);
 				if( ele ) {
 					sc_type type2 = type-1;
 					struct status_change *sc = status_get_sc(&ele->bl);
-					
+
 					if( (sc && sc->data[type2]) || (tsc && tsc->data[type]) ) {
-						elemental_clean_single_effect(ele, skill_id);
+						elemental_clean_single_effect(ele,skill_id);
 					} else {
 						clif_skill_nodamage(src,src,skill_id,skill_lv,1);
-						clif_skill_damage(src, ( skill_id == EL_GUST || skill_id == EL_BLAST || skill_id == EL_WILD_STORM )?src:bl, tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
-						if( skill_id == EL_WIND_STEP )	// There aren't teleport, just push the master away.
-							skill_blown(src,bl,(rnd()%skill_get_blewcount(skill_id,skill_lv))+1,rand()%8,0);
+						clif_skill_damage(src,( skill_id == EL_GUST || skill_id == EL_BLAST || skill_id == EL_WILD_STORM )?src:bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
+						if( skill_id == EL_WIND_STEP ) // There aren't teleport, just push the master away.
+							skill_blown(src,bl,(rnd()%skill_get_blewcount(skill_id,skill_lv))+1,rnd()%8,0);
 						sc_start(src,src,type2,100,skill_lv,skill_get_time(skill_id,skill_lv));
 						sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 					}
@@ -13367,23 +13367,21 @@ int skill_consume_requirement( struct map_session_data *sd, uint16 skill_id, uin
 		}
 	}
 
-	if( type&2 )
-	{
+	if( type&2 ) {
 		struct status_change *sc = &sd->sc;
 		int n,i;
 
 		if( !sc->count )
 			sc = NULL;
 
-		for( i = 0; i < MAX_SKILL_ITEM_REQUIRE; ++i )
-		{
+		for( i = 0; i < MAX_SKILL_ITEM_REQUIRE; ++i ) {
 			if( !req.itemid[i] )
 				continue;
 
 			if( itemid_isgemstone(req.itemid[i]) && skill_id != HW_GANBANTEIN && sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_WIZARD )
 				continue; //Gemstones are checked, but not substracted from inventory.
 				
-			switch( skill_id ){
+			switch( skill_id ) {
 				case SA_SEISMICWEAPON:
 					if( sc && sc->data[SC_UPHEAVAL_OPTION] && rnd()%100 < 50 )
 						continue;

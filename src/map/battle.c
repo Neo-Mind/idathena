@@ -364,8 +364,6 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 				}
 				if( tsc->data[SC_THORNSTRAP] )
 					status_change_end(target, SC_THORNSTRAP, INVALID_TIMER);
-				if( tsc->data[SC_FIRE_CLOAK_OPTION] )
-					damage -= damage * tsc->data[SC_FIRE_CLOAK_OPTION]->val2 / 100;
 				if( tsc->data[SC_CRYSTALIZE] )
 					status_change_end(target, SC_CRYSTALIZE, INVALID_TIMER);
 				if( tsc->data[SC_EARTH_INSIGNIA] ) damage += damage / 2;
@@ -389,7 +387,7 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 				break;
 		}
 	} //end tsc check
-	if( src && src->type == BL_PC ){
+	if( src && src->type == BL_PC ) {
 		struct map_session_data *sd = BL_CAST(BL_PC, src);
 		int s;
 
@@ -2876,7 +2874,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					break;
 				case WM_GREAT_ECHO:
 					skillratio += 300 + 200 * skill_lv;
-					if ( chorusbonus == 1 )//Chorus bonus dont count the first 2 Minstrel's/Wanderer's and only increases when their's 3 or more. [Rytech]
+					//Chorus bonus dont count the first 2 Minstrel's/Wanderer's and only increases when their's 3 or more. [Rytech]
+					if ( chorusbonus == 1 )
 					skillratio += 100;
 					else if ( chorusbonus == 2 )
 					skillratio += 200;
@@ -2944,7 +2943,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					if( sc && sc->data[SC_BLAST_OPTION] )
 						skillratio += (sd ? sd->status.job_level * 5 : 0);
 					break;
-					// Physical Elemantal Spirits Attack Skills
+				// Physical Elemantal Spirits Attack Skills
 				case EL_CIRCLE_OF_FIRE:
 				case EL_FIRE_BOMB_ATK:
 				case EL_STONE_RAIN:
@@ -4116,7 +4115,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						} else // Normal Demonic Fire Damage
 							skillratio += 10 + 20 * skill_lv;
 						break;
-						// Magical Elemental Spirits Attack Skills
+					// Magical Elemental Spirits Attack Skills
 					case EL_FIRE_MANTLE:
 					case EL_WATER_SCREW:
 						skillratio += 900;
@@ -4220,7 +4219,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 		if (ad.damage < 1)
 			ad.damage = 1;
-		else if (sc) {//only applies when hit
+		else if (sc) { //only applies when hit
 			// TODO: there is another factor that contribute with the damage and need to be formulated. [malufett]
 			switch (skill_id) {
 				case MG_LIGHTNINGBOLT:
@@ -4233,7 +4232,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				case WZ_HEAVENDRIVE:
 					if(sc->data[SC_GUST_OPTION] || sc->data[SC_PETROLOGY_OPTION] 
 						|| sc->data[SC_PYROTECHNIC_OPTION] || sc->data[SC_AQUAPLAY_OPTION])
-						ad.damage += (6 + sstatus->int_/4) + max(sstatus->dex-10,0)/30;
+						ad.damage += (6 + sstatus->int_ / 4) + max(sstatus->dex - 10, 0) / 30;
 					break;
 			}
 		}
@@ -4804,7 +4803,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	struct map_session_data *sd = NULL, *tsd = NULL;
 	struct status_data *sstatus, *tstatus;
 	struct status_change *sc, *tsc;
-	int damage,rdamage=0,rdelay=0;
+	int damage, rdamage = 0, rdelay = 0;
 	int skillv;
 	struct Damage wd;
 
@@ -4839,27 +4838,27 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			//Ammo check by Ishizu-chan
 			if (sd->inventory_data[index])
 			switch (sd->status.weapon) {
-			case W_BOW:
-				if (sd->inventory_data[index]->look != A_ARROW) {
-					clif_arrow_fail(sd,0);
-					return ATK_NONE;
-				}
-			break;
-			case W_REVOLVER:
-			case W_RIFLE:
-			case W_GATLING:
-			case W_SHOTGUN:
-				if (sd->inventory_data[index]->look != A_BULLET) {
-					clif_arrow_fail(sd,0);
-					return ATK_NONE;
-				}
-			break;
-			case W_GRENADE:
-				if (sd->inventory_data[index]->look != A_GRENADE) {
-					clif_arrow_fail(sd,0);
-					return ATK_NONE;
-				}
-			break;
+				case W_BOW:
+					if (sd->inventory_data[index]->look != A_ARROW) {
+						clif_arrow_fail(sd,0);
+						return ATK_NONE;
+					}
+					break;
+				case W_REVOLVER:
+				case W_RIFLE:
+				case W_GATLING:
+				case W_SHOTGUN:
+					if (sd->inventory_data[index]->look != A_BULLET) {
+						clif_arrow_fail(sd,0);
+						return ATK_NONE;
+					}
+					break;
+				case W_GRENADE:
+					if (sd->inventory_data[index]->look != A_GRENADE) {
+						clif_arrow_fail(sd,0);
+						return ATK_NONE;
+					}
+					break;
 			}
 		}
 	}
@@ -4869,8 +4868,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		else if (sc->data[SC_CLOAKINGEXCEED] && !(sc->data[SC_CLOAKINGEXCEED]->val4 & 2))
 			status_change_end(src, SC_CLOAKINGEXCEED, INVALID_TIMER);
 	}
-	if( tsc && tsc->data[SC_AUTOCOUNTER] && status_check_skilluse(target, src, KN_AUTOCOUNTER, 1) )
-	{
+	if( tsc && tsc->data[SC_AUTOCOUNTER] && status_check_skilluse(target, src, KN_AUTOCOUNTER, 1) ) {
 		uint8 dir = map_calc_dir(target,src->x,src->y);
 		int t_dir = unit_getdir(target);
 		int dist = distance_bl(src, target);
@@ -4925,7 +4923,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			 **/
 			ret_val = (damage_lv)skill_attack(BF_WEAPON,src,src,target,PA_SACRIFICE,skill_lv,tick,0);
 
-			status_zap(src, sstatus->max_hp*9/100, 0);//Damage to self is always 9%
+			status_zap(src, sstatus->max_hp*9/100, 0); //Damage to self is always 9%
 			if( ret_val == ATK_NONE )
 				return ATK_MISS;
 			return ret_val;
@@ -4980,7 +4978,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			if( --(sc->data[SC_SPELLFIST]->val1) >= 0 ){
 				struct Damage ad = battle_calc_attack(BF_MAGIC,src,target,sc->data[SC_SPELLFIST]->val3,sc->data[SC_SPELLFIST]->val4,flag|BF_SHORT);
 				wd.damage = ad.damage;
-			}else
+			} else
 				status_change_end(src,SC_SPELLFIST,INVALID_TIMER);
 		}
 		if( sc->data[SC_GIANTGROWTH] && (wd.flag&BF_SHORT) && rnd()%100 < sc->data[SC_GIANTGROWTH]->val2 )
@@ -4995,6 +4993,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		battle_consume_ammo(sd, 0, 0);
 
 	damage = wd.damage + wd.damage2;
+
 	if( damage > 0 && src != target ) {
 		if( sc && sc->data[SC_DUPLELIGHT] && (wd.flag&BF_SHORT) && rnd()%100 <= 10+2*sc->data[SC_DUPLELIGHT]->val1 ) {
 			// Activates it only from melee damage
@@ -5028,9 +5027,11 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		if( su->group && su->group->skill_id == HT_BLASTMINE)
 			skill_blown(src, target, 3, -1, 0);
 	}
+
 	map_freeblock_lock();
 
 	battle_delay_damage(tick, wd.amotion, src, target, wd.flag, 0, 0, damage, wd.dmg_lv, wd.dmotion, true);
+
 	if( tsc ) {
 		if( tsc->data[SC_DEVOTION] ) {
 			struct status_change_entry *sce = tsc->data[SC_DEVOTION];
@@ -5043,27 +5044,27 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			{
 				clif_damage(d_bl, d_bl, gettick(), 0, 0, damage, 0, 0, 0);
 				status_fix_damage(NULL, d_bl, damage, 0);
-			}
-			else
+			} else
 				status_change_end(target, SC_DEVOTION, INVALID_TIMER);
 		} else if( tsc->data[SC_CIRCLE_OF_FIRE_OPTION] && (wd.flag&BF_SHORT) && target->type == BL_PC ) {
 			struct elemental_data *ed = ((TBL_PC*)target)->ed;
 			if( ed ) {
 				clif_skill_damage(&ed->bl, target, tick, status_get_amotion(src), 0, -30000, 1, EL_CIRCLE_OF_FIRE, tsc->data[SC_CIRCLE_OF_FIRE_OPTION]->val1, 6);
-				skill_attack(BF_MAGIC,&ed->bl,&ed->bl,src,EL_CIRCLE_OF_FIRE,tsc->data[SC_CIRCLE_OF_FIRE_OPTION]->val1,tick,wd.flag);
+				skill_attack(BF_WEAPON, &ed->bl, &ed->bl, src, EL_CIRCLE_OF_FIRE, tsc->data[SC_CIRCLE_OF_FIRE_OPTION]->val1, tick, wd.flag);
 			}
 		} else if( tsc->data[SC_WATER_SCREEN_OPTION] && tsc->data[SC_WATER_SCREEN_OPTION]->val1 ) {
 			struct block_list *e_bl = map_id2bl(tsc->data[SC_WATER_SCREEN_OPTION]->val1);
 			if( e_bl && !status_isdead(e_bl) ) {
-				clif_damage(e_bl,e_bl,tick,wd.amotion,wd.dmotion,damage,wd.div_,wd.type,wd.damage2);
-				status_damage(target,e_bl,damage,0,0,0);
+				clif_damage(e_bl, e_bl, tick, wd.amotion, wd.dmotion, damage, wd.div_, wd.type, wd.damage2);
+				status_damage(target, e_bl, damage, 0, 0, 0);
 				// Just show damage in target.
-				clif_damage(src, target, tick, wd.amotion, wd.dmotion, damage, wd.div_, wd.type, wd.damage2 );
+				clif_damage(src, target, tick, wd.amotion, wd.dmotion, damage, wd.div_, wd.type, wd.damage2);
 				map_freeblock_unlock();
-				return ATK_NONE;
+				return ATK_BLOCK;
 			}
 		}
 	}
+
 	if (sc && sc->data[SC_AUTOSPELL] && rnd()%100 < sc->data[SC_AUTOSPELL]->val4) {
 		int sp = 0;
 		uint16 skill_id = sc->data[SC_AUTOSPELL]->val2;
