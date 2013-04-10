@@ -1361,15 +1361,15 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		case GN_SLINGITEM_RANGEMELEEATK:
 			if( sd ) {
 				switch( sd->itemid ) { // Starting SCs here instead of do it in skill_additional_effect to simplify the code.
-					case 13261:
+					case 13261: //Coconut Bomb
 						sc_start(src, bl, SC_STUN, 100, skill_lv, 5000); // 5 seconds until I get official
 						sc_start2(src, bl, SC_BLEEDING, 100, skill_lv, src->id, 10000);
 						break;
-					case 13262:
+					case 13262: //Melon Bomb
 						sc_start(src, bl, SC_MELON_BOMB, 100, skill_lv, 60000); // Reduces ASPD and moviment speed
 						break;
-					case 13264:
-						sc_start(src, bl, SC_BANANA_BOMB, 100, skill_lv, 60000);	// Reduces LUK Needed confirm it, may be it's bugged in kRO RE?
+					case 13264: //Banana Bomb
+						sc_start(src, bl, SC_BANANA_BOMB, 100, skill_lv, 60000); // Reduces LUK Needed confirm it, may be it's bugged in kRO RE?
 						sc_start(src, bl, SC_BANANA_BOMB_SITDOWN, sd->status.job_level + sstatus->dex / 6 + tstatus->agi / 4 - tstatus->luk / 5 - status_get_lv(bl) + status_get_lv(src), skill_lv, 1000); // Sitdown for 3 seconds.
 						break;
 				}
@@ -2452,7 +2452,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			if(rnd()%100 > (1 + skill_lv)) dmg.blewcount = 0;
 			break;
 		default:
-			if(damage < dmg.div_ && skill_lv != CH_PALMSTRIKE)
+			if(damage < dmg.div_ && skill_id != CH_PALMSTRIKE)
 				dmg.blewcount = 0; //only pushback when it hit
 			break;
 	}
@@ -3366,10 +3366,6 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 						struct status_change* tsc = status_get_sc(target);
 						struct status_change* sc = status_get_sc(src);
 						if( ( tsc && tsc->option&OPTION_HIDE ) || ( sc && sc->option&OPTION_HIDE ) ) {
-							skill_blown(src,target,skill_get_blewcount(skl->skill_id, skl->skill_lv), -1, 0x0 );
-							break;
-						} else if( tsc && tsc->data[SC_SAFETYWALL] ) {
-							skill_attack(skl->type,src,src,target,skl->skill_id,skl->skill_lv,tick,skl->flag);
 							skill_blown(src,target,skill_get_blewcount(skl->skill_id, skl->skill_lv), -1, 0x0 );
 							break;
 						}
@@ -8761,14 +8757,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					break;
 				sd->itemid = ammo_id;
 				if( itemdb_is_GNbomb(ammo_id) ) {
-					if(battle_check_target(src,bl,BCT_ENEMY) > 0) {// Only attack if the target is an enemy.
+					if( battle_check_target(src,bl,BCT_ENEMY ) > 0) { // Only attack if the target is an enemy.
 						if( ammo_id == 13263 )
 							map_foreachincell(skill_area_sub,bl->m,bl->x,bl->y,BL_CHAR,src,GN_SLINGITEM_RANGEMELEEATK,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 						else
 							skill_attack(BF_WEAPON,src,src,bl,GN_SLINGITEM_RANGEMELEEATK,skill_lv,tick,flag);
 					} else //Otherwise, it fails, shows animation and removes items.
 						clif_skill_fail(sd,GN_SLINGITEM_RANGEMELEEATK,USESKILL_FAIL,0);
-				} else if( itemdb_is_GNthrowable(ammo_id) ){
+				} else if( itemdb_is_GNthrowable(ammo_id) ) {
 					struct script_code *script = sd->inventory_data[i]->script;
 					if( !script )
 						break;
@@ -12192,7 +12188,7 @@ static int skill_unit_effect (struct block_list* bl, va_list ap)
 			skill_unit_onout(unit,bl,tick);
 
 		if( flag&4 )
-	  		skill_unit_onleft(skill_id, bl, tick);
+			skill_unit_onleft(skill_id, bl, tick);
 	} else if( !isTarget && flag&4 && ( group->state.song_dance&0x1 || ( group->src_id == bl->id && group->state.song_dance&0x2 ) ) ) {
 		skill_unit_onleft(skill_id, bl, tick); //Ensemble check to terminate it.
 	}

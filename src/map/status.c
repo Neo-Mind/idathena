@@ -900,6 +900,7 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_PETROLOGY] = SI_PETROLOGY;
 	StatusIconChangeTable[SC_CURSED_SOIL] = SI_CURSED_SOIL;
 	StatusIconChangeTable[SC_UPHEAVAL] = SI_UPHEAVAL;
+
 	StatusIconChangeTable[SC_PUSH_CART] = SI_ON_PUSH_CART;
 
 	//Other SC which are not necessarily associated to skills.
@@ -968,6 +969,11 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_MAGICMUSHROOM] |= SCB_REGEN;
 	StatusChangeFlagTable[SC_PYREXIA] |= SCB_HIT|SCB_FLEE;
 	StatusChangeFlagTable[SC_OBLIVIONCURSE] |= SCB_REGEN;
+
+	StatusChangeFlagTable[SC_STOMACHACHE] = SCB_STR|SCB_AGI|SCB_VIT|SCB_DEX|SCB_INT|SCB_LUK;
+	StatusChangeFlagTable[SC_MYSTERIOUS_POWDER] = SCB_MAXHP;
+	StatusChangeFlagTable[SC_MELON_BOMB] = SCB_SPEED|SCB_ASPD;
+	StatusChangeFlagTable[SC_BANANA_BOMB] = SCB_LUK;
 
 	StatusChangeFlagTable[SC_SAVAGE_STEAK] |= SCB_STR;
 	StatusChangeFlagTable[SC_COCKTAIL_WARG_BLOOD] |= SCB_INT;
@@ -5679,7 +5685,7 @@ static unsigned int status_calc_maxhp(struct block_list *bl, struct status_chang
 	if(sc->data[SC_UPHEAVAL_OPTION])
 		maxhp += maxhp * sc->data[SC_UPHEAVAL_OPTION]->val3 / 100;
 	if(sc->data[SC_MYSTERIOUS_POWDER])
-		maxhp -= sc->data[SC_MYSTERIOUS_POWDER]->val1 / 100;
+		maxhp -= maxhp * sc->data[SC_MYSTERIOUS_POWDER]->val1 / 100;
 	if(sc->data[SC_ANGRIFFS_MODUS])
 		maxhp += maxhp * 5 * sc->data[SC_ANGRIFFS_MODUS]->val1 / 100;
 	if(sc->data[SC_EQC])
@@ -8721,7 +8727,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 		case SC_MELON_BOMB:
 		case SC_BANANA_BOMB:
-			val1 = 15;
+			val1 = 20;
 			break;
 		case SC_STOMACHACHE:
 			val2 = 8; // SP consume.
@@ -10738,7 +10744,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		case SC_STOMACHACHE:
 			if( --(sce->val4) > 0 ) {
-				status_charge(bl,0,sce->val2); // Reduce 8 every 10 seconds.
+				status_charge(bl,0,sce->val2); // Reduce SP 8 every 10 seconds.
 				if( sd && !pc_issit(sd) ) { // Force to sit every 10 seconds.
 					pc_stop_walking(sd,1|4);
 					pc_stop_attack(sd);
