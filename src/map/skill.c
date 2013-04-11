@@ -15857,7 +15857,7 @@ int skill_can_produce_mix (struct map_session_data *sd, int nameid, int trigger,
 	if( i >= MAX_SKILL_PRODUCE_DB )
 		return 0;
 
-	if( pc_checkadditem(sd, nameid, qty) == ADDITEM_OVERAMOUNT ) { // cannot carry the produced stuff
+	if( pc_checkadditem(sd, nameid, qty) == CHKADDITEM_OVERAMOUNT ) { // cannot carry the produced stuff
 		return 0;
 	}
 

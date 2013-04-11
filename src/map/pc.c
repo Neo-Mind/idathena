@@ -3521,26 +3521,26 @@ int pc_checkadditem(struct map_session_data *sd,int nameid,int amount)
 	nullpo_ret(sd);
 
 	if(amount > MAX_AMOUNT)
-		return ADDITEM_OVERAMOUNT;
+		return CHKADDITEM_OVERAMOUNT;
 
 	data = itemdb_search(nameid);
 
 	if(!itemdb_isstackable2(data))
-		return ADDITEM_NEW;
+		return CHKADDITEM_NEW;
 
 	if(data->stack.inventory && amount > data->stack.amount)
-		return ADDITEM_OVERAMOUNT;
+		return CHKADDITEM_OVERAMOUNT;
 
 	for(i=0;i<MAX_INVENTORY;i++) {
 		// FIXME: This does not consider the checked item's cards, thus could check a wrong slot for stackability.
 		if(sd->status.inventory[i].nameid==nameid) {
 			if(amount > MAX_AMOUNT - sd->status.inventory[i].amount || ( data->stack.inventory && amount > data->stack.amount - sd->status.inventory[i].amount ))
-				return ADDITEM_OVERAMOUNT;
-			return ADDITEM_EXIST;
+				return CHKADDITEM_OVERAMOUNT;
+			return CHKADDITEM_EXIST;
 		}
 	}
 
-	return ADDITEM_NEW;
+	return CHKADDITEM_NEW;
 }
 
 /*==========================================
@@ -3747,19 +3747,19 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount,e_l
 	nullpo_retr(1, item_data);
 
 	if( item_data->nameid <= 0 || amount <= 0 )
-		return 1;
+		return ADDITEM_INVALID;
 	if( amount > MAX_AMOUNT )
-		return 5;
+		return ADDITEM_OVERAMOUNT;
 	
 	data = itemdb_search(item_data->nameid);
 
 	if( data->stack.inventory && amount > data->stack.amount ) { // item stack limitation
-		return 7;
+		return ADDITEM_STACKLIMIT;
 	}
 
 	w = data->weight*amount;
 	if(sd->weight + w > sd->max_weight)
-		return 2;
+		return ADDITEM_OVERWEIGHT;
 	
 	i = MAX_INVENTORY;
 
@@ -3779,7 +3779,7 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount,e_l
 	if( i >= MAX_INVENTORY ) {
 		i = pc_search_inventory(sd,0);
 		if( i < 0 )
-			return 4;
+			return ADDITEM_OVERITEM;
 
 		memcpy(&sd->status.inventory[i], item_data, sizeof(sd->status.inventory[0]));
 		// clear equips field first, just in case
@@ -3800,21 +3800,21 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount,e_l
 	clif_updatestatus(sd,SP_WEIGHT);
 	//Auto-equip
 	if(data->flag.autoequip)
-			pc_equipitem(sd, i, data->equip);
-	
+		pc_equipitem(sd, i, data->equip);
+
 	/* rental item check */
 	if( item_data->expire_time ) {
-			if( time(NULL) > item_data->expire_time ) {
-					clif_rental_expired(sd->fd, i, sd->status.inventory[i].nameid);
-					pc_delitem(sd, i, sd->status.inventory[i].amount, 1, 0, LOG_TYPE_OTHER);
-			} else {
-					int seconds = (int)( item_data->expire_time - time(NULL) );
-					clif_rental_time(sd->fd, sd->status.inventory[i].nameid, seconds);
-					pc_inventory_rental_add(sd, seconds);
-			}
+		if( time(NULL) > item_data->expire_time ) {
+			clif_rental_expired(sd->fd, i, sd->status.inventory[i].nameid);
+			pc_delitem(sd, i, sd->status.inventory[i].amount, 1, 0, LOG_TYPE_OTHER);
+		} else {
+			int seconds = (int)( item_data->expire_time - time(NULL) );
+			clif_rental_time(sd->fd, sd->status.inventory[i].nameid, seconds);
+			pc_inventory_rental_add(sd, seconds);
+		}
 	}
-	
-	return 0;
+
+	return ADDITEM_SUCCESS;
 }
 
 /*==========================================

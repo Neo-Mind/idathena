@@ -55,8 +55,8 @@ void vending_vendinglistreq(struct map_session_data* sd, int id)
 	if( !vsd->state.vending )
 		return; // not vending
 
-	if (!pc_can_give_items(sd) || !pc_can_give_items(vsd)) //check if both GMs are allowed to trade
-	{	// GM is not allowed to trade
+	if (!pc_can_give_items(sd) || !pc_can_give_items(vsd)) { //check if both GMs are allowed to trade
+		// GM is not allowed to trade
 		clif_displaymessage(sd->fd, msg_txt(246));
 		return;
 	}
@@ -150,14 +150,14 @@ void vending_purchasereq(struct map_session_data* sd, int aid, int uid, const ui
 		vending[j].amount -= amount;
 
 		switch( pc_checkadditem(sd, vsd->status.cart[idx].nameid, amount) ) {
-			case ADDITEM_EXIST:
-				break;	//We'd add this item to the existing one (in buyers inventory)
-			case ADDITEM_NEW:
+			case CHKADDITEM_EXIST:
+				break; //We'd add this item to the existing one (in buyers inventory)
+			case CHKADDITEM_NEW:
 				new_++;
 				if (new_ > blank)
 					return; //Buyer has no space in his inventory
 				break;
-			case ADDITEM_OVERAMOUNT:
+			case CHKADDITEM_OVERAMOUNT:
 				return; //too many items
 		}
 	}

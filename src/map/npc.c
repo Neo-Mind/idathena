@@ -1330,10 +1330,10 @@ int npc_cashshop_buylist(struct map_session_data *sd, int points, int count, uns
 		}
 
 		switch( pc_checkadditem(sd,nameid,amount) ) {
-			case ADDITEM_NEW:
+			case CHKADDITEM_NEW:
 				new_++;
 				break;
-			case ADDITEM_OVERAMOUNT:
+			case CHKADDITEM_OVERAMOUNT:
 				return 3;
 		}
 
@@ -1434,11 +1434,11 @@ int npc_cashshop_buy(struct map_session_data *sd, int nameid, int amount, int po
 	}
 
 	switch( pc_checkadditem(sd, nameid, amount) ) {
-		case ADDITEM_NEW:
+		case CHKADDITEM_NEW:
 			if( pc_inventoryblank(sd) == 0 )
 				return 3;
 			break;
-		case ADDITEM_OVERAMOUNT:
+		case CHKADDITEM_OVERAMOUNT:
 			return 3;
 	}
 
@@ -1497,8 +1497,7 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 	w = 0;
 	new_ = 0;
 	// process entries in buy list, one by one
-	for( i = 0; i < n; ++i )
-	{
+	for( i = 0; i < n; ++i ) {
 		int nameid, amount, value;
 
 		// find this entry in the shop's sell list
@@ -1517,28 +1516,25 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 		if( !itemdb_exists(nameid) )
 			return 3; // item no longer in itemdb
 
-		if( !itemdb_isstackable(nameid) && amount > 1 )
-		{	//Exploit? You can't buy more than 1 of equipment types o.O
+		if( !itemdb_isstackable(nameid) && amount > 1 ) { //Exploit? You can't buy more than 1 of equipment types o.O
 			ShowWarning("Player %s (%d:%d) sent a hexed packet trying to buy %d of nonstackable item %d!\n",
 				sd->status.name, sd->status.account_id, sd->status.char_id, amount, nameid);
 			amount = item_list[i*2+0] = 1;
 		}
 
-		if( nd->master_nd )
-		{// Script-controlled shops decide by themselves, what can be bought and for what price.
+		if( nd->master_nd ) { // Script-controlled shops decide by themselves, what can be bought and for what price.
 			continue;
 		}
 
-		switch( pc_checkadditem(sd,nameid,amount) )
-		{
-			case ADDITEM_EXIST:
+		switch( pc_checkadditem(sd,nameid,amount) ) {
+			case CHKADDITEM_EXIST:
 				break;
 
-			case ADDITEM_NEW:
+			case CHKADDITEM_NEW:
 				new_++;
 				break;
 
-			case ADDITEM_OVERAMOUNT:
+			case CHKADDITEM_OVERAMOUNT:
 				return 2;
 		}
 
@@ -1560,16 +1556,14 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 
 	pc_payzeny(sd,(int)z,LOG_TYPE_NPC, NULL);
 	
-	for( i = 0; i < n; ++i )
-	{
+	for( i = 0; i < n; ++i ) {
 		int nameid = item_list[i*2+1];
 		int amount = item_list[i*2+0];
 		struct item item_tmp;
 
 		if (itemdb_type(nameid) == IT_PETEGG)
 			pet_create_egg(sd, nameid);
-		else
-		{
+		else {
 			memset(&item_tmp,0,sizeof(item_tmp));
 			item_tmp.nameid = nameid;
 			item_tmp.identify = 1;
@@ -1579,13 +1573,11 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 	}
 
 	// custom merchant shop exp bonus
-	if( battle_config.shop_exp > 0 && z > 0 && (skill = pc_checkskill(sd,MC_DISCOUNT)) > 0 )
-	{
+	if( battle_config.shop_exp > 0 && z > 0 && (skill = pc_checkskill(sd,MC_DISCOUNT)) > 0 ) {
 		if( sd->status.skill[MC_DISCOUNT].flag >= SKILL_FLAG_REPLACED_LV_0 )
 			skill = sd->status.skill[MC_DISCOUNT].flag - SKILL_FLAG_REPLACED_LV_0;
 
-		if( skill > 0 )
-		{
+		if( skill > 0 ) {
 			z = z * (double)skill * (double)battle_config.shop_exp/10000.;
 			if( z < 1 )
 				z = 1;
@@ -1617,29 +1609,25 @@ static int npc_selllist_sub(struct map_session_data* sd, int n, unsigned short* 
 	script_cleararray_pc(sd, "@sold_attribute", (void*)0);
 	script_cleararray_pc(sd, "@sold_identify", (void*)0);
 
-	for( j = 0; j < MAX_SLOTS; j++ )
-	{// clear each of the card slot entries
+	for( j = 0; j < MAX_SLOTS; j++ ) { // clear each of the card slot entries
 		key_card[j] = 0;
 		snprintf(card_slot, sizeof(card_slot), "@sold_card%d", j + 1);
 		script_cleararray_pc(sd, card_slot, (void*)0);
 	}
 	
 	// save list of to be sold items
-	for( i = 0; i < n; i++ )
-	{
+	for( i = 0; i < n; i++ ) {
 		idx = item_list[i*2]-2;
 
 		script_setarray_pc(sd, "@sold_nameid", i, (void*)(intptr_t)sd->status.inventory[idx].nameid, &key_nameid);
 		script_setarray_pc(sd, "@sold_quantity", i, (void*)(intptr_t)item_list[i*2+1], &key_amount);
 
-		if( itemdb_isequip(sd->status.inventory[idx].nameid) )
-		{// process equipment based information into the arrays
+		if( itemdb_isequip(sd->status.inventory[idx].nameid) ) { // process equipment based information into the arrays
 			script_setarray_pc(sd, "@sold_refine", i, (void*)(intptr_t)sd->status.inventory[idx].refine, &key_refine);
 			script_setarray_pc(sd, "@sold_attribute", i, (void*)(intptr_t)sd->status.inventory[idx].attribute, &key_attribute);
 			script_setarray_pc(sd, "@sold_identify", i, (void*)(intptr_t)sd->status.inventory[idx].identify, &key_identify);
 		
-			for( j = 0; j < MAX_SLOTS; j++ )
-			{// store each of the cards from the equipment in the array
+			for( j = 0; j < MAX_SLOTS; j++ ) { // store each of the cards from the equipment in the array
 				snprintf(card_slot, sizeof(card_slot), "@sold_card%d", j + 1);
 				script_setarray_pc(sd, card_slot, i, (void*)(intptr_t)sd->status.inventory[idx].card[j], &key_card[j]);
 			}
@@ -1666,35 +1654,30 @@ int npc_selllist(struct map_session_data* sd, int n, unsigned short* item_list)
 	nullpo_retr(1, sd);
 	nullpo_retr(1, item_list);
 
-	if( ( nd = npc_checknear(sd, map_id2bl(sd->npc_shopid)) ) == NULL || nd->subtype != SHOP )
-	{
+	if( ( nd = npc_checknear(sd, map_id2bl(sd->npc_shopid)) ) == NULL || nd->subtype != SHOP ) {
 		return 1;
 	}
 
 	z = 0;
 
 	// verify the sell list
-	for( i = 0; i < n; i++ )
-	{
+	for( i = 0; i < n; i++ ) {
 		int nameid, amount, idx, value;
 
 		idx    = item_list[i*2]-2;
 		amount = item_list[i*2+1];
 
-		if( idx >= MAX_INVENTORY || idx < 0 || amount < 0 )
-		{
+		if( idx >= MAX_INVENTORY || idx < 0 || amount < 0 ) {
 			return 1;
 		}
 
 		nameid = sd->status.inventory[idx].nameid;
 
-		if( !nameid || !sd->inventory_data[idx] || sd->status.inventory[idx].amount < amount )
-		{
+		if( !nameid || !sd->inventory_data[idx] || sd->status.inventory[idx].amount < amount ) {
 			return 1;
 		}
 
-		if( nd->master_nd )
-		{// Script-controlled shops decide by themselves, what can be sold and at what price.
+		if( nd->master_nd ) { // Script-controlled shops decide by themselves, what can be sold and at what price.
 			continue;
 		}
 
@@ -1703,23 +1686,19 @@ int npc_selllist(struct map_session_data* sd, int n, unsigned short* item_list)
 		z+= (double)value*amount;
 	}
 
-	if( nd->master_nd )
-	{// Script-controlled shops
+	if( nd->master_nd ) { // Script-controlled shops
 		return npc_selllist_sub(sd, n, item_list, nd->master_nd);
 	}
 
 	// delete items
-	for( i = 0; i < n; i++ )
-	{
+	for( i = 0; i < n; i++ ) {
 		int amount, idx;
 
 		idx    = item_list[i*2]-2;
 		amount = item_list[i*2+1];
 
-		if( sd->inventory_data[idx]->type == IT_PETEGG && sd->status.inventory[idx].card[0] == CARD0_PET )
-		{
-			if( search_petDB_index(sd->status.inventory[idx].nameid, PET_EGG) >= 0 )
-			{
+		if( sd->inventory_data[idx]->type == IT_PETEGG && sd->status.inventory[idx].card[0] == CARD0_PET ) {
+			if( search_petDB_index(sd->status.inventory[idx].nameid, PET_EGG) >= 0 ) {
 				intif_delete_petdata(MakeDWord(sd->status.inventory[idx].card[1], sd->status.inventory[idx].card[2]));
 			}
 		}
@@ -1733,13 +1712,11 @@ int npc_selllist(struct map_session_data* sd, int n, unsigned short* item_list)
 	pc_getzeny(sd, (int)z, LOG_TYPE_NPC, NULL);
 
 	// custom merchant shop exp bonus
-	if( battle_config.shop_exp > 0 && z > 0 && ( skill = pc_checkskill(sd,MC_OVERCHARGE) ) > 0)
-	{
+	if( battle_config.shop_exp > 0 && z > 0 && ( skill = pc_checkskill(sd,MC_OVERCHARGE) ) > 0) {
 		if( sd->status.skill[MC_OVERCHARGE].flag >= SKILL_FLAG_REPLACED_LV_0 )
 			skill = sd->status.skill[MC_OVERCHARGE].flag - SKILL_FLAG_REPLACED_LV_0;
 
-		if( skill > 0 )
-		{
+		if( skill > 0 ) {
 			z = z * (double)skill * (double)battle_config.shop_exp/10000.;
 			if( z < 1 )
 				z = 1;
@@ -1781,7 +1758,7 @@ static int npc_unload_ev(DBKey key, DBData *data, va_list ap)
 	struct event_data* ev = db_data2ptr(data);
 	char* npcname = va_arg(ap, char *);
 
-	if(strcmp(ev->nd->exname,npcname)==0){
+	if(strcmp(ev->nd->exname,npcname)==0) {
 		db_remove(ev_db, key);
 		return 1;
 	}

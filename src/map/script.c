@@ -6070,23 +6070,23 @@ BUILDIN_FUNC(checkweight)
 		return 0;
 	}
 	nbargs = script_lastdata(st)+1;
-	if(nbargs%2){
+	if(nbargs%2) {
 		ShowError("buildin_checkweight: Invalid nb of args should be a multiple of 2.\n");
 		script_pushint(st,0);
 		return 1;
 	}
 	slots = pc_inventoryblank(sd); //nb of empty slot
 
-	for(i=2; i<nbargs; i=i+2){
+	for(i=2; i<nbargs; i=i+2) {
 		data = script_getdata(st,i);
 		get_val(st, data);  // convert into value in case of a variable
-		if( data_isstring(data) ){// item name
+		if( data_isstring(data) ) { // item name
 			id = itemdb_searchname(conv_str(st, data));
-		} else {// item id
+		} else { // item id
 			id = itemdb_exists(conv_num(st, data));
 		}
 		if( id == NULL ) {
-			ShowError("buildin_checkweight: Invalid item '%s'.\n", script_getstr(st,i));  // returns string, regardless of what it was
+			ShowError("buildin_checkweight: Invalid item '%s'.\n", script_getstr(st,i)); // returns string, regardless of what it was
 			script_pushint(st,0);
 			return 1;
 		}
@@ -6100,26 +6100,23 @@ BUILDIN_FUNC(checkweight)
 		}
 
 		weight += itemdb_weight(nameid)*amount; //total weight for all chk
-		if( weight + sd->weight > sd->max_weight )
-		{// too heavy
+		if( weight + sd->weight > sd->max_weight ) { // too heavy
 			script_pushint(st,0);
 			return 0;
 		}
 
-		switch( pc_checkadditem(sd, nameid, amount) )
-		{
-			case ADDITEM_EXIST:
+		switch( pc_checkadditem(sd, nameid, amount) ) {
+			case CHKADDITEM_EXIST:
 				// item is already in inventory, but there is still space for the requested amount
 				break;
-			case ADDITEM_NEW:
-				if( itemdb_isstackable(nameid) ) {// stackable
+			case CHKADDITEM_NEW:
+				if( itemdb_isstackable(nameid) ) { // stackable
 					amount2++;
 					if( slots < amount2 ) {
 						script_pushint(st,0);
 						return 0;
 					}
-				}
-				else {// non-stackable
+				} else { // non-stackable
 					amount2 += amount;
 					if( slots < amount2){
 						script_pushint(st,0);
@@ -6127,7 +6124,7 @@ BUILDIN_FUNC(checkweight)
 					}
 				}
 				break;
-			case ADDITEM_OVERAMOUNT:
+			case CHKADDITEM_OVERAMOUNT:
 				script_pushint(st,0);
 				return 0;
 		}
@@ -6158,8 +6155,7 @@ BUILDIN_FUNC(checkweight2)
 		data_it = script_getdata(st, 2);
 		data_nb = script_getdata(st, 3);
 
-		if( !data_isreference(data_it) || !data_isreference(data_nb))
-		{
+		if( !data_isreference(data_it) || !data_isreference(data_nb)) {
 			ShowError("script:checkweight2: parameter not a variable\n");
 			script_pushint(st,0);
 			return 1;// not a variable
@@ -6171,65 +6167,63 @@ BUILDIN_FUNC(checkweight2)
 		name_it = reference_getname(data_it);
 		name_nb = reference_getname(data_nb);
 
-		if( not_array_variable(*name_it) || not_array_variable(*name_nb))
-		{
+		if( not_array_variable(*name_it) || not_array_variable(*name_nb)) {
 			ShowError("script:checkweight2: illegal scope\n");
 			script_pushint(st,0);
 			return 1;// not supported
 		}
-		if(is_string_variable(name_it) || is_string_variable(name_nb)){
+		if(is_string_variable(name_it) || is_string_variable(name_nb)) {
 			ShowError("script:checkweight2: illegal type, need int\n");
 			script_pushint(st,0);
 			return 1;// not supported
 		}
 		nb_it = getarraysize(st, id_it, idx_it, 0, reference_getref(data_it));
 		nb_nb = getarraysize(st, id_nb, idx_nb, 0, reference_getref(data_nb));
-		if(nb_it != nb_nb){
+		if(nb_it != nb_nb) {
 			ShowError("Size mistmatch: nb_it=%d, nb_nb=%d\n",nb_it,nb_nb);
 		fail = 1;
 		}
 
 		slots = pc_inventoryblank(sd);
-		for(i=0; i<nb_it; i++){
+		for(i=0; i<nb_it; i++) {
 			nameid = (int32)__64BPRTSIZE(get_val2(st,reference_uid(id_it,idx_it+i),reference_getref(data_it)));
 		script_removetop(st, -1, 0);
 		amount = (int32)__64BPRTSIZE(get_val2(st,reference_uid(id_nb,idx_nb+i),reference_getref(data_nb)));
 		script_removetop(st, -1, 0);
 		if(fail) continue; //cpntonie to depop rest
 
-		if(itemdb_exists(nameid) == NULL ){
+		if(itemdb_exists(nameid) == NULL ) {
 			ShowError("buildin_checkweight2: Invalid item '%d'.\n", nameid);
 			fail=1;
 			continue;
 		}
-		if(amount < 0 ){
+		if(amount < 0 ) {
 			ShowError("buildin_checkweight2: Invalid amount '%d'.\n", amount);
 			fail = 1;
 			continue;
 		}
 		weight += itemdb_weight(nameid)*amount;
-		if( weight + sd->weight > sd->max_weight ){
+		if( weight + sd->weight > sd->max_weight ) {
 			fail = 1;
 			continue;
 		}
 		switch( pc_checkadditem(sd, nameid, amount) ) {
-			case ADDITEM_EXIST:
-			// item is already in inventory, but there is still space for the requested amount
+			case CHKADDITEM_EXIST:
+				// item is already in inventory, but there is still space for the requested amount
 				break;
-			case ADDITEM_NEW:
-				if( itemdb_isstackable(nameid) ){// stackable
+			case CHKADDITEM_NEW:
+				if( itemdb_isstackable(nameid) ) { // stackable
 					amount2++;
 					if( slots < amount2 )
 						fail = 1;
-				}
-				else {// non-stackable
+				} else { // non-stackable
 					amount2 += amount;
-					if( slots < amount2 ){
+					if( slots < amount2 ) {
 						fail = 1;
 					}
 				}
 				break;
-			case ADDITEM_OVERAMOUNT:
+			case CHKADDITEM_OVERAMOUNT:
 				fail = 1;
 		} //end switch
 	} //end loop DO NOT break it prematurly we need to depop all stack
@@ -6251,24 +6245,22 @@ BUILDIN_FUNC(getitem)
 
 	data=script_getdata(st,2);
 	get_val(st,data);
-	if( data_isstring(data) )
-	{// "<item name>"
+	if( data_isstring(data) ) { // "<item name>"
 		const char *name=conv_str(st,data);
 		struct item_data *item_data = itemdb_searchname(name);
-		if( item_data == NULL ){
+		if( item_data == NULL ) {
 			ShowError("buildin_getitem: Nonexistant item %s requested.\n", name);
 			return 1; //No item created.
 		}
 		nameid=item_data->nameid;
-	} else if( data_isint(data) )
-	{// <item id>
+	} else if( data_isint(data) ) { // <item id>
 		nameid=conv_num(st,data);
 		//Violet Box, Blue Box, etc - random item pick
 		if( nameid < 0 ) {
 			nameid = -nameid;
 			flag = 1;
 		}
-		if( nameid <= 0 || !itemdb_exists(nameid) ){
+		if( nameid <= 0 || !itemdb_exists(nameid) ) {
 			ShowError("buildin_getitem: Nonexistant item %d requested.\n", nameid);
 			return 1; //No item created.
 		}
@@ -6302,13 +6294,10 @@ BUILDIN_FUNC(getitem)
 	else
 		get_count = amount;
 
-	for (i = 0; i < amount; i += get_count)
-	{
+	for (i = 0; i < amount; i += get_count) {
 		// if not pet egg
-		if (!pet_create_egg(sd, nameid))
-		{
-			if ((flag = pc_additem(sd, &it, get_count, LOG_TYPE_SCRIPT)))
-			{
+		if (!pet_create_egg(sd, nameid)) {
+			if ((flag = pc_additem(sd, &it, get_count, LOG_TYPE_SCRIPT))) {
 				clif_additem(sd, 0, 0, flag);
 				if( pc_candrop(sd,&it) )
 					map_addflooritem(&it,get_count,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
@@ -6341,14 +6330,14 @@ BUILDIN_FUNC(getitem2)
 
 	data=script_getdata(st,2);
 	get_val(st,data);
-	if( data_isstring(data) ){
+	if( data_isstring(data) ) {
 		const char *name=conv_str(st,data);
 		struct item_data *item_data = itemdb_searchname(name);
 		if( item_data )
 			nameid=item_data->nameid;
 		else
 			nameid=UNKNOWN_ITEM_ID;
-	}else
+	} else
 		nameid=conv_num(st,data);
 
 	amount=script_getnum(st,3);
@@ -6370,14 +6359,12 @@ BUILDIN_FUNC(getitem2)
 		item_data=itemdb_exists(nameid);
 		if (item_data == NULL)
 			return -1;
-		if(item_data->type==IT_WEAPON || item_data->type==IT_ARMOR){
+		if(item_data->type==IT_WEAPON || item_data->type==IT_ARMOR) {
 			if(ref > MAX_REFINE) ref = MAX_REFINE;
-		}
-		else if(item_data->type==IT_PETEGG) {
+		} else if(item_data->type==IT_PETEGG) {
 			iden = 1;
 			ref = 0;
-		}
-		else {
+		} else {
 			iden = 1;
 			ref = attr = 0;
 		}
@@ -6400,13 +6387,10 @@ BUILDIN_FUNC(getitem2)
 		else
 			get_count = amount;
 
-		for (i = 0; i < amount; i += get_count)
-		{
+		for (i = 0; i < amount; i += get_count) {
 			// if not pet egg
-			if (!pet_create_egg(sd, nameid))
-			{
-				if ((flag = pc_additem(sd, &item_tmp, get_count, LOG_TYPE_SCRIPT)))
-				{
+			if (!pet_create_egg(sd, nameid)) {
+				if ((flag = pc_additem(sd, &item_tmp, get_count, LOG_TYPE_SCRIPT))) {
 					clif_additem(sd, 0, 0, flag);
 					if( pc_candrop(sd,&item_tmp) )
 						map_addflooritem(&item_tmp,get_count,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
@@ -6436,28 +6420,21 @@ BUILDIN_FUNC(rentitem)
 	if( (sd = script_rid2sd(st)) == NULL )
 		return 0;
 
-	if( data_isstring(data) )
-	{
+	if( data_isstring(data) ) {
 		const char *name = conv_str(st,data);
 		struct item_data *itd = itemdb_searchname(name);
-		if( itd == NULL )
-		{
+		if( itd == NULL ) {
 			ShowError("buildin_rentitem: Nonexistant item %s requested.\n", name);
 			return 1;
 		}
 		nameid = itd->nameid;
-	}
-	else if( data_isint(data) )
-	{
+	} else if( data_isint(data) ) {
 		nameid = conv_num(st,data);
-		if( nameid <= 0 || !itemdb_exists(nameid) )
-		{
+		if( nameid <= 0 || !itemdb_exists(nameid) ) {
 			ShowError("buildin_rentitem: Nonexistant item %d requested.\n", nameid);
 			return 1;
 		}
-	}
-	else
-	{
+	} else {
 		ShowError("buildin_rentitem: invalid data type for argument #1 (%d).\n", data->type);
 		return 1;
 	}
@@ -6468,8 +6445,7 @@ BUILDIN_FUNC(rentitem)
 	it.identify = 1;
 	it.expire_time = (unsigned int)(time(NULL) + seconds);
 
-	if( (flag = pc_additem(sd, &it, 1, LOG_TYPE_SCRIPT)) )
-	{
+	if( (flag = pc_additem(sd, &it, 1, LOG_TYPE_SCRIPT)) ) {
 		clif_additem(sd, 0, 0, flag);
 		return 1;
 	}
@@ -6491,41 +6467,38 @@ BUILDIN_FUNC(getnameditem)
 	struct script_data *data;
 
 	sd = script_rid2sd(st);
-	if (sd == NULL)
-	{	//Player not attached!
+	if( sd == NULL ) { //Player not attached!
 		script_pushint(st,0);
 		return 0;
 	}
 	
 	data=script_getdata(st,2);
 	get_val(st,data);
-	if( data_isstring(data) ){
+	if( data_isstring(data) ) {
 		const char *name=conv_str(st,data);
 		struct item_data *item_data = itemdb_searchname(name);
-		if( item_data == NULL)
-		{	//Failed
+		if( item_data == NULL) { //Failed
 			script_pushint(st,0);
 			return 0;
 		}
 		nameid = item_data->nameid;
-	}else
+	} else
 		nameid = conv_num(st,data);
 
-	if(!itemdb_exists(nameid)/* || itemdb_isstackable(nameid)*/)
-	{	//Even though named stackable items "could" be risky, they are required for certain quests.
+	if(!itemdb_exists(nameid)/* || itemdb_isstackable(nameid)*/) {
+		//Even though named stackable items "could" be risky, they are required for certain quests.
 		script_pushint(st,0);
 		return 0;
 	}
 
 	data=script_getdata(st,3);
 	get_val(st,data);
-	if( data_isstring(data) )	//Char Name
+	if( data_isstring(data) ) //Char Name
 		tsd=map_nick2sd(conv_str(st,data));
 	else	//Char Id was given
 		tsd=map_charid2sd(conv_num(st,data));
 	
-	if( tsd == NULL )
-	{	//Failed
+	if( tsd == NULL ) { //Failed
 		script_pushint(st,0);
 		return 0;
 	}
@@ -6572,14 +6545,14 @@ BUILDIN_FUNC(makeitem)
 
 	data=script_getdata(st,2);
 	get_val(st,data);
-	if( data_isstring(data) ){
+	if( data_isstring(data) ) {
 		const char *name=conv_str(st,data);
 		struct item_data *item_data = itemdb_searchname(name);
 		if( item_data )
 			nameid=item_data->nameid;
 		else
 			nameid=UNKNOWN_ITEM_ID;
-	}else
+	} else
 		nameid=conv_num(st,data);
 
 	amount=script_getnum(st,3);
@@ -6587,8 +6560,7 @@ BUILDIN_FUNC(makeitem)
 	x	=script_getnum(st,5);
 	y	=script_getnum(st,6);
 
-	if(strcmp(mapname,"this")==0)
-	{
+	if(strcmp(mapname,"this")==0) {
 		TBL_PC *sd;
 		sd = script_rid2sd(st);
 		if (!sd) return 0; //Failed...
@@ -6626,10 +6598,8 @@ static void buildin_delitem_delete(struct map_session_data* sd, int idx, int* am
 
 	delamount = ( amount[0] < inv->amount ) ? amount[0] : inv->amount;
 
-	if( delete_items )
-	{
-		if( sd->inventory_data[idx]->type == IT_PETEGG && inv->card[0] == CARD0_PET )
-		{// delete associated pet
+	if( delete_items ) {
+		if( sd->inventory_data[idx]->type == IT_PETEGG && inv->card[0] == CARD0_PET ) { // delete associated pet
 			intif_delete_petdata(MakeDWord(inv->card[1], inv->card[2]));
 		}
 		pc_delitem(sd, idx, delamount, 0, 0, LOG_TYPE_SCRIPT);
@@ -6654,53 +6624,41 @@ static bool buildin_delitem_search(struct map_session_data* sd, struct item* it,
 	it->equip = 0;
 
 	// when searching for nameid only, prefer additionally
-	if( !exact_match )
-	{
+	if( !exact_match ) {
 		// non-refined items
 		it->refine = 0;
 		// card-less items
 		memset(it->card, 0, sizeof(it->card));
 	}
 
-	for(;;)
-	{
+	for(;;) {
 		amount = it->amount;
 		important = 0;
 
 		// 1st pass -- less important items / exact match
-		for( i = 0; amount && i < ARRAYLENGTH(sd->status.inventory); i++ )
-		{
+		for( i = 0; amount && i < ARRAYLENGTH(sd->status.inventory); i++ ) {
 			inv = &sd->status.inventory[i];
 
-			if( !inv->nameid || !sd->inventory_data[i] || inv->nameid != it->nameid )
-			{// wrong/invalid item
+			if( !inv->nameid || !sd->inventory_data[i] || inv->nameid != it->nameid ) { // wrong/invalid item
 				continue;
 			}
 
-			if( inv->equip != it->equip || inv->refine != it->refine )
-			{// not matching attributes
+			if( inv->equip != it->equip || inv->refine != it->refine ) { // not matching attributes
 				important++;
 				continue;
 			}
 
-			if( exact_match )
-			{
+			if( exact_match ) {
 				if( inv->identify != it->identify || inv->attribute != it->attribute || memcmp(inv->card, it->card, sizeof(inv->card)) )
-				{// not matching exact attributes
+				{ // not matching exact attributes
 					continue;
 				}
-			}
-			else
-			{
-				if( sd->inventory_data[i]->type == IT_PETEGG )
-				{
-					if( inv->card[0] == CARD0_PET && CheckForCharServer() )
-					{// pet which cannot be deleted
+			} else {
+				if( sd->inventory_data[i]->type == IT_PETEGG ) {
+					if( inv->card[0] == CARD0_PET && CheckForCharServer() ) { // pet which cannot be deleted
 						continue;
 					}
-				}
-				else if( memcmp(inv->card, it->card, sizeof(inv->card)) )
-				{// named/carded item
+				} else if( memcmp(inv->card, it->card, sizeof(inv->card)) ) { // named/carded item
 					important++;
 					continue;
 				}
@@ -6711,46 +6669,37 @@ static bool buildin_delitem_search(struct map_session_data* sd, struct item* it,
 		}
 
 		// 2nd pass -- any matching item
-		if( amount == 0 || important == 0 )
-		{// either everything was already consumed or no items were skipped
+		if( amount == 0 || important == 0 ) { // either everything was already consumed or no items were skipped
 			;
-		}
-		else for( i = 0; amount && i < ARRAYLENGTH(sd->status.inventory); i++ )
-		{
-			inv = &sd->status.inventory[i];
+		} else
+			for( i = 0; amount && i < ARRAYLENGTH(sd->status.inventory); i++ ) {
+				inv = &sd->status.inventory[i];
 
-			if( !inv->nameid || !sd->inventory_data[i] || inv->nameid != it->nameid )
-			{// wrong/invalid item
-				continue;
-			}
-
-			if( sd->inventory_data[i]->type == IT_PETEGG && inv->card[0] == CARD0_PET && CheckForCharServer() )
-			{// pet which cannot be deleted
-				continue;
-			}
-
-			if( exact_match )
-			{
-				if( inv->refine != it->refine || inv->identify != it->identify || inv->attribute != it->attribute || memcmp(inv->card, it->card, sizeof(inv->card)) )
-				{// not matching attributes
+				if( !inv->nameid || !sd->inventory_data[i] || inv->nameid != it->nameid ) { // wrong/invalid item
 					continue;
 				}
+
+				if( sd->inventory_data[i]->type == IT_PETEGG && inv->card[0] == CARD0_PET && CheckForCharServer() ) {
+					// pet which cannot be deleted
+					continue;
+				}
+
+				if( exact_match ) {
+					if( inv->refine != it->refine || inv->identify != it->identify || inv->attribute != it->attribute || memcmp(inv->card, it->card, sizeof(inv->card)) )
+					{ // not matching attributes
+						continue;
+					}
+				}
+
+				// count / delete item
+				buildin_delitem_delete(sd, i, &amount, delete_items);
 			}
 
-			// count / delete item
-			buildin_delitem_delete(sd, i, &amount, delete_items);
-		}
-
-		if( amount )
-		{// not enough items
+		if( amount ) { // not enough items
 			return false;
-		}
-		else if( delete_items )
-		{// we are done with the work
+		} else if( delete_items ) { // we are done with the work
 			return true;
-		}
-		else
-		{// get rid of the items now
+		} else { // get rid of the items now
 			delete_items = true;
 		}
 	}
