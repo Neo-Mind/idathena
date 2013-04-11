@@ -349,14 +349,12 @@ int skill_get_range2 (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 			break;
 		case WL_WHITEIMPRISON:
 		case WL_SOULEXPANSION:
-		//case WL_FROSTMISTY:
 		case WL_MARSHOFABYSS:
 		case WL_SIENNAEXECRATE:
 		case WL_DRAINLIFE:
 		case WL_CRIMSONROCK:
 		case WL_HELLINFERNO:
 		case WL_COMET:
-		//case WL_JACKFROST:
 		case WL_CHAINLIGHTNING:
 		case WL_EARTHSTRAIN:
 		case WL_TETRAVORTEX:
@@ -1115,7 +1113,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 
 		case LK_SPIRALPIERCE:
 		case ML_SPIRALPIERCE:
-			sc_start(src,bl,SC_STOP,100,0,skill_get_time2(skill_id,skill_lv));
+			if( dstsd || ( dstmd && !is_boss(bl) ) ) //Does not work on bosses
+				sc_start(src,bl,SC_STOP,100,0,skill_get_time2(skill_id,skill_lv));
 			break;
 
 		case ST_REJECTSWORD:
