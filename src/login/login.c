@@ -1297,6 +1297,19 @@ void login_auth_failed(struct login_session_data* sd, int result)
 	if( result == 1 && login_config.dynamic_pass_failure_ban )
 		ipban_log(ip); // log failed password attempt
 
+#if PACKETVER >= 20120000 /* not sure when this started */
+	WFIFOHEAD(fd,26);
+	WFIFOW(fd,0) = 0x83e;
+	WFIFOL(fd,2) = result;
+	if( result != 6 )
+		memset(WFIFOP(fd,6), '\0', 20);
+	else { // 6 = Your are Prohibited to log in until %s
+		struct mmo_account acc;
+		time_t unban_time = ( accounts->load_str(accounts, &acc, sd->userid) ) ? acc.unban_time : 0;
+		timestamp2string((char*)WFIFOP(fd,6), 20, unban_time, login_config.date_format);
+	}
+	WFIFOSET(fd,26);
+#else
 	WFIFOHEAD(fd,23);
 	WFIFOW(fd,0) = 0x6a;
 	WFIFOB(fd,2) = (uint8)result;
@@ -1308,6 +1321,7 @@ void login_auth_failed(struct login_session_data* sd, int result)
 		timestamp2string((char*)WFIFOP(fd,3), 20, unban_time, login_config.date_format);
 	}
 	WFIFOSET(fd,23);
+#endif
 }
 
 
@@ -1323,18 +1337,15 @@ int parse_login(int fd)
 	uint32 ipl = session[fd]->client_addr;
 	ip2str(ipl, ip);
 
-	if( session[fd]->flag.eof )
-	{
+	if( session[fd]->flag.eof ) {
 		ShowInfo("Closed connection from '"CL_WHITE"%s"CL_RESET"'.\n", ip);
 		do_close(fd);
 		return 0;
 	}
 
-	if( sd == NULL )
-	{
+	if( sd == NULL ) {
 		// Perform ip-ban check
-		if( login_config.ipban && ipban_check(ipl) )
-		{
+		if( login_config.ipban && ipban_check(ipl) ) {
 			ShowStatus("Connection refused: IP isn't authorised (deny/allow, ip: %s).\n", ip);
 			login_log(ipl, "unknown", -3, "ip banned");
 			WFIFOHEAD(fd,23);
@@ -1351,213 +1362,198 @@ int parse_login(int fd)
 		sd->fd = fd;
 	}
 
-	while( RFIFOREST(fd) >= 2 )
-	{
+	while( RFIFOREST(fd) >= 2 ) {
 		uint16 command = RFIFOW(fd,0);
 
-		switch( command )
-		{
+		switch( command ) {
 
-		case 0x0200:		// New alive packet: structure: 0x200 <account.userid>.24B. used to verify if client is always alive.
-			if (RFIFOREST(fd) < 26)
-				return 0;
-			RFIFOSKIP(fd,26);
-		break;
-
-		// client md5 hash (binary)
-		case 0x0204: // S 0204 <md5 hash>.16B (kRO 2004-05-31aSakexe langtype 0 and 6)
-			if (RFIFOREST(fd) < 18)
-				return 0;
-
-			sd->has_client_hash = 1;
-			memcpy(sd->client_hash, RFIFOP(fd, 2), 16);
-
-			RFIFOSKIP(fd,18);
-		break;
-
-		// request client login (raw password)
-		case 0x0064: // S 0064 <version>.L <username>.24B <password>.24B <clienttype>.B
-		case 0x0277: // S 0277 <version>.L <username>.24B <password>.24B <clienttype>.B <ip address>.16B <adapter address>.13B
-		case 0x02b0: // S 02b0 <version>.L <username>.24B <password>.24B <clienttype>.B <ip address>.16B <adapter address>.13B <g_isGravityID>.B
-		// request client login (md5-hashed password)
-		case 0x01dd: // S 01dd <version>.L <username>.24B <password hash>.16B <clienttype>.B
-		case 0x01fa: // S 01fa <version>.L <username>.24B <password hash>.16B <clienttype>.B <?>.B(index of the connection in the clientinfo file (+10 if the command-line contains "pc"))
-		case 0x027c: // S 027c <version>.L <username>.24B <password hash>.16B <clienttype>.B <?>.13B(junk)
-		case 0x0825: // S 0825 <packetsize>.W <version>.L <clienttype>.B <userid>.24B <password>.27B <mac>.17B <ip>.15B <token>.(packetsize - 0x5C)B
-		{
-			size_t packet_len = RFIFOREST(fd);
-
-			if( (command == 0x0064 && packet_len < 55)
-			||  (command == 0x0277 && packet_len < 84)
-			||  (command == 0x02b0 && packet_len < 85)
-			||  (command == 0x01dd && packet_len < 47)
-			||  (command == 0x01fa && packet_len < 48)
-			||  (command == 0x027c && packet_len < 60)
-			||  (command == 0x0825 && (packet_len < 4 || packet_len < RFIFOW(fd, 2))) )
-				return 0;
-		}
-		{
-			uint32 version;
-			char username[NAME_LENGTH];
-			char password[NAME_LENGTH];
-			unsigned char passhash[16];
-			uint8 clienttype;
-			bool israwpass = (command==0x0064 || command==0x0277 || command==0x02b0 || command == 0x0825);
-
-			// Shinryo: For the time being, just use token as password.
-			if(command == 0x0825)
-			{
-				char *accname = (char *)RFIFOP(fd, 9);
-				char *token = (char *)RFIFOP(fd, 0x5C);
-				size_t uAccLen = strlen(accname);
-				size_t uTokenLen = RFIFOREST(fd) - 0x5C;
-
-				version = RFIFOL(fd,4);
-
-				if(uAccLen > NAME_LENGTH - 1 || uAccLen <= 0 || uTokenLen > NAME_LENGTH - 1  || uTokenLen <= 0)
-				{
-					login_auth_failed(sd, 3);
+			case 0x0200:		// New alive packet: structure: 0x200 <account.userid>.24B. used to verify if client is always alive.
+				if (RFIFOREST(fd) < 26)
 					return 0;
-				}
+				RFIFOSKIP(fd,26);
+				break;
 
-				safestrncpy(username, accname, uAccLen + 1);
-				safestrncpy(password, token, uTokenLen + 1);
-				clienttype = RFIFOB(fd, 8);
-			}
-			else
-			{
-				version = RFIFOL(fd,2);
-				safestrncpy(username, (const char*)RFIFOP(fd,6), NAME_LENGTH);
-				if( israwpass )
+			// client md5 hash (binary)
+			case 0x0204: // S 0204 <md5 hash>.16B (kRO 2004-05-31aSakexe langtype 0 and 6)
+				if (RFIFOREST(fd) < 18)
+					return 0;
+
+				sd->has_client_hash = 1;
+				memcpy(sd->client_hash, RFIFOP(fd, 2), 16);
+
+				RFIFOSKIP(fd,18);
+				break;
+
+			// request client login (raw password)
+			case 0x0064: // S 0064 <version>.L <username>.24B <password>.24B <clienttype>.B
+			case 0x0277: // S 0277 <version>.L <username>.24B <password>.24B <clienttype>.B <ip address>.16B <adapter address>.13B
+			case 0x02b0: // S 02b0 <version>.L <username>.24B <password>.24B <clienttype>.B <ip address>.16B <adapter address>.13B <g_isGravityID>.B
+			// request client login (md5-hashed password)
+			case 0x01dd: // S 01dd <version>.L <username>.24B <password hash>.16B <clienttype>.B
+			case 0x01fa: // S 01fa <version>.L <username>.24B <password hash>.16B <clienttype>.B <?>.B(index of the connection in the clientinfo file (+10 if the command-line contains "pc"))
+			case 0x027c: // S 027c <version>.L <username>.24B <password hash>.16B <clienttype>.B <?>.13B(junk)
+			case 0x0825: // S 0825 <packetsize>.W <version>.L <clienttype>.B <userid>.24B <password>.27B <mac>.17B <ip>.15B <token>.(packetsize - 0x5C)B
 				{
-					safestrncpy(password, (const char*)RFIFOP(fd,30), NAME_LENGTH);
-					clienttype = RFIFOB(fd,54);
+					size_t packet_len = RFIFOREST(fd);
+
+					if( (command == 0x0064 && packet_len < 55)
+					||  (command == 0x0277 && packet_len < 84)
+					||  (command == 0x02b0 && packet_len < 85)
+					||  (command == 0x01dd && packet_len < 47)
+					||  (command == 0x01fa && packet_len < 48)
+					||  (command == 0x027c && packet_len < 60)
+					||  (command == 0x0825 && (packet_len < 4 || packet_len < RFIFOW(fd, 2))) )
+						return 0;
 				}
-				else
 				{
-					memcpy(passhash, RFIFOP(fd,30), 16);
-					clienttype = RFIFOB(fd,46);
+					uint32 version;
+					char username[NAME_LENGTH];
+					char password[NAME_LENGTH];
+					unsigned char passhash[16];
+					uint8 clienttype;
+					bool israwpass = (command==0x0064 || command==0x0277 || command==0x02b0 || command == 0x0825);
+
+					// Shinryo: For the time being, just use token as password.
+					if(command == 0x0825) {
+						char *accname = (char *)RFIFOP(fd, 9);
+						char *token = (char *)RFIFOP(fd, 0x5C);
+						size_t uAccLen = strlen(accname);
+						size_t uTokenLen = RFIFOREST(fd) - 0x5C;
+
+						version = RFIFOL(fd,4);
+
+						if(uAccLen > NAME_LENGTH - 1 || uAccLen <= 0 || uTokenLen > NAME_LENGTH - 1  || uTokenLen <= 0) {
+							login_auth_failed(sd, 3);
+							return 0;
+						}
+
+						safestrncpy(username, accname, uAccLen + 1);
+						safestrncpy(password, token, uTokenLen + 1);
+						clienttype = RFIFOB(fd, 8);
+					} else {
+						version = RFIFOL(fd,2);
+						safestrncpy(username, (const char*)RFIFOP(fd,6), NAME_LENGTH);
+						if( israwpass ) {
+							safestrncpy(password, (const char*)RFIFOP(fd,30), NAME_LENGTH);
+							clienttype = RFIFOB(fd,54);
+						} else {
+							memcpy(passhash, RFIFOP(fd,30), 16);
+							clienttype = RFIFOB(fd,46);
+						}
+					}
+					RFIFOSKIP(fd,RFIFOREST(fd)); // assume no other packet was sent
+
+					sd->clienttype = clienttype;
+					sd->version = version;
+					safestrncpy(sd->userid, username, NAME_LENGTH);
+					if( israwpass ) {
+						ShowStatus("Request for connection of %s (ip: %s).\n", sd->userid, ip);
+						safestrncpy(sd->passwd, password, NAME_LENGTH);
+						if( login_config.use_md5_passwds )
+							MD5_String(sd->passwd, sd->passwd);
+						sd->passwdenc = 0;
+					} else {
+						ShowStatus("Request for connection (passwdenc mode) of %s (ip: %s).\n", sd->userid, ip);
+						bin2hex(sd->passwd, passhash, 16); // raw binary data here!
+						sd->passwdenc = PASSWORDENC;
+					}
+
+					if( sd->passwdenc != 0 && login_config.use_md5_passwds ) {
+						login_auth_failed(sd, 3); // send "rejected from server"
+						return 0;
+					}
+
+					result = mmo_auth(sd, false);
+
+					if( result == -1 )
+						login_auth_ok(sd);
+					else
+						login_auth_failed(sd, result);
 				}
-			}
-			RFIFOSKIP(fd,RFIFOREST(fd)); // assume no other packet was sent
+				break;
 
-			sd->clienttype = clienttype;
-			sd->version = version;
-			safestrncpy(sd->userid, username, NAME_LENGTH);
-			if( israwpass )
-			{
-				ShowStatus("Request for connection of %s (ip: %s).\n", sd->userid, ip);
-				safestrncpy(sd->passwd, password, NAME_LENGTH);
-				if( login_config.use_md5_passwds )
-					MD5_String(sd->passwd, sd->passwd);
-				sd->passwdenc = 0;
-			}
-			else
-			{
-				ShowStatus("Request for connection (passwdenc mode) of %s (ip: %s).\n", sd->userid, ip);
-				bin2hex(sd->passwd, passhash, 16); // raw binary data here!
-				sd->passwdenc = PASSWORDENC;
-			}
+			case 0x01db:	// Sending request of the coding key
+				RFIFOSKIP(fd,2);
+				{
+					memset(sd->md5key, '\0', sizeof(sd->md5key));
+					sd->md5keylen = (uint16)(12 + rnd() % 4);
+					MD5_Salt(sd->md5keylen, sd->md5key);
 
-			if( sd->passwdenc != 0 && login_config.use_md5_passwds )
-			{
-				login_auth_failed(sd, 3); // send "rejected from server"
+					WFIFOHEAD(fd,4 + sd->md5keylen);
+					WFIFOW(fd,0) = 0x01dc;
+					WFIFOW(fd,2) = 4 + sd->md5keylen;
+					memcpy(WFIFOP(fd,4), sd->md5key, sd->md5keylen);
+					WFIFOSET(fd,WFIFOW(fd,2));
+				}
+				break;
+
+			case 0x2710:	// Connection request of a char-server
+				if (RFIFOREST(fd) < 86)
+					return 0;
+				{
+					char server_name[20];
+					char message[256];
+					uint32 server_ip;
+					uint16 server_port;
+					uint16 type;
+					uint16 new_;
+
+					safestrncpy(sd->userid, (char*)RFIFOP(fd,2), NAME_LENGTH);
+					safestrncpy(sd->passwd, (char*)RFIFOP(fd,26), NAME_LENGTH);
+					if( login_config.use_md5_passwds )
+						MD5_String(sd->passwd, sd->passwd);
+					sd->passwdenc = 0;
+					sd->version = login_config.client_version_to_connect; // hack to skip version check
+					server_ip = ntohl(RFIFOL(fd,54));
+					server_port = ntohs(RFIFOW(fd,58));
+					safestrncpy(server_name, (char*)RFIFOP(fd,60), 20);
+					type = RFIFOW(fd,82);
+					new_ = RFIFOW(fd,84);
+					RFIFOSKIP(fd,86);
+
+					ShowInfo("Connection request of the char-server '%s' @ %u.%u.%u.%u:%u (account: '%s', pass: '%s', ip: '%s')\n", server_name, CONVIP(server_ip), server_port, sd->userid, sd->passwd, ip);
+					sprintf(message, "charserver - %s@%u.%u.%u.%u:%u", server_name, CONVIP(server_ip), server_port);
+					login_log(session[fd]->client_addr, sd->userid, 100, message);
+
+					result = mmo_auth(sd, true);
+					if( runflag == LOGINSERVER_ST_RUNNING &&
+						result == -1 &&
+						sd->sex == 'S' &&
+						sd->account_id >= 0 && sd->account_id < ARRAYLENGTH(server) &&
+						!session_isValid(server[sd->account_id].fd) )
+					{
+						ShowStatus("Connection of the char-server '%s' accepted.\n", server_name);
+						safestrncpy(server[sd->account_id].name, server_name, sizeof(server[sd->account_id].name));
+						server[sd->account_id].fd = fd;
+						server[sd->account_id].ip = server_ip;
+						server[sd->account_id].port = server_port;
+						server[sd->account_id].users = 0;
+						server[sd->account_id].type = type;
+						server[sd->account_id].new_ = new_;
+
+						session[fd]->func_parse = parse_fromchar;
+						session[fd]->flag.server = 1;
+						realloc_fifo(fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
+
+						// send connection success
+						WFIFOHEAD(fd,3);
+						WFIFOW(fd,0) = 0x2711;
+						WFIFOB(fd,2) = 0;
+						WFIFOSET(fd,3);
+					} else {
+						ShowNotice("Connection of the char-server '%s' REFUSED.\n", server_name);
+						WFIFOHEAD(fd,3);
+						WFIFOW(fd,0) = 0x2711;
+						WFIFOB(fd,2) = 3;
+						WFIFOSET(fd,3);
+					}
+				}
+				return 0; // processing will continue elsewhere
+
+			default:
+				ShowNotice("Abnormal end of connection (ip: %s): Unknown packet 0x%x\n", ip, command);
+				set_eof(fd);
 				return 0;
-			}
-
-			result = mmo_auth(sd, false);
-
-			if( result == -1 )
-				login_auth_ok(sd);
-			else
-				login_auth_failed(sd, result);
-		}
-		break;
-
-		case 0x01db:	// Sending request of the coding key
-			RFIFOSKIP(fd,2);
-		{
-			memset(sd->md5key, '\0', sizeof(sd->md5key));
-			sd->md5keylen = (uint16)(12 + rnd() % 4);
-			MD5_Salt(sd->md5keylen, sd->md5key);
-
-			WFIFOHEAD(fd,4 + sd->md5keylen);
-			WFIFOW(fd,0) = 0x01dc;
-			WFIFOW(fd,2) = 4 + sd->md5keylen;
-			memcpy(WFIFOP(fd,4), sd->md5key, sd->md5keylen);
-			WFIFOSET(fd,WFIFOW(fd,2));
-		}
-		break;
-
-		case 0x2710:	// Connection request of a char-server
-			if (RFIFOREST(fd) < 86)
-				return 0;
-		{
-			char server_name[20];
-			char message[256];
-			uint32 server_ip;
-			uint16 server_port;
-			uint16 type;
-			uint16 new_;
-
-			safestrncpy(sd->userid, (char*)RFIFOP(fd,2), NAME_LENGTH);
-			safestrncpy(sd->passwd, (char*)RFIFOP(fd,26), NAME_LENGTH);
-			if( login_config.use_md5_passwds )
-				MD5_String(sd->passwd, sd->passwd);
-			sd->passwdenc = 0;
-			sd->version = login_config.client_version_to_connect; // hack to skip version check
-			server_ip = ntohl(RFIFOL(fd,54));
-			server_port = ntohs(RFIFOW(fd,58));
-			safestrncpy(server_name, (char*)RFIFOP(fd,60), 20);
-			type = RFIFOW(fd,82);
-			new_ = RFIFOW(fd,84);
-			RFIFOSKIP(fd,86);
-
-			ShowInfo("Connection request of the char-server '%s' @ %u.%u.%u.%u:%u (account: '%s', pass: '%s', ip: '%s')\n", server_name, CONVIP(server_ip), server_port, sd->userid, sd->passwd, ip);
-			sprintf(message, "charserver - %s@%u.%u.%u.%u:%u", server_name, CONVIP(server_ip), server_port);
-			login_log(session[fd]->client_addr, sd->userid, 100, message);
-
-			result = mmo_auth(sd, true);
-			if( runflag == LOGINSERVER_ST_RUNNING &&
-				result == -1 &&
-				sd->sex == 'S' &&
-				sd->account_id >= 0 && sd->account_id < ARRAYLENGTH(server) &&
-				!session_isValid(server[sd->account_id].fd) )
-			{
-				ShowStatus("Connection of the char-server '%s' accepted.\n", server_name);
-				safestrncpy(server[sd->account_id].name, server_name, sizeof(server[sd->account_id].name));
-				server[sd->account_id].fd = fd;
-				server[sd->account_id].ip = server_ip;
-				server[sd->account_id].port = server_port;
-				server[sd->account_id].users = 0;
-				server[sd->account_id].type = type;
-				server[sd->account_id].new_ = new_;
-
-				session[fd]->func_parse = parse_fromchar;
-				session[fd]->flag.server = 1;
-				realloc_fifo(fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
-
-				// send connection success
-				WFIFOHEAD(fd,3);
-				WFIFOW(fd,0) = 0x2711;
-				WFIFOB(fd,2) = 0;
-				WFIFOSET(fd,3);
-			}
-			else
-			{
-				ShowNotice("Connection of the char-server '%s' REFUSED.\n", server_name);
-				WFIFOHEAD(fd,3);
-				WFIFOW(fd,0) = 0x2711;
-				WFIFOB(fd,2) = 3;
-				WFIFOSET(fd,3);
-			}
-		}
-		return 0; // processing will continue elsewhere
-
-		default:
-			ShowNotice("Abnormal end of connection (ip: %s): Unknown packet 0x%x\n", ip, command);
-			set_eof(fd);
-			return 0;
 		}
 	}
 

@@ -4779,18 +4779,20 @@ int battle_damage_area( struct block_list *bl, va_list ap) {
 	amotion=va_arg(ap,int);
 	dmotion=va_arg(ap,int);
 	damage=va_arg(ap,int);
+
 	if( bl->type == BL_MOB && ((TBL_MOB*)bl)->class_ == MOBID_EMPERIUM )
 		return 0;
-	if( bl != src && battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
+	if( bl != src && battle_check_target(src, bl, BCT_ENEMY) > 0 ) {
 		map_freeblock_lock();
 		if( src->type == BL_PC )
 			battle_drain((TBL_PC*)src, bl, damage, damage, status_get_race(bl), is_boss(bl));
 		if( amotion )
-			battle_delay_damage(tick, amotion,src,bl,0,CR_REFLECTSHIELD,0,damage,ATK_DEF,0,true);
+			battle_delay_damage(tick, amotion, src, bl, 0, CR_REFLECTSHIELD, 0, damage, ATK_DEF, 0, true);
 		else
-			status_fix_damage(src,bl,damage,0);
-		clif_damage(bl,bl,tick,amotion,dmotion,damage,1,ATK_BLOCK,0);
-		skill_additional_effect(src, bl, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL,ATK_DEF,tick);
+			status_fix_damage(src ,bl, damage, 0);
+		clif_damage(bl, bl, tick, amotion, dmotion, damage, 1, ATK_BLOCK, 0);
+		if( !(src && src->type == BL_PC && ((TBL_PC*)src)->state.autocast) )
+			skill_additional_effect(src, bl, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);
 		map_freeblock_unlock();
 	}
 	
@@ -5008,10 +5010,10 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		rdamage = battle_calc_return_damage(target,src, &damage, wd.flag, 0);
 		if( rdamage > 0 ) {
 			if( tsc && tsc->data[SC_REFLECTDAMAGE] ) {
-				if( src != target )// Don't reflect your own damage (Grand Cross)
-					map_foreachinshootrange(battle_damage_area,target,skill_get_splash(LG_REFLECTDAMAGE,1),BL_CHAR,tick,target,wd.amotion,wd.dmotion,rdamage,tstatus->race,0);
+				if( src != target ) // Don't reflect your own damage (Grand Cross)
+					map_foreachinshootrange(battle_damage_area,target,skill_get_splash(LG_REFLECTDAMAGE,1),BL_CHAR,tick,target,wd.amotion,wd.dmotion,rdamage,tstatus->race);
 			} else {
-				rdelay = clif_damage(src, src, tick, wd.amotion, sstatus->dmotion, rdamage, 1, 4, 0);
+				rdelay = clif_damage(src,src,tick,wd.amotion,sstatus->dmotion,rdamage,1,4,0);
 				//Use Reflect Shield to signal this kind of skill trigger. [Skotlex]
 				skill_additional_effect(target,src,CR_REFLECTSHIELD,1,BF_WEAPON|BF_SHORT|BF_NORMAL,ATK_DEF,tick);
 			}
