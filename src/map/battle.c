@@ -2526,10 +2526,11 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					break;
 				case KN_CHARGEATK: {
 						//+100% every 3 cells of distance but hard-limited to 500%.
-						unsigned int k = (wflag-1)/3;
-						if ( k == 2 ) k = 1;
-						else if( k == 3 ) k = 2;
-						else if ( k == 4 ) k = 3;
+						unsigned int k = wflag/3;
+						if( k < 2 ) k = 0;
+						else if( k > 1 && k < 3 ) k = 1;
+						else if( k > 2 && k < 4 ) k = 2;
+						else if( k > 3 && k < 5 ) k = 3;
 						else k = 4;
 						skillratio += 100*k;
 					}
