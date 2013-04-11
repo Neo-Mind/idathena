@@ -3713,6 +3713,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 				// cause damage and knockback if the path to target was a straight one
 				if( path ) {
+					if( dist > 9 ) dist = 9;
 					skill_attack(BF_WEAPON, src, src, bl, skill_id, skill_lv, tick, dist);
 					skill_blown(src, bl, dist, dir, 0);
 					//HACK: since knockback officially defaults to the left, the client also turns to the left... therefore,
