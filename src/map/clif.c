@@ -8525,7 +8525,7 @@ void clif_charnameack (int fd, struct block_list *bl)
 					p = party_search(ssd->status.party_id);
 				}
 				if( ssd->status.guild_id ) {
-					if( ( g = guild_search(ssd->status.guild_id) ) != NULL ) {
+					if( ( g = ssd->guild ) != NULL ) {
 						ARR_FIND(0, g->max_member, i, g->member[i].account_id == ssd->status.account_id && g->member[i].char_id == ssd->status.char_id);
 						if( i < g->max_member ) ps = g->member[i].position;
 					}

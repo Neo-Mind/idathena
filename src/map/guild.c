@@ -722,7 +722,7 @@ void guild_member_joined(struct map_session_data *sd)
 	struct guild* g;
 	int i;
 
-	g=sd->guild;
+	g = guild_search(sd->status.guild_id);
 
 	if (!g) {
 		guild_request_info(sd->status.guild_id);
@@ -763,7 +763,7 @@ int guild_member_added(int guild_id,int account_id,int char_id,int flag)
 	struct map_session_data *sd= map_id2sd(account_id),*sd2;
 	struct guild *g;
 
-	if( (g=guild_search(guild_id))==NULL )
+	if( (g = guild_search(guild_id))==NULL )
 		return 0;
 
 	if(sd==NULL || sd->guild_invite==0) {
