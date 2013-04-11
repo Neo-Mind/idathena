@@ -1233,9 +1233,9 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 				casttime = -1; // No Casting time on basilica cancel
 			break;
 		case KN_CHARGEATK: {
-				unsigned int k = (distance_bl(src,target)-1)/3; //+100% every 3 cells of distance
-				if( k > 2 ) k = 2; // ...but hard-limited to 300%.
-				casttime += casttime * k;
+				unsigned int k = (distance_bl(src,target)-1)/3; //+0.5s every 3 cells of distance
+				if( k > 3 ) k = 3; //but hard-limited to 1.5s.
+				casttime = casttime * k;
 			}
 			break;
 		case GD_EMERGENCYCALL: //Emergency Call double cast when the user has learned Leap [Daegaladh]

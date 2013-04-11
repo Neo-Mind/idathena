@@ -2491,7 +2491,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	//Display damage.
 	switch(skill_id) {
 		case PA_GOSPEL: //Should look like Holy Cross [Skotlex]
-			dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion, damage, dmg.div_, CR_HOLYCROSS, -1, 5);
+			dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,CR_HOLYCROSS,-1,5);
 			break;
 		//Skills that need be passed as a normal attack for the client to display correctly.
 		case HVAN_EXPLOSION:
@@ -2509,9 +2509,9 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 		case AS_SPLASHER:
 			if( flag&SD_ANIMATION ) // the surrounding targets
-				dmg.dmotion = clif_skill_damage(dsrc,bl,tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, 5); // needs -1 as skill level
+				dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skill_id,-1,5); // needs -1 as skill level
 			else // the central target doesn't display an animation
-				dmg.dmotion = clif_skill_damage(dsrc,bl,tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -2, 5); // needs -2(!) as skill level
+				dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skill_id,-2,5); // needs -2(!) as skill level
 			break;
 		case WL_HELLINFERNO:
 		case SR_EARTHSHAKER:
@@ -2527,7 +2527,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			dmg.dmotion = clif_skill_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,1,WL_CHAINLIGHTNING,-2,6);
 			break;
 		case SC_FEINTBOMB:
-			dmg.dmotion = clif_skill_damage(dsrc,bl,tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, 5);
+			dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skill_id,-1,5);
 			break;
 		case GN_SLINGITEM_RANGEMELEEATK:
 			dmg.dmotion = clif_skill_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,GN_SLINGITEM,-2,6);
@@ -8337,7 +8337,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			}
 			break;
-		
+
 		case LG_INSPIRATION:
 			if( sd && !map[sd->bl.m].flag.noexppenalty && sd->status.base_level != MAX_LEVEL ) {
 					sd->status.base_exp -= min(sd->status.base_exp, pc_nextbaseexp(sd) * 1 / 100); // 1% penalty.
@@ -13908,7 +13908,7 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 
 	if( varcast_r < 0 ) // now compute overall factors
 		time = time * (1 - (float)varcast_r / 100);
-	if( !(skill_get_castnodex(skill_id, skill_lv)&1) )// reduction from status point
+	if( !(skill_get_castnodex(skill_id, skill_lv)&1) ) // reduction from status point
 		time = (1 - sqrt( ((float)(status_get_dex(bl) * 2 + status_get_int(bl)) / battle_config.vcast_stat_scale) )) * time;
 	// underflow checking/capping
 	time = max(time, 0) + (1 - (float)min(fixcast_r, 100) / 100) * max(fixed,0);
@@ -14019,7 +14019,7 @@ static void skill_brandishspear_first (struct square *tc, uint8 dir, int16 x, in
 {
 	nullpo_retv(tc);
 
-	if(dir == 0){
+	if(dir == 0) {
 		tc->val1[0]=x-2;
 		tc->val1[1]=x-1;
 		tc->val1[2]=x;
@@ -14030,8 +14030,7 @@ static void skill_brandishspear_first (struct square *tc, uint8 dir, int16 x, in
 		tc->val2[2]=
 		tc->val2[3]=
 		tc->val2[4]=y-1;
-	}
-	else if(dir==2){
+	} else if(dir==2) {
 		tc->val1[0]=
 		tc->val1[1]=
 		tc->val1[2]=
@@ -14042,8 +14041,7 @@ static void skill_brandishspear_first (struct square *tc, uint8 dir, int16 x, in
 		tc->val2[2]=y;
 		tc->val2[3]=y-1;
 		tc->val2[4]=y-2;
-	}
-	else if(dir==4){
+	} else if(dir==4) {
 		tc->val1[0]=x-2;
 		tc->val1[1]=x-1;
 		tc->val1[2]=x;
@@ -14054,8 +14052,7 @@ static void skill_brandishspear_first (struct square *tc, uint8 dir, int16 x, in
 		tc->val2[2]=
 		tc->val2[3]=
 		tc->val2[4]=y+1;
-	}
-	else if(dir==6){
+	} else if(dir==6) {
 		tc->val1[0]=
 		tc->val1[1]=
 		tc->val1[2]=
@@ -14066,8 +14063,7 @@ static void skill_brandishspear_first (struct square *tc, uint8 dir, int16 x, in
 		tc->val2[2]=y;
 		tc->val2[3]=y-1;
 		tc->val2[4]=y-2;
-	}
-	else if(dir==1){
+	} else if(dir==1) {
 		tc->val1[0]=x-1;
 		tc->val1[1]=x;
 		tc->val1[2]=x+1;
@@ -14078,8 +14074,7 @@ static void skill_brandishspear_first (struct square *tc, uint8 dir, int16 x, in
 		tc->val2[2]=y-1;
 		tc->val2[3]=y;
 		tc->val2[4]=y+1;
-	}
-	else if(dir==3){
+	} else if(dir==3) {
 		tc->val1[0]=x+3;
 		tc->val1[1]=x+2;
 		tc->val1[2]=x+1;
@@ -14090,8 +14085,7 @@ static void skill_brandishspear_first (struct square *tc, uint8 dir, int16 x, in
 		tc->val2[2]=y+1;
 		tc->val2[3]=y+2;
 		tc->val2[4]=y+3;
-	}
-	else if(dir==5){
+	} else if(dir==5) {
 		tc->val1[0]=x+1;
 		tc->val1[1]=x;
 		tc->val1[2]=x-1;
@@ -14102,8 +14096,7 @@ static void skill_brandishspear_first (struct square *tc, uint8 dir, int16 x, in
 		tc->val2[2]=y+1;
 		tc->val2[3]=y;
 		tc->val2[4]=y-1;
-	}
-	else if(dir==7){
+	} else if(dir==7) {
 		tc->val1[0]=x-3;
 		tc->val1[1]=x-2;
 		tc->val1[2]=x-1;

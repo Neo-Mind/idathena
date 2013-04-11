@@ -1663,8 +1663,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 	memset(&wd,0,sizeof(wd));
 	memset(&flag,0,sizeof(flag));
 
-	if(src==NULL || target==NULL)
-	{
+	if(src==NULL || target==NULL) {
 		nullpo_info(NLP_MARK);
 		return wd;
 	}
@@ -2526,8 +2525,12 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += 100*(skill_lv-1);
 					break;
 				case KN_CHARGEATK: {
-						int k = (wflag-1)/3; //+100% every 3 cells of distance
-						if( k > 2 ) k = 2; // ...but hard-limited to 300%.
+						//+100% every 3 cells of distance but hard-limited to 500%.
+						unsigned int k = (wflag-1)/3;
+						if ( k == 2 ) k = 1;
+						else if( k == 3 ) k = 2;
+						else if ( k == 4 ) k = 3;
+						else k = 4;
 						skillratio += 100*k;
 					}
 					break;

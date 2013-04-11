@@ -363,9 +363,9 @@ void initChangeTables(void) {
 	set_sc( LK_BERSERK           , SC_BERSERK         , SI_BERSERK         , SCB_DEF|SCB_DEF2|SCB_MDEF|SCB_MDEF2|SCB_FLEE|SCB_SPEED|SCB_ASPD|SCB_MAXHP|SCB_REGEN );
 #ifdef RENEWAL
 	set_sc( HP_ASSUMPTIO         , SC_ASSUMPTIO       , SI_ASSUMPTIO2      , SCB_NONE );
-#else	
+#else
 	set_sc( HP_ASSUMPTIO         , SC_ASSUMPTIO       , SI_ASSUMPTIO       , SCB_NONE );
-#endif	
+#endif
 	add_sc( HP_BASILICA          , SC_BASILICA        );
 	set_sc( HW_MAGICPOWER        , SC_MAGICPOWER      , SI_MAGICPOWER      , SCB_MATK );
 	add_sc( PA_SACRIFICE         , SC_SACRIFICE       );
@@ -553,7 +553,7 @@ void initChangeTables(void) {
 
 	set_sc( GD_BATTLEORDER       , SC_BATTLEORDERS    , SI_BLANK           , SCB_STR|SCB_INT|SCB_DEX );
 	set_sc( GD_REGENERATION      , SC_REGENERATION    , SI_BLANK           , SCB_REGEN );
-	
+
 	set_sc( RK_ENCHANTBLADE      , SC_ENCHANTBLADE      , SI_ENCHANTBLADE      , SCB_NONE );
 	set_sc( RK_DRAGONHOWLING     , SC_FEAR              , SI_BLANK             , SCB_FLEE|SCB_HIT );
 	set_sc( RK_DEATHBOUND        , SC_DEATHBOUND        , SI_DEATHBOUND        , SCB_NONE );
@@ -732,7 +732,7 @@ void initChangeTables(void) {
 	set_sc( EL_TIDAL_WEAPON    , SC_TIDAL_WEAPON_OPTION  , SI_TIDAL_WEAPON_OPTION  , SCB_ALL );
 	set_sc( EL_ROCK_CRUSHER    , SC_ROCK_CRUSHER         , SI_ROCK_CRUSHER         , SCB_DEF );
 	set_sc( EL_ROCK_CRUSHER_ATK, SC_ROCK_CRUSHER_ATK     , SI_ROCK_CRUSHER_ATK     , SCB_SPEED );
-	
+
 	add_sc( KO_YAMIKUMO        , SC_HIDING               );
 	set_sc_with_vfx( KO_JYUMONJIKIRI                     , SC_JYUMONJIKIRI         , SI_KO_JYUMONJIKIRI      , SCB_NONE );
 	add_sc( KO_MAKIBISHI       , SC_STUN                 );
@@ -747,7 +747,7 @@ void initChangeTables(void) {
 	set_sc( OB_ZANGETSU        , SC_ZANGETSU             , SI_ZANGETSU             , SCB_MATK|SCB_WATK );
 	set_sc_with_vfx( OB_AKAITSUKI, SC_AKAITSUKI          , SI_AKAITSUKI            , SCB_NONE );
 	set_sc( OB_OBOROGENSOU       , SC_GENSOU             , SI_GENSOU               , SCB_NONE );
-	
+
 	// Storing the target job rather than simply SC_SPIRIT simplifies code later on.
 	SkillStatusChangeTable[SL_ALCHEMIST]   = (sc_type)MAPID_ALCHEMIST,
 	SkillStatusChangeTable[SL_MONK]        = (sc_type)MAPID_MONK,
@@ -994,10 +994,10 @@ void initChangeTables(void) {
 	// renewal EDP increases your weapon atk and equipment atk
 	StatusChangeFlagTable[SC_EDP] |= SCB_WATK;
 #endif
-	
+
 	if( !battle_config.display_hallucination ) //Disable Hallucination.
 		StatusIconChangeTable[SC_HALLUCINATION] = SI_BLANK;
-	
+
 	/* StatusChangeState (SCS_) NOMOVE */
 	StatusChangeStateTable[SC_ANKLE]               |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_AUTOCOUNTER]         |= SCS_NOMOVE;
@@ -1024,11 +1024,11 @@ void initChangeTables(void) {
 	StatusChangeStateTable[SC_CRYSTALIZE]          |= SCS_NOMOVE|SCS_NOMOVECOND;
 	StatusChangeStateTable[SC_NETHERWORLD]         |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_CAMOUFLAGE]          |= SCS_NOMOVE|SCS_NOMOVECOND;
-	
+
 	StatusChangeStateTable[SC_MEIKYOUSISUI]        |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_KAGEHUMI]            |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_KYOUGAKU]            |= SCS_NOMOVE;
-	
+
 	/* StatusChangeState (SCS_) NOPICKUPITEMS */
 	StatusChangeStateTable[SC_HIDING]              |= SCS_NOPICKITEM;
 	StatusChangeStateTable[SC_CLOAKING]            |= SCS_NOPICKITEM;
@@ -1056,10 +1056,10 @@ void initChangeTables(void) {
 	StatusChangeStateTable[SC_SATURDAYNIGHTFEVER]  |= SCS_NOCAST;
 	StatusChangeStateTable[SC_CURSEDCIRCLE_TARGET] |= SCS_NOCAST;
 	StatusChangeStateTable[SC_SILENCE]             |= SCS_NOCAST;
-	
+
 	//Homon S
 	StatusChangeStateTable[SC_PARALYSIS]           |= SCS_NOMOVE;
-	
+
 }
 
 static void initDummyData(void)
@@ -8395,7 +8395,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				if( pc_iswug(sd) ) pc_setoption(sd, sd->sc.option&~OPTION_WUG);
 				if( sd->status.pet_id > 0 ) pet_menu(sd, 3);
 				if( merc_is_hom_active(sd->hd) ) merc_hom_vaporize(sd,HOM_ST_REST);
-				//if( sd->md ) merc_delete(sd->md,3);//Info shows nothing about Merc's being removed. Probely true since their not a animal. [Rytech]
+				//if( sd->md ) merc_delete(sd->md,3); //Info shows nothing about Merc being removed. Probely true since their not a animal. [Rytech]
 				//Are rental mounts stripped as well? Well find out once I add them in.
 			}
 			break;
@@ -8486,7 +8486,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				if (pc_isriding(sd)) pc_setriding(sd, 0);
 				if (pc_isridingdragon(sd)) pc_setoption(sd, sd->sc.option&~OPTION_DRAGON);
 			} 
-			break; 
+			break;
 		case SC_GLOOMYDAY_SK: 
 			// Random number between [15 ~ (Voice Lesson Skill Level x 5) + (Skill Level x 10)] %. 
 			val2 = 15 + rnd()%( (sd ? pc_checkskill(sd, WM_LESSON) * 5 : 0) + val1 * 10 );
@@ -8497,8 +8497,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			tick_time = 3000; // [GodLesZ] tick time
 			break;
 		case SC_DANCEWITHWUG:
-			val3 = 5 + 5 * val2;//ASPD Increase
-			val4 = 20 + 10 * val2;//Fixed Cast Time Reduction
+			val3 = 5 + 5 * val2; //ASPD Increase
+			val4 = 20 + 10 * val2; //Fixed Cast Time Reduction
 			break;
 		case SC_SATURDAYNIGHTFEVER:
 			/*val2 = 12000 - 2000 * val1;//HP/SP Drain Timer
@@ -8513,13 +8513,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			val3 = 200 * val1 + 300 * val2; //MaxHP Increase
 			break;
 		case SC_MELODYOFSINK:
-			val3 = val1 * (2 + val2);//INT Reduction. Formula Includes Caster And 2nd Performer.
+			val3 = val1 * (2 + val2); //INT Reduction. Formula Includes Caster And 2nd Performer.
 			val4 = tick / 1000;
 			tick_time = 1000;
 			break;
 		case SC_BEYONDOFWARCRY:
-			val3 = val1 * (2 + val2);//STR And Crit Increase. Formula Includes Caster And 2nd Performer.
-			val4 = 4 * val1 + 4 * val2;//MaxHP Reduction
+			val3 = val1 * (2 + val2); //STR And Crit Increase. Formula Includes Caster And 2nd Performer.
+			val4 = 4 * val1 + 4 * val2; //MaxHP Reduction
 			break;
 		case SC_UNLIMITEDHUMMINGVOICE: {
 				struct unit_data *ud = unit_bl2ud(bl);
@@ -8561,7 +8561,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 		case SC_PRESTIGE:
 			val2 = (status->int_ + status->luk) * (val1 / 20) * (status_get_lv(bl) / 200) + val1; // Chance to evade magic damage.
-			val1 = (15 * val1) + (10 * pc_checkskill(sd,CR_DEFENDER)); // Defence added
+			val1 = (15 * val1) + (10 * pc_checkskill(sd,CR_DEFENDER)); // Defense added
 #ifdef RENEWAL
 			val1 = val1 * status_get_lv(bl) / 100;
 #else
