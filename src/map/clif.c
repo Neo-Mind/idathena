@@ -12237,8 +12237,7 @@ void clif_parse_GuildChangeEmblem(int fd,struct map_session_data *sd)
 	if( !emblem_len || !sd->state.gmaster_flag )
 		return;
 
-	if( !clif_validate_emblem(emblem, emblem_len) )
-	{
+	if( !clif_validate_emblem(emblem, emblem_len) ) {
 		ShowWarning("clif_parse_GuildChangeEmblem: Rejected malformed guild emblem (size=%lu, accound_id=%d, char_id=%d, guild_id=%d).\n", emblem_len, sd->status.account_id, sd->status.char_id, sd->status.guild_id);
 		return;
 	}

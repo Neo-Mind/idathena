@@ -7651,6 +7651,7 @@
 18501,Cheer_Scarf8,Cheer Scarf8,5,0,,0,,0,,0,0xFFFFFFFF,7,2,1,,1,0,369,{ bonus2 bExpAddRace,RC_Boss,80; bonus2 bExpAddRace,RC_NonBoss,80; },{},{}
 18502,Cheer_Scarf10,Cheer Scarf10,5,0,,0,,0,,0,0xFFFFFFFF,7,2,1,,1,0,369,{ bonus2 bExpAddRace,RC_Boss,100; bonus2 bExpAddRace,RC_NonBoss,100; },{},{}
 18503,Majestic_Devil,Small Devil Horns,5,20,,100,,2,,0,0xFFFFFFFF,7,2,512,,1,0,562,{ bonus bAtkRate,5; bonus bMatkRate,5; bonus bMaxHPRate,10; bonus bMaxSPRate,10; },{},{}
+//
 18505,Umbala_Spirit,Umbala Spirit,5,0,,200,,1,,1,0xFFFFFFFF,7,2,1,,30,0,675,{ bonus bVit,1; bonus bMaxHPrate,1; bonus2 bAddMonsterDropItem,517,500; },{},{}
 18506,Hattah_Black,Hattah Black,5,12000,,4000,,2,,1,0xFFFFFFFF,7,2,769,,1,1,676,{},{},{}
 18507,Elven_Ears_,Elven Ears,5,20,,100,,0,,1,0xFFFFFFFE,7,2,512,,70,0,73,{},{},{}
@@ -7660,7 +7661,6 @@
 18511,Blood_Angel_Wing_Ear,Blood Angel Wing Ear,5,0,,0,,1,,0,0xFFFFFFFF,7,2,512,,60,0,680,{},{},{}
 18512,Juho_Necktie,Juho Necktie,5,0,,0,,1,,1,0xFFFFFFFF,7,2,256,,20,1,443,{},{},{}
 18513,Shining_Sunflower,Shining Sunflower,5,20,,300,,0,,0,0xFFFFFFFE,7,2,256,,0,0,681,{ bonus bLuk,2; },{},{}
-//
 18514,Para_Team_Hat2,Eden Team Hat II,5,0,,0,,5,,1,0xFFFFFFFF,7,2,256,,60,1,682,{ autobonus "{ bonus bBaseAtk,10; }",50,5000,BF_WEAPON,"{ specialeffect2 EF_ENHANCE; }"; autobonus "{ bonus bMatk,10; }",50,5000,BF_MAGIC,"{ specialeffect2 EF_MAGICALATTHIT; }"; },{},{}
 18515,RTC_Winner_Hat,RTC Winner Hat,5,20,,100,,2,,0,0xFFFFFFFF,7,2,512,,1,0,683,{},{},{}
 18516,RTC_2nd_Winner_Hat,RTC 2nd Winner Hat,5,20,,100,,2,,0,0xFFFFFFFF,7,2,512,,1,0,684,{},{},{}

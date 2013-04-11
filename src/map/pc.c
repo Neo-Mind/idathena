@@ -3876,21 +3876,19 @@ int pc_dropitem(struct map_session_data *sd,int n,int amount)
 		)
 		return 0;
 
-	if( map[sd->bl.m].flag.nodrop )
-	{
+	if( map[sd->bl.m].flag.nodrop ) {
 		clif_displaymessage (sd->fd, msg_txt(271));
 		return 0; //Can't drop items in nodrop mapflag maps.
 	}
-	
-	if( !pc_candrop(sd,&sd->status.inventory[n]) )
-	{
+
+	if( !pc_candrop(sd,&sd->status.inventory[n]) ) {
 		clif_displaymessage (sd->fd, msg_txt(263));
 		return 0;
 	}
-	
+
 	if (!map_addflooritem(&sd->status.inventory[n], amount, sd->bl.m, sd->bl.x, sd->bl.y, 0, 0, 0, 2))
 		return 0;
-	
+
 	pc_delitem(sd, n, amount, 1, 0, LOG_TYPE_PICKDROP_PLAYER);
 	clif_dropitem(sd, n, amount);
 	return 1;
@@ -3991,8 +3989,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 	if( !item->script ) //if it has no script, you can't really consume it!
 		return 0;
 
-	switch( nameid ) //@TODO, lot oh harcoded nameid here
-	{
+	switch( nameid ) { //@TODO, lot oh harcoded nameid here
 		case 605: // Anodyne
 			if( map_flag_gvg(sd->bl.m) )
 				return 0;
@@ -4002,8 +3999,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 			break;
 		case 601: // Fly Wing
 		case 12212: // Giant Fly Wing
-			if( map[sd->bl.m].flag.noteleport || map_flag_gvg(sd->bl.m) )
-			{
+			if( map[sd->bl.m].flag.noteleport || map_flag_gvg(sd->bl.m) ) {
 				clif_skill_teleportmessage(sd,0);
 				return 0;
 			}
@@ -4015,8 +4011,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 		case 14584: // Red Butterfly Wing
 		case 14585: // Blue Butterfly Wing
 		case 14591: // Siege Teleport Scroll
-			if( sd->duel_group && !battle_config.duel_allow_teleport )
-			{
+			if( sd->duel_group && !battle_config.duel_allow_teleport ) {
 				clif_displaymessage(sd->fd, msg_txt(663));
 				return 0;
 			}
@@ -4297,14 +4292,12 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 		return 1;
 	data = itemdb_search(item_data->nameid);
 
-	if( data->stack.cart && amount > data->stack.amount )
-	{// item stack limitation
+	if( data->stack.cart && amount > data->stack.amount ) { // item stack limitation
 		return 1;
 	}
 
-	if( !itemdb_cancartstore(item_data, pc_get_group_level(sd)) )
-	{ // Check item trade restrictions	[Skotlex]
-		clif_displaymessage (sd->fd, msg_txt(264));
+	if( !itemdb_cancartstore(item_data, pc_get_group_level(sd)) ) { // Check item trade restrictions [Skotlex]
+		clif_displaymessage(sd->fd, msg_txt(264));
 		return 1;
 	}
 
@@ -4312,24 +4305,20 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 		return 1;
 
 	i = MAX_CART;
-	if( itemdb_isstackable2(data) && !item_data->expire_time )
-	{
+	if( itemdb_isstackable2(data) && !item_data->expire_time ) {
 		ARR_FIND( 0, MAX_CART, i,
 			sd->status.cart[i].nameid == item_data->nameid &&
 			sd->status.cart[i].card[0] == item_data->card[0] && sd->status.cart[i].card[1] == item_data->card[1] &&
 			sd->status.cart[i].card[2] == item_data->card[2] && sd->status.cart[i].card[3] == item_data->card[3] );
 	};
 
-	if( i < MAX_CART )
-	{// item already in cart, stack it
+	if( i < MAX_CART ) { // item already in cart, stack it
 		if( amount > MAX_AMOUNT - sd->status.cart[i].amount || ( data->stack.cart && amount > data->stack.amount - sd->status.cart[i].amount ) )
 			return 1; // no room
 
 		sd->status.cart[i].amount+=amount;
 		clif_cart_additem(sd,i,amount,0);
-	}
-	else
-	{// item not stackable or not present, add it
+	} else { // item not stackable or not present, add it
 		ARR_FIND( 0, MAX_CART, i, sd->status.cart[i].nameid == 0 );
 		if( i == MAX_CART )
 			return 1; // no room

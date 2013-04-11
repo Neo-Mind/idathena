@@ -80,8 +80,7 @@ void vending_purchasereq(struct map_session_data* sd, int aid, int uid, const ui
 	if( vsd == NULL || !vsd->state.vending || vsd->bl.id == sd->bl.id )
 		return; // invalid shop
 
-	if( vsd->vender_id != uid )
-	{// shop has changed
+	if( vsd->vender_id != uid ) { // shop has changed
 		clif_buyvending(sd, 0, 0, 6);  // store information was incorrect
 		return;
 	}
@@ -102,8 +101,7 @@ void vending_purchasereq(struct map_session_data* sd, int aid, int uid, const ui
 	// some checks
 	z = 0.; // zeny counter
 	w = 0;  // weight counter
-	for( i = 0; i < count; i++ )
-	{
+	for( i = 0; i < count; i++ ) {
 		short amount = *(uint16*)(data + 4*i + 0);
 		short idx    = *(uint16*)(data + 4*i + 2);
 		idx -= 2;
@@ -122,20 +120,17 @@ void vending_purchasereq(struct map_session_data* sd, int aid, int uid, const ui
 			vend_list[i] = j;
 
 		z += ((double)vsd->vending[j].value * (double)amount);
-		if( z > (double)sd->status.zeny || z < 0. || z > (double)MAX_ZENY )
-		{
+		if( z > (double)sd->status.zeny || z < 0. || z > (double)MAX_ZENY ) {
 			clif_buyvending(sd, idx, amount, 1); // you don't have enough zeny
 			return;
 		}
-		if( z + (double)vsd->status.zeny > (double)MAX_ZENY && !battle_config.vending_over_max )
-		{
+		if( z + (double)vsd->status.zeny > (double)MAX_ZENY && !battle_config.vending_over_max ) {
 			clif_buyvending(sd, idx, vsd->vending[j].amount, 4); // too much zeny = overflow
 			return;
 
 		}
 		w += itemdb_weight(vsd->status.cart[idx].nameid) * amount;
-		if( w + sd->weight > sd->max_weight )
-		{
+		if( w + sd->weight > sd->max_weight ) {
 			clif_buyvending(sd, idx, amount, 2); // you can not buy, because overweight
 			return;
 		}
@@ -146,8 +141,7 @@ void vending_purchasereq(struct map_session_data* sd, int aid, int uid, const ui
 		
 		// if they try to add packets (example: get twice or more 2 apples if marchand has only 3 apples).
 		// here, we check cumulative amounts
-		if( vending[j].amount < amount )
-		{
+		if( vending[j].amount < amount ) {
 			// send more quantity is not a hack (an other player can have buy items just before)
 			clif_buyvending(sd, idx, vsd->vending[j].amount, 4); // not enough quantity
 			return;
@@ -156,15 +150,15 @@ void vending_purchasereq(struct map_session_data* sd, int aid, int uid, const ui
 		vending[j].amount -= amount;
 
 		switch( pc_checkadditem(sd, vsd->status.cart[idx].nameid, amount) ) {
-		case ADDITEM_EXIST:
-			break;	//We'd add this item to the existing one (in buyers inventory)
-		case ADDITEM_NEW:
-			new_++;
-			if (new_ > blank)
-				return; //Buyer has no space in his inventory
-			break;
-		case ADDITEM_OVERAMOUNT:
-			return; //too many items
+			case ADDITEM_EXIST:
+				break;	//We'd add this item to the existing one (in buyers inventory)
+			case ADDITEM_NEW:
+				new_++;
+				if (new_ > blank)
+					return; //Buyer has no space in his inventory
+				break;
+			case ADDITEM_OVERAMOUNT:
+				return; //too many items
 		}
 	}
 
@@ -173,8 +167,7 @@ void vending_purchasereq(struct map_session_data* sd, int aid, int uid, const ui
 		z -= z * (battle_config.vending_tax/10000.);
 	pc_getzeny(vsd, (int)z, LOG_TYPE_VENDING, sd);
 
-	for( i = 0; i < count; i++ )
-	{
+	for( i = 0; i < count; i++ ) {
 		short amount = *(uint16*)(data + 4*i + 0);
 		short idx    = *(uint16*)(data + 4*i + 2);
 		idx -= 2;
@@ -186,8 +179,7 @@ void vending_purchasereq(struct map_session_data* sd, int aid, int uid, const ui
 		clif_vendingreport(vsd, idx, amount);
 
 		//print buyer's name
-		if( battle_config.buyer_name )
-		{
+		if( battle_config.buyer_name ) {
 			char temp[256];
 			sprintf(temp, msg_txt(265), sd->status.name);
 			clif_disp_onlyself(vsd,temp,strlen(temp));
@@ -195,13 +187,11 @@ void vending_purchasereq(struct map_session_data* sd, int aid, int uid, const ui
 	}
 
 	// compact the vending list
-	for( i = 0, cursor = 0; i < vsd->vend_num; i++ )
-	{
+	for( i = 0, cursor = 0; i < vsd->vend_num; i++ ) {
 		if( vsd->vending[i].amount == 0 )
 			continue;
-		
-		if( cursor != i ) // speedup
-		{
+
+		if( cursor != i ) // speedup {
 			vsd->vending[cursor].index = vsd->vending[i].index;
 			vsd->vending[cursor].amount = vsd->vending[i].amount;
 			vsd->vending[cursor].value = vsd->vending[i].value;
@@ -212,19 +202,16 @@ void vending_purchasereq(struct map_session_data* sd, int aid, int uid, const ui
 	vsd->vend_num = cursor;
 
 	//Always save BOTH: buyer and customer
-	if( save_settings&2 )
-	{
+	if( save_settings&2 ) {
 		chrif_save(sd,0);
 		chrif_save(vsd,0);
 	}
 
 	//check for @AUTOTRADE users [durf]
-	if( vsd->state.autotrade )
-	{
+	if( vsd->state.autotrade ) {
 		//see if there is anything left in the shop
 		ARR_FIND( 0, vsd->vend_num, i, vsd->vending[i].amount > 0 );
-		if( i == vsd->vend_num )
-		{
+		if( i == vsd->vend_num ) {
 			//Close Vending (this was automatically done by the client, we have to do it manually for autovenders) [Skotlex]
 			vending_closevending(vsd);
 			map_quit(vsd);	//They have no reason to stay around anymore, do they?

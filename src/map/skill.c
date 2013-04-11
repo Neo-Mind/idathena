@@ -2169,16 +2169,16 @@ static int skill_magic_reflect(struct block_list* src, struct block_list* bl, in
  * Combo handler, start stop combo status
  */
 void skill_combo_toogle_inf(struct block_list* bl, uint16 skill_id, int inf) {
-	TBL_PC *sd = BL_CAST(BL_PC, bl);
+	TBL_PC *sd = BL_CAST(BL_PC,bl);
 	switch (skill_id) {
 		case MH_MIDNIGHT_FRENZY:
 		case MH_EQC: {
 				int skill_id2 = ((skill_id==MH_EQC)?MH_TINDER_BREAKER:MH_SONIC_CRAW);
 				int idx = skill_get_index(skill_id2);
 				int flag = (inf?SKILL_FLAG_TMP_COMBO:SKILL_FLAG_PERMANENT);
-				TBL_HOM *hd = BL_CAST(BL_HOM, bl);
+				TBL_HOM *hd = BL_CAST(BL_HOM,bl);
 				sd = hd->master;
-//				if (sd) clif_skillinfo(sd,skill_id2, inf);
+//				if (sd) clif_skillinfo(sd,skill_id2,inf);
 				hd->homunculus.hskill[idx].flag= SKILL_FLAG_TMP_COMBO;
 				if(sd) clif_homskillinfoblock(sd); //refresh info //@FIXME we only want to refresh one skill
 			}
@@ -2186,19 +2186,19 @@ void skill_combo_toogle_inf(struct block_list* bl, uint16 skill_id, int inf) {
 		case MO_COMBOFINISH:
 		case CH_TIGERFIST:
 		case CH_CHAINCRUSH:
-			if (sd) clif_skillinfo(sd,MO_EXTREMITYFIST, inf);
+			if (sd) clif_skillinfo(sd,MO_EXTREMITYFIST,inf);
 			break;
 		case TK_JUMPKICK:
-			if (sd) clif_skillinfo(sd,TK_JUMPKICK, inf);
+			if (sd) clif_skillinfo(sd,TK_JUMPKICK,inf);
 			break;
 		case MO_TRIPLEATTACK:
-			if (sd && pc_checkskill(sd, SR_DRAGONCOMBO) > 0)
-				clif_skillinfo(sd,SR_DRAGONCOMBO, inf);
+			if (sd && pc_checkskill(sd,SR_DRAGONCOMBO) > 0)
+				clif_skillinfo(sd,SR_DRAGONCOMBO,inf);
 			break;
 		case SR_FALLENEMPIRE:
 			if (sd) {
-				clif_skillinfo(sd,SR_GATEOFHELL, inf);
-				clif_skillinfo(sd,SR_TIGERCANNON, inf);
+				clif_skillinfo(sd,SR_GATEOFHELL,inf);
+				clif_skillinfo(sd,SR_TIGERCANNON,inf);
 			}
 			break;
 	}
@@ -13717,8 +13717,8 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 			req.sp -= req.sp * (5 + 5 * pc_checkskill(sd,SO_EL_SYMPATHY)) / 100;
 			break;
 		case SO_PSYCHIC_WAVE:
-			if( sc && sc->data[SC_HEATER_OPTION] || sc->data[SC_COOLER_OPTION] ||
-				sc->data[SC_BLAST_OPTION] ||  sc->data[SC_CURSED_SOIL_OPTION] )
+			if( sc && (sc->data[SC_HEATER_OPTION] || sc->data[SC_COOLER_OPTION] ||
+				sc->data[SC_BLAST_OPTION] ||  sc->data[SC_CURSED_SOIL_OPTION]) )
 				req.sp += req.sp / 2; //1.5x SP cost
 			break;
 	}
