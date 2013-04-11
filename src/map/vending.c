@@ -134,11 +134,11 @@ void vending_purchasereq(struct map_session_data* sd, int aid, int uid, const ui
 			clif_buyvending(sd, idx, amount, 2); // you can not buy, because overweight
 			return;
 		}
-		
+
 		//Check to see if cart/vend info is in sync.
 		if( vending[j].amount > vsd->status.cart[idx].amount )
 			vending[j].amount = vsd->status.cart[idx].amount;
-		
+
 		// if they try to add packets (example: get twice or more 2 apples if marchand has only 3 apples).
 		// here, we check cumulative amounts
 		if( vending[j].amount < amount ) {
@@ -146,7 +146,7 @@ void vending_purchasereq(struct map_session_data* sd, int aid, int uid, const ui
 			clif_buyvending(sd, idx, vsd->vending[j].amount, 4); // not enough quantity
 			return;
 		}
-		
+
 		vending[j].amount -= amount;
 
 		switch( pc_checkadditem(sd, vsd->status.cart[idx].nameid, amount) ) {
@@ -191,7 +191,7 @@ void vending_purchasereq(struct map_session_data* sd, int aid, int uid, const ui
 		if( vsd->vending[i].amount == 0 )
 			continue;
 
-		if( cursor != i ) // speedup {
+		if( cursor != i ) { // speedup
 			vsd->vending[cursor].index = vsd->vending[i].index;
 			vsd->vending[cursor].amount = vsd->vending[i].amount;
 			vsd->vending[cursor].value = vsd->vending[i].value;
@@ -292,14 +292,12 @@ bool vending_search(struct map_session_data* sd, unsigned short nameid)
 {
 	int i;
 
-	if( !sd->state.vending )
-	{// not vending
+	if( !sd->state.vending ) { // not vending
 		return false;
 	}
 
 	ARR_FIND( 0, sd->vend_num, i, sd->status.cart[sd->vending[i].index].nameid == (short)nameid );
-	if( i == sd->vend_num )
-	{// not found
+	if( i == sd->vend_num ) { // not found
 		return false;
 	}
 
@@ -315,40 +313,32 @@ bool vending_searchall(struct map_session_data* sd, const struct s_search_store_
 	unsigned int idx, cidx;
 	struct item* it;
 
-	if( !sd->state.vending )
-	{// not vending
+	if( !sd->state.vending ) { // not vending
 		return true;
 	}
 
-	for( idx = 0; idx < s->item_count; idx++ )
-	{
+	for( idx = 0; idx < s->item_count; idx++ ) {
 		ARR_FIND( 0, sd->vend_num, i, sd->status.cart[sd->vending[i].index].nameid == (short)s->itemlist[idx] );
-		if( i == sd->vend_num )
-		{// not found
+		if( i == sd->vend_num ) { // not found
 			continue;
 		}
 		it = &sd->status.cart[sd->vending[i].index];
 
-		if( s->min_price && s->min_price > sd->vending[i].value )
-		{// too low price
+		if( s->min_price && s->min_price > sd->vending[i].value ) { // too low price
 			continue;
 		}
 
-		if( s->max_price && s->max_price < sd->vending[i].value )
-		{// too high price
+		if( s->max_price && s->max_price < sd->vending[i].value ) { // too high price
 			continue;
 		}
 
-		if( s->card_count )
-		{// check cards
-			if( itemdb_isspecial(it->card[0]) )
-			{// something, that is not a carded
+		if( s->card_count ) { // check cards
+			if( itemdb_isspecial(it->card[0]) ) { // something, that is not a carded
 				continue;
 			}
 			slot = itemdb_slot(it->nameid);
 
-			for( c = 0; c < slot && it->card[c]; c ++ )
-			{
+			for( c = 0; c < slot && it->card[c]; c ++ ) {
 				ARR_FIND( 0, s->card_count, cidx, s->cardlist[cidx] == it->card[c] );
 				if( cidx != s->card_count )
 				{// found
@@ -356,14 +346,13 @@ bool vending_searchall(struct map_session_data* sd, const struct s_search_store_
 				}
 			}
 
-			if( c == slot || !it->card[c] )
-			{// no card match
+			if( c == slot || !it->card[c] ) { // no card match
 				continue;
 			}
 		}
 
 		if( !searchstore_result(s->search_sd, sd->vender_id, sd->status.account_id, sd->message, it->nameid, sd->vending[i].amount, sd->vending[i].value, it->card, it->refine) )
-		{// result set full
+		{ // result set full
 			return false;
 		}
 	}
