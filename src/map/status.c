@@ -624,7 +624,7 @@ void initChangeTables(void) {
 	set_sc( LG_EXEEDBREAK        , SC_EXEEDBREAK      , SI_EXEEDBREAK      , SCB_NONE );
 	set_sc( LG_PRESTIGE          , SC_PRESTIGE        , SI_PRESTIGE        , SCB_DEF );
 #ifdef RENEWAL
-	set_sc( LG_BANDING           , SC_BANDING         , SI_BANDING         , SCB_WATK|SCB_DEF2 ); // Renewal: atk2 & def2
+	set_sc( LG_BANDING           , SC_BANDING         , SI_BANDING         , SCB_WATK|SCB_DEF2 );
 #else
 	set_sc( LG_BANDING           , SC_BANDING         , SI_BANDING         , SCB_WATK|SCB_DEF );
 #endif

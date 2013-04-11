@@ -2740,7 +2740,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						skillratio = 3000 + (sstatus->max_hp - sstatus->hp) / 100;
 					RE_LVL_DMOD(100);
 					break;
-				case LG_SHIELDSPELL:// [(Caster Base Level x 4) + (Shield DEF x 10) + (Caster VIT x 2)] %
+				case LG_SHIELDSPELL: // [(Caster Base Level x 4) + (Shield DEF x 10) + (Caster VIT x 2)] %
 					if( sd && skill_lv == 1 ) {
 						struct item_data *shield_data = sd->inventory_data[sd->equip_index[EQI_HAND_L]];
 						skillratio = status_get_lv(src) * 4 + status_get_vit(src) * 2;
@@ -3709,7 +3709,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	tsc = status_get_sc(target);
 	
 	//Initialize variables that will be used afterwards
-	s_ele = skill_get_ele(skill_id, skill_lv);
+	s_ele = skill_get_ele(skill_id,skill_lv);
 	
 	if (s_ele == -1) { // pl=-1 : the skill takes the weapon's element
 		s_ele = sstatus->rhw.ele;
@@ -4041,6 +4041,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						break;
 					case LG_SHIELDSPELL: // [(Caster Base Level x 4) + (Shield MDEF x 100) + (Caster INT x 2)] %
 						if( sd && skill_lv == 2 ) {
+							s_ele = ELE_HOLY;
 							skillratio = status_get_lv(src) * 4 + sd->bonus.shieldmdef * 100 + status_get_int(src) * 2;
 						} else
 							skillratio = 0;

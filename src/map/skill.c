@@ -8196,8 +8196,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case LG_SHIELDSPELL:
-			if( flag&1 ) 
-				sc_start(src,bl,SC_SILENCE,100,skill_lv,sd->bonus.shieldmdef * 5000);
+			if( flag&1 )
+				sc_start(src,bl,SC_SILENCE,100,skill_lv,sd->bonus.shieldmdef * 30000);
 			 else if( sd ) {
 				int opt = 0;
 				int val = 0;
@@ -8212,9 +8212,27 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				switch( skill_lv ) {
 					case 1: {
 							int splashrange = 0;
-							if ( shield_data->def >= 0 && shield_data->def <= 4 )
+							if ( shield_data->def >= 0 && shield_data->def <=
+#ifdef RENEWAL
+								40
+#else
+								4
+#endif
+								)
 								splashrange = 1;
-							else if ( shield_data->def >= 5 && shield_data->def <= 9 )
+							else if ( shield_data->def >=
+#ifdef RENEWAL
+								41
+#else
+								5
+#endif							
+								&& shield_data->def <=
+#ifdef RENEWAL
+								80
+#else
+								9
+#endif
+								)
 								splashrange = 2;
 							else
 								splashrange = 3;
@@ -8226,11 +8244,23 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 									status_change_end(bl,SC_SHIELDSPELL_DEF,INVALID_TIMER);
 									break;
 								case 2:
-									val = shield_data->def / 10; // % Damage Reflecting Increase.
+									//% Damage Reflecting Increase.
+									val = shield_data->def
+#ifdef RENEWAL
+										/ 10;
+#else
+										;
+#endif
 									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def * 10 * 1000);
 									break;
 								case 3:
-									val = shield_data->def; //Weapon Attack Increase.
+									//Weapon Attack Increase.
+									val = shield_data->def
+#ifdef RENEWAL
+										;
+#else
+										* 10;
+#endif
 									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def * 10 * 3000);
 									break;
 							}
@@ -8254,11 +8284,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 									break;
 								case 2:
 									sc_start(src,bl,SC_SHIELDSPELL_MDEF,100,opt,sd->bonus.shieldmdef * 2000); //Splash AoE Lex Divina
-									clif_skill_damage(src,bl,tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
+									clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 									map_foreachinrange(skill_area_sub,src,splashrange,BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
 									break;
-								case 3: //Magnificat
-									if( sc_start(src,bl,SC_SHIELDSPELL_MDEF,100,opt,sd->bonus.shieldmdef * 30000) )//Got this duration formula from Frost. Need to confirm still. [Rytech]
+								case 3:
+									if( sc_start(src,bl,SC_SHIELDSPELL_MDEF,100,opt,sd->bonus.shieldmdef * 30000) ) //Magnificat
 										clif_skill_nodamage(src,bl,PR_MAGNIFICAT,skill_lv,
 										sc_start(src,bl,SC_MAGNIFICAT,100,1,sd->bonus.shieldmdef * 30000));
 									break;
@@ -8275,12 +8305,18 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 									status_change_end(bl,SC_SHIELDSPELL_REF,INVALID_TIMER);
 									break;
 								case 2:
-									val = shield->refine;//DEF Increase / Using Converted DEF Increase Formula Here.
+									//DEF Increase / Using Converted DEF Increase Formula Here.
+									val = shield->refine
+#ifdef RENEWAL
+										* 10 * status_get_lv(src) / 100;
+#else
+										;
+#endif
 									sc_start2(src,bl,SC_SHIELDSPELL_REF,100,opt,val,shield->refine * 20000);
 									break;
 								case 3:
-									sc_start(src,bl,SC_SHIELDSPELL_REF,100,opt,INVALID_TIMER);//HP Recovery
-										val = sstatus->max_hp * (status_get_lv(src) / 10 + shield->refine) / 100;
+									sc_start(src,bl,SC_SHIELDSPELL_REF,100,opt,INVALID_TIMER); //HP Recovery
+										val = sstatus->max_hp * ((status_get_lv(src) / 10) + (shield->refine + 1)) / 100;
 									status_heal(bl, val, 0, 2);
 									status_change_end(bl,SC_SHIELDSPELL_REF,INVALID_TIMER);
 								break;
