@@ -2175,7 +2175,7 @@ void skill_combo_toogle_inf(struct block_list* bl, uint16 skill_id, int inf) {
 		case MH_EQC: {
 				int skill_id2 = ((skill_id==MH_EQC)?MH_TINDER_BREAKER:MH_SONIC_CRAW);
 				int idx = skill_get_index(skill_id2);
-				int flag = (inf?SKILL_FLAG_TMP_COMBO:SKILL_FLAG_PERMANENT);
+//				int flag = (inf?SKILL_FLAG_TMP_COMBO:SKILL_FLAG_PERMANENT);
 				TBL_HOM *hd = BL_CAST(BL_HOM,bl);
 				sd = hd->master;
 //				if (sd) clif_skillinfo(sd,skill_id2,inf);
@@ -13722,7 +13722,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 				req.sp += req.sp / 2; //1.5x SP cost
 			break;
 	}
-	
+
 	return req;
 }
 

@@ -12140,29 +12140,28 @@ void clif_parse_GuildRequestInfo(int fd, struct map_session_data *sd)
 	if( !sd->status.guild_id && !sd->bg_id )
 		return;
 
-	switch( RFIFOL(fd,2) )
-	{
-	case 0:	// Basic Information Guild, hostile alliance information
-		clif_guild_basicinfo(sd);
-		clif_guild_allianceinfo(sd);
-		break;
-	case 1:	// Members list, list job title
-		clif_guild_positionnamelist(sd);
-		clif_guild_memberlist(sd);
-		break;
-	case 2:	// List job title, title information list
-		clif_guild_positionnamelist(sd);
-		clif_guild_positioninfolist(sd);
-		break;
-	case 3:	// Skill list
-		clif_guild_skillinfo(sd);
-		break;
-	case 4:	// Expulsion list
-		clif_guild_expulsionlist(sd);
-		break;
-	default:
-		ShowError("clif: guild request info: unknown type %d\n", RFIFOL(fd,2));
-		break;
+	switch( RFIFOL(fd,2) ) {
+		case 0:	// Basic Information Guild, hostile alliance information
+			clif_guild_basicinfo(sd);
+			clif_guild_allianceinfo(sd);
+			break;
+		case 1:	// Members list, list job title
+			clif_guild_positionnamelist(sd);
+			clif_guild_memberlist(sd);
+			break;
+		case 2:	// List job title, title information list
+			clif_guild_positionnamelist(sd);
+			clif_guild_positioninfolist(sd);
+			break;
+		case 3:	// Skill list
+			clif_guild_skillinfo(sd);
+			break;
+		case 4:	// Expulsion list
+			clif_guild_expulsionlist(sd);
+			break;
+		default:
+			ShowError("clif: guild request info: unknown type %d\n", RFIFOL(fd,2));
+			break;
 	}
 }
 
@@ -12176,7 +12175,7 @@ void clif_parse_GuildChangePositionInfo(int fd, struct map_session_data *sd)
 	if(!sd->state.gmaster_flag)
 		return;
 
-	for(i = 4; i < RFIFOW(fd,2); i += 40 ){
+	for(i = 4; i < RFIFOW(fd,2); i += 40 ) {
 		guild_change_position(sd->status.guild_id, RFIFOL(fd,i), RFIFOL(fd,i+4), RFIFOL(fd,i+12), (char*)RFIFOP(fd,i+16));
 	}
 }
@@ -12191,7 +12190,7 @@ void clif_parse_GuildChangeMemberPosition(int fd, struct map_session_data *sd)
 	if(!sd->state.gmaster_flag)
 		return;
 
-	for(i=4;i<RFIFOW(fd,2);i+=12){
+	for(i=4;i<RFIFOW(fd,2);i+=12) {
 		guild_change_memberposition(sd->status.guild_id,
 			RFIFOL(fd,i),RFIFOL(fd,i+4),RFIFOL(fd,i+8));
 	}
@@ -12203,7 +12202,6 @@ void clif_parse_GuildChangeMemberPosition(int fd, struct map_session_data *sd)
 void clif_parse_GuildRequestEmblem(int fd,struct map_session_data *sd)
 {
 	struct guild* g;
-	int guild_id = RFIFOL(fd,2);
 
 	if( (g = sd->guild) != NULL )
 		clif_guild_emblem(sd,g);
