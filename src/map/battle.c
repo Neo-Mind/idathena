@@ -2989,8 +2989,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					RE_LVL_DMOD(100);
 					break;
 				case KO_BAKURETSU:
-					skillratio = (50 + sstatus->dex / 4) * skill_lv * (sd ? pc_checkskill(sd,NJ_TOBIDOUGU) : 1) * 4 / 10;
+					skillratio = (sd ? pc_checkskill(sd,NJ_TOBIDOUGU) : 1) * (50 + sstatus->dex / 4) * skill_lv * 4 / 10;
 					RE_LVL_DMOD(120);
+					skillratio += 10 * (sd ? sd->status.job_level : 1);
 					break;
 				case KO_MAKIBISHI:
 					skillratio = 20 * skill_lv;
@@ -3661,7 +3662,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 	if( skill_id == LG_RAYOFGENESIS ) {
 		struct Damage md = battle_calc_magic_attack(src, target, skill_id, skill_lv, wflag);
 		wd.damage += md.damage;
-	} else if( skill_id == ASC_BREAKER ) { //Breaker's int-based damage (a misc attack?)
+	} else if( skill_id == ASC_BREAKER ) { //Breaker int-based damage (a misc attack?)
 		struct Damage md = battle_calc_misc_attack(src, target, skill_id, skill_lv, wflag);
 		wd.damage += md.damage;
 	}
@@ -4040,7 +4041,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 							int bandingBonus = 0;
 							if( sc && sc->data[SC_BANDING] )
 								bandingBonus = 200 * (sd ? skill_check_pc_partner(sd,skill_id,&lv,skill_get_splash(skill_id,skill_lv),0) : 1);
-							skillratio = ((300 * skill_lv) + bandingBonus) * (sd ? sd->status.job_level : 1) / 25;
+							skillratio = ((300 * skill_lv) + bandingBonus) * (sd ? sd->status.job_level / 25 : 1);
 						}
 						break;
 					case LG_SHIELDSPELL: // [(Caster Base Level x 4) + (Shield MDEF x 100) + (Caster INT x 2)] %

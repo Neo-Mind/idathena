@@ -1194,7 +1194,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			sc_start(src,bl,SC_FREEZE,(10+10*skill_lv),skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
 		case GS_FLING:
-			sc_start(src,bl,SC_FLING,100, sd?sd->spiritball_old:5,skill_get_time(skill_id,skill_lv));
+			sc_start(src,bl,SC_FLING,100,sd?sd->spiritball_old:5,skill_get_time(skill_id,skill_lv));
 			break;
 		case GS_DISARM:
 			rate = 3*skill_lv;
@@ -2393,7 +2393,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			//Spirit of Wizard blocks Kaite's reflection
 			if( type == 2 && sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_WIZARD ) { 
 			//Consume one Fragment per hit of the casted skill? [Skotlex]
-			  	type = tsd?pc_search_inventory (tsd, 7321):0;
+			  	type = tsd?pc_search_inventory(tsd, 7321):0;
 				if (type >= 0) {
 					if ( tsd ) pc_delitem(tsd, type, 1, 0, 1, LOG_TYPE_CONSUME);
 					dmg.damage = dmg.damage2 = 0;
