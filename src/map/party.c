@@ -910,8 +910,9 @@ int party_exp_share(struct party_data* p, struct block_list* src, unsigned int b
 {
 	struct map_session_data* sd[MAX_PARTY];
 	unsigned int i, c;
+#ifdef RENEWAL_EXP
 	uint32 base_exp_bonus, job_exp_bonus;
-
+#endif
 	nullpo_ret(p);
 
 	// count the number of players eligible for exp sharing
@@ -923,9 +924,9 @@ int party_exp_share(struct party_data* p, struct block_list* src, unsigned int b
 	if (c < 1)
 		return 0;
 
-	base_exp/=c;
-	job_exp/=c;
-	zeny/=c;
+	base_exp /= c;
+	job_exp /= c;
+	zeny /= c;
 
 	if (battle_config.party_even_share_bonus && c > 1) {
 		double bonus = 100 + battle_config.party_even_share_bonus*(c-1);
@@ -937,8 +938,10 @@ int party_exp_share(struct party_data* p, struct block_list* src, unsigned int b
 			zeny = (unsigned int) cap_value(zeny * bonus/100, INT_MIN, INT_MAX);
 	}
 
+#ifdef RENEWAL_EXP
 	base_exp_bonus = base_exp;
 	job_exp_bonus = job_exp;
+#endif
 
 	for (i = 0; i < c; i++) {
 #ifdef RENEWAL_EXP
@@ -967,11 +970,9 @@ int party_share_loot(struct party_data* p, struct map_session_data* sd, struct i
 {
 	TBL_PC* target = NULL;
 	int i;
-	if (p && p->party.item&2 && (first_charid || !(battle_config.party_share_type&1)))
-	{
+	if (p && p->party.item&2 && (first_charid || !(battle_config.party_share_type&1))) {
 		//item distribution to party members.
-		if (battle_config.party_share_type&2)
-		{	//Round Robin
+		if (battle_config.party_share_type&2) { //Round Robin
 			TBL_PC* psd;
 			i = p->itemc;
 			do {
@@ -990,9 +991,7 @@ int party_share_loot(struct party_data* p, struct map_session_data* sd, struct i
 				target = psd;
 				break;
 			} while (i != p->itemc);
-		}
-		else
-		{	//Random pick
+		} else { //Random pick
 			TBL_PC* psd[MAX_PARTY];
 			int count = 0;
 			//Collect pick candidates
@@ -1004,8 +1003,7 @@ int party_share_loot(struct party_data* p, struct map_session_data* sd, struct i
 			}
 			while (count > 0) { //Pick a random member.
 				i = rnd()%count;
-				if (pc_additem(psd[i],item_data,item_data->amount,LOG_TYPE_PICKDROP_PLAYER))
-				{	//Discard this receiver.
+				if (pc_additem(psd[i],item_data,item_data->amount,LOG_TYPE_PICKDROP_PLAYER)) { //Discard this receiver.
 					psd[i] = psd[count-1];
 					count--;
 				} else { //Successful pick.

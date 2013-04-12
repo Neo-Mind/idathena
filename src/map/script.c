@@ -17159,24 +17159,32 @@ BUILDIN_FUNC(getrandgroupitem) {
 		return 1;
 	}
 
-	if( (nameid = itemdb_searchrandomid(group)) == UNKNOWN_ITEM_ID ) {
-		return 1; //ensure valid itemid
+	if( group < 1 || group >= MAX_ITEMGROUP ) {
+		ShowError("getrandgroupitem: Invalid group id %d\n", group);
+		return 1;
 	}
 
+	if( !itemgroup_db[group].qty ) {
+		ShowError("getrandgroupitem: group id %d is empty!\n", group);
+		return 1;
+	}
+
+	nameid = itemdb_searchrandomid(group);
 	memset(&item_tmp,0,sizeof(item_tmp));
+
 	item_tmp.nameid   = nameid;
 	item_tmp.identify = itemdb_isidentified(nameid);
 
 	//Check if it's stackable.
-	if (!itemdb_isstackable(nameid))
+	if( !itemdb_isstackable(nameid) )
 		get_count = 1;
 	else
 		get_count = qty;
 
-	for (i = 0; i < qty; i += get_count) {
+	for( i = 0; i < qty; i += get_count ) {
 		// if not pet egg
-		if (!pet_create_egg(sd, nameid)) {
-			if ((flag = pc_additem(sd, &item_tmp, get_count, LOG_TYPE_SCRIPT))) {
+		if( !pet_create_egg(sd, nameid) ) {
+			if( (flag = pc_additem(sd, &item_tmp, get_count, LOG_TYPE_SCRIPT)) ) {
 				clif_additem(sd, 0, 0, flag);
 				if( pc_candrop(sd,&item_tmp) )
 					map_addflooritem(&item_tmp,get_count,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);

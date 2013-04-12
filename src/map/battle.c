@@ -3496,13 +3496,13 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 #endif
 	}
 
-	if(skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS)
+	if( skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS )
 		return wd; //Enough, rest is not needed.
 
-	if(sd) {
-		if (skill_id != CR_SHIELDBOOMERANG) //Only Shield boomerang doesn't takes the Star Crumbs bonus.
+	if( sd ) {
+		if( skill_id != CR_SHIELDBOOMERANG ) //Only Shield boomerang doesn't takes the Star Crumbs bonus.
 			ATK_ADD2(wd.div_*sd->right_weapon.star, wd.div_*sd->left_weapon.star);
-		if (skill_id==MO_FINGEROFFENSIVE) { //The finger offensive spheres on moment of attack do count. [Skotlex]
+		if( skill_id == MO_FINGEROFFENSIVE ) { //The finger offensive spheres on moment of attack do count. [Skotlex]
 			ATK_ADD(wd.div_*sd->spiritball_old*3);
 		} else {
 			ATK_ADD(wd.div_*sd->spiritball*3);
@@ -3524,7 +3524,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		}
 	}
 
-	if(tsd) //Card Fix for target (tsd), 2 is not added to the "left" flag meaning "target cards only"
+	if( !sd && tsd ) //Card Fix for target (tsd), 2 is not added to the "left" flag meaning "target cards only"
 		wd.damage = battle_calc_cardfix(BF_WEAPON, src, target, nk, s_ele, s_ele_, wd.damage, flag.lh, wd.flag);
 
 	if( flag.infdef ) {

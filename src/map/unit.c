@@ -1116,21 +1116,21 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	// Record the status of the previous skill)
 	if( sd ) {
 
-		if( (skill_get_inf2(skill_id)&INF2_ENSEMBLE_SKILL) && skill_check_pc_partner(sd, skill_id, &skill_lv, 1, 0) < 1 ) {
+		if( (skill_get_inf2(skill_id)&(INF2_ENSEMBLE_SKILL|INF2_CHORUS_SKILL)) && skill_check_pc_partner(sd, skill_id, &skill_lv, 1, 0) < 1 ) {
 			clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			return 0;
 		}
 
 		switch(skill_id) {
 			case SA_CASTCANCEL:
-				if(ud->skill_id != skill_id){
+				if( ud->skill_id != skill_id ) {
 					sd->skill_id_old = ud->skill_id;
 					sd->skill_lv_old = ud->skill_lv;
 				}
 				break;
 			case BD_ENCORE:
 				//Prevent using the dance skill if you no longer have the skill in your tree.
-				if(!sd->skill_id_dance || pc_checkskill(sd,sd->skill_id_dance)<=0){
+				if( !sd->skill_id_dance || pc_checkskill(sd,sd->skill_id_dance) <= 0 ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					return 0;
 				}
@@ -1149,7 +1149,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 				sd->skill_lv_old = skill_lv;
 				break;
 		}
-		if (!skill_check_condition_castbegin(sd, skill_id, skill_lv))
+		if( !skill_check_condition_castbegin(sd, skill_id, skill_lv) )
 			return 0;
 	}
 

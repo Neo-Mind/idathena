@@ -9467,12 +9467,11 @@ int pc_readdb(void)
 	sprintf(line, "%s/"DBPATH"exp.txt", db_path);
 
 	fp=fopen(line, "r");
-	if(fp==NULL){
+	if(fp==NULL) {
 		ShowError("can't read %s\n", line);
 		return 1;
 	}
-	while(fgets(line, sizeof(line), fp))
-	{
+	while(fgets(line, sizeof(line), fp)) {
 		int jobs[CLASS_COUNT], job_count, job, job_id;
 		int type;
 		unsigned int ui,maxlv;
@@ -9576,12 +9575,11 @@ int pc_readdb(void)
 	sprintf(line, "%s/"DBPATH"attr_fix.txt", db_path);
 	
 	fp=fopen(line,"r");
-	if(fp==NULL){
+	if(fp==NULL) {
 		ShowError("can't read %s\n", line);
 		return 1;
 	}
-	while(fgets(line, sizeof(line), fp))
-	{
+	while(fgets(line, sizeof(line), fp)) {
 		char *split[10];
 		int lv,n;
 		if(line[0]=='/' && line[1]=='/')
