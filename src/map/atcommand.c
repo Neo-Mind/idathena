@@ -6675,7 +6675,7 @@ ACMD_FUNC(mobinfo)
 		job_exp = mob->job_exp;
 		
 #ifdef RENEWAL_EXP
-		if( battle_config.atcommand_mobinfo_type ) {
+		if (battle_config.atcommand_mobinfo_type) {
 			base_exp = base_exp * pc_level_penalty_mod(sd, mob->lv, mob->status.race, mob->status.mode, 1) / 100;
 			job_exp = job_exp * pc_level_penalty_mod(sd, mob->lv, mob->status.race, mob->status.mode, 1) / 100;
 		}
@@ -6709,7 +6709,7 @@ ACMD_FUNC(mobinfo)
 			droprate = mob->dropitem[i].p;
 
 #ifdef RENEWAL_DROP
-			if( battle_config.atcommand_mobinfo_type )
+			if (battle_config.atcommand_mobinfo_type)
 				droprate = droprate * pc_level_penalty_mod(sd, mob->lv, mob->status.race, mob->status.mode, 2) / 100;
 #endif
 			if (item_data->slot)
@@ -6728,9 +6728,9 @@ ACMD_FUNC(mobinfo)
 			clif_displaymessage(fd, atcmd_output);
 		// mvp
 		if (mob->mexp) {
-			sprintf(atcmd_output, msg_txt(1247), mob->mexp); //  MVP Bonus EXP:%u
+			sprintf(atcmd_output, msg_txt(1247), mob->mexp); // MVP Bonus EXP:%u
 			clif_displaymessage(fd, atcmd_output);
-			strcpy(atcmd_output, msg_txt(1248)); //  MVP Items:
+			strcpy(atcmd_output, msg_txt(1248)); // MVP Items:
 			j = 0;
 			for (i = 0; i < MAX_MVP_DROP; i++) {
 				if (mob->mvpitem[i].nameid <= 0 || (item_data = itemdb_exists(mob->mvpitem[i].nameid)) == NULL)
@@ -7154,7 +7154,7 @@ ACMD_FUNC(iteminfo)
 		count = itemdb_searchname_array(item_array, MAX_SEARCH, message);
 
 	if (!count) {
-		clif_displaymessage(fd, msg_txt(19));	// Invalid item ID or name.
+		clif_displaymessage(fd, msg_txt(19)); // Invalid item ID or name.
 		return -1;
 	}
 
@@ -7176,9 +7176,9 @@ ACMD_FUNC(iteminfo)
 		clif_displaymessage(fd, atcmd_output);
 
 		if (item_data->maxchance == -1)
-			strcpy(atcmd_output, msg_txt(1281)); //  - Available in the shops only.
-		else if (!battle_config.atcommand_mobinfo_type && item_data->maxchance)
-			sprintf(atcmd_output, msg_txt(1282), (float)item_data->maxchance / 100 ); //  - Maximal monsters drop chance: %02.02f%%
+			strcpy(atcmd_output, msg_txt(1281)); // - Available in the shops only.
+		else if (item_data->maxchance)
+			sprintf(atcmd_output, msg_txt(1282), (float)item_data->maxchance / 100 ); // - Maximal monsters drop chance: %02.02f%%
 		else
 			strcpy(atcmd_output, msg_txt(1283)); //  - Monsters don't drop this item.
 		clif_displaymessage(fd, atcmd_output);
@@ -7193,17 +7193,18 @@ ACMD_FUNC(iteminfo)
 ACMD_FUNC(whodrops)
 {
 	struct item_data *item_data, *item_array[MAX_SEARCH];
-	int i,j, count = 1;
+	int i, j, count = 1;
 
 	if (!message || !*message) {
 		clif_displaymessage(fd, msg_txt(1284)); // Please enter item name/ID (usage: @whodrops <item name/ID>).
 		return -1;
 	}
+
 	if ((item_array[0] = itemdb_exists(atoi(message))) == NULL)
 		count = itemdb_searchname_array(item_array, MAX_SEARCH, message);
 
 	if (!count) {
-		clif_displaymessage(fd, msg_txt(19));	// Invalid item ID or name.
+		clif_displaymessage(fd, msg_txt(19)); // Invalid item ID or name.
 		return -1;
 	}
 
@@ -7212,23 +7213,24 @@ ACMD_FUNC(whodrops)
 		clif_displaymessage(fd, atcmd_output);
 		count = MAX_SEARCH;
 	}
+
 	for (i = 0; i < count; i++) {
 		item_data = item_array[i];
 		sprintf(atcmd_output, msg_txt(1285), item_data->jname,item_data->slot); // Item: '%s'[%d]
 		clif_displaymessage(fd, atcmd_output);
 
 		if (item_data->mob[0].chance == 0) {
-			strcpy(atcmd_output, msg_txt(1286)); //  - Item is not dropped by mobs.
+			strcpy(atcmd_output, msg_txt(1286)); // - Item is not dropped by mobs.
 			clif_displaymessage(fd, atcmd_output);
 		} else {
-			sprintf(atcmd_output, msg_txt(1287), MAX_SEARCH); //  - Common mobs with highest drop chance (only max %d are listed):
+			sprintf(atcmd_output, msg_txt(1287), MAX_SEARCH); // - Common mobs with highest drop chance (only max %d are listed):
 			clif_displaymessage(fd, atcmd_output);
-		
+
 			for (j=0; j < MAX_SEARCH && item_data->mob[j].chance > 0; j++) {
 				int dropchance = item_data->mob[j].chance;
 
 #ifdef RENEWAL_DROP
-				if( battle_config.atcommand_mobinfo_type )
+				if (battle_config.atcommand_mobinfo_type)
 					dropchance = dropchance * pc_level_penalty_mod(sd, mob_db(item_data->mob[j].id)->lv, mob_db(item_data->mob[j].id)->status.race, mob_db(item_data->mob[j].id)->status.mode, 2) / 100;
 #endif
 				sprintf(atcmd_output, "- %s (%02.02f%%)", mob_db(item_data->mob[j].id)->jname, dropchance/100.);
