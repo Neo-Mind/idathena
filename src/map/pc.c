@@ -3355,10 +3355,10 @@ int pc_bonus5(struct map_session_data *sd,int type,int type2,int type3,int type4
 
 /*==========================================
  *	Grants a player a given skill. Flag values are:
- *	0 - Grant skill unconditionally and forever (only this one invokes status_calc_pc,
- *	    as the other two are assumed to be invoked from within it)
+ *	0 - Grant permanent skill to be bound to skill tree
  *	1 - Grant an item skill (temporary)
  *	2 - Like 1, except the level granted can stack with previously learned level.
+ *	4 - Like 0, except the skill will ignore skill tree (saves through job changes and resets).
  *------------------------------------------*/
 int pc_skill(TBL_PC* sd, int id, int level, int flag)
 {
@@ -3381,8 +3381,7 @@ int pc_skill(TBL_PC* sd, int id, int level, int flag)
 		case 0: //Set skill data overwriting whatever was there before.
 			sd->status.skill[id].id   = id;
 			sd->status.skill[id].lv   = level;
-			//Set skill flag to 4, because the skill'd been learned through script.
-			sd->status.skill[id].flag = SKILL_FLAG_PERM_GRANTED;
+			sd->status.skill[id].flag = SKILL_FLAG_PERMANENT;
 			if( level == 0 ) { //Remove skill.
 				sd->status.skill[id].id = 0;
 				clif_deleteskill(sd,id);
@@ -3392,7 +3391,7 @@ int pc_skill(TBL_PC* sd, int id, int level, int flag)
 				status_calc_pc(sd, 0);
 			break;
 		case 1: //Item bonus skill.
-			if( sd->status.skill[id].id == id ) {
+			if( sd->status.skill[id].id == id ){
 				if( sd->status.skill[id].lv >= level )
 					return 0;
 				if( sd->status.skill[id].flag == SKILL_FLAG_PERMANENT ) //Non-granted skill, store it's level.
@@ -3404,7 +3403,7 @@ int pc_skill(TBL_PC* sd, int id, int level, int flag)
 			sd->status.skill[id].lv = level;
 			break;
 		case 2: //Add skill bonus on top of what you had.
-			if( sd->status.skill[id].id == id ) {
+			if( sd->status.skill[id].id == id ){
 				if( sd->status.skill[id].flag == SKILL_FLAG_PERMANENT )
 					sd->status.skill[id].flag = SKILL_FLAG_REPLACED_LV_0 + sd->status.skill[id].lv; // Store previous level.
 			} else {
@@ -3412,6 +3411,18 @@ int pc_skill(TBL_PC* sd, int id, int level, int flag)
 				sd->status.skill[id].flag = SKILL_FLAG_TEMPORARY; //Set that this is a bonus skill.
 			}
 			sd->status.skill[id].lv += level;
+			break;
+		case 4: //Permanent granted skills ignore the skill tree
+			sd->status.skill[id].id   = id;
+			sd->status.skill[id].lv   = level;
+			sd->status.skill[id].flag = SKILL_FLAG_PERM_GRANTED;
+			if( level == 0 ) { //Remove skill.
+				sd->status.skill[id].id = 0;
+				clif_deleteskill(sd,id);
+			} else
+				clif_addskill(sd,id);
+			if( !skill_get_inf(id) ) //Only recalculate for passive skills.
+				status_calc_pc(sd, 0);
 			break;
 		default: //Unknown flag?
 			return 0;
@@ -8550,8 +8561,7 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 	}
 
 	// if player is berserk then cannot unequip
-	if (!(flag & 2) && sd->sc.count && (sd->sc.data[SC_BERSERK] || sd->sc.data[SC_SATURDAYNIGHTFEVER] || sd->sc.data[SC__BLOODYLUST]))
-	{
+	if (!(flag & 2) && sd->sc.count && (sd->sc.data[SC_BERSERK] || sd->sc.data[SC_SATURDAYNIGHTFEVER] || sd->sc.data[SC__BLOODYLUST])) {
 		clif_unequipitemack(sd,n,0,0);
 		return 0;
 	}

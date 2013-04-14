@@ -415,16 +415,14 @@ int guild_request_info(int guild_id)
 // Information request with event
 int guild_npc_request_info(int guild_id,const char *event)
 {
-	if( guild_search(guild_id) )
-	{
+	if( guild_search(guild_id) ) {
 		if( event && *event )
 			npc_event_do(event);
 
 		return 0;
 	}
 
-	if( event && *event )
-	{
+	if( event && *event ) {
 		struct eventlist *ev;
 		DBData prev;
 		ev=(struct eventlist *)aCalloc(sizeof(struct eventlist),1);
@@ -471,8 +469,7 @@ int guild_recv_noinfo(int guild_id)
 	struct s_mapiterator* iter;
 
 	iter = mapit_getallusers();
-	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) )
-	{
+	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) ) {
 		if( sd->status.guild_id == guild_id )
 			sd->status.guild_id = 0; // erase guild
 	}
