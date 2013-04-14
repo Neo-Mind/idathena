@@ -3391,7 +3391,7 @@ int pc_skill(TBL_PC* sd, int id, int level, int flag)
 				status_calc_pc(sd, 0);
 			break;
 		case 1: //Item bonus skill.
-			if( sd->status.skill[id].id == id ){
+			if( sd->status.skill[id].id == id ) {
 				if( sd->status.skill[id].lv >= level )
 					return 0;
 				if( sd->status.skill[id].flag == SKILL_FLAG_PERMANENT ) //Non-granted skill, store it's level.
@@ -3403,7 +3403,7 @@ int pc_skill(TBL_PC* sd, int id, int level, int flag)
 			sd->status.skill[id].lv = level;
 			break;
 		case 2: //Add skill bonus on top of what you had.
-			if( sd->status.skill[id].id == id ){
+			if( sd->status.skill[id].id == id ) {
 				if( sd->status.skill[id].flag == SKILL_FLAG_PERMANENT )
 					sd->status.skill[id].flag = SKILL_FLAG_REPLACED_LV_0 + sd->status.skill[id].lv; // Store previous level.
 			} else {
