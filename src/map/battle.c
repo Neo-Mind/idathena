@@ -986,7 +986,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			else if ((flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON))
 				damage >>= 2; //75% reduction
 		}
-		
+
 		if( sc->data[SC_SMOKEPOWDER] ) {
 			if( (flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON) )
 				damage -= damage * 15 / 100; //15% reduction to physical melee attacks
@@ -4295,7 +4295,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	int skill;
 	short i, nk;
 	short s_ele;
-	int chorusbonus = 0;//Chorus bonus value for chorus skills. Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
+	int chorusbonus = 0; //Chorus bonus value for chorus skills. Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 
 	struct map_session_data *sd, *tsd;
 	struct Damage md; //DO NOT CONFUSE with md of mob_data!
@@ -4327,9 +4327,10 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	if( sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 7)
 		chorusbonus = 5;//Maximum effect possiable from 7 or more Minstrel's/Wanderer's
 	else if( sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 2)
-		chorusbonus = party_foreachsamemap(party_sub_count_chorus, sd, 0) - 2;//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
+		//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
+		chorusbonus = party_foreachsamemap(party_sub_count_chorus, sd, 0) - 2;
 
-	if(sd) {
+	if (sd) {
 		sd->state.arrow_atk = 0;
 		md.blewcount += battle_blewcount_bonus(sd, skill_id);
 	}
@@ -4464,7 +4465,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			break ;
 		case ASC_BREAKER:
 			md.damage = 500 + rnd()%500 + 5 * skill_lv * sstatus->int_;
-			nk|=NK_IGNORE_FLEE|NK_NO_ELEFIX; //These two are not properties of the weapon based part.
+			nk |= NK_IGNORE_FLEE|NK_NO_ELEFIX; //These two are not properties of the weapon based part.
 			break;
 		case HW_GRAVITATION:
 			md.damage = 200 + 200*skill_lv;
@@ -4541,7 +4542,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				unsigned char attacker_count; //256 max targets should be a sane max
 				attacker_count = unit_counttargeted(target);
 				if(attacker_count >= battle_config.agi_penalty_count) {
-					if (battle_config.agi_penalty_type == 1)
+					if(battle_config.agi_penalty_type == 1)
 						flee = (flee * (100 - (attacker_count - (battle_config.agi_penalty_count - 1))*battle_config.agi_penalty_num))/100;
 					else //asume type 2: absolute reduction
 						flee -= (attacker_count - (battle_config.agi_penalty_count - 1))*battle_config.agi_penalty_num;
@@ -4549,7 +4550,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				}
 			}
 
-			hitrate+= sstatus->hit - flee;
+			hitrate += sstatus->hit - flee;
 #ifdef RENEWAL
 			if( sd ) //in Renewal hit bonus from Vultures Eye is not anymore shown in status window
 				hitrate += pc_checkskill(sd,AC_VULTURE);
@@ -4561,7 +4562,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		}
 		if (!i) {
 			md.damage = 0;
-			md.dmg_lv=ATK_FLEE;
+			md.dmg_lv = ATK_FLEE;
 		}
 	}
 
@@ -4630,6 +4631,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct block_list *target,uint16 skill_id,uint16 skill_lv,int count)
 {
 	struct Damage d;
+
 	switch(attack_type) {
 		case BF_WEAPON: d = battle_calc_weapon_attack(bl,target,skill_id,skill_lv,count); break;
 		case BF_MAGIC:  d = battle_calc_magic_attack(bl,target,skill_id,skill_lv,count);  break;
@@ -4671,7 +4673,7 @@ int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int
 		status_damage(src, bl, status_damage(bl, src, rdamage, 0, 0, 1)/10, 0, 0, 1);
 		status_change_end(bl, SC_CRESCENTELBOW, INVALID_TIMER);
 		return 0; // Just put here to minimize redundancy
-	} else if (flag & BF_SHORT) {//Bounces back part of the damage.
+	} else if (flag & BF_SHORT) { //Bounces back part of the damage.
 		if ( sd && sd->bonus.short_weapon_damage_return ) {
 			rdamage += damage * sd->bonus.short_weapon_damage_return / 100;
 			if(rdamage < 1) rdamage = 1;

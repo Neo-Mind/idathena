@@ -1339,11 +1339,9 @@ int status_damage(struct block_list *src, struct block_list *target, int hp, int
 
 	if(flag&4) //Delete from memory. (also invokes map removal code)
 		unit_free(target,CLR_DEAD);
-	else
-	if(flag&2) //remove from map
+	else if(flag&2) //remove from map
 		unit_remove_map(target,CLR_DEAD);
-	else
-	{ //Some death states that would normally be handled by unit_remove_map
+	else { //Some death states that would normally be handled by unit_remove_map
 		unit_stop_attack(target);
 		unit_stop_walking(target,1);
 		unit_skillcastcancel(target,0);
@@ -3707,8 +3705,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 	if(flag&SCB_BATK && b_status->batk) {
 		status->batk = status_base_atk(bl,status);
 		temp = b_status->batk - status_base_atk(bl,b_status);
-		if (temp)
-		{
+		if (temp) {
 			temp += status->batk;
 			status->batk = cap_value(temp, 0, USHRT_MAX);
 		}
@@ -3732,8 +3729,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 			}
 		}
 
-		if( bl->type&BL_HOM )
-		{
+		if( bl->type&BL_HOM ) {
 			status->rhw.atk += (status->dex - b_status->dex);
 			status->rhw.atk2 += (status->str - b_status->str);
 			if( status->rhw.atk2 < status->rhw.atk )
@@ -3771,8 +3767,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 			);
 	}
 
-	if(flag&SCB_DEF)
-	{
+	if(flag&SCB_DEF) {
 		status->def = status_calc_def(bl, sc, b_status->def);
 
 		if( bl->type&BL_HOM )
@@ -3796,8 +3791,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		);
 	}
 
-	if(flag&SCB_MDEF)
-	{
+	if(flag&SCB_MDEF) {
 		status->mdef = status_calc_mdef(bl, sc, b_status->mdef);
 	
 		if( bl->type&BL_HOM )
@@ -3872,8 +3866,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		status->ele_lv = status_calc_element_lv(bl, sc, b_status->ele_lv);
 	}
 
-	if(flag&SCB_MODE)
-	{
+	if(flag&SCB_MODE) {
 		status->mode = status_calc_mode(bl, sc, b_status->mode);
 		//Since mode changed, reset their state.
 		if (!(status->mode&MD_CANATTACK))
@@ -3888,8 +3881,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 // if(flag&SCB_RANGE)
 
 	if(flag&SCB_MAXHP) {
-		if( bl->type&BL_PC )
-		{
+		if( bl->type&BL_PC ) {
 			status->max_hp = status_base_pc_maxhp(sd,status);
 			status->max_hp += b_status->max_hp - sd->status.max_hp;
 
@@ -6582,7 +6574,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 	if( !sc )
 		return 0; //Unable to receive status changes
-	
+
 	if( status_isdead(bl) && type != SC_NOCHAT ) // SC_NOCHAT should work even on dead characters
 		return 0;
 

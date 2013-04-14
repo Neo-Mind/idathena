@@ -13124,7 +13124,7 @@ BUILDIN_FUNC(summon)
 	_class=script_getnum(st,3);
 	if( script_hasdata(st,4) )
 		timeout=script_getnum(st,4);
-	if( script_hasdata(st,5) ){
+	if( script_hasdata(st,5) ) {
 		event=script_getstr(st,5);
 		check_event(st, event);
 	}
@@ -13137,7 +13137,7 @@ BUILDIN_FUNC(summon)
 		md->special_state.ai = AI_ATTACK;
 		if( md->deletetimer != INVALID_TIMER )
 			delete_timer(md->deletetimer, mob_timer_delete);
-		md->deletetimer = add_timer(tick+(timeout>0?timeout*1000:60000),mob_timer_delete,md->bl.id,0);
+		md->deletetimer = add_timer(tick+(timeout>0?timeout:60000),mob_timer_delete,md->bl.id,0);
 		mob_spawn (md); //Now it is ready for spawning.
 		clif_specialeffect(&md->bl,344,AREA);
 		sc_start4(NULL, &md->bl, SC_MODECHANGE, 100, 1, 0, MD_AGGRESSIVE, 0, 60000);

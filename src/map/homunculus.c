@@ -309,7 +309,9 @@ int merc_hom_levelup(struct homun_data *hd)
 		return 0;
 	}
 
-	if((m_class&HOM_REG) && (hd->homunculus.level >= battle_config.hom_max_level || ((m_class&HOM_S) && hd->homunculus.level >= battle_config.hom_S_max_level) || !hd->exp_next || hd->homunculus.exp < hd->exp_next))
+	if(((m_class&HOM_REG) && hd->homunculus.level >= battle_config.hom_max_level)
+		|| ((m_class&HOM_S) && hd->homunculus.level >= battle_config.hom_S_max_level)
+		|| !hd->exp_next || hd->homunculus.exp < hd->exp_next)
 		return 0;
 
 	hom = &hd->homunculus;
@@ -503,12 +505,7 @@ int merc_hom_gainexp(struct homun_data *hd,int exp)
 	}
 
 	//Level up
- 	do {
-		if(((m_class&HOM_REG) && hd->homunculus.level <= battle_config.hom_max_level) || ((m_class&HOM_S) && hd->homunculus.level <= battle_config.hom_S_max_level))
-			merc_hom_levelup(hd);
-		else
-			hd->homunculus.exp = 0;
-	} while(hd->homunculus.exp > hd->exp_next && hd->exp_next != 0);
+ 	while( hd->homunculus.exp > hd->exp_next && merc_hom_levelup(hd) );
 
 	if(hd->exp_next == 0)
 		hd->homunculus.exp = 0 ;
