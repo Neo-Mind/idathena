@@ -3168,7 +3168,7 @@ int parse_console(const char* buf) {
 
 	if( ( n = sscanf(buf, "%63[^:]:%63[^:]:%63s %hd %hd[^\n]", type, command, map, &x, &y) ) < 5 ) {
 		if( ( n = sscanf(buf, "%63[^:]:%63[^\n]", type, command) ) < 2 ) {
-			if((n = sscanf(buf, "%63[^\n]", type))<1) return -1; //nothing to do no arg
+			if( (n = sscanf(buf, "%63[^\n]", type)) < 1 ) return -1; //nothing to do no arg
 		}
 	}
 
