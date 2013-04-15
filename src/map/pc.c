@@ -6223,7 +6223,7 @@ int pc_resetskill(struct map_session_data* sd, int flag)
 		if( pc_checkskill(sd, SG_DEVIL) &&  !pc_nextjobexp(sd) )
 			clif_status_load(&sd->bl, SI_DEVIL, 0); //Remove perma blindness due to skill-reset. [Skotlex]
 		i = sd->sc.option;
-		if( i&OPTION_RIDING && pc_checkskill(sd, KN_RIDING) )
+		if( i&OPTION_RIDING && (!pc_checkskill(sd, KN_RIDING) || (sd->class_&MAPID_THIRDMASK) == MAPID_RUNE_KNIGHT) )
 			i &= ~OPTION_RIDING;
 		if( i&OPTION_FALCON && pc_checkskill(sd, HT_FALCON) )
 			i &= ~OPTION_FALCON;
@@ -7519,9 +7519,7 @@ int pc_setoption(struct map_session_data *sd,int type)
 	{ // Mounting
 		clif_status_load(&sd->bl,SI_RIDING,1);
 		status_calc_pc(sd,0);
-	}
-	else if( (!(type&OPTION_RIDING) && p_type&OPTION_RIDING) || (!(type&OPTION_DRAGON) && p_type&OPTION_DRAGON && pc_checkskill(sd,RK_DRAGONTRAINING) > 0) )
-	{ // Dismount
+	} else if( (!(type&OPTION_RIDING) && p_type&OPTION_RIDING) || (!(type&OPTION_DRAGON) && p_type&OPTION_DRAGON) ) { // Dismount
 		clif_status_load(&sd->bl,SI_RIDING,0);
 		status_calc_pc(sd,0);
 	}
