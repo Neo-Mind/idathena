@@ -3153,8 +3153,7 @@ static int char_ip_set = 0;
 /*==========================================
  * Console Command Parser [Wizputer]
  *------------------------------------------*/
-int parse_console(const char* buf)
-{
+int parse_console(const char* buf) {
 	char type[64];
 	char command[64];
 	char map[64];
@@ -3169,50 +3168,50 @@ int parse_console(const char* buf)
 
 	if( ( n = sscanf(buf, "%63[^:]:%63[^:]:%63s %hd %hd[^\n]", type, command, map, &x, &y) ) < 5 ) {
 		if( ( n = sscanf(buf, "%63[^:]:%63[^\n]", type, command) ) < 2 ) {
-			n = sscanf(buf, "%63[^\n]", type);
+			if((n = sscanf(buf, "%63[^\n]", type))<1) return -1; //nothing to do no arg
 		}
 	}
 
-	if( n == 5 ) {
-		m = map_mapname2mapid(map);
-		if( m < 0 ) {
-			ShowWarning("Console: Unknown map.\n");
-			return 0;
-		}
-		sd.bl.m = m;
-		map_search_freecell(&sd.bl, m, &sd.bl.x, &sd.bl.y, -1, -1, 0);
-		if( x > 0 )
-			sd.bl.x = x;
-		if( y > 0 )
-			sd.bl.y = y;
-	} else {
-		map[0] = '\0';
-		if( n < 2 )
+	if( n != 5 ) { //end string and display
+		if( n < 2 ) {
+			ShowNotice("Type of command: '%s'\n", type);
 			command[0] = '\0';
-		if( n < 1 )
-			type[0] = '\0';
-	}
+			map[0] = '\0';
+		} else {
+			ShowNotice("Type of command: '%s' || Command: '%s'\n", type, command);
+			map[0] = '\0';
+		}
+	} else
+		ShowNotice("Type of command: '%s' || Command: '%s' || Map: '%s' Coords: %d %d\n", type, command, map, x, y);
 
-	ShowNotice("Type of command: '%s' || Command: '%s' || Map: '%s' Coords: %d %d\n", type, command, map, x, y);
-
-	if( n == 5 && strcmpi("admin",type) == 0 ) {
-		if( !is_atcommand(sd.fd, &sd, command, 0) )
-			ShowInfo("Console: not atcommand\n");
+	if(strcmpi("admin",type) == 0 ) {
+		if(strcmpi("map",command) == 0) {
+			m = map_mapname2mapid(map);
+			if( m < 0 ) {
+				ShowWarning("Console: Unknown map.\n");
+				return 0;
+			}
+			sd.bl.m = m;
+			map_search_freecell(&sd.bl, m, &sd.bl.x, &sd.bl.y, -1, -1, 0);
+			if( x > 0 )
+				sd.bl.x = x;
+			if( y > 0 )
+				sd.bl.y = y;
+			ShowNotice("Now at : '%s' Coords: %d %d\n", map, x, y);
+		} else if( !is_atcommand(sd.fd, &sd, command, 0) )
+			ShowInfo("Console: Invalid atcommand.\n");
 	} else if( n == 2 && strcmpi("server", type) == 0 ) {
 		if( strcmpi("shutdown", command) == 0 || strcmpi("exit", command) == 0 || strcmpi("quit", command) == 0 ) {
 			runflag = 0;
 		}
-	} else if( strcmpi("ers_report", type) == 0 )
+	} else if( strcmpi("ers_report", type) == 0 ) {
 		ers_report();
-	else if( strcmpi("help", type) == 0 ) {
-		ShowInfo("To use GM commands:\n");
-		ShowInfo("  admin:<gm command>:<map of \"gm\"> <x> <y>\n");
-		ShowInfo("You can use any GM command that doesn't require the GM.\n");
-		ShowInfo("No using @item or @warp however you can use @charwarp\n");
-		ShowInfo("The <map of \"gm\"> <x> <y> is for commands that need coords of the GM\n");
-		ShowInfo("IE: @spawn\n");
-		ShowInfo("To shutdown the server:\n");
-		ShowInfo("  server:shutdown\n");
+	} else if( strcmpi("help", type) == 0 ) {
+		ShowInfo("Available commands:\n");
+		ShowInfo("\t admin:@<atcommand> => Uses an atcommand. Do NOT use commands requiring an attached player.\n");
+		ShowInfo("\t admin:map:<map><x><y> => Changes the map from which console commands are executed.\n");
+		ShowInfo("\t server:shutdown => Stops the server.\n");
+		ShowInfo("\t ers_report => Displays database usage.\n");
 	}
 
 	return 0;
@@ -3826,10 +3825,6 @@ int do_init(int argc, char *argv[])
 	
 	npc_event_do_oninit();	// Init npcs (OnInit)
 
-	if( console ) {
-		//##TODO invoke a CONSOLE_START plugin event
-	}
-
 	if (battle_config.pk_mode)
 		ShowNotice("Server is running on '"CL_WHITE"PK Mode"CL_RESET"'.\n");
 
@@ -3845,6 +3840,11 @@ int do_init(int argc, char *argv[])
 	if( buildbotflag )
 		exit(EXIT_FAILURE);
 #endif
+
+	if( console ) { //start listening
+		add_timer_func_list(parse_console_timer, "parse_console_timer");
+		add_timer_interval(gettick()+1000, parse_console_timer, 0, 0, 1000); //start in 1s each 1sec
+	}
 
 	return 0;
 }

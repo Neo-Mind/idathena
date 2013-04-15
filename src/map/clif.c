@@ -12203,7 +12203,7 @@ void clif_parse_GuildRequestEmblem(int fd,struct map_session_data *sd)
 {
 	struct guild* g;
 
-	if( (g = sd->guild) != NULL )
+	if( (g = guild_search(guild_id)) != NULL )
 		clif_guild_emblem(sd,g);
 }
 

@@ -11,6 +11,7 @@
 #include "../common/strlib.h"
 #include "../common/timer.h"
 #include "../common/cli.h"
+#include "../common/ers.h"
 #include "../common/msg_conf.h"
 #include "account.h"
 #include "ipban.h"
@@ -325,26 +326,22 @@ int login_lan_config_read(const char *lancfgName)
 		return 1;
 	}
 
-	while(fgets(line, sizeof(line), fp))
-	{
+	while(fgets(line, sizeof(line), fp)) {
 		line_num++;
 		if ((line[0] == '/' && line[1] == '/') || line[0] == '\n' || line[1] == '\n')
 			continue;
 
-		if(sscanf(line,"%[^:]: %[^:]:%[^:]:%[^\r\n]", w1, w2, w3, w4) != 4)
-		{
+		if(sscanf(line,"%[^:]: %[^:]:%[^:]:%[^\r\n]", w1, w2, w3, w4) != 4) {
 			ShowWarning("Error syntax of configuration file %s in line %d.\n", lancfgName, line_num);
 			continue;
 		}
 
-		if( strcmpi(w1, "subnet") == 0 )
-		{
+		if( strcmpi(w1, "subnet") == 0 ) {
 			subnet[subnet_count].mask = str2ip(w2);
 			subnet[subnet_count].char_ip = str2ip(w3);
 			subnet[subnet_count].map_ip = str2ip(w4);
 
-			if( (subnet[subnet_count].char_ip & subnet[subnet_count].mask) != (subnet[subnet_count].map_ip & subnet[subnet_count].mask) )
-			{
+			if( (subnet[subnet_count].char_ip & subnet[subnet_count].mask) != (subnet[subnet_count].map_ip & subnet[subnet_count].mask) ) {
 				ShowError("%s: Configuration Error: The char server (%s) and map server (%s) belong to different subnetworks!\n", lancfgName, w3, w4);
 				continue;
 			}
@@ -363,72 +360,76 @@ int login_lan_config_read(const char *lancfgName)
 //-----------------------
 // Console Command Parser [Wizputer]
 //-----------------------
-int parse_console(const char* command)
-{
-	ShowNotice("Console command: %s\n", command);
+int parse_console(const char* buf) {
+	char type[64];
+	char command[64];
+	int n = 0;
 
-	if( strcmpi("shutdown", command) == 0 || strcmpi("exit", command) == 0 || strcmpi("quit", command) == 0 || strcmpi("end", command) == 0 )
-		runflag = 0;
-	else if( strcmpi("alive", command) == 0 || strcmpi("status", command) == 0 )
-		ShowInfo(CL_CYAN"Console: "CL_BOLD"I'm Alive."CL_RESET"\n");
-	else if( strcmpi("help", command) == 0 )
-	{
-		ShowInfo("To shutdown the server:\n");
-		ShowInfo("  'shutdown|exit|quit|end'\n");
-		ShowInfo("To know if server is alive:\n");
-		ShowInfo("  'alive|status'\n");
-		ShowInfo("To create a new account:\n");
-		ShowInfo("  'create'\n");
+	if( ( n = sscanf(buf, "%127[^:]:%255[^\n\r]", type, command) ) < 2 ) {
+		if((n = sscanf(buf, "%63[^\n]", type))<1) return -1; //nothing to do no arg
 	}
-	else
-	{// commands with parameters
-		char cmd[128], params[256];
+	if( n != 2 ) { //end string
+		ShowNotice("Type: '%s'\n",type);
+		command[0] = '\0';
+	} else
+		ShowNotice("Type of command: '%s' || Command: '%s'\n",type,command);
 
-		if( sscanf(command, "%127s %255[^\r\n]", cmd, params) < 2 )
-		{
-			return 0;
+	if( n == 2 ) {
+		if(strcmpi("server", type) == 0 ) {
+			if( strcmpi("shutdown", command) == 0 || strcmpi("exit", command) == 0 || strcmpi("quit", command) == 0 ) {
+				runflag = 0;
+			} else if( strcmpi("alive", command) == 0 || strcmpi("status", command) == 0 )
+				ShowInfo(CL_CYAN"Console: "CL_BOLD"I'm Alive."CL_RESET"\n");
 		}
-
-		if( strcmpi(cmd, "create") == 0 )
-		{
-			char username[NAME_LENGTH], password[NAME_LENGTH], sex;
-
-			if( sscanf(params, "%23s %23s %c", username, password, &sex) < 3 || strnlen(username, sizeof(username)) < 4 || strnlen(password, sizeof(password)) < 1 )
-			{
-				ShowWarning("Console: Invalid parameters for '%s'. Usage: %s <username> <password> <sex:F/M>\n", cmd, cmd);
+		if( strcmpi("create",type) == 0 ) {
+			char username[NAME_LENGTH], password[NAME_LENGTH], md5password[32+1], sex; //23+1 plaintext 32+1 md5
+			bool md5 = 0;
+			if( sscanf(command, "%23s %23s %c", username, password, &sex) < 3 || strnlen(username, sizeof(username)) < 4 || strnlen(password, sizeof(password)) < 1 ) {
+				ShowWarning("Console: Invalid parameters for '%s'. Usage: %s <username> <password> <sex:F/M>\n", type, type);
 				return 0;
 			}
-
-			if( mmo_auth_new(username, password, TOUPPER(sex), "0.0.0.0") != -1 )
-			{
+			if( login_config.use_md5_passwds ) {
+				MD5_String(password,md5password);
+				md5 = 1;
+			}
+			if( mmo_auth_new(username,(md5?md5password:password), TOUPPER(sex), "0.0.0.0") != -1 ) {
 				ShowError("Console: Account creation failed.\n");
 				return 0;
 			}
 			ShowStatus("Console: Account '%s' created successfully.\n", username);
 		}
+	} else if( strcmpi("ers_report", type) == 0 ) {
+		ers_report();
+	} else if( strcmpi("help", type) == 0 ) {
+		ShowInfo("Available commands:\n");
+		ShowInfo("\t server:shutdown => Stops the server.\n");
+		ShowInfo("\t server:alive => Checks if the server is running.\n");
+		ShowInfo("\t ers_report => Displays database usage.\n");
+		ShowInfo("\t create:<username> <password> <sex:M|F> => Creates a new account.\n");
+	} else { // commands with parameters
+
 	}
 
 	return 0;
 }
 
-
 //--------------------------------
 // Packet parsing for char-servers
 //--------------------------------
-int parse_fromchar(int fd){
+int parse_fromchar(int fd) {
 	int j, id;
 	uint32 ipl;
 	char ip[16];
 
 	ARR_FIND( 0, ARRAYLENGTH(server), id, server[id].fd == fd );
-	if( id == ARRAYLENGTH(server) ){// not a char server
+	if( id == ARRAYLENGTH(server) ) { // not a char server
 		ShowDebug("parse_fromchar: Disconnecting invalid session #%d (is not a char-server)\n", fd);
 		set_eof(fd);
 		do_close(fd);
 		return 0;
 	}
 
-	if( session[fd]->flag.eof ){
+	if( session[fd]->flag.eof ) {
 		do_close(fd);
 		server[id].fd = -1;
 		chrif_on_disconnect(id);
@@ -1882,11 +1883,7 @@ int do_init(int argc, char** argv)
 		}
 	}
 
-	if( login_config.console ) {
-		//##TODO invoke a CONSOLE_START plugin event
-	}
-
-	// server port open & binding
+	// Server port open & binding
 	if( (login_fd = make_listen_bind(login_config.login_ip,login_config.login_port)) == -1 ) {
 		ShowFatalError("Failed to bind to port '"CL_WHITE"%d"CL_RESET"'\n",login_config.login_port);
 		exit(EXIT_FAILURE);
@@ -1901,6 +1898,11 @@ int do_init(int argc, char** argv)
 
 	ShowStatus("The login-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %u).\n\n", login_config.login_port);
 	login_log(0, "login server", 100, "login server started");
+
+	if( login_config.console ) {
+		add_timer_func_list(parse_console_timer, "parse_console_timer");
+		add_timer_interval(gettick()+1000, parse_console_timer, 0, 0, 1000); //start in 1s each 1sec
+	}
 
 	return 0;
 }
