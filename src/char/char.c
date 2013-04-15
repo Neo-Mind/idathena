@@ -3623,7 +3623,8 @@ static void char_delete2_accept(int fd, struct char_session_data* sd)
 		return;
 	}
 
-	if( strcmp(sd->birthdate+2, birthdate) )  // +2 to cut off the century { // birth date is wrong
+	// +2 to cut off the century
+	if( strcmp(sd->birthdate+2, birthdate) ) { // birth date is wrong
 		char_delete2_accept_ack(fd, char_id, 5);
 		return;
 	}
@@ -4072,7 +4073,7 @@ int parse_char(int fd)
 					} else
 						i = 0;
 
-					WFIFOHEAD(fd, 4);
+					WFIFOHEAD(fd,4);
 					WFIFOW(fd,0) = 0x28e;
 					WFIFOW(fd,2) = i;
 					WFIFOSET(fd,4);
@@ -4104,7 +4105,7 @@ int parse_char(int fd)
 					} else
 						i = 0;
 
-					WFIFOHEAD(fd, 4);
+					WFIFOHEAD(fd,4);
 					WFIFOW(fd,0) = 0x28e;
 					WFIFOW(fd,2) = i;
 					WFIFOSET(fd,4);
@@ -4129,7 +4130,7 @@ int parse_char(int fd)
 						break;
 					i = rename_char_sql(sd, cid);
 
-					WFIFOHEAD(fd, 4);
+					WFIFOHEAD(fd,4);
 					WFIFOW(fd,0) = 0x290;
 					WFIFOW(fd,2) = i;
 					WFIFOSET(fd,4);
