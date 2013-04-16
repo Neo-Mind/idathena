@@ -8841,18 +8841,18 @@ ACMD_FUNC(channel) {
 			bool show_all = pc_has_permission(sd, PC_PERM_CHANNEL_ADMIN) ? true : false;
 			clif_displaymessage(fd, msg_txt(1410)); // ---- Public Channels ----
 			if( raChSys.local ) {
-				sprintf(atcmd_output, msg_txt(1409), raChSys.local_name, map[sd->bl.m].channel ? db_size(map[sd->bl.m].channel->users) : 0);// - #%s ( %d users )
+				sprintf(atcmd_output, msg_txt(1409), raChSys.local_name, map[sd->bl.m].channel ? db_size(map[sd->bl.m].channel->users) : 0); // - #%s ( %d users )
 				clif_displaymessage(fd, atcmd_output);
 			}
 			if( raChSys.ally && sd->status.guild_id ) {
 				struct guild *g = sd->guild;
-				if( !g ) return -1;
-				sprintf(atcmd_output, msg_txt(1409), raChSys.ally_name, db_size(((struct raChSysCh *)g->channel)->users));// - #%s ( %d users )
+				if( !g ) { dbi_destroy(iter); return -1; }
+				sprintf(atcmd_output, msg_txt(1409), raChSys.ally_name, db_size(((struct raChSysCh *)g->channel)->users)); // - #%s ( %d users )
 				clif_displaymessage(fd, atcmd_output);
 			}
 			for(channel = dbi_first(iter); dbi_exists(iter); channel = dbi_next(iter)) {
 				if( show_all || channel->type == raChSys_PUBLIC ) {
-					sprintf(atcmd_output, msg_txt(1409), channel->name, db_size(channel->users));// - #%s (%d users)
+					sprintf(atcmd_output, msg_txt(1409), channel->name, db_size(channel->users)); // - #%s (%d users)
 					clif_displaymessage(fd, atcmd_output);
 				}
 			}

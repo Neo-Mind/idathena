@@ -1228,7 +1228,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 50, SQLDT_UINT32, &p->delete_date, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 51, SQLDT_SHORT,  &p->robe, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 52, SQLDT_UINT32, &p->character_moves, 0, NULL, NULL)
-	||  SQL_ERROR == SqlStmt_BindColumn(stmt, 53, SQLDT_UINT,   &opt, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 53, SQLDT_UINT,   &opt, 0, NULL, NULL)
 	)
 	{
 		SqlStmt_ShowDebug(stmt);
