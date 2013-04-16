@@ -4,24 +4,28 @@
 #ifndef _BATTLE_H_
 #define _BATTLE_H_
 
-// state of a single attack attempt; used in flee/def penalty calculations when mobbed
+// State of a single attack attempt; used in flee/def penalty calculations when mobbed
 typedef enum damage_lv {
-	ATK_NONE,    // not an attack
-	ATK_LUCKY,   // attack was lucky-dodged
-	ATK_FLEE,    // attack was dodged
-	ATK_MISS,    // attack missed because of element/race modifier.
-	ATK_BLOCK,   // attack was blocked by some skills.
-	ATK_DEF      // attack connected
+	ATK_NONE,    // Not an attack
+	ATK_LUCKY,   // Attack was lucky-dodged
+	ATK_FLEE,    // Attack was dodged
+	ATK_MISS,    // Attack missed because of element/race modifier.
+	ATK_BLOCK,   // Attack was blocked by some skills.
+	ATK_DEF      // Attack connected
 } damage_lv;
 
-// dammage structure
+// Damage structure
 struct Damage {
-	int damage,damage2; //right, left dmg
-	int type,div_; //chk clif_damage for type @TODO add an enum ? ;  nb of hit
+	int damage,damage2; // Right, left dmg
+	int type,div_; // Chk clif_damage for type @TODO add an enum ? ; nb of hit
 	int amotion,dmotion;
-	int blewcount; //nb of knockback
-	int flag; //chk BF_* flag, (enum below)
-	enum damage_lv dmg_lv;	//ATK_LUCKY,ATK_FLEE,ATK_DEF
+	int blewcount; // Nb of knockback
+	int flag; // Chk BF_* flag, (enum below)
+	enum damage_lv dmg_lv; // ATK_LUCKY,ATK_FLEE,ATK_DEF
+};
+
+struct calc_cardfix {
+	bool isMagicReflect; // Maybe better as a flag atlho the system isnt threaded so there isn't any bug by using it like this.
 };
 
 //(Used in read pc.c,) attribute table (battle_attr_fix)
@@ -74,7 +78,7 @@ int battle_gettarget(struct block_list *bl);
 int battle_getcurrentskill(struct block_list *bl);
 
 enum e_battle_check_target
-{//New definitions [Skotlex]
+{ //New definitions [Skotlex]
 	BCT_ENEMY   = 0x020000,
 	BCT_NOENEMY = 0x1d0000, //This should be (~BCT_ENEMY&BCT_ALL)
 	BCT_PARTY	= 0x040000,
@@ -501,6 +505,6 @@ struct block_list* battle_getenemyarea(struct block_list *src, int x, int y, int
 /**
  * Royal Guard
  **/
-int battle_damage_area( struct block_list *bl, va_list ap);
+int battle_damage_area(struct block_list *bl, va_list ap);
 
 #endif /* _BATTLE_H_ */

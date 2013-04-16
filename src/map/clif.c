@@ -1701,8 +1701,7 @@ void clif_fixpos(struct block_list *bl)
 	WBUFW(buf,8) = bl->y;
 	clif_send(buf, packet_len(0x88), bl, AREA);
 
-	if( disguised(bl) )
-	{
+	if( disguised(bl) ) {
 		WBUFL(buf,2) = -bl->id;
 		clif_send(buf, packet_len(0x88), bl, SELF);
 	}
@@ -6580,7 +6579,7 @@ void clif_partyinvitationstate(struct map_session_data* sd)
 
 	WFIFOHEAD(fd, packet_len(0x2c9));
 	WFIFOW(fd, 0) = 0x2c9;
-	WFIFOB(fd, 2) = 0; // not implemented
+	WFIFOB(fd, 2) = sd->status.allow_party ? 1 : 0;
 	WFIFOSET(fd, packet_len(0x2c9));
 }
 
@@ -6680,7 +6679,7 @@ void clif_party_option(struct party_data *p,struct map_session_data *sd,int flag
 	if(!sd && flag==0) {
 		int i;
 		ARR_FIND(0,MAX_PARTY,i,!p->data[i].sd);
-		if (i < MAX_PARTY)
+		if(i < MAX_PARTY)
 			sd = p->data[i].sd;
 	}
 	if(!sd) return;
@@ -6742,7 +6741,7 @@ void clif_party_message(struct party_data* p, int account_id, const char* mes, i
 	if(i < MAX_PARTY) {
 		unsigned char buf[1024];
 
-		if( len > sizeof(buf)-8 ) {
+		if(len > sizeof(buf)-8) {
 			ShowWarning("clif_party_message: Truncated message '%s' (len=%d, max=%d, party_id=%d).\n", mes, len, sizeof(buf)-8, p->party.party_id);
 			len = sizeof(buf)-8;
 		}
@@ -8684,8 +8683,7 @@ void clif_slide(struct block_list *bl, int x, int y)
 	WBUFW(buf, 8) = y;
 	clif_send(buf, packet_len(0x1ff), bl, AREA);
 
-	if( disguised(bl) )
-	{
+	if( disguised(bl) ) {
 		WBUFL(buf,2) = -bl->id;
 		clif_send(buf, packet_len(0x1ff), bl, SELF);
 	}
@@ -8849,10 +8847,10 @@ void clif_feel_hate_reset(struct map_session_data *sd)
 /// Equip window (un)tick ack (ZC_CONFIG).
 /// 02d9 <type>.L <value>.L
 /// type:
-///     0 = open equip window
-///     value:
-///         0 = disabled
-///         1 = enabled
+///	 0 = open equip window
+/// value:
+///	 0 = disabled
+///	 1 = enabled
 void clif_equiptickack(struct map_session_data* sd, int flag)
 {
 	int fd;
@@ -8870,8 +8868,8 @@ void clif_equiptickack(struct map_session_data* sd, int flag)
 /// The player's 'view equip' state, sent during login (ZC_CONFIG_NOTIFY).
 /// 02da <open equip window>.B
 /// open equip window:
-///     0 = disabled
-///     1 = enabled
+///	 0 = disabled
+///	 1 = enabled
 void clif_equipcheckbox(struct map_session_data* sd)
 {
 	int fd;
@@ -11314,13 +11312,13 @@ void clif_parse_NpcSelectMenu(int fd,struct map_session_data *sd)
 	uint8 select = RFIFOB(fd,6);
 
 	if( (select > sd->npc_menu && select != 0xff) || select == 0 ) {
-#if SECURE_NPCTIMEOUT
+#ifdef SECURE_NPCTIMEOUT
 		if( sd->npc_idle_timer != INVALID_TIMER ) {
 #endif
 			TBL_NPC* nd = map_id2nd(npc_id);
 			ShowWarning("Invalid menu selection on npc %d:'%s' - got %d, valid range is [%d..%d] (player AID:%d, CID:%d, name:'%s')!\n", npc_id, (nd)?nd->name:"invalid npc id", select, 1, sd->npc_menu, sd->bl.id, sd->status.char_id, sd->status.name);
 			clif_GM_kick(NULL,sd);
-#if SECURE_NPCTIMEOUT
+#ifdef SECURE_NPCTIMEOUT
 		}
 #endif
 		return;
@@ -14706,10 +14704,10 @@ void clif_parse_ViewPlayerEquip(int fd, struct map_session_data* sd)
 /// Request to change equip window tick (CZ_CONFIG).
 /// 02d8 <type>.L <value>.L
 /// type:
-///     0 = open equip window
-///     value:
-///         0 = disabled
-///         1 = enabled
+///	 0 = open equip window
+/// value:
+///	 0 = disabled
+///	 1 = enabled
 void clif_parse_EquipTick(int fd, struct map_session_data* sd)
 {
 	bool flag = (bool)RFIFOL(fd,6);
@@ -14717,6 +14715,16 @@ void clif_parse_EquipTick(int fd, struct map_session_data* sd)
 	clif_equiptickack(sd, flag);
 }
 
+/// Request to change party invitation tick.
+/// value:
+///	 0 = disabled
+///	 1 = enabled
+void clif_parse_PartyTick(int fd, struct map_session_data* sd)
+{
+	bool flag = RFIFOB(fd,6) ? true : false;
+	sd->status.allow_party = flag;
+	clif_partytickack(sd, flag);
+}
 
 /// Questlog System [Kevin] [Inkfish]
 ///
@@ -16511,6 +16519,13 @@ void clif_cashshop_result( struct map_session_data *sd, uint16 item_id, uint16 r
 	WFIFOSET( sd->fd, 16 );
 }
 
+void clif_partytickack(struct map_session_data* sd, bool flag) {
+	WFIFOHEAD( sd->fd, packet_len(0x2c9) );
+	WFIFOW( sd->fd, 0 ) = 0x2c9; 
+	WFIFOB( sd->fd, 2 ) = flag;
+	WFIFOSET( sd->fd, packet_len(0x2c9) ); 
+}
+
 /*==========================================
  * Main client packet processing function
  *------------------------------------------*/
@@ -17118,6 +17133,7 @@ static int packetdb_readdb(void)
 		{ clif_parse_cashshop_buy, "cashshopbuy" },
 		// Future Feature
 		{clif_parse_MoveItem,"moveitem"},
+		{clif_parse_PartyTick,"partytick"},
 		{clif_parse_dull,"dull"},
 		{NULL,NULL}
 	};

@@ -422,8 +422,7 @@ static int pc_inventory_rental_end(int tid, unsigned int tick, int id, intptr_t 
 	struct map_session_data *sd = map_id2sd(id);
 	if( sd == NULL )
 		return 0;
-	if( tid != sd->rental_timer )
-	{
+	if( tid != sd->rental_timer ) {
 		ShowError("pc_inventory_rental_end: invalid timer id.\n");
 		return 0;
 	}
@@ -434,8 +433,7 @@ static int pc_inventory_rental_end(int tid, unsigned int tick, int id, intptr_t 
 
 int pc_inventory_rental_clear(struct map_session_data *sd)
 {
-	if( sd->rental_timer != INVALID_TIMER )
-	{
+	if( sd->rental_timer != INVALID_TIMER ) {
 		delete_timer(sd->rental_timer, pc_inventory_rental_end);
 		sd->rental_timer = INVALID_TIMER;
 	}
@@ -448,8 +446,7 @@ void pc_inventory_rentals(struct map_session_data *sd)
 	int i, c = 0;
 	unsigned int expire_tick, next_tick = UINT_MAX;
 
-	for( i = 0; i < MAX_INVENTORY; i++ )
-	{ // Check for Rentals on Inventory
+	for( i = 0; i < MAX_INVENTORY; i++ ) { // Check for Rentals on Inventory
 		if( sd->status.inventory[i].nameid == 0 )
 			continue; // Nothing here
 		if( sd->status.inventory[i].expire_time == 0 )
@@ -518,12 +515,11 @@ int pc_makesavestatus(struct map_session_data *sd)
   	//Only copy the Cart/Peco/Falcon options, the rest are handled via
 	//status change load/saving. [Skotlex]
 #ifdef NEW_CARTS
-	sd->status.option = sd->sc.option&(OPTION_FALCON|OPTION_RIDING|OPTION_DRAGON|OPTION_WUG|OPTION_WUGRIDER|OPTION_MADOGEAR|OPTION_MOUNTING);
+	sd->status.option = sd->sc.option&(OPTION_INVISIBLE|OPTION_FALCON|OPTION_RIDING|OPTION_DRAGON|OPTION_WUG|OPTION_WUGRIDER|OPTION_MADOGEAR|OPTION_MOUNTING);
 #else
-	sd->status.option = sd->sc.option&(OPTION_CART|OPTION_FALCON|OPTION_RIDING|OPTION_DRAGON|OPTION_WUG|OPTION_WUGRIDER|OPTION_MADOGEAR|OPTION_MOUNTING);
+	sd->status.option = sd->sc.option&(OPTION_INVISIBLE|OPTION_CART|OPTION_FALCON|OPTION_RIDING|OPTION_DRAGON|OPTION_WUG|OPTION_WUGRIDER|OPTION_MADOGEAR|OPTION_MOUNTING);
 #endif
-	if (sd->sc.data[SC_JAILED])
-	{	//When Jailed, do not move last point.
+	if (sd->sc.data[SC_JAILED]) { //When Jailed, do not move last point.
 		if(pc_isdead(sd)){
 			pc_setrestartvalue(sd,0);
 		} else {
@@ -960,12 +956,13 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	/**
 	 * For the Secure NPC Timeout option (check config/Secure.h) [RR]
 	 **/
-#if SECURE_NPCTIMEOUT
+#ifdef SECURE_NPCTIMEOUT
 	/**
 	 * Initialize to defaults/expected
 	 **/
 	sd->npc_idle_timer = INVALID_TIMER;
 	sd->npc_idle_tick = tick;
+	sd->npc_idle_type = NPCT_INPUT;
 #endif
 
 	sd->canuseitem_tick = tick;
@@ -998,14 +995,13 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	pc_setinventorydata(sd);
 	pc_setequipindex(sd);
 
+	if (sd->status.option & OPTION_INVISIBLE && !pc_can_use_command(sd, "hide", COMMAND_ATCOMMAND))
+		sd->status.option &=~ OPTION_INVISIBLE;
+
 	status_change_init(&sd->bl);
-	
-	if (pc_can_use_command(sd, "hide", COMMAND_ATCOMMAND))
-		sd->status.option &= (OPTION_MASK | OPTION_INVISIBLE);
-	else
-		sd->status.option &= OPTION_MASK;
 
 	sd->sc.option = sd->status.option; //This is the actual option used in battle.
+
 	//Set here because we need the inventory data for weapon sprite parsing.
 	status_set_viewdata(&sd->bl, sd->status.class_);
 	unit_dataset(&sd->bl);
@@ -1145,14 +1141,14 @@ int pc_reg_received(struct map_session_data *sd)
 	// Cooking Exp
 	sd->cook_mastery = pc_readglobalreg(sd,"COOK_MASTERY");
 
-	if( (sd->class_&MAPID_BASEMASK) == MAPID_TAEKWON )
-	{ // Better check for class rather than skill to prevent "skill resets" from unsetting this
+	if ((sd->class_&MAPID_BASEMASK) == MAPID_TAEKWON) {
+		// Better check for class rather than skill to prevent "skill resets" from unsetting this
 		sd->mission_mobid = pc_readglobalreg(sd,"TK_MISSION_ID");
 		sd->mission_count = pc_readglobalreg(sd,"TK_MISSION_COUNT");
 	}
 
 	//SG map and mob read [Komurka]
-	for(i=0;i<MAX_PC_FEELHATE;i++) { //for now - someone need to make reading from txt/sql
+	for (i=0;i<MAX_PC_FEELHATE;i++) { //for now - someone need to make reading from txt/sql
 		if ((j = pc_readglobalreg(sd,sg_info[i].feel_var))!=0) {
 			sd->feel_map[i].index = j;
 			sd->feel_map[i].m = map_mapindex2mapid(j);
@@ -1175,10 +1171,10 @@ int pc_reg_received(struct map_session_data *sd)
 	}
 	if ((i = pc_checkskill(sd,SC_REPRODUCE)) > 0) {
 		sd->reproduceskill_id = pc_readglobalreg(sd,"REPRODUCE_SKILL");
-		if( sd->reproduceskill_id > 0) {
+		if (sd->reproduceskill_id > 0) {
 			sd->status.skill[sd->reproduceskill_id].id = sd->reproduceskill_id;
 			sd->status.skill[sd->reproduceskill_id].lv = pc_readglobalreg(sd,"REPRODUCE_SKILL_LV");
-			if( i < sd->status.skill[sd->reproduceskill_id].lv)
+			if (i < sd->status.skill[sd->reproduceskill_id].lv)
 				sd->status.skill[sd->reproduceskill_id].lv = i;
 			sd->status.skill[sd->reproduceskill_id].flag = SKILL_FLAG_PLAGIARIZED;
 		}
@@ -1198,11 +1194,11 @@ int pc_reg_received(struct map_session_data *sd)
 		intif_request_petdata(sd->status.account_id, sd->status.char_id, sd->status.pet_id);
 
 	// Homunculus [albator]
-	if( sd->status.hom_id > 0 )
+	if (sd->status.hom_id > 0)
 		intif_homunculus_requestload(sd->status.account_id, sd->status.hom_id);
-	if( sd->status.mer_id > 0 )
+	if (sd->status.mer_id > 0)
 		intif_mercenary_request(sd->status.mer_id, sd->status.char_id);
-	if( sd->status.ele_id > 0 )
+	if (sd->status.ele_id > 0)
 		intif_elemental_request(sd->status.ele_id, sd->status.char_id);
 
 	map_addiddb(&sd->bl);
@@ -1224,6 +1220,20 @@ int pc_reg_received(struct map_session_data *sd)
 	}
 
 	pc_inventory_rentals(sd);
+
+	if (sd->sc.option & OPTION_INVISIBLE) {
+		sd->vd.class_ = INVISIBLE_CLASS;
+		clif_disp_overhead(&sd->bl, msg_txt(11)); // Invisible: On
+		// Decrement the number of pvp players on the map
+		map[sd->bl.m].users_pvp--;
+
+		if (map[sd->bl.m].flag.pvp && !map[sd->bl.m].flag.pvp_nocalcrank && sd->pvp_timer != INVALID_TIMER) {
+			// Unregister the player for ranking
+			delete_timer(sd->pvp_timer, pc_calc_pvprank_timer);
+			sd->pvp_timer = INVALID_TIMER;
+		}
+		clif_changeoption(&sd->bl); 
+	}
 
 	return 1;
 }
@@ -1354,18 +1364,18 @@ int pc_calc_skilltree(struct map_session_data *sd)
 				continue; //Skill already known.
 
 			f = 1;
-			if(!battle_config.skillfree) {
+			if( !battle_config.skillfree ) {
 				int j;
-				for(j = 0; j < MAX_PC_SKILL_REQUIRE; j++) {
+				for( j = 0; j < MAX_PC_SKILL_REQUIRE; j++ ) {
 					int k;
-					if((k=skill_tree[c][i].need[j].id)) {
-						if (sd->status.skill[k].id == 0 || sd->status.skill[k].flag == SKILL_FLAG_TEMPORARY || sd->status.skill[k].flag == SKILL_FLAG_PLAGIARIZED)
+					if( (k=skill_tree[c][i].need[j].id) ) {
+						if( sd->status.skill[k].id == 0 || sd->status.skill[k].flag == SKILL_FLAG_TEMPORARY || sd->status.skill[k].flag == SKILL_FLAG_PLAGIARIZED )
 							k = 0; //Not learned.
-						else if (sd->status.skill[k].flag >= SKILL_FLAG_REPLACED_LV_0) //Real lerned level
+						else if( sd->status.skill[k].flag >= SKILL_FLAG_REPLACED_LV_0 ) //Real lerned level
 							k = sd->status.skill[skill_tree[c][i].need[j].id].flag - SKILL_FLAG_REPLACED_LV_0;
 						else
 							k = pc_checkskill(sd,k);
-						if (k < skill_tree[c][i].need[j].lv) {
+						if( k < skill_tree[c][i].need[j].lv ) {
 							f = 0;
 							break;
 						}
@@ -1374,7 +1384,7 @@ int pc_calc_skilltree(struct map_session_data *sd)
 				if( sd->status.job_level < skill_tree[c][i].joblv ) { //We need to get the actual class in this case
 					int class = pc_mapid2jobid(sd->class_, sd->status.sex);
 					class = pc_class2idx(class);
-					if (class == c || (class != c && sd->status.job_level < skill_tree[class][i].joblv))
+					if( class == c || (class != c && sd->status.job_level < skill_tree[class][i].joblv) )
 						f = 0; // job level requirement wasn't satisfied
 				}
 			}
@@ -1383,16 +1393,16 @@ int pc_calc_skilltree(struct map_session_data *sd)
 				int inf2;
 				inf2 = skill_get_inf2(id);
 
-				if(!sd->status.skill[id].lv && (
+				if( !sd->status.skill[id].lv && (
 					(inf2&INF2_QUEST_SKILL && !battle_config.quest_skill_learn) ||
 					inf2&INF2_WEDDING_SKILL ||
 					(inf2&INF2_SPIRIT_SKILL && !sd->sc.data[SC_SPIRIT])
-				))
+				) )
 					continue; //Cannot be learned via normal means. Note this check DOES allows raising already known skills.
 
 				sd->status.skill[id].id = id;
 
-				if(inf2&INF2_SPIRIT_SKILL) { //Spirit skills cannot be learned, they will only show up on your tree when you get buffed.
+				if( inf2&INF2_SPIRIT_SKILL ) { //Spirit skills cannot be learned, they will only show up on your tree when you get buffed.
 					sd->status.skill[id].lv = 1; // need to manually specify a skill level
 					sd->status.skill[id].flag = SKILL_FLAG_TEMPORARY; //So it is not saved, and tagged as a "bonus" skill.
 				}

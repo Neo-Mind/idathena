@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS `char` (
   `head_top` smallint(6) unsigned NOT NULL default '0',
   `head_mid` smallint(6) unsigned NOT NULL default '0',
   `head_bottom` smallint(6) unsigned NOT NULL default '0',
-  `robe` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '0',
+  `robe` smallint(6) unsigned NOT NULL default '0',
   `last_map` varchar(11) NOT NULL default '',
   `last_x` smallint(4) unsigned NOT NULL default '53',
   `last_y` smallint(4) unsigned NOT NULL default '111',
@@ -104,10 +104,11 @@ CREATE TABLE IF NOT EXISTS `char` (
   `mother` int(11) unsigned NOT NULL default '0',
   `child` int(11) unsigned NOT NULL default '0',
   `fame` int(11) unsigned NOT NULL default '0',
-  `rename` SMALLINT(3) unsigned NOT NULL default '0',
-  `delete_date` INT(11) UNSIGNED NOT NULL default '0',
+  `rename` smallint(3) unsigned NOT NULL default '0',
+  `delete_date` int(11) unsigned NOT NULL default '0',
   `moves` int(11) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`char_id`),
+  `char_opt` int(11) unsigned NOT NULL default '0',
+  PRIMARY KEY (`char_id`),
   UNIQUE KEY `name_key` (`name`),
   KEY `account_id` (`account_id`),
   KEY `party_id` (`party_id`),
@@ -653,6 +654,7 @@ INSERT INTO `sql_updates` (`timestamp`) VALUES (1360951560);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1362445531);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1362528000);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1362794218);
+INSERT INTO `sql_updates` (`timestamp`) VALUES (1366078541);
 
 --
 -- Table structure for table `sstatus`

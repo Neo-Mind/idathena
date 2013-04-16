@@ -49,6 +49,7 @@
 #include "script.h"
 #include "quest.h"
 #include "elemental.h"
+#include "../config/core.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -3557,7 +3558,7 @@ static void script_detach_state(struct script_state* st, bool dequeue_event)
 			/**
 			 * For the Secure NPC Timeout option (check config/Secure.h) [RR]
 			**/
-#if SECURE_NPCTIMEOUT
+#ifdef SECURE_NPCTIMEOUT
 			/**
 			 * We're done with this NPC session, so we cancel the timer (if existent) and move on
 			**/
@@ -3568,9 +3569,7 @@ static void script_detach_state(struct script_state* st, bool dequeue_event)
 #endif
 			npc_event_dequeue(sd);
 		}
-	}
-	else if(st->bk_st)
-	{// rid was set to 0, before detaching the script state
+	} else if(st->bk_st) { // rid was set to 0, before detaching the script state
 		ShowError("script_detach_state: Found previous script state without attached player (rid=%d, oid=%d, state=%d, bk_npcid=%d)\n", st->bk_st->rid, st->bk_st->oid, st->bk_st->state, st->bk_npcid);
 		script_reportsrc(st->bk_st);
 
@@ -3600,7 +3599,7 @@ static void script_attach_state(struct script_state* st)
 /**
  * For the Secure NPC Timeout option (check config/Secure.h) [RR]
  **/
-#if SECURE_NPCTIMEOUT
+#ifdef SECURE_NPCTIMEOUT
 		if( sd->npc_idle_timer == INVALID_TIMER )
 			sd->npc_idle_timer = add_timer(gettick() + (SECURE_NPCTIMEOUT_INTERVAL*1000),npc_rr_secure_timeout_timer,sd->bl.id,0);
 		sd->npc_idle_tick = gettick();
@@ -4327,7 +4326,9 @@ BUILDIN_FUNC(next)
 	sd = script_rid2sd(st);
 	if( sd == NULL )
 		return 0;
-
+#ifdef SECURE_NPCTIMEOUT
+	sd->npc_idle_type = NPCT_WAIT;
+#endif
 	st->state = STOP;
 	clif_scriptnext(sd, st->oid);
 	return 0;
@@ -4429,14 +4430,16 @@ BUILDIN_FUNC(menu)
 	if( sd == NULL )
 		return 0;
 
+#ifdef SECURE_NPCTIMEOUT
+	sd->npc_idle_type = NPCT_MENU;
+#endif
+
 	// TODO detect multiple scripts waiting for input at the same time, and what to do when that happens
-	if( sd->state.menu_or_input == 0 )
-	{
+	if( sd->state.menu_or_input == 0 ) {
 		struct StringBuf buf;
 		struct script_data* data;
 
-		if( script_lastdata(st) % 2 == 0 )
-		{// argument count is not even (1st argument is at index 2)
+		if( script_lastdata(st) % 2 == 0 ) { // argument count is not even (1st argument is at index 2)
 			ShowError("script:menu: illegal number of arguments (%d).\n", (script_lastdata(st) - 1));
 			st->state = END;
 			return 1;
@@ -4444,15 +4447,13 @@ BUILDIN_FUNC(menu)
 
 		StringBuf_Init(&buf);
 		sd->npc_menu = 0;
-		for( i = 2; i < script_lastdata(st); i += 2 )
-		{
+		for( i = 2; i < script_lastdata(st); i += 2 ) {
 			// menu options
 			text = script_getstr(st, i);
 
 			// target label
 			data = script_getdata(st, i+1);
-			if( !data_islabel(data) )
-			{// not a label
+			if( !data_islabel(data) ) { // not a label
 				StringBuf_Destroy(&buf);
 				ShowError("script:menu: argument #%d (from 1) is not a label or label not found.\n", i);
 				script_reportdata(data);
@@ -4554,6 +4555,10 @@ BUILDIN_FUNC(select)
 	if( sd == NULL )
 		return 0;
 
+#ifdef SECURE_NPCTIMEOUT
+	sd->npc_idle_type = NPCT_MENU;
+#endif
+
 	if( sd->state.menu_or_input == 0 ) {
 		struct StringBuf buf;
 
@@ -4622,21 +4627,23 @@ BUILDIN_FUNC(select)
 BUILDIN_FUNC(prompt)
 {
 	int i;
-	const char *text;
+	const char* text;
 	TBL_PC* sd;
 
 	sd = script_rid2sd(st);
 	if( sd == NULL )
 		return 0;
 
-	if( sd->state.menu_or_input == 0 )
-	{
+#ifdef SECURE_NPCTIMEOUT
+	sd->npc_idle_type = NPCT_MENU;
+#endif
+
+	if( sd->state.menu_or_input == 0 ) {
 		struct StringBuf buf;
 
 		StringBuf_Init(&buf);
 		sd->npc_menu = 0;
-		for( i = 2; i <= script_lastdata(st); ++i )
-		{
+		for( i = 2; i <= script_lastdata(st); ++i ) {
 			text = script_getstr(st, i);
 			if( sd->npc_menu > 0 )
 				StringBuf_AppendStr(&buf, ":");
@@ -4662,30 +4669,24 @@ BUILDIN_FUNC(prompt)
 			clif_scriptmenu(sd, st->oid, StringBuf_Value(&buf));
 		StringBuf_Destroy(&buf);
 
-		if( sd->npc_menu >= 0xff )
-		{
+		if( sd->npc_menu >= 0xff ) {
 			ShowWarning("buildin_prompt: Too many options specified (current=%d, max=254).\n", sd->npc_menu);
 			script_reportsrc(st);
 		}
-	}
-	else if( sd->npc_menu == 0xff )
-	{// Cancel was pressed
+	} else if( sd->npc_menu == 0xff ) { // Cancel was pressed
 		sd->state.menu_or_input = 0;
 		pc_setreg(sd, add_str("@menu"), 0xff);
 		script_pushint(st, 0xff);
 		st->state = RUN;
-	}
-	else
-	{// return selected option
+	} else { // return selected option
 		int menu = 0;
 
 		sd->state.menu_or_input = 0;
-		for( i = 2; i <= script_lastdata(st); ++i )
-		{
+		for( i = 2; i <= script_lastdata(st); ++i ) {
 			text = script_getstr(st, i);
 			sd->npc_menu -= menu_countoptions(text, sd->npc_menu, &menu);
 			if( sd->npc_menu <= 0 )
-				break;// entry found
+				break; // entry found
 		}
 		pc_setreg(sd, add_str("@menu"), menu);
 		script_pushint(st, menu);
@@ -5353,7 +5354,7 @@ BUILDIN_FUNC(input)
 		return 0;
 
 	data = script_getdata(st,2);
-	if( !data_isreference(data) ){
+	if( !data_isreference(data) ) {
 		ShowError("script:input: not a variable\n");
 		script_reportdata(data);
 		st->state = END;
@@ -5364,26 +5365,24 @@ BUILDIN_FUNC(input)
 	min = (script_hasdata(st,3) ? script_getnum(st,3) : script_config.input_min_value);
 	max = (script_hasdata(st,4) ? script_getnum(st,4) : script_config.input_max_value);
 
-	if( !sd->state.menu_or_input )
-	{	// first invocation, display npc input box
+#ifdef SECURE_NPCTIMEOUT
+	sd->npc_idle_type = NPCT_WAIT;
+#endif
+
+	if( !sd->state.menu_or_input ) { // first invocation, display npc input box
 		sd->state.menu_or_input = 1;
 		st->state = RERUNLINE;
 		if( is_string_variable(name) )
 			clif_scriptinputstr(sd,st->oid);
 		else
 			clif_scriptinput(sd,st->oid);
-	}
-	else
-	{	// take received text/value and store it in the designated variable
+	} else { // take received text/value and store it in the designated variable
 		sd->state.menu_or_input = 0;
-		if( is_string_variable(name) )
-		{
+		if( is_string_variable(name) ) {
 			int len = (int)strlen(sd->npc_str);
 			set_reg(st, sd, uid, name, (void*)sd->npc_str, script_getref(st,2));
 			script_pushint(st, (len > max ? 1 : len < min ? -1 : 0));
-		}
-		else
-		{
+		} else {
 			int amount = sd->npc_amount;
 			set_reg(st, sd, uid, name, (void*)__64BPRTSIZE(cap_value(amount,min,max)), script_getref(st,2));
 			script_pushint(st, (amount > max ? 1 : amount < min ? -1 : 0));
