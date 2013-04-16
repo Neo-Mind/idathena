@@ -2363,10 +2363,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += 100+150*skill_lv;
 					flag.pdef = flag.pdef2 = 2;
 					break;
-				case MO_EXTREMITYFIST: {
-						unsigned int ratio = 100*(8+sstatus->sp/10);
-						skillratio += -100+ratio;
-					}
+				case MO_EXTREMITYFIST:
+					skillratio += -100+100*(8+sstatus->sp/10);
+					skillratio = min(500000,skillratio); //We stop at roughly 50k SP for overflow protection
 					break;
 				case MO_TRIPLEATTACK:
 					skillratio += 20*skill_lv;
@@ -5254,7 +5253,7 @@ struct block_list* battle_get_master(struct block_list *src)
  * -1: flag fails
  * 0: Invalid target (non-targetable ever)
  *------------------------------------------*/
-int battle_check_target( struct block_list *src, struct block_list *target,int flag)
+int battle_check_target( struct block_list *src, struct block_list *target, int flag)
 {
 	int16 m; //map
 	int state = 0; //Initial state none

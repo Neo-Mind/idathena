@@ -5373,10 +5373,10 @@ static short status_calc_aspd(struct block_list *bl, struct status_change *sc, s
 			skills1 = 5;
 
 		if(sc->data[SC_ASSNCROS] &&
-			skills1 < 5+1*sc->data[SC_ASSNCROS]->val1) // needs more info
+			skills1 < sc->data[SC_ASSNCROS]->val2/10)
 		{
 			if (bl->type!=BL_PC)
-				skills1 = 4+1*sc->data[SC_ASSNCROS]->val1;
+				skills1 = sc->data[SC_ASSNCROS]->val2/10;
 			else
 				switch(((TBL_PC*)bl)->status.weapon) {
 					case W_BOW:
@@ -5387,7 +5387,7 @@ static short status_calc_aspd(struct block_list *bl, struct status_change *sc, s
 					case W_GRENADE:
 						break;
 					default:
-						skills1 = 5+1*sc->data[SC_ASSNCROS]->val1;
+						skills1 = sc->data[SC_ASSNCROS]->val2/10;
 				}
 		}
 	}
@@ -5526,18 +5526,17 @@ static short status_calc_aspd_rate(struct block_list *bl, struct status_change *
 			if (bl->type!=BL_PC)
 				max = sc->data[SC_ASSNCROS]->val2;
 			else
-			switch(((TBL_PC*)bl)->status.weapon)
-			{
-				case W_BOW:
-				case W_REVOLVER:
-				case W_RIFLE:
-				case W_GATLING:
-				case W_SHOTGUN:
-				case W_GRENADE:
-					break;
-				default:
-					max = sc->data[SC_ASSNCROS]->val2;
-			}
+				switch(((TBL_PC*)bl)->status.weapon) {
+					case W_BOW:
+					case W_REVOLVER:
+					case W_RIFLE:
+					case W_GATLING:
+					case W_SHOTGUN:
+					case W_GRENADE:
+						break;
+					default:
+						max = sc->data[SC_ASSNCROS]->val2;
+				}
 		}
 		aspd_rate -= max;
 

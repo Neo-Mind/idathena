@@ -6679,8 +6679,7 @@ void clif_party_option(struct party_data *p,struct map_session_data *sd,int flag
 
 	if(!sd && flag==0) {
 		int i;
-		for(i=0;i<MAX_PARTY && !p->data[i].sd;i++)
-			;
+		ARR_FIND(0,MAX_PARTY,i,!p->data[i].sd);
 		if (i < MAX_PARTY)
 			sd = p->data[i].sd;
 	}
@@ -6712,9 +6711,8 @@ void clif_party_withdraw(struct party_data* p, struct map_session_data* sd, int 
 
 	if(!sd && (flag&0xf0)==0) {
 		int i;
-		for(i=0;i<MAX_PARTY && !p->data[i].sd;i++)
-			;
-		if (i < MAX_PARTY)
+		ARR_FIND(0,MAX_PARTY,i,!p->data[i].sd);
+		if(i < MAX_PARTY)
 			sd = p->data[i].sd;
 	}
 
@@ -6740,12 +6738,11 @@ void clif_party_message(struct party_data* p, int account_id, const char* mes, i
 
 	nullpo_retv(p);
 
-	for(i=0; i < MAX_PARTY && !p->data[i].sd;i++);
-	if(i < MAX_PARTY){
+	ARR_FIND(0,MAX_PARTY,i,!p->data[i].sd);
+	if(i < MAX_PARTY) {
 		unsigned char buf[1024];
 
-		if( len > sizeof(buf)-8 )
-		{
+		if( len > sizeof(buf)-8 ) {
 			ShowWarning("clif_party_message: Truncated message '%s' (len=%d, max=%d, party_id=%d).\n", mes, len, sizeof(buf)-8, p->party.party_id);
 			len = sizeof(buf)-8;
 		}
