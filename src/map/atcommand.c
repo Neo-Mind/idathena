@@ -6776,7 +6776,8 @@ ACMD_FUNC(showmobs)
 		return 0;
 	}
 
-	if(mob_db(mob_id)->status.mode&MD_BOSS && !pc_has_permission(sd, PC_PERM_SHOW_BOSS)) { // If player group does not have access to boss mobs.
+	if(mob_db(mob_id)->status.mode&MD_BOSS && !pc_has_permission(sd, PC_PERM_SHOW_BOSS)) {
+		// If player group does not have access to boss mobs.
 		clif_displaymessage(fd, msg_txt(1251)); // Can't show boss mobs!
 		return 0;
 	}
@@ -8837,7 +8838,7 @@ ACMD_FUNC(channel) {
 				WFIFOSET(fd, msg_len + 12);
 			}
 		} else {
-			DBIterator *iter = db_iterator(channel_db);
+			DBIterator *iter;
 			bool show_all = pc_has_permission(sd, PC_PERM_CHANNEL_ADMIN) ? true : false;
 			clif_displaymessage(fd, msg_txt(1410)); // ---- Public Channels ----
 			if( raChSys.local ) {
@@ -8846,10 +8847,11 @@ ACMD_FUNC(channel) {
 			}
 			if( raChSys.ally && sd->status.guild_id ) {
 				struct guild *g = sd->guild;
-				if( !g ) { dbi_destroy(iter); return -1; }
+				if( !g ) return -1;
 				sprintf(atcmd_output, msg_txt(1409), raChSys.ally_name, db_size(((struct raChSysCh *)g->channel)->users)); // - #%s ( %d users )
 				clif_displaymessage(fd, atcmd_output);
 			}
+			iter = db_iterator(channel_db);
 			for(channel = dbi_first(iter); dbi_exists(iter); channel = dbi_next(iter)) {
 				if( show_all || channel->type == raChSys_PUBLIC ) {
 					sprintf(atcmd_output, msg_txt(1409), channel->name, db_size(channel->users)); // - #%s (%d users)
