@@ -8535,7 +8535,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 		case SC_FORCEOFVANGUARD: // This is not the official way to handle it but I think we should use it. [pakpil]
 			val2 = 8 + 12 * val1; //Chance Of Getting A Rage Counter
-			val3 = 5 + 2 * val1; //Max Number of Rage Counter's Possiable
+			val3 = 5 + 2 * val1; //Max Number of Rage Counter's Possible
 			tick = -1; //endless duration in the client
 			tick_time = 5000; // [GodLesZ] tick time
 			val_flag |= 1|2|4;
@@ -8602,10 +8602,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			tick_time = 5000; // [GodLesZ] tick time
 			break;
 		case SC_GT_ENERGYGAIN:
-			val2 = 10 + 5 * val1; //Sphere gain chance.
+			val3 = 10 + 5 * val1; //Sphere gain chance.
 			break;
 		case SC_GT_CHANGE: { // take note there is no def increase as skill desc says. [malufett]
-				struct block_list * src;
+				struct block_list *src;
 				val3 = status->agi * val1 / 60; // ASPD increase: [(Target AGI x Skill Level) / 60] %
 				if( (src = map_id2bl(val2)) ) {
 					int casterint = status_get_int(src);
@@ -8616,7 +8616,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			}
 			break;
 		case SC_GT_REVITALIZE: { // take note there is no vit,aspd,speed increase as skill desc says. [malufett]
-				struct block_list * src;
+				struct block_list *src;
 				val3 = val1 * 30 + 50; // Natural HP recovery increase: [(Skill Level x 30) + 50] %
 				if( (src = map_id2bl(val2)) ) // the stat def is not shown in the status window and it is process differently
 					val4 = ( status_get_vit(src) / 4 ) * val1; // STAT DEF increase: [(Caster VIT / 4) x Skill Level]

@@ -651,11 +651,10 @@ typedef enum sc_type {
 	SC_PARALYSIS,
 	SC_PAIN_KILLER,
 
-	SC_HANBOK = 600,
-
-#ifdef RENEWAL	
+	//Renewal Stuffs
 	SC_EXTREMITYFIST2,
-#endif
+
+	SC_HANBOK = 600,
 
 	SC_MAX, //Automatically updated max, used in for's to check we are within bounds.
 } sc_type;

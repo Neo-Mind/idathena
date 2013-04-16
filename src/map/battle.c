@@ -1068,8 +1068,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 #endif
 
 		//Finally added to remove the status of immobile when aimedbolt is used. [Jobbie]
-		if( skill_id == RA_AIMEDBOLT && (sc->data[SC_BITE] || sc->data[SC_ANKLE] || sc->data[SC_ELECTRICSHOCKER]) )
-		{
+		if( skill_id == RA_AIMEDBOLT && (sc->data[SC_BITE] || sc->data[SC_ANKLE] || sc->data[SC_ELECTRICSHOCKER]) ) {
 			status_change_end(bl, SC_BITE, INVALID_TIMER);
 			status_change_end(bl, SC_ANKLE, INVALID_TIMER);
 			status_change_end(bl, SC_ELECTRICSHOCKER, INVALID_TIMER);
@@ -1108,17 +1107,27 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 
 		//Probably not the most correct place, but it'll do here
 		//(since battle_drain is strictly for players currently)
-		if ((sce=sc->data[SC_BLOODLUST]) && flag&BF_WEAPON && damage > 0 &&
-			rnd()%100 < sce->val3)
+		if( (sce = sc->data[SC_BLOODLUST]) && flag&BF_WEAPON && damage > 0 &&
+			rnd()%100 < sce->val3 )
 			status_heal(src, damage*sce->val4/100, 0, 3);
 
 		if( sd && (sce = sc->data[SC_FORCEOFVANGUARD]) && flag&BF_WEAPON && rnd()%100 < sce->val2 )
-			pc_addspiritball(sd,skill_get_time(LG_FORCEOFVANGUARD,sce->val1),sce->val3);
-		if (sc->data[SC_STYLE_CHANGE]) {
+			pc_addspiritball(sd, skill_get_time(LG_FORCEOFVANGUARD, sce->val1), sce->val3);
+
+		if( sd && (sce = sc->data[SC_GT_ENERGYGAIN]) && flag&BF_WEAPON && rnd()%100 < sce->val3 ) {
+			int spheremax = 0;
+			if ( sc->data[SC_RAISINGDRAGON] )
+				spheremax = 5 + sc->data[SC_RAISINGDRAGON]->val1;
+			else
+				spheremax = 5;
+			pc_addspiritball(sd, skill_get_time2(SR_GENTLETOUCH_ENERGYGAIN, sce->val1), spheremax);
+		}
+
+		if( sc->data[SC_STYLE_CHANGE] ) {
 			TBL_HOM *hd = BL_CAST(BL_HOM,bl); //when being hit
 			if ( hd && (rnd()%100<(status_get_lv(bl)/2)) ) hom_addspiritball(hd, 10); //add a sphere
 		}
-		
+
 		if( sc->data[SC__DEADLYINFECT] && flag&BF_SHORT && damage > 0 && rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 )
 			status_change_spread(bl, src); // Deadly infect attacked side
 
@@ -1147,26 +1156,26 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 	//SC effects from caster side.
 	sc = status_get_sc(src);
 
-	if (sc && sc->count) {
+	if( sc && sc->count ) {
 		if( sc->data[SC_INVINCIBLE] && !sc->data[SC_INVINCIBLEOFF] )
 			damage += damage * 75 / 100;
 		// [Epoque]
 		if (bl->type == BL_MOB) {
 			int i;
 
-			if ( ((sce=sc->data[SC_MANU_ATK]) && (flag&BF_WEAPON)) ||
+			if( ((sce=sc->data[SC_MANU_ATK]) && (flag&BF_WEAPON)) ||
 				 ((sce=sc->data[SC_MANU_MATK]) && (flag&BF_MAGIC))
 				)
-				for (i=0;ARRAYLENGTH(mob_manuk)>i;i++)
-					if (((TBL_MOB*)bl)->class_==mob_manuk[i]) {
+				for( i=0;ARRAYLENGTH(mob_manuk)>i;i++ )
+					if( ((TBL_MOB*)bl)->class_==mob_manuk[i] ) {
 						damage += damage * sce->val1 / 100;
 						break;
 					}
-			if ( ((sce=sc->data[SC_SPL_ATK]) && (flag&BF_WEAPON)) ||
+			if( ((sce=sc->data[SC_SPL_ATK]) && (flag&BF_WEAPON)) ||
 				 ((sce=sc->data[SC_SPL_MATK]) && (flag&BF_MAGIC))
 				)
-				for (i=0;ARRAYLENGTH(mob_splendide)>i;i++)
-					if (((TBL_MOB*)bl)->class_==mob_splendide[i]) {
+				for( i=0;ARRAYLENGTH(mob_splendide)>i;i++ )
+					if( ((TBL_MOB*)bl)->class_==mob_splendide[i] ) {
 						damage += damage * sce->val1 / 100;
 						break;
 					}
@@ -1175,7 +1184,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			sc_start(src,bl,sc->data[SC_POISONINGWEAPON]->val2,100,sc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON, 1));
 		if( sc->data[SC__DEADLYINFECT] && flag&BF_SHORT && damage > 0 && rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 )
 			status_change_spread(src, bl);
-		if (sc->data[SC_STYLE_CHANGE]) {
+		if( sc->data[SC_STYLE_CHANGE] ) {
 			TBL_HOM *hd = BL_CAST(BL_HOM,src); //when attacking
 			if ( hd && (rnd()%100<(20+status_get_lv(bl)/5)) ) hom_addspiritball(hd, 10);
 		}
@@ -1195,10 +1204,10 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			if (flag & BF_LONG)
 				damage = damage * battle_config.pk_long_damage_rate / 100;
 		}
-		if(!damage) damage  = 1;
+		if (!damage) damage  = 1;
 	}
 
-	if(battle_config.skill_min_damage && damage > 0 && damage < div_) {
+	if (battle_config.skill_min_damage && damage > 0 && damage < div_) {
 		if ((flag&BF_WEAPON && battle_config.skill_min_damage&1)
 			|| (flag&BF_MAGIC && battle_config.skill_min_damage&2)
 			|| (flag&BF_MISC && battle_config.skill_min_damage&4)
@@ -1206,8 +1215,8 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			damage = div_;
 	}
 
-	if( bl->type == BL_MOB && !status_isdead(bl) && src != bl) {
-	  if (damage > 0 )
+	if (bl->type == BL_MOB && !status_isdead(bl) && src != bl) {
+	  if (damage > 0)
 			mobskill_event((TBL_MOB*)bl,src,gettick(),flag);
 	  if (skill_id)
 			mobskill_event((TBL_MOB*)bl,src,gettick(),MSC_SKILLUSED|(skill_id<<16));
@@ -3246,7 +3255,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			}
 		}
 
-		if (!flag.idef || !flag.idef2) {
+		if( !flag.idef || !flag.idef2 ) {
 			//Defense reduction
 			short vit_def;
 			defType def1 = status_get_def(target); //Don't use tstatus->def1 due to skill timer reductions.
@@ -3276,7 +3285,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				def2 -= def2 * i / 100;
 			}
 
-			if( tsc && tsc->data[SC_GT_REVITALIZE] && tsc->data[SC_GT_REVITALIZE]->val4 )
+			if( tsc && tsc->data[SC_GT_REVITALIZE] && tsc->data[SC_GT_REVITALIZE]->val2 )
 				def2 += tsc->data[SC_GT_REVITALIZE]->val4;
 
 			if( tsc && tsc->data[SC_CAMOUFLAGE] ) {
@@ -3288,8 +3297,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			if( battle_config.vit_penalty_type && battle_config.vit_penalty_target&target->type ) {
 				unsigned char target_count; //256 max targets should be a sane max
 				target_count = unit_counttargeted(target);
-				if(target_count >= battle_config.vit_penalty_count) {
-					if(battle_config.vit_penalty_type == 1) {
+				if( target_count >= battle_config.vit_penalty_count ) {
+					if( battle_config.vit_penalty_type == 1 ) {
 						if( !tsc || !tsc->data[SC_STEELBODY] )
 							def1 = (def1 * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
 						def2 = (def2 * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
@@ -3300,14 +3309,14 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					}
 				}
 #ifdef RENEWAL
-				if(skill_id == AM_ACIDTERROR) def2 = 0; //Acid Terror ignores only status defense. [FatalEror]
+				if( skill_id == AM_ACIDTERROR ) def2 = 0; //Acid Terror ignores only status defense. [FatalEror]
 #else
-				if(skill_id == AM_ACIDTERROR) def1 = 0; //Acid Terror ignores only armor defense. [Skotlex]
+				if( skill_id == AM_ACIDTERROR ) def1 = 0; //Acid Terror ignores only armor defense. [Skotlex]
 #endif
-				if(def2 < 1) def2 = 1;
+				if( def2 < 1 ) def2 = 1;
 			}
 			//Vitality reduction from rodatazone: http://rodatazone.simgaming.net/mechanics/substats.php#def
-			if (tsd) {
+			if( tsd ) {
 				//Sd vit-eq
 #ifndef RENEWAL
 				//[VIT*0.5] + rnd([VIT*0.3], max([VIT*0.3],[VIT^2/150]-1))
@@ -3316,8 +3325,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 #else
 				vit_def = def2;
 #endif
-				if((battle_check_undead(sstatus->race,sstatus->def_ele) || sstatus->race==RC_DEMON) && //This bonus already doesnt work vs players
-					src->type == BL_MOB && (skill=pc_checkskill(tsd,AL_DP)) > 0)
+				if( (battle_check_undead(sstatus->race,sstatus->def_ele) || sstatus->race==RC_DEMON) && //This bonus already doesnt work vs players
+					src->type == BL_MOB && (skill=pc_checkskill(tsd,AL_DP)) > 0 )
 					vit_def += skill*(int)(3 +(tsd->status.base_level+1)*0.04);   // submitted by orn
 				if( src->type == BL_MOB && (skill=pc_checkskill(tsd,RA_RANGERMAIN))>0 &&
 					(sstatus->race == RC_BRUTE || sstatus->race == RC_FISH || sstatus->race == RC_PLANT) )
@@ -3340,7 +3349,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 #endif
 			}
 
-			if (battle_config.weapon_defense_type) {
+			if( battle_config.weapon_defense_type ) {
 				vit_def += def1*battle_config.weapon_defense_type;
 				def1 = 0;
 			}
@@ -4910,7 +4919,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		}
 	}
 
-	if(sd && (skillv = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0) {
+	if (sd && (skillv = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0) {
 		int triple_rate= 30 - skillv; //Base Rate
 		if (sc && sc->data[SC_SKILLRATE_UP] && sc->data[SC_SKILLRATE_UP]->val1 == MO_TRIPLEATTACK) {
 			triple_rate+= triple_rate*(sc->data[SC_SKILLRATE_UP]->val2)/100;
@@ -4928,8 +4937,8 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			uint16 skill_lv = sc->data[SC_SACRIFICE]->val1;
 			damage_lv ret_val;
 
-			if( --sc->data[SC_SACRIFICE]->val2 <= 0 )
-				status_change_end(src, SC_SACRIFICE, INVALID_TIMER);
+			if (--sc->data[SC_SACRIFICE]->val2 <= 0)
+				status_change_end(src,SC_SACRIFICE,INVALID_TIMER);
 
 			/**
 			 * We need to calculate the DMG before the hp reduction, because it can kill the source.
@@ -4938,47 +4947,44 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			ret_val = (damage_lv)skill_attack(BF_WEAPON,src,src,target,PA_SACRIFICE,skill_lv,tick,0);
 
 			status_zap(src, sstatus->max_hp*9/100, 0); //Damage to self is always 9%
-			if( ret_val == ATK_NONE )
+			if (ret_val == ATK_NONE)
 				return ATK_MISS;
 			return ret_val;
 		}
 		if (sc->data[SC_MAGICALATTACK]) {
-			if( skill_attack(BF_MAGIC,src,src,target,NPC_MAGICALATTACK,sc->data[SC_MAGICALATTACK]->val1,tick,0) )
+			if (skill_attack(BF_MAGIC,src,src,target,NPC_MAGICALATTACK,sc->data[SC_MAGICALATTACK]->val1,tick,0))
 				return ATK_DEF;
 			return ATK_MISS;
 		}
-		if( sc->data[SC_GT_ENERGYGAIN] ) {
+		if (sc->data[SC_GT_ENERGYGAIN] && sc->data[SC_GT_ENERGYGAIN]->val2) {
 			int spheremax = 0;
-				if( sd && sc->data[SC_RAISINGDRAGON] )
-					spheremax = 5 + sc->data[SC_RAISINGDRAGON]->val1;
-				else
-					spheremax = 5;
-			if( sd && rnd()%100 < sc->data[SC_GT_ENERGYGAIN]->val2)
-				pc_addspiritball(sd,
-								 skill_get_time2(SR_GENTLETOUCH_ENERGYGAIN, sc->data[SC_GT_ENERGYGAIN]->val1),
-								 spheremax);
+			if (sc->data[SC_RAISINGDRAGON])
+				spheremax = 5 + sc->data[SC_RAISINGDRAGON]->val1;
+			else
+				spheremax = 5;
+			if (sd && rnd()%100 < sc->data[SC_GT_ENERGYGAIN]->val3)
+				pc_addspiritball(sd,skill_get_time2(SR_GENTLETOUCH_ENERGYGAIN,sc->data[SC_GT_ENERGYGAIN]->val1),spheremax);
 		}
-		if( tsc && tsc->data[SC_GT_ENERGYGAIN] ) {
-			int spheremax = 0;
-				if( sd && sc->data[SC_RAISINGDRAGON] )
-					spheremax = 5 + sc->data[SC_RAISINGDRAGON]->val1;
-				else
-					spheremax = 5;
-			if( tsd && rnd()%100 < tsc->data[SC_GT_ENERGYGAIN]->val2)
-				pc_addspiritball(tsd,
-									skill_get_time2(SR_GENTLETOUCH_ENERGYGAIN, tsc->data[SC_GT_ENERGYGAIN]->val1),
-									spheremax);
-		}
-		if( sc && sc->data[SC_CRUSHSTRIKE] ) {
+		if (sc && sc->data[SC_CRUSHSTRIKE]) {
 			uint16 skill_lv = sc->data[SC_CRUSHSTRIKE]->val1;
-			status_change_end(src, SC_CRUSHSTRIKE, INVALID_TIMER);
-			if( skill_attack(BF_WEAPON,src,src,target,RK_CRUSHSTRIKE,skill_lv,tick,0) )
+			status_change_end(src,SC_CRUSHSTRIKE,INVALID_TIMER);
+			if (skill_attack(BF_WEAPON,src,src,target,RK_CRUSHSTRIKE,skill_lv,tick,0))
 				return ATK_DEF;
 			return ATK_MISS;
 		}
 	}
 
-	if(tsc && tsc->data[SC_KAAHI] && tsc->data[SC_KAAHI]->val4 == INVALID_TIMER && tstatus->hp < tstatus->max_hp)
+	if( tsc && tsc->data[SC_GT_ENERGYGAIN] && tsc->data[SC_GT_ENERGYGAIN]->val2 ) {
+		int spheremax = 0;
+		if( tsc->data[SC_RAISINGDRAGON] )
+			spheremax = 5 + sc->data[SC_RAISINGDRAGON]->val1;
+		else
+			spheremax = 5;
+		if( tsd && rnd()%100 < tsc->data[SC_GT_ENERGYGAIN]->val3 )
+			pc_addspiritball(tsd,skill_get_time2(SR_GENTLETOUCH_ENERGYGAIN,tsc->data[SC_GT_ENERGYGAIN]->val1),spheremax);
+	}
+
+	if( tsc && tsc->data[SC_KAAHI] && tsc->data[SC_KAAHI]->val4 == INVALID_TIMER && tstatus->hp < tstatus->max_hp )
 		tsc->data[SC_KAAHI]->val4 = add_timer(tick + skill_get_time2(SL_KAAHI,tsc->data[SC_KAAHI]->val1), kaahi_heal_timer, target->id, SC_KAAHI); //Activate heal.
 
 	wd = battle_calc_attack(BF_WEAPON, src, target, 0, 0, flag);
@@ -4989,7 +4995,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			status_change_end(src, SC_EXEEDBREAK, INVALID_TIMER);
 		}
 		if( sc->data[SC_SPELLFIST] ) {
-			if( --(sc->data[SC_SPELLFIST]->val1) >= 0 ){
+			if( --(sc->data[SC_SPELLFIST]->val1) >= 0 ) {
 				struct Damage ad = battle_calc_attack(BF_MAGIC,src,target,sc->data[SC_SPELLFIST]->val3,sc->data[SC_SPELLFIST]->val4,flag|BF_SHORT);
 				wd.damage = ad.damage;
 			} else
@@ -4997,7 +5003,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		}
 		if( sc->data[SC_GIANTGROWTH] && (wd.flag&BF_SHORT) && rnd()%100 < sc->data[SC_GIANTGROWTH]->val2 )
 			wd.damage *= 3; // Triple Damage
-		
+
 		if( sd && sc->data[SC_FEARBREEZE] && sc->data[SC_FEARBREEZE]->val4 > 0 && sd->status.inventory[sd->equip_index[EQI_AMMO]].amount >= sc->data[SC_FEARBREEZE]->val4 && battle_config.arrow_decrement){
 			pc_delitem(sd,sd->equip_index[EQI_AMMO],sc->data[SC_FEARBREEZE]->val4,0,1,LOG_TYPE_CONSUME);
 			sc->data[SC_FEARBREEZE]->val4 = 0;

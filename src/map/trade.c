@@ -198,8 +198,7 @@ int impossible_trade_check(struct map_session_data *sd)
 		if (!sd->deal.item[i].amount)
 			continue;
 		index = sd->deal.item[i].index;
-		if (inventory[index].amount < sd->deal.item[i].amount)
-		{ // if more than the player have -> hack
+		if (inventory[index].amount < sd->deal.item[i].amount) { // if more than the player have -> hack
 			sprintf(message_to_gm, msg_txt(538), sd->status.name, sd->status.account_id); // Hack on trade: character '%s' (account: %d) try to trade more items that he has.
 			intif_wis_message_to_gm(wisp_server_name, PC_PERM_RECEIVE_HACK_INFO, message_to_gm);
 			sprintf(message_to_gm, msg_txt(539), inventory[index].amount, inventory[index].nameid, sd->deal.item[i].amount); // This player has %d of a kind of item (id: %d), and try to trade %d of them.

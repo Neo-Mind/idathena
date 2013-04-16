@@ -478,7 +478,8 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 
 			iter = mapit_getallusers();
 			while( (tsd = (TBL_PC*)mapit_next(iter)) != NULL ) {
-				if( tsd->partyspy == p->party.party_id && packet_db[tsd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
+				if( tsd->partyspy == p->party.party_id && packet_db[tsd->packet_ver][RBUFW(buf,0)].len ) {
+					// packet must exist for the client version
 					WFIFOHEAD(tsd->fd, len);
 					memcpy(WFIFOP(tsd->fd,0), buf, len);
 					WFIFOSET(tsd->fd,len);
@@ -1272,8 +1273,7 @@ void clif_weather(int16 m)
 	struct map_session_data *sd=NULL;
 
 	iter = mapit_getallusers();
-	for( sd = (struct map_session_data*)mapit_first(iter); mapit_exists(iter); sd = (struct map_session_data*)mapit_next(iter) )
-	{
+	for( sd = (struct map_session_data*)mapit_first(iter); mapit_exists(iter); sd = (struct map_session_data*)mapit_next(iter) ) {
 		if( sd->bl.m == m )
 			clif_weather_check(sd);
 	}
