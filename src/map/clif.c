@@ -8040,20 +8040,14 @@ void clif_callpartner(struct map_session_data *sd)
 
 	WBUFW(buf,0) = 0x1e6;
 
-	if( sd->status.partner_id )
-	{
+	if( sd->status.partner_id ) {
 		const char *p;
-		if( ( p = map_charid2nick(sd->status.partner_id) ) != NULL )
-		{
+		if( ( p = map_charid2nick(sd->status.partner_id) ) != NULL ) {
 			memcpy(WBUFP(buf,2), p, NAME_LENGTH);
-		}
-		else
-		{
+		} else {
 			WBUFB(buf,2) = 0;
 		}
-	}
-	else
-	{// Send zero-length name if no partner, to initialize the client buffer.
+	} else { // Send zero-length name if no partner, to initialize the client buffer.
 		WBUFB(buf,2) = 0;
 	}
 
@@ -8126,12 +8120,9 @@ void clif_disp_message(struct block_list* src, const char* mes, int len, enum se
 {
 	unsigned char buf[256];
 
-	if( len == 0 )
-	{
+	if( len == 0 ) {
 		return;
-	}
-	else if( len > sizeof(buf)-5 )
-	{
+	} else if( len > sizeof(buf)-5 ) {
 		ShowWarning("clif_disp_message: Truncated message '%s' (len=%d, max=%d, aid=%d).\n", mes, len, sizeof(buf)-5, src->id);
 		len = sizeof(buf)-5;
 	}
@@ -8377,8 +8368,7 @@ void clif_specialeffect_value(struct block_list* bl, int effect_id, int num, sen
 
 	clif_send(buf, packet_len(0x284), bl, target);
 
-	if( disguised(bl) )
-	{
+	if( disguised(bl) ) {
 		WBUFL(buf,2) = -bl->id;
 		clif_send(buf, packet_len(0x284), bl, SELF);
 	}

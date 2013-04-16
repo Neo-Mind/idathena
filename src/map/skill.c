@@ -2378,7 +2378,6 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		if( (dmg.damage || dmg.damage2) && (type = skill_magic_reflect(src, bl, src==dsrc)) ) {
 			//Magic reflection, switch caster/target
 			struct block_list *tbl = bl;
-			struct calc_cardfix *ccardfix = NULL;
 			rmdamage = 1;
 			bl = src;
 			src = tbl;
@@ -2409,11 +2408,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		 * Official Magic Reflection Behavior : damage reflected depends on gears caster wears, not target
 		 **/
 #if MAGIC_REFLECTION_TYPE
-			if( dmg.dmg_lv != ATK_MISS ) { //Wiz SL cancelled and consumed fragment
-				ccardfix->isMagicReflect = true;
+			if( dmg.dmg_lv != ATK_MISS ) //Wiz SL cancelled and consumed fragment
 				dmg = battle_calc_attack(BF_MAGIC,bl,bl,skill_id,skill_lv,flag&0xFFF);
-				ccardfix->isMagicReflect = false;
-			}
 #endif
 		}
 		if(sc && sc->data[SC_MAGICROD] && src == dsrc) {
@@ -6808,7 +6804,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 				//If mode gets set by NPC_EMOTION then the target should be reset [Playtester]
 				if(skill_id == NPC_EMOTION && md->db->skill[md->skill_idx].val[1])
-					mob_unlocktarget(md,tick);
+					mob_unlocktarget(md, tick);
 
 				if(md->db->skill[md->skill_idx].val[1] || md->db->skill[md->skill_idx].val[2])
 					sc_start4(src, src, type, 100, skill_lv,

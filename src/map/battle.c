@@ -415,7 +415,6 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 	struct map_session_data *sd, *tsd;
 	short cardfix = 1000, t_class, s_class, s_race2, t_race2;
 	struct status_data *sstatus, *tstatus;
-	struct calc_cardfix *ccardfix = NULL;
 	int i;
 
 	if( !damage )
@@ -431,8 +430,6 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 
 	switch( attack_type ) {
 		case BF_MAGIC:
-			if( ccardfix->isMagicReflect )
-				nk |= NK_NO_CARDFIX_ATK;
 			if( sd && !(nk&NK_NO_CARDFIX_ATK) ) {
 				cardfix=cardfix*(100+sd->magic_addrace[tstatus->race])/100;
 				if( !(nk&NK_NO_ELEFIX) )
@@ -717,7 +714,6 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 	struct map_session_data *sd = NULL;
 	struct status_change *sc;
 	struct status_change_entry *sce;
-	struct calc_cardfix *ccardfix = NULL;
 	int div_ = d->div_, flag = d->flag;
 
 	nullpo_ret(bl);
@@ -968,7 +964,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		}
 #ifndef RENEWAL
 		//Finally damage reductions....
-		if( sc->data[SC_ASSUMPTIO] && !ccardfix->isMagicReflect ) {
+		if( sc->data[SC_ASSUMPTIO] ) {
 			if( map_flag_vs(bl->m) )
 				damage = damage*2/3; //Receive 66% damage
 			else
@@ -1020,9 +1016,9 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			damage -= damage * sc->data[SC_ARMOR]->val2 / 100;
 
 #ifdef RENEWAL
-		if(sc->data[SC_ENERGYCOAT] && (ccardfix->isMagicReflect || ((flag&BF_WEAPON || flag&BF_MAGIC) && skill_id != WS_CARTTERMINATION)))
+		if(sc->data[SC_ENERGYCOAT] && (flag&BF_WEAPON || flag&BF_MAGIC) && skill_id != WS_CARTTERMINATION)
 #else
-		if(sc->data[SC_ENERGYCOAT] && (ccardfix->isMagicReflect || (flag&BF_WEAPON && skill_id != WS_CARTTERMINATION)))
+		if(sc->data[SC_ENERGYCOAT] && flag&BF_WEAPON && skill_id != WS_CARTTERMINATION)
 #endif
 		{
 			struct status_data *status = status_get_status_data(bl);
@@ -3700,7 +3696,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		unsigned imdef : 1;
 		unsigned infdef : 1;
 	} flag;
-	struct calc_cardfix *ccardfix = NULL;
 
 	memset(&ad,0,sizeof(ad));
 	memset(&flag,0,sizeof(flag));
@@ -4191,8 +4186,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			if (!flag.imdef && (
 				sd->bonus.ignore_mdef_ele & ( 1 << tstatus->def_ele ) ||
 				sd->bonus.ignore_mdef_race & ( 1 << tstatus->race ) ||
-				sd->bonus.ignore_mdef_race & ( is_boss(target) ? 1 << RC_BOSS : 1 << RC_NONBOSS ) ||
-				ccardfix->isMagicReflect
+				sd->bonus.ignore_mdef_race & ( is_boss(target) ? 1 << RC_BOSS : 1 << RC_NONBOSS )
 			))
 				flag.imdef = 1;
 		}

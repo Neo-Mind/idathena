@@ -24,10 +24,6 @@ struct Damage {
 	enum damage_lv dmg_lv; // ATK_LUCKY,ATK_FLEE,ATK_DEF
 };
 
-struct calc_cardfix {
-	bool isMagicReflect; // Maybe better as a flag atlho the system isnt threaded so there isn't any bug by using it like this.
-};
-
 //(Used in read pc.c,) attribute table (battle_attr_fix)
 extern int attr_fix_table[4][10][10];
 
