@@ -76,19 +76,16 @@ int chat_createpcchat(struct map_session_data* sd, const char* title, const char
 	if( sd->chatID )
 		return 0; //Prevent people abusing the chat system by creating multiple chats, as pointed out by End of Exam. [Skotlex]
 
-	if( sd->state.vending || sd->state.buyingstore )
-	{// not chat, when you already have a store open
+	if( sd->state.vending || sd->state.buyingstore ) { // not chat, when you already have a store open
 		return 0;
 	}
 
-	if( map[sd->bl.m].flag.nochat )
-	{
+	if( map[sd->bl.m].flag.nochat ) {
 		clif_displaymessage(sd->fd, msg_txt(281));
 		return 0; //Can't create chatrooms on this map.
 	}
 
-	if( map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKNOCHAT) )
-	{
+	if( map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKNOCHAT) ) {
 		clif_displaymessage (sd->fd, msg_txt(665));
 		return 0;
 	}
@@ -96,15 +93,14 @@ int chat_createpcchat(struct map_session_data* sd, const char* title, const char
 	pc_stop_walking(sd,1);
 
 	cd = chat_createchat(&sd->bl, title, pass, limit, pub, 0, "", 0, 1, MAX_LEVEL);
-	if( cd )
-	{
+	if( cd ) {
 		cd->users = 1;
 		cd->usersd[0] = sd;
 		pc_setchatid(sd,cd->bl.id);
+		pc_stop_attack(sd);
 		clif_createchat(sd,0);
 		clif_dispchat(cd,0);
-	}
-	else
+	} else
 		clif_createchat(sd,1);
 
 	return 0;

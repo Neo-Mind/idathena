@@ -574,20 +574,16 @@ int guild_recv_info(struct guild *sg)
 		if( sd == NULL )
 			continue;
 		sd->guild = g;
-
 		if (before.guild_lv != g->guild_lv || bm != m ||
 				before.max_member != g->max_member) {
 			clif_guild_basicinfo(sd); //Submit basic information
 			clif_guild_emblem(sd, g); //Submit emblem
 		}
-
 		if (bm != m) { //Send members information
 			clif_guild_memberlist(g->member[i].sd);
 		}
-
 		if (before.skill_point != g->skill_point)
 			clif_guild_skillinfo(sd); //Submit information skills
-
 		if (guild_new) { // Send information and affiliation if unsent
 			clif_guild_belonginfo(sd, g);
 			clif_guild_notice(sd, g);
