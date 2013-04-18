@@ -3197,7 +3197,7 @@ int parse_console(const char* buf) {
 				sd.bl.x = x;
 			if( y > 0 )
 				sd.bl.y = y;
-			ShowNotice("Now at : '%s' Coords: %d %d\n", map, x, y);
+			ShowNotice("Now at: '%s' Coords: %d %d\n", map, x, y);
 		} else if( !is_atcommand(sd.fd, &sd, command, 0) )
 			ShowInfo("Console: Invalid atcommand.\n");
 	} else if( n == 2 && strcmpi("server", type) == 0 ) {
@@ -3209,7 +3209,7 @@ int parse_console(const char* buf) {
 	} else if( strcmpi("help", type) == 0 ) {
 		ShowInfo("Available commands:\n");
 		ShowInfo("\t admin:@<atcommand> => Uses an atcommand. Do NOT use commands requiring an attached player.\n");
-		ShowInfo("\t admin:map:<map><x><y> => Changes the map from which console commands are executed.\n");
+		ShowInfo("\t admin:map:<map> <x> <y> => Changes the map from which console commands are executed.\n");
 		ShowInfo("\t server:shutdown => Stops the server.\n");
 		ShowInfo("\t ers_report => Displays database usage.\n");
 	}
