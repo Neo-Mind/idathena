@@ -14335,7 +14335,7 @@ void skill_weaponrefine (struct map_session_data *sd, int idx)
 		struct item_data *ditem = sd->inventory_data[idx];
 		item = &sd->status.inventory[idx];
 
-		if(item->nameid > 0 && ditem->type == IT_WEAPON) {
+		if (item->nameid > 0 && ditem->type == IT_WEAPON) {
 			if( item->refine >= sd->menuskill_val
 			||  item->refine >= 10		// if it's no longer refineable
 			||  ditem->flag.no_refine 	// if the item isn't refinable
@@ -14346,14 +14346,17 @@ void skill_weaponrefine (struct map_session_data *sd, int idx)
 			}
 
 			per = status_get_refine_chance(ditem->wlv, (int)item->refine);
-			per += (((signed int)sd->status.job_level)-50)/2; //Updated per the new kro descriptions. [Skotlex]
+			if (sd->class_&JOBL_THIRD)
+				per += 10;
+			else
+				per += (((signed int)sd->status.job_level)-50)/2; //Updated per the new kro descriptions. [Skotlex]
 
 			pc_delitem(sd, i, 1, 0, 0, LOG_TYPE_OTHER);
 			if (per > rnd() % 100) {
 				log_pick_pc(sd, LOG_TYPE_OTHER, -1, item);
 				item->refine++;
 				log_pick_pc(sd, LOG_TYPE_OTHER,  1, item);
-				if(item->equip) {
+				if (item->equip) {
 					ep = item->equip;
 					pc_unequipitem(sd,idx,3);
 				}
@@ -14363,11 +14366,11 @@ void skill_weaponrefine (struct map_session_data *sd, int idx)
 				if (ep)
 					pc_equipitem(sd,idx,ep);
 				clif_misceffect(&sd->bl,3);
-				if(item->refine == 10 &&
+				if (item->refine == 10 &&
 					item->card[0] == CARD0_FORGE &&
 					(int)MakeDWord(item->card[2],item->card[3]) == sd->status.char_id)
 				{ // Fame point system [DracoRPG]
-					switch(ditem->wlv){
+					switch (ditem->wlv) {
 						case 1:
 							pc_addfame(sd,1); // Success to refine to +10 a lv1 weapon you forged = +1 fame point
 							break;
@@ -14381,7 +14384,7 @@ void skill_weaponrefine (struct map_session_data *sd, int idx)
 				}
 			} else {
 				item->refine = 0;
-				if(item->equip)
+				if (item->equip)
 					pc_unequipitem(sd,idx,3);
 				clif_refine(sd->fd,1,idx,item->refine);
 				pc_delitem(sd,idx,1,0,2, LOG_TYPE_OTHER);
@@ -16300,14 +16303,14 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 				break;
 		}
 	} else { // Weapon Forging - skill bonuses are straight from kRO website, other things from a jRO calculator [DracoRPG]
-		make_per = 5000 + sd->status.job_level*20 + status->dex*10 + status->luk*10; // Base
+		make_per = 5000 + ((sd->class_&JOBL_THIRD)?1400:sd->status.job_level*20) + status->dex*10 + status->luk*10; // Base
 		make_per += pc_checkskill(sd,skill_id)*500; // Smithing skills bonus: +5/+10/+15
 		make_per += pc_checkskill(sd,BS_WEAPONRESEARCH)*100 +((wlv >= 3)? pc_checkskill(sd,BS_ORIDEOCON)*100:0); // Weaponry Research bonus: +1/+2/+3/+4/+5/+6/+7/+8/+9/+10, Oridecon Research bonus (custom): +1/+2/+3/+4/+5
 		make_per -= (ele?2000:0) + sc*1500 + (wlv>1?wlv*1000:0); // Element Stone: -20%, Star Crumb: -15% each, Weapon level malus: -0/-20/-30
-		if(pc_search_inventory(sd,989) > 0) make_per+= 1000; // Emperium Anvil: +10
-		else if(pc_search_inventory(sd,988) > 0) make_per+= 500; // Golden Anvil: +5
-		else if(pc_search_inventory(sd,987) > 0) make_per+= 300; // Oridecon Anvil: +3
-		else if(pc_search_inventory(sd,986) > 0) make_per+= 0; // Anvil: +0?
+		if(pc_search_inventory(sd,989) > 0) make_per += 1000; // Emperium Anvil: +10
+		else if(pc_search_inventory(sd,988) > 0) make_per += 500; // Golden Anvil: +5
+		else if(pc_search_inventory(sd,987) > 0) make_per += 300; // Oridecon Anvil: +3
+		else if(pc_search_inventory(sd,986) > 0) make_per += 0; // Anvil: +0?
 		if(battle_config.wp_rate != 100)
 			make_per = make_per * battle_config.wp_rate / 100;
 	}

@@ -1935,9 +1935,19 @@ static unsigned short status_base_atk(const struct block_list *bl, const struct 
 	//Normally only players have base-atk, but homunc have a different batk
 	// equation, hinting that perhaps non-players should use this for batk.
 	// [Skotlex]
-	dstr = str/10;
-	str += dstr*dstr;
-	if (bl->type == BL_PC)
+	if (bl->type == BL_HOM) {
+#ifdef RENEWAL
+		//str = ((rstr + dex + status->luk) / 3) + (((TBL_HOM*)bl)->homunculus.level / 10);
+		//Because Renewal ATK isn't implemented we adjust the actual ATK until it is
+		str = (((rstr + dex + status->luk) / 3) + (((TBL_HOM*)bl)->homunculus.level / 10))*2;
+#else
+		dstr = str/10;
+		str += dstr*dstr;
+#endif
+	} else if (bl->type != BL_PC) {
+		dstr = str/10;
+		str += dstr*dstr;
+	} else
 #ifdef RENEWAL
 		str = (rstr*10 + dex*10/5 + status->luk*10/3 + ((TBL_PC*)bl)->status.base_level*10/4)/10;
 #else
@@ -1967,6 +1977,9 @@ void status_calc_misc(struct block_list *bl, struct status_data *status, int lev
 	if( bl->type == BL_MOB ) {
 		status->hit += level + status->dex + 175;
 		status->flee += level + status->agi + 100;
+	} else if (bl->type == BL_HOM) {
+		status->hit = level + status->dex + 150; //base level + dex + 150
+		status->flee = level + status->agi + level/10; //base level + agi + base level/10
 	} else {
 		status->hit += level + status->dex + status->luk/3 + 175; //base level + ( every 1 dex = +1 hit ) + (every 3 luk = +1 hit) + 175
 		status->flee += level + status->agi + status->luk/5 + 100; //base level + ( every 1 agi = +1 flee ) + (every 5 luk = +1 flee) + 100
@@ -3228,11 +3241,26 @@ int status_calc_homunculus_(struct homun_data *hd, bool first)
 		status->hp = 1;
 		status->sp = 1;
 	}
+
+	status->aspd_rate = 1000;
+
+#ifdef RENEWAL
+	status->def = (status->vit + (hom->level/10)) + ((status->agi + (hom->level/10))/2);
+	status->mdef = status->int_ + ((status->int_ + status->dex + status->luk)/3) + (hom->level/10) * 2;
+
+	amotion = (1000 - 2 * status->agi - status->dex) * hd->homunculusDB->baseASPD/1000;
+#else
 	skill = hom->level/10 + status->vit/5;
 	status->def = cap_value(skill, 0, 99);
 
 	skill = hom->level/10 + status->int_/5;
 	status->mdef = cap_value(skill, 0, 99);
+
+	amotion = (1000 - 4 * status->agi - status->dex) * hd->homunculusDB->baseASPD/1000;
+#endif
+
+	status->amotion = cap_value(amotion,battle_config.max_aspd,2000);
+	status->adelay = status->amotion; //It seems adelay = amotion for Homunculus.
 
 	status->max_hp = hom->max_hp ;
 	status->max_sp = hom->max_sp ;
@@ -3256,18 +3284,14 @@ int status_calc_homunculus_(struct homun_data *hd, bool first)
 	if(first) {
 		hd->battle_status.hp = hom->hp ;
 		hd->battle_status.sp = hom->sp ;
-		if(hom->class_ == 6052) //eleanor
+		if(hom->class_ == 6052) //Eleanor
 			sc_start(&hd->bl, &hd->bl, SC_STYLE_CHANGE, 100, MH_MD_FIGHTING, INVALID_TIMER);
 	}
 
+#ifndef RENEWAL
 	status->rhw.atk = status->dex;
 	status->rhw.atk2 = status->str + hom->level;
-
-	status->aspd_rate = 1000;
-
-	amotion = (1000 -4*status->agi -status->dex) * hd->homunculusDB->baseASPD/1000;
-	status->amotion = cap_value(amotion,battle_config.max_aspd,2000);
-	status->adelay = status->amotion; //It seems adelay = amotion for Homunculus.
+#endif
 
 	status_calc_misc(&hd->bl, status, hom->level);
 
@@ -3963,7 +3987,6 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 			status->matk_max += sd->right_weapon.overrefine - 1;
 		}
 #endif
-
     }
 
 	if(flag&SCB_ASPD) {
@@ -3972,47 +3995,51 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 			amotion = status_base_amotion_pc(sd,status);
 #ifndef RENEWAL_ASPD
 			status->aspd_rate = status_calc_aspd_rate(bl, sc, b_status->aspd_rate);
-			
+
 			if(status->aspd_rate != 1000)
 				amotion = amotion*status->aspd_rate/1000;
 #else
 			// aspd = baseaspd + floor(sqrt((agi^2/2) + (dex^2/5))/4 + (potskillbonus*agi/200))
 			amotion -= (int)(sqrt( (pow(status->agi, 2) / 2) + (pow(status->dex, 2) / 5) ) / 4 + (status_calc_aspd(bl, sc, 1) * status->agi / 200)) * 10;
-			
+
 			if( (status_calc_aspd(bl, sc, 2) + status->aspd_rate2) != 0 ) // RE ASPD percertage modifier
 					amotion -= ( amotion - ((sd->class_&JOBL_THIRD) ? battle_config.max_third_aspd : battle_config.max_aspd) )
 											* (status_calc_aspd(bl, sc, 2) + status->aspd_rate2) / 100;
-											
+			
 			if(status->aspd_rate != 1000) // absolute percentage modifier
-					amotion = ( 200 - (200-amotion/10) * status->aspd_rate / 1000 ) * 10;
+					amotion = ( 200 - (200 - amotion / 10) * status->aspd_rate / 1000 ) * 10;
 #endif
 			amotion = status_calc_fix_aspd(bl, sc, amotion);
 			status->amotion = cap_value(amotion,((sd->class_&JOBL_THIRD) ? battle_config.max_third_aspd : battle_config.max_aspd),2000);
-			
-			status->adelay = 2*status->amotion;
+
+			status->adelay = 2 * status->amotion;
 		} else if( bl->type&BL_HOM ) {
-			amotion = (1000 -4*status->agi -status->dex) * ((TBL_HOM*)bl)->homunculusDB->baseASPD/1000;
+#ifdef RENEWAL
+			amotion = (1000 - 2 * status->agi - status->dex) * ((TBL_HOM*)bl)->homunculusDB->baseASPD / 1000;
+#else
+			amotion = (1000 - 4 * status->agi - status->dex) * ((TBL_HOM*)bl)->homunculusDB->baseASPD / 1000;
+#endif
 			status->aspd_rate = status_calc_aspd_rate(bl, sc, b_status->aspd_rate);
-			
+
 			if(status->aspd_rate != 1000)
-				amotion = amotion*status->aspd_rate/1000;
-			
+				amotion = amotion * status->aspd_rate / 1000;
+
 			amotion = status_calc_fix_aspd(bl, sc, amotion);
-			status->amotion = cap_value(amotion,battle_config.max_aspd,2000);
-			
+			status->amotion = cap_value(amotion, battle_config.max_aspd, 2000);
+
 			status->adelay = status->amotion;
 		} else { // mercenary and mobs
 			amotion = b_status->amotion;
 			status->aspd_rate = status_calc_aspd_rate(bl, sc, b_status->aspd_rate);
-			
+
 			if(status->aspd_rate != 1000)
-				amotion = amotion*status->aspd_rate/1000;
-			
+				amotion = amotion * status->aspd_rate / 1000;
+
 			amotion = status_calc_fix_aspd(bl, sc, amotion);
 			status->amotion = cap_value(amotion, battle_config.monster_max_aspd, 2000);
-			
-			temp = b_status->adelay*status->aspd_rate/1000;
-			status->adelay = cap_value(temp, battle_config.monster_max_aspd*2, 4000);
+
+			temp = b_status->adelay * status->aspd_rate / 1000;
+			status->adelay = cap_value(temp, battle_config.monster_max_aspd * 2, 4000);
 		}
 	}
 
