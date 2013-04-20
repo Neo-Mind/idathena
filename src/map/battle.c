@@ -3204,7 +3204,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				break;
 		}
 
-		if( (i = battle_adjust_skill_damage(src->m,skill_id)) )
+		if( (i = battle_adjust_skill_damage(src->m, skill_id)) )
 			ATK_RATE(i);
 
 		if( sd ) {
@@ -4192,7 +4192,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			if ((i = pc_skillatk_bonus(sd, skill_id)))
 				ad.damage += ad.damage * i / 100;
 
-			if( (i = battle_adjust_skill_damage(src->m,skill_id)) )
+			if( (i = battle_adjust_skill_damage(src->m, skill_id)) )
 				MATK_RATE(i);
 
 			//Ignore Magic Defense?
@@ -4536,19 +4536,19 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			break;
 	}
 
-	if (nk&NK_SPLASHSPLIT) { // Divide ATK among targets
-		if(mflag>0)
-			md.damage/= mflag;
+	if( nk&NK_SPLASHSPLIT ) { // Divide ATK among targets
+		if( mflag>0 )
+			md.damage /= mflag;
 		else
 			ShowError("0 enemies targeted by %d:%s, divide per 0 avoided!\n", skill_id, skill_get_name(skill_id));
 	}
 
 	damage_div_fix(md.damage, md.div_);
 
-	if (!(nk&NK_IGNORE_FLEE)) {
+	if( !(nk&NK_IGNORE_FLEE) ) {
 		struct status_change *sc = status_get_sc(target);
 		i = 0; //Temp for "hit or no hit"
-		if(sc && sc->opt1 && sc->opt1 != OPT1_STONEWAIT && sc->opt1 != OPT1_BURNING)
+		if( sc && sc->opt1 && sc->opt1 != OPT1_STONEWAIT && sc->opt1 != OPT1_BURNING )
 			i = 1;
 		else {
 			short
@@ -4559,15 +4559,15 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				hitrate = 80; //Default hitrate
 #endif
 
-			if(battle_config.agi_penalty_type && battle_config.agi_penalty_target&target->type) {
+			if( battle_config.agi_penalty_type && battle_config.agi_penalty_target&target->type ) {
 				unsigned char attacker_count; //256 max targets should be a sane max
 				attacker_count = unit_counttargeted(target);
-				if(attacker_count >= battle_config.agi_penalty_count) {
-					if(battle_config.agi_penalty_type == 1)
+				if( attacker_count >= battle_config.agi_penalty_count ) {
+					if( battle_config.agi_penalty_type == 1 )
 						flee = (flee * (100 - (attacker_count - (battle_config.agi_penalty_count - 1))*battle_config.agi_penalty_num))/100;
 					else //asume type 2: absolute reduction
 						flee -= (attacker_count - (battle_config.agi_penalty_count - 1))*battle_config.agi_penalty_num;
-					if(flee < 1) flee = 1;
+					if( flee < 1 ) flee = 1;
 				}
 			}
 
@@ -4578,10 +4578,10 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 #endif
 			hitrate = cap_value(hitrate, battle_config.min_hitrate, battle_config.max_hitrate);
 
-			if(rnd()%100 < hitrate)
+			if( rnd()%100 < hitrate )
 				i = 1;
 		}
-		if (!i) {
+		if( !i ) {
 			md.damage = 0;
 			md.dmg_lv = ATK_FLEE;
 		}
@@ -4592,13 +4592,13 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	if( sd && (i = pc_skillatk_bonus(sd, skill_id)) )
 		md.damage += md.damage * i / 100;
 
-	if( (i = battle_adjust_skill_damage(src->m,skill_id)) )
+	if( (i = battle_adjust_skill_damage(src->m, skill_id)) )
 		md.damage = md.damage * i / 100;
 
 	if( md.damage < 0 )
 		md.damage = 0;
-	else if(md.damage && tstatus->mode&MD_PLANT) {
-		switch(skill_id) {
+	else if( md.damage && tstatus->mode&MD_PLANT ) {
+		switch( skill_id ) {
 			case HT_LANDMINE:
 			case MA_LANDMINE:
 			case HT_BLASTMINE:
@@ -4616,7 +4616,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			md.damage = 1;
 	}
 
-	if(!(nk&NK_NO_ELEFIX))
+	if( !(nk&NK_NO_ELEFIX) )
 		md.damage = battle_attr_fix(src, target, md.damage, s_ele, tstatus->def_ele, tstatus->ele_lv);
 
 	md.damage = battle_calc_damage(src,target,&md,md.damage,skill_id,skill_lv);
