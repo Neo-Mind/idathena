@@ -468,7 +468,6 @@ extern struct Battle_Config
 	int bg_misc_damage_rate;
 	int bg_flee_penalty;
 
-	// rAthena
 	int max_third_parameter;
 	int max_baby_third_parameter;
 	int atcommand_max_stat_bypass;
@@ -486,6 +485,7 @@ extern struct Battle_Config
 	int item_restricted_consumption_type;
 	int max_walk_path;
 	int item_enabled_npc;
+	int item_onfloor; // Whether to drop an undroppable item on the map or destroy it if inventory is full.
 } battle_config;
 
 void do_init_battle(void);

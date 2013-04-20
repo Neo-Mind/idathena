@@ -10585,18 +10585,13 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 					break;
 				map_freeblock_lock();
 				damage =  200 + 100 * sce->val1 + status_get_int(src);
-				status_damage(src, bl, damage, 0, clif_damage(bl,bl,tick,status->amotion,status->dmotion+200,damage,1,0,0), 1);
+				status_damage(src, bl, damage, 0, clif_damage(bl,bl,tick,status->amotion,status->dmotion+200,damage,1,0,0), 0);
 				unit_skillcastcancel(bl,1);
 				if ( sc->data[type] ) {
 					sc_timer_next(1000 + tick, status_change_timer, bl->id, data);
 				}
 				map_freeblock_unlock();
 				status_heal(src, damage*(5 + 5 * sce->val1)/100, 0, 0); // 5 + 5% per level
-				if (sc && (sc->data[SC_HIDING] || sc->data[SC_CLOAKING] || sc->data[SC_CLOAKINGEXCEED])) {
-					status_change_end(bl, SC_HIDING, INVALID_TIMER);
-					status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
-					status_change_end(bl, SC_CLOAKINGEXCEED, INVALID_TIMER);
-				}
 				return 0;
 			}
 			break;
