@@ -6470,6 +6470,11 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			sd->devotion[k] = 0;
 		}
 
+	if( sd->shadowform_id ) { //If we were target of shadowform
+		status_change_end(map_id2bl(sd->shadowform_id), SC__SHADOWFORM, INVALID_TIMER);
+		sd->shadowform_id = 0; //Should be remove on status end anyway
+	}
+
 	if( sd->status.pet_id > 0 && sd->pd ) {
 		struct pet_data *pd = sd->pd;
 		if( !map[sd->bl.m].flag.noexppenalty ) {
@@ -6482,8 +6487,8 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			pet_unlocktarget(sd->pd);
 	}
 
-	if (sd->status.hom_id > 0) {
-		if(battle_config.homunculus_auto_vapor && sd->hd && !sd->hd->sc.data[SC_LIGHT_OF_REGENE])
+	if( sd->status.hom_id > 0 ) {
+		if( battle_config.homunculus_auto_vapor && sd->hd && !sd->hd->sc.data[SC_LIGHT_OF_REGENE] )
 			merc_hom_vaporize(sd, HOM_ST_ACTIVE);
 	}
 
@@ -6597,16 +6602,16 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			// karma going down = more 'good' / more honourable.
 			// The Karma System way...
 		
-			if (sd->status.karma > ssd->status.karma) {	// If player killed was more evil
+			if( sd->status.karma > ssd->status.karma ) {	// If player killed was more evil
 				sd->status.karma--;
 				ssd->status.karma--;
-			} else if (sd->status.karma < ssd->status.karma) // If player killed was more good
+			} else if( sd->status.karma < ssd->status.karma ) // If player killed was more good
 				ssd->status.karma++;
 	
 
 			// or the PK System way...
 	
-			if (sd->status.karma > 0) // player killed is dishonourable?
+			if( sd->status.karma > 0 ) // player killed is dishonourable?
 				ssd->status.karma--; // honour points earned
 			sd->status.karma++;	// honour points lost
 		
@@ -6615,22 +6620,22 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		}
 	}
 
-	if( battle_config.bone_drop==2
-		|| (battle_config.bone_drop==1 && map[sd->bl.m].flag.pvp))
+	if( battle_config.bone_drop == 2
+		|| (battle_config.bone_drop == 1 && map[sd->bl.m].flag.pvp) )
 	{
 		struct item item_tmp;
 		memset(&item_tmp,0,sizeof(item_tmp));
-		item_tmp.nameid=ITEMID_SKULL_;
-		item_tmp.identify=1;
-		item_tmp.card[0]=CARD0_CREATE;
-		item_tmp.card[1]=0;
-		item_tmp.card[2]=GetWord(sd->status.char_id,0); // CharId
-		item_tmp.card[3]=GetWord(sd->status.char_id,1);
+		item_tmp.nameid = ITEMID_SKULL_;
+		item_tmp.identify = 1;
+		item_tmp.card[0] = CARD0_CREATE;
+		item_tmp.card[1] = 0;
+		item_tmp.card[2] = GetWord(sd->status.char_id,0); // CharId
+		item_tmp.card[3] = GetWord(sd->status.char_id,1);
 		map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 	}
 
 	// activate Steel body if a super novice dies at 99+% exp [celest]
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && !sd->state.snovice_dead_flag) {
+	if( (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && !sd->state.snovice_dead_flag ) {
 		unsigned int next = pc_nextbaseexp(sd);
 		if( next == 0 ) next = pc_thisbaseexp(sd);
 		if( get_percentage(sd->status.base_exp,next) >= 99 ) {
@@ -6638,79 +6643,77 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			pc_setstand(sd);
 			status_percent_heal(&sd->bl, 100, 100);
 			clif_resurrection(&sd->bl, 1);
-			if(battle_config.pc_invincible_time)
+			if( battle_config.pc_invincible_time )
 				pc_setinvincibletimer(sd, battle_config.pc_invincible_time);
 			sc_start(&sd->bl,&sd->bl,status_skill2sc(MO_STEELBODY),100,1,skill_get_time(MO_STEELBODY,1));
-			if(map_flag_gvg(sd->bl.m))
+			if( map_flag_gvg(sd->bl.m) )
 				pc_respawn_timer(INVALID_TIMER, gettick(), sd->bl.id, 0);
 			return 0;
 		}
 	}
 
 	// changed penalty options, added death by player if pk_mode [Valaris]
-	if(battle_config.death_penalty_type
+	if( battle_config.death_penalty_type
 		&& (sd->class_&MAPID_UPPERMASK) != MAPID_NOVICE	// only novices will receive no penalty
 		&& !map[sd->bl.m].flag.noexppenalty && !map_flag_gvg(sd->bl.m)
-		&& !sd->sc.data[SC_BABY] && !sd->sc.data[SC_LIFEINSURANCE])
+		&& !sd->sc.data[SC_BABY] && !sd->sc.data[SC_LIFEINSURANCE] )
 	{
 		unsigned int base_penalty =0;
-		if (battle_config.death_penalty_base > 0) {
-			switch (battle_config.death_penalty_type) {
+		if( battle_config.death_penalty_base > 0 ) {
+			switch( battle_config.death_penalty_type ) {
 				case 1:
 					base_penalty = (unsigned int) ((double)pc_nextbaseexp(sd) * (double)battle_config.death_penalty_base/10000);
-				break;
+					break;
 				case 2:
 					base_penalty = (unsigned int) ((double)sd->status.base_exp * (double)battle_config.death_penalty_base/10000);
-				break;
+					break;
 			}
-			if(base_penalty) {
-			  	if (battle_config.pk_mode && src && src->type==BL_PC)
+			if( base_penalty ) {
+				if( battle_config.pk_mode && src && src->type == BL_PC )
 					base_penalty*=2;
 				sd->status.base_exp -= min(sd->status.base_exp, base_penalty);
 				clif_updatestatus(sd,SP_BASEEXP);
 			}
 		}
-		if(battle_config.death_penalty_job > 0)
-	  	{
+		if( battle_config.death_penalty_job > 0 ) {
 			base_penalty = 0;
 			switch (battle_config.death_penalty_type) {
 				case 1:
 					base_penalty = (unsigned int) ((double)pc_nextjobexp(sd) * (double)battle_config.death_penalty_job/10000);
-				break;
+					break;
 				case 2:
 					base_penalty = (unsigned int) ((double)sd->status.job_exp * (double)battle_config.death_penalty_job/10000);
-				break;
+					break;
 			}
 			if(base_penalty) {
-			  	if (battle_config.pk_mode && src && src->type==BL_PC)
+				if (battle_config.pk_mode && src && src->type==BL_PC)
 					base_penalty*=2;
 				sd->status.job_exp -= min(sd->status.job_exp, base_penalty);
 				clif_updatestatus(sd,SP_JOBEXP);
 			}
 		}
-		if(battle_config.zeny_penalty > 0 && !map[sd->bl.m].flag.nozenypenalty)
-	  	{
+		if( battle_config.zeny_penalty > 0 && !map[sd->bl.m].flag.nozenypenalty ) {
 			base_penalty = (unsigned int)((double)sd->status.zeny * (double)battle_config.zeny_penalty / 10000.);
-			if(base_penalty)
+			if( base_penalty )
 				pc_payzeny(sd, base_penalty, LOG_TYPE_PICKDROP_PLAYER, NULL);
 		}
 	}
 
-	if(map[sd->bl.m].flag.pvp_nightmaredrop)
-	{ // Moved this outside so it works when PVP isn't enabled and during pk mode [Ancyker]
-		for(j=0;j<MAX_DROP_PER_MAP;j++){
+	if( map[sd->bl.m].flag.pvp_nightmaredrop ) {
+		// Moved this outside so it works when PVP isn't enabled and during pk mode [Ancyker]
+		for( j=0;j<MAX_DROP_PER_MAP;j++ ) {
 			int id = map[sd->bl.m].drop_list[j].drop_id;
 			int type = map[sd->bl.m].drop_list[j].drop_type;
 			int per = map[sd->bl.m].drop_list[j].drop_per;
-			if(id == 0)
+			if( id == 0 )
 				continue;
-			if(id == -1){
+			if( id == -1 ) {
 				int eq_num=0,eq_n[MAX_INVENTORY];
 				memset(eq_n,0,sizeof(eq_n));
-				for(i=0;i<MAX_INVENTORY;i++){
+				for( i=0;i<MAX_INVENTORY;i++ ) {
 					if( (type == 1 && !sd->status.inventory[i].equip)
 						|| (type == 2 && sd->status.inventory[i].equip)
-						||  type == 3)
+						||  type == 3 )
 					{
 						int k;
 						ARR_FIND( 0, MAX_INVENTORY, k, eq_n[k] <= 0 );
@@ -6720,23 +6723,22 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 						eq_num++;
 					}
 				}
-				if(eq_num > 0){
+				if( eq_num > 0 ) {
 					int n = eq_n[rnd()%eq_num];
-					if(rnd()%10000 < per){
-						if(sd->status.inventory[n].equip)
+					if( rnd()%10000 < per ) {
+						if( sd->status.inventory[n].equip )
 							pc_unequipitem(sd,n,3);
 						pc_dropitem(sd,n,1);
 					}
 				}
-			}
-			else if(id > 0){
-				for(i=0;i<MAX_INVENTORY;i++){
-					if(sd->status.inventory[i].nameid == id
+			} else if( id > 0 ) {
+				for( i=0;i<MAX_INVENTORY;i++ ) {
+					if( sd->status.inventory[i].nameid == id
 						&& rnd()%10000 < per
 						&& ((type == 1 && !sd->status.inventory[i].equip)
 							|| (type == 2 && sd->status.inventory[i].equip)
 							|| type == 3) ){
-						if(sd->status.inventory[i].equip)
+						if( sd->status.inventory[i].equip )
 							pc_unequipitem(sd,i,3);
 						pc_dropitem(sd,i,1);
 						break;
@@ -6747,33 +6749,26 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	}
 	// pvp
 	// disable certain pvp functions on pk_mode [Valaris]
-	if( map[sd->bl.m].flag.pvp && !battle_config.pk_mode && !map[sd->bl.m].flag.pvp_nocalcrank )
-	{
+	if( map[sd->bl.m].flag.pvp && !battle_config.pk_mode && !map[sd->bl.m].flag.pvp_nocalcrank ) {
 		sd->pvp_point -= 5;
 		sd->pvp_lost++;
-		if( src && src->type == BL_PC )
-		{
+		if( src && src->type == BL_PC ) {
 			struct map_session_data *ssd = (struct map_session_data *)src;
 			ssd->pvp_point++;
 			ssd->pvp_won++;
 		}
-		if( sd->pvp_point < 0 )
-		{
+		if( sd->pvp_point < 0 ) {
 			add_timer(tick+1000, pc_respawn_timer,sd->bl.id,0);
 			return 1|8;
 		}
 	}
 	//GvG
-	if( map_flag_gvg(sd->bl.m) )
-	{
+	if( map_flag_gvg(sd->bl.m) ) {
 		add_timer(tick+1000, pc_respawn_timer, sd->bl.id, 0);
 		return 1|8;
-	}
-	else if( sd->bg_id )
-	{
+	} else if( sd->bg_id ) {
 		struct battleground_data *bg = bg_team_search(sd->bg_id);
-		if( bg && bg->mapindex > 0 )
-		{ // Respawn by BG
+		if( bg && bg->mapindex > 0 ) { // Respawn by BG
 			add_timer(tick+1000, pc_respawn_timer, sd->bl.id, 0);
 			return 1|8;
 		}
@@ -8397,7 +8392,7 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 	}
 
 	if(pos == EQP_ARMS && id->equip == EQP_HAND_R) { //Dual wield capable weapon.
-	  	pos = (req_pos&EQP_ARMS);
+		pos = (req_pos&EQP_ARMS);
 		if (pos == EQP_ARMS) //User specified both slots, pick one for them.
 			pos = sd->equip_index[EQI_HAND_R] >= 0 ? EQP_HAND_L : EQP_HAND_R;
 	}

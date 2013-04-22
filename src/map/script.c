@@ -3136,17 +3136,15 @@ void op_2num(struct script_state* st, int op, int i1, int i2)
 	case C_L_SHIFT: ret = i1<<i2;	break;
 	case C_DIV:
 	case C_MOD:
-		if( i2 == 0 )
-		{
+		if( i2 == 0 ) {
 			ShowError("script:op_2num: division by zero detected op=%s i1=%d i2=%d\n", script_op2name(op), i1, i2);
 			script_reportsrc(st);
 			script_pushnil(st);
 			st->state = END;
 			return;
-		}
-		else if( op == C_DIV )
+		} else if( op == C_DIV )
 			ret = i1 / i2;
-		else//if( op == C_MOD )
+		else //if( op == C_MOD )
 			ret = i1 % i2;
 		break;
 	default:
@@ -3200,22 +3198,17 @@ void op_2(struct script_state *st, int op)
 	get_val(st, right);
 
 	// automatic conversions
-	switch( op )
-	{
-	case C_ADD:
-		if( data_isint(left) && data_isstring(right) )
-		{// convert int-string to string-string
-			conv_str(st, left);
-		}
-		else if( data_isstring(left) && data_isint(right) )
-		{// convert string-int to string-string
-			conv_str(st, right);
-		}
-		break;
+	switch( op ) {
+		case C_ADD:
+			if( data_isint(left) && data_isstring(right) ) { // convert int-string to string-string
+				conv_str(st, left);
+			} else if( data_isstring(left) && data_isint(right) ) { // convert string-int to string-string
+				conv_str(st, right);
+			}
+			break;
 	}
 
-	if( data_isstring(left) && data_isstring(right) )
-	{// ss => op_2str
+	if( data_isstring(left) && data_isstring(right) ) { // ss => op_2str
 		op_2str(st, op, left->u.str, right->u.str);
 		script_removetop(st, leftref.type == C_NOP ? -3 : -2, -1);// pop the two values before the top one
 
@@ -3224,9 +3217,7 @@ void op_2(struct script_state *st, int op)
 			aFree(left->u.str);
 			*left = leftref;
 		}
-	}
-	else if( data_isint(left) && data_isint(right) )
-	{// ii => op_2num
+	} else if( data_isint(left) && data_isint(right) ) { // ii => op_2num
 		int i1 = left->u.num;
 		int i2 = right->u.num;
 
@@ -3235,9 +3226,7 @@ void op_2(struct script_state *st, int op)
 
 		if (leftref.type != C_NOP)
 			*left = leftref;
-	}
-	else
-	{// invalid argument
+	} else { // invalid argument
 		ShowError("script:op_2: invalid data for operator %s\n", script_op2name(op));
 		script_reportdata(left);
 		script_reportdata(right);
@@ -3260,8 +3249,7 @@ void op_1(struct script_state* st, int op)
 	data = script_getdatatop(st, -1);
 	get_val(st, data);
 
-	if( !data_isint(data) )
-	{// not a number
+	if( !data_isint(data) ) { // not a number
 		ShowError("script:op_1: argument is not a number (op=%s)\n", script_op2name(op));
 		script_reportdata(data);
 		script_reportsrc(st);
@@ -3272,17 +3260,16 @@ void op_1(struct script_state* st, int op)
 
 	i1 = data->u.num;
 	script_removetop(st, -1, 0);
-	switch( op )
-	{
-	case C_NEG: i1 = -i1; break;
-	case C_NOT: i1 = ~i1; break;
-	case C_LNOT: i1 = !i1; break;
-	default:
-		ShowError("script:op_1: unexpected operator %s i1=%d\n", script_op2name(op), i1);
-		script_reportsrc(st);
-		script_pushnil(st);
-		st->state = END;
-		return;
+	switch( op ) {
+		case C_NEG: i1 = -i1; break;
+		case C_NOT: i1 = ~i1; break;
+		case C_LNOT: i1 = !i1; break;
+		default:
+			ShowError("script:op_1: unexpected operator %s i1=%d\n", script_op2name(op), i1);
+			script_reportsrc(st);
+			script_pushnil(st);
+			st->state = END;
+			return;
 	}
 	script_pushint(st, i1);
 }
@@ -3388,8 +3375,7 @@ int run_func(struct script_state *st)
 	for( i = end_sp-1; i > 0 ; --i )
 		if( st->stack->stack_data[i].type == C_ARG )
 			break;
-	if( i == 0 )
-	{
+	if( i == 0 ) {
 		ShowError("script:run_func: C_ARG not found. please report this!!!\n");
 		st->state = END;
 		script_reportsrc(st);
@@ -3402,8 +3388,7 @@ int run_func(struct script_state *st)
 	data = &st->stack->stack_data[st->start];
 	if( data->type == C_NAME && str_data[data->u.num].type == C_FUNC )
 		func = data->u.num;
-	else
-	{
+	else {
 		ShowError("script:run_func: not a buildin command.\n");
 		script_reportdata(data);
 		script_reportsrc(st);
@@ -3411,12 +3396,11 @@ int run_func(struct script_state *st)
 		return 1;
 	}
 
-	if( script_config.warn_func_mismatch_argtypes )
-	{
+	if( script_config.warn_func_mismatch_argtypes ) {
 		script_check_buildin_argtype(st, func);
 	}
 
-	if(str_data[func].func){
+	if(str_data[func].func) {
 		if (str_data[func].func(st)) //Report error
 			script_reportsrc(st);
 	} else {
@@ -3430,15 +3414,13 @@ int run_func(struct script_state *st)
 		return 0;
 
 	pop_stack(st, st->start, st->end);
-	if( st->state == RETFUNC )
-	{// return from a user-defined function
+	if( st->state == RETFUNC ) { // return from a user-defined function
 		struct script_retinfo* ri;
 		int olddefsp = st->stack->defsp;
 		int nargs;
 
 		pop_stack(st, st->stack->defsp, st->start);// pop distractions from the stack
-		if( st->stack->defsp < 1 || st->stack->stack_data[st->stack->defsp-1].type != C_RETINFO )
-		{
+		if( st->stack->defsp < 1 || st->stack->stack_data[st->stack->defsp-1].type != C_RETINFO ) {
 			ShowWarning("script:run_func: return without callfunc or callsub!\n");
 			script_reportsrc(st);
 			st->state = END;
@@ -3520,8 +3502,7 @@ int run_script_timer(int tid, unsigned int tick, int id, intptr_t data)
 	struct linkdb_node *node    = (struct linkdb_node *)sleep_db;
 	TBL_PC *sd = map_id2sd(st->rid);
 
-	if((sd && sd->status.char_id != id) || (st->rid && !sd))
-	{	//Character mismatch. Cancel execution.
+	if((sd && sd->status.char_id != id) || (st->rid && !sd)) { //Character mismatch. Cancel execution.
 		st->rid = 0;
 		st->state = END;
 	}
@@ -4297,20 +4278,18 @@ BUILDIN_FUNC(mes)
 	if( sd == NULL )
 		return 0;
 
-	if( !script_hasdata(st, 3) )
-	{// only a single line detected in the script
+	if( !script_hasdata(st, 3) ) { // only a single line detected in the script
 		clif_scriptmes(sd, st->oid, script_getstr(st, 2));
-	}
-	else
-	{// parse multiple lines as they exist
+	} else { // parse multiple lines as they exist
 		int i;
 
-		for( i = 2; script_hasdata(st, i); i++ )
-		{
+		for( i = 2; script_hasdata(st, i); i++ ) {
 			// send the message to the client
 			clif_scriptmes(sd, st->oid, script_getstr(st, i));
 		}
 	}
+
+	st->mes_active = 1; // Invoking character has a NPC dialog box open.
 
 	return 0;
 }
@@ -4346,7 +4325,15 @@ BUILDIN_FUNC(close)
 	if( sd == NULL )
 		return 0;
 
-	st->state = END;
+	if( !st->mes_active ) {
+		TBL_NPC* nd = map_id2nd(st->oid);
+		st->state = END; // Keep backwards compatibility.
+		ShowWarning("Incorrect use of 'close'! (source:%s / path:%s)\n",nd?nd->name:"Unknown",nd?nd->path:"Unknown");
+	} else {
+		st->state = CLOSE;
+		st->mes_active = 0;
+	}
+
 	clif_scriptclose(sd, st->oid);
 	return 0;
 }
@@ -4364,6 +4351,10 @@ BUILDIN_FUNC(close2)
 		return 0;
 
 	st->state = STOP;
+
+	if( st->mes_active )
+		st->mes_active = 0;
+
 	clif_scriptclose(sd, st->oid);
 	return 0;
 }
@@ -6580,7 +6571,7 @@ BUILDIN_FUNC(makeitem)
 		else
 			item_tmp.identify=itemdb_isidentified(nameid);
 
-		map_addflooritem(&item_tmp,amount,m,x,y,0,0,0,0);
+		map_addflooritem(&item_tmp,amount,m,x,y,0,0,0,4);
 	}
 
 	return 0;
@@ -8082,7 +8073,18 @@ BUILDIN_FUNC(getgroupid)
 /// end
 BUILDIN_FUNC(end)
 {
+	TBL_PC* sd;
+
+	sd = map_id2sd(st->rid);
+
 	st->state = END;
+
+	if( st->mes_active )
+		st->mes_active = 0;
+
+	if( sd )
+		clif_scriptclose(sd, st->oid); // If a menu/select/prompt is active, close it.
+
 	return 0;
 }
 

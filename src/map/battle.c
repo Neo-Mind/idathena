@@ -1174,7 +1174,9 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 						break;
 					}
 		}
-		if( sc->data[SC_POISONINGWEAPON] && skill_id != GC_VENOMPRESSURE && (flag&BF_WEAPON) && damage > 0 && rnd()%100 < sc->data[SC_POISONINGWEAPON]->val3 )
+		if( sc->data[SC_POISONINGWEAPON]
+			&& ((flag&BF_WEAPON) && (!skill_id || skill_id == GC_VENOMPRESSURE)) //check skill type poison_smoke is a unit
+			&& (damage > 0 && rnd()%100 < sc->data[SC_POISONINGWEAPON]->val3 ) ) //did some dammage and chance ok (why no additional effect ??)
 			sc_start(src,bl,sc->data[SC_POISONINGWEAPON]->val2,100,sc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON, 1));
 		if( sc->data[SC__DEADLYINFECT] && flag&BF_SHORT && damage > 0 && rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 )
 			status_change_spread(src, bl);
@@ -1210,9 +1212,9 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 	}
 
 	if (bl->type == BL_MOB && !status_isdead(bl) && src != bl) {
-	  if (damage > 0)
+		if (damage > 0)
 			mobskill_event((TBL_MOB*)bl,src,gettick(),flag);
-	  if (skill_id)
+		if (skill_id)
 			mobskill_event((TBL_MOB*)bl,src,gettick(),MSC_SKILLUSED|(skill_id<<16));
 	}
 	if( sd ) {
