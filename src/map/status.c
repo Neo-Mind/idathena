@@ -4831,7 +4831,7 @@ static signed short status_calc_hit(struct block_list *bl, struct status_change 
 	if(sc->data[SC_CONCENTRATION])
 		hit += sc->data[SC_CONCENTRATION]->val3;
 	if(sc->data[SC_INSPIRATION])
-		hit += sc->data[SC_INSPIRATION]->val4;
+		hit += 5 * sc->data[SC_INSPIRATION]->val1 + 25;
 	if(sc->data[SC_ADJUSTMENT])
 		hit -= 30;
 	if(sc->data[SC_INCREASING])
@@ -8603,10 +8603,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			if( sd ) {
 				val2 = 40 * val1 + 3 * sd->status.job_level; // ATK bonus
 				val3 = sd->status.base_level / 10 + sd->status.job_level / 5; // All stat bonus
-				val4 = 5 * val1 + sd->status.job_level / 2; // HIT Bonus
 			}
-			val4 = tick / 1000;
-			tick_time = 1000; // [GodLesZ] tick time
+			val4 = tick / 5000;
+			tick_time = 5000; // [GodLesZ] tick time
 			status_change_clear_buffs(bl,3); //Remove buffs/debuffs
 			break;
 		case SC_SPELLFIST:
@@ -9214,7 +9213,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			}
 			break;
 		case SC_RAISINGDRAGON:
-			sce->val2 = status->max_hp / 100;// Officially tested its 1%hp drain. [Jobbie]
+			sce->val2 = status->max_hp / 100; // Officially tested its 1%hp drain. [Jobbie]
 			break;
 		case SC_EQC:
 			sc_start2(src,bl,SC_STUN,100,val1,bl->id,(1000*status_get_lv(src))/50+500*val1);
@@ -10727,7 +10726,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 				if( !status_charge(bl,hp,sp) ) break;
 
-				sc_timer_next(5000+tick,status_change_timer,bl->id, data);
+				sc_timer_next(5000 + tick,status_change_timer,bl->id, data);
 				return 0;
 			}
 			break;
