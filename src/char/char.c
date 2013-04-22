@@ -123,12 +123,12 @@ struct s_subnet {
 int subnet_count = 0;
 
 struct char_session_data {
-	bool auth; // whether the session is authed or not
+	bool auth; // Whether the session is authed or not
 	int account_id, login_id1, login_id2, sex;
-	int found_char[MAX_CHARS]; // ids of chars on this account
-	char email[40]; // e-mail (default: a@a.com) by [Yor]
+	int found_char[MAX_CHARS]; // Ids of chars on this account
+	char email[40]; // E-mail (default: a@a.com) by [Yor]
 	time_t expiration_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
-	int group_id; // permission
+	int group_id; // Permission
 	uint8 char_slots;
 	uint32 version;
 	uint8 clienttype;
@@ -140,13 +140,13 @@ struct char_session_data {
 	time_t pincode_change;
 	uint16 pincode_try;
 	// Addon system
-	unsigned int char_moves[MAX_CHARS]; // character moves left
+	unsigned int char_moves[MAX_CHARS]; // Character moves left
 };
 
 struct startitem {
-	int nameid; //item id
-	int amout; //number of item
-	int pos; //position for autoequip
+	int nameid; //Item ID
+	int amount; //Number of items
+	int pos; //Position (for auto-equip)
 } start_items[MAX_STARTITEM+1];
 
 int max_connect_user = -1;
@@ -1603,7 +1603,7 @@ int make_new_char_sql(struct char_session_data* sd, char* name_, int str, int ag
 	//Give the char the default items
 	for (k = 0; k <= MAX_STARTITEM && start_items[k].nameid != 0; k ++) {
 		if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')",
-							        inventory_db, char_id, start_items[k].nameid, start_items[k].amout, start_items[k].pos, 1) )
+							        inventory_db, char_id, start_items[k].nameid, start_items[k].amount, start_items[k].pos, 1) )
 			Sql_ShowDebug(sql_handle);
 	}
 
@@ -4975,15 +4975,15 @@ int char_config_read(const char* cfgName)
 			while (lineitem != NULL) {
 				n = sv_split(lineitem, strlen(lineitem), 0, ',', fields, fields_length, SV_NOESCAPE_NOTERMINATE);
 				if (n+1 < fields_length) {
-					ShowDebug("start_items not enough argument for %s; skipping...\n", lineitem);
+					ShowDebug("start_items: not enough arguments for %s! Skipping...\n", lineitem);
 					lineitem = strtok(NULL, ";"); //next itemline
 					continue;
 				}
 				if (i > MAX_STARTITEM) {
-					ShowDebug("start_items overbound, only %d items are allowed ignoring parameter %s\n", MAX_STARTITEM, lineitem);
+					ShowDebug("start_items: too many items, only %d are allowed! Ignoring parameter %s...\n", MAX_STARTITEM, lineitem);
 				} else {
 					start_items[i].nameid = max(0,atoi(fields[1]));
-					start_items[i].amout = max(0,atoi(fields[2]));
+					start_items[i].amount = max(0,atoi(fields[2]));
 					start_items[i].pos = max(0,atoi(fields[3]));
 				}
 				lineitem = strtok(NULL, ";"); //next itemline
