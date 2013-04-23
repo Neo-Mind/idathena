@@ -1906,7 +1906,7 @@ ACMD_FUNC(monster)
 	if (sscanf(message, "\"%23[^\"]\" %23s %d", name, monster, &number) > 1 ||
 		sscanf(message, "%23s \"%23[^\"]\" %d", monster, name, &number) > 1) {
 		//All data can be left as it is.
-	} else if ((count=sscanf(message, "%23s %d %23s", monster, &number, name)) > 1) {
+	} else if ((count = sscanf(message, "%23s %d %23s", monster, &number, name)) > 1) {
 		//Here, it is possible name was not given and we are using monster for it.
 		if (count < 3) //Blank mob's name.
 			name[0] = '\0';
@@ -1936,7 +1936,7 @@ ACMD_FUNC(monster)
 	if (number <= 0)
 		number = 1;
 
-	if( !name[0] )
+	if (!name[0])
 		strcpy(name, "--ja--");
 
 	// If value of atcommand_spawn_quantity_limit directive is greater than or equal to 1 and quantity of monsters is greater than value of the directive

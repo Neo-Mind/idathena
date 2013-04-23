@@ -12,10 +12,10 @@
 1422:2133,{ bonus2 bAddRace,RC_NonBoss,4; bonus2 bAddRace,RC_Boss,4; bonus bDef,2; }
 1428:2115,{ bonus3 bAutoSpellWhenHit,"HP_ASSUMPTIO",2,5; }
 1433:2153,{ bonus2 bSkillAtk,"CR_GRANDCROSS",10; bonus2 bSkillAtk,"LG_RAYOFGENESIS",10; }
-1472:2677,{ bonus bMatkRate,6; bonus bDex,2; bonus bVariableCastrate,-getrefine(); }
-1472:2711,{ bonus bMatkRate,6; bonus bDex,2; bonus bVariableCastrate,-getrefine(); }
-1473:2677,{ bonus bMatkRate,6; bonus bDex,2; bonus bVariableCastrate,-getrefine(); }
-1473:2711,{ bonus bMatkRate,6; bonus bDex,2; bonus bVariableCastrate,-getrefine(); }
+1472:2677,{ bonus bMatkRate,6; bonus bDex,2; bonus bVariableCastrate,-getequiprefinerycnt(EQI_HAND_R); }
+1472:2711,{ bonus bMatkRate,6; bonus bDex,2; bonus bVariableCastrate,-getequiprefinerycnt(EQI_HAND_R); }
+1473:2677,{ bonus bMatkRate,6; bonus bDex,2; bonus bVariableCastrate,-getequiprefinerycnt(EQI_HAND_R); }
+1473:2711,{ bonus bMatkRate,6; bonus bDex,2; bonus bVariableCastrate,-getequiprefinerycnt(EQI_HAND_R); }
 1474:2527,{ bonus2 bAddRace,RC_Dragon,5; }
 1477:2700,{ bonus2 bResEff,Eff_Confusion,9500; }
 1479:2700,{ bonus2 bResEff,Eff_Confusion,9500; }
@@ -26,14 +26,14 @@
 1573:2716:2717,{ bonus bInt,5; bonus bMaxHP,700; bonus bAspdRate,5; }
 1615:18539,{ bonus bMatk,10*getequiprefinerycnt(EQI_HAND_R); bonus bVariableCastrate,-10; }
 1616:2515,{ bonus bSpeedRate,25; }
-1618:2509,{ bonus bMaxHP,300; bonus bMatkRate,getequiprefinerycnt(EQI_HAND_R)-5; bonus2 bSubEle,Ele_Neutral,getrefine()*3; }
+1618:2509,{ bonus bMaxHP,300; bonus bMatkRate,getequiprefinerycnt(EQI_HAND_R)-5; bonus2 bSubEle,Ele_Neutral,getequiprefinerycnt(EQI_HAND_R)*3; }
 1618:2535,{ bonus bMatkRate,5; bonus2 bSubEle,Ele_Neutral,25; }
-1620:2509,{ bonus bMaxHP,300; bonus bMatkRate,getequiprefinerycnt(EQI_HAND_R)-5; bonus2 bSubEle,Ele_Neutral,getrefine()*3; }
+1620:2509,{ bonus bMaxHP,300; bonus bMatkRate,getequiprefinerycnt(EQI_HAND_R)-5; bonus2 bSubEle,Ele_Neutral,getequiprefinerycnt(EQI_HAND_R)*3; }
 1620:2535,{ bonus bMatkRate,5; bonus2 bSubEle,Ele_Neutral,25; }
-1629:5045,{ bonus bDex,2; bonus bInt,2; bonus bSPrecovRate,5; bonus bMatkRate,getrefine(); }
+1629:5045,{ bonus bDex,2; bonus bInt,2; bonus bSPrecovRate,5; bonus bMatkRate,getequiprefinerycnt(EQI_HAND_R); }
 1631:2129,{ bonus2 bSkillAtk,"PR_MAGNUS",20; bonus3 bAutoSpellWhenHit,"PR_TURNUNDEAD",1,20; }
 1636:18539,{ bonus bMatk,10*getequiprefinerycnt(EQI_HAND_R); bonus bVariableCastrate,-10; }
-1646:2161,{ if(getrefine()>=4) { bonus2 bFixedCastrate,"WZ_STORMGUST",-getrefine(); bonus2 bFixedCastrate,"WL_FROSTMISTY",-getrefine(); bonus2 bFixedCastrate,"WL_JACKFROST",-getrefine(); }  }
+1646:2161,{ if(getequiprefinerycnt(EQI_HAND_L)>=4) { bonus2 bFixedCastrate,"WZ_STORMGUST",-getequiprefinerycnt(EQI_HAND_L); bonus2 bFixedCastrate,"WL_FROSTMISTY",-getequiprefinerycnt(EQI_HAND_L); bonus2 bFixedCastrate,"WL_JACKFROST",-getequiprefinerycnt(EQI_HAND_L); }  }
 1657:2471:2569:15029,{ bonus bHealPower,25; }
 1660:2471:2569:15029,{ bonus bHealPower,45; bonus3 bAutoSpellWhenHit,"AB_SILENTIUM",1,10; }
 1718:1774,{ bonus bLongAtkRate,50; }
@@ -196,6 +196,6 @@
 5358:5653,{ bonus bAgi,1; bonus bFlee,3; }
 5401:5653,{ bonus bInt,1; bonus bMatkRate,2; }
 //5470:5653,{ bonus bDex,1; bonus bLongAtkRate,3; }
-13027:15044,{ bonus3 bAddMonsterDropItem,929,RC_Brute,100+(getrefine()*10); bonus3 bAddMonsterDropItem,929,RC_DemiHuman,100+(getrefine()*10); bonus3 bAddMonsterDropItem,970,RC_Brute,20+(getrefine()*2); bonus3 bAddMonsterDropItem,970,RC_DemiHuman,20+(getrefine()*2); }
+13027:15044,{ bonus3 bAddMonsterDropItem,929,RC_Brute,100+(getequiprefinerycnt(EQI_ARMOR)*10); bonus3 bAddMonsterDropItem,929,RC_DemiHuman,100+(getequiprefinerycnt(EQI_ARMOR)*10); bonus3 bAddMonsterDropItem,970,RC_Brute,20+(getequiprefinerycnt(EQI_ARMOR)*2); bonus3 bAddMonsterDropItem,970,RC_DemiHuman,20+(getequiprefinerycnt(EQI_ARMOR)*2); }
 13034:13035,{ bonus bMaxSP,20; bonus bMaxHPRate,5; bonus bHit,10; bonus2 bAddSize,Size_Large,30; autobonus "{ bonus bAspdRate,100; }",1,7000,0,"{ specialeffect2 EF_POTION_BERSERK; }"; }
 18507:18539,{ bonus bUseSPrate,-3; }
