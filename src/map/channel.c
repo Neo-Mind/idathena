@@ -1152,7 +1152,6 @@ int do_init_channel(void) {
 void do_final_channel(void) {
 	DBIterator *iter;
 	struct Channel *channel;
-	struct guild *g = NULL;
 	int i=0;
 
 	//delete all in remaining chan db

@@ -1901,8 +1901,8 @@ ACMD_FUNC(monster)
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
 	if (!message || !*message) {
-			clif_displaymessage(fd, msg_txt(80)); // Give the display name or monster name/id please.
-			return -1;
+		clif_displaymessage(fd, msg_txt(80)); // Give the display name or monster name/id please.
+		return -1;
 	}
 	if (sscanf(message, "\"%23[^\"]\" %23s %d", name, monster, &number) > 1 ||
 		sscanf(message, "%23s \"%23[^\"]\" %d", monster, name, &number) > 1) {
@@ -8674,7 +8674,6 @@ ACMD_FUNC(cart) {
 
 /* Channel System [Ind] */
 ACMD_FUNC(join) {
-	struct Channel *channel = NULL;
 	char chname[CHAN_NAME_LENGTH], pass[CHAN_NAME_LENGTH];
 
 	if( !message || !*message || sscanf(message, "%s %s", chname, pass) < 1 ) {
