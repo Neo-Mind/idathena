@@ -2274,8 +2274,8 @@ void skill_combo(struct block_list* src, struct block_list *dsrc, struct block_l
 					duration = 1;
 				break;
 		}
-	} else { //other
-		switch(skill_id) {
+	} else { //Other
+		switch (skill_id) {
 			case MH_TINDER_BREAKER:
 			case MH_CBC:
 			case MH_SONIC_CRAW:
@@ -2285,16 +2285,16 @@ void skill_combo(struct block_list* src, struct block_list *dsrc, struct block_l
 				break;
 			case MH_EQC:
 			case MH_MIDNIGHT_FRENZY:
-				if (hd->homunculus.spiritball >= 2) duration = 6000;
+				if (hd->homunculus.spiritball >= 2) duration = 2000;
 					delay=1;
 				break;
 		}
 	}
 
 	if (duration) { //Possible to chain
-		if (sd) duration = DIFF_TICK(sd->ud.canact_tick, tick);
-		if (duration < 1) duration = 1;
-		sc_start4(src,src,SC_COMBO,100,skill_id,bl->id,delay,0,duration);
+		if (sd && duration == 1) duration = DIFF_TICK(sd->ud.canact_tick, tick); //Auto calculation duration
+		duration = max(1, duration);
+		sc_start4(src, src, SC_COMBO, 100, skill_id, bl->id, delay, 0, duration);
 		clif_combo_delay(src, duration);
 	}
 }
@@ -2617,10 +2617,10 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 	map_freeblock_lock();
 
-	if(damage > 0 && dmg.flag&BF_SKILL && tsd
+	if( damage > 0 && dmg.flag&BF_SKILL && tsd
 		&& pc_checkskill(tsd,RG_PLAGIARISM)
-	  	&& (!sc || !sc->data[SC_PRESERVE])
-		&& damage < tsd->battle_status.hp)
+		&& (!sc || !sc->data[SC_PRESERVE])
+		&& damage < tsd->battle_status.hp )
 	{	//Updated to not be able to copy skills if the blow will kill you. [Skotlex]
 		int copy_skill = skill_id;
 		/**
@@ -4371,6 +4371,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					if( !skill_check_condition_castbegin(sd, skill_id, skill_lv) )
 						break;
 
+					// SC_MAGICPOWER needs to switch states before any damage is actually dealt.
 					skill_toggle_magicpower(src, skill_id);
 
 					switch( skill_get_casttype(skill_id) ) {
@@ -12757,7 +12758,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 		case TK_COUNTER:
 			if ((sd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER)
 				return 0; //Anti-Soul Linker check in case you job-changed with Stances active.
-			if(!(sc && sc->data[SC_COMBO]) || sc->data[SC_COMBO]->val1 == TK_JUMPKICK)
+			if (!(sc && sc->data[SC_COMBO]) || sc->data[SC_COMBO]->val1 == TK_JUMPKICK)
 				return 0; //Combo needs to be ready
 
 			if (sc->data[SC_COMBO]->val3) {	//Kick chain
@@ -12767,14 +12768,14 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 				status_change_end(&sd->bl, SC_COMBO, INVALID_TIMER);
 				return 0;
 			}
-			if(sc->data[SC_COMBO]->val1 != skill_id && !( sd && sd->status.base_level >= 90 && pc_famerank(sd->status.char_id, MAPID_TAEKWON) )) {	//Cancel combo wait.
+			if (sc->data[SC_COMBO]->val1 != skill_id && !( sd && sd->status.base_level >= 90 && pc_famerank(sd->status.char_id, MAPID_TAEKWON) )) {	//Cancel combo wait.
 				unit_cancel_combo(&sd->bl);
 				return 0;
 			}
 			break; //Combo ready.
 		case BD_ADAPTATION: {
 				int time;
-				if(!(sc && sc->data[SC_DANCING])) {
+				if (!(sc && sc->data[SC_DANCING])) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					return 0;
 				}
@@ -12798,17 +12799,17 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			break;
 
 		case SL_SMA:
-			if(!(sc && sc->data[SC_SMA]))
+			if (!(sc && sc->data[SC_SMA]))
 				return 0;
 			break;
 
 		case HT_POWER:
-			if(!(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == skill_id))
+			if (!(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == AC_DOUBLE))
 				return 0;
 			break;
 
 		case CG_HERMODE:
-			if(!npc_check_areanpc(1,sd->bl.m,sd->bl.x,sd->bl.y,skill_get_splash(skill_id, skill_lv))) {
+			if (!npc_check_areanpc(1,sd->bl.m,sd->bl.x,sd->bl.y,skill_get_splash(skill_id, skill_lv))) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}
@@ -12829,7 +12830,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 		case PR_REDEMPTIO: {
 				int exp;
 				if( ((exp = pc_nextbaseexp(sd)) > 0 && get_percentage(sd->status.base_exp, exp) < 1) ||
-					((exp = pc_nextjobexp(sd)) > 0 && get_percentage(sd->status.job_exp, exp) < 1)) {
+					((exp = pc_nextjobexp(sd)) > 0 && get_percentage(sd->status.job_exp, exp) < 1) ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0); //Not enough exp.
 					return 0;
 				}
@@ -12847,7 +12848,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 		case SG_STAR_WARM:
 			if (sc && sc->data[SC_MIRACLE])
 				break;
-			i = skill_id-SG_SUN_WARM;
+			i = skill_id - SG_SUN_WARM;
 			if (sd->bl.m == sd->feel_map[i].m)
 				break;
 			clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -12858,7 +12859,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 		case SG_STAR_COMFORT:
 			if (sc && sc->data[SC_MIRACLE])
 				break;
-			i = skill_id-SG_SUN_COMFORT;
+			i = skill_id - SG_SUN_COMFORT;
 			if (sd->bl.m == sd->feel_map[i].m &&
 				(battle_config.allow_skill_without_day || sg_info[i].day_func()))
 				break;

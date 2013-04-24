@@ -16,6 +16,7 @@
 #include "atcommand.h" // get_atcommand_level()
 #include "battle.h" // battle_config
 #include "battleground.h"
+#include "channel.h"
 #include "chrif.h"
 #include "clif.h"
 #include "date.h" // is_day_of_*()
@@ -4644,9 +4645,9 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 	if( sd->state.changemap ) { // Misc map-changing settings
 		int i;
 		sd->state.pmap = sd->bl.m;
-		if (sd->sc.count) { // Cancel some map related stuff.
-			if (sd->sc.data[SC_JAILED])
-				return 1; //You may not get out!
+		if( sd->sc.count ) { // Cancel some map related stuff.
+			if( sd->sc.data[SC_JAILED] )
+				return 1; // You may not get out!
 			status_change_end(&sd->bl, SC_BOSSMAPINFO, INVALID_TIMER);
 			status_change_end(&sd->bl, SC_WARM, INVALID_TIMER);
 			status_change_end(&sd->bl, SC_SUN_COMFORT, INVALID_TIMER);
@@ -4657,9 +4658,9 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 			status_change_end(&sd->bl, SC_NEUTRALBARRIER, INVALID_TIMER);
 			status_change_end(&sd->bl, SC_STEALTHFIELD_MASTER, INVALID_TIMER);
 			status_change_end(&sd->bl, SC_STEALTHFIELD, INVALID_TIMER);
-			if (sd->sc.data[SC_KNOWLEDGE]) {
+			if( sd->sc.data[SC_KNOWLEDGE] ) {
 				struct status_change_entry *sce = sd->sc.data[SC_KNOWLEDGE];
-				if (sce->timer != INVALID_TIMER)
+				if( sce->timer != INVALID_TIMER )
 					delete_timer(sce->timer, status_change_timer);
 				sce->timer = add_timer(gettick() + skill_get_time(SG_KNOWLEDGE, sce->val1), status_change_timer, sd->bl.id, SC_KNOWLEDGE);
 			}
@@ -4669,38 +4670,36 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 		}
 		for( i = 0; i < EQI_MAX; i++ ) {
 				if( sd->equip_index[ i ] >= 0 )
-						if( !pc_isequip( sd , sd->equip_index[ i ] ) )
-								pc_unequipitem( sd , sd->equip_index[ i ] , 2 );
+						if( !pc_isequip(sd, sd->equip_index[ i ]) )
+								pc_unequipitem(sd, sd->equip_index[ i ], 2);
 		}
-		if (battle_config.clear_unit_onwarp&BL_PC)
+		if( battle_config.clear_unit_onwarp&BL_PC )
 			skill_clear_unitgroup(&sd->bl);
-		party_send_dot_remove(sd); //minimap dot fix [Kevin]
+		party_send_dot_remove(sd); // Minimap dot fix [Kevin]
 		guild_send_dot_remove(sd);
 		bg_send_dot_remove(sd);
-		if (sd->regen.state.gc)
+		if( sd->regen.state.gc )
 			sd->regen.state.gc = 0;
-		// make sure vending is allowed here
-		if (sd->state.vending && map[m].flag.novending) {
+		// Make sure vending is allowed here
+		if( sd->state.vending && map[m].flag.novending ) {
 			clif_displaymessage (sd->fd, msg_txt(276)); // "You can't open a shop on this map."
 			vending_closevending(sd);
 		}
 
-		if( raChSys.local && map[sd->bl.m].channel && idb_exists(map[sd->bl.m].channel->users, sd->status.char_id) ) {
-			clif_chsys_left(map[sd->bl.m].channel,sd);
-		}
+		channel_pcquit(sd,4); // Quit map channel
 	}
 
 	if( m < 0 ) {
 		uint32 ip;
 		uint16 port;
-		//if can't find any map-servers, just abort setting position.
-		if(!sd->mapindex || map_mapname2ipport(mapindex,&ip,&port))
+		// If can't find any map-servers, just abort setting position.
+		if( !sd->mapindex || map_mapname2ipport(mapindex,&ip,&port) )
 			return 2;
 
-		if (sd->npc_id)
+		if( sd->npc_id )
 			npc_event_dequeue(sd);
 		npc_script_event(sd, NPCE_LOGOUT);
-		//remove from map, THEN change x/y coordinates
+		// Remove from map, THEN change x/y coordinates
 		unit_remove_map_pc(sd,clrtype);
 		sd->mapindex = mapindex;
 		sd->bl.x=x;
@@ -4709,7 +4708,7 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 		chrif_save(sd,2);
 		chrif_changemapserver(sd, ip, (short)port);
 
-		//Free session data from this map server [Kevin]
+		// Free session data from this map server [Kevin]
 		unit_free_pc(sd);
 
 		return 0;
@@ -4717,26 +4716,26 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 
 	if( x < 0 || x >= map[m].xs || y < 0 || y >= map[m].ys ) {
 		ShowError("pc_setpos: attempt to place player %s (%d:%d) on invalid coordinates (%s-%d,%d)\n", sd->status.name, sd->status.account_id, sd->status.char_id, mapindex_id2name(mapindex),x,y);
-		x = y = 0; // make it random
+		x = y = 0; // Make it random
 	}
 
-	if( x == 0 && y == 0 ) { // pick a random walkable cell
+	if( x == 0 && y == 0 ) { // Pick a random walkable cell
 		do {
 			x=rnd()%(map[m].xs-2)+1;
 			y=rnd()%(map[m].ys-2)+1;
-		} while(map_getcell(m,x,y,CELL_CHKNOPASS));
+		} while( map_getcell(m,x,y,CELL_CHKNOPASS) );
 	}
 	
-	if (sd->state.vending && map_getcell(m,x,y,CELL_CHKNOVENDING)) {
+	if ( sd->state.vending && map_getcell(m,x,y,CELL_CHKNOVENDING) ) {
 		clif_displaymessage (sd->fd, msg_txt(204)); // "You can't open a shop on this cell."
 		vending_closevending(sd);
 	}
 
-	if(sd->bl.prev != NULL) {
+	if( sd->bl.prev != NULL ) {
 		unit_remove_map_pc(sd,clrtype);
 		clif_changemap(sd,map[m].index,x,y); // [MouseJstr]
-	} else if(sd->state.active)
-		//Tag player for rewarping after map-loading is done. [Skotlex]
+	} else if( sd->state.active )
+		// Tag player for rewarping after map-loading is done. [Skotlex]
 		sd->state.rewarp = 1;
 	
 	sd->mapindex = mapindex;
@@ -9477,23 +9476,23 @@ int pc_readdb(void)
 	FILE *fp;
 	char line[24000],*p;
 
-	// reset
+	// Reset
 	memset(exp_table,0,sizeof(exp_table));
 	memset(max_level,0,sizeof(max_level));
 
 	sprintf(line, "%s/"DBPATH"exp.txt", db_path);
 
-	fp=fopen(line, "r");
-	if(fp==NULL) {
+	fp = fopen(line, "r");
+	if (fp == NULL) {
 		ShowError("can't read %s\n", line);
 		return 1;
 	}
-	while(fgets(line, sizeof(line), fp)) {
+	while (fgets(line, sizeof(line), fp)) {
 		int jobs[CLASS_COUNT], job_count, job, job_id;
 		int type;
 		unsigned int ui,maxlv;
 		char *split[4];
-		if(line[0]=='/' && line[1]=='/')
+		if (line[0] == '/' && line[1] == '/')
 			continue;
 		if (pc_split_str(line,split,4) < 4)
 			continue;
@@ -9523,7 +9522,7 @@ int pc_readdb(void)
 		//Reverse check in case the array has a bunch of trailing zeros... [Skotlex]
 		//The reasoning behind the -2 is this... if the max level is 5, then the array
 		//should look like this:
-	   //0: x, 1: x, 2: x: 3: x 4: 0 <- last valid value is at 3.
+		//0: x, 1: x, 2: x: 3: x 4: 0 <- last valid value is at 3.
 		while ((ui = max_level[job][type]) >= 2 && exp_table[job][type][ui-2] <= 0)
 			max_level[job][type]--;
 		if (max_level[job][type] < maxlv) {
@@ -9568,12 +9567,12 @@ int pc_readdb(void)
 
 #if defined(RENEWAL_DROP) || defined(RENEWAL_EXP)
 	sv_readdb(db_path, "re/level_penalty.txt", ',', 4, 4, -1, &pc_readdb_levelpenalty);
-	for( k=1; k < 3; k++ ){ // fill in the blanks
-		for( j = 0; j < RC_MAX; j++ ){
+	for( k = 1; k < 3; k++ ) { // Fill in the blanks
+		for( j = 0; j < RC_MAX; j++ ) {
 			int tmp = 0;
-			for( i = 0; i < MAX_LEVEL*2; i++ ){
+			for( i = 0; i < MAX_LEVEL*2; i++ ) {
 				if( i == MAX_LEVEL+1 )
-					tmp = level_penalty[k][j][0];// reset
+					tmp = level_penalty[k][j][0]; // Reset
 				if( level_penalty[k][j][i] > 0 )
 					tmp = level_penalty[k][j][i];
 				else
@@ -9584,48 +9583,48 @@ int pc_readdb(void)
 #endif
 
 	// Reset then read attr_fix
-	for(i=0;i<4;i++)
-		for(j=0;j<ELE_MAX;j++)
-			for(k=0;k<ELE_MAX;k++)
+	for (i = 0; i < 4; i++)
+		for (j = 0; j < ELE_MAX; j++)
+			for (k = 0; k < ELE_MAX; k++)
 				attr_fix_table[i][j][k]=100;
 
 	sprintf(line, "%s/"DBPATH"attr_fix.txt", db_path);
 	
-	fp=fopen(line,"r");
-	if(fp==NULL) {
+	fp = fopen(line,"r");
+	if (fp == NULL) {
 		ShowError("can't read %s\n", line);
 		return 1;
 	}
-	while(fgets(line, sizeof(line), fp)) {
+	while (fgets(line, sizeof(line), fp)) {
 		char *split[10];
 		int lv,n;
-		if(line[0]=='/' && line[1]=='/')
+		if (line[0] == '/' && line[1] == '/')
 			continue;
-		for(j=0,p=line;j<3 && p;j++){
-			split[j]=p;
-			p=strchr(p,',');
-			if(p) *p++=0;
+		for (j = 0, p = line; j < 3 && p; j++) {
+			split[j] = p;
+			p = strchr(p,',');
+			if (p) *p++=0;
 		}
-		if( j < 2 )
+		if (j < 2)
 			continue;
 
-		lv=atoi(split[0]);
-		n=atoi(split[1]);
+		lv = atoi(split[0]);
+		n = atoi(split[1]);
 
-		for(i=0;i<n && i<ELE_MAX;){
-			if( !fgets(line, sizeof(line), fp) )
+		for (i = 0; i < n && i < ELE_MAX;) {
+			if (!fgets(line, sizeof(line), fp))
 				break;
-			if(line[0]=='/' && line[1]=='/')
+			if (line[0] == '/' && line[1] == '/')
 				continue;
 
-			for(j=0,p=line;j<n && j<ELE_MAX && p;j++){
-				while(*p==32 && *p>0)
+			for (j = 0, p = line; j < n && j < ELE_MAX && p; j++) {
+				while (*p == 32 && *p > 0)
 					p++;
 				attr_fix_table[lv-1][i][j]=atoi(p);
-				if(battle_config.attr_recover == 0 && attr_fix_table[lv-1][i][j] < 0)
+				if (battle_config.attr_recover == 0 && attr_fix_table[lv-1][i][j] < 0)
 					attr_fix_table[lv-1][i][j] = 0;
-				p=strchr(p,',');
-				if(p) *p++=0;
+				p = strchr(p,',');
+				if (p) *p++=0;
 			}
 
 			i++;
@@ -9634,39 +9633,38 @@ int pc_readdb(void)
 	fclose(fp);
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","attr_fix.txt");
 
-	// reset then read statspoint
+	// Reset then read statspoint
 	memset(statp,0,sizeof(statp));
-	i=1;
+	i = 1;
 
 	sprintf(line, "%s/"DBPATH"statpoint.txt", db_path);
-	fp=fopen(line,"r");
-	if(fp == NULL){
+	fp = fopen(line,"r");
+	if (fp == NULL) {
 		ShowWarning("Can't read '"CL_WHITE"%s"CL_RESET"'... Generating DB.\n",line);
 		//return 1;
 	} else {
-		while(fgets(line, sizeof(line), fp))
-		{
+		while (fgets(line, sizeof(line), fp)) {
 			int stat;
-			if(line[0]=='/' && line[1]=='/')
+			if (line[0] == '/' && line[1] == '/')
 				continue;
-			if ((stat=strtoul(line,NULL,10))<0)
-				stat=0;
+			if ((stat = strtoul(line,NULL,10)) < 0)
+				stat = 0;
 			if (i > MAX_LEVEL)
 				break;
-			statp[i]=stat;
+			statp[i] = stat;
 			i++;
 		}
 		fclose(fp);
 
 		ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","statpoint.txt");
 	}
-	// generate the remaining parts of the db if necessary
-	k = battle_config.use_statpoint_table; //save setting
-	battle_config.use_statpoint_table = 0; //temporarily disable to force pc_gets_status_point use default values
-	statp[0] = 45; // seed value
+	// Generate the remaining parts of the db if necessary
+	k = battle_config.use_statpoint_table; // Save setting
+	battle_config.use_statpoint_table = 0; // Temporarily disable to force pc_gets_status_point use default values
+	statp[0] = 45; // Seed value
 	for (; i <= MAX_LEVEL; i++)
 		statp[i] = statp[i-1] + pc_gets_status_point(i-1);
-	battle_config.use_statpoint_table = k; //restore setting
+	battle_config.use_statpoint_table = k; // Restore setting
 
 	return 0;
 }

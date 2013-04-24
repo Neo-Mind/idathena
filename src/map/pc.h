@@ -510,13 +510,14 @@ struct map_session_data {
 	int shadowform_id;
 
 	/* Channel System [Ind] */
-	struct raChSysCh **channels;
+	struct Channel **channels;
 	unsigned char channel_count;
-	struct raChSysCh *gcbind;
+	struct Channel *gcbind;
 	bool stealth;
 	unsigned char fontcolor;
+	unsigned int channel_tick;
 
-	// temporary debugging of bug #3504
+	// Temporary debugging of bug #3504
 	const char* delunit_prevfile;
 	int delunit_prevline;
 

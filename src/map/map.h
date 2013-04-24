@@ -17,7 +17,7 @@
 
 struct npc_data;
 struct item_data;
-struct raChSysCh;
+struct Channel;
 
 enum E_MAPSERVER_ST {
 	MAPSERVER_ST_RUNNING = CORE_ST_LAST,
@@ -568,7 +568,7 @@ struct map_data {
 		unsigned guildlock : 1;
 		unsigned src4instance : 1; // To flag this map when it's used as a src map for instances
 		unsigned reset : 1; // [Daegaladh]
-		unsigned chsysnolocalaj : 1;
+		unsigned chmautojoin : 1; // Prevent to auto join map channel
 	} flag;
 	struct point save;
 	struct npc_data *npc[MAX_NPC_PER_MAP];
@@ -596,7 +596,7 @@ struct map_data {
 	int instance_src_map;
 
 	/* rAthena Local Chat */
-	struct raChSysCh *channel;
+	struct Channel *channel;
 
 	/* adjust_unit_duration mapflag */
 	struct mapflag_skill_adjust **units;

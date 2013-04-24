@@ -4951,7 +4951,7 @@ int char_config_read(const char* cfgName)
 				n = sv_split(lineitem, strlen(lineitem), 0, ',', fields, fields_length, SV_NOESCAPE_NOTERMINATE);
 				if (n+1 < fields_length) {
 					ShowDebug("start_items: not enough arguments for %s! Skipping...\n", lineitem);
-					lineitem = strtok(NULL, ";"); //next itemline
+					lineitem = strtok(NULL, ":"); //Next itemline
 					continue;
 				}
 				if (i > MAX_STARTITEM) {
@@ -4961,11 +4961,11 @@ int char_config_read(const char* cfgName)
 					start_items[i].amount = max(0,atoi(fields[2]));
 					start_items[i].pos = max(0,atoi(fields[3]));
 				}
-				lineitem = strtok(NULL, ";"); //next itemline
+				lineitem = strtok(NULL, ":"); //Next itemline
 				i++;
 			}
 			aFree(fields);
-		} else if(strcmpi(w1,"log_char") == 0) { //log char or not [devil]
+		} else if(strcmpi(w1,"log_char") == 0) { //Log char or not [devil]
 			log_char = atoi(w2);
 		} else if (strcmpi(w1, "unknown_char_name") == 0) {
 			safestrncpy(unknown_char_name, w2, sizeof(unknown_char_name));
@@ -4976,7 +4976,7 @@ int char_config_read(const char* cfgName)
 			char_name_option = atoi(w2);
 		} else if (strcmpi(w1, "char_name_letters") == 0) {
 			safestrncpy(char_name_letters, w2, sizeof(char_name_letters));
-		} else if (strcmpi(w1, "char_del_level") == 0) { //disable/enable char deletion by its level condition [Lupus]
+		} else if (strcmpi(w1, "char_del_level") == 0) { //Disable/enable char deletion by its level condition [Lupus]
 			char_del_level = atoi(w2);
 		} else if (strcmpi(w1, "char_del_delay") == 0) {
 			char_del_delay = atoi(w2);
