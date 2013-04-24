@@ -1909,7 +1909,7 @@ packet_ver: 34
 0x086D,26,friendslistadd,2
 0x0897,5,hommenu,2:4
 0x0947,36,storagepassword,0
-//0x0288,-1,cashshopbuy,4:8
+0x0288,-1,cashshopbuy,4:8
 0x086F,26,partyinvite2,2
 0x0888,19,wanttoconnection,2:6:10:14:18
 0x08c9,4
@@ -1945,7 +1945,7 @@ packet_ver: 34
 0x0844,2,cashshopopen,0
 0x084A,2,cashshopclose,0
 0x08C9,4,cashshopitemlist,0
-0x0848,-1,cashshopbuy,0
+0x0848,-1,cashshopbuynew,0
 
 //Add new packets here
 //packet_ver: 35
