@@ -8669,7 +8669,7 @@ ACMD_FUNC(cart) {
 	clif_displaymessage(fd, msg_txt(1392)); // Cart Added
 
 	return 0;
-	#undef MC_CART_MDFY
+#undef MC_CART_MDFY
 }
 
 /* Channel System [Ind] */
@@ -8825,8 +8825,16 @@ ACMD_FUNC(fontcolor) {
 	if( !message || !*message ) {
 		char mout[40];
 		for( k = 0; k < Channel_Config.colors_count; k++ ) {
-			sprintf(mout, "[ %s ] : %s",command,Channel_Config.colors_name[k]);
-			clif_colormes(sd,k,mout);
+			unsigned short msg_len = 1;
+			msg_len += sprintf(mout, "[ %s ] : %s",command,Channel_Config.colors_name[k]);
+
+			WFIFOHEAD(fd,msg_len + 12);
+			WFIFOW(fd,0) = 0x2C1;
+			WFIFOW(fd,2) = msg_len + 12;
+			WFIFOL(fd,4) = 0;
+			WFIFOL(fd,8) = Channel_Config.colors[k];
+			safestrncpy((char*)WFIFOP(fd,12), mout, msg_len);
+			WFIFOSET(fd, msg_len + 12);
 		}
 		return -1;
 	}

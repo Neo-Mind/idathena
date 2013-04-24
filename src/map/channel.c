@@ -475,8 +475,16 @@ int channel_display_list(struct map_session_data *sd, char *options){
 	if( options[0] != '\0' && strcmpi(options,"colors") == 0 ) {
 		char msg[40];
 		for( k = 0; k < Channel_Config.colors_count; k++ ) {
-			sprintf(msg, "[ Channel list colors ] : %s",Channel_Config.colors_name[k]);
-			clif_colormes(sd, k, msg);
+			unsigned short msg_len = 1;
+			msg_len += sprintf(msg, "[ Channel list colors ] : %s",Channel_Config.colors_name[k]);
+
+			WFIFOHEAD(sd->fd,msg_len + 12);
+			WFIFOW(sd->fd,0) = 0x2C1;
+			WFIFOW(sd->fd,2) = msg_len + 12;
+			WFIFOL(sd->fd,4) = 0;
+			WFIFOL(sd->fd,8) = Channel_Config.colors[k];
+			safestrncpy((char*)WFIFOP(sd->fd,12), msg, msg_len);
+			WFIFOSET(sd->fd, msg_len + 12);
 		}
 	}
 	else if( options[0] != '\0' && strcmpi(options,"mine") == 0 ) { //display chan I'm into
@@ -705,7 +713,6 @@ int channel_pccolor(struct map_session_data *sd, char *chname, char *color){
 		clif_displaymessage(sd->fd, msg_txt(1405));// Channel name must start with '#'.
 		return -1;
 	}
-
 
 	channel = channel_name2channel(chname,sd,0);
 	if( !channel ) {
