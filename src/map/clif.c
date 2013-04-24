@@ -14230,8 +14230,6 @@ void clif_cashshop_ack(struct map_session_data* sd, int error)
 	WFIFOSET(fd, packet_len(0x289));
 }
 
-// TODO: find a more accurate date for this
-#if PACKETVER < 20130320
 /// Request to buy item(s) from cash shop (CZ_PC_BUY_CASH_POINT_ITEM).
 /// 0288 <name id>.W <amount>.W
 /// 0288 <name id>.W <amount>.W <kafra points>.L (PACKETVER >= 20070711)
@@ -14266,7 +14264,6 @@ void clif_parse_cashshop_buy(int fd, struct map_session_data *sd)
     
 	clif_cashshop_ack(sd,fail);
 }
-#endif
 
 /// Adoption System
 ///
@@ -16199,9 +16196,7 @@ void clif_parse_cashshop_list_request( int fd, struct map_session_data* sd ) {
 	clif_cashshop_list( fd );
 }
 
-// TODO: find a more accurate date for this
-#if PACKETVER >= 20130320
-void clif_parse_cashshop_buy( int fd, struct map_session_data *sd ) {
+void clif_parse_cashshop_buy_new( int fd, struct map_session_data *sd ) {
 	uint16 length = RFIFOW( fd, 2 );
 	uint16 count = RFIFOL( fd, 4 );
 
@@ -16211,7 +16206,6 @@ void clif_parse_cashshop_buy( int fd, struct map_session_data *sd ) {
 
 	cashshop_buylist( sd, RFIFOL( fd, 6 ), count, (uint16 *)RFIFOP( fd, 10 ) );
 }
-#endif
 
 void clif_cashshop_result( struct map_session_data *sd, uint16 item_id, uint16 result ) {
 	WFIFOHEAD( sd->fd, 16 );
@@ -16831,10 +16825,11 @@ static int packetdb_readdb(void)
 		{clif_parse_CloseSearchStoreInfo,"closesearchstoreinfo"},
 		{clif_parse_SearchStoreInfoListItemClick,"searchstoreinfolistitemclick"},
 		// Cashshop
-		{ clif_parse_cashshop_open_request, "cashshopopen" },
-		{ clif_parse_cashshop_close, "cashshopclose" },
-		{ clif_parse_cashshop_list_request, "cashshopitemlist" },
-		{ clif_parse_cashshop_buy, "cashshopbuy" },
+		{clif_parse_cashshop_open_request, "cashshopopen"},
+		{clif_parse_cashshop_close, "cashshopclose"},
+		{clif_parse_cashshop_list_request, "cashshopitemlist"},
+		{clif_parse_cashshop_buy, "cashshopbuy"},
+		{clif_parse_cashshop_buy_new, "cashshopbuynew"},
 		// Future Feature
 		{clif_parse_MoveItem,"moveitem"},
 		{clif_parse_PartyTick,"partytick"},
