@@ -9923,7 +9923,7 @@ void clif_parse_WisMessage(int fd, struct map_session_data* sd)
 
 		channel = channel_name2channel(chname,sd,3);
 		if( channel ) {
-			if( channel_pc_haschan(sd,channel) > =0 ) { // We are in the channel
+			if( channel_pc_haschan(sd,channel) >= 0 ) { // We are in the channel
 				channel_send(channel,sd,message);
 			} else if( channel->pass[0] == '\0') { // No password needed
 				if( channel_join(channel,sd) == 0 ) channel_send(channel,sd,message); // Join success

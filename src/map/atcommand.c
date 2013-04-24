@@ -5566,7 +5566,6 @@ ACMD_FUNC(changelook)
  *------------------------------------------*/
 ACMD_FUNC(autotrade)
 {
-	int i;
 	nullpo_retr(-1, sd);
 
 	if( map[sd->bl.m].flag.autotrade != battle_config.autotrade_mapflag ) {
@@ -5579,7 +5578,7 @@ ACMD_FUNC(autotrade)
 		return -1;
 	}
 
-	if( !sd->state.vending && !sd->state.buyingstore ) { //check if player is vending or buying
+	if( !sd->state.vending && !sd->state.buyingstore ) { // Check if player is vending or buying
 		clif_displaymessage(fd, msg_txt(549)); // "You should have a shop open to use @autotrade."
 		return -1;
 	}
@@ -5590,7 +5589,7 @@ ACMD_FUNC(autotrade)
 		status_change_start(NULL, &sd->bl, SC_AUTOTRADE, 10000, 0, 0, 0, 0, ((timeout > 0) ? min(timeout,battle_config.at_timeout) : battle_config.at_timeout) * 60000, 0);
 	}
 
-	channel_pcquit(sd,0xF); //Leave all channels.
+	channel_pcquit(sd,0xF); // Leave all channels.
 	clif_authfail_fd(sd->fd, 15);
 
 	return 0;
@@ -8675,11 +8674,11 @@ ACMD_FUNC(cart) {
 
 /* Channel System [Ind] */
 ACMD_FUNC(join) {
-	struct Channel *channel;
+	struct Channel *channel = NULL;
 	char chname[CHAN_NAME_LENGTH], pass[CHAN_NAME_LENGTH];
 
 	if( !message || !*message || sscanf(message, "%s %s", chname, pass) < 1 ) {
-		sprintf(atcmd_output, msg_txt(sd,1399),command); // Unknown Channel (usage: %s <#channel_name>)
+		sprintf(atcmd_output, msg_txt(1399),command); // Unknown Channel (usage: %s <#channel_name>)
 		clif_displaymessage(fd, atcmd_output);
 		return -1;
 	}
@@ -8693,86 +8692,86 @@ static inline void atcmd_channel_help(struct map_session_data *sd, const char *c
 	int fd = sd->fd;
 	bool can_delete = pc_has_permission(sd, PC_PERM_CHANNEL_ADMIN);
 	bool can_create = (can_delete || Channel_Config.user_chenable);
-	clif_displaymessage(fd, msg_txt(sd,1414)); // ---- Available options:
+	clif_displaymessage(fd, msg_txt(1414)); // ---- Available options:
 
 	//option create
 	if( can_create ) {
-		sprintf(atcmd_output, msg_txt(sd,1415),command);// * %s create <#channel_name> <channel_password>
+		sprintf(atcmd_output, msg_txt(1415),command);// * %s create <#channel_name> <channel_password>
 		clif_displaymessage(fd, atcmd_output);
-		clif_displaymessage(fd, msg_txt(sd,1416)); // -- Creates a new channel.
+		clif_displaymessage(fd, msg_txt(1416)); // -- Creates a new channel.
 	}
 
 	//option delete
 	if( can_delete ) {
-		sprintf(atcmd_output, msg_txt(sd,1469),command); // * %s delete <channel_name>
+		sprintf(atcmd_output, msg_txt(1469),command); // * %s delete <channel_name>
 		clif_displaymessage(fd, atcmd_output);
-		clif_displaymessage(fd, msg_txt(sd,1470)); // -- Force people leave and destroy the specified channel
+		clif_displaymessage(fd, msg_txt(1470)); // -- Force people leave and destroy the specified channel
 	}
 
 	//option list
-	sprintf(atcmd_output, msg_txt(sd,1417),command); // * %s list
+	sprintf(atcmd_output, msg_txt(1417),command); // * %s list
 	clif_displaymessage(fd, atcmd_output);
-	clif_displaymessage(fd, msg_txt(sd,1418)); // -- Lists all public channels.
-	sprintf(atcmd_output, msg_txt(sd,1471),command); // * %s list mine
+	clif_displaymessage(fd, msg_txt(1418)); // -- Lists all public channels.
+	sprintf(atcmd_output, msg_txt(1471),command); // * %s list mine
 	clif_displaymessage(fd, atcmd_output);
-	clif_displaymessage(fd, msg_txt(sd,1472));
+	clif_displaymessage(fd, msg_txt(1472));
 	if( can_create ) {
-		sprintf(atcmd_output, msg_txt(sd,1419),command); // * %s list colors
+		sprintf(atcmd_output, msg_txt(1419),command); // * %s list colors
 		clif_displaymessage(fd, atcmd_output);
-		clif_displaymessage(fd, msg_txt(sd,1420)); // -- Lists all available colors for custom channels.
+		clif_displaymessage(fd, msg_txt(1420)); // -- Lists all available colors for custom channels.
 	}
 
 	//option setcolor
 	if( can_create ) {
-		sprintf(atcmd_output, msg_txt(sd,1421),command); // * %s setcolor <#channel_name> <color_name>
+		sprintf(atcmd_output, msg_txt(1421),command); // * %s setcolor <#channel_name> <color_name>
 		clif_displaymessage(fd, atcmd_output);
-		clif_displaymessage(fd, msg_txt(sd,1422)); // -- Changes channel text to the specified color (channel owners only).
+		clif_displaymessage(fd, msg_txt(1422)); // -- Changes channel text to the specified color (channel owners only).
 	}
 
 	//option join
-	sprintf(atcmd_output, msg_txt(sd,1473),command); // * %s join <channel_name>
+	sprintf(atcmd_output, msg_txt(1473),command); // * %s join <channel_name>
 	clif_displaymessage(fd, atcmd_output);
-	clif_displaymessage(fd, msg_txt(sd,1474));
+	clif_displaymessage(fd, msg_txt(1474));
 
 	//option leave
-	sprintf(atcmd_output, msg_txt(sd,1423),command); // * %s leave <#channel_name>
+	sprintf(atcmd_output, msg_txt(1423),command); // * %s leave <#channel_name>
 	clif_displaymessage(fd, atcmd_output);
-	clif_displaymessage(fd, msg_txt(sd,1424)); // -- Leaves the specified channel.
+	clif_displaymessage(fd, msg_txt(1424)); // -- Leaves the specified channel.
 
 	//option bindto
-	sprintf(atcmd_output, msg_txt(sd,1427),command); // * %s bindto <#channel_name>
+	sprintf(atcmd_output, msg_txt(1427),command); // * %s bindto <#channel_name>
 	clif_displaymessage(fd, atcmd_output);
-	clif_displaymessage(fd, msg_txt(sd,1428)); // -- Binds your global chat to the specified channel, sending all global messages to that channel.
+	clif_displaymessage(fd, msg_txt(1428)); // -- Binds your global chat to the specified channel, sending all global messages to that channel.
 
 	//option unbind
-	sprintf(atcmd_output, msg_txt(sd,1429),command); // * %s unbind
+	sprintf(atcmd_output, msg_txt(1429),command); // * %s unbind
 	clif_displaymessage(fd, atcmd_output);
-	clif_displaymessage(fd, msg_txt(sd,1430)); // -- Unbinds your global chat from the attached channel, if any.
+	clif_displaymessage(fd, msg_txt(1430)); // -- Unbinds your global chat from the attached channel, if any.
 
 	//option ban/unban/banlist
 	if( can_create ) {
-		sprintf(atcmd_output, msg_txt(sd,1456),command); // -- %s ban <channel name> <character name>
+		sprintf(atcmd_output, msg_txt(1456),command); // -- %s ban <channel name> <character name>
 		clif_displaymessage(fd, atcmd_output);
-		clif_displaymessage(fd, msg_txt(sd,1457)); // - bans <character name> from <channel name> channel
-		sprintf(atcmd_output, msg_txt(sd,1458),command); // -- %s banlist <channel name>
+		clif_displaymessage(fd, msg_txt(1457)); // - bans <character name> from <channel name> channel
+		sprintf(atcmd_output, msg_txt(1458),command); // -- %s banlist <channel name>
 		clif_displaymessage(fd, atcmd_output);
-		clif_displaymessage(fd, msg_txt(sd,1459)); // - lists all banned characters from <channel name> channel
-		sprintf(atcmd_output, msg_txt(sd,1460),command); // -- %s unban <channel name> <character name>
+		clif_displaymessage(fd, msg_txt(1459)); // - lists all banned characters from <channel name> channel
+		sprintf(atcmd_output, msg_txt(1460),command); // -- %s unban <channel name> <character name>
 		clif_displaymessage(fd, atcmd_output);
-		clif_displaymessage(fd, msg_txt(sd,1461)); // - unban <character name> from <channel name> channel
-		sprintf(atcmd_output, msg_txt(sd,1467),command); // -- %s unbanall <channel name>
+		clif_displaymessage(fd, msg_txt(1461)); // - unban <character name> from <channel name> channel
+		sprintf(atcmd_output, msg_txt(1467),command); // -- %s unbanall <channel name>
 		clif_displaymessage(fd, atcmd_output);
-		clif_displaymessage(fd, msg_txt(sd,1468)); // - unbans everyone from <channel name>
+		clif_displaymessage(fd, msg_txt(1468)); // - unbans everyone from <channel name>
 	}
 
 	//option setopt
 	if( can_create ) {
-		sprintf(atcmd_output, msg_txt(sd,1462),command); // -- %s setopt <channel name> <option name> <option value>
+		sprintf(atcmd_output, msg_txt(1462),command); // -- %s setopt <channel name> <option name> <option value>
 		clif_displaymessage(fd, atcmd_output);
-		clif_displaymessage(fd, msg_txt(sd,1463)); // - adds or removes <option name> with <option value> to <channel name> channel
+		clif_displaymessage(fd, msg_txt(1463)); // - adds or removes <option name> with <option value> to <channel name> channel
 	}
 
-	sprintf(atcmd_output, msg_txt(sd,1404),command); // %s failed.
+	sprintf(atcmd_output, msg_txt(1404),command); // %s failed.
 	clif_displaymessage(fd, atcmd_output);
 }
 
@@ -8787,7 +8786,7 @@ ACMD_FUNC(channel) {
 
 	if( strcmpi(key,"create") == 0 && ( Channel_Config.user_chenable || pc_has_permission(sd, PC_PERM_CHANNEL_ADMIN) ) ) {
 		if(sub3[0] != '\0'){
-			clif_displaymessage(fd, msg_txt(sd,1408)); // Channel password may not contain spaces
+			clif_displaymessage(fd, msg_txt(1408)); // Channel password may not contain spaces
 			return -1;
 		}
 		return channel_pccreate(sd,sub1,sub2);
@@ -8840,7 +8839,7 @@ ACMD_FUNC(fontcolor) {
 
 	ARR_FIND(0,Channel_Config.colors_count,k,( strcmpi(message,Channel_Config.colors_name[k]) == 0 ));
 	if( k == Channel_Config.colors_count ) {
-		sprintf(atcmd_output, msg_txt(sd,1411), message); // Unknown color '%s'.
+		sprintf(atcmd_output, msg_txt(1411), message); // Unknown color '%s'.
 		clif_displaymessage(fd, atcmd_output);
 		return -1;
 	}
