@@ -8269,7 +8269,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 #else
 										;
 #endif
-									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def * 10 * 1000);
+									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def
+#ifdef RENEWAL
+										* 1000
+#else
+										* 1000 * 10
+#endif
+										);
 									break;
 								case 3:
 									//Weapon Attack Increase.
@@ -8279,7 +8285,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 #else
 										* 10;
 #endif
-									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def * 10 * 3000);
+									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def
+#ifdef RENEWAL
+										* 3000
+#else
+										* 3000 * 10
+#endif
+										);
 									break;
 							}
 						}
@@ -8334,7 +8346,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 									break;
 								case 3:
 									sc_start(src,bl,SC_SHIELDSPELL_REF,100,opt,INVALID_TIMER); //HP Recovery
-										val = sstatus->max_hp * ((status_get_lv(src) / 10) + (shield->refine + 1)) / 100;
+									val = sstatus->max_hp * ((status_get_lv(src) / 10) + (shield->refine + 1)) / 100;
 									status_heal(bl, val, 0, 2);
 									status_change_end(bl,SC_SHIELDSPELL_REF,INVALID_TIMER);
 								break;
