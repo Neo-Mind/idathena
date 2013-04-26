@@ -4987,7 +4987,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	if( tsc && tsc->data[SC_GT_ENERGYGAIN] && tsc->data[SC_GT_ENERGYGAIN]->val2 ) {
 		int spheremax = 0;
 		if( tsc->data[SC_RAISINGDRAGON] )
-			spheremax = 5 + sc->data[SC_RAISINGDRAGON]->val1;
+			spheremax = 5 + tsc->data[SC_RAISINGDRAGON]->val1;
 		else
 			spheremax = 5;
 		if( tsd && rnd()%100 < tsc->data[SC_GT_ENERGYGAIN]->val3 )
