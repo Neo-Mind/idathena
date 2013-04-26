@@ -2319,9 +2319,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	struct status_data *sstatus, *tstatus;
 	struct status_change *sc;
 	struct map_session_data *sd, *tsd;
-	struct skill_unit *unit = NULL;
-	int type,damage,rdamage=0;
-	int8 rmdamage=0; //magic reflected
+	int type, damage, rdamage = 0;
+	int8 rmdamage = 0; //magic reflected
 	bool additional_effects = true;
 
 	if(skill_id > 0 && !skill_lv) return 0;
@@ -2358,7 +2357,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	dmg = battle_calc_attack(attack_type,src,bl,skill_id,skill_lv,flag&0xFFF);
 
 	//Skotlex: Adjusted to the new system
-	if (src->type==BL_PET) { // [Valaris]
+	if (src->type == BL_PET) { // [Valaris]
 		struct pet_data *pd = (TBL_PET*)src;
 		if (pd->a_skill && pd->a_skill->div_ && pd->a_skill->id == skill_id) {
 			int element = skill_get_ele(skill_id, skill_lv);
@@ -2608,7 +2607,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				type = 5;
 			if( bl->type == BL_SKILL ) {
 				TBL_SKILL *su = (TBL_SKILL*)bl;
-				if( su->group && skill_get_inf2(su->group->skill_id)&INF2_TRAP )// show damage on trap targets
+				if( su->group && skill_get_inf2(su->group->skill_id)&INF2_TRAP ) // show damage on trap targets
 					clif_skill_damage(src,bl,tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, flag&SD_LEVEL?-1:skill_lv, 5);
 			}
 			dmg.dmotion = clif_skill_damage(dsrc,bl,tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, flag&SD_LEVEL?-1:skill_lv, type);
