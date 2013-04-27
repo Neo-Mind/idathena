@@ -495,9 +495,9 @@ int channel_display_list(struct map_session_data *sd, char *options){
 	//display availaible colors
 	if( options[0] != '\0' && strcmpi(options,"colors") == 0 ) {
 		char msg[40];
-		clif_displaymessage(sd->fd, msg_txt(sd,1444)); // ---- Available Colors ----
+		clif_displaymessage(sd->fd, msg_txt(1444)); // ---- Available Colors ----
 		for( k = 0; k < Channel_Config.colors_count; k++ ) {
-			sprintf(msg, msg_txt(sd,1445),Channel_Config.colors_name[k]); // - '%s'
+			sprintf(msg, msg_txt(1445),Channel_Config.colors_name[k]); // - '%s'
 			channel_colormes(sd, k, msg);
 		}
 	}

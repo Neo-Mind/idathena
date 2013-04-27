@@ -10966,7 +10966,7 @@ BUILDIN_FUNC(gvgon)
 	const char *str;
 	struct block_list bl;
 
-	str =s cript_getstr(st, 2);
+	str = script_getstr(st, 2);
 	m = map_mapname2mapid(str);
 	if(m >= 0 && !map[m].flag.gvg) {
 		map[m].flag.gvg = 1;

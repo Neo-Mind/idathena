@@ -8313,13 +8313,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 #else
 										;
 #endif
-									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def
 #ifdef RENEWAL
-										* 1000
+									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def * 1000);
 #else
-										* 1000 * 10
+									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def * 1000 * 10);
 #endif
-										);
 									break;
 								case 3:
 									//Weapon Attack Increase.
@@ -8329,13 +8327,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 #else
 										* 10;
 #endif
-									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def
 #ifdef RENEWAL
-										* 3000
+									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def * 3000);
 #else
-										* 3000 * 10
+									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def * 3000 * 10);
 #endif
-										);
 									break;
 							}
 						}
