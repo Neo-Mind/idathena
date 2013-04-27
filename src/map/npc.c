@@ -3349,13 +3349,23 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 		map[m].flag.reset=state;
 	else if (!strcmpi(w3,"nomapchannelautojoin"))
 		map[m].flag.chmautojoin = state;
+	else if (!strcmpi(w3,"nousecart"))
+		map[m].flag.nousecart = state;
+	else if (!strcmpi(w3,"noitemconsumption"))
+		map[m].flag.noitemconsumption = state;
+	else if (!strcmpi(w3,"summonstarmiracle"))
+		map[m].flag.nosumstarmiracle = state;
+	else if (!strcmpi(w3,"nomineeffect"))
+		map[m].flag.nomineeffect = state;
+	else if (!strcmpi(w3,"nolockon"))
+		map[m].flag.nolockon = state;
 	else if (!strcmpi(w3,"adjust_unit_duration")) {
 		char *mod;
 		int skill_id;
 
-		strtok(w4,"\t");/* makes w4 contain only 4th param */
+		strtok(w4,"\t"); /* makes w4 contain only 4th param */
 
-		if( !(mod = strtok(NULL,"\t")) ) {/* makes mod contain only the 5th param */
+		if( !(mod = strtok(NULL,"\t")) ) { /* makes mod contain only the 5th param */
 			ShowWarning("npc_parse_mapflag: Missing 5th param for 'adjust_unit_duration' flag! removing flag from %s (file '%s', line '%d').\n", map[m].name, filepath, strline(buffer,start-buffer));
 		} else if( !( skill_id = skill_name2id(w4) ) || !skill_get_unit_id( skill_name2id(w4), 0) ) {
 			ShowWarning("npc_parse_mapflag: Unknown skill (%s) for 'adjust_unit_duration' flag! removing flag from %s (file '%s', line '%d').\n", w4, map[m].name, filepath, strline(buffer,start-buffer));
@@ -3372,9 +3382,9 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 		char *mod;
 		int skill_id;
 
-		strtok(w4,"\t");/* makes w4 contain only 4th param */
+		strtok(w4,"\t"); /* makes w4 contain only 4th param */
 
-		if( !(mod = strtok(NULL,"\t")) ) {/* makes mod contain only the 5th param */
+		if( !(mod = strtok(NULL,"\t")) ) { /* makes mod contain only the 5th param */
 			ShowWarning("npc_parse_mapflag: Missing 5th param for 'adjust_skill_damage' flag! removing flag from %s (file '%s', line '%d').\n", map[m].name, filepath, strline(buffer,start-buffer));
 		} else if( !( skill_id = skill_name2id(w4) ) ) {
 			ShowWarning("npc_parse_mapflag: Unknown skill (%s) for 'adjust_skill_damage' flag! removing flag from %s (file '%s', line '%d').\n", w4, map[m].name, filepath, strline(buffer,start-buffer));

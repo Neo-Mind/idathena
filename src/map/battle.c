@@ -1903,7 +1903,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				cri += sd->bonus.arrow_cri;
 		}
 		if( sc && sc->data[SC_CAMOUFLAGE] )
-			cri += 10 * sc->data[SC_CAMOUFLAGE]->val3;
+			cri += 100 * min(10,sc->data[SC_CAMOUFLAGE]->val3); //Max 100% (1K)
 
 		//The official equation is *2, but that only applies when sd's do critical.
 		//Therefore, we use the old value 3 on cases when an sd gets attacked by a mob
@@ -3293,6 +3293,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				i = 5 * tsc->data[SC_CAMOUFLAGE]->val3;
 				def1 -= def1 * i / 100;
 				def2 -= def2 * i / 100;
+				//Min 0 def
+				def1 = max(0,def1);
+				def2 = max(0,def2);
 			}
 
 			if( battle_config.vit_penalty_type && battle_config.vit_penalty_target&target->type ) {
@@ -3414,7 +3417,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			}
 
 			if(sc->data[SC_CAMOUFLAGE])
-				ATK_ADD(30 * sc->data[SC_CAMOUFLAGE]->val3 );
+				ATK_ADD(30 * min(10,sc->data[SC_CAMOUFLAGE]->val3)); //max +300 Attack
 		}
 
 		if( sd ) {

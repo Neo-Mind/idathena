@@ -569,6 +569,11 @@ struct map_data {
 		unsigned src4instance : 1; // To flag this map when it's used as a src map for instances
 		unsigned reset : 1; // [Daegaladh]
 		unsigned chmautojoin : 1; // Prevent to auto join map channel
+		unsigned nousecart : 1;	// Prevent open up cart @FIXME client side only atm
+		unsigned noitemconsumption : 1; // Prevent item usage
+		unsigned nosumstarmiracle : 1; // Allow SG miracle to happen ?
+		unsigned nomineeffect : 1; // Allow /mineeffect
+		unsigned nolockon : 1;
 	} flag;
 	struct point save;
 	struct npc_data *npc[MAX_NPC_PER_MAP];

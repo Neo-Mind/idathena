@@ -7,13 +7,13 @@
 //===== Compatible With: ===================================== 
 //= rAthena SVN
 //===== Description: ========================================= 
-//= [Aegis Conversion]
+//= [Official Conversion]
 //= Ayotaya Town Script
 //===== Additional Comments: ================================= 
 //= 1.6 Rescripted to Aegis 10.3 standards. [L0ne_W0lf]
 //= 1.7 Fixed character's anme bugs [Lupus]
 //= 1.8 Moved Alberta NPC to pre-re/re paths. [Euphy]
-//= 1.9 Updated Warp coordinates to Alberta
+//= 1.9 Updated Renewal warp coordinates.
 //============================================================ 
 
 // Ayothaya Transportation NPC
