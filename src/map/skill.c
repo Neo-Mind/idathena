@@ -12666,7 +12666,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 	}
 
 	//Checks if disabling skill - in which case no SP requirements are necessary
-	if( sc && skill_disable_check(sc,skill_id))
+	if( sc && skill_disable_check(sc,skill_id) )
 		return 1;
 
 	// Check the skills that can be used while mounted on a warg
