@@ -66,14 +66,12 @@ struct Clif_Config {
 struct s_packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB + 1];
 
 //Converts item type in case of pet eggs.
-static inline int itemtype(int type)
-{
+static inline int itemtype(int type) {
 	return ( type == IT_PETEGG ) ? IT_WEAPON : type;
 }
 
 
-static inline void WBUFPOS(uint8* p, unsigned short pos, short x, short y, unsigned char dir)
-{
+static inline void WBUFPOS(uint8* p, unsigned short pos, short x, short y, unsigned char dir) {
 	p += pos;
 	p[0] = (uint8)(x>>2);
 	p[1] = (uint8)((x<<6) | ((y>>4)&0x3f));
@@ -82,8 +80,7 @@ static inline void WBUFPOS(uint8* p, unsigned short pos, short x, short y, unsig
 
 
 // client-side: x0+=sx0*0.0625-0.5 and y0+=sy0*0.0625-0.5
-static inline void WBUFPOS2(uint8* p, unsigned short pos, short x0, short y0, short x1, short y1, unsigned char sx0, unsigned char sy0)
-{
+static inline void WBUFPOS2(uint8* p, unsigned short pos, short x0, short y0, short x1, short y1, unsigned char sx0, unsigned char sy0) {
 	p += pos;
 	p[0] = (uint8)(x0>>2);
 	p[1] = (uint8)((x0<<6) | ((y0>>4)&0x3f));
@@ -94,20 +91,17 @@ static inline void WBUFPOS2(uint8* p, unsigned short pos, short x0, short y0, sh
 }
 
 
-static inline void WFIFOPOS(int fd, unsigned short pos, short x, short y, unsigned char dir)
-{
+static inline void WFIFOPOS(int fd, unsigned short pos, short x, short y, unsigned char dir) {
 	WBUFPOS(WFIFOP(fd,pos), 0, x, y, dir);
 }
 
 
-static inline void WFIFOPOS2(int fd, unsigned short pos, short x0, short y0, short x1, short y1, unsigned char sx0, unsigned char sy0)
-{
+static inline void WFIFOPOS2(int fd, unsigned short pos, short x0, short y0, short x1, short y1, unsigned char sx0, unsigned char sy0) {
 	WBUFPOS2(WFIFOP(fd,pos), 0, x0, y0, x1, y1, sx0, sy0);
 }
 
 
-static inline void RBUFPOS(const uint8* p, unsigned short pos, short* x, short* y, unsigned char* dir)
-{
+static inline void RBUFPOS(const uint8* p, unsigned short pos, short* x, short* y, unsigned char* dir) {
 	p += pos;
 
 	if( x ) {
@@ -124,8 +118,7 @@ static inline void RBUFPOS(const uint8* p, unsigned short pos, short* x, short* 
 }
 
 
-static inline void RBUFPOS2(const uint8* p, unsigned short pos, short* x0, short* y0, short* x1, short* y1, unsigned char* sx0, unsigned char* sy0)
-{
+static inline void RBUFPOS2(const uint8* p, unsigned short pos, short* x0, short* y0, short* x1, short* y1, unsigned char* sx0, unsigned char* sy0) {
 	p += pos;
 
 	if( x0 ) {
@@ -154,28 +147,24 @@ static inline void RBUFPOS2(const uint8* p, unsigned short pos, short* x0, short
 }
 
 
-static inline void RFIFOPOS(int fd, unsigned short pos, short* x, short* y, unsigned char* dir)
-{
+static inline void RFIFOPOS(int fd, unsigned short pos, short* x, short* y, unsigned char* dir) {
 	RBUFPOS(RFIFOP(fd,pos), 0, x, y, dir);
 }
 
 
-static inline void RFIFOPOS2(int fd, unsigned short pos, short* x0, short* y0, short* x1, short* y1, unsigned char* sx0, unsigned char* sy0)
-{
+static inline void RFIFOPOS2(int fd, unsigned short pos, short* x0, short* y0, short* x1, short* y1, unsigned char* sx0, unsigned char* sy0) {
 	RBUFPOS2(WFIFOP(fd,pos), 0, x0, y0, x1, y1, sx0, sy0);
 }
 
 
 //To idenfity disguised characters.
-static inline bool disguised(struct block_list* bl)
-{
+static inline bool disguised(struct block_list* bl) {
 	return (bool)( bl->type == BL_PC && ((TBL_PC*)bl)->disguise );
 }
 
 
 //Guarantees that the given string does not exceeds the allowed size, as well as making sure it's null terminated. [Skotlex]
-static inline unsigned int mes_len_check(char* mes, unsigned int len, unsigned int max)
-{
+static inline unsigned int mes_len_check(char* mes, unsigned int len, unsigned int max) {
 	if( len > max )
 		len = max;
 
@@ -196,8 +185,7 @@ static int clif_parse (int fd);
 /*==========================================
  * Ip setting of map-server
  *------------------------------------------*/
-int clif_setip(const char* ip)
-{
+int clif_setip(const char* ip) {
 	char ip_str[16];
 	map_ip = host2ip(ip);
 	if (!map_ip) {
@@ -210,8 +198,7 @@ int clif_setip(const char* ip)
 	return 1;
 }
 
-void clif_setbindip(const char* ip)
-{
+void clif_setbindip(const char* ip) {
 	bind_ip = host2ip(ip);
 	if (bind_ip) {
 		char ip_str[16];
@@ -225,22 +212,19 @@ void clif_setbindip(const char* ip)
  * Sets map port to 'port'
  * is run from map.c upon loading map server configuration
  *------------------------------------------*/
-void clif_setport(uint16 port)
-{
+void clif_setport(uint16 port) {
 	map_port = port;
 }
 
 /*==========================================
  * Returns map server IP
  *------------------------------------------*/
-uint32 clif_getip(void)
-{
+uint32 clif_getip(void) {
 	return map_ip;
 }
 
 //Refreshes map_server ip, returns the new ip if the ip changed, otherwise it returns 0.
-uint32 clif_refresh_ip(void)
-{
+uint32 clif_refresh_ip(void) {
 	uint32 new_ip;
 
 	new_ip = host2ip(map_ip_str);
@@ -255,8 +239,7 @@ uint32 clif_refresh_ip(void)
 /*==========================================
  * Returns map port which is set by clif_setport()
  *------------------------------------------*/
-uint16 clif_getport(void)
-{
+uint16 clif_getport(void) {
 	return map_port;
 }
 
@@ -288,8 +271,7 @@ static inline unsigned char clif_bl_type(struct block_list *bl) {
  * - AREA_WOS (AREA WITHOUT SELF) : Not run for self
  * - AREA_CHAT_WOC : Everyone in the area of your chat without a chat
  *------------------------------------------*/
-static int clif_send_sub(struct block_list *bl, va_list ap)
-{
+static int clif_send_sub(struct block_list *bl, va_list ap) {
 	struct block_list *src_bl;
 	struct map_session_data *sd;
 	unsigned char *buf;
@@ -356,8 +338,7 @@ static int clif_send_sub(struct block_list *bl, va_list ap)
  * Packet Delegation (called on all packets that require data to be sent to more than one client)
  * functions that are sent solely to one use whose ID it posses use WFIFOSET
  *------------------------------------------*/
-int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target type)
-{
+int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target type) {
 	int i;
 	struct map_session_data *sd, *tsd;
 	struct party_data *p = NULL;
@@ -372,180 +353,221 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 	sd = BL_CAST(BL_PC, bl);
 
 	switch(type) {
-
-	case ALL_CLIENT: //All player clients.
-		iter = mapit_getallusers();
-		while( (tsd = (TBL_PC*)mapit_next(iter)) != NULL ) {
-			if( packet_db[tsd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
-				WFIFOHEAD(tsd->fd, len);
-				memcpy(WFIFOP(tsd->fd,0), buf, len);
-				WFIFOSET(tsd->fd,len);
-			}
-		}
-		mapit_free(iter);
-		break;
-
-	case ALL_SAMEMAP: //All players on the same map
-		iter = mapit_getallusers();
-		while( (tsd = (TBL_PC*)mapit_next(iter)) != NULL ) {
-			if( bl->m == tsd->bl.m && packet_db[tsd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
-				WFIFOHEAD(tsd->fd, len);
-				memcpy(WFIFOP(tsd->fd,0), buf, len);
-				WFIFOSET(tsd->fd,len);
-			}
-		}
-		mapit_free(iter);
-		break;
-
-	case AREA:
-	case AREA_WOSC:
-		if (sd && bl->prev == NULL) //Otherwise source misses the packet.[Skotlex]
-			clif_send (buf, len, bl, SELF);
-	case AREA_WOC:
-	case AREA_WOS:
-		map_foreachinarea(clif_send_sub, bl->m, bl->x-AREA_SIZE, bl->y-AREA_SIZE, bl->x+AREA_SIZE, bl->y+AREA_SIZE,
-			BL_PC, buf, len, bl, type);
-		break;
-	case AREA_CHAT_WOC:
-		map_foreachinarea(clif_send_sub, bl->m, bl->x-(AREA_SIZE-5), bl->y-(AREA_SIZE-5),
-			bl->x+(AREA_SIZE-5), bl->y+(AREA_SIZE-5), BL_PC, buf, len, bl, AREA_WOC);
-		break;
-
-	case CHAT:
-	case CHAT_WOS:
-		{
-			struct chat_data *cd;
-			if (sd) {
-				cd = (struct chat_data*)map_id2bl(sd->chatID);
-			} else if (bl->type == BL_CHAT) {
-				cd = (struct chat_data*)bl;
-			} else break;
-			if (cd == NULL)
-				break;
-			for(i = 0; i < cd->users; i++) {
-				if (type == CHAT_WOS && cd->usersd[i] == sd)
-					continue;
-				if (packet_db[cd->usersd[i]->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
-					if ((fd=cd->usersd[i]->fd) >0 && session[fd]) { // Added check to see if session exists [PoW]
-						WFIFOHEAD(fd,len);
-						memcpy(WFIFOP(fd,0), buf, len);
-						WFIFOSET(fd,len);
-					}
-				}
-			}
-		}
-		break;
-
-	case PARTY_AREA:
-	case PARTY_AREA_WOS:
-		x0 = bl->x - AREA_SIZE;
-		y0 = bl->y - AREA_SIZE;
-		x1 = bl->x + AREA_SIZE;
-		y1 = bl->y + AREA_SIZE;
-	case PARTY:
-	case PARTY_WOS:
-	case PARTY_SAMEMAP:
-	case PARTY_SAMEMAP_WOS:
-		if (sd && sd->status.party_id)
-			p = party_search(sd->status.party_id);
-			
-		if (p) {
-			for(i=0;i<MAX_PARTY;i++) {
-				if( (sd = p->data[i].sd) == NULL )
-					continue;
-
-				if( !(fd=sd->fd) )
-					continue;
-
-				if( sd->bl.id == bl->id && (type == PARTY_WOS || type == PARTY_SAMEMAP_WOS || type == PARTY_AREA_WOS) )
-					continue;
-				
-				if( type != PARTY && type != PARTY_WOS && bl->m != sd->bl.m )
-					continue;
-				
-				if( (type == PARTY_AREA || type == PARTY_AREA_WOS) && (sd->bl.x < x0 || sd->bl.y < y0 || sd->bl.x > x1 || sd->bl.y > y1) )
-					continue;
-				
-				if( packet_db[sd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
-					WFIFOHEAD(fd,len);
-					memcpy(WFIFOP(fd,0), buf, len);
-					WFIFOSET(fd,len);
-				}
-			}
-			if (!enable_spy) //Skip unnecessary parsing. [Skotlex]
-				break;
-
+		case ALL_CLIENT: //All player clients.
 			iter = mapit_getallusers();
 			while( (tsd = (TBL_PC*)mapit_next(iter)) != NULL ) {
-				if( tsd->partyspy == p->party.party_id && packet_db[tsd->packet_ver][RBUFW(buf,0)].len ) {
-					// packet must exist for the client version
+				if( packet_db[tsd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
 					WFIFOHEAD(tsd->fd, len);
 					memcpy(WFIFOP(tsd->fd,0), buf, len);
 					WFIFOSET(tsd->fd,len);
 				}
 			}
 			mapit_free(iter);
-		}
-		break;
+			break;
 
-	case DUEL:
-	case DUEL_WOS:
-		if (!sd || !sd->duel_group) break; //Invalid usage.
-
-		iter = mapit_getallusers();
-		while( (tsd = (TBL_PC*)mapit_next(iter)) != NULL ) {
-			if( type == DUEL_WOS && bl->id == tsd->bl.id )
-				continue;
-			if( sd->duel_group == tsd->duel_group && packet_db[tsd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
-				WFIFOHEAD(tsd->fd, len);
-				memcpy(WFIFOP(tsd->fd,0), buf, len);
-				WFIFOSET(tsd->fd,len);
+		case ALL_SAMEMAP: //All players on the same map
+			iter = mapit_getallusers();
+			while( (tsd = (TBL_PC*)mapit_next(iter)) != NULL ) {
+				if( bl->m == tsd->bl.m && packet_db[tsd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
+					WFIFOHEAD(tsd->fd, len);
+					memcpy(WFIFOP(tsd->fd,0), buf, len);
+					WFIFOSET(tsd->fd,len);
+				}
 			}
-		}
-		mapit_free(iter);
-		break;
+			mapit_free(iter);
+			break;
 
-	case SELF:
-		if (sd && (fd=sd->fd) && packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
-			WFIFOHEAD(fd,len);
-			memcpy(WFIFOP(fd,0), buf, len);
-			WFIFOSET(fd,len);
-		}
-		break;
+		case AREA:
+		case AREA_WOSC:
+			if (sd && bl->prev == NULL) //Otherwise source misses the packet.[Skotlex]
+				clif_send (buf, len, bl, SELF);
+		case AREA_WOC:
+		case AREA_WOS:
+			map_foreachinarea(clif_send_sub, bl->m, bl->x-AREA_SIZE, bl->y-AREA_SIZE, bl->x+AREA_SIZE, bl->y+AREA_SIZE,
+				BL_PC, buf, len, bl, type);
+			break;
+		case AREA_CHAT_WOC:
+			map_foreachinarea(clif_send_sub, bl->m, bl->x-(AREA_SIZE-5), bl->y-(AREA_SIZE-5),
+				bl->x+(AREA_SIZE-5), bl->y+(AREA_SIZE-5), BL_PC, buf, len, bl, AREA_WOC);
+			break;
 
-	// New definitions for guilds [Valaris] - Cleaned up and reorganized by [Skotlex]
-	case GUILD_AREA:
-	case GUILD_AREA_WOS:
-		x0 = bl->x - AREA_SIZE;
-		y0 = bl->y - AREA_SIZE;
-		x1 = bl->x + AREA_SIZE;
-		y1 = bl->y + AREA_SIZE;
-	case GUILD_SAMEMAP:
-	case GUILD_SAMEMAP_WOS:
-	case GUILD:
-	case GUILD_WOS:
-	case GUILD_NOBG:
-		if (sd && sd->status.guild_id)
-			g = sd->guild;
+		case CHAT:
+		case CHAT_WOS:
+			{
+				struct chat_data *cd;
+				if (sd) {
+					cd = (struct chat_data*)map_id2bl(sd->chatID);
+				} else if (bl->type == BL_CHAT) {
+					cd = (struct chat_data*)bl;
+				} else break;
+				if (cd == NULL)
+					break;
+				for(i = 0; i < cd->users; i++) {
+					if (type == CHAT_WOS && cd->usersd[i] == sd)
+						continue;
+					if (packet_db[cd->usersd[i]->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
+						if ((fd=cd->usersd[i]->fd) >0 && session[fd]) { // Added check to see if session exists [PoW]
+							WFIFOHEAD(fd,len);
+							memcpy(WFIFOP(fd,0), buf, len);
+							WFIFOSET(fd,len);
+						}
+					}
+				}
+			}
+			break;
 
-		if (g) {
-			for(i = 0; i < g->max_member; i++) {
-				if( (sd = g->member[i].sd) != NULL ) {
+		case PARTY_AREA:
+		case PARTY_AREA_WOS:
+			x0 = bl->x - AREA_SIZE;
+			y0 = bl->y - AREA_SIZE;
+			x1 = bl->x + AREA_SIZE;
+			y1 = bl->y + AREA_SIZE;
+		case PARTY:
+		case PARTY_WOS:
+		case PARTY_SAMEMAP:
+		case PARTY_SAMEMAP_WOS:
+			if (sd && sd->status.party_id)
+				p = party_search(sd->status.party_id);
+				
+			if (p) {
+				for(i=0;i<MAX_PARTY;i++) {
+					if( (sd = p->data[i].sd) == NULL )
+						continue;
+
 					if( !(fd=sd->fd) )
 						continue;
-					
-					if( type == GUILD_NOBG && sd->bg_id )
-						continue;
 
-					if( sd->bl.id == bl->id && (type == GUILD_WOS || type == GUILD_SAMEMAP_WOS || type == GUILD_AREA_WOS) )
+					if( sd->bl.id == bl->id && (type == PARTY_WOS || type == PARTY_SAMEMAP_WOS || type == PARTY_AREA_WOS) )
 						continue;
 					
-					if( type != GUILD && type != GUILD_NOBG && type != GUILD_WOS && sd->bl.m != bl->m )
+					if( type != PARTY && type != PARTY_WOS && bl->m != sd->bl.m )
 						continue;
-
-					if( (type == GUILD_AREA || type == GUILD_AREA_WOS) && (sd->bl.x < x0 || sd->bl.y < y0 || sd->bl.x > x1 || sd->bl.y > y1) )
+					
+					if( (type == PARTY_AREA || type == PARTY_AREA_WOS) && (sd->bl.x < x0 || sd->bl.y < y0 || sd->bl.x > x1 || sd->bl.y > y1) )
 						continue;
+					
+					if( packet_db[sd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
+						WFIFOHEAD(fd,len);
+						memcpy(WFIFOP(fd,0), buf, len);
+						WFIFOSET(fd,len);
+					}
+				}
+				if (!enable_spy) //Skip unnecessary parsing. [Skotlex]
+					break;
 
+				iter = mapit_getallusers();
+				while( (tsd = (TBL_PC*)mapit_next(iter)) != NULL ) {
+					if( tsd->partyspy == p->party.party_id && packet_db[tsd->packet_ver][RBUFW(buf,0)].len ) {
+						// packet must exist for the client version
+						WFIFOHEAD(tsd->fd, len);
+						memcpy(WFIFOP(tsd->fd,0), buf, len);
+						WFIFOSET(tsd->fd,len);
+					}
+				}
+				mapit_free(iter);
+			}
+			break;
+
+		case DUEL:
+		case DUEL_WOS:
+			if (!sd || !sd->duel_group) break; //Invalid usage.
+
+			iter = mapit_getallusers();
+			while( (tsd = (TBL_PC*)mapit_next(iter)) != NULL ) {
+				if( type == DUEL_WOS && bl->id == tsd->bl.id )
+					continue;
+				if( sd->duel_group == tsd->duel_group && packet_db[tsd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
+					WFIFOHEAD(tsd->fd, len);
+					memcpy(WFIFOP(tsd->fd,0), buf, len);
+					WFIFOSET(tsd->fd,len);
+				}
+			}
+			mapit_free(iter);
+			break;
+
+		case SELF:
+			if (sd && (fd=sd->fd) && packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
+				WFIFOHEAD(fd,len);
+				memcpy(WFIFOP(fd,0), buf, len);
+				WFIFOSET(fd,len);
+			}
+			break;
+
+		// New definitions for guilds [Valaris] - Cleaned up and reorganized by [Skotlex]
+		case GUILD_AREA:
+		case GUILD_AREA_WOS:
+			x0 = bl->x - AREA_SIZE;
+			y0 = bl->y - AREA_SIZE;
+			x1 = bl->x + AREA_SIZE;
+			y1 = bl->y + AREA_SIZE;
+		case GUILD_SAMEMAP:
+		case GUILD_SAMEMAP_WOS:
+		case GUILD:
+		case GUILD_WOS:
+		case GUILD_NOBG:
+			if (sd && sd->status.guild_id)
+				g = sd->guild;
+
+			if (g) {
+				for(i = 0; i < g->max_member; i++) {
+					if( (sd = g->member[i].sd) != NULL ) {
+						if( !(fd=sd->fd) )
+							continue;
+						
+						if( type == GUILD_NOBG && sd->bg_id )
+							continue;
+
+						if( sd->bl.id == bl->id && (type == GUILD_WOS || type == GUILD_SAMEMAP_WOS || type == GUILD_AREA_WOS) )
+							continue;
+						
+						if( type != GUILD && type != GUILD_NOBG && type != GUILD_WOS && sd->bl.m != bl->m )
+							continue;
+
+						if( (type == GUILD_AREA || type == GUILD_AREA_WOS) && (sd->bl.x < x0 || sd->bl.y < y0 || sd->bl.x > x1 || sd->bl.y > y1) )
+							continue;
+
+						if( packet_db[sd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
+							WFIFOHEAD(fd,len);
+							memcpy(WFIFOP(fd,0), buf, len);
+							WFIFOSET(fd,len);
+						}
+					}
+				}
+				if (!enable_spy) //Skip unnecessary parsing. [Skotlex]
+					break;
+
+				iter = mapit_getallusers();
+				while( (tsd = (TBL_PC*)mapit_next(iter)) != NULL ) {
+					if( tsd->guildspy == g->guild_id && packet_db[tsd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
+						WFIFOHEAD(tsd->fd, len);
+						memcpy(WFIFOP(tsd->fd,0), buf, len);
+						WFIFOSET(tsd->fd,len);
+					}
+				}
+				mapit_free(iter);
+			}
+			break;
+
+		case BG_AREA:
+		case BG_AREA_WOS:
+			x0 = bl->x - AREA_SIZE;
+			y0 = bl->y - AREA_SIZE;
+			x1 = bl->x + AREA_SIZE;
+			y1 = bl->y + AREA_SIZE;
+		case BG_SAMEMAP:
+		case BG_SAMEMAP_WOS:
+		case BG:
+		case BG_WOS:
+			if( sd && sd->bg_id && (bg = bg_team_search(sd->bg_id)) != NULL ) {
+				for( i = 0; i < MAX_BG_MEMBERS; i++ ) {
+					if( (sd = bg->members[i].sd) == NULL || !(fd = sd->fd) )
+						continue;
+					if( sd->bl.id == bl->id && (type == BG_WOS || type == BG_SAMEMAP_WOS || type == BG_AREA_WOS) )
+						continue;
+					if( type != BG && type != BG_WOS && sd->bl.m != bl->m )
+						continue;
+					if( (type == BG_AREA || type == BG_AREA_WOS) && (sd->bl.x < x0 || sd->bl.y < y0 || sd->bl.x > x1 || sd->bl.y > y1) )
+						continue;
 					if( packet_db[sd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
 						WFIFOHEAD(fd,len);
 						memcpy(WFIFOP(fd,0), buf, len);
@@ -553,53 +575,11 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 					}
 				}
 			}
-			if (!enable_spy) //Skip unnecessary parsing. [Skotlex]
-				break;
+			break;
 
-			iter = mapit_getallusers();
-			while( (tsd = (TBL_PC*)mapit_next(iter)) != NULL ) {
-				if( tsd->guildspy == g->guild_id && packet_db[tsd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
-					WFIFOHEAD(tsd->fd, len);
-					memcpy(WFIFOP(tsd->fd,0), buf, len);
-					WFIFOSET(tsd->fd,len);
-				}
-			}
-			mapit_free(iter);
-		}
-		break;
-
-	case BG_AREA:
-	case BG_AREA_WOS:
-		x0 = bl->x - AREA_SIZE;
-		y0 = bl->y - AREA_SIZE;
-		x1 = bl->x + AREA_SIZE;
-		y1 = bl->y + AREA_SIZE;
-	case BG_SAMEMAP:
-	case BG_SAMEMAP_WOS:
-	case BG:
-	case BG_WOS:
-		if( sd && sd->bg_id && (bg = bg_team_search(sd->bg_id)) != NULL ) {
-			for( i = 0; i < MAX_BG_MEMBERS; i++ ) {
-				if( (sd = bg->members[i].sd) == NULL || !(fd = sd->fd) )
-					continue;
-				if( sd->bl.id == bl->id && (type == BG_WOS || type == BG_SAMEMAP_WOS || type == BG_AREA_WOS) )
-					continue;
-				if( type != BG && type != BG_WOS && sd->bl.m != bl->m )
-					continue;
-				if( (type == BG_AREA || type == BG_AREA_WOS) && (sd->bl.x < x0 || sd->bl.y < y0 || sd->bl.x > x1 || sd->bl.y > y1) )
-					continue;
-				if( packet_db[sd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
-					WFIFOHEAD(fd,len);
-					memcpy(WFIFOP(fd,0), buf, len);
-					WFIFOSET(fd,len);
-				}
-			}
-		}
-		break;
-
-	default:
-		ShowError("clif_send: Unrecognized type %d\n",type);
-		return -1;
+		default:
+			ShowError("clif_send: Unrecognized type %d\n",type);
+			return -1;
 	}
 
 	return 0;
@@ -713,32 +693,42 @@ void clif_charselectok(int id, uint8 ok)
 	WFIFOSET(fd,packet_len(0xb3));
 }
 
+
 /// Makes an item appear on the ground.
 /// 009e <id>.L <name id>.W <identified>.B <x>.W <y>.W <subX>.B <subY>.B <amount>.W (ZC_ITEM_FALL_ENTRY)
-/// 084b (ZC_ITEM_FALL_ENTRY4)
+/// 084b(2013) <id>.L <name id>.W <type>.W <identified>.B <x>.W <y>.W <subX>.B <subY>.B <amount>.W (ZC_ITEM_FALL_ENTRY4)
 void clif_dropflooritem(struct flooritem_data* fitem)
 {
+#if PACKETVER >= 20130000
+	uint8 buf[19];
+	uint32 header = 0x84b;
+#else
 	uint8 buf[17];
-	int view;
+	uint32 header = 0x09e;
+#endif
+	int view, offset = 0;
 
 	nullpo_retv(fitem);
 
 	if (fitem->item_data.nameid <= 0)
 		return;
 
-	WBUFW(buf, 0) = 0x9e;
-	WBUFL(buf, 2) = fitem->bl.id;
-	WBUFW(buf, 6) = ((view = itemdb_viewid(fitem->item_data.nameid)) > 0) ? view : fitem->item_data.nameid;
-	WBUFB(buf, 8) = fitem->item_data.identify;
-	WBUFW(buf, 9) = fitem->bl.x;
-	WBUFW(buf,11) = fitem->bl.y;
-	WBUFB(buf,13) = fitem->subx;
-	WBUFB(buf,14) = fitem->suby;
-	WBUFW(buf,15) = fitem->item_data.amount;
+	WBUFW(buf, offset+0) = header;
+	WBUFL(buf, offset+2) = fitem->bl.id;
+	WBUFW(buf, offset+6) = ((view = itemdb_viewid(fitem->item_data.nameid)) > 0) ? view : fitem->item_data.nameid;
+#if PACKETVER >= 20130000
+	WBUFW(buf, offset+8) = itemtype(itemdb_type(fitem->item_data.nameid));
+	offset +=2;
+#endif
+	WBUFB(buf, offset+8) = fitem->item_data.identify;
+	WBUFW(buf, offset+9) = fitem->bl.x;
+	WBUFW(buf, offset+11) = fitem->bl.y;
+	WBUFB(buf, offset+13) = fitem->subx;
+	WBUFB(buf, offset+14) = fitem->suby;
+	WBUFW(buf, offset+15) = fitem->item_data.amount;
 
-	clif_send(buf, packet_len(0x9e), &fitem->bl, AREA);
+	clif_send(buf, packet_len(header), &fitem->bl, AREA);
 }
-
 
 
 /// Makes an item disappear from the ground.
@@ -860,8 +850,7 @@ void clif_get_weapon_view(struct map_session_data* sd, unsigned short *rhand, un
 }
 
 //To make the assignation of the level based on limits clearer/easier. [Skotlex]
-static int clif_setlevel_sub(int lv)
-{
+static int clif_setlevel_sub(int lv) {
 	if( lv < battle_config.max_lv ) {
 		;
 	} else if( lv < battle_config.aura_lv ) {
@@ -873,8 +862,7 @@ static int clif_setlevel_sub(int lv)
 	return lv;
 }
 
-static int clif_setlevel(struct block_list* bl)
-{
+static int clif_setlevel(struct block_list* bl) {
 	int lv = status_get_lv(bl);
 	if( battle_config.client_limit_unit_lv&bl->type )
 		return clif_setlevel_sub(lv);
@@ -890,8 +878,7 @@ static int clif_setlevel(struct block_list* bl)
 /*==========================================
  * Prepares 'unit standing/spawning' packet
  *------------------------------------------*/
-static int clif_set_unit_idle(struct block_list* bl, unsigned char* buffer, bool spawn)
-{
+static int clif_set_unit_idle(struct block_list* bl, unsigned char* buffer, bool spawn) {
 	struct map_session_data* sd;
 	struct status_change* sc = status_get_sc(bl);
 	struct view_data* vd = status_get_viewdata(bl);
@@ -1055,8 +1042,7 @@ static int clif_set_unit_idle(struct block_list* bl, unsigned char* buffer, bool
 /*==========================================
  * Prepares 'unit walking' packet
  *------------------------------------------*/
-static int clif_set_unit_walking(struct block_list* bl, struct unit_data* ud, unsigned char* buffer)
-{
+static int clif_set_unit_walking(struct block_list* bl, struct unit_data* ud, unsigned char* buffer) {
 	struct map_session_data* sd;
 	struct status_change* sc = status_get_sc(bl);
 	struct view_data* vd = status_get_viewdata(bl);
@@ -1161,8 +1147,7 @@ static int clif_set_unit_walking(struct block_list* bl, struct unit_data* ud, un
 
 //Modifies the buffer for disguise characters and sends it to self.
 //Used for spawn/walk packets, where the ID offset changes for packetver >=9
-static void clif_setdisguise(struct block_list *bl, unsigned char *buf,int len)
-{
+static void clif_setdisguise(struct block_list *bl, unsigned char *buf,int len) {
 #if PACKETVER >= 20091103
 	WBUFB(buf,4)= pcdb_checkid(status_get_viewdata(bl)->class_) ? 0x0 : 0x5; //PC_TYPE : NPC_MOB_TYPE
 	WBUFL(buf,5)=-bl->id;
@@ -1180,12 +1165,10 @@ static void clif_setdisguise(struct block_list *bl, unsigned char *buf,int len)
 /// 01b0 <id>.L <type>.B <value>.L
 /// type:
 ///     unused
-void clif_class_change(struct block_list *bl,int class_,int type)
-{
+void clif_class_change(struct block_list *bl,int class_,int type) {
 	nullpo_retv(bl);
 
-	if(!pcdb_checkid(class_))
-	{// player classes yield missing sprites
+	if(!pcdb_checkid(class_)) { // player classes yield missing sprites
 		unsigned char buf[16];
 		WBUFW(buf,0)=0x1b0;
 		WBUFL(buf,2)=bl->id;
@@ -1199,8 +1182,7 @@ void clif_class_change(struct block_list *bl,int class_,int type)
 /// Notifies the client of an object's spirits.
 /// 01d0 <id>.L <amount>.W (ZC_SPIRITS)
 /// 01e1 <id>.L <amount>.W (ZC_SPIRITS2)
-static void clif_spiritball_single(int fd, struct map_session_data *sd)
-{
+static void clif_spiritball_single(int fd, struct map_session_data *sd) {
 	WFIFOHEAD(fd, packet_len(0x1e1));
 	WFIFOW(fd,0)=0x1e1;
 	WFIFOL(fd,2)=sd->bl.id;
@@ -1627,13 +1609,12 @@ static int clif_delayquit(int tid, unsigned int tick, int id, intptr_t data)
 /*==========================================
  *
  *------------------------------------------*/
-void clif_quitsave(int fd,struct map_session_data *sd)
-{
+void clif_quitsave(int fd,struct map_session_data *sd) {
 	if (!battle_config.prevent_logout ||
 		DIFF_TICK(gettick(), sd->canlog_tick) > battle_config.prevent_logout)
 		map_quit(sd);
-	else if (sd->fd)
-	{	//Disassociate session from player (session is deleted after this function was called)
+	else if (sd->fd) {
+		//Disassociate session from player (session is deleted after this function was called)
 		//And set a timer to make him quit later.
 		session[sd->fd]->session_data = NULL;
 		sd->fd = 0;
@@ -5534,8 +5515,7 @@ void clif_resurrection(struct block_list *bl,int type)
 
 /// Sets the map property (ZC_NOTIFY_MAPPROPERTY).
 /// 0199 <type>.W
-void clif_map_property(struct map_session_data* sd, enum map_property property)
-{
+void clif_map_property(struct map_session_data* sd, enum map_property property) {
 	int fd;
 
 	nullpo_retv(sd);
@@ -5545,6 +5525,34 @@ void clif_map_property(struct map_session_data* sd, enum map_property property)
 	WFIFOW(fd,0)=0x199;
 	WFIFOW(fd,2)=property;
 	WFIFOSET(fd,packet_len(0x199));
+}
+
+
+void clif_maptypeproperty2(struct block_list *bl,enum send_target t) {
+#if PACKETVER >= 20130000
+	uint8 buf[8];
+
+	WBUFW(buf,0) = 0x99b; //2
+	WBUFW(buf,2) = 0x28; //2
+
+	WBUFB(buf,4) = ((map[bl->m].flag.partylock)?0:0x01); //Party
+	WBUFB(buf,4) |= ((map[bl->m].flag.guildlock)?0:0x02); //Guild
+	WBUFB(buf,4) |= ((map_flag_gvg2(bl->m))?0x04:0); //Siege
+	WBUFB(buf,4) |= ((map[bl->m].flag.nomineeffect)?0:0x08); //Mineffect @FIXME what this do
+	WBUFB(buf,4) |= ((map[bl->m].flag.nolockon)?0x10:0); //Nolockon 0x10 @FIXME what this do
+	WBUFB(buf,4) |= ((map[bl->m].flag.pvp)?0x20:0); //Countpk
+	WBUFB(buf,4) |= 0; //nopartyformation 0x40
+	WBUFB(buf,4) |= ((map[bl->m].flag.battleground)?0x80:0); //Battleground
+
+	WBUFB(buf,5) = ((map[bl->m].flag.noitemconsumption)?0x01:0); //Noitemconsumption
+	WBUFB(buf,5) |= ((map[bl->m].flag.nousecart)?0:0x02); // Usecart
+	WBUFB(buf,5) |= ((map[bl->m].flag.nosumstarmiracle)?0:0x04); //Summonstarmiracle
+//	WBUFB(buf,5) |= RBUFB(buf,5)&0xf8;  //Sparebit[0-4]
+
+	WBUFW(buf,6) = 0; //Sparebit [5-15], + extra[4]
+
+	clif_send(buf,packet_len(0x99b),bl,t);
+#endif
 }
 
 
@@ -9076,9 +9084,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 			sd->pvp_lost = 0;
 		}
 		clif_map_property(sd, MAPPROPERTY_FREEPVPZONE);
-	} else
-	// set flag, if it's a duel [LuzZza]
-	if(sd->duel_group)
+	} else if(sd->duel_group) // set flag, if it's a duel [LuzZza]
 		clif_map_property(sd, MAPPROPERTY_FREEPVPZONE);
 
 	if (map[sd->bl.m].flag.gvg_dungeon)
@@ -9247,6 +9253,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	}
 
 	mail_clear(sd);
+
+	clif_maptypeproperty2(&sd->bl,SELF);
 
 	/* Guild Aura Init */
 	if( sd->state.gmaster_flag ) {
@@ -16595,7 +16603,11 @@ static int packetdb_readdb(void)
 	    0,  0,  0,  0,  6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 	    0,  0,  0,  0,  0, -1, -1,  3,  2, 66,  5,  2, 12,  6,  0,  0,
 	//#0x0840
+#if PACKETVER < 20130000
 	    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+#else
+		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 19,  0,  0,  0,  0,
+#endif
 	    0,  0,  0,  0,  0,  0, -1, -1, -1, -1,  0,  0,  0,  0,  0,  0,
 	    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 	    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -16621,7 +16633,7 @@ static int packetdb_readdb(void)
 		0,  0,  0,  0,  0,  0,  0, 14,  0,  0,  0,  0,  0,  0,  0,  0,
 	//#0x0980 
 		0,  0,  0, 29,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  8,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0, 14,  0,  0,  0,  0,  0,  0,  0,  0,
 	};

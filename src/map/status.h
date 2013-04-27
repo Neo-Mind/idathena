@@ -651,10 +651,9 @@ typedef enum sc_type {
 	SC_PARALYSIS,
 	SC_PAIN_KILLER,
 
-	//Renewal Stuffs
 	SC_EXTREMITYFIST2,
 
-	SC_HANBOK = 600,
+	SC_HANBOK,
 
 	SC_MAX, //Automatically updated max, used in for's to check we are within bounds.
 } sc_type;
@@ -1506,8 +1505,8 @@ enum {
 	OPTION_DRAGON3   = 0x01000000,
 	OPTION_DRAGON4   = 0x02000000,
 	OPTION_DRAGON5   = 0x04000000,
-	OPTION_MOUNTING  = 0x08000000,
-	OPTION_HANBOK    = 0x10000000,
+	OPTION_HANBOK    = 0x08000000,
+	OPTION_MOUNTING  = 0x10000000,
 
 #ifndef NEW_CARTS
 	OPTION_CART1     = 0x00000008,

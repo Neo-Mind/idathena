@@ -1903,7 +1903,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				cri += sd->bonus.arrow_cri;
 		}
 		if( sc && sc->data[SC_CAMOUFLAGE] )
-			cri += 10 * (10-sc->data[SC_CAMOUFLAGE]->val4);
+			cri += 10 * sc->data[SC_CAMOUFLAGE]->val3;
 
 		//The official equation is *2, but that only applies when sd's do critical.
 		//Therefore, we use the old value 3 on cases when an sd gets attacked by a mob
@@ -2626,7 +2626,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					RE_LVL_DMOD(120);
 					break;
 				case GC_COUNTERSLASH:
-					//ATK [{(Skill Level x 100) + 300} x Caster's Base Level / 120]% + ATK [(AGI x 2) + (Caster's Job Level x 4)]%
+					//ATK [{(Skill Level x 100) + 300} x Caster's Base Level / 120]% + ATK [(AGI x 2) + (Caster Job Level x 4)]%
 					skillratio += 200 + (100 * skill_lv);
 					RE_LVL_DMOD(120);
 					skillratio += sstatus->agi * 2 + (sd ? sd->status.job_level * 4 : 0);
@@ -2660,7 +2660,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				case RA_CLUSTERBOMB:
 					skillratio += 100 + 100 * skill_lv;
 					break;
-				case RA_WUGDASH:// ATK 300%
+				case RA_WUGDASH: // ATK 300%
 					skillratio += 200;
 					break;
 				case RA_WUGSTRIKE:
@@ -2692,9 +2692,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					break;
 				case NC_ARMSCANNON:
 					switch( tstatus->size ) {
-						case SZ_SMALL: skillratio += 200 + 400 * skill_lv; break;// Small
-						case SZ_MEDIUM: skillratio += 200 + 350 * skill_lv; break;// Medium
-						case SZ_BIG: skillratio += 200 + 300 * skill_lv; break;// Large
+						case SZ_SMALL: skillratio += 200 + 400 * skill_lv; break; // Small
+						case SZ_MEDIUM: skillratio += 200 + 350 * skill_lv; break; // Medium
+						case SZ_BIG: skillratio += 200 + 300 * skill_lv; break; // Large
 					}
 					RE_LVL_DMOD(100);
 					//NOTE: Their's some other factors that affects damage, but not sure how exactly. Will recheck one day. [Rytech]
@@ -2732,7 +2732,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio = (1 + skill_lv) * sstatus->dex / 2 * (sd ? sd->status.job_level / 10 : 1);
 					RE_LVL_DMOD(120);
 					break;
-				case LG_CANNONSPEAR:// Stimated formula. Still need confirm it.
+				case LG_CANNONSPEAR: // Stimated formula. Still need confirm it.
 					skillratio = (50  + sstatus->str) * skill_lv;
 					RE_LVL_DMOD(100);
 					break;
@@ -3290,7 +3290,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				def2 += tsc->data[SC_GT_REVITALIZE]->val4;
 
 			if( tsc && tsc->data[SC_CAMOUFLAGE] ) {
-				i = 5 * (10-tsc->data[SC_CAMOUFLAGE]->val4);
+				i = 5 * tsc->data[SC_CAMOUFLAGE]->val3;
 				def1 -= def1 * i / 100;
 				def2 -= def2 * i / 100;
 			}
@@ -3414,7 +3414,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			}
 
 			if(sc->data[SC_CAMOUFLAGE])
-				ATK_ADD(30 * (10-sc->data[SC_CAMOUFLAGE]->val4) );
+				ATK_ADD(30 * sc->data[SC_CAMOUFLAGE]->val3 );
 		}
 
 		if( sd ) {
@@ -3798,8 +3798,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			case PR_SANCTUARY:
 			case AB_HIGHNESSHEAL:
 				ad.damage = skill_calc_heal(src, target, (skill_id == AB_HIGHNESSHEAL)?AL_HEAL:skill_id, (skill_id == AB_HIGHNESSHEAL)?10:skill_lv, false);
-				if( skill_id == AB_HIGHNESSHEAL )
-					ad.damage = ad.damage * ( 17 + 3 * skill_lv ) / 10;
 				break;
 			case PR_ASPERSIO:
 				ad.damage = 40;
@@ -5730,6 +5728,7 @@ static const struct _battle_data {
 	{ "wedding_ignorepalette",              &battle_config.wedding_ignorepalette,           0,      0,      1,              },
 	{ "xmas_ignorepalette",                 &battle_config.xmas_ignorepalette,              0,      0,      1,              },
 	{ "summer_ignorepalette",               &battle_config.summer_ignorepalette,            0,      0,      1,              },
+	{ "hanbok_ignorepalette",               &battle_config.hanbok_ignorepalette,            0,      0,      1,              },
 	{ "natural_healhp_interval",            &battle_config.natural_healhp_interval,         6000,   NATURAL_HEAL_INTERVAL, INT_MAX, },
 	{ "natural_healsp_interval",            &battle_config.natural_healsp_interval,         8000,   NATURAL_HEAL_INTERVAL, INT_MAX, },
 	{ "natural_heal_skill_interval",        &battle_config.natural_heal_skill_interval,     10000,  NATURAL_HEAL_INTERVAL, INT_MAX, },
@@ -5987,12 +5986,12 @@ static const struct _battle_data {
 	{ "homunculus_max_level",               &battle_config.hom_max_level,                   99,     0,      MAX_LEVEL,      },
 	{ "homunculus_S_max_level",             &battle_config.hom_S_max_level,                 150,    0,      MAX_LEVEL,      },
 	{ "mob_size_influence",                 &battle_config.mob_size_influence,              0,      0,      1,              },
-	{ "hanbok_ignorepalette",               &battle_config.hanbok_ignorepalette,            0,      0,      1,              },
 	{ "skill_trap_type",                    &battle_config.skill_trap_type,                 0,      0,      1,              },
 	{ "item_restricted_consumption_type",   &battle_config.item_restricted_consumption_type,1,      0,      1,              },
 	{ "max_walk_path",                      &battle_config.max_walk_path,                  17,      1,      MAX_WALKPATH,   },
 	{ "item_enabled_npc",                   &battle_config.item_enabled_npc,                1,      0,      1,              },
 	{ "item_flooritem_check",               &battle_config.item_onfloor,                    1,      0,      1,              },
+	{ "bowling_bash_area",                  &battle_config.bowling_bash_area,               0,      0,      20,             },
 };
 #ifndef STATS_OPT_OUT
 /**

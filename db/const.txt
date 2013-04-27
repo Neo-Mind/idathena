@@ -303,7 +303,8 @@ Option_Xmas	0x10000
 Option_Summer	0x40000
 Option_Wug	0x100000
 Option_Wugrider	0x200000
-Option_Hanbok	0x10000000
+Option_Hanbok	0x8000000
+Option_Mounting	0x10000000
 
 bc_all	0
 bc_map	1
@@ -1293,10 +1294,8 @@ SC_MAGMA_FLOW	552
 SC_PYROCLASTIC	553
 SC_PARALYSIS	554
 SC_PAIN_KILLER	555
-
 SC_EXTREMITYFIST2	556
-
-SC_HANBOK	600
+SC_HANBOK	557
 
 e_gasp	0
 e_what	1
