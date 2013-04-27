@@ -6344,9 +6344,35 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			}
 			break;
 		case SC_STUN:
-		case SC_SILENCE:
-		case SC_BLEEDING:
 			sc_def = status->vit*100;
+			sc_def2 = status->luk*10 + status_get_lv(bl)*10 - status_get_lv(src)*10;
+			tick_def2 = status->luk*10;
+			break;
+		case SC_SILENCE:
+			sc_def =
+#ifdef RENEWAL
+				status->int_
+#else
+				status->vit
+#endif
+				*100;
+			sc_def2 =
+#ifdef RENEWAL
+				(status->vit + status->luk)*5
+#else
+				status->luk*10
+#endif
+				+ status_get_lv(bl)*10 - status_get_lv(src)*10;
+			tick_def2 = status->luk*10;
+			break;
+		case SC_BLEEDING:
+			sc_def =
+#ifdef RENEWAL
+				status->agi
+#else
+				status->vit
+#endif
+				*100;
 			sc_def2 = status->luk*10 + status_get_lv(bl)*10 - status_get_lv(src)*10;
 			tick_def2 = status->luk*10;
 			break;
@@ -6396,7 +6422,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			sc_def = status->agi*50;
 			break;
 		case SC_DEEPSLEEP:
-			sc_def = status->int_*50;
+			//sc_def = status->int_*50; Needs info
 			tick_def = 0; //Linear reduction instead
 			tick_def2 = (status->int_ + status_get_lv(bl))*50; //kRO balance update lists this formula
 			break;
@@ -6434,7 +6460,6 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			break;
 		case SC_OBLIVIONCURSE: // 100% - (100 - 0.8 x INT)
 			sc_def = status->int_*80;
-			sc_def = max(sc_def, 500); // minimum of 5% resist
 		case SC_TOXIN:
 		case SC_PARALYSE:
 		case SC_VENOMBLEED:
@@ -6515,6 +6540,9 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 
 		//Minimum chances
 		switch (type) {
+			case SC_OBLIVIONCURSE:
+				rate = max(rate, 500); //Minimum of 5%
+				break;
 			case SC_BITE:
 				rate = max(rate, 5000); //Minimum of 50%
 				break;

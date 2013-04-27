@@ -4809,12 +4809,12 @@ void clif_skill_fail(struct map_session_data *sd,uint16 skill_id,enum useskill_f
 /// 043d <skill ID>.W <tick>.L
 void clif_skill_cooldown(struct map_session_data *sd, uint16 skill_id, unsigned int tick)
 {
-#if PACKETVER>=20081112
+#if PACKETVER >= 20081112
 	int fd;
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x43d));
 	WFIFOW(fd,0) = 0x43d;
 	WFIFOW(fd,2) = skill_id;

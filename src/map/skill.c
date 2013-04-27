@@ -4947,15 +4947,15 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case NPC_SMOKING: //Since it is a self skill, this one ends here rather than in damage_id. [Skotlex]
 			return skill_castend_damage_id (src, bl, skill_id, skill_lv, tick, flag);
 		case MH_STEINWAND: {
-			struct block_list *s_src = battle_get_master(src);
-			short ret = 0;
-			if(!skill_check_unit_range(src, src->x, src->y, skill_id, skill_lv))  //prevent reiteration
-				ret = skill_castend_pos2(src,src->x,src->y,skill_id,skill_lv,tick,flag); //cast on homon
-			if(s_src && !skill_check_unit_range(s_src, s_src->x, s_src->y, skill_id, skill_lv))
-				ret |= skill_castend_pos2(s_src,s_src->x,s_src->y,skill_id,skill_lv,tick,flag); //cast on master
-			if (hd)
-				skill_blockhomun_start(hd, skill_id, skill_get_cooldown(NULL, skill_id, skill_lv));
-			return ret;
+				struct block_list *s_src = battle_get_master(src);
+				short ret = 0;
+				if(!skill_check_unit_range(src, src->x, src->y, skill_id, skill_lv))  //prevent reiteration
+					ret = skill_castend_pos2(src,src->x,src->y,skill_id,skill_lv,tick,flag); //cast on homon
+				if(s_src && !skill_check_unit_range(s_src, s_src->x, s_src->y, skill_id, skill_lv))
+					ret |= skill_castend_pos2(s_src,s_src->x,s_src->y,skill_id,skill_lv,tick,flag); //cast on master
+				if(hd)
+					skill_blockhomun_start(hd, skill_id, skill_get_cooldown(NULL, skill_id, skill_lv));
+				return ret;
 			}
 			break;
 		default:
@@ -9119,13 +9119,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					if(msc && !msc->data[SC_SILENCE]) //put inavoidable silence on master
 						status_change_start(src, m_bl, SC_SILENCE, 100, skill_lv, 0,0,0, skill_get_time(skill_id, skill_lv),1|2|8);
 				}
-				if (hd)
+				if(hd)
 					skill_blockhomun_start(hd, skill_id, skill_get_cooldown(NULL, skill_id, skill_lv));
 			}
 			break;
 
 		case MH_OVERED_BOOST:
-			if (hd) {
+			if(hd) {
 				struct block_list *s_bl = battle_get_master(src);
 				if(hd->homunculus.hunger>50) //reduce hunger
 					hd->homunculus.hunger = hd->homunculus.hunger/2;
@@ -9146,7 +9146,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				struct block_list *s_bl = battle_get_master(src);
 				if(s_bl) sc_start2(src, s_bl, type, 100, skill_lv, hd->homunculus.level, skill_get_time(skill_id, skill_lv)); //start on master
 				sc_start2(src, bl, type, 100, skill_lv, hd->homunculus.level, skill_get_time(skill_id, skill_lv));
-				if (hd) skill_blockhomun_start(hd, skill_id, skill_get_cooldown(NULL, skill_id, skill_lv));
+				if(hd) skill_blockhomun_start(hd, skill_id, skill_get_cooldown(NULL, skill_id, skill_lv));
 			}
 			break;
 
@@ -9177,7 +9177,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case MH_MAGMA_FLOW:
 		case MH_PAIN_KILLER:
 			sc_start(src, bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
-			if (hd)
+			if(hd)
 				skill_blockhomun_start(hd, skill_id, skill_get_cooldown(NULL, skill_id, skill_lv));
 			break;
 
@@ -9193,7 +9193,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 				for(i=0; i<qty[skill_lv - 1]; i++) { //easy way
 					sum_md = mob_once_spawn_sub(src, src->m, src->x, src->y, status_get_name(src), summons[skill_lv - 1], "", SZ_SMALL, AI_ATTACK);
-					if (sum_md) {
+					if(sum_md) {
 						sum_md->master_id = src->id;
 						sum_md->special_state.ai = 5;
 						if (sum_md->deletetimer != INVALID_TIMER)
@@ -9203,7 +9203,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						sc_start4(&sum_md->bl, &sum_md->bl, SC_MODECHANGE, 100, 1, 0, MD_CANATTACK|MD_AGGRESSIVE, 0, 60000);
 					}
 				}
-				if (hd)
+				if(hd)
 					skill_blockhomun_start(hd, skill_id, skill_get_cooldown(NULL, skill_id, skill_lv));
 			}
 			break;
@@ -9442,7 +9442,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 
 		if( !sd || sd->skillitem != ud->skill_id || skill_get_delay(ud->skill_id,ud->skill_lv) )
 			ud->canact_tick = tick + skill_delayfix(src, ud->skill_id, ud->skill_lv); //Tests show wings don't overwrite the delay but skill scrolls do. [Inkfish]
-		if( sd && (inf = skill_get_cooldown(sd, ud->skill_id,ud->skill_lv)) > 0 )
+		if( sd && (inf = skill_get_cooldown(sd, ud->skill_id, ud->skill_lv)) > 0 )
 			skill_blockpc_start(sd, ud->skill_id, inf);
 		if( battle_config.display_status_timers && sd )
 			clif_status_change(src, SI_ACTIONDELAY, 1, skill_delayfix(src, ud->skill_id, ud->skill_lv), 0, 0, 0);
