@@ -289,7 +289,7 @@ static int clif_send_sub(struct block_list *bl, va_list ap) {
 	nullpo_ret(src_bl = va_arg(ap,struct block_list*));
 	type = va_arg(ap,int);
 
-	switch(type) {
+	switch (type) {
 		case AREA_WOS:
 			if (bl == src_bl)
 				return 0;
@@ -299,11 +299,11 @@ static int clif_send_sub(struct block_list *bl, va_list ap) {
 				return 0;
 		break;
 		case AREA_WOSC: {
-			if(src_bl->type == BL_PC) {
+			if (src_bl->type == BL_PC) {
 				struct map_session_data *ssd = (struct map_session_data *)src_bl;
 				if (ssd && sd->chatID && (sd->chatID == ssd->chatID))
 				return 0;
-			} else if(src_bl->type == BL_NPC) {
+			} else if (src_bl->type == BL_NPC) {
 				struct npc_data *nd = (struct npc_data *)src_bl;
 				if (nd && sd->chatID && (sd->chatID == nd->chat_id))
 				return 0;
