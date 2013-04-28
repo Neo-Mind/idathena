@@ -2328,7 +2328,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	int8 rmdamage = 0; //magic reflected
 	bool additional_effects = true;
 
-	if(skill_id > 0 && !skill_lv) return 0;
+	if (skill_id > 0 && !skill_lv) return 0;
 
 	nullpo_ret(src);	//Source is the master behind the attack (player/mob/pet)
 	nullpo_ret(dsrc); //dsrc is the actual originator of the damage, can be the same as src, or a skill casted by src.
@@ -2520,7 +2520,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		//Skills that need be passed as a normal attack for the client to display correctly.
 		case HVAN_EXPLOSION:
 		case NPC_SELFDESTRUCTION:
-			if(src->type==BL_PC)
+			if(src->type == BL_PC)
 				dmg.blewcount = 10;
 			dmg.amotion = 0; //Disable delay or attack will do no damage since source is dead by the time it takes effect. [Skotlex]
 			// fall through
@@ -2787,17 +2787,12 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 						skill_addtimerskill(src, tick + 300 * ((flag&2) ? 1 : 2), bl->id, 0, 0, skill_id, skill_lv, BF_WEAPON, flag|4);
 				}
 				break;
-			case GN_WALLOFTHORN:
-				unit_stop_walking(bl,1);
-				skill_blown(dsrc,bl,dmg.blewcount,dir, 0x2 );
-				clif_fixpos(bl);
-				break;
 			default:
-				skill_blown(dsrc,bl,dmg.blewcount,dir, 0x0 );
-				if ( !dmg.blewcount && bl->type == BL_SKILL && damage > 0 ){
+				skill_blown(dsrc,bl,dmg.blewcount,dir,0x0);
+				if ( !dmg.blewcount && bl->type == BL_SKILL && damage > 0 ) {
 					TBL_SKILL *su = (TBL_SKILL*)bl;
 					if( su->group && su->group->skill_id == HT_BLASTMINE)
-						skill_blown(src, bl, 3, -1, 0);
+						skill_blown(src,bl,3,-1,0);
 				}
 				break;
 		}
@@ -9907,7 +9902,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case MH_POISON_MIST:
 		case MH_STEINWAND:
 		case MH_XENO_SLASHER:
-			flag|=1;//Set flag to 1 to prevent deleting ammo (it will be deleted on group-delete).
+			flag|=1; //Set flag to 1 to prevent deleting ammo (it will be deleted on group-delete).
 		case GS_GROUNDDRIFT: //Ammo should be deleted right away.
 			skill_unitsetting(src,skill_id,skill_lv,x,y,0);
 			break;
@@ -11354,22 +11349,26 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 			break;
 
 		case UNT_WALLOFTHORN:
-			if( status_get_mode(bl)&MD_BOSS )
-				break;	// iRO Wiki says that this skill don't affect to Boss monsters.
-			if( map_flag_vs(bl->m) || bl->id == src->bl.id || battle_check_target(&src->bl,bl, BCT_ENEMY) == 1 )
+			if (status_get_mode(bl)&MD_BOSS)
+				break; // iRO Wiki says that this skill don't affect to Boss monsters.
+			if (battle_check_target(ss,bl,BCT_ENEMY) <= 0) {
+				unit_stop_walking(bl,1);
+				skill_blown(&src->bl,bl,skill_get_blewcount(sg->skill_id,sg->skill_lv),unit_getdir(bl),0x2);
+				clif_fixpos(bl);
+			} else
 				skill_attack(skill_get_type(sg->skill_id), ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
 			break;
 
 		case UNT_VOLCANIC_ASH:
 			if (!sce)
-				sc_start(ss, bl, SC_ASH, 100, sg->skill_lv, skill_get_time(MH_VOLCANIC_ASH, sg->skill_lv));
+				sc_start(ss,bl,SC_ASH,100,sg->skill_lv,skill_get_time(MH_VOLCANIC_ASH,sg->skill_lv));
 			break;
 
 		case UNT_GD_LEADERSHIP:
 		case UNT_GD_GLORYWOUNDS:
 		case UNT_GD_SOULCOLD:
 		case UNT_GD_HAWKEYES:
-			if ( !sce )
+			if (!sce)
 				sc_start4(ss,bl,type,100,sg->skill_lv,0,0,0,1000);
 			break;
 	}
@@ -12397,7 +12396,7 @@ int skill_unit_ondamaged (struct skill_unit *src, struct block_list *bl, int dam
 		case UNT_ICEWALL:
 		case UNT_REVERBERATION:
 		case UNT_WALLOFTHORN:
-			src->val1-=damage;
+			src->val1 -= damage;
 			break;
 		default:
 			damage = 0;
@@ -15897,7 +15896,7 @@ int skill_unit_move_unit_group (struct skill_unit_group *group, int16 m, int16 d
 	if (skill_get_unit_flag(group->skill_id)&UF_ENSEMBLE)
 		return 0; //Ensembles may not be moved around.
 
-	if( group->unit_id == UNT_ICEWALL || group->unit_id == UNT_WALLOFTHORN )
+	if (group->unit_id == UNT_ICEWALL || group->unit_id == UNT_WALLOFTHORN)
 		return 0; //Icewalls and Wall of Thorns don't get knocked back
 	
 	m_flag = (int *) aCalloc(group->unit_count, sizeof(int));
@@ -15906,12 +15905,12 @@ int skill_unit_move_unit_group (struct skill_unit_group *group, int16 m, int16 d
 	//		1: Unit will move to a slot that had another unit of the same group (skill_unit_onplace not needed)
 	//		2: Another unit from same group will end up positioned on this unit (skill_unit_onout not needed)
 	//		3: Both 1+2.
-	for(i=0;i<group->unit_count;i++) {
-		unit1=&group->unit[i];
+	for (i=0;i<group->unit_count;i++) {
+		unit1 = &group->unit[i];
 		if (!unit1->alive || unit1->bl.m!=m)
 			continue;
-		for(j=0;j<group->unit_count;j++) {
-			unit2=&group->unit[j];
+		for (j=0;j<group->unit_count;j++) {
+			unit2 = &group->unit[j];
 			if (!unit2->alive)
 				continue;
 			if (unit1->bl.x+dx==unit2->bl.x && unit1->bl.y+dy==unit2->bl.y) {
