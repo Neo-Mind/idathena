@@ -308,7 +308,7 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 			{
 				if( head->line != 0xfdfd )
 				{
-					ShowError("Memory manager: freed-data is changed. (freed in %s line %d)\n", head->file,head->line);
+					/*ShowError("Memory manager: freed-data is changed. (freed in %s line %d)\n", head->file,head->line);*/
 				}
 				else
 				{
@@ -410,7 +410,7 @@ void _mfree(void *ptr, const char *file, int line, const char *func )
 		/* Release unit */
 		struct block *block = head->block;
 		if( (char*)head - (char*)block > sizeof(struct block) ) {
-			ShowError("Memory manager: args of aFree 0x%p is invalid pointer %s line %d\n", ptr, file, line);
+			/*ShowError("Memory manager: args of aFree 0x%p is invalid pointer %s line %d\n", ptr, file, line);*/
 		} else if(head->block == NULL) {
 			ShowError("Memory manager: args of aFree 0x%p is freed pointer %s:%d@%s\n", ptr, file, line, func);
 		} else if(*(long*)((char*)head + sizeof(struct unit_head) - sizeof(long) + head->size) != 0xdeadbeaf) {
