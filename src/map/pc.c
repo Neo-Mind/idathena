@@ -6507,18 +6507,9 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			duel_reject(sd->duel_invite, sd);
 	}
 
-	pc_setglobalreg(sd,"PC_DIE_COUNTER",sd->die_counter+1);
-	pc_setparam(sd, SP_KILLERRID, src?src->id:0);
-	
-	if( sd->bg_id ) {
-		struct battleground_data *bg;
-		if( (bg = bg_team_search(sd->bg_id)) != NULL && bg->die_event[0] )
-			npc_event(sd, bg->die_event, 0);
-	}
-
 	// Clear anything NPC-related when you die and was interacting with one.
 	if( sd->npc_id ) {
-		if (sd->state.using_fake_npc) {
+		if( sd->state.using_fake_npc ) {
 			clif_clearunit_single(sd->npc_id, CLR_OUTSIGHT, sd->fd);
 			sd->state.using_fake_npc = 0;
 		}
@@ -6532,14 +6523,24 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			sd->st->state = END;
 	}
 
-	npc_script_event(sd,NPCE_DIE);
-
 	/* e.g. not killed thru pc_damage */
 	if( pc_issit(sd) ) {
 		clif_status_load(&sd->bl,SI_SIT,0);
 	}
 
 	pc_setdead(sd);
+
+	pc_setglobalreg(sd,"PC_DIE_COUNTER",sd->die_counter+1);
+	pc_setparam(sd, SP_KILLERRID, src?src->id:0);
+	
+	if( sd->bg_id ) {
+		struct battleground_data *bg;
+		if( (bg = bg_team_search(sd->bg_id)) != NULL && bg->die_event[0] )
+			npc_event(sd, bg->die_event, 0);
+	}
+
+	npc_script_event(sd,NPCE_DIE);
+
 	//Reset menu skills/item skills
 	if (sd->skillitem)
 		sd->skillitem = sd->skillitemlv = 0;

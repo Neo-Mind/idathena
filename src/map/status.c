@@ -1253,8 +1253,9 @@ int status_damage(struct block_list *src, struct block_list *target, int hp, int
 		case BL_ELEM: elemental_heal((TBL_ELEM*)target,hp,sp); break;
 	}
 
-	if( src && target->type == BL_PC && ((TBL_PC*)target)->disguise ) {// stop walking when attacked in disguise to prevent walk-delay bug
-		unit_stop_walking( target, 1 );
+	if (src && target->type == BL_PC && ((TBL_PC*)target)->disguise) {
+		// Stop walking when attacked in disguise to prevent walk-delay bug
+		unit_stop_walking(target, 1);
 	}
 
 	if( status->hp || (flag&8) ) { //Still lives or has been dead before this damage.
@@ -1263,7 +1264,7 @@ int status_damage(struct block_list *src, struct block_list *target, int hp, int
 		return hp+sp;
 	}
 
-	status->hp = 1; //To let the dead function cast skills and all that.
+	status->hp = 0;
 	//NOTE: These dead functions should return: [Skotlex]
 	//0: Death cancelled, auto-revived.
 	//Non-zero: Standard death. Clear status, cancel move/attack, etc
@@ -1280,16 +1281,15 @@ int status_damage(struct block_list *src, struct block_list *target, int hp, int
 			break;
 	}
 
-	if(!flag) //Death cancelled.
+	if (!flag) //Death cancelled.
 		return hp+sp;
 
 	//Normal death
-	status->hp = 0;
 	if (battle_config.clear_unit_ondeath &&
 		battle_config.clear_unit_ondeath&target->type)
 		skill_clear_unitgroup(target);
 
-	if(target->type&BL_REGEN) { //Reset regen ticks.
+	if (target->type&BL_REGEN) { //Reset regen ticks.
 		struct regen_data *regen = status_get_regen_data(target);
 		if (regen) {
 			memset(&regen->tick, 0, sizeof(regen->tick));
@@ -1300,10 +1300,10 @@ int status_damage(struct block_list *src, struct block_list *target, int hp, int
 		}
 	}
    
-	if(sc && sc->data[SC_KAIZEL] && !map_flag_gvg(target->m)) { //flag&8 = disable Kaizel
+	if (sc && sc->data[SC_KAIZEL] && !map_flag_gvg(target->m)) { //flag&8 = disable Kaizel
 		int time = skill_get_time2(SL_KAIZEL,sc->data[SC_KAIZEL]->val1);
 		//Look for Osiris Card's bonus effect on the character and revive 100% or revive normally
-		if ( target->type == BL_PC && BL_CAST(BL_PC,target)->special_state.restart_full_recover )
+		if (target->type == BL_PC && BL_CAST(BL_PC,target)->special_state.restart_full_recover)
 			status_revive(target, 100, 100);
 		else
 			status_revive(target, sc->data[SC_KAIZEL]->val2, 0);
@@ -1311,23 +1311,25 @@ int status_damage(struct block_list *src, struct block_list *target, int hp, int
 		clif_skill_nodamage(target,target,ALL_RESURRECTION,1,1);
 		sc_start(src,target,status_skill2sc(PR_KYRIE),100,10,time);
 
-		if(target->type == BL_MOB)
+		if (target->type == BL_MOB)
 			((TBL_MOB*)target)->state.rebirth = 1;
 
 		return hp+sp;
 	}
-	if(target->type == BL_PC) {
+	if (target->type == BL_PC) {
 		TBL_PC *sd = BL_CAST(BL_PC,target);
 		TBL_HOM *hd = sd->hd;
-		if(hd && hd->sc.data[SC_LIGHT_OF_REGENE]) {
+		if (hd && hd->sc.data[SC_LIGHT_OF_REGENE]) {
 			status_change_clear(target,0);
-			clif_skillcasting(&hd->bl, hd->bl.id, target->id, 0,0, MH_LIGHT_OF_REGENE, skill_get_ele(MH_LIGHT_OF_REGENE, 1), 10); //just to display usage
+			//Just to display usage
+			clif_skillcasting(&hd->bl, hd->bl.id, target->id, 0,0, MH_LIGHT_OF_REGENE, skill_get_ele(MH_LIGHT_OF_REGENE, 1), 10);
 			clif_skill_nodamage(&sd->bl, target, ALL_RESURRECTION, 1, status_revive(&sd->bl,hd->sc.data[SC_LIGHT_OF_REGENE]->val2,0));
 			status_change_end(&sd->hd->bl,SC_LIGHT_OF_REGENE,INVALID_TIMER);
 			return hp + sp;
 		}
 	}
-	if(target->type == BL_MOB && sc && sc->data[SC_REBIRTH] && !((TBL_MOB*) target)->state.rebirth) {// Ensure the monster has not already rebirthed before doing so.
+	if (target->type == BL_MOB && sc && sc->data[SC_REBIRTH] && !((TBL_MOB*) target)->state.rebirth) {
+		// Ensure the monster has not already rebirthed before doing so.
 		status_revive(target, sc->data[SC_REBIRTH]->val2, 0);
 		status_change_clear(target,0);
 		((TBL_MOB*)target)->state.rebirth = 1;
@@ -1337,9 +1339,9 @@ int status_damage(struct block_list *src, struct block_list *target, int hp, int
 
 	status_change_clear(target,0);
 
-	if(flag&4) //Delete from memory. (also invokes map removal code)
+	if (flag&4) //Delete from memory. (also invokes map removal code)
 		unit_free(target,CLR_DEAD);
-	else if(flag&2) //remove from map
+	else if (flag&2) //remove from map
 		unit_remove_map(target,CLR_DEAD);
 	else { //Some death states that would normally be handled by unit_remove_map
 		unit_stop_attack(target);

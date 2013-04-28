@@ -7751,7 +7751,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case AB_ANCILLA:
 			if( sd ) {
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				skill_produce_mix(sd, skill_id, ITEMID_ANCILLA, 0, 0, 0, 1);
+				skill_produce_mix(sd,skill_id,ITEMID_ANCILLA,0,0,0,1);
 			}
 			break;
 
@@ -10497,7 +10497,7 @@ int skill_castend_map (struct map_session_data *sd, uint16 skill_id, const char 
 					}
 				}
 
-				lv = sd->skillitem==skill_id?sd->skillitemlv:pc_checkskill(sd,skill_id);
+				lv = sd->skillitem == skill_id ? sd->skillitemlv : pc_checkskill(sd,skill_id);
 				wx = sd->menuskill_val>>16;
 				wy = sd->menuskill_val&0xffff;
 
@@ -10507,14 +10507,14 @@ int skill_castend_map (struct map_session_data *sd, uint16 skill_id, const char 
 				// check if the chosen map exists in the memo list
 				ARR_FIND( 0, lv, i, mapindex == p[i]->map );
 				if( i < lv ) {
-					x=p[i]->x;
-					y=p[i]->y;
+					x = p[i]->x;
+					y = p[i]->y;
 				} else {
 					skill_failed(sd);
 					return 0;
 				}
 
-				if(!skill_check_condition_castend(sd, sd->menuskill_id, lv)) { // This checks versus skill_id/skill_lv...
+				if(!skill_check_condition_castend(sd,sd->menuskill_id,lv)) { // This checks versus skill_id/skill_lv...
 					skill_failed(sd);
 					return 0;
 				}
@@ -10522,7 +10522,7 @@ int skill_castend_map (struct map_session_data *sd, uint16 skill_id, const char 
 				skill_consume_requirement(sd,sd->menuskill_id,lv,2);
 				sd->skillitem = sd->skillitemlv = 0; // Clear data that's skipped in 'skill_castend_pos' [Inkfish]
 
-				if((group=skill_unitsetting(&sd->bl,skill_id,lv,wx,wy,0))==NULL) {
+				if((group = skill_unitsetting(&sd->bl,skill_id,lv,wx,wy,0)) == NULL) {
 					skill_failed(sd);
 					return 0;
 				}
@@ -10710,13 +10710,13 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		case MG_FIREWALL:
 			if(sc && sc->data[SC_VIOLENTGALE])
 				limit = limit*3/2;
-			val2=4+skill_lv;
+			val2 = 4+skill_lv;
 			break;
 
 		case AL_WARP:
-			val1=skill_lv+6;
+			val1 = skill_lv+6;
 			if(!(flag&1))
-				limit=2000;
+				limit = 2000;
 			else { // Previous implementation (not used anymore)
 				//Warp Portal morphing to active mode, extract relevant data from src. [Skotlex]
 				if( src->type != BL_SKILL ) return NULL;
@@ -10733,15 +10733,15 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 
 		case PR_SANCTUARY:
 		case NPC_EVILLAND:
-			val1=(skill_lv+3)*2;
+			val1 = (skill_lv+3)*2;
 			break;
 
 		case WZ_FIREPILLAR:
 			if( map_getcell(src->m, x, y, CELL_CHKLANDPROTECTOR) )
 				return NULL;
-			if((flag&1)!=0)
-				limit=1000;
-			val1=skill_lv+2;
+			if((flag&1) != 0)
+				limit = 1000;
+			val1 = skill_lv+2;
 			break;
 		case WZ_QUAGMIRE: //The target changes to "all" if used in a gvg map. [Skotlex]
 		case AM_DEMONSTRATION:
@@ -10752,7 +10752,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 				target = BCT_ALL;
 			break;
 		case HT_SHOCKWAVE:
-			val1=skill_lv*15+10;
+			val1 = skill_lv*15+10;
 		case HT_SANDMAN:
 		case MA_SANDMAN:
 		case HT_CLAYMORETRAP:
@@ -11148,11 +11148,11 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 	nullpo_ret(src);
 	nullpo_ret(bl);
 
-	if(bl->prev==NULL || !src->alive || status_isdead(bl))
+	if( bl->prev == NULL || !src->alive || status_isdead(bl) )
 		return 0;
 
-	nullpo_ret(sg=src->group);
-	nullpo_ret(ss=map_id2bl(sg->src_id));
+	nullpo_ret(sg = src->group);
+	nullpo_ret(ss = map_id2bl(sg->src_id));
 
 	if( skill_get_type(sg->skill_id) == BF_MAGIC && map_getcell(bl->m, bl->x, bl->y, CELL_CHKLANDPROTECTOR) && sg->skill_id != SA_LANDPROTECTOR )
 		return 0; //AoE skills are ineffective. [Skotlex]
@@ -11293,7 +11293,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 		case UNT_INTOABYSS:
 		case UNT_SIEGFRIED:
 			 //Needed to check when a dancer/bard leaves their ensemble area.
-			if (sg->src_id==bl->id && !(sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER))
+			if (sg->src_id == bl->id && !(sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER))
 				return skill_id;
 			if (!sce)
 				sc_start4(ss,bl,type,100,sg->skill_lv,sg->val1,sg->val2,0,sg->limit);
@@ -11306,7 +11306,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 		case UNT_DONTFORGETME:
 		case UNT_FORTUNEKISS:
 		case UNT_SERVICEFORYOU:
-			if (sg->src_id==bl->id && !(sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER))
+			if (sg->src_id == bl->id && !(sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER))
 				return 0;
 
 			if (!sc) return 0;
@@ -11356,7 +11356,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 				skill_blown(&src->bl,bl,skill_get_blewcount(sg->skill_id,sg->skill_lv),unit_getdir(bl),0x2);
 				clif_fixpos(bl);
 			} else
-				skill_attack(skill_get_type(sg->skill_id), ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
+				skill_attack(skill_get_type(sg->skill_id),ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 			break;
 
 		case UNT_VOLCANIC_ASH:
@@ -12150,7 +12150,7 @@ int skill_unit_onout (struct skill_unit *src, struct block_list *bl, unsigned in
 		(status_isdead(bl) && sg->unit_id != UNT_ANKLESNARE && sg->unit_id != UNT_SPIDERWEB) ) //Need to delete the trap if the source died.
 		return 0;
 
-	switch(sg->unit_id) {
+	switch( sg->unit_id ) {
 		case UNT_SAFETYWALL:
 		case UNT_PNEUMA:
 		case UNT_EPICLESIS:
@@ -12165,14 +12165,14 @@ int skill_unit_onout (struct skill_unit *src, struct block_list *bl, unsigned in
 				status_change_end(bl, type, INVALID_TIMER);
 			break;
 		case UNT_HERMODE: //Clear Hermode if the owner moved.
-			if (sce && sce->val3 == BCT_SELF && sce->val4 == sg->group_id)
+			if( sce && sce->val3 == BCT_SELF && sce->val4 == sg->group_id )
 				status_change_end(bl, type, INVALID_TIMER);
 			break;
 
 		case UNT_SPIDERWEB: {
 				struct block_list *target = map_id2bl(sg->val2);
-				if (target && target == bl) {
-					if (sce && sce->val3 == sg->group_id)
+				if( target && target == bl ) {
+					if( sce && sce->val3 == sg->group_id )
 						status_change_end(bl, type, INVALID_TIMER);
 					sg->limit = DIFF_TICK(tick,sg->tick)+1000;
 				}
@@ -12182,15 +12182,25 @@ int skill_unit_onout (struct skill_unit *src, struct block_list *bl, unsigned in
 		case UNT_DISSONANCE:
 			{
 				short i;
-				for (i = BA_WHISTLE; i <= DC_SERVICEFORYOU; i++) {
-					if (skill_get_inf2(i)&(INF2_SONG_DANCE)) {
+				for( i = BA_WHISTLE; i <= DC_SERVICEFORYOU; i++ ) {
+					if( skill_get_inf2(i)&(INF2_SONG_DANCE) ) {
 						type = status_skill2sc(i);
 						sce = (sc && type != -1)?sc->data[type]:NULL;
-						if (sce)
+						if( sce )
 							return i;
 					}
 				}
 			}
+		case UNT_WHISTLE:
+		case UNT_ASSASSINCROSS:
+		case UNT_POEMBRAGI:
+		case UNT_APPLEIDUN:
+		case UNT_HUMMING:
+		case UNT_DONTFORGETME:
+		case UNT_FORTUNEKISS:
+		case UNT_SERVICEFORYOU:
+			if( sg->src_id == bl->id && !(sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER) )
+				return -1;
 	}
 	return sg->skill_id;
 }
@@ -12354,14 +12364,15 @@ static int skill_unit_effect (struct block_list* bl, va_list ap)
 	if( isTarget ) {
 		if( flag&1 )
 			skill_unit_onplace(unit,bl,tick);
-		else
-			skill_unit_onout(unit,bl,tick);
+		else {
+			if( skill_unit_onout(unit,bl,tick) == -1 )
+				return 0; // Don't let a Bard/Dancer update their own song timer
+		}
 
 		if( flag&4 )
 			skill_unit_onleft(skill_id, bl, tick);
-	} else if( !isTarget && flag&4 && ( group->state.song_dance&0x1 || ( group->src_id == bl->id && group->state.song_dance&0x2 ) ) ) {
+	} else if( !isTarget && flag&4 && ( group->state.song_dance&0x1 || ( group->src_id == bl->id && group->state.song_dance&0x2 ) ) )
 		skill_unit_onleft(skill_id, bl, tick); //Ensemble check to terminate it.
-	}
 
 	if( dissonance ) {
 		skill_dance_switch(unit, 1);
@@ -15803,7 +15814,6 @@ int skill_unit_move_sub (struct block_list* bl, va_list ap)
 					else
 						ShowError("skill_unit_move_sub: Reached limit of unit objects per cell!\n");
 				}
-
 			}
 
 			if( flag&4 )

@@ -1758,6 +1758,7 @@ packet_ver: 30
 0x08D7,28,dull,2:4 //battlegroundreg
 0x08CF,10 //Amulet spirits
 0x0977,14 //Monster HP Bar
+0x0916,26,guildinvite2,2
 
 //2012-04-18aRagexeRE
 packet_ver: 31
@@ -1819,6 +1820,7 @@ packet_ver: 31
 0x08D2,10
 0x08CF,10 //Amulet spirits
 0x0977,14 //Monster HP Bar
+0x0916,26,guildinvite2,2
 
 //2012-06-18aRagexeRE
 packet_ver: 32
@@ -1880,6 +1882,7 @@ packet_ver: 32
 0x08CF,10 //Amulet spirits
 0x0977,14 //Monster HP Bar
 0x0983,29
+0x0916,26,guildinvite2,2
 
 // ========== WARNING =============
 // - 2012-07-02 is NOT STABLE.

@@ -1402,8 +1402,7 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 		weapon = sd->weapontype1;
 	else
 		weapon = sd->weapontype2;
-	switch(weapon)
-	{
+	switch(weapon) {
 		case W_1HSWORD:
 #ifdef RENEWAL
 				if((skill = pc_checkskill(sd,AM_AXEMASTERY)) > 0)
@@ -1548,6 +1547,10 @@ static int battle_calc_base_damage(struct status_data *status, struct weapon_atk
 	//Finally, add baseatk
 	if(flag&4)
 		damage += status->matk_min;
+#ifdef RENEWAL
+	else if(flag&32)
+		damage += status->matk_min + status->batk;
+#endif
 	else
 		damage += status->batk;
 
@@ -2159,7 +2162,11 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			default: {
 				i = (flag.cri?1:0)|
 					(flag.arrow?2:0)|
+#ifndef RENEWAL
 					(skill_id == HW_MAGICCRASHER?4:0)|
+#else
+					(skill_id == HW_MAGICCRASHER?32:0)|
+#endif
 					(!skill_id && sc && sc->data[SC_CHANGE]?4:0)|
 					(skill_id == MO_EXTREMITYFIST?8:0)|
 					(sc && sc->data[SC_WEAPONPERFECTION]?8:0);
