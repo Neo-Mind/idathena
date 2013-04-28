@@ -10254,13 +10254,13 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 					case BA_DISSONANCE:
 					case BA_ASSASSINCROSS:
 					case DC_UGLYDANCE:
-						s=3;
+						s = 3;
 						break;
 					case BD_LULLABY:
 					case BD_ETERNALCHAOS:
 					case BD_ROKISWEIL:
 					case DC_FORTUNEKISS:
-						s=4;
+						s = 4;
 						break;
 					case CG_HERMODE:
 					case BD_INTOABYSS:
@@ -10268,26 +10268,26 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 					case DC_HUMMING:
 					case BA_POEMBRAGI:
 					case DC_SERVICEFORYOU:
-						s=5;
+						s = 5;
 						break;
 					case BA_APPLEIDUN:
 #ifdef RENEWAL
-							s=5;
+							s = 5;
 #else
-							s=6;
+							s = 6;
 #endif
 						break;
 					case CG_MOONLIT:
 						//Moonlit's cost is 4sp*skill_lv [Skotlex]
-						sp= 4*(sce->val1>>16);
+						sp = 4*(sce->val1>>16);
 						//Upkeep is also every 10 secs.
 					case DC_DONTFORGETME:
-						s=10;
+						s = 10;
 						break;
 				}
 				if( s != 0 && sce->val3 % s == 0 ) {
 					if (sc->data[SC_LONGING])
-						sp*= 3;
+						sp *= 3;
 					if (!status_charge(bl, 0, sp))
 						break;
 				}
@@ -10365,6 +10365,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				return 0;
 			}
 			break;
+
 		case SC_ABUNDANCE:
 			if(--(sce->val4) > 0) {
 				status_heal(bl,0,60,0);
@@ -10592,6 +10593,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				return 0;
 			}
 			break;
+
 		case SC_VACUUM_EXTREME:
 			if( --(sce->val4) >= 0 ) {
 				if( !unit_is_walking(bl) && !sce->val2 ) {
@@ -10602,6 +10604,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				return 0;
 			}
 			break;
+
 		case SC_BLOODSUCKER:
 			if( --(sce->val4) >= 0 ) {
 				struct block_list *src = map_id2bl(sce->val2);
@@ -10664,7 +10667,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				return 0;
 			}
 			break;
-			
+
 		case SC_MELODYOFSINK:
 			if( --(sce->val4) >= 0 ) {
 				status_charge(bl, 0, status->max_sp * ( 2 * sce->val1 + 2 * sce->val2 ) / 100);
@@ -11069,7 +11072,7 @@ int status_change_clear_buffs (struct block_list* bl, int type)
 	return 0;
 }
 
-int status_change_spread( struct block_list *src, struct block_list *bl ) {
+int status_change_spread(struct block_list *src, struct block_list *bl) {
 	int i, flag = 0;
 	struct status_change *sc = status_get_sc(src);
 	const struct TimerData *timer;
@@ -11361,7 +11364,6 @@ int status_get_refine_chance(enum refine_type wlv, int refine) {
 	return refine_info[wlv].chance[refine];
 }
 
-
 /*------------------------------------------
  * DB reading.
  * job_db1.txt    - weight, hp, sp, aspd
@@ -11486,10 +11488,8 @@ int status_readdb(void)
 			atkmods[i][j]=100;
 
 	// refine_db.txt
-	for(i=0;i<ARRAYLENGTH(refine_info);i++)
-	{
-		for(j=0;j<MAX_REFINE; j++)
-		{
+	for(i=0;i<ARRAYLENGTH(refine_info);i++) {
+		for(j=0;j<MAX_REFINE; j++) {
 			refine_info[i].chance[j] = 100;
 			refine_info[i].bonus[j] = 0;
 			refine_info[i].randombonus_max[j] = 0;
@@ -11497,9 +11497,7 @@ int status_readdb(void)
 	}
 
 	// read databases
-	//
 
-	
 #ifdef RENEWAL_ASPD
 	sv_readdb(db_path, "re/job_db1.txt",   ',',     6+MAX_WEAPON_TYPE, 6+MAX_WEAPON_TYPE,   -1,             &status_readdb_job1);
 #else
