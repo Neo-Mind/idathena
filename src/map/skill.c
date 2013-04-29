@@ -2470,7 +2470,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	}
 
 	//Skill hit type
-	type = (skill_id==0)?5:skill_get_hit(skill_id);
+	type = (skill_id == 0) ? 5 : skill_get_hit(skill_id);
 
 	switch(skill_id) {
 		case SC_TRIANGLESHOT:
@@ -2481,7 +2481,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				dmg.blewcount = 0; //only pushback when it hit
 			break;
 	}
-	
+
 	switch(skill_id) {
 		case CR_GRANDCROSS:
 		case NPC_GRANDDARKNESS:
@@ -2493,9 +2493,9 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			dsrc = src;
 			flag|=SD_ANIMATION;
 			break;
-		case TK_COUNTER: { //bonus from SG_FRIEND [Komurka]
+		case TK_COUNTER: { //Bonus from SG_FRIEND [Komurka]
 				int level;
-				if(sd->status.party_id>0 && (level = pc_checkskill(sd,SG_FRIEND)))
+				if(sd->status.party_id > 0 && (level = pc_checkskill(sd,SG_FRIEND)))
 					party_skill_check(sd, sd->status.party_id, TK_COUNTER,level);
 			}
 			break;
@@ -2504,9 +2504,9 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			if(skill_lv >= 7 && !sd->sc.data[SC_SMA])
 				sc_start(src,src,SC_SMA,100,skill_lv,skill_get_time(SL_SMA, skill_lv));
 			break;
-		case GS_FULLBUSTER:
-			//Can't attack nor use items until skill's delay expires. [Skotlex]
-			sd->ud.attackabletime = sd->canuseitem_tick = sd->ud.canact_tick;
+		case GS_FULLBUSTER: //Can't attack nor use items until skill's delay expires. [Skotlex]
+			if(sd)
+				sd->ud.attackabletime = sd->canuseitem_tick = sd->ud.canact_tick;
 			break;
 	}
 
