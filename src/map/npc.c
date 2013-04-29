@@ -256,7 +256,7 @@ int npc_rr_secure_timeout_timer(int tid, unsigned int tick, int id, intptr_t dat
 
 	if( DIFF_TICK(cur_tick,sd->npc_idle_tick) > (timeout*1000) ) {
 		pc_close_npc(sd,1);
-	} else if(sd->st && (sd->st->state == END || sd->st->state == CLOSE)) {
+	} else if( sd->st && (sd->st->state == END || sd->st->state == CLOSE) ) {
 		sd->npc_idle_timer = INVALID_TIMER; //Stop timer the script is already ending
 	} else { //Create a new instance of ourselves to continue
 		sd->npc_idle_timer = add_timer(cur_tick + (SECURE_NPCTIMEOUT_INTERVAL*1000),npc_rr_secure_timeout_timer,sd->bl.id,0);

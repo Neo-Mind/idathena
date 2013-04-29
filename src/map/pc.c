@@ -6456,7 +6456,7 @@ void pc_damage(struct map_session_data *sd,struct block_list *src,unsigned int h
  * @flag == 1 : produce close button
  * @flag == 2 : directly close it
  */
-void pc_close_npc(struct map_session_data *sd,int flag) {
+void pc_close_npc(struct map_session_data *sd, int flag) {
 	nullpo_retv(sd);
 
 	if (sd->npc_id) {

@@ -419,10 +419,10 @@ struct map_session_data {
 	struct mercenary_data *md;
 	struct elemental_data *ed;
 
-	struct{
+	struct {
 		int  m; //-1 - none, other: map index corresponding to map name.
 		unsigned short index; //map index
-	}feel_map[3];// 0 - Sun; 1 - Moon; 2 - Stars
+	} feel_map[3];// 0 - Sun; 1 - Moon; 2 - Stars
 	short hate_mob[3];
 
 	int pvp_timer;
@@ -492,7 +492,7 @@ struct map_session_data {
 	/* */
 	enum npc_timeout_type npc_idle_type;
 #endif
-	
+
 	struct {
 		struct script_code **bonus;/* the script */
 		unsigned short *id;/* array of combo ids */

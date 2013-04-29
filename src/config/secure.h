@@ -18,7 +18,7 @@
  * - On 'timeout' the npc dialog window changes its next/menu to a 'close' button
  * Uncomment to enable
  **/
-//#define SECURE_NPCTIMEOUT
+#define SECURE_NPCTIMEOUT
 
 /**
  * Number of seconds after an 'input' field is displayed before invoking an idle timeout.
