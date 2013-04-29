@@ -234,19 +234,14 @@ struct npc_data* npc_name2id(const char* name)
 {
 	return (struct npc_data *) strdb_get(npcname_db, name);
 }
-/**
- * For the Secure NPC Timeout option (check config/Secure.h) [RR]
- **/
 #ifdef SECURE_NPCTIMEOUT
-/**
- * Timer to check for idle time and timeout the dialog if necessary
- **/
 int npc_rr_secure_timeout_timer(int tid, unsigned int tick, int id, intptr_t data) {
 	struct map_session_data* sd = NULL;
-	unsigned int timeout = NPC_SECURE_TIMEOUT_NEXT; 
+	unsigned int timeout = NPC_SECURE_TIMEOUT_NEXT;
+	int cur_tick = gettick(); //Ensure we are on last tick
 	if( (sd = map_id2sd(id)) == NULL || !sd->npc_id ) {
 		if( sd ) sd->npc_idle_timer = INVALID_TIMER;
-		return 0;//Not logged in anymore OR no longer attached to a npc
+		return 0; //Not logged in anymore OR no longer attached to a npc
 	}
 
 	switch( sd->npc_idle_type ) {
@@ -259,22 +254,13 @@ int npc_rr_secure_timeout_timer(int tid, unsigned int tick, int id, intptr_t dat
 		//case NPCT_WAIT: var starts with this value
 	}
 
-	if( DIFF_TICK(tick,sd->npc_idle_tick) > (timeout*1000) ) {
-		/**
-		 * If we still have the NPC script attached, tell it to stop.
-		 **/
-		if( sd->st )
-			sd->st->state = END;
-		sd->state.menu_or_input = 0;
-		sd->npc_menu = 0;
-
-		/**
-		 * This guy's been idle for longer than allowed, close him.
-		 **/
-		clif_scriptclose(sd,sd->npc_id);
-		sd->npc_idle_timer = INVALID_TIMER;
-	} else //Create a new instance of ourselves to continue
-		sd->npc_idle_timer = add_timer(gettick() + (SECURE_NPCTIMEOUT_INTERVAL*1000),npc_rr_secure_timeout_timer,sd->bl.id,0);
+	if( DIFF_TICK(cur_tick,sd->npc_idle_tick) > (timeout*1000) ) {
+		pc_close_npc(sd,1);
+	} else if(sd->st && (sd->st->state == END || sd->st->state == CLOSE)) {
+		sd->npc_idle_timer = INVALID_TIMER; //Stop timer the script is already ending
+	} else { //Create a new instance of ourselves to continue
+		sd->npc_idle_timer = add_timer(cur_tick + (SECURE_NPCTIMEOUT_INTERVAL*1000),npc_rr_secure_timeout_timer,sd->bl.id,0);
+	}
 	return 0;
 }
 #endif
@@ -286,9 +272,8 @@ int npc_event_dequeue(struct map_session_data* sd)
 {
 	nullpo_ret(sd);
 
-	if(sd->npc_id)
-	{	//Current script is aborted.
-		if(sd->state.using_fake_npc){
+	if(sd->npc_id) { //Current script is aborted.
+		if(sd->state.using_fake_npc) {
 			clif_clearunit_single(sd->npc_id, CLR_OUTSIGHT, sd->fd);
 			sd->state.using_fake_npc = 0;
 		}
@@ -302,8 +287,7 @@ int npc_event_dequeue(struct map_session_data* sd)
 	if (!sd->eventqueue[0][0])
 		return 0; //Nothing to dequeue
 
-	if (!pc_addeventtimer(sd,100,sd->eventqueue[0]))
-	{	//Failed to dequeue, couldn't set a timer.
+	if (!pc_addeventtimer(sd,100,sd->eventqueue[0])) { //Failed to dequeue, couldn't set a timer.
 		ShowWarning("npc_event_dequeue: event timer is full !\n");
 		return 0;
 	}
@@ -1246,14 +1230,8 @@ int npc_scriptcont(struct map_session_data* sd, int id, bool closing)
 			return 1;
 		}
 	}
-	/**
-	 * For the Secure NPC Timeout option (check config/Secure.h) [RR]
-	 **/
 #ifdef SECURE_NPCTIMEOUT
-	/**
-	 * Update the last NPC iteration
-	 **/
-	sd->npc_idle_tick = gettick();
+	sd->npc_idle_tick = gettick(); //Update the last NPC iteration
 #endif
 
 	/**
@@ -1262,7 +1240,7 @@ int npc_scriptcont(struct map_session_data* sd, int id, bool closing)
 	if( sd->progressbar.npc_id && DIFF_TICK(sd->progressbar.timeout,gettick()) > 0 )
 		return 1;
 
-	if( closing && sd->st->state == CLOSE )
+	if( closing && sd->st && sd->st->state == CLOSE )
 		sd->st->state = END;
 
 	run_script_main(sd->st);
@@ -1281,25 +1259,24 @@ int npc_buysellsel(struct map_session_data* sd, int id, int type)
 
 	if ((nd = npc_checknear(sd,map_id2bl(id))) == NULL)
 		return 1;
-	
-	if (nd->subtype!=SHOP) {
+
+	if (nd->subtype != SHOP) {
 		ShowError("no such shop npc : %d\n",id);
 		if (sd->npc_id == id)
 			sd->npc_id=0;
 		return 1;
 	}
-	if (nd->sc.option&OPTION_INVISIBLE)	// can't buy if npc is not visible (hack?)
+	if (nd->sc.option&OPTION_INVISIBLE)	// Can't buy if npc is not visible (hack?)
 		return 1;
-	if( nd->class_ < 0 && !sd->state.callshop )
-	{// not called through a script and is not a visible NPC so an invalid call
+	if (nd->class_ < 0 && !sd->state.callshop) { // Not called through a script and is not a visible NPC so an invalid call
 		return 1;
 	}
 
-	// reset the callshop state for future calls
+	// Reset the callshop state for future calls
 	sd->state.callshop = 0;
 	sd->npc_shopid = id;
 
-	if (type==0) {
+	if (type == 0) {
 		clif_buylist(sd,nd);
 	} else {
 		clif_selllist(sd);

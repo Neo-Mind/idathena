@@ -1916,7 +1916,7 @@ packet_ver: 33
 packet_ver: 34
 0x01FD,15,repairitem,2
 0x086D,26,friendslistadd,2
-0x0897,5,hommenu,2:4
+0x0897,5,changedir,2:4
 0x0947,36,storagepassword,0
 0x0288,-1,cashshopbuy,4:8
 0x086F,26,partyinvite2,2
@@ -1926,7 +1926,7 @@ packet_ver: 34
 0x089B,10,useskilltoid,2:4:6
 0x0881,5,walktoxy,2
 0x0363,6,ticksend,2
-0x093F,5,changedir,2:4
+0x093F,5,hommenu,2:4
 0x0933,6,takeitem,2
 0x0438,6,dropitem,2:4
 0x08AC,8,movetokafra,2:4
@@ -1950,7 +1950,8 @@ packet_ver: 34
 //0x0835,2,searchstoreinfonextpage,0
 //0x0838,12,searchstoreinfolistitemclick,2:6:10
 0x0447,2
-0x99b,8 //maptypeproperty2
+0x990,31 //additem
+0x99b,8  //maptypeproperty2
 0x84b,19 //fallitem4
 
 //Add new packets here

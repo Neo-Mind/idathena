@@ -1686,10 +1686,10 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 #ifdef RENEWAL
 		&& skill_id != HT_FREEZINGTRAP
 #endif
-		?1:0);
-	if (target->type == BL_SKILL) {
+		)?1:0;
+	if(!flag.infdef && target->type == BL_SKILL) {
 		TBL_SKILL *su = (TBL_SKILL*)target;
-		if( su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD) )
+		if(su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
 			flag.infdef = 1;
  	}
 
@@ -1705,14 +1705,14 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 	wd.flag |= (skill_id||wflag)?BF_SKILL:BF_NORMAL; // Baphomet card's splash damage is counted as a skill. [Inkfish]
 	wd.dmg_lv = ATK_DEF;	//This assumption simplifies the assignation later
 	nk = skill_get_nk(skill_id);
-	if( !skill_id && wflag ) //If flag, this is splash damage from Baphomet Card and it always hits.
+	if(!skill_id && wflag) //If flag, this is splash damage from Baphomet Card and it always hits.
 		nk |= NK_NO_CARDFIX_ATK|NK_IGNORE_FLEE;
 	flag.hit = nk&NK_IGNORE_FLEE?1:0;
 	flag.idef = flag.idef2 = nk&NK_IGNORE_DEF?1:0;
 
-	if (sc && !sc->count)
+	if(sc && !sc->count)
 		sc = NULL; //Skip checking as there are no status changes active.
-	if (tsc && !tsc->count)
+	if(tsc && !tsc->count)
 		tsc = NULL; //Skip checking as there are no status changes active.
 
 	sd = BL_CAST(BL_PC, src);
@@ -1720,10 +1720,11 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 	
 	// Minstrel/Wanderer number check for chorus skills.
 	// Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
-	if( sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 7)
+	if(sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 7)
 		chorusbonus = 5;//Maximum effect possiable from 7 or more Minstrel's/Wanderer's
-	else if( sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 2)
-		chorusbonus = party_foreachsamemap(party_sub_count_chorus, sd, 0) - 2;//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
+	else if(sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 2)
+		//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
+		chorusbonus = party_foreachsamemap(party_sub_count_chorus, sd, 0) - 2;
 
 	if(sd)
 		wd.blewcount += battle_blewcount_bonus(sd, skill_id);
@@ -1829,24 +1830,24 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			s_ele = s_ele_ = wflag; //element comes in flag.
 			break;
 		case LK_SPIRALPIERCE:
-			if (!sd) n_ele = false; //forced neutral for monsters
+			if( !sd ) n_ele = false; //forced neutral for monsters
 			break;
 	}
 	
-	if (!(nk & NK_NO_ELEFIX) && !n_ele)
+	if( !(nk & NK_NO_ELEFIX) && !n_ele )
 		if (src->type == BL_HOM)
 		n_ele = true; //skill is "not elemental"
-	if (sc && sc->data[SC_GOLDENE_FERSE] && ((!skill_id && (rnd() % 100 < sc->data[SC_GOLDENE_FERSE]->val4)) || skill_id == MH_STAHL_HORN)) {
+	if( sc && sc->data[SC_GOLDENE_FERSE] && ((!skill_id && (rnd() % 100 < sc->data[SC_GOLDENE_FERSE]->val4)) || skill_id == MH_STAHL_HORN) ) {
 		s_ele = s_ele_ = ELE_HOLY;
 		n_ele = false;
 	}
 
-	if(!skill_id) { //Skills ALWAYS use ONLY your right-hand weapon (tested on Aegis 10.2)
-		if (sd && sd->weapontype1 == 0 && sd->weapontype2 > 0) {
+	if( !skill_id ) { //Skills ALWAYS use ONLY your right-hand weapon (tested on Aegis 10.2)
+		if( sd && sd->weapontype1 == 0 && sd->weapontype2 > 0 ) {
 			flag.rh = 0;
 			flag.lh = 1;
 		}
-		if (sstatus->lhw.atk)
+		if( sstatus->lhw.atk )
 			flag.lh = 1;
 	}
 
@@ -1893,29 +1894,29 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 	}
 
 	//Check for critical
-	if( !flag.cri && !(wd.type&0x08) && sstatus->cri &&
+	if(!flag.cri && !(wd.type&0x08) && sstatus->cri &&
 		(!skill_id ||
 		skill_id == KN_AUTOCOUNTER ||
 		skill_id == SN_SHARPSHOOTING || skill_id == MA_SHARPSHOOTING ||
 		skill_id == NJ_KIRIKAGE))
 	{
 		short cri = sstatus->cri;
-		if (sd) {
+		if(sd) {
 			cri+= sd->critaddrace[tstatus->race];
 			if(flag.arrow)
 				cri += sd->bonus.arrow_cri;
 		}
-		if( sc && sc->data[SC_CAMOUFLAGE] )
+		if(sc && sc->data[SC_CAMOUFLAGE])
 			cri += 100 * min(10,sc->data[SC_CAMOUFLAGE]->val3); //Max 100% (1K)
 
 		//The official equation is *2, but that only applies when sd's do critical.
 		//Therefore, we use the old value 3 on cases when an sd gets attacked by a mob
 		cri -= tstatus->luk*(!sd&&tsd?3:2);
 
-		if( tsc && tsc->data[SC_SLEEP] ) {
+		if(tsc && tsc->data[SC_SLEEP]) {
 			cri <<= 1;
 		}
-		switch (skill_id) {
+		switch(skill_id) {
 			case KN_AUTOCOUNTER:
 				if(battle_config.auto_counter_type &&
 					(battle_config.auto_counter_type&src->type))
@@ -1932,40 +1933,40 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				break;
 		}
 		if(tsd && tsd->bonus.critical_def)
-			cri = cri * ( 100 - tsd->bonus.critical_def ) / 100;
-		if (rnd()%1000 < cri)
+			cri = cri * (100 - tsd->bonus.critical_def) / 100;
+		if(rnd()%1000 < cri)
 			flag.cri = 1;
 	}
-	if (flag.cri) {
+	if(flag.cri) {
 		wd.type = 0x0a;
 #ifdef RENEWAL
 		flag.hit = 1;
 #else
 		flag.idef = flag.idef2 = flag.hit = 1;
 #endif
-	} else {	//Check for Perfect Hit
+	} else { //Check for Perfect Hit
 		if(sd && sd->bonus.perfect_hit > 0 && rnd()%100 < sd->bonus.perfect_hit)
 			flag.hit = 1;
-		if (sc && sc->data[SC_FUSION]) {
+		if(sc && sc->data[SC_FUSION]) {
 			flag.hit = 1; //SG_FUSION always hit [Komurka]
-			flag.idef = flag.idef2 = 1; //def ignore [Komurka]
+			flag.idef = flag.idef2 = 1; //Def ignore [Komurka]
 		}
-		if( !flag.hit )
+		if(!flag.hit)
 			switch(skill_id) {
 				case AS_SPLASHER:
-					if( !wflag ) // Always hits the one exploding.
+					if(!wflag) //Always hits the one exploding.
 						flag.hit = 1;
 					break;
 				case CR_SHIELDBOOMERANG:
-					if( sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_CRUSADER )
+					if(sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_CRUSADER)
 						flag.hit = 1;
 					break;
 			}
-		if (tsc && !flag.hit && tsc->opt1 && tsc->opt1 != OPT1_STONEWAIT && tsc->opt1 != OPT1_BURNING)
+		if(tsc && !flag.hit && tsc->opt1 && tsc->opt1 != OPT1_STONEWAIT && tsc->opt1 != OPT1_BURNING)
 			flag.hit = 1;
 	}
 
-	if (!flag.hit) { //Hit/Flee calculation
+	if(!flag.hit) { //Hit/Flee calculation
 		short
 			flee = tstatus->flee,
 #ifdef RENEWAL
@@ -1978,9 +1979,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			unsigned char attacker_count; //256 max targets should be a sane max
 			attacker_count = unit_counttargeted(target);
 			if(attacker_count >= battle_config.agi_penalty_count) {
-				if (battle_config.agi_penalty_type == 1)
+				if(battle_config.agi_penalty_type == 1)
 					flee = (flee * (100 - (attacker_count - (battle_config.agi_penalty_count - 1))*battle_config.agi_penalty_num))/100;
-				else //asume type 2: absolute reduction
+				else //Assume type 2: absolute reduction
 					flee -= (attacker_count - (battle_config.agi_penalty_count - 1))*battle_config.agi_penalty_num;
 				if(flee < 1) flee = 1;
 			}
@@ -1995,7 +1996,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		if(sd && flag.arrow)
 			hitrate += sd->bonus.arrow_hit;
 #ifdef RENEWAL
-		if( sd ) //in Renewal hit bonus from Vultures Eye is not anymore shown in status window
+		if(sd) //in Renewal hit bonus from Vultures Eye is not anymore shown in status window
 			hitrate += pc_checkskill(sd,AC_VULTURE);
 #endif
 		if(skill_id)
@@ -2028,13 +2029,13 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					hitrate += hitrate * 5 * skill_lv / 100;
 					break;
 				case AS_SONICBLOW:
-					if( sd && pc_checkskill(sd,AS_SONICACCEL) > 0 )
+					if(sd && pc_checkskill(sd,AS_SONICACCEL) > 0)
 						hitrate += hitrate * 50 / 100;
 					break;
 				case MC_CARTREVOLUTION:
 				case GN_CART_TORNADO:
 				case GN_CARTCANNON:
-					if( sd && pc_checkskill(sd, GN_REMODELING_CART) > 0 )
+					if(sd && pc_checkskill(sd, GN_REMODELING_CART) > 0)
 						hitrate += 4 * pc_checkskill(sd, GN_REMODELING_CART);
 					break;
 				case GC_VENOMPRESSURE:
@@ -2048,13 +2049,13 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					break;
 			}
 
-		if( sd ) {
+		if(sd) {
 			// Weaponry Research hidden bonus
-			if ((skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
+			if((skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
 				hitrate += hitrate * ( 2 * skill ) / 100;
 			
-			if( (sd->status.weapon == W_DAGGER || sd->status.weapon == W_1HSWORD) &&
-			   (skill = pc_checkskill(sd, GN_TRAINING_SWORD)) > 0 )
+			if((sd->status.weapon == W_DAGGER || sd->status.weapon == W_1HSWORD) &&
+				(skill = pc_checkskill(sd, GN_TRAINING_SWORD)) > 0 )
 				hitrate += 3 * skill;
 		}
 		
@@ -2064,10 +2065,16 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			wd.dmg_lv = ATK_FLEE;
 		else
 			flag.hit = 1;
-	}	//End hit/miss calculation
+	} //End hit/miss calculation
 
-	if (flag.hit && !flag.infdef) { //No need to do the math for plants
-		//Hitting attack
+	if(!flag.infdef && (
+		(tstatus->mode&MD_IGNOREMELEE && wd.flag&(BF_SHORT)) // Physical melee
+		|| (tstatus->mode&MD_IGNORERANGED && wd.flag&(BF_LONG)) // Physical ranged
+	))
+		flag.infdef = 1;
+
+	//No need to do the math for plants
+	if (flag.hit && !flag.infdef) { //Hitting attack
 
 //Assuming that 99% of the cases we will not need to check for the flag.rh... we don't.
 //ATK_RATE scales the damage. 100 = no change. 50 is halved, 200 is doubled, etc
@@ -3721,7 +3728,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	memset(&ad,0,sizeof(ad));
 	memset(&flag,0,sizeof(flag));
 
-	if(src==NULL || target==NULL) {
+	if (src == NULL || target == NULL) {
 		nullpo_info(NLP_MARK);
 		return ad;
 	}
@@ -3746,26 +3753,26 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 	if (s_ele == -1) { // pl=-1 : the skill takes the weapon's element
 		s_ele = sstatus->rhw.ele;
-		if( sd ) { //Summoning 10 talisman will endow your weapon
+		if (sd) { //Summoning 10 talisman will endow your weapon
 			ARR_FIND(1, 6, i, sd->talisman[i] >= 10);
-			if( i < 5 ) s_ele = i;
+			if (i < 5) s_ele = i;
 		}
 	} else if (s_ele == -2) //Use status element
 		s_ele = status_get_attack_sc_element(src,status_get_sc(src));
-	else if( s_ele == -3 ) //Use random element
+	else if (s_ele == -3) //Use random element
 		s_ele = rnd()%ELE_MAX;
 
-	if( skill_id == SO_PSYCHIC_WAVE ) {
-		if( sc && sc->count ) {
-			if( sc->data[SC_HEATER_OPTION] ) s_ele = sc->data[SC_HEATER_OPTION]->val4;
-			else if( sc->data[SC_COOLER_OPTION] ) s_ele = sc->data[SC_COOLER_OPTION]->val4;
-			else if( sc->data[SC_BLAST_OPTION] ) s_ele = sc->data[SC_BLAST_OPTION]->val3;
-			else if( sc->data[SC_CURSED_SOIL_OPTION] ) s_ele = sc->data[SC_CURSED_SOIL_OPTION]->val4;
+	if (skill_id == SO_PSYCHIC_WAVE) {
+		if (sc && sc->count) {
+			if (sc->data[SC_HEATER_OPTION]) s_ele = sc->data[SC_HEATER_OPTION]->val4;
+			else if (sc->data[SC_COOLER_OPTION]) s_ele = sc->data[SC_COOLER_OPTION]->val4;
+			else if (sc->data[SC_BLAST_OPTION]) s_ele = sc->data[SC_BLAST_OPTION]->val3;
+			else if (sc->data[SC_CURSED_SOIL_OPTION]) s_ele = sc->data[SC_CURSED_SOIL_OPTION]->val4;
 		}
 	}
 
 	//Set miscellaneous data that needs be filled
-	if(sd) {
+	if (sd) {
 		sd->state.arrow_atk = 0;
 		ad.blewcount += battle_blewcount_bonus(sd, skill_id);
 	}
@@ -3773,23 +3780,28 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	//Skill Range Criteria
 	ad.flag |= battle_range_type(src, target, skill_id, skill_lv);
 	flag.infdef=(tstatus->mode&MD_PLANT?1:0);
-	if( target->type == BL_SKILL) {
+	if (target->type == BL_SKILL) {
 		TBL_SKILL *su = (TBL_SKILL*)target;
-		if( su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD) )
+		if (su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
 			flag.infdef = 1;
 	}
 
-	switch(skill_id) {
+	switch (skill_id) {
 		case MG_FIREWALL:
 		case NJ_KAENSIN:
 			ad.dmotion = 0; //No flinch animation.
-			if ( tstatus->def_ele == ELE_FIRE || battle_check_undead(tstatus->race, tstatus->def_ele) )
+			if (tstatus->def_ele == ELE_FIRE || battle_check_undead(tstatus->race, tstatus->def_ele))
 				ad.blewcount = 0; //No knockback
 			break;
 		case PR_SANCTUARY:
 			ad.dmotion = 0; //No flinch animation.
 			break;
 	}
+
+	if (!flag.infdef && (
+		(tstatus->mode&MD_IGNOREMAGIC && ad.flag&(BF_MAGIC)) //Magic
+	))
+		flag.infdef = 1;
 
 	if (!flag.infdef) { //No need to do the math for plants
 #ifdef RENEWAL
@@ -4653,6 +4665,9 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			}
 		break;
 	}
+
+	if( tstatus->mode&MD_IGNOREMISC && md.flag&(BF_MISC) ) //Misc @TODO optimize me
+		md.damage = md.damage2 = 1;
 
 	return md;
 }

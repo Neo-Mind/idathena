@@ -7006,9 +7006,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 	//Check for BOSS resistances
 	if(status->mode&MD_BOSS && !(flag&1)) {
-		 if (type>=SC_COMMON_MIN && type <= SC_COMMON_MAX)
+		 if(type >= SC_COMMON_MIN && type <= SC_COMMON_MAX)
 			 return 0;
-		 switch (type) {
+		 switch(type) {
 			case SC_BLESSING:
 			case SC_DECREASEAGI:
 			case SC_PROVOKE:
@@ -7049,6 +7049,15 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC__UNLUCKY:
 			case SC__WEAKNESS:
 			case SC__IGNORANCE:
+				return 0;
+		}
+	}
+
+	//Check for mvp resistance //ATM only those who OS
+	if (status->mode&MD_MVP && !(flag&1)) {
+		switch (type) {
+			case SC_COMA:
+			//Continue list...
 				return 0;
 		}
 	}

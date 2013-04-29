@@ -2095,17 +2095,18 @@ int skill_blown(struct block_list* src, struct block_list* target, int count, in
 
 	nullpo_ret(src);
 
-	if (src != target && (map_flag_gvg(target->m) || map[target->m].flag.battleground))
-		return 0; //No knocking back in WoE
-	if (count == 0)
-		return 0; //Actual knockback distance is 0.
+	if( src != target && (map_flag_gvg(target->m) || map[target->m].flag.battleground) )
+		return 0; // No knocking back in WoE
+	if( count == 0 )
+		return 0; // Actual knockback distance is 0.
 
-	switch (target->type) {
+	switch( target->type ) {
 		case BL_MOB: {
 				struct mob_data* md = BL_CAST(BL_MOB, target);
 				if( md->class_ == MOBID_EMPERIUM )
 					return 0;
-				if(src != target && is_boss(target)) //Bosses can't be knocked-back
+				// Bosses can't be knocked-back
+				if( src != target && status_get_mode(target)&(MD_KNOCKBACK_IMMUNE|MD_BOSS) )
 					return 0;
 			}
 			break;
@@ -2120,14 +2121,14 @@ int skill_blown(struct block_list* src, struct block_list* target, int count, in
 		case BL_SKILL:
 			su = (struct skill_unit *)target;
 			if( su && su->group && su->group->unit_id == UNT_ANKLESNARE )
-				return 0; // ankle snare cannot be knocked back
+				return 0; // Ankle snare cannot be knocked back
 			break;
 	}
 	
-	if (dir == -1) // <optimized>: do the computation here instead of outside
-		dir = map_calc_dir(target, src->x, src->y); // direction from src to target, reversed
+	if( dir == -1 ) // <optimized>: do the computation here instead of outside
+		dir = map_calc_dir(target, src->x, src->y); // Direction from src to target, reversed
 
-	if (dir >= 0 && dir < 8) { // take the reversed 'direction' and reverse it
+	if( dir >= 0 && dir < 8 ) { // Take the reversed 'direction' and reverse it
 		dx = -dirx[dir];
 		dy = -diry[dir];
 	}
