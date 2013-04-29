@@ -4453,9 +4453,9 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 #ifdef RENEWAL
 			{
 				short atk, matk, size_mod, bonus;
-				atk  = (2 * sstatus->batk) + sstatus->rhw.atk;
+				atk  = (2 * sstatus->batk) + (sd ? sstatus->rhw.atk : 0);
 				matk = sstatus->matk_max + sstatus->matk_min;
-				size_mod  = sd ? sd->right_weapon.atkmods[tstatus->size] : 100;
+				size_mod  = sd ? sd->right_weapon.atkmods[tstatus->size] : 1;
 				bonus = sd ? sd->bonus.long_attack_atk_rate : 0; // Long ATK Bonus. Likes : Archer Skeleton Card
 
 				if ((atk != 0 && size_mod != 0) || matk != 0)
