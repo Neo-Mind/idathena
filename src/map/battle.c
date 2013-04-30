@@ -2378,7 +2378,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					break;
 				case AM_ACIDTERROR:
 #ifdef RENEWAL
-					skillratio += 100*skill_lv;
+					skillratio += 80*skill_lv;
 					if(tstatus->mode&MD_BOSS)
 						skillratio >>= 1;
 #else
@@ -3641,16 +3641,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		}
 	}
 
-#ifdef RENEWAL
-	if(skill_id == AM_ACIDTERROR) {
-		struct Damage ad = battle_calc_magic_attack(src, target, skill_id, skill_lv, wflag);
-		wd.damage += ad.damage;
-	}
-#endif
-
 	//Reject Sword bugreport:4493 by Daegaladh
 	if(wd.damage && tsc && tsc->data[SC_REJECTSWORD] &&
-		(src->type!=BL_PC || (
+		(src->type != BL_PC || (
 			((TBL_PC *)src)->weapontype1 == W_DAGGER ||
 			((TBL_PC *)src)->weapontype1 == W_1HSWORD ||
 			((TBL_PC *)src)->status.weapon == W_2HSWORD
@@ -3667,7 +3660,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 	if( sc ) {
 		//SG_FUSION hp penalty [Komurka]
 		if( sc->data[SC_FUSION] ) {
-			int hp= sstatus->max_hp;
+			int hp = sstatus->max_hp;
 			if( sd && tsd ) {
 				hp = 8*hp/100;
 				if ((sstatus->hp*100) <= (sstatus->max_hp*20))
@@ -3701,6 +3694,12 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		;
 		wd.damage += md.damage;
 	}
+#ifdef RENEWAL
+	else if(skill_id == AM_ACIDTERROR) {
+		struct Damage ad = battle_calc_magic_attack(src, target, skill_id, skill_lv, wflag);
+		wd.damage += ad.damage;
+	}
+#endif
 
 	return wd;
 }
@@ -3987,6 +3986,11 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 								ratio -= 10;
 							skillratio += ratio;
 						}
+						break;
+					case AM_ACIDTERROR:
+						skillratio += 20*skill_lv;
+						if(tstatus->mode&MD_BOSS)
+							skillratio >>= 1;
 						break;
 					case NJ_HUUJIN:
 						skillratio += 50;
@@ -4473,7 +4477,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 					md.damage += md.damage * bonus / 100;
 			}
 #else
-			if (tstatus->vit + sstatus->int_) //crash fix
+			if (tstatus->vit + sstatus->int_) //Crash fix
 				md.damage = (int)(7 * tstatus->vit * sstatus->int_ * sstatus->int_ / (10 * (tstatus->vit + sstatus->int_)));
 			else
 				md.damage = 0;
