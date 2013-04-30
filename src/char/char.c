@@ -1892,7 +1892,7 @@ int mmo_char_tobuf(uint8* buffer, struct mmo_charstatus* p)
 }
 int mmo_char_send006b(int fd, struct char_session_data* sd);
 //-------------------------------------------------
-// [Ind] notify client about charselect window data
+// Notify client about charselect window data [Ind]
 //-------------------------------------------------
 void mmo_char_send082d(int fd, struct char_session_data* sd) {
 
