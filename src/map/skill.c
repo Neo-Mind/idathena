@@ -9101,18 +9101,18 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					for (i = 0; i < ARRAYLENGTH(scs); i++) {
 						if (tsc->data[scs[i]]) status_change_end(bl, scs[i], INVALID_TIMER);
 					}
-					if (!tsc->data[SC_SILENCE]) //put inavoidable silence on target
+					if (!tsc->data[SC_SILENCE]) //Put inavoidable silence on target
 						status_change_start(src, bl, SC_SILENCE, 100, skill_lv, 0,0,0, skill_get_time(skill_id, skill_lv),1|2|8);
 				}
-				heal = status_get_sp(src) + status_get_lv(src); //cur_sp+blvl @TODO need real value
+				heal = status_get_sp(src) + status_get_lv(src); //Current SP + Base Level @TODO need real value
 				status_heal(bl, heal, 0, 7);
-				
-				//now inflict silence on everyone
-				if(ssc && !ssc->data[SC_SILENCE]) //put inavoidable silence on homun
+
+				//Now inflict silence on everyone
+				if(ssc && !ssc->data[SC_SILENCE]) //Put inavoidable silence on homun
 					status_change_start(src, src, SC_SILENCE, 100, skill_lv, 0,0,0, skill_get_time(skill_id, skill_lv),1|2|8);
 				if(m_bl) {
 					struct status_change *msc = status_get_sc(m_bl);
-					if(msc && !msc->data[SC_SILENCE]) //put inavoidable silence on master
+					if(msc && !msc->data[SC_SILENCE]) //Put inavoidable silence on master
 						status_change_start(src, m_bl, SC_SILENCE, 100, skill_lv, 0,0,0, skill_get_time(skill_id, skill_lv),1|2|8);
 				}
 				if(hd)

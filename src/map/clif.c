@@ -2152,7 +2152,7 @@ void clif_additem(struct map_session_data *sd, int n, int amount, int fail)
 		WFIFOL(fd,offs+23)=sd->status.inventory[n].expire_time;
 #endif
 #if PACKETVER >= 20071002
-		WFIFOW(fd,offs+27)=0;  //  HireExpireDate
+		WFIFOW(fd,offs+27)=0; // HireExpireDate
 #endif
 	}
 
@@ -8667,11 +8667,14 @@ void clif_viewequip_ack(struct map_session_data* sd, struct map_session_data* ts
 
 #if PACKETVER < 20101124
 	WBUFW(buf, 0) = 0x2d7;
-#elseif PACKETVER < 20120925
+#endif
+#if PACKETVER >= 20101124 && PACKETVER < 20120925
 	WBUFW(buf, 0) = 0x859;
-#else
+#endif
+#if PACKETVER >= 20120925
 	WBUFW(buf, 0) = 0x997;
 #endif
+
 	safestrncpy((char*)WBUFP(buf, 4), tsd->status.name, NAME_LENGTH);
 	WBUFW(buf,28) = tsd->status.class_;
 	WBUFW(buf,30) = tsd->vd.hair_style;
@@ -8711,7 +8714,7 @@ void clif_viewequip_ack(struct map_session_data* sd, struct map_session_data* ts
 		n++;
 	}
 
-	WFIFOW(fd, 2) = 43+offset+n*s;	// Set length
+	WFIFOW(fd, 2) = 43+offset+n*s; // Set length
 	WFIFOSET(fd, WFIFOW(fd, 2));
 }
 
