@@ -6484,7 +6484,7 @@
 13773,Fire_Brand_Box,Refined Fireblend Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 13408,604800; },{},{}
 13774,Immaterial_Sword_Box,Refined Immaterial Sword Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 13409,604800; },{},{}
 13775,Unholy_Touch_Box,Refined Unholy Touch Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 1274,604800; },{},{}
-13776,Cloak_Of_Survival_Box,Refined Survivor's Manteau Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 2535,1209600; },{},{}
+13776,Cloak_Of_Survival_Box,Refined Survivor's Manteau Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 2535,604800; },{},{}
 13777,Masquerade_Box,Refined Masquerade Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 5326,1209600; },{},{}
 13778,Orc_Hero_Helm_Box,Refined Helmet of Orc Hero Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 5327,1209600; },{},{}
 13779,Evil_Wing_Ears_Box,Refined Wing of Diablo Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 5328,1209600; },{},{}
@@ -6992,9 +6992,9 @@
 14281,Praccsinos_Box,Praccsinos_Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 2752,1; },{},{}
 14282,Emperium_Box,Emperium Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 714,1; },{},{}
 14283,Marriage_Certificate_Box,Written Oath Of Marriage Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 6026,1; },{},{}
-14284,Muffler_Box,Muffler Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 2548,1; },{},{}
-14285,Balkiriah_Shield_Box,Balkiriah Shield Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 2137,1; },{},{}
-14286,Skull_Ring_Box,Skull Ring Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 2763,1; },{},{}
+14284,Muffler_Box,Muffler Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 2548,604800; },{},{}
+14285,Balkiriah_Shield_Box,Balkiriah Shield Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 2137,604800; },{},{}
+14286,Skull_Ring_Box,Skull Ring Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 2763,604800; },{},{}
 14287,Baricade_Repair_Kit,Barricade Repair Kit,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 1019,30; getitem 999,10; getitem 1011,10; getitem 984,5; },{},{}
 14288,Guardian_Stone_Repair_Kit,Guardian Stone Repair Kit,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 984,1; getitem 985,1; getitem 7049,30; getitem 717,5; getitem 716,5; getitem 715,5; },{},{}
 14289,Cloth_Dye_Coupon_Box,New Clothing Dye Coupon Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 6046,1; },{},{}

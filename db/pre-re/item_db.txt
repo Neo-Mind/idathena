@@ -5765,7 +5765,7 @@
 13773,Fire_Brand_Box,Refined Fireblend Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 13408,604800; },{},{}
 13774,Immaterial_Sword_Box,Refined Immaterial Sword Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 13409,604800; },{},{}
 13775,Unholy_Touch_Box,Refined Unholy Touch Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 1274,604800; },{},{}
-13776,Cloak_Of_Survival_Box,Refined Survivor's Manteau Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 2535,1209600; },{},{}
+13776,Cloak_Of_Survival_Box,Refined Survivor's Manteau Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 2535,604800; },{},{}
 13777,Masquerade_Box,Refined Masquerade Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 5326,1209600; },{},{}
 13778,Orc_Hero_Helm_Box,Refined Helmet of Orc Hero Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 5327,1209600; },{},{}
 13779,Evil_Wing_Ears_Box,Refined Wing of Diablo Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 5328,1209600; },{},{}
