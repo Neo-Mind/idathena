@@ -48,6 +48,7 @@
 
 #ifndef PACKETVER
 	#define PACKETVER 20120410
+	//#define PACKETVER 20130320
 #endif
 
 //Remove/Comment this line to disable sc_data saving. [Skotlex]

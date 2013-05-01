@@ -3642,7 +3642,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 	}
 
 	//Reject Sword bugreport:4493 by Daegaladh
-	if(wd.damage && tsc && tsc->data[SC_REJECTSWORD] &&
+	if( wd.damage && tsc && tsc->data[SC_REJECTSWORD] &&
 		(src->type != BL_PC || (
 			((TBL_PC *)src)->weapontype1 == W_DAGGER ||
 			((TBL_PC *)src)->weapontype1 == W_1HSWORD ||
@@ -4712,9 +4712,13 @@ int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int
 	sc = status_get_sc(bl);
 	
 	if( sc && sc->data[SC_CRESCENTELBOW] && !is_boss(src) && rnd()%100 < sc->data[SC_CRESCENTELBOW]->val2 ) {
+		//TODO: This is a counter-attack skill, put it by Reject Sword
 		//ATK [{(Target HP / 100) x Skill Level} x Caster Base Level / 125] % + [Received damage x {1 + (Skill Level x 0.2)}]
+		struct status_data *status = status_get_status_data(bl);
+		struct status_data *tstatus = status_get_status_data(src);
 		int ratio = (status_get_hp(src) / 100) * sc->data[SC_CRESCENTELBOW]->val1 * status_get_lv(bl) / 125;
 		if (ratio > 5000) ratio = 5000; // Maximum of 5000% ATK
+		rdamage = battle_calc_base_damage(status, &status->rhw, sc, tstatus->size, sd, 0);
 		rdamage = rdamage * ratio / 100 + (*dmg) * (10 + sc->data[SC_CRESCENTELBOW]->val1 * 20 / 10) / 10;
 		skill_blown(bl, src, skill_get_blewcount(SR_CRESCENTELBOW_AUTOSPELL, sc->data[SC_CRESCENTELBOW]->val1), unit_getdir(src), 0);
 		clif_skill_damage(bl, src, gettick(), status_get_amotion(src), 0, rdamage,
@@ -4746,7 +4750,7 @@ int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int
 				}
 			}
 			if( sc && sc->data[SC_REFLECTDAMAGE] && rnd()%100 < 30 + 10 * sc->data[SC_REFLECTDAMAGE]->val1) {
-				max_damage = max_damage * status_get_lv(bl) / 100;
+				max_damage *= status_get_lv(bl) / 100;
 				rdamage += (*dmg) * sc->data[SC_REFLECTDAMAGE]->val2 / 100;
 				rdamage = cap_value(rdamage,1,max_damage);
 				if ((--sc->data[SC_REFLECTDAMAGE]->val3) <= 0)

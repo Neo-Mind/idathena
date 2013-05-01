@@ -620,7 +620,7 @@ int guild_invite(struct map_session_data *sd, struct map_session_data *tsd) {
 
 	//search an empty spot in guild
 	ARR_FIND( 0, g->max_member, i, g->member[i].account_id == 0 );
-	if(i==g->max_member){
+	if(i==g->max_member) {
 		clif_guild_inviteack(sd,3);
 		return 0;
 	}

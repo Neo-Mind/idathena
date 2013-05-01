@@ -10709,7 +10709,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			break;
 
 		case SC_REFLECTDAMAGE:
-			if( --(sce->val4) >= 0 ) {
+			if( --(sce->val4) > 0 ) {
 				if( !status_charge(bl,0,10) )
 					break;
 				sc_timer_next(1000 + tick, status_change_timer, bl->id, data);
@@ -10761,7 +10761,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		break;
 
 		case SC_INSPIRATION:
-			if(--(sce->val4) >= 0) {
+			if( --(sce->val4) > 0 ) {
 				int hp = status->max_hp * (7 / 2 - (1 / 2 * sce->val1)) / 100;
 				int sp = status->max_sp * (9 / 2 - (1 / 2 * sce->val1)) / 100;
 
@@ -10774,7 +10774,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		case SC_RAISINGDRAGON:
 			// 1% every 5 seconds [Jobbie]
-			if( --(sce->val3)>0 && status_charge(bl, sce->val2, 0) ) {
+			if( --(sce->val3) > 0 && status_charge(bl, sce->val2, 0) ) {
 				if( !sc->data[type] ) return 0;
 				sc_timer_next(5000 + tick, status_change_timer, bl->id, data);
 				return 0;

@@ -34,7 +34,7 @@
 // Client detection is faster when all clients use this version.
 // Version 23 is the latest Sakexe (above versions are for Renewal clients)
 //packet_db_ver: 25
-packet_db_ver: default
+packet_db_ver: 30
 
 packet_ver: 5
 0x0064,55
@@ -1635,6 +1635,7 @@ packet_ver: 26
 0x0857,-1
 0x0858,-1
 0x0859,-1
+0x08d0,9
 
 //2011-10-05aRagexeRE
 packet_ver: 27
@@ -1651,6 +1652,7 @@ packet_ver: 27
 0x0838,6,solvecharname,2
 0x0439,8,useitem,2:4
 0x08d2,10
+0x08d1,7
 
 //2011-11-02aRagexe
 packet_ver: 28
@@ -1703,7 +1705,6 @@ packet_ver:29
 0x0835,2,searchstoreinfonextpage,0
 0x0838,12,searchstoreinfolistitemclick,2:6:10
 0x0439,8,useitem,2:4
-0x08CF,10 //Amulet spirits
 
 //2012-04-10aRagexeRE
 packet_ver: 30
@@ -1762,7 +1763,6 @@ packet_ver: 30
 0x0907,5,moveitem,2:4
 0x0908,5
 0x08D7,28,dull,2:4 //battlegroundreg
-0x08CF,10 //Amulet spirits
 0x0977,14 //Monster HP Bar
 0x0916,26,guildinvite2,2
 
@@ -1824,9 +1824,6 @@ packet_ver: 31
 0x0908,5
 0x08D7,28,dull,2:4 //battlegroundreg
 0x08D2,10
-0x08CF,10 //Amulet spirits
-0x0977,14 //Monster HP Bar
-0x0916,26,guildinvite2,2
 
 //2012-06-18aRagexeRE
 packet_ver: 32
@@ -1885,10 +1882,7 @@ packet_ver: 32
 0x0907,5,moveitem,2:4
 0x0908,5
 0x08D7,28,dull,2:4 //battlegroundreg
-0x08CF,10 //Amulet spirits
-0x0977,14 //Monster HP Bar
 0x0983,29
-0x0916,26,guildinvite2,2
 
 // ========== WARNING =============
 // - 2012-07-02 is NOT STABLE.
@@ -1953,6 +1947,13 @@ packet_ver: 34
 0x990,31 //additem
 0x99b,8  //maptypeproperty2
 0x84b,19 //fallitem4
+0x090f,-1 // notify_newentry7
+0x914,-1 // notify_moveentry
+0x915,-1 // notify_standentry
+0x99a,9 // take_off_equipv5
+0x997,-1 //ZC_EQUIPWIN_MICROSCOPE_V5
+0x998,8,equipitem,2:4
+0x999,11 // cz_wear_equipv5
 
 //Add new packets here
 //packet_ver: 35
