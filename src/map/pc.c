@@ -3924,10 +3924,10 @@ int pc_dropitem(struct map_session_data *sd,int n,int amount)
  *------------------------------------------*/
 int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 {
-	int flag=0;
+	int flag = 0;
 	unsigned int tick = gettick();
 	struct map_session_data *first_sd = NULL,*second_sd = NULL,*third_sd = NULL;
-	struct party_data *p=NULL;
+	struct party_data *p = NULL;
 
 	nullpo_ret(sd);
 	nullpo_ret(fitem);
@@ -3935,21 +3935,17 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 	if(!check_distance_bl(&fitem->bl, &sd->bl, 2) && sd->ud.skill_id!=BS_GREED)
 		return 0;	// Distance is too far
 
-	if (sd->status.party_id)
+	if(sd->status.party_id)
 		p = party_search(sd->status.party_id);
 	
-	if(fitem->first_get_charid > 0 && fitem->first_get_charid != sd->status.char_id)
-  	{
+	if(fitem->first_get_charid > 0 && fitem->first_get_charid != sd->status.char_id) {
 		first_sd = map_charid2sd(fitem->first_get_charid);
 		if(DIFF_TICK(tick,fitem->first_get_tick) < 0) {
-			if (!(p && p->party.item&1 &&
+			if(!(p && p->party.item&1 &&
 				first_sd && first_sd->status.party_id == sd->status.party_id
 			))
 				return 0;
-		}
-		else
-		if(fitem->second_get_charid > 0 && fitem->second_get_charid != sd->status.char_id)
-	  	{
+		} else if(fitem->second_get_charid > 0 && fitem->second_get_charid != sd->status.char_id) {
 			second_sd = map_charid2sd(fitem->second_get_charid);
 			if(DIFF_TICK(tick, fitem->second_get_tick) < 0) {
 				if(!(p && p->party.item&1 &&
@@ -3957,10 +3953,7 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 					(second_sd && second_sd->status.party_id == sd->status.party_id))
 				))
 					return 0;
-			}
-			else
-			if(fitem->third_get_charid > 0 && fitem->third_get_charid != sd->status.char_id)
-		  	{
+			} else if(fitem->third_get_charid > 0 && fitem->third_get_charid != sd->status.char_id) {
 				third_sd = map_charid2sd(fitem->third_get_charid);
 				if(DIFF_TICK(tick,fitem->third_get_tick) < 0) {
 					if(!(p && p->party.item&1 &&
@@ -3975,7 +3968,7 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 	}
 
 	//This function takes care of giving the item to whoever should have it, considering party-share options.
-	if ((flag = party_share_loot(p,sd,&fitem->item_data, fitem->first_get_charid))) {
+	if((flag = party_share_loot(p,sd,&fitem->item_data, fitem->first_get_charid))) {
 		clif_additem(sd,0,0,flag);
 		return 1;
 	}
@@ -4014,7 +4007,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 		return 0;
 
 	if( (item->item_usage.flag&NOUSE_SITTING) && (pc_issit(sd) == 1) && (pc_get_group_level(sd) < item->item_usage.override) ) {
-		clif_colormes(sd->fd,COLOR_WHITE,msg_txt(1477));
+		clif_colormes(sd,COLOR_WHITE,msg_txt(1477));
 		return 0; // You cannot use this item while sitting.
 	}
 
