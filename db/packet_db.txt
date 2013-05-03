@@ -1610,12 +1610,6 @@ packet_ver: 25
 0x0842,6,recall2,2
 0x0843,6,remove2,2
 
-//New cashshop
-0x0844,2,cashshopopen,2
-0x084A,2,cashshopclose,2
-0x08C9,4,cashshopitemlist,2
-0x0848,-1,cashshopbuynew,2
-
 //2010-11-24aRagexeRE
 packet_ver: 26
 0x0288,-1,cashshopbuy,4:8
@@ -1636,6 +1630,12 @@ packet_ver: 26
 0x0858,-1
 0x0859,-1
 0x08d0,9
+
+//New cashshop
+0x0844,2,cashshopopen,2
+0x084A,2,cashshopclose,2
+0x08C9,4,cashshopitemlist,2
+0x0848,-1,cashshopbuynew,2
 
 //2011-10-05aRagexeRE
 packet_ver: 27

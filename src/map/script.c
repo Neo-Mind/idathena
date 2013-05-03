@@ -8544,8 +8544,8 @@ BUILDIN_FUNC(guildopenstorage)
 /*==========================================
  * Make player use a skill trought item usage
  *------------------------------------------*/
-/// itemskill <skill id>,<level>
-/// itemskill "<skill name>",<level>
+/// itemskill <skill id>,<level>,{flag}
+/// itemskill "<skill name>",<level>,{flag}
 BUILDIN_FUNC(itemskill)
 {
 	int id;
@@ -8559,8 +8559,13 @@ BUILDIN_FUNC(itemskill)
 	id = ( script_isstring(st,2) ? skill_name2id(script_getstr(st,2)) : script_getnum(st,2) );
 	lv = script_getnum(st,3);
 
-	sd->skillitem=id;
-	sd->skillitemlv=lv;
+	if( !script_hasdata(st, 4) ) {
+		if( !skill_check_condition_castbegin(sd,id,lv) )
+			return true;
+	}
+
+	sd->skillitem = id;
+	sd->skillitemlv = lv;
 	clif_item_skill(sd,id,lv);
 	return 0;
 }
@@ -17528,7 +17533,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(gettimestr,"si"),
 	BUILDIN_DEF(openstorage,""),
 	BUILDIN_DEF(guildopenstorage,""),
-	BUILDIN_DEF(itemskill,"vi"),
+	BUILDIN_DEF(itemskill,"vi?"),
 	BUILDIN_DEF(produce,"i"),
 	BUILDIN_DEF(cooking,"i"),
 	BUILDIN_DEF(monster,"siisii???"),

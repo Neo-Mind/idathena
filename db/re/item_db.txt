@@ -7334,15 +7334,9 @@
 //
 16548,Sagittarius_Crown_Box,Sagittarius Crown Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 5739,1; },{},{}
 16549,Sagittarius_Diadem_Box,Sagittarius Diadem Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 5740,1; },{},{}
-//16450,Scorpio_Diadem_Box
-16461,Red_Wing_Hat_Box,Red Wing Hat Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 5690,1; },{},{}
-//16462,Red_Wing_Hat_Box
-//16543,Snowman_Hat_Box
-//16544,Snowman_Hat_Box
-//16548,Sagittarius_Crown_Box
-//16549,Sagittarius_Diadem_Box
 //16550,Sagittarius_Crown_Box
 //16551,Sagittarius_Diadem_Box
+//
 //16554,Elven_Sunglasses_Box
 16555,Pr_Reset_Stone_Box,Pr Reset Stone Box,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
 16556,FPr_Reset_Stone_Box,FPr Reset Stone Box,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
