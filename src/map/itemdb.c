@@ -467,7 +467,7 @@ int itemdb_isrestricted(struct item* item, int gmlv, int gmlv2, int (*func)(stru
  *------------------------------------------*/
 int itemdb_isidentified(int nameid)
 {
-	int type=itemdb_type(nameid);
+	int type = itemdb_type(nameid);
 	switch (type) {
 		case IT_WEAPON:
 		case IT_ARMOR:
@@ -483,27 +483,23 @@ int itemdb_isidentified(int nameid)
  * (Give item another sprite)
  *------------------------------------------*/
 static bool itemdb_read_itemavail(char* str[], int columns, int current)
-{// <nameid>,<sprite>
+{ // <nameid>,<sprite>
 	int nameid, sprite;
 	struct item_data *id;
 
 	nameid = atoi(str[0]);
 
-	if( ( id = itemdb_exists(nameid) ) == NULL )
-	{
+	if( ( id = itemdb_exists(nameid) ) == NULL ) {
 		ShowWarning("itemdb_read_itemavail: Invalid item id %d.\n", nameid);
 		return false;
 	}
 
 	sprite = atoi(str[1]);
 
-	if( sprite > 0 )
-	{
+	if( sprite > 0 ) {
 		id->flag.available = 1;
 		id->view_id = sprite;
-	}
-	else
-	{
+	} else {
 		id->flag.available = 0;
 	}
 
@@ -517,57 +513,56 @@ static void itemdb_read_itemgroup_sub(const char* filename)
 {
 	FILE *fp;
 	char line[1024];
-	int ln=0;
+	int ln = 0;
 	int groupid,j,k,nameid;
 	char *str[3],*p;
 	char w1[1024], w2[1024];
 	
-	if( (fp=fopen(filename,"r"))==NULL ){
+	if( (fp = fopen(filename,"r")) == NULL ) {
 		ShowError("can't read %s\n", filename);
 		return;
 	}
 
-	while(fgets(line, sizeof(line), fp))
-	{
+	while( fgets(line, sizeof(line), fp) ) {
 		ln++;
-		if(line[0]=='/' && line[1]=='/')
+		if( line[0] == '/' && line[1] == '/')
 			continue;
-		if(strstr(line,"import")) {
-			if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2 &&
-				strcmpi(w1, "import") == 0) {
+		if( strstr(line, "import") ) {
+			if( sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2 &&
+				strcmpi(w1, "import") == 0 ) {
 				itemdb_read_itemgroup_sub(w2);
 				continue;
 			}
 		}
-		memset(str,0,sizeof(str));
-		for(j=0,p=line;j<3 && p;j++){
-			str[j]=p;
-			p=strchr(p,',');
-			if(p) *p++=0;
+		memset(str, 0, sizeof(str));
+		for( j = 0, p = line; j < 3 && p; j++ ) {
+			str[j] = p;
+			p = strchr(p, ',');
+			if( p ) *p++=0;
 		}
-		if(str[0]==NULL)
+		if( str[0] == NULL)
 			continue;
-		if (j<3) {
-			if (j>1) //Or else it barks on blank lines...
+		if( j < 3 ) {
+			if( j > 1 ) //Or else it barks on blank lines...
 				ShowWarning("itemdb_read_itemgroup: Insufficient fields for entry at %s:%d\n", filename, ln);
 			continue;
 		}
 		groupid = atoi(str[0]);
-		if (groupid < 0 || groupid >= MAX_ITEMGROUP) {
+		if( groupid < 0 || groupid >= MAX_ITEMGROUP ) {
 			ShowWarning("itemdb_read_itemgroup: Invalid group %d in %s:%d\n", groupid, filename, ln);
 			continue;
 		}
 		nameid = atoi(str[1]);
-		if (!itemdb_exists(nameid)) {
+		if( !itemdb_exists(nameid) ) {
 			ShowWarning("itemdb_read_itemgroup: Non-existant item %d in %s:%d\n", nameid, filename, ln);
 			continue;
 		}
 		k = atoi(str[2]);
-		if (itemgroup_db[groupid].qty+k >= MAX_RANDITEM) {
+		if( itemgroup_db[groupid].qty+k >= MAX_RANDITEM ) {
 			ShowWarning("itemdb_read_itemgroup: Group %d is full (%d entries) in %s:%d\n", groupid, MAX_RANDITEM, filename, ln);
 			continue;
 		}
-		for(j=0;j<k;j++)
+		for( j = 0; j < k; j++ )
 			itemgroup_db[groupid].nameid[itemgroup_db[groupid].qty++] = nameid;
 	}
 	fclose(fp);
@@ -588,14 +583,13 @@ static void itemdb_read_itemgroup(void)
  * Read item forbidden by mapflag (can't equip item)
  *------------------------------------------*/
 static bool itemdb_read_noequip(char* str[], int columns, int current)
-{// <nameid>,<mode>
+{ // <nameid>,<mode>
 	int nameid;
 	struct item_data *id;
 
 	nameid = atoi(str[0]);
 
-	if( ( id = itemdb_exists(nameid) ) == NULL )
-	{
+	if( ( id = itemdb_exists(nameid) ) == NULL ) {
 		ShowWarning("itemdb_read_noequip: Invalid item id %d.\n", nameid);
 		return false;
 	}
@@ -609,14 +603,13 @@ static bool itemdb_read_noequip(char* str[], int columns, int current)
  * Reads item trade restrictions [Skotlex]
  *------------------------------------------*/
 static bool itemdb_read_itemtrade(char* str[], int columns, int current)
-{// <nameid>,<mask>,<gm level>
+{ // <nameid>,<mask>,<gm level>
 	int nameid, flag, gmlv;
 	struct item_data *id;
 
 	nameid = atoi(str[0]);
 
-	if( ( id = itemdb_exists(nameid) ) == NULL )
-	{
+	if( ( id = itemdb_exists(nameid) ) == NULL ) {
 		//ShowWarning("itemdb_read_itemtrade: Invalid item id %d.\n", nameid);
 		//return false;
 		// FIXME: item_trade.txt contains items, which are commented in item database.
@@ -626,12 +619,11 @@ static bool itemdb_read_itemtrade(char* str[], int columns, int current)
 	flag = atoi(str[1]);
 	gmlv = atoi(str[2]);
 
-	if( flag < 0 || flag > 511 ) {//Check range
+	if( flag < 0 || flag > 511 ) { //Check range
 		ShowWarning("itemdb_read_itemtrade: Invalid trading mask %d for item id %d.\n", flag, nameid);
 		return false;
 	}
-	if( gmlv < 1 )
-	{
+	if( gmlv < 1 ) {
 		ShowWarning("itemdb_read_itemtrade: Invalid override GM level %d for item id %d.\n", gmlv, nameid);
 		return false;
 	}
@@ -646,22 +638,20 @@ static bool itemdb_read_itemtrade(char* str[], int columns, int current)
  * Reads item delay amounts [Paradox924X]
  *------------------------------------------*/
 static bool itemdb_read_itemdelay(char* str[], int columns, int current)
-{// <nameid>,<delay>
+{ // <nameid>,<delay>
 	int nameid, delay;
 	struct item_data *id;
 
 	nameid = atoi(str[0]);
 
-	if( ( id = itemdb_exists(nameid) ) == NULL )
-	{
+	if( ( id = itemdb_exists(nameid) ) == NULL ) {
 		ShowWarning("itemdb_read_itemdelay: Invalid item id %d.\n", nameid);
 		return false;
 	}
 
 	delay = atoi(str[1]);
 
-	if( delay < 0 )
-	{
+	if( delay < 0 ) {
 		ShowWarning("itemdb_read_itemdelay: Invalid delay %d for item id %d.\n", id->delay, nameid);
 		return false;
 	}
@@ -675,21 +665,19 @@ static bool itemdb_read_itemdelay(char* str[], int columns, int current)
  * Reads item stacking restrictions
  *----------------------------------------------------------------*/
 static bool itemdb_read_stack(char* fields[], int columns, int current)
-{// <item id>,<stack limit amount>,<type>
+{ // <item id>,<stack limit amount>,<type>
 	unsigned short nameid, amount;
 	unsigned int type;
 	struct item_data* id;
 
 	nameid = (unsigned short)strtoul(fields[0], NULL, 10);
 
-	if( ( id = itemdb_exists(nameid) ) == NULL )
-	{
+	if( ( id = itemdb_exists(nameid) ) == NULL ) {
 		ShowWarning("itemdb_read_stack: Unknown item id '%hu'.\n", nameid);
 		return false;
 	}
 
-	if( !itemdb_isstackable2(id) )
-	{
+	if( !itemdb_isstackable2(id) ) {
 		ShowWarning("itemdb_read_stack: Item id '%hu' is not stackable.\n", nameid);
 		return false;
 	}
@@ -697,16 +685,15 @@ static bool itemdb_read_stack(char* fields[], int columns, int current)
 	amount = (unsigned short)strtoul(fields[1], NULL, 10);
 	type = strtoul(fields[2], NULL, 10);
 
-	if( !amount )
-	{// ignore
+	if( !amount ) { // Ignore
 		return true;
 	}
 
 	id->stack.amount       = amount;
-	id->stack.inventory    = (type&1)!=0;
-	id->stack.cart         = (type&2)!=0;
-	id->stack.storage      = (type&4)!=0;
-	id->stack.guildstorage = (type&8)!=0;
+	id->stack.inventory    = (type&1) != 0;
+	id->stack.cart         = (type&2) != 0;
+	id->stack.storage      = (type&4) != 0;
+	id->stack.guildstorage = (type&8) != 0;
 
 	return true;
 }
@@ -714,20 +701,18 @@ static bool itemdb_read_stack(char* fields[], int columns, int current)
 
 /// Reads items allowed to be sold in buying stores
 static bool itemdb_read_buyingstore(char* fields[], int columns, int current)
-{// <nameid>
+{ // <nameid>
 	int nameid;
 	struct item_data* id;
 
 	nameid = atoi(fields[0]);
 
-	if( ( id = itemdb_exists(nameid) ) == NULL )
-	{
+	if( ( id = itemdb_exists(nameid) ) == NULL ) {
 		ShowWarning("itemdb_read_buyingstore: Invalid item id %d.\n", nameid);
 		return false;
 	}
 
-	if( !itemdb_isstackable2(id) )
-	{
+	if( !itemdb_isstackable2(id) ) {
 		ShowWarning("itemdb_read_buyingstore: Non-stackable item id %d cannot be enabled for buying store.\n", nameid);
 		return false;
 	}
@@ -736,6 +721,31 @@ static bool itemdb_read_buyingstore(char* fields[], int columns, int current)
 
 	return true;
 }
+
+/**
+ * Item usage restriction (item_nouse.txt)
+ **/
+static bool itemdb_read_nouse(char* fields[], int columns, int current)
+{ // <nameid>,<flag>,<override>
+	int nameid, flag, override;
+	struct item_data* id;
+
+	nameid = atoi(fields[0]);
+	
+	if( ( id = itemdb_exists(nameid) ) == NULL ) {
+		ShowWarning("itemdb_read_nouse: Invalid item id %d.\n", nameid);
+		return false;
+	}
+
+	flag = atoi(fields[1]);
+	override = atoi(fields[2]);
+
+	id->item_usage.flag = flag;
+	id->item_usage.override = override;
+
+	return true;
+}
+
 /**
  * @return: amount of retrieved entries.
  **/
@@ -1263,27 +1273,25 @@ static int itemdb_read_sqldb(void) {
 uint64 itemdb_unique_id(int8 flag, int64 value) {
 	static uint64 item_uid = 0;
 
-	if(flag)
-	{
-		if(flag == 1)
-		{	if(item_uid < value)
+	if (flag) {
+		if (flag == 1) {
+			if (item_uid < value)
 				return (item_uid = value);
-		}else if(flag == 2)
+		} else if (flag == 2)
 			return (item_uid = value);
-			
+
 		return item_uid;
 	}
 
 	return ++item_uid;
 }
-int itemdb_uid_load(){
+int itemdb_uid_load() {
 
 	char * uid;
 	if (SQL_ERROR == Sql_Query(mmysql_handle, "SELECT `value` FROM `interreg` WHERE `varname`='unique_id'"))
 		Sql_ShowDebug(mmysql_handle);
 
-	if( SQL_SUCCESS != Sql_NextRow(mmysql_handle) )
-	{
+	if (SQL_SUCCESS != Sql_NextRow(mmysql_handle)) {
 		ShowError("itemdb_uid_load: Unable to fetch unique_id data\n");
 		Sql_FreeResult(mmysql_handle);
 		return -1;
@@ -1314,6 +1322,7 @@ static void itemdb_read(void) {
 	sv_readdb(db_path, "item_delay.txt",         ',', 2, 2, -1, &itemdb_read_itemdelay);
 	sv_readdb(db_path, "item_stack.txt",         ',', 3, 3, -1, &itemdb_read_stack);
 	sv_readdb(db_path, DBPATH"item_buyingstore.txt",   ',', 1, 1, -1, &itemdb_read_buyingstore);
+	sv_readdb(db_path, "item_nouse.txt",         ',', 3, 3, -1, &itemdb_read_nouse);
 
 	itemdb_uid_load();
 }
@@ -1327,7 +1336,7 @@ static void destroy_item_data(struct item_data* self, int free_self)
 {
 	if( self == NULL )
 		return;
-	// free scripts
+	// Free scripts
 	if( self->script )
 		script_free_code(self->script);
 	if( self->equip_script )

@@ -3222,7 +3222,7 @@ void clif_statusupack(struct map_session_data *sd,int type,int ok,int val)
 }
 
 
-/// Notifies the client about the result of a request to equip an item .
+/// Notifies the client about the result of a request to equip an item.
 /// 00aa <index>.W <equip location>.W <result>.B (ZC_REQ_WEAR_EQUIP_ACK)
 /// 00aa <index>.W <equip location>.W <view id>.W <result>.B (PACKETVER >= 20100629)
 /// 08d0 <index>.W <equip location>.W <view id>.W <result>.B (ZC_REQ_WEAR_EQUIP_ACK2)
@@ -3268,7 +3268,7 @@ void clif_equipitemack(struct map_session_data *sd,int n,int pos,int ok)
 }
 
 
-/// Notifies the client about the result of a request to take off an item .
+/// Notifies the client about the result of a request to take off an item.
 /// 00ac <index>.W <equip location>.W <result>.B (ZC_REQ_TAKEOFF_EQUIP_ACK)
 /// 08d1 <index>.W <equip location>.W <result>.B (ZC_REQ_TAKEOFF_EQUIP_ACK2)
 /// 099a <index>.W <equip location>.L <result>.B (ZC_ACK_TAKEOFF_EQUIP_V5)
