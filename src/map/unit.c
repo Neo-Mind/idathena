@@ -312,11 +312,11 @@ int unit_delay_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data)
 int unit_delay_walktobl_timer(int tid, unsigned int tick, int id, intptr_t data)
 {
 	struct block_list *bl = map_id2bl(id);
+	struct unit_data *ud = unit_bl2ud(bl);
 
 	if (!bl || bl->prev == NULL || !data)
 		return 0;
 
-	struct unit_data* ud = unit_bl2ud(bl);
 	unit_walktobl(bl, map_id2bl(data), 0, 0);
 	ud->target_to = 0;
 	return 1;
