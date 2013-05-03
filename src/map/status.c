@@ -6803,10 +6803,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				return 0;
 
 		case SC_INCREASEAGI:
-			 if(sd && pc_issit(sd)) {
-				 pc_setstand(sd);
-			 }
-
+			if(sd && pc_issit(sd)) {
+				pc_setstand(sd);
+				skill_sit(sd,0);
+			}
 		case SC_CONCENTRATE:
 		case SC_SPEARQUICKEN:
 		case SC_TRUESIGHT:
@@ -8651,9 +8651,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			val_flag |= 1|2|4;
 			break;
 		case SC_CRESCENTELBOW:
-			if( sd ) {
-				val2 = sd->status.job_level / 2 + (50 + 5 * val1);
-			}
+			if( sd )
+				val2 = (sd->status.job_level / 2) + (50 + 5 * val1);
 			val_flag |= 1|2;
 			break;
 		case SC_LIGHTNINGWALK: // [(Job Level / 2) + (40 + 5 * Skill Level)] %

@@ -1807,7 +1807,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 
 	if(sd && (sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR &&
 		map[sd->bl.m].flag.nosumstarmiracle == 0) //SG_MIRACLE [Komurka]
-		sc_start(src,src,SC_MIRACLE,battle_config.sg_miracle_skill_ratio,1,battle_config.sg_miracle_skill_duration);
+		status_change_start(src,src,SC_MIRACLE,battle_config.sg_miracle_skill_ratio,1,0,0,0,battle_config.sg_miracle_skill_duration,0);
 
 	if(sd && skill_id && attack_type&BF_MAGIC && status_isdead(bl) &&
 	 	!(skill_get_inf(skill_id)&(INF_GROUND_SKILL|INF_SELF_SKILL)) &&
@@ -1815,7 +1815,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	) { //Soul Drain should only work on targetted spells [Skotlex]
 		if (pc_issit(sd)) pc_setstand(sd); //Character stuck in attacking animation while 'sitting' fix. [Skotlex]
 		clif_skill_nodamage(src,bl,HW_SOULDRAIN,rate,1);
-		status_heal(src, 0, status_get_lv(bl)*(95+15*rate)/100, 2);
+		status_heal(src,0,status_get_lv(bl)*(95+15*rate)/100,2);
 	}
 
 	if( sd && status_isdead(bl) ) {
