@@ -9163,8 +9163,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					if(hd->master && hd->sc.data[SC_STYLE_CHANGE]) {
 						//int mode = hd->sc.data[SC_STYLE_CHANGE]->val1;
 						char output[128];
-						safesnprintf(output,sizeof(output),"Eleanor is now in %s mode",(sce->val1==MH_MD_FIGHTING?"fighthing":"grappling"));
-						clif_colormes(hd->master,COLOR_RED,output);
+						safesnprintf(output,sizeof(output),msg_txt(378),(sce->val1==MH_MD_FIGHTING?"fighthing":"grappling"));
+						clif_colormes(hd->master,color_table[COLOR_RED],output);
 					}
 				}
 				break;
@@ -13134,8 +13134,8 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 				if (map_foreachinrange(mob_count_sub, &sd->bl, skill_get_splash(skill_id, skill_lv), BL_MOB,
 						MOBID_EMPERIUM, MOBID_GUARIDAN_STONE1, MOBID_GUARIDAN_STONE2)) {
 					char output[128];
-					sprintf(output, "You're too close to a stone or emperium to do this skill");
-					clif_colormes(sd, COLOR_RED, output);
+					sprintf(output,"%s",msg_txt(382)); //You're too close to a stone or emperium to do this skill
+					clif_colormes(sd,color_table[COLOR_RED],output);
 					return 0;
 				}
 			}
@@ -13496,11 +13496,11 @@ int skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id, 
 			return 0;
 		} else if( sd->status.inventory[i].amount < require.ammo_qty ) {
 			char e_msg[100];
-			sprintf(e_msg,"Skill Failed. [%s] requires %dx %s.",
+			sprintf(e_msg,msg_txt(381), //Skill Failed. [%s] requires %dx %s.
 						skill_get_desc(skill_id),
 						require.ammo_qty,
 						itemdb_jname(sd->status.inventory[i].nameid));
-			clif_colormes(sd,COLOR_RED,e_msg);
+			clif_colormes(sd,color_table[COLOR_RED],e_msg);
 			return 0;
 		}
 		if (!(require.ammo&1<<sd->inventory_data[i]->look)) { //Ammo type check. Send the "wrong weapon type" message
@@ -13743,15 +13743,18 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 		req.amount[i] = skill_db[idx].amount[i];
 
 		if( itemid_isgemstone(req.itemid[i]) && skill_id != HW_GANBANTEIN ) {
-			if( sd->special_state.no_gemstone ) { //Make it substract 1 gem rather than skipping the cost.
-				if( --req.amount[i] < 1 )
-					req.itemid[i] = 0;
-			}
-			if(sc && sc->data[SC_INTOABYSS]) {
+			if( sd->special_state.no_gemstone ) {
+				// All gem skills except Hocus Pocus and Ganbantein can cast for free with Mistress card -helvetica
 				if( skill_id != SA_ABRACADABRA )
 					req.itemid[i] = req.amount[i] = 0;
 				else if( --req.amount[i] < 1 )
-					req.amount[i] = 1; // Hocus Pocus allways use at least 1 gem
+					req.amount[i] = 1; // Hocus Pocus always use at least 1 gem
+			}
+			if( sc && sc->data[SC_INTOABYSS] ) {
+				if( skill_id != SA_ABRACADABRA )
+					req.itemid[i] = req.amount[i] = 0;
+				else if( --req.amount[i] < 1 )
+					req.amount[i] = 1; // Hocus Pocus always use at least 1 gem
 			}
 		}
 		if( skill_id >= HT_SKIDTRAP && skill_id <= HT_TALKIEBOX && pc_checkskill(sd, RA_RESEARCHTRAP) > 0){

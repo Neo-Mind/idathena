@@ -3712,9 +3712,17 @@ ACMD_FUNC(reloadmotd)
  *------------------------------------------*/
 ACMD_FUNC(reloadscript)
 {
+	struct s_mapiterator* iter;
+	struct map_session_data* pl_sd;
+
 	nullpo_retr(-1, sd);
 	//atcommand_broadcast( fd, sd, "@broadcast", "Server is reloading scripts..." );
 	//atcommand_broadcast( fd, sd, "@broadcast", "You will feel a bit of lag at this point !" );
+
+	iter = mapit_getallusers();
+	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
+		pc_close_npc(pl_sd,2);
+	mapit_free(iter);
 
 	flush_fifos();
 	map_reloadnpc(true); // reload config files seeking for npcs
@@ -8824,41 +8832,28 @@ ACMD_FUNC(channel) {
 	return 0;
 }
 
-ACMD_FUNC(fontcolor) {
+ACMD_FUNC(fontcolor)
+{
 	unsigned char k;
 
 	if( !message || !*message ) {
-		char mout[40];
-		for( k = 0; k < Channel_Config.colors_count; k++ ) {
-			unsigned short msg_len = 1;
-			msg_len += sprintf(mout, "[ %s ] : %s",command,Channel_Config.colors_name[k]);
-
-			WFIFOHEAD(fd,msg_len + 12);
-			WFIFOW(fd,0) = 0x2C1;
-			WFIFOW(fd,2) = msg_len + 12;
-			WFIFOL(fd,4) = 0;
-			WFIFOL(fd,8) = Channel_Config.colors[k];
-			safestrncpy((char*)WFIFOP(fd,12), mout, msg_len);
-			WFIFOSET(fd, msg_len + 12);
-		}
+		channel_display_list(sd,"colors");
 		return -1;
 	}
 
-	if( message[0] == '0' ) {
+	if( strcmpi(message,"Normal") == 0 ) {
 		sd->fontcolor = 0;
-		pc_disguise(sd,0);
-		return 0;
+	} else {
+		ARR_FIND(0,Channel_Config.colors_count,k,( strcmpi(message,Channel_Config.colors_name[k]) == 0 ));
+		if( k == Channel_Config.colors_count ) {
+			sprintf(atcmd_output, msg_txt(1411), message); // Unknown color '%s'.
+			clif_displaymessage(fd, atcmd_output);
+			return -1;
+		}
+		sd->fontcolor = k;
 	}
-
-	ARR_FIND(0,Channel_Config.colors_count,k,( strcmpi(message,Channel_Config.colors_name[k]) == 0 ));
-	if( k == Channel_Config.colors_count ) {
-		sprintf(atcmd_output, msg_txt(1411), message); // Unknown color '%s'.
-		clif_displaymessage(fd, atcmd_output);
-		return -1;
-	}
-
-	sd->fontcolor = k + 1;
-	pc_disguise(sd,sd->status.class_);
+	sprintf(atcmd_output, msg_txt(1454), message); // Color set to '%s'.
+	clif_displaymessage(fd, atcmd_output);
 
 	return 0;
 }

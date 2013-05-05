@@ -3234,15 +3234,16 @@ void clif_statusupack(struct map_session_data *sd,int type,int ok,int val)
 ///     2 = failure due to low level
 void clif_equipitemack(struct map_session_data *sd,int n,int pos,int ok)
 {
-	int fd,header,offs=0;
+	int fd,header,offs=0,success;
 #if PACKETVER < 20110824
 	header = 0xaa;
+	success = (ok==1);
 #elif PACKETVER < 20120925
 	header = 0x8d0;
-	ok = ok ? 0:1;
+	success = ok ? 0:1;
 #else
 	header = 0x999;
-	ok = ok ? 0:1;
+	success = ok ? 0:1;
 #endif
 	nullpo_retv(sd);
 
@@ -3257,13 +3258,13 @@ void clif_equipitemack(struct map_session_data *sd,int n,int pos,int ok)
 	WFIFOW(fd,offs+4)=(int)pos;
 #endif
 #if PACKETVER < 20100629
-	WFIFOB(fd,offs+6)=ok;
+	WFIFOB(fd,offs+6)=success;
 #else
 	if (ok && sd->inventory_data[n]->equip&EQP_VISIBLE)
 		WFIFOW(fd,offs+6)=sd->inventory_data[n]->look;
 	else
 		WFIFOW(fd,offs+6)=0;
-	WFIFOB(fd,offs+8)=ok;
+	WFIFOB(fd,offs+8)=success;
 #endif
 	WFIFOSET(fd,packet_len(header));
 }
@@ -5425,9 +5426,9 @@ void clif_broadcast(struct block_list* bl, const char* mes, int len, int type, e
 
 /*==========================================
  * Displays a message on a 'bl' to all it's nearby clients
- * Used by npc_globalmessage
+ * 008d <PacketLength>.W <GID> L (ZC_NOTIFY_CHAT)
  *------------------------------------------*/
-void clif_GlobalMessage(struct block_list* bl, const char* message) {
+void clif_GlobalMessage(struct block_list* bl, const char* message, enum send_target target) {
 	char buf[100];
 	int len;
 	nullpo_retv(bl);
@@ -5446,7 +5447,7 @@ void clif_GlobalMessage(struct block_list* bl, const char* message) {
 	WBUFW(buf,2)=len+8;
 	WBUFL(buf,4)=bl->id;
 	safestrncpy((char *) WBUFP(buf,8),message,len);
-	clif_send((unsigned char *) buf,WBUFW(buf,2),bl,ALL_CLIENT);
+	clif_send((unsigned char *) buf,WBUFW(buf,2),bl,target);
 
 }
 
@@ -5475,7 +5476,7 @@ void clif_broadcast2(struct block_list* bl, const char* mes, int len, unsigned l
 /*
  * Display *msg from *sd to all *users in channel
  */
-void clif_channel_msg(struct Channel *channel, struct map_session_data *sd, char *msg) {
+void clif_channel_msg(struct Channel *channel, struct map_session_data *sd, char *msg, short color) {
 	DBIterator *iter;
 	struct map_session_data *user;
 	unsigned short msg_len = strlen(msg) + 1;
@@ -5484,7 +5485,7 @@ void clif_channel_msg(struct Channel *channel, struct map_session_data *sd, char
 	WFIFOW(sd->fd,0) = 0x2C1;
 	WFIFOW(sd->fd,2) = msg_len + 12;
 	WFIFOL(sd->fd,4) = 0;
-	WFIFOL(sd->fd,8) = Channel_Config.colors[channel->color];
+	WFIFOL(sd->fd,8) = Channel_Config.colors[color];
 	safestrncpy((char*)WFIFOP(sd->fd,12), msg, msg_len);
 
 	iter = db_iterator(channel->users);
@@ -8146,14 +8147,14 @@ void clif_specialeffect_value(struct block_list* bl, int effect_id, int num, sen
 }
 // Modification of clif_messagecolor to send colored messages to players to chat log only (doesn't display overhead)
 /// 02c1 <packet len>.W <id>.L <color>.L <message>.?B
-int clif_colormes(struct map_session_data *sd, enum clif_colors color, const char *msg) {
+int clif_colormes(struct map_session_data *sd, unsigned long color, const char* msg) {
 	unsigned short msg_len = strlen(msg) + 1;
 
 	WFIFOHEAD(sd->fd,msg_len + 12);
 	WFIFOW(sd->fd,0) = 0x2C1;
 	WFIFOW(sd->fd,2) = msg_len + 12;
 	WFIFOL(sd->fd,4) = 0;
-	WFIFOL(sd->fd,8) = color_table[color];
+	WFIFOL(sd->fd,8) = color; //either color_table or channel_table
 	safestrncpy((char*)WFIFOP(sd->fd,12), msg, msg_len);
 	WFIFOSET(sd->fd, msg_len + 12);
 
@@ -9581,11 +9582,6 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data* sd)
 	if( sd->gcbind ) {
 		channel_send(sd->gcbind,sd,message);
 		return;
-	} else if ( sd->fontcolor && !sd->chatID ) {
-		char mout[200];
-		snprintf(mout,200,"%s : %s",sd->fakename[0]?sd->fakename:sd->status.name,message);
-		clif_colormes(sd,sd->fontcolor-1,mout);
-		return;
 	}
 
 	/**
@@ -9599,13 +9595,7 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data* sd)
 		textlen = strlen(fakename) + 1;
 	}
 	// send message to others (using the send buffer for temp. storage)
-	WFIFOHEAD(fd, 8 + textlen);
-	WFIFOW(fd,0) = 0x8d;
-	WFIFOW(fd,2) = 8 + textlen;
-	WFIFOL(fd,4) = sd->bl.id;
-	safestrncpy((char*)WFIFOP(fd,8), is_fake ? fakename : text, textlen);
-	//FIXME: chat has range of 9 only
-	clif_send(WFIFOP(fd,0), WFIFOW(fd,2), &sd->bl, sd->chatID ? CHAT_WOS : AREA_CHAT_WOC);
+	clif_GlobalMessage(&sd->bl,is_fake ? fakename : text,sd->chatID ? CHAT_WOS : AREA_CHAT_WOC);
 
 	// send back message to the speaker
 	if( is_fake ) {
@@ -16287,6 +16277,29 @@ void clif_partytickack(struct map_session_data* sd, bool flag) {
 	WFIFOSET( sd->fd, packet_len(0x2c9) ); 
 }
 
+/// Ack world info (ZC_ACK_BEFORE_WORLD_INFO)
+/// 0979 <world name>.24B <char name>.24B
+void clif_ackworldinfo(struct map_session_data* sd) {
+	int fd;
+
+	nullpo_retv(sd);
+	fd = sd->fd;
+
+	WFIFOHEAD(fd,packet_len(0x979));
+	WFIFOW(fd,0) = 0x979;
+	//AID -> world name ?
+	safestrncpy((char*)WFIFOP(fd,2), '\0' /* World name */, 24);
+	safestrncpy((char*)WFIFOP(fd,26), sd->status.name, NAME_LENGTH);
+	WFIFOSET(fd,packet_len(0x979));
+}
+
+/// req world info (CZ_REQ_BEFORE_WORLD_INFO)
+/// 0978 <AID>.L
+void clif_parse_reqworldinfo(int fd,struct map_session_data *sd) {
+	//uint32 aid = RFIFOL(fd,2); //should we trust client ?
+	if(sd) clif_ackworldinfo(sd);
+}
+
 /*==========================================
  * Main client packet processing function
  *------------------------------------------*/
@@ -16690,7 +16703,7 @@ static int packetdb_readdb(void)
 		0,  0,  0, 29,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		31, 0,  0,  0,  0,  0,  0, -1,  8, 11,  9,  8,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-		0,  0,  0,  0,  0,  0,  0, 14,  0,  0,  0,  0,  0,  0,  0,  0,
+		0,  0,  0,  0,  0,  0,  0, 14,  6, 50,  0,  0,  0,  0,  0,  0,
 	};
 	struct {
 		void (*func)(int, struct map_session_data *);
@@ -16902,6 +16915,7 @@ static int packetdb_readdb(void)
 		{clif_parse_PartyTick,"partytick"},
 		{clif_parse_dull,"dull"},
 		{clif_parse_GuildInvite2,"guildinvite2"},
+		{clif_parse_reqworldinfo,"reqworldinfo"},
 		{NULL,NULL}
 	};
 

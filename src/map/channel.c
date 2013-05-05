@@ -135,7 +135,7 @@ int channel_join(struct Channel *channel, struct map_session_data *sd) {
 	} else if( channel->opt & CHAN_OPT_ANNOUNCE_JOIN ) {
 		char message[60];
 		sprintf(message, "[ #%s ] '%s' has joined.",channel->name,sd->status.name);
-		clif_channel_msg(channel,sd,message);
+		clif_channel_msg(channel,sd,message,channel->color);
 	}
 
 	/* someone is cheating, we kindly disconnect the bastard */
@@ -335,13 +335,17 @@ int channel_send(struct Channel *channel, struct map_session_data *sd, const cha
 		return -1;
 
 	if(!pc_has_permission(sd, PC_PERM_CHANNEL_ADMIN) && channel->msg_delay != 0 && DIFF_TICK(sd->channel_tick + ( channel->msg_delay * 1000 ), gettick()) > 0) {
-		clif_colormes(sd,COLOR_RED,msg_txt(1455)); //You're talking too fast!
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1455)); //You're talking too fast!
 		return -2;
 	}
 	else {
-		char message[CHAN_MSG_LENGTH];
+		char message[CHAN_MSG_LENGTH], color;
+		if((channel->opt)&CHAN_OPT_COLOR_OVERRIDE && sd->fontcolor)
+			color = sd->fontcolor;
+		else
+			color = channel->color;
 		snprintf(message, CHAN_MSG_LENGTH, "[ #%s ] %s : %s",channel->name,sd->status.name, msg);
-		clif_channel_msg(channel,sd,message);
+		clif_channel_msg(channel,sd,message,color);
 		sd->channel_tick = gettick();
 	}
 	return 0;
@@ -456,25 +460,6 @@ int channel_pc_haschan(struct map_session_data *sd, struct Channel *channel){
 }
 
 /*
- * Replication of clif_colormes but with more avaiable colors
- * return
- *  0 : all cases
- */
- int channel_colormes(struct map_session_data *__restrict sd, uint32 channel_color, const char *__restrict msg){
-	uint16 msg_len = strlen(msg) + 1;
-
-	WFIFOHEAD(sd->fd,msg_len + 12);
-	WFIFOW(sd->fd,0) = 0x2C1;
-	WFIFOW(sd->fd,2) = msg_len + 12;
-	WFIFOL(sd->fd,4) = 0;
-	WFIFOL(sd->fd,8) = Channel_Config.colors[channel_color];
-	safestrncpy((char*)WFIFOP(sd->fd,12),msg,msg_len);
-	WFIFOSET(sd->fd, msg_len + 12);
-
-	return 0;
- }
-
-/*
  * Display some info to user *sd on channels
  * @options :
  *  colors : display availables colors for chan system
@@ -497,8 +482,8 @@ int channel_display_list(struct map_session_data *sd, char *options){
 		char msg[40];
 		clif_displaymessage(sd->fd, msg_txt(1444)); // ---- Available Colors ----
 		for( k = 0; k < Channel_Config.colors_count; k++ ) {
-			sprintf(msg, msg_txt(1445),Channel_Config.colors_name[k]); // - '%s'
-			channel_colormes(sd, k, msg);
+			sprintf(msg, msg_txt(1445),Channel_Config.colors_name[k]);// - '%s'
+			clif_colormes(sd,Channel_Config.colors[k],msg);
 		}
 	}
 	else if( options[0] != '\0' && strcmpi(options,"mine") == 0 ) { //display chan I'm into
@@ -635,7 +620,7 @@ int channel_pcleave(struct map_session_data *sd, char *chname){
 	if( !Channel_Config.closing && (channel->opt & CHAN_OPT_ANNOUNCE_JOIN) ) {
 		char message[60];
 		sprintf(message, "#%s '%s' left",channel->name,sd->status.name);
-		clif_channel_msg(channel,sd,message);
+		clif_channel_msg(channel,sd,message,channel->color);
 	}
 	switch(channel->type){
 	case CHAN_TYPE_ALLY: channel_pcquit(sd,3); break;
@@ -916,10 +901,11 @@ int channel_pcsetopt(struct map_session_data *sd, char *chname, const char *opti
 	struct Channel *channel;
 	char output[128];
 	int k, s=0;
-	const char* opt_str[3] = {
+	const char* opt_str[] = {
 		"None",
 		"JoinAnnounce",
 		"MessageDelay",
+		"ColorOverride",
 	};
 
 	if( channel_chk(chname,NULL,1) ) {
@@ -940,14 +926,14 @@ int channel_pcsetopt(struct map_session_data *sd, char *chname, const char *opti
 		return -1;
 	}
 
-	if( option == '\0' ) {
+	if(!option || option == '\0' ) {
 		clif_displaymessage(sd->fd, msg_txt(1446));// You need to input an option.
 		return -1;
 	}
 
 	s = ARRAYLENGTH(opt_str);
 	ARR_FIND(1,s,k,( strncmpi(option,opt_str[k],3) == 0 )); //we only cmp 3 letter atm
-	if( k == 3 ) {
+	if( k >= s ) {
 		sprintf(output, msg_txt(1447), option);// Unknown channel option '%s'.
 		clif_displaymessage(sd->fd, output);
 		clif_displaymessage(sd->fd, msg_txt(1414));// ---- Available options:

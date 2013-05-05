@@ -6647,7 +6647,7 @@
 13936,Noum_Box,Gnome Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 4335,4; },{},{}
 13937,Robo_Eye_Box,Robo Eye Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 5325,1; },{},{}
 13938,Twin_Ribbon_Box,Maiden's Twin Ribbon Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 5187,1; },{},{}
-//13939,Diadem_Box,Diadem Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 5313,1; },{},{}
+13939,Diadem_Box,Diadem Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 5313,1; },{},{}
 13940,Siege_Tele_Scroll_Box,WoE Teleport Scroll 100 Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14591,100; },{},{}
 13941,TW_Valentine_Scroll,Taiwan Valentine Scroll,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
 13942,Love_Angel_Box_1m,Love Angel Magic Powder Box 30 Days,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14009,1; },{},{}
