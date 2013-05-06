@@ -1906,21 +1906,15 @@ packet_ver: 33
 0x0960,5,changedir,2:4
 0x0977,14 //Monster HP Bar
 
-//2013-03-20Ragexe [Judas]
+//2013-03-20Ragexe [Judas + Yommy]
 packet_ver: 34
-0x01FD,15,repairitem,2
-0x086D,26,friendslistadd,2
-0x0897,5,changedir,2:4
-0x0947,36,storagepassword,0
-0x0288,-1,cashshopbuy,4:8
-0x086F,26,partyinvite2,2
-0x0888,19,wanttoconnection,2:6:10:14:18
+//Shuffle Start
 0x08c9,4
 0x088E,7,actionrequest,2:6
 0x089B,10,useskilltoid,2:4:6
 0x0881,5,walktoxy,2
 0x0363,6,ticksend,2
-0x093F,5,hommenu,2:4
+0x0897,5,changedir,2:4
 0x0933,6,takeitem,2
 0x0438,6,dropitem,2:4
 0x08AC,8,movetokafra,2:4
@@ -1929,20 +1923,26 @@ packet_ver: 34
 0x085A,90,useskilltoposinfo,2:4:6:8:10
 0x0898,6,getcharnamerequest,2
 0x094C,6,solvecharname,2
-0x0907,5,moveitem,2:4
-0x0908,5
-0x08CF,10 //Amulet spirits
-0x08d2,10
-0x0977,14 //Monster HP Bar
-0x0998,8,equipitem,2:4
-//0x0281,-1,itemlistwindowselected,2:4:8
-0x0938,-1,reqopenbuyingstore,2:4:8:9:89
+0x0365,12,searchstoreinfolistitemclick,2:6:10
+0x092E,2,searchstoreinfonextpage,0
+0x094E,-1,searchstoreinfo,2:4:5:9:13:14:15
+0x0922,-1,reqtradebuyingstore,2:4:8:12
 0x035F,6,reqclickbuyingstore,2
 0x0886,2,reqclosebuyingstore,0
-0x0922,-1,reqtradebuyingstore,2:4:8:12
-0x094E,-1,searchstoreinfo,2:4:5:9:13:14:15
-//0x0835,2,searchstoreinfonextpage,0
-//0x0838,12,searchstoreinfolistitemclick,2:6:10
+0x0938,-1,reqopenbuyingstore,2:4:8:9:89
+0x085D,41,bookingregreq,2:4
+//0x095A,8 //Unknown usage
+0x0868,-1,itemlistwindowselected,2:4:8
+0x0888,19,wanttoconnection,2:6:10:14:18
+0x086D,26,partyinvite2,2
+//0x0890,4 //Unknown usage
+0x086F,26,friendslistadd,2
+0x093F,5,hommenu,2:4
+0x0947,36,storagepassword,0
+// Shuffle End
+
+//New Packets
+0x0998,8,equipitem,2:4
 0x0447,2
 0x990,31 //additem
 0x99b,8  //maptypeproperty2
@@ -1956,6 +1956,7 @@ packet_ver: 34
 0x997,-1 //ZC_EQUIPWIN_MICROSCOPE_V5
 0x998,8,equipitem,2:4
 0x999,11 // cz_wear_equipv5
+//New Packets End
 
 //Add new packets here
 //packet_ver: 35

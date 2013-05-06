@@ -4,6 +4,15 @@
 #ifndef _MAPREG_H_
 #define _MAPREG_H_
 
+struct mapreg_save {
+	int uid;
+	union {
+		int i;
+		char *str;
+	} u;
+	bool save;
+};
+
 void mapreg_reload(void);
 void mapreg_final(void);
 void mapreg_init(void);

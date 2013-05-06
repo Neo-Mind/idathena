@@ -8559,10 +8559,9 @@ BUILDIN_FUNC(itemskill)
 	id = ( script_isstring(st,2) ? skill_name2id(script_getstr(st,2)) : script_getnum(st,2) );
 	lv = script_getnum(st,3);
 
-	if( !script_hasdata(st, 4) ) {
-		if( !skill_check_condition_castbegin(sd,id,lv) )
+	if( !script_hasdata(st, 4) )
+		if( !skill_check_condition_castbegin(sd,id,lv) || !skill_check_condition_castend(sd,id,lv) )
 			return true;
-	}
 
 	sd->skillitem = id;
 	sd->skillitemlv = lv;

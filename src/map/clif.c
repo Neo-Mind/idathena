@@ -1265,76 +1265,72 @@ int clif_spawn(struct block_list *bl)
 	int len;
 
 	vd = status_get_viewdata(bl);
-	if( !vd || vd->class_ == INVISIBLE_CLASS )
+	if (!vd || vd->class_==INVISIBLE_CLASS)
 		return 0;
-		
+
 	/**
 	* Hide NPC from maya purple card.
 	**/
-	if(bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
+	if (bl->type==BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
 		return 0;
-		
+
 	len = clif_set_unit_idle(bl, buf,true);
 	clif_send(buf, len, bl, AREA_WOS);
+
 	if (disguised(bl))
 		clif_setdisguise(bl, buf, len);
 
 	if (vd->cloth_color)
 		clif_refreshlook(bl,bl->id,LOOK_CLOTHES_COLOR,vd->cloth_color,AREA_WOS);
 
-
-	switch (bl->type)
-	{
-	case BL_PC:
-		{
-			TBL_PC *sd = ((TBL_PC*)bl);
-			int i;
-			if (sd->spiritball > 0)
-				clif_spiritball(&sd->bl);
-			if(sd->state.size==SZ_BIG) // tiny/big players [Valaris]
-				clif_specialeffect(bl,423,AREA);
-			else if(sd->state.size==SZ_MEDIUM)
-				clif_specialeffect(bl,421,AREA);
-			if( sd->bg_id && map[sd->bl.m].flag.battleground )
-				clif_sendbgemblem_area(sd);
-			if( sd->sc.option&OPTION_MOUNTING ) {
-				//New Mounts are not complaint to the original method, so we gotta tell this guy that he is mounting.
-				clif_status_load_notick(&sd->bl,SI_ALL_RIDING,2,1,0,0);
+	switch (bl->type) {
+		case BL_PC: {
+				TBL_PC *sd = ((TBL_PC*)bl);
+				int i;
+				if (sd->spiritball > 0)
+					clif_spiritball(&sd->bl);
+				if (sd->state.size==SZ_BIG) //Tiny/Big players [Valaris]
+					clif_specialeffect(bl,423,AREA);
+				else if (sd->state.size==SZ_MEDIUM)
+					clif_specialeffect(bl,421,AREA);
+				if (sd->bg_id && map[sd->bl.m].flag.battleground)
+					clif_sendbgemblem_area(sd);
+				if (sd->sc.option&OPTION_MOUNTING) {
+					//New Mounts are not complaint to the original method, so we gotta tell this guy that he is mounting.
+					clif_status_load_notick(&sd->bl,SI_ALL_RIDING,2,1,0,0);
+				}
+				for (i = 1; i < 5; i++) {
+					if (sd->talisman[i] > 0)
+						clif_talisman(sd, i);
+				}
+#ifdef NEW_CARTS
+				if (sd->sc.data[SC_PUSH_CART])
+					clif_status_load_notick(&sd->bl,SI_ON_PUSH_CART,2,sd->sc.data[SC_PUSH_CART]->val1,0,0);
+#endif
+				if (sd->status.robe)
+					clif_refreshlook(bl,bl->id,LOOK_ROBE,sd->status.robe,AREA);
 			}
-			for(i = 1; i < 5; i++){
-				if( sd->talisman[i] > 0 )
-					clif_talisman(sd, i);
+			break;
+		case BL_MOB: {
+				TBL_MOB *md = ((TBL_MOB*)bl);
+				if (md->special_state.size==SZ_BIG) //Tiny/Big mobs [Valaris]
+					clif_specialeffect(&md->bl,423,AREA);
+				else if (md->special_state.size==SZ_MEDIUM)
+					clif_specialeffect(&md->bl,421,AREA);
 			}
-		#ifdef NEW_CARTS
-			if( sd->sc.data[SC_PUSH_CART] )
-				clif_status_load_notick(&sd->bl, SI_ON_PUSH_CART, 2, sd->sc.data[SC_PUSH_CART]->val1, 0, 0);
-		#endif
-			if (sd->status.robe)
-				clif_refreshlook(bl,bl->id,LOOK_ROBE,sd->status.robe,AREA);
-		}
-		break;
-	case BL_MOB:
-		{
-			TBL_MOB *md = ((TBL_MOB*)bl);
-			if(md->special_state.size==SZ_BIG) // tiny/big mobs [Valaris]
-				clif_specialeffect(&md->bl,423,AREA);
-			else if(md->special_state.size==SZ_MEDIUM)
-				clif_specialeffect(&md->bl,421,AREA);
-		}
-		break;
-	case BL_NPC:
-		{
-			TBL_NPC *nd = ((TBL_NPC*)bl);
-			if( nd->size == SZ_BIG )
-				clif_specialeffect(&nd->bl,423,AREA);
-			else if( nd->size == SZ_MEDIUM )
-				clif_specialeffect(&nd->bl,421,AREA);
-		}
-		break;
-	case BL_PET:
-		if (vd->head_bottom)
-			clif_pet_equip_area((TBL_PET*)bl); // needed to display pet equip properly
-		break;
+			break;
+		case BL_NPC: {
+				TBL_NPC *nd = ((TBL_NPC*)bl);
+				if (nd->size==SZ_BIG)
+					clif_specialeffect(&nd->bl,423,AREA);
+				else if (nd->size==SZ_MEDIUM)
+					clif_specialeffect(&nd->bl,421,AREA);
+			}
+			break;
+		case BL_PET:
+			if (vd->head_bottom)
+				clif_pet_equip_area((TBL_PET*)bl); // Needed to display pet equip properly
+			break;
 	}
 	return 0;
 }
