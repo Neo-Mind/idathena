@@ -12631,12 +12631,12 @@ BUILDIN_FUNC(dispbottom)
 int recovery_sub(struct map_session_data* sd, int revive)
 {
 	if(revive&(1|4) && pc_isdead(sd)) {
-		status_revive(&sd->bl, 100, 100);
-		clif_displaymessage(sd->fd,msg_txt(sd,16));
-		clif_specialeffect(&sd->bl, 77, AREA);
+		status_revive(&sd->bl,100,100);
+		clif_displaymessage(sd->fd,msg_txt(16));
+		clif_specialeffect(&sd->bl,77,AREA);
 	} else if(revive&(1|2) && !pc_isdead(sd)) {
-		status_percent_heal(&sd->bl, 100, 100);
-		clif_displaymessage(sd->fd,msg_txt(sd,680));
+		status_percent_heal(&sd->bl,100,100);
+		clif_displaymessage(sd->fd,msg_txt(680));
 	}
 	return 0;
 }
@@ -12666,7 +12666,7 @@ BUILDIN_FUNC(recovery)
 	TBL_PC *sd = script_rid2sd(st);
 
 	int map = 0, type = 0, revive = 1;
-	const char *mapname;
+	//const char *mapname;
 
 	type = script_getnum(st,2);
 
@@ -12676,7 +12676,7 @@ BUILDIN_FUNC(recovery)
 	switch(type) {
 		case 0:
 			if(script_hasdata(st,3))
-				sd=map_id2sd(script_getnum(st,3));
+				sd = map_id2sd(script_getnum(st,3));
 			if(sd == NULL) //If we don't have sd by now, bail out
 				return 0;
 			recovery_sub(sd, revive);
