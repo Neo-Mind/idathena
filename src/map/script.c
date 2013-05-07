@@ -12666,7 +12666,6 @@ BUILDIN_FUNC(recovery)
 	TBL_PC *sd = script_rid2sd(st);
 
 	int map = 0, type = 0, revive = 1;
-	//const char *mapname;
 
 	type = script_getnum(st,2);
 
@@ -12682,6 +12681,10 @@ BUILDIN_FUNC(recovery)
 			recovery_sub(sd, revive);
 			break;
 		case 1: {
+			struct party_data* p;
+			struct map_session_data* pl_sd;
+			//When no party given, we use invoker party
+			int p_id, i;
 			if(script_hasdata(st,5)) { //Bad maps shouldn't cause issues
 				map = map_mapname2mapid(script_getstr(st,5));
 				if(map < 1) { //But we'll check anyways
@@ -12689,10 +12692,6 @@ BUILDIN_FUNC(recovery)
 					return 1;
 				}
 			}
-			struct party_data* p;
-			struct map_session_data* pl_sd;
-			//When no party given, we use invoker party
-			int p_id, i;
 			if(script_hasdata(st,3))
 				p_id = script_getnum(st,3);
 			else
@@ -12709,6 +12708,10 @@ BUILDIN_FUNC(recovery)
 			break;
 		}
 		case 2: {
+			struct guild* g;
+			struct map_session_data* pl_sd;
+			//When no guild given, we use invoker guild
+			int g_id, i;
 			if(script_hasdata(st,5)) { //Bad maps shouldn't cause issues
 				map = map_mapname2mapid(script_getstr(st,5));
 				if(map < 1) { //But we'll check anyways
@@ -12716,10 +12719,6 @@ BUILDIN_FUNC(recovery)
 					return 1;
 				}
 			}
-			struct guild* g;
-			struct map_session_data* pl_sd;
-			//When no guild given, we use invoker guild
-			int g_id, i;
 			if(script_hasdata(st,3))
 				g_id = script_getnum(st,3);
 			else
