@@ -9397,7 +9397,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 	sc = status_get_sc(bl);
 	status = status_get_status_data(bl);
 
-	if(type < 0 || type >= SC_MAX || !sc || !(sce = sc->data[type]))
+	if (type < 0 || type >= SC_MAX || !sc || !(sce = sc->data[type]))
 		return 0;
 
 	sd = BL_CAST(BL_PC,bl);
@@ -9421,36 +9421,36 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			case SC_FREEZE:
 			case SC_STUN:
 			case SC_SLEEP:
-			if (sce->val1) {
-			  	//Removing the 'level' shouldn't affect anything in the code
-				//since these SC are not affected by it, and it lets us know
-				//if we have already delayed this attack or not.
-				sce->val1 = 0;
-				sce->timer = add_timer(gettick()+10, status_change_timer, bl->id, type);
-				return 1;
-			}
+				if (sce->val1) {
+					//Removing the 'level' shouldn't affect anything in the code
+					//since these SC are not affected by it, and it lets us know
+					//if we have already delayed this attack or not.
+					sce->val1 = 0;
+					sce->timer = add_timer(gettick()+10, status_change_timer, bl->id, type);
+					return 1;
+				}
 		}
 	}
 
 	(sc->count)--;
 
-	if ( StatusChangeStateTable[type] )
-		status_calc_state(bl,sc,( enum scs_flag ) StatusChangeStateTable[type],false);
+	if (StatusChangeStateTable[type])
+		status_calc_state(bl,sc,(enum scs_flag) StatusChangeStateTable[type],false);
 
 	sc->data[type] = NULL;
 
 	vd = status_get_viewdata(bl);
 	calc_flag = StatusChangeFlagTable[type];
-	switch(type) {
+	switch (type) {
 		case SC_GRANITIC_ARMOR: {
 				int damage = sce->val3;
-				if(status->hp < damage) //don't kill
+				if (status->hp < damage) //don't kill
 					damage = status->hp - 1;
 				status_damage(NULL,bl,damage,0,0,1);
 				break;
 			}
 		case SC_PYROCLASTIC:
-			if(bl->type == BL_PC)
+			if (bl->type == BL_PC)
 				skill_break_equip(bl,bl,EQP_WEAPON,10000,BCT_SELF);
 			break;
 		case SC_WEDDING:

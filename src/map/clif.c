@@ -2209,30 +2209,30 @@ void clif_delitem(struct map_session_data *sd,int n,int amount, short reason)
 void clif_item_sub_v5(unsigned char *buf, int n, int idx, struct item *i, struct item_data *id, int equip) {
 	char normal = (equip < 0);
 
-	WBUFW(buf,n)=idx; //Index
-	WBUFW(buf,n+2)= i->nameid;
-	WBUFB(buf,n+4)=itemtype(id->type);
+	WBUFW(buf,n) = idx; //Index
+	WBUFW(buf,n+2) = i->nameid;
+	WBUFB(buf,n+4) = itemtype(id->type);
 
 	if( !normal ) { //Equip 31B
-		WBUFL(buf,n+5)= i->equip; //Location
-		WBUFL(buf,n+9)=equip; //Wear state
-		WBUFB(buf,n+13)= i->refine; //Refine lvl
+		WBUFL(buf,n+5) = equip; //Location
+		WBUFL(buf,n+9) = i->equip; //Wear state
+		WBUFB(buf,n+13) = i->refine; //Refine lvl
 		clif_addcards(WBUFP(buf, n+14), i); //EQUIPSLOTINFO 8B
 		WBUFL(buf,n+22) = i->expire_time;
-		WBUFW(buf,n+26)= 0; //BindOnEquipType
-		WBUFW(buf,n+28)= (id->view_id > 0)?id->view_id:0;
+		WBUFW(buf,n+26) = 0; //BindOnEquipType
+		WBUFW(buf,n+28) = (id->view_id > 0)?id->view_id:0;
 		//V5_ITEM_flag
-		WBUFB(buf,n+30)=i->identify; //0x1 IsIdentified
-		WBUFB(buf,n+30)|=(i->attribute)?0x2:0; //0x2 IsDamaged
-		WBUFB(buf,n+30)|= (id->equip&EQP_VISIBLE)?0:0x4; //0x4 PlaceETCTab
+		WBUFB(buf,n+30) = i->identify; //0x1 IsIdentified
+		WBUFB(buf,n+30) |= (i->attribute)?0x2:0; //0x2 IsDamaged
+		WBUFB(buf,n+30) |= (i->favorite)?0x4:0; //0x4 PlaceETCTab
 	} else { //Normal 24B
-		WBUFW(buf,n+5)=i->amount;
-		WBUFL(buf,n+7)=equip; //Wear state
-		clif_addcards(WBUFP(buf, n+11), i); //EQUIPSLOTINFO 8B
+		WBUFW(buf,n+5) = i->amount;
+		WBUFL(buf,n+7) = i->equip; //Wear state
+		clif_addcards(WBUFP(buf,n+11),i); //EQUIPSLOTINFO 8B
 		WBUFL(buf,n+19) = i->expire_time;
 		//V5_ITEM_flag
-		WBUFB(buf,n+23)=i->identify; //0x1 IsIdentified
-		WBUFB(buf,n+23)|= (id->equip&EQP_VISIBLE)?0:0x2; //0x4,0x2 PlaceETCTab
+		WBUFB(buf,n+23) = i->identify; //0x1 IsIdentified
+		WBUFB(buf,n+23) |= (i->favorite)?0x2:0; //0x4,0x2 PlaceETCTab
 	}
 }
 
@@ -2343,7 +2343,7 @@ void clif_inventorylist(struct map_session_data *sd) {
 		WBUFW(bufe,2)=4+ne*se;
 		clif_send(bufe, WBUFW(bufe,2), &sd->bl, SELF);
 	}
-#if PACKETVER >= 20111122
+#if PACKETVER >= 20111122 && PACKETVER < 20120925
 	for( i = 0; i < MAX_INVENTORY; i++ ) {
 		if( sd->status.inventory[i].nameid <= 0 || sd->inventory_data[i] == NULL )
 			continue;

@@ -9727,9 +9727,10 @@ BUILDIN_FUNC(hideonnpc)
 /// sc_start <effect_id>,<duration>,<val1>{,<unit_id>};
 BUILDIN_FUNC(sc_start)
 {
+	TBL_NPC *nd = map_id2nd(st->oid);
 	struct block_list* bl;
 	enum sc_type type;
-	int tick;
+	int tick,isitem;
 	int val1;
 	int val4 = 0;
 
@@ -9752,8 +9753,10 @@ BUILDIN_FUNC(sc_start)
 		val4 = 1;// Mark that this was a thrown sc_effect
 	}
 
+	//Solving if script from npc or item
+	isitem = (nd && nd->bl.id == fake_nd->bl.id)?true:false;
 	if( bl )
-		status_change_start(NULL, bl, type, 10000, val1, 0, 0, val4, tick, 2);
+		status_change_start(isitem?bl:NULL,bl,type,10000,val1,0,0,val4,tick,2);
 
 	return 0;
 }
@@ -12642,7 +12645,7 @@ int recovery_sub(struct map_session_data* sd, int revive)
 }
 
 /*=========================================================================
- * Fully Recover a Character's HP/SP - [Capuche] & [Akinari] 
+ * Fully Recover a Character's HP/SP - [Capuche] & [Akinari]
  * recovery <target>,{<id | map>,<revive_flag>,{<map>}};
  * <target> :
  *	0 - Character
@@ -12654,7 +12657,7 @@ int recovery_sub(struct map_session_data* sd, int revive)
  *	<target> : 0   => Character's Account ID
  *	<target> : 1-2 => Character's Party/Guild ID
  *	<target> : 3   => Map Name (player attached map's name by default)
- * <revive_flag> : 
+ * <revive_flag> :
  *		 : 1 => Revive and Recover (Default)
  *		 : 2 => Only Full Heal
  *		 : 4 => Only Revive
