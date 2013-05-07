@@ -2458,7 +2458,7 @@ void clif_storagelist(struct map_session_data* sd, struct item* items, int items
 #elif PACKETVER < 20120925
 		WBUFW(bufe,0)=0x2d1;
 #else
-		WBUFW(buf,0)=0x996;
+		WBUFW(bufe,0)=0x996;
 #endif
 		WBUFW(bufe,2)=4+ne*cmd;
 		clif_send(bufe, WBUFW(bufe,2), &sd->bl, SELF);
@@ -2526,9 +2526,9 @@ void clif_cartlist(struct map_session_data *sd)
 #if PACKETVER < 20071002
 	WBUFW(bufe,0)=0x122;
 #elif PACKETVER < 20120925
-	WBUFW(buf,0)=0x2d2;
+	WBUFW(bufe,0)=0x2d2;
 #else
-	WBUFW(buf,0)=0x994;
+	WBUFW(bufe,0)=0x994;
 #endif
 		WBUFW(bufe,2)=4+ne*cmd;
 		clif_send(bufe, WBUFW(bufe,2), &sd->bl, SELF);
