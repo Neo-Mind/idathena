@@ -4898,30 +4898,26 @@ int pc_checkallowskill(struct map_session_data *sd)
 		SC_AUTOGUARD,
 		SC_DEFENDER,
 		SC_REFLECTSHIELD,
-		SC_REFLECTDAMAGE,
-		SC_SHIELDSPELL_DEF,
-		SC_SHIELDSPELL_MDEF,
-		SC_SHIELDSPELL_REF
+		SC_REFLECTDAMAGE
 	};
 	int i;
 	nullpo_ret(sd);
 
 	if(!sd->sc.count)
 		return 0;
-	
-	for (i = 0; i < ARRAYLENGTH(scw_list); i++)
-	{	// Skills requiring specific weapon types
-		if( scw_list[i] == SC_DANCING && !battle_config.dancing_weaponswitch_fix )
+
+	for(i = 0; i < ARRAYLENGTH(scw_list); i++) { // Skills requiring specific weapon types
+		if(scw_list[i] == SC_DANCING && !battle_config.dancing_weaponswitch_fix)
 			continue;
 		if(sd->sc.data[scw_list[i]] &&
 			!pc_check_weapontype(sd,skill_get_weapontype(status_sc2skill(scw_list[i]))))
 			status_change_end(&sd->bl, scw_list[i], INVALID_TIMER);
 	}
-	
+
 	if(sd->sc.data[SC_SPURT] && sd->status.weapon)
 		// Spurt requires bare hands (feet, in fact xD)
 		status_change_end(&sd->bl, SC_SPURT, INVALID_TIMER);
-	
+
 	if(sd->status.shield <= 0) { // Skills requiring a shield
 		for (i = 0; i < ARRAYLENGTH(scs_list); i++)
 			if(sd->sc.data[scs_list[i]])
@@ -4942,7 +4938,7 @@ int pc_checkequip(struct map_session_data *sd,int pos)
 
 	nullpo_retr(-1, sd);
 
-	for(i=0;i<EQI_MAX;i++){
+	for(i=0;i<EQI_MAX;i++) {
 		if(pos & equip_pos[i])
 			return sd->equip_index[i];
 	}
@@ -4956,8 +4952,7 @@ int pc_checkequip(struct map_session_data *sd,int pos)
  *------------------------------------------*/
 int pc_jobid2mapid(unsigned short b_class)
 {
-	switch(b_class)
-	{
+	switch(b_class) {
 	//Novice And 1-1 Jobs
 		case JOB_NOVICE:                return MAPID_NOVICE;
 		case JOB_SWORDMAN:              return MAPID_SWORDMAN;
