@@ -8364,9 +8364,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							struct item *shield = &sd->status.inventory[sd->equip_index[EQI_HAND_L]];
 							switch( opt ) {
 								case 1:
-									sc_start(src,bl,SC_SHIELDSPELL_REF,100,opt,INVALID_TIMER);
-									//Status Resistance Increase Needs To Be Coded Here.
-									status_change_end(bl,SC_SHIELDSPELL_REF,INVALID_TIMER);
+									//% Status resistance.
+									val = (shield->refine * 2) + (sstatus->luk / 10);
+									sc_start2(src,bl,SC_SHIELDSPELL_REF,100,opt,val,shield->refine * 30000);
 									break;
 								case 2:
 									//DEF Increase / Using Converted DEF Increase Formula Here.
@@ -8379,7 +8379,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 									sc_start2(src,bl,SC_SHIELDSPELL_REF,100,opt,val,shield->refine * 20000);
 									break;
 								case 3:
-									sc_start(src,bl,SC_SHIELDSPELL_REF,100,opt,INVALID_TIMER); //HP Recovery
+									sc_start(src,bl,SC_SHIELDSPELL_REF,100,opt,INVALID_TIMER); //HP Recovery.
 									val = sstatus->max_hp * ((status_get_lv(src) / 10) + (shield->refine + 1)) / 100;
 									status_heal(bl, val, 0, 2);
 									status_change_end(bl,SC_SHIELDSPELL_REF,INVALID_TIMER);
