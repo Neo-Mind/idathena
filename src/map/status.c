@@ -1777,7 +1777,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		case BL_PC: {
 				struct map_session_data *sd = (TBL_PC*) target;
 				bool is_boss = (status->mode&MD_BOSS);
-				bool is_detect = ((status->mode&MD_DETECTOR)?true:false);//god-knows-why gcc doesn't shut up until this happens
+				bool is_detect = ((status->mode&MD_DETECTOR)?true:false); //God-knows-why gcc doesn't shut up until this happens
 				if (pc_isinvisible(sd))
 					return 0;
 				if (tsc->option&hide_flag && !is_boss &&
@@ -1790,7 +1790,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 					return 0;
 			}
 			break;
-		case BL_ITEM:	//Allow targetting of items to pick'em up (or in the case of mobs, to loot them).
+		case BL_ITEM: //Allow targetting of items to pick'em up (or in the case of mobs, to loot them).
 			//TODO: Would be nice if this could be used to judge whether the player can or not pick up the item it targets. [Skotlex]
 			if (status->mode&MD_LOOTER)
 				return 1;
@@ -5267,9 +5267,9 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 				if( sc->data[SC_CAMOUFLAGE] )
 					val = max( val, sc->data[SC_CAMOUFLAGE]->val1 < 3 ? 0 : 25 * (5 - sc->data[SC_CAMOUFLAGE]->val1) );
 				if( sc->data[SC_STEALTHFIELD_MASTER] )
-					val = max( val, 20 );
+					val = max( val, 30 );
 				if( sc->data[SC__LAZINESS] )
-					val = max( val, 25);
+					val = max( val, 25 );
 				if( sc->data[SC_BANDING_DEFENCE] )
 					val = max( val, sc->data[SC_BANDING_DEFENCE]->val1 ); //+90% walking speed.
 				if( sc->data[SC_ROCK_CRUSHER_ATK] )
@@ -10762,7 +10762,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		case SC_STEALTHFIELD_MASTER:
 			if( --(sce->val4) >= 0 ) {
-				if( !status_charge(bl,0,status->max_sp / 100) )
+				if( !status_charge(bl,0,status->max_sp * 3 / 100) )
 					break;
 				sc_timer_next(2000 + 1000 * sce->val1 + tick, status_change_timer, bl->id, data);
 				return 0;

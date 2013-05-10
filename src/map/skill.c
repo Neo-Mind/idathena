@@ -9347,16 +9347,16 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 			inf = skill_get_inf(ud->skill_id);
 			inf2 = skill_get_inf2(ud->skill_id);
 
-			if(inf&INF_ATTACK_SKILL ||
+			if( inf&INF_ATTACK_SKILL ||
 				(inf&INF_SELF_SKILL && inf2&INF2_NO_TARGET_SELF) //Combo skills
 					) // Casted through combo.
 				inf = BCT_ENEMY; //Offensive skill.
-			else if(inf2&INF2_NO_ENEMY)
+			else if( inf2&INF2_NO_ENEMY )
 				inf = BCT_NOENEMY;
 			else
 				inf = 0;
 
-			if(inf2 & (INF2_PARTY_ONLY|INF2_GUILD_ONLY) && src != target) {
+			if( inf2 & (INF2_PARTY_ONLY|INF2_GUILD_ONLY) && src != target ) {
 				inf |=
 					(inf2&INF2_PARTY_ONLY?BCT_PARTY:0)|
 					(inf2&INF2_GUILD_ONLY?BCT_GUILD:0);
@@ -9372,8 +9372,8 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 			if( ud->skill_id >= SL_SKE && ud->skill_id <= SL_SKA && target->type == BL_MOB ) {
 				if( ((TBL_MOB*)target)->class_ == MOBID_EMPERIUM )
 					break;
-			} else if (inf && battle_check_target(src, target, inf) <= 0) {
-				if (sd) clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
+			} else if( inf && battle_check_target(src, target, inf) <= 0 ) {
+				if( sd ) clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 			} else if( ud->skill_id == RK_PHANTOMTHRUST && target->type != BL_MOB ) {
 				if( !map_flag_vs(src->m) && battle_check_target(src,target,BCT_PARTY) <= 0 )
@@ -9383,30 +9383,31 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 					break; // You can use Clearance on party members in normal maps too. [pakpil]
 			}
 
-			if(inf&BCT_ENEMY && (sc = status_get_sc(target)) &&
-				sc->data[SC_FOGWALL] &&
-				rnd() % 100 < 75) { //Fogwall makes all offensive-type targetted skills fail at 75%
-					if (sd) clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
-					break;
+			if( inf&BCT_ENEMY && (sc = status_get_sc(target))
+				&& ((sc->data[SC_FOGWALL] && rnd() % 100 < 75) || sc->data[SC_STEALTHFIELD]) ) {
+				//Fogwall makes all offensive-type targetted skills fail at 75%, and
+				//You'll immune from offensive-type targetted skills in Stealth Field status.
+				if( sd ) clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
+				break;
 			}
 		}
 
 		//Avoid doing double checks for instant-cast skills.
-		if (tid != INVALID_TIMER && !status_check_skilluse(src, target, ud->skill_id, 1))
+		if( tid != INVALID_TIMER && !status_check_skilluse(src, target, ud->skill_id, 1) )
 			break;
 
-		if(md) {
+		if( md ) {
 			md->last_thinktime=tick +MIN_MOBTHINKTIME;
-			if(md->skill_idx >= 0 && md->db->skill[md->skill_idx].emotion >= 0)
+			if( md->skill_idx >= 0 && md->db->skill[md->skill_idx].emotion >= 0 )
 				clif_emotion(src, md->db->skill[md->skill_idx].emotion);
 		}
 
-		if(src != target && battle_config.skill_add_range &&
-			!check_distance_bl(src, target, skill_get_range2(src,ud->skill_id,ud->skill_lv)+battle_config.skill_add_range))
+		if( src != target && battle_config.skill_add_range &&
+			!check_distance_bl(src, target, skill_get_range2(src,ud->skill_id,ud->skill_lv)+battle_config.skill_add_range) )
 		{
-			if (sd) {
+			if( sd ) {
 				clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
-				if(battle_config.skill_out_range_consume) //Consume items anyway. [Skotlex]
+				if( battle_config.skill_out_range_consume ) //Consume items anyway. [Skotlex]
 					skill_consume_requirement(sd,ud->skill_id,ud->skill_lv,3);
 			}
 			break;
@@ -9500,8 +9501,8 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 	} while(0);
 
 	//Skill failed.
-	if (ud->skill_id == MO_EXTREMITYFIST && sd && !(sc && sc->data[SC_FOGWALL])) {
-		//When Asura fails... (except when it fails from Fog of Wall)
+	if (ud->skill_id == MO_EXTREMITYFIST && sd && !(sc && (sc->data[SC_FOGWALL] || sc->data[SC_STEALTHFIELD]))) {
+		//When Asura fails... (except when it fails from Fog of Wall or Stealth Field)
 		//Consume SP/spheres
 		skill_consume_requirement(sd,ud->skill_id, ud->skill_lv,1);
 		status_set_sp(src, 0, 0);
