@@ -855,7 +855,7 @@ ACMD_FUNC(option)
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message || sscanf(message, "%d %d %d", &param1, &param2, &param3) < 1 || param1 < 0 || param2 < 0 || param3 < 0)
-	{// failed to match the parameters so inform the user of the options
+	{ // failed to match the parameters so inform the user of the options
 		const char* text;
 
 		// attempt to find the setting information for this command
@@ -864,8 +864,7 @@ ACMD_FUNC(option)
 		// notify the user of the requirement to enter an option
 		clif_displaymessage(fd, msg_txt(921)); // Please enter at least one option.
 
-		if( text )
-		{// send the help text associated with this command
+		if( text ) { // send the help text associated with this command
 			clif_displaymessage( fd, text );
 		}
 

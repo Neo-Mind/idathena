@@ -1836,7 +1836,7 @@ int mmo_char_tobuf(uint8* buffer, struct mmo_charstatus* p)
 	WBUFL(buf,16) = p->job_level;
 	WBUFL(buf,20) = 0; // probably opt1
 	WBUFL(buf,24) = 0; // probably opt2
-	WBUFL(buf,28) = p->option;
+	WBUFL(buf,28) = (p->option &~ 0x40);
 	WBUFL(buf,32) = p->karma;
 	WBUFL(buf,36) = p->manner;
 	WBUFW(buf,40) = min(p->status_point, INT16_MAX);
@@ -1902,14 +1902,18 @@ int mmo_char_tobuf(uint8* buffer, struct mmo_charstatus* p)
 
 	return 106+offset;
 }
+
+void mmo_char_send099d(int fd, struct char_session_data* sd) {
+	WFIFOHEAD(fd,4 + (MAX_CHARS*MAX_CHAR_BUF));
+	WFIFOW(fd,0) = 0x99d;
+	WFIFOW(fd,2) = mmo_chars_fromsql(sd, WFIFOP(fd,4)) + 4;
+	WFIFOSET(fd,WFIFOW(fd,2));
+}
 int mmo_char_send006b(int fd, struct char_session_data* sd);
 //-------------------------------------------------
 // Notify client about charselect window data [Ind]
 //-------------------------------------------------
 void mmo_char_send082d(int fd, struct char_session_data* sd) {
-
-	if (save_log)
-		ShowInfo("Loading Char Data ("CL_BOLD"%d"CL_RESET")\n",sd->account_id);
 
 	WFIFOHEAD(fd,29);
 	WFIFOW(fd,0) = 0x82d;
@@ -1919,7 +1923,7 @@ void mmo_char_send082d(int fd, struct char_session_data* sd) {
 	WFIFOB(fd,6) = MAX_CHARS - sd->char_slots;
 	WFIFOB(fd,7) = sd->char_slots;
 	WFIFOB(fd,8) = sd->char_slots;
-	memset(WFIFOP(fd,9),0,20); // unused bytes
+	memset(WFIFOP(fd,9),0,20); // Unused bytes
 	WFIFOSET(fd,29);
 	mmo_char_send006b(fd,sd);
 
@@ -4665,7 +4669,7 @@ void moveCharSlot( int fd, struct char_session_data* sd, unsigned short from, un
 	// We successfully moved the char - time to notify the client
 	moveCharSlotReply( fd, sd, from, 0 );
 #if PACKETVER >= 20130000
-	mmo_char_send082d( fd, sd );
+	mmo_char_send099d( fd, sd );
 #else
 	mmo_char_send006b( fd, sd );
 #endif
