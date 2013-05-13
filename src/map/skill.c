@@ -1820,7 +1820,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 
 	if( sd && status_isdead(bl) ) {
 		int sp = 0, hp = 0;
-		if( attack_type&BF_WEAPON ) {
+		if( attack_type&(BF_WEAPON|BF_SHORT) == (BF_WEAPON|BF_SHORT) ) {
 			sp += sd->bonus.sp_gain_value;
 			sp += sd->sp_gain_race[status_get_race(bl)];
 			sp += sd->sp_gain_race[is_boss(bl)?RC_BOSS:RC_NONBOSS];
@@ -1829,7 +1829,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		if( attack_type&BF_MAGIC ) {
 			sp += sd->bonus.magic_sp_gain_value;
 			hp += sd->bonus.magic_hp_gain_value;
-			if( skill_id == WZ_WATERBALL ) {//(bugreport:5303)
+			if( skill_id == WZ_WATERBALL ) { //(bugreport:5303)
 				struct status_change *sc = NULL;
 				if( ( sc = status_get_sc(src) ) ) {
 					if(sc->data[SC_SPIRIT] &&
@@ -9531,15 +9531,15 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 		}
 	}
 
-	ud->skill_id = ud->skill_lv = ud->skilltarget = 0;
+	ud->skill_id = ud->skilltarget = 0;
 	if( !sd || sd->skillitem != ud->skill_id || skill_get_delay(ud->skill_id,ud->skill_lv) )
 		ud->canact_tick = tick;
 	//You can't place a skill failed packet here because it would be
 	//sent in ALL cases, even cases where skill_check_condition fails
 	//which would lead to double 'skill failed' messages u.u [Skotlex]
-	if(sd)
+	if( sd )
 		sd->skillitem = sd->skillitemlv = 0;
-	else if(md)
+	else if( md )
 		md->skill_idx = -1;
 	return 0;
 }

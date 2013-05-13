@@ -1942,26 +1942,25 @@ packet_ver: 34
 // Shuffle End
 
 //New Packets
-0x0998,8,equipitem,2:4
 0x0447,2
-0x990,31 //additem
-0x99b,8  //maptypeproperty2
-0x84b,19 //fallitem4
+0x084b,19 //fallitem4
 0x090f,-1 // notify_newentry7
-0x914,-1 // notify_moveentry
-0x915,-1 // notify_standentry
-0x978,6,reqworldinfo,2
-0x979,50 //ackworldinfo
-0x99a,9 // take_off_equipv5
-0x991,-1 //inv itemlist normal
-0x992,-1 //inv itemlist equip
-0x993,-1 //cart itemlist normal
-0x994,-1 //cart itemlist equip
-0x995,-1 //store itemlist normal
-0x996,-1 //store itemlist equip
-0x997,-1 //ZC_EQUIPWIN_MICROSCOPE_V5
-0x998,8,equipitem,2:4
-0x999,11 // cz_wear_equipv5
+0x0914,-1 // notify_moveentry
+0x0915,-1 // notify_standentry
+0x0978,6,reqworldinfo,2
+0x0979,50 //ackworldinfo
+0x0990,31 //additem
+0x0991,-1 //inv itemlist normal
+0x0992,-1 //inv itemlist equip
+0x0993,-1 //cart itemlist normal
+0x0994,-1 //cart itemlist equip
+0x0995,-1 //store itemlist normal
+0x0996,-1 //store itemlist equip
+0x0997,-1 //ZC_EQUIPWIN_MICROSCOPE_V5
+0x0998,8,equipitem,2:4
+0x0999,11 // cz_wear_equipv5
+0x099a,9 // take_off_equipv5
+0x099b,8  //maptypeproperty2
 //New Packets End
 
 //Add new packets here
