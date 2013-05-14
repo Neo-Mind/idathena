@@ -1717,7 +1717,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 
 	sd = BL_CAST(BL_PC, src);
 	tsd = BL_CAST(BL_PC, target);
-	
+
 	// Minstrel/Wanderer number check for chorus skills.
 	// Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 	if(sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 7)
@@ -3120,12 +3120,13 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					}
 					break;
 				case SR_GATEOFHELL:
-					ATK_ADD (sstatus->max_hp - sstatus->hp);
+					ATK_ADD(sstatus->max_hp - sstatus->hp);
 					if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE) {
 						ATK_ADD((sstatus->max_sp*(1 + skill_lv*2/10)) + 40*status_get_lv(src));
 					} else {
 						ATK_ADD((sstatus->sp*(1 + skill_lv*2/10)) + 10*status_get_lv(src));
 					}
+					flag.hit = 1;
 					break;
 				case SR_TIGERCANNON: // (Tiger Cannon skill level x 240) + (Target Base Level x 40)
 					ATK_ADD(skill_lv*240 + status_get_lv(target)*40);
