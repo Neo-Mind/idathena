@@ -9710,7 +9710,7 @@ BUILDIN_FUNC(sc_start)
 	}
 
 	//solving if script from npc or item
-	isitem = (nd && nd->bl.id == fake_nd->bl.id || flag != 2)?true:false;
+	isitem = ((nd && nd->bl.id == fake_nd->bl.id) || flag != 2)?true:false;
 
 	switch(start_type) {
 		case 1:
