@@ -5664,7 +5664,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case MO_CALLSPIRITS:
-			if(sd) {
+			if( sd ) {
 				int limit = skill_lv;
 				if( sd->sc.data[SC_RAISINGDRAGON] )
 					limit += sd->sc.data[SC_RAISINGDRAGON]->val1;
@@ -5674,12 +5674,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case CH_SOULCOLLECT:
-			if(sd) {
+			if( sd ) {
 				int limit = 5;
 				if( sd->sc.data[SC_RAISINGDRAGON] )
 					limit += sd->sc.data[SC_RAISINGDRAGON]->val1;
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				for (i = 0; i < limit; i++)
+				for( i = 0; i < limit; i++ )
 					pc_addspiritball(sd,skill_get_time(skill_id,skill_lv),limit);
 			}
 			break;
@@ -10686,29 +10686,29 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 
 	sd = BL_CAST(BL_PC, src);
 	status = status_get_status_data(src);
-	sc = status_get_sc(src);	// for traps, firewall and fogwall - celest
+	sc = status_get_sc(src); // For traps, firewall and fogwall - celest
 
 	switch( skill_id ) {
 		case MH_STEINWAND:
 		case MG_SAFETYWALL:
-			if(skill_id == MH_STEINWAND)
-				val2 = 300 * skill_lv + 65 * ( status->int_ +  status_get_lv(src) ) + status->max_sp; //nb hp
+			if( skill_id == MH_STEINWAND )
+				val2 = 300*skill_lv+65*(status->int_+status_get_lv(src))+status->max_sp; //nb hp
 			else
 #ifdef RENEWAL
-				val2 = status_get_max_hp(src) * 3;
+				val2 = status_get_max_hp(src)*3;
 #else
 				val2 = skill_lv+1;
 #endif
 			break;
 		case MG_FIREWALL:
-			if(sc && sc->data[SC_VIOLENTGALE])
+			if( sc && sc->data[SC_VIOLENTGALE] )
 				limit = limit*3/2;
 			val2 = 4+skill_lv;
 			break;
 
 		case AL_WARP:
 			val1 = skill_lv+6;
-			if(!(flag&1))
+			if( !(flag&1) )
 				limit = 2000;
 			else { // Previous implementation (not used anymore)
 				//Warp Portal morphing to active mode, extract relevant data from src. [Skotlex]
@@ -10732,7 +10732,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		case WZ_FIREPILLAR:
 			if( map_getcell(src->m, x, y, CELL_CHKLANDPROTECTOR) )
 				return NULL;
-			if((flag&1) != 0)
+			if( (flag&1) != 0 )
 				limit = 1000;
 			val1 = skill_lv+2;
 			break;
@@ -10740,8 +10740,8 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		case AM_DEMONSTRATION:
 		case GN_THORNS_TRAP:
 		case GN_HELLS_PLANT:
-			if (map_flag_vs(src->m) && battle_config.vs_traps_bctall
-				&& (src->type&battle_config.vs_traps_bctall))
+			if( map_flag_vs(src->m) && battle_config.vs_traps_bctall
+				&& (src->type&battle_config.vs_traps_bctall) )
 				target = BCT_ALL;
 			break;
 		case HT_SHOCKWAVE:
