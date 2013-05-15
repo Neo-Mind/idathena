@@ -5859,7 +5859,7 @@ int pc_need_status_point(struct map_session_data* sd, int type, int val)
 #else
 		sp += ( 1 + (low + 9) / 10 );
 #endif
-	
+
 	return sp;
 }
 

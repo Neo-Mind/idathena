@@ -3654,26 +3654,24 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		ATK_RATER(50)
 		status_fix_damage(target,src,wd.damage,clif_damage(target,src,gettick(),0,0,wd.damage,0,0,0));
 		clif_skill_nodamage(target,target,ST_REJECTSWORD,tsc->data[SC_REJECTSWORD]->val1,1);
-
 		if( --(tsc->data[SC_REJECTSWORD]->val3) <= 0 )
 			status_change_end(target, SC_REJECTSWORD, INVALID_TIMER);
+	}
 
-		if( tsc && tsc->data[SC_CRESCENTELBOW] && !is_boss(src) && rnd()%100 < tsc->data[SC_CRESCENTELBOW]->val2 ) {
-			//ATK [{(Target HP / 100) x Skill Level} x Caster Base Level / 125] % + [Received damage x {1 + (Skill Level x 0.2)}]
-			int rdamage = 0;
-			int ratio = (status_get_hp(src) / 100) * tsc->data[SC_CRESCENTELBOW]->val1 * status_get_lv(target) / 125;
-			if (ratio > 5000) ratio = 5000; // Maximum of 5000% ATK
-			rdamage = battle_calc_base_damage(tstatus,&tstatus->rhw,tsc,sstatus->size,tsd,0);
-			rdamage = rdamage * ratio / 100 + wd.damage * (10 + tsc->data[SC_CRESCENTELBOW]->val1 * 20 / 10) / 10;
-			skill_blown(target,src,skill_get_blewcount(SR_CRESCENTELBOW_AUTOSPELL,tsc->data[SC_CRESCENTELBOW]->val1),unit_getdir(src),0);
-			clif_skill_damage(target,src,gettick(),status_get_amotion(src),0,rdamage,
-				1,SR_CRESCENTELBOW_AUTOSPELL,tsc->data[SC_CRESCENTELBOW]->val1,6); // This is how official does
-			clif_damage(src,target,gettick(),status_get_amotion(src)+1000,0,rdamage/10,1,0,0);
-			status_damage(target,src,rdamage,0,0,0);
-			status_damage(src,target,rdamage/10,0,0,1);
-			status_change_end(target,SC_CRESCENTELBOW,INVALID_TIMER);
-		}
-
+	if( tsc && tsc->data[SC_CRESCENTELBOW] && !is_boss(src) && rnd()%100 < tsc->data[SC_CRESCENTELBOW]->val2 ) {
+		//ATK [{(Target HP / 100) x Skill Level} x Caster Base Level / 125] % + [Received damage x {1 + (Skill Level x 0.2)}]
+		int rdamage = 0;
+		int ratio = (status_get_hp(src) / 100) * tsc->data[SC_CRESCENTELBOW]->val1 * status_get_lv(target) / 125;
+		if (ratio > 5000) ratio = 5000; // Maximum of 5000% ATK
+		rdamage = battle_calc_base_damage(tstatus,&tstatus->rhw,tsc,sstatus->size,tsd,0);
+		rdamage = rdamage * ratio / 100 + wd.damage * (10 + tsc->data[SC_CRESCENTELBOW]->val1 * 20 / 10) / 10;
+		skill_blown(target,src,skill_get_blewcount(SR_CRESCENTELBOW_AUTOSPELL,tsc->data[SC_CRESCENTELBOW]->val1),unit_getdir(src),0);
+		clif_skill_damage(target,src,gettick(),status_get_amotion(src),0,rdamage,
+			1,SR_CRESCENTELBOW_AUTOSPELL,tsc->data[SC_CRESCENTELBOW]->val1,6); // This is how official does
+		clif_damage(src,target,gettick(),status_get_amotion(src)+1000,0,rdamage/10,1,0,0);
+		status_damage(target,src,rdamage,0,0,0);
+		status_damage(src,target,rdamage/10,0,0,1);
+		status_change_end(target,SC_CRESCENTELBOW,INVALID_TIMER);
 	}
 
 	if( sc ) {
