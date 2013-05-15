@@ -2242,8 +2242,8 @@ void skill_combo(struct block_list* src, struct block_list *dsrc, struct block_l
 		}
 	}
 
-	//start new combo
-	if (sd) { //player only
+	//Start new combo
+	if (sd) { //Player only
 		switch (skill_id) {
 			case MO_TRIPLEATTACK:
 				if (pc_checkskill(sd, MO_CHAINCOMBO) > 0 || pc_checkskill(sd, SR_DRAGONCOMBO) > 0)
@@ -13423,8 +13423,12 @@ int skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id, 
 				return 0;
 			break;
 	}
-	
+	/* temporarily disabled, awaiting for confirmation */
+#if 0
 	if( sd->state.abra_flag ) // Casting finished (Hocus-Pocus)
+#else
+	if( sd->skillitem == skill_id ) // Casting finished (Item skill or Hocus-Pocus) 
+#endif
 		return 1;
 
 	if( pc_is90overweight(sd) ) {
@@ -13624,8 +13628,12 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 
 	if( !sd )
 		return req;
-
+	/* temporarily disabled, awaiting for confirmation */
+#if 0
 	if( sd->state.abra_flag )
+#else
+	if( sd->skillitem == skill_id )
+#endif
 		return req; // Hocus-Pocus don't have requirements.
 
 	sc = &sd->sc;

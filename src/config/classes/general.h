@@ -17,6 +17,11 @@
 #define MAGIC_REFLECTION_TYPE 1
 
 /**
+ * Spirit Sphere Limitation
+ **/
+#define MAX_SPIRITBALL 15
+
+/**
  * No settings past this point
  **/
 

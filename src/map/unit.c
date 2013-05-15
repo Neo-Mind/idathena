@@ -1015,29 +1015,29 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	int combo = 0, range;
 
 	nullpo_ret(src);
-	if(status_isdead(src))
+	if( status_isdead(src) )
 		return 0; // Do not continue source is dead
 
 	sd = BL_CAST(BL_PC, src);
 	ud = unit_bl2ud(src);
 
-	if(ud == NULL) return 0;
+	if( ud == NULL ) return 0;
 	sc = status_get_sc(src);
-	if (sc && !sc->count)
+	if( sc && !sc->count )
 		sc = NULL; //Unneeded
 
-	//temp: used to signal combo-skills right now.
-	if (sc && sc->data[SC_COMBO] && (sc->data[SC_COMBO]->val1 == skill_id ||
-		(sd?skill_check_condition_castbegin(sd,skill_id,skill_lv):0) )) {
-		if (sc->data[SC_COMBO]->val2)
+	//temp: Used to signal combo-skills right now.
+	if( sc && sc->data[SC_COMBO] && (sc->data[SC_COMBO]->val1 == skill_id ||
+		(sd?skill_check_condition_castbegin(sd,skill_id,skill_lv):0)) ) {
+		if( sc->data[SC_COMBO]->val2 )
 			target_id = sc->data[SC_COMBO]->val2;
 		else
 			target_id = ud->target;
 
-		if( skill_get_inf(skill_id)&INF_SELF_SKILL && skill_get_nk(skill_id)&NK_NO_DAMAGE ) // exploit fix
+		if( skill_get_inf(skill_id)&INF_SELF_SKILL && skill_get_nk(skill_id)&NK_NO_DAMAGE ) // Exploit fix
 			target_id = src->id;
 		combo = 1;
-	} else if ( target_id == src->id &&
+	} else if( target_id == src->id &&
 		skill_get_inf(skill_id)&INF_SELF_SKILL &&
 		skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF )
 	{
@@ -1047,43 +1047,43 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 
 	if( sd ) {
 		//Target_id checking.
-		if(skillnotok(skill_id, sd)) // [MouseJstr]
+		if( skillnotok(skill_id, sd) ) // [MouseJstr]
 			return 0;
 
-		switch(skill_id) { //Check for skills that auto-select target
+		switch( skill_id ) { //Check for skills that auto-select target
 			case MO_CHAINCOMBO:
-				if (sc && sc->data[SC_BLADESTOP]) {
-					if ((target=map_id2bl(sc->data[SC_BLADESTOP]->val4)) == NULL)
+				if( sc && sc->data[SC_BLADESTOP] ) {
+					if( (target = map_id2bl(sc->data[SC_BLADESTOP]->val4)) == NULL )
 						return 0;
 				}
 				break;
 			case WE_MALE:
 			case WE_FEMALE:
-				if (!sd->status.partner_id)
+				if( !sd->status.partner_id )
 					return 0;
 				target = (struct block_list*)map_charid2sd(sd->status.partner_id);
-				if (!target) {
+				if( !target ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					return 0;
 				}
 				break;
 		}
-		if (target)
+		if( target )
 			target_id = target->id;
-	} else if (src->type==BL_HOM)
-		switch (skill_id) { //Homun-auto-target skills.
+	} else if( src->type == BL_HOM )
+		switch( skill_id ) { //Homun-auto-target skills.
 			case HLIF_HEAL:
 			case HLIF_AVOID:
 			case HAMI_DEFENCE:
 			case HAMI_CASTLE:
 				target = battle_get_master(src);
-				if (!target) return 0;
+				if( !target ) return 0;
 				target_id = target->id;
 				break;
 			case MH_SONIC_CRAW:
 			case MH_TINDER_BREAKER: {
 					int skill_id2 = ((skill_id==MH_SONIC_CRAW)?MH_MIDNIGHT_FRENZY:MH_EQC);
-					if (sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == skill_id2) { //it,s a combo
+					if( sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == skill_id2 ) { //It's a combo
 						target_id = sc->data[SC_COMBO]->val2;
 						combo = 1;
 						casttime = -1;
@@ -1102,13 +1102,13 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		return 0;
 
 	//Normally not needed because clif.c checks for it, but the at/char/script commands don't! [Skotlex]
-	if(ud->skilltimer != INVALID_TIMER && skill_id != SA_CASTCANCEL && skill_id != SO_SPELLFIST)
+	if( ud->skilltimer != INVALID_TIMER && skill_id != SA_CASTCANCEL && skill_id != SO_SPELLFIST )
 		return 0;
 
-	if(skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF && src->id == target_id)
+	if( skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF && src->id == target_id )
 		return 0;
 
-	if(!status_check_skilluse(src, target, skill_id, 0))
+	if( !status_check_skilluse(src, target, skill_id, 0) )
 		return 0;
 
 	tstatus = status_get_status_data(target);
@@ -1120,7 +1120,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 			return 0;
 		}
 
-		switch(skill_id) {
+		switch( skill_id ) {
 			case SA_CASTCANCEL:
 				if( ud->skill_id != skill_id ) {
 					sd->skill_id_old = ud->skill_id;
@@ -1148,7 +1148,12 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 				sd->skill_lv_old = skill_lv;
 				break;
 		}
+		/* temporarily disabled, awaiting for confirmation */
+#if 0
+		if( sd->skillitem != skill_id && !skill_check_condition_castbegin(sd, skill_id, skill_lv) )
+#else
 		if( !skill_check_condition_castbegin(sd, skill_id, skill_lv) )
+#endif
 			return 0;
 	}
 
@@ -1160,8 +1165,8 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 				if( ((TBL_MOB*)src)->master_id && ((TBL_MOB*)src)->special_state.ai )
 					return 0;
 		}
-		
-	if (src->type == BL_NPC) // NPC-objects can override cast distance
+
+	if( src->type == BL_NPC ) // NPC-objects can override cast distance
 		range = AREA_SIZE; // Maximum visible distance before NPC goes out of sight
 	else
 		range = skill_get_range2(src, skill_id, skill_lv); // Skill cast distance from database
@@ -1180,9 +1185,9 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		}
 	}
 
-	if (!combo) //Stop attack on non-combo skills [Skotlex]
+	if( !combo ) //Stop attack on non-combo skills [Skotlex]
 		unit_stop_attack(src);
-	else if(ud->attacktimer != INVALID_TIMER) //Elsewise, delay current attack sequence
+	else if( ud->attacktimer != INVALID_TIMER ) //Elsewise, delay current attack sequence
 		ud->attackabletime = tick + status_get_adelay(src);
 	
 	ud->state.skillcastcancel = castcancel;

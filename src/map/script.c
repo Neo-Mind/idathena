@@ -8105,23 +8105,23 @@ BUILDIN_FUNC(setoption)
 
 	sd = script_rid2sd(st);
 	if( sd == NULL )
-		return 0;// no player attached, report source
+		return 0; // No player attached, report source
 
 	option = script_getnum(st,2);
 	if( script_hasdata(st,3) )
 		flag = script_getnum(st,3);
-	else if( !option ){// Request to remove everything.
+	else if( !option ) { // Request to remove everything.
 		flag = 0;
 		option = OPTION_FALCON|OPTION_RIDING;
 #ifndef NEW_CARTS
 		option |= OPTION_CART;
 #endif
 	}
-	if( flag ){// Add option
+	if( flag ) { // Add option
 		if( option&OPTION_WEDDING && !battle_config.wedding_modifydisplay )
-			option &= ~OPTION_WEDDING;// Do not show the wedding sprites
+			option &= ~OPTION_WEDDING; // Do not show the wedding sprites
 		pc_setoption(sd, sd->sc.option|option);
-	} else// Remove option
+	} else // Remove option
 		pc_setoption(sd, sd->sc.option&~option);
 
 	return 0;
@@ -8495,11 +8495,12 @@ BUILDIN_FUNC(itemskill)
 
 	id = ( script_isstring(st,2) ? skill_name2id(script_getstr(st,2)) : script_getnum(st,2) );
 	lv = script_getnum(st,3);
-
-	if( !script_hasdata(st, 4) )
+	/* temporarily disabled, awaiting for confirmation */
+#if 0
+	if( !script_hasdata(st,4) )
 		if( !skill_check_condition_castbegin(sd,id,lv) || !skill_check_condition_castend(sd,id,lv) )
 			return true;
-
+#endif
 	sd->skillitem = id;
 	sd->skillitemlv = lv;
 	clif_item_skill(sd,id,lv);
@@ -8517,8 +8518,8 @@ BUILDIN_FUNC(produce)
 	if( sd == NULL )
 		return 0;
 
-	trigger=script_getnum(st,2);
-	clif_skill_produce_mix_list(sd, -1, trigger);
+	trigger = script_getnum(st,2);
+	clif_skill_produce_mix_list(sd,-1,trigger);
 	return 0;
 }
 /*==========================================
@@ -8533,8 +8534,8 @@ BUILDIN_FUNC(cooking)
 	if( sd == NULL )
 		return 0;
 
-	trigger=script_getnum(st,2);
-	clif_cooking_list(sd, trigger, AM_PHARMACY, 1, 1);
+	trigger = script_getnum(st,2);
+	clif_cooking_list(sd,trigger,AM_PHARMACY,1,1);
 	return 0;
 }
 /*==========================================
@@ -8543,9 +8544,9 @@ BUILDIN_FUNC(cooking)
 BUILDIN_FUNC(makepet)
 {
 	TBL_PC* sd;
-	int id,pet_id;
+	int id, pet_id;
 
-	id=script_getnum(st,2);
+	id = script_getnum(st,2);
 	sd = script_rid2sd(st);
 	if( sd == NULL )
 		return 0;
@@ -8558,9 +8559,9 @@ BUILDIN_FUNC(makepet)
 		sd->catch_target_class = pet_db[pet_id].class_;
 		intif_create_pet(
 			sd->status.account_id, sd->status.char_id,
-			(short)pet_db[pet_id].class_, (short)mob_db(pet_db[pet_id].class_)->lv,
-			(short)pet_db[pet_id].EggID, 0, (short)pet_db[pet_id].intimate,
-			100, 0, 1, pet_db[pet_id].jname);
+			(short)pet_db[pet_id].class_,(short)mob_db(pet_db[pet_id].class_)->lv,
+			(short)pet_db[pet_id].EggID,0,(short)pet_db[pet_id].intimate,
+			100,0,1,pet_db[pet_id].jname);
 	}
 
 	return 0;
@@ -8571,24 +8572,24 @@ BUILDIN_FUNC(makepet)
 BUILDIN_FUNC(getexp)
 {
 	TBL_PC* sd;
-	int base=0,job=0;
+	int base = 0,job = 0;
 	double bonus;
 
 	sd = script_rid2sd(st);
 	if( sd == NULL )
 		return 0;
 
-	base=script_getnum(st,2);
-	job =script_getnum(st,3);
-	if(base<0 || job<0)
+	base = script_getnum(st,2);
+	job = script_getnum(st,3);
+	if( base < 0 || job < 0 )
 		return 0;
 
-	// bonus for npc-given exp
+	// Bonus for npc-given exp
 	bonus = battle_config.quest_exp_rate / 100.;
-	base = (int) cap_value(base * bonus, 0, INT_MAX);
-	job = (int) cap_value(job * bonus, 0, INT_MAX);
+	base = (int) cap_value(base * bonus,0,INT_MAX);
+	job = (int) cap_value(job * bonus,0,INT_MAX);
 
-	pc_gainexp(sd, NULL, base, job, true);
+	pc_gainexp(sd,NULL,base,job,true);
 
 	return 0;
 }
@@ -8606,10 +8607,10 @@ BUILDIN_FUNC(guildgetexp)
 		return 0;
 
 	exp = script_getnum(st,2);
-	if(exp < 0)
+	if( exp < 0 )
 		return 0;
-	if(sd && sd->status.guild_id > 0)
-		guild_getexp (sd, exp);
+	if( sd && sd->status.guild_id > 0 )
+		guild_getexp (sd,exp);
 
 	return 0;
 }
