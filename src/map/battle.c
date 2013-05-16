@@ -2142,7 +2142,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					if (index >= 0 &&
 						sd->inventory_data[index] &&
 						sd->inventory_data[index]->type == IT_ARMOR)
-						ATK_ADD(sd->inventory_data[index]->weight/10);
+						ATK_ADD(sd->inventory_data[index]->weight / 10);
 				} else
 					ATK_ADD(sstatus->rhw.atk2); //Else use Atk2
 				break;
@@ -4474,25 +4474,29 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		case CR_ACIDDEMONSTRATION:
 #ifdef RENEWAL
 			{
-				short atk, matk, size_mod, bonus;
-				atk  = (2 * sstatus->batk) + (sd ? sstatus->rhw.atk : 0);
-				matk = sstatus->matk_max + sstatus->matk_min;
-				size_mod  = sd ? sd->right_weapon.atkmods[tstatus->size] : 1;
-				bonus = sd ? sd->bonus.long_attack_atk_rate : 0; // Long ATK Bonus. Likes : Archer Skeleton Card
+				struct Damage atk, matk;
+				short size_mod, bonus;
 
-				if ((atk != 0 && size_mod != 0) || matk != 0)
-					md.damage = (int)(((7 * atk * tstatus->vit) * size_mod / 100 + (7 * matk * tstatus->vit)) / 100);
-				else
+				int batk;
+				struct status_change *sc = status_get_sc(src);
+				batk = battle_calc_base_damage(sstatus,&sstatus->rhw,sc,tstatus->size,sd,0);
+				atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
+				matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,mflag);
+				size_mod = sd ? sd->right_weapon.atkmods[tstatus->size] : 1;
+				bonus = sd ? sd->bonus.long_attack_atk_rate : 0;
+
+				if ((atk.damage != 0 && size_mod != 0) || matk.damage != 0) {
+					md.damage = (int)((atk.damage + matk.damage + batk) * tstatus->vit * 0.07);
+					md.damage += (int)(md.damage * (bonus + size_mod) / 100);
+					md.damage = (int)(md.damage / 10);
+				} else
 					md.damage = 0;
 
-				if (tsd || is_boss(target))
-					md.damage >>= 1;
 				if (md.damage < 0)
 					md.damage = 0;
 				if (md.damage > INT_MAX>>1)
-					md.damage = INT_MAX>>1; //Overflow prevention
-				if (sd && bonus != 0)
-					md.damage += md.damage * bonus / 100;
+					//Overflow prevention
+					md.damage = INT_MAX>>1;
 			}
 #else
 			if (tstatus->vit + sstatus->int_) //Crash fix
