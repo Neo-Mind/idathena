@@ -7486,13 +7486,19 @@ int pc_changelook(struct map_session_data *sd,int type,int val)
 
 	switch(type) {
 		case LOOK_BASE:
-			sd->vd.class_ = val;
+			status_set_viewdata(&sd->bl,val);
+			clif_changelook(&sd->bl,LOOK_BASE,sd->vd.class_);
+			clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
+			if (sd->vd.cloth_color)
+				clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->vd.cloth_color);
+			clif_skillinfoblock(sd);
+			return 0;
 			break;
 		case LOOK_HAIR: //Use the battle_config limits! [Skotlex]
-			val = cap_value(val, MIN_HAIR_STYLE, MAX_HAIR_STYLE);
+			val = cap_value(val,MIN_HAIR_STYLE,MAX_HAIR_STYLE);
 
 			if (sd->status.hair != val) {
-				sd->status.hair=val;
+				sd->status.hair = val;
 				if (sd->status.guild_id) //Update Guild Window. [Skotlex]
 					intif_guild_change_memberinfo(sd->status.guild_id,sd->status.account_id,sd->status.char_id,
 					GMI_HAIR,&sd->status.hair,sizeof(sd->status.hair));
@@ -7514,7 +7520,7 @@ int pc_changelook(struct map_session_data *sd,int type,int val)
 			val = cap_value(val,MIN_HAIR_COLOR,MAX_HAIR_COLOR);
 
 			if (sd->status.hair_color != val) {
-				sd->status.hair_color=val;
+				sd->status.hair_color = val;
 				if (sd->status.guild_id) //Update Guild Window. [Skotlex]
 					intif_guild_change_memberinfo(sd->status.guild_id,sd->status.account_id,sd->status.char_id,
 					GMI_HAIR_COLOR,&sd->status.hair_color,sizeof(sd->status.hair_color));
