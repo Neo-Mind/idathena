@@ -1697,8 +1697,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 	wd.type = 0; //Normal attack
 	wd.div_ = skill_id?skill_get_num(skill_id,skill_lv):1;
 	wd.amotion = (skill_id && skill_get_inf(skill_id)&INF_GROUND_SKILL)?0:sstatus->amotion; //Amotion should be 0 for ground skills.
-	if(skill_id == KN_AUTOCOUNTER)
-		wd.amotion >>= 1;
+	// Counter attack obeys ASPD delay on official
+	/*if(skill_id == KN_AUTOCOUNTER)
+		wd.amotion >>= 1;*/
 	wd.dmotion = tstatus->dmotion;
 	wd.blewcount = skill_get_blewcount(skill_id,skill_lv);
 	wd.flag = BF_WEAPON; //Initial Flag

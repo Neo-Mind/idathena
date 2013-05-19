@@ -1778,7 +1778,7 @@
 2762,Dragoon_Ring,Dragon Ring,5,0,,0,,0,,0,0xFFFFFFFF,7,2,136,,1,0,0,{ bonus2 bExpAddRace,RC_Dragon,15; },{},{}
 2763,Skul_Ring_C,Neo Skull Ring,5,0,,0,,0,,0,0xFFFFFFFE,2,2,136,,95,0,0,{ bonus bAtkRate,5; bonus bMatkrate,5; bonus bMaxHPrate,5; bonus2 bSkillHeal,"AL_HEAL",5; skill "MG_SIGHT",1; },{},{}
 2764,Small_Fishing_Rod,Small Fishing Rod,5,10,,250,,0,,0,0xFFFFFFFF,7,2,136,,0,0,0,{},{},{}
-2765,Novice_Figure,Novice Figure,5,0,,100,,0,,0,0xFFFFFFFF,7,2,136,,0,0,0,{ bonus bMaxHP,70; if(Class==Job_Novice) bonus bMaxHP,30; },{},{}
+2765,Novice_Figure,Novice Figure,5,0,,100,,0,,0,0xFFFFFFFF,7,2,136,,0,0,0,{ bonus bMaxHP,70; if(BaseJob==Job_Novice||BaseJob==Job_SuperNovice) bonus bMaxHP,30; },{},{}
 2766,Swordman_Figure,Swordman Figure,5,0,,0,,0,,0,0xFFFFFFFF,7,2,136,,0,0,0,{ bonus bVit,1; if(Class==Job_Swordman) bonus bDef,2; },{},{}
 2767,Acolyte_Figure,Acolyte Figure,5,0,,0,,0,,0,0xFFFFFFFF,7,2,136,,0,0,0,{ bonus bInt,1; if(Class==Job_Acolyte) bonus bMaxSP,50; },{},{}
 2768,Mage_Figure,Mage Figure,5,0,,0,,0,,0,0xFFFFFFFF,7,2,136,,0,0,0,{ bonus bInt,1; if(Class==Job_Mage) bonus bSPrecovRate,5; },{},{}
@@ -6248,9 +6248,9 @@
 13535,Light_Center_Pot_Box,Light Concentration Potion Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14509,20; },{},{}
 13536,Light_Awakening_Pot_Box,Light Awakening Potion Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14510,20; },{},{}
 13537,Light_Berserk_Pot_Box,Light Berserk Potion Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14511,20; },{},{}
-13538,Meteor_10_Scroll_Box,Meteor Storm Scroll Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14512,1; },{},{}
-13539,Storm_10_Scroll_Box,Storm Gust Scroll Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14513,1; },{},{}
-13540,Vermilion_10_Scroll_Box,Lord of Vermilion Scroll Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14514,1; },{},{}
+13538,Meteor_10_Scroll_Box,Meteor Storm Scroll Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14512,10; },{},{}
+13539,Storm_10_Scroll_Box,Storm Gust Scroll Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14513,10; },{},{}
+13540,Vermilion_10_Scroll_Box,Lord of Vermilion Scroll Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14514,10; },{},{}
 13541,Lex_Aeterna_Scroll_Box,Lex Aeterna Scroll Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14515,1; },{},{}
 13542,Magnificat_5_Scroll_Box,Magnificat Scroll Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14516,1; },{},{}
 13543,CP_Helm_Scroll_Box,Chemical Protection Helm Scroll Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14517,10; getitem 7139,10; },{},{}
