@@ -5438,23 +5438,23 @@ void clif_broadcast(struct block_list* bl, const char* mes, int len, int type, e
  * 008d <PacketLength>.W <GID> L (ZC_NOTIFY_CHAT)
  *------------------------------------------*/
 void clif_GlobalMessage(struct block_list* bl, const char* message, enum send_target target) {
-	char buf[100];
+	char buf[256];
 	int len;
 	nullpo_retv(bl);
-	
+
 	if(!message)
 		return;
-	
+
 	len = strlen(message)+1;
-	
+
 	if( len > sizeof(buf)-8 ) {
 		ShowWarning("clif_GlobalMessage: Truncating too long message '%s' (len=%d).\n", message, len);
 		len = sizeof(buf)-8;
 	}
 
-	WBUFW(buf,0)=0x8d;
-	WBUFW(buf,2)=len+8;
-	WBUFL(buf,4)=bl->id;
+	WBUFW(buf,0) = 0x8d;
+	WBUFW(buf,2) = len+8;
+	WBUFL(buf,4) = bl->id;
 	safestrncpy((char *) WBUFP(buf,8),message,len);
 	clif_send((unsigned char *) buf,WBUFW(buf,2),bl,target);
 
