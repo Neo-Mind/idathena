@@ -8963,11 +8963,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_KYOUGAKU:
 		case SC_PARALYSIS:
 			unit_stop_walking(bl,1);
-		break;
+			break;
 		case SC_ANKLE:
 			if( battle_config.skill_trap_type || !map_flag_gvg(bl->m) )
 				unit_stop_walking(bl,1);
-		break;
+			break;
 		case SC_HIDING:
 		case SC_CLOAKING:
 		case SC_CLOAKINGEXCEED:
@@ -8975,11 +8975,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_WEIGHT90:
 		case SC_VOICEOFSIREN:
 			unit_stop_attack(bl);
-		break;
+			break;
 		case SC_SILENCE:
 			if (battle_config.sc_castcancel&bl->type)
 				unit_skillcastcancel(bl, 0);
-		break;
+			break;
 	}
 
 	// Set option as needed.

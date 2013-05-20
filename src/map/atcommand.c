@@ -1749,31 +1749,30 @@ ACMD_FUNC(go)
 	memset(map_name, '\0', sizeof(map_name));
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
  
-	// get the number
+	// Get the number
 	town = atoi(message);
  
-	if (!message || !*message || sscanf(message, "%11s", map_name) < 1 || town < 0 || town >= ARRAYLENGTH(data))
-	{// no value matched so send the list of locations
+	if (!message || !*message || sscanf(message, "%11s", map_name) < 1 || town < 0 || town >= ARRAYLENGTH(data)) {
+		// No value matched so send the list of locations
 		const char* text;
 
-		// attempt to find the text help string
+		// Attempt to find the text help string
 		text = atcommand_help_string( command );
 
 		clif_displaymessage(fd, msg_txt(38)); // Invalid location number, or name.
 
-		if( text )
-		{// send the text to the client
+		if( text ) { // Send the text to the client
 			clif_displaymessage( fd, text );
 		}
 		
 		return -1;
 	}
 
-	// get possible name of the city
+	// Get possible name of the city
 	map_name[MAP_NAME_LENGTH-1] = '\0';
 	for (i = 0; map_name[i]; i++)
 		map_name[i] = TOLOWER(map_name[i]);
-	// try to identify the map name
+	// Try to identify the map name
 	if (strncmp(map_name, "prontera", 3) == 0) {
 		town = 0;
 	} else if (strncmp(map_name, "morocc", 4) == 0 ||
@@ -1858,8 +1857,7 @@ ACMD_FUNC(go)
 		town = 35;
 	}
 
-	if (town >= 0 && town < ARRAYLENGTH(data))
-	{
+	if (town >= 0 && town < ARRAYLENGTH(data)) {
 		m = map_mapname2mapid(data[town].map);
 		if (m >= 0 && map[m].flag.nowarpto && !pc_has_permission(sd, PC_PERM_WARP_ANYWHERE)) {
 			clif_displaymessage(fd, msg_txt(247));
@@ -1875,7 +1873,7 @@ ACMD_FUNC(go)
 			clif_displaymessage(fd, msg_txt(1)); // Map not found.
 			return -1;
 		}
-	} else { // if you arrive here, you have an error in town variable when reading of names
+	} else { // If you arrive here, you have an error in town variable when reading of names
 		clif_displaymessage(fd, msg_txt(38)); // Invalid location number or name.
 		return -1;
 	}

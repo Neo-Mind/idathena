@@ -4596,6 +4596,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				status_change_end(bl, SC_RUSHWINDMILL, INVALID_TIMER);
 				status_change_end(bl, SC_ECHOSONG, INVALID_TIMER);
 				status_change_end(bl, SC_HARMONIZE, INVALID_TIMER);
+				status_change_end(bl, SC_NETHERWORLD, INVALID_TIMER);
 				status_change_end(bl, SC_VOICEOFSIREN, INVALID_TIMER);
 				status_change_end(bl, SC_DEEPSLEEP, INVALID_TIMER);
 				status_change_end(bl, SC_SIRCLEOFNATURE, INVALID_TIMER);
@@ -6086,6 +6087,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				status_change_end(bl, SC_SLEEP, INVALID_TIMER);
 				status_change_end(bl, SC_STUN, INVALID_TIMER);
 				status_change_end(bl, SC_WHITEIMPRISON, INVALID_TIMER);
+				status_change_end(bl, SC_NETHERWORLD, INVALID_TIMER);
 			}
 			//Is this equation really right? It looks so... special.
 			if(battle_check_undead(tstatus->race,tstatus->def_ele)) {
@@ -11891,11 +11893,11 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;
 
 		case UNT_SEVERE_RAINSTORM:
-			if( battle_check_target(&src->bl, bl, BCT_ENEMY) > 0 )
+			if( battle_check_target(&src->bl,bl,BCT_ENEMY) > 0 )
 				skill_attack(BF_WEAPON,ss,&src->bl,bl,WM_SEVERE_RAINSTORM_MELEE,sg->skill_lv,tick,0);
 			break;
 		case UNT_NETHERWORLD:
-			if( !(status_get_mode(bl)&MD_BOSS) && ss != bl && battle_check_target(&src->bl, bl, BCT_PARTY) > 0 ) {
+			if( !(status_get_mode(bl)&MD_BOSS) && ss != bl && !battle_check_target(&src->bl,bl,BCT_PARTY) ) {
 				if( !(tsc && tsc->data[type]) ) {
 					sc_start(ss, bl, type, 100, sg->skill_lv, skill_get_time2(sg->skill_id,sg->skill_lv));
 					sg->limit = DIFF_TICK(tick,sg->tick);

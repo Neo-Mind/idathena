@@ -4105,22 +4105,22 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 		return 0;
 
 	//Gender check
-	if(item->sex != 2 && sd->status.sex != item->sex)
+	if( item->sex != 2 && sd->status.sex != item->sex )
 		return 0;
 	//Required level check
-	if(item->elv && sd->status.base_level < (unsigned int)item->elv)
+	if( item->elv && sd->status.base_level < (unsigned int)item->elv )
 		return 0;
 		
 #ifdef RENEWAL
-	if(item->elvmax && sd->status.base_level > (unsigned int)item->elvmax)
+	if( item->elvmax && sd->status.base_level > (unsigned int)item->elvmax )
 		return 0;
 #endif
 
 	//Not equipable by class. [Skotlex]
-	if (!(
+	if( !(
 		(1<<(sd->class_&MAPID_BASEMASK)) &
 		(item->class_base[sd->class_&JOBL_2_1?1:(sd->class_&JOBL_2_2?2:0)])
-	))
+	) )
 		return 0;
 	//Not usable by upper class. [Inkfish]
 	while( 1 ) {
@@ -4167,26 +4167,26 @@ int pc_useitem(struct map_session_data *sd,int n)
 	if( !pc_isUseitem(sd,n) )
 		return 0;
 
-	// Store information for later use before it is lost (via pc_delitem) [Paradox924X]
+	//Store information for later use before it is lost (via pc_delitem) [Paradox924X]
 	nameid = sd->inventory_data[n]->nameid;
 
-	if (nameid != ITEMID_NAUTHIZ && sd->sc.opt1 > 0 && sd->sc.opt1 != OPT1_STONEWAIT && sd->sc.opt1 != OPT1_BURNING)
+	if( nameid != ITEMID_NAUTHIZ && sd->sc.opt1 > 0 && sd->sc.opt1 != OPT1_STONEWAIT && sd->sc.opt1 != OPT1_BURNING )
 		return 0;
 
-	if (sd->sc.count && (
-			sd->sc.data[SC_BERSERK] || sd->sc.data[SC__BLOODYLUST] || sd->sc.data[SC_SATURDAYNIGHTFEVER] ||
-			(sd->sc.data[SC_GRAVITATION] && sd->sc.data[SC_GRAVITATION]->val3 == BCT_SELF) ||
-			sd->sc.data[SC_TRICKDEAD] ||
-			sd->sc.data[SC_HIDING] ||
-			sd->sc.data[SC_WHITEIMPRISON] ||
-			sd->sc.data[SC__SHADOWFORM] ||
-			sd->sc.data[SC__INVISIBILITY] ||
-			sd->sc.data[SC__MANHOLE] ||
-			sd->sc.data[SC_CRYSTALIZE] ||
-			sd->sc.data[SC_DEEPSLEEP] ||
-			sd->sc.data[SC_KAGEHUMI] ||
-			(sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOITEM)
-		))
+	if( sd->sc.count && (
+		sd->sc.data[SC_BERSERK] || sd->sc.data[SC__BLOODYLUST] || sd->sc.data[SC_SATURDAYNIGHTFEVER] ||
+		(sd->sc.data[SC_GRAVITATION] && sd->sc.data[SC_GRAVITATION]->val3 == BCT_SELF) ||
+		sd->sc.data[SC_TRICKDEAD] ||
+		sd->sc.data[SC_HIDING] ||
+		sd->sc.data[SC_WHITEIMPRISON] ||
+		sd->sc.data[SC_CRYSTALIZE] ||
+		sd->sc.data[SC__SHADOWFORM] ||
+		sd->sc.data[SC__INVISIBILITY] ||
+		sd->sc.data[SC__MANHOLE] ||
+		sd->sc.data[SC_DEEPSLEEP] ||
+		sd->sc.data[SC_KAGEHUMI] ||
+		(sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOITEM)
+	    ) )
 		return 0;
 
 	//Prevent mass item usage. [Skotlex]
@@ -4212,17 +4212,17 @@ int pc_useitem(struct map_session_data *sd,int n)
 	if( sd->inventory_data[n]->delay > 0 ) {
 		int i;
 		ARR_FIND(0, MAX_ITEMDELAYS, i, sd->item_delay[i].nameid == nameid );
-				if( i == MAX_ITEMDELAYS ) /* item not found. try first empty now */
-						ARR_FIND(0, MAX_ITEMDELAYS, i, !sd->item_delay[i].nameid );
+			if( i == MAX_ITEMDELAYS ) /* Item not found. try first empty now */
+				ARR_FIND(0, MAX_ITEMDELAYS, i, !sd->item_delay[i].nameid );
 		if( i < MAX_ITEMDELAYS ) {
-			if( sd->item_delay[i].nameid ) {// found
+			if( sd->item_delay[i].nameid ) { //Found
 				if( DIFF_TICK(sd->item_delay[i].tick, tick) > 0 ) {
 					int e_tick = DIFF_TICK(sd->item_delay[i].tick, tick)/1000;
 					char e_msg[100];
 					if( e_tick > 99 )
 						sprintf(e_msg,msg_txt(379), //Item Failed. [%s] is cooling down. Wait %.1f minutes.
 										itemdb_jname(sd->status.inventory[n].nameid),
-										(double)e_tick / 60);
+										(double)e_tick/60);
 					else
 						sprintf(e_msg,msg_txt(380), //Item Failed. [%s] is cooling down. Wait %d seconds.
 										itemdb_jname(sd->status.inventory[n].nameid),
@@ -4230,15 +4230,15 @@ int pc_useitem(struct map_session_data *sd,int n)
 					clif_colormes(sd,color_table[COLOR_RED],e_msg);
 					return 0; // Delay has not expired yet
 				}
-			} else {// not yet used item (all slots are initially empty)
+			} else { //Not yet used item (all slots are initially empty)
 				sd->item_delay[i].nameid = nameid;
 			}
 			sd->item_delay[i].tick = tick + sd->inventory_data[n]->delay;
-		} else {// should not happen
+		} else { //Should not happen
 			ShowError("pc_useitem: Exceeded item delay array capacity! (nameid=%d, char_id=%d)\n", nameid, sd->status.char_id);
 		}
-		//clean up used delays so we can give room for more
-		for(i = 0; i < MAX_ITEMDELAYS; i++) {
+		//Clean up used delays so we can give room for more
+		for( i = 0; i < MAX_ITEMDELAYS; i++ ) {
 			if( DIFF_TICK(sd->item_delay[i].tick, tick) <= 0 ) {
 				sd->item_delay[i].tick = 0;
 				sd->item_delay[i].nameid = 0;
@@ -4246,24 +4246,25 @@ int pc_useitem(struct map_session_data *sd,int n)
 		}
 	}
 
-	/* on restricted maps the item is consumed but the effect is not used */
-	if (
+	/* On restricted maps the item is consumed but the effect is not used */
+	if(
 		(!map_flag_vs(sd->bl.m) && sd->inventory_data[n]->flag.no_equip&1) || // Normal
 		(map[sd->bl.m].flag.pvp && sd->inventory_data[n]->flag.no_equip&2) || // PVP
 		(map_flag_gvg(sd->bl.m) && sd->inventory_data[n]->flag.no_equip&4) || // GVG
 		(map[sd->bl.m].flag.battleground && sd->inventory_data[n]->flag.no_equip&8) || // Battleground
 		(map[sd->bl.m].flag.restricted && sd->inventory_data[n]->flag.no_equip&(8*map[sd->bl.m].zone)) // Zone restriction
-		) {
+		)
+	{
 			if( battle_config.item_restricted_consumption_type ) {
 				clif_useitemack(sd,n,sd->status.inventory[n].amount-1,true);
 				pc_delitem(sd,n,1,1,0,LOG_TYPE_CONSUME);
 			}
-			return 0;/* regardless, effect is not run */
-		}
+			return 0; /* Regardless, effect is not run */
+	}
 
 	sd->itemid = sd->status.inventory[n].nameid;
 	sd->itemindex = n;
-	if(sd->catch_target_class != -1) //Abort pet catching.
+	if( sd->catch_target_class != -1 ) //Abort pet catching.
 		sd->catch_target_class = -1;
 
 	amount = sd->status.inventory[n].amount;
@@ -4278,11 +4279,11 @@ int pc_useitem(struct map_session_data *sd,int n)
 		} else
 			clif_useitemack(sd,n,0,false);
 	}
-	if(sd->status.inventory[n].card[0]==CARD0_CREATE &&
-		pc_famerank(MakeDWord(sd->status.inventory[n].card[2],sd->status.inventory[n].card[3]), MAPID_ALCHEMIST))
+	if( sd->status.inventory[n].card[0] == CARD0_CREATE &&
+		pc_famerank(MakeDWord(sd->status.inventory[n].card[2],sd->status.inventory[n].card[3]),MAPID_ALCHEMIST) )
 	{
 	    potion_flag = 2; // Famous player's potions have 50% more efficiency
-		 if (sd->sc.data[SC_SPIRIT] && sd->sc.data[SC_SPIRIT]->val2 == SL_ROGUE)
+		 if( sd->sc.data[SC_SPIRIT] && sd->sc.data[SC_SPIRIT]->val2 == SL_ROGUE )
 			 potion_flag = 3; //Even more effective potions.
 	}
 
