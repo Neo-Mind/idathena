@@ -11872,7 +11872,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;
 
 		case UNT_STEALTHFIELD:
-			if( (bl->id == sg->src_id) || (bl->type == BL_MOB) )
+			if( ss == bl || bl->type == BL_MOB )
 				break; // Dont work on Self and only character is affected.
 		case UNT_NEUTRALBARRIER:
 			sc_start(ss,bl,type,100,sg->skill_lv,sg->interval + 100);
@@ -11896,15 +11896,17 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			if( battle_check_target(&src->bl,bl,BCT_ENEMY) > 0 )
 				skill_attack(BF_WEAPON,ss,&src->bl,bl,WM_SEVERE_RAINSTORM_MELEE,sg->skill_lv,tick,0);
 			break;
+
 		case UNT_NETHERWORLD:
-			if( !(status_get_mode(bl)&MD_BOSS) && ss != bl && !battle_check_target(&src->bl,bl,BCT_PARTY) ) {
-				if( !(tsc && tsc->data[type]) ) {
-					sc_start(ss, bl, type, 100, sg->skill_lv, skill_get_time2(sg->skill_id,sg->skill_lv));
+			if( (status_get_mode(bl)&MD_BOSS) || ss == bl || battle_check_target(&src->bl,bl,BCT_PARTY) > 0 )
+				break;
+			if( !(tsc && tsc->data[type]) ) {
+					sc_start(ss,bl,type,100,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 					sg->limit = DIFF_TICK(tick,sg->tick);
 					sg->unit_id = UNT_USED_TRAPS;
-				}
 			}
 			break;
+
 		case UNT_THORNS_TRAP:
 			if( tsc ) {
 				if( !sg->val2 ) {
