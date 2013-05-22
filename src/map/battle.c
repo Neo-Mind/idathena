@@ -1761,6 +1761,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 			case PA_SHIELDCHAIN:
 			case CR_SHIELDBOOMERANG:
 #endif
+			case RK_DRAGONBREATH:
 			case LG_SHIELDPRESS:
 			case LG_EARTHDRIVE:
 				flag.weapon = 0;
@@ -2153,6 +2154,15 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				wd.damage2 = sstatus->lhw.atk * ((skill_lv / 2) + 3);
 				break;
 #endif
+			case RK_DRAGONBREATH: {
+					int damagevalue = 0;
+					damagevalue = ((sstatus->hp / 50) + (status_get_max_sp(src) / 4)) * skill_lv;
+					if (status_get_lv(src) > 100) damagevalue = damagevalue * status_get_lv(src) / 150;
+					if (sd) damagevalue = damagevalue * (100 + 5 * (pc_checkskill(sd,RK_DRAGONTRAINING) - 1)) / 100;
+					ATK_ADD(damagevalue);
+					wd.flag |= BF_LONG|BF_WEAPON;
+				}
+				break;
 			case KO_HAPPOKUNAI:
 				if (sd) {
 					short index = sd->equip_index[EQI_AMMO];
@@ -4544,13 +4554,6 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		case NPC_EVILLAND:
 			md.damage = skill_calc_heal(src,target,skill_id,skill_lv,false);
 			break;
-		case RK_DRAGONBREATH:
-			md.damage = ((sstatus->hp / 50) + (status_get_max_sp(src) / 4)) * skill_lv;
-			RE_LVL_MDMOD(150);
-			if (sd)
-				md.damage = md.damage * (100 + 5 * (pc_checkskill(sd,RK_DRAGONTRAINING) - 1)) / 100;
-			md.flag |= BF_LONG|BF_WEAPON;
-			break;
 		case RA_CLUSTERBOMB:
 		case RA_FIRINGTRAP:
 		case RA_ICEBOUNDTRAP:
@@ -4567,7 +4570,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			break;
 		case WM_SOUND_OF_DESTRUCTION:
 			md.damage = 1000 * skill_lv + sstatus->int_ * pc_checkskill(sd,WM_LESSON);
-			md.damage += md.damage * ( 10 * chorusbonus ) / 100;
+			md.damage += md.damage * (10 * chorusbonus) / 100;
 			break;
 		case NC_SELFDESTRUCTION: {
 				short totaldef = tstatus->def2 + (short)status_get_def(target);
@@ -5362,7 +5365,7 @@ int battle_check_target( struct block_list *src, struct block_list *target, int 
 			if(((((TBL_MOB*)target)->special_state.ai == 2 || //Marine Spheres
 				(((TBL_MOB*)target)->special_state.ai == 3 && battle_config.summon_flora&1)) && //Floras
 				s_bl->type == BL_PC && src->type != BL_MOB) || (((TBL_MOB*)target)->special_state.ai == 4 && t_bl->id != s_bl->id)) //Zanzoe
-			{	//Targettable by players
+			{	//Targetable by players
 				state |= BCT_ENEMY;
 				strip_enemy = 0;
 			}
@@ -5373,10 +5376,10 @@ int battle_check_target( struct block_list *src, struct block_list *target, int 
 					return 0;
 				if( skill_get_inf2(su->group->skill_id)&INF2_TRAP ) { //Only a few skills can target traps...
 					switch( battle_getcurrentskill(src) ) {
-						case RK_DRAGONBREATH: // it can only hit traps in pvp/gvg maps
+						case RK_DRAGONBREATH: //It can only hit traps in pvp/gvg maps
 							if( !map[m].flag.pvp && !map[m].flag.gvg )
 							break;
-						case 0: //you can hit them without skills
+						case 0: //You can hit them without skills
 						case MA_REMOVETRAP:
 						case HT_REMOVETRAP:
 						case AC_SHOWER:

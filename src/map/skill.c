@@ -3673,7 +3673,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case KO_SETSUDAN:
 		case KO_KAIHOU:
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
-		break;
+			break;
 
 		case NC_BOOSTKNUCKLE:
 		case NC_PILEBUNKER:
@@ -3848,7 +3848,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case AS_GRIMTOOTH:
 		case MC_CARTREVOLUTION:
 		case NPC_SPLASHATTACK:
-			flag |= SD_PREAMBLE; // a fake packet will be sent for the first target to be hit
+			flag |= SD_PREAMBLE; // A fake packet will be sent for the first target to be hit
 		case AS_SPLASHER:
 		case SM_MAGNUM:
 		case MS_MAGNUM:
@@ -3897,7 +3897,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case KO_MUCHANAGE:
 		case KO_BAKURETSU:
 			if( flag&1 ) {
-				//Recursive invocation
+				// Recursive invocation
 				// skill_area_temp[0] holds number of targets in area
 				// skill_area_temp[1] holds the id of the original target
 				// skill_area_temp[2] counts how many targets have already been processed
@@ -3905,7 +3905,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				if( flag&SD_LEVEL )
 					sflag |= SD_LEVEL; // -1 will be used in packets instead of the skill level
 				if( skill_area_temp[1] != bl->id && !(skill_get_inf2(skill_id)&INF2_NPC_SKILL) )
-					sflag |= SD_ANIMATION; // original target gets no animation (as well as all NPC skills)
+					sflag |= SD_ANIMATION; // Original target gets no animation (as well as all NPC skills)
 
 				heal = skill_attack(skill_get_type(skill_id), src, src, bl, skill_id, skill_lv, tick, sflag);
 				if( skill_id == NPC_VAMPIRE_GIFT && heal > 0 ) {
@@ -4161,7 +4161,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			//Should attack undead and demons. [Skotlex]
 			if (battle_check_undead(tstatus->race, tstatus->def_ele) || tstatus->race == RC_DEMON)
 				skill_attack(BF_MAGIC, src, src, bl, skill_id, skill_lv, tick, flag);
-		break;
+			break;
 
 		case SL_SMA:
 			status_change_end(src, SC_SMA, INVALID_TIMER);
@@ -4194,7 +4194,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				if( (tsc = status_get_sc(bl)) && (tsc->data[SC_HIDING] )) {
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 				} else
-					skill_attack(BF_MISC,src,src,bl,skill_id,skill_lv,tick,flag);
+					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			}
 			break;
 
@@ -15100,7 +15100,7 @@ int skill_enchant_elemental_end (struct block_list *bl, int type)
 	const enum sc_type scs[] = { SC_ENCPOISON, SC_ASPERSIO, SC_FIREWEAPON, SC_WATERWEAPON, SC_WINDWEAPON, SC_EARTHWEAPON, SC_SHADOWWEAPON, SC_GHOSTWEAPON, SC_ENCHANTARMS };
 	int i;
 	nullpo_ret(bl);
-	nullpo_ret(sc= status_get_sc(bl));
+	nullpo_ret(sc = status_get_sc(bl));
 
 	if (!sc->count) return 0;
 
