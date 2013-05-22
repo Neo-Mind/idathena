@@ -3877,8 +3877,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case RA_WUGDASH:
 		case NC_VULCANARM:
 		case NC_ARMSCANNON:
-		case NC_SELFDESTRUCTION:
 		case NC_AXETORNADO:
+		case NC_SELFDESTRUCTION:
 		case GC_ROLLINGCUTTER:
 		case GC_COUNTERSLASH:
 		case LG_MOONSLASHER:
@@ -4191,7 +4191,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 		case RK_DRAGONBREATH: {
 				struct status_change *tsc = NULL;
-				if( (tsc = status_get_sc(bl)) && (tsc->data[SC_HIDING] )) {
+				if ((tsc = status_get_sc(bl)) && (tsc->data[SC_HIDING])) {
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 				} else
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
@@ -4200,7 +4200,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 		case NPC_SELFDESTRUCTION: {
 			struct status_change *tsc = NULL;
-			if( (tsc = status_get_sc(bl)) && tsc->data[SC_HIDING] )
+			if ((tsc = status_get_sc(bl)) && tsc->data[SC_HIDING])
 				break;
 			}
 		case HVAN_EXPLOSION:
@@ -5741,10 +5741,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 		case RG_RAID:
 			skill_area_temp[1] = 0;
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+			clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
 			map_foreachinrange(skill_area_sub, bl,
 				skill_get_splash(skill_id, skill_lv), splash_target(src),
-				src,skill_id,skill_lv,tick, flag|BCT_ENEMY|1,
+				src, skill_id, skill_lv, tick, flag|BCT_ENEMY|1,
 				skill_castend_damage_id);
 			status_change_end(src, SC_HIDING, INVALID_TIMER);
 			break;
@@ -5759,7 +5759,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SR_HOWLINGOFLION:
 		case KO_HAPPOKUNAI:
 			skill_area_temp[1] = 0;
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+			clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
 			i = map_foreachinrange(skill_area_sub, bl, skill_get_splash(skill_id, skill_lv), splash_target(src),
 				src, skill_id, skill_lv, tick, flag|BCT_ENEMY|SD_SPLASH|1, skill_castend_damage_id);
 			if( !i && ( skill_id == NC_AXETORNADO || skill_id == SR_SKYNETBLOW || skill_id == KO_HAPPOKUNAI ) )
@@ -5811,7 +5811,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				BF_MAGIC, src, src, skill_id, skill_lv, tick, flag, BCT_ENEMY);
 			break;
 
-		case HVAN_EXPLOSION:	//[orn]
+		case HVAN_EXPLOSION: //[orn]
 		case NPC_SELFDESTRUCTION:
 			//Self Destruction hits everyone in range (allies+enemies)
 			//Except for Summoned Marine spheres on non-versus maps, where it's just enemy.
@@ -8116,10 +8116,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case NC_SELFDESTRUCTION:
 			if( sd ) {
-				if( pc_ismadogear(sd) )
-					 pc_setmadogear(sd, 0);
+				if( pc_ismadogear(sd) ) pc_setmadogear(sd, 0);
+				skill_area_temp[1] = 0;
 				clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
-				skill_castend_damage_id(src, src, skill_id, skill_lv, tick, flag);
+				i = map_foreachinrange(skill_area_sub, bl, skill_get_splash(skill_id, skill_lv), splash_target(src),
+				src, skill_id, skill_lv, tick, flag|BCT_ENEMY|SD_SPLASH|1, skill_castend_damage_id);
 				status_set_sp(src, 0, 0);
 			}
 			break;
@@ -10166,13 +10167,13 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case NC_COLDSLOWER:
 		case WM_GREAT_ECHO:
 		case WM_SOUND_OF_DESTRUCTION:
-			i = skill_get_splash(skill_id,skill_lv);
+			i = skill_get_splash(skill_id, skill_lv);
 			map_foreachinarea(skill_area_sub, src->m, x-i, y-i, x+i, y+i, splash_target(src),
 				src, skill_id, skill_lv, tick, flag|BCT_ENEMY|1, skill_castend_damage_id);
 			break;
 			
 		case SO_ARRULLO:
-			i = skill_get_splash(skill_id,skill_lv);
+			i = skill_get_splash(skill_id, skill_lv);
 			map_foreachinarea(skill_area_sub, src->m, x-i,y-i, x+i, y+i, splash_target(src),
 				src, skill_id, skill_lv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
 			break;
