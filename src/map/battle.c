@@ -803,30 +803,30 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		if( sc->data[SC__MAELSTROM] && (flag&BF_MAGIC) && skill_id && (skill_get_inf(skill_id)&INF_GROUND_SKILL) ) {
 			// Unofficial Absorbtion Value
 			int sp = (( sc->data[SC__MAELSTROM]->val1 * 10 ) + (sd ? sd->status.job_level / 5 : 0)) / 2;
-			status_heal(bl,0,sp,3);
+			status_heal(bl, 0, sp, 3);
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}
 		if( sc->data[SC_WEAPONBLOCKING] && flag&(BF_SHORT|BF_WEAPON) && rnd()%100 < sc->data[SC_WEAPONBLOCKING]->val2 ) {
 			clif_skill_nodamage(bl,src,GC_WEAPONBLOCKING,1,1);
 			d->dmg_lv = ATK_BLOCK;
-			sc_start2(src,bl,SC_COMBO,100,GC_WEAPONBLOCKING,src->id,2000);
+			sc_start2(src, bl, SC_COMBO, 100, GC_WEAPONBLOCKING, src->id, 2000);
 			return 0;
 		}
 		if( (sce = sc->data[SC_AUTOGUARD]) && flag&BF_WEAPON && !(skill_get_nk(skill_id)&NK_NO_CARDFIX_ATK) && rnd()%100 < sce->val2 ) {
 			int delay;
-			clif_skill_nodamage(bl,bl,CR_AUTOGUARD,sce->val1,1);
+			clif_skill_nodamage(bl, bl, CR_AUTOGUARD, sce->val1, 1);
 			// different delay depending on skill level [celest]
-			if (sce->val1 <= 5)
+			if( sce->val1 <= 5 )
 				delay = 300;
-			else if (sce->val1 > 5 && sce->val1 <= 9)
+			else if( sce->val1 > 5 && sce->val1 <= 9 )
 				delay = 200;
 			else
 				delay = 100;
 			unit_set_walkdelay(bl, gettick(), delay, 1);
 
-			if(sc->data[SC_SHRINK] && rnd()%100<5*sce->val1)
-				skill_blown(bl,src,skill_get_blewcount(CR_SHRINK,1),-1,0);
+			if( sc->data[SC_SHRINK] && rnd()%100<5*sce->val1 )
+				skill_blown(bl, src, skill_get_blewcount(CR_SHRINK, 1), -1, 0);
 			return 0;
 		}
 
@@ -835,7 +835,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			sce->val3 -= damage; // absorb damage
 			d->dmg_lv = ATK_BLOCK;
 			// There is a chance to be stuned when one shield is broken.
-			sc_start(src,bl,SC_STUN,15,0,skill_get_time2(RK_MILLENNIUMSHIELD,sce->val1));
+			sc_start(src, bl, SC_STUN, 15, 0, skill_get_time2(RK_MILLENNIUMSHIELD, sce->val1));
 			if( sce->val3 <= 0 ) { // Shield Down
 				sce->val2--;
 				if( sce->val2 > 0 ) {
@@ -843,7 +843,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 						clif_millenniumshield(sd,sce->val2);
 						sce->val3 = 1000; // Next Shield
 				} else
-					status_change_end(bl,SC_MILLENNIUMSHIELD,INVALID_TIMER); // All shields down
+					status_change_end(bl, SC_MILLENNIUMSHIELD, INVALID_TIMER); // All shields down
 			}
 			return 0;
 		}
@@ -854,55 +854,55 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			return 0;
 		}
 		
-		if(sc->data[SC_DODGE] && ( !sc->opt1 || sc->opt1 == OPT1_BURNING ) &&
+		if( sc->data[SC_DODGE] && ( !sc->opt1 || sc->opt1 == OPT1_BURNING ) &&
 			(flag&BF_LONG || sc->data[SC_SPURT])
-			&& rnd()%100 < 20) {
-			if (sd && pc_issit(sd)) pc_setstand(sd); //Stand it to dodge.
-			clif_skill_nodamage(bl,bl,TK_DODGE,1,1);
-			if (!sc->data[SC_COMBO])
+			&& rnd()%100 < 20 ) {
+			if( sd && pc_issit(sd) ) pc_setstand(sd); //Stand it to dodge.
+			clif_skill_nodamage(bl, bl, TK_DODGE, 1, 1);
+			if( !sc->data[SC_COMBO] )
 				sc_start4(src, bl, SC_COMBO, 100, TK_JUMPKICK, src->id, 1, 0, 2000);
 			return 0;
 		}
 
-		if(sc->data[SC_HERMODE] && flag&BF_MAGIC)
+		if( sc->data[SC_HERMODE] && flag&BF_MAGIC )
 			return 0;
 
-		if(sc->data[SC_TATAMIGAESHI] && (flag&(BF_MAGIC|BF_LONG)) == BF_LONG)
+		if( sc->data[SC_TATAMIGAESHI] && (flag&(BF_MAGIC|BF_LONG)) == BF_LONG )
 			return 0;
 
-		if((sce = sc->data[SC_KAUPE]) && rnd()%100 < sce->val2) {
+		if( (sce = sc->data[SC_KAUPE]) && rnd()%100 < sce->val2 ) {
 			//Kaupe blocks damage (skill or otherwise) from players, mobs, homuns, mercenaries.
 			clif_specialeffect(bl, 462, AREA);
 			//Shouldn't end until Breaker's non-weapon part connects.
-			if (skill_id != ASC_BREAKER || !(flag&BF_WEAPON))
+			if( skill_id != ASC_BREAKER || !(flag&BF_WEAPON) )
 				if (--(sce->val3) <= 0) //We make it work like Safety Wall, even though it only blocks 1 time.
 					status_change_end(bl, SC_KAUPE, INVALID_TIMER);
 			return 0;
 		}
-		
+
 		if( sc->data[SC_KAITE] && (flag&BF_SHORT) ) {
 			damage <<= 2; //400% damage receive
 		}
 
-		if( flag&BF_MAGIC && (sce=sc->data[SC_PRESTIGE]) && rnd()%100 < sce->val2) {
+		if( flag&BF_MAGIC && (sce = sc->data[SC_PRESTIGE]) && rnd()%100 < sce->val2 ) {
 			clif_specialeffect(bl, 462, AREA); // Still need confirm it.
 			return 0;
 		}
 
-		if (((sce = sc->data[SC_UTSUSEMI]) || sc->data[SC_BUNSINJYUTSU])
-		&& flag&BF_WEAPON && !(skill_get_nk(skill_id)&NK_NO_CARDFIX_ATK)) {
+		if( ((sce = sc->data[SC_UTSUSEMI]) || sc->data[SC_BUNSINJYUTSU])
+		&& flag&BF_WEAPON && !(skill_get_nk(skill_id)&NK_NO_CARDFIX_ATK) ) {
 			
 			skill_additional_effect (src, bl, skill_id, skill_lv, flag, ATK_BLOCK, gettick() );
 			if( !status_isdead(src) )
 				skill_counter_additional_effect( src, bl, skill_id, skill_lv, flag, gettick() );
-			if (sce) {
+			if( sce ) {
 				clif_specialeffect(bl, 462, AREA);
-				skill_blown(src,bl,sce->val3,-1,0);
+				skill_blown(src, bl, sce->val3, -1, 0);
 			}
 			//Both need to be consumed if they are active.
-			if (sce && --(sce->val2) <= 0)
+			if( sce && --(sce->val2) <= 0 )
 				status_change_end(bl, SC_UTSUSEMI, INVALID_TIMER);
-			if ((sce=sc->data[SC_BUNSINJYUTSU]) && --(sce->val2) <= 0)
+			if( (sce = sc->data[SC_BUNSINJYUTSU]) && --(sce->val2) <= 0 )
 				status_change_end(bl, SC_BUNSINJYUTSU, INVALID_TIMER);
 						
 			return 0;
@@ -921,7 +921,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		if( sc->data[SC_RAID] ) {
 			damage += damage * 20 / 100;
 
-			if (--sc->data[SC_RAID]->val1 == 0)
+			if( --sc->data[SC_RAID]->val1 == 0 )
 				status_change_end(bl, SC_RAID, INVALID_TIMER);
 		}
 #endif
@@ -933,7 +933,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 				status_change_end(bl,SC_DEEPSLEEP,INVALID_TIMER);
 			}
 			if( tsd && sd && sc->data[SC_CRYSTALIZE] && flag&BF_WEAPON ) {
-				switch(tsd->status.weapon) {
+				switch( tsd->status.weapon ) {
 					case W_MACE:
 					case W_2HMACE:
 					case W_1HAXE:
@@ -942,7 +942,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 						break;
 					case W_MUSICAL:
 					case W_WHIP:
-						if(!sd->state.arrow_atk)
+						if( !sd->state.arrow_atk )
 							break;
 					case W_BOW:
 					case W_REVOLVER:
@@ -985,25 +985,25 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 				damage >>= 2; //75% reduction
 		}
 
-		if( sc->data[SC_SMOKEPOWDER] ) {
-			if( (flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON) )
+		if(sc->data[SC_SMOKEPOWDER]) {
+			if((flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON))
 				damage -= damage * 15 / 100; //15% reduction to physical melee attacks
-			else if( (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
+			else if((flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON))
 				damage -= damage * 50 / 100; //50% reduction to physical ranged attacks
 		}
 
 		// Compressed code, fixed by map.h [Epoque]
-		if (src->type == BL_MOB) {
+		if(src->type == BL_MOB) {
 			int i;
-			if (sc->data[SC_MANU_DEF])
-				for (i=0;ARRAYLENGTH(mob_manuk)>i;i++)
-					if (mob_manuk[i]==((TBL_MOB*)src)->class_) {
+			if(sc->data[SC_MANU_DEF])
+				for(i=0;ARRAYLENGTH(mob_manuk)>i;i++)
+					if(mob_manuk[i]==((TBL_MOB*)src)->class_) {
 						damage -= damage * sc->data[SC_MANU_DEF]->val1 / 100;
 						break;
 					}
-			if (sc->data[SC_SPL_DEF])
-				for (i=0;ARRAYLENGTH(mob_splendide)>i;i++)
-					if (mob_splendide[i]==((TBL_MOB*)src)->class_) {
+			if(sc->data[SC_SPL_DEF])
+				for(i=0;ARRAYLENGTH(mob_splendide)>i;i++)
+					if(mob_splendide[i]==((TBL_MOB*)src)->class_) {
 						damage -= damage * sc->data[SC_SPL_DEF]->val1 / 100;
 						break;
 					}
@@ -1118,8 +1118,8 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		}
 
 		if( sc->data[SC_STYLE_CHANGE] ) {
-			TBL_HOM *hd = BL_CAST(BL_HOM,bl); //when being hit
-			if ( hd && (rnd()%100<(status_get_lv(bl)/2)) ) hom_addspiritball(hd, 10); //add a sphere
+			TBL_HOM *hd = BL_CAST(BL_HOM,bl); //When being hit
+			if ( hd && (rnd()%100<(status_get_lv(bl)/2)) ) hom_addspiritball(hd, 10); //Add a sphere
 		}
 
 		if( sc->data[SC__DEADLYINFECT] && flag&BF_SHORT && damage > 0 && rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 )
@@ -1154,7 +1154,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		if( sc->data[SC_INVINCIBLE] && !sc->data[SC_INVINCIBLEOFF] )
 			damage += damage * 75 / 100;
 		// [Epoque]
-		if (bl->type == BL_MOB) {
+		if( bl->type == BL_MOB ) {
 			int i;
 
 			if( ((sce=sc->data[SC_MANU_ATK]) && (flag&BF_WEAPON)) ||
