@@ -5187,7 +5187,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 	if( sc == NULL )
 		return cap_value(speed,10,USHRT_MAX);
 
-	if (sd && sd->state.permanent_speed)
+	if( sd && sd->state.permanent_speed )
 		return (short)cap_value(speed,10,USHRT_MAX);
 
 	if( sd && sd->ud.skilltimer != INVALID_TIMER && (pc_checkskill(sd,SA_FREECAST) > 0 || sd->ud.skill_id == LG_EXEEDBREAK) ) {
@@ -5286,8 +5286,8 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 			speed_rate += val;
 		}
 
-		if( sc->data[SC_MARSHOFABYSS] && speed_rate > 50 )
-			speed_rate = 50;
+		if( sc->data[SC_MARSHOFABYSS] && speed_rate > 150 )
+			speed_rate = 150;
 
 		//GetMoveHasteValue1()
 		{
