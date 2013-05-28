@@ -16942,8 +16942,8 @@ void packetdb_readdb(void)
 		{clif_parse_dull,"dull"},
 		{clif_parse_GuildInvite2,"guildinvite2"},
 		{clif_parse_reqworldinfo,"reqworldinfo"},
-		{clif_parse_client_version, "clientversion"},
-		{clif_parse_blocking_playcancel, "booking_playcancel"},
+		{clif_parse_client_version,"clientversion"},
+		{clif_parse_blocking_playcancel,"booking_playcancel"},
 		{NULL,NULL}
 	};
 
