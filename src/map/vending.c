@@ -21,10 +21,13 @@
 #include <string.h>
 
 static int vending_nextid = 0;
+static DBMap *vending_db;
 
+DBMap* vending_getdb() {
+	return vending_db;
+}
 /// Returns an unique vending shop id.
-static int vending_getuid(void)
-{
+static int vending_getuid(void) {
 	return vending_nextid++;
 }
 
@@ -35,10 +38,10 @@ void vending_closevending(struct map_session_data* sd)
 {
 	nullpo_retv(sd);
 
-	if( sd->state.vending )
-	{
+	if( sd->state.vending ) {
 		sd->state.vending = false;
 		clif_closevendingboard(&sd->bl, 0);
+		idb_remove(vending_db, sd->status.char_id);
 	}
 }
 
@@ -270,7 +273,7 @@ void vending_openvending(struct map_session_data* sd, const char* message, const
 	}
 
 	if( i != j )
-		clif_displaymessage (sd->fd, msg_txt(266)); //"Some of your items cannot be vended and were removed from the shop."
+		clif_displaymessage(sd->fd, msg_txt(266)); //"Some of your items cannot be vended and were removed from the shop."
 
 	if( i == 0 ) { // no valid item found
 		clif_skill_fail(sd, MC_VENDING, USESKILL_FAIL_LEVEL, 0); // custom reply packet
@@ -282,14 +285,15 @@ void vending_openvending(struct map_session_data* sd, const char* message, const
 	sd->vend_num = i;
 	safestrncpy(sd->message, message, MESSAGE_SIZE);
 
-	clif_openvending(sd,sd->bl.id,sd->vending);
-	clif_showvendingboard(&sd->bl,message,0);
+	clif_openvending(sd, sd->bl.id, sd->vending);
+	clif_showvendingboard(&sd->bl, message, 0);
+
+	idb_put(vending_db, sd->vender_id, sd);
 }
 
 
 /// Checks if an item is being sold in given player's vending.
-bool vending_search(struct map_session_data* sd, unsigned short nameid)
-{
+bool vending_search(struct map_session_data* sd, unsigned short nameid) {
 	int i;
 
 	if( !sd->state.vending ) { // not vending
@@ -307,8 +311,7 @@ bool vending_search(struct map_session_data* sd, unsigned short nameid)
 
 /// Searches for all items in a vending, that match given ids, price and possible cards.
 /// @return Whether or not the search should be continued.
-bool vending_searchall(struct map_session_data* sd, const struct s_search_store_search* s)
-{
+bool vending_searchall(struct map_session_data* sd, const struct s_search_store_search* s) {
 	int i, c, slot;
 	unsigned int idx, cidx;
 	struct item* it;
@@ -358,4 +361,13 @@ bool vending_searchall(struct map_session_data* sd, const struct s_search_store_
 	}
 
 	return true;
+}
+
+void do_final_vending(void) {
+	db_destroy(vending_db);
+}
+
+void do_init_vending(void) {
+	vending_db = idb_alloc(DB_OPT_BASE);
+	vending_nextid = 0;
 }

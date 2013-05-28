@@ -11842,15 +11842,15 @@ BUILDIN_FUNC(setiteminfo)
  *------------------------------------------*/
 BUILDIN_FUNC(getequipcardid)
 {
-	int i=-1,num,slot;
+	int i = -1,num,slot;
 	TBL_PC *sd;
 
-	num=script_getnum(st,2);
-	slot=script_getnum(st,3);
-	sd=script_rid2sd(st);
+	num = script_getnum(st,2);
+	slot = script_getnum(st,3);
+	sd = script_rid2sd(st);
 	if (num > 0 && num <= ARRAYLENGTH(equip))
-		i=pc_checkequip(sd,equip[num-1]);
-	if(i >= 0 && slot>=0 && slot<4)
+		i = pc_checkequip(sd,equip[num-1]);
+	if (i >= 0 && slot >= 0 && slot < 4)
 		script_pushint(st,sd->status.inventory[i].card[slot]);
 	else
 		script_pushint(st,0);
@@ -11865,27 +11865,27 @@ BUILDIN_FUNC(petskillbonus)
 {
 	struct pet_data *pd;
 
-	TBL_PC *sd=script_rid2sd(st);
+	TBL_PC *sd = script_rid2sd(st);
 
-	if(sd==NULL || sd->pd==NULL)
+	if (sd == NULL || sd->pd == NULL)
 		return 0;
 
-	pd=sd->pd;
+	pd = sd->pd;
 	if (pd->bonus) { //Clear previous bonus
 		if (pd->bonus->timer != INVALID_TIMER)
 			delete_timer(pd->bonus->timer, pet_skill_bonus_timer);
-	} else //init
+	} else //Init
 		pd->bonus = (struct pet_bonus *) aMalloc(sizeof(struct pet_bonus));
 
-	pd->bonus->type=script_getnum(st,2);
-	pd->bonus->val=script_getnum(st,3);
-	pd->bonus->duration=script_getnum(st,4);
-	pd->bonus->delay=script_getnum(st,5);
+	pd->bonus->type = script_getnum(st,2);
+	pd->bonus->val = script_getnum(st,3);
+	pd->bonus->duration = script_getnum(st,4);
+	pd->bonus->delay = script_getnum(st,5);
 
 	if (pd->state.skillbonus == 1)
-		pd->state.skillbonus=0;	// waiting state
+		pd->state.skillbonus = 0; // Waiting state
 
-	// wait for timer to start
+	// Wait for timer to start
 	if (battle_config.pet_equip_required && pd->pet.equip == 0)
 		pd->bonus->timer = INVALID_TIMER;
 	else
@@ -11901,30 +11901,28 @@ BUILDIN_FUNC(petloot)
 {
 	int max;
 	struct pet_data *pd;
-	TBL_PC *sd=script_rid2sd(st);
-	
-	if(sd==NULL || sd->pd==NULL)
+	TBL_PC *sd = script_rid2sd(st);
+
+	if(sd == NULL || sd->pd == NULL)
 		return 0;
 
-	max=script_getnum(st,2);
+	max = script_getnum(st,2);
 
 	if(max < 1)
-		max = 1;	//Let'em loot at least 1 item.
+		max = 1; //Let'em loot at least 1 item.
 	else if (max > MAX_PETLOOT_SIZE)
 		max = MAX_PETLOOT_SIZE;
-	
+
 	pd = sd->pd;
-	if (pd->loot != NULL)
-	{	//Release whatever was there already and reallocate memory
-		pet_lootitem_drop(pd, pd->msd);
+	if(pd->loot != NULL) { //Release whatever was there already and reallocate memory
+		pet_lootitem_drop(pd, pd->master);
 		aFree(pd->loot->item);
-	}
-	else
+	} else
 		pd->loot = (struct pet_loot *)aMalloc(sizeof(struct pet_loot));
 
 	pd->loot->item = (struct item *)aCalloc(max,sizeof(struct item));
-	
-	pd->loot->max=max;
+
+	pd->loot->max = max;
 	pd->loot->count = 0;
 	pd->loot->weight = 0;
 
@@ -11944,16 +11942,15 @@ BUILDIN_FUNC(getinventorylist)
 	
 	int i,j=0,k;
 	if(!sd) return 0;
-	for(i=0;i<MAX_INVENTORY;i++){
-		if(sd->status.inventory[i].nameid > 0 && sd->status.inventory[i].amount > 0){
+	for(i=0;i<MAX_INVENTORY;i++) {
+		if(sd->status.inventory[i].nameid > 0 && sd->status.inventory[i].amount > 0) {
 			pc_setreg(sd,reference_uid(add_str("@inventorylist_id"), j),sd->status.inventory[i].nameid);
 			pc_setreg(sd,reference_uid(add_str("@inventorylist_amount"), j),sd->status.inventory[i].amount);
 			pc_setreg(sd,reference_uid(add_str("@inventorylist_equip"), j),sd->status.inventory[i].equip);
 			pc_setreg(sd,reference_uid(add_str("@inventorylist_refine"), j),sd->status.inventory[i].refine);
 			pc_setreg(sd,reference_uid(add_str("@inventorylist_identify"), j),sd->status.inventory[i].identify);
 			pc_setreg(sd,reference_uid(add_str("@inventorylist_attribute"), j),sd->status.inventory[i].attribute);
-			for (k = 0; k < MAX_SLOTS; k++)
-			{
+			for (k = 0; k < MAX_SLOTS; k++) {
 				sprintf(card_var, "@inventorylist_card%d",k+1);
 				pc_setreg(sd,reference_uid(add_str(card_var), j),sd->status.inventory[i].card[k]);
 			}
@@ -11970,8 +11967,8 @@ BUILDIN_FUNC(getskilllist)
 	TBL_PC *sd=script_rid2sd(st);
 	int i,j=0;
 	if(!sd) return 0;
-	for(i=0;i<MAX_SKILL;i++){
-		if(sd->status.skill[i].id > 0 && sd->status.skill[i].lv > 0){
+	for(i=0;i<MAX_SKILL;i++) {
+		if(sd->status.skill[i].id > 0 && sd->status.skill[i].lv > 0) {
 			pc_setreg(sd,reference_uid(add_str("@skilllist_id"), j),sd->status.skill[i].id);
 			pc_setreg(sd,reference_uid(add_str("@skilllist_lv"), j),sd->status.skill[i].lv);
 			pc_setreg(sd,reference_uid(add_str("@skilllist_flag"), j),sd->status.skill[i].flag);
@@ -11986,7 +11983,7 @@ BUILDIN_FUNC(clearitem)
 {
 	TBL_PC *sd=script_rid2sd(st);
 	int i;
-	if(sd==NULL) return 0;
+	if(sd == NULL) return 0;
 	for (i=0; i<MAX_INVENTORY; i++) {
 		if (sd->status.inventory[i].amount) {
 			pc_delitem(sd, i, sd->status.inventory[i].amount, 0, 0, LOG_TYPE_SCRIPT);

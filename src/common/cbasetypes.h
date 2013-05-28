@@ -177,6 +177,7 @@ typedef unsigned long int   ppuint32;
 // integer with exact processor width (and best speed)
 //////////////////////////////
 #include <stddef.h> // size_t
+//#include <stdbool.h> //boolean
 
 #if defined(WIN32) && !defined(MINGW) // does not have a signed size_t
 //////////////////////////////

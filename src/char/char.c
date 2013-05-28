@@ -1903,11 +1903,34 @@ int mmo_char_tobuf(uint8* buffer, struct mmo_charstatus* p)
 	return 106+offset;
 }
 
+//----------------------------------------
+// Tell client how many pages, kRO sends 17 (Yommy)
+//----------------------------------------
+void char_charlist_notify(int fd, struct char_session_data* sd) {
+	WFIFOHEAD(fd,6);
+	WFIFOW(fd,0) = 0x9a0;
+	// Pages to req / send them all in 1 until mmo_chars_fromsql can split them up
+	WFIFOL(fd,2) = 1; //int TotalCnt
+	WFIFOSET(fd,6);
+}
+
+void char_block_character(int fd, struct char_session_data* sd) {
+	WFIFOHEAD(fd,4);
+	WFIFOW(fd,0) = 0x20d;
+	WFIFOW(fd,2) = 4; //Packet len
+	WFIFOSET(fd,4);
+}
+
 void mmo_char_send099d(int fd, struct char_session_data* sd) {
 	WFIFOHEAD(fd,4 + (MAX_CHARS*MAX_CHAR_BUF));
 	WFIFOW(fd,0) = 0x99d;
 	WFIFOW(fd,2) = mmo_chars_fromsql(sd, WFIFOP(fd,4)) + 4;
 	WFIFOSET(fd,WFIFOW(fd,2));
+}
+
+//struct PACKET_CH_CHARLIST_REQ { 0x0 short PacketType}
+void char_parse_req_charlist(int fd, struct char_session_data* sd){
+	mmo_char_send099d(fd,sd);
 }
 
 //----------------------------------------
@@ -1918,7 +1941,6 @@ int mmo_char_send006b(int fd, struct char_session_data* sd) {
 #if PACKETVER >= 20100413
 	offset += 3;
 #endif
-
 	if (save_log)
 		ShowInfo("Loading Char Data ("CL_BOLD"%d"CL_RESET")\n",sd->account_id);
 
@@ -1942,7 +1964,6 @@ int mmo_char_send006b(int fd, struct char_session_data* sd) {
 // Notify client about charselect window data [Ind]
 //-------------------------------------------------
 void mmo_char_send082d(int fd, struct char_session_data* sd) {
-
 	WFIFOHEAD(fd,29);
 	WFIFOW(fd,0) = 0x82d;
 	WFIFOW(fd,2) = 29;
@@ -1953,8 +1974,16 @@ void mmo_char_send082d(int fd, struct char_session_data* sd) {
 	WFIFOB(fd,8) = sd->char_slots;
 	memset(WFIFOP(fd,9),0,20); // Unused bytes
 	WFIFOSET(fd,29);
-	mmo_char_send006b(fd,sd);
+}
 
+void mmo_char_send(int fd, struct char_session_data* sd) {
+#if PACKETVER >= 20130000
+	mmo_char_send082d(fd,sd);
+	char_charlist_notify(fd,sd);
+	char_block_character(fd,sd);
+#else
+	mmo_char_send006b(fd,sd);
+#endif
 }
 
 int char_married(int pl1, int pl2)
@@ -2120,7 +2149,7 @@ void loginif_on_ready(void)
 	//Send online accounts to login server.
 	send_accounts_tologin(INVALID_TIMER, gettick(), 0, 0);
 
-	// if no map-server already connected, display a message...
+	// If no map-server already connected, display a message...
 	ARR_FIND( 0, ARRAYLENGTH(server), i, server[i].fd > 0 && server[i].map[0] );
 	if( i == ARRAYLENGTH(server) )
 		ShowStatus("Awaiting maps from map-server.\n");
@@ -2131,7 +2160,7 @@ int parse_fromlogin(int fd) {
 	struct char_session_data* sd = NULL;
 	int i;
 
-	// only process data from the login-server
+	// Only process data from the login-server
 	if( fd != login_fd ) {
 		ShowDebug("parse_fromlogin: Disconnecting invalid session #%d (is not the login-server)\n", fd);
 		do_close(fd);
@@ -2143,12 +2172,12 @@ int parse_fromlogin(int fd) {
 		login_fd = -1;
 		loginif_on_disconnect();
 		return 0;
-	} else if ( session[fd]->flag.ping ) {/* we've reached stall time */
+	} else if ( session[fd]->flag.ping ) { /* We've reached stall time */
 		if( DIFF_TICK(last_tick, session[fd]->rdata_tick) > (stall_time * 2) ) {/* we can't wait any longer */
 			set_eof(fd);
 			return 0;
-		} else if( session[fd]->flag.ping != 2 ) { /* we haven't sent ping out yet */
-			WFIFOHEAD(fd,2);// sends a ping packet to login server (will receive pong 0x2718)
+		} else if( session[fd]->flag.ping != 2 ) { /* We haven't sent ping out yet */
+			WFIFOHEAD(fd,2); // Sends a ping packet to login server (will receive pong 0x2718)
 			WFIFOW(fd,0) = 0x2719;
 			WFIFOSET(fd,2);
 
@@ -2163,7 +2192,7 @@ int parse_fromlogin(int fd) {
 
 		switch( command ) {
 
-			// acknowledgement of connect-to-loginserver request
+			// Acknowledgement of connect-to-loginserver request
 			case 0x2711:
 				if (RFIFOREST(fd) < 3)
 					return 0;
@@ -2183,7 +2212,7 @@ int parse_fromlogin(int fd) {
 				RFIFOSKIP(fd,3);
 			break;
 
-			// acknowledgement of account authentication request
+			// Acknowledgement of account authentication request
 			case 0x2713:
 				if (RFIFOREST(fd) < 25)
 					return 0;
@@ -2205,13 +2234,13 @@ int parse_fromlogin(int fd) {
 					sd->version = version;
 					sd->clienttype = clienttype;
 					switch( result ) {
-						case 0:// ok
+						case 0: // Ok
 							char_auth_ok(client_fd, sd);
 							break;
-						case 1:// auth failed
+						case 1: // Auth failed
 							WFIFOHEAD(client_fd,3);
 							WFIFOW(client_fd,0) = 0x6c;
-							WFIFOB(client_fd,2) = 0;// rejected from server
+							WFIFOB(client_fd,2) = 0; // Rejected from server
 							WFIFOSET(client_fd,3);
 							break;
 					}
@@ -2219,11 +2248,11 @@ int parse_fromlogin(int fd) {
 			}
 			break;
 
-			case 0x2717: // account data
+			case 0x2717: // Account data
 				if (RFIFOREST(fd) < 72)
 					return 0;
 
-				// find the authenticated session with this account id
+				// Find the authenticated session with this account id
 				ARR_FIND( 0, fd_max, i, session[i] && (sd = (struct char_session_data*)session[i]->session_data) && sd->auth && sd->account_id == RFIFOL(fd,2) );
 				if( i < fd_max ) {
 					int server_id;
@@ -2233,29 +2262,25 @@ int parse_fromlogin(int fd) {
 					sd->char_slots = RFIFOB(fd,51);
 					if( sd->char_slots > MAX_CHARS ) {
 						ShowError("Account '%d' `character_slots` column is higher than supported MAX_CHARS (%d), update MAX_CHARS in mmo.h! capping to MAX_CHARS...\n",sd->account_id,sd->char_slots);
-						sd->char_slots = MAX_CHARS;/* cap to maximum */
-					} else if ( sd->char_slots <= 0 )/* no value aka 0 in sql */
-						sd->char_slots = MAX_CHARS;/* cap to maximum */
+						sd->char_slots = MAX_CHARS;/* Cap to maximum */
+					} else if ( sd->char_slots <= 0 )/* No value aka 0 in sql */
+						sd->char_slots = MAX_CHARS;/* Cap to maximum */
 					safestrncpy(sd->birthdate, (const char*)RFIFOP(fd,52), sizeof(sd->birthdate));
 					safestrncpy(sd->pincode, (const char*)RFIFOP(fd,63), sizeof(sd->pincode));
 					sd->pincode_change = (time_t)RFIFOL(fd,68);
 					ARR_FIND( 0, ARRAYLENGTH(server), server_id, server[server_id].fd > 0 && server[server_id].map[0] );
-					// continued from char_auth_ok...
-					if( server_id == ARRAYLENGTH(server) || //server not online, bugreport:2359
+					// Continued from char_auth_ok...
+					if( server_id == ARRAYLENGTH(server) || // Server not online, bugreport:2359
 						( max_connect_user == 0 && sd->group_id != gm_allow_group ) ||
 						( max_connect_user > 0 && count_users() >= max_connect_user && sd->group_id != gm_allow_group ) ) {
-						// refuse connection (over populated)
+						// Refuse connection (over populated)
 						WFIFOHEAD(i,3);
 						WFIFOW(i,0) = 0x6c;
 						WFIFOW(i,2) = 0;
 						WFIFOSET(i,3);
 					} else {
-						// send characters to player
-#if PACKETVER >= 20130000
-						mmo_char_send082d(i, sd);
-#else
-						mmo_char_send006b(i, sd);
-#endif
+						// Send characters to player
+						mmo_char_send(i,sd);
 #if PACKETVER >= 20110309
 						if( pincode_enabled ) {
 							// PIN code system enabled
@@ -2292,7 +2317,7 @@ int parse_fromlogin(int fd) {
 				RFIFOSKIP(fd,72);
 			break;
 
-			// login-server alive packet
+			// Login-server alive packet
 			case 0x2718:
 				if (RFIFOREST(fd) < 2)
 					return 0;
@@ -2300,7 +2325,7 @@ int parse_fromlogin(int fd) {
 				session[fd]->flag.ping = 0;
 			break;
 
-			// changesex reply
+			// Changesex reply
 			case 0x2723:
 				if (RFIFOREST(fd) < 7)
 					return 0;
@@ -4202,10 +4227,8 @@ int parse_char(int fd)
 			case 0x8b8:
 				if( RFIFOREST(fd) < 10 )
 					return 0;
-
 				if( pincode_enabled && RFIFOL(fd,2) == sd->account_id )
 					pincode_check( fd, sd );
-
 				RFIFOSKIP(fd,10);
 				break;
 
@@ -4213,10 +4236,8 @@ int parse_char(int fd)
 			case 0x8ba:
 				if( RFIFOREST(fd) < 10 )
 					return 0;
-
 				if( pincode_enabled && RFIFOL(fd,2) == sd->account_id )
 					pincode_setnew( fd, sd );
-
 				RFIFOSKIP(fd,10);
 				break;
 
@@ -4224,10 +4245,8 @@ int parse_char(int fd)
 			case 0x8be:
 				if( RFIFOREST(fd) < 14 )
 					return 0;
-
 				if( pincode_enabled && RFIFOL(fd,2) == sd->account_id )
 					pincode_change( fd, sd );
-
 				RFIFOSKIP(fd,14);
 				break;
 
@@ -4235,7 +4254,6 @@ int parse_char(int fd)
 			case 0x8c5:
 				if( RFIFOREST(fd) < 6 )
 					return 0;
-
 				if( pincode_enabled && RFIFOL(fd,2) == sd->account_id ) {
 					if( strlen( sd->pincode ) <= 0 ) {
 						pincode_sendstate( fd, sd, PINCODE_NEW );
@@ -4243,7 +4261,6 @@ int parse_char(int fd)
 						pincode_sendstate( fd, sd, PINCODE_ASK );
 					}
 				}
-
 				RFIFOSKIP(fd,6);
 				break;
 
@@ -4251,17 +4268,23 @@ int parse_char(int fd)
 			case 0x8d4:
 				if( RFIFOREST(fd) < 8 )
 					return 0;
-
 				moveCharSlot( fd, sd, RFIFOW(fd, 2), RFIFOW(fd, 4) );
+				mmo_char_send( fd, sd );
+				RFIFOSKIP( fd, 8 );
+				break;
 
-				RFIFOSKIP(fd,8);
+			case 0x9a1:
+				if( RFIFOREST(fd) < 2 )
+					return 0;
+				char_parse_req_charlist(fd,sd);
+				RFIFOSKIP(fd,2);
 				break;
 
 			// login as map-server
 			case 0x2af8:
-				if (RFIFOREST(fd) < 60)
+				if( RFIFOREST(fd) < 60 )
 					return 0;
-				{
+				else {
 					char* l_user = (char*)RFIFOP(fd,2);
 					char* l_pass = (char*)RFIFOP(fd,26);
 					l_user[23] = '\0';
@@ -4661,11 +4684,7 @@ void moveCharSlot( int fd, struct char_session_data* sd, unsigned short from, un
 
 	// We successfully moved the char - time to notify the client
 	moveCharSlotReply( fd, sd, from, 0 );
-#if PACKETVER >= 20130000
-	mmo_char_send099d( fd, sd );
-#else
-	mmo_char_send006b( fd, sd );
-#endif
+	mmo_char_send( fd, sd );
 }
 
 // Reason

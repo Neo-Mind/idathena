@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+DBMap* mapindex_db;
 struct _indexes {
 	char name[MAP_NAME_LENGTH]; //Stores map name
 } indexes[MAX_MAPINDEX];
@@ -140,14 +141,14 @@ void mapindex_init(void) {
 	char line[1024];
 	int last_index = -1;
 	int index;
-	char map_name[12];
+	char map_name[MAP_NAME_LENGTH];
 
 	if ((fp = fopen(mapindex_cfgfile,"r")) == NULL) {
 		ShowFatalError("Unable to read mapindex config file %s!\n", mapindex_cfgfile);
 		exit(EXIT_FAILURE); //Server can't really run without this file.
 	}
-	memset (&indexes, 0, sizeof (indexes));
-	mapindex_db = strdb_alloc(DB_RELEASE_KEY, MAP_NAME_LENGTH);
+	memset(&indexes, 0, sizeof(indexes));
+	mapindex_db = strdb_alloc(DB_OPT_DUP_KEY, MAP_NAME_LENGTH);
 	while (fgets(line, sizeof(line), fp)) {
 		if (line[0] == '/' && line[1] == '/')
 			continue;
@@ -166,7 +167,7 @@ void mapindex_init(void) {
 	fclose(fp);
 
 	if (!strdb_iget(mapindex_db, MAP_DEFAULT)) {
-		ShowError("mapindex_init: MAP_DEFAULT '%s' not found in cache! update mapindex.h MAP_DEFAULT var!!!\n",MAP_DEFAULT);
+		ShowError("mapindex_init: MAP_DEFAULT '%s' not found in cache! Update MAP_DEFAULT in mapindex.h!\n",MAP_DEFAULT);
 	}
 }
 

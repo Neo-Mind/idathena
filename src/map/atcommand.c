@@ -675,7 +675,7 @@ ACMD_FUNC(whogm)
 			memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
 			for (j = 0; player_name[j]; j++)
 				player_name[j] = TOLOWER(player_name[j]);
-		  	// search with no case sensitive
+			// search with no case sensitive
 			if (strstr(player_name, match_text) == NULL)
 				continue;
 		}
@@ -2488,8 +2488,7 @@ ACMD_FUNC(stat_all)
 /*==========================================
  *
  *------------------------------------------*/
-ACMD_FUNC(guildlevelup)
-{
+ACMD_FUNC(guildlevelup) {
 	int level = 0;
 	short added_level;
 	struct guild *guild_info;
@@ -2529,8 +2528,7 @@ ACMD_FUNC(guildlevelup)
 /*==========================================
  *
  *------------------------------------------*/
-ACMD_FUNC(makeegg)
-{
+ACMD_FUNC(makeegg) {
 	struct item_data *item_data;
 	int id, pet_id;
 	nullpo_retr(-1, sd);
@@ -2569,8 +2567,7 @@ ACMD_FUNC(makeegg)
 /*==========================================
  *
  *------------------------------------------*/
-ACMD_FUNC(hatch)
-{
+ACMD_FUNC(hatch) {
 	nullpo_retr(-1, sd);
 	if (sd->status.pet_id <= 0)
 		clif_sendegg(sd);
@@ -2585,8 +2582,7 @@ ACMD_FUNC(hatch)
 /*==========================================
  *
  *------------------------------------------*/
-ACMD_FUNC(petfriendly)
-{
+ACMD_FUNC(petfriendly) {
 	int friendly;
 	struct pet_data *pd;
 	nullpo_retr(-1, sd);
@@ -3756,15 +3752,21 @@ ACMD_FUNC(mapinfo)
 	clif_displaymessage(fd, msg_txt(1041)); // ------ Map Flags ------
 	if (map[m_id].flag.town)
 		clif_displaymessage(fd, msg_txt(1042)); // Town Map
+	if (map[m_id].flag.restricted) {
+		sprintf(atcmd_output, msg_txt(1106), map[m_id].zone); // Restricted (zone %d)
+		clif_displaymessage(fd, atcmd_output);
+	}
 
 	if (battle_config.autotrade_mapflag == map[m_id].flag.autotrade)
 		clif_displaymessage(fd, msg_txt(1043)); // Autotrade Enabled
 	else
 		clif_displaymessage(fd, msg_txt(1044)); // Autotrade Disabled
-	
-	if (map[m_id].flag.battleground)
-		clif_displaymessage(fd, msg_txt(1045)); // Battlegrounds ON
-		
+
+	if (map[m_id].flag.battleground) {
+		sprintf(atcmd_output, msg_txt(1045), map[m_id].flag.battleground); // Battlegrounds ON (type %d)
+		clif_displaymessage(fd, atcmd_output);
+	}
+
 	strcpy(atcmd_output,msg_txt(1046)); // PvP Flags:
 	if (map[m_id].flag.pvp)
 		strcat(atcmd_output, msg_txt(1047)); // Pvp ON |
@@ -3877,6 +3879,22 @@ ACMD_FUNC(mapinfo)
 		strcat(atcmd_output, msg_txt(1096)); // PartyLock |
 	if (map[m_id].flag.guildlock)
 		strcat(atcmd_output, msg_txt(1097)); // GuildLock |
+	if (map[m_id].flag.loadevent)
+		strcat(atcmd_output, msg_txt(1098)); //Loadevent |
+	if (map[m_id].flag.src4instance)
+		strcat(atcmd_output, msg_txt(1099)); // Src4instance |
+	if (map[m_id].flag.chmautojoin)
+		strcat(atcmd_output, msg_txt(1100)); // Chmautojoin |
+	if (map[m_id].flag.nousecart)
+		strcat(atcmd_output, msg_txt(1101)); // nousecart |
+	if (map[m_id].flag.noitemconsumption)
+		strcat(atcmd_output, msg_txt(1102)); // noitemconsumption |
+	if (map[m_id].flag.nosumstarmiracle)
+		strcat(atcmd_output, msg_txt(1103)); // nosumstarmiracle |
+	if (map[m_id].flag.nomineeffect)
+		strcat(atcmd_output, msg_txt(1104)); // nomineeffect |
+	if (map[m_id].flag.nolockon)
+		strcat(atcmd_output, msg_txt(1105)); // nolockon |
 	clif_displaymessage(fd, atcmd_output);
 
 	switch (list) {
@@ -3884,11 +3902,11 @@ ACMD_FUNC(mapinfo)
 			// Do nothing. It's list 0, no additional display.
 			break;
 		case 1:
-			clif_displaymessage(fd, msg_txt(1098)); // ----- Players in Map -----
+			clif_displaymessage(fd, msg_txt(480)); // ----- Players in Map -----
 			iter = mapit_getallusers();
 			for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
 				if (pl_sd->mapindex == m_index) {
-					sprintf(atcmd_output, msg_txt(1099), // Player '%s' (session #%d) | Location: %d,%d
+					sprintf(atcmd_output, msg_txt(481), // Player '%s' (session #%d) | Location: %d,%d
 							pl_sd->status.name, pl_sd->fd, pl_sd->bl.x, pl_sd->bl.y);
 					clif_displaymessage(fd, atcmd_output);
 				}
@@ -3896,50 +3914,50 @@ ACMD_FUNC(mapinfo)
 			mapit_free(iter);
 			break;
 		case 2:
-			clif_displaymessage(fd, msg_txt(1100)); // ----- NPCs in Map -----
+			clif_displaymessage(fd, msg_txt(482)); // ----- NPCs in Map -----
 			for (i = 0; i < map[m_id].npc_num;) {
 				nd = map[m_id].npc[i];
 				switch(nd->ud.dir) {
-					case 0:  strcpy(direction, msg_txt(1101)); break; // North
-					case 1:  strcpy(direction, msg_txt(1102)); break; // North West
-					case 2:  strcpy(direction, msg_txt(1103)); break; // West
-					case 3:  strcpy(direction, msg_txt(1104)); break; // South West
-					case 4:  strcpy(direction, msg_txt(1105)); break; // South
-					case 5:  strcpy(direction, msg_txt(1106)); break; // South East
-					case 6:  strcpy(direction, msg_txt(1107)); break; // East
-					case 7:  strcpy(direction, msg_txt(1108)); break; // North East
-					case 9:  strcpy(direction, msg_txt(1109)); break; // North
-					default: strcpy(direction, msg_txt(1110)); break; // Unknown
+					case 0:  strcpy(direction, msg_txt(491)); break; // North
+					case 1:  strcpy(direction, msg_txt(492)); break; // North West
+					case 2:  strcpy(direction, msg_txt(493)); break; // West
+					case 3:  strcpy(direction, msg_txt(494)); break; // South West
+					case 4:  strcpy(direction, msg_txt(495)); break; // South
+					case 5:  strcpy(direction, msg_txt(496)); break; // South East
+					case 6:  strcpy(direction, msg_txt(497)); break; // East
+					case 7:  strcpy(direction, msg_txt(498)); break; // North East
+					case 9:  strcpy(direction, msg_txt(491)); break; // North
+					default: strcpy(direction, msg_txt(499)); break; // Unknown
 				}
 				if(strcmp(nd->name,nd->exname) == 0)
-					sprintf(atcmd_output, msg_txt(1111), // NPC %d: %s | Direction: %s | Sprite: %d | Location: %d %d
-						++i, nd->name, direction, nd->class_, nd->bl.x, nd->bl.y);
+					sprintf(atcmd_output, msg_txt(490), // NPC %d: %s | Direction: %s | Sprite: %d | Location: %d %d
+					++i, nd->name, direction, nd->class_, nd->bl.x, nd->bl.y);
 				else
-					sprintf(atcmd_output, msg_txt(1112), // NPC %d: %s::%s | Direction: %s | Sprite: %d | Location: %d %d
-						++i, nd->name, nd->exname, direction, nd->class_, nd->bl.x, nd->bl.y);
+					sprintf(atcmd_output, msg_txt(489), // NPC %d: %s::%s | Direction: %s | Sprite: %d | Location: %d %d
+					++i, nd->name, nd->exname, direction, nd->class_, nd->bl.x, nd->bl.y);
 				clif_displaymessage(fd, atcmd_output);
 			}
 			break;
 		case 3:
-			clif_displaymessage(fd, msg_txt(1113)); // ----- Chats in Map -----
+			clif_displaymessage(fd, msg_txt(483)); // ----- Chats in Map -----
 			iter = mapit_getallusers();
 			for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
 				if ((cd = (struct chat_data*)map_id2bl(pl_sd->chatID)) != NULL &&
 					pl_sd->mapindex == m_index &&
 					cd->usersd[0] == pl_sd)
 				{
-					sprintf(atcmd_output, msg_txt(1114), // Chat: %s | Player: %s | Location: %d %d
-							cd->title, pl_sd->status.name, cd->bl.x, cd->bl.y);
+					sprintf(atcmd_output, msg_txt(484), // Chat: %s | Player: %s | Location: %d %d
+					cd->title, pl_sd->status.name, cd->bl.x, cd->bl.y);
 					clif_displaymessage(fd, atcmd_output);
-					sprintf(atcmd_output, msg_txt(1115), //    Users: %d/%d | Password: %s | Public: %s
-							cd->users, cd->limit, cd->pass, (cd->pub) ? msg_txt(1116) : msg_txt(1117)); // Yes / No
+					sprintf(atcmd_output, msg_txt(485), //    Users: %d/%d | Password: %s | Public: %s
+					cd->users, cd->limit, cd->pass, (cd->pub) ? msg_txt(486) : msg_txt(487)); // Yes / No
 					clif_displaymessage(fd, atcmd_output);
 				}
 			}
 			mapit_free(iter);
 			break;
 		default: // normally impossible to arrive here
-			clif_displaymessage(fd, msg_txt(1118)); // Please enter at least one valid list number (usage: @mapinfo <0-3> <map>).
+			clif_displaymessage(fd, msg_txt(488)); // Please enter at least one valid list number (usage: @mapinfo <0-3> <map>).
 			return -1;
 			break;
 	}
@@ -6272,14 +6290,14 @@ ACMD_FUNC(summon)
 	if (!md)
 		return -1;
 
-	md->master_id=sd->bl.id;
-	md->special_state.ai=1;
-	md->deletetimer=add_timer(tick+(duration*60000),mob_timer_delete,md->bl.id,0);
-	clif_specialeffect(&md->bl,344,AREA);
+	md->master_id = sd->bl.id;
+	md->special_state.ai = AI_ATTACK;
+	md->deletetimer = add_timer(tick + (duration * 60000), mob_timer_delete, md->bl.id, 0);
+	clif_specialeffect(&md->bl, 344, AREA);
 	mob_spawn(md);
 	sc_start4(NULL, &md->bl, SC_MODECHANGE, 100, 1, 0, MD_AGGRESSIVE, 0, 60000);
-	clif_skill_poseffect(&sd->bl,AM_CALLHOMUN,1,md->bl.x,md->bl.y,tick);
-	clif_displaymessage(fd, msg_txt(39));	// All monster summoned!
+	clif_skill_poseffect(&sd->bl, AM_CALLHOMUN, 1, md->bl.x, md->bl.y, tick);
+	clif_displaymessage(fd, msg_txt(39)); // All monster summoned!
 
 	return 0;
 }

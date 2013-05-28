@@ -1228,7 +1228,7 @@ int chrif_load_scdata(int fd) {
 
 	for (i = 0; i < count; i++) {
 		data = (struct status_change_data*)RFIFOP(fd,14 + i*sizeof(struct status_change_data));
-		status_change_start(NULL, &sd->bl, (sc_type)data->type, 10000, data->val1, data->val2, data->val3, data->val4, data->tick, 15);
+		status_change_start(NULL, &sd->bl, (sc_type)data->type, 10000, data->val1, data->val2, data->val3, data->val4, data->tick, 1|2|4|8);
 	}
 #endif
 
@@ -1538,7 +1538,6 @@ static int check_connect_char_server(int tid, unsigned int tick, int id, intptr_
 int chrif_removefriend(int char_id, int friend_id) {
 
 	chrif_check(-1);
-
 	WFIFOHEAD(char_fd,10);
 	WFIFOW(char_fd,0) = 0x2b07;
 	WFIFOL(char_fd,2) = char_id;
@@ -1548,16 +1547,18 @@ int chrif_removefriend(int char_id, int friend_id) {
 	return 0;
 }
 
-void chrif_send_report(char* buf, int len) {
+int chrif_send_report(char* buf, int len) {
 
 #ifndef STATS_OPT_OUT
+	chrif_check(-1);
 	WFIFOHEAD(char_fd,len + 2);
 	WFIFOW(char_fd,0) = 0x3008;
 	memcpy(WFIFOP(char_fd,2), buf, len);
 	WFIFOSET(char_fd,len + 2);
-	flush_fifo(char_fd); /* ensure it's sent now. */
+	flush_fifo(char_fd); /* Ensure it's sent now. */
 #endif
 
+	return 0;
 }
 
 /**
@@ -1598,6 +1599,11 @@ int do_final_chrif(void) {
  *
  *------------------------------------------*/
 int do_init_chrif(void) {
+	if( sizeof(struct mmo_charstatus) > 0xFFFF ) {
+		ShowError("mmo_charstatus size = %d is too big to be transmitted.\n",
+			sizeof(struct mmo_charstatus));
+		exit(EXIT_FAILURE);
+	}
 	auth_db = idb_alloc(DB_OPT_BASE);
 	auth_db_ers = ers_new(sizeof(struct auth_node),"chrif.c::auth_db_ers",ERS_OPT_NONE);
 

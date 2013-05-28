@@ -174,22 +174,20 @@ int bg_create(unsigned short mapindex, short rx, short ry, const char *ev, const
 int bg_team_get_id(struct block_list *bl)
 {
 	nullpo_ret(bl);
-	switch( bl->type )
-	{
+	switch( bl->type ) {
 		case BL_PC:
 			return ((TBL_PC*)bl)->bg_id;
 		case BL_PET:
-			if( ((TBL_PET*)bl)->msd )
-				return ((TBL_PET*)bl)->msd->bg_id;
+			if( ((TBL_PET*)bl)->master )
+				return ((TBL_PET*)bl)->master->bg_id;
 			break;
-		case BL_MOB:
-		{
-			struct map_session_data *msd;
-			struct mob_data *md = (TBL_MOB*)bl;
-			if( md->special_state.ai && (msd = map_id2sd(md->master_id)) != NULL )
-				return msd->bg_id;
-			return md->bg_id;
-		}
+		case BL_MOB: {
+				struct map_session_data *msd;
+				struct mob_data *md = (TBL_MOB*)bl;
+				if( md->special_state.ai && (msd = map_id2sd(md->master_id)) != NULL )
+					return msd->bg_id;
+				return md->bg_id;
+			}
 		case BL_HOM:
 			if( ((TBL_HOM*)bl)->master )
 				return ((TBL_HOM*)bl)->master->bg_id;

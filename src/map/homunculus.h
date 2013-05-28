@@ -46,13 +46,14 @@ struct homun_data {
 	struct status_data base_status, battle_status;
 	struct status_change sc;
 	struct regen_data regen;
-	struct s_homunculus_db *homunculusDB;	//[orn]
-	struct s_homunculus homunculus;	//[orn]
+	struct s_homunculus_db *homunculusDB; //[orn]
+	struct s_homunculus homunculus; //[orn]
 
+	int masterteleport_timer;
 	struct map_session_data *master; //pointer back to its master
-	int hungry_timer;	//[orn]
+	int hungry_timer; //[orn]
 	unsigned int exp_next;
-	char blockskill[MAX_SKILL];	// [orn]
+	char blockskill[MAX_SKILL]; // [orn]
 };
 
 #define MAX_HOM_SKILL_REQUIRE 5
@@ -69,7 +70,6 @@ struct homun_skill_tree_entry {
 
 #define HOM_EVO 0x100 //256
 #define HOM_S 0x200 //512
-
 #define HOM_REG 0x1000 //4096
 
 enum {
@@ -91,6 +91,12 @@ enum {
 	MAPID_ELANOR,
 };
 
+enum homun_type {
+	HT_REG	= 0x1,
+	HT_EVO	= 0x2,
+	HT_S	= 0x4,
+};
+
 #define homdb_checkid(id) (id >=  HM_CLASS_BASE && id <= HM_CLASS_MAX)
 
 // merc_is_hom_alive(struct homun_data *)
@@ -99,6 +105,7 @@ int do_init_merc(void);
 int merc_hom_recv_data(int account_id, struct s_homunculus *sh, int flag); //albator
 struct view_data* merc_get_hom_viewdata(int class_);
 int hom_class2mapid(int hom_class);
+enum homun_type hom_class2type(int class_);
 void merc_damage(struct homun_data *hd);
 int merc_hom_dead(struct homun_data *hd);
 void merc_hom_skillup(struct homun_data *hd,uint16 skill_id);

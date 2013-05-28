@@ -6,12 +6,6 @@
 
 #include "../common/db.h"
 
-/* When a map index search fails, return results from what map? default:prontera */
-#define MAP_DEFAULT "prontera"
-#define MAP_DEFAULT_X 150
-#define MAP_DEFAULT_Y 150
-DBMap *mapindex_db;
-
 //File in charge of assigning a numberic ID to each map in existance for space saving when passing map info between servers.
 extern char mapindex_cfgfile[80];
 
@@ -54,6 +48,11 @@ extern char mapindex_cfgfile[80];
 #define MAP_MALANGDO "malangdo"
 #define MAP_MALAYA "malaya"
 #define MAP_ECLAGE "eclage"
+
+//When a map index search fails, return results from what map?
+#define MAP_DEFAULT "prontera"
+#define MAP_DEFAULT_X 150
+#define MAP_DEFAULT_Y 150
 
 const char* mapindex_getmapname(const char* string, char* output);
 const char* mapindex_getmapname_ext(const char* string, char* output);

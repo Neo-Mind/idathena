@@ -112,39 +112,116 @@ int unit_walktoxy_sub(struct block_list *bl)
 	return 1;
 }
 
-static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data)
-{
+TBL_PC* unit_get_master(struct block_list *bl) {
+	if(bl)
+		switch(bl->type) {
+			case BL_HOM: return (((TBL_HOM *)bl)->master);
+			case BL_ELEM: return (((TBL_ELEM *)bl)->master);
+			case BL_PET: return (((TBL_PET *)bl)->master);
+			case BL_MER: return (((TBL_MER *)bl)->master);
+		}
+	return NULL;
+}
+
+int* unit_get_masterteleport_timer(struct block_list *bl) {
+	if(bl)
+		switch(bl->type) {
+			case BL_HOM: return &(((TBL_HOM *)bl)->masterteleport_timer);
+			case BL_ELEM: return &(((TBL_ELEM *)bl)->masterteleport_timer);
+			case BL_PET: return &(((TBL_PET *)bl)->masterteleport_timer);
+			case BL_MER: return &(((TBL_MER *)bl)->masterteleport_timer);
+		}
+	return NULL;
+}
+
+int unit_teleport_timer(int tid, unsigned int tick, int id, intptr_t data) {
+	if(tid == INVALID_TIMER)
+		return 0;
+	else {
+		struct block_list *bl = map_id2bl(id);
+		int *mast_tid = unit_get_masterteleport_timer(bl);
+		TBL_PC *msd = unit_get_master(bl);
+
+		switch(data) {
+			case BL_HOM:
+			case BL_ELEM:
+			case BL_PET:
+			case BL_MER:
+				if(msd && *mast_tid != INVALID_TIMER && !check_distance_bl(&msd->bl, bl, MAX_MER_DISTANCE)){
+					*mast_tid = INVALID_TIMER;
+					unit_warp(bl, msd->bl.id, msd->bl.x, msd->bl.y, CLR_TELEPORT );
+				}
+				break;
+		}
+	}
+	return 0;
+}
+
+int unit_check_start_teleport_timer(struct block_list *sbl) {
+	TBL_PC *msd = unit_get_master(sbl);
+	int max_dist = AREA_SIZE;
+	switch(sbl->type) {
+		//case BL_HOM: max_dist = MAX_HOM_DISTANCE; break;
+		case BL_ELEM: max_dist = MAX_ELEDISTANCE; break;
+		//case BL_PET: max_dist = MAX_PET_DISTANCE; break;
+		case BL_MER: max_dist = MAX_MER_DISTANCE; break;
+	}
+	if(msd) { //If there is a master
+		int *msd_tid = unit_get_masterteleport_timer(sbl);
+
+		if(!check_distance_bl(&msd->bl, sbl, MAX_MER_DISTANCE)) {
+			if(*msd_tid == INVALID_TIMER || *msd_tid == 0)
+				*msd_tid = add_timer(gettick()+3000,unit_teleport_timer,sbl->id,BL_MER);
+		} else {
+			if(*msd_tid && *msd_tid != INVALID_TIMER)
+				delete_timer(*msd_tid,unit_teleport_timer);
+			*msd_tid = INVALID_TIMER; //Cancel recall
+		}
+	}
+	return 0;
+}
+
+static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data) {
 	int i;
 	int x,y,dx,dy;
 	uint8 dir;
-	struct block_list       *bl;
-	struct map_session_data *sd;
-	struct mob_data         *md;
-	struct unit_data        *ud;
-	struct mercenary_data   *mrd;
+	struct block_list *bl;
+	struct unit_data *ud;
+	TBL_PC *sd;
+	TBL_MOB *md;
+	TBL_MER *mrd;
+	TBL_ELEM *ed;
+	TBL_PET *pd;
+	TBL_HOM *hd;
 
 	bl = map_id2bl(id);
-	if (bl == NULL)
+	if(bl == NULL)
 		return 0;
 	sd = BL_CAST(BL_PC, bl);
 	md = BL_CAST(BL_MOB, bl);
 	mrd = BL_CAST(BL_MER, bl);
+	ed = BL_CAST(BL_ELEM, bl);
+	pd = BL_CAST(BL_PET, bl);
+	hd = BL_CAST(BL_HOM, bl);
 	ud = unit_bl2ud(bl);
 
-	if (ud == NULL) return 0;
+	if(ud == NULL) return 0;
 
-	if (ud->walktimer != tid) {
+	if(ud->walktimer != tid) {
 		ShowError("unit_walk_timer mismatch %d != %d\n",ud->walktimer,tid);
 		return 0;
 	}
-	ud->walktimer = INVALID_TIMER;
-	if (bl->prev == NULL) return 0; // Stop moved because it is missing from the block_list
 
-	if (ud->walkpath.path_pos>=ud->walkpath.path_len)
+	ud->walktimer = INVALID_TIMER;
+
+	if(bl->prev == NULL) return 0; // Stop moved because it is missing from the block_list
+
+	if(ud->walkpath.path_pos>=ud->walkpath.path_len)
 		return 0;
 
-	if (ud->walkpath.path[ud->walkpath.path_pos]>=8)
+	if(ud->walkpath.path[ud->walkpath.path_pos] >= 8)
 		return 1;
+
 	x = bl->x;
 	y = bl->y;
 
@@ -154,59 +231,51 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 	dx = dirx[(int)dir];
 	dy = diry[(int)dir];
 
-	if (map_getcell(bl->m,x+dx,y+dy,CELL_CHKNOPASS))
+	if(map_getcell(bl->m,x+dx,y+dy,CELL_CHKNOPASS))
 		return unit_walktoxy_sub(bl);
-	
-	// Refresh view for all those we lose sight
+
+	//Refresh view for all those we lose sight
 	map_foreachinmovearea(clif_outsight, bl, AREA_SIZE, dx, dy, sd?BL_ALL:BL_PC, bl);
 
 	x += dx;
 	y += dy;
 	map_moveblock(bl, x, y, tick);
-	ud->walk_count++; //walked cell counter, to be used for walk-triggered skills. [Skotlex]
+	ud->walk_count++; //Walked cell counter, to be used for walk-triggered skills. [Skotlex]
 	status_change_end(bl, SC_ROLLINGCUTTER, INVALID_TIMER); //If you move, you lose your counters. [malufett]
 
-	if (bl->x != x || bl->y != y || ud->walktimer != INVALID_TIMER)
+	if(bl->x != x || bl->y != y || ud->walktimer != INVALID_TIMER)
 		return 0; //map_moveblock has altered the object beyond what we expected (moved/warped it)
 
-	ud->walktimer = CLIF_WALK_TIMER; // arbitrary non-INVALID_TIMER value to make the clif code send walking packets
+	ud->walktimer = CLIF_WALK_TIMER; //Arbitrary non-INVALID_TIMER value to make the clif code send walking packets
 	map_foreachinmovearea(clif_insight, bl, AREA_SIZE, -dx, -dy, sd?BL_ALL:BL_PC, bl);
 	ud->walktimer = INVALID_TIMER;
 
-	if (sd) {
-		if (sd->touching_id)
+	if(sd) {
+		if(sd->touching_id)
 			npc_touchnext_areanpc(sd,false);
-		if (map_getcell(bl->m,x,y,CELL_CHKNPC)) {
+		if(map_getcell(bl->m,x,y,CELL_CHKNPC)) {
 			npc_touch_areanpc(sd,bl->m,x,y);
 			if (bl->prev == NULL) //Script could have warped char, abort remaining of the function.
 				return 0;
 		} else
-			sd->areanpc_id=0;
+			sd->areanpc_id = 0;
 
-		if (sd->md && !check_distance_bl(&sd->bl, &sd->md->bl, MAX_MER_DISTANCE)) {
-				// Mercenary should be warped after being 3 seconds too far from the master [greenbox]
-				if (sd->md->masterteleport_timer == 0) {
-						sd->md->masterteleport_timer = gettick();
-				} else if (DIFF_TICK(gettick(), sd->md->masterteleport_timer) > 3000) {
-						sd->md->masterteleport_timer = 0;
-						unit_warp( &sd->md->bl, sd->bl.m, sd->bl.x, sd->bl.y, CLR_TELEPORT );
-				}
-		} else if (sd->md) {
-				// Reset the tick, he is not far anymore
-				sd->md->masterteleport_timer = 0;
-		}
-	} else if (md) {
-		if( map_getcell(bl->m,x,y,CELL_CHKNPC) ) {
+		if(sd->md) unit_check_start_teleport_timer(&sd->md->bl);
+		if(sd->ed) unit_check_start_teleport_timer(&sd->ed->bl);
+		if(sd->hd) unit_check_start_teleport_timer(&sd->hd->bl);
+		if(sd->pd) unit_check_start_teleport_timer(&sd->pd->bl);
+	} else if(md) {
+		if(map_getcell(bl->m,x,y,CELL_CHKNPC)) {
 			if( npc_touch_areanpc2(md) ) return 0; // Warped
 		} else
 			md->areanpc_id = 0;
-		if (md->min_chase > md->db->range3) md->min_chase--;
+		if(md->min_chase > md->db->range3) md->min_chase--;
 		//Walk skills are triggered regardless of target due to the idle-walk mob state.
 		//But avoid triggering on stop-walk calls.
-		if (tid != INVALID_TIMER &&
+		if(tid != INVALID_TIMER &&
 			!(ud->walk_count%WALK_SKILL_INTERVAL) &&
 			mobskill_use(md, tick, -1))
-	  	{
+		{
 			if (!(ud->skill_id == NPC_SELFDESTRUCTION && ud->skilltimer != INVALID_TIMER)) { //Skill used, abort walking
 				clif_fixpos(bl); //Fix position as walk has been cancelled.
 				return 0;
@@ -214,37 +283,28 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 			//Resend walk packet for proper Self Destruction display.
 			clif_move(ud);
 		}
-	} else if (mrd && mrd->master) {
-			if (!check_distance_bl(&mrd->master->bl, bl, MAX_MER_DISTANCE)) {
-					// Mercenary should be warped after being 3 seconds too far from the master [greenbox] ]
-					if (mrd->masterteleport_timer == 0)  {
-							mrd->masterteleport_timer = gettick(); 
-					} else if (DIFF_TICK(gettick(), mrd->masterteleport_timer) > 3000)  {
-							mrd->masterteleport_timer = 0; 
-							unit_warp( bl, mrd->master->bl.id, mrd->master->bl.x, mrd->master->bl.y, CLR_TELEPORT ); 
-					}
-			} else {
-					mrd->masterteleport_timer = 0; 
-			}
-	}
+	} else if(hd) unit_check_start_teleport_timer(&hd->bl);
+	else if(ed) unit_check_start_teleport_timer(&ed->bl);
+	else if(pd) unit_check_start_teleport_timer(&pd->bl);
+	else if(mrd) unit_check_start_teleport_timer(&mrd->bl);
 
-	if (tid == INVALID_TIMER) //A directly invoked timer is from battle_stop_walking, therefore the rest is irrelevant.
+	if(tid == INVALID_TIMER) //A directly invoked timer is from battle_stop_walking, therefore the rest is irrelevant.
 		return 0;
 
-	if (ud->state.change_walk_target)
+	if(ud->state.change_walk_target)
 		return unit_walktoxy_sub(bl);
 
 	ud->walkpath.path_pos++;
-	if (ud->walkpath.path_pos>=ud->walkpath.path_len)
+	if(ud->walkpath.path_pos >= ud->walkpath.path_len)
 		i = -1;
-	else if (ud->walkpath.path[ud->walkpath.path_pos]&1)
+	else if(ud->walkpath.path[ud->walkpath.path_pos]&1)
 		i = status_get_speed(bl)*14/10;
 	else
 		i = status_get_speed(bl);
 
-	if (i > 0) {
+	if(i > 0) {
 		ud->walktimer = add_timer(tick+i,unit_walktoxy_timer,id,i);
-		if (md && DIFF_TICK(tick,md->dmgtick) < 3000) //Not required not damaged recently
+		if(md && DIFF_TICK(tick,md->dmgtick) < 3000) //Not required not damaged recently
 			clif_move(ud);
 	} else if(ud->state.running) {
 		//Keep trying to run.
@@ -253,7 +313,7 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 	} else if (ud->target_to) {
 		//Update target trajectory.
 		struct block_list *tbl = map_id2bl(ud->target_to);
-		if (!tbl || !status_check_visibility(bl, tbl)) { //Cancel chase.
+		if(!tbl || !status_check_visibility(bl, tbl)) { //Cancel chase.
 			ud->to_x = bl->x;
 			ud->to_y = bl->y;
 			if (tbl && bl->type == BL_MOB && mob_warpchase((TBL_MOB*)bl, tbl) )
@@ -261,10 +321,9 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 			ud->target_to = 0;
 			return 0;
 		}
-		if (tbl->m == bl->m && check_distance_bl(bl, tbl, ud->chaserange)) { //Reached destination.
-			if (ud->state.attack_continue) { 
-				//Aegis uses one before every attack, we should
-				//only need this one for syncing purposes. [Skotlex]
+		if(tbl->m == bl->m && check_distance_bl(bl, tbl, ud->chaserange)) { //Reached destination.
+			if(ud->state.attack_continue) { //Aegis uses one before every attack, we should
+				//Only need this one for syncing purposes. [Skotlex]
 				ud->target_to = 0;
 				clif_fixpos(bl);
 				unit_attack(bl, tbl->id, ud->state.attack_continue);
@@ -527,13 +586,13 @@ int unit_wugdash(struct block_list *bl, struct map_session_data *sd) {
 	short to_x,to_y,dir_x,dir_y;
 	int lv;
 	int i;
-	if (!(sc && sc->data[SC_WUGDASH]))
+	if( !(sc && sc->data[SC_WUGDASH]) )
 		return 0;
 	
 	nullpo_ret(sd);
 	nullpo_ret(bl);
 
-	if (!unit_can_move(bl)) {
+	if( !unit_can_move(bl) ) {
 		status_change_end(bl,SC_WUGDASH,INVALID_TIMER);
 		return 0;
 	}
@@ -544,41 +603,40 @@ int unit_wugdash(struct block_list *bl, struct map_session_data *sd) {
 
 	to_x = bl->x;
 	to_y = bl->y;
-	for(i=0;i<AREA_SIZE;i++)
-	{
-		if(!map_getcell(bl->m,to_x+dir_x,to_y+dir_y,CELL_CHKPASS))
+	for( i=0;i<AREA_SIZE;i++ ) {
+		if( !map_getcell(bl->m,to_x+dir_x,to_y+dir_y,CELL_CHKPASS) )
 			break;
 
-		if(sc->data[SC_WUGDASH] && map_count_oncell(bl->m, to_x+dir_x, to_y+dir_y, BL_PC|BL_MOB|BL_NPC))
+		if( sc->data[SC_WUGDASH] && map_count_oncell(bl->m, to_x+dir_x, to_y+dir_y, BL_PC|BL_MOB|BL_NPC) )
 			break;
 			
 		to_x += dir_x;
 		to_y += dir_y;
 	}
 
-	if(to_x == bl->x && to_y == bl->y) {
+	if( to_x == bl->x && to_y == bl->y ) {
 
 		unit_bl2ud(bl)->state.running = 0;
 		status_change_end(bl,SC_WUGDASH,INVALID_TIMER);
 
-		if( sd ){
+		if( sd ) {
 			clif_fixpos(bl);
 			skill_castend_damage_id(bl, &sd->bl, RA_WUGDASH, lv, gettick(), SD_LEVEL);
 		}
 		return 0;
 	}
-	if (unit_walktoxy(bl, to_x, to_y, 1))
+	if( unit_walktoxy(bl, to_x, to_y, 1) )
 		return 1;
 	do {
 		to_x -= dir_x;
 		to_y -= dir_y;
-	} while (--i > 0 && !unit_walktoxy(bl, to_x, to_y, 1));
-	if (i==0) {
+	} while( --i > 0 && !unit_walktoxy(bl, to_x, to_y, 1) );
+	if( i == 0 ) {
 
 		unit_bl2ud(bl)->state.running = 0;
 		status_change_end(bl,SC_WUGDASH,INVALID_TIMER);
 		
-		if( sd ){
+		if( sd ) {
 			clif_fixpos(bl);
 			skill_castend_damage_id(bl, &sd->bl, RA_WUGDASH, lv, gettick(), SD_LEVEL);
 		}
@@ -754,7 +812,7 @@ int unit_warp(struct block_list *bl,short m,short x,short y,clr_type type)
 	nullpo_ret(bl);
 	ud = unit_bl2ud(bl);
 	
-	if(bl->prev==NULL || !ud)
+	if (bl->prev == NULL || !ud)
 		return 1;
 
 	if (type == CLR_DEAD)
@@ -762,7 +820,7 @@ int unit_warp(struct block_list *bl,short m,short x,short y,clr_type type)
 		//animation, it messes up with unit_remove_map! [Skotlex]
 		return 1;
 	
-	if( m<0 ) m=bl->m;
+	if (m < 0) m = bl->m;
 	
 	switch (bl->type) {
 		case BL_MOB:
@@ -776,20 +834,16 @@ int unit_warp(struct block_list *bl,short m,short x,short y,clr_type type)
 				return 1;
 			break;
 	}
-	
-	if (x<0 || y<0)
-  	{	//Random map position.
+
+	if (x < 0 || y < 0) { //Random map position.
 		if (!map_search_freecell(NULL, m, &x, &y, -1, -1, 1)) {
 			ShowWarning("unit_warp failed. Unit Id:%d/Type:%d, target position map %d (%s) at [%d,%d]\n", bl->id, bl->type, m, map[m].name, x, y);
 			return 2;
-			
 		}
-	} else if (map_getcell(m,x,y,CELL_CHKNOREACH))
-	{	//Invalid target cell
+	} else if (map_getcell(m,x,y,CELL_CHKNOREACH)) { //Invalid target cell
 		ShowWarning("unit_warp: Specified non-walkable target cell: %d (%s) at [%d,%d]\n", m, map[m].name, x,y);
-		
-		if (!map_search_freecell(NULL, m, &x, &y, 4, 4, 1))
-	 	{	//Can't find a nearby cell
+
+		if (!map_search_freecell(NULL, m, &x, &y, 4, 4, 1)) { //Can't find a nearby cell
 			ShowWarning("unit_warp failed. Unit Id:%d/Type:%d, target position map %d (%s) at [%d,%d]\n", bl->id, bl->type, m, map[m].name, x, y);
 			return 2;
 		}
@@ -797,17 +851,17 @@ int unit_warp(struct block_list *bl,short m,short x,short y,clr_type type)
 
 	if (bl->type == BL_PC) //Use pc_setpos
 		return pc_setpos((TBL_PC*)bl, map_id2index(m), x, y, type);
-	
+
 	if (!unit_remove_map(bl, type))
 		return 3;
-	
+
 	if (bl->m != m && battle_config.clear_unit_onwarp &&
 		battle_config.clear_unit_onwarp&bl->type)
 		skill_clear_unitgroup(bl);
 
-	bl->x=ud->to_x=x;
-	bl->y=ud->to_y=y;
-	bl->m=m;
+	bl->x = ud->to_x = x;
+	bl->y = ud->to_y = y;
+	bl->m = m;
 
 	map_addblock(bl);
 	clif_spawn(bl);
@@ -2113,7 +2167,7 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 			bg_send_dot_remove(sd);
 
 			if( map[bl->m].users <= 0 || sd->state.debug_remove_map )
-			{// this is only place where map users is decreased, if the mobs were removed too soon then this function was executed too many times [FlavioJS]
+			{ // This is only place where map users is decreased, if the mobs were removed too soon then this function was executed too many times [FlavioJS]
 				if( sd->debug_file == NULL || !(sd->state.debug_remove_map) ) {
 					sd->debug_file = "";
 					sd->debug_line = 0;
@@ -2157,8 +2211,7 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 		}
 		case BL_PET: {
 			struct pet_data *pd = (struct pet_data*)bl;
-			if( pd->pet.intimate <= 0 && !(pd->msd && !pd->msd->state.active) )
-			{	//If logging out, this is deleted on unit_free
+			if( pd->pet.intimate <= 0 && !(pd->master && !pd->master->state.active) ) { //If logging out, this is deleted on unit_free
 				clif_clearunit_area(bl,clrtype);
 				map_delblock(bl);
 				unit_free(bl,CLR_OUTSIGHT);
@@ -2171,8 +2224,7 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 		case BL_HOM: {
 			struct homun_data *hd = (struct homun_data *)bl;
 			ud->canact_tick = ud->canmove_tick; //It appears HOM do reset the can-act tick.
-			if( !hd->homunculus.intimacy && !(hd->master && !hd->master->state.active) )
-			{	//If logging out, this is deleted on unit_free
+			if( !hd->homunculus.intimacy && !(hd->master && !hd->master->state.active) ) { //If logging out, this is deleted on unit_free
 				clif_emotion(bl, E_SOB);
 				clif_clearunit_area(bl,clrtype);
 				map_delblock(bl);
@@ -2185,8 +2237,7 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 		case BL_MER: {
 			struct mercenary_data *md = (struct mercenary_data *)bl;
 			ud->canact_tick = ud->canmove_tick;
-			if( mercenary_get_lifetime(md) <= 0 && !(md->master && !md->master->state.active) )
-			{
+			if( mercenary_get_lifetime(md) <= 0 && !(md->master && !md->master->state.active) ) {
 				clif_clearunit_area(bl,clrtype);
 				map_delblock(bl);
 				unit_free(bl,CLR_OUTSIGHT);
@@ -2198,8 +2249,7 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 		case BL_ELEM: {
 			struct elemental_data *ed = (struct elemental_data *)bl;
 			ud->canact_tick = ud->canmove_tick;
-			if( elemental_get_lifetime(ed) <= 0 && !(ed->master && !ed->master->state.active) )
-			{
+			if( elemental_get_lifetime(ed) <= 0 && !(ed->master && !ed->master->state.active) ) {
 				clif_clearunit_area(bl,clrtype);
 				map_delblock(bl);
 				unit_free(bl,0);
@@ -2317,7 +2367,7 @@ int unit_free(struct block_list *bl, clr_type clrtype)
 		}
 		case BL_PET: {
 			struct pet_data *pd = (struct pet_data*)bl;
-			struct map_session_data *sd = pd->msd;
+			struct map_session_data *sd = pd->master;
 			pet_hungry_timer_delete(pd);
 			if( pd->a_skill ) {
 				aFree(pd->a_skill);
@@ -2473,6 +2523,7 @@ int do_init_unit(void)
 	add_timer_func_list(unit_walktobl_sub, "unit_walktobl_sub");
 	add_timer_func_list(unit_delay_walktoxy_timer,"unit_delay_walktoxy_timer");
 	add_timer_func_list(unit_delay_walktobl_timer,"unit_delay_walktobl_timer");
+	add_timer_func_list(unit_teleport_timer,"unit_teleport_timer");
 	return 0;
 }
 

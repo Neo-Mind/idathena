@@ -473,13 +473,18 @@ int mapif_parse_CreateParty(int fd, char *name, int item, int item2, struct part
 		return 0;
 	}
 	// Check Authorised letters/symbols in the name of the character
-	if (char_name_option == 1) { // only letters/symbols in char_name_letters are authorised
+	if (char_name_option == 1) { // Only letters/symbols in char_name_letters are authorised
 		for (i = 0; i < NAME_LENGTH && name[i]; i++)
 			if (strchr(char_name_letters, name[i]) == NULL) {
+				if (name[i] == '"') { /* Client-special-char */
+					normalize_name(name,"\"");
+					mapif_parse_CreateParty(fd,name,item,item2,leader);
+					return 0;
+				}
 				mapif_party_created(fd,leader->account_id,leader->char_id,NULL);
 				return 0;
 			}
-	} else if (char_name_option == 2) { // letters/symbols in char_name_letters are forbidden
+	} else if (char_name_option == 2) { // Letters/symbols in char_name_letters are forbidden
 		for (i = 0; i < NAME_LENGTH && name[i]; i++)
 			if (strchr(char_name_letters, name[i]) != NULL) {
 				mapif_party_created(fd,leader->account_id,leader->char_id,NULL);
@@ -488,7 +493,7 @@ int mapif_parse_CreateParty(int fd, char *name, int item, int item2, struct part
 	}
 
 	p = (struct party_data*)aCalloc(1, sizeof(struct party_data));
-	
+
 	memcpy(p->party.name,name,NAME_LENGTH);
 	p->party.exp=0;
 	p->party.item=(item?1:0)|(item2?2:0);

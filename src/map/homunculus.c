@@ -56,9 +56,21 @@ struct view_data* merc_get_hom_viewdata(int class_)
 	return NULL;
 }
 
+enum homun_type hom_class2type(int class_) {
+	int mid = hom_class2mapid(class_);
+	if (mid&(HOM_REG|HOM_EVO))
+		return HT_EVO;
+	else if (mid&(HOM_REG))
+		return HT_REG;
+	else if (mid&(HOM_S))
+		return HT_S;
+	else //Invalid type
+		return -1;
+}
+
 int hom_class2mapid(int hom_class)
 {
-	switch(hom_class) {
+	switch (hom_class) {
 		// Normal Homunculus
 		case 6001: case 6005:                return MAPID_LIF;
 		case 6002: case 6006:                return MAPID_AMISTR;

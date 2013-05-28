@@ -1310,7 +1310,7 @@ packet_ver: 23
 //2009-04-08aSakexe
 0x02a6,-1
 0x02a7,-1
-0x044a,6
+0x044a,6,clientversion,2
 
 //Renewal Clients
 //2008-08-27aRagexeRE
@@ -1942,7 +1942,7 @@ packet_ver: 34
 // Shuffle End
 
 //New Packets
-0x0447,2
+0x0447,2,booking_playcancel,0
 0x084b,19 //fallitem4
 0x090f,-1 // notify_newentry7
 0x0914,-1 // notify_moveentry

@@ -55,8 +55,7 @@ char SERVER_TYPE = ATHENA_SERVER_NONE;
 #ifndef POSIX
 #define compat_signal(signo, func) signal(signo, func)
 #else
-sigfunc *compat_signal(int signo, sigfunc *func)
-{
+sigfunc *compat_signal(int signo, sigfunc *func) {
 	struct sigaction sact, oact;
 
 	sact.sa_handler = func;
@@ -77,26 +76,23 @@ sigfunc *compat_signal(int signo, sigfunc *func)
  *	CORE : Console events for Windows
  *--------------------------------------*/
 #ifdef _WIN32
-static BOOL WINAPI console_handler(DWORD c_event)
-{
-    switch(c_event)
-    {
-    case CTRL_CLOSE_EVENT:
-    case CTRL_LOGOFF_EVENT:
-    case CTRL_SHUTDOWN_EVENT:
-		if( shutdown_callback != NULL )
-			shutdown_callback();
-		else
-			runflag = CORE_ST_STOP;// auto-shutdown
-        break;
-	default:
-		return FALSE;
-    }
+static BOOL WINAPI console_handler(DWORD c_event) {
+    switch(c_event) {
+		case CTRL_CLOSE_EVENT:
+		case CTRL_LOGOFF_EVENT:
+		case CTRL_SHUTDOWN_EVENT:
+			if( shutdown_callback != NULL )
+				shutdown_callback();
+			else
+				runflag = CORE_ST_STOP;// auto-shutdown
+			break;
+		default:
+			return FALSE;
+		}
     return TRUE;
 }
 
-static void cevents_init()
-{
+static void cevents_init() {
 	if (SetConsoleCtrlHandler(console_handler,TRUE)==FALSE)
 		ShowWarning ("Unable to install the console handler!\n");
 }
@@ -105,42 +101,40 @@ static void cevents_init()
 /*======================================
  *	CORE : Signal Sub Function
  *--------------------------------------*/
-static void sig_proc(int sn)
-{
+static void sig_proc(int sn) {
 	static int is_called = 0;
 
 	switch (sn) {
-	case SIGINT:
-	case SIGTERM:
-		if (++is_called > 3)
-			exit(EXIT_SUCCESS);
-		if( shutdown_callback != NULL )
-			shutdown_callback();
-		else
-			runflag = CORE_ST_STOP;// auto-shutdown
-		break;
-	case SIGSEGV:
-	case SIGFPE:
-		do_abort();
-		// Pass the signal to the system's default handler
-		compat_signal(sn, SIG_DFL);
-		raise(sn);
-		break;
+		case SIGINT:
+		case SIGTERM:
+			if (++is_called > 3)
+				exit(EXIT_SUCCESS);
+			if( shutdown_callback != NULL )
+				shutdown_callback();
+			else
+				runflag = CORE_ST_STOP;// auto-shutdown
+			break;
+		case SIGSEGV:
+		case SIGFPE:
+			do_abort();
+			// Pass the signal to the system's default handler
+			compat_signal(sn, SIG_DFL);
+			raise(sn);
+			break;
 #ifndef _WIN32
-	case SIGXFSZ:
-		// ignore and allow it to set errno to EFBIG
-		ShowWarning ("Max file size reached!\n");
-		//run_flag = 0;	// should we quit?
-		break;
-	case SIGPIPE:
-		//ShowInfo ("Broken pipe found... closing socket\n");	// set to eof in socket.c
-		break;	// does nothing here
+		case SIGXFSZ:
+			// ignore and allow it to set errno to EFBIG
+			ShowWarning ("Max file size reached!\n");
+			//run_flag = 0;	// should we quit?
+			break;
+		case SIGPIPE:
+			//ShowInfo ("Broken pipe found... closing socket\n");	// set to eof in socket.c
+			break;	// does nothing here
 #endif
 	}
 }
 
-void signals_init (void)
-{
+void signals_init (void) {
 	compat_signal(SIGTERM, sig_proc);
 	compat_signal(SIGINT, sig_proc);
 #ifndef _DEBUG // need unhandled exceptions to debug on Windows
@@ -158,13 +152,11 @@ void signals_init (void)
 #endif
 
 #ifdef SVNVERSION
-	const char *get_svn_revision(void)
-	{
-		return EXPAND_AND_QUOTE(SVNVERSION);
-	}
-#else// not SVNVERSION
-const char* get_svn_revision(void)
-{
+const char *get_svn_revision(void) {
+	return EXPAND_AND_QUOTE(SVNVERSION);
+}
+#else // not SVNVERSION
+const char* get_svn_revision(void) {
 	static char svn_version_buffer[16] = "";
 	FILE *fp;
 
@@ -176,8 +168,7 @@ const char* get_svn_revision(void)
 	// - ignores database file structure
 	// - assumes the data in NODES.dav_cache column ends with "!svn/ver/<revision>/<path>)"
 	// - since it's a cache column, the data might not even exist
-	if( (fp = fopen(".svn"PATHSEP_STR"wc.db", "rb")) != NULL || (fp = fopen(".."PATHSEP_STR".svn"PATHSEP_STR"wc.db", "rb")) != NULL )
-	{
+	if( (fp = fopen(".svn"PATHSEP_STR"wc.db", "rb")) != NULL || (fp = fopen(".."PATHSEP_STR".svn"PATHSEP_STR"wc.db", "rb")) != NULL ) {
 #ifndef SVNNODEPATH
 		//not sure how to handle branches, so i'll leave this overridable define until a better solution comes up
 		#define SVNNODEPATH trunk
@@ -199,12 +190,10 @@ const char* get_svn_revision(void)
 		fclose(fp);
 
 		// parse buffer
-		for( i = prefix_len + 1; i + postfix_len <= len; ++i )
-		{
+		for( i = prefix_len + 1; i + postfix_len <= len; ++i ) {
 			if( buffer[i] != postfix[0] || memcmp(buffer + i, postfix, postfix_len) != 0 )
 				continue; // postfix missmatch
-			for( j = i; j > 0; --j )
-			{// skip digits
+			for( j = i; j > 0; --j ) { // skip digits
 				if( !ISDIGIT(buffer[j - 1]) )
 					break;
 			}
@@ -221,29 +210,23 @@ const char* get_svn_revision(void)
 	}
 
 	// subversion 1.6 and older?
-	if ((fp = fopen(".svn/entries", "r")) != NULL)
-	{
+	if ((fp = fopen(".svn/entries", "r")) != NULL) {
 		char line[1024];
 		int rev;
 		// Check the version
-		if (fgets(line, sizeof(line), fp))
-		{
-			if(!ISDIGIT(line[0]))
-			{
+		if (fgets(line, sizeof(line), fp)) {
+			if(!ISDIGIT(line[0])) {
 				// XML File format
 				while (fgets(line,sizeof(line),fp))
 					if (strstr(line,"revision=")) break;
 				if (sscanf(line," %*[^\"]\"%d%*[^\n]", &rev) == 1) {
 					snprintf(svn_version_buffer, sizeof(svn_version_buffer), "%d", rev);
 				}
-			}
-			else
-			{
+			} else {
 				// Bin File format
 				if ( fgets(line, sizeof(line), fp) == NULL ) { printf("Can't get bin name\n"); } // Get the name
 				if ( fgets(line, sizeof(line), fp) == NULL ) { printf("Can't get entries kind\n"); } // Get the entries kind
-				if(fgets(line, sizeof(line), fp)) // Get the rev numver
-				{
+				if(fgets(line, sizeof(line), fp)) // Get the rev numver {
 					snprintf(svn_version_buffer, sizeof(svn_version_buffer), "%d", atoi(line));
 				}
 			}
@@ -266,7 +249,7 @@ const char* get_svn_revision(void)
  *--------------------------------------*/
 static void display_title(void) {
 	//ClearScreen(); // clear screen and go up/left (0, 0 position in text)
-	
+
 	ShowMessage("\n");
 	ShowMessage(""CL_PASS"        "CL_BOLD"                                                             "CL_PASS""CL_CLL""CL_NORMAL"\n");
 	ShowMessage(""CL_PASS"        "CL_BT_WHITE"            Pengembangan idAthena mempersembahkan        "CL_PASS""CL_CLL""CL_NORMAL"\n");
@@ -297,11 +280,10 @@ void usercheck(void)
  *--------------------------------------*/
 int main (int argc, char **argv)
 {
-	{// initialize program arguments
+	{ // initialize program arguments
 		char *p1 = SERVER_NAME = argv[0];
 		char *p2 = p1;
-		while ((p1 = strchr(p2, '/')) != NULL || (p1 = strchr(p2, '\\')) != NULL)
-		{
+		while ((p1 = strchr(p2, '/')) != NULL || (p1 = strchr(p2, '\\')) != NULL) {
 			SERVER_NAME = ++p1;
 			p2 = p1;
 		}

@@ -1928,18 +1928,15 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 	if( src->id == md->bl.id )
 		return; //Do not log self-damage.
 
-	switch( src->type )
-	{
-		case BL_PC:
-		{
+	switch( src->type ) {
+		case BL_PC: {
 			struct map_session_data *sd = (TBL_PC*)src;
 			char_id = sd->status.char_id;
 			if( damage )
 				md->attacked_id = src->id;
 			break;
 		}
-		case BL_HOM:
-		{
+		case BL_HOM: {
 			struct homun_data *hd = (TBL_HOM*)src;
 			flag = MDLF_HOMUN;
 			if( hd->master )
@@ -1948,8 +1945,7 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 				md->attacked_id = src->id;
 			break;
 		}
-		case BL_MER:
-		{
+		case BL_MER: {
 			struct mercenary_data *mer = (TBL_MER*)src;
 			if( mer->master )
 				char_id = mer->master->status.char_id;
@@ -1957,23 +1953,19 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 				md->attacked_id = src->id;
 			break;
 		}
-		case BL_PET:
-		{
+		case BL_PET: {
 			struct pet_data *pd = (TBL_PET*)src;
 			flag = MDLF_PET;
-			if( pd->msd )
-			{
-				char_id = pd->msd->status.char_id;
+			if( pd->master ) {
+				char_id = pd->master->status.char_id;
 				if( damage ) //Let mobs retaliate against the pet's master [Skotlex]
-					md->attacked_id = pd->msd->bl.id;
+					md->attacked_id = pd->master->bl.id;
 			}
 			break;
 		}
-		case BL_MOB:
-		{
+		case BL_MOB: {
 			struct mob_data* md2 = (TBL_MOB*)src;
-			if( md2->special_state.ai && md2->master_id )
-			{
+			if( md2->special_state.ai && md2->master_id ) {
 				struct map_session_data* msd = map_id2sd(md2->master_id);
 				if( msd )
 					char_id = msd->status.char_id;
@@ -1987,8 +1979,7 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 				md->attacked_id = src->id;
 			break;
 		}
-		case BL_ELEM:
-		{
+		case BL_ELEM: {
 			struct elemental_data *ele = (TBL_ELEM*)src;
 			if( ele->master )
 				char_id = ele->master->status.char_id;
@@ -2000,11 +1991,10 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 			md->attacked_id = src->id;
 	}
 	
-	if( char_id )
-	{ //Log damage...
+	if( char_id ) { //Log damage...
 		int i,minpos;
 		unsigned int mindmg;
-		for(i=0,minpos=DAMAGELOG_SIZE-1,mindmg=UINT_MAX;i<DAMAGELOG_SIZE;i++){
+		for(i=0,minpos=DAMAGELOG_SIZE-1,mindmg=UINT_MAX;i<DAMAGELOG_SIZE;i++) {
 			if(md->dmglog[i].id==char_id &&
 				md->dmglog[i].flag==flag)
 				break;
@@ -2013,8 +2003,7 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 				md->dmglog[i].flag= flag;
 				break;
 			}
-			if(md->dmglog[i].dmg<mindmg && i)
-			{	//Never overwrite first hit slot (he gets double exp bonus)
+			if(md->dmglog[i].dmg<mindmg && i) { //Never overwrite first hit slot (he gets double exp bonus)
 				minpos=i;
 				mindmg=md->dmglog[i].dmg;
 			}
@@ -2071,7 +2060,7 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 	}
 #endif
 	
-	if( md->special_state.ai == 2 ) { //LOne WOlf explained that ANYONE can trigger the marine countdown skill. [Skotlex]
+	if( md->special_state.ai == AI_SPHERE ) { //LOne WOlf explained that ANYONE can trigger the marine countdown skill. [Skotlex]
 		md->state.alchemist = 1;
 		mobskill_use(md, gettick(), MSC_ALCHEMIST);
 	}
@@ -2300,7 +2289,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	if (!(type&1) && !map[m].flag.nomobloot && !md->state.rebirth && (
 		!md->special_state.ai || //Non special mob
 		battle_config.alchemist_summon_reward == 2 || //All summoned give drops
-		(md->special_state.ai==2 && battle_config.alchemist_summon_reward == 1) //Marine Sphere Drops items.
+		(md->special_state.ai == AI_SPHERE && battle_config.alchemist_summon_reward == 1) //Marine Sphere Drops items.
 		))
 	{ // Item Drop
 		struct item_drop_list *dlist = ers_alloc(item_drop_list_ers, struct item_drop_list);
@@ -2722,13 +2711,13 @@ int mob_class_change (struct mob_data *md, int class_)
 		return 0;
 
 	//Disable class changing for some targets...
-	if (md->guardian_data)
+	if( md->guardian_data )
 		return 0; //Guardians/Emperium
 
 	if( mob_is_treasure(md) )
 		return 0; //Treasure Boxes
 
-	if( md->special_state.ai > 1 )
+	if( md->special_state.ai > AI_ATTACK )
 		return 0; //Marine Spheres and Floras.
 
 	if( mob_is_clone(md->class_) )
@@ -2740,7 +2729,7 @@ int mob_class_change (struct mob_data *md, int class_)
 	hp_rate = get_percentage(md->status.hp, md->status.max_hp);
 	md->class_ = class_;
 	md->db = mob_db(class_);
-	if (battle_config.override_mob_names==1)
+	if( battle_config.override_mob_names == 1 )
 		memcpy(md->name,md->db->name,NAME_LENGTH);
 	else
 		memcpy(md->name,md->db->jname,NAME_LENGTH);
@@ -2753,7 +2742,7 @@ int mob_class_change (struct mob_data *md, int class_)
 	status_calc_mob(md, 1);
 	md->ud.state.speed_changed = 1; //Speed change update.
 
-	if (battle_config.monster_class_change_recover) {
+	if( battle_config.monster_class_change_recover ) {
 		memset(md->dmglog, 0, sizeof(md->dmglog));
 		md->tdmg = 0;
 	} else {
@@ -2761,11 +2750,11 @@ int mob_class_change (struct mob_data *md, int class_)
 		if(md->status.hp < 1) md->status.hp = 1;
 	}
 
-	for(i=0,c=tick-MOB_MAX_DELAY;i<MAX_MOBSKILL;i++)
+	for( i=0,c=tick-MOB_MAX_DELAY;i<MAX_MOBSKILL;i++ )
 		md->skilldelay[i] = c;
 
-	if(md->lootitem == NULL && md->db->status.mode&MD_LOOTER)
-		md->lootitem=(struct item *)aCalloc(LOOTITEM_SIZE,sizeof(struct item));
+	if( md->lootitem == NULL && md->db->status.mode&MD_LOOTER )
+		md->lootitem = (struct item *)aCalloc(LOOTITEM_SIZE,sizeof(struct item));
 
 	//Targets should be cleared no morph
 	md->target_id = md->attacked_id = 0;

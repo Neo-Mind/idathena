@@ -1830,16 +1830,16 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		s_ele = s_ele_ = rnd()%ELE_MAX;
 	switch( skill_id ) {
 		case GS_GROUNDDRIFT:
-			s_ele = s_ele_ = wflag; //element comes in flag.
+			s_ele = s_ele_ = wflag; //Element comes in flag.
 			break;
 		case LK_SPIRALPIERCE:
-			if( !sd ) n_ele = false; //forced neutral for monsters
+			if( !sd ) n_ele = false; //Forced neutral for monsters
 			break;
 	}
 	
 	if( !(nk & NK_NO_ELEFIX) && !n_ele )
 		if (src->type == BL_HOM)
-		n_ele = true; //skill is "not elemental"
+		n_ele = true; //Skill is "not elemental"
 	if( sc && sc->data[SC_GOLDENE_FERSE] && ((!skill_id && (rnd() % 100 < sc->data[SC_GOLDENE_FERSE]->val4)) || skill_id == MH_STAHL_HORN) ) {
 		s_ele = s_ele_ = ELE_HOLY;
 		n_ele = false;
@@ -2207,7 +2207,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					case W_GRENADE:
 						break;
 					default:
-						i |= 16; // for ex. shuriken must not be influenced by DEX
+						i |= 16; // For ex. shuriken must not be influenced by DEX
 				}
 				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, i);
 				if (flag.lh)
@@ -5280,8 +5280,8 @@ struct block_list* battle_get_master(struct block_list *src)
 		prev = src;
 		switch (src->type) {
 			case BL_PET:
-				if (((TBL_PET*)src)->msd)
-					src = (struct block_list*)((TBL_PET*)src)->msd;
+				if (((TBL_PET*)src)->master)
+					src = (struct block_list*)((TBL_PET*)src)->master;
 				break;
 			case BL_MOB:
 				if (((TBL_MOB*)src)->master_id)
@@ -5365,9 +5365,9 @@ int battle_check_target( struct block_list *src, struct block_list *target, int 
 			}
 			break;
 		case BL_MOB:
-			if(((((TBL_MOB*)target)->special_state.ai == 2 || //Marine Spheres
-				(((TBL_MOB*)target)->special_state.ai == 3 && battle_config.summon_flora&1)) && //Floras
-				s_bl->type == BL_PC && src->type != BL_MOB) || (((TBL_MOB*)target)->special_state.ai == 4 && t_bl->id != s_bl->id)) //Zanzoe
+			if(((((TBL_MOB*)target)->special_state.ai == AI_SPHERE || //Marine Spheres
+				(((TBL_MOB*)target)->special_state.ai == AI_FLORA && battle_config.summon_flora&1)) && //Floras
+				s_bl->type == BL_PC && src->type != BL_MOB) || (((TBL_MOB*)target)->special_state.ai == AI_ZANZOU && t_bl->id != s_bl->id)) //Zanzoe
 			{	//Targetable by players
 				state |= BCT_ENEMY;
 				strip_enemy = 0;
@@ -5521,7 +5521,7 @@ int battle_check_target( struct block_list *src, struct block_list *target, int 
 
 			if( !md->special_state.ai ) { //Normal mobs
 				if(
-					( target->type == BL_MOB && t_bl->type == BL_PC && ( ((TBL_MOB*)target)->special_state.ai != 4 && ((TBL_MOB*)target)->special_state.ai != 1 ) ) ||
+					( target->type == BL_MOB && t_bl->type == BL_PC && ( ((TBL_MOB*)target)->special_state.ai != AI_ZANZOU && ((TBL_MOB*)target)->special_state.ai != AI_ATTACK ) ) ||
 					( t_bl->type == BL_MOB && !((TBL_MOB*)t_bl)->special_state.ai )
 				  )
 					state |= BCT_PARTY; //Normal mobs with no ai are friends.

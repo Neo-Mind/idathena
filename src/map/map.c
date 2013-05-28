@@ -1285,7 +1285,7 @@ int map_clearflooritem_timer(int tid, unsigned int tick, int id, intptr_t data)
 }
 
 /*
- * clears a single bl item out of the bazooonga.
+ * Clears a single bl item out of the map.
  */
 void map_clearflooritem(struct block_list *bl) {
 	struct flooritem_data* fitem = (struct flooritem_data*)bl;
@@ -1732,43 +1732,38 @@ int map_quit(struct map_session_data *sd) {
 /*==========================================
  * Lookup, id to session (player,mob,npc,homon,merc..)
  *------------------------------------------*/
-struct map_session_data * map_id2sd(int id)
-{
+struct map_session_data * map_id2sd(int id) {
 	if (id <= 0) return NULL;
 	return (struct map_session_data*)idb_get(pc_db,id);
 }
 
-struct mob_data * map_id2md(int id)
-{
+struct mob_data * map_id2md(int id) {
 	if (id <= 0) return NULL;
 	return (struct mob_data*)idb_get(mobid_db,id);
 }
 
-struct npc_data * map_id2nd(int id)
-{// just a id2bl lookup because there's no npc_db
+struct npc_data * map_id2nd(int id) {
 	struct block_list* bl = map_id2bl(id);
-
 	return BL_CAST(BL_NPC, bl);
 }
 
-struct homun_data* map_id2hd(int id)
-{
+struct homun_data* map_id2hd(int id) {
 	struct block_list* bl = map_id2bl(id);
-
 	return BL_CAST(BL_HOM, bl);
 }
 
-struct mercenary_data* map_id2mc(int id)
-{
+struct mercenary_data* map_id2mc(int id) {
 	struct block_list* bl = map_id2bl(id);
-
 	return BL_CAST(BL_MER, bl);
 }
 
-struct chat_data* map_id2cd(int id)
-{
+struct pet_data* map_id2pd(int id) {
 	struct block_list* bl = map_id2bl(id);
+	return BL_CAST(BL_PET, bl);
+}
 
+struct chat_data* map_id2cd(int id) {
+	struct block_list* bl = map_id2bl(id);
 	return BL_CAST(BL_CHAT, bl);
 }
 
@@ -3625,6 +3620,7 @@ void do_final(void)
 	do_final_elemental();
 	do_final_cashshop();
 	do_final_channel(); // Should be called after final guild
+	do_final_vending();
 	do_final_maps();
 
 	map_db->destroy(map_db, map_db_final);
@@ -3792,7 +3788,7 @@ int do_init(int argc, char *argv[])
 		log_sql_init();
 
 	mapindex_init();
-	if(enable_grf)
+	if (enable_grf)
 		grfio_init(GRF_PATH_FILENAME);
 
 	map_readallmaps();
@@ -3827,7 +3823,8 @@ int do_init(int argc, char *argv[])
 	do_init_unit();
 	do_init_battleground();
 	do_init_duel();
-	
+	do_init_vending();
+
 	npc_event_do_oninit();	// Init npcs (OnInit)
 
 	if (battle_config.pk_mode)
@@ -3837,18 +3834,18 @@ int do_init(int argc, char *argv[])
 
 	ShowStatus("Server is '"CL_GREEN"ready"CL_RESET"' and listening on port '"CL_WHITE"%d"CL_RESET"'.\n\n", map_port);
 
-	if( runflag != CORE_ST_STOP ) {
+	if (runflag != CORE_ST_STOP) {
 		shutdown_callback = do_shutdown;
 		runflag = MAPSERVER_ST_RUNNING;
 	}
 #if defined(BUILDBOT)
-	if( buildbotflag )
+	if (buildbotflag)
 		exit(EXIT_FAILURE);
 #endif
 
-	if( console ) { //start listening
+	if (console) { // Start listening
 		add_timer_func_list(parse_console_timer, "parse_console_timer");
-		add_timer_interval(gettick()+1000, parse_console_timer, 0, 0, 1000); //start in 1s each 1sec
+		add_timer_interval(gettick()+1000, parse_console_timer, 0, 0, 1000); // Start in 1s each 1sec
 	}
 
 	return 0;
