@@ -2235,7 +2235,7 @@ void clif_item_sub_v5(unsigned char *buf, int n, int idx, struct item *i, struct
 		WBUFB(buf,n+30) |= (i->favorite)?0x4:0; //0x4 PlaceETCTab
 	} else { //Normal 24B
 		WBUFW(buf,n+5) = i->amount;
-		WBUFL(buf,n+7) = i->equip; //Wear state
+		WBUFL(buf,n+7) = id->equip; //Wear state
 		clif_addcards(WBUFP(buf,n+11),i); //EQUIPSLOTINFO 8B
 		WBUFL(buf,n+19) = i->expire_time;
 		//V5_ITEM_flag
@@ -2271,7 +2271,7 @@ void clif_item_sub(unsigned char *buf, int n, int idx, struct item *i, struct it
 #endif
 	} else { //Stackable item. 22.B
 		WBUFW(buf,n+6)=i->amount;
-		WBUFW(buf,n+8)=(equip == -2 && id->equip == EQP_AMMO)?i->equip:0;
+		WBUFW(buf,n+8)=(equip == -2 && id->equip == EQP_AMMO)?id->equip:0;
 		clif_addcards(WBUFP(buf, n+10), i); //8B
 #if PACKETVER >= 20071002
 		WBUFL(buf,n+18)=i->expire_time;

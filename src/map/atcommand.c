@@ -3645,7 +3645,7 @@ ACMD_FUNC(reload)
 		||  prev_config.base_exp_rate          != battle_config.base_exp_rate
 		||  prev_config.job_exp_rate           != battle_config.job_exp_rate
 		)
-	  	{	// Exp or Drop rates changed.
+		{	// Exp or Drop rates changed.
 			mob_reload(); //Needed as well so rate changes take effect.
 			chrif_ragsrvinfo(battle_config.base_exp_rate, battle_config.job_exp_rate, battle_config.item_rate_common);
 		}
@@ -6673,8 +6673,11 @@ ACMD_FUNC(mobinfo)
 			droprate = (float)mob->dropitem[i].p;
 
 #ifdef RENEWAL_DROP
-			if (battle_config.atcommand_mobinfo_type)
+			if (battle_config.atcommand_mobinfo_type) {
 				droprate = droprate * pc_level_penalty_mod(sd, mob->lv, mob->status.race, mob->status.mode, 2) / 100;
+				if (droprate <= 0 && !battle_config.drop_rate0item)
+					droprate = 1;
+			}
 #endif
 			if (item_data->slot)
 				sprintf(atcmd_output2, " - %s[%d]  %02.02f%%", item_data->jname, item_data->slot, droprate / 100);
@@ -8333,7 +8336,7 @@ static void atcommand_commands_sub(struct map_session_data* sd, const int fd, At
 
 	clif_displaymessage(fd, msg_txt(273)); // "Commands available:"
 
-	for (cmd = dbi_first(iter); dbi_exists(iter); cmd = dbi_next(iter)) {
+	for( cmd = dbi_first(iter); dbi_exists(iter); cmd = dbi_next(iter) ) {
 		unsigned int slen = 0;
 
 		switch( type ) {
@@ -8348,7 +8351,6 @@ static void atcommand_commands_sub(struct map_session_data* sd, const int fd, At
 			default:
 				continue;
 		}
-		
 
 		slen = strlen(cmd->command);
 

@@ -56,13 +56,10 @@ static int guild_save_timer(int tid, unsigned int tick, int id, intptr_t data)
 	if( last_id == 0 ) //Save the first guild in the list.
 		state = 1;
 
-	for( g = db_data2ptr(iter->first(iter, &key)); dbi_exists(iter); g = db_data2ptr(iter->next(iter, &key)) )
-	{
+	for( g = db_data2ptr(iter->first(iter, &key)); dbi_exists(iter); g = db_data2ptr(iter->next(iter, &key)) ) {
 		if( state == 0 && g->guild_id == last_id )
 			state++; //Save next guild in the list.
-		else
-		if( state == 1 && g->save_flag&GS_MASK )
-		{
+		else if( state == 1 && g->save_flag&GS_MASK ) {
 			inter_guild_tosql(g, g->save_flag&GS_MASK);
 			g->save_flag &= ~GS_MASK;
 
@@ -71,8 +68,7 @@ static int guild_save_timer(int tid, unsigned int tick, int id, intptr_t data)
 			state++;
 		}
 
-		if( g->save_flag == GS_REMOVE )
-		{// Nothing to save, guild is ready for removal.
+		if( g->save_flag == GS_REMOVE ) { // Nothing to save, guild is ready for removal.
 			if (save_log)
 				ShowInfo("Guild Unloaded (%d - %s)\n", g->guild_id, g->name);
 			db_remove(guild_db_, key);
@@ -615,26 +611,22 @@ static bool exp_guild_parse_row(char* split[], int column, int current)
 
 int inter_guild_CharOnline(int char_id, int guild_id)
 {
-   struct guild *g;
-   int i;
+	struct guild *g;
+	int i;
 
 	if (guild_id == -1) {
 		//Get guild_id from the database
-		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT guild_id FROM `%s` WHERE char_id='%d'", char_db, char_id) )
-		{
+		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT guild_id FROM `%s` WHERE char_id='%d'", char_db, char_id) ) {
 			Sql_ShowDebug(sql_handle);
 			return 0;
 		}
 
-		if( SQL_SUCCESS == Sql_NextRow(sql_handle) )
-		{
+		if (SQL_SUCCESS == Sql_NextRow(sql_handle)) {
 			char* data;
 
 			Sql_GetData(sql_handle, 0, &data, NULL);
 			guild_id = atoi(data);
-		}
-		else
-		{
+		} else {
 			guild_id = 0;
 		}
 		Sql_FreeResult(sql_handle);
@@ -643,19 +635,18 @@ int inter_guild_CharOnline(int char_id, int guild_id)
 		return 0; //No guild...
 
 	g = inter_guild_fromsql(guild_id);
-	if(!g) {
+	if (!g) {
 		ShowError("Character %d's guild %d not found!\n", char_id, guild_id);
 		return 0;
 	}
 
 	//Member has logged in before saving, tell saver not to delete
-	if(g->save_flag & GS_REMOVE)
+	if (g->save_flag & GS_REMOVE)
 		g->save_flag &= ~GS_REMOVE;
 
 	//Set member online
 	ARR_FIND( 0, g->max_member, i, g->member[i].char_id == char_id );
-	if( i < g->max_member )
-	{
+	if (i < g->max_member) {
 		g->member[i].online = 1;
 		g->member[i].modified = GS_MEMBER_MODIFIED;
 	}
