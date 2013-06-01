@@ -11890,7 +11890,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 
 		case UNT_REVERBERATION:
 			clif_changetraplook(&src->bl,UNT_USED_TRAPS);
-			map_foreachinrange(skill_trap_splash,&src->bl, skill_get_splash(sg->skill_id, sg->skill_lv), sg->bl_flag, &src->bl,tick);
+			map_foreachinrange(skill_trap_splash,&src->bl,skill_get_splash(sg->skill_id,sg->skill_lv),sg->bl_flag,&src->bl,tick);
 			sg->limit = DIFF_TICK(tick,sg->tick)+1000;
 			sg->unit_id = UNT_USED_TRAPS;
 			break;
@@ -12015,27 +12015,27 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				int sec = sg->limit - DIFF_TICK(tick, sg->tick);
 				int range = skill_get_unit_range(sg->skill_id, sg->skill_lv);
 
-				if ( tsc && tsc->data[SC_HALLUCINATIONWALK])
+				if ( tsc && tsc->data[SC_HALLUCINATIONWALK] )
 					return 0;
 
 				if( tsc && !tsc->data[type] &&
-					distance_xy(src->bl.x, src->bl.y, bl->x, bl->y) <= range)// don't consider outer bounderies
+					distance_xy(src->bl.x, src->bl.y, bl->x, bl->y) <= range ) // don't consider outer bounderies
 					sc_start(ss, bl, type, 100, sg->skill_lv, sec);
 
 				if( unit_is_walking(bl) && // wait until target stop walking
-					( tsc && tsc->data[type] && tsc->data[type]->val4 >= tsc->data[type]->val3-range ))
+					( tsc && tsc->data[type] && tsc->data[type]->val4 >= tsc->data[type]->val3-range ) )
 						break;
 
 				if( tsc && ( !tsc->data[type] || (tsc->data[type] && tsc->data[type]->val4 < 1 ) ) )
 					break;
 
 				if( unit_is_walking(bl) &&
-					distance_xy(src->bl.x, src->bl.y, bl->x, bl->y) > range )// going outside of boundaries? then force it to stop
+					distance_xy(src->bl.x, src->bl.y, bl->x, bl->y) > range ) // going outside of boundaries? then force it to stop
 						unit_stop_walking(bl,1);
 
 				if( !unit_is_walking(bl) &&
 					distance_xy(src->bl.x, src->bl.y, bl->x, bl->y) <= range &&  // only snap if the target is inside the range or
-					src->bl.x != bl->x && src->bl.y != bl->y){// diagonal position parallel to VE's center
+					src->bl.x != bl->x && src->bl.y != bl->y ) { // diagonal position parallel to VE's center
 					unit_movepos(bl, src->bl.x, src->bl.y, 0, 0);
 					clif_fixpos(bl);
 				}		
@@ -16576,8 +16576,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 					clif_misceffect(&sd->bl,5);
 					break;
 				default: //Those that don't require a skill?
-					if( skill_produce_db[idx].itemlv > 10 && skill_produce_db[idx].itemlv <= 20)
-					{ //Cooking items.
+					if( skill_produce_db[idx].itemlv > 10 && skill_produce_db[idx].itemlv <= 20) { //Cooking items.
 						clif_specialeffect(&sd->bl, 608, AREA);
 						if( sd->cook_mastery < 1999 )
 							pc_setglobalreg(sd, "COOK_MASTERY",sd->cook_mastery + ( 1 << ( (skill_produce_db[idx].itemlv - 11) / 2 ) ) * 5);

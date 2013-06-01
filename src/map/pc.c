@@ -3898,17 +3898,17 @@ int pc_dropitem(struct map_session_data *sd,int n,int amount)
 		)
 		return 0;
 
-	if( map[sd->bl.m].flag.nodrop ) {
+	if(map[sd->bl.m].flag.nodrop) {
 		clif_displaymessage (sd->fd, msg_txt(271));
 		return 0; //Can't drop items in nodrop mapflag maps.
 	}
 
-	if( !pc_candrop(sd,&sd->status.inventory[n]) ) {
+	if(!pc_candrop(sd,&sd->status.inventory[n])) {
 		clif_displaymessage (sd->fd, msg_txt(263));
 		return 0;
 	}
 
-	if (!map_addflooritem(&sd->status.inventory[n], amount, sd->bl.m, sd->bl.x, sd->bl.y, 0, 0, 0, 2))
+	if(!map_addflooritem(&sd->status.inventory[n], amount, sd->bl.m, sd->bl.x, sd->bl.y, 0, 0, 0, 2))
 		return 0;
 
 	pc_delitem(sd, n, amount, 1, 0, LOG_TYPE_PICKDROP_PLAYER);
@@ -6639,9 +6639,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		}
 	}
 
-	if( battle_config.bone_drop == 2
-		|| (battle_config.bone_drop == 1 && map[sd->bl.m].flag.pvp) )
-	{
+	if( battle_config.bone_drop == 2 || (battle_config.bone_drop == 1 && map[sd->bl.m].flag.pvp) ) {
 		struct item item_tmp;
 		memset(&item_tmp,0,sizeof(item_tmp));
 		item_tmp.nameid = ITEMID_SKULL_;
