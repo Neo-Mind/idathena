@@ -147,7 +147,7 @@ int unit_teleport_timer(int tid, unsigned int tick, int id, intptr_t data) {
 			case BL_ELEM:
 			case BL_PET:
 			case BL_MER:
-				if(msd && *mast_tid != INVALID_TIMER && !check_distance_bl(&msd->bl, bl, MAX_MER_DISTANCE)){
+				if(msd && *mast_tid != INVALID_TIMER && !check_distance_bl(&msd->bl, bl, MAX_MER_DISTANCE)) {
 					*mast_tid = INVALID_TIMER;
 					unit_warp(bl, msd->bl.id, msd->bl.x, msd->bl.y, CLR_TELEPORT );
 				}
@@ -169,7 +169,7 @@ int unit_check_start_teleport_timer(struct block_list *sbl) {
 	if(msd) { //If there is a master
 		int *msd_tid = unit_get_masterteleport_timer(sbl);
 
-		if(!check_distance_bl(&msd->bl, sbl, MAX_MER_DISTANCE)) {
+		if (!check_distance_bl(&msd->bl, sbl, max_dist)) {
 			if(*msd_tid == INVALID_TIMER || *msd_tid == 0)
 				*msd_tid = add_timer(gettick()+3000,unit_teleport_timer,sbl->id,BL_MER);
 		} else {

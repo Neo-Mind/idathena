@@ -5051,7 +5051,7 @@ mora,104,172,7	script	Victim#pa0829	520,{
 	mes "[Victim]";
 	mes "You Bastard! I want my rugged outwear! That was passed on to me by my father *SOB*";
 	next;
-	mes "^990099 It seems that he has gotten a great deal of damage from the art dealer.^000000";
+	mes "^990099It seems that he has gotten a great deal of damage from the art dealer.^000000";
 	close;
 }
 

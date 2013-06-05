@@ -622,11 +622,14 @@ static void script_reportfunc(struct script_state* st)
 static char* script_getfuncname(struct script_state *st)
 {
 	int i;
-	char* name = "";
+	char* name = NULL;
 	for( i = 0; i < st->stack->sp; ++i ) {
 		struct script_data* data = &st->stack->stack_data[i];
-		if(data->type == C_NAME && str_data[data->u.num].type == C_FUNC)
+		if( data->type == C_NAME && str_data[data->u.num].type == C_FUNC ) {
 			name = reference_getname(data);
+			if( strcmp(name,"jump_zero") )
+				break;
+		}
 	}
 	return name;
 }
@@ -2301,26 +2304,26 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 	const char *p,*tmpp;
 	int i;
 	struct script_code* code = NULL;
-	static int first=1;
+	static int first = 1;
 	char end;
 	bool unresolved_names = false;
 
 	if( src == NULL )
-		return NULL;// empty script
+		return NULL; // Empty script
 
 	memset(&syntax,0,sizeof(syntax));
-	if(first){
+	if( first ) {
 		add_buildin_func();
 		read_constdb();
-		first=0;
+		first = 0;
 	}
 
-	script_buf=(unsigned char *)aMalloc(SCRIPT_BLOCK_SIZE*sizeof(unsigned char));
-	script_pos=0;
-	script_size=SCRIPT_BLOCK_SIZE;
+	script_buf = (unsigned char *)aMalloc(SCRIPT_BLOCK_SIZE*sizeof(unsigned char));
+	script_pos = 0;
+	script_size = SCRIPT_BLOCK_SIZE;
 	parse_nextline(true, NULL);
 
-	// who called parse_script is responsible for clearing the database after using it, but just in case... lets clear it here
+	// Who called parse_script is responsible for clearing the database after using it, but just in case... lets clear it here
 	if( options&SCRIPT_USE_LABEL_DB )
 		db_clear(scriptlabel_db);
 	parse_options = options;
@@ -2336,20 +2339,18 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 		script_pos  = 0;
 		script_size = 0;
 		script_buf  = NULL;
-		for(i=LABEL_START;i<str_num;i++)
+		for( i=LABEL_START; i<str_num; i++ )
 			if(str_data[i].type == C_NOP) str_data[i].type = C_NAME;
-		for(i=0; i<size; i++)
+		for( i=0; i<size; i++ )
 			linkdb_final(&syntax.curly[i].case_label);
 		return NULL;
 	}
 
-	parse_syntax_for_flag=0;
-	p=src;
-	p=skip_space(p);
-	if( options&SCRIPT_IGNORE_EXTERNAL_BRACKETS )
-	{// does not require brackets around the script
-		if( *p == '\0' && !(options&SCRIPT_RETURN_EMPTY_SCRIPT) )
-		{// empty script and can return NULL
+	parse_syntax_for_flag = 0;
+	p = src;
+	p = skip_space(p);
+	if( options&SCRIPT_IGNORE_EXTERNAL_BRACKETS ) { // Does not require brackets around the script
+		if( *p == '\0' && !(options&SCRIPT_RETURN_EMPTY_SCRIPT) ) { // Empty script and can return NULL
 			aFree( script_buf );
 			script_pos  = 0;
 			script_size = 0;
@@ -2357,14 +2358,11 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 			return NULL;
 		}
 		end = '\0';
-	}
-	else
-	{// requires brackets around the script
+	} else { // Requires brackets around the script
 		if( *p != '{' )
 			disp_error_message("not found '{'",p);
 		p = skip_space(p+1);
-		if( *p == '}' && !(options&SCRIPT_RETURN_EMPTY_SCRIPT) )
-		{// empty script and can return NULL
+		if( *p == '}' && !(options&SCRIPT_RETURN_EMPTY_SCRIPT) ) { // Empty script and can return NULL
 			aFree( script_buf );
 			script_pos  = 0;
 			script_size = 0;
@@ -2374,105 +2372,101 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 		end = '}';
 	}
 
-	// clear references of labels, variables and internal functions
-	for(i=LABEL_START;i<str_num;i++){
+	// Clear references of labels, variables and internal functions
+	for( i=LABEL_START; i<str_num; i++ ) {
 		if(
-			str_data[i].type==C_POS || str_data[i].type==C_NAME ||
-			str_data[i].type==C_USERFUNC || str_data[i].type == C_USERFUNC_POS
-		){
-			str_data[i].type=C_NOP;
-			str_data[i].backpatch=-1;
-			str_data[i].label=-1;
+			str_data[i].type == C_POS || str_data[i].type == C_NAME ||
+			str_data[i].type == C_USERFUNC || str_data[i].type == C_USERFUNC_POS
+		) {
+			str_data[i].type = C_NOP;
+			str_data[i].backpatch = -1;
+			str_data[i].label = -1;
 		}
 	}
 
-	while( syntax.curly_count != 0 || *p != end )
-	{
+	while( syntax.curly_count != 0 || *p != end ) {
 		if( *p == '\0' )
 			disp_error_message("unexpected end of script",p);
 		// Special handling only label
-		tmpp=skip_space(skip_word(p));
-		if(*tmpp==':' && !(!strncasecmp(p,"default:",8) && p + 7 == tmpp)){
-			i=add_word(p);
+		tmpp = skip_space(skip_word(p));
+		if( *tmpp == ':' && !(!strncasecmp(p,"default:",8) && p + 7 == tmpp) ) {
+			i = add_word(p);
 			set_label(i,script_pos,p);
 			if( parse_options&SCRIPT_USE_LABEL_DB )
 				strdb_iput(scriptlabel_db, get_str(i), script_pos);
-			p=tmpp+1;
-			p=skip_space(p);
+			p = tmpp+1;
+			p = skip_space(p);
 			continue;
 		}
 
 		// All other lumped
-		p=parse_line(p);
-		p=skip_space(p);
+		p = parse_line(p);
+		p = skip_space(p);
 
 		parse_nextline(false, p);
 	}
 
 	add_scriptc(C_NOP);
 
-	// trim code to size
+	// Trim code to size
 	script_size = script_pos;
 	RECREATE(script_buf,unsigned char,script_pos);
 
-	// default unknown references to variables
-	for(i=LABEL_START;i<str_num;i++){
-		if(str_data[i].type==C_NOP){
+	// Default unknown references to variables
+	for( i=LABEL_START; i<str_num; i++ ) {
+		if( str_data[i].type == C_NOP ) {
 			int j,next;
-			str_data[i].type=C_NAME;
-			str_data[i].label=i;
-			for(j=str_data[i].backpatch;j>=0 && j!=0x00ffffff;){
-				next=GETVALUE(script_buf,j);
+			str_data[i].type = C_NAME;
+			str_data[i].label = i;
+			for( j=str_data[i].backpatch; j>=0 && j!=0x00ffffff; ) {
+				next = GETVALUE(script_buf,j);
 				SETVALUE(script_buf,j,i);
-				j=next;
+				j = next;
 			}
-		}
-		else if( str_data[i].type == C_USERFUNC )
-		{// 'function name;' without follow-up code
+		} else if( str_data[i].type == C_USERFUNC ) { // 'function name;' without follow-up code
 			ShowError("parse_script: function '%s' declared but not defined.\n", str_buf+str_data[i].str);
 			unresolved_names = true;
 		}
 	}
 
-	if( unresolved_names )
-	{
+	if( unresolved_names ) {
 		disp_error_message("parse_script: unresolved function references", p);
 	}
 
 #ifdef DEBUG_DISP
-	for(i=0;i<script_pos;i++){
-		if((i&15)==0) ShowMessage("%04x : ",i);
+	for( i=0; i<script_pos; i++ ) {
+		if( (i&15) == 0 ) ShowMessage("%04x : ",i);
 		ShowMessage("%02x ",script_buf[i]);
-		if((i&15)==15) ShowMessage("\n");
+		if( (i&15) == 15 ) ShowMessage("\n");
 	}
 	ShowMessage("\n");
 #endif
 #ifdef DEBUG_DISASM
 	{
 		int i = 0,j;
-		while(i < script_pos) {
+		while( i < script_pos ) {
 			c_op op = get_com(script_buf,&i);
 
 			ShowMessage("%06x %s", i, script_op2name(op));
 			j = i;
-			switch(op) {
-			case C_INT:
-				ShowMessage(" %d", get_num(script_buf,&i));
-				break;
-			case C_POS:
-				ShowMessage(" 0x%06x", *(int*)(script_buf+i)&0xffffff);
-				i += 3;
-				break;
-			case C_NAME:
-				j = (*(int*)(script_buf+i)&0xffffff);
-				ShowMessage(" %s", ( j == 0xffffff ) ? "?? unknown ??" : get_str(j));
-				i += 3;
-				break;
-			case C_STR:
-				j = strlen(script_buf + i);
-				ShowMessage(" %s", script_buf + i);
-				i += j+1;
-				break;
+			switch( op ) {
+				case C_INT:
+					ShowMessage(" %d", get_num(script_buf,&i));
+					break;
+				case C_POS:
+					ShowMessage(" 0x%06x", *(int*)(script_buf+i)&0xffffff);
+					i += 3;
+					break;
+				case C_NAME:
+					j = (*(int*)(script_buf+i)&0xffffff);
+					ShowMessage(" %s", ( j == 0xffffff ) ? "?? unknown ??" : get_str(j));
+					i += 3;
+					break;
+				case C_STR:
+					j = strlen(script_buf + i);
+					ShowMessage(" %s", script_buf + i);
+					i += j+1;
+					break;
 			}
 			ShowMessage(CL_CLL"\n");
 		}
@@ -2490,8 +2484,8 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 /// If there is no player attached, the script is terminated.
 TBL_PC *script_rid2sd(struct script_state *st)
 {
-	TBL_PC *sd=map_id2sd(st->rid);
-	if(!sd){
+	TBL_PC *sd;
+	if( !(sd = map_id2sd(st->rid)) ) {
 		ShowError("script_rid2sd: fatal error ! player not attached!\n");
 		script_reportfunc(st);
 		script_reportsrc(st);
@@ -7362,32 +7356,6 @@ BUILDIN_FUNC(getequipisenableref)
 }
 
 /*==========================================
- * Chk if the item equiped at pos is identify (huh ?)
- * Return (npc)
- *	1 : true
- *	0 : false
- *------------------------------------------*/
-BUILDIN_FUNC(getequipisidentify)
-{
-	int i = -1,num;
-	TBL_PC *sd;
-
-	num = script_getnum(st,2);
-	sd = script_rid2sd(st);
-	if( sd == NULL )
-		return 0;
-
-	if (num > 0 && num <= ARRAYLENGTH(equip))
-		i=pc_checkequip(sd,equip[num-1]);
-	if(i >= 0)
-		script_pushint(st,sd->status.inventory[i].identify);
-	else
-		script_pushint(st,0);
-
-	return 0;
-}
-
-/*==========================================
  * Get the item refined value at pos
  * Return (npc)
  *	x : refine amount
@@ -9675,7 +9643,7 @@ BUILDIN_FUNC(sc_start)
 	TBL_NPC * nd = map_id2nd(st->oid);
 	struct block_list* bl;
 	enum sc_type type;
-	int tick, val1, val2, val3, val4=0, rate, flag, isitem;
+	int tick, val1, val2, val3, val4=0, rate, flag;
 	char start_type;
 	const char* command = script_getfuncname(st);
 
@@ -9690,8 +9658,13 @@ BUILDIN_FUNC(sc_start)
 	tick = script_getnum(st,3);
 	val1 = script_getnum(st,4);
 
+	//If from NPC we make default flag 1 to be unavoidable
+	if(nd && nd->bl.id == fake_nd->bl.id)
+		flag = script_hasdata(st,5+start_type)?script_getnum(st,5+start_type):2;
+	else
+		flag = script_hasdata(st,5+start_type)?script_getnum(st,5+start_type):1;
+
 	rate = script_hasdata(st,4+start_type)?min(script_getnum(st,4+start_type),10000):10000;
-	flag = script_hasdata(st,5+start_type)?script_getnum(st,5+start_type):2;
 
 	if(script_hasdata(st,(6+start_type)))
 		bl = map_id2bl(script_getnum(st,(6+start_type)));
@@ -9699,35 +9672,32 @@ BUILDIN_FUNC(sc_start)
 		bl = map_id2bl(st->rid);
 
 	if(tick == 0 && val1 > 0 && type > SC_NONE && type < SC_MAX && status_sc2skill(type) != 0)
-	{// When there isn't a duration specified, try to get it from the skill_db
+	{ // When there isn't a duration specified, try to get it from the skill_db
 		tick = skill_get_time(status_sc2skill(type), val1);
 	}
 
 	if(potion_flag == 1 && potion_target) { //skill.c set the flags before running the script, this is a potion-pitched effect.
 		bl = map_id2bl(potion_target);
-		tick /= 2;// Thrown potions only last half.
-		val4 = 1;// Mark that this was a thrown sc_effect
+		tick /= 2; // Thrown potions only last half.
+		val4 = 1; // Mark that this was a thrown sc_effect
 	}
 
-	//solving if script from npc or item
-	isitem = ((nd && nd->bl.id == fake_nd->bl.id) || flag != 2)?true:false;
+	if(!bl)
+		return 0;
 
 	switch(start_type) {
 		case 1:
-			if(bl)
-				status_change_start(isitem?bl:NULL, bl, type, rate, val1, 0, 0, val4, tick, flag);
+			status_change_start(bl, bl, type, rate, val1, 0, 0, val4, tick, flag);
 			break;
 		case 2:
 			val2 = script_getnum(st,5);
-			if(bl)
-				status_change_start(isitem?bl:NULL, bl, type, rate, val1, val2, 0, val4, tick, flag);
+			status_change_start(bl, bl, type, rate, val1, val2, 0, val4, tick, flag);
 			break;
 		case 4:
 			val2 = script_getnum(st,5);
 			val3 = script_getnum(st,6);
 			val4 = script_getnum(st,7);
-			if(bl)
-				status_change_start(isitem?bl:NULL, bl, type, rate, val1, val2, val3, val4, tick, flag);
+			status_change_start(bl, bl, type, rate, val1, val2, val3, val4, tick, flag);
 			break;
 	}
 
@@ -11379,7 +11349,7 @@ static int buildin_mobcount_sub(struct block_list *bl,va_list ap)	// Added by Ro
 	return 0;
 }
 
-BUILDIN_FUNC(mobcount)	// Added by RoVeRT
+BUILDIN_FUNC(mobcount) // Added by RoVeRT
 {
 	const char *mapname,*event;
 	int16 m;
@@ -11399,14 +11369,12 @@ BUILDIN_FUNC(mobcount)	// Added by RoVeRT
 			script_pushint(st,-1);
 			return 0;
 		}
-	}
-	else if( (m = map_mapname2mapid(mapname)) < 0 ) {
+	} else if( (m = map_mapname2mapid(mapname)) < 0 ) {
 		script_pushint(st,-1);
 		return 0;
 	}
 	
-	if( map[m].flag.src4instance && map[m].instance_id == 0 && st->instance_id && (m = instance_mapid2imapid(m, st->instance_id)) < 0 )
-	{
+	if( map[m].flag.src4instance && map[m].instance_id == 0 && st->instance_id && (m = instance_mapid2imapid(m, st->instance_id)) < 0 ) {
 		script_pushint(st,-1);
 		return 0;
 	}
@@ -17569,7 +17537,6 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(repairall,""),
 	BUILDIN_DEF(getequipisequiped,"i"),
 	BUILDIN_DEF(getequipisenableref,"i"),
-	BUILDIN_DEF(getequipisidentify,"i"),
 	BUILDIN_DEF(getequiprefinerycnt,"i"),
 	BUILDIN_DEF(getequipweaponlv,"i"),
 	BUILDIN_DEF(getequippercentrefinery,"i"),

@@ -2727,15 +2727,14 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 	sd->left_weapon.atkmods[1] = atkmods[1][sd->weapontype2];
 	sd->left_weapon.atkmods[2] = atkmods[2][sd->weapontype2];
 
-	if( (pc_isriding(sd) || pc_isridingdragon(sd)) &&
-		(sd->status.weapon==W_1HSPEAR || sd->status.weapon==W_2HSPEAR) )
-	{	//When Riding with spear, damage modifier to mid-class becomes
+	if( (pc_isriding(sd) || pc_isridingdragon(sd)) && (sd->status.weapon == W_1HSPEAR || sd->status.weapon == W_2HSPEAR) ) {
+		//When Riding with spear, damage modifier to mid-class becomes
 		//same as versus large size.
 		sd->right_weapon.atkmods[1] = sd->right_weapon.atkmods[2];
 		sd->left_weapon.atkmods[1] = sd->left_weapon.atkmods[2];
 	}
 
-// ----- STATS CALCULATION -----
+	// ----- STATS CALCULATION -----
 
 	// Job bonuses
 	index = pc_class2idx(sd->status.class_);
@@ -6301,7 +6300,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 
 	nullpo_ret(bl);
 	if(src == NULL)
-		return tick ? tick : 1; //If no source, it can't be resisted (NPC given)
+		return tick ? tick : 1; //This should not happen in current implementation, but leave it anyway
 
 	//Status that are blocked by Golden Thief Bug card or Wand of Hermod
 	if (status_isimmune(bl))

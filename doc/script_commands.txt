@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Current Version: =====================================
-//= $Revision: 17334 $
+//= $Revision: 17342 $
 //===== Last Updated: ========================================
-//= $LastChangedDate: 2013-05-26 12:21:44 +0700 (Sun, 26 May 2013) $
+//= $LastChangedDate: 2013-06-03 09:07:41 +0700 (Mon, 03 Jun 2013) $
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -3611,17 +3611,6 @@ item equipped on the invoking character.
 This function will return 1 if the card specified by its item ID number is 
 inserted into any equipment they have in their inventory, currently equipped or 
 not.
-
----------------------------------------
-
-*getequipisidentify(<equipment slot>)
-
-This function will return 1 if an item in the specified equipment slot is 
-identified and 0 if it isn't. Since you can't even equip unidentified equipment, 
-there's a question of whether it can actually end up there, and it will normally 
-return 1 all the time if there is an item in this equipment slot.
-Which is kinda pointless.
-For a list of equipment slots see 'getequipid'.
 
 ---------------------------------------
 //

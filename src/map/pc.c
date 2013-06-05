@@ -6658,6 +6658,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		if( get_percentage(sd->status.base_exp,next) >= 99 ) {
 			sd->state.snovice_dead_flag = 1;
 			pc_setstand(sd);
+			pc_setrestartvalue(sd, 1);
 			status_percent_heal(&sd->bl, 100, 100);
 			clif_resurrection(&sd->bl, 1);
 			if( battle_config.pc_invincible_time )
@@ -7214,12 +7215,10 @@ int pc_percentheal(struct map_session_data *sd,int hp,int sp)
 	nullpo_ret(sd);
 
 	if(hp > 100) hp = 100;
-	else
-	if(hp <-100) hp =-100;
+	else if(hp <-100) hp =-100;
 
 	if(sp > 100) sp = 100;
-	else
-	if(sp <-100) sp =-100;
+	else if(sp <-100) sp =-100;
 
 	if(hp >= 0 && sp >= 0) //Heal
 		return status_percent_heal(&sd->bl, hp, sp);
