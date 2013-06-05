@@ -113,8 +113,7 @@ void trade_tradeack(struct map_session_data *sd, int type)
 		return;
 	}
 
-	if (tsd->state.trading || tsd->trade_partner != sd->bl.id)
-	{
+	if (tsd->state.trading || tsd->trade_partner != sd->bl.id) {
 		clif_tradestart(sd, 2);
 		sd->trade_partner=0;
 		return; //Already trading or wrong partner.
@@ -135,10 +134,10 @@ void trade_tradeack(struct map_session_data *sd, int type)
 
 	// Players can not request trade from far away, unless they are allowed to use @trade.
 	// Check here as well since the original character could had warped.
-	if (!pc_can_use_command(sd, "trade", COMMAND_ATCOMMAND) &&
+	if (!pc_can_use_command(tsd, "trade", COMMAND_ATCOMMAND) &&
 	    (sd->bl.m != tsd->bl.m || !check_distance_bl(&sd->bl, &tsd->bl, TRADE_DISTANCE))) {
 		clif_tradestart(sd, 0); // too far
-		sd->trade_partner=0;
+		sd->trade_partner = 0;
 		tsd->trade_partner = 0;
 		return;
 	}
