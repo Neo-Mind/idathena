@@ -808,15 +808,15 @@ int guild_expulsion(struct map_session_data* sd, int guild_id, int account_id, i
 		return 0;
 
 	if( (ps=guild_getposition(g,sd))<0 || !(g->position[ps].mode&0x0010) )
-		return 0;	//Expulsion permission
+		return 0; //Expulsion permission
 
-  	//Can't leave inside guild castles.
+	//Can't leave inside guild castles.
 	if ((tsd = map_id2sd(account_id)) &&
 		tsd->status.char_id == char_id &&
 		((agit_flag || agit2_flag) && map[tsd->bl.m].flag.gvg_castle))
 		return 0;
 
-	// find the member and perform expulsion
+	//Find the member and perform expulsion
 	i = guild_getindex(g, account_id, char_id);
 	if( i != -1 && strcmp(g->member[i].name,g->master) != 0 ) //Can't expel the GL!
 		intif_guild_leave(g->guild_id,account_id,char_id,1,mes);

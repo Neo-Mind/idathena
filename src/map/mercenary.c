@@ -226,8 +226,7 @@ static int merc_contract_end(int tid, unsigned int tick, int id, intptr_t data)
 	if( (md = sd->md) == NULL )
 		return 1;
 
-	if( md->contract_timer != tid )
-	{
+	if( md->contract_timer != tid ) {
 		ShowError("merc_contract_end %d != %d.\n", md->contract_timer, tid);
 		return 0;
 	}
@@ -321,10 +320,9 @@ int merc_data_received(struct s_mercenary *merc, bool flag)
 		map_addiddb(&md->bl);
 		status_calc_mercenary(md,1);
 		md->contract_timer = INVALID_TIMER;
+		md->masterteleport_timer = INVALID_TIMER;
 		merc_contract_init(md);
-	}
-	else
-	{
+	} else {
 		memcpy(&sd->md->mercenary, merc, sizeof(struct s_mercenary));
 		md = sd->md;
 	}
@@ -333,8 +331,7 @@ int merc_data_received(struct s_mercenary *merc, bool flag)
 		mercenary_set_calls(md, 1);
 	sd->status.mer_id = merc->mercenary_id;
 
-	if( md && md->bl.prev == NULL && sd->bl.prev != NULL )
-	{
+	if( md && md->bl.prev == NULL && sd->bl.prev != NULL ) {
 		map_addblock(&md->bl);
 		clif_spawn(&md->bl);
 		clif_mercenary_info(sd);
