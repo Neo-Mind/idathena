@@ -41,7 +41,6 @@
 #include <time.h>
 #include <math.h>
 
-
 #define SKILLUNITTIMER_INTERVAL	100
 
 // ranges reserved for mapping skill ids to skilldb offsets
@@ -52,7 +51,11 @@
 #define EL_SKILLRANGEMIN MC_SKILLRANGEMAX + 1
 #define EL_SKILLRANGEMAX EL_SKILLRANGEMIN + MAX_ELEMENTALSKILL
 #define GD_SKILLRANGEMIN EL_SKILLRANGEMAX + 1
-#define GD_SKILLRANGEMAX GD_SKILLRANGEMIN + MAX_GUILDSKILL*/
+#define GD_SKILLRANGEMAX GD_SKILLRANGEMIN + MAX_GUILDSKILL
+
+#if GD_SKILLRANGEMAX > 999
+	#error GD_SKILLRANGEMAX is greater than 999
+#endif*/
 
 // ranges reserved for mapping skill ids to skilldb offsets
 #define HM_SKILLRANGEMIN 1101
@@ -64,9 +67,6 @@
 #define GD_SKILLRANGEMIN 1701
 #define GD_SKILLRANGEMAX (GD_SKILLRANGEMIN + MAX_GUILDSKILL)
 
-#if GD_SKILLRANGEMAX > 999
-	#error GD_SKILLRANGEMAX is greater than 999
-#endif
 static struct eri *skill_unit_ers = NULL; //For handling skill_unit's [Skotlex]
 static struct eri *skill_timer_ers = NULL; //For handling skill_timerskills [Skotlex]
 static DBMap* bowling_db = NULL; //int mob_id -> struct mob_data*
