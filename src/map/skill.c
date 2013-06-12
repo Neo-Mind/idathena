@@ -45,23 +45,33 @@
 #define SKILLUNITTIMER_INTERVAL	100
 
 // ranges reserved for mapping skill ids to skilldb offsets
-#define HM_SKILLRANGEMIN 700
+/*#define HM_SKILLRANGEMIN 700
 #define HM_SKILLRANGEMAX HM_SKILLRANGEMIN + MAX_HOMUNSKILL
 #define MC_SKILLRANGEMIN HM_SKILLRANGEMAX + 1
 #define MC_SKILLRANGEMAX MC_SKILLRANGEMIN + MAX_MERCSKILL
 #define EL_SKILLRANGEMIN MC_SKILLRANGEMAX + 1
 #define EL_SKILLRANGEMAX EL_SKILLRANGEMIN + MAX_ELEMENTALSKILL
 #define GD_SKILLRANGEMIN EL_SKILLRANGEMAX + 1
-#define GD_SKILLRANGEMAX GD_SKILLRANGEMIN + MAX_GUILDSKILL
+#define GD_SKILLRANGEMAX GD_SKILLRANGEMIN + MAX_GUILDSKILL*/
+
+// ranges reserved for mapping skill ids to skilldb offsets
+#define HM_SKILLRANGEMIN 1101
+#define HM_SKILLRANGEMAX (HM_SKILLRANGEMIN + MAX_HOMUNSKILL)
+#define MC_SKILLRANGEMIN 1301
+#define MC_SKILLRANGEMAX (MC_SKILLRANGEMIN + MAX_MERCSKILL)
+#define EL_SKILLRANGEMIN 1501
+#define EL_SKILLRANGEMAX (EL_SKILLRANGEMIN + MAX_ELEMENTALSKILL)
+#define GD_SKILLRANGEMIN 1701
+#define GD_SKILLRANGEMAX (GD_SKILLRANGEMIN + MAX_GUILDSKILL)
 
 #if GD_SKILLRANGEMAX > 999
 	#error GD_SKILLRANGEMAX is greater than 999
 #endif
 static struct eri *skill_unit_ers = NULL; //For handling skill_unit's [Skotlex]
 static struct eri *skill_timer_ers = NULL; //For handling skill_timerskills [Skotlex]
-static DBMap* bowling_db = NULL; // int mob_id -> struct mob_data*
+static DBMap* bowling_db = NULL; //int mob_id -> struct mob_data*
 
-DBMap* skillunit_db = NULL; // int id -> struct skill_unit*
+DBMap* skillunit_db = NULL; //int id -> struct skill_unit*
 
 /**
  * Skill Cool Down Delay Saving
@@ -69,18 +79,18 @@ DBMap* skillunit_db = NULL; // int id -> struct skill_unit*
  * to keep cooldowns in memory between player log-ins.
  * All cooldowns are reset when server is restarted.
  **/
-DBMap* skillcd_db = NULL; // char_id -> struct skill_cd
+DBMap* skillcd_db = NULL; //char_id -> struct skill_cd
 struct skill_cd {
-	int duration[MAX_SKILL_TREE];//milliseconds
-	short skidx[MAX_SKILL_TREE];//the skill index entries belong to
-	short nameid[MAX_SKILL_TREE];//skill id
+	int duration[MAX_SKILL_TREE]; //Milliseconds
+	short skidx[MAX_SKILL_TREE]; //The skill index entries belong to
+	short nameid[MAX_SKILL_TREE]; //skill id
 	unsigned char cursor;
 };
 
 /**
  * Skill Unit Persistency during endack routes (mostly for songs see bugreport:4574)
  **/
-DBMap* skillusave_db = NULL; // char_id -> struct skill_usave
+DBMap* skillusave_db = NULL; //char_id -> struct skill_usave
 struct skill_usave {
 	uint16 skill_id, skill_lv;
 };
@@ -91,7 +101,7 @@ struct s_skill_arrow_db skill_arrow_db[MAX_SKILL_ARROW_DB];
 struct s_skill_abra_db skill_abra_db[MAX_SKILL_ABRA_DB];
 struct s_skill_improvise_db {
 	uint16 skill_id;
-	short per;//1-10000
+	short per; //1-10000
 };
 struct s_skill_improvise_db skill_improvise_db[MAX_SKILL_IMPROVISE_DB];
 bool skill_reproduce_db[MAX_SKILL_DB];
@@ -118,7 +128,7 @@ struct s_skill_unit_layout skill_unit_layout[MAX_SKILL_UNIT_LAYOUT];
 int firewall_unit_pos;
 int icewall_unit_pos;
 int earthstrain_unit_pos;
-//early declaration
+//Early declaration
 int skill_block_check(struct block_list *bl, enum sc_type type, uint16 skill_id);
 static int skill_check_unit_range (struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv);
 static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv);
@@ -129,7 +139,7 @@ static inline int splash_target(struct block_list* bl)
 {
 #ifndef RENEWAL
 	return ( bl->type == BL_MOB ) ? BL_SKILL|BL_CHAR : BL_CHAR;
-#else // Some skills can now hit ground skills(traps, ice wall & etc.)
+#else //Some skills can now hit ground skills(traps, ice wall & etc.)
 	return BL_SKILL|BL_CHAR;
 #endif
 }
@@ -147,14 +157,14 @@ int skill_name2id(const char* name)
 /// Returns the skill's array index, or 0 (Unknown Skill).
 int skill_get_index( uint16 skill_id )
 {
-	// avoid ranges reserved for mapping guild/homun/mercenary skills
+	//Avoid ranges reserved for mapping guild/homun/mercenary skills
 	if( (skill_id >= GD_SKILLRANGEMIN && skill_id <= GD_SKILLRANGEMAX)
 	||  (skill_id >= HM_SKILLRANGEMIN && skill_id <= HM_SKILLRANGEMAX)
 	||  (skill_id >= MC_SKILLRANGEMIN && skill_id <= MC_SKILLRANGEMAX)
 	||  (skill_id >= EL_SKILLRANGEMIN && skill_id <= EL_SKILLRANGEMAX) )
 		return 0;
 	
-	// map skill id to skill db index
+	//Map skill id to skill db index
 	if( skill_id >= GD_SKILLBASE )
 		skill_id = GD_SKILLRANGEMIN + skill_id - GD_SKILLBASE;
 	else if( skill_id >= EL_SKILLBASE )
@@ -164,7 +174,7 @@ int skill_get_index( uint16 skill_id )
 	else if( skill_id >= HM_SKILLBASE )
 		skill_id = HM_SKILLRANGEMIN + skill_id - HM_SKILLBASE;
 
-	// validate result
+	//Validate result
 	if( !skill_id || skill_id >= MAX_SKILL_DB )
 		return 0;
 
@@ -181,7 +191,7 @@ const char* skill_get_desc( uint16 skill_id )
 	return skill_db[skill_get_index(skill_id)].desc;
 }
 
-// out of bounds error checking [celest]
+//Out of bounds error checking [celest]
 static void skill_chk(int16* skill_id, uint16 skill_lv)
 {
 	*skill_id = skill_get_index(*skill_id); // checks/adjusts id
@@ -190,7 +200,7 @@ static void skill_chk(int16* skill_id, uint16 skill_lv)
 
 #define skill_get(var,id,lv) { skill_chk(&id,lv); if(!id) return 0; return var; }
 
-// Skill DB
+//Skill DB
 int	skill_get_hit( uint16 skill_id )               { skill_get (skill_db[skill_id].hit, skill_id, 1); }
 int	skill_get_inf( uint16 skill_id )               { skill_get (skill_db[skill_id].inf, skill_id, 1); }
 int	skill_get_ele( uint16 skill_id , uint16 skill_lv )      { skill_get (skill_db[skill_id].element[skill_lv-1], skill_id, skill_lv); }
@@ -1243,6 +1253,9 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 				for( i = 0; i < skill_lv; i++ )
 					skill_strip_equip(src,bl,pos[i],rate,skill_lv,skill_get_time2(skill_id,skill_lv));
 			}
+			break;
+		case WL_FROSTMISTY:
+			sc_start(src, bl, SC_FREEZING, 25 + 5 * skill_lv, skill_lv, skill_get_time(skill_id, skill_lv));
 			break;
 		case WL_JACKFROST:
 			sc_start(src, bl, SC_FREEZE, 100, skill_lv, skill_get_time(skill_id, skill_lv));
@@ -3869,6 +3882,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case AB_JUDEX:
 		case WL_SOULEXPANSION:
 		case WL_CRIMSONROCK:
+		case WL_FROSTMISTY:
 		case WL_JACKFROST:
 		case RA_ARROWSTORM:
 		case RA_WUGDASH:
@@ -4465,17 +4479,12 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				}
 			}
 			break;
-		case WL_FROSTMISTY:
-			// Causes Freezing status through walls.
-			sc_start(src,bl,status_skill2sc(skill_id),25+5*skill_lv,skill_lv,skill_get_time(skill_id,skill_lv));
-			// Doesn't deal damage through non-shootable walls.
-			if( path_search(NULL,src->m,src->x,src->y,bl->x,bl->y,1,CELL_CHKWALL) )
-				skill_attack(BF_MAGIC,src,src,bl,skill_id,skill_lv,tick,flag|SD_ANIMATION);
-			break;
+
 		case WL_HELLINFERNO:
 			skill_attack(BF_MAGIC,src,src,bl,skill_id,skill_lv,tick,flag);
 			skill_attack(BF_MAGIC,src,src,bl,skill_id,skill_lv,tick,flag|ELE_DARK);
 			break;
+
 		case RA_WUGSTRIKE:
 			if( sd && pc_isridingwug(sd) ) {
 				short x[8]={0,-1,-1,-1,0,1,1,1};
@@ -4520,6 +4529,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				}
 			}
 			break;
+
 		case NC_INFRAREDSCAN:
 			if( flag&1 ) { //TODO: Need a confirmation if the other type of hidden status is included to be scanned. [Jobbie]
 				sc_start(src, bl, SC_INFRAREDSCAN, 10000, skill_lv, skill_get_time(skill_id, skill_lv));
@@ -4536,6 +4546,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case NC_MAGNETICFIELD:
 			sc_start2(src,bl,SC_MAGNETICFIELD,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv));
 			break;
+
 		case SC_FATALMENACE:
 			if( flag&1 )
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
@@ -4550,6 +4561,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 			}
 			break;
+
 		case LG_PINPOINTATTACK:
 			if( !map_flag_gvg(src->m) && !map[src->m].flag.battleground && unit_movepos(src, bl->x, bl->y, 1, 1) )
 				clif_slide(src,bl->x,bl->y);
@@ -4570,6 +4582,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case LG_OVERBRAND_BRANDISH:
 			skill_addtimerskill(src, tick + status_get_amotion(src)*8/10, bl->id, 0, 0, skill_id, skill_lv, BF_WEAPON, flag|SD_LEVEL);
 			break;
+
 		case SR_DRAGONCOMBO:
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
@@ -5737,6 +5750,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
 				sc_start(src,bl,SC_STUN,(20 + 10 * skill_lv),skill_lv,skill_get_time2(skill_id,skill_lv)));
 			break;
+
 		case RG_RAID:
 			skill_area_temp[1] = 0;
 			clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
@@ -5750,6 +5764,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case ASC_METEORASSAULT:
 		case GS_SPREADATTACK:
 		case RK_STORMBLAST:
+		case WL_FROSTMISTY:
+		case WL_JACKFROST:
 		case NC_AXETORNADO:
 		case GC_COUNTERSLASH:
 		case SR_SKYNETBLOW:
@@ -5771,6 +5787,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			status_change_end(src,SC_OVERHEAT_LIMITPOINT,INVALID_TIMER);
 			status_change_end(src,SC_OVERHEAT,INVALID_TIMER);
 			break;
+
 		case SR_WINDMILL:
 		case GN_CART_TORNADO:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -7943,16 +7960,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				}
 			} else if( sd )
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_TOTARGET,0);
-			break;
-
-		case WL_FROSTMISTY:
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-			map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),BL_CHAR|BL_SKILL,src,skill_id,skill_lv,tick,flag|BCT_ENEMY,skill_castend_damage_id);
-			break;
-
-		case WL_JACKFROST:
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-			map_foreachinshootrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),BL_CHAR|BL_SKILL,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 			break;
 
 		case WL_MARSHOFABYSS:
