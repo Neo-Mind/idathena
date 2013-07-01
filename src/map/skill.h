@@ -217,8 +217,8 @@ extern struct s_skill_arrow_db skill_arrow_db[MAX_SKILL_ARROW_DB];
 
 struct s_skill_abra_db {
 	uint16 skill_id;
-	int req_lv;
-	int per;
+	char name[NAME_LENGTH];
+	int per[MAX_SKILL_LEVEL];
 };
 extern struct s_skill_abra_db skill_abra_db[MAX_SKILL_ABRA_DB];
 
@@ -274,7 +274,7 @@ const char*	skill_get_desc( uint16 skill_id ); 	// [Skotlex]
 
 int skill_name2id(const char* name);
 
-int skill_isammotype(struct map_session_data *sd, uint16 skill_id);
+int skill_isammotype(struct map_session_data *sd, int skill);
 int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data);
 int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data);
 int skill_castend_map( struct map_session_data *sd,uint16 skill_id, const char *map);

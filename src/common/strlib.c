@@ -58,7 +58,7 @@ char* jstrescapecpy (char* pt, const char* spt)
 		pt[0] = '\0';
 		return &pt[0];
 	}
-	
+
 	while (spt[i] != '\0') {
 		switch (spt[i]) {
 			case '\'':
@@ -142,11 +142,31 @@ char* trim(char* str)
 	// trim
 	if( start == end )
 		*str = '\0';// empty string
-	else
-	{// move string with nul terminator
+	else { // move string with nul terminator
 		str[end] = '\0';
 		memmove(str,str+start,end-start+1);
 	}
+	return str;
+}
+
+// Note: This function returns a pointer to a substring of the original string.
+// If the given string was allocated dynamically, the caller must not overwrite
+// that pointer with the returned value, since the original pointer must be
+// deallocated using the same allocator with which it was allocated.  The return
+// value must NOT be deallocated using free() etc.
+char *trim2(char *str,char flag) {
+	char *end;
+	if(flag&1) { // Trim leading space
+		while(isspace(*str)) str++;
+		if(*str == 0) // All spaces?
+			return str;
+	}
+	if(flag&2) { // Trim trailing space
+		end = str + strlen(str) - 1;
+		while(end > str && isspace(*end)) end--;
+		*(end+1) = 0; // Write new null terminator
+	}
+
 	return str;
 }
 
@@ -188,30 +208,24 @@ char* normalize_name(char* str,const char* delims)
 	return str;
 }
 
-//stristr: Case insensitive version of strstr, code taken from 
+//stristr: Case insensitive version of strstr, code taken from
 //http://www.daniweb.com/code/snippet313.html, Dave Sinkula
 //
 const char* stristr(const char* haystack, const char* needle)
 {
-	if ( !*needle )
-	{
+	if ( !*needle ) {
 		return haystack;
 	}
-	for ( ; *haystack; ++haystack )
-	{
-		if ( TOUPPER(*haystack) == TOUPPER(*needle) )
-		{
+	for ( ; *haystack; ++haystack ) {
+		if ( TOUPPER(*haystack) == TOUPPER(*needle) ) {
 			// matched starting char -- loop through remaining chars
 			const char *h, *n;
-			for ( h = haystack, n = needle; *h && *n; ++h, ++n )
-			{
-				if ( TOUPPER(*h) != TOUPPER(*n) )
-				{
+			for ( h = haystack, n = needle; *h && *n; ++h, ++n ) {
+				if ( TOUPPER(*h) != TOUPPER(*n) ) {
 					break;
 				}
 			}
-			if ( !*n ) // matched all of 'needle' to null termination
-			{
+			if ( !*n ) { // matched all of 'needle' to null termination
 				return haystack; // return the start of the match
 			}
 		}
@@ -603,13 +617,13 @@ int sv_parse_next(struct s_svstate* sv)
 /// out_pos[0] and out_pos[1] are the start and end of line.
 /// Other position pairs are the start and end of fields.
 /// Returns the number of fields found or -1 if an error occurs.
-/// 
+///
 /// out_pos can be NULL.
 /// If a line terminator is found, the end position is placed there.
 /// out_pos[2] and out_pos[3] for the first field, out_pos[4] and out_pos[5] 
 /// for the seconds field and so on.
 /// Unfilled positions are set to -1.
-/// 
+///
 /// @param str String to parse
 /// @param len Length of the string
 /// @param startoff Where to start parsing
@@ -655,11 +669,11 @@ int sv_parse(const char* str, int len, int startoff, char delim, int* out_pos, i
 /// out_fields[0] is the start of the next line.
 /// Other entries are the start of fields (nul-teminated).
 /// Returns the number of fields found or -1 if an error occurs.
-/// 
+///
 /// out_fields can be NULL.
 /// Fields that don't fit in out_fields are not nul-terminated.
 /// Extra entries in out_fields are filled with the end of the last field (empty string).
-/// 
+///
 /// @param str String to parse
 /// @param len Length of the string
 /// @param startoff Where to start parsing
@@ -965,15 +979,14 @@ bool sv_readdb(const char* directory, const char* filename, char delim, int minc
 	int entries = 0;
 	char** fields; // buffer for fields ([0] is reserved)
 	int columns, fields_length;
-	char path[1024], line[1024];
+	char path[1024], *line, colsize[512];
 	char* match;
 
 	snprintf(path, sizeof(path), "%s/%s", directory, filename);
 
 	// open file
 	fp = fopen(path, "r");
-	if( fp == NULL )
-	{
+	if( fp == NULL ) {
 		ShowError("sv_readdb: can't read %s\n", path);
 		return false;
 	}
@@ -981,42 +994,38 @@ bool sv_readdb(const char* directory, const char* filename, char delim, int minc
 	// allocate enough memory for the maximum requested amount of columns plus the reserved one
 	fields_length = maxcols+1;
 	fields = (char**)aMalloc(fields_length*sizeof(char*));
+	line = (char*)aMalloc(fields_length*sizeof(colsize));
 
 	// process rows one by one
-	while( fgets(line, sizeof(line), fp) )
-	{
+	while( fgets(line, fields_length*sizeof(colsize), fp) ) {
 		lines++;
 
-		if( ( match = strstr(line, "//") ) != NULL )
-		{// strip comments
+		if( ( match = strstr(line, "//") ) != NULL ) { // strip comments
 			match[0] = 0;
 		}
 
-		//TODO: strip trailing whitespace
+		//trim(line); //TODO: strip trailing whitespace
+		//trim2(line,1); //removing trailing actually break mob_skill_db
 		if( line[0] == '\0' || line[0] == '\n' || line[0] == '\r')
 			continue;
 
 		columns = sv_split(line, strlen(line), 0, delim, fields, fields_length, (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF));
 
-		if( columns < mincols )
-		{
+		if( columns < mincols ) {
 			ShowError("sv_readdb: Insufficient columns in line %d of \"%s\" (found %d, need at least %d).\n", lines, path, columns, mincols);
 			continue; // not enough columns
 		}
-		if( columns > maxcols )
-		{
+		if( columns > maxcols ) {
 			ShowError("sv_readdb: Too many columns in line %d of \"%s\" (found %d, maximum is %d).\n", lines, path, columns, maxcols );
 			continue; // too many columns
 		}
-		if( entries == maxrows )
-		{
+		if( entries == maxrows ) {
 			ShowError("sv_readdb: Reached the maximum allowed number of entries (%d) when parsing file \"%s\".\n", maxrows, path);
 			break;
 		}
 
 		// parse this row
-		if( !parseproc(fields+1, columns, entries) )
-		{
+		if( !parseproc(fields+1, columns, entries) ) {
 			ShowError("sv_readdb: Could not process contents of line %d of \"%s\".\n", lines, path);
 			continue; // invalid row contents
 		}
@@ -1026,6 +1035,7 @@ bool sv_readdb(const char* directory, const char* filename, char delim, int minc
 	}
 
 	aFree(fields);
+	aFree(line);
 	fclose(fp);
 	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", entries, path);
 
@@ -1039,7 +1049,7 @@ bool sv_readdb(const char* directory, const char* filename, char delim, int minc
 // @author MouseJstr (original)
 
 /// Allocates a StringBuf
-StringBuf* StringBuf_Malloc() 
+StringBuf* StringBuf_Malloc()
 {
 	StringBuf* self;
 	CREATE(self, StringBuf, 1);
@@ -1072,8 +1082,7 @@ int StringBuf_Vprintf(StringBuf* self, const char* fmt, va_list ap)
 {
 	int n, size, off;
 
-	for(;;)
-	{
+	for(;;) {
 		va_list apcopy;
 		/* Try to print in the allocated space. */
 		size = self->max_ - (self->ptr_ - self->buf_);
@@ -1081,8 +1090,7 @@ int StringBuf_Vprintf(StringBuf* self, const char* fmt, va_list ap)
 		n = vsnprintf(self->ptr_, size, fmt, apcopy);
 		va_end(apcopy);
 		/* If that worked, return the length. */
-		if( n > -1 && n < size )
-		{
+		if( n > -1 && n < size ) {
 			self->ptr_ += n;
 			return (int)(self->ptr_ - self->buf_);
 		}
@@ -1100,8 +1108,7 @@ int StringBuf_Append(StringBuf* self, const StringBuf* sbuf)
 	int available = self->max_ - (self->ptr_ - self->buf_);
 	int needed = (int)(sbuf->ptr_ - sbuf->buf_);
 
-	if( needed >= available )
-	{
+	if( needed >= available ) {
 		int off = (int)(self->ptr_ - self->buf_);
 		self->max_ += needed;
 		self->buf_ = (char*)aRealloc(self->buf_, self->max_ + 1);
@@ -1114,13 +1121,12 @@ int StringBuf_Append(StringBuf* self, const StringBuf* sbuf)
 }
 
 // Appends str to the StringBuf
-int StringBuf_AppendStr(StringBuf* self, const char* str) 
+int StringBuf_AppendStr(StringBuf* self, const char* str)
 {
 	int available = self->max_ - (self->ptr_ - self->buf_);
 	int needed = (int)strlen(str);
 
-	if( needed >= available )
-	{// not enough space, expand the buffer (minimum expansion = 1024)
+	if( needed >= available ) { // not enough space, expand the buffer (minimum expansion = 1024)
 		int off = (int)(self->ptr_ - self->buf_);
 		self->max_ += max(needed, 1024);
 		self->buf_ = (char*)aRealloc(self->buf_, self->max_ + 1);
@@ -1139,14 +1145,14 @@ int StringBuf_Length(StringBuf* self)
 }
 
 /// Returns the data in the StringBuf
-char* StringBuf_Value(StringBuf* self) 
+char* StringBuf_Value(StringBuf* self)
 {
 	*self->ptr_ = '\0';
 	return self->buf_;
 }
 
 /// Clears the contents of the StringBuf
-void StringBuf_Clear(StringBuf* self) 
+void StringBuf_Clear(StringBuf* self)
 {
 	self->ptr_ = self->buf_;
 }
@@ -1160,7 +1166,7 @@ void StringBuf_Destroy(StringBuf* self)
 }
 
 // Frees a StringBuf returned by StringBuf_Malloc
-void StringBuf_Free(StringBuf* self) 
+void StringBuf_Free(StringBuf* self)
 {
 	StringBuf_Destroy(self);
 	aFree(self);

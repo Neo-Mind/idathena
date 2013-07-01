@@ -41,7 +41,7 @@ static const short buyingstore_blankslots[MAX_SLOTS] = { 0 };  // used when chec
 /// Returns unique buying store id
 static unsigned int buyingstore_getuid(void)
 {
-	return buyingstore_nextid++;
+	return ++buyingstore_nextid;
 }
 
 
@@ -285,7 +285,7 @@ void buyingstore_trade(struct map_session_data* sd, int account_id, unsigned int
 			return;
 		}
 
-		if( sd->status.inventory[index].expire_time || !itemdb_cantrade(&sd->status.inventory[index], pc_get_group_level(sd), pc_get_group_level(pl_sd)) || memcmp(sd->status.inventory[index].card, buyingstore_blankslots, sizeof(buyingstore_blankslots)) )
+		if( sd->status.inventory[index].expire_time || (sd->status.inventory[index].bound && !pc_can_give_bounded_items(sd)) || !itemdb_cantrade(&sd->status.inventory[index], pc_get_group_level(sd), pc_get_group_level(pl_sd)) || memcmp(sd->status.inventory[index].card, buyingstore_blankslots, sizeof(buyingstore_blankslots)) )
 		{ // non-tradable item
 			clif_buyingstore_trade_failed_seller(sd, BUYINGSTORE_TRADE_SELLER_FAILED, nameid);
 			return;

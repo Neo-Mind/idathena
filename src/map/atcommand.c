@@ -21,6 +21,7 @@
 #include "clif.h"
 #include "chrif.h"
 #include "duel.h"
+#include "instance.h"
 #include "intif.h"
 #include "itemdb.h"
 #include "log.h"
@@ -1111,11 +1112,12 @@ ACMD_FUNC(heal)
 
 /*==========================================
  * @item command (usage: @item <name/id_of_item> <quantity>) (modified by [Yor] for pet_egg)
+ * @itembound command (usage: @itembound <name/id_of_item> <quantity> <bound_type>)
  *------------------------------------------*/
 ACMD_FUNC(item)
 {
 	char item_name[100];
-	int number = 0, item_id, flag = 0;
+	int number = 0, item_id, flag = 0, bound = 0;
 	struct item item_tmp;
 	struct item_data *item_data;
 	int get_count, i;
@@ -1123,7 +1125,13 @@ ACMD_FUNC(item)
 
 	memset(item_name, '\0', sizeof(item_name));
 
-	if (!message || !*message || (
+	if (!strcmpi(command+1,"itembound") && (!message || !*message || (
+		sscanf(message, "\"%99[^\"]\" %d %d", item_name, &number, &bound) < 2 &&
+		sscanf(message, "%99s %d %d", item_name, &number, &bound) < 2
+	))) {
+		clif_displaymessage(fd, msg_txt(295)); // Please enter an item name or ID (usage: @item <item name/ID> <quantity> <bound_type>).
+		return -1;
+	} else if (!message || !*message || (
 		sscanf(message, "\"%99[^\"]\" %d", item_name, &number) < 1 &&
 		sscanf(message, "%99s %d", item_name, &number) < 1
 	)) {
@@ -1141,6 +1149,11 @@ ACMD_FUNC(item)
 		return -1;
 	}
 
+	if( bound < 0 || bound > 4 ) {
+		clif_displaymessage(fd, msg_txt(298)); // Invalid bound type
+		return -1;
+	}
+
 	item_id = item_data->nameid;
 	get_count = number;
 	//Check if it's stackable.
@@ -1153,6 +1166,7 @@ ACMD_FUNC(item)
 			memset(&item_tmp, 0, sizeof(item_tmp));
 			item_tmp.nameid = item_id;
 			item_tmp.identify = 1;
+			item_tmp.bound = bound;
 
 			if ((flag = pc_additem(sd, &item_tmp, get_count, LOG_TYPE_COMMAND)))
 				clif_additem(sd, 0, 0, flag);
@@ -1172,17 +1186,23 @@ ACMD_FUNC(item2)
 	struct item item_tmp;
 	struct item_data *item_data;
 	char item_name[100];
-	int item_id, number = 0;
+	int item_id, number = 0, bound = 0;
 	int identify = 0, refine = 0, attr = 0;
 	int c1 = 0, c2 = 0, c3 = 0, c4 = 0;
 	nullpo_retr(-1, sd);
 
 	memset(item_name, '\0', sizeof(item_name));
 
-	if (!message || !*message || (
+	if (!strcmpi(command+1,"itembound2") && (!message || !*message || (
+		sscanf(message, "\"%99[^\"]\" %d %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4, &bound) < 10 &&
+		sscanf(message, "%99s %d %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4, &bound) < 10 ))) {
+		clif_displaymessage(fd, msg_txt(296)); // Please enter all parameters (usage: @item2 <item name/ID> <quantity>
+		clif_displaymessage(fd, msg_txt(297)); //   <identify_flag> <refine> <attribute> <card1> <card2> <card3> <card4> <bound_type>).
+		return -1;
+	} else if ( !message || !*message || (
 		sscanf(message, "\"%99[^\"]\" %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4) < 9 &&
-		sscanf(message, "%99s %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4) < 9
-	)) {
+		sscanf(message, "%99s %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4) < 9) )
+	{
 		clif_displaymessage(fd, msg_txt(984)); // Please enter all parameters (usage: @item2 <item name/ID> <quantity>
 		clif_displaymessage(fd, msg_txt(985)); //   <identify_flag> <refine> <attribute> <card1> <card2> <card3> <card4>).
 		return -1;
@@ -1190,6 +1210,11 @@ ACMD_FUNC(item2)
 
 	if (number <= 0)
 		number = 1;
+
+	if( bound < 0 || bound > 4 ) {
+		clif_displaymessage(fd, msg_txt(298)); // Invalid bound type
+		return -1;
+	}
 
 	item_id = 0;
 	if ((item_data = itemdb_searchname(item_name)) != NULL ||
@@ -1227,6 +1252,7 @@ ACMD_FUNC(item2)
 			item_tmp.card[1] = c2;
 			item_tmp.card[2] = c3;
 			item_tmp.card[3] = c4;
+			item_tmp.bound = bound;
 			if ((flag = pc_additem(sd, &item_tmp, get_count, LOG_TYPE_COMMAND)))
 				clif_additem(sd, 0, 0, flag);
 		}
@@ -3682,7 +3708,34 @@ ACMD_FUNC(reload)
 	} else if (strstr(command, "packetdb") || strncmp(message, "packetdb", 4) == 0) {
 		packetdb_readdb();
 		clif_displaymessage(fd, msg_txt(1478)); // Packet database has been reloaded.
+	} else if (strstr(command, "instancedb") || strncmp(message, "instancedb", 4) == 0) {
+		instance_readdb();
+		clif_displaymessage(fd, msg_txt(516)); // Instance database has been reloaded.
 	}
+
+	return 0;
+}
+
+/*==========================================
+ * @partysharelvl <share_range> [Akinari]
+ * Updates char server party share level range in runtime
+ * Temporary - Permanent update in inter_athena.conf
+ *------------------------------------------*/
+ACMD_FUNC(partysharelvl) {
+	unsigned int share_lvl;
+
+	nullpo_retr(-1, sd);
+
+	if(!message || !*message) {
+		clif_displaymessage(fd, msg_txt(1322)); // Please enter an amount.
+		return -1;
+	} else
+		share_lvl = min(abs(atoi(message)),MAX_LEVEL);
+
+	if(intif_party_sharelvlupdate(share_lvl)) // Successfully updated
+		clif_displaymessage(fd, msg_txt(1479)); // Party share level range has been changed successfully.
+	else // Char server offline
+		clif_displaymessage(fd, msg_txt(1480)); // Failed updating configuration. Character server offline.
 
 	return 0;
 }
@@ -3880,9 +3933,7 @@ ACMD_FUNC(mapinfo)
 	if (map[m_id].flag.guildlock)
 		strcat(atcmd_output, msg_txt(1097)); // GuildLock |
 	if (map[m_id].flag.loadevent)
-		strcat(atcmd_output, msg_txt(1098)); //Loadevent |
-	if (map[m_id].flag.src4instance)
-		strcat(atcmd_output, msg_txt(1099)); // Src4instance |
+		strcat(atcmd_output, msg_txt(1098)); // Loadevent |
 	if (map[m_id].flag.chmautojoin)
 		strcat(atcmd_output, msg_txt(1100)); // Chmautojoin |
 	if (map[m_id].flag.nousecart)
@@ -4283,7 +4334,7 @@ ACMD_FUNC(unloadnpc)
 	memset(NPCname, '\0', sizeof(NPCname));
 
 	if (!message || !*message || sscanf(message, "%24[^\n]", NPCname) < 1) {
-		clif_displaymessage(fd, msg_txt(1133)); // Please enter a NPC name (usage: @npcoff <NPC_name>).
+		clif_displaymessage(fd, msg_txt(1133)); // Please enter a NPC name (usage: @unloadnpc <NPC_name>).
 		return -1;
 	}
 
@@ -6105,13 +6156,10 @@ ACMD_FUNC(npctalk)
 	bool ifcolor=(*(command + 8) != 'c' && *(command + 8) != 'C')?0:1;
 	unsigned long color=0;
 
-	if (sd->sc.count && //no "chatting" while muted.
-		(sd->sc.data[SC_BERSERK] || sd->sc.data[SC__BLOODYLUST] ||
-		(sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOCHAT) ||
-		(sd->sc.data[SC_DEEPSLEEP] && sd->sc.data[SC_DEEPSLEEP]->val2)))
-		return -1;
+	if (sd->sc.cant.chat)
+		return -1; //no "chatting" while muted.
 
-	if(!ifcolor) {
+	if (!ifcolor) {
 		if (!message || !*message || sscanf(message, "%23[^,], %99[^\n]", name, mes) < 2) {
 			clif_displaymessage(fd, msg_txt(1222)); // Please enter the correct parameters (usage: @npctalk <npc name>, <message>).
 			return -1;
@@ -6131,7 +6179,7 @@ ACMD_FUNC(npctalk)
 	strtok(name, "#"); // discard extra name identifier if present
 	snprintf(temp, sizeof(temp), "%s : %s", name, mes);
 	
-	if(ifcolor) clif_messagecolor(&nd->bl,color,temp);
+	if (ifcolor) clif_messagecolor(&nd->bl,color,temp);
 	else clif_disp_overhead(&nd->bl, temp);
 
 	return 0;
@@ -6155,11 +6203,8 @@ ACMD_FUNC(pettalk)
 		return -1;
 	}
 
-	if (sd->sc.count && //no "chatting" while muted.
-		(sd->sc.data[SC_BERSERK] || sd->sc.data[SC__BLOODYLUST] ||
-		(sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOCHAT) ||
-		(sd->sc.data[SC_DEEPSLEEP] && sd->sc.data[SC_DEEPSLEEP]->val2)))
-		return -1;
+	if (sd->sc.cant.chat)
+		return -1; //no "chatting" while muted.
 
 	if (!message || !*message || sscanf(message, "%99[^\n]", mes) < 1) {
 		clif_displaymessage(fd, msg_txt(1224)); // Please enter a message (usage: @pettalk <message>).
@@ -6978,11 +7023,8 @@ ACMD_FUNC(homtalk)
 		sd->cantalk_tick = gettick() + battle_config.min_chat_delay;
 	}
 
-	if (sd->sc.count && //no "chatting" while muted.
-		(sd->sc.data[SC_BERSERK] || sd->sc.data[SC__BLOODYLUST] ||
-		(sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOCHAT) ||
-		(sd->sc.data[SC_DEEPSLEEP] && sd->sc.data[SC_DEEPSLEEP]->val2)))
-		return -1;
+	if (sd->sc.cant.chat)
+		return -1; //no "chatting" while muted.
 
 	if ( !merc_is_hom_active(sd->hd) ) {
 		clif_displaymessage(fd, msg_txt(1254)); // You do not have a homunculus.
@@ -7364,11 +7406,8 @@ ACMD_FUNC(me)
 	memset(tempmes, '\0', sizeof(tempmes));
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
-	if (sd->sc.count && //no "chatting" while muted.
-		(sd->sc.data[SC_BERSERK] || sd->sc.data[SC__BLOODYLUST] ||
-		(sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOCHAT) ||
-		(sd->sc.data[SC_DEEPSLEEP] && sd->sc.data[SC_DEEPSLEEP]->val2)))
-		return -1;
+	if (sd->sc.cant.chat)
+		return -1; //no "chatting" while muted.
 
 	if (!message || !*message || sscanf(message, "%199[^\n]", tempmes) < 0) {
 		clif_displaymessage(fd, msg_txt(1302)); // Please enter a message (usage: @me <message>).
@@ -7552,6 +7591,7 @@ ACMD_FUNC(mapflag) {
 	if (!message || !*message || (sscanf(message, "%99s %hd", flag_name, &flag) < 1)) {
 		clif_displaymessage(sd->fd,msg_txt(1311)); // Enabled Mapflags in this map:
 		clif_displaymessage(sd->fd,"----------------------------------");
+		checkflag(town);
 		checkflag(autotrade);			checkflag(allowks);				checkflag(nomemo);		checkflag(noteleport);
 		checkflag(noreturn);			checkflag(monster_noteleport);	checkflag(nosave);		checkflag(nobranch);
 		checkflag(noexppenalty);		checkflag(pvp);					checkflag(pvp_noparty);	checkflag(pvp_noguild);
@@ -7563,7 +7603,7 @@ ACMD_FUNC(mapflag) {
 		checkflag(nogo);				checkflag(nobaseexp);
 		checkflag(nojobexp);			checkflag(nomobloot);			checkflag(nomvploot);	checkflag(nightenabled);
 		checkflag(restricted);			checkflag(nodrop);				checkflag(novending);	checkflag(loadevent);
-		checkflag(nochat);				checkflag(partylock);			checkflag(guildlock);	checkflag(src4instance);
+		checkflag(nochat);				checkflag(partylock);			checkflag(guildlock);
 		clif_displaymessage(sd->fd," ");
 		clif_displaymessage(sd->fd,msg_txt(1312)); // Usage: "@mapflag monster_noteleport 1" (0=Off | 1=On)
 		clif_displaymessage(sd->fd,msg_txt(1313)); // Type "@mapflag available" to list the available mapflags.
@@ -7571,6 +7611,7 @@ ACMD_FUNC(mapflag) {
 	}
 	for (i = 0; flag_name[i]; i++) flag_name[i] = (char)tolower(flag_name[i]); //lowercase
 			
+	setflag(town);
 	setflag(autotrade);			setflag(allowks);			setflag(nomemo);			setflag(noteleport);
 	setflag(noreturn);			setflag(monster_noteleport);setflag(nosave);			setflag(nobranch);
 	setflag(noexppenalty);		setflag(pvp);				setflag(pvp_noparty);		setflag(pvp_noguild);
@@ -7582,7 +7623,7 @@ ACMD_FUNC(mapflag) {
 	setflag(nogo);				setflag(nobaseexp);
 	setflag(nojobexp);			setflag(nomobloot);			setflag(nomvploot);			setflag(nightenabled);
 	setflag(restricted);		setflag(nodrop);			setflag(novending);			setflag(loadevent);
-	setflag(nochat);			setflag(partylock);			setflag(guildlock);			setflag(src4instance);
+	setflag(nochat);			setflag(partylock);			setflag(guildlock);
 
 	clif_displaymessage(sd->fd,msg_txt(1314)); // Invalid flag name or flag.
 	clif_displaymessage(sd->fd,msg_txt(1312)); // Usage: "@mapflag monster_noteleport 1" (0=Off | 1=On)
@@ -7594,7 +7635,7 @@ ACMD_FUNC(mapflag) {
 	clif_displaymessage(sd->fd,"nozenypenalty, notrade, noskill, nowarp, nowarpto, noicewall, snow, clouds, clouds2,");
 	clif_displaymessage(sd->fd,"fog, fireworks, sakura, leaves, nogo, nobaseexp, nojobexp, nomobloot,");
 	clif_displaymessage(sd->fd,"nomvploot, nightenabled, restricted, nodrop, novending, loadevent, nochat, partylock,");
-	clif_displaymessage(sd->fd,"guildlock, src4instance");
+	clif_displaymessage(sd->fd,"guildlock");
 
 #undef checkflag
 #undef setflag
@@ -8886,6 +8927,8 @@ void atcommand_basecommands(void) {
 		ACMD_DEF(heal),
 		ACMD_DEF(item),
 		ACMD_DEF(item2),
+		ACMD_DEF2("itembound",item),
+		ACMD_DEF2("itembound2",item2),
 		ACMD_DEF(itemreset),
 		ACMD_DEF(clearstorage),
 		ACMD_DEF(cleargstorage),
@@ -8959,6 +9002,8 @@ void atcommand_basecommands(void) {
 		ACMD_DEF2("reloadmotd", reload),
 		ACMD_DEF2("reloadquestdb", reload),
 		ACMD_DEF2("reloadpacketdb", reload),
+		ACMD_DEF2("reloadinstancedb", reload),
+		ACMD_DEF(partysharelvl),
 		ACMD_DEF(mapinfo),
 		ACMD_DEF(dye),
 		ACMD_DEF2("hairstyle", hair_style),
@@ -9091,8 +9136,8 @@ void atcommand_basecommands(void) {
 		ACMD_DEF2("points", cash),
 		ACMD_DEF(agitstart2),
 		ACMD_DEF(agitend2),
-		ACMD_DEF2("skreset", resetskill),
-		ACMD_DEF2("streset", resetstat),
+		ACMD_DEF(resetskill),
+		ACMD_DEF(resetstat),
 		ACMD_DEF2("storagelist", itemlist),
 		ACMD_DEF2("cartlist", itemlist),
 		ACMD_DEF2("itemlist", itemlist),

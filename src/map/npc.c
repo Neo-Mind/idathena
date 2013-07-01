@@ -2617,6 +2617,9 @@ const char* npc_parse_duplicate(char* w1, char* w2, char* w3, char* w4, const ch
 		npc_timerevent_export(nd, i);
 	}
 
+	if(!strcmp(filepath,"INSTANCING")) //Instance NPCs will use this for commands
+		nd->instance_id = map[m].instance_id;
+
 	nd->u.scr.timerid = INVALID_TIMER;
 
 	return end;
@@ -2624,26 +2627,32 @@ const char* npc_parse_duplicate(char* w1, char* w2, char* w3, char* w4, const ch
 
 int npc_duplicate4instance(struct npc_data *snd, int16 m) {
 	char newname[NAME_LENGTH];
-	
+
 	if( map[m].instance_id == 0 )
 		return 1;
 
 	snprintf(newname, ARRAYLENGTH(newname), "dup_%d_%d", map[m].instance_id, snd->bl.id);
-	if( npc_name2id(newname) != NULL )
-	{ // Name already in use
+	if( npc_name2id(newname) != NULL ) { // Name already in use
 		ShowError("npc_duplicate4instance: the npcname (%s) is already in use while trying to duplicate npc %s in instance %d.\n", newname, snd->exname, map[m].instance_id);
 		return 1;
 	}
 
-	if( snd->subtype == WARP )
-	{ // Adjust destination, if instanced
+	if( snd->subtype == WARP ) { // Adjust destination, if instanced
 		struct npc_data *wnd = NULL; // New NPC
-		int dm = map_mapindex2mapid(snd->u.warp.mapindex), im;
+		struct instance_data *im = &instance_data[map[m].instance_id];
+		int dm = map_mapindex2mapid(snd->u.warp.mapindex), imap = 0, i;
 		if( dm < 0 ) return 1;
 
-		im = instance_mapid2imapid(dm, map[m].instance_id);
-		if( im == -1 )
-		{
+		for( i = 0; i < MAX_MAP_PER_INSTANCE; i++ )
+			if(im->map[i].m && map_mapname2mapid(map[im->map[i].src_m].name) == dm) {
+				imap = map_mapname2mapid(map[m].name);
+				break; // Instance map matches destination, update to instance map
+			}
+
+		if( !imap )
+			imap = map_mapname2mapid(map[dm].name);
+	
+		if( imap == -1 ) {
 			ShowError("npc_duplicate4instance: warp (%s) leading to instanced map (%s), but instance map is not attached to current instance.\n", map[dm].name, snd->exname);
 			return 1;
 		}
@@ -2659,7 +2668,7 @@ int npc_duplicate4instance(struct npc_data *snd, int16 m) {
 		safestrncpy(wnd->exname, newname, ARRAYLENGTH(wnd->exname));
 		wnd->class_ = WARP_CLASS;
 		wnd->speed = 200;
-		wnd->u.warp.mapindex = map_id2index(im);
+		wnd->u.warp.mapindex = map_id2index(imap);
 		wnd->u.warp.x = snd->u.warp.x;
 		wnd->u.warp.y = snd->u.warp.y;
 		wnd->u.warp.xs = snd->u.warp.xs;
@@ -2674,9 +2683,7 @@ int npc_duplicate4instance(struct npc_data *snd, int16 m) {
 		if( map[wnd->bl.m].users )
 			clif_spawn(&wnd->bl);
 		strdb_put(npcname_db, wnd->exname, wnd);
-	}
-	else
-	{
+	} else {
 		static char w1[50], w2[50], w3[50], w4[50];
 		const char* stat_buf = "- call from instancing subsystem -\n";
 
@@ -2695,24 +2702,36 @@ int npc_duplicate4instance(struct npc_data *snd, int16 m) {
 	return 0;
 }
 
+int npc_instanceinit(struct npc_data* nd)
+{
+	struct event_data *ev;
+	char evname[EVENT_NAME_LENGTH];
+
+	snprintf(evname, ARRAYLENGTH(evname), "%s::OnInstanceInit", nd->exname);
+
+	if( ( ev = (struct event_data*)strdb_get(ev_db, evname) ) )
+		run_script(nd->u.scr.script,ev->pos,0,nd->bl.id);
+
+	return 0;
+}
+
 //Set mapcell CELL_NPC to trigger event later
 void npc_setcells(struct npc_data* nd)
 {
 	int16 m = nd->bl.m, x = nd->bl.x, y = nd->bl.y, xs, ys;
 	int i,j;
 
-	switch(nd->subtype)
-	{
-	case WARP:
-		xs = nd->u.warp.xs;
-		ys = nd->u.warp.ys;
-		break;
-	case SCRIPT:
-		xs = nd->u.scr.xs;
-		ys = nd->u.scr.ys;
-		break;
-	default:
-		return; // Other types doesn't have touch area
+	switch(nd->subtype) {
+		case WARP:
+			xs = nd->u.warp.xs;
+			ys = nd->u.warp.ys;
+			break;
+		case SCRIPT:
+			xs = nd->u.scr.xs;
+			ys = nd->u.scr.ys;
+			break;
+		default:
+			return; // Other types doesn't have touch area
 	}
 
 	if (m < 0 || xs < 0 || ys < 0) //invalid range or map
@@ -3637,16 +3656,14 @@ int npc_reload(void) {
 	}
 	mapit_free(iter);
 
-	if(battle_config.dynamic_mobs)
-	{// dynamic check by [random]
+	if(battle_config.dynamic_mobs) { // dynamic check by [random]
 		for (m = 0; m < map_num; m++) {
 			for (i = 0; i < MAX_MOB_LIST_PER_MAP; i++) {
 				if (map[m].moblist[i] != NULL) {
 					aFree(map[m].moblist[i]);
 					map[m].moblist[i] = NULL;
 				}
-				if( map[m].mob_delete_timer != INVALID_TIMER )
-				{ // Mobs were removed anyway,so delete the timer [Inkfish]
+				if( map[m].mob_delete_timer != INVALID_TIMER ) { // Mobs were removed anyway,so delete the timer [Inkfish]
 					delete_timer(map[m].mob_delete_timer, map_removemobs_timer);
 					map[m].mob_delete_timer = INVALID_TIMER;
 				}
@@ -3680,21 +3697,18 @@ int npc_reload(void) {
 		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
 		npc_id - npc_new_min, npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
 
-	do_final_instance();
-	
-	for( i = 0; i < ARRAYLENGTH(instance); ++i )
-		instance_init(instance[i].instance_id);
-
 	//Re-read the NPC Script Events cache.
 	npc_read_event_script();
-	
+
+	do_reload_instance();
+
 	/* refresh guild castle flags on both woe setups */
 	npc_event_doall("OnAgitInit");
 	npc_event_doall("OnAgitInit2");
-	
+
 	//Execute the OnInit event for freshly loaded npcs. [Skotlex]
 	ShowStatus("Event '"CL_WHITE"OnInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n",npc_event_doall("OnInit"));
-	
+
 	// Execute rest of the startup events if connected to char-server. [Lance]
 	if(!CheckForCharServer()){
 		ShowStatus("Event '"CL_WHITE"OnInterIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnInterIfInit"));

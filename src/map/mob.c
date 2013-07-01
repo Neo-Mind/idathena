@@ -53,7 +53,7 @@
 #define MOB_MAX_DELAY (24*3600*1000)
 #define MAX_MINCHASE 30	//Max minimum chase value to use for mobs.
 #define RUDE_ATTACKED_COUNT 2	//After how many rude-attacks should the skill be used?
-#define MAX_MOB_CHAT 250 //Max Skill's messages
+#define MAX_MOB_CHAT 50 //Max Skill's messages
 
 //Dynamic mob database, allows saving of memory when there's big gaps in the mob_db [Skotlex]
 struct mob_db *mob_db_data[MAX_MOB_DB+1];
@@ -444,7 +444,7 @@ struct mob_data *mob_once_spawn_sub(struct block_list *bl, int16 m, int16 x, int
 		map_search_freecell(bl, m, &x, &y, 1, 1, 0);
 
 	// if none found, pick random position on map
-	if (x <= 0 || y <= 0 || map_getcell(m,x,y,CELL_CHKNOREACH))
+	if (x <= 0 || x >= map[m].xs || y <= 0 || y >= map[m].ys)
 		map_search_freecell(NULL, m, &x, &y, -1, -1, 1);
 	
 	data.x = x;
@@ -2001,6 +2001,9 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 			if(md->dmglog[i].id==0) {	//Store data in first empty slot.
 				md->dmglog[i].id  = char_id;
 				md->dmglog[i].flag= flag;
+
+				if(md->db->mexp)
+					pc_damage_log_add(map_charid2sd(char_id),md->bl.id);
 				break;
 			}
 			if(md->dmglog[i].dmg<mindmg && i) { //Never overwrite first hit slot (he gets double exp bonus)
@@ -2014,6 +2017,9 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 			md->dmglog[minpos].id  = char_id;
 			md->dmglog[minpos].flag= flag;
 			md->dmglog[minpos].dmg = damage;
+
+			if(md->db->mexp)
+				pc_damage_log_add(map_charid2sd(char_id),md->bl.id);
 		}
 	}
 	return;
@@ -2120,11 +2126,11 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		if(tsd->bl.m != m)
 			continue; // skip players not on this map
 		count++; //Only logged into same map chars are counted for the total.
-		if (pc_isdead(tsd))
+		if(pc_isdead(tsd))
 			continue; // skip dead players
 		if(md->dmglog[i].flag == MDLF_HOMUN && !merc_is_hom_active(tsd->hd))
 			continue; // skip homunc's share if inactive
-		if( md->dmglog[i].flag == MDLF_PET && (!tsd->status.pet_id || !tsd->pd) )
+		if(md->dmglog[i].flag == MDLF_PET && (!tsd->status.pet_id || !tsd->pd))
 			continue; // skip pet's share if inactive
 
 		if(md->dmglog[i].dmg > mvp_damage) {
@@ -2277,13 +2283,16 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				if(zeny) // zeny from mobs [Valaris]
 					pc_getzeny(tmpsd[i], zeny, LOG_TYPE_PICKDROP_MONSTER, NULL);
 			}
+
+			if( md->db->mexp )
+				pc_damage_log_clear(tmpsd[i],md->bl.id);
 		}
 
 		for(i = 0; i < pnum; i++) //Party share.
 			party_exp_share(pt[i].p, &md->bl, pt[i].base_exp,pt[i].job_exp,pt[i].zeny);
 
 	} //End EXP giving.
-	
+
 	if (!(type&1) && !map[m].flag.nomobloot && !md->state.rebirth && (
 		!md->special_state.ai || //Non special mob
 		battle_config.alchemist_summon_reward == 2 || //All summoned give drops
@@ -3981,7 +3990,7 @@ static int mob_read_randommonster(void)
 	FILE *fp;
 	char line[1024];
 	char *str[10],*p;
-	int i,j;
+	int i,j,entries;
 	const char* mobfile[] = {
 		DBPATH"mob_branch.txt",
 		DBPATH"mob_poring.txt",
@@ -3991,17 +4000,16 @@ static int mob_read_randommonster(void)
 
 	memset(&summon, 0, sizeof(summon));
 
-	for( i = 0; i < ARRAYLENGTH(mobfile) && i < MAX_RANDOMMONSTER; i++ )
-	{
-		mob_db_data[0]->summonper[i] = 1002;	// Default fallback value, in case the database does not provide one
+	for(i = 0; i < ARRAYLENGTH(mobfile) && i < MAX_RANDOMMONSTER; i++) { // MobID,DummyName,Rate
+		entries=0;
+		mob_db_data[0]->summonper[i] = MOBID_PORING; // Default fallback value, in case the database does not provide one
 		sprintf(line, "%s/%s", db_path, mobfile[i]);
 		fp=fopen(line,"r");
-		if(fp==NULL){
+		if(fp==NULL) {
 			ShowError("can't read %s\n",line);
 			return -1;
 		}
-		while(fgets(line, sizeof(line), fp))
-		{
+		while(fgets(line, sizeof(line), fp)) {
 			int class_;
 			if(line[0] == '/' && line[1] == '/')
 				continue;
@@ -4019,7 +4027,7 @@ static int mob_read_randommonster(void)
 			if(mob_db(class_) == mob_dummy)
 				continue;
 			mob_db_data[class_]->summonper[i]=atoi(str[2]);
-			if (i) {
+			if(i) {
 				if( summon[i].qty < ARRAYLENGTH(summon[i].class_) ) //MvPs
 					summon[i].class_[summon[i].qty++] = class_;
 				else {
@@ -4027,37 +4035,31 @@ static int mob_read_randommonster(void)
 					break;
 				}
 			}
+			entries++;
 		}
-		if (i && !summon[i].qty)
-		{ //At least have the default here.
+		if(i && !summon[i].qty) { //At least have the default here.
 			summon[i].class_[0] = mob_db_data[0]->summonper[i];
 			summon[i].qty = 1;
 		}
 		fclose(fp);
-		ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",mobfile[i]);
+		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", entries, mobfile[i]);
 	}
 	return 0;
 }
 
-/*==========================================
- * processes one mob_chat_db entry [SnakeDrak]
- * @param last_msg_id ensures that only one error message per mob id is printed
- *------------------------------------------*/
-static bool mob_parse_row_chatdb(char** str, const char* source, int line, int* last_msg_id)
+//processes one mob_chat_db entry [SnakeDrak]
+//db struct: Line_ID,Color_Code,Dialog
+static bool mob_parse_row_chatdb(char* fields[], int columns, int current)
 {
 	char* msg;
 	struct mob_chat *ms;
 	int msg_id;
 	size_t len;
 
-	msg_id = atoi(str[0]);
+	msg_id = atoi(fields[0]);
 
-	if (msg_id <= 0 || msg_id > MAX_MOB_CHAT)
-	{
-		if (msg_id != *last_msg_id) {
-			ShowError("mob_chat: Invalid chat ID: %d at %s, line %d\n", msg_id, source, line);
-			*last_msg_id = msg_id;
-		}
+	if (msg_id <= 0 || msg_id > MAX_MOB_CHAT){
+		ShowError("mob_parse_row_chatdb: Invalid chat ID: %d at %s, line %d\n", msg_id, columns, current);
 		return false;
 	}
 
@@ -4068,90 +4070,27 @@ static bool mob_parse_row_chatdb(char** str, const char* source, int line, int* 
 	//MSG ID
 	ms->msg_id=msg_id;
 	//Color
-	ms->color=strtoul(str[1],NULL,0);
+	ms->color=strtoul(fields[1],NULL,0);
 	//Message
-	msg = str[2];
+	msg = fields[2];
 	len = strlen(msg);
 
-	while( len && ( msg[len-1]=='\r' || msg[len-1]=='\n' ) )
-	{// find EOL to strip
+	while( len && ( msg[len-1]=='\r' || msg[len-1]=='\n' ) ) { // find EOL to strip
 		len--;
 	}
 
-	if(len>(CHAT_SIZE_MAX-1))
-	{
-		if (msg_id != *last_msg_id) {
-			ShowError("mob_chat: readdb: Message too long! Line %d, id: %d\n", line, msg_id);
-			*last_msg_id = msg_id;
-		}
+	if(len>(CHAT_SIZE_MAX-1)) {
+		ShowError("mob_chat: readdb: Message too long! Line %d, id: %d\n", current, msg_id);
 		return false;
-	}
-	else if( !len )
-	{
+	} else if( !len ) {
 		ShowWarning("mob_parse_row_chatdb: Empty message for id %d.\n", msg_id);
 		return false;
 	}
 
 	msg[len] = 0;  // strip previously found EOL
-	safestrncpy(ms->msg, str[2], CHAT_SIZE_MAX);
+	safestrncpy(ms->msg, fields[2], CHAT_SIZE_MAX);
 
 	return true;
-}
-
-/*==========================================
- * mob_chat_db.txt reading [SnakeDrak]
- *-------------------------------------------------------------------------*/
-static void mob_readchatdb(void)
-{
-	char arc[]="mob_chat_db.txt";
-	uint32 lines=0, count=0;
-	char line[1024], path[256];
-	int i, tmp=0;
-	FILE *fp;
-	sprintf(path, "%s/%s", db_path, arc);
-	fp=fopen(path, "r");
-	if(fp == NULL)
-	{
-		ShowWarning("mob_readchatdb: File not found \"%s\", skipping.\n", path);
-		return;
-	}
-	
-	while(fgets(line, sizeof(line), fp))
-	{
-		char *str[3], *p, *np;
-		int j=0;
-
-		lines++;
-		if(line[0] == '/' && line[1] == '/')
-			continue;
-		memset(str, 0, sizeof(str));
-
-		p=line;
-		while(ISSPACE(*p))
-			++p;
-		if(*p == '\0')
-			continue;// empty line
-		for(i = 0; i <= 2; i++)
-		{
-			str[i] = p;
-			if(i<2 && (np = strchr(p, ',')) != NULL) {
-				*np = '\0'; p = np + 1; j++;
-			}
-		}
-
-		if( j < 2 || str[2]==NULL)
-		{
-			ShowError("mob_readchatdb: Insufficient number of fields for skill at %s, line %d\n", arc, lines);
-			continue;
-		}
-
-		if( !mob_parse_row_chatdb(str, path, lines, &tmp) )
-			continue;
-
-		count++;
-	}
-	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n", arc);
 }
 
 /*==========================================
@@ -4560,14 +4499,11 @@ static bool mob_readdb_itemratio(char* str[], int columns, int current)
 static void mob_load(void)
 {
 	sv_readdb(db_path, "mob_item_ratio.txt", ',', 2, 2+MAX_ITEMRATIO_MOBS, -1, &mob_readdb_itemratio); // must be read before mobdb
-	mob_readchatdb();
-	if (db_use_sqldbs)
-	{
+	sv_readdb(db_path, "mob_chat_db.txt", '#', 3, 3, MAX_MOB_CHAT, &mob_parse_row_chatdb);
+	if (db_use_sqldbs) {
 		mob_read_sqldb();
 		mob_read_sqlskilldb();
-	}
-	else
-	{
+	} else {
 		mob_readdb();
 		mob_readskilldb();
 	}
@@ -4597,8 +4533,7 @@ void mob_reload(void) {
 	mob_load();
 }
 
-void mob_clear_spawninfo()
-{	//Clears spawn related information for a script reload.
+void mob_clear_spawninfo() { //Clears spawn related information for a script reload.
 	int i;
 	for (i = 0; i < MAX_MOB_DB; i++)
 		if (mob_db_data[i])

@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Current Version: =====================================
-//= $Revision: 17342 $
+//= $Revision: 17397 $
 //===== Last Updated: ========================================
-//= $LastChangedDate: 2013-06-03 09:07:41 +0700 (Mon, 03 Jun 2013) $
+//= $LastChangedDate: 2013-07-01 07:16:43 +0700 (Mon, 01 Jul 2013) $
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -760,7 +760,7 @@ Logical bitwise operators work only on numbers, and they are the following:
 	numbers have the same value in the said position. On the other hand, it 
 	sets to 1 if they have different values in the said binary position.
 	This is another way of setting and unsetting bits in bit-masks.
-	
+
 	Example:
 	- First let's set the quests that are currently in progress:
 		set inProgress,1|8|16; // quest 1,8 and 16 are in progress
@@ -882,6 +882,12 @@ RID with 'attachrid' (see below).
 
 The above also applies to, the last three labels, the only difference is that
 these labels are used exclusively for WoE SE, and are called independently.
+
+OnInstanceInit:
+
+This label will be executed when an instance is created and initialized through
+the 'instance_create' command. It will run again if @reloadscript is used while
+an instance is in progress.
 
 OnTouch:
 
@@ -2687,6 +2693,7 @@ recreate these items perfectly if they are destroyed. Here's what you get:
 @inventorylist_card4[]       if the character owns an item made by a specific 
                              craftsman.
 @inventorylist_expire[]    - expire time (Unix time stamp). 0 means never expires.
+@inventorylist_bound[]     - whether it is bound to the character
 @inventorylist_count       - the number of items in these lists.
 
 This could be handy to save/restore a character's inventory, since no other 
@@ -3194,7 +3201,7 @@ $@MobDrop_item[] is a global temporary number array which contains the
 $@MobDrop_rate[] is a global temporary number array which contains the 
                  drop percentages of each item. (1 = .01%)
 
-$@MobDrop_count  is the number of item drops found.
+$@MobDrop_count is the number of item drops found.
 
 Be sure to use $@MobDrop_count to go through the arrays, and not 
 'getarraysize', because the temporary global arrays are not cleared between 
@@ -3740,11 +3747,11 @@ close2;
 set @id,getcharid(1);
 warpparty "prontera",150,100,@id;
 close;
- 
+
 ---------------------------------------
- 
+
 *warpchar "<map name>",<x>,<y>,<char_id>;
- 
+
 Warps another player to specified map and coordinate given the char id, which you can get with
 getcharid(0,<player_name>). Obviously this is useless if you want to warp the same player that
 is executing this script, unless it's some kind of "chosen" script. 
@@ -3752,14 +3759,14 @@ is executing this script, unless it's some kind of "chosen" script.
 Example:
  
 warpchar "prontera",150,100,150001;
- 
+
 ---------------------------------------
- 
+
 *warpguild "<map name>",<x>,<y>,<guild_id>;
  
 Warps a guild to specified map and coordinate given the guild id, which you can get with 
 getcharid(2). You can also request another guild id given the member's name with getcharid(2,<player_name>).
- 
+
 You can use the following "map names" for special warping behavior:
 Random:       All guild members are randomly warped in their current map (as if they
               all used a fly wing)
@@ -3768,7 +3775,7 @@ SavePoint:    All guild members are warped to the save point of the currently
               attached player (will fail if there's no player attached).
 
 Example:
- 
+
 warpguild "prontera",x,y,Guild_ID;
 
 ---------------------------------------
@@ -4049,7 +4056,7 @@ a palette number that exists/is usable by the client you use.
     setlook 7,1;
 
 Here are the possible look types:
- 
+
  0 - Base sprite
  1 - Hairstyle
  2 - Weapon
@@ -4116,10 +4123,10 @@ currently running on.
 *getitem <item id>,<amount>{,<account ID>};
 *getitem "<item name>",<amount>{,<account ID>};
 
-This command will give a specific amount of specified items to the target 
-character. If the character is not online, nothing will happen.
-If <account ID> is not specified, items will be created in the invoking 
-character inventory instead.
+This command will give an amount of specified items to the invoking character. 
+If an optional account ID is specified, and the target character is currently 
+online, items will be created in their inventory instead. If they are not 
+online, nothing will happen.
 
 In the first and most commonly used version of this command, items are 
 referred to by their database ID number found inside 'db/(pre-)re/item_db.txt'.
@@ -4242,11 +4249,39 @@ Experiment with the number of star crumbs - I'm not certain just how much will
 work most and what it depends on. The valid element numbers are:
 
  1 - Ice, 2 - Earth 3 - Fire 4 - Wind.
-    
+
 You can, apparently, even create duplicates of the same pet egg with this 
 command, creating a pet which is the same, but simultaneously exists in two 
 eggs, and may hatch from either, although, I'm not sure what kind of a mess will 
 this really cause.
+
+---------------------------------------
+
+*getitembound <item id>,<amount>,<bound type>{,<account ID>};
+*getitembound "<item name>",<amount>,<bound type>{,<account ID>};
+
+This command behaves identically to 'getitem', but the items created will be
+bound to the target character as specified by the bound type. All items created
+in this manner cannot be dropped, sold, vended, auctioned, or mailed, and in
+some cases cannot be traded or stored.
+
+Valid bound types are:
+ 1 - Account Bound
+ 2 - Guild Bound
+ 3 - Party Bound
+ 4 - Character Bound
+
+---------------------------------------
+
+*getitembound2 <item id>,<amount>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>,<bound type>{,<account ID>};
+*getitembound2 "<item name>",<amount>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>,<bound type>{,<account ID>};
+
+This command behaves identically to 'getitem2', but the items created will be
+bound to the target character as specified by the bound type. All items created
+in this manner cannot be dropped, sold, vended, auctioned, or mailed, and in
+some cases cannot be traded or stored.
+
+For a list of bound types see 'getitembound'.
 
 ---------------------------------------
 
@@ -4386,7 +4421,25 @@ Expanded version of 'countitem' function, used for created/carded/forged items.
 This function will return the number of items for the specified item ID and
 other parameters that the invoking character has in the inventory.
 Check 'getitem2' to understand the arguments of the function.
-    
+
+---------------------------------------
+
+*countbound({<bound type>})
+
+This function will return the number of bounded items in the character's
+inventory, and sets an array @bound_items[] containing all item IDs of the
+counted items. If a bound type is specified, only those items will be counted.
+
+For a list of bound types see 'getitembound'.
+
+Example:
+	mes "You currently have "+countbound()+" bounded items.";
+	next;
+	mes "The list of bounded items include:";
+	for(set .@i,0; .@i<getarraysize(@bound_items); set .@i,.@i+1)
+		mes getitemname(@bound_items[.@i]);
+	close;
+
 ---------------------------------------
 
 *groupranditem <group id>;
@@ -4969,7 +5022,7 @@ will retain the default behavior of the command.
 
 *specialeffect2 <effect number>{,<send_target>{,"<Player Name>"}};
 
-This command behaves identically to the 'specialeffect', but the effect will be 
+This command behaves identically to 'specialeffect', but the effect will be
 centered on the invoking character's sprite.
 
 <Player name> parameter will display <effect number> on another Player than the
@@ -6374,7 +6427,7 @@ to create flashing marks.
 
     // This command will show a mark at coordinates X 30 Y 40, is mark number 1, 
     // and will be red.
-    
+
     viewpoint 1,30,40,1,0xFF0000;
 
 This will create three points:
@@ -6388,7 +6441,7 @@ And this is how you remove them:
     viewpoint 2,30,40,1,0xFF0000;
     viewpoint 2,35,45,2,0xFF0000;
     viewpoint 2,40,50,3,0xFF0000;
-    
+
 The client determines what it does with the points entirely, the server keeps no 
 memory of where the points are set whatsoever.
 
@@ -7237,33 +7290,19 @@ This will open a book item at the specified page
 ========================
 ---------------------------------------
 
-*instance_create("<instance name>",<party id>);
+*instance_create("<instance name>");
 
-Create an instance using the name "<instance name>" for the Party of <party id>.
-Most instance_* commands are used in conjunction with this command and depend
-on the ID this command returns.
+Creates an instance for the party of the attached player. The instance name,
+along with all other instance data, is read from 'db/(pre-)re/instance_db.txt'.
+Upon success, the command generates a unique instance ID, duplicates all listed
+maps and NPCs, sets the alive time, and triggers the "OnInstanceInit" label in
+all NPCs inside the instance.
 
-Example:
-	// Store the Party ID of the invoking character.
-	set .@party_id, getcharid(1);
-
-	// Attempt to create an instance using that party ID.
-	set .@id, instance_create("Endless Tower", .@party_id);
-	if (.@id == -1) { // Invalid type - not used anymore
-		...
-	}
-	else if (.@id == -2) { // Invalid Party ID
-		...
-	}
-	else if (.@id == -3) { // No free instances (MAX_INSTANCE exceeded)
-		...
-	}
-	else if (.@id == -4) { // Already exists
-		...
-	}
-	else (.@id < 0) { // Unspecified error while queuing instance.
-		...
-	}
+The command returns the instance ID upon success, and these values upon failure:
+ -1: Invalid type.
+ -2: Party not found.
+ -3: Instance already exists.
+ -4: No free instances (MAX_INSTANCE exceeded).
 
 ---------------------------------------
 
@@ -7271,83 +7310,46 @@ Example:
 
 Destroys instance with the ID <instance id>. If no ID is specified, the instance
 the script is attached to is used. If the script is not attached to an instance,
-the instance of the currently attached player's party is used. If no player is
-currently attached, the command fails and causes the script to halt.
+the instance of the currently attached player's party is used. If that fails,
+the script will come to a halt.
 
 ---------------------------------------
 
-*instance_attachmap("<map name>",<instance id>{,<use base name>});
+*instance_enter("<instance name>");
 
-Attaches the map "<map name>" to the instance specified with <instance id>. The
-optional parameter specifies, whether a map requires emulation for instancing (1)
-or not (0 = default).
+Warps player to the specified instance after the script terminates. The map and
+coordinates are located in 'db/(pre-)re/instance_db.txt'.
 
-Returns the resulting map name on success or an empty string on failure.
-
----------------------------------------
-
-*instance_detachmap "<map name>"{,<instance id>};
-
-Detach the map "<map name>" to the instance with the <instance id>. If no ID is
-specified, the instance the script is attached to is used. If the script is not
-attached to an instance, the instance of the currently attached player's party is
-used. If no player is currently attached, the command fails and causes the script
-to halt.
-
----------------------------------------
-
-*instance_init <instance id>;
-
-Initializes the instance given by <instance id>. This copies all NPCs from the
-source maps to the instanced maps.
-
----------------------------------------
-
-*instance_announce <instance id>,"<text>",<flag>{,<fontColor>{,<fontType>{,<fontSize>{,<fontAlign>{,<fontY>}}}}};
-
-Works like announce, but has the <instance id> parameter. If instance id is 0, the
-instance the script is attached to is used. If the script is not attached to an
-instance, the instance of the currently attached player's party is used. If no
-player is currently attached, the command fails and causes the script to halt.
-
----------------------------------------
-
-*instance_attach <instance id>;
-
-Attaches the current script to the instance given by <instance id>.
+The command returns 0 upon success, and these values upon failure:
+ 1: Party not found.
+ 2: Party does not have an instance.
+ 3: Other errors (invalid instance name, instance doesn't match with party).
 
 ---------------------------------------
 
 *instance_npcname("<npc name>"{,<instance id>});
 
-Retrieves the unique name given to a copy of an NPC given by "<npc name>" in an
-instance specified <instance id>. If no ID is specified, the instance the script
-is attached to is used. If the script is not attached to an instance, the
-instance of the currently attached player's party is used. If no player is
-currently attached, the command fails and causes the script to halt.
+Returns the unique name of the instanced script. If no ID is specified,
+the instance the script is attached to is used. If the script is not attached to
+an instance, the instance of the currently attached player's party is used. If
+that fails, the script will come to a halt.
 
 ---------------------------------------
 
-*has_instance("<map name>"{,<instance id>});
+*instance_mapname("<map name>"{,<instance id>});
 
-Checks whether or not the given map belongs to specified instance. If no ID is
-specified, the instance the script is attached to is used. If the script is not
-attached to an instance, the instance of the currently attached player's party
-is used. If no player is currently attached, the command fails and causes the
-script to halt.
-
-Returns the name of the instanced map on success, otherwise an empty string.
+Returns the unique name of the instanced map. If no instance ID is specified,
+the instance the script is attached to is used. If the script is not attached to
+an instance, the instance of the currently attached player's party is used. If
+that fails, the command returns an empty string instead.
 
 ---------------------------------------
 
 *instance_id({<type>});
 
-Retrieves the instance id, depending on <type>. If type is not given, it defaults
-to 0.
-
-Type:
-    0 - Instance ID the script is attached to.
-    1 - Instance ID of the currently attached player's party.
+Returns the unique instance id depending on <type>:
+ 0: Instance ID of the attached script (default).
+ 1: Instance ID of the currently attached player's party.
 
 ---------------------------------------
 
@@ -7356,24 +7358,8 @@ Type:
 Warps all players in the instance <instance id> to <map name> at given
 coordinates. If no ID is specified, the instance the script is attached to
 is used. If the script is not attached to an instance, the instance of the
-currently attached player's party is used. If no player is currently attached,
-the command fails and causes the script to halt.
-
----------------------------------------
-
-*instance_set_timeout <alive timeout>,<idle timeout>{,<instance id>};
-
-Sets the timeout values for an instance given by <instance id>. If no ID is
-specified, the instance the script is attached to is used. If the script is
-not attached to an instance, the instance of the currently attached player's
-party is used. If no player is currently attached, the command fails and causes
-the script to halt.
-
-Parameter <alive timeout> specifies the total amount of time the instance will
-exist. Parameter <idle timeout> specifies how long players have, when they are
-outside of the instance, until it is destroyed.
-
-Both timeout values are in seconds.
+currently attached player's party is used. If that fails, the script will
+come to a halt.
 
 ---------------------------------------
 
@@ -7436,13 +7422,13 @@ If no additional argument supplied, return the state of the quest:
 	0  = Quest has been given, but the state is "inactive"
 	1  = Quest has been given, and the state is "active"
 	2  = Quest completed
-	
+
 If parameter "PLAYTIME" is supplied:
 	-1 = Quest not started (not in quest log)
 	0  = the time limit has not yet been reached
 	1  = the time limit has not been reached but the quest is marked as complete
 	2  = the time limit has been reached
-	
+
 If parameter "HUNTING" is supplied:
 	-1 = Quest not started (not in quest log)
 	0  = you haven't killed all of the target monsters and the time limit has not been reached.

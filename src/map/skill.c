@@ -931,7 +931,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		case TF_POISON:
 		case AS_SPLASHER:
 			if( !sc_start2(src,bl,SC_POISON,(4*skill_lv+10),skill_lv,src->id,skill_get_time2(skill_id,skill_lv) )
-				&&	sd && skill_id == TF_POISON)
+				&& sd && skill_id == TF_POISON)
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
 
@@ -944,7 +944,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case MG_FROSTDIVER:
-			if( !sc_start(src,bl,SC_FREEZE,skill_lv*3+35,skill_lv,skill_get_time2(skill_id,skill_lv)) )
+			if( !sc_start(src,bl,SC_FREEZE,skill_lv*3+35,skill_lv,skill_get_time2(skill_id,skill_lv)) && sd )
 				clif_skill_fail(sd,skill_id,0,0);
 			break;
 
@@ -2514,8 +2514,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			if(skill_lv >= 7 && !sd->sc.data[SC_SMA])
 				sc_start(src,src,SC_SMA,100,skill_lv,skill_get_time(SL_SMA, skill_lv));
 			break;
-		case GS_FULLBUSTER: //Can't attack nor use items until skill's delay expires. [Skotlex]
-			if(sd)
+		case GS_FULLBUSTER:
+			if(sd) //Can't attack nor use items until skill's delay expires. [Skotlex]
 				sd->ud.attackabletime = sd->canuseitem_tick = sd->ud.canact_tick;
 			break;
 	}
@@ -4353,16 +4353,16 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case WL_TETRAVORTEX:
-			if( sd ) {
+			if( sd && sc ) { // No SC? No spheres
 				int spheres[5] = { 0, 0, 0, 0, 0 },
 					positions[5] = {-1,-1,-1,-1,-1 },
 					i, j = 0, k, subskill = 0;
 
 				for( i = SC_SPHERE_1; i <= SC_SPHERE_5; i++ )
-					if( sc && sc->data[i] ) {
+					if( sc->data[i] ) {
 						spheres[j] = i;
 						positions[j] = sc->data[i]->val2;
-						j++; //
+						j++;
 					}
 
 				// Sphere Sort, this time from new to old
@@ -4373,8 +4373,13 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 							swap(spheres[i],spheres[k]);
 						}
 
+				if( j == 5 ) { // If 5 spheres, remove last one and only do 4 actions (Official behavior)
+					status_change_end(src, spheres[4], INVALID_TIMER);
+					j = 4;
+				}
+
 				k = 0;
-				for( i = 0; i < 4; i++ ) {
+				for( i = 0; i < j; i++ ) { // Loop should always be 4 for regular players, but unconditional_skill could be less
 					switch( sc->data[spheres[i]]->val1 ) {
 						case WLS_FIRE:  subskill = WL_TETRAVORTEX_FIRE; k |= 1; break;
 						case WLS_WIND:  subskill = WL_TETRAVORTEX_WIND; k |= 4; break;
@@ -4386,9 +4391,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					clif_skill_nodamage(src, bl, subskill, skill_lv, 1);
 					status_change_end(src, spheres[i], INVALID_TIMER);
 				}
-				// Fix to remove last sphere if 5 are present, on official even though only 4 spheres are used, all spheres are removed
-				if( spheres[4] )
-					status_change_end(src, spheres[4], INVALID_TIMER);
 			}
 			break;
 
@@ -5123,14 +5125,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				do {
 					i = rnd() % MAX_SKILL_ABRA_DB;
 					abra_skill_id = skill_abra_db[i].skill_id;
+					abra_skill_lv = min(skill_lv, skill_get_max(abra_skill_id));
 				} while (abra_skill_id == 0 ||
-					skill_abra_db[i].req_lv > skill_lv || //Required lv for it to appear
-					rnd()%10000 >= skill_abra_db[i].per
+					rnd()%10000 >= skill_abra_db[i].per[abra_skill_lv]
 				);
-				abra_skill_lv = min(skill_lv, skill_get_max(abra_skill_id));
+
 				clif_skill_nodamage (src, bl, skill_id, skill_lv, 1);
 
-				if( sd ) { // player-casted
+				if (sd) { // player-casted
 					sd->state.abra_flag = 1;
 					sd->skillitem = abra_skill_id;
 					sd->skillitemlv = abra_skill_lv;
@@ -6174,23 +6176,30 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case BS_REPAIRWEAPON:
-			if(sd && dstsd)
+			if( sd && dstsd )
 				clif_item_repair_list(sd,dstsd,skill_lv);
 			break;
 
 		case MC_IDENTIFY:
-			if(sd)
+			if( sd ) {
 				clif_item_identify_list(sd);
+				if( sd->menuskill_id != MC_IDENTIFY ) { /* failed, dont consume anything, return */
+					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+					map_freeblock_unlock();
+					return 1;
+				}
+				status_zap(src,0,skill_db[skill_get_index(skill_id)].sp[skill_lv]); // consume sp only if succeeded
+			}
 			break;
 
 		// Weapon Refining [Celest]
 		case WS_WEAPONREFINE:
-			if(sd)
+			if( sd )
 				clif_item_refine_list(sd);
 			break;
 
 		case MC_VENDING:
-			if(sd) { //Prevent vending of GMs with unnecessary Level to trade/drop. [Skotlex]
+			if( sd ) { //Prevent vending of GMs with unnecessary Level to trade/drop. [Skotlex]
 				if ( !pc_can_give_items(sd) )
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				else {
@@ -6202,12 +6211,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case AL_TELEPORT:
 		case ALL_ODINS_RECALL:
-			if(sd) {
-				if (map[bl->m].flag.noteleport && skill_lv <= 2) {
+			if( sd ) {
+				if( map[bl->m].flag.noteleport && skill_lv <= 2 ) {
 					clif_skill_teleportmessage(sd,0);
 					break;
 				}
-				if(!battle_config.duel_allow_teleport && sd->duel_group && skill_lv <= 2) { // duel restriction [LuzZza]
+				if( !battle_config.duel_allow_teleport && sd->duel_group && skill_lv <= 2 ) { // duel restriction [LuzZza]
 					char output[128]; sprintf(output, msg_txt(365), skill_get_name(AL_TELEPORT));
 					clif_displaymessage(sd->fd, output); //"Duel: Can't use %s in duel."
 					break;
@@ -6215,7 +6224,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 				if( sd->state.autocast || ( (sd->skillitem == AL_TELEPORT || battle_config.skip_teleport_lv1_menu) && skill_lv == 1 ) || skill_lv == 3 )
 				{
-					if( skill_lv == 1 && skill_id != ALL_ODINS_RECALL )
+					if( skilllv == 1 )
 						pc_randomwarp(sd,CLR_TELEPORT);
 					else
 						pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,CLR_TELEPORT);
@@ -6223,7 +6232,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				}
 
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				if( skill_lv == 1 )
+				if( skilllv == 1 && skillid != ALL_ODINS_RECALL )
 					clif_skill_warppoint(sd,skill_id,skill_lv, (unsigned short)-1,0,0,0);
 				else
 					clif_skill_warppoint(sd,skill_id,skill_lv, (unsigned short)-1,sd->status.save_point.map,0,0);
@@ -8691,33 +8700,69 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case RETURN_TO_ELDICASTES:
 		case ALL_GUARDIAN_RECALL:
 		case ECLAGE_RECALL:
-			if( sd ) {
-				short x = 0;
-				short y = 0;
+			if (sd) {
+				short x = 0, y = 0; // Destiny position.
 				unsigned short mapindex = 0;
 
-				if( skill_id == RETURN_TO_ELDICASTES ) {
-					x = 198;
-					y = 187;
-					mapindex = mapindex_name2id(MAP_DICASTES);
-				} else if ( skill_id == ALL_GUARDIAN_RECALL ) {
-					x = 44;
-					y = 151;
-					mapindex = mapindex_name2id(MAP_MORA);
-				} else if ( skill_id == ECLAGE_RECALL ) {
-					x = 47;
-					y = 31;
-					mapindex = mapindex_name2id("ecl_in01");
+				switch (skill_id) {
+					default:
+					case RETURN_TO_ELDICASTES:
+						x = 198;
+						y = 187;
+						mapindex  = mapindex_name2id(MAP_DICASTES);
+						break;
+					case ALL_GUARDIAN_RECALL:
+						x = 44;
+						y = 151;
+						mapindex  = mapindex_name2id(MAP_MORA);
+						break;
+					case ECLAGE_RECALL:
+						x = 47;
+						y = 31;
+						mapindex  = mapindex_name2id(MAP_ECLAGE_IN);
+						break;
 				}
 
-				if(!mapindex) {
-					// If the map is not found, fail the skill to prevent warping the player to a non existing map.
+				if (!mapindex) { //Given map not found?
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					map_freeblock_unlock();
 					return 0;
 				}
 				pc_setpos(sd, mapindex, x, y, CLR_TELEPORT);
 			}
+			break;
+
+		case ECL_SNOWFLIP:
+		case ECL_PEONYMAMY:
+		case ECL_SADAGUI:
+		case ECL_SEQUOIADUST:
+			switch (skill_id) {
+				case ECL_SNOWFLIP:
+					status_change_end(bl, SC_SLEEP, INVALID_TIMER);
+					status_change_end(bl, SC_BLEEDING, INVALID_TIMER);
+					status_change_end(bl, SC_BURNING, INVALID_TIMER);
+					status_change_end(bl, SC_DEEPSLEEP, INVALID_TIMER);
+					break;
+				case ECL_PEONYMAMY:
+					status_change_end(bl, SC_FREEZE, INVALID_TIMER);
+					status_change_end(bl, SC_FREEZING, INVALID_TIMER);
+					status_change_end(bl, SC_CRYSTALIZE, INVALID_TIMER);
+					break;
+				case ECL_SADAGUI:
+					status_change_end(bl, SC_STUN, INVALID_TIMER);
+					status_change_end(bl, SC_CONFUSION, INVALID_TIMER);
+					status_change_end(bl, SC_HALLUCINATION, INVALID_TIMER);
+					status_change_end(bl, SC_FEAR, INVALID_TIMER);
+					break;
+				case ECL_SEQUOIADUST:
+					status_change_end(bl, SC_STONE, INVALID_TIMER);
+					status_change_end(bl, SC_POISON, INVALID_TIMER);
+					status_change_end(bl, SC_CURSE, INVALID_TIMER);
+					status_change_end(bl, SC_BLIND, INVALID_TIMER);
+					status_change_end(bl, SC_ORCISH, INVALID_TIMER);
+					break;
+			}
+			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			break;
 
 		case GM_SANDMAN:
@@ -11711,7 +11756,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				break;
 			}
 
- 		case UNT_TATAMIGAESHI:
+		case UNT_TATAMIGAESHI:
 		case UNT_DEMONSTRATION:
 			skill_attack(BF_WEAPON,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 			break;
@@ -12596,14 +12641,14 @@ static int skill_check_condition_mob_master_sub (struct block_list *bl, va_list 
  * Determines if a given skill should be made to consume ammo
  * when used by the player. [Skotlex]
  *------------------------------------------*/
-int skill_isammotype (struct map_session_data *sd, uint16 skill_id) {
+int skill_isammotype (struct map_session_data *sd, int skill) {
 	return (
 		battle_config.arrow_decrement==2 &&
 		(sd->status.weapon == W_BOW || (sd->status.weapon >= W_REVOLVER && sd->status.weapon <= W_GRENADE)) &&
-		skill_id != HT_PHANTASMIC &&
-		skill_get_type(skill_id) == BF_WEAPON &&
-	  	!(skill_get_nk(skill_id)&NK_NO_DAMAGE) &&
-		!skill_get_spiritball(skill_id,1) //Assume spirit spheres are used as ammo instead.
+		skill != HT_PHANTASMIC &&
+		skill_get_type(skill) == BF_WEAPON &&
+		!(skill_get_nk(skill)&NK_NO_DAMAGE) &&
+		!skill_get_spiritball(skill,1) //Assume spirit spheres are used as ammo instead.
 	);
 }
 
@@ -13569,8 +13614,16 @@ int skill_consume_requirement( struct map_session_data *sd, uint16 skill_id, uin
 	req = skill_get_requirement(sd,skill_id,skill_lv);
 
 	if( type&1 ) {
-		if( skill_id == CG_TAROTCARD || sd->state.autocast )
-			req.sp = 0; // TarotCard will consume sp in skill_cast_nodamage_id [Inkfish]
+		switch( skill_id ) {
+			case CG_TAROTCARD: // TarotCard will consume sp in skill_cast_nodamage_id [Inkfish]
+			case MC_IDENTIFY:
+				req.sp = 0;
+				break;
+			default:
+				if(sd->state.autocast)
+					req.sp = 0;
+			break;
+		}
 		if(req.hp || req.sp)
 			status_zap(&sd->bl, req.hp, req.sp);
 
@@ -17994,7 +18047,7 @@ static bool skill_parse_row_reproducedb(char* split[], int column, int current) 
 
 
 static bool skill_parse_row_abradb(char* split[], int columns, int current)
-{ // skill_id,DummyName,RequiredHocusPocusLevel,Rate
+{ // skill_id,DummyName,RatePerLvl
 	uint16 skill_id = atoi(split[0]);
 	if( !skill_get_index(skill_id) || !skill_get_max(skill_id) ) {
 		ShowError("abra_db: Invalid skill ID %d\n", skill_id);
@@ -18006,8 +18059,8 @@ static bool skill_parse_row_abradb(char* split[], int columns, int current)
 	}
 
 	skill_abra_db[current].skill_id = skill_id;
-	skill_abra_db[current].req_lv = atoi(split[2]);
-	skill_abra_db[current].per = atoi(split[3]);
+	safestrncpy(skill_abra_db[current].name, trim(split[1]), sizeof(skill_abra_db[current].name)); //store dummyname
+	skill_split_atoi(split[2],skill_abra_db[current].per);
 
 	return true;
 }
@@ -18088,7 +18141,7 @@ static void skill_readdb(void)
 	skill_init_unit_layout();
 	sv_readdb(db_path, "produce_db.txt"        , ',',   4,  4+2*MAX_PRODUCE_RESOURCE, MAX_SKILL_PRODUCE_DB, skill_parse_row_producedb);
 	sv_readdb(db_path, "create_arrow_db.txt"   , ',', 1+2,  1+2*MAX_ARROW_RESOURCE, MAX_SKILL_ARROW_DB, skill_parse_row_createarrowdb);
-	sv_readdb(db_path, "abra_db.txt"           , ',',   4,  4, MAX_SKILL_ABRA_DB, skill_parse_row_abradb);
+	sv_readdb(db_path, "abra_db.txt"           , ',',   3,  3, MAX_SKILL_ABRA_DB, skill_parse_row_abradb);
 	//Warlock
 	sv_readdb(db_path, "spellbook_db.txt"      , ',',   3,  3, MAX_SKILL_SPELLBOOK_DB, skill_parse_row_spellbookdb);
 	//Guillotine Cross

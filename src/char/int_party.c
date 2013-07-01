@@ -740,6 +740,22 @@ int mapif_parse_PartyLeaderChange(int fd,int party_id,int account_id,int char_id
 	return 1;
 }
 
+//Used to update party share level range in run time
+int mapif_parse_PartyShareLevel(int fd,unsigned int share_lvl)
+{
+	struct party_data *p;
+	DBIterator* iter = db_iterator(party_db_);
+
+	party_share_level = share_lvl;
+
+	for(p = dbi_first(iter); dbi_exists(iter); p = dbi_next(iter)) { //Update online parties
+		if(p->party.count > 1)
+			int_party_calc_state(p);
+	}
+	dbi_destroy(iter);
+
+	return 1;
+}
 
 // Communication from the map server
 //-Analysis that only one packet
@@ -752,17 +768,18 @@ int inter_party_parse_frommap(int fd)
 {
 	RFIFOHEAD(fd);
 	switch(RFIFOW(fd,0)) {
-	case 0x3020: mapif_parse_CreateParty(fd, (char*)RFIFOP(fd,4), RFIFOB(fd,28), RFIFOB(fd,29), (struct party_member*)RFIFOP(fd,30)); break;
-	case 0x3021: mapif_parse_PartyInfo(fd, RFIFOL(fd,2), RFIFOL(fd,6)); break;
-	case 0x3022: mapif_parse_PartyAddMember(fd, RFIFOL(fd,4), (struct party_member*)RFIFOP(fd,8)); break;
-	case 0x3023: mapif_parse_PartyChangeOption(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOW(fd,10), RFIFOW(fd,12)); break;
-	case 0x3024: mapif_parse_PartyLeave(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10)); break;
-	case 0x3025: mapif_parse_PartyChangeMap(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10), RFIFOW(fd,14), RFIFOB(fd,16), RFIFOW(fd,17)); break;
-	case 0x3026: mapif_parse_BreakParty(fd, RFIFOL(fd,2)); break;
-	case 0x3027: mapif_parse_PartyMessage(fd, RFIFOL(fd,4), RFIFOL(fd,8), (char*)RFIFOP(fd,12), RFIFOW(fd,2)-12); break;
-	case 0x3029: mapif_parse_PartyLeaderChange(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10)); break;
-	default:
-		return 0;
+		case 0x3020: mapif_parse_CreateParty(fd, (char*)RFIFOP(fd,4), RFIFOB(fd,28), RFIFOB(fd,29), (struct party_member*)RFIFOP(fd,30)); break;
+		case 0x3021: mapif_parse_PartyInfo(fd, RFIFOL(fd,2), RFIFOL(fd,6)); break;
+		case 0x3022: mapif_parse_PartyAddMember(fd, RFIFOL(fd,4), (struct party_member*)RFIFOP(fd,8)); break;
+		case 0x3023: mapif_parse_PartyChangeOption(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOW(fd,10), RFIFOW(fd,12)); break;
+		case 0x3024: mapif_parse_PartyLeave(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10)); break;
+		case 0x3025: mapif_parse_PartyChangeMap(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10), RFIFOW(fd,14), RFIFOB(fd,16), RFIFOW(fd,17)); break;
+		case 0x3026: mapif_parse_BreakParty(fd, RFIFOL(fd,2)); break;
+		case 0x3027: mapif_parse_PartyMessage(fd, RFIFOL(fd,4), RFIFOL(fd,8), (char*)RFIFOP(fd,12), RFIFOW(fd,2)-12); break;
+		case 0x3029: mapif_parse_PartyLeaderChange(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10)); break;
+		case 0x302A: mapif_parse_PartyShareLevel(fd, RFIFOL(fd,2)); break;
+		default:
+			return 0;
 	}
 	return 1;
 }

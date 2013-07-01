@@ -81,7 +81,7 @@ static TBL_PC* guild_sd_check(int guild_id, int account_id, int char_id)
 		return NULL;
 
 	if (sd->status.guild_id != guild_id) { //If player belongs to a different guild, kick him out.
- 		intif_guild_leave(guild_id,account_id,char_id,0,"** Guild Mismatch **");
+		intif_guild_leave(guild_id,account_id,char_id,0,"** Guild Mismatch **");
 		return NULL;
 	}
 
@@ -842,6 +842,11 @@ int guild_member_withdraw(int guild_id, int account_id, int char_id, int flag, c
 	if( online_member_sd == NULL )
 		return 0; // noone online to inform
 
+#ifdef BOUND_ITEMS
+	//Guild bound item check
+	guild_retrieveitembound(char_id,account_id,guild_id);
+#endif
+
 	if( !flag )
 		clif_guild_leave(online_member_sd, name, mes);
 	else
@@ -867,6 +872,40 @@ int guild_member_withdraw(int guild_id, int account_id, int char_id, int flag, c
 	}
 	return 0;
 }
+
+#ifdef BOUND_ITEMS
+void guild_retrieveitembound(int char_id,int aid,int guild_id)
+{
+	TBL_PC *sd = map_id2sd(aid);
+	if(sd){ //Character is online
+		int idxlist[MAX_INVENTORY];
+		int j,i;
+		j = pc_bound_chk(sd,2,idxlist);
+		if(j) {
+			struct guild_storage* stor = guild2storage(sd->status.guild_id);
+			for(i=0;i<j;i++) { //Loop the matching items, guild_storage_additem takes care of opening storage
+				if(stor)
+					guild_storage_additem(sd,stor,&sd->status.inventory[idxlist[i]],sd->status.inventory[idxlist[i]].amount);
+				pc_delitem(sd,idxlist[i],sd->status.inventory[idxlist[i]].amount,0,4,LOG_TYPE_GSTORAGE);
+			}
+			storage_guild_storageclose(sd); //Close and save the storage
+		}
+	} else { //Character is offline, ask char server to do the job
+		struct guild_storage* stor = guild2storage2(guild_id);
+		if(stor && stor->storage_status == 1) { //Someone is in guild storage, close them
+			struct s_mapiterator* iter = mapit_getallusers();
+			for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) ) {
+				if(sd->status.guild_id == guild_id && sd->state.storage_flag == 2) {
+					storage_guild_storageclose(sd);
+					break;
+				}
+			}
+			mapit_free(iter);
+		}
+		intif_itembound_req(char_id,aid,guild_id);
+	}
+}
+#endif
 
 int guild_send_memberinfoshort(struct map_session_data *sd,int online)
 { // cleaned up [LuzZza]
@@ -1774,6 +1813,10 @@ int guild_break(struct map_session_data *sd,char *name)
 {
 	struct guild *g;
 	int i;
+#ifdef BOUND_ITEMS
+	int j;
+	int idxlist[MAX_INVENTORY];
+#endif
 
 	nullpo_ret(sd);
 
@@ -1793,6 +1836,13 @@ int guild_break(struct map_session_data *sd,char *name)
 		clif_guild_broken(sd,2);
 		return 0;
 	}
+
+#ifdef BOUND_ITEMS
+	//Guild bound item check - Removes the bound flag
+	j = pc_bound_chk(sd,2,idxlist);
+	for(i=0;i<j;i++)
+		sd->status.inventory[idxlist[i]].bound = 0;
+#endif
 
 	intif_guild_break(g->guild_id);
 	return 1;

@@ -23,6 +23,13 @@
 #define MAX_PC_BONUS 10
 #define MAX_PC_SKILL_REQUIRE 5
 #define MAX_PC_FEELHATE 3
+#define DAMAGELOG_SIZE_PC 100 // Any idea for this value?
+
+//Update this max as necessary. 55 is the value needed for Super Baby currently
+//Raised to 84 since Expanded Super Novice needs it.
+#define MAX_SKILL_TREE 84
+//Total number of classes (for data storage)
+#define CLASS_COUNT (JOB_MAX - JOB_NOVICE_HIGH + JOB_MAX_BASIC)
 
 //Equip indexes constants. (eg: sd->equip_index[EQI_AMMO] returns the index
 //where the arrows are equipped)
@@ -518,13 +525,10 @@ struct map_session_data {
 	const char* delunit_prevfile;
 	int delunit_prevline;
 
+	struct {
+		int id;
+	} dmglog[DAMAGELOG_SIZE_PC];
 };
-
-//Update this max as necessary. 55 is the value needed for Super Baby currently
-//Raised to 84 since Expanded Super Novice needs it.
-#define MAX_SKILL_TREE 84
-//Total number of classes (for data storage)
-#define CLASS_COUNT (JOB_MAX - JOB_NOVICE_HIGH + JOB_MAX_BASIC)
 
 enum weapon_type {
 	W_FIST,	//Bare hands
@@ -598,6 +602,22 @@ enum equip_pos {
 	//EQP_SHADOW_ACC_R   = 0x100000,
 	//EQP_SHADOW_ACC_L   = 0x200000,
 };
+
+struct {
+	int hp_table[MAX_LEVEL];
+	int sp_table[MAX_LEVEL];
+	int hp_factor, hp_multiplicator;
+	int sp_factor;
+	int max_weight_base;
+	char job_bonus[MAX_LEVEL];
+#ifdef RENEWAL_ASPD
+	int aspd_base[MAX_WEAPON_TYPE+1];
+#else
+	int aspd_base[MAX_WEAPON_TYPE];	//[blackhole89]
+#endif
+	uint32 exp_table[2][MAX_LEVEL];
+	uint32 max_level[2];
+} job_info[CLASS_COUNT];
 
 #define EQP_WEAPON EQP_HAND_R
 #define EQP_SHIELD EQP_HAND_L
@@ -703,11 +723,13 @@ enum equip_pos {
 		)
 #endif
 
+int pc_split_atoi(char* str, int* val, char sep, int max);
 int pc_class2idx(int class_);
 int pc_get_group_level(struct map_session_data *sd);
 int pc_get_group_id(struct map_session_data *sd);
 int pc_getrefinebonus(int lv,int type);
 bool pc_can_give_items(struct map_session_data *sd);
+bool pc_can_give_bounded_items(struct map_session_data *sd);
 
 bool pc_can_use_command(struct map_session_data *sd, const char *command, AtCommandType type);
 #define pc_has_permission(sd, permission) ( ((sd)->permissions&permission) != 0 )
@@ -750,6 +772,9 @@ int pc_payzeny(struct map_session_data*,int,enum e_log_pick_type type,struct map
 int pc_additem(struct map_session_data*,struct item*,int,e_log_pick_type);
 int pc_getzeny(struct map_session_data*,int,enum e_log_pick_type,struct map_session_data*);
 int pc_delitem(struct map_session_data*,int,int,int,short,e_log_pick_type);
+
+//Bound items
+int pc_bound_chk(TBL_PC *sd,int type,int *idxlist);
 
 // Special Shop System
 int pc_paycash(struct map_session_data *sd,int price,int points,e_log_pick_type type);
@@ -967,6 +992,9 @@ int pc_add_talisman(struct map_session_data *sd,int interval,int max,int type);
 int pc_del_talisman(struct map_session_data *sd,int count,int type);
 
 void pc_baselevelchanged(struct map_session_data *sd);
+
+void pc_damage_log_add(struct map_session_data *sd, int id);
+void pc_damage_log_clear(struct map_session_data *sd, int id);
 
 #if defined(RENEWAL_DROP) || defined(RENEWAL_EXP)
 	int pc_level_penalty_mod(struct map_session_data *sd, int mob_level, uint32 mob_race, uint32 mob_mode, int type);

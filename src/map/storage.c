@@ -120,7 +120,8 @@ int compare_item(struct item *a, struct item *b)
 		a->identify == b->identify &&
 		a->refine == b->refine &&
 		a->attribute == b->attribute &&
-		a->expire_time == b->expire_time )
+		a->expire_time == b->expire_time &&
+		a->bound == b->bound )
 	{
 		int i;
 		for (i = 0; i < MAX_SLOTS && (a->card[i] == b->card[i]); i++);
@@ -143,23 +144,23 @@ static int storage_additem(struct map_session_data* sd, struct item* item_data, 
 	
 	data = itemdb_search(item_data->nameid);
 
-	if( data->stack.storage && amount > data->stack.amount )
-	{// item stack limitation
+	if( data->stack.storage && amount > data->stack.amount ) { //Item stack limitation
 		return 1;
 	}
 
-	if( !itemdb_canstore(item_data, pc_get_group_level(sd)) )
-	{	//Check if item is storable. [Skotlex]
+	if( !itemdb_canstore(item_data, pc_get_group_level(sd)) ) { //Check if item is storable. [Skotlex]
 		clif_displaymessage (sd->fd, msg_txt(264));
 		return 1;
 	}
+
+	if( (item_data->bound > 1) && !pc_can_give_bounded_items(sd) ) {
+		clif_displaymessage(sd->fd, msg_txt(294));
+		return 1;
+	}
 	
-	if( itemdb_isstackable2(data) )
-	{//Stackable
-		for( i = 0; i < MAX_STORAGE; i++ )
-		{
-			if( compare_item(&stor->items[i], item_data) )
-			{// existing items found, stack them
+	if( itemdb_isstackable2(data) ) { //Stackable
+		for( i = 0; i < MAX_STORAGE; i++ ) {
+			if( compare_item(&stor->items[i], item_data) ) { //Existing items found, stack them
 				if( amount > MAX_AMOUNT - stor->items[i].amount || ( data->stack.storage && amount > data->stack.amount - stor->items[i].amount ) )
 					return 1;
 				stor->items[i].amount += amount;
@@ -437,19 +438,22 @@ int guild_storage_additem(struct map_session_data* sd, struct guild_storage* sto
 
 	data = itemdb_search(item_data->nameid);
 
-	if( data->stack.guildstorage && amount > data->stack.amount )
-	{// item stack limitation
+	if( data->stack.guildstorage && amount > data->stack.amount ) { //Item stack limitation
 		return 1;
 	}
 
-	if( !itemdb_canguildstore(item_data, pc_get_group_level(sd)) || item_data->expire_time )
-	{	//Check if item is storable. [Skotlex]
+	if( !itemdb_canguildstore(item_data, pc_get_group_level(sd)) || item_data->expire_time ) { //Check if item is storable. [Skotlex]
 		clif_displaymessage (sd->fd, msg_txt(264));
 		return 1;
 	}
 
+	if( (item_data->bound == 1 || item_data->bound > 2) && !pc_can_give_bounded_items(sd) ) {
+		clif_displaymessage(sd->fd, msg_txt(294));
+		return 1;
+	}
+
 	if(itemdb_isstackable2(data)){ //Stackable
-		for(i=0;i<MAX_GUILD_STORAGE;i++){
+		for(i=0;i<MAX_GUILD_STORAGE;i++) {
 			if(compare_item(&stor->items[i], item_data)) {
 				if( amount > MAX_AMOUNT - stor->items[i].amount || ( data->stack.guildstorage && amount > data->stack.amount - stor->items[i].amount ) )
 					return 1;

@@ -378,8 +378,9 @@ int unit_walktoxy( struct block_list *bl, short x, short y, int flag)
 	path_search(&wpd, bl->m, bl->x, bl->y, x, y, flag&1, CELL_CHKNOPASS); // Count walk path cells
 #ifdef OFFICIAL_WALKPATH
 	if( !path_search_long(NULL, bl->m, bl->x, bl->y, x, y, CELL_CHKNOPASS) // Check if there is an obstacle between
-		&& wpd.path_len > 14 ) // Official number of walkable cells is 14 if and only if there is an obstacle between. [malufett]
-		 return 0;
+		&& wpd.path_len > 14 // Official number of walkable cells is 14 if and only if there is an obstacle between. [malufett]
+		&& (bl->type != BL_NPC) ) // If type is a NPC, please disregard.
+			return 0;
 #endif
 	if( (battle_config.max_walk_path < wpd.path_len) && (bl->type != BL_NPC) )
 		return 0;
@@ -1406,6 +1407,9 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	} else
 		skill_castend_id(ud->skilltimer,tick,src->id,0);
 
+	if( sd )
+		sd->canlog_tick = gettick();
+
 	return 1;
 }
 
@@ -1538,6 +1542,10 @@ int unit_skilluse_pos2( struct block_list *src, short skill_x, short skill_y, ui
 		ud->skilltimer = INVALID_TIMER;
 		skill_castend_pos(ud->skilltimer,tick,src->id,0);
 	}
+
+	if( sd )
+		sd->canlog_tick = gettick();
+
 	return 1;
 }
 
@@ -1899,8 +1907,11 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 			unit_set_walkdelay(src, tick, sstatus->amotion, 1);
 	}
 
-	if(ud->state.attack_continue)
+	if( ud->state.attack_continue )
 		ud->attacktimer = add_timer(ud->attackabletime,unit_attack_timer,src->id,0);
+
+	if( sd )
+		sd->canlog_tick = gettick();
 
 	return 1;
 }
@@ -2161,8 +2172,8 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 			guild_send_dot_remove(sd);
 			bg_send_dot_remove(sd);
 
-			if( map[bl->m].users <= 0 || sd->state.debug_remove_map )
-			{ // This is only place where map users is decreased, if the mobs were removed too soon then this function was executed too many times [FlavioJS]
+			if( map[bl->m].users <= 0 || sd->state.debug_remove_map ) {
+				// This is only place where map users is decreased, if the mobs were removed too soon then this function was executed too many times [FlavioJS]
 				if( sd->debug_file == NULL || !(sd->state.debug_remove_map) ) {
 					sd->debug_file = "";
 					sd->debug_line = 0;
@@ -2179,13 +2190,10 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 					sd->debug_file, sd->debug_line, sd->debug_func, file, line, func);
 			} else if (--map[bl->m].users == 0 && battle_config.dynamic_mobs)	//[Skotlex]
 				map_removemobs(bl->m);
-			if( !(sd->sc.option&OPTION_INVISIBLE) ) {// decrement the number of active pvp players on the map
+			if( !(sd->sc.option&OPTION_INVISIBLE) ) { // decrement the number of active pvp players on the map
 				--map[bl->m].users_pvp;
 			}
-			if( map[bl->m].instance_id ) {
-				instance[map[bl->m].instance_id].users--;
-				instance_check_idle(map[bl->m].instance_id);
-			}
+
 			sd->state.debug_remove_map = 1; // temporary state to track double remove_map's [FlavioJS]
 			sd->debug_file = file;
 			sd->debug_line = line;

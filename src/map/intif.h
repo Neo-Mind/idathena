@@ -41,6 +41,7 @@ int intif_party_changemap(struct map_session_data *sd, int online);
 int intif_break_party(int party_id);
 int intif_party_message(int party_id, int account_id, const char *mes,int len);
 int intif_party_leaderchange(int party_id,int account_id,int char_id);
+int intif_party_sharelvlupdate(unsigned int share_lvl);
 
 
 int intif_guild_create(const char *name, const struct guild_member *master);
@@ -60,6 +61,9 @@ int intif_guild_notice(int guild_id, const char *mes1, const char *mes2);
 int intif_guild_emblem(int guild_id, int len, const char *data);
 int intif_guild_castle_dataload(int num, int *castle_ids);
 int intif_guild_castle_datasave(int castle_id, int index, int value);
+#ifdef BOUND_ITEMS
+void intif_itembound_req(int char_id, int aid, int guild_id);
+#endif
 
 int intif_create_pet(int account_id, int char_id, short pet_type, short pet_lv, short pet_egg_id,
                      short pet_equip, short intimate, short hungry, char rename_flag, char incuvate, char *pet_name);

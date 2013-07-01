@@ -51,6 +51,7 @@ void map_do_final_msg(void);
 
 // Added definitions for WoESE objects. [L0ne_W0lf]
 enum MOBID {
+	MOBID_PORING = 1002,
 	MOBID_EMPERIUM = 1288,
 	MOBID_TREAS01 = 1324,
 	MOBID_TREAS40 = 1363,
@@ -575,7 +576,6 @@ struct map_data {
 		unsigned nochat : 1;
 		unsigned partylock : 1;
 		unsigned guildlock : 1;
-		unsigned src4instance : 1; // To flag this map when it's used as a src map for instances
 		unsigned reset : 1; // [Daegaladh]
 		unsigned chmautojoin : 1; // Prevent to auto join map channel
 		unsigned nousecart : 1;	// Prevent open up cart @FIXME client side only atm
@@ -692,6 +692,10 @@ int map_clearflooritem_timer(int tid, unsigned int tick, int id, intptr_t data);
 int map_removemobs_timer(int tid, unsigned int tick, int id, intptr_t data);
 void map_clearflooritem(struct block_list* bl);
 int map_addflooritem(struct item *item_data,int amount,int16 m,int16 x,int16 y,int first_charid,int second_charid,int third_charid,int flags);
+
+// instances
+int map_addinstancemap(const char*,int);
+int map_delinstancemap(int);
 
 // player to map session
 void map_addnickdb(int charid, const char* nick);

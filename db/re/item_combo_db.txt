@@ -155,6 +155,12 @@
 2777:2778:5479,{ bonus bMaxHP,300; bonus bMatkRate,5; bonus2 bSubEle,Ele_Neutral,5; }
 2779:2780:5482,{ bonus bMatkRate,10; bonus bInt,5; bonus2 bSubRace,RC_Angel,10; }
 2779:2780:5577,{ bonus bMatkRate,10; bonus bInt,5; bonus2 bSubRace,RC_Angel,10; }
+2966:2968,{ bonus bAtkRate,4; bonus bMatkRate,4; }
+2966:2969,{ bonus bAtkRate,4; bonus bMatkRate,4; }
+2966:13092,{ bonus bBaseAtk,10*getequiprefinerycnt( (getequipid(EQI_HAND_R) == 13092) ? EQI_HAND_R : EQI_HAND_L ); }
+2967:2968,{ bonus bAtkRate,4; bonus bMatkRate,4; }
+2967:2969,{ bonus bAtkRate,4; bonus bMatkRate,4; }
+2968:13092,{ bonus bMatk,10*getequiprefinerycnt( (getequipid(EQI_HAND_R) == 13092) ? EQI_HAND_R : EQI_HAND_L ); }
 4001:4197,{ bonus bFlee,18; }
 4006:4266,{ bonus bFlee,18; }
 4009:4179,{ bonus bFlee,18; }

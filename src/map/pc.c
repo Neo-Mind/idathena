@@ -47,10 +47,10 @@
 #include <string.h>
 #include <time.h>
 
+int pc_split_atoui(char* str, unsigned int* val, char sep, int max);
 
 #define PVP_CALCRANK_INTERVAL 1000 // PVP calculation interval
-static unsigned int exp_table[CLASS_COUNT][2][MAX_LEVEL];
-static unsigned int max_level[CLASS_COUNT][2];
+
 static unsigned int statp[MAX_LEVEL+1];
 #if defined(RENEWAL_DROP) || defined(RENEWAL_EXP)
 	static unsigned int level_penalty[3][RC_MAX][MAX_LEVEL*2+1];
@@ -503,6 +503,14 @@ bool pc_can_give_items(struct map_session_data *sd)
 	return pc_has_permission(sd, PC_PERM_TRADE);
 }
 
+/**
+ * Determines if player can give / drop / trade / vend bounded items
+ */
+bool pc_can_give_bounded_items(struct map_session_data *sd)
+{
+	return pc_has_permission(sd, PC_PERM_TRADE_BOUNDED);
+}
+
 /*==========================================
  * prepares character for saving.
  *------------------------------------------*/
@@ -908,6 +916,10 @@ int pc_isequip(struct map_session_data *sd,int n)
 bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_time, int group_id, struct mmo_charstatus *st, bool changing_mapservers)
 {
 	int i;
+#ifdef BOUND_ITEMS
+	int j;
+	int idxlist[MAX_INVENTORY];
+#endif
 	unsigned long tick = gettick();
 	uint32 ip = session[sd->fd]->client_addr;
 
@@ -1080,6 +1092,14 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	 * Check if player have any item cooldowns on
 	 **/
 	pc_itemcd_do(sd,true);
+
+#ifdef BOUND_ITEMS
+	// Party bound item check
+	if(sd->status.party_id == 0 && (j = pc_bound_chk(sd,3,idxlist))) { // Party was deleted while character offline
+		for(i=0;i<j;i++)
+			pc_delitem(sd,idxlist[i],sd->status.inventory[idxlist[i]].amount,0,1,LOG_TYPE_OTHER);
+	}
+#endif
 
 	// Request all registries (auth is considered completed whence they arrive)
 	intif_request_registry(sd,7);
@@ -1526,7 +1546,7 @@ int pc_calc_skilltree_normalize_job(struct map_session_data *sd)
 	
 	skill_point = pc_calc_skillpoint(sd);
 
-	novice_skills = max_level[pc_class2idx(JOB_NOVICE)][1] - 1;
+	novice_skills = job_info[pc_class2idx(JOB_NOVICE)].max_level[1] - 1;
 
 	// limit 1st class and above to novice job levels
 	if(skill_point < novice_skills) {
@@ -1539,7 +1559,7 @@ int pc_calc_skilltree_normalize_job(struct map_session_data *sd)
 			if (sd->class_&JOBL_THIRD) {
 				// if neither 2nd nor 3rd jobchange levels are known, we have to assume a default for 2nd
 				if (!sd->change_level_3rd)
-					sd->change_level_2nd = max_level[pc_class2idx(pc_mapid2jobid(sd->class_&MAPID_UPPERMASK, sd->status.sex))][1];
+					sd->change_level_2nd = job_info[pc_class2idx(pc_mapid2jobid(sd->class_&MAPID_UPPERMASK, sd->status.sex))].max_level[1];
 				else
 					sd->change_level_2nd = 1 + skill_point + sd->status.skill_point
 						- (sd->status.job_level - 1)
@@ -3787,7 +3807,7 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount,e_l
 
 	if( itemdb_isstackable2(data) && item_data->expire_time == 0 ) { // Stackable | Non Rental
 		for( i = 0; i < MAX_INVENTORY; i++ ) {
-			if( sd->status.inventory[i].nameid == item_data->nameid && memcmp(&sd->status.inventory[i].card, &item_data->card, sizeof(item_data->card)) == 0 )
+			if( sd->status.inventory[i].nameid == item_data->nameid && sd->status.inventory[i].bound == item_data->bound && memcmp(&sd->status.inventory[i].card, &item_data->card, sizeof(item_data->card)) == 0 )
 			{
 				if( amount > MAX_AMOUNT - sd->status.inventory[i].amount || ( data->stack.inventory && amount > data->stack.amount - sd->status.inventory[i].amount ) )
 					return 5;
@@ -3933,7 +3953,10 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 	nullpo_ret(fitem);
 
 	if(!check_distance_bl(&fitem->bl, &sd->bl, 2) && sd->ud.skill_id!=BS_GREED)
-		return 0;	// Distance is too far
+		return 0; // Distance is too far
+
+	if(sd->sc.cant.pickup)
+		return 0;
 
 	if(sd->status.party_id)
 		p = party_search(sd->status.party_id);
@@ -4197,8 +4220,8 @@ int pc_useitem(struct map_session_data *sd,int n)
 		return 0;
 
 	/* Items with delayed consume are not meant to work while in mounts except reins of mount(12622) */
-	if( sd->inventory_data[n]->flag.delay_consume ) {
-		if( nameid != ITEMID_REINS_OF_MOUNT && sd->sc.option&OPTION_MOUNTING )
+	if( sd->inventory_data[n]->flag.delay_consume && nameid != ITEMID_REINS_OF_MOUNT ) {
+		if( sd->sc.option&OPTION_MOUNTING )
 			return 0;
 		else if( pc_issit(sd) )
 			return 0;
@@ -4234,7 +4257,8 @@ int pc_useitem(struct map_session_data *sd,int n)
 			} else { //Not yet used item (all slots are initially empty)
 				sd->item_delay[i].nameid = nameid;
 			}
-			sd->item_delay[i].tick = tick + sd->inventory_data[n]->delay;
+			if( !(nameid == ITEMID_REINS_OF_MOUNT && sd->sc.option&(OPTION_WUGRIDER|OPTION_RIDING|OPTION_DRAGON|OPTION_MADOGEAR)) )
+				sd->item_delay[i].tick = tick + sd->inventory_data[n]->delay;
 		} else { //Should not happen
 			ShowError("pc_useitem: Exceeded item delay array capacity! (nameid=%d, char_id=%d)\n", nameid, sd->status.char_id);
 		}
@@ -4320,7 +4344,7 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 		return 1;
 	}
 
-	if( !itemdb_cancartstore(item_data, pc_get_group_level(sd)) ) { // Check item trade restrictions [Skotlex]
+	if( !itemdb_cancartstore(item_data, pc_get_group_level(sd)) || (item_data->bound > 1 && !pc_can_give_bounded_items(sd)) ) { // Check item trade restrictions [Skotlex]
 		clif_displaymessage(sd->fd, msg_txt(264));
 		return 1;
 	}
@@ -4331,7 +4355,7 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 	i = MAX_CART;
 	if( itemdb_isstackable2(data) && !item_data->expire_time ) {
 		ARR_FIND( 0, MAX_CART, i,
-			sd->status.cart[i].nameid == item_data->nameid &&
+			sd->status.cart[i].nameid == item_data->nameid && sd->status.cart[i].bound == item_data->bound &&
 			sd->status.cart[i].card[0] == item_data->card[0] && sd->status.cart[i].card[1] == item_data->card[1] &&
 			sd->status.cart[i].card[2] == item_data->card[2] && sd->status.cart[i].card[3] == item_data->card[3] );
 	};
@@ -4461,6 +4485,26 @@ int pc_getitemfromcart(struct map_session_data *sd,int idx,int amount)
 
 	clif_additem(sd,0,0,flag);
 	return 1;
+}
+
+/*==========================================
+ * Bound Item Check
+ * Type:
+ * 1 Account Bound
+ * 2 Guild Bound
+ * 3 Party Bound
+ * 4 Character Bound
+ *------------------------------------------*/
+int pc_bound_chk(TBL_PC *sd,int type,int *idxlist)
+{
+	int i=0, j=0;
+	for(i=0;i<MAX_INVENTORY;i++){
+		if(sd->status.inventory[i].nameid > 0 && sd->status.inventory[i].amount > 0 && sd->status.inventory[i].bound == type) {
+			idxlist[j] = i;
+			j++;
+		}
+	}
+	return j;
 }
 
 /*==========================================
@@ -4611,7 +4655,6 @@ int pc_steal_coin(struct map_session_data *sd,struct block_list *target)
  *------------------------------------------*/
 int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y, clr_type clrtype)
 {
-	struct party_data *p;
 	int16 m;
 
 	nullpo_ret(sd);
@@ -4627,19 +4670,16 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 	}
 
 	m = map_mapindex2mapid(mapindex);
-	if( map[m].flag.src4instance && sd->status.party_id && (p = party_search(sd->status.party_id)) != NULL && p->instance_id ) {
-		// Request the mapid of this src map into the instance of the party
-		int im = instance_map2imap(m, p->instance_id);
-		if( im < 0 )
-			; // Player will enter the src map for instances
-		else { // Changes destiny to the instance map, not the source map
-			m = im;
-			mapindex = map_id2index(m);
-		}
-	}
 
 	sd->state.changemap = (sd->mapindex != mapindex);
 	sd->state.warping = 1;
+
+	if( sd->status.party_id && map[sd->bl.m].instance_id && sd->state.changemap && !map[m].instance_id ) {
+		struct party_data *p;
+		if( (p = party_search(sd->status.party_id)) != NULL && p->instance_id )
+			instance_delusers(p->instance_id);
+	}
+
 	if( sd->state.changemap ) { // Misc map-changing settings
 		int i;
 		sd->state.pmap = sd->bl.m;
@@ -5728,14 +5768,12 @@ int pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned int
 /*==========================================
  * Returns max level for this character.
  *------------------------------------------*/
-unsigned int pc_maxbaselv(struct map_session_data *sd)
-{
-  	return max_level[pc_class2idx(sd->status.class_)][0];
+unsigned int pc_maxbaselv(struct map_session_data *sd) {
+	return job_info[pc_class2idx(sd->status.class_)].max_level[0];
 }
 
-unsigned int pc_maxjoblv(struct map_session_data *sd)
-{
-  	return max_level[pc_class2idx(sd->status.class_)][1];
+unsigned int pc_maxjoblv(struct map_session_data *sd) {
+	return job_info[pc_class2idx(sd->status.class_)].max_level[1];
 }
 
 /*==========================================
@@ -5750,7 +5788,7 @@ unsigned int pc_nextbaseexp(struct map_session_data *sd)
 	if(sd->status.base_level>=pc_maxbaselv(sd) || sd->status.base_level<=0)
 		return 0;
 
-	return exp_table[pc_class2idx(sd->status.class_)][0][sd->status.base_level-1];
+	return job_info[pc_class2idx(sd->status.class_)].exp_table[0][sd->status.base_level-1];
 }
 
 //Base exp needed for this level.
@@ -5759,7 +5797,7 @@ unsigned int pc_thisbaseexp(struct map_session_data *sd)
 	if(sd->status.base_level>pc_maxbaselv(sd) || sd->status.base_level<=1)
 		return 0;
 
-	return exp_table[pc_class2idx(sd->status.class_)][0][sd->status.base_level-2];
+	return job_info[pc_class2idx(sd->status.class_)].exp_table[0][sd->status.base_level-2];
 }
 
 
@@ -5777,7 +5815,7 @@ unsigned int pc_nextjobexp(struct map_session_data *sd)
 
 	if(sd->status.job_level>=pc_maxjoblv(sd) || sd->status.job_level<=0)
 		return 0;
-	return exp_table[pc_class2idx(sd->status.class_)][1][sd->status.job_level-1];
+	return job_info[pc_class2idx(sd->status.class_)].exp_table[1][sd->status.job_level-1];
 }
 
 //Job exp needed for this level.
@@ -5785,7 +5823,7 @@ unsigned int pc_thisjobexp(struct map_session_data *sd)
 {
 	if(sd->status.job_level>pc_maxjoblv(sd) || sd->status.job_level<=1)
 		return 0;
-	return exp_table[pc_class2idx(sd->status.class_)][1][sd->status.job_level-2];
+	return job_info[pc_class2idx(sd->status.class_)].exp_table[1][sd->status.job_level-2];
 }
 
 /// Returns the value of the specified stat.
@@ -5794,14 +5832,14 @@ static int pc_getstat(struct map_session_data* sd, int type)
 	nullpo_retr(-1, sd);
 
 	switch( type ) {
-	case SP_STR: return sd->status.str;
-	case SP_AGI: return sd->status.agi;
-	case SP_VIT: return sd->status.vit;
-	case SP_INT: return sd->status.int_;
-	case SP_DEX: return sd->status.dex;
-	case SP_LUK: return sd->status.luk;
-	default:
-		return -1;
+		case SP_STR: return sd->status.str;
+		case SP_AGI: return sd->status.agi;
+		case SP_VIT: return sd->status.vit;
+		case SP_INT: return sd->status.int_;
+		case SP_DEX: return sd->status.dex;
+		case SP_LUK: return sd->status.luk;
+		default:
+			return -1;
 	}
 }
 
@@ -5812,14 +5850,14 @@ static int pc_setstat(struct map_session_data* sd, int type, int val)
 	nullpo_retr(-1, sd);
 
 	switch( type ) {
-	case SP_STR: sd->status.str = val; break;
-	case SP_AGI: sd->status.agi = val; break;
-	case SP_VIT: sd->status.vit = val; break;
-	case SP_INT: sd->status.int_ = val; break;
-	case SP_DEX: sd->status.dex = val; break;
-	case SP_LUK: sd->status.luk = val; break;
-	default:
-		return -1;
+		case SP_STR: sd->status.str = val; break;
+		case SP_AGI: sd->status.agi = val; break;
+		case SP_VIT: sd->status.vit = val; break;
+		case SP_INT: sd->status.int_ = val; break;
+		case SP_DEX: sd->status.dex = val; break;
+		case SP_LUK: sd->status.luk = val; break;
+		default:
+			return -1;
 	}
 
 	return val;
@@ -7761,9 +7799,9 @@ int pc_setmadogear(TBL_PC* sd, int flag)
  *------------------------------------------*/
 int pc_candrop(struct map_session_data *sd, struct item *item)
 {
-	if( item && item->expire_time )
+	if( item && (item->expire_time || (item->bound && !pc_can_give_bounded_items(sd))) )
 		return 0;
-	if( !pc_can_give_items(sd) ) //check if this GM level can drop items
+	if( !pc_can_give_items(sd) || sd->sc.cant.drop ) //check if this GM level can drop items
 		return 0;
 	return (itemdb_isdropable(item, pc_get_group_level(sd)));
 }
@@ -9426,14 +9464,12 @@ static bool pc_readdb_skilltree(char* fields[], int columns, int current)
 	skill_id = (uint16)atoi(fields[1]);
 	skill_lv = (unsigned char)atoi(fields[2]);
 
-	if(columns==4+MAX_PC_SKILL_REQUIRE*2)
-	{// job level requirement extra column
+	if(columns==4+MAX_PC_SKILL_REQUIRE*2) { // job level requirement extra column
 		joblv = (unsigned char)atoi(fields[3]);
 		offset++;
 	}
 
-	if(!pcdb_checkid(class_))
-	{
+	if(!pcdb_checkid(class_)) {
 		ShowWarning("pc_readdb_skilltree: Invalid job class %d specified.\n", class_);
 		return false;
 	}
@@ -9441,13 +9477,10 @@ static bool pc_readdb_skilltree(char* fields[], int columns, int current)
 
 	//This is to avoid adding two lines for the same skill. [Skotlex]
 	ARR_FIND( 0, MAX_SKILL_TREE, skill_idx, skill_tree[idx][skill_idx].id == 0 || skill_tree[idx][skill_idx].id == skill_id );
-	if( skill_idx == MAX_SKILL_TREE )
-	{
+	if( skill_idx == MAX_SKILL_TREE ) {
 		ShowWarning("pc_readdb_skilltree: Unable to load skill %hu into job %d's tree. Maximum number of skills per class has been reached.\n", skill_id, class_);
 		return false;
-	}
-	else if(skill_tree[idx][skill_idx].id)
-	{
+	} else if(skill_tree[idx][skill_idx].id) {
 		ShowNotice("pc_readdb_skilltree: Overwriting skill %hu for job class %d.\n", skill_id, class_);
 	}
 
@@ -9455,8 +9488,7 @@ static bool pc_readdb_skilltree(char* fields[], int columns, int current)
 	skill_tree[idx][skill_idx].max   = skill_lv;
 	skill_tree[idx][skill_idx].joblv = joblv;
 
-	for(i = 0; i < MAX_PC_SKILL_REQUIRE; i++)
-	{
+	for(i = 0; i < MAX_PC_SKILL_REQUIRE; i++) {
 		skill_tree[idx][skill_idx].need[i].id = atoi(fields[i*2+offset]);
 		skill_tree[idx][skill_idx].need[i].lv = atoi(fields[i*2+offset+1]);
 	}
@@ -9467,16 +9499,16 @@ static bool pc_readdb_levelpenalty(char* fields[], int columns, int current)
 {
 	int type, race, diff;
 
-	type = atoi(fields[0]);
+	type = atoi(fields[0]); //1=experience, 2=item drop
 	race = atoi(fields[1]);
 	diff = atoi(fields[2]);
 
-	if( type != 1 && type != 2 ){
+	if( type != 1 && type != 2 ) {
 		ShowWarning("pc_readdb_levelpenalty: Invalid type %d specified.\n", type);
 		return false;
 	}
 
-	if( race < 0 || race > RC_MAX ){
+	if( race < 0 || race > RC_MAX ) {
 		ShowWarning("pc_readdb_levelpenalty: Invalid race %d specified.\n", race);
 		return false;
 	}
@@ -9492,115 +9524,240 @@ static bool pc_readdb_levelpenalty(char* fields[], int columns, int current)
 }
 #endif
 
+//Reading job_db1.txt line, (class,weight,HPFactor,HPMultiplicator,SPFactor,aspd/lvl...)
+static bool pc_readdb_job1(char* fields[], int columns, int current){
+	int idx, class_;
+	unsigned int i;
+
+	class_ = atoi(fields[0]);
+
+	if(!pcdb_checkid(class_))
+	{
+		ShowWarning("status_readdb_job1: Invalid job class %d specified.\n", class_);
+		return false;
+	}
+	idx = pc_class2idx(class_);
+
+	job_info[idx].max_weight_base = atoi(fields[1]);
+	job_info[idx].hp_factor  = atoi(fields[2]);
+	job_info[idx].hp_multiplicator = atoi(fields[3]);
+	job_info[idx].sp_factor  = atoi(fields[4]);
+#ifdef RENEWAL_ASPD
+	for(i = 0; i <= MAX_WEAPON_TYPE; i++)
+#else
+	for(i = 0; i < MAX_WEAPON_TYPE; i++)
+#endif
+	{
+		job_info[idx].aspd_base[i] = atoi(fields[i+5]);
+	}
+	return true;
+}
+
+//Reading job_db2.txt line (class,JobLv1,JobLv2,JobLv3,...)
+static bool pc_readdb_job2(char* fields[], int columns, int current)
+{
+	int idx, class_, i;
+
+	class_ = atoi(fields[0]);
+
+	if(!pcdb_checkid(class_))
+	{
+		ShowWarning("status_readdb_job2: Invalid job class %d specified.\n", class_);
+		return false;
+	}
+	idx = pc_class2idx(class_);
+
+	for(i = 1; i < columns; i++)
+	{
+		job_info[idx].job_bonus[i-1] = atoi(fields[i]);
+	}
+	return true;
+}
+
+//Reading job_maxhpsp.txt line
+//startlvl,maxlvl,class,type,values...
+static bool pc_readdb_job_maxhpsp(char* fields[], int columns, int current)
+{
+	int idx, i,j, maxlvl, startlvl;
+	int job_id,job_count,jobs[CLASS_COUNT];
+	int type;
+
+	startlvl = atoi(fields[0]);
+	if(startlvl > MAX_LEVEL || startlvl<1){
+		ShowError("pc_readdb_job_maxhpsp: Invalid start level %d specified.\n", startlvl);
+		return false;
+	}
+	maxlvl = atoi(fields[1]);
+	if(maxlvl > MAX_LEVEL || maxlvl<1){
+		ShowError("pc_readdb_job_maxhpsp: Invalid max level %d specified.\n", maxlvl);
+		return false;
+	}
+	if((maxlvl-startlvl+1+4) != columns){ //nb values = (maxlvl-startlvl)+1-index1stvalue
+		ShowError("pc_readdb_job_maxhpsp: Number of columns %d defined is too low for start level %d, max level %d.\n",columns,startlvl,maxlvl);
+		return false;
+	}
+	type = atoi(fields[3]);
+	if(type < 0 || type > 1){
+		ShowError("pc_readdb_job_maxhpsp: Invalid type %d specified.\n", type);
+		return false;
+	}
+	job_count = pc_split_atoi(fields[2],jobs,':',CLASS_COUNT);
+	if (job_count < 1)
+		return false;
+	for (j = 0; j < job_count; j++) {
+		job_id = jobs[j];
+		if(!pcdb_checkid(job_id)){
+			ShowError("pc_readdb_job_maxhpsp: Invalid job class %d specified.\n", job_id);
+			return false;
+		}
+		idx = pc_class2idx(job_id);
+		if(type == 0) {	//hp type
+			unsigned int k = 0;
+			unsigned int val, oldval=0;
+			short level = 0;
+			for(i = 0; i <= MAX_LEVEL; i++) {
+				val = 0;
+				k += (job_info[idx].hp_factor*(i+1) + 50) / 100;
+				if(i>=startlvl && i <= maxlvl) val = atoi(fields[(i-level)+4]);
+				if(val==0) {
+					val = 35 + ((i+1)*job_info[idx].hp_multiplicator)/100 + k;
+					level++; // This tells us when we didn't use the database so we know what field to grab
+				}
+				if(oldval > val && i > startlvl && i <= maxlvl) // Let's not warn about the formula table giving us a higher value, only DB
+					ShowWarning("pc_readdb_job_maxhpsp: HP value is lower than previous level (job=%d,oldval=%d,val=%d,lvl=%d hp_factor=%d,hp_multiplicator=%d,k=%d).\n",
+						job_id,oldval,val,i+1,job_info[idx].hp_factor,job_info[idx].hp_multiplicator,k);
+				val = min(INT_MAX,val);
+				job_info[idx].hp_table[i] = val;
+				oldval = val;
+			}
+	//		ShowInfo("Finished reading HP table for job %d.\n{",job_id);
+	//		for(i=0; i<=MAX_LEVEL; i++ )
+	//			printf("%d,",job_info[idx].hp_table[i]);
+	//		printf("\n}\n");
+		}
+		else if(type == 1){ //sp type
+			unsigned int val, oldval=0;
+			short level = 0;
+			for(i = 0; i <= MAX_LEVEL; i++) {
+				val = 0;
+				if(i>=startlvl && i <=maxlvl) val = atoi(fields[(i-level)+4]);
+				if(val==0) {
+					val = 10 + ((i+1)*job_info[idx].sp_factor)/100;
+					level++; // This tells us when we didn't use the database so we know what field to grab
+				}
+				if(oldval > val && i > startlvl && i <= maxlvl) // Let's not warn about the formula table giving us a higher value, only DB
+					ShowWarning("pc_readdb_job_maxhpsp: SP value is lower than previous level (job=%d,oldval=%d,val=%d,lvl=%d,sp_factor=%d).\n",
+						job_id,oldval,val,i+1,job_info[idx].sp_factor);
+				val = min(INT_MAX,val);
+				job_info[idx].sp_table[i] = val;
+				oldval = val;
+			}
+	//		ShowInfo("Finished reading SP table for job %d.\n{",job_id);
+	//		for(i=0; i<MAX_LEVEL; i++ )
+	//			printf("%d,",job_info[idx].sp_table[i]);
+	//		printf("\n}\n");
+		}
+	}
+	return true;
+}
+
+//Reading job_exp.txt line
+//Max Level,Class list,Type (0 - Base Exp; 1 - Job Exp),Exp/lvl...
+static bool pc_readdb_job_exp(char* fields[], int columns, int current)
+{
+	int idx, i, type;
+	int job_id,job_count,jobs[CLASS_COUNT];
+	unsigned int ui, maxlvl;
+
+	maxlvl = atoi(fields[0]);
+	if(maxlvl > MAX_LEVEL || maxlvl<1){
+		ShowError("pc_readdb_job_exp: Invalid maxlevel %d specified.\n", maxlvl);
+		return false;
+	}
+	if((maxlvl+3) > columns){ //nb values = (maxlvl-startlvl)+1-index1stvalue
+		ShowError("pc_readdb_job_exp: Number of columns %d defined is too low for max level %d.\n",columns,maxlvl);
+		return false;
+	}
+	type = atoi(fields[2]);
+	if(type < 0 || type > 1){
+		ShowError("pc_readdb_job_exp: Invalid type %d specified.\n", type);
+		return false;
+	}
+	job_count = pc_split_atoi(fields[1],jobs,':',CLASS_COUNT);
+	if (job_count < 1)
+		return false;
+	job_id = jobs[0];
+	if(!pcdb_checkid(job_id)){
+		ShowError("pc_readdb_job_exp: Invalid job class %d specified.\n", job_id);
+		return false;
+	}
+	idx = pc_class2idx(job_id);
+
+	job_info[idx].max_level[type] = maxlvl;
+	for(i=0; i<maxlvl; i++){
+		job_info[idx].exp_table[type][i] = ((uint32) atoi(fields[3+i]));
+	}
+	//Reverse check in case the array has a bunch of trailing zeros... [Skotlex]
+	//The reasoning behind the -2 is this... if the max level is 5, then the array
+	//should look like this:
+	//0: x, 1: x, 2: x: 3: x 4: 0 <- last valid value is at 3.
+	while ((ui = job_info[idx].max_level[type]) >= 2 && job_info[idx].exp_table[type][ui-2] <= 0)
+		job_info[idx].max_level[type]--;
+	if (job_info[idx].max_level[type] < maxlvl) {
+		ShowWarning("pc_readdb_job_exp: Specified max %u for job %d, but that job's exp table only goes up to level %u.\n", maxlvl, job_id, job_info[idx].max_level[type]);
+		ShowInfo("Filling the missing values with the last exp entry.\n");
+		//Fill the requested values with the last entry.
+		ui = (job_info[idx].max_level[type] <= 2? 0: job_info[idx].max_level[type]-2);
+		for (; ui+2 < maxlvl; ui++)
+			job_info[idx].exp_table[type][ui] = job_info[idx].exp_table[type][ui-1];
+		job_info[idx].max_level[type] = maxlvl;
+	}
+//	ShowInfo("%s - Class %d: %d\n", type?"Job":"Base", job_id, job_info[idx].max_level[type]);
+	for (i = 1; i < job_count; i++) {
+		job_id = jobs[i];
+		if (!pcdb_checkid(job_id)) {
+			ShowError("pc_readdb_job_exp: Invalid job ID %d.\n", job_id);
+			continue;
+		}
+		idx = pc_class2idx(job_id);
+		memcpy(job_info[idx].exp_table[type], job_info[pc_class2idx(jobs[0])].exp_table[type], sizeof(job_info[pc_class2idx(jobs[0])].exp_table[type]));
+		job_info[idx].max_level[type] = maxlvl;
+//		ShowInfo("%s - Class %d: %u\n", type?"Job":"Base", job_id, job_info[idx].max_level[type]);
+	}
+	return true;
+}
+
 /*==========================================
  * pc DB reading.
- * exp.txt        - required experience values
- * skill_tree.txt - skill tree for every class
- * attr_fix.txt   - elemental adjustment table
+ * exp.txt		- required experience values
+ * skill_tree.txt	- skill tree for every class
+ * attr_fix.txt		- elemental adjustment table
+ * job_db1.txt		- job,weight,hp_factor,hp_multiplicator,sp_factor,aspds/lvl
+ * job_db2.txt		- job,stats bonuses/lvl
+ * job_maxhpsp_db.txt	- strtlvl,maxlvl,job,type,values/lvl (values=hp|sp)
  *------------------------------------------*/
 int pc_readdb(void)
 {
-	int i,j,k;
+	int i,j,k, entries;
 	FILE *fp;
-	char line[24000],*p;
+	char line[24000];
 
-	// Reset
-	memset(exp_table,0,sizeof(exp_table));
-	memset(max_level,0,sizeof(max_level));
+	//reset
+	memset(job_info,0,sizeof(job_info)); // job_info table
 
-	sprintf(line, "%s/"DBPATH"exp.txt", db_path);
-
-	fp = fopen(line, "r");
-	if (fp == NULL) {
-		ShowError("can't read %s\n", line);
-		return 1;
-	}
-	while (fgets(line, sizeof(line), fp)) {
-		int jobs[CLASS_COUNT], job_count, job, job_id;
-		int type;
-		unsigned int ui,maxlv;
-		char *split[4];
-		if (line[0] == '/' && line[1] == '/')
-			continue;
-		if (pc_split_str(line,split,4) < 4)
-			continue;
-		
-		job_count = pc_split_atoi(split[1],jobs,':',CLASS_COUNT);
-		if (job_count < 1)
-			continue;
-		job_id = jobs[0];
-		if (!pcdb_checkid(job_id)) {
-			ShowError("pc_readdb: Invalid job ID %d.\n", job_id);
-			continue;
-		}
-		type = atoi(split[2]);
-		if (type < 0 || type > 1) {
-			ShowError("pc_readdb: Invalid type %d (must be 0 for base levels, 1 for job levels).\n", type);
-			continue;
-		}
-		maxlv = atoi(split[0]);
-		if (maxlv > MAX_LEVEL) {
-			ShowWarning("pc_readdb: Specified max level %u for job %d is beyond server's limit (%u).\n ", maxlv, job_id, MAX_LEVEL);
-			maxlv = MAX_LEVEL;
-		}
-		
-		job = jobs[0] = pc_class2idx(job_id);
-		//We send one less and then one more because the last entry in the exp array should hold 0.
-		max_level[job][type] = pc_split_atoui(split[3], exp_table[job][type],',',maxlv-1)+1;
-		//Reverse check in case the array has a bunch of trailing zeros... [Skotlex]
-		//The reasoning behind the -2 is this... if the max level is 5, then the array
-		//should look like this:
-		//0: x, 1: x, 2: x: 3: x 4: 0 <- last valid value is at 3.
-		while ((ui = max_level[job][type]) >= 2 && exp_table[job][type][ui-2] <= 0)
-			max_level[job][type]--;
-		if (max_level[job][type] < maxlv) {
-			ShowWarning("pc_readdb: Specified max %u for job %d, but that job's exp table only goes up to level %u.\n", maxlv, job_id, max_level[job][type]);
-			ShowInfo("Filling the missing values with the last exp entry.\n");
-			//Fill the requested values with the last entry.
-			ui = (max_level[job][type] <= 2? 0: max_level[job][type]-2);
-			for (; ui+2 < maxlv; ui++)
-				exp_table[job][type][ui] = exp_table[job][type][ui-1];
-			max_level[job][type] = maxlv;
-		}
-//		ShowDebug("%s - Class %d: %d\n", type?"Job":"Base", job_id, max_level[job][type]);
-		for (i = 1; i < job_count; i++) {
-			job_id = jobs[i];
-			if (!pcdb_checkid(job_id)) {
-				ShowError("pc_readdb: Invalid job ID %d.\n", job_id);
-				continue;
-			}
-			job = pc_class2idx(job_id);
-			memcpy(exp_table[job][type], exp_table[jobs[0]][type], sizeof(exp_table[0][0]));
-			max_level[job][type] = maxlv;
-//			ShowDebug("%s - Class %d: %u\n", type?"Job":"Base", job_id, max_level[job][type]);
-		}
-	}
-	fclose(fp);
-	for (i = 0; i < JOB_MAX; i++) {
-		if (!pcdb_checkid(i)) continue;
-		if (i == JOB_WEDDING || i == JOB_XMAS || i == JOB_SUMMER || i == JOB_HANBOK)
-			continue; //Classes that do not need exp tables.
-		j = pc_class2idx(i);
-		if (!max_level[j][0])
-			ShowWarning("Class %s (%d) does not have a base exp table.\n", job_name(i), i);
-		if (!max_level[j][1])
-			ShowWarning("Class %s (%d) does not have a job exp table.\n", job_name(i), i);
-	}
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","exp.txt");
 
 	// Reset and read skilltree
 	memset(skill_tree,0,sizeof(skill_tree));
-
 	sv_readdb(db_path, DBPATH"skill_tree.txt", ',', 3+MAX_PC_SKILL_REQUIRE*2, 4+MAX_PC_SKILL_REQUIRE*2, -1, &pc_readdb_skilltree);
 
 #if defined(RENEWAL_DROP) || defined(RENEWAL_EXP)
 	sv_readdb(db_path, "re/level_penalty.txt", ',', 4, 4, -1, &pc_readdb_levelpenalty);
-	for( k = 1; k < 3; k++ ) { // Fill in the blanks
-		for( j = 0; j < RC_MAX; j++ ) {
+	for( k=1; k < 3; k++ ){ // fill in the blanks
+		for( j = 0; j < RC_MAX; j++ ){
 			int tmp = 0;
-			for( i = 0; i < MAX_LEVEL*2; i++ ) {
+			for( i = 0; i < MAX_LEVEL*2; i++ ){
 				if( i == MAX_LEVEL+1 )
-					tmp = level_penalty[k][j][0]; // Reset
+					tmp = level_penalty[k][j][0];// reset
 				if( level_penalty[k][j][i] > 0 )
 					tmp = level_penalty[k][j][i];
 				else
@@ -9610,91 +9767,62 @@ int pc_readdb(void)
 	}
 #endif
 
-	// Reset then read attr_fix
-	for (i = 0; i < 4; i++)
-		for (j = 0; j < ELE_MAX; j++)
-			for (k = 0; k < ELE_MAX; k++)
-				attr_fix_table[i][j][k]=100;
-
-	sprintf(line, "%s/"DBPATH"attr_fix.txt", db_path);
-	
-	fp = fopen(line,"r");
-	if (fp == NULL) {
-		ShowError("can't read %s\n", line);
-		return 1;
-	}
-	while (fgets(line, sizeof(line), fp)) {
-		char *split[10];
-		int lv,n;
-		if (line[0] == '/' && line[1] == '/')
-			continue;
-		for (j = 0, p = line; j < 3 && p; j++) {
-			split[j] = p;
-			p = strchr(p,',');
-			if (p) *p++=0;
-		}
-		if (j < 2)
-			continue;
-
-		lv = atoi(split[0]);
-		n = atoi(split[1]);
-
-		for (i = 0; i < n && i < ELE_MAX;) {
-			if (!fgets(line, sizeof(line), fp))
-				break;
-			if (line[0] == '/' && line[1] == '/')
-				continue;
-
-			for (j = 0, p = line; j < n && j < ELE_MAX && p; j++) {
-				while (*p == 32 && *p > 0)
-					p++;
-				attr_fix_table[lv-1][i][j]=atoi(p);
-				if (battle_config.attr_recover == 0 && attr_fix_table[lv-1][i][j] < 0)
-					attr_fix_table[lv-1][i][j] = 0;
-				p = strchr(p,',');
-				if (p) *p++=0;
-			}
-
-			i++;
-		}
-	}
-	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","attr_fix.txt");
-
-	// Reset then read statspoint
+	 // reset then read statspoint
 	memset(statp,0,sizeof(statp));
-	i = 1;
+	i=1;
 
 	sprintf(line, "%s/"DBPATH"statpoint.txt", db_path);
-	fp = fopen(line,"r");
-	if (fp == NULL) {
+	fp=fopen(line,"r");
+	if(fp == NULL) {
 		ShowWarning("Can't read '"CL_WHITE"%s"CL_RESET"'... Generating DB.\n",line);
 		//return 1;
 	} else {
-		while (fgets(line, sizeof(line), fp)) {
+		entries=0;
+		while(fgets(line, sizeof(line), fp)) {
 			int stat;
-			if (line[0] == '/' && line[1] == '/')
+			if(line[0]=='/' && line[1]=='/')
 				continue;
-			if ((stat = strtoul(line,NULL,10)) < 0)
-				stat = 0;
+			if ((stat=strtoul(line,NULL,10))<0)
+				stat=0;
 			if (i > MAX_LEVEL)
 				break;
-			statp[i] = stat;
+			statp[i]=stat;
 			i++;
+			entries++;
 		}
 		fclose(fp);
-
-		ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","statpoint.txt");
+		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", entries, DBPATH"statpoint.txt");
 	}
-	// Generate the remaining parts of the db if necessary
-	k = battle_config.use_statpoint_table; // Save setting
-	battle_config.use_statpoint_table = 0; // Temporarily disable to force pc_gets_status_point use default values
-	statp[0] = 45; // Seed value
+	// generate the remaining parts of the db if necessary
+	k = battle_config.use_statpoint_table; //save setting
+	battle_config.use_statpoint_table = 0; //temporarily disable to force pc_gets_status_point use default values
+	statp[0] = 45; // seed value
 	for (; i <= MAX_LEVEL; i++)
 		statp[i] = statp[i-1] + pc_gets_status_point(i-1);
-	battle_config.use_statpoint_table = k; // Restore setting
+	battle_config.use_statpoint_table = k; //restore setting
 
-	return 0;
+#ifdef RENEWAL_ASPD
+	sv_readdb(db_path, "re/job_db1.txt",',',6+MAX_WEAPON_TYPE,6+MAX_WEAPON_TYPE,CLASS_COUNT,&pc_readdb_job1);
+#else
+	sv_readdb(db_path, "pre-re/job_db1.txt",',',5+MAX_WEAPON_TYPE,5+MAX_WEAPON_TYPE,CLASS_COUNT,&pc_readdb_job1);
+#endif
+	sv_readdb(db_path, "job_db2.txt",',',1,1+MAX_LEVEL,CLASS_COUNT,&pc_readdb_job2);
+	sv_readdb(db_path, DBPATH"job_maxhpsp_db.txt", ',', 4, 4+MAX_LEVEL, CLASS_COUNT*2, &pc_readdb_job_maxhpsp);
+	sv_readdb(db_path, DBPATH"job_exp.txt",',',4,1000+3,CLASS_COUNT*2,&pc_readdb_job_exp); //support till 1000lvl
+	
+	//Checking if all class have their data
+	for (i = 0; i < JOB_MAX; i++) {
+		int j;
+		if (!pcdb_checkid(i)) continue;
+		if (i == JOB_WEDDING || i == JOB_XMAS || i == JOB_SUMMER || i == JOB_HANBOK)
+			continue; //Classes that do not need exp tables.
+		j = pc_class2idx(i);
+		if (!job_info[j].max_level[0])
+			ShowWarning("Class %s (%d) does not have a base exp table.\n", job_name(i), i);
+		if (!job_info[j].max_level[1])
+			ShowWarning("Class %s (%d) does not have a job exp table.\n", job_name(i), i);
+	}
+ 	return 0;
 }
 
 // Read MOTD on startup. [Valaris]
@@ -9789,6 +9917,55 @@ void pc_itemcd_do(struct map_session_data *sd, bool load) {
 		}
 	}
 	return;
+}
+
+void pc_clear_log_damage_sub(int char_id, struct mob_data *md) {
+	int i;
+	ARR_FIND(0,DAMAGELOG_SIZE,i,md->dmglog[i].id == char_id);
+	if( i < DAMAGELOG_SIZE ) {
+		md->dmglog[i].id=0;
+		md->dmglog[i].dmg=0;
+		md->dmglog[i].flag=0;
+	}
+}
+
+void pc_damage_log_add(struct map_session_data *sd, int id) {
+	int i = 0;
+
+	if( !sd )
+		return;
+
+	for(i = 0; i < DAMAGELOG_SIZE_PC && sd->dmglog[i].id != id; i++)
+		if( !sd->dmglog[i].id ) {
+			sd->dmglog[i].id = id;
+			break;
+		}
+	return;
+}
+
+void pc_damage_log_clear(struct map_session_data *sd, int id) {
+	int i;
+	struct mob_data *md = NULL;
+	if( !sd )
+		return;
+
+	if( !id ) {
+		for(i = 0; i < DAMAGELOG_SIZE_PC; i++)	{ // track every id
+			if( !sd->dmglog[i].id )	//skip the empty value
+				continue;
+
+			if( (md = map_id2md(sd->dmglog[i].id)) )
+				pc_clear_log_damage_sub(sd->status.char_id,md);
+		}
+		memset(sd->dmglog,0,sizeof(sd->dmglog)); // clear all
+	} else {
+		if( (md = map_id2md(id)) )
+			pc_clear_log_damage_sub(sd->status.char_id,md);
+
+		ARR_FIND(0,DAMAGELOG_SIZE_PC,i,sd->dmglog[i].id == id);	// find the id position
+		if( i < DAMAGELOG_SIZE_PC )
+			sd->dmglog[i].id = 0;
+	}
 }
 
 /*==========================================
