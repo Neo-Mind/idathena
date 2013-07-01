@@ -6224,7 +6224,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 				if( sd->state.autocast || ( (sd->skillitem == AL_TELEPORT || battle_config.skip_teleport_lv1_menu) && skill_lv == 1 ) || skill_lv == 3 )
 				{
-					if( skilllv == 1 )
+					if( skill_lv == 1 )
 						pc_randomwarp(sd,CLR_TELEPORT);
 					else
 						pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,CLR_TELEPORT);
@@ -6232,7 +6232,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				}
 
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				if( skilllv == 1 && skillid != ALL_ODINS_RECALL )
+				if( skill_lv == 1 && skill_id != ALL_ODINS_RECALL )
 					clif_skill_warppoint(sd,skill_id,skill_lv, (unsigned short)-1,0,0,0);
 				else
 					clif_skill_warppoint(sd,skill_id,skill_lv, (unsigned short)-1,sd->status.save_point.map,0,0);
