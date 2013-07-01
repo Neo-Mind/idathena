@@ -1014,14 +1014,6 @@ Displays the message above the NPC's head (like the 'npctalk' script command).
 | 5. Administrative Commands |
 ==============================
 
-@langtype <language>
-
-Changes the language attached to the player's account (#langtype).
-If no parameter is given, a list of available languages is displayed.
-All languages are defined in '/src/common/msg_conf.h'.
-
----------------------------------------
-
 @email <current@email.tld> <new@email.tld>
 
 Changes the email address attached the player's account.
@@ -1171,7 +1163,6 @@ This will also send a packet to clients causing them to close.
 @reloaditemdb
 @reloadmobdb
 @reloadmotd
-@reloadmsgconf
 @reloadpacketdb
 @reloadpcdb
 @reloadquestdb
@@ -1194,7 +1185,6 @@ Configuration files:
 -- atcommand: Atcommand Settings
 -- battleconf: Battle Settings (may require relog)
 -- motd: Message of the Day
--- msgconf: Message Configuration
 -- pcdb: Player Settings
 -- statusdb: Status Settings
 
