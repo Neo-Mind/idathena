@@ -9736,7 +9736,11 @@ static bool pc_readdb_job_exp(char* fields[], int columns, int current)
  *------------------------------------------*/
 int pc_readdb(void)
 {
-	int i,j,k, entries;
+	int i,
+#if defined(RENEWAL_DROP) || defined(RENEWAL_EXP)
+	j,
+#endif
+	k,l,entries;
 	FILE *fp;
 	char line[24000];
 
@@ -9750,12 +9754,12 @@ int pc_readdb(void)
 
 #if defined(RENEWAL_DROP) || defined(RENEWAL_EXP)
 	sv_readdb(db_path, "re/level_penalty.txt", ',', 4, 4, -1, &pc_readdb_levelpenalty);
-	for( k=1; k < 3; k++ ){ // fill in the blanks
-		for( j = 0; j < RC_MAX; j++ ){
+	for( k = 1; k < 3; k++ ) { // fill in the blanks
+		for( j = 0; j < RC_MAX; j++ ) {
 			int tmp = 0;
-			for( i = 0; i < MAX_LEVEL*2; i++ ){
+			for( i = 0; i < MAX_LEVEL*2; i++ ) {
 				if( i == MAX_LEVEL+1 )
-					tmp = level_penalty[k][j][0];// reset
+					tmp = level_penalty[k][j][0]; // reset
 				if( level_penalty[k][j][i] > 0 )
 					tmp = level_penalty[k][j][i];
 				else
@@ -9767,24 +9771,24 @@ int pc_readdb(void)
 
 	 // reset then read statspoint
 	memset(statp,0,sizeof(statp));
-	i=1;
+	i = 1;
 
 	sprintf(line, "%s/"DBPATH"statpoint.txt", db_path);
-	fp=fopen(line,"r");
-	if(fp == NULL) {
+	fp = fopen(line,"r");
+	if( fp == NULL ) {
 		ShowWarning("Can't read '"CL_WHITE"%s"CL_RESET"'... Generating DB.\n",line);
 		//return 1;
 	} else {
-		entries=0;
-		while(fgets(line, sizeof(line), fp)) {
+		entries = 0;
+		while( fgets(line, sizeof(line), fp) ) {
 			int stat;
-			if(line[0]=='/' && line[1]=='/')
+			if( line[0]=='/' && line[1]=='/' )
 				continue;
-			if ((stat=strtoul(line,NULL,10))<0)
-				stat=0;
-			if (i > MAX_LEVEL)
+			if( (stat = strtoul(line,NULL,10))<0 )
+				stat = 0;
+			if( i > MAX_LEVEL )
 				break;
-			statp[i]=stat;
+			statp[i] = stat;
 			i++;
 			entries++;
 		}
@@ -9795,7 +9799,7 @@ int pc_readdb(void)
 	k = battle_config.use_statpoint_table; //save setting
 	battle_config.use_statpoint_table = 0; //temporarily disable to force pc_gets_status_point use default values
 	statp[0] = 45; // seed value
-	for (; i <= MAX_LEVEL; i++)
+	for( ; i <= MAX_LEVEL; i++ )
 		statp[i] = statp[i-1] + pc_gets_status_point(i-1);
 	battle_config.use_statpoint_table = k; //restore setting
 
@@ -9807,17 +9811,16 @@ int pc_readdb(void)
 	sv_readdb(db_path, "job_db2.txt",',',1,1+MAX_LEVEL,CLASS_COUNT,&pc_readdb_job2);
 	sv_readdb(db_path, DBPATH"job_maxhpsp_db.txt", ',', 4, 4+MAX_LEVEL, CLASS_COUNT*2, &pc_readdb_job_maxhpsp);
 	sv_readdb(db_path, DBPATH"job_exp.txt",',',4,1000+3,CLASS_COUNT*2,&pc_readdb_job_exp); //support till 1000lvl
-	
+
 	//Checking if all class have their data
-	for (i = 0; i < JOB_MAX; i++) {
-		int j;
-		if (!pcdb_checkid(i)) continue;
-		if (i == JOB_WEDDING || i == JOB_XMAS || i == JOB_SUMMER || i == JOB_HANBOK)
+	for( i = 0; i < JOB_MAX; i++ ) {
+		if( !pcdb_checkid(i) ) continue;
+		if( i == JOB_WEDDING || i == JOB_XMAS || i == JOB_SUMMER || i == JOB_HANBOK )
 			continue; //Classes that do not need exp tables.
-		j = pc_class2idx(i);
-		if (!job_info[j].max_level[0])
+		l = pc_class2idx(i);
+		if( !job_info[l].max_level[0] )
 			ShowWarning("Class %s (%d) does not have a base exp table.\n", job_name(i), i);
-		if (!job_info[j].max_level[1])
+		if( !job_info[l].max_level[1] )
 			ShowWarning("Class %s (%d) does not have a job exp table.\n", job_name(i), i);
 	}
  	return 0;
@@ -9832,41 +9835,33 @@ int pc_read_motd(void)
 	memset(motd_text, 0, sizeof(motd_text));
 
 	// read current MOTD
-	if( ( fp = fopen(motd_txt, "r") ) != NULL )
-	{
+	if( ( fp = fopen(motd_txt, "r") ) != NULL ) {
 		char* buf, * ptr;
 		unsigned int lines = 0, entries = 0;
 		size_t len;
 
-		while( entries < MOTD_LINE_SIZE && fgets(motd_text[entries], sizeof(motd_text[entries]), fp) )
-		{
+		while( entries < MOTD_LINE_SIZE && fgets(motd_text[entries], sizeof(motd_text[entries]), fp) ) {
 			lines++;
 
 			buf = motd_text[entries];
 
-			if( buf[0] == '/' && buf[1] == '/' )
-			{
+			if( buf[0] == '/' && buf[1] == '/' ) {
 				continue;
 			}
 
 			len = strlen(buf);
 
-			while( len && ( buf[len-1] == '\r' || buf[len-1] == '\n' ) )
-			{// strip trailing EOL characters
+			while( len && ( buf[len-1] == '\r' || buf[len-1] == '\n' ) ) { // strip trailing EOL characters
 				len--;
 			}
 
-			if( len )
-			{
+			if( len ) {
 				buf[len] = 0;
 
-				if( ( ptr = strstr(buf, " :") ) != NULL && ptr-buf >= NAME_LENGTH )
-				{// crashes newer clients
+				if( ( ptr = strstr(buf, " :") ) != NULL && ptr-buf >= NAME_LENGTH ) { // crashes newer clients
 					ShowWarning("Found sequence '"CL_WHITE" :"CL_RESET"' on line '"CL_WHITE"%u"CL_RESET"' in '"CL_WHITE"%s"CL_RESET"'. This can cause newer clients to crash.\n", lines, motd_txt);
 				}
-			}
-			else
-			{// empty line
+			} else { // empty line
 				buf[0] = ' ';
 				buf[1] = 0;
 			}
@@ -9875,9 +9870,7 @@ int pc_read_motd(void)
 		fclose(fp);
 
 		ShowStatus("Done reading '"CL_WHITE"%u"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", entries, motd_txt);
-	}
-	else
-	{
+	} else {
 		ShowWarning("File '"CL_WHITE"%s"CL_RESET"' not found.\n", motd_txt);
 	}
 
