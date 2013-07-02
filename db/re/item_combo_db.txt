@@ -200,6 +200,7 @@
 5074:5653,{ bonus bStr,1; bonus bAspdRate,2; }
 5086:18527,{ bonus2 bAddItemHealRate,12192,200; }
 5176:18527,{ bonus bAspdRate,5; }
+//5184:5657,{ bonus bLongAtkRate,getequiprefinerycnt(EQI_HEAD_TOP); }
 //5206:5768,{ bonus bDex,1; if(getequiprefinerycnt(EQI_HEAD_TOP) > 4) bonus bDelayRate,4-getequiprefinerycnt(EQI_HEAD_TOP); }
 5358:5653,{ bonus bAgi,1; bonus bFlee,3; }
 //5359:5657,{ bonus bLongAtkRate,getequiprefinerycnt(EQI_HEAD_TOP); }
