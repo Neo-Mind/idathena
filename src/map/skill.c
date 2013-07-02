@@ -9032,7 +9032,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case KO_ZANZOU:
-			if(sd) {
+			if( sd ) {
 				struct mob_data *md;
 
 				md = mob_once_spawn_sub(src, src->m, src->x, src->y, status_get_name(src), 2308, "", SZ_SMALL, AI_NONE);
@@ -9071,7 +9071,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case KO_GENWAKU:
-			if ( !map_flag_gvg(src->m) && ( dstsd || dstmd ) && battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
+			if( !map_flag_gvg(src->m) && ( dstsd || dstmd ) && battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
 				int x = src->x, y = src->y;
 
 				if( sd && rnd()%100 > ((45+5*skill_lv) - status_get_int(bl)/10) ){//[(Base chance of success) - (Intelligence Objectives / 10)]%.
@@ -9079,13 +9079,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					break;
 				}
 
-				if (unit_movepos(src,bl->x,bl->y,0,0)) {
+				if( unit_movepos(src,bl->x,bl->y,0,0) ) {
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 					clif_slide(src,bl->x,bl->y);
 					sc_start(src,src,SC_CONFUSION,80,skill_lv,skill_get_time(skill_id,skill_lv));
-					if (unit_movepos(bl,x,y,0,0)) {
+					if( unit_movepos(bl,x,y,0,0) ) {
 						clif_skill_damage(bl,bl,tick, status_get_amotion(src), 0, -30000, 1, skill_id, -1, 6);
-						if( bl->type == BL_PC && pc_issit((TBL_PC*)bl))
+						if( bl->type == BL_PC && pc_issit((TBL_PC*)bl) )
 							clif_sitting(bl); //Avoid sitting sync problem
 						clif_slide(bl,x,y);
 						sc_start(src,bl,SC_CONFUSION,80,skill_lv,skill_get_time(skill_id,skill_lv));
@@ -9118,9 +9118,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case KG_KAGEHUMI:
 			if( flag&1 ) {
-				if(tsc && ( tsc->option&(OPTION_CLOAK|OPTION_HIDE) ||
+				if( tsc && ( tsc->option&(OPTION_CLOAK|OPTION_HIDE) ||
 					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC__SHADOWFORM] ||
-					tsc->data[SC_MARIONETTE] || tsc->data[SC_HARMONIZE])) {
+					tsc->data[SC_MARIONETTE] || tsc->data[SC_HARMONIZE]) ) {
 						sc_start(src, src, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 						sc_start(src, bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 						status_change_end(bl, SC_HIDING, INVALID_TIMER);

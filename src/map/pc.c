@@ -8437,50 +8437,51 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 	id = sd->inventory_data[n];
 	pos = pc_equippoint(sd,n); //With a few exceptions, item should go in all specified slots.
 
-	if(battle_config.battle_log)
+	if( battle_config.battle_log )
 		ShowInfo("equip %d(%d) %x:%x\n",sd->status.inventory[n].nameid,n,id?id->equip:0,req_pos);
-	if(!pc_isequip(sd,n) || !(pos&req_pos) || sd->status.inventory[n].equip != 0 || sd->status.inventory[n].attribute==1 ) { // [Valaris]
+	if( !pc_isequip(sd,n) || !(pos&req_pos) || sd->status.inventory[n].equip != 0 || sd->status.inventory[n].attribute == 1 ) { // [Valaris]
 		// FIXME: pc_isequip: equip level failure uses 2 instead of 0
-		clif_equipitemack(sd,n,0,0);	// fail
+		clif_equipitemack(sd,n,0,0); // fail
 		return 0;
 	}
 
-	if (sd->sc.data[SC_BERSERK] || sd->sc.data[SC_SATURDAYNIGHTFEVER] || sd->sc.data[SC__BLOODYLUST]) {
-		clif_equipitemack(sd,n,0,0);	// fail
+	if( sd->sc.count && (sd->sc.data[SC_BERSERK] || sd->sc.data[SC_SATURDAYNIGHTFEVER] || sd->sc.data[SC__BLOODYLUST]
+		|| sd->sc.data[SC_KYOUGAKU] || (sd->sc.data[SC_PYROCLASTIC] && sd->inventory_data[n]->type == IT_WEAPON)) ) {
+		clif_equipitemack(sd,n,0,0); // fail
 		return 0;
 	}
 
-	if(pos == EQP_ACC) { //Accesories should only go in one of the two,
+	if( pos == EQP_ACC ) { //Accesories should only go in one of the two,
 		pos = req_pos&EQP_ACC;
-		if (pos == EQP_ACC) //User specified both slots..
+		if( pos == EQP_ACC ) //User specified both slots..
 			pos = sd->equip_index[EQI_ACC_R] >= 0 ? EQP_ACC_L : EQP_ACC_R;
 	}
 
-	if(pos == EQP_ARMS && id->equip == EQP_HAND_R) { //Dual wield capable weapon.
+	if( pos == EQP_ARMS && id->equip == EQP_HAND_R ) { //Dual wield capable weapon.
 		pos = (req_pos&EQP_ARMS);
-		if (pos == EQP_ARMS) //User specified both slots, pick one for them.
+		if( pos == EQP_ARMS ) //User specified both slots, pick one for them.
 			pos = sd->equip_index[EQI_HAND_R] >= 0 ? EQP_HAND_L : EQP_HAND_R;
 	}
 
-	if (pos&EQP_HAND_R && battle_config.use_weapon_skill_range&BL_PC) {
+	if( pos&EQP_HAND_R && battle_config.use_weapon_skill_range&BL_PC ) {
 		//Update skill-block range database when weapon range changes. [Skotlex]
 		i = sd->equip_index[EQI_HAND_R];
-		if (i < 0 || !sd->inventory_data[i]) //No data, or no weapon equipped
+		if( i < 0 || !sd->inventory_data[i] ) //No data, or no weapon equipped
 			flag = 1;
 		else
 			flag = id->range != sd->inventory_data[i]->range;
 	}
 
-	for(i=0;i<EQI_MAX;i++) {
-		if(pos & equip_pos[i]) {
-			if(sd->equip_index[i] >= 0) //Slot taken, remove item from there.
+	for( i=0;i<EQI_MAX;i++ ) {
+		if( pos & equip_pos[i] ) {
+			if( sd->equip_index[i] >= 0 ) //Slot taken, remove item from there.
 				pc_unequipitem(sd,sd->equip_index[i],2);
 
 			sd->equip_index[i] = n;
 		}
 	}
 
-	if(pos==EQP_AMMO) {
+	if( pos == EQP_AMMO ) {
 		clif_arrowequip(sd,n);
 		clif_arrow_fail(sd,3);
 	} else
@@ -8488,21 +8489,21 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 
 	sd->status.inventory[n].equip=pos;
 
-	if(pos & EQP_HAND_R) {
-		if(id)
+	if( pos & EQP_HAND_R ) {
+		if( id )
 			sd->weapontype1 = id->look;
 		else
 			sd->weapontype1 = 0;
 		pc_calcweapontype(sd);
 		clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
 	}
-	if(pos & EQP_HAND_L) {
-		if(id) {
-			if(id->type == IT_WEAPON) {
+	if( pos & EQP_HAND_L ) {
+		if( id ) {
+			if( id->type == IT_WEAPON ) {
 				sd->status.shield = 0;
 				sd->weapontype2 = id->look;
 			} else
-			if(id->type == IT_ARMOR) {
+			if( id->type == IT_ARMOR ) {
 				sd->status.shield = id->look;
 				sd->weapontype2 = 0;
 			}
@@ -8513,55 +8514,55 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 	}
 	//Added check to prevent sending the same look on multiple slots ->
 	//causes client to redraw item on top of itself. (suggested by Lupus)
-	if(pos & EQP_HEAD_LOW && pc_checkequip(sd,EQP_COSTUME_HEAD_LOW) == -1) {
-		if(id && !(pos&(EQP_HEAD_TOP|EQP_HEAD_MID)))
+	if( pos & EQP_HEAD_LOW && pc_checkequip(sd,EQP_COSTUME_HEAD_LOW) == -1 ) {
+		if( id && !(pos&(EQP_HEAD_TOP|EQP_HEAD_MID)) )
 			sd->status.head_bottom = id->look;
 		else
 			sd->status.head_bottom = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_BOTTOM,sd->status.head_bottom);
 	}
-	if(pos & EQP_HEAD_TOP && pc_checkequip(sd,EQP_COSTUME_HEAD_TOP) == -1) {
-		if(id)
+	if( pos & EQP_HEAD_TOP && pc_checkequip(sd,EQP_COSTUME_HEAD_TOP) == -1 ) {
+		if( id )
 			sd->status.head_top = id->look;
 		else
 			sd->status.head_top = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_TOP,sd->status.head_top);
 	}
-	if(pos & EQP_HEAD_MID && pc_checkequip(sd,EQP_COSTUME_HEAD_MID) == -1) {
-		if(id && !(pos&EQP_HEAD_TOP))
+	if( pos & EQP_HEAD_MID && pc_checkequip(sd,EQP_COSTUME_HEAD_MID) == -1 ) {
+		if( id && !(pos&EQP_HEAD_TOP) )
 			sd->status.head_mid = id->look;
 		else
 			sd->status.head_mid = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
 	}
-	if(pos & EQP_COSTUME_HEAD_TOP) {
-		if(id) {
+	if( pos & EQP_COSTUME_HEAD_TOP ) {
+		if( id ) {
 			sd->status.head_top = id->look;
 		} else
 			sd->status.head_top = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_TOP,sd->status.head_top);
 	}
-	if(pos & EQP_COSTUME_HEAD_MID) {
-		if(id && !(pos&EQP_HEAD_TOP)) {
+	if( pos & EQP_COSTUME_HEAD_MID ) {
+		if( id && !(pos&EQP_HEAD_TOP) ) {
 			sd->status.head_mid = id->look;
 		} else
 			sd->status.head_mid = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
 	}
-	if(pos & EQP_COSTUME_HEAD_LOW) {
-		if(id && !(pos&(EQP_HEAD_TOP|EQP_HEAD_MID))) {
+	if( pos & EQP_COSTUME_HEAD_LOW ) {
+		if( id && !(pos&(EQP_HEAD_TOP|EQP_HEAD_MID)) ) {
 			sd->status.head_bottom = id->look;
 		} else
 			sd->status.head_bottom = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_BOTTOM,sd->status.head_bottom);
 	}
-	if(pos & EQP_SHOES)
+	if( pos & EQP_SHOES )
 		clif_changelook(&sd->bl,LOOK_SHOES,0);
-	if(pos & EQP_GARMENT && pc_checkequip(sd,EQP_COSTUME_GARMENT) == -1) {
+	if( pos & EQP_GARMENT && pc_checkequip(sd,EQP_COSTUME_GARMENT) == -1 ) {
 		sd->status.robe = id ? id->look : 0;
 		clif_changelook(&sd->bl,LOOK_ROBE,sd->status.robe);
 	}
-	if(pos & EQP_COSTUME_GARMENT) {
+	if( pos & EQP_COSTUME_GARMENT ) {
 		sd->status.robe = id ? id->look : 0;
 		clif_changelook(&sd->bl,LOOK_ROBE,sd->status.robe);
 	}
@@ -8573,14 +8574,14 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 	if ( id ) {
 		if( id->combos_count )
 			pc_checkcombo(sd,id);
-		if(itemdb_isspecial(sd->status.inventory[n].card[0]))
+		if( itemdb_isspecial(sd->status.inventory[n].card[0]) )
 			; //No cards
 		else {
 			for( i = 0; i < id->slot; i++ ) {
 				struct item_data *data;
-				if (!sd->status.inventory[n].card[i])
+				if( !sd->status.inventory[n].card[i] )
 					continue;
-				if ( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
+				if( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
 					if( data->combos_count )
 						pc_checkcombo(sd,data);
 				}
@@ -8589,21 +8590,21 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 	}
 	
 	status_calc_pc(sd,0);
-	if (flag) //Update skill data
+	if( flag ) //Update skill data
 		clif_skillinfoblock(sd);
 
 	//OnEquip script [Skotlex]
-	if (id) {
-		if (id->equip_script)
+	if( id ) {
+		if( id->equip_script )
 			run_script(id->equip_script,0,sd->bl.id,fake_nd->bl.id);
-		if(itemdb_isspecial(sd->status.inventory[n].card[0]))
+		if( itemdb_isspecial(sd->status.inventory[n].card[0]) )
 			; //No cards
 		else {
 			for( i = 0; i < id->slot; i++ ) {
 				struct item_data *data;
-				if (!sd->status.inventory[n].card[i])
+				if( !sd->status.inventory[n].card[i] )
 					continue;
-				if ( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
+				if( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
 					if( data->equip_script )
 						run_script(data->equip_script,0,sd->bl.id,fake_nd->bl.id);
 				}
@@ -8633,29 +8634,25 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 	}
 
 	// if player is berserk then cannot unequip
-	if (!(flag & 2) && sd->sc.count && (sd->sc.data[SC_BERSERK] || sd->sc.data[SC_SATURDAYNIGHTFEVER] || sd->sc.data[SC__BLOODYLUST])) {
+	if( !(flag & 2) && sd->sc.count && (sd->sc.data[SC_BERSERK] || sd->sc.data[SC_SATURDAYNIGHTFEVER] || sd->sc.data[SC__BLOODYLUST]
+		|| sd->sc.data[SC_KYOUGAKU] || (sd->sc.data[SC_PYROCLASTIC] && sd->inventory_data[n]->type == IT_WEAPON)) ) {
 		clif_unequipitemack(sd,n,0,0);
 		return 0;
 	}
 
-	if( !(flag&2) && sd->sc.count && sd->sc.data[SC_KYOUGAKU] ) {
-		clif_unequipitemack(sd,n,0,0);
-		return 0;
-	}
-
-	if(battle_config.battle_log)
+	if( battle_config.battle_log )
 		ShowInfo("unequip %d %x:%x\n",n,pc_equippoint(sd,n),sd->status.inventory[n].equip);
 
-	if(!sd->status.inventory[n].equip) { //Nothing to unequip
+	if( !sd->status.inventory[n].equip ) { //Nothing to unequip
 		clif_unequipitemack(sd,n,0,0);
 		return 0;
 	}
-	for(i=0;i<EQI_MAX;i++) {
-		if(sd->status.inventory[n].equip & equip_pos[i])
+	for( i=0;i<EQI_MAX;i++ ) {
+		if( sd->status.inventory[n].equip & equip_pos[i] )
 			sd->equip_index[i] = -1;
 	}
 
-	if(sd->status.inventory[n].equip & EQP_HAND_R) {
+	if( sd->status.inventory[n].equip & EQP_HAND_R ) {
 		sd->weapontype1 = 0;
 		sd->status.weapon = sd->weapontype2;
 		pc_calcweapontype(sd);
@@ -8663,57 +8660,57 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		if( !battle_config.dancing_weaponswitch_fix )
 			status_change_end(&sd->bl, SC_DANCING, INVALID_TIMER); // Unequipping => stop dancing.
 	}
-	if(sd->status.inventory[n].equip & EQP_HAND_L) {
+	if( sd->status.inventory[n].equip & EQP_HAND_L ) {
 		sd->status.shield = sd->weapontype2 = 0;
 		pc_calcweapontype(sd);
 		clif_changelook(&sd->bl,LOOK_SHIELD,sd->status.shield);
 	}
-	if(sd->status.inventory[n].equip & EQP_HEAD_LOW && pc_checkequip(sd,EQP_COSTUME_HEAD_LOW) == -1 ) {
+	if( sd->status.inventory[n].equip & EQP_HEAD_LOW && pc_checkequip(sd,EQP_COSTUME_HEAD_LOW) == -1 ) {
 		sd->status.head_bottom = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_BOTTOM,sd->status.head_bottom);
 	}
-	if(sd->status.inventory[n].equip & EQP_HEAD_TOP && pc_checkequip(sd,EQP_COSTUME_HEAD_TOP) == -1 ) {
+	if( sd->status.inventory[n].equip & EQP_HEAD_TOP && pc_checkequip(sd,EQP_COSTUME_HEAD_TOP) == -1 ) {
 		sd->status.head_top = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_TOP,sd->status.head_top);
 	}
-	if(sd->status.inventory[n].equip & EQP_HEAD_MID && pc_checkequip(sd,EQP_COSTUME_HEAD_MID) == -1 ) {
+	if( sd->status.inventory[n].equip & EQP_HEAD_MID && pc_checkequip(sd,EQP_COSTUME_HEAD_MID) == -1 ) {
 		sd->status.head_mid = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
 	}
 
-	if(sd->status.inventory[n].equip & EQP_COSTUME_HEAD_TOP) {
+	if( sd->status.inventory[n].equip & EQP_COSTUME_HEAD_TOP ) {
 		sd->status.head_top = ( pc_checkequip(sd,EQP_HEAD_TOP) >= 0 ) ? sd->inventory_data[pc_checkequip(sd,EQP_HEAD_TOP)]->look : 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_TOP,sd->status.head_top);
 	}
 
-	if(sd->status.inventory[n].equip & EQP_COSTUME_HEAD_MID) {
+	if( sd->status.inventory[n].equip & EQP_COSTUME_HEAD_MID ) {
 		sd->status.head_mid = ( pc_checkequip(sd,EQP_HEAD_MID) >= 0 ) ? sd->inventory_data[pc_checkequip(sd,EQP_HEAD_MID)]->look : 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
 	}
 
-	if(sd->status.inventory[n].equip & EQP_COSTUME_HEAD_LOW) {
+	if( sd->status.inventory[n].equip & EQP_COSTUME_HEAD_LOW ) {
 		sd->status.head_bottom = ( pc_checkequip(sd,EQP_HEAD_LOW) >= 0 ) ? sd->inventory_data[pc_checkequip(sd,EQP_HEAD_LOW)]->look : 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_BOTTOM,sd->status.head_bottom);
 	}
 
-	if(sd->status.inventory[n].equip & EQP_SHOES)
+	if( sd->status.inventory[n].equip & EQP_SHOES )
 		clif_changelook(&sd->bl,LOOK_SHOES,0);
-	if(sd->status.inventory[n].equip&EQP_GARMENT && pc_checkequip(sd,EQP_COSTUME_GARMENT) == -1) {
+	if( sd->status.inventory[n].equip&EQP_GARMENT && pc_checkequip(sd,EQP_COSTUME_GARMENT) == -1 ) {
 		sd->status.robe = 0;
 		clif_changelook(&sd->bl, LOOK_ROBE, 0);
 	}
-	if(sd->status.inventory[n].equip & EQP_COSTUME_GARMENT) {
+	if( sd->status.inventory[n].equip & EQP_COSTUME_GARMENT ) {
 		sd->status.robe = ( pc_checkequip(sd,EQP_GARMENT) >= 0 ) ? sd->inventory_data[pc_checkequip(sd,EQP_GARMENT)]->look : 0;
 		clif_changelook(&sd->bl,LOOK_ROBE,sd->status.robe);
 	}
 
 	clif_unequipitemack(sd,n,sd->status.inventory[n].equip,1);
 
-	if((sd->status.inventory[n].equip & EQP_ARMS) &&
-		sd->weapontype1 == 0 && sd->weapontype2 == 0 && (!sd->sc.data[SC_SEVENWIND] || sd->sc.data[SC_ASPERSIO])) //Check for seven wind (but not level seven!)
+	if( (sd->status.inventory[n].equip & EQP_ARMS) &&
+		sd->weapontype1 == 0 && sd->weapontype2 == 0 && (!sd->sc.data[SC_SEVENWIND] || sd->sc.data[SC_ASPERSIO]) ) //Check for seven wind (but not level seven!)
 		skill_enchant_elemental_end(&sd->bl,-1);
 
-	if(sd->status.inventory[n].equip & EQP_ARMOR) {
+	if( sd->status.inventory[n].equip & EQP_ARMOR ) {
 		// On Armor Change...
 		status_change_end(&sd->bl, SC_BENEDICTIO, INVALID_TIMER);
 		status_change_end(&sd->bl, SC_ARMOR_RESIST, INVALID_TIMER);
@@ -8726,18 +8723,19 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 	iflag = sd->npc_item_flag;
 
 	/* check for combos (MUST be before status_calc_pc) */
-	if ( sd->inventory_data[n] ) {
+	if( sd->inventory_data[n] ) {
 		if( sd->inventory_data[n]->combos_count ) {
 			if( pc_removecombo(sd,sd->inventory_data[n]) )
 				status_cacl = true;
-		} if(itemdb_isspecial(sd->status.inventory[n].card[0]))
+		}
+		if( itemdb_isspecial(sd->status.inventory[n].card[0]) )
 			; //No cards
 		else {
 			for( i = 0; i < sd->inventory_data[n]->slot; i++ ) {
 				struct item_data *data;
-				if (!sd->status.inventory[n].card[i])
+				if( !sd->status.inventory[n].card[i] )
 					continue;
-				if ( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
+				if( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
 					if( data->combos_count ) {
 						if( pc_removecombo(sd,data) )
 							status_cacl = true;
@@ -8747,19 +8745,19 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		}
 	}
 
-	if(flag&1 || status_cacl) {
+	if( flag&1 || status_cacl ) {
 		pc_checkallowskill(sd);
 		status_calc_pc(sd,0);
 	}
 
-	if(sd->sc.data[SC_SIGNUMCRUCIS] && !battle_check_undead(sd->battle_status.race,sd->battle_status.def_ele))
+	if( sd->sc.data[SC_SIGNUMCRUCIS] && !battle_check_undead(sd->battle_status.race,sd->battle_status.def_ele) )
 		status_change_end(&sd->bl, SC_SIGNUMCRUCIS, INVALID_TIMER);
 
 	//OnUnEquip script [Skotlex]
-	if (sd->inventory_data[n]) {
-		if (sd->inventory_data[n]->unequip_script)
+	if( sd->inventory_data[n] ) {
+		if( sd->inventory_data[n]->unequip_script )
 			run_script(sd->inventory_data[n]->unequip_script,0,sd->bl.id,fake_nd->bl.id);
-		if(itemdb_isspecial(sd->status.inventory[n].card[0]))
+		if( itemdb_isspecial(sd->status.inventory[n].card[0]) )
 			; //No cards
 		else {
 			for( i = 0; i < sd->inventory_data[n]->slot; i++ ) {
@@ -8767,7 +8765,7 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 				if (!sd->status.inventory[n].card[i])
 					continue;
 
-				if ( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
+				if( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
 					if( data->unequip_script )
 						run_script(data->unequip_script,0,sd->bl.id,fake_nd->bl.id);
 				}
@@ -9435,7 +9433,7 @@ int pc_split_atoui(char* str, unsigned int* val, char sep, int max)
 			val[i] = UINT_MAX;
 			if (!warning) {
 				warning = 1;
-				ShowWarning("pc_readdb (exp.txt): Required exp per level is capped to %u\n", UINT_MAX);
+				ShowWarning("pc_readdb (job_exp.txt): Required exp per level is capped to %u\n", UINT_MAX);
 			}
 		} else
 			val[i] = (unsigned int)f;
@@ -9729,7 +9727,7 @@ static bool pc_readdb_job_exp(char* fields[], int columns, int current)
 
 /*==========================================
  * pc DB reading.
- * exp.txt		- required experience values
+ * job_exp.txt		- required experience values
  * skill_tree.txt	- skill tree for every class
  * attr_fix.txt		- elemental adjustment table
  * job_db1.txt		- job,weight,hp_factor,hp_multiplicator,sp_factor,aspds/lvl
