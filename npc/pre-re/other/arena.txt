@@ -5,7 +5,6 @@
 //===== Current Version: =====================================
 //= 1.0
 //===== Compatible With: =====================================
-
 //= Any Athena Version
 //===== Description: =========================================
 //= Warp Points related to Izlude Arena && Control Panel
