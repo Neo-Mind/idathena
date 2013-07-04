@@ -1380,7 +1380,7 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 
 	nullpo_ret(sd);
 
-	if((skill = pc_checkskill(sd,AL_DEMONBANE)) > 0 &&
+	if( (skill = pc_checkskill(sd,AL_DEMONBANE)) > 0 &&
 		target->type == BL_MOB && //This bonus doesnt work against players.
 		(battle_check_undead(status->race,status->def_ele) || status->race==RC_DEMON) )
 		damage += (skill*(int)(3+(sd->status.base_level+1)*0.05));	// submitted by orn
@@ -2058,7 +2058,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				hitrate += hitrate * ( 2 * skill ) / 100;
 			
 			if((sd->status.weapon == W_DAGGER || sd->status.weapon == W_1HSWORD) &&
-				(skill = pc_checkskill(sd, GN_TRAINING_SWORD)) > 0 )
+				(skill = pc_checkskill(sd, GN_TRAINING_SWORD)) > 0)
 				hitrate += 3 * skill;
 		}
 		
@@ -2920,7 +2920,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					break;
 				case WM_REVERBERATION_MELEE:
 					//ATK [{(Skill Level x 100) + 300} x Caster Base Level / 100]
-					skillratio += 200 + 100 * pc_checkskill(sd, WM_REVERBERATION);
+					skillratio += 200 + 100 * sd ? pc_checkskill(sd, WM_REVERBERATION) : 1;
 					RE_LVL_DMOD(100);
 					break;
 				case WM_SEVERE_RAINSTORM_MELEE:
@@ -2948,7 +2948,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				case GN_CART_TORNADO:
 					// ATK [( Skill Level x 50 ) + ( Cart Weight / ( 150 - Caster Base STR ))] + ( Cart Remodeling Skill Level x 50 )] %
 					skillratio = 50 * skill_lv;
-					if( sd && sd->cart_weight)
+					if( sd && sd->cart_weight )
 						 skillratio += sd->cart_weight / 10 / max(150-sstatus->str,1) + pc_checkskill(sd, GN_REMODELING_CART) * 50;
 					break;
 				case GN_CARTCANNON:
