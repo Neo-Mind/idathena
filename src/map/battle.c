@@ -2920,7 +2920,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					break;
 				case WM_REVERBERATION_MELEE:
 					//ATK [{(Skill Level x 100) + 300} x Caster Base Level / 100]
-					skillratio += 200 + 100 * sd ? pc_checkskill(sd, WM_REVERBERATION) : 1;
+					skillratio += 200 + 100 * (sd ? pc_checkskill(sd, WM_REVERBERATION) : 1);
 					RE_LVL_DMOD(100);
 					break;
 				case WM_SEVERE_RAINSTORM_MELEE:
