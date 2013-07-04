@@ -9932,8 +9932,7 @@ void clif_parse_WisMessage(int fd, struct map_session_data* sd)
 	//-------------------------------------------------------//
 	//   Lordalfa - Paperboy - To whisper NPC commands       //
 	//-------------------------------------------------------//
-	if (target[0] && (strncasecmp(target,"NPC:",4) == 0) && (strlen(target) > 4))
-	{
+	if (target[0] && (strncasecmp(target,"NPC:",4) == 0) && (strlen(target) > 4)) {
 		char* str = target+4; //Skip the NPC: string part.
 		struct npc_data* npc;
 		if ((npc = npc_name2id(str))) {
@@ -9962,7 +9961,7 @@ void clif_parse_WisMessage(int fd, struct map_session_data* sd)
 				sprintf(output, "@whispervar%d$", i);
 				set_var(sd,output,(char *) split_data[i]);
 			}
-			
+
 			sprintf(output, "%s::OnWhisperGlobal", npc->exname);
 			npc_event(sd,output,0); // Calls the NPC label
 
@@ -9997,7 +9996,7 @@ void clif_parse_WisMessage(int fd, struct map_session_data* sd)
 		intif_wis_message(sd, target, message, messagelen);
 		return;
 	}
-	
+
 	// if player ignores everyone
 	if( dstsd->state.ignoreAll ) {
 		if (dstsd->sc.option & OPTION_INVISIBLE && pc_get_group_level(sd) < pc_get_group_level(dstsd))
@@ -10006,7 +10005,7 @@ void clif_parse_WisMessage(int fd, struct map_session_data* sd)
 			clif_wis_end(fd, 3); // 3: everyone ignored by target
 		return;
 	}
-	
+
 	// if player is autotrading
 	if( dstsd->state.autotrade == 1 ) {
 		char output[256];
@@ -10014,14 +10013,16 @@ void clif_parse_WisMessage(int fd, struct map_session_data* sd)
 		clif_wis_message(fd, wisp_server_name, output, strlen(output) + 1);
 		return;
 	}
-	
-	// if player ignores the source character
-	ARR_FIND(0, MAX_IGNORE_LIST, i, dstsd->ignore[i].name[0] == '\0' || strcmp(dstsd->ignore[i].name, sd->status.name) == 0);
-	if( i < MAX_IGNORE_LIST && dstsd->ignore[i].name[0] != '\0' ) { // source char present in ignore list
-		clif_wis_end(fd, 2); // 2: ignored by target
-		return;
+
+	if( pc_get_group_level(sd) <= pc_get_group_level(dstsd) ) {
+		// if player ignores the source character
+		ARR_FIND(0, MAX_IGNORE_LIST, i, dstsd->ignore[i].name[0] == '\0' || strcmp(dstsd->ignore[i].name, sd->status.name) == 0);
+		if( i < MAX_IGNORE_LIST && dstsd->ignore[i].name[0] != '\0' ) { // source char present in ignore list
+			clif_wis_end(fd, 2); // 2: ignored by target
+			return;
+		}
 	}
-		
+
 	// notify sender of success
 	clif_wis_end(fd, 0); // 0: success to send wisper
 

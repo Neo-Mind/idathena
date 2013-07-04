@@ -10620,8 +10620,6 @@ int skill_dance_overlap(struct skill_unit* unit, int flag)
 {
 	if (!unit || !unit->group || !(unit->group->state.song_dance&0x1))
 		return 0;
-	if (!flag && !(unit->val2&UF_ENSEMBLE))
-		return 0; //Nothing to remove, this unit is not overlapped.
 
 	if (unit->val1 != unit->group->skill_id) { //Reset state
 		unit->val1 = unit->group->skill_id;
