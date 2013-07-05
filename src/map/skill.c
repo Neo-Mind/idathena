@@ -7781,14 +7781,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case AB_CLEMENTIA:
-		case AB_CANTO: {
-				int bless_lv = sd ? (pc_checkskill(sd,AL_BLESSING) + (sd->status.job_level / 10)) : 1;
-				int agi_lv = sd ? (pc_checkskill(sd,AL_INCAGI) + (sd->status.job_level / 10)) : 1;
-				if( sd == NULL || sd->status.party_id == 0 || flag&1 )
-					clif_skill_nodamage(bl, bl, skill_id, skill_lv, sc_start(src,bl,type,100,
-						(skill_id == AB_CLEMENTIA) ? bless_lv : (skill_id == AB_CANTO) ? agi_lv : skill_lv, skill_get_time(skill_id,skill_lv)));
-				else if( sd )
-					party_foreachsamemap(skill_area_sub, sd, skill_get_splash(skill_id,skill_lv), src, skill_id, skill_lv, tick, flag|BCT_PARTY|1, skill_castend_nodamage_id);
+		case AB_CANTO:
+			if( sd )
+				i = skill_id == AB_CLEMENTIA ? pc_checkskill(sd,AL_BLESSING) : pc_checkskill(sd,AL_INCAGI);
+			if( sd == NULL || sd->status.party_id == 0 || flag&1 )
+				clif_skill_nodamage(bl,bl,skill_id,skill_lv,sc_start(src,bl,type,100,i + (sd ? (sd->status.job_level / 10) : 0),skill_get_time(skill_id,skill_lv)));
+			else if( sd ) {
+				if( !i )
+					clif_skill_fail(sd,skill_id,USESKILL_FAIL,0);
+				else
+					party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
 			}
 			break;
 
