@@ -47,9 +47,9 @@ int battle_getcurrentskill(struct block_list *bl) {	//Returns the current/last s
 		struct skill_unit * su = (struct skill_unit*)bl;
 		return su->group?su->group->skill_id:0;
 	}
-	
+
 	ud = unit_bl2ud(bl);
-	
+
 	return ud?ud->skill_id:0;
 }
 
@@ -68,7 +68,7 @@ static int battle_gettargeted_sub(struct block_list *bl, va_list ap) {
 
 	if (bl->id == target_id)
 		return 0;
-		
+
 	if (*c >= 24)
 		return 0;
 
@@ -124,18 +124,18 @@ static int battle_getenemy_sub(struct block_list *bl, va_list ap) {
 
 	if (bl->id == target->id)
 		return 0;
-		
+
 	if (*c >= 24)
 		return 0;
-		
+
 	if (status_isdead(bl))
 		return 0;
-		
+
 	if (battle_check_target(target, bl, BCT_ENEMY) > 0) {
 		bl_list[(*c)++] = bl;
 		return 1;
 	}
-	
+
 	return 0;
 }
 
@@ -143,16 +143,16 @@ static int battle_getenemy_sub(struct block_list *bl, va_list ap) {
 struct block_list* battle_getenemy(struct block_list *target, int type, int range) {
 	struct block_list *bl_list[24];
 	int c = 0;
-	
+
 	memset(bl_list, 0, sizeof(bl_list));
 	map_foreachinrange(battle_getenemy_sub, target, range, type, bl_list, &c, target);
-	
+
 	if ( c == 0 )
 		return NULL;
-		
+
 	if ( c > 24 )
 		c = 24;
-		
+
 	return bl_list[rnd()%c];
 }
 static int battle_getenemyarea_sub(struct block_list *bl, va_list ap) {
@@ -166,18 +166,18 @@ static int battle_getenemyarea_sub(struct block_list *bl, va_list ap) {
 
 	if( bl->id == src->id || bl->id == ignore_id )
 		return 0; // Ignores Caster and a possible pre-target
-		
+
 	if( *c >= 23 )
 		return 0;
-		
+
 	if( status_isdead(bl) )
 		return 0;
-		
+
 	if( battle_check_target(src, bl, BCT_ENEMY) > 0 ) { // Is Enemy!...
 		bl_list[(*c)++] = bl;
 		return 1;
 	}
-	
+
 	return 0;
 }
 
@@ -185,15 +185,15 @@ static int battle_getenemyarea_sub(struct block_list *bl, va_list ap) {
 struct block_list* battle_getenemyarea(struct block_list *src, int x, int y, int range, int type, int ignore_id) {
 	struct block_list *bl_list[24];
 	int c = 0;
-	
+
 	memset(bl_list, 0, sizeof(bl_list));
 	map_foreachinarea(battle_getenemyarea_sub, src->m, x - range, y - range, x + range, y + range, type, bl_list, &c, src, ignore_id);
-	
+
 	if( c == 0 )
 		return NULL;
 	if( c >= 24 )
 		c = 23;
-		
+
 	return bl_list[rnd()%c];
 }
 
@@ -213,18 +213,18 @@ struct delay_damage {
 
 int battle_delay_damage_sub(int tid, unsigned int tick, int id, intptr_t data) {
 	struct delay_damage *dat = (struct delay_damage *)data;
-	
+
 	if ( dat ) {
 		struct block_list* src;
 		struct block_list* target = map_id2bl(dat->target_id);
-		
+
 		if( !target || status_isdead(target) ) {/* nothing we can do */
 			ers_free(delay_damage_ers, dat);
 			return 0;
 		}
-			
+
 		src = map_id2bl(dat->src_id);
-		
+
 		if( src && target->m == src->m &&
 			(target->type != BL_PC || ((TBL_PC*)target)->invincible_timer == INVALID_TIMER) &&
 			check_distance_bl(src, target, dat->distance) ) //Check to see if you haven't teleported. [Skotlex]
@@ -313,7 +313,7 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 
 	if (src) sc = status_get_sc(src);
 	if (target) tsc = status_get_sc(target);
-	
+
 	if (atk_elem < 0 || atk_elem >= ELE_MAX)
 		atk_elem = rnd()%ELE_MAX;
 
