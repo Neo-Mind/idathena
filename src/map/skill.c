@@ -14058,16 +14058,16 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 		time = time * 80 / 100; // variable time
 	} else if( fixed < 0 ) // no fixed cast time
 		fixed = 0;
-	
-	if(sd  && !(skill_get_castnodex(skill_id, skill_lv)&4) ) { // Increases/Decreases fixed/variable cast time of a skill by item/card bonuses.
+
+	if( sd  && !(skill_get_castnodex(skill_id, skill_lv)&4) ) { // Increases/Decreases fixed/variable cast time of a skill by item/card bonuses.
 		if( sd->bonus.varcastrate < 0 )
 			VARCAST_REDUCTION(sd->bonus.varcastrate);
 		if( sd->bonus.add_varcast != 0 ) // bonus bVariableCast
 			time += sd->bonus.add_varcast;
 		if( sd->bonus.add_fixcast != 0 ) // bonus bFixedCast
 			fixed += sd->bonus.add_fixcast;
-		for (i = 0; i < ARRAYLENGTH(sd->skillfixcast) && sd->skillfixcast[i].id; i++)
-			if (sd->skillfixcast[i].id == skill_id) { // bonus2 bSkillFixedCast
+		for( i = 0; i < ARRAYLENGTH(sd->skillfixcast) && sd->skillfixcast[i].id; i++ )
+			if( sd->skillfixcast[i].id == skill_id ) { // bonus2 bSkillFixedCast
 				fixed += sd->skillfixcast[i].val;
 				break;
 			}
@@ -14088,26 +14088,26 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 			}
 	}
 
-	if (sc && sc->count && !(skill_get_castnodex(skill_id, skill_lv)&2) ) {
+	if( sc && sc->count && !(skill_get_castnodex(skill_id, skill_lv)&2) ) {
 		// All variable cast additive bonuses must come first
-		if (sc->data[SC_SLOWCAST])
+		if( sc->data[SC_SLOWCAST] )
 			VARCAST_REDUCTION(-sc->data[SC_SLOWCAST]->val2);
 
 		// Variable cast reduction bonuses
-		if (sc->data[SC_SUFFRAGIUM]) {
+		if( sc->data[SC_SUFFRAGIUM] ) {
 			VARCAST_REDUCTION(sc->data[SC_SUFFRAGIUM]->val2);
 			status_change_end(bl, SC_SUFFRAGIUM, INVALID_TIMER);
 		}
-		if (sc->data[SC_MEMORIZE]) {
+		if( sc->data[SC_MEMORIZE] ) {
 			VARCAST_REDUCTION(50);
-			if ((--sc->data[SC_MEMORIZE]->val2) <= 0)
+			if( (--sc->data[SC_MEMORIZE]->val2) <= 0 )
 				status_change_end(bl, SC_MEMORIZE, INVALID_TIMER);
 		}
-		if (sc->data[SC_POEMBRAGI])
+		if( sc->data[SC_POEMBRAGI] )
 			VARCAST_REDUCTION(sc->data[SC_POEMBRAGI]->val2);
-		if (sc->data[SC_IZAYOI])
+		if( sc->data[SC_IZAYOI] )
 			VARCAST_REDUCTION(50);
-		if (sc->data[SC_WATER_INSIGNIA] && sc->data[SC_WATER_INSIGNIA]->val1 == 3 && (skill_get_ele(skill_id, skill_lv) == ELE_WATER))
+		if( sc->data[SC_WATER_INSIGNIA] && sc->data[SC_WATER_INSIGNIA]->val1 == 3 && (skill_get_ele(skill_id, skill_lv) == ELE_WATER) )
 			VARCAST_REDUCTION(30); //Reduces 30% Variable Cast Time of Water spells.
 		// Fixed cast reduction bonuses
 		if( sc->data[SC__LAZINESS] )
@@ -14179,7 +14179,7 @@ int skill_delayfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 			time -= 4*status_get_agi(bl) - 2*status_get_dex(bl);
 			break;
 		case HP_BASILICA:
-			if( sc && !sc->data[SC_BASILICA] )
+			if (sc && !sc->data[SC_BASILICA])
 				time = 0; // There is no Delay on Basilica creation, only on cancel
 			break;
 		default:
@@ -14199,7 +14199,7 @@ int skill_delayfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 			}
 	}
 
-	if ( sc && sc->data[SC_SPIRIT] ) {
+	if (sc && sc->data[SC_SPIRIT]) {
 		switch (skill_id) {
 			case CR_SHIELDBOOMERANG:
 				if (sc->data[SC_SPIRIT]->val2 == SL_CRUSADER)
@@ -14221,7 +14221,7 @@ int skill_delayfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 		}
 	}
 
-	if( !(delaynodex&4) && sd && sd->delayrate != 100 )
+	if (!(delaynodex&4) && sd && sd->delayrate != 100)
 		time = time * sd->delayrate / 100;
 
 	if (battle_config.delay_rate != 100)
@@ -14265,7 +14265,7 @@ void skill_overbrand(struct block_list* src, uint16 skill_id, uint16 skill_lv, u
 			uy[i] = layout->dy[i] * -1;
 		}
 	}
-	for( i = 0; i < 53; i++ ) {
+	for(i = 0; i < 53; i++) {
 		if(i < 12) { //Close range hits twice
 			map_foreachincell(skill_area_sub, src->m, x+ux[i], y+uy[i], splash_target(src), src, LG_OVERBRAND_BRANDISH, skill_lv, tick, flag|BCT_ENEMY,skill_castend_damage_id);
 			map_foreachincell(skill_area_sub, src->m, x+ux[i], y+uy[i], splash_target(src), src, skill_id, skill_lv, tick, flag|BCT_ENEMY,skill_castend_damage_id);

@@ -8435,16 +8435,16 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				}
 				break;
 			case SC__LAZINESS:
-				val2 = 10 * val1;//FLEE Reduction
-				val3 = 10 + 10 * val1;//Increased Cast Time
+				val2 = 10 * val1; //FLEE Reduction
+				val3 = 10 + 10 * val1; //Increased Cast Time
 				val_flag |= 1|2|4;
 				break;
 			case SC__UNLUCKY:
-				val2 = 10 * val1;// Critical and Perfect Dodge Reduction
+				val2 = 10 * val1; // Critical and Perfect Dodge Reduction
 				val_flag |= 1|2|4;
 				break;
 			case SC__WEAKNESS:
-				val2 = 10 * val1;//MaxHP Reduction
+				val2 = 10 * val1; //MaxHP Reduction
 				val_flag |= 1|2;
 				// bypasses coating protection and MADO
 				sc_start(src,bl,SC_STRIPWEAPON,100,val1,tick);

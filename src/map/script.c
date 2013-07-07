@@ -15357,9 +15357,10 @@ BUILDIN_FUNC(unittalk)
 		struct StringBuf sbuf;
 		StringBuf_Init(&sbuf);
 		StringBuf_Printf(&sbuf, "%s : %s", status_get_name(bl), message);
-		clif_disp_overhead(bl, StringBuf_Value(&sbuf));
 		if( bl->type == BL_PC )
 			clif_displaymessage(((TBL_PC*)bl)->fd, StringBuf_Value(&sbuf));
+		else
+			clif_disp_overhead(bl, StringBuf_Value(&sbuf));
 		StringBuf_Destroy(&sbuf);
 	}
 
