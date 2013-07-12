@@ -6168,7 +6168,7 @@ void status_set_viewdata(struct block_list *bl, int class_)
 				} else if (vd)
 					memcpy(&sd->vd, vd, sizeof(struct view_data));
 				else
-					ShowError("status_set_viewdata (PC): No view data for class %d\n", class_);
+					ShowError("status_set_viewdata (PC): No view data for class %d\n ", class_);
 			}
 			break;
 		case BL_MOB: {
@@ -6176,7 +6176,7 @@ void status_set_viewdata(struct block_list *bl, int class_)
 				if (vd)
 					md->vd = vd;
 				else
-					ShowError("status_set_viewdata (MOB): No view data for class %d\n", class_);
+					ShowError("status_set_viewdata (MOB): No view data for class %d\n ", class_);
 			}
 			break;
 		case BL_PET: {
@@ -6192,7 +6192,7 @@ void status_set_viewdata(struct block_list *bl, int class_)
 						}
 					}
 				} else
-					ShowError("status_set_viewdata (PET): No view data for class %d\n", class_);
+					ShowError("status_set_viewdata (PET): No view data for class %d\n ", class_);
 			}
 			break;
 		case BL_NPC: {
@@ -6200,7 +6200,7 @@ void status_set_viewdata(struct block_list *bl, int class_)
 				if (vd)
 					nd->vd = vd;
 				else
-					ShowError("status_set_viewdata (NPC): No view data for class %d\n", class_);
+					ShowError("status_set_viewdata (NPC): No view data for class %d\n ", class_);
 			}
 			break;
 		case BL_HOM: { //[blackhole89]
@@ -6208,7 +6208,7 @@ void status_set_viewdata(struct block_list *bl, int class_)
 				if (vd)
 					hd->vd = vd;
 				else
-					ShowError("status_set_viewdata (HOMUNCULUS): No view data for class %d\n", class_);
+					ShowError("status_set_viewdata (HOMUNCULUS): No view data for class %d\n ", class_);
 			}
 			break;
 		case BL_MER: {
@@ -6216,7 +6216,7 @@ void status_set_viewdata(struct block_list *bl, int class_)
 				if (vd)
 					md->vd = vd;
 				else
-					ShowError("status_set_viewdata (MERCENARY): No view data for class %d\n", class_);
+					ShowError("status_set_viewdata (MERCENARY): No view data for class %d\n ", class_);
 			}
 			break;
 		case BL_ELEM: {
@@ -6224,7 +6224,7 @@ void status_set_viewdata(struct block_list *bl, int class_)
 				if (vd)
 					ed->vd = vd;
 				else
-					ShowError("status_set_viewdata (ELEMENTAL): No view data for class %d\n", class_);
+					ShowError("status_set_viewdata (ELEMENTAL): No view data for class %d\n ", class_);
 			}
 			break;
 	}
