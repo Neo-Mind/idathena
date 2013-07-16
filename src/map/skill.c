@@ -18073,7 +18073,7 @@ static bool skill_parse_row_spellbookdb(char* split[], int columns, int current)
 static bool skill_parse_row_improvisedb(char* split[], int columns, int current)
 { // SkillID,Rate
 	uint16 skill_id = atoi(split[0]);
-	short j = atoi(split[1]);
+	int j = atoi(split[1]);
 
 	if( !skill_get_index(skill_id) || !skill_get_max(skill_id) ) {
 		ShowError("skill_improvise_db: Invalid skill ID %d\n", skill_id);
