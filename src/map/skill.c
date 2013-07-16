@@ -101,7 +101,7 @@ struct s_skill_arrow_db skill_arrow_db[MAX_SKILL_ARROW_DB];
 struct s_skill_abra_db skill_abra_db[MAX_SKILL_ABRA_DB];
 struct s_skill_improvise_db {
 	uint16 skill_id;
-	short per; //1-10000
+	int per; //1-10000
 };
 struct s_skill_improvise_db skill_improvise_db[MAX_SKILL_IMPROVISE_DB];
 bool skill_reproduce_db[MAX_SKILL_DB];
