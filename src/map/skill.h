@@ -1889,12 +1889,16 @@ enum gx_poison {
 	PO_VENOMBLEED
 };
 /**
- * Auto Shadow Spell (Shadow Chaser)
+ * Shadow Chaser
  **/
+int skill_maelstrom_suction(struct block_list *bl, va_list ap);
 int skill_select_menu(struct map_session_data *sd,uint16 skill_id);
 
-int skill_elementalanalysis(struct map_session_data *sd, int n, uint16 skill_lv, unsigned short *item_list); // Sorcerer Four Elemental Analisys.
-int skill_changematerial(struct map_session_data *sd, int n, unsigned short *item_list); // Genetic Change Material.
+// Sorcerer Four Elemental Analisys.
+int skill_elementalanalysis(struct map_session_data *sd, int n, uint16 skill_lv, unsigned short *item_list);
+
+ // Genetic Change Material.
+int skill_changematerial(struct map_session_data *sd, int n, unsigned short *item_list);
 int skill_get_elemental_type(uint16 skill_id, uint16 skill_lv);
 
 void skill_combo_toogle_inf(struct block_list* bl, uint16 skill_id, int inf);

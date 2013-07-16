@@ -729,6 +729,11 @@ ACMD_FUNC(save)
 {
 	nullpo_retr(-1, sd);
 
+	if( map[sd->bl.m].instance_id ) {
+		clif_displaymessage(fd, msg_txt(383)); // You cannot create a savepoint in an instance.
+		return 1;
+	}
+
 	pc_setsavepoint(sd, sd->mapindex, sd->bl.x, sd->bl.y);
 	if (sd->status.pet_id > 0 && sd->pd)
 		intif_save_petdata(sd->status.account_id, &sd->pd->pet);
@@ -1042,7 +1047,7 @@ ACMD_FUNC(kami)
 			clif_displaymessage(fd, msg_txt(981)); // Please enter color and message (usage: @kamic <color> <message>).
 			return -1;
 		}
-	
+
 		if(color > 0xFFFFFF) {
 			clif_displaymessage(fd, msg_txt(982)); // Invalid color.
 			return -1;
@@ -2196,12 +2201,10 @@ ACMD_FUNC(memo)
 
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
-	if( !message || !*message || sscanf(message, "%d", &position) < 1 )
-	{
+	if( !message || !*message || sscanf(message, "%d", &position) < 1 ) {
 		int i;
 		clif_displaymessage(sd->fd,  msg_txt(668));
-		for( i = 0; i < MAX_MEMOPOINTS; i++ )
-		{
+		for( i = 0; i < MAX_MEMOPOINTS; i++ ) {
 			if( sd->status.memo_point[i].map )
 				sprintf(atcmd_output, "%d - %s (%d,%d)", i, mapindex_id2name(sd->status.memo_point[i].map), sd->status.memo_point[i].x, sd->status.memo_point[i].y);
 			else
@@ -2211,15 +2214,13 @@ ACMD_FUNC(memo)
 		return 0;
  	}
  
-	if( position < 0 || position >= MAX_MEMOPOINTS )
-	{
+	if( position < 0 || position >= MAX_MEMOPOINTS ) {
 		sprintf(atcmd_output, msg_txt(1008), 0, MAX_MEMOPOINTS-1); // Please enter a valid position (usage: @memo <memo_position:%d-%d>).
 		clif_displaymessage(fd, atcmd_output);
 		return -1;
 	}
 
-	pc_memo(sd, position);
-	return 0;
+	return !pc_memo(sd, position);
 }
 
 /*==========================================
@@ -3937,15 +3938,17 @@ ACMD_FUNC(mapinfo)
 	if (map[m_id].flag.chmautojoin)
 		strcat(atcmd_output, msg_txt(1100)); // Chmautojoin |
 	if (map[m_id].flag.nousecart)
-		strcat(atcmd_output, msg_txt(1101)); // nousecart |
+		strcat(atcmd_output, msg_txt(1101)); // NoUseCart |
 	if (map[m_id].flag.noitemconsumption)
-		strcat(atcmd_output, msg_txt(1102)); // noitemconsumption |
+		strcat(atcmd_output, msg_txt(1102)); // NoItemConsumption |
 	if (map[m_id].flag.nosumstarmiracle)
-		strcat(atcmd_output, msg_txt(1103)); // nosumstarmiracle |
+		strcat(atcmd_output, msg_txt(1103)); // NoSumStarMiracle |
 	if (map[m_id].flag.nomineeffect)
-		strcat(atcmd_output, msg_txt(1104)); // nomineeffect |
+		strcat(atcmd_output, msg_txt(1104)); // NoMineEffect |
 	if (map[m_id].flag.nolockon)
-		strcat(atcmd_output, msg_txt(1105)); // nolockon |
+		strcat(atcmd_output, msg_txt(1105)); // NoLockOn |
+	if (map[m_id].flag.notomb)
+		strcat(atcmd_output, msg_txt(1107)); // NoTomb |
 	clif_displaymessage(fd, atcmd_output);
 
 	switch (list) {
@@ -5680,7 +5683,7 @@ ACMD_FUNC(changeleader)
 		return -1;
 	}
 
-	if (party_changeleader(sd, map_nick2sd((char *) message)))
+	if( party_changeleader(sd, map_nick2sd((char *) message),NULL) )
 		return 0;
 	return -1;
 }
@@ -7603,7 +7606,9 @@ ACMD_FUNC(mapflag) {
 		checkflag(nogo);				checkflag(nobaseexp);
 		checkflag(nojobexp);			checkflag(nomobloot);			checkflag(nomvploot);	checkflag(nightenabled);
 		checkflag(restricted);			checkflag(nodrop);				checkflag(novending);	checkflag(loadevent);
-		checkflag(nochat);				checkflag(partylock);			checkflag(guildlock);
+		checkflag(nochat);				checkflag(partylock);			checkflag(guildlock);	checkflag(reset);
+		checkflag(chmautojoin);			checkflag(nousecart);			checkflag(noitemconsumption);	checkflag(nosumstarmiracle);
+		checkflag(nomineeffect);		checkflag(nolockon);			checkflag(notomb);
 		clif_displaymessage(sd->fd," ");
 		clif_displaymessage(sd->fd,msg_txt(1312)); // Usage: "@mapflag monster_noteleport 1" (0=Off | 1=On)
 		clif_displaymessage(sd->fd,msg_txt(1313)); // Type "@mapflag available" to list the available mapflags.
@@ -7623,7 +7628,9 @@ ACMD_FUNC(mapflag) {
 	setflag(nogo);				setflag(nobaseexp);
 	setflag(nojobexp);			setflag(nomobloot);			setflag(nomvploot);			setflag(nightenabled);
 	setflag(restricted);		setflag(nodrop);			setflag(novending);			setflag(loadevent);
-	setflag(nochat);			setflag(partylock);			setflag(guildlock);
+	setflag(nochat);			setflag(partylock);			setflag(guildlock);			setflag(reset);
+	setflag(chmautojoin);		setflag(nousecart);			setflag(noitemconsumption);	setflag(nosumstarmiracle);
+	setflag(nomineeffect);		setflag(nolockon);			setflag(notomb);
 
 	clif_displaymessage(sd->fd,msg_txt(1314)); // Invalid flag name or flag.
 	clif_displaymessage(sd->fd,msg_txt(1312)); // Usage: "@mapflag monster_noteleport 1" (0=Off | 1=On)
@@ -7633,9 +7640,9 @@ ACMD_FUNC(mapflag) {
 	clif_displaymessage(sd->fd,"nobranch, noexppenalty, pvp, pvp_noparty, pvp_noguild, pvp_nightmaredrop,");
 	clif_displaymessage(sd->fd,"pvp_nocalcrank, gvg_castle, gvg, gvg_dungeon, gvg_noparty, battleground,");
 	clif_displaymessage(sd->fd,"nozenypenalty, notrade, noskill, nowarp, nowarpto, noicewall, snow, clouds, clouds2,");
-	clif_displaymessage(sd->fd,"fog, fireworks, sakura, leaves, nogo, nobaseexp, nojobexp, nomobloot,");
-	clif_displaymessage(sd->fd,"nomvploot, nightenabled, restricted, nodrop, novending, loadevent, nochat, partylock,");
-	clif_displaymessage(sd->fd,"guildlock");
+	clif_displaymessage(sd->fd,"fog, fireworks, sakura, leaves, nogo, nobaseexp, nojobexp, nomobloot, nomvploot,");
+	clif_displaymessage(sd->fd,"nightenabled, restricted, nodrop, novending, loadevent, nochat, partylock, guildlock,");
+	clif_displaymessage(sd->fd,"reset, chmautojoin, nousecart, noitemconsumption, nosumstarmiracle, nolockon, notomb");
 
 #undef checkflag
 #undef setflag
@@ -8488,7 +8495,7 @@ ACMD_FUNC(set) {
 	struct script_data* data;
 	int toset = 0, len;
 	bool is_str = false;
-	
+
 	if( !message || !*message || (toset = sscanf(message, "%31s %128[^\n]s", reg, val)) < 1  ) {
 		clif_displaymessage(fd, msg_txt(1367)); // Usage: @set <variable name> <value>
 		clif_displaymessage(fd, msg_txt(1368)); // Usage: ex. "@set PoringCharVar 50"
@@ -8496,8 +8503,8 @@ ACMD_FUNC(set) {
 		clif_displaymessage(fd, msg_txt(1370)); // Usage: ex. "@set PoringCharVarSTR$" outputs its value, Super Duper String.
 		return -1;
 	}
-		
-	/* disabled variable types (they require a proper script state to function, so allowing them would crash the server) */
+
+	/* Disabled variable types (they require a proper script state to function, so allowing them would crash the server) */
 	if( reg[0] == '.' ) {
 		clif_displaymessage(fd, msg_txt(1371)); // NPC variables may not be used with @set.
 		return -1;
@@ -8507,14 +8514,14 @@ ACMD_FUNC(set) {
 	}
 
 	is_str = ( reg[strlen(reg) - 1] == '$' ) ? true : false;
-	
+
 	if( ( len = strlen(val) ) > 1 ) {
 		if( val[0] == '"' && val[len-1] == '"') {
 			val[len-1] = '\0'; //Strip quotes.
 			memmove(val, val+1, len-1);
 		}
 	}
-	
+
 	if( toset >= 2 ) {/* we only set the var if there is an val, otherwise we only output the value */
 		if( is_str )
 			set_var(sd, reg, (void*) val);
@@ -8522,12 +8529,11 @@ ACMD_FUNC(set) {
 			set_var(sd, reg, (void*)__64BPRTSIZE((atoi(val))));
 
 	}
-	
+
 	CREATE(data, struct script_data,1);
-	
-	
+
 	if( is_str ) {// string variable
-		
+
 		switch( reg[0] ) {
 			case '@':
 				data->u.str = pc_readregstr(sd, add_str(reg));
@@ -8537,25 +8543,25 @@ ACMD_FUNC(set) {
 				break;
 			case '#':
 				if( reg[1] == '#' )
-					data->u.str = pc_readaccountreg2str(sd, reg);// global
+					data->u.str = pc_readaccountreg2str(sd, reg); // Global
 				else
-					data->u.str = pc_readaccountregstr(sd, reg);// local
+					data->u.str = pc_readaccountregstr(sd, reg); // Local
 				break;
 			default:
 				data->u.str = pc_readglobalreg_str(sd, reg);
 				break;
 		}
-		
-		if( data->u.str == NULL || data->u.str[0] == '\0' ) {// empty string
+
+		if( data->u.str == NULL || data->u.str[0] == '\0' ) { // Empty string
 			data->type = C_CONSTSTR;
 			data->u.str = "";
-		} else {// duplicate string
+		} else { // Duplicate string
 			data->type = C_STR;
 			data->u.str = aStrdup(data->u.str);
 		}
-		
-	} else {// integer variable
-		
+
+	} else { // Integer variable
+
 		data->type = C_INT;
 		switch( reg[0] ) {
 			case '@':
@@ -8576,8 +8582,7 @@ ACMD_FUNC(set) {
 		}
 		
 	}
-	
-	
+
 	switch( data->type ) {
 		case C_INT:
 			sprintf(atcmd_output,msg_txt(1373),reg,data->u.num); // %s value is now :%d
@@ -8592,11 +8597,11 @@ ACMD_FUNC(set) {
 			sprintf(atcmd_output,msg_txt(1376),reg,data->type); // %s data type is not supported :%u
 			break;
 	}
-	
+
 	clif_displaymessage(fd, atcmd_output);
-	
+
 	aFree(data);
-	
+
 	return 0;
 }
 
@@ -8604,7 +8609,7 @@ ACMD_FUNC(addperm) {
 	int perm_size = ARRAYLENGTH(pc_g_permission_name);
 	bool add = (strcmpi(command+1, "addperm") == 0) ? true : false;
 	int i;
-	
+
 	if( !message || !*message ) {
 		sprintf(atcmd_output,  msg_txt(1378),command); // Usage: %s <permission_name>
 		clif_displaymessage(fd, atcmd_output);
@@ -8615,7 +8620,7 @@ ACMD_FUNC(addperm) {
 		}
 		return -1;
 	}
-	
+
 	ARR_FIND(0, perm_size, i, strcmpi(pc_g_permission_name[i].name, message) == 0);
 
 	if( i == perm_size ) {
@@ -8628,7 +8633,7 @@ ACMD_FUNC(addperm) {
 		}
 		return -1;
 	}
-	
+
 	if( add && (sd->permissions&pc_g_permission_name[i].permission) ) {
 		sprintf(atcmd_output,  msg_txt(1381),sd->status.name,pc_g_permission_name[i].name); // User '%s' already possesses the '%s' permission.
 		clif_displaymessage(fd, atcmd_output);
@@ -8647,25 +8652,24 @@ ACMD_FUNC(addperm) {
 		
 		return -1;
 	}
-	
+
 	if( add )
 		sd->permissions |= pc_g_permission_name[i].permission;
 	else
 		sd->permissions &=~ pc_g_permission_name[i].permission;
 
-
 	sprintf(atcmd_output, msg_txt(1384),sd->status.name); // User '%s' permissions updated successfully. The changes are temporary.
 	clif_displaymessage(fd, atcmd_output);
-	
+
 	return 0;
 }
 ACMD_FUNC(unloadnpcfile) {
-	
+
 	if( !message || !*message ) {
 		clif_displaymessage(fd, msg_txt(1385)); // Usage: @unloadnpcfile <file name>
 		return -1;
 	}
-	
+
 	if( npc_unloadfile(message) )
 		clif_displaymessage(fd, msg_txt(1386)); // File unloaded. Be aware that mapflags and monsters spawned directly are not removed.
 	else {

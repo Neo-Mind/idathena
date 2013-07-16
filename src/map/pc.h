@@ -249,8 +249,7 @@ struct map_session_data {
 	unsigned int canskill_tick; // used to prevent abuse from no-delay ACT files
 	unsigned int cansendmail_tick; // [Mail System Flood Protection]
 	unsigned int ks_floodprotect_tick; // [Kill Steal Protection]
-	unsigned int bloodylust_tick; // bloodylust player timer [out/in re full-heal protection]
-	
+
 	struct {
 		short nameid;
 		unsigned int tick;
@@ -359,7 +358,7 @@ struct map_session_data {
 		int fixcastrate, varcastrate;
 		int add_fixcast, add_varcast;
 		int ematk; // matk bonus from equipment
-//		int eatk; // atk bonus from equipment
+		int eatk; // atk bonus from equipment
 	} bonus;
 
 	// zeroed vars end here.
@@ -695,13 +694,13 @@ struct {
 // clientside display macros (values to the left/right of the "+")
 #ifdef RENEWAL
 	#define pc_leftside_atk(sd) ((sd)->battle_status.batk)
-	#define pc_rightside_atk(sd) ((sd)->battle_status.rhw.atk + (sd)->battle_status.lhw.atk + (sd)->battle_status.rhw.atk2 + (sd)->battle_status.lhw.atk2)
+	#define pc_rightside_atk(sd) ((sd)->battle_status.rhw.atk + (sd)->battle_status.lhw.atk + (sd)->battle_status.rhw.atk2 + (sd)->battle_status.lhw.atk2 + (sd)->battle_status.eatk)
 	#define pc_leftside_def(sd) ((sd)->battle_status.def2)
 	#define pc_rightside_def(sd) ((sd)->battle_status.def)
 	#define pc_leftside_mdef(sd) ((sd)->battle_status.mdef2)
 	#define pc_rightside_mdef(sd) ((sd)->battle_status.mdef)
 	#define pc_leftside_matk(sd) (status_base_matk(status_get_status_data(&(sd)->bl), (sd)->status.base_level))
-	#define pc_rightside_matk(sd) ((sd)->battle_status.rhw.matk+(sd)->bonus.ematk)	
+	#define pc_rightside_matk(sd) ((sd)->battle_status.rhw.matk+(sd)->battle_status.lhw.matk+(sd)->bonus.ematk)	
 #else
 	#define pc_leftside_atk(sd) ((sd)->battle_status.batk + (sd)->battle_status.rhw.atk + (sd)->battle_status.lhw.atk)
 	#define pc_rightside_atk(sd) ((sd)->battle_status.rhw.atk2 + (sd)->battle_status.lhw.atk2)

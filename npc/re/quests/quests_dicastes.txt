@@ -8,7 +8,7 @@
 //= rAthena SVN
 //===== Description: =========================================
 //= [Official Conversion]
-//= Quest NPCs related to El Dicastes:
+//= Quest NPCs related to Dewata:
 //== Sapha's Visit, Doha's Secrect Order, Frede's Request,
 //== Department Quests, Document Quests,
 //== Chesire's Call, Cat Hands Enchantment
@@ -3625,7 +3625,6 @@ mid_campin,168,170,3	script	Inspector Doha#ep133	59,{
 	mes "[Doha]";
 	mes "There won't be any changes to the current policy.";
 	mes "Home land will continue to review the contents of your reports.";
-	next;
 	mes "[Doha]";
 	mes "All we can do for now is";
 	mes "do our best, right?";
@@ -3642,11 +3641,11 @@ dic_in01,245,119,4	script	Shay#ep133_13	884,{
 	cutin "ep13_shy",2;
 	mes "[Shay]";
 	switch (rand(1,5)) {
-		Case 1: mes ".. Burman Flone."; break;
-		Case 2: mes "What?"; break;
-		Case 3: mes "Boring. What is it?"; break;
-		Case 4: mes "Sigh... Ready to order?"; break;
-		Case 5:
+		case 1: mes ".. Burman Flone."; break;
+		case 2: mes "What?"; break;
+		case 3: mes "Boring. What is it?"; break;
+		case 4: mes "Sigh... Ready to order?"; break;
+		case 5:
 			mes "Another failure?.";
 			mes "I'm talking to myself. Don't bother.";
 			mes "What do you want?";
@@ -4281,7 +4280,7 @@ dicastes01,207,210,5	script	Walking Knit#ep133_15	449,{
 			mes "Ah, did you see the group of cats in front of the castle?";
 			mes "They are really soft and cuddly unlike us.";
 			next;
-			if (checkquest(7188) == -1) {
+			if (checkquest(7188) >= -1) {
 				mes "[Knit]";
 				mes "And especially their ear and tail!!";
 				next;
@@ -4355,8 +4354,8 @@ dicastes01,207,210,5	script	Walking Knit#ep133_15	449,{
 }
 
 dicastes01,112,248,5	script	Resting Piom#ep133_16	491,{
+	mes "[Piom]";
 	if (!isequipped(2782)) {
-		mes "[Piom]";
 		mes "¡ñ¡÷¢¤ ¡ö ¢±¡ñ¡ú?";
 		mes "¡ò¢³~!";
 		mes "¡Ð¢²¢¤ ¢± ¡ü¡ñ¡õ ¢³ ¡ð !!!";
@@ -4370,7 +4369,7 @@ dicastes01,112,248,5	script	Resting Piom#ep133_16	491,{
 		mes "Huh? You're... human!";
 		mes "Why are you here?";
 		next;
-		if (checkquest(7189) == -1) {
+		if (checkquest(7189) >= -1) {
 			select("About a human with cat ears..");
 			mes "[Piom]";
 			mes "HAHAHAHA!!!";
@@ -4442,7 +4441,7 @@ dicastes01,249,140,3	script	Training Galten#ep133_17	450,{
 		mes "Hmm? Aren't you the outsider that came here awhile ago?";
 		mes "Have you come to see the training grounds?";
 		next;
-		if (checkquest(7190) == -1) {
+		if (checkquest(7190) >= -1) {
 			select("About a human with cat ears..");
 			mes "[Galten]";
 			mes "Cat ears?";
@@ -5899,7 +5898,6 @@ dic_dun01,58,225,4	script	Lash#13_3	491,{
 				mes "[Lash]";
 				mes "Wow!!!!";
 				mes "You've saved me!";
-				next;
 				mes "[Lash]";
 				mes "I would have perished into ashes here if it weren't for you!";
 				close;
@@ -6695,7 +6693,7 @@ man_in01,315,52,3	script	Guard Captain Avalanche	450,{
 		next;
 		mes "[Avalanche]";
 		mes "Always take care of yourself at all times.";
-		mes "Haha... but then you humans are very strong.";
+		mes "Haha.. but then you humans are very strong.";
 		close;
 	}
 	mes "[Avalanche]";

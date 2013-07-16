@@ -409,7 +409,8 @@ enum {
 	MF_NOITEMCONSUMPTION,
 	MF_SUMSTARTMIRACLE,
 	MF_NOMINEEFFECT,
-	MF_NOLOCKON
+	MF_NOLOCKON,
+	MF_NOTOMB
 };
 
 const char* script_op2name(int op)
@@ -9275,13 +9276,13 @@ BUILDIN_FUNC(announce)
 	int         fontAlign = script_hasdata(st,7) ? script_getnum(st,7) : 0;     // default fontAlign
 	int         fontY     = script_hasdata(st,8) ? script_getnum(st,8) : 0;     // default fontY
 	
-	if (flag&0x0f) // Broadcast source or broadcast region defined
-	{
+	if (flag&0x0f) { // Broadcast source or broadcast region defined
 		send_target target;
-		struct block_list *bl = (flag&0x08) ? map_id2bl(st->oid) : (struct block_list *)script_rid2sd(st); // If bc_npc flag is set, use NPC as broadcast source
+		// If bc_npc flag is set, use NPC as broadcast source
+		struct block_list *bl = (flag&0x08) ? map_id2bl(st->oid) : (struct block_list *)script_rid2sd(st);
 		if (bl == NULL)
 			return 0;
-		
+
 		flag &= 0x07;
 		target = (flag == 1) ? ALL_SAMEMAP :
 		         (flag == 2) ? AREA :
@@ -9291,9 +9292,7 @@ BUILDIN_FUNC(announce)
 			clif_broadcast2(bl, mes, (int)strlen(mes)+1, strtol(fontColor, (char **)NULL, 0), fontType, fontSize, fontAlign, fontY, target);
 		else
 			clif_broadcast(bl, mes, (int)strlen(mes)+1, flag&0xf0, target);
-	}
-	else
-	{
+	} else {
 		if (fontColor)
 			intif_broadcast2(mes, (int)strlen(mes)+1, strtol(fontColor, (char **)NULL, 0), fontType, fontSize, fontAlign, fontY);
 		else
@@ -10503,6 +10502,7 @@ BUILDIN_FUNC(getmapflag)
 			case MF_SUMSTARTMIRACLE:		script_pushint(st,map[m].flag.nosumstarmiracle); break;
 			case MF_NOMINEEFFECT:			script_pushint(st,map[m].flag.nomineeffect); break;
 			case MF_NOLOCKON:			script_pushint(st,map[m].flag.nolockon); break;
+			case MF_NOTOMB:			script_pushint(st,map[m].flag.notomb); break;
 		}
 	}
 
@@ -10610,6 +10610,7 @@ BUILDIN_FUNC(setmapflag)
 			case MF_SUMSTARTMIRACLE:	map[m].flag.nosumstarmiracle = 1 ; break;
 			case MF_NOMINEEFFECT:		map[m].flag.nomineeffect = 1 ; break;
 			case MF_NOLOCKON:		map[m].flag.nolockon = 1 ; break;
+			case MF_NOTOMB:		map[m].flag.notomb = 1; break;
 		}
 	}
 
@@ -10708,6 +10709,7 @@ BUILDIN_FUNC(removemapflag)
 			case MF_SUMSTARTMIRACLE:	map[m].flag.nosumstarmiracle = 0 ; break;
 			case MF_NOMINEEFFECT:		map[m].flag.nomineeffect = 0 ; break;
 			case MF_NOLOCKON:		map[m].flag.nolockon = 0 ; break;
+			case MF_NOTOMB:		map[m].flag.notomb = 0; break;
 		}
 	}
 
@@ -12492,7 +12494,7 @@ BUILDIN_FUNC(recovery)
 	switch(type) {
 		case 0:
 			if(script_hasdata(st,3))
-				sd = map_id2sd(script_getnum(st,3));
+				sd = map_charid2sd(script_getnum(st,3));
 			if(sd == NULL) //If we don't have sd by now, bail out
 				return 0;
 			recovery_sub(sd, revive);
@@ -14894,7 +14896,7 @@ BUILDIN_FUNC(getmonsterinfo)
 
 	mob_id = script_getnum(st,2);
 	if ( !mobdb_checkid(mob_id) ) {
-		ShowError("buildin_getmonsterinfo: Wrong Monster ID: %i\n", mob_id);
+		//ShowError("buildin_getmonsterinfo: Wrong Monster ID: %i\n", mob_id);
 		if ( !script_getnum(st,3) ) //requested a string
 			script_pushconststr(st,"null");
 		else
@@ -16332,21 +16334,18 @@ BUILDIN_FUNC(instance_npcname)
 BUILDIN_FUNC(instance_mapname)
 {
  	const char *str;
-	char iname[12];
 	int16 m;
 	short instance_id = 0;
 
  	str = script_getstr(st,2);
+
 	if( script_hasdata(st,3) )
 		instance_id = script_getnum(st,3);
 	else
 		instance_id = script_instancegetid(st);
 
-	// Build the instance mapname
-	snprintf(iname, sizeof(iname), ((strchr(str,'@') == NULL)?"%.3d#%s":"%.3d%s"), instance_id, str);
-
 	// Check that instance mapname is a valid map
-	if( !instance_id || (m = map_mapname2mapid(iname)) < 0 )
+	if( !instance_id || (m = instance_mapname2mapid(str,instance_id)) < 0 )
 		script_pushconststr(st, "");
 	else
 		script_pushconststr(st, map[m].name);
@@ -16387,7 +16386,6 @@ BUILDIN_FUNC(instance_warpall)
 	short instance_id;
 	const char *mapn;
 	int x, y;
-	unsigned short mapindex;
 
 	mapn = script_getstr(st,2);
 	x    = script_getnum(st,3);
@@ -16403,9 +16401,8 @@ BUILDIN_FUNC(instance_warpall)
 	if( !(p = party_search(instance_data[instance_id].party_id)) )
 		return 0;
 
-	mapindex = map_id2index(m);
 	for( i = 0; i < MAX_PARTY; i++ )
-		if( (pl_sd = p->data[i].sd) && map[pl_sd->bl.m].instance_id == instance_id ) pc_setpos(pl_sd,mapindex,x,y,CLR_TELEPORT);
+		if( (pl_sd = p->data[i].sd) && map[pl_sd->bl.m].instance_id == instance_id ) pc_setpos(pl_sd,map_id2index(m),x,y,CLR_TELEPORT);
 
 	return 0;
 }
@@ -17266,10 +17263,12 @@ BUILDIN_FUNC(consumeitem)
 	return 0;
 }
 
-/* Make a player sit/stand.
+/*=======================================================
+ * Make a player sit/stand.
  * sit {"<character name>"};
  * stand {"<character name>"};
- * Note: Use readparam(Sitting) which returns 1 or 0 (sitting or standing). */
+ * Note: Use readparam(Sitting) which returns 1 or 0 (sitting or standing).
+ *-------------------------------------------------------*/
 BUILDIN_FUNC(sit)
 {
 	TBL_PC *sd;
@@ -17282,15 +17281,31 @@ BUILDIN_FUNC(sit)
 	if( sd == NULL )
 		return 0;
 
-	if( pc_issit(sd) ) {
-		pc_setstand(sd);
-		skill_sit(sd, 0);
-		clif_standing(&sd->bl);
-	} else {
+	if( !pc_issit(sd) ) {
 		unit_stop_walking(&sd->bl, 1|4);
 		pc_setsit(sd);
 		skill_sit(sd, 1);
 		clif_sitting(&sd->bl);
+	}
+
+	return 0;
+}
+BUILDIN_FUNC(stand)
+{
+	TBL_PC *sd;
+
+	if( script_hasdata(st, 2) )
+		sd = map_nick2sd(script_getstr(st, 2));
+	else
+		sd = script_rid2sd(st);
+
+	if( sd == NULL)
+		return 0;
+
+	if( pc_issit(sd) ) {
+		pc_setstand(sd);
+		skill_sit(sd, 0);
+		clif_standing(&sd->bl);
 	}
 
 	return 0;
@@ -17307,7 +17322,7 @@ BUILDIN_FUNC(sit)
  *------------------------------------------*/
 BUILDIN_FUNC(countbound)
 {
-	int i, type, j=0, k=0;
+	int i, type, j = 0, k = 0;
 	TBL_PC *sd;
 
 	if( (sd = script_rid2sd(st)) == NULL )
@@ -17315,22 +17330,232 @@ BUILDIN_FUNC(countbound)
 
 	type = script_hasdata(st,2)?script_getnum(st,2):0;
 
-	for(i=0;i<MAX_INVENTORY;i++){
-		if(sd->status.inventory[i].nameid > 0 && (
+	for( i = 0;i < MAX_INVENTORY; i++ ) {
+		if( sd->status.inventory[i].nameid > 0 && (
 			(!type && sd->status.inventory[i].bound > 0) ||
 			(type && sd->status.inventory[i].bound == type)
-		)) {
+		) ) {
 			pc_setreg(sd,reference_uid(add_str("@bound_items"), k),sd->status.inventory[i].nameid);
 			k++;
 			j += sd->status.inventory[i].amount;
 		}
 	}
-	
+
 	script_pushint(st,j);
 	return 0;
 }
 
-// declarations that were supposed to be exported from npc_chat.c
+/*==========================================
+ * party_create "<party name>"{,<char id>{,<item share>{,<item share type>}}};
+ * <item share>: 0-Each Take. 1-Party Share
+ * <item share type>: 0-Each Take. 1-Even Share
+ * Return values:
+ *	-3	- party name is exist
+ *	-2	- player is in party already
+ *	-1	- player is not found
+ *	0	- unknown error
+ *	1	- success, will return party id $@party_create_id
+ *------------------------------------------*/
+BUILDIN_FUNC(party_create)
+{
+	char party_name[NAME_LENGTH];
+	int item1 = 0, item2 = 0;
+	TBL_PC *sd;
+
+	if( (!script_hasdata(st,3) && !(sd = script_rid2sd(st))) || (script_hasdata(st,3) && !(sd = map_charid2sd(script_getnum(st,3)))) ) {
+		script_pushint(st,-1);
+		return 0;
+	}
+
+	if( sd->status.party_id ) {
+		script_pushint(st,-2);
+		return 0;
+	}
+
+	safestrncpy(party_name,script_getstr(st,2),NAME_LENGTH);
+	trim(party_name);
+	if( party_searchname(party_name) ) {
+		script_pushint(st,-3);
+		return 0;
+	}
+	if( script_getnum(st,4) )
+		item1 = 1;
+	if( script_getnum(st,5) )
+		item2 = 1;
+
+	party_create_byscript = 1;
+	script_pushint(st,party_create(sd,party_name,item1,item2));
+	return 0;
+}
+
+/*==========================================
+ * party_addmember <party id>,<char id>;
+ * Adds player to specified party
+ * Return values:
+ *	-4	- party is full
+ *	-3	- party is not found
+ *	-2	- player is in party already
+ *	-1	- player is not found
+ *	0	- unknown error
+ *	1	- success
+ *------------------------------------------*/
+BUILDIN_FUNC(party_addmember)
+{
+	int party_id = script_getnum(st,2);
+	TBL_PC *sd;
+	struct party_data *party;
+
+	if( !(sd = map_charid2sd(script_getnum(st,3))) ) {
+		script_pushint(st,-1);
+		return 0;
+	}
+
+	if( sd->status.party_id ) {
+		script_pushint(st,-2);
+		return 0;
+	}
+
+	if( !(party = party_search(party_id)) ) {
+		script_pushint(st,-3);
+		return 0;
+	}
+
+	if( party->party.count >= MAX_PARTY ) {
+		script_pushint(st,-4);
+		return 0;
+	}
+	sd->party_invite = party_id;
+	script_pushint(st,party_add_member(party_id,sd));
+	return 0;
+}
+
+/*==========================================
+ * party_delmember {<char id>,<party_id>};
+ * Removes player from his/her party. If party_id and char_id is empty
+ * remove the invoker from his/her party
+ * Return values:
+ *	-3	- player is not in party
+ *	-2	- party is not found
+ *	-1	- player is not found
+ *	0	- unknown error
+ *	1	- success
+ *------------------------------------------*/
+BUILDIN_FUNC(party_delmember)
+{
+	TBL_PC *sd = NULL;
+
+	if( !script_hasdata(st,2) && !script_hasdata(st,3) && !(sd = script_rid2sd(st)) ) {
+		script_pushint(st,-1);
+		return 0;
+	}
+	if( sd || (script_getnum(st,2) && (sd = map_charid2sd(script_getnum(st,2)))) )
+		script_pushint(st,party_removemember2(sd,0,0));
+	else
+		script_pushint(st,party_removemember2(NULL,script_getnum(st,2),script_getnum(st,3)));
+	return 0;
+}
+
+/*==========================================
+ * party_changeleader <party id>,<char id>;
+ * Can change party leader even the leader is not online
+ * Return values:
+ *	-4	- player is party leader already
+ *	-3	- player is not in this party
+ *	-2	- player is not found
+ *	-1	- party is not found
+ *	0	- unknown error
+ *	1	- success
+ *------------------------------------------*/
+BUILDIN_FUNC(party_changeleader)
+{
+	int i, party_id = script_getnum(st,2);
+	TBL_PC *sd = NULL;
+	TBL_PC *tsd = NULL;
+	struct party_data *party = NULL;
+
+	if( !(party = party_search(party_id)) ) {
+		script_pushint(st,-1);
+		return 0;
+	}
+
+	if( !(tsd = map_charid2sd(script_getnum(st,3))) ) {
+		script_pushint(st,-2);
+		return 0;
+	}
+
+	if( tsd->status.party_id != party_id ) {
+		script_pushint(st,-3);
+		return 0;
+	}
+
+	ARR_FIND(0,MAX_PARTY,i,party->party.member[i].leader);
+	if( i >= MAX_PARTY ) {	//This is should impossible!
+		script_pushint(st,0);
+		return 0;
+	}
+	if( party->data[i].sd == tsd ) {
+		script_pushint(st,-4);
+		return 0;
+	}
+
+	script_pushint(st,party_changeleader(sd,tsd,party));
+	return 0;
+}
+
+/*==========================================
+ * party_changeoption <party id>,<option>,<flag>;
+ * Return values:
+ *	-1	- party is not found
+ *	0	- invalid option
+ *	1	- success
+ *------------------------------------------*/
+BUILDIN_FUNC(party_changeoption)
+{
+	struct party_data *party;
+
+	if( !(party = party_search(script_getnum(st,2))) ) {
+		script_pushint(st,-1);
+		return 0;
+	}
+	script_pushint(st,party_setoption(party,script_getnum(st,3),script_getnum(st,4)));
+	return 0;
+}
+
+/*==========================================
+ * party_destroy <party id>;
+ * Destroys party with party id.
+ * Return values:
+ *	0	- failed
+ *	1	- success
+ *------------------------------------------*/
+BUILDIN_FUNC(party_destroy)
+{
+	int i;
+	struct party_data *party;
+
+	if( !(party = party_search(script_getnum(st,2))) ) {
+		script_pushint(st,0);
+		return 0;
+	}
+
+	ARR_FIND(0,MAX_PARTY,i,party->party.member[i].leader);
+	if( i >= MAX_PARTY || !party->data[i].sd ) { //Leader not online
+		int j;
+		for( j = 0; j < MAX_PARTY; j++ ) {
+			TBL_PC *sd = party->data[j].sd;
+			if( sd )
+				party_member_withdraw(party->party.party_id,sd->status.account_id,sd->status.char_id);
+			else if( party->party.member[j].char_id )
+				intif_party_leave(party->party.party_id,party->party.member[j].account_id,party->party.member[j].char_id);
+		}
+		party_broken(party->party.party_id);
+		script_pushint(st,1);
+	} else //Leader leave = party broken
+		script_pushint(st,party_leave(party->data[i].sd));
+	return 0;
+}
+
+// Declarations that were supposed to be exported from npc_chat.c
 #ifdef PCRE_SUPPORT
 BUILDIN_FUNC(defpattern);
 BUILDIN_FUNC(activatepset);
@@ -17338,8 +17563,8 @@ BUILDIN_FUNC(deactivatepset);
 BUILDIN_FUNC(deletepset);
 #endif
 
-/// script command definitions
-/// for an explanation on args, see add_buildin_func
+/// Script command definitions
+/// For an explanation on args, see add_buildin_func
 struct script_function buildin_func[] = {
 	// NPC interaction
 	BUILDIN_DEF(mes,"s*"),
@@ -17775,7 +18000,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(consumeitem,"v"),
 	BUILDIN_DEF(delequip,"i"),
 	BUILDIN_DEF(sit,"?"),
-	BUILDIN_DEF2(sit,"stand","?"),
+	BUILDIN_DEF(stand,"?"),
 	/**
 	 * @commands (script based)
 	 **/
@@ -17790,6 +18015,14 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(checkquest, "i?"),
 	BUILDIN_DEF(changequest, "ii"),
 	BUILDIN_DEF(showevent, "ii"),
+
+	// Party related
+	BUILDIN_DEF(party_create,"s???"),
+	BUILDIN_DEF(party_addmember,"ii"),
+	BUILDIN_DEF(party_delmember,"??"),
+	BUILDIN_DEF(party_changeleader,"ii"),
+	BUILDIN_DEF(party_changeoption,"iii"),
+	BUILDIN_DEF(party_destroy,"i"),
 
 	//Bound items [Xantara] & [Akinari]
 	BUILDIN_DEF2(getitem,"getitembound","vii?"),

@@ -17,6 +17,7 @@
 #include "battle.h" // battle_config
 #include "battleground.h"
 #include "channel.h"
+#include "chat.h"
 #include "chrif.h"
 #include "clif.h"
 #include "date.h" // is_day_of_*()
@@ -1080,7 +1081,7 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 		/**
 		 * Fixes login-without-aura glitch (the screen won't blink at this point, don't worry :P)
 		 **/
-		clif_changemap(sd,sd->mapindex,sd->bl.x,sd->bl.y);
+		clif_changemap(sd,sd->bl.m,sd->bl.x,sd->bl.y);
 	}
 
 	/**
@@ -1670,6 +1671,13 @@ int pc_disguise(struct map_session_data *sd, int class_)
 			clif_cartlist(sd);
 			clif_updatestatus(sd,SP_CARTINFO);
 		}
+		if (sd->chatID) {
+			struct chat_data* cd;
+			nullpo_retr(1, sd);
+			cd = (struct chat_data*)map_id2bl(sd->chatID);
+			if( cd != NULL || (struct block_list*)sd == cd->owner )
+				clif_dispchat(cd,0);
+		}
 	}
 	return 1;
 }
@@ -2029,12 +2037,12 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 			break;
 		case SP_BASE_ATK:
 			if(sd->state.lr_flag != 2) {
-//#ifdef RENEWAL
-//				sd->bonus.eatk += val;
-//#else
+#ifdef RENEWAL
+				sd->bonus.eatk += val;
+#else
 				bonus = status->batk + val;
 				status->batk = cap_value(bonus, 0, USHRT_MAX);
-//#endif
+#endif
 			}
 			break;
 		case SP_DEF1:
@@ -4100,7 +4108,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 		case 12243: // Mercenary's Berserk Potion
 			if( sd->md == NULL || sd->md->db == NULL )
 				return 0;
-			if (sd->md->sc.data[SC_BERSERK] || sd->md->sc.data[SC__BLOODYLUST])
+			if (sd->md->sc.data[SC_BERSERK])
 				return 0;
 			if( nameid == 12242 && sd->md->db->lv < 40 )
 				return 0;
@@ -4198,7 +4206,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 		return 0;
 
 	if( sd->sc.count && (
-		sd->sc.data[SC_BERSERK] || sd->sc.data[SC__BLOODYLUST] || sd->sc.data[SC_SATURDAYNIGHTFEVER] ||
+		sd->sc.data[SC_BERSERK] || sd->sc.data[SC_SATURDAYNIGHTFEVER] ||
 		(sd->sc.data[SC_GRAVITATION] && sd->sc.data[SC_GRAVITATION]->val3 == BCT_SELF) ||
 		sd->sc.data[SC_TRICKDEAD] ||
 		sd->sc.data[SC_HIDING] ||
@@ -4771,10 +4779,10 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 
 	if( sd->bl.prev != NULL ) {
 		unit_remove_map_pc(sd,clrtype);
-		clif_changemap(sd,map[m].index,x,y); // [MouseJstr]
+		clif_changemap(sd,m,x,y); // [MouseJstr]
 	} else if( sd->state.active ) // Tag player for rewarping after map-loading is done. [Skotlex]
 		sd->state.rewarp = 1;
-	
+
 	sd->mapindex = mapindex;
 	sd->bl.m = m;
 	sd->bl.x = sd->ud.to_x = x;
@@ -4871,13 +4879,17 @@ int pc_memo(struct map_session_data* sd, int pos)
 		return 0;
 	}
 
-	if( pos == -1 )
-	{
+	if( pos == -1 ) {
 		int i;
 		// prevent memo-ing the same map multiple times
 		ARR_FIND( 0, MAX_MEMOPOINTS, i, sd->status.memo_point[i].map == map_id2index(sd->bl.m) );
 		memmove(&sd->status.memo_point[1], &sd->status.memo_point[0], (min(i,MAX_MEMOPOINTS-1))*sizeof(struct point));
 		pos = 0;
+	}
+
+	if( map[sd->bl.m].instance_id ) {
+		clif_displaymessage(sd->fd, msg_txt(384)); // You cannot create a memo in an instance.
+		return 0;
 	}
 
 	sd->status.memo_point[pos].map = map_id2index(sd->bl.m);
@@ -6533,9 +6545,28 @@ void pc_close_npc(struct map_session_data *sd, int flag) {
  *------------------------------------------*/
 int pc_dead(struct map_session_data *sd,struct block_list *src)
 {
-	int i=0,j=0,k=0;
+	int i = 0,j = 0,k = 0;
 	unsigned int tick = gettick();
-		
+
+	// Activate Steel body if a super novice dies at 99+% exp [celest]
+	// Super Novices have no kill or die functions attached when saved by their angel
+	if( (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && !sd->state.snovice_dead_flag ) {
+		unsigned int next = pc_nextbaseexp(sd);
+		if( next == 0 ) next = pc_thisbaseexp(sd);
+		if( get_percentage(sd->status.base_exp,next) >= 99 ) {
+			sd->state.snovice_dead_flag = 1;
+			pc_setrestartvalue(sd,1);
+			status_percent_heal(&sd->bl,100,100);
+			clif_resurrection(&sd->bl,1);
+			if( battle_config.pc_invincible_time )
+				pc_setinvincibletimer(sd,battle_config.pc_invincible_time);
+			sc_start(&sd->bl,&sd->bl,status_skill2sc(MO_STEELBODY),100,5,skill_get_time(MO_STEELBODY,5));
+			if( map_flag_gvg(sd->bl.m) )
+				pc_respawn_timer(INVALID_TIMER,gettick(),sd->bl.id,0);
+			return 0;
+		}
+	}
+
 	for( k = 0; k < 5; k++ )
 		if( sd->devotion[k] ) {
 			struct map_session_data *devsd = map_id2sd(sd->devotion[k]);
@@ -6591,14 +6622,6 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 
 	pc_setglobalreg(sd,"PC_DIE_COUNTER",sd->die_counter+1);
 	pc_setparam(sd, SP_KILLERRID, src?src->id:0);
-	
-	if( sd->bg_id ) {
-		struct battleground_data *bg;
-		if( (bg = bg_team_search(sd->bg_id)) != NULL && bg->die_event[0] )
-			npc_event(sd, bg->die_event, 0);
-	}
-
-	npc_script_event(sd,NPCE_DIE);
 
 	//Reset menu skills/item skills
 	if (sd->skillitem)
@@ -6689,26 +6712,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 	}
 
-	// activate Steel body if a super novice dies at 99+% exp [celest]
-	if( (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && !sd->state.snovice_dead_flag ) {
-		unsigned int next = pc_nextbaseexp(sd);
-		if( next == 0 ) next = pc_thisbaseexp(sd);
-		if( get_percentage(sd->status.base_exp,next) >= 99 ) {
-			sd->state.snovice_dead_flag = 1;
-			pc_setstand(sd);
-			pc_setrestartvalue(sd, 1);
-			status_percent_heal(&sd->bl, 100, 100);
-			clif_resurrection(&sd->bl, 1);
-			if( battle_config.pc_invincible_time )
-				pc_setinvincibletimer(sd, battle_config.pc_invincible_time);
-			sc_start(&sd->bl,&sd->bl,status_skill2sc(MO_STEELBODY),100,1,skill_get_time(MO_STEELBODY,1));
-			if( map_flag_gvg(sd->bl.m) )
-				pc_respawn_timer(INVALID_TIMER, gettick(), sd->bl.id, 0);
-			return 0;
-		}
-	}
-
-	// changed penalty options, added death by player if pk_mode [Valaris]
+	// Changed penalty options, added death by player if pk_mode [Valaris]
 	if( battle_config.death_penalty_type
 		&& (sd->class_&MAPID_UPPERMASK) != MAPID_NOVICE	// only novices will receive no penalty
 		&& !map[sd->bl.m].flag.noexppenalty && !map_flag_gvg(sd->bl.m)
@@ -8445,8 +8449,8 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 		return 0;
 	}
 
-	if( sd->sc.count && (sd->sc.data[SC_BERSERK] || sd->sc.data[SC_SATURDAYNIGHTFEVER] || sd->sc.data[SC__BLOODYLUST]
-		|| sd->sc.data[SC_KYOUGAKU] || (sd->sc.data[SC_PYROCLASTIC] && sd->inventory_data[n]->type == IT_WEAPON)) ) {
+	if( sd->sc.count && (sd->sc.data[SC_BERSERK] || sd->sc.data[SC_SATURDAYNIGHTFEVER] ||
+		sd->sc.data[SC_KYOUGAKU] || (sd->sc.data[SC_PYROCLASTIC] && sd->inventory_data[n]->type == IT_WEAPON)) ) {
 		clif_equipitemack(sd,n,0,0); // fail
 		return 0;
 	}
@@ -8633,9 +8637,9 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		return 0;
 	}
 
-	// if player is berserk then cannot unequip
-	if( !(flag & 2) && sd->sc.count && (sd->sc.data[SC_BERSERK] || sd->sc.data[SC_SATURDAYNIGHTFEVER] || sd->sc.data[SC__BLOODYLUST]
-		|| sd->sc.data[SC_KYOUGAKU] || (sd->sc.data[SC_PYROCLASTIC] && sd->inventory_data[n]->type == IT_WEAPON)) ) {
+	// If player is berserk then cannot unequip
+	if( !(flag & 2) && sd->sc.count && (sd->sc.data[SC_BERSERK] || sd->sc.data[SC_SATURDAYNIGHTFEVER] ||
+		sd->sc.data[SC_KYOUGAKU] || (sd->sc.data[SC_PYROCLASTIC] && sd->inventory_data[n]->type == IT_WEAPON)) ) {
 		clif_unequipitemack(sd,n,0,0);
 		return 0;
 	}

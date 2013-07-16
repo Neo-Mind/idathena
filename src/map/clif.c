@@ -1623,7 +1623,7 @@ void clif_quitsave(int fd,struct map_session_data *sd) {
 
 /// Notifies the client of a position change to coordinates on given map (ZC_NPCACK_MAPMOVE).
 /// 0091 <map name>.16B <x>.W <y>.W
-void clif_changemap(struct map_session_data *sd, short map, int x, int y)
+void clif_changemap(struct map_session_data *sd, short m, int x, int y)
 {
 	int fd;
 	nullpo_retv(sd);
@@ -1631,7 +1631,18 @@ void clif_changemap(struct map_session_data *sd, short map, int x, int y)
 
 	WFIFOHEAD(fd,packet_len(0x91));
 	WFIFOW(fd,0) = 0x91;
-	mapindex_getmapname_ext(mapindex_id2name(map), (char*)WFIFOP(fd,2));
+	if(map[m].instance_id) { // Instance map check to send client source map name so we don't crash player
+		struct instance_data *im = &instance_data[map[m].instance_id];
+		int i;
+		if(!im) // This shouldn't happen but if it does give them the map we intended to give
+			mapindex_getmapname_ext(map[m].name, (char*)WFIFOP(fd,2));
+		for(i = 0; i < MAX_MAP_PER_INSTANCE; i++) // Loop to find the src map we want
+			if(im->map[i].m == m) {
+				mapindex_getmapname_ext(map[im->map[i].src_m].name, (char*)WFIFOP(fd,2));
+				break;
+			}
+	} else
+		mapindex_getmapname_ext(map[m].name, (char*)WFIFOP(fd,2));
 	WFIFOW(fd,18) = x;
 	WFIFOW(fd,20) = y;
 	WFIFOSET(fd,packet_len(0x91));
@@ -5450,7 +5461,7 @@ void clif_broadcast(struct block_list* bl, const char* mes, int len, int type, e
 		WBUFL(buf,4) = 0x73737373; //If there's "ssss", game client will recognize message as 'WoE broadcast'.
 	memcpy(WBUFP(buf, 4 + lp), mes, len);
 	clif_send(buf, WBUFW(buf,2), bl, target);
-	
+
 	if (buf)
 		aFree(buf);
 }
@@ -8224,7 +8235,7 @@ void clif_refresh(struct map_session_data *sd)
 	int i;
 	nullpo_retv(sd);
 
-	clif_changemap(sd,sd->mapindex,sd->bl.x,sd->bl.y);
+	clif_changemap(sd,sd->bl.m,sd->bl.x,sd->bl.y);
 	clif_inventorylist(sd);
 	if( pc_iscarton(sd) ) {
 		clif_cartlist(sd);
@@ -9056,7 +9067,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 
 	if (sd->state.rewarp) { //Rewarp player.
 		sd->state.rewarp = 0;
-		clif_changemap(sd, sd->mapindex, sd->bl.x, sd->bl.y);
+		clif_changemap(sd, sd->bl.m, sd->bl.x, sd->bl.y);
 		return;
 	}
 	
@@ -9239,6 +9250,9 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		// Notify everyone that this char logged in [Skotlex].
 		map_foreachpc(clif_friendslist_toggle_sub, sd->status.account_id, sd->status.char_id, 1);
 
+		// Set the initial idle time
+		sd->idletime = last_tick;
+
 		//Login Event
 		npc_script_event(sd, NPCE_LOGIN);
 	} else {
@@ -9294,7 +9308,9 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		status_calc_pc(sd, false);/* some conditions are map-dependent so we must recalculate */
 		sd->state.changemap = false;
 
-		if( Channel_Config.map_enable && Channel_Config.map_autojoin && !map[sd->bl.m].flag.chmautojoin) {
+		// Instances do not need their own channels
+		if( Channel_Config.map_enable && Channel_Config.map_autojoin && !map[sd->bl.m].flag.chmautojoin &&
+			!map[sd->bl.m].instance_id ) {
 			channel_mjoin(sd); //Join new map
 		}
 	}
@@ -9481,6 +9497,11 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd)
 
 	if(sd->sc.data[SC_RUN] || sd->sc.data[SC_WUGDASH])
 		return;
+
+	//CCloaking wall check is actually updated when you click to process next movement
+	//Not when you move each cell. This is official behaviour.
+	if (sd->sc.data[SC_CLOAKING])
+		skill_check_cloaking(&sd->bl, sd->sc.data[SC_CLOAKING]);
 
 	pc_delinvincibletimer(sd);
 
@@ -11659,7 +11680,7 @@ void clif_parse_PartyMessage(int fd, struct map_session_data* sd)
 /// 07da <account id>.L
 void clif_parse_PartyChangeLeader(int fd, struct map_session_data* sd)
 {
-	party_changeleader(sd, map_id2sd(RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0])));
+	party_changeleader(sd, map_id2sd(RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0])),NULL);
 }
 
 
@@ -12461,9 +12482,12 @@ void clif_parse_GMKick(int fd, struct map_session_data *sd)
 		break;
 
 		case BL_NPC: {
-			char command[NAME_LENGTH+11];
-			sprintf(command, "%cunloadnpc %s", atcommand_symbol, status_get_name(target));
-			is_atcommand(fd, sd, command, 1);
+			struct npc_data* nd = (struct npc_data *)target;
+			if( pc_can_use_command(sd, "unloadnpc", COMMAND_ATCOMMAND)) {
+				npc_unload_duplicates(nd);
+				npc_unload(nd,true);
+				npc_read_event_script();
+			}
 		}
 		break;
 

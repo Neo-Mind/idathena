@@ -933,7 +933,8 @@ new_1-2,35,176,4	script	Soldier#nv	105,{
 		mes "Kill enough Porings.";
 		mes "Porings are easy to deal with, so cheer up.";
 		mes "Try again.";
-		npcskill "AL_HEAL",10,99,60;
+		npcskill "AL_HEAL",11,99,60;
+		percentheal 100,100;
 		close;
 	}
 	mes "[Brade]";
@@ -946,7 +947,8 @@ new_1-2,35,176,4	script	Soldier#nv	105,{
 	mes "[Brade]";
 	mes "Try using the job manuals to find out the characteristics of each job's skills.";
 	mes "I will restore your HP and SP... Keep it up.";
-	npcskill "AL_HEAL",10,99,60;
+	npcskill "AL_HEAL",11,99,60;
+	percentheal 100,100;
 	close;
 }
 
@@ -1796,9 +1798,8 @@ new_3-3,121,41,4	duplicate(NvBruce)	Bruce#nv3	57
 new_4-3,121,41,4	duplicate(NvBruce)	Bruce#nv4	57
 new_5-3,121,41,4	duplicate(NvBruce)	Bruce#nv5	57
 
-//============================================================================
 // Eden Group Officer (Real Combat Training)
-//============================================================================
+//============================================================
 -	script	Eden Group Officer#nv::NvEdn	-1,{
 	if(BaseLevel < 10) {
 		mes "[Eden Group Officer]";

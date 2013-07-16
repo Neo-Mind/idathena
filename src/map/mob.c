@@ -891,39 +891,35 @@ int mob_count_sub(struct block_list *bl, va_list ap) {
  *------------------------------------------*/
 int mob_spawn (struct mob_data *md)
 {
-	int i=0;
+	int i = 0;
 	unsigned int tick = gettick();
-	int c =0;
+	int c = 0;
 
 	md->last_thinktime = tick;
-	if (md->bl.prev != NULL)
+	if( md->bl.prev != NULL )
 		unit_remove_map(&md->bl,CLR_RESPAWN);
-	else
-	if (md->spawn && md->class_ != md->spawn->class_)
-	{
+	else if ( md->spawn && md->class_ != md->spawn->class_ ) {
 		md->class_ = md->spawn->class_;
 		status_set_viewdata(&md->bl, md->class_);
 		md->db = mob_db(md->class_);
 		memcpy(md->name,md->spawn->name,NAME_LENGTH);
 	}
 
-	if (md->spawn) { //Respawn data
+	if( md->spawn ) { //Respawn data
 		md->bl.m = md->spawn->m;
 		md->bl.x = md->spawn->x;
 		md->bl.y = md->spawn->y;
 
-		if( (md->bl.x == 0 && md->bl.y == 0) || md->spawn->xs || md->spawn->ys )
-		{	//Monster can be spawned on an area.
+		if( (md->bl.x == 0 && md->bl.y == 0) || md->spawn->xs || md->spawn->ys ) { //Monster can be spawned on an area.
 			if( !map_search_freecell(&md->bl, -1, &md->bl.x, &md->bl.y, md->spawn->xs, md->spawn->ys, battle_config.no_spawn_on_player?4:0) )
-			{ // retry again later
+			{ // Retry again later
 				if( md->spawn_timer != INVALID_TIMER )
 					delete_timer(md->spawn_timer, mob_delayspawn);
 				md->spawn_timer = add_timer(tick+5000,mob_delayspawn,md->bl.id,0);
 				return 1;
 			}
-		}
-		else if( battle_config.no_spawn_on_player > 99 && map_foreachinrange(mob_count_sub, &md->bl, AREA_SIZE, BL_PC) )
-		{ // retry again later (players on sight)
+		} else if( battle_config.no_spawn_on_player > 99 && map_foreachinrange(mob_count_sub, &md->bl, AREA_SIZE, BL_PC) )
+		{ // Retry again later (players on sight)
 			if( md->spawn_timer != INVALID_TIMER )
 				delete_timer(md->spawn_timer, mob_delayspawn);
 			md->spawn_timer = add_timer(tick+5000,mob_delayspawn,md->bl.id,0);
@@ -938,8 +934,7 @@ int mob_spawn (struct mob_data *md)
 	md->move_fail_count = 0;
 	md->ud.state.attack_continue = 0;
 	md->ud.target_to = 0;
-	if( md->spawn_timer != INVALID_TIMER )
-	{
+	if( md->spawn_timer != INVALID_TIMER ) {
 		delete_timer(md->spawn_timer, mob_delayspawn);
 		md->spawn_timer = INVALID_TIMER;
 	}
@@ -954,23 +949,23 @@ int mob_spawn (struct mob_data *md)
 	md->dmgtick = tick - 5000;
 	md->last_pcneartime = 0;
 
-	for (i = 0, c = tick-MOB_MAX_DELAY; i < MAX_MOBSKILL; i++)
+	for( i = 0, c = tick-MOB_MAX_DELAY; i < MAX_MOBSKILL; i++ )
 		md->skilldelay[i] = c;
 
 	memset(md->dmglog, 0, sizeof(md->dmglog));
 	md->tdmg = 0;
 	
-	if (md->lootitem)
+	if( md->lootitem )
 		memset(md->lootitem, 0, sizeof(*md->lootitem));
 	
 	md->lootitem_count = 0;
 
-	if(md->db->option)
+	if( md->db->option )
 		// Added for carts, falcons and pecos for cloned monsters. [Valaris]
 		md->sc.option = md->db->option;
 
 	// MvP tomb [GreenBox]
-	if ( md->tomb_nid )
+	if( md->tomb_nid )
 		mvptomb_destroy(md);
 
 	map_addblock(&md->bl);
@@ -2614,7 +2609,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		return 5; // Note: Actually, it's 4. Oh well...
 
 	// MvP tomb [GreenBox]
-	if( battle_config.mvp_tomb_enabled && md->spawn->state.boss )
+	if( battle_config.mvp_tomb_enabled && md->spawn->state.boss && map[md->bl.m].flag.notomb != 1 )
 		mvptomb_create(md, mvp_sd ? mvp_sd->status.name : NULL, time(NULL));
 
 	if( !rebirth )

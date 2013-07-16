@@ -2518,7 +2518,7 @@ REPLACE INTO `item_db_re` VALUES (4514,'Pom_Spider_Card','Pom Spider Card',6,20,
 REPLACE INTO `item_db_re` VALUES (4515,'Alnoldi_Card','Alnoldi Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,32,NULL,NULL,NULL,NULL,'bonus2 bSubRace,RC_Plant,30;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (4516,'Comodo_Card','Comodo Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,16,NULL,NULL,NULL,NULL,'bonus bDef,50; bonus bFlee,-25;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (4517,'Cendrawasih_Card','Cendrawasih Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,769,NULL,NULL,NULL,NULL,'bonus bInt,2; if(BaseClass==Job_Mage){ bonus bInt,getrefine()/3; }',NULL,NULL);
-REPLACE INTO `item_db_re` VALUES (4518,'Banaspaty_Card','Banaspaty Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (4518,'Banaspaty_Card','Banaspaty Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus2 bAddEff,Eff_Burning,1500;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (4519,'Butoijo_Card','Butoijo Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus2 bAddRace,RC_Angel,20;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (4520,'Leak_Card','Leak Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,4,NULL,NULL,NULL,NULL,'bonus bStr,3; bonus2 bAddEff,Eff_Confusion,5000; bonus3 bAddEff,Eff_Confusion,5000,ATF_SKILL;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (4521,'Sedora_Card','Sedora Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus bCritAtkRate,15;',NULL,NULL);
@@ -3574,7 +3574,7 @@ REPLACE INTO `item_db_re` VALUES (5846,'Buzzy_Ball_Gum','Buzzy Ball Gum',5,50,NU
 #REPLACE INTO `item_db_re` VALUES (5849,'Doctor_Hairband','Doctor Hairband',5,20,NULL,0,NULL,0,NULL,0,0xFFFFFFFF,7,2,256,NULL,'1',0,60,NULL,NULL,NULL);
 #REPLACE INTO `item_db_re` VALUES (5850,'Golden_Savage_Hat','Golden Savage Hat',5,20,NULL,500,NULL,5,NULL,0,0xFFFFFFFF,7,2,256,NULL,'50',1,648,NULL,NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (5851,'Summer_Knight','Summer Knight',5,20,NULL,0,NULL,1,NULL,0,0xFFFFFFFF,7,2,768,NULL,'60',0,138,NULL,NULL,NULL);
-#REPLACE INTO `item_db_re` VALUES (5852,'Resurrect_Egg_Shell','Resurrect Egg Shell',5,20,NULL,500,NULL,-7,NULL,0,0xFFFFFFFF,7,2,256,NULL,'40',1,537,'bonus bMdef,-7;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (5852,'Easter_Egg_Shell','Easter Egg Shell',5,20,NULL,500,NULL,0,NULL,0,0xFFFFFFFF,7,2,256,NULL,'40',1,537,'bonus bDef,-7; bonus bMdef,-7; bonus2 bHPRegenRate,(MaxHp/100),10000; if (getrefine()>=7) bonus bFlee,2; if (getrefine() >= 9) bonus2 bSPRegenRate,(MaxSp/100),10000;',NULL,NULL);
 #
 REPLACE INTO `item_db_re` VALUES (5856,'Passion_FB_Hat','Passion FB Hat',5,20,NULL,600,NULL,2,NULL,1,0xFFFFFFFF,7,2,256,NULL,'1',1,671,'bonus bStr,2; bonus bDex,2;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (5857,'Cool_FB_Hat','Cool FB Hat',5,20,NULL,600,NULL,2,NULL,1,0xFFFFFFFF,7,2,256,NULL,'1',1,672,'bonus bInt,2; bonus bVit,2;',NULL,NULL);
