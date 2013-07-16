@@ -10445,70 +10445,70 @@ BUILDIN_FUNC(getmapflag)
 	m = map_mapname2mapid(str);
 	if(m >= 0) {
 		switch(i) {
-			case MF_NOMEMO:				script_pushint(st,map[m].flag.nomemo); break;
-			case MF_NOTELEPORT:			script_pushint(st,map[m].flag.noteleport); break;
-			case MF_NOSAVE:				script_pushint(st,map[m].flag.nosave); break;
-			case MF_NOBRANCH:			script_pushint(st,map[m].flag.nobranch); break;
-			case MF_NOPENALTY:			script_pushint(st,map[m].flag.noexppenalty); break;
-			case MF_NOZENYPENALTY:			script_pushint(st,map[m].flag.nozenypenalty); break;
-			case MF_PVP:				script_pushint(st,map[m].flag.pvp); break;
-			case MF_PVP_NOPARTY:			script_pushint(st,map[m].flag.pvp_noparty); break;
-			case MF_PVP_NOGUILD:			script_pushint(st,map[m].flag.pvp_noguild); break;
-			case MF_GVG:				script_pushint(st,map[m].flag.gvg); break;
-			case MF_GVG_NOPARTY:			script_pushint(st,map[m].flag.gvg_noparty); break;
-			case MF_NOTRADE:			script_pushint(st,map[m].flag.notrade); break;
-			case MF_NOSKILL:			script_pushint(st,map[m].flag.noskill); break;
-			case MF_NOWARP:				script_pushint(st,map[m].flag.nowarp); break;
-			case MF_PARTYLOCK:			script_pushint(st,map[m].flag.partylock); break;
-			case MF_NOICEWALL:			script_pushint(st,map[m].flag.noicewall); break;
-			case MF_SNOW:				script_pushint(st,map[m].flag.snow); break;
-			case MF_FOG:				script_pushint(st,map[m].flag.fog); break;
-			case MF_SAKURA:				script_pushint(st,map[m].flag.sakura); break;
-			case MF_LEAVES:				script_pushint(st,map[m].flag.leaves); break;
-			case MF_NOGO:				script_pushint(st,map[m].flag.nogo); break;
-			case MF_CLOUDS:				script_pushint(st,map[m].flag.clouds); break;
-			case MF_CLOUDS2:			script_pushint(st,map[m].flag.clouds2); break;
-			case MF_FIREWORKS:			script_pushint(st,map[m].flag.fireworks); break;
-			case MF_GVG_CASTLE:			script_pushint(st,map[m].flag.gvg_castle); break;
-			case MF_GVG_DUNGEON:			script_pushint(st,map[m].flag.gvg_dungeon); break;
-			case MF_NIGHTENABLED:			script_pushint(st,map[m].flag.nightenabled); break;
-			case MF_NOBASEEXP:			script_pushint(st,map[m].flag.nobaseexp); break;
-			case MF_NOJOBEXP:			script_pushint(st,map[m].flag.nojobexp); break;
-			case MF_NOMOBLOOT:			script_pushint(st,map[m].flag.nomobloot); break;
-			case MF_NOMVPLOOT:			script_pushint(st,map[m].flag.nomvploot); break;
-			case MF_NORETURN:			script_pushint(st,map[m].flag.noreturn); break;
-			case MF_NOWARPTO:			script_pushint(st,map[m].flag.nowarpto); break;
-			case MF_NIGHTMAREDROP:			script_pushint(st,map[m].flag.pvp_nightmaredrop); break;
-			case MF_RESTRICTED:			script_pushint(st,map[m].flag.restricted); break;
-			case MF_NOCOMMAND:			script_pushint(st,map[m].nocommand); break;
-			case MF_NODROP:				script_pushint(st,map[m].flag.nodrop); break;
-			case MF_JEXP:				script_pushint(st,map[m].jexp); break;
-			case MF_BEXP:				script_pushint(st,map[m].bexp); break;
-			case MF_NOVENDING:			script_pushint(st,map[m].flag.novending); break;
-			case MF_LOADEVENT:			script_pushint(st,map[m].flag.loadevent); break;
-			case MF_NOCHAT:				script_pushint(st,map[m].flag.nochat); break;
-			case MF_NOEXPPENALTY:			script_pushint(st,map[m].flag.noexppenalty ); break;
-			case MF_GUILDLOCK:			script_pushint(st,map[m].flag.guildlock); break;
-			case MF_TOWN:				script_pushint(st,map[m].flag.town); break;
-			case MF_AUTOTRADE:			script_pushint(st,map[m].flag.autotrade); break;
-			case MF_ALLOWKS:			script_pushint(st,map[m].flag.allowks); break;
-			case MF_MONSTER_NOTELEPORT:		script_pushint(st,map[m].flag.monster_noteleport); break;
-			case MF_PVP_NOCALCRANK:			script_pushint(st,map[m].flag.pvp_nocalcrank); break;
-			case MF_BATTLEGROUND:			script_pushint(st,map[m].flag.battleground); break;
-			case MF_RESET:				script_pushint(st,map[m].flag.reset); break;
-			case MF_CHANNELAUTOJOIN:		script_pushint(st,map[m].flag.chmautojoin); break;
-			case MF_NOUSECART:			script_pushint(st,map[m].flag.nousecart); break;
-			case MF_NOITEMCONSUMPTION:		script_pushint(st,map[m].flag.noitemconsumption); break;
-			case MF_SUMSTARTMIRACLE:		script_pushint(st,map[m].flag.nosumstarmiracle); break;
-			case MF_NOMINEEFFECT:			script_pushint(st,map[m].flag.nomineeffect); break;
-			case MF_NOLOCKON:			script_pushint(st,map[m].flag.nolockon); break;
+			case MF_NOMEMO:			script_pushint(st,map[m].flag.nomemo); break;
+			case MF_NOTELEPORT:		script_pushint(st,map[m].flag.noteleport); break;
+			case MF_NOSAVE:			script_pushint(st,map[m].flag.nosave); break;
+			case MF_NOBRANCH:		script_pushint(st,map[m].flag.nobranch); break;
+			case MF_NOPENALTY:		script_pushint(st,map[m].flag.noexppenalty); break;
+			case MF_NOZENYPENALTY:		script_pushint(st,map[m].flag.nozenypenalty); break;
+			case MF_PVP:			script_pushint(st,map[m].flag.pvp); break;
+			case MF_PVP_NOPARTY:		script_pushint(st,map[m].flag.pvp_noparty); break;
+			case MF_PVP_NOGUILD:		script_pushint(st,map[m].flag.pvp_noguild); break;
+			case MF_GVG:			script_pushint(st,map[m].flag.gvg); break;
+			case MF_GVG_NOPARTY:		script_pushint(st,map[m].flag.gvg_noparty); break;
+			case MF_NOTRADE:		script_pushint(st,map[m].flag.notrade); break;
+			case MF_NOSKILL:		script_pushint(st,map[m].flag.noskill); break;
+			case MF_NOWARP:			script_pushint(st,map[m].flag.nowarp); break;
+			case MF_PARTYLOCK:		script_pushint(st,map[m].flag.partylock); break;
+			case MF_NOICEWALL:		script_pushint(st,map[m].flag.noicewall); break;
+			case MF_SNOW:			script_pushint(st,map[m].flag.snow); break;
+			case MF_FOG:			script_pushint(st,map[m].flag.fog); break;
+			case MF_SAKURA:			script_pushint(st,map[m].flag.sakura); break;
+			case MF_LEAVES:			script_pushint(st,map[m].flag.leaves); break;
+			case MF_NOGO:			script_pushint(st,map[m].flag.nogo); break;
+			case MF_CLOUDS:			script_pushint(st,map[m].flag.clouds); break;
+			case MF_CLOUDS2:		script_pushint(st,map[m].flag.clouds2); break;
+			case MF_FIREWORKS:		script_pushint(st,map[m].flag.fireworks); break;
+			case MF_GVG_CASTLE:		script_pushint(st,map[m].flag.gvg_castle); break;
+			case MF_GVG_DUNGEON:		script_pushint(st,map[m].flag.gvg_dungeon); break;
+			case MF_NIGHTENABLED:		script_pushint(st,map[m].flag.nightenabled); break;
+			case MF_NOBASEEXP:		script_pushint(st,map[m].flag.nobaseexp); break;
+			case MF_NOJOBEXP:		script_pushint(st,map[m].flag.nojobexp); break;
+			case MF_NOMOBLOOT:		script_pushint(st,map[m].flag.nomobloot); break;
+			case MF_NOMVPLOOT:		script_pushint(st,map[m].flag.nomvploot); break;
+			case MF_NORETURN:		script_pushint(st,map[m].flag.noreturn); break;
+			case MF_NOWARPTO:		script_pushint(st,map[m].flag.nowarpto); break;
+			case MF_NIGHTMAREDROP:		script_pushint(st,map[m].flag.pvp_nightmaredrop); break;
+			case MF_RESTRICTED:		script_pushint(st,map[m].flag.restricted); break;
+			case MF_NOCOMMAND:		script_pushint(st,map[m].nocommand); break;
+			case MF_NODROP:			script_pushint(st,map[m].flag.nodrop); break;
+			case MF_JEXP:			script_pushint(st,map[m].jexp); break;
+			case MF_BEXP:			script_pushint(st,map[m].bexp); break;
+			case MF_NOVENDING:		script_pushint(st,map[m].flag.novending); break;
+			case MF_LOADEVENT:		script_pushint(st,map[m].flag.loadevent); break;
+			case MF_NOCHAT:			script_pushint(st,map[m].flag.nochat); break;
+			case MF_NOEXPPENALTY:		script_pushint(st,map[m].flag.noexppenalty ); break;
+			case MF_GUILDLOCK:		script_pushint(st,map[m].flag.guildlock); break;
+			case MF_TOWN:			script_pushint(st,map[m].flag.town); break;
+			case MF_AUTOTRADE:		script_pushint(st,map[m].flag.autotrade); break;
+			case MF_ALLOWKS:		script_pushint(st,map[m].flag.allowks); break;
+			case MF_MONSTER_NOTELEPORT:	script_pushint(st,map[m].flag.monster_noteleport); break;
+			case MF_PVP_NOCALCRANK:		script_pushint(st,map[m].flag.pvp_nocalcrank); break;
+			case MF_BATTLEGROUND:		script_pushint(st,map[m].flag.battleground); break;
+			case MF_RESET:			script_pushint(st,map[m].flag.reset); break;
+			case MF_CHANNELAUTOJOIN:	script_pushint(st,map[m].flag.chmautojoin); break;
+			case MF_NOUSECART:		script_pushint(st,map[m].flag.nousecart); break;
+			case MF_NOITEMCONSUMPTION:	script_pushint(st,map[m].flag.noitemconsumption); break;
+			case MF_SUMSTARTMIRACLE:	script_pushint(st,map[m].flag.nosumstarmiracle); break;
+			case MF_NOMINEEFFECT:		script_pushint(st,map[m].flag.nomineeffect); break;
+			case MF_NOLOCKON:		script_pushint(st,map[m].flag.nolockon); break;
 			case MF_NOTOMB:			script_pushint(st,map[m].flag.notomb); break;
 		}
 	}
 
 	return 0;
 }
-/* pvp timer handling */
+/* Pvp timer handling */
 static int script_mapflag_pvp_sub(struct block_list *bl,va_list ap) {
 	TBL_PC* sd = (TBL_PC*)bl;
 	if (sd->pvp_timer == INVALID_TIMER) {
@@ -10527,12 +10527,12 @@ BUILDIN_FUNC(setmapflag)
 {
 	int16 m,i;
 	const char *str;
-	int val=0;
+	int val = 0;
 
-	str=script_getstr(st,2);
-	i=script_getnum(st,3);
+	str = script_getstr(st,2);
+	i = script_getnum(st,3);
 	if(script_hasdata(st,4)) {
-		val=script_getnum(st,4);
+		val = script_getnum(st,4);
 	}
 	m = map_mapname2mapid(str);
 	if(m >= 0) {
@@ -10610,7 +10610,7 @@ BUILDIN_FUNC(setmapflag)
 			case MF_SUMSTARTMIRACLE:	map[m].flag.nosumstarmiracle = 1 ; break;
 			case MF_NOMINEEFFECT:		map[m].flag.nomineeffect = 1 ; break;
 			case MF_NOLOCKON:		map[m].flag.nolockon = 1 ; break;
-			case MF_NOTOMB:		map[m].flag.notomb = 1; break;
+			case MF_NOTOMB:			map[m].flag.notomb = 1; break;
 		}
 	}
 
@@ -10621,12 +10621,12 @@ BUILDIN_FUNC(removemapflag)
 {
 	int16 m,i;
 	const char *str;
-	int val=0;
+	int val = 0;
 
-	str=script_getstr(st,2);
-	i=script_getnum(st,3);
+	str = script_getstr(st,2);
+	i = script_getnum(st,3);
 	if(script_hasdata(st,4)) {
-		val=script_getnum(st,4);
+		val = script_getnum(st,4);
 	}
 	m = map_mapname2mapid(str);
 	if(m >= 0) {
@@ -10709,7 +10709,7 @@ BUILDIN_FUNC(removemapflag)
 			case MF_SUMSTARTMIRACLE:	map[m].flag.nosumstarmiracle = 0 ; break;
 			case MF_NOMINEEFFECT:		map[m].flag.nomineeffect = 0 ; break;
 			case MF_NOLOCKON:		map[m].flag.nolockon = 0 ; break;
-			case MF_NOTOMB:		map[m].flag.notomb = 0; break;
+			case MF_NOTOMB:			map[m].flag.notomb = 0; break;
 		}
 	}
 
@@ -10727,7 +10727,7 @@ BUILDIN_FUNC(pvpon)
 	str = script_getstr(st, 2);
 	m = map_mapname2mapid(str);
 	if( m < 0 || map[m].flag.pvp )
-		return 0; // nothing to do
+		return 0; // Nothing to do
 
 	map[m].flag.pvp = 1;
 	clif_map_property_mapall(m, MAPPROPERTY_FREEPVPZONE);
@@ -10735,13 +10735,13 @@ BUILDIN_FUNC(pvpon)
 	bl.m = m;
 	clif_maptypeproperty2(&bl,ALL_SAMEMAP);
 
-	if(battle_config.pk_mode) // disable ranking functions if pk_mode is on [Valaris]
+	if(battle_config.pk_mode) // Disable ranking functions if pk_mode is on [Valaris]
 		return 0;
 
 	iter = mapit_getallusers();
 	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) ) {
 		if( sd->bl.m != m || sd->pvp_timer != INVALID_TIMER )
-			continue; // not applicable
+			continue; // Not applicable
 
 		sd->pvp_timer = add_timer(gettick()+200,pc_calc_pvprank_timer,sd->bl.id,0);
 		sd->pvp_rank = 0;

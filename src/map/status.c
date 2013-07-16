@@ -980,11 +980,6 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_VITATA_500] |= SCB_REGEN;
 	StatusChangeFlagTable[SC_EXTRACT_SALAMINE_JUICE] |= SCB_ASPD;
 
-#ifdef RENEWAL_EDP
-	// Renewal EDP increases your weapon atk and equipment atk
-	StatusChangeFlagTable[SC_EDP] |= SCB_WATK;
-#endif
-
 	if( !battle_config.display_hallucination ) //Disable Hallucination.
 		StatusIconChangeTable[SC_HALLUCINATION] = SI_BLANK;
 
@@ -7446,10 +7441,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_ADORAMUS:
 				val2 = 2 + val1; //Agi change
 				if( type == SC_ADORAMUS )
-					sc_start(src,bl,SC_BLIND,val1 * 4 + (sd ? sd->status.job_level / 2 : 0),val1,skill_get_time(status_sc2skill(type),val1));
+					sc_start(src, bl, SC_BLIND, val1 * 4 + (sd ? sd->status.job_level / 2 : 0),
+						val1, skill_get_time(status_sc2skill(type), val1));
 				break;
 			case SC_ENDURE:
-				val2 = 7; // Hit-count [Celest]
+				val2 = 7; //Hit-count [Celest]
 				if( !(flag&1) && (bl->type&(BL_PC|BL_MER)) && !map_flag_gvg(bl->m) && !map[bl->m].flag.battleground && !val4 ) {
 					struct map_session_data *tsd;
 					if( sd ) {
@@ -7467,34 +7463,34 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					tick = -1;
 				break;
 			case SC_AUTOBERSERK:
-				if (status->hp < status->max_hp>>2 &&
-					(!sc->data[SC_PROVOKE] || sc->data[SC_PROVOKE]->val2==0))
-						sc_start4(src,bl,SC_PROVOKE,100,10,1,0,0,60000);
+				if( status->hp < status->max_hp>>2 &&
+					(!sc->data[SC_PROVOKE] || sc->data[SC_PROVOKE]->val2 == 0) )
+						sc_start4(src, bl, SC_PROVOKE, 100, 10, 1, 0, 0, 60000);
 				tick = -1;
 				break;
 			case SC_SIGNUMCRUCIS:
-				val2 = 10 + 4*val1; //Def reduction
+				val2 = 10 + 4 * val1; //Def reduction
 				tick = -1;
 				clif_emotion(bl,E_SWT);
 				break;
 			case SC_MAXIMIZEPOWER:
-				tick_time = val2 = tick>0?tick:60000;
+				tick_time = val2 = tick > 0 ? tick : 60000;
 				tick = -1; // duration sent to the client should be infinite
 				break;
 			case SC_EDP: // [Celest]
 				val2 = val1 + 2; //Chance to Poison enemies.
 #ifndef RENEWAL_EDP
-				val3 = 50*(val1+1); //Damage increase (+50 +50*lv%)
+				val3 = 50 * (val1 + 1); //Damage increase (+50 +50*lv%)
 #endif
 				if( sd ) //[Ind] - iROwiki says each level increases its duration by 3 seconds
-					tick += pc_checkskill(sd,GC_RESEARCHNEWPOISON)*3000;
+					tick += pc_checkskill(sd,GC_RESEARCHNEWPOISON) * 3000;
 				break;
 			case SC_POISONREACT:
-				val2=(val1+1)/2 + val1/10; // Number of counters [Skotlex]
-				val3=50; // + 5*val1; //Chance to counter. [Skotlex]
+				val2 = (val1 + 1) / 2 + val1 / 10; // Number of counters [Skotlex]
+				val3 = 50; // + 5 * val1; //Chance to counter. [Skotlex]
 				break;
 			case SC_MAGICROD:
-				val2 = val1*20; //SP gained
+				val2 = val1 * 20; //SP gained
 				break;
 			case SC_KYRIE:
 				if ( val4 ) { // Formula's for Praefatio
@@ -7508,7 +7504,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_MAGICPOWER:
 				//val1: Skill lv
 				val2 = 1; //Lasts 1 invocation
-				val3 = 5*val1; //Matk% increase
+				val3 = 5 * val1; //Matk% increase
 				val4 = 0; // 0 = ready to be used, 1 = activated and running
 				break;
 			case SC_SACRIFICE:
@@ -7516,7 +7512,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick = -1;
 				break;
 			case SC_ENCPOISON:
-				val2= 250+50*val1;	//Poisoning Chance (2.5+0.5%) in 1/10000 rate
+				val2 = 250 + 50 * val1; //Poisoning Chance (2.5+0.5%) in 1/10000 rate
 			case SC_ASPERSIO:
 			case SC_FIREWEAPON:
 			case SC_WATERWEAPON:
@@ -7859,7 +7855,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				if( val3 == SC__BLOODYLUST )
 					sc_start(src,bl,(sc_type)val3,100,val1,tick);
 				if( !val3 && !(sc->data[SC_ENDURE] && sc->data[SC_ENDURE]->val4) )
-					sc_start4(src, bl, SC_ENDURE, 100, 10, 0, 0, 2, tick);
+					sc_start4(src,bl,SC_ENDURE,100,10,0,0,2,tick);
 				//HP healing is performing after the calc_status call.
 				//Val2 holds HP penalty
 				if( !val4 ) val4 = skill_get_time2(status_sc2skill(type),val1);

@@ -3854,10 +3854,11 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				if( dir > 2 && dir < 6 ) y = -i;
 				else if( dir == 7 || dir < 2 ) y = i;
 				else y = 0;
-				if( (mbl == src || (!map_flag_gvg(src->m) && !map[src->m].flag.battleground) ) && // only NJ_ISSEN don't have slide effect in GVG
+				// Only NJ_ISSEN don't have slide effect in GVG
+				if( (mbl == src || (!map_flag_gvg(src->m) && !map[src->m].flag.battleground) ) &&
 					unit_movepos(src, mbl->x+x, mbl->y+y, 1, 1) ) {
 					clif_slide(src, src->x, src->y);
-					//uncomment this if you want to remove MO_EXTREMITYFIST glitchy walking effect. [malufett]
+					//Uncomment this if you want to remove MO_EXTREMITYFIST glitchy walking effect. [malufett]
 					//clif_fixpos(src);
 				}
 			}
@@ -3867,7 +3868,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case AS_GRIMTOOTH:
 		case MC_CARTREVOLUTION:
 		case NPC_SPLASHATTACK:
-			flag |= SD_PREAMBLE; // A fake packet will be sent for the first target to be hit
+			flag |= SD_PREAMBLE; //A fake packet will be sent for the first target to be hit
 		case AS_SPLASHER:
 		case SM_MAGNUM:
 		case MS_MAGNUM:
@@ -5562,10 +5563,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 		case NJ_BUNSINJYUTSU:
 			// On official recasting cancels existing mirror image [helvetica]
-			status_change_end(bl, SC_BUNSINJYUTSU, INVALID_TIMER);
+			status_change_end(bl,SC_BUNSINJYUTSU,INVALID_TIMER);
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
 				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
-			status_change_end(bl, SC_NEN, INVALID_TIMER);
+			status_change_end(bl,SC_NEN,INVALID_TIMER);
 			break;
 		/* Was modified to only affect targetted char.	[Skotlex]
 		case HP_ASSUMPTIO:
