@@ -824,25 +824,23 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		}
 
 		if( (sce = sc->data[SC_MILLENNIUMSHIELD]) && sce->val2 > 0 && damage > 0 ) {
-			clif_skill_nodamage(bl, bl, RK_MILLENNIUMSHIELD, 1, 1);
-			sce->val3 -= damage; // absorb damage
+			sce->val3 -= damage; // Absorb damage
 			d->dmg_lv = ATK_BLOCK;
-			// There is a chance to be stuned when one shield is broken.
-			sc_start(src, bl, SC_STUN, 15, 0, skill_get_time2(RK_MILLENNIUMSHIELD, sce->val1));
-			if( sce->val3 <= 0 ) { // Shield Down
+			if( sce->val3 <= 0 ) { // Shield down
 				sce->val2--;
 				if( sce->val2 > 0 ) {
 					if( sd )
 						clif_millenniumshield(sd,sce->val2);
-						sce->val3 = 1000; // Next Shield
+						sce->val3 = 1000; // Next shield
 				} else
 					status_change_end(bl, SC_MILLENNIUMSHIELD, INVALID_TIMER); // All shields down
+				status_change_start(src, bl, SC_STUN, 10000, 0, 0, 0, 0, 1000, 2);
 			}
 			return 0;
 		}
 
 		if( (sce = sc->data[SC_PARRYING]) && flag&BF_WEAPON && skill_id != WS_CARTTERMINATION && rnd()%100 < sce->val2 ) {
-			// attack blocked by Parrying
+			// Attack blocked by Parrying
 			clif_skill_nodamage(bl, bl, LK_PARRYING, sce->val1,1);
 			return 0;
 		}

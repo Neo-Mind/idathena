@@ -6976,6 +6976,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_CAMOUFLAGE:
 			if(sd && pc_checkskill(sd, RA_CAMOUFLAGE) < 2 && !skill_check_camouflage(bl,NULL))
 				return 0;
+			val2 = 1;
 			break;
 		case SC__STRIPACCESSORY:
 			if(sd) {
@@ -10613,7 +10614,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_CAMOUFLAGE:
 			if( !status_charge(bl, 0, 7 - sce->val1) )
 				break;
-			if( --sce->val4 >= 0 )
+			if( sce->val2 < 10 )
 				sce->val2++;
 			sc_timer_next(1000 + tick, status_change_timer, bl->id, data);
 			return 0;
