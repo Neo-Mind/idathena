@@ -1841,7 +1841,7 @@ static bool is_attack_critical(struct Damage wd, struct block_list *src, struct 
 				cri += sd->bonus.arrow_cri;
 		}
 		if(sc && sc->data[SC_CAMOUFLAGE])
-			cri += 100 * min(10,sc->data[SC_CAMOUFLAGE]->val2); //Max 100% (1K)
+			cri += 100 * sc->data[SC_CAMOUFLAGE]->val2; //Max 100% (1K)
 
 		//The official equation is *2, but that only applies when sd's do critical.
 		//Therefore, we use the old value 3 on cases when an sd gets attacked by a mob
@@ -2327,9 +2327,9 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 	if(sc) {
 		if(sc->data[SC_CAMOUFLAGE]) {
 			//Max +300atk
-			ATK_ADD(wd.damage, wd.damage2, 30 * min(10,sc->data[SC_CAMOUFLAGE]->val2));
+			ATK_ADD(wd.damage, wd.damage2, 30 * sc->data[SC_CAMOUFLAGE]->val2);
 #ifdef RENEWAL
-			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 30 * min(10,sc->data[SC_CAMOUFLAGE]->val2));
+			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 30 * sc->data[SC_CAMOUFLAGE]->val2);
 #endif
 		}
 	}
