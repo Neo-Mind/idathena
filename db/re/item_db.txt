@@ -714,8 +714,8 @@
 1389,E_Tomahawk_C,Tomahawk,4,2,,0,200,,1,0,0x000444A2,7,2,34,4,0,0,7,{ bonus bAtkEle,Ele_Wind; },{},{}
 1390,E_Right_Epsilon_C,Light Epsilon,4,1,,0,229,,1,0,0x000444A2,7,2,34,4,1,0,7,{ bonus bAtkEle,Ele_Holy; bonus bStr,10; },{},{}
 1391,P_Two_Handed_Axe1,Eden Two-Handed Axe I,4,0,,0,195,,1,0,0x000444A2,7,2,34,3,60,0,7,{},{},{}
-1392,Ignus_Steel,Ignus Steel,4,56000,,1900,250,,1,1,0x000444A2,7,2,34,4,95,1,7,{ bonus bAtkEle,Ele_Fire; bonus bUnbreakableWeapon,0; },{},{}
-1393,End_Sectora,End Sectora,4,56000,,1900,250,,1,1,0x000444A2,7,2,34,4,95,1,7,{ bonus bAtkEle,Ele_Water; bonus bUnbreakableWeapon,0; },{},{}
+1392,Ygnus_Stale,Ignus Steel,4,56000,,1900,250,,1,1,0x000444A2,7,2,34,4,95,1,7,{ bonus bAtkEle,Ele_Fire; bonus bUnbreakableWeapon,0; },{},{}
+1393,End_Sektura,End Sectora,4,56000,,1900,250,,1,1,0x000444A2,7,2,34,4,95,1,7,{ bonus bAtkEle,Ele_Water; bonus bUnbreakableWeapon,0; },{},{}
 1394,Upg_Two_Handed_Axe,Upg Two Handed Axe,4,20,,2000,110,,1,1,0x000444A2,7,2,34,3,1,1,7,{ bonus bBaseAtk,(getrefine()*14); if(BaseLevel>70) bonus bBaseAtk,(((BaseLevel-70)/10)*10); },{},{}
 1395,Velum_Buster,Vellum Buster,4,20,,2500,50,,1,0,0x000444A2,7,2,34,4,95,1,7,{ bonus bUnbreakableWeapon,0; bonus2 bSPVanishRate,10000,10; },{},{}
 1396,Velum_Guillotine,Vellum Guillotine,4,20,,5500,300,,1,0,0x000444A2,7,2,34,4,95,1,7,{ bonus bUnbreakableWeapon,0; bonus2 bAddRace,RC_DemiHuman,40; bonus2 bIgnoreDefRate,RC_DemiHuman,30; if(getrefine()>=6) { bonus2 bSkillAtk,"NC_AXEBOOMERANG",80; bonus2 bSkillAtk,"NC_POWERSWING",80; } if(getrefine()>=9) { bonus2 bAddRace,RC_DemiHuman,60; } },{},{}

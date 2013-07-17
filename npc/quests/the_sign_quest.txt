@@ -1,4 +1,4 @@
-//===== rAthena Script ======================================= 
+﻿//===== rAthena Script ======================================= 
 //= The Sign Quest
 //===== By: ================================================== 
 //= SinSloth, MasterOfMuppets, Kargha
@@ -11387,7 +11387,7 @@ niflheim,102,54,4	script	Mad Man#s	739,{
 		next;
 		switch(select("Pay him.:Don't pay him.")) {
 		case 1:
-			if (Zeny < 60000) {
+			if (Zeny < 20000) {
 				mes "[Laichin]";
 				mes "What is this?";
 				mes "You tryin to welch";

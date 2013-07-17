@@ -6011,7 +6011,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if( tsce ) {
 				i = status_change_end(bl,type,INVALID_TIMER);
 				if( i )
-					clif_skill_nodamage(src,bl,skill_id,( skill_id == LG_FORCEOFVANGUARD ) ? skill_lv : -1,i);
+					clif_skill_nodamage(src,bl,skill_id,(skill_id == LG_FORCEOFVANGUARD) ? skill_lv : -1,i);
 				else if( sd )
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				map_freeblock_unlock();
@@ -6019,7 +6019,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			i = sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 			if( i )
-				clif_skill_nodamage(src,bl,skill_id,( skill_id == LG_FORCEOFVANGUARD ) ? skill_lv : -1,i);
+				clif_skill_nodamage(src,bl,skill_id,(skill_id == LG_FORCEOFVANGUARD) ? skill_lv : -1,i);
 			else if( sd )
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
@@ -9572,9 +9572,10 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 		map_freeblock_lock();
 
 		// SC_MAGICPOWER needs to switch states before any damage is actually dealt
-		skill_toggle_magicpower(src, ud->skill_id);
-		if( ud->skill_id != RA_CAMOUFLAGE ) // only normal attack and auto cast skills benefit from its bonuses
-			status_change_end(src,SC_CAMOUFLAGE, INVALID_TIMER);
+		skill_toggle_magicpower(src,ud->skill_id);
+		// Only normal attack and auto cast skills benefit from its bonuses
+		if( ud->skill_id != RA_CAMOUFLAGE )
+			status_change_end(src,SC_CAMOUFLAGE,INVALID_TIMER);
 
 		if( skill_get_casttype(ud->skill_id) == CAST_NODAMAGE )
 			skill_castend_nodamage_id(src,target,ud->skill_id,ud->skill_lv,tick,flag);
@@ -9739,17 +9740,17 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 		if( (src->type == BL_MER || src->type == BL_HOM) && !skill_check_condition_mercenary(src, ud->skill_id, ud->skill_lv, 1) )
 			break;
 
-		if(md) {
+		if( md ) {
 			md->last_thinktime=tick +MIN_MOBTHINKTIME;
 			if(md->skill_idx >= 0 && md->db->skill[md->skill_idx].emotion >= 0)
 				clif_emotion(src, md->db->skill[md->skill_idx].emotion);
 		}
 
-		if(battle_config.skill_log && battle_config.skill_log&src->type)
+		if( battle_config.skill_log && battle_config.skill_log&src->type )
 			ShowInfo("Type %d, ID %d skill castend pos [id =%d, lv=%d, (%d,%d)]\n",
 				src->type, src->id, ud->skill_id, ud->skill_lv, ud->skillx, ud->skilly);
 
-		if (ud->walktimer != INVALID_TIMER)
+		if( ud->walktimer != INVALID_TIMER )
 			unit_stop_walking(src,1);
 
 		if( !sd || sd->skillitem != ud->skill_id || skill_get_delay(ud->skill_id,ud->skill_lv) )
@@ -9768,14 +9769,15 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 //			}
 //		}
 		unit_set_walkdelay(src, tick, battle_config.default_walk_delay+skill_get_walkdelay(ud->skill_id, ud->skill_lv), 1);
-		status_change_end(src, SC_CAMOUFLAGE, INVALID_TIMER); // Only normal attack and auto cast skills benefit from its bonuses
+		// Only normal attack and auto cast skills benefit from its bonuses
+		status_change_end(src, SC_CAMOUFLAGE, INVALID_TIMER);
 		map_freeblock_lock();
 		skill_castend_pos2(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv,tick,0);
 
 		if( sd && sd->skillitem != AL_WARP ) // Warp-Portal thru items will clear data in skill_castend_map. [Inkfish]
 			sd->skillitem = sd->skillitemlv = 0;
 
-		if (ud->skilltimer == INVALID_TIMER) {
+		if( ud->skilltimer == INVALID_TIMER ) {
 			if (md) md->skill_idx = -1;
 			else ud->skill_id = 0; //Non mobs can't clear this one as it is used for skill condition 'afterskill'
 			ud->skill_lv = ud->skillx = ud->skilly = 0;
@@ -9783,14 +9785,14 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 
 		map_freeblock_unlock();
 		return 1;
-	} while(0);
+	} while( 0 );
 
 	if( !sd || sd->skillitem != ud->skill_id || skill_get_delay(ud->skill_id,ud->skill_lv) )
 		ud->canact_tick = tick;
 	ud->skill_id = ud->skill_lv = 0;
-	if(sd)
+	if( sd )
 		sd->skillitem = sd->skillitemlv = 0;
-	else if(md)
+	else if( md )
 		md->skill_idx  = -1;
 	return 0;
 
@@ -15296,7 +15298,7 @@ bool skill_check_camouflage(struct block_list *bl, struct status_change_entry *s
 			if( sce->val1 == 1 ) //End camouflage.
 				status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
 		}
-		status_calc_bl(bl,SCB_SPEED);
+		status_calc_bl(bl, SCB_SPEED);
 	}
 
 	return wall;
