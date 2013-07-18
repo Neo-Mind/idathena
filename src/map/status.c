@@ -1776,12 +1776,13 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		case BL_PC: {
 				struct map_session_data *sd = (TBL_PC*) target;
 				bool is_boss = (status->mode&MD_BOSS);
-				bool is_detect = ((status->mode&MD_DETECTOR)?true:false); //God-knows-why gcc doesn't shut up until this happens
-				if (pc_isinvisible(sd))
+				//God-knows-why gcc doesn't shut up until this happens
+				bool is_detect = ((status->mode&MD_DETECTOR)?true:false);
+				if( pc_isinvisible(sd) )
 					return 0;
-				if (tsc->option&hide_flag && !is_boss &&
+				if( tsc->option&hide_flag && !is_boss &&
 					((sd->special_state.perfect_hiding || !is_detect) ||
-					(tsc->data[SC_CLOAKINGEXCEED] && is_detect)))
+					(tsc->data[SC_CLOAKINGEXCEED] && is_detect)) )
 					return 0;
 				if( tsc->data[SC_CAMOUFLAGE] && !(is_boss || is_detect) && !skill_id )
 					return 0;
@@ -1791,7 +1792,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 			break;
 		case BL_ITEM: //Allow targetting of items to pick'em up (or in the case of mobs, to loot them).
 			//TODO: Would be nice if this could be used to judge whether the player can or not pick up the item it targets. [Skotlex]
-			if (status->mode&MD_LOOTER)
+			if( status->mode&MD_LOOTER )
 				return 1;
 			return 0;
 		case BL_HOM:
@@ -1822,7 +1823,7 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 	struct status_data* status = status_get_status_data(src);
 	struct status_change* tsc = status_get_sc(target);
 
-	switch (src->type) {
+	switch( src->type ) {
 		case BL_MOB:
 			view_range = ((TBL_MOB*)src)->min_chase;
 			break;
@@ -1833,15 +1834,15 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 			view_range = AREA_SIZE;
 	}
 
-	if (src->m != target->m || !check_distance_bl(src, target, view_range))
+	if( src->m != target->m || !check_distance_bl(src, target, view_range) )
 		return 0;
 
 	if( tsc && tsc->data[SC_STEALTHFIELD] )
 		return 0;
 
-	switch (target->type) { //Check for chase-walk/hiding/cloaking opponents.
+	switch( target->type ) { //Check for chase-walk/hiding/cloaking opponents.
 		case BL_PC:
-			if ( tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS) )
+			if( tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS) )
 				return 0;
 			if( (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) || tsc->data[SC_CAMOUFLAGE]) && !(status->mode&MD_BOSS) &&
 				( ((TBL_PC*)target)->special_state.perfect_hiding || !(status->mode&MD_DETECTOR) ) )
@@ -3601,7 +3602,7 @@ void status_calc_state( struct block_list *bl, struct status_change *sc, enum sc
 		if( !(flag&SCS_NOMOVECOND) ) {
 			sc->cant.move += ( start ? 1 : -1 );
 		} else if(
-					 (sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF)	// cannot move while gospel is in effect
+					 (sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF)	// Cannot move while gospel is in effect
 				  || (sc->data[SC_BASILICA] && sc->data[SC_BASILICA]->val4 == bl->id) // Basilica caster cannot move
 				  || (sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF)
 				  || (sc->data[SC_CRYSTALIZE] && bl->type != BL_MOB)
@@ -6976,7 +6977,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_CAMOUFLAGE:
 			if(sd && pc_checkskill(sd, RA_CAMOUFLAGE) < 2 && !skill_check_camouflage(bl,NULL))
 				return 0;
-			val2 = 1;
 			break;
 		case SC__STRIPACCESSORY:
 			if(sd) {
@@ -8988,11 +8988,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_MEIKYOUSISUI:
 		case SC_KYOUGAKU:
 		case SC_PARALYSIS:
-			unit_stop_walking(bl,1);
+			unit_stop_walking(bl, 1);
 			break;
 		case SC_ANKLE:
 			if( battle_config.skill_trap_type || !map_flag_gvg(bl->m) )
-				unit_stop_walking(bl,1);
+				unit_stop_walking(bl, 1);
 			break;
 		case SC_HIDING:
 		case SC_CLOAKING:
@@ -10614,8 +10614,8 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_CAMOUFLAGE:
 			if( !status_charge(bl, 0, 7 - sce->val1) )
 				break;
-			if( sce->val2 < 10 )
-				sce->val2++;
+			if( --sce->val4 >= 0 )
+				sce->val3++; //Value from duration
 			sc_timer_next(1000 + tick, status_change_timer, bl->id, data);
 			return 0;
 

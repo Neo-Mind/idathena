@@ -765,13 +765,14 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			}
 		}
 
-		if( sc->data[SC_ZEPHYR] && (((flag&(BF_SHORT|BF_LONG)) == BF_LONG) ||
-			((flag&BF_MAGIC) && skill_id && !(skill_get_inf(skill_id)&INF_GROUND_SKILL))) ) {
+		if( sc->data[SC_ZEPHYR] && ((flag&(BF_SHORT|BF_LONG)) == BF_LONG ||
+			((flag&BF_MAGIC) && !(skill_get_inf(skill_id)&INF_GROUND_SKILL))) ) {
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}
 
-		if( sc->data[SC_SAFETYWALL] && (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT ) {
+		if( sc->data[SC_SAFETYWALL] &&
+			((flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT || (skill_get_inf2(skill_id)&INF2_TRAP)) ) {
 			struct skill_unit_group* group = skill_id2group(sc->data[SC_SAFETYWALL]->val3);
 			if (group) {
 				//in RE, SW possesses a lifetime equal to group val2, (3x caster's hp, or homon formula)
@@ -792,20 +793,24 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			status_change_end(bl, SC_SAFETYWALL, INVALID_TIMER);
 		}
 
-		if( ( sc->data[SC_PNEUMA] && (flag&(BF_MAGIC|BF_LONG)) == BF_LONG ) || sc->data[SC__MANHOLE] ) {
+		if( (sc->data[SC_PNEUMA] && (flag&(BF_MAGIC|BF_LONG)) == BF_LONG &&
+			!(skill_get_inf2(skill_id)&INF2_TRAP)) || sc->data[SC__MANHOLE] ) {
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}
+
 		if( sc->data[SC_NEUTRALBARRIER] && (flag&(BF_MAGIC|BF_LONG)) == BF_LONG && skill_id != CR_ACIDDEMONSTRATION ) {
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}
+
 		if( sc->data[SC_WEAPONBLOCKING] && flag&(BF_SHORT|BF_WEAPON) && rnd()%100 < sc->data[SC_WEAPONBLOCKING]->val2 ) {
 			clif_skill_nodamage(bl,src,GC_WEAPONBLOCKING,1,1);
 			d->dmg_lv = ATK_BLOCK;
 			sc_start2(src, bl, SC_COMBO, 100, GC_WEAPONBLOCKING, src->id, 2000);
 			return 0;
 		}
+
 		if( (sce = sc->data[SC_AUTOGUARD]) && flag&BF_WEAPON && !(skill_get_nk(skill_id)&NK_NO_CARDFIX_ATK) && rnd()%100 < sce->val2 ) {
 			int delay;
 			clif_skill_nodamage(bl, bl, CR_AUTOGUARD, sce->val1, 1);
@@ -1374,7 +1379,7 @@ static int battle_calc_drain(int damage, int rate, int per)
  *------------------------------------------*/
 int battle_addmastery(struct map_session_data *sd,struct block_list *target,int dmg,int type)
 {
-	int damage,skill;
+	int damage, skill;
 	struct status_data *status = status_get_status_data(target);
 	int weapon;
 #ifdef RENEWAL
@@ -1388,16 +1393,19 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 	if((skill = pc_checkskill(sd,AL_DEMONBANE)) > 0 &&
 		target->type == BL_MOB && //This bonus doesnt work against players.
 		(battle_check_undead(status->race,status->def_ele) || status->race == RC_DEMON))
-		damage += (skill*(int)(3+(sd->status.base_level+1)*0.05)); // submitted by orn
+		damage += (skill * (int)(3 + (sd->status.base_level + 1) * 0.05)); // Submitted by orn
 		//damage += (skill * 3);
-	if((skill = pc_checkskill(sd, RA_RANGERMAIN)) > 0 && (status->race == RC_BRUTE || status->race == RC_PLANT || status->race == RC_FISH))
+
+	if((skill = pc_checkskill(sd,RA_RANGERMAIN)) > 0 && (status->race == RC_BRUTE || status->race == RC_PLANT || status->race == RC_FISH))
 		damage += (skill * 5);
+
 	if((skill = pc_checkskill(sd,NC_RESEARCHFE)) > 0 && (status->def_ele == ELE_FIRE || status->def_ele == ELE_EARTH))
 		damage += (skill * 10);
-	if(pc_ismadogear(sd))
-		damage += 15 * pc_checkskill(sd, NC_MADOLICENCE);
 
-	if((skill = pc_checkskill(sd,HT_BEASTBANE)) > 0 && (status->race==RC_BRUTE || status->race==RC_INSECT) ) {
+	if(pc_ismadogear(sd))
+		damage += 15 * pc_checkskill(sd,NC_MADOLICENCE);
+
+	if((skill = pc_checkskill(sd,HT_BEASTBANE)) > 0 && (status->race == RC_BRUTE || status->race == RC_INSECT) ) {
 		damage += (skill * 4);
 		if (sd->sc.data[SC_SPIRIT] && sd->sc.data[SC_SPIRIT]->val2 == SL_HUNTER)
 			damage += sd->status.str;
@@ -1407,6 +1415,7 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 		weapon = sd->weapontype1;
 	else
 		weapon = sd->weapontype2;
+
 	switch(weapon) {
 		case W_1HSWORD:
 #ifdef RENEWAL
@@ -1481,9 +1490,6 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 
 	if(sd && (skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0) // Weapon Research bonus applies to all weapons
 		damage += (skill * 2);
-
-	if(sd->sc.data[SC_GN_CARTBOOST]) // Cart Boost adds mastery type damage
-		damage += 10 * sd->sc.data[SC_GN_CARTBOOST]->val1;
 
 	return damage;
 }
@@ -1828,11 +1834,9 @@ static bool is_attack_critical(struct Damage wd, struct block_list *src, struct 
 	if(skill_id == NPC_CRITICALSLASH || skill_id == LG_PINPOINTATTACK) //Always critical skills
 		return true;
 
-	if(!(wd.type&0x08) && sstatus->cri &&
-		(!skill_id ||
-		skill_id == KN_AUTOCOUNTER ||
-		skill_id == SN_SHARPSHOOTING || skill_id == MA_SHARPSHOOTING ||
-		skill_id == NJ_KIRIKAGE))
+	if(!(wd.type&0x08) && sstatus->cri && (!skill_id ||
+		skill_id == KN_AUTOCOUNTER || skill_id == SN_SHARPSHOOTING ||
+		skill_id == MA_SHARPSHOOTING || skill_id == NJ_KIRIKAGE))
 	{
 		short cri = sstatus->cri;
 		if(sd) {
@@ -1841,9 +1845,9 @@ static bool is_attack_critical(struct Damage wd, struct block_list *src, struct 
 				cri += sd->bonus.arrow_cri;
 		}
 		if(sc && sc->data[SC_CAMOUFLAGE])
-			cri += 100 * sc->data[SC_CAMOUFLAGE]->val2; //Max 100% (1K)
+			cri += 100 * min(10, sc->data[SC_CAMOUFLAGE]->val3); //Max 100% (1K)
 
-		//The official equation is *2, but that only applies when sd's do critical.
+		//The official equation is * 2, but that only applies when sd's do critical.
 		//Therefore, we use the old value 3 on cases when an sd gets attacked by a mob
 		cri -= tstatus->luk * (!sd && tsd ? 3 : 2);
 
@@ -2321,33 +2325,38 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 	struct status_change *sc = status_get_sc(src);
 	struct status_data *sstatus = status_get_status_data(src);
 	int skill, i, skillratio;
-
 	int t_class = status_get_class(target);
 
-	if(sc) {
-		if(sc->data[SC_CAMOUFLAGE]) {
-			//Max +300atk
-			ATK_ADD(wd.damage, wd.damage2, 30 * sc->data[SC_CAMOUFLAGE]->val2);
+	if(sd && battle_skill_stacks_masteries_vvs(skill_id) && skill_id != MO_INVESTIGATE &&
+		skill_id != MO_EXTREMITYFIST && skill_id != CR_GRANDCROSS) {
+		//Add mastery damage
+		wd.damage = battle_addmastery(sd, target, wd.damage, 0);
 #ifdef RENEWAL
-			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 30 * sc->data[SC_CAMOUFLAGE]->val2);
-#endif
-		}
-	}
-
-	if(sd && battle_skill_stacks_masteries_vvs(skill_id) &&
-		skill_id != MO_INVESTIGATE &&
-		skill_id != MO_EXTREMITYFIST &&
-		skill_id != CR_GRANDCROSS)
-	{ //Add mastery damage
-		wd.damage = battle_addmastery(sd,target,wd.damage,0);
-#ifdef RENEWAL
-		wd.masteryAtk = battle_addmastery(sd,target,wd.weaponAtk,0);
+		wd.masteryAtk = battle_addmastery(sd, target, wd.weaponAtk, 0);
 #endif
 		if(is_attack_left_handed(src, skill_id)) {
-			wd.damage2 = battle_addmastery(sd,target,wd.damage2,1);
+			wd.damage2 = battle_addmastery(sd, target, wd.damage2, 1);
 #ifdef RENEWAL
-			wd.masteryAtk2 = battle_addmastery(sd,target,wd.weaponAtk2,1);
+			wd.masteryAtk2 = battle_addmastery(sd, target, wd.weaponAtk2, 1);
 #endif
+		}
+
+		if(sc) {
+			if(sc->data[SC_CAMOUFLAGE]) {
+				//Max +300 ATK
+				ATK_ADD(wd.damage, wd.damage2, 30 * min(10, sc->data[SC_CAMOUFLAGE]->val3));
+#ifdef RENEWAL
+				ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 30 * min(10, sc->data[SC_CAMOUFLAGE]->val3));
+#endif
+			}
+
+			if(sc->data[SC_GN_CARTBOOST]) {
+				// Cart Boost adds mastery type damage
+				ATK_ADD(wd.damage, wd.damage2, 10 * sc->data[SC_GN_CARTBOOST]->val1);
+#ifdef RENEWAL
+				ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 10 * sc->data[SC_GN_CARTBOOST]->val1);
+#endif
+			}
 		}
 
 		if(sc && sc->data[SC_MIRACLE])
@@ -2364,6 +2373,7 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 			ATK_ADDRATE(wd.masteryAtk, wd.masteryAtk2, skillratio);
 #endif
 		}
+
 		if(skill_id == NJ_SYURIKEN && (skill = pc_checkskill(sd,NJ_TOBIDOUGU)) > 0) {
 			ATK_ADD(wd.damage, wd.damage2, 3 * skill);
 #ifdef RENEWAL
@@ -2371,6 +2381,7 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 #endif
 		}
 	}
+
 	return wd;
 }
 
@@ -3883,7 +3894,7 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 	}
 
 	if(sc && sc->data[SC_EXPIATIO]) {
-		i = 5 * sc->data[SC_EXPIATIO]->val1; //5% per level
+		i = 5 * sc->data[SC_EXPIATIO]->val1; //5% DEF per level
 		def1 -= def1 * i / 100;
 		def2 -= def2 * i / 100;
 	}
@@ -3892,10 +3903,10 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 		def2 += tsc->data[SC_GT_REVITALIZE]->val4;
 
 	if(tsc && tsc->data[SC_CAMOUFLAGE]) {
-		i = 5 * tsc->data[SC_CAMOUFLAGE]->val2;
+		i = 5 * tsc->data[SC_CAMOUFLAGE]->val3;
 		def1 -= def1 * i / 100;
 		def2 -= def2 * i / 100;
-		//Min 0 def
+		//Min 0 DEF
 		def1 = max(0,def1);
 		def2 = max(0,def2);
 	}
@@ -4021,13 +4032,15 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd, struct block_lis
 				//ATK increase: ATK [{(Caster's DEX / 4) + (Caster's STR / 2)} x Skill Level / 5]
 				ATK_ADD(wd.damage, wd.damage2, (status_get_dex(bl) / 4 + status_get_str(bl) / 2) * sc->data[SC_GT_CHANGE]->val1 / 5);
 		}
+
 	}
 
 #ifndef RENEWAL
 	wd = battle_calc_attack_masteries(wd, src, target, skill_id, skill_lv);
 
 	//Refine bonus
-	if(sd && battle_skill_stacks_masteries_vvs(skill_id) && skill_id != MO_INVESTIGATE && skill_id != MO_EXTREMITYFIST) {
+	if(sd && battle_skill_stacks_masteries_vvs(skill_id) &&
+		skill_id != MO_INVESTIGATE && skill_id != MO_EXTREMITYFIST) {
 		//Counts refine bonus multiple times
 		if(skill_id == MO_FINGEROFFENSIVE) {
 			ATK_ADD2(wd.damage, wd.damage2, wd.div_ * sstatus->rhw.atk2, wd.div_ * sstatus->lhw.atk2);
@@ -4252,9 +4265,7 @@ struct Damage battle_calc_weapon_final_atk_modifiers(struct Damage wd, struct bl
 				hp = 2 * hp / 100; //2% hp loss per hit
 			status_zap(src, hp, 0);
 		}
-		/**
-		 * Affecting non-skills
-		 **/
+		//Affecting non-skills
 		if(!skill_id) {
 			if(sc->data[SC_ENCHANTBLADE] && sd && ( (is_attack_right_handed(src, skill_id) && sd->weapontype1) || (is_attack_left_handed(src, skill_id) && sd->weapontype2) )) {
 				//[( ( Skill Lv x 20 ) + 100 ) x ( casterBaseLevel / 150 )] + casterInt

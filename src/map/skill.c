@@ -4561,7 +4561,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				struct skill_unit *su = BL_CAST(BL_SKILL,bl);
 				struct skill_unit_group* sg;
 
-				if( su && (sg=su->group) && skill_get_inf2(sg->skill_id)&INF2_TRAP ) {
+				if( su && (sg = su->group) && skill_get_inf2(sg->skill_id)&INF2_TRAP ) {
 					if( !(sg->unit_id == UNT_USED_TRAPS || (sg->unit_id == UNT_ANKLESNARE && sg->val2 != 0 )) ) {
 						struct item item_tmp;
 						memset(&item_tmp,0,sizeof(item_tmp));
@@ -9772,13 +9772,13 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 		// Only normal attack and auto cast skills benefit from its bonuses
 		status_change_end(src, SC_CAMOUFLAGE, INVALID_TIMER);
 		map_freeblock_lock();
-		skill_castend_pos2(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv,tick,0);
+		skill_castend_pos2(src, ud->skillx, ud->skilly, ud->skill_id, ud->skill_lv, tick, 0);
 
 		if( sd && sd->skillitem != AL_WARP ) // Warp-Portal thru items will clear data in skill_castend_map. [Inkfish]
 			sd->skillitem = sd->skillitemlv = 0;
 
 		if( ud->skilltimer == INVALID_TIMER ) {
-			if (md) md->skill_idx = -1;
+			if( md ) md->skill_idx = -1;
 			else ud->skill_id = 0; //Non mobs can't clear this one as it is used for skill condition 'afterskill'
 			ud->skill_lv = ud->skillx = ud->skilly = 0;
 		}
@@ -15016,7 +15016,8 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 
 	switch (skill_id) {
 		case SA_LANDPROTECTOR:
-			if( unit->group->skill_id == SA_LANDPROTECTOR ) { //Check for offensive Land Protector to delete both. [Skotlex]
+			//Check for offensive Land Protector to delete both. [Skotlex]
+			if( unit->group->skill_id == SA_LANDPROTECTOR ) {
 				(*alive) = 0;
 				skill_delunit(unit);
 				return 1;
@@ -15093,7 +15094,8 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 			break;
 	}
 
-	if (unit->group->skill_id == SA_LANDPROTECTOR && !(skill_get_inf2(skill_id)&(INF2_SONG_DANCE|INF2_TRAP))) {	//It deletes everything except songs/dances/traps
+	//It deletes everything except songs/dances/traps
+	if (unit->group->skill_id == SA_LANDPROTECTOR && !(skill_get_inf2(skill_id)&(INF2_SONG_DANCE|INF2_TRAP))) {
 		(*alive) = 0;
 		return 1;
 	}
