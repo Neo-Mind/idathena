@@ -3805,7 +3805,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 					// Pre-Renewal only: Soul Breaker and Meteor Assault ignores EDP 
 					// Renewal only: Grimtooth and Venom Knife ignore EDP
 					// Both: Venom Splasher ignores EDP [helvetica]
-#ifndef RENEWAL_EDP 
+#ifndef RENEWAL_EDP
 					case ASC_BREAKER:
 					case ASC_METEORASSAULT:
 #else
@@ -3836,17 +3836,21 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 						ATK_RATE(wd.weaponAtk, wd.weaponAtk2, 100 + (sc->data[SC_EDP]->val1 * 80));
 						ATK_RATE(wd.equipAtk, wd.equipAtk2, 100 + (sc->data[SC_EDP]->val1 * 60));
 						break;
-#else
+#elif !defined RENEWAL_EDP
 					default:
 						ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_EDP]->val3);
-
+	#ifdef RENEWAL
+						ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sc->data[SC_EDP]->val3);
+	#endif
 #endif
 				}
 			}
-			if (sc->data[SC_STYLE_CHANGE]) {
-				TBL_HOM *hd = BL_CAST(BL_HOM,src);
-				if (hd) ATK_ADD(wd.damage, wd.damage2, hd->homunculus.spiritball * 3);
+
+			if(sc->data[SC_STYLE_CHANGE]) {
+				TBL_HOM *hd = BL_CAST(BL_HOM, src);
+				if(hd) ATK_ADD(wd.damage, wd.damage2, hd->homunculus.spiritball * 3);
 			}
+
 		}
 	return wd;
 }

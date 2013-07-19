@@ -7494,7 +7494,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = val1 * 20; //SP gained
 				break;
 			case SC_KYRIE:
-				if ( val4 ) { // Formula's for Praefatio
+				if( val4 ) { // Formula's for Praefatio
 					val2 = status->max_hp * (val1 * 2 + 16) / 100; //%Max HP to absorb
 					val3 = 6 + val1; //Hits
 				} else { // Formula's for Kyrie Eleison
