@@ -10114,11 +10114,11 @@ void clif_parse_DropItem(int fd, struct map_session_data *sd)
 	int item_index  = RFIFOW(fd,info->pos[0])-2;
 	int item_amount = RFIFOW(fd,info->pos[1]);
 
-	for(;;) {
+	for (;;) {
 		if (pc_isdead(sd))
 			break;
 
-		if ( pc_cant_act2(sd) )
+		if (pc_cant_act2(sd) || sd->npc_id)
 			break;
 
 		if (sd->sc.count && (
@@ -10251,12 +10251,12 @@ void clif_parse_NpcClicked(int fd,struct map_session_data *sd)
 	struct block_list *bl;
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
 
-	if(pc_isdead(sd)) {
+	if (pc_isdead(sd)) {
 		clif_clearunit_area(&sd->bl,CLR_DEAD);
 		return;
 	}
 
-	if ( pc_cant_act2(sd) )
+	if (pc_cant_act2(sd) || sd->npc_id)
 		return;
 
 	bl = map_id2bl(RFIFOL(fd,info->pos[0]));
@@ -10268,7 +10268,7 @@ void clif_parse_NpcClicked(int fd,struct map_session_data *sd)
 			clif_parse_ActionRequest_sub(sd, 0x07, bl->id, gettick());
 			break;
 		case BL_NPC:
-			if( bl->m != -1 )// the user can't click floating npcs directly (hack attempt)
+			if (bl->m != -1) // The user can't click floating npcs directly (hack attempt)
 				npc_click(sd,(TBL_NPC*)bl);
 			break;
 	}
@@ -10794,11 +10794,15 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 	if( sd->npc_id ) {
 #ifdef RENEWAL
 		clif_msg(sd, USAGE_FAIL); // TODO look for the client date that has this message.
-#endif
 		return;
+#else
+		if( !sd->npc_item_flag || !(tmp&INF_SELF_SKILL) )
+			return;
+#endif
 	}
 
-	if( pc_cant_act(sd) && skill_id != RK_REFRESH && !(skill_id == SR_GENTLETOUCH_CURE && (sd->sc.opt1 == OPT1_STONE || sd->sc.opt1 == OPT1_FREEZE || sd->sc.opt1 == OPT1_STUN)) )
+	if( (pc_cant_act2(sd) || sd->chatID) && skill_id != RK_REFRESH && !(skill_id == SR_GENTLETOUCH_CURE &&
+		(sd->sc.opt1 == OPT1_STONE || sd->sc.opt1 == OPT1_FREEZE || sd->sc.opt1 == OPT1_STUN)) )
 		return;
 	if( pc_issit(sd) )
 		return;
@@ -10807,9 +10811,9 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 		return;
 
 	if( sd->bl.id != target_id && tmp&INF_SELF_SKILL )
-		target_id = sd->bl.id; // never trust the client
+		target_id = sd->bl.id; // Never trust the client
 	
-	if( target_id < 0 && -target_id == sd->bl.id ) // for disguises [Valaris]
+	if( target_id < 0 && -target_id == sd->bl.id ) // For disguises [Valaris]
 		target_id = sd->bl.id;
 	
 	if( sd->ud.skilltimer != INVALID_TIMER ) {
@@ -10832,7 +10836,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 		if( sd->menuskill_id == SA_TAMINGMONSTER ) {
 			clif_menuskill_clear(sd); //Cancel pet capture.
 		} else if( sd->menuskill_id != SA_AUTOSPELL )
-			return; //Can't use skills while a menu is open.
+			return; // Can't use skills while a menu is open.
 	}
 	if( sd->skillitem == skill_id ) {
 		if( skill_lv != sd->skillitemlv )
