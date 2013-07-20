@@ -7839,6 +7839,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick = -1; // duration sent to the client should be infinite
 				tick_time = val4; // [GodLesZ] tick time
 				break;
+
 			case SC_PARRYING:
 				val2 = 20 + val1*3; //Block Chance
 				break;
@@ -7886,6 +7887,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				stat = ( sd ? sd->status.luk : status_get_base_status(bl)->luk ) / 2; val4 |= cap_value(stat,0,0xFF);
 				break;
 			}
+
 			case SC_MARIONETTE2: {
 				int stat,max_stat;
 				// fetch caster information
@@ -7909,6 +7911,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				stat = (psce->val4 >> 0)&0xFF; stat = min(stat, max_stat - status->luk ); val4 |= cap_value(stat,0,0xFF);
 				break;
 			}
+
 			case SC_REJECTSWORD:
 				val2 = 15*val1; //Reflect chance
 				val3 = 3; //Reflections
@@ -10990,7 +10993,7 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 int status_change_clear_buffs (struct block_list* bl, int type)
 {
 	int i;
-	struct status_change *sc= status_get_sc(bl);
+	struct status_change *sc = status_get_sc(bl);
 
 	if (!sc || !sc->count)
 		return 0;
@@ -10999,8 +11002,8 @@ int status_change_clear_buffs (struct block_list* bl, int type)
 		for (i = SC_COMMON_MIN; i <= SC_COMMON_MAX; i++)
 			status_change_end(bl, (sc_type)i, INVALID_TIMER);
 
-	for( i = SC_COMMON_MAX+1; i < SC_MAX; i++ ) {
-		if(!sc->data[i])
+	for (i = SC_COMMON_MAX+1; i < SC_MAX; i++) {
+		if (!sc->data[i])
 			continue;
 
 		switch (i) {
@@ -11081,7 +11084,7 @@ int status_change_clear_buffs (struct block_list* bl, int type)
 			case SC_LEECHESEND:
 			case SC_MARSHOFABYSS:
 			case SC_MANDRAGORA:
-				if(!(type&4))
+				if (!(type&4))
 					continue;
 				break;
 			case SC_STUN:
