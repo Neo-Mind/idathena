@@ -1612,7 +1612,7 @@ packet_ver: 25
 
 //2010-11-24aRagexeRE
 packet_ver: 26
-0x0288,-1,cashshopbuy,2:4:6:10
+0x0288,-1,cashshopbuy,2:4:8:10
 0x0436,19,wanttoconnection,2:6:10:14:18
 0x035f,5,walktoxy,2
 0x0360,6,ticksend,2
@@ -1714,7 +1714,7 @@ packet_ver: 30
 0x089c,26,friendslistadd,2
 0x0885,5,hommenu,2:4
 0x0961,36,storagepassword,2:4:20
-0x0288,-1,cashshopbuy,2:4:6:10
+0x0288,-1,cashshopbuy,2:4:8:10
 0x091c,26,partyinvite2,2
 0x094b,19,wanttoconnection,2:6:10:14:18
 0x0369,7,actionrequest,2:6
@@ -1774,7 +1774,7 @@ packet_ver: 31
 0x023B,26,friendslistadd,2
 0x0361,5,hommenu,2:4
 0x08A8,36,storagepassword,2:4:20
-0x0288,-1,cashshopbuy,2:4:6:10
+0x0288,-1,cashshopbuy,2:4:8:10
 0x0802,26,partyinvite2,2
 0x022D,19,wanttoconnection,2:6:10:14:18
 0x0369,7,actionrequest,2:6
@@ -1833,7 +1833,7 @@ packet_ver: 32
 0x023B,26,friendslistadd,2
 0x0361,5,hommenu,2:4
 0x0819,36,storagepassword,0
-0x0288,-1,cashshopbuy,2:4:6:10
+0x0288,-1,cashshopbuy,2:4:8:10
 0x0802,26,partyinvite2,2
 0x022D,19,wanttoconnection,2:6:10:14:18
 0x0369,7,actionrequest,2:6

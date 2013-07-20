@@ -1618,7 +1618,7 @@ static int battle_calc_base_damage(struct status_data *status, struct weapon_atk
 			damage = damage * (type == EQI_HAND_L ? sd->left_weapon.atkmods[t_size] : sd->right_weapon.atkmods[t_size]) / 100;
 	}
 
-	//Finally, add baseatk
+	//Finally, add base attack
 	if(flag&4)
 		damage += status->matk_min;
 #ifdef RENEWAL
@@ -2636,7 +2636,11 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 #else
 				i = (is_attack_critical(wd, src, target, skill_id, skill_lv, false)?1:0)|
 					(is_skill_using_arrow(src, skill_id)?2:0)|
+#ifndef RENEWAL
 					(skill_id == HW_MAGICCRASHER?4:0)|
+#else
+					(skill_id == HW_MAGICCRASHER?32:0)|
+#endif
 					(!skill_id && sc && sc->data[SC_CHANGE]?4:0)|
 					(skill_id == MO_EXTREMITYFIST?8:0)|
 					(sc && sc->data[SC_WEAPONPERFECTION]?8:0);

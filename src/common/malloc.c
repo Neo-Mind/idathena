@@ -73,7 +73,7 @@ void* aMalloc_(size_t size, const char *file, int line, const char *func)
 {
 	void *ret = MALLOC(size, file, line, func);
 	// ShowMessage("%s:%d: in func %s: aMalloc %d\n",file,line,func,size);
-	if (ret == NULL){
+	if (ret == NULL) {
 		ShowFatalError("%s:%d: in func %s: aMalloc error out of memory!\n",file,line,func);
 		exit(EXIT_FAILURE);
 	}
@@ -84,7 +84,7 @@ void* aCalloc_(size_t num, size_t size, const char *file, int line, const char *
 {
 	void *ret = CALLOC(num, size, file, line, func);
 	// ShowMessage("%s:%d: in func %s: aCalloc %d %d\n",file,line,func,num,size);
-	if (ret == NULL){
+	if (ret == NULL) {
 		ShowFatalError("%s:%d: in func %s: aCalloc error out of memory!\n", file, line, func);
 		exit(EXIT_FAILURE);
 	}
@@ -94,7 +94,7 @@ void* aRealloc_(void *p, size_t size, const char *file, int line, const char *fu
 {
 	void *ret = REALLOC(p, size, file, line, func);
 	// ShowMessage("%s:%d: in func %s: aRealloc %p %d\n",file,line,func,p,size);
-	if (ret == NULL){
+	if (ret == NULL) {
 		ShowFatalError("%s:%d: in func %s: aRealloc error out of memory!\n",file,line,func);
 		exit(EXIT_FAILURE);
 	}
@@ -104,7 +104,7 @@ char* aStrdup_(const char *p, const char *file, int line, const char *func)
 {
 	char *ret = STRDUP(p, file, line, func);
 	// ShowMessage("%s:%d: in func %s: aStrdup %p\n",file,line,func,p);
-	if (ret == NULL){
+	if (ret == NULL) {
 		ShowFatalError("%s:%d: in func %s: aStrdup error out of memory!\n", file, line, func);
 		exit(EXIT_FAILURE);
 	}
@@ -207,7 +207,7 @@ static unsigned short size2hash( size_t size )
 {
 	if( size <= BLOCK_DATA_SIZE1 ) {
 		return (unsigned short)(size + BLOCK_ALIGNMENT1 - 1) / BLOCK_ALIGNMENT1;
-	} else if( size <= BLOCK_DATA_SIZE ){
+	} else if( size <= BLOCK_DATA_SIZE ) {
 		return (unsigned short)(size - BLOCK_DATA_SIZE1 + BLOCK_ALIGNMENT2 - 1) / BLOCK_ALIGNMENT2
 				+ BLOCK_DATA_COUNT1;
 	} else {
@@ -302,17 +302,12 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 #ifdef DEBUG_MEMMGR
 	{
 		size_t i, sz = hash2size( size_hash );
-		for( i=0; i<sz; i++ )
-		{
-			if( ((unsigned char*)head)[ sizeof(struct unit_head) - sizeof(long) + i] != 0xfd )
-			{
-				if( head->line != 0xfdfd )
-				{
-					/*ShowError("Memory manager: freed-data is changed. (freed in %s line %d)\n", head->file,head->line);*/
-				}
-				else
-				{
-					ShowError("Memory manager: not-allocated-data is changed.\n");
+		for( i=0; i<sz; i++ ) {
+			if( ((unsigned char*)head)[ sizeof(struct unit_head) - sizeof(long) + i] != 0xfd ) {
+				if( head->line != 0xfdfd ) {
+					//ShowError("Memory manager: freed-data is changed. (freed in %s line %d)\n", head->file,head->line);
+				} else {
+					//ShowError("Memory manager: not-allocated-data is changed.\n");
 				}
 				break;
 			}
@@ -410,7 +405,7 @@ void _mfree(void *ptr, const char *file, int line, const char *func )
 		/* Release unit */
 		struct block *block = head->block;
 		if( (char*)head - (char*)block > sizeof(struct block) ) {
-			/*ShowError("Memory manager: args of aFree 0x%p is invalid pointer %s line %d\n", ptr, file, line);*/
+			//ShowError("Memory manager: args of aFree 0x%p is invalid pointer %s line %d\n", ptr, file, line);
 		} else if(head->block == NULL) {
 			ShowError("Memory manager: args of aFree 0x%p is freed pointer %s:%d@%s\n", ptr, file, line, func);
 		} else if(*(long*)((char*)head + sizeof(struct unit_head) - sizeof(long) + head->size) != 0xdeadbeaf) {
@@ -429,7 +424,7 @@ void _mfree(void *ptr, const char *file, int line, const char *func )
 				block_free(block);
 			} else {
 				if( block->unfill_prev == NULL) {
-					// add to unfill list
+					// Add to unfill list
 					if( hash_unfill[ block->unit_hash ] ) {
 						hash_unfill[ block->unit_hash ]->unfill_prev = block;
 					}
@@ -558,16 +553,16 @@ bool memmgr_verify(void* ptr)
 	struct unit_head_large* large = unit_head_large_first;
 
 	if( ptr == NULL )
-		return false;// never valid
+		return false; // Never valid
 
-	// search small blocks
+	// Search small blocks
 	while( block ) {
-		if( (char*)ptr >= (char*)block && (char*)ptr < ((char*)block) + sizeof(struct block) ) { // found memory block
-			if( block->unit_used && (char*)ptr >= block->data ) { // memory block is being used and ptr points to a sub-unit
+		if( (char*)ptr >= (char*)block && (char*)ptr < ((char*)block) + sizeof(struct block) ) { // Found memory block
+			if( block->unit_used && (char*)ptr >= block->data ) { // Memory block is being used and ptr points to a sub-unit
 				size_t i = (size_t)((char*)ptr - block->data)/block->unit_size;
 				struct unit_head* head = block2unit(block, i);
 				if( i < block->unit_maxused && head->block != NULL ) {
-					// memory unit is allocated, check if ptr points to the usable part
+					// Memory unit is allocated, check if ptr points to the usable part
 					return ( (char*)ptr >= ((char*)head) + sizeof(struct unit_head) - sizeof(long)
 						&& (char*)ptr < ((char*)head) + sizeof(struct unit_head) - sizeof(long) + head->size );
 				}
@@ -577,10 +572,10 @@ bool memmgr_verify(void* ptr)
 		block = block->block_next;
 	}
 
-	// search large blocks
+	// Search large blocks
 	while( large ) {
 		if( (char*)ptr >= (char*)large && (char*)ptr < ((char*)large) + large->size ) {
-			// found memory block, check if ptr points to the usable part
+			// Found memory block, check if ptr points to the usable part
 			return ( (char*)ptr >= ((char*)large) + sizeof(struct unit_head_large) - sizeof(long)
 				&& (char*)ptr < ((char*)large) + sizeof(struct unit_head_large) - sizeof(long) + large->size );
 		}
@@ -612,7 +607,7 @@ static void memmgr_final (void)
 						head->file, head->line, (unsigned long)head->size, ptr);
 					memmgr_log (buf);
 #endif /* LOG_MEMMGR */
-					// get block pointer and free it [celest]
+					// Get block pointer and free it [celest]
 					_mfree(ptr, ALC_MARK);
 				}
 			}
@@ -703,7 +698,7 @@ void malloc_init (void)
 	dmalloc_debug_setup(getenv("DMALLOC_OPTIONS"));
 #endif
 #ifdef GCOLLECT
-	// don't garbage collect, only report inaccessible memory that was not deallocated
+	// Don't garbage collect, only report inaccessible memory that was not deallocated
 	GC_find_leak = 1;
 	GC_INIT();
 #endif

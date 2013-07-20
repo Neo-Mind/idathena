@@ -641,7 +641,7 @@ struct {
 #define pc_istrading(sd)      ( (sd)->npc_id || (sd)->state.vending || (sd)->state.buyingstore || (sd)->state.trading )
 #define pc_cant_act(sd)       ( (sd)->npc_id || (sd)->state.vending || (sd)->state.buyingstore || (sd)->chatID || ((sd)->sc.opt1 && (sd)->sc.opt1 != OPT1_BURNING) || (sd)->state.trading || (sd)->state.storage_flag || (sd)->state.prevend )
 
-/* equals pc_cant_act except it doesn't check for chat rooms or npcs */
+/* Equals pc_cant_act except it doesn't check for chat rooms or npcs */
 #define pc_cant_act2(sd)      ( (sd)->state.vending || (sd)->state.buyingstore || ((sd)->sc.opt1 && (sd)->sc.opt1 != OPT1_BURNING) || (sd)->state.trading || (sd)->state.storage_flag || (sd)->state.prevend )
 
 #define pc_setdir(sd,b,h)     ( (sd)->ud.dir = (b) ,(sd)->head_dir = (h) )
@@ -675,11 +675,11 @@ struct {
 #define pc_stop_walking(sd, type) unit_stop_walking(&(sd)->bl, type)
 #define pc_stop_attack(sd) unit_stop_attack(&(sd)->bl)
 
-//Weapon check considering dual wielding.
+// Weapon check considering dual wielding.
 #define pc_check_weapontype(sd, type) ((type)&((sd)->status.weapon < MAX_WEAPON_TYPE? \
 	1<<(sd)->status.weapon:(1<<(sd)->weapontype1)|(1<<(sd)->weapontype2)|(1<<(sd)->status.weapon)))
-//Checks if the given class value corresponds to a player class. [Skotlex]
-//JOB_NOVICE isn't checked for class_ is supposed to be unsigned
+// Checks if the given class value corresponds to a player class. [Skotlex]
+// JOB_NOVICE isn't checked for class_ is supposed to be unsigned
 #define pcdb_checkid_sub(class_) \
 ( \
 	( (class_) <  JOB_MAX_BASIC ) \
@@ -691,7 +691,7 @@ struct {
 )
 #define pcdb_checkid(class_) pcdb_checkid_sub((unsigned int)class_)
 
-// clientside display macros (values to the left/right of the "+")
+// Clientside display macros (values to the left/right of the "+")
 #ifdef RENEWAL
 	#define pc_leftside_atk(sd) ((sd)->battle_status.batk)
 	#define pc_rightside_atk(sd) ((sd)->battle_status.rhw.atk + (sd)->battle_status.lhw.atk + (sd)->battle_status.rhw.atk2 + (sd)->battle_status.lhw.atk2 + (sd)->battle_status.eatk)
