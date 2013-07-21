@@ -582,7 +582,7 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 							cardfix = cardfix*(100+sd->right_weapon.addrace[RC_NONDEMIHUMAN]+sd->left_weapon.addrace[RC_NONDEMIHUMAN])/100;
 					}
 					// Adv. Katar Mastery functions similar to a +%ATK card on official [helvetica]
-					if (sd->status.weapon == W_KATAR && (skill = pc_checkskill(sd,ASC_KATAR)) > 0) {
+					if( sd->status.weapon == W_KATAR && (skill = pc_checkskill(sd,ASC_KATAR)) > 0 ) {
 						cardfix = cardfix*(100+(10+2*skill))/100;
 					}
 				}
@@ -1604,7 +1604,7 @@ static int battle_calc_base_damage(struct status_data *status, struct weapon_atk
 
 	//Weapon Damage calculation
 	if(!(flag&1))
-		damage = (atkmax>atkmin? rnd()%(atkmax - atkmin) : 0) + atkmin;
+		damage = (atkmax > atkmin ? rnd()%(atkmax - atkmin) : 0) + atkmin;
 	else
 		damage = atkmax;
 

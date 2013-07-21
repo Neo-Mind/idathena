@@ -200,6 +200,7 @@ void cashshop_buylist( struct map_session_data* sd, uint32 kafrapoints, int n, u
 	uint32 totalcash = 0;
 	uint32 totalweight = 0;
 	int i,new_;
+	uint8 stackflag[256];
 
 	if( sd == NULL || item_list == NULL ){
 		return;
@@ -215,6 +216,7 @@ void cashshop_buylist( struct map_session_data* sd, uint32 kafrapoints, int n, u
 		uint32 quantity = *( item_list + i * 5 + 2 );
 		uint16 tab = *( item_list + i * 5 + 4 );
 		int j;
+		stackflag[i] = 0;
 
 		if( tab > CASHSHOP_TAB_SEARCH ){
 			clif_cashshop_result( sd, nameid, CASHSHOP_RESULT_ERROR_UNKNOWN );
@@ -227,24 +229,39 @@ void cashshop_buylist( struct map_session_data* sd, uint32 kafrapoints, int n, u
 			clif_cashshop_result( sd, nameid, CASHSHOP_RESULT_ERROR_UNKNOWN );
 			return;
 		}else if( !itemdb_isstackable( nameid ) && quantity > 1 ){
-			uint32* quantity_ptr = (uint32*)item_list + i * 5 + 2;
+			stackflag[i] = 1;
+			/*uint32* quantity_ptr = (uint32*)(item_list + i * 5 + 2);
 			ShowWarning( "Player %s (%d:%d) sent a hexed packet trying to buy %d of nonstackable cash item %d!\n", sd->status.name, sd->status.account_id, sd->status.char_id, quantity, nameid );
-			*quantity_ptr = 1;
+			*quantity_ptr = 1;*/
 		}
 
-		switch( pc_checkadditem( sd, nameid, quantity ) ){
-			case CHKADDITEM_EXIST:
-				break;
+		if( stackflag[i] ){
+			int jj;
+			for( jj = 0; jj < quantity; ++jj){
+				switch( pc_checkadditem( sd, nameid, 1 ) ){
+					case CHKADDITEM_NEW:
+						new_++;
+						break;
 
-			case CHKADDITEM_NEW:
-				new_++;
-				break;
+					case CHKADDITEM_OVERAMOUNT:
+						clif_cashshop_result( sd, nameid, CASHSHOP_RESULT_ERROR_OVER_PRODUCT_TOTAL_CNT );
+						return;
+				}
+			}
+		}else{
+			switch( pc_checkadditem( sd, nameid, quantity ) ){
+				case CHKADDITEM_EXIST:
+					break;
 
-			case CHKADDITEM_OVERAMOUNT:
-				clif_cashshop_result( sd, nameid, CASHSHOP_RESULT_ERROR_OVER_PRODUCT_TOTAL_CNT );
-				return;
+				case CHKADDITEM_NEW:
+					new_++;
+					break;
+
+				case CHKADDITEM_OVERAMOUNT:
+					clif_cashshop_result( sd, nameid, CASHSHOP_RESULT_ERROR_OVER_PRODUCT_TOTAL_CNT );
+					return;
+			}
 		}
-
 		totalcash += cash_shop_items[tab].item[j]->price * quantity;
 		totalweight += itemdb_weight( nameid ) * quantity;
 	}
@@ -266,28 +283,64 @@ void cashshop_buylist( struct map_session_data* sd, uint32 kafrapoints, int n, u
 		uint32 nameid = *( item_list + i * 5 );
 		uint32 quantity = *( item_list + i * 5 + 2 );
 
-		if( itemdb_type( nameid ) == IT_PETEGG ){
-			pet_create_egg( sd, nameid );
+		if( stackflag[i] ){
+			int jj;
+			for( jj = 0; jj < quantity; ++jj ){
+				if( itemdb_type( nameid ) == IT_PETEGG ){
+					pet_create_egg( sd, nameid );
+				}else{
+					struct item item_tmp;
+					memset( &item_tmp, 0, sizeof( item_tmp ) );
+
+					item_tmp.nameid = nameid;
+					item_tmp.identify = 1;
+
+					switch( pc_additem( sd, &item_tmp, 1, LOG_TYPE_CASH ) ){
+						case ADDITEM_OVERWEIGHT:
+							clif_cashshop_result( sd, nameid, CASHSHOP_RESULT_ERROR_INVENTORY_WEIGHT );
+							return;
+
+						case ADDITEM_OVERITEM:
+							clif_cashshop_result( sd, nameid, CASHSHOP_RESULT_ERROR_INVENTORY_ITEMCNT );
+							return;
+
+						case ADDITEM_OVERAMOUNT:
+							clif_cashshop_result( sd, nameid, CASHSHOP_RESULT_ERROR_OVER_PRODUCT_TOTAL_CNT );
+							return;
+
+						case ADDITEM_STACKLIMIT:
+							clif_cashshop_result( sd, nameid, CASHSHOP_RESULT_ERROR_RUNE_OVERCOUNT );
+							return;
+					}
+				}		
+			}
 		}else{
-			struct item item_tmp;
-			memset( &item_tmp, 0, sizeof( item_tmp ) );
+			if( itemdb_type( nameid ) == IT_PETEGG ){
+				pet_create_egg( sd, nameid );
+			}else{
+				struct item item_tmp;
+				memset( &item_tmp, 0, sizeof( item_tmp ) );
 
-			item_tmp.nameid = nameid;
-			item_tmp.identify = 1;
+				item_tmp.nameid = nameid;
+				item_tmp.identify = 1;
 
-			switch( pc_additem( sd, &item_tmp, quantity, LOG_TYPE_CASH ) ){
-				case ADDITEM_OVERWEIGHT:
-					clif_cashshop_result( sd, nameid, CASHSHOP_RESULT_ERROR_INVENTORY_WEIGHT );
-					return;
-				case ADDITEM_OVERITEM:
-					clif_cashshop_result( sd, nameid, CASHSHOP_RESULT_ERROR_INVENTORY_ITEMCNT );
-					return;
-				case ADDITEM_OVERAMOUNT:
-					clif_cashshop_result( sd, nameid, CASHSHOP_RESULT_ERROR_OVER_PRODUCT_TOTAL_CNT );
-					return;
-				case ADDITEM_STACKLIMIT:
-					clif_cashshop_result( sd, nameid, CASHSHOP_RESULT_ERROR_RUNE_OVERCOUNT );
-					return;
+				switch( pc_additem( sd, &item_tmp, quantity, LOG_TYPE_CASH ) ){
+					case ADDITEM_OVERWEIGHT:
+						clif_cashshop_result( sd, nameid, CASHSHOP_RESULT_ERROR_INVENTORY_WEIGHT );
+						return;
+
+					case ADDITEM_OVERITEM:
+						clif_cashshop_result( sd, nameid, CASHSHOP_RESULT_ERROR_INVENTORY_ITEMCNT );
+						return;
+
+					case ADDITEM_OVERAMOUNT:
+						clif_cashshop_result( sd, nameid, CASHSHOP_RESULT_ERROR_OVER_PRODUCT_TOTAL_CNT );
+						return;
+
+					case ADDITEM_STACKLIMIT:
+						clif_cashshop_result( sd, nameid, CASHSHOP_RESULT_ERROR_RUNE_OVERCOUNT );
+						return;
+				}
 			}
 		}
 	}
