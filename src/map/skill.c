@@ -12236,7 +12236,7 @@ int skill_unit_onout (struct skill_unit *src, struct block_list *bl, unsigned in
 	type = status_skill2sc(sg->skill_id);
 	sce = (sc && type != -1)?sc->data[type]:NULL;
 
-	if( bl->prev==NULL ||
+	if( bl->prev == NULL ||
 		(status_isdead(bl) && sg->unit_id != UNT_ANKLESNARE && sg->unit_id != UNT_SPIDERWEB) ) //Need to delete the trap if the source died.
 		return 0;
 

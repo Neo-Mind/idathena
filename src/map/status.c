@@ -3548,7 +3548,11 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		//No regen
 		regen->flag = 0;
 
-	if (sc->data[SC_DANCING] || sc->data[SC_MAXIMIZEPOWER] || sc->data[SC_OBLIVIONCURSE] ||
+	if (sc->data[SC_DANCING] ||
+#ifdef RENEWAL
+		sc->data[SC_MAXIMIZEPOWER] ||
+#endif
+		sc->data[SC_OBLIVIONCURSE] ||
 		((bl->type == BL_PC && ((TBL_PC*)bl)->class_&MAPID_UPPERMASK) == MAPID_MONK && (sc->data[SC_EXTREMITYFIST] ||
 			(sc->data[SC_EXPLOSIONSPIRITS] && (!sc->data[SC_SPIRIT] || sc->data[SC_SPIRIT]->val2 != SL_MONK))))
 		) //No natural SP regen
@@ -7476,7 +7480,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_MAXIMIZEPOWER:
 				tick_time = val2 = tick > 0 ? tick : 60000;
-				tick = -1; // duration sent to the client should be infinite
+				tick = -1; //Duration sent to the client should be infinite
 				break;
 			case SC_EDP: // [Celest]
 				val2 = val1 + 2; //Chance to Poison enemies.
@@ -10134,7 +10138,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 // set the next timer of the sce (don't assume the status still exists)
 #define sc_timer_next(t,f,i,d) \
-	if( (sce=sc->data[type]) ) \
+	if( (sce = sc->data[type]) ) \
 		sce->timer = add_timer(t,f,i,d); \
 	else \
 		ShowError("status_change_timer: Unexpected NULL status change id: %d data: %d\n", id, data)
