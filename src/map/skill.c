@@ -2335,18 +2335,18 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	struct status_change *sc;
 	struct map_session_data *sd, *tsd;
 	int type, damage, rdamage = 0;
-	int8 rmdamage = 0; //magic reflected
+	int8 rmdamage = 0; //Magic reflected
 	bool additional_effects = true;
 
 	if (skill_id > 0 && !skill_lv) return 0;
 
-	nullpo_ret(src);	//Source is the master behind the attack (player/mob/pet)
+	nullpo_ret(src); //Source is the master behind the attack (player/mob/pet)
 	nullpo_ret(dsrc); //dsrc is the actual originator of the damage, can be the same as src, or a skill casted by src.
 	nullpo_ret(bl); //Target to be attacked.
 
 	if (src != dsrc) {
 		//When caster is not the src of attack, this is a ground skill, and as such, do the relevant target checking. [Skotlex]
-		if (!status_check_skilluse(battle_config.skill_caster_check?src:NULL, bl, skill_id, 2))
+		if (!status_check_skilluse(battle_config.skill_caster_check ? src : NULL, bl, skill_id, 2))
 			return 0;
 	} else if ((flag&SD_ANIMATION) && skill_get_nk(skill_id)&NK_SPLASH) {
 		//Note that splash attacks often only check versus the targetted mob, those around the splash area normally don't get checked for being hidden/cloaked/etc. [Skotlex]
@@ -2362,17 +2362,17 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	sc = status_get_sc(bl);
 	if (sc && !sc->count) sc = NULL; //Don't need it.
 
-	// Is this check really needed? FrostNova won't hurt you if you step right where the caster is?
+	//Is this check really needed? FrostNova won't hurt you if you step right where the caster is?
 	if (skill_id == WZ_FROSTNOVA && dsrc->x == bl->x && dsrc->y == bl->y)
 		return 0;
-	 //Trick Dead protects you from damage, but not from buffs and the like, hence it's placed here.
+	//Trick Dead protects you from damage, but not from buffs and the like, hence it's placed here.
 	if (sc && sc->data[SC_TRICKDEAD])
 		return 0;
 
 	dmg = battle_calc_attack(attack_type,src,bl,skill_id,skill_lv,flag&0xFFF);
 
 	//Skotlex: Adjusted to the new system
-	if (src->type == BL_PET) { // [Valaris]
+	if (src->type == BL_PET) { //[Valaris]
 		struct pet_data *pd = (TBL_PET*)src;
 		if (pd->a_skill && pd->a_skill->div_ && pd->a_skill->id == skill_id) {
 			int element = skill_get_ele(skill_id, skill_lv);
@@ -2382,13 +2382,13 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				dmg.damage=battle_attr_fix(src, bl, skill_lv, element, tstatus->def_ele, tstatus->ele_lv);
 			else
 				dmg.damage= skill_lv;
-			dmg.damage2=0;
-			dmg.div_= pd->a_skill->div_;
+			dmg.damage2 = 0;
+			dmg.div_ = pd->a_skill->div_;
 		}
 	}
 
-	if (dmg.flag&BF_MAGIC && ( skill_id != NPC_EARTHQUAKE || (battle_config.eq_single_target_reflectable && (flag&0xFFF) == 1) )) {
-		// Earthquake on multiple targets is not counted as a target skill. [Inkfish]
+	if (dmg.flag&BF_MAGIC && (skill_id != NPC_EARTHQUAKE || (battle_config.eq_single_target_reflectable && (flag&0xFFF) == 1))) {
+		//Earthquake on multiple targets is not counted as a target skill. [Inkfish]
 		if ((dmg.damage || dmg.damage2) && (type = skill_magic_reflect(src, bl, src == dsrc))) {
 			//Magic reflection, switch caster/target
 			struct block_list *tbl = bl;
@@ -2406,16 +2406,16 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 			//Spirit of Wizard blocks Kaite's reflection
 			if (type == 2 && sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_WIZARD) {
-			//Consume one Fragment per hit of the casted skill? [Skotlex]
-			  	type = tsd ? pc_search_inventory(tsd, 7321) : 0;
+				//Consume one Fragment per hit of the casted skill? [Skotlex]
+				type = tsd ? pc_search_inventory(tsd, 7321) : 0;
 				if (type >= 0) {
-					if ( tsd ) pc_delitem(tsd, type, 1, 0, 1, LOG_TYPE_CONSUME);
+					if (tsd) pc_delitem(tsd, type, 1, 0, 1, LOG_TYPE_CONSUME);
 					dmg.damage = dmg.damage2 = 0;
 					dmg.dmg_lv = ATK_MISS;
 					sc->data[SC_SPIRIT]->val3 = skill_id;
 					sc->data[SC_SPIRIT]->val4 = dsrc->id;
 				}
-			} else if( type != 2 ) /* Kaite bypasses */
+			} else if (type != 2) /* Kaite bypasses */
 				additional_effects = false;
 
 		/**
@@ -2425,18 +2425,18 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			if (dmg.dmg_lv != ATK_MISS) { //Wiz SL cancelled and consumed fragment
 				short s_ele = skill_get_ele(skill_id,skill_lv);
 
-				if (s_ele == -1) // the skill takes the weapon's element
+				if (s_ele == -1) //The skill takes the weapon's element
 					s_ele = sstatus->rhw.ele;
 				else if (s_ele == -2) //Use status element
 					s_ele = status_get_attack_sc_element(src,status_get_sc(src));
-				else if( s_ele == -3 ) //Use random element
+				else if (s_ele == -3) //Use random element
 					s_ele = rnd()%ELE_MAX;
 
 				dmg.damage = battle_attr_fix(bl, bl, dmg.damage, s_ele, status_get_element(bl), status_get_element_level(bl));
 
 				if (sc && sc->data[SC_ENERGYCOAT]) {
 					struct status_data *status = status_get_status_data(bl);
-					int per = 100 * status->sp / status->max_sp -1; //100% should be counted as the 80~99% interval
+					int per = 100 * status->sp / status->max_sp - 1; //100% should be counted as the 80~99% interval
 					per /= 20; //Uses 20% SP intervals.
 					//SP Cost: 1% + 0.5% per every 20% SP
 					if (!status_charge(bl, 0, (10 + 5 * per) * status->max_sp / 1000))
@@ -2448,93 +2448,93 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 #endif
 		}
 		if (sc && sc->data[SC_MAGICROD] && src == dsrc) {
-			int sp = skill_get_sp(skill_id,skill_lv);
+			int sp = skill_get_sp(skill_id, skill_lv);
 			dmg.damage = dmg.damage2 = 0;
 			dmg.dmg_lv = ATK_MISS; //This will prevent skill additional effect from taking effect. [Skotlex]
 			sp = sp * sc->data[SC_MAGICROD]->val2 / 100;
 			if (skill_id == WZ_WATERBALL && skill_lv > 1)
-				sp = sp/((skill_lv|1)*(skill_lv|1)); //Estimate SP cost of a single water-ball
+				sp = sp / ((skill_lv|1) * (skill_lv|1)); //Estimate SP cost of a single water-ball
 			status_heal(bl, 0, sp, 2);
 		}
 	}
 
 	damage = dmg.damage + dmg.damage2;
 
-	if( (skill_id == AL_INCAGI || skill_id == AL_BLESSING ||
+	if ((skill_id == AL_INCAGI || skill_id == AL_BLESSING ||
 		skill_id == CASH_BLESSING || skill_id == CASH_INCAGI ||
-		skill_id == MER_INCAGI || skill_id == MER_BLESSING) && tsd->sc.data[SC_CHANGEUNDEAD] )
+		skill_id == MER_INCAGI || skill_id == MER_BLESSING) && tsd->sc.data[SC_CHANGEUNDEAD])
 		damage = 1;
 
-	if( damage > 0 && (( dmg.flag&BF_WEAPON && src != bl && ( src == dsrc || ( dsrc->type == BL_SKILL &&
+	if (damage > 0 && (( dmg.flag&BF_WEAPON && src != bl && ( src == dsrc || ( dsrc->type == BL_SKILL &&
 		( skill_id == SG_SUN_WARM || skill_id == SG_MOON_WARM || skill_id == SG_STAR_WARM ) ) ))
-		|| ((sc && sc->data[SC_REFLECTDAMAGE]) && !(skill_get_inf2(skill_id)&INF2_TRAP))) )
+		|| ((sc && sc->data[SC_REFLECTDAMAGE]) && !(skill_get_inf2(skill_id)&INF2_TRAP))))
 		rdamage = battle_calc_return_damage(bl, src, &damage, dmg.flag, skill_id);
 
-	if( damage && sc && sc->data[SC_GENSOU] && dmg.flag&BF_MAGIC ) {
+	if (damage && sc && sc->data[SC_GENSOU] && dmg.flag&BF_MAGIC) {
 		struct block_list *nbl;
-		nbl = battle_getenemyarea(bl,bl->x,bl->y,2,BL_CHAR,bl->id);
-		if( nbl ) { // Only one target is chosen.
-			damage = damage / 2; // Deflect half of the damage to a target nearby
-			clif_skill_damage(bl, nbl, tick, status_get_amotion(src), 0, status_fix_damage(bl,nbl,damage,0), dmg.div_, OB_OBOROGENSOU_TRANSITION_ATK, -1, 6);
+		nbl = battle_getenemyarea(bl, bl->x, bl->y, 2, BL_CHAR, bl->id);
+		if (nbl) { //Only one target is chosen.
+			damage = damage / 2; //Deflect half of the damage to a target nearby
+			clif_skill_damage(bl, nbl, tick, status_get_amotion(src), 0, status_fix_damage(bl, nbl, damage,0), dmg.div_, OB_OBOROGENSOU_TRANSITION_ATK, -1, 6);
 		}
 	}
 
 	//Skill hit type
 	type = (skill_id == 0) ? 5 : skill_get_hit(skill_id);
 
-	switch(skill_id) {
+	switch (skill_id) {
 		case SC_TRIANGLESHOT:
-			if(rnd()%100 > (1 + skill_lv)) dmg.blewcount = 0;
+			if (rnd()%100 > (1 + skill_lv)) dmg.blewcount = 0;
 			break;
 		default:
-			if(damage < dmg.div_ && skill_id != CH_PALMSTRIKE)
-				dmg.blewcount = 0; //only pushback when it hit
+			if (damage < dmg.div_ && skill_id != CH_PALMSTRIKE)
+				dmg.blewcount = 0; //Only pushback when it hit
 			break;
 	}
 
 	switch(skill_id) {
 		case CR_GRANDCROSS:
 		case NPC_GRANDDARKNESS:
-			if(battle_config.gx_disptype) dsrc = src;
-			if(src == bl) type = 4;
-			else flag|=SD_ANIMATION;
+			if (battle_config.gx_disptype) dsrc = src;
+			if (src == bl) type = 4;
+			else flag |= SD_ANIMATION;
 			break;
 		case NJ_TATAMIGAESHI: //For correct knockback.
 			dsrc = src;
-			flag|=SD_ANIMATION;
+			flag |= SD_ANIMATION;
 			break;
 		case TK_COUNTER: { //Bonus from SG_FRIEND [Komurka]
 				int level;
-				if(sd && sd->status.party_id > 0 && (level = pc_checkskill(sd,SG_FRIEND) > 0))
-					party_skill_check(sd, sd->status.party_id, TK_COUNTER,level);
+				if (sd && sd->status.party_id > 0 && (level = pc_checkskill(sd, SG_FRIEND) > 0))
+					party_skill_check(sd, sd->status.party_id, TK_COUNTER, level);
 			}
 			break;
 		case SL_STIN:
 		case SL_STUN:
-			if(skill_lv >= 7 && !sd->sc.data[SC_SMA])
-				sc_start(src,src,SC_SMA,100,skill_lv,skill_get_time(SL_SMA, skill_lv));
+			if (skill_lv >= 7 && sd && !sd->sc.data[SC_SMA])
+				sc_start(src, src, SC_SMA, 100, skill_lv, skill_get_time(SL_SMA, skill_lv));
 			break;
 		case GS_FULLBUSTER:
-			if(sd) //Can't attack nor use items until skill's delay expires. [Skotlex]
+			if (sd) //Can't attack nor use items until skill's delay expires. [Skotlex]
 				sd->ud.attackabletime = sd->canuseitem_tick = sd->ud.canact_tick;
 			break;
 	}
 
-	//combo handling
-	skill_combo(src,dsrc,bl,skill_id,skill_lv,tick);
+	//Combo handling
+	skill_combo(src, dsrc, bl, skill_id, skill_lv, tick);
 
 	//Display damage.
-	switch(skill_id) {
+	switch (skill_id) {
 		case PA_GOSPEL: //Should look like Holy Cross [Skotlex]
 			dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,CR_HOLYCROSS,-1,5);
 			break;
 		//Skills that need be passed as a normal attack for the client to display correctly.
 		case HVAN_EXPLOSION:
 		case NPC_SELFDESTRUCTION:
-			if(src->type == BL_PC)
+			if (src->type == BL_PC)
 				dmg.blewcount = 10;
 			dmg.amotion = 0; //Disable delay or attack will do no damage since source is dead by the time it takes effect. [Skotlex]
-			// fall through
+			//Fall through
 		case KN_AUTOCOUNTER:
 		case NPC_CRITICALSLASH:
 		case TF_DOUBLE:
@@ -2543,10 +2543,10 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			break;
 
 		case AS_SPLASHER:
-			if( flag&SD_ANIMATION ) // the surrounding targets
-				dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skill_id,-1,5); // needs -1 as skill level
-			else // the central target doesn't display an animation
-				dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skill_id,-2,5); // needs -2(!) as skill level
+			if (flag&SD_ANIMATION) //The surrounding targets
+				dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skill_id,-1,5); //Needs -1 as skill level
+			else //The central target doesn't display an animation
+				dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skill_id,-2,5); //Needs -2(!) as skill level
 			break;
 		case WL_HELLINFERNO:
 		case SR_EARTHSHAKER:
