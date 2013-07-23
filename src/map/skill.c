@@ -8608,12 +8608,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case WM_LULLABY_DEEPSLEEP:
-			if ( flag&1 ) {
+			if( flag&1 ) {
 				//[(Skill Level x 4) + (Voice Lessons Skill Level x 2) + (Caster Base Level / 15) + (Caster Job Level / 5)] %
 				rate = ( 4 * skill_lv ) + ( sd ? pc_checkskill(sd,WM_LESSON) * 2 + sd->status.job_level / 5 : 0 ) + status_get_lv(src) / 15;
 				tick = status_get_lv(bl) / 20 + status_get_int(bl) / 20;
-				if ( rate > 60 ) rate = 60;
-				if ( bl != src )
+				if( rate > 60 ) rate = 60;
+				if( bl != src )
 					sc_start(src, bl, type, rate, skill_lv, skill_get_time(skill_id, skill_lv) - (1000 * tick));
 			} else {
 				clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
@@ -8625,7 +8625,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case WM_SIRCLEOFNATURE:
 			if( flag&1 )
 				sc_start(src, bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
-			else if ( sd ) {
+			else if( sd ) {
 				map_foreachinrange(skill_area_sub, src, skill_get_splash(skill_id,skill_lv), BL_PC, src, skill_id, skill_lv, tick, flag|BCT_ALL|1, skill_castend_nodamage_id);
 				sc_start(src, bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 			}
@@ -8635,9 +8635,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if( flag&1 ) {
 				tick = status_get_lv(bl) / 10 + ( dstsd ? dstsd->status.job_level / 5 : 0 );
 				sc_start2(src, bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv) - (1000 * tick));
-			} else if ( sd ) {
+			} else if( sd ) {
 				rate = 6 * skill_lv + 2 * pc_checkskill(sd,WM_LESSON) + sd->status.job_level / 2;
-				if ( rnd()%100 < rate ) {
+				if( rnd()%100 < rate ) {
 					map_foreachinrange(skill_area_sub, src, skill_get_splash(skill_id,skill_lv), BL_CHAR|BL_SKILL, src, skill_id, skill_lv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				}
@@ -8646,10 +8646,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case WM_GLOOMYDAY:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1); 
-			if (dstsd &&( pc_checkskill(dstsd,KN_BRANDISHSPEAR) || pc_checkskill(dstsd,CR_SHIELDCHARGE) || 
+			if( dstsd &&( pc_checkskill(dstsd,KN_BRANDISHSPEAR) || pc_checkskill(dstsd,CR_SHIELDCHARGE) || 
 				pc_checkskill(dstsd,CR_SHIELDBOOMERANG) || pc_checkskill(dstsd,LK_SPIRALPIERCE) || 
 				pc_checkskill(dstsd,PA_SHIELDCHAIN) || pc_checkskill(dstsd,RK_HUNDREDSPEAR) || 
-				pc_checkskill(dstsd,LG_SHIELDPRESS)))
+				pc_checkskill(dstsd,LG_SHIELDPRESS)) )
 			{
 				sc_start(src,bl,SC_GLOOMYDAY_SK,100,skill_lv,skill_get_time(skill_id,skill_lv));
 				break;
@@ -8672,16 +8672,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case WM_SATURDAY_NIGHT_FEVER: {
 				int madnesscheck = 0;
-				if ( sd )//Required to check if the lord of madness effect will be applied.
+				if( sd ) //Required to check if the lord of madness effect will be applied.
 					madnesscheck = map_foreachinrange(skill_area_sub, src, skill_get_splash(skill_id,skill_lv),BL_PC, src, skill_id, skill_lv, tick, flag|BCT_ENEMY, skill_area_sub_count);
 				if( flag&1 ) {
 					sc_start(src, bl, type, 100, skill_lv,skill_get_time(skill_id, skill_lv));
-					if ( madnesscheck >= 8 )//The god of madness deals 9999 fixed unreduceable damage when 8 or more enemy players are affected.
+					if( madnesscheck >= 8 ) //The god of madness deals 9999 fixed unreduceable damage when 8 or more enemy players are affected.
 						status_fix_damage(src, bl, 9999, clif_damage(src, bl, tick, 0, 0, 9999, 0, 0, 0));
 						//skill_attack(BF_MISC,src,src,bl,skill_id,skill_lv,tick,flag);//To renable when I can confirm it deals damage like this. Data shows its dealed as reflected damage which I dont have it coded like that yet. [Rytech]
 				} else if( sd ) {
 						rate = sstatus->int_ / 6 + sd->status.job_level / 5 + skill_lv * 4;
-					if ( rnd()%100 < rate ) {
+					if( rnd()%100 < rate ) {
 						map_foreachinrange(skill_area_sub, src, skill_get_splash(skill_id,skill_lv),BL_PC, src, skill_id, skill_lv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
 						clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
 					}
@@ -8694,7 +8694,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if( flag&1 )
 				sc_start2(src,bl,type,100,skill_lv,chorusbonus,skill_get_time(skill_id,skill_lv));
 			else if( sd ) {
-				if ( rnd()%100 < 15 + 5 * skill_lv + 5 * chorusbonus ) {
+				if( rnd()%100 < 15 + 5 * skill_lv + 5 * chorusbonus ) {
 					map_foreachinrange(skill_area_sub, src, skill_get_splash(skill_id,skill_lv),BL_PC, src, skill_id, skill_lv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				}

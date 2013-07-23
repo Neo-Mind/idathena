@@ -3429,8 +3429,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			RE_LVL_DMOD(100);
 			break;
 		case SR_GATEOFHELL:
-			if(sc && sc->data[SC_COMBO]
-				&& sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE)
+			if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE)
 				skillratio += 800 * skill_lv - 100;
 			else
 				skillratio += 500 * skill_lv - 100;
@@ -3692,11 +3691,11 @@ static int battle_calc_skill_constant_addition(struct Damage wd, struct block_li
 			}
 			break;
 		case SR_GATEOFHELL:
-			atk =  (sstatus->max_hp - status_get_hp(src));
+			atk = (sstatus->max_hp - status_get_hp(src));
 			if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE) {
-				atk = ((sstatus->max_sp * (1 + skill_lv * 2 / 10)) + 40 * status_get_lv(src));
+				atk += ((sstatus->max_sp * (1 + skill_lv * 2 / 10)) + 40 * status_get_lv(src));
 			} else {
-				atk = ((sstatus->sp * (1 + skill_lv * 2 / 10)) + 10 * status_get_lv(src));
+				atk += ((sstatus->sp * (1 + skill_lv * 2 / 10)) + 10 * status_get_lv(src));
 			}
 			break;
 		case SR_TIGERCANNON:
@@ -3704,15 +3703,15 @@ static int battle_calc_skill_constant_addition(struct Damage wd, struct block_li
 			atk = (skill_lv * 240 + status_get_lv(target) * 40);
 			if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE)
 				// (Tiger Cannon skill level x 500) + (Target's Base Level x 40)
-				atk = (skill_lv * 500 + status_get_lv(target) * 40);
+				atk += (skill_lv * 500 + status_get_lv(target) * 40);
 			break;
 		case SR_FALLENEMPIRE:
 			// [(Target Size value + Skill Level - 1) x Caster STR] + [(Target current weight x Caster DEX / 120)]
 			atk = (((tstatus->size + 1) * 2 + skill_lv - 1) * sstatus->str);
 			if(tsd && tsd->weight) {
-				atk = ((tsd->weight / 10) * sstatus->dex / 120);
+				atk += ((tsd->weight / 10) * sstatus->dex / 120);
 			} else {
-				atk = (status_get_lv(target) * 50); //Mobs
+				atk += (status_get_lv(target) * 50); //Mobs
 			}
 			break;
 		case KO_SETSUDAN:
