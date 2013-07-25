@@ -4652,15 +4652,14 @@ ACMD_FUNC(jailfor)
 
 	jailtime = year*12*30*24*60 + month*30*24*60 + day*24*60 + hour*60 + minute; //In minutes
 
-	if(jailtime==0) {
+	if (jailtime == 0) {
 		clif_displaymessage(fd, msg_txt(1136)); // Invalid time for jail command.
 		return -1;
 	}
 
 	//Added by Coltaro
-	if(pl_sd->sc.data[SC_JAILED] &&
-		pl_sd->sc.data[SC_JAILED]->val1 != INT_MAX)
-  	{	//Update the player's jail time
+	if (pl_sd->sc.data[SC_JAILED] && pl_sd->sc.data[SC_JAILED]->val1 != INT_MAX) {
+		//Update the player's jail time
 		jailtime += pl_sd->sc.data[SC_JAILED]->val1;
 		if (jailtime <= 0) {
 			jailtime = 0;
@@ -4679,7 +4678,7 @@ ACMD_FUNC(jailfor)
 	}
 
 	//Jail locations, add more as you wish.
-	switch(rnd()%2) {
+	switch (rnd()%2) {
 		case 1: //Jail #1
 			m_index = mapindex_name2id(MAP_JAIL);
 			x = 49; y = 75;
@@ -4693,7 +4692,6 @@ ACMD_FUNC(jailfor)
 	sc_start4(NULL,&pl_sd->bl,SC_JAILED,100,jailtime,m_index,x,y,jailtime?60000:1000); //jailtime = 0: Time was reset to 0. Wait 1 second to warp player out (since it's done in status_change_timer).
 	return 0;
 }
-
 
 //By Coltaro
 ACMD_FUNC(jailtime)
@@ -6504,17 +6502,17 @@ ACMD_FUNC(mute)
 	int manner;
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message || sscanf(message, "%d %23[^\n]", &manner, atcmd_player_name) < 1) {
+	if( !message || !*message || sscanf(message, "%d %23[^\n]", &manner, atcmd_player_name) < 1 ) {
 		clif_displaymessage(fd, msg_txt(1237)); // Usage: @mute <time> <char name>
 		return -1;
 	}
 
-	if ( (pl_sd = map_nick2sd(atcmd_player_name)) == NULL ) {
+	if( (pl_sd = map_nick2sd(atcmd_player_name)) == NULL ) {
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
 	}
 
-	if ( pc_get_group_level(sd) < pc_get_group_level(pl_sd) ) {
+	if( pc_get_group_level(sd) < pc_get_group_level(pl_sd) ) {
 		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
 		return -1;
 	}
@@ -6524,7 +6522,7 @@ ACMD_FUNC(mute)
 
 	if( pl_sd->status.manner < manner ) {
 		pl_sd->status.manner -= manner;
-		sc_start(NULL,&pl_sd->bl,SC_NOCHAT,100,0,0);
+		sc_start(NULL, &pl_sd->bl, SC_NOCHAT, 100, 0, 0);
 	} else {
 		pl_sd->status.manner = 0;
 		status_change_end(&pl_sd->bl, SC_NOCHAT, INVALID_TIMER);
@@ -6769,10 +6767,17 @@ ACMD_FUNC(mobinfo)
 					continue;
 				if (mob->mvpitem[i].p > 0) {
 					j++;
-					if (j == 1)
-						sprintf(atcmd_output2, " %s  %02.02f%%", item_data->jname, (float)mob->mvpitem[i].p / 100);
-					else
-						sprintf(atcmd_output2, " - %s  %02.02f%%", item_data->jname, (float)mob->mvpitem[i].p / 100);
+					if (j == 1) {
+						if (item_data->slot)
+							sprintf(atcmd_output2, " %s[%d]  %02.02f%%", item_data->jname, item_data->slot, (float)mob->mvpitem[i].p / 100);
+						else
+							sprintf(atcmd_output2, " %s  %02.02f%%", item_data->jname, (float)mob->mvpitem[i].p / 100);
+					} else {
+						if (item_data->slot)
+							sprintf(atcmd_output2, " - %s[%d]  %02.02f%%", item_data->jname, item_data->slot, (float)mob->mvpitem[i].p / 100);
+						else
+							sprintf(atcmd_output2, " - %s  %02.02f%%", item_data->jname, (float)mob->mvpitem[i].p / 100);
+					}
 					strcat(atcmd_output, atcmd_output2);
 				}
 			}
@@ -7547,10 +7552,8 @@ ACMD_FUNC(fakename)
 {
 	nullpo_retr(-1, sd);
 
-	if( !message || !*message )
-	{
-		if( sd->fakename[0] )
-		{
+	if( !message || !*message ) {
+		if( sd->fakename[0] ) {
 			sd->fakename[0] = '\0';
 			clif_charnameack(0, &sd->bl);
 			clif_displaymessage(sd->fd, msg_txt(1307)); // Returned to real name.
@@ -7561,12 +7564,11 @@ ACMD_FUNC(fakename)
 		return -1;
 	}
 
-	if( strlen(message) < 2 )
-	{
+	if( strlen(message) < 2 ) {
 		clif_displaymessage(sd->fd, msg_txt(1309)); // Fake name must be at least two characters.
 		return -1;
 	}
-	
+
 	safestrncpy(sd->fakename, message, sizeof(sd->fakename));
 	clif_charnameack(0, &sd->bl);
 	clif_displaymessage(sd->fd, msg_txt(1310)); // Fake name enabled.
@@ -7587,10 +7589,10 @@ ACMD_FUNC(mapflag) {
 		return 0;\
 	}
 	char flag_name[100];
-	short flag=0,i;
+	short flag = 0,i;
 	nullpo_retr(-1, sd);
 	memset(flag_name, '\0', sizeof(flag_name));
-	
+
 	if (!message || !*message || (sscanf(message, "%99s %hd", flag_name, &flag) < 1)) {
 		clif_displaymessage(sd->fd,msg_txt(1311)); // Enabled Mapflags in this map:
 		clif_displaymessage(sd->fd,"----------------------------------");
@@ -7615,7 +7617,7 @@ ACMD_FUNC(mapflag) {
 		return 1;
 	}
 	for (i = 0; flag_name[i]; i++) flag_name[i] = (char)tolower(flag_name[i]); //lowercase
-			
+
 	setflag(town);
 	setflag(autotrade);		setflag(allowks);		setflag(nomemo);		setflag(noteleport);
 	setflag(noreturn);		setflag(monster_noteleport);	setflag(nosave);		setflag(nobranch);

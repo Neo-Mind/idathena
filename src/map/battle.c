@@ -750,7 +750,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}
-		// Gravitation and Pressure do damage without removing the effect
+		//Gravitation and Pressure do damage without removing the effect
 		if( sc->data[SC_WHITEIMPRISON] && skill_id != HW_GRAVITATION ) {
 			if( skill_id == MG_NAPALMBEAT ||
 				skill_id == MG_SOULSTRIKE ||
@@ -774,17 +774,17 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		if( sc->data[SC_SAFETYWALL] &&
 			((flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT || (skill_get_inf2(skill_id)&INF2_TRAP)) ) {
 			struct skill_unit_group* group = skill_id2group(sc->data[SC_SAFETYWALL]->val3);
-			if (group) {
-				//in RE, SW possesses a lifetime equal to group val2, (3x caster's hp, or homon formula)
+			if( group ) {
+				//Renewal SW possesses a lifetime equal to group val2, (3x caster's hp, or homon formula)
 #ifdef RENEWAL
 				d->dmg_lv = ATK_BLOCK;
-				if ( (group->val2 - damage) > 0 ) {
+				if( (group->val2 - damage) > 0 ) {
 					group->val2 -= damage;
 				} else
 					skill_delunitgroup(group);
 				return 0;
 #else
-				if (--group->val2 <= 0)
+				if( --group->val2 <= 0 )
 					skill_delunitgroup(group);
 				d->dmg_lv = ATK_BLOCK;
 				return 0;
@@ -799,11 +799,6 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			return 0;
 		}
 
-		if( sc->data[SC_NEUTRALBARRIER] && (flag&(BF_MAGIC|BF_LONG)) == BF_LONG && skill_id != CR_ACIDDEMONSTRATION ) {
-			d->dmg_lv = ATK_BLOCK;
-			return 0;
-		}
-
 		if( sc->data[SC_WEAPONBLOCKING] && flag&(BF_SHORT|BF_WEAPON) && rnd()%100 < sc->data[SC_WEAPONBLOCKING]->val2 ) {
 			clif_skill_nodamage(bl,src,GC_WEAPONBLOCKING,1,1);
 			d->dmg_lv = ATK_BLOCK;
@@ -814,7 +809,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		if( (sce = sc->data[SC_AUTOGUARD]) && flag&BF_WEAPON && !(skill_get_nk(skill_id)&NK_NO_CARDFIX_ATK) && rnd()%100 < sce->val2 ) {
 			int delay;
 			clif_skill_nodamage(bl, bl, CR_AUTOGUARD, sce->val1, 1);
-			// different delay depending on skill level [celest]
+			//Different delay depending on skill level [celest]
 			if( sce->val1 <= 5 )
 				delay = 300;
 			else if( sce->val1 > 5 && sce->val1 <= 9 )
@@ -823,22 +818,22 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 				delay = 100;
 			unit_set_walkdelay(bl, gettick(), delay, 1);
 
-			if( sc->data[SC_SHRINK] && rnd()%100<5*sce->val1 )
+			if( sc->data[SC_SHRINK] && rnd()%100 < 5 * sce->val1 )
 				skill_blown(bl, src, skill_get_blewcount(CR_SHRINK, 1), -1, 0);
 			return 0;
 		}
 
 		if( (sce = sc->data[SC_MILLENNIUMSHIELD]) && sce->val2 > 0 && damage > 0 ) {
-			sce->val3 -= damage; // Absorb damage
+			sce->val3 -= damage; //Absorb damage
 			d->dmg_lv = ATK_BLOCK;
-			if( sce->val3 <= 0 ) { // Shield down
+			if( sce->val3 <= 0 ) { //Shield down
 				sce->val2--;
 				if( sce->val2 > 0 ) {
 					if( sd )
 						clif_millenniumshield(sd,sce->val2);
-						sce->val3 = 1000; // Next shield
+						sce->val3 = 1000; //Next shield
 				} else
-					status_change_end(bl, SC_MILLENNIUMSHIELD, INVALID_TIMER); // All shields down
+					status_change_end(bl, SC_MILLENNIUMSHIELD, INVALID_TIMER); //All shields down
 				status_change_start(src, bl, SC_STUN, 10000, 0, 0, 0, 0, 1000, 2);
 			}
 			return 0;
@@ -851,8 +846,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		}
 		
 		if( sc->data[SC_DODGE] && ( !sc->opt1 || sc->opt1 == OPT1_BURNING ) &&
-			(flag&BF_LONG || sc->data[SC_SPURT])
-			&& rnd()%100 < 20 ) {
+			(flag&BF_LONG || sc->data[SC_SPURT]) && rnd()%100 < 20 ) {
 			if( sd && pc_issit(sd) ) pc_setstand(sd); //Stand it to dodge.
 			clif_skill_nodamage(bl, bl, TK_DODGE, 1, 1);
 			if( !sc->data[SC_COMBO] )
@@ -865,6 +859,14 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 
 		if( sc->data[SC_TATAMIGAESHI] && (flag&(BF_MAGIC|BF_LONG)) == BF_LONG )
 			return 0;
+
+		// TODO: Find out whether Neutral Barrier really blocks all splash damage or just specific cases (Earthquake)
+		if( sc->data[SC_NEUTRALBARRIER] && (((flag&(BF_MAGIC|BF_LONG)) == BF_LONG && (skill_id != HT_PHANTASMIC ||
+			skill_id != CR_ACIDDEMONSTRATION || skill_id != WM_METALICSOUND)) ||
+			skill_get_splash(skill_id,skill_lv)) ) {
+			d->dmg_lv = ATK_MISS;
+			return 0;
+		}
 
 		if( (sce = sc->data[SC_KAUPE]) && rnd()%100 < sce->val2 ) {
 			//Kaupe blocks damage (skill or otherwise) from players, mobs, homuns, mercenaries.
@@ -1947,16 +1949,16 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 	struct status_data *tstatus = status_get_status_data(target);
 	struct status_change *sc = status_get_sc(src);
 	struct status_change *tsc = status_get_sc(target);
-	struct map_session_data *sd = BL_CAST(BL_PC, src);
+	struct map_session_data *sd = BL_CAST(BL_PC,src);
 	int skill, nk;
 	short flee, hitrate;
 
 	if(!first_call)
 		return (wd.dmg_lv != ATK_FLEE);
 
-	nk = battle_skill_get_damage_properties(skill_id, wd.miscflag);
+	nk = battle_skill_get_damage_properties(skill_id,wd.miscflag);
 
-	if(is_attack_critical(wd, src, target, skill_id, skill_lv, false))
+	if(is_attack_critical(wd,src,target,skill_id,skill_lv,false))
 		return true;
 	else if(sd && sd->bonus.perfect_hit > 0 && rnd()%100 < sd->bonus.perfect_hit)
 		return true;
@@ -1971,6 +1973,10 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 	else if(nk&NK_IGNORE_FLEE)
 		return true;
 
+	if(sc && (sc->data[SC_NEUTRALBARRIER] || sc->data[SC_NEUTRALBARRIER_MASTER]) && wd.flag&BF_LONG &&
+		(skill_id != HT_PHANTASMIC || skill_id != CR_ACIDDEMONSTRATION || skill_id != WM_METALICSOUND))
+		return false;
+
 	flee = tstatus->flee;
 #ifdef RENEWAL
 	hitrate = 0; //Default hitrate
@@ -1984,7 +1990,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 		if(attacker_count >= battle_config.agi_penalty_count) {
 			if(battle_config.agi_penalty_type == 1)
 				flee = (flee * (100 - (attacker_count - (battle_config.agi_penalty_count - 1)) * battle_config.agi_penalty_num)) / 100;
-			else //Asume type 2: absolute reduction
+			else //Asume type 2 : absolute reduction
 				flee -= (attacker_count - (battle_config.agi_penalty_count - 1)) * battle_config.agi_penalty_num;
 			if(flee < 1) flee = 1;
 		}
@@ -1992,11 +1998,11 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 
 	hitrate += sstatus->hit - flee;
 
-	if(wd.flag&BF_LONG && !skill_id && //Fogwall's hit penalty is only for normal ranged attacks.
-		tsc && tsc->data[SC_FOGWALL])
+	//Fogwall's hit penalty is only for normal ranged attacks.
+	if(wd.flag&BF_LONG && !skill_id && tsc && tsc->data[SC_FOGWALL])
 		hitrate -= 50;
 
-	if(sd && is_skill_using_arrow(src, skill_id))
+	if(sd && is_skill_using_arrow(src,skill_id))
 		hitrate += sd->bonus.arrow_hit;
 
 #ifdef RENEWAL
@@ -4947,20 +4953,33 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						if(mflag&ELE_DARK) { skillratio *= 4; s_ele = ELE_DARK; }
 						skillratio /= 5;
 						break;
-					case WL_COMET: {
-							struct status_change * sc = status_get_sc(src);
-							if(sc)
-								i = distance_xy(target->x, target->y, sc->comet_x, sc->comet_y);
-							else
-								i = 8;
-							if(i < 4)
-								skillratio += 2400 + 500 * skill_lv;
-							else if(i < 6)
-								skillratio += 1900 + 500 * skill_lv;
-							else if(i < 8)
-								skillratio += 1400 + 500 * skill_lv;
-							else
-								skillratio += 9000 + 500 * skill_lv;
+					case WL_COMET:
+						i = (sc ? distance_xy(target->x, target->y, sc->comet_x, sc->comet_y) : 8);
+						if(i <= 3) 
+							skillratio += 2400 + 500 * skill_lv; // 7 x 7 cell
+						else if(i <= 5) 
+							skillratio += 1900 + 500 * skill_lv; // 11 x 11 cell
+						else if(i <= 7) 
+							skillratio += 1400 + 500 * skill_lv; // 15 x 15 cell
+						else
+							skillratio += 900 + 500 * skill_lv; // 19 x 19 cell
+
+						if(sd && sd->status.party_id) {
+							struct map_session_data* psd;
+							int p_sd[5] = {0, 0, 0, 0, 0}, c; // Just limit it to 5
+
+							c = 0;
+							memset(p_sd, 0, sizeof(p_sd));
+							party_foreachsamemap(skill_check_condition_char_sub, sd, 3, &sd->bl, &c, &p_sd, skill_id);
+							c = (c > 1 ? rnd()%c : 0);
+
+							if((psd = map_id2sd(p_sd[c])) && pc_checkskill(psd, WL_COMET) > 0) {
+								//MATK [{( Skill Level x 400 ) x ( Caster's Base Level / 120 )} + 2500 ] %
+								skillratio = skill_lv * 400;
+								RE_LVL_DMOD(120);
+								skillratio += 2500;
+								status_zap(&psd->bl, 0, skill_get_sp(skill_id, skill_lv) / 2);
+							}
 						}
 						break;
 					case WL_CHAINLIGHTNING_ATK:
@@ -6309,7 +6328,7 @@ int battle_check_target( struct block_list *src, struct block_list *target, int 
 		}
 	}
 
-	switch( target->type ) { // Checks on actual target
+	switch( target->type ) { //Checks on actual target
 		case BL_PC: {
 				struct status_change* sc = status_get_sc(src);
 				if (((TBL_PC*)target)->invincible_timer != INVALID_TIMER || pc_isinvisible((TBL_PC*)target))
@@ -6320,15 +6339,18 @@ int battle_check_target( struct block_list *src, struct block_list *target, int 
 				}
 			}
 			break;
-		case BL_MOB:
-			if(((((TBL_MOB*)target)->special_state.ai == AI_SPHERE || //Marine Spheres
-				(((TBL_MOB*)target)->special_state.ai == AI_FLORA && battle_config.summon_flora&1)) && //Floras
-				s_bl->type == BL_PC && src->type != BL_MOB) || (((TBL_MOB*)target)->special_state.ai == AI_ZANZOU && t_bl->id != s_bl->id)) //Zanzoe
-			{ //Targetable by players
-				state |= BCT_ENEMY;
-				strip_enemy = 0;
+		case BL_MOB: {
+				struct mob_data *md = ((TBL_MOB*)target);
+				if(((md->special_state.ai == AI_SPHERE || //Marine Spheres
+					(md->special_state.ai == AI_FLORA && battle_config.summon_flora&1)) && s_bl->type == BL_PC && src->type != BL_MOB) || //Floras
+					(md->special_state.ai == AI_ZANZOU && t_bl->id != s_bl->id) || //Zanzoe
+					(md->special_state.ai == AI_FAW && (t_bl->id != s_bl->id || (s_bl->type == BL_PC && src->type != BL_MOB)))
+				) { //Targettable by players
+					state |= BCT_ENEMY;
+					strip_enemy = 0;
+				}
+				break;
 			}
-			break;
 		case BL_SKILL: {
 				TBL_SKILL *su = (TBL_SKILL*)target;
 				if( !su->group )

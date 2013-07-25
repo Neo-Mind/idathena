@@ -8630,7 +8630,7 @@ BUILDIN_FUNC(monster)
 		event = script_getstr(st, 8);
 		check_event(st, event);
 	}
-	
+
 	if (script_hasdata(st, 9)) {
 		size = script_getnum(st, 9);
 		if (size > 3) {
@@ -8638,10 +8638,10 @@ BUILDIN_FUNC(monster)
 			return 1;
 		}
 	}
-	
+
 	if (script_hasdata(st, 10)) {
 		ai = script_getnum(st, 10);
-		if (ai > 4) {
+		if (ai >= AI_MAX) {
 			ShowWarning("buildin_monster: Attempted to spawn non-existing ai %d for monster class %d\n", ai, class_);
 			return 1;
 		}

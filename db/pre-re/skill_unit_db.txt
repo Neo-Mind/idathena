@@ -10,7 +10,7 @@
 //      0x010(UF_PATHCHECK)	Only cells with a shootable path will be placed
 //      0x020(UF_NOPC)		Spell cannot affect players.
 //      0x040(UF_NOMOB)		Spell cannot affect mobs.
-//      0x080(UF_SKILL)		Spell CAN affect skills.
+//      0x080(UF_SKILL)		Spell can affect skills.
 //      0x100(UF_DANCE)		Dance skill
 //      0x200(UF_ENSEMBLE)	Ensemble skill
 //      0x400(UF_SONG)		Song skill
@@ -116,8 +116,8 @@
 2253,0xd6,    ,  0, 1,1000,enemy, 0x002	//RA_FIRINGTRAP
 2254,0xd7,    ,  0, 1,1000,enemy, 0x002	//RA_ICEBOUNDTRAP
 
-2273,0xe2,    ,  1, 0, 500,friend,0x000	//NC_NEUTRALBARRIER
-2274,0xe3,    ,  1, 0, 500,all,   0x000	//NC_STEALTHFIELD
+2273,0xe2,    ,  2, 0, 500,all,0x000	//NC_NEUTRALBARRIER
+2274,0xe3,    ,  2, 0, 500,friend,   0x000	//NC_STEALTHFIELD
 
 2299,0xcc,    ,  0, 1,1000,all,   0x006	 //SC_MANHOLE
 2300,0xcd,    ,  0, 1,1000,all,   0x006	 //SC_DIMENSIONDOOR

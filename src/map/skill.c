@@ -7026,9 +7026,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				{
 					clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
 					if( sd && !(sg->unit_id == UNT_USED_TRAPS || (sg->unit_id == UNT_ANKLESNARE && sg->val2 != 0 )) ) {
-						// prevent picking up expired traps
+						// Prevent picking up expired traps
 						if( battle_config.skill_removetrap_type ) {
-							// get back all items used to deploy the trap
+							// Get back all items used to deploy the trap
 							for( i = 0; i < 10; i++ ) {
 								if( skill_db[su->group->skill_id].itemid[i] > 0 ) {
 									int flag;
@@ -7043,7 +7043,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 									}
 								}
 							}
-						} else { // get back 1 trap
+						} else { // Get back 1 trap
 							struct item item_tmp;
 							memset(&item_tmp,0,sizeof(item_tmp));
 							item_tmp.nameid = su->group->item_id?su->group->item_id:ITEMID_TRAP;
@@ -9483,10 +9483,8 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 					break; // You can use Clearance on party members in normal maps too. [pakpil]
 			}
 
-			if( inf&BCT_ENEMY && (sc = status_get_sc(target))
-				&& ((sc->data[SC_FOGWALL] && rnd() % 100 < 75) || sc->data[SC_STEALTHFIELD]) ) {
+			if( inf&BCT_ENEMY && (sc = status_get_sc(target)) && (sc->data[SC_FOGWALL] && rnd() % 100 < 75) ) {
 				//Fogwall makes all offensive-type targetted skills fail at 75%, and
-				//You'll immune from offensive-type targetted skills in Stealth Field status.
 				if( sd ) clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
 				break;
 			}
@@ -9607,8 +9605,8 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 	} while( 0 );
 
 	//Skill failed.
-	if (ud->skill_id == MO_EXTREMITYFIST && sd && !(sc && (sc->data[SC_FOGWALL] || sc->data[SC_STEALTHFIELD]))) {
-		//When Asura fails... (except when it fails from Wall of Fog or Stealth Field)
+	if (ud->skill_id == MO_EXTREMITYFIST && sd && !(sc && sc->data[SC_FOGWALL])) {
+		//When Asura fails... (except when it fails from Wall of Fog)
 		//Consume SP/spheres
 		skill_consume_requirement(sd,ud->skill_id, ud->skill_lv,1);
 		status_set_sp(src, 0, 0);
@@ -10328,16 +10326,22 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case RA_DETONATOR:
-			i = skill_get_splash(skill_id, skill_lv);
-			map_foreachinarea(skill_detonator, src->m, x-i, y-i, x+i, y+i, BL_SKILL, src);
-			clif_skill_damage(src, src, tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
+			i = skill_get_splash(skill_id,skill_lv);
+			map_foreachinarea(skill_detonator,src->m,x-i,y-i,x+i,y+i,BL_SKILL,src);
+			clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 			break;
 
 		case NC_NEUTRALBARRIER:
 		case NC_STEALTHFIELD:
+			if( (sc->data[SC_NEUTRALBARRIER_MASTER] && skill_id == NC_NEUTRALBARRIER) ||
+				(sc->data[SC_STEALTHFIELD_MASTER] && skill_id == NC_STEALTHFIELD) ) {
+				skill_clear_unitgroup(src);
+				return 0;
+			}
 			skill_clear_unitgroup(src); // To remove previous skills - cannot used combined
 			if( (sg = skill_unitsetting(src,skill_id,skill_lv,src->x,src->y,0)) != NULL ) {
-				sc_start2(src,src,skill_id == NC_NEUTRALBARRIER ? SC_NEUTRALBARRIER_MASTER : SC_STEALTHFIELD_MASTER,100,skill_lv,sg->group_id,skill_get_time(skill_id,skill_lv));
+				sc_start2(src,src,skill_id == NC_NEUTRALBARRIER ? SC_NEUTRALBARRIER_MASTER : SC_STEALTHFIELD_MASTER,100,
+					skill_lv,sg->group_id,skill_get_time(skill_id,skill_lv));
 				if( sd ) pc_overheat(sd,1);
 			}
 			break;
@@ -10349,7 +10353,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 				md = mob_once_spawn_sub(src, src->m, x, y, status_get_name(src), class_, "", SZ_SMALL, AI_NONE);
 				if( md ) {
 					md->master_id = src->id;
-					md->special_state.ai = AI_FLORA;
+					md->special_state.ai = AI_FAW;
 					if( md->deletetimer != INVALID_TIMER )
 						delete_timer(md->deletetimer, mob_timer_delete);
 					md->deletetimer = add_timer (gettick() + skill_get_time(skill_id, skill_lv), mob_timer_delete, md->bl.id, 0);
@@ -11964,8 +11968,8 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;
 
 		case UNT_STEALTHFIELD:
-			if( ss == bl || bl->type == BL_MOB )
-				break; // Dont work on Self and only character is affected.
+			if( ss == bl )
+				break; // Dont work on Self.
 		case UNT_NEUTRALBARRIER:
 			sc_start(ss,bl,type,100,sg->skill_lv,sg->interval + 100);
 			break;
@@ -12506,7 +12510,7 @@ int skill_unit_ondamaged (struct skill_unit *src, struct block_list *bl, int dam
 /*==========================================
  *
  *------------------------------------------*/
-static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
+int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 {
 	int *c, skill_id;
 	struct block_list *src;
@@ -15017,23 +15021,22 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 	switch (skill_id) {
 		case SA_LANDPROTECTOR:
 			//Check for offensive Land Protector to delete both. [Skotlex]
-			if( unit->group->skill_id == SA_LANDPROTECTOR ) {
+			if (unit->group->skill_id == SA_LANDPROTECTOR) {
 				(*alive) = 0;
 				skill_delunit(unit);
 				return 1;
 			}
-			if( !(skill_get_inf2(unit->group->skill_id)&(INF2_SONG_DANCE|INF2_TRAP)) || unit->group->skill_id == WZ_FIREPILLAR ) { //It deletes everything except songs/dances and traps
+			//It deletes everything except traps and barriers
+			if (!(skill_get_inf2(unit->group->skill_id)&(INF2_TRAP|INF2_NOLP)) || unit->group->skill_id == WZ_FIREPILLAR) {
 				skill_delunit(unit);
 				return 1;
 			}
 			break;
 		case HW_GANBANTEIN:
 		case LG_EARTHDRIVE:
-			if( !(unit->group->state.song_dance&0x1) ) { // Don't touch song/dance.
-				skill_delunit(unit);
-				return 1;
-			}
-			break;
+			// Officially songs/dances are removed
+			skill_delunit(unit);
+			return 1;
 		case SA_VOLCANO:
 		case SA_DELUGE:
 		case SA_VIOLENTGALE:
@@ -15055,7 +15058,7 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 */
 			break;
 		case PF_FOGWALL:
-			switch(unit->group->skill_id) {
+			switch (unit->group->skill_id) {
 				case SA_VOLCANO: //Can't be placed on top of these
 				case SA_VIOLENTGALE:
 					(*alive) = 0;
@@ -15075,7 +15078,7 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 			}
 			break;
 		case GN_CRAZYWEED_ATK:
-			switch(unit->group->unit_id) { //TODO: look for other ground skills that are affected.
+			switch (unit->group->unit_id) { //TODO: look for other ground skills that are affected.
 				case UNT_WALLOFTHORN:
 				case UNT_THORNS_TRAP:
 				case UNT_BLOODYLUST:
@@ -15094,8 +15097,8 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 			break;
 	}
 
-	//It deletes everything except songs/dances/traps
-	if (unit->group->skill_id == SA_LANDPROTECTOR && !(skill_get_inf2(skill_id)&(INF2_SONG_DANCE|INF2_TRAP))) {
+	//It deletes everything except traps and barriers
+	if (unit->group->skill_id == SA_LANDPROTECTOR && !(skill_get_inf2(skill_id)&(INF2_TRAP|INF2_NOLP))) {
 		(*alive) = 0;
 		return 1;
 	}
@@ -15676,12 +15679,12 @@ int skill_clear_unitgroup (struct block_list *src)
  *------------------------------------------*/
 struct skill_unit_group_tickset *skill_unitgrouptickset_search (struct block_list *bl, struct skill_unit_group *group, int tick)
 {
-	int i,j=-1,k,s,id;
+	int i,j = -1,k,s,id;
 	struct unit_data *ud;
 	struct skill_unit_group_tickset *set;
 
 	nullpo_ret(bl);
-	if (group->interval==-1)
+	if (group->interval == -1)
 		return NULL;
 
 	ud = unit_bl2ud(bl);
@@ -15694,12 +15697,12 @@ struct skill_unit_group_tickset *skill_unitgrouptickset_search (struct block_lis
 	else
 		id = s = group->group_id;
 
-	for (i=0; i<MAX_SKILLUNITGROUPTICKSET; i++) {
-		k = (i+s) % MAX_SKILLUNITGROUPTICKSET;
+	for (i = 0; i < MAX_SKILLUNITGROUPTICKSET; i++) {
+		k = (i + s) % MAX_SKILLUNITGROUPTICKSET;
 		if (set[k].id == id)
 			return &set[k];
-		else if (j==-1 && (DIFF_TICK(tick,set[k].tick)>0 || set[k].id==0))
-			j=k;
+		else if (j == -1 && (DIFF_TICK(tick,set[k].tick) > 0 || set[k].id == 0))
+			j = k;
 	}
 
 	if (j == -1) {
@@ -15726,8 +15729,9 @@ int skill_unit_timer_sub_onplace (struct block_list* bl, va_list ap)
 
 	nullpo_ret(group);
 
-	if( !(skill_get_inf2(group->skill_id)&(INF2_SONG_DANCE|INF2_TRAP|INF2_NOLP)) && map_getcell(bl->m, bl->x, bl->y, CELL_CHKLANDPROTECTOR) )
-		return 0; //AoE skills are ineffective. [Skotlex]
+	if( !(skill_get_inf2(group->skill_id)&(INF2_TRAP|INF2_NOLP)) && (group->skill_id != NC_NEUTRALBARRIER ||
+		group->skill_id != NC_STEALTHFIELD) && map_getcell(bl->m, bl->x, bl->y, CELL_CHKLANDPROTECTOR) )
+		return 0; //AoE skills are ineffective except traps and barriers.
 
 	if( battle_check_target(&unit->bl,bl,group->target_flag) <= 0 )
 		return 0;
@@ -16922,11 +16926,12 @@ static void skill_toggle_magicpower(struct block_list *bl, uint16 skill_id)
 int skill_magicdecoy(struct map_session_data *sd, int nameid) {
 	int x, y, i, class_, skill;
 	struct mob_data *md;
+
 	nullpo_ret(sd);
 	skill = sd->menuskill_val;
 
-	if( nameid <= 0 || !itemdb_is_element(nameid) || (i = pc_search_inventory(sd,nameid)) < 0 || !skill || pc_delitem(sd,i,1,0,0,LOG_TYPE_CONSUME) )
-	{
+	if( nameid <= 0 || !itemdb_is_element(nameid) || (i = pc_search_inventory(sd,nameid)) < 0 ||
+		!skill || pc_delitem(sd,i,1,0,0,LOG_TYPE_CONSUME) ) {
 		clif_skill_fail(sd,NC_MAGICDECOY,USESKILL_FAIL_LEVEL,0);
 		return 0;
 	}
@@ -16936,19 +16941,28 @@ int skill_magicdecoy(struct map_session_data *sd, int nameid) {
 	x = sd->sc.comet_x;
 	y = sd->sc.comet_y;
 	sd->sc.comet_x = sd->sc.comet_y = 0;
-	sd->menuskill_val = 0;
 
-	class_ = (nameid == 6360 || nameid == 6361) ? 2043 + nameid - 6360 : (nameid == 6362) ? 2046 : 2045;
+	// Item picked decides the mob class
+	switch( nameid ) {
+		case 6360: class_ = 2043; break;
+		case 6361: class_ = 2044; break;
+		case 6362: class_ = 2046; break;
+		default: class_ = 2045; break;
+	}
 
-	md = mob_once_spawn_sub(&sd->bl, sd->bl.m, x, y, sd->status.name, class_, "", SZ_SMALL, AI_NONE);
+	md = mob_once_spawn_sub(&sd->bl,sd->bl.m,x,y,sd->status.name,class_,"",SZ_SMALL,AI_NONE);
 	if( md ) {
+		struct unit_data *ud = unit_bl2ud(&md->bl);
 		md->master_id = sd->bl.id;
-		md->special_state.ai = AI_FLORA;
+		md->special_state.ai = AI_FAW;
+		if( ud ) {
+			ud->skill_id = NC_MAGICDECOY;
+			ud->skill_lv = skill;
+		}
 		if( md->deletetimer != INVALID_TIMER )
-			delete_timer(md->deletetimer, mob_timer_delete);
-		md->deletetimer = add_timer (gettick() + skill_get_time(NC_MAGICDECOY,skill), mob_timer_delete, md->bl.id, 0);
+			delete_timer(md->deletetimer,mob_timer_delete);
+		md->deletetimer = add_timer(gettick() + skill_get_time(NC_MAGICDECOY,skill),mob_timer_delete,md->bl.id,0);
 		mob_spawn(md);
-		md->status.matk_min = md->status.matk_max = 250 + 50 * skill;
 	}
 
 	return 0;
@@ -16970,11 +16984,11 @@ int skill_spellbook (struct map_session_data *sd, int nameid) {
 		return 0;
 	}
 
-	ARR_FIND(0,MAX_SKILL_SPELLBOOK_DB,i,skill_spellbook_db[i].nameid == nameid); // Search for information of this item
+	ARR_FIND(0, MAX_SKILL_SPELLBOOK_DB, i, skill_spellbook_db[i].nameid == nameid); // Search for information of this item
 	if( i == MAX_SKILL_SPELLBOOK_DB ) return 0;
 
 	if( !pc_checkskill(sd, (skill_id = skill_spellbook_db[i].skill_id)) ) { // User don't know the skill
-		sc_start(&sd->bl, &sd->bl, SC_SLEEP, 100, 1, skill_get_time(WL_READING_SB, pc_checkskill(sd,WL_READING_SB)));
+		sc_start(&sd->bl, &sd->bl, SC_SLEEP, 100, 1, skill_get_time(WL_READING_SB, pc_checkskill(sd, WL_READING_SB)));
 		clif_skill_fail(sd, WL_READING_SB, USESKILL_FAIL_SPELLBOOK_DIFFICULT_SLEEP, 0);
 		return 0;
 	}
@@ -16987,9 +17001,9 @@ int skill_spellbook (struct map_session_data *sd, int nameid) {
 			clif_skill_fail(sd, WL_READING_SB, USESKILL_FAIL_SPELLBOOK_PRESERVATION_POINT, 0);
 			return 0;
 		}
-		for(i = SC_MAXSPELLBOOK; i >= SC_SPELLBOOK1; i--) { // This is how official saves spellbook. [malufett]
+		for( i = SC_MAXSPELLBOOK; i >= SC_SPELLBOOK1; i-- ) { // This is how official saves spellbook. [malufett]
 			if( !sc->data[i] ) {
-				sc->data[SC_READING_SB]->val2 += point; // increase points
+				sc->data[SC_READING_SB]->val2 += point; // Increase points
 				sc_start4(&sd->bl, &sd->bl, (sc_type)i, 100, skill_id, pc_checkskill(sd,skill_id), point, 0, INVALID_TIMER);
 				break;
 			}
@@ -17711,7 +17725,7 @@ int skill_block_check(struct block_list *bl, sc_type type , uint16 skill_id) {
 				case TF_HIDING:		case AS_CLOAKING:	case GC_CLOAKINGEXCEED:	case SC_SHADOWFORM:
 				case MI_HARMONIZE:	case CG_MARIONETTE:	case AL_TELEPORT:		case TF_BACKSLIDING:
 				case RA_CAMOUFLAGE: case ST_CHASEWALK:	case GD_EMERGENCYCALL:
-					return 1; // needs more info
+					return 1; //Needs more info
 			}
 			break;
 	}
@@ -17749,6 +17763,17 @@ int skill_disable_check(struct status_change *sc, uint16 skill_id)
 		case RA_CAMOUFLAGE:
 			if( sc->data[status_skill2sc(skill_id)] )
 				return 1;
+			break;
+
+		// These 2 skills contain a master and are not correctly pulled using skill2sc
+		case NC_NEUTRALBARRIER:
+			if( sc->data[SC_NEUTRALBARRIER_MASTER] )
+				return 1;
+			break;
+		case NC_STEALTHFIELD:
+			if( sc->data[SC_STEALTHFIELD_MASTER] )
+				return 1;
+			break;
 	}
 
 	return 0;

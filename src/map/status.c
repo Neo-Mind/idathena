@@ -1574,10 +1574,10 @@ int status_fixed_revive(struct block_list *bl, unsigned int per_hp, unsigned int
 int status_check_skilluse(struct block_list *src, struct block_list *target, uint16 skill_id, int flag)
 {
 	struct status_data *status;
-	struct status_change *sc=NULL, *tsc;
+	struct status_change *sc = NULL, *tsc;
 	int hide_flag;
 
-	status = src?status_get_status_data(src):&dummy_status;
+	status = src ? status_get_status_data(src) : &dummy_status;
 
 	if (src && src->type != BL_PC && status_isdead(src))
 		return 0;
@@ -1593,17 +1593,17 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 			return 0;
 	}
 
-	switch( skill_id ) {
+	switch (skill_id) {
 		case PA_PRESSURE:
-			if( flag && target ) {
+			if (flag && target) {
 				//Gloria Avoids pretty much everything....
 				tsc = status_get_sc(target);
-				if(tsc && tsc->option&OPTION_HIDE)
+				if (tsc && tsc->option&OPTION_HIDE)
 					return 0;
 			}
 			break;
 		case GN_WALLOFTHORN:
-			if( target && status_isdead(target) )
+			if (target && status_isdead(target))
 				return 0;
 			break;
 		case AL_TELEPORT:
@@ -1618,9 +1618,9 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 			break;
 	}
 
-	if ( src ) sc = status_get_sc(src);
+	if (src) sc = status_get_sc(src);
 
-	if( sc && sc->count ) {
+	if (sc && sc->count) {
 		
 		if (skill_id != RK_REFRESH && sc->opt1 >0 && !(sc->opt1 == OPT1_CRYSTALIZE && src->type == BL_MOB) && sc->opt1 != OPT1_BURNING && skill_id != SR_GENTLETOUCH_CURE) {   //Stuned/Frozen/etc
 			if (flag != 1) //Can't cast, casted stuff can't damage.
@@ -1655,11 +1655,11 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		}
 
 		if (sc->data[SC_DANCING] && flag!=2) {
-			if( src->type == BL_PC && skill_id >= WA_SWING_DANCE && skill_id <= WM_UNLIMITED_HUMMING_VOICE )
-			{ // Lvl 5 Lesson or higher allow you use 3rd job skills while dancing.v
-				if( pc_checkskill((TBL_PC*)src,WM_LESSON) < 5 )
+			if (src->type == BL_PC && skill_id >= WA_SWING_DANCE && skill_id <= WM_UNLIMITED_HUMMING_VOICE)
+			{ //Lvl 5 Lesson or higher allow you use 3rd job skills while dancing.v
+				if (pc_checkskill((TBL_PC*)src, WM_LESSON) < 5)
 					return 0;
-			} else if(sc->data[SC_LONGING]) { //Allow everything except dancing/re-dancing. [Skotlex]
+			} else if (sc->data[SC_LONGING]) { //Allow everything except dancing/re-dancing. [Skotlex]
 				if (skill_id == BD_ENCORE ||
 					skill_get_inf2(skill_id)&(INF2_SONG_DANCE|INF2_ENSEMBLE_SKILL)
 				)
@@ -1676,7 +1676,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 				}
 			}
 			if ((sc->data[SC_DANCING]->val1&0xFFFF) == CG_HERMODE && skill_id == BD_ADAPTATION)
-				return 0;	//Can't amp out of Wand of Hermode :/ [Skotlex]
+				return 0; //Can't amp out of Wand of Hermode :/ [Skotlex]
 		}
 
 		if (skill_id && //Do not block item-casted skills.
@@ -1710,8 +1710,8 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 			)
 				return 0;
 
-			if( sc->data[SC__MANHOLE] || ((tsc = status_get_sc(target)) && tsc->data[SC__MANHOLE]) ) {
-				switch(skill_id) {//##TODO## make this a flag in skill_db?
+			if (sc->data[SC__MANHOLE] || ((tsc = status_get_sc(target)) && tsc->data[SC__MANHOLE])) {
+				switch (skill_id) { //TODO: make this a flag in skill_db?
 					// Skills that can be used even under Man Hole effects.
 					case SC_SHADOWFORM:
 					case SC_STRIPACCESSARY:
@@ -1743,8 +1743,8 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		}
 		if (sc->option&OPTION_CHASEWALK && skill_id != ST_CHASEWALK)
 			return 0;
-		if(sc->option&OPTION_MOUNTING)
-			return 0;//New mounts can't attack nor use skills in the client; this check makes it cheat-safe [Ind]
+		if (sc->option&OPTION_MOUNTING)
+			return 0; //New mounts can't attack nor use skills in the client. This check makes it cheat-safe [Ind]
 	}
 	
 	if (target == NULL || target == src) //No further checking needed.
@@ -1752,66 +1752,64 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 
 	tsc = status_get_sc(target);
 	
-	if(tsc && tsc->count) {
-		/* attacks in invincible are capped to 1 damage and handled in batte.c; allow spell break and eske for sealed shrine GDB when in INVINCIBLE state. */
-		if( tsc->data[SC_INVINCIBLE] && !tsc->data[SC_INVINCIBLEOFF] && skill_id && !(skill_id&(SA_SPELLBREAKER|SL_SKE)) )
+	if (tsc && tsc->count) {
+		/* Attacks in invincible are capped to 1 damage and handled in batte.c. Allow spell break and eske for sealed shrine GDB when in INVINCIBLE state. */
+		if (tsc->data[SC_INVINCIBLE] && !tsc->data[SC_INVINCIBLEOFF] && skill_id && !(skill_id&(SA_SPELLBREAKER|SL_SKE)))
 			return 0;
-		if(!skill_id && tsc->data[SC_TRICKDEAD])
+		if (!skill_id && tsc->data[SC_TRICKDEAD])
 			return 0;
-		if((skill_id == WZ_STORMGUST || skill_id == WZ_FROSTNOVA || skill_id == NJ_HYOUSYOURAKU)
+		if ((skill_id == WZ_STORMGUST || skill_id == WZ_FROSTNOVA || skill_id == NJ_HYOUSYOURAKU)
 			&& tsc->data[SC_FREEZE])
 			return 0;
-		if(skill_id == PR_LEXAETERNA && (tsc->data[SC_FREEZE] || (tsc->data[SC_STONE] && tsc->opt1 == OPT1_STONE)))
+		if (skill_id == PR_LEXAETERNA && (tsc->data[SC_FREEZE] || (tsc->data[SC_STONE] && tsc->opt1 == OPT1_STONE)))
 			return 0;
 	}
 
-	//If targetting, cloak+hide protect you, otherwise only hiding does.
-	hide_flag = flag?OPTION_HIDE:(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK);
-		
+	//If targetting, cloak + hide protect you, otherwise only hiding does.
+	hide_flag = flag ? OPTION_HIDE : (OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK);
+
  	//You cannot hide from ground skills.
-	if( skill_get_ele(skill_id,1) == ELE_EARTH ) //TODO: Need Skill Lv here :/
+	if (skill_get_ele(skill_id,1) == ELE_EARTH) //TODO: Need Skill Lv here :/
 		hide_flag &= ~OPTION_HIDE;
 
-	switch( target->type ) {
+	switch (target->type) {
 		case BL_PC: {
 				struct map_session_data *sd = (TBL_PC*) target;
 				bool is_boss = (status->mode&MD_BOSS);
 				//God-knows-why gcc doesn't shut up until this happens
-				bool is_detect = ((status->mode&MD_DETECTOR)?true:false);
-				if( pc_isinvisible(sd) )
+				bool is_detect = ((status->mode&MD_DETECTOR) ? true : false);
+				if (pc_isinvisible(sd))
 					return 0;
-				if( tsc->option&hide_flag && !is_boss &&
+				if (tsc->option&hide_flag && !is_boss &&
 					((sd->special_state.perfect_hiding || !is_detect) ||
-					(tsc->data[SC_CLOAKINGEXCEED] && is_detect)) )
+					(tsc->data[SC_CLOAKINGEXCEED] && is_detect)))
 					return 0;
-				if( tsc->data[SC_CAMOUFLAGE] && !(is_boss || is_detect) && !skill_id )
+				if (tsc->data[SC_CAMOUFLAGE] && !(is_boss || is_detect) && !skill_id)
 					return 0;
-				if( tsc->data[SC_STEALTHFIELD] && !is_boss )
+				if (tsc->data[SC_STEALTHFIELD] && !(is_boss || is_detect) &&
+					!skill_get_inf(skill_id)&INF_GROUND_SKILL)
 					return 0;
 			}
 			break;
 		case BL_ITEM: //Allow targetting of items to pick'em up (or in the case of mobs, to loot them).
 			//TODO: Would be nice if this could be used to judge whether the player can or not pick up the item it targets. [Skotlex]
-			if( status->mode&MD_LOOTER )
+			if (status->mode&MD_LOOTER)
 				return 1;
 			return 0;
 		case BL_HOM:
 		case BL_MER:
 		case BL_ELEM:
-			if( target->type == BL_HOM && skill_id && battle_config.hom_setting&0x1 && skill_get_inf(skill_id)&INF_SUPPORT_SKILL && battle_get_master(target) != src )
+			if (target->type == BL_HOM && skill_id && battle_config.hom_setting&0x1 && skill_get_inf(skill_id)&INF_SUPPORT_SKILL && battle_get_master(target) != src)
 				return 0; // Can't use support skills on Homunculus (only Master/Self)
-			if( target->type == BL_MER && (skill_id == PR_ASPERSIO || (skill_id >= SA_FLAMELAUNCHER && skill_id <= SA_SEISMICWEAPON)) && battle_get_master(target) != src )
+			if (target->type == BL_MER && (skill_id == PR_ASPERSIO || (skill_id >= SA_FLAMELAUNCHER && skill_id <= SA_SEISMICWEAPON)) && battle_get_master(target) != src)
 				return 0; // Can't use Weapon endow skills on Mercenary (only Master)
-			if( skill_id == AM_POTIONPITCHER && ( target->type == BL_MER || target->type == BL_ELEM) )
+			if (skill_id == AM_POTIONPITCHER && (target->type == BL_MER || target->type == BL_ELEM))
 				return 0; // Can't use Potion Pitcher on Mercenaries
 		default:
 			//Check for chase-walk/hiding/cloaking opponents.
-			if( tsc ) {
-				if( tsc->option&hide_flag && !(status->mode&(MD_BOSS|MD_DETECTOR)))
+			if (tsc)
+				if (tsc->option&hide_flag && !(status->mode&(MD_BOSS|MD_DETECTOR)))
 					return 0;
-				if( tsc->data[SC_STEALTHFIELD] && !(status->mode&MD_BOSS) )
-					return 0;
-			}
 	}
 	return 1;
 }
@@ -1837,19 +1835,19 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 	if( src->m != target->m || !check_distance_bl(src, target, view_range) )
 		return 0;
 
-	if( tsc && tsc->data[SC_STEALTHFIELD] )
-		return 0;
-
-	switch( target->type ) { //Check for chase-walk/hiding/cloaking opponents.
+	//Check for chase-walk/hiding/cloaking opponents.
+	switch( target->type ) {
 		case BL_PC:
 			if( tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS) )
 				return 0;
-			if( (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) || tsc->data[SC_CAMOUFLAGE]) && !(status->mode&MD_BOSS) &&
-				( ((TBL_PC*)target)->special_state.perfect_hiding || !(status->mode&MD_DETECTOR) ) )
+			if( (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) ||
+				tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_STEALTHFIELD]) && !(status->mode&MD_BOSS) &&
+				(((TBL_PC*)target)->special_state.perfect_hiding || !(status->mode&MD_DETECTOR)) )
 				return 0;
 			break;
 		default:
-			if( tsc && (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) || tsc->data[SC_CAMOUFLAGE]) && !(status->mode&(MD_BOSS|MD_DETECTOR)) )
+			if( tsc && (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) ||
+				tsc->data[SC_CAMOUFLAGE]) && !(status->mode&(MD_BOSS|MD_DETECTOR)) )
 				return 0;
 	}
 
@@ -1864,7 +1862,7 @@ int status_base_amotion_pc(struct map_session_data* sd, struct status_data* stat
 #ifdef RENEWAL_ASPD
 	short mod = -1;
 
-	switch( sd->weapontype2 ) { // adjustment for dual weilding
+	switch( sd->weapontype2 ) { // Adjustment for dual weilding
 		case W_DAGGER:	mod = 0;	break; // 0, 1, 1
 		case W_1HSWORD:
 		case W_1HAXE:	mod = 1;
@@ -1873,8 +1871,8 @@ int status_base_amotion_pc(struct map_session_data* sd, struct status_data* stat
 	}
 
 	amotion = ( sd->status.weapon < MAX_WEAPON_TYPE && mod < 0 )
-			? (job_info[classidx].aspd_base[sd->status.weapon]) // single weapon
-			: ((job_info[classidx].aspd_base[sd->weapontype2] // dual-wield
+			? (job_info[classidx].aspd_base[sd->status.weapon]) // Single weapon
+			: ((job_info[classidx].aspd_base[sd->weapontype2] // Dual-wield
 			+ job_info[classidx].aspd_base[sd->weapontype2]) * 6 / 10 + 10 * mod
 			- job_info[classidx].aspd_base[sd->weapontype2]
 			+ job_info[classidx].aspd_base[sd->weapontype1]);
@@ -1884,15 +1882,15 @@ int status_base_amotion_pc(struct map_session_data* sd, struct status_data* stat
 					( job_info[classidx].aspd_base[MAX_WEAPON_TYPE] - 2000 );
 
 #else
-	// base weapon delay
+	// Base weapon delay
 	amotion = (sd->status.weapon < MAX_WEAPON_TYPE)
-	 ? (job_info[classidx].aspd_base[sd->status.weapon]) // single weapon
-	 : (job_info[classidx].aspd_base[sd->weapontype1] + job_info[classidx].aspd_base[sd->weapontype2])*7/10; // dual-wield
+	 ? (job_info[classidx].aspd_base[sd->status.weapon]) // Single weapon
+	 : (job_info[classidx].aspd_base[sd->weapontype1] + job_info[classidx].aspd_base[sd->weapontype2]) * 7 / 10; // Dual-wield
 	
-	// percentual delay reduction from stats
-	amotion -= amotion * (4*status->agi + status->dex)/1000;
+	// Percentual delay reduction from stats
+	amotion -= amotion * (4 * status->agi + status->dex) / 1000;
 #endif
-	// raw delay adjustment from bAspd bonus
+	// Raw delay adjustment from bAspd bonus
 	amotion += sd->bonus.aspd_add;
 
  	return amotion;
@@ -1939,20 +1937,16 @@ static unsigned short status_base_atk(const struct block_list *bl, const struct 
 	// equation, hinting that perhaps non-players should use this for batk.
 	// [Skotlex]
 #ifdef RENEWAL
-	if (bl->type == BL_HOM) {
-		//str = ((rstr + dex + status->luk) / 3) + (((TBL_HOM*)bl)->homunculus.level / 10);
-		//Because Renewal ATK isn't implemented we adjust the actual ATK until it is
-		str = (((rstr + dex + status->luk) / 3) + (((TBL_HOM*)bl)->homunculus.level / 10))*2;
-		return cap_value(str, 0, USHRT_MAX);
-	}
+	if (bl->type == BL_HOM)
+		str = (int)(floor((rstr + dex + status->luk) / 3) + floor(((TBL_HOM*)bl)->homunculus.level / 10));
 #endif
 	dstr = str / 10;
 	str += dstr * dstr;
 	if (bl->type == BL_PC) {
 #ifdef RENEWAL
-		str = (rstr*10 + dex*10/5 + status->luk*10/3 + ((TBL_PC*)bl)->status.base_level*10/4)/10;
+		str = (rstr * 10 + dex * 10 / 5 + status->luk * 10 / 3 + ((TBL_PC*)bl)->status.base_level * 10 / 4) / 10;
 #else
-		str+= dex/5 + status->luk/5;
+		str += dex / 5 + status->luk / 5;
 #endif
 	}
 	return cap_value(str, 0, USHRT_MAX);
@@ -2063,28 +2057,28 @@ int status_calc_mob_(struct mob_data* md, bool first)
 
 	//Check if we need custom base-status
 	if (battle_config.mobs_level_up && md->level > md->db->lv)
-		flag|=1;
+		flag |= 1;
 	
 	if (md->special_state.size)
-		flag|=2;
+		flag |= 2;
 
 	if (md->guardian_data && md->guardian_data->guardup_lv)
-		flag|=4;
+		flag |= 4;
 	if (md->class_ == MOBID_EMPERIUM)
-		flag|=4;
+		flag |= 4;
 
 	if (battle_config.slaves_inherit_speed && md->master_id)
-		flag|=8;
+		flag |= 8;
 
 	if (md->master_id && md->special_state.ai > AI_ATTACK)
-		flag|=16;
+		flag |= 16;
 
 	if (!flag) { //No special status required.
 		if (md->base_status) {
 			aFree(md->base_status);
 			md->base_status = NULL;
 		}
-		if(first)
+		if (first)
 			memcpy(&md->status, &md->db->status, sizeof(struct status_data));
 		return 0;
 	}
@@ -2102,8 +2096,86 @@ int status_calc_mob_(struct mob_data* md, bool first)
 		if (mstatus &&
 			battle_config.slaves_inherit_speed&(mstatus->mode&MD_CANMOVE?1:2))
 			status->speed = mstatus->speed;
-		if( status->speed < 2 ) /* minimum for the unit to function properly */
+		if (status->speed < 2) /* Minimum for the unit to function properly */
 			status->speed = 2;
+	}
+
+	if (flag&1) { //Increase from mobs leveling up [Valaris]
+		int diff = md->level - md->db->lv;
+		status->str += diff;
+		status->agi += diff;
+		status->vit += diff;
+		status->int_ += diff;
+		status->dex += diff;
+		status->luk += diff;
+		status->max_hp += diff * status->vit;
+		status->max_sp += diff * status->int_;
+		status->hp = status->max_hp;
+		status->sp = status->max_sp;
+		status->speed -= cap_value(diff, 0, status->speed - 10);
+	}
+
+	if (flag&2 && battle_config.mob_size_influence) { //Change for sized monsters [Valaris]
+		if (md->special_state.size == SZ_MEDIUM) {
+			status->max_hp >>= 1;
+			status->max_sp >>= 1;
+			if (!status->max_hp) status->max_hp = 1;
+			if (!status->max_sp) status->max_sp = 1;
+			status->hp = status->max_hp;
+			status->sp = status->max_sp;
+			status->str >>= 1;
+			status->agi >>= 1;
+			status->vit >>= 1;
+			status->int_ >>= 1;
+			status->dex >>= 1;
+			status->luk >>= 1;
+			if (!status->str) status->str = 1;
+			if (!status->agi) status->agi = 1;
+			if (!status->vit) status->vit = 1;
+			if (!status->int_) status->int_ = 1;
+			if (!status->dex) status->dex = 1;
+			if (!status->luk) status->luk = 1;
+		} else if (md->special_state.size == SZ_BIG) {
+			status->max_hp <<= 1;
+			status->max_sp <<= 1;
+			status->hp = status->max_hp;
+			status->sp = status->max_sp;
+			status->str <<= 1;
+			status->agi <<= 1;
+			status->vit <<= 1;
+			status->int_ <<= 1;
+			status->dex <<= 1;
+			status->luk <<= 1;
+		}
+	}
+
+	status_calc_misc(&md->bl, status, md->level);
+
+	if (flag&4) { //Strengthen Guardians - custom value + 10% / lv
+		struct guild_castle *gc;
+		gc = guild_mapname2gc(map[md->bl.m].name);
+		if (!gc)
+			ShowError("status_calc_mob: No castle set at map %s\n", map[md->bl.m].name);
+		else
+		if (gc->castle_id < 24 || md->class_ == MOBID_EMPERIUM) {
+#ifdef RENEWAL
+			status->max_hp += 50 * gc->defense;
+			status->max_sp += 70 * gc->defense;
+#else
+			status->max_hp += 1000 * gc->defense;
+			status->max_sp += 200 * gc->defense;
+#endif
+			status->hp = status->max_hp;
+			status->sp = status->max_sp;
+			status->def += (gc->defense + 2) / 3;
+			status->mdef += (gc->defense + 2) / 3;
+		}
+		if (md->class_ != MOBID_EMPERIUM) {
+			status->batk += status->batk * 10 * md->guardian_data->guardup_lv / 100;
+			status->rhw.atk += status->rhw.atk * 10 * md->guardian_data->guardup_lv / 100;
+			status->rhw.atk2 += status->rhw.atk2 * 10 * md->guardian_data->guardup_lv / 100;
+			status->aspd_rate -= 100 * md->guardian_data->guardup_lv;
+		}
 	}
 
 	if (flag&16 && mbl) { //Max HP setting from Summon Flora/marine Sphere
@@ -2112,8 +2184,10 @@ int status_calc_mob_(struct mob_data* md, bool first)
 		//Remove special AI when this is used by regular mobs.
 		if (mbl->type == BL_MOB && !((TBL_MOB*)mbl)->special_state.ai)
 			md->special_state.ai = AI_NONE;
-		if (ud) { // different levels of HP according to skill level
-			switch(ud->skill_id) {
+		if (ud) { //Different levels of HP according to skill level
+			if (!ud->skill_id) //FIXME: We lost the unit data for magic decoy in somewhere before this
+				ud->skill_id = ((TBL_PC*)mbl)->menuskill_id;
+			switch (ud->skill_id) {
 				case AM_SPHEREMINE:
 					status->max_hp = 2000 + 400 * ud->skill_lv;
 					break;
@@ -2125,11 +2199,16 @@ int status_calc_mob_(struct mob_data* md, bool first)
 					status->mode|= MD_CANATTACK|MD_AGGRESSIVE;
 					break;
 				case NC_SILVERSNIPER:
+					if (!mstatus)
+						break;
 					status->max_hp = mstatus->max_hp / 3 + ud->skill_lv * 1000 + status_get_lv(mbl) * 12;
-					status->rhw.atk = status->rhw.atk2 = 200 * ud->skill_lv;
+					status->rhw.atk = status->rhw.atk2 = (((ud->skill_lv > 3) ? 300 : 100) + 200 * ud->skill_lv);
 					break;
 				case NC_MAGICDECOY:
+					if (!mstatus)
+						break;
 					status->max_hp = mstatus->max_sp * 4 + ud->skill_lv * 1000 + status_get_lv(mbl) * 12;
+					status->matk_min = status->matk_max = ((TBL_PC*)mbl)->menuskill_val * 50 + 250;
 					break;
 				case MH_SUMMON_LEGION: {
 						int homblvl = status_get_lv(mbl);
@@ -2145,85 +2224,7 @@ int status_calc_mob_(struct mob_data* md, bool first)
 		}
 	}
 
-	if (flag&1) { // increase from mobs leveling up [Valaris]
-		int diff = md->level - md->db->lv;
-		status->str+= diff;
-		status->agi+= diff;
-		status->vit+= diff;
-		status->int_+= diff;
-		status->dex+= diff;
-		status->luk+= diff;
-		status->max_hp += diff*status->vit;
-		status->max_sp += diff*status->int_;
-		status->hp = status->max_hp;
-		status->sp = status->max_sp;
-		status->speed -= cap_value(diff, 0, status->speed - 10);
-	}
-
-	if (flag&2 && battle_config.mob_size_influence) { // change for sized monsters [Valaris]
-		if (md->special_state.size==SZ_MEDIUM) {
-			status->max_hp>>=1;
-			status->max_sp>>=1;
-			if (!status->max_hp) status->max_hp = 1;
-			if (!status->max_sp) status->max_sp = 1;
-			status->hp=status->max_hp;
-			status->sp=status->max_sp;
-			status->str>>=1;
-			status->agi>>=1;
-			status->vit>>=1;
-			status->int_>>=1;
-			status->dex>>=1;
-			status->luk>>=1;
-			if (!status->str) status->str = 1;
-			if (!status->agi) status->agi = 1;
-			if (!status->vit) status->vit = 1;
-			if (!status->int_) status->int_ = 1;
-			if (!status->dex) status->dex = 1;
-			if (!status->luk) status->luk = 1;
-		} else if (md->special_state.size==SZ_BIG) {
-			status->max_hp<<=1;
-			status->max_sp<<=1;
-			status->hp=status->max_hp;
-			status->sp=status->max_sp;
-			status->str<<=1;
-			status->agi<<=1;
-			status->vit<<=1;
-			status->int_<<=1;
-			status->dex<<=1;
-			status->luk<<=1;
-		}
-	}
-
-	status_calc_misc(&md->bl, status, md->level);
-
-	if(flag&4) { // Strengthen Guardians - custom value +10% / lv
-		struct guild_castle *gc;
-		gc = guild_mapname2gc(map[md->bl.m].name);
-		if (!gc)
-			ShowError("status_calc_mob: No castle set at map %s\n", map[md->bl.m].name);
-		else
-		if(gc->castle_id < 24 || md->class_ == MOBID_EMPERIUM) {
-#ifdef RENEWAL
-			status->max_hp += 50 * gc->defense;
-			status->max_sp += 70 * gc->defense;
-#else
-			status->max_hp += 1000 * gc->defense;
-			status->max_sp += 200 * gc->defense;
-#endif
-			status->hp = status->max_hp;
-			status->sp = status->max_sp;
-			status->def += (gc->defense+2)/3;
-			status->mdef += (gc->defense+2)/3;
-		}
-		if(md->class_ != MOBID_EMPERIUM) {
-			status->batk += status->batk * 10*md->guardian_data->guardup_lv/100;
-			status->rhw.atk += status->rhw.atk * 10*md->guardian_data->guardup_lv/100;
-			status->rhw.atk2 += status->rhw.atk2 * 10*md->guardian_data->guardup_lv/100;
-			status->aspd_rate -= 100*md->guardian_data->guardup_lv;
-		}
-	}
-
-	if( first ) //Initial battle status
+	if (first) //Initial battle status
 		memcpy(&md->status, status, sizeof(struct status_data));
 
 	return 1;
@@ -5035,20 +5036,20 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 		def -= def * sc->data[SC_PROVOKE]->val4 / 100;
 	if(sc->data[SC_STRIPSHIELD] && bl->type != BL_PC)
 		def -= def * sc->data[SC_STRIPSHIELD]->val2 / 100;
-	if (sc->data[SC_FLING])
+	if(sc->data[SC_FLING])
 		def -= def * (sc->data[SC_FLING]->val2) / 100;
-	if( sc->data[SC_FREEZING] )
+	if(sc->data[SC_FREEZING])
 		def -= def * 10 / 100;
-	if( sc->data[SC_ANALYZE] )
-		def -= def * ( 14 * sc->data[SC_ANALYZE]->val1 ) / 100;
-	if( sc->data[SC_NEUTRALBARRIER] )
-		def += def * ( 10 + 5 * sc->data[SC_NEUTRALBARRIER]->val1 ) / 100;
-	if( sc->data[SC_SHIELDSPELL_REF] && sc->data[SC_SHIELDSPELL_REF]->val1 == 2 )
+	if(sc->data[SC_ANALYZE])
+		def -= def * (14 * sc->data[SC_ANALYZE]->val1) / 100;
+	if(sc->data[SC_NEUTRALBARRIER])
+		def += def * (10 + 5 * sc->data[SC_NEUTRALBARRIER]->val1) / 100;
+	if(sc->data[SC_SHIELDSPELL_REF] && sc->data[SC_SHIELDSPELL_REF]->val1 == 2)
 		def += sc->data[SC_SHIELDSPELL_REF]->val2;
-	if( sc->data[SC_PRESTIGE] )
+	if(sc->data[SC_PRESTIGE])
 		def += sc->data[SC_PRESTIGE]->val1;
 #ifndef RENEWAL
-	if( sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 0 )
+	if(sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 0)
 		def += (5 + sc->data[SC_BANDING]->val1) * sc->data[SC_BANDING]->val2 / 10;
 #endif
 	if(sc->data[SC_ECHOSONG])
@@ -5108,14 +5109,14 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 	if(sc->data[SC_PROVOKE])
 		def2 -= def2 * sc->data[SC_PROVOKE]->val4 / 100;
 	if(sc->data[SC_JOINTBEAT])
-		def2 -= def2 * ( sc->data[SC_JOINTBEAT]->val2&BREAK_SHOULDER ? 50 : 0 ) / 100
-			  + def2 * ( sc->data[SC_JOINTBEAT]->val2&BREAK_WAIST ? 25 : 0 ) / 100;
+		def2 -= def2 * (sc->data[SC_JOINTBEAT]->val2&BREAK_SHOULDER ? 50 : 0) / 100
+			  + def2 * (sc->data[SC_JOINTBEAT]->val2&BREAK_WAIST ? 25 : 0) / 100;
 	if(sc->data[SC_FLING])
 		def2 -= def2 * (sc->data[SC_FLING]->val3) / 100;
 	if(sc->data[SC_FREEZING])
 		def2 -= def2 * 10 / 10;
 	if(sc->data[SC_ANALYZE])
-		def2 -= def2 * ( 14 * sc->data[SC_ANALYZE]->val1 ) / 100;
+		def2 -= def2 * (14 * sc->data[SC_ANALYZE]->val1) / 100;
 	if(sc->data[SC_ASH])
 		def2 -= def2 * sc->data[SC_ASH]->val3 / 100;
 	if(sc->data[SC_PARALYSIS])
@@ -5166,9 +5167,9 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 	if(sc->data[SC_BURNING])
 		mdef -= 25 * mdef / 100;
 	if(sc->data[SC_ANALYZE])
-		mdef -= mdef * ( 14 * sc->data[SC_ANALYZE]->val1 ) / 100;
+		mdef -= mdef * (14 * sc->data[SC_ANALYZE]->val1) / 100;
 	if(sc->data[SC_NEUTRALBARRIER])
-		mdef += mdef * ( 10 + 5 * sc->data[SC_NEUTRALBARRIER]->val1 ) / 100;
+		mdef += mdef * (10 + 5 * sc->data[SC_NEUTRALBARRIER]->val1) / 100;
 	if(sc->data[SC_SYMPHONYOFLOVER])
 		mdef += mdef * sc->data[SC_SYMPHONYOFLOVER]->val3 / 100;
 	if(sc->data[SC_GT_CHANGE] && sc->data[SC_GT_CHANGE]->val4) {
@@ -9799,14 +9800,14 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			if( sce->val2 ) {
 				struct skill_unit_group* group = skill_id2group(sce->val2);
 				sce->val2 = 0;
-				if( group ) /* might have been cleared before status ended, e.g. land protector */
+				if( group ) /* Might have been cleared before status ended, e.g. land protector */
 					skill_delunitgroup(group);
 			}
 			break;
 
 		case SC__SHADOWFORM: {
 				struct map_session_data *s_sd = map_id2sd(sce->val2);
-				if(s_sd ) s_sd->shadowform_id = 0;
+				if( s_sd ) s_sd->shadowform_id = 0;
 			}
 			break;
 
@@ -9814,13 +9815,13 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				if(sce->val4) {
 					struct skill_unit_group *group = skill_id2group(sce->val4);
 					sce->val4 = 0;
-					if( group ) /* might have been cleared before status ended, e.g. land protector */
+					if( group ) /* Might have been cleared before status ended, e.g. land protector */
 						skill_delunitgroup(group);
 				}
 			break;
 
 		case SC_CURSEDCIRCLE_ATKER:
-			if( sce->val2 ) // used the default area size cause there is a chance the caster could knock back and can't clear the target.
+			if( sce->val2 ) // Used the default area size cause there is a chance the caster could knock back and can't clear the target.
 				map_foreachinrange(status_change_timer_sub, bl, battle_config.area_size,BL_CHAR, bl, sce, SC_CURSEDCIRCLE_TARGET, gettick());
 			break;
 
