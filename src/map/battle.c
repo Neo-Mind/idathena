@@ -968,91 +968,87 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		//Finally damage reductions....
 		if( sc->data[SC_ASSUMPTIO] ) {
 			if( map_flag_vs(bl->m) )
-				damage = damage*2/3; //Receive 66% damage
+				damage = damage * 2 / 3; //Receive 66% damage
 			else
 				damage >>= 1; //Receive 50% damage
 		}
 #endif
 
-		if(sc->data[SC_DEFENDER] &&
-			(flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON))
+		if( sc->data[SC_DEFENDER] &&
+			(flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
 			damage = damage * ( 100 - sc->data[SC_DEFENDER]->val2 ) / 100;
 
-		if(sc->data[SC_ADJUSTMENT] &&
-			(flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON))
+		if( sc->data[SC_ADJUSTMENT] &&
+			(flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
 			damage -= damage * 20 / 100;
 
-		if(sc->data[SC_FOGWALL] && skill_id != RK_DRAGONBREATH) {
-			if(flag&BF_SKILL) //25% reduction
+		if( sc->data[SC_FOGWALL] && skill_id != RK_DRAGONBREATH ) {
+			if( flag&BF_SKILL ) //25% reduction
 				damage -= damage * 25 / 100;
-			else if ((flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON))
+			else if( (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
 				damage >>= 2; //75% reduction
 		}
 
-		if(sc->data[SC_SMOKEPOWDER]) {
-			if((flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON))
+		if( sc->data[SC_SMOKEPOWDER] ) {
+			if( (flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON) )
 				damage -= damage * 15 / 100; //15% reduction to physical melee attacks
-			else if((flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON))
+			else if( (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
 				damage -= damage * 50 / 100; //50% reduction to physical ranged attacks
 		}
 
 		// Compressed code, fixed by map.h [Epoque]
-		if(src->type == BL_MOB) {
+		if( src->type == BL_MOB ) {
 			int i;
-			if(sc->data[SC_MANU_DEF])
-				for(i=0;ARRAYLENGTH(mob_manuk)>i;i++)
-					if(mob_manuk[i]==((TBL_MOB*)src)->class_) {
+			if( sc->data[SC_MANU_DEF] )
+				for( i = 0; ARRAYLENGTH(mob_manuk) > i; i++ )
+					if( mob_manuk[i] == ((TBL_MOB*)src)->class_ ) {
 						damage -= damage * sc->data[SC_MANU_DEF]->val1 / 100;
 						break;
 					}
-			if(sc->data[SC_SPL_DEF])
-				for(i=0;ARRAYLENGTH(mob_splendide)>i;i++)
-					if(mob_splendide[i]==((TBL_MOB*)src)->class_) {
+			if( sc->data[SC_SPL_DEF] )
+				for( i = 0; ARRAYLENGTH(mob_splendide) > i; i++ )
+					if( mob_splendide[i] == ((TBL_MOB*)src)->class_ ) {
 						damage -= damage * sc->data[SC_SPL_DEF]->val1 / 100;
 						break;
 					}
 		}
 
-		if((sce=sc->data[SC_ARMOR]) && //NPC_DEFENDER
-			sce->val3&flag && sce->val4&flag)
+		if( (sce = sc->data[SC_ARMOR]) && //NPC_DEFENDER
+			sce->val3&flag && sce->val4&flag )
 			damage -= damage * sc->data[SC_ARMOR]->val2 / 100;
 
 #ifdef RENEWAL
-		if(sc->data[SC_ENERGYCOAT] && (flag&BF_WEAPON || flag&BF_MAGIC) && skill_id != WS_CARTTERMINATION)
+		if( sc->data[SC_ENERGYCOAT] && (flag&BF_WEAPON || flag&BF_MAGIC) && skill_id != WS_CARTTERMINATION )
 #else
-		if(sc->data[SC_ENERGYCOAT] && flag&BF_WEAPON && skill_id != WS_CARTTERMINATION)
+		if( sc->data[SC_ENERGYCOAT] && flag&BF_WEAPON && skill_id != WS_CARTTERMINATION )
 #endif
 		{
 			struct status_data *status = status_get_status_data(bl);
-			int per = 100*status->sp / status->max_sp -1; //100% should be counted as the 80~99% interval
-			per /=20; //Uses 20% SP intervals.
+			int per = 100 * status->sp / status->max_sp -1; //100% should be counted as the 80~99% interval
+			per /= 20; //Uses 20% SP intervals.
 			//SP Cost: 1% + 0.5% per every 20% SP
-			if (!status_charge(bl, 0, (10+5*per)*status->max_sp/1000))
+			if( !status_charge(bl, 0, (10 + 5 * per) * status->max_sp / 1000) )
 				status_change_end(bl, SC_ENERGYCOAT, INVALID_TIMER);
 			//Reduction: 6% + 6% every 20%
-			damage -= damage * (6 * (1+per)) / 100;
+			damage -= damage * (6 * (1 + per)) / 100;
 		}
-		if(sc->data[SC_GRANITIC_ARMOR]) {
+		if( sc->data[SC_GRANITIC_ARMOR] ) {
 			damage -= damage * sc->data[SC_GRANITIC_ARMOR]->val2 / 100;
 		}
-		if(sc->data[SC_PAIN_KILLER]) {
+		if( sc->data[SC_PAIN_KILLER] ) {
 			damage -= sc->data[SC_PAIN_KILLER]->val3;
-			damage = max(0,damage);
+			damage = max(0, damage);
 		}
 		if( (sce = sc->data[SC_MAGMA_FLOW]) && (rnd()%100 <= sce->val2) ) {
-			skill_castend_damage_id(bl,src,MH_MAGMA_FLOW,sce->val1,gettick(),0);
+			skill_castend_damage_id(bl, src, MH_MAGMA_FLOW, sce->val1, gettick(), 0);
 		}
-		if( (sce = sc->data[SC_STONEHARDSKIN]) && flag&BF_WEAPON && damage > 0 ) {
+		if( damage > 0 && ((flag&(BF_WEAPON|BF_SHORT)) == (BF_WEAPON|BF_SHORT)) &&
+			(sce = sc->data[SC_STONEHARDSKIN]) ) {
 			sce->val2 -= damage;
-			if( src->type == BL_PC ) {
-				TBL_PC *ssd = BL_CAST(BL_PC, src);
-				if (ssd && ssd->status.weapon != W_BOW)
-					skill_break_equip(src, src, EQP_WEAPON, 3000, BCT_SELF);
-			}
-					skill_break_equip(src, src, EQP_WEAPON, 3000, BCT_SELF);
-			// 30% chance to reduce monster's ATK by 25% for 10 seconds.
-			if( src->type == BL_MOB )
+			if( src->type == BL_MOB ) //Using explicite call instead break_equip for duration
 				sc_start(src, src, SC_STRIPWEAPON, 30, 0, skill_get_time2(RK_STONEHARDSKIN, sce->val1));
+			else
+				skill_break_equip(src, src, EQP_WEAPON, 3000, BCT_SELF);
 			if( sce->val2 <= 0 )
 				status_change_end(bl, SC_STONEHARDSKIN, INVALID_TIMER);
 		}

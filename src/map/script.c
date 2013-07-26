@@ -10362,11 +10362,118 @@ BUILDIN_FUNC(warpwaitingpc)
 /// @param st Script state to detach the character from.
 static void script_detach_rid(struct script_state* st)
 {
-	if(st->rid)
-	{
+	if(st->rid) {
 		script_detach_state(st, false);
 		st->rid = 0;
 	}
+}
+
+/*
+	Made by digitalhamster
+	addrid(parameter{,forced{,supportid}})
+	Parameter:
+	Account id -> attach player with acc_id if he's online /returns 1 if he's not online, 0 if he is
+	0 -> Attach entire server
+	1 -> Attach everyone currently on the map of the player if a player runs addrid/else of the npcs map
+	2 -> Attach entire party(party id has to be entered at supportid)
+	3 -> Attach entire guild(guild id has to be entered at supportid)
+	4 -> Attach all players in an area at the map where the person running addrid is located/no person=use npcs map
+	Note: 4 uses addrid(4,Forced,x0,y0,x1,y1)
+
+	Forced:
+	0 or left out -> force attachment of the player even if he runs a script already
+	1 -> Don't attach if player is currently running a script(only needed when you use things like mes"" close next so it seems
+	*/
+
+static int buildin_addrid_sub(struct block_list *bl,va_list ap)
+{
+	int forceflag;
+	struct map_session_data *sd = (TBL_PC *)bl;
+	struct script_state* st;
+
+	st = va_arg(ap,struct script_state*);
+	forceflag = va_arg(ap,int);
+	if(!forceflag || !sd->st)
+		if(sd->status.account_id != st->rid)
+			run_script(st->script,st->pos,sd->status.account_id,st->oid);
+	return 0;
+}
+
+BUILDIN_FUNC(addrid)
+{
+	struct s_mapiterator* iter;
+	struct block_list *bl;
+	TBL_PC *sd;
+	if(st->rid < 1) {
+		st->state = END;
+		bl = map_id2bl(st->oid);
+	} else
+		bl = map_id2bl(st->rid); //If run without rid it'd error,also oid if npc, else rid for map
+	iter = mapit_getallusers();
+	switch(script_getnum(st,2)) {
+		case 0:
+			for(sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter)) {
+				if(!script_getnum(st,3) || !sd->st)
+					if(sd->status.account_id != st->rid) //Attached player already runs.
+						run_script(st->script,st->pos,sd->status.account_id,st->oid);
+			}
+			break;
+
+		case 1:
+			for(sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter)) {
+				if(!script_getnum(st,3) || !sd->st)
+					if((sd->bl.m == bl->m) && (sd->status.account_id != st->rid))
+						run_script(st->script,st->pos,sd->status.account_id,st->oid);
+			}
+			break;
+
+		case 2:
+			if(script_getnum(st,4) == 0) {
+				script_pushint(st,1);
+				return 0;
+			}
+			for(sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter)) {
+				if(!script_getnum(st,3) || !sd->st)
+					//Attached player already runs.
+					if((sd->status.account_id != st->rid) && (sd->status.party_id == script_getnum(st,4)))
+						run_script(st->script,st->pos,sd->status.account_id,st->oid);
+			}
+			break;
+
+		case 3:
+			if(script_getnum(st,4) == 0) {
+				script_pushint(st,1);
+				return 0;
+			}
+			for(sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter)) {
+				if(!script_getnum(st,3) || !sd->st)
+					//Attached player already runs.
+					if((sd->status.account_id != st->rid) && (sd->status.guild_id == script_getnum(st,4)))
+						run_script(st->script,st->pos,sd->status.account_id,st->oid);
+			}
+			break;
+
+		case 4:
+			map_foreachinarea(buildin_addrid_sub,
+			bl->m,script_getnum(st,4),script_getnum(st,5),script_getnum(st,6),script_getnum(st,7),BL_PC,
+			st,script_getnum(st,3)); //4-x0 , 5-y0 , 6-x1, 7-y1
+			break;
+
+		default:
+			if((map_id2sd(script_getnum(st,2))) == NULL) {
+				script_pushint(st,1);
+				return 0;
+			} //Player not online.
+			if(!script_getnum(st,3) || !map_id2sd(script_getnum(st,2))->st) {
+				run_script(st->script,st->pos,script_getnum(st,2),st->oid);
+				script_pushint(st,0);
+			}
+			return 0;
+	}  
+
+	mapit_free(iter);
+	script_pushint(st,0);
+	return 0;
 }
 
 /*==========================================
@@ -15365,10 +15472,7 @@ BUILDIN_FUNC(unittalk)
 		struct StringBuf sbuf;
 		StringBuf_Init(&sbuf);
 		StringBuf_Printf(&sbuf, "%s : %s", status_get_name(bl), message);
-		if( bl->type == BL_PC )
-			clif_displaymessage(((TBL_PC*)bl)->fd, StringBuf_Value(&sbuf));
-		else
-			clif_disp_overhead(bl, StringBuf_Value(&sbuf));
+		clif_disp_overhead(bl, StringBuf_Value(&sbuf));
 		StringBuf_Destroy(&sbuf);
 	}
 
@@ -17744,6 +17848,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(getwaitingroomstate,"i?"),
 	BUILDIN_DEF(warpwaitingpc,"sii?"),
 	BUILDIN_DEF(attachrid,"i"),
+	BUILDIN_DEF(addrid,"i?????"),
 	BUILDIN_DEF(detachrid,""),
 	BUILDIN_DEF(isloggedin,"i?"),
 	BUILDIN_DEF(setmapflagnosave,"ssii"),

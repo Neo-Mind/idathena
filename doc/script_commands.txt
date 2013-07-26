@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Current Version: =====================================
-//= $Revision: 17435 $
+//= $Revision$
 //===== Last Updated: ========================================
-//= $LastChangedDate: 2013-07-25 21:48:39 +0700 (Thu, 25 Jul 2013) $
+//= $LastChangedDate$
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -3529,6 +3529,26 @@ script was never invoked by a player.
 
 The command returns 0 if the player cannot be attached (if the account is offline
 or does not exist), and 1 upon success.
+
+-------------------------
+
+*addrid(<type> or <rid>{,<forced>{,<parameters>}})
+
+Allows to attach multiple RIDs to one script at a time.
+
+<type>:
+	Account ID -> attach player with acc_id if he's online. Returns 1 if player is offline, 0 if online
+	0 -> attach entire server
+	1 -> attach everyone currently on the map of the player if a player runs addrid/else of the npcs map
+	2 -> attach entire party(party id has to be entered at supportid)
+	3 -> attach entire guild(guild id has to be entered at supportid)
+	4 -> attach all players in an area at the map where the person running addrid is located/no person=use npcs map
+	Note: 4 uses addrid(4,Forced,x0,y0,x1,y1)
+	
+
+<forced>:
+	0 or left out -> force attachment of the player even if he runs a script already
+	1 -> don't attach if player is currently running a script(only needed when you use things like mes"" close next so it seems
 
 ---------------------------------------
 
@@ -7214,7 +7234,7 @@ The command returns 0 upon success, and these values upon failure:
 
 ---------------------------------------
 
-*instance_npcname("<npc name>"{,<instance id>});
+*instance_npcname("<npc name>"{,<instance id>})
 
 Returns the unique name of the instanced script. If no ID is specified,
 the instance the script is attached to is used. If the script is not attached to
@@ -7223,7 +7243,7 @@ that fails, the script will come to a halt.
 
 ---------------------------------------
 
-*instance_mapname("<map name>"{,<instance id>});
+*instance_mapname("<map name>"{,<instance id>})
 
 Returns the unique name of the instanced map. If no instance ID is specified,
 the instance the script is attached to is used. If the script is not attached to
@@ -7232,7 +7252,7 @@ that fails, the command returns an empty string instead.
 
 ---------------------------------------
 
-*instance_id();
+*instance_id()
 
 Returns the unique instance id of the attached script. If the script is not
 attached to an instance, the instance of the currently attached player's party is
@@ -7250,7 +7270,7 @@ come to a halt.
 
 ---------------------------------------
 
-*instance_check_party(<party id>{,<amount>{,<min>{,<max>}}});
+*instance_check_party(<party id>{,<amount>{,<min>{,<max>}}})
 
 This function checks if a party meets certain requirements, returning 1 if all
 conditions are met and 0 otherwise. It will only check online characters.
