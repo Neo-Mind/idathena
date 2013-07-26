@@ -14468,41 +14468,53 @@ void clif_parse_cashshop_buy(int fd, struct map_session_data *sd)
 
 	nullpo_retv(sd);
 
-	info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
+	info = &packet_db[sd->packet_ver][RFIFOW(fd, 0)];
 
-	if( sd->state.trading || !sd->npc_shopid )
+	if( sd->state.trading
+#if PACKETVER < 20130000 //Found accurate date
+		|| !sd->npc_shopid
+#endif
+		)
 		fail = 1;
 	else {
 #if PACKETVER < 20101116
-		short nameid = RFIFOW(fd,info->pos[0]);
-		short amount = RFIFOW(fd,info->pos[1]);
-		int points   = RFIFOL(fd,info->pos[2]);
+		short nameid = RFIFOW(fd, info->pos[0]);
+		short amount = RFIFOW(fd, info->pos[1]);
+		int points   = RFIFOL(fd, info->pos[2]);
 
 		fail = npc_cashshop_buy(sd, nameid, amount, points);
 #else
-	#if PACKETVER < 20130000 //Found accurate date
-		int s_itl = 6;
-	#else
+	#if PACKETVER < 20130000
 		int s_itl = 4; //Item list size
+		unsigned short* item_list = (unsigned short*)RFIFOP(fd, info->pos[3]);
+	#else
+		int s_itl = 6;
+		uint16* item_list = (uint16*)RFIFOP(fd, info->pos[3]);
 	#endif
-		int len    = RFIFOW(fd,info->pos[0]);
-		int points = RFIFOL(fd,info->pos[1]);
-		int count  = RFIFOW(fd,info->pos[2]);
-		unsigned short* item_list = (unsigned short*)RFIFOP(fd,info->pos[3]);
+		int len    = RFIFOW(fd, info->pos[0]);
+		int points = RFIFOL(fd, info->pos[1]);
+		int count  = RFIFOW(fd, info->pos[2]);
 
-		if( len < 10 || len != 10 + count * s_itl) {
+		if( len < 10 || len
+	#if PACKETVER < 20130000
+			!=
+	#else
+			<
+	#endif
+			(10 + count * s_itl) ) {
 			ShowWarning("Player %u sent incorrect cash shop buy packet (len %u:%u)!\n", sd->status.char_id, len, 10 + count * s_itl);
 			return;
 		}
 	#if PACKETVER < 20130000
-		fail = npc_cashshop_buylist(sd,points,count,item_list);
-	#elif PACKETVER >= 20130000
-		cashshop_buylist(sd,points,count,item_list);
+		fail = npc_cashshop_buylist(sd, points, count, item_list);
+	#else
+		cashshop_buylist(sd, points, count, item_list);
 	#endif
 #endif
 	}
-    
-	clif_cashshop_ack(sd,fail);
+#if PACKETVER < 20130000
+	clif_cashshop_ack(sd, fail);
+#endif
 }
 
 /// Adoption System
