@@ -143,7 +143,7 @@ int chat_joinchat(struct map_session_data* sd, int chatid, const char* pass)
 	}
 
 	if( cd->owner->type != BL_NPC && idb_exists(cd->kick_list,sd->status.char_id) ) {
-		clif_joinchatfail(sd,2);//You have been kicked out of the room.
+		clif_joinchatfail(sd,2); //You have been kicked out of the room.
 		return 0;
 	}
 
@@ -158,7 +158,7 @@ int chat_joinchat(struct map_session_data* sd, int chatid, const char* pass)
 	clif_dispchat(cd, 0); //Reported number of changes to the people around
 
 	chat_triggerevent(cd); //Event
-	
+
 	return 0;
 }
 

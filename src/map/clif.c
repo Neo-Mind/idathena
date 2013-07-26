@@ -14456,11 +14456,11 @@ void clif_cashshop_ack(struct map_session_data* sd, int error)
 	WFIFOSET(fd, packet_len(0x289));
 }
 
-#if PACKETVER < 20130320
 /// Request to buy item(s) from cash shop (CZ_PC_BUY_CASH_POINT_ITEM).
 /// 0288 <name id>.W <amount>.W
 /// 0288 <name id>.W <amount>.W <kafra points>.L (PACKETVER >= 20070711)
 /// 0288 <packet len>.W <kafra points>.L <count>.W { <amount>.W <name id>.W }.4B*count (PACKETVER >= 20100803)
+/// 0848 <packet len>.W <count>.W <packet len>.W <kafra points>.L <count>.W { <amount>.W <name id>.W <tab>.W }.6B*count (PACKETVER >= 20130000)
 void clif_parse_cashshop_buy(int fd, struct map_session_data *sd)
 {
 	int fail = 0;
@@ -14480,22 +14480,30 @@ void clif_parse_cashshop_buy(int fd, struct map_session_data *sd)
 
 		fail = npc_cashshop_buy(sd, nameid, amount, points);
 #else
+	#if PACKETVER < 20130000 //Found accurate date
+		int s_itl = 6;
+	#else
+		int s_itl = 4; //Item list size
+	#endif
 		int len    = RFIFOW(fd,info->pos[0]);
 		int points = RFIFOL(fd,info->pos[1]);
 		int count  = RFIFOW(fd,info->pos[2]);
 		unsigned short* item_list = (unsigned short*)RFIFOP(fd,info->pos[3]);
 
-		if( len < 10 || len != 10 + count * 4) {
-			ShowWarning("Player %u sent incorrect cash shop buy packet (len %u:%u)!\n", sd->status.char_id, len, 10 + count * 4);
+		if( len < 10 || len != 10 + count * s_itl) {
+			ShowWarning("Player %u sent incorrect cash shop buy packet (len %u:%u)!\n", sd->status.char_id, len, 10 + count * s_itl);
 			return;
 		}
+	#if PACKETVER < 20130000
 		fail = npc_cashshop_buylist(sd,points,count,item_list);
+	#elif PACKETVER >= 20130000
+		cashshop_buylist(sd,points,count,item_list);
+	#endif
 #endif
 	}
     
 	clif_cashshop_ack(sd,fail);
 }
-#endif
 
 /// Adoption System
 ///
@@ -16444,21 +16452,6 @@ void clif_cashshop_list( int fd ) {
 void clif_parse_cashshop_list_request( int fd, struct map_session_data* sd ) {
 	clif_cashshop_list( fd );
 }
-
-#if PACKETVER >= 20130320
-void clif_parse_cashshop_buy( int fd, struct map_session_data *sd ) {
-	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
-	uint16 length = RFIFOW( fd, info->pos[0] );
-	uint16 count = RFIFOW( fd, info->pos[1] );
-
-	if( length < 10 || length < ( 10 + count * 6 ) ) {
-		return;
-	}
-
-	cashshop_buylist( sd, RFIFOL( fd, info->pos[2] ),
-	    count, (uint16 *)RFIFOP( fd, info->pos[3] ) );
-}
-#endif
 
 void clif_cashshop_result( struct map_session_data *sd, uint16 item_id, uint16 result ) {
 	WFIFOHEAD( sd->fd, 16 );

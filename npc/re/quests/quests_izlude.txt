@@ -7,9 +7,10 @@
 //===== Compatible With: ===================================== 
 //= rAthena SVN
 //===== Description: ========================================= 
-//= Edgar's Offer
+//= Contains:
+//= - Edgar's Offer
 //===== Additional Comments: ================================= 
 //= 1.0 Updated to match the new Izlude Map. [Masao]
 //============================================================
 
-izlude,179,219,4	duplicate(Edgar_izlude)	Edgar#izlude	49
+izlude,179,219,2	duplicate(Edgar_izlude)	Edgar#izlude	49

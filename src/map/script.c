@@ -10834,47 +10834,45 @@ BUILDIN_FUNC(gvgoff)
 BUILDIN_FUNC(emotion)
 {
 	int type;
-	int player=0;
+	int player = 0;
 	
-	type=script_getnum(st,2);
+	type = script_getnum(st,2);
 	if(type < 0 || type > 100)
 		return 0;
 
-	if( script_hasdata(st,3) )
-		player=script_getnum(st,3);
+	if(script_hasdata(st,3))
+		player = script_getnum(st,3);
 	
-	if (player) {
+	if(player) {
 		TBL_PC *sd = NULL;
-		if( script_hasdata(st,4) )
+		if(script_hasdata(st,4))
 			sd = map_nick2sd(script_getstr(st,4));
 		else
 			sd = script_rid2sd(st);
-		if (sd)
+		if(sd)
 			clif_emotion(&sd->bl,type);
 	} else
-		if( script_hasdata(st,4) )
-		{
+		if(script_hasdata(st,4)) {
 			TBL_NPC *nd = npc_name2id(script_getstr(st,4));
 			if(nd)
 				clif_emotion(&nd->bl,type);
-		}
-		else
+		} else
 			clif_emotion(map_id2bl(st->oid),type);
 	return 0;
 }
 
 static int buildin_maprespawnguildid_sub_pc(struct map_session_data* sd, va_list ap)
 {
-	int16 m=va_arg(ap,int);
-	int g_id=va_arg(ap,int);
-	int flag=va_arg(ap,int);
+	int16 m = va_arg(ap,int);
+	int g_id = va_arg(ap,int);
+	int flag = va_arg(ap,int);
 
 	if(!sd || sd->bl.m != m)
 		return 0;
 	if(
 		(sd->status.guild_id == g_id && flag&1) || //Warp out owners
 		(sd->status.guild_id != g_id && flag&2) || //Warp out outsiders
-		(sd->status.guild_id == 0)	// Warp out players not in guild [Valaris]
+		(sd->status.guild_id == 0 && flag&2)	// Warp out players not in guild
 	)
 		pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,CLR_TELEPORT);
 	return 1;
@@ -10882,7 +10880,7 @@ static int buildin_maprespawnguildid_sub_pc(struct map_session_data* sd, va_list
 
 static int buildin_maprespawnguildid_sub_mob(struct block_list *bl,va_list ap)
 {
-	struct mob_data *md=(struct mob_data *)bl;
+	struct mob_data *md = (struct mob_data *)bl;
 
 	if(!md->guardian_data && md->class_ != MOBID_EMPERIUM)
 		status_kill(bl);
@@ -10890,13 +10888,21 @@ static int buildin_maprespawnguildid_sub_mob(struct block_list *bl,va_list ap)
 	return 0;
 }
 
+/*
+ * Function to kick guild members out of a map and to their save points.
+ * m : mapid
+ * g_id : owner guild id
+ * flag&1 : Warp out owners
+ * flag&2 : Warp out outsiders
+ * flag & 4 : reserved for mobs
+*/
 BUILDIN_FUNC(maprespawnguildid)
 {
-	const char *mapname=script_getstr(st,2);
-	int g_id=script_getnum(st,3);
-	int flag=script_getnum(st,4);
+	const char *mapname = script_getstr(st,2);
+	int g_id = script_getnum(st,3);
+	int flag = script_getnum(st,4);
 
-	int16 m=map_mapname2mapid(mapname);
+	int16 m = map_mapname2mapid(mapname);
 
 	if(m == -1)
 		return 0;
@@ -10910,38 +10916,38 @@ BUILDIN_FUNC(maprespawnguildid)
 
 BUILDIN_FUNC(agitstart)
 {
-	if(agit_flag==1) return 0;      // Agit already Start.
-	agit_flag=1;
+	if(agit_flag == 1) return 0; // Agit already Start.
+	agit_flag = 1;
 	guild_agit_start();
 	return 0;
 }
 
 BUILDIN_FUNC(agitend)
 {
-	if(agit_flag==0) return 0;      // Agit already End.
-	agit_flag=0;
+	if(agit_flag == 0) return 0; // Agit already End.
+	agit_flag = 0;
 	guild_agit_end();
 	return 0;
 }
 
 BUILDIN_FUNC(agitstart2)
 {
-	if(agit2_flag==1) return 0;      // Agit2 already Start.
-	agit2_flag=1;
+	if(agit2_flag == 1) return 0; // Agit2 already Start.
+	agit2_flag = 1;
 	guild_agit2_start();
 	return 0;
 }
 
 BUILDIN_FUNC(agitend2)
 {
-	if(agit2_flag==0) return 0;      // Agit2 already End.
-	agit2_flag=0;
+	if(agit2_flag == 0) return 0; // Agit2 already End.
+	agit2_flag = 0;
 	guild_agit2_end();
 	return 0;
 }
 
 /*==========================================
- * Returns whether woe is on or off.	// choice script
+ * Returns whether woe is on or off.	// Choice script
  *------------------------------------------*/
 BUILDIN_FUNC(agitcheck)
 {
@@ -10950,7 +10956,7 @@ BUILDIN_FUNC(agitcheck)
 }
 
 /*==========================================
- * Returns whether woese is on or off.	// choice script
+ * Returns whether woese is on or off.	// Choice script
  *------------------------------------------*/
 BUILDIN_FUNC(agitcheck2)
 {
