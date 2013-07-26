@@ -9196,22 +9196,22 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				};
 				int heal;
 				if(tsc) {
-					for (i = 0; i < ARRAYLENGTH(scs); i++) {
-						if (tsc->data[scs[i]]) status_change_end(bl, scs[i], INVALID_TIMER);
+					for(i = 0; i < ARRAYLENGTH(scs); i++) {
+						if(tsc->data[scs[i]]) status_change_end(bl, scs[i], INVALID_TIMER);
 					}
-					if (!tsc->data[SC_SILENCE]) //Put inavoidable silence on target
-						status_change_start(src, bl, SC_SILENCE, 100, skill_lv, 0,0,0, skill_get_time(skill_id, skill_lv),1|2|8);
+					if(!tsc->data[SC_SILENCE]) //Put inavoidable silence on target
+						status_change_start(src, bl, SC_SILENCE, 100, skill_lv, 0, 0, 0, skill_get_time(skill_id, skill_lv), 1|2|8);
 				}
 				heal = status_get_sp(src) + status_get_lv(src); //Current SP + Base Level @TODO need real value
 				status_heal(bl, heal, 0, 7);
 
 				//Now inflict silence on everyone
 				if(ssc && !ssc->data[SC_SILENCE]) //Put inavoidable silence on homun
-					status_change_start(src, src, SC_SILENCE, 100, skill_lv, 0,0,0, skill_get_time(skill_id, skill_lv),1|2|8);
+					status_change_start(src, src, SC_SILENCE, 100, skill_lv, 0, 0, 0, skill_get_time(skill_id, skill_lv), 1|2|8);
 				if(m_bl) {
 					struct status_change *msc = status_get_sc(m_bl);
 					if(msc && !msc->data[SC_SILENCE]) //Put inavoidable silence on master
-						status_change_start(src, m_bl, SC_SILENCE, 100, skill_lv, 0,0,0, skill_get_time(skill_id, skill_lv),1|2|8);
+						status_change_start(src, m_bl, SC_SILENCE, 100, skill_lv, 0, 0, 0, skill_get_time(skill_id, skill_lv), 1|2|8);
 				}
 				if(hd)
 					skill_blockhomun_start(hd, skill_id, skill_get_cooldown(NULL, skill_id, skill_lv));
@@ -9221,14 +9221,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case MH_OVERED_BOOST:
 			if(hd) {
 				struct block_list *s_bl = battle_get_master(src);
-				if(hd->homunculus.hunger>50) //reduce hunger
-					hd->homunculus.hunger = hd->homunculus.hunger/2;
+				if(hd->homunculus.hunger > 50) //Reduce hunger
+					hd->homunculus.hunger = hd->homunculus.hunger / 2;
 				else
-					hd->homunculus.hunger = min(1,hd->homunculus.hunger);
-				if(s_bl && s_bl->type==BL_PC) {
-					status_set_sp(s_bl,status_get_max_sp(s_bl)/2,0); //master drain 50% sp
-					clif_send_homdata(((TBL_PC *)s_bl), SP_HUNGRY, hd->homunculus.hunger); //refresh hunger info
-					sc_start(src, s_bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv)); //gene bonus
+					hd->homunculus.hunger = min(1, hd->homunculus.hunger);
+				if(s_bl && s_bl->type == BL_PC) {
+					status_set_sp(s_bl, status_get_max_sp(s_bl) / 2, 0); //Master drain 50% sp
+					clif_send_homdata(((TBL_PC *)s_bl), SP_HUNGRY, hd->homunculus.hunger); //Refresh hunger info
+					sc_start(src, s_bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv)); //Gene bonus
 				}
 				sc_start(src, bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 				skill_blockhomun_start(hd, skill_id, skill_get_cooldown(NULL, skill_id, skill_lv));
@@ -9238,30 +9238,31 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case MH_GRANITIC_ARMOR:
 		case MH_PYROCLASTIC: {
 				struct block_list *s_bl = battle_get_master(src);
-				if(s_bl) sc_start2(src, s_bl, type, 100, skill_lv, hd->homunculus.level, skill_get_time(skill_id, skill_lv)); //start on master
+				//Start on master
+				if(s_bl) sc_start2(src, s_bl, type, 100, skill_lv, hd->homunculus.level, skill_get_time(skill_id, skill_lv));
 				sc_start2(src, bl, type, 100, skill_lv, hd->homunculus.level, skill_get_time(skill_id, skill_lv));
 				if(hd) skill_blockhomun_start(hd, skill_id, skill_get_cooldown(NULL, skill_id, skill_lv));
 			}
 			break;
 
-		case MH_LIGHT_OF_REGENE: //self
+		case MH_LIGHT_OF_REGENE: //Self
 			sc_start2(src, src, type, 100, skill_lv, hd->homunculus.level, skill_get_time(skill_id, skill_lv));
 			if(hd) {
-				hd->homunculus.intimacy = 251; //change to neutral (can't be cast if < 750)
-				if(sd) clif_send_homdata(sd, SP_INTIMATE, hd->homunculus.intimacy); //refresh intimacy info
+				hd->homunculus.intimacy = 251; //Change to neutral (can't be cast if < 750)
+				if(sd) clif_send_homdata(sd, SP_INTIMATE, hd->homunculus.intimacy); //Refresh intimacy info
 				skill_blockhomun_start(hd, skill_id, skill_get_cooldown(NULL, skill_id, skill_lv));
 			}
 			break;
 
 		case MH_STYLE_CHANGE: {
 				struct status_change_entry *sce;
-				if(hd && (sce = hd->sc.data[SC_STYLE_CHANGE])) { //in preparation for other bl usage
+				if(hd && (sce = hd->sc.data[SC_STYLE_CHANGE])) { //In preparation for other bl usage
 					if(sce->val1 == MH_MD_FIGHTING) sce->val1 = MH_MD_GRAPPLING;
 					else sce->val1 = MH_MD_FIGHTING;
 					if(hd->master && hd->sc.data[SC_STYLE_CHANGE]) {
 						char output[128];
-						safesnprintf(output,sizeof(output),msg_txt(378),(sce->val1==MH_MD_FIGHTING?"fighthing":"grappling"));
-						clif_colormes(hd->master,color_table[COLOR_RED],output);
+						safesnprintf(output, sizeof(output), msg_txt(378), (sce->val1 == MH_MD_FIGHTING ? "fighthing" : "grappling"));
+						clif_colormes(hd->master, color_table[COLOR_RED], output);
 					}
 				}
 				break;
@@ -9280,16 +9281,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				struct mob_data *sum_md;
 				int i, c = 0;
 
-				int maxcount = qty[skill_lv-1];
-				i = map_foreachinmap(skill_check_condition_mob_master_sub ,hd->bl.m, BL_MOB, hd->bl.id, summons[skill_lv-1], skill_id, &c);
+				int maxcount = qty[skill_lv - 1];
+				i = map_foreachinmap(skill_check_condition_mob_master_sub ,hd->bl.m, BL_MOB, hd->bl.id, summons[skill_lv - 1], skill_id, &c);
 				if(c >= maxcount) return 0; //Max qty already spawned
 
-				for(i=0; i<qty[skill_lv - 1]; i++) { //Easy way
+				for(i = 0; i < qty[skill_lv - 1]; i++) { //Easy way
 					sum_md = mob_once_spawn_sub(src, src->m, src->x, src->y, status_get_name(src), summons[skill_lv - 1], "", SZ_SMALL, AI_ATTACK);
 					if(sum_md) {
 						sum_md->master_id = src->id;
 						sum_md->special_state.ai = AI_LEGION;
-						if (sum_md->deletetimer != INVALID_TIMER)
+						if(sum_md->deletetimer != INVALID_TIMER)
 							delete_timer(sum_md->deletetimer, mob_timer_delete);
 						sum_md->deletetimer = add_timer(gettick() + skill_get_time(skill_id, skill_lv), mob_timer_delete, sum_md->bl.id, 0);
 						mob_spawn(sum_md); //Now it is ready for spawning.
@@ -9302,7 +9303,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 		default:
 			ShowWarning("skill_castend_nodamage_id: Unknown skill used:%d\n",skill_id);
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+			clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
 			map_freeblock_unlock();
 			return 1;
 	}
@@ -9313,19 +9314,19 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			status_change_end(src,SC_CURSEDCIRCLE_ATKER,INVALID_TIMER);
 	}
 
-	if (dstmd) { //Mob skill event for no damage skills (damage ones are handled in battle_calc_damage) [Skotlex]
+	if(dstmd) { //Mob skill event for no damage skills (damage ones are handled in battle_calc_damage) [Skotlex]
 		mob_log_damage(dstmd, src, 0); //Log interaction (counts as 'attacker' for the exp bonus)
 		mobskill_event(dstmd, src, tick, MSC_SKILLUSED|(skill_id<<16));
 	}
 
-	if( sd && !(flag&1) ) { // ensure that the skill last-cast tick is recorded
+	if(sd && !(flag&1)) { //Ensure that the skill last-cast tick is recorded
 		sd->canskill_tick = gettick();
 
-		if( sd->state.arrow_atk ) { // consume arrow on last invocation to this skill.
+		if(sd->state.arrow_atk) { //Consume arrow on last invocation to this skill.
 			battle_consume_ammo(sd, skill_id, skill_lv);
 		}
 		skill_onskillusage(sd, bl, skill_id, tick);
-		// perform skill requirement consumption
+		//Perform skill requirement consumption
 		skill_consume_requirement(sd,skill_id,skill_lv,2);
 	}
 

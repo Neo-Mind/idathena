@@ -7028,11 +7028,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 	}
 
-	//Check for BOSS resistances
+	//Check for Boss resistances
 	if(status->mode&MD_BOSS && !(flag&1)) {
 		 if(type >= SC_COMMON_MIN && type <= SC_COMMON_MAX)
 			 return 0;
 		 switch(type) {
+			case SC_SILENCE:
 			case SC_BLESSING:
 			case SC_DECREASEAGI:
 			case SC_PROVOKE:
