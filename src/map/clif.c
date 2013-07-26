@@ -14456,6 +14456,7 @@ void clif_cashshop_ack(struct map_session_data* sd, int error)
 	WFIFOSET(fd, packet_len(0x289));
 }
 
+#if PACKETVER < 20130320
 /// Request to buy item(s) from cash shop (CZ_PC_BUY_CASH_POINT_ITEM).
 /// 0288 <name id>.W <amount>.W
 /// 0288 <name id>.W <amount>.W <kafra points>.L (PACKETVER >= 20070711)
@@ -14494,6 +14495,7 @@ void clif_parse_cashshop_buy(int fd, struct map_session_data *sd)
     
 	clif_cashshop_ack(sd,fail);
 }
+#endif
 
 /// Adoption System
 ///
@@ -16443,7 +16445,8 @@ void clif_parse_cashshop_list_request( int fd, struct map_session_data* sd ) {
 	clif_cashshop_list( fd );
 }
 
-void clif_parse_cashshop_buy_new( int fd, struct map_session_data *sd ) {
+#if PACKETVER >= 20130320
+void clif_parse_cashshop_buy( int fd, struct map_session_data *sd ) {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
 	uint16 length = RFIFOW( fd, info->pos[0] );
 	uint16 count = RFIFOW( fd, info->pos[1] );
@@ -16455,6 +16458,7 @@ void clif_parse_cashshop_buy_new( int fd, struct map_session_data *sd ) {
 	cashshop_buylist( sd, RFIFOL( fd, info->pos[2] ),
 	    count, (uint16 *)RFIFOP( fd, info->pos[3] ) );
 }
+#endif
 
 void clif_cashshop_result( struct map_session_data *sd, uint16 item_id, uint16 result ) {
 	WFIFOHEAD( sd->fd, 16 );
@@ -17127,7 +17131,6 @@ void packetdb_readdb(void)
 		{clif_parse_cashshop_close, "cashshopclose"},
 		{clif_parse_cashshop_list_request, "cashshopitemlist"},
 		{clif_parse_cashshop_buy, "cashshopbuy"},
-		{clif_parse_cashshop_buy_new, "cashshopbuynew"},
 		{clif_parse_CashShopReqTab, "cashshopreqtab"},
 		// Future Feature
 		{clif_parse_MoveItem,"moveitem"},
