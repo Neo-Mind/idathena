@@ -2682,7 +2682,7 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 						RE_ALLATK_ADDRATE(wd, sd->bonus.atk_rate);
 					}
 
-#ifndef RENEWAL					
+#ifndef RENEWAL
 					if(is_attack_critical(wd, src, target, skill_id, skill_lv, false) && sd->bonus.crit_atk_rate) {
 						//Add +crit damage bonuses here in pre-renewal mode [helvetica]
 						ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.crit_atk_rate);
@@ -3476,15 +3476,15 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 
 				skillratio += 300 + 200 * skill_lv;
 
-				if (chorusbonus == 1)
+				if(chorusbonus == 1)
 					skillratio += 100;
-				else if (chorusbonus == 2)
+				else if(chorusbonus == 2)
 					skillratio += 200;
-				else if (chorusbonus == 3)
+				else if(chorusbonus == 3)
 					skillratio += 400;
-				else if (chorusbonus == 4)
+				else if(chorusbonus == 4)
 					skillratio += 800;
-				else if (chorusbonus == 5)
+				else if(chorusbonus == 5)
 					skillratio += 1600;
 			}
 			break;
@@ -3516,24 +3516,24 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			if(sd) {
 				switch(sd->itemid) {
 					case 13260: // Apple Bomob
-						skillratio = sstatus->str + sstatus->dex + 300;
+						skillratio += sstatus->str + sstatus->dex + 200;
 						break;
 					case 13262: // Melon Bomb
-						skillratio = sstatus->str + sstatus->dex + 500;
+						skillratio += sstatus->str + sstatus->dex + 400;
 						break;
 					case 13261: // Coconut Bomb
 					case 13263: // Pinapple Bomb
 					case 13264: // Banana Bomb
-						skillratio = sstatus->str + sstatus->dex + 800;
+						skillratio += sstatus->str + sstatus->dex + 700;
 						break;
 					case 13265: // Black Lump
-						skillratio = (sstatus->str + sstatus->agi + sstatus->dex) / 3;
+						skillratio += -100 + (sstatus->str + sstatus->agi + sstatus->dex) / 3;
 						break;
 					case 13266: // Hard Black Lump
-						skillratio = (sstatus->str + sstatus->agi + sstatus->dex) / 2;
+						skillratio += -100 + (sstatus->str + sstatus->agi + sstatus->dex) / 2;
 						break;
 					case 13267: // Extremely Hard Black Lump
-						skillratio = sstatus->str + sstatus->agi + sstatus->dex;
+						skillratio += -100 + sstatus->str + sstatus->agi + sstatus->dex;
 						break;
 				}
 			}
@@ -4078,7 +4078,7 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd, struct block_lis
 
 	switch(skill_id) {
 		case AS_SONICBLOW:
-			if(sd && pc_checkskill(sd,AS_SONICACCEL) > 0 )
+			if(sd && pc_checkskill(sd, AS_SONICACCEL) > 0)
 				ATK_ADDRATE(wd.damage, wd.damage2, 10);
 			break;
 		case NC_AXETORNADO:
@@ -4198,9 +4198,9 @@ struct Damage battle_calc_attack_gvg_bg(struct Damage wd, struct block_list *src
 		if(!wd.damage2) {
 			wd.damage = battle_calc_damage(src,target,&wd,wd.damage,skill_id,skill_lv);
 			if(map_flag_gvg2(target->m))
-				wd.damage=battle_calc_gvg_damage(src,target,wd.damage,wd.div_,skill_id,skill_lv,wd.flag);
+				wd.damage = battle_calc_gvg_damage(src,target,wd.damage,wd.div_,skill_id,skill_lv,wd.flag);
 			else if(map[target->m].flag.battleground)
-				wd.damage=battle_calc_bg_damage(src,target,wd.damage,wd.div_,skill_id,skill_lv,wd.flag);
+				wd.damage = battle_calc_bg_damage(src,target,wd.damage,wd.div_,skill_id,skill_lv,wd.flag);
 		} else if(!wd.damage) {
 			wd.damage2 = battle_calc_damage(src,target,&wd,wd.damage2,skill_id,skill_lv);
 			if(map_flag_gvg2(target->m))
@@ -4223,7 +4223,7 @@ struct Damage battle_calc_attack_gvg_bg(struct Damage wd, struct block_list *src
 }
 
 /*==========================================
- * final ATK modifiers - after BG/GvG calc
+ * Final ATK modifiers - After BG/GvG calc
  *------------------------------------------
  * Credits:
  *	Original coder Skoltex

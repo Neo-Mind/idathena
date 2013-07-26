@@ -6585,12 +6585,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				if( status_isimmune(bl) || !tsc || !tsc->count )
 					break;
 
-				if( sd && dstsd && !map_flag_vs(sd->bl.m) && sd->status.guild_id == dstsd->status.guild_id ) {
+				if( sd && dstsd && !map_flag_vs(sd->bl.m) && (sd->status.party_id == 0 ||
+					sd->status.party_id != dstsd->status.party_id) ) {
+					// Outside PvP it should only affect party members 
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
 
-				for( i=0; i<SC_MAX; i++ ) {
+				for( i = 0; i < SC_MAX; i++ ) {
 					if( !tsc->data[i] )
 						continue;
 					switch( i ) {
@@ -8280,7 +8282,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SC_WEAKNESS:
 			if( !(tsc && tsc->data[type]) ) {
 				int joblvbonus = 0;
-				if (is_boss(bl)) break;
+				if( is_boss(bl) ) break;
 					joblvbonus = ( sd ? sd->status.job_level : 0 );
 				//First we set the success chance based on the caster's build which increases the chance.
 				rate = 10 * skill_lv + rnd_value( sstatus->dex / 12, sstatus->dex / 4 ) + joblvbonus + status_get_lv(src) / 10 - 
@@ -8289,14 +8291,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				//Finally we set the minimum success chance cap based on the caster's skill level and DEX.
 				rate = cap_value( rate, skill_lv + sstatus->dex / 20, 100);
 					clif_skill_nodamage(src,bl,skill_id,0,sc_start(src,bl,type,rate,skill_lv,skill_get_time(skill_id,skill_lv)));
-				if ( tsc && tsc->data[SC__IGNORANCE] && skill_id == SC_IGNORANCE) { //If the target was successfully inflected with the Ignorance status, drain some of the targets SP.
+				if( tsc && tsc->data[SC__IGNORANCE] && skill_id == SC_IGNORANCE ) { //If the target was successfully inflected with the Ignorance status, drain some of the targets SP.
 						int sp = 100 * skill_lv;
 						if( dstmd ) sp = dstmd->level * 2;
 						if( status_zap(bl,0,sp) )
-							status_heal(src,0,sp/2,3); //What does flag 3 do? [Rytech]
+							status_heal(src,0,sp / 2,3); //What does flag 3 do? [Rytech]
 				}
-				if ( tsc && tsc->data[SC__UNLUCKY] && skill_id == SC_UNLUCKY) //If the target was successfully inflected with the Unlucky status, give 1 of 3 random status's.
-					switch(rnd()%3) { //Targets in the Unlucky status will be affected by one of the 3 random status's reguardless of resistance.
+				if( tsc && tsc->data[SC__UNLUCKY] && skill_id == SC_UNLUCKY ) //If the target was successfully inflected with the Unlucky status, give 1 of 3 random status's.
+					switch( rnd()%3 ) { //Targets in the Unlucky status will be affected by one of the 3 random status's reguardless of resistance.
 						case 0:
 							status_change_start(src,bl,SC_POISON,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),10);
 							break;
