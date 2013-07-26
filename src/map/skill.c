@@ -9209,7 +9209,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					for(i = 0; i < ARRAYLENGTH(scs); i++) {
 						if(tsc->data[scs[i]]) status_change_end(bl, scs[i], INVALID_TIMER);
 					}
-					if(!tsc->data[SC_SILENCE]) //Put inavoidable silence on target
+					if(!tsc->data[SC_SILENCE] && !status_get_mode(bl)&MD_BOSS) //Put inavoidable silence on target
 						status_change_start(src, bl, SC_SILENCE, 100, skill_lv, 0, 0, 0, skill_get_time(skill_id, skill_lv), 1|2|8);
 				}
 				heal = status_get_sp(src) + status_get_lv(src); //Current SP + Base Level @TODO need real value

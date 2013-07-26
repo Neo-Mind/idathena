@@ -6751,8 +6751,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	switch (type) {
 		case SC_ANGRIFFS_MODUS:
 		case SC_GOLDENE_FERSE:
-			if((type==SC_GOLDENE_FERSE && sc->data[SC_ANGRIFFS_MODUS])
-				|| (type==SC_ANGRIFFS_MODUS && sc->data[SC_GOLDENE_FERSE]))
+			if((type == SC_GOLDENE_FERSE && sc->data[SC_ANGRIFFS_MODUS])
+				|| (type == SC_ANGRIFFS_MODUS && sc->data[SC_GOLDENE_FERSE]))
 				return 0;
 		case SC_STONE:
 			if(sc->data[SC_POWER_OF_GAIA])
