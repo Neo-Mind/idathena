@@ -3646,7 +3646,7 @@ cmd_fild01,55,160,0	script	Heap of Earth	844,{
 	close;
 }
 
--	script	::Dorian	-1,{
+-	script	::Dorian_Izlude	-1,{
 	if (checkweight(907,200) == 0) {
 		mes "[Dorian]";
 		mes "Ugh, just like a member";
