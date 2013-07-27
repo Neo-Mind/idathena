@@ -3707,12 +3707,17 @@ static int battle_calc_skill_constant_addition(struct Damage wd, struct block_li
 				atk = damagevalue;
 			}
 			break;
-		case SR_GATEOFHELL:
-			atk = (sstatus->max_hp - status_get_hp(src));
-			if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE) {
-				atk += ((sstatus->max_sp * (1 + skill_lv * 2 / 10)) + 40 * status_get_lv(src));
-			} else {
-				atk += ((sstatus->sp * (1 + skill_lv * 2 / 10)) + 10 * status_get_lv(src));
+		case SR_GATEOFHELL: {
+				short nk = skill_get_nk(skill_id);
+
+				atk = (sstatus->max_hp - status_get_hp(src));
+				if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE) {
+					atk += ((sstatus->max_sp * (1 + skill_lv * 2 / 10)) + 40 * status_get_lv(src));
+				} else {
+					atk += ((sstatus->sp * (1 + skill_lv * 2 / 10)) + 10 * status_get_lv(src));
+				}
+
+				nk |= NK_IGNORE_FLEE;
 			}
 			break;
 		case SR_TIGERCANNON:
@@ -4474,7 +4479,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		wd.type = 0x0a;
 
 	//Check if we're landing a hit
-	if(!is_attack_hitting(wd, src,  target, skill_id, skill_lv, true))
+	if(!is_attack_hitting(wd, src, target, skill_id, skill_lv, true))
 		wd.dmg_lv = ATK_FLEE;
 	else if(!target_has_infinite_defense(target, skill_id)) { //No need for math against plants
 		int ratio;
@@ -5970,7 +5975,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			 **/
 			ret_val = (damage_lv)skill_attack(BF_WEAPON,src,src,target,PA_SACRIFICE,skill_lv,tick,0);
 
-			status_zap(src, sstatus->max_hp*9/100, 0); //Damage to self is always 9%
+			status_zap(src, sstatus->max_hp * 9 / 100, 0); //Damage to self is always 9%
 			if (ret_val == ATK_NONE)
 				return ATK_MISS;
 			return ret_val;
