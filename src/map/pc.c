@@ -1287,8 +1287,8 @@ static int pc_calc_skillpoint(struct map_session_data* sd)
  *------------------------------------------*/
 int pc_calc_skilltree(struct map_session_data *sd)
 {
-	int i,id=0,flag;
-	int c=0;
+	int i,id = 0,flag;
+	int c = 0;
 
 	nullpo_ret(sd);
 	i = pc_calc_skilltree_normalize_job(sd);
@@ -1302,7 +1302,7 @@ int pc_calc_skilltree(struct map_session_data *sd)
 	for( i = 0; i < MAX_SKILL; i++ ) {
 		if( sd->status.skill[i].flag != SKILL_FLAG_PLAGIARIZED && sd->status.skill[i].flag != SKILL_FLAG_PERM_GRANTED ) //Don't touch these
 			sd->status.skill[i].id = 0; //First clear skills.
-		/* permanent skills that must be re-checked */
+		/* Permanent skills that must be re-checked */
 		if( sd->status.skill[i].flag == SKILL_FLAG_PERM_GRANTED ) {
 			switch( i ) {
 				case NV_TRICKDEAD:
@@ -1461,10 +1461,10 @@ int pc_calc_skilltree(struct map_session_data *sd)
 //Checks if you can learn a new skill after having leveled up a skill.
 static void pc_check_skilltree(struct map_session_data *sd, int skill)
 {
-	int i,id=0,flag;
-	int c=0;
+	int i,id = 0,flag;
+	int c = 0;
 
-	if(battle_config.skillfree)
+	if( battle_config.skillfree )
 		return; //Function serves no purpose if this is set
 	
 	i = pc_calc_skilltree_normalize_job(sd);
@@ -1476,17 +1476,14 @@ static void pc_check_skilltree(struct map_session_data *sd, int skill)
 	c = pc_class2idx(c);
 	do {
 		flag = 0;
-		for( i = 0; i < MAX_SKILL_TREE && (id=skill_tree[c][i].id)>0; i++ )
-		{
+		for( i = 0; i < MAX_SKILL_TREE && (id=skill_tree[c][i].id)>0; i++ ) {
 			int j, f = 1, k;
 
 			if( sd->status.skill[id].id ) //Already learned
 				continue;
 			
-			for( j = 0; j < MAX_PC_SKILL_REQUIRE; j++ )
-			{
-				if( (k = skill_tree[c][i].need[j].id) )
-				{
+			for( j = 0; j < MAX_PC_SKILL_REQUIRE; j++ ) {
+				if( (k = skill_tree[c][i].need[j].id) ) {
 					if( sd->status.skill[k].id == 0 || sd->status.skill[k].flag == SKILL_FLAG_TEMPORARY || sd->status.skill[k].flag == SKILL_FLAG_PLAGIARIZED )
 						k = 0; //Not learned.
 					else
@@ -1494,8 +1491,7 @@ static void pc_check_skilltree(struct map_session_data *sd, int skill)
 						k = sd->status.skill[skill_tree[c][i].need[j].id].flag - SKILL_FLAG_REPLACED_LV_0;
 					else
 						k = pc_checkskill(sd,k);
-					if( k < skill_tree[c][i].need[j].lv )
-					{
+					if( k < skill_tree[c][i].need[j].lv ) {
 						f = 0;
 						break;
 					}

@@ -1182,17 +1182,17 @@ static bool read_homunculus_skilldb_sub(char* split[], int columns, int current)
 	int j;
 	int minJobLevelPresent = 0;
 
-	if( columns == 14 )
+	if( columns == 15 )
 		minJobLevelPresent = 1;	// MinJobLvl has been added
 
-	// check for bounds [celest]
+	// Check for bounds [celest]
 	classid = atoi(split[0]) - HM_CLASS_BASE;
 	if ( classid >= MAX_HOMUNCULUS_CLASS ) {
 		ShowWarning("read_homunculus_skilldb: Invalud homunculus class %d.\n", atoi(split[0]));
 		return false;
 	}
 
-	k = atoi(split[1]); //This is to avoid adding two lines for the same skill. [Skotlex]
+	k = atoi(split[1]); // This is to avoid adding two lines for the same skill. [Skotlex]
 	// Search an empty line or a line with the same skill_id (stored in j)
 	ARR_FIND( 0, MAX_SKILL_TREE, j, !hskill_tree[classid][j].id || hskill_tree[classid][j].id == k );
 	if (j == MAX_SKILL_TREE) {
@@ -1205,8 +1205,7 @@ static bool read_homunculus_skilldb_sub(char* split[], int columns, int current)
 	if (minJobLevelPresent)
 		hskill_tree[classid][j].joblv = atoi(split[3]);
 
-	for( k = 0; k < MAX_PC_SKILL_REQUIRE; k++ )
-	{
+	for( k = 0; k < MAX_PC_SKILL_REQUIRE; k++ ) {
 		hskill_tree[classid][j].need[k].id = atoi(split[3+k*2+minJobLevelPresent]);
 		hskill_tree[classid][j].need[k].lv = atoi(split[3+k*2+minJobLevelPresent+1]);
 	}
@@ -1228,32 +1227,30 @@ void read_homunculus_expdb(void)
 {
 	FILE *fp;
 	char line[1024];
-	int i, j=0;
-	char *filename[]={
+	int i, j = 0;
+	char *filename[] = {
 		DBPATH"exp_homun.txt",
 		"exp_homun2.txt"};
 
 	memset(hexptbl,0,sizeof(hexptbl));
-	for(i=0; i<2; i++){
+	for(i = 0; i < 2; i++) {
 		sprintf(line, "%s/%s", db_path, filename[i]);
-		fp=fopen(line,"r");
-		if(fp == NULL){
+		fp = fopen(line,"r");
+		if(fp == NULL) {
 			if(i != 0)
 				continue;
 			ShowError("can't read %s\n",line);
 			return;
 		}
-		while(fgets(line, sizeof(line), fp) && j < MAX_LEVEL)
-		{
+		while(fgets(line, sizeof(line), fp) && j < MAX_LEVEL) {
 			if(line[0] == '/' && line[1] == '/')
 				continue;
 
 			hexptbl[j] = strtoul(line, NULL, 10);
-			if (!hexptbl[j++])
+			if(!hexptbl[j++])
 				break;
 		}
-		if (hexptbl[MAX_LEVEL - 1]) // Last permitted level have to be 0!
-		{
+		if (hexptbl[MAX_LEVEL - 1]) { // Last permitted level have to be 0!
 			ShowWarning("read_hexptbl: Reached max level in exp_homun [%d]. Remaining lines were not read.\n ", MAX_LEVEL);
 			hexptbl[MAX_LEVEL - 1] = 0;
 		}
