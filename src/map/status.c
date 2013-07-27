@@ -4838,7 +4838,7 @@ static signed short status_calc_critical(struct block_list *bl, struct status_ch
 		critical += critical * sc->data[SC_STRIKING]->val1 / 100;
 #ifdef RENEWAL
 	if (sc->data[SC_SPEARQUICKEN])
-		critical += 3*sc->data[SC_SPEARQUICKEN]->val1*10;
+		critical += 3 * sc->data[SC_SPEARQUICKEN]->val1 * 10;
 #endif
 
 	if(sc->data[SC__INVISIBILITY])
@@ -10954,7 +10954,7 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 		case SC_RUWACH: /* Reveal hidden target and deal little dammages if enemy */
 			if (tsc && (tsc->data[SC_HIDING] || tsc->data[SC_CLOAKING] ||
 					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_CLOAKINGEXCEED] ||
-					tsc->data[SC__INVISIBILITY])) { //this sc should hit only
+					tsc->data[SC__INVISIBILITY])) { //This sc should hit only
 				status_change_end(bl, SC_HIDING, INVALID_TIMER);
 				status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
 				status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
@@ -10962,7 +10962,7 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 				if(battle_check_target( src, bl, BCT_ENEMY ) > 0)
 					skill_attack(BF_MAGIC,src,src,bl,AL_RUWACH,1,tick,0);
 			}
-			if( tsc && tsc->data[SC__SHADOWFORM] && (sce && sce->val4 >0 && sce->val4%2000 == 0) && // for every 2 seconds do the checking
+			if( tsc && tsc->data[SC__SHADOWFORM] && (sce && sce->val4 >0 && sce->val4%2000 == 0) && // For every 2 seconds do the checking
 				rnd()%100 < 100-tsc->data[SC__SHADOWFORM]->val1*10 ) // [100 - (Skill Level x 10)] %
 					status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
 			break;

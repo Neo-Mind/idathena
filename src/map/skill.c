@@ -9177,13 +9177,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case KG_KAGEHUMI:
 			if( flag&1 ) {
-				if( tsc && ( tsc->option&(OPTION_CLOAK|OPTION_HIDE) ||
+				if( tsc && ( tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) ||
 					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC__SHADOWFORM] ||
 					tsc->data[SC_MARIONETTE] || tsc->data[SC_HARMONIZE]) ) {
 						sc_start(src, src, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 						sc_start(src, bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 						status_change_end(bl, SC_HIDING, INVALID_TIMER);
 						status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
+						status_change_end(bl, SC_CHASEWALK, INVALID_TIMER);
 						status_change_end(bl, SC_CLOAKINGEXCEED, INVALID_TIMER);
 						status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
 						status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
