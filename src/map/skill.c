@@ -11082,8 +11082,8 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			if( sd ) {
 				ARR_FIND(1, 6, i, sd->talisman[i] > 0);
 				if( i < 5 ) {
-					val1 = sd->talisman[i]; // no. of aura
-					val2 = i; // aura type
+					val1 = sd->talisman[i]; // No. of aura
+					val2 = i; // Aura type
 					limit += (6000 * val1) - 10000;
 					subunt = i - 1;
 					pc_del_talisman(sd, sd->talisman[i], i);
@@ -12172,45 +12172,45 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 					case UNT_ZENKAI_WATER:
 						switch ( rnd()%3+1 ) {
 							case 1:
-								sc_start(ss, bl, SC_FREEZE, sg->val1, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
+								sc_start(ss,bl,SC_FREEZE,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 								break;
 							case 2:
-								sc_start(ss, bl, SC_FREEZING, sg->val1, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
+								sc_start(ss,bl,SC_FREEZING,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 								break;
 							case 3:
-								sc_start(ss, bl, SC_CRYSTALIZE, sg->val1, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
+								sc_start(ss,bl,SC_CRYSTALIZE,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 								break;
 						}
 						break;
 					case UNT_ZENKAI_LAND:
 						switch ( rnd()%2+1 ) {
 							case 1:
-								sc_start(ss, bl, SC_STONE, sg->val1, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
+								sc_start(ss,bl,SC_STONE,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 								break;
 							case 2:
-								sc_start(ss, bl, SC_POISON, sg->val1, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
+								sc_start(ss,bl,SC_POISON,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 								break;
 						}
 						break;
 					case UNT_ZENKAI_FIRE:
-						sc_start(ss, bl, SC_BURNING, sg->val1, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
+						sc_start(ss,bl,SC_BURNING,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 						break;
 					case UNT_ZENKAI_WIND:
 						switch ( rnd()%3+1 ) {
 							case 1:
-								sc_start(ss, bl, SC_SLEEP, sg->val1, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
+								sc_start(ss,bl,SC_SLEEP,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 								break;
 							case 2:
-								sc_start(ss, bl, SC_SILENCE, sg->val1, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
+								sc_start(ss,bl,SC_SILENCE,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 								break;
 							case 3:
-								sc_start(ss, bl, SC_DEEPSLEEP, sg->val1, sg->skill_lv, skill_get_time2(sg->skill_id, sg->skill_lv));
+								sc_start(ss,bl,SC_DEEPSLEEP,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 								break;
 						}
 						break;
 				}
 			} else
-				sc_start2(ss, bl, type, 100, sg->val1, sg->val2, skill_get_time2(sg->skill_id, sg->skill_lv));
+				sc_start2(ss,bl,type,100,sg->val1,sg->val2,skill_get_time2(sg->skill_id,sg->skill_lv));
 			break;
 
 		case UNT_MAKIBISHI:
@@ -12221,16 +12221,17 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 
 		case UNT_LAVA_SLIDE:
 			skill_attack(BF_WEAPON, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
-			if(++sg->val1 > 4) //after 5 stop hit and destroy me
+			if( ++sg->val1 > 4 ) //After 5 stop hit and destroy me
 				sg->limit = DIFF_TICK(tick, sg->tick);
 			break;
+
 		case UNT_POISON_MIST:
 			skill_attack(BF_MAGIC, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
 			status_change_start(ss, bl, SC_BLIND, (10 + 10 * sg->skill_lv) * 100, sg->skill_lv, sg->skill_id, 0, 0, skill_get_time2(sg->skill_id, sg->skill_lv), 2|8);
 			break;
 	}
 
-	if (bl->type == BL_MOB && ss != bl)
+	if( bl->type == BL_MOB && ss != bl )
 		mobskill_event((TBL_MOB*)bl, ss, tick, MSC_SKILLUSED|(skill_id<<16));
 
 	return skill_id;
