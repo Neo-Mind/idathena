@@ -14116,16 +14116,17 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 	if( time < 0 )
 		return 0;
 
-	if( bl->type == BL_MOB ) // mobs casttime is fixed nothing to alter. 
+	if( bl->type == BL_MOB ) // Mobs casttime is fixed nothing to alter. 
 		return (int)time;
 
 	if( fixed == 0 ) {
-		fixed = (int)time * 20 / 100; // fixed time
-		time = time * 80 / 100; // variable time
-	} else if( fixed < 0 ) // no fixed cast time
+		fixed = (int)time * 20 / 100; // Fixed time
+		time = time * 80 / 100; // Variable time
+	} else if( fixed < 0 ) // No fixed cast time
 		fixed = 0;
 
-	if( sd  && !(skill_get_castnodex(skill_id, skill_lv)&4) ) { // Increases/Decreases fixed/variable cast time of a skill by item/card bonuses.
+	// Increases/Decreases fixed/variable cast time of a skill by item/card bonuses.
+	if( sd  && !(skill_get_castnodex(skill_id, skill_lv)&4) ) {
 		if( sd->bonus.varcastrate < 0 )
 			VARCAST_REDUCTION(sd->bonus.varcastrate);
 		if( sd->bonus.add_varcast != 0 ) // bonus bVariableCast
@@ -14149,13 +14150,15 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 			}
 		for( i = 0; i < ARRAYLENGTH(sd->skillfixcastrate) && sd->skillfixcastrate[i].id; i++ )
 			if( sd->skillfixcastrate[i].id == skill_id ) { // bonus2 bFixedCastrate
-				fixcast_r = sd->skillfixcastrate[i].val; // just speculation
+				fixcast_r = sd->skillfixcastrate[i].val; // Just speculation
 				break;
 			}
 	}
 
 	if( sc && sc->count && !(skill_get_castnodex(skill_id, skill_lv)&2) ) {
 		// All variable cast additive bonuses must come first
+		if( sc->data[SC_MAGICPOWER] && !(sd && time == 0 && sd->skillitem == skill_id) )
+			time += 700;
 		if( sc->data[SC_SLOWCAST] )
 			VARCAST_REDUCTION(-sc->data[SC_SLOWCAST]->val2);
 		if( sc->data[SC__LAZINESS] )
@@ -14200,11 +14203,11 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 		fixcast_r = max(fixcast_r, sd->bonus.fixcastrate) + min(sd->bonus.fixcastrate,0);
 	}
 
-	if( varcast_r < 0 ) // now compute overall factors
+	if( varcast_r < 0 ) // Now compute overall factors
 		time = time * (1 - (float)varcast_r / 100);
-	if( !(skill_get_castnodex(skill_id, skill_lv)&1) ) // reduction from status point
+	if( !(skill_get_castnodex(skill_id, skill_lv)&1) ) // Reduction from status point
 		time = (1 - sqrt( ((float)(status_get_dex(bl) * 2 + status_get_int(bl)) / battle_config.vcast_stat_scale) )) * time;
-	// underflow checking/capping
+	// Underflow checking/capping
 	time = max(time, 0) + (1 - (float)min(fixcast_r, 100) / 100) * max(fixed,0);
 
 	return (int)time;
