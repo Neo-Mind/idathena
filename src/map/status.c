@@ -2336,55 +2336,55 @@ static unsigned int status_base_pc_maxsp(struct map_session_data* sd, struct sta
 int status_calc_pc_(struct map_session_data* sd, bool first)
 {
 	static int calculating = 0; //Check for recursive call preemption. [Skotlex]
-	struct status_data *status; // pointer to the player's base status
+	struct status_data *status; //Pointer to the player's base status
 	const struct status_change *sc = &sd->sc;
-	struct s_skill b_skill[MAX_SKILL]; // previous skill tree
-	int b_weight, b_max_weight, b_cart_weight_max, // previous weight
-	i, index, skill,refinedef=0;
+	struct s_skill b_skill[MAX_SKILL]; //Previous skill tree
+	int b_weight, b_max_weight, b_cart_weight_max, //Previous weight
+	i, index, skill, refinedef = 0;
 	int64 i64;
 
 	if (++calculating > 10) //Too many recursive calls!
 		return -1;
 
-	// remember player-specific values that are currently being shown to the client (for refresh purposes)
+	//Remember player-specific values that are currently being shown to the client (for refresh purposes)
 	memcpy(b_skill, &sd->status.skill, sizeof(b_skill));
 	b_weight = sd->weight;
 	b_max_weight = sd->max_weight;
 	b_cart_weight_max = sd->cart_weight_max;
 
-	pc_calc_skilltree(sd);	// SkillTree calculation
+	pc_calc_skilltree(sd); //SkillTree calculation
 
-	sd->max_weight = job_info[pc_class2idx(sd->status.class_)].max_weight_base+sd->status.str*300;
+	sd->max_weight = job_info[pc_class2idx(sd->status.class_)].max_weight_base+sd->status.str * 300;
 
-	if(first) {
+	if (first) {
 		//Load Hp/SP from char-received data.
 		sd->battle_status.hp = sd->status.hp;
 		sd->battle_status.sp = sd->status.sp;
 		sd->regen.sregen = &sd->sregen;
 		sd->regen.ssregen = &sd->ssregen;
 		sd->weight=0;
-		for(i=0;i<MAX_INVENTORY;i++) {
-			if(sd->status.inventory[i].nameid==0 || sd->inventory_data[i] == NULL)
+		for (i = 0; i < MAX_INVENTORY; i++) {
+			if (sd->status.inventory[i].nameid == 0 || sd->inventory_data[i] == NULL)
 				continue;
 			sd->weight += sd->inventory_data[i]->weight*sd->status.inventory[i].amount;
 		}
 		sd->cart_weight=0;
 		sd->cart_num=0;
-		for(i=0;i<MAX_CART;i++) {
-			if(sd->status.cart[i].nameid==0)
+		for (i = 0; i < MAX_CART; i++) {
+			if (sd->status.cart[i].nameid == 0)
 				continue;
-			sd->cart_weight+=itemdb_weight(sd->status.cart[i].nameid)*sd->status.cart[i].amount;
+			sd->cart_weight += itemdb_weight(sd->status.cart[i].nameid) * sd->status.cart[i].amount;
 			sd->cart_num++;
 		}
 	}
 
 	status = &sd->base_status;
-	// these are not zeroed. [zzo]
-	sd->hprate=100;
-	sd->sprate=100;
-	sd->castrate=100;
-	sd->delayrate=100;
-	sd->dsprate=100;
+	//These are not zeroed. [zzo]
+	sd->hprate = 100;
+	sd->sprate = 100;
+	sd->castrate = 100;
+	sd->delayrate = 100;
+	sd->dsprate = 100;
 	sd->hprecov_rate = 100;
 	sd->sprecov_rate = 100;
 	sd->matk_rate = 100;
@@ -2392,8 +2392,8 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 	sd->def_rate = sd->def2_rate = sd->mdef_rate = sd->mdef2_rate = 100;
 	sd->regen.state.block = 0;
 
-	// zeroed arrays, order follows the order in pc.h.
-	// add new arrays to the end of zeroed area in pc.h (see comments) and size here. [zzo]
+	//Zeroed arrays, order follows the order in pc.h.
+	//Add new arrays to the end of zeroed area in pc.h (see comments) and size here. [zzo]
 	memset (sd->param_bonus, 0, sizeof(sd->param_bonus)
 		+ sizeof(sd->param_equip)
 		+ sizeof(sd->subele)
@@ -2997,7 +2997,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		status->aspd_rate += 500-100*pc_checkskill(sd,KN_CAVALIERMASTERY);
 	else if(pc_isridingdragon(sd))
 		status->aspd_rate += 250-50*pc_checkskill(sd,RK_DRAGONTRAINING);
-#else // needs more info
+#else // Needs more info
 	if((skill=pc_checkskill(sd,SA_ADVANCEDBOOK))>0 && sd->status.weapon == W_BOOK)
 		status->aspd_rate += 5*skill;
 	if((skill = pc_checkskill(sd,SG_DEVIL)) > 0 && !pc_nextjobexp(sd))
@@ -4110,14 +4110,19 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 /// @param first if true, will cause status_calc_* functions to run their base status initialization code
 void status_calc_bl_(struct block_list* bl, enum scb_flag flag, bool first)
 {
-	struct status_data b_status; // previous battle status
-	struct status_data* status; // pointer to current battle status
+	struct status_data b_status; // Previous battle status
+	struct status_data* status; // Pointer to current battle status
 
-	// remember previous values
+	if( bl->type == BL_PC && ((TBL_PC*)bl)->delayed_damage != 0 ) {
+		((TBL_PC*)bl)->state.hold_recalc = 1;
+		return;
+	}
+
+	// Remember previous values
 	status = status_get_status_data(bl);
 	memcpy(&b_status, status, sizeof(struct status_data));
 
-	if( flag&SCB_BASE ) {// calculate the object's base status too
+	if( flag&SCB_BASE ) { // Calculate the object's base status too
 		switch( bl->type ) {
 			case BL_PC:  status_calc_pc_(BL_CAST(BL_PC,bl), first);			break;
 			case BL_MOB: status_calc_mob_(BL_CAST(BL_MOB,bl), first);		break;
@@ -4130,103 +4135,103 @@ void status_calc_bl_(struct block_list* bl, enum scb_flag flag, bool first)
 	}
 
 	if( bl->type == BL_PET )
-		return; // pets are not affected by statuses
+		return; // Pets are not affected by statuses
 
 	if( first && bl->type == BL_MOB )
-		return; // assume there will be no statuses active
+		return; // Assume there will be no statuses active
 
 	status_calc_bl_main(bl, flag);
 
 	if( first && bl->type == BL_HOM )
-		return; // client update handled by caller
+		return; // Client update handled by caller
 
-	// compare against new values and send client updates
+	// Compare against new values and send client updates
 	if( bl->type == BL_PC ) {
 		TBL_PC* sd = BL_CAST(BL_PC, bl);
-		if(b_status.str != status->str)
+		if( b_status.str != status->str )
 			clif_updatestatus(sd,SP_STR);
-		if(b_status.agi != status->agi)
+		if( b_status.agi != status->agi )
 			clif_updatestatus(sd,SP_AGI);
-		if(b_status.vit != status->vit)
+		if( b_status.vit != status->vit )
 			clif_updatestatus(sd,SP_VIT);
-		if(b_status.int_ != status->int_)
+		if( b_status.int_ != status->int_ )
 			clif_updatestatus(sd,SP_INT);
-		if(b_status.dex != status->dex)
+		if( b_status.dex != status->dex )
 			clif_updatestatus(sd,SP_DEX);
-		if(b_status.luk != status->luk)
+		if( b_status.luk != status->luk )
 			clif_updatestatus(sd,SP_LUK);
-		if(b_status.hit != status->hit)
+		if( b_status.hit != status->hit )
 			clif_updatestatus(sd,SP_HIT);
-		if(b_status.flee != status->flee)
+		if( b_status.flee != status->flee )
 			clif_updatestatus(sd,SP_FLEE1);
-		if(b_status.amotion != status->amotion)
+		if( b_status.amotion != status->amotion )
 			clif_updatestatus(sd,SP_ASPD);
-		if(b_status.speed != status->speed)
+		if( b_status.speed != status->speed )
 			clif_updatestatus(sd,SP_SPEED);
 
-		if(b_status.batk != status->batk
+		if( b_status.batk != status->batk
 #ifndef RENEWAL
 			|| b_status.rhw.atk != status->rhw.atk || b_status.lhw.atk != status->lhw.atk
 #endif
 			)
 			clif_updatestatus(sd,SP_ATK1);
 
-		if(b_status.def != status->def){
+		if( b_status.def != status->def ) {
 			clif_updatestatus(sd,SP_DEF1);
 #ifdef RENEWAL
 			clif_updatestatus(sd,SP_DEF2);
 #endif
 		}
 
-		if(b_status.rhw.atk2 != status->rhw.atk2 || b_status.lhw.atk2 != status->lhw.atk2
+		if( b_status.rhw.atk2 != status->rhw.atk2 || b_status.lhw.atk2 != status->lhw.atk2
 #ifdef RENEWAL
 		|| b_status.rhw.atk != status->rhw.atk || b_status.lhw.atk != status->lhw.atk
 #endif
 			)
 			clif_updatestatus(sd,SP_ATK2);
 
-		if(b_status.def2 != status->def2){
+		if( b_status.def2 != status->def2 ) {
 			clif_updatestatus(sd,SP_DEF2);
 #ifdef RENEWAL
 			clif_updatestatus(sd,SP_DEF1);
 #endif
 		}
-		if(b_status.flee2 != status->flee2)
+		if( b_status.flee2 != status->flee2 )
 			clif_updatestatus(sd,SP_FLEE2);
-		if(b_status.cri != status->cri)
+		if( b_status.cri != status->cri )
 			clif_updatestatus(sd,SP_CRITICAL);
 #ifndef RENEWAL
-		if(b_status.matk_max != status->matk_max)
+		if( b_status.matk_max != status->matk_max )
 			clif_updatestatus(sd,SP_MATK1);
-		if(b_status.matk_min != status->matk_min)
+		if( b_status.matk_min != status->matk_min )
 			clif_updatestatus(sd,SP_MATK2);
 #else
-		if(b_status.matk_max != status->matk_max || b_status.matk_min != status->matk_min){
+		if( b_status.matk_max != status->matk_max || b_status.matk_min != status->matk_min ) {
 			clif_updatestatus(sd,SP_MATK2);
 			clif_updatestatus(sd,SP_MATK1);
 		}
 #endif
-		if(b_status.mdef != status->mdef){
+		if( b_status.mdef != status->mdef ) {
 			clif_updatestatus(sd,SP_MDEF1);
 #ifdef RENEWAL
 			clif_updatestatus(sd,SP_MDEF2);
 #endif
 		}
-		if(b_status.mdef2 != status->mdef2){
+		if( b_status.mdef2 != status->mdef2 ) {
 			clif_updatestatus(sd,SP_MDEF2);
 #ifdef RENEWAL
 			clif_updatestatus(sd,SP_MDEF1);
 #endif
 		}
-		if(b_status.rhw.range != status->rhw.range)
+		if( b_status.rhw.range != status->rhw.range )
 			clif_updatestatus(sd,SP_ATTACKRANGE);
-		if(b_status.max_hp != status->max_hp)
+		if( b_status.max_hp != status->max_hp )
 			clif_updatestatus(sd,SP_MAXHP);
-		if(b_status.max_sp != status->max_sp)
+		if( b_status.max_sp != status->max_sp )
 			clif_updatestatus(sd,SP_MAXSP);
-		if(b_status.hp != status->hp)
+		if( b_status.hp != status->hp )
 			clif_updatestatus(sd,SP_HP);
-		if(b_status.sp != status->sp)
+		if( b_status.sp != status->sp )
 			clif_updatestatus(sd,SP_SP);
 	} else if( bl->type == BL_HOM ) {
 		TBL_HOM* hd = BL_CAST(BL_HOM, bl);

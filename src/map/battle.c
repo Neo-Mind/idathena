@@ -209,16 +209,22 @@ struct delay_damage {
 	enum damage_lv dmg_lv;
 	unsigned short attack_type;
 	bool additional_effects;
+	enum bl_type src_type;
 };
 
 int battle_delay_damage_sub(int tid, unsigned int tick, int id, intptr_t data) {
 	struct delay_damage *dat = (struct delay_damage *)data;
 
-	if ( dat ) {
-		struct block_list* src;
+	if( dat ) {
+		struct block_list* src = NULL;
 		struct block_list* target = map_id2bl(dat->target_id);
 
-		if( !target || status_isdead(target) ) {/* nothing we can do */
+		if( !target || status_isdead(target) ) { /* Nothing we can do */
+			if( dat->src_type == BL_PC && (src = map_id2bl(dat->src_id)) &&
+				--((TBL_PC*)src)->delayed_damage == 0 && ((TBL_PC*)src)->state.hold_recalc ) {
+				((TBL_PC*)src)->state.hold_recalc = 0;
+				status_calc_pc(((TBL_PC*)src), 0);
+			}
 			ers_free(delay_damage_ers, dat);
 			return 0;
 		}
@@ -238,11 +244,16 @@ int battle_delay_damage_sub(int tid, unsigned int tick, int id, intptr_t data) {
 			map_freeblock_unlock();
 		} else if( !src && dat->skill_id == CR_REFLECTSHIELD ) {
 			/**
-			 * it was monster reflected damage, and the monster died, we pass the damage to the character as expected
+			 * It was monster reflected damage, and the monster died, we pass the damage to the character as expected
 			 **/
 			map_freeblock_lock();
 			status_fix_damage(target, target, dat->damage, dat->delay);
 			map_freeblock_unlock();
+		}
+
+		if( src && src->type == BL_PC && --((TBL_PC*)src)->delayed_damage == 0 && ((TBL_PC*)src)->state.hold_recalc ) {
+			((TBL_PC*)src)->state.hold_recalc = 0;
+			status_calc_pc(((TBL_PC*)src), 0);
 		}
 	}
 	ers_free(delay_damage_ers, dat);
@@ -261,7 +272,7 @@ int battle_delay_damage(unsigned int tick, int amotion, struct block_list *src, 
 	if( sc && sc->data[SC_DEVOTION] && damage > 0 && skill_id != PA_PRESSURE && skill_id != CR_REFLECTSHIELD )
 		damage = 0;
 
-	if ( !battle_config.delay_battle_damage || amotion <= 1 ) {
+	if( !battle_config.delay_battle_damage || amotion <= 1 ) {
 		map_freeblock_lock();
 		status_fix_damage(src, target, damage, ddelay); // We have to seperate here between reflect damage and others [icescope]
 		if( attack_type && !status_isdead(target) && additional_effects )
@@ -282,8 +293,12 @@ int battle_delay_damage(unsigned int tick, int amotion, struct block_list *src, 
 	dat->delay = ddelay;
 	dat->distance = distance_bl(src, target)+10; //Attack should connect regardless unless you teleported.
 	dat->additional_effects = additional_effects;
-	if (src->type != BL_PC && amotion > 1000)
+	dat->src_type = src->type;
+	if( src->type != BL_PC && amotion > 1000 )
 		amotion = 1000; //Aegis places a damage-delay cap of 1 sec to non player attacks. [Skotlex]
+
+	if( src->type == BL_PC )
+		((TBL_PC*)src)->delayed_damage++;
 
 	add_timer(tick+amotion, battle_delay_damage_sub, 0, (intptr_t)dat);
 

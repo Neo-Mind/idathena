@@ -927,7 +927,7 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	sd->login_id2 = login_id2;
 	sd->group_id = group_id;
 	
-	/* load user permissions */
+	/* Load user permissions */
 	pc_group_pc_load(sd);
 	
 	memcpy(&sd->status, st, sizeof(*st));
@@ -949,18 +949,18 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	// Checks and fixes to character status data, that are required
 	// in case of configuration change or stuff, which cannot be
 	// checked on char-server.
-	if( sd->status.hair < MIN_HAIR_STYLE || sd->status.hair > MAX_HAIR_STYLE ) {
+	if (sd->status.hair < MIN_HAIR_STYLE || sd->status.hair > MAX_HAIR_STYLE) {
 		sd->status.hair = MIN_HAIR_STYLE;
 	}
-	if( sd->status.hair_color < MIN_HAIR_COLOR || sd->status.hair_color > MAX_HAIR_COLOR ) {
+	if (sd->status.hair_color < MIN_HAIR_COLOR || sd->status.hair_color > MAX_HAIR_COLOR) {
 		sd->status.hair_color = MIN_HAIR_COLOR;
 	}
-	if( sd->status.clothes_color < MIN_CLOTH_COLOR || sd->status.clothes_color > MAX_CLOTH_COLOR ) {
+	if (sd->status.clothes_color < MIN_CLOTH_COLOR || sd->status.clothes_color > MAX_CLOTH_COLOR) {
 		sd->status.clothes_color = MIN_CLOTH_COLOR;
 	}
 
 	//Initializations to null/0 unneeded since map_session_data was filled with 0 upon allocation.
-	if(!sd->status.hp) pc_setdead(sd);
+	if (!sd->status.hp) pc_setdead(sd);
 	sd->state.connect_new = 1;
 
 	sd->followtimer = INVALID_TIMER; // [MouseJstr]
@@ -982,13 +982,13 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	sd->canskill_tick = tick;
 	sd->cansendmail_tick = tick;
 
-	for(i = 0; i < MAX_SPIRITBALL; i++)
+	for (i = 0; i < MAX_SPIRITBALL; i++)
 		sd->spirit_timer[i] = INVALID_TIMER;
-	for(i = 0; i < ARRAYLENGTH(sd->autobonus); i++)
+	for (i = 0; i < ARRAYLENGTH(sd->autobonus); i++)
 		sd->autobonus[i].active = INVALID_TIMER;
-	for(i = 0; i < ARRAYLENGTH(sd->autobonus2); i++)
+	for (i = 0; i < ARRAYLENGTH(sd->autobonus2); i++)
 		sd->autobonus2[i].active = INVALID_TIMER;
-	for(i = 0; i < ARRAYLENGTH(sd->autobonus3); i++)
+	for (i = 0; i < ARRAYLENGTH(sd->autobonus3); i++)
 		sd->autobonus3[i].active = INVALID_TIMER;
 
 	if (battle_config.item_auto_get)
@@ -998,10 +998,10 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 		sd->state.showexp = 1;
 	if (battle_config.disp_zeny)
 		sd->state.showzeny = 1;
-	
+
 	if (!(battle_config.display_skill_fail&2))
 		sd->state.showdelay = 1;
-		
+
 	pc_setinventorydata(sd);
 	pc_setequipindex(sd);
 
@@ -1019,22 +1019,24 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	sd->guild_x = -1;
 	sd->guild_y = -1;
 
-	// Event Timers
-	for( i = 0; i < MAX_EVENTTIMER; i++ )
+	sd->delayed_damage = 0;
+
+	//Event Timers
+	for (i = 0; i < MAX_EVENTTIMER; i++)
 		sd->eventtimer[i] = INVALID_TIMER;
-	// Rental Timer
+	//Rental Timer
 	sd->rental_timer = INVALID_TIMER;
 
-	for( i = 0; i < 3; i++ )
+	for (i = 0; i < 3; i++)
 		sd->hate_mob[i] = -1;
 
-	// warp player
-	if( (i = pc_setpos(sd,sd->status.last_point.map, sd->status.last_point.x, sd->status.last_point.y, CLR_OUTSIGHT)) != 0 ) {
+	//Warp player
+	if ((i = pc_setpos(sd,sd->status.last_point.map, sd->status.last_point.x, sd->status.last_point.y, CLR_OUTSIGHT)) != 0) {
 		ShowError ("Last_point_map %s - id %d not found (error code %d)\n", mapindex_id2name(sd->status.last_point.map), sd->status.last_point.map, i);
 
-		// try warping to a default map instead (church graveyard)
-		if( pc_setpos(sd, mapindex_name2id(MAP_PRONTERA), 273, 354, CLR_OUTSIGHT) != 0 ) {
-			// if we fail again
+		//Try warping to a default map instead (church graveyard)
+		if (pc_setpos(sd, mapindex_name2id(MAP_PRONTERA), 273, 354, CLR_OUTSIGHT) != 0) {
+			//If we fail again
 			clif_authfail_fd(sd->fd, 0);
 			return false;
 		}
@@ -1043,38 +1045,38 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	clif_authok(sd);
 
 	//Prevent S. Novices from getting the no-death bonus just yet. [Skotlex]
-	sd->die_counter=-1;
+	sd->die_counter = -1;
 
-	//display login notice
+	//Display login notice
 	ShowInfo("'"CL_WHITE"%s"CL_RESET"' logged in."
 	         " (AID/CID: '"CL_WHITE"%d/%d"CL_RESET"',"
 	         " Packet Ver: '"CL_WHITE"%d"CL_RESET"', IP: '"CL_WHITE"%d.%d.%d.%d"CL_RESET"',"
 	         " Group '"CL_WHITE"%d"CL_RESET"').\n",
 	         sd->status.name, sd->status.account_id, sd->status.char_id,
 	         sd->packet_ver, CONVIP(ip), sd->group_id);
-	// Send friends list
+	//Send friends list
 	clif_friendslist_send(sd);
 
-	if( !changing_mapservers ) {
+	if (!changing_mapservers) {
 
-		if (battle_config.display_version == 1){
+		if (battle_config.display_version == 1) {
 			char buf[256];
 			sprintf(buf, "SVN version: %s", get_svn_revision());
 			clif_displaymessage(sd->fd, buf);
 		}
 
-		// Message of the Day [Valaris]
-		for(i=0; motd_text[i][0] && i < MOTD_LINE_SIZE; i++) {
+		//Message of the Day [Valaris]
+		for (i = 0; motd_text[i][0] && i < MOTD_LINE_SIZE; i++) {
 			if (battle_config.motd_type)
 				clif_disp_onlyself(sd,motd_text[i],strlen(motd_text[i]));
 			else
 				clif_displaymessage(sd->fd, motd_text[i]);
 		}
 
-		// message of the limited time of the account
-		if (expiration_time != 0) { // don't display if it's unlimited or unknow value
+		//Message of the limited time of the account
+		if (expiration_time != 0) { //Don't display if it's unlimited or unknow value
 			char tmpstr[1024];
-			strftime(tmpstr, sizeof(tmpstr) - 1, msg_txt(501), localtime(&expiration_time)); // "Your account time limit is: %d-%m-%Y %H:%M:%S."
+			strftime(tmpstr, sizeof(tmpstr) - 1, msg_txt(501), localtime(&expiration_time)); //"Your account time limit is: %d-%m-%Y %H:%M:%S."
 			clif_wis_message(sd->fd, wisp_server_name, tmpstr, strlen(tmpstr)+1);
 		}
 
@@ -1096,13 +1098,13 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 
 #ifdef BOUND_ITEMS
 	// Party bound item check
-	if(sd->status.party_id == 0 && (j = pc_bound_chk(sd,3,idxlist))) { // Party was deleted while character offline
-		for(i=0;i<j;i++)
+	if (sd->status.party_id == 0 && (j = pc_bound_chk(sd,3,idxlist))) { //Party was deleted while character offline
+		for (i = 0; i < j; i++)
 			pc_delitem(sd,idxlist[i],sd->status.inventory[idxlist[i]].amount,0,1,LOG_TYPE_OTHER);
 	}
 #endif
 
-	// Request all registries (auth is considered completed whence they arrive)
+	//Request all registries (auth is considered completed whence they arrive)
 	intif_request_registry(sd,7);
 	return true;
 }
@@ -4734,7 +4736,6 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 			clif_displaymessage (sd->fd, msg_txt(276)); // "You can't open a shop on this map."
 			vending_closevending(sd);
 		}
-
 		channel_pcquit(sd,4); // Quit map channel
 	}
 

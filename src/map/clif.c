@@ -5476,12 +5476,12 @@ void clif_GlobalMessage(struct block_list* bl, const char* message, enum send_ta
 	int len;
 	nullpo_retv(bl);
 
-	if(!message)
+	if (!message)
 		return;
 
 	len = strlen(message)+1;
 
-	if( len > sizeof(buf)-8 ) {
+	if (len > sizeof(buf)-8) {
 		ShowWarning("clif_GlobalMessage: Truncating too long message '%s' (len=%d).\n", message, len);
 		len = sizeof(buf)-8;
 	}
@@ -10152,14 +10152,14 @@ void clif_parse_UseItem(int fd, struct map_session_data *sd)
 		return;
 	}
 
-	if ( (!sd->npc_id && pc_istrading(sd)) || sd->chatID )
+	if ((!sd->npc_id && pc_istrading(sd)) || sd->chatID)
 		return;
 
 	//Whether the item is used or not is irrelevant, the char ain't idle. [Skotlex]
 	sd->idletime = last_tick;
 	n = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0])-2;
-	
-	if(n <0 || n >= MAX_INVENTORY)
+
+	if (n < 0 || n >= MAX_INVENTORY)
 		return;
 	if (!pc_useitem(sd,n))
 		clif_useitemack(sd,n,0,false); //Send an empty ack packet or the client gets stuck.
@@ -10191,7 +10191,7 @@ void clif_parse_EquipItem(int fd,struct map_session_data *sd)
 		return;
 
 	if(!sd->status.inventory[index].identify) {
-		clif_equipitemack(sd,index,0,0);	// fail
+		clif_equipitemack(sd,index,0,0); //Fail
 		return;
 	}
 
