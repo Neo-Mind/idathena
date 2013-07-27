@@ -3952,7 +3952,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					case LG_MOONSLASHER:
 						clif_skill_damage(src,bl,tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
 						break;
-					case NPC_EARTHQUAKE: //FIXME: Isn't EarthQuake a ground skill after all?
+					case NPC_EARTHQUAKE: // FIXME: Isn't EarthQuake a ground skill after all?
 						skill_addtimerskill(src,tick+250,src->id,0,0,skill_id,skill_lv,2,flag|BCT_ENEMY|SD_SPLASH|1);
 					default:
 						break;
@@ -3970,20 +3970,20 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 						if (sd) pc_overheat(sd,1);
 				if( skill_id == WM_REVERBERATION_MELEE || skill_id == WM_REVERBERATION_MAGIC )
 					skill_area_temp[1] = 0;
-				// if skill damage should be split among targets, count them
-				//SD_LEVEL -> Forced splash damage for Auto Blitz-Beat -> count targets
-				//special case: Venom Splasher uses a different range for searching than for splashing
+				// If skill damage should be split among targets, count them
+				// SD_LEVEL -> Forced splash damage for Auto Blitz-Beat -> count targets
+				// Special case: Venom Splasher uses a different range for searching than for splashing
 				if( flag&SD_LEVEL || skill_get_nk(skill_id)&NK_SPLASHSPLIT )
 					skill_area_temp[0] = map_foreachinrange(skill_area_sub, bl, (skill_id == AS_SPLASHER)?1:skill_get_splash(skill_id, skill_lv), BL_CHAR, src, skill_id, skill_lv, tick, BCT_ENEMY, skill_area_sub_count);
 
-				// recursive invocation of skill_castend_damage_id() with flag|1
+				// Recursive invocation of skill_castend_damage_id() with flag|1
 				map_foreachinrange(skill_area_sub, bl, skill_get_splash(skill_id, skill_lv), ( skill_id == WM_REVERBERATION_MELEE || skill_id == WM_REVERBERATION_MAGIC )?BL_CHAR:splash_target(src), src, skill_id, skill_lv, tick, flag|BCT_ENEMY|SD_SPLASH|1, skill_castend_damage_id);
 			}
 			break;
 
 		case KN_BRANDISHSPEAR:
 		case ML_BRANDISH:
-			//Coded apart for it needs the flag passed to the damage calculation.
+			// Coded apart for it needs the flag passed to the damage calculation.
 			if (skill_area_temp[1] != bl->id)
 				skill_attack(skill_get_type(skill_id), src, src, bl, skill_id, skill_lv, tick, flag|SD_ANIMATION);
 			else
@@ -4075,7 +4075,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				dir = map_calc_dir(bl,src->x,src->y);
 				skill_area_temp[1] = bl->id;
 				skill_area_temp[2] = skill_get_blewcount(skill_id,skill_lv);
-				// all the enemies between the caster and the target are hit, as well as the target
+				// All the enemies between the caster and the target are hit, as well as the target
 				if (skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,0))
 					skill_blown(src,bl,skill_area_temp[2],-1,0);
 				for (i=0;i<4;i++) {

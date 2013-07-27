@@ -2195,7 +2195,7 @@ static int battle_get_weapon_element(struct Damage wd, struct block_list *src, s
 			element = sd->bonus.arrow_ele;
 		if(battle_config.attack_attr_none&src->type)
 			element = ELE_NONE; //Weapon's element is "not elemental"
-		// On official endows override all other elements [helvetica]
+		//On official endows override all other elements [helvetica]
 		if(sd) { //Summoning 10 talisman will endow your weapon.
 			ARR_FIND(1, 6, i, sd->talisman[i] >= 10);
 			if(i < 5)
@@ -2215,7 +2215,7 @@ static int battle_get_weapon_element(struct Damage wd, struct block_list *src, s
 			element = wd.miscflag; //Element comes in flag.
 			break;
 		case LK_SPIRALPIERCE:
-			if(!sd) 
+			if(!sd)
 				element = ELE_NEUTRAL; //Forced neutral for monsters
 			break;
 		case KO_KAIHOU:
@@ -2234,7 +2234,7 @@ static int battle_get_weapon_element(struct Damage wd, struct block_list *src, s
 	if(sc && sc->data[SC_GOLDENE_FERSE] && ((!skill_id && (rnd() % 100 < sc->data[SC_GOLDENE_FERSE]->val4)) || skill_id == MH_STAHL_HORN))
 		element = ELE_HOLY;
 
-	// Calc_flag means the element should be calculated for damage only
+	//Calc_flag means the element should be calculated for damage only
 	if(calc_for_damage_only)
 		return element;
 
@@ -3299,7 +3299,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			RE_LVL_DMOD(120);
 			break;
 		case SC_FEINTBOMB:
-			skillratio = (1 + skill_lv) * sstatus->dex / 2 * (sd ? sd->status.job_level / 10 : 1);
+			skillratio += -100 + (1 + skill_lv) * sstatus->dex / 2 * (sd ? sd->status.job_level / 10 : 1);
 			RE_LVL_DMOD(120);
 			break;
 		case LG_CANNONSPEAR:
@@ -4340,7 +4340,7 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 	wd.miscflag = wflag;
 	wd.flag = BF_WEAPON; //Initial Flag
 	// Baphomet card's splash damage is counted as a skill. [Inkfish]
-	wd.flag |= (skill_id||wd.miscflag)?BF_SKILL:BF_NORMAL;
+	wd.flag |= (skill_id || wd.miscflag) ? BF_SKILL : BF_NORMAL;
 
 	wd.damage = wd.damage2 = 
 #ifdef RENEWAL	
