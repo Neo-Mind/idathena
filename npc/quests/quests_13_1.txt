@@ -9746,6 +9746,16 @@ mid_campin,94,118,3	script	Staff Officer Abidal	755,{
 				mes "You have restored the first, second and third volume of the report. There is 1 volume left to restore.";
 				close;
 			}
+			else if ((countitem(11013) == 1) && (countitem(11014) == 1) && (countitem(11015) == 0) && (countitem(11016) == 1)) {
+				mes "[Staff Officer Abidal]";
+				mes "You have restored the first, second and fourth volume of the report. There is 1 volume left to restore.";
+				close;
+			}
+			else if ((countitem(11013) == 1) && (countitem(11014) == 0) && (countitem(11015) == 1) && (countitem(11016) == 1)) {
+				mes "[Staff Officer Abidal]";
+				mes "You have restored the first, third and fourth volume of the report. There is 1 volume left to restore.";
+				close;
+			}
 			else if ((countitem(11013) == 0) && (countitem(11014) == 1) && (countitem(11015) == 1) && (countitem(11016) == 1)) {
 				mes "[Staff Officer Abidal]";
 				mes "You have restored the second, third and fourth volume of the report. There is 1 volume left to restore.";
@@ -10099,7 +10109,7 @@ man_fild01,315,95,3	script	Expedition Scout#1	707,{
 	case 1:
 		if (ep13_1_edq == 71 || ep13_1_edq == 72) {
 			mes "[Expedition Scout]";
-			mes "Oh, you must be"+strcharinfo(0)+". I heard that you'll be delivering the report.";
+			mes "Oh, you must be "+strcharinfo(0)+". I heard that you'll be delivering the report.";
 			next;
 			if (.@playtime == 0 || .@playtime == 1) {
 				mes "[Expedition Scout]";
