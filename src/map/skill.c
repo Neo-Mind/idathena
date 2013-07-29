@@ -4988,16 +4988,21 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 	switch (skill_id) {
 		case HLIF_HEAL:	//[orn]
 			if (bl->type != BL_HOM) {
-				if (sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0) ;
+				if (sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 	        break ;
 			}
  		case AL_HEAL:
-		case ALL_RESURRECTION:
-		case PR_ASPERSIO:
 		case AB_RENOVATIO:
 		case AB_HIGHNESSHEAL:
+		case AL_INCAGI:
+			if (sd && dstsd && pc_ismadogear(dstsd)) {
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_TOTARGET,0);
+				return 0;
+			}
+		case ALL_RESURRECTION:
+		case PR_ASPERSIO:
 			//Apparently only player casted skills can be offensive like this.
-			if (sd && battle_check_undead(tstatus->race,tstatus->def_ele)) {
+			if (sd && battle_check_undead(tstatus->race,tstatus->def_ele) && skill_id != AL_INCAGI) {
 				if (battle_check_target(src, bl, BCT_ENEMY) < 1) {
 					//Offensive heal does not works on non-enemies. [Skotlex]
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -5028,9 +5033,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 	type = status_skill2sc(skill_id);
 	tsc = status_get_sc(bl);
-	tsce = (tsc && type != -1)?tsc->data[type]:NULL;
+	tsce = (tsc && type != -1) ? tsc->data[type] : NULL;
 
-	if (src!=bl && type > -1 &&
+	if (src != bl && type > -1 &&
 		(i = skill_get_ele(skill_id, skill_lv)) > ELE_NEUTRAL &&
 		skill_get_inf(skill_id) != INF_SUPPORT_SKILL &&
 		battle_attr_fix(NULL, NULL, 100, i, tstatus->def_ele, tstatus->ele_lv) <= 0)
@@ -5045,8 +5050,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				int heal = skill_calc_heal(src, bl, skill_id, skill_lv, true);
 				int heal_get_jobexp;
 				if( status_isimmune(bl) ||
-						(dstmd && (dstmd->class_ == MOBID_EMPERIUM || mob_is_battleground(dstmd))) ||
-						(dstsd && pc_ismadogear(dstsd)) ) //Mado is immune to heal
+						(dstmd && (dstmd->class_ == MOBID_EMPERIUM || mob_is_battleground(dstmd))) )
 					heal = 0;
 
 				if( tsc && tsc->count ) {
@@ -5054,7 +5058,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						if( --tsc->data[SC_KAITE]->val2 <= 0 )
 							status_change_end(bl, SC_KAITE, INVALID_TIMER);
 						if( src == bl )
-							heal=0; //When you try to heal yourself under Kaite, the heal is voided.
+							heal = 0; //When you try to heal yourself under Kaite, the heal is voided.
 						else {
 							bl = src;
 							dstsd = sd;
