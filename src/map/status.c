@@ -1981,62 +1981,62 @@ void status_calc_misc(struct block_list *bl, struct status_data *status, int lev
 		status->def2 = status->mdef2 =
 		status->cri = status->flee2 = 0;
 
-#ifdef RENEWAL // renewal formulas
+#ifdef RENEWAL // Renewal formulas
 	if( bl->type == BL_MOB ) {
-		status->hit += level + status->dex + 175;
+		status->hit += level + status->dex + 150;
 		status->flee += level + status->agi + 100;
-	} else if (bl->type == BL_HOM) {
-		status->hit = level + status->dex + 150; //base level + dex + 150
-		status->flee = level + status->agi + level/10; //base level + agi + base level/10
+	} else if( bl->type == BL_HOM ) {
+		status->hit = level + status->dex + 150; //Base level + dex + 150
+		status->flee = level + status->agi + level / 10; //Base level + agi + base level/10
 	} else {
-		status->hit += level + status->dex + status->luk/3 + 175; //base level + ( every 1 dex = +1 hit ) + (every 3 luk = +1 hit) + 175
-		status->flee += level + status->agi + status->luk/5 + 100; //base level + ( every 1 agi = +1 flee ) + (every 5 luk = +1 flee) + 100
+		status->hit += level + status->dex + status->luk / 3 + 175; //Base level + ( every 1 dex = +1 hit ) + (every 3 luk = +1 hit) + 175
+		status->flee += level + status->agi + status->luk / 5 + 100; //Base level + ( every 1 agi = +1 flee ) + (every 5 luk = +1 flee) + 100
 	}
 	status->matk_min = status->matk_max = status_base_matk(status, level);
-	status->def2 += (int)(((float)level + status->vit)/2 + ((float)status->agi/5)); //base level + (every 2 vit = +1 def) + (every 5 agi = +1 def)
-	status->mdef2 += (int)(status->int_ + ((float)level/4) + ((float)status->dex/5) + ((float)status->vit/5)); //(every 4 base level = +1 mdef) + (every 1 int = +1 mdef) + (every 5 dex = +1 mdef) + (every 5 vit = +1 mdef)
+	status->def2 += (int)(((float)level + status->vit) / 2 + ((float)status->agi / 5)); //Base level + (every 2 vit = +1 def) + (every 5 agi = +1 def)
+	status->mdef2 += (int)(status->int_ + ((float)level / 4) + ((float)status->dex / 5) + ((float)status->vit / 5)); //(Every 4 base level = +1 mdef) + (every 1 int = +1 mdef) + (every 5 dex = +1 mdef) + (every 5 vit = +1 mdef)
 #else
 	status->matk_min = status_base_matk_min(status);
 	status->matk_max = status_base_matk_max(status);
 	status->hit += level + status->dex;
 	status->flee += level + status->agi;
 	status->def2 += status->vit;
-	status->mdef2 += status->int_ + (status->vit>>1);
+	status->mdef2 += status->int_ + (status->vit >> 1);
 #endif
 
 	if( bl->type&battle_config.enable_critical )
-		status->cri += 10 + (status->luk*10/3); //(every 1 luk = +0.3 critical)
+		status->cri += 10 + (status->luk * 10 / 3); //(Every 1 luk = +0.3 critical)
 	else
 		status->cri = 0;
 
-	if (bl->type&battle_config.enable_perfect_flee)
-		status->flee2 += status->luk + 10; //(every 10 luk = +1 perfect flee)
+	if( bl->type&battle_config.enable_perfect_flee )
+		status->flee2 += status->luk + 10; //(Every 10 luk = +1 perfect flee)
 	else
 		status->flee2 = 0;
 
-	if (status->batk) {
+	if( status->batk ) {
 		int temp = status->batk + status_base_atk(bl, status);
 		status->batk = cap_value(temp, 0, USHRT_MAX);
 	} else
 		status->batk = status_base_atk(bl, status);
-	if (status->cri)
-	switch (bl->type) {
-		case BL_MOB:
-			if(battle_config.mob_critical_rate != 100)
-				status->cri = status->cri*battle_config.mob_critical_rate/100;
-			if(!status->cri && battle_config.mob_critical_rate)
-				status->cri = 10;
-			break;
-		case BL_PC:
-			//Players don't have a critical adjustment setting as of yet.
-			break;
-		default:
-			if(battle_config.critical_rate != 100)
-				status->cri = status->cri*battle_config.critical_rate/100;
-			if (!status->cri && battle_config.critical_rate)
-				status->cri = 10;
-	}
-	if(bl->type&BL_REGEN)
+	if( status->cri )
+		switch( bl->type ) {
+			case BL_MOB:
+				if( battle_config.mob_critical_rate != 100 )
+					status->cri = status->cri * battle_config.mob_critical_rate / 100;
+				if( !status->cri && battle_config.mob_critical_rate )
+					status->cri = 10;
+				break;
+			case BL_PC:
+				//Players don't have a critical adjustment setting as of yet.
+				break;
+			default:
+				if( battle_config.critical_rate != 100 )
+					status->cri = status->cri * battle_config.critical_rate / 100;
+				if( !status->cri && battle_config.critical_rate )
+					status->cri = 10;
+		}
+	if( bl->type&BL_REGEN )
 		status_calc_regen(bl, status, status_get_regen_data(bl));
 }
 
@@ -8299,7 +8299,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_MILLENNIUMSHIELD:
 				if( sd )
-					clif_millenniumshield(sd,0);
+					clif_millenniumshield(sd, 0);
 				break;
 			case SC_VITALITYACTIVATION:
 				val2 = 50; // Increase HP recovery effects by 50%

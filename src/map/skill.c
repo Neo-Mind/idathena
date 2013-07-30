@@ -2791,7 +2791,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				break;
 
 		}
-		//blown-specific handling
+		//Blown-specific handling
 		switch( skill_id ) {
 			case LG_OVERBRAND_BRANDISH:
 				if( skill_blown(dsrc,bl,dmg.blewcount,dir,0) ) {

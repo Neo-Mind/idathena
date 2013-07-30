@@ -5771,8 +5771,10 @@ int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int
 #endif
 	}
 
-	if( sc && sc->data[SC_KYOMU] ) // Nullify reflecting ability
-		rdamage = 0;
+	if( !(sc && sc->data[SC_DEATHBOUND]) ) {
+		if( sc && sc->data[SC_KYOMU] ) // Nullify reflecting ability
+			rdamage = 0;
+	}
 
 	return rdamage;
 }
@@ -5843,11 +5845,11 @@ int battle_damage_area( struct block_list *bl, va_list ap) {
 
 	nullpo_ret(bl);
 
-	tick=va_arg(ap, unsigned int);
-	src=va_arg(ap,struct block_list *);
-	amotion=va_arg(ap,int);
-	dmotion=va_arg(ap,int);
-	damage=va_arg(ap,int);
+	tick = va_arg(ap, unsigned int);
+	src = va_arg(ap, struct block_list *);
+	amotion = va_arg(ap, int);
+	dmotion = va_arg(ap, int);
+	damage = va_arg(ap, int);
 
 	if( bl->type == BL_MOB && ((TBL_MOB*)bl)->class_ == MOBID_EMPERIUM )
 		return 0;
