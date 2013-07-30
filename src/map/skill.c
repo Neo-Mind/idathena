@@ -4936,7 +4936,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 	//Chorus bonus value for chorus skills. Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 	int chorusbonus = 0;
 
-	if(skill_id > 0 && !skill_lv) return 0; // celest
+	if(skill_id > 0 && !skill_lv) return 0; // Celest
 
 	nullpo_retr(1, src);
 	nullpo_retr(1, bl);
@@ -4956,7 +4956,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		return 1;
 	if(status_isdead(src))
 		return 1;
-		
+
 	// Minstrel/Wanderer number check for chorus skills.
 	// Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 	if( sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 7)
@@ -12335,7 +12335,7 @@ int skill_unit_onleft (uint16 skill_id, struct block_list *bl, unsigned int tick
 
 	switch (skill_id) {
 		case WZ_QUAGMIRE:
-			if (bl->type==BL_MOB)
+			if (bl->type == BL_MOB)
 				break;
 			if (sce)
 				status_change_end(bl, type, INVALID_TIMER);

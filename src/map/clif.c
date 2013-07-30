@@ -5609,7 +5609,7 @@ void clif_maptypeproperty2(struct block_list *bl,enum send_target t) {
 	WBUFB(buf,4) |= ((map[bl->m].flag.nomineeffect)?0:0x08); //Mineffect @FIXME what this do
 	WBUFB(buf,4) |= ((map[bl->m].flag.nolockon)?0x10:0); //Nolockon 0x10 @FIXME what this do
 	WBUFB(buf,4) |= ((map[bl->m].flag.pvp)?0x20:0); //Countpk
-	WBUFB(buf,4) |= 0; //nopartyformation 0x40
+	WBUFB(buf,4) |= 0; //Nopartyformation 0x40
 	WBUFB(buf,4) |= ((map[bl->m].flag.battleground)?0x80:0); //Battleground
 
 	WBUFB(buf,5) = ((map[bl->m].flag.noitemconsumption)?0x01:0); //Noitemconsumption

@@ -2633,9 +2633,8 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 #endif
 				break;
 			case HFLI_SBR44: //[orn]
-				if(src->type == BL_HOM) {
+				if(src->type == BL_HOM)
 					wd.damage = ((TBL_HOM*)src)->homunculus.intimacy;
-				}
 				break;
 
 			default: {
@@ -2703,11 +2702,11 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 						ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.crit_atk_rate);
 					}
 #endif
-					if(sd->status.party_id && (skill=pc_checkskill(sd,TK_POWER)) > 0) {
+					if(sd->status.party_id && (skill = pc_checkskill(sd, TK_POWER)) > 0) {
 						//Exclude the player himself [Inkfish]
 						if((i = party_foreachsamemap(party_sub_count, sd, 0)) > 1) {
-							ATK_ADDRATE(wd.damage, wd.damage2, 2*skill*i);
-							RE_ALLATK_ADDRATE(wd, 2*skill*i);
+							ATK_ADDRATE(wd.damage, wd.damage2, 2 * skill * i);
+							RE_ALLATK_ADDRATE(wd, 2 * skill * i);
 						}
 					}
 				}
@@ -5700,26 +5699,30 @@ struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct bl
  */
 int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int *dmg, int flag, uint16 skill_id) {
 	struct map_session_data* sd;
-	int rdamage = 0, damage = *dmg, max_damage = status_get_max_hp(bl);
-	struct status_change *sc;
+	int rdamage = 0, damage = *dmg
+#ifdef RENEWAL
+		, max_damage = status_get_max_hp(bl)
+#endif
+		;
+	struct status_change *sc = status_get_sc(bl);
 	struct status_change *ssc = status_get_sc(src);
 
 	sd = BL_CAST(BL_PC, bl);
-	sc = status_get_sc(bl);
 
-	if (flag & BF_SHORT) { //Bounces back part of the damage.
-		if ( sd && sd->bonus.short_weapon_damage_return ) {
-			rdamage += damage * sd->bonus.short_weapon_damage_return / 100;
-			if(rdamage < 1) rdamage = 1;
+	if( flag & BF_SHORT ) { //Bounces back part of the damage.
+		if( sd && sd->bonus.short_weapon_damage_return ) {
+			rdamage += (damage * sd->bonus.short_weapon_damage_return) / 100;
+			if( rdamage < 1 ) rdamage = 1;
 		}
 		if( sc && sc->count ) {
-			if ( sc->data[SC_REFLECTSHIELD] && skill_id != WS_CARTTERMINATION ) {
+			if( sc->data[SC_REFLECTSHIELD] && skill_id != WS_CARTTERMINATION ) {
 				rdamage += damage * sc->data[SC_REFLECTSHIELD]->val2 / 100;
+#ifdef RENEWAL
 				rdamage = cap_value(rdamage,1,max_damage);
+#endif
 			}
-			if(sc->data[SC_DEATHBOUND] && skill_id != WS_CARTTERMINATION && !(src->type == BL_MOB && is_boss(src)) ) {
+			if( sc->data[SC_DEATHBOUND] && skill_id != WS_CARTTERMINATION && !(src->type == BL_MOB && is_boss(src)) ) {
 				uint8 dir = map_calc_dir(bl,src->x,src->y), t_dir = unit_getdir(bl);
-
 				if( distance_bl(src,bl) <= 0 || !map_check_dir(dir,t_dir) ) {
 					int rd1 = 0;
 					rd1 = min(damage,status_get_max_hp(bl)) * sc->data[SC_DEATHBOUND]->val2 / 100; // Amplify damage.
@@ -5730,25 +5733,32 @@ int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int
 				}
 			}
 			if( sc && sc->data[SC_REFLECTDAMAGE] && rnd()%100 < 30 + 10 * sc->data[SC_REFLECTDAMAGE]->val1) {
-				max_damage = max_damage * status_get_lv(bl) / 100;
 				rdamage += (*dmg) * sc->data[SC_REFLECTDAMAGE]->val2 / 100;
+#ifdef RENEWAL
+				max_damage = max_damage * status_get_lv(bl) / 100;
 				rdamage = cap_value(rdamage,1,max_damage);
-				if ((--sc->data[SC_REFLECTDAMAGE]->val3) <= 0)
+#endif
+				if( (--sc->data[SC_REFLECTDAMAGE]->val3) <= 0 )
 					status_change_end(bl,SC_REFLECTDAMAGE,INVALID_TIMER);
 			}
-			if( sc && sc->data[SC_SHIELDSPELL_DEF] && sc->data[SC_SHIELDSPELL_DEF]->val1 == 2 ) {
+			if( sc->data[SC_SHIELDSPELL_DEF] && sc->data[SC_SHIELDSPELL_DEF]->val1 == 2 &&
+				!(src->type == BL_MOB && is_boss(src)) ) {
 				rdamage += (*dmg) * sc->data[SC_SHIELDSPELL_DEF]->val2 / 100;
+#ifdef RENEWAL
 				rdamage = cap_value(rdamage,1,max_damage);
-			}
-			if( ssc && ssc->data[SC_INSPIRATION] ) {
-				rdamage += (*dmg) / 100;
-				rdamage = cap_value(rdamage,1,max_damage);
+#endif
 			}
 		}
+		if( ssc && ssc->data[SC_INSPIRATION] ) {
+			rdamage += (*dmg) / 100;
+#ifdef RENEWAL
+			rdamage = cap_value(rdamage,1,max_damage);
+#endif
+		}
 	} else {
-		if (sd && sd->bonus.long_weapon_damage_return) {
-			rdamage += damage * sd->bonus.long_weapon_damage_return / 100;
-			if (rdamage < 1) rdamage = 1;
+		if( sd && sd->bonus.long_weapon_damage_return ) {
+			rdamage += (damage * sd->bonus.long_weapon_damage_return) / 100;
+			if( rdamage < 1 ) rdamage = 1;
 		}
 	}
 

@@ -1807,7 +1807,7 @@ packet_ver: 33
 //2013-03-20Ragexe [Judas + Yommy]
 packet_ver: 34
 //Shuffle Start
-0x08c9,4
+0x08C9,4
 0x088E,7,actionrequest,2:6
 0x089B,10,useskilltoid,2:4:6
 0x0881,5,walktoxy,2
@@ -1993,7 +1993,7 @@ packet_ver: 38
 0x0361,5,hommenu,2,4
 0x0883,36,storagepassword,2:4:20
 
-//2013-06-05 Ragexe (Shakto)
+//2013-06-12 Ragexe (Shakto)
 packet_ver: 39
 0x0369,7,actionrequest,2:6
 0x083C,10,useskilltoid,2:4:6
