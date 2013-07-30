@@ -5718,48 +5718,57 @@ int battle_calc_return_damage(struct block_list* bl, struct block_list *src, int
 			if( sc->data[SC_REFLECTSHIELD] && skill_id != WS_CARTTERMINATION ) {
 				rdamage += damage * sc->data[SC_REFLECTSHIELD]->val2 / 100;
 #ifdef RENEWAL
-				rdamage = cap_value(rdamage,1,max_damage);
+				rdamage = cap_value(rdamage, 1, max_damage);
+#else
+				if( rdamage < 1 ) rdamage = 1;
 #endif
 			}
 			if( sc->data[SC_DEATHBOUND] && skill_id != WS_CARTTERMINATION && !(src->type == BL_MOB && is_boss(src)) ) {
-				uint8 dir = map_calc_dir(bl,src->x,src->y), t_dir = unit_getdir(bl);
-				if( distance_bl(src,bl) <= 0 || !map_check_dir(dir,t_dir) ) {
+				uint8 dir = map_calc_dir(bl, src->x, src->y), t_dir = unit_getdir(bl);
+				if( distance_bl(src, bl) <= 0 || !map_check_dir(dir, t_dir) ) {
 					int rd1 = 0;
-					rd1 = min(damage,status_get_max_hp(bl)) * sc->data[SC_DEATHBOUND]->val2 / 100; // Amplify damage.
-					*dmg = rd1 * 30 / 100; // Player receives 30% of the amplified damage.
-					clif_skill_damage(src,bl,gettick(), status_get_amotion(src), 0, -30000, 1, RK_DEATHBOUND, sc->data[SC_DEATHBOUND]->val1,6);
-					status_change_end(bl,SC_DEATHBOUND,INVALID_TIMER);
+					rd1 = min(damage, status_get_max_hp(bl)) * sc->data[SC_DEATHBOUND]->val2 / 100; // Amplify damage.
+					damage = rd1 * 30 / 100; // Player receives 30% of the amplified damage.
+					clif_skill_damage(src, bl, gettick(), status_get_amotion(src), 0, -30000, 1, RK_DEATHBOUND, sc->data[SC_DEATHBOUND]->val1, 6);
+					status_change_end(bl, SC_DEATHBOUND, INVALID_TIMER);
 					rdamage += rd1 * 70 / 100; // Target receives 70% of the amplified damage. [Rytech]
 				}
 			}
 			if( sc && sc->data[SC_REFLECTDAMAGE] && rnd()%100 < 30 + 10 * sc->data[SC_REFLECTDAMAGE]->val1) {
-				rdamage += (*dmg) * sc->data[SC_REFLECTDAMAGE]->val2 / 100;
+				rdamage += (damage * sc->data[SC_REFLECTDAMAGE]->val2) / 100;
 #ifdef RENEWAL
 				max_damage = max_damage * status_get_lv(bl) / 100;
-				rdamage = cap_value(rdamage,1,max_damage);
+				rdamage = cap_value(rdamage, 1, max_damage);
+#else
+				if( rdamage < 1 ) rdamage = 1;
 #endif
 				if( (--sc->data[SC_REFLECTDAMAGE]->val3) <= 0 )
-					status_change_end(bl,SC_REFLECTDAMAGE,INVALID_TIMER);
+					status_change_end(bl, SC_REFLECTDAMAGE, INVALID_TIMER);
 			}
 			if( sc->data[SC_SHIELDSPELL_DEF] && sc->data[SC_SHIELDSPELL_DEF]->val1 == 2 &&
 				!(src->type == BL_MOB && is_boss(src)) ) {
-				rdamage += (*dmg) * sc->data[SC_SHIELDSPELL_DEF]->val2 / 100;
+				rdamage += (damage * sc->data[SC_SHIELDSPELL_DEF]->val2) / 100;
 #ifdef RENEWAL
-				rdamage = cap_value(rdamage,1,max_damage);
+				rdamage = cap_value(rdamage, 1, max_damage);
+#else
+				if( rdamage < 1 ) rdamage = 1;
 #endif
 			}
-		}
-		if( ssc && ssc->data[SC_INSPIRATION] ) {
-			rdamage += (*dmg) / 100;
-#ifdef RENEWAL
-			rdamage = cap_value(rdamage,1,max_damage);
-#endif
 		}
 	} else {
 		if( sd && sd->bonus.long_weapon_damage_return ) {
 			rdamage += (damage * sd->bonus.long_weapon_damage_return) / 100;
 			if( rdamage < 1 ) rdamage = 1;
 		}
+	}
+
+	if( ssc && ssc->data[SC_INSPIRATION] ) {
+		rdamage += damage / 100;
+#ifdef RENEWAL
+		rdamage = cap_value(rdamage, 1, max_damage);
+#else
+		if( rdamage < 1 ) rdamage = 1;
+#endif
 	}
 
 	if( sc && sc->data[SC_KYOMU] ) // Nullify reflecting ability

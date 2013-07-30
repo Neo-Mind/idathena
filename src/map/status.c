@@ -7559,8 +7559,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 							if( sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])) )
 								status_change_start(src, &tsd->bl, type, 10000, val1, val2, 0, 0, tick, 1);
 						}
-					}
-					else if( bl->type == BL_MER && ((TBL_MER*)bl)->devotion_flag && (tsd = ((TBL_MER*)bl)->master) )
+					} else if( bl->type == BL_MER && ((TBL_MER*)bl)->devotion_flag && (tsd = ((TBL_MER*)bl)->master) )
 						status_change_start(src, &tsd->bl, type, 10000, val1, val2, 0, 0, tick, 1);
 				}
 				break;
