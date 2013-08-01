@@ -3361,7 +3361,8 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					break;
 				case WM_REVERBERATION_MELEE:
 				case WM_REVERBERATION_MAGIC:
-					skill_castend_damage_id(src, target, skl->skill_id, skl->skill_lv, tick, skl->flag|SD_LEVEL); // damage should split among targets
+					// Damage should split among targets
+					skill_castend_damage_id(src, target, skl->skill_id, skl->skill_lv, tick, skl->flag|SD_LEVEL);
 					break;
 				case SC_FATALMENACE:
 					if( src == target ) // Casters Part
@@ -3390,15 +3391,17 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					}
 				case LG_OVERBRAND_BRANDISH:
 				case LG_OVERBRAND_PLUSATK:
-				//case SR_KNUCKLEARROW:
 					if( target->type == BL_MOB && is_boss(target) )
 						break;
-					else
+					if( status_check_skilluse(src, target, skl->skill_id, 1) )
 						skill_attack(BF_WEAPON, src, src, target, skl->skill_id, skl->skill_lv, tick, skl->flag|SD_LEVEL);
+					else
+						clif_skill_damage(src, target, tick, status_get_amotion(src), status_get_dmotion(target), 0, 1,
+							skl->skill_id, skl->skill_lv, skill_get_hit(skl->skill_id));
 					break;
 				case GN_SPORE_EXPLOSION:
 					map_foreachinrange(skill_area_sub, target, skill_get_splash(skl->skill_id, skl->skill_lv), BL_CHAR,
-									   src, skl->skill_id, skl->skill_lv, 0, skl->flag|1|BCT_ENEMY, skill_castend_damage_id);
+						src, skl->skill_id, skl->skill_lv, 0, skl->flag|1|BCT_ENEMY, skill_castend_damage_id);
 					break;
 				case RK_HUNDREDSPEAR:
 					if( src->type == BL_PC ) {
@@ -4623,18 +4626,22 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case LG_SHIELDSPELL:
-			if ( skill_lv == 1 )
+			if( skill_lv == 1 )
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
-			else if ( skill_lv == 2 )
+			else if( skill_lv == 2 )
 				skill_attack(BF_MAGIC,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
 
 		case LG_OVERBRAND:
-			skill_attack(BF_WEAPON, src, src, bl, skill_id, skill_lv, tick, flag|SD_LEVEL);
+			if( status_check_skilluse(src,bl,skill_id, 1) )
+				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag|SD_LEVEL);
+			else
+				clif_skill_damage(src,bl,tick,status_get_amotion(src),status_get_dmotion(bl),0,1,
+					skill_id,skill_lv,skill_get_hit(skill_id));
 			break;
 
 		case LG_OVERBRAND_BRANDISH:
-			skill_addtimerskill(src, tick + status_get_amotion(src)*8/10, bl->id, 0, 0, skill_id, skill_lv, BF_WEAPON, flag|SD_LEVEL);
+			skill_addtimerskill(src,tick + status_get_amotion(src) * 8 / 10,bl->id,0,0,skill_id,skill_lv,BF_WEAPON,flag|SD_LEVEL);
 			break;
 
 		case SR_DRAGONCOMBO:
@@ -16487,11 +16494,11 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 
 			case GC_CREATENEWPOISON:
 				make_per = 3000 + 500 * pc_checkskill(sd,GC_RESEARCHNEWPOISON)
-						+ status->dex / 3 * 10 + status->luk * 10 + sd->status.job_level * 10;// Success increase from DEX, LUK, and job level.
+						+ status->dex / 3 * 10 + status->luk * 10 + sd->status.job_level * 10; // Success increase from DEX, LUK, and job level.
 				qty = rnd_value( (3 + pc_checkskill(sd,GC_RESEARCHNEWPOISON)) / 2, (8 + pc_checkskill(sd,GC_RESEARCHNEWPOISON)) / 2 );
 				break;
 			case GN_CHANGEMATERIAL:
-				for(i=0; i<MAX_SKILL_PRODUCE_DB; i++)
+				for(i = 0; i < MAX_SKILL_PRODUCE_DB; i++)
 					if( skill_changematerial_db[i].itemid == nameid ) {
 						make_per = skill_changematerial_db[i].rate * 10;
 						break;

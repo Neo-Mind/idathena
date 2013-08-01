@@ -6707,14 +6707,16 @@ ACMD_FUNC(mobinfo)
 			job_exp = job_exp * pc_level_penalty_mod(sd, mob->lv, mob->status.race, mob->status.mode, 1) / 100;
 		}
 #endif
-		// stats
+		// Stats
 		if (mob->mexp)
 			sprintf(atcmd_output, msg_txt(1240), mob->name, mob->jname, mob->sprite, mob->vd.class_); // MVP Monster: '%s'/'%s'/'%s' (%d)
 		else
 			sprintf(atcmd_output, msg_txt(1241), mob->name, mob->jname, mob->sprite, mob->vd.class_); // Monster: '%s'/'%s'/'%s' (%d)
 		clif_displaymessage(fd, atcmd_output);
+
 		sprintf(atcmd_output, msg_txt(1242), mob->lv, mob->status.max_hp, base_exp, job_exp, MOB_HIT(mob), MOB_FLEE(mob)); //  Lv:%d  HP:%d  Base EXP:%u  Job EXP:%u  HIT:%d  FLEE:%d
 		clif_displaymessage(fd, atcmd_output);
+
 		sprintf(atcmd_output, msg_txt(1243), //  DEF:%d  MDEF:%d  STR:%d  AGI:%d  VIT:%d  INT:%d  DEX:%d  LUK:%d
 			mob->status.def, mob->status.mdef,mob->status.str, mob->status.agi,
 			mob->status.vit, mob->status.int_, mob->status.dex, mob->status.luk);
@@ -6725,19 +6727,23 @@ ACMD_FUNC(mobinfo)
 			mob->range2 , mob->range3, msize[mob->status.size],
 			mrace[mob->status.race], melement[mob->status.def_ele], mob->status.ele_lv);
 		clif_displaymessage(fd, atcmd_output);
-		// drops
+
+		// Drops
 		clif_displaymessage(fd, msg_txt(1245)); //  Drops:
 		strcpy(atcmd_output, " ");
 		j = 0;
 		for (i = 0; i < MAX_MOB_DROP; i++) {
 			float droprate;
+
 			if (mob->dropitem[i].nameid <= 0 || mob->dropitem[i].p < 1 || (item_data = itemdb_exists(mob->dropitem[i].nameid)) == NULL)
 				continue;
+
 			droprate = (float)mob->dropitem[i].p;
 
 #ifdef RENEWAL_DROP
 			if (battle_config.atcommand_mobinfo_type) {
 				droprate = droprate * pc_level_penalty_mod(sd, mob->lv, mob->status.race, mob->status.mode, 2) / 100;
+
 				if (droprate <= 0 && !battle_config.drop_rate0item)
 					droprate = 1;
 			}
@@ -6746,20 +6752,24 @@ ACMD_FUNC(mobinfo)
 				sprintf(atcmd_output2, " - %s[%d]  %02.02f%%", item_data->jname, item_data->slot, droprate / 100);
 			else
 				sprintf(atcmd_output2, " - %s  %02.02f%%", item_data->jname, droprate / 100);
+
 			strcat(atcmd_output, atcmd_output2);
+
 			if (++j % 3 == 0) {
 				clif_displaymessage(fd, atcmd_output);
 				strcpy(atcmd_output, " ");
 			}
 		}
+
 		if (j == 0)
 			clif_displaymessage(fd, msg_txt(1246)); // This monster has no drops.
 		else if (j % 3 != 0)
 			clif_displaymessage(fd, atcmd_output);
-		// mvp
+		// Mvp
 		if (mob->mexp) {
 			sprintf(atcmd_output, msg_txt(1247), mob->mexp); // MVP Bonus EXP:%u
 			clif_displaymessage(fd, atcmd_output);
+
 			strcpy(atcmd_output, msg_txt(1248)); // MVP Items:
 			j = 0;
 			for (i = 0; i < MAX_MVP_DROP; i++) {
@@ -7203,7 +7213,7 @@ ACMD_FUNC(iteminfo)
 		sprintf(atcmd_output, msg_txt(1277), // Item: '%s'/'%s'[%d] (%d) Type: %s | Extra Effect: %s
 			item_data->name,item_data->jname,item_data->slot,item_data->nameid,
 			itemdb_typename(item_data->type),
-			(item_data->script==NULL)? msg_txt(1278) : msg_txt(1279) // None / With script
+			(item_data->script == NULL) ? msg_txt(1278) : msg_txt(1279) // None / With script
 		);
 		clif_displaymessage(fd, atcmd_output);
 

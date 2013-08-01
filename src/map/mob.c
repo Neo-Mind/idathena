@@ -2302,7 +2302,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		int drop_modifier = mvp_sd    ? pc_level_penalty_mod(mvp_sd, md->level, md->status.race, md->status.mode, 2)   :
 							second_sd ? pc_level_penalty_mod(second_sd, md->level, md->status.race, md->status.mode, 2):
 							third_sd  ? pc_level_penalty_mod(third_sd, md->level, md->status.race, md->status.mode, 2) :
-							100; /* no player was attached, we dont use any modifier (100 = rates are not touched) */
+							100; /* No player was attached, we dont use any modifier (100 = rates are not touched) */
 #endif
 		dlist->m = md->bl.m;
 		dlist->x = md->bl.x;
