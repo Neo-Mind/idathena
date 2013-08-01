@@ -1775,7 +1775,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 			case LG_OVERBRAND:
 			case LG_OVERBRAND_BRANDISH:
 			case LG_OVERBRAND_PLUSATK:
-				hide_flag &=~ OPTION_CLOAK|OPTION_CHASEWALK;
+				hide_flag &= ~OPTION_CLOAK|OPTION_CHASEWALK;
 				break;
 		}
 	}
