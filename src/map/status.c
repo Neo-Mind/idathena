@@ -3769,13 +3769,6 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 				status->lhw.atk2= status_calc_watk(bl, sc, b_status->lhw.atk2);
 			}
 		}
-
-		if( bl->type&BL_HOM ) {
-			status->rhw.atk += (status->dex - b_status->dex);
-			status->rhw.atk2 += (status->str - b_status->str);
-			if( status->rhw.atk2 < status->rhw.atk )
-				status->rhw.atk2 = status->rhw.atk;
-		}
 	}
 
 	if( flag&SCB_HIT ) {
@@ -3983,8 +3976,8 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 			status->matk_max = status_calc_ematk(bl, sc, status->matk_max);
 			//This is the only portion in MATK that varies depending on the weapon level and refinement rate.
 
-			if(b_status->lhw.matk) {
-				if (sd) {
+			if( b_status->lhw.matk ) {
+				if( sd ) {
 					sd->state.lr_flag = 1;
 					status->lhw.matk = b_status->lhw.matk;
 					sd->state.lr_flag = 0;
@@ -3992,15 +3985,15 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 					status->lhw.matk = b_status->lhw.matk;
 			}
 		
-			if(b_status->rhw.matk)
+			if( b_status->rhw.matk )
 				status->rhw.matk = b_status->rhw.matk;
 
-			if(status->rhw.matk) {
+			if( status->rhw.matk ) {
 				wMatk += status->rhw.matk;
 				variance += wMatk * status->rhw.wlv / 10;
 			}
 
-			if(status->lhw.matk) {
+			if( status->lhw.matk ) {
 				wMatk += status->lhw.matk;
 				variance += status->lhw.matk * status->lhw.wlv / 10;
 			}
@@ -4009,36 +4002,36 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 			status->matk_max += wMatk + variance;
 		}
 #endif
-		if (bl->type&BL_PC && sd->matk_rate != 100) {
-			status->matk_max = status->matk_max * sd->matk_rate/100;
-			status->matk_min = status->matk_min * sd->matk_rate/100;
+		if( bl->type&BL_PC && sd->matk_rate != 100 ) {
+			status->matk_max = status->matk_max * sd->matk_rate / 100;
+			status->matk_min = status->matk_min * sd->matk_rate / 100;
 		}
 
 		status->matk_max = status_calc_matk(bl, sc, status->matk_max);
 
-		if (( bl->type&BL_HOM && battle_config.hom_setting&0x20 ) //Hom Min Matk is always the same as Max Matk
-			|| sc->data[SC_RECOGNIZEDSPELL])
+		if( (bl->type&BL_HOM && battle_config.hom_setting&0x20) //Hom Min Matk is always the same as Max Matk
+			|| sc->data[SC_RECOGNIZEDSPELL] )
 			status->matk_min = status->matk_max;
 		else
 			status->matk_min = status_calc_matk(bl, sc, status->matk_min);
 
 #ifdef RENEWAL
-		if( sd && sd->right_weapon.overrefine > 0) {
+		if( sd && sd->right_weapon.overrefine > 0 ) {
 			status->matk_min++;
 			status->matk_max += sd->right_weapon.overrefine - 1;
 		}
 #endif
     }
 
-	if(flag&SCB_ASPD) {
+	if( flag&SCB_ASPD ) {
 		int amotion;
 		if( bl->type&BL_PC ) {
 			amotion = status_base_amotion_pc(sd,status);
 #ifndef RENEWAL_ASPD
 			status->aspd_rate = status_calc_aspd_rate(bl, sc, b_status->aspd_rate);
 
-			if(status->aspd_rate != 1000)
-				amotion = amotion*status->aspd_rate/1000;
+			if( status->aspd_rate != 1000 )
+				amotion = amotion * status->aspd_rate / 1000;
 #else
 			// aspd = baseaspd + floor(sqrt((agi^2/2) + (dex^2/5))/4 + (potskillbonus*agi/200))
 			amotion -= (int)(sqrt( (pow(status->agi, 2) / 2) + (pow(status->dex, 2) / 5) ) / 4 + (status_calc_aspd(bl, sc, 1) * status->agi / 200)) * 10;
@@ -4047,7 +4040,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 					amotion -= ( amotion - ((sd->class_&JOBL_THIRD) ? battle_config.max_third_aspd : battle_config.max_aspd) )
 											* (status_calc_aspd(bl, sc, 2) + status->aspd_rate2) / 100;
 			
-			if(status->aspd_rate != 1000) // absolute percentage modifier
+			if( status->aspd_rate != 1000 ) // Absolute percentage modifier
 					amotion = ( 200 - (200 - amotion / 10) * status->aspd_rate / 1000 ) * 10;
 #endif
 			amotion = status_calc_fix_aspd(bl, sc, amotion);
@@ -4062,7 +4055,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 #endif
 			status->aspd_rate = status_calc_aspd_rate(bl, sc, b_status->aspd_rate);
 
-			if(status->aspd_rate != 1000)
+			if( status->aspd_rate != 1000 )
 				amotion = amotion * status->aspd_rate / 1000;
 
 			amotion = status_calc_fix_aspd(bl, sc, amotion);
@@ -4073,7 +4066,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 			amotion = b_status->amotion;
 			status->aspd_rate = status_calc_aspd_rate(bl, sc, b_status->aspd_rate);
 
-			if(status->aspd_rate != 1000)
+			if( status->aspd_rate != 1000 )
 				amotion = amotion * status->aspd_rate / 1000;
 
 			amotion = status_calc_fix_aspd(bl, sc, amotion);
@@ -4084,32 +4077,32 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		}
 	}
 
-	if(flag&SCB_DSPD) {
+	if( flag&SCB_DSPD ) {
 		int dmotion;
 		if( bl->type&BL_PC ) {
-			if (b_status->agi == status->agi)
+			if( b_status->agi == status->agi )
 				status->dmotion = status_calc_dmotion(bl, sc, b_status->dmotion);
 			else {
-				dmotion = 800-status->agi*4;
+				dmotion = 800 - status->agi * 4;
 				status->dmotion = cap_value(dmotion, 400, 800);
-				if(battle_config.pc_damage_delay_rate != 100)
-					status->dmotion = status->dmotion*battle_config.pc_damage_delay_rate/100;
+				if( battle_config.pc_damage_delay_rate != 100 )
+					status->dmotion = status->dmotion * battle_config.pc_damage_delay_rate / 100;
 				//It's safe to ignore b_status->dmotion since no bonus affects it.
 				status->dmotion = status_calc_dmotion(bl, sc, status->dmotion);
 			}
 		} else if( bl->type&BL_HOM ) {
-			dmotion = 800-status->agi*4;
+			dmotion = 800 - status->agi * 4;
 			status->dmotion = cap_value(dmotion, 400, 800);
 			status->dmotion = status_calc_dmotion(bl, sc, b_status->dmotion);
-		} else { // mercenary and mobs
+		} else { // Mercenary and mobs
 			status->dmotion = status_calc_dmotion(bl, sc, b_status->dmotion);
 		}
 	}
 
-	if(flag&(SCB_VIT|SCB_MAXHP|SCB_INT|SCB_MAXSP) && bl->type&BL_REGEN)
+	if( flag&(SCB_VIT|SCB_MAXHP|SCB_INT|SCB_MAXSP) && bl->type&BL_REGEN )
 		status_calc_regen(bl, status, status_get_regen_data(bl));
 
-	if(flag&SCB_REGEN && bl->type&BL_REGEN)
+	if( flag&SCB_REGEN && bl->type&BL_REGEN )
 		status_calc_regen_rate(bl, status_get_regen_data(bl), sc);
 }
 
