@@ -1633,11 +1633,13 @@ static int battle_calc_base_damage(struct status_data *status, struct weapon_atk
 
 	//Finally, add base attack
 	if(flag&4)
-		damage += status->matk_min;
 #ifdef RENEWAL
-	else if(flag&32)
 		damage += status->matk_min + status->batk;
+#else
+		damage += status->matk_min;
 #endif
+	else if(flag&32)
+		damage += status->matk_min;
 	else
 		damage += status->batk;
 
@@ -2640,14 +2642,10 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 #else
 				i = (is_attack_critical(wd, src, target, skill_id, skill_lv, false)?1:0)|
 					(is_skill_using_arrow(src, skill_id)?2:0)|
-#ifndef RENEWAL
 					(skill_id == HW_MAGICCRASHER?4:0)|
-#else
-					(skill_id == HW_MAGICCRASHER?32:0)|
-#endif
-					(!skill_id && sc && sc->data[SC_CHANGE]?4:0)|
 					(skill_id == MO_EXTREMITYFIST?8:0)|
-					(sc && sc->data[SC_WEAPONPERFECTION]?8:0);
+					(sc && sc->data[SC_WEAPONPERFECTION]?8:0)|
+					(!skill_id && sc && sc->data[SC_CHANGE]?32:0);
 				if(is_skill_using_arrow(src, skill_id) && sd)
 					switch(sd->status.weapon) {
 						case W_BOW:
@@ -3283,8 +3281,9 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			RE_LVL_DMOD(100);
 			break;
 		case NC_POWERSWING:
-			skillratio += 200 + 100 * skill_lv + sstatus->str + sstatus->dex;
+			skillratio += -100 + sstatus->str + sstatus->dex;
 			RE_LVL_DMOD(100);
+			skillratio += 300 + 100 * skill_lv;
 			break;
 		case NC_AXETORNADO:
 			skillratio += 100 + 100 * skill_lv + sstatus->vit;
@@ -3350,8 +3349,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			RE_LVL_DMOD(100);
 			break;
 		case LG_OVERBRAND_PLUSATK:
-			skillratio += -100 + 100 * skill_lv + rnd_value(1,100);
-			RE_LVL_DMOD(100);
+			skillratio += -100 + 100 * skill_lv + rnd_value(10,100);
 			break;
 		case LG_RAYOFGENESIS:
 			skillratio += 200 + 300 * skill_lv;
@@ -4494,7 +4492,15 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		}
 
 #ifdef RENEWAL
+		// In Renewal we only cardfix to the weapon and equip ATK
 		if(sd) { //Monsters, homuns and pets have their damage computed directly
+			//Card Fix for attacker (sd), 2 is added to the "left" flag meaning "attacker cards only"
+			wd.weaponAtk += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.weaponAtk, 2, wd.flag);
+			wd.equipAtk += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.equipAtk, 2, wd.flag);
+			if(is_attack_left_handed(src, skill_id )) {
+				wd.weaponAtk2 += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.weaponAtk2, 3, wd.flag);
+				wd.equipAtk2 += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.equipAtk2, 3, wd.flag);
+			}
 			wd.damage = wd.statusAtk + wd.weaponAtk + wd.equipAtk + wd.masteryAtk;
 			wd.damage2 = wd.statusAtk2 + wd.weaponAtk2 + wd.equipAtk2 + wd.masteryAtk2;
 		}
@@ -4548,10 +4554,12 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 			ATK_ADDRATE(wd.damage, wd.damage2, 15 * sd->talisman[i]); //+15% Weapon Attack
 		}
 
+#ifndef RENEWAL
 		//Card Fix for attacker (sd), 2 is added to the "left" flag meaning "attacker cards only"
 		wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.damage, 2, wd.flag);
 		if(is_attack_left_handed(src, skill_id ))
 			wd.damage2 += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.damage2, 3, wd.flag);
+#endif
 	}
 
 	//Final attack bonuses that aren't affected by cards
@@ -5425,10 +5433,10 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				md.damage = 0;
 			if(tsd) md.damage >>= 1;
 #endif
-			if(md.damage < 0 || md.damage > INT_MAX>>1)
+			if(md.damage < 0 || md.damage > INT_MAX >> 1)
 			//Overflow prevention, will anyone whine if I cap it to a few billion?
 			//Not capped to INT_MAX to give some room for further damage increase.
-				md.damage = INT_MAX>>1;
+				md.damage = INT_MAX >> 1;
 			break;
 		case NJ_ZENYNAGE:
 		case KO_MUCHANAGE:

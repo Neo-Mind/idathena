@@ -1309,7 +1309,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 				sc_start(src, bl, SC_FREEZING, 20 + 10 * skill_lv, skill_lv, skill_get_time2(skill_id, skill_lv));
 			break;
 		case NC_POWERSWING:
-			sc_start(src, bl, SC_STUN, 10, skill_lv, skill_get_time(skill_id, skill_lv));
+			status_change_start(src, bl, SC_STUN, 1000, skill_lv, 0, 0, 0, skill_get_time(skill_id, skill_lv), 10);
 			if( rnd()%100 < 5 * skill_lv )
 				skill_castend_damage_id(src, bl, NC_AXEBOOMERANG, sd ? pc_checkskill(sd, NC_AXEBOOMERANG) : 1, tick, 1);
 			break;
@@ -1830,7 +1830,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 
 	if(sd && skill_id && attack_type&BF_MAGIC && status_isdead(bl) &&
 	 	!(skill_get_inf(skill_id)&(INF_GROUND_SKILL|INF_SELF_SKILL)) &&
-		(rate=pc_checkskill(sd,HW_SOULDRAIN))>0
+		(rate = pc_checkskill(sd,HW_SOULDRAIN)) > 0
 	) { //Soul Drain should only work on targetted spells [Skotlex]
 		if (pc_issit(sd)) pc_setstand(sd); //Character stuck in attacking animation while 'sitting' fix. [Skotlex]
 		clif_skill_nodamage(src,bl,HW_SOULDRAIN,rate,1);
@@ -3403,14 +3403,6 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					map_foreachinrange(skill_area_sub, target, skill_get_splash(skl->skill_id, skl->skill_lv), BL_CHAR,
 						src, skl->skill_id, skl->skill_lv, 0, skl->flag|1|BCT_ENEMY, skill_castend_damage_id);
 					break;
-				case RK_HUNDREDSPEAR:
-					if( src->type == BL_PC ) {
-						int skill_lv = pc_checkskill((struct map_session_data *)src,KN_SPEARBOOMERANG);
-						if( skill_lv > 0 )
-							skill_attack(BF_WEAPON,src,src,target,KN_SPEARBOOMERANG,skill_lv,tick,skl->flag);
-					} else
-						skill_attack(BF_WEAPON,src,src,target,KN_SPEARBOOMERANG,1,tick,skl->flag);
-					break;
 				case CH_PALMSTRIKE: {
 						struct status_change* tsc = status_get_sc(target);
 						struct status_change* sc = status_get_sc(src);
@@ -4325,12 +4317,12 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 		case RK_HUNDREDSPEAR:
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
-			if( rnd()%100 < (10 + 3*skill_lv) ) {
-				if( !sd || pc_checkskill(sd,KN_SPEARBOOMERANG) == 0 )
-					break; // Spear Boomerang auto cast chance only works if you have mastered Spear Boomerang.
+			if( rnd()%100 < (10 + 3 * skill_lv) ) {
+				int skill_req = sd ? pc_checkskill(sd,KN_SPEARBOOMERANG) : 1;
+				if( !skill_req )
+					break; // Spear Boomerang auto cast chance only works if you have it.
 				skill_blown(src,bl,6,-1,0);
-				skill_addtimerskill(src,tick+800,bl->id,0,0,skill_id,skill_lv,BF_WEAPON,flag);
-				skill_castend_damage_id(src,bl,KN_SPEARBOOMERANG,1,tick,0);
+				skill_castend_damage_id(src,bl,KN_SPEARBOOMERANG,skill_req,tick,0);
 			}
 			break;
 		case RK_STORMBLAST:
