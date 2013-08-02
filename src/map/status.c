@@ -2920,9 +2920,9 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 // ----- HIT CALCULATION -----
 
 	// Absolute modifiers from passive skills
-	if((skill=pc_checkskill(sd,BS_WEAPONRESEARCH))>0)
+	if((skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
 		status->hit += skill * 2;
-	if((skill=pc_checkskill(sd,AC_VULTURE))>0) {
+	if((skill = pc_checkskill(sd,AC_VULTURE)) > 0) {
 #ifndef RENEWAL
 		status->hit += skill;
 #endif
@@ -2930,25 +2930,25 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 			status->rhw.range += skill;
 	}
 	if(sd->status.weapon >= W_REVOLVER && sd->status.weapon <= W_GRENADE) {
-		if((skill=pc_checkskill(sd,GS_SINGLEACTION))>0)
+		if((skill = pc_checkskill(sd,GS_SINGLEACTION)) > 0)
 			status->hit += 2 * skill;
-		if((skill=pc_checkskill(sd,GS_SNAKEEYE))>0) {
+		if((skill = pc_checkskill(sd,GS_SNAKEEYE)) > 0) {
 			status->hit += skill;
 			status->rhw.range += skill;
 		}
 	}
-	if( (sd->status.weapon == W_1HAXE || sd->status.weapon == W_2HAXE) && (skill = pc_checkskill(sd,NC_TRAININGAXE)) > 0 )
+	if((sd->status.weapon == W_1HAXE || sd->status.weapon == W_2HAXE) && (skill = pc_checkskill(sd,NC_TRAININGAXE)) > 0)
 		status->hit += skill * 3;
-	if( (sd->status.weapon == W_MACE || sd->status.weapon == W_2HMACE) && (skill = pc_checkskill(sd,NC_TRAININGAXE)) > 0 )
+	if((sd->status.weapon == W_MACE || sd->status.weapon == W_2HMACE) && (skill = pc_checkskill(sd,NC_TRAININGAXE)) > 0)
 		status->hit += skill * 2;
 
 // ----- FLEE CALCULATION -----
 
 	// Absolute modifiers from passive skills
-	if((skill=pc_checkskill(sd,TF_MISS))>0)
+	if((skill = pc_checkskill(sd,TF_MISS)) > 0)
 		status->flee += skill * (sd->class_&JOBL_2 && (sd->class_&MAPID_BASEMASK) == MAPID_THIEF? 4 : 3);
-	if((skill=pc_checkskill(sd,MO_DODGE))>0)
-		status->flee += (skill * 3)>>1;
+	if((skill = pc_checkskill(sd,MO_DODGE)) > 0)
+		status->flee += (skill * 3) >> 1;
 // ----- EQUIPMENT-DEF CALCULATION -----
 
 	// Apply relative modifiers from equipment
@@ -2959,11 +2959,11 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		status->def = cap_value(i, DEFTYPE_MIN, DEFTYPE_MAX);
 	}
 	
-	if(pc_isriding(sd) && pc_checkskill(sd, NC_MAINFRAME)>0)
+	if(pc_isriding(sd) && pc_checkskill(sd, NC_MAINFRAME) > 0)
 		status->def += 20 + (pc_checkskill(sd, NC_MAINFRAME) * 20);
 
 #ifndef RENEWAL
-	if (!battle_config.weapon_defense_type && status->def > battle_config.max_def) {
+	if(!battle_config.weapon_defense_type && status->def > battle_config.max_def) {
 		status->def2 += battle_config.over_def_bonus*(status->def -battle_config.max_def);
 		status->def = (unsigned char)battle_config.max_def;
 	}
@@ -2975,12 +2975,12 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 	if(sd->mdef_rate < 0)
 		sd->mdef_rate = 0;
 	if(sd->mdef_rate != 100) {
-		i =  status->mdef * sd->mdef_rate/100;
+		i =  status->mdef * sd->mdef_rate / 100;
 		status->mdef = cap_value(i, DEFTYPE_MIN, DEFTYPE_MAX);
 	}
 
 #ifndef RENEWAL
-	if (!battle_config.magic_defense_type && status->mdef > battle_config.max_def) {
+	if(!battle_config.magic_defense_type && status->mdef > battle_config.max_def) {
 		status->mdef2 += battle_config.over_def_bonus*(status->mdef -battle_config.max_def);
 		status->mdef = (signed char)battle_config.max_def;
 	}
@@ -2995,64 +2995,64 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 
 	// Relative modifiers from passive skills
 #ifndef RENEWAL_ASPD
-	if((skill=pc_checkskill(sd,SA_ADVANCEDBOOK))>0 && sd->status.weapon == W_BOOK)
-		status->aspd_rate -= 5*skill;
+	if((skill = pc_checkskill(sd,SA_ADVANCEDBOOK)) > 0 && sd->status.weapon == W_BOOK)
+		status->aspd_rate -= 5 * skill;
 	if((skill = pc_checkskill(sd,SG_DEVIL)) > 0 && !pc_nextjobexp(sd))
-		status->aspd_rate -= 30*skill;
-	if((skill=pc_checkskill(sd,GS_SINGLEACTION))>0 &&
+		status->aspd_rate -= 30 * skill;
+	if((skill = pc_checkskill(sd,GS_SINGLEACTION)) > 0 &&
 		(sd->status.weapon >= W_REVOLVER && sd->status.weapon <= W_GRENADE))
-		status->aspd_rate -= ((skill+1)/2)*10;
+		status->aspd_rate -= ((skill + 1) / 2) * 10;
 	if(pc_isriding(sd))
-		status->aspd_rate += 500-100*pc_checkskill(sd,KN_CAVALIERMASTERY);
+		status->aspd_rate += 500 - 100 * pc_checkskill(sd,KN_CAVALIERMASTERY);
 	else if(pc_isridingdragon(sd))
-		status->aspd_rate += 250-50*pc_checkskill(sd,RK_DRAGONTRAINING);
+		status->aspd_rate += 250 - 50 * pc_checkskill(sd,RK_DRAGONTRAINING);
 #else // Needs more info
-	if((skill=pc_checkskill(sd,SA_ADVANCEDBOOK))>0 && sd->status.weapon == W_BOOK)
-		status->aspd_rate += 5*skill;
+	if((skill = pc_checkskill(sd,SA_ADVANCEDBOOK)) > 0 && sd->status.weapon == W_BOOK)
+		status->aspd_rate += 5 * skill;
 	if((skill = pc_checkskill(sd,SG_DEVIL)) > 0 && !pc_nextjobexp(sd))
-		status->aspd_rate += 30*skill;
-	if((skill=pc_checkskill(sd,GS_SINGLEACTION))>0 &&
+		status->aspd_rate += 30 * skill;
+	if((skill = pc_checkskill(sd,GS_SINGLEACTION)) > 0 &&
 		(sd->status.weapon >= W_REVOLVER && sd->status.weapon <= W_GRENADE))
-		status->aspd_rate += ((skill+1)/2) * 10;
+		status->aspd_rate += ((skill + 1) / 2) * 10;
 	if(pc_isriding(sd))
-		status->aspd_rate -= 500-100*pc_checkskill(sd,KN_CAVALIERMASTERY);
+		status->aspd_rate -= 500 - 100 * pc_checkskill(sd,KN_CAVALIERMASTERY);
 	else if(pc_isridingdragon(sd))
-		status->aspd_rate -= 250-50*pc_checkskill(sd,RK_DRAGONTRAINING);
+		status->aspd_rate -= 250 - 50 * pc_checkskill(sd,RK_DRAGONTRAINING);
 #endif
-	status->adelay = 2*status->amotion;
+	status->adelay = 2 * status->amotion;
 
 
 // ----- DMOTION -----
 //
-	i =  800-status->agi*4;
+	i = 800 - status->agi * 4;
 	status->dmotion = cap_value(i, 400, 800);
 	if(battle_config.pc_damage_delay_rate != 100)
-		status->dmotion = status->dmotion*battle_config.pc_damage_delay_rate/100;
+		status->dmotion = status->dmotion * battle_config.pc_damage_delay_rate / 100;
 
 // ----- MISC CALCULATIONS -----
 
 	// Weight
-	if((skill=pc_checkskill(sd,MC_INCCARRY))>0)
-		sd->max_weight += 2000*skill;
-	if(pc_isriding(sd) && pc_checkskill(sd,KN_RIDING)>0)
+	if((skill = pc_checkskill(sd,MC_INCCARRY)) > 0)
+		sd->max_weight += 2000 * skill;
+	if(pc_isriding(sd) && pc_checkskill(sd,KN_RIDING) > 0)
 		sd->max_weight += 10000;
 	else if(pc_isridingdragon(sd))
-		sd->max_weight += 5000+2000*pc_checkskill(sd,RK_DRAGONTRAINING);
+		sd->max_weight += 5000 + 2000 * pc_checkskill(sd,RK_DRAGONTRAINING);
 	if(sc->data[SC_KNOWLEDGE])
-		sd->max_weight += sd->max_weight*sc->data[SC_KNOWLEDGE]->val1/10;
-	if((skill=pc_checkskill(sd,ALL_INCCARRY))>0)
-		sd->max_weight += 2000*skill;
+		sd->max_weight += sd->max_weight * sc->data[SC_KNOWLEDGE]->val1 / 10;
+	if((skill = pc_checkskill(sd,ALL_INCCARRY)) > 0)
+		sd->max_weight += 2000 * skill;
 
-	sd->cart_weight_max = battle_config.max_cart_weight + (pc_checkskill(sd, GN_REMODELING_CART)*5000);
-	
-	if (pc_checkskill(sd,SM_MOVINGRECOVERY)>0)
+	sd->cart_weight_max = battle_config.max_cart_weight + (pc_checkskill(sd,GN_REMODELING_CART) * 5000);
+
+	if(pc_checkskill(sd,SM_MOVINGRECOVERY) > 0)
 		sd->regen.state.walk = 1;
 	else
 		sd->regen.state.walk = 0;
 
 	// Skill SP cost
-	if((skill=pc_checkskill(sd,HP_MANARECHARGE))>0 )
-		sd->dsprate -= 4*skill;
+	if((skill = pc_checkskill(sd,HP_MANARECHARGE)) > 0)
+		sd->dsprate -= 4 * skill;
 
 	if(sc->data[SC_SERVICE4U])
 		sd->dsprate -= sc->data[SC_SERVICE4U]->val3;
