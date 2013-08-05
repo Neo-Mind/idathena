@@ -1539,8 +1539,8 @@ static int battle_calc_base_weapon_attack(struct block_list *src, struct status_
 	unsigned char type = (wa == &status->lhw)?EQI_HAND_L:EQI_HAND_R;
 
 	if (sd->equip_index[type] >= 0 && sd->inventory_data[sd->equip_index[type]]) {
-		atkmin -= wa->atk * (sd->inventory_data[sd->equip_index[type]]->wlv*5)/100;
-		atkmax += wa->atk * (sd->inventory_data[sd->equip_index[type]]->wlv*5)/100;
+		atkmin -= wa->atk * (sd->inventory_data[sd->equip_index[type]]->wlv * 5) / 100;
+		atkmax += wa->atk * (sd->inventory_data[sd->equip_index[type]]->wlv * 5) / 100;
 	}
 
 	if (sc && sc->data[SC_MAXIMIZEPOWER])
@@ -4501,7 +4501,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 			wd.equipAtk2 += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.equipAtk2, 3, wd.flag);
 		}
 
-		// Final attack bonuses that aren't affected by cards
+		//Final attack bonuses that aren't affected by cards
 		wd = battle_attack_sc_bonus(wd, src, skill_id);
 
 		if(sd) { //Monsters, homuns and pets have their damage computed directly
@@ -4564,7 +4564,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 #ifndef RENEWAL
 		//Card Fix for attacker (sd), 2 is added to the "left" flag meaning "attacker cards only"
 		wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.damage, 2, wd.flag);
-		if(is_attack_left_handed(src, skill_id ))
+		if(is_attack_left_handed(src, skill_id))
 			wd.damage2 += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.damage2, 3, wd.flag);
 #endif
 	}

@@ -2855,7 +2855,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		status->max_sp = 1;
 
 // ----- RESPAWN HP/SP -----
-//
+
 	//Calc respawn hp and store it on base_status
 	if(sd->special_state.restart_full_recover) {
 		status->hp = status->max_hp;
@@ -2949,6 +2949,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		status->flee += skill * (sd->class_&JOBL_2 && (sd->class_&MAPID_BASEMASK) == MAPID_THIEF? 4 : 3);
 	if((skill = pc_checkskill(sd,MO_DODGE)) > 0)
 		status->flee += (skill * 3) >> 1;
+
 // ----- EQUIPMENT-DEF CALCULATION -----
 
 	// Apply relative modifiers from equipment
