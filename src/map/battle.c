@@ -859,7 +859,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			clif_skill_nodamage(bl, bl, LK_PARRYING, sce->val1,1);
 			return 0;
 		}
-		
+
 		if( sc->data[SC_DODGE] && ( !sc->opt1 || sc->opt1 == OPT1_BURNING ) &&
 			(flag&BF_LONG || sc->data[SC_SPURT]) && rnd()%100 < 20 ) {
 			if( sd && pc_issit(sd) ) pc_setstand(sd); //Stand it to dodge.
@@ -1083,18 +1083,18 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		}
 
 		//Finally Kyrie because it may, or not, reduce damage to 0.
-		if((sce = sc->data[SC_KYRIE]) && damage > 0){
-			sce->val2-=damage;
-			if(flag&BF_WEAPON || skill_id == TF_THROWSTONE){
-				if(sce->val2>=0)
-					damage=0;
+		if((sce = sc->data[SC_KYRIE]) && damage > 0) {
+			sce->val2 -= damage;
+			if(flag&BF_WEAPON || skill_id == TF_THROWSTONE) {
+				if(sce->val2 >= 0)
+					damage = 0;
 				else
-				  	damage=-sce->val2;
+				  	damage = -sce->val2;
 			}
-			if((--sce->val3)<=0 || (sce->val2<=0) || skill_id == AL_HOLYLIGHT)
+			if((--sce->val3) <= 0 || (sce->val2 <= 0) || skill_id == AL_HOLYLIGHT)
 				status_change_end(bl, SC_KYRIE, INVALID_TIMER);
 		}
-		
+
 		if( sc->data[SC_MEIKYOUSISUI] && rnd()%100 < 40 ) // custom value
 			damage = 0;
 
@@ -1136,7 +1136,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			if ( hd && (rnd()%100<(status_get_lv(bl)/2)) ) hom_addspiritball(hd, 10); //Add a sphere
 		}
 
-		if( sc->data[SC__DEADLYINFECT] && flag&BF_SHORT && damage > 0 && rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 )
+		if( sc->data[SC__DEADLYINFECT] && flag&BF_SHORT && damage > 0 && rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 && !(status_get_mode(src)&MD_BOSS) )
 			status_change_spread(bl, src); // Deadly infect attacked side
 
 		if( sc && sc->data[SC__SHADOWFORM] ) {
@@ -1171,19 +1171,19 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		if( bl->type == BL_MOB ) {
 			int i;
 
-			if( ((sce=sc->data[SC_MANU_ATK]) && (flag&BF_WEAPON)) ||
-				 ((sce=sc->data[SC_MANU_MATK]) && (flag&BF_MAGIC))
+			if( ((sce = sc->data[SC_MANU_ATK]) && (flag&BF_WEAPON)) ||
+				 ((sce = sc->data[SC_MANU_MATK]) && (flag&BF_MAGIC))
 				)
-				for( i=0;ARRAYLENGTH(mob_manuk)>i;i++ )
-					if( ((TBL_MOB*)bl)->class_==mob_manuk[i] ) {
+				for( i = 0; ARRAYLENGTH(mob_manuk) > i; i++ )
+					if( ((TBL_MOB*)bl)->class_ == mob_manuk[i] ) {
 						damage += damage * sce->val1 / 100;
 						break;
 					}
-			if( ((sce=sc->data[SC_SPL_ATK]) && (flag&BF_WEAPON)) ||
-				 ((sce=sc->data[SC_SPL_MATK]) && (flag&BF_MAGIC))
+			if( ((sce = sc->data[SC_SPL_ATK]) && (flag&BF_WEAPON)) ||
+				 ((sce = sc->data[SC_SPL_MATK]) && (flag&BF_MAGIC))
 				)
-				for( i=0;ARRAYLENGTH(mob_splendide)>i;i++ )
-					if( ((TBL_MOB*)bl)->class_==mob_splendide[i] ) {
+				for( i = 0; ARRAYLENGTH(mob_splendide) > i; i++ )
+					if( ((TBL_MOB*)bl)->class_ == mob_splendide[i] ) {
 						damage += damage * sce->val1 / 100;
 						break;
 					}
@@ -1192,10 +1192,10 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			&& ((flag&BF_WEAPON) && (!skill_id || skill_id == GC_VENOMPRESSURE)) //Check skill type poison_smoke is a unit
 			&& (damage > 0 && rnd()%100 < sc->data[SC_POISONINGWEAPON]->val3 ) ) //Did some dammage and chance ok (why no additional effect ??)
 			sc_start(src,bl,sc->data[SC_POISONINGWEAPON]->val2,100,sc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON, 1));
-		if( sc->data[SC__DEADLYINFECT] && flag&BF_SHORT && damage > 0 && rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 )
+		if( sc->data[SC__DEADLYINFECT] && flag&BF_SHORT && damage > 0 && rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 && !(status_get_mode(bl)&MD_BOSS) )
 			status_change_spread(src, bl);
 		if( sc->data[SC_STYLE_CHANGE] ) {
-			TBL_HOM *hd = BL_CAST(BL_HOM,src); //when attacking
+			TBL_HOM *hd = BL_CAST(BL_HOM,src); //When attacking
 			if ( hd && (rnd()%100<(20+status_get_lv(bl)/5)) ) hom_addspiritball(hd, 10);
 		}
 	}

@@ -7076,7 +7076,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_MAGNETICFIELD:
 
 			// Shadow Chaser Effects
-			case SC__DEADLYINFECT:
 			case SC__ENERVATION:
 			case SC__GROOMY:
 			case SC__LAZINESS:
