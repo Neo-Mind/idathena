@@ -4419,7 +4419,7 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
  */
 static struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv, int wflag)
 {
-	int i, type;
+	int i = 0;
 
 	struct map_session_data *sd, *tsd;
 	struct Damage wd;
@@ -4541,6 +4541,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 #endif
 
 	if(sd) {
+		int type = 0;
 		if(skill_id != CR_SHIELDBOOMERANG) //Only Shield boomerang doesn't takes the Star Crumbs bonus.
 			ATK_ADD2(wd.damage, wd.damage2, wd.div_ * sd->right_weapon.star, wd.div_ * sd->left_weapon.star);
 		if(skill_id == MO_FINGEROFFENSIVE) { //The finger offensive spheres on moment of attack do count. [Skotlex]
