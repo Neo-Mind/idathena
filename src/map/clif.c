@@ -2438,7 +2438,7 @@ void clif_storagelist(struct map_session_data* sd, struct item* items, int items
 	const int sidx = 4;
 #else
 	const int s = 24;
-	const int sidx = 4 + 24;
+	const int sidx = 4;
 #endif
 #if PACKETVER < 20071002
 	const int se = 20; //Entry size equip
@@ -2451,7 +2451,7 @@ void clif_storagelist(struct map_session_data* sd, struct item* items, int items
 	const int sidxe = 4;
 #else
 	const int se = 31;
-	const int sidxe = 4 + 24;
+	const int sidxe = 4;
 #endif
 
 	buf = (unsigned char*)aMalloc(items_length * s + sidx);
@@ -5603,16 +5603,16 @@ void clif_maptypeproperty2(struct block_list *bl,enum send_target t) {
 	WBUFW(buf,0) = 0x99b; //2
 	WBUFW(buf,2) = 0x28; //2
 
-	WBUFB(buf,4) = ((map[bl->m].flag.partylock)?0:0x01); //Party
-	WBUFB(buf,4) |= ((map[bl->m].flag.guildlock)?0:0x02); //Guild
+	WBUFB(buf,4) = ((map[bl->m].flag.partylock)?0x01:0); //Party
+	WBUFB(buf,4) |= ((map[bl->m].flag.guildlock)?0x02:0); //Guild
 	WBUFB(buf,4) |= ((map_flag_gvg2(bl->m))?0x04:0); //Siege
-	WBUFB(buf,4) |= ((map[bl->m].flag.nomineeffect)?0:0x08); //Mineffect @FIXME what this do
-	WBUFB(buf,4) |= ((map[bl->m].flag.nolockon)?0x10:0); //Nolockon 0x10 @FIXME what this do
+	WBUFB(buf,4) |= ((map[bl->m].flag.nomineeffect)?0:(map_flag_gvg2(bl->m)?0x08:0)); //Mineffect @FIXME what this do
+	WBUFB(buf,4) |= ((map[bl->m].flag.nolockon)?0:0x10); //Nolockon 0x10 @FIXME what this do
 	WBUFB(buf,4) |= ((map[bl->m].flag.pvp)?0x20:0); //Countpk
 	WBUFB(buf,4) |= 0; //Nopartyformation 0x40
 	WBUFB(buf,4) |= ((map[bl->m].flag.battleground)?0x80:0); //Battleground
 
-	WBUFB(buf,5) = ((map[bl->m].flag.noitemconsumption)?0x01:0); //Noitemconsumption
+	WBUFB(buf,5) = ((map[bl->m].flag.noitemconsumption)?0:0x01); //Noitemconsumption
 	WBUFB(buf,5) |= ((map[bl->m].flag.nousecart)?0:0x02); // Usecart
 	WBUFB(buf,5) |= ((map[bl->m].flag.nosumstarmiracle)?0:0x04); //Summonstarmiracle
 //	WBUFB(buf,5) |= RBUFB(buf,5)&0xf8;  //Sparebit[0-4]
@@ -5632,10 +5632,10 @@ void clif_map_type(struct map_session_data* sd, enum map_type type)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x1D6));
-	WFIFOW(fd,0)=0x1D6;
-	WFIFOW(fd,2)=type;
+	WFIFOW(fd,0) = 0x1D6;
+	WFIFOW(fd,2) = type;
 	WFIFOSET(fd,packet_len(0x1D6));
 }
 
