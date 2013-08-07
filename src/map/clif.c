@@ -4086,11 +4086,11 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 	/**
 	* Hide NPC from maya purple card.
 	**/
-	if(bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
+	if (bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
 		return;
 
 	ud = unit_bl2ud(bl);
-	len = ( ud && ud->walktimer != INVALID_TIMER ) ? clif_set_unit_walking(bl,ud,buf) : clif_set_unit_idle(bl,buf,false);
+	len = (ud && ud->walktimer != INVALID_TIMER) ? clif_set_unit_walking(bl,ud,buf) : clif_set_unit_idle(bl,buf,false);
 	clif_send(buf,len,&sd->bl,SELF);
 
 	if (vd->cloth_color)
@@ -4099,44 +4099,44 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 		case BL_PC: {
 				TBL_PC* tsd = (TBL_PC*)bl;
 				clif_getareachar_pc(sd, tsd);
-				if(tsd->state.size==SZ_BIG) // tiny/big players [Valaris]
+				if (tsd->state.size == SZ_BIG) // Tiny/big players [Valaris]
 					clif_specialeffect_single(bl,423,sd->fd);
-				else if(tsd->state.size==SZ_MEDIUM)
+				else if(tsd->state.size == SZ_MEDIUM)
 					clif_specialeffect_single(bl,421,sd->fd);
-				if( tsd->bg_id && map[tsd->bl.m].flag.battleground )
+				if (tsd->bg_id && map[tsd->bl.m].flag.battleground)
 					clif_sendbgemblem_single(sd->fd,tsd);
-				if( tsd->sc.data[SC_CAMOUFLAGE] )
+				if (tsd->sc.data[SC_CAMOUFLAGE])
 					clif_status_load(bl,SI_CAMOUFLAGE,1);
-				if ( tsd->status.robe )
+				if (tsd->status.robe)
 					clif_refreshlook(&sd->bl,bl->id,LOOK_ROBE,tsd->status.robe,SELF);
 			}
 			break;
 		case BL_MER: // Devotion Effects
-			if( ((TBL_MER*)bl)->devotion_flag )
+			if (((TBL_MER*)bl)->devotion_flag)
 				clif_devotion(bl, sd);
 			break;
 		case BL_NPC: {
 				TBL_NPC* nd = (TBL_NPC*)bl;
-				if( nd->chat_id )
+				if (nd->chat_id)
 					clif_dispchat((struct chat_data*)map_id2bl(nd->chat_id),sd->fd);
-				if( nd->size == SZ_BIG )
+				if (nd->size == SZ_BIG)
 					clif_specialeffect_single(bl,423,sd->fd);
-				else if( nd->size == SZ_MEDIUM )
+				else if (nd->size == SZ_MEDIUM)
 					clif_specialeffect_single(bl,421,sd->fd);
 			}
 			break;
 		case BL_MOB: {
 				TBL_MOB* md = (TBL_MOB*)bl;
-				if(md->special_state.size == SZ_BIG) // Tiny/big mobs [Valaris]
+				if (md->special_state.size == SZ_BIG) // Tiny/big mobs [Valaris]
 					clif_specialeffect_single(bl,423,sd->fd);
-				else if(md->special_state.size == SZ_MEDIUM)
+				else if (md->special_state.size == SZ_MEDIUM)
 					clif_specialeffect_single(bl,421,sd->fd);
 #if PACKETVER >= 20120404
-				if( !(md->status.mode&MD_BOSS) ) {
+				if (!(md->status.mode&MD_BOSS)) {
 					int i;
-					for(i = 0; i < DAMAGELOG_SIZE; i++) { // Must show hp bar to all char who already hit the mob.
-						if( md->dmglog[i].id == sd->status.char_id ) {
-							clif_monster_hp_bar(md, sd);
+					for (i = 0; i < DAMAGELOG_SIZE; i++) { // Must show hp bar to all char who already hit the mob.
+						if (md->dmglog[i].id == sd->status.char_id) {
+							clif_monster_hp_bar(md,sd->fd);
 							break;
 						}
 					}
@@ -4146,7 +4146,7 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 			break;
 		case BL_PET:
 			if (vd->head_bottom)
-				clif_pet_equip(sd, (TBL_PET*)bl); // Needed to display pet equip properly
+				clif_pet_equip(sd,(TBL_PET*)bl); // Needed to display pet equip properly
 			break;
 	}
 }

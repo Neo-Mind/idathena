@@ -2033,9 +2033,9 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 		}
 		if (md->state.aggressive) { //No longer aggressive, change to retaliate AI.
 			md->state.aggressive = 0;
-			if (md->state.skillstate== MSS_ANGRY)
+			if (md->state.skillstate == MSS_ANGRY)
 				md->state.skillstate = MSS_BERSERK;
-			if (md->state.skillstate== MSS_FOLLOW)
+			if (md->state.skillstate == MSS_FOLLOW)
 				md->state.skillstate = MSS_RUSH;
 		}
 		//Log damage
@@ -2046,10 +2046,10 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 
 	if (battle_config.show_mob_info&3)
 		clif_charnameack (0, &md->bl);
-	
+
 	if (!src)
 		return;
-	
+
 #if PACKETVER >= 20120404
 	if (!(md->status.mode&MD_BOSS)) {
 		int i;
@@ -2057,13 +2057,13 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 			if (md->dmglog[i].id) {
 				struct map_session_data *sd = map_charid2sd(md->dmglog[i].id);
 				if (sd && check_distance_bl(&md->bl, &sd->bl, AREA_SIZE)) // Check if in range
-					clif_monster_hp_bar(md, sd);
+					clif_monster_hp_bar(md, sd->fd);
 			}
 		}
 	}
 #endif
-	
-	if( md->special_state.ai == AI_SPHERE ) { //LOne WOlf explained that ANYONE can trigger the marine countdown skill. [Skotlex]
+
+	if (md->special_state.ai == AI_SPHERE) { //LOne WOlf explained that ANYONE can trigger the marine countdown skill. [Skotlex]
 		md->state.alchemist = 1;
 		mobskill_use(md, gettick(), MSC_ALCHEMIST);
 	}
