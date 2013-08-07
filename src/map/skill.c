@@ -9284,8 +9284,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				break;
 			}
 
-		case MH_PAIN_KILLER:
 		case MH_MAGMA_FLOW:
+		case MH_PAIN_KILLER:
 			sc_start(src, bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 			if(hd)
 				skill_blockhomun_start(hd, skill_id, skill_get_cooldown(NULL, skill_id, skill_lv));
