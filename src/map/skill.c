@@ -9206,7 +9206,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case MH_SILENT_BREEZE: {
 				struct status_change *ssc = status_get_sc(src);
-				struct block_list *m_bl = battle_get_master(src);
+				struct block_list *m_src = battle_get_master(src);
 				const enum sc_type scs[] = {
 					SC_MANDRAGORA, SC_HARMONIZE, SC_DEEPSLEEP, SC_VOICEOFSIREN, SC_SLEEP, SC_CONFUSION, SC_HALLUCINATION
 				};
@@ -9215,7 +9215,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					for(i = 0; i < ARRAYLENGTH(scs); i++) {
 						if(tsc->data[scs[i]]) status_change_end(bl, scs[i], INVALID_TIMER);
 					}
-					if(!tsc->data[SC_SILENCE] && !status_get_mode(bl)&MD_BOSS) //Put inavoidable silence on target
+					if(!tsc->data[SC_SILENCE] && !is_boss(bl)) //Put inavoidable silence on target
 						status_change_start(src, bl, SC_SILENCE, 100, skill_lv, 0, 0, 0, skill_get_time(skill_id, skill_lv), 1|2|8);
 				}
 				heal = status_get_sp(src) + status_get_lv(src); //Current SP + Base Level @TODO need real value
@@ -9224,10 +9224,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				//Now inflict silence on everyone
 				if(ssc && !ssc->data[SC_SILENCE]) //Put inavoidable silence on homun
 					status_change_start(src, src, SC_SILENCE, 100, skill_lv, 0, 0, 0, skill_get_time(skill_id, skill_lv), 1|2|8);
-				if(m_bl) {
-					struct status_change *msc = status_get_sc(m_bl);
+				if(m_src) {
+					struct status_change *msc = status_get_sc(m_src);
 					if(msc && !msc->data[SC_SILENCE]) //Put inavoidable silence on master
-						status_change_start(src, m_bl, SC_SILENCE, 100, skill_lv, 0, 0, 0, skill_get_time(skill_id, skill_lv), 1|2|8);
+						status_change_start(src, m_src, SC_SILENCE, 100, skill_lv, 0, 0, 0, skill_get_time(skill_id, skill_lv), 1|2|8);
 				}
 				if(hd)
 					skill_blockhomun_start(hd, skill_id, skill_get_cooldown(NULL, skill_id, skill_lv));
@@ -17732,16 +17732,16 @@ int skill_block_check(struct block_list *bl, sc_type type , uint16 skill_id) {
 	if( !sc || !bl || !skill_id )
 		return 0; // Can do it
 
-	switch(type) {
+	switch( type ) {
 		case SC_STASIS:
 			inf = skill_get_inf2(skill_id);
 			//Song, Dance, Ensemble, Chorus, and all magic skills will not work in Stasis status. [Rytech]
 			if( inf == INF2_SONG_DANCE || inf == INF2_ENSEMBLE_SKILL || inf == INF2_CHORUS_SKILL || inf == BF_MAGIC )
 				return 1;
 			break;
-			
+
 		case SC_KAGEHUMI:
-			switch(skill_id) {
+			switch( skill_id ) {
 				case TF_HIDING:		case AS_CLOAKING:	case GC_CLOAKINGEXCEED:	case SC_SHADOWFORM:
 				case MI_HARMONIZE:	case CG_MARIONETTE:	case AL_TELEPORT:		case TF_BACKSLIDING:
 				case RA_CAMOUFLAGE: case ST_CHASEWALK:	case GD_EMERGENCYCALL:
