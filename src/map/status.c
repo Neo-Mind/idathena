@@ -4309,7 +4309,7 @@ static unsigned short status_calc_str(struct block_list *bl, struct status_chang
 		str += 10;
 	if(sc->data[SC_NEN])
 		str += sc->data[SC_NEN]->val1;
-	if(sc->data[SC_BLESSING]){
+	if(sc->data[SC_BLESSING]) {
 		if(sc->data[SC_BLESSING]->val2)
 			str += sc->data[SC_BLESSING]->val2;
 		else
@@ -8042,7 +8042,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = INVALID_TIMER; //Kaahi Timer
 				break;
 			case SC_BLESSING:
-				if ((!undead_flag && status->race!=RC_DEMON) || bl->type == BL_PC)
+				if ((!undead_flag && status->race != RC_DEMON) || bl->type == BL_PC)
 					val2 = val1;
 				else
 					val2 = 0; //0 -> Half stat

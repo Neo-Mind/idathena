@@ -3502,11 +3502,15 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 		case WM_SOUND_OF_DESTRUCTION:
 			skillratio += 400;
 			break;
-		case GN_CART_TORNADO:
-			// ATK [( Skill Level x 50 ) + ( Cart Weight / ( 150 - Caster's Base STR ))] + ( Cart Remodeling Skill Level x 50 )] %
-			skillratio += -100 + 50 * skill_lv;
-			if(sd && sd->cart_weight)
-				skillratio += sd->cart_weight / 10 / max(150 - sstatus->str,1) + pc_checkskill(sd,GN_REMODELING_CART) * 50;
+		case GN_CART_TORNADO: {
+				// ATK [( Skill Level x 50 ) + ( Cart Weight / ( 150 - Caster's Base STR ))] + ( Cart Remodeling Skill Level x 50 )] %
+				int strbonus = sstatus->str;
+				if(strbonus > 120)
+					strbonus = 120;
+				skillratio += -100 + 50 * skill_lv;
+				if(sd && sd->cart_weight)
+					skillratio += sd->cart_weight / 10 / (150 - strbonus) + pc_checkskill(sd,GN_REMODELING_CART) * 50;
+			}
 			break;
 		case GN_CARTCANNON:
 			// ATK [{( Cart Remodeling Skill Level x 50 ) x ( INT / 40 )} + ( Cart Cannon Skill Level x 60 )] %
