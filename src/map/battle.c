@@ -3411,10 +3411,11 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 				// ATK [((Caster's consumed HP + SP) / 4) x Caster's Base Level / 100] %
 				int hp = sstatus->max_hp * (10 + 2 * skill_lv) / 100,
 					sp = sstatus->max_sp * (5 + skill_lv) / 100;
-				skillratio += -100 + (hp + sp) / 4;
 				// ATK [((Caster's consumed HP + SP) / 2) x Caster's Base Level / 100] %
 				if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE)
-					skillratio = hp + sp / 2;
+					skillratio += -100 + (hp + sp) / 2;
+				else
+					skillratio += -100 + (hp + sp) / 4;
 				RE_LVL_DMOD(100);
 			}
 			break;
@@ -3690,7 +3691,6 @@ static int battle_calc_skill_constant_addition(struct Damage wd, struct block_li
 				atk = (40 * pc_checkskill(sd,RA_RESEARCHTRAP));
 			break;
 		case RA_WUGDASH :
-			//(Caster Current Weight x 10 / 8)
 			if(sd && sd->weight)
 				atk = (sd->weight / 8);
 		case RA_WUGSTRIKE:
@@ -3709,26 +3709,21 @@ static int battle_calc_skill_constant_addition(struct Damage wd, struct block_li
 			break;
 		case SR_GATEOFHELL: {
 				short nk = skill_get_nk(skill_id);
-
 				atk = (sstatus->max_hp - status_get_hp(src));
-				if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE) {
+				if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE)
 					atk += ((sstatus->max_sp * (1 + skill_lv * 2 / 10)) + 40 * status_get_lv(src));
-				} else {
+				else
 					atk += ((sstatus->sp * (1 + skill_lv * 2 / 10)) + 10 * status_get_lv(src));
-				}
-
 				nk |= NK_IGNORE_FLEE;
 			}
 			break;
 		case SR_TIGERCANNON:
-			// (Tiger Cannon skill level x 240) + (Target's Base Level x 40)
-			atk = (skill_lv * 240 + status_get_lv(target) * 40);
 			if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE)
-				// (Tiger Cannon skill level x 500) + (Target's Base Level x 40)
-				atk += (skill_lv * 500 + status_get_lv(target) * 40);
+				atk = (skill_lv * 500 + status_get_lv(target) * 40);
+			else
+				atk = (skill_lv * 240 + status_get_lv(target) * 40);
 			break;
 		case SR_FALLENEMPIRE:
-			// [(Target Size value + Skill Level - 1) x Caster STR] + [(Target current weight x Caster DEX / 120)]
 			atk = (((tstatus->size + 1) * 2 + skill_lv - 1) * sstatus->str);
 			if(tsd && tsd->weight) {
 				atk += ((tsd->weight / 10) * sstatus->dex / 120);
