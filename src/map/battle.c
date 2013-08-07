@@ -5967,7 +5967,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			clif_skillcastcancel(target); //Remove the casting bar. [Skotlex]
 			clif_damage(src, target, tick, sstatus->amotion, 1, 0, 1, 0, 0); //Display MISS.
 			status_change_end(target, SC_AUTOCOUNTER, INVALID_TIMER);
-			skill_attack(BF_WEAPON,target,target,src,KN_AUTOCOUNTER,skill_lv,tick,0);
+			skill_attack(BF_WEAPON, target, target, src, KN_AUTOCOUNTER, skill_lv, tick, 0);
 			return ATK_BLOCK;
 		}
 	}

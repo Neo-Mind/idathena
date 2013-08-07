@@ -2438,7 +2438,7 @@ void clif_storagelist(struct map_session_data* sd, struct item* items, int items
 	const int sidx = 4;
 #else
 	const int s = 24;
-	const int sidx = 4;
+	const int sidx = 4 + 24;
 #endif
 #if PACKETVER < 20071002
 	const int se = 20; //Entry size equip
@@ -2451,7 +2451,7 @@ void clif_storagelist(struct map_session_data* sd, struct item* items, int items
 	const int sidxe = 4;
 #else
 	const int se = 31;
-	const int sidxe = 4;
+	const int sidxe = 4 + 24;
 #endif
 
 	buf = (unsigned char*)aMalloc(items_length * s + sidx);
@@ -2478,7 +2478,7 @@ void clif_storagelist(struct map_session_data* sd, struct item* items, int items
 		WBUFW(buf, 0) = 0x2ea;
 #else
 		WBUFW(buf, 0) = 0x995;
-		memset((char*)WBUFP(buf, 6), 0, 24); //Storename
+		memset((char*)WBUFP(buf, 4), 0, 24); //Storename
 #endif
 		WBUFW(buf, 2) = n * s + sidx;
 		clif_send(buf, WBUFW(buf, 2), &sd->bl, SELF);
@@ -2490,7 +2490,7 @@ void clif_storagelist(struct map_session_data* sd, struct item* items, int items
 		WBUFW(bufe, 0) = 0x2d1;
 #else
 		WBUFW(bufe, 0) = 0x996;
-		memset((char*)WBUFP(bufe, 6), 0, 24); //Storename
+		memset((char*)WBUFP(bufe, 4), 0, 24); //Storename
 #endif
 		WBUFW(bufe, 2) = ne * se + sidxe;
 		clif_send(bufe, WBUFW(bufe, 2), &sd->bl, SELF);
