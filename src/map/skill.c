@@ -9236,15 +9236,15 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case MH_OVERED_BOOST:
 			if(hd) {
-				struct block_list *s_bl = battle_get_master(src);
+				struct block_list *m_src = battle_get_master(src);
 				if(hd->homunculus.hunger > 50) //Reduce hunger
 					hd->homunculus.hunger = hd->homunculus.hunger / 2;
 				else
 					hd->homunculus.hunger = min(1, hd->homunculus.hunger);
-				if(s_bl && s_bl->type == BL_PC) {
-					status_set_sp(s_bl, status_get_max_sp(s_bl) / 2, 0); //Master drain 50% sp
-					clif_send_homdata(((TBL_PC *)s_bl), SP_HUNGRY, hd->homunculus.hunger); //Refresh hunger info
-					sc_start(src, s_bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv)); //Gene bonus
+				if(m_src && m_src->type == BL_PC) {
+					status_set_sp(m_src, status_get_max_sp(m_src) / 2, 0); //Master drain 50% sp
+					clif_send_homdata(((TBL_PC *)m_src), SP_HUNGRY, hd->homunculus.hunger); //Refresh hunger info
+					sc_start(src, m_src, type, 100, skill_lv, skill_get_time(skill_id, skill_lv)); //Gene bonus
 				}
 				sc_start(src, bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 				skill_blockhomun_start(hd, skill_id, skill_get_cooldown(NULL, skill_id, skill_lv));
@@ -9253,9 +9253,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case MH_GRANITIC_ARMOR:
 		case MH_PYROCLASTIC: {
-				struct block_list *s_bl = battle_get_master(src);
+				struct block_list *m_src = battle_get_master(src);
 				//Start on master
-				if(s_bl) sc_start2(src, s_bl, type, 100, skill_lv, hd->homunculus.level, skill_get_time(skill_id, skill_lv));
+				if(m_src) sc_start2(src, m_src, type, 100, skill_lv, hd->homunculus.level, skill_get_time(skill_id, skill_lv));
 				sc_start2(src, bl, type, 100, skill_lv, hd->homunculus.level, skill_get_time(skill_id, skill_lv));
 				if(hd) skill_blockhomun_start(hd, skill_id, skill_get_cooldown(NULL, skill_id, skill_lv));
 			}
@@ -9284,8 +9284,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				break;
 			}
 
-		case MH_MAGMA_FLOW:
 		case MH_PAIN_KILLER:
+		case MH_MAGMA_FLOW:
 			sc_start(src, bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 			if(hd)
 				skill_blockhomun_start(hd, skill_id, skill_get_cooldown(NULL, skill_id, skill_lv));
@@ -9454,7 +9454,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 		
 		if( ud->skill_id == PR_LEXDIVINA || ud->skill_id == MER_LEXDIVINA ) {
 			sc = status_get_sc(target);
-			if( battle_check_target(src,target, BCT_ENEMY) <= 0 && (!sc || !sc->data[SC_SILENCE]) ) {
+			if( battle_check_target(src, target, BCT_ENEMY) <= 0 && (!sc || !sc->data[SC_SILENCE]) ) {
 				//If it's not an enemy, and not silenced, you can't use the skill on them. [Skotlex]
 				clif_skill_nodamage (src, target, ud->skill_id, ud->skill_lv, 0);
 				break;

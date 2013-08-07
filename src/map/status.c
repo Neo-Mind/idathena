@@ -7059,6 +7059,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_VACUUM_EXTREME:
 			case SC_DEEPSLEEP:
 			case SC_CRYSTALIZE:
+			case SC_PAIN_KILLER:
 
 			// Exploit prevention - kRO Fix
 			case SC_PYREXIA:
@@ -8876,7 +8877,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_ANGRIFFS_MODUS:
 				val2 = 50 + 20 * val1; //Atk bonus
 				val3 = 40 + 20 * val1; // Flee reduction.
-				val4 = tick / 1000; // hp/sp reduction timer
+				val4 = tick / 1000; // Hp/Sp reduction timer
 				tick_time = 1000;
 				break;
 			case SC_GOLDENE_FERSE:
@@ -8885,56 +8886,56 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = 2 + 2 * val1; // Chance of holy attack
 				break;
 			case SC_OVERED_BOOST:
-				val2 = 300 + 40 * val1; //flee bonus
-				val3 = 179 + 2 * val1; //aspd bonus
-				val4 = 50; //def reduc %
+				val2 = 300 + 40 * val1; //Flee bonus
+				val3 = 179 + 2 * val1; //Aspd bonus
+				val4 = 50; //Def reduc %
 				break;
 			case SC_GRANITIC_ARMOR:
-				val2 = 2 * val1; //dmg hp reduction
-				val3 = 6 * val1; //dmg hp on status end
-				val4 = 5 * val1; //unknow formula
+				val2 = 2 * val1; //Dmg hp reduction
+				val3 = 6 * val1; //Dmg hp on status end
+				val4 = 5 * val1; //Unknow formula
 				break;
 			case SC_MAGMA_FLOW:
-				val2 = 3 * val1; //activation chance
+				val2 = 3 * val1; //Activation chance
 				break;
 			case SC_PYROCLASTIC:
-				val2 += 10 * val1; //atk bonus
+				val2 += 10 * val1; //Atk bonus
 				val3 = 2 * val1; //Chance To AutoCast Hammer Fall %
 				break;
 			case SC_PARALYSIS: //[Lighta] need real info
-				val2 = 2 * val1; //def reduction
-				val3 = 500 * val1; //varcast augmentation
+				val2 = 2 * val1; //Def reduction
+				val3 = 500 * val1; //Varcast augmentation
 				break;
 			case SC_LIGHT_OF_REGENE: //Yommy leak need confirm
-				val2 = 20 * val1; //hp reco on death %
+				val2 = 20 * val1; //Hp reco on death %
 				break;
 			case SC_PAIN_KILLER: //Yommy leak need confirm
-				val2 = 10 * val1; //aspd reduction %
-				val3 = (( 200 * val1 ) * status_get_lv(src)) / 150; //dmg reduction linear
+				val2 = 10 * val1; //Aspd reduction %
+				val3 = (( 200 * val1 ) * status_get_lv(src)) / 150; //Dmg reduction linear
 				if( sc->data[SC_PARALYSIS] )
-					sc_start(src, bl, SC_ENDURE, 100, val1, tick); //start endure for same duration
+					sc_start(src, bl, SC_ENDURE, 100, val1, tick); //Start endure for same duration
 				break;
 			case SC_STYLE_CHANGE: //[Lighta] need real info
 				tick = -1;
 				break;
 			case SC_CBC:
-				val3 = 10; //drain sp % dmg
-				tick = max(tick,5000); //min 5s (test)
-				val4 = tick / 1000; //dmg each sec
+				val3 = 10; //Drain sp % dmg
+				tick = max(tick,5000); //Min 5s (test)
+				val4 = tick / 1000; //Dmg each sec
 				tick = 1000;
 				break;
 			case SC_EQC:
-				val2 = 5 * val1; //def % reduc
-				val3 = 5 * val1; //atk % reduc
-				val4 = 2 * val1; //maxhp % reduc
+				val2 = 5 * val1; //Def % reduc
+				val3 = 5 * val1; //Atk % reduc
+				val4 = 2 * val1; //Maxhp % reduc
 				break;
 			case SC_ASH:
-				val2 = 50; //hit % reduc
-				val3 = 0; //def % reduc
-				val4 = 0; //atk flee & reduc
-				if( status_get_race(bl) == RC_PLANT ) //plant type
+				val2 = 50; //Hit % reduc
+				val3 = 0; //Def % reduc
+				val4 = 0; //Atk flee & reduc
+				if( status_get_race(bl) == RC_PLANT ) //Plant type
 					val3 = 50;
-				if( status_get_element(bl) == ELE_WATER ) // defense water type
+				if( status_get_element(bl) == ELE_WATER ) //Defense water type
 					val4 = 50;
 				break;
 			default:
