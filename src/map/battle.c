@@ -2856,6 +2856,17 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 		case MER_CRASH:
 			skillratio += 10 * skill_lv;
 			break;
+		case KN_AUTOCOUNTER:
+			if(sc && sc->data[SC_CRUSHSTRIKE]) {
+				if(sd) {
+					//ATK [{Weapon Level * (Weapon Upgrade Level + 6) * 100} + (Weapon ATK) + (Weapon Weight)]%
+					short index = sd->equip_index[EQI_HAND_R];
+					if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
+						skillratio = sd->inventory_data[index]->weight / 10 + sstatus->rhw.atk +
+							100 * sd->inventory_data[index]->wlv * (sd->status.inventory[index].refine + 6);
+				}
+			}
+			break;
 		case KN_SPEARSTAB:
 			skillratio += 15 * skill_lv;
 			break;
@@ -3181,7 +3192,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 				//ATK [{Weapon Level * (Weapon Upgrade Level + 6) * 100} + (Weapon ATK) + (Weapon Weight)]%
 				short index = sd->equip_index[EQI_HAND_R];
 				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
-					skillratio = sd->inventory_data[index]->weight/10 + sstatus->rhw.atk +
+					skillratio = sd->inventory_data[index]->weight / 10 + sstatus->rhw.atk +
 						100 * sd->inventory_data[index]->wlv * (sd->status.inventory[index].refine + 6);
 			}
 			break;
@@ -5921,7 +5932,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		sd->state.arrow_atk = (sd->status.weapon == W_BOW || (sd->status.weapon >= W_REVOLVER && sd->status.weapon <= W_GRENADE));
 		if (sd->state.arrow_atk) {
 			int index = sd->equip_index[EQI_AMMO];
-			if (index<0) {
+			if (index < 0) {
 				clif_arrow_fail(sd,0);
 				return ATK_NONE;
 			}
@@ -5958,16 +5969,18 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		else if (sc->data[SC_CLOAKINGEXCEED] && !(sc->data[SC_CLOAKINGEXCEED]->val4 & 2))
 			status_change_end(src, SC_CLOAKINGEXCEED, INVALID_TIMER);
 	}
-	if( tsc && tsc->data[SC_AUTOCOUNTER] && status_check_skilluse(target, src, KN_AUTOCOUNTER, 1) ) {
+	if (tsc && tsc->data[SC_AUTOCOUNTER] && status_check_skilluse(target, src, KN_AUTOCOUNTER, 1)) {
 		uint8 dir = map_calc_dir(target,src->x,src->y);
 		int t_dir = unit_getdir(target);
 		int dist = distance_bl(src, target);
-		if(dist <= 0 || (!map_check_dir(dir,t_dir) && dist <= tstatus->rhw.range+1)) {
+		if (dist <= 0 || (!map_check_dir(dir,t_dir) && dist <= tstatus->rhw.range+1)) {
 			uint16 skill_lv = tsc->data[SC_AUTOCOUNTER]->val1;
 			clif_skillcastcancel(target); //Remove the casting bar. [Skotlex]
 			clif_damage(src, target, tick, sstatus->amotion, 1, 0, 1, 0, 0); //Display MISS.
 			status_change_end(target, SC_AUTOCOUNTER, INVALID_TIMER);
 			skill_attack(BF_WEAPON, target, target, src, KN_AUTOCOUNTER, skill_lv, tick, 0);
+			if (tsc->data[SC_CRUSHSTRIKE])
+				status_change_end(target, SC_CRUSHSTRIKE, INVALID_TIMER);
 			return ATK_BLOCK;
 		}
 	}
@@ -5987,9 +6000,9 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	}
 
 	if (sd && (skillv = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0) {
-		int triple_rate= 30 - skillv; //Base Rate
+		int triple_rate = 30 - skillv; //Base Rate
 		if (sc && sc->data[SC_SKILLRATE_UP] && sc->data[SC_SKILLRATE_UP]->val1 == MO_TRIPLEATTACK) {
-			triple_rate+= triple_rate*(sc->data[SC_SKILLRATE_UP]->val2)/100;
+			triple_rate += triple_rate * (sc->data[SC_SKILLRATE_UP]->val2) / 100;
 			status_change_end(src, SC_SKILLRATE_UP, INVALID_TIMER);
 		}
 		if (rnd()%100 < triple_rate) {
@@ -6071,7 +6084,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		if( sc->data[SC_GIANTGROWTH] && (wd.flag&BF_SHORT) && rnd()%100 < sc->data[SC_GIANTGROWTH]->val2 )
 			wd.damage *= 3; // Triple Damage
 
-		if( sd && sc->data[SC_FEARBREEZE] && sc->data[SC_FEARBREEZE]->val4 > 0 && sd->status.inventory[sd->equip_index[EQI_AMMO]].amount >= sc->data[SC_FEARBREEZE]->val4 && battle_config.arrow_decrement){
+		if( sd && sc->data[SC_FEARBREEZE] && sc->data[SC_FEARBREEZE]->val4 > 0 && sd->status.inventory[sd->equip_index[EQI_AMMO]].amount >= sc->data[SC_FEARBREEZE]->val4 && battle_config.arrow_decrement) {
 			pc_delitem(sd,sd->equip_index[EQI_AMMO],sc->data[SC_FEARBREEZE]->val4,0,1,LOG_TYPE_CONSUME);
 			sc->data[SC_FEARBREEZE]->val4 = 0;
 		}
