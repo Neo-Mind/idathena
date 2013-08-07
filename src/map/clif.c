@@ -4127,23 +4127,26 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 			break;
 		case BL_MOB: {
 				TBL_MOB* md = (TBL_MOB*)bl;
-				if(md->special_state.size==SZ_BIG) // tiny/big mobs [Valaris]
+				if(md->special_state.size == SZ_BIG) // Tiny/big mobs [Valaris]
 					clif_specialeffect_single(bl,423,sd->fd);
-				else if(md->special_state.size==SZ_MEDIUM)
+				else if(md->special_state.size == SZ_MEDIUM)
 					clif_specialeffect_single(bl,421,sd->fd);
 #if PACKETVER >= 20120404
 				if( !(md->status.mode&MD_BOSS) ) {
 					int i;
-					for(i = 0; i < DAMAGELOG_SIZE; i++) // must show hp bar to all char who already hit the mob.
-						if( md->dmglog[i].id == sd->status.char_id )
-						clif_monster_hp_bar(md, sd->fd);
+					for(i = 0; i < DAMAGELOG_SIZE; i++) { // Must show hp bar to all char who already hit the mob.
+						if( md->dmglog[i].id == sd->status.char_id ) {
+							clif_monster_hp_bar(md, sd);
+							break;
+						}
+					}
 				}
 #endif
 			}
 			break;
 		case BL_PET:
 			if (vd->head_bottom)
-				clif_pet_equip(sd, (TBL_PET*)bl); // needed to display pet equip properly
+				clif_pet_equip(sd, (TBL_PET*)bl); // Needed to display pet equip properly
 			break;
 	}
 }

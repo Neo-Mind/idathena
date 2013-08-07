@@ -2024,7 +2024,7 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 {
 	if (damage > 0) { //Store total damage...
 		if (UINT_MAX - (unsigned int)damage > md->tdmg)
-			md->tdmg+=damage;
+			md->tdmg += damage;
 		else if (md->tdmg == UINT_MAX)
 			damage = 0; //Stop recording damage once the cap has been reached.
 		else { //Cap damage log...
@@ -2033,9 +2033,9 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 		}
 		if (md->state.aggressive) { //No longer aggressive, change to retaliate AI.
 			md->state.aggressive = 0;
-			if(md->state.skillstate== MSS_ANGRY)
+			if (md->state.skillstate== MSS_ANGRY)
 				md->state.skillstate = MSS_BERSERK;
-			if(md->state.skillstate== MSS_FOLLOW)
+			if (md->state.skillstate== MSS_FOLLOW)
 				md->state.skillstate = MSS_RUSH;
 		}
 		//Log damage
@@ -2051,12 +2051,14 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 		return;
 	
 #if PACKETVER >= 20120404
-	if( !(md->status.mode&MD_BOSS) ) {
+	if (!(md->status.mode&MD_BOSS)) {
 		int i;
-		for(i = 0; i < DAMAGELOG_SIZE; i++) { // must show hp bar to all char who already hit the mob.
-			struct map_session_data *sd = map_charid2sd(md->dmglog[i].id);
-			if( sd && check_distance_bl(&md->bl, &sd->bl, AREA_SIZE) ) // check if in range
-				clif_monster_hp_bar(md, sd->fd);
+		for (i = 0; i < DAMAGELOG_SIZE; i++) { // Must show hp bar to all char who already hit the mob.
+			if (md->dmglog[i].id) {
+				struct map_session_data *sd = map_charid2sd(md->dmglog[i].id);
+				if (sd && check_distance_bl(&md->bl, &sd->bl, AREA_SIZE)) // Check if in range
+					clif_monster_hp_bar(md, sd);
+			}
 		}
 	}
 #endif
