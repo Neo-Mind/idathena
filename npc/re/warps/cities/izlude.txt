@@ -90,7 +90,3 @@ iz_ac02_a,113,27,0	warp	#to_ac1f02_a	2,2,iz_ac01_a,122,28
 iz_ac02_b,113,27,0	warp	#to_bc1f02_b	2,2,iz_ac01_b,122,28
 iz_ac02_c,113,27,0	warp	#to_cc1f02_c	2,2,iz_ac01_c,122,28
 iz_ac02_d,113,27,0	warp	#to_dc1f02_d	2,2,iz_ac01_d,122,28
-
-//= Izlude Arena =============================================
-izlude,213,161,0	warp	iz_arena01	2,2,arena_room,100,30
-arena_room,99,24,0	warp	iz_arena01-1	2,2,izlude,209,161
