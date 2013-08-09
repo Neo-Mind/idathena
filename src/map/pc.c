@@ -3105,7 +3105,7 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			sd->skillusesprate[i].val = val;
 		}
 		break;
-	case SP_COOLDOWN:
+	case SP_SKILL_COOLDOWN:
 		if(sd->state.lr_flag == 2)
 			break;
 		ARR_FIND(0, ARRAYLENGTH(sd->cooldown), i, sd->cooldown[i].id == 0 || sd->cooldown[i].id == type2);

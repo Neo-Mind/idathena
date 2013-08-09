@@ -541,7 +541,6 @@ bSkillHeal2	1088
 bAddEffOnSkill	1089
 bHealPower	1090
 bHealPower2	1091
-bCooldown	1092
 
 bRestartFullRecover	2000
 bNoCastCancel	2001
@@ -595,6 +594,7 @@ bSPGainRaceAttack	2047
 bHPGainRaceAttack	2048
 bSkillUseSPrate	2049
 
+bSkillCooldown	2050
 bSkillFixedCast	2051
 bSkillVariableCast	2052
 bFixedCastrate	2053

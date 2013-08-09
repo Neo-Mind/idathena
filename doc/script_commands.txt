@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Current Version: =====================================
-//= $Revision$
+//= $Revision: 17450 $
 //===== Last Updated: ========================================
-//= $LastChangedDate$
+//= $LastChangedDate: 2013-08-09 00:50:50 +0700 (Fri, 09 Aug 2013) $
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
