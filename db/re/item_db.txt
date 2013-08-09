@@ -5748,9 +5748,9 @@
 12422,HP_Increase_Potion_(Small),HP Increase Potion (Small),0,10,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_INCMHPRATE,500000,1; sc_start SC_INCMHP,500000,(500+(10/3)*BaseLevel); percentheal 2,0; },{},{}
 12423,HP_Increase_Potion_(Medium),HP Increase Potion (Medium),0,10,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_INCMHPRATE,500000,2; sc_start SC_INCMHP,500000,(1500+(10/3)*BaseLevel); percentheal 3,0; },{},{}
 12424,HP_Increase_Potion_(Large),HP Increase Potion (Large),0,10,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_INCMHPRATE,500000,5; sc_start SC_INCMHP,500000,(2500+(10/3)*BaseLevel); percentheal 5,0; },{},{}
-12425,SP_Increase_Potion_(Small),SP Increase Potion (Small),0,10,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_INCMSPRATE,500000,2; sc_start SC_INCMSP,500000,(500+(10/3)*BaseLevel); percentheal 0,2; },{},{}
-12426,SP_Increase_Potion_(Medium),SP Increase Potion (Medium),0,10,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_INCMSPRATE,500000,4; sc_start SC_INCMSP,500000,(1500+(10/3)*BaseLevel); percentheal 0,4; },{},{}
-12427,SP_Increase_Potion_(Large),SP Increase Potion (Large),0,10,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_INCMSPRATE,500000,8; sc_start SC_INCMSP,500000,(2500+(10/3)*BaseLevel); percentheal 0,8; },{},{}
+12425,SP_Increase_Potion_(Small),SP Increase Potion (Small),0,10,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_INCMSPRATE,500000,2; sc_start SC_INCMSP,500000,((BaseLevel/10)-5); percentheal 0,2; },{},{}
+12426,SP_Increase_Potion_(Medium),SP Increase Potion (Medium),0,10,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_INCMSPRATE,500000,4; sc_start SC_INCMSP,500000,(BaseLevel/10); percentheal 0,4; },{},{}
+12427,SP_Increase_Potion_(Large),SP Increase Potion (Large),0,10,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_INCMSPRATE,500000,8; sc_start SC_INCMSP,500000,((BaseLevel/10)+5); percentheal 0,8; },{},{}
 12428,Concentrated_White_Potion_Z,Concentrated White Potion Z,0,10,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_EXTRACT_WHITE_POTION_Z,500000,0; heal 1000,0; },{},{}
 12429,Savage_Full_Roast,Savage Full Roast,2,,,50,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_SAVAGE_STEAK,300000,20; },{},{}
 12430,Cocktail_Warg_Blood,Cocktail Warg Blood,2,,,50,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_COCKTAIL_WARG_BLOOD,300000,20; },{},{}
@@ -6453,9 +6453,9 @@
 13275,HP_Inc_PotS_To_Throw,Throwing Increase HP Potion (Small),10,100,,20,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_INCMHPRATE,500000,1; sc_start SC_INCMHP,500000,(500+(10/3)*BaseLevel); percentheal 2,0; },{},{}
 13276,HP_Inc_PotM_To_Throw,Throwing Increase HP Potion (Medium),10,100,,40,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_INCMHPRATE,500000,2; sc_start SC_INCMHP,500000,(1500+(10/3)*BaseLevel); percentheal 3,0; },{},{}
 13277,HP_Inc_PotL_To_Throw,Throwing Increase HP Potion (Large),10,100,,80,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_INCMHPRATE,500000,5; sc_start SC_INCMHP,500000,(2500+(10/3)*BaseLevel); percentheal 5,0; },{},{}
-13278,SP_Inc_PotS_To_Throw,Throwing Increase SP Potion (Small),10,100,,20,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_INCMSPRATE,500000,2; sc_start SC_INCMSP,500000,(500+(10/3)*BaseLevel); percentheal 0,2; },{},{}
-13279,SP_Inc_PotM_To_Throw,Throwing Increase SP Potion (Medium),10,100,,40,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_INCMSPRATE,500000,4; sc_start SC_INCMSP,500000,(1500+(10/3)*BaseLevel); percentheal 0,4; },{},{}
-13280,SP_Inc_PotL_To_Throw,Throwing Increase SP Potion (Large),10,100,,80,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_INCMSPRATE,500000,8; sc_start SC_INCMSP,500000,(2500+(10/3)*BaseLevel); percentheal 0,8; },{},{}
+13278,SP_Inc_PotS_To_Throw,Throwing Increase SP Potion (Small),10,100,,20,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_INCMSPRATE,500000,2; sc_start SC_INCMSP,500000,((BaseLevel/10)-5); percentheal 0,2; },{},{}
+13279,SP_Inc_PotM_To_Throw,Throwing Increase SP Potion (Medium),10,100,,40,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_INCMSPRATE,500000,4; sc_start SC_INCMSP,500000,(BaseLevel/10); percentheal 0,4; },{},{}
+13280,SP_Inc_PotL_To_Throw,Throwing Increase SP Potion (Large),10,100,,80,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_INCMSPRATE,500000,8; sc_start SC_INCMSP,500000,((BaseLevel/10)+5); percentheal 0,8; },{},{}
 13281,En_White_PotZ_To_Throw,Throwing Concentrated White Potion Z,10,100,,70,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_EXTRACT_WHITE_POTION_Z,500000,20; heal 1000,0; },{},{}
 13282,Vitata500_To_Throw,Throwing Vitata 500,10,100,,50,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_VITATA_500,500000,20; },{},{}
 13283,En_Cel_Juice_To_Throw,Throwing Ceromain Soup,10,100,,50,0,,,,0x00040000,8,2,32768,,99,,9,{ sc_start SC_EXTRACT_SALAMINE_JUICE,500000,10; },{},{}
