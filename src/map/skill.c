@@ -411,6 +411,10 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 		case NPC_EVILLAND:
 			hp = (skill_lv > 6) ? 666 : skill_lv * 100;
 			break;
+		case AB_HIGHNESSHEAL:
+			hp = ((status_get_lv(src) + status_get_int(src)) / 8) * (4 + ((sd ? pc_checkskill(sd,AL_HEAL) : 1) * 8));
+			hp = (hp * (17 + 3 * skill_lv)) / 10;
+			break;
 		default:
 			if (skill_lv >= battle_config.max_heal_lv)
 				return battle_config.max_heal;
@@ -419,12 +423,10 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 				* Renewal Heal Formula
 				* Formula: ( [(Base Level + INT) / 5] x 30 ) x (Heal Level / 10) x (Modifiers) + MATK
 				**/
-				hp = (status_get_lv(src) + status_get_int(src)) / 5 * 30  * (skill_id == AB_HIGHNESSHEAL ? (sd ? pc_checkskill(sd,AL_HEAL) : 1 ) : skill_lv) / 10;
+				hp = (status_get_lv(src) + status_get_int(src)) / 5 * 30 * skill_lv / 10;
 #else
-				hp = (status_get_lv(src) + status_get_int(src)) / 8 * (4 + ( (skill_id == AB_HIGHNESSHEAL ? (sd ? pc_checkskill(sd,AL_HEAL) : 1 ) : skill_lv) * 8));
+				hp = (status_get_lv(src) + status_get_int(src)) / 8 * (4 + (skill_lv * 8));
 #endif
-			if( skill_id == AB_HIGHNESSHEAL )
-				hp *= ( 17 + 3 * skill_lv ) / 10;
 			if( sd && ((skill = pc_checkskill(sd, HP_MEDITATIO)) > 0) )
 				hp += hp * skill * 2 / 100;
 			else if( src->type == BL_HOM && (skill = merc_hom_checkskill(((TBL_HOM*)src), HLIF_BRAIN)) > 0 )

@@ -16443,11 +16443,15 @@ void clif_parse_CashShopReqTab(int fd, struct map_session_data *sd) {
 
 //08ca <len>.W <itemcount> W <tabcode>.W (ZC_ACK_SCHEDULER_CASHITEM)
 void clif_cashshop_list( int fd ) {
-	int tab;
+	int tab, i, j = 0;
+
+	for( i = 0; i <= 7; i++ ) {
+		j = j + cash_shop_items[i].count;
+	}
 
 	for( tab = CASHSHOP_TAB_NEW; tab < CASHSHOP_TAB_SEARCH; tab++ ) {
-		int length = 8 + cash_shop_items->count * 6;
-		int i, offset;
+		int length = 8 + j * 6;
+		int k, offset;
 
 		WFIFOHEAD( fd, length );
 		WFIFOW( fd, 0 ) = 0x8ca;
@@ -16455,9 +16459,9 @@ void clif_cashshop_list( int fd ) {
 		WFIFOW( fd, 4 ) = cash_shop_items[tab].count;
 		WFIFOW( fd, 6 ) = tab;
 
-		for( i = 0, offset = 8; i < cash_shop_items[tab].count; i++, offset += 6 ) {
-			WFIFOW( fd, offset ) = cash_shop_items[tab].item[i]->nameid;
-			WFIFOL( fd, offset + 2 ) = cash_shop_items[tab].item[i]->price;
+		for( k = 0, offset = 8; k < cash_shop_items[tab].count; k++, offset += 6 ) {
+			WFIFOW( fd, offset ) = cash_shop_items[tab].item[k]->nameid;
+			WFIFOL( fd, offset + 2 ) = cash_shop_items[tab].item[k]->price;
 		}
 
 		WFIFOSET( fd, length );
