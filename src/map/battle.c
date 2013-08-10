@@ -3382,6 +3382,8 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			if(sc && sc->data[SC_BANDING])
 				skillratio += 200 * sc->data[SC_BANDING]->val2;
 			RE_LVL_DMOD(100);
+			if(sc && sc->data[SC_INSPIRATION])
+				skillratio += 600;
 			if(sc && sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 5)
 				skillratio = skillratio * 150 / 100;
 			break;

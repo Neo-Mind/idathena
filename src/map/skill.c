@@ -13268,7 +13268,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			}
 			break;
 		case LG_RAYOFGENESIS:
-			if( sc && sc->data[SC_INSPIRATION]  )
+			if( sc && sc->data[SC_INSPIRATION] )
 				return 1; //Don't check for partner.
 			if( !(sc && sc->data[SC_BANDING]) ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL,0);
@@ -13277,7 +13277,9 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 				return 0; //Just fails, no msg here.
 			break;
 		case LG_HESPERUSLIT:
-			if( !sc || !sc->data[SC_BANDING] ) {
+			if( sc && sc->data[SC_INSPIRATION] )
+				return 1;
+			if( sc && sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 < 3 ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}
