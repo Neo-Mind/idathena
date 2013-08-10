@@ -8831,7 +8831,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_KAGEMUSYA:
 				val3 = val1 * 2;
 			case SC_IZAYOI:
-				val2 = tick/1000;
+				val2 = tick / 1000;
 				tick_time = 1000;
 				break;
 			case SC_ZANGETSU:
@@ -8859,14 +8859,14 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 						lv = 4;
 
 					if( hp % 2 == 0 )
-						status_heal(bl, hp * (val1 + (6-lv) * 4) / 100, 0, 1);
+						status_heal(bl, hp * (val1 + (6 - lv) * 4) / 100, 0, 1);
 					else
-						status_zap(bl, hp * (val1 + (lv*4)) / 100, 0);
+						status_zap(bl, hp * (val1 + (lv * 4)) / 100, 0);
 
 					if( sp % 2 == 0 )
-						status_heal(bl, 0, sp * (val1 + (6-lv) * 3) / 100, 1);
+						status_heal(bl, 0, sp * (val1 + (6 - lv) * 3) / 100, 1);
 					else
-						status_zap(bl, 0, sp * (val1 +(lv*3)) / 100);
+						status_zap(bl, 0, sp * (val1 + (lv * 3)) / 100);
 				}
 				break;
 			case SC_ANGRIFFS_MODUS:

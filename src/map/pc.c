@@ -248,7 +248,7 @@ int pc_delspiritball(struct map_session_data *sd,int count,int type)
 	return 0;
 }
 
-static int pc_check_banding( struct block_list *bl, va_list ap ) {
+static int pc_check_banding(struct block_list *bl, va_list ap) {
 	int *c, *b_sd;
 	struct block_list *src;
 	struct map_session_data *tsd;

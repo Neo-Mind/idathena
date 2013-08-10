@@ -64,20 +64,17 @@ int quest_add(TBL_PC * sd, int quest_id)
 
 	int i, j;
 
-	if( sd->num_quests >= MAX_QUEST_DB )
-	{
+	if( sd->num_quests >= MAX_QUEST_DB ) {
 		ShowError("quest_add: Character %d has got all the quests.(max quests: %d)\n", sd->status.char_id, MAX_QUEST_DB);
 		return 1;
 	}
 
-	if( quest_check(sd, quest_id, HAVEQUEST) >= 0 )
-	{
+	if( quest_check(sd, quest_id, HAVEQUEST) >= 0 ) {
 		ShowError("quest_add: Character %d already has quest %d.\n", sd->status.char_id, quest_id);
 		return -1;
 	}
 
-	if( (j = quest_search_db(quest_id)) < 0 )
-	{
+	if( (j = quest_search_db(quest_id)) < 0 ) {
 		ShowError("quest_add: quest %d not found in DB.\n", quest_id);
 		return -1;
 	}
@@ -98,6 +95,7 @@ int quest_add(TBL_PC * sd, int quest_id)
 	sd->save_quest = true;
 
 	clif_quest_add(sd, &sd->quest_log[i], sd->quest_index[i]);
+	clif_quest_update_objective(sd, &sd->quest_log[i], sd->quest_index[i]);
 
 	if( save_settings&64 )
 		chrif_save(sd,0);
@@ -110,27 +108,23 @@ int quest_change(TBL_PC * sd, int qid1, int qid2)
 
 	int i, j;
 
-	if( quest_check(sd, qid2, HAVEQUEST) >= 0 )
-	{
+	if( quest_check(sd, qid2, HAVEQUEST) >= 0 ) {
 		ShowError("quest_change: Character %d already has quest %d.\n", sd->status.char_id, qid2);
 		return -1;
 	}
 
-	if( quest_check(sd, qid1, HAVEQUEST) < 0 )
-	{
+	if( quest_check(sd, qid1, HAVEQUEST) < 0 ) {
 		ShowError("quest_change: Character %d doesn't have quest %d.\n", sd->status.char_id, qid1);
 		return -1;
 	}
 
-	if( (j = quest_search_db(qid2)) < 0 )
-	{
+	if( (j = quest_search_db(qid2)) < 0 ) {
 		ShowError("quest_change: quest %d not found in DB.\n",qid2);
 		return -1;
 	}
 
 	ARR_FIND(0, sd->avail_quests, i, sd->quest_log[i].quest_id == qid1);
-	if(i == sd->avail_quests)
-	{
+	if( i == sd->avail_quests ) {
 		ShowError("quest_change: Character %d has completed quests %d.\n", sd->status.char_id, qid1);
 		return -1;
 	}
@@ -146,6 +140,7 @@ int quest_change(TBL_PC * sd, int qid1, int qid2)
 
 	clif_quest_delete(sd, qid1);
 	clif_quest_add(sd, &sd->quest_log[i], sd->quest_index[i]);
+	clif_quest_update_objective(sd, &sd->quest_log[i], sd->quest_index[i]);
 
 	if( save_settings&64 )
 		chrif_save(sd,0);
@@ -159,16 +154,14 @@ int quest_delete(TBL_PC * sd, int quest_id)
 
 	//Search for quest
 	ARR_FIND(0, sd->num_quests, i, sd->quest_log[i].quest_id == quest_id);
-	if(i == sd->num_quests)
-	{
+	if( i == sd->num_quests ) {
 		ShowError("quest_delete: Character %d doesn't have quest %d.\n", sd->status.char_id, quest_id);
 		return -1;
 	}
 
 	if( sd->quest_log[i].state != Q_COMPLETE )
 		sd->avail_quests--;
-	if( sd->num_quests-- < MAX_QUEST_DB && sd->quest_log[i+1].quest_id )
-	{
+	if( sd->num_quests-- < MAX_QUEST_DB && sd->quest_log[i+1].quest_id ) {
 		memmove(&sd->quest_log[i], &sd->quest_log[i+1], sizeof(struct quest)*(sd->num_quests-i));
 		memmove(sd->quest_index+i, sd->quest_index+i+1, sizeof(int)*(sd->num_quests-i));
 	}

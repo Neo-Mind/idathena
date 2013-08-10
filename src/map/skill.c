@@ -10426,7 +10426,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case LG_RAYOFGENESIS:
-			if( status_charge(src,status_get_max_hp(src)*3*skill_lv / 100,0) ) {
+			if( status_charge(src,status_get_max_hp(src) * 3 * skill_lv / 100,0) ) {
 				i = skill_get_splash(skill_id,skill_lv);
 				map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,splash_target(src),
 					src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
@@ -12638,7 +12638,7 @@ int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
  *------------------------------------------*/
 int skill_check_pc_partner (struct map_session_data *sd, uint16 skill_id, short* skill_lv, int range, int cast_flag)
 {
-	static int c=0;
+	static int c = 0;
 	static int p_sd[2] = { 0, 0 };
 	int i;
 	bool is_chorus = ( skill_get_inf2(skill_id)&INF2_CHORUS_SKILL );
