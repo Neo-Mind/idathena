@@ -8591,11 +8591,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = 20 + 10 * val2; //Fixed Cast Time Reduction
 				break;
 			case SC_SATURDAYNIGHTFEVER:
-				/*val2 = 12000 - 2000 * val1; //HP/SP Drain Timer
-				if ( val2 < 1000 )
-					val2 = 1000; //Added to prevent val3 from dividing by 0 when using level 6 or higher through commands. [Rytech]
-				val3 = tick/val2;
-				tick_time = val2;*/
 				val3 = tick / 3000;
 				tick_time = 3000; // [GodLesZ] tick time
 				break;
@@ -8632,11 +8627,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = tick / 1000;
 				tick_time = 1000; // [GodLesZ] tick time
 				break;
-			case SC_FORCEOFVANGUARD: // This is not the official way to handle it but I think we should use it. [pakpil]
+			case SC_FORCEOFVANGUARD:
 				val2 = 8 + 12 * val1; //Chance Of Getting A Rage Counter
 				val3 = 5 + 2 * val1; //Max Number of Rage Counter's Possible
-				tick = -1; //endless duration in the client
-				tick_time = 5000; // [GodLesZ] tick time
+				val4 = tick / 10000;
+				tick_time = 10000; // [GodLesZ] tick time
 				val_flag |= 1|2|4;
 				break;
 			case SC_EXEEDBREAK:
@@ -10760,10 +10755,13 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			break;
 
 		case SC_FORCEOFVANGUARD:
-			if( !status_charge(bl, 0, 24 - 4 * sce->val1) )
-				break;
-			sc_timer_next(10000 + tick, status_change_timer, bl->id, data);
-			return 0;
+			if( --(sce->val4) > 0 ) {
+				if( !status_charge(bl, 0, 24 - 4 * sce->val1) )
+					break;
+				sc_timer_next(10000 + tick, status_change_timer, bl->id, data);
+				return 0;
+			}
+			break;
 
 		case SC_BANDING:
 			if( status_charge(bl, 0, 7 - sce->val1) ) {
@@ -10829,9 +10827,8 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			if( --(sce->val4) > 0 ) {
 				int hp = status->max_hp * (7 / 2 - (1 / 2 * sce->val1)) / 100;
 				int sp = status->max_sp * (9 / 2 - (1 / 2 * sce->val1)) / 100;
-
-				if( !status_charge(bl,hp,sp) ) break;
-
+				if( !status_charge(bl,hp,sp) )
+					break;
 				sc_timer_next(5000 + tick,status_change_timer,bl->id, data);
 				return 0;
 			}

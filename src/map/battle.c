@@ -1312,8 +1312,8 @@ int battle_calc_gvg_damage(struct block_list *src,struct block_list *bl,int dama
 	if (!damage) //No reductions to make.
 		return 0;
 
-	if(md && md->guardian_data) {
-		if(class_ == MOBID_EMPERIUM && flag&BF_SKILL) {
+	if (md && md->guardian_data) {
+		if (class_ == MOBID_EMPERIUM && flag&BF_SKILL) {
 			//Skill immunity.
 			switch (skill_id) {
 #ifndef RENEWAL
@@ -1326,11 +1326,11 @@ int battle_calc_gvg_damage(struct block_list *src,struct block_list *bl,int dama
 					return 0;
 			}
 		}
-		if(src->type != BL_MOB) {
+		if (src->type != BL_MOB) {
 			struct guild *g = src->type == BL_PC ? ((TBL_PC *)src)->guild : guild_search(status_get_guild_id(src));
 			if (class_ == MOBID_EMPERIUM && (!g || guild_checkskill(g,GD_APPROVAL) <= 0 ))
 				return 0;
-				
+	
 			if (g && battle_config.guild_max_castles && guild_checkcastles(g)>=battle_config.guild_max_castles)
 				return 0; // [MouseJstr]
 		}
@@ -1362,7 +1362,7 @@ int battle_calc_gvg_damage(struct block_list *src,struct block_list *bl,int dama
 					damage = damage * battle_config.gvg_long_damage_rate / 100;
 			}
 
-			if(!damage)
+			if (!damage)
 				damage = 1;
 	}
 	return damage;
@@ -3932,16 +3932,23 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 		def2 -= def2 * i / 100;
 	}
 
-	if(tsc && tsc->data[SC_GT_REVITALIZE] && tsc->data[SC_GT_REVITALIZE]->val2)
-		def2 += tsc->data[SC_GT_REVITALIZE]->val4;
+	if(tsc) {
+		if(tsc->data[SC_FORCEOFVANGUARD]) {
+			i = 2 * tsc->data[SC_FORCEOFVANGUARD]->val1;
+			def1 += def1 * i / 100;
+		}
 
-	if(tsc && tsc->data[SC_CAMOUFLAGE]) {
-		i = 5 * tsc->data[SC_CAMOUFLAGE]->val3;
-		def1 -= def1 * i / 100;
-		def2 -= def2 * i / 100;
-		//Min 0 DEF
-		def1 = max(0,def1);
-		def2 = max(0,def2);
+		if(tsc->data[SC_CAMOUFLAGE]) {
+			i = 5 * tsc->data[SC_CAMOUFLAGE]->val3;
+			def1 -= def1 * i / 100;
+			def2 -= def2 * i / 100;
+			//Min 0 DEF
+			def1 = max(0,def1);
+			def2 = max(0,def2);
+		}
+
+		if(tsc->data[SC_GT_REVITALIZE] && tsc->data[SC_GT_REVITALIZE]->val2)
+			def2 += tsc->data[SC_GT_REVITALIZE]->val4;
 	}
 
 	if(battle_config.vit_penalty_type && battle_config.vit_penalty_target&target->type) {

@@ -9562,7 +9562,7 @@ void clif_parse_GetCharNameRequest(int fd, struct map_session_data *sd)
 	struct block_list* bl;
 	//struct status_change *sc;
 	
-	if( id < 0 && -id == sd->bl.id ) // for disguises [Valaris]
+	if( id < 0 && -id == sd->bl.id ) // For disguises [Valaris]
 		id = sd->bl.id;
 
 	bl = map_id2bl(id);
@@ -9572,7 +9572,7 @@ void clif_parse_GetCharNameRequest(int fd, struct map_session_data *sd)
 	if( sd->bl.m != bl->m || !check_distance_bl(&sd->bl, bl, AREA_SIZE) )
 		return; // Block namerequests past view range
 
-	// 'see people in GM hide' cheat detection
+	// 'See people in GM hide' cheat detection
 	/* disabled due to false positives (network lag + request name of char that's about to hide = race condition)
 	sc = status_get_sc(bl);
 	if (sc && sc->option&OPTION_INVISIBLE && !disguised(bl) &&
@@ -9786,29 +9786,29 @@ void clif_parse_HowManyConnections(int fd, struct map_session_data *sd)
 
 void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, int target_id, unsigned int tick)
 {
-	if (pc_isdead(sd)) {
+	if( pc_isdead(sd) ) {
 		clif_clearunit_area(&sd->bl, CLR_DEAD);
 		return;
 	}
 
-	if (sd->sc.count &&
+	if( sd->sc.count &&
 		(sd->sc.data[SC_TRICKDEAD] ||
 		sd->sc.data[SC_AUTOCOUNTER] ||
-		 sd->sc.data[SC_BLADESTOP] ||
-		 sd->sc.data[SC__MANHOLE] ||
-		 sd->sc.data[SC_CURSEDCIRCLE_ATKER] ||
-		 sd->sc.data[SC_CURSEDCIRCLE_TARGET] ))
+		sd->sc.data[SC_BLADESTOP] ||
+		sd->sc.data[SC__MANHOLE] ||
+		sd->sc.data[SC_CURSEDCIRCLE_ATKER] ||
+		sd->sc.data[SC_CURSEDCIRCLE_TARGET] ) )
 		return;
 
 	pc_stop_walking(sd, 1);
 	pc_stop_attack(sd);
 
-	if(target_id<0 && -target_id == sd->bl.id) // for disguises [Valaris]
+	if( target_id < 0 && -target_id == sd->bl.id ) // For disguises [Valaris]
 		target_id = sd->bl.id;
 
-	switch(action_type) {
-		case 0x00: // once attack
-		case 0x07: // continuous attack
+	switch( action_type ) {
+		case 0x00: // Once attack
+		case 0x07: // Continuous attack
 
 			if( pc_cant_act(sd) || sd->sc.option&OPTION_HIDE )
 				return;
@@ -9819,7 +9819,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 			if( sd->sc.data[SC_BASILICA] || sd->sc.data[SC__SHADOWFORM] )
 				return;
 
-			if (!battle_config.sdelay_attack_enable && pc_checkskill(sd, SA_FREECAST) <= 0) {
+			if( !battle_config.sdelay_attack_enable && pc_checkskill(sd, SA_FREECAST) <= 0 ) {
 				if (DIFF_TICK(tick, sd->ud.canact_tick) < 0) {
 					clif_skill_fail(sd, 1, USESKILL_FAIL_SKILLINTERVAL, 0);
 					return;
@@ -9830,25 +9830,25 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 			sd->idletime = last_tick;
 			unit_attack(&sd->bl, target_id, action_type != 0);
 			break;
-		case 0x02: // sitdown
-			if (battle_config.basic_skill_check && pc_checkskill(sd, NV_BASIC) < 3) {
+		case 0x02: // Sitdown
+			if( battle_config.basic_skill_check && pc_checkskill(sd, NV_BASIC) < 3 ) {
 				clif_skill_fail(sd, 1, USESKILL_FAIL_LEVEL, 2);
 				break;
 			}
 
-			if(pc_issit(sd)) {
+			if( pc_issit(sd) ) {
 				//Bugged client? Just refresh them.
 				clif_sitting(&sd->bl);
 				return;
 			}
 
-			if (sd->ud.skilltimer != INVALID_TIMER || (sd->sc.opt1 && sd->sc.opt1 != OPT1_BURNING ))
+			if( sd->ud.skilltimer != INVALID_TIMER || (sd->sc.opt1 && sd->sc.opt1 != OPT1_BURNING ) )
 				break;
 
-			if (sd->sc.count && (
+			if( sd->sc.count && (
 				sd->sc.data[SC_DANCING] ||
-				(sd->sc.data[SC_GRAVITATION] && sd->sc.data[SC_GRAVITATION]->val3 == BCT_SELF)
-			)) //No sitting during these states either.
+				//No sitting during these states either.
+				(sd->sc.data[SC_GRAVITATION] && sd->sc.data[SC_GRAVITATION]->val3 == BCT_SELF)) )
 				break;
 
 			sd->idletime = last_tick;
@@ -9856,8 +9856,8 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 			skill_sit(sd,1);
 			clif_sitting(&sd->bl);
 			break;
-		case 0x03: // standup
-			if (!pc_issit(sd)) {
+		case 0x03: // Standup
+			if( !pc_issit(sd) ) {
 				//Bugged client? Just refresh them.
 				clif_standing(&sd->bl);
 				return;
@@ -9867,7 +9867,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 			pc_setstand(sd);
 			skill_sit(sd,0);
 			clif_standing(&sd->bl);
-		break;
+			break;
 	}
 }
 
@@ -10744,8 +10744,7 @@ static void clif_parse_UseSkillToPos_mercenary(struct mercenary_data *md, struct
 		return;
 	if( md->ud.skilltimer != INVALID_TIMER )
 		return;
-	if( DIFF_TICK(tick, md->ud.canact_tick) < 0 )
-	{
+	if( DIFF_TICK(tick, md->ud.canact_tick) < 0 ) {
 		clif_skill_fail(md->master, skill_id, USESKILL_FAIL_SKILLINTERVAL, 0);
 		return;
 	}
@@ -13300,7 +13299,7 @@ void clif_parse_Alchemist(int fd,struct map_session_data *sd)
 void clif_fame_alchemist(struct map_session_data *sd, int points)
 {
 	int fd = sd->fd;
-	
+
 	WFIFOHEAD(fd,packet_len(0x21c));
 	WFIFOW(fd,0) = 0x21c;
 	WFIFOL(fd,2) = points;
