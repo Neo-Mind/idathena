@@ -4679,7 +4679,7 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 		watk += sc->data[SC_STRIKING]->val2;
 	if(sc->data[SC_SHIELDSPELL_DEF] && sc->data[SC_SHIELDSPELL_DEF]->val1 == 3)
 		watk += sc->data[SC_SHIELDSPELL_DEF]->val2;
-	if(sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 0)
+	if(sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 1)
 		watk += (10 + 10 * sc->data[SC_BANDING]->val1) * sc->data[SC_BANDING]->val2;
 	if(sc->data[SC_INSPIRATION])
 		watk += sc->data[SC_INSPIRATION]->val2;
@@ -5057,7 +5057,7 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 	if(sc->data[SC_PRESTIGE])
 		def += sc->data[SC_PRESTIGE]->val1;
 #ifndef RENEWAL
-	if(sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 0)
+	if(sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 1)
 		def += (5 + sc->data[SC_BANDING]->val1) * sc->data[SC_BANDING]->val2 / 10;
 #endif
 	if(sc->data[SC_ECHOSONG])
@@ -5096,7 +5096,7 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 	if(sc->data[SC_SUN_COMFORT])
 		def2 += sc->data[SC_SUN_COMFORT]->val2;
 #ifdef RENEWAL
-	if(sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 0)
+	if(sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 1)
 		def2 += (5 + sc->data[SC_BANDING]->val1) * sc->data[SC_BANDING]->val2;
 #endif
 
@@ -8312,7 +8312,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = (status->hp * 20 / 100); 
 				if( val2 > 0 )
 					status_heal(bl, -val2, 0, 0); // Reduce health by 20%
-				if ( sd )
+				if( sd )
 #ifdef RENEWAL
 					val1 = sd->status.job_level * pc_checkskill(sd, RK_RUNEMASTERY) / 4; //DEF/MDEF Increase
 #else
@@ -8946,7 +8946,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				case SC_SUMMER:
 					clif_changelook(bl,LOOK_WEAPON,0);
 					clif_changelook(bl,LOOK_SHIELD,0);
-					clif_changelook(bl,LOOK_BASE,type==SC_WEDDING?JOB_WEDDING:type==SC_XMAS?JOB_XMAS:type==SC_SUMMER?JOB_SUMMER:SC_HANBOK);
+					clif_changelook(bl,LOOK_BASE,type == SC_WEDDING ? JOB_WEDDING : type == SC_XMAS ? JOB_XMAS :
+						type == SC_SUMMER ? JOB_SUMMER : SC_HANBOK);
 					clif_changelook(bl,LOOK_CLOTHES_COLOR,val4);
 					break;
 				case SC_KAAHI:

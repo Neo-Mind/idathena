@@ -262,19 +262,19 @@ enum bl_type {
 enum npc_subtype { WARP, SHOP, SCRIPT, CASHSHOP, TOMB };
 
 enum {
-	RC_FORMLESS=0,
+	RC_FORMLESS = 0, //Nothing
 	RC_UNDEAD,
-	RC_BRUTE,
+	RC_BRUTE,        //Animal
 	RC_PLANT,
 	RC_INSECT,
 	RC_FISH,
-	RC_DEMON,
-	RC_DEMIHUMAN,
+	RC_DEMON,        //Devil
+	RC_DEMIHUMAN,    //Human
 	RC_ANGEL,
 	RC_DRAGON,
-	RC_BOSS,
-	RC_NONBOSS,
-	RC_NONDEMIHUMAN,
+	RC_BOSS,         //Player - Not sure why, but thats what it shows officially.
+	RC_NONBOSS,      //Last - It marks the end of the race enum table in official,
+	RC_NONDEMIHUMAN, //but NONBOSS and NONDEMIHUMAN exists here for custom needs.
 	RC_MAX
 };
 
@@ -316,13 +316,13 @@ enum mob_ai {
 };
 
 enum auto_trigger_flag {
-	ATF_SELF=0x01,
-	ATF_TARGET=0x02,
-	ATF_SHORT=0x04,
-	ATF_LONG=0x08,
-	ATF_WEAPON=0x10,
-	ATF_MAGIC=0x20,
-	ATF_MISC=0x40,
+	ATF_SELF   =0x01,
+	ATF_TARGET =0x02,
+	ATF_SHORT  =0x04,
+	ATF_LONG   =0x08,
+	ATF_WEAPON =0x10,
+	ATF_MAGIC  =0x20,
+	ATF_MISC   =0x40,
 };
 
 struct block_list {

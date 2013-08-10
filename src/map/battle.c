@@ -838,17 +838,19 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			return 0;
 		}
 
-		if( (sce = sc->data[SC_MILLENNIUMSHIELD]) && sce->val2 > 0 && damage > 0 ) {
+		if( damage > 0 && (sce = sc->data[SC_MILLENNIUMSHIELD]) && sce->val2 > 0 ) {
 			sce->val3 -= damage; //Absorb damage
 			d->dmg_lv = ATK_BLOCK;
 			if( sce->val3 <= 0 ) { //Shield down
 				sce->val2--;
-				if( sce->val2 > 0 ) {
+				if( sce->val2 >= 0 ) {
 					if( sd )
-						clif_millenniumshield(sd,sce->val2);
+						clif_millenniumshield(sd, sce->val2);
+					if( !sce->val2 )
+						status_change_end(bl, SC_MILLENNIUMSHIELD, INVALID_TIMER); //All shields down
+					else
 						sce->val3 = 1000; //Next shield
-				} else
-					status_change_end(bl, SC_MILLENNIUMSHIELD, INVALID_TIMER); //All shields down
+				}
 				status_change_start(src, bl, SC_STUN, 10000, 0, 0, 0, 0, 1000, 2);
 			}
 			return 0;
@@ -2248,8 +2250,11 @@ static int battle_get_weapon_element(struct Damage wd, struct block_list *src, s
 		if(src->type == BL_HOM)
 			element = ELE_NONE; //Skill is "not elemental"
 
-	if(sc && sc->data[SC_GOLDENE_FERSE] && ((!skill_id && (rnd() % 100 < sc->data[SC_GOLDENE_FERSE]->val4)) || skill_id == MH_STAHL_HORN))
-		element = ELE_HOLY;
+	if(sc)
+		if((sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 4 && skill_id == LG_HESPERUSLIT) ||
+			(sc->data[SC_GOLDENE_FERSE] && ((!skill_id && (rnd()%100 < sc->data[SC_GOLDENE_FERSE]->val4)) ||
+			skill_id == MH_STAHL_HORN)))
+			element = ELE_HOLY;
 
 	//Calc_flag means the element should be calculated for damage only
 	if(calc_for_damage_only)
@@ -3167,7 +3172,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			skillratio = skillratio * (100 + (status_get_lv(src) - 100) / 2) / 100;
 			break;
 		case RK_WINDCUTTER:
-			skillratio = (skill_lv + 2) * 50;
+			skillratio += -100 + (skill_lv + 2) * 50;
 			RE_LVL_DMOD(100);
 			break;
 		case RK_IGNITIONBREAK: {
@@ -3184,7 +3189,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 				// Elemental check, +(Skill Level x 100)% damage if your element is fire.
 				if(sstatus->rhw.ele == ELE_FIRE)
 					dmg += skill_lv * 100;
-				skillratio = dmg;
+				skillratio += -100 + dmg;
 			}
 			break;
 		case RK_CRUSHSTRIKE:
@@ -3246,11 +3251,12 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			skillratio += 200;
 			break;
 		case RA_WUGSTRIKE:
-			skillratio = 200 * skill_lv;
+			skillratio += -100 + 200 * skill_lv;
 			break;
 		case RA_WUGBITE:
 			skillratio += 300 + 200 * skill_lv;
-			if(skill_lv == 5) skillratio += 100;
+			if(skill_lv == 5)
+				skillratio += 100;
 			break;
 		case RA_SENSITIVEKEEN:
 			skillratio += 50 * skill_lv;
@@ -3300,7 +3306,8 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			skillratio += 100 + 100 * skill_lv + sstatus->vit;
 			RE_LVL_DMOD(100);
 			i = distance_bl(src,target);
-			if( i > 5 ) skillratio = skillratio * 75 / 100;
+			if( i > 5 )
+				skillratio = skillratio * 75 / 100;
 			break;
 		case SC_FATALMENACE:
 			skillratio += 100 * skill_lv;
@@ -3372,21 +3379,23 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			break;
 		case LG_HESPERUSLIT:
 			skillratio += -100 + 120 * skill_lv;
-			// Banding check needed here.
-			if(sc && sc->data[SC_INSPIRATION])
-				skillratio += 600;
+			if(sc && sc->data[SC_BANDING])
+				skillratio += 200 * sc->data[SC_BANDING]->val2;
 			RE_LVL_DMOD(100);
+			if(sc && sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 5)
+				skillratio = skillratio * 150 / 100;
 			break;
 		case SR_DRAGONCOMBO:
 			skillratio += 40 * skill_lv;
 			RE_LVL_DMOD(100);
 			break;
 		case SR_SKYNETBLOW:
-			//ATK [{(Skill Level x 80) + (Caster's AGI)} x Caster's Base Level / 100] %
-			skillratio += -100 + 80 * skill_lv + sstatus->agi;
 			if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_DRAGONCOMBO)
 				//ATK [{(Skill Level x 100) + (Caster's AGI) + 150} x Caster's Base Level / 100] %
-				skillratio = 100 * skill_lv + sstatus->agi + 150;
+				skillratio += 100 * skill_lv + sstatus->agi + 50;
+			else
+				//ATK [{(Skill Level x 80) + (Caster's AGI)} x Caster's Base Level / 100] %
+				skillratio += -100 + 80 * skill_lv + sstatus->agi;
 			RE_LVL_DMOD(100);
 			break;
 		case SR_EARTHSHAKER:
@@ -4418,6 +4427,20 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 			case LK_SPIRALPIERCE:
 				if(!sd) wd.flag = (wd.flag&~(BF_RANGEMASK|BF_WEAPONMASK))|BF_LONG|BF_MISC;
 				break;
+
+			//The number of hits is set to 3 by default for use in Inspiration status.
+			//When in banding, the number of hits is equal to the number of Royal Guards in banding.
+			case LG_HESPERUSLIT: {
+					struct status_change *sc = status_get_sc(src);
+					if(sc && sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 3)
+						wd.div_ = sc->data[SC_BANDING]->val2;
+				}
+				break;
+
+			case EL_STONE_RAIN:
+				if(!(wd.miscflag&1))
+					wd.div_ = 1;
+				break;
 		}
 	} else {
 		wd.flag |= is_skill_using_arrow(src,skill_id) ? BF_LONG : BF_SHORT;
@@ -4695,7 +4718,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	//Initialize variables that will be used afterwards
 	s_ele = skill_get_ele(skill_id,skill_lv);
 
-	if(s_ele == -1) { // pl=-1 : the skill takes the weapon's element
+	if(s_ele == -1) { // pl = -1 : the skill takes the weapon's element
 		s_ele = sstatus->rhw.ele;
 		if(sd) { //Summoning 10 talisman will endow your weapon
 			ARR_FIND(1, 6, i, sd->talisman[i] >= 10);
@@ -4706,7 +4729,10 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	else if(s_ele == -3) //Use random element
 		s_ele = rnd()%ELE_MAX;
 
-	if(skill_id == SO_PSYCHIC_WAVE) {
+	if(skill_id == LG_SHIELDSPELL) {
+		if(skill_lv == 2)
+			s_ele = ELE_HOLY;
+	} else if(skill_id == SO_PSYCHIC_WAVE) {
 		if(sc && sc->count) {
 			if (sc->data[SC_HEATER_OPTION]) s_ele = sc->data[SC_HEATER_OPTION]->val4;
 			else if (sc->data[SC_COOLER_OPTION]) s_ele = sc->data[SC_COOLER_OPTION]->val4;
@@ -5040,18 +5066,15 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						skillratio += -100 + (1 + skill_lv) / 2 * (status_get_lv(src) + (sd ? sd->status.job_level : 0));
 						RE_LVL_DMOD(100);
 						break;
-					case LG_RAYOFGENESIS: {
-							int16 lv = skill_lv;
-							int bandingBonus = 0;
-							if(sc && sc->data[SC_BANDING])
-								bandingBonus = 200 * (sd ? skill_check_pc_partner(sd,skill_id,&lv,skill_get_splash(skill_id,skill_lv),0) : 1);
-							skillratio += -100 + ((300 * skill_lv) + bandingBonus) * (sd ? sd->status.job_level / 25 : 1);
-						}
+					case LG_RAYOFGENESIS:
+						skillratio += -100 + 300 * skill_lv;
+						if(sc && sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 1)
+							skillratio += 200 * sc->data[SC_BANDING]->val2;
+						skillratio = skillratio * (sd ? sd->status.job_level / 25 : 1);
 						break;
 					case LG_SHIELDSPELL:
 						// [(Caster's Base Level x 4) + (Shield MDEF x 100) + (Caster's INT x 2)] %
 						if(sd && skill_lv == 2) {
-							s_ele = ELE_HOLY;
 							skillratio += -100 + status_get_lv(src) * 4 + sd->bonus.shieldmdef * 100 + status_get_int(src) * 2;
 						} else
 							skillratio = 0;
