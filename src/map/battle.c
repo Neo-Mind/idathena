@@ -773,7 +773,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 				(skill_id && skill_get_ele(skill_id, skill_lv) == ELE_GHOST) ||
 				(!skill_id && (status_get_status_data(src))->rhw.ele == ELE_GHOST)
 					) {
-				status_change_end(bl,SC_WHITEIMPRISON,INVALID_TIMER); // Those skills do damage and removes effect
+				status_change_end(bl,SC_WHITEIMPRISON,INVALID_TIMER); //Those skills do damage and removes effect
 			} else {
 				d->dmg_lv = ATK_BLOCK;
 				return 0;
@@ -789,13 +789,24 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		if( sc->data[SC_SAFETYWALL] &&
 			((flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT || (skill_get_inf2(skill_id)&INF2_TRAP)) ) {
 			struct skill_unit_group* group = skill_id2group(sc->data[SC_SAFETYWALL]->val3);
+			uint16 skill_id = sc->data[SC_SAFETYWALL]->val2;
 			if( group ) {
-				//Renewal SW possesses a lifetime equal to group val2, (3x caster's hp, or homon formula)
+				if( skill_id == MH_STEINWAND ) {
+					if( --group->val2 <= 0 )
+						skill_delunitgroup(group);
+					d->dmg_lv = ATK_BLOCK;
+					if( (group->val3 - damage) > 0 )
+						group->val3 -= damage;
+					else
+						skill_delunitgroup(group);
+					return 0;
+				}
+				//Renewal SW possesses a lifetime equal to 3 times the caster's health
 #ifdef RENEWAL
 				d->dmg_lv = ATK_BLOCK;
-				if( (group->val2 - damage) > 0 ) {
+				if( (group->val2 - damage) > 0 )
 					group->val2 -= damage;
-				} else
+				else
 					skill_delunitgroup(group);
 				return 0;
 #else
@@ -1190,15 +1201,13 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 						break;
 					}
 		}
-		if( sc->data[SC_POISONINGWEAPON]
-			&& ((flag&BF_WEAPON) && (!skill_id || skill_id == GC_VENOMPRESSURE)) //Check skill type poison_smoke is a unit
-			&& (damage > 0 && rnd()%100 < sc->data[SC_POISONINGWEAPON]->val3 ) ) //Did some dammage and chance ok (why no additional effect ??)
-			sc_start(src,bl,sc->data[SC_POISONINGWEAPON]->val2,100,sc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON, 1));
+		if( sc->data[SC_POISONINGWEAPON] && skill_id != GC_VENOMPRESSURE && (flag&BF_WEAPON) && damage > 0 && rnd()%100 < sc->data[SC_POISONINGWEAPON]->val3 )
+			sc_start(src,bl,sc->data[SC_POISONINGWEAPON]->val2,100,sc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON,1));
 		if( sc->data[SC__DEADLYINFECT] && flag&BF_SHORT && damage > 0 && rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 && !(status_get_mode(bl)&MD_BOSS) )
 			status_change_spread(src, bl);
 		if( sc->data[SC_STYLE_CHANGE] ) {
 			TBL_HOM *hd = BL_CAST(BL_HOM,src); //When attacking
-			if ( hd && (rnd()%100<(20+status_get_lv(bl)/5)) ) hom_addspiritball(hd, 10);
+			if( hd && (rnd()%100 < (20 + status_get_lv(bl) / 5)) ) hom_addspiritball(hd,10);
 		}
 	}
 

@@ -1316,7 +1316,7 @@ int status_damage(struct block_list *src, struct block_list *target, int hp, int
 		}
 	}
 	if (target->type == BL_MOB && sc && sc->data[SC_REBIRTH] && !((TBL_MOB*) target)->state.rebirth) {
-		// Ensure the monster has not already rebirthed before doing so.
+		//Ensure the monster has not already rebirthed before doing so.
 		status_revive(target, sc->data[SC_REBIRTH]->val2, 0);
 		status_change_clear(target,0);
 		((TBL_MOB*)target)->state.rebirth = 1;
@@ -1328,7 +1328,7 @@ int status_damage(struct block_list *src, struct block_list *target, int hp, int
 
 	if (flag&4) //Delete from memory. (also invokes map removal code)
 		unit_free(target,CLR_DEAD);
-	else if (flag&2) //remove from map
+	else if (flag&2) //Remove from map
 		unit_remove_map(target,CLR_DEAD);
 	else { //Some death states that would normally be handled by unit_remove_map
 		unit_stop_attack(target);
@@ -2956,7 +2956,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 	if(sd->def_rate < 0)
 		sd->def_rate = 0;
 	if(sd->def_rate != 100) {
-		i =  status->def * sd->def_rate/100;
+		i = status->def * sd->def_rate / 100;
 		status->def = cap_value(i, DEFTYPE_MIN, DEFTYPE_MAX);
 	}
 	
@@ -2965,8 +2965,8 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 
 #ifndef RENEWAL
 	if(!battle_config.weapon_defense_type && status->def > battle_config.max_def) {
-		status->def2 += battle_config.over_def_bonus*(status->def -battle_config.max_def);
-		status->def = (unsigned char)battle_config.max_def;
+		status->def2 += battle_config.over_def_bonus * (status->def - battle_config.max_def);
+		status->def = (signed short)battle_config.max_def;
 	}
 #endif
 
@@ -2982,8 +2982,8 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 
 #ifndef RENEWAL
 	if(!battle_config.magic_defense_type && status->mdef > battle_config.max_def) {
-		status->mdef2 += battle_config.over_def_bonus*(status->mdef -battle_config.max_def);
-		status->mdef = (signed char)battle_config.max_def;
+		status->mdef2 += battle_config.over_def_bonus*(status->mdef - battle_config.max_def);
+		status->mdef = (signed short)battle_config.max_def;
 	}
 #endif
 

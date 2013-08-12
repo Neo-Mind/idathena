@@ -10830,18 +10830,18 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 
 	sd = BL_CAST(BL_PC, src);
 	status = status_get_status_data(src);
-	sc = status_get_sc(src); // For traps, firewall and fogwall - celest
+	sc = status_get_sc(src); //For traps, firewall and fogwall - celest
 
 	switch( skill_id ) {
 		case MH_STEINWAND:
+			val2 = 4+skill_lv;
+			val3 = 300*skill_lv+65*(status->int_+status_get_lv(src))+status->max_sp;
+			break;
 		case MG_SAFETYWALL:
-			if( skill_id == MH_STEINWAND )
-				val2 = 300*skill_lv+65*(status->int_+status_get_lv(src))+status->max_sp; //nb hp
-			else
 #ifdef RENEWAL
-				val2 = status_get_max_hp(src)*3;
+			val2 = status_get_max_hp(src)*3;
 #else
-				val2 = skill_lv+1;
+			val2 = skill_lv+1;
 #endif
 			break;
 		case MG_FIREWALL:
@@ -10849,12 +10849,11 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 				limit = limit*3/2;
 			val2 = 4+skill_lv;
 			break;
-
 		case AL_WARP:
 			val1 = skill_lv+6;
 			if( !(flag&1) )
 				limit = 2000;
-			else { // Previous implementation (not used anymore)
+			else { //Previous implementation (not used anymore)
 				//Warp Portal morphing to active mode, extract relevant data from src. [Skotlex]
 				if( src->type != BL_SKILL ) return NULL;
 				group = ((TBL_SKILL*)src)->group;
@@ -10865,14 +10864,12 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			}
 			break;
 		case HP_BASILICA:
-			val1 = src->id; // Store caster id.
+			val1 = src->id; //Store caster id.
 			break;
-
 		case PR_SANCTUARY:
 		case NPC_EVILLAND:
 			val1 = (skill_lv+3)*2;
 			break;
-
 		case WZ_FIREPILLAR:
 			if( map_getcell(src->m, x, y, CELL_CHKLANDPROTECTOR) )
 				return NULL;
@@ -10921,7 +10918,6 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 					target = BCT_ALL;
 			}
 			break;
-
 		case SA_LANDPROTECTOR:
 		case SA_VOLCANO:
 		case SA_DELUGE:
@@ -10945,7 +10941,6 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 				}
 				break;
 			}
-
 		case BA_WHISTLE:
 			val1 = skill_lv +status->agi/10; // Flee increase
 			val2 = ((skill_lv+1)/2)+status->luk/10; // Perfect dodge increase
@@ -11041,7 +11036,6 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		case NJ_SUITON:
 			skill_clear_group(src, 1);
 			break;
-
 		case GS_GROUNDDRIFT: {
 				int element[5]={ELE_WIND,ELE_DARK,ELE_POISON,ELE_WATER,ELE_FIRE};
 
@@ -15587,15 +15581,14 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 	struct unit_data *ud;
 	int i,j;
 	
-	if( group == NULL )
-	{
+	if( group == NULL ) {
 		ShowDebug("skill_delunitgroup: group is NULL (source=%s:%d, %s)! Please report this! (#3504)\n", file, line, func);
 		return 0;
 	}
 
-	src=map_id2bl(group->src_id);
+	src = map_id2bl(group->src_id);
 	ud = unit_bl2ud(src);
-	if(!src || !ud) {
+	if( !src || !ud ) {
 		ShowError("skill_delunitgroup: Group's source not found! (src_id: %d skill_id: %d)\n", group->src_id, group->skill_id);
 		return 0;
 	}
@@ -15617,18 +15610,16 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 		}
 	}
 
-	if (skill_get_unit_flag(group->skill_id)&(UF_DANCE|UF_SONG|UF_ENSEMBLE))
-	{
+	if (skill_get_unit_flag(group->skill_id)&(UF_DANCE|UF_SONG|UF_ENSEMBLE)) {
 		struct status_change* sc = status_get_sc(src);
-		if (sc && sc->data[SC_DANCING])
-		{
+		if (sc && sc->data[SC_DANCING]) {
 			sc->data[SC_DANCING]->val2 = 0 ; //This prevents status_change_end attempting to redelete the group. [Skotlex]
 			status_change_end(src, SC_DANCING, INVALID_TIMER);
 		}
 	}
 
-	// end Gospel's status change on 'src'
-	// (needs to be done when the group is deleted by other means than skill deactivation)
+	//End Gospel's status change on 'src'
+	//(needs to be done when the group is deleted by other means than skill deactivation)
 	if (group->unit_id == UNT_GOSPEL) {
 		struct status_change *sc = status_get_sc(src);
 		if(sc && sc->data[SC_GOSPEL]) {
@@ -15680,24 +15671,24 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 
 	group->alive_count = 0;
 
-	// remove all unit cells
+	//Remove all unit cells
 	if(group->unit != NULL)
 		for( i = 0; i < group->unit_count; i++ )
 			skill_delunit(&group->unit[i]);
 
-	// clear Talkie-box string
+	//Clear Talkie-box string
 	if( group->valstr != NULL ) {
 		aFree(group->valstr);
 		group->valstr = NULL;
 	}
 
 	idb_remove(group_db, group->group_id);
-	map_freeblock(&group->unit->bl); // schedules deallocation of whole array (HACK)
+	map_freeblock(&group->unit->bl); //Schedules deallocation of whole array (HACK)
 	group->unit=NULL;
 	group->group_id=0;
 	group->unit_count=0;
 
-	// locate this group, swap with the last entry and delete it
+	//Locate this group, swap with the last entry and delete it
 	ARR_FIND( 0, MAX_SKILLUNITGROUP, i, ud->skillunit[i] == group );
 	ARR_FIND( i, MAX_SKILLUNITGROUP, j, ud->skillunit[j] == NULL ); j--;
 	if( i < MAX_SKILLUNITGROUP ) {
