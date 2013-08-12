@@ -10975,8 +10975,8 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 			break;
 		case SC_TINDER_BREAKER:
 		case SC_CLOSECONFINE: {
-				int type2 = ((type==SC_CLOSECONFINE)?SC_CLOSECONFINE2:SC_TINDER_BREAKER2);
-				//Lock char has released the hold on everyone...
+				int type2 = ((type == SC_CLOSECONFINE) ? SC_CLOSECONFINE2 : SC_TINDER_BREAKER2);
+				//Lock char has released the hold on everyone.
 				if (tsc && tsc->data[type2] && tsc->data[type2]->val2 == src->id) {
 					tsc->data[type2]->val2 = 0;
 					status_change_end(bl, type2, INVALID_TIMER);

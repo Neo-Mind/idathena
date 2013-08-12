@@ -4724,7 +4724,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		s_ele = sstatus->rhw.ele;
 		if(sd) { //Summoning 10 talisman will endow your weapon
 			ARR_FIND(1, 6, i, sd->talisman[i] >= 10);
-			if (i < 5) s_ele = i;
+			if(i < 5) s_ele = i;
 		}
 	} else if(s_ele == -2) //Use status element
 		s_ele = status_get_attack_sc_element(src,status_get_sc(src));
@@ -4732,8 +4732,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		s_ele = rnd()%ELE_MAX;
 
 	if(skill_id == LG_SHIELDSPELL) {
-		if(skill_lv == 2)
-			s_ele = ELE_HOLY;
+		if(skill_lv == 2) s_ele = ELE_HOLY;
 	} else if(skill_id == SO_PSYCHIC_WAVE) {
 		if(sc && sc->count) {
 			if (sc->data[SC_HEATER_OPTION]) s_ele = sc->data[SC_HEATER_OPTION]->val4;

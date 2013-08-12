@@ -13321,8 +13321,7 @@ void clif_taekwon(struct map_session_data* sd)
 	for (i = 0; i < 10 && i < MAX_FAME_LIST; i++) {
 		if (taekwon_fame_list[i].id > 0) {
 			if (strcmp(taekwon_fame_list[i].name, "-") == 0 &&
-				(name = map_charid2nick(taekwon_fame_list[i].id)) != NULL)
-			{
+				(name = map_charid2nick(taekwon_fame_list[i].id)) != NULL) {
 				memcpy(WFIFOP(fd, 2 + 24 * i), name, NAME_LENGTH);
 			} else
 				memcpy(WFIFOP(fd, 2 + 24 * i), taekwon_fame_list[i].name, NAME_LENGTH);
