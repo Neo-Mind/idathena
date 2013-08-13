@@ -4586,7 +4586,10 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 	} else if(wd.div_ < 0) //Since the attack missed.
 		wd.div_ *= -1;
 
-	wd = battle_calc_element_damage(wd, src, target, skill_id, skill_lv);
+#ifdef RENEWAL
+	if(!sd) //Monsters only have a single ATK for element, in pre-renewal we also apply element to entire ATK on players [helvetica]
+#endif
+		wd = battle_calc_element_damage(wd, src, target, skill_id, skill_lv);
 
 	if(skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS)
 		return wd; //Enough, rest is not needed.
@@ -4642,20 +4645,29 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		}
 	}
 
-	//Forced to neutral skills [helvetica]
-	//Skills forced to neutral gain benefits from weapon element
-	//But final damage is considered "neutral" and resistances are applied again
+	//Forced to an element weapon skills [helvetica]
+	//Skills forced to an element and gain benefits from the weapon
+	//But final damage is considered "an element" and resistances are applied again
 	switch(skill_id) {
+		case MC_CARTREVOLUTION:
+		case PA_SACRIFICE:
+		case PA_SHIELDCHAIN:
+		case LG_SHIELDPRESS:
+			//Forced to neutral element
+			wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+			break;
+		case RK_DRAGONBREATH:
+		case LG_EARTHDRIVE:
+			//Forced to it's element
+			wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
+			break;
 		case GN_CARTCANNON:
-			//Cart Cannon gets forced to element of cannon ball (neutral or holy/shadow/ghost)
+		case KO_HAPPOKUNAI:
+			//Forced to ammo's element
 			if(sd)
 				wd.damage = battle_attr_fix(src, target, wd.damage, sd->bonus.arrow_ele ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 			else
 				wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
-			break;
-		case MC_CARTREVOLUTION:
-			//Cart Revolution gets forced to neutral element
-			wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 			break;
 	}
 

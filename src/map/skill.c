@@ -1322,7 +1322,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			skill_castend_nodamage_id(src,bl,skill_id,skill_lv,tick,BCT_ENEMY);
 			break;
 		case LG_SHIELDPRESS:
-			sc_start(src, bl, SC_STUN, 30 + (8 * skill_lv) + (sstatus->dex / 10) + (sd ? sd->status.job_level / 4 : 0), skill_lv, skill_get_time(skill_id, skill_lv));
+			status_change_start(src, bl, SC_STUN, (30 + (8 * skill_lv) + (sstatus->dex / 10) +
+				(sd ? sd->status.job_level / 4 : 0)) * 100, skill_lv, 0, 0, 0, skill_get_time(skill_id, skill_lv), 2);
 			break;
 		case LG_PINPOINTATTACK:
 			rate = 30 + (((sd ? pc_checkskill(sd,LG_PINPOINTATTACK) * 5 : 0) + (sstatus->agi + status_get_lv(src))) / 10);
