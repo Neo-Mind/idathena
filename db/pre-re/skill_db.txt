@@ -914,7 +914,7 @@
 2346,2,6,16,0,0x1,0,5,1,yes,0,0,0,none,0,	SR_GENTLETOUCH_ENERGYGAIN,Gentle Touch - Energy Gain
 2347,2,6,16,0,0x1,0,5,1,yes,0,0,0,none,0,	SR_GENTLETOUCH_CHANGE,Gentle Touch - Change
 2348,2,6,16,0,0x1,0,5,1,yes,0,0,0,none,0,	SR_GENTLETOUCH_REVITALIZE,Gentle Touch - Revitalize
-//More from Sura but not following ID order
+
 2517,0,6,4,-1,0x2,3:4:5:6:7,5,1,no,0,0,0,weapon,0,	SR_HOWLINGOFLION,Howling of Lion
 2518,11,6,2,-1,0x2,1:1:2:2:3,5,1,no,0,0,0,weapon,0,	SR_RIDEINLIGHTNING,Ride In Lightening
 

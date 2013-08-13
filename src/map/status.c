@@ -2783,7 +2783,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 
 	// Base batk value is set in status_calc_misc
 #ifndef RENEWAL
-	// weapon-type bonus (FIXME: Why is the weapon_atk bonus applied to base attack?)
+	// Weapon-type bonus (FIXME: Why is the weapon_atk bonus applied to base attack?)
 	if(sd->status.weapon < MAX_WEAPON_TYPE && sd->weapon_atk[sd->status.weapon])
 		status->batk += sd->weapon_atk[sd->status.weapon];
 	// Absolute modifiers from passive skills
@@ -2797,9 +2797,9 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 // ----- HP MAX CALCULATION -----
 
 	// Basic MaxHP value
-	//We hold the standard Max HP here to make it faster to recalculate on vit changes.
+	// We hold the standard Max HP here to make it faster to recalculate on vit changes.
 	sd->status.max_hp = status_base_pc_maxhp(sd,status);
-	//This is done to handle underflows from negative Max HP bonuses
+	// This is done to handle underflows from negative Max HP bonuses
 	i64 = sd->status.max_hp + (int)status->max_hp;
 	status->max_hp = (unsigned int)cap_value(i64, 0, INT_MAX);
 
@@ -2824,7 +2824,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 
 	// Basic MaxSP value
 	sd->status.max_sp = status_base_pc_maxsp(sd,status);
-	//This is done to handle underflows from negative Max SP bonuses
+	// This is done to handle underflows from negative Max SP bonuses
 	i64 = sd->status.max_sp + (int)status->max_sp;
 	status->max_sp = (unsigned int)cap_value(i64, 0, INT_MAX);
 
@@ -2871,7 +2871,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 
 		status->sp = (int64)status->max_sp * battle_config.restart_sp_rate /100;
 		
-		if(!status->sp) /* the minimum for the respawn setting is SP:1 */
+		if(!status->sp) /* The minimum for the respawn setting is SP:1 */
 			status->sp = 1;
 	}
 
@@ -3021,7 +3021,6 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		status->aspd_rate -= 250 - 50 * pc_checkskill(sd,RK_DRAGONTRAINING);
 #endif
 	status->adelay = 2 * status->amotion;
-
 
 // ----- DMOTION -----
 //

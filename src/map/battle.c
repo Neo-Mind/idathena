@@ -2595,6 +2595,10 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				break;
 			case RK_DRAGONBREATH: {
 					int damagevalue = 0;
+					wd.damage, wd.damage2 = 0;
+#ifdef RENEWAL
+					wd.weaponAtk, wd.weaponAtk2 = 0;
+#endif
 					damagevalue = ((sstatus->hp / 50) + (status_get_max_sp(src) / 4)) * skill_lv;
 					if(status_get_lv(src) > 100)
 						damagevalue = damagevalue * status_get_lv(src) / 150;
@@ -2602,39 +2606,49 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 						damagevalue = damagevalue * (100 + 5 * (pc_checkskill(sd,RK_DRAGONTRAINING) - 1)) / 100;
 					ATK_ADD(wd.damage, wd.damage2, damagevalue);
 #ifdef RENEWAL
-				wd.weaponAtk = wd.damage;
-				wd.weaponAtk2 = wd.damage2;
+					wd.weaponAtk = wd.damage;
+					wd.weaponAtk2 = wd.damage2;
 #endif
 					wd.flag |= BF_LONG;
 				}
 				break;
 			case NC_SELFDESTRUCTION: {
 					int damagevalue = 0;
-					wd.damage = 0;
+					wd.damage, wd.damage2 = 0;
+#ifdef RENEWAL
+					wd.weaponAtk, wd.weaponAtk2 = 0;
+#endif
 					damagevalue = (skill_lv + 1) * ((sd ? pc_checkskill(sd,NC_MAINFRAME) : 0) + 8) * (status_get_sp(src) + sstatus->vit);
 					if(status_get_lv(src) > 100)
 						damagevalue = damagevalue * status_get_lv(src) / 100;
 					damagevalue = damagevalue + sstatus->hp;
 					ATK_ADD(wd.damage, wd.damage2, damagevalue);
 #ifdef RENEWAL
-				wd.weaponAtk = wd.damage;
-				wd.weaponAtk2 = wd.damage2;
+					wd.weaponAtk = wd.damage;
+					wd.weaponAtk2 = wd.damage2;
 #endif
 				}
 				break;
-			case KO_HAPPOKUNAI:
-				if(sd) {
-					short index = sd->equip_index[EQI_AMMO];
-					wd.damage = 0;
-					if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_AMMO)
-						ATK_ADD(wd.damage, wd.damage2,
-						(3 * (sstatus->batk + sstatus->rhw.atk + sd->inventory_data[index]->atk)) * (skill_lv + 5) / 5);
-				} else
-					ATK_ADD(wd.damage, wd.damage2, 5000);
+			case KO_HAPPOKUNAI: {
+					int damagevalue = 0;
+					wd.damage, wd.damage2 = 0;
 #ifdef RENEWAL
-				wd.weaponAtk = wd.damage;
-				wd.weaponAtk2 = wd.damage2;
+					wd.weaponAtk, wd.weaponAtk2 = 0;
 #endif
+					if(sd) {
+						short index = sd->equip_index[EQI_AMMO];
+						damagevalue = (3 * (sstatus->batk + sstatus->rhw.atk + sd->inventory_data[index]->atk)) * (skill_lv + 5) / 5;
+						if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_AMMO)
+							ATK_ADD(wd.damage, wd.damage2, damagevalue);
+					} else {
+						damagevalue = 5000;
+						ATK_ADD(wd.damage, wd.damage2, damagevalue);
+					}
+#ifdef RENEWAL
+					wd.weaponAtk = wd.damage;
+					wd.weaponAtk2 = wd.damage2;
+#endif
+				}
 				break;
 			case HFLI_SBR44: //[orn]
 				if(src->type == BL_HOM)
@@ -4547,7 +4561,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		//Card Fix for attacker (sd), 2 is added to the "left" flag meaning "attacker cards only"
 		wd.weaponAtk += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.weaponAtk, 2, wd.flag);
 		wd.equipAtk += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.equipAtk, 2, wd.flag);
-		if(is_attack_left_handed(src, skill_id )) {
+		if(is_attack_left_handed(src, skill_id)) {
 			wd.weaponAtk2 += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.weaponAtk2, 3, wd.flag);
 			wd.equipAtk2 += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.equipAtk2, 3, wd.flag);
 		}
@@ -4569,22 +4583,17 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 			wd = battle_calc_defense_reduction(wd, src, target, skill_id, skill_lv);
 
 		wd = battle_calc_attack_post_defense(wd, src, target, skill_id, skill_lv);
-	} else if(wd.div_ < 0) //Since the attack missed...
+	} else if(wd.div_ < 0) //Since the attack missed.
 		wd.div_ *= -1;
 
-#ifdef RENEWAL
-	//Monsters only have a single ATK for element, in pre-renewal we also apply element to entire ATK on players [helvetica]
-	if(!sd)
-#endif
-		wd = battle_calc_element_damage(wd, src, target, skill_id, skill_lv);
+	wd = battle_calc_element_damage(wd, src, target, skill_id, skill_lv);
 
 	if(skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS)
 		return wd; //Enough, rest is not needed.
 
 #ifdef RENEWAL
 	if(is_attack_critical(wd, src, target, skill_id, skill_lv, false)) {
-		//Check for player so we don't crash out, monsters don't have bonus crit rates [helvetica]
-		if(sd)
+		if(sd) //Check for player so we don't crash out, monsters don't have bonus crit rates [helvetica]
 			wd.damage = (int)floor((double)wd.damage * 1.4 * (100 + sd->bonus.crit_atk_rate) / 100);
 		else
 			wd.damage = (int)floor((double)wd.damage * 1.4);
@@ -4646,7 +4655,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 			break;
 		case MC_CARTREVOLUTION:
 			//Cart Revolution gets forced to neutral element
-			wd.damage = battle_attr_fix(src,target,wd.damage,ELE_NEUTRAL,tstatus->def_ele, tstatus->ele_lv);
+			wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 			break;
 	}
 
@@ -4785,7 +4794,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 	if(!flag.infdef) { //No need to do the math for plants
 #ifdef RENEWAL
-	ad.damage = 0; //Reinitialize..
+	ad.damage = 0; //Reinitialize.
 #endif
 //MATK_RATE scales the damage. 100 = no change. 50 is halved, 200 is doubled, etc
 #define MATK_RATE(a) { ad.damage = ad.damage * (a) / 100; }

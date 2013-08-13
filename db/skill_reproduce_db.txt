@@ -208,6 +208,3 @@
 2483	// Crazy Weed
 2490	// Hell's Plant
 2493	// Sling Item
-
-// Kagerou / Oboro
-3008	// Mucha Nage

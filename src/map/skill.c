@@ -517,8 +517,10 @@ int can_copy (struct map_session_data *sd, uint16 skill_id, struct block_list* b
 		return 0;
 
 	// Couldn't preserve 3rd Class skills except only when using Reproduce skill. [Jobbie]
-	if( !(sd->sc.data[SC__REPRODUCE]) && ((skill_id >= RK_ENCHANTBLADE && skill_id <= LG_OVERBRAND_PLUSATK) || (skill_id >= KO_YAMIKUMO && skill_id <= OB_AKAITSUKI)))
+	if( !(sd->sc.data[SC__REPRODUCE]) && ((skill_id >= RK_ENCHANTBLADE && skill_id <= LG_OVERBRAND_PLUSATK)
+		|| (skill_id >= KO_YAMIKUMO && skill_id != KO_MUCHANAGE && skill_id <= OB_AKAITSUKI)) )
 		return 0;
+
 	// Reproduce will only copy skills according on the list. [Jobbie]
 	else if( sd->sc.data[SC__REPRODUCE] && !skill_reproduce_db[skill_id] )
 		return 0;
@@ -2722,8 +2724,6 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			case GN_SLINGITEM_RANGEMELEEATK:
 				copy_skill = GN_SLINGITEM;
 				break;
-			case KO_MUCHANAGE:
-				copy_skill = KO_MUCHANAGE;
 		}
 
 		if( (tsd->status.skill[copy_skill].id == 0 || tsd->status.skill[copy_skill].flag == SKILL_FLAG_PLAGIARIZED) &&
@@ -2887,7 +2887,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		dmg.flag |= BF_WEAPON;
 
 	if( sd && src != bl && damage > 0 && ( dmg.flag&BF_WEAPON ||
-		(dmg.flag&BF_MISC && (skill_id == RA_CLUSTERBOMB || skill_id == RA_FIRINGTRAP || skill_id == RA_ICEBOUNDTRAP || skill_id == RK_DRAGONBREATH)) ) )
+		(dmg.flag&BF_MISC && (skill_id == RA_CLUSTERBOMB || skill_id == RA_FIRINGTRAP || skill_id == RA_ICEBOUNDTRAP)) ) )
 	{
 		if( battle_config.left_cardfix_to_right )
 			battle_drain(sd, bl, dmg.damage, dmg.damage, tstatus->race, tstatus->mode&MD_BOSS);
@@ -10312,7 +10312,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			map_foreachinarea(skill_area_sub, src->m, x-i, y-i, x+i, y+i, splash_target(src),
 				src, skill_id, skill_lv, tick, flag|BCT_ENEMY|1, skill_castend_damage_id);
 			break;
-			
+
 		case SO_ARRULLO:
 			i = skill_get_splash(skill_id, skill_lv);
 			map_foreachinarea(skill_area_sub, src->m, x-i,y-i, x+i, y+i, splash_target(src),
@@ -14187,7 +14187,7 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 
 	if( sc && sc->count && !(skill_get_castnodex(skill_id, skill_lv)&2) ) {
 		// All variable cast additive bonuses must come first
-		if( sc->data[SC_MAGICPOWER] && !(sd && time == 0 && sd->skillitem == skill_id) )
+		if( sc->data[SC_MAGICPOWER] && !(sd && sd->skillitem == skill_id && time == 0) )
 			time += 700;
 		if( sc->data[SC_SLOWCAST] )
 			VARCAST_REDUCTION(-sc->data[SC_SLOWCAST]->val2);
@@ -14264,9 +14264,9 @@ int skill_delayfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 		return battle_config.min_skill_delay_limit;
 
 	if (time < 0)
-		time = -time + status_get_amotion(bl);	// If set to <0, add to attack motion.
+		time = -time + status_get_amotion(bl);	//If set to < 0, add to attack motion.
 
-	// Delay reductions
+	//Delay reductions
 	switch (skill_id) {	//Monk combo skills have their delay reduced by agi/dex.
 		case MO_TRIPLEATTACK:
 		case MO_CHAINCOMBO:
@@ -14279,17 +14279,17 @@ int skill_delayfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 			break;
 		case HP_BASILICA:
 			if (sc && !sc->data[SC_BASILICA])
-				time = 0; // There is no Delay on Basilica creation, only on cancel
+				time = 0; //There is no Delay on Basilica creation, only on cancel
 			break;
 		default:
-			if (battle_config.delay_dependon_dex && !(delaynodex&1)) { // if skill delay is allowed to be reduced by dex
+			if (battle_config.delay_dependon_dex && !(delaynodex&1)) { //If skill delay is allowed to be reduced by dex
 				int scale = battle_config.castrate_dex_scale - status_get_dex(bl);
 				if (scale > 0)
 					time = time * scale / battle_config.castrate_dex_scale;
 				else //To be capped later to minimum.
 					time = 0;
 			}
-			if (battle_config.delay_dependon_agi && !(delaynodex&1)) { // if skill delay is allowed to be reduced by agi
+			if (battle_config.delay_dependon_agi && !(delaynodex&1)) { //If skill delay is allowed to be reduced by agi
 				int scale = battle_config.castrate_dex_scale - status_get_agi(bl);
 				if (scale > 0)
 					time = time * scale / battle_config.castrate_dex_scale;
@@ -14316,7 +14316,7 @@ int skill_delayfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 			if (sc->data[SC_POEMBRAGI])
 				time -= time * sc->data[SC_POEMBRAGI]->val3 / 100;
 			if (sc->data[SC_WIND_INSIGNIA] && sc->data[SC_WIND_INSIGNIA]->val1 == 3 && (skill_get_ele(skill_id, skill_lv) == ELE_WIND))
-				time /= 2; // After Delay of Wind element spells reduced by 50%.
+				time /= 2; //After Delay of Wind element spells reduced by 50%.
 		}
 	}
 
@@ -14326,7 +14326,7 @@ int skill_delayfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 	if (battle_config.delay_rate != 100)
 		time = time * battle_config.delay_rate / 100;
 
-	//min delay
+	//Min delay
 	time = max(time, status_get_amotion(bl)); // Delay can never be below amotion [Playtester]
 	time = max(time, battle_config.min_skill_delay_limit);
 
