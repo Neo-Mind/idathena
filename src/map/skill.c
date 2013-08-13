@@ -1425,16 +1425,19 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			break;
 		case EL_ROCK_CRUSHER:
 		case EL_ROCK_CRUSHER_ATK:
-			sc_start(src,bl,status_skill2sc(skill_id),50,skill_lv,skill_get_time(EL_ROCK_CRUSHER,skill_lv));
+			sc_start(src, bl, status_skill2sc(skill_id), 50, skill_lv, skill_get_time(EL_ROCK_CRUSHER, skill_lv));
 			break;
 		case EL_TYPOON_MIS:
-			sc_start(src,bl,SC_SILENCE,10*skill_lv,skill_lv,skill_get_time(skill_id,skill_lv));
+			sc_start(src, bl, SC_SILENCE, 10 * skill_lv, skill_lv, skill_get_time(skill_id, skill_lv));
 			break;
-		case KO_JYUMONJIKIRI: // needs more info
-			sc_start(src,bl,SC_JYUMONJIKIRI,25,skill_lv,skill_get_time(skill_id,skill_lv));
+		case KO_JYUMONJIKIRI:
+			sc_start(src, bl, SC_JYUMONJIKIRI, 100, skill_lv, skill_get_time(skill_id, skill_lv));
+			break;
+		case KO_SETSUDAN:
+			status_change_end(bl, SC_SPIRIT, INVALID_TIMER);
 			break;
 		case KO_MAKIBISHI:
-			sc_start(src, bl, SC_STUN, 10 * skill_lv, skill_lv, skill_get_time2(skill_id,skill_lv));
+			sc_start(src, bl, SC_STUN, 10 * skill_lv, skill_lv, skill_get_time2(skill_id, skill_lv));
 			break;
 		case MH_LAVA_SLIDE:
 			if (tsc && !tsc->data[SC_BURNING])
@@ -3714,7 +3717,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case GN_SLINGITEM_RANGEMELEEATK:
 		case KO_JYUMONJIKIRI:
 		case KO_SETSUDAN:
-		case KO_KAIHOU:
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
 
@@ -4150,6 +4152,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case AB_HIGHNESSHEAL:
 		case AB_DUPLELIGHT_MAGIC:
 		case WM_METALICSOUND:
+		case KO_KAIHOU:
 		case MH_ERASER_CUTTER:
 			skill_attack(BF_MAGIC,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
@@ -4160,7 +4163,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case HVAN_CAPRICE: { //[blackhole89]
-				int ran=rnd()%4;
+				int ran = rnd()%4;
 				int sid = 0;
 				switch(ran) {
 					case 0: sid = MG_COLDBOLT; break;
@@ -4171,6 +4174,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				skill_attack(BF_MAGIC,src,src,bl,sid,skill_lv,tick,flag|SD_LEVEL);
 			}
 			break;
+
 		case WZ_WATERBALL: {
 				int range = skill_lv / 2;
 				int maxlv = skill_get_max(skill_id); // learnable level

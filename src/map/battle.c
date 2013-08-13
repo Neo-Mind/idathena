@@ -418,7 +418,7 @@ int battle_attr_fix(struct block_list *src, struct block_list *target, int damag
 		ARR_FIND(1, 6, t, tsd->talisman[t] > 0);
 
 		if( t < 5 && atk_elem == t )
-			damage -= damage * ( tsd->talisman[t] * 15 ) / 100; // -15% custom value
+			damage -= damage * tsd->talisman[t] * 15 / 100; // -15% custom value
 	}
 	return damage * ratio / 100;
 }
@@ -3634,6 +3634,8 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 		case KO_SETSUDAN:
 			skillratio += 100 * (skill_lv - 1);
 			RE_LVL_DMOD(100);
+			if(tsc && tsc->data[SC_SPIRIT])
+				skillratio += 200 * tsc->data[SC_SPIRIT]->val1;
 			break;
 		case KO_BAKURETSU:
 			skillratio += -100 + (sd ? pc_checkskill(sd,NJ_TOBIDOUGU) : 1) * (50 + sstatus->dex / 4) * skill_lv * 4 / 10;
@@ -3694,7 +3696,7 @@ static int battle_calc_skill_constant_addition(struct Damage wd, struct block_li
 	struct status_change *tsc = status_get_sc(target);
 	struct status_data *sstatus = status_get_status_data(src);
 	struct status_data *tstatus = status_get_status_data(target);
-	int i, atk = 0;
+	int atk = 0;
 
 	//Constant/misc additions from skills
 	switch(skill_id) {
@@ -3763,27 +3765,6 @@ static int battle_calc_skill_constant_addition(struct Damage wd, struct block_li
 				atk += ((tsd->weight / 10) * sstatus->dex / 120);
 			} else {
 				atk += (status_get_lv(target) * 50); //Mobs
-			}
-			break;
-		case KO_SETSUDAN:
-			if(tsc && tsc->data[SC_SPIRIT]) {
-				atk = ((wd.damage) * (10 * tsc->data[SC_SPIRIT]->val1)) / 100;
-#ifdef RENEWAL
-				atk = ((wd.equipAtk + wd.weaponAtk + wd.statusAtk + wd.masteryAtk) * (10 * tsc->data[SC_SPIRIT]->val1)) / 100;
-#endif
-				status_change_end(target,SC_SPIRIT,INVALID_TIMER);
-			}
-			break;
-		case KO_KAIHOU:
-			if(sd) {
-				ARR_FIND(1, 6, i, sd->talisman[i] > 0);
-				if(i < 5) {
-					atk = ((wd.damage) * (10 * tsc->data[SC_SPIRIT]->val1)) / 100;
-#ifdef RENEWAL
-					atk = ((wd.equipAtk + wd.weaponAtk + wd.statusAtk + wd.masteryAtk) * (100 * sd->talisman[i])) / 100;
-#endif
-					pc_del_talisman(sd,sd->talisman[i],i);
-				}
 			}
 			break;
 	}
@@ -5180,6 +5161,18 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 							RE_LVL_DMOD(100);
 						} else // Normal Demonic Fire Damage
 							skillratio += 10 + 20 * skill_lv;
+						break;
+					case KO_KAIHOU: {
+							int type = 0;
+							if(sd) {
+								ARR_FIND(1, 6, type, sd->talisman[type] > 0);
+								if(type < 5) {
+									skillratio += -100 + 200 * sd->talisman[type];
+									RE_LVL_DMOD(100);
+									pc_del_talisman(sd, sd->talisman[type], type);
+								}
+							}
+						}
 						break;
 					// Magical Elemental Spirits Attack Skills
 					case EL_FIRE_MANTLE:
