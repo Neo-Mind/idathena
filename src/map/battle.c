@@ -2246,13 +2246,6 @@ static int battle_get_weapon_element(struct Damage wd, struct block_list *src, s
 			if(!sd)
 				element = ELE_NEUTRAL; //Forced neutral for monsters
 			break;
-		case KO_KAIHOU:
-			if(sd) {
-				ARR_FIND(1, 6, i, sd->talisman[i] > 0);
-				if(i < 5)
-					element = i;
-			}
-			break;
 	}
 
 	if(!(nk & NK_NO_ELEFIX) && element != ELE_NONE)
@@ -4713,11 +4706,11 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 	//Initial Values
 	ad.damage = 1;
-	ad.div_ = skill_get_num(skill_id,skill_lv);
+	ad.div_ = skill_get_num(skill_id, skill_lv);
 	//Amotion should be 0 for ground skills.
 	ad.amotion = skill_get_inf(skill_id)&INF_GROUND_SKILL ? 0 : sstatus->amotion;
 	ad.dmotion = tstatus->dmotion;
-	ad.blewcount = skill_get_blewcount(skill_id,skill_lv);
+	ad.blewcount = skill_get_blewcount(skill_id, skill_lv);
 	ad.flag = BF_MAGIC|BF_SKILL;
 	ad.dmg_lv = ATK_DEF;
 	nk = skill_get_nk(skill_id);
@@ -4729,7 +4722,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	tsc = status_get_sc(target);
 
 	//Initialize variables that will be used afterwards
-	s_ele = skill_get_ele(skill_id,skill_lv);
+	s_ele = skill_get_ele(skill_id, skill_lv);
 
 	if(s_ele == -1) { // pl = -1 : the skill takes the weapon's element
 		s_ele = sstatus->rhw.ele;
@@ -4750,6 +4743,11 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			else if (sc->data[SC_COOLER_OPTION]) s_ele = sc->data[SC_COOLER_OPTION]->val4;
 			else if (sc->data[SC_BLAST_OPTION]) s_ele = sc->data[SC_BLAST_OPTION]->val3;
 			else if (sc->data[SC_CURSED_SOIL_OPTION]) s_ele = sc->data[SC_CURSED_SOIL_OPTION]->val4;
+		}
+	} else if(skill_id == KO_KAIHOU) {
+		if(sd) {
+			ARR_FIND(1, 6, i, sd->talisman[i] > 0);
+			if(i < 5) s_ele = i;
 		}
 	}
 
