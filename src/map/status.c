@@ -2721,7 +2721,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 	sd->left_weapon.atkmods[1] = atkmods[1][sd->weapontype2];
 	sd->left_weapon.atkmods[2] = atkmods[2][sd->weapontype2];
 
-	if( (pc_isriding(sd) || pc_isridingdragon(sd)) && (sd->status.weapon == W_1HSPEAR || sd->status.weapon == W_2HSPEAR) ) {
+	if((pc_isriding(sd) || pc_isridingdragon(sd)) && (sd->status.weapon == W_1HSPEAR || sd->status.weapon == W_2HSPEAR)) {
 		//When Riding with spear, damage modifier to mid-class becomes
 		//same as versus large size.
 		sd->right_weapon.atkmods[1] = sd->right_weapon.atkmods[2];
@@ -2732,7 +2732,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 
 	// Job bonuses
 	index = pc_class2idx(sd->status.class_);
-	for(i=0;i<(int)sd->status.job_level && i<MAX_LEVEL;i++) {
+	for(i = 0; i < (int)sd->status.job_level && i < MAX_LEVEL; i++) {
 		if(!job_info[index].job_bonus[i])
 			continue;
 		switch(job_info[index].job_bonus[i]) {
@@ -2756,13 +2756,13 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 	}
 
 	// Absolute modifiers from passive skills
-	if(pc_checkskill(sd,BS_HILTBINDING)>0)
+	if(pc_checkskill(sd,BS_HILTBINDING) > 0)
 		status->str++;
-	if((skill=pc_checkskill(sd,SA_DRAGONOLOGY))>0)
+	if((skill = pc_checkskill(sd,SA_DRAGONOLOGY)) > 0)
 		status->int_ += (skill+1)/2; // +1 INT / 2 lv
-	if((skill=pc_checkskill(sd,AC_OWL))>0)
+	if((skill = pc_checkskill(sd,AC_OWL)) > 0)
 		status->dex += skill;
-	if((skill = pc_checkskill(sd,RA_RESEARCHTRAP))>0)
+	if((skill = pc_checkskill(sd,RA_RESEARCHTRAP)) > 0)
 		status->int_ += skill;
 
 	// Bonuses from cards and equipment as well as base stat, remember to avoid overflows.

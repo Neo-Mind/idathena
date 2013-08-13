@@ -474,6 +474,7 @@ extern struct Battle_Config
 	int bg_flee_penalty;
 
 	int max_third_parameter;
+	int max_expanded_parameter;
 	int max_baby_third_parameter;
 	int atcommand_max_stat_bypass;
 	int max_third_aspd;
