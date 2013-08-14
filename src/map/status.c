@@ -675,7 +675,8 @@ void initChangeTables(void) {
 	set_sc( SO_FIREWALK          , SC_PROPERTYWALK    , SI_PROPERTYWALK    , SCB_NONE );
 	set_sc( SO_ELECTRICWALK      , SC_PROPERTYWALK    , SI_PROPERTYWALK    , SCB_NONE );
 	set_sc( SO_SPELLFIST         , SC_SPELLFIST       , SI_SPELLFIST       , SCB_NONE );
-	set_sc_with_vfx( SO_DIAMONDDUST , SC_CRYSTALIZE   , SI_COLD            , SCB_NONE ); // it does show the snow icon on mobs but doesn't affect it.
+	//It does show the snow icon on mobs but doesn't affect it.
+	set_sc_with_vfx( SO_DIAMONDDUST , SC_CRYSTALIZE   , SI_COLD            , SCB_NONE );
 	add_sc( SO_CLOUD_KILL        , SC_POISON );
 	set_sc( SO_STRIKING          , SC_STRIKING        , SI_STRIKING        , SCB_WATK|SCB_CRI );
 	set_sc( SO_WARMER            , SC_WARMER          , SI_WARMER          , SCB_NONE );
@@ -4187,7 +4188,7 @@ void status_calc_bl_(struct block_list* bl, enum scb_flag flag, bool first)
 
 		if( b_status.rhw.atk2 != status->rhw.atk2 || b_status.lhw.atk2 != status->lhw.atk2
 #ifdef RENEWAL
-		|| b_status.rhw.atk != status->rhw.atk || b_status.lhw.atk != status->lhw.atk
+			|| b_status.rhw.atk != status->rhw.atk || b_status.lhw.atk != status->lhw.atk || b_status.eatk != status->eatk
 #endif
 			)
 			clif_updatestatus(sd,SP_ATK2);

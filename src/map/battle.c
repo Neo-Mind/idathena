@@ -5500,10 +5500,6 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				md.damage = 0;
 			if(tsd) md.damage >>= 1;
 #endif
-			if(md.damage < 0 || md.damage > INT_MAX >> 1)
-			//Overflow prevention, will anyone whine if I cap it to a few billion?
-			//Not capped to INT_MAX to give some room for further damage increase.
-				md.damage = INT_MAX >> 1;
 			break;
 		case NJ_ZENYNAGE:
 		case KO_MUCHANAGE:
