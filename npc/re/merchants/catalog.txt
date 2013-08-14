@@ -7,11 +7,12 @@
 //===== Compatible With: =====================================
 //= rAthena SVN
 //===== Description: =========================================
+//= [Official Conversion]
 //= Catalogs allow players to easily search for items in-game,
 //= and to buy/sell directly from the catalog interface.
 //===== Additional Comments: =================================
 //= 1.0 Moved from root directory. [Euphy]
-//============================================================ 
+//============================================================
 
 moc_para01,22,16,5	script	Catalog Magician#catal01	704,{
 	if (!checkweight(1201,2)) {

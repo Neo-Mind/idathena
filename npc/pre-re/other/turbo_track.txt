@@ -6,7 +6,8 @@
 //= 1.0
 //===== Compatible With: =====================================
 //= rAthena SVN
-//===== Description: ========================================= 
+//===== Description: =========================================
+//= [Official Conversion]
 //= Pre-Renewal duplicates.
 //===== Additional Comments: =================================
 //= 1.0 Split Peco Peco Manager NPC.
