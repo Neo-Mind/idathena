@@ -1973,9 +1973,9 @@ unsigned int status_weapon_atk(struct weapon_atk wa, struct status_data *status)
 	else
 		dstr = status->str;
 
-	strdex_bonus = (wa.atk + wa.atk2) * dstr / 200.0f;
+	strdex_bonus = wa.atk * dstr / 200.0f;
 
-	return wa.atk + wa.atk2 + (int)strdex_bonus;
+	return wa.atk + (int)strdex_bonus + wa.atk2;
 }
 #endif
 

@@ -1550,7 +1550,7 @@ static int battle_calc_base_weapon_attack(struct block_list *src, struct status_
 	unsigned char type = (wa == &status->lhw) ? EQI_HAND_L : EQI_HAND_R;
 
 	if (sd->equip_index[type] >= 0 && sd->inventory_data[sd->equip_index[type]])
-		variance = 5.0f * (wa->atk + wa->atk2) * (sd->inventory_data[sd->equip_index[type]]->wlv) / 100.0f;
+		variance = 5.0f * wa->atk * (sd->inventory_data[sd->equip_index[type]]->wlv) / 100.0f;
 
 	atkmin -= (int)variance;
 	atkmax += (int)variance;
