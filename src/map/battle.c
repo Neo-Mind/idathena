@@ -1081,7 +1081,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		}
 
 #ifdef RENEWAL
-		// Renewal: steel body reduces all incoming damage to 1/10 [helvetica]
+		//Renewal: steel body reduces all incoming damage to 1/10 [helvetica]
 		if( sc->data[SC_STEELBODY] ) {
 			damage = damage > 10 ? damage / 10 : 1;
 		}
@@ -1107,7 +1107,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 				status_change_end(bl, SC_KYRIE, INVALID_TIMER);
 		}
 
-		if( sc->data[SC_MEIKYOUSISUI] && rnd()%100 < 40 ) // custom value
+		if( sc->data[SC_MEIKYOUSISUI] && rnd()%100 < 40 ) //Custom value
 			damage = 0;
 
 		if( !damage ) return 0;
@@ -1149,18 +1149,18 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		}
 
 		if( sc->data[SC__DEADLYINFECT] && (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT && damage > 0 && rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 && !(status_get_mode(src)&MD_BOSS) )
-			status_change_spread(bl, src); // Deadly infect attacked side
+			status_change_spread(bl, src); //Deadly infect attacked side
 
 		if( sc && sc->data[SC__SHADOWFORM] ) {
 			struct block_list *s_bl = map_id2bl(sc->data[SC__SHADOWFORM]->val2);
-			if( !s_bl || s_bl->m != bl->m ) { // If the shadow form target is not present remove the sc.
+			if( !s_bl || s_bl->m != bl->m ) { //If the shadow form target is not present remove the sc.
 				status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
 			} else if( status_isdead(s_bl) || !battle_check_target(src,s_bl,BCT_ENEMY)) { // If the shadow form target is dead or not your enemy remove the sc in both.
 				status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
 				if( s_bl->type == BL_PC )
 					((TBL_PC*)s_bl)->shadowform_id = 0;
 			} else {
-				if( (--sc->data[SC__SHADOWFORM]->val3) < 0 ) { // If you have exceded max hits supported, remove the sc in both.
+				if( (--sc->data[SC__SHADOWFORM]->val3) < 0 ) { //If you have exceded max hits supported, remove the sc in both.
 					status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
 					if( s_bl->type == BL_PC )
 						((TBL_PC*)s_bl)->shadowform_id = 0;
@@ -1179,7 +1179,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 	if( sc && sc->count ) {
 		if( sc->data[SC_INVINCIBLE] && !sc->data[SC_INVINCIBLEOFF] )
 			damage += damage * 75 / 100;
-		// [Epoque]
+		//[Epoque]
 		if( bl->type == BL_MOB ) {
 			int i;
 
@@ -2589,9 +2589,11 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				break;
 			case RK_DRAGONBREATH: {
 					int damagevalue = 0;
-					wd.damage, wd.damage2 = 0;
+					wd.damage = 0;
+					wd.damage2 = 0;
 #ifdef RENEWAL
-					wd.weaponAtk, wd.weaponAtk2 = 0;
+					wd.weaponAtk = 0;
+					wd.weaponAtk2 = 0;
 #endif
 					damagevalue = ((sstatus->hp / 50) + (status_get_max_sp(src) / 4)) * skill_lv;
 					if(status_get_lv(src) > 100)
@@ -2608,9 +2610,11 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				break;
 			case NC_SELFDESTRUCTION: {
 					int damagevalue = 0;
-					wd.damage, wd.damage2 = 0;
+					wd.damage = 0;
+					wd.damage2 = 0;
 #ifdef RENEWAL
-					wd.weaponAtk, wd.weaponAtk2 = 0;
+					wd.weaponAtk = 0;
+					wd.weaponAtk2 = 0;
 #endif
 					damagevalue = (skill_lv + 1) * ((sd ? pc_checkskill(sd,NC_MAINFRAME) : 0) + 8) * (status_get_sp(src) + sstatus->vit);
 					if(status_get_lv(src) > 100)
@@ -2625,9 +2629,11 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				break;
 			case KO_HAPPOKUNAI: {
 					int damagevalue = 0;
-					wd.damage, wd.damage2 = 0;
+					wd.damage = 0;
+					wd.damage2 = 0;
 #ifdef RENEWAL
-					wd.weaponAtk, wd.weaponAtk2 = 0;
+					wd.weaponAtk = 0;
+					wd.weaponAtk2 = 0;
 #endif
 					if(sd) {
 						short index = sd->equip_index[EQI_AMMO];
@@ -3687,7 +3693,6 @@ static int battle_calc_skill_constant_addition(struct Damage wd, struct block_li
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 	struct map_session_data *tsd = BL_CAST(BL_PC, target);
 	struct status_change *sc = status_get_sc(src);
-	struct status_change *tsc = status_get_sc(target);
 	struct status_data *sstatus = status_get_status_data(src);
 	struct status_data *tstatus = status_get_status_data(target);
 	int atk = 0;

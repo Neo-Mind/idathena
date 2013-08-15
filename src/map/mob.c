@@ -4170,19 +4170,18 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 
 	struct mob_skill *ms, gms;
 	int mob_id;
-	int i =0, j, tmp;
+	int i = 0, j, tmp;
 
 	mob_id = atoi(str[0]);
 
-	if (mob_id > 0 && mob_db(mob_id) == mob_dummy)
-	{
+	if (mob_id > 0 && mob_db(mob_id) == mob_dummy) {
 		if (mob_id != last_mob_id) {
 			ShowError("mob_parse_row_mobskilldb: Non existant Mob id %d\n", mob_id);
 			last_mob_id = mob_id;
 		}
 		return false;
 	}
-	if( strcmp(str[1],"clear")==0 ){
+	if (strcmp(str[1],"clear") == 0) {
 		if (mob_id < 0)
 			return false;
 		memset(mob_db_data[mob_id]->skill,0,sizeof(struct mob_skill));
@@ -4190,14 +4189,12 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 		return true;
 	}
 
-	if (mob_id < 0)
-	{	//Prepare global skill. [Skotlex]
+	if (mob_id < 0) { //Prepare global skill. [Skotlex]
 		memset(&gms, 0, sizeof (struct mob_skill));
 		ms = &gms;
 	} else {
 		ARR_FIND( 0, MAX_MOBSKILL, i, (ms = &mob_db_data[mob_id]->skill[i])->skill_id == 0 );
-		if( i == MAX_MOBSKILL )
-		{
+		if( i == MAX_MOBSKILL ) {
 			if (mob_id != last_mob_id) {
 				ShowError("mob_parse_row_mobskilldb: Too many skills for monster %d[%s]\n", mob_id, mob_db_data[mob_id]->sprite);
 				last_mob_id = mob_id;
@@ -4216,39 +4213,38 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 	}
 
 	//Skill ID
-	j=atoi(str[3]);
-	if (j<=0 || j>MAX_SKILL_DB) //fixed Lupus
-	{
+	j = atoi(str[3]);
+	if (j <= 0 || j > MAX_SKILL_DB) { //Fixed Lupus
 		if (mob_id < 0)
 			ShowError("mob_parse_row_mobskilldb: Invalid Skill ID (%d) for all mobs\n", j);
 		else
 			ShowError("mob_parse_row_mobskilldb: Invalid Skill ID (%d) for mob %d (%s)\n", j, mob_id, mob_db_data[mob_id]->sprite);
 		return false;
 	}
-	ms->skill_id=j;
+	ms->skill_id = j;
 
 	//Skill lvl
-	j= atoi(str[4])<=0 ? 1 : atoi(str[4]);
-	ms->skill_lv= j>battle_config.mob_max_skilllvl ? battle_config.mob_max_skilllvl : j; //we strip max skill level
+	j = atoi(str[4]) <= 0 ? 1 : atoi(str[4]);
+	ms->skill_lv = j > battle_config.mob_max_skilllvl ? battle_config.mob_max_skilllvl : j; //We strip max skill level
 
 	//Apply battle_config modifiers to rate (permillage) and delay [Skotlex]
 	tmp = atoi(str[5]);
 	if (battle_config.mob_skill_rate != 100)
-		tmp = tmp*battle_config.mob_skill_rate/100;
+		tmp = tmp * battle_config.mob_skill_rate / 100;
 	if (tmp > 10000)
-		ms->permillage= 10000;
+		ms->permillage = 10000;
 	else if (!tmp && battle_config.mob_skill_rate)
-		ms->permillage= 1;
+		ms->permillage = 1;
 	else
-		ms->permillage= tmp;
-	ms->casttime=atoi(str[6]);
-	ms->delay=atoi(str[7]);
+		ms->permillage = tmp;
+	ms->casttime = atoi(str[6]);
+	ms->delay = atoi(str[7]);
 	if (battle_config.mob_skill_delay != 100)
-		ms->delay = ms->delay*battle_config.mob_skill_delay/100;
-	if (ms->delay < 0 || ms->delay > MOB_MAX_DELAY) //time overflow?
+		ms->delay = ms->delay * battle_config.mob_skill_delay / 100;
+	if (ms->delay < 0 || ms->delay > MOB_MAX_DELAY) //Time overflow?
 		ms->delay = MOB_MAX_DELAY;
-	ms->cancel=atoi(str[8]);
-	if( strcmp(str[8],"yes")==0 ) ms->cancel=1;
+	ms->cancel = atoi(str[8]);
+	if (strcmp(str[8],"yes") == 0) ms->cancel = 1;
 
 	//Target
 	ARR_FIND( 0, ARRAYLENGTH(target), j, strcmp(str[9],target[j].str) == 0 );
@@ -4260,13 +4256,11 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 	}
 
 	//Check that the target condition is right for the skill type. [Skotlex]
-	if (skill_get_casttype(ms->skill_id) == CAST_GROUND)
-	{	//Ground skill.
-		if (ms->target > MST_AROUND)
-		{
+	if (skill_get_casttype(ms->skill_id) == CAST_GROUND) { //Ground skill.
+		if (ms->target > MST_AROUND) {
 			ShowWarning("mob_parse_row_mobskilldb: Wrong mob skill target for ground skill %d (%s) for %s.\n",
 				ms->skill_id, skill_get_name(ms->skill_id),
-				mob_id < 0?"all mobs":mob_db_data[mob_id]->sprite);
+				mob_id < 0 ? "all mobs" : mob_db_data[mob_id]->sprite);
 			ms->target = MST_TARGET;
 		}
 	} else if (ms->target > MST_MASTER) {
@@ -4278,7 +4272,7 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 
 	//Cond1
 	ARR_FIND( 0, ARRAYLENGTH(cond1), j, strcmp(str[10],cond1[j].str) == 0 );
-	if( j < ARRAYLENGTH(cond1) )
+	if (j < ARRAYLENGTH(cond1))
 		ms->cond1 = cond1[j].id;
 	else {
 		ShowWarning("mob_parse_row_mobskilldb: Unrecognized condition 1 %s for %d\n", str[10], mob_id);
@@ -4286,68 +4280,63 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 	}
 
 	//Cond2
-	// numeric value
+	//Numeric value
 	ms->cond2 = atoi(str[11]);
-	// or special constant
+	//Or special constant
 	ARR_FIND( 0, ARRAYLENGTH(cond2), j, strcmp(str[11],cond2[j].str) == 0 );
-	if( j < ARRAYLENGTH(cond2) )
+	if (j < ARRAYLENGTH(cond2))
 		ms->cond2 = cond2[j].id;
 	
-	ms->val[0]=(int)strtol(str[12],NULL,0);
-	ms->val[1]=(int)strtol(str[13],NULL,0);
-	ms->val[2]=(int)strtol(str[14],NULL,0);
-	ms->val[3]=(int)strtol(str[15],NULL,0);
-	ms->val[4]=(int)strtol(str[16],NULL,0);
+	ms->val[0] = (int)strtol(str[12],NULL,0);
+	ms->val[1] = (int)strtol(str[13],NULL,0);
+	ms->val[2] = (int)strtol(str[14],NULL,0);
+	ms->val[3] = (int)strtol(str[15],NULL,0);
+	ms->val[4] = (int)strtol(str[16],NULL,0);
 	
-	if(ms->skill_id == NPC_EMOTION && mob_id>0 &&
+	if (ms->skill_id == NPC_EMOTION && mob_id>0 &&
 		ms->val[1] == mob_db(mob_id)->status.mode)
 	{
 		ms->val[1] = 0;
-		ms->val[4] = 1; //request to return mode to normal.
+		ms->val[4] = 1; //Request to return mode to normal.
 	}
-	if(ms->skill_id == NPC_EMOTION_ON && mob_id>0 && ms->val[1])
-	{	//Adds a mode to the mob.
+	if (ms->skill_id == NPC_EMOTION_ON && mob_id>0 && ms->val[1]) { //Adds a mode to the mob.
 		//Remove aggressive mode when the new mob type is passive.
 		if (!(ms->val[1]&MD_AGGRESSIVE))
-			ms->val[3]|=MD_AGGRESSIVE;
-		ms->val[2]|= ms->val[1]; //Add the new mode.
+			ms->val[3] |= MD_AGGRESSIVE;
+		ms->val[2] |= ms->val[1]; //Add the new mode.
 		ms->val[1] = 0; //Do not "set" it.
 	}
 
 	if(*str[17])
-		ms->emotion=atoi(str[17]);
+		ms->emotion = atoi(str[17]);
 	else
-		ms->emotion=-1;
-		
-	if(str[18]!=NULL && mob_chat_db[atoi(str[18])]!=NULL)
-		ms->msg_id=atoi(str[18]);
-	else
-		ms->msg_id=0;
+		ms->emotion = -1;
 
-	if (mob_id < 0)
-	{	//Set this skill to ALL mobs. [Skotlex]
+	if(str[18] != NULL && mob_chat_db[atoi(str[18])] != NULL)
+		ms->msg_id = atoi(str[18]);
+	else
+		ms->msg_id = 0;
+
+	if (mob_id < 0) { //Set this skill to ALL mobs. [Skotlex]
 		mob_id *= -1;
-		for (i = 1; i < MAX_MOB_DB; i++)
-		{
+		for (i = 1; i < MAX_MOB_DB; i++) {
 			if (mob_db_data[i] == NULL)
 				continue;
-			if (mob_db_data[i]->status.mode&MD_BOSS)
-			{
+			if (mob_db_data[i]->status.mode&MD_BOSS) {
 				if (!(mob_id&2)) //Skill not for bosses
 					continue;
-			} else
-				if (!(mob_id&1)) //Skill not for normal enemies.
-					continue;
+			} else if (!(mob_id&1)) //Skill not for normal enemies.
+				continue;
 
 			ARR_FIND( 0, MAX_MOBSKILL, j, mob_db_data[i]->skill[j].skill_id == 0 );
-			if(j==MAX_MOBSKILL)
+			if(j == MAX_MOBSKILL)
 				continue;
 
 			memcpy (&mob_db_data[i]->skill[j], ms, sizeof(struct mob_skill));
-			mob_db_data[i]->maxskill=j+1;
+			mob_db_data[i]->maxskill = j + 1;
 		}
 	} else //Skill set on a single mob.
-		mob_db_data[mob_id]->maxskill=i+1;
+		mob_db_data[mob_id]->maxskill = i + 1;
 
 	return true;
 }

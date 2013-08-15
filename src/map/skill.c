@@ -11460,12 +11460,12 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 				sc_start4(ss,bl,type,100,sg->skill_lv,0,BCT_ENEMY,sg->group_id,sg->limit);
 			break;
 
-	 // Officially, icewall has no problems existing on occupied cells [ultramage]
-	 //	case UNT_ICEWALL: //Destroy the cell. [Skotlex]
-	 //		src->val1 = 0;
-	 //		if(src->limit + sg->tick > tick + 700)
-	 //			src->limit = DIFF_TICK(tick+700,sg->tick);
-	 //		break;
+	  //Officially, icewall has no problems existing on occupied cells [ultramage]
+	  //case UNT_ICEWALL: //Destroy the cell. [Skotlex]
+	  //	src->val1 = 0;
+	  //	if(src->limit + sg->tick > tick + 700)
+	  //		src->limit = DIFF_TICK(tick+700,sg->tick);
+	  //	break;
 
 		case UNT_MOONLIT:
 			//Knockback out of area if affected char isn't in Moonlit effect

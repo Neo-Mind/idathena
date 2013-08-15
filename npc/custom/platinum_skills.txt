@@ -32,7 +32,7 @@ prontera,128,200,6	script	Platinum Skill NPC	94,{
 	}
 	skill 142,1,0;
 	switch(BaseClass) {
-		case 0: if (Class !=23) skill 143,1,0; break;
+		case 0: if (Class != 23) skill 143,1,0; break;
 		case 1: skill 144,1,0; skill 145,1,0; skill 146,1,0; break;
 		case 2: skill 157,1,0; break;
 		case 3: skill 147,1,0; skill 148,1,0; break;
