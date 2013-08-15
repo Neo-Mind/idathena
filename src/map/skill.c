@@ -9085,7 +9085,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case EL_ZEPHYR:
 		case EL_POWER_OF_GAIA:
 			clif_skill_nodamage(src,src,skill_id,skill_lv,1);
-			clif_skill_damage(src, bl, tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
+			clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 			skill_unitsetting(src,skill_id,skill_lv,bl->x,bl->y,0);
 			break;
 
@@ -11460,12 +11460,12 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 				sc_start4(ss,bl,type,100,sg->skill_lv,0,BCT_ENEMY,sg->group_id,sg->limit);
 			break;
 
-	// officially, icewall has no problems existing on occupied cells [ultramage]
-	//	case UNT_ICEWALL: //Destroy the cell. [Skotlex]
-	//		src->val1 = 0;
-	//		if(src->limit + sg->tick > tick + 700)
-	//			src->limit = DIFF_TICK(tick+700,sg->tick);
-	//		break;
+	 // Officially, icewall has no problems existing on occupied cells [ultramage]
+	 //	case UNT_ICEWALL: //Destroy the cell. [Skotlex]
+	 //		src->val1 = 0;
+	 //		if(src->limit + sg->tick > tick + 700)
+	 //			src->limit = DIFF_TICK(tick+700,sg->tick);
+	 //		break;
 
 		case UNT_MOONLIT:
 			//Knockback out of area if affected char isn't in Moonlit effect
@@ -12123,11 +12123,12 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			}
 			break;
 
+		case UNT_ZEPHYR:
+			if (ss == bl) break;
 		case UNT_FIRE_INSIGNIA:
 		case UNT_WATER_INSIGNIA:
 		case UNT_WIND_INSIGNIA:
 		case UNT_EARTH_INSIGNIA:
-		case UNT_ZEPHYR:
 			sc_start(ss,bl,type,100,sg->skill_lv,sg->interval);
 			if (sg->unit_id != UNT_ZEPHYR && !battle_check_undead(tstatus->race,tstatus->def_ele)) {
 				int hp = tstatus->max_hp / 100; //+1% each 5s

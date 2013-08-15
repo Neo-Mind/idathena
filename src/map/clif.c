@@ -16400,11 +16400,11 @@ void __attribute__ ((unused)) clif_parse_dull(int fd, struct map_session_data *s
 }
 
 void clif_cashshop_open( struct map_session_data* sd ) {
-	WFIFOHEAD( sd->fd, 10 );
-	WFIFOW( sd->fd, 0 ) = 0x845;
-	WFIFOL( sd->fd, 2 ) = sd->cashPoints;
-	WFIFOL( sd->fd, 6 ) = sd->kafraPoints;
-	WFIFOSET( sd->fd, 10 );
+	WFIFOHEAD(sd->fd, 10);
+	WFIFOW(sd->fd, 0) = 0x845;
+	WFIFOL(sd->fd, 2) = sd->cashPoints;
+	WFIFOL(sd->fd, 6) = sd->kafraPoints;
+	WFIFOSET(sd->fd, 10);
 }
 
 void clif_parse_cashshop_open_request( int fd, struct map_session_data* sd ) {
@@ -16440,28 +16440,24 @@ void clif_parse_CashShopReqTab(int fd, struct map_session_data *sd) {
 
 //08ca <len>.W <itemcount> W <tabcode>.W (ZC_ACK_SCHEDULER_CASHITEM)
 void clif_cashshop_list( int fd ) {
-	int tab, i, j = 0;
-
-	for( i = 0; i <= 7; i++ ) {
-		j = j + cash_shop_items[i].count;
-	}
+	int tab;
 
 	for( tab = CASHSHOP_TAB_NEW; tab < CASHSHOP_TAB_SEARCH; tab++ ) {
-		int length = 8 + j * 6;
-		int k, offset;
+		int length = 8 + cash_shop_items[tab].count * 6;
+		int i, offset;
 
-		WFIFOHEAD( fd, length );
-		WFIFOW( fd, 0 ) = 0x8ca;
-		WFIFOW( fd, 2 ) = length;
-		WFIFOW( fd, 4 ) = cash_shop_items[tab].count;
-		WFIFOW( fd, 6 ) = tab;
+		WFIFOHEAD(fd, length);
+		WFIFOW(fd, 0) = 0x8ca;
+		WFIFOW(fd, 2) = length;
+		WFIFOW(fd, 4) = cash_shop_items[tab].count;
+		WFIFOW(fd, 6) = tab;
 
-		for( k = 0, offset = 8; k < cash_shop_items[tab].count; k++, offset += 6 ) {
-			WFIFOW( fd, offset ) = cash_shop_items[tab].item[k]->nameid;
-			WFIFOL( fd, offset + 2 ) = cash_shop_items[tab].item[k]->price;
+		for( i = 0, offset = 8; i < cash_shop_items[tab].count; i++, offset += 6 ) {
+			WFIFOW(fd, offset) = cash_shop_items[tab].item[i]->nameid;
+			WFIFOL(fd, offset + 2) = cash_shop_items[tab].item[i]->price;
 		}
 
-		WFIFOSET( fd, length );
+		WFIFOSET(fd, length);
 	}
 }
 
@@ -16470,20 +16466,20 @@ void clif_parse_cashshop_list_request( int fd, struct map_session_data* sd ) {
 }
 
 void clif_cashshop_result( struct map_session_data *sd, uint16 item_id, uint16 result ) {
-	WFIFOHEAD( sd->fd, 16 );
-	WFIFOW( sd->fd, 0 ) = 0x849;
-	WFIFOL( sd->fd, 2 ) = item_id;
-	WFIFOW( sd->fd, 6 ) = result;
-	WFIFOL( sd->fd, 8 ) = sd->cashPoints;
-	WFIFOL( sd->fd, 12 ) = sd->kafraPoints;
-	WFIFOSET( sd->fd, 16 );
+	WFIFOHEAD(sd->fd, 16);
+	WFIFOW(sd->fd, 0) = 0x849;
+	WFIFOL(sd->fd, 2) = item_id;
+	WFIFOW(sd->fd, 6) = result;
+	WFIFOL(sd->fd, 8) = sd->cashPoints;
+	WFIFOL(sd->fd, 12) = sd->kafraPoints;
+	WFIFOSET(sd->fd, 16);
 }
 
 void clif_partytickack(struct map_session_data* sd, bool flag) {
-	WFIFOHEAD( sd->fd, packet_len(0x2c9) );
-	WFIFOW( sd->fd, 0 ) = 0x2c9; 
-	WFIFOB( sd->fd, 2 ) = flag;
-	WFIFOSET( sd->fd, packet_len(0x2c9) ); 
+	WFIFOHEAD(sd->fd, packet_len(0x2c9));
+	WFIFOW(sd->fd, 0) = 0x2c9; 
+	WFIFOB(sd->fd, 2) = flag;
+	WFIFOSET(sd->fd, packet_len(0x2c9)); 
 }
 
 /// Ack world info (ZC_ACK_BEFORE_WORLD_INFO)
