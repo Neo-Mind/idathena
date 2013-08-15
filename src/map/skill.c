@@ -12011,7 +12011,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 
 		case UNT_STEALTHFIELD:
 			if (ss == bl)
-				break; //Dont work on Self.
+				break; //Don't work on Self
 		case UNT_NEUTRALBARRIER:
 			sc_start(ss,bl,type,100,sg->skill_lv,sg->interval + 100);
 			break;
@@ -12124,7 +12124,8 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;
 
 		case UNT_ZEPHYR:
-			if (ss == bl) break;
+			if (ss == bl) //Doesn't affect Ventus itself
+				break;
 		case UNT_FIRE_INSIGNIA:
 		case UNT_WATER_INSIGNIA:
 		case UNT_WIND_INSIGNIA:

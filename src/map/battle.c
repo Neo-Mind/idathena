@@ -782,7 +782,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		}
 
 		if( sc->data[SC_ZEPHYR] && ((((flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT ||
-			(flag&(BF_MAGIC|BF_LONG)) == BF_LONG) && skill_id) || (flag&BF_MAGIC &&
+			(flag&(BF_LONG|BF_MAGIC)) == BF_LONG) && skill_id) || (flag&BF_MAGIC &&
 				!(skill_get_inf(skill_id)&INF_GROUND_SKILL))) ) {
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
@@ -820,7 +820,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			status_change_end(bl, SC_SAFETYWALL, INVALID_TIMER);
 		}
 
-		if( (sc->data[SC_PNEUMA] && (flag&(BF_MAGIC|BF_LONG)) == BF_LONG &&
+		if( (sc->data[SC_PNEUMA] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG &&
 			!(skill_get_inf2(skill_id)&INF2_TRAP)) || sc->data[SC__MANHOLE] ) {
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
@@ -890,7 +890,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 			return 0;
 
 		// TODO: Find out whether Neutral Barrier really blocks all splash damage or just specific cases (Earthquake)
-		if( sc->data[SC_NEUTRALBARRIER] && (((flag&(BF_MAGIC|BF_LONG)) == BF_LONG && (skill_id != HT_PHANTASMIC ||
+		if( sc->data[SC_NEUTRALBARRIER] && (((flag&(BF_LONG|BF_MAGIC)) == BF_LONG && (skill_id != HT_PHANTASMIC ||
 			skill_id != CR_ACIDDEMONSTRATION || skill_id != WM_METALICSOUND)) ||
 			skill_get_splash(skill_id,skill_lv)) ) {
 			d->dmg_lv = ATK_MISS;
