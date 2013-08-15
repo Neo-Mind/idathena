@@ -1542,21 +1542,23 @@ static int battle_calc_status_attack(struct status_data *status, short hand)
 static int battle_calc_base_weapon_attack(struct block_list *src, struct status_data *tstatus, struct weapon_atk *wa, struct map_session_data *sd)
 {
 	struct status_data *status = status_get_status_data(src);
-	unsigned short atkmax = status_weapon_atk(*wa,status);
+	unsigned short atkmax = status_weapon_atk(*wa, status);
 	unsigned short atkmin = atkmax;
+	float variance;
 	int damage, weapon_perfection = 0;
 	struct status_change *sc = status_get_sc(src);
-	unsigned char type = (wa == &status->lhw)?EQI_HAND_L:EQI_HAND_R;
+	unsigned char type = (wa == &status->lhw) ? EQI_HAND_L : EQI_HAND_R;
 
-	if (sd->equip_index[type] >= 0 && sd->inventory_data[sd->equip_index[type]]) {
-		atkmin -= wa->atk * (sd->inventory_data[sd->equip_index[type]]->wlv * 5) / 100;
-		atkmax += wa->atk * (sd->inventory_data[sd->equip_index[type]]->wlv * 5) / 100;
-	}
+	if (sd->equip_index[type] >= 0 && sd->inventory_data[sd->equip_index[type]])
+		variance = 5.0f * (wa->atk + wa->atk2) * (sd->inventory_data[sd->equip_index[type]]->wlv) / 100.0f;
+
+	atkmin -= (int)variance;
+	atkmax += (int)variance;
 
 	if (sc && sc->data[SC_MAXIMIZEPOWER])
 		damage = atkmax;
 	else
-		damage = (atkmax>atkmin? rnd()%(atkmax-atkmin):0) + atkmin;
+		damage = (atkmax > atkmin ? rnd()%(atkmax - atkmin) : 0) + atkmin;
 
 	if (sc && sc->data[SC_WEAPONPERFECTION])
 		weapon_perfection = 1;
