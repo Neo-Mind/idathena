@@ -1969,12 +1969,16 @@ unsigned int status_weapon_atk(struct weapon_atk wa, struct status_data *status)
 	float strdex_bonus;
 
 	if (wa.range > 1)
-		dstr = status->dex;
+		dstr = status->dex; //Range ATK count DEX as bonus
 	else
-		dstr = status->str;
+		dstr = status->str; //Melee ATK count STR as bonus
 
+	//Weapon ATK = (Base Weapon ATK + Variance + STR Bonus + Refinement Bonus) * Size Penalty
+	//wa.atk = Base Weapok ATK
+	//Variance and Size Penalty will be calculated in battle.c
+	//strdex_bonus = STR Bonus
+	//wa.atk2 = Refinement Bonus
 	strdex_bonus = wa.atk * dstr / 200.0f;
-
 	return wa.atk + (int)strdex_bonus + wa.atk2;
 }
 #endif
