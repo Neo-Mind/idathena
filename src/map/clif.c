@@ -5610,7 +5610,7 @@ void clif_maptypeproperty2(struct block_list *bl,enum send_target t) {
 	WBUFB(buf,4) |= ((map[bl->m].flag.guildlock)?0x02:0); //Guild
 	WBUFB(buf,4) |= ((map_flag_gvg2(bl->m))?0x04:0); //Siege
 	WBUFB(buf,4) |= ((map[bl->m].flag.nomineeffect)?0:(map_flag_gvg2(bl->m)?0x08:0)); //Mineffect @FIXME what this do
-	WBUFB(buf,4) |= ((map[bl->m].flag.nolockon)?0:0x10); //Nolockon 0x10 @FIXME what this do
+	WBUFB(buf,4) |= ((map[bl->m].flag.nolockon)?0x10:0); //Nolockon 0x10 @FIXME what this do
 	WBUFB(buf,4) |= ((map[bl->m].flag.pvp)?0x20:0); //Countpk
 	WBUFB(buf,4) |= 0; //Nopartyformation 0x40
 	WBUFB(buf,4) |= ((map[bl->m].flag.battleground)?0x80:0); //Battleground

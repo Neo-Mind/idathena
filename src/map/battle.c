@@ -2189,12 +2189,12 @@ static int battle_calc_equip_attack(struct block_list *src, int skill_id)
 		struct status_data *status = status_get_status_data(src);
 		struct map_session_data *sd = BL_CAST(BL_PC, src);
 		if(sd)
-			// Add arrow atk if using an applicable skill
+			//Add arrow atk if using an applicable skill
 			return is_skill_using_arrow(src, skill_id) ? sd->bonus.arrow_atk + status->eatk : status->eatk;
 		else
 			return status->eatk;
 	}
-	return 0; // Shouldn't happen but just in case
+	return 0; //Shouldn't happen but just in case
 }
 #endif
 
@@ -2378,7 +2378,7 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 			}
 
 			if(sc->data[SC_GN_CARTBOOST]) {
-				// Cart Boost adds mastery type damage
+				//Cart Boost adds mastery type damage
 				ATK_ADD(wd.damage, wd.damage2, 10 * sc->data[SC_GN_CARTBOOST]->val1);
 #ifdef RENEWAL
 				ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 10 * sc->data[SC_GN_CARTBOOST]->val1);
@@ -2433,7 +2433,7 @@ struct Damage battle_calc_damage_parts(struct Damage wd, struct block_list *src,
 	wd.statusAtk += battle_calc_status_attack(sstatus, EQI_HAND_R);
 	wd.statusAtk2 += battle_calc_status_attack(sstatus, EQI_HAND_L);
 
-	if(!skill_id) { // Status atk is considered neutral on normal attacks [helvetica]
+	if(!skill_id) { //Status atk is considered neutral on normal attacks [helvetica]
 		if(sd && sd->sc.data[SC_SEVENWIND]) { // Mild Wind applies element to status ATK as well as weapon ATK [helvetica]
 			wd.statusAtk = battle_attr_fix(src, target, wd.statusAtk, right_element, tstatus->def_ele, tstatus->ele_lv);
 			wd.statusAtk2 = battle_attr_fix(src, target, wd.statusAtk, left_element, tstatus->def_ele, tstatus->ele_lv);	
