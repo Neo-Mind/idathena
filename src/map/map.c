@@ -1615,7 +1615,7 @@ void map_deliddb(struct block_list *bl)
  *------------------------------------------*/
 int map_quit(struct map_session_data *sd) {
 	int i;
-	if(!sd->state.active) { //Removing a player that is not active.
+	if (!sd->state.active) { //Removing a player that is not active.
 		struct auth_node *node = chrif_search(sd->status.account_id);
 		if (node && node->char_id == sd->status.char_id &&
 			node->state != ST_LOGOUT)
@@ -1631,7 +1631,7 @@ int map_quit(struct map_session_data *sd) {
 	if (sd->npc_id)
 		npc_event_dequeue(sd);
 
-	if( sd->bg_id )
+	if (sd->bg_id)
 		bg_team_leave(sd,1);
 
 	pc_itemcd_do(sd,false);
@@ -1641,8 +1641,8 @@ int map_quit(struct map_session_data *sd) {
 	//Unit_free handles clearing the player related data,
 	//map_quit handles extra specific data which is related to quitting normally
 	//(changing map-servers invokes unit_free but bypasses map_quit)
-	if( sd->sc.count ) {
-		//Status that are not saved...
+	if (sd->sc.count) {
+		//Status that are not saved
 		status_change_end(&sd->bl, SC_BOSSMAPINFO, INVALID_TIMER);
 		status_change_end(&sd->bl, SC_AUTOTRADE, INVALID_TIMER);
 		status_change_end(&sd->bl, SC_SPURT, INVALID_TIMER);
@@ -1653,8 +1653,8 @@ int map_quit(struct map_session_data *sd) {
 		status_change_end(&sd->bl, SC_GLORYWOUNDS, INVALID_TIMER);
 		status_change_end(&sd->bl, SC_SOULCOLD, INVALID_TIMER);
 		status_change_end(&sd->bl, SC_HAWKEYES, INVALID_TIMER);
-		if(sd->sc.data[SC_ENDURE] && sd->sc.data[SC_ENDURE]->val4)
-			status_change_end(&sd->bl, SC_ENDURE, INVALID_TIMER); //No need to save infinite endure.
+		if (sd->sc.data[SC_ENDURE] && sd->sc.data[SC_ENDURE]->val4)
+			status_change_end(&sd->bl, SC_ENDURE, INVALID_TIMER); //No need to save infinite endure
 		status_change_end(&sd->bl, SC_WEIGHT50, INVALID_TIMER);
 		status_change_end(&sd->bl, SC_WEIGHT90, INVALID_TIMER);
 		status_change_end(&sd->bl, SC_SATURDAYNIGHTFEVER, INVALID_TIMER);
@@ -1667,11 +1667,11 @@ int map_quit(struct map_session_data *sd) {
 			status_change_end(&sd->bl, SC_STRIPHELM, INVALID_TIMER);
 			status_change_end(&sd->bl, SC_EXTREMITYFIST, INVALID_TIMER);
 			status_change_end(&sd->bl, SC_EXPLOSIONSPIRITS, INVALID_TIMER);
-			if(sd->sc.data[SC_REGENERATION] && sd->sc.data[SC_REGENERATION]->val4)
+			if (sd->sc.data[SC_REGENERATION] && sd->sc.data[SC_REGENERATION]->val4)
 				status_change_end(&sd->bl, SC_REGENERATION, INVALID_TIMER);
 			//TO-DO Probably there are way more NPC_type negative status that are removed
 			status_change_end(&sd->bl, SC_CHANGEUNDEAD, INVALID_TIMER);
-			// Both these statuses are removed on logout. [L0ne_W0lf]
+			//Both these statuses are removed on logout. [L0ne_W0lf]
 			status_change_end(&sd->bl, SC_SLOWCAST, INVALID_TIMER);
 			status_change_end(&sd->bl, SC_CRITICALWOUND, INVALID_TIMER);
 		}
@@ -1685,38 +1685,38 @@ int map_quit(struct map_session_data *sd) {
 		}
 	}
 
-	for( i = 0; i < EQI_MAX; i++ ) {
-			if( sd->equip_index[ i ] >= 0 )
-					if( !pc_isequip( sd , sd->equip_index[ i ] ) )
+	for (i = 0; i < EQI_MAX; i++) {
+			if (sd->equip_index[ i ] >= 0)
+					if (!pc_isequip( sd , sd->equip_index[ i ] ))
 							pc_unequipitem( sd , sd->equip_index[ i ] , 2 );
 	}
 
-	// Return loot to owner
-	if( sd->pd ) pet_lootitem_drop(sd->pd, sd);
+	//Return loot to owner
+	if (sd->pd) pet_lootitem_drop(sd->pd, sd);
 
-	if( sd->state.storage_flag == 1 ) sd->state.storage_flag = 0; // No need to Double Save Storage on Quit.
+	if (sd->state.storage_flag == 1) sd->state.storage_flag = 0; //No need to Double Save Storage on Quit.
 
-	if( sd->state.permanent_speed == 1 ) sd->state.permanent_speed = 0; // Remove lock so speed is set back to normal at login.
+	if (sd->state.permanent_speed == 1) sd->state.permanent_speed = 0; //Remove lock so speed is set back to normal at login.
 
-	if( map[sd->bl.m].instance_id )
+	if (map[sd->bl.m].instance_id)
 		instance_delusers(map[sd->bl.m].instance_id);
 
-	if( sd->ed ) {
+	if (sd->ed) {
 		elemental_clean_effect(sd->ed);
 		unit_remove_map(&sd->ed->bl,CLR_TELEPORT);
 	}
 
 	unit_remove_map_pc(sd,CLR_TELEPORT);
 
-	if( map[sd->bl.m].instance_id ) { // Avoid map conflicts and warnings on next login
+	if (map[sd->bl.m].instance_id) { //Avoid map conflicts and warnings on next login
 		int16 m;
 		struct point *pt;
-		if( map[sd->bl.m].save.map )
+		if (map[sd->bl.m].save.map)
 			pt = &map[sd->bl.m].save;
 		else
 			pt = &sd->status.save_point;
 
-		if( (m=map_mapindex2mapid(pt->map)) >= 0 ) {
+		if ((m = map_mapindex2mapid(pt->map)) >= 0) {
 			sd->bl.m = m;
 			sd->bl.x = pt->x;
 			sd->bl.y = pt->y;
@@ -1725,7 +1725,7 @@ int map_quit(struct map_session_data *sd) {
 	}
 
 	pc_damage_log_clear(sd,0);
-	party_booking_delete(sd); // Party Booking [Spiria]
+	party_booking_delete(sd); //Party Booking [Spiria]
 	pc_makesavestatus(sd);
 	pc_clean_skilltree(sd);
 	chrif_save(sd,1);

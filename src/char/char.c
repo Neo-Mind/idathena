@@ -358,7 +358,7 @@ void set_char_offline(int char_id, int account_id)
 		if(character->char_id == char_id) {
 			character->char_id = -1;
 			character->server = -1;
-			// needed if player disconnects completely since Skotlex did not want to free the session
+			//Needed if player disconnects completely since Skotlex did not want to free the session
 			character->pincode_success = false;
 		}
 
@@ -2077,21 +2077,21 @@ static void char_auth_ok(int fd, struct char_session_data *sd)
 {
 	struct online_char_data* character;
 
-	if( (character = (struct online_char_data*)idb_get(online_char_db, sd->account_id)) != NULL )
-	{	// check if character is not online already. [Skotlex]
-		if (character->server > -1)
-		{	//Character already online. KICK KICK KICK
+	if( (character = (struct online_char_data*)idb_get(online_char_db, sd->account_id)) != NULL ) {
+		//Check if character is not online already. [Skotlex]
+		if (character->server > -1) { //Character already online. KICK KICK KICK
 			mapif_disconnectplayer(server[character->server].fd, character->account_id, character->char_id, 2);
 			if (character->waiting_disconnect == INVALID_TIMER)
 				character->waiting_disconnect = add_timer(gettick()+20000, chardb_waiting_disconnect, character->account_id, 0);
+			if (character)
+				character->pincode_success = false;
 			WFIFOHEAD(fd,3);
 			WFIFOW(fd,0) = 0x81;
 			WFIFOB(fd,2) = 8;
 			WFIFOSET(fd,3);
 			return;
 		}
-		if (character->fd >= 0 && character->fd != fd)
-		{	//There's already a connection from this account that hasn't picked a char yet.
+		if (character->fd >= 0 && character->fd != fd) { //There's already a connection from this account that hasn't picked a char yet.
 			WFIFOHEAD(fd,3);
 			WFIFOW(fd,0) = 0x81;
 			WFIFOB(fd,2) = 8;
@@ -2101,21 +2101,20 @@ static void char_auth_ok(int fd, struct char_session_data *sd)
 		character->fd = fd;
 	}
 
-	if (login_fd > 0) {
-		// request account data
+	if (login_fd > 0) { //Request account data
 		WFIFOHEAD(login_fd,6);
 		WFIFOW(login_fd,0) = 0x2716;
 		WFIFOL(login_fd,2) = sd->account_id;
 		WFIFOSET(login_fd,6);
 	}
 
-	// mark session as 'authed'
+	//Mark session as 'authed'
 	sd->auth = true;
 
-	// set char online on charserver
+	//Set char online on charserver
 	set_char_charselect(sd->account_id);
 
-	// continues when account data is received...
+	//Continues when account data is received...
 }
 
 int send_accounts_tologin(int tid, unsigned int tick, int id, intptr_t data);

@@ -1862,6 +1862,7 @@ packet_ver: 34
 0x0999,11 // cz_wear_equipv5
 0x099a,9 // take_off_equipv5
 0x099b,8  //maptypeproperty2
+0x099f,24
 //New Packets End
 
 //2013-05-15a Ragexe (Yommy)
