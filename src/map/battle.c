@@ -3967,6 +3967,21 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 #endif
 				}
 			}
+			if(sc->data[SC_STRIKING]) {
+				ATK_ADD(wd.damage, wd.damage2, sc->data[SC_STRIKING]->val2);
+#ifdef RENEWAL
+				ATK_ADD(wd.weaponAtk, wd.weaponAtk2, sc->data[SC_STRIKING]->val2);
+#endif
+			}
+			if(sc->data[SC_GT_CHANGE] && sc->data[SC_GT_CHANGE]->val2) {
+				struct block_list *bl;
+				if((bl = map_id2bl(sc->data[SC_GT_CHANGE]->val2))) {
+					ATK_ADD(wd.damage, wd.damage2, (status_get_dex(bl) / 4 + status_get_str(bl) / 2) * sc->data[SC_GT_CHANGE]->val1 / 5);
+#ifdef RENEWAL
+					ATK_ADD(wd.weaponAtk, wd.weaponAtk2, (status_get_dex(bl) / 4 + status_get_str(bl) / 2) * sc->data[SC_GT_CHANGE]->val1 / 5);
+#endif
+				}
+			}
 
 			if(sc->data[SC_STYLE_CHANGE]) {
 				TBL_HOM *hd = BL_CAST(BL_HOM, src);
@@ -4158,16 +4173,6 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd, struct block_lis
 #endif
 			ATK_ADD(wd.damage, wd.damage2, 20 * lv);
 		}
-
-#ifdef RENEWAL
-		if(sc->data[SC_GT_CHANGE] && sc->data[SC_GT_CHANGE]->val2) {
-			struct block_list *bl;
-			if((bl = map_id2bl(sc->data[SC_GT_CHANGE]->val2)))
-				//ATK increase: ATK [{(Caster's DEX / 4) + (Caster's STR / 2)} x Skill Level / 5]
-				ATK_ADD(wd.damage, wd.damage2, (status_get_dex(bl) / 4 + status_get_str(bl) / 2) * sc->data[SC_GT_CHANGE]->val1 / 5);
-		}
-#endif
-
 	}
 
 #ifndef RENEWAL

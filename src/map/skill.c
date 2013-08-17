@@ -3465,7 +3465,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 						const enum e_skill combos[] = {SR_DRAGONCOMBO, SR_FALLENEMPIRE, SR_TIGERCANNON, SR_SKYNETBLOW};
 						if( (sd = ((TBL_PC*)src)) ) {
 							uint16 cid = combos[skl->skill_id - SR_FLASHCOMBO_ATK_STEP1];
-							skill_castend_damage_id(src, target, cid, pc->checkskill(sd, cid), tick, 0);
+							skill_castend_damage_id(src, target, cid, pc_checkskill(sd, cid), tick, 0);
 						}
 					}
 					break;
@@ -6777,8 +6777,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						case SC_BANDING:			case SC_DUPLELIGHT:		case SC_EXPIATIO:
 						case SC_LAUDAAGNUS:			case SC_LAUDARAMUS:		case SC_GATLINGFEVER:
 						case SC_INCREASING:			case SC_ADJUSTMENT:		case SC_MADNESSCANCEL:
-						case SC_ANGEL_PROTECT:	case SC_MONSTER_TRANSFORM:	case SC_FULL_THROTTLE:
-						case SC_REBOUND:	case SC_TELEKINESIS_INTENSE:
+						case SC_ANGEL_PROTECT:			case SC_MONSTER_TRANSFORM:	case SC_FULL_THROTTLE:
+						case SC_REBOUND:			case SC_TELEKINESIS_INTENSE:
 #ifdef RENEWAL
 						case SC_EXTREMITYFIST2:
 #endif
@@ -8184,8 +8184,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						case SC_MIRACLE:		case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:
 						case SC_INCHEALRATE:		case SC_PUSH_CART:		case SC_PARTYFLEE:
 						case SC_RAISINGDRAGON:		case SC_GT_REVITALIZE:		case SC_GT_ENERGYGAIN:
-						case SC_GT_CHANGE:	case SC_ANGEL_PROTECT:	case SC_MONSTER_TRANSFORM:
-						case SC_FULL_THROTTLE:	case SC_REBOUND:	case SC_TELEKINESIS_INTENSE:
+						case SC_GT_CHANGE:		case SC_ANGEL_PROTECT:		case SC_MONSTER_TRANSFORM:
+						case SC_FULL_THROTTLE:		case SC_REBOUND:		case SC_TELEKINESIS_INTENSE:
 #ifdef RENEWAL
 						case SC_EXTREMITYFIST2:
 #endif
@@ -8196,7 +8196,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							break;
 					}
 					//Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
-					if( i == SC_BERSERK ) tsc->data[i]->val2=0;
+					if( i == SC_BERSERK ) tsc->data[i]->val2 = 0;
 					status_change_end(bl,(sc_type)i,INVALID_TIMER);
 				}
 				break;
@@ -8213,15 +8213,15 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case AB_OFFERTORIUM:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
-			if( sc ) {
-				status_change_end(src, SC_CURSE, INVALID_TIMER);
-				status_change_end(src, SC_POISON, INVALID_TIMER);
-				status_change_end(src, SC_HALLUCINATION, INVALID_TIMER);
-				status_change_end(src, SC_CONFUSION, INVALID_TIMER);
-				status_change_end(src, SC_BLEEDING, INVALID_TIMER);
-				status_change_end(src, SC_BURNING, INVALID_TIMER);
-				status_change_end(src, SC_FREEZING, INVALID_TIMER);
-				status_change_end(src, SC_MANDRAGORA, INVALID_TIMER);
+			if( tsc ) {
+				status_change_end(bl, SC_CURSE, INVALID_TIMER);
+				status_change_end(bl, SC_POISON, INVALID_TIMER);
+				status_change_end(bl, SC_HALLUCINATION, INVALID_TIMER);
+				status_change_end(bl, SC_CONFUSION, INVALID_TIMER);
+				status_change_end(bl, SC_BLEEDING, INVALID_TIMER);
+				status_change_end(bl, SC_BURNING, INVALID_TIMER);
+				status_change_end(bl, SC_FREEZING, INVALID_TIMER);
+				status_change_end(bl, SC_MANDRAGORA, INVALID_TIMER);
 			}
 			break;
 
@@ -8823,7 +8823,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SR_GENTLETOUCH_CHANGE:
 		case SR_GENTLETOUCH_REVITALIZE:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
-				sc_start2(src,bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv)));
+				sc_start2(src,bl,type,100,skill_lv,bl->id,skill_get_time(skill_id,skill_lv)));
 			break;
 		case SR_FLASHCOMBO:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -14090,7 +14090,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 			req.sp += sc->data[SC__LAZINESS]->val1 * 10;
 		if( sc->data[SC_UNLIMITEDHUMMINGVOICE] )
 			req.sp += req.sp * sc->data[SC_UNLIMITEDHUMMINGVOICE]->val2 / 100;
-		if( sc->data[SC_TELEKINESIS_INTENSE] && skill->get_ele(skill_id, skill_lv) == ELE_GHOST)
+		if( sc->data[SC_TELEKINESIS_INTENSE] && skill_get_ele(skill_id, skill_lv) == ELE_GHOST)
 			req.sp -= req.sp * sc->data[SC_TELEKINESIS_INTENSE]->val2 / 100;
 	}
 

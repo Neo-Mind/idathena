@@ -702,7 +702,7 @@ void initChangeTables(void) {
 	//It does show the snow icon on mobs but doesn't affect it.
 	set_sc_with_vfx( SO_DIAMONDDUST , SC_CRYSTALIZE   , SI_COLD            , SCB_NONE );
 	add_sc( SO_CLOUD_KILL        , SC_POISON );
-	set_sc( SO_STRIKING          , SC_STRIKING        , SI_STRIKING        , SCB_WATK|SCB_CRI );
+	set_sc( SO_STRIKING          , SC_STRIKING        , SI_STRIKING        , SCB_CRI );
 	set_sc( SO_WARMER            , SC_WARMER          , SI_WARMER          , SCB_NONE );
 	set_sc( SO_VACUUM_EXTREME    , SC_VACUUM_EXTREME  , SI_VACUUM_EXTREME  , SCB_NONE );
 	set_sc( SO_ARRULLO           , SC_DEEPSLEEP       , SI_DEEPSLEEP       , SCB_NONE );
@@ -4772,10 +4772,6 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 				watk += sc->data[SC_NIBELUNGEN]->val2;
 		}
 	}
-	if(sc->data[SC_STRIKING])
-		watk += sc->data[SC_STRIKING]->val2;
-	if(sc->data[SC_GT_CHANGE] && sc->data[SC_GT_CHANGE]->val2)
-		watk += sc->data[SC_GT_CHANGE]->val2;
 	if(sc->data[SC_CONCENTRATION])
 		watk += watk * sc->data[SC_CONCENTRATION]->val2 / 100;
 #endif
@@ -8787,8 +8783,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 						if ( casterint <= 0 )
 							casterint = 1; //Prevents dividing by 0 since its possiable to reduce players stats to 0; [Rytech]
 						val4 = ( 200 / casterint ) * val1; //MDEF decrease: MDEF [(200 / Caster INT) x Skill Level]
-						//ATK increase: ATK [{(Caster's DEX / 4) + (Caster's STR / 2)} x Skill Level / 5]
-						val2 = ( status_get_dex(src) / 4 + status_get_str(src) / 2 ) * val1 / 5;
 					}
 				}
 				break;
@@ -10007,7 +10001,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			break;
 
 		case SC_FULL_THROTTLE:
-			sc_start(src, bl, SC_REBOUND, 100, sce->val1, skill_get_time2(ALL_FULL_THROTTLE, sce->val1));
+			sc_start(bl, bl, SC_REBOUND, 100, sce->val1, skill_get_time2(ALL_FULL_THROTTLE, sce->val1));
 			break;
 		}
 
