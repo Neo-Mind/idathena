@@ -5094,7 +5094,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case RK_ABUNDANCE:
 			if(sd && 85 + pc_checkskill(sd, RK_RUNEMASTERY) + ((sstatus->dex + sstatus->luk) / 20) < rnd()%100) { //If Fail
 				struct item_data *i_data;
-				int nameid;
+				int nameid = 0;
 				int rate = rnd()%20 + 1;
 				switch(skill_id) {
 					case RK_MILLENNIUMSHIELD:
