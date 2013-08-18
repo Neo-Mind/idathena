@@ -2892,21 +2892,12 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 		if(sc->data[SC_CONCENTRATION])
 			skillratio += sc->data[SC_CONCENTRATION]->val2;
 #endif
-		if( sc->data[SC_UNLIMIT] && wd.flag&BF_LONG ) {
-			ATK_ADD(wd.damage, wd.damage2, 50 * sc->data[SC_UNLIMIT]->val1);
-#ifdef RENEWAL
-			ATK_ADD(wd.weaponAtk, wd.weaponAtk2, 50 * sc->data[SC_UNLIMIT]->val1);
-#endif
-		}
+		if(sc->data[SC_UNLIMIT] && wd.flag&BF_LONG)
+			skillratio += 50 * sc->data[SC_UNLIMIT]->val1;
 	}
-	if( tsc && skill_id != PA_SACRIFICE ) {
-		if( tsc->data[SC_DARKCROW] && (wd.flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT ) {
-			ATK_ADD(wd.damage, wd.damage2, 30 * tsc->data[SC_DARKCROW]->val1);
-#ifdef RENEWAL
-			ATK_ADD(wd.weaponAtk, wd.weaponAtk2, 30 * tsc->data[SC_DARKCROW]->val1);
-#endif
-		}
-	}
+	if(tsc && skill_id != PA_SACRIFICE)
+		if(tsc->data[SC_DARKCROW] && (wd.flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT)
+			skillratio += 30 * tsc->data[SC_DARKCROW]->val1;
 
 	switch(skill_id) {
 		case SM_BASH:
@@ -4942,6 +4933,10 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						ShowError("0 enemies targeted by %d:%s, divide per 0 avoided!\n", skill_id, skill_get_name(skill_id));
 				}
 
+				if(sc)
+					if(sc->data[SC_TELEKINESIS_INTENSE] && s_ele == ELE_GHOST)
+						skillratio += sc->data[SC_TELEKINESIS_INTENSE]->val3;
+
 				switch(skill_id) {
 					case MG_NAPALMBEAT:
 						skillratio += -30 + 10 * skill_lv;
@@ -5086,7 +5081,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						skillratio += -100 + (skill_lv + 4) * 100 + sstatus->int_;
 						RE_LVL_DMOD(100);
 						if(tsc && tsc->data[SC_WHITEIMPRISON])
-							skillratio <<= 1;
+							skillratio *= 2;
 						break;
 					case WL_FROSTMISTY:
 						skillratio += 100 + 100 * skill_lv;
@@ -5298,10 +5293,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						skillratio += -100 + 40 * skill_lv * status_get_lv(src) / 100;
 						break;
 				}
-
-				if(sc)
-					if(sc->data[SC_TELEKINESIS_INTENSE] && s_ele == ELE_GHOST)
-						skillratio += sc->data[SC_TELEKINESIS_INTENSE]->val3;
 
 				MATK_RATE(skillratio);
 
