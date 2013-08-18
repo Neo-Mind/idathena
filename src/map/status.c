@@ -6897,7 +6897,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				return 0;
 			break;
 		case SC_MAGNIFICAT:
-			if(sc->data[SC_OFFERTORIUM] || sc->option&OPTION_MADOGEAR) //Mado is immune to magnificat
+			if(sc->option&OPTION_MADOGEAR) //Mado is immune to magnificat
 				return 0;
 			break;
 		case SC_ONEHAND:
@@ -6954,8 +6954,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					return 0;
 
 				i = sd->equip_index[EQI_HAND_R];
-				if(i>=0 && sd->inventory_data[i] && sd->inventory_data[i]->type == IT_WEAPON) {
-					opt_flag|=2;
+				if(i >= 0 && sd->inventory_data[i] && sd->inventory_data[i]->type == IT_WEAPON) {
+					opt_flag |= 2;
 					pc_unequipitem(sd,i,3);
 				}
 				if(!opt_flag) return 0;
@@ -7102,10 +7102,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			if(sc->data[SC_BERSERK] || sc->data[SC_INSPIRATION])
 				return 0;
 			break;
-		case SC_OFFERTORIUM:
-			if(sc->data[SC_MAGNIFICAT])
-				return 0;
-			break;
 	}
 
 	//Check for Boss resistances
@@ -7212,6 +7208,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_MAXOVERTHRUST:
 			//Cancels Normal Overthrust. [Skotlex]
 			status_change_end(bl, SC_OVERTHRUST, INVALID_TIMER);
+			break;
+		case SC_MAGNIFICAT:
+			status_change_end(bl, SC_OFFERTORIUM, INVALID_TIMER);
 			break;
 		case SC_KYRIE:
 			//Cancels Assumptio
@@ -7324,6 +7323,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			status_change_end(bl, SC_ASPDPOTION1, INVALID_TIMER);
 			status_change_end(bl, SC_ASPDPOTION2, INVALID_TIMER);
 			status_change_end(bl, SC_ASPDPOTION3, INVALID_TIMER);
+			break;
+		case SC_OFFERTORIUM:
+			status_change_end(bl, SC_MAGNIFICAT, INVALID_TIMER);
 			break;
 		case SC_SWINGDANCE:
 		case SC_SYMPHONYOFLOVER:
