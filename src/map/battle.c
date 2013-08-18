@@ -869,7 +869,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		}
 
 		if( (sce = sc->data[SC_PARRYING]) && flag&BF_WEAPON && skill_id != WS_CARTTERMINATION && rnd()%100 < sce->val2 ) {
-			// Attack blocked by Parrying
+			//Attack blocked by Parrying
 			clif_skill_nodamage(bl, bl, LK_PARRYING, sce->val1,1);
 			return 0;
 		}
@@ -886,12 +886,11 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		if( sc->data[SC_HERMODE] && flag&BF_MAGIC )
 			return 0;
 
-		if( sc->data[SC_TATAMIGAESHI] && (flag&(BF_MAGIC|BF_LONG)) == BF_LONG )
+		if( sc->data[SC_TATAMIGAESHI] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG )
 			return 0;
 
 		// TODO: Find out whether Neutral Barrier really blocks all splash damage or just specific cases (Earthquake)
-		if( sc->data[SC_NEUTRALBARRIER] && (((flag&(BF_LONG|BF_MAGIC)) == BF_LONG && (skill_id != HT_PHANTASMIC ||
-			skill_id != CR_ACIDDEMONSTRATION || skill_id != WM_METALICSOUND)) ||
+		if( sc->data[SC_NEUTRALBARRIER] && (((flag&(BF_LONG|BF_MAGIC)) == BF_LONG && skill_id != CR_ACIDDEMONSTRATION) ||
 			skill_get_splash(skill_id,skill_lv)) ) {
 			d->dmg_lv = ATK_MISS;
 			return 0;
@@ -1998,8 +1997,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 	else if(nk&NK_IGNORE_FLEE)
 		return true;
 
-	if(sc && (sc->data[SC_NEUTRALBARRIER] || sc->data[SC_NEUTRALBARRIER_MASTER]) && wd.flag&BF_LONG &&
-		(skill_id != HT_PHANTASMIC || skill_id != CR_ACIDDEMONSTRATION || skill_id != WM_METALICSOUND))
+	if(sc && (sc->data[SC_NEUTRALBARRIER] || sc->data[SC_NEUTRALBARRIER_MASTER]) && wd.flag&BF_LONG)
 		return false;
 
 	flee = tstatus->flee;

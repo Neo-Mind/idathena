@@ -1835,8 +1835,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 					return 0;
 				if (tsc->data[SC_CAMOUFLAGE] && !(is_boss || is_detect) && !skill_id)
 					return 0;
-				if (tsc->data[SC_STEALTHFIELD] && !(is_boss || is_detect) &&
-					!skill_get_inf(skill_id)&INF_GROUND_SKILL)
+				if (tsc->data[SC_STEALTHFIELD] && !(is_boss || is_detect))
 					return 0;
 			}
 			break;
@@ -1897,7 +1896,7 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 			break;
 		default:
 			if( tsc && (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) ||
-				tsc->data[SC_CAMOUFLAGE]) && !(status->mode&(MD_BOSS|MD_DETECTOR)) )
+				tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_STEALTHFIELD]) && !(status->mode&(MD_BOSS|MD_DETECTOR)) )
 				return 0;
 	}
 

@@ -9622,13 +9622,13 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 	src = map_id2bl(id);
 	if( src == NULL ) {
 		ShowDebug("skill_castend_id: src == NULL (tid=%d, id=%d)\n", tid, id);
-		return 0;// not found
+		return 0; //Not found
 	}
 
 	ud = unit_bl2ud(src);
 	if( ud == NULL ) {
 		ShowDebug("skill_castend_id: ud == NULL (tid=%d, id=%d)\n", tid, id);
-		return 0;// ???
+		return 0; //???
 	}
 
 	sd = BL_CAST(BL_PC,  src);
@@ -9639,7 +9639,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 		return 0;
 	}
 
-	if( ud->skill_id != SA_CASTCANCEL && ud->skill_id != SO_SPELLFIST ) { // Otherwise handled in unit_skillcastcancel()
+	if( ud->skill_id != SA_CASTCANCEL && ud->skill_id != SO_SPELLFIST ) { //Otherwise handled in unit_skillcastcancel()
 		if( ud->skilltimer != tid ) {
 			ShowError("skill_castend_id: Timer mismatch %d!=%d!\n", ud->skilltimer, tid);
 			ud->skilltimer = INVALID_TIMER;
@@ -9647,7 +9647,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 		}
 
 		if( sd && ud->skilltimer != INVALID_TIMER && (pc_checkskill(sd,SA_FREECAST) > 0 || ud->skill_id == LG_EXEEDBREAK) ) {
-			// restore original walk speed
+			//Restore original walk speed
 			ud->skilltimer = INVALID_TIMER;
 			status_calc_bl(&sd->bl, SCB_SPEED);
 		}
@@ -9660,7 +9660,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 	else
 		target = map_id2bl(ud->skilltarget);
 
-	// Use a do so that you can break out of it when the skill fails.
+	//Use a do so that you can break out of it when the skill fails.
 	do {
 		if( !target || target->prev == NULL ) break;
 
@@ -9842,9 +9842,9 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 
 		map_freeblock_lock();
 
-		// SC_MAGICPOWER needs to switch states before any damage is actually dealt
+		//SC_MAGICPOWER needs to switch states before any damage is actually dealt
 		skill_toggle_magicpower(src,ud->skill_id);
-		// Only normal attack and auto cast skills benefit from its bonuses
+		//Only normal attack and auto cast skills benefit from its bonuses
 		if( ud->skill_id != RA_CAMOUFLAGE )
 			status_change_end(src,SC_CAMOUFLAGE,INVALID_TIMER);
 
@@ -9950,7 +9950,7 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 	}
 
 	if( sd && ud->skilltimer != INVALID_TIMER && ( pc_checkskill(sd,SA_FREECAST) > 0 || ud->skill_id == LG_EXEEDBREAK ) ) {
-		// restore original walk speed
+		//Restore original walk speed
 		ud->skilltimer = INVALID_TIMER;
 		status_calc_bl(&sd->bl, SCB_SPEED);
 	}
@@ -9965,7 +9965,7 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 			skill_check_unit_range(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv)
 		  )
 		{
-			if (sd) clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
+			if( sd ) clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
 		}
 		if( src->type&battle_config.skill_nofootset &&
@@ -9973,14 +9973,14 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 			skill_check_unit_range2(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv)
 		  )
 		{
-			if (sd) clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
+			if( sd ) clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
 		}
 		if( src->type&battle_config.land_skill_limit &&
-			(maxcount = skill_get_maxcount(ud->skill_id, ud->skill_lv)) > 0
+			(maxcount = skill_get_maxcount(ud->skill_id,ud->skill_lv)) > 0
 		  ) {
 			int i;
-			for(i=0;i<MAX_SKILLUNITGROUP && ud->skillunit[i] && maxcount;i++) {
+			for( i = 0; i < MAX_SKILLUNITGROUP && ud->skillunit[i] && maxcount; i++ ) {
 				if(ud->skillunit[i]->skill_id == ud->skill_id)
 					maxcount--;
 			}
@@ -9990,8 +9990,8 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 			}
 		}
 
-		if(tid != INVALID_TIMER) { //Avoid double checks on instant cast skills. [Skotlex]
-			if (!status_check_skilluse(src, NULL, ud->skill_id, 1))
+		if( tid != INVALID_TIMER ) { //Avoid double checks on instant cast skills. [Skotlex]
+			if( !status_check_skilluse(src,NULL,ud->skill_id,1) )
 				break;
 			if(battle_config.skill_add_range &&
 				!check_distance_blxy(src, ud->skillx, ud->skilly, skill_get_range2(src,ud->skill_id,ud->skill_lv)+battle_config.skill_add_range)) {
@@ -10013,7 +10013,7 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 
 		if( md ) {
 			md->last_thinktime=tick +MIN_MOBTHINKTIME;
-			if(md->skill_idx >= 0 && md->db->skill[md->skill_idx].emotion >= 0)
+			if( md->skill_idx >= 0 && md->db->skill[md->skill_idx].emotion >= 0 )
 				clif_emotion(src, md->db->skill[md->skill_idx].emotion);
 		}
 
@@ -10030,22 +10030,20 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 			skill_blockpc_start(sd, ud->skill_id, inf);
 		if( battle_config.display_status_timers && sd )
 			clif_status_change(src, SI_ACTIONDELAY, 1, skill_delayfix(src, ud->skill_id, ud->skill_lv), 0, 0, 0);
-//		if( sd )
-//		{
-//			switch( ud->skill_id )
-//			{
-//			case ????:
-//				sd->canequip_tick = tick + ????;
-//				break;
+//		if( sd ) {
+//			switch( ud->skill_id ) {
+//				case ????:
+//					sd->canequip_tick = tick + ????;
+//					break;
 //			}
 //		}
 		unit_set_walkdelay(src, tick, battle_config.default_walk_delay+skill_get_walkdelay(ud->skill_id, ud->skill_lv), 1);
-		// Only normal attack and auto cast skills benefit from its bonuses
+		//Only normal attack and auto cast skills benefit from its bonuses
 		status_change_end(src, SC_CAMOUFLAGE, INVALID_TIMER);
 		map_freeblock_lock();
 		skill_castend_pos2(src, ud->skillx, ud->skilly, ud->skill_id, ud->skill_lv, tick, 0);
 
-		if( sd && sd->skillitem != AL_WARP ) // Warp-Portal thru items will clear data in skill_castend_map. [Inkfish]
+		if( sd && sd->skillitem != AL_WARP ) //Warp-Portal thru items will clear data in skill_castend_map. [Inkfish]
 			sd->skillitem = sd->skillitemlv = 0;
 
 		if( ud->skilltimer == INVALID_TIMER ) {
@@ -10069,7 +10067,7 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 
 }
 
-/* skill count without self */
+/* Skill count without self */
 static int skill_count_wos(struct block_list *bl,va_list ap) {
 	struct block_list* src = va_arg(ap, struct block_list*);
 	if( src->id != bl->id ) {
