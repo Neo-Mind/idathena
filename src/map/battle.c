@@ -4942,11 +4942,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						ShowError("0 enemies targeted by %d:%s, divide per 0 avoided!\n", skill_id, skill_get_name(skill_id));
 				}
 
-				if(sc) {
-					if(sc->data[SC_TELEKINESIS_INTENSE] && s_ele == ELE_GHOST)
-						skillratio += sc->data[SC_TELEKINESIS_INTENSE]->val3; 
-				}
-
 				switch(skill_id) {
 					case MG_NAPALMBEAT:
 						skillratio += -30 + 10 * skill_lv;
@@ -5303,6 +5298,10 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						skillratio += -100 + 40 * skill_lv * status_get_lv(src) / 100;
 						break;
 				}
+
+				if(sc)
+					if(sc->data[SC_TELEKINESIS_INTENSE] && s_ele == ELE_GHOST)
+						skillratio += sc->data[SC_TELEKINESIS_INTENSE]->val3;
 
 				MATK_RATE(skillratio);
 
