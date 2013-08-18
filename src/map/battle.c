@@ -4891,7 +4891,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			case PR_BENEDICTIO:
 			case PR_SANCTUARY:
 			case AB_HIGHNESSHEAL:
-				ad.damage = skill_calc_heal(src, target, (skill_id == AB_HIGHNESSHEAL) ? AL_HEAL : skill_id, (skill_id == AB_HIGHNESSHEAL) ? 10 : skill_lv, false);
+				ad.damage = skill_calc_heal(src, target, skill_id, skill_lv, false);
 				break;
 			case PR_ASPERSIO:
 				ad.damage = 40;

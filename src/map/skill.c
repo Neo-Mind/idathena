@@ -393,7 +393,10 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 	int skill, hp;
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 	struct map_session_data *tsd = BL_CAST(BL_PC, target);
-	struct status_change* sc;
+	struct status_change *sc, *tsc;
+
+	sc = status_get_sc(src);
+	tsc = status_get_sc(target);
 
 	switch( skill_id ) {
 		case BA_APPLEIDUN:
@@ -419,13 +422,13 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 			if( skill_lv >= battle_config.max_heal_lv )
 				return battle_config.max_heal;
 #ifdef RENEWAL
-				/**
-				* Renewal Heal Formula
-				* Formula: ( [(Base Level + INT) / 5] x 30 ) x (Heal Level / 10) x (Modifiers) + MATK
-				**/
-				hp = (status_get_lv(src) + status_get_int(src)) / 5 * 30 * skill_lv / 10;
+			/**
+			* Renewal Heal Formula
+			* Formula: ( [(Base Level + INT) / 5] x 30 ) x (Heal Level / 10) x (Modifiers) + MATK
+			**/
+			hp = (status_get_lv(src) + status_get_int(src)) / 5 * 30 * skill_lv / 10;
 #else
-				hp = (status_get_lv(src) + status_get_int(src)) / 8 * (4 + (skill_lv * 8));
+			hp = (status_get_lv(src) + status_get_int(src)) / 8 * (4 + (skill_lv * 8));
 #endif
 			if( sd && ((skill = pc_checkskill(sd, HP_MEDITATIO)) > 0) )
 				hp += hp * skill * 2 / 100;
@@ -445,18 +448,19 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 	if( tsd && (skill = pc_skillheal2_bonus(tsd, skill_id)) )
 		hp += hp * skill / 100;
 
-	sc = status_get_sc(target);
-	if( sc && sc->count ) {
-		if( heal && sc->data[SC_CRITICALWOUND] ) // Critical Wound has no effect on offensive heal. [Inkfish]
-			hp -= hp * sc->data[SC_CRITICALWOUND]->val2/100;
-		if( heal && sc->data[SC_DEATHHURT] )
+	if( sc && sc->data[SC_OFFERTORIUM] && (skill_id == AB_HIGHNESSHEAL || skill_id == AB_CHEAL ||
+		skill_id == PR_SANCTUARY || skill_id == AL_HEAL) )
+		hp += hp * sc->data[SC_OFFERTORIUM]->val2 / 100;
+
+	if( tsc && tsc->count ) {
+		if( heal && tsc->data[SC_CRITICALWOUND] ) //Critical Wound has no effect on offensive heal. [Inkfish]
+			hp -= hp * tsc->data[SC_CRITICALWOUND]->val2 / 100;
+		if( heal && tsc->data[SC_DEATHHURT] )
 			hp -= hp * 20 / 100;
-		if( sc->data[SC_INCHEALRATE] && skill_id != NPC_EVILLAND && skill_id != BA_APPLEIDUN )
-			hp += hp * sc->data[SC_INCHEALRATE]->val1/100; // Only affects Heal, Sanctuary and PotionPitcher.(like bHealPower) [Inkfish]
-		if( sc->data[SC_WATER_INSIGNIA] && sc->data[SC_WATER_INSIGNIA]->val1 == 2)
+		if( tsc->data[SC_INCHEALRATE] && skill_id != NPC_EVILLAND && skill_id != BA_APPLEIDUN )
+			hp += hp * tsc->data[SC_INCHEALRATE]->val1 / 100; //Only affects Heal, Sanctuary and PotionPitcher.(like bHealPower) [Inkfish]
+		if( tsc->data[SC_WATER_INSIGNIA] && tsc->data[SC_WATER_INSIGNIA]->val1 == 2)
 			hp += hp / 10;
-		if( sc->data[SC_OFFERTORIUM] && (skill_id == AB_HIGHNESSHEAL || skill_id == AB_CHEAL || skill_id == PR_SANCTUARY || skill_id == AL_HEAL) )
-			hp += hp * sc->data[SC_OFFERTORIUM]->val2 / 100;
 	}
 
 #ifdef RENEWAL
@@ -469,7 +473,6 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 				struct status_data *status = status_get_status_data(src);
 				int min, max;
 
-				sc = status_get_sc(src);
 				min = max = status_base_matk(status, status_get_lv(src));
 				if( status->rhw.matk > 0 ) {
 					int wMatk, variance;
@@ -478,17 +481,14 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 					min += wMatk - variance;
 					max += wMatk + variance;
 				}
-
 				if( sc && sc->data[SC_RECOGNIZEDSPELL] )
 					min = max;
-
 				if( sd && sd->right_weapon.overrefine > 0 ) {
 					min++;
 					max += sd->right_weapon.overrefine - 1;
 				}
-
 				if( max > min )
-					hp += min+rnd()%(max-min);
+					hp += min + rnd()%(max - min);
 				else
 					hp += min;
 			}
