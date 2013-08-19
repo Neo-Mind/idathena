@@ -8214,13 +8214,23 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case AB_OFFERTORIUM:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			if( tsc ) {
+				status_change_end(bl, SC_BLIND, INVALID_TIMER);
 				status_change_end(bl, SC_CURSE, INVALID_TIMER);
 				status_change_end(bl, SC_POISON, INVALID_TIMER);
 				status_change_end(bl, SC_HALLUCINATION, INVALID_TIMER);
 				status_change_end(bl, SC_CONFUSION, INVALID_TIMER);
 				status_change_end(bl, SC_BLEEDING, INVALID_TIMER);
 				status_change_end(bl, SC_BURNING, INVALID_TIMER);
+				status_change_end(bl, SC_FREEZE, INVALID_TIMER);
 				status_change_end(bl, SC_FREEZING, INVALID_TIMER);
+				status_change_end(bl, SC_TOXIN, INVALID_TIMER);
+				status_change_end(bl, SC_PARALYSE, INVALID_TIMER);
+				status_change_end(bl, SC_VENOMBLEED, INVALID_TIMER);
+				status_change_end(bl, SC_MAGICMUSHROOM, INVALID_TIMER);
+				status_change_end(bl, SC_DEATHHURT, INVALID_TIMER);
+				status_change_end(bl, SC_PYREXIA, INVALID_TIMER);
+				status_change_end(bl, SC_OBLIVIONCURSE, INVALID_TIMER);
+				status_change_end(bl, SC_LEECHESEND, INVALID_TIMER);
 				status_change_end(bl, SC_MANDRAGORA, INVALID_TIMER);
 			}
 			break;
@@ -8826,8 +8836,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				sc_start2(src,bl,type,100,skill_lv,bl->id,skill_get_time(skill_id,skill_lv)));
 			break;
 		case SR_FLASHCOMBO:
+			if( sd )
+				sd->ud.attackabletime = sd->canuseitem_tick = sd->ud.canact_tick;
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-			for(i = SR_FLASHCOMBO_ATK_STEP1; i <= SR_FLASHCOMBO_ATK_STEP4; i++)
+			for( i = SR_FLASHCOMBO_ATK_STEP1; i <= SR_FLASHCOMBO_ATK_STEP4; i++ )
 				skill_addtimerskill(src,tick + 500 * (i - SR_FLASHCOMBO_ATK_STEP1),bl->id,0,0,i,skill_lv,BF_WEAPON,flag|SD_LEVEL);
 			break;
 		case WA_SWING_DANCE:

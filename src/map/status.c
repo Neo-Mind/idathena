@@ -619,7 +619,7 @@ void initChangeTables(void) {
 	add_sc( RA_VERDURETRAP       , SC_ELEMENTALCHANGE );
 	set_sc( RA_FIRINGTRAP        , SC_BURNING         , SI_BLANK           , SCB_MDEF );
 	set_sc_with_vfx( RA_ICEBOUNDTRAP , SC_FREEZING    , SI_FROSTMISTY      , SCB_ASPD|SCB_SPEED|SCB_DEF|SCB_DEF2 );
-	set_sc( RA_UNLIMIT           , SC_UNLIMIT         , SI_UNLIMIT         , SCB_NONE );
+	set_sc( RA_UNLIMIT           , SC_UNLIMIT         , SI_UNLIMIT         , SCB_DEF|SCB_DEF2|SCB_MDEF|SCB_MDEF2 );
 
 	set_sc( NC_ACCELERATION      , SC_ACCELERATION    , SI_ACCELERATION    , SCB_SPEED );
 	set_sc( NC_HOVERING          , SC_HOVERING        , SI_HOVERING        , SCB_SPEED );
@@ -5142,6 +5142,8 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 		def -= def * sc->data[SC_ASH]->val3 / 100;
 	if(sc->data[SC_OVERED_BOOST])
 		def -= def * sc->data[SC_OVERED_BOOST]->val3 / 100;
+	if(sc->data[SC_UNLIMIT])
+		def = 1;
 
 	return (defType)cap_value(def,DEFTYPE_MIN,DEFTYPE_MAX);;
 }
@@ -5197,6 +5199,8 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 		def2 -= def2 * sc->data[SC_PARALYSIS]->val2 / 100;
 	if(sc->data[SC_EQC])
 		def2 -= def2 * sc->data[SC_EQC]->val2 / 100;
+	if(sc->data[SC_UNLIMIT])
+		def2 = 1;
 
 #ifdef RENEWAL
 	return (short)cap_value(def2,SHRT_MIN,SHRT_MAX);
@@ -5251,6 +5255,8 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 	}
 	if(sc->data[SC_ODINS_POWER])
 		mdef -= 20;
+	if(sc->data[SC_UNLIMIT])
+		mdef = 1;
 
 	return (defType)cap_value(mdef,DEFTYPE_MIN,DEFTYPE_MAX);
 }
@@ -5274,6 +5280,8 @@ static signed short status_calc_mdef2(struct block_list *bl, struct status_chang
 		mdef2 -= mdef2 * 25 / 100;
 	if(sc->data[SC_ANALYZE])
 		mdef2 -= mdef2 * ( 14 * sc->data[SC_ANALYZE]->val1 ) / 100;
+	if(sc->data[SC_UNLIMIT])
+		mdef2 = 1;
 
 #ifdef RENEWAL
 	return (short)cap_value(mdef2,SHRT_MIN,SHRT_MAX);
@@ -6040,10 +6048,10 @@ struct status_data *status_get_base_status(struct block_list *bl)
 defType status_get_def(struct block_list *bl) {
 	struct unit_data *ud;
 	struct status_data *status = status_get_status_data(bl);
-	int def = status?status->def:0;
+	int def = status ? status->def : 0;
 	ud = unit_bl2ud(bl);
 	if (ud && ud->skilltimer != INVALID_TIMER)
-		def -= def * skill_get_castdef(ud->skill_id)/100;
+		def -= def * skill_get_castdef(ud->skill_id) / 100;
 
 	return cap_value(def, DEFTYPE_MIN, DEFTYPE_MAX);
 }
@@ -7331,13 +7339,15 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_MOONLITSERENADE:
 		case SC_RUSHWINDMILL:
 		case SC_ECHOSONG:
-		case SC_HARMONIZE: //Group A doesn't overlap
+		case SC_HARMONIZE:
+		case SC_FRIGG_SONG: //Group A doesn't overlap
 			if (type != SC_SWINGDANCE) status_change_end(bl, SC_SWINGDANCE, INVALID_TIMER);
 			if (type != SC_SYMPHONYOFLOVER) status_change_end(bl, SC_SYMPHONYOFLOVER, INVALID_TIMER);
 			if (type != SC_MOONLITSERENADE) status_change_end(bl, SC_MOONLITSERENADE, INVALID_TIMER);
 			if (type != SC_RUSHWINDMILL) status_change_end(bl, SC_RUSHWINDMILL, INVALID_TIMER);
 			if (type != SC_ECHOSONG) status_change_end(bl, SC_ECHOSONG, INVALID_TIMER);
 			if (type != SC_HARMONIZE) status_change_end(bl, SC_HARMONIZE, INVALID_TIMER);
+			if (type != SC_FRIGG_SONG) status_change_end(bl, SC_FRIGG_SONG, INVALID_TIMER);
 			break;
 		case SC_VOICEOFSIREN:
 		case SC_DEEPSLEEP:
@@ -9033,8 +9043,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_FRIGG_SONG:
 				val2 = 5 * val1;
-				val3 = 1000 + 100 * val1;
-				tick_time = 10000;
+				val3 = (20 * val1) + 80;
+				tick_time = 1000;
 				val4 = tick / tick_time;
 				break;
 			case SC_MONSTER_TRANSFORM:
@@ -11053,7 +11063,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_FRIGG_SONG:
 			if( --(sce->val4) > 0 ) {
 				status_heal(bl, sce->val3, 0, 0);
-				sc_timer_next(10000 + tick, status_change_timer, bl->id, data);
+				sc_timer_next(1000 + tick, status_change_timer, bl->id, data);
 				return 0;
 			}
 			break;
