@@ -891,7 +891,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 
 		// TODO: Find out whether Neutral Barrier really blocks all splash damage or just specific cases (Earthquake)
 		if( sc->data[SC_NEUTRALBARRIER] && (((flag&(BF_LONG|BF_MAGIC)) == BF_LONG && skill_id != CR_ACIDDEMONSTRATION) ||
-			skill_get_splash(skill_id,skill_lv)) ) {
+			skill_get_splash(skill_id, skill_lv)) ) {
 			d->dmg_lv = ATK_MISS;
 			return 0;
 		}
