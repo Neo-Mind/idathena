@@ -2890,12 +2890,10 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 		if(sc->data[SC_CONCENTRATION])
 			skillratio += sc->data[SC_CONCENTRATION]->val2;
 #endif
-		if(sc->data[SC_UNLIMIT] && wd.flag&BF_LONG)
-			skillratio += 50 * sc->data[SC_UNLIMIT]->val1;
 	}
 	if(tsc && skill_id != PA_SACRIFICE)
 		if(tsc->data[SC_DARKCROW] && (wd.flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT)
-			skillratio += 30 * tsc->data[SC_DARKCROW]->val1;
+			skillratio += skillratio * 30 * tsc->data[SC_DARKCROW]->val1 / 100;
 
 	switch(skill_id) {
 		case SM_BASH:
@@ -3971,13 +3969,23 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 #endif
 				}
 			}
-
 			if(sc->data[SC_STYLE_CHANGE]) {
 				TBL_HOM *hd = BL_CAST(BL_HOM, src);
 				if(hd) ATK_ADD(wd.damage, wd.damage2, hd->homunculus.spiritball * 3);
 			}
-
+			if(sc->data[SC_UNLIMIT] && wd.flag&BF_LONG) {
+				switch(skill_id) {
+					case RA_WUGDASH:
+					case RA_WUGSTRIKE:
+					case RA_WUGBITE:
+						break;
+					default:
+						ATK_ADDRATE(wd.damage, wd.damage2, 50 * sc->data[SC_UNLIMIT]->val1);
+						RE_ALLATK_ADDRATE(wd, 50 * sc->data[SC_UNLIMIT]->val1);
+				}
+			}
 		}
+
 	return wd;
 }
 
@@ -4933,7 +4941,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 				if(sc)
 					if(sc->data[SC_TELEKINESIS_INTENSE] && s_ele == ELE_GHOST)
-						skillratio += sc->data[SC_TELEKINESIS_INTENSE]->val3;
+						MATK_ADDRATE(sc->data[SC_TELEKINESIS_INTENSE]->val3);
 
 				switch(skill_id) {
 					case MG_NAPALMBEAT:
