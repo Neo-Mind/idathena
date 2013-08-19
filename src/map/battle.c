@@ -2526,6 +2526,7 @@ struct Damage battle_calc_damage_parts(struct Damage wd, struct block_list *src,
 struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv)
 {
 	struct status_change *sc = status_get_sc(src);
+	struct status_change *tsc = status_get_sc(target);
 	struct status_data *sstatus = status_get_status_data(src);
 	struct status_data *tstatus = status_get_status_data(target);
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
@@ -2753,6 +2754,11 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 						ShowError("0 enemies targeted by %d:%s, divide per 0 avoided!\n", skill_id, skill_get_name(skill_id));
 				}
 
+				if(tsc && tsc->data[SC_DARKCROW] && (wd.flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT) {
+					ATK_ADDRATE(wd.damage, wd.damage2, 30 * tsc->data[SC_DARKCROW]->val1);
+					RE_ALLATK_ADDRATE(wd, 30 * tsc->data[SC_DARKCROW]->val1);
+				}
+
 				//Add any bonuses that modify the base atk (pre-skills)
 				if(sd) {
 					if(sd->bonus.atk_rate) {
@@ -2891,9 +2897,6 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			skillratio += sc->data[SC_CONCENTRATION]->val2;
 #endif
 	}
-	if(tsc && skill_id != PA_SACRIFICE)
-		if(tsc->data[SC_DARKCROW] && (wd.flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT)
-			skillratio += skillratio * 30 * tsc->data[SC_DARKCROW]->val1 / 100;
 
 	switch(skill_id) {
 		case SM_BASH:
@@ -3849,8 +3852,8 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 	struct status_change *sc = status_get_sc(src);
 
-	// Minstrel/Wanderer number check for chorus skills.
-	// Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
+	//Minstrel/Wanderer number check for chorus skills.
+	//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 	int chorusbonus = 0;
 
 	if(sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus,sd,0) > 7)
@@ -4939,9 +4942,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						ShowError("0 enemies targeted by %d:%s, divide per 0 avoided!\n", skill_id, skill_get_name(skill_id));
 				}
 
-				if(sc)
-					if(sc->data[SC_TELEKINESIS_INTENSE] && s_ele == ELE_GHOST)
-						MATK_ADDRATE(sc->data[SC_TELEKINESIS_INTENSE]->val3);
+				if(sc && sc->data[SC_TELEKINESIS_INTENSE] && s_ele == ELE_GHOST)
+					MATK_ADDRATE(sc->data[SC_TELEKINESIS_INTENSE]->val3);
 
 				switch(skill_id) {
 					case MG_NAPALMBEAT:

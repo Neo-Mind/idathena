@@ -10618,7 +10618,10 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			if( (sg = skill_unitsetting(src,skill_id,skill_lv,src->x,src->y,0)) != NULL ) {
 				sc_start2(src,src,skill_id == NC_NEUTRALBARRIER ? SC_NEUTRALBARRIER_MASTER : SC_STEALTHFIELD_MASTER,100,
 					skill_lv,sg->group_id,skill_get_time(skill_id,skill_lv));
-				if( sd ) pc_overheat(sd,1);
+				if( sd ) {
+					skill_consume_requirement(sd,skill_id,skill_lv,2);
+					pc_overheat(sd,1);
+				}
 			}
 			break;
 
