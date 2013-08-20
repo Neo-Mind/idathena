@@ -337,23 +337,21 @@ int pc_banding(struct map_session_data *sd, uint16 skill_lv) {
 }
 
 // Increases a player's fame points and displays a notice to him
-void pc_addfame(struct map_session_data *sd,int count)
+void pc_addfame(struct map_session_data *sd, int count)
 {
+	int ranktype = -1;
 	nullpo_retv(sd);
 	sd->status.fame += count;
 	if(sd->status.fame > MAX_FAME)
 		sd->status.fame = MAX_FAME;
-	switch(sd->class_&MAPID_UPPERMASK){
-		case MAPID_BLACKSMITH: // Blacksmith
-			clif_fame_blacksmith(sd,count);
-			break;
-		case MAPID_ALCHEMIST: // Alchemist
-			clif_fame_alchemist(sd,count);
-			break;
-		case MAPID_TAEKWON: // Taekwon
-			clif_fame_taekwon(sd,count);
-			break;
+
+	switch(sd->class_&MAPID_UPPERMASK) {
+		case MAPID_BLACKSMITH: ranktype = 0; break;
+		case MAPID_ALCHEMIST:  ranktype = 1; break;
+		case MAPID_TAEKWON: ranktype = 2; break;
 	}
+
+	clif_update_rankingpoint(sd, ranktype, count);
 	chrif_updatefamelist(sd);
 }
 
@@ -3864,27 +3862,28 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount,e_l
  *	0 = success
  *	1 = invalid itemid or negative amount
  *------------------------------------------*/
-int pc_delitem(struct map_session_data *sd,int n,int amount,int type, short reason, e_log_pick_type log_type)
+int pc_delitem(struct map_session_data *sd, int n, int amount, int type, short reason, e_log_pick_type log_type)
 {
 	nullpo_retr(1, sd);
 
-	if(sd->status.inventory[n].nameid==0 || amount <= 0 || sd->status.inventory[n].amount<amount || sd->inventory_data[n] == NULL)
+	if(n < 0 || sd->status.inventory[n].nameid == 0 || amount <= 0 || sd->status.inventory[n].amount<amount ||
+		sd->inventory_data[n] == NULL)
 		return 1;
 
 	log_pick_pc(sd, log_type, -amount, &sd->status.inventory[n]);
 
 	sd->status.inventory[n].amount -= amount;
-	sd->weight -= sd->inventory_data[n]->weight*amount ;
-	if( sd->status.inventory[n].amount <= 0 ) {
+	sd->weight -= sd->inventory_data[n]->weight * amount ;
+	if(sd->status.inventory[n].amount <= 0) {
 		if(sd->status.inventory[n].equip)
-			pc_unequipitem(sd,n,3);
-		memset(&sd->status.inventory[n],0,sizeof(sd->status.inventory[0]));
+			pc_unequipitem(sd, n, 3);
+		memset(&sd->status.inventory[n], 0, sizeof(sd->status.inventory[0]));
 		sd->inventory_data[n] = NULL;
 	}
 	if(!(type&1))
-		clif_delitem(sd,n,amount,reason);
+		clif_delitem(sd, n, amount, reason);
 	if(!(type&2))
-		clif_updatestatus(sd,SP_WEIGHT);
+		clif_updatestatus(sd, SP_WEIGHT);
 
 	return 0;
 }
@@ -4169,13 +4168,15 @@ int pc_useitem(struct map_session_data *sd,int n)
 	unsigned int tick = gettick();
 	int amount, nameid;
 	struct script_code *script;
+	struct item item;
+	struct item_data *id;
 
 	nullpo_ret(sd);
 
 	//This flag enables you to use items while in an NPC. [Skotlex]
 	if( sd->npc_id ) {
 #ifdef RENEWAL
-		clif_msg(sd, USAGE_FAIL); // TODO look for the client date that has this message.
+		clif_msg(sd, USAGE_FAIL); //TODO look for the client date that has this message.
 		return 0;
 #else
 		if( !sd->npc_item_flag )
@@ -4183,14 +4184,17 @@ int pc_useitem(struct map_session_data *sd,int n)
 #endif
 	}
 
-	if( sd->status.inventory[n].nameid <= 0 || sd->status.inventory[n].amount <= 0 )
+	item = sd->status.inventory[n];
+	id = sd->inventory_data[n];
+
+	if( item.nameid <= 0 || sd->status.inventory[n].amount <= 0 )
 		return 0;
 
 	if( !pc_isUseitem(sd,n) )
 		return 0;
 
 	//Store information for later use before it is lost (via pc_delitem) [Paradox924X]
-	nameid = sd->inventory_data[n]->nameid;
+	nameid = id->nameid;
 
 	if( nameid != ITEMID_NAUTHIZ && sd->sc.opt1 > 0 && sd->sc.opt1 != OPT1_STONEWAIT && sd->sc.opt1 != OPT1_BURNING )
 		return 0;
@@ -4218,8 +4222,8 @@ int pc_useitem(struct map_session_data *sd,int n)
 		return 0;
 
 	/* Items with delayed consume are not meant to work while in mounts except reins of mount(12622) */
-	if( sd->inventory_data[n]->flag.delay_consume && nameid != ITEMID_REINS_OF_MOUNT ) {
-		if( sd->sc.option&OPTION_MOUNTING )
+	if( id->flag.delay_consume ) {
+		if( nameid != ITEMID_REINS_OF_MOUNT && sd->sc.option&OPTION_MOUNTING ) 
 			return 0;
 		else if( pc_issit(sd) )
 			return 0;
@@ -4228,10 +4232,10 @@ int pc_useitem(struct map_session_data *sd,int n)
 	//perform a skill-use check before going through. [Skotlex]
 	//resurrection was picked as testing skill, as a non-offensive, generic skill, it will do.
 	//FIXME: Is this really needed here? It'll be checked in unit.c after all and this prevents skill items using when silenced [Inkfish]
-	if( sd->inventory_data[n]->flag.delay_consume && ( sd->ud.skilltimer != INVALID_TIMER /*|| !status_check_skilluse(&sd->bl, &sd->bl, ALL_RESURRECTION, 0)*/ ) )
+	if( id->flag.delay_consume && ( sd->ud.skilltimer != INVALID_TIMER /*|| !status_check_skilluse(&sd->bl, &sd->bl, ALL_RESURRECTION, 0)*/ ) )
 		return 0;
 
-	if( sd->inventory_data[n]->delay > 0 ) {
+	if( id->delay > 0 ) {
 		int i;
 		ARR_FIND(0, MAX_ITEMDELAYS, i, sd->item_delay[i].nameid == nameid );
 			if( i == MAX_ITEMDELAYS ) /* Item not found. try first empty now */
@@ -4239,24 +4243,24 @@ int pc_useitem(struct map_session_data *sd,int n)
 		if( i < MAX_ITEMDELAYS ) {
 			if( sd->item_delay[i].nameid ) { //Found
 				if( DIFF_TICK(sd->item_delay[i].tick, tick) > 0 ) {
-					int e_tick = DIFF_TICK(sd->item_delay[i].tick, tick)/1000;
+					int e_tick = DIFF_TICK(sd->item_delay[i].tick, tick) / 1000;
 					char e_msg[100];
 					if( e_tick > 99 )
 						sprintf(e_msg,msg_txt(379), //Item Failed. [%s] is cooling down. Wait %.1f minutes.
-										itemdb_jname(sd->status.inventory[n].nameid),
-										(double)e_tick/60);
+							itemdb_jname(item.nameid),
+								(double)e_tick / 60);
 					else
 						sprintf(e_msg,msg_txt(380), //Item Failed. [%s] is cooling down. Wait %d seconds.
-										itemdb_jname(sd->status.inventory[n].nameid),
-										e_tick+1);
+							itemdb_jname(item.nameid),
+								e_tick + 1);
 					clif_colormes(sd,color_table[COLOR_RED],e_msg);
-					return 0; // Delay has not expired yet
+					return 0; //Delay has not expired yet
 				}
 			} else { //Not yet used item (all slots are initially empty)
 				sd->item_delay[i].nameid = nameid;
 			}
 			if( !(nameid == ITEMID_REINS_OF_MOUNT && sd->sc.option&(OPTION_WUGRIDER|OPTION_RIDING|OPTION_DRAGON|OPTION_MADOGEAR)) )
-				sd->item_delay[i].tick = tick + sd->inventory_data[n]->delay;
+				sd->item_delay[i].tick = tick + id->delay;
 		} else { //Should not happen
 			ShowError("pc_useitem: Exceeded item delay array capacity! (nameid=%d, char_id=%d)\n", nameid, sd->status.char_id);
 		}
@@ -4271,41 +4275,41 @@ int pc_useitem(struct map_session_data *sd,int n)
 
 	/* On restricted maps the item is consumed but the effect is not used */
 	if(
-		(!map_flag_vs(sd->bl.m) && sd->inventory_data[n]->flag.no_equip&1) || // Normal
-		(map[sd->bl.m].flag.pvp && sd->inventory_data[n]->flag.no_equip&2) || // PVP
-		(map_flag_gvg(sd->bl.m) && sd->inventory_data[n]->flag.no_equip&4) || // GVG
-		(map[sd->bl.m].flag.battleground && sd->inventory_data[n]->flag.no_equip&8) || // Battleground
-		(map[sd->bl.m].flag.restricted && sd->inventory_data[n]->flag.no_equip&(8*map[sd->bl.m].zone)) // Zone restriction
+		(!map_flag_vs(sd->bl.m) && id->flag.no_equip&1) || // Normal 
+		(map[sd->bl.m].flag.pvp && id->flag.no_equip&2) || // PVP
+		(map_flag_gvg(sd->bl.m) && id->flag.no_equip&4) || // GVG
+		(map[sd->bl.m].flag.battleground && id->flag.no_equip&8) || // Battleground
+		(map[sd->bl.m].flag.restricted && id->flag.no_equip&(8 * map[sd->bl.m].zone)) // Zone restriction
 		)
 	{
 			if( battle_config.item_restricted_consumption_type ) {
-				clif_useitemack(sd,n,sd->status.inventory[n].amount-1,true);
+				clif_useitemack(sd,n,item.amount - 1,true);
 				pc_delitem(sd,n,1,1,0,LOG_TYPE_CONSUME);
 			}
 			return 0; /* Regardless, effect is not run */
 	}
 
-	sd->itemid = sd->status.inventory[n].nameid;
+	sd->itemid = item.nameid;
 	sd->itemindex = n;
 	if( sd->catch_target_class != -1 ) //Abort pet catching.
 		sd->catch_target_class = -1;
 
-	amount = sd->status.inventory[n].amount;
-	script = sd->inventory_data[n]->script;
+	amount = item.amount;
+	script = id->script;
 	//Check if the item is to be consumed immediately [Skotlex]
-	if( sd->inventory_data[n]->flag.delay_consume )
+	if( id->flag.delay_consume )
 		clif_useitemack(sd,n,amount,true);
 	else {
-		if( sd->status.inventory[n].expire_time == 0 ) {
-			clif_useitemack(sd,n,amount-1,true);
-			pc_delitem(sd,n,1,1,0,LOG_TYPE_CONSUME); // Rental Usable Items are not deleted until expiration
+		if( item.expire_time == 0 ) {
+			clif_useitemack(sd,n,amount - 1,true);
+			pc_delitem(sd,n,1,1,0,LOG_TYPE_CONSUME); //Rental Usable Items are not deleted until expiration
 		} else
 			clif_useitemack(sd,n,0,false);
 	}
-	if( sd->status.inventory[n].card[0] == CARD0_CREATE &&
-		pc_famerank(MakeDWord(sd->status.inventory[n].card[2],sd->status.inventory[n].card[3]),MAPID_ALCHEMIST) )
+	if( item.card[0] == CARD0_CREATE &&
+		pc_famerank(MakeDWord(item.card[2],item.card[3]), MAPID_ALCHEMIST) )
 	{
-	    potion_flag = 2; // Famous player's potions have 50% more efficiency
+	    potion_flag = 2; //Famous player's potions have 50% more efficiency
 		 if( sd->sc.data[SC_SPIRIT] && sd->sc.data[SC_SPIRIT]->val2 == SL_ROGUE )
 			 potion_flag = 3; //Even more effective potions.
 	}
@@ -8937,8 +8941,7 @@ int pc_divorce(struct map_session_data *sd)
 	if( !sd->status.partner_id )
 		return -1; // Char is not married
 
-	if( (p_sd = map_charid2sd(sd->status.partner_id)) == NULL )
-	{ // Lets char server do the divorce
+	if( (p_sd = map_charid2sd(sd->status.partner_id)) == NULL ) { // Lets char server do the divorce
 		if( chrif_divorce(sd->status.char_id, sd->status.partner_id) )
 			return -1; // No char server connected
 
@@ -8948,8 +8951,7 @@ int pc_divorce(struct map_session_data *sd)
 	// Both players online, lets do the divorce manually
 	sd->status.partner_id = 0;
 	p_sd->status.partner_id = 0;
-	for( i = 0; i < MAX_INVENTORY; i++ )
-	{
+	for( i = 0; i < MAX_INVENTORY; i++ ) {
 		if( sd->status.inventory[i].nameid == WEDDING_RING_M || sd->status.inventory[i].nameid == WEDDING_RING_F )
 			pc_delitem(sd, i, 1, 0, 0, LOG_TYPE_OTHER);
 		if( p_sd->status.inventory[i].nameid == WEDDING_RING_M || p_sd->status.inventory[i].nameid == WEDDING_RING_F )

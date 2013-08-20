@@ -1116,70 +1116,76 @@ ACMD_FUNC(heal)
 }
 
 /*==========================================
- * @item command (usage: @item <name/id_of_item> <quantity>) (modified by [Yor] for pet_egg)
+ * @item command (usage: @item <itemdid1:itemid2:itemname:..> <quantity>) (modified by [Yor] for pet_egg)
  * @itembound command (usage: @itembound <name/id_of_item> <quantity> <bound_type>)
  *------------------------------------------*/
 ACMD_FUNC(item)
 {
 	char item_name[100];
-	int number = 0, item_id, flag = 0, bound = 0;
+	int number = 0, flag = 0, bound = 0;
 	struct item item_tmp;
-	struct item_data *item_data;
-	int get_count, i;
-	nullpo_retr(-1, sd);
+	struct item_data *item_data[10];
+	int get_count, i, j = 0;
+	char *itemlist;
 
+	nullpo_retr(-1, sd);
 	memset(item_name, '\0', sizeof(item_name));
 
 	if (!strcmpi(command+1,"itembound") && (!message || !*message || (
 		sscanf(message, "\"%99[^\"]\" %d %d", item_name, &number, &bound) < 2 &&
 		sscanf(message, "%99s %d %d", item_name, &number, &bound) < 2
 	))) {
-		clif_displaymessage(fd, msg_txt(295)); // Please enter an item name or ID (usage: @item <item name/ID> <quantity> <bound_type>).
+		clif_displaymessage(fd, msg_txt(295)); //Please enter an item name or ID (usage: @item <item name/ID> <quantity> <bound_type>).
 		return -1;
 	} else if (!message || !*message || (
 		sscanf(message, "\"%99[^\"]\" %d", item_name, &number) < 1 &&
 		sscanf(message, "%99s %d", item_name, &number) < 1
 	)) {
-		clif_displaymessage(fd, msg_txt(983)); // Please enter an item name or ID (usage: @item <item name/ID> <quantity>).
+		clif_displaymessage(fd, msg_txt(983)); //Please enter an item name or ID (usage: @item <item name/ID> <quantity>).
+		return -1;
+	}
+	itemlist = strtok(item_name, ":");
+	while (itemlist != NULL && j < 10) {
+		if ((item_data[j] = itemdb_searchname(itemlist)) == NULL &&
+		    (item_data[j] = itemdb_exists(atoi(itemlist))) == NULL){
+			clif_displaymessage(fd, msg_txt(19)); //Invalid item ID or name.
+			return -1;
+		}
+		itemlist = strtok(NULL, ":"); //Next itemline
+		j++;
+	}
+
+	if( bound < 0 || bound > 4 ) {
+		clif_displaymessage(fd, msg_txt(298)); //Invalid bound type
 		return -1;
 	}
 
 	if (number <= 0)
 		number = 1;
-
-	if ((item_data = itemdb_searchname(item_name)) == NULL &&
-	    (item_data = itemdb_exists(atoi(item_name))) == NULL)
-	{
-		clif_displaymessage(fd, msg_txt(19)); // Invalid item ID or name.
-		return -1;
-	}
-
-	if( bound < 0 || bound > 4 ) {
-		clif_displaymessage(fd, msg_txt(298)); // Invalid bound type
-		return -1;
-	}
-
-	item_id = item_data->nameid;
 	get_count = number;
-	//Check if it's stackable.
-	if (!itemdb_isstackable2(item_data))
-		get_count = 1;
 
-	for (i = 0; i < number; i += get_count) {
-		// if not pet egg
-		if (!pet_create_egg(sd, item_id)) {
-			memset(&item_tmp, 0, sizeof(item_tmp));
-			item_tmp.nameid = item_id;
-			item_tmp.identify = 1;
-			item_tmp.bound = bound;
+	for(j--; j >= 0; j--){ //Produce items in list
+		int16 item_id = item_data[j]->nameid;
+		//Check if it's stackable.
+		if (!itemdb_isstackable2(item_data[j]))
+			get_count = 1;
 
-			if ((flag = pc_additem(sd, &item_tmp, get_count, LOG_TYPE_COMMAND)))
-				clif_additem(sd, 0, 0, flag);
+		for (i = 0; i < number; i += get_count) {
+			//If not pet egg
+			if (!pet_create_egg(sd, item_id)) {
+				memset(&item_tmp, 0, sizeof(item_tmp));
+				item_tmp.nameid = item_id;
+				item_tmp.identify = 1;
+				item_tmp.bound = bound;
+
+				if ((flag = pc_additem(sd, &item_tmp, get_count, LOG_TYPE_COMMAND)))
+					clif_additem(sd, 0, 0, flag);
+			}
 		}
 	}
 
 	if (flag == 0)
-		clif_displaymessage(fd, msg_txt(18)); // Item created.
+		clif_displaymessage(fd, msg_txt(18)); //Item created.
 	return 0;
 }
 
