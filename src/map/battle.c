@@ -889,9 +889,8 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		if( sc->data[SC_TATAMIGAESHI] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG )
 			return 0;
 
-		// TODO: Find out whether Neutral Barrier really blocks all splash damage or just specific cases (Earthquake)
-		if( sc->data[SC_NEUTRALBARRIER] && (((flag&(BF_LONG|BF_MAGIC)) == BF_LONG && skill_id != CR_ACIDDEMONSTRATION) ||
-			skill_get_splash(skill_id, skill_lv)) ) {
+		if( sc->data[SC_NEUTRALBARRIER] && ((skill_id != HT_PHANTASMIC && skill_id != CR_ACIDDEMONSTRATION &&
+			skill_id != GN_CARTCANNON && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG) || skill_id == NPC_EARTHQUAKE) ) {
 			d->dmg_lv = ATK_MISS;
 			return 0;
 		}
@@ -1064,7 +1063,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 		}
 		if( sc->data[SC_PAIN_KILLER] ) {
 			damage -= sc->data[SC_PAIN_KILLER]->val3;
-			damage = max(0, damage);
+			damage = max(1, damage);
 		}
 		if( (sce = sc->data[SC_MAGMA_FLOW]) && (rnd()%100 <= sce->val2) ) {
 			skill_castend_damage_id(bl, src, MH_MAGMA_FLOW, sce->val1, gettick(), 0);

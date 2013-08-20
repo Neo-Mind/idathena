@@ -5378,7 +5378,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 				if( sc->data[SC_CAMOUFLAGE] )
 					val = max( val, sc->data[SC_CAMOUFLAGE]->val1 < 3 ? 0 : 25 * (5 - sc->data[SC_CAMOUFLAGE]->val1) );
 				if( sc->data[SC_STEALTHFIELD_MASTER] )
-					val = max( val, 30 );
+					val = max( val, 20 );
 				if( sc->data[SC__LAZINESS] )
 					val = max( val, 25 );
 				if( sc->data[SC_BANDING_DEFENCE] )
