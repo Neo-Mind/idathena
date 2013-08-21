@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_INIT(rAthena)
-AC_REVISION($Revision: 17367 $)
+AC_REVISION($Revision$)
 AC_PREREQ([2.59])
 AC_CONFIG_SRCDIR([src/common/cbasetypes.h])
 AC_CONFIG_FILES([Makefile src/common/Makefile])
@@ -649,9 +649,11 @@ case $enable_debug in
 		;;
 	"yes")
 		CFLAGS="$CFLAGS -g -DDEBUG"
+		LDFLAGS="$LDFLAGS -g"
 		;;
 	"gdb")
 		CFLAGS="$CFLAGS -ggdb -DDEBUG"
+		LDFLAGS="$LDFLAGS -g"
 		;;
 esac
 
@@ -915,8 +917,10 @@ else
 	AC_MSG_RESULT([no])
 fi
 
+AC_MSG_NOTICE([Configure finish, CFLAGS= $CFLAGS])
+AC_MSG_NOTICE([LDFLAGS=$LDFLAGS])
 #AC_MSG_NOTICE([PROD_WARN= $PROD_WARN])
 #AC_MSG_NOTICE([EXTRA_WARN= $EXTRA_WARN])
-AC_MSG_NOTICE([Configure finish, CFLAG= $CFLAGS])
+
 ###############################################################################
 AC_OUTPUT
