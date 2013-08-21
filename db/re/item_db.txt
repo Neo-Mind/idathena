@@ -7808,7 +7808,7 @@
 16680,Universal_Catalog_Gold_Box50,Universal Catalog Gold 50 Box,2,0,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 12581,50; },{},{}
 16681,BR_Independence_Scroll,BR Independence Scroll,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
 16682,Boarding_Halter_Box,Boarding Halter Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 12622,1; },{},{}
-16683,B_Halter_Box_30Days,B Halter Box 30Days,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
+16683,B_Halter_Box_30Days,B Halter Box 30Days,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ rentitem 12622,2592000; },{},{}
 16684,Wing_Of_Fly_Box10,Wing Of Fly Box10,18,20,,0,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 601,10; },{},{}
 16685,Wing_Of_Fly_Box50,Wing Of Fly Box50,18,20,,0,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 601,50; },{},{}
 16686,Wing_Of_Fly_Box100,Wing Of Fly Box100,18,20,,0,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 601,100; },{},{}
@@ -7853,11 +7853,11 @@
 //
 16826,Sagittarius_Scr_Box,Sagittarius Scr Box,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
 //
-16972,Weather_Report_Box,Weather Report Box,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
+16972,Weather_Report_Box,Weather Report Box,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 19507,1; getitem 19518,1; getitem 19519,1; getitem 19520,1; },{},{}
 16973,Yellow_Hat_Box,Yellow Hat Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 19515,1; },{},{}
-16974,Comin_Actor_Box,Comin Actor Box,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
+16974,Comin_Actor_Box,Comin Actor Box,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 19514,1; getitem 19521,1; },{},{}
 16975,Singing_Bird_Box,Singing Bird Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 19516,1; },{},{}
-16976,Hen_Set_Box,Hen Set Box,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
+16976,Hen_Set_Box,Hen Set Box,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 19513,1; getitem 19517,1; },{},{}
 16977,Red_Minicrown_Box,Red Minicrown Box,18,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 19522,1; },{},{}
 16979,Silvervine_Fruit_Box4,Silvervine 4 Box,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 6417,4; getitem 12636,12; },{},{}
 //
