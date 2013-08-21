@@ -675,6 +675,7 @@ void initChangeTables(void) {
 	set_sc( SR_GENTLETOUCH_ENERGYGAIN, SC_GT_ENERGYGAIN      , SI_GENTLETOUCH_ENERGYGAIN, SCB_NONE );
 	set_sc( SR_GENTLETOUCH_CHANGE    , SC_GT_CHANGE          , SI_GENTLETOUCH_CHANGE    , SCB_ASPD|SCB_MDEF|SCB_MAXHP );
 	set_sc( SR_GENTLETOUCH_REVITALIZE, SC_GT_REVITALIZE      , SI_GENTLETOUCH_REVITALIZE, SCB_MAXHP|SCB_REGEN );
+	add_sc( SR_FLASHCOMBO            , SC_FLASHCOMBO );
 
 	set_sc( WA_SWING_DANCE            , SC_SWINGDANCE           , SI_SWINGDANCE           , SCB_SPEED|SCB_ASPD );
 	set_sc( WA_SYMPHONY_OF_LOVER      , SC_SYMPHONYOFLOVER      , SI_SYMPHONYOFLOVERS     , SCB_MDEF );
@@ -9046,6 +9047,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val3 = (20 * val1) + 80;
 				tick_time = 1000;
 				val4 = tick / tick_time;
+				break;
+			case SC_FLASHCOMBO:
+				val2 = (20 * val1) + 20;
 				break;
 			case SC_MONSTER_TRANSFORM:
 				if( !mobdb_checkid(val1) )

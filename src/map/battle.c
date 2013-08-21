@@ -3986,6 +3986,10 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 						RE_ALLATK_ADDRATE(wd, 50 * sc->data[SC_UNLIMIT]->val1);
 				}
 			}
+			if(sc->data[SC_FLASHCOMBO]) {
+				ATK_ADD(wd.damage, wd.damage2, sc->data[SC_FLASHCOMBO]->val2);
+				RE_ALLATK_ADD(wd, sc->data[SC_FLASHCOMBO]->val2);
+			}
 		}
 
 	return wd;

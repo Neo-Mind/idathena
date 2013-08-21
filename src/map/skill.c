@@ -8839,7 +8839,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SR_FLASHCOMBO:
 			if( sd )
 				sd->ud.attackabletime = sd->canuseitem_tick = sd->ud.canact_tick;
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+			clif_skill_nodamage(src,bl,skill_id,skill_lv,
+				sc_start(src,src,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			for( i = SR_FLASHCOMBO_ATK_STEP1; i <= SR_FLASHCOMBO_ATK_STEP4; i++ )
 				skill_addtimerskill(src,tick + 500 * (i - SR_FLASHCOMBO_ATK_STEP1),bl->id,0,0,i,skill_lv,BF_WEAPON,flag|SD_LEVEL);
 			break;
