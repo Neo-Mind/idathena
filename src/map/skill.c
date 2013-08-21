@@ -1878,7 +1878,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 
 	if(sd && skill_id && attack_type&BF_MAGIC && status_isdead(bl) &&
 	 	!(skill_get_inf(skill_id)&(INF_GROUND_SKILL|INF_SELF_SKILL)) &&
-		(rate = pc_checkskill(sd,HW_SOULDRAIN)) > 0
+		!skill_get_splash(skill_id,skill_lv) && (rate = pc_checkskill(sd,HW_SOULDRAIN)) > 0
 	) { //Soul Drain should only work on targetted spells [Skotlex]
 		if (pc_issit(sd)) pc_setstand(sd); //Character stuck in attacking animation while 'sitting' fix. [Skotlex]
 		clif_skill_nodamage(src,bl,HW_SOULDRAIN,rate,1);
@@ -1887,7 +1887,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 
 	if(sd && status_isdead(bl)) {
 		int sp = 0, hp = 0;
-		if((attack_type&(BF_WEAPON|BF_SHORT)) == (BF_WEAPON|BF_SHORT)) {
+		if((attack_type&(BF_SHORT|BF_WEAPON))) {
 			sp += sd->bonus.sp_gain_value;
 			sp += sd->sp_gain_race[status_get_race(bl)];
 			sp += sd->sp_gain_race[is_boss(bl)?RC_BOSS:RC_NONBOSS];
@@ -2023,6 +2023,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 
 	return 0;
 }
+
 /*=========================================================================
  Breaks equipment. On-non players causes the corresponding strip effect.
  - rate goes from 0 to 10000 (100.00%)
@@ -3004,19 +3005,19 @@ int skill_area_sub (struct block_list *bl, va_list ap)
 
 	nullpo_ret(bl);
 
-	src=va_arg(ap,struct block_list *);
-	skill_id=va_arg(ap,int);
-	skill_lv=va_arg(ap,int);
-	tick=va_arg(ap,unsigned int);
-	flag=va_arg(ap,int);
-	func=va_arg(ap,SkillFunc);
+	src = va_arg(ap,struct block_list *);
+	skill_id = va_arg(ap,int);
+	skill_lv = va_arg(ap,int);
+	tick = va_arg(ap,unsigned int);
+	flag = va_arg(ap,int);
+	func = va_arg(ap,SkillFunc);
 
 	if(battle_check_target(src,bl,flag) > 0) {
 		//Several splash skills need this initial dummy packet to display correctly
-		if (flag&SD_PREAMBLE && skill_area_temp[2] == 0)
+		if(flag&SD_PREAMBLE && skill_area_temp[2] == 0)
 			clif_skill_damage(src,bl,tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
 
-		if (flag&(SD_SPLASH|SD_PREAMBLE))
+		if(flag&(SD_SPLASH|SD_PREAMBLE))
 			skill_area_temp[2]++;
 
 		return func(src,bl,skill_id,skill_lv,tick,flag);
@@ -4931,7 +4932,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				break;
 			}
 
-		case 0:/* No skill - basic/normal attack */
+		case 0: /* No skill - basic/normal attack */
 			if(sd) {
 				if (flag & 3) {
 					if (bl->id != skill_area_temp[1])
@@ -10320,7 +10321,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 					sc_start4(src,src,type,100,skill_lv,0,0,src->id,skill_get_time(skill_id,skill_lv));
 				flag|=1;
 			}
-		break;
+			break;
 
 		case CG_HERMODE:
 			skill_clear_unitgroup(src);
@@ -10416,7 +10417,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			}
 			break;
 
-		// Slim Pitcher [Celest]
+		//Slim Pitcher [Celest]
 		case CR_SLIMPITCHER:
 			if (sd) {
 				int i = skill_lv%11 - 1;
@@ -10490,10 +10491,10 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			flag|=1;
 			break;
 
-		// Plant Cultivation [Celest]
+		//Plant Cultivation [Celest]
 		case CR_CULTIVATION:
 			if (sd) {
-				if( map_count_oncell(src->m,x,y,BL_CHAR) > 0 ) {
+				if (map_count_oncell(src->m,x,y,BL_CHAR) > 0) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					return 1;
 				}
@@ -10610,17 +10611,18 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 		case NC_NEUTRALBARRIER:
 		case NC_STEALTHFIELD:
+			if( sd )
+				skill_consume_requirement(sd,skill_id,skill_lv,2);
 			if( (sc->data[SC_NEUTRALBARRIER_MASTER] && skill_id == NC_NEUTRALBARRIER) ||
 				(sc->data[SC_STEALTHFIELD_MASTER] && skill_id == NC_STEALTHFIELD) ) {
 				skill_clear_unitgroup(src);
 				return 0;
 			}
-			skill_clear_unitgroup(src); // To remove previous skills - cannot used combined
+			skill_clear_unitgroup(src); //To remove previous skills - cannot used combined
 			if( (sg = skill_unitsetting(src,skill_id,skill_lv,src->x,src->y,0)) != NULL ) {
 				sc_start2(src,src,skill_id == NC_NEUTRALBARRIER ? SC_NEUTRALBARRIER_MASTER : SC_STEALTHFIELD_MASTER,100,
 					skill_lv,sg->group_id,skill_get_time(skill_id,skill_lv));
 				if( sd ) {
-					skill_consume_requirement(sd,skill_id,skill_lv,2);
 					pc_overheat(sd,1);
 				}
 			}
@@ -10719,7 +10721,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 							ud->skillunit[i]->unit_id = UNT_FIRE_EXPANSION_TEAR_GAS;
 							clif_changetraplook(&ud->skillunit[i]->unit->bl, UNT_FIRE_EXPANSION_TEAR_GAS);
 							break;
-						case 5:// If player knows a level of Acid Demonstration greater then 5, that level will be casted.
+						case 5: // If player knows a level of Acid Demonstration greater then 5, that level will be casted.
 							if( sd && pc_checkskill(sd, CR_ACIDDEMONSTRATION) > 5 )
 								aciddemocast = pc_checkskill(sd, CR_ACIDDEMONSTRATION);
 							map_foreachinarea(skill_area_sub, src->m,
@@ -10776,14 +10778,14 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 	if( sc && sc->data[SC_CURSEDCIRCLE_ATKER] ) //Should only remove after the skill has been casted.
 		status_change_end(src,SC_CURSEDCIRCLE_ATKER,INVALID_TIMER);
 
-	if( sd ) { // Ensure that the skill last-cast tick is recorded
+	if( sd ) { //Ensure that the skill last-cast tick is recorded
 		sd->canskill_tick = gettick();
 
-		if( sd->state.arrow_atk && !(flag&1) ) { // Consume arrow if this is a ground skill
+		if( sd->state.arrow_atk && !(flag&1) ) { //Consume arrow if this is a ground skill
 			battle_consume_ammo(sd, skill_id, skill_lv);
 		}
 
-		// Perform skill requirement consumption
+		//Perform skill requirement consumption
 		skill_consume_requirement(sd,skill_id,skill_lv,2);
 	}
 
@@ -11420,7 +11422,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		switch( skill_id ) {
 			case MG_FIREWALL:
 			case NJ_KAENSIN:
-				val2=group->val2;
+				val2 = group->val2;
 				break;
 			case WZ_ICEWALL:
 				val1 = (skill_lv <= 1) ? 500 : 200 + 200*skill_lv;
@@ -11456,9 +11458,9 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 				if (val1 < 2 || val2 < 2) { //Nearby cross, linear decrease with no diagonals
 					if (val2 > val1) val1 = val2;
 					if (val1) val1--;
-					val1 = 36 -12*val1;
+					val1 = 36 - 12 * val1;
 				} else //Diagonal edges
-					val1 = 28 -4*val1 -4*val2;
+					val1 = 28 - 4 * val1 - 4 * val2;
 				if (val1 < 1) val1 = 1;
 				val2 = 0;
 				break;

@@ -783,7 +783,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damag
 
 		if( sc->data[SC_ZEPHYR] && ((((flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT ||
 			(flag&(BF_LONG|BF_MAGIC)) == BF_LONG) && skill_id) || (flag&BF_MAGIC &&
-				!(skill_get_inf(skill_id)&INF_GROUND_SKILL))) ) {
+				!(skill_get_inf(skill_id)&(INF_GROUND_SKILL|INF_SELF_SKILL)))) ) {
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}
@@ -1996,7 +1996,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 	else if(nk&NK_IGNORE_FLEE)
 		return true;
 
-	if(sc && (sc->data[SC_NEUTRALBARRIER] || sc->data[SC_NEUTRALBARRIER_MASTER]) && wd.flag&BF_LONG)
+	if(tsc && (tsc->data[SC_NEUTRALBARRIER] || tsc->data[SC_NEUTRALBARRIER_MASTER]) && wd.flag&BF_LONG)
 		return false;
 
 	flee = tstatus->flee;
