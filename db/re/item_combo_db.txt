@@ -212,7 +212,7 @@
 18538:5041,{ bonus2 bSubRace,RC_Angel,9; }
 18538:5048,{ bonus2 bSubRace,RC_Demon,9; }
 18656:2278,{ bonus2 bAddMonsterDropItem,12192,400; }
-18656,5043,{ bonus bFlee,10; bonus2 bAddEff,Eff_Stun,1000; }
+18656:5043,{ bonus bFlee,10; bonus2 bAddEff,Eff_Stun,1000; }
 18656:5086,{ bonus2 bAddItemHealRate,538,100; bonus2 bAddItemHealRate,12192,100; bonus2 bAddMonsterDropItem,538,400; bonus2 bAddMonsterDropItem,12192,400; }
 18656:5176,{ bonus bAspd,1; autobonus "{ bonus bBaseAtk,50; }",20,10000,0,"{ specialeffect2 EF_POTION_BERSERK; }"; }
-18656,5475,{ bonus bBaseAtk,30; bonus bMatk,30; bonus2 bAddMonsterDropItem,529,400; bonus2 bAddMonsterDropItem,530,400; bonus2 bAddMonsterDropItem,538,400; bonus2 bAddMonsterDropItem,12192,400;}
+18656:5475,{ bonus bBaseAtk,30; bonus bMatk,30; bonus2 bAddMonsterDropItem,529,400; bonus2 bAddMonsterDropItem,530,400; bonus2 bAddMonsterDropItem,538,400; bonus2 bAddMonsterDropItem,12192,400;}
