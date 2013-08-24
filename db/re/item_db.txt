@@ -8108,13 +8108,13 @@
 18571,Lucky_Hat,Lucky Hat,5,20,,1000,,0,,0,0xFFFFFFFF,7,2,256,,0,0,740,{},{},{}
 18572,Korean_Judge_Hat,Korean Judge Hat,5,20,,300,,2,,1,0xFFFFFFFF,7,2,256,,0,1,377,{ bonus bMdef,2; },{},{}
 18573,White_Feather,White Feather,5,20,,500,,2,,1,0xFFFFFFFF,7,2,256,,30,1,741,{},{},{}
-18574,Lord_of_Death,Lord of Death,5,20,,1000,,10,,1,0xFFFFFFFF,7,2,256,,70,1,742,{ bonus bMdef,5; },{},{}
+18574,Lord_of_Death,Lord of Death,5,20,,1000,,10,,1,0xFFFFFFFF,7,2,256,,70,1,742,{ bonus bMdef,5; bonus2 bSubRace,RC_NonBoss,-5; bonus2 bAddRace,RC_Boss,10; if(getrefine() >= 5){ bonus2 bAddRace,RC_Boss,getrefine()/5; } if(getequipcardid(EQI_HAND_R,0)==4140||getequipcardid(EQI_HAND_R,1)==4140||getequipcardid(EQI_HAND_R,2)==4140||getequipcardid(EQI_HAND_R,3)==4140){ bonus2 bAddRace,RC_Boss,5; if(getrefine() >= 11){ bonus2 bSubRace,RC_NonBoss,5; } } },{},{}
 18575,Wunderkammer,Wunderkammer,5,20,,500,,10,,1,0xFFFFFFFF,7,2,769,,20,0,743,{ bonus bMdef,10; },{},{}
 18576,YinYang_Earring,YinYang Earring,5,20,,100,,0,,0,0xFFFFFFFF,7,2,512,,50,0,744,{},{},{}
 18577,24_Bolt,24 Bolt,5,20,,200,,0,,0,0xFFFFFFFF,7,2,512,,10,0,696,{},{},{}
 18578,Helm_Of_Valor,Helm Of Valor,5,0,,0,,4,,0,0xFFFFFFFF,7,2,256,,0,0,258,{},{},{}
 18579,9th_Anni_Hat,9th Anni Hat,5,0,,90,,0,,0,0xFFFFFFFF,7,2,256,,0,1,745,{ bonus bMdef,9; },{},{}
-18580,Yggdrasil_Crown,Yggdrasil Crown,5,20,,200,,3,,0,0xFFFFFFFF,7,2,256,,1,1,724,{ bonus bMdef,3; bonus bHealPower,2; bonus bHealpower2,10; if(getrefine() >= 7){ bonus bHealPower,5; } if(getrefine() >= 9){ bonus bHealPower,3; } },{},{}
+18580,Yggdrasil_Crown,Yggdrasil Crown,5,20,,200,,3,,0,0xFFFFFFFF,7,2,256,,1,1,746,{ bonus bMdef,3; bonus bHealPower,2; bonus bHealpower2,10; if(getrefine() >= 7){ bonus bHealPower,5; } if(getrefine() >= 9){ bonus bHealPower,3; } },{},{}
 18581,Red_Tiger_Mask,Red Tiger Mask,5,20,,400,,2,,0,0xFFFFFFFF,7,2,768,,50,0,747,{ bonus bStr,3; bonus bMaxHP,100; },{},{}
 18582,Blue_Tiger_Mask,Blue Tiger Mask,5,20,,400,,2,,0,0xFFFFFFFF,7,2,768,,50,0,748,{ bonus bStr,3; },{},{}
 18583,Navy_Drooping_Kitty,Navy Drooping Kitty,5,250000,,500,,3,,0,0xFFFFFFFE,7,2,256,,0,1,749,{ bonus bMdef,15; },{},{}
@@ -8324,7 +8324,7 @@
 19537,C_Gryphon_Hat,Costume Gryphon Hat,5,0,,0,,0,,0,0xFFFFFFFF,7,2,1024,,1,0,591,{ bonus bUnbreakableHelm,0; },{},{}
 19538,Full_Moon,Full Moon,5,0,,0,,0,,0,0xFFFFFFFF,7,2,1024,,1,0,780,{ bonus bUnbreakableHelm,0; },{},{}
 19539,C_Reginleif_Hairband,Hairband Of Reginleif,5,20,,0,,0,,0,0xFFFFFFFF,7,2,256,,1,0,468,{ bonus bAllStats,1; },{},{}
-19540,C_Rabbit_Earplug,Costume Rabbit Earplugs,5,20,,0,,0,,0,0xFFFFFFFF,7,2,768,,1,0,515,{ bonus bAgi,1; bonus bFlee,2; },{},{}
+19540,C_Rabbit_Earplug,Costume Rabbit Earplugs,5,20,,0,,0,,0,0xFFFFFFFF,7,2,3072,,1,0,515,{ bonus bUnbreakableHelm,0; bonus bAgi,1; bonus bFlee,2; },{},{}
 19541,C_Romantic_White_Flower,Costume Romantic White Flower,5,20,,0,,0,,0,0xFFFFFFFF,7,2,4096,,1,0,259,{ bonus bUnbreakableHelm,0; },{},{}
 19542,C_Devil_Whisper,Costume Devil Whisper,5,20,,0,,0,,0,0xFFFFFFFF,7,2,2048,,1,0,712,{ bonus bUnbreakableHelm,0; bonus2 bSubRace,RC_Angel,1; bonus2 bSubRace,RC_Demon,1; bonus3 bAddMonsterDropItem,12020,RC_Angel,400; bonus3 bAddMonsterDropItem,523,RC_Demon,400; },{},{}
 19543,Oliver_Wolf_Hood,Oliver Wolf Hood,5,20,,300,,0,,1,0xFFFFFFFF,7,2,1024,,70,0,849,{ bonus bUnbreakableHelm,0; },{},{}

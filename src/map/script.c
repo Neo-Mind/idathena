@@ -6816,27 +6816,27 @@ BUILDIN_FUNC(getcharid)
 
 	num = script_getnum(st,2);
 	if( script_hasdata(st,3) )
-		sd=map_nick2sd(script_getstr(st,3));
+		sd = map_nick2sd(script_getstr(st,3));
 	else
-		sd=script_rid2sd(st);
+		sd = script_rid2sd(st);
 
-	if(sd==NULL){
-		script_pushint(st,0); //return 0, according docs
+	if( sd == NULL ) {
+		script_pushint(st,0); //Return 0, according docs
 		return 0;
 	}
 
 	switch( num ) {
-	case 0: script_pushint(st,sd->status.char_id); break;
-	case 1: script_pushint(st,sd->status.party_id); break;
-	case 2: script_pushint(st,sd->status.guild_id); break;
-	case 3: script_pushint(st,sd->status.account_id); break;
-	case 4: script_pushint(st,sd->bg_id); break;
-	default:
-		ShowError("buildin_getcharid: invalid parameter (%d).\n", num);
-		script_pushint(st,0);
-		break;
+		case 0: script_pushint(st,sd->status.char_id); break;
+		case 1: script_pushint(st,sd->status.party_id); break;
+		case 2: script_pushint(st,sd->status.guild_id); break;
+		case 3: script_pushint(st,sd->status.account_id); break;
+		case 4: script_pushint(st,sd->bg_id); break;
+		default:
+			ShowError("buildin_getcharid: invalid parameter (%d).\n", num);
+			script_pushint(st,0);
+			break;
 	}
-		
+
 	return 0;
 }
 /*==========================================
@@ -6847,17 +6847,15 @@ BUILDIN_FUNC(getnpcid)
 	int num = script_getnum(st,2);
 	struct npc_data* nd = NULL;
 
-	if( script_hasdata(st,3) )
-	{// unique npc name
-		if( ( nd = npc_name2id(script_getstr(st,3)) ) == NULL )
-		{
+	if( script_hasdata(st,3) ) { // Unique npc name
+		if( ( nd = npc_name2id(script_getstr(st,3)) ) == NULL ) {
 			ShowError("buildin_getnpcid: No such NPC '%s'.\n", script_getstr(st,3));
 			script_pushint(st,0);
 			return 1;
 		}
 	}
 
-	switch (num) {
+	switch( num ) {
 		case 0:
 			script_pushint(st,nd ? nd->bl.id : st->oid);
 			break;
@@ -6881,12 +6879,9 @@ BUILDIN_FUNC(getpartyname)
 
 	party_id = script_getnum(st,2);
 
-	if( ( p = party_search(party_id) ) != NULL )
-	{
+	if( ( p = party_search(party_id) ) != NULL ) {
 		script_pushstrcopy(st,p->party.name);
-	}
-	else
-	{
+	} else {
 		script_pushconststr(st,"null");
 	}
 	return 0;
@@ -6903,25 +6898,25 @@ BUILDIN_FUNC(getpartyname)
 BUILDIN_FUNC(getpartymember)
 {
 	struct party_data *p;
-	int i,j=0,type=0;
+	int i,j = 0,type = 0;
 
-	p=party_search(script_getnum(st,2));
+	p = party_search(script_getnum(st,2));
 
 	if( script_hasdata(st,3) )
- 		type=script_getnum(st,3);
+ 		type = script_getnum(st,3);
 	
-	if(p!=NULL){
-		for(i=0;i<MAX_PARTY;i++){
-			if(p->party.member[i].account_id){
-				switch (type) {
-				case 2:
-					mapreg_setreg(reference_uid(add_str("$@partymemberaid"), j),p->party.member[i].account_id);
-					break;
-				case 1:
-					mapreg_setreg(reference_uid(add_str("$@partymembercid"), j),p->party.member[i].char_id);
-					break;
-				default:
-					mapreg_setregstr(reference_uid(add_str("$@partymembername$"), j),p->party.member[i].name);
+	if( p != NULL ) {
+		for( i = 0; i < MAX_PARTY; i++ ) {
+			if( p->party.member[i].account_id ) {
+				switch( type ) {
+					case 2:
+						mapreg_setreg(reference_uid(add_str("$@partymemberaid"), j),p->party.member[i].account_id);
+						break;
+					case 1:
+						mapreg_setreg(reference_uid(add_str("$@partymembercid"), j),p->party.member[i].char_id);
+						break;
+					default:
+						mapreg_setregstr(reference_uid(add_str("$@partymembername$"), j),p->party.member[i].name);
 				}
 				j++;
 			}
@@ -6938,19 +6933,19 @@ BUILDIN_FUNC(getpartymember)
  *------------------------------------------*/
 BUILDIN_FUNC(getpartyleader)
 {
-	int party_id, type = 0, i=0;
+	int party_id, type = 0, i = 0;
 	struct party_data *p;
 
-	party_id=script_getnum(st,2);
+	party_id = script_getnum(st,2);
 	if( script_hasdata(st,3) )
- 		type=script_getnum(st,3);
+ 		type = script_getnum(st,3);
 
-	p=party_search(party_id);
+	p = party_search(party_id);
 
 	if (p) //Search leader
-	for(i = 0; i < MAX_PARTY && !p->party.member[i].leader; i++);
+		for(i = 0; i < MAX_PARTY && !p->party.member[i].leader; i++);
 
-	if (!p || i == MAX_PARTY) { //leader not found
+	if (!p || i == MAX_PARTY) { //Leader not found
 		if (type)
 			script_pushint(st,-1);
 		else

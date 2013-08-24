@@ -5075,10 +5075,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case MH_STEINWAND: {
 				struct block_list *s_src = battle_get_master(src);
 				short ret = 0;
-				if(!skill_check_unit_range(src, src->x, src->y, skill_id, skill_lv))  //prevent reiteration
-					ret = skill_castend_pos2(src,src->x,src->y,skill_id,skill_lv,tick,flag); //cast on homon
+				if(!skill_check_unit_range(src, src->x, src->y, skill_id, skill_lv))  //Prevent reiteration
+					ret = skill_castend_pos2(src, src->x, src->y, skill_id, skill_lv, tick, flag); //Cast on homon
 				if(s_src && !skill_check_unit_range(s_src, s_src->x, s_src->y, skill_id, skill_lv))
-					ret |= skill_castend_pos2(s_src,s_src->x,s_src->y,skill_id,skill_lv,tick,flag); //cast on master
+					ret |= skill_castend_pos2(s_src, s_src->x, s_src->y, skill_id, skill_lv, tick,flag); //Cast on master
 				if(hd)
 					skill_blockhomun_start(hd, skill_id, skill_get_cooldown(NULL, skill_id, skill_lv));
 				return ret;
@@ -5139,8 +5139,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						pc_randomwarp(sd, CLR_TELEPORT);
 				} else if(rate == 19)
 					status_heal(src, status_get_max_hp(src), status_get_max_sp(src), 0);
-				else if(rate == 20)
+				else if(sd->status.party_id && rate == 20) {
 					party_foreachsamemap(skill_area_sub, sd, skill_get_splash(ALL_RESURRECTION, 1), src, ALL_RESURRECTION, 1, tick, flag|BCT_PARTY|1, skill_castend_nodamage_id);
+				}
 				skill_consume_requirement(sd, skill_id, skill_lv, 2);
 				return 0;
 			}
@@ -6048,7 +6049,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case CASH_INCAGI:
 		case CASH_ASSUMPTIO:
 		case WM_FRIGG_SONG:
-			if( sd == NULL || sd->status.party_id == 0 || (flag & 1) )
+			if( sd == NULL || sd->status.party_id == 0 || (flag&1) )
 				clif_skill_nodamage(bl, bl, skill_id, skill_lv, sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			else if( sd )
 				party_foreachsamemap(skill_area_sub, sd, skill_get_splash(skill_id, skill_lv), src, skill_id, skill_lv, tick, flag|BCT_PARTY|1, skill_castend_nodamage_id);
@@ -8885,7 +8886,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case WM_LULLABY_DEEPSLEEP:
 			if( flag&1 ) {
 				//[(Skill Level x 4) + (Voice Lessons Skill Level x 2) + (Caster Base Level / 15) + (Caster Job Level / 5)] %
-				rate = ( 4 * skill_lv ) + ( sd ? pc_checkskill(sd,WM_LESSON) * 2 + sd->status.job_level / 5 : 0 ) + status_get_lv(src) / 15;
+				rate = ( 4 * skill_lv ) + ( sd ? pc_checkskill(sd , WM_LESSON) * 2 + sd->status.job_level / 5 : 0 ) + status_get_lv(src) / 15;
 				tick = status_get_lv(bl) / 20 + status_get_int(bl) / 20;
 				if( rate > 60 ) rate = 60;
 				if( bl != src )
@@ -8899,22 +8900,22 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case WM_SIRCLEOFNATURE:
 			if( flag&1 )
-				sc_start(src, bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
+				sc_start(src, bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 			else if( sd ) {
-				map_foreachinrange(skill_area_sub, src, skill_get_splash(skill_id,skill_lv), BL_PC, src, skill_id, skill_lv, tick, flag|BCT_ALL|1, skill_castend_nodamage_id);
-				sc_start(src, bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
+				map_foreachinrange(skill_area_sub, src, skill_get_splash(skill_id, skill_lv), BL_PC, src, skill_id, skill_lv, tick, flag|BCT_ALL|1, skill_castend_nodamage_id);
+				sc_start(src, bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 			}
 			break;
 
 		case WM_VOICEOFSIREN:
 			if( flag&1 ) {
 				tick = status_get_lv(bl) / 10 + ( dstsd ? dstsd->status.job_level / 5 : 0 );
-				sc_start2(src, bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv) - (1000 * tick));
+				sc_start2(src, bl, type, 100, skill_lv, src->id, skill_get_time(skill_id, skill_lv) - (1000 * tick));
 			} else if( sd ) {
-				rate = 6 * skill_lv + 2 * pc_checkskill(sd,WM_LESSON) + sd->status.job_level / 2;
+				rate = 6 * skill_lv + 2 * pc_checkskill(sd, WM_LESSON) + sd->status.job_level / 2;
 				if( rnd()%100 < rate ) {
-					map_foreachinrange(skill_area_sub, src, skill_get_splash(skill_id,skill_lv), BL_CHAR|BL_SKILL, src, skill_id, skill_lv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
-					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+					map_foreachinrange(skill_area_sub, src, skill_get_splash(skill_id, skill_lv), BL_CHAR|BL_SKILL, src, skill_id, skill_lv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
+					clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
 				}
 			}
 			break;
@@ -9193,7 +9194,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				break;
 			elemental_delete(sd->ed,0);
 			if( sd->status.party_id == 0 || flag&1 )
-				skill_unitsetting(src,MG_SAFETYWALL,skill_lv,bl->x,bl->y,0);
+				skill_unitsetting(src,MG_SAFETYWALL,10,bl->x,bl->y,0);
 			else
 				party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
 			break;
@@ -10178,7 +10179,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case SA_VIOLENTGALE: {
 			//Does not consumes if the skill is already active. [Skotlex]
 			struct skill_unit_group *sg;
-			if ((sg=skill_locate_element_field(src)) != NULL && ( sg->skill_id == SA_VOLCANO || sg->skill_id == SA_DELUGE || sg->skill_id == SA_VIOLENTGALE )) {
+			if ((sg = skill_locate_element_field(src)) != NULL && ( sg->skill_id == SA_VOLCANO || sg->skill_id == SA_DELUGE || sg->skill_id == SA_VIOLENTGALE )) {
 				if (sg->limit - DIFF_TICK(gettick(), sg->tick) > 0) {
 					skill_unitsetting(src,skill_id,skill_lv,x,y,0);
 					return 0; // not to consume items
@@ -11426,7 +11427,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 				val2 = group->val2;
 				break;
 			case WZ_ICEWALL:
-				val1 = (skill_lv <= 1) ? 500 : 200 + 200*skill_lv;
+				val1 = (skill_lv <= 1) ? 500 : 200 + 200 * skill_lv;
 				val2 = map_getcell(src->m, ux, uy, CELL_GETTYPE);
 				break;
 			case HT_LANDMINE:
@@ -16240,7 +16241,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 					if( group->unit_id == UNT_ANKLESNARE && group->val2 > 0 )
 						skill_delunit(unit);
 					else {
-						clif_changetraplook(bl, group->unit_id==UNT_LANDMINE?UNT_FIREPILLAR_ACTIVE:UNT_USED_TRAPS);
+						clif_changetraplook(bl, group->unit_id == UNT_LANDMINE ? UNT_FIREPILLAR_ACTIVE : UNT_USED_TRAPS);
 						group->limit = DIFF_TICK(tick, group->tick) + 1500;
 						group->unit_id = UNT_USED_TRAPS;
 					}

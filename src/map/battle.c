@@ -6511,7 +6511,7 @@ struct block_list* battle_get_master(struct block_list *src)
  *	Original coder unknown
  *	Rewritten by Skoltex
 */
-int battle_check_target( struct block_list *src, struct block_list *target, int flag)
+int battle_check_target(struct block_list *src, struct block_list *target, int flag)
 {
 	int16 m; //Map
 	int state = 0; //Initial state none
