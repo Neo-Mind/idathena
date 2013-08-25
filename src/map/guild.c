@@ -503,7 +503,7 @@ int guild_recv_info(struct guild *sg)
 			//If the guild master is online the first time the guild_info is received,
 			//that means he was the first to join, so apply guild skill blocking here.
 			if( battle_config.guild_skill_relog_delay )
-				guild_block_skill(sd, 300000);
+				guild_block_skill(sd, battle_config.guild_skill_relog_delay);
 
 			//Also set the guild master flag.
 			sd->guild = g;
@@ -701,7 +701,7 @@ void guild_member_joined(struct map_session_data *sd)
 		sd->state.gmaster_flag = g;
 		// prevent Guild Skills from being used directly after relog
 		if( battle_config.guild_skill_relog_delay )
-			guild_block_skill(sd, 300000);
+			guild_block_skill(sd, battle_config.guild_skill_relog_delay);
 	}
 	i = guild_getindex(g, sd->status.account_id, sd->status.char_id);
 	if( i == -1 )
@@ -1763,14 +1763,14 @@ int guild_gm_changed(int guild_id, int account_id, int char_id)
 	struct guild_member gm;
 	int pos, i;
 
-	g=guild_search(guild_id);
+	g = guild_search(guild_id);
 
 	if (!g)
 		return 0;
 
-	for(pos=0; pos<g->max_member && !(
-		g->member[pos].account_id==account_id &&
-		g->member[pos].char_id==char_id);
+	for (pos = 0; pos < g->max_member && !(
+		g->member[pos].account_id == account_id &&
+		g->member[pos].char_id == char_id);
 		pos++);
 
 	if (pos == 0 || pos == g->max_member) return 0;
@@ -1791,13 +1791,14 @@ int guild_gm_changed(int guild_id, int account_id, int char_id)
 	if (g->member[0].sd && g->member[0].sd->fd) {
 		clif_displaymessage(g->member[0].sd->fd, msg_txt(679)); //"You have become the Guild Master!"
 		g->member[0].sd->state.gmaster_flag = g;
-		//Block his skills for 5 minutes to prevent abuse.
-		guild_block_skill(g->member[0].sd, 300000);
+		//Block his skills to prevent abuse.
+		if (battle_config.guild_skill_relog_delay)
+			guild_block_skill(g->member[0].sd, battle_config.guild_skill_relog_delay);
 	}
 
-	// announce the change to all guild members
-	for( i = 0; i < g->max_member; i++ ) {
-		if( g->member[i].sd && g->member[i].sd->fd ) {
+	//Announce the change to all guild members
+	for (i = 0; i < g->max_member; i++) {
+		if (g->member[i].sd && g->member[i].sd->fd) {
 			clif_guild_basicinfo(g->member[i].sd);
 			clif_guild_memberlist(g->member[i].sd);
 		}
@@ -1820,19 +1821,19 @@ int guild_break(struct map_session_data *sd,char *name)
 
 	nullpo_ret(sd);
 
-	if((g=sd->guild)==NULL)
+	if((g = sd->guild) == NULL)
 		return 0;
-	if(strcmp(g->name,name)!=0)
+	if(strcmp(g->name,name) != 0)
 		return 0;
 	if(!sd->state.gmaster_flag)
 		return 0;
-	for(i=0;i<g->max_member;i++) {
-		if(	g->member[i].account_id>0 && (
+	for(i = 0; i < g->max_member; i++) {
+		if (g->member[i].account_id > 0 && (
 			g->member[i].account_id!=sd->status.account_id ||
-			g->member[i].char_id!=sd->status.char_id ))
+			g->member[i].char_id!=sd->status.char_id))
 			break;
 	}
-	if(i<g->max_member) {
+	if(i < g->max_member) {
 		clif_guild_broken(sd,2);
 		return 0;
 	}
@@ -1840,7 +1841,7 @@ int guild_break(struct map_session_data *sd,char *name)
 #ifdef BOUND_ITEMS
 	//Guild bound item check - Removes the bound flag
 	j = pc_bound_chk(sd,2,idxlist);
-	for(i=0;i<j;i++)
+	for(i = 0; i < j; i++)
 		sd->status.inventory[idxlist[i]].bound = 0;
 #endif
 
@@ -2099,7 +2100,7 @@ void guild_flag_remove(struct npc_data *nd) {
 		}
 	}
 
-	/* compact list */
+	/* Compact list */
 	for( i = 0, cursor = 0; i < guild_flags_count; i++ ) {
 		if( guild_flags[i] == NULL )
 			continue;
@@ -2110,7 +2111,6 @@ void guild_flag_remove(struct npc_data *nd) {
 
 		cursor++;
 	}
-
 }
 
 /**
