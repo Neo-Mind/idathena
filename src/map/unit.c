@@ -386,14 +386,14 @@ int unit_walktoxy( struct block_list *bl, short x, short y, int flag)
 	if( (battle_config.max_walk_path < wpd.path_len) && (bl->type != BL_NPC) )
 		return 0;
 
-	if (flag&4 && DIFF_TICK(ud->canmove_tick, gettick()) > 0 &&
-		DIFF_TICK(ud->canmove_tick, gettick()) < 2000)
+	if( flag&4 && DIFF_TICK(ud->canmove_tick, gettick()) > 0 &&
+		DIFF_TICK(ud->canmove_tick, gettick()) < 2000 )
 	{ // Delay walking command. [Skotlex]
 		add_timer(ud->canmove_tick+1, unit_delay_walktoxy_timer, bl->id, (x<<16)|(y&0xFFFF));
 		return 1;
 	}
 
-	if(!(flag&2) && (!(status_get_mode(bl)&MD_CANMOVE) || !unit_can_move(bl)))
+	if( !(flag&2) && (!(status_get_mode(bl)&MD_CANMOVE) || !unit_can_move(bl)) )
 		return 0;
 
 	ud->state.walk_easy = flag&1;
@@ -402,17 +402,17 @@ int unit_walktoxy( struct block_list *bl, short x, short y, int flag)
 	unit_set_target(ud, 0);
 	
 	sc = status_get_sc(bl);
-	if (sc && sc->data[SC_CONFUSION]) //Randomize the target position
+	if( sc && sc->data[SC_CONFUSION] || sc->data[SC_CHAOS] ) //Randomize the target position
 		map_random_dir(bl, &ud->to_x, &ud->to_y);
 
-	if(ud->walktimer != INVALID_TIMER) {
+	if( ud->walktimer != INVALID_TIMER ) {
 		// When you come to the center of the grid because the change of destination while you're walking right now
 		// Call a function from a timer unit_walktoxy_sub
 		ud->state.change_walk_target = 1;
 		return 1;
 	}
 
-	if(ud->attacktimer != INVALID_TIMER) {
+	if( ud->attacktimer != INVALID_TIMER ) {
 		delete_timer( ud->attacktimer, unit_attack_timer );
 		ud->attacktimer = INVALID_TIMER;
 	}
@@ -458,12 +458,12 @@ int unit_walktobl(struct block_list *bl, struct block_list *tbl, int range, int 
 	nullpo_ret(tbl);
 
 	ud = unit_bl2ud(bl);
-	if( ud == NULL) return 0;
+	if (ud == NULL) return 0;
 
 	if (!(status_get_mode(bl)&MD_CANMOVE))
 		return 0;
 
-	if (!unit_can_reach_bl(bl, tbl, distance_bl(bl, tbl)+1, flag&1, &ud->to_x, &ud->to_y)) {
+	if (!unit_can_reach_bl(bl, tbl, distance_bl(bl, tbl) + 1, flag&1, &ud->to_x, &ud->to_y)) {
 		ud->to_x = bl->x;
 		ud->to_y = bl->y;
 		ud->target_to = 0;
@@ -473,28 +473,28 @@ int unit_walktobl(struct block_list *bl, struct block_list *tbl, int range, int 
 	ud->state.walk_easy = flag&1;
 	ud->target_to = tbl->id;
 	ud->chaserange = range; //Note that if flag&2, this SHOULD be attack-range
-	ud->state.attack_continue = flag&2?1:0; //Chase to attack.
+	ud->state.attack_continue = flag&2 ? 1 : 0; //Chase to attack.
 	unit_set_target(ud, 0);
 
 	sc = status_get_sc(bl);
-	if (sc && sc->data[SC_CONFUSION]) //Randomize the target position
+	if (sc && sc->data[SC_CONFUSION] || sc->data[SC_CHAOS]) //Randomize the target position
 		map_random_dir(bl, &ud->to_x, &ud->to_y);
 
-	if(ud->walktimer != INVALID_TIMER) {
+	if (ud->walktimer != INVALID_TIMER) {
 		ud->state.change_walk_target = 1;
 		set_mobstate(bl, flag&2);
 		return 1;
 	}
 
-	if(DIFF_TICK(ud->canmove_tick, gettick()) > 0) { //Can't move, wait a bit before invoking the movement.
+	if (DIFF_TICK(ud->canmove_tick, gettick()) > 0) { //Can't move, wait a bit before invoking the movement.
 		add_timer(ud->canmove_tick+1, unit_walktobl_sub, bl->id, ud->target);
 		return 1;
 	}
 
-	if(!unit_can_move(bl))
+	if (!unit_can_move(bl))
 		return 0;
 
-	if(ud->attacktimer != INVALID_TIMER) {
+	if (ud->attacktimer != INVALID_TIMER) {
 		delete_timer( ud->attacktimer, unit_attack_timer );
 		ud->attacktimer = INVALID_TIMER;
 	}

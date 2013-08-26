@@ -661,7 +661,7 @@ void initChangeTables(void) {
 	set_sc( SC_WEAKNESS          , SC__WEAKNESS       , SI_WEAKNESS        , SCB_MAXHP );
 	set_sc( SC_STRIPACCESSARY    , SC__STRIPACCESSORY , SI_STRIPACCESSARY  , SCB_INT|SCB_DEX|SCB_LUK );
 	set_sc_with_vfx( SC_MANHOLE  , SC__MANHOLE        , SI_MANHOLE         , SCB_NONE );
-	add_sc( SC_CHAOSPANIC        , SC_CONFUSION );
+	add_sc( SC_CHAOSPANIC        , SC_CHAOS );
 	add_sc( SC_BLOODYLUST        , SC_BERSERK );
 	set_sc( SC_MAELSTROM         , SC__MAELSTROM      , SI_BLANK           , SCB_NONE );
 
@@ -1237,6 +1237,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 			status_change_end(target, SC_CLOAKING, INVALID_TIMER);
 			status_change_end(target, SC_CHASEWALK, INVALID_TIMER);
 			status_change_end(target, SC_CAMOUFLAGE, INVALID_TIMER);
+			status_change_end(target, SC_CHAOS, INVALID_TIMER);
 			status_change_end(target, SC_DEEPSLEEP, INVALID_TIMER);
 			if ((sce = sc->data[SC_ENDURE]) && !sce->val4 && !sc->data[SC_CONCENTRATION]) {
 				//Endure count is only reduced by non-players on non-gvg maps.
@@ -7483,6 +7484,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC__LAZINESS:
 			case SC__WEAKNESS:
 			case SC__UNLUCKY:
+			case SC_CHAOS:
 				return 0;
 			case SC_COMBO:
 			case SC_DANCING:
@@ -7812,12 +7814,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick_time = 1000; //[GodLesZ] tick time
 				//val4: HP damage
 				if (bl->type == BL_PC)
-					val4 = (type == SC_DPOISON) ? 2 + status->max_hp/50 : 2 + status->max_hp*3/200;
+					val4 = (type == SC_DPOISON) ? 2 + status->max_hp / 50 : 2 + status->max_hp * 3 / 200;
 				else
-					val4 = (type == SC_DPOISON) ? 2 + status->max_hp/100 : 2 + status->max_hp/200;
+					val4 = (type == SC_DPOISON) ? 2 + status->max_hp / 100 : 2 + status->max_hp / 200;
 				break;
 
 			case SC_CONFUSION:
+			case SC_CHAOS:
 				clif_emotion(bl,E_WHAT);
 				break;
 			case SC_BLEEDING:
@@ -9128,6 +9131,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_CAMOUFLAGE:
 		case SC_THORNSTRAP:
 		case SC__MANHOLE:
+		case SC_CHAOS:
 		case SC_CRYSTALIZE:
 		case SC_CURSEDCIRCLE_ATKER:
 		case SC_CURSEDCIRCLE_TARGET:
@@ -9178,6 +9182,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_SILENCE:      sc->opt2 |= OPT2_SILENCE;      break;
 		
 		case SC_SIGNUMCRUCIS:
+		case SC_CHAOS:
 			sc->opt2 |= OPT2_SIGNUMCRUCIS;
 			break;
 		
@@ -10053,6 +10058,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			sc->opt2 &= ~OPT2_DPOISON;
 			break;
 		case SC_SIGNUMCRUCIS:
+		case SC_CHAOS:
 			sc->opt2 &= ~OPT2_SIGNUMCRUCIS;
 			break;
 
@@ -11289,6 +11295,7 @@ int status_change_clear_buffs (struct block_list* bl, int type)
 			case SC_VACUUM_EXTREME:
 			case SC_FEAR:
 			case SC_MAGNETICFIELD:
+			case SC_CHAOS:
 			case SC_NETHERWORLD:
 				if (!(type&2))
 					continue;

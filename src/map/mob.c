@@ -1399,12 +1399,12 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 	if(md->bl.prev == NULL || md->status.hp <= 0)
 		return false;
 		
-	if (DIFF_TICK(tick, md->last_thinktime) < MIN_MOBTHINKTIME)
+	if(DIFF_TICK(tick, md->last_thinktime) < MIN_MOBTHINKTIME)
 		return false;
 
 	md->last_thinktime = tick;
 
-	if (md->ud.skilltimer != INVALID_TIMER)
+	if(md->ud.skilltimer != INVALID_TIMER)
 		return false;
 
 	if(md->ud.walktimer != INVALID_TIMER && md->ud.walkpath.path_pos <= 3)
@@ -1417,7 +1417,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 		return false;
 	}
 
-	if (md->sc.count && md->sc.data[SC_BLIND])
+	if(md->sc.count && md->sc.data[SC_BLIND])
 		view_range = 3;
 	else
 		view_range = md->db->range2;
@@ -1425,87 +1425,77 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 
 	can_move = (mode&MD_CANMOVE)&&unit_can_move(&md->bl);
 
-	if (md->target_id)
-	{	//Check validity of current target. [Skotlex]
+	if(md->target_id) { //Check validity of current target. [Skotlex]
 		tbl = map_id2bl(md->target_id);
-		if (!tbl || tbl->m != md->bl.m ||
+		if(!tbl || tbl->m != md->bl.m ||
 			(md->ud.attacktimer == INVALID_TIMER && !status_check_skilluse(&md->bl, tbl, 0, 0)) ||
 			(md->ud.walktimer != INVALID_TIMER && !(battle_config.mob_ai&0x1) && !check_distance_bl(&md->bl, tbl, md->min_chase)) ||
 			(
 				tbl->type == BL_PC &&
 				((((TBL_PC*)tbl)->state.gangsterparadise && !(mode&MD_BOSS)) ||
 				((TBL_PC*)tbl)->invincible_timer != INVALID_TIMER)
-		)) {	//Unlock current target.
-			if (mob_warpchase(md, tbl))
+		)) { //Unlock current target.
+			if(mob_warpchase(md, tbl))
 				return true; //Chasing this target.
 			mob_unlocktarget(md, tick-(battle_config.mob_ai&0x8?3000:0)); //Imediately do random walk.
 			tbl = NULL;
 		}
 	}
 			
-	// Check for target change.
-	if( md->attacked_id && mode&MD_CANATTACK )
-	{
-		if( md->attacked_id == md->target_id )
-		{	//Rude attacked check.
-			if( !battle_check_range(&md->bl, tbl, md->status.rhw.range)
+	//Check for target change.
+	if(md->attacked_id && mode&MD_CANATTACK) {
+		if(md->attacked_id == md->target_id) { //Rude attacked check.
+			if(!battle_check_range(&md->bl, tbl, md->status.rhw.range)
 			   &&  ( //Can't attack back and can't reach back.
 					(!can_move && DIFF_TICK(tick, md->ud.canmove_tick) > 0 && (battle_config.mob_ai&0x2 || (md->sc.data[SC_SPIDERWEB] && md->sc.data[SC_SPIDERWEB]->val1)
 					|| md->sc.data[SC_BITE] || md->sc.data[SC_VACUUM_EXTREME] || md->sc.data[SC_THORNSTRAP]
-					|| md->sc.data[SC__MANHOLE])) // Not yet confirmed if boss will teleport once it can't reach target.
+					|| md->sc.data[SC__MANHOLE])) //Not yet confirmed if boss will teleport once it can't reach target.
 					|| !mob_can_reach(md, tbl, md->min_chase, MSS_RUSH)
 					)
 			&&  md->state.attacked_count++ >= RUDE_ATTACKED_COUNT
-			&&  !mobskill_use(md, tick, MSC_RUDEATTACKED) // If can't rude Attack
-			&&  can_move && unit_escape(&md->bl, tbl, rnd()%10 +1)) // Attempt escape
-			{	//Escaped
+			&&  !mobskill_use(md, tick, MSC_RUDEATTACKED) //If can't rude Attack
+			&&  can_move && unit_escape(&md->bl, tbl, rnd()%10 +1)) //Attempt escape
+			{ //Escaped
 				md->attacked_id = 0;
 				return true;
 			}
-		}
-		else
-		if( (abl = map_id2bl(md->attacked_id)) && (!tbl || mob_can_changetarget(md, abl, mode)) )
-		{
+		} else if((abl = map_id2bl(md->attacked_id)) && (!tbl || mob_can_changetarget(md, abl, mode)) ||
+			(md->sc.count && md->sc.data[SC_CHAOS])) {
 			int dist;
-			if( md->bl.m != abl->m || abl->prev == NULL
-				|| (dist = distance_bl(&md->bl, abl)) >= MAX_MINCHASE // Attacker longer than visual area
-				|| battle_check_target(&md->bl, abl, BCT_ENEMY) <= 0 // Attacker is not enemy of mob
-				|| (battle_config.mob_ai&0x2 && !status_check_skilluse(&md->bl, abl, 0, 0)) // Cannot normal attack back to Attacker
-				|| (!battle_check_range(&md->bl, abl, md->status.rhw.range) // Not on Melee Range and ...
-				&& ( // Reach check
+			if(md->bl.m != abl->m || abl->prev == NULL
+				|| (dist = distance_bl(&md->bl, abl)) >= MAX_MINCHASE //Attacker longer than visual area
+				|| battle_check_target(&md->bl, abl, BCT_ENEMY) <= 0 //Attacker is not enemy of mob
+				|| (battle_config.mob_ai&0x2 && !status_check_skilluse(&md->bl, abl, 0, 0)) //Cannot normal attack back to Attacker
+				|| (!battle_check_range(&md->bl, abl, md->status.rhw.range) //Not on Melee Range and ...
+				&& ( //Reach check
 					(!can_move && DIFF_TICK(tick, md->ud.canmove_tick) > 0 && (battle_config.mob_ai&0x2 || (md->sc.data[SC_SPIDERWEB] && md->sc.data[SC_SPIDERWEB]->val1)
 					|| md->sc.data[SC_BITE] || md->sc.data[SC_VACUUM_EXTREME] || md->sc.data[SC_THORNSTRAP]
-					|| md->sc.data[SC__MANHOLE])) // Not yet confirmed if boss will teleport once it can't reach target.
+					|| md->sc.data[SC__MANHOLE])) //Not yet confirmed if boss will teleport once it can't reach target.
 					|| !mob_can_reach(md, abl, dist+md->db->range3, MSS_RUSH)
 					)
-				) )
-			{ // Rude attacked
-				if (md->state.attacked_count++ >= RUDE_ATTACKED_COUNT
+				))
+			{ //Rude attacked
+				if(md->state.attacked_count++ >= RUDE_ATTACKED_COUNT
 				&& !mobskill_use(md, tick, MSC_RUDEATTACKED) && can_move
 				&& !tbl && unit_escape(&md->bl, abl, rnd()%10 +1))
-				{	//Escaped.
+				{ //Escaped.
 					//TODO: Maybe it shouldn't attempt to run if it has another, valid target?
 					md->attacked_id = 0;
 					return true;
 				}
-			}
-			else
-			if (!(battle_config.mob_ai&0x2) && !status_check_skilluse(&md->bl, abl, 0, 0))
-			{
+			} else if(!(battle_config.mob_ai&0x2) && !status_check_skilluse(&md->bl, abl, 0, 0)) {
 				//Can't attack back, but didn't invoke a rude attacked skill...
-			}
-			else
-			{ //Attackable
-				if (!tbl || dist < md->status.rhw.range || !check_distance_bl(&md->bl, tbl, dist)
+			} else { //Attackable
+				if(!tbl || dist < md->status.rhw.range || !check_distance_bl(&md->bl, tbl, dist)
 					|| battle_gettarget(tbl) != md->bl.id)
-				{	//Change if the new target is closer than the actual one
+				{ //Change if the new target is closer than the actual one
 					//or if the previous target is not attacking the mob. [Skotlex]
-					md->target_id = md->attacked_id; // set target
-					if (md->state.attacked_count)
+					md->target_id = md->attacked_id; //Set target
+					if(md->state.attacked_count)
 					  md->state.attacked_count--; //Should we reset rude attack count?
-					md->min_chase = dist+md->db->range3;
-					if(md->min_chase>MAX_MINCHASE)
-						md->min_chase=MAX_MINCHASE;
+					md->min_chase = dist + md->db->range3;
+					if(md->min_chase > MAX_MINCHASE)
+						md->min_chase = MAX_MINCHASE;
 					tbl = abl; //Set the new target
 				}
 			}
@@ -1515,92 +1505,84 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 		md->attacked_id = 0;
 	}
 	
-	// Processing of slave monster
-	if (md->master_id > 0 && mob_ai_sub_hard_slavemob(md, tick))
+	//Processing of slave monster
+	if(md->master_id > 0 && mob_ai_sub_hard_slavemob(md, tick))
 		return true;
 
-	// Scan area for targets
-	if (!tbl && mode&MD_LOOTER && md->lootitem && DIFF_TICK(tick, md->ud.canact_tick) > 0 &&
+	//Scan area for targets
+	if(!tbl && mode&MD_LOOTER && md->lootitem && DIFF_TICK(tick, md->ud.canact_tick) > 0 &&
 		(md->lootitem_count < LOOTITEM_SIZE || battle_config.monster_loot_type != 1))
-	{	// Scan area for items to loot, avoid trying to loot if the mob is full and can't consume the items.
+	{ //Scan area for items to loot, avoid trying to loot if the mob is full and can't consume the items.
 		map_foreachinrange (mob_ai_sub_hard_lootsearch, &md->bl, view_range, BL_ITEM, md, &tbl);
 	}
 
-	if ((!tbl && mode&MD_AGGRESSIVE) || md->state.skillstate == MSS_FOLLOW)
-	{
+	if((!tbl && mode&MD_AGGRESSIVE) || md->state.skillstate == MSS_FOLLOW) {
 		map_foreachinrange (mob_ai_sub_hard_activesearch, &md->bl, view_range, DEFAULT_ENEMY_TYPE(md), md, &tbl, mode);
-	}
-	else
-	if (mode&MD_CHANGECHASE && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW))
-	{
+	} else if(mode&MD_CHANGECHASE && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW ||
+		(md->sc.count && md->sc.data[SC_CHAOS]))) {
 		int search_size;
-		search_size = view_range<md->status.rhw.range ? view_range:md->status.rhw.range;
+		search_size = view_range<md->status.rhw.range ? view_range : md->status.rhw.range;
 		map_foreachinrange (mob_ai_sub_hard_changechase, &md->bl, search_size, DEFAULT_ENEMY_TYPE(md), md, &tbl);
 	}
 
-	if (!tbl) { //No targets available.
-		if (mode&MD_ANGRY && !md->state.aggressive)
+	if(!tbl) { //No targets available.
+		if(mode&MD_ANGRY && !md->state.aggressive)
 			md->state.aggressive = 1; //Restore angry state when no targets are available.
 		
-		/* bg guardians follow allies when no targets nearby */
-		if( md->bg_id && mode&MD_CANATTACK ) {
-			if( md->ud.walktimer != INVALID_TIMER )
-				return true;/* we are already moving */
+		/* Bg guardians follow allies when no targets nearby */
+		if(md->bg_id && mode&MD_CANATTACK) {
+			if(md->ud.walktimer != INVALID_TIMER)
+				return true; /* We are already moving */
 			map_foreachinrange (mob_ai_sub_hard_bg_ally, &md->bl, view_range, BL_PC, md, &tbl, mode);
-			if( tbl ) {
+			if(tbl) {
 				if( distance_blxy(&md->bl, tbl->x, tbl->y) <= 3 || unit_walktobl(&md->bl, tbl, 1, 1) )
-					return true;/* we're moving or close enough don't unlock the target. */
+					return true; /* We're moving or close enough don't unlock the target. */
 			}
 		}
-		
+
 		//This handles triggering idle walk/skill.
 		mob_unlocktarget(md, tick);
 		return true;
 	}
-	
+
 	//Target exists, attack or loot as applicable.
-	if (tbl->type == BL_ITEM)
-	{	//Loot time.
+	if(tbl->type == BL_ITEM) { //Loot time.
 		struct flooritem_data *fitem;
-		if (md->ud.target == tbl->id && md->ud.walktimer != INVALID_TIMER)
+		if(md->ud.target == tbl->id && md->ud.walktimer != INVALID_TIMER)
 			return true; //Already locked.
-		if (md->lootitem == NULL)
-		{	//Can't loot...
+		if(md->lootitem == NULL) { //Can't loot...
 			mob_unlocktarget (md, tick);
 			return true;
 		}
-		if (!check_distance_bl(&md->bl, tbl, 1))
-		{	//Still not within loot range.
-			if (!(mode&MD_CANMOVE))
-			{	//A looter that can't move? Real smart.
+		if(!check_distance_bl(&md->bl, tbl, 1)) { //Still not within loot range.
+			if(!(mode&MD_CANMOVE)) { //A looter that can't move? Real smart.
 				mob_unlocktarget(md,tick);
 				return true;
 			}
-			if (!can_move) //Stuck. Wait before walking.
+			if(!can_move) //Stuck. Wait before walking.
 				return true;
 			md->state.skillstate = MSS_LOOT;
-			if (!unit_walktobl(&md->bl, tbl, 1, 1))
+			if(!unit_walktobl(&md->bl, tbl, 1, 1))
 				mob_unlocktarget(md, tick); //Can't loot...
 			return true;
 		}
 		//Within looting range.
-		if (md->ud.attacktimer != INVALID_TIMER)
+		if(md->ud.attacktimer != INVALID_TIMER)
 			return true; //Busy attacking?
 
 		fitem = (struct flooritem_data *)tbl;
 		//Logs items, taken by (L)ooter Mobs [Lupus]
 		log_pick_mob(md, LOG_TYPE_LOOT, fitem->item_data.amount, &fitem->item_data);
 
-		if (md->lootitem_count < LOOTITEM_SIZE) {
+		if(md->lootitem_count < LOOTITEM_SIZE) {
 			memcpy (&md->lootitem[md->lootitem_count++], &fitem->item_data, sizeof(md->lootitem[0]));
-		} else {	//Destroy first looted item...
-			if (md->lootitem[0].card[0] == CARD0_PET)
+		} else { //Destroy first looted item...
+			if(md->lootitem[0].card[0] == CARD0_PET)
 				intif_delete_petdata( MakeDWord(md->lootitem[0].card[1],md->lootitem[0].card[2]) );
 			memmove(&md->lootitem[0], &md->lootitem[1], (LOOTITEM_SIZE-1)*sizeof(md->lootitem[0]));
 			memcpy (&md->lootitem[LOOTITEM_SIZE-1], &fitem->item_data, sizeof(md->lootitem[0]));
 		}
-		if (pcdb_checkid(md->vd->class_))
-		{	//Give them walk act/delay to properly mimic players. [Skotlex]
+		if(pcdb_checkid(md->vd->class_)) { //Give them walk act/delay to properly mimic players. [Skotlex]
 			clif_takeitem(&md->bl,tbl);
 			md->ud.canact_tick = tick + md->status.amotion;
 			unit_set_walkdelay(&md->bl, tick, md->status.amotion, 1);
@@ -1612,12 +1594,10 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 	}
 	//Attempt to attack.
 	//At this point we know the target is attackable, we just gotta check if the range matches.
-	if (md->ud.target == tbl->id && md->ud.attacktimer != INVALID_TIMER) //Already locked.
+	if(md->ud.target == tbl->id && md->ud.attacktimer != INVALID_TIMER) //Already locked.
 		return true;
 	
-	if (battle_check_range (&md->bl, tbl, md->status.rhw.range))
-	{	//Target within range, engage
-
+	if(battle_check_range (&md->bl, tbl, md->status.rhw.range)) { //Target within range, engage
 		if(tbl->type == BL_PC)
 			mob_log_damage(md, tbl, 0); //Log interaction (counts as 'attacker' for the exp bonus)
 		unit_attack(&md->bl,tbl->id,1);
@@ -1625,23 +1605,21 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 	}
 
 	//Out of range...
-	if (!(mode&MD_CANMOVE))
-	{	//Can't chase. Attempt an idle skill before unlocking.
+	if(!(mode&MD_CANMOVE)) { //Can't chase. Attempt an idle skill before unlocking.
 		md->state.skillstate = MSS_IDLE;
-		if (!mobskill_use(md, tick, -1))
+		if(!mobskill_use(md, tick, -1))
 			mob_unlocktarget(md,tick);
 		return true;
 	}
 
-	if (!can_move)
-	{	//Stuck. Attempt an idle skill
+	if(!can_move) { //Stuck. Attempt an idle skill
 		md->state.skillstate = MSS_IDLE;
-		if (!(++md->ud.walk_count%IDLE_SKILL_INTERVAL))
+		if(!(++md->ud.walk_count%IDLE_SKILL_INTERVAL))
 			mobskill_use(md, tick, -1);
 		return true;
 	}
 
-	if (md->ud.walktimer != INVALID_TIMER && md->ud.target == tbl->id &&
+	if(md->ud.walktimer != INVALID_TIMER && md->ud.target == tbl->id &&
 		(
 			!(battle_config.mob_ai&0x1) ||
 			check_distance_blxy(tbl, md->ud.to_x, md->ud.to_y, md->status.rhw.range)

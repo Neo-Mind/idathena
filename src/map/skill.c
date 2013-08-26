@@ -6284,6 +6284,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			status_change_end(bl, SC_SILENCE, INVALID_TIMER);
 			status_change_end(bl, SC_BLIND, INVALID_TIMER);
 			status_change_end(bl, SC_CONFUSION, INVALID_TIMER);
+			status_change_end(bl, SC_CHAOS, INVALID_TIMER);
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			break;
 
@@ -6330,6 +6331,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 		case MER_MENTALCURE:
 			status_change_end(bl, SC_CONFUSION, INVALID_TIMER);
+			status_change_end(bl, SC_CHAOS, INVALID_TIMER);
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			break;
 		case MER_RECUPERATE:
@@ -7414,21 +7416,21 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					map_freeblock_unlock();
 					return 0;
 				}
-				status_zap(src,0,skill_db[skill_get_index(skill_id)].sp[skill_lv]); // consume sp only if succeeded [Inkfish]
+				status_zap(src,0,skill_db[skill_get_index(skill_id)].sp[skill_lv]); //Consume sp only if succeeded [Inkfish]
 				do {
 					eff = rnd() % 14;
 					clif_specialeffect(bl, 523 + eff, AREA);
 					switch (eff) {
-						case 0:	// heals SP to 0
+						case 0:	//Heals SP to 0
 							status_percent_damage(src, bl, 0, 100, false);
 							break;
-						case 1:	// matk halved
+						case 1:	//Matk halved
 							sc_start(src,bl,SC_INCMATKRATE,100,-50,skill_get_time2(skill_id,skill_lv));
 							break;
-						case 2:	// all buffs removed
+						case 2:	//All buffs removed
 							status_change_clear_buffs(bl,1);
 							break;
-						case 3:	{ // 1000 damage, random armor destroyed
+						case 3:	{ //1000 damage, random armor destroyed
 								status_fix_damage(src, bl, 1000, 0);
 								clif_damage(src,bl,tick,0,0,1000,0,0,0);
 								if( !status_isdead(bl) ) {
@@ -7437,48 +7439,48 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 								}
 							}
 							break;
-						case 4:	// atk halved
+						case 4:	//Atk halved
 							sc_start(src,bl,SC_INCATKRATE,100,-50,skill_get_time2(skill_id,skill_lv));
 							break;
-						case 5:	// 2000HP heal, random teleported
+						case 5:	//2000HP heal, random teleported
 							status_heal(src, 2000, 0, 0);
 							if( !map_flag_vs(bl->m) )
 								unit_warp(bl, -1,-1,-1, CLR_TELEPORT);
 							break;
-						case 6:	// random 2 other effects
+						case 6:	//Random 2 other effects
 							if (count == -1)
 								count = 3;
 							else
-								count++; // should not retrigger this one.
+								count++; //Should not retrigger this one.
 							break;
-						case 7:	{ // stop freeze or stoned
+						case 7:	{ //Stop freeze or stoned
 								enum sc_type sc[] = { SC_STOP, SC_FREEZE, SC_STONE };
 								sc_start(src,bl,sc[rnd()%3],100,skill_lv,skill_get_time2(skill_id,skill_lv));
 							}
 							break;
-						case 8:	// curse coma and poison
+						case 8:	//Curse coma and poison
 							sc_start(src,bl,SC_COMA,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 							sc_start(src,bl,SC_CURSE,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 							sc_start(src,bl,SC_POISON,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 							break;
-						case 9:	// confusion
+						case 9:	//Confusion
 							sc_start(src,bl,SC_CONFUSION,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 							break;
-						case 10: // 6666 damage, atk matk halved, cursed
+						case 10: //6666 damage, atk matk halved, cursed
 							status_fix_damage(src, bl, 6666, 0);
 							clif_damage(src,bl,tick,0,0,6666,0,0,0);
 							sc_start(src,bl,SC_INCATKRATE,100,-50,skill_get_time2(skill_id,skill_lv));
 							sc_start(src,bl,SC_INCMATKRATE,100,-50,skill_get_time2(skill_id,skill_lv));
 							sc_start(src,bl,SC_CURSE,skill_lv,100,skill_get_time2(skill_id,skill_lv));
 							break;
-						case 11: // 4444 damage
+						case 11: //4444 damage
 							status_fix_damage(src, bl, 4444, 0);
 							clif_damage(src,bl,tick,0,0,4444,0,0,0);
 							break;
-						case 12: // stun
+						case 12: //Stun
 							sc_start(src,bl,SC_STUN,100,skill_lv,5000);
 							break;
-						case 13: // atk,matk,hit,flee,def reduced
+						case 13: //Atk,matk,hit,flee,def reduced
 							sc_start(src,bl,SC_INCATKRATE,100,-20,skill_get_time2(skill_id,skill_lv));
 							sc_start(src,bl,SC_INCMATKRATE,100,-20,skill_get_time2(skill_id,skill_lv));
 							sc_start(src,bl,SC_INCHITRATE,100,-20,skill_get_time2(skill_id,skill_lv));
@@ -8234,6 +8236,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				status_change_end(bl, SC_POISON, INVALID_TIMER);
 				status_change_end(bl, SC_HALLUCINATION, INVALID_TIMER);
 				status_change_end(bl, SC_CONFUSION, INVALID_TIMER);
+				status_change_end(bl, SC_CHAOS, INVALID_TIMER);
 				status_change_end(bl, SC_BLEEDING, INVALID_TIMER);
 				status_change_end(bl, SC_BURNING, INVALID_TIMER);
 				status_change_end(bl, SC_FREEZE, INVALID_TIMER);
@@ -8745,7 +8748,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						case SC_SILENCE:	case SC_BURNING:
 						case SC_CRYSTALIZE:	case SC_FREEZING:
 						case SC_DEEPSLEEP:	case SC_FEAR:
-						case SC_MANDRAGORA:
+						case SC_MANDRAGORA:	case SC_CHAOS:
 							status_change_end(bl, (sc_type)i, INVALID_TIMER);
 					}
 				}
@@ -9088,6 +9091,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				case ECL_SADAGUI:
 					status_change_end(bl, SC_STUN, INVALID_TIMER);
 					status_change_end(bl, SC_CONFUSION, INVALID_TIMER);
+					status_change_end(bl, SC_CHAOS, INVALID_TIMER);
 					status_change_end(bl, SC_HALLUCINATION, INVALID_TIMER);
 					status_change_end(bl, SC_FEAR, INVALID_TIMER);
 					break;
@@ -11180,7 +11184,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 				if( req.itemid[i] )
 					req_item = req.itemid[i];
 				if( map_flag_gvg(src->m) || map[src->m].flag.battleground )
-					limit *= 4; // longer trap times in WOE [celest]
+					limit *= 4; //Longer trap times in WOE [celest]
 				if( battle_config.vs_traps_bctall && map_flag_vs(src->m) && (src->type&battle_config.vs_traps_bctall) )
 					target = BCT_ALL;
 			}
@@ -11614,11 +11618,15 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 			break;
 
 		case UNT_PNEUMA:
-		case UNT_CHAOSPANIC:
 		case UNT_MAELSTROM:
 			if (!sce)
-				sc_start4(ss,bl,type,sg->unit_id == UNT_CHAOSPANIC ? 35 + 15 * sg->skill_lv :
-					100,sg->skill_lv,sg->group_id,0,0,sg->limit);
+				sc_start4(ss,bl,type,100,sg->skill_lv,sg->group_id,0,0,sg->limit);
+			break;
+
+		case UNT_CHAOSPANIC:
+			if (!sce)
+				sc_start4(ss,bl,type,35 + 15 * sg->skill_lv,sg->skill_lv,
+					sg->group_id,0,0,skill_get_time2(sg->skill_id,sg->skill_lv));
 			break;
 
 		case UNT_BLOODYLUST:
@@ -11987,6 +11995,8 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 
 		case UNT_ANKLESNARE:
 		case UNT_MANHOLE:
+			if (sg->unit_id == UNT_ANKLESNARE && sg->val3 == SC_ESCAPE && map_flag_vs(ss->m) && bl->id == sg->src_id)
+				break;
 			if (sg->val2 == 0 && tsc && (sg->unit_id == UNT_ANKLESNARE || bl->id != sg->src_id)) {
 				int sec = skill_get_time2(sg->skill_id,sg->skill_lv);
 				if (status_change_start(ss,bl,type,10000,sg->skill_lv,sg->group_id,0,0,sec,8)) {
