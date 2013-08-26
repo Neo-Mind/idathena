@@ -8439,6 +8439,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				i = map_foreachinrange(skill_area_sub, bl, skill_get_splash(skill_id, skill_lv), splash_target(src),
 				src, skill_id, skill_lv, tick, flag|BCT_ENEMY|SD_SPLASH|1, skill_castend_damage_id);
 				status_set_sp(src, 0, 0);
+				skill_clear_unitgroup(src);
 			}
 			break;
 
