@@ -827,7 +827,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			return 0;
 		}
 
-		if( sc->data[SC_WEAPONBLOCKING] && (flag&(BF_SHORT|BF_WEAPON)) && rnd()%100 < sc->data[SC_WEAPONBLOCKING]->val2 ) {
+		if( sc->data[SC_WEAPONBLOCKING] && (flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON) &&
+			rnd()%100 < sc->data[SC_WEAPONBLOCKING]->val2 ) {
 			clif_skill_nodamage(bl,src,GC_WEAPONBLOCKING,1,1);
 			d->dmg_lv = ATK_BLOCK;
 			sc_start2(src, bl, SC_COMBO, 100, GC_WEAPONBLOCKING, src->id, 2000);
@@ -1003,23 +1004,24 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 #endif
 
-		if( sc->data[SC_DEFENDER] && (flag&(BF_LONG|BF_WEAPON)) && skill_id != CR_ACIDDEMONSTRATION )
+		if( sc->data[SC_DEFENDER] && skill_id != CR_ACIDDEMONSTRATION &&
+			(flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
 			damage = damage * ( 100 - sc->data[SC_DEFENDER]->val2 ) / 100;
 
-		if( sc->data[SC_ADJUSTMENT] && (flag&(BF_LONG|BF_WEAPON)) )
+		if( sc->data[SC_ADJUSTMENT] && (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
 			damage -= damage * 20 / 100;
 
 		if( sc->data[SC_FOGWALL] && skill_id != RK_DRAGONBREATH && skill_id != RK_DRAGONBREATH_WATER ) {
 			if( flag&BF_SKILL ) //25% reduction
 				damage -= damage * 25 / 100;
-			else if( (flag&(BF_LONG|BF_WEAPON)) )
+			else if( (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
 				damage >>= 2; //75% reduction
 		}
 
 		if( sc->data[SC_SMOKEPOWDER] ) {
-			if( (flag&(BF_SHORT|BF_WEAPON)) )
+			if( (flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON) )
 				damage -= damage * 15 / 100; //15% reduction to physical melee attacks
-			else if( (flag&(BF_LONG|BF_WEAPON)) )
+			else if( (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
 				damage -= damage * 50 / 100; //50% reduction to physical ranged attacks
 		}
 
@@ -1069,7 +1071,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( (sce = sc->data[SC_MAGMA_FLOW]) && (rnd()%100 <= sce->val2) ) {
 			skill_castend_damage_id(bl, src, MH_MAGMA_FLOW, sce->val1, gettick(), 0);
 		}
-		if( damage > 0 && (flag&(BF_SHORT|BF_WEAPON)) && (sce = sc->data[SC_STONEHARDSKIN]) ) {
+		if( damage > 0 && (flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON)
+			&& (sce = sc->data[SC_STONEHARDSKIN]) ) {
 			sce->val2 -= (int)cap_value(damage,INT_MIN,INT_MAX);
 			if( src->type == BL_MOB ) //Using explicite call instead break_equip for duration
 				sc_start(src, src, SC_STRIPWEAPON, 30, 0, skill_get_time2(RK_STONEHARDSKIN, sce->val1));
@@ -1992,7 +1995,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 	else if(nk&NK_IGNORE_FLEE)
 		return true;
 
-	if(tsc && (tsc->data[SC_NEUTRALBARRIER] || tsc->data[SC_NEUTRALBARRIER_MASTER]) && wd.flag&BF_LONG)
+	if(sc && (sc->data[SC_NEUTRALBARRIER] || sc->data[SC_NEUTRALBARRIER_MASTER]) && wd.flag&BF_LONG)
 		return false;
 
 	flee = tstatus->flee;
