@@ -7809,7 +7809,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				}
 			case SC_POISON:
 				//Fall through
-				val3 = tick/1000; //Damage iterations
+				val3 = tick / 1000; //Damage iterations
 				if (val3 < 1) val3 = 1;
 				tick_time = 1000; //[GodLesZ] tick time
 				//val4: HP damage
@@ -7824,7 +7824,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				clif_emotion(bl,E_WHAT);
 				break;
 			case SC_BLEEDING:
-				val4 = tick/10000;
+				val4 = tick / 10000;
 				if (!val4) val4 = 1;
 				tick_time = 10000; //[GodLesZ] tick time
 				break;
@@ -7835,7 +7835,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				//val2 = seconds between heals
 				//val4 = total of heals
 				if( val2 < 1 ) val2 = 1;
-				if( (val4 = tick/(val2 * 1000)) < 1 )
+				if( (val4 = tick / (val2 * 1000)) < 1 )
 					val4 = 1;
 				tick_time = val2 * 1000; //[GodLesZ] tick time
 				break;
@@ -7847,29 +7847,29 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 						return 0; //No need to start SC
 					}
 					val1 = boss_md->bl.id;
-					if( (val4 = tick/1000) < 1 )
+					if( (val4 = tick / 1000) < 1 )
 						val4 = 1;
 					tick_time = 1000; //[GodLesZ] tick time
 				}
 				break;
 			case SC_HIDING:
-				val2 = tick/1000;
+				val2 = tick / 1000;
 				tick_time = 1000; //[GodLesZ] tick time
 				val3 = 0; //Unused, previously speed adjustment
-				val4 = val1+3; //Seconds before SP substraction happen
+				val4 = val1 + 3; //Seconds before SP substraction happen
 				break;
 			case SC_CHASEWALK:
-				val2 = tick>0?tick:10000; //Interval at which SP is drained
+				val2 = tick > 0 ? tick : 10000; //Interval at which SP is drained
 				val3 = 35 - 5 * val1; //Speed adjustment
 				if (sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_ROGUE)
 					val3 -= 40;
-				val4 = 10+val1*2; //SP cost
+				val4 = 10 + val1 * 2; //SP cost
 				if (map_flag_gvg(bl->m) || map[bl->m].flag.battleground) val4 *= 5;
 				break;
 			case SC_CLOAKING:
 				if (!sd) //Monsters should be able to walk with no penalties [Skotlex]
 					val1 = 10;
-				tick_time = val2 = tick>0?tick:60000; //SP consumption rate
+				tick_time = val2 = tick > 0 ? tick : 60000; //SP consumption rate
 				tick = -1; //Duration sent to the client should be infinite
 				val3 = 0; //Unused, previously walk speed adjustment
 				//val4&1 signals the presence of a wall
@@ -7884,7 +7884,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_RUWACH:
 			case SC_SIGHTBLASTER:
 				val3 = skill_get_splash(val2, val1); //Val2 should bring the skill-id
-				val2 = tick/250;
+				val2 = tick / 250;
 				tick_time = 10; //[GodLesZ] tick time
 				break;
 
