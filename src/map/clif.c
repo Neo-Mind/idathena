@@ -4411,7 +4411,7 @@ static void clif_getareachar_skillunit(int type, struct map_session_data *sd, st
 		unit_id = unit->group->unit_id;
 
 #if PACKETVER >= 3
-	if( unit->group->unit_id==UNT_GRAFFITI ) { // Graffiti [Valaris]
+	if( unit->group->unit_id == UNT_GRAFFITI ) { // Graffiti [Valaris]
 		type = 2;
 	}
 #endif

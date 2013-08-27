@@ -1621,8 +1621,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 					(maxcount = skill_get_maxcount(skill, skill_lv)) > 0
 				  ) {
 					int v;
-					for(v=0;v<MAX_SKILLUNITGROUP && sd->ud.skillunit[v] && maxcount;v++) {
-						if(sd->ud.skillunit[v]->skill_id == skill)
+					for( v = 0; v < MAX_SKILLUNITGROUP && sd->ud.skillunit[v] && maxcount; v++ ) {
+						if( sd->ud.skillunit[v]->skill_id == skill )
 							maxcount--;
 					}
 					if( maxcount == 0 ) {
@@ -1720,7 +1720,7 @@ int skill_onskillusage(struct map_session_data *sd, struct block_list *bl, uint1
 			continue;
 
 		if( sd->autospell3[i].lock )
-			continue;  // autospell already being executed
+			continue; // Autospell already being executed
 
 		skill = (sd->autospell3[i].id > 0) ? sd->autospell3[i].id : -sd->autospell3[i].id;
 
@@ -3106,9 +3106,9 @@ static int skill_check_unit_range_sub (struct block_list *bl, va_list ap)
 static int skill_check_unit_range (struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv)
 {
 	//Non players do not check for the skill's splash-trigger area.
-	int range = bl->type==BL_PC?skill_get_unit_range(skill_id, skill_lv):0;
+	int range = bl->type == BL_PC ? skill_get_unit_range(skill_id,skill_lv) : 0;
 	int layout_type = skill_get_unit_layout_type(skill_id,skill_lv);
-	if (layout_type==-1 || layout_type>MAX_SQUARE_LAYOUT) {
+	if (layout_type == -1 || layout_type > MAX_SQUARE_LAYOUT) {
 		ShowError("skill_check_unit_range: unsupported layout type %d for skill %d\n",layout_type,skill_id);
 		return 0;
 	}
@@ -3141,24 +3141,26 @@ static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 
 {
 	int range, type;
 
-	switch (skill_id) {	// to be expanded later
-	case WZ_ICEWALL:
-		range = 2;
-		break;
-	default:
-		{
-			int layout_type = skill_get_unit_layout_type(skill_id,skill_lv);
-			if (layout_type==-1 || layout_type>MAX_SQUARE_LAYOUT) {
-				ShowError("skill_check_unit_range2: unsupported layout type %d for skill %d\n",layout_type,skill_id);
-				return 0;
+	switch (skill_id) {	//To be expanded later
+		case WZ_ICEWALL:
+			range = 2;
+			break;
+		case SC_MANHOLE:
+			range = 0;
+			break;
+		default: {
+				int layout_type = skill_get_unit_layout_type(skill_id,skill_lv);
+				if (layout_type == -1 || layout_type > MAX_SQUARE_LAYOUT) {
+					ShowError("skill_check_unit_range2: unsupported layout type %d for skill %d\n",layout_type,skill_id);
+					return 0;
+				}
+				range = skill_get_unit_range(skill_id,skill_lv) + layout_type;
 			}
-			range = skill_get_unit_range(skill_id,skill_lv) + layout_type;
-		}
-		break;
+			break;
 	}
 
-	// if the caster is a monster/NPC, only check for players
-	// otherwise just check characters
+	//If the caster is a monster/NPC, only check for players
+	//Otherwise just check characters
 	if (bl->type == BL_PC)
 		type = BL_CHAR;
 	else
@@ -4419,9 +4421,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				else if( dir == 7 || dir < 2 ) y = -2;
 				else y = 0;
 
-				if( unit_movepos(src, bl->x+x, bl->y+y, 1, 1) ) {
+				if( unit_movepos(src,bl->x+x,bl->y+y,1,1) ) {
 					clif_slide(src,bl->x+x,bl->y+y);
-					clif_fixpos(src); // the official server send these two packts.
+					clif_fixpos(src); // The official server send these two packts.
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 					if( rnd()%100 < 4 * skill_lv )
 						skill_castend_damage_id(src,bl,GC_CROSSIMPACT,skill_lv,tick,flag);
@@ -6855,7 +6857,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				clif_skill_nodamage(src,bl,TK_HIGHJUMP,skill_lv,1);
 				if(!map_count_oncell(src->m,x,y,BL_PC|BL_NPC|BL_MOB) && map_getcell(src->m,x,y,CELL_CHKREACH)) {
 					clif_slide(src,x,y);
-					unit_movepos(src, x, y, 1, 0);
+					unit_movepos(src,x,y,1,0);
 				}
 			}
 			break;
@@ -7254,9 +7256,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						case UNT_CLAYMORETRAP:
 						case UNT_TALKIEBOX:
 							su->group->unit_id = UNT_USED_TRAPS;
-							clif_changetraplook(bl, UNT_USED_TRAPS);
-							su->group->limit=DIFF_TICK(tick+1500,su->group->tick);
-							su->limit=DIFF_TICK(tick+1500,su->group->tick);
+							clif_changetraplook(bl,UNT_USED_TRAPS);
+							su->group->limit = DIFF_TICK(tick+1500,su->group->tick);
+							su->limit = DIFF_TICK(tick+1500,su->group->tick);
 					}
 				}
 			}
@@ -11453,9 +11455,9 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		int alive = 1;
 
 		if( !group->state.song_dance && !map_getcell(src->m,ux,uy,CELL_CHKREACH) )
-			continue; // don't place skill units on walls (except for songs/dances/encores)
+			continue; // Don't place skill units on walls (except for songs/dances/encores)
 		if( battle_config.skill_wall_check && unit_flag&UF_PATHCHECK && !path_search_long(NULL,src->m,ux,uy,x,y,CELL_CHKWALL) )
-			continue; // no path between cell and center of casting.
+			continue; // No path between cell and center of casting.
 
 		switch( skill_id ) {
 			case MG_FIREWALL:
@@ -12020,9 +12022,12 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				int sec = skill_get_time2(sg->skill_id,sg->skill_lv);
 				if (status_change_start(ss,bl,type,10000,sg->skill_lv,sg->group_id,0,0,sec,8)) {
 					const struct TimerData* td = tsc->data[type] ? get_timer(tsc->data[type]->timer) : NULL;
+					int range = skill_get_unit_range(sg->skill_id,sg->skill_lv);
 					if (td)
 						sec = DIFF_TICK(td->tick,tick);
-					if (sg->unit_id == UNT_MANHOLE || battle_config.skill_trap_type || !map_flag_gvg(src->bl.m)) {
+					if ((sg->unit_id == UNT_MANHOLE && distance_xy(src->bl.x,src->bl.y,bl->x,bl->y) <= range &&
+						src->bl.x != bl->x && src->bl.y != bl->y) || battle_config.skill_trap_type || !map_flag_gvg(src->bl.m))
+					{
 						unit_movepos(bl,src->bl.x,src->bl.y,0,0);
 						clif_fixpos(bl);
 					}
@@ -12081,6 +12086,8 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 		case UNT_FREEZINGTRAP:
 		case UNT_FIREPILLAR_ACTIVE:
 		case UNT_CLAYMORETRAP:
+			if (tsc && tsc->data[SC__MANHOLE])
+				break;
 			if (sg->unit_id == UNT_FIRINGTRAP || sg->unit_id == UNT_ICEBOUNDTRAP || sg->unit_id == UNT_CLAYMORETRAP)
 				map_foreachinrange(skill_trap_splash,&src->bl,skill_get_splash(sg->skill_id,sg->skill_lv),sg->bl_flag|BL_SKILL|~BCT_SELF,&src->bl,tick);
 			else
@@ -12464,22 +12471,22 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 					sc_start(ss,bl,type,100,sg->skill_lv,sec);
 
 				if (unit_is_walking(bl) && //Wait until target stop walking
-					( tsc && tsc->data[type] && tsc->data[type]->val4 >= tsc->data[type]->val3-range ))
+					(tsc && tsc->data[type] && tsc->data[type]->val4 >= tsc->data[type]->val3 - range))
 						break;
 
-				if (tsc && ( !tsc->data[type] || (tsc->data[type] && tsc->data[type]->val4 < 1 ) ))
+				if (tsc && (!tsc->data[type] || (tsc->data[type] && tsc->data[type]->val4 < 1)))
 					break;
 
 				if (unit_is_walking(bl) &&
 					distance_xy(src->bl.x,src->bl.y,bl->x,bl->y) > range) //Going outside of boundaries? then force it to stop
-						unit_stop_walking(bl,1);
+					unit_stop_walking(bl,1);
 
 				if (!unit_is_walking(bl) &&
 					distance_xy(src->bl.x,src->bl.y,bl->x,bl->y) <= range && //Only snap if the target is inside the range or
 					src->bl.x != bl->x && src->bl.y != bl->y) { //Diagonal position parallel to VE's center
 					unit_movepos(bl,src->bl.x,src->bl.y,0,0);
 					clif_fixpos(bl);
-				}		
+				}
 			}
 			break;
 
@@ -13040,7 +13047,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 
 	nullpo_ret(sd);
 
-	if (sd->chatID) return 0;
+	if( sd->chatID ) return 0;
 
 	if( pc_has_permission(sd, PC_PERM_SKILL_UNCONDITIONAL) && sd->skillitem != skill_id ) {
 		//GMs don't override the skillItem check, otherwise they can use items without them being consumed! [Skotlex]
@@ -13162,8 +13169,8 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 				static int dx[] = { 0, 1, 0, -1, -1,  1, 1, -1};
 				static int dy[] = {-1, 0, 1,  0, -1, -1, 1,  1};
 
-				if( skill_lv < 3 && ((sd->bl.type == BL_PC && battle_config.pc_cloak_check_type&1)
-				|| (sd->bl.type != BL_PC && battle_config.monster_cloak_check_type&1)) ) { //Check for walls.
+				if( skill_lv < 3 && ((sd->bl.type == BL_PC && battle_config.pc_cloak_check_type&1) ||
+					(sd->bl.type != BL_PC && battle_config.monster_cloak_check_type&1)) ) { //Check for walls.
 					int i;
 					ARR_FIND( 0, 8, i, map_getcell(sd->bl.m, sd->bl.x+dx[i], sd->bl.y+dy[i], CELL_CHKNOPASS) != 0 );
 					if( i == 8 ) {

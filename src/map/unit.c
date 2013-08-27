@@ -688,15 +688,15 @@ int unit_movepos(struct block_list *bl, short dst_x, short dst_y, int easy, bool
 	map_foreachinmovearea(clif_insight, bl, AREA_SIZE, -dx, -dy, sd?BL_ALL:BL_PC, bl);
 	ud->walktimer = INVALID_TIMER;
 
-	if(sd) {
+	if( sd ) {
 		if( sd->touching_id )
 			npc_touchnext_areanpc(sd,false);
-		if(map_getcell(bl->m,bl->x,bl->y,CELL_CHKNPC)) {
+		if( map_getcell(bl->m,bl->x,bl->y,CELL_CHKNPC) ) {
 			npc_touch_areanpc(sd,bl->m,bl->x,bl->y);
-			if (bl->prev == NULL) //Script could have warped char, abort remaining of the function.
+			if( bl->prev == NULL ) //Script could have warped char, abort remaining of the function.
 				return 0;
 		} else
-			sd->areanpc_id=0;
+			sd->areanpc_id = 0;
 
 		if( sd->status.pet_id > 0 && sd->pd && sd->pd->pet.intimate > 0 ) { // Check if pet needs to be teleported. [Skotlex]
 			int flag = 0;
@@ -2087,9 +2087,9 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 	if (ud->skilltimer != INVALID_TIMER)
 		unit_skillcastcancel(bl,0);
 
-// Do not reset can-act delay. [Skotlex]
+	//Do not reset can-act delay. [Skotlex]
 	ud->attackabletime = ud->canmove_tick /*= ud->canact_tick*/ = gettick();
-	if(sc && sc->count ) { //map-change/warp dispells.
+	if(sc && sc->count ) { //Map-change/warp dispells.
 		status_change_end(bl, SC_BLADESTOP, INVALID_TIMER);
 		status_change_end(bl, SC_BASILICA, INVALID_TIMER);
 		status_change_end(bl, SC_ANKLE, INVALID_TIMER);
@@ -2106,7 +2106,7 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 		status_change_end(bl, SC_TINDER_BREAKER, INVALID_TIMER);
 		status_change_end(bl, SC_TINDER_BREAKER2, INVALID_TIMER);
 		status_change_end(bl, SC_HIDING, INVALID_TIMER);
-		// Ensure the bl is a PC; if so, we'll handle the removal of cloaking and cloaking exceed later
+		//Ensure the bl is a PC; if so, we'll handle the removal of cloaking and cloaking exceed later
 		if ( bl->type != BL_PC ) {
 			status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
 			status_change_end(bl, SC_CLOAKINGEXCEED, INVALID_TIMER);

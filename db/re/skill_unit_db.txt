@@ -15,6 +15,7 @@
 //      0x200(UF_ENSEMBLE)	Ensemble skill
 //      0x400(UF_SONG)		Song skill
 //      0x800(UF_DUALMODE)	Spell has effects both at an interval and when you step in/out
+//      0x2000(UF_RANGEDSINGLEUNIT)     Layout hack, use layout range propriety but only display center
 // 	Example: 0x006 = 0x002+0x004 -> Cannot be stacked nor cast near targets
 //
 // Notes:
@@ -119,12 +120,12 @@
 2273,0xe2,    ,  2, 0, 500,all,0x000	//NC_NEUTRALBARRIER
 2274,0xe3,    ,  2, 0, 500,friend,   0x000	//NC_STEALTHFIELD
 
-2299,0xcc,    ,  0, 1,1000,enemy, 0x006	//SC_MANHOLE
-2300,0xcd,    ,  0, 1,1000,all,	0x006	//SC_DIMENSIONDOOR
-2301,0xce,    ,  2, 0,  -1,all,	0x200E	//SC_CHAOSPANIC
-2302,0xcf,    ,  2, 0,  -1,all,	0x2002	//SC_MAELSTROM
-2303,0xd0,    ,  3, 0,  -1,all,	0x2018	//SC_BLOODYLUST
-2304,0xd1,    ,  0, 2,1000,enemy, 0x018	//SC_FEINTBOMB
+2299,0xcc,    ,  0, 1,1000,enemy, 0x006  //SC_MANHOLE
+2300,0xcd,    ,  0, 1,1000,all,   0x006  //SC_DIMENSIONDOOR
+2301,0xce,    ,  2, 0,  -1,all,   0x200E //SC_CHAOSPANIC
+2302,0xcf,    ,  2, 0,  -1,all,   0x2002 //SC_MAELSTROM
+2303,0xd0,    ,  3, 0,  -1,all,   0x2018 //SC_BLOODYLUST
+2304,0xd1,    ,  0, 2,1000,enemy, 0x018  //SC_FEINTBOMB
 
 2317,0x86,    , -1, 0,  -1,enemy, 0x010 //LG_OVERBRAND
 2319,0xec,    ,  0, 3,5000,all,   0x000	//LG_BANDING
