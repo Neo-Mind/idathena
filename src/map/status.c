@@ -8436,7 +8436,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick_time = 10000; //[GodLesZ] tick time
 				break;
 			case SC_GIANTGROWTH:
-				val2 = 15; //Triple damage success rate.
+				val2 = 15; //Success rate
 				break;
 			case SC_RENOVATIO:
 				val4 = tick / 5000;
@@ -9011,16 +9011,16 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 += 10 * val1; //Atk bonus
 				val3 = 2 * val1; //Chance To AutoCast Hammer Fall %
 				break;
-			case SC_PARALYSIS: //[Lighta] need real info
+			case SC_PARALYSIS:
 				val2 = 2 * val1; //Def reduction
 				val3 = 500 * val1; //Varcast augmentation
 				break;
-			case SC_LIGHT_OF_REGENE: //Yommy leak need confirm
+			case SC_LIGHT_OF_REGENE:
 				val2 = 20 * val1; //Hp reco on death %
 				break;
-			case SC_PAIN_KILLER: //Yommy leak need confirm
-				val2 = 10 * val1; //Aspd reduction %
-				val3 = (( 200 * val1 ) * status_get_lv(src)) / 150; //Dmg reduction linear
+			case SC_PAIN_KILLER:
+				val2 = 2 * val1; //Aspd reduction %
+				val3 = 2 * val1; //Dmg reduction %
 				if( sc->data[SC_PARALYSIS] )
 					sc_start(src, bl, SC_ENDURE, 100, val1, tick); //Start endure for same duration
 				break;

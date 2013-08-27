@@ -962,13 +962,19 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case MG_FROSTDIVER:
-			if( !sc_start(src,bl,SC_FREEZE,skill_lv*3+35,skill_lv,skill_get_time2(skill_id,skill_lv)) && sd )
-				clif_skill_fail(sd,skill_id,0,0);
+#ifndef RENEWAL
+		case WZ_FROSTNOVA:
+#endif
+			if( !sc_start(src,bl,SC_FREEZE,skill_lv*3+35,skill_lv,skill_get_time2(skill_id,skill_lv)) &&
+				sd && skill_id == MG_FROSTDIVER )
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
 
+#ifdef RENEWAL
 		case WZ_FROSTNOVA:
 			sc_start(src,bl,SC_FREEZE,skill_lv*5+33,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
+#endif
 
 		case WZ_STORMGUST:
 			 //Storm Gust counter was dropped in renewal
@@ -1793,6 +1799,8 @@ int skill_onskillusage(struct map_session_data *sd, struct block_list *bl, uint1
 	return 1;
 }
 
+//Early declaration
+static int skill_area_temp[8];
 /* Splitted off from skill_additional_effect, which is never called when the
  * attack skill kills the enemy. Place in this function counter status effects
  * when using skills (eg: Asura's sp regen penalty, or counter-status effects
@@ -1879,11 +1887,15 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 
 	if(sd && skill_id && attack_type&BF_MAGIC && status_isdead(bl) &&
 	 	!(skill_get_inf(skill_id)&(INF_GROUND_SKILL|INF_SELF_SKILL)) &&
-		!skill_get_splash(skill_id,skill_lv) && (rate = pc_checkskill(sd,HW_SOULDRAIN)) > 0
-	) { //Soul Drain should only work on targetted spells [Skotlex]
+		(rate = pc_checkskill(sd,HW_SOULDRAIN)) > 0)
+	{ //Soul Drain should only work on targetted spells [Skotlex]
 		if (pc_issit(sd)) pc_setstand(sd); //Character stuck in attacking animation while 'sitting' fix. [Skotlex]
-		clif_skill_nodamage(src,bl,HW_SOULDRAIN,rate,1);
-		status_heal(src,0,status_get_lv(bl) * (95 + 15 * rate) / 100,2);
+		if (skill_get_nk(skill_id)&NK_SPLASH && skill_area_temp[1] != bl->id)
+			;
+		else {
+			clif_skill_nodamage(src,bl,HW_SOULDRAIN,rate,1);
+			status_heal(src,0,status_get_lv(bl) * (95 + 15 * rate) / 100,2);
+		}
 	}
 
 	if(sd && status_isdead(bl)) {
@@ -2149,8 +2161,7 @@ int skill_strip_equip(struct block_list *src, struct block_list *bl, unsigned sh
 	}
 	return where?1:0;
 }
-//Early declaration
-static int skill_area_temp[8];
+
 /*=========================================================================
  Used to knock back players, monsters, traps, etc
  - 'count' is the number of squares to knock back
@@ -3904,9 +3915,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			status_change_end(src, SC_NEN, INVALID_TIMER);
 			status_change_end(src, SC_HIDING, INVALID_TIMER);
 #endif
-			// fall through
+		//Fall through
 		case MO_EXTREMITYFIST: {
-				short x, y, i = 2; // Move 2 cells for Issen(from target)
+				short x, y, i = 2; //Move 2 cells for Issen(from target)
 				struct block_list *mbl = bl;
 				short dir = 0;
 
@@ -3914,7 +3925,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 				if( skill_id == MO_EXTREMITYFIST ) {
 					mbl = src;
-					i = 3; // for Asura(from caster)
+					i = 3; //For Asura(from caster)
 					status_set_sp(src, 0, 0);
 					status_change_end(src, SC_EXPLOSIONSPIRITS, INVALID_TIMER);
 					status_change_end(src, SC_BLADESTOP, INVALID_TIMER);
@@ -3937,12 +3948,12 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				if( dir > 2 && dir < 6 ) y = -i;
 				else if( dir == 7 || dir < 2 ) y = i;
 				else y = 0;
-				// Only NJ_ISSEN don't have slide effect in GVG
+				//Only NJ_ISSEN don't have slide effect in GVG
 				if( (mbl == src || (!map_flag_gvg(src->m) && !map[src->m].flag.battleground) ) &&
 					unit_movepos(src, mbl->x+x, mbl->y+y, 1, 1) ) {
 					clif_slide(src, src->x, src->y);
-					//Uncomment this if you want to remove MO_EXTREMITYFIST glitchy walking effect. [malufett]
-					//clif_fixpos(src);
+					clif_fixpos(src);
+					clif_spiritball(src);
 				}
 			}
 			break;
@@ -4301,8 +4312,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 #ifdef RENEWAL
-		case NJ_ISSEN: { // Teleport for Issen
-			short x, y, i = 2; // Move 2 cells for Issen(from target)
+		case NJ_ISSEN: { //Teleport for Issen
+			short x, y, i = 2; //Move 2 cells for Issen(from target)
 			struct block_list *mbl = bl;
 			short dir = 0;
 
@@ -4320,11 +4331,12 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			if( dir > 2 && dir < 6 ) y = -i;
 			else if( dir == 7 || dir < 2 ) y = i;
 			else y = 0;
-			if( (mbl == src || (!map_flag_gvg(src->m) && !map[src->m].flag.battleground) ) && // Only NJ_ISSEN don't have slide effect in GVG
+			//Only NJ_ISSEN don't have slide effect in GVG
+			if( (mbl == src || (!map_flag_gvg(src->m) && !map[src->m].flag.battleground) ) &&
 				unit_movepos(src, mbl->x+x, mbl->y+y, 1, 1) ) {
 				clif_slide(src, src->x, src->y);
-				//Uncomment this if you want to remove MO_EXTREMITYFIST glitchy walking effect. [malufett]
-				//clif_fixpos(src);
+				clif_fixpos(src);
+				clif_spiritball(src);
 			}
 		}
 		break;
@@ -14482,8 +14494,6 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 
 	if( sc && sc->count && !(skill_get_castnodex(skill_id, skill_lv)&2) ) {
 		// All variable cast additive bonuses must come first
-		if( sc->data[SC_MAGICPOWER] && !(sd && sd->skillitem == skill_id && time == 0) )
-			time += 700;
 		if( sc->data[SC_SLOWCAST] )
 			VARCAST_REDUCTION(-sc->data[SC_SLOWCAST]->val2);
 		if( sc->data[SC__LAZINESS] )

@@ -1059,13 +1059,13 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	struct status_data *tstatus;
 	struct status_change *sc;
 	struct map_session_data *sd = NULL;
-	struct block_list * target = NULL;
+	struct block_list *target = NULL;
 	unsigned int tick = gettick();
 	int combo = 0, range;
 
 	nullpo_ret(src);
 	if( status_isdead(src) )
-		return 0; // Do not continue source is dead
+		return 0; //Do not continue source is dead
 
 	sd = BL_CAST(BL_PC, src);
 	ud = unit_bl2ud(src);
@@ -1075,15 +1075,15 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	if( sc && !sc->count )
 		sc = NULL; //Unneeded
 
-	//temp: Used to signal combo-skills right now.
+	//Temp: Used to signal combo-skills right now.
 	if( sc && sc->data[SC_COMBO] && (sc->data[SC_COMBO]->val1 == skill_id ||
-		(sd?skill_check_condition_castbegin(sd,skill_id,skill_lv):0)) ) {
+		(sd ? skill_check_condition_castbegin(sd,skill_id,skill_lv) : 0)) ) {
 		if( sc->data[SC_COMBO]->val2 )
 			target_id = sc->data[SC_COMBO]->val2;
 		else
 			target_id = ud->target;
 
-		if( skill_get_inf(skill_id)&INF_SELF_SKILL && skill_get_nk(skill_id)&NK_NO_DAMAGE ) // Exploit fix
+		if( skill_get_inf(skill_id)&INF_SELF_SKILL && skill_get_nk(skill_id)&NK_NO_DAMAGE ) //Exploit fix
 			target_id = src->id;
 		combo = 1;
 	} else if( target_id == src->id &&
@@ -1096,7 +1096,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 
 	if( sd ) {
 		//Target_id checking.
-		if( skillnotok(skill_id, sd) ) // [MouseJstr]
+		if( skillnotok(skill_id, sd) ) //[MouseJstr]
 			return 0;
 
 		switch( skill_id ) { //Check for skills that auto-select target
@@ -1130,15 +1130,16 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 				target_id = target->id;
 				break;
 			case MH_SONIC_CRAW:
-			case MH_TINDER_BREAKER: {
-					int skill_id2 = ((skill_id==MH_SONIC_CRAW)?MH_MIDNIGHT_FRENZY:MH_EQC);
+			case MH_TINDER_BREAKER:
+				{
+					int skill_id2 = ((skill_id == MH_SONIC_CRAW) ? MH_MIDNIGHT_FRENZY : MH_EQC);
 					if( sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == skill_id2 ) { //It's a combo
 						target_id = sc->data[SC_COMBO]->val2;
 						combo = 1;
 						casttime = -1;
 					}
-					break;
 				}
+				break;
 		}
 
 	if( !target ) // choose default target
@@ -1161,7 +1162,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		return 0;
 
 	tstatus = status_get_status_data(target);
-	// Record the status of the previous skill)
+	//Record the status of the previous skill)
 	if( sd ) {
 
 		if( (skill_get_inf2(skill_id)&INF2_ENSEMBLE_SKILL) && skill_check_pc_partner(sd, skill_id, &skill_lv, 1, 0) < 1 ) {
@@ -1197,7 +1198,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 				sd->skill_lv_old = skill_lv;
 				break;
 		}
-		/* temporarily disabled, awaiting for confirmation */
+		/* Temporarily disabled, awaiting for confirmation */
 #if 0
 		if( sd->skillitem != skill_id && !skill_check_condition_castbegin(sd, skill_id, skill_lv) )
 #else
@@ -1215,10 +1216,10 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 					return 0;
 		}
 
-	if( src->type == BL_NPC ) // NPC-objects can override cast distance
-		range = AREA_SIZE; // Maximum visible distance before NPC goes out of sight
+	if( src->type == BL_NPC ) //NPC-objects can override cast distance
+		range = AREA_SIZE; //Maximum visible distance before NPC goes out of sight
 	else
-		range = skill_get_range2(src, skill_id, skill_lv); // Skill cast distance from database
+		range = skill_get_range2(src, skill_id, skill_lv); //Skill cast distance from database
 
 	//Check range when not using skill on yourself or is a combo-skill during attack
 	//(these are supposed to always have the same range as your attack)
@@ -1241,32 +1242,32 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	
 	ud->state.skillcastcancel = castcancel;
 
-	//combo: Used to signal force cast now.
+	//Combo: Used to signal force cast now.
 	combo = 0;
 
-	switch(skill_id) {
+	switch( skill_id ) {
 		case ALL_RESURRECTION:
-			if(battle_check_undead(tstatus->race,tstatus->def_ele)) {
+			if( battle_check_undead(tstatus->race, tstatus->def_ele) ) {
 				combo = 1;
-			} else if (!status_isdead(target))
+			} else if( !status_isdead(target) )
 				return 0; //Can't cast on non-dead characters.
 			break;
 		case MO_FINGEROFFENSIVE:
-			if(sd)
+			if( sd )
 				casttime += casttime * min(skill_lv, sd->spiritball);
 			break;
 		case MO_EXTREMITYFIST:
-			if (sc && sc->data[SC_COMBO] &&
+			if( sc && sc->data[SC_COMBO] &&
 			   (sc->data[SC_COMBO]->val1 == MO_COMBOFINISH ||
 				sc->data[SC_COMBO]->val1 == CH_TIGERFIST ||
-				sc->data[SC_COMBO]->val1 == CH_CHAINCRUSH))
+				sc->data[SC_COMBO]->val1 == CH_CHAINCRUSH) )
 				casttime = -1;
 			combo = 1;
 			break;
 		case SR_GATEOFHELL:
 		case SR_TIGERCANNON:
-			if (sc && sc->data[SC_COMBO] &&
-			   sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE)
+			if( sc && sc->data[SC_COMBO] &&
+			   sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE )
 				casttime = -1;
 			combo = 1;
 			break;
@@ -1274,20 +1275,20 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 			combo = 1;
 			break;
 		case ST_CHASEWALK:
-			if (sc && sc->data[SC_CHASEWALK])
+			if( sc && sc->data[SC_CHASEWALK] )
 				casttime = -1;
 			break;
 		case TK_RUN:
-			if (sc && sc->data[SC_RUN])
+			if( sc && sc->data[SC_RUN] )
 				casttime = -1;
 			break;
 		case HP_BASILICA:
 			if( sc && sc->data[SC_BASILICA] )
-				casttime = -1; // No Casting time on basilica cancel
+				casttime = -1; //No Casting time on basilica cancel
 			break;
 		case KN_CHARGEATK: {
 				//+0.5s every 3 cells of distance but hard-limited to 1.5s.
-				unsigned int k = distance_bl(src,target) / 3;
+				unsigned int k = distance_bl(src, target) / 3;
 				if( k < 2 ) k = 0;
 				else if( k > 1 && k < 3 ) k = 1;
 				else if( k > 2 ) k = 2;
@@ -1295,11 +1296,11 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 			}
 			break;
 		case GD_EMERGENCYCALL: //Emergency Call double cast when the user has learned Leap [Daegaladh]
-			if( sd && pc_checkskill(sd,TK_HIGHJUMP) )
+			if( sd && pc_checkskill(sd, TK_HIGHJUMP) )
 				casttime *= 2;
 			break;
 		case RA_WUGDASH:
-			if (sc && sc->data[SC_WUGDASH])
+			if( sc && sc->data[SC_WUGDASH] )
 				casttime = -1;
 			break;
 		case EL_WIND_SLASH:
@@ -1311,54 +1312,61 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		case EL_ICE_NEEDLE:
 		case EL_WATER_SCREW:
 		case EL_TIDAL_WEAPON:
-			if( src->type == BL_ELEM ){
+			if( src->type == BL_ELEM ) {
 				sd = BL_CAST(BL_PC, battle_get_master(src));
-				if( sd && sd->skill_id_old == SO_EL_ACTION ){
+				if( sd && sd->skill_id_old == SO_EL_ACTION ) {
 					casttime = -1;
 					sd->skill_id_old = 0;
 				}
 			}
 			break;
+		case NC_DISJOINT:
+			if( target->type == BL_PC ) {
+				struct mob_data *md;
+				if( (md = map_id2md(target->id)) && md->master_id != src->id )
+					casttime <<= 1;
+			}
+			break;
 	}
 
-	// moved here to prevent Suffragium from ending if skill fails
+	//Moved here to prevent Suffragium from ending if skill fails
 #ifndef RENEWAL_CAST
-	if (!(skill_get_castnodex(skill_id, skill_lv)&2))
+	if( !(skill_get_castnodex(skill_id, skill_lv)&2) )
 		casttime = skill_castfix_sc(src, casttime);
 #else
 	casttime = skill_vfcastfix(src, casttime, skill_id, skill_lv);
 #endif
 
-	if (src->type == BL_NPC) { // NPC-objects do not have cast time
+	if( src->type == BL_NPC ) { //NPC-objects do not have cast time
 		casttime = 0;
 	}
 
-	if(!ud->state.running) //need TK_RUN or WUGDASH handler to be done before that, see bugreport:6026
-		unit_stop_walking(src,1);// eventhough this is not how official works but this will do the trick. bugreport:6829
-	// in official this is triggered even if no cast time.
-	clif_skillcasting(src, src->id, target_id, 0,0, skill_id, skill_get_ele(skill_id, skill_lv), casttime);
+	if( !ud->state.running ) //Need TK_RUN or WUGDASH handler to be done before that, see bugreport:6026
+		unit_stop_walking(src, 1); //Eventhough this is not how official works but this will do the trick. bugreport:6829
+	//In official this is triggered even if no cast time.
+	clif_skillcasting(src, src->id, target_id, 0, 0, skill_id, skill_get_ele(skill_id, skill_lv), casttime);
 	if( casttime > 0 || combo ) {
-		if (sd && target->type == BL_MOB) {
+		if( sd && target->type == BL_MOB ) {
 			TBL_MOB *md = (TBL_MOB*)target;
 			mobskill_event(md, src, tick, -1); //Cast targetted skill event.
-			if (tstatus->mode&(MD_CASTSENSOR_IDLE|MD_CASTSENSOR_CHASE) &&
-				battle_check_target(target, src, BCT_ENEMY) > 0)
+			if( tstatus->mode&(MD_CASTSENSOR_IDLE|MD_CASTSENSOR_CHASE) &&
+				battle_check_target(target, src, BCT_ENEMY) > 0 )
 			{
-				switch (md->state.skillstate) {
+				switch( md->state.skillstate ) {
 					case MSS_RUSH:
 					case MSS_FOLLOW:
-						if (!(tstatus->mode&MD_CASTSENSOR_CHASE))
+						if( !(tstatus->mode&MD_CASTSENSOR_CHASE) )
 							break;
 						md->target_id = src->id;
-						md->state.aggressive = (tstatus->mode&MD_ANGRY)?1:0;
+						md->state.aggressive = (tstatus->mode&MD_ANGRY) ? 1 : 0;
 						md->min_chase = md->db->range3;
 						break;
 					case MSS_IDLE:
 					case MSS_WALK:
-						if (!(tstatus->mode&MD_CASTSENSOR_IDLE))
+						if( !(tstatus->mode&MD_CASTSENSOR_IDLE) )
 							break;
 						md->target_id = src->id;
-						md->state.aggressive = (tstatus->mode&MD_ANGRY)?1:0;
+						md->state.aggressive = (tstatus->mode&MD_ANGRY) ? 1 : 0;
 						md->min_chase = md->db->range3;
 						break;
 				}
@@ -1388,7 +1396,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 
 	if( sc ) {
 		/**
-		 * why the if else chain: these 3 status do not stack, so its efficient that way.
+		 * Why the if else chain: these 3 status do not stack, so its efficient that way.
 		 **/
  		if( sc->data[SC_CLOAKING] && !(sc->data[SC_CLOAKING]->val4&4) && skill_id != AS_CLOAKING ) {
 			status_change_end(src, SC_CLOAKING, INVALID_TIMER);
@@ -1432,7 +1440,7 @@ int unit_skilluse_pos2( struct block_list *src, short skill_x, short skill_y, ui
 
 	nullpo_ret(src);
 
-	if(!src->prev) return 0; // Not on the map
+	if(!src->prev) return 0; //Not on the map
 	if(status_isdead(src)) return 0;
 
 	sd = BL_CAST(BL_PC, src);
@@ -1470,7 +1478,7 @@ int unit_skilluse_pos2( struct block_list *src, short skill_x, short skill_y, ui
 		return 0;
 
 	if(map_getcell(src->m,skill_x,skill_y,CELL_CHKWALL)) {
-		// Can't cast ground targeted spells on wall cells
+		//Can't cast ground targeted spells on wall cells
 		if (sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 		return 0;
 	}
@@ -1481,8 +1489,8 @@ int unit_skilluse_pos2( struct block_list *src, short skill_x, short skill_y, ui
 	bl.x = skill_x;
 	bl.y = skill_y;
 	
-	if(src->type == BL_NPC) // NPC-objects can override cast distance
-		range = AREA_SIZE; // Maximum visible distance before NPC goes out of sight
+	if(src->type == BL_NPC) //NPC-objects can override cast distance
+		range = AREA_SIZE; //Maximum visible distance before NPC goes out of sight
 	else
 		range = skill_get_range2(src, skill_id, skill_lv); // Skill cast distance from database
 
@@ -1494,7 +1502,7 @@ int unit_skilluse_pos2( struct block_list *src, short skill_x, short skill_y, ui
 
 	unit_stop_attack(src);
 
-	// moved here to prevent Suffragium from ending if skill fails
+	//Moved here to prevent Suffragium from ending if skill fails
 #ifndef RENEWAL_CAST
 	if(!(skill_get_castnodex(skill_id, skill_lv)&2))
 		casttime = skill_castfix_sc(src, casttime);
@@ -1502,7 +1510,7 @@ int unit_skilluse_pos2( struct block_list *src, short skill_x, short skill_y, ui
 	casttime = skill_vfcastfix(src, casttime, skill_id, skill_lv );
 #endif
 
-	if(src->type == BL_NPC) { // NPC-objects do not have cast time
+	if(src->type == BL_NPC) { //NPC-objects do not have cast time
 		casttime = 0;
 	}
 
@@ -1535,7 +1543,7 @@ int unit_skilluse_pos2( struct block_list *src, short skill_x, short skill_y, ui
 	}
 
 	unit_stop_walking(src,1);
-	// in official this is triggered even if no cast time.
+	//In official this is triggered even if no cast time.
 	clif_skillcasting(src, src->id, 0, skill_x, skill_y, skill_id, skill_get_ele(skill_id, skill_lv), casttime);
 	if(casttime > 0) {
 		ud->skilltimer = add_timer( tick+casttime, skill_castend_pos, src->id, 0 );

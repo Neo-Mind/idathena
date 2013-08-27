@@ -5375,14 +5375,14 @@ void clif_status_change(struct block_list *bl,int type,int flag,int tick,int val
 	unsigned char buf[32];
 	struct map_session_data *sd;
 
-	if (type == SI_BLANK)  //It shows nothing on the client...
+	if (type == SI_BLANK) //It shows nothing on the client
 		return;
 
 	nullpo_retv(bl);
 
 	sd = BL_CAST(BL_PC, bl);
 
-	if (!(status_type2relevant_bl_types(type)&bl->type)) // only send status changes that actually matter to the client
+	if (!(status_type2relevant_bl_types(type)&bl->type)) //Only send status changes that actually matter to the client
 		return;
 
 #if PACKETVER >= 20120618
@@ -5401,9 +5401,9 @@ void clif_status_change(struct block_list *bl,int type,int flag,int tick,int val
 #if PACKETVER >= 20120618
 	if(flag && battle_config.display_status_timers && sd) {
 		if (tick <= 0)
-			tick = 9999; // this is indeed what official servers do
+			tick = 9999; //This is indeed what official servers do
 
-		WBUFL(buf,9) = tick; /* at this stage remain and total are the same value I believe */
+		WBUFL(buf,9) = tick; /* At this stage remain and total are the same value I believe */
 		WBUFL(buf,13) = tick;
 		WBUFL(buf,17) = val1;
 		WBUFL(buf,21) = val2;
@@ -5412,7 +5412,7 @@ void clif_status_change(struct block_list *bl,int type,int flag,int tick,int val
 #elif PACKETVER >= 20090121
 	if(flag && battle_config.display_status_timers && sd) {
 		if (tick <= 0)
-			tick = 9999; // this is indeed what official servers do
+			tick = 9999; //This is indeed what official servers do
 
 		WBUFL(buf,9) = tick;
 		WBUFL(buf,13) = val1;
@@ -5429,7 +5429,7 @@ void clif_status_change(struct block_list *bl,int type,int flag,int tick,int val
 void clif_displaymessage(const int fd, const char* mes)
 {
 	nullpo_retv(mes);
-	
+
 	//Scrapped, as these are shared by disconnected players =X [Skotlex]
 	if (fd == 0)
 		;
@@ -5439,13 +5439,13 @@ void clif_displaymessage(const int fd, const char* mes)
 		message = aStrdup(mes);
 		line = strtok(message, "\n");
 		while(line != NULL) {
-			// Limit message to 255+1 characters (otherwise it causes a buffer overflow in the client)
+			//Limit message to 255+1 characters (otherwise it causes a buffer overflow in the client)
 			int len = strnlen(line, 255);
 			
-			if (len > 0) { // don't send a void message (it's not displaying on the client chat). @help can send void line.
+			if (len > 0) { //Don't send a void message (it's not displaying on the client chat). @help can send void line.
 				WFIFOHEAD(fd, 5 + len);
 				WFIFOW(fd,0) = 0x8e;
-				WFIFOW(fd,2) = 5 + len; // 4 + len + NULL teminate
+				WFIFOW(fd,2) = 5 + len; //4 + len + NULL teminate
 				safestrncpy((char *)WFIFOP(fd,4), line, len + 1);
 				WFIFOSET(fd, 5 + len);
 			}

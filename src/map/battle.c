@@ -1064,7 +1064,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			damage -= damage * sc->data[SC_GRANITIC_ARMOR]->val2 / 100;
 		}
 		if( sc->data[SC_PAIN_KILLER] ) {
-			damage -= sc->data[SC_PAIN_KILLER]->val3;
+			damage -= damage * sc->data[SC_PAIN_KILLER]->val3 / 100;
 			damage = max(1, damage);
 		}
 		if( (sce = sc->data[SC_MAGMA_FLOW]) && (rnd()%100 <= sce->val2) ) {
@@ -2981,7 +2981,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			skillratio += 30 * skill_lv;
 			break;
 		case AS_SONICBLOW:
-			skillratio += -50 + 5 * skill_lv;
+			skillratio += 300 + 40 * skill_lv;
 			break;
 		case TF_SPRINKLESAND:
 			skillratio += 30;
@@ -4163,6 +4163,7 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd, struct block_lis
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 	struct status_change *sc = status_get_sc(src);
 	struct status_data *sstatus = status_get_status_data(src);
+	struct status_data *tstatus = status_get_status_data(target);
 
 	//Post skill/vit reduction damage increases
 	if(sc) { //SC skill damages
@@ -4176,6 +4177,19 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd, struct block_lis
 			lv *= ((skill_id == LK_SPIRALPIERCE || skill_id == ML_SPIRALPIERCE) ? wd.div_ : 1); //+100 per hit in lv 5
 #endif
 			ATK_ADD(wd.damage, wd.damage2, 20 * lv);
+		}
+		if(!skill_id) {
+			if(sc->data[SC_ENCHANTBLADE]) {
+				//[( ( Skill Lv x 20 ) + 100 ) x ( casterBaseLevel / 150 )] + casterInt
+				struct Damage matk;
+				int64 i = (sc->data[SC_ENCHANTBLADE]->val1 * 20 + 100) * status_get_lv(src) / 150 + status_get_int(src);
+				int totalmdef = tstatus->mdef + tstatus->mdef2;
+				matk = battle_calc_magic_attack(src, target, skill_id, skill_lv, 0);
+				i = i - totalmdef + matk.damage;
+				ATK_ADD(wd.damage, wd.damage2, i);
+			}
+			if(sc->data[SC_GIANTGROWTH] && rnd()%100 < sc->data[SC_GIANTGROWTH]->val2)
+				ATK_ADDRATE(wd.damage, wd.damage2, 200); //Triple Damage
 		}
 	}
 
@@ -4408,13 +4422,6 @@ struct Damage battle_calc_weapon_final_atk_modifiers(struct Damage wd, struct bl
 			} else
 				hp = 2 * hp / 100; //2% hp loss per hit
 			status_zap(src, hp, 0);
-		}
-		//Affecting non-skills
-		if(!skill_id) {
-			if(sc->data[SC_ENCHANTBLADE] && sd && ( (is_attack_right_handed(src, skill_id) && sd->weapontype1) || (is_attack_left_handed(src, skill_id) && sd->weapontype2) )) {
-				//[( ( Skill Lv x 20 ) + 100 ) x ( casterBaseLevel / 150 )] + casterInt
-				ATK_ADD(wd.damage, wd.damage2, (sc->data[SC_ENCHANTBLADE]->val1 * 20 + 100) * status_get_lv(src) / 150 + status_get_int(src));
-			}
 		}
 		status_change_end(src, SC_CAMOUFLAGE, INVALID_TIMER);
 	}
@@ -6243,8 +6250,6 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			} else
 				status_change_end(src,SC_SPELLFIST,INVALID_TIMER);
 		}
-		if( sc->data[SC_GIANTGROWTH] && (wd.flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT && rnd()%100 < sc->data[SC_GIANTGROWTH]->val2 )
-			wd.damage *= 3; // Triple Damage
 		if( sd && sc->data[SC_FEARBREEZE] && sc->data[SC_FEARBREEZE]->val4 > 0 && sd->status.inventory[sd->equip_index[EQI_AMMO]].amount >= sc->data[SC_FEARBREEZE]->val4 && battle_config.arrow_decrement) {
 			pc_delitem(sd,sd->equip_index[EQI_AMMO],sc->data[SC_FEARBREEZE]->val4,0,1,LOG_TYPE_CONSUME);
 			sc->data[SC_FEARBREEZE]->val4 = 0;
