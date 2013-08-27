@@ -3570,7 +3570,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			break;
 		case WM_SEVERE_RAINSTORM_MELEE:
 			//ATK [{(Caster's DEX + AGI) x (Skill Level / 5)} x Caster's Base Level / 100] %
-			skillratio += -100 + (sstatus->dex + sstatus->agi) * (skill_lv / 5);
+			skillratio += -100 + (sstatus->dex + sstatus->agi) * skill_lv / 5;
 			RE_LVL_DMOD(100);
 			break;
 		case WM_GREAT_ECHO: {

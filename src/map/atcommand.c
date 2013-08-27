@@ -8008,14 +8008,14 @@ ACMD_FUNC(noask)
 ACMD_FUNC(request)
 {
 	if (!message || !*message) {
-		clif_displaymessage(sd->fd,msg_txt(277));	// Usage: @request <petition/message to online GMs>.
+		clif_displaymessage(sd->fd,msg_txt(277)); // Usage: @request <petition/message to online GMs>.
 		return -1;
 	}
 
-	sprintf(atcmd_output, msg_txt(278), message);	// (@request): %s
+	sprintf(atcmd_output, msg_txt(278), message); // (@request): %s
 	intif_wis_message_to_gm(sd->status.name, PC_PERM_RECEIVE_REQUESTS, atcmd_output);
 	clif_disp_onlyself(sd, atcmd_output, strlen(atcmd_output));
-	clif_displaymessage(sd->fd,msg_txt(279));	// @request sent.
+	clif_displaymessage(sd->fd, msg_txt(279)); // @request sent.
 	return 0;
 }
 

@@ -9871,22 +9871,22 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			break;
 
 		case SC_TRICKDEAD:
-			if (vd) vd->dead_sit = 0;
+			if(vd) vd->dead_sit = 0;
 			break;
 
 		case SC_WARM:
 		case SC__MANHOLE:
-			if (sce->val4) { //Clear the group.
+			if(sce->val4) { //Clear the group.
 				struct skill_unit_group* group = skill_id2group(sce->val4);
 				sce->val4 = 0;
-				if( group ) /* Might have been cleared before status ended, e.g. land protector */
+				if(group) /* Might have been cleared before status ended, e.g. land protector */
 					skill_delunitgroup(group);
 			}
 			break;
 
 		case SC_KAAHI:
 			//Delete timer if it exists.
-			if (sce->val4 != INVALID_TIMER)
+			if(sce->val4 != INVALID_TIMER)
 				delete_timer(sce->val4,kaahi_heal_timer);
 			break;
 
