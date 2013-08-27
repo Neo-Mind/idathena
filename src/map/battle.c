@@ -4186,7 +4186,8 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd, struct block_lis
 				int totalmdef = tstatus->mdef + tstatus->mdef2;
 				matk = battle_calc_magic_attack(src, target, skill_id, skill_lv, 0);
 				i = i - totalmdef + matk.damage;
-				ATK_ADD(wd.damage, wd.damage2, i);
+				if(i)
+					ATK_ADD(wd.damage, wd.damage2, i);
 			}
 			if(sc->data[SC_GIANTGROWTH] && rnd()%100 < sc->data[SC_GIANTGROWTH]->val2)
 				ATK_ADDRATE(wd.damage, wd.damage2, 200); //Triple Damage
