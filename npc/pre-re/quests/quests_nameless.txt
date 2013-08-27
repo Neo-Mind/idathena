@@ -1,19 +1,17 @@
-//===== rAthena Script =======================================
+//===== rAthena Script ======================================= 
 //= Nameless Island Quests
-//===== By: ==================================================
-//= Streusel
-//===== Current Version: =====================================
+//===== By: ================================================== 
+//= Euphy
+//===== Current Version: ===================================== 
 //= 1.0
-//===== Compatible With: =====================================
+//===== Compatible With: ===================================== 
 //= rAthena SVN
-//===== Description: =========================================
+//===== Description: ========================================= 
+//= [Official Conversion]
 //= Contains:
-//= Part of Muff's Loan:
-//- - Help Muff clear his Debt and get his collateral back.
-//= - prerequisite Quest to "Broken Diamond"
-//= - Variable in use: diamond_edq (Max: 14)
-//===== Additional Comments: =================================
+//= - Muff's Loan
+//===== Additional Comments: ================================= 
 //= 1.0 Moved Dorian to pre-re/re paths.
-//============================================================
+//============================================================ 
 
-izlude_in,110,64,3	duplicate(Dorian_Izlude)	Dorian	878,2,2
+izlude_in,110,64,3	duplicate(Dorian_izlude)	Dorian	878,2,2

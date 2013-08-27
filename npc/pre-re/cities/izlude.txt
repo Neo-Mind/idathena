@@ -11,7 +11,7 @@
 //= Izlude town NPCs.
 //===== Additional Comments: ================================= 
 //= 1.0 First Version.
-//============================================================ 
+//============================================================
 
 izlude,201,181,2	duplicate(Sailor_izlude)	Sailor#izlude	100
 izlude,55,74,2	duplicate(Bonne_izlude)	Bonne#izlude	90

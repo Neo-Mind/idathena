@@ -3141,7 +3141,7 @@ static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 
 {
 	int range, type;
 
-	switch (skill_id) {	//To be expanded later
+	switch (skill_id) { //To be expanded later
 		case WZ_ICEWALL:
 			range = 2;
 			break;

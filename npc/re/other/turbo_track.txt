@@ -6,7 +6,7 @@
 //= 1.0
 //===== Compatible With: =====================================
 //= rAthena SVN
-//===== Description: =========================================
+//===== Description: ========================================= 
 //= [Official Conversion]
 //= Renewal duplicates.
 //===== Additional Comments: =================================
