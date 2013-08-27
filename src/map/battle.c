@@ -3490,7 +3490,8 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 		case SR_EARTHSHAKER:
 			// [(Skill Level x 150) x (Caster's Base Level / 100) + (Caster's INT x 3)] %
 			if(tsc && (tsc->data[SC_HIDING] || tsc->data[SC_CLOAKING] ||
-				tsc->data[SC_CHASEWALK] || tsc->data[SC_CLOAKINGEXCEED] || tsc->data[SC__INVISIBILITY]) ) {
+				tsc->data[SC_CHASEWALK] || tsc->data[SC_CLOAKINGEXCEED] ||
+				tsc->data[SC_FEINT] || tsc->data[SC__INVISIBILITY]) ) {
 				skillratio += -100 + 150 * skill_lv;
 				RE_LVL_DMOD(100);
 				skillratio += sstatus->int_ * 3;

@@ -4647,6 +4647,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				status_change_end(bl, SC_HIDING, INVALID_TIMER);
 				status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
 				status_change_end(bl, SC_CLOAKINGEXCEED, INVALID_TIMER); // Need confirm it.
+				status_change_end(bl, SC_FEINT, INVALID_TIMER);
 			} else {
 				map_foreachinrange(skill_area_sub, bl, skill_get_splash(skill_id, skill_lv), splash_target(src), src, skill_id, skill_lv, tick, flag|BCT_ENEMY|SD_SPLASH|1, skill_castend_damage_id);
 				clif_skill_damage(src,src,tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
@@ -4742,6 +4743,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				skill_attack(BF_WEAPON, src, src, bl, skill_id, skill_lv, tick, flag);
 				status_change_end(bl, SC_HIDING, INVALID_TIMER);
 				status_change_end(bl, SC_CLOAKINGEXCEED, INVALID_TIMER);
+				status_change_end(bl, SC_FEINT, INVALID_TIMER);
 			} else {
 				map_foreachinrange(skill_area_sub, bl, skill_get_splash(skill_id, skill_lv), splash_target(src), src, skill_id, skill_lv, tick, flag|BCT_ENEMY|SD_SPLASH|1, skill_castend_damage_id);
 				clif_skill_damage(src, src, tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
@@ -8505,10 +8507,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case SC_BODYPAINT:
 			if( flag&1 ) {
-				if( tsc && (tsc->data[SC_HIDING] || tsc->data[SC_CLOAKING] || tsc->data[SC_CLOAKINGEXCEED]) ) {
+				if( tsc && (tsc->data[SC_HIDING] || tsc->data[SC_CLOAKING] ||
+					tsc->data[SC_CLOAKINGEXCEED] || tsc->data[SC_FEINT]) ) {
 					status_change_end(bl,SC_HIDING,INVALID_TIMER);
 					status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
 					status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER);
+					status_change_end(bl,SC_FEINT,INVALID_TIMER);
 					sc_start(src,bl,type,20 + 5 * skill_lv,skill_lv,skill_get_time(skill_id,skill_lv));
 				}
 					sc_start(src,bl,SC_BLIND,53 + 2 * skill_lv,skill_lv,skill_get_time2(skill_id,skill_lv));
@@ -9471,7 +9475,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case KG_KAGEHUMI:
 			if( flag&1 ) {
 				if( tsc && ( tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) ||
-					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC__SHADOWFORM] ||
+					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC__SHADOWFORM] || tsc->data[SC_FEINT] ||
 					tsc->data[SC_MARIONETTE] || tsc->data[SC_HARMONIZE]) ) {
 						sc_start(src, src, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 						sc_start(src, bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
@@ -9481,6 +9485,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						status_change_end(bl, SC_CLOAKINGEXCEED, INVALID_TIMER);
 						status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
 						status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
+						status_change_end(bl, SC_FEINT, INVALID_TIMER);
 						status_change_end(bl, SC_MARIONETTE, INVALID_TIMER);
 						status_change_end(bl, SC_HARMONIZE, INVALID_TIMER);
 				}
@@ -10670,9 +10675,10 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 		case SC_FEINTBOMB:
 			clif_skill_nodamage(src,src,skill_id,skill_lv,1);
-			skill_unitsetting(src,skill_id,skill_lv,x,y,0); // Set bomb on current Position
+			skill_unitsetting(src,skill_id,skill_lv,x,y,0); //Set bomb on current Position
 			if( skill_blown(src,src,6,unit_getdir(src),0) )
-				skill_castend_nodamage_id(src,src,TF_HIDING,1,tick,0);
+				clif_skill_nodamage(src,src,skill_id,skill_lv,
+					sc_start(src,src,type,100,skill_lv,skill_get_time2(skill_id,skill_lv)));
 			break;
 
 		case SC_ESCAPE:
@@ -12286,6 +12292,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 					status_change_end(bl,SC_CHASEWALK,INVALID_TIMER);
 					status_change_end(bl,SC_CAMOUFLAGE,INVALID_TIMER);
 					status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER);
+					status_change_end(bl,SC_FEINT,INVALID_TIMER);
 				}
 			}
 			/* Enable this if kRO fix the current skill. Currently no damage on undead and demon monster. [Jobbie]
@@ -15628,7 +15635,7 @@ bool skill_check_cloaking(struct block_list *bl, struct status_change_entry *sce
 
 	if( (bl->type == BL_PC && battle_config.pc_cloak_check_type&1)
 	||	(bl->type != BL_PC && battle_config.monster_cloak_check_type&1) )
-	{	//Check for walls.
+	{ //Check for walls.
 		int i;
 		ARR_FIND( 0, 8, i, map_getcell(bl->m, bl->x+dx[i], bl->y+dy[i], CELL_CHKNOPASS) != 0 );
 		if( i == 8 )
@@ -15640,12 +15647,12 @@ bool skill_check_cloaking(struct block_list *bl, struct status_change_entry *sce
 			if( sce->val1 < 3 ) //End cloaking.
 				status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
 			else if( sce->val4&1 ) { //Remove wall bonus
-				sce->val4&=~1;
+				sce->val4 &= ~1;
 				status_calc_bl(bl,SCB_SPEED);
 			}
 		} else {
 			if( !(sce->val4&1) ) { //Add wall speed bonus
-				sce->val4|=1;
+				sce->val4 |= 1;
 				status_calc_bl(bl,SCB_SPEED);
 			}
 		}
@@ -16122,7 +16129,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 
 	nullpo_ret(group);
 
-	// check for expiration
+	// Check for expiration
 	if( !group->state.guildaura && (DIFF_TICK(tick,group->tick) >= group->limit || DIFF_TICK(tick,group->tick) >= unit->limit) ) {
 		// Skill unit expired (inlined from skill_unit_onlimit())
 		switch( group->unit_id ) {
@@ -16136,9 +16143,9 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 			case UNT_GROUNDDRIFT_WATER:
 			case UNT_GROUNDDRIFT_FIRE:
 				group->unit_id = UNT_USED_TRAPS;
-				//clif_changetraplook(bl, UNT_FIREPILLAR_ACTIVE);
-				group->limit=DIFF_TICK(tick+1500,group->tick);
-				unit->limit=DIFF_TICK(tick+1500,group->tick);
+				//clif_changetraplook(bl,UNT_FIREPILLAR_ACTIVE);
+				group->limit = DIFF_TICK(tick + 1500,group->tick);
+				unit->limit = DIFF_TICK(tick + 1500,group->tick);
 			break;
 
 			case UNT_ANKLESNARE:
@@ -16180,13 +16187,13 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 				break;
 
 			case UNT_WARP_ACTIVE:
-				// warp portal opens (morph to a UNT_WARP_WAITING cell)
+				// Warp portal opens (morph to a UNT_WARP_WAITING cell)
 				group->unit_id = skill_get_unit_id(group->skill_id, 1); // UNT_WARP_WAITING
 				clif_changelook(&unit->bl, LOOK_BASE, group->unit_id);
-				// restart timers
+				// Restart timers
 				group->limit = skill_get_time(group->skill_id,group->skill_lv);
 				unit->limit = skill_get_time(group->skill_id,group->skill_lv);
-				// apply effect to all units standing on it
+				// Apply effect to all units standing on it
 				map_foreachincell(skill_unit_effect,unit->bl.m,unit->bl.x,unit->bl.y,group->bl_flag,&unit->bl,gettick(),1);
 				break;
 
@@ -16221,13 +16228,13 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 				break;
 
 			case UNT_FEINTBOMB: {
-				struct block_list *src =  map_id2bl(group->src_id);
-				if( src )
-					map_foreachinrange(skill_area_sub, &group->unit->bl, unit->range, splash_target(src), src, SC_FEINTBOMB, group->skill_lv, tick, BCT_ENEMY|SD_ANIMATION|1, skill_castend_damage_id);
-				skill_delunit(unit);
+					struct block_list *src =  map_id2bl(group->src_id);
+					if( src )
+						map_foreachinrange(skill_area_sub, &group->unit->bl, unit->range, splash_target(src), src, SC_FEINTBOMB, group->skill_lv, tick, BCT_ENEMY|SD_ANIMATION|1, skill_castend_damage_id);
+					skill_delunit(unit);
+				}
 				break;
-			}
-			
+
 			case UNT_BANDING: {
 					struct block_list *src = map_id2bl(group->src_id);
 					struct status_change *sc;
@@ -16236,21 +16243,21 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 						break;
 					}
 					// This unit isn't removed while SC_BANDING is active.
-					group->limit = DIFF_TICK(tick+group->interval,group->tick);
-					unit->limit = DIFF_TICK(tick+group->interval,group->tick);
+					group->limit = DIFF_TICK(tick + group->interval,group->tick);
+					unit->limit = DIFF_TICK(tick + group->interval,group->tick);
 				}
 				break;
 
 			default:
 				skill_delunit(unit);
 		}
-	} else { // skill unit is still active
+	} else { // Skill unit is still active
 		switch( group->unit_id ) {
 			case UNT_ICEWALL:
-				// icewall loses 50 hp every second
-				unit->val1 -= SKILLUNITTIMER_INTERVAL/20; // trap's hp
+				// Icewall loses 50 hp every second
+				unit->val1 -= SKILLUNITTIMER_INTERVAL / 20; //Trap's hp
 				if( unit->val1 <= 0 && unit->limit + group->tick > tick + 700 )
-					unit->limit = DIFF_TICK(tick+700,group->tick);
+					unit->limit = DIFF_TICK(tick + 700,group->tick);
 				break;
 			case UNT_BLASTMINE:
 			case UNT_SKIDTRAP:
