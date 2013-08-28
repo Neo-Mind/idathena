@@ -8014,11 +8014,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			}
 
 			case SC_MARIONETTE2: {
-				int stat,max_stat;
+				int stat, max_stat;
 				//Fetch caster information
 				struct block_list *pbl = map_id2bl(val1);
-				struct status_change *psc = pbl?status_get_sc(pbl):NULL;
-				struct status_change_entry *psce = psc?psc->data[SC_MARIONETTE]:NULL;
+				struct status_change *psc = pbl ? status_get_sc(pbl) : NULL;
+				struct status_change_entry *psce = psc ? psc->data[SC_MARIONETTE] : NULL;
 				//Fetch target's stats
 				struct status_data* status = status_get_status_data(bl); //Battle status
 

@@ -1367,12 +1367,12 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			break;
 		case LG_MOONSLASHER:
 			rate = 32 + 8 * skill_lv;
-			if( rnd()%100 < rate && dstsd ) // Uses skill_addtimerskill to avoid damage and setsit packet overlaping. Officially clif_setsit is received about 500 ms after damage packet.
+			if( rnd()%100 < rate && dstsd ) //Uses skill_addtimerskill to avoid damage and setsit packet overlaping. Officially clif_setsit is received about 500 ms after damage packet.
 				skill_addtimerskill(src, tick + 500, bl->id, 0, 0, skill_id, skill_lv, BF_WEAPON, 0);
 			else if( dstmd && !is_boss(bl) )
 				sc_start(src, bl, SC_STOP, 100, skill_lv, 1000 * rnd()%3);
 			break;
-		case LG_RAYOFGENESIS: // 50% chance to cause Blind on Undead and Demon monsters.
+		case LG_RAYOFGENESIS: //50% chance to cause Blind on Undead and Demon monsters.
 			if( battle_check_undead(tstatus->race, tstatus->def_ele) || tstatus->race == RC_DEMON )
 				sc_start(src, bl, SC_BLIND, 50, skill_lv, skill_get_time(skill_id,skill_lv));
 			break;
@@ -1398,7 +1398,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			else if( dstmd && !is_boss(bl) )
 				sc_start(src, bl, SC_STUN, 100, skill_lv, 1000 * rnd()%4);
 			break;
-		case SR_GENTLETOUCH_QUIET: // [(Skill Level x 5) + (Caster DEX + Caster Base Level) / 10]
+		case SR_GENTLETOUCH_QUIET: //[(Skill Level x 5) + (Caster DEX + Caster Base Level) / 10]
 			sc_start(src, bl, SC_SILENCE, 5 * skill_lv + (sstatus->dex + status_get_lv(src)) / 10, skill_lv, skill_get_time(skill_id, skill_lv));
 			break;
 		case SR_EARTHSHAKER:
@@ -1421,16 +1421,16 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			break;
 		case GN_SLINGITEM_RANGEMELEEATK:
 			if( sd ) {
-				switch( sd->itemid ) { // Starting SCs here instead of do it in skill_additional_effect to simplify the code.
+				switch( sd->itemid ) { //Starting SCs here instead of do it in skill_additional_effect to simplify the code.
 					case 13261: //Coconut Bomb
-						sc_start(src, bl, SC_STUN, 100, skill_lv, 5000); // 5 seconds until I get official
+						sc_start(src, bl, SC_STUN, 100, skill_lv, 5000); //5 seconds until I get official
 						sc_start2(src, bl, SC_BLEEDING, 100, skill_lv, src->id, 10000);
 						break;
 					case 13262: //Melon Bomb
-						sc_start(src, bl, SC_MELON_BOMB, 100, skill_lv, 60000); // Reduces ASPD and moviment speed
+						sc_start(src, bl, SC_MELON_BOMB, 100, skill_lv, 60000); //Reduces ASPD and moviment speed
 						break;
 					case 13264: //Banana Bomb
-						sc_start(src, bl, SC_BANANA_BOMB, 100, skill_lv, 60000); // Reduces LUK Needed confirm it, may be it's bugged in kRO RE?
+						sc_start(src, bl, SC_BANANA_BOMB, 100, skill_lv, 60000); //Reduces LUK Needed confirm it, may be it's bugged in kRO RE?
 						sc_start(src, bl, SC_BANANA_BOMB_SITDOWN, sd->status.job_level + sstatus->dex / 6 + tstatus->agi / 4 - tstatus->luk / 5 - status_get_lv(bl) + status_get_lv(src), skill_lv, 1000); // Sitdown for 3 seconds.
 						break;
 				}
@@ -1469,26 +1469,27 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 				sc_start4(src, bl, SC_BURNING, 10 * skill_lv, skill_lv, 1000, src->id, 0, skill_get_time(skill_id, skill_lv));
 			break;
 		case MH_STAHL_HORN:
-			sc_start(src, bl, SC_STUN, (20 + 4 * (skill_lv-1)), skill_lv, skill_get_time(skill_id, skill_lv));
+			sc_start(src, bl, SC_STUN, (20 + 4 * (skill_lv - 1)), skill_lv, skill_get_time(skill_id, skill_lv));
 			break;
 		case MH_NEEDLE_OF_PARALYZE:
-			sc_start(src, bl, SC_PARALYSIS, 40 + (5*skill_lv), skill_lv, skill_get_time(skill_id, skill_lv));
+			sc_start(src, bl, SC_PARALYSIS, 40 + (5 * skill_lv), skill_lv, skill_get_time(skill_id, skill_lv));
 			break;
 		case MH_SILVERVEIN_RUSH:
-			sc_start4(src,bl,SC_STUN,20 + (5*skill_lv),skill_lv,src->id,0,0,skill_get_time(skill_id,skill_lv));
+			sc_start4(src, bl, SC_STUN, 20 + (5 * skill_lv), skill_lv, src->id, 0, 0, skill_get_time(skill_id, skill_lv));
 			break;
 		case MH_MIDNIGHT_FRENZY: {
-			TBL_HOM *hd = BL_CAST(BL_HOM,src);
-			int spiritball = (hd?hd->homunculus.spiritball:1);
-			sc_start4(src,bl,SC_FEAR,spiritball*(10+2*skill_lv),skill_lv,src->id,0,0,skill_get_time(skill_id,skill_lv));
+				TBL_HOM *hd = BL_CAST(BL_HOM, src);
+				int spiritball = (hd ? hd->homunculus.spiritball : 1);
+				sc_start4(src, bl, SC_FEAR, spiritball * (10 + 2 * skill_lv), skill_lv, src->id,
+					0, 0, skill_get_time(skill_id, skill_lv));
+			}
 			break;
-		}
 		case MH_XENO_SLASHER:
-			sc_start4(src,bl,SC_BLEEDING,skill_lv,skill_lv,src->id,0,0,skill_get_time2(skill_id,skill_lv)); //@TODO need real duration
+			sc_start4(src, bl, SC_BLEEDING, skill_lv, skill_lv, src->id, 0, 0, skill_get_time2(skill_id, skill_lv)); //@TODO need real duration
 			break;
 		case GN_ILLUSIONDOPING:
-			if( sc_start(src,bl,SC_ILLUSIONDOPING,10 * skill_lv,skill_lv,skill_get_time(skill_id, skill_lv)) ) //Custom rate
-				sc_start(src,bl,SC_HALLUCINATION,100,skill_lv,skill_get_time(skill_id, skill_lv));
+			if( sc_start(src, bl, SC_ILLUSIONDOPING, 10 * skill_lv, skill_lv, skill_get_time(skill_id, skill_lv)) ) //Custom rate
+				sc_start(src, bl, SC_HALLUCINATION, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 			break;
 	}
 
@@ -3452,8 +3453,6 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case SR_WINDMILL:
 					{
 						struct status_change* tsc = status_get_sc(target);
-						if( tsc && tsc->data[SC_HOVERING] )
-							break;
 						if( target->type == BL_PC ) {
 							struct map_session_data *tsd = NULL;
 							if( (tsd = ((TBL_PC*)target)) && !pc_issit(tsd) ) {
@@ -4026,13 +4025,14 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				// skill_area_temp[0] holds number of targets in area
 				// skill_area_temp[1] holds the id of the original target
 				// skill_area_temp[2] counts how many targets have already been processed
-				int sflag = skill_area_temp[0] & 0xFFF, heal;
+				int sflag = skill_area_temp[0]&0xFFF, heal;
 				if( flag&SD_LEVEL )
 					sflag |= SD_LEVEL; // -1 will be used in packets instead of the skill level
 				if( skill_area_temp[1] != bl->id && !(skill_get_inf2(skill_id)&INF2_NPC_SKILL) )
 					sflag |= SD_ANIMATION; // Original target gets no animation (as well as all NPC skills)
-
-				heal = skill_attack(skill_get_type(skill_id), src, src, bl, skill_id, skill_lv, tick, sflag);
+				if( (skill_id == LG_MOONSLASHER || skill_id == SR_WINDMILL) && tsc && tsc->data[SC_HOVERING] )
+					break;
+				heal = skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,sflag);
 				if( skill_id == NPC_VAMPIRE_GIFT && heal > 0 ) {
 					clif_skill_nodamage(NULL, src, AL_HEAL, heal, 1);
 					status_heal(src,heal,0,0);
@@ -4045,10 +4045,10 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 						break;
 					case LG_MOONSLASHER:
-						clif_skill_damage(src,bl,tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
+						clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 						break;
 					case NPC_EARTHQUAKE: // FIXME: Isn't EarthQuake a ground skill after all?
-						skill_addtimerskill(src,tick+250,src->id,0,0,skill_id,skill_lv,2,flag|BCT_ENEMY|SD_SPLASH|1);
+						skill_addtimerskill(src,tick + 250,src->id,0,0,skill_id,skill_lv,2,flag|BCT_ENEMY|SD_SPLASH|1);
 					default:
 						break;
 				}
@@ -4069,10 +4069,11 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				// SD_LEVEL -> Forced splash damage for Auto Blitz-Beat -> count targets
 				// Special case: Venom Splasher uses a different range for searching than for splashing
 				if( flag&SD_LEVEL || skill_get_nk(skill_id)&NK_SPLASHSPLIT )
-					skill_area_temp[0] = map_foreachinrange(skill_area_sub, bl, (skill_id == AS_SPLASHER)?1:skill_get_splash(skill_id, skill_lv), BL_CHAR, src, skill_id, skill_lv, tick, BCT_ENEMY, skill_area_sub_count);
+					skill_area_temp[0] = map_foreachinrange(skill_area_sub, bl, (skill_id == AS_SPLASHER) ? 1 : skill_get_splash(skill_id, skill_lv), BL_CHAR, src, skill_id, skill_lv, tick, BCT_ENEMY, skill_area_sub_count);
 
 				// Recursive invocation of skill_castend_damage_id() with flag|1
-				map_foreachinrange(skill_area_sub, bl, skill_get_splash(skill_id, skill_lv), ( skill_id == WM_REVERBERATION_MELEE || skill_id == WM_REVERBERATION_MAGIC )?BL_CHAR:splash_target(src), src, skill_id, skill_lv, tick, flag|BCT_ENEMY|SD_SPLASH|1, skill_castend_damage_id);
+				map_foreachinrange(skill_area_sub, bl, skill_get_splash(skill_id, skill_lv),
+					(skill_id == WM_REVERBERATION_MELEE || skill_id == WM_REVERBERATION_MAGIC) ? BL_CHAR : splash_target(src), src, skill_id, skill_lv, tick, flag|BCT_ENEMY|SD_SPLASH|1, skill_castend_damage_id);
 			}
 			break;
 
@@ -5472,7 +5473,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				struct status_change* sc = status_get_sc(src);
 
 				if( sd && dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_BARDDANCER && dstsd->status.sex == sd->status.sex ) {
-					// Cannot cast on another bard/dancer-type class of the same gender as caster
+					//Cannot cast on another bard/dancer-type class of the same gender as caster
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					map_freeblock_unlock();
 					return 1;
@@ -5503,7 +5504,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
 				sc_start4(src,bl,type,100,skill_lv,src->id,0,0,skill_get_time(skill_id,skill_lv)));
 			break;
-		case SA_FLAMELAUNCHER:	// added failure chance and chance to break weapon if turned on [Valaris]
+		case SA_FLAMELAUNCHER: //Added failure chance and chance to break weapon if turned on [Valaris]
 		case SA_FROSTWEAPON:
 		case SA_LIGHTNINGLOADER:
 		case SA_SEISMICWEAPON:
@@ -11847,10 +11848,6 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			case UNT_ELECTRICWALK:
 			case UNT_FIREWALK:
 			case UNT_VACUUM_EXTREME:
-			case UNT_ZENKAI_WATER:
-			case UNT_ZENKAI_LAND:
-			case UNT_ZENKAI_FIRE:
-			case UNT_ZENKAI_WIND:
 				return 0;
 		}
 	}

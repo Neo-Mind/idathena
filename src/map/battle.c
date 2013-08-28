@@ -1994,9 +1994,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 	else if(nk&NK_IGNORE_FLEE)
 		return true;
 
-	if(sc && (sc->data[SC_NEUTRALBARRIER] || sc->data[SC_NEUTRALBARRIER_MASTER]) &&
-		skill_id != HT_PHANTASMIC && skill_id != CR_ACIDDEMONSTRATION &&
-			skill_id != GN_CARTCANNON && (wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG)
+	if(sc && (sc->data[SC_NEUTRALBARRIER] || sc->data[SC_NEUTRALBARRIER_MASTER]) && wd.flag&BF_LONG)
 		return false;
 
 	flee = tstatus->flee;
