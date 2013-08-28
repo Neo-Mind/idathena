@@ -3093,7 +3093,7 @@
 5386,Ayam_,Ayam,5,0,,70,,7,,0,0xFFFFFFFF,7,2,256,,1,0,228,{ bonus bMdef,7; bonus bFlee,7; bonus2 bAddMonsterDropItem,12198,200; },{},{}
 5387,Neko_Mimi_Kafra,Neko Mimi Kafra,5,20,,200,,1,,1,0xFFFFFFFF,7,2,256,,30,1,392,{ bonus bMdef,5; },{},{}
 5388,Snake_Head,Snake Head Hat,5,20,,200,,1,,1,0xFFFFFFFF,7,2,256,,30,1,393,{ skill "TF_DOUBLE",5; bonus bDoubleRate,25; },{},{}
-5389,Angel_Spirit,Angel Spirit,5,20,,200,,0,,0,0xFFFFFFFF,7,2,512,,0,0,394,{ bonus bStr,2; bonus2 bAddRace,RC_Boss,2; bonus2 bAddRace,RC_NonBoss,2; bonus bMatkRate,2; },{},{}
+5389,Angel_Spirit,Angel Spirit,5,20,,200,,0,,0,0xFFFFFFFF,7,2,512,,0,0,394,{ bonus bStr,1; bonus2 bAddRace,RC_Boss,2; bonus2 bAddRace,RC_NonBoss,2; bonus bMatkRate,2; },{},{}
 5390,Santa_Hat_2,Frozen Twin Pompom,5,20,,100,,2,,0,0xFFFFFFFF,7,2,256,,0,1,395,{ bonus2 bResEff,Eff_Freeze,3000; },{},{}
 5391,Toast_C,Toast,5,20,,0,,0,,0,0xFFFFFFFF,7,2,1,,0,0,188,{ bonus bMaxHP,100; bonus2 bAddMonsterDropItem,617,10; },{},{}
 5392,Louyang_Cap,Louyang NewYear Hat,5,20,,300,,3,,1,0xFFFFFFFF,7,2,256,,0,1,396,{ bonus bLuk,2; },{},{}
@@ -8183,9 +8183,9 @@
 18647,Star_Eyepatch,Star Eyepatch,5,20,,100,,0,,0,0xFFFFFFFF,7,2,256,,1,0,800,{ bonus2 bResEff,Eff_Stun,1500; },{},{}
 18648,Tongue_Charm,Tongue Charm,5,20,,100,,0,,0,0xFFFFFFFF,7,2,1,,1,0,801,{ bonus2 bSubRace,RC_Demon,3; },{},{}
 18650,RWC_Shouting_Mouth,RWC Shouting Mouth,5,20,,50,,0,,0,0xFFFFFFFF,7,2,1,,1,0,194,{},{},{}
-18651,Ignis_Cap,Ignis Cap,5,20,,800,,8,,1,0xFFFFFFFF,7,2,256,,40,1,7,{},{},{}
-18652,Vanargandr_Helm,Vanargandr Helm,5,20,,1500,,10,,1,0xFFFFFFFF,7,2,256,,80,1,7,{},{},{}
-18653,Deviruchi_Headphone,Deviruchi Headphone,5,20,,200,,8,,1,0xFFFFFFFF,7,2,256,,30,1,7,{ bonus bAgi,2; },{},{}
+18651,Ignis_Cap,Ignis Cap,5,20,,800,,8,,1,0xFFFFFFFF,7,2,256,,40,1,803,{},{},{}
+18652,Vanargandr_Helm,Vanargandr Helm,5,20,,1500,,10,,1,0xFFFFFFFF,7,2,256,,80,1,804,{},{},{}
+18653,Deviruchi_Headphone,Deviruchi Headphone,5,20,,200,,8,,1,0xFFFFFFFF,7,2,256,,30,1,805,{ bonus bAgi,2; },{},{}
 18654,Hood_Of_Society,Hood Of Society,5,20,,200,,8,,1,0xFFFFFFFF,7,2,256,,1,1,806,{},{},{}
 18655,Goedo_Monocle,Goedo Monocle,5,20,,100,,0,,0,0xFFFFFFFF,7,2,512,,50,0,23,{},{},{}
 18656,Witch's_Pumpkin_Hat,Witch's Pumpkin Hat,5,20,,300,,10,,0,0xFFFFFFFF,7,2,256,,20,1,717,{ bonus bMdef,10; bonus bStr,2; bonus bInt,2; bonus2 bMagicAddRace,RC_Undead,15; bonus2 bMagicAddRace,RC_Demon,15; },{},{}
@@ -8222,7 +8222,7 @@
 18688,2011_RMSC_3,2011 RMSC 3,5,20,,2500,,20,,1,0xFFFFFFFF,7,2,256,,1,0,832,{ bonus bUnbreakableHelm,0; bonus bAllStats,1; },{},{}
 18689,2011_RMSC_4,2011 RMSC 4,5,20,,10,,0,,0,0xFFFFFFFF,7,2,256,,1,0,832,{ bonus bUnbreakableHelm,0; },{},{}
 18690,Sirt_Evil_Eye,Sirt Evil Eye,5,20,,400,,0,,0,0xFFFFFFFF,7,2,512,,50,0,345,{ bonus bUnbreakableHelm,0; bonus bStr,1; },{},{}
-18691,Rising_Black_Dragon,Rising Black Dragon,5,20,,100,,3,,0,0xFFFFFFFF,7,2,256,,1,1,166,{},{},{}
+18691,Rising_Black_Dragon,Rising Black Dragon,5,20,,100,,3,,0,0xFFFFFFFF,7,2,256,,1,1,863,{},{},{}
 18692,Mike_Hat,Mike Hat,5,20,,200,,3,,1,0xFFFFFFFE,7,2,256,,1,1,837,{ bonus bDex,2; bonus bLuk,1; },{},{}
 18693,Sleeping_Kitty_Cat,Sleeping Kitty Cat,5,20,,200,,4,,1,0xFFFFFFFE,7,2,256,,20,1,838,{ bonus2 bAddRace,RC_Brute,2; },{},{}
 18694,Red_Hood,Red Hood,5,20,,200,,3,,1,0xFFFFFFFE,7,2,256,,20,1,839,{ bonus bCritical,10; },{},{}

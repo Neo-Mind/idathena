@@ -258,6 +258,10 @@ static jmp_buf     error_jump;
 static char*       error_msg;
 static const char* error_pos;
 static int         error_report; // if the error should produce output
+// Used by disp_warning_message
+static const char* parser_current_src;
+static const char* parser_current_file;
+static int         parser_current_line;
 
 // for advanced scripting support ( nested if, switch, while, for, do-while, function, etc )
 // [Eoe / jA 1080, 1081, 1094, 1164]
@@ -633,11 +637,14 @@ static void disp_error_message2(const char *mes,const char *pos,int report)
 }
 #define disp_error_message(mes,pos) disp_error_message2(mes,pos,1)
 
+static void disp_warning_message(const char *mes, const char *pos) {
+	script_warning(parser_current_src,parser_current_file,parser_current_line,mes,pos);
+}
+
 /// Checks event parameter validity
 static void check_event(struct script_state *st, const char *evt)
 {
-	if( evt && evt[0] && !stristr(evt, "::On") )
-	{
+	if( evt && evt[0] && !stristr(evt, "::On") ) {
 		ShowWarning("NPC event parameter deprecated! Please use 'NPCNAME::OnEVENT' instead of '%s'.\n", evt);
 		script_reportsrc(st);
 	}
@@ -872,31 +879,26 @@ const char* skip_space(const char* p)
 {
 	if( p == NULL )
 		return NULL;
-	for(;;)
-	{
+	for(;;) {
 		while( ISSPACE(*p) )
 			++p;
-		if( *p == '/' && p[1] == '/' )
-		{// line comment
+		if( *p == '/' && p[1] == '/' ) { //Line comment
 			while(*p && *p!='\n')
 				++p;
-		}
-		else if( *p == '/' && p[1] == '*' )
-		{// block comment
+		} else if( *p == '/' && p[1] == '*' ) { //Block comment
 			p += 2;
-			for(;;)
-			{
-				if( *p == '\0' )
-					return p;//disp_error_message("script:skip_space: end of file while parsing block comment. expected "CL_BOLD"*/"CL_NORM, p);
-				if( *p == '*' && p[1] == '/' )
-				{// end of block comment
+			for(;;) {
+				if( *p == '\0' ) {
+					disp_warning_message("script:script->skip_space: end of file while parsing block comment. expected "CL_BOLD"*/"CL_NORM, p);
+					return p;
+				}
+				if( *p == '*' && p[1] == '/' ) { //End of block comment
 					p += 2;
 					break;
 				}
 				++p;
 			}
-		}
-		else
+		} else
 			break;
 	}
 	return p;
@@ -1218,50 +1220,55 @@ const char* parse_variable(const char* p) {
  *------------------------------------------*/
 const char* parse_simpleexpr(const char *p)
 {
-	int i;
-	p=skip_space(p);
+	long long i;
+	p = skip_space(p);
 
-	if(*p==';' || *p==',')
+	if(*p == ';' || *p == ',')
 		disp_error_message("parse_simpleexpr: unexpected end of expression",p);
-	if(*p=='('){
-		if( (i=syntax.curly_count-1) >= 0 && syntax.curly[i].type == TYPE_ARGLIST )
+	if(*p == '(') {
+		if((i = syntax.curly_count - 1) >= 0 && syntax.curly[i].type == TYPE_ARGLIST)
 			++syntax.curly[i].count;
-		p=parse_subexpr(p+1,-1);
-		p=skip_space(p);
-		if( (i=syntax.curly_count-1) >= 0 && syntax.curly[i].type == TYPE_ARGLIST &&
-				syntax.curly[i].flag == ARGLIST_UNDEFINED && --syntax.curly[i].count == 0
-		){
-			if( *p == ',' ){
+		p = parse_subexpr(p + 1,-1);
+		p = skip_space(p);
+		if((i = syntax.curly_count - 1) >= 0 && syntax.curly[i].type == TYPE_ARGLIST &&
+			syntax.curly[i].flag == ARGLIST_UNDEFINED && --syntax.curly[i].count == 0
+		) {
+			if(*p == ',') {
 				syntax.curly[i].flag = ARGLIST_PAREN;
 				return p;
 			} else
 				syntax.curly[i].flag = ARGLIST_NO_PAREN;
 		}
-		if( *p != ')' )
+		if(*p != ')')
 			disp_error_message("parse_simpleexpr: unmatched ')'",p);
 		++p;
-	} else if(ISDIGIT(*p) || ((*p=='-' || *p=='+') && ISDIGIT(p[1]))){
+	} else if(ISDIGIT(*p) || ((*p == '-' || *p == '+') && ISDIGIT(p[1]))){
 		char *np;
 		while(*p == '0' && ISDIGIT(p[1])) p++;
-		i=strtoul(p,&np,0);
-		add_scripti(i);
-		p=np;
-	} else if(*p=='"'){
+		i = strtoll(p,&np,0);
+		if(i < INT_MIN) {
+			i = INT_MIN;
+			disp_warning_message("parse_simpleexpr: underflow detected, capping value to INT_MIN",p);
+		} else if( i > INT_MAX ) {
+			i = INT_MAX;
+			disp_warning_message("parse_simpleexpr: overflow detected, capping value to INT_MAX",p);
+		}
+		add_scripti((int)i);
+		p = np;
+	} else if(*p == '"') {
 		add_scriptc(C_STR);
 		p++;
-		while( *p && *p != '"' ){
-			if( (unsigned char)p[-1] <= 0x7e && *p == '\\' )
-			{
+		while(*p && *p != '"') {
+			if((unsigned char)p[-1] <= 0x7e && *p == '\\') {
 				char buf[8];
 				size_t len = skip_escaped_c(p) - p;
 				size_t n = sv_unescape_c(buf, p, len);
-				if( n != 1 )
-					ShowDebug("parse_simpleexpr: unexpected length %d after unescape (\"%.*s\" -> %.*s)\n", (int)n, (int)len, p, (int)n, buf);
+				if(n != 1)
+					ShowDebug("parse_simpleexpr: unexpected length %d after unescape (\"%.*s\" -> %.*s)\n",(int)n,(int)len,p,(int)n,buf);
 				p += len;
 				add_scriptb(*buf);
 				continue;
-			}
-			else if( *p == '\n' )
+			} else if(*p == '\n')
 				disp_error_message("parse_simpleexpr: unexpected newline @ string",p);
 			add_scriptb(*p++);
 		}
@@ -1273,41 +1280,40 @@ const char* parse_simpleexpr(const char *p)
 		int l;
 		const char* pv;
 
-		// label , register , function etc
-		if(skip_word(p)==p)
+		//Label , register , function etc
+		if(skip_word(p) == p)
 			disp_error_message("parse_simpleexpr: unexpected character",p);
 
-		l=add_word(p);
-		if( str_data[l].type == C_FUNC || str_data[l].type == C_USERFUNC || str_data[l].type == C_USERFUNC_POS)
+		l = add_word(p);
+		if(str_data[l].type == C_FUNC || str_data[l].type == C_USERFUNC || str_data[l].type == C_USERFUNC_POS)
 			return parse_callfunc(p,1,0);
 #ifdef SCRIPT_CALLFUNC_CHECK
 		else {
 			const char* name = get_str(l);
-			if( strdb_get(userfunc_db,name) != NULL ) {
+			if(strdb_get(userfunc_db,name) != NULL) {
 				return parse_callfunc(p,1,1);
 			}
 		}
 #endif
 
-		if( (pv = parse_variable(p)) )
-		{// successfully processed a variable assignment
+		if((pv = parse_variable(p))) { //Successfully processed a variable assignment
 			return pv;
 		}
 
-		p=skip_word(p);
-		if( *p == '[' ){
-			// array(name[i] => getelementofarray(name,i) )
+		p = skip_word(p);
+		if(*p == '[') {
+			//Array(name[i] => getelementofarray(name,i))
 			add_scriptl(buildin_getelementofarray_ref);
 			add_scriptc(C_ARG);
 			add_scriptl(l);
-			
-			p=parse_subexpr(p+1,-1);
-			p=skip_space(p);
-			if( *p != ']' )
+
+			p = parse_subexpr(p + 1,-1);
+			p = skip_space(p);
+			if(*p != ']')
 				disp_error_message("parse_simpleexpr: unmatched ']'",p);
 			++p;
 			add_scriptc(C_FUNC);
-		}else
+		} else
 			add_scriptl(l);
 
 	}
@@ -2167,8 +2173,7 @@ bool script_get_constant(const char* name, int* value)
 {
 	int n = search_str(name);
 
-	if( n == -1 || str_data[n].type != C_INT )
-	{// not found or not a constant
+	if( n == -1 || str_data[n].type != C_INT ) { //Not found or not a constant
 		return false;
 	}
 	value[0] = str_data[n].val;
@@ -2181,17 +2186,12 @@ void script_set_constant(const char* name, int value, bool isparameter)
 {
 	int n = add_str(name);
 
-	if( str_data[n].type == C_NOP )
-	{// new
+	if( str_data[n].type == C_NOP ) { //New
 		str_data[n].type = isparameter ? C_PARAM : C_INT;
 		str_data[n].val  = value;
-	}
-	else if( str_data[n].type == C_PARAM || str_data[n].type == C_INT )
-	{// existing parameter or constant
+	} else if( str_data[n].type == C_PARAM || str_data[n].type == C_INT ) { //Existing parameter or constant
 		ShowError("script_set_constant: Attempted to overwrite existing %s '%s' (old value=%d, new value=%d).\n", ( str_data[n].type == C_PARAM ) ? "parameter" : "constant", name, str_data[n].val, value);
-	}
-	else
-	{// existing name
+	} else { //Existing name
 		ShowError("script_set_constant: Invalid name for %s '%s' (already defined as %s).\n", isparameter ? "parameter" : "constant", name, script_op2name(str_data[n].type));
 	}
 }
@@ -2207,19 +2207,18 @@ static void read_constdb(void)
 	int type;
 
 	sprintf(line, "%s/const.txt", db_path);
-	fp=fopen(line, "r");
-	if(fp==NULL){
+	fp = fopen(line, "r");
+	if(fp == NULL) {
 		ShowError("can't read %s\n", line);
 		return ;
 	}
-	while(fgets(line, sizeof(line), fp))
-	{
-		if(line[0]=='/' && line[1]=='/')
+	while(fgets(line, sizeof(line), fp)) {
+		if(line[0] == '/' && line[1] == '/')
 			continue;
-		type=0;
-		if(sscanf(line,"%[A-Za-z0-9_],%[-0-9xXA-Fa-f],%d",name,val,&type)>=2 ||
-		   sscanf(line,"%[A-Za-z0-9_] %[-0-9xXA-Fa-f] %d",name,val,&type)>=2){
-			script_set_constant(name, (int)strtol(val, NULL, 0), (bool)type);
+		type = 0;
+		if(sscanf(line,"%[A-Za-z0-9_],%[-0-9xXA-Fa-f],%d",name,val,&type) >= 2 ||
+		   sscanf(line,"%[A-Za-z0-9_] %[-0-9xXA-Fa-f] %d",name,val,&type) >= 2) {
+			script_set_constant(name,(int)strtol(val, NULL, 0),(bool)type);
 		}
 	}
 	fclose(fp);
@@ -2236,49 +2235,67 @@ static const char* script_print_line(StringBuf* buf, const char* p, const char* 
 		StringBuf_Printf(buf, "*% 5d : ", -line);
 	else
 		StringBuf_Printf(buf, " % 5d : ", line);
-	for(i=0;p[i] && p[i] != '\n';i++){
-		if(p + i != mark)
+	for( i = 0; p[i] && p[i] != '\n'; i++) {
+		if( p + i != mark )
 			StringBuf_Printf(buf, "%c", p[i]);
 		else
 			StringBuf_Printf(buf, "\'%c\'", p[i]);
 	}
 	StringBuf_AppendStr(buf, "\n");
-	return p+i+(p[i] == '\n' ? 1 : 0);
+	return p + i + (p[i] == '\n' ? 1 : 0);
 }
 
-void script_error(const char* src, const char* file, int start_line, const char* error_msg, const char* error_pos)
+void script_errorwarning_sub(StringBuf *buf, const char* src, const char* file, int start_line, const char* error_msg, const char* error_pos)
 {
-	// Find the line where the error occurred
+	//Find the line where the error occurred
 	int j;
 	int line = start_line;
 	const char *p;
 	const char *linestart[5] = { NULL, NULL, NULL, NULL, NULL };
-	StringBuf buf;
 
-	for(p=src;p && *p;line++){
-		const char *lineend=strchr(p,'\n');
-		if(lineend==NULL || error_pos<lineend){
+	for(p = src; p && *p; line++) {
+		const char *lineend = strchr(p,'\n');
+		if(lineend == NULL || error_pos < lineend) {
 			break;
 		}
-		for( j = 0; j < 4; j++ ) {
-			linestart[j] = linestart[j+1];
+		for(j = 0; j < 4; j++) {
+			linestart[j] = linestart[j + 1];
 		}
 		linestart[4] = p;
-		p=lineend+1;
+		p = lineend + 1;
 	}
+
+	StringBuf_Printf(buf, "script error on %s line %d\n", file, line);
+	StringBuf_Printf(buf, "    %s\n", error_msg);
+	for(j = 0; j < 5; j++ ) {
+		script_print_line(buf, linestart[j], NULL, line + j - 5);
+	}
+	p = script_print_line(buf, p, error_pos, -line);
+	for(j = 0; j < 5; j++) {
+		p = script_print_line(buf, p, NULL, line + j + 1 );
+	}
+}
+
+void script_error(const char* src, const char* file, int start_line, const char* error_msg, const char* error_pos) {
+	StringBuf buf;
 
 	StringBuf_Init(&buf);
 	StringBuf_AppendStr(&buf, "\a\n");
-	StringBuf_Printf(&buf, "script error on %s line %d\n", file, line);
-	StringBuf_Printf(&buf, "    %s\n", error_msg);
-	for(j = 0; j < 5; j++ ) {
-		script_print_line(&buf, linestart[j], NULL, line + j - 5);
-	}
-	p = script_print_line(&buf, p, error_pos, -line);
-	for(j = 0; j < 5; j++) {
-		p = script_print_line(&buf, p, NULL, line + j + 1 );
-	}
+
+	script_errorwarning_sub(&buf, src, file, start_line, error_msg, error_pos);
+
 	ShowError("%s", StringBuf_Value(&buf));
+	StringBuf_Destroy(&buf);
+}
+
+void script_warning(const char* src, const char* file, int start_line, const char* error_msg, const char* error_pos) {
+	StringBuf buf;
+
+	StringBuf_Init(&buf);
+
+	script_errorwarning_sub(&buf, src, file, start_line, error_msg, error_pos);
+
+	ShowWarning("%s", StringBuf_Value(&buf));
 	StringBuf_Destroy(&buf);
 }
 
@@ -2294,8 +2311,12 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 	char end;
 	bool unresolved_names = false;
 
+	parser_current_src = src;
+	parser_current_file = file;
+	parser_current_line = line;
+
 	if( src == NULL )
-		return NULL; // Empty script
+		return NULL; //Empty script
 
 	memset(&syntax,0,sizeof(syntax));
 	if( first ) {
@@ -2309,7 +2330,7 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 	script_size = SCRIPT_BLOCK_SIZE;
 	parse_nextline(true, NULL);
 
-	// Who called parse_script is responsible for clearing the database after using it, but just in case... lets clear it here
+	//Who called parse_script is responsible for clearing the database after using it, but just in case... lets clear it here
 	if( options&SCRIPT_USE_LABEL_DB )
 		db_clear(scriptlabel_db);
 	parse_options = options;
@@ -2325,9 +2346,9 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 		script_pos  = 0;
 		script_size = 0;
 		script_buf  = NULL;
-		for( i=LABEL_START; i<str_num; i++ )
+		for( i = LABEL_START; i < str_num; i++ )
 			if(str_data[i].type == C_NOP) str_data[i].type = C_NAME;
-		for( i=0; i<size; i++ )
+		for( i = 0; i < size; i++ )
 			linkdb_final(&syntax.curly[i].case_label);
 		return NULL;
 	}
@@ -2335,8 +2356,8 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 	parse_syntax_for_flag = 0;
 	p = src;
 	p = skip_space(p);
-	if( options&SCRIPT_IGNORE_EXTERNAL_BRACKETS ) { // Does not require brackets around the script
-		if( *p == '\0' && !(options&SCRIPT_RETURN_EMPTY_SCRIPT) ) { // Empty script and can return NULL
+	if( options&SCRIPT_IGNORE_EXTERNAL_BRACKETS ) { //Does not require brackets around the script
+		if( *p == '\0' && !(options&SCRIPT_RETURN_EMPTY_SCRIPT) ) { //Empty script and can return NULL
 			aFree( script_buf );
 			script_pos  = 0;
 			script_size = 0;
@@ -2344,11 +2365,11 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 			return NULL;
 		}
 		end = '\0';
-	} else { // Requires brackets around the script
+	} else { //Requires brackets around the script
 		if( *p != '{' )
 			disp_error_message("not found '{'",p);
-		p = skip_space(p+1);
-		if( *p == '}' && !(options&SCRIPT_RETURN_EMPTY_SCRIPT) ) { // Empty script and can return NULL
+		p = skip_space(p + 1);
+		if( *p == '}' && !(options&SCRIPT_RETURN_EMPTY_SCRIPT) ) { //Empty script and can return NULL
 			aFree( script_buf );
 			script_pos  = 0;
 			script_size = 0;
@@ -2358,8 +2379,8 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 		end = '}';
 	}
 
-	// Clear references of labels, variables and internal functions
-	for( i=LABEL_START; i<str_num; i++ ) {
+	//Clear references of labels, variables and internal functions
+	for( i = LABEL_START; i < str_num; i++ ) {
 		if(
 			str_data[i].type == C_POS || str_data[i].type == C_NAME ||
 			str_data[i].type == C_USERFUNC || str_data[i].type == C_USERFUNC_POS
@@ -2373,19 +2394,19 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 	while( syntax.curly_count != 0 || *p != end ) {
 		if( *p == '\0' )
 			disp_error_message("unexpected end of script",p);
-		// Special handling only label
+		//Special handling only label
 		tmpp = skip_space(skip_word(p));
 		if( *tmpp == ':' && !(!strncasecmp(p,"default:",8) && p + 7 == tmpp) ) {
 			i = add_word(p);
 			set_label(i,script_pos,p);
 			if( parse_options&SCRIPT_USE_LABEL_DB )
 				strdb_iput(scriptlabel_db, get_str(i), script_pos);
-			p = tmpp+1;
+			p = tmpp + 1;
 			p = skip_space(p);
 			continue;
 		}
 
-		// All other lumped
+		//All other lumped
 		p = parse_line(p);
 		p = skip_space(p);
 
@@ -2394,22 +2415,22 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 
 	add_scriptc(C_NOP);
 
-	// Trim code to size
+	//Trim code to size
 	script_size = script_pos;
 	RECREATE(script_buf,unsigned char,script_pos);
 
-	// Default unknown references to variables
-	for( i=LABEL_START; i<str_num; i++ ) {
+	//Default unknown references to variables
+	for( i = LABEL_START; i < str_num; i++ ) {
 		if( str_data[i].type == C_NOP ) {
 			int j,next;
 			str_data[i].type = C_NAME;
 			str_data[i].label = i;
-			for( j=str_data[i].backpatch; j>=0 && j!=0x00ffffff; ) {
+			for( j = str_data[i].backpatch; j >= 0 && j != 0x00ffffff; ) {
 				next = GETVALUE(script_buf,j);
 				SETVALUE(script_buf,j,i);
 				j = next;
 			}
-		} else if( str_data[i].type == C_USERFUNC ) { // 'function name;' without follow-up code
+		} else if( str_data[i].type == C_USERFUNC ) { //'function name;' without follow-up code
 			ShowError("parse_script: function '%s' declared but not defined.\n", str_buf+str_data[i].str);
 			unresolved_names = true;
 		}
@@ -2420,7 +2441,7 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 	}
 
 #ifdef DEBUG_DISP
-	for( i=0; i<script_pos; i++ ) {
+	for( i = 0; i < script_pos; i++ ) {
 		if( (i&15) == 0 ) ShowMessage("%04x : ",i);
 		ShowMessage("%02x ",script_buf[i]);
 		if( (i&15) == 15 ) ShowMessage("\n");
@@ -2440,11 +2461,11 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 					ShowMessage(" %d", get_num(script_buf,&i));
 					break;
 				case C_POS:
-					ShowMessage(" 0x%06x", *(int*)(script_buf+i)&0xffffff);
+					ShowMessage(" 0x%06x", *(int*)(script_buf + i)&0xffffff);
 					i += 3;
 					break;
 				case C_NAME:
-					j = (*(int*)(script_buf+i)&0xffffff);
+					j = (*(int*)(script_buf + i)&0xffffff);
 					ShowMessage(" %s", ( j == 0xffffff ) ? "?? unknown ??" : get_str(j));
 					i += 3;
 					break;
