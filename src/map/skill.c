@@ -3452,7 +3452,6 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case LG_MOONSLASHER:
 				case SR_WINDMILL:
 					{
-						struct status_change* tsc = status_get_sc(target);
 						if( target->type == BL_PC ) {
 							struct map_session_data *tsd = NULL;
 							if( (tsd = ((TBL_PC*)target)) && !pc_issit(tsd) ) {
@@ -3461,8 +3460,8 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 								clif_sitting(&tsd->bl);
 							}
 						}
-						break;
 					}
+					break;
 				case LG_OVERBRAND_BRANDISH:
 				case LG_OVERBRAND_PLUSATK:
 					if( target->type == BL_MOB && is_boss(target) )
