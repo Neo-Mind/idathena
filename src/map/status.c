@@ -2598,17 +2598,17 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 
 		status->def += sd->inventory_data[index]->def;
 
-		if (first && sd->inventory_data[index]->equip_script) { //Execute equip-script on login
+		if(first && sd->inventory_data[index]->equip_script) { //Execute equip-script on login
 			run_script(sd->inventory_data[index]->equip_script,0,sd->bl.id,0);
 			if (!calculating)
 				return 1;
 		}
 
 		//Sanitize the refine level in case someone decreased the value inbetween
-		if (sd->status.inventory[index].refine > MAX_REFINE)
+		if(sd->status.inventory[index].refine > MAX_REFINE)
 			sd->status.inventory[index].refine = MAX_REFINE;
 
-		if (sd->inventory_data[index]->type == IT_WEAPON) {
+		if(sd->inventory_data[index]->type == IT_WEAPON) {
 			int r,wlv = sd->inventory_data[index]->wlv;
 			struct weapon_data *wd;
 			struct weapon_atk *wa;
@@ -2633,18 +2633,18 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 #endif
 
 			//Overrefine bonus.
-			if (r)
+			if(r)
 				wd->overrefine = refine_info[wlv].randombonus_max[r - 1] / 100;
 
 			wa->range += sd->inventory_data[index]->range;
-			if (sd->inventory_data[index]->script) {
-				if (wd == &sd->left_weapon) {
+			if(sd->inventory_data[index]->script) {
+				if(wd == &sd->left_weapon) {
 					sd->state.lr_flag = 1;
 					run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
 					sd->state.lr_flag = 0;
 				} else
 					run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
-				if (!calculating) //Abort, run_script retriggered this. [Skotlex]
+				if(!calculating) //Abort, run_script retriggered this. [Skotlex]
 					return 1;
 			}
 
@@ -2653,7 +2653,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 				if(wd->star >= 15) wd->star = 40; //3 Star Crumbs now give +40 dmg
 				if(pc_famerank(MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]) ,MAPID_BLACKSMITH))
 					wd->star += 10;
-				
+
 				if(!wa->ele) //Do not overwrite element from previous bonuses.
 					wa->ele = (sd->status.inventory[index].card[1]&0x0f);
 			}
@@ -2678,15 +2678,15 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		if(sd->inventory_data[index]) { //Arrows
 			sd->bonus.arrow_atk += sd->inventory_data[index]->atk;
 			sd->state.lr_flag = 2;
-			if(!itemdb_is_GNthrowable(sd->inventory_data[index]->nameid)) //don't run scripts on throwable items
+			if(!itemdb_is_GNthrowable(sd->inventory_data[index]->nameid)) //Don't run scripts on throwable items
 				run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
 			sd->state.lr_flag = 0;
 			if(!calculating) //Abort, run_script retriggered status_calc_pc. [Skotlex]
 				return 1;
 		}
 	}
-	
-	/* we've got combos to process */
+
+	/* We've got combos to process */
 	if( sd->combos.count ) {
 		for( i = 0; i < sd->combos.count; i++ ) {
 			run_script(sd->combos.bonus[i],0,sd->bl.id,0);
@@ -2697,12 +2697,12 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 
 	//Store equipment script bonuses
 	memcpy(sd->param_equip,sd->param_bonus,sizeof(sd->param_equip));
-	memset(sd->param_bonus, 0, sizeof(sd->param_bonus));
+	memset(sd->param_bonus,0,sizeof(sd->param_bonus));
 
-	status->def += (refinedef+50)/100;
+	status->def += (refinedef + 50) / 100;
 
 	//Parse Cards
-	for(i=0;i<EQI_MAX-1;i++) {
+	for(i = 0; i < EQI_MAX - 1; i++) {
 		current_equip_item_index = index = sd->equip_index[i]; //We pass INDEX to current_equip_item_index - for EQUIP_SCRIPT (new cards solution) [Lupus]
 		if(index < 0)
 			continue;
@@ -2721,7 +2721,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 			if(itemdb_isspecial(sd->status.inventory[index].card[0]))
 				continue;
 			for(j = 0; j < MAX_SLOTS; j++) { //Uses MAX_SLOTS to support Soul Bound system [Inkfish]
-				current_equip_card_id= c= sd->status.inventory[index].card[j];
+				current_equip_card_id = c = sd->status.inventory[index].card[j];
 				if(!c)
 					continue;
 				data = itemdb_exists(c);

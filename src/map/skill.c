@@ -8801,7 +8801,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			} else {
 				int count = 0;
 				clif_skill_damage(src, bl, tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
-				count = map_forcountinrange(skill_area_sub, src, skill_get_splash(skill_id, skill_lv), (sd) ? sd->spiritball_old : 15, // Assume 15 spiritballs in non-charactors
+				count = map_forcountinrange(skill_area_sub, src, skill_get_splash(skill_id, skill_lv), (sd) ? sd->spiritball_old : 15, //Assume 15 spiritballs in non-charactors
 					BL_CHAR, src, skill_id, skill_lv, tick, flag|BCT_ENEMY|1, skill_castend_nodamage_id);
 				if( sd ) pc_delspiritball(sd, count, 0);
 				clif_skill_nodamage(src, src, skill_id, skill_lv,
