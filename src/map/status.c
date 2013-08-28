@@ -1021,6 +1021,8 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_VITATA_500] |= SCB_REGEN;
 	StatusChangeFlagTable[SC_EXTRACT_SALAMINE_JUICE] |= SCB_ASPD;
 	StatusChangeFlagTable[SC_REBOUND] |= SCB_SPEED|SCB_REGEN;
+	StatusChangeFlagTable[SC_DEFSET] |= SCB_DEF;
+	StatusChangeFlagTable[SC_MDEFSET] |= SCB_MDEF;
 
 	if( !battle_config.display_hallucination ) //Disable Hallucination.
 		StatusIconChangeTable[SC_HALLUCINATION] = SI_BLANK;
@@ -5085,6 +5087,8 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 	if(!sc || !sc->count)
 		return (defType)cap_value(def,DEFTYPE_MIN,DEFTYPE_MAX);
 
+	if(sc->data[SC_DEFSET]) //FIXME: Find out if this really overrides all other SCs
+		return sc->data[SC_DEFSET]->val1;
 	if(sc->data[SC_BERSERK])
 		return 0;
 	if(sc->data[SC_SKA])
@@ -5233,6 +5237,8 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 	if(!sc || !sc->count)
 		return (defType)cap_value(mdef,DEFTYPE_MIN,DEFTYPE_MAX);
 
+	if(sc->data[SC_MDEFSET]) //FIXME: Find out if this really overrides all other SCs
+		return sc->data[SC_MDEFSET]->val1;
 	if(sc->data[SC_BERSERK])
 		return 0;
 	if(sc->data[SC_BARRIER])

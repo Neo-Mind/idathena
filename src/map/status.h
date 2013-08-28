@@ -671,6 +671,10 @@ typedef enum sc_type {
 	SC_CHAOS,
 	SC_FEINT,
 
+	//Vellum Weapon reductions
+	SC_DEFSET,
+	SC_MDEFSET,
+
 	SC_MAX, //Automatically updated max, used in for's to check we are within bounds.
 } sc_type;
 

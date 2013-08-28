@@ -318,11 +318,15 @@ struct map_session_data {
 		int id;
 		int val;
 	} cooldown[MAX_PC_BONUS];
-	// zeroed structures end here
-	// manually zeroed structures start here.
+	struct {
+		short value;
+		int rate, tick;
+	} def_set_race[RC_MAX], mdef_set_race[RC_MAX];
+	//Zeroed structures end here.
+	//Manually zeroed structures start here.
 	struct s_autobonus autobonus[MAX_PC_BONUS], autobonus2[MAX_PC_BONUS], autobonus3[MAX_PC_BONUS]; //Auto script on attack, when attacked, on skill usage
-	// manually zeroed structures end here.
-	// zeroed vars start here.
+	//Manually zeroed structures end here.
+	//Zeroed vars start here.
 	struct {
 		int atk_rate;
 		int arrow_atk,arrow_ele,arrow_cri,arrow_hit;

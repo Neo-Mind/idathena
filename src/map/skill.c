@@ -1499,7 +1499,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 	}
 
 	if( attack_type&BF_WEAPON ) {
-		// Coma, Breaking Equipment
+		//Coma, Breaking Equipment
 		if( sd && sd->special_state.bonus_coma ) {
 			rate  = sd->weapon_coma_ele[tstatus->def_ele];
 			rate += sd->weapon_coma_race[tstatus->race];
@@ -1508,7 +1508,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 				status_change_start(src, bl, SC_COMA, rate, 0, 0, src->id, 0, 0, 0);
 		}
 		if( sd && battle_config.equip_self_break_rate ) {
-			// Self weapon breaking
+			//Self weapon breaking
 			rate = battle_config.equip_natural_break_rate;
 			if( sc ) {
 				if(sc->data[SC_GIANTGROWTH])
@@ -1541,6 +1541,12 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			if( rate )
 				skill_break_equip(src, bl, EQP_ARMOR, rate, BCT_ENEMY);
 		}
+		if( sd && sd->def_set_race[tstatus->race].rate )
+			status_change_start(src,bl, SC_DEFSET, sd->def_set_race[tstatus->race].rate, sd->def_set_race[tstatus->race].value, 
+			0, 0, 0, sd->def_set_race[tstatus->race].tick, 2);
+		if( sd && sd->def_set_race[tstatus->race].rate )
+			status_change_start(src,bl, SC_MDEFSET, sd->mdef_set_race[tstatus->race].rate, sd->mdef_set_race[tstatus->race].value, 
+			0, 0, 0, sd->mdef_set_race[tstatus->race].tick, 2);
 	}
 
 	if( sd && sd->ed && sc && !status_isdead(bl) && !skill_id ) {
@@ -11417,15 +11423,15 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 	group->target_flag = target;
 	group->bl_flag = skill_get_unit_bl_target(skill_id);
 	group->state.ammo_consume = (sd && sd->state.arrow_atk && skill_id != GS_GROUNDDRIFT); //Store if this skill needs to consume ammo.
-	group->state.song_dance = (unit_flag&(UF_DANCE|UF_SONG)?1:0)|(unit_flag&UF_ENSEMBLE?2:0); //Signals if this is a song/dance/duet
-	group->state.guildaura = ( skill_id >= GD_LEADERSHIP && skill_id <= GD_HAWKEYES )?1:0;
+	group->state.song_dance = (unit_flag&(UF_DANCE|UF_SONG) ? 1 : 0)|(unit_flag&UF_ENSEMBLE ? 2 : 0); //Signals if this is a song/dance/duet
+	group->state.guildaura = (skill_id >= GD_LEADERSHIP && skill_id <= GD_HAWKEYES) ? 1 : 0;
   	group->item_id = req_item;
 	//if tick is greater than current, do not invoke onplace function just yet. [Skotlex]
 	if (DIFF_TICK(group->tick, gettick()) > SKILLUNITTIMER_INTERVAL)
 		active_flag = 0;
 
 	if(skill_id == HT_TALKIEBOX || skill_id == RG_GRAFFITI) {
-		group->valstr=(char *) aMalloc(MESSAGE_SIZE*sizeof(char));
+		group->valstr=(char *) aMalloc(MESSAGE_SIZE * sizeof(char));
 		if (sd)
 			safestrncpy(group->valstr, sd->message, MESSAGE_SIZE);
 		else //Eh... we have to write something here... even though mobs shouldn't use this. [Skotlex]
