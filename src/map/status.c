@@ -2582,8 +2582,8 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		if(!sd->inventory_data[index])
 			continue;
 
-		if(!pc_has_permission(sd, PC_PERM_USE_ALL_EQUIPMENT) && sd->inventory_data[index]->flag.no_equip &&
-			itemdb_isNoEquip(sd->inventory_data[index], sd->bl.m)) //Items may be equipped, their effects however are nullified.
+		if(!pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) &&
+			itemdb_isNoEquip(sd->inventory_data[index],sd->bl.m)) //Items may be equipped, their effects however are nullified
 			continue;
 
 		status->def += sd->inventory_data[index]->def;
@@ -2671,7 +2671,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 			if(!itemdb_is_GNthrowable(sd->inventory_data[index]->nameid)) //Don't run scripts on throwable items
 				run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
 			sd->state.lr_flag = 0;
-			if(!calculating) //Abort, run_script retriggered status_calc_pc. [Skotlex]
+			if(!calculating) //Abort, run_script retriggered status_calc_pc [Skotlex]
 				return 1;
 		}
 	}
@@ -2680,7 +2680,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 	if( sd->combos.count ) {
 		for( i = 0; i < sd->combos.count; i++ ) {
 			run_script(sd->combos.bonus[i],0,sd->bl.id,0);
-			if (!calculating) //Abort, run_script retriggered this.
+			if (!calculating) //Abort, run_script retriggered this
 				return 1;
 		}
 	}
@@ -2724,16 +2724,15 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 				}
 				if(!data->script)
 					continue;
-				if(!pc_has_permission(sd, PC_PERM_USE_ALL_EQUIPMENT) && data->flag.no_equip &&
-					itemdb_isNoEquip(data, sd->bl.m)) //Card restriction checks.
+				if(!pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) && itemdb_isNoEquip(data,sd->bl.m)) //Card restriction checks
 					continue;
-				if(i == EQI_HAND_L && sd->status.inventory[index].equip == EQP_HAND_L) { //Left hand status.
+				if(i == EQI_HAND_L && sd->status.inventory[index].equip == EQP_HAND_L) { //Left hand status
 					sd->state.lr_flag = 1;
 					run_script(data->script,0,sd->bl.id,0);
 					sd->state.lr_flag = 0;
 				} else
 					run_script(data->script,0,sd->bl.id,0);
-				if(!calculating) //Abort, run_script his function. [Skotlex]
+				if(!calculating) //Abort, run_script his function [Skotlex]
 					return 1;
 			}
 		}
@@ -2840,7 +2839,8 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 	if((skill = pc_checkskill(sd,BS_HILTBINDING)) > 0)
 		status->batk += 4;
 #else
-	status->watk = (status_weapon_atk(status->lhw,status) >= 0) ? status_weapon_atk(status->lhw,status) : 0;
+	status->watk = status_weapon_atk(status->rhw,status);
+	status->watk2 = status_weapon_atk(status->lhw,status);
 	status->eatk = (sd->bonus.eatk >= 0) ? sd->bonus.eatk : 0;
 #endif
 

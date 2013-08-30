@@ -1643,7 +1643,7 @@ struct status_data {
 		str, agi, vit, int_, dex, luk,
 		batk,
 #ifdef RENEWAL
-		watk,
+		watk, watk2,
 		eatk,
 #endif
 		matk_min, matk_max,

@@ -513,6 +513,19 @@ struct iwall_data {
 	bool shootable;
 };
 
+#ifdef ADJUST_SKILL_DAMAGE
+struct s_skill_damage {
+	uint16 map, skill_id;
+	/* Additional rates */
+	int pc,
+		mob,
+		boss,
+		other;
+	uint8 caster;	/* Caster type */
+};
+#define MAX_MAP_SKILL_MODIFIER 5
+#endif
+
 struct mapflag_skill_adjust {
 	unsigned short skill_id;
 	unsigned short modifier;
@@ -587,6 +600,9 @@ struct map_data {
 		unsigned nomineeffect : 1; // Allow /mineeffect
 		unsigned nolockon : 1;
 		unsigned notomb : 1;
+#ifdef ADJUST_SKILL_DAMAGE
+		unsigned skill_damage : 1;
+#endif
 	} flag;
 	struct point save;
 	struct npc_data *npc[MAX_NPC_PER_MAP];
@@ -598,10 +614,18 @@ struct map_data {
 
 	struct spawn_data *moblist[MAX_MOB_LIST_PER_MAP]; // [Wizputer]
 	int mob_delete_timer;	// [Skotlex]
-	int zone;	// zone number (for item/skill restrictions)
-	int jexp;	// map experience multiplicator
-	int bexp;	// map experience multiplicator
+	int zone;	// Zone number (for item/skill restrictions)
 	int nocommand; //Blocks @/# commands for non-gms. [Skotlex]
+	struct {
+		int jexp;	// Map experience multiplicator
+		int bexp;	// Map experience multiplicator
+#ifdef ADJUST_SKILL_DAMAGE
+		struct s_skill_damage damage;
+#endif
+	} adjust;
+#ifdef ADJUST_SKILL_DAMAGE
+	struct s_skill_damage skill_damage[MAX_MAP_SKILL_MODIFIER];
+#endif
 	/**
 	 * Ice wall reference counter for bugreport:3574
 	 * - since there are a thounsand mobs out there in a lot of maps checking on,

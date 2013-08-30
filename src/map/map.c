@@ -188,8 +188,7 @@ int map_usercount(void)
 int map_freeblock (struct block_list *bl)
 {
 	nullpo_retr(block_free_lock, bl);
-	if (block_free_lock == 0 || block_free_count >= block_free_max)
-	{
+	if (block_free_lock == 0 || block_free_count >= block_free_max) {
 		aFree(bl);
 		bl = NULL;
 		if (block_free_count >= block_free_max)
@@ -1686,9 +1685,9 @@ int map_quit(struct map_session_data *sd) {
 	}
 
 	for (i = 0; i < EQI_MAX; i++) {
-			if (sd->equip_index[ i ] >= 0)
-					if (!pc_isequip( sd , sd->equip_index[ i ] ))
-							pc_unequipitem( sd , sd->equip_index[ i ] , 2 );
+		if (sd->equip_index[i] >= 0)
+			if (!pc_isequip(sd , sd->equip_index[i]))
+				pc_unequipitem(sd , sd->equip_index[i] , 2);
 	}
 
 	//Return loot to owner
@@ -3080,15 +3079,21 @@ void map_flags_init(void) {
 	int i, v = 0;
 
 	for( i = 0; i < map_num; i++ ) {
-		// mapflags
+		// Mapflags
 		memset(&map[i].flag, 0, sizeof(map[i].flag));
 
-		// additional mapflag data
-		map[i].zone      = 0;  // restricted mapflag zone
-		map[i].nocommand = 0;  // nocommand mapflag level
-		map[i].bexp      = 100;  // per map base exp multiplicator
-		map[i].jexp      = 100;  // per map job exp multiplicator
-		memset(map[i].drop_list, 0, sizeof(map[i].drop_list));  // pvp nightmare drop list
+		// Additional mapflag data
+		map[i].zone        = 0; // Restricted mapflag zone
+		map[i].nocommand   = 0; // Nocommand mapflag level
+		map[i].adjust.bexp = 100; // Per map base exp multiplicator
+		map[i].adjust.jexp = 100; // Per map job exp multiplicator
+		memset(map[i].drop_list, 0, sizeof(map[i].drop_list)); // PVP nightmare drop list
+
+		// Skill damage
+#ifdef ADJUST_SKILL_DAMAGE
+		memset(map[i].skill_damage, 0, sizeof(map[i].skill_damage));
+		memset(&map[i].adjust.damage, 0, sizeof(map[i].adjust.damage));
+#endif
 
 		if( map[i].unit_count ) {
 			for(v = 0; v < map[i].unit_count; v++) {
@@ -3100,7 +3105,7 @@ void map_flags_init(void) {
 		map[i].unit_count = 0;
 
 		if( map[i].skill_count ) {
-			for(v = 0; v < map[i].skill_count; v++) {
+			for( v = 0; v < map[i].skill_count; v++ ) {
 				aFree(map[i].skills[v]);
 			}
 			aFree(map[i].skills);
@@ -3108,9 +3113,9 @@ void map_flags_init(void) {
 		map[i].skills = NULL;
 		map[i].skill_count = 0;
 
-		// adjustments
+		// Adjustments
 		if( battle_config.pk_mode )
-			map[i].flag.pvp = 1; // make all maps pvp for pk_mode [Valaris]
+			map[i].flag.pvp = 1; // Make all maps pvp for pk_mode [Valaris]
 	}
 }
 
@@ -3351,7 +3356,7 @@ int parse_console(const char* buf) {
 			if( y > 0 )
 				sd.bl.y = y;
 			ShowNotice("Now at: '%s' Coords: %d %d\n", map, x, y);
-		} else if( !is_atcommand(sd.fd, &sd, command, 0) )
+		} else if( !is_atcommand(sd.fd, &sd, command, 2) )
 			ShowInfo("Console: Invalid atcommand.\n");
 	} else if( n == 2 && strcmpi("server", type) == 0 ) {
 		if( strcmpi("shutdown", command) == 0 || strcmpi("exit", command) == 0 || strcmpi("quit", command) == 0 ) {
