@@ -1149,7 +1149,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			if ( hd && (rnd()%100<(status_get_lv(bl)/2)) ) hom_addspiritball(hd, 10); //Add a sphere
 		}
 
-		if( sc->data[SC__DEADLYINFECT] && (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT && damage > 0 && rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 && !(status_get_mode(src)&MD_BOSS) )
+		if( sc->data[SC__DEADLYINFECT] && (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT && damage > 0 &&
+			rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 && !(status_get_mode(src)&MD_BOSS) )
 			status_change_spread(bl, src); //Deadly infect attacked side
 
 		if( sc && sc->data[SC__SHADOWFORM] ) {
@@ -1203,7 +1204,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 		if( sc->data[SC_POISONINGWEAPON] && skill_id != GC_VENOMPRESSURE && flag&BF_WEAPON && damage > 0 && rnd()%100 < sc->data[SC_POISONINGWEAPON]->val3 )
 			sc_start(src,bl,sc->data[SC_POISONINGWEAPON]->val2,100,sc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON,1));
-		if( sc->data[SC__DEADLYINFECT] && (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT && damage > 0 && rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 && !(status_get_mode(bl)&MD_BOSS) )
+		if( sc->data[SC__DEADLYINFECT] && (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT && damage > 0 &&
+			rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 && !(status_get_mode(bl)&MD_BOSS) )
 			status_change_spread(src, bl);
 		if( sc->data[SC_STYLE_CHANGE] ) {
 			TBL_HOM *hd = BL_CAST(BL_HOM,src); //When attacking

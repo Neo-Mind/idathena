@@ -3832,7 +3832,7 @@ ACMD_FUNC(mapinfo)
 #ifdef ADJUST_SKILL_DAMAGE
 	if (map[m_id].flag.skill_damage) {
 		int j;
-		clif_displaymessage(fd,msg_txt(sd,1052));	// Skill Damage Adjustments:
+		clif_displaymessage(fd,msg_txt(sd,1052)); // Skill Damage Adjustments:
 		sprintf(atcmd_output," > [Map] %d%%, %d%%, %d%%, %d%% | Caster:%d"
 			,map[m_id].adjust.damage.pc
 			,map[m_id].adjust.damage.mob
