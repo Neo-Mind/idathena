@@ -15417,17 +15417,19 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 			}
 			break;
 		case GN_CRAZYWEED_ATK:
-			switch (unit->group->unit_id) { //TODO: look for other ground skills that are affected.
-				case UNT_WALLOFTHORN:
+			switch (unit->group->unit_id) {
 				case UNT_THORNS_TRAP:
-				case UNT_BLOODYLUST:
+				case UNT_WALLOFTHORN:
+				case UNT_MANHOLE:
+				case UNT_DIMENSIONDOOR:
 				case UNT_CHAOSPANIC:
 				case UNT_MAELSTROM:
+				case UNT_BLOODYLUST:
 				case UNT_FIREPILLAR_ACTIVE:
-				case UNT_LANDPROTECTOR:
 				case UNT_VOLCANO:
 				case UNT_DELUGE:
 				case UNT_VIOLENTGALE:
+				case UNT_LANDPROTECTOR:
 				case UNT_SAFETYWALL:
 				case UNT_PNEUMA:
 					skill_delunit(unit);

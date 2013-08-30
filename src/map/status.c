@@ -4713,7 +4713,7 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk -= batk * 25 / 100;
 /*Curse shouldn't effect on this?  <- Curse OR Bleeding??
 	if(sc->data[SC_BLEEDING])
-		batk -= batk * 25/100;*/
+		batk -= batk * 25 / 100;*/
 	if(sc->data[SC_FLEET])
 		batk += batk * sc->data[SC_FLEET]->val3 / 100;
 	if(sc->data[SC__ENERVATION])
@@ -4781,8 +4781,6 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 		watk += watk * sc->data[SC_PROVOKE]->val3 / 100;
 	if(sc->data[SC_SKE])
 		watk += watk * 3;
-	if(sc->data[SC__ENERVATION])
-		watk -= watk * sc->data[SC__ENERVATION]->val2 / 100;
 	if(sc->data[SC_FLEET])
 		watk += watk * sc->data[SC_FLEET]->val3 / 100;
 	if(sc->data[SC_CURSE])
