@@ -2969,8 +2969,10 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 //----- HIT CALCULATION -----
 
 	//Absolute modifiers from passive skills
+#ifndef RENEWAL
 	if((skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
 		status->hit += skill * 2;
+#endif
 	if((skill = pc_checkskill(sd,AC_VULTURE)) > 0) {
 #ifndef RENEWAL
 		status->hit += skill;

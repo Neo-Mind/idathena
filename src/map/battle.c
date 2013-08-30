@@ -1513,9 +1513,10 @@ int64 battle_addmastery(struct map_session_data *sd,struct block_list *target,in
 				damage += (skill * 3);
 			break;
 	}
-
+#ifdef RENEWAL
 	if(sd && (skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0) // Weapon Research bonus applies to all weapons
 		damage += (skill * 2);
+#endif
 
 	return damage;
 }
@@ -2208,9 +2209,11 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 		hitrate += pc_checkskill(sd,TF_DOUBLE);
 
 	if(sd) {
+#ifdef RENEWAL
 		// Weaponry Research hidden bonus
 		if((skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
 			hitrate += hitrate * ( 2 * skill ) / 100;
+#endif
 
 		if((sd->status.weapon == W_1HSWORD || sd->status.weapon == W_DAGGER) &&
 			(skill = pc_checkskill(sd,GN_TRAINING_SWORD)) > 0)
@@ -2730,10 +2733,10 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				}
 #endif
 				break;
-			case TF_POISON: // Additional 15*skill level damage
+			case TF_POISON: //Additional 15*skill level damage
 				ATK_ADD(wd.damage, wd.damage2, 15 * skill_lv);
 #ifdef RENEWAL
-				wd.masteryAtk += 15 * skill_lv; // ATK from Envenom is treated as mastery type damage [helvetica]
+				wd.masteryAtk += 15 * skill_lv; //ATK from Envenom is treated as mastery type damage [helvetica]
 #endif
 				break;
 			case CR_SHIELDBOOMERANG:
@@ -4733,7 +4736,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 	struct status_change *sc = status_get_sc(src);
 	struct status_change *tsc = status_get_sc(target);
 	struct status_data *tstatus = status_get_status_data(target);
-	int right_element, left_element;
+	int skill, right_element, left_element;
 
 	memset(&wd,0,sizeof(wd));
 
@@ -4855,8 +4858,14 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 
 	if(sd) {
 		int type = 0;
+#ifndef RENEWAL
+		if(skill = pc_checkskill(sd,BS_WEAPONRESEARCH) > 0)
+			ATK_ADD(skill * 2);
+#endif
 		if(skill_id != CR_SHIELDBOOMERANG) //Only Shield boomerang doesn't takes the Star Crumbs bonus.
 			ATK_ADD2(wd.damage, wd.damage2, wd.div_ * sd->right_weapon.star, wd.div_ * sd->left_weapon.star);
+		if(skill_id != MC_CARTREVOLUTION && (skill = pc_checkskill(sd,BS_HILTBINDING)) > 0)
+			ATK_ADD(wd.damage, wd.damage2, 4);
 		if(skill_id == MO_FINGEROFFENSIVE) { //The finger offensive spheres on moment of attack do count. [Skotlex]
 			ATK_ADD(wd.damage, wd.damage2, wd.div_ * sd->spiritball_old * 3);
 		} else {
