@@ -1265,20 +1265,20 @@ int clif_spawn(struct block_list *bl)
 	int len;
 
 	vd = status_get_viewdata(bl);
-	if (!vd || vd->class_==INVISIBLE_CLASS)
+	if (!vd || vd->class_ == INVISIBLE_CLASS)
 		return 0;
 
 	/**
 	* Hide NPC from maya purple card.
 	**/
-	if (bl->type==BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
+	if (bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
 		return 0;
 
 	len = clif_set_unit_idle(bl, buf,true);
-	clif_send(buf, len, bl, AREA_WOS);
+	clif_send(buf,len,bl,AREA_WOS);
 
 	if (disguised(bl))
-		clif_setdisguise(bl, buf, len);
+		clif_setdisguise(bl,buf,len);
 
 	if (vd->cloth_color)
 		clif_refreshlook(bl,bl->id,LOOK_CLOTHES_COLOR,vd->cloth_color,AREA_WOS);
@@ -1289,9 +1289,9 @@ int clif_spawn(struct block_list *bl)
 				int i;
 				if (sd->spiritball > 0)
 					clif_spiritball(&sd->bl);
-				if (sd->state.size==SZ_BIG) //Tiny/Big players [Valaris]
+				if (sd->state.size == SZ_BIG) //Tiny/Big players [Valaris]
 					clif_specialeffect(bl,423,AREA);
-				else if (sd->state.size==SZ_MEDIUM)
+				else if (sd->state.size == SZ_MEDIUM)
 					clif_specialeffect(bl,421,AREA);
 				if (sd->bg_id && map[sd->bl.m].flag.battleground)
 					clif_sendbgemblem_area(sd);
