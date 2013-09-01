@@ -4860,7 +4860,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		int type = 0;
 #ifndef RENEWAL
 		if(skill = pc_checkskill(sd,BS_WEAPONRESEARCH) > 0)
-			ATK_ADD(skill * 2);
+			ATK_ADD(wd.damage, wd.damage2, skill * 2);
 #endif
 		if(skill_id != CR_SHIELDBOOMERANG) //Only Shield boomerang doesn't takes the Star Crumbs bonus.
 			ATK_ADD2(wd.damage, wd.damage2, wd.div_ * sd->right_weapon.star, wd.div_ * sd->left_weapon.star);
