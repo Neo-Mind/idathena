@@ -899,8 +899,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( (sce = sc->data[SC_KAUPE]) && rnd()%100 < sce->val2 ) {
 			//Kaupe blocks damage (skill or otherwise) from players, mobs, homuns, mercenaries.
 			clif_specialeffect(bl, 462, AREA);
-			//Shouldn't end until Breaker's non-weapon part connects.
 #ifndef RENEWAL
+			//Shouldn't end until Breaker's non-weapon part connects.
 			if( skill_id != ASC_BREAKER || !flag&BF_WEAPON )
 #endif
 				if( --(sce->val3) <= 0 )
@@ -943,8 +943,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			//Lex Aeterna only doubles damage of regular attacks from mercenaries
 			if( src->type != BL_MER || skill_id == 0 )
 				damage <<= 1;
-			//Shouldn't end until Breaker's non-weapon part connects.
 #ifndef RENEWAL
+			//Shouldn't end until Breaker's non-weapon part connects.
 			if( skill_id != ASC_BREAKER || !flag&BF_WEAPON )
 #endif
 				status_change_end(bl, SC_AETERNA, INVALID_TIMER);
@@ -4592,23 +4592,24 @@ struct Damage battle_calc_weapon_final_atk_modifiers(struct Damage wd, struct bl
 		status_change_end(src, SC_CAMOUFLAGE, INVALID_TIMER);
 	}
 
-	if(skill_id == LG_RAYOFGENESIS) {
-		struct Damage ad = battle_calc_magic_attack(src, target, skill_id, skill_lv, wd.miscflag);
-		wd.damage += ad.damage;
-	}
+	switch( skill_id ) {
 #ifndef RENEWAL
-	else if( skill_id == ASC_BREAKER ) { //Breaker int-based damage
-		struct Damage md = battle_calc_misc_attack(src, target, skill_id, skill_lv, wd.miscflag);
-		wd.damage += md.damage;
-	}
+		case ASC_BREAKER: { //Breaker int-based damage
+				struct Damage md = battle_calc_misc_attack(src, target, skill_id, skill_lv, wd.miscflag);
+				wd.damage += md.damage;
+			}
+			break;
+#else
+		case AM_ACIDTERROR:
 #endif
+		case LG_RAYOFGENESIS:
+			{
+				struct Damage ad = battle_calc_magic_attack(src, target, skill_id, skill_lv, wd.miscflag);
+				wd.damage += ad.damage;
+			}
+			break;
+	}
 
-#ifdef RENEWAL
-	else if(skill_id == AM_ACIDTERROR) {
-		struct Damage ad = battle_calc_magic_attack(src, target, skill_id, skill_lv, wd.miscflag);
-		wd.damage += ad.damage;
-	}
-#endif
 	return wd;
 }
 
@@ -4947,8 +4948,10 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 
 	switch(skill_id) { // These skills will do a GVG fix later
 		case CR_ACIDDEMONSTRATION:
+#ifdef RENEWAL
 		case NJ_ISSEN:
 		case ASC_BREAKER:
+#endif
 		case KO_HAPPOKUNAI:
 			return wd;
 		default:
@@ -5623,7 +5626,9 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 	switch(skill_id) { // These skills will do a GVG fix later
 		case CR_ACIDDEMONSTRATION:
+#ifdef RENEWAL
 		case ASC_BREAKER:
+#endif
 			return ad;
 		default:
 			ad.damage = battle_calc_damage(src, target, &ad, ad.damage, skill_id, skill_lv);
