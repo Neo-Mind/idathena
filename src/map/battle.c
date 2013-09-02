@@ -1045,14 +1045,16 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			sce->val3&flag && sce->val4&flag )
 			damage -= damage * sc->data[SC_ARMOR]->val2 / 100;
 
+		if( sc->data[SC_ENERGYCOAT] && (skill_id == GN_HELLS_PLANT_ATK ||
 #ifdef RENEWAL
-		if( sc->data[SC_ENERGYCOAT] && (flag&BF_WEAPON || flag&BF_MAGIC) && skill_id != WS_CARTTERMINATION )
+			((flag&BF_WEAPON || flag&BF_MAGIC) && skill_id != WS_CARTTERMINATION)
 #else
-		if( sc->data[SC_ENERGYCOAT] && flag&BF_WEAPON && skill_id != WS_CARTTERMINATION )
+			(flag&BF_WEAPON && skill_id != WS_CARTTERMINATION)
 #endif
+			) )
 		{
 			struct status_data *status = status_get_status_data(bl);
-			int per = 100 * status->sp / status->max_sp -1; //100% should be counted as the 80~99% interval
+			int per = 100 * status->sp / status->max_sp - 1; //100% should be counted as the 80~99% interval
 			per /= 20; //Uses 20% SP intervals.
 			//SP Cost: 1% + 0.5% per every 20% SP
 			if( !status_charge(bl, 0, (10 + 5 * per) * status->max_sp / 1000) )
@@ -3729,7 +3731,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			break;
 		case GN_CART_TORNADO: {
 				// ATK [( Skill Level x 50 ) + ( Cart Weight / ( 150 - Caster's Base STR ))] + ( Cart Remodeling Skill Level x 50 )] %
-				int strbonus = sstatus->str;
+				int strbonus = sd ? sd->status.str : 120;
 				if(strbonus > 120)
 					strbonus = 120;
 				skillratio += -100 + 50 * skill_lv;
@@ -4308,7 +4310,7 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd, struct block_lis
 				//[( ( Skill Lv x 20 ) + 100 ) x ( casterBaseLevel / 150 )] + casterInt
 				struct Damage matk;
 				int64 i = (sc->data[SC_ENCHANTBLADE]->val1 * 20 + 100) * status_get_lv(src) / 150 + status_get_int(src);
-				int totalmdef = tstatus->mdef + tstatus->mdef2;
+				short totalmdef = tstatus->mdef + tstatus->mdef2;
 				matk = battle_calc_magic_attack(src, target, skill_id, skill_lv, 0);
 				i = i - totalmdef + matk.damage;
 				if(i)
@@ -5919,9 +5921,11 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		case GN_THORNS_TRAP:
 			md.damage = 100 + 200 * skill_lv + sstatus->int_;
 			break;
-		case GN_HELLS_PLANT_ATK:
-			//[{( Hell Plant Skill Level x Caster Base Level ) x 10 } + {( Caster INT x 7 ) / 2 } x { 18 + ( Caster Job Level / 4 )] x ( 5 / ( 10 - Summon Flora Skill Level ))
-			md.damage = (skill_lv * status_get_lv(src) * 10) + (sstatus->int_ * 7 / 2) * (18 + (sd ? sd->status.job_level : 0) / 4) * (5 / (10 - (sd ? pc_checkskill(sd,AM_CANNIBALIZE) : 0)));
+		case GN_HELLS_PLANT_ATK: {
+				short totalmdef = tstatus->mdef + tstatus->mdef2;
+				md.damage = (skill_lv * status_get_lv(src) * 10) + (sstatus->int_ * 7 / 2) * (18 + (sd ? sd->status.job_level : 0) / 4) * (5 / (10 - (sd ? pc_checkskill(sd,AM_CANNIBALIZE) : 0)));
+				md.damage -= totalmdef;
+			}
 			break;
 	}
 

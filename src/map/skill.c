@@ -1441,7 +1441,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			sc_start(src, bl, SC_STUN,  20 + 10 * skill_lv, skill_lv, skill_get_time(skill_id, skill_lv));
 			sc_start2(src, bl, SC_BLEEDING, 5 + 5 * skill_lv, skill_lv, src->id, skill_get_time(skill_id, skill_lv));
 			break;
-		case EL_WIND_SLASH:	// Non confirmed rate.
+		case EL_WIND_SLASH:	//Non confirmed rate
 			sc_start2(src, bl, SC_BLEEDING, 25, skill_lv, src->id, skill_get_time(skill_id,skill_lv));
 			break;
 		case EL_STONE_HAMMER:
@@ -3124,6 +3124,7 @@ static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 
 			range = 2;
 			break;
 		case SC_MANHOLE:
+		case GN_HELLS_PLANT:
 			range = 0;
 			break;
 		default: {
@@ -4050,7 +4051,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case KN_BRANDISHSPEAR:
 		case ML_BRANDISH:
 			// Coded apart for it needs the flag passed to the damage calculation.
-			if (skill_area_temp[1] != bl->id)
+			if( skill_area_temp[1] != bl->id )
 				skill_attack(skill_get_type(skill_id), src, src, bl, skill_id, skill_lv, tick, flag|SD_ANIMATION);
 			else
 				skill_attack(skill_get_type(skill_id), src, src, bl, skill_id, skill_lv, tick, flag);
@@ -4061,17 +4062,17 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			{
 				int min_x,max_x,min_y,max_y,i,c,dir,tx,ty;
 				// Chain effect and check range gets reduction by recursive depth, as this can reach 0, we don't use blowcount
-				c = (skill_lv-(flag&0xFFF)+1)/2;
+				c = (skill_lv - (flag&0xFFF) + 1) / 2;
 				// Determine the Bowling Bash area depending on configuration
-				if (battle_config.bowling_bash_area == 0) {
+				if( battle_config.bowling_bash_area == 0 ) {
 					// Gutter line system
-					min_x = ((src->x)-c) - ((src->x)-c)%40;
-					if(min_x < 0) min_x = 0;
+					min_x = ((src->x) - c) - ((src->x) - c)%40;
+					if( min_x < 0 ) min_x = 0;
 					max_x = min_x + 39;
-					min_y = ((src->y)-c) - ((src->y)-c)%40;
-					if(min_y < 0) min_y = 0;
+					min_y = ((src->y) - c) - ((src->y) - c)%40;
+					if( min_y < 0 ) min_y = 0;
 					max_y = min_y + 39;
-				} else if (battle_config.bowling_bash_area == 1) {
+				} else if( battle_config.bowling_bash_area == 1 ) {
 					// Gutter line system without demi gutter bug
 					min_x = src->x - (src->x)%40;
 					max_x = min_x + 39;
@@ -4085,12 +4086,12 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					max_y = src->y + battle_config.bowling_bash_area;
 				}
 				// Initialization, break checks, direction
-				if((flag&0xFFF) > 0) {
+				if( (flag&0xFFF) > 0 ) {
 					// Ignore monsters outside area
-					if(bl->x < min_x || bl->x > max_x || bl->y < min_y || bl->y > max_y)
+					if( bl->x < min_x || bl->x > max_x || bl->y < min_y || bl->y > max_y )
 						break;
 					// Ignore monsters already in list
-					if(idb_exists(bowling_db, bl->id))
+					if( idb_exists(bowling_db, bl->id) )
 						break;
 					// Random direction
 					dir = rnd()%8;
@@ -4105,46 +4106,48 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				// Keep moving target in direction square by square
 				tx = bl->x;
 				ty = bl->y;
-				for(i=0;i<c;i++) {
+				for( i = 0; i < c; i++ ) {
 					// Target coordinates (get changed even if knockback fails)
 					tx -= dirx[dir];
 					ty -= diry[dir];
 					// If target cell is a wall then break
-					if(map_getcell(bl->m,tx,ty,CELL_CHKWALL))
+					if( map_getcell(bl->m,tx,ty,CELL_CHKWALL) )
 						break;
 					skill_blown(src,bl,1,dir,0);
 					// Splash around target cell, but only cells inside area; we first have to check the area is not negative
-					if((max(min_x,tx-1) <= min(max_x,tx+1)) &&
-						(max(min_y,ty-1) <= min(max_y,ty+1)) &&
-						(map_foreachinarea(skill_area_sub, bl->m, max(min_x,tx-1), max(min_y,ty-1), min(max_x,tx+1), min(max_y,ty+1), splash_target(src), src, skill_id, skill_lv, tick, flag|BCT_ENEMY, skill_area_sub_count))) {
+					if( (max(min_x,tx - 1) <= min(max_x,tx + 1)) &&
+						(max(min_y,ty - 1) <= min(max_y,ty + 1)) &&
+						(map_foreachinarea(skill_area_sub, bl->m, max(min_x,tx - 1), max(min_y,ty - 1), min(max_x,tx + 1),
+							min(max_y,ty + 1), splash_target(src), src, skill_id, skill_lv, tick, flag|BCT_ENEMY, skill_area_sub_count)) ) {
 						// Recursive call
-						map_foreachinarea(skill_area_sub, bl->m, max(min_x,tx-1), max(min_y,ty-1), min(max_x,tx+1), min(max_y,ty+1), splash_target(src), src, skill_id, skill_lv, tick, (flag|BCT_ENEMY)+1, skill_castend_damage_id);
+						map_foreachinarea(skill_area_sub, bl->m, max(min_x,tx - 1), max(min_y,ty - 1), min(max_x,tx + 1),
+							min(max_y,ty + 1), splash_target(src), src, skill_id, skill_lv, tick, (flag|BCT_ENEMY) + 1, skill_castend_damage_id);
 						// Self-collision
-						if(bl->x >= min_x && bl->x <= max_x && bl->y >= min_y && bl->y <= max_y)
-							skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,(flag&0xFFF)>0?SD_ANIMATION:0);
+						if( bl->x >= min_x && bl->x <= max_x && bl->y >= min_y && bl->y <= max_y )
+							skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,(flag&0xFFF) > 0 ? SD_ANIMATION : 0);
 						break;
 					}
 				}
 				// Original hit or chain hit depending on flag
-				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,(flag&0xFFF)>0?SD_ANIMATION:0);
+				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,(flag&0xFFF) > 0 ? SD_ANIMATION : 0);
 			}
 			break;
 
 		case KN_SPEARSTAB:
-			if(flag&1) {
-				if (bl->id==skill_area_temp[1])
+			if( flag&1 ) {
+				if( bl->id == skill_area_temp[1] )
 					break;
-				if (skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,SD_ANIMATION))
+				if( skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,SD_ANIMATION) )
 					skill_blown(src,bl,skill_area_temp[2],-1,0);
 			} else {
-				int x=bl->x,y=bl->y,i,dir;
+				int x = bl->x,y = bl->y,i,dir;
 				dir = map_calc_dir(bl,src->x,src->y);
 				skill_area_temp[1] = bl->id;
 				skill_area_temp[2] = skill_get_blewcount(skill_id,skill_lv);
 				// All the enemies between the caster and the target are hit, as well as the target
-				if (skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,0))
+				if( skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,0) )
 					skill_blown(src,bl,skill_area_temp[2],-1,0);
-				for (i=0;i<4;i++) {
+				for( i = 0; i < 4; i++ ) {
 					map_foreachincell(skill_area_sub,bl->m,x,y,BL_CHAR,
 						src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 					x += dirx[dir];
@@ -4157,7 +4160,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case MO_BALKYOUNG: // Active part of the attack. Skill-attack [Skotlex]
 			{
 				skill_area_temp[1] = bl->id; // NOTE: This is used in skill_castend_nodamage_id to avoid affecting the target.
-				if (skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag))
+				if( skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag) )
 					map_foreachinrange(skill_area_sub,bl,
 						skill_get_splash(skill_id, skill_lv),BL_CHAR,
 						src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,
@@ -4172,7 +4175,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 		case PR_TURNUNDEAD:
 		case ALL_RESURRECTION:
-			if (!battle_check_undead(tstatus->race, tstatus->def_ele))
+			if( !battle_check_undead(tstatus->race, tstatus->def_ele) )
 				break;
 			skill_attack(BF_MAGIC,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
@@ -11148,6 +11151,8 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		case AM_DEMONSTRATION:
 		case GN_THORNS_TRAP:
 		case GN_HELLS_PLANT:
+			if( skill_id == GN_HELLS_PLANT && map_getcell(src->m, x, y, CELL_CHKLANDPROTECTOR) )
+				return NULL;
 			if( map_flag_vs(src->m) && battle_config.vs_traps_bctall
 				&& (src->type&battle_config.vs_traps_bctall) )
 				target = BCT_ALL;
@@ -15365,23 +15370,24 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 				skill_delunit(unit);
 				return 1;
 			}
-			//It deletes everything except traps and barriers
-			if (!(skill_get_inf2(unit->group->skill_id)&(INF2_TRAP|INF2_NOLP)) || unit->group->skill_id == WZ_FIREPILLAR) {
+			//It deletes everything except traps (exclude Fire Pillar and Hells Plant) and barriers
+			if (!(skill_get_inf2(unit->group->skill_id)&(INF2_TRAP|INF2_NOLP)) ||
+				unit->group->skill_id == WZ_FIREPILLAR || unit->group->skill_id == GN_HELLS_PLANT) {
 				skill_delunit(unit);
 				return 1;
 			}
 			break;
 		case HW_GANBANTEIN:
 		case LG_EARTHDRIVE:
-			// Officially songs/dances are removed
+			//Officially songs/dances are removed
 			skill_delunit(unit);
 			return 1;
 		case SA_VOLCANO:
 		case SA_DELUGE:
 		case SA_VIOLENTGALE:
-// The official implementation makes them fail to appear when casted on top of ANYTHING
-// but I wonder if they didn't actually meant to fail when casted on top of each other?
-// hence, I leave the alternate implementation here, commented. [Skotlex]
+//The official implementation makes them fail to appear when casted on top of ANYTHING
+//But I wonder if they didn't actually meant to fail when casted on top of each other?
+//Hence, I leave the alternate implementation here, commented. [Skotlex]
 			if (unit->range <= 0) {
 				(*alive) = 0;
 				return 1;
