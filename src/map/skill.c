@@ -5635,7 +5635,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case AB_DUPLELIGHT:
 		case AB_SECRAMENT:
 		case NC_ACCELERATION:
-		case NC_HOVERING:
 		case NC_SHAPESHIFT:
 		case WL_RECOGNIZEDSPELL:
 		case GC_VENOMIMPRESS:
@@ -8439,6 +8438,24 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 
+		case NC_HOVERING: {
+				if( sd ) {
+					short indexL = sd->equip_index[EQI_ACC_L];
+					short indexR = sd->equip_index[EQI_ACC_R];
+					if( indexL >= 0 && sd->inventory_data[indexL] && sd->inventory_data[indexL]->type == IT_ARMOR &&
+						sd->inventory_data[indexL]->nameid == ITEMID_HOVERING_BOOSTER ) {
+						clif_skill_nodamage(src,bl,skill_id,skill_lv,
+							sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
+					} else if( indexR >= 0 && sd->inventory_data[indexR] && sd->inventory_data[indexR]->type == IT_ARMOR &&
+						sd->inventory_data[indexR]->nameid == ITEMID_HOVERING_BOOSTER ) {
+						clif_skill_nodamage(src,bl,skill_id,skill_lv,
+							sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
+					} else
+						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+				}
+			}
+			break;
+
 		case NC_ANALYZE:
 			clif_skill_damage(src, bl, tick, status_get_amotion(src), 0, -30000, 1, skill_id, skill_lv, 6);
 			clif_skill_nodamage(src, bl, skill_id, skill_lv,
@@ -8480,6 +8497,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
 			}
 			break;
+
 		case SC_AUTOSHADOWSPELL:
 			if( sd ) {
 				if( sd->status.skill[sd->reproduceskill_id].id || sd->status.skill[sd->cloneskill_id].id ) {
