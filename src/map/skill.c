@@ -1441,7 +1441,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			sc_start(src, bl, SC_STUN,  20 + 10 * skill_lv, skill_lv, skill_get_time(skill_id, skill_lv));
 			sc_start2(src, bl, SC_BLEEDING, 5 + 5 * skill_lv, skill_lv, src->id, skill_get_time(skill_id, skill_lv));
 			break;
-		case EL_WIND_SLASH:	//Non confirmed rate
+		case EL_WIND_SLASH: //Non confirmed rate
 			sc_start2(src, bl, SC_BLEEDING, 25, skill_lv, src->id, skill_get_time(skill_id,skill_lv));
 			break;
 		case EL_STONE_HAMMER:
