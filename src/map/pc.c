@@ -8544,7 +8544,7 @@ int pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 		clif_changelook(&sd->bl,LOOK_SHIELD,sd->status.shield);
 	}
 	//Added check to prevent sending the same look on multiple slots ->
-	//causes client to redraw item on top of itself. (suggested by Lupus)
+	//Causes client to redraw item on top of itself. (suggested by Lupus)
 	if( pos & EQP_HEAD_LOW && pc_checkequip(sd,EQP_COSTUME_HEAD_LOW) == -1 ) {
 		if( id && !(pos&(EQP_HEAD_TOP|EQP_HEAD_MID)) )
 			sd->status.head_bottom = id->look;
@@ -8664,33 +8664,29 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		clif_unequipitemack(sd,0,0,0);
 		return 0;
 	}
-
-	// If player is berserk then cannot unequip
+	//If player is berserk then cannot unequip
 	if( !(flag & 2) && sd->sc.count && (sd->sc.data[SC_BERSERK] || sd->sc.data[SC_SATURDAYNIGHTFEVER] ||
 		sd->sc.data[SC_KYOUGAKU] || (sd->sc.data[SC_PYROCLASTIC] && sd->inventory_data[n]->type == IT_WEAPON)) ) {
 		clif_unequipitemack(sd,n,0,0);
 		return 0;
 	}
-
 	if( battle_config.battle_log )
 		ShowInfo("unequip %d %x:%x\n",n,pc_equippoint(sd,n),sd->status.inventory[n].equip);
-
 	if( !sd->status.inventory[n].equip ) { //Nothing to unequip
 		clif_unequipitemack(sd,n,0,0);
 		return 0;
 	}
-	for( i=0;i<EQI_MAX;i++ ) {
+	for( i = 0; i < EQI_MAX; i++ ) {
 		if( sd->status.inventory[n].equip & equip_pos[i] )
 			sd->equip_index[i] = -1;
 	}
-
 	if( sd->status.inventory[n].equip & EQP_HAND_R ) {
 		sd->weapontype1 = 0;
 		sd->status.weapon = sd->weapontype2;
 		pc_calcweapontype(sd);
 		clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
 		if( !battle_config.dancing_weaponswitch_fix )
-			status_change_end(&sd->bl, SC_DANCING, INVALID_TIMER); // Unequipping => stop dancing.
+			status_change_end(&sd->bl,SC_DANCING,INVALID_TIMER); //Unequipping => stop dancing.
 	}
 	if( sd->status.inventory[n].equip & EQP_HAND_L ) {
 		sd->status.shield = sd->weapontype2 = 0;
@@ -8709,27 +8705,23 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		sd->status.head_mid = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
 	}
-
 	if( sd->status.inventory[n].equip & EQP_COSTUME_HEAD_TOP ) {
 		sd->status.head_top = ( pc_checkequip(sd,EQP_HEAD_TOP) >= 0 ) ? sd->inventory_data[pc_checkequip(sd,EQP_HEAD_TOP)]->look : 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_TOP,sd->status.head_top);
 	}
-
 	if( sd->status.inventory[n].equip & EQP_COSTUME_HEAD_MID ) {
 		sd->status.head_mid = ( pc_checkequip(sd,EQP_HEAD_MID) >= 0 ) ? sd->inventory_data[pc_checkequip(sd,EQP_HEAD_MID)]->look : 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
 	}
-
 	if( sd->status.inventory[n].equip & EQP_COSTUME_HEAD_LOW ) {
 		sd->status.head_bottom = ( pc_checkequip(sd,EQP_HEAD_LOW) >= 0 ) ? sd->inventory_data[pc_checkequip(sd,EQP_HEAD_LOW)]->look : 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_BOTTOM,sd->status.head_bottom);
 	}
-
 	if( sd->status.inventory[n].equip & EQP_SHOES )
 		clif_changelook(&sd->bl,LOOK_SHOES,0);
 	if( sd->status.inventory[n].equip&EQP_GARMENT && pc_checkequip(sd,EQP_COSTUME_GARMENT) == -1 ) {
 		sd->status.robe = 0;
-		clif_changelook(&sd->bl, LOOK_ROBE, 0);
+		clif_changelook(&sd->bl,LOOK_ROBE,0);
 	}
 	if( sd->status.inventory[n].equip & EQP_COSTUME_GARMENT ) {
 		sd->status.robe = ( pc_checkequip(sd,EQP_GARMENT) >= 0 ) ? sd->inventory_data[pc_checkequip(sd,EQP_GARMENT)]->look : 0;
@@ -8741,20 +8733,18 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 	if( (sd->status.inventory[n].equip & EQP_ARMS) &&
 		sd->weapontype1 == 0 && sd->weapontype2 == 0 && (!sd->sc.data[SC_SEVENWIND] || sd->sc.data[SC_ASPERSIO]) ) //Check for seven wind (but not level seven!)
 		skill_enchant_elemental_end(&sd->bl,-1);
-
 	if( sd->status.inventory[n].equip & EQP_ARMOR ) {
-		// On Armor Change...
-		status_change_end(&sd->bl, SC_BENEDICTIO, INVALID_TIMER);
-		status_change_end(&sd->bl, SC_ARMOR_RESIST, INVALID_TIMER);
+		//On Armor Change
+		status_change_end(&sd->bl,SC_BENEDICTIO,INVALID_TIMER);
+		status_change_end(&sd->bl,SC_ARMOR_RESIST,INVALID_TIMER);
 	}
-
 	if( sd->state.autobonus&sd->status.inventory[n].equip )
 		sd->state.autobonus &= ~sd->status.inventory[n].equip; //Check for activated autobonus [Inkfish]
 
-	sd->status.inventory[n].equip=0;
+	sd->status.inventory[n].equip = 0;
 	iflag = sd->npc_item_flag;
 
-	/* check for combos (MUST be before status_calc_pc) */
+	/* Check for combos (MUST be before status_calc_pc) */
 	if( sd->inventory_data[n] ) {
 		if( sd->inventory_data[n]->combos_count ) {
 			if( pc_removecombo(sd,sd->inventory_data[n]) )
@@ -8783,7 +8773,7 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 	}
 
 	if( sd->sc.data[SC_SIGNUMCRUCIS] && !battle_check_undead(sd->battle_status.race,sd->battle_status.def_ele) )
-		status_change_end(&sd->bl, SC_SIGNUMCRUCIS, INVALID_TIMER);
+		status_change_end(&sd->bl,SC_SIGNUMCRUCIS,INVALID_TIMER);
 
 	//OnUnEquip script [Skotlex]
 	if( sd->inventory_data[n] ) {
@@ -8794,17 +8784,17 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		else {
 			for( i = 0; i < sd->inventory_data[n]->slot; i++ ) {
 				struct item_data *data;
-				if (!sd->status.inventory[n].card[i])
+				if( !sd->status.inventory[n].card[i] )
 					continue;
 
 				if( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
 					if( data->unequip_script )
 						run_script(data->unequip_script,0,sd->bl.id,fake_nd->bl.id);
 				}
-				
 			}
 		}
 	}
+
 	sd->npc_item_flag = iflag;
 
 	return 0;
@@ -8823,7 +8813,7 @@ int pc_checkitem(struct map_session_data *sd)
 	if( sd->state.vending ) //Avoid reorganizing items when we are vending, as that leads to exploits (pointed out by End of Exam)
 		return 0;
 
-	if( battle_config.item_check ) { // check for invalid(ated) items
+	if( battle_config.item_check ) { //Check for invalid(ated) items
 		for( i = 0; i < MAX_INVENTORY; i++ ) {
 			id = sd->status.inventory[i].nameid;
 
