@@ -2735,12 +2735,14 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				}
 #endif
 				break;
-			case TF_POISON: //Additional 15*skill level damage
-				ATK_ADD(wd.damage, wd.damage2, 15 * skill_lv);
 #ifdef RENEWAL
-				wd.masteryAtk += 15 * skill_lv; //ATK from Envenom is treated as mastery type damage [helvetica]
-#endif
+			case TF_POISON:
+				//Additional 15 * skill level damage
+				ATK_ADD(wd.damage, wd.damage2, 15 * skill_lv);
+				//ATK from Envenom is treated as mastery type damage [helvetica]
+				ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 15 * skill_lv);
 				break;
+#endif
 			case CR_SHIELDBOOMERANG:
 			case PA_SHIELDCHAIN:
 			case LG_SHIELDPRESS:
@@ -4862,10 +4864,12 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 	if(sd) {
 		int type = 0;
 #ifndef RENEWAL
+		if(skill_id == TF_POISON) //Additional 15 * skill level damage
+			ATK_ADD(wd.damage, wd.damage2, 15 * skill_lv);
 		if(skill = pc_checkskill(sd,BS_WEAPONRESEARCH) > 0)
 			ATK_ADD(wd.damage, wd.damage2, skill * 2);
 #endif
-		if(skill_id != CR_SHIELDBOOMERANG) //Only Shield boomerang doesn't takes the Star Crumbs bonus.
+		if(skill_id != CR_SHIELDBOOMERANG) //Only Shield Boomerang doesn't takes the Star Crumbs bonus.
 			ATK_ADD2(wd.damage, wd.damage2, wd.div_ * sd->right_weapon.star, wd.div_ * sd->left_weapon.star);
 		if(skill_id != MC_CARTREVOLUTION && (skill = pc_checkskill(sd,BS_HILTBINDING)) > 0)
 			ATK_ADD(wd.damage, wd.damage2, 4);
@@ -4896,7 +4900,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 	}
 
 	if(tsd) { //Card Fix for target (tsd), 2 is not added to the "left" flag meaning "target cards only"
-		switch(skill_id) { // These skills will do a card fix later
+		switch(skill_id) { //These skills will do a card fix later
 			case CR_ACIDDEMONSTRATION:
 			case NJ_ISSEN:
 			case ASC_BREAKER:
@@ -4909,7 +4913,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 
 	//Forced to an element weapon skills [helvetica]
 	//Skills forced to an element and gain benefits from the weapon
-	//But final damage is considered "an element" and resistances are applied again
+	//But final damage is considered "the element" and resistances are applied again
 	switch(skill_id) {
 		case MC_CARTREVOLUTION:
 		case PA_SACRIFICE:
@@ -4948,7 +4952,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 
 	wd = battle_calc_weapon_final_atk_modifiers(wd, src, target, skill_id, skill_lv);
 
-	switch(skill_id) { // These skills will do a GVG fix later
+	switch(skill_id) { //These skills will do a GVG fix later
 		case CR_ACIDDEMONSTRATION:
 #ifdef RENEWAL
 		case NJ_ISSEN:
@@ -4983,7 +4987,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	int skill_damage;
 #endif
 	short s_ele = 0;
-	unsigned int skillratio = 100;	//Skill dmg modifiers.
+	unsigned int skillratio = 100; //Skill dmg modifiers.
 
 	TBL_PC *sd;
 //	TBL_PC *tsd;
@@ -6628,9 +6632,9 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			struct status_change_entry *sce = tsc->data[SC_POISONREACT];
 			if (sstatus->def_ele == ELE_POISON) {
 				sce->val2 = 0;
-				skill_attack(BF_WEAPON,target,target,src,AS_POISONREACT,sce->val1,tick,0);
+				skill_attack(BF_WEAPON, target, target, src, AS_POISONREACT, sce->val1, tick, 0);
 			} else {
-				skill_attack(BF_WEAPON,target,target,src,TF_POISON, 5, tick, 0);
+				skill_attack(BF_WEAPON, target, target, src, TF_POISON, 5, tick, 0);
 				--sce->val2;
 			}
 			if (sce->val2 <= 0)

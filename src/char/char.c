@@ -3580,8 +3580,7 @@ static void char_delete2_req(int fd, struct char_session_data* sd)
 	char_id = RFIFOL(fd,2);
 
 	ARR_FIND( 0, MAX_CHARS, i, sd->found_char[i] == char_id );
-	if( i == MAX_CHARS )
-	{// character not found
+	if( i == MAX_CHARS ) { // Character not found
 		char_delete2_ack(fd, char_id, 3, 0);
 		return;
 	}
@@ -3595,7 +3594,7 @@ static void char_delete2_req(int fd, struct char_session_data* sd)
 
 	Sql_GetData(sql_handle, 0, &data, NULL); delete_date = strtoul(data, NULL, 10);
 
-	if( delete_date ) {// character already queued for deletion
+	if( delete_date ) { // Character already queued for deletion
 		char_delete2_ack(fd, char_id, 0, 0);
 		return;
 	}
@@ -3604,21 +3603,19 @@ static void char_delete2_req(int fd, struct char_session_data* sd)
 	// Aegis imposes these checks probably to avoid dead member
 	// entries in guilds/parties, otherwise they are not required.
 	// TODO: Figure out how these are enforced during waiting.
-	if( guild_id )
-	{// character in guild
+	if( guild_id ) { // Character in guild
 		char_delete2_ack(fd, char_id, 4, 0);
 		return;
 	}
 
-	if( party_id )
-	{// character in party
+	if( party_id ) { // Character in party
 		char_delete2_ack(fd, char_id, 5, 0);
 		return;
 	}
 */
 
-	// success
-	delete_date = time(NULL)+char_del_delay;
+	// Success
+	delete_date = time(NULL) + char_del_delay;
 
 	if( SQL_SUCCESS != Sql_Query(sql_handle, "UPDATE `%s` SET `delete_date`='%lu' WHERE `char_id`='%d'", char_db, (unsigned long)delete_date, char_id) )
 	{
@@ -3643,7 +3640,7 @@ static void char_delete2_accept(int fd, struct char_session_data* sd)
 
 	ShowInfo(CL_RED"Request Char Deletion: "CL_GREEN"%d (%d)"CL_RESET"\n", sd->account_id, char_id);
 
-	// construct "YY-MM-DD"
+	// Construct "YY-MM-DD"
 	birthdate[0] = RFIFOB(fd,6);
 	birthdate[1] = RFIFOB(fd,7);
 	birthdate[2] = '-';
@@ -3655,13 +3652,13 @@ static void char_delete2_accept(int fd, struct char_session_data* sd)
 	birthdate[8] = 0;
 
 	ARR_FIND( 0, MAX_CHARS, i, sd->found_char[i] == char_id );
-	if( i == MAX_CHARS ) { // character not found
+	if( i == MAX_CHARS ) { // Character not found
 		char_delete2_accept_ack(fd, char_id, 3);
 		return;
 	}
 
 	if( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT `base_level`,`delete_date` FROM `%s` WHERE `char_id`='%d'", char_db, char_id) || SQL_SUCCESS != Sql_NextRow(sql_handle) )
-	{ // data error
+	{ // Data error
 		Sql_ShowDebug(sql_handle);
 		char_delete2_accept_ack(fd, char_id, 3);
 		return;
@@ -3670,30 +3667,30 @@ static void char_delete2_accept(int fd, struct char_session_data* sd)
 	Sql_GetData(sql_handle, 0, &data, NULL); base_level = (unsigned int)strtoul(data, NULL, 10);
 	Sql_GetData(sql_handle, 1, &data, NULL); delete_date = strtoul(data, NULL, 10);
 
-	if( !delete_date || delete_date>time(NULL) ) { // not queued or delay not yet passed
+	if( !delete_date || delete_date>time(NULL) ) { // Not queued or delay not yet passed
 		char_delete2_accept_ack(fd, char_id, 4);
 		return;
 	}
 
 	// +2 to cut off the century
-	if( strcmp(sd->birthdate+2, birthdate) ) { // birth date is wrong
+	if( strcmp(sd->birthdate + 2, birthdate) ) { // Birth date is wrong
 		char_delete2_accept_ack(fd, char_id, 5);
 		return;
 	}
 
 	if( ( char_del_level > 0 && base_level >= (unsigned int)char_del_level ) || ( char_del_level < 0 && base_level <= (unsigned int)(-char_del_level) ) )
-	{ // character level config restriction
+	{ // Character level config restriction
 		char_delete2_accept_ack(fd, char_id, 2);
 		return;
 	}
 
-	// success
+	// Success
 	if( delete_char_sql(char_id) < 0 ) {
 		char_delete2_accept_ack(fd, char_id, 3);
 		return;
 	}
 
-	// refresh character list cache
+	// Refresh character list cache
 	sd->found_char[i] = -1;
 
 	char_delete2_accept_ack(fd, char_id, 1);
@@ -3707,12 +3704,12 @@ static void char_delete2_cancel(int fd, struct char_session_data* sd)
 	char_id = RFIFOL(fd,2);
 
 	ARR_FIND( 0, MAX_CHARS, i, sd->found_char[i] == char_id );
-	if( i == MAX_CHARS ) { // character not found
+	if( i == MAX_CHARS ) { // Character not found
 		char_delete2_cancel_ack(fd, char_id, 2);
 		return;
 	}
 
-	// there is no need to check, whether or not the character was
+	// There is no need to check, whether or not the character was
 	// queued for deletion, as the client prints an error message by
 	// itself, if it was not the case (@see char_delete2_cancel_ack)
 	if( SQL_SUCCESS != Sql_Query(sql_handle, "UPDATE `%s` SET `delete_date`='0' WHERE `char_id`='%d'", char_db, char_id) ) {

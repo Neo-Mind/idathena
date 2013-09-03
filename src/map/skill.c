@@ -13124,16 +13124,14 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 		}
 	}
 	if( pc_ismadogear(sd) ) {
-		switch( skill_id ) { //None Mado skills are unusable when Mado is equipped. [Jobbie]
+		switch( skill_id ) {
 			case BS_REPAIRWEAPON:  case WS_MELTDOWN:
 			case BS_HAMMERFALL:    case WS_CARTBOOST:
 			case BS_ADRENALINE:    case WS_WEAPONREFINE:
 			case BS_WEAPONPERFECT: case WS_CARTTERMINATION:
 			case BS_OVERTHRUST:    case WS_OVERTHRUSTMAX:
-			case BS_MAXIMIZE:	   case NC_AXEBOOMERANG:
-			case BS_ADRENALINE2:   case NC_POWERSWING:
-			case BS_UNFAIRLYTRICK: case NC_AXETORNADO:
-			case BS_GREED:
+			case BS_MAXIMIZE:
+			case BS_ADRENALINE2:
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			default: //Only Mechanic exlcusive skill can be used.
@@ -13266,7 +13264,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			if( !(sc && sc->data[SC_COMBO]) || sc->data[SC_COMBO]->val1 == TK_JUMPKICK )
 				return 0; //Combo needs to be ready
 
-			if( sc->data[SC_COMBO]->val3 ) {	//Kick chain
+			if( sc->data[SC_COMBO]->val3 ) { //Kick chain
 				//Do not repeat a kick.
 				if( sc->data[SC_COMBO]->val3 != skill_id )
 					break;
@@ -14274,7 +14272,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 			break;
 	}
 	
-	// Check for cost reductions due to skills & SCs
+	//Check for cost reductions due to skills & SCs
 	switch(skill_id) {
 		case MC_MAMMONITE:
 			if(pc_checkskill(sd,BS_UNFAIRLYTRICK) > 0)
