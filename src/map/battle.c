@@ -1002,8 +1002,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 #endif
 
-		if( sc->data[SC_DEFENDER] && skill_id != CR_ACIDDEMONSTRATION &&
-			(flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
+		if( sc->data[SC_DEFENDER] && (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
 			damage = damage * ( 100 - sc->data[SC_DEFENDER]->val2 ) / 100;
 
 		if( sc->data[SC_ADJUSTMENT] && (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )

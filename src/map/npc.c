@@ -121,16 +121,16 @@ struct view_data* npc_get_viewdata(int class_) { //Returns the viewdata for norm
 static int npc_isnear_sub(struct block_list* bl, va_list args) {
 	struct npc_data *nd = (struct npc_data*)bl;
 
-	if( nd->sc.option & (OPTION_HIDE|OPTION_INVISIBLE) )
+	if( nd->sc.option&(OPTION_HIDE|OPTION_INVISIBLE) )
 		return 0;
-	
+
 	return 1;
 }
 
-bool npc_isnear(struct block_list * bl) {
+bool npc_isnear(struct block_list *bl) {
 
 	if( battle_config.min_npc_vendchat_distance > 0 &&
-			map_foreachinrange(npc_isnear_sub,bl, battle_config.min_npc_vendchat_distance, BL_NPC) )
+			map_foreachinrange(npc_isnear_sub, bl, battle_config.min_npc_vendchat_distance, BL_NPC) )
 		return true;
 
 	return false;
