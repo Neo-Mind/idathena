@@ -40,7 +40,7 @@ enum item_itemid {
  * Rune Knight
  **/
 
-enum rune_stones {
+enum rune_list {
 	ITEMID_NAUTHIZ = 12725,
 	ITEMID_RAIDO,
 	ITEMID_BERKANA,
@@ -56,7 +56,7 @@ enum rune_stones {
 /**
  * Mechanic
  **/
-enum {
+enum mecha_item_list {
 	ITEMID_ACCELERATOR = 2800,
 	ITEMID_HOVERING_BOOSTER,
 	ITEMID_SUICIDAL_DEVICE,
@@ -68,11 +68,11 @@ enum {
 	ITEMID_CAMOUFLAGE_GENERATOR,
 	ITEMID_HIGH_QUALITY_COOLER,
 	ITEMID_SPECIAL_COOLER,
-} mecha_item_list;
+};
 
-enum {
+enum item_nouse_list {
 	NOUSE_SITTING = 0x01,
-} item_nouse_list;
+};
 
 enum e_item_job {
 	ITEMJ_NORMAL      = 0x01,
@@ -138,7 +138,7 @@ struct item_data {
 	struct script_code *unequip_script;//Script executed once when unequipping.
 	struct {
 		unsigned available : 1;
-		short no_equip;
+		uint32 no_equip;
 		unsigned no_refine : 1;	// [celest]
 		unsigned delay_consume : 1;	// Signifies items that are not consumed immediately upon double-click [Skotlex]
 		unsigned trade_restriction : 9;	//Item restrictions mask [Skotlex]

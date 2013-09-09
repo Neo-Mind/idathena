@@ -2582,13 +2582,11 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		if(!sd->inventory_data[index])
 			continue;
 
-		if(!pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) &&
-			itemdb_isNoEquip(sd->inventory_data[index],sd->bl.m)) //Items may be equipped, their effects however are nullified
-			continue;
-
 		status->def += sd->inventory_data[index]->def;
 
-		if(first && sd->inventory_data[index]->equip_script) { //Execute equip-script on login
+		//Items may be equipped, their effects however are nullified.
+		if(first && sd->inventory_data[index]->equip_script && (pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) ||
+			!itemdb_isNoEquip(sd->inventory_data[index],sd->bl.m))) { //Execute equip-script on login
 			run_script(sd->inventory_data[index]->equip_script,0,sd->bl.id,0);
 			if (!calculating)
 				return 1;
@@ -2627,7 +2625,8 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 				wd->overrefine = refine_info[wlv].randombonus_max[r - 1] / 100;
 
 			wa->range += sd->inventory_data[index]->range;
-			if(sd->inventory_data[index]->script) {
+			if(sd->inventory_data[index]->script && (pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) ||
+				!itemdb_isNoEquip(sd->inventory_data[index],sd->bl.m))) {
 				if(wd == &sd->left_weapon) {
 					sd->state.lr_flag = 1;
 					run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
@@ -2651,7 +2650,8 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 			int r;
 			if((r = sd->status.inventory[index].refine))
 				refinedef += refine_info[REFINE_TYPE_ARMOR].bonus[r-1];
-			if(sd->inventory_data[index]->script) {
+			if(sd->inventory_data[index]->script && (pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) ||
+				!itemdb_isNoEquip(sd->inventory_data[index],sd->bl.m))) {
 				if(i == EQI_HAND_L) //Shield
 					sd->state.lr_flag = 3;
 				run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
@@ -2676,11 +2676,33 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		}
 	}
 
-	/* We've got combos to process */
-	if( sd->combos.count ) {
-		for( i = 0; i < sd->combos.count; i++ ) {
+	/* We've got combos to process and check */
+	if(sd->combos.count) {
+		for(i = 0; i < sd->combos.count; i++) {
+			uint8 j;
+			bool no_run = false;
+			struct s_combo_pair *ids;
+			if(!sd->combos.bonus[i])
+				continue;
+			/* Check combo items */
+			CREATE(ids,struct s_combo_pair,1);
+			memcpy(ids,&sd->combos.pair[i],sizeof(ids));
+			for(j = 0; j < MAX_ITEMS_PER_COMBO; j++) {
+				uint16 nameid = ids->nameid[j];
+				struct item_data *id = NULL;
+				if(!nameid || !(id = itemdb_exists(nameid)))
+					continue;
+				/* Don't run the script if the items has restriction */
+				if(!pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) && itemdb_isNoEquip(id,sd->bl.m)) {
+					no_run = true;
+					break;
+				}
+			}
+			aFree(ids);
+			if(no_run)
+				continue;
 			run_script(sd->combos.bonus[i],0,sd->bl.id,0);
-			if (!calculating) //Abort, run_script retriggered this
+			if(!calculating) //Abort, run_script retriggered this
 				return 1;
 		}
 	}
@@ -2717,7 +2739,8 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 				data = itemdb_exists(c);
 				if(!data)
 					continue;
-				if(first && data->equip_script) { //Execute equip-script on login
+				if(first && data->equip_script && (pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) ||
+					!itemdb_isNoEquip(data,sd->bl.m))) { //Execute equip-script on login
 					run_script(data->equip_script,0,sd->bl.id,0);
 					if(!calculating)
 						return 1;

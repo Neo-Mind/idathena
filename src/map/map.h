@@ -613,12 +613,12 @@ struct map_data {
 	} drop_list[MAX_DROP_PER_MAP];
 
 	struct spawn_data *moblist[MAX_MOB_LIST_PER_MAP]; // [Wizputer]
-	int mob_delete_timer;	// [Skotlex]
-	int zone;	// Zone number (for item/skill restrictions)
+	int mob_delete_timer; // [Skotlex]
+	uint32 zone; // Zone number (for item/skill restrictions)
 	int nocommand; //Blocks @/# commands for non-gms. [Skotlex]
 	struct {
-		int jexp;	// Map experience multiplicator
-		int bexp;	// Map experience multiplicator
+		int jexp; // Map experience multiplicator
+		int bexp; // Map experience multiplicator
 #ifdef ADJUST_SKILL_DAMAGE
 		struct s_skill_damage damage;
 #endif

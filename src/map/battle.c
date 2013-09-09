@@ -789,7 +789,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			return 0;
 		}
 
-		if( sc->data[SC_SAFETYWALL] && ((flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT || (skill_get_inf2(skill_id)&INF2_TRAP)) ) {
+		if( sc->data[SC_SAFETYWALL] && (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT ) {
 			struct skill_unit_group* group = skill_id2group(sc->data[SC_SAFETYWALL]->val3);
 			uint16 skill_id = sc->data[SC_SAFETYWALL]->val2;
 			if( group ) {
@@ -821,8 +821,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			status_change_end(bl, SC_SAFETYWALL, INVALID_TIMER);
 		}
 
-		if( (sc->data[SC_PNEUMA] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG &&
-			!(skill_get_inf2(skill_id)&INF2_TRAP)) || sc->data[SC__MANHOLE] ) {
+		if( (sc->data[SC_PNEUMA] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG) || sc->data[SC__MANHOLE] ) {
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}
@@ -1706,7 +1705,12 @@ void battle_consume_ammo(TBL_PC*sd, int skill, int lv)
 }
 
 static int battle_range_type(struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv)
-{ //Skill Range Criteria
+{
+	//[Akinari], [Xynvaroth]: Traps are always short range
+	if(skill_get_inf2(skill_id)&INF2_TRAP)
+		return BF_SHORT;
+
+	//Skill Range Criteria
 	if(battle_config.skillrange_by_distance &&
 		(src->type&battle_config.skillrange_by_distance)
 	) { //Based on distance between src/target [Skotlex]

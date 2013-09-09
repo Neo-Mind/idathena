@@ -121,6 +121,13 @@ enum npc_timeout_type {
 	NPCT_WAIT  = 2,
 };
 
+/*
+ * Combo's items
+ */
+struct s_combo_pair {
+	uint16 nameid[MAX_ITEMS_PER_COMBO];
+};
+
 struct map_session_data {
 	struct block_list bl;
 	struct unit_data ud;
@@ -505,9 +512,10 @@ struct map_session_data {
 #endif
 
 	struct {
-		struct script_code **bonus;/* the script */
-		unsigned short *id;/* array of combo ids */
+		struct script_code **bonus; /* The script */
+		unsigned short *id; /* Array of combo ids */
 		unsigned char count;
+		struct s_combo_pair **pair;
 	} combos;
 
 	/**

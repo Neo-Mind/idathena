@@ -7238,19 +7238,19 @@ BUILDIN_FUNC(getequipname)
  *------------------------------------------*/
 BUILDIN_FUNC(getbrokenid)
 {
-	int i,num,id=0,brokencounter=0;
+	int i, num, id = 0, brokencounter = 0;
 	TBL_PC *sd;
 
 	sd = script_rid2sd(st);
-	if( sd == NULL )
+	if(sd == NULL)
 		return 0;
 
-	num=script_getnum(st,2);
-	for(i=0; i<MAX_INVENTORY; i++) {
-		if(sd->status.inventory[i].attribute){
+	num = script_getnum(st,2);
+	for(i = 0; i < MAX_INVENTORY; i++) {
+		if(sd->status.inventory[i].attribute) {
 				brokencounter++;
-				if(num==brokencounter){
-					id=sd->status.inventory[i].nameid;
+				if(num == brokencounter) {
+					id = sd->status.inventory[i].nameid;
 					break;
 				}
 		}
@@ -7267,22 +7267,22 @@ BUILDIN_FUNC(getbrokenid)
 BUILDIN_FUNC(repair)
 {
 	int i,num;
-	int repaircounter=0;
+	int repaircounter = 0;
 	TBL_PC *sd;
 
 	sd = script_rid2sd(st);
-	if( sd == NULL )
+	if(sd == NULL)
 		return 0;
 
-	num=script_getnum(st,2);
-	for(i=0; i<MAX_INVENTORY; i++) {
-		if(sd->status.inventory[i].attribute){
+	num = script_getnum(st,2);
+	for(i = 0; i < MAX_INVENTORY; i++) {
+		if(sd->status.inventory[i].attribute) {
 				repaircounter++;
-				if(num==repaircounter){
-					sd->status.inventory[i].attribute=0;
+				if(num == repaircounter) {
+					sd->status.inventory[i].attribute = 0;
 					clif_equiplist(sd);
-					clif_produceeffect(sd, 0, sd->status.inventory[i].nameid);
-					clif_misceffect(&sd->bl, 3);
+					clif_produceeffect(sd,0,sd->status.inventory[i].nameid);
+					clif_misceffect(&sd->bl,3);
 					break;
 				}
 		}
@@ -7303,19 +7303,16 @@ BUILDIN_FUNC(repairall)
 	if(sd == NULL)
 		return 0;
 
-	for(i = 0; i < MAX_INVENTORY; i++)
-	{
-		if(sd->status.inventory[i].nameid && sd->status.inventory[i].attribute)
-		{
+	for(i = 0; i < MAX_INVENTORY; i++) {
+		if(sd->status.inventory[i].nameid && sd->status.inventory[i].attribute) {
 			sd->status.inventory[i].attribute = 0;
 			clif_produceeffect(sd,0,sd->status.inventory[i].nameid);
 			repaircounter++;
 		}
 	}
 
-	if(repaircounter)
-	{
-		clif_misceffect(&sd->bl, 3);
+	if(repaircounter) {
+		clif_misceffect(&sd->bl,3);
 		clif_equiplist(sd);
 	}
 
@@ -7332,16 +7329,16 @@ BUILDIN_FUNC(getequipisequiped)
 
 	num = script_getnum(st,2);
 	sd = script_rid2sd(st);
-	if( sd == NULL )
+	if(sd == NULL)
 		return 0;
 
-	if (num > 0 && num <= ARRAYLENGTH(equip))
-		i=pc_checkequip(sd,equip[num-1]);
+	if(num > 0 && num <= ARRAYLENGTH(equip))
+		i = pc_checkequip(sd,equip[num - 1]);
 
 	if(i >= 0)
 		script_pushint(st,1);
 	else
-		 script_pushint(st,0);
+		script_pushint(st,0);
 	return 0;
 }
 
@@ -7359,12 +7356,12 @@ BUILDIN_FUNC(getequipisenableref)
 
 	num = script_getnum(st,2);
 	sd = script_rid2sd(st);
-	if( sd == NULL )
+	if(sd == NULL)
 		return 0;
 
-	if( num > 0 && num <= ARRAYLENGTH(equip) )
-		i = pc_checkequip(sd,equip[num-1]);
-	if( i >= 0 && sd->inventory_data[i] && !sd->inventory_data[i]->flag.no_refine && !sd->status.inventory[i].expire_time )
+	if(num > 0 && num <= ARRAYLENGTH(equip))
+		i = pc_checkequip(sd,equip[num - 1]);
+	if(i >= 0 && sd->inventory_data[i] && !sd->inventory_data[i]->flag.no_refine && !sd->status.inventory[i].expire_time)
 		script_pushint(st,1);
 	else
 		script_pushint(st,0);
@@ -7385,11 +7382,11 @@ BUILDIN_FUNC(getequiprefinerycnt)
 
 	num = script_getnum(st,2);
 	sd = script_rid2sd(st);
-	if( sd == NULL )
+	if(sd == NULL)
 		return 0;
 
-	if (num > 0 && num <= ARRAYLENGTH(equip))
-		i=pc_checkequip(sd,equip[num-1]);
+	if(num > 0 && num <= ARRAYLENGTH(equip))
+		i = pc_checkequip(sd,equip[num - 1]);
 	if(i >= 0)
 		script_pushint(st,sd->status.inventory[i].refine);
 	else
@@ -7412,11 +7409,11 @@ BUILDIN_FUNC(getequipweaponlv)
 
 	num = script_getnum(st,2);
 	sd = script_rid2sd(st);
-	if( sd == NULL )
+	if(sd == NULL)
 		return 0;
 
-	if (num > 0 && num <= ARRAYLENGTH(equip))
-		i=pc_checkequip(sd,equip[num-1]);
+	if(num > 0 && num <= ARRAYLENGTH(equip))
+		i = pc_checkequip(sd,equip[num - 1]);
 	if(i >= 0 && sd->inventory_data[i])
 		script_pushint(st,sd->inventory_data[i]->wlv);
 	else
@@ -7438,11 +7435,11 @@ BUILDIN_FUNC(getequippercentrefinery)
 
 	num = script_getnum(st,2);
 	sd = script_rid2sd(st);
-	if( sd == NULL )
+	if(sd == NULL)
 		return 0;
 
-	if (num > 0 && num <= ARRAYLENGTH(equip))
-		i=pc_checkequip(sd,equip[num-1]);
+	if(num > 0 && num <= ARRAYLENGTH(equip))
+		i = pc_checkequip(sd,equip[num - 1]);
 	if(i >= 0 && sd->status.inventory[i].nameid && sd->status.inventory[i].refine < MAX_REFINE)
 		script_pushint(st,status_get_refine_chance(itemdb_wlv(sd->status.inventory[i].nameid), (int)sd->status.inventory[i].refine));
 	else
@@ -7456,21 +7453,21 @@ BUILDIN_FUNC(getequippercentrefinery)
  *------------------------------------------*/
 BUILDIN_FUNC(successrefitem)
 {
-	int i=-1,num,ep;
+	int i = -1, num, ep;
 	TBL_PC *sd;
 
 	num = script_getnum(st,2);
 	sd = script_rid2sd(st);
-	if( sd == NULL )
+	if(sd == NULL)
 		return 0;
 
-	if (num > 0 && num <= ARRAYLENGTH(equip))
-		i=pc_checkequip(sd,equip[num-1]);
+	if(num > 0 && num <= ARRAYLENGTH(equip))
+		i = pc_checkequip(sd,equip[num - 1]);
 	if(i >= 0) {
 		ep=sd->status.inventory[i].equip;
 
 		//Logs items, got from (N)PC scripts [Lupus]
-		log_pick_pc(sd, LOG_TYPE_SCRIPT, -1, &sd->status.inventory[i]);
+		log_pick_pc(sd,LOG_TYPE_SCRIPT,-1,&sd->status.inventory[i]);
 
 		sd->status.inventory[i].refine++;
 		pc_unequipitem(sd,i,2); // status calc will happen in pc_equipitem() below
@@ -7479,7 +7476,7 @@ BUILDIN_FUNC(successrefitem)
 		clif_delitem(sd,i,1,3);
 
 		//Logs items, got from (N)PC scripts [Lupus]
-		log_pick_pc(sd, LOG_TYPE_SCRIPT, 1, &sd->status.inventory[i]);
+		log_pick_pc(sd,LOG_TYPE_SCRIPT,1,&sd->status.inventory[i]);
 
 		clif_additem(sd,i,1,0);
 		pc_equipitem(sd,i,ep);
@@ -7487,8 +7484,8 @@ BUILDIN_FUNC(successrefitem)
 		if(sd->status.inventory[i].refine == MAX_REFINE &&
 			sd->status.inventory[i].card[0] == CARD0_FORGE &&
 		  	sd->status.char_id == (int)MakeDWord(sd->status.inventory[i].card[2],sd->status.inventory[i].card[3])
-		){ // Fame point system [DracoRPG]
-	 		switch (sd->inventory_data[i]->wlv){
+		) { // Fame point system [DracoRPG]
+	 		switch (sd->inventory_data[i]->wlv) {
 				case 1:
 					pc_addfame(sd,1); // Success to refine to +10 a lv1 weapon you forged = +1 fame point
 					break;
@@ -7510,23 +7507,23 @@ BUILDIN_FUNC(successrefitem)
  *------------------------------------------*/
 BUILDIN_FUNC(failedrefitem)
 {
-	int i=-1,num;
+	int i = -1,num;
 	TBL_PC *sd;
 
 	num = script_getnum(st,2);
 	sd = script_rid2sd(st);
-	if( sd == NULL )
+	if(sd == NULL)
 		return 0;
 
-	if (num > 0 && num <= ARRAYLENGTH(equip))
-		i=pc_checkequip(sd,equip[num-1]);
+	if(num > 0 && num <= ARRAYLENGTH(equip))
+		i = pc_checkequip(sd,equip[num - 1]);
 	if(i >= 0) {
 		sd->status.inventory[i].refine = 0;
-		pc_unequipitem(sd,i,3); //recalculate bonus
-		clif_refine(sd->fd,1,i,sd->status.inventory[i].refine); //notify client of failure
+		pc_unequipitem(sd,i,3); //Recalculate bonus
+		clif_refine(sd->fd,1,i,sd->status.inventory[i].refine); //Notify client of failure
 
 		pc_delitem(sd,i,1,0,2,LOG_TYPE_SCRIPT);
-		clif_misceffect(&sd->bl,2); // display failure effect
+		clif_misceffect(&sd->bl,2); //Display failure effect
 	}
 
 	return 0;
@@ -7542,16 +7539,16 @@ BUILDIN_FUNC(downrefitem)
 
 	num = script_getnum(st,2);
 	sd = script_rid2sd(st);
-	if( sd == NULL )
+	if(sd == NULL)
 		return 0;
 
-	if (num > 0 && num <= ARRAYLENGTH(equip))
-		i = pc_checkequip(sd,equip[num-1]);
+	if(num > 0 && num <= ARRAYLENGTH(equip))
+		i = pc_checkequip(sd,equip[num - 1]);
 	if(i >= 0) {
 		ep = sd->status.inventory[i].equip;
 
 		//Logs items, got from (N)PC scripts [Lupus]
-		log_pick_pc(sd, LOG_TYPE_SCRIPT, -1, &sd->status.inventory[i]);
+		log_pick_pc(sd,LOG_TYPE_SCRIPT,-1,&sd->status.inventory[i]);
 
 		sd->status.inventory[i].refine++;
 		pc_unequipitem(sd,i,2); // status calc will happen in pc_equipitem() below
@@ -7560,7 +7557,7 @@ BUILDIN_FUNC(downrefitem)
 		clif_delitem(sd,i,1,3);
 
 		//Logs items, got from (N)PC scripts [Lupus]
-		log_pick_pc(sd, LOG_TYPE_SCRIPT, 1, &sd->status.inventory[i]);
+		log_pick_pc(sd,LOG_TYPE_SCRIPT,1,&sd->status.inventory[i]);
 
 		clif_additem(sd,i,1,0);
 		pc_equipitem(sd,i,ep);
@@ -7575,22 +7572,47 @@ BUILDIN_FUNC(downrefitem)
  *------------------------------------------*/
 BUILDIN_FUNC(delequip)
 {
+	int i = -1, num, ret = 0;
+	TBL_PC *sd;
+
+	num = script_getnum(st,2);
+	sd = script_rid2sd(st);
+	if(sd == NULL)
+		return 0;
+
+	if(num > 0 && num <= ARRAYLENGTH(equip))
+		i = pc_checkequip(sd,equip[num - 1]);
+	if(i >= 0) {
+		pc_unequipitem(sd,i,3); //Recalculate bonus
+		ret = !(pc_delitem(sd,i,1,0,2,LOG_TYPE_SCRIPT));
+	}
+
+  script_pushint(st,ret);
+  return 0;
+}
+
+/*==========================================
+ * Break the item equipped at pos.
+ *------------------------------------------*/
+BUILDIN_FUNC(breakequip)
+{
 	int i = -1, num;
 	TBL_PC *sd;
 
 	num = script_getnum(st,2);
 	sd = script_rid2sd(st);
-	if( sd == NULL )
+	if(sd == NULL)
 		return 0;
 
-	if( num > 0 && num <= ARRAYLENGTH(equip) )
-		i = pc_checkequip(sd,equip[num-1]);
-	if( i >= 0 ) {
-		int ret;
-		pc_unequipitem(sd,i,3); //Recalculate bonus
-		ret = pc_delitem(sd,i,1,0,2,LOG_TYPE_SCRIPT);
-		script_pushint(st,ret == 0);
-	}
+	if(num > 0 && num <= ARRAYLENGTH(equip))
+		i = pc_checkequip(sd,equip[num - 1]);
+	if(i >= 0) {
+		sd->status.inventory[i].attribute = 1;
+		pc_unequipitem(sd,i,3);
+		clif_equiplist(sd);
+		script_pushint(st,1);
+	} else
+		script_pushint(st,0);
 
 	return 0;
 }
@@ -18091,21 +18113,21 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(unitstop,"i"),
 	BUILDIN_DEF(unittalk,"is"),
 	BUILDIN_DEF(unitemote,"ii"),
-	BUILDIN_DEF(unitskilluseid,"ivi?"), // originally by Qamera [Celest]
-	BUILDIN_DEF(unitskillusepos,"iviii"), // [Celest]
+	BUILDIN_DEF(unitskilluseid,"ivi?"), //Originally by Qamera [Celest]
+	BUILDIN_DEF(unitskillusepos,"iviii"), //[Celest]
 // <--- [zBuffer] List of mob control commands
 	BUILDIN_DEF(sleep,"i"),
 	BUILDIN_DEF(sleep2,"i"),
 	BUILDIN_DEF(awake,"s"),
 	BUILDIN_DEF(getvariableofnpc,"rs"),
 	BUILDIN_DEF(warpportal,"iisii"),
-	BUILDIN_DEF2(homunculus_evolution,"homevolution",""),	//[orn]
+	BUILDIN_DEF2(homunculus_evolution,"homevolution",""), //[orn]
 	BUILDIN_DEF2(homunculus_mutate,"hommutate","?"),
 	BUILDIN_DEF(morphembryo,""),
-	BUILDIN_DEF2(homunculus_shuffle,"homshuffle",""),	//[Zephyrus]
+	BUILDIN_DEF2(homunculus_shuffle,"homshuffle",""), //[Zephyrus]
 	BUILDIN_DEF(checkhomcall,""),
-	BUILDIN_DEF(eaclass,"?"),	//[Skotlex]
-	BUILDIN_DEF(roclass,"i?"),	//[Skotlex]
+	BUILDIN_DEF(eaclass,"?"), //[Skotlex]
+	BUILDIN_DEF(roclass,"i?"), //[Skotlex]
 	BUILDIN_DEF(checkvending,"?"),
 	BUILDIN_DEF(checkchatting,"?"),
 	BUILDIN_DEF(checkidle,"?"),
@@ -18131,11 +18153,11 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(buyingstore,"i"),
 	BUILDIN_DEF(searchstores,"ii"),
 	BUILDIN_DEF(showdigit,"i?"),
-	// WoE SE
+	//WoE SE
 	BUILDIN_DEF(agitstart2,""),
 	BUILDIN_DEF(agitend2,""),
 	BUILDIN_DEF(agitcheck2,""),
-	// BattleGround
+	//BattleGround
 	BUILDIN_DEF(waitingroom2bg,"siiss?"),
 	BUILDIN_DEF(waitingroom2bg_single,"isiis"),
 	BUILDIN_DEF(bg_team_setxy,"iii"),
@@ -18149,7 +18171,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(bg_getareausers,"isiiii"),
 	BUILDIN_DEF(bg_updatescore,"sii"),
 
-	// Instancing
+	//Instancing
 	BUILDIN_DEF(instance_create,"s"),
 	BUILDIN_DEF(instance_destroy,"?"),
 	BUILDIN_DEF(instance_id,""),
@@ -18163,10 +18185,10 @@ struct script_function buildin_func[] = {
 	 * 3rd-related
 	 **/
 	BUILDIN_DEF(makerune,"i"),
-	BUILDIN_DEF(checkdragon,""),//[Ind]
-	BUILDIN_DEF(setdragon,"?"),//[Ind]
-	BUILDIN_DEF(ismounting,""),//[Ind]
-	BUILDIN_DEF(setmounting,""),//[Ind]
+	BUILDIN_DEF(checkdragon,""), //[Ind]
+	BUILDIN_DEF(setdragon,"?"), //[Ind]
+	BUILDIN_DEF(ismounting,""), //[Ind]
+	BUILDIN_DEF(setmounting,""), //[Ind]
 	BUILDIN_DEF(checkre,"i"),
 	/**
 	 * rAthena and beyond!
@@ -18182,6 +18204,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(npcskill,"viii"),
 	BUILDIN_DEF(consumeitem,"v"),
 	BUILDIN_DEF(delequip,"i"),
+	BUILDIN_DEF(breakequip,"i"),
 	BUILDIN_DEF(sit,"?"),
 	BUILDIN_DEF(stand,"?"),
 	/**

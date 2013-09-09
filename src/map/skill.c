@@ -2951,7 +2951,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			case GC_VENOMPRESSURE: {
 					struct status_change *ssc = status_get_sc(src);
 					if( ssc && ssc->data[SC_POISONINGWEAPON] && rnd()%100 < 70 + 5 * skill_lv ) {
-						sc_start(src,bl,ssc->data[SC_POISONINGWEAPON]->val2,100,ssc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON, 1));
+						sc_start(src,bl,(enum sc_type)ssc->data[SC_POISONINGWEAPON]->val2,100,ssc->data[SC_POISONINGWEAPON]->val1,
+							skill_get_time2(GC_POISONINGWEAPON, 1));
 						status_change_end(src,SC_POISONINGWEAPON,INVALID_TIMER);
 						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 					}
@@ -8346,7 +8347,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					case WL_SUMMONSTONE: element = WLS_STONE; break;
 				}
 
-				sc_start4(src,src,sctype,100,element,pos,skill_lv,0,skill_get_time(skill_id,skill_lv));
+				sc_start4(src,src,(enum sc_type)sctype,100,element,pos,skill_lv,0,skill_get_time(skill_id,skill_lv));
 				clif_skill_nodamage(src,bl,skill_id,0,0);
 			}
 			break;
@@ -10438,14 +10439,15 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			{
 				int summons[5] = { 1589, 1579, 1575, 1555, 1590 };
 				//int summons[5] = { 1020, 1068, 1118, 1500, 1368 };
-				int class_ = skill_id==AM_SPHEREMINE?1142:summons[skill_lv-1];
+				int class_ = skill_id == AM_SPHEREMINE ? 1142 : summons[skill_lv - 1];
+				int ai = (skill_id == AM_SPHEREMINE) ? AI_SPHERE : AI_FLORA;
 				struct mob_data *md;
 
 				// Correct info, don't change any of this! [celest]
 				md = mob_once_spawn_sub(src, src->m, x, y, status_get_name(src), class_, "", SZ_SMALL, AI_NONE);
 				if (md) {
 					md->master_id = src->id;
-					md->special_state.ai = (skill_id == AM_SPHEREMINE) ? AI_SPHERE : AI_FLORA;
+					md->special_state.ai = (enum mob_ai)ai;
 					if( md->deletetimer != INVALID_TIMER )
 						delete_timer(md->deletetimer, mob_timer_delete);
 					md->deletetimer = add_timer (gettick() + skill_get_time(skill_id,skill_lv), mob_timer_delete, md->bl.id, 0);
@@ -11747,7 +11749,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 		case UNT_FOGWALL:
 			if (!sce) {
 				sc_start4(ss, bl, type, 100, sg->skill_lv, sg->val1, sg->val2, sg->group_id, sg->limit);
-				if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0)
+				if (battle_check_target(&src->bl,bl,BCT_ENEMY) > 0)
 					skill_additional_effect (ss, bl, sg->skill_id, sg->skill_lv, BF_MISC, ATK_DEF, tick);
 			}
 			break;
@@ -11793,7 +11795,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 		case UNT_GD_GLORYWOUNDS:
 		case UNT_GD_SOULCOLD:
 		case UNT_GD_HAWKEYES:
-			if (!sce)
+			if (!sce && battle_check_target(&sg->unit->bl,bl,sg->target_flag) > 0)
 				sc_start4(ss,bl,type,100,sg->skill_lv,0,0,0,1000);
 			break;
 	}
@@ -12942,7 +12944,7 @@ int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 /*==========================================
  * Checks and stores partners for ensemble skills [Skotlex]
  *------------------------------------------*/
-int skill_check_pc_partner (struct map_session_data *sd, uint16 skill_id, short* skill_lv, int range, int cast_flag)
+int skill_check_pc_partner (struct map_session_data *sd, uint16 skill_id, uint16 *skill_lv, int range, int cast_flag)
 {
 	static int c = 0;
 	static int p_sd[2] = { 0, 0 };
@@ -12952,7 +12954,7 @@ int skill_check_pc_partner (struct map_session_data *sd, uint16 skill_id, short*
 	if (!battle_config.player_skill_partner_check || pc_has_permission(sd, PC_PERM_SKILL_UNCONDITIONAL))
 		return is_chorus ? MAX_PARTY : 99; //As if there were infinite partners.
 
-	if (cast_flag) {	//Execute the skill on the partners.
+	if (cast_flag) { //Execute the skill on the partners.
 		struct map_session_data* tsd;
 		switch (skill_id) {
 			case PR_BENEDICTIO:
@@ -13902,16 +13904,16 @@ int skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id, 
 			break;
 		case AM_CANNIBALIZE:
 		case AM_SPHEREMINE: {
-			int c=0;
+			int c = 0;
 			int summons[5] = { 1589, 1579, 1575, 1555, 1590 };
 			//int summons[5] = { 1020, 1068, 1118, 1500, 1368 };
-			int maxcount = (skill_id==AM_CANNIBALIZE)? 6-skill_lv : skill_get_maxcount(skill_id,skill_lv);
-			int mob_class = (skill_id==AM_CANNIBALIZE)? summons[skill_lv-1] :1142;
-			if(battle_config.land_skill_limit && maxcount>0 && (battle_config.land_skill_limit&BL_PC)) {
+			int maxcount = (skill_id == AM_CANNIBALIZE) ? 6 - skill_lv : skill_get_maxcount(skill_id,skill_lv);
+			int mob_class = (skill_id == AM_CANNIBALIZE)? summons[skill_lv - 1] : 1142;
+			if(battle_config.land_skill_limit && maxcount > 0 && (battle_config.land_skill_limit&BL_PC)) {
 				i = map_foreachinmap(skill_check_condition_mob_master_sub ,sd->bl.m, BL_MOB, sd->bl.id, mob_class, skill_id, &c);
 				if(c >= maxcount ||
-					(skill_id==AM_CANNIBALIZE && c != i && battle_config.summon_flora&2))
-				{	//Fails when: exceed max limit. There are other plant types already out.
+					(skill_id == AM_CANNIBALIZE && c != i && battle_config.summon_flora&2))
+				{ //Fails when: exceed max limit. There are other plant types already out.
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					return 0;
 				}
@@ -18259,14 +18261,17 @@ static bool skill_parse_row_skilldb(char* split[], int columns, int current)
 	return true;
 }
 
+/**
+ * Read skill requirement from skill_require_db.txt
+ **/
 static bool skill_parse_row_requiredb(char* split[], int columns, int current)
-{// skill_id,HPCost,MaxHPTrigger,SPCost,HPRateCost,SPRateCost,ZenyCost,RequiredWeapons,RequiredAmmoTypes,RequiredAmmoAmount,RequiredState,SpiritSphereCost,RequiredItemID1,RequiredItemAmount1,RequiredItemID2,RequiredItemAmount2,RequiredItemID3,RequiredItemAmount3,RequiredItemID4,RequiredItemAmount4,RequiredItemID5,RequiredItemAmount5,RequiredItemID6,RequiredItemAmount6,RequiredItemID7,RequiredItemAmount7,RequiredItemID8,RequiredItemAmount8,RequiredItemID9,RequiredItemAmount9,RequiredItemID10,RequiredItemAmount10
+{ // skill_id,HPCost,MaxHPTrigger,SPCost,HPRateCost,SPRateCost,ZenyCost,RequiredWeapons,RequiredAmmoTypes,RequiredAmmoAmount,RequiredState,SpiritSphereCost,RequiredItemID1,RequiredItemAmount1,RequiredItemID2,RequiredItemAmount2,RequiredItemID3,RequiredItemAmount3,RequiredItemID4,RequiredItemAmount4,RequiredItemID5,RequiredItemAmount5,RequiredItemID6,RequiredItemAmount6,RequiredItemID7,RequiredItemAmount7,RequiredItemID8,RequiredItemAmount8,RequiredItemID9,RequiredItemAmount9,RequiredItemID10,RequiredItemAmount10
 	char* p;
 	int j;
 
 	uint16 skill_id = atoi(split[0]);
 	uint16 idx = skill_get_index(skill_id);
-	if( !idx ) // invalid skill id
+	if( !idx ) //Invalid skill id
 		return false;
 
 	skill_split_atoi(split[1],skill_db[idx].hp);
@@ -18276,11 +18281,11 @@ static bool skill_parse_row_requiredb(char* split[], int columns, int current)
 	skill_split_atoi(split[5],skill_db[idx].sp_rate);
 	skill_split_atoi(split[6],skill_db[idx].zeny);
 
-	//Wich weapon type are required, see doc/item_db for types
+	//Which weapon type are required, see doc/item_db for weapon types (View column)
 	p = split[7];
 	for( j = 0; j < 32; j++ ) {
 		int l = atoi(p);
-		if( l == 99 ) { // Any weapon
+		if( l == 99 ) { //Any weapon
 			skill_db[idx].weapon = 0;
 			break;
 		} else
@@ -18291,14 +18296,14 @@ static bool skill_parse_row_requiredb(char* split[], int columns, int current)
 		p++;
 	}
 
-	//FIXME: document this
+	//Ammo type that required, see doc/item_db for ammo types (View column)
 	p = split[8];
 	for( j = 0; j < 32; j++ ) {
 		int l = atoi(p);
-		if( l == 99 ) { // Any ammo type
+		if( l == 99 ) { //Any ammo type
 			skill_db[idx].ammo = 0xFFFFFFFF;
 			break;
-		} else if( l ) // 0 stands for no requirement
+		} else if( l ) //0 stands for no requirement
 			skill_db[idx].ammo |= 1<<l;
 		p = strchr(p,':');
 		if( !p )
