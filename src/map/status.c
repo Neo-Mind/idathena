@@ -308,10 +308,13 @@ void initChangeTables(void) {
 	add_sc( MO_BLADESTOP         , SC_BLADESTOP_WAIT  );
 	add_sc( MO_BLADESTOP         , SC_BLADESTOP       );
 	set_sc( MO_EXPLOSIONSPIRITS  , SC_EXPLOSIONSPIRITS, SI_EXPLOSIONSPIRITS, SCB_CRI|SCB_REGEN );
-	set_sc( MO_EXTREMITYFIST     , SC_EXTREMITYFIST   , SI_BLANK           , SCB_REGEN );
-#ifdef RENEWAL
-	set_sc( MO_EXTREMITYFIST     , SC_EXTREMITYFIST2  , SI_EXTREMITYFIST   , SCB_NONE  );
+	set_sc( MO_EXTREMITYFIST     ,
+#ifndef RENEWAL
+		SC_EXTREMITYFIST    , SI_BLANK           , SCB_REGEN
+#else
+		SC_EXTREMITYFIST2   , SI_EXTREMITYFIST   , SCB_NONE
 #endif
+		);
 	add_sc( SA_MAGICROD          , SC_MAGICROD        );
 	set_sc( SA_AUTOSPELL         , SC_AUTOSPELL       , SI_AUTOSPELL       , SCB_NONE );
 	set_sc( SA_FLAMELAUNCHER     , SC_FIREWEAPON      , SI_FIREWEAPON      , SCB_ATK_ELE );
@@ -352,18 +355,22 @@ void initChangeTables(void) {
 	add_sc( NPC_INVISIBLE        , SC_CLOAKING        );
 	set_sc( LK_AURABLADE         , SC_AURABLADE       , SI_AURABLADE       , SCB_NONE );
 	set_sc( LK_PARRYING          , SC_PARRYING        , SI_PARRYING        , SCB_NONE );
+	set_sc( LK_CONCENTRATION     , SC_CONCENTRATION   , SI_CONCENTRATION   ,
 #ifndef RENEWAL
-	set_sc( LK_CONCENTRATION     , SC_CONCENTRATION , SI_CONCENTRATION   , SCB_BATK|SCB_WATK|SCB_HIT|SCB_DEF|SCB_DEF2);
+		SCB_BATK|SCB_WATK|SCB_HIT|SCB_DEF|SCB_DEF2
 #else
-	set_sc( LK_CONCENTRATION     , SC_CONCENTRATION , SI_CONCENTRATION   , SCB_HIT|SCB_DEF);
+		SCB_HIT|SCB_DEF
 #endif
+		);
 	set_sc( LK_TENSIONRELAX      , SC_TENSIONRELAX    , SI_TENSIONRELAX    , SCB_REGEN );
 	set_sc( LK_BERSERK           , SC_BERSERK         , SI_BERSERK         , SCB_DEF|SCB_DEF2|SCB_MDEF|SCB_MDEF2|SCB_FLEE|SCB_SPEED|SCB_ASPD|SCB_MAXHP|SCB_REGEN );
-#ifdef RENEWAL
-	set_sc( HP_ASSUMPTIO         , SC_ASSUMPTIO       , SI_ASSUMPTIO2      , SCB_NONE );
+	set_sc( HP_ASSUMPTIO         , SC_ASSUMPTIO       ,
+#ifndef RENEWAL
+		SI_ASSUMPTIO
 #else
-	set_sc( HP_ASSUMPTIO         , SC_ASSUMPTIO       , SI_ASSUMPTIO       , SCB_NONE );
+		SI_ASSUMPTIO2
 #endif
+		, SCB_NONE );
 	add_sc( HP_BASILICA          , SC_BASILICA        );
 	set_sc( HW_MAGICPOWER        , SC_MAGICPOWER      , SI_MAGICPOWER      , SCB_MATK );
 	add_sc( PA_SACRIFICE         , SC_SACRIFICE       );
@@ -480,14 +487,16 @@ void initChangeTables(void) {
 
 	set_sc( CASH_BLESSING        , SC_BLESSING        , SI_BLESSING        , SCB_STR|SCB_INT|SCB_DEX );
 	set_sc( CASH_INCAGI          , SC_INCREASEAGI     , SI_INCREASEAGI     , SCB_AGI|SCB_SPEED );
-#ifdef RENEWAL
-	set_sc( CASH_ASSUMPTIO       , SC_ASSUMPTIO       , SI_ASSUMPTIO2      , SCB_NONE );
+	set_sc( CASH_ASSUMPTIO       , SC_ASSUMPTIO       ,
+#ifndef RENEWAL
+		SI_ASSUMPTIO
 #else
-	set_sc( CASH_ASSUMPTIO       , SC_ASSUMPTIO       , SI_ASSUMPTIO       , SCB_NONE );
+		SI_ASSUMPTIO2
 #endif
+		, SCB_NONE );
 
 	set_sc( ALL_PARTYFLEE        , SC_INCFLEE         , SI_PARTYFLEE       , SCB_NONE );
-	set_sc( ALL_ODINS_POWER      , SC_ODINS_POWER     , SI_ODINS_POWER     , SCB_WATK|SCB_MATK|SCB_DEF|SCB_MDEF );
+	set_sc( ALL_ODINS_POWER      , SC_ODINS_POWER     , SI_ODINS_POWER     , SCB_BATK|SCB_MATK|SCB_DEF|SCB_MDEF );
 
 	set_sc( CR_SHRINK            , SC_SHRINK          , SI_SHRINK          , SCB_NONE );
 	set_sc( RG_CLOSECONFINE      , SC_CLOSECONFINE2   , SI_CLOSECONFINE2   , SCB_NONE );
@@ -634,11 +643,13 @@ void initChangeTables(void) {
 	set_sc( LG_FORCEOFVANGUARD   , SC_FORCEOFVANGUARD , SI_FORCEOFVANGUARD , SCB_MAXHP );
 	set_sc( LG_EXEEDBREAK        , SC_EXEEDBREAK      , SI_EXEEDBREAK      , SCB_NONE );
 	set_sc( LG_PRESTIGE          , SC_PRESTIGE        , SI_PRESTIGE        , SCB_DEF );
-#ifdef RENEWAL
-	set_sc( LG_BANDING           , SC_BANDING         , SI_BANDING         , SCB_WATK|SCB_DEF2 );
+	set_sc( LG_BANDING           , SC_BANDING         , SI_BANDING         , SCB_WATK|
+#ifndef RENEWAL
+		SCB_DEF
 #else
-	set_sc( LG_BANDING           , SC_BANDING         , SI_BANDING         , SCB_WATK|SCB_DEF );
+		SCB_DEF2
 #endif
+		);
 	set_sc( LG_PIETY             , SC_BENEDICTIO       , SI_BENEDICTIO       , SCB_DEF_ELE );
 	set_sc( LG_EARTHDRIVE        , SC_EARTHDRIVE       , SI_EARTHDRIVE       , SCB_DEF|SCB_ASPD );
 	set_sc( LG_INSPIRATION       , SC_INSPIRATION      , SI_INSPIRATION      , SCB_STR|SCB_AGI|SCB_VIT|SCB_INT|SCB_DEX|SCB_LUK|SCB_WATK|SCB_HIT|SCB_MAXHP);
@@ -761,7 +772,7 @@ void initChangeTables(void) {
 	set_sc( KG_KYOMU           , SC_KYOMU                , SI_KYOMU                , SCB_NONE );
 	set_sc( KG_KAGEMUSYA       , SC_KAGEMUSYA            , SI_KAGEMUSYA            , SCB_NONE );
 	set_sc( KG_KAGEHUMI        , SC_KAGEHUMI             , SI_KG_KAGEHUMI          , SCB_NONE );
-	set_sc( OB_ZANGETSU        , SC_ZANGETSU             , SI_ZANGETSU             , SCB_MATK|SCB_WATK );
+	set_sc( OB_ZANGETSU        , SC_ZANGETSU             , SI_ZANGETSU             , SCB_BATK|SCB_MATK );
 	set_sc_with_vfx( OB_AKAITSUKI, SC_AKAITSUKI          , SI_AKAITSUKI            , SCB_NONE );
 	set_sc( OB_OBOROGENSOU     , SC_GENSOU               , SI_GENSOU               , SCB_NONE );
 
@@ -4745,6 +4756,10 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk -= batk * sc->data[SC__ENERVATION]->val2 / 100;
 	if(sc->data[SC_EQC])
 		batk -= batk * sc->data[SC_EQC]->val3 / 100;
+	if(sc->data[SC_ZANGETSU])
+		batk += sc->data[SC_ZANGETSU]->val2;
+	if(sc->data[SC_ODINS_POWER])
+		batk += 40 + 30 * sc->data[SC_ODINS_POWER]->val1;
 
 	return (unsigned short)cap_value(batk,0,USHRT_MAX);
 }
@@ -4826,10 +4841,6 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 		watk += sc->data[SC_PYROCLASTIC]->val2;
 	if(sc->data[SC_ANGRIFFS_MODUS])
 		watk += watk * sc->data[SC_ANGRIFFS_MODUS]->val2 / 100;
-	if(sc->data[SC_ZANGETSU])
-		watk += sc->data[SC_ZANGETSU]->val2;
-	if(sc->data[SC_ODINS_POWER])
-		watk += 40 + 30 * sc->data[SC_ODINS_POWER]->val1;
 
 	return (unsigned short)cap_value(watk,0,USHRT_MAX);
 }
@@ -5195,7 +5206,7 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 #endif
 
 	if(sc->data[SC_ANGELUS])
-#ifdef RENEWAL //in renewal only the VIT stat bonus is boosted by angelus
+#ifdef RENEWAL //In renewal only the VIT stat bonus is boosted by angelus
 		def2 += status_get_vit(bl) / 2 * sc->data[SC_ANGELUS]->val2 / 100;
 #else
 		def2 += def2 * sc->data[SC_ANGELUS]->val2 / 100;
