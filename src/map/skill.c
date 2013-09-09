@@ -1911,7 +1911,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		if((attack_type&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON)) {
 			sp += sd->bonus.sp_gain_value;
 			sp += sd->sp_gain_race[status_get_race(bl)];
-			sp += sd->sp_gain_race[is_boss(bl)?RC_BOSS:RC_NONBOSS];
+			sp += sd->sp_gain_race[is_boss(bl) ? RC_BOSS : RC_NONBOSS];
 			hp += sd->bonus.hp_gain_value;
 		}
 		if(attack_type&BF_MAGIC) {
@@ -1921,9 +1921,9 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 				struct status_change *sc = NULL;
 				if(( sc = status_get_sc(src) )) {
 					if(sc->data[SC_SPIRIT] &&
-								sc->data[SC_SPIRIT]->val2 == SL_WIZARD &&
-								sc->data[SC_SPIRIT]->val3 == WZ_WATERBALL)
-								sc->data[SC_SPIRIT]->val3 = 0; //Clear bounced spell check.
+						sc->data[SC_SPIRIT]->val2 == SL_WIZARD &&
+						sc->data[SC_SPIRIT]->val3 == WZ_WATERBALL)
+						sc->data[SC_SPIRIT]->val3 = 0; //Clear bounced spell check.
 				}
 			}
 		}
@@ -10412,9 +10412,9 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 					(skill_lv >= 4) ? sd->status.memo_point[2].map : 0
 				);
 			}
-			if( sc && sc->data[SC_CURSEDCIRCLE_ATKER] ) //Should only remove after the skill has been casted.
+			if(sc && sc->data[SC_CURSEDCIRCLE_ATKER]) //Should only remove after the skill has been casted.
 				status_change_end(src,SC_CURSEDCIRCLE_ATKER,INVALID_TIMER);
-			return 0; // not to consume item.
+			return 0; // Not to consume item.
 
 		case MO_BODYRELOCATION:
 			if (unit_movepos(src, x, y, 1, 1)) {

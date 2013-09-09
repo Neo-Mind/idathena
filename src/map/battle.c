@@ -798,7 +798,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 						skill_delunitgroup(group);
 					d->dmg_lv = ATK_BLOCK;
 					if( (group->val3 - damage) > 0 )
-						group->val3 -= (int)cap_value(damage,INT_MIN,INT_MAX);
+						group->val3 -= (int)cap_value(damage, INT_MIN, INT_MAX);
 					else
 						skill_delunitgroup(group);
 					return 0;
@@ -807,7 +807,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 #ifdef RENEWAL
 				d->dmg_lv = ATK_BLOCK;
 				if( (group->val2 - damage) > 0 )
-					group->val2 -= (int)cap_value(damage,INT_MIN,INT_MAX);
+					group->val2 -= (int)cap_value(damage, INT_MIN, INT_MAX);
 				else
 					skill_delunitgroup(group);
 				return 0;
@@ -828,7 +828,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 
 		if( sc->data[SC_WEAPONBLOCKING] && (flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON) &&
 			rnd()%100 < sc->data[SC_WEAPONBLOCKING]->val2 ) {
-			clif_skill_nodamage(bl,src,GC_WEAPONBLOCKING,1,1);
+			clif_skill_nodamage(bl, src, GC_WEAPONBLOCKING, 1, 1);
 			d->dmg_lv = ATK_BLOCK;
 			sc_start2(src, bl, SC_COMBO, 100, GC_WEAPONBLOCKING, src->id, 2000);
 			return 0;
@@ -852,7 +852,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 
 		if( damage > 0 && (sce = sc->data[SC_MILLENNIUMSHIELD]) && sce->val2 > 0 ) {
-			sce->val3 -= (int)cap_value(damage,INT_MIN,INT_MAX); //Absorb damage
+			sce->val3 -= (int)cap_value(damage, INT_MIN, INT_MAX); //Absorb damage
 			d->dmg_lv = ATK_BLOCK;
 			if( sce->val3 <= 0 ) { //Shield down
 				sce->val2--;
@@ -1002,8 +1002,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 #endif
 
-		if( sc->data[SC_DEFENDER] && (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
-			damage = damage * ( 100 - sc->data[SC_DEFENDER]->val2 ) / 100;
+		if( sc->data[SC_DEFENDER] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG )
+			damage = damage * (100 - sc->data[SC_DEFENDER]->val2) / 100;
 
 		if( sc->data[SC_ADJUSTMENT] && (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
 			damage -= damage * 20 / 100;
@@ -4108,7 +4108,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 				TBL_HOM *hd = BL_CAST(BL_HOM, src);
 				if(hd) ATK_ADD(wd.damage, wd.damage2, hd->homunculus.spiritball * 3);
 			}
-			if(sc->data[SC_UNLIMIT] && wd.flag&BF_LONG) {
+			if(sc->data[SC_UNLIMIT] && (wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG) {
 				switch(skill_id) {
 					case RA_WUGDASH:
 					case RA_WUGSTRIKE:
