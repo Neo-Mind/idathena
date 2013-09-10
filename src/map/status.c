@@ -1034,6 +1034,7 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_REBOUND] |= SCB_SPEED|SCB_REGEN;
 	StatusChangeFlagTable[SC_DEFSET] |= SCB_DEF;
 	StatusChangeFlagTable[SC_MDEFSET] |= SCB_MDEF;
+	StatusChangeFlagTable[SC_WEDDING] = SCB_SPEED;
 
 	if( !battle_config.display_hallucination ) //Disable Hallucination.
 		StatusIconChangeTable[SC_HALLUCINATION] = SI_BLANK;
@@ -1258,7 +1259,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 			if ((sce = sc->data[SC_ENDURE]) && !sce->val4 && !sc->data[SC_CONCENTRATION]) {
 				//Endure count is only reduced by non-players on non-gvg maps.
 				//val4 signals infinite endure. [Skotlex]
-				if (src && src->type != BL_PC && !map_flag_gvg(target->m) && !map[target->m].flag.battleground && --(sce->val2) < 0)
+				if (src && src->type != BL_PC && !map_flag_gvg2(target->m) && !map[target->m].flag.battleground && --(sce->val2) < 0)
 					status_change_end(target, SC_ENDURE, INVALID_TIMER);
 			}
 			if ((sce = sc->data[SC_GRAVITATION]) && sce->val3 == BCT_SELF) {
@@ -1350,7 +1351,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 		}
 	}
    
-	if (sc && sc->data[SC_KAIZEL] && !map_flag_gvg(target->m)) { //flag&8 = disable Kaizel
+	if (sc && sc->data[SC_KAIZEL] && !map_flag_gvg2(target->m)) { //flag&8 = disable Kaizel
 		int time = skill_get_time2(SL_KAIZEL,sc->data[SC_KAIZEL]->val1);
 		//Look for Osiris Card's bonus effect on the character and revive 100% or revive normally
 		if (target->type == BL_PC && BL_CAST(BL_PC,target)->special_state.restart_full_recover)
@@ -4999,7 +5000,7 @@ static signed short status_calc_hit(struct block_list *bl, struct status_change 
 static signed short status_calc_flee(struct block_list *bl, struct status_change *sc, int flee)
 {
 	if( bl->type == BL_PC ) {
-		if( map_flag_gvg(bl->m) )
+		if( map_flag_gvg2(bl->m) )
 			flee -= flee * battle_config.gvg_flee_penalty / 100;
 		else if( map[bl->m].flag.battleground )
 			flee -= flee * battle_config.bg_flee_penalty / 100;
@@ -5794,7 +5795,7 @@ static short status_calc_aspd_rate(struct block_list *bl, struct status_change *
 
 static unsigned short status_calc_dmotion(struct block_list *bl, struct status_change *sc, int dmotion)
 {
-	if( !sc || !sc->count || map_flag_gvg(bl->m) || map[bl->m].flag.battleground )
+	if( !sc || !sc->count || map_flag_gvg2(bl->m) || map[bl->m].flag.battleground )
 		return cap_value(dmotion,0,USHRT_MAX);
 	/**
 	 * It has been confirmed on official servers that MvP mobs have no dmotion even without endure
@@ -9753,6 +9754,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				clif_bladestop(bl, tid, 0);
 			}
 			break;
+
 		case SC_DANCING: {
 				const char* prevfile = "<unknown>";
 				int prevline = 0;
@@ -9760,8 +9762,8 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				struct status_change_entry *dsc;
 				struct skill_unit_group *group;
 
-				if( sd ) {
-					if( sd->delunit_prevfile ) { //Initially this is NULL, when a character logs in
+				if(sd) {
+					if(sd->delunit_prevfile) { //Initially this is NULL, when a character logs in
 						prevfile = sd->delunit_prevfile;
 						prevline = sd->delunit_prevline;
 					} else {
@@ -9770,21 +9772,16 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 					sd->delunit_prevfile = file;
 					sd->delunit_prevline = line;
 				}
-
-				if(sce->val4 && sce->val4 != BCT_SELF && (dsd=map_id2sd(sce->val4))) { //End status on partner as well
+				if(sce->val4 && sce->val4 != BCT_SELF && (dsd = map_id2sd(sce->val4))) { //End status on partner as well
 					dsc = dsd->sc.data[SC_DANCING];
 					if(dsc) {
-						
 						//This will prevent recursive loops.
 						dsc->val2 = dsc->val4 = 0;
-						
 						status_change_end(&dsd->bl, SC_DANCING, INVALID_TIMER);
 					}
 				}
-
 				if(sce->val2) { //Erase associated land skill
 					group = skill_id2group(sce->val2);
-
 					if( group == NULL ) {
 						ShowDebug("status_change_end: SC_DANCING is missing skill unit group (val1=%d, val2=%d, val3=%d, val4=%d, timer=%d, tid=%d, char_id=%d, map=%s, x=%d, y=%d, prev=%s:%d, from=%s:%d). Please report this! (#3504)\n",
 							sce->val1, sce->val2, sce->val3, sce->val4, sce->timer, tid,
@@ -9793,17 +9790,15 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 							prevfile, prevline,
 							file, line);
 					}
-
 					sce->val2 = 0;
 					skill_delunitgroup(group);
 				}
-
 				if((sce->val1&0xFFFF) == CG_MOONLIT)
 					clif_status_change(bl,SI_MOONLIT,0,0,0,0,0);
-
 				status_change_end(bl, SC_LONGING, INVALID_TIMER);
 			}
 			break;
+
 		case SC_NOCHAT:
 			if (sd && sd->status.manner < 0 && tid != INVALID_TIMER)
 				sd->status.manner = 0;
@@ -9812,12 +9807,14 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				clif_updatestatus(sd,SP_MANNER);
 			}
 			break;
+
 		case SC_SPLASHER: {
 				struct block_list *src=map_id2bl(sce->val3);
 				if(src && tid != INVALID_TIMER)
 					skill_castend_damage_id(src, bl, sce->val2, sce->val1, gettick(), SD_LEVEL );
 			}
 			break;
+
 		case SC_TINDER_BREAKER2:
 		case SC_CLOSECONFINE2: {
 				struct block_list *src = sce->val2?map_id2bl(sce->val2):NULL;

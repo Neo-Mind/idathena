@@ -7460,6 +7460,8 @@ static const struct _battle_data {
 	{ "item_flooritem_check",               &battle_config.item_onfloor,                    1,      0,      1,              },
 	{ "bowling_bash_area",                  &battle_config.bowling_bash_area,               0,      0,      20,             },
 	{ "gm_ignore_warpable_area",            &battle_config.gm_ignore_warpable_area,         0,      2,      100,            },
+	{ "snovice_call_type",                  &battle_config.snovice_call_type,               0,      0,      1,              },
+	{ "guild_notice_changemap",             &battle_config.guild_notice_changemap,          2,      0,      2,              },
 };
 #ifndef STATS_OPT_OUT
 /**

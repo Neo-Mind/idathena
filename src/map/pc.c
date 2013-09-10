@@ -4081,7 +4081,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 
 	switch( nameid ) { //@TODO, lot of hardcoded nameid here
 		case 605: // Anodyne
-			if( map_flag_gvg(sd->bl.m) )
+			if( map_flag_gvg2(sd->bl.m) )
 				return 0;
 		case 606:
 			if( pc_issit(sd) )
@@ -4089,7 +4089,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 			break;
 		case 601: // Fly Wing
 		case 12212: // Giant Fly Wing
-			if( map[sd->bl.m].flag.noteleport || map_flag_gvg(sd->bl.m) ) {
+			if( map[sd->bl.m].flag.noteleport || map_flag_gvg2(sd->bl.m) ) {
 				clif_skill_teleportmessage(sd,0);
 				return 0;
 			}
@@ -4113,7 +4113,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 		case 12024: // Red Pouch
 		case 12103: // Bloody Branch
 		case 12109: // Poring Box
-			if( map[sd->bl.m].flag.nobranch || map_flag_gvg(sd->bl.m) )
+			if( map[sd->bl.m].flag.nobranch || map_flag_gvg2(sd->bl.m) )
 				return 0;
 			break;
 		case 12210: // Bubble Gum
@@ -6573,8 +6573,8 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	int i = 0,j = 0,k = 0;
 	unsigned int tick = gettick();
 
-	// Activate Steel body if a super novice dies at 99+% exp [celest]
-	// Super Novices have no kill or die functions attached when saved by their angel
+	//Activate Steel body if a super novice dies at 99+% exp [celest]
+	//Super Novices have no kill or die functions attached when saved by their angel
 	if( (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && !sd->state.snovice_dead_flag ) {
 		unsigned int next = pc_nextbaseexp(sd);
 		if( next == 0 ) next = pc_thisbaseexp(sd);
@@ -6586,7 +6586,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			if( battle_config.pc_invincible_time )
 				pc_setinvincibletimer(sd,battle_config.pc_invincible_time);
 			sc_start(&sd->bl,&sd->bl,status_skill2sc(MO_STEELBODY),100,5,skill_get_time(MO_STEELBODY,5));
-			if( map_flag_gvg(sd->bl.m) )
+			if( map_flag_gvg2(sd->bl.m) )
 				pc_respawn_timer(INVALID_TIMER,gettick(),sd->bl.id,0);
 			return 0;
 		}
@@ -6595,7 +6595,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	for( k = 0; k < 5; k++ )
 		if( sd->devotion[k] ) {
 			struct map_session_data *devsd = map_id2sd(sd->devotion[k]);
-			if (devsd)
+			if( devsd )
 				status_change_end(&devsd->bl, SC_DEVOTION, INVALID_TIMER);
 			sd->devotion[k] = 0;
 		}
@@ -6613,7 +6613,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 				pd->pet.intimate = 0;
 			clif_send_petdata(sd,sd->pd,1,pd->pet.intimate);
 		}
-		if( sd->pd->target_id ) // Unlock all targets...
+		if( sd->pd->target_id ) //Unlock all targets
 			pet_unlocktarget(sd->pd);
 	}
 
@@ -6623,12 +6623,12 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	}
 
 	if( sd->md )
-		merc_delete(sd->md, 3); // Your mercenary soldier has ran away.
+		merc_delete(sd->md, 3); //Your mercenary soldier has ran away
 
 	if( sd->ed )
 		elemental_delete(sd->ed, 0);
 	
-	// Leave duel if you die [LuzZza]
+	//Leave duel if you die [LuzZza]
 	if( battle_config.duel_autoleave_when_die ) {
 		if( sd->duel_group > 0 )
 			duel_leave(sd->duel_group, sd);
@@ -6636,7 +6636,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			duel_reject(sd->duel_invite, sd);
 	}
 
-	pc_close_npc(sd,2); // Close npc if we were using one
+	pc_close_npc(sd,2); //Close npc if we were using one
 
 	/* e.g. not killed thru pc_damage */
 	if( pc_issit(sd) ) {
@@ -6649,9 +6649,9 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	pc_setparam(sd, SP_KILLERRID, src?src->id:0);
 
 	//Reset menu skills/item skills
-	if (sd->skillitem)
+	if( sd->skillitem )
 		sd->skillitem = sd->skillitemlv = 0;
-	if (sd->menuskill_id)
+	if( sd->menuskill_id )
 		sd->menuskill_id = sd->menuskill_val = 0;
 	//Reset ticks.
 	sd->hp_loss.tick = sd->sp_loss.tick = sd->hp_regen.tick = sd->sp_regen.tick = 0;
@@ -6662,65 +6662,63 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	for( i = 1; i < 5; i++ )
 		pc_del_talisman(sd, sd->talisman[i], i);
 
-	if (src)
-		switch (src->type) {
+	if( src )
+		switch( src->type ) {
 			case BL_MOB: {
-					struct mob_data *md=(struct mob_data *)src;
-					if( md->target_id==sd->bl.id )
+					struct mob_data *md = (struct mob_data *)src;
+					if( md->target_id == sd->bl.id )
 						mob_unlocktarget(md,tick);
 					if( battle_config.mobs_level_up && md->status.hp &&
 						(unsigned int)md->level < pc_maxbaselv(sd) &&
-						!md->guardian_data && !md->special_state.ai// Guardians/summons should not level. [Skotlex]
-					) { 	// monster level up [Valaris]
+						!md->guardian_data && !md->special_state.ai //Guardians/summons should not level. [Skotlex]
+					) { //Monster level up [Valaris]
 						clif_misceffect(&md->bl,0);
 						md->level++;
 						status_calc_mob(md, 0);
 						status_percent_heal(src,10,0);
 
-						if( battle_config.show_mob_info&4 ) { // update name with new level
+						if( battle_config.show_mob_info&4 ) { //Update name with new level
 							clif_charnameack(0, &md->bl);
 						}
 					}
-					src = battle_get_master(src); // Maybe Player Summon
+					src = battle_get_master(src); //Maybe Player Summon
 				}
 				break;
-			case BL_PET: //Pass on to master...
+			case BL_PET: //Pass on to master
 			case BL_HOM:
 			case BL_MER:
 				src = battle_get_master(src);
 				break;
 		}
 
-	if (src && src->type == BL_PC) {
+	if( src && src->type == BL_PC ) {
 		struct map_session_data *ssd = (struct map_session_data *)src;
 		pc_setparam(ssd, SP_KILLEDRID, sd->bl.id);
 		npc_script_event(ssd, NPCE_KILLPC);
 
-		if (battle_config.pk_mode&2) {
+		if( battle_config.pk_mode&2 ) {
 			ssd->status.manner -= 5;
 			if( ssd->status.manner < 0 )
 				sc_start(&sd->bl,src,SC_NOCHAT,100,0,0);
 #if 0
-			// PK/Karma system code (not enabled yet) [celest]
-			// originally from Kade Online, so i don't know if any of these is correct ^^;
-			// note: karma is measured REVERSE, so more karma = more 'evil' / less honourable,
-			// karma going down = more 'good' / more honourable.
-			// The Karma System way...
-		
-			if( sd->status.karma > ssd->status.karma ) {	// If player killed was more evil
+			//PK/Karma system code (not enabled yet) [celest]
+			//originally from Kade Online, so i don't know if any of these is correct ^^;
+			//note: karma is measured REVERSE, so more karma = more 'evil' / less honourable,
+			//karma going down = more 'good' / more honourable.
+			//The Karma System way.
+
+			if( sd->status.karma > ssd->status.karma ) { //If player killed was more evil
 				sd->status.karma--;
 				ssd->status.karma--;
 			} else if( sd->status.karma < ssd->status.karma ) // If player killed was more good
 				ssd->status.karma++;
-	
 
-			// or the PK System way...
-	
-			if( sd->status.karma > 0 ) // player killed is dishonourable?
-				ssd->status.karma--; // honour points earned
-			sd->status.karma++;	// honour points lost
-		
-			// To-do: Receive exp on certain occasions
+			//Or the PK System way
+			if( sd->status.karma > 0 ) //Player killed is dishonourable?
+				ssd->status.karma--; //Honour points earned
+			sd->status.karma++;	//Honour points lost
+
+			//To-do: Receive exp on certain occasions
 #endif
 		}
 	}
@@ -6737,13 +6735,13 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 	}
 
-	// Changed penalty options, added death by player if pk_mode [Valaris]
+	//Changed penalty options, added death by player if pk_mode [Valaris]
 	if( battle_config.death_penalty_type
-		&& (sd->class_&MAPID_UPPERMASK) != MAPID_NOVICE	// only novices will receive no penalty
-		&& !map[sd->bl.m].flag.noexppenalty && !map_flag_gvg(sd->bl.m)
+		&& (sd->class_&MAPID_UPPERMASK) != MAPID_NOVICE	//Only novices will receive no penalty
+		&& !map[sd->bl.m].flag.noexppenalty && !map_flag_gvg2(sd->bl.m)
 		&& !sd->sc.data[SC_BABY] && !sd->sc.data[SC_LIFEINSURANCE] )
 	{
-		unsigned int base_penalty =0;
+		unsigned int base_penalty = 0;
 		if( battle_config.death_penalty_base > 0 ) {
 			switch( battle_config.death_penalty_type ) {
 				case 1:
@@ -6755,14 +6753,14 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			}
 			if( base_penalty ) {
 				if( battle_config.pk_mode && src && src->type == BL_PC )
-					base_penalty*=2;
-				sd->status.base_exp -= min(sd->status.base_exp, base_penalty);
+					base_penalty *= 2;
+				sd->status.base_exp -= min(sd->status.base_exp,base_penalty);
 				clif_updatestatus(sd,SP_BASEEXP);
 			}
 		}
 		if( battle_config.death_penalty_job > 0 ) {
 			base_penalty = 0;
-			switch (battle_config.death_penalty_type) {
+			switch( battle_config.death_penalty_type ) {
 				case 1:
 					base_penalty = (unsigned int) ((double)pc_nextjobexp(sd) * (double)battle_config.death_penalty_job/10000);
 					break;
@@ -6770,9 +6768,9 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 					base_penalty = (unsigned int) ((double)sd->status.job_exp * (double)battle_config.death_penalty_job/10000);
 					break;
 			}
-			if(base_penalty) {
-				if (battle_config.pk_mode && src && src->type==BL_PC)
-					base_penalty*=2;
+			if( base_penalty ) {
+				if( battle_config.pk_mode && src && src->type == BL_PC )
+					base_penalty *= 2;
 				sd->status.job_exp -= min(sd->status.job_exp, base_penalty);
 				clif_updatestatus(sd,SP_JOBEXP);
 			}
@@ -6785,23 +6783,23 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	}
 
 	if( map[sd->bl.m].flag.pvp_nightmaredrop ) {
-		// Moved this outside so it works when PVP isn't enabled and during pk mode [Ancyker]
-		for( j=0;j<MAX_DROP_PER_MAP;j++ ) {
+		//Moved this outside so it works when PVP isn't enabled and during pk mode [Ancyker]
+		for( j = 0; j < MAX_DROP_PER_MAP; j++ ) {
 			int id = map[sd->bl.m].drop_list[j].drop_id;
 			int type = map[sd->bl.m].drop_list[j].drop_type;
 			int per = map[sd->bl.m].drop_list[j].drop_per;
 			if( id == 0 )
 				continue;
 			if( id == -1 ) {
-				int eq_num=0,eq_n[MAX_INVENTORY];
+				int eq_num = 0,eq_n[MAX_INVENTORY];
 				memset(eq_n,0,sizeof(eq_n));
-				for( i=0;i<MAX_INVENTORY;i++ ) {
+				for( i = 0; i < MAX_INVENTORY; i++ ) {
 					if( (type == 1 && !sd->status.inventory[i].equip)
 						|| (type == 2 && sd->status.inventory[i].equip)
 						||  type == 3 )
 					{
 						int k;
-						ARR_FIND( 0, MAX_INVENTORY, k, eq_n[k] <= 0 );
+						ARR_FIND(0,MAX_INVENTORY,k, eq_n[k] <= 0);
 						if( k < MAX_INVENTORY )
 							eq_n[k] = i;
 
@@ -6817,12 +6815,12 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 					}
 				}
 			} else if( id > 0 ) {
-				for( i=0;i<MAX_INVENTORY;i++ ) {
+				for( i = 0; i < MAX_INVENTORY; i++ ) {
 					if( sd->status.inventory[i].nameid == id
 						&& rnd()%10000 < per
 						&& ((type == 1 && !sd->status.inventory[i].equip)
 							|| (type == 2 && sd->status.inventory[i].equip)
-							|| type == 3) ){
+							|| type == 3) ) {
 						if( sd->status.inventory[i].equip )
 							pc_unequipitem(sd,i,3);
 						pc_dropitem(sd,i,1);
@@ -6832,8 +6830,8 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			}
 		}
 	}
-	// pvp
-	// disable certain pvp functions on pk_mode [Valaris]
+	//PVP
+	//Disable certain pvp functions on pk_mode [Valaris]
 	if( map[sd->bl.m].flag.pvp && !battle_config.pk_mode && !map[sd->bl.m].flag.pvp_nocalcrank ) {
 		sd->pvp_point -= 5;
 		sd->pvp_lost++;
@@ -6843,22 +6841,21 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			ssd->pvp_won++;
 		}
 		if( sd->pvp_point < 0 ) {
-			add_timer(tick+1000, pc_respawn_timer,sd->bl.id,0);
+			add_timer(tick + 1,pc_respawn_timer,sd->bl.id,0);
 			return 1|8;
 		}
 	}
 	//GvG
-	if( map_flag_gvg(sd->bl.m) ) {
-		add_timer(tick+1000, pc_respawn_timer, sd->bl.id, 0);
+	if( map_flag_gvg2(sd->bl.m) ) {
+		add_timer(tick + 1,pc_respawn_timer, sd->bl.id, 0);
 		return 1|8;
 	} else if( sd->bg_id ) {
 		struct battleground_data *bg = bg_team_search(sd->bg_id);
-		if( bg && bg->mapindex > 0 ) { // Respawn by BG
-			add_timer(tick+1000, pc_respawn_timer, sd->bl.id, 0);
+		if( bg && bg->mapindex > 0 ) { //Respawn by BG
+			add_timer(tick + 1000,pc_respawn_timer, sd->bl.id, 0);
 			return 1|8;
 		}
 	}
-
 
 	//Reset "can log out" tick.
 	if( battle_config.prevent_logout )

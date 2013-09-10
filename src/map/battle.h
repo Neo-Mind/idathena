@@ -495,6 +495,8 @@ extern struct Battle_Config
 	int item_onfloor; // Whether to drop an undroppable item on the map or destroy it if inventory is full.
 	int bowling_bash_area;
 	int gm_ignore_warpable_area;
+	int snovice_call_type;
+	int guild_notice_changemap;
 } battle_config;
 
 void do_init_battle(void);

@@ -50,6 +50,7 @@
 #include "mail.h"
 #include "cashshop.h"
 #include "channel.h"
+#include "vending.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1591,14 +1592,11 @@ void map_deliddb(struct block_list *bl)
 {
 	nullpo_retv(bl);
 
-	if( bl->type == BL_PC )
-	{
+	if( bl->type == BL_PC ) {
 		TBL_PC* sd = (TBL_PC*)bl;
 		idb_remove(pc_db,sd->bl.id);
 		idb_remove(charid_db,sd->status.char_id);
-	}
-	else if( bl->type == BL_MOB )
-	{
+	} else if( bl->type == BL_MOB ) {
 		idb_remove(mobid_db,bl->id);
 		idb_remove(bossid_db,bl->id);
 	}
@@ -1721,6 +1719,10 @@ int map_quit(struct map_session_data *sd) {
 			sd->bl.y = pt->y;
 			sd->mapindex = pt->map;
 		}
+	}
+
+	if (sd->state.vending) {
+		idb_remove(vending_db, sd->status.char_id);
 	}
 
 	pc_damage_log_clear(sd,0);

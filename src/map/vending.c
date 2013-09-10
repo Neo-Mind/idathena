@@ -21,7 +21,6 @@
 #include <string.h>
 
 static int vending_nextid = 0;
-static DBMap *vending_db;
 
 DBMap* vending_getdb() {
 	return vending_db;
@@ -231,53 +230,53 @@ void vending_openvending(struct map_session_data* sd, const char* message, const
 	int vending_skill_lvl;
 	nullpo_retv(sd);
 
-	if ( pc_isdead(sd) || !sd->state.prevend || pc_istrading(sd) )
-		return; // can't open vendings lying dead || didn't use via the skill (wpe/hack) || can't have 2 shops at once
+	if( pc_isdead(sd) || !sd->state.prevend || pc_istrading(sd) )
+		return; //Can't open vendings lying dead || didn't use via the skill (wpe/hack) || can't have 2 shops at once
 
 	vending_skill_lvl = pc_checkskill(sd, MC_VENDING);
-	// skill level and cart check
+	//Skill level and cart check
 	if( !vending_skill_lvl || !pc_iscarton(sd) ) {
 		clif_skill_fail(sd, MC_VENDING, USESKILL_FAIL_LEVEL, 0);
 		return;
 	}
 
-	// check number of items in shop
+	//Check number of items in shop
 	if( count < 1 || count > MAX_VENDING || count > 2 + vending_skill_lvl ) { // invalid item count
 		clif_skill_fail(sd, MC_VENDING, USESKILL_FAIL_LEVEL, 0);
 		return;
 	}
 
-	// filter out invalid items
+	//Filter out invalid items
 	i = 0;
 	for( j = 0; j < count; j++ ) {
 		short index        = *(uint16*)(data + 8*j + 0);
 		short amount       = *(uint16*)(data + 8*j + 2);
 		unsigned int value = *(uint32*)(data + 8*j + 4);
 
-		index -= 2; // offset adjustment (client says that the first cart position is 2)
+		index -= 2; //Offset adjustment (client says that the first cart position is 2)
 
-		if( index < 0 || index >= MAX_CART // invalid position
-		||  pc_cartitem_amount(sd, index, amount) < 0 // invalid item or insufficient quantity
-		//NOTE: official server does not do any of the following checks!
-		||  !sd->status.cart[index].identify // unidentified item
-		||  sd->status.cart[index].attribute == 1 // broken item
-		||  sd->status.cart[index].expire_time // It should not be in the cart but just in case
-		||  (sd->status.cart[index].bound && !pc_can_give_bounded_items(sd)) // can't trade account bound items and has no permission
-		||  !itemdb_cantrade(&sd->status.cart[index], pc_get_group_level(sd), pc_get_group_level(sd)) ) // untradeable item
+		if( index < 0 || index >= MAX_CART //Invalid position
+		||  pc_cartitem_amount(sd, index, amount) < 0 //Invalid item or insufficient quantity
+		//NOTE: Official server does not do any of the following checks!
+		||  !sd->status.cart[index].identify //Unidentified item
+		||  sd->status.cart[index].attribute == 1 //Broken item
+		||  sd->status.cart[index].expire_time //It should not be in the cart but just in case
+		||  (sd->status.cart[index].bound && !pc_can_give_bounded_items(sd)) //Can't trade account bound items and has no permission
+		||  !itemdb_cantrade(&sd->status.cart[index], pc_get_group_level(sd), pc_get_group_level(sd)) ) //Untradeable item
 			continue;
 
 		sd->vending[i].index = index;
 		sd->vending[i].amount = amount;
 		sd->vending[i].value = cap_value(value, 0, (unsigned int)battle_config.vending_max_value);
 
-		i++; // item successfully added
+		i++; //Item successfully added
 	}
 
 	if( i != j )
 		clif_displaymessage(sd->fd, msg_txt(266)); //"Some of your items cannot be vended and were removed from the shop."
 
-	if( i == 0 ) { // no valid item found
-		clif_skill_fail(sd, MC_VENDING, USESKILL_FAIL_LEVEL, 0); // custom reply packet
+	if( i == 0 ) { //No valid item found
+		clif_skill_fail(sd, MC_VENDING, USESKILL_FAIL_LEVEL, 0); //Custom reply packet
 		return;
 	}
 	sd->state.prevend = 0;
@@ -289,7 +288,7 @@ void vending_openvending(struct map_session_data* sd, const char* message, const
 	clif_openvending(sd, sd->bl.id, sd->vending);
 	clif_showvendingboard(&sd->bl, message, 0);
 
-	idb_put(vending_db, sd->vender_id, sd);
+	idb_put(vending_db, sd->status.char_id, sd);
 }
 
 
@@ -317,46 +316,45 @@ bool vending_searchall(struct map_session_data* sd, const struct s_search_store_
 	unsigned int idx, cidx;
 	struct item* it;
 
-	if( !sd->state.vending ) { // not vending
+	if( !sd->state.vending ) { //Not vending
 		return true;
 	}
 
 	for( idx = 0; idx < s->item_count; idx++ ) {
 		ARR_FIND( 0, sd->vend_num, i, sd->status.cart[sd->vending[i].index].nameid == (short)s->itemlist[idx] );
-		if( i == sd->vend_num ) { // not found
+		if( i == sd->vend_num ) { //Not found
 			continue;
 		}
 		it = &sd->status.cart[sd->vending[i].index];
 
-		if( s->min_price && s->min_price > sd->vending[i].value ) { // too low price
+		if( s->min_price && s->min_price > sd->vending[i].value ) { //Too low price
 			continue;
 		}
 
-		if( s->max_price && s->max_price < sd->vending[i].value ) { // too high price
+		if( s->max_price && s->max_price < sd->vending[i].value ) { //Too high price
 			continue;
 		}
 
-		if( s->card_count ) { // check cards
-			if( itemdb_isspecial(it->card[0]) ) { // something, that is not a carded
+		if( s->card_count ) { //Check cards
+			if( itemdb_isspecial(it->card[0]) ) { //Something, that is not a carded
 				continue;
 			}
 			slot = itemdb_slot(it->nameid);
 
 			for( c = 0; c < slot && it->card[c]; c ++ ) {
 				ARR_FIND( 0, s->card_count, cidx, s->cardlist[cidx] == it->card[c] );
-				if( cidx != s->card_count )
-				{// found
+				if( cidx != s->card_count ) { //Found
 					break;
 				}
 			}
 
-			if( c == slot || !it->card[c] ) { // no card match
+			if( c == slot || !it->card[c] ) { //No card match
 				continue;
 			}
 		}
 
-		if( !searchstore_result(s->search_sd, sd->vender_id, sd->status.account_id, sd->message, it->nameid, sd->vending[i].amount, sd->vending[i].value, it->card, it->refine) )
-		{ // result set full
+		if( !searchstore_result(s->search_sd, sd->vender_id, sd->status.account_id, sd->message,
+			it->nameid, sd->vending[i].amount, sd->vending[i].value, it->card, it->refine) ) { //Result set full
 			return false;
 		}
 	}

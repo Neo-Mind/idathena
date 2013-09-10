@@ -569,11 +569,11 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 	if (sd->skillitem == skill_id)
 		return 0;
 	// Check skill restrictions [Celest]
-	if ((!map_flag_vs(m) && skill_get_nocast (skill_id) & 1) ||
-		(map[m].flag.pvp && skill_get_nocast (skill_id) & 2) ||
-		(map_flag_gvg(m) && skill_get_nocast (skill_id) & 4) ||
-		(map[m].flag.battleground && skill_get_nocast (skill_id) & 8) ||
-		(map[m].flag.restricted && map[m].zone && skill_get_nocast (skill_id) & (8*map[m].zone))) {
+	if ((!map_flag_vs(m) && skill_get_nocast (skill_id)&1) ||
+		(map[m].flag.pvp && skill_get_nocast (skill_id)&2) ||
+		(map_flag_gvg(m) && skill_get_nocast (skill_id)&4) ||
+		(map[m].flag.battleground && skill_get_nocast (skill_id)&8) ||
+		(map[m].flag.restricted && map[m].zone && skill_get_nocast (skill_id)&(8 * map[m].zone))) {
 			clif_msg(sd, 0x536); // This skill cannot be used within this area
 			return 1;
 	}
@@ -638,7 +638,7 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 			}
 			break;
 		case GC_DARKILLUSION:
-			if (map_flag_gvg(m)) {
+			if (map_flag_gvg2(m)) {
 				clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 				return 1;
 			}
@@ -3803,7 +3803,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
 
-		case TK_STORMKICK: // Taekwon kicks [Dralnu]
+		case TK_STORMKICK: //Taekwon kicks [Dralnu]
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			skill_area_temp[1] = 0;
 			map_foreachinrange(skill_attack_area, src,
@@ -3816,17 +3816,17 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				unsigned int dist = distance_bl(src, bl);
 				uint8 dir = map_calc_dir(bl, src->x, src->y);
 
-				// teleport to target (if not on WoE grounds)
-				if( !map_flag_gvg(src->m) && !map[src->m].flag.battleground && unit_movepos(src, bl->x, bl->y, 0, 1) )
+				//Teleport to target (if not on WoE grounds)
+				if( !map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src, bl->x, bl->y, 0, 1) )
 					clif_slide(src, bl->x, bl->y);
 
-				// cause damage and knockback if the path to target was a straight one
+				//Cause damage and knockback if the path to target was a straight one
 				if( path ) {
 					if( dist > 9 ) dist = 9;
 					skill_attack(BF_WEAPON, src, src, bl, skill_id, skill_lv, tick, dist);
 					skill_blown(src, bl, dist, dir, 0);
 					//HACK: since knockback officially defaults to the left, the client also turns to the left... therefore,
-					// make the caster look in the direction of the target
+					//Make the caster look in the direction of the target
 					unit_setdir(src, (dir+4)%8);
 				}
 			}
@@ -3929,7 +3929,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				else if( dir == 7 || dir < 2 ) y = i;
 				else y = 0;
 				//Only NJ_ISSEN don't have slide effect in GVG
-				if( (mbl == src || (!map_flag_gvg(src->m) && !map[src->m].flag.battleground) ) &&
+				if( (mbl == src || (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground) ) &&
 					unit_movepos(src, mbl->x+x, mbl->y+y, 1, 1) ) {
 					clif_slide(src, src->x, src->y);
 					clif_fixpos(src);
@@ -4316,7 +4316,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			else if( dir == 7 || dir < 2 ) y = i;
 			else y = 0;
 			//Only NJ_ISSEN don't have slide effect in GVG
-			if( (mbl == src || (!map_flag_gvg(src->m) && !map[src->m].flag.battleground) ) &&
+			if( (mbl == src || (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground) ) &&
 				unit_movepos(src, mbl->x+x, mbl->y+y, 1, 1) ) {
 				clif_slide(src, src->x, src->y);
 				clif_fixpos(src);
@@ -4383,7 +4383,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				sc_start(src,src,SC_HIDING,100,skill_lv,skill_get_time(skill_id,skill_lv));
 			break;
 		case NJ_KIRIKAGE:
-			if( !map_flag_gvg(src->m) && !map[src->m].flag.battleground ) { //You don't move on GVG grounds.
+			if( !map_flag_gvg2(src->m) && !map[src->m].flag.battleground ) { //You don't move on GVG grounds.
 				short x, y;
 				map_search_freecell(bl, 0, &x, &y, 1, 1, 0);
 				if (unit_movepos(src, x, y, 0, 0))
@@ -4671,7 +4671,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case LG_PINPOINTATTACK:
-			if( !map_flag_gvg(src->m) && !map[src->m].flag.battleground && unit_movepos(src, bl->x, bl->y, 1, 1) )
+			if( !map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src, bl->x, bl->y, 1, 1) )
 				clif_slide(src,bl->x,bl->y);
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
@@ -4700,7 +4700,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case SR_KNUCKLEARROW:
-				if( !map_flag_gvg(src->m) && !map[src->m].flag.battleground && unit_movepos(src, bl->x, bl->y, 1, 1) ) {
+				if( !map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src, bl->x, bl->y, 1, 1) ) {
 					clif_slide(src,bl->x,bl->y);
 					clif_fixpos(src); //Aegis send this packet too.
 				}
@@ -5233,7 +5233,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				break;
 
 		case ALL_RESURRECTION:
-			if(sd && (map_flag_gvg(bl->m) || map[bl->m].flag.battleground)) { //No reviving in WoE grounds!
+			if(sd && (map_flag_gvg2(bl->m) || map[bl->m].flag.battleground)) { //No reviving in WoE grounds!
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				break;
 			}
@@ -9442,7 +9442,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case KO_GENWAKU:
-			if( !map_flag_gvg(src->m) && ( dstsd || dstmd ) && battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
+			if( !map_flag_gvg2(src->m) && ( dstsd || dstmd ) && battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
 				int x = src->x, y = src->y;
 
 				if( sd && rnd()%100 > ((45+5*skill_lv) - status_get_int(bl)/10) ){//[(Base chance of success) - (Intelligence Objectives / 10)]%.
@@ -10429,7 +10429,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case NJ_SHADOWJUMP:
-			if( !map_flag_gvg(src->m) && !map[src->m].flag.battleground ) { //You don't move on GVG grounds.
+			if( !map_flag_gvg2(src->m) && !map[src->m].flag.battleground ) { //You don't move on GVG grounds.
 				unit_movepos(src, x, y, 1, 0);
 				clif_slide(src,x,y);
 			}
@@ -11208,7 +11208,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 				ARR_FIND(0, MAX_SKILL_ITEM_REQUIRE, i, req.itemid[i] && (req.itemid[i] == ITEMID_TRAP || req.itemid[i] == ITEMID_TRAP_ALLOY));
 				if( req.itemid[i] )
 					req_item = req.itemid[i];
-				if( map_flag_gvg(src->m) || map[src->m].flag.battleground )
+				if( map_flag_gvg2(src->m) || map[src->m].flag.battleground )
 					limit *= 4; //Longer trap times in WOE [celest]
 				if( battle_config.vs_traps_bctall && map_flag_vs(src->m) && (src->type&battle_config.vs_traps_bctall) )
 					target = BCT_ALL;
@@ -12026,7 +12026,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 					if (td)
 						sec = DIFF_TICK(td->tick,tick);
 					if ((sg->unit_id == UNT_MANHOLE && distance_xy(src->bl.x,src->bl.y,bl->x,bl->y) <= range &&
-						src->bl.x != bl->x && src->bl.y != bl->y) || battle_config.skill_trap_type || !map_flag_gvg(src->bl.m))
+						src->bl.x != bl->x && src->bl.y != bl->y) || battle_config.skill_trap_type || !map_flag_gvg2(src->bl.m))
 					{
 						unit_movepos(bl,src->bl.x,src->bl.y,0,0);
 						clif_fixpos(bl);
@@ -12805,9 +12805,8 @@ static int skill_unit_effect (struct block_list* bl, va_list ap)
 			skill_unit_onplace(unit,bl,tick);
 		else {
 			if( skill_unit_onout(unit,bl,tick) == -1 )
-				return 0; // Don't let a Bard/Dancer update their own song timer
+				return 0; //Don't let a Bard/Dancer update their own song timer
 		}
-
 		if( flag&4 )
 			skill_unit_onleft(skill_id, bl, tick);
 	} else if( !isTarget && flag&4 && ( group->state.song_dance&0x1 || ( group->src_id == bl->id && group->state.song_dance&0x2 ) ) )
@@ -13604,7 +13603,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			}
 			break;
 		case SR_CURSEDCIRCLE:
-			if( map_flag_gvg(sd->bl.m) ) {
+			if( map_flag_gvg2(sd->bl.m) ) {
 				if( map_foreachinrange(mob_count_sub, &sd->bl, skill_get_splash(skill_id, skill_lv), BL_MOB,
 						MOBID_EMPERIUM, MOBID_GUARIDAN_STONE1, MOBID_GUARIDAN_STONE2) ) {
 					char output[128];
@@ -14617,7 +14616,7 @@ int skill_delayfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 					time /= 2;
 				break;
 			case AS_SONICBLOW:
-				if (!map_flag_gvg(bl->m) && !map[bl->m].flag.battleground && sc->data[SC_SPIRIT]->val2 == SL_ASSASIN)
+				if (!map_flag_gvg2(bl->m) && !map[bl->m].flag.battleground && sc->data[SC_SPIRIT]->val2 == SL_ASSASIN)
 					time /= 2;
 				break;
 		}
@@ -16383,7 +16382,7 @@ int skill_unit_move_sub (struct block_list* bl, va_list ap)
 		return 0;
 
 	if( flag&1 && ( unit->group->skill_id == PF_SPIDERWEB || unit->group->skill_id == GN_THORNS_TRAP ) )
-		return 0; // Fiberlock is never supposed to trigger on skill_unit_move. [Inkfish]
+		return 0; //Fiberlock is never supposed to trigger on skill_unit_move. [Inkfish]
 
 	dissonance = skill_dance_switch(unit, 0);
 
