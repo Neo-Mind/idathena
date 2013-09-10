@@ -672,12 +672,12 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 			}
 			break;
 
-		//case WM_SIRCLEOFNATURE:
-		case WM_SOUND_OF_DESTRUCTION:
-		case SC_MANHOLE:
+		case WM_LULLABY_DEEPSLEEP:
+		case WM_SIRCLEOFNATURE:
 		case WM_SATURDAY_NIGHT_FEVER:
+		case SO_ARRULLO:
 			if (!map_flag_vs(m)) {
-				clif_skill_teleportmessage(sd, 2); // This skill uses this msg instead of skill fails.
+				clif_skill_teleportmessage(sd, 2); //This skill uses this msg instead of skill fails.
 				return 1;
 			}
 			break;
@@ -6909,7 +6909,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if(sd)
 				clif_autospell(sd,skill_lv);
 			else {
-				int maxlv=1,spellid=0;
+				int maxlv = 1,spellid = 0;
 				static const int spellarray[3] = { MG_COLDBOLT,MG_FIREBOLT,MG_LIGHTNINGBOLT };
 				if(skill_lv >= 10) {
 					spellid = MG_FROSTDIVER;
@@ -10307,9 +10307,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case RA_ICEBOUNDTRAP:
 		case SC_MANHOLE:
 		case SC_DIMENSIONDOOR:
-		case SC_CHAOSPANIC:
 		case SC_MAELSTROM:
-		case SC_BLOODYLUST:
 		case WM_REVERBERATION:
 		case WM_SEVERE_RAINSTORM:
 		case WM_POEMOFNETHERWORLD:
@@ -10687,6 +10685,13 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 		case NC_MAGICDECOY:
 			if( sd ) clif_magicdecoy_list(sd,skill_lv,x,y);
+			break;
+
+		case SC_CHAOSPANIC:
+		case SC_BLOODYLUST:
+			skill_clear_unitgroup(src);
+			skill_unitsetting(src,skill_id,skill_lv,x,y,0);
+			flag|=1;
 			break;
 
 		case SC_FEINTBOMB:
@@ -15192,19 +15197,19 @@ int skill_attack_area (struct block_list *bl, va_list ap)
 		return 0;
 
 	atk_type = va_arg(ap,int);
-	src=va_arg(ap,struct block_list*);
-	dsrc=va_arg(ap,struct block_list*);
-	skill_id=va_arg(ap,int);
-	skill_lv=va_arg(ap,int);
-	tick=va_arg(ap,unsigned int);
-	flag=va_arg(ap,int);
-	type=va_arg(ap,int);
+	src = va_arg(ap,struct block_list*);
+	dsrc = va_arg(ap,struct block_list*);
+	skill_id = va_arg(ap,int);
+	skill_lv = va_arg(ap,int);
+	tick = va_arg(ap,unsigned int);
+	flag = va_arg(ap,int);
+	type = va_arg(ap,int);
 
 
 	if (skill_area_temp[1] == bl->id) //This is the target of the skill, do a full attack and skip target checks.
 		return skill_attack(atk_type,src,dsrc,bl,skill_id,skill_lv,tick,flag);
 
-	if(battle_check_target(dsrc,bl,type) <= 0 ||
+	if (battle_check_target(dsrc,bl,type) <= 0 ||
 		!status_check_skilluse(NULL, bl, skill_id, 2))
 		return 0;
 
@@ -15404,14 +15409,14 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 		case SA_VOLCANO:
 		case SA_DELUGE:
 		case SA_VIOLENTGALE:
-//The official implementation makes them fail to appear when casted on top of ANYTHING
-//But I wonder if they didn't actually meant to fail when casted on top of each other?
-//Hence, I leave the alternate implementation here, commented. [Skotlex]
+			//The official implementation makes them fail to appear when casted on top of ANYTHING
+			//But I wonder if they didn't actually meant to fail when casted on top of each other?
+			//Hence, I leave the alternate implementation here, commented. [Skotlex]
 			if (unit->range <= 0) {
 				(*alive) = 0;
 				return 1;
 			}
-/*
+			/*
 			switch (unit->group->skill_id) { //These cannot override each other.
 				case SA_VOLCANO:
 				case SA_DELUGE:
@@ -15419,7 +15424,7 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 					(*alive) = 0;
 					return 1;
 			}
-*/
+			*/
 			break;
 		case PF_FOGWALL:
 			switch (unit->group->skill_id) {
