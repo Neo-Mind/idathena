@@ -10339,7 +10339,9 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			skill_unitsetting(src,skill_id,skill_lv,x,y,0);
 			break;
 
-		case RG_GRAFFITI: /* Graffiti [Valaris] */
+		case RG_GRAFFITI:
+		case SC_CHAOSPANIC:
+		case SC_BLOODYLUST:
 			skill_clear_unitgroup(src);
 			skill_unitsetting(src,skill_id,skill_lv,x,y,0);
 			flag|=1;
@@ -10685,13 +10687,6 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 		case NC_MAGICDECOY:
 			if( sd ) clif_magicdecoy_list(sd,skill_lv,x,y);
-			break;
-
-		case SC_CHAOSPANIC:
-		case SC_BLOODYLUST:
-			skill_clear_unitgroup(src);
-			skill_unitsetting(src,skill_id,skill_lv,x,y,0);
-			flag|=1;
 			break;
 
 		case SC_FEINTBOMB:
