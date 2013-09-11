@@ -2067,7 +2067,7 @@ void disconnect_player(int account_id)
 	int i;
 	struct char_session_data* sd;
 
-	// disconnect player if online on char-server
+	//Disconnect player if online on char-server
 	ARR_FIND( 0, fd_max, i, session[i] && (sd = (struct char_session_data*)session[i]->session_data) && sd->account_id == account_id );
 	if( i < fd_max )
 		set_eof(i);

@@ -2185,16 +2185,16 @@ int skill_blown(struct block_list* src, struct block_list* target, int count, in
 	nullpo_ret(src);
 
 	if( src != target && (map_flag_gvg(target->m) || map[target->m].flag.battleground) )
-		return 0; // No knocking back in WoE
+		return 0; //No knocking back in WoE
 	if( count == 0 )
-		return 0; // Actual knockback distance is 0.
+		return 0; //Actual knockback distance is 0.
 
 	switch( target->type ) {
 		case BL_MOB: {
 				struct mob_data* md = BL_CAST(BL_MOB, target);
 				if( md->class_ == MOBID_EMPERIUM )
 					return 0;
-				// Bosses can't be knocked-back
+				//Bosses can't be knocked-back
 				if( src != target && status_get_mode(target)&(MD_KNOCKBACK_IMMUNE|MD_BOSS) )
 					return 0;
 			}
@@ -2202,27 +2202,32 @@ int skill_blown(struct block_list* src, struct block_list* target, int count, in
 		case BL_PC: {
 				struct map_session_data *sd = BL_CAST(BL_PC, target);
 				if( sd->sc.data[SC_BASILICA] && sd->sc.data[SC_BASILICA]->val4 == sd->bl.id && !is_boss(src))
-					return 0; // Basilica caster can't be knocked-back by normal monsters.
+					return 0; //Basilica caster can't be knocked-back by normal monsters.
 				if( !(flag&0x2) && src != target && sd->special_state.no_knockback )
 					return 0;
 			}
 			break;
 		case BL_SKILL:
 			su = (struct skill_unit *)target;
-			if( su && su->group && su->group->unit_id == UNT_ANKLESNARE )
-				return 0; // Ankle snare cannot be knocked back
+			if( su && su->group ) {
+				switch( su->group->unit_id ) {
+					case UNT_ANKLESNARE:
+					case UNT_MANHOLE:
+						return 0; //Cannot be knocked back
+				}
+			}
 			break;
 	}
-	
-	if( dir == -1 ) // <optimized>: do the computation here instead of outside
-		dir = map_calc_dir(target, src->x, src->y); // Direction from src to target, reversed
 
-	if( dir >= 0 && dir < 8 ) { // Take the reversed 'direction' and reverse it
+	if( dir == -1 ) //<Optimized>: do the computation here instead of outside
+		dir = map_calc_dir(target, src->x, src->y); //Direction from src to target, reversed
+
+	if( dir >= 0 && dir < 8 ) { //Take the reversed 'direction' and reverse it
 		dx = -dirx[dir];
 		dy = -diry[dir];
 	}
 
-	return unit_blown(target, dx, dy, count, flag); // send over the proper flag
+	return unit_blown(target, dx, dy, count, flag); //Send over the proper flag
 }
 
 
@@ -2233,17 +2238,17 @@ static int skill_magic_reflect(struct block_list* src, struct block_list* bl, in
 	struct status_change *sc = status_get_sc(bl);
 	struct map_session_data* sd = BL_CAST(BL_PC, bl);
 	
-	if( sc && sc->data[SC_KYOMU] ) // Nullify reflecting ability
+	if( sc && sc->data[SC_KYOMU] ) //Nullify reflecting ability
 		return 0;
 
-	// item-based reflection
+	//Item-based reflection
 	if( sd && sd->bonus.magic_damage_return && type && rnd()%100 < sd->bonus.magic_damage_return )
 		return 1;
 
 	if( is_boss(src) )
 		return 0;
 
-	// status-based reflection
+	//Status-based reflection
 	if( !sc || sc->count == 0 )
 		return 0;
 
@@ -2251,7 +2256,7 @@ static int skill_magic_reflect(struct block_list* src, struct block_list* bl, in
 		return 1;
 
 	if( sc->data[SC_KAITE] && (src->type == BL_PC || status_get_lv(src) <= 80) ) {
-		// Kaite only works against non-players if they are low-level.
+		//Kaite only works against non-players if they are low-level.
 		clif_specialeffect(bl, 438, AREA);
 		if( --sc->data[SC_KAITE]->val2 <= 0 )
 			status_change_end(bl, SC_KAITE, INVALID_TIMER);
@@ -2269,13 +2274,15 @@ void skill_combo_toogle_inf(struct block_list* bl, uint16 skill_id, int inf) {
 	switch (skill_id) {
 		case MH_MIDNIGHT_FRENZY:
 		case MH_EQC: {
-				int skill_id2 = ((skill_id==MH_EQC)?MH_TINDER_BREAKER:MH_SONIC_CRAW);
+				int skill_id2 = ((skill_id == MH_EQC) ? MH_TINDER_BREAKER : MH_SONIC_CRAW);
 				int idx = skill_id2 - HM_SKILLBASE;
-				int flag = (inf?SKILL_FLAG_TMP_COMBO:SKILL_FLAG_PERMANENT);
+				int flag = (inf ? SKILL_FLAG_TMP_COMBO : SKILL_FLAG_PERMANENT);
 				TBL_HOM *hd = BL_CAST(BL_HOM,bl);
 				sd = hd->master;
 				hd->homunculus.hskill[idx].flag = flag;
-				if(sd) clif_homskillinfoblock(sd); //refresh info //@FIXME we only want to refresh one skill
+				//Refresh info
+				//@FIXME we only want to refresh one skill
+				if(sd) clif_homskillinfoblock(sd);
 			}
 			break;
 		case MO_COMBOFINISH:
