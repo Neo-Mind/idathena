@@ -5070,8 +5070,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				return skill_castend_damage_id (src, bl, skill_id, skill_lv, tick, flag);
 			}
 			break;
-		case NPC_SMOKING: //Since it is a self skill, this one ends here rather than in damage_id. [Skotlex]
-			return skill_castend_damage_id (src, bl, skill_id, skill_lv, tick, flag);
 		case MH_STEINWAND: {
 				struct block_list *s_src = battle_get_master(src);
 				short ret = 0;
@@ -5146,6 +5144,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				return 0;
 			}
 			break;
+		case NPC_SMOKING: //Since it is a self skill, this one ends here rather than in damage_id. [Skotlex]
+			return skill_castend_damage_id (src, bl, skill_id, skill_lv, tick, flag);
 		default:
 			//Skill is actually ground placed.
 			if(src == bl && skill_get_unit_id(skill_id,0))

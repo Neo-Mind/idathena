@@ -1469,7 +1469,7 @@ int64 battle_addmastery(struct map_session_data *sd,struct block_list *target,in
 					damage += (skill * 4);
 				else
 					damage += (skill * 5);
-				// Increase damage by level of KN_SPEARMASTERY * 10
+				//Increase damage by level of KN_SPEARMASTERY * 10
 				if(pc_checkskill(sd,RK_DRAGONTRAINING) > 0)
 					damage += (skill * 10);
 			}
@@ -1491,7 +1491,7 @@ int64 battle_addmastery(struct map_session_data *sd,struct block_list *target,in
 		case W_FIST:
 			if((skill = pc_checkskill(sd,TK_RUN)) > 0)
 				damage += (skill * 10);
-			// No break, fallthrough to Knuckles
+			//No break, fallthrough to Knuckles
 		case W_KNUCKLE:
 			if((skill = pc_checkskill(sd,MO_IRONHAND)) > 0)
 				damage += (skill * 3);
@@ -1514,7 +1514,7 @@ int64 battle_addmastery(struct map_session_data *sd,struct block_list *target,in
 			break;
 	}
 #ifdef RENEWAL
-	if(sd && (skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0) // Weapon Research bonus applies to all weapons
+	if(sd && (skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0) //Weapon Research bonus applies to all weapons
 		damage += (skill * 2);
 #endif
 
@@ -2217,7 +2217,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 #ifdef RENEWAL
 		// Weaponry Research hidden bonus
 		if((skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
-			hitrate += hitrate * ( 2 * skill ) / 100;
+			hitrate += hitrate * (2 * skill) / 100;
 #endif
 
 		if((sd->status.weapon == W_1HSWORD || sd->status.weapon == W_DAGGER) &&
