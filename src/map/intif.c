@@ -136,12 +136,12 @@ int intif_rename(struct map_session_data *sd, int type, char *name)
 	return 0;
 }
 
-// GM Send a message
+//GM Send a message
 int intif_broadcast(const char* mes, int len, int type)
 {
-	int lp = type ? 4 : 0;
+	int lp = (type|BC_COLOR_MASK) ? 4 : 0;
 
-	// Send to the local players
+	//Send to the local players
 	clif_broadcast(NULL, mes, len, type, ALL_CLIENT);
 
 	if (CheckForCharServer())
@@ -153,14 +153,14 @@ int intif_broadcast(const char* mes, int len, int type)
 	WFIFOHEAD(inter_fd, 16 + lp + len);
 	WFIFOW(inter_fd,0)  = 0x3000;
 	WFIFOW(inter_fd,2)  = 16 + lp + len;
-	WFIFOL(inter_fd,4)  = 0xFF000000; // 0xFF000000 color signals standard broadcast
-	WFIFOW(inter_fd,8)  = 0; // fontType not used with standard broadcast
-	WFIFOW(inter_fd,10) = 0; // fontSize not used with standard broadcast
-	WFIFOW(inter_fd,12) = 0; // fontAlign not used with standard broadcast
-	WFIFOW(inter_fd,14) = 0; // fontY not used with standard broadcast
-	if (type == 0x10) // bc_blue
+	WFIFOL(inter_fd,4)  = 0xFF000000; //0xFF000000 color signals standard broadcast
+	WFIFOW(inter_fd,8)  = 0; //fontType not used with standard broadcast
+	WFIFOW(inter_fd,10) = 0; //fontSize not used with standard broadcast
+	WFIFOW(inter_fd,12) = 0; //fontAlign not used with standard broadcast
+	WFIFOW(inter_fd,14) = 0; //fontY not used with standard broadcast
+	if (type|BC_BLUE)
 		WFIFOL(inter_fd,16) = 0x65756c62; //If there's "blue" at the beginning of the message, game client will display it in blue instead of yellow.
-	else if (type == 0x20) // bc_woe
+	else if (type|BC_WOE)
 		WFIFOL(inter_fd,16) = 0x73737373; //If there's "ssss", game client will recognize message as 'WoE broadcast'.
 	memcpy(WFIFOP(inter_fd,16 + lp), mes, len);
 	WFIFOSET(inter_fd, WFIFOW(inter_fd,2));
@@ -2204,27 +2204,27 @@ int intif_parse(int fd)
 	int packet_len, cmd;
 	cmd = RFIFOW(fd,0);
 	// Verify ID of the packet
-	if(cmd<0x3800 || cmd>=0x3800+(sizeof(packet_len_table)/sizeof(packet_len_table[0])) ||
-	   packet_len_table[cmd-0x3800]==0) {
+	if(cmd < 0x3800 || cmd >= 0x3800 + (sizeof(packet_len_table) / sizeof(packet_len_table[0])) ||
+	   packet_len_table[cmd - 0x3800] == 0) {
 	   	return 0;
 	}
 	// Check the length of the packet
-	packet_len = packet_len_table[cmd-0x3800];
-	if(packet_len==-1) {
-		if(RFIFOREST(fd)<4)
+	packet_len = packet_len_table[cmd - 0x3800];
+	if(packet_len == -1) {
+		if(RFIFOREST(fd) < 4)
 			return 2;
 		packet_len = RFIFOW(fd,2);
 	}
-	if((int)RFIFOREST(fd)<packet_len) {
+	if((int)RFIFOREST(fd) < packet_len) {
 		return 2;
 	}
 	// Processing branch
 	switch(cmd) {
 		case 0x3800:
 			if (RFIFOL(fd,4) == 0xFF000000) //Normal announce.
-				clif_broadcast(NULL, (char *) RFIFOP(fd,16), packet_len-16, 0, ALL_CLIENT);
+				clif_broadcast(NULL, (char *) RFIFOP(fd,16), packet_len - 16, BC_DEFAULT, ALL_CLIENT);
 			else //Color announce.
-				clif_broadcast2(NULL, (char *) RFIFOP(fd,16), packet_len-16, RFIFOL(fd,4), RFIFOW(fd,8), RFIFOW(fd,10), RFIFOW(fd,12), RFIFOW(fd,14), ALL_CLIENT);
+				clif_broadcast2(NULL, (char *) RFIFOP(fd,16), packet_len - 16, RFIFOL(fd,4), RFIFOW(fd,8), RFIFOW(fd,10), RFIFOW(fd,12), RFIFOW(fd,14), ALL_CLIENT);
 			break;
 		case 0x3801:	intif_parse_WisMessage(fd); break;
 		case 0x3802:	intif_parse_WisEnd(fd); break;

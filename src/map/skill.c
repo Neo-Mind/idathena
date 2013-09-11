@@ -10394,13 +10394,13 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 						clif_skill_poseffect(src,skill_id,skill_lv,tmpx,tmpy,tick);
 
 					if( i > 0 )
-						skill_addtimerskill(src,tick+i*1000,0,tmpx,tmpy,skill_id,skill_lv,(x1<<16)|y1,0);
+						skill_addtimerskill(src,tick + i * 1000,0,tmpx,tmpy,skill_id,skill_lv,(x1<<16)|y1,0);
 
 					x1 = tmpx;
 					y1 = tmpy;
 				}
 
-				skill_addtimerskill(src,tick+i*1000,0,tmpx,tmpy,skill_id,skill_lv,-1,0);
+				skill_addtimerskill(src,tick + i * 1000,0,tmpx,tmpy,skill_id,skill_lv,-1,0);
 			}
 			break;
 
@@ -10743,6 +10743,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 				}
 			}
 			break;
+
 		case GN_FIRE_EXPANSION: {
 			int i;
 			//If player doesen't know Acid Demonstration or knows level 5 or lower, effect 5 will cast level 5 Acid Demo.
@@ -10891,7 +10892,7 @@ int skill_castend_map (struct map_session_data *sd, uint16 skill_id, const char 
 	switch(skill_id) {
 		case AL_TELEPORT:
 		case ALL_ODINS_RECALL:
-			if(strcmp(map,"Random")==0)
+			if(strcmp(map,"Random") == 0)
 				pc_randomwarp(sd,CLR_TELEPORT);
 			else if (sd->menuskill_val > 1 || skill_id == ALL_ODINS_RECALL) //Need lv2 to be able to warp here.
 				pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,CLR_TELEPORT);
@@ -11020,15 +11021,15 @@ int skill_dance_overlap(struct skill_unit* unit, int flag)
  *------------------------------------------*/
 static bool skill_dance_switch(struct skill_unit* unit, int flag)
 {
-	static int prevflag = 1;  // by default the backup is empty
+	static int prevflag = 1;  //By default the backup is empty
 	static struct skill_unit_group backup;
 	struct skill_unit_group* group = unit->group;
 
-	// val2&UF_ENSEMBLE is a hack to indicate dissonance
+	//val2&UF_ENSEMBLE is a hack to indicate dissonance
 	if ( !(group->state.song_dance&0x1 && unit->val2&UF_ENSEMBLE) )
 		return false;
 
-	if( flag == prevflag ) { // Protection against attempts to read an empty backup / write to a full backup
+	if( flag == prevflag ) { //Protection against attempts to read an empty backup / write to a full backup
 		ShowError("skill_dance_switch: Attempted to %s (skill_id=%d, skill_lv=%d, src_id=%d).\n",
 			flag ? "read an empty backup" : "write to a full backup",
 			group->skill_id, group->skill_lv, group->src_id);
@@ -11039,7 +11040,7 @@ static bool skill_dance_switch(struct skill_unit* unit, int flag)
 	if( !flag ) { //Transform
 		uint16 skill_id = unit->val2&UF_SONG ? BA_DISSONANCE : DC_UGLYDANCE;
 
-		// Backup
+		//Backup
 		backup.skill_id    = group->skill_id;
 		backup.skill_lv    = group->skill_lv;
 		backup.unit_id     = group->unit_id;
@@ -11047,7 +11048,7 @@ static bool skill_dance_switch(struct skill_unit* unit, int flag)
 		backup.bl_flag     = group->bl_flag;
 		backup.interval    = group->interval;
 
-		// Replace
+		//Replace
 		group->skill_id    = skill_id;
 		group->skill_lv    = 1;
 		group->unit_id     = skill_get_unit_id(skill_id,0);
@@ -11087,6 +11088,7 @@ static int skill_icewall_block(struct block_list *bl,va_list ap) {
 
 	return 0;
 }
+
 /*==========================================
  * Initializes and sets a ground skill.
  * flag&1 is used to determine when the skill 'morphs' (Warp portal becomes active, or Fire Pillar becomes active)

@@ -5438,10 +5438,10 @@ void clif_displaymessage(const int fd, const char* mes)
 
 		message = aStrdup(mes);
 		line = strtok(message, "\n");
-		while(line != NULL) {
+		while (line != NULL) {
 			//Limit message to 255+1 characters (otherwise it causes a buffer overflow in the client)
 			int len = strnlen(line, 255);
-			
+
 			if (len > 0) { //Don't send a void message (it's not displaying on the client chat). @help can send void line.
 				WFIFOHEAD(fd, 5 + len);
 				WFIFOW(fd,0) = 0x8e;
@@ -5460,17 +5460,17 @@ void clif_displaymessage(const int fd, const char* mes)
 /// 009a <packet len>.W <message>.?B
 void clif_broadcast(struct block_list* bl, const char* mes, int len, int type, enum send_target target)
 {
-	int lp = type ? 4 : 0;
+	int lp = (type&BC_COLOR_MASK) ? 4 : 0;
 	unsigned char *buf = (unsigned char*)aMalloc((4 + lp + len)*sizeof(unsigned char));
 
 	WBUFW(buf,0) = 0x9a;
 	WBUFW(buf,2) = 4 + lp + len;
-	if (type == 0x10) // bc_blue
+	if (type&BC_BLUE)
 		WBUFL(buf,4) = 0x65756c62; //If there's "blue" at the beginning of the message, game client will display it in blue instead of yellow.
-	else if (type == 0x20) // bc_woe
+	else if (type&BC_WOE)
 		WBUFL(buf,4) = 0x73737373; //If there's "ssss", game client will recognize message as 'WoE broadcast'.
-	memcpy(WBUFP(buf, 4 + lp), mes, len);
-	clif_send(buf, WBUFW(buf,2), bl, target);
+	memcpy(WBUFP(buf,4 + lp),mes,len);
+	clif_send(buf,WBUFW(buf,2),bl,target);
 
 	if (buf)
 		aFree(buf);
@@ -9313,8 +9313,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 
 		if(map[sd->bl.m].flag.allowks && !map_flag_ks(sd->bl.m)) {
 			char output[128];
-			sprintf(output, "[ Kill Steal Protection Disable. KS is allowed in this map ]");
-			clif_broadcast(&sd->bl, output, strlen(output) + 1, 0x10, SELF);
+			sprintf(output, "[ Kill Steal Protection Disabled. KS is allowed in this map ]");
+			clif_broadcast(&sd->bl, output, strlen(output) + 1, BC_BLUE, SELF);
 		}
 
 		map_iwall_get(sd); //Updates Walls Info on this Map to Client

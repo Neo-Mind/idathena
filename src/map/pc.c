@@ -4579,19 +4579,19 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl, uint16 skil
 	struct mob_data *md;
 	struct item tmp_item;
 
-	if(!sd || !bl || bl->type!=BL_MOB)
+	if(!sd || !bl || bl->type != BL_MOB)
 		return 0;
 
 	md = (TBL_MOB *)bl;
 
-	if(md->state.steal_flag == UCHAR_MAX || ( md->sc.opt1 && md->sc.opt1 != OPT1_BURNING && md->sc.opt1 != OPT1_CRYSTALIZE ) ) //already stolen from / status change check
+	if(md->state.steal_flag == UCHAR_MAX || ( md->sc.opt1 && md->sc.opt1 != OPT1_BURNING && md->sc.opt1 != OPT1_CRYSTALIZE ) ) //Already stolen from / status change check
 		return 0;
-	
+
 	sd_status= status_get_status_data(&sd->bl);
 	md_status= status_get_status_data(bl);
 
-	if( md->master_id || md_status->mode&MD_BOSS || mob_is_treasure(md) ||
-		map[bl->m].flag.nomobloot || // check noloot map flag [Lorky]
+	if(md->master_id || md_status->mode&MD_BOSS || mob_is_treasure(md) ||
+		map[bl->m].flag.nomobloot || //Check noloot map flag [Lorky]
 		(battle_config.skill_steal_max_tries && //Reached limit of steal attempts. [Lupus]
 			md->state.steal_flag++ >= battle_config.skill_steal_max_tries)
   	) { //Can't steal from
@@ -4599,19 +4599,19 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl, uint16 skil
 		return 0;
 	}
 
-	// base skill success chance (percentual)
-	rate = (sd_status->dex - md_status->dex)/2 + skill_lv*6 + 4;
+	//Base skill success chance (percentual)
+	rate = (sd_status->dex - md_status->dex) / 2 + skill_lv * 6 + 4;
 	rate += sd->bonus.add_steal_rate;
-		
-	if( rate < 1 )
+
+	if(rate < 1)
 		return 0;
 
-	// Try dropping one item, in the order from first to last possible slot.
-	// Droprate is affected by the skill success rate.
-	for( i = 0; i < MAX_STEAL_DROP; i++ )
-		if( md->db->dropitem[i].nameid > 0 && itemdb_exists(md->db->dropitem[i].nameid) && rnd() % 10000 < md->db->dropitem[i].p * rate/100. )
+	//Try dropping one item, in the order from first to last possible slot.
+	//Droprate is affected by the skill success rate.
+	for(i = 0; i < MAX_STEAL_DROP; i++)
+		if(md->db->dropitem[i].nameid > 0 && itemdb_exists(md->db->dropitem[i].nameid) && rnd() % 10000 < md->db->dropitem[i].p * rate / 100.)
 			break;
-	if( i == MAX_STEAL_DROP )
+	if(i == MAX_STEAL_DROP)
 		return 0;
 
 	itemid = md->db->dropitem[i].nameid;
@@ -4628,21 +4628,21 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl, uint16 skil
 		clif_additem(sd,0,0,flag);
 		return 0;
 	}
-	
+
 	if(battle_config.show_steal_in_same_party)
 		party_foreachsamemap(pc_show_steal,sd,AREA_SIZE,sd,tmp_item.nameid);
 
 	//Logs items, Stolen from mobs [Lupus]
-	log_pick_mob(md, LOG_TYPE_STEAL, -1, &tmp_item);
-		
+	log_pick_mob(md,LOG_TYPE_STEAL,-1,&tmp_item);
+
 	//A Rare Steal Global Announce by Lupus
-	if(md->db->dropitem[i].p<=battle_config.rare_drop_announce) {
+	if(md->db->dropitem[i].p <= battle_config.rare_drop_announce) {
 		struct item_data *i_data;
 		char message[128];
 		i_data = itemdb_search(itemid);
-		sprintf (message, msg_txt(542), (sd->status.name != NULL)?sd->status.name :"GM", md->db->jname, i_data->jname, (float)md->db->dropitem[i].p/100);
+		sprintf (message,msg_txt(542),(sd->status.name != NULL) ? sd->status.name :"GM",md->db->jname,i_data->jname,(float)md->db->dropitem[i].p / 100);
 		//MSG: "'%s' stole %s's %s (chance: %0.02f%%)"
-		intif_broadcast(message,strlen(message)+1,0);
+		intif_broadcast(message,strlen(message) + 1,BC_DEFAULT);
 	}
 	return 1;
 }
@@ -9188,16 +9188,16 @@ int map_day_timer(int tid, unsigned int tick, int id, intptr_t data)
 {
 	char tmp_soutput[1024];
 
-	if (data == 0 && battle_config.day_duration <= 0)	// if we want a day
+	if (data == 0 && battle_config.day_duration <= 0) //If we want a day
 		return 0;
-	
+
 	if (!night_flag)
 		return 0; //Already day.
-	
-	night_flag = 0; // 0=day, 1=night [Yor]
+
+	night_flag = 0; //0 = day, 1 = night [Yor]
 	map_foreachpc(pc_daynight_timer_sub);
-	strcpy(tmp_soutput, (data == 0) ? msg_txt(502) : msg_txt(60)); // The day has arrived!
-	intif_broadcast(tmp_soutput, strlen(tmp_soutput) + 1, 0);
+	strcpy(tmp_soutput, (data == 0) ? msg_txt(502) : msg_txt(60)); //The day has arrived!
+	intif_broadcast(tmp_soutput, strlen(tmp_soutput) + 1, BC_DEFAULT);
 	return 0;
 }
 
@@ -9209,16 +9209,16 @@ int map_night_timer(int tid, unsigned int tick, int id, intptr_t data)
 {
 	char tmp_soutput[1024];
 
-	if (data == 0 && battle_config.night_duration <= 0)	// if we want a night
+	if (data == 0 && battle_config.night_duration <= 0) //If we want a night
 		return 0;
-	
-	if (night_flag)
-		return 0; //Already nigth.
 
-	night_flag = 1; // 0=day, 1=night [Yor]
+	if (night_flag)
+		return 0; //Already night.
+
+	night_flag = 1; // 0 = day, 1 = night [Yor]
 	map_foreachpc(pc_daynight_timer_sub);
-	strcpy(tmp_soutput, (data == 0) ? msg_txt(503) : msg_txt(59)); // The night has fallen...
-	intif_broadcast(tmp_soutput, strlen(tmp_soutput) + 1, 0);
+	strcpy(tmp_soutput, (data == 0) ? msg_txt(503) : msg_txt(59)); //The night has fallen
+	intif_broadcast(tmp_soutput, strlen(tmp_soutput) + 1, BC_DEFAULT);
 	return 0;
 }
 
