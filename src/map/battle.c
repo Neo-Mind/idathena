@@ -465,7 +465,7 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 					damage = damage * cardfix / 1000;
 			}
 
-			if( tsd && !(nk&NK_NO_CARDFIX_DEF) ) { // Target cards.
+			if( tsd && !(nk&NK_NO_CARDFIX_DEF) ) { //Target cards.
 				if( !(nk&NK_NO_ELEFIX) ) {
 					int ele_fix = tsd->subele[s_ele];
 					for( i = 0; ARRAYLENGTH(tsd->subele2) > i && tsd->subele2[i].rate != 0; i++ ) {
@@ -482,8 +482,12 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 				cardfix = cardfix*(100-tsd->subrace2[s_race2])/100;
 				cardfix = cardfix*(100-tsd->subrace[sstatus->race])/100;
 				cardfix = cardfix*(100-tsd->subrace[is_boss(src)?RC_BOSS:RC_NONBOSS])/100;
-				if( sstatus->race != RC_DEMIHUMAN )
+				cardfix = cardfix*(100-tsd->magic_subrace[sstatus->race])/100;
+				cardfix = cardfix*(100-tsd->magic_subrace[is_boss(src)?RC_BOSS:RC_NONBOSS])/100;
+				if( sstatus->race != RC_DEMIHUMAN ) {
 					cardfix = cardfix*(100-tsd->subrace[RC_NONDEMIHUMAN])/100;
+					cardfix = cardfix*(100-tsd->magic_subrace[RC_NONDEMIHUMAN])/100;
+				}
 
 				for( i = 0; i < ARRAYLENGTH(tsd->add_mdef) && tsd->add_mdef[i].rate; i++ ) {
 					if( tsd->add_mdef[i].class_ == s_class ) {
@@ -529,7 +533,7 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 					cardfix = cardfix*(100+sd->right_weapon.addrace[is_boss(target)?RC_BOSS:RC_NONBOSS]+sd->arrow_addrace[is_boss(target)?RC_BOSS:RC_NONBOSS])/100;
 					if( tstatus->race != RC_DEMIHUMAN )
 						cardfix = cardfix*(100+sd->right_weapon.addrace[RC_NONDEMIHUMAN]+sd->arrow_addrace[RC_NONDEMIHUMAN])/100;
-				} else { // Melee attack
+				} else { //Melee attack
 					if( !battle_config.left_cardfix_to_right ) {
 						cardfix = cardfix*(100+sd->right_weapon.addrace[tstatus->race])/100;
 						if( !(nk&NK_NO_ELEFIX) ) {
@@ -597,7 +601,7 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 						if( tstatus->race != RC_DEMIHUMAN )
 							cardfix = cardfix*(100+sd->right_weapon.addrace[RC_NONDEMIHUMAN]+sd->left_weapon.addrace[RC_NONDEMIHUMAN])/100;
 					}
-					// Adv. Katar Mastery functions similar to a +%ATK card on official [helvetica]
+					//Adv. Katar Mastery functions similar to a +%ATK card on official [helvetica]
 					if( sd->status.weapon == W_KATAR && (skill = pc_checkskill(sd,ASC_KATAR)) > 0 ) {
 						cardfix = cardfix*(100+(10+2*skill))/100;
 					}
@@ -667,7 +671,7 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 
 				if( flag&BF_SHORT )
 					cardfix = cardfix * ( 100 - tsd->bonus.near_attack_def_rate ) / 100;
-				else // BF_LONG (there's no other choice)
+				else //BF_LONG (there's no other choice)
 					cardfix = cardfix * ( 100 - tsd->bonus.long_attack_def_rate ) / 100;
 
 				if( tsd->sc.data[SC_DEF_RATE] )
@@ -679,7 +683,7 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 			break;
 		case BF_MISC:
 			if( tsd && !(nk&NK_NO_CARDFIX_DEF) ) {
-			// misc damage reduction from equipment
+			//Misc damage reduction from equipment
 				if (!(nk&NK_NO_ELEFIX)) {
 					int ele_fix = tsd->subele[s_ele];
 					for (i = 0; ARRAYLENGTH(tsd->subele2) > i && tsd->subele2[i].rate != 0; i++) {
@@ -702,7 +706,7 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 				cardfix = cardfix * ( 100 - tsd->bonus.misc_def_rate ) / 100;
 				if( flag&BF_SHORT )
 					cardfix = cardfix * ( 100 - tsd->bonus.near_attack_def_rate ) / 100;
-				else // BF_LONG (there's no other choice)
+				else //BF_LONG (there's no other choice)
 					cardfix = cardfix * ( 100 - tsd->bonus.long_attack_def_rate ) / 100;
 
 				if( cardfix != 10000 )
