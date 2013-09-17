@@ -668,7 +668,7 @@ ACMD_FUNC(whogm)
 	level = pc_get_group_level(sd);
 
 	iter = mapit_getallusers();
-	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
+	for (pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter)) {
 		pl_level = pc_get_group_level(pl_sd);
 		if (!pl_level)
 			continue;
@@ -682,7 +682,7 @@ ACMD_FUNC(whogm)
 				continue;
 		}
 		if (pl_level > level) {
-			if (pl_sd->sc.option & OPTION_INVISIBLE)
+			if (pl_sd->sc.option&OPTION_INVISIBLE)
 				continue;
 			sprintf(atcmd_output, msg_txt(913), pl_sd->status.name); // Name: %s (GM)
 			clif_displaymessage(fd, atcmd_output);
@@ -699,10 +699,10 @@ ACMD_FUNC(whogm)
 			pl_sd->status.base_level,
 			job_name(pl_sd->status.class_), pl_sd->status.job_level);
 		clif_displaymessage(fd, atcmd_output);
-		
+
 		p = party_search(pl_sd->status.party_id);
 		g = pl_sd->guild;
-	
+
 		sprintf(atcmd_output,msg_txt(916),	// Party: '%s' | Guild: '%s'
 			p?p->party.name:msg_txt(917), g?g->name:msg_txt(917));	// None.
 

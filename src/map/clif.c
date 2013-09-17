@@ -6049,42 +6049,57 @@ void clif_cart_additem(struct map_session_data *sd,int n,int amount,int fail)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
-	if(n<0 || n>=MAX_CART || sd->status.cart[n].nameid<=0)
+	fd = sd->fd;
+	if(n < 0 || n >= MAX_CART || sd->status.cart[n].nameid <= 0)
 		return;
 
 #if PACKETVER < 5
 	WFIFOHEAD(fd,packet_len(0x124));
 	buf=WFIFOP(fd,0);
-	WBUFW(buf,0)=0x124;
-	WBUFW(buf,2)=n+2;
-	WBUFL(buf,4)=amount;
+	WBUFW(buf,0) = 0x124;
+	WBUFW(buf,2) = n + 2;
+	WBUFL(buf,4) = amount;
 	if((view = itemdb_viewid(sd->status.cart[n].nameid)) > 0)
-		WBUFW(buf,8)=view;
+		WBUFW(buf,8) = view;
 	else
-		WBUFW(buf,8)=sd->status.cart[n].nameid;
-	WBUFB(buf,10)=sd->status.cart[n].identify;
-	WBUFB(buf,11)=sd->status.cart[n].attribute;
-	WBUFB(buf,12)=sd->status.cart[n].refine;
-	clif_addcards(WBUFP(buf,13), &sd->status.cart[n]);
+		WBUFW(buf,8) = sd->status.cart[n].nameid;
+	WBUFB(buf,10) = sd->status.cart[n].identify;
+	WBUFB(buf,11) = sd->status.cart[n].attribute;
+	WBUFB(buf,12) = sd->status.cart[n].refine;
+	clif_addcards(WBUFP(buf,13),&sd->status.cart[n]);
 	WFIFOSET(fd,packet_len(0x124));
 #else
 	WFIFOHEAD(fd,packet_len(0x1c5));
-	buf=WFIFOP(fd,0);
-	WBUFW(buf,0)=0x1c5;
-	WBUFW(buf,2)=n+2;
-	WBUFL(buf,4)=amount;
+	buf = WFIFOP(fd,0);
+	WBUFW(buf,0) = 0x1c5;
+	WBUFW(buf,2) = n + 2;
+	WBUFL(buf,4) = amount;
 	if((view = itemdb_viewid(sd->status.cart[n].nameid)) > 0)
-		WBUFW(buf,8)=view;
+		WBUFW(buf,8) = view;
 	else
-		WBUFW(buf,8)=sd->status.cart[n].nameid;
-	WBUFB(buf,10)=itemdb_type(sd->status.cart[n].nameid);
-	WBUFB(buf,11)=sd->status.cart[n].identify;
-	WBUFB(buf,12)=sd->status.cart[n].attribute;
-	WBUFB(buf,13)=sd->status.cart[n].refine;
-	clif_addcards(WBUFP(buf,14), &sd->status.cart[n]);
+		WBUFW(buf,8) = sd->status.cart[n].nameid;
+	WBUFB(buf,10) = itemdb_type(sd->status.cart[n].nameid);
+	WBUFB(buf,11) = sd->status.cart[n].identify;
+	WBUFB(buf,12) = sd->status.cart[n].attribute;
+	WBUFB(buf,13) = sd->status.cart[n].refine;
+	clif_addcards(WBUFP(buf,14),&sd->status.cart[n]);
 	WFIFOSET(fd,packet_len(0x1c5));
 #endif
+}
+
+
+// [Ind] - Data Thanks to Yommy
+void clif_cart_additem_ack(struct map_session_data *sd, int flag)
+{
+	int fd;
+	unsigned char *buf;
+	nullpo_retv(sd);
+
+	fd = sd->fd;
+	buf = WFIFOP(fd,0);
+	WBUFW(buf,0) = 0x12c;
+	WBUFL(buf,2) = flag;
+	clif_send(buf,packet_len(0x12c),&sd->bl,SELF);
 }
 
 
@@ -6096,12 +6111,12 @@ void clif_cart_delitem(struct map_session_data *sd,int n,int amount)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 
 	WFIFOHEAD(fd,packet_len(0x125));
-	WFIFOW(fd,0)=0x125;
-	WFIFOW(fd,2)=n+2;
-	WFIFOL(fd,4)=amount;
+	WFIFOW(fd,0) = 0x125;
+	WFIFOW(fd,2) = n + 2;
+	WFIFOL(fd,4) = amount;
 	WFIFOSET(fd,packet_len(0x125));
 }
 
@@ -10622,12 +10637,15 @@ void clif_parse_StopAttack(int fd,struct map_session_data *sd)
 void clif_parse_PutItemToCart(int fd,struct map_session_data *sd)
 {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
+	short flag = 0;
 	if (pc_istrading(sd))
 		return;
 	if (!pc_iscarton(sd))
 		return;
-	pc_putitemtocart(sd,RFIFOW(fd,info->pos[0])-2,
-		RFIFOL(fd,info->pos[1]));
+	if ((flag = pc_putitemtocart(sd,RFIFOW(fd,info->pos[0]) - 2,RFIFOL(fd,info->pos[1])))) {
+		clif_dropitem(sd,RFIFOW(fd,info->pos[0]) - 2,0);
+		clif_cart_additem_ack(sd,(flag == 1) ? ADDITEM_TO_CART_FAIL_WEIGHT : ADDITEM_TO_CART_FAIL_COUNT);
+	}
 }
 
 

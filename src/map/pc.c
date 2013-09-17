@@ -4375,15 +4375,15 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 	nullpo_retr(1, sd);
 	nullpo_retr(1, item_data);
 
-	if(item_data->nameid <= 0 || amount <= 0)
+	if( item_data->nameid <= 0 || amount <= 0 )
 		return 1;
 	data = itemdb_search(item_data->nameid);
 
-	if( data->stack.cart && amount > data->stack.amount ) { // item stack limitation
+	if( data->stack.cart && amount > data->stack.amount ) { //Item stack limitation
 		return 1;
 	}
 
-	if( !itemdb_cancartstore(item_data, pc_get_group_level(sd)) || (item_data->bound > 1 && !pc_can_give_bounded_items(sd)) ) { // Check item trade restrictions [Skotlex]
+	if( !itemdb_cancartstore(item_data, pc_get_group_level(sd)) || (item_data->bound > 1 && !pc_can_give_bounded_items(sd)) ) { //Check item trade restrictions [Skotlex]
 		clif_displaymessage(sd->fd, msg_txt(264));
 		return 1;
 	}
@@ -4399,16 +4399,16 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 			sd->status.cart[i].card[2] == item_data->card[2] && sd->status.cart[i].card[3] == item_data->card[3] );
 	};
 
-	if( i < MAX_CART ) { // item already in cart, stack it
+	if( i < MAX_CART ) { //Item already in cart, stack it
 		if( amount > MAX_AMOUNT - sd->status.cart[i].amount || ( data->stack.cart && amount > data->stack.amount - sd->status.cart[i].amount ) )
-			return 1; // no room
+			return 2; //No slot
 
 		sd->status.cart[i].amount+=amount;
 		clif_cart_additem(sd,i,amount,0);
-	} else { // item not stackable or not present, add it
+	} else { //Item not stackable or not present, add it
 		ARR_FIND( 0, MAX_CART, i, sd->status.cart[i].nameid == 0 );
 		if( i == MAX_CART )
-			return 1; // no room
+			return 2; //No slot
 
 		memcpy(&sd->status.cart[i],item_data,sizeof(sd->status.cart[0]));
 		sd->status.cart[i].amount=amount;
@@ -4417,7 +4417,7 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 	}
 	sd->status.cart[i].favorite = 0;/* clear */
 	log_pick_pc(sd, log_type, amount, &sd->status.cart[i]);
-	
+
 	sd->cart_weight += w;
 	clif_updatestatus(sd,SP_CARTINFO);
 
@@ -4463,21 +4463,22 @@ int pc_cart_delitem(struct map_session_data *sd,int n,int amount,int type,e_log_
 int pc_putitemtocart(struct map_session_data *sd,int idx,int amount)
 {
 	struct item *item_data;
+	short flag;
 
 	nullpo_ret(sd);
 
-	if (idx < 0 || idx >= MAX_INVENTORY) //Invalid index check [Skotlex]
+	if( idx < 0 || idx >= MAX_INVENTORY ) //Invalid index check [Skotlex]
 		return 1;
-	
+
 	item_data = &sd->status.inventory[idx];
 
 	if( item_data->nameid == 0 || amount < 1 || item_data->amount < amount || sd->state.vending )
 		return 1;
-		
-	if( pc_cart_additem(sd,item_data,amount,LOG_TYPE_NONE) == 0 )
+
+	if( (flag = pc_cart_additem(sd,item_data,amount,LOG_TYPE_NONE)) == 0 )
 		return pc_delitem(sd,idx,amount,0,5,LOG_TYPE_NONE);
 
-	return 1;
+	return flag;
 }
 
 /*==========================================

@@ -7157,7 +7157,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		 if(type >= SC_COMMON_MIN && type <= SC_COMMON_MAX)
 			 return 0;
 		 switch(type) {
-			case SC_SILENCE:
 			case SC_BLESSING:
 			case SC_DECREASEAGI:
 			case SC_PROVOKE:
@@ -7172,7 +7171,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_MARSHOFABYSS:
 			case SC_ADORAMUS:
 			case SC_PARALYSIS:
-			case SC_VACUUM_EXTREME:
 			case SC_DEEPSLEEP:
 			case SC_CRYSTALIZE:
 			case SC_PAIN_KILLER:
@@ -8289,7 +8287,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 						int pos =  (bl->x&0xFFFF)|(bl->y<<16), //Current Coordinates
 						map =  sd->mapindex; //Current Map
 						//1. Place in Jail (val2 -> Jail Map, val3 -> x, val4 -> y
-						pc_setpos(sd,(unsigned short)val2,val3,val4, CLR_TELEPORT);
+						pc_setpos(sd,(unsigned short)val2,val3,val4,CLR_TELEPORT);
 						//2. Set restore point (val3 -> return map, val4 return coords
 						val3 = map;
 						val4 = pos;
@@ -9136,7 +9134,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					break;
 			}
 
-	//Those that make you stop attacking/walking....
+	//Those that make you stop attacking/walking.
 	switch (type) {
 		case SC_FREEZE:
 		case SC_STUN:
@@ -9207,7 +9205,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				opt_flag = 0;
 			sc->opt1 = OPT1_SLEEP;
 			break;
-		case SC_BURNING:		sc->opt1 = OPT1_BURNING;	break; //Burning need this to be showed correctly. [pakpil]
+		//Burning need this to be showed correctly. [pakpil]
+		case SC_BURNING:		sc->opt1 = OPT1_BURNING;	break;
 		case SC_WHITEIMPRISON:  sc->opt1 = OPT1_IMPRISON;	break;
 		case SC_CRYSTALIZE:		sc->opt1 = OPT1_CRYSTALIZE;	break;
 		//OPT2
@@ -9219,7 +9218,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_CHAOS:
 			sc->opt2 |= OPT2_SIGNUMCRUCIS;
 			break;
-		
+
 		case SC_BLIND:        sc->opt2 |= OPT2_BLIND;        break;
 		case SC_ANGELUS:      sc->opt2 |= OPT2_ANGELUS;      break;
 		case SC_BLEEDING:     sc->opt2 |= OPT2_BLEEDING;     break;
@@ -9236,7 +9235,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 		case SC_MAXOVERTHRUST:
 		case SC_OVERTHRUST:
-		case SC_SWOO:	//Why does it shares the same opt as Overthrust? Perhaps we'll never know...
+		case SC_SWOO: //Why does it shares the same opt as Overthrust? Perhaps we'll never know
 			sc->opt3 |= OPT3_OVERTHRUST;
 			opt_flag = 0;
 			break;
@@ -9914,7 +9913,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				break;
 		  	//Natural expiration.
 			if(sd && sd->mapindex == sce->val2)
-				pc_setpos(sd,(unsigned short)sce->val3,sce->val4&0xFFFF, sce->val4>>16, CLR_TELEPORT);
+				pc_setpos(sd,(unsigned short)sce->val3,sce->val4&0xFFFF,sce->val4>>16,CLR_TELEPORT);
 			break; //Guess hes not in jail :P
 
 		case SC_CHANGE:
