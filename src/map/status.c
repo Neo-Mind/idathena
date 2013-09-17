@@ -1064,6 +1064,7 @@ void initChangeTables(void) {
 
 	/* StatusChangeState (SCS_) NOMOVE */
 	StatusChangeStateTable[SC_ANKLE]               |= SCS_NOMOVE;
+	StatusChangeStateTable[SC_SPIDERWEB]           |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_AUTOCOUNTER]         |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_TRICKDEAD]           |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_BLADESTOP]           |= SCS_NOMOVE;
@@ -1088,7 +1089,6 @@ void initChangeTables(void) {
 	StatusChangeStateTable[SC_CRYSTALIZE]          |= SCS_NOMOVE|SCS_NOMOVECOND;
 	StatusChangeStateTable[SC_NETHERWORLD]         |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_CAMOUFLAGE]          |= SCS_NOMOVE|SCS_NOMOVECOND;
-
 	StatusChangeStateTable[SC_MEIKYOUSISUI]        |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_KAGEHUMI]            |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_KYOUGAKU]            |= SCS_NOMOVE;
@@ -9243,7 +9243,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_CLOSECONFINE2:
 		case SC_TINDER_BREAKER:
 		case SC_TINDER_BREAKER2:
-		case SC_SPIDERWEB:
 		case SC_ELECTRICSHOCKER:
 		case SC_BITE:
 		case SC_CAMOUFLAGE:
@@ -9261,8 +9260,16 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			unit_stop_walking(bl, 1);
 			break;
 		case SC_ANKLE:
-			if( battle_config.skill_trap_type || !map_flag_gvg(bl->m) )
-				unit_stop_walking(bl, 1);
+		case SC_SPIDERWEB:
+			{
+				int knockback_immune = sd ? !sd->special_state.no_knockback : !(status->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS));
+				if( knockback_immune ) {
+					if( !battle_config.skill_trap_type && map_flag_gvg2(bl->m) )
+						break;
+					else
+						unit_stop_walking(bl, 1);
+				}
+			}
 			break;
 		case SC_HIDING:
 		case SC_CLOAKING:
