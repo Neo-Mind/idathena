@@ -1029,28 +1029,28 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_WEDDING] = SCB_SPEED;
 
 	/* StatusDisplayType Table [Ind] */
-	StatusDisplayType[SC_PUSH_CART]			  = true;
-	StatusDisplayType[SC_SPHERE_1]			  = true;
-	StatusDisplayType[SC_SPHERE_2]			  = true;
-	StatusDisplayType[SC_SPHERE_3]			  = true;
-	StatusDisplayType[SC_SPHERE_4]			  = true;
-	StatusDisplayType[SC_SPHERE_5]			  = true;
-	StatusDisplayType[SC_CAMOUFLAGE]		  = true;
-	StatusDisplayType[SC_DUPLELIGHT]		  = true;
-	StatusDisplayType[SC_ORATIO]			  = true;
-	StatusDisplayType[SC_FREEZING]			  = true;
-	StatusDisplayType[SC_VENOMIMPRESS]		  = true;
+	StatusDisplayType[SC_PUSH_CART]		  = true;
+	StatusDisplayType[SC_SPHERE_1]		  = true;
+	StatusDisplayType[SC_SPHERE_2]		  = true;
+	StatusDisplayType[SC_SPHERE_3]		  = true;
+	StatusDisplayType[SC_SPHERE_4]		  = true;
+	StatusDisplayType[SC_SPHERE_5]		  = true;
+	StatusDisplayType[SC_CAMOUFLAGE]	  = true;
+	StatusDisplayType[SC_DUPLELIGHT]	  = true;
+	StatusDisplayType[SC_ORATIO]		  = true;
+	StatusDisplayType[SC_FREEZING]		  = true;
+	StatusDisplayType[SC_VENOMIMPRESS]	  = true;
 	StatusDisplayType[SC_HALLUCINATIONWALK]	  = true;
-	StatusDisplayType[SC_ROLLINGCUTTER]		  = true;
-	StatusDisplayType[SC_BANDING]			  = true;
-	StatusDisplayType[SC_CRYSTALIZE]		  = true;
-	StatusDisplayType[SC_DEEPSLEEP]			  = true;
+	StatusDisplayType[SC_ROLLINGCUTTER]	  = true;
+	StatusDisplayType[SC_BANDING]		  = true;
+	StatusDisplayType[SC_CRYSTALIZE]	  = true;
+	StatusDisplayType[SC_DEEPSLEEP]		  = true;
 	StatusDisplayType[SC_CURSEDCIRCLE_ATKER]  = true;
 	StatusDisplayType[SC_CURSEDCIRCLE_TARGET] = true;
-	StatusDisplayType[SC_BLOODSUCKER]		  = true;
-	StatusDisplayType[SC__SHADOWFORM]		  = true;
-	StatusDisplayType[SC__MANHOLE]			  = true;
-	StatusDisplayType[SC_MONSTER_TRANSFORM]   = true;
+	StatusDisplayType[SC_BLOODSUCKER]	  = true;
+	StatusDisplayType[SC__SHADOWFORM]	  = true;
+	StatusDisplayType[SC__MANHOLE]		  = true;
+	StatusDisplayType[SC_MONSTER_TRANSFORM]	  = true;
 
 	if( !battle_config.display_hallucination ) //Disable Hallucination.
 		StatusIconChangeTable[SC_HALLUCINATION] = SI_BLANK;
