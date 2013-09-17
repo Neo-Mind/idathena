@@ -675,6 +675,8 @@ typedef enum sc_type {
 	SC_DEFSET,
 	SC_MDEFSET,
 
+	SC_ALL_RIDING,
+
 	SC_MAX, //Automatically updated max, used in for's to check we are within bounds.
 } sc_type;
 
@@ -1533,7 +1535,6 @@ enum {
 	OPTION_DRAGON4		= 0x02000000,
 	OPTION_DRAGON5		= 0x04000000,
 	OPTION_HANBOK		= 0x08000000,
-	OPTION_MOUNTING		= 0x10000000,
 
 #ifndef NEW_CARTS
 	OPTION_CART1	= 0x00000008,

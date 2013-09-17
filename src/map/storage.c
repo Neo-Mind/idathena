@@ -304,13 +304,13 @@ int storage_storagegettocart(struct map_session_data* sd, int index, int amount)
 
 	if( index < 0 || index >= MAX_STORAGE )
 		return 0;
-	
+
 	if( sd->status.storage.items[index].nameid <= 0 )
 		return 0; //Nothing there.
-	
+
 	if( amount < 1 || amount > sd->status.storage.items[index].amount )
 		return 0;
-	
+
 	if( (flag = pc_cart_additem(sd,&sd->status.storage.items[index],amount,LOG_TYPE_STORAGE)) == 0 )
 		storage_delitem(sd,index,amount);
 	else {
