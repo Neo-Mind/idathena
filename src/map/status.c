@@ -1084,6 +1084,7 @@ void initChangeTables(void) {
 	StatusChangeStateTable[SC_THORNSTRAP]          |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_MAGNETICFIELD]       |= SCS_NOMOVE;
 	StatusChangeStateTable[SC__MANHOLE]            |= SCS_NOMOVE;
+	StatusChangeStateTable[SC_VACUUM_EXTREME]      |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_CURSEDCIRCLE_ATKER]  |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_CURSEDCIRCLE_TARGET] |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_CRYSTALIZE]          |= SCS_NOMOVE|SCS_NOMOVECOND;

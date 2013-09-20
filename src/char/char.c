@@ -3559,17 +3559,17 @@ void char_delete2_ack(int fd, int char_id, uint32 result, time_t delete_date)
 /// Any (0x718): An unknown error has occurred.
 void char_delete2_accept_ack(int fd, int char_id, uint32 result)
 { // HC: <082a>.W <char id>.L <Msg:0-5>.L
-		if(result == 1) {
-			struct char_session_data* sd;
-			sd = (struct char_session_data*)session[fd]->session_data;
-			mmo_char_send(fd, sd);
-        } else {
-			WFIFOHEAD(fd,10);
-			WFIFOW(fd,0) = 0x82a;
-			WFIFOL(fd,2) = char_id;
-			WFIFOL(fd,6) = result;
-			WFIFOSET(fd,10);
-        }
+	if( result == 1 ) {
+		struct char_session_data* sd;
+		sd = (struct char_session_data*)session[fd]->session_data;
+		mmo_char_send(fd, sd);
+	} else {
+		WFIFOHEAD(fd,10);
+		WFIFOW(fd,0) = 0x82a;
+		WFIFOL(fd,2) = char_id;
+		WFIFOL(fd,6) = result;
+		WFIFOSET(fd,10);
+	}
 }
 
 
@@ -3907,7 +3907,7 @@ int parse_char(int fd)
 					i = search_mapserver(cd->last_point.map,-1,-1);
 
 					//If map is not found, we check major cities
-					if (i < 0 || !cd->last_point.map) {
+					if( i < 0 || !cd->last_point.map ) {
 						unsigned short j;
 						//First check that there's actually a map server online.
 						ARR_FIND( 0,ARRAYLENGTH(server),j,server[j].fd >= 0 && server[j].map[0] );
@@ -4117,10 +4117,10 @@ int parse_char(int fd)
 			case 0x8fc:
 				FIFOSD_CHECK(30);
 				{
-					int i,cid = RFIFOL(fd,2);
+					int i, cid = RFIFOL(fd,2);
 					char name[NAME_LENGTH];
 					char esc_name[NAME_LENGTH * 2 + 1];
-					safestrncpy(name,(char *)RFIFOP(fd,6),NAME_LENGTH);
+					safestrncpy(name,(char*)RFIFOP(fd,6),NAME_LENGTH);
 					RFIFOSKIP(fd,30);
 
 					ARR_FIND(0,MAX_CHARS,i,sd->found_char[i] == cid);
@@ -4147,10 +4147,10 @@ int parse_char(int fd)
 			case 0x28d:
 				FIFOSD_CHECK(34);
 				{
-					int i,aid = RFIFOL(fd,2),cid = RFIFOL(fd,6);
+					int i, aid = RFIFOL(fd,2),cid = RFIFOL(fd,6);
 					char name[NAME_LENGTH];
-					char esc_name[NAME_LENGTH*2+1];
-					safestrncpy(name,(char *)RFIFOP(fd,10),NAME_LENGTH);
+					char esc_name[NAME_LENGTH * 2 + 1];
+					safestrncpy(name,(char*)RFIFOP(fd,10),NAME_LENGTH);
 					RFIFOSKIP(fd,34);
 
 					if( aid != sd->account_id )
@@ -4353,7 +4353,7 @@ int parse_char(int fd)
 	return 0;
 }
 
-// Console Command Parser [Wizputer]
+//Console Command Parser [Wizputer]
 int parse_console(const char* buf)
 {
 	char type[64];
@@ -4361,9 +4361,9 @@ int parse_console(const char* buf)
 	int n = 0;
 
 	if( ( n = sscanf(buf, "%63[^:]:%63[^\n]", type, command) ) < 2 ) {
-		if( (n = sscanf(buf, "%63[^\n]", type)) < 1 ) return -1; //nothing to do no arg
+		if( (n = sscanf(buf, "%63[^\n]", type)) < 1 ) return -1; //Nothing to do no arg
 	}
-	if( n != 2 ) { //end string
+	if( n != 2 ) { //End string
 		ShowNotice("Type: '%s'\n",type);
 		command[0] = '\0';
 	} else
@@ -4391,16 +4391,15 @@ int mapif_sendall(unsigned char *buf, unsigned int len)
 	int i, c;
 
 	c = 0;
-	for(i = 0; i < ARRAYLENGTH(server); i++) {
+	for( i = 0; i < ARRAYLENGTH(server); i++ ) {
 		int fd;
-		if ((fd = server[i].fd) > 0) {
+		if( (fd = server[i].fd) > 0 ) {
 			WFIFOHEAD(fd,len);
-			memcpy(WFIFOP(fd,0), buf, len);
+			memcpy(WFIFOP(fd,0),buf,len);
 			WFIFOSET(fd,len);
 			c++;
 		}
 	}
-
 	return c;
 }
 
@@ -4409,27 +4408,26 @@ int mapif_sendallwos(int sfd, unsigned char *buf, unsigned int len)
 	int i, c;
 
 	c = 0;
-	for(i = 0; i < ARRAYLENGTH(server); i++) {
+	for( i = 0; i < ARRAYLENGTH(server); i++ ) {
 		int fd;
-		if ((fd = server[i].fd) > 0 && fd != sfd) {
+		if( (fd = server[i].fd) > 0 && fd != sfd ) {
 			WFIFOHEAD(fd,len);
-			memcpy(WFIFOP(fd,0), buf, len);
+			memcpy(WFIFOP(fd,0),buf,len);
 			WFIFOSET(fd,len);
 			c++;
 		}
 	}
-
 	return c;
 }
 
 int mapif_send(int fd, unsigned char *buf, unsigned int len)
 {
-	if (fd >= 0) {
+	if( fd >= 0 ) {
 		int i;
-		ARR_FIND( 0, ARRAYLENGTH(server), i, fd == server[i].fd );
+		ARR_FIND(0,ARRAYLENGTH(server),i,fd == server[i].fd);
 		if( i < ARRAYLENGTH(server) ) {
 			WFIFOHEAD(fd,len);
-			memcpy(WFIFOP(fd,0), buf, len);
+			memcpy(WFIFOP(fd,0),buf,len);
 			WFIFOSET(fd,len);
 			return 1;
 		}
@@ -4442,21 +4440,21 @@ int broadcast_user_count(int tid, unsigned int tick, int id, intptr_t data)
 	uint8 buf[6];
 	int users = count_users();
 
-	// only send an update when needed
+	//Only send an update when needed
 	static int prev_users = 0;
 	if( prev_users == users )
 		return 0;
 	prev_users = users;
 
 	if( login_fd > 0 && session[login_fd] ) {
-		// send number of user to login server
+		//Send number of user to login server
 		WFIFOHEAD(login_fd,6);
 		WFIFOW(login_fd,0) = 0x2714;
 		WFIFOL(login_fd,2) = users;
 		WFIFOSET(login_fd,6);
 	}
 
-	// send number of players to all map-servers
+	//Send number of players to all map-servers
 	WBUFW(buf,0) = 0x2b00;
 	WBUFL(buf,2) = users;
 	mapif_sendall(buf,6);
@@ -4473,8 +4471,8 @@ static int send_accounts_tologin_sub(DBKey key, DBData *data, va_list ap)
 	struct online_char_data* character = db_data2ptr(data);
 	int* i = va_arg(ap, int*);
 
-	if(character->server > -1) {
-		WFIFOL(login_fd,8+(*i)*4) = character->account_id;
+	if( character->server > -1 ) {
+		WFIFOL(login_fd,8 + (*i) * 4) = character->account_id;
 		(*i)++;
 		return 1;
 	}
@@ -4484,14 +4482,14 @@ static int send_accounts_tologin_sub(DBKey key, DBData *data, va_list ap)
 int send_accounts_tologin(int tid, unsigned int tick, int id, intptr_t data)
 {
 	if (login_fd > 0 && session[login_fd]) {
-		// send account list to login server
+		//Send account list to login server
 		int users = online_char_db->size(online_char_db);
 		int i = 0;
 
-		WFIFOHEAD(login_fd,8+users*4);
+		WFIFOHEAD(login_fd,8 + users * 4);
 		WFIFOW(login_fd,0) = 0x272d;
-		online_char_db->foreach(online_char_db, send_accounts_tologin_sub, &i, users);
-		WFIFOW(login_fd,2) = 8+ i*4;
+		online_char_db->foreach(online_char_db,send_accounts_tologin_sub,&i,users);
+		WFIFOW(login_fd,2) = 8 + i * 4;
 		WFIFOL(login_fd,4) = i;
 		WFIFOSET(login_fd,WFIFOW(login_fd,2));
 	}
@@ -4500,30 +4498,30 @@ int send_accounts_tologin(int tid, unsigned int tick, int id, intptr_t data)
 
 int check_connect_login_server(int tid, unsigned int tick, int id, intptr_t data)
 {
-	if (login_fd > 0 && session[login_fd] != NULL)
+	if( login_fd > 0 && session[login_fd] != NULL )
 		return 0;
 
 	ShowInfo("Attempt to connect to login-server...\n");
-	login_fd = make_connection(login_ip, login_port, false, 10);
-	if (login_fd == -1) { //Try again later. [Skotlex]
+	login_fd = make_connection(login_ip,login_port,false,10);
+	if( login_fd == -1 ) { //Try again later. [Skotlex]
 		login_fd = 0;
 		return 0;
 	}
 	session[login_fd]->func_parse = parse_fromlogin;
 	session[login_fd]->flag.server = 1;
-	realloc_fifo(login_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
+	realloc_fifo(login_fd,FIFOSIZE_SERVERLINK,FIFOSIZE_SERVERLINK);
 
 	WFIFOHEAD(login_fd,86);
 	WFIFOW(login_fd,0) = 0x2710;
-	memcpy(WFIFOP(login_fd,2), userid, 24);
-	memcpy(WFIFOP(login_fd,26), passwd, 24);
+	memcpy(WFIFOP(login_fd,2),userid,24);
+	memcpy(WFIFOP(login_fd,26),passwd,24);
 	WFIFOL(login_fd,50) = 0;
 	WFIFOL(login_fd,54) = htonl(char_ip);
 	WFIFOW(login_fd,58) = htons(char_port);
-	memcpy(WFIFOP(login_fd,60), server_name, 20);
+	memcpy(WFIFOP(login_fd,60),server_name,20);
 	WFIFOW(login_fd,80) = 0;
 	WFIFOW(login_fd,82) = char_maintenance;
-	WFIFOW(login_fd,84) = char_new_display; //only display (New) if they want to [Kevin]
+	WFIFOW(login_fd,84) = char_new_display; //Only display (New) if they want to [Kevin]
 	WFIFOSET(login_fd,86);
 
 	return 1;
