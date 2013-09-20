@@ -10362,8 +10362,8 @@ int kaahi_heal_timer(int tid, unsigned int tick, int id, intptr_t data)
 	struct status_data *status;
 	int hp;
 
-	if(!((bl=map_id2bl(id))&&
-		(sc=status_get_sc(bl)) &&
+	if(!((bl = map_id2bl(id))&&
+		(sc = status_get_sc(bl)) &&
 		(sce = sc->data[SC_KAAHI])))
 		return 0;
 
@@ -10380,9 +10380,9 @@ int kaahi_heal_timer(int tid, unsigned int tick, int id, intptr_t data)
 	}
 
 	hp = status->max_hp - status->hp;
-	if (hp > sce->val2)
+	if(hp > sce->val2)
 		hp = sce->val2;
-	if (hp)
+	if(hp)
 		status_heal(bl, hp, 0, 2);
 	sce->val4 = INVALID_TIMER;
 	return 1;
