@@ -4261,7 +4261,7 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 	* Damage = Attack * (4000+eDEF)/(4000+eDEF*10) - sDEF
 	* Pierce defence gains 1 atk per def/2
 	**/
-	if(def1 < -399)
+	if(def1 == -400)
 		def1 = -399; //Avoid divide by 0
 	ATK_ADD2(wd.damage, wd.damage2,
 		is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_R) ? (def1 / 2) : 0,
@@ -5573,7 +5573,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			 * RE MDEF Reduction
 			 * Damage = Magic Attack * (1000+eMDEF)/(1000+eMDEF) - sMDEF
 			 **/
-			if (mdef < -99)
+			if (mdef == -100)
 				mdef = -99; //Avoid divide by 0
 			ad.damage = ad.damage * (1000 + mdef) / (1000 + mdef * 10) - mdef2;
 #else

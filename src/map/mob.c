@@ -3770,36 +3770,36 @@ static bool mob_parse_dbrow(char** str)
 			ratemin = battle_config.item_drop_treasure_min;
 			ratemax = battle_config.item_drop_treasure_max;
 		} else
-		switch (type) { //Added suport to restrict normal drops of MVP's [Reddozen]
-			case IT_HEALING:
-				rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_heal_boss : battle_config.item_rate_heal;
-				ratemin = battle_config.item_drop_heal_min;
-				ratemax = battle_config.item_drop_heal_max;
-				break;
-			case IT_USABLE:
-			case IT_CASH:
-				rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_use_boss : battle_config.item_rate_use;
-				ratemin = battle_config.item_drop_use_min;
-				ratemax = battle_config.item_drop_use_max;
-				break;
-			case IT_WEAPON:
-			case IT_ARMOR:
-			case IT_PETARMOR:
-				rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_equip_boss : battle_config.item_rate_equip;
-				ratemin = battle_config.item_drop_equip_min;
-				ratemax = battle_config.item_drop_equip_max;
-				break;
-			case IT_CARD:
-				rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_card_boss : battle_config.item_rate_card;
-				ratemin = battle_config.item_drop_card_min;
-				ratemax = battle_config.item_drop_card_max;
-				break;
-			default:
-				rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_common_boss : battle_config.item_rate_common;
-				ratemin = battle_config.item_drop_common_min;
-				ratemax = battle_config.item_drop_common_max;
-				break;
-		}
+			switch (type) { //Added suport to restrict normal drops of MVP's [Reddozen]
+				case IT_HEALING:
+					rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_heal_boss : battle_config.item_rate_heal;
+					ratemin = battle_config.item_drop_heal_min;
+					ratemax = battle_config.item_drop_heal_max;
+					break;
+				case IT_USABLE:
+				case IT_CASH:
+					rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_use_boss : battle_config.item_rate_use;
+					ratemin = battle_config.item_drop_use_min;
+					ratemax = battle_config.item_drop_use_max;
+					break;
+				case IT_WEAPON:
+				case IT_ARMOR:
+				case IT_PETARMOR:
+					rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_equip_boss : battle_config.item_rate_equip;
+					ratemin = battle_config.item_drop_equip_min;
+					ratemax = battle_config.item_drop_equip_max;
+					break;
+				case IT_CARD:
+					rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_card_boss : battle_config.item_rate_card;
+					ratemin = battle_config.item_drop_card_min;
+					ratemax = battle_config.item_drop_card_max;
+					break;
+				default:
+					rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_common_boss : battle_config.item_rate_common;
+					ratemin = battle_config.item_drop_common_min;
+					ratemax = battle_config.item_drop_common_max;
+					break;
+			}
 		item_dropratio_adjust(id->nameid, class_, &rate_adjust);
 		db->dropitem[i].p = mob_drop_adjust(rate, rate_adjust, ratemin, ratemax);
 
