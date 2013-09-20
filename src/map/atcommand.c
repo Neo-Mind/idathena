@@ -7255,7 +7255,7 @@ ACMD_FUNC(iteminfo)
 		);
 		clif_displaymessage(fd, atcmd_output);
 
-		sprintf(atcmd_output, msg_txt(1280), item_data->value_buy, item_data->value_sell, item_data->weight/10. ); // NPC Buy:%dz, Sell:%dz | Weight: %.1f
+		sprintf(atcmd_output, msg_txt(1280), item_data->value_buy, item_data->value_sell, item_data->weight / 10. ); // NPC Buy:%dz, Sell:%dz | Weight: %.1f
 		clif_displaymessage(fd, atcmd_output);
 
 		if (item_data->maxchance == -1)
@@ -7309,7 +7309,7 @@ ACMD_FUNC(whodrops)
 			sprintf(atcmd_output, msg_txt(1287), MAX_SEARCH); // - Common mobs with highest drop chance (only max %d are listed):
 			clif_displaymessage(fd, atcmd_output);
 
-			for (j=0; j < MAX_SEARCH && item_data->mob[j].chance > 0; j++) {
+			for (j = 0; j < MAX_SEARCH && item_data->mob[j].chance > 0; j++) {
 				float dropchance = (float)item_data->mob[j].chance;
 
 #ifdef RENEWAL_DROP

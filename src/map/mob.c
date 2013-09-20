@@ -3617,10 +3617,10 @@ static bool mob_parse_dbrow(char** str)
 	}
 
 	memset(&entry, 0, sizeof(entry));
-	
+
 	db = &entry;
 	status = &db->status;
-	
+
 	db->vd.class_ = class_;
 	safestrncpy(db->sprite, str[1], sizeof(db->sprite));
 	safestrncpy(db->jname, str[2], sizeof(db->jname));
@@ -3629,13 +3629,13 @@ static bool mob_parse_dbrow(char** str)
 	db->lv = cap_value(db->lv, 1, USHRT_MAX);
 	status->max_hp = atoi(str[5]);
 	status->max_sp = atoi(str[6]);
-	
+
 	exp = (double)atoi(str[7]) * (double)battle_config.base_exp_rate / 100.;
 	db->base_exp = (unsigned int)cap_value(exp, 0, UINT_MAX);
-	
+
 	exp = (double)atoi(str[8]) * (double)battle_config.job_exp_rate / 100.;
 	db->job_exp = (unsigned int)cap_value(exp, 0, UINT_MAX);
-	
+
 	status->rhw.range = atoi(str[9]);
 	status->rhw.atk = atoi(str[10]);
 	status->rhw.atk2 = atoi(str[11]);
@@ -3654,7 +3654,7 @@ static bool mob_parse_dbrow(char** str)
 	if (status->int_< 1) status->int_= 1;
 	if (status->dex < 1) status->dex = 1;
 	if (status->luk < 1) status->luk = 1;
-	
+
 	db->range2 = atoi(str[20]);
 	db->range3 = atoi(str[21]);
 	if (battle_config.view_range_rate != 100) {
@@ -3667,13 +3667,13 @@ static bool mob_parse_dbrow(char** str)
 		if (db->range3 < db->range2)
 			db->range3 = db->range2;
 	}
-	
+
 	status->size = atoi(str[22]);
 	status->race = atoi(str[23]);
-	
+
 	i = atoi(str[24]); //Element
 	status->def_ele = i%10;
-	status->ele_lv = i/20;
+	status->ele_lv = i / 20;
 	if (status->def_ele >= ELE_MAX) {
 		ShowError("mob_parse_dbrow: Invalid element type %d for monster ID %d (max=%d).\n", status->def_ele, class_, ELE_MAX-1);
 		return false;
@@ -3682,15 +3682,15 @@ static bool mob_parse_dbrow(char** str)
 		ShowError("mob_parse_dbrow: Invalid element level %d for monster ID %d, must be in range 1-4.\n", status->ele_lv, class_);
 		return false;
 	}
-	
+
 	status->mode = (int)strtol(str[25], NULL, 0);
 	if (!battle_config.monster_active_enable)
 		status->mode &= ~MD_AGGRESSIVE;
-	
+
 	status->speed = atoi(str[26]);
 	status->aspd_rate = 1000;
 	i = atoi(str[27]);
-	status->adelay = cap_value(i, battle_config.monster_max_aspd*2, 4000);
+	status->adelay = cap_value(i, battle_config.monster_max_aspd * 2, 4000);
 	i = atoi(str[28]);
 	status->amotion = cap_value(i, battle_config.monster_max_aspd, 2000);
 	//If the attack animation is longer than the delay, the client crops the attack animation!
@@ -3698,20 +3698,20 @@ static bool mob_parse_dbrow(char** str)
 	if (status->adelay < status->amotion)
 		status->adelay = status->amotion;
 	status->dmotion = atoi(str[29]);
-	if(battle_config.monster_damage_delay_rate != 100)
+	if (battle_config.monster_damage_delay_rate != 100)
 		status->dmotion = status->dmotion * battle_config.monster_damage_delay_rate / 100;
 
-	// Fill in remaining status data by using a dummy monster.
+	//Fill in remaining status data by using a dummy monster.
 	data.bl.type = BL_MOB;
 	data.level = db->lv;
 	memcpy(&data.status, status, sizeof(struct status_data));
 	status_calc_misc(&data.bl, status, db->lv);
-	
-	// MVP EXP Bonus: MEXP
-	// Some new MVP's MEXP multipled by high exp-rate cause overflow. [LuzZza]
+
+	//MVP EXP Bonus: MEXP
+	//Some new MVP's MEXP multipled by high exp-rate cause overflow. [LuzZza]
 	exp = (double)atoi(str[30]) * (double)battle_config.mvp_exp_rate / 100.;
 	db->mexp = (unsigned int)cap_value(exp, 0, UINT_MAX);
-	
+
 	//Now that we know if it is an mvp or not, apply battle_config modifiers [Skotlex]
 	maxhp = (double)status->max_hp;
 	if (db->mexp > 0) { //Mvp
@@ -3720,41 +3720,41 @@ static bool mob_parse_dbrow(char** str)
 	} else //Normal mob
 		if (battle_config.monster_hp_rate != 100)
 			maxhp = maxhp * (double)battle_config.monster_hp_rate / 100.;
-	
+
 	status->max_hp = (unsigned int)cap_value(maxhp, 1, UINT_MAX);
 	if(status->max_sp < 1) status->max_sp = 1;
-	
-	//Since mobs always respawn with full life...
+
+	//Since mobs always respawn with full life.
 	status->hp = status->max_hp;
 	status->sp = status->max_sp;
-	
+
 	// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
-	for(i = 0; i < MAX_MVP_DROP; i++) {
+	for (i = 0; i < MAX_MVP_DROP; i++) {
 		int rate_adjust = battle_config.item_rate_mvp;;
-		db->mvpitem[i].nameid = atoi(str[31+i*2]);
+		db->mvpitem[i].nameid = atoi(str[31 + i * 2]);
 		if (!db->mvpitem[i].nameid) {
-			db->mvpitem[i].p = 0; //No item....
+			db->mvpitem[i].p = 0; //No item.
 			continue;
 		}
 		item_dropratio_adjust(db->mvpitem[i].nameid, class_, &rate_adjust);
-		db->mvpitem[i].p = mob_drop_adjust(atoi(str[32+i*2]), rate_adjust, battle_config.item_drop_mvp_min, battle_config.item_drop_mvp_max);
-		
-		//calculate and store Max available drop chance of the MVP item
+		db->mvpitem[i].p = mob_drop_adjust(atoi(str[32 + i * 2]), rate_adjust, battle_config.item_drop_mvp_min, battle_config.item_drop_mvp_max);
+
+		//Calculate and store Max available drop chance of the MVP item
 		if (db->mvpitem[i].p) {
 			struct item_data *id;
 			id = itemdb_search(db->mvpitem[i].nameid);
-			if (id->maxchance == -1 || (id->maxchance < db->mvpitem[i].p/10 + 1) ) {
-				//item has bigger drop chance or sold in shops
-				id->maxchance = db->mvpitem[i].p/10 + 1; //reduce MVP drop info to not spoil common drop rate
+			if (id->maxchance == -1 || (id->maxchance < db->mvpitem[i].p / 10 + 1) ) {
+				//Item has bigger drop chance or sold in shops
+				id->maxchance = db->mvpitem[i].p / 10 + 1; //Reduce MVP drop info to not spoil common drop rate
 			}
 		}
 	}
-	
-	for(i = 0; i < MAX_MOB_DROP; i++) {
+
+	for (i = 0; i < MAX_MOB_DROP; i++) {
 		int rate = 0, rate_adjust, type;
 		unsigned short ratemin, ratemax;
 		struct item_data *id;
-		k = 31 + MAX_MVP_DROP*2 + i*2;
+		k = 31 + MAX_MVP_DROP * 2 + i * 2;
 		db->dropitem[i].nameid = atoi(str[k]);
 		if (!db->dropitem[i].nameid) {
 			db->dropitem[i].p = 0; //No drop.
@@ -3762,54 +3762,53 @@ static bool mob_parse_dbrow(char** str)
 		}
 		id = itemdb_search(db->dropitem[i].nameid);
 		type = id->type;
-		rate = atoi(str[k+1]);
-		if( (class_ >= 1324 && class_ <= 1363) || (class_ >= 1938 && class_ <= 1946) )
-		{	//Treasure box drop rates [Skotlex]
+		rate = atoi(str[k + 1]);
+		if (battle_config.drop_rateincrease)
+			if (rate < 5000) rate++;
+		if ((class_ >= 1324 && class_ <= 1363) || (class_ >= 1938 && class_ <= 1946)) { //Treasure box drop rates [Skotlex]
 			rate_adjust = battle_config.item_rate_treasure;
 			ratemin = battle_config.item_drop_treasure_min;
 			ratemax = battle_config.item_drop_treasure_max;
-		}
-		else switch (type)
-		{ // Added suport to restrict normal drops of MVP's [Reddozen]
-		case IT_HEALING:
-			rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_heal_boss : battle_config.item_rate_heal;
-			ratemin = battle_config.item_drop_heal_min;
-			ratemax = battle_config.item_drop_heal_max;
-			break;
-		case IT_USABLE:
-		case IT_CASH:
-			rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_use_boss : battle_config.item_rate_use;
-			ratemin = battle_config.item_drop_use_min;
-			ratemax = battle_config.item_drop_use_max;
-			break;
-		case IT_WEAPON:
-		case IT_ARMOR:
-		case IT_PETARMOR:
-			rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_equip_boss : battle_config.item_rate_equip;
-			ratemin = battle_config.item_drop_equip_min;
-			ratemax = battle_config.item_drop_equip_max;
-			break;
-		case IT_CARD:
-			rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_card_boss : battle_config.item_rate_card;
-			ratemin = battle_config.item_drop_card_min;
-			ratemax = battle_config.item_drop_card_max;
-			break;
-		default:
-			rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_common_boss : battle_config.item_rate_common;
-			ratemin = battle_config.item_drop_common_min;
-			ratemax = battle_config.item_drop_common_max;
-			break;
+		} else
+		switch (type) { //Added suport to restrict normal drops of MVP's [Reddozen]
+			case IT_HEALING:
+				rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_heal_boss : battle_config.item_rate_heal;
+				ratemin = battle_config.item_drop_heal_min;
+				ratemax = battle_config.item_drop_heal_max;
+				break;
+			case IT_USABLE:
+			case IT_CASH:
+				rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_use_boss : battle_config.item_rate_use;
+				ratemin = battle_config.item_drop_use_min;
+				ratemax = battle_config.item_drop_use_max;
+				break;
+			case IT_WEAPON:
+			case IT_ARMOR:
+			case IT_PETARMOR:
+				rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_equip_boss : battle_config.item_rate_equip;
+				ratemin = battle_config.item_drop_equip_min;
+				ratemax = battle_config.item_drop_equip_max;
+				break;
+			case IT_CARD:
+				rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_card_boss : battle_config.item_rate_card;
+				ratemin = battle_config.item_drop_card_min;
+				ratemax = battle_config.item_drop_card_max;
+				break;
+			default:
+				rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_common_boss : battle_config.item_rate_common;
+				ratemin = battle_config.item_drop_common_min;
+				ratemax = battle_config.item_drop_common_max;
+				break;
 		}
 		item_dropratio_adjust(id->nameid, class_, &rate_adjust);
 		db->dropitem[i].p = mob_drop_adjust(rate, rate_adjust, ratemin, ratemax);
-		
-		//calculate and store Max available drop chance of the item
-		if( db->dropitem[i].p && (class_ < 1324 || class_ > 1363) && (class_ < 1938 || class_ > 1946) )
-		{ //Skip treasure chests.
+
+		//Calculate and store Max available drop chance of the item
+		if (db->dropitem[i].p && (class_ < 1324 || class_ > 1363) && (class_ < 1938 || class_ > 1946)) { //Skip treasure chests.
 			if (id->maxchance == -1 || (id->maxchance < db->dropitem[i].p) ) {
-				id->maxchance = db->dropitem[i].p; //item has bigger drop chance or sold in shops
+				id->maxchance = db->dropitem[i].p; //Item has bigger drop chance or sold in shops
 			}
-			for (k = 0; k< MAX_SEARCH; k++) {
+			for (k = 0; k < MAX_SEARCH; k++) {
 				if (id->mob[k].chance <= db->dropitem[i].p)
 					break;
 			}
@@ -3817,13 +3816,13 @@ static bool mob_parse_dbrow(char** str)
 				continue;
 			
 			if (id->mob[k].id != class_)
-				memmove(&id->mob[k+1], &id->mob[k], (MAX_SEARCH-k-1)*sizeof(id->mob[0]));
+				memmove(&id->mob[k+1], &id->mob[k], (MAX_SEARCH - k - 1)*sizeof(id->mob[0]));
 			id->mob[k].chance = db->dropitem[i].p;
 			id->mob[k].id = class_;
 		}
 	}
 
-	// Finally insert monster's data into the database.
+	//Finally insert monster's data into the database.
 	if (mob_db_data[class_] == NULL)
 		mob_db_data[class_] = (struct mob_db*)aCalloc(1, sizeof(struct mob_db));
 	else
