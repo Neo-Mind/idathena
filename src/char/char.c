@@ -3562,7 +3562,7 @@ void char_delete2_accept_ack(int fd, int char_id, uint32 result)
 	if( result == 1 ) {
 		struct char_session_data* sd;
 		sd = (struct char_session_data*)session[fd]->session_data;
-		mmo_char_send(fd, sd);
+		mmo_char_send(fd,sd);
 	} else {
 		WFIFOHEAD(fd,10);
 		WFIFOW(fd,0) = 0x82a;
