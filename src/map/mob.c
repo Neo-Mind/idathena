@@ -477,7 +477,7 @@ int mob_once_spawn(struct map_session_data* sd, int16 m, int16 x, int16 y, const
 			continue;
 
 		if (class_ == MOBID_EMPERIUM) {
-			struct guild_castle* gc = guild_mapindex2gc(map[m].index);
+			struct guild_castle* gc = guild_mapindex2gc(map_id2index(m));
 			struct guild* g = (gc) ? guild_search(gc->guild_id) : NULL;
 			if (gc) {
 				md->guardian_data = (struct guardian_data*)aCalloc(1, sizeof(struct guardian_data));
@@ -488,19 +488,19 @@ int mob_once_spawn(struct map_session_data* sd, int16 m, int16 x, int16 y, const
 					md->guardian_data->emblem_id = g->emblem_id;
 					memcpy(md->guardian_data->guild_name, g->name, NAME_LENGTH);
 				} else if (gc->guild_id) //Guild not yet available, retry in 5.
-					add_timer(gettick()+5000,mob_spawn_guardian_sub,md->bl.id,md->guardian_data->guild_id);
+					add_timer(gettick() + 5000, mob_spawn_guardian_sub, md->bl.id, md->guardian_data->guild_id);
 			}
-		}	// end addition [Valaris]
+		}	//End addition [Valaris]
 
 		mob_spawn(md);
 
+		//Behold Aegis's masterful decisions yet again.
+		//"I understand the "Aggressive" part, but the "Can Move" and "Can Attack" is just stupid" - Poki#3
 		if (class_ < 0 && battle_config.dead_branch_active)
-			//Behold Aegis's masterful decisions yet again...
-			//"I understand the "Aggressive" part, but the "Can Move" and "Can Attack" is just stupid" - Poki#3
 			sc_start4(NULL, &md->bl, SC_MODECHANGE, 100, 1, 0, MD_AGGRESSIVE|MD_CANATTACK|MD_CANMOVE|MD_ANGRY, 0, 60000);
 	}
 
-	return (md) ? md->bl.id : 0; // id of last spawned mob
+	return (md) ? md->bl.id : 0; //Id of last spawned mob
 }
 
 /*==========================================
@@ -981,20 +981,19 @@ int mob_spawn (struct mob_data *md)
  *------------------------------------------*/
 static int mob_can_changetarget(struct mob_data* md, struct block_list* target, int mode)
 {
-	// if the monster was provoked ignore the above rule [celest]
-	if(md->state.provoke_flag)
-	{
-		if (md->state.provoke_flag == target->id)
+	//If the monster was provoked ignore the above rule [celest]
+	if(md->state.provoke_flag) {
+		if(md->state.provoke_flag == target->id)
 			return 1;
-		else if (!(battle_config.mob_ai&0x4))
+		else if(!(battle_config.mob_ai&0x4))
 			return 0;
 	}
-	
-	switch (md->state.skillstate) {
+
+	switch(md->state.skillstate) {
 		case MSS_BERSERK:
-			if (!(mode&MD_CHANGETARGET_MELEE))
+			if(!(mode&MD_CHANGETARGET_MELEE))
 				return 0;
-			return (battle_config.mob_ai&0x4 || check_distance_bl(&md->bl, target, 3));
+			return (battle_config.mob_ai&0x4 || check_distance_bl(&md->bl,target,3));
 		case MSS_RUSH:
 			return (mode&MD_CHANGETARGET_CHASE);
 		case MSS_FOLLOW:
@@ -1016,19 +1015,19 @@ int mob_target(struct mob_data *md,struct block_list *bl,int dist)
 	nullpo_ret(md);
 	nullpo_ret(bl);
 
-	// Nothing will be carried out if there is no mind of changing TAGE by TAGE ending.
-	if(md->target_id && !mob_can_changetarget(md, bl, status_get_mode(&md->bl)))
+	//Nothing will be carried out if there is no mind of changing TAGE by TAGE ending.
+	if(md->target_id && !mob_can_changetarget(md,bl,status_get_mode(&md->bl)))
 		return 0;
 
-	if(!status_check_skilluse(&md->bl, bl, 0, 0))
+	if(!status_check_skilluse(&md->bl,bl,0,0))
 		return 0;
 
-	md->target_id = bl->id;	// Since there was no disturbance, it locks on to target.
-	if (md->state.provoke_flag && bl->id != md->state.provoke_flag)
+	md->target_id = bl->id;	//Since there was no disturbance, it locks on to target.
+	if(md->state.provoke_flag && bl->id != md->state.provoke_flag)
 		md->state.provoke_flag = 0;
-	md->min_chase=dist+md->db->range3;
-	if(md->min_chase>MAX_MINCHASE)
-		md->min_chase=MAX_MINCHASE;
+	md->min_chase = dist + md->db->range3;
+	if(md->min_chase > MAX_MINCHASE)
+		md->min_chase = MAX_MINCHASE;
 	return 0;
 }
 
@@ -1043,54 +1042,53 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 	int dist;
 
 	nullpo_ret(bl);
-	md=va_arg(ap,struct mob_data *);
-	target= va_arg(ap,struct block_list**);
-	mode= va_arg(ap,int);
+	md = va_arg(ap,struct mob_data *);
+	target = va_arg(ap,struct block_list**);
+	mode = va_arg(ap,int);
 
 	//If can't seek yet, not an enemy, or you can't attack it, skip.
-	if ((*target) == bl || !status_check_skilluse(&md->bl, bl, 0, 0))
+	if((*target) == bl || !status_check_skilluse(&md->bl,bl,0,0))
 		return 0;
 
-	if ((mode&MD_TARGETWEAK) && status_get_lv(bl) >= md->level-5)
+	if((mode&MD_TARGETWEAK) && status_get_lv(bl) >= md->level - 5)
 		return 0;
 
-	if(battle_check_target(&md->bl,bl,BCT_ENEMY)<=0)
+	if(battle_check_target(&md->bl,bl,BCT_ENEMY) <= 0)
 		return 0;
 
-	switch (bl->type)
-	{
-	case BL_PC:
-		if (((TBL_PC*)bl)->state.gangsterparadise &&
-			!(status_get_mode(&md->bl)&MD_BOSS))
-			return 0; //Gangster paradise protection.
-	default:
-		if (battle_config.hom_setting&0x4 &&
-			(*target) && (*target)->type == BL_HOM && bl->type != BL_HOM)
-			return 0; //For some reason Homun targets are never overriden.
+	switch(bl->type) {
+		case BL_PC:
+			if(((TBL_PC*)bl)->state.gangsterparadise &&
+				!(status_get_mode(&md->bl)&MD_BOSS))
+				return 0; //Gangster paradise protection.
+		default:
+			if(battle_config.hom_setting&0x4 &&
+				(*target) && (*target)->type == BL_HOM && bl->type != BL_HOM)
+				return 0; //For some reason Homun targets are never overriden.
 
-		dist = distance_bl(&md->bl, bl);
-		if(
-			((*target) == NULL || !check_distance_bl(&md->bl, *target, dist)) &&
-			battle_check_range(&md->bl,bl,md->db->range2)
-		) { //Pick closest target?
+			dist = distance_bl(&md->bl,bl);
+			if(
+				((*target) == NULL || !check_distance_bl(&md->bl,*target,dist)) &&
+				battle_check_range(&md->bl,bl,md->db->range2)
+			) { //Pick closest target?
 
-			if( map[bl->m].icewall_num &&
-				!path_search_long(NULL,bl->m,md->bl.x,md->bl.y,bl->x,bl->y,CELL_CHKICEWALL) ) {
+				if(map[bl->m].icewall_num &&
+					!path_search_long(NULL,bl->m,md->bl.x,md->bl.y,bl->x,bl->y,CELL_CHKICEWALL)) {
 
-				if( !check_distance_bl(&md->bl, bl, status_get_range(&md->bl) ) )
-					return 0;
+					if(!check_distance_bl(&md->bl, bl, status_get_range(&md->bl)))
+						return 0;
 
+				}
+				
+				(*target) = bl;
+				md->target_id = bl->id;
+				md->min_chase = dist + md->db->range3;
+				if(md->min_chase > MAX_MINCHASE)
+					md->min_chase = MAX_MINCHASE;
+				return 1;
 			}
-			
-			(*target) = bl;
-			md->target_id=bl->id;
-			md->min_chase= dist + md->db->range3;
-			if(md->min_chase>MAX_MINCHASE)
-				md->min_chase=MAX_MINCHASE;
-			return 1;
+			break;
 		}
-		break;
-	}
 	return 0;
 }
 
@@ -1103,20 +1101,19 @@ static int mob_ai_sub_hard_changechase(struct block_list *bl,va_list ap)
 	struct block_list **target;
 
 	nullpo_ret(bl);
-	md=va_arg(ap,struct mob_data *);
-	target= va_arg(ap,struct block_list**);
+	md = va_arg(ap,struct mob_data *);
+	target = va_arg(ap,struct block_list**);
 
 	//If can't seek yet, not an enemy, or you can't attack it, skip.
-	if ((*target) == bl ||
-		battle_check_target(&md->bl,bl,BCT_ENEMY)<=0 ||
-	  	!status_check_skilluse(&md->bl, bl, 0, 0))
+	if((*target) == bl ||
+		battle_check_target(&md->bl,bl,BCT_ENEMY) <= 0 ||
+	  	!status_check_skilluse(&md->bl,bl,0,0))
 		return 0;
 
-	if(battle_check_range (&md->bl, bl, md->status.rhw.range))
-	{
+	if(battle_check_range (&md->bl,bl,md->status.rhw.range)) {
 		(*target) = bl;
-		md->target_id=bl->id;
-		md->min_chase= md->db->range3;
+		md->target_id = bl->id;
+		md->min_chase = md->db->range3;
 	}
 	return 1;
 }
@@ -1129,10 +1126,10 @@ static int mob_ai_sub_hard_bg_ally(struct block_list *bl,va_list ap) {
 	struct block_list **target;
 	
 	nullpo_ret(bl);
-	md=va_arg(ap,struct mob_data *);
-	target= va_arg(ap,struct block_list**);
-		
-	if( status_check_skilluse(&md->bl, bl, 0, 0) && battle_check_target(&md->bl,bl,BCT_ENEMY)<=0 ) {
+	md = va_arg(ap,struct mob_data *);
+	target = va_arg(ap,struct block_list**);
+
+	if(status_check_skilluse(&md->bl,bl,0,0) && battle_check_target(&md->bl,bl,BCT_ENEMY) <= 0) {
 		(*target) = bl;
 	}
 	return 1;
@@ -1147,16 +1144,16 @@ static int mob_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 	struct block_list **target;
 	int dist;
 
-	md=va_arg(ap,struct mob_data *);
-	target= va_arg(ap,struct block_list**);
+	md = va_arg(ap,struct mob_data *);
+	target = va_arg(ap,struct block_list**);
 
-	dist=distance_bl(&md->bl, bl);
-	if(mob_can_reach(md,bl,dist+1, MSS_LOOT) &&
-		((*target) == NULL || !check_distance_bl(&md->bl, *target, dist)) //New target closer than previous one.
+	dist = distance_bl(&md->bl,bl);
+	if(mob_can_reach(md,bl,dist + 1,MSS_LOOT) &&
+		((*target) == NULL || !check_distance_bl(&md->bl,*target,dist)) //New target closer than previous one.
 	) {
 		(*target) = bl;
-		md->target_id=bl->id;
-		md->min_chase=md->db->range3;
+		md->target_id = bl->id;
+		md->min_chase = md->db->range3;
 	}
 	return 0;
 }
@@ -1168,27 +1165,27 @@ static int mob_warpchase_sub(struct block_list *bl,va_list ap) {
 	int *min_distance;
 	int cur_distance;
 
-	target= va_arg(ap, struct block_list*);
-	target_nd= va_arg(ap, struct npc_data**);
-	min_distance= va_arg(ap, int*);
+	target = va_arg(ap, struct block_list*);
+	target_nd = va_arg(ap, struct npc_data**);
+	min_distance = va_arg(ap, int*);
 
 	nd = (TBL_NPC*) bl;
 
 	if(nd->subtype != WARP)
 		return 0; //Not a warp
 
-	if(nd->u.warp.mapindex != map[target->m].index)
+	if(nd->u.warp.mapindex != map_id2index(target->m))
 		return 0; //Does not lead to the same map.
 
-	cur_distance = distance_blxy(target, nd->u.warp.x, nd->u.warp.y);
-	if (cur_distance < *min_distance)
-	{	//Pick warp that leads closest to target.
+	cur_distance = distance_blxy(target,nd->u.warp.x,nd->u.warp.y);
+	if(cur_distance < *min_distance) { //Pick warp that leads closest to target.
 		*target_nd = nd;
 		*min_distance = cur_distance;
 		return 1;
 	}
 	return 0;
 }
+
 /*==========================================
  * Processing of slave monsters
  *------------------------------------------*/
@@ -1196,28 +1193,27 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 {
 	struct block_list *bl;
 
-	bl=map_id2bl(md->master_id);
+	bl = map_id2bl(md->master_id);
 
-	if (!bl || status_isdead(bl)) {
+	if(!bl || status_isdead(bl)) {
 		status_kill(&md->bl);
 		return 1;
 	}
-	if (bl->prev == NULL)
+	if(bl->prev == NULL)
 		return 0; //Master not on a map? Could be warping, do not process.
 
-	if(status_get_mode(&md->bl)&MD_CANMOVE)
-	{	//If the mob can move, follow around. [Check by Skotlex]
+	if(status_get_mode(&md->bl)&MD_CANMOVE) { //If the mob can move, follow around. [Check by Skotlex]
 		int old_dist;
 
-		// Distance with between slave and master is measured.
-		old_dist=md->master_dist;
-		md->master_dist=distance_bl(&md->bl, bl);
+		//Distance with between slave and master is measured.
+		old_dist = md->master_dist;
+		md->master_dist = distance_bl(&md->bl, bl);
 
-		// Since the master was in near immediately before, teleport is carried out and it pursues.
+		//Since the master was in near immediately before, teleport is carried out and it pursues.
 		if(bl->m != md->bl.m ||
-			(old_dist<10 && md->master_dist>18) ||
+			(old_dist < 10 && md->master_dist > 18) ||
 			md->master_dist > MAX_MINCHASE
-		){
+		) {
 			md->master_dist = 0;
 			unit_warp(&md->bl,bl->m,bl->x,bl->y,CLR_TELEPORT);
 			return 1;
@@ -1226,43 +1222,42 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		if(md->target_id) //Slave is busy with a target.
 			return 0;
 
-		// Approach master if within view range, chase back to Master's area also if standing on top of the master.
+		//Approach master if within view range, chase back to Master's area also if standing on top of the master.
 		if((md->master_dist>MOB_SLAVEDISTANCE || md->master_dist == 0) &&
 			unit_can_move(&md->bl))
 		{
 			short x = bl->x, y = bl->y;
 			mob_stop_attack(md);
-			if(map_search_freecell(&md->bl, bl->m, &x, &y, MOB_SLAVEDISTANCE, MOB_SLAVEDISTANCE, 1)
-				&& unit_walktoxy(&md->bl, x, y, 0))
+			if(map_search_freecell(&md->bl,bl->m,&x,&y,MOB_SLAVEDISTANCE,MOB_SLAVEDISTANCE,1)
+				&& unit_walktoxy(&md->bl,x,y,0))
 				return 1;
 		}
-	} else if (bl->m != md->bl.m && map_flag_gvg(md->bl.m)) {
+	} else if(bl->m != md->bl.m && map_flag_gvg(md->bl.m)) {
 		//Delete the summoned mob if it's in a gvg ground and the master is elsewhere. [Skotlex]
 		status_kill(&md->bl);
 		return 1;
 	}
 	
 	//Avoid attempting to lock the master's target too often to avoid unnecessary overload. [Skotlex]
-	if (DIFF_TICK(md->last_linktime, tick) < MIN_MOBLINKTIME && !md->target_id)
-  	{
+	if(DIFF_TICK(md->last_linktime, tick) < MIN_MOBLINKTIME && !md->target_id) {
 		struct unit_data *ud = unit_bl2ud(bl);
 		md->last_linktime = tick;
-		
-		if (ud) {
-			struct block_list *tbl=NULL;
-			if (ud->target && ud->state.attack_continue)
-				tbl=map_id2bl(ud->target);
-			else if (ud->skilltarget) {
+
+		if(ud) {
+			struct block_list *tbl = NULL;
+			if(ud->target && ud->state.attack_continue)
+				tbl = map_id2bl(ud->target);
+			else if(ud->skilltarget) {
 				tbl = map_id2bl(ud->skilltarget);
 				//Required check as skilltarget is not always an enemy. [Skotlex]
-				if (tbl && battle_check_target(&md->bl, tbl, BCT_ENEMY) <= 0)
+				if(tbl && battle_check_target(&md->bl,tbl,BCT_ENEMY) <= 0)
 					tbl = NULL;
 			}
-			if (tbl && status_check_skilluse(&md->bl, tbl, 0, 0)) {
-				md->target_id=tbl->id;
-				md->min_chase=md->db->range3+distance_bl(&md->bl, tbl);
-				if(md->min_chase>MAX_MINCHASE)
-					md->min_chase=MAX_MINCHASE;
+			if(tbl && status_check_skilluse(&md->bl,tbl,0,0)) {
+				md->target_id = tbl->id;
+				md->min_chase = md->db->range3 + distance_bl(&md->bl,tbl);
+				if(md->min_chase > MAX_MINCHASE)
+					md->min_chase = MAX_MINCHASE;
 				return 1;
 			}
 		}
@@ -1280,36 +1275,36 @@ int mob_unlocktarget(struct mob_data *md, unsigned int tick)
 {
 	nullpo_ret(md);
 
-	switch (md->state.skillstate) {
-	case MSS_WALK:
-		if (md->ud.walktimer != INVALID_TIMER)
+	switch(md->state.skillstate) {
+		case MSS_WALK:
+			if(md->ud.walktimer != INVALID_TIMER)
+				break;
+			//Because it is not unset when the mob finishes walking.
+			md->state.skillstate = MSS_IDLE;
+		case MSS_IDLE:
+			//Idle skill.
+			if((md->target_id || !(++md->ud.walk_count%IDLE_SKILL_INTERVAL)) &&
+				mobskill_use(md,tick,-1))
+				break;
+			//Random walk.
+			if(!md->master_id &&
+				DIFF_TICK(md->next_walktime, tick) <= 0 &&
+				!mob_randomwalk(md,tick))
+				//Delay next random walk when this one failed.
+				md->next_walktime = tick + rnd()%3000;
 			break;
-		//Because it is not unset when the mob finishes walking.
-		md->state.skillstate = MSS_IDLE;
-	case MSS_IDLE:
-		// Idle skill.
-		if ((md->target_id || !(++md->ud.walk_count%IDLE_SKILL_INTERVAL)) &&
-			mobskill_use(md, tick, -1))
+		default:
+			mob_stop_attack(md);
+			if(battle_config.mob_ai&0x8)
+				mob_stop_walking(md,1); //Immediately stop chasing.
+			md->state.skillstate = MSS_IDLE;
+			md->next_walktime = tick + rnd()%3000 + 3000;
 			break;
-		//Random walk.
-		if (!md->master_id &&
-			DIFF_TICK(md->next_walktime, tick) <= 0 &&
-			!mob_randomwalk(md,tick))
-			//Delay next random walk when this one failed.
-			md->next_walktime=tick+rnd()%3000;
-		break;
-	default:
-		mob_stop_attack(md);
-		if (battle_config.mob_ai&0x8)
-			mob_stop_walking(md,1); //Immediately stop chasing.
-		md->state.skillstate = MSS_IDLE;
-		md->next_walktime=tick+rnd()%3000+3000;
-		break;
 	}
-	if (md->target_id) {
-		md->target_id=0;
+	if(md->target_id) {
+		md->target_id = 0;
 		md->ud.target_to = 0;
-		unit_set_target(&md->ud, 0);
+		unit_set_target(&md->ud,0);
 	}
 	return 0;
 }
@@ -1318,49 +1313,49 @@ int mob_unlocktarget(struct mob_data *md, unsigned int tick)
  *------------------------------------------*/
 int mob_randomwalk(struct mob_data *md,unsigned int tick)
 {
-	const int retrycount=20;
+	const int retrycount = 20;
 	int i,x,y,c,d;
 	int speed;
 
 	nullpo_ret(md);
 
-	if(DIFF_TICK(md->next_walktime,tick)>0 ||
+	if(DIFF_TICK(md->next_walktime,tick) > 0 ||
 	   !unit_can_move(&md->bl) ||
 	   !(status_get_mode(&md->bl)&MD_CANMOVE))
 		return 0;
-	
-	d =12-md->move_fail_count;
-	if(d<5) d=5;
-	for(i=0;i<retrycount;i++){	// Search of a movable place
-		int r=rnd();
-		x=r%(d*2+1)-d;
-		y=r/(d*2+1)%(d*2+1)-d;
-		x+=md->bl.x;
-		y+=md->bl.y;
 
-		if((map_getcell(md->bl.m,x,y,CELL_CHKPASS)) && unit_walktoxy(&md->bl,x,y,1)){
+	d = 12 - md->move_fail_count;
+	if(d < 5) d = 5;
+	for(i = 0; i < retrycount; i++) { //Search of a movable place
+		int r = rnd();
+		x = r%(d * 2 + 1) - d;
+		y = r / (d * 2 + 1)%(d * 2 + 1) - d;
+		x += md->bl.x;
+		y += md->bl.y;
+
+		if((map_getcell(md->bl.m,x,y,CELL_CHKPASS)) && unit_walktoxy(&md->bl,x,y,1)) {
 			break;
 		}
 	}
-	if(i==retrycount){
+	if(i == retrycount) {
 		md->move_fail_count++;
-		if(md->move_fail_count>1000){
-			ShowWarning("MOB can't move. random spawn %d, class = %d, at %s (%d,%d)\n",md->bl.id,md->class_,map[md->bl.m].name, md->bl.x, md->bl.y);
-			md->move_fail_count=0;
+		if(md->move_fail_count > 1000) {
+			ShowWarning("MOB can't move. random spawn %d, class = %d, at %s (%d,%d)\n",md->bl.id,md->class_,map[md->bl.m].name,md->bl.x,md->bl.y);
+			md->move_fail_count = 0;
 			mob_spawn(md);
 		}
 		return 0;
 	}
-	speed=status_get_speed(&md->bl);
-	for(i=c=0;i<md->ud.walkpath.path_len;i++){	// The next walk start time is calculated.
+	speed = status_get_speed(&md->bl);
+	for(i = c = 0; i < md->ud.walkpath.path_len; i++){ //The next walk start time is calculated.
 		if(md->ud.walkpath.path[i]&1)
-			c+=speed*14/10;
+			c += speed * 14 / 10;
 		else
-			c+=speed;
+			c += speed;
 	}
-	md->state.skillstate=MSS_WALK;
-	md->move_fail_count=0;
-	md->next_walktime = tick+rnd()%3000+3000+c;
+	md->state.skillstate = MSS_WALK;
+	md->move_fail_count = 0;
+	md->next_walktime = tick + rnd()%3000 + 3000 + c;
 	return 1;
 }
 
@@ -1368,21 +1363,21 @@ int mob_warpchase(struct mob_data *md, struct block_list *target)
 {
 	struct npc_data *warp = NULL;
 	int distance = AREA_SIZE;
-	if (!(target && battle_config.mob_ai&0x40 && battle_config.mob_warp&1))
+	if(!(target && battle_config.mob_ai&0x40 && battle_config.mob_warp&1))
 		return 0; //Can't warp chase.
 
-	if (target->m == md->bl.m && check_distance_bl(&md->bl, target, AREA_SIZE))
+	if(target->m == md->bl.m && check_distance_bl(&md->bl,target,AREA_SIZE))
 		return 0; //No need to do a warp chase.
 
-	if (md->ud.walktimer != INVALID_TIMER &&
+	if(md->ud.walktimer != INVALID_TIMER &&
 		map_getcell(md->bl.m,md->ud.to_x,md->ud.to_y,CELL_CHKNPC))
 		return 1; //Already walking to a warp.
 
 	//Search for warps within mob's viewing range.
-	map_foreachinrange (mob_warpchase_sub, &md->bl,
-		md->db->range2, BL_NPC, target, &warp, &distance);
+	map_foreachinrange(mob_warpchase_sub,&md->bl,
+		md->db->range2,BL_NPC,target,&warp,&distance);
 
-	if (warp && unit_walktobl(&md->bl, &warp->bl, 1, 1))
+	if(warp && unit_walktobl(&md->bl,&warp->bl,1,1))
 		return 1;
 	return 0;
 }
