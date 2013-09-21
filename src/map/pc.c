@@ -6250,7 +6250,7 @@ int pc_resetstate(struct map_session_data* sd)
 		add += pc_need_status_point(sd, SP_DEX, 1-pc_getstat(sd, SP_DEX));
 		add += pc_need_status_point(sd, SP_LUK, 1-pc_getstat(sd, SP_LUK));
 
-		sd->status.status_point+=add;
+		sd->status.status_point += add;
 	}
 
 	pc_setstat(sd, SP_STR, 1);

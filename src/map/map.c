@@ -438,7 +438,7 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 				else if (sc->data[SC_STEALTHFIELD_MASTER])
 					skill_unit_move_unit_group(skill_id2group(sc->data[SC_STEALTHFIELD_MASTER]->val2), bl->m, x1-x0, y1-y0);
 
-				if( sc->data[SC__SHADOWFORM] ) {//Shadow Form Caster Moving
+				if( sc->data[SC__SHADOWFORM] ) { //Shadow Form Caster Moving
 					struct block_list *d_bl;
 					if( (d_bl = map_id2bl(sc->data[SC__SHADOWFORM]->val2)) == NULL || !check_distance_bl(bl,d_bl,10) )
 						status_change_end(bl,SC__SHADOWFORM,INVALID_TIMER);
