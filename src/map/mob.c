@@ -2042,7 +2042,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		unsigned int base_exp,job_exp;
 	} pt[DAMAGELOG_SIZE];
 	int i, temp, count, m = md->bl.m, pnum = 0;
-	int dmgbltypes = 0;  //Bitfield of all bl types, that caused damage to the mob and are elligible for exp distribution
+	int dmgbltypes = 0; //Bitfield of all bl types, that caused damage to the mob and are elligible for exp distribution
 	unsigned int mvp_damage, tick = gettick();
 	bool rebirth, homkillonly;
 

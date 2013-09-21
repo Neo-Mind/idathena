@@ -2708,7 +2708,7 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				}
 #else
 			case NJ_ISSEN:
-				wd.damage = 40 * sstatus->str + skill_lv * (sstatus->hp / 10 + 35);
+				wd.damage = (40 * sstatus->str) + (8 * skill_lv / 100 * sstatus->hp);
 				wd.damage2 = 0;
 				break;
 			case LK_SPIRALPIERCE:
