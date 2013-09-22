@@ -118,7 +118,7 @@ struct view_data* npc_get_viewdata(int class_) { //Returns the viewdata for norm
 	return NULL;
 }
 
-static int npc_isnear_sub(struct block_list* bl, va_list args) {
+int npc_isnear_sub(struct block_list* bl, va_list args) {
 	struct npc_data *nd = (struct npc_data*)bl;
 
 	if( nd->sc.option&(OPTION_HIDE|OPTION_INVISIBLE) )
