@@ -3147,7 +3147,7 @@ static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 
 				}
 				range1 = skill_get_unit_range(skill_id,skill_lv) + layout_type;
 				if (skill_id == SC_CHAOSPANIC || skill_id == SC_MAELSTROM)
-					range2 = layout_type * 3;
+					range2 = range1 * 3;
 			}
 			break;
 	}
@@ -9993,8 +9993,8 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 
 	nullpo_ret(ud);
 
-	sd = BL_CAST(BL_PC , src);
-	md = BL_CAST(BL_MOB, src);
+	sd = BL_CAST(BL_PC,src);
+	md = BL_CAST(BL_MOB,src);
 
 	if( src->prev == NULL ) {
 		ud->skilltimer = INVALID_TIMER;
@@ -10002,7 +10002,7 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 	}
 
 	if( ud->skilltimer != tid ) {
-		ShowError("skill_castend_pos: Timer mismatch %d!=%d\n", ud->skilltimer, tid);
+		ShowError("skill_castend_pos: Timer mismatch %d!=%d\n",ud->skilltimer,tid);
 		ud->skilltimer = INVALID_TIMER;
 		return 0;
 	}
@@ -10010,7 +10010,7 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 	if( sd && ud->skilltimer != INVALID_TIMER && ( pc_checkskill(sd,SA_FREECAST) > 0 || ud->skill_id == LG_EXEEDBREAK ) ) {
 		//Restore original walk speed
 		ud->skilltimer = INVALID_TIMER;
-		status_calc_bl(&sd->bl, SCB_SPEED);
+		status_calc_bl(&sd->bl,SCB_SPEED);
 	}
 	ud->skilltimer = INVALID_TIMER;
 
@@ -10021,22 +10021,20 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 		if( !(src->type&battle_config.skill_reiteration) &&
 			skill_get_unit_flag(ud->skill_id)&UF_NOREITERATION &&
 			skill_check_unit_range(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv)
-		  )
-		{
+		) {
 			if( sd ) clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
 		}
 		if( src->type&battle_config.skill_nofootset &&
 			skill_get_unit_flag(ud->skill_id)&UF_NOFOOTSET &&
 			skill_check_unit_range2(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv,(src->type == BL_PC) ? BL_CHAR : BL_PC)
-		  )
-		{
+		) {
 			if( sd ) clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
 		}
 		if( src->type&battle_config.land_skill_limit &&
 			(maxcount = skill_get_maxcount(ud->skill_id,ud->skill_lv)) > 0
-		  ) {
+		) {
 			int i;
 			for( i = 0; i < MAX_SKILLUNITGROUP && ud->skillunit[i] && maxcount; i++ ) {
 				if(ud->skillunit[i]->skill_id == ud->skill_id)
@@ -10057,43 +10055,43 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 		if( tid != INVALID_TIMER ) { //Avoid double checks on instant cast skills. [Skotlex]
 			if( !status_check_skilluse(src,NULL,ud->skill_id,1) )
 				break;
-			if(battle_config.skill_add_range &&
-				!check_distance_blxy(src, ud->skillx, ud->skilly, skill_get_range2(src,ud->skill_id,ud->skill_lv)+battle_config.skill_add_range)) {
-				if (sd && battle_config.skill_out_range_consume) //Consume items anyway.
+			if( battle_config.skill_add_range &&
+				!check_distance_blxy(src,ud->skillx,ud->skilly,skill_get_range2(src,ud->skill_id,ud->skill_lv) + battle_config.skill_add_range) ) {
+				if( sd && battle_config.skill_out_range_consume ) //Consume items anyway.
 					skill_consume_requirement(sd,ud->skill_id,ud->skill_lv,3);
 				break;
 			}
 		}
 
 		if( sd ) {
-			if( ud->skill_id != AL_WARP && !skill_check_condition_castend(sd, ud->skill_id, ud->skill_lv) )
+			if( ud->skill_id != AL_WARP && !skill_check_condition_castend(sd,ud->skill_id,ud->skill_lv) )
 				break;
 			else
 				skill_consume_requirement(sd,ud->skill_id,ud->skill_lv,1);
 		}
 
-		if( (src->type == BL_MER || src->type == BL_HOM) && !skill_check_condition_mercenary(src, ud->skill_id, ud->skill_lv, 1) )
+		if( (src->type == BL_MER || src->type == BL_HOM) && !skill_check_condition_mercenary(src,ud->skill_id,ud->skill_lv,1) )
 			break;
 
 		if( md ) {
-			md->last_thinktime=tick +MIN_MOBTHINKTIME;
+			md->last_thinktime = tick + MIN_MOBTHINKTIME;
 			if( md->skill_idx >= 0 && md->db->skill[md->skill_idx].emotion >= 0 )
-				clif_emotion(src, md->db->skill[md->skill_idx].emotion);
+				clif_emotion(src,md->db->skill[md->skill_idx].emotion);
 		}
 
 		if( battle_config.skill_log && battle_config.skill_log&src->type )
 			ShowInfo("Type %d, ID %d skill castend pos [id =%d, lv=%d, (%d,%d)]\n",
-				src->type, src->id, ud->skill_id, ud->skill_lv, ud->skillx, ud->skilly);
+				src->type,src->id,ud->skill_id,ud->skill_lv,ud->skillx,ud->skilly);
 
 		if( ud->walktimer != INVALID_TIMER )
 			unit_stop_walking(src,1);
 
 		if( !sd || sd->skillitem != ud->skill_id || skill_get_delay(ud->skill_id,ud->skill_lv) )
-			ud->canact_tick = tick + skill_delayfix(src, ud->skill_id, ud->skill_lv);
-		if( sd && (inf = skill_get_cooldown(sd, ud->skill_id,ud->skill_lv)) > 0 )
-			skill_blockpc_start(sd, ud->skill_id, inf);
+			ud->canact_tick = tick + skill_delayfix(src,ud->skill_id,ud->skill_lv);
+		if( sd && (inf = skill_get_cooldown(sd,ud->skill_id,ud->skill_lv)) > 0 )
+			skill_blockpc_start(sd,ud->skill_id,inf);
 		if( battle_config.display_status_timers && sd )
-			clif_status_change(src, SI_ACTIONDELAY, 1, skill_delayfix(src, ud->skill_id, ud->skill_lv), 0, 0, 0);
+			clif_status_change(src,SI_ACTIONDELAY,1,skill_delayfix(src,ud->skill_id,ud->skill_lv),0,0,0);
 //		if( sd ) {
 //			switch( ud->skill_id ) {
 //				case ????:
@@ -10101,11 +10099,11 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 //					break;
 //			}
 //		}
-		unit_set_walkdelay(src, tick, battle_config.default_walk_delay+skill_get_walkdelay(ud->skill_id, ud->skill_lv), 1);
+		unit_set_walkdelay(src,tick,battle_config.default_walk_delay+skill_get_walkdelay(ud->skill_id,ud->skill_lv),1);
 		//Only normal attack and auto cast skills benefit from its bonuses
-		status_change_end(src, SC_CAMOUFLAGE, INVALID_TIMER);
+		status_change_end(src,SC_CAMOUFLAGE,INVALID_TIMER);
 		map_freeblock_lock();
-		skill_castend_pos2(src, ud->skillx, ud->skilly, ud->skill_id, ud->skill_lv, tick, 0);
+		skill_castend_pos2(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv,tick,0);
 
 		if( sd && sd->skillitem != AL_WARP ) //Warp-Portal thru items will clear data in skill_castend_map. [Inkfish]
 			sd->skillitem = sd->skillitemlv = 0;
@@ -17812,7 +17810,7 @@ int skill_split_atoi (char *str, int *val)
 
 		for( ; i < MAX_SKILL_LEVEL; i++ ) { //Apply linear increase
 			val[i] = val[i - step] + diff;
-			if( val[i] < 1 && val[i-1] >=0 ) {
+			if( val[i] < 1 && val[i-1] >= 0 ) {
 				//Check if we have switched from + to -, cap the decrease to 0 in said cases.
 				val[i] = 1;
 				diff = 0;
