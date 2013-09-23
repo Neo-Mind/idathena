@@ -6336,29 +6336,29 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			}
 			//Ammo check by Ishizu-chan
 			if (sd->inventory_data[index])
-			switch (sd->status.weapon) {
-				case W_BOW:
-					if (sd->inventory_data[index]->look != A_ARROW) {
-						clif_arrow_fail(sd,0);
-						return ATK_NONE;
-					}
-					break;
-				case W_REVOLVER:
-				case W_RIFLE:
-				case W_GATLING:
-				case W_SHOTGUN:
-					if (sd->inventory_data[index]->look != A_BULLET) {
-						clif_arrow_fail(sd,0);
-						return ATK_NONE;
-					}
-					break;
-				case W_GRENADE:
-					if (sd->inventory_data[index]->look != A_GRENADE) {
-						clif_arrow_fail(sd,0);
-						return ATK_NONE;
-					}
-					break;
-			}
+				switch (sd->status.weapon) {
+					case W_BOW:
+						if (sd->inventory_data[index]->look != A_ARROW) {
+							clif_arrow_fail(sd,0);
+							return ATK_NONE;
+						}
+						break;
+					case W_REVOLVER:
+					case W_RIFLE:
+					case W_GATLING:
+					case W_SHOTGUN:
+						if (sd->inventory_data[index]->look != A_BULLET) {
+							clif_arrow_fail(sd,0);
+							return ATK_NONE;
+						}
+						break;
+					case W_GRENADE:
+						if (sd->inventory_data[index]->look != A_GRENADE) {
+							clif_arrow_fail(sd,0);
+							return ATK_NONE;
+						}
+						break;
+				}
 		}
 	}
 
@@ -6557,7 +6557,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		uint16 skill_lv = sc->data[SC_AUTOSPELL]->val3;
 		int i = rnd()%100;
 		if (sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_SAGE)
-			i = 0; //Max chance,no skilllv reduction. [Skotlex]
+			i = 0; //Max chance, no skill_lv reduction. [Skotlex]
 		if (i >= 50) skill_lv -= 2;
 		else if (i >= 15) skill_lv--;
 		if (skill_lv < 1) skill_lv = 1;
@@ -6582,7 +6582,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			sd->status.skill[sc->data[SC__AUTOSHADOWSPELL]->val1].id != 0 && sd->status.skill[sc->data[SC__AUTOSHADOWSPELL]->val1].flag == SKILL_FLAG_PLAGIARIZED)
 		{
 			int r_skill = sd->status.skill[sc->data[SC__AUTOSHADOWSPELL]->val1].id,
-				r_lv = sc->data[SC__AUTOSHADOWSPELL]->val2,type;
+				r_lv = sc->data[SC__AUTOSHADOWSPELL]->val2, type;
 
 				if ((type = skill_get_casttype(r_skill)) == CAST_GROUND) {
 					int maxcount = 0;

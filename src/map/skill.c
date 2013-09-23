@@ -2454,16 +2454,18 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	tstatus = status_get_status_data(bl);
 	tsc = status_get_sc(bl);
 
-	if (tsc && !tsc->count) tsc = NULL; //Don't need it.
+	if (tsc && !tsc->count)
+		tsc = NULL; //Don't need it.
 
 	//Is this check really needed? FrostNova won't hurt you if you step right where the caster is?
 	if (skill_id == WZ_FROSTNOVA && dsrc->x == bl->x && dsrc->y == bl->y)
 		return 0;
+
 	//Trick Dead protects you from damage, but not from buffs and the like, hence it's placed here.
 	if (tsc && tsc->data[SC_TRICKDEAD])
 		return 0;
 
-	dmg = battle_calc_attack(attack_type,src,bl,skill_id,skill_lv,flag&0xFFF);
+	dmg = battle_calc_attack(attack_type, src, bl, skill_id, skill_lv, flag&0xFFF);
 
 	//Skotlex: Adjusted to the new system
 	if (src->type == BL_PET) { //[Valaris]
@@ -2473,9 +2475,9 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			/*if (skill_id == -1) Does it ever worked?
 				element = sstatus->rhw.ele;*/
 			if (element != ELE_NEUTRAL || !(battle_config.attack_attr_none&BL_PET))
-				dmg.damage=battle_attr_fix(src, bl, skill_lv, element, tstatus->def_ele, tstatus->ele_lv);
+				dmg.damage = battle_attr_fix(src, bl, skill_lv, element, tstatus->def_ele, tstatus->ele_lv);
 			else
-				dmg.damage= skill_lv;
+				dmg.damage = skill_lv;
 			dmg.damage2 = 0;
 			dmg.div_ = pd->a_skill->div_;
 		}
@@ -2517,12 +2519,12 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		 **/
 #if MAGIC_REFLECTION_TYPE
 			if (dmg.dmg_lv != ATK_MISS) { //Wiz SL cancelled and consumed fragment
-				short s_ele = skill_get_ele(skill_id,skill_lv);
+				short s_ele = skill_get_ele(skill_id, skill_lv);
 
 				if (s_ele == -1) //The skill takes the weapon's element
 					s_ele = sstatus->rhw.ele;
 				else if (s_ele == -2) //Use status element
-					s_ele = status_get_attack_sc_element(src,status_get_sc(src));
+					s_ele = status_get_attack_sc_element(src, status_get_sc(src));
 				else if (s_ele == -3) //Use random element
 					s_ele = rnd()%ELE_MAX;
 
@@ -2577,20 +2579,28 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				sc_start4(src, bl, SC_BURNING, 55 + 5 * skill_lv, skill_lv, 1000, src->id, 0, skill_get_time(skill_id, skill_lv));
 			break;
 		case SC_TRIANGLESHOT:
-			if (rnd()%100 > (1 + skill_lv)) dmg.blewcount = 0;
+			if (rnd()%100 > (1 + skill_lv))
+				dmg.blewcount = 0;
 			break;
 		default:
-			if (damage < dmg.div_ && skill_id != CH_PALMSTRIKE)
-				dmg.blewcount = 0; //Only pushback when it hit
+			if (damage < dmg.div_) {
+				if (tsc && tsc->data[SC_PNEUMA])
+					break; //Keep retaining its knockback ability
+				else if (skill_id != CH_PALMSTRIKE)
+					dmg.blewcount = 0; //Only pushback when it hit for other
+			}
 			break;
 	}
 
-	switch(skill_id) {
+	switch (skill_id) {
 		case CR_GRANDCROSS:
 		case NPC_GRANDDARKNESS:
-			if (battle_config.gx_disptype) dsrc = src;
-			if (src == bl) type = 4;
-			else flag |= SD_ANIMATION;
+			if (battle_config.gx_disptype)
+				dsrc = src;
+			if (src == bl)
+				type = 4;
+			else
+				flag |= SD_ANIMATION;
 			break;
 		case NJ_TATAMIGAESHI: //For correct knockback.
 			dsrc = src;
@@ -2622,7 +2632,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	//Display damage.
 	switch (skill_id) {
 		case PA_GOSPEL: //Should look like Holy Cross [Skotlex]
-			dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,CR_HOLYCROSS,-1,5);
+			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, CR_HOLYCROSS, -1, 5);
 			break;
 		//Skills that need be passed as a normal attack for the client to display correctly.
 		case HVAN_EXPLOSION:
@@ -2635,33 +2645,33 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		case NPC_CRITICALSLASH:
 		case TF_DOUBLE:
 		case GS_CHAINACTION:
-			dmg.dmotion = clif_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,dmg.type,dmg.damage2);
+			dmg.dmotion = clif_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, dmg.type, dmg.damage2);
 			break;
 
 		case AS_SPLASHER:
 			if (flag&SD_ANIMATION) //The surrounding targets
-				dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skill_id,-1,5); //Needs -1 as skill level
+				dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, 5); //Needs -1 as skill level
 			else //The central target doesn't display an animation
-				dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skill_id,-2,5); //Needs -2(!) as skill level
+				dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -2, 5); //Needs -2(!) as skill level
 			break;
 		case WL_HELLINFERNO:
 		case SR_EARTHSHAKER:
-			dmg.dmotion = clif_skill_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,1,skill_id,-2,6);
+			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, 1, skill_id, -2, 6);
 			break;
 		case WL_SOULEXPANSION:
 		case WL_COMET:
 		case KO_MUCHANAGE:
 		case NJ_HUUMA:
-			dmg.dmotion = clif_skill_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skill_id,skill_lv,8);
+			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, skill_lv, 8);
 			break;
 		case WL_CHAINLIGHTNING_ATK:
-			dmg.dmotion = clif_skill_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,1,WL_CHAINLIGHTNING,-2,6);
+			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, 1, WL_CHAINLIGHTNING, -2, 6);
 			break;
 		case SC_FEINTBOMB:
-			dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skill_id,-1,5);
+			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, 5);
 			break;
 		case GN_SLINGITEM_RANGEMELEEATK:
-			dmg.dmotion = clif_skill_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,GN_SLINGITEM,-2,6);
+			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, GN_SLINGITEM, -2, 6);
 			break;
 		case LG_OVERBRAND_BRANDISH:
 		case LG_OVERBRAND_PLUSATK:
@@ -2684,17 +2694,17 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		case KO_BAKURETSU:
 		case GN_CRAZYWEED_ATK:
 		case NC_MAGMA_ERUPTION:
-			dmg.dmotion = clif_skill_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skill_id,-1,5);
+			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, 5);
 			break;
 		case EL_STONE_RAIN:
-			dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skill_id,-1,(flag&1) ? 8 : 5);
+			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, (flag&1) ? 8 : 5);
 			break;
 		case WM_SEVERE_RAINSTORM_MELEE:
-			dmg.dmotion = clif_skill_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,WM_SEVERE_RAINSTORM,skill_lv,5);
+			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, WM_SEVERE_RAINSTORM, skill_lv, 5);
 			break;
 		case WM_REVERBERATION_MELEE:
 		case WM_REVERBERATION_MAGIC:
-			dmg.dmotion = clif_skill_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,WM_REVERBERATION,-2,6);
+			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, WM_REVERBERATION, -2, 6);
 			break;
 		case HT_CLAYMORETRAP:
 		case HT_BLASTMINE:
@@ -2703,42 +2713,40 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		case RA_CLUSTERBOMB:
 		case RA_FIRINGTRAP:
 		case RA_ICEBOUNDTRAP:
-			dmg.dmotion = clif_skill_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skill_id,flag&SD_LEVEL ? -1 : skill_lv,5);
-			if( dsrc != src ) //Avoid damage display redundancy
+			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, flag&SD_LEVEL ? -1 : skill_lv, 5);
+			if (dsrc != src) //Avoid damage display redundancy
 				break;
 		case HT_LANDMINE:
-			dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skill_id,-1,type);
+			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, type);
 			break;
 		case WZ_SIGHTBLASTER:
-			dmg.dmotion = clif_skill_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skill_id,flag&SD_LEVEL ? -1 : skill_lv,5);
+			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, flag&SD_LEVEL ? -1 : skill_lv, 5);
 			break;
 		case AB_DUPLELIGHT_MELEE:
 		case AB_DUPLELIGHT_MAGIC:
 			dmg.amotion = 300; /* Makes the damage value not overlap with previous damage (when displayed by the client) */
 		default:
-			if( flag&SD_ANIMATION && dmg.div_ < 2 ) //Disabling skill animation doesn't works on multi-hit.
+			if (flag&SD_ANIMATION && dmg.div_ < 2) //Disabling skill animation doesn't works on multi-hit.
 				type = 5;
-			if( bl->type == BL_SKILL ) {
+			if (bl->type == BL_SKILL) {
 				TBL_SKILL *su = (TBL_SKILL*)bl;
-				if( su->group && skill_get_inf2(su->group->skill_id)&INF2_TRAP ) //Show damage on trap targets
-					clif_skill_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skill_id,flag&SD_LEVEL ? -1 : skill_lv,5);
+				if (su->group && skill_get_inf2(su->group->skill_id)&INF2_TRAP) //Show damage on trap targets
+					clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, flag&SD_LEVEL ? -1 : skill_lv, 5);
 			}
-			dmg.dmotion = clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,skill_id,flag&SD_LEVEL ? -1 : skill_lv,type);
+			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, flag&SD_LEVEL ? -1 : skill_lv, type);
 			break;
 	}
 
 	map_freeblock_lock();
 
-	if( damage > 0 && dmg.flag&BF_SKILL && tsd
-		&& pc_checkskill(tsd,RG_PLAGIARISM) > 0
-		&& (!tsc || !tsc->data[SC_PRESERVE])
-		&& damage < tsd->battle_status.hp ) {
-		//Updated to not be able to copy skills if the blow will kill you. [Skotlex]
+	if (damage > 0 && dmg.flag&BF_SKILL && tsd && pc_checkskill(tsd, RG_PLAGIARISM) > 0
+		&& (!tsc || !tsc->data[SC_PRESERVE]) && damage < tsd->battle_status.hp)
+	{ //Updated to not be able to copy skills if the blow will kill you. [Skotlex]
 		int copy_skill = skill_id;
 		/**
 		 * Copy Referal: dummy skills should point to their source upon copying
 		 **/
-		switch( skill_id ) {
+		switch (skill_id) {
 			case AB_DUPLELIGHT_MELEE:
 			case AB_DUPLELIGHT_MAGIC:
 				copy_skill = AB_DUPLELIGHT;
@@ -2786,18 +2794,18 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				break;
 		}
 
-		if( (tsd->status.skill[copy_skill].id == 0 || tsd->status.skill[copy_skill].flag == SKILL_FLAG_PLAGIARIZED) &&
-			can_copy(tsd,copy_skill,bl) ) //Split all the check into their own function [Aru]
+		if ((tsd->status.skill[copy_skill].id == 0 || tsd->status.skill[copy_skill].flag == SKILL_FLAG_PLAGIARIZED) &&
+			can_copy(tsd, copy_skill, bl)) //Split all the check into their own function [Aru]
 		{
 			int lv;
-			if( tsc && tsc->data[SC__REPRODUCE] && (lv = tsc->data[SC__REPRODUCE]->val1) ) {
+			if (tsc && tsc->data[SC__REPRODUCE] && (lv = tsc->data[SC__REPRODUCE]->val1)) {
 				//Level dependent and limitation.
-				lv = min(lv,skill_get_max(copy_skill));
-				if( tsd->reproduceskill_id && tsd->status.skill[tsd->reproduceskill_id].flag == SKILL_FLAG_PLAGIARIZED ) {
+				lv = min(lv, skill_get_max(copy_skill));
+				if (tsd->reproduceskill_id && tsd->status.skill[tsd->reproduceskill_id].flag == SKILL_FLAG_PLAGIARIZED) {
 					tsd->status.skill[tsd->reproduceskill_id].id = 0;
 					tsd->status.skill[tsd->reproduceskill_id].lv = 0;
 					tsd->status.skill[tsd->reproduceskill_id].flag = SKILL_FLAG_PERMANENT;
-					clif_deleteskill(tsd,tsd->reproduceskill_id);
+					clif_deleteskill(tsd, tsd->reproduceskill_id);
 				}
 
 				tsd->reproduceskill_id = copy_skill;
@@ -2807,17 +2815,17 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				tsd->status.skill[copy_skill].id = copy_skill;
 				tsd->status.skill[copy_skill].lv = lv;
 				tsd->status.skill[copy_skill].flag = SKILL_FLAG_PLAGIARIZED;
-				clif_addskill(tsd,copy_skill);
+				clif_addskill(tsd, copy_skill);
 			} else {
 				lv = skill_lv;
 				if (tsd->cloneskill_id && tsd->status.skill[tsd->cloneskill_id].flag == SKILL_FLAG_PLAGIARIZED) {
 					tsd->status.skill[tsd->cloneskill_id].id = 0;
 					tsd->status.skill[tsd->cloneskill_id].lv = 0;
 					tsd->status.skill[tsd->cloneskill_id].flag = SKILL_FLAG_PERMANENT;
-					clif_deleteskill(tsd,tsd->cloneskill_id);
+					clif_deleteskill(tsd, tsd->cloneskill_id);
 				}
 
-				if ((type = pc_checkskill(tsd,RG_PLAGIARISM)) < lv)
+				if ((type = pc_checkskill(tsd, RG_PLAGIARISM)) < lv)
 					lv = type;
 
 				tsd->cloneskill_id = copy_skill;
@@ -2827,33 +2835,33 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				tsd->status.skill[skill_id].id = copy_skill;
 				tsd->status.skill[skill_id].lv = lv;
 				tsd->status.skill[skill_id].flag = SKILL_FLAG_PLAGIARIZED;
-				clif_addskill(tsd,skill_id);
+				clif_addskill(tsd, skill_id);
 			}
 		}
 	}
 
-	if( dmg.dmg_lv >= ATK_MISS && (type = skill_get_walkdelay(skill_id, skill_lv)) > 0 ) {
+	if (dmg.dmg_lv >= ATK_MISS && (type = skill_get_walkdelay(skill_id, skill_lv)) > 0) {
 		//Skills with can't walk delay also stop normal attacking for that
 		//duration when the attack connects. [Skotlex]
 		struct unit_data *ud = unit_bl2ud(src);
-		if( ud && DIFF_TICK(ud->attackabletime, tick + type) < 0 )
+		if (ud && DIFF_TICK(ud->attackabletime, tick + type) < 0)
 			ud->attackabletime = tick + type;
 	}
 
-	if( !dmg.amotion ) { //Instant damage
-		if( !tsc || (!tsc->data[SC_DEVOTION] && skill_id != CR_REFLECTSHIELD) )
-			status_fix_damage(src,bl,damage,dmg.dmotion); //Deal damage before knockback to allow stuff like firewall+storm gust combo.
-		if( !status_isdead(bl) && additional_effects )
-			skill_additional_effect(src,bl,skill_id,skill_lv,dmg.flag,dmg.dmg_lv,tick);
-		if( damage > 0 ) //Counter status effects [Skotlex]
-			skill_counter_additional_effect(src,bl,skill_id,skill_lv,dmg.flag,tick);
+	if (!dmg.amotion) { //Instant damage
+		if (!tsc || (!tsc->data[SC_DEVOTION] && skill_id != CR_REFLECTSHIELD))
+			status_fix_damage(src, bl, damage, dmg.dmotion); //Deal damage before knockback to allow stuff like firewall + storm gust combo.
+		if (!status_isdead(bl) && additional_effects)
+			skill_additional_effect(src, bl, skill_id, skill_lv, dmg.flag, dmg.dmg_lv, tick);
+		if (damage > 0) //Counter status effects [Skotlex]
+			skill_counter_additional_effect(src, bl, skill_id, skill_lv, dmg.flag, tick);
 	}
 
 	//Only knockback if it's still alive, otherwise a "ghost" is left behind. [Skotlex]
 	//Reflected spells do not bounce back (bl == dsrc since it only happens for direct skills)
-	if( dmg.blewcount > 0 && bl!=dsrc && !status_isdead(bl) ) {
+	if (dmg.blewcount > 0 && bl != dsrc && !status_isdead(bl)) {
 		int8 dir = -1; //Default
-		switch( skill_id ) { //Direction
+		switch (skill_id) { //Direction
 			case MG_FIREWALL:
 			case PR_SANCTUARY:
 			case SC_TRIANGLESHOT:
@@ -2861,63 +2869,63 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			case SR_KNUCKLEARROW:
 			case GN_WALLOFTHORN:
 			case EL_FIRE_MANTLE:
-				dir = unit_getdir(bl); //Backwards
+				dir = unit_getdir(bl); //Backwardsh
 				break;
 			//This ensures the storm randomly pushes instead of exactly a cell backwards per official mechanics.
 			case WZ_STORMGUST:
 				dir = rnd()%8;
 				break;
 			case WL_CRIMSONROCK:
-				dir = map_calc_dir(bl,skill_area_temp[4],skill_area_temp[5]);
+				dir = map_calc_dir(bl, skill_area_temp[4], skill_area_temp[5]);
 				break;
 
 		}
 		//Blown-specific handling
-		switch( skill_id ) {
+		switch (skill_id) {
 			case LG_OVERBRAND_BRANDISH:
-				if( skill_blown(dsrc,bl,dmg.blewcount,dir,0) ) {
+				if (skill_blown(dsrc, bl, dmg.blewcount, dir, 0)) {
 					short dir_x, dir_y;
-					dir_x = dirx[(dir+4)%8];
-					dir_y = diry[(dir+4)%8];
-					if( map_getcell(bl->m, bl->x+dir_x, bl->y+dir_y, CELL_CHKNOPASS) != 0 )
-						skill_addtimerskill(src, tick + status_get_amotion(src), bl->id, 0, 0, LG_OVERBRAND_PLUSATK, skill_lv, BF_WEAPON, flag );
+					dir_x = dirx[(dir + 4)%8];
+					dir_y = diry[(dir + 4)%8];
+					if (map_getcell(bl->m, bl->x + dir_x, bl->y + dir_y, CELL_CHKNOPASS) != 0)
+						skill_addtimerskill(src, tick + status_get_amotion(src), bl->id, 0, 0, LG_OVERBRAND_PLUSATK, skill_lv, BF_WEAPON, flag);
 				} else
-					skill_addtimerskill(src, tick + status_get_amotion(src), bl->id, 0, 0, LG_OVERBRAND_PLUSATK, skill_lv, BF_WEAPON, flag );
+					skill_addtimerskill(src, tick + status_get_amotion(src), bl->id, 0, 0, LG_OVERBRAND_PLUSATK, skill_lv, BF_WEAPON, flag);
 				break;
 			case SR_KNUCKLEARROW:
-				if( skill_blown(dsrc,bl,dmg.blewcount,dir,0) && !(flag&4) ) {
+				if (skill_blown(dsrc, bl, dmg.blewcount, dir, 0) && !(flag&4)) {
 					short dir_x, dir_y;
-					dir_x = dirx[(dir+4)%8];
-					dir_y = diry[(dir+4)%8];
-					if( map_getcell(bl->m, bl->x+dir_x, bl->y+dir_y, CELL_CHKNOPASS) != 0 )
+					dir_x = dirx[(dir + 4)%8];
+					dir_y = diry[(dir + 4)%8];
+					if (map_getcell(bl->m, bl->x + dir_x, bl->y + dir_y, CELL_CHKNOPASS) != 0)
 						skill_addtimerskill(src, tick + 300 * ((flag&2) ? 1 : 2), bl->id, 0, 0, skill_id, skill_lv, BF_WEAPON, flag|4);
 				}
 				break;
 			default:
-				skill_blown(dsrc,bl,dmg.blewcount,dir,0x0);
-				if( !dmg.blewcount && bl->type == BL_SKILL && damage > 0 ) {
+				skill_blown(dsrc, bl, dmg.blewcount, dir, 0x0);
+				if (!dmg.blewcount && bl->type == BL_SKILL && damage > 0) {
 					TBL_SKILL *su = (TBL_SKILL*)bl;
-					if( su->group && su->group->skill_id == HT_BLASTMINE )
-						skill_blown(src,bl,3,-1,0);
+					if (su->group && su->group->skill_id == HT_BLASTMINE)
+						skill_blown(src, bl, 3, -1, 0);
 				}
 				break;
 		}
 	}
 
 	//Delayed damage must be dealt after the knockback (it needs to know actual position of target)
-	if( dmg.amotion )
-		battle_delay_damage(tick,dmg.amotion,src,bl,dmg.flag,skill_id,skill_lv,damage,dmg.dmg_lv,dmg.dmotion,additional_effects);
+	if (dmg.amotion)
+		battle_delay_damage(tick, dmg.amotion, src, bl, dmg.flag, skill_id, skill_lv, damage, dmg.dmg_lv, dmg.dmotion, additional_effects);
 
-	if( tsc && tsc->data[SC_DEVOTION] && skill_id != PA_PRESSURE ) {
+	if (tsc && tsc->data[SC_DEVOTION] && skill_id != PA_PRESSURE) {
 		struct status_change_entry *sce = tsc->data[SC_DEVOTION];
 		struct block_list *d_bl = map_id2bl(sce->val1);
 
-		if( d_bl && (
+		if (d_bl && (
 			(d_bl->type == BL_MER && ((TBL_MER*)d_bl)->master && ((TBL_MER*)d_bl)->master->bl.id == bl->id) ||
 			(d_bl->type == BL_PC && ((TBL_PC*)d_bl)->devotion[sce->val2] == bl->id)
-			) && check_distance_bl(bl, d_bl, sce->val3) )
+			) && check_distance_bl(bl, d_bl, sce->val3))
 		{
-			if( !rmdamage ) {
+			if (!rmdamage) {
 				clif_damage(d_bl, d_bl, gettick(), 0, 0, damage, 0, 0, 0);
 				status_fix_damage(NULL, d_bl, damage, 0);
 			} else { //Reflected magics are done directly on the target not on paladin
@@ -2928,46 +2936,46 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			}
 		} else {
 			status_change_end(bl, SC_DEVOTION, INVALID_TIMER);
-			if( !dmg.amotion )
-				status_fix_damage(src,bl,damage,dmg.dmotion);
+			if (!dmg.amotion)
+				status_fix_damage(src, bl, damage, dmg.dmotion);
 		}
 	}
 
-	if( damage > 0 && !(tstatus->mode&MD_BOSS) ) {
-		if( skill_id == RG_INTIMIDATE ) {
+	if (damage > 0 && !(tstatus->mode&MD_BOSS)) {
+		if (skill_id == RG_INTIMIDATE) {
 			int rate = 50 + skill_lv * 5;
 			rate = rate + (status_get_lv(src) - status_get_lv(bl));
-			if( rnd()%100 < rate )
-				skill_addtimerskill(src,tick + 800,bl->id,0,0,skill_id,skill_lv,0,flag);
-		} else if( skill_id == SC_FATALMENACE )
-			skill_addtimerskill(src,tick + 800,bl->id,skill_area_temp[4],skill_area_temp[5],skill_id,skill_lv,0,flag);
+			if (rnd()%100 < rate)
+				skill_addtimerskill(src, tick + 800, bl->id, 0, 0, skill_id, skill_lv, 0, flag);
+		} else if (skill_id == SC_FATALMENACE)
+			skill_addtimerskill(src, tick + 800, bl->id, skill_area_temp[4], skill_area_temp[5], skill_id, skill_lv, 0, flag);
 	}
 
-	if( skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS )
+	if (skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS)
 		dmg.flag |= BF_WEAPON;
 
-	if( sd && src != bl && damage > 0 && ( dmg.flag&BF_WEAPON ||
-		(dmg.flag&BF_MISC && (skill_id == RA_CLUSTERBOMB || skill_id == RA_FIRINGTRAP || skill_id == RA_ICEBOUNDTRAP)) ) )
+	if (sd && src != bl && damage > 0 && (dmg.flag&BF_WEAPON ||
+		(dmg.flag&BF_MISC && (skill_id == RA_CLUSTERBOMB || skill_id == RA_FIRINGTRAP || skill_id == RA_ICEBOUNDTRAP))))
 	{
-		if( battle_config.left_cardfix_to_right )
+		if (battle_config.left_cardfix_to_right)
 			battle_drain(sd, bl, dmg.damage, dmg.damage, tstatus->race, tstatus->mode&MD_BOSS);
 		else
 			battle_drain(sd, bl, dmg.damage, dmg.damage2, tstatus->race, tstatus->mode&MD_BOSS);
 	}
 
-	if( damage > 0 ) {
+	if (damage > 0) {
 		//Post-damage effects
-		switch( skill_id ) {
+		switch (skill_id) {
 			case RK_CRUSHSTRIKE:
-				skill_break_equip(src,src,EQP_WEAPON,2000,BCT_SELF); //20% chance to destroy the weapon.
+				skill_break_equip(src, src, EQP_WEAPON, 2000, BCT_SELF); //20% chance to destroy the weapon.
 				break;
 			case GC_VENOMPRESSURE: {
 					struct status_change *ssc = status_get_sc(src);
-					if( ssc && ssc->data[SC_POISONINGWEAPON] && rnd()%100 < 70 + 5 * skill_lv ) {
-						sc_start(src,bl,(enum sc_type)ssc->data[SC_POISONINGWEAPON]->val2,100,ssc->data[SC_POISONINGWEAPON]->val1,
+					if (ssc && ssc->data[SC_POISONINGWEAPON] && rnd()%100 < 70 + 5 * skill_lv) {
+						sc_start(src, bl, (enum sc_type)ssc->data[SC_POISONINGWEAPON]->val2, 100, ssc->data[SC_POISONINGWEAPON]->val1,
 							skill_get_time2(GC_POISONINGWEAPON, 1));
-						status_change_end(src,SC_POISONINGWEAPON,INVALID_TIMER);
-						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+						status_change_end(src, SC_POISONINGWEAPON, INVALID_TIMER);
+						clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
 					}
 				}
 				break;
@@ -2978,20 +2986,20 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				status_zap(bl, 0, damage / 10); //10% of damage dealt
 				break;
 		}
-		if( sd )
+		if (sd)
 			skill_onskillusage(sd, bl, skill_id, tick);
 	}
 
-	if( !(flag&2) && (skill_id == MG_COLDBOLT || skill_id == MG_FIREBOLT || skill_id == MG_LIGHTNINGBOLT) &&
-		(tsc = status_get_sc(src)) && tsc->data[SC_DOUBLECAST] && rnd() % 100 < tsc->data[SC_DOUBLECAST]->val2 )
+	if (!(flag&2) && (skill_id == MG_COLDBOLT || skill_id == MG_FIREBOLT || skill_id == MG_LIGHTNINGBOLT) &&
+		(tsc = status_get_sc(src)) && tsc->data[SC_DOUBLECAST] && rnd() % 100 < tsc->data[SC_DOUBLECAST]->val2)
 	{
-//		skill_addtimerskill(src, tick + dmg.div_*dmg.amotion, bl->id, 0, 0, skill_id, skill_lv, BF_MAGIC, flag|2);
+		//skill_addtimerskill(src, tick + dmg.div_ * dmg.amotion, bl->id, 0, 0, skill_id, skill_lv, BF_MAGIC, flag|2);
 		skill_addtimerskill(src, tick + dmg.amotion, bl->id, 0, 0, skill_id, skill_lv, BF_MAGIC, flag|2);
 	}
 
 	map_freeblock_unlock();
 
-	return (int)cap_value(damage,INT_MIN,INT_MAX);
+	return (int)cap_value(damage, INT_MIN, INT_MAX);
 }
 
 /*==========================================
@@ -3643,8 +3651,10 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 	sc = status_get_sc(src);
 	tsc = status_get_sc(bl);
+
 	if (sc && !sc->count)
 		sc = NULL; //Unneeded
+
 	if (tsc && !tsc->count)
 		tsc = NULL;
 
@@ -4175,7 +4185,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 						skill_castend_nodamage_id);
 			}
 			break;
-		case CH_PALMSTRIKE: //Palm Strike takes effect 1sec after casting. [Skotlex]
+		case CH_PALMSTRIKE: //Palm Strike takes effect 1 sec after casting. [Skotlex]
 			//clif_skill_nodamage(src,bl,skill_id,skill_lv,0); //Can't make this one display the correct attack animation delay :/
 			clif_damage(src,bl,tick,status_get_amotion(src),0,-1,1,4,0); //Display an absorbed damage attack.
 			skill_addtimerskill(src,tick + (1000 + status_get_amotion(src)),bl->id,0,0,skill_id,skill_lv,BF_WEAPON,flag);
