@@ -10461,7 +10461,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 				struct mob_data *md;
 
 				//Correct info, don't change any of this! [celest]
-				md = mob_once_spawn_sub(src,src->m,x,y,status_get_name(src),class_,"",SZ_SMALL,AI_NONE);
+				md = mob_once_spawn_sub(src,src->m,x,y,status_get_name(src),class_,"",SZ_SMALL,ai);
 				if (md) {
 					md->master_id = src->id;
 					md->special_state.ai = (enum mob_ai)ai;
