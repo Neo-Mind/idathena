@@ -3139,7 +3139,7 @@ static int skill_check_unit_range2_sub (struct block_list *bl, va_list ap)
 
 static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv, int type)
 {
-	int range1, range2;
+	int range1 = 0, range2 = 0;
 
 	switch (skill_id) {
 		case WZ_ICEWALL:
