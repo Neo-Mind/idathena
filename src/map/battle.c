@@ -4907,8 +4907,10 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 	if(tsd) { //Card Fix for target (tsd), 2 is not added to the "left" flag meaning "target cards only"
 		switch(skill_id) { //These skills will do a card fix later
 			case CR_ACIDDEMONSTRATION:
+#ifdef RENEWAL
 			case NJ_ISSEN:
 			case ASC_BREAKER:
+#endif
 			case KO_HAPPOKUNAI:
 				break;
 			default:
