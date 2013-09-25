@@ -645,9 +645,6 @@ void initChangeTables(void) {
 	set_sc( LG_PIETY             , SC_BENEDICTIO       , SI_BENEDICTIO       , SCB_DEF_ELE );
 	set_sc( LG_EARTHDRIVE        , SC_EARTHDRIVE       , SI_EARTHDRIVE       , SCB_DEF|SCB_ASPD );
 	set_sc( LG_INSPIRATION       , SC_INSPIRATION      , SI_INSPIRATION      , SCB_STR|SCB_AGI|SCB_VIT|SCB_INT|SCB_DEX|SCB_LUK|SCB_WATK|SCB_HIT|SCB_MAXHP);
-	set_sc( LG_SHIELDSPELL       , SC_SHIELDSPELL_DEF  , SI_SHIELDSPELL_DEF  , SCB_WATK );
-	set_sc( LG_SHIELDSPELL       , SC_SHIELDSPELL_MDEF , SI_SHIELDSPELL_MDEF , SCB_NONE );
-	set_sc( LG_SHIELDSPELL       , SC_SHIELDSPELL_REF  , SI_SHIELDSPELL_REF  , SCB_DEF );
 	set_sc( LG_KINGS_GRACE       , SC_KINGS_GRACE      , SI_KINGS_GRACE      , SCB_NONE );
 
 	set_sc( SC_REPRODUCE         , SC__REPRODUCE      , SI_REPRODUCE       , SCB_NONE );
@@ -691,7 +688,7 @@ void initChangeTables(void) {
 	set_sc_with_vfx( WM_VOICEOFSIREN      , SC_VOICEOFSIREN     , SI_VOICEOFSIREN         , SCB_NONE );
 	set_sc_with_vfx( WM_LULLABY_DEEPSLEEP , SC_DEEPSLEEP        , SI_DEEPSLEEP            , SCB_NONE );
 	set_sc( WM_SIRCLEOFNATURE         , SC_SIRCLEOFNATURE       , SI_SIRCLEOFNATURE       , SCB_NONE );
-	set_sc( WM_GLOOMYDAY              , SC_GLOOMYDAY            , SI_GLOOMYDAY            , SCB_FLEE|SCB_ASPD );
+	set_sc( WM_GLOOMYDAY              , SC_GLOOMYDAY            , SI_GLOOMYDAY            , SCB_FLEE|SCB_SPEED|SCB_ASPD );
 	set_sc( WM_SONG_OF_MANA           , SC_SONGOFMANA           , SI_SONGOFMANA           , SCB_NONE );
 	set_sc( WM_DANCE_WITH_WUG         , SC_DANCEWITHWUG         , SI_DANCEWITHWUG         , SCB_ASPD );
 	set_sc( WM_SATURDAY_NIGHT_FEVER   , SC_SATURDAYNIGHTFEVER   , SI_SATURDAYNIGHTFEVER   , SCB_WATK|SCB_FLEE|SCB_DEF|SCB_REGEN );
@@ -873,6 +870,7 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_OVERHEAT_LIMITPOINT] = SI_OVERHEAT_LIMITPOINT;
 
 	StatusIconChangeTable[SC_HALLUCINATIONWALK_POSTDELAY] = SI_HALLUCINATIONWALK_POSTDELAY;
+
 	StatusIconChangeTable[SC_TOXIN] = SI_TOXIN;
 	StatusIconChangeTable[SC_PARALYSE] = SI_PARALYSE;
 	StatusIconChangeTable[SC_VENOMBLEED] = SI_VENOMBLEED;
@@ -883,6 +881,9 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_LEECHESEND] = SI_LEECHESEND;
 
 	StatusIconChangeTable[SC_BANDING_DEFENCE] = SI_BANDING_DEFENCE;
+	StatusIconChangeTable[SC_SHIELDSPELL_DEF] = SI_SHIELDSPELL_DEF;
+	StatusIconChangeTable[SC_SHIELDSPELL_MDEF] = SI_SHIELDSPELL_MDEF;
+	StatusIconChangeTable[SC_SHIELDSPELL_REF] = SI_SHIELDSPELL_REF;
 
 	StatusIconChangeTable[SC_GLOOMYDAY_SK] = SI_GLOOMYDAY;
 
@@ -911,7 +912,7 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_VITATA_500] |= SI_VITATA_500;
 	StatusIconChangeTable[SC_EXTRACT_SALAMINE_JUICE] |= SI_EXTRACT_SALAMINE_JUICE;
 
-	//Elemental Spirit's 'side' status change icons.
+	//Elemental Spirit's 'side' status change icons
 	StatusIconChangeTable[SC_CIRCLE_OF_FIRE] = SI_CIRCLE_OF_FIRE;
 	StatusIconChangeTable[SC_FIRE_CLOAK] = SI_FIRE_CLOAK;
 	StatusIconChangeTable[SC_WATER_SCREEN] = SI_WATER_SCREEN;
@@ -937,7 +938,7 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_MONSTER_TRANSFORM] = SI_MONSTER_TRANSFORM;
 	StatusIconChangeTable[SC_ALL_RIDING] = SI_ALL_RIDING;
 
-	//Other SC which are not necessarily associated to skills.
+	//Other SC which are not necessarily associated to skills
 	StatusChangeFlagTable[SC_ASPDPOTION0] = SCB_ASPD;
 	StatusChangeFlagTable[SC_ASPDPOTION1] = SCB_ASPD;
 	StatusChangeFlagTable[SC_ASPDPOTION2] = SCB_ASPD;
@@ -997,6 +998,11 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_MERC_HPUP] |= SCB_MAXHP;
 	StatusChangeFlagTable[SC_MERC_SPUP] |= SCB_MAXSP;
 	StatusChangeFlagTable[SC_MERC_HITUP] |= SCB_HIT;
+
+	StatusChangeFlagTable[SC_STEALTHFIELD_MASTER] |= SCB_SPEED;
+
+	StatusChangeFlagTable[SC_HALLUCINATIONWALK_POSTDELAY] |= SCB_ASPD|SCB_SPEED;
+
 	//Guillotine Cross Poison Effects
 	StatusChangeFlagTable[SC_PARALYSE] |= SCB_FLEE|SCB_SPEED|SCB_ASPD;
 	StatusChangeFlagTable[SC_DEATHHURT] |= SCB_REGEN;
@@ -1005,17 +1011,23 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_PYREXIA] |= SCB_HIT|SCB_FLEE;
 	StatusChangeFlagTable[SC_OBLIVIONCURSE] |= SCB_REGEN;
 
-	StatusChangeFlagTable[SC_STOMACHACHE] = SCB_STR|SCB_AGI|SCB_VIT|SCB_DEX|SCB_INT|SCB_LUK;
-	StatusChangeFlagTable[SC_MYSTERIOUS_POWDER] = SCB_MAXHP;
-	StatusChangeFlagTable[SC_MELON_BOMB] = SCB_SPEED|SCB_ASPD;
-	StatusChangeFlagTable[SC_BANANA_BOMB] = SCB_LUK;
+	StatusChangeFlagTable[SC_BANDING_DEFENCE] |= SCB_SPEED;
+	StatusChangeFlagTable[SC_SHIELDSPELL_DEF] |= SCB_WATK;
+	StatusChangeFlagTable[SC_SHIELDSPELL_REF] |= SCB_DEF;
 
+	StatusChangeFlagTable[SC_STOMACHACHE] |= SCB_STR|SCB_AGI|SCB_VIT|SCB_DEX|SCB_INT|SCB_LUK;
+	StatusChangeFlagTable[SC_MYSTERIOUS_POWDER] |= SCB_MAXHP;
+	StatusChangeFlagTable[SC_MELON_BOMB] |= SCB_SPEED|SCB_ASPD;
+	StatusChangeFlagTable[SC_BANANA_BOMB] |= SCB_LUK;
+
+	//Genetics New Food Items
 	StatusChangeFlagTable[SC_SAVAGE_STEAK] |= SCB_STR;
 	StatusChangeFlagTable[SC_COCKTAIL_WARG_BLOOD] |= SCB_INT;
 	StatusChangeFlagTable[SC_MINOR_BBQ] |= SCB_VIT;
 	StatusChangeFlagTable[SC_SIROMA_ICE_TEA] |= SCB_DEX;
 	StatusChangeFlagTable[SC_DROCERA_HERB_STEAMED] |= SCB_AGI;
 	StatusChangeFlagTable[SC_PUTTI_TAILS_NOODLES] |= SCB_LUK;
+
 	StatusChangeFlagTable[SC_BOOST500] |= SCB_ASPD;
 	StatusChangeFlagTable[SC_FULL_SWING_K] |= SCB_BATK;
 	StatusChangeFlagTable[SC_MANA_PLUS] |= SCB_MATK;
@@ -1024,11 +1036,12 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_EXTRACT_WHITE_POTION_Z] |= SCB_REGEN;
 	StatusChangeFlagTable[SC_VITATA_500] |= SCB_REGEN;
 	StatusChangeFlagTable[SC_EXTRACT_SALAMINE_JUICE] |= SCB_ASPD;
+
 	StatusChangeFlagTable[SC_REBOUND] |= SCB_SPEED|SCB_REGEN;
 	StatusChangeFlagTable[SC_DEFSET] |= SCB_DEF;
 	StatusChangeFlagTable[SC_MDEFSET] |= SCB_MDEF;
-	StatusChangeFlagTable[SC_WEDDING] = SCB_SPEED;
-	StatusChangeFlagTable[SC_ALL_RIDING] = SCB_SPEED;
+	StatusChangeFlagTable[SC_WEDDING] |= SCB_SPEED;
+	StatusChangeFlagTable[SC_ALL_RIDING] |= SCB_SPEED;
 
 	/* StatusDisplayType Table [Ind] */
 	StatusDisplayType[SC_ALL_RIDING]	  = true;
@@ -1059,7 +1072,7 @@ void initChangeTables(void) {
 	StatusDisplayType[SC_TELEKINESIS_INTENSE] = true;
 	StatusDisplayType[SC_UNLIMIT]		  = true;
 
-	if( !battle_config.display_hallucination ) //Disable Hallucination.
+	if( !battle_config.display_hallucination ) //Disable Hallucination
 		StatusIconChangeTable[SC_HALLUCINATION] = SI_BLANK;
 
 	/* StatusChangeState (SCS_) NOMOVE */
@@ -3713,9 +3726,9 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 	}
 
 	if ((sc->data[SC_FIRE_INSIGNIA] && sc->data[SC_FIRE_INSIGNIA]->val1 == 1) //If insignia lvl 1
-			|| (sc->data[SC_WATER_INSIGNIA] && sc->data[SC_WATER_INSIGNIA]->val1 == 1)
-			|| (sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 1)
-			|| (sc->data[SC_WIND_INSIGNIA] && sc->data[SC_WIND_INSIGNIA]->val1 == 1))
+		|| (sc->data[SC_WATER_INSIGNIA] && sc->data[SC_WATER_INSIGNIA]->val1 == 1)
+		|| (sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 1)
+		|| (sc->data[SC_WIND_INSIGNIA] && sc->data[SC_WIND_INSIGNIA]->val1 == 1))
 		regen->rate.hp *= 2;
 }
 
@@ -3730,30 +3743,29 @@ void status_calc_state( struct block_list *bl, struct status_change *sc, enum sc
 	/* Can move? */
 	if( flag&SCS_NOMOVE ) {
 		if( !(flag&SCS_NOMOVECOND) )
-			sc->cant.move += ( start ? 1 : -1 );
+			sc->cant.move += (start ? 1 : -1);
 		else if( (sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF)	//Cannot move while gospel is in effect
-				  || (sc->data[SC_BASILICA] && sc->data[SC_BASILICA]->val4 == bl->id) //Basilica caster cannot move
-				  || (sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF)
-				  || (sc->data[SC_CRYSTALIZE] && bl->type != BL_MOB)
-				  || (sc->data[SC_CAMOUFLAGE] && sc->data[SC_CAMOUFLAGE]->val1 < 3)
-				)
-			sc->cant.move += ( start ? 1 : -1 );
+				|| (sc->data[SC_BASILICA] && sc->data[SC_BASILICA]->val4 == bl->id) //Basilica caster cannot move
+				|| (sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF)
+				|| (sc->data[SC_CRYSTALIZE] && bl->type != BL_MOB)
+				|| (sc->data[SC_CAMOUFLAGE] && sc->data[SC_CAMOUFLAGE]->val1 < 3) )
+			sc->cant.move += (start ? 1 : -1);
 	}
 
 	/* Can't use skills */
 	if( flag&SCS_NOCAST ) {
 		if( !(flag&SCS_NOCASTCOND) )
-			sc->cant.cast += ( start ? 1 : -1 );
+			sc->cant.cast += (start ? 1 : -1);
 		else if( (sc->data[SC_CRYSTALIZE] && bl->type != BL_MOB) )
-			sc->cant.cast += ( start ? 1 : -1 );
+			sc->cant.cast += (start ? 1 : -1);
 	}
 
 	/* Can't chat */
 	if( flag&SCS_NOCHAT ) {
 		if( !(flag&SCS_NOCHATCOND) )
-			sc->cant.chat += ( start ? 1 : -1 );
-		else if(sc->data[SC_NOCHAT] && sc->data[SC_NOCHAT]->val1&MANNER_NOCHAT)
-			sc->cant.chat += ( start ? 1 : -1 );
+			sc->cant.chat += (start ? 1 : -1);
+		else if( sc->data[SC_NOCHAT] && sc->data[SC_NOCHAT]->val1&MANNER_NOCHAT )
+			sc->cant.chat += (start ? 1 : -1);
 	}
 
 	/* Player-only states */
@@ -3761,17 +3773,17 @@ void status_calc_state( struct block_list *bl, struct status_change *sc, enum sc
 		/* Can pick items? */
 		if( flag&SCS_NOPICKITEM ) {
 			if( !(flag&SCS_NOPICKITEMCOND) )
-				sc->cant.pickup += ( start ? 1 : -1 );
+				sc->cant.pickup += (start ? 1 : -1);
 			else if( (sc->data[SC_NOCHAT] && sc->data[SC_NOCHAT]->val1&MANNER_NOITEM) )
-				sc->cant.pickup += ( start ? 1 : -1 );
+				sc->cant.pickup += (start ? 1 : -1);
 		}
 
 		/* Can drop items? */
 		if( flag&SCS_NODROPITEM ) {
 			if( !(flag&SCS_NODROPITEMCOND) )
-				sc->cant.drop += ( start ? 1 : -1 );
+				sc->cant.drop += (start ? 1 : -1);
 			else if( (sc->data[SC_NOCHAT] && sc->data[SC_NOCHAT]->val1&MANNER_NOITEM) )
-				sc->cant.drop += ( start ? 1 : -1 );
+				sc->cant.drop += (start ? 1 : -1);
 		}
 	}
 
@@ -7210,7 +7222,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_LEECHESEND:
 			{ //It doesn't stack or even renewed
 				int i = SC_TOXIN;
-				for(; i<= SC_LEECHESEND; i++)
+				for(; i <= SC_LEECHESEND; i++)
 					if(sc->data[i]) return 0;
 			}
 			break;
@@ -8775,7 +8787,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_GLOOMYDAY:
 				val2 = 20 + 5 * val1; //Flee reduction.
 				val3 = 15 + 5 * val1; //ASPD reduction.
-				if ( sd && rnd()%100 < val1) { //(Skill Lv) %
+				if ( sd && rnd()%100 < val1 ) { //(Skill Lv) %
 					val4 = 1; //Reduce walk speed by half.
 					if (pc_isriding(sd)) pc_setriding(sd, 0);
 					if (pc_isridingdragon(sd)) pc_setoption(sd, sd->sc.option&~OPTION_DRAGON);
@@ -10798,7 +10810,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			break;
 
 		case SC_TOXIN:
-			if( --(sce->val4) >= 0 ) { //Damage is every 10 seconds including 3%sp drain.
+			if( --(sce->val4) >= 0 ) { //Damage is every 10 seconds including 3% sp drain.
 				map_freeblock_lock();
 				clif_damage(bl,bl,tick,status_get_amotion(bl),1,1,0,0,0);
 				status_damage(NULL, bl, 1, status->max_sp * 3 / 100, 0, 0); //cancel dmg only if cancelable
