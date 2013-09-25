@@ -4399,17 +4399,32 @@ static void clif_getareachar_skillunit(int type, struct map_session_data *sd, st
 	if( unit->group->state.guildaura )
 		return;
 
-	if( battle_config.traps_setting&1 && skill_get_inf2(unit->group->skill_id)&INF2_TRAP )
-		unit_id = UNT_DUMMYSKILL; //Use invisible unit id for traps.
-	else if( skill_get_unit_flag(unit->group->skill_id) & UF_RANGEDSINGLEUNIT && !(unit->val2 & UF_RANGEDSINGLEUNIT) )
+	if( skill_get_unit_flag(unit->group->skill_id)&UF_RANGEDSINGLEUNIT && !(unit->val2&UF_RANGEDSINGLEUNIT) )
 		unit_id = UNT_DUMMYSKILL; //Use invisible unit id for other case of rangedsingle unit
 	else
 		unit_id = unit->group->unit_id;
 
-#if PACKETVER >= 3
-	if( unit->group->unit_id == UNT_GRAFFITI ) { // Graffiti [Valaris]
-		type = 2;
+	if( battle_config.traps_setting&1 ) {
+		switch( unit->group->skill_id ) {
+			case HT_ANKLESNARE:
+				if( !map_flag_vs(sd->bl.m) )
+					break;
+			case HT_SKIDTRAP:
+			case MA_SKIDTRAP:
+			case HT_SHOCKWAVE:
+			case HT_SANDMAN:
+			case MA_SANDMAN:
+			case HT_FLASHER:
+			case HT_FREEZINGTRAP:
+			case MA_FREEZINGTRAP:
+				unit_id = UNT_DUMMYSKILL; //Use invisible unit id for hunter's traps.
+				break;
+		}
 	}
+
+#if PACKETVER >= 3
+	if( unit->group->unit_id == UNT_GRAFFITI ) // Graffiti [Valaris]
+		type = 2;
 #endif
 
 	switch( type ) {
@@ -4420,38 +4435,38 @@ static void clif_getareachar_skillunit(int type, struct map_session_data *sd, st
 	}
 
 	WFIFOHEAD(fd,packet_len(header));
-	WFIFOW(fd,pos)=header;
+	WFIFOW(fd,pos) = header;
 
-	if( type==3 || type==4 ) {
-		WFIFOW(fd, pos+2)=packet_len(header);
+	if( type == 3 || type == 4 ) {
+		WFIFOW(fd,pos + 2) = packet_len(header);
 		pos += 2;
 	}
 
-	WFIFOL(fd,pos+2) = unit->bl.id;
-	WFIFOL(fd,pos+6) = unit->group->src_id;
-	WFIFOW(fd,pos+10) = unit->bl.x;
-	WFIFOW(fd,pos+12) = unit->bl.y;
+	WFIFOL(fd,pos + 2) = unit->bl.id;
+	WFIFOL(fd,pos + 6) = unit->group->src_id;
+	WFIFOW(fd,pos + 10) = unit->bl.x;
+	WFIFOW(fd,pos + 12) = unit->bl.y;
 
 	switch( type ) {
 		case 1:
-			WFIFOB(fd,pos+14) = unit_id;
-			WFIFOB(fd,pos+15) = 1;
+			WFIFOB(fd,pos + 14) = unit_id;
+			WFIFOB(fd,pos + 15) = 1;
 			break;
 		case 2:
-			WFIFOB(fd,pos+14) = unit_id;
-			WFIFOB(fd,pos+15) = 1;
-			WFIFOB(fd,pos+16) = 1;
-			safestrncpy((char*)WFIFOP(fd,pos+17),unit->group->valstr,MESSAGE_SIZE);
+			WFIFOB(fd,pos + 14) = unit_id;
+			WFIFOB(fd,pos + 15) = 1;
+			WFIFOB(fd,pos + 16) = 1;
+			safestrncpy((char*)WFIFOP(fd,pos + 17),unit->group->valstr,MESSAGE_SIZE);
 			break;
 		case 3:
-			WFIFOB(fd,pos+14) = unit_id;
-			WFIFOW(fd,pos+15) = unit->range;
-			WFIFOB(fd,pos+17) = 1; //visible
+			WFIFOB(fd,pos + 14) = unit_id;
+			WFIFOW(fd,pos + 15) = unit->range;
+			WFIFOB(fd,pos + 17) = 1; //Visible
 			break;
 		case 4:
-			WFIFOL(fd,pos+14) = unit_id; pos += 3;
-			WFIFOW(fd,pos+15) = unit->range;
-			WFIFOB(fd,pos+17) = 1;
+			WFIFOL(fd,pos + 14) = unit_id; pos += 3;
+			WFIFOW(fd,pos + 15) = unit->range;
+			WFIFOB(fd,pos + 17) = 1;
 			break;
 	}
 
@@ -4470,11 +4485,11 @@ static void clif_clearchar_skillunit(struct skill_unit *unit, int fd)
 	nullpo_retv(unit);
 
 	WFIFOHEAD(fd,packet_len(0x120));
-	WFIFOW(fd, 0)=0x120;
-	WFIFOL(fd, 2)=unit->bl.id;
+	WFIFOW(fd,0) = 0x120;
+	WFIFOL(fd,2) = unit->bl.id;
 	WFIFOSET(fd,packet_len(0x120));
 
-	if(unit->group && unit->group->skill_id == WZ_ICEWALL)
+	if( unit->group && unit->group->skill_id == WZ_ICEWALL )
 		clif_changemapcell(fd,unit->bl.m,unit->bl.x,unit->bl.y,unit->val2,SELF);
 }
 
@@ -4487,8 +4502,8 @@ void clif_skill_delunit(struct skill_unit *unit)
 
 	nullpo_retv(unit);
 
-	WBUFW(buf, 0)=0x120;
-	WBUFL(buf, 2)=unit->bl.id;
+	WBUFW(buf,0) = 0x120;
+	WBUFL(buf,2) = unit->bl.id;
 	clif_send(buf,packet_len(0x120),&unit->bl,AREA);
 }
 
@@ -4924,11 +4939,10 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,unsigned int
 	WBUFL(buf,12) = tick;
 	WBUFL(buf,16) = sdelay;
 	WBUFL(buf,20) = ddelay;
-	if(battle_config.hide_woe_damage && map_flag_gvg2(src->m)) {
+	if(battle_config.hide_woe_damage && map_flag_gvg2(src->m))
 		WBUFW(buf,24) = damage ? div : 0;
-	} else {
+	else
 		WBUFW(buf,24) = damage;
-	}
 	WBUFW(buf,26) = skill_lv;
 	WBUFW(buf,28) = div;
 	WBUFB(buf,30) = type;
@@ -4955,11 +4969,10 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,unsigned int
 	WBUFL(buf,12) = tick;
 	WBUFL(buf,16) = sdelay;
 	WBUFL(buf,20) = ddelay;
-	if(battle_config.hide_woe_damage && map_flag_gvg2(src->m)) {
+	if(battle_config.hide_woe_damage && map_flag_gvg2(src->m))
 		WBUFL(buf,24) = damage ? div : 0;
-	} else {
+	else
 		WBUFL(buf,24) = damage;
-	}
 	WBUFW(buf,28) = skill_lv;
 	WBUFW(buf,30) = div;
 	WBUFB(buf,32) = type;
@@ -4996,45 +5009,44 @@ int clif_skill_damage2(struct block_list *src,struct block_list *dst,unsigned in
 	nullpo_ret(src);
 	nullpo_ret(dst);
 
-	type = (type>0)?type:skill_get_hit(skill_id);
+	type = (type > 0) ? type : skill_get_hit(skill_id);
 	type = clif_calc_delay(type,div,damage,ddelay);
 	sc = status_get_sc(dst);
 
 	if(sc && sc->count) {
 		if(sc->data[SC_HALLUCINATION] && damage)
-			damage = damage*(sc->data[SC_HALLUCINATION]->val2) + rnd()%100;
+			damage = damage * (sc->data[SC_HALLUCINATION]->val2) + rnd()%100;
 	}
 
-	WBUFW(buf,0)=0x115;
-	WBUFW(buf,2)=skill_id;
-	WBUFL(buf,4)=src->id;
-	WBUFL(buf,8)=dst->id;
-	WBUFL(buf,12)=tick;
-	WBUFL(buf,16)=sdelay;
-	WBUFL(buf,20)=ddelay;
-	WBUFW(buf,24)=dst->x;
-	WBUFW(buf,26)=dst->y;
-	if (battle_config.hide_woe_damage && map_flag_gvg(src->m)) {
-		WBUFW(buf,28)=damage?div:0;
-	} else {
-		WBUFW(buf,28)=damage;
-	}
-	WBUFW(buf,30)=skill_lv;
-	WBUFW(buf,32)=div;
-	WBUFB(buf,34)=type;
+	WBUFW(buf,0) = 0x115;
+	WBUFW(buf,2) = skill_id;
+	WBUFL(buf,4) = src->id;
+	WBUFL(buf,8) = dst->id;
+	WBUFL(buf,12) = tick;
+	WBUFL(buf,16) = sdelay;
+	WBUFL(buf,20) = ddelay;
+	WBUFW(buf,24) = dst->x;
+	WBUFW(buf,26) = dst->y;
+	if(battle_config.hide_woe_damage && map_flag_gvg2(src->m))
+		WBUFW(buf,28) = damage ? div : 0;
+	else
+		WBUFW(buf,28) = damage;
+	WBUFW(buf,30) = skill_lv;
+	WBUFW(buf,32) = div;
+	WBUFB(buf,34) = type;
 	clif_send(buf,packet_len(0x115),src,AREA);
 	if(disguised(src)) {
-		WBUFL(buf,4)=-src->id;
+		WBUFL(buf,4) = -src->id;
 		if(damage > 0)
-			WBUFW(buf,28)=-1;
+			WBUFW(buf,28) = -1;
 		clif_send(buf,packet_len(0x115),src,SELF);
 	}
-	if (disguised(dst)) {
-		WBUFL(buf,8)=-dst->id;
-		if (disguised(src))
-			WBUFL(buf,4)=src->id;
+	if(disguised(dst)) {
+		WBUFL(buf,8) = -dst->id;
+		if(disguised(src))
+			WBUFL(buf,4) = src->id;
 		else if(damage > 0)
-			WBUFW(buf,28)=-1;
+			WBUFW(buf,28) = -1;
 		clif_send(buf,packet_len(0x115),dst,SELF);
 	}
 
@@ -5052,24 +5064,24 @@ int clif_skill_nodamage(struct block_list *src,struct block_list *dst,uint16 ski
 
 	nullpo_ret(dst);
 
-	WBUFW(buf,0)=0x11a;
-	WBUFW(buf,2)=skill_id;
-	WBUFW(buf,4)=min(heal, INT16_MAX);
-	WBUFL(buf,6)=dst->id;
-	WBUFL(buf,10)=src?src->id:0;
-	WBUFB(buf,14)=fail;
+	WBUFW(buf,0) = 0x11a;
+	WBUFW(buf,2) = skill_id;
+	WBUFW(buf,4) = min(heal,INT16_MAX);
+	WBUFL(buf,6) = dst->id;
+	WBUFL(buf,10) = src ? src->id : 0;
+	WBUFB(buf,14) = fail;
 
-	if (disguised(dst)) {
+	if(disguised(dst)) {
 		clif_send(buf,packet_len(0x11a),dst,AREA_WOS);
-		WBUFL(buf,6)=-dst->id;
+		WBUFL(buf,6) = -dst->id;
 		clif_send(buf,packet_len(0x11a),dst,SELF);
 	} else
 		clif_send(buf,packet_len(0x11a),dst,AREA);
 
 	if(src && disguised(src)) {
-		WBUFL(buf,10)=-src->id;
+		WBUFL(buf,10) = -src->id;
 		if (disguised(dst))
-			WBUFL(buf,6)=dst->id;
+			WBUFL(buf,6) = dst->id;
 		clif_send(buf,packet_len(0x11a),src,SELF);
 	}
 
@@ -5085,16 +5097,16 @@ void clif_skill_poseffect(struct block_list *src,uint16 skill_id,int val,int x,i
 
 	nullpo_retv(src);
 
-	WBUFW(buf,0)=0x117;
-	WBUFW(buf,2)=skill_id;
-	WBUFL(buf,4)=src->id;
-	WBUFW(buf,8)=val;
-	WBUFW(buf,10)=x;
-	WBUFW(buf,12)=y;
-	WBUFL(buf,14)=tick;
+	WBUFW(buf,0) = 0x117;
+	WBUFW(buf,2) = skill_id;
+	WBUFL(buf,4) = src->id;
+	WBUFW(buf,8) = val;
+	WBUFW(buf,10) = x;
+	WBUFW(buf,12) = y;
+	WBUFL(buf,14) = tick;
 	if(disguised(src)) {
 		clif_send(buf,packet_len(0x117),src,AREA_WOS);
-		WBUFL(buf,4)=-src->id;
+		WBUFL(buf,4) = -src->id;
 		clif_send(buf,packet_len(0x117),src,SELF);
 	} else
 		clif_send(buf,packet_len(0x117),src,AREA);
@@ -5115,32 +5127,32 @@ void clif_skill_setunit(struct skill_unit *unit)
 		return;
 
 #if PACKETVER >= 3
-	if( unit->group->unit_id==UNT_GRAFFITI ) { // Graffiti [Valaris]
-		WBUFW(buf, 0)=0x1c9;
-		WBUFL(buf, 2)=unit->bl.id;
-		WBUFL(buf, 6)=unit->group->src_id;
-		WBUFW(buf,10)=unit->bl.x;
-		WBUFW(buf,12)=unit->bl.y;
-		WBUFB(buf,14)=unit->group->unit_id;
-		WBUFB(buf,15)=1;
-		WBUFB(buf,16)=1;
+	if( unit->group->unit_id == UNT_GRAFFITI ) { // Graffiti [Valaris]
+		WBUFW(buf,0) = 0x1c9;
+		WBUFL(buf,2) = unit->bl.id;
+		WBUFL(buf,6) = unit->group->src_id;
+		WBUFW(buf,10) = unit->bl.x;
+		WBUFW(buf,12) = unit->bl.y;
+		WBUFB(buf,14) = unit->group->unit_id;
+		WBUFB(buf,15) = 1;
+		WBUFB(buf,16) = 1;
 		safestrncpy((char*)WBUFP(buf,17),unit->group->valstr,MESSAGE_SIZE);
 		clif_send(buf,packet_len(0x1c9),&unit->bl,AREA);
 		return;
 	}
 #endif
-	WBUFW(buf, 0)=0x11f;
-	WBUFL(buf, 2)=unit->bl.id;
-	WBUFL(buf, 6)=unit->group->src_id;
-	WBUFW(buf,10)=unit->bl.x;
-	WBUFW(buf,12)=unit->bl.y;
-	if (unit->group->state.song_dance&0x1 && unit->val2&UF_ENSEMBLE)
-		WBUFB(buf,14)=unit->val2&UF_SONG?UNT_DISSONANCE:UNT_UGLYDANCE;
-	else if (skill_get_unit_flag(unit->group->skill_id) & UF_RANGEDSINGLEUNIT && !(unit->val2 & UF_RANGEDSINGLEUNIT))
-		WBUFB(buf, 14) = UNT_DUMMYSKILL; // Only display the unit at center.
+	WBUFW(buf,0) = 0x11f;
+	WBUFL(buf,2) = unit->bl.id;
+	WBUFL(buf,6) = unit->group->src_id;
+	WBUFW(buf,10) = unit->bl.x;
+	WBUFW(buf,12) = unit->bl.y;
+	if( unit->group->state.song_dance&0x1 && unit->val2&UF_ENSEMBLE )
+		WBUFB(buf,14) = unit->val2&UF_SONG ? UNT_DISSONANCE : UNT_UGLYDANCE;
+	else if( skill_get_unit_flag(unit->group->skill_id)&UF_RANGEDSINGLEUNIT && !(unit->val2&UF_RANGEDSINGLEUNIT) )
+		WBUFB(buf,14) = UNT_DUMMYSKILL; //Only display the unit at center.
 	else
-		WBUFB(buf,14)=unit->group->unit_id;
-	WBUFB(buf,15)=1; // ignored by client (always gets set to 1)
+		WBUFB(buf,14) = unit->group->unit_id;
+	WBUFB(buf,15) = 1; //Ignored by client (always gets set to 1)
 	clif_send(buf,packet_len(0x11f),&unit->bl,AREA);
 }
 
@@ -5156,8 +5168,8 @@ void clif_skill_warppoint(struct map_session_data* sd, uint16 skill_id, uint16 s
 	WFIFOHEAD(fd,packet_len(0x11c));
 	WFIFOW(fd,0) = 0x11c;
 	WFIFOW(fd,2) = skill_id;
-	memset(WFIFOP(fd,4), 0x00, 4*MAP_NAME_LENGTH_EXT);
-	if (map1 == (unsigned short)-1) strcpy((char*)WFIFOP(fd,4), "Random");
+	memset(WFIFOP(fd,4), 0x00, 4 * MAP_NAME_LENGTH_EXT);
+	if (map1 == (unsigned short) - 1) strcpy((char*)WFIFOP(fd,4), "Random");
 	else // normal map name
 	if (map1 > 0) mapindex_getmapname_ext(mapindex_id2name(map1), (char*)WFIFOP(fd,4));
 	if (map2 > 0) mapindex_getmapname_ext(mapindex_id2name(map2), (char*)WFIFOP(fd,20));
@@ -5188,10 +5200,10 @@ void clif_skill_memomessage(struct map_session_data* sd, int type)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x11e));
-	WFIFOW(fd,0)=0x11e;
-	WFIFOB(fd,2)=type;
+	WFIFOW(fd,0) = 0x11e;
+	WFIFOB(fd,2) = type;
 	WFIFOSET(fd,packet_len(0x11e));
 }
 
@@ -5210,10 +5222,10 @@ void clif_skill_teleportmessage(struct map_session_data *sd, int type)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x189));
-	WFIFOW(fd,0)=0x189;
-	WFIFOW(fd,2)=type;
+	WFIFOW(fd,0) = 0x189;
+	WFIFOW(fd,2) = type;
 	WFIFOSET(fd,packet_len(0x189));
 }
 
@@ -5225,7 +5237,7 @@ void clif_skill_estimation(struct map_session_data *sd,struct block_list *dst)
 {
 	struct status_data *status;
 	unsigned char buf[64];
-	int i;//, fix;
+	int i; //, fix;
 
 	nullpo_retv(sd);
 	nullpo_retv(dst);
@@ -5235,21 +5247,21 @@ void clif_skill_estimation(struct map_session_data *sd,struct block_list *dst)
 
 	status = status_get_status_data(dst);
 
-	WBUFW(buf, 0)=0x18c;
-	WBUFW(buf, 2)=status_get_class(dst);
-	WBUFW(buf, 4)=status_get_lv(dst);
-	WBUFW(buf, 6)=status->size;
-	WBUFL(buf, 8)=status->hp;
-	WBUFW(buf,12)= (battle_config.estimation_type&1?status->def:0)
-		+(battle_config.estimation_type&2?status->def2:0);
-	WBUFW(buf,14)=status->race;
-	WBUFW(buf,16)= (battle_config.estimation_type&1?status->mdef:0)
-		+(battle_config.estimation_type&2?status->mdef2:0);
+	WBUFW(buf,0) = 0x18c;
+	WBUFW(buf,2) = status_get_class(dst);
+	WBUFW(buf,4) = status_get_lv(dst);
+	WBUFW(buf,6) = status->size;
+	WBUFL(buf,8) = status->hp;
+	WBUFW(buf,12) = (battle_config.estimation_type&1 ? status->def : 0)
+		+(battle_config.estimation_type&2 ? status->def2 : 0);
+	WBUFW(buf,14) = status->race;
+	WBUFW(buf,16) = (battle_config.estimation_type&1 ? status->mdef : 0)
+		+(battle_config.estimation_type&2 ? status->mdef2 : 0);
 	WBUFW(buf,18)= status->def_ele;
-	for(i=0;i<9;i++)
-		WBUFB(buf,20+i)= (unsigned char)battle_attr_ratio(i+1,status->def_ele, status->ele_lv);
-//		The following caps negative attributes to 0 since the client displays them as 255-fix. [Skotlex]
-//		WBUFB(buf,20+i)= (unsigned char)((fix=battle_attr_ratio(i+1,status->def_ele, status->ele_lv))<0?0:fix);
+	for( i = 0; i < 9; i++ )
+		WBUFB(buf,20 + i) = (unsigned char)battle_attr_ratio(i + 1,status->def_ele,status->ele_lv);
+		//The following caps negative attributes to 0 since the client displays them as 255-fix. [Skotlex]
+		//WBUFB(buf,20 + i) = (unsigned char)((fix = battle_attr_ratio(i + 1,status->def_ele,status->ele_lv)) < 0 ? 0 : fix);
 
 	clif_send(buf,packet_len(0x18c),&sd->bl,sd->status.party_id>0?PARTY_SAMEMAP:SELF);
 }
@@ -5264,32 +5276,32 @@ void clif_skill_produce_mix_list(struct map_session_data *sd, int skill_id , int
 	int i,c,view,fd;
 	nullpo_retv(sd);
 
-	if(sd->menuskill_id == skill_id)
-		return; //Avoid resending the menu twice or more times...
+	if( sd->menuskill_id == skill_id )
+		return; //Avoid resending the menu twice or more times
 	if( skill_id == GC_CREATENEWPOISON )
 		skill_id = GC_RESEARCHNEWPOISON;
-		
-	fd=sd->fd;
-	WFIFOHEAD(fd, MAX_SKILL_PRODUCE_DB * 8 + 8);
-	WFIFOW(fd, 0)=0x18d;
 
-	for(i=0,c=0;i<MAX_SKILL_PRODUCE_DB;i++){
-		if( skill_can_produce_mix(sd,skill_produce_db[i].nameid, trigger, 1) &&
-			( ( skill_id > 0 && skill_produce_db[i].req_skill == skill_id ) || skill_id < 0 )
-			){
-			if((view = itemdb_viewid(skill_produce_db[i].nameid)) > 0)
-				WFIFOW(fd,c*8+ 4)= view;
+	fd = sd->fd;
+	WFIFOHEAD(fd,MAX_SKILL_PRODUCE_DB * 8 + 8);
+	WFIFOW(fd,0) = 0x18d;
+
+	for( i = 0, c = 0; i < MAX_SKILL_PRODUCE_DB; i++ ) {
+		if( skill_can_produce_mix(sd,skill_produce_db[i].nameid,trigger,1) &&
+			((skill_id > 0 && skill_produce_db[i].req_skill == skill_id) || skill_id < 0)
+			) {
+			if( (view = itemdb_viewid(skill_produce_db[i].nameid)) > 0 )
+				WFIFOW(fd,c * 8 + 4) = view;
 			else
-				WFIFOW(fd,c*8+ 4)= skill_produce_db[i].nameid;
-			WFIFOW(fd,c*8+ 6)= 0;
-			WFIFOW(fd,c*8+ 8)= 0;
-			WFIFOW(fd,c*8+10)= 0;
+				WFIFOW(fd,c * 8 + 4) = skill_produce_db[i].nameid;
+			WFIFOW(fd,c * 8 + 6) = 0;
+			WFIFOW(fd,c * 8 + 8) = 0;
+			WFIFOW(fd,c * 8 + 10) = 0;
 			c++;
 		}
 	}
-	WFIFOW(fd, 2)=c*8+8;
+	WFIFOW(fd,2) = c * 8 + 8;
 	WFIFOSET(fd,WFIFOW(fd,2));
-	if(c > 0) {
+	if( c > 0 ) {
 		sd->menuskill_id = skill_id;
 		sd->menuskill_val = trigger;
 		return;
