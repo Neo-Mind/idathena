@@ -1463,8 +1463,8 @@ void clif_homskillup(struct map_session_data *sd, uint16 skill_id)
 	nullpo_retv(sd);
 	idx = skill_id - HM_SKILLBASE;
 
-	fd=sd->fd;
-	hd=sd->hd;
+	fd = sd->fd;
+	hd = sd->hd;
 
 	WFIFOHEAD(fd, packet_len(0x239));
 	WFIFOW(fd,0) = 0x239;
@@ -1476,13 +1476,13 @@ void clif_homskillup(struct map_session_data *sd, uint16 skill_id)
 	WFIFOSET(fd,packet_len(0x239));
 }
 
-int clif_hom_food(struct map_session_data *sd,int foodid,int fail)	//[orn]
+int clif_hom_food(struct map_session_data *sd,int foodid,int fail) //[orn]
 {
-	int fd=sd->fd;
+	int fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x22f));
-	WFIFOW(fd,0)=0x22f;
-	WFIFOB(fd,2)=fail;
-	WFIFOW(fd,3)=foodid;
+	WFIFOW(fd,0) = 0x22f;
+	WFIFOB(fd,2) = fail;
+	WFIFOW(fd,3) = foodid;
 	WFIFOSET(fd,packet_len(0x22f));
 
 	return 0;
@@ -1493,11 +1493,11 @@ int clif_hom_food(struct map_session_data *sd,int foodid,int fail)	//[orn]
 /// 0087 <walk start time>.L <walk data>.6B
 void clif_walkok(struct map_session_data *sd)
 {
-	int fd=sd->fd;
+	int fd = sd->fd;
 
-	WFIFOHEAD(fd, packet_len(0x87));
-	WFIFOW(fd,0)=0x87;
-	WFIFOL(fd,2)=gettick();
+	WFIFOHEAD(fd,packet_len(0x87));
+	WFIFOW(fd,0) = 0x87;
+	WFIFOL(fd,2) = gettick();
 	WFIFOPOS2(fd,6,sd->bl.x,sd->bl.y,sd->ud.to_x,sd->ud.to_y,8,8);
 	WFIFOSET(fd,packet_len(0x87));
 }
@@ -1507,42 +1507,38 @@ static void clif_move2(struct block_list *bl, struct view_data *vd, struct unit_
 {
 	uint8 buf[128];
 	int len;
-	
+
 	len = clif_set_unit_walking(bl,ud,buf);
 	clif_send(buf,len,bl,AREA_WOS);
 	if (disguised(bl))
-		clif_setdisguise(bl, buf, len);
-		
-	if(vd->cloth_color)
+		clif_setdisguise(bl,buf,len);
+
+	if (vd->cloth_color)
 		clif_refreshlook(bl,bl->id,LOOK_CLOTHES_COLOR,vd->cloth_color,AREA_WOS);
 
-	switch(bl->type)
-	{
-	case BL_PC:
-		{
-			TBL_PC *sd = ((TBL_PC*)bl);
-//			clif_movepc(sd);
-			if(sd->state.size==SZ_BIG) // tiny/big players [Valaris]
-				clif_specialeffect(&sd->bl,423,AREA);
-			else if(sd->state.size==SZ_MEDIUM)
-				clif_specialeffect(&sd->bl,421,AREA);
-		}
-		break;
-	case BL_MOB:
-		{
-			TBL_MOB *md = ((TBL_MOB*)bl);
-			if(md->special_state.size==SZ_BIG) // tiny/big mobs [Valaris]
-				clif_specialeffect(&md->bl,423,AREA);
-			else if(md->special_state.size==SZ_MEDIUM)
-				clif_specialeffect(&md->bl,421,AREA);
-		}
-		break;
-	case BL_PET:
-		if( vd->head_bottom )
-		{// needed to display pet equip properly
-			clif_pet_equip_area((TBL_PET*)bl);
-		}
-		break;
+	switch (bl->type) {
+		case BL_PC: {
+				TBL_PC *sd = ((TBL_PC*)bl);
+				//clif_movepc(sd);
+				if (sd->state.size == SZ_BIG) //Tiny/big players [Valaris]
+					clif_specialeffect(&sd->bl,423,AREA);
+				else if (sd->state.size == SZ_MEDIUM)
+					clif_specialeffect(&sd->bl,421,AREA);
+			}
+			break;
+		case BL_MOB: {
+				TBL_MOB *md = ((TBL_MOB*)bl);
+				if (md->special_state.size == SZ_BIG) // Tiny/big mobs [Valaris]
+					clif_specialeffect(&md->bl,423,AREA);
+				else if (md->special_state.size == SZ_MEDIUM)
+					clif_specialeffect(&md->bl,421,AREA);
+			}
+			break;
+		case BL_PET:
+			if (vd->head_bottom) { // Needed to display pet equip properly
+				clif_pet_equip_area((TBL_PET*)bl);
+			}
+			break;
 	}
 }
 
@@ -1559,30 +1555,29 @@ void clif_move(struct unit_data *ud)
 	vd = status_get_viewdata(bl);
 	if (!vd || vd->class_ == INVISIBLE_CLASS)
 		return; //This performance check is needed to keep GM-hidden objects from being notified to bots.
-		
+
 	/**
 	* Hide NPC from maya purple card.
 	**/
-	if(bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
+	if (bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
 		return;
-	
+
 	if (ud->state.speed_changed) {
-		// Since we don't know how to update the speed of other objects,
-		// use the old walk packet to update the data.
+		//Since we don't know how to update the speed of other objects,
+		//use the old walk packet to update the data.
 		ud->state.speed_changed = 0;
-		clif_move2(bl, vd, ud);
+		clif_move2(bl,vd,ud);
 		return;
 	}
 
-	WBUFW(buf,0)=0x86;
-	WBUFL(buf,2)=bl->id;
+	WBUFW(buf,0) = 0x86;
+	WBUFL(buf,2) = bl->id;
 	WBUFPOS2(buf,6,bl->x,bl->y,ud->to_x,ud->to_y,8,8);
-	WBUFL(buf,12)=gettick();
-	clif_send(buf, packet_len(0x86), bl, AREA_WOS);
-	if (disguised(bl))
-	{
-		WBUFL(buf,2)=-bl->id;
-		clif_send(buf, packet_len(0x86), bl, SELF);
+	WBUFL(buf,12) = gettick();
+	clif_send(buf,packet_len(0x86),bl,AREA_WOS);
+	if (disguised(bl)) {
+		WBUFL(buf,2) = -bl->id;
+		clif_send(buf,packet_len(0x86),bl,SELF);
 	}
 }
 

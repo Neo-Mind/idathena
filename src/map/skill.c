@@ -2972,7 +2972,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			case GC_VENOMPRESSURE: {
 					struct status_change *ssc = status_get_sc(src);
 					if (ssc && ssc->data[SC_POISONINGWEAPON] && rnd()%100 < 70 + 5 * skill_lv) {
-						sc_start(src, bl, (enum sc_type)ssc->data[SC_POISONINGWEAPON]->val2, 100, ssc->data[SC_POISONINGWEAPON]->val1,
+						sc_start(src, bl, (sc_type)ssc->data[SC_POISONINGWEAPON]->val2, 100, ssc->data[SC_POISONINGWEAPON]->val1,
 							skill_get_time2(GC_POISONINGWEAPON, 1));
 						status_change_end(src, SC_POISONINGWEAPON, INVALID_TIMER);
 						clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
@@ -8365,7 +8365,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					case WL_SUMMONSTONE: element = WLS_STONE; break;
 				}
 
-				sc_start4(src,src,(enum sc_type)sctype,100,element,pos,skill_lv,0,skill_get_time(skill_id,skill_lv));
+				sc_start4(src,src,(sc_type)sctype,100,element,pos,skill_lv,0,skill_get_time(skill_id,skill_lv));
 				clif_skill_nodamage(src,bl,skill_id,0,0);
 			}
 			break;
@@ -13251,8 +13251,8 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 				return 0;
 			break;
 		case MO_EXTREMITYFIST:
-//			if( sc && sc->data[SC_EXTREMITYFIST ]) //To disable Asura during the 5 min skill block uncomment this...
-//				return 0;
+			//if( sc && sc->data[SC_EXTREMITYFIST] ) //To disable Asura during the 5 min skill block uncomment this...
+				//return 0;
 			if( sc && (sc->data[SC_BLADESTOP] || sc->data[SC_CURSEDCIRCLE_ATKER]) )
 				break;
 			if( sc && sc->data[SC_COMBO] ) {
