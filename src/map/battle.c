@@ -829,7 +829,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			return 0;
 		}
 
-		if( (sc->data[SC_ELEMENTAL_SHIELD] && flag&BF_MAGIC ) {
+		if( sc->data[SC_ELEMENTAL_SHIELD] && flag&BF_MAGIC ) {
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}
