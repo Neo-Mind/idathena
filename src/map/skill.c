@@ -4840,7 +4840,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case EL_HURRICANE:
 		case EL_TYPOON_MIS:
 			if (flag&1)
-				skill_attack(skill_get_type(skill_id+1),src,src,bl,skill_id+1,skill_lv,tick,flag);
+				skill_attack(skill_get_type(skill_id + 1),src,src,bl,skill_id+1,skill_lv,tick,flag);
 			else {
 				int i = skill_get_splash(skill_id,skill_lv);
 				clif_skill_nodamage(src,battle_get_master(src),skill_id,skill_lv,1);
@@ -4890,7 +4890,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				struct status_change *sc = status_get_sc(&ele->bl);
 				struct status_change *tsc = status_get_sc(bl);
 				sc_type type = status_skill2sc(skill_id), type2;
-				type2 = type - 1;
+				type2 = (sc_type)(type - 1);
 
 				clif_skill_nodamage(src,battle_get_master(src),skill_id,skill_lv,1);
 				clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
@@ -5161,9 +5161,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 		case SO_ELEMENTAL_SHIELD: {
+				struct party_data *p;
 				short ret = 0;
 				int x0, y0, x1, y1, range;
-				struct party_data *p;
 
 				if(sd == NULL || !sd->ed)
 					break;
@@ -5855,7 +5855,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			//TODO: How much does base level affects? Dummy value of 1% per level difference used. [Skotlex]
 			clif_skill_nodamage(src,bl,skill_id == SM_SELFPROVOKE ? SM_PROVOKE : skill_id,skill_lv,
-				(i = sc_start(src,bl,type, skill_id == SM_SELFPROVOKE ? 100:( 50 + 3*skill_lv + status_get_lv(src) - status_get_lv(bl)), skill_lv, skill_get_time(skill_id,skill_lv))));
+				(i = sc_start(src,bl,type, skill_id == SM_SELFPROVOKE ? 100:( 50 + 3 * skill_lv + status_get_lv(src) - status_get_lv(bl)), skill_lv, skill_get_time(skill_id,skill_lv))));
 			if( !i ) {
 				if( sd )
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -11173,11 +11173,10 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			val3 = 300 * skill_lv + 65 * (status->int_ + status_get_lv(src)) + status->max_sp;
 			break;
 		case MG_SAFETYWALL:
-		case SO_ELEMENTAL_SHIELD:
 #ifdef RENEWAL
 			val2 = status_get_max_hp(src) * 3;
 #else
-			val2 = (skill_id == MG_SAFETYWALL ? skill_lv : 10) + 1;
+			val2 = skill_lv + 1;
 #endif
 			break;
 		case MG_FIREWALL:
