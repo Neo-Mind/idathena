@@ -66,6 +66,8 @@
 #define EL_SKILLRANGEMAX (EL_SKILLRANGEMIN + MAX_ELEMENTALSKILL)
 #define GD_SKILLRANGEMIN 1701
 #define GD_SKILLRANGEMAX (GD_SKILLRANGEMIN + MAX_GUILDSKILL)
+#define ET_SKILLRANGEMIN 1901
+#define ET_SKILLRANGEMAX (ET_SKILLRANGEMIN + MAX_EXTRATHIRDSKILL)
 
 static struct eri *skill_unit_ers = NULL; //For handling skill_unit's [Skotlex]
 static struct eri *skill_timer_ers = NULL; //For handling skill_timerskills [Skotlex]
@@ -157,13 +159,14 @@ int skill_name2id(const char* name)
 ///Returns the skill's array index, or 0 (Unknown Skill).
 int skill_get_index( uint16 skill_id )
 {
-	//Avoid ranges reserved for mapping guild/homun/mercenary skills
-	if( (skill_id >= GD_SKILLRANGEMIN && skill_id <= GD_SKILLRANGEMAX)
-	||  (skill_id >= HM_SKILLRANGEMIN && skill_id <= HM_SKILLRANGEMAX)
-	||  (skill_id >= MC_SKILLRANGEMIN && skill_id <= MC_SKILLRANGEMAX)
-	||  (skill_id >= EL_SKILLRANGEMIN && skill_id <= EL_SKILLRANGEMAX) )
+	//Avoid ranges reserved for mapping guild/homun/mercenary/elemental/extra 3rd job skills
+	if( (skill_id >= GD_SKILLRANGEMIN && skill_id <= GD_SKILLRANGEMAX) ||
+		(skill_id >= HM_SKILLRANGEMIN && skill_id <= HM_SKILLRANGEMAX) ||
+		(skill_id >= MC_SKILLRANGEMIN && skill_id <= MC_SKILLRANGEMAX) ||
+		(skill_id >= EL_SKILLRANGEMIN && skill_id <= EL_SKILLRANGEMAX) ||
+		(skill_id >= ET_SKILLRANGEMIN && skill_id <= ET_SKILLRANGEMAX) )
 		return 0;
-	
+
 	//Map skill id to skill db index
 	if( skill_id >= GD_SKILLBASE )
 		skill_id = GD_SKILLRANGEMIN + skill_id - GD_SKILLBASE;
@@ -173,6 +176,8 @@ int skill_get_index( uint16 skill_id )
 		skill_id = MC_SKILLRANGEMIN + skill_id - MC_SKILLBASE;
 	else if( skill_id >= HM_SKILLBASE )
 		skill_id = HM_SKILLRANGEMIN + skill_id - HM_SKILLBASE;
+	else if( skill_id >= ET_SKILLBASE )
+		skill_id = ET_SKILLRANGEMIN + skill_id - ET_SKILLBASE;
 
 	//Validate result
 	if( !skill_id || skill_id >= MAX_SKILL_DB )
@@ -18280,11 +18285,13 @@ static bool skill_parse_row_skilldb(char* split[], int columns, int current)
 { //id,range,hit,inf,element,nk,splash,max,list_num,castcancel,cast_defence_rate,inf2,maxcount,skill_type,blow_count,name,description
 	uint16 skill_id = atoi(split[0]);
 	uint16 idx;
-	if( (skill_id >= GD_SKILLRANGEMIN && skill_id <= GD_SKILLRANGEMAX)
-	||  (skill_id >= HM_SKILLRANGEMIN && skill_id <= HM_SKILLRANGEMAX)
-	||  (skill_id >= MC_SKILLRANGEMIN && skill_id <= MC_SKILLRANGEMAX)
-	||  (skill_id >= EL_SKILLRANGEMIN && skill_id <= EL_SKILLRANGEMAX) ) {
-		ShowWarning("skill_parse_row_skilldb: Skill id %d is forbidden (interferes with guild/homun/mercenary skill mapping)!\n", skill_id);
+	if( (skill_id >= GD_SKILLRANGEMIN && skill_id <= GD_SKILLRANGEMAX) ||
+		(skill_id >= HM_SKILLRANGEMIN && skill_id <= HM_SKILLRANGEMAX) ||
+		(skill_id >= MC_SKILLRANGEMIN && skill_id <= MC_SKILLRANGEMAX) ||
+		(skill_id >= EL_SKILLRANGEMIN && skill_id <= EL_SKILLRANGEMAX) ||
+		(skill_id >= ET_SKILLRANGEMIN && skill_id <= ET_SKILLRANGEMAX) )
+	{
+		ShowWarning("skill_parse_row_skilldb: Skill id %d is forbidden (interferes with guild/homun/mercenary/elemental/extra 3rd job skills mapping)!\n", skill_id);
 		return false;
 	}
 
