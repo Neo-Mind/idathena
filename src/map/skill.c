@@ -44,20 +44,6 @@
 #define SKILLUNITTIMER_INTERVAL	100
 
 //Ranges reserved for mapping skill ids to skilldb offsets
-/*#define HM_SKILLRANGEMIN 700
-#define HM_SKILLRANGEMAX HM_SKILLRANGEMIN + MAX_HOMUNSKILL
-#define MC_SKILLRANGEMIN HM_SKILLRANGEMAX + 1
-#define MC_SKILLRANGEMAX MC_SKILLRANGEMIN + MAX_MERCSKILL
-#define EL_SKILLRANGEMIN MC_SKILLRANGEMAX + 1
-#define EL_SKILLRANGEMAX EL_SKILLRANGEMIN + MAX_ELEMENTALSKILL
-#define GD_SKILLRANGEMIN EL_SKILLRANGEMAX + 1
-#define GD_SKILLRANGEMAX GD_SKILLRANGEMIN + MAX_GUILDSKILL
-
-#if GD_SKILLRANGEMAX > 999
-	#error GD_SKILLRANGEMAX is greater than 999
-#endif*/
-
-//Ranges reserved for mapping skill ids to skilldb offsets
 #define HM_SKILLRANGEMIN 1101
 #define HM_SKILLRANGEMAX (HM_SKILLRANGEMIN + MAX_HOMUNSKILL)
 #define MC_SKILLRANGEMIN 1301
@@ -66,8 +52,6 @@
 #define EL_SKILLRANGEMAX (EL_SKILLRANGEMIN + MAX_ELEMENTALSKILL)
 #define GD_SKILLRANGEMIN 1701
 #define GD_SKILLRANGEMAX (GD_SKILLRANGEMIN + MAX_GUILDSKILL)
-#define ET_SKILLRANGEMIN 1901
-#define ET_SKILLRANGEMAX (ET_SKILLRANGEMIN + MAX_EXTRATHIRDSKILL)
 
 static struct eri *skill_unit_ers = NULL; //For handling skill_unit's [Skotlex]
 static struct eri *skill_timer_ers = NULL; //For handling skill_timerskills [Skotlex]
@@ -159,12 +143,11 @@ int skill_name2id(const char* name)
 ///Returns the skill's array index, or 0 (Unknown Skill).
 int skill_get_index( uint16 skill_id )
 {
-	//Avoid ranges reserved for mapping guild/homun/mercenary/elemental/extra 3rd job skills
+	//Avoid ranges reserved for mapping guild/homun/mercenary/elemental skills
 	if( (skill_id >= GD_SKILLRANGEMIN && skill_id <= GD_SKILLRANGEMAX) ||
 		(skill_id >= HM_SKILLRANGEMIN && skill_id <= HM_SKILLRANGEMAX) ||
 		(skill_id >= MC_SKILLRANGEMIN && skill_id <= MC_SKILLRANGEMAX) ||
-		(skill_id >= EL_SKILLRANGEMIN && skill_id <= EL_SKILLRANGEMAX) ||
-		(skill_id >= ET_SKILLRANGEMIN && skill_id <= ET_SKILLRANGEMAX) )
+		(skill_id >= EL_SKILLRANGEMIN && skill_id <= EL_SKILLRANGEMAX) )
 		return 0;
 
 	//Map skill id to skill db index
@@ -176,8 +159,6 @@ int skill_get_index( uint16 skill_id )
 		skill_id = MC_SKILLRANGEMIN + skill_id - MC_SKILLBASE;
 	else if( skill_id >= HM_SKILLBASE )
 		skill_id = HM_SKILLRANGEMIN + skill_id - HM_SKILLBASE;
-	else if( skill_id >= ET_SKILLBASE )
-		skill_id = ET_SKILLRANGEMIN + skill_id - ET_SKILLBASE;
 
 	//Validate result
 	if( !skill_id || skill_id >= MAX_SKILL_DB )
@@ -5854,30 +5835,30 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SM_PROVOKE:
 		case SM_SELFPROVOKE:
 		case MER_PROVOKE:
-			if( (tstatus->mode&MD_BOSS) || battle_check_undead(tstatus->race,tstatus->def_ele) ) {
+			if ((tstatus->mode&MD_BOSS) || battle_check_undead(tstatus->race,tstatus->def_ele)) {
 				map_freeblock_unlock();
 				return 1;
 			}
 			//TODO: How much does base level affects? Dummy value of 1% per level difference used. [Skotlex]
 			clif_skill_nodamage(src,bl,skill_id == SM_SELFPROVOKE ? SM_PROVOKE : skill_id,skill_lv,
 				(i = sc_start(src,bl,type, skill_id == SM_SELFPROVOKE ? 100:( 50 + 3 * skill_lv + status_get_lv(src) - status_get_lv(bl)), skill_lv, skill_get_time(skill_id,skill_lv))));
-			if( !i ) {
-				if( sd )
+			if (!i) {
+				if (sd)
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				map_freeblock_unlock();
 				return 0;
 			}
-			unit_skillcastcancel(bl, 2);
+			unit_skillcastcancel(bl,2);
 
-			if( tsc && tsc->count ) {
+			if (tsc && tsc->count) {
 				status_change_end(bl, SC_FREEZE, INVALID_TIMER);
-				if( tsc->data[SC_STONE] && tsc->opt1 == OPT1_STONE )
+				if (tsc->data[SC_STONE] && tsc->opt1 == OPT1_STONE)
 					status_change_end(bl, SC_STONE, INVALID_TIMER);
 				status_change_end(bl, SC_SLEEP, INVALID_TIMER);
 				status_change_end(bl, SC_TRICKDEAD, INVALID_TIMER);
 			}
 
-			if( dstmd ) {
+			if (dstmd) {
 				dstmd->state.provoke_flag = src->id;
 				mob_target(dstmd, src, skill_get_range2(src,skill_id,skill_lv));
 			}
@@ -5886,33 +5867,33 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case ML_DEVOTION:
 		case CR_DEVOTION: {
 				int count, lv;
-				if( !dstsd || (!sd && !mer) ) { //Only players can be devoted
-					if( sd )
+				if (!dstsd || (!sd && !mer)) { //Only players can be devoted
+					if (sd)
 						clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 					break;
 				}
 
-				if( (lv = status_get_lv(src) - dstsd->status.base_level) < 0 )
+				if ((lv = status_get_lv(src) - dstsd->status.base_level) < 0)
 					lv = -lv;
-				if( lv > battle_config.devotion_level_difference || //Level difference requeriments
+				if (lv > battle_config.devotion_level_difference || //Level difference requeriments
 					(dstsd->sc.data[type] && dstsd->sc.data[type]->val1 != src->id) || //Cannot Devote a player devoted from another source
 					(skill_id == ML_DEVOTION && (!mer || mer != dstsd->md)) || //Mercenary only can devote owner
 					(dstsd->class_&MAPID_UPPERMASK) == MAPID_CRUSADER || //Crusader Cannot be devoted
 					(dstsd->sc.data[SC_HELLPOWER])) //Players affected by SC_HELLPOWERR cannot be devoted.
 				{
-					if( sd )
+					if (sd)
 						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					map_freeblock_unlock();
 					return 1;
 				}
 
 				i = 0;
-				count = (sd)? min(skill_lv,5) : 1; //Mercenary only can Devote owner
-				if( sd ) { //Player Devoting Player
-					ARR_FIND(0, count, i, sd->devotion[i] == bl->id );
-					if( i == count ) {
-						ARR_FIND(0, count, i, sd->devotion[i] == 0 );
-						if( i == count ) { //No free slots, skill Fail
+				count = (sd) ? min(skill_lv,5) : 1; //Mercenary only can Devote owner
+				if (sd) { //Player Devoting Player
+					ARR_FIND(0, count, i, sd->devotion[i] == bl->id);
+					if (i == count) {
+						ARR_FIND(0, count, i, sd->devotion[i] == 0);
+						if (i == count) { //No free slots, skill Fail
 							clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 							map_freeblock_unlock();
 							return 1;
@@ -5930,9 +5911,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case MO_CALLSPIRITS:
-			if( sd ) {
+			if (sd) {
 				int limit = skill_lv;
-				if( sd->sc.data[SC_RAISINGDRAGON] )
+				if (sd->sc.data[SC_RAISINGDRAGON])
 					limit += sd->sc.data[SC_RAISINGDRAGON]->val1;
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				pc_addspiritball(sd,skill_get_time(skill_id,skill_lv),limit);
@@ -5940,18 +5921,18 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case CH_SOULCOLLECT:
-			if( sd ) {
+			if (sd) {
 				int limit = 5;
-				if( sd->sc.data[SC_RAISINGDRAGON] )
+				if (sd->sc.data[SC_RAISINGDRAGON])
 					limit += sd->sc.data[SC_RAISINGDRAGON]->val1;
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				for( i = 0; i < limit; i++ )
+				for (i = 0; i < limit; i++)
 					pc_addspiritball(sd,skill_get_time(skill_id,skill_lv),limit);
 			}
 			break;
 
 		case MO_KITRANSLATION:
-			if(dstsd && (dstsd->class_&MAPID_BASEMASK)!=MAPID_GUNSLINGER) {
+			if (dstsd && ((dstsd->class_&MAPID_BASEMASK) != MAPID_GUNSLINGER || (dstsd->class_&MAPID_UPPERMASK) != MAPID_REBELLION)) {
 				pc_addspiritball(dstsd,skill_get_time(skill_id,skill_lv),5);
 			}
 			break;
@@ -5966,7 +5947,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case MO_ABSORBSPIRITS:
 			i = 0;
-			if (dstsd && dstsd->spiritball && (sd == dstsd || map_flag_vs(src->m)) && (dstsd->class_&MAPID_BASEMASK)!=MAPID_GUNSLINGER) {
+			if (dstsd && dstsd->spiritball && (sd == dstsd || map_flag_vs(src->m)) &&
+				((dstsd->class_&MAPID_BASEMASK) != MAPID_GUNSLINGER || (dstsd->class_&MAPID_UPPERMASK) != MAPID_REBELLION)) {
 				//Split the if for readability, and included gunslingers in the check so that their coins cannot be removed [Reddozen]
 				i = dstsd->spiritball * 7;
 				pc_delspiritball(dstsd,dstsd->spiritball,0);
@@ -5980,21 +5962,21 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case AC_MAKINGARROW:
-			if(sd) {
+			if (sd) {
 				clif_arrow_create_list(sd);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			}
 			break;
 
 		case AM_PHARMACY:
-			if(sd) {
+			if (sd) {
 				clif_skill_produce_mix_list(sd,skill_id,22);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			}
 			break;
 
 		case SA_CREATECON:
-			if(sd) {
+			if (sd) {
 				clif_elementalconverter_list(sd);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			}
@@ -18288,10 +18270,9 @@ static bool skill_parse_row_skilldb(char* split[], int columns, int current)
 	if( (skill_id >= GD_SKILLRANGEMIN && skill_id <= GD_SKILLRANGEMAX) ||
 		(skill_id >= HM_SKILLRANGEMIN && skill_id <= HM_SKILLRANGEMAX) ||
 		(skill_id >= MC_SKILLRANGEMIN && skill_id <= MC_SKILLRANGEMAX) ||
-		(skill_id >= EL_SKILLRANGEMIN && skill_id <= EL_SKILLRANGEMAX) ||
-		(skill_id >= ET_SKILLRANGEMIN && skill_id <= ET_SKILLRANGEMAX) )
+		(skill_id >= EL_SKILLRANGEMIN && skill_id <= EL_SKILLRANGEMAX) )
 	{
-		ShowWarning("skill_parse_row_skilldb: Skill id %d is forbidden (interferes with guild/homun/mercenary/elemental/extra 3rd job skills mapping)!\n", skill_id);
+		ShowWarning("skill_parse_row_skilldb: Skill id %d is forbidden (interferes with guild/homun/mercenary/elemental skills mapping)!\n", skill_id);
 		return false;
 	}
 

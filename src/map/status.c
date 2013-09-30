@@ -794,6 +794,8 @@ void initChangeTables(void) {
 	SkillStatusChangeTable[SL_BLACKSMITH]  = (sc_type)MAPID_BLACKSMITH,
 	SkillStatusChangeTable[SL_HUNTER]      = (sc_type)MAPID_HUNTER,
 	SkillStatusChangeTable[SL_SOULLINKER]  = (sc_type)MAPID_SOUL_LINKER,
+	SkillStatusChangeTable[SL_NINJA]       = (sc_type)MAPID_NINJA,
+	SkillStatusChangeTable[SL_GUNNER]      = (sc_type)MAPID_GUNSLINGER,
 
 	//Status that don't have a skill associated.
 	StatusIconChangeTable[SC_WEIGHT50] = SI_WEIGHT50;
@@ -2364,13 +2366,13 @@ int status_calc_pet_(struct pet_data *pd, bool first)
 	nullpo_ret(pd);
 
 	if (first) {
-		memcpy(&pd->status, &pd->db->status, sizeof(struct status_data));
+		memcpy(&pd->status,&pd->db->status,sizeof(struct status_data));
 		pd->status.mode = MD_CANMOVE; //Pets discard all modes, except walking
 		pd->status.speed = pd->petDB->speed;
 
-		if(battle_config.pet_attack_support || battle_config.pet_damage_support) {
+		if (battle_config.pet_attack_support || battle_config.pet_damage_support) {
 			//Attack support requires the pet to be able to attack
-			pd->status.mode|= MD_CANATTACK;
+			pd->status.mode |= MD_CANATTACK;
 		}
 	}
 
@@ -2378,7 +2380,7 @@ int status_calc_pet_(struct pet_data *pd, bool first)
 		struct map_session_data *sd = pd->master;
 		int lv;
 
-		lv = sd->status.base_level*battle_config.pet_lv_rate/100;
+		lv = sd->status.base_level * battle_config.pet_lv_rate / 100;
 		if (lv < 0)
 			lv = 1;
 		if (lv != pd->pet.level || first) {
@@ -2386,17 +2388,17 @@ int status_calc_pet_(struct pet_data *pd, bool first)
 			pd->pet.level = lv;
 			if (!first) //Lv Up animation
 				clif_misceffect(&pd->bl, 0);
-			status->rhw.atk = (bstat->rhw.atk*lv)/pd->db->lv;
-			status->rhw.atk2 = (bstat->rhw.atk2*lv)/pd->db->lv;
-			status->str = (bstat->str*lv)/pd->db->lv;
-			status->agi = (bstat->agi*lv)/pd->db->lv;
-			status->vit = (bstat->vit*lv)/pd->db->lv;
-			status->int_ = (bstat->int_*lv)/pd->db->lv;
-			status->dex = (bstat->dex*lv)/pd->db->lv;
-			status->luk = (bstat->luk*lv)/pd->db->lv;
+			status->rhw.atk = (bstat->rhw.atk * lv) / pd->db->lv;
+			status->rhw.atk2 = (bstat->rhw.atk2 * lv) / pd->db->lv;
+			status->str = (bstat->str * lv) / pd->db->lv;
+			status->agi = (bstat->agi * lv) / pd->db->lv;
+			status->vit = (bstat->vit * lv) / pd->db->lv;
+			status->int_ = (bstat->int_ * lv) / pd->db->lv;
+			status->dex = (bstat->dex * lv) / pd->db->lv;
+			status->luk = (bstat->luk * lv) / pd->db->lv;
 
-			status->rhw.atk = cap_value(status->rhw.atk, 1, battle_config.pet_max_atk1);
-			status->rhw.atk2 = cap_value(status->rhw.atk2, 2, battle_config.pet_max_atk2);
+			status->rhw.atk = cap_value(status->rhw.atk,1,battle_config.pet_max_atk1);
+			status->rhw.atk2 = cap_value(status->rhw.atk2,2,battle_config.pet_max_atk2);
 			status->str = cap_value(status->str,1,battle_config.pet_max_stats);
 			status->agi = cap_value(status->agi,1,battle_config.pet_max_stats);
 			status->vit = cap_value(status->vit,1,battle_config.pet_max_stats);
@@ -2404,21 +2406,21 @@ int status_calc_pet_(struct pet_data *pd, bool first)
 			status->dex = cap_value(status->dex,1,battle_config.pet_max_stats);
 			status->luk = cap_value(status->luk,1,battle_config.pet_max_stats);
 
-			status_calc_misc(&pd->bl, &pd->status, lv);
+			status_calc_misc(&pd->bl,&pd->status,lv);
 
 			if (!first)	//Not done the first time because the pet is not visible yet
 				clif_send_petstatus(sd);
 		}
 	} else if (first) {
-		status_calc_misc(&pd->bl, &pd->status, pd->db->lv);
+		status_calc_misc(&pd->bl,&pd->status,pd->db->lv);
 		if (!battle_config.pet_lv_rate && pd->pet.level != pd->db->lv)
 			pd->pet.level = pd->db->lv;
 	}
 	
 	//Support rate modifier (1000 = 100%)
-	pd->rate_fix = 1000*(pd->pet.intimate - battle_config.pet_support_min_friendly)/(1000- battle_config.pet_support_min_friendly) +500;
-	if(battle_config.pet_support_rate != 100)
-		pd->rate_fix = pd->rate_fix*battle_config.pet_support_rate/100;
+	pd->rate_fix = 1000 * (pd->pet.intimate - battle_config.pet_support_min_friendly) / (1000 - battle_config.pet_support_min_friendly) + 500;
+	if (battle_config.pet_support_rate != 100)
+		pd->rate_fix = pd->rate_fix * battle_config.pet_support_rate / 100;
 
 	return 1;
 }
@@ -2426,34 +2428,37 @@ int status_calc_pet_(struct pet_data *pd, bool first)
 //Calculate maxHP from tables
 static unsigned int status_base_pc_maxhp(struct map_session_data* sd, struct status_data* status)
 {
-	uint32 val = job_info[pc_class2idx(sd->status.class_)].hp_table[sd->status.base_level-1];
+	uint32 val = job_info[pc_class2idx(sd->status.class_)].hp_table[sd->status.base_level - 1];
 
-	if((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->status.char_id, MAPID_TAEKWON))
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_NINJA || (sd->class_&MAPID_UPPERMASK) == MAPID_GUNSLINGER ||
+		(sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO || (sd->class_&MAPID_UPPERMASK) == MAPID_REBELLION)
+		val += 100; //Since their HP can't be approximated well enough without this.
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->status.char_id,MAPID_TAEKWON))
 		val *= 3; //Triple max HP for top ranking Taekwons over level 90.
-	if((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && sd->status.base_level >= 99)
-		val += 2000; //Supernovice lvl99 hp bonus.
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && sd->status.base_level >= 99)
+		val += 2000; //Supernovice lvl 99 hp bonus.
 
-	val += val * status->vit/100; //+1% per each point of VIT
+	val += val * status->vit / 100; //+1% per each point of VIT
 
 	if (sd->class_&JOBL_UPPER)
-		val += val * 25/100; //Trans classes get a 25% hp bonus
+		val += val * 25 / 100; //Trans classes get a 25% hp bonus
 	else if (sd->class_&JOBL_BABY)
-		val -= val * 30/100; //Baby classes get a 30% hp penalty
+		val -= val * 30 / 100; //Baby classes get a 30% hp penalty
 	return (unsigned int)val;
 }
 
 //Calculate maxSP from tables
 static unsigned int status_base_pc_maxsp(struct map_session_data* sd, struct status_data *status)
 {
-	uint32 val = job_info[pc_class2idx(sd->status.class_)].sp_table[sd->status.base_level-1];
+	uint32 val = job_info[pc_class2idx(sd->status.class_)].sp_table[sd->status.base_level - 1];
 
-	val += val * status->int_/100;
+	val += val * status->int_ / 100;
 
 	if (sd->class_&JOBL_UPPER)
-		val += val * 25/100;
+		val += val * 25 / 100;
 	else if (sd->class_&JOBL_BABY)
-		val -= val * 30/100;
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->status.char_id, MAPID_TAEKWON))
+		val -= val * 30 / 100;
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->status.char_id,MAPID_TAEKWON))
 		val *= 3; //Triple max SP for top ranking Taekwons over level 90.
 
 	return (unsigned int)val;

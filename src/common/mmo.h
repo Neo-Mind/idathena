@@ -92,11 +92,11 @@
 #define MAX_STORAGE 600
 #define MAX_GUILD_STORAGE 600
 #define MAX_PARTY 12
-#define MAX_GUILD 16+10*6 //Increased max guild members +6 per 1 extension levels [Lupus]
+#define MAX_GUILD 16 + 10 * 6 //Increased max guild members +6 per 1 extension levels [Lupus]
 #define MAX_GUILDPOSITION 20 //Increased max guild positions to accomodate for all members [Valaris] (removed) [PoW]
 #define MAX_GUILDEXPULSION 32
 #define MAX_GUILDALLIANCE 16
-#define MAX_GUILDSKILL 15 //Increased max guild skills because of new skills [Sara-chan]
+#define MAX_GUILDSKILL 17 //Increased max guild skills because of new skills [Sara-chan]
 #define MAX_GUILDLEVEL 50
 #define MAX_GUARDIANS 8 //Local max per castle. [Skotlex]
 #define MAX_QUEST_DB 2700 //Max quests that the server will load
@@ -164,14 +164,6 @@
 #define MAX_ELESKILLTREE 3
 #define EL_CLASS_BASE 2114
 #define EL_CLASS_MAX (EL_CLASS_BASE + MAX_ELEMENTAL_CLASS - 1)
-
-//Extra 3rd Job Skills
-//Remaps the player skills in the 5000 ID range to a lower range
-//in the skill ID index. This is a better way to handle these skills since
-//increasing the MAX_SKILL to a setting like 5020 would waste a lot of
-//memory. [Rytech]
-#define ET_SKILLBASE 5001
-#define MAX_EXTRATHIRDSKILL 18
 
 enum item_types {
 	IT_HEALING = 0,
@@ -599,6 +591,7 @@ enum e_guild_skill {
 	GD_EMERGENCYCALL = 10013,
 	GD_DEVELOPMENT = 10014,
 	GD_ITEMEMERGENCYCALL = 10015,
+	GD_GUILD_STORAGE = 10016,
 	GD_MAX,
 };
 
@@ -755,6 +748,8 @@ enum {
 	JOB_KAGEROU = 4211,
 	JOB_OBORO,
 
+	JOB_REBELLION = 4215,
+
 	JOB_MAX,
 };
 
@@ -764,9 +759,9 @@ enum {
 	SEX_SERVER
 };
 
-// sanity checks...
+// Sanity checks
 #if MAX_ZENY > INT_MAX
-#error MAX_ZENY is too big
+	#error MAX_ZENY is too big
 #endif
 
 #endif /* _MMO_H_ */
