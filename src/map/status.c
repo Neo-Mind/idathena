@@ -5377,7 +5377,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 
 	if( sd && sd->ud.skilltimer != INVALID_TIMER && (pc_checkskill(sd,SA_FREECAST) > 0 || sd->ud.skill_id == LG_EXEEDBREAK) ) {
 		if( sd->ud.skill_id == LG_EXEEDBREAK )
-			speed_rate = 160 + 10 - sd->ud.skill_lv;
+			speed_rate = 160 - 10 * sd->ud.skill_lv; //-50% at skill_lv 1 -> -10% at skill_lv 5
 		else
 			speed_rate = 175 - 5 * pc_checkskill(sd,SA_FREECAST);
 	} else {
@@ -5456,7 +5456,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 				if( sc->data[SC__LAZINESS] )
 					val = max( val, 25 );
 				if( sc->data[SC_BANDING_DEFENCE] )
-					val = max( val, sc->data[SC_BANDING_DEFENCE]->val1 ); //+90% Walking speed.
+					val = max( val, sc->data[SC_BANDING_DEFENCE]->val1 ); //-90% Walking speed.
 				if( sc->data[SC_ROCK_CRUSHER_ATK] )
 					val = max( val, sc->data[SC_ROCK_CRUSHER_ATK]->val2 );
 				if( sc->data[SC_POWER_OF_GAIA] )
