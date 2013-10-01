@@ -12560,15 +12560,12 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			if (battle_check_target(&src->bl,bl,BCT_ENEMY) > 0) {
 				switch (sg->unit_id) {
 					case UNT_ZENKAI_WATER:
-						switch (rnd()%3 + 1) {
+						switch (rnd()%2 + 1) {
 							case 1:
 								sc_start(ss,bl,SC_FREEZE,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 								break;
 							case 2:
 								sc_start(ss,bl,SC_FREEZING,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
-								break;
-							case 3:
-								sc_start(ss,bl,SC_CRYSTALIZE,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 								break;
 						}
 						break;
