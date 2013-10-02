@@ -4876,17 +4876,18 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 #ifndef RENEWAL
 		if(skill_id == TF_POISON) //Additional 15 * skill level damage
 			ATK_ADD(wd.damage, wd.damage2, 15 * skill_lv);
-		if(skill = pc_checkskill(sd,BS_WEAPONRESEARCH) > 0)
+		if((skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
 			ATK_ADD(wd.damage, wd.damage2, skill * 2);
 #endif
 		if(skill_id != CR_SHIELDBOOMERANG) //Only Shield Boomerang doesn't takes the Star Crumbs bonus.
 			ATK_ADD2(wd.damage, wd.damage2, wd.div_ * sd->right_weapon.star, wd.div_ * sd->left_weapon.star);
 		if(skill_id != MC_CARTREVOLUTION && (skill = pc_checkskill(sd,BS_HILTBINDING)) > 0)
 			ATK_ADD(wd.damage, wd.damage2, 4);
-		if(skill_id == MO_FINGEROFFENSIVE) //The finger offensive spheres on moment of attack do count. [Skotlex]
+		if(skill_id == MO_FINGEROFFENSIVE) { //The finger offensive spheres on moment of attack do count. [Skotlex]
 			ATK_ADD(wd.damage, wd.damage2, wd.div_ * sd->spiritball_old * 3);
-		else
+		} else {
 			ATK_ADD(wd.damage, wd.damage2, wd.div_ * sd->spiritball * 3);
+		}
 
 		if(skill_id == CR_SHIELDBOOMERANG || skill_id == PA_SHIELDCHAIN) {
 			//Refine bonus applies after cards and elements.

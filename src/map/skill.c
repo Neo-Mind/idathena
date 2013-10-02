@@ -12322,7 +12322,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				&src->bl,tick);
 			sg->unit_id = UNT_USED_TRAPS;
 			//clif_changetraplook(&src->bl,UNT_FIREPILLAR_ACTIVE);
-			sg->limit = DIFF_TICK(tick,sg->tick)+1500;
+			sg->limit = DIFF_TICK(tick,sg->tick) + 1500;
 			break;
 
 		case UNT_POISONSMOKE:
@@ -12700,7 +12700,7 @@ int skill_unit_onleft (uint16 skill_id, struct block_list *bl, unsigned int tick
 		sc = NULL;
 
 	type = status_skill2sc(skill_id);
-	sce = (sc && type != -1)?sc->data[type]:NULL;
+	sce = (sc && type != -1) ? sc->data[type] : NULL;
 
 	switch (skill_id) {
 		case WZ_QUAGMIRE:
@@ -12757,11 +12757,11 @@ int skill_unit_onleft (uint16 skill_id, struct block_list *bl, unsigned int tick
 				for (i = BA_WHISTLE; i <= DC_SERVICEFORYOU; i++) {
 					if (skill_get_inf2(i)&(INF2_SONG_DANCE)) {
 						type = status_skill2sc(i);
-						sce = (sc && type != -1)?sc->data[type]:NULL;
+						sce = (sc && type != -1) ? sc->data[type] : NULL;
 						if (sce && !sce->val4) { //We don't want dissonance updating this anymore
 							delete_timer(sce->timer, status_change_timer);
 							sce->val4 = 1; //Store the fact that this is a "reduced" duration effect.
-							sce->timer = add_timer(tick+skill_get_time2(i,1), status_change_timer, bl->id, type);
+							sce->timer = add_timer(tick + skill_get_time2(i, 1), status_change_timer, bl->id, type);
 						}
 					}
 				}
@@ -12780,7 +12780,7 @@ int skill_unit_onleft (uint16 skill_id, struct block_list *bl, unsigned int tick
 				//NOTE: It'd be nice if we could get the skill_lv for a more accurate extra time, but alas...
 				//not possible on our current implementation.
 				sce->val4 = 1; //Store the fact that this is a "reduced" duration effect.
-				sce->timer = add_timer(tick+skill_get_time2(skill_id,1), status_change_timer, bl->id, type);
+				sce->timer = add_timer(tick + skill_get_time2(skill_id, 1), status_change_timer, bl->id, type);
 			}
 			break;
 		case PF_FOGWALL:
@@ -12791,7 +12791,7 @@ int skill_unit_onleft (uint16 skill_id, struct block_list *bl, unsigned int tick
 						status_change_end(bl, SC_BLIND, INVALID_TIMER);
 					else {
 						delete_timer(sce->timer, status_change_timer);
-						sce->timer = add_timer(30000+tick, status_change_timer, bl->id, SC_BLIND);
+						sce->timer = add_timer(30000 + tick, status_change_timer, bl->id, SC_BLIND);
 					}
 				}
 			}
