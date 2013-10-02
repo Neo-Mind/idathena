@@ -7145,11 +7145,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		//parent-baby skills
 		case WE_BABY:
-			if(sd) {
+			if (sd) {
 				struct map_session_data *f_sd = pc_get_father(sd);
 				struct map_session_data *m_sd = pc_get_mother(sd);
-				//if neither was found
-				if(!f_sd && !m_sd) {
+				//If neither was found
+				if (!f_sd && !m_sd) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					map_freeblock_unlock();
 					return 0;
@@ -7182,21 +7182,21 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 				//Mercenaries can remove any trap
 				//Players can only remove their own traps or traps on Vs maps.
-				if( su && (sg = su->group) && (src->type == BL_MER || sg->src_id == src->id || map_flag_vs(bl->m)) && (skill_get_inf2(sg->skill_id)&INF2_TRAP) )
-				{
+				if (su && (sg = su->group) && (src->type == BL_MER || sg->src_id == src->id || map_flag_vs(bl->m)) &&
+					(skill_get_inf2(sg->skill_id)&INF2_TRAP)) {
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-					if( sd && !(sg->unit_id == UNT_USED_TRAPS || (sg->unit_id == UNT_ANKLESNARE && sg->val2 != 0 )) ) {
+					if (sd && !(sg->unit_id == UNT_USED_TRAPS || (sg->unit_id == UNT_ANKLESNARE && sg->val2 != 0))) {
 						//Prevent picking up expired traps
-						if( battle_config.skill_removetrap_type ) {
+						if (battle_config.skill_removetrap_type) {
 							//Get back all items used to deploy the trap
-							for( i = 0; i < 10; i++ ) {
-								if( skill_db[su->group->skill_id].itemid[i] > 0 ) {
+							for (i = 0; i < 10; i++) {
+								if (skill_db[su->group->skill_id].itemid[i] > 0) {
 									int flag;
 									struct item item_tmp;
 									memset(&item_tmp,0,sizeof(item_tmp));
 									item_tmp.nameid = skill_db[su->group->skill_id].itemid[i];
 									item_tmp.identify = 1;
-									if( item_tmp.nameid && (flag=pc_additem(sd,&item_tmp,skill_db[su->group->skill_id].amount[i],LOG_TYPE_OTHER)) )
+									if (item_tmp.nameid && (flag = pc_additem(sd,&item_tmp,skill_db[su->group->skill_id].amount[i],LOG_TYPE_OTHER)))
 									{
 										clif_additem(sd,0,0,flag);
 										map_addflooritem(&item_tmp,skill_db[su->group->skill_id].amount[i],sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,4);
@@ -7208,14 +7208,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							memset(&item_tmp,0,sizeof(item_tmp));
 							item_tmp.nameid = su->group->item_id?su->group->item_id:ITEMID_TRAP;
 							item_tmp.identify = 1;
-							if( item_tmp.nameid && (flag=pc_additem(sd,&item_tmp,1,LOG_TYPE_OTHER)) ) {
+							if (item_tmp.nameid && (flag = pc_additem(sd,&item_tmp,1,LOG_TYPE_OTHER))) {
 								clif_additem(sd,0,0,flag);
 								map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,4);
 							}
 						}
 					}
 					skill_delunit(su);
-				} else if(sd)
+				} else if (sd)
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 
 			}
@@ -7224,10 +7224,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			{
 				struct skill_unit *su = NULL;
-				if((bl->type == BL_SKILL) && (su = (struct skill_unit *)bl) && (su->group) ) {
-					switch(su->group->unit_id) {
+				if ((bl->type == BL_SKILL) && (su = (struct skill_unit *)bl) && (su->group)) {
+					switch (su->group->unit_id) {
 						case UNT_ANKLESNARE: //Ankle snare
-							if(su->group->val2 != 0)
+							if (su->group->val2 != 0)
 								//If it is already trapping something don't spring it,
 								//remove trap should be used instead
 								break;
@@ -7252,19 +7252,19 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 		case BD_ENCORE:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-			if(sd)
+			if (sd)
 				unit_skilluse_id(src,src->id,sd->skill_id_dance,sd->skill_lv_dance);
 			break;
 
 		case AS_SPLASHER:
-			if(tstatus->mode&MD_BOSS
-		/**
-		 * Renewal dropped the 3/4 hp requirement
-		 **/
+			if (tstatus->mode&MD_BOSS
+			/**
+			* Renewal dropped the 3/4 hp requirement
+			**/
 #ifndef RENEWAL
 				|| tstatus-> hp > tstatus->max_hp * 3 / 4
 #endif
-					) {
+			) {
 				if (sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				map_freeblock_unlock();
 				return 1;
@@ -7277,7 +7277,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case PF_MINDBREAKER: {
-				if(tstatus->mode&MD_BOSS || battle_check_undead(tstatus->race,tstatus->def_ele)) {
+				if (tstatus->mode&MD_BOSS || battle_check_undead(tstatus->race,tstatus->def_ele)) {
 					map_freeblock_unlock();
 					return 1;
 				}
@@ -7289,7 +7289,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					return 1;
 				}
 
-				//Has a 55% + skill_lv*5% success chance.
+				//Has a 55% + skill_lv * 5% success chance.
 				if (!clif_skill_nodamage(src,bl,skill_id,skill_lv,
 					sc_start(src,bl,type,55 + 5 * skill_lv,skill_lv,skill_get_time(skill_id,skill_lv))))
 				{
@@ -7300,27 +7300,27 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 				unit_skillcastcancel(bl,0);
 
-				if(tsc && tsc->count) {
+				if (tsc && tsc->count) {
 					status_change_end(bl,SC_FREEZE,INVALID_TIMER);
-					if(tsc->data[SC_STONE] && tsc->opt1 == OPT1_STONE)
+					if (tsc->data[SC_STONE] && tsc->opt1 == OPT1_STONE)
 						status_change_end(bl,SC_STONE,INVALID_TIMER);
 					status_change_end(bl,SC_SLEEP,INVALID_TIMER);
 				}
 
-				if(dstmd)
+				if (dstmd)
 					mob_target(dstmd,src,skill_get_range2(src,skill_id,skill_lv));
 			}
 			break;
 
 		case PF_SOULCHANGE: {
-				unsigned int sp1 = 0,sp2 = 0;
+				unsigned int sp1 = 0, sp2 = 0;
 				if (dstmd) {
 					if (dstmd->state.soul_change_flag) {
 						if(sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 						break;
 					}
 					dstmd->state.soul_change_flag = 1;
-					sp2 = sstatus->max_sp * 3 /100;
+					sp2 = sstatus->max_sp * 3 / 100;
 					status_heal(src,0,sp2,2);
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 					break;
@@ -7330,7 +7330,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 #ifdef  RENEWAL
 				sp1 = sp1 / 2;
 				sp2 = sp2 / 2;
-				if( tsc && tsc->data[SC_EXTREMITYFIST2] )
+				if (tsc && tsc->data[SC_EXTREMITYFIST2])
 					sp1 = tstatus->sp;
 #endif
 				status_set_sp(src,sp2,3);
@@ -7342,7 +7342,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		//Slim Pitcher
 		case CR_SLIMPITCHER:
 			//Updated to block Slim Pitcher from working on barricades and guardian stones.
-			if( dstmd && (dstmd->class_ == MOBID_EMPERIUM || (dstmd->class_ >= MOBID_BARRICADE1 && dstmd->class_ <= MOBID_GUARIDAN_STONE2)) )
+			if (dstmd && (dstmd->class_ == MOBID_EMPERIUM || (dstmd->class_ >= MOBID_BARRICADE1 && dstmd->class_ <= MOBID_GUARIDAN_STONE2)))
 				break;
 			if (potion_hp || potion_sp) {
 				int hp = potion_hp, sp = potion_sp;
@@ -7354,7 +7354,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					if (sp)
 						sp = sp * (100 + pc_checkskill(dstsd,MG_SRECOVERY) * 10 + pc_skillheal2_bonus(dstsd,skill_id)) / 100;
 				}
-				if( tsc && tsc->count ) {
+				if (tsc && tsc->count) {
 					if (tsc->data[SC_CRITICALWOUND]) {
 						hp -= hp * tsc->data[SC_CRITICALWOUND]->val2 / 100;
 						sp -= sp * tsc->data[SC_CRITICALWOUND]->val2 / 100;
@@ -7363,14 +7363,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						hp -= hp * 20 / 100;
 						sp -= sp * 20 / 100;
 					}
-					if( tsc->data[SC_WATER_INSIGNIA] && tsc->data[SC_WATER_INSIGNIA]->val1 == 2) {
+					if (tsc->data[SC_WATER_INSIGNIA] && tsc->data[SC_WATER_INSIGNIA]->val1 == 2) {
 						hp += hp / 10;
 						sp += sp / 10;
 					}
 				}
-				if(hp > 0)
+				if (hp > 0)
 					clif_skill_nodamage(NULL,bl,AL_HEAL,hp,1);
-				if(sp > 0)
+				if (sp > 0)
 					clif_skill_nodamage(NULL,bl,MG_SRECOVERY,sp,1);
 				status_heal(bl,hp,sp,0);
 			}
@@ -7380,13 +7380,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				unsigned int equip[] = {EQP_WEAPON,EQP_SHIELD,EQP_ARMOR,EQP_HEAD_TOP};
 				int i, s = 0, skilltime = skill_get_time(skill_id,skill_lv);
 
-				for(i = 0; i < 4; i++) {
-					if(bl->type != BL_PC || (dstsd && pc_checkequip(dstsd,equip[i]) < 0))
+				for (i = 0; i < 4; i++) {
+					if (bl->type != BL_PC || (dstsd && pc_checkequip(dstsd,equip[i]) < 0))
 						continue;
 					sc_start(src,bl,(sc_type)(SC_CP_WEAPON + i),100,skill_lv,skilltime);
 					s++;
 				}
-				if(sd && !s) {
+				if (sd && !s) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					map_freeblock_unlock(); //Don't consume item requirements
 					return 0;
@@ -8928,7 +8928,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case WM_LULLABY_DEEPSLEEP:
 			if( flag&1 ) {
 				//[(Skill Level x 4) + (Voice Lessons Skill Level x 2) + (Caster Base Level / 15) + (Caster Job Level / 5)] %
-				rate = ( 4 * skill_lv ) + ( sd ? pc_checkskill(sd ,WM_LESSON) * 2 + sd->status.job_level / 5 : 0 ) + status_get_lv(src) / 15;
+				rate = ( 4 * skill_lv ) + ( sd ? pc_checkskill(sd,WM_LESSON) * 2 + sd->status.job_level / 5 : 0 ) + status_get_lv(src) / 15;
 				tick = status_get_lv(bl) / 20 + status_get_int(bl) / 20;
 				if( rate > 60 ) rate = 60;
 				if( bl != src )
@@ -11650,6 +11650,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 				sg->limit = DIFF_TICK(tick,sg->tick) + sec;
 			}
 			break;
+
 		case UNT_SAFETYWALL:
 			if( !sce )
 				sc_start4(ss,bl,type,100,sg->skill_lv,sg->skill_id,sg->group_id,0,sg->limit);
