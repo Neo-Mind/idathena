@@ -1294,31 +1294,24 @@ int64 battle_calc_bg_damage(struct block_list *src, struct block_list *bl, int64
 			return 0; //Crystal cannot receive skill damage on battlegrounds
 	}
 
-	switch( skill_id ) {
-		//Skills with no damage reduction.
-		case PA_PRESSURE:
-		case HW_GRAVITATION:
-		case NJ_ZENYNAGE:
-			break;
-		default:
-			if( flag&BF_SKILL ) { //Skills get a different reduction than non-skills. [Skotlex]
-				if( flag&BF_WEAPON )
-					damage = damage * battle_config.bg_weapon_damage_rate / 100;
-				if( flag&BF_MAGIC )
-					damage = damage * battle_config.bg_magic_damage_rate / 100;
-				if(	flag&BF_MISC )
-					damage = damage * battle_config.bg_misc_damage_rate / 100;
-			} else { //Normal attacks get reductions based on range.
-				if( flag&BF_SHORT )
-					damage = damage * battle_config.bg_short_damage_rate / 100;
-				if( flag&BF_LONG )
-					damage = damage * battle_config.bg_long_damage_rate / 100;
-			}
+	if( skill_get_inf2(skill_id)&INF2_NO_BG_DMG )
+		return damage; //Skill that ignore bg map reduction
 
-			if( !damage )
-				damage = 1;
+	if( flag&BF_SKILL ) { //Skills get a different reduction than non-skills. [Skotlex]
+		if( flag&BF_WEAPON )
+			damage = damage * battle_config.bg_weapon_damage_rate / 100;
+		if( flag&BF_MAGIC )
+			damage = damage * battle_config.bg_magic_damage_rate / 100;
+		if(	flag&BF_MISC )
+			damage = damage * battle_config.bg_misc_damage_rate / 100;
+	} else { //Normal attacks get reductions based on range.
+		if( flag&BF_SHORT )
+			damage = damage * battle_config.bg_short_damage_rate / 100;
+		if( flag&BF_LONG )
+			damage = damage * battle_config.bg_long_damage_rate / 100;
 	}
 
+	damage = max(damage, 1); //Min 1 dammage
 	return damage;
 }
 
@@ -1334,58 +1327,40 @@ int64 battle_calc_gvg_damage(struct block_list *src,struct block_list *bl,int64 
 		return 0;
 
 	if (md && md->guardian_data) {
-		if (class_ == MOBID_EMPERIUM && flag&BF_SKILL) {
-			//Skill immunity.
-			switch (skill_id) {
-#ifndef RENEWAL
-				case MO_TRIPLEATTACK:
-#endif
-				case HW_GRAVITATION:
-				case KO_MAKIBISHI:
-					break;
-				default:
-					return 0;
-			}
-		}
+		if (class_ == MOBID_EMPERIUM && flag&BF_SKILL && !(skill_get_inf3(skill_id)&INF3_HIT_EMP)) //Skill immunity.
+			return 0;
 		if (src->type != BL_MOB) {
 			struct guild *g = src->type == BL_PC ? ((TBL_PC *)src)->guild : guild_search(status_get_guild_id(src));
-			if (class_ == MOBID_EMPERIUM && (!g || guild_checkskill(g,GD_APPROVAL) <= 0 ))
+			if (class_ == MOBID_EMPERIUM && (!g || guild_checkskill(g,GD_APPROVAL) <= 0))
 				return 0;
-	
-			if (g && battle_config.guild_max_castles && guild_checkcastles(g)>=battle_config.guild_max_castles)
+			if (g && battle_config.guild_max_castles && guild_checkcastles(g) >= battle_config.guild_max_castles)
 				return 0; //[MouseJstr]
 		}
 	}
 
-	switch (skill_id) {
-		//Skills with no damage reduction.
-		case PA_PRESSURE:
-		case HW_GRAVITATION:
-		case NJ_ZENYNAGE:
-			break;
-		default:
-			/* Uncomment if you want god-mode Emperiums at 100 defense. [Kisuka]
-			if (md && md->guardian_data) {
-				damage -= damage * (md->guardian_data->castle->defense/100) * battle_config.castle_defense_rate/100;
-			}
-			*/
-			if (flag&BF_SKILL) { //Skills get a different reduction than non-skills. [Skotlex]
-				if (flag&BF_WEAPON)
-					damage = damage * battle_config.gvg_weapon_damage_rate / 100;
-				if (flag&BF_MAGIC)
-					damage = damage * battle_config.gvg_magic_damage_rate / 100;
-				if (flag&BF_MISC)
-					damage = damage * battle_config.gvg_misc_damage_rate / 100;
-			} else { //Normal attacks get reductions based on range.
-				if (flag&BF_SHORT)
-					damage = damage * battle_config.gvg_short_damage_rate / 100;
-				if (flag&BF_LONG)
-					damage = damage * battle_config.gvg_long_damage_rate / 100;
-			}
+	if (skill_get_inf2(skill_id)&INF2_NO_GVG_DMG) //Skills with no gvg damage reduction.
+		return damage;
 
-			if (!damage)
-				damage = 1;
+	/* Uncomment if you want god-mode Emperiums at 100 defense. [Kisuka]
+	if (md && md->guardian_data)
+		damage -= damage * (md->guardian_data->castle->defense / 100) * battle_config.castle_defense_rate / 100;
+	*/
+
+	if (flag&BF_SKILL) { //Skills get a different reduction than non-skills. [Skotlex]
+		if (flag&BF_WEAPON)
+			damage = damage * battle_config.gvg_weapon_damage_rate / 100;
+		if (flag&BF_MAGIC)
+			damage = damage * battle_config.gvg_magic_damage_rate / 100;
+		if (flag&BF_MISC)
+			damage = damage * battle_config.gvg_misc_damage_rate / 100;
+	} else { //Normal attacks get reductions based on range.
+		if (flag&BF_SHORT)
+			damage = damage * battle_config.gvg_short_damage_rate / 100;
+		if (flag&BF_LONG)
+			damage = damage * battle_config.gvg_long_damage_rate / 100;
 	}
+
+	damage  = max(damage,1);
 	return damage;
 }
 
@@ -2321,13 +2296,15 @@ static bool battle_skill_stacks_masteries_vvs(uint16 skill_id)
 static int battle_calc_equip_attack(struct block_list *src, int skill_id)
 {
 	if(src != NULL) {
+		int eatk = 0;
 		struct status_data *status = status_get_status_data(src);
 		struct map_session_data *sd = BL_CAST(BL_PC, src);
+
+		//Add arrow atk if using an applicable skill
 		if(sd)
-			//Add arrow atk if using an applicable skill
-			return is_skill_using_arrow(src, skill_id) ? sd->bonus.arrow_atk + status->eatk : status->eatk;
-		else
-			return status->eatk;
+			eatk += is_skill_using_arrow(src, skill_id) ? sd->bonus.arrow_atk : 0;
+
+		return eatk + status->eatk;
 	}
 	return 0; //Shouldn't happen but just in case
 }
@@ -2850,20 +2827,20 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				if(sd)
 					wd = battle_calc_damage_parts(wd, src, target, skill_id, skill_lv);
 				else {
-					i = (is_attack_critical(wd, src, target, skill_id, skill_lv, false)?1:0)|
-						(!skill_id && sc && sc->data[SC_CHANGE]?4:0);
+					i = (is_attack_critical(wd, src, target, skill_id, skill_lv, false) ? 1 : 0)|
+						(!skill_id && sc && sc->data[SC_CHANGE] ? 4 : 0);
 
 					wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, i);
 					if(is_attack_left_handed(src, skill_id))
 						wd.damage2 = battle_calc_base_damage(sstatus, &sstatus->lhw, sc, tstatus->size, sd, i);
 				}
 #else
-				i = (is_attack_critical(wd, src, target, skill_id, skill_lv, false)?1:0)|
-					(is_skill_using_arrow(src, skill_id)?2:0)|
-					(skill_id == HW_MAGICCRASHER?4:0)|
-					(!skill_id && sc && sc->data[SC_CHANGE]?4:0)|
-					(skill_id == MO_EXTREMITYFIST?8:0)|
-					(sc && sc->data[SC_WEAPONPERFECTION]?8:0);
+				i = (is_attack_critical(wd, src, target, skill_id, skill_lv, false) ? 1 : 0)|
+					(is_skill_using_arrow(src, skill_id) ? 2 : 0)|
+					(skill_id == HW_MAGICCRASHER ? 4 : 0)|
+					(!skill_id && sc && sc->data[SC_CHANGE] ? 4 : 0)|
+					(skill_id == MO_EXTREMITYFIST ? 8 : 0)|
+					(sc && sc->data[SC_WEAPONPERFECTION] ? 8 : 0);
 				if(is_skill_using_arrow(src, skill_id) && sd)
 					switch(sd->status.weapon) {
 						case W_BOW:
@@ -4342,9 +4319,8 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd, struct block_lis
 		//Counts refine bonus multiple times
 		if(skill_id == MO_FINGEROFFENSIVE) {
 			ATK_ADD2(wd.damage, wd.damage2, wd.div_ * sstatus->rhw.atk2, wd.div_ * sstatus->lhw.atk2);
-		} else {
+		} else
 			ATK_ADD2(wd.damage, wd.damage2, sstatus->rhw.atk2, sstatus->lhw.atk2);
-		}
 	}
 #endif
 	//Set to min of 1
@@ -4807,10 +4783,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		if(skill_id == HW_MAGICCRASHER) { //Add weapon attack for MATK onto Magic Crasher
 			struct status_data *sstatus = status_get_status_data(src);
 			if(sstatus->matk_max > sstatus->matk_min) {
-				ATK_ADD(wd.weaponAtk, wd.weaponAtk2, sstatus->matk_min+rnd()%(sstatus->matk_max-sstatus->matk_min));
-			} else {
+				ATK_ADD(wd.weaponAtk, wd.weaponAtk2, sstatus->matk_min + rnd()%(sstatus->matk_max-sstatus->matk_min));
+			} else
 				ATK_ADD(wd.weaponAtk, wd.weaponAtk2, sstatus->matk_min);
-			}
 		}
 #endif
 		//Add any miscellaneous player ATK bonuses
@@ -4885,9 +4860,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 			ATK_ADD(wd.damage, wd.damage2, 4);
 		if(skill_id == MO_FINGEROFFENSIVE) { //The finger offensive spheres on moment of attack do count. [Skotlex]
 			ATK_ADD(wd.damage, wd.damage2, wd.div_ * sd->spiritball_old * 3);
-		} else {
+		} else
 			ATK_ADD(wd.damage, wd.damage2, wd.div_ * sd->spiritball * 3);
-		}
 
 		if(skill_id == CR_SHIELDBOOMERANG || skill_id == PA_SHIELDCHAIN) {
 			//Refine bonus applies after cards and elements.

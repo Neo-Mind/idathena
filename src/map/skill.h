@@ -65,8 +65,28 @@ enum e_skill_inf2 {
 	INF2_PARTY_ONLY     = 0x0400,
 	INF2_GUILD_ONLY     = 0x0800,
 	INF2_NO_ENEMY       = 0x1000,
-	INF2_NOLP           = 0x2000, // Spells that can ignore Land Protector
-	INF2_CHORUS_SKILL	= 0x4000, // Chorus skill
+	INF2_CHORUS_SKILL   = 0x2000, //Chorus skill
+	INF2_NO_BG_DMG      = 0x4000, //Spell that ignore bg reduction
+	INF2_NO_GVG_DMG     = 0x8000, //Spell that ignore gvg reduction
+};
+
+///Skill info type 3
+enum e_skill_inf3 {
+	INF3_NOLP             = 0x0001, //Spells that can ignore Land Protector
+	INF3_NOENDCAMOUFLAGE  = 0x0002, //Spell that doesn't end camouflage
+	INF3_USABLE_HIDING    = 0x0004, //Spell that can be use in hiding
+	INF3_USABLE_DANCE     = 0x0008, //Spell that can be use while in dancing state
+	INF3_HIT_EMP          = 0x0010, //Spell that could hit emperium
+	INF3_STATIS_BL        = 0x0020, //Spell blocked by statis
+	INF3_KAGEHUMI_BL      = 0x0040, //Spell blocked by kagehumi
+	INF3_EFF_VULTURE      = 0x0080, //Spell range affected by AC_VULTURE
+	INF3_EFF_SNAKEEYE     = 0x0100, //Spell range affected by GS_SNAKEEYE
+	INF3_EFF_SHADOWJUMP   = 0x0200, //Spell range affected by NJ_SHADOWJUMP
+	INF3_EFF_RADIUS       = 0x0400, //Spell range affected by WL_RADIUS
+	INF3_EFF_RESEARCHTRAP = 0x0800, //Spell range affected by RA_RESEARCHTRAP
+	INF3_DIS_PLAGIA       = 0x1000, //Spell that can't be copied
+	INF3_USABLE_WARG      = 0x2000, //Spell that can be use while riding warg
+	INF3_DIS_MADO         = 0x4000, //Spell that can't be used while in mado
 };
 
 ///Walk intervals at which chase-skills are attempted to be triggered.
@@ -98,7 +118,7 @@ struct s_skill_db {
 #endif
 	int upkeep_time[MAX_SKILL_LEVEL],upkeep_time2[MAX_SKILL_LEVEL],cooldown[MAX_SKILL_LEVEL];
 	int castcancel,cast_def_rate;
-	int inf2,maxcount[MAX_SKILL_LEVEL],skill_type;
+	int inf2,maxcount[MAX_SKILL_LEVEL],skill_type,inf3;
 	int blewcount[MAX_SKILL_LEVEL];
 	int hp[MAX_SKILL_LEVEL],sp[MAX_SKILL_LEVEL],mhp[MAX_SKILL_LEVEL],hp_rate[MAX_SKILL_LEVEL],sp_rate[MAX_SKILL_LEVEL],zeny[MAX_SKILL_LEVEL];
 	int weapon,ammo,ammo_qty[MAX_SKILL_LEVEL],state,spiritball[MAX_SKILL_LEVEL];
@@ -263,6 +283,7 @@ int	skill_get_ammo_qty( uint16 skill_id, uint16 skill_lv );
 int	skill_get_nocast( uint16 skill_id );
 int	skill_get_unit_id(uint16 skill_id,int flag);
 int	skill_get_inf2( uint16 skill_id );
+int	skill_get_inf3( uint16 skill_id );
 int	skill_get_castcancel( uint16 skill_id );
 int	skill_get_maxcount( uint16 skill_id ,uint16 skill_lv );
 int	skill_get_blewcount( uint16 skill_id ,uint16 skill_lv );

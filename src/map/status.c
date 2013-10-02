@@ -1764,7 +1764,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 			}
 		}
 
-		if (sc->data[SC_DANCING] && flag!=2) {
+		if (sc->data[SC_DANCING] && flag != 2) {
 			if (src->type == BL_PC && skill_id >= WA_SWING_DANCE && skill_id <= WM_UNLIMITED_HUMMING_VOICE)
 			{ //Lvl 5 Lesson or higher allow you use 3rd job skills while dancing.v
 				if (pc_checkskill((TBL_PC*)src, WM_LESSON) < 5)
@@ -1774,17 +1774,8 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 					skill_get_inf2(skill_id)&(INF2_SONG_DANCE|INF2_ENSEMBLE_SKILL)
 				)
 					return 0;
-			} else {
-				switch (skill_id) {
-					case BD_ADAPTATION:
-					case CG_LONGINGFREEDOM:
-					case BA_MUSICALSTRIKE:
-					case DC_THROWARROW:
-						break;
-					default:
-						return 0;
-				}
-			}
+			} else if (!(skill_get_inf3(skill_id)&INF3_USABLE_DANCE)) //Skills that can be used in dancing state
+				return 0;
 			if ((sc->data[SC_DANCING]->val1&0xFFFF) == CG_HERMODE && skill_id == BD_ADAPTATION)
 				return 0; //Can't amp out of Wand of Hermode :/ [Skotlex]
 		}
@@ -1835,22 +1826,9 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 	}
 
 	if (sc && sc->option) {
-		if (sc->option&OPTION_HIDE) {
-			switch (skill_id) { //Usable skills while hiding.
-				case TF_HIDING:
-				case AS_GRIMTOOTH:
-				case RG_BACKSTAP:
-				case RG_RAID:
-				case NJ_SHADOWJUMP:
-				case NJ_KIRIKAGE:
-				case KO_YAMIKUMO:
-					break;
-				default:
-					//Non players can use all skills while hidden.
-					if (!skill_id || src->type == BL_PC)
-						return 0;
-			}
-		}
+		//Non players can use all skills while hidden.
+		if ((sc->option&OPTION_HIDE) && src->type == BL_PC && (!skill_id || !(skill_get_inf3(skill_id)&INF3_USABLE_HIDING)))
+			return 0;
 		if (sc->option&OPTION_CHASEWALK && skill_id != ST_CHASEWALK)
 			return 0;
 		if (sc->data[SC_ALL_RIDING])
