@@ -8823,7 +8823,6 @@ int pc_checkitem(struct map_session_data *sd)
 	}
 
 	for( i = 0; i < MAX_INVENTORY; i++) {
-
 		if( !(&sd->status.inventory[i]) || sd->status.inventory[i].nameid == 0 )
 			continue;
 

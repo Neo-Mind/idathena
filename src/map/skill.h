@@ -100,10 +100,40 @@ enum e_skill_display {
 	SD_PREAMBLE  = 0x8000, // skill_area_sub will transmit a 'magic' damage packet (-30000 dmg) for the first target selected
 };
 
-#define MAX_SKILL_ITEM_REQUIRE	10
+#define MAX_SKILL_ITEM_REQUIRE 10
+#define MAX_SKILL_STATUS_REQUIRE 3
 struct skill_condition {
-	int weapon,ammo,ammo_qty,hp,sp,zeny,spiritball,mhp,state;
-	int itemid[MAX_SKILL_ITEM_REQUIRE],amount[MAX_SKILL_ITEM_REQUIRE];
+	int hp,
+		mhp,
+		sp,
+		ammo,
+		ammo_qty,
+		weapon,
+		zeny,
+		state,
+		spiritball,
+		itemid[MAX_SKILL_ITEM_REQUIRE],
+		amount[MAX_SKILL_ITEM_REQUIRE];
+	uint8 status_count;
+	enum sc_type status[MAX_SKILL_STATUS_REQUIRE];
+};
+
+struct s_skill_require {
+	int hp[MAX_SKILL_LEVEL],
+		mhp[MAX_SKILL_LEVEL],
+		sp[MAX_SKILL_LEVEL],
+		hp_rate[MAX_SKILL_LEVEL],
+		sp_rate[MAX_SKILL_LEVEL],
+		zeny[MAX_SKILL_LEVEL],
+		weapon,
+		ammo,
+		ammo_qty[MAX_SKILL_LEVEL],
+		state,
+		spiritball[MAX_SKILL_LEVEL],
+		itemid[MAX_SKILL_ITEM_REQUIRE],
+		amount[MAX_SKILL_ITEM_REQUIRE];
+	uint8 status_count;
+	enum sc_type status[MAX_SKILL_STATUS_REQUIRE];
 };
 
 /// Database skills
@@ -120,9 +150,7 @@ struct s_skill_db {
 	int castcancel,cast_def_rate;
 	int inf2,maxcount[MAX_SKILL_LEVEL],skill_type,inf3;
 	int blewcount[MAX_SKILL_LEVEL];
-	int hp[MAX_SKILL_LEVEL],sp[MAX_SKILL_LEVEL],mhp[MAX_SKILL_LEVEL],hp_rate[MAX_SKILL_LEVEL],sp_rate[MAX_SKILL_LEVEL],zeny[MAX_SKILL_LEVEL];
-	int weapon,ammo,ammo_qty[MAX_SKILL_LEVEL],state,spiritball[MAX_SKILL_LEVEL];
-	int itemid[MAX_SKILL_ITEM_REQUIRE],amount[MAX_SKILL_ITEM_REQUIRE];
+	struct s_skill_require require;
 	int castnodex[MAX_SKILL_LEVEL], delaynodex[MAX_SKILL_LEVEL];
 	int32 nocast;
 	int unit_id[2];
@@ -139,7 +167,7 @@ extern struct s_skill_db skill_db[MAX_SKILL_DB];
 
 #define MAX_SKILL_UNIT_LAYOUT	50
 #define MAX_SQUARE_LAYOUT		5	// 11*11 Placement of a maximum unit
-#define MAX_SKILL_UNIT_COUNT ((MAX_SQUARE_LAYOUT*2+1)*(MAX_SQUARE_LAYOUT*2+1))
+#define MAX_SKILL_UNIT_COUNT ((MAX_SQUARE_LAYOUT * 2 + 1) * (MAX_SQUARE_LAYOUT * 2 + 1))
 struct s_skill_unit_layout {
 	int count;
 	int dx[MAX_SKILL_UNIT_COUNT];
@@ -166,10 +194,9 @@ struct skill_unit_group {
 	int bg_id;
 	int map;
 	int target_flag; //Holds BCT_* flag for battle_check_target
-	int bl_flag;	//Holds BL_* flag for map_foreachin* functions
+	int bl_flag; //Holds BL_* flag for map_foreachin* functions
 	unsigned int tick;
 	int limit,interval;
-
 	uint16 skill_id,skill_lv;
 	int val1,val2,val3;
 	char *valstr;
@@ -187,9 +214,7 @@ struct skill_unit_group {
 
 struct skill_unit {
 	struct block_list bl;
-
 	struct skill_unit_group *group;
-
 	int limit;
 	int val1,val2;
 	short alive,range;
@@ -252,46 +277,56 @@ int do_final_skill(void);
 enum { CAST_GROUND, CAST_DAMAGE, CAST_NODAMAGE };
 ///Returns the cast type of the skill: ground cast, castend damage, castend no damage
 int skill_get_casttype(uint16 skill_id); //[Skotlex]
+const char*	skill_get_name(uint16 skill_id); 	// [Skotlex]
+const char*	skill_get_desc(uint16 skill_id); 	// [Skotlex]
+int	skill_tree_get_max(uint16 skill_id, int b_class);	// Celest
 
 ///Accessor to the skills database
-int	skill_get_index( uint16 skill_id );
-int	skill_get_type( uint16 skill_id );
-int	skill_get_hit( uint16 skill_id );
-int	skill_get_inf( uint16 skill_id );
-int	skill_get_ele( uint16 skill_id , uint16 skill_lv );
-int	skill_get_nk( uint16 skill_id );
-int	skill_get_max( uint16 skill_id );
-int	skill_get_range( uint16 skill_id , uint16 skill_lv );
-int	skill_get_range2(struct block_list *bl, uint16 skill_id, uint16 skill_lv);
-int	skill_get_splash( uint16 skill_id , uint16 skill_lv );
-int	skill_get_hp( uint16 skill_id ,uint16 skill_lv );
-int	skill_get_mhp( uint16 skill_id ,uint16 skill_lv );
-int	skill_get_sp( uint16 skill_id ,uint16 skill_lv );
-int	skill_get_state(uint16 skill_id);
-int	skill_get_zeny( uint16 skill_id ,uint16 skill_lv );
-int	skill_get_num( uint16 skill_id ,uint16 skill_lv );
-int	skill_get_cast( uint16 skill_id ,uint16 skill_lv );
-int	skill_get_delay( uint16 skill_id ,uint16 skill_lv );
-int	skill_get_walkdelay( uint16 skill_id ,uint16 skill_lv );
-int	skill_get_time( uint16 skill_id ,uint16 skill_lv );
-int	skill_get_time2( uint16 skill_id ,uint16 skill_lv );
-int	skill_get_castnodex( uint16 skill_id ,uint16 skill_lv );
-int	skill_get_castdef( uint16 skill_id );
-int	skill_get_weapontype( uint16 skill_id );
-int	skill_get_ammotype( uint16 skill_id );
-int	skill_get_ammo_qty( uint16 skill_id, uint16 skill_lv );
-int	skill_get_nocast( uint16 skill_id );
-int	skill_get_unit_id(uint16 skill_id,int flag);
-int	skill_get_inf2( uint16 skill_id );
-int	skill_get_inf3( uint16 skill_id );
-int	skill_get_castcancel( uint16 skill_id );
-int	skill_get_maxcount( uint16 skill_id ,uint16 skill_lv );
-int	skill_get_blewcount( uint16 skill_id ,uint16 skill_lv );
-int	skill_get_unit_flag( uint16 skill_id );
-int	skill_get_unit_target( uint16 skill_id );
-int	skill_tree_get_max( uint16 skill_id, int b_class );	// Celest
-const char*	skill_get_name( uint16 skill_id ); 	// [Skotlex]
-const char*	skill_get_desc( uint16 skill_id ); 	// [Skotlex]
+int skill_get_index(uint16 skill_id);
+int skill_get_type(uint16 skill_id);
+int skill_get_hit(uint16 skill_id);
+int skill_get_inf(uint16 skill_id);
+int skill_get_ele(uint16 skill_id, uint16 skill_lv);
+int skill_get_nk(uint16 skill_id);
+int skill_get_max(uint16 skill_id);
+int skill_get_range(uint16 skill_id, uint16 skill_lv);
+int skill_get_range2(struct block_list *bl, uint16 skill_id, uint16 skill_lv);
+int skill_get_splash(uint16 skill_id, uint16 skill_lv);
+int skill_get_num(uint16 skill_id, uint16 skill_lv);
+int skill_get_cast(uint16 skill_id, uint16 skill_lv);
+int skill_get_delay(uint16 skill_id, uint16 skill_lv);
+int skill_get_walkdelay(uint16 skill_id, uint16 skill_lv);
+int skill_get_time(uint16 skill_id, uint16 skill_lv);
+int skill_get_time2(uint16 skill_id, uint16 skill_lv);
+int skill_get_castnodex(uint16 skill_id, uint16 skill_lv);
+int skill_get_castdef(uint16 skill_id);
+int skill_get_nocast(uint16 skill_id);
+int skill_get_unit_id(uint16 skill_id, int flag);
+int skill_get_inf2(uint16 skill_id);
+int skill_get_castcancel(uint16 skill_id);
+int skill_get_maxcount(uint16 skill_id, uint16 skill_lv);
+int skill_get_blewcount(uint16 skill_id, uint16 skill_lv);
+int skill_get_unit_flag(uint16 skill_id);
+int skill_get_unit_target(uint16 skill_id);
+int skill_get_inf3(uint16 skill_id);
+
+///Accessor for skill requirements
+int skill_get_hp(uint16 skill_id, uint16 skill_lv);
+int skill_get_mhp(uint16 skill_id, uint16 skill_lv);
+int skill_get_sp(uint16 skill_id, uint16 skill_lv);
+int skill_get_status_count(uint16 skill_id);
+int skill_get_hp_rate(uint16 skill_id, uint16 skill_lv);
+int skill_get_sp_rate(uint16 skill_id, uint16 skill_lv);
+int skill_get_zeny(uint16 skill_id, uint16 skill_lv);
+int skill_get_weapontype(uint16 skill_id);
+int skill_get_ammotype(uint16 skill_id);
+int skill_get_ammo_qty(uint16 skill_id, uint16 skill_lv);
+int skill_get_state(uint16 skill_id);
+int skill_get_status(uint16 skill_id, int idx);
+int skill_get_status_count(uint16 skill_id);
+int skill_get_spiritball(uint16 skill_id, uint16 skill_lv);
+int skill_get_itemid(uint16 skill_id, int idx);
+int skill_get_itemqty(uint16 skill_id, int idx);
 
 int skill_name2id(const char* name);
 
@@ -401,18 +436,13 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 void skill_reload(void);
 
 ///List of State Requirements
-enum {
+enum e_require_state {
 	ST_NONE,
-	ST_HIDING,
-	ST_CLOAKING,
 	ST_HIDDEN,
 	ST_RIDING,
 	ST_FALCON,
 	ST_CART,
 	ST_SHIELD,
-	ST_SIGHT,
-	ST_EXPLOSIONSPIRITS,
-	ST_CARTBOOST,
 	ST_RECOV_WEIGHT_RATE,
 	ST_MOVE_ENABLE,
 	ST_WATER,
@@ -421,8 +451,6 @@ enum {
 	ST_RIDINGWUG,
 	ST_MADO,
 	ST_ELEMENTALSPIRIT,
-	ST_POISONINGWEAPON,
-	ST_ROLLINGCUTTER,
 	ST_PECO,
 };
 

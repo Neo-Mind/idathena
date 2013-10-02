@@ -752,7 +752,7 @@ void initChangeTables(void) {
 	set_sc( EL_ROCK_CRUSHER_ATK, SC_ROCK_CRUSHER_ATK     , SI_ROCK_CRUSHER_ATK     , SCB_SPEED );
 
 	add_sc( KO_YAMIKUMO        , SC_HIDING               );
-	set_sc_with_vfx( KO_JYUMONJIKIRI                     , SC_JYUMONJIKIRI         , SI_KO_JYUMONJIKIRI      , SCB_NONE );
+	set_sc_with_vfx( KO_JYUMONJIKIRI, SC_JYUMONJIKIRI    , SI_KO_JYUMONJIKIRI      , SCB_NONE );
 	add_sc( KO_MAKIBISHI       , SC_STUN                 );
 	set_sc( KO_MEIKYOUSISUI    , SC_MEIKYOUSISUI         , SI_MEIKYOUSISUI         , SCB_NONE );
 	set_sc( KO_KYOUGAKU        , SC_KYOUGAKU             , SI_KYOUGAKU             , SCB_STR|SCB_AGI|SCB_VIT|SCB_INT|SCB_DEX|SCB_LUK );
@@ -1173,7 +1173,7 @@ static void initDummyData(void)
 //For copying a status_data structure from b to a, without overwriting current Hp and Sp
 static inline void status_cpy(struct status_data* a, const struct status_data* b)
 {
-	memcpy((void*)&a->max_hp, (const void*)&b->max_hp, sizeof(struct status_data)-(sizeof(a->hp)+sizeof(a->sp)));
+	memcpy((void*)&a->max_hp, (const void*)&b->max_hp, sizeof(struct status_data) - (sizeof(a->hp) + sizeof(a->sp)));
 }
 
 //Sets HP to given value. Flag is the flag passed to status_heal in case
@@ -1214,7 +1214,7 @@ int status_set_sp(struct block_list *bl, unsigned int sp, int flag)
 
 int status_charge(struct block_list* bl, int64 hp, int64 sp)
 {
-	if(!(bl->type&BL_CONSUME))
+	if (!(bl->type&BL_CONSUME))
 		return (int)(hp + sp); //Assume all was charged so there are no 'not enough' fails.
 	return status_damage(NULL, bl, hp, sp, 0, 3);
 }
