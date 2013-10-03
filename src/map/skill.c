@@ -3438,7 +3438,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case SR_FLASHCOMBO_ATK_STEP4:
 					if (src->type == BL_PC) {
 						struct map_session_data *sd = NULL;
-						const enum e_skill combos[] = {SR_DRAGONCOMBO,SR_FALLENEMPIRE,SR_TIGERCANNON,SR_SKYNETBLOW};
+						const enum e_skill combos[] = { SR_DRAGONCOMBO,SR_FALLENEMPIRE,SR_TIGERCANNON,SR_SKYNETBLOW };
 						if ((sd = ((TBL_PC*)src))) {
 							uint16 cid = combos[skl->skill_id - SR_FLASHCOMBO_ATK_STEP1];
 							skill_castend_damage_id(src,target,cid,pc_checkskill(sd,cid),tick,0);

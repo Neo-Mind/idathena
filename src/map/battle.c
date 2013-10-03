@@ -2240,16 +2240,16 @@ static bool attack_ignores_def(struct Damage wd, struct block_list *src, struct 
 		&& skill_id != ASC_BREAKER
 #endif
 	) { //Ignore Defense?
-		if(sd && ((sd->right_weapon.ignore_def_ele & (1<<tstatus->def_ele)) ||
-			sd->right_weapon.ignore_def_race & (1<<tstatus->race) ||
-			sd->right_weapon.ignore_def_race & (is_boss(target)?1<<RC_BOSS:1<<RC_NONBOSS))
+		if(sd && ((sd->right_weapon.ignore_def_ele&(1<<tstatus->def_ele)) ||
+			sd->right_weapon.ignore_def_race&(1<<tstatus->race) ||
+			sd->right_weapon.ignore_def_race&(is_boss(target) ? 1<<RC_BOSS : 1<<RC_NONBOSS))
 		)
 			if(weapon_position == EQI_HAND_R)
 				return true;
 
-		if(sd && ((sd->left_weapon.ignore_def_ele & (1<<tstatus->def_ele)) ||
-			sd->left_weapon.ignore_def_race & (1<<tstatus->race) ||
-			sd->left_weapon.ignore_def_race & (is_boss(target)?1<<RC_BOSS:1<<RC_NONBOSS))
+		if(sd && ((sd->left_weapon.ignore_def_ele&(1<<tstatus->def_ele)) ||
+			sd->left_weapon.ignore_def_race&(1<<tstatus->race) ||
+			sd->left_weapon.ignore_def_race&(is_boss(target) ? 1<<RC_BOSS : 1<<RC_NONBOSS))
 		) {
 			if(battle_config.left_cardfix_to_right && is_attack_right_handed(src, skill_id)) {
 				//Move effect to right hand. [Skotlex]
@@ -4577,15 +4577,15 @@ struct Damage battle_calc_weapon_final_atk_modifiers(struct Damage wd, struct bl
 					hp = sstatus->hp;
 			} else
 				hp = 2 * hp / 100; //2% hp loss per hit
-			status_zap(src, hp, 0);
+			status_zap(src,hp,0);
 		}
-		status_change_end(src, SC_CAMOUFLAGE, INVALID_TIMER);
+		status_change_end(src,SC_CAMOUFLAGE,INVALID_TIMER);
 	}
 
 	switch(skill_id) {
 #ifndef RENEWAL
 		case ASC_BREAKER: { //Breaker int-based damage
-				struct Damage md = battle_calc_misc_attack(src, target, skill_id, skill_lv, wd.miscflag);
+				struct Damage md = battle_calc_misc_attack(src,target,skill_id,skill_lv,wd.miscflag);
 				wd.damage += md.damage;
 			}
 			break;
@@ -4594,7 +4594,7 @@ struct Damage battle_calc_weapon_final_atk_modifiers(struct Damage wd, struct bl
 #endif
 		case LG_RAYOFGENESIS:
 			{
-				struct Damage ad = battle_calc_magic_attack(src, target, skill_id, skill_lv, wd.miscflag);
+				struct Damage ad = battle_calc_magic_attack(src,target,skill_id,skill_lv,wd.miscflag);
 				wd.damage += ad.damage;
 			}
 			break;

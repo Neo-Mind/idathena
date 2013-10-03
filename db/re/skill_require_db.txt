@@ -10,7 +10,7 @@
 //  hidden = Requires on hidden status by using hiding, cloaking, or maybe chasewalk
 //  riding = Requires to ride either a peco or a dragon
 //  falcon = Requires a Falcon
-//  cart = Requires a Pushcart
+//  cart = Requires a Pushcart (for renewal can replace this state by SC_PUSH_CART in 'RequiredStatuses' field)
 //  shield = Requires a shield equipped
 //  recover_weight_rate = Requires to be less than 50% weight
 //  move_enable = Requires to be able to move

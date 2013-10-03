@@ -104,34 +104,34 @@ enum e_skill_display {
 #define MAX_SKILL_STATUS_REQUIRE 3
 struct skill_condition {
 	int hp,
-		mhp,
-		sp,
-		ammo,
-		ammo_qty,
-		weapon,
-		zeny,
-		state,
-		spiritball,
-		itemid[MAX_SKILL_ITEM_REQUIRE],
-		amount[MAX_SKILL_ITEM_REQUIRE];
+	    mhp,
+	    sp,
+	    ammo,
+	    ammo_qty,
+	    weapon,
+	    zeny,
+	    state,
+	    spiritball,
+	    itemid[MAX_SKILL_ITEM_REQUIRE],
+	    amount[MAX_SKILL_ITEM_REQUIRE];
 	uint8 status_count;
 	enum sc_type status[MAX_SKILL_STATUS_REQUIRE];
 };
 
 struct s_skill_require {
 	int hp[MAX_SKILL_LEVEL],
-		mhp[MAX_SKILL_LEVEL],
-		sp[MAX_SKILL_LEVEL],
-		hp_rate[MAX_SKILL_LEVEL],
-		sp_rate[MAX_SKILL_LEVEL],
-		zeny[MAX_SKILL_LEVEL],
-		weapon,
-		ammo,
-		ammo_qty[MAX_SKILL_LEVEL],
-		state,
-		spiritball[MAX_SKILL_LEVEL],
-		itemid[MAX_SKILL_ITEM_REQUIRE],
-		amount[MAX_SKILL_ITEM_REQUIRE];
+	    mhp[MAX_SKILL_LEVEL],
+	    sp[MAX_SKILL_LEVEL],
+	    hp_rate[MAX_SKILL_LEVEL],
+	    sp_rate[MAX_SKILL_LEVEL],
+	    zeny[MAX_SKILL_LEVEL],
+	    weapon,
+	    ammo,
+	    ammo_qty[MAX_SKILL_LEVEL],
+	    state,
+	    spiritball[MAX_SKILL_LEVEL],
+	    itemid[MAX_SKILL_ITEM_REQUIRE],
+	    amount[MAX_SKILL_ITEM_REQUIRE];
 	uint8 status_count;
 	enum sc_type status[MAX_SKILL_STATUS_REQUIRE];
 };
@@ -165,8 +165,8 @@ struct s_skill_db {
 };
 extern struct s_skill_db skill_db[MAX_SKILL_DB];
 
-#define MAX_SKILL_UNIT_LAYOUT	50
-#define MAX_SQUARE_LAYOUT		5	// 11*11 Placement of a maximum unit
+#define MAX_SKILL_UNIT_LAYOUT 50
+#define MAX_SQUARE_LAYOUT 5 //11*11 Placement of a maximum unit
 #define MAX_SKILL_UNIT_COUNT ((MAX_SQUARE_LAYOUT * 2 + 1) * (MAX_SQUARE_LAYOUT * 2 + 1))
 struct s_skill_unit_layout {
 	int count;
@@ -182,7 +182,7 @@ struct skill_timerskill {
 	int map;
 	short x,y;
 	uint16 skill_id,skill_lv;
-	int type; // a BF_ type (NOTE: some places use this as general-purpose storage...)
+	int type; //a BF_ type (NOTE: some places use this as general-purpose storage...)
 	int flag;
 };
 
@@ -203,7 +203,7 @@ struct skill_unit_group {
 	int unit_id;
 	int group_id;
 	int unit_count,alive_count;
-	int item_id; //store item used.
+	int item_id; //Store item used.
 	struct skill_unit *unit;
 	struct {
 		unsigned ammo_consume : 1;
@@ -225,7 +225,6 @@ struct skill_unit_group_tickset {
 	unsigned int tick;
 	int id;
 };
-
 
 enum {
 	UF_DEFNOTENEMY   = 0x0001, // If 'defunit_not_enemy' is set, the target is changed to 'friend'
@@ -277,9 +276,9 @@ int do_final_skill(void);
 enum { CAST_GROUND, CAST_DAMAGE, CAST_NODAMAGE };
 ///Returns the cast type of the skill: ground cast, castend damage, castend no damage
 int skill_get_casttype(uint16 skill_id); //[Skotlex]
-const char*	skill_get_name(uint16 skill_id); 	// [Skotlex]
-const char*	skill_get_desc(uint16 skill_id); 	// [Skotlex]
-int	skill_tree_get_max(uint16 skill_id, int b_class);	// Celest
+const char* skill_get_name(uint16 skill_id); // [Skotlex]
+const char* skill_get_desc(uint16 skill_id); // [Skotlex]
+int skill_tree_get_max(uint16 skill_id, int b_class); // Celest
 
 ///Accessor to the skills database
 int skill_get_index(uint16 skill_id);
