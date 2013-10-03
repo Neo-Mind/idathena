@@ -3107,15 +3107,15 @@ static int skill_check_unit_range2_sub (struct block_list *bl, va_list ap)
 
 static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv, int type)
 {
-	int range1, range2 = 0;
+	int range, range_npc;
 
 	switch (skill_id) {
 		case WZ_ICEWALL:
-			range1 = 2;
+			range = 2;
 			break;
 		case SC_MANHOLE:
 		case GN_HELLS_PLANT:
-			range1 = 0;
+			range = 0;
 			break;
 		default: {
 				int layout_type = skill_get_unit_layout_type(skill_id,skill_lv);
@@ -3123,15 +3123,20 @@ static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 
 					ShowError("skill_check_unit_range2: unsupported layout type %d for skill %d\n",layout_type,skill_id);
 					return 0;
 				}
-				range1 = skill_get_unit_range(skill_id,skill_lv) + layout_type;
-				if (skill_id == SC_CHAOSPANIC || skill_id == SC_MAELSTROM)
-					range2 = range1 * 3;
+				range = skill_get_unit_range(skill_id,skill_lv) + layout_type;
 			}
 			break;
 	}
 
-	return map_foreachinarea(skill_check_unit_range2_sub,bl->m,x - range1,y - range1,x + range1,y + range1,type,skill_id)
-		+ (type&BL_NPC) ? map_foreachinarea(npc_isnear_sub,bl->m,x - range2,y - range2,x + range2,y + range2,type,skill_id) : 0;
+	switch (skill_id) {
+		case SC_CHAOSPANIC:
+		case SC_MAELSTROM:
+			range_npc = range * 3;
+			break;
+	}
+
+	return map_foreachinarea(skill_check_unit_range2_sub,bl->m,x - range,y - range,x + range,y + range,type,skill_id)
+		+ (type&BL_NPC) ? map_foreachinarea(npc_isnear_sub,bl->m,x - range_npc,y - range_npc,x + range_npc,y + range_npc,type,skill_id) : 0;
 }
 
 int skill_guildaura_sub (struct map_session_data* sd, int id, int strvit, int agidex)
