@@ -3903,10 +3903,12 @@ static int battle_calc_skill_constant_addition(struct Damage wd, struct block_li
 		case NJ_SYURIKEN:
 			atk = 4 * skill_lv;
 			break;
+#ifdef RENEWAL
 		case HT_FREEZINGTRAP:
 			if(sd)
 				atk = (40 * pc_checkskill(sd,RA_RESEARCHTRAP));
 			break;
+#endif
 		case RA_WUGDASH:
 			if(sd && sd->weight)
 				atk = (sd->weight / 8) + (30 * pc_checkskill(sd,RA_TOOTHOFWUG));
@@ -6538,9 +6540,11 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		int i = rnd()%100;
 		if (sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_SAGE)
 			i = 0; //Max chance, no skill_lv reduction. [Skotlex]
-		if (i >= 50) skill_lv -= 2;
-		else if (i >= 15) skill_lv--;
-		if (skill_lv < 1) skill_lv = 1;
+		//Reduction only for skill_lv > 1
+		if (skill_lv > 1) {
+			if (i >= 50) skill_lv -= 2;
+			else if (i >= 15) skill_lv--;
+		}
 		sp = skill_get_sp(skill_id,skill_lv) * 2 / 3;
 
 		if (status_charge(src,0,sp)) {
@@ -7360,7 +7364,6 @@ static const struct _battle_data {
 	{ "display_hallucination",              &battle_config.display_hallucination,           1,      0,      1,              },
 	{ "use_statpoint_table",                &battle_config.use_statpoint_table,             1,      0,      1,              },
 	{ "ignore_items_gender",                &battle_config.ignore_items_gender,             1,      0,      1,              },
-	{ "copyskill_restrict",                 &battle_config.copyskill_restrict,              2,      0,      2,              },
 	{ "berserk_cancels_buffs",              &battle_config.berserk_cancels_buffs,           0,      0,      1,              },
 	{ "debuff_on_logout",                   &battle_config.debuff_on_logout,                1|2,    0,      1|2,            },
 	{ "monster_ai",                         &battle_config.mob_ai,                          0x000,  0x000,  0x77F,          },

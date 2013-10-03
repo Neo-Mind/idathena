@@ -90,7 +90,7 @@ struct s_skill_improvise_db {
 	int per; //1-10000
 };
 struct s_skill_improvise_db skill_improvise_db[MAX_SKILL_IMPROVISE_DB];
-bool skill_reproduce_db[MAX_SKILL_DB];
+
 struct s_skill_changematerial_db {
 	int itemid;
 	short rate;
@@ -465,35 +465,54 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 	return hp;
 }
 
-//Making plagiarize check its own function [Aru]
-int can_copy (struct map_session_data *sd, uint16 skill_id, struct block_list* bl)
-{
+/// Making plagiarize check its own function
+/// Credits:
+///   Aru for previous check
+///   Jobbie for class restriction idea
+///   Cydh expands the copyable skill
+/// Returns:
+///   0 - Cannot be copied
+///   1 - Can be copied by Plagiarism
+///   2 - Can be copied by Reproduce
+static short skill_isCopyable (struct map_session_data *sd, uint16 skill_id, struct block_list* bl) {
+	int idx = skill_get_index(skill_id);
+
+	// Only copy skill that player doesn't have or the skill is old clone
+	if (sd->status.skill[skill_id].id != 0 && sd->status.skill[skill_id].flag != SKILL_FLAG_PLAGIARIZED)
+		return 0;
+
 	//Never copy NPC/Wedding Skills
 	if( skill_get_inf2(skill_id)&(INF2_NPC_SKILL|INF2_WEDDING_SKILL) )
 		return 0;
 
-	//High-class skills
-	if( (skill_id >= LK_AURABLADE && skill_id <= ASC_CDP) || (skill_id >= ST_PRESERVE && skill_id <= CR_CULTIVATION) ) {
-		if( battle_config.copyskill_restrict == 2 )
-			return 0;
-		else if( battle_config.copyskill_restrict )
-			return (sd->status.class_ == JOB_STALKER);
-	}
-
-	//Added so plagarize can't copy agi/bless if you're undead since it damages you
+	// Added so plagarize can't copy agi/bless if you're undead since it damages you
 	if( skill_get_inf3(skill_id)&INF3_DIS_PLAGIA )
 		return 0;
 
-	//Couldn't preserve 3rd Class skills except only when using Reproduce skill. [Jobbie]
-	if( !(sd->sc.data[SC__REPRODUCE]) && ((skill_id >= RK_ENCHANTBLADE && skill_id <= LG_OVERBRAND_PLUSATK)
-		|| (skill_id >= KO_YAMIKUMO && skill_id != KO_MUCHANAGE && skill_id <= OB_AKAITSUKI)) )
-		return 0;
+	// Check if the skill is copyable by class
+	if( !pc_has_permission(sd, PC_PERM_ALL_SKILL) ) {
+		uint16 job_allowed;
+		job_allowed = skill_db[idx].copyable.joballowed;
+		while( 1 ) {
+			if( job_allowed&0x01 && sd->status.class_ == JOB_ROGUE ) break;
+			if( job_allowed&0x02 && sd->status.class_ == JOB_STALKER ) break;
+			if( job_allowed&0x04 && sd->status.class_ == JOB_SHADOW_CHASER ) break;
+			if( job_allowed&0x08 && sd->status.class_ == JOB_SHADOW_CHASER_T ) break;
+			if( job_allowed&0x10 && sd->status.class_ == JOB_BABY_ROGUE ) break;
+			if( job_allowed&0x20 && sd->status.class_ == JOB_BABY_CHASER ) break;
+				return 0;
+		}
+	}
 
-	//Reproduce will only copy skills according on the list. [Jobbie]
-	else if( sd->sc.data[SC__REPRODUCE] && !skill_reproduce_db[skill_id] )
-		return 0;
+	//Plagiarism only able to copy skill while SC_PRESERVE is not active and skill is copyable by Plagiarism
+	if( skill_db[idx].copyable.plagiarism && pc_checkskill(sd, RG_PLAGIARISM) && !sd->sc.data[SC_PRESERVE] )
+		return 1;
 
-	return 1;
+	//Reproduce can copy skill if SC__REPRODUCE is active and the skill is copyable by Reproduce
+	if( skill_db[idx].copyable.reproduce && pc_checkskill(sd, SC_REPRODUCE) && (&sd->sc && sd->sc.data[SC__REPRODUCE]) )
+		return 2;
+
+	return 0;
 }
 
 //[MouseJstr] - skill ok to cast? and when?
@@ -2116,9 +2135,9 @@ int skill_break_equip (struct block_list *src, struct block_list *bl, unsigned s
 int skill_strip_equip(struct block_list *src, struct block_list *bl, unsigned short where, int rate, int lv, int time)
 {
 	struct status_change *sc;
-	const int pos[5]             = {EQP_WEAPON, EQP_SHIELD, EQP_ARMOR, EQP_HELM, EQP_ACC};
-	const enum sc_type sc_atk[5] = {SC_STRIPWEAPON, SC_STRIPSHIELD, SC_STRIPARMOR, SC_STRIPHELM, SC__STRIPACCESSORY};
-	const enum sc_type sc_def[5] = {SC_CP_WEAPON, SC_CP_SHIELD, SC_CP_ARMOR, SC_CP_HELM, 0};
+	const int pos[5]             = { EQP_WEAPON, EQP_SHIELD, EQP_ARMOR, EQP_HELM, EQP_ACC };
+	const enum sc_type sc_atk[5] = { SC_STRIPWEAPON, SC_STRIPSHIELD, SC_STRIPARMOR, SC_STRIPHELM, SC__STRIPACCESSORY };
+	const enum sc_type sc_def[5] = { SC_CP_WEAPON, SC_CP_SHIELD, SC_CP_ARMOR, SC_CP_HELM, SC_NONE };
 	int i;
 
 	if (rnd()%100 >= rate)
@@ -2129,16 +2148,16 @@ int skill_strip_equip(struct block_list *src, struct block_list *bl, unsigned sh
 		return 0;
 
 	for (i = 0; i < ARRAYLENGTH(pos); i++) {
-		if (where&pos[i] && sc->data[sc_def[i]])
-			where&=~pos[i];
+		if (where&pos[i] && sc_def[i] > SC_NONE && sc->data[sc_def[i]])
+			where &= ~pos[i];
 	}
 	if (!where) return 0;
 
 	for (i = 0; i < ARRAYLENGTH(pos); i++) {
 		if (where&pos[i] && !sc_start(src, bl, sc_atk[i], 100, lv, time))
-			where&=~pos[i];
+			where &= ~pos[i];
 	}
-	return where?1:0;
+	return where ? 1 : 0;
 }
 
 /*=========================================================================
@@ -2393,8 +2412,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	struct status_change *tsc;
 	struct map_session_data *sd, *tsd;
 	int64 damage;
-	int type;
 	int8 rmdamage = 0; //Magic reflected
+	int type;
 	bool additional_effects = true;
 
 	if (skill_id > 0 && !skill_lv) return 0;
@@ -2705,13 +2724,15 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 	map_freeblock_lock();
 
-	if (damage > 0 && dmg.flag&BF_SKILL && tsd && pc_checkskill(tsd, RG_PLAGIARISM) > 0
-		&& (!tsc || !tsc->data[SC_PRESERVE]) && damage < tsd->battle_status.hp)
-	{ //Updated to not be able to copy skills if the blow will kill you. [Skotlex]
-		int copy_skill = skill_id;
-		/**
-		 * Copy Referal: dummy skills should point to their source upon copying
-		 **/
+	//Check for copying skill
+	if (damage > 0 && dmg.flag&BF_SKILL && tsd &&
+		damage < tsd->battle_status.hp && //Updated to not be able to copy skills if the blow will kill you. [Skotlex]
+		(pc_checkskill(tsd, RG_PLAGIARISM) || pc_checkskill(tsd, SC_REPRODUCE)))
+	{
+		uint16 copy_skill = skill_id;
+		short copy_flag;
+
+		//Copy Referal: dummy skills should point to their source upon copying
 		switch (skill_id) {
 			case AB_DUPLELIGHT_MELEE:
 			case AB_DUPLELIGHT_MAGIC:
@@ -2760,11 +2781,9 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				break;
 		}
 
-		if ((tsd->status.skill[copy_skill].id == 0 || tsd->status.skill[copy_skill].flag == SKILL_FLAG_PLAGIARIZED) &&
-			can_copy(tsd, copy_skill, bl)) //Split all the check into their own function [Aru]
-		{
+		if ((copy_flag = skill_isCopyable(tsd, copy_skill, bl))) {
 			int lv;
-			if (tsc && tsc->data[SC__REPRODUCE] && (lv = tsc->data[SC__REPRODUCE]->val1)) {
+			if (copy_flag == 2 && (lv = tsc->data[SC__REPRODUCE]->val1)) {
 				//Level dependent and limitation.
 				lv = min(lv, skill_get_max(copy_skill));
 				if (tsd->reproduceskill_id && tsd->status.skill[tsd->reproduceskill_id].flag == SKILL_FLAG_PLAGIARIZED) {
@@ -2775,14 +2794,14 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				}
 
 				tsd->reproduceskill_id = copy_skill;
-				pc_setglobalreg(tsd, "REPRODUCE_SKILL", copy_skill);
-				pc_setglobalreg(tsd, "REPRODUCE_SKILL_LV", lv);
+				pc_setglobalreg(tsd, SKILL_VAR_REPRODUCE, copy_skill);
+				pc_setglobalreg(tsd, SKILL_VAR_REPRODUCE_LV, lv);
 
 				tsd->status.skill[copy_skill].id = copy_skill;
 				tsd->status.skill[copy_skill].lv = lv;
 				tsd->status.skill[copy_skill].flag = SKILL_FLAG_PLAGIARIZED;
 				clif_addskill(tsd, copy_skill);
-			} else {
+			} else if (copy_flag == 1) {
 				lv = skill_lv;
 				if (tsd->cloneskill_id && tsd->status.skill[tsd->cloneskill_id].flag == SKILL_FLAG_PLAGIARIZED) {
 					tsd->status.skill[tsd->cloneskill_id].id = 0;
@@ -2795,8 +2814,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 					lv = type;
 
 				tsd->cloneskill_id = copy_skill;
-				pc_setglobalreg(tsd, "CLONE_SKILL", copy_skill);
-				pc_setglobalreg(tsd, "CLONE_SKILL_LV", lv);
+				pc_setglobalreg(tsd, SKILL_VAR_PLAGIARISM, copy_skill);
+				pc_setglobalreg(tsd, SKILL_VAR_PLAGIARISM_LV, lv);
 
 				tsd->status.skill[skill_id].id = copy_skill;
 				tsd->status.skill[skill_id].lv = lv;
@@ -14094,7 +14113,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 	int i, hp_rate, sp_rate, sp_skill_rate_bonus = 100;
 	uint16 idx;
 
-	memset(&req, 0, sizeof(req));
+	memset(&req,0,sizeof(req));
 
 	if( !sd )
 		return req;
@@ -14111,7 +14130,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 		sc = NULL;
 
 	//Checks if disabling skill - in which case no SP requirements are necessary
-	if( sc && skill_disable_check(sc, skill_id) )
+	if( sc && skill_disable_check(sc,skill_id) )
 		return req;
 
 	idx = skill_get_index(skill_id);
@@ -14140,14 +14159,14 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 	if( sd->dsprate != 100 )
 		req.sp = req.sp * sd->dsprate / 100;
 
-	ARR_FIND(0, ARRAYLENGTH(sd->skillusesprate), i, sd->skillusesprate[i].id == skill_id);
+	ARR_FIND(0,ARRAYLENGTH(sd->skillusesprate),i,sd->skillusesprate[i].id == skill_id);
 	if( i < ARRAYLENGTH(sd->skillusesprate) )
 		sp_skill_rate_bonus += sd->skillusesprate[i].val;
-	ARR_FIND(0, ARRAYLENGTH(sd->skillusesp), i, sd->skillusesp[i].id == skill_id);
+	ARR_FIND(0,ARRAYLENGTH(sd->skillusesp),i,sd->skillusesp[i].id == skill_id);
 	if( i < ARRAYLENGTH(sd->skillusesp) )
 		req.sp -= sd->skillusesp[i].val;
 	
-	req.sp = cap_value(req.sp * sp_skill_rate_bonus / 100, 0, SHRT_MAX);
+	req.sp = cap_value(req.sp * sp_skill_rate_bonus / 100,0,SHRT_MAX);
 	
 	if( sc ) {
 		if( sc->data[SC_RECOGNIZEDSPELL] )
@@ -14156,7 +14175,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 			req.sp += sc->data[SC__LAZINESS]->val1 * 10;
 		if( sc->data[SC_UNLIMITEDHUMMINGVOICE] )
 			req.sp += req.sp * sc->data[SC_UNLIMITEDHUMMINGVOICE]->val2 / 100;
-		if( sc->data[SC_TELEKINESIS_INTENSE] && skill_get_ele(skill_id, skill_lv) == ELE_GHOST)
+		if( sc->data[SC_TELEKINESIS_INTENSE] && skill_get_ele(skill_id,skill_lv) == ELE_GHOST)
 			req.sp -= req.sp * sc->data[SC_TELEKINESIS_INTENSE]->val2 / 100;
 	}
 
@@ -14179,14 +14198,14 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 	if( req.ammo_qty )
 		req.ammo = skill_db[idx].require.ammo;
 
-	if( !req.ammo && skill_id && skill_isammotype(sd, skill_id) ) { //Assume this skill is using the weapon, therefore it requires arrows.
+	if( !req.ammo && skill_id && skill_isammotype(sd,skill_id) ) { //Assume this skill is using the weapon, therefore it requires arrows.
 		req.ammo = 0xFFFFFFFF; //Enable use on all ammo types.
 		req.ammo_qty = 1;
 	}
 
 	req.status_count = skill_db[idx].require.status_count;
-	memset(req.status, SC_NONE, sizeof(req.status));
-	memcpy(req.status, skill_db[idx].require.status, sizeof(skill_db[idx].require.status));
+	memset(req.status,SC_NONE,sizeof(req.status));
+	memcpy(req.status,skill_db[idx].require.status,sizeof(skill_db[idx].require.status));
 
 	for( i = 0; i < MAX_SKILL_ITEM_REQUIRE; i++ ) {
 		if( (skill_id == AM_POTIONPITCHER || skill_id == CR_SLIMPITCHER || skill_id == CR_CULTIVATION) && i != skill_lv%11 - 1 )
@@ -14206,11 +14225,11 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 					continue;
 				break;
 			case AB_ADORAMUS:
-				if( itemid_isgemstone(skill_db[idx].require.itemid[i]) && skill_check_pc_partner(sd,skill_id,&skill_lv, 1, 2) )
+				if( itemid_isgemstone(skill_db[idx].require.itemid[i]) && skill_check_pc_partner(sd,skill_id,&skill_lv,1,2) )
 					continue;
 				break;
 			case WL_COMET:
-				if( itemid_isgemstone(skill_db[idx].require.itemid[i]) && skill_check_pc_partner(sd,skill_id,&skill_lv, 1, 0) )
+				if( itemid_isgemstone(skill_db[idx].require.itemid[i]) && skill_check_pc_partner(sd,skill_id,&skill_lv,1,0) )
 					continue;
 				break;
 			case GN_FIRE_EXPANSION:
@@ -14248,7 +14267,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 					req.amount[i] = 1; //Hocus Pocus always use at least 1 gem
 			}
 		}
-		if( skill_id >= HT_SKIDTRAP && skill_id <= HT_TALKIEBOX && pc_checkskill(sd, RA_RESEARCHTRAP) > 0 ) {
+		if( skill_id >= HT_SKIDTRAP && skill_id <= HT_TALKIEBOX && pc_checkskill(sd,RA_RESEARCHTRAP) > 0 ) {
 			int16 itIndex;
 			if( (itIndex = pc_search_inventory(sd,req.itemid[i])) < 0  || ( itIndex >= 0 && sd->status.inventory[itIndex].amount < req.amount[i] ) ){
 				req.itemid[i] = ITEMID_TRAP_ALLOY;
@@ -14357,6 +14376,23 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 				sc->data[SC_BLAST_OPTION] ||  sc->data[SC_CURSED_SOIL_OPTION]) )
 				req.sp += req.sp / 2; //1.5x SP cost
 			break;
+	}
+
+	//Check if player is using the copied skill [Cydh]
+	if( sd->status.skill[idx].flag == SKILL_FLAG_PLAGIARIZED ) {
+		uint16 req_opt = skill_db[idx].copyable.req_opt;
+		if( req_opt&0x001 ) req.hp = 0;
+		if( req_opt&0x002 ) req.mhp = 0;
+		if( req_opt&0x004 ) req.sp = 0;
+		if( req_opt&0x008 ) req.hp_rate = 0;
+		if( req_opt&0x010 ) req.sp_rate = 0;
+		if( req_opt&0x020 ) req.zeny = 0;
+		if( req_opt&0x040 ) req.weapon = 0;
+		if( req_opt&0x080 ) { req.ammo = 0; req.ammo_qty = 0; }
+		if( req_opt&0x100 ) req.state = ST_NONE;
+		if( req_opt&0x200 ) { memset(req.status,SC_NONE,sizeof(req.status)); }
+		if( req_opt&0x400 ) req.spiritball = 0;
+		if( req_opt&0x800 ) { memset(req.itemid,0,sizeof(req.itemid)); memset(req.amount,0,sizeof(req.amount)); }
 	}
 
 	return req;
@@ -18279,15 +18315,12 @@ static bool skill_parse_row_skilldb(char* split[], int columns, int current)
 static bool skill_parse_row_requiredb(char* split[], int columns, int current)
 { //skill_id,HPCost,MaxHPTrigger,SPCost,HPRateCost,SPRateCost,ZenyCost,RequiredWeapons,RequiredAmmoTypes,RequiredAmmoAmount,RequiredState,RequiredStatuss,SpiritSphereCost,RequiredItemID1,RequiredItemAmount1,RequiredItemID2,RequiredItemAmount2,RequiredItemID3,RequiredItemAmount3,RequiredItemID4,RequiredItemAmount4,RequiredItemID5,RequiredItemAmount5,RequiredItemID6,RequiredItemAmount6,RequiredItemID7,RequiredItemAmount7,RequiredItemID8,RequiredItemAmount8,RequiredItemID9,RequiredItemAmount9,RequiredItemID10,RequiredItemAmount10
 	char* p;
-	uint16 j;
-	uint16 skill_id = atoi(split[0]);
-	uint16 idx;
+	uint16 skill_id = atoi(split[0]), idx, i;
 
 	if( !skill_get_index(skill_id) ) //Invalid skill id
 		return false;
 
 	idx = skill_get_index(skill_id);
-
 	skill_split_atoi(split[1],skill_db[idx].require.hp);
 	skill_split_atoi(split[2],skill_db[idx].require.mhp);
 	skill_split_atoi(split[3],skill_db[idx].require.sp);
@@ -18297,7 +18330,7 @@ static bool skill_parse_row_requiredb(char* split[], int columns, int current)
 
 	//Which weapon type are required, see doc/item_db for weapon types (View column)
 	p = split[7];
-	for( j = 0; j < 32; j++ ) {
+	while( p ) {
 		int l = atoi(p);
 		if( l == 99 ) { //Any weapon
 			skill_db[idx].require.weapon = 0;
@@ -18312,7 +18345,7 @@ static bool skill_parse_row_requiredb(char* split[], int columns, int current)
 
 	//Ammo type that required, see doc/item_db for ammo types (View column)
 	p = split[8];
-	for( j = 0; j < 32; j++ ) {
+	while( p ) {
 		int l = atoi(p);
 		if( l == 99 ) { //Any ammo type
 			skill_db[idx].require.ammo = 0xFFFFFFFF;
@@ -18345,7 +18378,7 @@ static bool skill_parse_row_requiredb(char* split[], int columns, int current)
 	//Status requirements
 	skill_db[idx].require.status_count = 0;
 	p = strtok(split[11],":");
-	for( j = 0; j < MAX_SKILL_STATUS_REQUIRE && p != NULL; j++ ) {
+	for( i = 0; i < MAX_SKILL_STATUS_REQUIRE && p != NULL; i++ ) {
 		int status = SC_NONE;
 		script_get_constant(trim(p),&status);
 		if( status > SC_NONE ) {
@@ -18357,9 +18390,9 @@ static bool skill_parse_row_requiredb(char* split[], int columns, int current)
 
 	skill_split_atoi(split[12],skill_db[idx].require.spiritball);
 
-	for( j = 0; j < MAX_SKILL_ITEM_REQUIRE; j++ ) {
-		skill_db[idx].require.itemid[j] = atoi(split[13 + 2 * j]);
-		skill_db[idx].require.amount[j] = atoi(split[14 + 2 * j]);
+	for( i = 0; i < MAX_SKILL_ITEM_REQUIRE; i++ ) {
+		skill_db[idx].require.itemid[i] = atoi(split[13 + 2 * i]);
+		skill_db[idx].require.amount[i] = atoi(split[14 + 2 * i]);
 	}
 
 	return true;
@@ -18529,7 +18562,7 @@ static bool skill_parse_row_improvisedb(char* split[], int columns, int current)
 		return false;
 	}
 	if( current >= MAX_SKILL_IMPROVISE_DB ) {
-		ShowError("skill_improvise_db: Maximum amount of entries reached (%d), increase MAX_SKILL_IMPROVISE_DB\n",MAX_SKILL_IMPROVISE_DB);
+		ShowError("skill_improvise_db: Maximum amount of entries reached (%d), increase MAX_SKILL_IMPROVISE_DB\n", MAX_SKILL_IMPROVISE_DB);
 	}
 	skill_improvise_db[current].skill_id = skill_id;
 	skill_improvise_db[current].per = j; //Still need confirm it.
@@ -18544,7 +18577,7 @@ static bool skill_parse_row_magicmushroomdb(char* split[], int column, int curre
 		ShowError("magicmushroom_db: Invalid skill ID %d\n", skill_id);
 		return false;
 	}
-	if ( !skill_get_inf(skill_id) ) {
+	if( !skill_get_inf(skill_id) ) {
 		ShowError("magicmushroom_db: Passive skills cannot be casted (%d/%s)\n", skill_id, skill_get_name(skill_id));
 		return false;
 	}
@@ -18555,12 +18588,27 @@ static bool skill_parse_row_magicmushroomdb(char* split[], int column, int curre
 }
 
 static bool skill_parse_row_reproducedb(char* split[], int column, int current) {
-	uint16 skill_id = atoi(split[0]);
-	uint16 idx = skill_get_index(skill_id);
-	if( !idx )
-		return false;
+	uint16 skill_id = skill_name2id(split[0]), idx;
+	uint8 option;
 
-	skill_reproduce_db[idx] = true;
+	if( !skill_get_index(skill_id) ) {
+		ShowError("skill_parse_row_reproducedb: Invalid skill %s\n", split[0]);
+		return false;
+	}
+	if( !(option = atoi(split[1])) ) {
+		ShowError("skill_parse_row_reproducedb: Invalid option %d\n", option);
+		return false;
+	}
+
+	idx = skill_get_index(skill_id);
+
+	//Skill that can be copied by plagiarism
+	skill_db[idx].copyable.plagiarism = (option&1) ? true : false;
+	//Skill that can be copied by reproduce
+	skill_db[idx].copyable.reproduce = (option&2) ? true : false;
+
+	skill_db[idx].copyable.joballowed = (atoi(split[2])) ? cap_value(atoi(split[2]), 1, 63) : 63;
+	skill_db[idx].copyable.req_opt = cap_value(atoi(split[3]), 0, 4095);
 
 	return true;
 }
@@ -18573,13 +18621,13 @@ static bool skill_parse_row_abradb(char* split[], int columns, int current)
 		ShowError("abra_db: Invalid skill ID %d\n", skill_id);
 		return false;
 	}
-	if ( !skill_get_inf(skill_id) ) {
+	if( !skill_get_inf(skill_id) ) {
 		ShowError("abra_db: Passive skills cannot be casted (%d/%s)\n", skill_id, skill_get_name(skill_id));
 		return false;
 	}
 
 	skill_abra_db[current].skill_id = skill_id;
-	safestrncpy(skill_abra_db[current].name, trim(split[1]), sizeof(skill_abra_db[current].name)); //store dummyname
+	safestrncpy(skill_abra_db[current].name, trim(split[1]), sizeof(skill_abra_db[current].name)); //Store dummyname
 	skill_split_atoi(split[2],skill_abra_db[current].per);
 
 	return true;
@@ -18664,7 +18712,6 @@ static void skill_readdb(void)
 	memset(skill_abra_db,0,sizeof(skill_abra_db));
 	memset(skill_spellbook_db,0,sizeof(skill_spellbook_db));
 	memset(skill_magicmushroom_db,0,sizeof(skill_magicmushroom_db));
-	memset(skill_reproduce_db,0,sizeof(skill_reproduce_db));
 	memset(skill_changematerial_db,0,sizeof(skill_changematerial_db));
 
 	//load skill databases
@@ -18691,7 +18738,7 @@ static void skill_readdb(void)
 	sv_readdb(db_path, "spellbook_db.txt"      , ',',   3,  3, MAX_SKILL_SPELLBOOK_DB, skill_parse_row_spellbookdb);
 	//Guillotine Cross
 	sv_readdb(db_path, "magicmushroom_db.txt"  , ',',   1,  1, MAX_SKILL_MAGICMUSHROOM_DB, skill_parse_row_magicmushroomdb);
-	sv_readdb(db_path, "skill_reproduce_db.txt", ',',   1,  1, MAX_SKILL_DB, skill_parse_row_reproducedb);
+	sv_readdb(db_path, "skill_copyable_db.txt", ',',    2,  4, MAX_SKILL_DB, skill_parse_row_reproducedb);
 	sv_readdb(db_path, "skill_improvise_db.txt"      , ',',   2,  2, MAX_SKILL_IMPROVISE_DB, skill_parse_row_improvisedb);
 	sv_readdb(db_path, "skill_changematerial_db.txt" , ',',   4,  4 + 2 * 5, MAX_SKILL_PRODUCE_DB, skill_parse_row_changematerialdb);
 #ifdef ADJUST_SKILL_DAMAGE
