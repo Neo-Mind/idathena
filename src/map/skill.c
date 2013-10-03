@@ -477,7 +477,7 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 static short skill_isCopyable (struct map_session_data *sd, uint16 skill_id, struct block_list* bl) {
 	int idx = skill_get_index(skill_id);
 
-	// Only copy skill that player doesn't have or the skill is old clone
+	//Only copy skill that player doesn't have or the skill is old clone
 	if (sd->status.skill[skill_id].id != 0 && sd->status.skill[skill_id].flag != SKILL_FLAG_PLAGIARIZED)
 		return 0;
 
@@ -485,11 +485,11 @@ static short skill_isCopyable (struct map_session_data *sd, uint16 skill_id, str
 	if( skill_get_inf2(skill_id)&(INF2_NPC_SKILL|INF2_WEDDING_SKILL) )
 		return 0;
 
-	// Added so plagarize can't copy agi/bless if you're undead since it damages you
+	//Added so plagarize can't copy agi/bless if you're undead since it damages you
 	if( skill_get_inf3(skill_id)&INF3_DIS_PLAGIA )
 		return 0;
 
-	// Check if the skill is copyable by class
+	//Check if the skill is copyable by class
 	if( !pc_has_permission(sd, PC_PERM_ALL_SKILL) ) {
 		uint16 job_allowed;
 		job_allowed = skill_db[idx].copyable.joballowed;
@@ -648,9 +648,7 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 		case WS_MELTDOWN:
 		case MG_SIGHT:
 		case TF_HIDING:
-			/**
-			 * These skills cannot be used while in mado gear (credits to Xantara)
-			 **/
+			//These skills cannot be used while in mado gear (credits to Xantara)
 			if (pc_ismadogear(sd)) {
 				clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 				return 1;
@@ -5681,7 +5679,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case NC_SHAPESHIFT:
 		case WL_RECOGNIZEDSPELL:
 		case GC_VENOMIMPRESS:
-		case SC_INVISIBILITY:
 		case SC_DEADLYINFECT:
 		case LG_EXEEDBREAK:
 		case LG_PRESTIGE:
@@ -6090,17 +6087,17 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case CASH_INCAGI:
 		case CASH_ASSUMPTIO:
 		case WM_FRIGG_SONG:
-			if( sd == NULL || sd->status.party_id == 0 || (flag&1) )
+			if (sd == NULL || sd->status.party_id == 0 || (flag&1))
 				clif_skill_nodamage(bl,bl,skill_id,skill_lv,sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
-			else if( sd )
+			else if (sd)
 				party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
 			break;
 		case MER_MAGNIFICAT:
-			if( mer != NULL ) {
+			if (mer != NULL) {
 				clif_skill_nodamage(bl,bl,skill_id,skill_lv,sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
-				if( mer->master && mer->master->status.party_id != 0 && !(flag&1) )
+				if (mer->master && mer->master->status.party_id != 0 && !(flag&1))
 					party_foreachsamemap(skill_area_sub,mer->master,skill_get_splash(skill_id,skill_lv),src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
-				else if( mer->master && !(flag&1) )
+				else if (mer->master && !(flag&1))
 					clif_skill_nodamage(src,&mer->master->bl,skill_id,skill_lv,sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			}
 			break;
@@ -6134,13 +6131,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case CR_SHRINK:
 		case SG_FUSION:
 		case GS_GATLINGFEVER:
-			if( tsce ) {
+			if (tsce) {
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,status_change_end(bl,type,INVALID_TIMER));
 				map_freeblock_unlock();
 				return 0;
 			}
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			break;
+
 		case SL_KAITE:
 		case SL_KAAHI:
 		case SL_KAIZEL:
@@ -6161,29 +6159,36 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
 				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			break;
+
 		case SM_AUTOBERSERK:
 		case MER_AUTOBERSERK:
-			if( tsce )
+			if (tsce)
 				i = status_change_end(bl,type,INVALID_TIMER);
 			else
 				i = sc_start(src,bl,type,100,skill_lv,60000);
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,i);
 			break;
+
 		case TF_HIDING:
 		case ST_CHASEWALK:
+			if (tsc && tsc->data[SC_FEINT]) {
+				status_change_end(bl,SC_FEINT,INVALID_TIMER);
+				return 0;
+			}
 		case KO_YAMIKUMO:
 			if (tsce) {
 				clif_skill_nodamage(src,bl,skill_id,-1,status_change_end(bl,type,INVALID_TIMER)); //Hide skill-scream animation.
 				map_freeblock_unlock();
 				return 0;
-			} else if( tsc && tsc->option&OPTION_MADOGEAR ) {
+			} else if (tsc && tsc->option&OPTION_MADOGEAR) {
 				//Mado Gear cannot hide
-				if( sd ) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+				if (sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				map_freeblock_unlock();
 				return 0;
 			}
 			clif_skill_nodamage(src,bl,skill_id,-1,sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			break;
+
 		case TK_RUN:
 			if (tsce) {
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,status_change_end(bl,type,INVALID_TIMER));
@@ -6194,29 +6199,39 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if (sd) //If the client receives a skill-use packet inmediately before a walkok packet, it will discard the walk packet! [Skotlex]
 				clif_walkok(sd); //So aegis has to resend the walk ok.
 			break;
+
 		case AS_CLOAKING:
 		case GC_CLOAKINGEXCEED:
 		case LG_FORCEOFVANGUARD:
 		case SC_REPRODUCE:
 		case RA_CAMOUFLAGE:
-			if( tsce ) {
+			if (tsce) {
 				i = status_change_end(bl,type,INVALID_TIMER);
-				if( i )
+				if (i)
 					clif_skill_nodamage(src,bl,skill_id,(skill_id == LG_FORCEOFVANGUARD) ? skill_lv : -1,i);
-				else if( sd )
+				else if (sd)
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				map_freeblock_unlock();
 				return 0;
 			}
 			i = sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
-			if( i )
+			if (i)
 				clif_skill_nodamage(src,bl,skill_id,(skill_id == LG_FORCEOFVANGUARD) ? skill_lv : -1,i);
-			else if( sd )
+			else if (sd)
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
 
+		case SC_INVISIBILITY:
+			if (tsc && tsc->data[SC_FEINT]) {
+				status_change_end(bl,SC_FEINT,INVALID_TIMER);
+				return 0;
+			}
+			clif_skill_nodamage(src,bl,skill_id,skill_lv,
+				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
+			break;
+
 		case BD_ADAPTATION:
-			if(tsc && tsc->data[SC_DANCING]) {
+			if (tsc && tsc->data[SC_DANCING]) {
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				status_change_end(bl,SC_DANCING,INVALID_TIMER);
 			}
@@ -6225,7 +6240,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case BA_FROSTJOKER:
 		case DC_SCREAM:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-			skill_addtimerskill(src,tick+2000,bl->id,src->x,src->y,skill_id,skill_lv,0,flag);
+			skill_addtimerskill(src,tick + 2000,bl->id,src->x,src->y,skill_id,skill_lv,0,flag);
 
 			if (md) {
 				//Custom hack to make the mob display the skill, because these skills don't show the skill use text themselves
@@ -6241,23 +6256,22 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case DC_WINKCHARM:
-			if( dstsd )
+			if (dstsd)
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,sc_start(src,bl,SC_CONFUSION,30,7,skill_get_time2(skill_id,skill_lv)));
-			else
-			if( dstmd ) {
-				if( status_get_lv(src) > status_get_lv(bl)
-				&&  (tstatus->race == RC_DEMON || tstatus->race == RC_DEMIHUMAN || tstatus->race == RC_ANGEL)
-				&&  !(tstatus->mode&MD_BOSS) )
+			else if (dstmd) {
+				if (status_get_lv(src) > status_get_lv(bl) &&
+					(tstatus->race == RC_DEMON || tstatus->race == RC_DEMIHUMAN || tstatus->race == RC_ANGEL) &&
+					!(tstatus->mode&MD_BOSS))
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,sc_start2(src,bl,type,70,skill_lv,src->id,skill_get_time(skill_id,skill_lv)));
 				else {
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,0);
-					if(sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+					if (sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				}
 			}
 			break;
 
 		case TF_STEAL:
-			if(sd) {
+			if (sd) {
 				if(pc_steal_item(sd,bl,skill_lv))
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				else
@@ -6266,8 +6280,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case RG_STEALCOIN:
-			if(sd) {
-				if(pc_steal_coin(sd,bl)) {
+			if (sd) {
+				if (pc_steal_coin(sd,bl)) {
 					dstmd->state.provoke_flag = src->id;
 					mob_target(dstmd,src,skill_get_range2(src,skill_id,skill_lv));
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -8558,7 +8572,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case SC_SHADOWFORM:
 			if( sd && dstsd && src != bl && !dstsd->shadowform_id ) {
-				if( clif_skill_nodamage(src,bl,skill_id,skill_lv,sc_start4(src,src,type,100,skill_lv,bl->id,4+skill_lv,0,skill_get_time(skill_id,skill_lv))) )
+				if( clif_skill_nodamage(src,bl,skill_id,skill_lv,sc_start4(src,src,type,100,skill_lv,bl->id,4 + skill_lv,0,skill_get_time(skill_id,skill_lv))) )
 					dstsd->shadowform_id = src->id;
 			} else if( sd )
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -10729,7 +10743,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case SC_FEINTBOMB:
 			clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 			skill_unitsetting(src,skill_id,skill_lv,x,y,0); //Set bomb on current Position
-			if( skill_blown(src,src,6,unit_getdir(src),0) )
+			if( skill_blown(src,src,skill_get_blewcount(skill_id,skill_lv),unit_getdir(src),0) )
 				clif_skill_nodamage(src,src,skill_id,skill_lv,
 					sc_start(src,src,type,100,skill_lv,skill_get_time2(skill_id,skill_lv)));
 			break;
@@ -16627,56 +16641,56 @@ int skill_can_produce_mix (struct map_session_data *sd, int nameid, int trigger,
 
 	nullpo_ret(sd);
 
-	if(nameid<=0)
+	if (nameid <= 0)
 		return 0;
 
-	for(i=0;i<MAX_SKILL_PRODUCE_DB;i++) {
-		if(skill_produce_db[i].nameid == nameid ) {
-			if((j=skill_produce_db[i].req_skill)>0 &&
+	for (i = 0; i < MAX_SKILL_PRODUCE_DB; i++) {
+		if (skill_produce_db[i].nameid == nameid) {
+			if ((j = skill_produce_db[i].req_skill) > 0 &&
 				pc_checkskill(sd,j) < skill_produce_db[i].req_skill_lv)
-					continue; //must iterate again to check other skills that produce it. [malufett]
-			if( j > 0 && sd->menuskill_id > 0 && sd->menuskill_id != j )
-				continue; //special case
+					continue; //Must iterate again to check other skills that produce it. [malufett]
+			if (j > 0 && sd->menuskill_id > 0 && sd->menuskill_id != j)
+				continue; //Special case
 			break;
 		}
 	}
-	
-	if( i >= MAX_SKILL_PRODUCE_DB )
+
+	if (i >= MAX_SKILL_PRODUCE_DB)
 		return 0;
 
-	if( pc_checkadditem(sd, nameid, qty) == CHKADDITEM_OVERAMOUNT ) { //cannot carry the produced stuff
+	if (pc_checkadditem(sd, nameid, qty) == CHKADDITEM_OVERAMOUNT) { //Cannot carry the produced stuff
 		return 0;
 	}
 
-	if(trigger>=0) {
-		if(trigger>20) { //Non-weapon, non-food item (itemlv must match)
-			if(skill_produce_db[i].itemlv!=trigger)
+	if (trigger >= 0) {
+		if (trigger > 20) { //Non-weapon, non-food item (itemlv must match)
+			if (skill_produce_db[i].itemlv != trigger)
 				return 0;
-		} else if(trigger>10) { //Food (any item level between 10 and 20 will do)
-			if(skill_produce_db[i].itemlv<=10 || skill_produce_db[i].itemlv>20)
+		} else if (trigger > 10) { //Food (any item level between 10 and 20 will do)
+			if (skill_produce_db[i].itemlv <= 10 || skill_produce_db[i].itemlv > 20)
 				return 0;
 		} else { //Weapon (itemlv must be higher or equal)
-			if(skill_produce_db[i].itemlv>trigger)
+			if (skill_produce_db[i].itemlv > trigger)
 				return 0;
 		}
 	}
 
-	for(j=0;j<MAX_PRODUCE_RESOURCE;j++) {
+	for (j = 0; j < MAX_PRODUCE_RESOURCE; j++) {
 		int id,x,y;
-		if( (id=skill_produce_db[i].mat_id[j]) <= 0 )
+		if ((id = skill_produce_db[i].mat_id[j]) <= 0)
 			continue;
-		if(skill_produce_db[i].mat_amount[j] <= 0) {
-			if(pc_search_inventory(sd,id) < 0)
+		if (skill_produce_db[i].mat_amount[j] <= 0) {
+			if (pc_search_inventory(sd,id) < 0)
 				return 0;
 		} else {
-			for(y=0,x=0;y<MAX_INVENTORY;y++)
-				if( sd->status.inventory[y].nameid == id )
-					x+=sd->status.inventory[y].amount;
-			if(x<qty*skill_produce_db[i].mat_amount[j])
+			for (y = 0, x = 0; y < MAX_INVENTORY; y++)
+				if (sd->status.inventory[y].nameid == id)
+					x += sd->status.inventory[y].amount;
+			if (x < qty * skill_produce_db[i].mat_amount[j])
 				return 0;
 		}
 	}
-	return i+1;
+	return i + 1;
 }
 
 /*==========================================
