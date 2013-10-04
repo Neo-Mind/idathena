@@ -6611,10 +6611,11 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			sd->devotion[k] = 0;
 		}
 
-	if( sd->shadowform_id ) { //If we were target of shadowform
-		status_change_end(map_id2bl(sd->shadowform_id), SC__SHADOWFORM, INVALID_TIMER);
-		sd->shadowform_id = 0; //Should be remove on status end anyway
-	}
+	/* A video from official didn't show this behavior [exneval] */
+	//if( sd->shadowform_id ) { //If we were target of shadowform
+		//status_change_end(map_id2bl(sd->shadowform_id), SC__SHADOWFORM, INVALID_TIMER);
+		//sd->shadowform_id = 0; //Should be remove on status end anyway
+	//}
 
 	if( sd->status.pet_id > 0 && sd->pd ) {
 		struct pet_data *pd = sd->pd;

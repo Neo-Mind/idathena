@@ -847,7 +847,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		}
 	}
 
-	if( dmg_lv < ATK_DEF ) //No damage, return;
+	if( dmg_lv < ATK_DEF && //No damage, do nothing
+		!(tsc->data[SC_PNEUMA] || tsc->data[SC__SHADOWFORM]) ) ////Keep retaining its status ability
 		return 0;
 
 	switch( skill_id ) {
@@ -2567,7 +2568,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			break;
 		default:
 			if (damage < dmg.div_) {
-				if (tsc && tsc->data[SC_PNEUMA])
+				if (tsc && (tsc->data[SC_PNEUMA] || tsc->data[SC__SHADOWFORM]))
 					break; //Keep retaining its knockback ability
 				else if (skill_id != CH_PALMSTRIKE)
 					dmg.blewcount = 0; //Only pushback when it hit for other
@@ -17358,7 +17359,7 @@ static void skill_toggle_magicpower(struct block_list *bl, uint16 skill_id)
 			sc->data[SC_MAGICPOWER]->val4 = 1;
 			status_calc_bl(bl, status_sc2scb_flag(SC_MAGICPOWER));
 #ifndef RENEWAL
-			if(bl->type == BL_PC){//update current display.
+			if (bl->type == BL_PC) { //Update current display.
 				clif_updatestatus(((TBL_PC *)bl),SP_MATK1);
 				clif_updatestatus(((TBL_PC *)bl),SP_MATK2);
 			}

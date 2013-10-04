@@ -1162,10 +1162,13 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			status_change_spread(bl, src); //Deadly infect attacked side
 
 		if( sc && sc->data[SC__SHADOWFORM] ) {
+			struct status_data *sstatus = status_get_status_data(src);
 			struct block_list *s_bl = map_id2bl(sc->data[SC__SHADOWFORM]->val2);
+			struct status_data *tstatus = status_get_status_data(s_bl);
 			if( !s_bl || s_bl->m != bl->m ) { //If the shadow form target is not present remove the sc.
 				status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
-			} else if( status_isdead(s_bl) || !battle_check_target(src, s_bl, BCT_ENEMY)) { //If the shadow form target is dead or not your enemy remove the sc in both.
+			} else if( status_isdead(s_bl) || !battle_check_target(src, s_bl, BCT_ENEMY)) {
+				//If the shadow form target is dead or not your enemy remove the sc in both.
 				status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
 				if( s_bl->type == BL_PC )
 					((TBL_PC*)s_bl)->shadowform_id = 0;
@@ -1175,7 +1178,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 					if( s_bl->type == BL_PC )
 						((TBL_PC*)s_bl)->shadowform_id = 0;
 				} else {
-					status_damage(bl, s_bl, damage, 0, clif_damage(s_bl, s_bl, gettick(), 500, 500, damage, -1, 0, 0), 0);
+					clif_damage(src, bl, gettick(), sstatus->amotion, sstatus->dmotion, damage, -1, 0, 0); //Just show the damage
+					status_damage(bl, s_bl, damage, 0, clif_damage(s_bl, s_bl, gettick(), tstatus->amotion, tstatus->dmotion, damage, -1, 0, 0), 0);
 					return ATK_NONE;
 				}
 			}
@@ -1211,7 +1215,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 					}
 		}
 		if( sc->data[SC_POISONINGWEAPON] && skill_id != GC_VENOMPRESSURE && flag&BF_WEAPON && damage > 0 && rnd()%100 < sc->data[SC_POISONINGWEAPON]->val3 )
-			sc_start(src,bl,sc->data[SC_POISONINGWEAPON]->val2,100,sc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON,1));
+			sc_start(src,bl,(sc_type)sc->data[SC_POISONINGWEAPON]->val2,100,sc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON,1));
 		if( sc->data[SC__DEADLYINFECT] && (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT && damage > 0 &&
 			rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 && !(status_get_mode(bl)&MD_BOSS) )
 			status_change_spread(src, bl);
@@ -1221,35 +1225,35 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 	}
 
-	if (battle_config.pk_mode && sd && bl->type == BL_PC && damage && map[bl->m].flag.pvp) {
-		if (flag&BF_SKILL) { //Skills get a different reduction than non-skills. [Skotlex]
-			if (flag&BF_WEAPON)
+	if( battle_config.pk_mode && sd && bl->type == BL_PC && damage && map[bl->m].flag.pvp ) {
+		if( flag&BF_SKILL ) { //Skills get a different reduction than non-skills. [Skotlex]
+			if( flag&BF_WEAPON )
 				damage = damage * battle_config.pk_weapon_damage_rate / 100;
-			if (flag&BF_MAGIC)
+			if( flag&BF_MAGIC )
 				damage = damage * battle_config.pk_magic_damage_rate / 100;
-			if (flag&BF_MISC)
+			if( flag&BF_MISC )
 				damage = damage * battle_config.pk_misc_damage_rate / 100;
 		} else { //Normal attacks get reductions based on range.
-			if (flag&BF_SHORT)
+			if( flag&BF_SHORT )
 				damage = damage * battle_config.pk_short_damage_rate / 100;
-			if (flag&BF_LONG)
+			if( flag&BF_LONG )
 				damage = damage * battle_config.pk_long_damage_rate / 100;
 		}
-		if (!damage) damage  = 1;
+		if( !damage ) damage  = 1;
 	}
 
-	if (battle_config.skill_min_damage && damage > 0 && damage < div_) {
-		if ((flag&BF_WEAPON && battle_config.skill_min_damage&1)
+	if( battle_config.skill_min_damage && damage > 0 && damage < div_ ) {
+		if( (flag&BF_WEAPON && battle_config.skill_min_damage&1)
 			|| (flag&BF_MAGIC && battle_config.skill_min_damage&2)
 			|| (flag&BF_MISC && battle_config.skill_min_damage&4)
 		)
 			damage = div_;
 	}
 
-	if (bl->type == BL_MOB && !status_isdead(bl) && src != bl) {
-		if (damage > 0)
+	if( bl->type == BL_MOB && !status_isdead(bl) && src != bl ) {
+		if( damage > 0 )
 			mobskill_event((TBL_MOB*)bl,src,gettick(),flag);
-		if (skill_id)
+		if( skill_id )
 			mobskill_event((TBL_MOB*)bl,src,gettick(),MSC_SKILLUSED|(skill_id<<16));
 	}
 	if( sd ) {
@@ -6268,7 +6272,7 @@ int battle_damage_area( struct block_list *bl, va_list ap) {
 			battle_delay_damage(tick, amotion, src, bl, 0, CR_REFLECTSHIELD, 0, damage, ATK_DEF, 0, true);
 		else
 			status_fix_damage(src ,bl, damage, 0);
-		clif_damage(bl, bl, tick, amotion, dmotion, damage, 1, ATK_BLOCK, 0);
+		clif_damage(bl, bl, tick, amotion, dmotion, damage, 1, 4, 0);
 		if( !(src && src->type == BL_PC && ((TBL_PC*)src)->state.autocast) )
 			skill_additional_effect(src, bl, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);
 		map_freeblock_unlock();
