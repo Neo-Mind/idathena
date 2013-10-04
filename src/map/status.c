@@ -1349,7 +1349,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 		unit_stop_walking(target, 1);
 	}
 
-	if( status->hp || (flag&8) ) { //Still lives or has been dead before this damage.
+	if (status->hp || (flag&8)) { //Still lives or has been dead before this damage.
 		if (walkdelay)
 			unit_set_walkdelay(target, gettick(), walkdelay, 0);
 		return (int)(hp + sp); 

@@ -1162,9 +1162,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			status_change_spread(bl, src); //Deadly infect attacked side
 
 		if( sc && sc->data[SC__SHADOWFORM] ) {
-			struct status_data *sstatus = status_get_status_data(src);
 			struct block_list *s_bl = map_id2bl(sc->data[SC__SHADOWFORM]->val2);
-			struct status_data *tstatus = status_get_status_data(s_bl);
 			if( !s_bl || s_bl->m != bl->m ) { //If the shadow form target is not present remove the sc.
 				status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
 			} else if( status_isdead(s_bl) || !battle_check_target(src, s_bl, BCT_ENEMY)) {
@@ -1178,13 +1176,12 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 					if( s_bl->type == BL_PC )
 						((TBL_PC*)s_bl)->shadowform_id = 0;
 				} else {
-					clif_damage(src, bl, gettick(), sstatus->amotion, sstatus->dmotion, damage, -1, 0, 0); //Just show the damage
-					status_damage(bl, s_bl, damage, 0, clif_damage(s_bl, s_bl, gettick(), tstatus->amotion, tstatus->dmotion, damage, -1, 0, 0), 0);
-					return ATK_NONE;
+					clif_damage(src, bl, gettick(), status_get_amotion(src), 0, damage, -1, 0, 0); //Just show the damage
+					status_damage(bl, s_bl, damage, 0, clif_damage(s_bl, s_bl, gettick(), status_get_amotion(s_bl), 0, damage, -1, 0, 0), 0);
+					return 0;
 				}
 			}
 		}
-
 	}
 
 	//SC effects from caster's side.
