@@ -941,7 +941,6 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 				status_change_end(bl,SC_UTSUSEMI,INVALID_TIMER);
 			if( (sce = sc->data[SC_BUNSINJYUTSU]) && --(sce->val2) <= 0 )
 				status_change_end(bl,SC_BUNSINJYUTSU,INVALID_TIMER);
-						
 			return 0;
 		}
 
@@ -1190,12 +1189,14 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 					status_change_end(bl,SC__SHADOWFORM,INVALID_TIMER);
 					if( s_bl->type == BL_PC )
 						((TBL_PC*)s_bl)->shadowform_id = 0;
+					d->dmg_lv = ATK_BLOCK;
 					return 0;
 				} else {
 					if( div_ > 1 )
 						d->type = 8;
 					clif_damage(src,bl,gettick(),d->amotion,d->dmotion,damage,div_,d->type,d->damage2); //Just show the damage
 					status_damage(bl,s_bl,damage,0,clif_damage(s_bl,s_bl,gettick(),d->amotion,d->dmotion,damage,div_,d->type,d->damage2),0);
+					d->dmg_lv = ATK_BLOCK;
 					return 0;
 				}
 			}
