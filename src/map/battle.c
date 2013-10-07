@@ -1173,13 +1173,38 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 				if( s_bl->type == BL_PC )
 					((TBL_PC*)s_bl)->shadowform_id = 0;
 			} else {
-				if( (--sc->data[SC__SHADOWFORM]->val3) < 0 ) { //If you have exceded max hits supported,remove the sc in both.
+				//If you have exceded max hits supported, remove the sc in both.
+				//@TODO: How to remove "miss" animation damage?
+				//"return 0;", will block damage and display "miss" animation.
+				if( (sc->data[SC__SHADOWFORM]->val3 -= div_ ) < 0 ) {
+					int temp = sc->data[SC__SHADOWFORM]->val3 + div_;
+					if( div_ > 1 )
+						d->type = 8;
+					if( div_ > 9 ) {
+						status_damage(src,bl,(damage / div_) * (div_ - 9),0,
+							clif_damage(src,bl,gettick(),d->amotion,d->dmotion,
+								(damage / div_) * (div_ - 9),(div_ - 9),d->type,d->damage2),0);
+						status_damage(bl,s_bl,(damage / div_) * 9,0,
+							clif_damage(s_bl,s_bl,gettick(),d->amotion,d->dmotion,
+								(damage / div_) * 9,9,d->type,d->damage2),0);
+					} else {
+						status_damage(src,bl,(damage / div_) * (div_ - temp),0,
+							clif_damage(src,bl,gettick(),d->amotion,d->dmotion,
+								(damage / div_) * (div_ - temp),(div_ - temp),d->type,d->damage2),0);
+						status_damage(bl,s_bl,(damage / div_) * (div_ - (div_ - temp)),0,
+							clif_damage(s_bl,s_bl,gettick(),d->amotion,d->dmotion,
+								(damage / div_) * (div_ - (div_ - temp)),
+									(div_ - (div_ - temp)),d->type,d->damage2),0);
+					}
 					status_change_end(bl,SC__SHADOWFORM,INVALID_TIMER);
 					if( s_bl->type == BL_PC )
 						((TBL_PC*)s_bl)->shadowform_id = 0;
+					return 0;
 				} else {
-					clif_damage(src,bl,gettick(),status_get_amotion(src),0,damage,-1,0,0); //Just show the damage
-					status_damage(bl,s_bl,damage,0,clif_damage(s_bl,s_bl,gettick(),status_get_amotion(s_bl),0,damage,-1,0,0),0);
+					if( div_ > 1 )
+						d->type = 8;
+					clif_damage(src,bl,gettick(),d->amotion,d->dmotion,damage,div_,d->type,d->damage2); //Just show the damage
+					status_damage(bl,s_bl,damage,0,clif_damage(s_bl,s_bl,gettick(),d->amotion,d->dmotion,damage,div_,d->type,d->damage2),0);
 					return 0;
 				}
 			}

@@ -8648,7 +8648,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick = -1;
 				break;
 			case SC__SHADOWFORM: {
-					struct map_session_data * s_sd = map_id2sd(val2);
+					struct map_session_data *s_sd = map_id2sd(val2);
 					if( s_sd )
 						s_sd->shadowform_id = bl->id;
 					val4 = tick / 1000;

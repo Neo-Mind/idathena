@@ -9298,9 +9298,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case GN_BLOOD_SUCKER: {
 				struct status_change *sc = status_get_sc(src);
-						
-				if( sc && sc->bs_counter < skill_get_maxcount( skill_id ,skill_lv) ) {
-					if( tsc && tsc->data[type] ){
+				if( sc && sc->bs_counter < skill_get_maxcount(skill_id,skill_lv) ) {
+					if( tsc && tsc->data[type] ) {
 						(sc->bs_counter)--;
 						status_change_end(src,type,INVALID_TIMER); //The first one cancels and the last one will take effect resetting the timer
 					}
@@ -10974,7 +10973,7 @@ int skill_castend_map (struct map_session_data *sd, uint16 skill_id, const char 
 				p[3] = &sd->status.memo_point[2];
 
 				if((maxcount = skill_get_maxcount(skill_id, sd->menuskill_val)) > 0) {
-					for(i=0;i<MAX_SKILLUNITGROUP && sd->ud.skillunit[i] && maxcount;i++) {
+					for(i = 0; i < MAX_SKILLUNITGROUP && sd->ud.skillunit[i] && maxcount; i++) {
 						if(sd->ud.skillunit[i]->skill_id == skill_id)
 							maxcount--;
 					}
@@ -18291,7 +18290,7 @@ static bool skill_parse_row_skilldb(char* split[], int columns, int current)
 	}
 
 	idx = skill_get_index(skill_id);
-	if( !idx ) //invalid skill id
+	if( !idx ) //Invalid skill id
 		return false;
 
 	skill_split_atoi(split[1],skill_db[idx].range);
