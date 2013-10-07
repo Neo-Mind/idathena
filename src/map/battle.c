@@ -1180,22 +1180,13 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 					int temp = sc->data[SC__SHADOWFORM]->val3 + div_;
 					if( div_ > 1 )
 						d->type = 8;
-					if( div_ > 9 ) {
-						status_damage(src,bl,(damage / div_) * (div_ - 9),0,
-							clif_damage(src,bl,gettick(),d->amotion,d->dmotion,
-								(damage / div_) * (div_ - 9),(div_ - 9),d->type,d->damage2),0);
-						status_damage(bl,s_bl,(damage / div_) * 9,0,
-							clif_damage(s_bl,s_bl,gettick(),d->amotion,d->dmotion,
-								(damage / div_) * 9,9,d->type,d->damage2),0);
-					} else {
-						status_damage(src,bl,(damage / div_) * (div_ - temp),0,
-							clif_damage(src,bl,gettick(),d->amotion,d->dmotion,
-								(damage / div_) * (div_ - temp),(div_ - temp),d->type,d->damage2),0);
-						status_damage(bl,s_bl,(damage / div_) * (div_ - (div_ - temp)),0,
-							clif_damage(s_bl,s_bl,gettick(),d->amotion,d->dmotion,
-								(damage / div_) * (div_ - (div_ - temp)),
-									(div_ - (div_ - temp)),d->type,d->damage2),0);
-					}
+					status_damage(src,bl,(damage / div_) * (div_ - temp),0,
+						clif_damage(src,bl,gettick(),d->amotion,d->dmotion,
+							(damage / div_) * (div_ - temp),(div_ - temp),d->type,d->damage2),0);
+					status_damage(bl,s_bl,(damage / div_) * (div_ - (div_ - temp)),0,
+						clif_damage(s_bl,s_bl,gettick(),d->amotion,d->dmotion,
+							(damage / div_) * (div_ - (div_ - temp)),
+								(div_ - (div_ - temp)),d->type,d->damage2),0);
 					status_change_end(bl,SC__SHADOWFORM,INVALID_TIMER);
 					if( s_bl->type == BL_PC )
 						((TBL_PC*)s_bl)->shadowform_id = 0;
