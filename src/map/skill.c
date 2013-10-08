@@ -6983,17 +6983,17 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				static const int spellarray[3] = { MG_COLDBOLT,MG_FIREBOLT,MG_LIGHTNINGBOLT };
 				if(skill_lv >= 10) {
 					spellid = MG_FROSTDIVER;
-//					if (tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SA_SAGE)
-//						maxlv = 10;
-//					else
+					//if (tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SA_SAGE)
+						//maxlv = 10;
+					//else
 						maxlv = skill_lv - 9;
-				} else if(skill_lv >=8) {
+				} else if(skill_lv >= 8) {
 					spellid = MG_FIREBALL;
 					maxlv = skill_lv - 7;
-				} else if(skill_lv >=5) {
+				} else if(skill_lv >= 5) {
 					spellid = MG_SOULSTRIKE;
 					maxlv = skill_lv - 4;
-				} else if(skill_lv >=2) {
+				} else if(skill_lv >= 2) {
 					int i = rnd()%3;
 					spellid = spellarray[i];
 					maxlv = skill_lv - 1;

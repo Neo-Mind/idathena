@@ -6975,7 +6975,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 		case SC_SIGNUMCRUCIS:
 			//Only affects demons and undead element (but not players)
-			if((!undead_flag && status->race!=RC_DEMON) || bl->type == BL_PC)
+			if((!undead_flag && status->race != RC_DEMON) || bl->type == BL_PC)
 				return 0;
 			break;
 		case SC_AETERNA:
@@ -7279,9 +7279,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	//Before overlapping fail, one must check for status cured.
 	switch (type) {
 		case SC_BLESSING:
-			//TO-DO Blessing and Agi up should do 1 damage against players on Undead Status, even on PvM
+			//@TODO: Blessing and Agi up should do 1 damage against players on Undead Status, even on PvM
 			//but cannot be plagiarized (this requires aegis investigation on packets and official behavior) [Brainstorm]
-			if ((!undead_flag && status->race!=RC_DEMON) || bl->type == BL_PC) {
+			if ((!undead_flag && status->race != RC_DEMON) || bl->type == BL_PC) {
 				status_change_end(bl, SC_CURSE, INVALID_TIMER);
 				if (sc->data[SC_STONE] && sc->opt1 == OPT1_STONE)
 					status_change_end(bl, SC_STONE, INVALID_TIMER);
@@ -7881,7 +7881,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_DPOISON:
 				//Lose 10/15% of your life as long as it doesn't brings life below 25%
 				if (status->hp > status->max_hp>>2) {
-					int diff = status->max_hp*(bl->type==BL_PC?10:15)/100;
+					int diff = status->max_hp*(bl->type == BL_PC ? 10 : 15)/100;
 					if (status->hp - diff < status->max_hp>>2)
 						diff = status->hp - (status->max_hp>>2);
 					if (val2 && bl->type == BL_MOB) {
@@ -10463,7 +10463,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				map_foreachinrange( status_change_timer_sub,bl,sce->val3,BL_CHAR|BL_SKILL,bl,sce,type,tick);
 			else
 				map_foreachinrange( status_change_timer_sub,bl,sce->val3,BL_CHAR,bl,sce,type,tick);
-			if( --(sce->val2)>0 ) {
+			if( --(sce->val2) > 0 ) {
 				sc_timer_next(250 + tick,status_change_timer,bl->id,data);
 				sce->val4 += 250; //Use for Shadow Form 2 seconds checking.
 				return 0;
@@ -10472,7 +10472,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			
 		case SC_PROVOKE:
 			if( sce->val2 ) { //Auto-provoke (it is ended in status_heal)
-				sc_timer_next(1000 * 60 + tick,status_change_timer,bl->id,data );
+				sc_timer_next(1000 * 60 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}
 			break;
@@ -10484,14 +10484,14 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				unit_stop_attack(bl);
 				sc->opt1 = OPT1_STONE;
 				clif_changeoption(bl);
-				sc_timer_next(1000 + tick,status_change_timer,bl->id,data );
+				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				status_calc_bl(bl,StatusChangeFlagTable[type]);
 				return 0;
 			}
 			if( --(sce->val3) > 0 ) {
 				if( ++(sce->val4)%5 == 0 && status->hp > status->max_hp / 4 )
 					status_percent_damage(NULL,bl,1,0,false);
-				sc_timer_next(1000 + tick,status_change_timer,bl->id,data );
+				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}
 			break;
@@ -10502,7 +10502,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				if( !sc->data[SC_SLOWPOISON] ) {
 					if( sce->val2 && bl->type == BL_MOB ) {
 						struct block_list* src = map_id2bl(sce->val2);
-						if(src)
+						if( src )
 							mob_log_damage((TBL_MOB*)bl,src,sce->val4);
 					}
 					map_freeblock_lock();
