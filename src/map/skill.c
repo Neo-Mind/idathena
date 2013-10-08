@@ -5937,9 +5937,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case MO_KITRANSLATION:
-			if (dstsd && ((dstsd->class_&MAPID_BASEMASK) != MAPID_GUNSLINGER || (dstsd->class_&MAPID_UPPERMASK) != MAPID_REBELLION)) {
+			if (dstsd && ((dstsd->class_&MAPID_BASEMASK) != MAPID_GUNSLINGER || (dstsd->class_&MAPID_UPPERMASK) != MAPID_REBELLION))
 				pc_addspiritball(dstsd,skill_get_time(skill_id,skill_lv),5);
-			}
 			break;
 
 		case TK_TURNKICK:
@@ -7712,7 +7711,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case GS_GLITTERING:
-			if(sd) {
+			if (sd) {
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				if(rnd()%100 < (20 + 10 * skill_lv))
 					pc_addspiritball(sd,skill_get_time(skill_id,skill_lv),10);
@@ -7744,7 +7743,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			}
 			break;
-			
+
 		case HAMI_CASTLE: //[orn]
 			if(rnd()%100 < 20 * skill_lv && src != bl) {
 				int x,y;
@@ -8880,7 +8879,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if( flag&1 ) {
 				i = 0;
 				if( dstsd && dstsd->spiritball && (sd == dstsd || map_flag_vs(src->m)) &&
-					(dstsd->class_&MAPID_BASEMASK) != MAPID_GUNSLINGER ) {
+					((dstsd->class_&MAPID_BASEMASK) != MAPID_GUNSLINGER || (dstsd->class_&MAPID_UPPERMASK) != MAPID_REBELLION) ) {
 					i = dstsd->spiritball; //1% sp per spiritball.
 					pc_delspiritball(dstsd,dstsd->spiritball,0);
 				}
@@ -10387,6 +10386,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case MH_XENO_SLASHER:
 		case NC_MAGMA_ERUPTION:
 		case SO_ELEMENTAL_SHIELD:
+		case RL_B_TRAP:
 			flag |= 1; //Set flag to 1 to prevent deleting ammo (it will be deleted on group-delete).
 		case GS_GROUNDDRIFT: //Ammo should be deleted right away.
 			skill_unitsetting(src,skill_id,skill_lv,x,y,0);
