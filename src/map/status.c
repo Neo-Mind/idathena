@@ -1731,7 +1731,6 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 	if (src) sc = status_get_sc(src);
 
 	if (sc && sc->count) {
-		
 		if (skill_id != RK_REFRESH && sc->opt1 >0 && !(sc->opt1 == OPT1_CRYSTALIZE && src->type == BL_MOB) && sc->opt1 != OPT1_BURNING && skill_id != SR_GENTLETOUCH_CURE) {   //Stuned/Frozen/etc
 			if (flag != 1) //Can't cast, casted stuff can't damage.
 				return 0;
@@ -1782,7 +1781,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 
 		if (skill_id && //Do not block item-casted skills.
 			(src->type != BL_PC || ((TBL_PC*)src)->skillitem != skill_id)
-		) {	//Skills blocked through status changes...
+		) {	//Skills blocked through status changes.
 			if (!flag && ( //Blocked only from using the skill (stuff like autospell may still go through
 				sc->cant.cast ||
 				(sc->data[SC_MARIONETTE] && skill_id != CG_MARIONETTE) || //Only skill you can use is marionette again to cancel it
@@ -1812,16 +1811,10 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 				return 0;
 
 			if (sc->data[SC__MANHOLE] || ((tsc = status_get_sc(target)) && tsc->data[SC__MANHOLE])) {
-				switch (skill_id) { //TODO: make this a flag in skill_db?
-					//Skills that can be used even under Man Hole effects.
-					case SC_SHADOWFORM:
-					case SC_STRIPACCESSARY:
-						break;
-					default:
-						return 0;
-				}
+				//Skills that can be used even under Man Hole effect.
+				if !(skill_get_inf3(skill_id)&INF3_USABLE_MANHOLE)
+					return 0;
 			}
-
 		}
 	}
 

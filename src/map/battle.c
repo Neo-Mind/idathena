@@ -765,7 +765,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		return 0;
 
 	if( sc && sc->count ) {
-		//First, sc_*'s that reduce damage to 0.
+		//SC_* that reduce damage to 0.
 		if( sc->data[SC_BASILICA] && !(status_get_mode(src)&MD_BOSS) ) {
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
@@ -1000,7 +1000,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 				status_change_end(bl,SC_VOICEOFSIREN,INVALID_TIMER);
 		}
 #ifndef RENEWAL
-		//Finally damage reductions
+		//Damage reductions
 		if( sc->data[SC_ASSUMPTIO] ) {
 			if( map_flag_vs(bl->m) )
 				damage = damage * 2 / 3; //Receive 66% damage
@@ -1241,6 +1241,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 	}
 
+	//PK damage rates
 	if( battle_config.pk_mode && sd && bl->type == BL_PC && damage && map[bl->m].flag.pvp ) {
 		if( flag&BF_SKILL ) { //Skills get a different reduction than non-skills. [Skotlex]
 			if( flag&BF_WEAPON )
@@ -1335,28 +1336,36 @@ int64 battle_calc_bg_damage(struct block_list *src, struct block_list *bl, int64
 	return damage;
 }
 
-/*==========================================
- * Calculates GVG related damage adjustments.
- *------------------------------------------*/
-int64 battle_calc_gvg_damage(struct block_list *src,struct block_list *bl,int64 damage,int div_,uint16 skill_id,uint16 skill_lv,int flag)
+bool battle_can_hit_gvg_target(struct block_list *src, struct block_list *bl, uint16 skill_id, int flag)
 {
 	struct mob_data* md = BL_CAST(BL_MOB, bl);
 	int class_ = status_get_class(bl);
 
-	if (!damage) //No reductions to make.
-		return 0;
-
 	if (md && md->guardian_data) {
 		if (class_ == MOBID_EMPERIUM && flag&BF_SKILL && !(skill_get_inf3(skill_id)&INF3_HIT_EMP)) //Skill immunity.
-			return 0;
+			return false;
 		if (src->type != BL_MOB) {
 			struct guild *g = src->type == BL_PC ? ((TBL_PC *)src)->guild : guild_search(status_get_guild_id(src));
 			if (class_ == MOBID_EMPERIUM && (!g || guild_checkskill(g,GD_APPROVAL) <= 0))
-				return 0;
+				return false;
 			if (g && battle_config.guild_max_castles && guild_checkcastles(g) >= battle_config.guild_max_castles)
-				return 0; //[MouseJstr]
+				return false; // [MouseJstr]
 		}
 	}
+
+	return true;
+}
+
+/*==========================================
+ * Calculates GVG related damage adjustments.
+ *------------------------------------------*/
+int64 battle_calc_gvg_damage(struct block_list *src, struct block_list *bl, int64 damage, int div_, uint16 skill_id, uint16 skill_lv, int flag)
+{
+	if (!damage) //No reductions to make.
+		return 0;
+
+	if (!battle_can_hit_gvg_target(src,bl,skill_id,flag))
+		return 0;
 
 	if (skill_get_inf2(skill_id)&INF2_NO_GVG_DMG) //Skills with no gvg damage reduction.
 		return damage;
@@ -1406,7 +1415,7 @@ static int battle_calc_drain(int64 damage, int rate, int per)
 /*==========================================
  * Passive skill damage increases
  *------------------------------------------*/
-int64 battle_addmastery(struct map_session_data *sd,struct block_list *target,int64 dmg,int type)
+int64 battle_addmastery(struct map_session_data *sd, struct block_list *target, int64 dmg, int type)
 {
 	int64 damage;
 	struct status_data *status = status_get_status_data(target);
@@ -1530,9 +1539,9 @@ static int battle_calc_sizefix(int64 damage, struct map_session_data *sd, unsign
 	if (sd) {
 		//SizeFix only for players
 		if (!(sd->special_state.no_sizefix) && !flag)
-			damage = damage * ( weapon_type == EQI_HAND_L ?
+			damage = damage * (weapon_type == EQI_HAND_L ?
 			sd->left_weapon.atkmods[t_size] :
-			sd->right_weapon.atkmods[t_size] ) / 100;
+			sd->right_weapon.atkmods[t_size]) / 100;
 	}
 	return (int)cap_value(damage,INT_MIN,INT_MAX);
 }
@@ -1742,7 +1751,7 @@ static inline int battle_adjust_skill_damage(int m, unsigned short skill_id) {
 
 static int battle_blewcount_bonus(struct map_session_data *sd, uint16 skill_id)
 {
-	int i;
+	uint8 i;
 	if(!sd->skillblown[0].id)
 		return 0;
 	//Apply the bonus blewcount. [Skotlex]
@@ -1931,11 +1940,9 @@ static bool is_attack_right_handed(struct block_list *src, int skill_id)
 {
 	if(src != NULL) {
 		struct map_session_data *sd = BL_CAST(BL_PC, src);
-		if(!skill_id) { //Skills ALWAYS use ONLY your right-hand weapon (tested on Aegis 10.2)
-			if(sd && sd->weapontype1 == 0 && sd->weapontype2 > 0) {
-				return false;
-			}
-		}
+		//Skills ALWAYS use ONLY your right-hand weapon (tested on Aegis 10.2)
+		if(!skill_id && sd && sd->weapontype1 == 0 && sd->weapontype2 > 0)
+			return false;
 	}
 	return true;
 }
@@ -2138,8 +2145,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 #endif
 
 	if(battle_config.agi_penalty_type && battle_config.agi_penalty_target&target->type) {
-		unsigned char attacker_count; //256 max targets should be a sane max
-		attacker_count = unit_counttargeted(target);
+		unsigned char attacker_count = unit_counttargeted(target); //256 max targets should be a sane max
 		if(attacker_count >= battle_config.agi_penalty_count) {
 			if(battle_config.agi_penalty_type == 1)
 				flee = (flee * (100 - (attacker_count - (battle_config.agi_penalty_count - 1)) * battle_config.agi_penalty_num)) / 100;
@@ -2343,7 +2349,7 @@ static int battle_get_weapon_element(struct Damage wd, struct block_list *src, s
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 	struct status_change *sc = status_get_sc(src);
 	struct status_data *sstatus = status_get_status_data(src);
-	int i;
+	uint8 i;
 	int nk = battle_skill_get_damage_properties(skill_id, wd.miscflag);
 	int element = skill_get_ele(skill_id, skill_lv);
 
@@ -2484,12 +2490,13 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 	struct status_change *sc = status_get_sc(src);
 	struct status_data *sstatus = status_get_status_data(src);
 	struct status_data *tstatus = status_get_status_data(target);
-	int skill, i, skillratio;
 	int t_class = status_get_class(target);
 
 	if(sd && battle_skill_stacks_masteries_vvs(skill_id) && skill_id != MO_INVESTIGATE &&
-		skill_id != MO_EXTREMITYFIST && skill_id != CR_GRANDCROSS) {
-		//Add mastery damage
+		skill_id != MO_EXTREMITYFIST && skill_id != CR_GRANDCROSS) { //Add mastery damage
+		int skill, skillratio;
+		uint8 i;
+
 		wd.damage = battle_addmastery(sd, target, wd.damage, 0);
 #ifdef RENEWAL
 		wd.masteryAtk = battle_addmastery(sd, target, wd.weaponAtk, 0);
@@ -2665,7 +2672,8 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 	struct status_data *tstatus = status_get_status_data(target);
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 
-	int i, skill;
+	int skill;
+	uint16 i;
 	int nk = battle_skill_get_damage_properties(skill_id, wd.miscflag);
 
 	//Calc base damage according to skill
@@ -2982,7 +2990,7 @@ static struct Damage battle_calc_multi_attack(struct Damage wd, struct block_lis
 	switch(skill_id) {
 		case RA_AIMEDBOLT:
 			if(tsc && (tsc->data[SC_BITE] || tsc->data[SC_ANKLE] || tsc->data[SC_ELECTRICSHOCKER]))
-				wd.div_ = tstatus->size + 2 + ( (rnd()%100 < 50-tstatus->size*10) ? 1 : 0 );
+				wd.div_ = tstatus->size + 2 + ((rnd()%100 < 50-tstatus->size * 10) ? 1 : 0);
 			break;
 		case SC_JYUMONJIKIRI:
 			if(tsc && tsc->data[SC_JYUMONJIKIRI])
@@ -4389,7 +4397,12 @@ struct Damage battle_calc_attack_plant(struct Damage wd, struct block_list *src,
 	//Force left hand to 1 damage while dual wielding [helvetica]
 	if(is_attack_right_handed(src, skill_id) && is_attack_left_handed(src, skill_id))
 		wd.damage2 = 1;
+
 	if(attack_hits && class_ == MOBID_EMPERIUM) {
+		if(target && map_flag_gvg2(target->m) && !battle_can_hit_gvg_target(src,target,skill_id,(skill_id) ? BF_SKILL : 0)) {
+			wd.damage = wd.damage2 = 0;
+			return 0;
+		}
 		if(wd.damage2 > 0) {
 			wd.damage2 = battle_attr_fix(src, target, wd.damage2, left_element, tstatus->def_ele, tstatus->ele_lv);
 			wd.damage2 = battle_calc_gvg_damage(src, target, wd.damage2, wd.div_, skill_id, skill_lv, wd.flag);
@@ -4399,6 +4412,7 @@ struct Damage battle_calc_attack_plant(struct Damage wd, struct block_list *src,
 		}
 		return wd;
 	}
+
 	//if( !(battle_config.skill_min_damage&1) )
 	//Do not return if you are supposed to deal greater damage to plants than 1. [Skotlex]
 	return wd;
@@ -4469,46 +4483,6 @@ struct Damage battle_calc_attack_left_right_hands(struct Damage wd, struct block
 struct Damage battle_calc_attack_gvg_bg(struct Damage wd, struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv)
 {
 	if( wd.damage + wd.damage2 ) { //There is a total damage value
-		if( src != target &&
-			(!skill_id || skill_id ||
-			(src->type == BL_SKILL && ( skill_id == SG_SUN_WARM || skill_id == SG_MOON_WARM || skill_id == SG_STAR_WARM ))) ) {
-				int64 damage = wd.damage + wd.damage2, rdamage = 0;
-				struct map_session_data *tsd = BL_CAST(BL_PC, target);
-				struct status_change *tsc = status_get_sc(target);
-				struct status_data *sstatus = status_get_status_data(src);
-				int tick = gettick(), rdelay = 0;
-
-				rdamage = battle_calc_return_damage(target, src, &damage, wd.flag, skill_id, 0);
-
-				//Item reflect gets calculated first
-				if( rdamage > 0 ) {
-					//Use Reflect Shield to signal this kind of skill trigger. [Skotlex]
-					rdelay = clif_damage(src, src, tick, wd.amotion, sstatus->dmotion, rdamage, 1, 4, 0);
-					if( tsd && src != target )
-						battle_drain(tsd, src, rdamage, rdamage, sstatus->race, is_boss(src));
-					battle_delay_damage(tick, wd.amotion, target, src, 0, CR_REFLECTSHIELD, 0, rdamage, ATK_DEF, rdelay, true);
-					skill_additional_effect(target, src, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);
-				}
-
-				//Calculate skill reflect damage separately
-				if( tsc ) {
-					struct status_data *tstatus = status_get_status_data(target);
-					rdamage = battle_calc_return_damage(target, src, &damage, wd.flag, skill_id, 1);
-					if( rdamage > 0 ) {
-						if( tsc->data[SC_REFLECTDAMAGE] && src != target ) //Don't reflect your own damage (Grand Cross)
-							map_foreachinshootrange(battle_damage_area, target, skill_get_splash(LG_REFLECTDAMAGE, 1),
-								BL_CHAR, tick, target, wd.amotion, sstatus->dmotion, rdamage, tstatus->race);
-						else {
-							rdelay = clif_damage(src, src, tick, wd.amotion, sstatus->dmotion, rdamage, 1, 4, 0);
-							if( tsd && src != target )
-								battle_drain(tsd, src, rdamage, rdamage, sstatus->race, is_boss(src));
-							//It appears that official servers give skill reflect damage a longer delay
-							battle_delay_damage(tick, wd.amotion, target, src, 0, CR_REFLECTSHIELD, 0, rdamage, ATK_DEF, rdelay, true);
-							skill_additional_effect(target, src, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);
-						}
-					}
-				}
-		}
 		if( !wd.damage2 ) {
 			wd.damage = battle_calc_damage(src, target, &wd, wd.damage, skill_id, skill_lv);
 			if( map_flag_gvg2(target->m) )
@@ -4972,6 +4946,47 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 	if((skill_damage = battle_skill_damage(src, target, skill_id)) != 0)
 		ATK_ADDRATE(wd.damage, wd.damage2, skill_damage);
 #endif
+
+	// Do reflect calculation after all atk modifier
+	//Don't reflect your own damage (Grand Cross)
+	if( wd.damage + wd.damage2 && src != target &&
+		(!skill_id || skill_id ||
+		(src->type == BL_SKILL && ( skill_id == SG_SUN_WARM || skill_id == SG_MOON_WARM || skill_id == SG_STAR_WARM ))) ) {
+			int64 damage = wd.damage + wd.damage2, rdamage = 0;
+			struct status_data *sstatus = status_get_status_data(src);
+			int tick = gettick(), rdelay = 0;
+
+			rdamage = battle_calc_return_damage(target, src, &damage, wd.flag, skill_id, 0);
+
+			//Item reflect gets calculated first
+			if( rdamage > 0 ) {
+				//Use Reflect Shield to signal this kind of skill trigger. [Skotlex]
+				rdelay = clif_damage(src, src, tick, wd.amotion, sstatus->dmotion, rdamage, 1, 4, 0);
+				if( tsd )
+					battle_drain(tsd, src, rdamage, rdamage, sstatus->race, is_boss(src));
+				battle_delay_damage(tick, wd.amotion, target, src, 0, CR_REFLECTSHIELD, 0, rdamage, ATK_DEF, rdelay, true);
+				skill_additional_effect(target, src, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);
+			}
+
+			//Calculate skill reflect damage separately
+			if( tsc ) {
+				struct status_data *tstatus = status_get_status_data(target);
+				rdamage = battle_calc_return_damage(target, src, &damage, wd.flag, skill_id, 1);
+				if( rdamage > 0 ) {
+					if( tsc->data[SC_REFLECTDAMAGE] )
+						map_foreachinshootrange(battle_damage_area, target, skill_get_splash(LG_REFLECTDAMAGE, 1),
+							BL_CHAR, tick, target, wd.amotion, sstatus->dmotion, rdamage, tstatus->race);
+					else {
+						rdelay = clif_damage(src, src, tick, wd.amotion, sstatus->dmotion, rdamage, 1, 4, 0);
+						if( tsd )
+							battle_drain(tsd, src, rdamage, rdamage, sstatus->race, is_boss(src));
+						//It appears that official servers give skill reflect damage a longer delay
+						battle_delay_damage(tick, wd.amotion, target, src, 0, CR_REFLECTSHIELD, 0, rdamage, ATK_DEF, rdelay, true);
+						skill_additional_effect(target, src, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);
+					}
+				}
+			}
+	}
 
 	return wd;
 }
@@ -6089,6 +6104,7 @@ struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct bl
 			memset(&d,0,sizeof(d));
 			break;
 	}
+
 	if(d.damage + d.damage2 < 1) { //Miss/Absorbed
 		//Weapon attacks should go through to cause additional effects.
 		if(d.dmg_lv == ATK_DEF /*&& attack_type&(BF_MAGIC|BF_MISC)*/) //Isn't it that additional effects don't apply if miss?
@@ -6096,6 +6112,7 @@ struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct bl
 		d.dmotion = 0;
 	} else //Some skills like Weaponry Research will cause damage even if attack is dodged
 		d.dmg_lv = ATK_DEF;
+
 	return d;
 }
 

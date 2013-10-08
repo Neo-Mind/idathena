@@ -485,10 +485,6 @@ static short skill_isCopyable (struct map_session_data *sd, uint16 skill_id, str
 	if( skill_get_inf2(skill_id)&(INF2_NPC_SKILL|INF2_WEDDING_SKILL) )
 		return 0;
 
-	//Added so plagarize can't copy agi/bless if you're undead since it damages you
-	if( skill_get_inf3(skill_id)&INF3_DIS_PLAGIA )
-		return 0;
-
 	//Check if the skill is copyable by class
 	if( !pc_has_permission(sd, PC_PERM_ALL_SKILL) ) {
 		uint16 job_allowed;
@@ -1704,13 +1700,15 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 }
 
 int skill_onskillusage(struct map_session_data *sd, struct block_list *bl, uint16 skill_id, unsigned int tick) {
-	int skill, skill_lv, i, type, notok;
+	uint8 i;
 	struct block_list *tbl;
 
 	if( sd == NULL || !skill_id )
 		return 0;
 
 	for( i = 0; i < ARRAYLENGTH(sd->autospell3) && sd->autospell3[i].flag; i++ ) {
+		int skill, skill_lv, type, notok;
+
 		if( sd->autospell3[i].flag != skill_id )
 			continue;
 
@@ -1723,14 +1721,17 @@ int skill_onskillusage(struct map_session_data *sd, struct block_list *bl, uint1
 		notok = skillnotok(skill,sd);
 		sd->state.autocast = 0;
 
-		if ( notok )
+		if( notok )
 			continue;
 
 		skill_lv = sd->autospell3[i].lv ? sd->autospell3[i].lv : 1;
-		if( skill_lv < 0 ) skill_lv = 1 + rnd()%(-skill_lv);
+
+		if( skill_lv < 0 )
+			skill_lv = 1 + rnd()%(-skill_lv);
 
 		if( sd->autospell3[i].id >= 0 && bl == NULL )
 			continue; //No target
+
 		if( rnd()%1000 >= sd->autospell3[i].rate )
 			continue;
 
@@ -1764,6 +1765,7 @@ int skill_onskillusage(struct map_session_data *sd, struct block_list *bl, uint1
 			  )
 				continue;
 		}
+
 		if( battle_config.autospell_check_range &&
 			!battle_check_range(&sd->bl,tbl,skill_get_range2(&sd->bl,skill,skill_lv) + (skill == RG_CLOSECONFINE ? 0 : 1)) )
 			continue;
@@ -1771,11 +1773,13 @@ int skill_onskillusage(struct map_session_data *sd, struct block_list *bl, uint1
 		sd->state.autocast = 1;
 		sd->autospell3[i].lock = true;
 		skill_consume_requirement(sd,skill,skill_lv,1);
+
 		switch( type ) {
 			case CAST_GROUND:   skill_castend_pos2(&sd->bl,tbl->x,tbl->y,skill,skill_lv,tick,0); break;
 			case CAST_NODAMAGE: skill_castend_nodamage_id(&sd->bl,tbl,skill,skill_lv,tick,0); break;
 			case CAST_DAMAGE:   skill_castend_damage_id(&sd->bl,tbl,skill,skill_lv,tick,0); break;
 		}
+
 		sd->autospell3[i].lock = false;
 		sd->state.autocast = 0;
 	}
@@ -18615,16 +18619,16 @@ static bool skill_parse_row_magicmushroomdb(char* split[], int column, int curre
 	return true;
 }
 
-static bool skill_parse_row_reproducedb(char* split[], int column, int current) {
+static bool skill_parse_row_copyabledb(char* split[], int column, int current) {
 	uint16 skill_id = skill_name2id(split[0]), idx;
 	uint8 option;
 
 	if( !skill_get_index(skill_id) ) {
-		ShowError("skill_parse_row_reproducedb: Invalid skill %s\n", split[0]);
+		ShowError("skill_parse_row_copyabledb: Invalid skill %s\n", split[0]);
 		return false;
 	}
 	if( !(option = atoi(split[1])) ) {
-		ShowError("skill_parse_row_reproducedb: Invalid option %d\n", option);
+		ShowError("skill_parse_row_copyabledb: Invalid option %d\n", option);
 		return false;
 	}
 
@@ -18766,7 +18770,7 @@ static void skill_readdb(void)
 	sv_readdb(db_path, "spellbook_db.txt"      , ',',   3,  3, MAX_SKILL_SPELLBOOK_DB, skill_parse_row_spellbookdb);
 	//Guillotine Cross
 	sv_readdb(db_path, "magicmushroom_db.txt"  , ',',   1,  1, MAX_SKILL_MAGICMUSHROOM_DB, skill_parse_row_magicmushroomdb);
-	sv_readdb(db_path, "skill_copyable_db.txt", ',',    2,  4, MAX_SKILL_DB, skill_parse_row_reproducedb);
+	sv_readdb(db_path, "skill_copyable_db.txt", ',',    2,  4, MAX_SKILL_DB, skill_parse_row_copyabledb);
 	sv_readdb(db_path, "skill_improvise_db.txt"      , ',',   2,  2, MAX_SKILL_IMPROVISE_DB, skill_parse_row_improvisedb);
 	sv_readdb(db_path, "skill_changematerial_db.txt" , ',',   4,  4 + 2 * 5, MAX_SKILL_PRODUCE_DB, skill_parse_row_changematerialdb);
 #ifdef ADJUST_SKILL_DAMAGE
