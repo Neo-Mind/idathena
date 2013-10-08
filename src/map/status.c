@@ -1812,7 +1812,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 
 			if (sc->data[SC__MANHOLE] || ((tsc = status_get_sc(target)) && tsc->data[SC__MANHOLE])) {
 				//Skills that can be used even under Man Hole effect.
-				if !(skill_get_inf3(skill_id)&INF3_USABLE_MANHOLE)
+				if (!(skill_get_inf3(skill_id)&INF3_USABLE_MANHOLE))
 					return 0;
 			}
 		}

@@ -4399,16 +4399,15 @@ struct Damage battle_calc_attack_plant(struct Damage wd, struct block_list *src,
 		wd.damage2 = 1;
 
 	if(attack_hits && class_ == MOBID_EMPERIUM) {
-		if(target && map_flag_gvg2(target->m) && !battle_can_hit_gvg_target(src,target,skill_id,(skill_id) ? BF_SKILL : 0)) {
+		if(target && map_flag_gvg2(target->m) && !battle_can_hit_gvg_target(src, target, skill_id, (skill_id) ? BF_SKILL : 0)) {
 			wd.damage = wd.damage2 = 0;
-			return 0;
 		}
-		if(wd.damage2 > 0) {
+		if(wd.damage > 0) {
+			wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
+			wd.damage = battle_calc_gvg_damage(src, target, wd.damage, wd.div_, skill_id, skill_lv, wd.flag);
+		} else if(wd.damage2 > 0) {
 			wd.damage2 = battle_attr_fix(src, target, wd.damage2, left_element, tstatus->def_ele, tstatus->ele_lv);
 			wd.damage2 = battle_calc_gvg_damage(src, target, wd.damage2, wd.div_, skill_id, skill_lv, wd.flag);
-		} else if(wd.damage > 0) {
-			wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
-			wd.damage = battle_calc_gvg_damage(src,target,wd.damage,wd.div_,skill_id,skill_lv,wd.flag);
 		}
 		return wd;
 	}
@@ -4947,7 +4946,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		ATK_ADDRATE(wd.damage, wd.damage2, skill_damage);
 #endif
 
-	// Do reflect calculation after all atk modifier
+	//Do reflect calculation after all atk modifier
 	//Don't reflect your own damage (Grand Cross)
 	if( wd.damage + wd.damage2 && src != target &&
 		(!skill_id || skill_id ||
