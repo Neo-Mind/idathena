@@ -3756,7 +3756,8 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 		case GN_CARTCANNON:
 			//ATK [{( Cart Remodeling Skill Level x 50 ) x ( INT / 40 )} + ( Cart Cannon Skill Level x 60 )] %
 			skillratio += -100 + (60 * skill_lv);
-			if(sd) skillratio += pc_checkskill(sd,GN_REMODELING_CART) * 50 * (sstatus->int_ / 40);
+			if(sd)
+				skillratio += pc_checkskill(sd,GN_REMODELING_CART) * 50 * (sstatus->int_ / 40);
 			break;
 		case GN_SPORE_EXPLOSION:
 			skillratio += 100 + sstatus->int_ + 100 * skill_lv;
@@ -3956,12 +3957,12 @@ static int battle_calc_skill_constant_addition(struct Damage wd, struct block_li
 			break;
 		case SR_GATEOFHELL: {
 				short nk = skill_get_nk(skill_id);
+				nk |= NK_IGNORE_FLEE;
 				atk = (sstatus->max_hp - status_get_hp(src));
 				if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE)
 					atk += ((sstatus->max_sp * (1 + skill_lv * 2 / 10)) + 40 * status_get_lv(src));
 				else
 					atk += ((sstatus->sp * (1 + skill_lv * 2 / 10)) + 10 * status_get_lv(src));
-				nk &= NK_IGNORE_FLEE;
 			}
 			break;
 		case SR_TIGERCANNON:
@@ -3972,11 +3973,10 @@ static int battle_calc_skill_constant_addition(struct Damage wd, struct block_li
 			break;
 		case SR_FALLENEMPIRE:
 			atk = (((tstatus->size + 1) * 2 + skill_lv - 1) * sstatus->str);
-			if(tsd && tsd->weight) {
+			if(tsd && tsd->weight)
 				atk += ((tsd->weight / 10) * sstatus->dex / 120);
-			} else {
+			else
 				atk += (status_get_lv(target) * 50); //Mobs
-			}
 			break;
 	}
 	return atk;
@@ -4482,6 +4482,27 @@ struct Damage battle_calc_attack_left_right_hands(struct Damage wd, struct block
 struct Damage battle_calc_attack_gvg_bg(struct Damage wd, struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv)
 {
 	if( wd.damage + wd.damage2 ) { //There is a total damage value
+		if( src != target && //Don't reflect your own damage (Grand Cross)
+			(!skill_id || skill_id ||
+			(src->type == BL_SKILL && ( skill_id == SG_SUN_WARM || skill_id == SG_MOON_WARM || skill_id == SG_STAR_WARM ))) ) {
+				int64 damage = wd.damage + wd.damage2, rdamage = 0;
+				struct map_session_data *tsd = BL_CAST(BL_PC, target);
+				struct status_change *tsc = status_get_sc(target);
+				struct status_data *sstatus = status_get_status_data(src);
+				int tick = gettick(), rdelay = 0;
+
+				rdamage = battle_calc_return_damage(target, src, &damage, wd.flag, skill_id, 0);
+
+				//Item reflect gets calculated before any mapflag reducing is applicated
+				if( rdamage > 0 ) {
+					//Use Reflect Shield to signal this kind of skill trigger. [Skotlex]
+					rdelay = clif_damage(src, src, tick, wd.amotion, sstatus->dmotion, rdamage, 1, 4, 0);
+					if( tsd )
+						battle_drain(tsd, src, rdamage, rdamage, sstatus->race, is_boss(src));
+					battle_delay_damage(tick, wd.amotion, target, src, 0, CR_REFLECTSHIELD, 0, rdamage, ATK_DEF, rdelay, true);
+					skill_additional_effect(target, src, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);
+				}
+		}
 		if( !wd.damage2 ) {
 			wd.damage = battle_calc_damage(src, target, &wd, wd.damage, skill_id, skill_lv);
 			if( map_flag_gvg2(target->m) )
@@ -4892,9 +4913,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 	//But final damage is considered "the element" and resistances are applied again
 	switch(skill_id) {
 		case MC_CARTREVOLUTION:
-		case PA_SACRIFICE:
-		case PA_SHIELDCHAIN:
-		case LG_SHIELDPRESS:
+		case KO_BAKURETSU:
 			//Forced to neutral element
 			wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 			break;
@@ -4946,7 +4965,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		ATK_ADDRATE(wd.damage, wd.damage2, skill_damage);
 #endif
 
-	//Do reflect calculation after all atk modifier
+	//Skill reflect gets calculated after all attack modifier
 	//Don't reflect your own damage (Grand Cross)
 	if( wd.damage + wd.damage2 && src != target &&
 		(!skill_id || skill_id ||
@@ -4955,19 +4974,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 			struct status_data *sstatus = status_get_status_data(src);
 			int tick = gettick(), rdelay = 0;
 
-			rdamage = battle_calc_return_damage(target, src, &damage, wd.flag, skill_id, 0);
-
-			//Item reflect gets calculated first
-			if( rdamage > 0 ) {
-				//Use Reflect Shield to signal this kind of skill trigger. [Skotlex]
-				rdelay = clif_damage(src, src, tick, wd.amotion, sstatus->dmotion, rdamage, 1, 4, 0);
-				if( tsd )
-					battle_drain(tsd, src, rdamage, rdamage, sstatus->race, is_boss(src));
-				battle_delay_damage(tick, wd.amotion, target, src, 0, CR_REFLECTSHIELD, 0, rdamage, ATK_DEF, rdelay, true);
-				skill_additional_effect(target, src, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);
-			}
-
-			//Calculate skill reflect damage separately
 			if( tsc ) {
 				struct status_data *tstatus = status_get_status_data(target);
 				rdamage = battle_calc_return_damage(target, src, &damage, wd.flag, skill_id, 1);
@@ -5809,7 +5815,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			break;
 		case NPC_DARKBREATH:
 			md.damage = 500 + (skill_lv - 1) * 1000 + rnd()%1000;
-			if(md.damage > 9999) md.damage = 9999;
+			if(md.damage > 9999)
+				md.damage = 9999;
 			break;
 		case PA_PRESSURE:
 			md.damage = 500 + 300 * skill_lv;
@@ -5836,21 +5843,22 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				md.damage = (int64)(7 * tstatus->vit * sstatus->int_ * sstatus->int_ / (10 * (tstatus->vit + sstatus->int_)));
 			else
 				md.damage = 0;
-			if(tsd) md.damage >>= 1;
+			if(tsd)
+				md.damage >>= 1;
 #endif
 			break;
 		case NJ_ZENYNAGE:
 		case KO_MUCHANAGE:
 				md.damage = skill_get_zeny(skill_id, skill_lv);
-				if(!md.damage) md.damage = 2;
+				if(!md.damage)
+					md.damage = (skill_id == NJ_ZENYNAGE ? 2 : 10);
 				md.damage = (skill_id == NJ_ZENYNAGE ? rnd()%md.damage + md.damage : md.damage * rnd_value(50,100)) / (skill_id == NJ_ZENYNAGE ? 1 : 100);
-				if(sd) {
-					if(skill_id == KO_MUCHANAGE && (pc_checkskill(sd,NJ_TOBIDOUGU) == 0))
+				if(sd)
+					if(skill_id == KO_MUCHANAGE && !pc_checkskill(sd,NJ_TOBIDOUGU))
 						md.damage = md.damage / 2;
-				}
 				if(is_boss(target))
 					md.damage = md.damage / (skill_id == NJ_ZENYNAGE ? 3 : 2);
-				else if (tsd) //Need confirmation for KO_MUCHANAGE
+				else if(tsd && skill_id == NJ_ZENYNAGE)
 					md.damage = md.damage / 2;
 			break;
 #ifdef RENEWAL

@@ -10489,7 +10489,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				return 0;
 			}
 			if( --(sce->val3) > 0 ) {
-				if(++(sce->val4)%5 == 0 && status->hp > status->max_hp / 4)
+				if( ++(sce->val4)%5 == 0 && status->hp > status->max_hp / 4 )
 					status_percent_damage(NULL,bl,1,0,false);
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data );
 				return 0;
