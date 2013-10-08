@@ -5319,6 +5319,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case AL_DECAGI:
+			clif_skill_nodamage (src,bl,skill_id,skill_lv,
+				sc_start(src,bl,type,(50 + skill_lv * 3 + (status_get_lv(src) + sstatus->int_) / 5),skill_lv,
+					/* Monsters using lvl 48 get the rate benefit but the duration of lvl 10 */
+					(src->type == BL_MOB && skill_lv == 48) ? skill_get_time(skill_id,10) : skill_get_time(skill_id,skill_lv)));
+			break;
+
 		case MER_DECAGI:
 			clif_skill_nodamage (src,bl,skill_id,skill_lv,
 				sc_start(src,bl,type,(50 + skill_lv * 3 + (status_get_lv(src) + sstatus->int_) / 5),skill_lv,skill_get_time(skill_id,skill_lv)));
@@ -7181,7 +7187,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case NPC_SIEGEMODE:
-			//not sure what it does
+			//Not sure what it does
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			break;
 
@@ -7198,7 +7204,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 
-		//parent-baby skills
+		//Parent-Baby skills
 		case WE_BABY:
 			if (sd) {
 				struct map_session_data *f_sd = pc_get_father(sd);
@@ -7210,8 +7216,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					return 0;
 				}
 				status_change_start(src,bl,SC_STUN,10000,skill_lv,0,0,0,skill_get_time2(skill_id,skill_lv),8);
-				if (f_sd) sc_start(src,&f_sd->bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
-				if (m_sd) sc_start(src,&m_sd->bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
+				if (f_sd) {
+					sc_start(src,&f_sd->bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
+					clif_specialeffect(&f_sd->bl,408,AREA);
+				}
+				if (m_sd) {
+					sc_start(src,&m_sd->bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
+					clif_specialeffect(&m_sd->bl,408,AREA);
+				}
 			}
 			break;
 
@@ -17264,8 +17276,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 				clif_msg_skill(sd,skill_id,0x628);
 				break;
 			default:
-				if( skill_produce_db[idx].itemlv > 10 && skill_produce_db[idx].itemlv <= 20 )
-				{ //Cooking items.
+				if( skill_produce_db[idx].itemlv > 10 && skill_produce_db[idx].itemlv <= 20 ) { //Cooking items.
 					clif_specialeffect(&sd->bl, 609, AREA);
 					if( sd->cook_mastery > 0 )
 						pc_setglobalreg(sd, "COOK_MASTERY", sd->cook_mastery - ( 1 << ((skill_produce_db[idx].itemlv - 11) / 2) ) - ( ( ( 1 << ((skill_produce_db[idx].itemlv - 11) / 2) ) >> 1 ) * 3 ));
