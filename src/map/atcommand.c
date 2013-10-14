@@ -2555,10 +2555,9 @@ ACMD_FUNC(makeegg) {
 		return -1;
 	}
 
-	if ((item_data = itemdb_searchname(message)) != NULL) // for egg name
+	if ((item_data = itemdb_searchname(message)) != NULL) // For egg name
 		id = item_data->nameid;
-	else
-	if ((id = mobdb_searchname(message)) != 0) // for monster name
+	else if ((id = mobdb_searchname(message)) != 0) // For monster name
 		;
 	else
 		id = atoi(message);
@@ -7237,7 +7236,7 @@ ACMD_FUNC(iteminfo)
 		);
 		clif_displaymessage(fd, atcmd_output);
 
-		sprintf(atcmd_output, msg_txt(1280), item_data->value_buy, item_data->value_sell, item_data->weight / 10. ); // NPC Buy:%dz, Sell:%dz | Weight: %.1f
+		sprintf(atcmd_output, msg_txt(1280), item_data->value_buy, item_data->value_sell, item_data->weight / 10.); // NPC Buy:%dz, Sell:%dz | Weight: %.1f
 		clif_displaymessage(fd, atcmd_output);
 
 		if (item_data->maxchance == -1)

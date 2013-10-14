@@ -5338,12 +5338,10 @@ void clif_cooking_list(struct map_session_data *sd, int trigger, uint16 skill_id
 	for( i = 0; i < MAX_SKILL_PRODUCE_DB; i++ ) {
 		if( !skill_can_produce_mix(sd,skill_produce_db[i].nameid,trigger, qty) )
 			continue;
-
 		if( (view = itemdb_viewid(skill_produce_db[i].nameid)) > 0 )
 			WFIFOW(fd, 6 + 2 * c) = view;
 		else
 			WFIFOW(fd, 6 + 2 * c) = skill_produce_db[i].nameid;
-
 		c++;
 	}
 

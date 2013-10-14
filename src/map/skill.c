@@ -3160,7 +3160,7 @@ static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 
 			break;
 		default: {
 				int layout_type_npc = skill_get_unit_layout_type(skill_id,skill_lv);
-				if (layout_type_npc == -1 || layout_type > MAX_SQUARE_LAYOUT) {
+				if (layout_type_npc == -1 || layout_type_npc > MAX_SQUARE_LAYOUT) {
 					ShowError("skill_check_unit_range2: unsupported layout type %d for skill %d\n",layout_type_npc,skill_id);
 					return 0;
 				}
@@ -16990,7 +16990,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 			case GN_MIX_COOKING:
 				{
 					int difficulty = 30 + rnd()%120; //Random number between (30 ~ 150)
-				
+
 					make_per = sd->status.job_level / 4 + status->luk / 2 + status->dex / 3; //(Caster Job Level / 4) + (Caster LUK / 2) + (Caster DEX / 3)
 					qty = ~(5 + rnd()%5) + 1;
 
@@ -17018,7 +17018,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 					else if(make_per == 10 && make_per > difficulty)
 						qty = 8;
 					else if((make_per >= 50 || make_per < 30) && make_per < difficulty)
-						;//Food/Bomb creation fails.
+						; //Food/Bomb creation fails.
 					else if(make_per >= 30 && make_per < difficulty)
 						qty = 5;
 

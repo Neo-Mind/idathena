@@ -355,7 +355,7 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 				break;
 			case ELE_GHOST:
 				if( sc->data[SC_TELEKINESIS_INTENSE] )
-					ratio += sc->data[SC_TELEKINESIS_INTENSE]->val3 / 100;
+					ratio += sc->data[SC_TELEKINESIS_INTENSE]->val3;
 				break;
 		}
 	}
@@ -1098,17 +1098,6 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 
 		if( sc->data[SC_DARKCROW] && (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT )
 			damage += damage * sc->data[SC_DARKCROW]->val2 / 100;
-
-		if( sc->data[SC_UNLIMIT] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG ) {
-			switch(skill_id) {
-				case RA_WUGDASH:
-				case RA_WUGSTRIKE:
-				case RA_WUGBITE:
-					break;
-				default:
-					damage += damage * sc->data[SC_UNLIMIT]->val2 / 100;
-			}
-		}
 
 		if( (sce = sc->data[SC_MAGMA_FLOW]) && (rnd()%100 <= sce->val2) )
 			skill_castend_damage_id(bl,src,MH_MAGMA_FLOW,sce->val1,gettick(),0);
@@ -4144,6 +4133,17 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 				if(hd)
 					ATK_ADD(wd.damage, wd.damage2, hd->homunculus.spiritball * 3);
 			}
+			if(sc->data[SC_UNLIMIT] && (wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG) {
+				switch(skill_id) {
+					case RA_WUGDASH:
+					case RA_WUGSTRIKE:
+					case RA_WUGBITE:
+						break;
+					default:
+						ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_UNLIMIT]->val2);
+						RE_ALLATK_ADDRATE(wd, sc->data[SC_UNLIMIT]->val2);
+				}
+			}
 			if(sc->data[SC_FLASHCOMBO]) {
 				ATK_ADD(wd.damage, wd.damage2, sc->data[SC_FLASHCOMBO]->val2);
 				RE_ALLATK_ADD(wd, sc->data[SC_FLASHCOMBO]->val2);
@@ -4754,10 +4754,10 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 void battle_do_reflect(int attack_type, struct Damage *wd, struct block_list* src, struct block_list* target, uint16 skill_id, uint16 skill_lv)
 {
 	//Don't reflect your own damage (Grand Cross)
-	if( (wd.damage + wd.damage2) && src && target && src != target && (src->type != BL_SKILL ||
+	if( (wd->damage + wd->damage2) && src && target && src != target && (src->type != BL_SKILL ||
 		(src->type == BL_SKILL && (skill_id == SG_SUN_WARM || skill_id == SG_MOON_WARM || skill_id == SG_STAR_WARM))) )
 	{
-		int64 damage = wd.damage + wd.damage2, rdamage = 0;
+		int64 damage = wd->damage + wd->damage2, rdamage = 0;
 		struct map_session_data *tsd = BL_CAST(BL_PC, target);
 		struct status_change *tsc = status_get_sc(target);
 		struct status_data *sstatus = status_get_status_data(src);
@@ -4765,7 +4765,7 @@ void battle_do_reflect(int attack_type, struct Damage *wd, struct block_list* sr
 
 		if( tsc ) {
 			struct status_data *tstatus = status_get_status_data(target);
-			rdamage = battle_calc_return_damage(target, src, &damage, wd.flag, skill_id, 1);
+			rdamage = battle_calc_return_damage(target, src, &damage, wd->flag, skill_id, 1);
 			if( rdamage > 0 ) {
 				//if( tsc->data[SC__SHADOWFORM] ) {
 					//struct block_list *s_bl = map_id2bl(tsc->data[SC__SHADOWFORM]->val2);
@@ -4776,13 +4776,13 @@ void battle_do_reflect(int attack_type, struct Damage *wd, struct block_list* sr
 				//}
 				if( attack_type == BF_WEAPON && tsc->data[SC_REFLECTDAMAGE] )
 					map_foreachinshootrange(battle_damage_area, target, skill_get_splash(LG_REFLECTDAMAGE, 1),
-						BL_CHAR, tick, target, wd.amotion, sstatus->dmotion, rdamage, tstatus->race);
+						BL_CHAR, tick, target, wd->amotion, sstatus->dmotion, rdamage, tstatus->race);
 				else if( attack_type == BF_WEAPON || attack_type == BF_MISC ) {
-					rdelay = clif_damage(src, src, tick, wd.amotion, sstatus->dmotion, rdamage, 1, 4, 0);
+					rdelay = clif_damage(src, src, tick, wd->amotion, sstatus->dmotion, rdamage, 1, 4, 0);
 					if( tsd )
 						battle_drain(tsd, src, rdamage, rdamage, sstatus->race, is_boss(src));
 					//It appears that official servers give skill reflect damage a longer delay
-					battle_delay_damage(tick, wd.amotion, target, src, 0, CR_REFLECTSHIELD, 0, rdamage, ATK_DEF, rdelay, true);
+					battle_delay_damage(tick, wd->amotion, target, src, 0, CR_REFLECTSHIELD, 0, rdamage, ATK_DEF, rdelay, true);
 					skill_additional_effect(target, src, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);
 				}
 			}
