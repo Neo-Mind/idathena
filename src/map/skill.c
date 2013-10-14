@@ -10753,7 +10753,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case SC_FEINTBOMB:
 			clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 			skill_unitsetting(src,skill_id,skill_lv,x,y,0); //Set bomb on current Position
-			if( skill_blown(src,src,skill_get_blewcount(skill_id,skill_lv),unit_getdir(src),0) )
+			if( skill_blown(src,src,3 * skill_lv,unit_getdir(src),0) )
 				clif_skill_nodamage(src,src,skill_id,skill_lv,
 					sc_start(src,src,type,100,skill_lv,skill_get_time2(skill_id,skill_lv)));
 			break;
@@ -10828,9 +10828,9 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 							if( sd && pc_checkskill(sd,CR_ACIDDEMONSTRATION) > 5 )
 								aciddemocast = pc_checkskill(sd,CR_ACIDDEMONSTRATION);
 							map_foreachinarea(skill_area_sub,src->m,
-											  ud->skillunit[i]->unit->bl.x - 2,ud->skillunit[i]->unit->bl.y - 2,
-											  ud->skillunit[i]->unit->bl.x + 2,ud->skillunit[i]->unit->bl.y + 2,BL_CHAR,
-											  src,CR_ACIDDEMONSTRATION,aciddemocast,tick,flag|BCT_ENEMY|1|SD_LEVEL,skill_castend_damage_id);
+								ud->skillunit[i]->unit->bl.x - 2,ud->skillunit[i]->unit->bl.y - 2,
+								ud->skillunit[i]->unit->bl.x + 2,ud->skillunit[i]->unit->bl.y + 2,BL_CHAR,
+								src,CR_ACIDDEMONSTRATION,aciddemocast,tick,flag|BCT_ENEMY|1|SD_LEVEL,skill_castend_damage_id);
 							skill_delunit(ud->skillunit[i]->unit);
 							break;
 						default:
@@ -13861,11 +13861,11 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 	//Check if equiped item
 	for( i = 0; i < 10; i++ ) {
 		int reqeqit = require.eqItem[i];
-		if( !reqeqit ) break; //no more required item get out of here
+		if( !reqeqit ) break; //No more required item get out of here
 		if( !pc_checkequip2(sd,reqeqit) ) {
 			char output[128];
 			//clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_EQUIPMENT,reqeqit);
-			sprintf(output,"Need to put on [%d] in order to use.",reqeqit);
+			sprintf(output,"Need to put on [%s] in order to use.",itemdb_jname(reqeqit));
 			clif_colormes(sd,color_table[COLOR_RED],output);
 			return 0;
 		}
