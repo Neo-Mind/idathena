@@ -5323,51 +5323,44 @@ void clif_cooking_list(struct map_session_data *sd, int trigger, uint16 skill_id
 	int fd;
 	int i, c;
 	int view;
-	
+
 	nullpo_retv(sd);
 	fd = sd->fd;
-	
+
+	if( sd->menuskill_id == skill_id )
+		return; //Avoid resending the menu twice or more times
+
 	WFIFOHEAD(fd, 6 + 2 * MAX_SKILL_PRODUCE_DB);
 	WFIFOW(fd,0) = 0x25a;
-	WFIFOW(fd,4) = list_type; // list type
-	
+	WFIFOW(fd,4) = list_type; //List type
+
 	c = 0;
 	for( i = 0; i < MAX_SKILL_PRODUCE_DB; i++ ) {
 		if( !skill_can_produce_mix(sd,skill_produce_db[i].nameid,trigger, qty) )
 			continue;
-		
+
 		if( (view = itemdb_viewid(skill_produce_db[i].nameid)) > 0 )
 			WFIFOW(fd, 6 + 2 * c) = view;
 		else
 			WFIFOW(fd, 6 + 2 * c) = skill_produce_db[i].nameid;
-		
+
 		c++;
 	}
-	
-	if( skill_id == AM_PHARMACY ) {	// Only send it while Cooking else check for c.
-		WFIFOW(fd,2) = 6 + 2 * c;
-		WFIFOSET(fd,WFIFOW(fd,2));
-	}
-	
-	if( c > 0 ) {
+
+	if( c > 0 || skill_id == AM_PHARMACY ) {
 		sd->menuskill_id = skill_id;
 		sd->menuskill_val = trigger;
-		if( skill_id != AM_PHARMACY ) {
-			sd->menuskill_val2 = qty; // amount.
-			WFIFOW(fd,2) = 6 + 2 * c;
-			WFIFOSET(fd,WFIFOW(fd,2));
-		}
+		sd->menuskill_val2 = qty; //Amount
+		WFIFOW(fd,2) = 6 + 2 * c;
+		WFIFOSET(fd,WFIFOW(fd,2));
 	} else {
 		clif_menuskill_clear(sd);
-		if( skill_id != AM_PHARMACY ) { // AM_PHARMACY is used to Cooking.
-			// It fails.
 #if PACKETVER >= 20090922
 			clif_msg_skill(sd,skill_id,0x625);
 #else
 			WFIFOW(fd,2) = 6 + 2 * c;
 			WFIFOSET(fd,WFIFOW(fd,2));
 #endif
-		}
 	}
 }
 
