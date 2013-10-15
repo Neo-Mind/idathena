@@ -6113,7 +6113,10 @@ void clif_cart_additem(struct map_session_data *sd,int n,int amount,int fail)
 }
 
 
-// [Ind] - Data Thanks to Yommy
+/* [Ind] - Data Thanks to Yommy
+ * - ADDITEM_TO_CART_FAIL_WEIGHT = 0x0
+ * - ADDITEM_TO_CART_FAIL_COUNT  = 0x1
+ */
 void clif_cart_additem_ack(struct map_session_data *sd, int flag)
 {
 	int fd;
@@ -9361,7 +9364,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		status_calc_pc(sd, false); /* Some conditions are map-dependent so we must recalculate */
 		sd->state.changemap = false;
 
-		// Instances do not need their own channels
+		//Instances do not need their own channels
 		if(Channel_Config.map_enable && Channel_Config.map_autojoin && !map[sd->bl.m].flag.chmautojoin &&
 			!map[sd->bl.m].instance_id) {
 			channel_mjoin(sd); //Join new map
@@ -9403,16 +9406,14 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		sd->areanpc_id = 0;
 
 	/* It broke at some point (e.g. during a crash), so we make it visibly dead again. */
-	if( !sd->status.hp && !pc_isdead(sd) && status_isdead(&sd->bl) )
-			pc_setdead(sd);
+	if(!sd->status.hp && !pc_isdead(sd) && status_isdead(&sd->bl))
+		pc_setdead(sd);
 
 	//If player is dead, and is spawned (such as @refresh) send death packet. [Valaris]
 	if(pc_isdead(sd))
 		clif_clearunit_area(&sd->bl, CLR_DEAD);
-	else {
+	else
 		skill_usave_trigger(sd);
-		clif_changed_dir(&sd->bl, SELF);
-	}
 
 	// Trigger skill effects if you appear standing on them
 	if(!battle_config.pc_invincible_time)

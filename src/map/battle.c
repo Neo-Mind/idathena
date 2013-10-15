@@ -4775,8 +4775,7 @@ void battle_do_reflect(int attack_type, struct Damage *wd, struct block_list* sr
 					//wd->dmg_lv = ATK_BLOCK;
 				//}
 				if( attack_type == BF_WEAPON && tsc->data[SC_REFLECTDAMAGE] )
-					map_foreachinshootrange(battle_damage_area, target, skill_get_splash(LG_REFLECTDAMAGE, 1),
-						BL_CHAR, tick, target, wd->amotion, sstatus->dmotion, rdamage, tstatus->race);
+					map_foreachinshootrange(battle_damage_area, target, skill_get_splash(LG_REFLECTDAMAGE, 1), BL_CHAR, tick, target, wd->amotion, sstatus->dmotion, rdamage, tstatus->race);
 				else if( attack_type == BF_WEAPON || attack_type == BF_MISC ) {
 					rdelay = clif_damage(src, src, tick, wd->amotion, sstatus->dmotion, rdamage, 1, 4, 0);
 					if( tsd )

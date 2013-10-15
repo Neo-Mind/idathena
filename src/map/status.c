@@ -9122,7 +9122,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = 2 * val1; //Aspd reduction %
 				val3 = 2 * val1; //Dmg reduction %
 				if( sc->data[SC_PARALYSIS] )
-					sc_start(src, bl, SC_ENDURE, 100, val1, tick); //Start endure for same duration
+					sc_start(src,bl,SC_ENDURE,100,val1,tick); //Start endure for same duration
 				break;
 			case SC_STYLE_CHANGE: //[Lighta] need real info
 				tick = -1;
