@@ -7547,6 +7547,7 @@ static const struct _battle_data {
 	{ "snovice_call_type",                  &battle_config.snovice_call_type,               0,      0,      1,              },
 	{ "guild_notice_changemap",             &battle_config.guild_notice_changemap,          2,      0,      2,              },
 	{ "drop_rateincrease",                  &battle_config.drop_rateincrease,               0,      0,      1,              },
+	{ "feature.auction",                    &battle_config.feature_auction,                 0,      0,      2,              },
 };
 #ifndef STATS_OPT_OUT
 /**
@@ -7738,32 +7739,40 @@ void battle_adjust_conf()
 	battle_config.max_third_aspd = 2000 - battle_config.max_third_aspd * 10;
 	battle_config.max_walk_speed = 100 * DEFAULT_WALK_SPEED / battle_config.max_walk_speed;
 	battle_config.max_cart_weight *= 10;
-	
-	if(battle_config.max_def > 100 && !battle_config.weapon_defense_type) //Added by [Skotlex]
+
+	if (battle_config.max_def > 100 && !battle_config.weapon_defense_type) //Added by [Skotlex]
 		battle_config.max_def = 100;
 
-	if(battle_config.min_hitrate > battle_config.max_hitrate)
+	if (battle_config.min_hitrate > battle_config.max_hitrate)
 		battle_config.min_hitrate = battle_config.max_hitrate;
-		
-	if(battle_config.pet_max_atk1 > battle_config.pet_max_atk2) //Skotlex
+
+	if (battle_config.pet_max_atk1 > battle_config.pet_max_atk2) //Skotlex
 		battle_config.pet_max_atk1 = battle_config.pet_max_atk2;
-	
+
 	if (battle_config.day_duration && battle_config.day_duration < 60000) //Added by [Yor]
 		battle_config.day_duration = 60000;
 	if (battle_config.night_duration && battle_config.night_duration < 60000) //Added by [Yor]
 		battle_config.night_duration = 60000;
 
 #if PACKETVER < 20100427
-	if( battle_config.feature_buying_store ) {
+	if (battle_config.feature_buying_store) {
 		ShowWarning("conf/battle/feature.conf buying_store is enabled but it requires PACKETVER 2010-04-27 or newer, disabling...\n");
 		battle_config.feature_buying_store = 0;
 	}
 #endif
 
 #if PACKETVER < 20100803
-	if( battle_config.feature_search_stores ) {
+	if (battle_config.feature_search_stores) {
 		ShowWarning("conf/battle/feature.conf search_stores is enabled but it requires PACKETVER 2010-08-03 or newer, disabling...\n");
 		battle_config.feature_search_stores = 0;
+	}
+#endif
+
+#if PACKETVER > 20120000 && PACKETVER < 20130515 /* Exact date (when it started) not known */
+	if (battle_config.feature_auction == 1) {
+		ShowWarning("conf/battle/feature.conf:feature.auction is enabled but it is not stable on PACKETVER "EXPAND_AND_QUOTE(PACKETVER)", disabling...\n");
+		ShowWarning("conf/battle/feature.conf:feature.auction change value to '2' to silence this warning and maintain it enabled\n");
+		battle_config.feature_auction = 0;
 	}
 #endif
 

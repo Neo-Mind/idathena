@@ -8057,6 +8057,11 @@ ACMD_FUNC(auction)
 {
 	nullpo_ret(sd);
 
+	if (!battle_config.feature_auction) {
+		clif_colormes(sd, color_table[COLOR_RED], msg_txt(1489));
+		return 0;
+	}
+
 	clif_Auction_openwindow(sd);
 
 	return 0;
@@ -8072,25 +8077,17 @@ ACMD_FUNC(ksprotection)
 	if( sd->state.noks ) {
 		sd->state.noks = 0;
 		clif_displaymessage(fd, msg_txt(1325)); // [ K.S Protection Inactive ]
-	}
-	else
-	{
-		if( !message || !*message || !strcmpi(message, "party") )
-		{ // Default is Party
+	} else {
+		if( !message || !*message || !strcmpi(message, "party") ) { // Default is Party
 			sd->state.noks = 2;
 			clif_displaymessage(fd, msg_txt(1326)); // [ K.S Protection Active - Option: Party ]
-		}
-		else if( !strcmpi(message, "self") )
-		{
+		} else if( !strcmpi(message, "self") ) {
 			sd->state.noks = 1;
 			clif_displaymessage(fd, msg_txt(1327)); // [ K.S Protection Active - Option: Self ]
-		}
-		else if( !strcmpi(message, "guild") )
-		{
+		} else if( !strcmpi(message, "guild") ) {
 			sd->state.noks = 3;
 			clif_displaymessage(fd, msg_txt(1328)); // [ K.S Protection Active - Option: Guild ]
-		}
-		else
+		} else
 			clif_displaymessage(fd, msg_txt(1329)); // Usage: @noks <self|party|guild>
 	}
 	return 0;

@@ -4931,11 +4931,12 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				TBL_HOM *hd = BL_CAST(BL_HOM,src);
 				hom_delspiritball(hd,skill_id == MH_SILVERVEIN_RUSH ? 1 : 2,0);
 				skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag);
-				break;
 			}
+			break;
 		case MH_TINDER_BREAKER:
 		case MH_CBC:
-		case MH_EQC: {
+		case MH_EQC:
+			{
 				int duration = 0;
 				TBL_HOM *hd = BL_CAST(BL_HOM,src);
 				duration = max(skill_lv,(status_get_str(src) / 7 - status_get_str(bl) / 10)) * 1000; //Yommy formula
@@ -4950,8 +4951,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					clif_skill_poseffect(src,skill_id,skill_lv,bl->x,bl->y,tick);
 #endif
 				}
-				break;
 			}
+			break;
 
 		case 0: /* No skill - basic/normal attack */
 			if (sd) {
@@ -7223,21 +7224,23 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if (sd) {
 				struct map_session_data *f_sd = pc_get_father(sd);
 				struct map_session_data *m_sd = pc_get_mother(sd);
-				//If neither was found
-				if (!f_sd && !m_sd) {
+				bool we_baby_parents = false;
+				if (m_sd && check_distance_bl(bl,&m_sd->bl,AREA_SIZE)) {
+					sc_start(src,&m_sd->bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
+					clif_specialeffect(&m_sd->bl,408,AREA);
+					we_baby_parents = true;
+				}
+				if (f_sd && check_distance_bl(bl,&f_sd->bl,AREA_SIZE)) {
+					sc_start(src,&f_sd->bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
+					clif_specialeffect(&f_sd->bl,408,AREA);
+					we_baby_parents = true;
+				}
+				if (!we_baby_parents) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					map_freeblock_unlock();
 					return 0;
-				}
-				status_change_start(src,bl,SC_STUN,10000,skill_lv,0,0,0,skill_get_time2(skill_id,skill_lv),8);
-				if (f_sd) {
-					sc_start(src,&f_sd->bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
-					clif_specialeffect(&f_sd->bl,408,AREA);
-				}
-				if (m_sd) {
-					sc_start(src,&m_sd->bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
-					clif_specialeffect(&m_sd->bl,408,AREA);
-				}
+				} else
+					status_change_start(src,bl,SC_STUN,10000,skill_lv,0,0,0,skill_get_time2(skill_id,skill_lv),8); 
 			}
 			break;
 

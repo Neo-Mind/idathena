@@ -52,7 +52,7 @@
 #include <stdarg.h>
 #include <time.h>
 
-/* for clif_clearunit_delayed */
+/* For clif_clearunit_delayed */
 static struct eri *delay_clearunit_ers;
 
 //#define DUMP_UNKNOWN_PACKET
@@ -67,7 +67,15 @@ struct s_packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB + 1];
 
 //Converts item type in case of pet eggs.
 static inline int itemtype(int type) {
-	return ( type == IT_PETEGG ) ? IT_WEAPON : type;
+	switch( type ) {
+#if PACKETVER >= 20080827
+		case IT_WEAPON:	return IT_ARMOR;
+		case IT_ARMOR:
+		case IT_PETARMOR:
+#endif
+		case IT_PETEGG:	return IT_WEAPON;
+		default:	return type;
+	}
 }
 
 
@@ -5419,7 +5427,7 @@ void clif_status_change(struct block_list *bl,int type,int flag,int tick,int val
 		WBUFL(buf,21) = val3;
 	}
 #endif
-	clif_send(buf,packet_len(WBUFW(buf,0)),bl, (sd && sd->status.option&OPTION_INVISIBLE) ? SELF : AREA);
+	clif_send(buf,packet_len(WBUFW(buf,0)),bl,(sd && sd->status.option&OPTION_INVISIBLE) ? SELF : AREA);
 }
 
 
@@ -5506,15 +5514,15 @@ void clif_GlobalMessage(struct block_list* bl, const char* message, enum send_ta
 	if (!message)
 		return;
 
-	len = strlen(message)+1;
+	len = strlen(message) + 1;
 
-	if (len > sizeof(buf)-8) {
+	if (len > sizeof(buf) - 8) {
 		ShowWarning("clif_GlobalMessage: Truncating too long message '%s' (len=%d).\n", message, len);
-		len = sizeof(buf)-8;
+		len = sizeof(buf) - 8;
 	}
 
 	WBUFW(buf,0) = 0x8d;
-	WBUFW(buf,2) = len+8;
+	WBUFW(buf,2) = len + 8;
 	WBUFL(buf,4) = bl->id;
 	safestrncpy((char *) WBUFP(buf,8),message,len);
 	clif_send((unsigned char *) buf,WBUFW(buf,2),bl,target);
@@ -14147,6 +14155,9 @@ void clif_Auction_openwindow(struct map_session_data *sd)
 	if( sd->state.storage_flag || sd->state.vending || sd->state.buyingstore || sd->state.trading )
 		return;
 
+	if( !battle_config.feature_auction )
+		return;
+
 	WFIFOHEAD(fd,packet_len(0x25f));
 	WFIFOW(fd,0) = 0x25f;
 	WFIFOL(fd,2) = 0;
@@ -14239,6 +14250,9 @@ void clif_parse_Auction_setitem(int fd, struct map_session_data *sd)
 	int amount = RFIFOL(fd,info->pos[1]); // Always 1
 	struct item_data *item;
 
+	if( !battle_config.feature_auction )
+		return;
+
 	if( sd->auction.amount > 0 )
 		sd->auction.amount = 0;
 
@@ -14316,11 +14330,14 @@ void clif_parse_Auction_register(int fd, struct map_session_data *sd)
 	struct item_data *item;
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
 
+	if( !battle_config.feature_auction )
+		return;
+
 	auction.price = RFIFOL(fd,info->pos[0]);
 	auction.buynow = RFIFOL(fd,info->pos[1]);
 	auction.hours = RFIFOW(fd,info->pos[2]);
 
-	// Invalid Situations...
+	// Invalid Situations
 	if( sd->auction.amount < 1 ) {
 		ShowWarning("Character %s trying to register auction without item.\n", sd->status.name);
 		return;
@@ -14336,7 +14353,7 @@ void clif_parse_Auction_register(int fd, struct map_session_data *sd)
 		return;
 	}
 
-	// Auction checks...
+	// Auction checks
 	if( sd->status.inventory[sd->auction.index].bound && !pc_can_give_bounded_items(sd) ) {
 		clif_displaymessage(sd->fd, msg_txt(293));
 		clif_Auction_message(fd, 2); // The auction has been canceled
@@ -14449,6 +14466,9 @@ void clif_parse_Auction_search(int fd, struct map_session_data* sd)
 	int price = RFIFOL(fd,info->pos[1]);  // FIXME: bug #5071
 	int page = RFIFOW(fd,info->pos[3]);
 
+	if( !battle_config.feature_auction )
+		return; 
+
 	clif_parse_Auction_cancelreg(fd, sd);
 	
 	safestrncpy(search_text, (char*)RFIFOP(fd,info->pos[2]), sizeof(search_text));
@@ -14464,6 +14484,10 @@ void clif_parse_Auction_search(int fd, struct map_session_data* sd)
 void clif_parse_Auction_buysell(int fd, struct map_session_data* sd)
 {
 	short type = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]) + 6;
+
+	if( !battle_config.feature_auction )
+		return;
+
 	clif_parse_Auction_cancelreg(fd, sd);
 
 	intif_Auction_requestlist(sd->status.char_id, type, 0, "", 1);
@@ -14652,11 +14676,10 @@ void clif_parse_cashshop_buy(int fd, struct map_session_data *sd)
 			ShowWarning("Player %u sent incorrect cash shop buy packet (len %u:%u)!\n", sd->status.char_id, len, 10 + count * s_itl);
 			return;
 		}
-		if(cmd == 0x848) {
+		if( cmd == 0x848 )
 			cashshop_buylist(sd, points, count, item_list);
-		} else {
+		else
 			fail = npc_cashshop_buylist(sd, points, count, item_list);
-		}
 #endif
 	}
 	clif_cashshop_ack(sd, fail);
@@ -16727,7 +16750,7 @@ static int clif_parse(int fd)
 		} else {
 			// Check authentification packet to know packet version
 			packet_ver = clif_guess_PacketVer(fd, 0, &err);
-			if( err ) {// failed to identify packet version
+			if( err ) { // Failed to identify packet version
 				ShowInfo("clif_parse: Disconnecting session #%d with unknown packet version%s (p:0x%04x|l:%d).\n", fd, (
 					err == 1 ? "" :
 					err == 2 ? ", possibly for having an invalid account_id" :
