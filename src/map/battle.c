@@ -903,9 +903,11 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			return 0;
 		}
 
-		if( sc->data[SC_DODGE] && ( !sc->opt1 || sc->opt1 == OPT1_BURNING ) &&
-			(flag&BF_LONG || sc->data[SC_SPURT]) && rnd()%100 < 20 ) {
-			if( sd && pc_issit(sd) ) pc_setstand(sd); //Stand it to dodge.
+		if( sc->data[SC_DODGE] && (!sc->opt1 || sc->opt1 == OPT1_BURNING) &&
+			(flag&BF_LONG || sc->data[SC_SPURT]) && rnd()%100 < 20 )
+		{
+			if( sd && pc_issit(sd) )
+				pc_setstand(sd); //Stand it to dodge.
 			clif_skill_nodamage(bl,bl,TK_DODGE,1,1);
 			if( !sc->data[SC_COMBO] )
 				sc_start4(src,bl,SC_COMBO,100,TK_JUMPKICK,src->id,1,0,2000);
@@ -1145,7 +1147,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( !damage )
 			return 0;
 
-		if( (sce = sc->data[SC_LIGHTNINGWALK]) && flag&BF_LONG && rnd()%100 < sce->val1 ) {
+		if( (sce = sc->data[SC_LIGHTNINGWALK]) && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG && rnd()%100 < sce->val1 ) {
 			int dx[8] = { 0,-1,-1,-1,0,1,1,1 };
 			int dy[8] = { 1,1,0,-1,-1,-1,0,1 };
 			uint8 dir = map_calc_dir(bl,src->x,src->y);
@@ -2159,7 +2161,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 	else if(nk&NK_IGNORE_FLEE)
 		return true;
 
-	if(sc && (sc->data[SC_NEUTRALBARRIER] || sc->data[SC_NEUTRALBARRIER_MASTER]) && wd.flag&BF_LONG)
+	if(sc && (sc->data[SC_NEUTRALBARRIER] || sc->data[SC_NEUTRALBARRIER_MASTER]) && (wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG)
 		return false;
 
 	flee = tstatus->flee;
@@ -2183,7 +2185,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 	hitrate += sstatus->hit - flee;
 
 	//Fogwall's hit penalty is only for normal ranged attacks.
-	if(wd.flag&BF_LONG && !skill_id && tsc && tsc->data[SC_FOGWALL])
+	if((wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG && !skill_id && tsc && tsc->data[SC_FOGWALL])
 		hitrate -= 50;
 
 	if(sd && is_skill_using_arrow(src,skill_id))
@@ -2242,8 +2244,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 			case LG_BANISHINGPOINT:
 				hitrate += 3 * skill_lv;
 				break;
-		}
-	//+1 hit per level of Double Attack on a successful double attack (making sure other multi attack skills do not trigger this) [helvetica]
+		} //+1 hit per level of Double Attack on a successful double attack (making sure other multi attack skills do not trigger this) [helvetica]
 	else if(sd && wd.type&0x08 && wd.div_ == 2)
 		hitrate += pc_checkskill(sd,TF_DOUBLE);
 
@@ -2258,6 +2259,9 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 			(skill = pc_checkskill(sd,GN_TRAINING_SWORD)) > 0)
 			hitrate += 3 * skill;
 	}
+
+	if(sc && sc->data[SC_MTF_ASPD])
+		hitrate += 5;
 
 	hitrate = cap_value(hitrate,battle_config.min_hitrate,battle_config.max_hitrate);
 	return (rnd()%100 < hitrate);
@@ -2920,13 +2924,16 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 						ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.atk_rate);
 						RE_ALLATK_ADDRATE(wd, sd->bonus.atk_rate);
 					}
-
 #ifndef RENEWAL
 					if(is_attack_critical(wd, src, target, skill_id, skill_lv, false) && sd->bonus.crit_atk_rate) {
 						//Add +crit damage bonuses here in pre-renewal mode [helvetica]
 						ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.crit_atk_rate);
 					}
 #endif
+					if(is_attack_critical(wd, src, target, skill_id, skill_lv, false) && sc && sc->data[SC_MTF_CRIDAMAGE]) {
+						ATK_ADDRATE(wd.damage, wd.damage2, 25);
+						RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.crit_atk_rate'
+					}
 					if(sd->status.party_id && (skill = pc_checkskill(sd, TK_POWER)) > 0) {
 						//Exclude the player himself [Inkfish]
 						if((i = party_foreachsamemap(party_sub_count, sd, 0)) > 1) {
@@ -4149,6 +4156,10 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 			if(sc->data[SC_FLASHCOMBO]) {
 				ATK_ADD(wd.damage, wd.damage2, sc->data[SC_FLASHCOMBO]->val2);
 				RE_ALLATK_ADD(wd, sc->data[SC_FLASHCOMBO]->val2);
+			}
+			if(sc->data[SC_MTF_RANGEATK] && (wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG) {
+				ATK_ADDRATE(wd.damage, wd.damage2, 25);
+				RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.long_attack_atk_rate'
 			}
 		}
 
@@ -6527,8 +6538,11 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			pc_addspiritball(tsd,skill_get_time2(SR_GENTLETOUCH_ENERGYGAIN,tsc->data[SC_GT_ENERGYGAIN]->val1),spheremax);
 	}
 
-	if (tsc && tsc->data[SC_KAAHI] && tsc->data[SC_KAAHI]->val4 == INVALID_TIMER && tstatus->hp < tstatus->max_hp)
-		tsc->data[SC_KAAHI]->val4 = add_timer(tick + skill_get_time2(SL_KAAHI,tsc->data[SC_KAAHI]->val1),kaahi_heal_timer,target->id,SC_KAAHI); //Activate heal.
+	if (tsc && tsc->data[SC_MTF_MLEATKED] && rnd()%100 < 20)
+			clif_skill_nodamage(target,target,SM_ENDURE,5,sc_start(target,target,SC_ENDURE,100,5,skill_get_time(SM_ENDURE,5)));
+
+	if (tsc && tsc->data[SC_KAAHI] && tsc->data[SC_KAAHI]->val4 == INVALID_TIMER && tstatus->hp < tstatus->max_hp) //Activate heal.
+		tsc->data[SC_KAAHI]->val4 = add_timer(tick + skill_get_time2(SL_KAAHI,tsc->data[SC_KAAHI]->val1),kaahi_heal_timer,target->id,SC_KAAHI);
 
 	wd = battle_calc_attack(BF_WEAPON,src,target,0,0,flag);
 
@@ -7549,6 +7563,7 @@ static const struct _battle_data {
 	{ "guild_notice_changemap",             &battle_config.guild_notice_changemap,          2,      0,      2,              },
 	{ "drop_rateincrease",                  &battle_config.drop_rateincrease,               0,      0,      1,              },
 	{ "feature.auction",                    &battle_config.feature_auction,                 0,      0,      2,              },
+	{ "mon_trans_disable_in_gvg",           &battle_config.mon_trans_disable_in_gvg,        0,      0,      1,              },
 };
 #ifndef STATS_OPT_OUT
 /**

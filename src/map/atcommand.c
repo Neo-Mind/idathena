@@ -4771,8 +4771,13 @@ ACMD_FUNC(disguise)
 		return -1;
 	}
 
-	if(pc_isriding(sd)) {
+	if (pc_isriding(sd)) {
 		clif_displaymessage(fd, msg_txt(1144)); // Character cannot be disguised while mounted.
+		return -1;
+	}
+
+	if (sd->sc.data[SC_MONSTER_TRANSFORM]) {
+		clif_displaymessage(fd, msg_txt(1492)); // Character cannot be disguised while in monster form.
 		return -1;
 	}
 

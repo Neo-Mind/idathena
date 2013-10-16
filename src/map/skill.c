@@ -17826,7 +17826,7 @@ int skill_split_str (char *str, char **val, int num)
 		val[i] = str;
 		str = strchr(str,',');
 		if( str )
-			*str++=0;
+			*str++ = 0;
 	}
 
 	return i;
@@ -17843,7 +17843,7 @@ int skill_split_atoi (char *str, int *val)
 		val[i] = atoi(str);
 		str = strchr(str,':');
 		if( str )
-			*str++=0;
+			*str++ = 0;
 	}
 	if( i == 0 ) //No data found.
 		return 0;

@@ -1046,6 +1046,10 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_WEDDING] |= SCB_SPEED;
 	StatusChangeFlagTable[SC_ALL_RIDING] |= SCB_SPEED;
 
+	StatusChangeFlagTable[SC_MTF_ASPD] |= SCB_ASPD|SCB_HIT;
+	StatusChangeFlagTable[SC_MTF_MATK] |= SCB_MATK;
+	StatusChangeFlagTable[SC_MTF_MLEATKED] |= SCB_ALL;
+
 	/* StatusDisplayType Table [Ind] */
 	StatusDisplayType[SC_ALL_RIDING]	  = true;
 	StatusDisplayType[SC_PUSH_CART]		  = true;
@@ -3267,6 +3271,8 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 			sd->subele[ELE_EARTH] += i;
 			sd->subele[ELE_FIRE] -= i;
 		}
+		if( sc->data[SC_MTF_MLEATKED] )
+			sd->subele[ELE_NEUTRAL] += 2;
 		if( sc->data[SC_FIRE_INSIGNIA] && sc->data[SC_FIRE_INSIGNIA]->val1 == 3 )
 			sd->magic_addele[ELE_FIRE] += 25;
 		if( sc->data[SC_WATER_INSIGNIA] && sc->data[SC_WATER_INSIGNIA]->val1 == 3 )
@@ -4941,6 +4947,8 @@ static unsigned short status_calc_matk(struct block_list *bl, struct status_chan
 		matk += matk * sc->data[SC_MINDBREAKER]->val2 / 100;
 	if (sc->data[SC_INCMATKRATE])
 		matk += matk * sc->data[SC_INCMATKRATE]->val1 / 100;
+	if (sc->data[SC_MTF_MATK])
+		matk += matk * 25 / 100;
 
 	return (unsigned short)cap_value(matk,0,USHRT_MAX);
 }
@@ -5655,7 +5663,7 @@ static short status_calc_aspd(struct block_list *bl, struct status_change *sc, s
 	if(sc->data[SC_GOLDENE_FERSE])
 		skills2 += sc->data[SC_GOLDENE_FERSE]->val3;
 
-	return ( flag&1 ? (skills1 + pots) : skills2 );
+	return (flag&1 ? (skills1 + pots) : skills2);
 }
 #endif
 
@@ -5669,11 +5677,13 @@ static short status_calc_fix_aspd(struct block_list *bl, struct status_change *s
 			aspd = 2000 - sc->data[SC_OVERED_BOOST]->val3 * 10;
     }
 
-	if ((sc->data[SC_GUST_OPTION] || sc->data[SC_BLAST_OPTION]
-		|| sc->data[SC_WILD_STORM_OPTION]))
+	if ((sc->data[SC_GUST_OPTION] || sc->data[SC_BLAST_OPTION] ||
+		sc->data[SC_WILD_STORM_OPTION]))
 		aspd -= 50; //+5 ASPD
-	if (sc && sc->data[SC_FIGHTINGSPIRIT] && sc->data[SC_FIGHTINGSPIRIT]->val2)
+	if (sc->data[SC_FIGHTINGSPIRIT] && sc->data[SC_FIGHTINGSPIRIT]->val2)
 		aspd -= (bl->type == BL_PC ? pc_checkskill((TBL_PC *)bl, RK_RUNEMASTERY) : 10) / 10 * 40;
+	if (sc->data[SC_MTF_ASPD])
+		aspd -= 10;
 
     return cap_value(aspd, 0, 2000); //Will be recap for proper bl anyway
 }
@@ -5780,8 +5790,6 @@ static short status_calc_aspd_rate(struct block_list *bl, struct status_change *
 		aspd_rate += 150;
 	if(sc->data[SC_HALLUCINATIONWALK_POSTDELAY])
 		aspd_rate += 500;
-	if(sc->data[SC_FIGHTINGSPIRIT] && sc->data[SC_FIGHTINGSPIRIT]->val2)
-		aspd_rate -= sc->data[SC_FIGHTINGSPIRIT]->val2;
 	if(sc->data[SC_PARALYSE])
 		aspd_rate += 100;
 	if(sc->data[SC__BODYPAINT])
@@ -10170,6 +10178,11 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_FULL_THROTTLE:
 			sc_start(bl,bl,SC_REBOUND,100,sce->val1,skill_get_time2(ALL_FULL_THROTTLE,sce->val1));
 			break;
+
+		case SC_MONSTER_TRANSFORM:
+			if (sce->val2)
+				status_change_end(bl,(sc_type)sce->val2,INVALID_TIMER);
+			break;
 	}
 
 	opt_flag = 1;
@@ -10693,7 +10706,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			//if( sce->val4 % 1000 == 0 ) {
 			//	char timer[10];
 			//	snprintf (timer,10,"%d",sce->val4 / 1000);
-			//	clif_message(bl,timer);
+			//	clif_displaymessage(bl,timer);
 			//}
 			if( (sce->val4 -= 500) > 0 ) {
 				sc_timer_next(500 + tick,status_change_timer,bl->id,data);

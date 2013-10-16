@@ -9428,7 +9428,7 @@ int pc_split_str(char *str, char **val, int num)
 		val[i] = str;
 		str = strchr(str,',');
 		if(str && i < num - 1) //Do not remove a trailing comma.
-			*str ++= 0;
+			*str++ = 0;
 	}
 	return i;
 }
@@ -9442,7 +9442,7 @@ int pc_split_atoi(char* str, int* val, char sep, int max)
 		val[i] = atoi(str);
 		str = strchr(str,sep);
 		if(str)
-			*str ++= 0;
+			*str++ = 0;
 	}
 	//Zero up the remaining.
 	for(j = i; j < max; j++)
@@ -9471,7 +9471,7 @@ int pc_split_atoui(char* str, unsigned int* val, char sep, int max)
 			val[i] = (unsigned int)f;
 		str = strchr(str,sep);
 		if(str)
-			*str ++= 0;
+			*str++ = 0;
 	}
 	//Zero up the remaining.
 	for(j = i; j < max; j++)

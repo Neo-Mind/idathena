@@ -9120,7 +9120,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 
 	if(sd->state.rewarp) { //Rewarp player.
 		sd->state.rewarp = 0;
-		clif_changemap(sd, sd->bl.m, sd->bl.x, sd->bl.y);
+		clif_changemap(sd,sd->bl.m,sd->bl.x,sd->bl.y);
 		return;
 	}
 
@@ -9137,7 +9137,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if(sd->vd.cloth_color)
 		clif_refreshlook(&sd->bl,sd->bl.id,LOOK_CLOTHES_COLOR,sd->vd.cloth_color,SELF);
 	//Item
-	clif_inventorylist(sd); //Inventory list first, otherwise deleted items in pc_checkitem show up as 'unknown item'
+	clif_inventorylist(sd); //Inventory list first,otherwise deleted items in pc_checkitem show up as 'unknown item'
 	pc_checkitem(sd);
 
 	//Cart
@@ -9187,38 +9187,38 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if(map[sd->bl.m].flag.pvp && !(sd->sc.option&OPTION_INVISIBLE)) {
 		if(!battle_config.pk_mode) { //Remove pvp stuff for pk_mode [Valaris]
 			if(!map[sd->bl.m].flag.pvp_nocalcrank)
-				sd->pvp_timer = add_timer(gettick()+200, pc_calc_pvprank_timer, sd->bl.id, 0);
+				sd->pvp_timer = add_timer(gettick() + 200,pc_calc_pvprank_timer,sd->bl.id,0);
 			sd->pvp_rank = 0;
 			sd->pvp_lastusers = 0;
 			sd->pvp_point = 5;
 			sd->pvp_won = 0;
 			sd->pvp_lost = 0;
 		}
-		clif_map_property(sd, MAPPROPERTY_FREEPVPZONE);
+		clif_map_property(sd,MAPPROPERTY_FREEPVPZONE);
 	} else if(sd->duel_group) //Set flag, if it's a duel [LuzZza]
-		clif_map_property(sd, MAPPROPERTY_FREEPVPZONE);
+		clif_map_property(sd,MAPPROPERTY_FREEPVPZONE);
 
 	if(map[sd->bl.m].flag.gvg_dungeon)
-		clif_map_property(sd, MAPPROPERTY_FREEPVPZONE); //TODO: Figure out the real packet to send here.
+		clif_map_property(sd,MAPPROPERTY_FREEPVPZONE); //TODO: Figure out the real packet to send here.
 
 	if(map_flag_gvg2(sd->bl.m))
-		clif_map_property(sd, MAPPROPERTY_AGITZONE);
+		clif_map_property(sd,MAPPROPERTY_AGITZONE);
 
 	//Info about nearby objects
 	//Must use foreachinarea (CIRCULAR_AREA interferes with foreachinrange)
-	map_foreachinarea(clif_getareachar, sd->bl.m, sd->bl.x-AREA_SIZE, sd->bl.y-AREA_SIZE, sd->bl.x+AREA_SIZE, sd->bl.y+AREA_SIZE, BL_ALL, sd);
+	map_foreachinarea(clif_getareachar,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,BL_ALL,sd);
 
 	//Pet
 	if(sd->pd) {
 		if(battle_config.pet_no_gvg && map_flag_gvg2(sd->bl.m)) { //Return the pet to egg. [Skotlex]
-			clif_displaymessage(sd->fd, msg_txt(666));
-			pet_menu(sd, 3); //Option 3 is return to egg.
+			clif_displaymessage(sd->fd,msg_txt(666));
+			pet_menu(sd,3); //Option 3 is return to egg.
 		} else {
 			map_addblock(&sd->pd->bl);
 			clif_spawn(&sd->pd->bl);
 			clif_send_petdata(sd,sd->pd,0,0);
 			clif_send_petstatus(sd);
-//			skill_unit_move(&sd->pd->bl,gettick(),1);
+			//skill_unit_move(&sd->pd->bl,gettick(),1);
 		}
 	}
 
@@ -9231,7 +9231,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		clif_hominfo(sd,sd->hd,0); //For some reason, at least older clients want this sent twice
 		clif_homskillinfoblock(sd);
 		if(battle_config.hom_setting&0x8)
-			status_calc_bl(&sd->hd->bl, SCB_SPEED); //Homunc mimic their master's speed on each map change
+			status_calc_bl(&sd->hd->bl,SCB_SPEED); //Homunc mimic their master's speed on each map change
 		if(!(battle_config.hom_setting&0x2))
 			skill_unit_move(&sd->hd->bl,gettick(),1); //Apply land skills immediately
 	}
@@ -9241,7 +9241,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		clif_spawn(&sd->md->bl);
 		clif_mercenary_info(sd);
 		clif_mercenary_skillblock(sd);
-		status_calc_bl(&sd->md->bl, SCB_SPEED); //Mercenary mimic their master's speed on each map change
+		status_calc_bl(&sd->md->bl,SCB_SPEED); //Mercenary mimic their master's speed on each map change
 	}
 
 	if(sd->ed) {
@@ -9251,7 +9251,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		clif_elemental_updatestatus(sd,SP_HP);
 		clif_hpmeter_single(sd->fd,sd->ed->bl.id,sd->ed->battle_status.hp,sd->ed->battle_status.max_hp);
 		clif_elemental_updatestatus(sd,SP_SP);
-		status_calc_bl(&sd->ed->bl, SCB_SPEED); //Elemental mimic their master's speed on each map change
+		status_calc_bl(&sd->ed->bl,SCB_SPEED); //Elemental mimic their master's speed on each map change
 	}
 
 	if(sd->state.connect_new) {
@@ -9267,55 +9267,55 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		clif_initialstatus(sd);
 
 		if(sd->sc.option&OPTION_FALCON)
-			clif_status_load(&sd->bl, SI_FALCON, 1);
+			clif_status_load(&sd->bl,SI_FALCON,1);
 
 		if(sd->sc.option&OPTION_RIDING)
-			clif_status_load(&sd->bl, SI_RIDING, 1);
+			clif_status_load(&sd->bl,SI_RIDING,1);
 
 		else if(sd->sc.option&OPTION_DRAGON)
-			clif_status_load(&sd->bl, SI_RIDING, 1);
+			clif_status_load(&sd->bl,SI_RIDING,1);
 
 		else if(sd->sc.option&OPTION_WUGRIDER)
-			clif_status_load(&sd->bl, SI_WUGRIDER, 1);
+			clif_status_load(&sd->bl,SI_WUGRIDER,1);
 
 		if(sd->status.manner < 0)
-			sc_start(&sd->bl, &sd->bl, SC_NOCHAT, 100, 0, 0);
+			sc_start(&sd->bl,&sd->bl,SC_NOCHAT,100,0,0);
 
 		//Auron reported that This skill only triggers when you logon on the map o.O [Skotlex]
 		if((lv = pc_checkskill(sd,SG_KNOWLEDGE)) > 0) {
 			if(sd->bl.m == sd->feel_map[0].m
 				|| sd->bl.m == sd->feel_map[1].m
 				|| sd->bl.m == sd->feel_map[2].m)
-				sc_start(&sd->bl, &sd->bl, SC_KNOWLEDGE, 100, lv, skill_get_time(SG_KNOWLEDGE, lv));
+				sc_start(&sd->bl,&sd->bl,SC_KNOWLEDGE,100,lv,skill_get_time(SG_KNOWLEDGE,lv));
 		}
 
 		if(sd->pd && sd->pd->pet.intimate > 900)
-			clif_pet_emotion(sd->pd,(sd->pd->pet.class_ - 100)*100 + 50 + pet_hungry_val(sd->pd));
+			clif_pet_emotion(sd->pd,(sd->pd->pet.class_ - 100) * 100 + 50 + pet_hungry_val(sd->pd));
 
 		if(merc_is_hom_active(sd->hd))
 			merc_hom_init_timers(sd->hd);
 
 		if(night_flag && map[sd->bl.m].flag.nightenabled) {
 			sd->state.night = 1;
-			clif_status_load(&sd->bl, SI_NIGHT, 1);
+			clif_status_load(&sd->bl,SI_NIGHT,1);
 		}
 
 		//Notify everyone that this char logged in [Skotlex].
-		map_foreachpc(clif_friendslist_toggle_sub, sd->status.account_id, sd->status.char_id, 1);
+		map_foreachpc(clif_friendslist_toggle_sub,sd->status.account_id,sd->status.char_id,1);
 
 		//Set the initial idle time
 		sd->idletime = last_tick;
 
 		//Login Event
-		npc_script_event(sd, NPCE_LOGIN);
+		npc_script_event(sd,NPCE_LOGIN);
 	} else {
 		//For some reason the client "loses" these on warp/map-change.
-		clif_updatestatus(sd, SP_STR);
-		clif_updatestatus(sd, SP_AGI);
-		clif_updatestatus(sd, SP_VIT);
-		clif_updatestatus(sd, SP_INT);
-		clif_updatestatus(sd, SP_DEX);
-		clif_updatestatus(sd, SP_LUK);
+		clif_updatestatus(sd,SP_STR);
+		clif_updatestatus(sd,SP_AGI);
+		clif_updatestatus(sd,SP_VIT);
+		clif_updatestatus(sd,SP_INT);
+		clif_updatestatus(sd,SP_DEX);
+		clif_updatestatus(sd,SP_LUK);
 
 		//Abort currently running script
 		sd->state.using_fake_npc = 0;
@@ -9326,7 +9326,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 			npc_event_dequeue(sd);
 
 		if(sd->guild && (battle_config.guild_notice_changemap == 2 || (battle_config.guild_notice_changemap == 1 && sd->state.changemap)))
-			clif_guild_notice(sd, sd->guild);
+			clif_guild_notice(sd,sd->guild);
 	}
 
 	if(sd->state.changemap) { //Restore information that gets lost on map-change
@@ -9336,32 +9336,32 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 #endif
 		if((battle_config.bg_flee_penalty != 100 || battle_config.gvg_flee_penalty != 100) &&
 			(map_flag_gvg2(sd->state.pmap) || map_flag_gvg2(sd->bl.m) || map[sd->state.pmap].flag.battleground || map[sd->bl.m].flag.battleground))
-			status_calc_bl(&sd->bl, SCB_FLEE); //Refresh flee penalty
+			status_calc_bl(&sd->bl,SCB_FLEE); //Refresh flee penalty
 
 		if(night_flag && map[sd->bl.m].flag.nightenabled) { //Display night.
 			if(!sd->state.night) {
 				sd->state.night = 1;
-				clif_status_load(&sd->bl, SI_NIGHT, 1);
+				clif_status_load(&sd->bl,SI_NIGHT,1);
 			}
 		} else if(sd->state.night) { //Clear night display.
 			sd->state.night = 0;
-			clif_status_load(&sd->bl, SI_NIGHT, 0);
+			clif_status_load(&sd->bl,SI_NIGHT,0);
 		}
 
 		if(map[sd->bl.m].flag.battleground) {
-			clif_map_type(sd, MAPTYPE_BATTLEFIELD); //Battleground Mode
+			clif_map_type(sd,MAPTYPE_BATTLEFIELD); //Battleground Mode
 			if(map[sd->bl.m].flag.battleground == 2)
 				clif_bg_updatescore_single(sd);
 		}
 
 		if(map[sd->bl.m].flag.allowks && !map_flag_ks(sd->bl.m)) {
 			char output[128];
-			sprintf(output, "[ Kill Steal Protection Disabled. KS is allowed in this map ]");
-			clif_broadcast(&sd->bl, output, strlen(output) + 1, BC_BLUE, SELF);
+			sprintf(output,"[ Kill Steal Protection Disabled. KS is allowed in this map ]");
+			clif_broadcast(&sd->bl,output,strlen(output) + 1,BC_BLUE,SELF);
 		}
 
 		map_iwall_get(sd); //Updates Walls Info on this Map to Client
-		status_calc_pc(sd, false); /* Some conditions are map-dependent so we must recalculate */
+		status_calc_pc(sd,false); /* Some conditions are map-dependent so we must recalculate */
 		sd->state.changemap = false;
 
 		//Instances do not need their own channels
@@ -9373,35 +9373,40 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 
 	mail_clear(sd);
 
-	clif_maptypeproperty2(&sd->bl, SELF);
+	clif_maptypeproperty2(&sd->bl,SELF);
 
 	/* Guild Aura Init */
 	if(sd->state.gmaster_flag) {
-		guild_guildaura_refresh(sd, GD_LEADERSHIP, guild_checkskill(sd->state.gmaster_flag, GD_LEADERSHIP));
-		guild_guildaura_refresh(sd, GD_GLORYWOUNDS, guild_checkskill(sd->state.gmaster_flag, GD_GLORYWOUNDS));
-		guild_guildaura_refresh(sd, GD_SOULCOLD, guild_checkskill(sd->state.gmaster_flag, GD_SOULCOLD));
-		guild_guildaura_refresh(sd, GD_HAWKEYES, guild_checkskill(sd->state.gmaster_flag, GD_HAWKEYES));
+		guild_guildaura_refresh(sd,GD_LEADERSHIP,guild_checkskill(sd->state.gmaster_flag,GD_LEADERSHIP));
+		guild_guildaura_refresh(sd,GD_GLORYWOUNDS,guild_checkskill(sd->state.gmaster_flag,GD_GLORYWOUNDS));
+		guild_guildaura_refresh(sd,GD_SOULCOLD,guild_checkskill(sd->state.gmaster_flag,GD_SOULCOLD));
+		guild_guildaura_refresh(sd,GD_HAWKEYES,guild_checkskill(sd->state.gmaster_flag,GD_HAWKEYES));
 	}
 
 	if(sd->state.vending) { /* Show we have a vending */
-		clif_openvending(sd, sd->bl.id, sd->vending);
-		clif_showvendingboard(&sd->bl, sd->message, 0);
+		clif_openvending(sd,sd->bl.id,sd->vending);
+		clif_showvendingboard(&sd->bl,sd->message,0);
 	}
 
 	if(map[sd->bl.m].flag.loadevent) //Lance
-		npc_script_event(sd, NPCE_LOADMAP);
+		npc_script_event(sd,NPCE_LOADMAP);
 
-	if(pc_checkskill(sd, SG_DEVIL) && !pc_nextjobexp(sd))
-		clif_status_load(&sd->bl, SI_DEVIL, 1); //Blindness [Komurka]
+	if(pc_checkskill(sd,SG_DEVIL) && !pc_nextjobexp(sd))
+		clif_status_load(&sd->bl,SI_DEVIL,1); //Blindness [Komurka]
 
 	if(sd->sc.opt2) //Client loses these on warp.
 		clif_changeoption(&sd->bl);
 
+	if(battle_config.mon_trans_disable_in_gvg && map_flag_gvg2(sd->bl.m)) {
+		status_change_end(&sd->bl,SC_MONSTER_TRANSFORM,INVALID_TIMER);
+		clif_displaymessage(sd->fd,msg_txt(1493)); //Transforming into monster is not allowed in Guild Wars.
+	}
+
 	clif_weather_check(sd);
 
 	//For automatic triggering of NPCs after map loading (so you don't need to walk 1 step first)
-	if(map_getcell(sd->bl.m, sd->bl.x, sd->bl.y, CELL_CHKNPC))
-		npc_touch_areanpc(sd, sd->bl.m, sd->bl.x, sd->bl.y);
+	if(map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKNPC))
+		npc_touch_areanpc(sd,sd->bl.m,sd->bl.x,sd->bl.y);
 	else
 		sd->areanpc_id = 0;
 
@@ -9409,15 +9414,15 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if(!sd->status.hp && !pc_isdead(sd) && status_isdead(&sd->bl))
 		pc_setdead(sd);
 
-	//If player is dead, and is spawned (such as @refresh) send death packet. [Valaris]
+	//If player is dead,and is spawned (such as @refresh) send death packet. [Valaris]
 	if(pc_isdead(sd))
-		clif_clearunit_area(&sd->bl, CLR_DEAD);
+		clif_clearunit_area(&sd->bl,CLR_DEAD);
 	else
 		skill_usave_trigger(sd);
 
 	// Trigger skill effects if you appear standing on them
 	if(!battle_config.pc_invincible_time)
-		skill_unit_move(&sd->bl, gettick(), 1);
+		skill_unit_move(&sd->bl,gettick(),1);
 }
 
 
@@ -17295,19 +17300,19 @@ void packetdb_readdb(void)
 		{NULL,NULL}
 	};
 
-	// initialize packet_db[SERVER] from hardcoded packet_len_table[] values
+	// Initialize packet_db[SERVER] from hardcoded packet_len_table[] values
 	memset(packet_db,0,sizeof(packet_db));
 	for( i = 0; i < ARRAYLENGTH(packet_len_table); ++i )
 		packet_len(i) = packet_len_table[i];
 
 	sprintf(line, "%s/packet_db.txt", db_path);
-	if( (fp=fopen(line,"r"))==NULL ) {
+	if( (fp = fopen(line,"r")) == NULL ) {
 		ShowFatalError("can't read %s\n", line);
 		exit(EXIT_FAILURE);
 	}
 
 	clif_config.packet_db_ver = MAX_PACKET_VER;
-	packet_ver = MAX_PACKET_VER;	// read into packet_db's version by default
+	packet_ver = MAX_PACKET_VER;	// Read into packet_db's version by default
 	while( fgets(line, sizeof(line), fp) ) {
 		ln++;
 		if(line[0]=='/' && line[1]=='/')
@@ -17317,7 +17322,7 @@ void packetdb_readdb(void)
 				int prev_ver = packet_ver;
 				skip_ver = 0;
 				packet_ver = atoi(w2);
-				if ( packet_ver > MAX_PACKET_VER ) { //Check to avoid overflowing. [Skotlex]
+				if ( packet_ver > MAX_PACKET_VER ) { // Check to avoid overflowing. [Skotlex]
 					if( (warned&1) == 0 )
 						ShowWarning("The packet_db table only has support up to version %d.\n", MAX_PACKET_VER);
 					warned &= 1;
@@ -17339,14 +17344,14 @@ void packetdb_readdb(void)
 					packet_ver = prev_ver;
 					continue;
 				}
-				// copy from previous version into new version and continue
-				// - indicating all following packets should be read into the newer version
+				// Copy from previous version into new version and continue
+				// - Indicating all following packets should be read into the newer version
 				memcpy(&packet_db[packet_ver], &packet_db[prev_ver], sizeof(packet_db[0]));
 				continue;
 			} else if(strcmpi(w1,"packet_db_ver")==0) {
 				if(strcmpi(w2,"default")==0) //This is the preferred version.
 					clif_config.packet_db_ver = MAX_PACKET_VER;
-				else // to manually set the packet DB version
+				else // To manually set the packet DB version
 					clif_config.packet_db_ver = cap_value(atoi(w2), 0, MAX_PACKET_VER);
 				continue;
 			}
@@ -17356,14 +17361,14 @@ void packetdb_readdb(void)
 			continue; // Skipping current packet version
 
 		memset(str,0,sizeof(str));
-		for(j=0,p=line;j<4 && p; ++j) {
-			str[j]=p;
-			p=strchr(p,',');
-			if(p) *p++=0;
+		for(j = 0, p = line; j < 4 && p; ++j) {
+			str[j] = p;
+			p = strchr(p,',');
+			if(p) *p++ = 0;
 		}
-		if(str[0]==NULL)
+		if(str[0] == NULL)
 			continue;
-		cmd=strtol(str[0],(char **)NULL,0);
+		cmd = strtol(str[0],(char **)NULL,0);
 
 		if(max_cmd < cmd)
 			max_cmd = cmd;
@@ -17382,26 +17387,26 @@ void packetdb_readdb(void)
 			continue;
 		}
 
-		// look up processing function by name
+		// Look up processing function by name
 		ARR_FIND( 0, ARRAYLENGTH(clif_parse_func), j, clif_parse_func[j].name != NULL && strcmp(str[2],clif_parse_func[j].name)==0 );
 		if( j < ARRAYLENGTH(clif_parse_func) )
 			packet_db[packet_ver][cmd].func = clif_parse_func[j].func;
 
-		// set the identifying cmd for the packet_db version
-		if (strcmp(str[2],"wanttoconnection")==0)
+		// Set the identifying cmd for the packet_db version
+		if (strcmp(str[2],"wanttoconnection") == 0)
 			clif_config.connect_cmd[packet_ver] = cmd;
 			
-		if(str[3]==NULL) {
+		if(str[3] == NULL) {
 			ShowError("packet_db: packet error\n");
 			exit(EXIT_FAILURE);
 		}
 		for(j=0,p2=str[3];p2;j++) {
 			short k;
-			str2[j]=p2;
-			p2=strchr(p2,':');
-			if(p2) *p2++=0;
+			str2[j] = p2;
+			p2 = strchr(p2,':');
+			if(p2) *p2++ = 0;
 			k = atoi(str2[j]);
-			// if (packet_db[packet_ver][cmd].pos[j] != k && clif_config.prefer_packet_db)	// not used for now
+			//if (packet_db[packet_ver][cmd].pos[j] != k && clif_config.prefer_packet_db) // Not used for now
 
 			if( j >= MAX_PACKET_POS ) {
 				ShowError("Too many positions found for packet 0x%04x (max=%d).\n", cmd, MAX_PACKET_POS);

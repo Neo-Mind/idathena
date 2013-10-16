@@ -538,7 +538,7 @@ static void itemdb_read_itemgroup_sub(const char* filename)
 		for( j = 0, p = line; j < 3 && p; j++ ) {
 			str[j] = p;
 			p = strchr(p, ',');
-			if( p ) *p++=0;
+			if( p ) *p++ = 0;
 		}
 		if( str[0] == NULL)
 			continue;
@@ -761,7 +761,7 @@ int itemdb_combo_split_atoi (char *str, int *val) {
 		str = strchr(str,':');
 
 		if (str)
-			*str ++= 0;
+			*str++ = 0;
 	}
 
 	if (i == 0) //No data found.
@@ -939,7 +939,7 @@ void itemdb_re_split_atoi(char *str, int *atk, int *matk) {
 		val[i] = atoi(str);
 		str = strchr(str,':');
 		if (str)
-			*str ++= 0;
+			*str++ = 0;
 	}
 	if (i == 0) {
 		*atk = *matk = 0;
