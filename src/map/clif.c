@@ -9397,7 +9397,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if(sd->sc.opt2) //Client loses these on warp.
 		clif_changeoption(&sd->bl);
 
-	if(battle_config.mon_trans_disable_in_gvg && map_flag_gvg2(sd->bl.m)) {
+	if(sd->sc.data[SC_MONSTER_TRANSFORM] && battle_config.mon_trans_disable_in_gvg && map_flag_gvg2(sd->bl.m)) {
 		status_change_end(&sd->bl,SC_MONSTER_TRANSFORM,INVALID_TIMER);
 		clif_displaymessage(sd->fd,msg_txt(1493)); //Transforming into monster is not allowed in Guild Wars.
 	}
@@ -17305,26 +17305,26 @@ void packetdb_readdb(void)
 	for( i = 0; i < ARRAYLENGTH(packet_len_table); ++i )
 		packet_len(i) = packet_len_table[i];
 
-	sprintf(line, "%s/packet_db.txt", db_path);
+	sprintf(line,"%s/packet_db.txt",db_path);
 	if( (fp = fopen(line,"r")) == NULL ) {
-		ShowFatalError("can't read %s\n", line);
+		ShowFatalError("can't read %s\n",line);
 		exit(EXIT_FAILURE);
 	}
 
 	clif_config.packet_db_ver = MAX_PACKET_VER;
-	packet_ver = MAX_PACKET_VER;	// Read into packet_db's version by default
-	while( fgets(line, sizeof(line), fp) ) {
+	packet_ver = MAX_PACKET_VER; // Read into packet_db's version by default
+	while( fgets(line,sizeof(line),fp) ) {
 		ln++;
-		if(line[0]=='/' && line[1]=='/')
+		if( line[0] == '/' && line[1] == '/' )
 			continue;
-		if (sscanf(line,"%256[^:]: %256[^\r\n]",w1,w2) == 2) {
-			if(strcmpi(w1,"packet_ver")==0) {
+		if( sscanf(line,"%256[^:]: %256[^\r\n]",w1,w2) == 2 ) {
+			if(strcmpi(w1,"packet_ver") == 0) {
 				int prev_ver = packet_ver;
 				skip_ver = 0;
 				packet_ver = atoi(w2);
 				if ( packet_ver > MAX_PACKET_VER ) { // Check to avoid overflowing. [Skotlex]
 					if( (warned&1) == 0 )
-						ShowWarning("The packet_db table only has support up to version %d.\n", MAX_PACKET_VER);
+						ShowWarning("The packet_db table only has support up to version %d.\n",MAX_PACKET_VER);
 					warned &= 1;
 					skip_ver = 1;
 				} else if( packet_ver < 0 ) {
@@ -17334,25 +17334,25 @@ void packetdb_readdb(void)
 					skip_ver = 1;
 				} else if( packet_ver == SERVER ) {
 					if( (warned&4) == 0 )
-						ShowWarning("Packet version %d is reserved for server use only.\n", SERVER);
+						ShowWarning("Packet version %d is reserved for server use only.\n",SERVER);
 					warned &= 4;
 					skip_ver = 1;
 				}
 
 				if( skip_ver ) {
-					ShowWarning("Skipping packet version %d.\n", packet_ver);
+					ShowWarning("Skipping packet version %d.\n",packet_ver);
 					packet_ver = prev_ver;
 					continue;
 				}
 				// Copy from previous version into new version and continue
 				// - Indicating all following packets should be read into the newer version
-				memcpy(&packet_db[packet_ver], &packet_db[prev_ver], sizeof(packet_db[0]));
+				memcpy(&packet_db[packet_ver],&packet_db[prev_ver],sizeof(packet_db[0]));
 				continue;
-			} else if(strcmpi(w1,"packet_db_ver")==0) {
-				if(strcmpi(w2,"default")==0) //This is the preferred version.
+			} else if( strcmpi(w1,"packet_db_ver") == 0 ) {
+				if( strcmpi(w2,"default") == 0 ) //This is the preferred version.
 					clif_config.packet_db_ver = MAX_PACKET_VER;
 				else // To manually set the packet DB version
-					clif_config.packet_db_ver = cap_value(atoi(w2), 0, MAX_PACKET_VER);
+					clif_config.packet_db_ver = cap_value(atoi(w2),0,MAX_PACKET_VER);
 				continue;
 			}
 		}
@@ -17361,55 +17361,55 @@ void packetdb_readdb(void)
 			continue; // Skipping current packet version
 
 		memset(str,0,sizeof(str));
-		for(j = 0, p = line; j < 4 && p; ++j) {
+		for( j = 0,p = line; j < 4 && p; ++j ) {
 			str[j] = p;
 			p = strchr(p,',');
-			if(p) *p++ = 0;
+			if( p ) *p++ = 0;
 		}
-		if(str[0] == NULL)
+		if( str[0] == NULL )
 			continue;
 		cmd = strtol(str[0],(char **)NULL,0);
 
-		if(max_cmd < cmd)
+		if( max_cmd < cmd )
 			max_cmd = cmd;
-		if(cmd <= 0 || cmd > MAX_PACKET_DB)
+		if( cmd <= 0 || cmd > MAX_PACKET_DB )
 			continue;
-		if(str[1]==NULL) {
+		if( str[1] == NULL ) {
 			ShowError("packet_db: packet len error\n");
 			continue;
 		}
 
 		packet_db[packet_ver][cmd].len = (short)atoi(str[1]);
 
-		if(str[2]==NULL){
+		if( str[2] == NULL ) {
 			packet_db[packet_ver][cmd].func = NULL;
 			ln++;
 			continue;
 		}
 
 		// Look up processing function by name
-		ARR_FIND( 0, ARRAYLENGTH(clif_parse_func), j, clif_parse_func[j].name != NULL && strcmp(str[2],clif_parse_func[j].name)==0 );
+		ARR_FIND(0,ARRAYLENGTH(clif_parse_func),j,clif_parse_func[j].name != NULL && strcmp(str[2],clif_parse_func[j].name) == 0);
 		if( j < ARRAYLENGTH(clif_parse_func) )
 			packet_db[packet_ver][cmd].func = clif_parse_func[j].func;
 
 		// Set the identifying cmd for the packet_db version
-		if (strcmp(str[2],"wanttoconnection") == 0)
+		if( strcmp(str[2],"wanttoconnection") == 0 )
 			clif_config.connect_cmd[packet_ver] = cmd;
-			
-		if(str[3] == NULL) {
+
+		if( str[3] == NULL ) {
 			ShowError("packet_db: packet error\n");
 			exit(EXIT_FAILURE);
 		}
-		for(j=0,p2=str[3];p2;j++) {
+		for( j = 0, p2 = str[3]; p2; j++ ) {
 			short k;
 			str2[j] = p2;
 			p2 = strchr(p2,':');
-			if(p2) *p2++ = 0;
+			if( p2 ) *p2++ = 0;
 			k = atoi(str2[j]);
 			//if (packet_db[packet_ver][cmd].pos[j] != k && clif_config.prefer_packet_db) // Not used for now
 
 			if( j >= MAX_PACKET_POS ) {
-				ShowError("Too many positions found for packet 0x%04x (max=%d).\n", cmd, MAX_PACKET_POS);
+				ShowError("Too many positions found for packet 0x%04x (max=%d).\n",cmd,MAX_PACKET_POS);
 				break;
 			}
 
@@ -17419,7 +17419,7 @@ void packetdb_readdb(void)
 	}
 	fclose(fp);
 	if(max_cmd > MAX_PACKET_DB) {
-		ShowWarning("Found packets up to 0x%X, ignored 0x%X and above.\n", max_cmd, MAX_PACKET_DB);
+		ShowWarning("Found packets up to 0x%X, ignored 0x%X and above.\n",max_cmd,MAX_PACKET_DB);
 		ShowWarning("Please increase MAX_PACKET_DB and recompile.\n");
 	}
 	if (!clif_config.connect_cmd[clif_config.packet_db_ver]) { //Locate the nearest version that we still support. [Skotlex]
@@ -17427,8 +17427,8 @@ void packetdb_readdb(void)
 		
 		clif_config.packet_db_ver = j?j:MAX_PACKET_VER;
 	}
-	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", entries, "packet_db.txt");
-	ShowStatus("Using default packet version: "CL_WHITE"%d"CL_RESET".\n", clif_config.packet_db_ver);
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",entries,"packet_db.txt");
+	ShowStatus("Using default packet version: "CL_WHITE"%d"CL_RESET".\n",clif_config.packet_db_ver);
 }
 
 /*==========================================

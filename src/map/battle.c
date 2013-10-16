@@ -6539,7 +6539,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	}
 
 	if (tsc && tsc->data[SC_MTF_MLEATKED] && rnd()%100 < 20)
-			clif_skill_nodamage(target,target,SM_ENDURE,5,sc_start(target,target,SC_ENDURE,100,5,skill_get_time(SM_ENDURE,5)));
+		clif_skill_nodamage(target,target,SM_ENDURE,5,sc_start(target,target,SC_ENDURE,100,5,skill_get_time(SM_ENDURE,5)));
 
 	if (tsc && tsc->data[SC_KAAHI] && tsc->data[SC_KAAHI]->val4 == INVALID_TIMER && tstatus->hp < tstatus->max_hp) //Activate heal.
 		tsc->data[SC_KAAHI]->val4 = add_timer(tick + skill_get_time2(SL_KAAHI,tsc->data[SC_KAAHI]->val1),kaahi_heal_timer,target->id,SC_KAAHI);
