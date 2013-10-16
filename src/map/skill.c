@@ -12596,36 +12596,36 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 					case UNT_ZENKAI_WATER:
 						switch (rnd()%2 + 1) {
 							case 1:
-								sc_start(ss,bl,SC_FREEZE,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
+								sc_start(ss,bl,SC_FREEZE,25,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 								break;
 							case 2:
-								sc_start(ss,bl,SC_FREEZING,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
+								sc_start(ss,bl,SC_FREEZING,25,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 								break;
 						}
 						break;
 					case UNT_ZENKAI_LAND:
 						switch (rnd()%2 + 1) {
 							case 1:
-								sc_start(ss,bl,SC_STONE,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
+								sc_start(ss,bl,SC_STONE,25,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 								break;
 							case 2:
-								sc_start(ss,bl,SC_POISON,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
+								sc_start(ss,bl,SC_POISON,25,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 								break;
 						}
 						break;
 					case UNT_ZENKAI_FIRE:
-						sc_start(ss,bl,SC_BURNING,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
+						sc_start(ss,bl,SC_BURNING,25,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 						break;
 					case UNT_ZENKAI_WIND:
 						switch (rnd()%3 + 1) {
 							case 1:
-								sc_start(ss,bl,SC_SLEEP,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
+								sc_start(ss,bl,SC_SLEEP,25,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 								break;
 							case 2:
-								sc_start(ss,bl,SC_SILENCE,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
+								sc_start(ss,bl,SC_SILENCE,25,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 								break;
 							case 3:
-								sc_start(ss,bl,SC_DEEPSLEEP,10,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
+								sc_start(ss,bl,SC_DEEPSLEEP,25,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
 								break;
 						}
 						break;
