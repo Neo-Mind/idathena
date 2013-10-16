@@ -8876,9 +8876,9 @@ BUILDIN_FUNC(killmonsterall)
 BUILDIN_FUNC(clone)
 {
 	TBL_PC *sd, *msd = NULL;
-	int char_id,master_id = 0,x,y,mode = 0,flag = 0,m;
+	int char_id, master_id = 0, x, y, mode = 0, flag = 0, m;
 	unsigned int duration = 0;
-	const char *map,*event = "";
+	const char *map, *event = "";
 
 	map = script_getstr(st,2);
 	x = script_getnum(st,3);
@@ -8901,18 +8901,18 @@ BUILDIN_FUNC(clone)
 	check_event(st, event);
 
 	m = map_mapname2mapid(map);
-	if (m < 0) return 0;
+	if( m < 0 ) return 0;
 
 	sd = map_charid2sd(char_id);
 
-	if (master_id) {
+	if( master_id ) {
 		msd = map_charid2sd(master_id);
-		if (msd)
+		if( msd )
 			master_id = msd->bl.id;
 		else
 			master_id = 0;
 	}
-	if (sd) //Return ID of newly crafted clone.
+	if( sd ) //Return ID of newly crafted clone.
 		script_pushint(st,mob_clone_spawn(sd,m,x,y,event,master_id,mode,flag,1000 * duration));
 	else //Failed to create clone.
 		script_pushint(st,0);
@@ -8926,13 +8926,12 @@ BUILDIN_FUNC(doevent)
 	const char* event = script_getstr(st,2);
 	struct map_session_data* sd;
 
-	if( ( sd = script_rid2sd(st) ) == NULL )
-	{
+	if( ( sd = script_rid2sd(st) ) == NULL ) {
 		return 0;
 	}
 
-	check_event(st, event);
-	npc_event(sd, event, 0);
+	check_event(st,event);
+	npc_event(sd,event,0);
 	return 0;
 }
 /*==========================================
@@ -8940,13 +8939,13 @@ BUILDIN_FUNC(doevent)
 BUILDIN_FUNC(donpcevent)
 {
 	const char* event = script_getstr(st,2);
-	check_event(st, event);
+	check_event(st,event);
 	if( !npc_event_do(event) ) {
 		struct npc_data * nd = map_id2nd(st->oid);
 		ShowDebug("NPCEvent '%s' not found! (source: %s)\n",event,nd?nd->name:"Unknown");
-		script_pushint(st, 0);
+		script_pushint(st,0);
 	} else
-		script_pushint(st, 1);
+		script_pushint(st,1);
 	return 0;
 }
 
@@ -8957,8 +8956,8 @@ BUILDIN_FUNC(cmdothernpc)	// Added by RoVeRT
 	const char* npc = script_getstr(st,2);
 	const char* command = script_getstr(st,3);
 	char event[EVENT_NAME_LENGTH];
-	snprintf(event, sizeof(event), "%s::OnCommand%s", npc, command);
-	check_event(st, event);
+	snprintf(event,sizeof(event),"%s::OnCommand%s",npc,command);
+	check_event(st,event);
 	npc_event_do(event);
 	return 0;
 }
@@ -8968,10 +8967,10 @@ BUILDIN_FUNC(cmdothernpc)	// Added by RoVeRT
 BUILDIN_FUNC(addtimer)
 {
 	int tick = script_getnum(st,2);
-	const char* event = script_getstr(st, 3);
+	const char* event = script_getstr(st,3);
 	TBL_PC* sd;
 
-	check_event(st, event);
+	check_event(st,event);
 	sd = script_rid2sd(st);
 	if( sd == NULL )
 		return 0;
@@ -8986,12 +8985,12 @@ BUILDIN_FUNC(deltimer)
 	const char *event;
 	TBL_PC* sd;
 
-	event=script_getstr(st, 2);
+	event = script_getstr(st,2);
 	sd = script_rid2sd(st);
 	if( sd == NULL )
 		return 0;
 
-	check_event(st, event);
+	check_event(st,event);
 	pc_deleventtimer(sd,event);
 	return 0;
 }
@@ -9003,13 +9002,13 @@ BUILDIN_FUNC(addtimercount)
 	int tick;
 	TBL_PC* sd;
 
-	event=script_getstr(st, 2);
-	tick=script_getnum(st,3);
+	tick = script_getnum(st,2);
+	event = script_getstr(st,3);
 	sd = script_rid2sd(st);
 	if( sd == NULL )
 		return 0;
 
-	check_event(st, event);
+	check_event(st,event);
 	pc_addeventtimercount(sd,event,tick);
 	return 0;
 }
@@ -9021,36 +9020,28 @@ BUILDIN_FUNC(initnpctimer)
 	struct npc_data *nd;
 	int flag = 0;
 
-	if( script_hasdata(st,3) )
-	{	//Two arguments: NPC name and attach flag.
-		nd = npc_name2id(script_getstr(st, 2));
+	if( script_hasdata(st,3) ) { //Two arguments: NPC name and attach flag.
+		nd = npc_name2id(script_getstr(st,2));
 		flag = script_getnum(st,3);
-	}
-	else if( script_hasdata(st,2) )
-	{	//Check if argument is numeric (flag) or string (npc name)
+	} else if( script_hasdata(st,2) ) { //Check if argument is numeric (flag) or string (npc name)
 		struct script_data *data;
 		data = script_getdata(st,2);
 		get_val(st,data);
 		if( data_isstring(data) ) //NPC name
-			nd = npc_name2id(conv_str(st, data));
-		else if( data_isint(data) ) //Flag
-		{
+			nd = npc_name2id(conv_str(st,data));
+		else if( data_isint(data) ) { //Flag
 			nd = (struct npc_data *)map_id2bl(st->oid);
 			flag = conv_num(st,data);
-		}
-		else
-		{
+		} else {
 			ShowError("initnpctimer: invalid argument type #1 (needs be int or string)).\n");
 			return 1;
 		}
-	}
-	else
+	} else
 		nd = (struct npc_data *)map_id2bl(st->oid);
 
 	if( !nd )
 		return 0;
-	if( flag ) //Attach
-	{
+	if( flag ) { //Attach
 		TBL_PC* sd = script_rid2sd(st);
 		if( sd == NULL )
 			return 0;
@@ -9059,7 +9050,7 @@ BUILDIN_FUNC(initnpctimer)
 
 	nd->u.scr.timertick = 0;
 	npc_settimerevent_tick(nd,0);
-	npc_timerevent_start(nd, st->rid);
+	npc_timerevent_start(nd,st->rid);
 	return 0;
 }
 /*==========================================
@@ -9069,43 +9060,35 @@ BUILDIN_FUNC(startnpctimer)
 	struct npc_data *nd;
 	int flag = 0;
 
-	if( script_hasdata(st,3) )
-	{	//Two arguments: NPC name and attach flag.
-		nd = npc_name2id(script_getstr(st, 2));
+	if( script_hasdata(st,3) ) { //Two arguments: NPC name and attach flag.
+		nd = npc_name2id(script_getstr(st,2));
 		flag = script_getnum(st,3);
-	}
-	else if( script_hasdata(st,2) )
-	{	//Check if argument is numeric (flag) or string (npc name)
+	} else if( script_hasdata(st,2) ) { //Check if argument is numeric (flag) or string (npc name)
 		struct script_data *data;
 		data = script_getdata(st,2);
 		get_val(st,data);
 		if( data_isstring(data) ) //NPC name
-			nd = npc_name2id(conv_str(st, data));
-		else if( data_isint(data) ) //Flag
-		{
+			nd = npc_name2id(conv_str(st,data));
+		else if( data_isint(data) ) { //Flag
 			nd = (struct npc_data *)map_id2bl(st->oid);
 			flag = conv_num(st,data);
-		}
-		else
-		{
+		} else {
 			ShowError("initnpctimer: invalid argument type #1 (needs be int or string)).\n");
 			return 1;
 		}
-	}
-	else
-		nd=(struct npc_data *)map_id2bl(st->oid);
+	} else
+		nd = (struct npc_data *)map_id2bl(st->oid);
 
 	if( !nd )
 		return 0;
-	if( flag ) //Attach
-	{
+	if( flag ) { //Attach
 		TBL_PC* sd = script_rid2sd(st);
 		if( sd == NULL )
 			return 0;
 		nd->u.scr.rid = sd->bl.id;
 	}
 
-	npc_timerevent_start(nd, st->rid);
+	npc_timerevent_start(nd,st->rid);
 	return 0;
 }
 /*==========================================
@@ -9115,31 +9098,24 @@ BUILDIN_FUNC(stopnpctimer)
 	struct npc_data *nd;
 	int flag = 0;
 
-	if( script_hasdata(st,3) )
-	{	//Two arguments: NPC name and attach flag.
-		nd = npc_name2id(script_getstr(st, 2));
+	if( script_hasdata(st,3) ) { //Two arguments: NPC name and attach flag.
+		nd = npc_name2id(script_getstr(st,2));
 		flag = script_getnum(st,3);
-	}
-	else if( script_hasdata(st,2) )
-	{	//Check if argument is numeric (flag) or string (npc name)
+	} else if( script_hasdata(st,2) ) { //Check if argument is numeric (flag) or string (npc name)
 		struct script_data *data;
 		data = script_getdata(st,2);
 		get_val(st,data);
 		if( data_isstring(data) ) //NPC name
-			nd = npc_name2id(conv_str(st, data));
-		else if( data_isint(data) ) //Flag
-		{
+			nd = npc_name2id(conv_str(st,data));
+		else if( data_isint(data) ) { //Flag
 			nd = (struct npc_data *)map_id2bl(st->oid);
 			flag = conv_num(st,data);
-		}
-		else
-		{
+		} else {
 			ShowError("initnpctimer: invalid argument type #1 (needs be int or string)).\n");
 			return 1;
 		}
-	}
-	else
-		nd=(struct npc_data *)map_id2bl(st->oid);
+	} else
+		nd = (struct npc_data *)map_id2bl(st->oid);
 
 	if( !nd )
 		return 0;
@@ -9163,31 +9139,26 @@ BUILDIN_FUNC(getnpctimer)
 	else
 		nd = (struct npc_data *)map_id2bl(st->oid);
 	
-	if( !nd || nd->bl.type != BL_NPC )
-	{
+	if( !nd || nd->bl.type != BL_NPC ) {
 		script_pushint(st,0);
 		ShowError("getnpctimer: Invalid NPC.\n");
 		return 1;
 	}
 
-	switch( type )
-	{
-	case 0: val = npc_gettimerevent_tick(nd); break;
-	case 1:
-		if( nd->u.scr.rid )
-		{
-			sd = map_id2sd(nd->u.scr.rid);
-			if( !sd )
-			{
-				ShowError("buildin_getnpctimer: Attached player not found!\n");
-				break;
-			}
-			val = (sd->npc_timer_id != INVALID_TIMER);
-		}
-		else
-			val = (nd->u.scr.timerid != INVALID_TIMER);
-		break;
-	case 2: val = nd->u.scr.timeramount; break;
+	switch( type ) {
+		case 0: val = npc_gettimerevent_tick(nd); break;
+		case 1:
+			if( nd->u.scr.rid ) {
+				sd = map_id2sd(nd->u.scr.rid);
+				if( !sd ) {
+					ShowError("buildin_getnpctimer: Attached player not found!\n");
+					break;
+				}
+				val = (sd->npc_timer_id != INVALID_TIMER);
+			} else
+				val = (nd->u.scr.timerid != INVALID_TIMER);
+			break;
+		case 2: val = nd->u.scr.timeramount; break;
 	}
 
 	script_pushint(st,val);
@@ -9206,8 +9177,7 @@ BUILDIN_FUNC(setnpctimer)
 	else
 		nd = (struct npc_data *)map_id2bl(st->oid);
 
-	if( !nd || nd->bl.type != BL_NPC )
-	{
+	if( !nd || nd->bl.type != BL_NPC ) {
 		script_pushint(st,1);
 		ShowError("setnpctimer: Invalid NPC.\n");
 		return 1;
@@ -9226,8 +9196,7 @@ BUILDIN_FUNC(attachnpctimer)
 	TBL_PC *sd;
 	struct npc_data *nd = (struct npc_data *)map_id2bl(st->oid);
 
-	if( !nd || nd->bl.type != BL_NPC )
-	{
+	if( !nd || nd->bl.type != BL_NPC ) {
 		script_pushint(st,1);
 		ShowError("setnpctimer: Invalid NPC.\n");
 		return 1;
@@ -9238,8 +9207,7 @@ BUILDIN_FUNC(attachnpctimer)
 	else
 		sd = script_rid2sd(st);
 
-	if( !sd )
-	{
+	if( !sd ) {
 		script_pushint(st,1);
 		ShowWarning("attachnpctimer: Invalid player.\n");
 		return 1;
@@ -9262,8 +9230,7 @@ BUILDIN_FUNC(detachnpctimer)
 	else
 		nd = (struct npc_data *)map_id2bl(st->oid);
 
-	if( !nd || nd->bl.type != BL_NPC )
-	{
+	if( !nd || nd->bl.type != BL_NPC ) {
 		script_pushint(st,1);
 		ShowError("detachnpctimer: Invalid NPC.\n");
 		return 1;
@@ -12646,8 +12613,7 @@ int recovery_sub(struct map_session_data* sd, int revive)
  *-------------------------------------------------------------------------*/
 BUILDIN_FUNC(recovery)
 {
-	TBL_PC *sd = script_rid2sd(st);
-
+	TBL_PC *sd;
 	int map = 0, type = 0, revive = 1;
 
 	type = script_getnum(st,2);
@@ -12659,15 +12625,15 @@ BUILDIN_FUNC(recovery)
 		case 0:
 			if(script_hasdata(st,3))
 				sd = map_charid2sd(script_getnum(st,3));
-			if(sd == NULL) //If we don't have sd by now, bail out
-				return 0;
+			else if((sd = script_rid2sd(st)) == NULL)
+				return 0; //If we don't have sd by now, bail out
 			recovery_sub(sd, revive);
 			break;
 		case 1: {
 			struct party_data* p;
 			struct map_session_data* pl_sd;
 			//When no party given, we use invoker party
-			int p_id, i;
+			int p_id = 0, i;
 			if(script_hasdata(st,5)) { //Bad maps shouldn't cause issues
 				map = map_mapname2mapid(script_getstr(st,5));
 				if(map < 1) { //But we'll check anyways
@@ -12677,8 +12643,8 @@ BUILDIN_FUNC(recovery)
 			}
 			if(script_hasdata(st,3))
 				p_id = script_getnum(st,3);
-			else
-				p_id = (sd)?sd->status.party_id:0;
+			else if((sd = script_rid2sd(st)))
+				p_id = sd->status.party_id;
 			p = party_search(p_id);
 			if(p == NULL)
 				return 0;
@@ -12694,7 +12660,7 @@ BUILDIN_FUNC(recovery)
 			struct guild* g;
 			struct map_session_data* pl_sd;
 			//When no guild given, we use invoker guild
-			int g_id, i;
+			int g_id = 0, i;
 			if(script_hasdata(st,5)) { //Bad maps shouldn't cause issues
 				map = map_mapname2mapid(script_getstr(st,5));
 				if(map < 1) { //But we'll check anyways
@@ -12704,8 +12670,8 @@ BUILDIN_FUNC(recovery)
 			}
 			if(script_hasdata(st,3))
 				g_id = script_getnum(st,3);
-			else
-				g_id = (sd)?sd->status.guild_id:0;
+			else if((sd = script_rid2sd(st)))
+				g_id = sd->status.guild_id;
 			g = guild_search(g_id);
 			if(g == NULL)
 				return 0;
@@ -12713,17 +12679,17 @@ BUILDIN_FUNC(recovery)
 				if((!(pl_sd = g->member[i].sd) || pl_sd->status.guild_id != g_id)
 					|| (map && pl_sd->bl.m != map))
 					continue;
-				recovery_sub(pl_sd, revive);
+				recovery_sub(pl_sd,revive);
 			}
 			break;
 		}
 		case 3:
 			if(script_hasdata(st,3))
 				map = map_mapname2mapid(script_getstr(st,3));
-			else
-				map = (sd)?sd->bl.m:0; //No sd and no map given - return
+			else if((sd = script_rid2sd(st)))
+				map = sd->bl.m;
 			if(map < 1)
-				return 1;
+				return 1; //No sd and no map given - return
 		case 4: {
 			struct s_mapiterator *iter;
 			if(script_hasdata(st,3) && !script_isstring(st,3))
@@ -17876,15 +17842,15 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(cmdothernpc,"ss"),
 	BUILDIN_DEF(addtimer,"is"),
 	BUILDIN_DEF(deltimer,"s"),
-	BUILDIN_DEF(addtimercount,"si"),
+	BUILDIN_DEF(addtimercount,"is"),
 	BUILDIN_DEF(initnpctimer,"??"),
 	BUILDIN_DEF(stopnpctimer,"??"),
 	BUILDIN_DEF(startnpctimer,"??"),
 	BUILDIN_DEF(setnpctimer,"i?"),
 	BUILDIN_DEF(getnpctimer,"i?"),
-	BUILDIN_DEF(attachnpctimer,"?"), // attached the player id to the npc timer [Celest]
-	BUILDIN_DEF(detachnpctimer,"?"), // detached the player id from the npc timer [Celest]
-	BUILDIN_DEF(playerattached,""), // returns id of the current attached player. [Skotlex]
+	BUILDIN_DEF(attachnpctimer,"?"), // Attached the player id to the npc timer [Celest]
+	BUILDIN_DEF(detachnpctimer,"?"), // Detached the player id from the npc timer [Celest]
+	BUILDIN_DEF(playerattached,""), // Returns id of the current attached player. [Skotlex]
 	BUILDIN_DEF(announce,"si?????"),
 	BUILDIN_DEF(mapannounce,"ssi?????"),
 	BUILDIN_DEF(areaannounce,"siiiisi?????"),

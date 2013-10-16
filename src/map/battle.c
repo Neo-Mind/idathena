@@ -1592,7 +1592,7 @@ static int battle_calc_base_weapon_attack(struct block_list *src, struct status_
 	if (sd->equip_index[type] >= 0 && sd->inventory_data[sd->equip_index[type]]) {
 		float variance = 5.0f * wa->atk * (sd->inventory_data[sd->equip_index[type]]->wlv) / 100.0f;
 		atkmin = max(0, atkmin - (int)variance);
-		atkmin = min(UINT16_MAX, atkmax + (int)variance);
+		atkmax = min(UINT16_MAX, atkmax + (int)variance);
 
 		if (sc && sc->data[SC_MAXIMIZEPOWER])
 			damage = atkmax;
