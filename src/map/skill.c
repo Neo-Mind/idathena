@@ -1911,9 +1911,8 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 				}
 			}
 		}
-		if(hp || sp) { //Updated to force healing to allow healing through berserk
+		if(hp || sp) //Updated to force healing to allow healing through berserk
 			status_heal(src,hp,sp,battle_config.show_hp_sp_gain ? 3 : 1);
-		}
 	}
 
 	//Trigger counter-spells to retaliate against damage causing skills.
@@ -5788,8 +5787,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SM_ENDURE:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
 				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
-			if (sd)
-				skill_blockpc_start(sd,skill_id,skill_get_time2(skill_id,skill_lv));
 			break;
 
 		case ALL_ANGEL_PROTECT:
@@ -6884,7 +6881,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 								continue;
 							break;
 					}
-					if( i == SC_BERSERK ) tsc->data[i]->val2=0; //Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
+					//Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
+					if( i == SC_BERSERK )
+						tsc->data[i]->val2 = 0;
 					status_change_end(bl,(sc_type)i,INVALID_TIMER);
 				}
 				break;
@@ -8298,7 +8297,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							break;
 					}
 					//Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
-					if( i == SC_BERSERK ) tsc->data[i]->val2 = 0;
+					if( i == SC_BERSERK )
+						tsc->data[i]->val2 = 0;
 					status_change_end(bl,(sc_type)i,INVALID_TIMER);
 				}
 				break;
@@ -11179,9 +11179,8 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 	if( map[src->m].unit_count ) {
 		ARR_FIND(0,map[src->m].unit_count,i,map[src->m].units[i]->skill_id == skill_id );
 
-		if( i < map[src->m].unit_count ) {
+		if( i < map[src->m].unit_count )
 			limit = limit * map[src->m].units[i]->modifier / 100;
-		}
 	}
 
 	sd = BL_CAST(BL_PC,src);
@@ -11733,8 +11732,8 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 		case UNT_BLOODYLUST:
 			if( sg->src_id == bl->id )
 				break; //Does not affect the caster.
-			if( !sce && sc_start4(ss,bl,type,100,sg->skill_lv,0,SC__BLOODYLUST,0,sg->limit) )
-				sc_start(ss,bl,SC__BLOODYLUST,100,sg->skill_lv,sg->limit);
+			if( !sce )
+				sc_start4(ss,bl,type,100,sg->skill_lv,0,SC__BLOODYLUST,0,sg->limit);
 			break;
 
 		case UNT_WARP_WAITING: {
