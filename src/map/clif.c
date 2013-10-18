@@ -8554,20 +8554,20 @@ void clif_slide(struct block_list *bl, int x, int y)
 void clif_disp_overhead(struct block_list *bl, const char* mes)
 {
 	unsigned char buf[256]; //This should be more than sufficient, the theorical max is CHAT_SIZE + 8 (pads and extra inserted crap)
-	int len_mes = strlen(mes)+1; //Account for \0
+	int len_mes = strlen(mes) + 1; //Account for \0
 
-	if (len_mes > sizeof(buf)-8) {
+	if (len_mes > sizeof(buf) - 8) {
 		ShowError("clif_disp_overhead: Message too long (length %d)\n", len_mes);
-		len_mes = sizeof(buf)-8; //Trunk it to avoid problems.
+		len_mes = sizeof(buf) - 8; //Trunk it to avoid problems.
 	}
-	// send message to others
+	//Send message to others
 	WBUFW(buf,0) = 0x8d;
-	WBUFW(buf,2) = len_mes + 8; // len of message + 8 (command+len+id)
+	WBUFW(buf,2) = len_mes + 8; //len of message + 8 (command + len + id)
 	WBUFL(buf,4) = bl->id;
 	safestrncpy((char*)WBUFP(buf,8), mes, len_mes);
 	clif_send(buf, WBUFW(buf,2), bl, AREA_CHAT_WOC);
 
-	// send back message to the speaker
+	//Send back message to the speaker
 	if( bl->type == BL_PC ) {
 		WBUFW(buf,0) = 0x8e;
 		WBUFW(buf, 2) = len_mes + 4;
@@ -16375,17 +16375,17 @@ int clif_autoshadowspell_list(struct map_session_data *sd) {
  * Skill list for Four Elemental Analysis
  * and Change Material skills.
  *------------------------------------------*/
-int clif_skill_itemlistwindow( struct map_session_data *sd, uint16 skill_id, uint16 skill_lv )
+int clif_skill_itemlistwindow(struct map_session_data *sd, uint16 skill_id, uint16 skill_lv)
 {
 #if PACKETVER >= 20090922
 	int fd;
 	nullpo_ret(sd);
 
-	sd->menuskill_id = skill_id; // To prevent hacking.
+	sd->menuskill_id = skill_id; //To prevent hacking.
 	sd->menuskill_val = skill_lv;
 	
 	if( skill_id == GN_CHANGEMATERIAL )
-		skill_lv = 0; // Changematerial
+		skill_lv = 0; //Changematerial
 
 	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x7e3));
@@ -16429,7 +16429,7 @@ void clif_msgtable_num(int fd, int line, int num) {
  *------------------------------------------*/
 void clif_parse_SkillSelectMenu(int fd, struct map_session_data *sd) {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
-	//int type = RFIFOL(fd,info->pos[0]); //WHY_LOWERVER_COMPATIBILITY =  0x0, WHY_SC_AUTOSHADOWSPELL =  0x1,
+	//int type = RFIFOL(fd,info->pos[0]); //WHY_LOWERVER_COMPATIBILITY = 0x0, WHY_SC_AUTOSHADOWSPELL = 0x1,
 	if( sd->menuskill_id != SC_AUTOSHADOWSPELL )
 		return;
 
@@ -16454,10 +16454,10 @@ void clif_talisman(struct map_session_data *sd,short type)
 
 	nullpo_retv(sd);
 
-	WBUFW(buf,0)=0x08cf;
-	WBUFL(buf,2)=sd->bl.id;
-	WBUFW(buf,6)=type;
-	WBUFW(buf,8)=sd->talisman[type];
+	WBUFW(buf,0) = 0x08cf;
+	WBUFL(buf,2) = sd->bl.id;
+	WBUFW(buf,6) = type;
+	WBUFW(buf,8) = sd->talisman[type];
 	clif_send(buf,packet_len(0x08cf),&sd->bl,AREA);
 }
 
@@ -16472,25 +16472,24 @@ void clif_talisman(struct map_session_data *sd,short type)
 void clif_parse_MoveItem(int fd, struct map_session_data *sd) {
 #if PACKETVER >= 20111122
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
-	int index = RFIFOW(fd,info->pos[0])-2;
-	int type = RFIFOB(fd, info->pos[1]);
+	int index = RFIFOW(fd,info->pos[0]) - 2;
+	int type = RFIFOB(fd,info->pos[1]);
 
-	/* can't move while dead. */
-	if(pc_isdead(sd)) {
-		return;
-	}
-
-	if (index < 0 || index >= MAX_INVENTORY)
+	/* Can't move while dead. */
+	if( pc_isdead(sd) )
 		return;
 
-	if ( sd->status.inventory[index].favorite && type == 1 )
+	if( index < 0 || index >= MAX_INVENTORY )
+		return;
+
+	if( sd->status.inventory[index].favorite && type == 1 )
 		sd->status.inventory[index].favorite = 0;
 	else if( type == 0 )
 		sd->status.inventory[index].favorite = 1;
 	else
-		return;/* nothing to do. */
+		return; /* Nothing to do. */
 
-	clif_favorite_item(sd, index);
+	clif_favorite_item(sd,index);
 #endif
 }
 
@@ -16541,6 +16540,28 @@ void clif_partytickack(struct map_session_data* sd, bool flag) {
 	WFIFOW(sd->fd, 0) = 0x2c9; 
 	WFIFOB(sd->fd, 2) = flag;
 	WFIFOSET(sd->fd, packet_len(0x2c9)); 
+}
+
+void clif_ShowScript(struct block_list* bl, const char* message) {
+	char buf[256];
+	int len;
+	nullpo_retv(bl);
+
+	if( !message )
+		return;
+
+	len = strlen(message) + 1;
+
+	if( len > sizeof(buf) - 8 ) {
+		ShowWarning("clif_ShowScript: Truncating too long message '%s' (len=%d).\n", message, len);
+		len = sizeof(buf) - 8;
+	}
+
+	WBUFW(buf,0) = 0x8b3;
+	WBUFW(buf,2) = len + 8;
+	WBUFL(buf,4) = bl->id;
+	safestrncpy((char*)WBUFP(buf,8), message, len);
+	clif_send((unsigned char*)buf, WBUFW(buf,2), bl,ALL_CLIENT);
 }
 
 /// Ack world info (ZC_ACK_BEFORE_WORLD_INFO)

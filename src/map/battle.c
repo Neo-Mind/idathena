@@ -515,12 +515,13 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 						break;
 					}
 				}
+#ifndef RENEWAL
 				//It was discovered that ranged defense also counts vs magic! [Skotlex]
 				if( flag&BF_SHORT )
 					cardfix = cardfix * (100 - tsd->bonus.near_attack_def_rate) / 100;
 				else
 					cardfix = cardfix * (100 - tsd->bonus.long_attack_def_rate) / 100;
-
+#endif
 				cardfix = cardfix * (100 - tsd->bonus.magic_def_rate) / 100;
 
 				if( tsd->sc.data[SC_MDEF_RATE] )

@@ -11588,8 +11588,7 @@ BUILDIN_FUNC(strmobinfo)
 	int num=script_getnum(st,2);
 	int class_=script_getnum(st,3);
 
-	if(!mobdb_checkid(class_))
-	{
+	if (!mobdb_checkid(class_)) {
 		if (num < 3) //requested a string
 			script_pushconststr(st,"");
 		else
@@ -11598,16 +11597,16 @@ BUILDIN_FUNC(strmobinfo)
 	}
 
 	switch (num) {
-	case 1: script_pushstrcopy(st,mob_db(class_)->name); break;
-	case 2: script_pushstrcopy(st,mob_db(class_)->jname); break;
-	case 3: script_pushint(st,mob_db(class_)->lv); break;
-	case 4: script_pushint(st,mob_db(class_)->status.max_hp); break;
-	case 5: script_pushint(st,mob_db(class_)->status.max_sp); break;
-	case 6: script_pushint(st,mob_db(class_)->base_exp); break;
-	case 7: script_pushint(st,mob_db(class_)->job_exp); break;
-	default:
-		script_pushint(st,0);
-		break;
+		case 1: script_pushstrcopy(st,mob_db(class_)->name); break;
+		case 2: script_pushstrcopy(st,mob_db(class_)->jname); break;
+		case 3: script_pushint(st,mob_db(class_)->lv); break;
+		case 4: script_pushint(st,mob_db(class_)->status.max_hp); break;
+		case 5: script_pushint(st,mob_db(class_)->status.max_sp); break;
+		case 6: script_pushint(st,mob_db(class_)->base_exp); break;
+		case 7: script_pushint(st,mob_db(class_)->job_exp); break;
+		default:
+			script_pushint(st,0);
+			break;
 	}
 	return 0;
 }
@@ -11618,31 +11617,28 @@ BUILDIN_FUNC(strmobinfo)
  *------------------------------------------*/
 BUILDIN_FUNC(guardian)
 {
-	int class_=0,x=0,y=0,guardian=0;
-	const char *str,*map,*evt="";
+	int class_ = 0, x = 0, y = 0, guardian = 0;
+	const char *str, *map, *evt = "";
 	struct script_data *data;
 	bool has_index = false;
 
-	map	  =script_getstr(st,2);
-	x	  =script_getnum(st,3);
-	y	  =script_getnum(st,4);
-	str	  =script_getstr(st,5);
-	class_=script_getnum(st,6);
+	map = script_getstr(st,2);
+	x = script_getnum(st,3);
+	y = script_getnum(st,4);
+	str = script_getstr(st,5);
+	class_ = script_getnum(st,6);
 
-	if( script_hasdata(st,8) )
-	{// "<event label>",<guardian index>
-		evt=script_getstr(st,7);
-		guardian=script_getnum(st,8);
+	if (script_hasdata(st,8)) { // "<event label>",<guardian index>
+		evt = script_getstr(st,7);
+		guardian = script_getnum(st,8);
 		has_index = true;
-	} else if( script_hasdata(st,7) ){
-		data=script_getdata(st,7);
+	} else if (script_hasdata(st,7)) {
+		data = script_getdata(st,7);
 		get_val(st,data);
-		if( data_isstring(data) )
-		{// "<event label>"
-			evt=script_getstr(st,7);
-		} else if( data_isint(data) )
-		{// <guardian index>
-			guardian=script_getnum(st,7);
+		if (data_isstring(data)) // "<event label>"
+			evt = script_getstr(st,7);
+		else if (data_isint(data)) { // <guardian index>
+			guardian = script_getnum(st,7);
 			has_index = true;
 		} else {
 			ShowError("script:guardian: invalid data type for argument #6 (from 1)\n");
@@ -11651,8 +11647,8 @@ BUILDIN_FUNC(guardian)
 		}
 	}
 
-	check_event(st, evt);
-	script_pushint(st, mob_spawn_guardian(map,x,y,str,class_,evt,guardian,has_index));
+	check_event(st,evt);
+	script_pushint(st,mob_spawn_guardian(map,x,y,str,class_,evt,guardian,has_index));
 
 	return 0;
 }
@@ -17677,27 +17673,31 @@ BUILDIN_FUNC(getserverdef) {
 }
 
 /* Turns a player into a monster and grants SC attribute effect. [malufett]
- * montransform <monster name>, <duration>, <sc type>, <val1>, <val2>, <val3>, <val4>; */
+ * montransform <monster name/ID>, <duration>, <sc type>, <val1>, <val2>, <val3>, <val4>; */
 BUILDIN_FUNC(montransform) {
 	int tick;
 	enum sc_type type;
-	const char * monster;
 	struct block_list* bl;
+	char msg[CHAT_SIZE_MAX];
 	int mob_id, val1, val2, val3, val4;
-
-	monster = script_getstr(st,2);
-	tick = script_getnum(st,3);
-	type = (sc_type)script_getnum(st,4);
-	val1 = val2 = val3 = val4 = 0;
 
 	if ((bl = map_id2bl(st->rid)) == NULL)
 		return 0;
 
-	if ((mob_id = mobdb_searchname(monster)) == 0)
-		mob_id = mobdb_checkid(atoi(monster));
+	if (script_isstring(st,2))
+		mob_id = mobdb_searchname(script_getstr(st,2));
+	else
+		mob_id = mobdb_checkid(script_getnum(st,2));
+
+	tick = script_getnum(st,3);
+	type = (sc_type)script_getnum(st,4);
+	val1 = val2 = val3 = val4 = 0;
 
 	if (mob_id == 0) {
-		ShowWarning("buildin_montransform: Attempted to use non-existing monster '%s'.\n",monster);
+		if (script_isstring(st,2))
+			ShowWarning("buildin_montransform: Attempted to use non-existing monster '%s'.\n", script_getstr(st,2));
+		else
+			ShowWarning("buildin_montransform: Attempted to use non-existing monster of ID '%d'.\n", script_getnum(st,2)); 
 		return 1;
 	}
 
@@ -17723,9 +17723,9 @@ BUILDIN_FUNC(montransform) {
 	if (script_hasdata(st,8))
 		val4 = script_getnum(st,8);
 
-	if (type && tick != 0) {
+	if (tick != 0) {
 		struct map_session_data *sd = map_id2sd(bl->id);
-		char msg[CHAT_SIZE_MAX];
+		struct mob_db *monster =  mob_db(mob_id);
 
 		if (!sd) return 0;
 
@@ -17739,8 +17739,8 @@ BUILDIN_FUNC(montransform) {
 			return 0;
 		}
 
-		sprintf(msg,msg_txt(1490),monster); //Traaaansformation-!! %s form!!
-		clif_displaymessage(sd->fd,msg);
+		sprintf(msg,msg_txt(1490),monster->name); //Traaaansformation-!! %s form!!
+		clif_ShowScript(&sd->bl,msg);
 		status_change_end(bl,SC_MONSTER_TRANSFORM,INVALID_TIMER); //Clear previous
 		sc_start2(bl,bl,SC_MONSTER_TRANSFORM,100,mob_id,type,tick);
 		sc_start4(bl,bl,type,100,val1,val2,val3,val4,tick);
@@ -18228,7 +18228,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(is_clientver,"ii?"),
 	BUILDIN_DEF(getserverdef,"i"),
 
-	BUILDIN_DEF(montransform,"sii????"), //Monster Transform [malufett]
+	BUILDIN_DEF(montransform,"vii????"), //Monster Transform [malufett]
 
 #include "../custom/script_def.inc"
 
