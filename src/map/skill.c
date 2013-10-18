@@ -3106,7 +3106,7 @@ static int skill_check_unit_range (struct block_list *bl, int x, int y, uint16 s
 	}
 
 	range += layout_type;
-	return map_foreachinarea(skill_check_unit_range_sub,bl->m,x-range,y-range,x+range,y+range,BL_SKILL,skill_id);
+	return map_foreachinarea(skill_check_unit_range_sub,bl->m,x - range,y - range,x + range,y + range,BL_SKILL,skill_id);
 }
 
 static int skill_check_unit_range2_sub (struct block_list *bl, va_list ap)
@@ -3155,7 +3155,7 @@ static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 
 	}
 
 	return map_foreachinarea(skill_check_unit_range2_sub,bl->m,x - range,y - range,x + range,y + range,type,skill_id)
-		+ (type&BL_NPC) ? map_foreachinarea(npc_isnear_sub,bl->m,x - range_npc,y - range_npc,x + range_npc,y + range_npc,type,skill_id) : 0;
+		+ (range_npc > 0 && type&BL_NPC) ? map_foreachinarea(npc_isnear_sub,bl->m,x - range_npc,y - range_npc,x + range_npc,y + range_npc,type,skill_id) : 0;
 }
 
 int skill_guildaura_sub (struct map_session_data* sd, int id, int strvit, int agidex)
