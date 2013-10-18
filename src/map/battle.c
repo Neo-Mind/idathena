@@ -5729,7 +5729,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		MATK_ADDRATE(skill_damage);
 #endif
 
-	//battle_do_reflect(BF_MAGIC,&ad, src, target, skill_id, skill_lv); //WIP [lighta]
+	//Skill reflect gets calculated after all attack modifier
+	//battle_do_reflect(BF_MAGIC,&ad,src,target,skill_id,skill_lv); //WIP [lighta]
 
 	return ad;
 }
@@ -5779,19 +5780,19 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 
 	//Minstrel/Wanderer number check for chorus skills.
 	//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
-	if(sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 7)
+	if(sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus,sd,0) > 7)
 		//Maximum effect possiable from 7 or more Minstrel's/Wanderer's
 		chorusbonus = 5;
-	else if(sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 2)
+	else if(sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus,sd,0) > 2)
 		//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
-		chorusbonus = party_foreachsamemap(party_sub_count_chorus, sd, 0) - 2;
+		chorusbonus = party_foreachsamemap(party_sub_count_chorus,sd,0) - 2;
 
 	if(sd) {
 		sd->state.arrow_atk = 0;
-		md.blewcount += battle_blewcount_bonus(sd, skill_id);
+		md.blewcount += battle_blewcount_bonus(sd,skill_id);
 	}
 
-	s_ele = skill_get_ele(skill_id, skill_lv);
+	s_ele = skill_get_ele(skill_id,skill_lv);
 	//Attack that takes weapon's element for misc attacks? Make it neutral [Skotlex]
 	if(s_ele < 0 && s_ele != -3)
 		s_ele = ELE_NEUTRAL;
@@ -5800,7 +5801,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		s_ele = rnd()%ELE_MAX;
 
 	//Skill Range Criteria
-	md.flag |= battle_range_type(src, target, skill_id, skill_lv);
+	md.flag |= battle_range_type(src,target,skill_id,skill_lv);
 
 	switch(skill_id) {
 #ifdef RENEWAL
@@ -5835,8 +5836,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 
 			if(skill_id == SN_FALCONASSAULT) {
 				//Div fix of Blitzbeat
-				skill = skill_get_num(HT_BLITZBEAT, 5);
-				damage_div_fix(md.damage, skill);
+				skill = skill_get_num(HT_BLITZBEAT,5);
+				damage_div_fix(md.damage,skill);
 
 				//Falcon Assault Modifier
 				md.damage = md.damage * (150 + 70 * skill_lv) / 100;
@@ -5848,7 +5849,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		case BA_DISSONANCE:
 			md.damage = 30 + skill_lv * 10;
 			if(sd)
-				md.damage += 3 * pc_checkskill(sd, BA_MUSICALLESSON);
+				md.damage += 3 * pc_checkskill(sd,BA_MUSICALLESSON);
 			break;
 		case NPC_SELFDESTRUCTION:
 			md.damage = sstatus->hp;
@@ -5874,12 +5875,12 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				//Damage = 7 * ((atk + matk)/skill level) * (target vit/100)
 				//Skill is a "forced neutral" type skill, it benefits from weapon element but final damage
 				//is considered "neutral" for purposes of resistances
-				struct Damage atk = battle_calc_weapon_attack(src, target, skill_id, skill_lv, 0);
-				struct Damage matk = battle_calc_magic_attack(src, target, skill_id, skill_lv, 0);
+				struct Damage atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,0);
+				struct Damage matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,0);
 				md.damage = (int64)(7 * ((atk.damage / skill_lv + matk.damage / skill_lv) * tstatus->vit / 100));
 
 				//AD benefits from endow/element but damage is forced back to neutral
-				battle_attr_fix(src, target, md.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+				battle_attr_fix(src,target,md.damage,ELE_NEUTRAL,tstatus->def_ele,tstatus->ele_lv);
 			}
 #else
 			if(tstatus->vit + sstatus->int_) //Crash fix
@@ -5892,7 +5893,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			break;
 		case NJ_ZENYNAGE:
 		case KO_MUCHANAGE:
-				md.damage = skill_get_zeny(skill_id, skill_lv);
+				md.damage = skill_get_zeny(skill_id,skill_lv);
 				if(!md.damage)
 					md.damage = (skill_id == NJ_ZENYNAGE ? 2 : 10);
 				md.damage = (skill_id == NJ_ZENYNAGE ? rnd()%md.damage + md.damage : md.damage * rnd_value(50,100)) / (skill_id == NJ_ZENYNAGE ? 1 : 100);
@@ -5911,7 +5912,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				//Final damage = base damage + ((mirror image count + 1) / 5 * base damage) - (edef + sdef)
 				//Modified def formula
 				short totaldef;
-				struct Damage atk = battle_calc_weapon_attack(src, target, skill_id, skill_lv, 0);
+				struct Damage atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,0);
 				struct status_change *sc = status_get_sc(src);
 
 				md.damage = sstatus->hp + (atk.damage * sstatus->hp * skill_lv) / sstatus->max_hp;
@@ -5935,7 +5936,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			//Damage = 50 * skill level
 			//Fixed damage, ignores DEF and benefits from weapon +%ATK cards
 			md.damage = 50 * skill_lv;
-			md.damage += battle_calc_cardfix(BF_WEAPON, src, target, nk, s_ele, 0, md.damage, 0, md.flag|NK_NO_CARDFIX_DEF);
+			md.damage += battle_calc_cardfix(BF_WEAPON,src,target,nk,s_ele,0,md.damage,0,md.flag|NK_NO_CARDFIX_DEF);
 			break;
 		case HVAN_EXPLOSION: //[orn]
 			md.damage = sstatus->max_hp * (50 + 50 * skill_lv) / 100;
@@ -5950,9 +5951,9 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				short totaldef, totalmdef;
 				struct Damage atk, matk;
 
-				atk = battle_calc_weapon_attack(src, target, skill_id, skill_lv, 0);
+				atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,0);
 				nk |= NK_NO_ELEFIX; //Atk part takes on weapon element, matk part is non-elemental
-				matk = battle_calc_magic_attack(src, target, skill_id, skill_lv, 0);
+				matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,0);
 
 				//(Atk + Matk) * (3 + (.5 * skill level))
 				md.damage = ((30 + (5 * skill_lv)) * (atk.damage + matk.damage)) / 10;
@@ -6014,7 +6015,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			ShowError("0 enemies targeted by %d:%s, divide per 0 avoided!\n",skill_id,skill_get_name(skill_id));
 	}
 
-	damage_div_fix(md.damage, md.div_);
+	damage_div_fix(md.damage,md.div_);
 
 	if(!(nk&NK_IGNORE_FLEE)) {
 		struct status_change *sc = status_get_sc(target);
@@ -6130,7 +6131,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	if(tstatus->mode&MD_IGNOREMISC && md.flag&BF_MISC) //Misc @TODO optimize me
 		md.damage = md.damage2 = 1;
 
-	//battle_do_reflect(BF_MISC,&md, src, target, skill_id, skill_lv); //WIP [lighta]
+	//Skill reflect gets calculated after all attack modifier
+	battle_do_reflect(BF_MISC,&md,src,target,skill_id,skill_lv); //WIP [lighta]
 
 	return md;
 }
@@ -6721,8 +6723,8 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 
 	if (tsc) {
 		if (damage > 0 && tsc->data[SC_POISONREACT] &&
-			(rnd()%100 < tsc->data[SC_POISONREACT]->val3
-			|| sstatus->def_ele == ELE_POISON) &&
+			(rnd()%100 < tsc->data[SC_POISONREACT]->val3 ||
+			sstatus->def_ele == ELE_POISON) &&
 			//check_distance_bl(src,target,tstatus->rhw.range + 1) && //Doesn't checks range! o.O;
 			status_check_skilluse(target,src,TF_POISON,0)
 		) {	//Poison React

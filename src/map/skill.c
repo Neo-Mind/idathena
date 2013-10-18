@@ -3148,24 +3148,10 @@ static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 
 					return 0;
 				}
 				range = skill_get_unit_range(skill_id,skill_lv) + layout_type;
+				if (skill_id == SC_CHAOSPANIC || skill_id == SC_MAELSTROM)
+					range_npc = range * 3;
 			}
 			break;
-	}
-
-	switch (skill_id) {
-		case SC_CHAOSPANIC:
-		case SC_MAELSTROM:
-			range_npc = range * 3;
-			break;
-		default: {
-				int layout_type_npc = skill_get_unit_layout_type(skill_id,skill_lv);
-				if (layout_type_npc == -1 || layout_type_npc > MAX_SQUARE_LAYOUT) {
-					ShowError("skill_check_unit_range2: unsupported layout type %d for skill %d\n",layout_type_npc,skill_id);
-					return 0;
-				}
-				range_npc = skill_get_unit_range(skill_id,skill_lv) + layout_type_npc;
-		}
-		break;
 	}
 
 	return map_foreachinarea(skill_check_unit_range2_sub,bl->m,x - range,y - range,x + range,y + range,type,skill_id)
