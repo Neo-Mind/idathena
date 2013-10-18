@@ -641,10 +641,10 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 						}
 					}
 				}
-
+#ifndef RENEWAL
 				if( flag&BF_LONG )
 					cardfix = cardfix * (100 + sd->bonus.long_attack_atk_rate) / 100;
-
+#endif
 				if( (left&1) && cardfix_ != 1000 )
 					damage = damage * cardfix_ / 1000;
 				else if( cardfix != 1000 )
@@ -1215,16 +1215,14 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 					status_change_end(bl,SC__SHADOWFORM,INVALID_TIMER);
 					if( s_bl->type == BL_PC )
 						((TBL_PC*)s_bl)->shadowform_id = 0;
-					d->dmg_lv = ATK_BLOCK;
-					return 0;
 				} else {
 					if( div_ > 1 )
 						d->type = 8;
 					clif_damage(src,bl,gettick(),d->amotion,d->dmotion,damage,div_,d->type,d->damage2); //Just show the damage
 					status_damage(bl,s_bl,damage,0,clif_damage(s_bl,s_bl,gettick(),d->amotion,d->dmotion,damage,div_,d->type,d->damage2),0);
-					d->dmg_lv = ATK_BLOCK;
-					return 0;
 				}
+				d->dmg_lv = ATK_BLOCK;
+				return 0;
 			}
 		}
 	}
@@ -1358,7 +1356,7 @@ int64 battle_calc_bg_damage(struct block_list *src, struct block_list *bl, int64
 			damage = damage * battle_config.bg_long_damage_rate / 100;
 	}
 
-	damage = max(damage, 1); //Min 1 dammage
+	damage = max(damage,1); //Min 1 dammage
 	return damage;
 }
 
@@ -1367,15 +1365,15 @@ bool battle_can_hit_gvg_target(struct block_list *src, struct block_list *bl, ui
 	struct mob_data* md = BL_CAST(BL_MOB, bl);
 	int class_ = status_get_class(bl);
 
-	if (md && md->guardian_data) {
-		if (class_ == MOBID_EMPERIUM && flag&BF_SKILL && !(skill_get_inf3(skill_id)&INF3_HIT_EMP)) //Skill immunity.
+	if( md && md->guardian_data ) {
+		if( class_ == MOBID_EMPERIUM && flag&BF_SKILL && !(skill_get_inf3(skill_id)&INF3_HIT_EMP) ) //Skill immunity.
 			return false;
-		if (src->type != BL_MOB) {
+		if( src->type != BL_MOB ) {
 			struct guild *g = src->type == BL_PC ? ((TBL_PC *)src)->guild : guild_search(status_get_guild_id(src));
-			if (class_ == MOBID_EMPERIUM && (!g || guild_checkskill(g,GD_APPROVAL) <= 0))
+			if( class_ == MOBID_EMPERIUM && (!g || guild_checkskill(g,GD_APPROVAL) <= 0) )
 				return false;
-			if (g && battle_config.guild_max_castles && guild_checkcastles(g) >= battle_config.guild_max_castles)
-				return false; // [MouseJstr]
+			if( g && battle_config.guild_max_castles && guild_checkcastles(g) >= battle_config.guild_max_castles )
+				return false; //[MouseJstr]
 		}
 	}
 
@@ -1387,31 +1385,31 @@ bool battle_can_hit_gvg_target(struct block_list *src, struct block_list *bl, ui
  *------------------------------------------*/
 int64 battle_calc_gvg_damage(struct block_list *src, struct block_list *bl, int64 damage, int div_, uint16 skill_id, uint16 skill_lv, int flag)
 {
-	if (!damage) //No reductions to make.
+	if( !damage ) //No reductions to make.
 		return 0;
 
-	if (!battle_can_hit_gvg_target(src,bl,skill_id,flag))
+	if( !battle_can_hit_gvg_target(src,bl,skill_id,flag) )
 		return 0;
 
-	if (skill_get_inf2(skill_id)&INF2_NO_GVG_DMG) //Skills with no gvg damage reduction.
+	if( skill_get_inf2(skill_id)&INF2_NO_GVG_DMG ) //Skills with no gvg damage reduction.
 		return damage;
 
 	/* Uncomment if you want god-mode Emperiums at 100 defense. [Kisuka]
-	if (md && md->guardian_data)
+	if( md && md->guardian_data )
 		damage -= damage * (md->guardian_data->castle->defense / 100) * battle_config.castle_defense_rate / 100;
 	*/
 
-	if (flag&BF_SKILL) { //Skills get a different reduction than non-skills. [Skotlex]
-		if (flag&BF_WEAPON)
+	if( flag&BF_SKILL ) { //Skills get a different reduction than non-skills. [Skotlex]
+		if( flag&BF_WEAPON )
 			damage = damage * battle_config.gvg_weapon_damage_rate / 100;
-		if (flag&BF_MAGIC)
+		if( flag&BF_MAGIC )
 			damage = damage * battle_config.gvg_magic_damage_rate / 100;
-		if (flag&BF_MISC)
+		if( flag&BF_MISC )
 			damage = damage * battle_config.gvg_misc_damage_rate / 100;
 	} else { //Normal attacks get reductions based on range.
-		if (flag&BF_SHORT)
+		if( flag&BF_SHORT )
 			damage = damage * battle_config.gvg_short_damage_rate / 100;
-		if (flag&BF_LONG)
+		if( flag&BF_LONG )
 			damage = damage * battle_config.gvg_long_damage_rate / 100;
 	}
 
@@ -1426,10 +1424,10 @@ static int battle_calc_drain(int64 damage, int rate, int per)
 {
 	int64 diff = 0;
 
-	if (per && rnd()%1000 < rate) {
+	if(per && rnd()%1000 < rate) {
 		diff = (damage * per) / 100;
-		if (diff == 0) {
-			if (per > 0)
+		if(diff == 0) {
+			if(per > 0)
 				diff = 1;
 			else
 				diff = -1;
@@ -2804,11 +2802,9 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 			case RK_DRAGONBREATH_WATER:
 				{
 					int damagevalue = 0;
-					wd.damage = 0;
-					wd.damage2 = 0;
+					wd.damage = wd.damage2 = 0;
 #ifdef RENEWAL
-					wd.weaponAtk = 0;
-					wd.weaponAtk2 = 0;
+					wd.weaponAtk = wd.weaponAtk2 = 0;
 #endif
 					damagevalue = ((sstatus->hp / 50) + (status_get_max_sp(src) / 4)) * skill_lv;
 					if(status_get_lv(src) > 100)
@@ -2825,11 +2821,9 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				break;
 			case NC_SELFDESTRUCTION: {
 					int damagevalue = 0;
-					wd.damage = 0;
-					wd.damage2 = 0;
+					wd.damage = wd.damage2 = 0;
 #ifdef RENEWAL
-					wd.weaponAtk = 0;
-					wd.weaponAtk2 = 0;
+					wd.weaponAtk = wd.weaponAtk2 = 0;
 #endif
 					damagevalue = (skill_lv + 1) * ((sd ? pc_checkskill(sd,NC_MAINFRAME) : 0) + 8) * (status_get_sp(src) + sstatus->vit);
 					if(status_get_lv(src) > 100)
@@ -2844,11 +2838,9 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				break;
 			case KO_HAPPOKUNAI: {
 					int damagevalue = 0;
-					wd.damage = 0;
-					wd.damage2 = 0;
+					wd.damage = wd.damage2 = 0;
 #ifdef RENEWAL
-					wd.weaponAtk = 0;
-					wd.weaponAtk2 = 0;
+					wd.weaponAtk = wd.weaponAtk2 = 0;
 #endif
 					if(sd) {
 						short index = sd->equip_index[EQI_AMMO];
@@ -4906,6 +4898,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		if(sd) { //Monsters, homuns and pets have their damage computed directly
 			wd.damage = wd.statusAtk + wd.weaponAtk + wd.equipAtk + wd.masteryAtk;
 			wd.damage2 = wd.statusAtk2 + wd.weaponAtk2 + wd.equipAtk2 + wd.masteryAtk2;
+
+		if(wd.flag&BF_LONG) //Long damage rate addition doesn't use weapon + equip attack
+			ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.long_attack_atk_rate);
 		}
 #else
 		//Final attack bonuses that aren't affected by cards

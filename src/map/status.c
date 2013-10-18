@@ -10971,7 +10971,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		case SC__INVISIBILITY:
 			if( --(sce->val4) >= 0 ) {
-				if( !status_charge(bl,0,status->max_sp * ( 12 - 2 * sce->val1 ) / 100) )
+				if( !status_charge(bl,0,status->max_sp * (12 - 2 * sce->val1) / 100) )
 					break;
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				return 0;

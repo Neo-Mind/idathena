@@ -8624,7 +8624,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				if( tsc && tsc->data[SC__IGNORANCE] && skill_id == SC_IGNORANCE ) { //If the target was successfully inflected with the Ignorance status, drain some of the targets SP.
 						int sp = 100 * skill_lv;
 						if( dstmd ) sp = dstmd->level * 2;
-						if( status_zap(bl,0,sp) )
+						if( !dstmd && status_zap(bl,0,sp) )
 							status_heal(src,0,sp / 2,3); //What does flag 3 do? [Rytech]
 				}
 				if( tsc && tsc->data[SC__UNLUCKY] && skill_id == SC_UNLUCKY ) //If the target was successfully inflected with the Unlucky status, give 1 of 3 random status's.
