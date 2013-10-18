@@ -17740,7 +17740,7 @@ BUILDIN_FUNC(montransform) {
 		}
 
 		sprintf(msg,msg_txt(1490),monster->name); //Traaaansformation-!! %s form!!
-		clif_ShowScript(&sd->bl,msg);
+		clif_disp_overhead(&sd->bl,msg);
 		status_change_end(bl,SC_MONSTER_TRANSFORM,INVALID_TIMER); //Clear previous
 		sc_start2(bl,bl,SC_MONSTER_TRANSFORM,100,mob_id,type,tick);
 		sc_start4(bl,bl,type,100,val1,val2,val3,val4,tick);

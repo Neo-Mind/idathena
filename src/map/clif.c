@@ -11795,8 +11795,8 @@ void clif_parse_PartyBookingRegisterReq(int fd, struct map_session_data* sd)
 	short job[PARTY_BOOKING_JOBS];
 	int i;
 
-	for(i=0; i<PARTY_BOOKING_JOBS; i++)
-		job[i] = RFIFOB(fd,idxpbj+i*2);
+	for(i = 0; i < PARTY_BOOKING_JOBS; i++)
+		job[i] = RFIFOB(fd,idxpbj + i * 2);
 
 	party_booking_register(sd, level, mapid, job);
 }
@@ -11842,22 +11842,21 @@ void clif_parse_PartyBookingSearchReq(int fd, struct map_session_data* sd)
 void clif_PartyBookingSearchAck(int fd, struct party_booking_ad_info** results, int count, bool more_result)
 {
 	int i, j;
-	int size = sizeof(struct party_booking_ad_info); // structure size (48)
+	int size = sizeof(struct party_booking_ad_info); // Structure size (48)
 	struct party_booking_ad_info *pb_ad;
-	WFIFOHEAD(fd,size*count + 5);
+	WFIFOHEAD(fd,size * count + 5);
 	WFIFOW(fd,0) = 0x805;
 	WFIFOW(fd,2) = size*count + 5;
 	WFIFOB(fd,4) = more_result;
-	for(i=0; i<count; i++)
-	{
+	for(i = 0; i < count; i++) {
 		pb_ad = results[i];
-		WFIFOL(fd,i*size+5) = pb_ad->index;
-		memcpy(WFIFOP(fd,i*size+9),pb_ad->charname,NAME_LENGTH);
-		WFIFOL(fd,i*size+33) = pb_ad->starttime;  // FIXME: This is expire time
-		WFIFOW(fd,i*size+37) = pb_ad->p_detail.level;
-		WFIFOW(fd,i*size+39) = pb_ad->p_detail.mapid;
-		for(j=0; j<PARTY_BOOKING_JOBS; j++)
-			WFIFOW(fd,i*size+41+j*2) = pb_ad->p_detail.job[j];
+		WFIFOL(fd,i * size + 5) = pb_ad->index;
+		memcpy(WFIFOP(fd,i * size + 9),pb_ad->charname,NAME_LENGTH);
+		WFIFOL(fd,i * size + 33) = pb_ad->starttime;  // FIXME: This is expire time
+		WFIFOW(fd,i * size + 37) = pb_ad->p_detail.level;
+		WFIFOW(fd,i * size + 39) = pb_ad->p_detail.mapid;
+		for(j = 0; j < PARTY_BOOKING_JOBS; j++)
+			WFIFOW(fd,i * size + 41 + j * 2) = pb_ad->p_detail.job[j];
 	}
 	WFIFOSET(fd,WFIFOW(fd,2));
 }
@@ -11898,8 +11897,8 @@ void clif_parse_PartyBookingUpdateReq(int fd, struct map_session_data* sd)
 	int i;
 	int idxpbu = packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0];
 	
-	for(i=0; i<PARTY_BOOKING_JOBS; i++)
-		job[i] = RFIFOW(fd,idxpbu+i*2);
+	for(i = 0; i < PARTY_BOOKING_JOBS; i++)
+		job[i] = RFIFOW(fd,idxpbu + i * 2);
 
 	party_booking_update(sd, job);
 }
@@ -11910,19 +11909,19 @@ void clif_parse_PartyBookingUpdateReq(int fd, struct map_session_data* sd)
 void clif_PartyBookingInsertNotify(struct map_session_data* sd, struct party_booking_ad_info* pb_ad)
 {
 	int i;
-	uint8 buf[38+PARTY_BOOKING_JOBS*2];
+	uint8 buf[38 + PARTY_BOOKING_JOBS * 2];
 
 	if(pb_ad == NULL) return;
 
 	WBUFW(buf,0) = 0x809;
 	WBUFL(buf,2) = pb_ad->index;
-	memcpy(WBUFP(buf,6),pb_ad->charname,NAME_LENGTH);
+	memcpy(WBUFP(buf,6), pb_ad->charname, NAME_LENGTH);
 	WBUFL(buf,30) = pb_ad->starttime;  // FIXME: This is expire time
 	WBUFW(buf,34) = pb_ad->p_detail.level;
 	WBUFW(buf,36) = pb_ad->p_detail.mapid;
-	for(i=0; i<PARTY_BOOKING_JOBS; i++)
-		WBUFW(buf,38+i*2) = pb_ad->p_detail.job[i];
-	
+	for(i = 0; i < PARTY_BOOKING_JOBS; i++)
+		WBUFW(buf,38 + i * 2) = pb_ad->p_detail.job[i];
+
 	clif_send(buf, packet_len(0x809), &sd->bl, ALL_CLIENT);
 }
 
@@ -11932,15 +11931,15 @@ void clif_PartyBookingInsertNotify(struct map_session_data* sd, struct party_boo
 void clif_PartyBookingUpdateNotify(struct map_session_data* sd, struct party_booking_ad_info* pb_ad)
 {
 	int i;
-	uint8 buf[6+PARTY_BOOKING_JOBS*2];
+	uint8 buf[6 + PARTY_BOOKING_JOBS * 2];
 
 	if(pb_ad == NULL) return;
 
 	WBUFW(buf,0) = 0x80a;
 	WBUFL(buf,2) = pb_ad->index;
-	for(i=0; i<PARTY_BOOKING_JOBS; i++)
-		WBUFW(buf,6+i*2) = pb_ad->p_detail.job[i];
-	clif_send(buf,packet_len(0x80a),&sd->bl,ALL_CLIENT); // Now UPDATE all client.
+	for(i = 0; i < PARTY_BOOKING_JOBS; i++)
+		WBUFW(buf,6 + i * 2) = pb_ad->p_detail.job[i];
+	clif_send(buf, packet_len(0x80a), &sd->bl, ALL_CLIENT); // Now UPDATE all client.
 }
 
 
@@ -11969,9 +11968,9 @@ void clif_parse_CloseVending(int fd, struct map_session_data* sd)
 /// 0130 <account id>.L
 void clif_parse_VendingListReq(int fd, struct map_session_data* sd)
 {
-	if( sd->npc_id ) { // using an NPC
+	if( sd->npc_id ) // Using an NPC
 		return;
-	}
+
 	vending_vendinglistreq(sd,RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]));
 }
 
@@ -11985,9 +11984,9 @@ void clif_parse_PurchaseReq(int fd, struct map_session_data* sd)
 	int id = (int)RFIFOL(fd,info->pos[1]);
 	const uint8* data = (uint8*)RFIFOP(fd,info->pos[2]);
 
-	vending_purchasereq(sd, id, sd->vended_id, data, len/4);
+	vending_purchasereq(sd, id, sd->vended_id, data, len / 4);
 
-	// whether it fails or not, the buy window is closed
+	// Whether it fails or not, the buy window is closed
 	sd->vended_id = 0;
 }
 
@@ -16540,28 +16539,6 @@ void clif_partytickack(struct map_session_data* sd, bool flag) {
 	WFIFOW(sd->fd, 0) = 0x2c9; 
 	WFIFOB(sd->fd, 2) = flag;
 	WFIFOSET(sd->fd, packet_len(0x2c9)); 
-}
-
-void clif_ShowScript(struct block_list* bl, const char* message) {
-	char buf[256];
-	int len;
-	nullpo_retv(bl);
-
-	if( !message )
-		return;
-
-	len = strlen(message) + 1;
-
-	if( len > sizeof(buf) - 8 ) {
-		ShowWarning("clif_ShowScript: Truncating too long message '%s' (len=%d).\n", message, len);
-		len = sizeof(buf) - 8;
-	}
-
-	WBUFW(buf,0) = 0x8b3;
-	WBUFW(buf,2) = len + 8;
-	WBUFL(buf,4) = bl->id;
-	safestrncpy((char*)WBUFP(buf,8), message, len);
-	clif_send((unsigned char*)buf, WBUFW(buf,2), bl,ALL_CLIENT);
 }
 
 /// Ack world info (ZC_ACK_BEFORE_WORLD_INFO)
