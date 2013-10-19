@@ -7893,9 +7893,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			break;
 		case ALL_BUYING_STORE:
-			if( sd ) { //Players only, skill allows 5 buying slots
-				clif_skill_nodamage(src, bl, skill_id, skill_lv, buyingstore_setup(sd, MAX_BUYINGSTORE_SLOTS));
-			}
+			if( sd ) //Players only, skill allows 5 buying slots
+				clif_skill_nodamage(src,bl,skill_id,skill_lv,buyingstore_setup(sd,MAX_BUYINGSTORE_SLOTS));
 			break;
 
 		case RK_ENCHANTBLADE:
@@ -7903,7 +7902,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				sc_start2(src,bl,type,100,skill_lv,(100 + 20 * skill_lv) * (status_get_lv(src) / 150) + sstatus->int_,skill_get_time(skill_id,skill_lv)));
 			break;
 		case RK_DRAGONHOWLING:
-			if( flag&1)
+			if( flag&1 )
 				sc_start(src,bl,type,50 + 6 * skill_lv,skill_lv,skill_get_time(skill_id,skill_lv));
 			else {
 				skill_area_temp[2] = 0;
@@ -7917,7 +7916,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case RK_PHANTOMTHRUST:
 			unit_setdir(src,map_calc_dir(src,bl->x,bl->y));
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-
 			skill_blown(src,bl,distance_bl(src,bl)-1,unit_getdir(src),0);
 			if( battle_check_target(src,bl,BCT_ENEMY) > 0 )
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
