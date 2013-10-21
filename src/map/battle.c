@@ -1188,7 +1188,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( sc->data[SC__DEADLYINFECT] && (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT && damage > 0 &&
 			rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 && !(status_get_mode(src)&MD_BOSS) )
 			status_change_spread(bl,src); //Deadly infect attacked side
-}
+	}
 
 	//SC effects from caster's side.
 	sc = status_get_sc(src);
@@ -6541,7 +6541,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		}
 	}
 
-	wd.dmotion = clif_damage(src,target,tick,wd.amotion,wd.dmotion,damage,wd.div_,wd.type,wd.damage2);
+	wd.dmotion = clif_damage(src,target,tick,wd.amotion,wd.dmotion,wd.damage,wd.div_,wd.type,wd.damage2);
 
 	if (sd && sd->bonus.splash_range > 0 && damage > 0)
 		skill_castend_damage_id(src,target,0,1,tick,0);
