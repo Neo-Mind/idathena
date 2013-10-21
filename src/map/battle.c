@@ -1188,45 +1188,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( sc->data[SC__DEADLYINFECT] && (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT && damage > 0 &&
 			rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 && !(status_get_mode(src)&MD_BOSS) )
 			status_change_spread(bl,src); //Deadly infect attacked side
-
-		if( sc && sc->data[SC__SHADOWFORM] ) {
-			struct block_list *s_bl = map_id2bl(sc->data[SC__SHADOWFORM]->val2);
-			if( !s_bl || s_bl->m != bl->m ) { //If the shadow form target is not present remove the sc.
-				status_change_end(bl,SC__SHADOWFORM,INVALID_TIMER);
-			} else if( status_isdead(s_bl) || !battle_check_target(src,s_bl,BCT_ENEMY)) {
-				//If the shadow form target is dead or not your enemy remove the sc in both.
-				status_change_end(bl,SC__SHADOWFORM,INVALID_TIMER);
-				if( s_bl->type == BL_PC )
-					((TBL_PC*)s_bl)->shadowform_id = 0;
-			} else {
-				//If you have exceded max hits supported, remove the sc in both.
-				//@TODO: How to remove "miss" animation damage?
-				//"return 0;", will block damage and display "miss" animation.
-				if( (sc->data[SC__SHADOWFORM]->val3 -= div_ ) < 0 ) {
-					int temp = sc->data[SC__SHADOWFORM]->val3 + div_;
-					if( div_ > 1 )
-						d->type = 8;
-					status_damage(src,bl,(damage / div_) * (div_ - temp),0,
-						clif_damage(src,bl,gettick(),d->amotion,d->dmotion,
-							(damage / div_) * (div_ - temp),(div_ - temp),d->type,d->damage2),0);
-					status_damage(bl,s_bl,(damage / div_) * (div_ - (div_ - temp)),0,
-						clif_damage(s_bl,s_bl,gettick(),d->amotion,d->dmotion,
-							(damage / div_) * (div_ - (div_ - temp)),
-								(div_ - (div_ - temp)),d->type,d->damage2),0);
-					status_change_end(bl,SC__SHADOWFORM,INVALID_TIMER);
-					if( s_bl->type == BL_PC )
-						((TBL_PC*)s_bl)->shadowform_id = 0;
-				} else {
-					if( div_ > 1 )
-						d->type = 8;
-					clif_damage(src,bl,gettick(),d->amotion,d->dmotion,damage,div_,d->type,d->damage2); //Just show the damage
-					status_damage(bl,s_bl,damage,0,clif_damage(s_bl,s_bl,gettick(),d->amotion,d->dmotion,damage,div_,d->type,d->damage2),0);
-				}
-				d->dmg_lv = ATK_BLOCK;
-				return 0;
-			}
-		}
-	}
+}
 
 	//SC effects from caster's side.
 	sc = status_get_sc(src);
@@ -6579,7 +6541,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		}
 	}
 
-	wd.dmotion = clif_damage(src,target,tick,wd.amotion,wd.dmotion,wd.damage,wd.div_ ,wd.type,wd.damage2);
+	wd.dmotion = clif_damage(src,target,tick,wd.amotion,wd.dmotion,damage,wd.div_,wd.type,wd.damage2);
 
 	if (sd && sd->bonus.splash_range > 0 && damage > 0)
 		skill_castend_damage_id(src,target,0,1,tick,0);
@@ -6591,7 +6553,13 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 
 	map_freeblock_lock();
 
-	battle_delay_damage(tick,wd.amotion,src,target,wd.flag,0,0,damage,wd.dmg_lv,wd.dmotion,true);
+	if (skill_check_shadowform(target,damage,wd.div_)) {
+		if (!status_isdead(target))
+			skill_additional_effect(src,target,0,0,wd.flag,wd.dmg_lv,tick);
+		if (wd.dmg_lv > ATK_BLOCK)
+			skill_counter_additional_effect(src,target,0,0,wd.flag,tick);
+	} else
+		battle_delay_damage(tick,wd.amotion,src,target,wd.flag,0,0,damage,wd.dmg_lv,wd.dmotion,true);
 
 	if (tsc) {
 		if (tsc->data[SC_DEVOTION]) {

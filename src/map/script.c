@@ -5907,7 +5907,7 @@ BUILDIN_FUNC(countitem)
 	}
 
 	data = script_getdata(st,2);
-	get_val(st, data);  //Convert into value in case of a variable
+	get_val(st, data); //Convert into value in case of a variable
 
 	if( data_isstring(data) ) //Item name
 		id = itemdb_searchname(conv_str(st, data));
@@ -5915,7 +5915,7 @@ BUILDIN_FUNC(countitem)
 		id = itemdb_exists(conv_num(st, data));
 
 	if( id == NULL ) {
-		ShowError("buildin_countitem: Invalid item '%s'.\n", script_getstr(st,2));  //Returns string, regardless of what it was
+		ShowError("buildin_countitem: Invalid item '%s'.\n", script_getstr(st,2)); //Returns string, regardless of what it was
 		script_pushint(st,0);
 		return 1;
 	}
@@ -5957,10 +5957,10 @@ int checkweight_sub(TBL_PC *sd,int nbargs,int32 *eitemid,int32 *eamount)
 	int nameid,amount;
 	uint16 amount2=0,slots,weight=0,i;
 
-	slots = pc_inventoryblank(sd); //nb of empty slot
+	slots = pc_inventoryblank(sd); //NB of empty slot
 
-	for(i=0; i<nbargs; i++) {
-		if(!eitemid[i])
+	for( i = 0; i < nbargs; i++ ) {
+		if( !eitemid[i] )
 			continue;
 		id = itemdb_exists(eitemid[i]);
 		if( id == NULL ) {
@@ -5975,18 +5975,18 @@ int checkweight_sub(TBL_PC *sd,int nbargs,int32 *eitemid,int32 *eamount)
 			return 0;
 		}
 
-		weight += (id->weight)*amount; //total weight for all chk
-		if( weight + sd->weight > sd->max_weight ) // too heavy
+		weight += (id->weight)*amount; // Total weight for all chk
+		if( weight + sd->weight > sd->max_weight ) // Too heavy
 			return 0;
 
 		switch( pc_checkadditem(sd, nameid, amount) ) {
-			case CHKADDITEM_EXIST: // item is already in inventory, but there is still space for the requested amount
+			case CHKADDITEM_EXIST: // Item is already in inventory, but there is still space for the requested amount
 				break;
 			case CHKADDITEM_NEW:
 				if( itemdb_isstackable(nameid) )
-					amount2++; // stackable
+					amount2++; // Stackable
 				else
-					amount2 += amount; // non-stackable
+					amount2 += amount; // Non-stackable
 				if( slots < amount2)
 					return 0;
 				break;
@@ -6010,62 +6010,62 @@ BUILDIN_FUNC(checkweight)
 	struct script_data* data;
 	struct item_data* id = NULL;
 	int32 nameid[SCRIPT_MAX_ARRAYSIZE], amount[SCRIPT_MAX_ARRAYSIZE];
-	uint16 nbargs,i,j=0;
+	uint16 nbargs, i, j = 0;
 
 	if( ( sd = script_rid2sd(st) ) == NULL )
 		return 0;
 
-	nbargs = script_lastdata(st)+1;
-	if(nbargs%2) {
+	nbargs = script_lastdata(st) + 1;
+	if( nbargs%2 ) {
 		ShowError("buildin_checkweight: Invalid nb of args should be a multiple of 2.\n");
 		script_pushint(st,0);
 		return 1;
 	}
 
-	for(i=2; i<nbargs; i=i+2) {
+	for( i = 2; i < nbargs; i = i + 2 ) {
 		data = script_getdata(st,i);
-		get_val(st, data);  // convert into value in case of a variable
-		if( data_isstring(data) ) // item name
-			id = itemdb_searchname(conv_str(st, data));
-		else // item id
-			id = itemdb_exists(conv_num(st, data));
+		get_val(st,data);  // Convert into value in case of a variable
+		if( data_isstring(data) ) // Item name
+			id = itemdb_searchname(conv_str(st,data));
+		else // Item id
+			id = itemdb_exists(conv_num(st,data));
 		if( id == NULL ) {
-			ShowError("buildin_checkweight: Invalid item '%s'.\n", script_getstr(st,i));  // returns string, regardless of what it was
+			ShowError("buildin_checkweight: Invalid item '%s'.\n",script_getstr(st,i));  // Returns string, regardless of what it was
 			script_pushint(st,0);
 			return 1;
 		}
 		nameid[j] = id->nameid;
-		amount[j] = script_getnum(st,i+1);
+		amount[j] = script_getnum(st,i + 1);
 		j++;
 	}
 
-	script_pushint(st,checkweight_sub(sd,(nbargs-2)/2,nameid,amount));
+	script_pushint(st,checkweight_sub(sd,(nbargs - 2) / 2,nameid,amount));
 	return 0;
 }
 
-BUILDIN_FUNC(checkweight2){
-	//variable sub checkweight
+BUILDIN_FUNC(checkweight2) {
+	//Variable sub checkweight
 	int32 nameid[SCRIPT_MAX_ARRAYSIZE], amount[SCRIPT_MAX_ARRAYSIZE], i;
 
-	//variable for array parsing
+	//Variable for array parsing
 	struct script_data* data_it;
 	struct script_data* data_nb;
 	const char* name_it;
 	const char* name_nb;
 	int32 id_it, id_nb;
 	int32 idx_it, idx_nb;
-	int nb_it, nb_nb; //array size
+	int nb_it, nb_nb; //Array size
 
 	TBL_PC *sd = script_rid2sd(st);
 	nullpo_retr(1,sd);
 
-	data_it = script_getdata(st, 2);
-	data_nb = script_getdata(st, 3);
+	data_it = script_getdata(st,2);
+	data_nb = script_getdata(st,3);
 
 	if( !data_isreference(data_it) || !data_isreference(data_nb)) {
 		ShowError("buildin_checkweight2: parameter not a variable\n");
 		script_pushint(st,0);
-		return 1;// not a variable
+		return 1; //Not a variable
 	}
 
 	id_it = reference_getid(data_it);
@@ -6078,29 +6078,29 @@ BUILDIN_FUNC(checkweight2){
 	if( not_array_variable(*name_it) || not_array_variable(*name_nb)) {
 		ShowError("buildin_checkweight2: illegal scope\n");
 		script_pushint(st,0);
-		return 1;// not supported
+		return 1; //Not supported
 	}
-	if(is_string_variable(name_it) || is_string_variable(name_nb)) {
+	if( is_string_variable(name_it) || is_string_variable(name_nb) ) {
 		ShowError("buildin_checkweight2: illegal type, need int\n");
 		script_pushint(st,0);
-		return 1;// not supported
+		return 1; //Not supported
 	}
-	nb_it = getarraysize(st, id_it, idx_it, 0, reference_getref(data_it));
-	nb_nb = getarraysize(st, id_nb, idx_nb, 0, reference_getref(data_nb));
-	if(nb_it != nb_nb) {
+	nb_it = getarraysize(st,id_it,idx_it,0,reference_getref(data_it));
+	nb_nb = getarraysize(st,id_nb,idx_nb,0,reference_getref(data_nb));
+	if( nb_it != nb_nb ) {
 		ShowError("buildin_checkweight2: Size mistmatch: nb_it=%d, nb_nb=%d\n",nb_it,nb_nb);
 		script_pushint(st,0);
 		return 1;
 	}
 
-	for(i=0; i<nb_it; i++) {
+	for( i = 0; i < nb_it; i++ ) {
 		nameid[i] = (int32)__64BPRTSIZE(get_val2(st,reference_uid(id_it,idx_it+i),reference_getref(data_it)));
-		script_removetop(st, -1, 0);
+		script_removetop(st,-1,0);
 		amount[i] = (int32)__64BPRTSIZE(get_val2(st,reference_uid(id_nb,idx_nb+i),reference_getref(data_nb)));
-		script_removetop(st, -1, 0);
-	} //end loop DO NOT break it prematurly we need to depop all stack
+		script_removetop(st,-1,0);
+	} //End loop DO NOT break it prematurly we need to depop all stack
 
-	script_pushint(st,checkweight_sub(sd,nb_it,nameid,amount)); //push result of sub to script
+	script_pushint(st,checkweight_sub(sd,nb_it,nameid,amount)); //Push result of sub to script
 
 	return 0;
 }

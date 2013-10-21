@@ -4869,20 +4869,20 @@ void clif_skill_fail(struct map_session_data *sd,uint16 skill_id,enum useskill_f
 {
 	int fd;
 
-	if (!sd) {	//Since this is the most common nullpo....
+	if(!sd) { //Since this is the most common nullpo....
 		ShowDebug("clif_skill_fail: Error, received NULL sd for skill %d\n", skill_id);
 		return;
 	}
-	
-	fd=sd->fd;
-	if (!fd) return;
+
+	fd = sd->fd;
+	if(!fd) return;
 
 	if(battle_config.display_skill_fail&1)
 		return; //Disable all skill failed messages
 
-	if(cause==USESKILL_FAIL_SKILLINTERVAL && !sd->state.showdelay)
+	if(cause == USESKILL_FAIL_SKILLINTERVAL && !sd->state.showdelay)
 		return; //Disable delay failed messages
-	
+
 	if(skill_id == RG_SNATCHER && battle_config.display_skill_fail&4)
 		return;
 
