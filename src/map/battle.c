@@ -4703,9 +4703,8 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 					wd.div_ = 1;
 				break;
 		}
-	} else {
+	} else
 		wd.flag |= is_skill_using_arrow(src,skill_id) ? BF_LONG : BF_SHORT;
-	}
 
 	return wd;
 }
@@ -4722,8 +4721,8 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 void battle_do_reflect(int attack_type, struct Damage *wd, struct block_list* src, struct block_list* target, uint16 skill_id, uint16 skill_lv)
 {
 	//Don't reflect your own damage (Grand Cross)
-	if( (wd->damage + wd->damage2) && src && target && src != target && (src->type != BL_SKILL ||
-		(src->type == BL_SKILL && (skill_id == SG_SUN_WARM || skill_id == SG_MOON_WARM || skill_id == SG_STAR_WARM))) )
+	if((wd->damage + wd->damage2) && src && target && src != target && (src->type != BL_SKILL ||
+		(src->type == BL_SKILL && (skill_id == SG_SUN_WARM || skill_id == SG_MOON_WARM || skill_id == SG_STAR_WARM))))
 	{
 		int64 damage = wd->damage + wd->damage2, rdamage = 0;
 		struct map_session_data *tsd = BL_CAST(BL_PC, target);
@@ -4731,22 +4730,15 @@ void battle_do_reflect(int attack_type, struct Damage *wd, struct block_list* sr
 		struct status_data *sstatus = status_get_status_data(src);
 		int tick = gettick(), rdelay = 0;
 
-		if( tsc ) {
+		if(tsc) {
 			struct status_data *tstatus = status_get_status_data(target);
 			rdamage = battle_calc_return_damage(target, src, &damage, wd->flag, skill_id, 1);
-			if( rdamage > 0 ) {
-				//if( tsc->data[SC__SHADOWFORM] ) {
-					//struct block_list *s_bl = map_id2bl(tsc->data[SC__SHADOWFORM]->val2);
-					//if( s_bl )
-						//status_damage(src, s_bl, rdamage, 0, clif_damage(src, s_bl, gettick(), 500, 500, rdamage, -1, 0, 0), 0);
-					//wd->damage = wd->damage2 = 0;
-					//wd->dmg_lv = ATK_BLOCK;
-				//}
-				if( attack_type == BF_WEAPON && tsc->data[SC_REFLECTDAMAGE] )
+			if(rdamage > 0) {
+				if(attack_type == BF_WEAPON && tsc->data[SC_REFLECTDAMAGE])
 					map_foreachinshootrange(battle_damage_area, target, skill_get_splash(LG_REFLECTDAMAGE, 1), BL_CHAR, tick, target, wd->amotion, sstatus->dmotion, rdamage, tstatus->race);
-				else if( attack_type == BF_WEAPON || attack_type == BF_MISC ) {
+				else if(attack_type == BF_WEAPON || attack_type == BF_MISC) {
 					rdelay = clif_damage(src, src, tick, wd->amotion, sstatus->dmotion, rdamage, 1, 4, 0);
-					if( tsd )
+					if(tsd)
 						battle_drain(tsd, src, rdamage, rdamage, sstatus->race, is_boss(src));
 					//It appears that official servers give skill reflect damage a longer delay
 					battle_delay_damage(tick, wd->amotion, target, src, 0, CR_REFLECTSHIELD, 0, rdamage, ATK_DEF, rdelay, true);

@@ -4072,8 +4072,8 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 
 	if( flag&SCB_MATK ) {
 #ifndef RENEWAL
-		status->matk_min = status_base_matk_min(status) + (sd?sd->bonus.ematk:0);
-		status->matk_max = status_base_matk_max(status) + (sd?sd->bonus.ematk:0);
+		status->matk_min = status_base_matk_min(status) + (sd ? sd->bonus.ematk : 0);
+		status->matk_max = status_base_matk_max(status) + (sd ? sd->bonus.ematk : 0);
 #else
 		/**
 		 * RE MATK Formula (from irowiki:http://irowiki.org/wiki/MATK)
