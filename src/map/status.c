@@ -3672,24 +3672,23 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		sc->data[SC_BLEEDING] ||
 		sc->data[SC_MAGICMUSHROOM] ||
 		sc->data[SC_SATURDAYNIGHTFEVER])
-		//No natural HP and SP regen
-		regen->flag = 0;
+		regen->flag = 0; //No natural HP and SP regen
 
 	if (sc->data[SC_DANCING] ||
 #ifdef RENEWAL
 		sc->data[SC_MAXIMIZEPOWER] ||
 #endif
 		sc->data[SC_VITALITYACTIVATION] || sc->data[SC_OBLIVIONCURSE] || sc->data[SC_REBOUND] ||
-		(bl->type == BL_PC && (((TBL_PC*)bl)->class_&MAPID_UPPERMASK) == MAPID_MONK && sc->data[SC_EXTREMITYFIST]))
-		//No natural SP regen
-		regen->flag &= ~RGN_SP;
+		(bl->type == BL_PC && (((TBL_PC*)bl)->class_&MAPID_UPPERMASK) == MAPID_MONK && sc->data[SC_EXTREMITYFIST] &&
+		(!sc->data[SC_SPIRIT] || sc->data[SC_SPIRIT]->val2 != SL_MONK)))
+		regen->flag &= ~RGN_SP; //No natural SP regen
 
 	if (sc->data[SC_MAGNIFICAT])
 		regen->rate.sp += 1; //2x HP regen
 
 	if (bl->type == BL_PC && (((TBL_PC*)bl)->class_&MAPID_UPPERMASK) == MAPID_MONK &&
 		sc->data[SC_EXPLOSIONSPIRITS] && (!sc->data[SC_SPIRIT] || sc->data[SC_SPIRIT]->val2 != SL_MONK))
-		regen->rate.sp = regen->rate.sp / 2; //50% SP regen
+		regen->rate.sp = regen->rate.sp / 2; //50% SP regen on fury state
 
 	if (sc->data[SC_TENSIONRELAX]) {
 		if (sc->data[SC_WEIGHT50] || sc->data[SC_WEIGHT90])
@@ -3715,10 +3714,10 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		regen->state.walk = 1;
 	}
 
-	if ((sc->data[SC_FIRE_INSIGNIA] && sc->data[SC_FIRE_INSIGNIA]->val1 == 1) //If insignia lvl 1
-		|| (sc->data[SC_WATER_INSIGNIA] && sc->data[SC_WATER_INSIGNIA]->val1 == 1)
-		|| (sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 1)
-		|| (sc->data[SC_WIND_INSIGNIA] && sc->data[SC_WIND_INSIGNIA]->val1 == 1))
+	if ((sc->data[SC_FIRE_INSIGNIA] && sc->data[SC_FIRE_INSIGNIA]->val1 == 1) || //If insignia lvl 1
+		(sc->data[SC_WATER_INSIGNIA] && sc->data[SC_WATER_INSIGNIA]->val1 == 1) ||
+		(sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 1) ||
+		(sc->data[SC_WIND_INSIGNIA] && sc->data[SC_WIND_INSIGNIA]->val1 == 1))
 		regen->rate.hp *= 2;
 }
 
@@ -3734,11 +3733,11 @@ void status_calc_state( struct block_list *bl, struct status_change *sc, enum sc
 	if( flag&SCS_NOMOVE ) {
 		if( !(flag&SCS_NOMOVECOND) )
 			sc->cant.move += (start ? 1 : -1);
-		else if( (sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF)	//Cannot move while gospel is in effect
-			|| (sc->data[SC_BASILICA] && sc->data[SC_BASILICA]->val4 == bl->id) //Basilica caster cannot move
-			|| (sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF)
-			|| (sc->data[SC_CRYSTALIZE] && bl->type != BL_MOB)
-			|| (sc->data[SC_CAMOUFLAGE] && sc->data[SC_CAMOUFLAGE]->val1 < 3) )
+		else if( (sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF) || //Cannot move while gospel is in effect
+			(sc->data[SC_BASILICA] && sc->data[SC_BASILICA]->val4 == bl->id) || //Basilica caster cannot move
+			(sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF) ||
+			(sc->data[SC_CRYSTALIZE] && bl->type != BL_MOB) ||
+			(sc->data[SC_CAMOUFLAGE] && sc->data[SC_CAMOUFLAGE]->val1 < 3) )
 			sc->cant.move += (start ? 1 : -1);
 		sc->cant.move = max(sc->cant.move, 0); //Safecheck
 	}
