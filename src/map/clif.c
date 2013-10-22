@@ -1303,12 +1303,11 @@ int clif_spawn(struct block_list *bl)
 					clif_specialeffect(bl,421,AREA);
 				if (sd->bg_id && map[sd->bl.m].flag.battleground)
 					clif_sendbgemblem_area(sd);
-				for (i = 0; i < sd->sc_display_count; i++) {
+				for (i = 0; i < sd->sc_display_count; i++)
 					clif_status_change2(&sd->bl,sd->bl.id,AREA,StatusIconChangeTable[sd->sc_display[i]->type],sd->sc_display[i]->val1,sd->sc_display[i]->val2,sd->sc_display[i]->val3);
-				}
 				for (i = 1; i < 5; i++) {
 					if (sd->talisman[i] > 0)
-						clif_talisman(sd, i);
+						clif_talisman(sd,i);
 				}
 				if (sd->status.robe)
 					clif_refreshlook(bl,bl->id,LOOK_ROBE,sd->status.robe,AREA);
@@ -1316,23 +1315,23 @@ int clif_spawn(struct block_list *bl)
 			break;
 		case BL_MOB: {
 				TBL_MOB *md = ((TBL_MOB*)bl);
-				if (md->special_state.size==SZ_BIG) //Tiny/Big mobs [Valaris]
+				if (md->special_state.size == SZ_BIG) //Tiny/Big mobs [Valaris]
 					clif_specialeffect(&md->bl,423,AREA);
-				else if (md->special_state.size==SZ_MEDIUM)
+				else if (md->special_state.size == SZ_MEDIUM)
 					clif_specialeffect(&md->bl,421,AREA);
 			}
 			break;
 		case BL_NPC: {
 				TBL_NPC *nd = ((TBL_NPC*)bl);
-				if (nd->size==SZ_BIG)
+				if (nd->size == SZ_BIG)
 					clif_specialeffect(&nd->bl,423,AREA);
-				else if (nd->size==SZ_MEDIUM)
+				else if (nd->size == SZ_MEDIUM)
 					clif_specialeffect(&nd->bl,421,AREA);
 			}
 			break;
 		case BL_PET:
 			if (vd->head_bottom)
-				clif_pet_equip_area((TBL_PET*)bl); // Needed to display pet equip properly
+				clif_pet_equip_area((TBL_PET*)bl); //Needed to display pet equip properly
 			break;
 	}
 	return 0;
@@ -3122,24 +3121,24 @@ void clif_initialstatus(struct map_session_data *sd)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0xbd));
-	buf=WFIFOP(fd,0);
+	buf = WFIFOP(fd,0);
 
-	WBUFW(buf,0)=0xbd;
-	WBUFW(buf,2)=min(sd->status.status_point, INT16_MAX);
-	WBUFB(buf,4)=min(sd->status.str, UINT8_MAX);
-	WBUFB(buf,5)=pc_need_status_point(sd,SP_STR,1);
-	WBUFB(buf,6)=min(sd->status.agi, UINT8_MAX);
-	WBUFB(buf,7)=pc_need_status_point(sd,SP_AGI,1);
-	WBUFB(buf,8)=min(sd->status.vit, UINT8_MAX);
-	WBUFB(buf,9)=pc_need_status_point(sd,SP_VIT,1);
-	WBUFB(buf,10)=min(sd->status.int_, UINT8_MAX);
-	WBUFB(buf,11)=pc_need_status_point(sd,SP_INT,1);
-	WBUFB(buf,12)=min(sd->status.dex, UINT8_MAX);
-	WBUFB(buf,13)=pc_need_status_point(sd,SP_DEX,1);
-	WBUFB(buf,14)=min(sd->status.luk, UINT8_MAX);
-	WBUFB(buf,15)=pc_need_status_point(sd,SP_LUK,1);
+	WBUFW(buf,0) = 0xbd;
+	WBUFW(buf,2) = min(sd->status.status_point,INT16_MAX);
+	WBUFB(buf,4) = min(sd->status.str,UINT8_MAX);
+	WBUFB(buf,5) = pc_need_status_point(sd,SP_STR,1);
+	WBUFB(buf,6) = min(sd->status.agi,UINT8_MAX);
+	WBUFB(buf,7) = pc_need_status_point(sd,SP_AGI,1);
+	WBUFB(buf,8) = min(sd->status.vit,UINT8_MAX);
+	WBUFB(buf,9) = pc_need_status_point(sd,SP_VIT,1);
+	WBUFB(buf,10) = min(sd->status.int_,UINT8_MAX);
+	WBUFB(buf,11) = pc_need_status_point(sd,SP_INT,1);
+	WBUFB(buf,12) = min(sd->status.dex,UINT8_MAX);
+	WBUFB(buf,13) = pc_need_status_point(sd,SP_DEX,1);
+	WBUFB(buf,14) = min(sd->status.luk,UINT8_MAX);
+	WBUFB(buf,15) = pc_need_status_point(sd,SP_LUK,1);
 
 	WBUFW(buf,16) = pc_leftside_atk(sd);
 	WBUFW(buf,18) = pc_rightside_atk(sd);
@@ -3151,15 +3150,15 @@ void clif_initialstatus(struct map_session_data *sd)
 	mdef2 = pc_rightside_mdef(sd);
 	WBUFW(buf,30) =
 #ifndef RENEWAL
-		( mdef2 < 0 ) ? 0 : //Negative check for Frenzy'ed characters.
+		(mdef2 < 0) ? 0 : //Negative check for Frenzy'ed characters.
 #endif
 		mdef2;
 	WBUFW(buf,32) = sd->battle_status.hit;
 	WBUFW(buf,34) = sd->battle_status.flee;
-	WBUFW(buf,36) = sd->battle_status.flee2/10;
-	WBUFW(buf,38) = sd->battle_status.cri/10;
-	WBUFW(buf,40) = sd->battle_status.amotion; // aspd
-	WBUFW(buf,42) = 0;  // always 0 (plusASPD)
+	WBUFW(buf,36) = sd->battle_status.flee2 / 10;
+	WBUFW(buf,38) = sd->battle_status.cri / 10;
+	WBUFW(buf,40) = sd->battle_status.amotion; //ASPD
+	WBUFW(buf,42) = 0; //Always 0 (plusASPD)
 
 	WFIFOSET(fd,packet_len(0xbd));
 
@@ -3185,13 +3184,13 @@ void clif_arrowequip(struct map_session_data *sd,int val)
 
 	pc_stop_attack(sd); // [Valaris]
 #if PACKETVER >= 20121128
-	clif_status_change(&sd->bl, SI_CLIENT_ONLY_EQUIP_ARROW, 1, INVALID_TIMER, 0, 0, 0);
+	clif_status_change(&sd->bl,SI_CLIENT_ONLY_EQUIP_ARROW,1,INVALID_TIMER,0,0,0);
 #endif
-	fd=sd->fd;
-	WFIFOHEAD(fd, packet_len(0x013c));
-	WFIFOW(fd,0)=0x013c;
-	WFIFOW(fd,2)=val+2; //Item ID of the arrow
-	WFIFOSET(fd,packet_len(0x013c));
+	fd = sd->fd;
+	WFIFOHEAD(fd,packet_len(0x13c));
+	WFIFOW(fd,0) = 0x13c;
+	WFIFOW(fd,2) = val + 2; //Item ID of the arrow
+	WFIFOSET(fd,packet_len(0x13c));
 }
 
 
@@ -4056,9 +4055,8 @@ static void clif_getareachar_pc(struct map_session_data* sd,struct map_session_d
 		if( dstsd->talisman[i] > 0 )
 			clif_talisman_single(sd->fd, dstsd, i);
 	}
-	for( i = 0; i < dstsd->sc_display_count; i++ ) {
+	for( i = 0; i < dstsd->sc_display_count; i++ )
 		clif_status_change2(&sd->bl,dstsd->bl.id,SELF,StatusIconChangeTable[dstsd->sc_display[i]->type],dstsd->sc_display[i]->val1,dstsd->sc_display[i]->val2,dstsd->sc_display[i]->val3);
-	}
 	if( (sd->status.party_id && dstsd->status.party_id == sd->status.party_id) || //Party-mate, or hpdisp setting.
 		(sd->bg_id && sd->bg_id == dstsd->bg_id) || //BattleGround
 		pc_has_permission(sd, PC_PERM_VIEW_HPMETER)
@@ -5374,9 +5372,9 @@ void clif_cooking_list(struct map_session_data *sd, int trigger, uint16 skill_id
 /// Notifies clients of a status change.
 /// 0196 <index>.W <id>.L <state>.B (ZC_MSG_STATE_CHANGE) [used for ending status changes and starting them on non-pc units (when needed)]
 /// 043f <index>.W <id>.L <state>.B <remain msec>.L { <val>.L }*3 (ZC_MSG_STATE_CHANGE2) [used exclusively for starting statuses on pcs]
-/// 08ff <id>.L <index>.W <remain msec>.L { <val>.L }*3  (PACKETVER >= 20111108)
-/// 0983 <index>.W <id>.L <state>.B <total msec>.L <remain msec>.L { <val>.L }*3 (PACKETVER >= 20120618)
-/// 0984 <id>.L <index>.W <total msec>.L <remain msec>.L { <val>.L }*3 (PACKETVER >= 20120618)
+/// 08ff <id>.L <index>.W <remain msec>.L { <val>.L }*3  (ZC_EFST_SET_ENTER) (PACKETVER >= 20111108)
+/// 0983 <index>.W <id>.L <state>.B <total msec>.L <remain msec>.L { <val>.L }*3 (ZC_MSG_STATE_CHANGE3) (PACKETVER >= 20120618)
+/// 0984 <id>.L <index>.W <total msec>.L <remain msec>.L { <val>.L }*3 (ZC_EFST_SET_ENTER2) (PACKETVER >= 20120618)
 void clif_status_change(struct block_list *bl,int type,int flag,int tick,int val1, int val2, int val3)
 {
 	unsigned char buf[32];
@@ -5387,9 +5385,10 @@ void clif_status_change(struct block_list *bl,int type,int flag,int tick,int val
 
 	nullpo_retv(bl);
 
-	sd = BL_CAST(BL_PC, bl);
+	sd = BL_CAST(BL_PC,bl);
 
-	if (!(status_type2relevant_bl_types(type)&bl->type)) //Only send status changes that actually matter to the client
+	//Only send status changes that actually matter to the client
+	if (!(status_type2relevant_bl_types(type)&bl->type))
 		return;
 
 #if PACKETVER >= 20120618
@@ -5401,7 +5400,7 @@ void clif_status_change(struct block_list *bl,int type,int flag,int tick,int val
 		WBUFW(buf,0) = 0x43f;
 	else
 #endif
-	WBUFW(buf,0) = 0x196;
+	WBUFW(buf,0) = 0x196; //For non-pc unit
 	WBUFW(buf,2) = type;
 	WBUFL(buf,4) = bl->id;
 	WBUFB(buf,8) = flag;
@@ -5419,7 +5418,7 @@ void clif_status_change(struct block_list *bl,int type,int flag,int tick,int val
 #elif PACKETVER >= 20090121
 	if(flag && battle_config.display_status_timers && sd) {
 		if (tick <= 0)
-			tick = 9999; //This is indeed what official servers do
+			tick = 9999;
 
 		WBUFL(buf,9) = tick;
 		WBUFL(buf,13) = val1;
@@ -5434,9 +5433,12 @@ void clif_status_change(struct block_list *bl,int type,int flag,int tick,int val
 void clif_status_change2(struct block_list *bl, int tid, enum send_target target, int type, int val1, int val2, int val3) {
 	unsigned char buf[32];
 
+	if (type == SI_BLANK) //It shows nothing on the client
+		return;
+
 	nullpo_retv(bl);
 
-	WBUFW(buf,0) = 0x043f;
+	WBUFW(buf,0) = 0x43f;
 	WBUFW(buf,2) = type;
 	WBUFL(buf,4) = tid;
 	WBUFB(buf,8) = 1;
@@ -5445,7 +5447,7 @@ void clif_status_change2(struct block_list *bl, int tid, enum send_target target
 	WBUFL(buf,17) = val2;
 	WBUFL(buf,21) = val3;
 
-	clif_send(buf,packet_len(0x043f),bl,target);
+	clif_send(buf,packet_len(WBUFW(buf,0)),bl,target);
 }
 
 
@@ -17075,7 +17077,7 @@ void packetdb_readdb(void)
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0, 14,  0,  0,  0,  0,  0,  0,  0,  0,
-	//#0x0980 
+	//#0x0980
 		0,  0,  0, 29,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		31, 0,  0,  0,  0,  0,  0, -1,  8, 11,  9,  8,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -17084,7 +17086,7 @@ void packetdb_readdb(void)
 	struct {
 		void (*func)(int, struct map_session_data *);
 		char *name;
-	} clif_parse_func[]={
+	} clif_parse_func[] = {
 		{clif_parse_WantToConnection,"wanttoconnection"},
 		{clif_parse_LoadEndAck,"loadendack"},
 		{clif_parse_TickSend,"ticksend"},

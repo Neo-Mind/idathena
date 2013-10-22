@@ -936,10 +936,14 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_PETROLOGY] = SI_PETROLOGY;
 	StatusIconChangeTable[SC_CURSED_SOIL] = SI_CURSED_SOIL;
 	StatusIconChangeTable[SC_UPHEAVAL] = SI_UPHEAVAL;
-	StatusIconChangeTable[SC_PUSH_CART] = SI_ON_PUSH_CART;
 	StatusIconChangeTable[SC_REBOUND] = SI_REBOUND;
 	StatusIconChangeTable[SC_MONSTER_TRANSFORM] = SI_MONSTER_TRANSFORM;
 	StatusIconChangeTable[SC_ALL_RIDING] = SI_ALL_RIDING;
+	StatusIconChangeTable[SC_PUSH_CART] = SI_ON_PUSH_CART;
+	StatusIconChangeTable[SC_MOONSTAR] = SI_MOONSTAR;
+
+	if( !battle_config.display_hallucination ) //Disable Hallucination
+		StatusIconChangeTable[SC_HALLUCINATION] = SI_BLANK;
 
 	//Other SC which are not necessarily associated to skills
 	StatusChangeFlagTable[SC_ASPDPOTION0] = SCB_ASPD;
@@ -1045,10 +1049,13 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_MDEFSET] |= SCB_MDEF;
 	StatusChangeFlagTable[SC_WEDDING] |= SCB_SPEED;
 	StatusChangeFlagTable[SC_ALL_RIDING] |= SCB_SPEED;
+	StatusIconChangeTable[SC_PUSH_CART] |= SCB_SPEED;
 
 	StatusChangeFlagTable[SC_MTF_ASPD] |= SCB_ASPD|SCB_HIT;
 	StatusChangeFlagTable[SC_MTF_MATK] |= SCB_MATK;
 	StatusChangeFlagTable[SC_MTF_MLEATKED] |= SCB_ALL;
+
+	StatusChangeFlagTable[SC_MOONSTAR] |= SCB_NONE;
 
 	/* StatusDisplayType Table [Ind] */
 	StatusDisplayType[SC_ALL_RIDING]	  = true;
@@ -1078,9 +1085,7 @@ void initChangeTables(void) {
 	StatusDisplayType[SC_OFFERTORIUM]	  = true;
 	StatusDisplayType[SC_TELEKINESIS_INTENSE] = true;
 	StatusDisplayType[SC_UNLIMIT]		  = true;
-
-	if( !battle_config.display_hallucination ) //Disable Hallucination
-		StatusIconChangeTable[SC_HALLUCINATION] = SI_BLANK;
+	StatusDisplayType[SC_MOONSTAR]		  = true;
 
 	/* StatusChangeState (SCS_) NOMOVE */
 	StatusChangeStateTable[SC_ANKLE]               |= SCS_NOMOVE;
@@ -1149,7 +1154,6 @@ void initChangeTables(void) {
 	StatusChangeStateTable[SC_SATURDAYNIGHTFEVER]  |= SCS_NOCHAT;
 	StatusChangeStateTable[SC_DEEPSLEEP]           |= SCS_NOCHAT;
 	StatusChangeStateTable[SC_NOCHAT]              |= SCS_NOCHAT|SCS_NOCHATCOND;
-
 }
 
 static void initDummyData(void)

@@ -7623,8 +7623,15 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SL_STAR:
 		case SL_SUPERNOVICE:
 		case SL_WIZARD:
+		case SL_DEATHKNIGHT:
+		case SL_COLLECTOR:
+		case SL_NINJA:
+		case SL_GUNNER:
 			//NOTE: here, 'type' has the value of the associated MAPID, not of the SC_SPIRIT constant.
-			if (sd && !(dstsd && (dstsd->class_&MAPID_UPPERMASK) == type)) {
+			if (sd && !(dstsd && ((dstsd->class_&MAPID_UPPERMASK) == type ||
+				(skill_id == SL_SUPERNOVICE && (dstsd->class_&MAPID_THIRDMASK) == MAPID_SUPER_NOVICE_E) ||
+				(skill_id == SL_NINJA && (dstsd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) ||
+				(skill_id == SL_GUNNER && (dstsd->class_&MAPID_UPPERMASK) == MAPID_REBELLION)))) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				break;
 			}
@@ -14075,10 +14082,16 @@ int skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id, 
 			continue;
 		index[i] = pc_search_inventory(sd,require.itemid[i]);
 		if( index[i] < 0 || sd->status.inventory[index[i]].amount < require.amount[i] ) {
-			if( require.itemid[i] == ITEMID_RED_GEMSTONE )
+			if( require.itemid[i] == ITEMID_HOLY_WATER )
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_HOLYWATER,0); //Holy water required
+			else if( require.itemid[i] == ITEMID_RED_GEMSTONE )
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_REDJAMSTONE,0); //Red gemstone required
 			else if( require.itemid[i] == ITEMID_BLUE_GEMSTONE )
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_BLUEJAMSTONE,0); //Blue gemstone required
+			else if( require.itemid[i] == ITEMID_PAINT_BRUSH )
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_PAINTBRUSH,0); //Paint brush required
+			else if( require.itemid[i] == ITEMID_ANCILLA )
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_ANCILLA,0); //Ancilla required
 			else
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			return 0;
