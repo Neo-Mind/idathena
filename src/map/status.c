@@ -6873,7 +6873,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	status = status_get_status_data(bl);
 
 	if( type <= SC_NONE || type >= SC_MAX ) {
-		ShowError("status_change_start: invalid status change (%d)!\n", type);
+		ShowError("status_change_start: invalid status change (%d)!\n",type);
 		return 0;
 	}
 
@@ -6957,11 +6957,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		}
 	}
 
-	sd = BL_CAST(BL_PC, bl);
+	sd = BL_CAST(BL_PC,bl);
 
 	//Adjust tick according to status resistances
 	if( !(flag&(1|4)) ) {
-		tick = status_get_sc_def(src, bl, type, rate, tick, flag);
+		tick = status_get_sc_def(src,bl,type,rate,tick,flag);
 		if( !tick ) return 0;
 	}
 
@@ -6970,14 +6970,15 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	switch(type) {
 		case SC_ANGRIFFS_MODUS:
 		case SC_GOLDENE_FERSE:
-			if((type == SC_GOLDENE_FERSE && sc->data[SC_ANGRIFFS_MODUS])
-				|| (type == SC_ANGRIFFS_MODUS && sc->data[SC_GOLDENE_FERSE]))
+			if((type == SC_GOLDENE_FERSE && sc->data[SC_ANGRIFFS_MODUS]) ||
+				(type == SC_ANGRIFFS_MODUS && sc->data[SC_GOLDENE_FERSE]))
 				return 0;
+			break;
 		case SC_STONE:
 			if(sc->data[SC_POWER_OF_GAIA])
 				return 0;
 		case SC_FREEZE:
-			//Undead are immune to Freeze/Stone
+			//Undead are immune to Freeze / Stone
 			if(undead_flag && !(flag&1))
 				return 0;
 		case SC_DEEPSLEEP:
@@ -6985,10 +6986,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_STUN:
 		case SC_FREEZING:
 		case SC_CRYSTALIZE:
-			if(sc->opt1)
-				return 0; //Cannot override other opt1 status changes. [Skotlex]
+			if(sc->opt1 || (type == SC_FREEZING && sc->data[SC_BURNING]))
+				return 0; //Cannot override. [Skotlex]
 			if((type == SC_FREEZE || type == SC_FREEZING || type == SC_CRYSTALIZE) && sc->data[SC_WARMER])
-				return 0; //Immune to Frozen and Freezing status if under Warmer status. [Jobbie]
+				return 0; //Immune to Frozen, Freezing and Crystalize status if under Warmer status. [Jobbie]
 			break;
 		//There all like berserk, do not everlap each other
 		case SC_BERSERK:
@@ -7062,7 +7063,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			//Due to the cloaking card, we have to check the wall versus to known
 			//skill level rather than the used one. [Skotlex]
 			//if (sd && val1 < 3 && skill_check_cloaking(bl,NULL))
-			if(sd && pc_checkskill(sd, AS_CLOAKING) < 3 && !skill_check_cloaking(bl,NULL))
+			if(sd && pc_checkskill(sd,AS_CLOAKING) < 3 && !skill_check_cloaking(bl,NULL))
 				return 0;
 			break;
 		case SC_MODECHANGE: {
@@ -7074,12 +7075,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val3 |= sc->data[type]->val3;
 					val4 |= sc->data[type]->val4;
 				}
-				mode = val2?val2:bstatus->mode; //Base mode
-				if(val4) mode&=~val4; //Del mode
-				if(val3) mode|= val3; //Add mode
+				mode = val2 ? val2 : bstatus->mode; //Base mode
+				if(val4) mode &= ~val4; //Del mode
+				if(val3) mode |= val3; //Add mode
 				if(mode == bstatus->mode) { //No change.
 					if(sc->data[type]) //Abort previous status
-						return status_change_end(bl, type, INVALID_TIMER);
+						return status_change_end(bl,type,INVALID_TIMER);
 					return 0;
 				}
 			}
@@ -7195,7 +7196,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				return 0;
 			break;
 		case SC_CAMOUFLAGE:
-			if(sd && pc_checkskill(sd, RA_CAMOUFLAGE) < 2 && !skill_check_camouflage(bl,NULL))
+			if(sd && pc_checkskill(sd,RA_CAMOUFLAGE) < 2 && !skill_check_camouflage(bl,NULL))
 				return 0;
 			break;
 		case SC__STRIPACCESSORY:
@@ -7307,164 +7308,164 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			//@TODO: Blessing and Agi up should do 1 damage against players on Undead Status, even on PvM
 			//but cannot be plagiarized (this requires aegis investigation on packets and official behavior) [Brainstorm]
 			if ((!undead_flag && status->race != RC_DEMON) || bl->type == BL_PC) {
-				status_change_end(bl, SC_CURSE, INVALID_TIMER);
+				status_change_end(bl,SC_CURSE,INVALID_TIMER);
 				if (sc->data[SC_STONE] && sc->opt1 == OPT1_STONE)
-					status_change_end(bl, SC_STONE, INVALID_TIMER);
+					status_change_end(bl,SC_STONE,INVALID_TIMER);
 			}
 			break;
 		case SC_INCREASEAGI:
-			status_change_end(bl, SC_DECREASEAGI, INVALID_TIMER);
-			status_change_end(bl, SC_ADORAMUS, INVALID_TIMER);
+			status_change_end(bl,SC_DECREASEAGI,INVALID_TIMER);
+			status_change_end(bl,SC_ADORAMUS,INVALID_TIMER);
 			break;
 		case SC_QUAGMIRE:
-			status_change_end(bl, SC_CONCENTRATE, INVALID_TIMER);
-			status_change_end(bl, SC_TRUESIGHT, INVALID_TIMER);
-			status_change_end(bl, SC_WINDWALK, INVALID_TIMER);
-			status_change_end(bl, SC_MAGNETICFIELD, INVALID_TIMER);
+			status_change_end(bl,SC_CONCENTRATE,INVALID_TIMER);
+			status_change_end(bl,SC_TRUESIGHT,INVALID_TIMER);
+			status_change_end(bl,SC_WINDWALK,INVALID_TIMER);
+			status_change_end(bl,SC_MAGNETICFIELD,INVALID_TIMER);
 			//Also blocks the ones below...
 		case SC_DECREASEAGI:
 		case SC_ADORAMUS:
-			status_change_end(bl, SC_CARTBOOST, INVALID_TIMER);
-			status_change_end(bl, SC_GN_CARTBOOST, INVALID_TIMER);
+			status_change_end(bl,SC_CARTBOOST,INVALID_TIMER);
+			status_change_end(bl,SC_GN_CARTBOOST,INVALID_TIMER);
 			//Also blocks the ones below...
 		case SC_DONTFORGETME:
-			status_change_end(bl, SC_INCREASEAGI, INVALID_TIMER);
-			status_change_end(bl, SC_ADRENALINE, INVALID_TIMER);
-			status_change_end(bl, SC_ADRENALINE2, INVALID_TIMER);
-			status_change_end(bl, SC_SPEARQUICKEN, INVALID_TIMER);
-			status_change_end(bl, SC_TWOHANDQUICKEN, INVALID_TIMER);
-			status_change_end(bl, SC_ONEHAND, INVALID_TIMER);
-			status_change_end(bl, SC_MERC_QUICKEN, INVALID_TIMER);
-			status_change_end(bl, SC_ACCELERATION, INVALID_TIMER);
+			status_change_end(bl,SC_INCREASEAGI,INVALID_TIMER);
+			status_change_end(bl,SC_ADRENALINE,INVALID_TIMER);
+			status_change_end(bl,SC_ADRENALINE2,INVALID_TIMER);
+			status_change_end(bl,SC_SPEARQUICKEN,INVALID_TIMER);
+			status_change_end(bl,SC_TWOHANDQUICKEN,INVALID_TIMER);
+			status_change_end(bl,SC_ONEHAND,INVALID_TIMER);
+			status_change_end(bl,SC_MERC_QUICKEN,INVALID_TIMER);
+			status_change_end(bl,SC_ACCELERATION,INVALID_TIMER);
 			break;
 		case SC_ONEHAND:
-			//Removes the Aspd potion effect, as reported by Vicious. [Skotlex]
-			status_change_end(bl, SC_ASPDPOTION0, INVALID_TIMER);
-			status_change_end(bl, SC_ASPDPOTION1, INVALID_TIMER);
-			status_change_end(bl, SC_ASPDPOTION2, INVALID_TIMER);
-			status_change_end(bl, SC_ASPDPOTION3, INVALID_TIMER);
+			//Removes the Aspd potion effect,as reported by Vicious. [Skotlex]
+			status_change_end(bl,SC_ASPDPOTION0,INVALID_TIMER);
+			status_change_end(bl,SC_ASPDPOTION1,INVALID_TIMER);
+			status_change_end(bl,SC_ASPDPOTION2,INVALID_TIMER);
+			status_change_end(bl,SC_ASPDPOTION3,INVALID_TIMER);
 			break;
 		case SC_MAXOVERTHRUST:
 			//Cancels Normal Overthrust. [Skotlex]
-			status_change_end(bl, SC_OVERTHRUST, INVALID_TIMER);
+			status_change_end(bl,SC_OVERTHRUST,INVALID_TIMER);
 			break;
 		case SC_MAGNIFICAT:
-			status_change_end(bl, SC_OFFERTORIUM, INVALID_TIMER);
+			status_change_end(bl,SC_OFFERTORIUM,INVALID_TIMER);
 			break;
 		case SC_KYRIE:
 			//Cancels Assumptio
-			status_change_end(bl, SC_ASSUMPTIO, INVALID_TIMER);
+			status_change_end(bl,SC_ASSUMPTIO,INVALID_TIMER);
 			break;
 		case SC_DELUGE:
 			if (sc->data[SC_FOGWALL] && sc->data[SC_BLIND])
-				status_change_end(bl, SC_BLIND, INVALID_TIMER);
+				status_change_end(bl,SC_BLIND,INVALID_TIMER);
 			break;
 		case SC_SILENCE:
 			if (sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF)
-				status_change_end(bl, SC_GOSPEL, INVALID_TIMER);
+				status_change_end(bl,SC_GOSPEL,INVALID_TIMER);
 			break;
 		case SC_HIDING:
-			status_change_end(bl, SC_CLOSECONFINE, INVALID_TIMER);
-			status_change_end(bl, SC_CLOSECONFINE2, INVALID_TIMER);
+			status_change_end(bl,SC_CLOSECONFINE,INVALID_TIMER);
+			status_change_end(bl,SC_CLOSECONFINE2,INVALID_TIMER);
 			break;
 		case SC_BERSERK:
 			if(val3 == SC__BLOODYLUST)
 				break;
 			if(battle_config.berserk_cancels_buffs) {
-				status_change_end(bl, SC_ONEHAND, INVALID_TIMER);
-				status_change_end(bl, SC_TWOHANDQUICKEN, INVALID_TIMER);
-				status_change_end(bl, SC_CONCENTRATION, INVALID_TIMER);
-				status_change_end(bl, SC_PARRYING, INVALID_TIMER);
-				status_change_end(bl, SC_AURABLADE, INVALID_TIMER);
-				status_change_end(bl, SC_MERC_QUICKEN, INVALID_TIMER);
+				status_change_end(bl,SC_ONEHAND,INVALID_TIMER);
+				status_change_end(bl,SC_TWOHANDQUICKEN,INVALID_TIMER);
+				status_change_end(bl,SC_CONCENTRATION,INVALID_TIMER);
+				status_change_end(bl,SC_PARRYING,INVALID_TIMER);
+				status_change_end(bl,SC_AURABLADE,INVALID_TIMER);
+				status_change_end(bl,SC_MERC_QUICKEN,INVALID_TIMER);
 			}
 #ifdef RENEWAL
 			else
-				status_change_end(bl, SC_TWOHANDQUICKEN, INVALID_TIMER);
+				status_change_end(bl,SC_TWOHANDQUICKEN,INVALID_TIMER);
 #endif
 			break;
 		case SC_ASSUMPTIO:
-			status_change_end(bl, SC_KYRIE, INVALID_TIMER);
-			status_change_end(bl, SC_KAITE, INVALID_TIMER);
+			status_change_end(bl,SC_KYRIE,INVALID_TIMER);
+			status_change_end(bl,SC_KAITE,INVALID_TIMER);
 			break;
 		case SC_KAITE:
-			status_change_end(bl, SC_ASSUMPTIO, INVALID_TIMER);
+			status_change_end(bl,SC_ASSUMPTIO,INVALID_TIMER);
 			break;
 		case SC_CARTBOOST:
 		case SC_GN_CARTBOOST:
 			if(sc->data[SC_DECREASEAGI] || sc->data[SC_ADORAMUS]) {
-				//Cancel Decrease Agi, but take no further effect [Skotlex]
-				status_change_end(bl, SC_DECREASEAGI, INVALID_TIMER);
+				//Cancel Decrease Agi,but take no further effect [Skotlex]
+				status_change_end(bl,SC_DECREASEAGI,INVALID_TIMER);
 				return 0;
 			}
 			break;
 		case SC_FUSION:
-			status_change_end(bl, SC_SPIRIT, INVALID_TIMER);
+			status_change_end(bl,SC_SPIRIT,INVALID_TIMER);
 			break;
 		case SC_ADJUSTMENT:
-			status_change_end(bl, SC_MADNESSCANCEL, INVALID_TIMER);
+			status_change_end(bl,SC_MADNESSCANCEL,INVALID_TIMER);
 			break;
 		case SC_MADNESSCANCEL:
-			status_change_end(bl, SC_ADJUSTMENT, INVALID_TIMER);
+			status_change_end(bl,SC_ADJUSTMENT,INVALID_TIMER);
 			break;
 		//NPC_CHANGEUNDEAD will debuff Blessing and Agi Up
 		case SC_CHANGEUNDEAD:
-			status_change_end(bl, SC_BLESSING, INVALID_TIMER);
-			status_change_end(bl, SC_INCREASEAGI, INVALID_TIMER);
+			status_change_end(bl,SC_BLESSING,INVALID_TIMER);
+			status_change_end(bl,SC_INCREASEAGI,INVALID_TIMER);
 			break;
 		case SC_STRFOOD:
-			status_change_end(bl, SC_FOOD_STR_CASH, INVALID_TIMER);
+			status_change_end(bl,SC_FOOD_STR_CASH,INVALID_TIMER);
 			break;
 		case SC_AGIFOOD:
-			status_change_end(bl, SC_FOOD_AGI_CASH, INVALID_TIMER);
+			status_change_end(bl,SC_FOOD_AGI_CASH,INVALID_TIMER);
 			break;
 		case SC_VITFOOD:
-			status_change_end(bl, SC_FOOD_VIT_CASH, INVALID_TIMER);
+			status_change_end(bl,SC_FOOD_VIT_CASH,INVALID_TIMER);
 			break;
 		case SC_INTFOOD:
-			status_change_end(bl, SC_FOOD_INT_CASH, INVALID_TIMER);
+			status_change_end(bl,SC_FOOD_INT_CASH,INVALID_TIMER);
 			break;
 		case SC_DEXFOOD:
-			status_change_end(bl, SC_FOOD_DEX_CASH, INVALID_TIMER);
+			status_change_end(bl,SC_FOOD_DEX_CASH,INVALID_TIMER);
 			break;
 		case SC_LUKFOOD:
-			status_change_end(bl, SC_FOOD_LUK_CASH, INVALID_TIMER);
+			status_change_end(bl,SC_FOOD_LUK_CASH,INVALID_TIMER);
 			break;
 		case SC_FOOD_STR_CASH:
-			status_change_end(bl, SC_STRFOOD, INVALID_TIMER);
+			status_change_end(bl,SC_STRFOOD,INVALID_TIMER);
 			break;
 		case SC_FOOD_AGI_CASH:
-			status_change_end(bl, SC_AGIFOOD, INVALID_TIMER);
+			status_change_end(bl,SC_AGIFOOD,INVALID_TIMER);
 			break;
 		case SC_FOOD_VIT_CASH:
-			status_change_end(bl, SC_VITFOOD, INVALID_TIMER);
+			status_change_end(bl,SC_VITFOOD,INVALID_TIMER);
 			break;
 		case SC_FOOD_INT_CASH:
-			status_change_end(bl, SC_INTFOOD, INVALID_TIMER);
+			status_change_end(bl,SC_INTFOOD,INVALID_TIMER);
 			break;
 		case SC_FOOD_DEX_CASH:
-			status_change_end(bl, SC_DEXFOOD, INVALID_TIMER);
+			status_change_end(bl,SC_DEXFOOD,INVALID_TIMER);
 			break;
 		case SC_FOOD_LUK_CASH:
-			status_change_end(bl, SC_LUKFOOD, INVALID_TIMER);
+			status_change_end(bl,SC_LUKFOOD,INVALID_TIMER);
 			break;
 		case SC_ENDURE:
 			if( val4 )
-				status_change_end(bl, SC_CONCENTRATION, INVALID_TIMER);
+				status_change_end(bl,SC_CONCENTRATION,INVALID_TIMER);
 			break;
 		case SC_FIGHTINGSPIRIT:
-			status_change_end(bl, type, INVALID_TIMER); //Remove previous one.
+			status_change_end(bl,type,INVALID_TIMER); //Remove previous one.
 			break;
 		case SC_MARSHOFABYSS:
-			status_change_end(bl, SC_INCAGI, INVALID_TIMER);
-			status_change_end(bl, SC_WINDWALK, INVALID_TIMER);
-			status_change_end(bl, SC_ASPDPOTION0, INVALID_TIMER);
-			status_change_end(bl, SC_ASPDPOTION1, INVALID_TIMER);
-			status_change_end(bl, SC_ASPDPOTION2, INVALID_TIMER);
-			status_change_end(bl, SC_ASPDPOTION3, INVALID_TIMER);
+			status_change_end(bl,SC_INCAGI,INVALID_TIMER);
+			status_change_end(bl,SC_WINDWALK,INVALID_TIMER);
+			status_change_end(bl,SC_ASPDPOTION0,INVALID_TIMER);
+			status_change_end(bl,SC_ASPDPOTION1,INVALID_TIMER);
+			status_change_end(bl,SC_ASPDPOTION2,INVALID_TIMER);
+			status_change_end(bl,SC_ASPDPOTION3,INVALID_TIMER);
 			break;
 		case SC_OFFERTORIUM:
-			status_change_end(bl, SC_MAGNIFICAT, INVALID_TIMER);
+			status_change_end(bl,SC_MAGNIFICAT,INVALID_TIMER);
 			break;
 		case SC_SWINGDANCE:
 		case SC_SYMPHONYOFLOVER:
@@ -7473,13 +7474,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_ECHOSONG:
 		case SC_HARMONIZE:
 		case SC_FRIGG_SONG: //Group A doesn't overlap
-			if (type != SC_SWINGDANCE) status_change_end(bl, SC_SWINGDANCE, INVALID_TIMER);
-			if (type != SC_SYMPHONYOFLOVER) status_change_end(bl, SC_SYMPHONYOFLOVER, INVALID_TIMER);
-			if (type != SC_MOONLITSERENADE) status_change_end(bl, SC_MOONLITSERENADE, INVALID_TIMER);
-			if (type != SC_RUSHWINDMILL) status_change_end(bl, SC_RUSHWINDMILL, INVALID_TIMER);
-			if (type != SC_ECHOSONG) status_change_end(bl, SC_ECHOSONG, INVALID_TIMER);
-			if (type != SC_HARMONIZE) status_change_end(bl, SC_HARMONIZE, INVALID_TIMER);
-			if (type != SC_FRIGG_SONG) status_change_end(bl, SC_FRIGG_SONG, INVALID_TIMER);
+			if (type != SC_SWINGDANCE) status_change_end(bl,SC_SWINGDANCE,INVALID_TIMER);
+			if (type != SC_SYMPHONYOFLOVER) status_change_end(bl,SC_SYMPHONYOFLOVER,INVALID_TIMER);
+			if (type != SC_MOONLITSERENADE) status_change_end(bl,SC_MOONLITSERENADE,INVALID_TIMER);
+			if (type != SC_RUSHWINDMILL) status_change_end(bl,SC_RUSHWINDMILL,INVALID_TIMER);
+			if (type != SC_ECHOSONG) status_change_end(bl,SC_ECHOSONG,INVALID_TIMER);
+			if (type != SC_HARMONIZE) status_change_end(bl,SC_HARMONIZE,INVALID_TIMER);
+			if (type != SC_FRIGG_SONG) status_change_end(bl,SC_FRIGG_SONG,INVALID_TIMER);
 			break;
 		case SC_VOICEOFSIREN:
 		case SC_DEEPSLEEP:
@@ -7491,77 +7492,74 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_MELODYOFSINK:
 		case SC_BEYONDOFWARCRY:
 		case SC_UNLIMITEDHUMMINGVOICE: //Group B
-			if (type != SC_VOICEOFSIREN) status_change_end(bl, SC_VOICEOFSIREN, INVALID_TIMER);
-			if (type != SC_DEEPSLEEP) status_change_end(bl, SC_DEEPSLEEP, INVALID_TIMER);
-			if (type != SC_LERADSDEW) status_change_end(bl, SC_LERADSDEW, INVALID_TIMER);
-			if (type != SC_MELODYOFSINK) status_change_end(bl, SC_MELODYOFSINK, INVALID_TIMER);
-			if (type != SC_BEYONDOFWARCRY) status_change_end(bl, SC_BEYONDOFWARCRY, INVALID_TIMER);
-			if (type != SC_UNLIMITEDHUMMINGVOICE) status_change_end(bl, SC_UNLIMITEDHUMMINGVOICE, INVALID_TIMER);
+			if (type != SC_VOICEOFSIREN) status_change_end(bl,SC_VOICEOFSIREN,INVALID_TIMER);
+			if (type != SC_DEEPSLEEP) status_change_end(bl,SC_DEEPSLEEP,INVALID_TIMER);
+			if (type != SC_LERADSDEW) status_change_end(bl,SC_LERADSDEW,INVALID_TIMER);
+			if (type != SC_MELODYOFSINK) status_change_end(bl,SC_MELODYOFSINK,INVALID_TIMER);
+			if (type != SC_BEYONDOFWARCRY) status_change_end(bl,SC_BEYONDOFWARCRY,INVALID_TIMER);
+			if (type != SC_UNLIMITEDHUMMINGVOICE) status_change_end(bl,SC_UNLIMITEDHUMMINGVOICE,INVALID_TIMER);
 			if (type != SC_GLOOMYDAY) {
-				status_change_end(bl, SC_GLOOMYDAY, INVALID_TIMER);
-				status_change_end(bl, SC_GLOOMYDAY_SK, INVALID_TIMER);
+				status_change_end(bl,SC_GLOOMYDAY,INVALID_TIMER);
+				status_change_end(bl,SC_GLOOMYDAY_SK,INVALID_TIMER);
 			}
-			if (type != SC_SONGOFMANA) status_change_end(bl, SC_SONGOFMANA, INVALID_TIMER);
-			if (type != SC_DANCEWITHWUG) status_change_end(bl, SC_DANCEWITHWUG, INVALID_TIMER);
+			if (type != SC_SONGOFMANA) status_change_end(bl,SC_SONGOFMANA,INVALID_TIMER);
+			if (type != SC_DANCEWITHWUG) status_change_end(bl,SC_DANCEWITHWUG,INVALID_TIMER);
 			if (type != SC_SATURDAYNIGHTFEVER) {
 				if (sc->data[SC_SATURDAYNIGHTFEVER]) {
 					sc->data[SC_SATURDAYNIGHTFEVER]->val2 = 0; //Mark to not lose hp
-					status_change_end(bl, SC_SATURDAYNIGHTFEVER, INVALID_TIMER);
+					status_change_end(bl,SC_SATURDAYNIGHTFEVER,INVALID_TIMER);
 				}
 			}
 			break;
 		case SC_REFLECTSHIELD:
-			status_change_end(bl, SC_REFLECTDAMAGE, INVALID_TIMER);
+			status_change_end(bl,SC_REFLECTDAMAGE,INVALID_TIMER);
 			break;
 		case SC_REFLECTDAMAGE:
-			status_change_end(bl, SC_REFLECTSHIELD, INVALID_TIMER);
+			status_change_end(bl,SC_REFLECTSHIELD,INVALID_TIMER);
 			break;
 		case SC_SHIELDSPELL_DEF:
 		case SC_SHIELDSPELL_MDEF:
 		case SC_SHIELDSPELL_REF:
-			status_change_end(bl, SC_MAGNIFICAT, INVALID_TIMER);
+			status_change_end(bl,SC_MAGNIFICAT,INVALID_TIMER);
 			if( type != SC_SHIELDSPELL_DEF )
-				status_change_end(bl, SC_SHIELDSPELL_DEF, INVALID_TIMER);
+				status_change_end(bl,SC_SHIELDSPELL_DEF,INVALID_TIMER);
 			if( type != SC_SHIELDSPELL_MDEF )
-				status_change_end(bl, SC_SHIELDSPELL_MDEF, INVALID_TIMER);
+				status_change_end(bl,SC_SHIELDSPELL_MDEF,INVALID_TIMER);
 			if( type != SC_SHIELDSPELL_REF )
-				status_change_end(bl, SC_SHIELDSPELL_REF, INVALID_TIMER);
+				status_change_end(bl,SC_SHIELDSPELL_REF,INVALID_TIMER);
 			break;
 		case SC_BANDING:
-			status_change_end(bl, SC_PRESTIGE, INVALID_TIMER);
+			status_change_end(bl,SC_PRESTIGE,INVALID_TIMER);
 			break;
 		case SC_GT_ENERGYGAIN:
 		case SC_GT_CHANGE:
 		case SC_GT_REVITALIZE:
 			if( type != SC_GT_REVITALIZE )
-				status_change_end(bl, SC_GT_REVITALIZE, INVALID_TIMER);
+				status_change_end(bl,SC_GT_REVITALIZE,INVALID_TIMER);
 			if( type != SC_GT_ENERGYGAIN )
-				status_change_end(bl, SC_GT_ENERGYGAIN, INVALID_TIMER);
+				status_change_end(bl,SC_GT_ENERGYGAIN,INVALID_TIMER);
 			if( type != SC_GT_CHANGE )
-				status_change_end(bl, SC_GT_CHANGE, INVALID_TIMER);
+				status_change_end(bl,SC_GT_CHANGE,INVALID_TIMER);
 			break;
 		case SC_WARMER:
-			status_change_end(bl, SC_CRYSTALIZE, INVALID_TIMER);
-			status_change_end(bl, SC_FREEZING, INVALID_TIMER);
-			status_change_end(bl, SC_FREEZE, INVALID_TIMER);
+			status_change_end(bl,SC_CRYSTALIZE,INVALID_TIMER);
+			status_change_end(bl,SC_FREEZING,INVALID_TIMER);
+			status_change_end(bl,SC_FREEZE,INVALID_TIMER);
 			break;
 		case SC_INVINCIBLE:
-			status_change_end(bl, SC_INVINCIBLEOFF, INVALID_TIMER);
+			status_change_end(bl,SC_INVINCIBLEOFF,INVALID_TIMER);
 			break;
 		case SC_INVINCIBLEOFF:
-			status_change_end(bl, SC_INVINCIBLE, INVALID_TIMER);
+			status_change_end(bl,SC_INVINCIBLE,INVALID_TIMER);
 			break;
 		case SC_MAGICPOWER:
-			status_change_end(bl, type, INVALID_TIMER);
+			status_change_end(bl,type,INVALID_TIMER);
 			break;
 		case SC_WHITEIMPRISON:
-			status_change_end(bl, SC_BURNING, INVALID_TIMER);
-			status_change_end(bl, SC_FREEZING, INVALID_TIMER);
-			status_change_end(bl, SC_FREEZE, INVALID_TIMER);
-			status_change_end(bl, SC_STONE, INVALID_TIMER);
-			break;
-		case SC_FREEZING:
-			status_change_end(bl, SC_BURNING, INVALID_TIMER);
+			status_change_end(bl,SC_BURNING,INVALID_TIMER);
+			status_change_end(bl,SC_FREEZING,INVALID_TIMER);
+			status_change_end(bl,SC_FREEZE,INVALID_TIMER);
+			status_change_end(bl,SC_STONE,INVALID_TIMER);
 			break;
 	}
 
@@ -7689,8 +7687,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_ADORAMUS:
 				val2 = 2 + val1; //Agi change
 				if( type == SC_ADORAMUS )
-					sc_start(src, bl, SC_BLIND, val1 * 4 + (sd ? sd->status.job_level / 2 : 0),
-						val1, skill_get_time(status_sc2skill(type), val1));
+					sc_start(src,bl,SC_BLIND,val1 * 4 + (sd ? sd->status.job_level / 2 : 0),
+						val1,skill_get_time(status_sc2skill(type),val1));
 				break;
 			case SC_ENDURE:
 				val2 = 7; //Hit-count [Celest]
@@ -7700,11 +7698,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 						int i;
 						for( i = 0; i < 5; i++ ) {
 							if( sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])) )
-								status_change_start(src, &tsd->bl, type, 10000, val1, val2, val3, val4, tick, 1);
+								status_change_start(src,&tsd->bl,type,10000,val1,val2,val3,val4,tick,1);
 						}
 					}
 					else if( bl->type == BL_MER && ((TBL_MER*)bl)->devotion_flag && (tsd = ((TBL_MER*)bl)->master) )
-						status_change_start(src, &tsd->bl, type, 10000, val1, val2, val3, val4, tick, 1);
+						status_change_start(src,&tsd->bl,type,10000,val1,val2,val3,val4,tick,1);
 				}
 				//val4 signals infinite endure (if val4 == 2 it is infinite endure from Berserk)
 				if( val4 )
@@ -7713,7 +7711,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_AUTOBERSERK:
 				if( status->hp < status->max_hp>>2 &&
 					(!sc->data[SC_PROVOKE] || sc->data[SC_PROVOKE]->val2 == 0) )
-						sc_start4(src, bl, SC_PROVOKE, 100, 10, 1, 0, 0, 60000);
+						sc_start4(src,bl,SC_PROVOKE,100,10,1,0,0,60000);
 				tick = -1;
 				break;
 			case SC_SIGNUMCRUCIS:
@@ -7793,10 +7791,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 						int i;
 						for( i = 0; i < 5; i++ ) {
 							if( sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])) )
-								status_change_start(src, &tsd->bl, type, 10000, val1, val2, 0, 0, tick, 1);
+								status_change_start(src,&tsd->bl,type,10000,val1,val2,0,0,tick,1);
 						}
 					} else if( bl->type == BL_MER && ((TBL_MER*)bl)->devotion_flag && (tsd = ((TBL_MER*)bl)->master) )
-						status_change_start(src, &tsd->bl, type, 10000, val1, val2, 0, 0, tick, 1);
+						status_change_start(src,&tsd->bl,type,10000,val1,val2,0,0,tick,1);
 				}
 				break;
 			case SC_STRIPWEAPON:
@@ -7915,7 +7913,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val3 = tick/1000; //Petrified HP-damage iterations
 				if (val3 < 1) val3 = 1;
 				tick = val4; //Petrifying time
-				tick = max(tick, 1000); //Min time
+				tick = max(tick,1000); //Min time
 				calc_flag = 0; //Actual status changes take effect on petrified state
 				break;
 
@@ -7968,7 +7966,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				if( sd != NULL ) {
 					struct mob_data *boss_md = map_getmob_boss(bl->m); //Search for Boss on this Map
 					if( boss_md == NULL || boss_md->bl.prev == NULL ) { //No MVP on this map - MVP is dead
-						clif_bossmapinfo(sd->fd, boss_md, 1);
+						clif_bossmapinfo(sd->fd,boss_md,1);
 						return 0; //No need to start SC
 					}
 					val1 = boss_md->bl.id;
@@ -8008,7 +8006,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_SIGHT: /* Splash status */
 			case SC_RUWACH:
 			case SC_SIGHTBLASTER:
-				val3 = skill_get_splash(val2, val1); //Val2 should bring the skill-id
+				val3 = skill_get_splash(val2,val1); //Val2 should bring the skill-id
 				val2 = tick / 250;
 				tick_time = 10; //[GodLesZ] tick time
 				break;
@@ -8143,12 +8141,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val3 = 0;
 				val4 = 0;
 				max_stat = battle_config.max_parameter; //Cap to 99 (default)
-				stat = (psce->val3 >>16)&0xFF; stat = min(stat, max_stat - status->str ); val3 |= cap_value(stat,0,0xFF) << 16;
-				stat = (psce->val3 >> 8)&0xFF; stat = min(stat, max_stat - status->agi ); val3 |= cap_value(stat,0,0xFF) << 8;
-				stat = (psce->val3 >> 0)&0xFF; stat = min(stat, max_stat - status->vit ); val3 |= cap_value(stat,0,0xFF);
-				stat = (psce->val4 >>16)&0xFF; stat = min(stat, max_stat - status->int_); val4 |= cap_value(stat,0,0xFF) << 16;
-				stat = (psce->val4 >> 8)&0xFF; stat = min(stat, max_stat - status->dex ); val4 |= cap_value(stat,0,0xFF) << 8;
-				stat = (psce->val4 >> 0)&0xFF; stat = min(stat, max_stat - status->luk ); val4 |= cap_value(stat,0,0xFF);
+				stat = (psce->val3 >>16)&0xFF; stat = min(stat,max_stat - status->str ); val3 |= cap_value(stat,0,0xFF) << 16;
+				stat = (psce->val3 >> 8)&0xFF; stat = min(stat,max_stat - status->agi ); val3 |= cap_value(stat,0,0xFF) << 8;
+				stat = (psce->val3 >> 0)&0xFF; stat = min(stat,max_stat - status->vit ); val3 |= cap_value(stat,0,0xFF);
+				stat = (psce->val4 >>16)&0xFF; stat = min(stat,max_stat - status->int_); val4 |= cap_value(stat,0,0xFF) << 16;
+				stat = (psce->val4 >> 8)&0xFF; stat = min(stat,max_stat - status->dex ); val4 |= cap_value(stat,0,0xFF) << 8;
+				stat = (psce->val4 >> 0)&0xFF; stat = min(stat,max_stat - status->luk ); val4 |= cap_value(stat,0,0xFF);
 				break;
 			}
 
@@ -8181,42 +8179,42 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				struct status_change *d_sc;
 
 				if( (d_bl = map_id2bl(val1)) && (d_sc = status_get_sc(d_bl)) && d_sc->count ) { //Inherits Status From Source
-					const enum sc_type types[] = { SC_AUTOGUARD, SC_DEFENDER, SC_REFLECTSHIELD, SC_ENDURE };
+					const enum sc_type types[] = { SC_AUTOGUARD,SC_DEFENDER,SC_REFLECTSHIELD,SC_ENDURE };
 					enum sc_type type2;
-					int i = (map_flag_gvg(bl->m) || map[bl->m].flag.battleground)?2:3;
+					int i = (map_flag_gvg(bl->m) || map[bl->m].flag.battleground) ? 2 : 3;
 					while( i >= 0 ) {
 						type2 = types[i];
 						if( d_sc->data[type2] )
-							sc_start(d_bl, bl, type2, 100, d_sc->data[type2]->val1, skill_get_time(status_sc2skill(type2),d_sc->data[type2]->val1));
+							sc_start(d_bl,bl,type2,100,d_sc->data[type2]->val1,skill_get_time(status_sc2skill(type2),d_sc->data[type2]->val1));
 						i--;
 					}
 				}
 				break;
 			}
 
-			case SC_COMA: //Coma. Sends a char to 1HP. If val2, do not zap sp
+			case SC_COMA: //Coma. Sends a char to 1HP. If val2,do not zap sp
 				if( val3 && bl->type == BL_MOB ) {
 					struct block_list* src = map_id2bl(val3);
 					if( src )
 						mob_log_damage((TBL_MOB*)bl,src,status->hp - 1);
 				}
-				status_zap(bl, status->hp-1, val2?0:status->sp);
+				status_zap(bl,status->hp-1,val2 ? 0 : status->sp);
 				return 1;
 				break;
 			case SC_TINDER_BREAKER2:
 			case SC_CLOSECONFINE2: {
-				struct block_list *src = val2?map_id2bl(val2):NULL;
-				struct status_change *sc2 = src?status_get_sc(src):NULL;
-				enum sc_type type2 = ((type == SC_TINDER_BREAKER2)?SC_TINDER_BREAKER:SC_CLOSECONFINE);
-				struct status_change_entry *sce2 = sc2?sc2->data[type2]:NULL;
+				struct block_list *src = val2 ? map_id2bl(val2) : NULL;
+				struct status_change *sc2 = src ? status_get_sc(src) : NULL;
+				enum sc_type type2 = ((type == SC_TINDER_BREAKER2) ? SC_TINDER_BREAKER : SC_CLOSECONFINE);
+				struct status_change_entry *sce2 = sc2 ? sc2->data[type2] : NULL;
 
 				if (src && sc2) {
 					if (!sce2) //Start lock on caster
 						sc_start4(src,src,type2,100,val1,1,0,0,tick+1000);
 					else { //Increase count of locked enemies and refresh time
 						(sce2->val2)++;
-						delete_timer(sce2->timer, status_change_timer);
-						sce2->timer = add_timer(gettick()+tick+1000, status_change_timer, src->id, type2);
+						delete_timer(sce2->timer,status_change_timer);
+						sce2->timer = add_timer(gettick()+tick+1000,status_change_timer,src->id,type2);
 					}
 				} else //Status failed
 					return 0;
@@ -8251,7 +8249,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					if (ud && !val3) {
 						tick += 300 * battle_config.combo_delay_rate/100;
 						ud->attackabletime = gettick()+tick;
-						unit_set_walkdelay(bl, gettick(), tick, 1);
+						unit_set_walkdelay(bl,gettick(),tick,1);
 					}
 					val3 = 0;
 					val4 = tick;
@@ -8284,9 +8282,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				if (sd) { //Store the card-bonus data that should not count in the %
 					val3 = sd->param_bonus[1]; //Agi
 					val4 = sd->param_bonus[4]; //Dex
-				} else {
+				} else
 					val3 = val4 = 0;
-				}
 				break;
 			case SC_MAXOVERTHRUST:
 				val2 = 20*val1; //Power increase
@@ -8375,17 +8372,17 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val3 = 12*val1; //mdef2 reduction
 				break;
 			case SC_SKA:
-				val2 = tick/1000;
+				val2 = tick / 1000;
 				val3 = rnd()%100; //Def changes randomly every second
 				tick_time = 1000; //[GodLesZ] tick time
 				break;
 			case SC_JAILED:
 				//Val1 is duration in minutes. Use INT_MAX to specify 'unlimited' time
-				tick = val1>0?1000:250;
+				tick = val1 > 0 ? 1000 : 250;
 				if (sd) {
 					if (sd->mapindex != val2) {
-						int pos =  (bl->x&0xFFFF)|(bl->y<<16), //Current Coordinates
-						map =  sd->mapindex; //Current Map
+						int pos = (bl->x&0xFFFF)|(bl->y<<16), //Current Coordinates
+						map = sd->mapindex; //Current Map
 						//1. Place in Jail (val2 -> Jail Map, val3 -> x, val4 -> y
 						pc_setpos(sd,(unsigned short)val2,val3,val4,CLR_TELEPORT);
 						//2. Set restore point (val3 -> return map, val4 return coords
@@ -8399,11 +8396,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				}
 				break;
 			case SC_UTSUSEMI:
-				val2 = (val1+1)/2; //Number of hits blocked
-				val3 = skill_get_blewcount(NJ_UTSUSEMI, val1); //Knockback value
+				val2 = (val1+1) / 2; //Number of hits blocked
+				val3 = skill_get_blewcount(NJ_UTSUSEMI,val1); //Knockback value
 				break;
 			case SC_BUNSINJYUTSU:
-				val2 = (val1+1)/2; //Number of hits blocked
+				val2 = (val1+1) / 2; //Number of hits blocked
 				break;
 			case SC_CHANGE:
 				val2 = 30*val1; //Vit increase
@@ -8443,14 +8440,14 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 			case SC_ARMORCHANGE:
 				if (val2 == NPC_ANTIMAGIC) { //Boost mdef
-					val2 =-20;
+					val2 = -20;
 					val3 = 20;
 				} else { //Boost def
 					val2 = 20;
-					val3 =-20;
+					val3 = -20;
 				}
-				val2*=val1; //20% per level
-				val3*=val1;
+				val2 *= val1; //20% per level
+				val3 *= val1;
 				break;
 			case SC_EXPBOOST:
 			case SC_JEXPBOOST:
@@ -8462,7 +8459,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = val1*10; //Actual boost (since 100% = 1000)
 				break;
 			case SC_SUFFRAGIUM:
-				val2 = 15 * val1; //Speed cast decrease
+				val2 = 15*val1; //Speed cast decrease
 				break;
 			case SC_INCHEALRATE:
 				if (val1 < 1)
@@ -8490,11 +8487,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_MERC_FLEEUP:
 			case SC_MERC_ATKUP:
 			case SC_MERC_HITUP:
-				val2 = 15 * val1;
+				val2 = 15*val1;
 				break;
 			case SC_MERC_HPUP:
 			case SC_MERC_SPUP:
-				val2 = 5 * val1;
+				val2 = 5*val1;
 				break;
 			case SC_REBIRTH:
 				val2 = 20*val1; //% of life to be revived with
@@ -8517,12 +8514,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick_time = 1000; //[GodLesZ] tick time
 				break;
 			case SC_BURNING:
-				status_change_end(bl, SC_FREEZING, INVALID_TIMER);
 				val4 = tick / 3000;
 				tick_time = 3000; //Deals damage every 3 seconds.
-				break;
-			case SC_FREEZING:
-				status_change_end(bl, SC_BURNING, INVALID_TIMER);
 				break;
 			case SC_ENCHANTBLADE:
 				val_flag |= 2;
@@ -8532,7 +8525,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_MILLENNIUMSHIELD:
 				if( sd )
-					clif_millenniumshield(sd, 0);
+					clif_millenniumshield(sd,0);
 				break;
 			case SC_VITALITYACTIVATION:
 				val2 = 50; //Increase HP recovery effects by 50%
@@ -8541,12 +8534,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_STONEHARDSKIN:
 				val2 = (status->hp * 20 / 100); 
 				if( val2 > 0 )
-					status_heal(bl, -val2, 0, 0); //Reduce health by 20%
+					status_heal(bl,-val2,0,0); //Reduce health by 20%
 				if( sd )
 #ifdef RENEWAL
-					val1 = sd->status.job_level * pc_checkskill(sd, RK_RUNEMASTERY) / 4; //DEF/MDEF Increase
+					val1 = sd->status.job_level * pc_checkskill(sd,RK_RUNEMASTERY) / 4; //DEF/MDEF Increase
 #else
-					val1 = ( sd->status.job_level * pc_checkskill(sd, RK_RUNEMASTERY) / 4 ) / 10; //DEF/MDEF Increase
+					val1 = ( sd->status.job_level * pc_checkskill(sd,RK_RUNEMASTERY) / 4 ) / 10; //DEF/MDEF Increase
 #endif
 				break;
 			case SC_FIGHTINGSPIRIT:
@@ -8707,12 +8700,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val3 = 20 + 10 * val1; //ASPD Reduction
 				val_flag |= 1|2|4;
 				if( sd ) { //Removes Animals
-					if( pc_isriding(sd) ) pc_setriding(sd, 0);
-					if( pc_isridingdragon(sd) ) pc_setoption(sd, sd->sc.option&~OPTION_DRAGON);
-					if( pc_isridingwug(sd) ) pc_setoption(sd, sd->sc.option&~OPTION_WUGRIDER);
-					if( pc_isfalcon(sd) ) pc_setoption(sd, sd->sc.option&~OPTION_FALCON);
-					if( pc_iswug(sd) ) pc_setoption(sd, sd->sc.option&~OPTION_WUG);
-					if( sd->status.pet_id > 0 ) pet_menu(sd, 3);
+					if( pc_isriding(sd) ) pc_setriding(sd,0);
+					if( pc_isridingdragon(sd) ) pc_setoption(sd,sd->sc.option&~OPTION_DRAGON);
+					if( pc_isridingwug(sd) ) pc_setoption(sd,sd->sc.option&~OPTION_WUGRIDER);
+					if( pc_isfalcon(sd) ) pc_setoption(sd,sd->sc.option&~OPTION_FALCON);
+					if( pc_iswug(sd) ) pc_setoption(sd,sd->sc.option&~OPTION_WUG);
+					if( sd->status.pet_id > 0 ) pet_menu(sd,3);
 					if( merc_is_hom_active(sd->hd) ) merc_hom_vaporize(sd,HOM_ST_REST);
 					//if( sd->md ) merc_delete(sd->md,3); //Info shows nothing about Merc being removed. Probely true since their not a animal. [Rytech]
 					//Are rental mounts stripped as well? Well find out once I add them in.
@@ -8798,13 +8791,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val3 = 15 + 5 * val1; //ASPD reduction.
 				if( sd && rnd()%100 < val1 ) { //(Skill Lv) %
 					val4 = 1; //Reduce walk speed by half.
-					if( pc_isriding(sd) ) pc_setriding(sd, 0);
-					if( pc_isridingdragon(sd) ) pc_setoption(sd, sd->sc.option&~OPTION_DRAGON);
+					if( pc_isriding(sd) ) pc_setriding(sd,0);
+					if( pc_isridingdragon(sd) ) pc_setoption(sd,sd->sc.option&~OPTION_DRAGON);
 				} 
 				break;
 			case SC_GLOOMYDAY_SK: 
 				//Random number between [15 ~ (Voice Lesson Skill Level x 5) + (Skill Level x 10)] %. 
-				val2 = 15 + rnd()%((sd ? pc_checkskill(sd, WM_LESSON) * 5 : 0) + val1 * 10);
+				val2 = 15 + rnd()%((sd ? pc_checkskill(sd,WM_LESSON) * 5 : 0) + val1 * 10);
 				break;
 			case SC_SONGOFMANA:
 				val3 = 10 + 5 * val2;
@@ -9084,14 +9077,14 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 						lv = 4;
 
 					if( hp % 2 == 0 )
-						status_heal(bl, hp * (val1 + (6 - lv) * 4) / 100, 0, 1);
+						status_heal(bl,hp * (val1 + (6 - lv) * 4) / 100,0,1);
 					else
-						status_zap(bl, hp * (val1 + (lv * 4)) / 100, 0);
+						status_zap(bl,hp * (val1 + (lv * 4)) / 100,0);
 
 					if( sp % 2 == 0 )
-						status_heal(bl, 0, sp * (val1 + (6 - lv) * 3) / 100, 1);
+						status_heal(bl,0,sp * (val1 + (6 - lv) * 3) / 100,1);
 					else
-						status_zap(bl, 0, sp * (val1 + (lv * 3)) / 100);
+						status_zap(bl,0,sp * (val1 + (lv * 3)) / 100);
 				}
 				break;
 			case SC_ANGRIFFS_MODUS:
@@ -9198,7 +9191,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			default:
 				if( calc_flag == SCB_NONE && StatusSkillChangeTable[type] == 0 && StatusIconChangeTable[type] == 0 ) {
 					//Status change with no calc, no icon, and no skill associated...?
-					ShowError("UnknownStatusChange [%d]\n", type);
+					ShowError("UnknownStatusChange [%d]\n",type);
 					return 0;
 				}
 		} else //Special considerations when loading SC data.
@@ -9254,10 +9247,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			if (sd && pc_issit(sd)) //Avoid sprite sync problems.
 				pc_setstand(sd);
 		case SC_TRICKDEAD:
-			status_change_end(bl, SC_DANCING, INVALID_TIMER);
+			status_change_end(bl,SC_DANCING,INVALID_TIMER);
 			//Cancel cast when get status [LuzZza]
 			if (battle_config.sc_castcancel&bl->type)
-				unit_skillcastcancel(bl, 0);
+				unit_skillcastcancel(bl,0);
 		case SC_WHITEIMPRISON:
 			unit_stop_attack(bl);
 		case SC_STOP:
@@ -9280,7 +9273,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_MEIKYOUSISUI:
 		case SC_KYOUGAKU:
 		case SC_PARALYSIS:
-			unit_stop_walking(bl, 1);
+			unit_stop_walking(bl,1);
 			break;
 		case SC_ANKLE:
 		case SC_SPIDERWEB:
@@ -9290,7 +9283,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					if( !battle_config.skill_trap_type && map_flag_gvg2(bl->m) )
 						break;
 					else
-						unit_stop_walking(bl, 1);
+						unit_stop_walking(bl,1);
 				}
 			}
 			break;
@@ -9305,7 +9298,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 		case SC_SILENCE:
 			if (battle_config.sc_castcancel&bl->type)
-				unit_skillcastcancel(bl, 0);
+				unit_skillcastcancel(bl,0);
 			break;
 	}
 
