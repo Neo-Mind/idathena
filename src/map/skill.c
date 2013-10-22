@@ -2265,7 +2265,7 @@ void skill_combo_toogle_inf(struct block_list* bl, uint16 skill_id, int inf) {
 				sd = hd->master;
 				hd->homunculus.hskill[idx].flag = flag;
 				//Refresh info
-				//@FIXME we only want to refresh one skill
+				//FIXME: We only want to refresh one skill
 				if(sd) clif_homskillinfoblock(sd);
 			}
 			break;
@@ -14396,7 +14396,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 		case CH_TIGERFIST:
 		case CH_CHAINCRUSH:
 			if( sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_MONK )
-				req.sp -= req.sp * 25 / 100; //FIXME: Need real data. this is a custom value.
+				req.sp -= req.sp * 25 / 100; //FIXME: Need real data. This is a custom value.
 			break;
 		case MO_BODYRELOCATION:
 			if( sc && sc->data[SC_EXPLOSIONSPIRITS] )
@@ -15826,9 +15826,10 @@ bool skill_check_shadowform(struct block_list *bl, int64 damage, int hit)
 		}
 
 		if( src && (status_isdead(src) || !battle_check_target(bl, src, BCT_ENEMY)) ) {
+			/* FIXME: An official video didn't show this behavior [exneval]
+			status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER); */
 			if( src->type == BL_PC )
 				((TBL_PC*)src)->shadowform_id = 0;
-			status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
 			return false;
 		}
 
