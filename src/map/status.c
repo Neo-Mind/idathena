@@ -6986,8 +6986,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_STUN:
 		case SC_FREEZING:
 		case SC_CRYSTALIZE:
-			if(sc->opt1 || (type == SC_FREEZING && sc->data[SC_BURNING]))
-				return 0; //Cannot override. [Skotlex]
+			if(sc->opt1)
+				return 0; //Cannot override other opt1 status changes. [Skotlex]
 			if((type == SC_FREEZE || type == SC_FREEZING || type == SC_CRYSTALIZE) && sc->data[SC_WARMER])
 				return 0; //Immune to Frozen, Freezing and Crystalize status if under Warmer status. [Jobbie]
 			break;
@@ -8113,42 +8113,42 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 
 			case SC_MARIONETTE: {
-				int stat;
+					int stat;
 
-				val3 = 0;
-				val4 = 0;
-				stat = (sd ? sd->status.str : status_get_base_status(bl)->str) / 2; val3 |= cap_value(stat,0,0xFF) << 16;
-				stat = (sd ? sd->status.agi : status_get_base_status(bl)->agi) / 2; val3 |= cap_value(stat,0,0xFF) << 8;
-				stat = (sd ? sd->status.vit : status_get_base_status(bl)->vit) / 2; val3 |= cap_value(stat,0,0xFF);
-				stat = (sd ? sd->status.int_: status_get_base_status(bl)->int_) / 2; val4 |= cap_value(stat,0,0xFF) << 16;
-				stat = (sd ? sd->status.dex : status_get_base_status(bl)->dex) / 2; val4 |= cap_value(stat,0,0xFF) << 8;
-				stat = (sd ? sd->status.luk : status_get_base_status(bl)->luk) / 2; val4 |= cap_value(stat,0,0xFF);
+					val3 = 0;
+					val4 = 0;
+					stat = (sd ? sd->status.str : status_get_base_status(bl)->str) / 2; val3 |= cap_value(stat,0,0xFF) << 16;
+					stat = (sd ? sd->status.agi : status_get_base_status(bl)->agi) / 2; val3 |= cap_value(stat,0,0xFF) << 8;
+					stat = (sd ? sd->status.vit : status_get_base_status(bl)->vit) / 2; val3 |= cap_value(stat,0,0xFF);
+					stat = (sd ? sd->status.int_ : status_get_base_status(bl)->int_) / 2; val4 |= cap_value(stat,0,0xFF) << 16;
+					stat = (sd ? sd->status.dex : status_get_base_status(bl)->dex) / 2; val4 |= cap_value(stat,0,0xFF) << 8;
+					stat = (sd ? sd->status.luk : status_get_base_status(bl)->luk) / 2; val4 |= cap_value(stat,0,0xFF);
+				}
 				break;
-			}
 
 			case SC_MARIONETTE2: {
-				int stat, max_stat;
-				//Fetch caster information
-				struct block_list *pbl = map_id2bl(val1);
-				struct status_change *psc = pbl ? status_get_sc(pbl) : NULL;
-				struct status_change_entry *psce = psc ? psc->data[SC_MARIONETTE] : NULL;
-				//Fetch target's stats
-				struct status_data* status = status_get_status_data(bl); //Battle status
+					int stat, max_stat;
+					//Fetch caster information
+					struct block_list *pbl = map_id2bl(val1);
+					struct status_change *psc = pbl ? status_get_sc(pbl) : NULL;
+					struct status_change_entry *psce = psc ? psc->data[SC_MARIONETTE] : NULL;
+					//Fetch target's stats
+					struct status_data* status = status_get_status_data(bl); //Battle status
 
-				if (!psce)
-					return 0;
+					if (!psce)
+						return 0;
 
-				val3 = 0;
-				val4 = 0;
-				max_stat = battle_config.max_parameter; //Cap to 99 (default)
-				stat = (psce->val3 >>16)&0xFF; stat = min(stat,max_stat - status->str ); val3 |= cap_value(stat,0,0xFF) << 16;
-				stat = (psce->val3 >> 8)&0xFF; stat = min(stat,max_stat - status->agi ); val3 |= cap_value(stat,0,0xFF) << 8;
-				stat = (psce->val3 >> 0)&0xFF; stat = min(stat,max_stat - status->vit ); val3 |= cap_value(stat,0,0xFF);
-				stat = (psce->val4 >>16)&0xFF; stat = min(stat,max_stat - status->int_); val4 |= cap_value(stat,0,0xFF) << 16;
-				stat = (psce->val4 >> 8)&0xFF; stat = min(stat,max_stat - status->dex ); val4 |= cap_value(stat,0,0xFF) << 8;
-				stat = (psce->val4 >> 0)&0xFF; stat = min(stat,max_stat - status->luk ); val4 |= cap_value(stat,0,0xFF);
+					val3 = 0;
+					val4 = 0;
+					max_stat = battle_config.max_parameter; //Cap to 99 (default)
+					stat = (psce->val3 >>16)&0xFF; stat = min(stat,max_stat - status->str); val3 |= cap_value(stat,0,0xFF) << 16;
+					stat = (psce->val3 >> 8)&0xFF; stat = min(stat,max_stat - status->agi); val3 |= cap_value(stat,0,0xFF) << 8;
+					stat = (psce->val3 >> 0)&0xFF; stat = min(stat,max_stat - status->vit); val3 |= cap_value(stat,0,0xFF);
+					stat = (psce->val4 >>16)&0xFF; stat = min(stat,max_stat - status->int_); val4 |= cap_value(stat,0,0xFF) << 16;
+					stat = (psce->val4 >> 8)&0xFF; stat = min(stat,max_stat - status->dex); val4 |= cap_value(stat,0,0xFF) << 8;
+					stat = (psce->val4 >> 0)&0xFF; stat = min(stat,max_stat - status->luk); val4 |= cap_value(stat,0,0xFF);
+				}
 				break;
-			}
 
 			case SC_REJECTSWORD:
 				val2 = 15 * val1; //Reflect chance
@@ -8178,13 +8178,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				struct block_list *d_bl;
 				struct status_change *d_sc;
 
-				if( (d_bl = map_id2bl(val1)) && (d_sc = status_get_sc(d_bl)) && d_sc->count ) { //Inherits Status From Source
+				if ((d_bl = map_id2bl(val1)) && (d_sc = status_get_sc(d_bl)) && d_sc->count) { //Inherits Status From Source
 					const enum sc_type types[] = { SC_AUTOGUARD,SC_DEFENDER,SC_REFLECTSHIELD,SC_ENDURE };
 					enum sc_type type2;
 					int i = (map_flag_gvg(bl->m) || map[bl->m].flag.battleground) ? 2 : 3;
-					while( i >= 0 ) {
+					while (i >= 0) {
 						type2 = types[i];
-						if( d_sc->data[type2] )
+						if (d_sc->data[type2])
 							sc_start(d_bl,bl,type2,100,d_sc->data[type2]->val1,skill_get_time(status_sc2skill(type2),d_sc->data[type2]->val1));
 						i--;
 					}
@@ -8192,33 +8192,34 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			}
 
-			case SC_COMA: //Coma. Sends a char to 1HP. If val2,do not zap sp
-				if( val3 && bl->type == BL_MOB ) {
+			case SC_COMA: //Coma. Sends a char to 1HP. If val2, do not zap sp
+				if (val3 && bl->type == BL_MOB) {
 					struct block_list* src = map_id2bl(val3);
-					if( src )
+					if (src)
 						mob_log_damage((TBL_MOB*)bl,src,status->hp - 1);
 				}
 				status_zap(bl,status->hp-1,val2 ? 0 : status->sp);
 				return 1;
 				break;
 			case SC_TINDER_BREAKER2:
-			case SC_CLOSECONFINE2: {
-				struct block_list *src = val2 ? map_id2bl(val2) : NULL;
-				struct status_change *sc2 = src ? status_get_sc(src) : NULL;
-				enum sc_type type2 = ((type == SC_TINDER_BREAKER2) ? SC_TINDER_BREAKER : SC_CLOSECONFINE);
-				struct status_change_entry *sce2 = sc2 ? sc2->data[type2] : NULL;
+			case SC_CLOSECONFINE2:
+				{
+					struct block_list *src = val2 ? map_id2bl(val2) : NULL;
+					struct status_change *sc2 = src ? status_get_sc(src) : NULL;
+					enum sc_type type2 = ((type == SC_TINDER_BREAKER2) ? SC_TINDER_BREAKER : SC_CLOSECONFINE);
+					struct status_change_entry *sce2 = sc2 ? sc2->data[type2] : NULL;
 
-				if (src && sc2) {
-					if (!sce2) //Start lock on caster
-						sc_start4(src,src,type2,100,val1,1,0,0,tick+1000);
-					else { //Increase count of locked enemies and refresh time
-						(sce2->val2)++;
-						delete_timer(sce2->timer,status_change_timer);
-						sce2->timer = add_timer(gettick()+tick+1000,status_change_timer,src->id,type2);
-					}
-				} else //Status failed
-					return 0;
-			}
+					if (src && sc2) {
+						if (!sce2) //Start lock on caster
+							sc_start4(src,src,type2,100,val1,1,0,0,tick+1000);
+						else { //Increase count of locked enemies and refresh time
+							(sce2->val2)++;
+							delete_timer(sce2->timer,status_change_timer);
+							sce2->timer = add_timer(gettick()+tick+1000,status_change_timer,src->id,type2);
+						}
+					} else //Status failed
+						return 0;
+				}
 				break;
 			case SC_KAITE:
 				val2 = 1+val1/5; //Number of bounces: 1 + skill_lv/5
@@ -8291,14 +8292,14 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_OVERTHRUST:
 				//val2 holds if it was casted on self, or is bonus received from others
 				val3 = 5*val1; //Power increase
-				if(sd && pc_checkskill(sd,BS_HILTBINDING) > 0)
+				if (sd && pc_checkskill(sd,BS_HILTBINDING) > 0)
 					tick += tick / 10;
 				break;
 			case SC_ADRENALINE2:
 			case SC_ADRENALINE:
 				val3 = (val2) ? 300 : 200; //Aspd increase
 			case SC_WEAPONPERFECTION:
-				if(sd && pc_checkskill(sd,BS_HILTBINDING) > 0)
+				if (sd && pc_checkskill(sd,BS_HILTBINDING) > 0)
 					tick += tick / 10;
 				break;
 			case SC_CONCENTRATION:
