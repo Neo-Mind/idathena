@@ -2652,7 +2652,6 @@ struct Damage battle_calc_damage_parts(struct Damage wd, struct block_list *src,
 struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv)
 {
 	struct status_change *sc = status_get_sc(src);
-	struct status_change *tsc = status_get_sc(target);
 	struct status_data *sstatus = status_get_status_data(src);
 	struct status_data *tstatus = status_get_status_data(target);
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
@@ -4469,7 +4468,6 @@ struct Damage battle_calc_attack_gvg_bg(struct Damage wd, struct block_list *src
 			(src->type == BL_SKILL && ( skill_id == SG_SUN_WARM || skill_id == SG_MOON_WARM || skill_id == SG_STAR_WARM ))) ) {
 				int64 damage = wd.damage + wd.damage2, rdamage = 0;
 				struct map_session_data *tsd = BL_CAST(BL_PC, target);
-				struct status_change *tsc = status_get_sc(target);
 				struct status_data *sstatus = status_get_status_data(src);
 				int tick = gettick(), rdelay = 0;
 

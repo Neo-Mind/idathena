@@ -3164,14 +3164,15 @@ static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 
 					return 0;
 				}
 				range = skill_get_unit_range(skill_id,skill_lv) + layout_type;
-				if (skill_id == SC_CHAOSPANIC || skill_id == SC_MAELSTROM)
-					range_npc = range * 3;
 			}
 			break;
 	}
 
+	if ((skill_id == SC_CHAOSPANIC || skill_id == SC_MAELSTROM) && type&BL_NPC)
+		range_npc = range * 3;
+
 	return map_foreachinarea(skill_check_unit_range2_sub,bl->m,x - range,y - range,x + range,y + range,type,skill_id)
-		+ (range_npc > 0 && type&BL_NPC) ? map_foreachinarea(npc_isnear_sub,bl->m,x - range_npc,y - range_npc,x + range_npc,y + range_npc,type,skill_id) : 0;
+		+ (type&BL_NPC && range_npc > 0) ? map_foreachinarea(npc_isnear_sub,bl->m,x - range_npc,y - range_npc,x + range_npc,y + range_npc,type,skill_id) : 0;
 }
 
 int skill_guildaura_sub (struct map_session_data* sd, int id, int strvit, int agidex)
