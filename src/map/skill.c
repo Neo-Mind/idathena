@@ -2821,15 +2821,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				if (su->group && skill_get_inf2(su->group->skill_id)&INF2_TRAP) //Show damage on trap targets
 					clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, flag&SD_LEVEL ? -1 : skill_lv, 5);
 			}
-			if (tsc && tsc->data[SC__SHADOWFORM]) {
-				int div_ = dmg.div_, hit = tsc->data[SC__SHADOWFORM]->val3;
-				if ((hit -= div_) < 0) {
-					hit = hit + div_;
-					dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, (damage / div_) * (div_ - hit), (div_ - hit), skill_id, flag&SD_LEVEL ? -1 : skill_lv, (div_ > 1 ? 8 : 0));
-				} else
-					dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, div_, skill_id, flag&SD_LEVEL ? -1 : skill_lv, (div_ > 1 ? 8 : 0));
-			} else
-				dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, flag&SD_LEVEL ? -1 : skill_lv, type);
+			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, flag&SD_LEVEL ? -1 : skill_lv, type);
 			break;
 	}
 
@@ -15845,8 +15837,7 @@ bool skill_check_shadowform(struct block_list *bl, int64 damage, int hit)
 			status_damage(src, bl, (damage / hit) * (hit - temp), 0, 0, 0);
 			status_damage(bl, src, (damage / hit) * (hit - (hit - temp)), 0,
 				clif_damage(src, src, gettick(), status_get_amotion(src), status_get_dmotion(src),
-					(damage / hit) * (hit - (hit - temp)),
-						(hit - (hit - temp)), (hit > 1 ? 8 : 0), 0), 0);
+					damage, hit, (hit > 1 ? 8 : 0), 0), 0);
 			status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
 			if( src->type == BL_PC )
 				((TBL_PC*)src)->shadowform_id = 0;
