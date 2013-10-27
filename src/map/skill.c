@@ -14255,10 +14255,8 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 	req.zeny = skill_db[idx].require.zeny[skill_lv - 1];
 
 	if( sc && sc->data[SC__UNLUCKY] ) {
-		if ( sc->data[SC__UNLUCKY]->val1 == 1 )
-			req.zeny += 250;
-		else if ( sc->data[SC__UNLUCKY]->val1 == 2 )
-			req.zeny += 500;
+		if( sc->data[SC__UNLUCKY]->val1 < 3 )
+			req.zeny += sc->data[SC__UNLUCKY]->val1 * 250;
 		else
 			req.zeny += 1000;
 	}

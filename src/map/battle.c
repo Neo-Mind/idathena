@@ -2381,7 +2381,7 @@ static struct Damage battle_calc_element_damage(struct Damage wd, struct block_l
 	int nk = battle_skill_get_damage_properties(skill_id, wd.miscflag);
 
 	if(!(nk&NK_NO_ELEFIX) && //Elemental attribute fix
-		//Non-pc physical attacks (Mob, Pet, Homun) are "non elemental", they deal 100% to all target elements
+		//Non-pc physical attacks (mob, pet, homun) are "non elemental", they deal 100% to all target elements
 		//However the "non elemental" attacks still get reduced by "Neutral resistance" [exneval]
 		!(battle_config.attack_attr_none&src->type && (skill_id == 0 || element == -1))) {
 		if(wd.damage > 0) {
@@ -4132,10 +4132,10 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 			def2 -= def2 * i / 100;
 		}
 
-		//KO Earth Charm effect
+		//KO Earth Charm effect +5% eDEF
 		ARR_FIND(1, 6, type, sd->talisman[type] > 0);
 		if(type == 2)
-			def1 += def1 * (5 * sd->talisman[type]) / 100; //+5% eDEF
+			def1 += def1 * (5 * sd->talisman[type]) / 100;
 	}
 
 	if(sc && sc->data[SC_EXPIATIO]) {
