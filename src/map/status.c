@@ -866,14 +866,11 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_SPELLBOOK5] = SI_SPELLBOOK5;
 	StatusIconChangeTable[SC_SPELLBOOK6] = SI_SPELLBOOK6;
 	StatusIconChangeTable[SC_MAXSPELLBOOK] = SI_SPELLBOOK7;
-
 	StatusIconChangeTable[SC_NEUTRALBARRIER_MASTER] = SI_NEUTRALBARRIER_MASTER;
 	StatusIconChangeTable[SC_STEALTHFIELD_MASTER] = SI_STEALTHFIELD_MASTER;
 	StatusIconChangeTable[SC_OVERHEAT] = SI_OVERHEAT;
 	StatusIconChangeTable[SC_OVERHEAT_LIMITPOINT] = SI_OVERHEAT_LIMITPOINT;
-
 	StatusIconChangeTable[SC_HALLUCINATIONWALK_POSTDELAY] = SI_HALLUCINATIONWALK_POSTDELAY;
-
 	StatusIconChangeTable[SC_TOXIN] = SI_TOXIN;
 	StatusIconChangeTable[SC_PARALYSE] = SI_PARALYSE;
 	StatusIconChangeTable[SC_VENOMBLEED] = SI_VENOMBLEED;
@@ -882,30 +879,23 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_PYREXIA] = SI_PYREXIA;
 	StatusIconChangeTable[SC_OBLIVIONCURSE] = SI_OBLIVIONCURSE;
 	StatusIconChangeTable[SC_LEECHESEND] = SI_LEECHESEND;
-
 	StatusIconChangeTable[SC_BANDING_DEFENCE] = SI_BANDING_DEFENCE;
 	StatusIconChangeTable[SC_SHIELDSPELL_DEF] = SI_SHIELDSPELL_DEF;
 	StatusIconChangeTable[SC_SHIELDSPELL_MDEF] = SI_SHIELDSPELL_MDEF;
 	StatusIconChangeTable[SC_SHIELDSPELL_REF] = SI_SHIELDSPELL_REF;
-
 	StatusIconChangeTable[SC_GLOOMYDAY_SK] = SI_GLOOMYDAY;
-
 	StatusIconChangeTable[SC_CURSEDCIRCLE_ATKER] = SI_CURSEDCIRCLE_ATKER;
-
 	StatusIconChangeTable[SC_STOMACHACHE] = SI_STOMACHACHE;
 	StatusIconChangeTable[SC_MYSTERIOUS_POWDER] = SI_MYSTERIOUS_POWDER;
 	StatusIconChangeTable[SC_MELON_BOMB] = SI_MELON_BOMB;
 	StatusIconChangeTable[SC_BANANA_BOMB] = SI_BANANA_BOMB;
 	StatusIconChangeTable[SC_BANANA_BOMB_SITDOWN] = SI_BANANA_BOMB_SITDOWN_POSTDELAY;
-
-	//Genetics New Food Items Status Icons
 	StatusIconChangeTable[SC_SAVAGE_STEAK] = SI_SAVAGE_STEAK;
 	StatusIconChangeTable[SC_COCKTAIL_WARG_BLOOD] = SI_COCKTAIL_WARG_BLOOD;
 	StatusIconChangeTable[SC_MINOR_BBQ] = SI_MINOR_BBQ;
 	StatusIconChangeTable[SC_SIROMA_ICE_TEA] = SI_SIROMA_ICE_TEA;
 	StatusIconChangeTable[SC_DROCERA_HERB_STEAMED] = SI_DROCERA_HERB_STEAMED;
 	StatusIconChangeTable[SC_PUTTI_TAILS_NOODLES] = SI_PUTTI_TAILS_NOODLES;
-
 	StatusIconChangeTable[SC_BOOST500] |= SI_BOOST500;
 	StatusIconChangeTable[SC_FULL_SWING_K] |= SI_FULL_SWING_K;
 	StatusIconChangeTable[SC_MANA_PLUS] |= SI_MANA_PLUS;
@@ -914,8 +904,6 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_EXTRACT_WHITE_POTION_Z] |= SI_EXTRACT_WHITE_POTION_Z;
 	StatusIconChangeTable[SC_VITATA_500] |= SI_VITATA_500;
 	StatusIconChangeTable[SC_EXTRACT_SALAMINE_JUICE] |= SI_EXTRACT_SALAMINE_JUICE;
-
-	//Elemental Spirit's 'side' status change icons
 	StatusIconChangeTable[SC_CIRCLE_OF_FIRE] = SI_CIRCLE_OF_FIRE;
 	StatusIconChangeTable[SC_FIRE_CLOAK] = SI_FIRE_CLOAK;
 	StatusIconChangeTable[SC_WATER_SCREEN] = SI_WATER_SCREEN;
@@ -941,6 +929,7 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_ALL_RIDING] = SI_ALL_RIDING;
 	StatusIconChangeTable[SC_PUSH_CART] = SI_ON_PUSH_CART;
 	StatusIconChangeTable[SC_MOONSTAR] = SI_MOONSTAR;
+	StatusIconChangeTable[SC_SUPER_STAR] = SI_SUPER_STAR;
 
 	if( !battle_config.display_hallucination ) //Disable Hallucination
 		StatusIconChangeTable[SC_HALLUCINATION] = SI_BLANK;
@@ -992,49 +981,38 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_WALKSPEED] |= SCB_SPEED;
 	StatusChangeFlagTable[SC_ITEMSCRIPT] |= SCB_ALL;
 	StatusChangeFlagTable[SC_SLOWDOWN] |= SCB_SPEED;
-	//Cash Items
 	StatusChangeFlagTable[SC_FOOD_STR_CASH] = SCB_STR;
 	StatusChangeFlagTable[SC_FOOD_AGI_CASH] = SCB_AGI;
 	StatusChangeFlagTable[SC_FOOD_VIT_CASH] = SCB_VIT;
 	StatusChangeFlagTable[SC_FOOD_DEX_CASH] = SCB_DEX;
 	StatusChangeFlagTable[SC_FOOD_INT_CASH] = SCB_INT;
 	StatusChangeFlagTable[SC_FOOD_LUK_CASH] = SCB_LUK;
-	//Mercenary Bonus Effects
 	StatusChangeFlagTable[SC_MERC_FLEEUP] |= SCB_FLEE;
 	StatusChangeFlagTable[SC_MERC_ATKUP] |= SCB_WATK;
 	StatusChangeFlagTable[SC_MERC_HPUP] |= SCB_MAXHP;
 	StatusChangeFlagTable[SC_MERC_SPUP] |= SCB_MAXSP;
 	StatusChangeFlagTable[SC_MERC_HITUP] |= SCB_HIT;
-
 	StatusChangeFlagTable[SC_STEALTHFIELD_MASTER] |= SCB_SPEED;
-
 	StatusChangeFlagTable[SC_HALLUCINATIONWALK_POSTDELAY] |= SCB_SPEED|SCB_ASPD;
-
-	//Guillotine Cross Poison Effects
 	StatusChangeFlagTable[SC_PARALYSE] |= SCB_FLEE|SCB_SPEED|SCB_ASPD;
 	StatusChangeFlagTable[SC_DEATHHURT] |= SCB_REGEN;
 	StatusChangeFlagTable[SC_VENOMBLEED] |= SCB_MAXHP;
 	StatusChangeFlagTable[SC_MAGICMUSHROOM] |= SCB_REGEN;
 	StatusChangeFlagTable[SC_PYREXIA] |= SCB_HIT|SCB_FLEE;
 	StatusChangeFlagTable[SC_OBLIVIONCURSE] |= SCB_REGEN;
-
 	StatusChangeFlagTable[SC_BANDING_DEFENCE] |= SCB_SPEED;
 	StatusChangeFlagTable[SC_SHIELDSPELL_DEF] |= SCB_WATK;
 	StatusChangeFlagTable[SC_SHIELDSPELL_REF] |= SCB_DEF;
-
 	StatusChangeFlagTable[SC_STOMACHACHE] |= SCB_STR|SCB_AGI|SCB_VIT|SCB_DEX|SCB_INT|SCB_LUK;
 	StatusChangeFlagTable[SC_MYSTERIOUS_POWDER] |= SCB_MAXHP;
 	StatusChangeFlagTable[SC_MELON_BOMB] |= SCB_SPEED|SCB_ASPD;
 	StatusChangeFlagTable[SC_BANANA_BOMB] |= SCB_LUK;
-
-	//Genetics New Food Items
 	StatusChangeFlagTable[SC_SAVAGE_STEAK] |= SCB_STR;
 	StatusChangeFlagTable[SC_COCKTAIL_WARG_BLOOD] |= SCB_INT;
 	StatusChangeFlagTable[SC_MINOR_BBQ] |= SCB_VIT;
 	StatusChangeFlagTable[SC_SIROMA_ICE_TEA] |= SCB_DEX;
 	StatusChangeFlagTable[SC_DROCERA_HERB_STEAMED] |= SCB_AGI;
 	StatusChangeFlagTable[SC_PUTTI_TAILS_NOODLES] |= SCB_LUK;
-
 	StatusChangeFlagTable[SC_BOOST500] |= SCB_ASPD;
 	StatusChangeFlagTable[SC_FULL_SWING_K] |= SCB_BATK;
 	StatusChangeFlagTable[SC_MANA_PLUS] |= SCB_MATK;
@@ -1043,19 +1021,18 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_EXTRACT_WHITE_POTION_Z] |= SCB_REGEN;
 	StatusChangeFlagTable[SC_VITATA_500] |= SCB_REGEN;
 	StatusChangeFlagTable[SC_EXTRACT_SALAMINE_JUICE] |= SCB_ASPD;
-
 	StatusChangeFlagTable[SC_REBOUND] |= SCB_SPEED|SCB_REGEN;
+	StatusChangeFlagTable[SC_MONSTER_TRANSFORM] |= SCB_NONE;
 	StatusChangeFlagTable[SC_DEFSET] |= SCB_DEF;
 	StatusChangeFlagTable[SC_MDEFSET] |= SCB_MDEF;
 	StatusChangeFlagTable[SC_WEDDING] |= SCB_SPEED;
 	StatusChangeFlagTable[SC_ALL_RIDING] |= SCB_SPEED;
 	StatusIconChangeTable[SC_PUSH_CART] |= SCB_SPEED;
-
 	StatusChangeFlagTable[SC_MTF_ASPD] |= SCB_ASPD|SCB_HIT;
 	StatusChangeFlagTable[SC_MTF_MATK] |= SCB_MATK;
 	StatusChangeFlagTable[SC_MTF_MLEATKED] |= SCB_ALL;
-
 	StatusChangeFlagTable[SC_MOONSTAR] |= SCB_NONE;
+	StatusChangeFlagTable[SC_SUPER_STAR] |= SCB_NONE;
 
 	/* StatusDisplayType Table [Ind] */
 	StatusDisplayType[SC_ALL_RIDING]	  = true;
@@ -1086,6 +1063,7 @@ void initChangeTables(void) {
 	StatusDisplayType[SC_TELEKINESIS_INTENSE] = true;
 	StatusDisplayType[SC_UNLIMIT]		  = true;
 	StatusDisplayType[SC_MOONSTAR]		  = true;
+	StatusDisplayType[SC_SUPER_STAR]	  = true;
 
 	/* StatusChangeState (SCS_) NOMOVE */
 	StatusChangeStateTable[SC_ANKLE]               |= SCS_NOMOVE;
@@ -7577,7 +7555,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_ADRENALINE2:
 			case SC_WEAPONPERFECTION:
 			case SC_OVERTHRUST:
-				if (sce->val2 > val2)
+				if( sce->val2 > val2 )
 					return 0;
 				break;
 			case SC_S_LIFEPOTION:
@@ -7597,7 +7575,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_MARIONETTE:
 			case SC_MARIONETTE2:
 			case SC_NOCHAT:
-			case SC_CHANGE: //Otherwise your Hp/Sp would get refilled while still within effect of the last invocation.
+			case SC_CHANGE: //Otherwise your HP/SP would get refilled while still within effect of the last invocation.
 			case SC_ABUNDANCE:
 			case SC_FEAR:
 			case SC_TOXIN:
@@ -7631,21 +7609,21 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_GOSPEL:
 				 //Must not override a casting gospel char.
-				if(sce->val4 == BCT_SELF)
+				if( sce->val4 == BCT_SELF )
 					return 0;
-				if(sce->val1 > val1)
+				if( sce->val1 > val1 )
 					return 1;
 				break;
 			case SC_ENDURE:
-				if(sce->val4 && !val4)
+				if( sce->val4 && !val4 )
 					return 1; //Don't let you override infinite endure.
-				if(sce->val1 > val1)
+				if( sce->val1 > val1 )
 					return 1;
 				break;
 			case SC_KAAHI:
 				//Kaahi overwrites previous level regardless of existing level.
 				//Delete timer if it exists.
-				if (sce->val4 != INVALID_TIMER) {
+				if( sce->val4 != INVALID_TIMER ) {
 					delete_timer(sce->val4,kaahi_heal_timer);
 					sce->val4 = INVALID_TIMER;
 				}
@@ -7657,7 +7635,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = sce->val4;
 				break;
 			case SC_LERADSDEW:
-				if (sc && sc->data[SC_BERSERK])
+				if( sc && sc->data[SC_BERSERK] )
 					return 0;
 			case SC_SHAPESHIFT:
 			case SC_PROPERTYWALK:
@@ -7672,7 +7650,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_JOINTBEAT:
 				val2 |= sce->val2; //Stackable ailments
 			default:
-				if(sce->val1 > val1)
+				if( sce->val1 > val1 )
 					return 1; //Return true to not mess up skill animations. [Skotlex]
 		}
 	}
@@ -8024,6 +8002,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_DODGE:
 			case SC_PUSH_CART:
 			case SC_ALL_RIDING:
+			case SC_MOONSTAR:
+			case SC_SUPER_STAR:
 				tick = -1;
 				break;
 
@@ -8437,7 +8417,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_SLOWCAST:
 				val2 = 20*val1; //Magic reflection/cast rate
 				break;
-
 			case SC_ARMORCHANGE:
 				if (val2 == NPC_ANTIMAGIC) { //Boost mdef
 					val2 = -20;
@@ -8483,7 +8462,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				//Place here SCs that have no SCB_* data, no skill associated, no ICON
 				//associated, and yet are not wrong/unknown. [Skotlex]
 				//break;
-
 			case SC_MERC_FLEEUP:
 			case SC_MERC_ATKUP:
 			case SC_MERC_HITUP:
@@ -8496,7 +8474,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_REBIRTH:
 				val2 = 20*val1; //% of life to be revived with
 				break;
-
 			case SC_MANU_DEF:
 			case SC_MANU_ATK:
 			case SC_MANU_MATK:
@@ -8507,7 +8484,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_SPL_MATK:
 				val2 = 2; //Splendide group
 				break;
-
 			case SC_FEAR:
 				val2 = 2;
 				val4 = tick / 1000;
@@ -8535,12 +8511,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = (status->hp * 20 / 100); 
 				if( val2 > 0 )
 					status_heal(bl,-val2,0,0); //Reduce health by 20%
-				if( sd )
-#ifdef RENEWAL
-					val1 = sd->status.job_level * pc_checkskill(sd,RK_RUNEMASTERY) / 4; //DEF/MDEF Increase
-#else
-					val1 = ( sd->status.job_level * pc_checkskill(sd,RK_RUNEMASTERY) / 4 ) / 10; //DEF/MDEF Increase
+				if( sd ) //DEF/MDEF Increase
+					val1 = sd->status.job_level * pc_checkskill(sd,RK_RUNEMASTERY) / 4
+#ifndef RENEWAL
+					/ 10
 #endif
+					;
 				break;
 			case SC_FIGHTINGSPIRIT:
 				val_flag |= 1|2;
@@ -9671,6 +9647,8 @@ int status_change_clear(struct block_list* bl,int type)
 				case SC_PUSH_CART:
 				case SC_ALL_RIDING:
 				case SC_STYLE_CHANGE:
+				case SC_MOONSTAR:
+				case SC_SUPER_STAR:
 					continue;
 			}
 
@@ -9682,9 +9660,14 @@ int status_change_clear(struct block_list* bl,int type)
 				case SC_PUSH_CART:
 				case SC_ALL_RIDING:
 				case SC_STYLE_CHANGE:
+				case SC_MOONSTAR:
+				case SC_SUPER_STAR:
 					continue;
 			}
 		}
+
+		if(sc && sc->data[SC_MONSTER_TRANSFORM] && battle_config.transform_end_on_death == 0 && type == 0)
+			continue; //Config if the monster transform status should end on death. [Rytech]
 
 		status_change_end(bl,(sc_type)i,INVALID_TIMER);
 
@@ -11420,6 +11403,9 @@ int status_change_clear_buffs (struct block_list* bl, int type)
 			case SC_PUSH_CART:
 			case SC_ALL_RIDING:
 			case SC_STYLE_CHANGE:
+			case SC_MONSTER_TRANSFORM:
+			case SC_MOONSTAR:
+			case SC_SUPER_STAR:
 				continue;
 
 			//Debuffs that can be removed.

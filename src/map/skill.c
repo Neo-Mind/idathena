@@ -6878,7 +6878,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						case SC_LAUDAAGNUS:			case SC_LAUDARAMUS:		case SC_GATLINGFEVER:
 						case SC_INCREASING:			case SC_ADJUSTMENT:		case SC_MADNESSCANCEL:
 						case SC_ANGEL_PROTECT:			case SC_MONSTER_TRANSFORM:	case SC_FULL_THROTTLE:
-						case SC_REBOUND:			case SC_TELEKINESIS_INTENSE:
+						case SC_REBOUND:			case SC_TELEKINESIS_INTENSE:	case SC_MOONSTAR:
+						case SC_SUPER_STAR:			case SC_ALL_RIDING:
 #ifdef RENEWAL
 						case SC_EXTREMITYFIST2:
 #endif
@@ -8313,6 +8314,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						case SC_RAISINGDRAGON:		case SC_GT_REVITALIZE:		case SC_GT_ENERGYGAIN:
 						case SC_GT_CHANGE:		case SC_ANGEL_PROTECT:		case SC_MONSTER_TRANSFORM:
 						case SC_FULL_THROTTLE:		case SC_REBOUND:		case SC_TELEKINESIS_INTENSE:
+						case SC_MOONSTAR:		case SC_SUPER_STAR:		case SC_ALL_RIDING:
 #ifdef RENEWAL
 						case SC_EXTREMITYFIST2:
 #endif
@@ -8364,9 +8366,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if( (src == bl || battle_check_target(src,bl,BCT_ENEMY) > 0) && !is_boss(bl) ) { //Should not work with bosses.
 				int rate = ( sd ? sd->status.job_level / 4 : 0 );
 
-				if( src == bl ) rate = 100; //Success Chance: On self, 100%
-				else if( bl->type == BL_PC ) rate += 20 + 10 * skill_lv; //On Players, (20 + 10 * Skill Level) %
-				else rate += 40 + 10 * skill_lv; //On Monsters, (40 + 10 * Skill Level) %
+				if( src == bl )
+					rate = 100; //Success Chance: On self, 100%
+				else if( bl->type == BL_PC )
+					rate += 20 + 10 * skill_lv; //On Players, (20 + 10 * Skill Level) %
+				else
+					rate += 40 + 10 * skill_lv; //On Monsters, (40 + 10 * Skill Level) %
 
 				if( sd )
 					skill_blockpc_start(sd,skill_id,4000);
