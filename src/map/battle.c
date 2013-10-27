@@ -2381,8 +2381,8 @@ static struct Damage battle_calc_element_damage(struct Damage wd, struct block_l
 	int nk = battle_skill_get_damage_properties(skill_id, wd.miscflag);
 
 	if(!(nk&NK_NO_ELEFIX) && //Elemental attribute fix
-		//Monster attacks are "non elemental", they deal 100% to all target elements
-		//However "non elemental" attacks still get reduced by "Neutral resistance" [exneval]
+		//Non-pc physical attacks (Mob, Pet, Homun) are "non elemental", they deal 100% to all target elements
+		//However the "non elemental" attacks still get reduced by "Neutral resistance" [exneval]
 		!(battle_config.attack_attr_none&src->type && (skill_id == 0 || element == -1))) {
 		if(wd.damage > 0) {
 			wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
@@ -3939,18 +3939,18 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 
 	if(sd) {
 		//Maximum effect possiable from 7 or more Minstrel's/Wanderer's.
-		if(sd->status.party_id && party_foreachsamemap(party_sub_count_chorus,sd,0) > 7)
+		if(sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 7)
 			chorusbonus = 5;
-		else if(sd->status.party_id && party_foreachsamemap(party_sub_count_chorus,sd,0) > 2)
+		else if(sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 2)
 			//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
-			chorusbonus = party_foreachsamemap(party_sub_count_chorus,sd,0) - 2;
+			chorusbonus = party_foreachsamemap(party_sub_count_chorus, sd, 0) - 2;
 
-		//KO Earth Charm effect
+		//KO Earth Charm effect +15% wATK
 		ARR_FIND(1, 6, type, sd->talisman[type] > 0);
 		if(type == 2) {
-			ATK_ADDRATE(wd.damage, wd.damage2, 15 * sd->talisman[i]);
+			ATK_ADDRATE(wd.damage, wd.damage2, 15 * sd->talisman[type]);
 #ifdef RENEWAL
-			ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, 15 * sd->talisman[i]);
+			ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, 15 * sd->talisman[type]);
 #endif
 		}
 	}
