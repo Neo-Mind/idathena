@@ -7657,8 +7657,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 	vd = status_get_viewdata(bl);
 	calc_flag = StatusChangeFlagTable[type];
-	if(!(flag&4)) //&4 - Do not parse val settings when loading SCs
-		switch(type) {
+	if( !(flag&4) ) { //&4 - Do not parse val settings when loading SCs
+		switch( type ) {
 			case SC_DECREASEAGI:
 			case SC_INCREASEAGI:
 			case SC_ADORAMUS:
@@ -8493,9 +8493,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = tick / 3000;
 				tick_time = 3000; //Deals damage every 3 seconds.
 				break;
-			case SC_ENCHANTBLADE:
-				val_flag |= 2;
-				break;
 			case SC_DEATHBOUND:
 				val2 = 500 + 100 * val1;
 				break;
@@ -8518,9 +8515,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 #endif
 					;
 				break;
-			case SC_FIGHTINGSPIRIT:
-				val_flag |= 1|2;
-				break;
 			case SC_ABUNDANCE:
 				val4 = tick / 10000;
 				tick_time = 10000; //[GodLesZ] tick time
@@ -8537,16 +8531,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_VENOMIMPRESS:
 				val2 = 10 * val1;
-				val_flag |= 1|2;
-				break;
-			case SC_POISONINGWEAPON:
-				val_flag |= 1|2|4;
 				break;
 			case SC_WEAPONBLOCKING:
 				val2 = 10 + 2 * val1; //Chance
 				val4 = tick / 5000;
 				tick_time = 5000; //[GodLesZ] tick time
-				val_flag |= 1|2;
 				break;
 			case SC_TOXIN:
 				val4 = tick / 10000;
@@ -8569,14 +8558,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = tick / 3000;
 				tick_time = 3000; //[GodLesZ] tick time
 				break;
-			case SC_ROLLINGCUTTER:
-				val_flag |= 1;
-				break;
 			case SC_CLOAKINGEXCEED:
-				val2 = ( val1 + 1 ) / 2; //Hits
+				val2 = (val1 + 1) / 2; //Hits
 				val3 = 90 + val1 * 10; //Walk speed
-				val_flag |= 1|2|4;
-				if (bl->type == BL_PC)
+				if( bl->type == BL_PC )
 					val4 |= battle_config.pc_cloak_check_type&7;
 				else
 					val4 |= battle_config.monster_cloak_check_type&7;
@@ -8585,7 +8570,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_HALLUCINATIONWALK:
 				val2 = 50 * val1; //Evasion rate of physical attacks. Flee
 				val3 = 10 * val1; //Evasion rate of magical attacks.
-				val_flag |= 1|2|4;
 				break;
 			case SC_MARSHOFABYSS:
 				if( sd ) //AGI and DEX Reduction
@@ -8609,7 +8593,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				if( val4 < 1 )
 					val4 = 1;
 				tick_time = 1000; //[GodLesZ] tick time
-				val_flag |= 1;
 				break;
 			case SC_SHAPESHIFT:
 				switch( val1 ) {
@@ -8649,14 +8632,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					if( s_sd )
 						s_sd->shadowform_id = bl->id;
 					val4 = tick / 1000;
-					val_flag |= 1|2|4;
 					tick_time = 1000; //[GodLesZ] tick time
 				}
 				break;
 			case SC_FEINT:
 				val4 = tick / 1000;
 				tick_time = 1000; // [GodLesZ] tick time
-				val_flag |= 1|2;
 				break;
 			case SC__INVISIBILITY:
 				val2 = 20 * val1; //Critical Amount Increase
@@ -8664,17 +8645,15 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = tick / 1000;
 				tick = -1;
 				tick_time = 1000; //[GodLesZ] tick time
-				val_flag |= 1|2;
 				break;
 			case SC__ENERVATION:
 				val2 = 20 + 10 * val1; //ATK Reduction
-				val_flag |= 1|2;
-				if( sd ) pc_delspiritball(sd,sd->spiritball,0);
+				if( sd )
+					pc_delspiritball(sd,sd->spiritball,0);
 				break;
 			case SC__GROOMY:
 				val2 = 20 * val1; //HIT Reduction
 				val3 = 20 + 10 * val1; //ASPD Reduction
-				val_flag |= 1|2|4;
 				if( sd ) { //Removes Animals
 					if( pc_isriding(sd) ) pc_setriding(sd,0);
 					if( pc_isridingdragon(sd) ) pc_setoption(sd,sd->sc.option&~OPTION_DRAGON);
@@ -8690,21 +8669,18 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC__LAZINESS:
 				val2 = 10 * val1; //FLEE Reduction
 				val3 = 10 + 10 * val1; //Increased Cast Time
-				val_flag |= 1|2|4;
 				break;
 			case SC__UNLUCKY:
 				val2 = 10 * val1; //Critical and Perfect Dodge Reduction
-				val_flag |= 1|2|4;
 				break;
 			case SC__WEAKNESS:
 				val2 = 10 * val1; //MaxHP Reduction
-				val_flag |= 1|2;
 				//Bypasses coating protection and MADO
 				sc_start(src,bl,SC_STRIPWEAPON,100,val1,tick);
 				sc_start(src,bl,SC_STRIPSHIELD,100,val1,tick);
 				break;
 			case SC__STRIPACCESSORY:
-				if (!sd)
+				if( !sd )
 					val2 = 20;
 				break;
 			case SC_GN_CARTBOOST:
@@ -8716,7 +8692,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val2 = 100;
 				break;
 			case SC_PROPERTYWALK:
-				val_flag |= 1|2;
 				val3 = 0;
 				break;
 			case SC_STRIKING:
@@ -8826,7 +8801,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val3 = 5 + 2 * val1; //Max Number of Rage Counter's Possible
 				val4 = tick / 10000;
 				tick_time = 10000; //[GodLesZ] tick time
-				val_flag |= 1|2|4;
 				break;
 			case SC_EXEEDBREAK:
 				val1 = 100 * val1; //100 * skill_lv
@@ -8846,16 +8820,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 #else
 				val1 = val1 / 10;
 #endif
-				val_flag |= 1|2;
 				break;
 			case SC_BANDING:
 				tick_time = 5000; //[GodLesZ] tick time
-				val_flag |= 1;
-				break;
-			case SC_SHIELDSPELL_DEF:
-			case SC_SHIELDSPELL_MDEF:
-			case SC_SHIELDSPELL_REF:
-				val_flag |= 1|2;
 				break;
 			case SC_MAGNETICFIELD:
 				val3 = tick / 1000;
@@ -8870,18 +8837,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick_time = 5000; //[GodLesZ] tick time
 				status_change_clear_buffs(bl,3); //Remove buffs/debuffs
 				break;
-			case SC_SPELLFIST:
-			case SC_CURSEDCIRCLE_ATKER:
-				val_flag |= 1|2|4;
-				break;
 			case SC_CRESCENTELBOW:
 				if( sd )
 					val2 = (sd->status.job_level / 2) + (50 + 5 * val1);
-				val_flag |= 1|2;
 				break;
 			case SC_LIGHTNINGWALK: //[(Job Level / 2) + (40 + 5 * Skill Level)] %
 				val1 = (sd ? sd->status.job_level / 2 : 0) + 40 + 5 * val1;
-				val_flag |= 1;
 				break;
 			case SC_RAISINGDRAGON:
 				val3 = tick / 5000;
@@ -8895,9 +8856,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val3 = status->agi * val1 / 60; //ASPD increase: [(Target AGI x Skill Level) / 60] %
 					if( (src = map_id2bl(val2)) ) {
 						int casterint = status_get_int(src);
-						if ( casterint <= 0 )
+						if( casterint <= 0 )
 							casterint = 1; //Prevents dividing by 0 since its possiable to reduce players stats to 0; [Rytech]
-						val4 = ( 200 / casterint ) * val1; //MDEF decrease: MDEF [(200 / Caster INT) x Skill Level]
+						val4 = (200 / casterint) * val1; //MDEF decrease: MDEF [(200 / Caster INT) x Skill Level]
 					}
 				}
 				break;
@@ -8905,18 +8866,16 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					struct block_list *src;
 					val3 = val1 * 30 + 50; //Natural HP recovery increase: [(Skill Level x 30) + 50] %
 					if( (src = map_id2bl(val2)) ) //The stat def is not shown in the status window and it is process differently
-						val4 = ( status_get_vit(src) / 4 ) * val1; //STAT DEF increase: [(Caster VIT / 4) x Skill Level]
+						val4 = (status_get_vit(src) / 4) * val1; //STAT DEF increase: [(Caster VIT / 4) x Skill Level]
 				}
 				break;
 			case SC_PYROTECHNIC_OPTION:
 				val2 = 60; //Bonus Watk
-				val_flag |= 1|2|4;
 				break;
 			case SC_HEATER_OPTION:
 				val2 = 120; //Bonus Watk
 				val3 = (sd ? sd->status.job_level : 0); //% Increase damage
 				val4 = 3; //Change into fire element
-				val_flag |= 1|2|4;
 				break;
 			case SC_TROPIC_OPTION:
 				val2 = 180; //Bonus Watk
@@ -8924,21 +8883,15 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_AQUAPLAY_OPTION:
 				val2 = 40; //Bonus Matk
-				val_flag |= 1|2|4;
 				break;
 			case SC_COOLER_OPTION:
 				val2 = 80; //Bonus Matk
 				val3 = (sd ? sd->status.job_level : 0); //% Freezing chance
 				val4 = 1; //Change into water elemet
-				val_flag |= 1|2|4;
 				break;
 			case SC_CHILLY_AIR_OPTION:
 				val2 = 120; //Bonus Matk
 				val3 = MG_COLDBOLT;
-				val_flag |= 1|2;
-				break;
-			case SC_GUST_OPTION:
-				val_flag |= 1|2;
 				break;
 			case SC_WIND_STEP_OPTION:
 				val2 = 50; //% Increase speed and flee
@@ -8946,16 +8899,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_BLAST_OPTION:
 				val2 = (sd ? sd->status.job_level : 0); //% Increase damage
 				val3 = ELE_WIND;
-				val_flag |= 1|2|4;
 				break;
 			case SC_WILD_STORM_OPTION:
 				val2 = MG_LIGHTNINGBOLT;
-				val_flag |= 1|2;
 				break;
 			case SC_PETROLOGY_OPTION:
 				val2 = 5; //Bonus MaxHP
 				val3 = 50; //% Increase Chance
-				val_flag |= 1|2|4;
 				break;
 			case SC_SOLID_SKIN_OPTION:
 				val2 = 33; //% Increase DEF
@@ -8964,16 +8914,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = 10; //Bonus MaxHP
 				val3 = (sd ? sd->status.job_level : 0); //% Increase Damage
 				val4 = 2;
-				val_flag |= 1|2|4;
 				break;
 			case SC_UPHEAVAL_OPTION:
 				val2 = WZ_EARTHSPIKE;
 				val3 = 15; //Bonus MaxHP
-				val_flag |= 1|2;
 				break;
 			case SC_CIRCLE_OF_FIRE_OPTION:
 				val2 = 300;
-				val_flag |= 1|2;
 				break;
 			case SC_FIRE_CLOAK_OPTION:
 			case SC_WATER_DROP_OPTION:
@@ -8995,7 +8942,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_WATER_BARRIER:
 				val2 = 40; //Increase Mdef (?)
 				val3 = 30; //Reduce Atk, Flee, Matk
-				val_flag |= 1|2|4;
 				break;
 			case SC_ZEPHYR:
 				val2 = 25; //Flee
@@ -9162,7 +9108,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_MONSTER_TRANSFORM:
 				if( !mobdb_checkid(val1) )
 					val1 = 1002; //Default poring
-				val_flag |= 1;
 				break;
 			default:
 				if( calc_flag == SCB_NONE && StatusSkillChangeTable[type] == 0 && StatusIconChangeTable[type] == 0 ) {
@@ -9170,7 +9115,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					ShowError("UnknownStatusChange [%d]\n",type);
 					return 0;
 				}
-		} else //Special considerations when loading SC data.
+		} else { //Special considerations when loading SC data.
 			switch( type ) {
 				case SC_WEDDING:
 				case SC_XMAS:
@@ -9191,13 +9136,73 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 							val4 = sg->group_id;
 					}
 					break;
-				case SC_MONSTER_TRANSFORM:
-					val_flag |= 1;
-					break;
 				case SC_KYOUGAKU:
 					clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,0,1002,0,0); //Poring in disguise
 					break;
 			}
+		}
+	}
+
+	/* Values that must be set regardless of flag&4 e.g. val_flag */ 
+	switch (type) {
+		case SC_EXPBOOST:
+		case SC_JEXPBOOST:
+		case SC_ITEMBOOST:
+		case SC_ROLLINGCUTTER:
+		case SC_SPHERE_1:
+		case SC_SPHERE_2:
+		case SC_SPHERE_3:
+		case SC_SPHERE_4:
+		case SC_SPHERE_5:
+		case SC_BANDING:
+		case SC_LIGHTNINGWALK:
+		case SC_MONSTER_TRANSFORM:
+			val_flag |= 1;
+			break;
+		case SC_ENCHANTBLADE:
+			val_flag |= 2;
+			break;
+		case SC_FIGHTINGSPIRIT:
+		case SC_VENOMIMPRESS:
+		case SC_WEAPONBLOCKING:
+		case SC_FEINT:
+		case SC__INVISIBILITY:
+		case SC__ENERVATION:
+		case SC__WEAKNESS:
+		case SC_PROPERTYWALK:
+		case SC_PRESTIGE:
+		case SC_SHIELDSPELL_DEF:
+		case SC_SHIELDSPELL_MDEF:
+		case SC_SHIELDSPELL_REF:
+		case SC_CRESCENTELBOW:
+		case SC_CHILLY_AIR_OPTION:
+		case SC_GUST_OPTION:
+		case SC_WILD_STORM_OPTION:
+		case SC_UPHEAVAL_OPTION:
+		case SC_CIRCLE_OF_FIRE_OPTION:
+			val_flag |= 1|2;
+			break;
+		case SC_POISONINGWEAPON:
+		case SC_CLOAKINGEXCEED:
+		case SC_HALLUCINATIONWALK:
+		case SC__SHADOWFORM:
+		case SC__GROOMY:
+		case SC__LAZINESS:
+		case SC__UNLUCKY:
+		case SC_FORCEOFVANGUARD:
+		case SC_SPELLFIST:
+		case SC_CURSEDCIRCLE_ATKER:
+		case SC_PYROTECHNIC_OPTION:
+		case SC_HEATER_OPTION:
+		case SC_AQUAPLAY_OPTION:
+		case SC_COOLER_OPTION:
+		case SC_BLAST_OPTION:
+		case SC_PETROLOGY_OPTION:
+		case SC_CURSED_SOIL_OPTION:
+		case SC_WATER_BARRIER:
+			val_flag |= 1|2|4;
+			break;
+	}
 
 	/* [Ind] */
 	if (sd && StatusDisplayType[type]) {

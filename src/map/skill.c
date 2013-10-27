@@ -508,7 +508,7 @@ static short skill_isCopyable (struct map_session_data *sd, uint16 skill_id, str
 int skillnotok (uint16 skill_id, struct map_session_data *sd)
 {
 	int16 idx, m;
-	nullpo_retr (1, sd);
+	nullpo_retr(1, sd);
 	m = sd->bl.m;
 	idx = skill_get_index(skill_id);
 
@@ -15817,7 +15817,7 @@ bool skill_check_shadowform(struct block_list *bl, int64 damage, int hit)
 	struct status_change *sc;
 	struct block_list *src;
 
-	nullpo_retr(-1, bl);
+	nullpo_retr(1, bl);
 	sc = status_get_sc(bl);
 
 	if( sc && sc->data[SC__SHADOWFORM] && damage ) {
@@ -17807,7 +17807,7 @@ int skill_blockpc_clear(struct map_session_data *sd) {
 	return 1;
 }
 
-int skill_blockhomun_end(int tid, unsigned int tick, int id, intptr_t data)	//[orn]
+int skill_blockhomun_end(int tid, unsigned int tick, int id, intptr_t data) //[orn]
 {
 	struct homun_data *hd = (TBL_HOM*) map_id2bl(id);
 	if (data <= 0 || data >= MAX_SKILL)
@@ -17817,10 +17817,10 @@ int skill_blockhomun_end(int tid, unsigned int tick, int id, intptr_t data)	//[o
 	return 1;
 }
 
-int skill_blockhomun_start(struct homun_data *hd, uint16 skill_id, int tick)	//[orn]
+int skill_blockhomun_start(struct homun_data *hd, uint16 skill_id, int tick) //[orn]
 {
 	uint16 idx = skill_get_index(skill_id);
-	nullpo_retr (-1, hd);
+	nullpo_retr(-1, hd);
 
 	if (idx == 0)
 		return -1;
@@ -17846,12 +17846,11 @@ int skill_blockmerc_end(int tid, unsigned int tick, int id, intptr_t data) //[or
 int skill_blockmerc_start(struct mercenary_data *md, uint16 skill_id, int tick)
 {
 	uint16 idx = skill_get_index(skill_id);
-	nullpo_retr (-1, md);
+	nullpo_retr(-1, md);
 
-	if (idx == 0)
+	if( idx == 0 )
 		return -1;
-	if( tick < 1 )
-	{
+	if( tick < 1 ) {
 		md->blockskill[idx] = 0;
 		return -1;
 	}
@@ -17868,8 +17867,8 @@ void skill_usave_add(struct map_session_data * sd, uint16 skill_id, uint16 skill
 		idb_remove(skillusave_db,sd->status.char_id);
 	}
 	
-	CREATE( sus, struct skill_usave, 1 );
-	idb_put( skillusave_db, sd->status.char_id, sus );
+	CREATE(sus, struct skill_usave, 1);
+	idb_put(skillusave_db, sd->status.char_id, sus);
 
 	sus->skill_id = skill_id;
 	sus->skill_lv = skill_lv;
@@ -17882,7 +17881,7 @@ void skill_usave_trigger(struct map_session_data *sd) {
 	if( ! (sus = idb_get(skillusave_db,sd->status.char_id)) ) {
 		return;
 	}
-	
+
 	skill_unitsetting(&sd->bl,sus->skill_id,sus->skill_lv,sd->bl.x,sd->bl.y,0);
 
 	idb_remove(skillusave_db,sd->status.char_id);
