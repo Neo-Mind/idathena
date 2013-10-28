@@ -2321,10 +2321,9 @@ static int battle_get_weapon_element(struct Damage wd, struct block_list *src, s
 			ARR_FIND(1, 6, i, sd->talisman[i] >= 10);
 			if(i < 5)
 				element = i;
-			if(sc) { //Check for endows
+			if(sc) //Check for endows
 				if(sc->data[SC_ENCHANTARMS])
 					element = sc->data[SC_ENCHANTARMS]->val2;
-			}
 		}
 	} else if(element == -2) //Use enchantment's element
 		element = status_get_attack_sc_element(src,sc);
@@ -2380,17 +2379,21 @@ static struct Damage battle_calc_element_damage(struct Damage wd, struct block_l
 	int right_element = battle_get_weapon_element(wd, src, target, skill_id, skill_lv, EQI_HAND_R, true);
 	int nk = battle_skill_get_damage_properties(skill_id, wd.miscflag);
 
-	if(!(nk&NK_NO_ELEFIX) && //Elemental attribute fix
-		//Non-pc physical attacks (mob, pet, homun) are "non elemental", they deal 100% to all target elements
-		//However the "non elemental" attacks still get reduced by "Neutral resistance" [exneval]
-		!(battle_config.attack_attr_none&src->type && (skill_id == 0 || element == -1))) {
+	//Elemental attribute fix
+	if(!(nk&NK_NO_ELEFIX)) {
+		//Non-pc physical melee attacks (mob, pet, homun) are "non elemental", they deal 100% to all target elements
+		//However the "non elemental" attacks still get reduced by "Neutral resistance"
+		//Also non-pc units have only a defending element, but can inflict elemental attacks using skills [exneval]
+		if(battle_config.attack_attr_none&src->type)
+			if((!skill_id || (skill_id && (element == -1 || !right_element))) &&
+				(wd.flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON))
+				return wd;
 		if(wd.damage > 0) {
 			wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
 			if(skill_id == MC_CARTREVOLUTION) //Cart Revolution apply the element fix once more with neutral element
 				wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 			if(skill_id == GS_GROUNDDRIFT) //Additional 50 * lv Neutral damage.
 				wd.damage += battle_attr_fix(src, target, 50 * skill_lv, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
-
 		}
 		if(is_attack_left_handed(src, skill_id) && wd.damage2 > 0)
 			wd.damage2 = battle_attr_fix(src, target, wd.damage2, left_element ,tstatus->def_ele, tstatus->ele_lv);
@@ -4456,7 +4459,7 @@ struct Damage battle_calc_attack_gvg_bg(struct Damage wd, struct block_list *src
 					if( tsd )
 						battle_drain(tsd, src, rdamage, rdamage, sstatus->race, is_boss(src));
 					battle_delay_damage(tick, wd.amotion, target, src, 0, CR_REFLECTSHIELD, 0, rdamage, ATK_DEF, rdelay, true);
-					skill_additional_effect(target, src, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);
+					skill_additional_effect(target, src, CR_REFLECTSHIELD, 1, BF_SHORT|BF_WEAPON|BF_NORMAL, ATK_DEF, tick);
 				}
 		}
 		if( !wd.damage2 ) {
@@ -4717,7 +4720,7 @@ void battle_do_reflect(int attack_type, struct Damage *wd, struct block_list* sr
 						battle_drain(tsd, src, rdamage, rdamage, sstatus->race, is_boss(src));
 					//It appears that official servers give skill reflect damage a longer delay
 					battle_delay_damage(tick, wd->amotion, target, src, 0, CR_REFLECTSHIELD, 0, rdamage, ATK_DEF, rdelay, true);
-					skill_additional_effect(target, src, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);
+					skill_additional_effect(target, src, CR_REFLECTSHIELD, 1, BF_SHORT|BF_WEAPON|BF_NORMAL, ATK_DEF, tick);
 				}
 			}
 		}
@@ -5178,7 +5181,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 							//val4 = used bolt level, val2 = used spellfist level. [Rytech]
 							skillratio += -100 + (sc->data[SC_SPELLFIST]->val4 * 100) + (sc->data[SC_SPELLFIST]->val2 * 50);
 							ad.div_ = 1; //ad mods, to make it work similar to regular hits [Xazax]
-							ad.flag = BF_WEAPON|BF_SHORT;
+							ad.flag = BF_SHORT|BF_WEAPON;
 							ad.type = 0;
 						}
 						break;
@@ -5658,8 +5661,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				case MG_FROSTDIVER:
 				case WZ_EARTHSPIKE:
 				case WZ_HEAVENDRIVE:
-					if(sc->data[SC_GUST_OPTION] || sc->data[SC_PETROLOGY_OPTION] 
-						|| sc->data[SC_PYROTECHNIC_OPTION] || sc->data[SC_AQUAPLAY_OPTION])
+					if(sc->data[SC_GUST_OPTION] || sc->data[SC_PETROLOGY_OPTION] ||
+						sc->data[SC_PYROTECHNIC_OPTION] || sc->data[SC_AQUAPLAY_OPTION])
 						ad.damage += (6 + sstatus->int_ / 4) + max(sstatus->dex - 10, 0) / 30;
 					break;
 			}
