@@ -1027,7 +1027,7 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_MDEFSET] |= SCB_MDEF;
 	StatusChangeFlagTable[SC_WEDDING] |= SCB_SPEED;
 	StatusChangeFlagTable[SC_ALL_RIDING] |= SCB_SPEED;
-	StatusIconChangeTable[SC_PUSH_CART] |= SCB_SPEED;
+	StatusChangeFlagTable[SC_PUSH_CART] |= SCB_SPEED;
 	StatusChangeFlagTable[SC_MTF_ASPD] |= SCB_ASPD|SCB_HIT;
 	StatusChangeFlagTable[SC_MTF_MATK] |= SCB_MATK;
 	StatusChangeFlagTable[SC_MTF_MLEATKED] |= SCB_ALL;
