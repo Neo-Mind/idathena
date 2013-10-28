@@ -9416,7 +9416,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if(!sd->status.hp && !pc_isdead(sd) && status_isdead(&sd->bl))
 		pc_setdead(sd);
 
-	//If player is dead,and is spawned (such as @refresh) send death packet. [Valaris]
+	//If player is dead, and is spawned (such as @refresh) send death packet. [Valaris]
 	if(pc_isdead(sd))
 		clif_clearunit_area(&sd->bl,CLR_DEAD);
 	else

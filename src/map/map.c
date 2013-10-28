@@ -109,7 +109,7 @@ static int block_free_count = 0, block_free_lock = 0;
 static struct block_list *bl_list[BL_LIST_MAX];
 static int bl_list_count = 0;
 
-#define MAP_MAX_MSG 1500
+#define MAP_MAX_MSG 1550
 static char* msg_table[MAP_MAX_MSG]; // map Server messages
 
 struct map_data map[MAX_MAP_PER_SERVER];

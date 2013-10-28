@@ -5882,8 +5882,7 @@ ACMD_FUNC(autolootitem)
 				clif_displaymessage(fd, msg_txt(1198)); // Your autolootitem list is empty.
 			} else {
 				clif_displaymessage(fd, msg_txt(1199)); // Items on your autolootitem list:
-				for(i = 0; i < AUTOLOOTITEM_SIZE; i++)
-				{
+				for (i = 0; i < AUTOLOOTITEM_SIZE; i++) {
 					if (sd->state.autolootid[i] == 0)
 						continue;
 					if (!(item_data = itemdb_exists(sd->state.autolootid[i]))) {
