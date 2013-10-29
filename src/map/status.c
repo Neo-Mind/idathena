@@ -2876,8 +2876,8 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 	if(sd->status.weapon < MAX_WEAPON_TYPE && sd->weapon_atk[sd->status.weapon])
 		status->batk += sd->weapon_atk[sd->status.weapon];
 	//Absolute modifiers from passive skills
-	if((skill = pc_checkskill(sd,BS_HILTBINDING)) > 0)
-		status->batk += 4;
+	if(pc_checkskill(sd,BS_HILTBINDING) > 0)
+		status->batk += 4; //This doesn't work in RE
 #else
 	status->watk = status_weapon_atk(status->rhw,status);
 	status->watk2 = status_weapon_atk(status->lhw,status);
