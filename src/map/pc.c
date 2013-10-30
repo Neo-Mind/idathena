@@ -439,7 +439,7 @@ void pc_rental_expire(struct map_session_data *sd, int i)
 	switch( nameid ) {
 		case ITEMID_REINS_OF_MOUNT:
 			status_change_end(&sd->bl, SC_ALL_RIDING, INVALID_TIMER);
-		break;
+			break;
 	}
 
 	clif_rental_expired(sd->fd, i, sd->status.inventory[i].nameid);

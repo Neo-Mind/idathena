@@ -7722,17 +7722,16 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				}
 				break;
 			case SC_MAGICPOWER:
-				//val1: Skill lv
 				val2 = 1; //Lasts 1 invocation
-				val3 = 5 * val1; //Matk% increase
-				val4 = 0; //0 = ready to be used, 1 = activated and running
+				val3 = 5 * val1; //Matkrate increase
+				val4 = 0; //0 = Ready to be used, 1 = Activated and running
 				break;
 			case SC_SACRIFICE:
 				val2 = 5; //Lasts 5 hits
 				tick = -1;
 				break;
 			case SC_ENCPOISON:
-				val2 = 250 + 50 * val1; //Poisoning Chance (2.5+0.5%) in 1/10000 rate
+				val2 = 250 + 50 * val1; //Poisoning chance (2.5 + 0.5%) in 1 / 10000 rate
 			case SC_ASPERSIO:
 			case SC_FIREWEAPON:
 			case SC_WATERWEAPON:
@@ -7743,22 +7742,22 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				skill_enchant_elemental_end(bl,type);
 				break;
 			case SC_ELEMENTALCHANGE:
-				//val1 : Element Lvl (if called by skill lvl 1, takes random value between 1 and 4)
-				//val2 : Element (When no element, random one is picked)
-				//val3 : 0 = called by skill 1 = called by script (fixed level)
-				if( !val2 ) val2 = rnd()%ELE_MAX;
-
+				//val1 : Element lvl (if called by skill lvl 1, takes random value between 1 and 4)
+				//val2 : Element (when no element, random one is picked)
+				//val3 : 0 = Called by skill 1 = Called by script (fixed level)
+				if( !val2 )
+					val2 = rnd()%ELE_MAX;
 				if( val1 == 1 && val3 == 0 )
 					val1 = 1 + rnd()%4;
 				else if( val1 > 4 )
-					val1 = 4; //Max Level
+					val1 = 4; //Max level
 				val3 = 0; //Not need to keep this info
 				break;
 			case SC_PROVIDENCE:
-				val2 = val1*5; //Race/Ele resist
+				val2 = val1 * 5; //Race/Ele resist
 				break;
 			case SC_REFLECTSHIELD:
-				val2 = 10+val1*3; //%Dmg reflected
+				val2 = 10 + val1 * 3; //% Dmg reflected
 				if( !(flag&1) && (bl->type&(BL_PC|BL_MER)) ) {
 					struct map_session_data *tsd;
 					if( sd ) {
@@ -7791,24 +7790,24 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				//Val1 Skill LV of Autospell
 				//Val2 Skill ID to cast
 				//Val3 Max Lv to cast
-				val4 = 5 + val1*2; //Chance of casting
+				val4 = 5 + val1 * 2; //Chance of casting
 				break;
 			case SC_VOLCANO:
-				val2 = val1*10; //Watk increase
+				val2 = val1 * 10; //Watk increase
 #ifndef RENEWAL
 				if( status->def_ele != ELE_FIRE )
 					val2 = 0;
 #endif
 				break;
 			case SC_VIOLENTGALE:
-				val2 = val1*3; //Flee increase
+				val2 = val1 * 3; //Flee increase
 #ifndef RENEWAL
 				if( status->def_ele != ELE_WIND )
 					val2 = 0;
 #endif
 				break;
 			case SC_DELUGE:
-				val2 = deluge_eff[val1-1]; //HP increase
+				val2 = deluge_eff[val1 - 1]; //HP increase
 #ifndef RENEWAL
 				if( status->def_ele != ELE_WATER )
 					val2 = 0;
@@ -7822,7 +7821,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					break;
 				}
 				val3 = 50;
-				val2 = 3*((val1+1)/3);
+				val2 = 3 * ((val1 + 1) / 3);
 				if( val1 > 4 )
 					val2--;
 				break;
@@ -7830,38 +7829,38 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_TWOHANDQUICKEN:
 				val2 = 300;
 				if( val1 > 10 ) //For boss casted skills [Skotlex]
-					val2 += 20*(val1-10);
+					val2 += 20 * (val1 - 10);
 				break;
 			case SC_MERC_QUICKEN:
 				val2 = 300;
 				break;
 #ifndef RENEWAL_ASPD
 			case SC_SPEARQUICKEN:
-				val2 = 200+10*val1;
+				val2 = 200 + 10 * val1;
 				break;
 #endif
 			case SC_DANCING:
-				//val1 : Skill ID + LV
+				//val1 : Skill ID + lvl
 				//val2 : Skill Group of the Dance
 				//val3 : Brings the skill_lv (merged into val1 here)
 				//val4 : Partner
 				if( val1 == CG_MOONLIT )
 					clif_status_change(bl,SI_MOONLIT,1,tick,0,0,0);
-				val1|= (val3<<16);
-				val3 = tick/1000; //Tick duration
+				val1 |= (val3<<16);
+				val3 = tick / 1000; //Tick duration
 				tick_time = 1000; //[GodLesZ] tick time
 				break;
 			case SC_LONGING:
-				val2 = 500-100*val1; //Aspd penalty
+				val2 = 500 - 100 * val1; //Aspd penalty
 				break;
 			case SC_EXPLOSIONSPIRITS:
-				val2 = 75 + 25*val1; //Cri bonus
+				val2 = 75 + 25 * val1; //Cri bonus
 				break;
 			case SC_ASPDPOTION0:
 			case SC_ASPDPOTION1:
 			case SC_ASPDPOTION2:
 			case SC_ASPDPOTION3:
-				val2 = 50*(2+type-SC_ASPDPOTION0);
+				val2 = 50 * (2 + type - SC_ASPDPOTION0);
 				break;
 			case SC_WEDDING:
 			case SC_XMAS:
@@ -7882,7 +7881,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				}
 				break;
 			case SC_STONE:
-				val3 = tick/1000; //Petrified HP-damage iterations
+				val3 = tick / 1000; //Petrified HP-damage iterations
 				if( val3 < 1 )
 					val3 = 1;
 				tick = val4; //Petrifying time
@@ -7892,7 +7891,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_DPOISON:
 				//Lose 10/15% of your life as long as it doesn't brings life below 25%
 				if( status->hp > status->max_hp>>2 ) {
-					int diff = status->max_hp*(bl->type == BL_PC ? 10 : 15)/100;
+					int diff = status->max_hp * (bl->type == BL_PC ? 10 : 15) / 100;
 					if( status->hp - diff < status->max_hp>>2 )
 						diff = status->hp - (status->max_hp>>2);
 					if( val2 && bl->type == BL_MOB ) {
@@ -7914,7 +7913,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				else
 					val4 = (type == SC_DPOISON) ? 2 + status->max_hp / 100 : 2 + status->max_hp / 200;
 				break;
-
 			case SC_CONFUSION:
 			case SC_CHAOS:
 				clif_emotion(bl,E_WHAT);
@@ -7981,7 +7979,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_SIGHT: /* Splash status */
 			case SC_RUWACH:
 			case SC_SIGHTBLASTER:
-				val3 = skill_get_splash(val2,val1); //Val2 should bring the skill-id
+				val3 = skill_get_splash(val2,val1); //val2 should bring the skill-id
 				val2 = tick / 250;
 				tick_time = 10; //[GodLesZ] tick time
 				break;
@@ -8023,7 +8021,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					}
 				}
 				break;
-
 			case SC_DEFENDER:
 				if( !(flag&1) ) {
 					val2 = 5 + 15 * val1; //Damage reduction
@@ -8040,7 +8037,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					}
 				}
 				break;
-
 			case SC_TENSIONRELAX:
 				if( sd ) {
 					pc_setsit(sd);
@@ -8052,20 +8048,16 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick = -1; //Duration sent to the client should be infinite
 				tick_time = val4; //[GodLesZ] tick time
 				break;
-
 			case SC_PARRYING:
 				val2 = 20 + val1 * 3; //Block Chance
 				break;
-
 			case SC_WINDWALK:
 				val2 = (val1 + 1) / 2; //Flee bonus is 1/1/2/2/3/3/4/4/5/5
 				break;
-
 			case SC_JOINTBEAT:
 				if( val2&BREAK_NECK )
 					sc_start2(src,bl,SC_BLEEDING,100,val1,val3,skill_get_time2(status_sc2skill(type),val1));
 				break;
-
 			case SC_BERSERK:
 				if( val3 == SC__BLOODYLUST )
 					sc_start(src,bl,(sc_type)val3,100,val1,tick + 100);
@@ -8080,7 +8072,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val3 = tick / val4; //val3 holds skill duration
 				tick_time = val4; //[GodLesZ] tick time
 				break;
-
 			case SC_GOSPEL:
 				if( val4 == BCT_SELF ) { //Self effect
 					val2 = tick / 10000;
@@ -8088,7 +8079,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					status_change_clear_buffs(bl,3); //Remove buffs/debuffs
 				}
 				break;
-
 			case SC_MARIONETTE: {
 					int stat;
 
@@ -8102,7 +8092,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					stat = (sd ? sd->status.luk : status_get_base_status(bl)->luk) / 2; val4 |= cap_value(stat,0,0xFF);
 				}
 				break;
-
 			case SC_MARIONETTE2: {
 					int stat, max_stat;
 					//Fetch caster information
@@ -8126,56 +8115,50 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					stat = (psce->val4 >> 0)&0xFF; stat = min(stat,max_stat - status->luk); val4 |= cap_value(stat,0,0xFF);
 				}
 				break;
-
 			case SC_REJECTSWORD:
 				val2 = 15 * val1; //Reflect chance
 				val3 = 3; //Reflections
 				tick = -1;
 				break;
-
 			case SC_MEMORIZE:
 				val2 = 5; //Memorized casts
 				tick = -1;
 				break;
-
 			case SC_GRAVITATION:
 				val2 = 50 * val1; //ASPD reduction
 				break;
-
 			case SC_REGENERATION:
 				if( val1 == 1 )
 					val2 = 2;
 				else
 					val2 = val1; //HP Regerenation rate: 200% 200% 300%
 				val3 = val1; //SP Regeneration Rate: 100% 200% 300%
-				//if val4 comes set, this blocks regen rather than increase it
+				//If val4 comes set, this blocks regen rather than increase it
 				break;
-
 			case SC_DEVOTION: {
-				struct block_list *d_bl;
-				struct status_change *d_sc;
+					struct block_list *d_bl;
+					struct status_change *d_sc;
 
-				if( (d_bl = map_id2bl(val1)) && (d_sc = status_get_sc(d_bl)) && d_sc->count ) { //Inherits Status From Source
-					const enum sc_type types[] = { SC_AUTOGUARD,SC_DEFENDER,SC_REFLECTSHIELD,SC_ENDURE };
-					enum sc_type type2;
-					int i = (map_flag_gvg(bl->m) || map[bl->m].flag.battleground) ? 2 : 3;
-					while( i >= 0 ) {
-						type2 = types[i];
-						if( d_sc->data[type2] )
-							sc_start(d_bl,bl,type2,100,d_sc->data[type2]->val1,skill_get_time(status_sc2skill(type2),d_sc->data[type2]->val1));
-						i--;
+					if( (d_bl = map_id2bl(val1)) && (d_sc = status_get_sc(d_bl)) && d_sc->count ) { //Inherits Status From Source
+						const enum sc_type types[] = { SC_AUTOGUARD,SC_DEFENDER,SC_REFLECTSHIELD,SC_ENDURE };
+						enum sc_type type2;
+						int i = (map_flag_gvg(bl->m) || map[bl->m].flag.battleground) ? 2 : 3;
+						while( i >= 0 ) {
+							type2 = types[i];
+							if( d_sc->data[type2] )
+								sc_start(d_bl,bl,type2,100,d_sc->data[type2]->val1,skill_get_time(status_sc2skill(type2),d_sc->data[type2]->val1));
+							i--;
+						}
 					}
 				}
 				break;
-			}
-
 			case SC_COMA: //Coma. Sends a char to 1HP. If val2, do not zap sp
 				if( val3 && bl->type == BL_MOB ) {
 					struct block_list* src = map_id2bl(val3);
 					if( src )
 						mob_log_damage((TBL_MOB*)bl,src,status->hp - 1);
 				}
-				status_zap(bl,status->hp-1,val2 ? 0 : status->sp);
+				status_zap(bl,status->hp - 1,val2 ? 0 : status->sp);
 				return 1;
 				break;
 			case SC_TINDER_BREAKER2:
@@ -8188,18 +8171,18 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 					if( src && sc2 ) {
 						if( !sce2 ) //Start lock on caster
-							sc_start4(src,src,type2,100,val1,1,0,0,tick+1000);
+							sc_start4(src,src,type2,100,val1,1,0,0,tick + 1000);
 						else { //Increase count of locked enemies and refresh time
 							(sce2->val2)++;
 							delete_timer(sce2->timer,status_change_timer);
-							sce2->timer = add_timer(gettick()+tick+1000,status_change_timer,src->id,type2);
+							sce2->timer = add_timer(gettick() + tick + 1000,status_change_timer,src->id,type2);
 						}
 					} else //Status failed
 						return 0;
 				}
 				break;
 			case SC_KAITE:
-				val2 = 1+val1/5; //Number of bounces: 1 + skill_lv/5
+				val2 = 1 + val1 / 5; //Number of bounces: 1 + skill_lv / 5
 				break;
 			case SC_KAUPE:
 				switch( val1 ) {
@@ -8207,16 +8190,15 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 						val2++;
 					case 1:
 					case 2: //33, 66%
-						val2 += 33*val1;
+						val2 += 33 * val1;
 						val3 = 1; //Dodge 1 attack total
 						break;
 					default: //Custom. For high level mob usage, higher level means more blocks [Skotlex]
 						val2 = 100;
-						val3 = val1-2;
+						val3 = val1 - 2;
 						break;
 				}
 				break;
-
 			case SC_COMBO: {
 					//val1: Skill ID
 					//val2: When given, target (for autotargetting skills)
@@ -8225,8 +8207,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					//val4: TK: Combo time
 					struct unit_data *ud = unit_bl2ud(bl);
 					if( ud && !val3 ) {
-						tick += 300 * battle_config.combo_delay_rate/100;
-						ud->attackabletime = gettick()+tick;
+						tick += 300 * battle_config.combo_delay_rate / 100;
+						ud->attackabletime = gettick() + tick;
 						unit_set_walkdelay(bl,gettick(),tick,1);
 					}
 					val3 = 0;
@@ -8234,15 +8216,15 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				}
 				break;
 			case SC_EARTHSCROLL:
-				val2 = 11-val1; //Chance to consume: 11-skill_lv%
+				val2 = 11 - val1; //Chance to consume: 11 - % skill_lv
 				break;
 			case SC_RUN:
 				val4 = gettick(); //Store time at which you started running
 				tick = -1;
 				break;
 			case SC_KAAHI:
-				val2 = 200*val1; //HP heal
-				val3 = 5*val1; //SP cost
+				val2 = 200 * val1; //HP heal
+				val3 = 5 * val1; //SP cost
 				val4 = INVALID_TIMER; //Kaahi Timer
 				break;
 			case SC_BLESSING:
@@ -8265,11 +8247,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val3 = val4 = 0;
 				break;
 			case SC_MAXOVERTHRUST:
-				val2 = 20*val1; //Power increase
+				val2 = 20 * val1; //Power increase
 				break;
 			case SC_OVERTHRUST:
 				//val2 holds if it was casted on self, or is bonus received from others
-				val3 = 5*val1; //Power increase
+				val3 = 5 * val1; //Power increase
 				if( sd && pc_checkskill(sd,BS_HILTBINDING) > 0 )
 					tick += tick / 10;
 				break;
@@ -8281,74 +8263,74 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					tick += tick / 10;
 				break;
 			case SC_CONCENTRATION:
-				val2 = 5*val1; //Batk/Watk Increase
-				val3 = 10*val1; //Hit Increase
-				val4 = 5*val1; //Def reduction
+				val2 = 5 * val1; //Batk/Watk Increase
+				val3 = 10 * val1; //Hit Increase
+				val4 = 5 * val1; //Def reduction
 				sc_start(src,bl,SC_ENDURE,100,1,tick); //Endure effect
 				break;
 			case SC_ANGELUS:
-				val2 = 5*val1; //Def increase
+				val2 = 5 * val1; //Def increase
 				break;
 			case SC_IMPOSITIO:
-				val2 = 5*val1; //Watk increase
+				val2 = 5 * val1; //Watk increase
 				break;
 			case SC_MELTDOWN:
-				val2 = 100*val1; //Chance to break weapon
-				val3 = 70*val1; //Change to break armor
+				val2 = 100 * val1; //Chance to break weapon
+				val3 = 70 * val1; //Change to break armor
 				break;
 			case SC_TRUESIGHT:
-				val2 = 10*val1; //Critical increase
-				val3 = 3*val1; //Hit increase
+				val2 = 10 * val1; //Critical increase
+				val3 = 3 * val1; //Hit increase
 				break;
 			case SC_SUN_COMFORT:
-				val2 = (status_get_lv(bl) + status->dex + status->luk)/2; //Def increase
+				val2 = (status_get_lv(bl) + status->dex + status->luk) / 2; //Def increase
 				break;
 			case SC_MOON_COMFORT:
-				val2 = (status_get_lv(bl) + status->dex + status->luk)/10; //Flee increase
+				val2 = (status_get_lv(bl) + status->dex + status->luk) / 10; //Flee increase
 				break;
 			case SC_STAR_COMFORT:
 				val2 = (status_get_lv(bl) + status->dex + status->luk); //Aspd increase
 				break;
 			case SC_QUAGMIRE:
-				val2 = (sd ? 5 : 10)*val1; //Agi/Dex/Move Speed reduction
+				val2 = (sd ? 5 : 10) * val1; //Agi/Dex/Move Speed reduction
 				break;
 			case SC_GATLINGFEVER:
-				val2 = 20*val1; //Aspd increase
+				val2 = 20 * val1; //Aspd increase
 #ifndef RENEWAL
-				val3 = 20+10*val1; //Batk increase
+				val3 = 20 + 10 * val1; //Batk increase
 #endif
-				val4 = 5*val1; //Flee decrease
+				val4 = 5 * val1; //Flee decrease
 				break;
 			case SC_FLING:
 				if( bl->type == BL_PC )
 					val2 = 0; //No armor reduction to players
 				else
-					val2 = 5*val1; //Def reduction
-				val3 = 5*val1; //Def2 reduction
+					val2 = 5 * val1; //Def reduction
+				val3 = 5 * val1; //Def2 reduction
 				break;
 			case SC_PROVOKE:
 				//val2 signals autoprovoke
-				val3 = 2+3*val1; //Atk increase
-				val4 = 5+5*val1; //Def reduction
+				val3 = 2 + 3 * val1; //Atk increase
+				val4 = 5 + 5 * val1; //Def reduction
 				break;
 			case SC_AVOID:
-				//val2 = 10*val1; //Speed change rate
+				//val2 = 10 * val1; //Speed change rate
 				break;
 			case SC_DEFENCE:
-				val2 = 2*val1; //Def bonus
+				val2 = 2 * val1; //Def bonus
 				break;
 			case SC_BLOODLUST:
-				val2 = 20+10*val1; //Atk rate change
-				val3 = 3*val1; //Leech chance
+				val2 = 20 + 10 * val1; //Atk rate change
+				val3 = 3 * val1; //Leech chance
 				val4 = 20; //Leech percent
 				break;
 			case SC_FLEET:
-				val2 = 30*val1; //Aspd change.
-				val3 = 5+5*val1; //bAtk/wAtk rate change
+				val2 = 30 * val1; //Aspd change.
+				val3 = 5 + 5 * val1; //Batk/Watk rate change
 				break;
 			case SC_MINDBREAKER:
-				val2 = 20*val1; //matk increase
-				val3 = 12*val1; //mdef2 reduction
+				val2 = 20 * val1; //Matk increase
+				val3 = 12 * val1; //Mdef2 reduction
 				break;
 			case SC_SKA:
 				val2 = tick / 1000;
@@ -8356,13 +8338,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick_time = 1000; //[GodLesZ] tick time
 				break;
 			case SC_JAILED:
-				//Val1 is duration in minutes. Use INT_MAX to specify 'unlimited' time
+				//val1 is duration in minutes. Use INT_MAX to specify 'unlimited' time
 				tick = val1 > 0 ? 1000 : 250;
 				if( sd ) {
 					if( sd->mapindex != val2 ) {
-						int pos = (bl->x&0xFFFF)|(bl->y<<16), //Current Coordinates
-						map = sd->mapindex; //Current Map
-						//1. Place in Jail (val2 -> Jail Map, val3 -> x, val4 -> y
+						int pos = (bl->x&0xFFFF)|(bl->y<<16), //Current coordinates
+						map = sd->mapindex; //Current map
+						//1. Place in jail (val2 -> Jail Map, val3 -> x, val4 -> y
 						pc_setpos(sd,(unsigned short)val2,val3,val4,CLR_TELEPORT);
 						//2. Set restore point (val3 -> return map, val4 return coords
 						val3 = map;
@@ -8374,15 +8356,15 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				}
 				break;
 			case SC_UTSUSEMI:
-				val2 = (val1+1) / 2; //Number of hits blocked
+				val2 = (val1 + 1) / 2; //Number of hits blocked
 				val3 = skill_get_blewcount(NJ_UTSUSEMI,val1); //Knockback value
 				break;
 			case SC_BUNSINJYUTSU:
-				val2 = (val1+1) / 2; //Number of hits blocked
+				val2 = (val1 + 1) / 2; //Number of hits blocked
 				break;
 			case SC_CHANGE:
-				val2 = 30*val1; //Vit increase
-				val3 = 20*val1; //Int increase
+				val2 = 30 * val1; //Vit increase
+				val3 = 20 * val1; //Int increase
 				break;
 			case SC_SWOO:
 				if( status->mode&MD_BOSS )
@@ -8400,7 +8382,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = BF_WEAPON|BF_MISC; //Type
 				break;
 			case SC_ENCHANTARMS:
-				//end previous enchants
+				//End previous enchants
 				skill_enchant_elemental_end(bl,type);
 				//Make sure the received element is valid.
 				if( val2 >= ELE_MAX )
@@ -8409,11 +8391,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val2 = rnd()%ELE_MAX;
 				break;
 			case SC_CRITICALWOUND:
-				val2 = 20*val1; //Heal effectiveness decrease
+				val2 = 20 * val1; //Heal effectiveness decrease
 				break;
 			case SC_MAGICMIRROR:
 			case SC_SLOWCAST:
-				val2 = 20*val1; //Magic reflection/cast rate
+				val2 = 20 * val1; //Magic reflection/cast rate
 				break;
 			case SC_ARMORCHANGE:
 				if( val2 == NPC_ANTIMAGIC ) { //Boost mdef
@@ -8433,23 +8415,23 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_INCFLEE2:
 			case SC_INCCRI:
-				val2 = val1*10; //Actual boost (since 100% = 1000)
+				val2 = val1 * 10; //Actual boost (since 100% = 1000)
 				break;
 			case SC_SUFFRAGIUM:
-				val2 = 15*val1; //Speed cast decrease
+				val2 = 15 * val1; //Speed cast decrease
 				break;
 			case SC_INCHEALRATE:
 				if( val1 < 1 )
 					val1 = 1;
 				break;
 			case SC_HALLUCINATION:
-				val2 = 5+val1; //Factor by which displayed damage is increased by
+				val2 = 5 + val1; //Factor by which displayed damage is increased by
 				break;
 			case SC_DOUBLECAST:
-				val2 = 30+10*val1; //Trigger rate
+				val2 = 30 + 10 * val1; //Trigger rate
 				break;
 			case SC_KAIZEL:
-				val2 = 10*val1; //% of life to be revived with
+				val2 = 10 * val1; //% of life to be revived with
 				break;
 			//case SC_ARMOR_ELEMENT:
 			//case SC_ARMOR_RESIST:
@@ -8463,14 +8445,14 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_MERC_FLEEUP:
 			case SC_MERC_ATKUP:
 			case SC_MERC_HITUP:
-				val2 = 15*val1;
+				val2 = 15 * val1;
 				break;
 			case SC_MERC_HPUP:
 			case SC_MERC_SPUP:
-				val2 = 5*val1;
+				val2 = 5 * val1;
 				break;
 			case SC_REBIRTH:
-				val2 = 20*val1; //% of life to be revived with
+				val2 = 20 * val1; //% of life to be revived with
 				break;
 			case SC_MANU_DEF:
 			case SC_MANU_ATK:
@@ -8798,6 +8780,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = 8 + 12 * val1; //Chance Of Getting A Rage Counter
 				val3 = 5 + 2 * val1; //Max Number of Rage Counter's Possible
 				val4 = tick / 10000;
+				tick = -1; //Endless duration in the client
 				tick_time = 10000; //[GodLesZ] tick time
 				break;
 			case SC_EXEEDBREAK:
@@ -9259,8 +9242,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_SPIDERWEB:
 			{
 				int knockback_immune = sd ? !sd->special_state.no_knockback : !(status->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS));
-				if( knockback_immune ) {
-					if( !battle_config.skill_trap_type && map_flag_gvg2(bl->m) )
+				if (knockback_immune) {
+					if (!battle_config.skill_trap_type && map_flag_gvg2(bl->m))
 						break;
 					else
 						unit_stop_walking(bl,1);
