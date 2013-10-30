@@ -430,6 +430,22 @@ int pc_inventory_rental_clear(struct map_session_data *sd)
 	return 1;
 }
 
+/* Assumes I is valid (from default areas where it is called, it is) */
+void pc_rental_expire(struct map_session_data *sd, int i)
+{
+	short nameid = sd->status.inventory[i].nameid;
+
+	/* Soon to be dropped, we got plans to integrate it with item db */
+	switch( nameid ) {
+		case ITEMID_REINS_OF_MOUNT:
+			status_change_end(&sd->bl, SC_ALL_RIDING, INVALID_TIMER);
+		break;
+	}
+
+	clif_rental_expired(sd->fd, i, sd->status.inventory[i].nameid);
+	pc_delitem(sd, i, sd->status.inventory[i].amount, 0, 0, LOG_TYPE_OTHER);
+}
+
 void pc_inventory_rentals(struct map_session_data *sd)
 {
 	int i, c = 0;
@@ -441,14 +457,9 @@ void pc_inventory_rentals(struct map_session_data *sd)
 		if( sd->status.inventory[i].expire_time == 0 )
 			continue;
 
-		if( sd->status.inventory[i].expire_time <= time(NULL) ) {
-			if( sd->status.inventory[i].nameid == ITEMID_REINS_OF_MOUNT
-					&& sd->sc.data[SC_ALL_RIDING] ) {
-				status_change_end(&sd->bl, SC_ALL_RIDING, INVALID_TIMER);
-			}
-			clif_rental_expired(sd->fd, i, sd->status.inventory[i].nameid);
-			pc_delitem(sd, i, sd->status.inventory[i].amount, 0, 0, LOG_TYPE_OTHER);
-		} else {
+		if( sd->status.inventory[i].expire_time <= time(NULL) )
+			pc_rental_expire(sd, i);
+		else {
 			expire_tick = (unsigned int)(sd->status.inventory[i].expire_time - time(NULL)) * 1000;
 			clif_rental_time(sd->fd, sd->status.inventory[i].nameid, (int)(expire_tick / 1000));
 			next_tick = min(expire_tick, next_tick);
@@ -1243,11 +1254,11 @@ int pc_reg_received(struct map_session_data *sd)
 	if (sd->status.guild_id)
 		guild_member_joined(sd);
 
-	// pet
+	//Pet
 	if (sd->status.pet_id > 0)
 		intif_request_petdata(sd->status.account_id, sd->status.char_id, sd->status.pet_id);
 
-	// Homunculus [albator]
+	//Homunculus [albator]
 	if (sd->status.hom_id > 0)
 		intif_homunculus_requestload(sd->status.account_id, sd->status.hom_id);
 	if (sd->status.mer_id > 0)
@@ -1265,7 +1276,7 @@ int pc_reg_received(struct map_session_data *sd)
 	status_calc_pc(sd,1);
 	chrif_scdata_request(sd->status.account_id, sd->status.char_id);
 	chrif_skillcooldown_request(sd->status.account_id, sd->status.char_id);
-	intif_Mail_requestinbox(sd->status.char_id, 0); // MAIL SYSTEM - Request Mail Inbox
+	intif_Mail_requestinbox(sd->status.char_id, 0); //MAIL SYSTEM - Request Mail Inbox
 	intif_request_questlog(sd);
 
 	if (sd->state.connect_new == 0 && sd->fd) { //Character already loaded map! Gotta trigger LoadEndAck manually.
@@ -1273,16 +1284,14 @@ int pc_reg_received(struct map_session_data *sd)
 		clif_parse_LoadEndAck(sd->fd, sd);
 	}
 
-	pc_inventory_rentals(sd);
-
-	if (sd->sc.option & OPTION_INVISIBLE) {
+	if (sd->sc.option&OPTION_INVISIBLE) {
 		sd->vd.class_ = INVISIBLE_CLASS;
-		clif_disp_overhead(&sd->bl, msg_txt(11)); // Invisible: On
-		// Decrement the number of pvp players on the map
+		clif_disp_overhead(&sd->bl, msg_txt(11)); //Invisible: On
+		//Decrement the number of pvp players on the map
 		map[sd->bl.m].users_pvp--;
 
 		if (map[sd->bl.m].flag.pvp && !map[sd->bl.m].flag.pvp_nocalcrank && sd->pvp_timer != INVALID_TIMER) {
-			// Unregister the player for ranking
+			//Unregister the player for ranking
 			delete_timer(sd->pvp_timer, pc_calc_pvprank_timer);
 			sd->pvp_timer = INVALID_TIMER;
 		}
@@ -3836,17 +3845,16 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount,e_l
 	
 	data = itemdb_search(item_data->nameid);
 
-	if( data->stack.inventory && amount > data->stack.amount ) { // item stack limitation
+	if( data->stack.inventory && amount > data->stack.amount ) //Item stack limitation
 		return ADDITEM_STACKLIMIT;
-	}
 
-	w = data->weight*amount;
-	if(sd->weight + w > sd->max_weight)
+	w = data->weight * amount;
+	if( sd->weight + w > sd->max_weight )
 		return ADDITEM_OVERWEIGHT;
 	
 	i = MAX_INVENTORY;
 
-	if( itemdb_isstackable2(data) && item_data->expire_time == 0 ) { // Stackable | Non Rental
+	if( itemdb_isstackable2(data) && item_data->expire_time == 0 ) { //Stackable | Non Rental
 		for( i = 0; i < MAX_INVENTORY; i++ ) {
 			if( sd->status.inventory[i].nameid == item_data->nameid && sd->status.inventory[i].bound == item_data->bound && memcmp(&sd->status.inventory[i].card, &item_data->card, sizeof(item_data->card)) == 0 )
 			{
@@ -3865,7 +3873,7 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount,e_l
 			return ADDITEM_OVERITEM;
 
 		memcpy(&sd->status.inventory[i], item_data, sizeof(sd->status.inventory[0]));
-		// clear equips field first, just in case
+		//Clear equips field first, just in case
 		if( item_data->equip )
 			sd->status.inventory[i].equip = 0;
 
@@ -3882,15 +3890,14 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount,e_l
 	sd->weight += w;
 	clif_updatestatus(sd,SP_WEIGHT);
 	//Auto-equip
-	if(data->flag.autoequip)
+	if( data->flag.autoequip )
 		pc_equipitem(sd, i, data->equip);
 
-	/* rental item check */
+	/* Rental item check */
 	if( item_data->expire_time ) {
-		if( time(NULL) > item_data->expire_time ) {
-			clif_rental_expired(sd->fd, i, sd->status.inventory[i].nameid);
-			pc_delitem(sd, i, sd->status.inventory[i].amount, 1, 0, LOG_TYPE_OTHER);
-		} else {
+		if( time(NULL) > item_data->expire_time )
+			pc_rental_expire(sd, i);
+		else {
 			int seconds = (int)( item_data->expire_time - time(NULL) );
 			clif_rental_time(sd->fd, sd->status.inventory[i].nameid, seconds);
 			pc_inventory_rental_add(sd, seconds);
@@ -9988,22 +9995,27 @@ void pc_damage_log_clear(struct map_session_data *sd, int id) {
 		return;
 
 	if( !id ) {
-		for(i = 0; i < DAMAGELOG_SIZE_PC; i++)	{ // track every id
-			if( !sd->dmglog[i].id )	//skip the empty value
+		for( i = 0; i < DAMAGELOG_SIZE_PC; i++ ) { //Track every id
+			if( !sd->dmglog[i].id ) //Skip the empty value
 				continue;
 
 			if( (md = map_id2md(sd->dmglog[i].id)) )
 				pc_clear_log_damage_sub(sd->status.char_id,md);
 		}
-		memset(sd->dmglog,0,sizeof(sd->dmglog)); // clear all
+		memset(sd->dmglog,0,sizeof(sd->dmglog)); //Clear all
 	} else {
 		if( (md = map_id2md(id)) )
 			pc_clear_log_damage_sub(sd->status.char_id,md);
 
-		ARR_FIND(0,DAMAGELOG_SIZE_PC,i,sd->dmglog[i].id == id);	// find the id position
+		ARR_FIND(0,DAMAGELOG_SIZE_PC,i,sd->dmglog[i].id == id); //Find the id position
 		if( i < DAMAGELOG_SIZE_PC )
 			sd->dmglog[i].id = 0;
 	}
+}
+
+/* Status change data arrived from char-server */
+void pc_scdata_received(struct map_session_data *sd) {
+	pc_inventory_rentals(sd);
 }
 
 /*==========================================

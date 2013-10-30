@@ -2854,6 +2854,14 @@ int parse_frommap(int fd)
 							if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `account_id`='%d' AND `char_id`='%d'", scdata_db, aid, cid) )
 								Sql_ShowDebug(sql_handle);
 						}
+					} else { //No sc (needs a response)
+						WFIFOHEAD(fd,14);
+						WFIFOW(fd,0) = 0x2b1d;
+						WFIFOW(fd,2) = 14;
+						WFIFOL(fd,4) = aid;
+						WFIFOL(fd,8) = cid;
+						WFIFOW(fd,12) = 0;
+						WFIFOSET(fd,WFIFOW(fd,2));
 					}
 					Sql_FreeResult(sql_handle);
 #endif

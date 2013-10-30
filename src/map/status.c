@@ -2517,8 +2517,8 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		+ sizeof(sd->hp_gain_race_attack)
 		);
 
-	memset (&sd->right_weapon.overrefine, 0, sizeof(sd->right_weapon) - sizeof(sd->right_weapon.atkmods));
-	memset (&sd->left_weapon.overrefine, 0, sizeof(sd->left_weapon) - sizeof(sd->left_weapon.atkmods));
+	memset(&sd->right_weapon.overrefine, 0, sizeof(sd->right_weapon) - sizeof(sd->right_weapon.atkmods));
+	memset(&sd->left_weapon.overrefine, 0, sizeof(sd->left_weapon) - sizeof(sd->left_weapon.atkmods));
 
 	if (sd->special_state.intravision && !sd->sc.data[SC_INTRAVISION]) //Clear intravision as long as nothing else is using it
 		clif_status_load(&sd->bl, SI_INTRAVISION, 0);
@@ -4989,7 +4989,6 @@ static signed short status_calc_hit(struct block_list *bl, struct status_change 
 		hit += 20; //RockmanEXE; changed based on updated [Reddozen]
 	if(sc->data[SC_MERC_HITUP])
 		hit += sc->data[SC_MERC_HITUP]->val2;
-
 	if(sc->data[SC_INCHITRATE])
 		hit += hit * sc->data[SC_INCHITRATE]->val1 / 100;
 	if(sc->data[SC_BLIND])
@@ -5010,10 +5009,10 @@ static signed short status_calc_hit(struct block_list *bl, struct status_change 
 
 static signed short status_calc_flee(struct block_list *bl, struct status_change *sc, int flee)
 {
-	if( bl->type == BL_PC ) {
-		if( map_flag_gvg2(bl->m) )
+	if(bl->type == BL_PC) {
+		if(map_flag_gvg2(bl->m))
 			flee -= flee * battle_config.gvg_flee_penalty / 100;
-		else if( map[bl->m].flag.battleground )
+		else if(map[bl->m].flag.battleground)
 			flee -= flee * battle_config.bg_flee_penalty / 100;
 	}
 
@@ -5036,9 +5035,9 @@ static signed short status_calc_flee(struct block_list *bl, struct status_change
 		flee += sc->data[SC_MOON_COMFORT]->val2;
 	if(sc->data[SC_CLOSECONFINE])
 		flee += 10;
-	if (sc->data[SC_ANGRIFFS_MODUS])
+	if(sc->data[SC_ANGRIFFS_MODUS])
 		flee -= sc->data[SC_ANGRIFFS_MODUS]->val3;
-	if (sc->data[SC_OVERED_BOOST])
+	if(sc->data[SC_OVERED_BOOST])
 		flee = max(flee,sc->data[SC_OVERED_BOOST]->val2);
 	if(sc->data[SC_ADJUSTMENT])
 		flee += 30;
@@ -5050,15 +5049,14 @@ static signed short status_calc_flee(struct block_list *bl, struct status_change
 		flee += sc->data[SC_PARTYFLEE]->val1 * 10;
 	if(sc->data[SC_MERC_FLEEUP])
 		flee += sc->data[SC_MERC_FLEEUP]->val2;
-	if( sc->data[SC_HALLUCINATIONWALK] )
+	if(sc->data[SC_HALLUCINATIONWALK])
 		flee += sc->data[SC_HALLUCINATIONWALK]->val2;
-	if( sc->data[SC_WATER_BARRIER] )
+	if(sc->data[SC_WATER_BARRIER])
 		flee -= sc->data[SC_WATER_BARRIER]->val3;
 #ifdef RENEWAL
-	if( sc->data[SC_SPEARQUICKEN] )
+	if(sc->data[SC_SPEARQUICKEN])
 		flee += 2 * sc->data[SC_SPEARQUICKEN]->val1;
 #endif
-
 	if(sc->data[SC_INCFLEERATE])
 		flee += flee * sc->data[SC_INCFLEERATE]->val1 / 100;
 	if(sc->data[SC_SPIDERWEB] && sc->data[SC_SPIDERWEB]->val1)
@@ -5073,23 +5071,23 @@ static signed short status_calc_flee(struct block_list *bl, struct status_change
 		flee -= flee * 10 / 100; //10% Flee reduction
 	if(sc->data[SC_INFRAREDSCAN])
 		flee -= flee * 30 / 100;
-	if( sc->data[SC__LAZINESS] )
+	if(sc->data[SC__LAZINESS])
 		flee -= flee * sc->data[SC__LAZINESS]->val2 / 100;
-	if( sc->data[SC_GLOOMYDAY] )
+	if(sc->data[SC_GLOOMYDAY])
 		flee -= flee * sc->data[SC_GLOOMYDAY]->val2 / 100;
-	if( sc->data[SC_SATURDAYNIGHTFEVER] )
+	if(sc->data[SC_SATURDAYNIGHTFEVER])
 		flee -= flee * (40 + 10 * sc->data[SC_SATURDAYNIGHTFEVER]->val1) / 100;
-	if( sc->data[SC_SMOKEPOWDER] )
+	if(sc->data[SC_SMOKEPOWDER])
 		flee += flee * 20 / 100;
-	if( sc->data[SC_TEARGAS] )
+	if(sc->data[SC_TEARGAS])
 		flee -= flee * 50 / 100;
-	if( sc->data[SC_WIND_STEP_OPTION] )
+	if(sc->data[SC_WIND_STEP_OPTION])
 		flee += flee * sc->data[SC_WIND_STEP_OPTION]->val2 / 100;
-	if( sc->data[SC_ZEPHYR] )
+	if(sc->data[SC_ZEPHYR])
 		flee += sc->data[SC_ZEPHYR]->val2;
-	if( sc->data[SC_ASH] )
+	if(sc->data[SC_ASH])
 		flee -= flee * sc->data[SC_ASH]->val4 / 100;
-	if( sc->data[SC_GOLDENE_FERSE] )
+	if(sc->data[SC_GOLDENE_FERSE])
 		flee += flee * sc->data[SC_GOLDENE_FERSE]->val2 / 100;
 
 	return (short)cap_value(flee,1,SHRT_MAX);
@@ -5210,6 +5208,7 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 		return 0;
 	if(sc->data[SC_ETERNALCHAOS])
 		return 0;
+
 	if(sc->data[SC_SUN_COMFORT])
 		def2 += sc->data[SC_SUN_COMFORT]->val2;
 #ifdef RENEWAL
@@ -5270,7 +5269,6 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 		return 0;
 	if(sc->data[SC_BARRIER])
 		return 100;
-
 #ifndef RENEWAL //No longer provides 90 MDEF in renewal mode
 	if(sc->data[SC_STEELBODY])
 		return 90;
@@ -5286,7 +5284,6 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 		mdef += sc->data[SC_STONEHARDSKIN]->val1;
 	if(sc->data[SC_WATER_BARRIER])
 		mdef += sc->data[SC_WATER_BARRIER]->val2;
-
 	if(sc->data[SC_STONE] && sc->opt1 == OPT1_STONE)
 		mdef += 25 * mdef / 100;
 	if(sc->data[SC_FREEZE])
@@ -5330,7 +5327,7 @@ static signed short status_calc_mdef2(struct block_list *bl, struct status_chang
 	if(sc->data[SC_BURNING])
 		mdef2 -= mdef2 * 25 / 100;
 	if(sc->data[SC_ANALYZE])
-		mdef2 -= mdef2 * ( 14 * sc->data[SC_ANALYZE]->val1 ) / 100;
+		mdef2 -= mdef2 * (14 * sc->data[SC_ANALYZE]->val1) / 100;
 	if(sc->data[SC_UNLIMIT])
 		return 1;
 

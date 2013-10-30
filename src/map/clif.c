@@ -186,6 +186,7 @@ static char map_ip_str[128];
 static uint32 map_ip;
 static uint32 bind_ip = INADDR_ANY;
 static uint16 map_port = 5121;
+static bool ally_only = false;
 int map_fd;
 
 static int clif_parse (int fd);
@@ -301,24 +302,36 @@ static int clif_send_sub(struct block_list *bl, va_list ap) {
 		case AREA_WOS:
 			if (bl == src_bl)
 				return 0;
-		break;
+			break;
 		case AREA_WOC:
 			if (sd->chatID || bl == src_bl)
 				return 0;
-		break;
+			break;
 		case AREA_WOSC: {
-			if (src_bl->type == BL_PC) {
-				struct map_session_data *ssd = (struct map_session_data *)src_bl;
-				if (ssd && sd->chatID && (sd->chatID == ssd->chatID))
-				return 0;
-			} else if (src_bl->type == BL_NPC) {
-				struct npc_data *nd = (struct npc_data *)src_bl;
-				if (nd && sd->chatID && (sd->chatID == nd->chat_id))
-				return 0;
+				if (src_bl->type == BL_PC) {
+					struct map_session_data *ssd = (struct map_session_data *)src_bl;
+					if (ssd && sd->chatID && (sd->chatID == ssd->chatID))
+					return 0;
+				} else if (src_bl->type == BL_NPC) {
+					struct npc_data *nd = (struct npc_data *)src_bl;
+					if (nd && sd->chatID && (sd->chatID == nd->chat_id))
+					return 0;
+				}
 			}
-		}
-		break;
+			break;
+#if PACKETVER > 20120418 && PACKETVER < 20130000
+		/* 0x120 crashes the client when warping for this packetver range [Ind] */
+		case AREA:
+			if (WBUFW(buf,0) == 0x120 && sd->state.warping)
+				return 0;
+			break;
+#endif
 	}
+
+	/* Unless visible, hold it here */
+	if (ally_only && (!sd->special_state.intravision || !sd->sc.data[SC_INTRAVISION]) &&
+		battle_check_target(src_bl, &sd->bl, BCT_ENEMY) > 0)
+		return 0;
 
 	if (session[fd] == NULL)
 		return 0;
@@ -328,13 +341,13 @@ static int clif_send_sub(struct block_list *bl, va_list ap) {
 		ShowError("WARNING: Invalid use of clif_send function\n");
 		ShowError("         Packet x%4x use a WFIFO of a player instead of to use a buffer.\n", WBUFW(buf,0));
 		ShowError("         Please correct your code.\n");
-		// don't send to not move the pointer of the packet for next sessions in the loop
+		//Don't send to not move the pointer of the packet for next sessions in the loop
 		//WFIFOSET(fd,0);//## TODO is this ok?
 		//NO. It is not ok. There is the chance WFIFOSET actually sends the buffer data, and shifts elements around, which will corrupt the buffer.
 		return 0;
 	}
 
-	if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
+	if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { //Packet must exist for the client version
 		memcpy(WFIFOP(fd,0), buf, len);
 		WFIFOSET(fd,len);
 	}
@@ -1512,11 +1525,16 @@ void clif_walkok(struct map_session_data *sd)
 
 static void clif_move2(struct block_list *bl, struct view_data *vd, struct unit_data *ud)
 {
+	struct status_change *sc = NULL;
 	uint8 buf[128];
 	int len;
 
+	if ((sc = status_get_sc(bl)) && sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE|OPTION_CHASEWALK))
+		ally_only = true;
+
 	len = clif_set_unit_walking(bl,ud,buf);
 	clif_send(buf,len,bl,AREA_WOS);
+
 	if (disguised(bl))
 		clif_setdisguise(bl,buf,len);
 
@@ -1535,18 +1553,19 @@ static void clif_move2(struct block_list *bl, struct view_data *vd, struct unit_
 			break;
 		case BL_MOB: {
 				TBL_MOB *md = ((TBL_MOB*)bl);
-				if (md->special_state.size == SZ_BIG) // Tiny/big mobs [Valaris]
+				if (md->special_state.size == SZ_BIG) //Tiny/big mobs [Valaris]
 					clif_specialeffect(&md->bl,423,AREA);
 				else if (md->special_state.size == SZ_MEDIUM)
 					clif_specialeffect(&md->bl,421,AREA);
 			}
 			break;
 		case BL_PET:
-			if (vd->head_bottom) { // Needed to display pet equip properly
+			if (vd->head_bottom) //Needed to display pet equip properly
 				clif_pet_equip_area((TBL_PET*)bl);
-			}
 			break;
 	}
+
+	ally_only = false;
 }
 
 
@@ -1558,6 +1577,7 @@ void clif_move(struct unit_data *ud)
 	unsigned char buf[16];
 	struct view_data* vd;
 	struct block_list* bl = ud->bl;
+	struct status_change *sc = NULL;
 
 	vd = status_get_viewdata(bl);
 	if (!vd || vd->class_ == INVISIBLE_CLASS)
@@ -1577,6 +1597,9 @@ void clif_move(struct unit_data *ud)
 		return;
 	}
 
+	if ((sc = status_get_sc(bl)) && sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE|OPTION_CHASEWALK))
+		ally_only = true;
+
 	WBUFW(buf,0) = 0x86;
 	WBUFL(buf,2) = bl->id;
 	WBUFPOS2(buf,6,bl->x,bl->y,ud->to_x,ud->to_y,8,8);
@@ -1586,6 +1609,8 @@ void clif_move(struct unit_data *ud)
 		WBUFL(buf,2) = -bl->id;
 		clif_send(buf,packet_len(0x86),bl,SELF);
 	}
+
+	ally_only = false;
 }
 
 
@@ -1628,13 +1653,13 @@ void clif_changemap(struct map_session_data *sd, short m, int x, int y)
 
 	WFIFOHEAD(fd,packet_len(0x91));
 	WFIFOW(fd,0) = 0x91;
-	if(map[m].instance_id) { // Instance map check to send client source map name so we don't crash player
+	if (map[m].instance_id) { //Instance map check to send client source map name so we don't crash player
 		struct instance_data *im = &instance_data[map[m].instance_id];
 		int i;
-		if(!im) // This shouldn't happen but if it does give them the map we intended to give
+		if (!im) //This shouldn't happen but if it does give them the map we intended to give
 			mapindex_getmapname_ext(map[m].name, (char*)WFIFOP(fd,2));
-		for(i = 0; i < MAX_MAP_PER_INSTANCE; i++) // Loop to find the src map we want
-			if(im->map[i].m == m) {
+		for (i = 0; i < MAX_MAP_PER_INSTANCE; i++) //Loop to find the src map we want
+			if (im->map[i].m == m) {
 				mapindex_getmapname_ext(map[im->map[i].src_m].name, (char*)WFIFOP(fd,2));
 				break;
 			}
@@ -1689,7 +1714,7 @@ void clif_fixpos(struct block_list *bl)
 	WBUFW(buf,8) = bl->y;
 	clif_send(buf, packet_len(0x88), bl, AREA);
 
-	if( disguised(bl) ) {
+	if (disguised(bl)) {
 		WBUFL(buf,2) = -bl->id;
 		clif_send(buf, packet_len(0x88), bl, SELF);
 	}
@@ -1704,10 +1729,10 @@ void clif_npcbuysell(struct map_session_data* sd, int id)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
-	WFIFOHEAD(fd, packet_len(0xc4));
-	WFIFOW(fd,0)=0xc4;
-	WFIFOL(fd,2)=id;
+	fd = sd->fd;
+	WFIFOHEAD(fd,packet_len(0xc4));
+	WFIFOW(fd,0) = 0xc4;
+	WFIFOL(fd,2) = id;
 	WFIFOSET(fd,packet_len(0xc4));
 }
 
@@ -2620,10 +2645,10 @@ void clif_guild_xy_remove(struct map_session_data *sd)
 
 	nullpo_retv(sd);
 
-	WBUFW(buf,0)=0x1eb;
-	WBUFL(buf,2)=sd->status.account_id;
-	WBUFW(buf,6)=-1;
-	WBUFW(buf,8)=-1;
+	WBUFW(buf,0) = 0x1eb;
+	WBUFL(buf,2) = sd->status.account_id;
+	WBUFW(buf,6) = -1;
+	WBUFW(buf,8) = -1;
 	clif_send(buf,packet_len(0x1eb),&sd->bl,GUILD_SAMEMAP_WOS);
 }
 
@@ -2648,15 +2673,15 @@ static int clif_hpmeter_sub(struct block_list *bl, va_list ap)
 	if( !tsd->fd || tsd == sd )
 		return 0;
 
-	if( !pc_has_permission(tsd, PC_PERM_VIEW_HPMETER) )
+	if( !pc_has_permission(tsd,PC_PERM_VIEW_HPMETER) )
 		return 0;
+
 	WFIFOHEAD(tsd->fd,packet_len(cmd));
 	WFIFOW(tsd->fd,0) = cmd;
 	WFIFOL(tsd->fd,2) = sd->status.account_id;
 #if PACKETVER < 20100126
-	if( sd->battle_status.max_hp > INT16_MAX )
-	{ //To correctly display the %hp bar. [Skotlex]
-		WFIFOW(tsd->fd,6) = sd->battle_status.hp/(sd->battle_status.max_hp/100);
+	if( sd->battle_status.max_hp > INT16_MAX ) { //To correctly display the %hp bar. [Skotlex]
+		WFIFOW(tsd->fd,6) = sd->battle_status.hp / (sd->battle_status.max_hp / 100);
 		WFIFOW(tsd->fd,8) = 100;
 	} else {
 		WFIFOW(tsd->fd,6) = sd->battle_status.hp;
@@ -2677,7 +2702,8 @@ static int clif_hpmeter_sub(struct block_list *bl, va_list ap)
 static int clif_hpmeter(struct map_session_data *sd)
 {
 	nullpo_ret(sd);
-	map_foreachinarea(clif_hpmeter_sub, sd->bl.m, sd->bl.x-AREA_SIZE, sd->bl.y-AREA_SIZE, sd->bl.x+AREA_SIZE, sd->bl.y+AREA_SIZE, BL_PC, sd);
+	map_foreachinarea(clif_hpmeter_sub,sd->bl.m,sd->bl.x - AREA_SIZE,sd->bl.y - AREA_SIZE,
+		sd->bl.x + AREA_SIZE,sd->bl.y + AREA_SIZE,BL_PC,sd);
 	return 0;
 }
 
@@ -2692,218 +2718,212 @@ static int clif_hpmeter(struct map_session_data *sd)
 /// FIXME: Packet lengths from packet_len(cmd)
 void clif_updatestatus(struct map_session_data *sd,int type)
 {
-	int fd,len=8;
+	int fd,len = 8;
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 
-	if ( !session_isActive(fd) ) // Invalid pointer fix, by sasuke [Kevin]
+	if( !session_isActive(fd) ) //Invalid pointer fix, by sasuke [Kevin]
 		return;
 
-	WFIFOHEAD(fd, 14);
-	WFIFOW(fd,0)=0xb0;
-	WFIFOW(fd,2)=type;
-	switch(type){
-		// 00b0
-	case SP_WEIGHT:
-		pc_updateweightstatus(sd);
-		WFIFOHEAD(fd,14);
-		WFIFOW(fd,0)=0xb0;	//Need to re-set as pc_updateweightstatus can alter the buffer. [Skotlex]
-		WFIFOW(fd,2)=type;
-		WFIFOL(fd,4)=sd->weight;
-		break;
-	case SP_MAXWEIGHT:
-		WFIFOL(fd,4)=sd->max_weight;
-		break;
-	case SP_SPEED:
-		WFIFOL(fd,4)=sd->battle_status.speed;
-		break;
-	case SP_BASELEVEL:
-		WFIFOL(fd,4)=sd->status.base_level;
-		break;
-	case SP_JOBLEVEL:
-		WFIFOL(fd,4)=sd->status.job_level;
-		break;
-	case SP_KARMA: // Adding this back, I wonder if the client intercepts this - [Lance]
-		WFIFOL(fd,4)=sd->status.karma;
-		break;
-	case SP_MANNER:
-		WFIFOL(fd,4)=sd->status.manner;
-		break;
-	case SP_STATUSPOINT:
-		WFIFOL(fd,4)=sd->status.status_point;
-		break;
-	case SP_SKILLPOINT:
-		WFIFOL(fd,4)=sd->status.skill_point;
-		break;
-	case SP_HIT:
-		WFIFOL(fd,4)=sd->battle_status.hit;
-		break;
-	case SP_FLEE1:
-		WFIFOL(fd,4)=sd->battle_status.flee;
-		break;
-	case SP_FLEE2:
-		WFIFOL(fd,4)=sd->battle_status.flee2/10;
-		break;
-	case SP_MAXHP:
-		WFIFOL(fd,4)=sd->battle_status.max_hp;
-		break;
-	case SP_MAXSP:
-		WFIFOL(fd,4)=sd->battle_status.max_sp;
-		break;
-	case SP_HP:
-		WFIFOL(fd,4)=sd->battle_status.hp;
-		// TODO: Won't these overwrite the current packet?
-		clif_hpmeter(sd);
-		if( !battle_config.party_hp_mode && sd->status.party_id )
-			clif_party_hp(sd);
-		if( sd->bg_id )
-			clif_bg_hp(sd);
-		break;
-	case SP_SP:
-		WFIFOL(fd,4)=sd->battle_status.sp;
-		break;
-	case SP_ASPD:
-		WFIFOL(fd,4)=sd->battle_status.amotion;
-		break;
-	case SP_ATK1:
-		WFIFOL(fd,4)=pc_leftside_atk(sd);
-		break;
-	case SP_DEF1:
-		WFIFOL(fd,4)=pc_leftside_def(sd);
-		break;
-	case SP_MDEF1:
-		WFIFOL(fd,4)=pc_leftside_mdef(sd);
-		break;
-	case SP_ATK2:
-		WFIFOL(fd,4)=pc_rightside_atk(sd);
-		break;
-	case SP_DEF2:
-		WFIFOL(fd,4)=pc_rightside_def(sd);
-		break;
-	case SP_MDEF2: {
-			//negative check (in case you have something like Berserk active)
-			int mdef2 = pc_rightside_mdef(sd);
+	WFIFOHEAD(fd,14);
+	WFIFOW(fd,0) = 0xb0;
+	WFIFOW(fd,2) = type;
+	switch( type ) {
+			//00b0
+		case SP_WEIGHT:
+			pc_updateweightstatus(sd);
+			WFIFOHEAD(fd,14);
+			WFIFOW(fd,0) = 0xb0; //Need to re-set as pc_updateweightstatus can alter the buffer. [Skotlex]
+			WFIFOW(fd,2) = type;
+			WFIFOL(fd,4) = sd->weight;
+			break;
+		case SP_MAXWEIGHT:
+			WFIFOL(fd,4) = sd->max_weight;
+			break;
+		case SP_SPEED:
+			WFIFOL(fd,4) = sd->battle_status.speed;
+			break;
+		case SP_BASELEVEL:
+			WFIFOL(fd,4) = sd->status.base_level;
+			break;
+		case SP_JOBLEVEL:
+			WFIFOL(fd,4) = sd->status.job_level;
+			break;
+		case SP_KARMA: //Adding this back, I wonder if the client intercepts this - [Lance]
+			WFIFOL(fd,4) = sd->status.karma;
+			break;
+		case SP_MANNER:
+			WFIFOL(fd,4) = sd->status.manner;
+			break;
+		case SP_STATUSPOINT:
+			WFIFOL(fd,4) = sd->status.status_point;
+			break;
+		case SP_SKILLPOINT:
+			WFIFOL(fd,4) = sd->status.skill_point;
+			break;
+		case SP_HIT:
+			WFIFOL(fd,4) = sd->battle_status.hit;
+			break;
+		case SP_FLEE1:
+			WFIFOL(fd,4) = sd->battle_status.flee;
+			break;
+		case SP_FLEE2:
+			WFIFOL(fd,4) = sd->battle_status.flee2 / 10;
+			break;
+		case SP_MAXHP:
+			WFIFOL(fd,4) = sd->battle_status.max_hp;
+			break;
+		case SP_MAXSP:
+			WFIFOL(fd,4) = sd->battle_status.max_sp;
+			break;
+		case SP_HP:
+			WFIFOL(fd,4) = sd->battle_status.hp;
+			//TODO: Won't these overwrite the current packet?
+			if( map[sd->bl.m].hpmeter_visible )
+				clif_hpmeter(sd);
+			if( !battle_config.party_hp_mode && sd->status.party_id )
+				clif_party_hp(sd);
+			if( sd->bg_id )
+				clif_bg_hp(sd);
+			break;
+		case SP_SP:
+			WFIFOL(fd,4) = sd->battle_status.sp;
+			break;
+		case SP_ASPD:
+			WFIFOL(fd,4) = sd->battle_status.amotion;
+			break;
+		case SP_ATK1:
+			WFIFOL(fd,4) = pc_leftside_atk(sd);
+			break;
+		case SP_DEF1:
+			WFIFOL(fd,4) = pc_leftside_def(sd);
+			break;
+		case SP_MDEF1:
+			WFIFOL(fd,4) = pc_leftside_mdef(sd);
+			break;
+		case SP_ATK2:
+			WFIFOL(fd,4) = pc_rightside_atk(sd);
+			break;
+		case SP_DEF2:
+			WFIFOL(fd,4) = pc_rightside_def(sd);
+			break;
+		case SP_MDEF2: {
+				//Negative check (in case you have something like Berserk active)
+				int mdef2 = pc_rightside_mdef(sd);
 
-			WFIFOL(fd,4)=
+				WFIFOL(fd,4) =
 #ifndef RENEWAL
-			( mdef2 < 0 ) ? 0 :
+				(mdef2 < 0) ? 0 :
 #endif
-			mdef2;
+				mdef2;
 
-		}
-		break;
-	case SP_CRITICAL:
-		WFIFOL(fd,4)=sd->battle_status.cri/10;
-		break;
-	case SP_MATK1:
-		WFIFOL(fd,4)=pc_rightside_matk(sd);
-		break;
-	case SP_MATK2:
-		WFIFOL(fd,4)=pc_leftside_matk(sd);
-		break;
-
-
-	case SP_ZENY:
-		WFIFOW(fd,0)=0xb1;
-		WFIFOL(fd,4)=sd->status.zeny;
-		break;
-	case SP_BASEEXP:
-		WFIFOW(fd,0)=0xb1;
-		WFIFOL(fd,4)=sd->status.base_exp;
-		break;
-	case SP_JOBEXP:
-		WFIFOW(fd,0)=0xb1;
-		WFIFOL(fd,4)=sd->status.job_exp;
-		break;
-	case SP_NEXTBASEEXP:
-		WFIFOW(fd,0)=0xb1;
-		WFIFOL(fd,4)=pc_nextbaseexp(sd);
-		break;
-	case SP_NEXTJOBEXP:
-		WFIFOW(fd,0)=0xb1;
-		WFIFOL(fd,4)=pc_nextjobexp(sd);
-		break;
-
-	/**
-	 * SP_U<STAT> are used to update the amount of points necessary to increase that stat
-	 **/
-	case SP_USTR:
-	case SP_UAGI:
-	case SP_UVIT:
-	case SP_UINT:
-	case SP_UDEX:
-	case SP_ULUK:
-		WFIFOW(fd,0)=0xbe;
-		WFIFOB(fd,4)=pc_need_status_point(sd,type-SP_USTR+SP_STR,1);
-		len=5;
-		break;
-
-	/**
-	 * Tells the client how far it is allowed to attack (weapon range)
-	 **/
-	case SP_ATTACKRANGE:
-		WFIFOW(fd,0)=0x13a;
-		WFIFOW(fd,2)=sd->battle_status.rhw.range;
-		len=4;
-		break;
-
-	case SP_STR:
-		WFIFOW(fd,0)=0x141;
-		WFIFOL(fd,2)=type;
-		WFIFOL(fd,6)=sd->status.str;
-		WFIFOL(fd,10)=sd->battle_status.str - sd->status.str;
-		len=14;
-		break;
-	case SP_AGI:
-		WFIFOW(fd,0)=0x141;
-		WFIFOL(fd,2)=type;
-		WFIFOL(fd,6)=sd->status.agi;
-		WFIFOL(fd,10)=sd->battle_status.agi - sd->status.agi;
-		len=14;
-		break;
-	case SP_VIT:
-		WFIFOW(fd,0)=0x141;
-		WFIFOL(fd,2)=type;
-		WFIFOL(fd,6)=sd->status.vit;
-		WFIFOL(fd,10)=sd->battle_status.vit - sd->status.vit;
-		len=14;
-		break;
-	case SP_INT:
-		WFIFOW(fd,0)=0x141;
-		WFIFOL(fd,2)=type;
-		WFIFOL(fd,6)=sd->status.int_;
-		WFIFOL(fd,10)=sd->battle_status.int_ - sd->status.int_;
-		len=14;
-		break;
-	case SP_DEX:
-		WFIFOW(fd,0)=0x141;
-		WFIFOL(fd,2)=type;
-		WFIFOL(fd,6)=sd->status.dex;
-		WFIFOL(fd,10)=sd->battle_status.dex - sd->status.dex;
-		len=14;
-		break;
-	case SP_LUK:
-		WFIFOW(fd,0)=0x141;
-		WFIFOL(fd,2)=type;
-		WFIFOL(fd,6)=sd->status.luk;
-		WFIFOL(fd,10)=sd->battle_status.luk - sd->status.luk;
-		len=14;
-		break;
-
-	case SP_CARTINFO:
-		WFIFOW(fd,0)=0x121;
-		WFIFOW(fd,2)=sd->cart_num;
-		WFIFOW(fd,4)=MAX_CART;
-		WFIFOL(fd,6)=sd->cart_weight;
-		WFIFOL(fd,10)=sd->cart_weight_max;
-		len=14;
-		break;
-
-	default:
-		ShowError("clif_updatestatus : unrecognized type %d\n",type);
-		return;
+			}
+			break;
+		case SP_CRITICAL:
+			WFIFOL(fd,4) = sd->battle_status.cri / 10;
+			break;
+		case SP_MATK1:
+			WFIFOL(fd,4) = pc_rightside_matk(sd);
+			break;
+		case SP_MATK2:
+			WFIFOL(fd,4) = pc_leftside_matk(sd);
+			break;
+		case SP_ZENY:
+			WFIFOW(fd,0) = 0xb1;
+			WFIFOL(fd,4) = sd->status.zeny;
+			break;
+		case SP_BASEEXP:
+			WFIFOW(fd,0) = 0xb1;
+			WFIFOL(fd,4) = sd->status.base_exp;
+			break;
+		case SP_JOBEXP:
+			WFIFOW(fd,0) = 0xb1;
+			WFIFOL(fd,4) = sd->status.job_exp;
+			break;
+		case SP_NEXTBASEEXP:
+			WFIFOW(fd,0) = 0xb1;
+			WFIFOL(fd,4) = pc_nextbaseexp(sd);
+			break;
+		case SP_NEXTJOBEXP:
+			WFIFOW(fd,0) = 0xb1;
+			WFIFOL(fd,4) = pc_nextjobexp(sd);
+			break;
+		/**
+		 * SP_U<STAT> are used to update the amount of points necessary to increase that stat
+		 **/
+		case SP_USTR:
+		case SP_UAGI:
+		case SP_UVIT:
+		case SP_UINT:
+		case SP_UDEX:
+		case SP_ULUK:
+			WFIFOW(fd,0) = 0xbe;
+			WFIFOB(fd,4) = pc_need_status_point(sd,type - SP_USTR + SP_STR,1);
+			len = 5;
+			break;
+		/**
+		 * Tells the client how far it is allowed to attack (weapon range)
+		 **/
+		case SP_ATTACKRANGE:
+			WFIFOW(fd,0) = 0x13a;
+			WFIFOW(fd,2) = sd->battle_status.rhw.range;
+			len = 4;
+			break;
+		case SP_STR:
+			WFIFOW(fd,0) = 0x141;
+			WFIFOL(fd,2) = type;
+			WFIFOL(fd,6) = sd->status.str;
+			WFIFOL(fd,10) = sd->battle_status.str - sd->status.str;
+			len = 14;
+			break;
+		case SP_AGI:
+			WFIFOW(fd,0) = 0x141;
+			WFIFOL(fd,2) = type;
+			WFIFOL(fd,6) = sd->status.agi;
+			WFIFOL(fd,10) = sd->battle_status.agi - sd->status.agi;
+			len = 14;
+			break;
+		case SP_VIT:
+			WFIFOW(fd,0) = 0x141;
+			WFIFOL(fd,2) = type;
+			WFIFOL(fd,6) = sd->status.vit;
+			WFIFOL(fd,10) = sd->battle_status.vit - sd->status.vit;
+			len = 14;
+			break;
+		case SP_INT:
+			WFIFOW(fd,0) = 0x141;
+			WFIFOL(fd,2) = type;
+			WFIFOL(fd,6) = sd->status.int_;
+			WFIFOL(fd,10) = sd->battle_status.int_ - sd->status.int_;
+			len = 14;
+			break;
+		case SP_DEX:
+			WFIFOW(fd,0) = 0x141;
+			WFIFOL(fd,2) = type;
+			WFIFOL(fd,6) = sd->status.dex;
+			WFIFOL(fd,10) = sd->battle_status.dex - sd->status.dex;
+			len = 14;
+			break;
+		case SP_LUK:
+			WFIFOW(fd,0) = 0x141;
+			WFIFOL(fd,2) = type;
+			WFIFOL(fd,6) = sd->status.luk;
+			WFIFOL(fd,10) = sd->battle_status.luk - sd->status.luk;
+			len = 14;
+			break;
+		case SP_CARTINFO:
+			WFIFOW(fd,0) = 0x121;
+			WFIFOW(fd,2) = sd->cart_num;
+			WFIFOW(fd,4) = MAX_CART;
+			WFIFOL(fd,6) = sd->cart_weight;
+			WFIFOL(fd,10) = sd->cart_weight_max;
+			len = 14;
+			break;
+		default:
+			ShowError("clif_updatestatus : unrecognized type %d\n",type);
+			return;
 	}
 	WFIFOSET(fd,len);
 }
@@ -4620,10 +4640,11 @@ int clif_insight(struct block_list *bl,va_list ap)
 	TBL_PC *sd, *tsd;
 	tbl = va_arg(ap,struct block_list*);
 
-	if (bl == tbl) return 0;
-	
-	sd = BL_CAST(BL_PC, bl);
-	tsd = BL_CAST(BL_PC, tbl);
+	if (bl == tbl)
+		return 0;
+
+	sd = BL_CAST(BL_PC,bl);
+	tsd = BL_CAST(BL_PC,tbl);
 
 	if (tsd && tsd->fd) { //Tell tsd that bl entered into his view
 		switch(bl->type) {
@@ -4638,9 +4659,10 @@ int clif_insight(struct block_list *bl,va_list ap)
 				break;
 		}
 	}
-	if (sd && sd->fd) { //Tell sd that tbl walked into his view
+
+	if (sd && sd->fd) //Tell sd that tbl walked into his view
 		clif_getareachar_unit(sd,tbl);
-	}
+
 	return 0;
 }
 
@@ -9139,7 +9161,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if(sd->vd.cloth_color)
 		clif_refreshlook(&sd->bl,sd->bl.id,LOOK_CLOTHES_COLOR,sd->vd.cloth_color,SELF);
 	//Item
-	clif_inventorylist(sd); //Inventory list first,otherwise deleted items in pc_checkitem show up as 'unknown item'
+	clif_inventorylist(sd); //Inventory list first, otherwise deleted items in pc_checkitem show up as 'unknown item'
 	pc_checkitem(sd);
 
 	//Cart
@@ -9166,9 +9188,11 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 
 	if(map[sd->bl.m].users++ == 0 && battle_config.dynamic_mobs)
 		map_spawnmobs(sd->bl.m);
+
 	if(!(sd->sc.option&OPTION_INVISIBLE)) { //Increment the number of pvp players on the map
 		map[sd->bl.m].users_pvp++;
 	}
+
 	sd->state.debug_remove_map = 0; //Temporary state to track double remove_map's [FlavioJS]
 
 	//Reset the callshop flag if the player changes map
@@ -9184,7 +9208,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		clif_party_hp(sd); //Show hp after displacement [LuzZza]
 	}
 
-	if(sd->bg_id) clif_bg_hp(sd); //BattleGround System
+	if(sd->bg_id)
+		clif_bg_hp(sd); //BattleGround System
 
 	if(map[sd->bl.m].flag.pvp && !(sd->sc.option&OPTION_INVISIBLE)) {
 		if(!battle_config.pk_mode) { //Remove pvp stuff for pk_mode [Valaris]
@@ -9360,6 +9385,11 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 			char output[128];
 			sprintf(output,"[ Kill Steal Protection Disabled. KS is allowed in this map ]");
 			clif_broadcast(&sd->bl,output,strlen(output) + 1,BC_BLUE,SELF);
+		}
+
+		if(pc_has_permission(sd,PC_PERM_VIEW_HPMETER)) {
+			map[sd->bl.m].hpmeter_visible++;
+			sd->state.hpmeter_visible = 1;
 		}
 
 		map_iwall_get(sd); //Updates Walls Info on this Map to Client
