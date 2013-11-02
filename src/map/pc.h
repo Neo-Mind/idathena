@@ -1047,4 +1047,7 @@ void pc_damage_log_clear(struct map_session_data *sd, int id);
 void pc_rental_expire(struct map_session_data *sd, int i);
 void pc_scdata_received(struct map_session_data *sd);
 
+void pc_bank_deposit(struct map_session_data *sd, int money);
+void pc_bank_withdraw(struct map_session_data *sd, int money);
+
 #endif /* _PC_H_ */

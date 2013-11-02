@@ -673,6 +673,7 @@ INSERT INTO `sql_updates` (`timestamp`) VALUES (1362794218);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1366078541);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1366378765);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1366378888);
+INSERT INTO `sql_updates` (`timestamp`) VALUES (1381354728);
 
 --
 -- Table structure for table `sstatus`
@@ -708,6 +709,10 @@ CREATE TABLE IF NOT EXISTS `storage` (
   KEY `account_id` (`account_id`)
 ) ENGINE=MyISAM;
 
+--
+-- Table structure for table `interreg`
+--
+
 CREATE TABLE IF NOT EXISTS `interreg` (
   `varname` varchar(11) NOT NULL,
   `value` varchar(20) NOT NULL,
@@ -715,3 +720,13 @@ CREATE TABLE IF NOT EXISTS `interreg` (
 ) ENGINE=InnoDB;
 INSERT INTO `interreg` (`varname`, `value`) VALUES
 ('unique_id', '0');
+
+--
+-- Table structure for table `account_data`
+--
+
+CREATE TABLE IF NOT EXISTS `account_data` (
+  `account_id` int(11) unsigned NOT NULL default '0',
+  `bank_vault` int(11) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`account_id`)
+) ENGINE=MyISAM;

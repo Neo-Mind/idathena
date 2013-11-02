@@ -3654,15 +3654,15 @@ int pc_inventoryblank(struct map_session_data *sd)
 }
 
 /*==========================================
- * attempts to remove zeny from player (sd)
+ * Attempts to remove zeny from player (sd)
  *------------------------------------------*/
-int pc_payzeny(struct map_session_data *sd,int zeny, enum e_log_pick_type type, struct map_session_data *tsd)
+int pc_payzeny(struct map_session_data *sd, int zeny, enum e_log_pick_type type, struct map_session_data *tsd)
 {
 	nullpo_retr(-1,sd);
 
-	zeny = cap_value(zeny,-MAX_ZENY,MAX_ZENY); //prevent command UB
+	zeny = cap_value(zeny,-MAX_ZENY,MAX_ZENY); //Prevent command UB
 	if( zeny < 0 ) {
-		ShowError("pc_payzeny: Paying negative Zeny (zeny=%d, account_id=%d, char_id=%d).\n", zeny, sd->status.account_id, sd->status.char_id);
+		ShowError("pc_payzeny: Paying negative Zeny (zeny=%d, account_id=%d, char_id=%d).\n",zeny,sd->status.account_id,sd->status.char_id);
 		return 1;
 	}
 
@@ -3671,12 +3671,12 @@ int pc_payzeny(struct map_session_data *sd,int zeny, enum e_log_pick_type type, 
 
 	sd->status.zeny -= zeny;
 	clif_updatestatus(sd,SP_ZENY);
-	
-	if(!tsd) tsd = sd;
-	log_zeny(sd, type, tsd, -zeny);
+
+	if( !tsd ) tsd = sd;
+	log_zeny(sd,type,tsd,-zeny);
 	if( zeny > 0 && sd->state.showzeny ) {
 		char output[255];
-		sprintf(output, "Removed %dz.", zeny);
+		sprintf(output,"Removed %dz.",zeny);
 		clif_disp_onlyself(sd,output,strlen(output));
 	}
 
@@ -10016,6 +10016,52 @@ void pc_damage_log_clear(struct map_session_data *sd, int id) {
 /* Status change data arrived from char-server */
 void pc_scdata_received(struct map_session_data *sd) {
 	pc_inventory_rentals(sd);
+}
+
+void pc_bank_deposit(struct map_session_data *sd, int money) {
+	unsigned int limit_check = money + sd->status.bank_vault;
+
+	if( money <= 0 || limit_check > MAX_BANK_ZENY ) {
+		clif_bank_deposit(sd,BDA_OVERFLOW);
+		return;
+	} else if( money > sd->status.zeny ) {
+		clif_bank_deposit(sd,BDA_NO_MONEY);
+		return;
+	}
+
+	if( pc_payzeny(sd,money,LOG_TYPE_BANK,NULL) )
+		clif_bank_deposit(sd,BDA_NO_MONEY);
+	else {
+		sd->status.bank_vault += money;
+		if( save_settings&256 )
+			chrif_save(sd,0);
+		clif_bank_deposit(sd,BDA_SUCCESS);
+	}
+}
+
+void pc_bank_withdraw(struct map_session_data *sd, int money) {
+	unsigned int limit_check = money + sd->status.zeny;
+
+	if( money <= 0 ) {
+		clif_bank_withdraw(sd,BWA_UNKNOWN_ERROR);
+		return;
+	} else if( money > sd->status.bank_vault ) {
+		clif_bank_withdraw(sd,BWA_NO_MONEY);
+		return;
+	} else if( limit_check > MAX_ZENY ) {
+		/* No official response for this scenario exists. */
+		clif_colormes((struct map_session_data*)sd->fd,color_table[COLOR_RED],msg_txt(1509));
+		return;
+	}
+
+	if( pc_getzeny(sd,money,LOG_TYPE_BANK,NULL) )
+		clif_bank_withdraw(sd,BWA_NO_MONEY);
+	else {
+		sd->status.bank_vault -= money;
+		if( save_settings&256 )
+			chrif_save(sd,0);
+		clif_bank_withdraw(sd,BWA_SUCCESS);
+	}
 }
 
 /*==========================================

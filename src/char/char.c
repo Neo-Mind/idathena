@@ -68,7 +68,9 @@ char mercenary_db[256] = "mercenary";
 char mercenary_owner_db[256] = "mercenary_owner";
 char ragsrvinfo_db[256] = "ragsrvinfo";
 char elemental_db[256] = "elemental";
+char interreg_db[32] = "interreg";
 char skillcooldown_db[256] = "skillcooldown";
+char account_data_db[256] = "account_data";
 
 // Show loading/saving messages
 int save_log = 1;
@@ -549,6 +551,16 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
 			errors++;
 		} else
 			strcat(save_status, " status");
+	}
+
+	if( p->bank_vault != cp->bank_vault ) {
+		if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `%s` (`account_id`,`bank_vault`) VALUES ('%d','%d')",
+			account_data_db, p->account_id, p->bank_vault) )
+		{
+			Sql_ShowDebug(sql_handle);
+			errors++;
+		} else
+			strcat(save_status, " bank");
 	}
 
 	//Values that will seldom change (to speed up saving)
@@ -1139,10 +1151,12 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 	int hotkey_num;
 #endif
 	unsigned int opt;
+	int account_id;
 
 	memset(p, 0, sizeof(struct mmo_charstatus));
 
-	if (save_log) ShowInfo("Char load request (%d)\n", char_id);
+	if( save_log )
+		ShowInfo("Char load request (%d)\n", char_id);
 
 	stmt = SqlStmt_Malloc(sql_handle);
 	if( stmt == NULL ) {
@@ -1150,7 +1164,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 		return 0;
 	}
 
-	// read char data
+	//Read char data
 	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT "
 		"`char_id`,`account_id`,`char_num`,`name`,`class`,`base_level`,`job_level`,`base_exp`,`job_exp`,`zeny`,"
 		"`str`,`agi`,`vit`,`int`,`dex`,`luk`,`max_hp`,`hp`,`max_sp`,`sp`,"
@@ -1226,6 +1240,9 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 		SqlStmt_Free(stmt);
 		return 0;
 	}
+
+	account_id = p->account_id;
+
 	p->last_point.map = mapindex_name2id(last_map);
 	p->save_point.map = mapindex_name2id(save_map);
 
@@ -1243,12 +1260,12 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 
 	strcat(t_msg, " status");
 
-	if (!load_everything) { // For quick selection of data when displaying the char menu
+	if (!load_everything) { //For quick selection of data when displaying the char menu
 		SqlStmt_Free(stmt);
 		return 1;
 	}
 
-	//read memo data
+	//Read memo data
 	//`memo` (`memo_id`,`char_id`,`map`,`x`,`y`)
 	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT `map`,`x`,`y` FROM `%s` WHERE `char_id`=? ORDER by `memo_id` LIMIT %d", memo_db, MAX_MEMOPOINTS)
 	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_INT, &char_id, 0)
@@ -1264,7 +1281,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 	}
 	strcat(t_msg, " memo");
 
-	//read inventory
+	//Read inventory
 	//`inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`, `expire_time`, `favorite`, `unique_id`)
 	StringBuf_Init(&buf);
 	StringBuf_AppendStr(&buf, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `expire_time`, `favorite`, `bound`, `unique_id`");
@@ -1296,7 +1313,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 
 	strcat(t_msg, " inventory");
 
-	//read cart
+	//Read cart
 	//`cart_inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`, expire_time`, `unique_id`)
 	StringBuf_Clear(&buf);
 	StringBuf_AppendStr(&buf, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `expire_time`, `bound`, `unique_id`");
@@ -1326,11 +1343,11 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 		memcpy(&p->cart[i], &tmp_item, sizeof(tmp_item));
 	strcat(t_msg, " cart");
 
-	//read storage
+	//Read storage
 	storage_fromsql(p->account_id, &p->storage);
 	strcat(t_msg, " storage");
 
-	//read skill
+	//Read skill
 	//`skill` (`char_id`, `id`, `lv`)
 	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT `id`, `lv`,`flag` FROM `%s` WHERE `char_id`=? LIMIT %d", skill_db, MAX_SKILL)
 	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_INT, &char_id, 0)
@@ -1351,7 +1368,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 	}
 	strcat(t_msg, " skills");
 
-	//read friends
+	//Read friends
 	//`friends` (`char_id`, `friend_account`, `friend_id`)
 	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT c.`account_id`, c.`char_id`, c.`name` FROM `%s` c LEFT JOIN `%s` f ON f.`friend_account` = c.`account_id` AND f.`friend_id` = c.`char_id` WHERE f.`char_id`=? LIMIT %d", char_db, friend_db, MAX_FRIENDS)
 	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_INT, &char_id, 0)
@@ -1366,7 +1383,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 	strcat(t_msg, " friends");
 
 #ifdef HOTKEY_SAVING
-	//read hotkeys
+	//Read hotkeys
 	//`hotkey` (`char_id`, `hotkey`, `type`, `itemskill_id`, `skill_lvl`
 	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT `hotkey`, `type`, `itemskill_id`, `skill_lvl` FROM `%s` WHERE `char_id`=?", hotkey_db)
 	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_INT, &char_id, 0)
@@ -1390,15 +1407,26 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 	mercenary_owner_fromsql(char_id, p);
 	strcat(t_msg, " mercenary");
 
+	//Read account data
+	//`account_data` (`account_id`,`bank_vault`)
+	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT `bank_vault` FROM `%s` WHERE `account_id`=? LIMIT 1", account_data_db)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_INT, &account_id, 0)
+	||	SQL_ERROR == SqlStmt_Execute(stmt)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0, SQLDT_INT, &p->bank_vault, 0, NULL, NULL) )
+		SqlStmt_ShowDebug(stmt);
 
-	if (save_log) ShowInfo("Loaded char (%d - %s): %s\n", char_id, p->name, t_msg);	//ok. all data load successfuly!
+	if( SQL_SUCCESS == SqlStmt_NextRow(stmt) )
+		strcat(t_msg, " bank");
+
+	if( save_log )
+		ShowInfo("Loaded char (%d - %s): %s\n", char_id, p->name, t_msg); //OK. all data load successfuly!
 	SqlStmt_Free(stmt);
 	StringBuf_Destroy(&buf);
 
 	/* Load options into proper vars */
-	if (opt & OPT_ALLOW_PARTY)
+	if( opt&OPT_ALLOW_PARTY )
 		p->allow_party = true;
-	if (opt & OPT_SHOW_EQUIP)
+	if( opt&OPT_SHOW_EQUIP )
 		p->show_equip = true;
 
 	cp = idb_ensure(char_db_, char_id, create_charstatus);
@@ -4942,6 +4970,10 @@ void sql_config_read(const char* cfgName)
 			safestrncpy(ragsrvinfo_db, w2,sizeof(ragsrvinfo_db));
 		else if(!strcmpi(w1, "elemental_db"))
 			safestrncpy(elemental_db, w2,sizeof(elemental_db));
+		else if(!strcmpi(w1,"interreg_db"))
+			safestrncpy(interreg_db, w2, sizeof(interreg_db));
+		else if(!strcmpi(w1, "account_data_db"))
+			safestrncpy(account_data_db, w2,sizeof(account_data_db));
 		//Support the import command, just like any other config
 		else if(!strcmpi(w1, "import"))
 			sql_config_read(w2);

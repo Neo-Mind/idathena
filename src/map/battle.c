@@ -3485,9 +3485,9 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			skillratio += 150 + 50 * skill_lv;
 			if(sd) {
 				short index = sd->equip_index[EQI_HAND_R];
-				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
 				//Weight is divided by 10 since 10 weight in coding make 1 whole actural weight. [Rytech]
-				skillratio += sd->inventory_data[index]->weight / 10;
+				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
+					skillratio += sd->inventory_data[index]->weight / 10;
 			}
 			RE_LVL_DMOD(100);
 			break;
@@ -3586,11 +3586,10 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			RE_LVL_DMOD(100);
 			break;
 		case SR_SKYNETBLOW:
+			//ATK [{(Skill Level x 100) + (Caster's AGI) + 150} x Caster's Base Level / 100] %
 			if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_DRAGONCOMBO)
-				//ATK [{(Skill Level x 100) + (Caster's AGI) + 150} x Caster's Base Level / 100] %
 				skillratio += 100 * skill_lv + sstatus->agi + 50;
-			else
-				//ATK [{(Skill Level x 80) + (Caster's AGI)} x Caster's Base Level / 100] %
+			else //ATK [{(Skill Level x 80) + (Caster's AGI)} x Caster's Base Level / 100] %
 				skillratio += -100 + 80 * skill_lv + sstatus->agi;
 			RE_LVL_DMOD(100);
 			break;
@@ -5470,10 +5469,9 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					case SO_PSYCHIC_WAVE:
 						skillratio += -100 + 70 * skill_lv + 3 * sstatus->int_;
 						RE_LVL_DMOD(100);
-						if(sc)
-							if(sc->data[SC_HEATER_OPTION] || sc->data[SC_COOLER_OPTION] ||
-								sc->data[SC_BLAST_OPTION] || sc->data[SC_CURSED_SOIL_OPTION])
-								skillratio += 20;
+						if(sc && (sc->data[SC_HEATER_OPTION] || sc->data[SC_COOLER_OPTION] ||
+							sc->data[SC_BLAST_OPTION] || sc->data[SC_CURSED_SOIL_OPTION]))
+							skillratio += 20;
 						break;
 					case SO_CLOUD_KILL:
 						skillratio += -100 + 40 * skill_lv;
@@ -5489,9 +5487,9 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 							skillratio += sc->data[SC_BLAST_OPTION]->val2 * 5;
 						break;
 					case GN_DEMONIC_FIRE:
-						if(skill_lv > 20) { //Fire Expansion Level 2
+						if(skill_lv > 20) //Fire Expansion Level 2
 							skillratio += 10 + 20 * (skill_lv - 20) + 10 * sstatus->int_;
-						} else if(skill_lv > 10) { //Fire Expansion Level 1
+						else if(skill_lv > 10) { //Fire Expansion Level 1
 							skillratio += 10 + 20 * (skill_lv - 10) + (sd ? sd->status.job_level + sstatus->int_ : sstatus->int_);
 							RE_LVL_DMOD(100);
 						} else //Normal Demonic Fire Damage
@@ -5654,7 +5652,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 #ifdef RENEWAL
 			/**
 			 * RE MDEF Reduction
-			 * Damage = Magic Attack * (1000+eMDEF)/(1000+eMDEF) - sMDEF
+			 * Damage = Magic Attack * (1000 + eMDEF) / (1000 + eMDEF) - sMDEF
 			 **/
 			if (mdef == -100)
 				mdef = -99; //Avoid divide by 0
@@ -5854,12 +5852,10 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			md.damage = (sstatus->dex / 10 + sstatus->int_ / 2 + skill * 3 + 40) * 2;
 			if(mflag > 1) //Autocasted Blitz.
 				nk |= NK_SPLASHSPLIT;
-
 			if(skill_id == SN_FALCONASSAULT) {
 				//Div fix of Blitzbeat
 				skill = skill_get_num(HT_BLITZBEAT,5);
 				damage_div_fix(md.damage,skill);
-
 				//Falcon Assault Modifier
 				md.damage = md.damage * (150 + 70 * skill_lv) / 100;
 			}
@@ -5918,9 +5914,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				if(!md.damage)
 					md.damage = (skill_id == NJ_ZENYNAGE ? 2 : 10);
 				md.damage = (skill_id == NJ_ZENYNAGE ? rnd()%md.damage + md.damage : md.damage * rnd_value(50,100)) / (skill_id == NJ_ZENYNAGE ? 1 : 100);
-				if(sd)
-					if(skill_id == KO_MUCHANAGE && !pc_checkskill(sd,NJ_TOBIDOUGU))
-						md.damage = md.damage / 2;
+				if(sd && skill_id == KO_MUCHANAGE && !pc_checkskill(sd,NJ_TOBIDOUGU))
+					md.damage = md.damage / 2;
 				if(is_boss(target))
 					md.damage = md.damage / (skill_id == NJ_ZENYNAGE ? 3 : 2);
 				else if(tsd && skill_id == NJ_ZENYNAGE)
@@ -7590,6 +7585,7 @@ static const struct _battle_data {
 	{ "feature.auction",                    &battle_config.feature_auction,                 0,      0,      2,              },
 	{ "mon_trans_disable_in_gvg",           &battle_config.mon_trans_disable_in_gvg,        0,      0,      1,              },
 	{ "transform_end_on_death",             &battle_config.transform_end_on_death,          1,      0,      1,              },
+	{ "feature.banking",                    &battle_config.feature_banking,                 1,      0,      1,              },
 };
 #ifndef STATS_OPT_OUT
 /**
@@ -7811,10 +7807,17 @@ void battle_adjust_conf()
 #endif
 
 #if PACKETVER > 20120000 && PACKETVER < 20130515 /* Exact date (when it started) not known */
-	if (battle_config.feature_auction == 1) {
+	if (battle_config.feature_auction) {
 		ShowWarning("conf/battle/feature.conf:feature.auction is enabled but it is not stable on PACKETVER "EXPAND_AND_QUOTE(PACKETVER)", disabling...\n");
 		ShowWarning("conf/battle/feature.conf:feature.auction change value to '2' to silence this warning and maintain it enabled\n");
 		battle_config.feature_auction = 0;
+	}
+#endif
+
+#if PACKETVER < 20130724
+	if (battle_config.feature_banking) {
+		ShowWarning("conf/battle/feature.conf banking is enabled but it requires PACKETVER 2013-07-24 or newer, disabling...\n");
+		battle_config.feature_banking = 0;
 	}
 #endif
 
