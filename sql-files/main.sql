@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS `char` (
   `char_id` int(11) unsigned NOT NULL auto_increment,
   `account_id` int(11) unsigned NOT NULL default '0',
   `char_num` tinyint(1) NOT NULL default '0',
-  `name` varchar(30) NOT NULL DEFAULT '',
+  `name` varchar(30) NOT NULL default '',
   `class` smallint(6) unsigned NOT NULL default '0',
   `base_level` smallint(6) unsigned NOT NULL default '1',
   `job_level` smallint(6) unsigned NOT NULL default '1',
@@ -442,7 +442,7 @@ CREATE TABLE IF NOT EXISTS `login` (
   `logincount` mediumint(9) unsigned NOT NULL default '0',
   `lastlogin` datetime NOT NULL default '0000-00-00 00:00:00',
   `last_ip` varchar(100) NOT NULL default '',
-  `birthdate` DATE NOT NULL DEFAULT '0000-00-00',
+  `birthdate` DATE NOT NULL default '0000-00-00',
   `character_slots` tinyint(3) unsigned NOT NULL default '0',
   `pincode` varchar(4) NOT NULL default '',
   `pincode_change` int(11) unsigned NOT NULL default '0',
@@ -637,11 +637,11 @@ CREATE TABLE IF NOT EXISTS `skill` (
 CREATE TABLE IF NOT EXISTS `skillcooldown` (
   `account_id` int(11) unsigned NOT NULL,
   `char_id` int(11) unsigned NOT NULL,
-  `skill` smallint(11) unsigned NOT NULL DEFAULT '0',
+  `skill` smallint(11) unsigned NOT NULL default '0',
   `tick` int(11) NOT NULL,
   KEY `account_id` (`account_id`),
   KEY `char_id` (`char_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM default CHARSET=latin1;
 
 --
 -- Table structure for table `skill_homunculus`
@@ -660,7 +660,7 @@ CREATE TABLE IF NOT EXISTS `skill_homunculus` (
 
 CREATE TABLE IF NOT EXISTS `sql_updates` (
   `timestamp` int(11) unsigned NOT NULL,
-  `ignored` enum('Yes','No') NOT NULL DEFAULT 'No',
+  `ignored` enum('Yes','No') NOT NULL default 'No',
   PRIMARY KEY (`timestamp`)
 ) ENGINE=MyISAM;
 
