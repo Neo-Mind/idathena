@@ -2524,11 +2524,17 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		clif_status_load(&sd->bl, SI_INTRAVISION, 0);
 
 	memset(&sd->special_state, 0, sizeof(sd->special_state));
-	memset(&status->max_hp, 0, sizeof(struct status_data) - (sizeof(status->hp) + sizeof(status->sp)));
+
+	if (!sd->state.permanent_speed) {
+		memset(&status->max_hp, 0, sizeof(struct status_data) - (sizeof(status->hp) + sizeof(status->sp)));
+		status->speed = DEFAULT_WALK_SPEED;
+	} else {
+		int pSpeed = status->speed;
+		memset(&status->max_hp, 0, sizeof(struct status_data) - (sizeof(status->hp) + sizeof(status->sp)));
+		status->speed = pSpeed;
+	}
 
 	//FIXME: Most of these stuff should be calculated once, but how do I fix the memset above to do that? [Skotlex]
-	if (!sd->state.permanent_speed)
-		status->speed = DEFAULT_WALK_SPEED;
 	//Give them all modes except these (useful for clones)
 	status->mode = MD_MASK&~(MD_BOSS|MD_PLANT|MD_DETECTOR|MD_ANGRY|MD_TARGETWEAK);
 
@@ -3949,6 +3955,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 
 	if( flag&SCB_SPEED ) {
 		struct unit_data *ud = unit_bl2ud(bl);
+
 		status->speed = status_calc_speed(bl, sc, b_status->speed);
 
 		//Re-walk to adjust speed (we do not check if walktimer != INVALID_TIMER
@@ -3956,8 +3963,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		//piece of code triggers the walk-timer is set on INVALID_TIMER) [Skotlex]
 		if( ud )
 			ud->state.change_walk_target = ud->state.speed_changed = 1;
-
-		if( bl->type&BL_PC && status->speed < battle_config.max_walk_speed )
+		if( bl->type&BL_PC && !(sd && sd->state.permanent_speed) && status->speed < battle_config.max_walk_speed )
 			status->speed = battle_config.max_walk_speed;
 		if( bl->type&BL_HOM && battle_config.hom_setting&0x8 && ((TBL_HOM*)bl)->master)
 			status->speed = status_get_speed(&((TBL_HOM*)bl)->master->bl);
@@ -3989,9 +3995,11 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 
 	if( flag&SCB_ATK_ELE ) {
 		status->rhw.ele = status_calc_attack_element(bl, sc, b_status->rhw.ele);
-		if( sd ) sd->state.lr_flag = 1;
+		if( sd )
+			sd->state.lr_flag = 1;
 		status->lhw.ele = status_calc_attack_element(bl, sc, b_status->lhw.ele);
-		if( sd ) sd->state.lr_flag = 0;
+		if( sd )
+			sd->state.lr_flag = 0;
 	}
 
 	if( flag&SCB_DEF_ELE ) {
@@ -5343,11 +5351,8 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 	TBL_PC* sd = BL_CAST(BL_PC, bl);
 	int speed_rate;
 
-	if( sc == NULL )
-		return (short)cap_value(speed,10,USHRT_MAX);
-
-	if( sd && sd->state.permanent_speed )
-		return (short)cap_value(speed,10,USHRT_MAX);
+	if( sc == NULL || (sd && sd->state.permanent_speed) )
+		return (unsigned short)cap_value(speed,MIN_WALK_SPEED,MAX_WALK_SPEED);
 
 	if( sd && sd->ud.skilltimer != INVALID_TIMER && (pc_checkskill(sd,SA_FREECAST) > 0 || sd->ud.skill_id == LG_EXEEDBREAK) ) {
 		if( sd->ud.skill_id == LG_EXEEDBREAK )
@@ -5515,7 +5520,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 			speed = speed * 100 / sc->data[SC_WALKSPEED]->val1;
 	}
 
-	return (short)cap_value(speed,10,USHRT_MAX);
+	return (unsigned short)cap_value(speed,MIN_WALK_SPEED,MAX_WALK_SPEED);
 }
 
 #ifdef RENEWAL_ASPD
@@ -10756,6 +10761,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			if( --(sce->val4) >= 0 ) {
 				bool flag = 0;
 				int damage = status->max_hp * 3 / 100;
+
 				if( status->hp <= damage )
 					damage = status->hp - 1; //Cannot Kill
 
@@ -10767,15 +10773,16 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				}
 
 				if( !flag ) { //Random Skill Cast
-					if (sd && !pc_issit(sd)) { //can't cast if sit
-						int mushroom_skill_id = 0,i;
+					if( sd && !pc_issit(sd) ) { //Can't cast if sit
+						int mushroom_skill_id = 0, i;
+
 						unit_stop_attack(bl);
-						unit_skillcastcancel(bl,1);
+						unit_skillcastcancel(bl,0);
+
 						do {
 							i = rnd() % MAX_SKILL_MAGICMUSHROOM_DB;
 							mushroom_skill_id = skill_magicmushroom_db[i].skill_id;
-						}
-						while( mushroom_skill_id == 0 );
+						} while( mushroom_skill_id == 0 );
 
 						switch( skill_get_casttype(mushroom_skill_id) ) { //Magic Mushroom skills are buffs or area damage
 							case CAST_GROUND:

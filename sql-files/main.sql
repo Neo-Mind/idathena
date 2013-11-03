@@ -109,6 +109,7 @@ CREATE TABLE IF NOT EXISTS `char` (
   `delete_date` int(11) unsigned NOT NULL default '0',
   `moves` int(11) unsigned NOT NULL default '0',
   `char_opt` int(11) unsigned NOT NULL default '0',
+  `font` tinyint(3) unsigned NOT NULL default '0',
   PRIMARY KEY (`char_id`),
   UNIQUE KEY `name_key` (`name`),
   KEY `account_id` (`account_id`),
@@ -674,6 +675,7 @@ INSERT INTO `sql_updates` (`timestamp`) VALUES (1366078541);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1366378765);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1366378888);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1381354728);
+INSERT INTO `sql_updates` (`timestamp`) VALUES (1381423003);
 
 --
 -- Table structure for table `sstatus`

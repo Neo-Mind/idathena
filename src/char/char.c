@@ -517,7 +517,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
 		(p->ele_id != cp->ele_id) || (p->shield != cp->shield) || (p->head_top != cp->head_top) ||
 		(p->head_mid != cp->head_mid) || (p->head_bottom != cp->head_bottom) || (p->delete_date != cp->delete_date) ||
 		(p->rename != cp->rename) || (p->robe != cp->robe) || (p->character_moves != cp->character_moves) ||
-		(p->show_equip != cp->show_equip) || (p->allow_party != cp->allow_party)
+		(p->show_equip != cp->show_equip) || (p->allow_party != cp->allow_party) || (p->font != cp->font)
 	) {	//Save status
 		unsigned int opt = 0;
 
@@ -533,7 +533,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
 			"`option`='%d',`party_id`='%d',`guild_id`='%d',`pet_id`='%d',`homun_id`='%d',`elemental_id`='%d',"
 			"`weapon`='%d',`shield`='%d',`head_top`='%d',`head_mid`='%d',`head_bottom`='%d',"
 			"`last_map`='%s',`last_x`='%d',`last_y`='%d',`save_map`='%s',`save_x`='%d',`save_y`='%d',`rename`='%d',"
-			"`delete_date`='%lu',`robe`='%d',`moves`='%d',`char_opt`='%u'"
+			"`delete_date`='%lu',`robe`='%d',`moves`='%d',`char_opt`='%u',`font`='%u'"
 			" WHERE `account_id`='%d' AND `char_id` = '%d'",
 			char_db, p->base_level, p->job_level,
 			p->base_exp, p->job_exp, p->zeny,
@@ -544,7 +544,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
 			mapindex_id2name(p->last_point.map), p->last_point.x, p->last_point.y,
 			mapindex_id2name(p->save_point.map), p->save_point.x, p->save_point.y, p->rename,
 			(unsigned long)p->delete_date, // FIXME: platform-dependent size
-			p->robe,p->character_moves,opt,
+			p->robe,p->character_moves,opt,p->font,
 			p->account_id, p->char_id) )
 		{
 			Sql_ShowDebug(sql_handle);
@@ -575,9 +575,9 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
 	{
 		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `class`='%d',"
 			"`hair`='%d',`hair_color`='%d',`clothes_color`='%d',"
-			"`partner_id`='%d', `father`='%d', `mother`='%d', `child`='%d',"
-			"`karma`='%d',`manner`='%d', `fame`='%d'"
-			" WHERE  `account_id`='%d' AND `char_id` = '%d'",
+			"`partner_id`='%d',`father`='%d',`mother`='%d',`child`='%d',"
+			"`karma`='%d',`manner`='%d',`fame`='%d'"
+			" WHERE `account_id`='%d' AND `char_id` = '%d'",
 			char_db, p->class_,
 			p->hair, p->hair_color, p->clothes_color,
 			p->partner_id, p->father, p->mother, p->child,
@@ -1171,7 +1171,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 		"`status_point`,`skill_point`,`option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`,`homun_id`,`elemental_id`,`hair`,"
 		"`hair_color`,`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`,`last_map`,`last_x`,`last_y`,"
 		"`save_map`,`save_x`,`save_y`,`partner_id`,`father`,`mother`,`child`,`fame`,`rename`,`delete_date`,`robe`,`moves`,"
-		"`char_opt`"
+		"`char_opt`,`font`"
 		" FROM `%s` WHERE `char_id`=? LIMIT 1", char_db)
 	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_INT, &char_id, 0)
 	||	SQL_ERROR == SqlStmt_Execute(stmt)
@@ -1229,6 +1229,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 51, SQLDT_SHORT,  &p->robe, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 52, SQLDT_UINT32, &p->character_moves, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 53, SQLDT_UINT,   &opt, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 54, SQLDT_UCHAR,  &p->font, 0, NULL, NULL)
 	)
 	{
 		SqlStmt_ShowDebug(stmt);

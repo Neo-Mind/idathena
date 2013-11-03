@@ -16565,14 +16565,14 @@ BUILDIN_FUNC(setfont)
 {
 	struct map_session_data *sd = script_rid2sd(st);
 	int font = script_getnum(st,2);
+
 	if( sd == NULL )
 		return 0;
-
-	if( sd->user_font != font )
-		sd->user_font = font;
+	if( sd->status.font != font )
+		sd->status.font = font;
 	else
-		sd->user_font = 0;
-	
+		sd->status.font = 0;
+
 	clif_font(sd);
 	return 0;
 }

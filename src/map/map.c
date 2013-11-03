@@ -1691,9 +1691,7 @@ int map_quit(struct map_session_data *sd) {
 	//Return loot to owner
 	if (sd->pd) pet_lootitem_drop(sd->pd,sd);
 
-	if (sd->state.storage_flag == 1) sd->state.storage_flag = 0; //No need to Double Save Storage on Quit.
-
-	if (sd->state.permanent_speed == 1) sd->state.permanent_speed = 0; //Remove lock so speed is set back to normal at login.
+	if (sd->state.storage_flag == 1) sd->state.storage_flag = 0; //No need to double save storage on quit.
 
 	if (map[sd->bl.m].instance_id)
 		instance_delusers(map[sd->bl.m].instance_id);

@@ -5626,9 +5626,9 @@
 12284,Internet_Cafe3,Internet Cafe3,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ sc_start SC_INCINT,5400000,8; sc_start SC_INCVIT,5400000,4; sc_start SC_INCDEX,5400000,6; sc_start SC_MATKPOTION,5400000,40; },{},{}
 12285,Internet_Cafe4,Internet Cafe4,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ sc_start SC_INCDEX,5400000,8; sc_start SC_INCLUK,5400000,4; sc_start SC_INCAGI,5400000,6; sc_start SC_ATKPOTION,5400000,24; sc_start SC_MATKPOTION,5400000,24; },{},{}
 12286,Masquerade_Ball_Box2,Masquerade Ball Box2,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getrandgroupitem(IG_Masquerade_2),1; },{},{}
-12287,Love_Angel,Love Angel Magic Powder,2,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ setfont 1; },{},{}
-12288,Squirrel,Squirrel Magic Powder,2,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ setfont 2; },{},{}
-12289,Gogo,Gogo Magic Powder,2,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ setfont 3; },{},{}
+12287,Love_Angel,Love Angel Magic Powder,11,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ setfont 1; },{},{}
+12288,Squirrel,Squirrel Magic Powder,11,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ setfont 2; },{},{}
+12289,Gogo,Gogo Magic Powder,11,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ setfont 3; },{},{}
 12290,Mysterious_Can,Mysterious Can Magic Powder,2,10,,100,,,,,0xFFFFFFFF,63,2,,,,,,{ percentheal 5,0; skilleffect "AL_BLESSING",0; sc_start SC_BLESSING,120000,5; },{},{}
 12291,Mysterious_PET_Bottle,Mysterious PET Bottle,2,10,,100,,,,,0xFFFFFFFF,63,2,,,,,,{ percentheal 5,0; skilleffect "AL_INCAGI",0; sc_start SC_INCREASEAGI,120000,5; },{},{}
 12292,Unripe_Fruit,Unripe Yggdrasilberry,0,500,,200,,,,,0xFFFFFFFF,63,2,,,,,,{ percentheal 20,0; },{},{}
@@ -5643,12 +5643,12 @@
 12301,Doppelganger_Scroll,Doppelganger Contract,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ mercenary_create 1966,1800000; },{},{}
 12302,Ygnizem_Scroll,Egnigem Cenia Contract,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ mercenary_create 1967,1800000; },{},{}
 12303,Water_Of_Blessing,Blessing Of Water,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
-12304,Picture_Diary,Diary Magic Powder,2,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ setfont 4; },{},{}
-12305,Mini_Heart,Mini Heart Magic Powder,2,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ setfont 5; },{},{}
-12306,Newcomer,Freshman Magic Powder,2,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ setfont 6; },{},{}
-12307,Kid,Kid Magic Powder,2,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ setfont 7; },{},{}
-12308,Magic_Castle,Magic Magic Powder,2,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ setfont 8; },{},{}
-12309,Bulging_Head,JJangu Magic Powder,2,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ setfont 9; },{},{}
+12304,Picture_Diary,Diary Magic Powder,11,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ setfont 4; },{},{}
+12305,Mini_Heart,Mini Heart Magic Powder,11,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ setfont 5; },{},{}
+12306,Newcomer,Freshman Magic Powder,11,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ setfont 6; },{},{}
+12307,Kid,Kid Magic Powder,11,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ setfont 7; },{},{}
+12308,Magic_Castle,Magic Magic Powder,11,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ setfont 8; },{},{}
+12309,Bulging_Head,JJangu Magic Powder,11,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ setfont 9; },{},{}
 12310,Spray_Of_Flowers,Spray Of Flowers,2,0,,50,,,,,0xFFFFFFFF,63,2,,,,,,{ sc_start SC_INCFLEE,300000,5; },{},{}
 12311,Large_Spray_Of_Flowers,Huge Spray Of Flowers,11,0,,100,,,,,0xFFFFFFFF,63,2,,,,,,{ itemskill "ALL_PARTYFLEE",5; },{},{}
 12312,Thick_Manual50,Thick Battle Manual,2,0,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ sc_start SC_EXPBOOST,3600000,50; },{},{}
@@ -6505,11 +6505,11 @@
 13308,Huuma_Blaze_I,Huuma Blaze Shuriken,4,0,,0,230,,1,0,0x22000000,63,2,34,4,0,0,22,{ bonus bUnbreakableWeapon,0; bonus bAtkEle,Ele_Fire; bonus bDex,2; },{},{}
 13309,Huuma_Giant_Wheel_C,Huuma Giant Wheel Shuriken,4,0,,0,99,,1,0,0x22000000,63,2,34,4,1,0,22,{ bonus2 bAddSize,Size_Small,80; bonus2 bAddSize,Size_Medium,80; bonus2 bAddSize,Size_Large,80; },{},{}
 13310,P_Huuma_Suriken1,P.Huuma Suriken I,4,0,,0,170,,1,0,0x22000000,63,2,34,3,60,0,22,{ bonus bMatk,50; },{},{}
-13311,Huuma_Shadow,Sword Huuma Shuriken,4,5000,,1500,170,,1,0,0x22000000,56,2,34,3,99,1,22,{ bonus bStr,3; },{},{}
-13312,Huuma_Job_Test,Prototype Huuma Shuriken,4,0,,3000,0,,1,0,0x22000000,56,2,34,4,99,1,22,{},{},{}
-13313,Huuma_Swirling_Petal,Flower Huuma Shuriken,4,100000,,1500,150,,1,2,0x22000000,56,2,34,3,110,1,22,{ bonus bMatk,50; bonus bAtkEle,Ele_Fire; bonus2 bSkillAtk,"KO_HUUMARANKA",20; },{},{}
-13314,Huuma_Fluttering_Snow,Wave Huuma Shuriken,4,100000,,1500,200,,1,0,0x22000000,56,2,34,4,110,1,22,{ bonus bMatk,50; bonus bAtkEle,Ele_Water; bonus3 bAutoSpell,"NJ_HYOUSYOURAKU",(getskilllv("NJ_HYOUSYOURAKU")?getskilllv("NJ_HYOUSYOURAKU"):1),30; },{},{}
-13315,Huuma_Thunderstorm,Thunderstorm Huuma Shuriken,4,100000,,1500,200,,1,0,0x22000000,56,2,34,4,110,1,22,{ bonus bMatk,50; bonus bAtkEle,Ele_Wind; bonus3 bAutoSpell,"NJ_RAIGEKISAI",(getskilllv("NJ_RAIGEKISAI")?getskilllv("NJ_RAIGEKISAI"):1),30; },{},{}
+13311,Huuma_Shadow,Sword Huuma Shuriken,4,5000,,1500,170,,1,0,0x22000000,63,2,34,3,99,1,22,{ bonus bStr,3; },{},{}
+13312,Huuma_Job_Test,Prototype Huuma Shuriken,4,0,,3000,0,,1,0,0x22000000,63,2,34,4,99,1,22,{},{},{}
+13313,Huuma_Swirling_Petal,Flower Huuma Shuriken,4,100000,,1500,150,,1,2,0x22000000,63,2,34,3,110,1,22,{ bonus bMatk,50; bonus bAtkEle,Ele_Fire; bonus2 bSkillAtk,"KO_HUUMARANKA",20; },{},{}
+13314,Huuma_Fluttering_Snow,Wave Huuma Shuriken,4,100000,,1500,200,,1,0,0x22000000,63,2,34,4,110,1,22,{ bonus bMatk,50; bonus bAtkEle,Ele_Water; bonus3 bAutoSpell,"NJ_HYOUSYOURAKU",(getskilllv("NJ_HYOUSYOURAKU")?getskilllv("NJ_HYOUSYOURAKU"):1),30; },{},{}
+13315,Huuma_Thunderstorm,Thunderstorm Huuma Shuriken,4,100000,,1500,200,,1,0,0x22000000,63,2,34,4,110,1,22,{ bonus bMatk,50; bonus bAtkEle,Ele_Wind; bonus3 bAutoSpell,"NJ_RAIGEKISAI",(getskilllv("NJ_RAIGEKISAI")?getskilllv("NJ_RAIGEKISAI"):1),30; },{},{}
 13316,Upg_Huuma_Shuriken,Upg Huuma Shuriken,4,20,,1500,55,,1,1,0x22000000,63,2,34,3,1,1,22,{ bonus bBaseAtk,(getrefine()*10); bonus bMatk,(getrefine()*5); bonus bLongAtkRate,(getrefine()); if(BaseLevel>70) bonus bBaseAtk,(((BaseLevel-70)/10)*5); },{},{}
 // More 1-Handed Swords
 //===================================================================

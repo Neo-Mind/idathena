@@ -89,7 +89,7 @@
 //Should hold the max of GLOBAL/ACCOUNT/ACCOUNT2 (Needed for some arrays that hold all three)
 #define MAX_REG_NUM 256
 #define DEFAULT_WALK_SPEED 150
-#define MIN_WALK_SPEED 0
+#define MIN_WALK_SPEED 20 /* Below 20 clips animation */
 #define MAX_WALK_SPEED 1000
 #define MAX_STORAGE 600
 #define MAX_GUILD_STORAGE 600
@@ -401,8 +401,10 @@ struct mmo_charstatus {
 
 	time_t delete_date;
 
-	// Char server addon system
+	//Char server addon system
 	unsigned int character_moves;
+
+	unsigned char font;
 };
 
 typedef enum mail_status {

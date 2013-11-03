@@ -508,7 +508,6 @@ struct map_session_data {
 	const char* debug_func;
 
 	unsigned int bg_id;
-	unsigned short user_font;
 
 #ifdef SECURE_NPCTIMEOUT
 	/**

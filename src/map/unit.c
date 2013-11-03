@@ -1955,6 +1955,7 @@ int unit_skillcastcancel(struct block_list *bl,int type)
 	int ret = 0, skill_id;
 
 	nullpo_ret(bl);
+
 	if (!ud || ud->skilltimer == INVALID_TIMER)
 		return 0; //Nothing to cancel.
 
@@ -1978,11 +1979,12 @@ int unit_skillcastcancel(struct block_list *bl,int type)
 		skill_id = ud->skill_id;
 
 	if (skill_get_inf(skill_id) & INF_GROUND_SKILL)
-		ret = delete_timer( ud->skilltimer, skill_castend_pos );
+		ret = delete_timer(ud->skilltimer, skill_castend_pos);
 	else
-		ret = delete_timer( ud->skilltimer, skill_castend_id );
+		ret = delete_timer(ud->skilltimer, skill_castend_id);
+
 	if (ret < 0)
-		ShowError("delete timer error : skill_id : %d\n",ret);
+		ShowError("delete timer error %d : skill %d (%s)\n", ret, skill_id, skill_get_name(skill_id));
 
 	ud->skilltimer = INVALID_TIMER;
 
@@ -1997,7 +1999,8 @@ int unit_skillcastcancel(struct block_list *bl,int type)
 		}
 	}
 
-	if (bl->type == BL_MOB) ((TBL_MOB*)bl)->skill_idx = -1;
+	if (bl->type == BL_MOB)
+		((TBL_MOB*)bl)->skill_idx = -1;
 
 	clif_skillcastcancel(bl);
 	return 1;

@@ -368,17 +368,17 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 	int x0 = 0, x1 = 0, y0 = 0, y1 = 0, fd;
 	struct s_mapiterator* iter;
 
-	if( type != ALL_CLIENT )
+	if (type != ALL_CLIENT)
 		nullpo_ret(bl);
 
 	sd = BL_CAST(BL_PC, bl);
 
-	switch(type) {
+	switch (type) {
 		case ALL_CLIENT: //All player clients.
 			iter = mapit_getallusers();
-			while( (tsd = (TBL_PC*)mapit_next(iter)) != NULL ) {
-				if( packet_db[tsd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
-					WFIFOHEAD(tsd->fd, len);
+			while ((tsd = (TBL_PC*)mapit_next(iter)) != NULL) {
+				if (packet_db[tsd->packet_ver][RBUFW(buf,0)].len) { //Packet must exist for the client version
+					WFIFOHEAD(tsd->fd,len);
 					memcpy(WFIFOP(tsd->fd,0), buf, len);
 					WFIFOSET(tsd->fd,len);
 				}
@@ -388,9 +388,9 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 
 		case ALL_SAMEMAP: //All players on the same map
 			iter = mapit_getallusers();
-			while( (tsd = (TBL_PC*)mapit_next(iter)) != NULL ) {
-				if( bl->m == tsd->bl.m && packet_db[tsd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
-					WFIFOHEAD(tsd->fd, len);
+			while ((tsd = (TBL_PC*)mapit_next(iter)) != NULL) {
+				if (bl->m == tsd->bl.m && packet_db[tsd->packet_ver][RBUFW(buf,0)].len) { //Packet must exist for the client version
+					WFIFOHEAD(tsd->fd,len);
 					memcpy(WFIFOP(tsd->fd,0), buf, len);
 					WFIFOSET(tsd->fd,len);
 				}
@@ -401,33 +401,34 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 		case AREA:
 		case AREA_WOSC:
 			if (sd && bl->prev == NULL) //Otherwise source misses the packet.[Skotlex]
-				clif_send (buf, len, bl, SELF);
+				clif_send(buf, len, bl, SELF);
 		case AREA_WOC:
 		case AREA_WOS:
-			map_foreachinarea(clif_send_sub, bl->m, bl->x-AREA_SIZE, bl->y-AREA_SIZE, bl->x+AREA_SIZE, bl->y+AREA_SIZE,
+			map_foreachinarea(clif_send_sub, bl->m, bl->x - AREA_SIZE, bl->y - AREA_SIZE, bl->x + AREA_SIZE, bl->y + AREA_SIZE,
 				BL_PC, buf, len, bl, type);
 			break;
 		case AREA_CHAT_WOC:
-			map_foreachinarea(clif_send_sub, bl->m, bl->x-(AREA_SIZE-5), bl->y-(AREA_SIZE-5),
-				bl->x+(AREA_SIZE-5), bl->y+(AREA_SIZE-5), BL_PC, buf, len, bl, AREA_WOC);
+			map_foreachinarea(clif_send_sub, bl->m, bl->x - (AREA_SIZE - 5), bl->y - (AREA_SIZE - 5),
+				bl->x + (AREA_SIZE - 5), bl->y + (AREA_SIZE - 5), BL_PC, buf, len, bl, AREA_WOC);
 			break;
 
 		case CHAT:
 		case CHAT_WOS:
 			{
 				struct chat_data *cd;
-				if (sd) {
+				if (sd)
 					cd = (struct chat_data*)map_id2bl(sd->chatID);
-				} else if (bl->type == BL_CHAT) {
+				else if (bl->type == BL_CHAT)
 					cd = (struct chat_data*)bl;
-				} else break;
+				else
+					break;
 				if (cd == NULL)
 					break;
-				for(i = 0; i < cd->users; i++) {
+				for (i = 0; i < cd->users; i++) {
 					if (type == CHAT_WOS && cd->usersd[i] == sd)
 						continue;
-					if (packet_db[cd->usersd[i]->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
-						if ((fd=cd->usersd[i]->fd) >0 && session[fd]) { // Added check to see if session exists [PoW]
+					if (packet_db[cd->usersd[i]->packet_ver][RBUFW(buf,0)].len) { //Packet must exist for the client version
+						if ((fd = cd->usersd[i]->fd) > 0 && session[fd]) { //Added check to see if session exists [PoW]
 							WFIFOHEAD(fd,len);
 							memcpy(WFIFOP(fd,0), buf, len);
 							WFIFOSET(fd,len);
@@ -449,25 +450,20 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 		case PARTY_SAMEMAP_WOS:
 			if (sd && sd->status.party_id)
 				p = party_search(sd->status.party_id);
-				
 			if (p) {
-				for(i=0;i<MAX_PARTY;i++) {
-					if( (sd = p->data[i].sd) == NULL )
+				for (i = 0; i < MAX_PARTY; i++) {
+					if ((sd = p->data[i].sd) == NULL)
 						continue;
-
-					if( !(fd=sd->fd) )
+					if (!(fd = sd->fd))
 						continue;
-
-					if( sd->bl.id == bl->id && (type == PARTY_WOS || type == PARTY_SAMEMAP_WOS || type == PARTY_AREA_WOS) )
+					if (sd->bl.id == bl->id && (type == PARTY_WOS || type == PARTY_SAMEMAP_WOS || type == PARTY_AREA_WOS))
 						continue;
-					
-					if( type != PARTY && type != PARTY_WOS && bl->m != sd->bl.m )
+					if (type != PARTY && type != PARTY_WOS && bl->m != sd->bl.m)
 						continue;
-					
-					if( (type == PARTY_AREA || type == PARTY_AREA_WOS) && (sd->bl.x < x0 || sd->bl.y < y0 || sd->bl.x > x1 || sd->bl.y > y1) )
+					if ((type == PARTY_AREA || type == PARTY_AREA_WOS) && (sd->bl.x < x0 || sd->bl.y < y0 ||
+						sd->bl.x > x1 || sd->bl.y > y1))
 						continue;
-					
-					if( packet_db[sd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
+					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { //Packet must exist for the client version
 						WFIFOHEAD(fd,len);
 						memcpy(WFIFOP(fd,0), buf, len);
 						WFIFOSET(fd,len);
@@ -475,12 +471,11 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 				}
 				if (!enable_spy) //Skip unnecessary parsing. [Skotlex]
 					break;
-
 				iter = mapit_getallusers();
-				while( (tsd = (TBL_PC*)mapit_next(iter)) != NULL ) {
-					if( tsd->partyspy == p->party.party_id && packet_db[tsd->packet_ver][RBUFW(buf,0)].len ) {
-						// packet must exist for the client version
-						WFIFOHEAD(tsd->fd, len);
+				while ((tsd = (TBL_PC*)mapit_next(iter)) != NULL) {
+					if (tsd->partyspy == p->party.party_id && packet_db[tsd->packet_ver][RBUFW(buf,0)].len) {
+						//Packet must exist for the client version
+						WFIFOHEAD(tsd->fd,len);
 						memcpy(WFIFOP(tsd->fd,0), buf, len);
 						WFIFOSET(tsd->fd,len);
 					}
@@ -491,14 +486,14 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 
 		case DUEL:
 		case DUEL_WOS:
-			if (!sd || !sd->duel_group) break; //Invalid usage.
-
+			if (!sd || !sd->duel_group)
+				break; //Invalid usage.
 			iter = mapit_getallusers();
-			while( (tsd = (TBL_PC*)mapit_next(iter)) != NULL ) {
-				if( type == DUEL_WOS && bl->id == tsd->bl.id )
+			while ((tsd = (TBL_PC*)mapit_next(iter)) != NULL) {
+				if (type == DUEL_WOS && bl->id == tsd->bl.id)
 					continue;
-				if( sd->duel_group == tsd->duel_group && packet_db[tsd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
-					WFIFOHEAD(tsd->fd, len);
+				if (sd->duel_group == tsd->duel_group && packet_db[tsd->packet_ver][RBUFW(buf,0)].len) { //Packet must exist for the client version
+					WFIFOHEAD(tsd->fd,len);
 					memcpy(WFIFOP(tsd->fd,0), buf, len);
 					WFIFOSET(tsd->fd,len);
 				}
@@ -507,14 +502,14 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 			break;
 
 		case SELF:
-			if (sd && (fd=sd->fd) && packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
+			if (sd && (fd = sd->fd) && packet_db[sd->packet_ver][RBUFW(buf,0)].len) { //Packet must exist for the client version
 				WFIFOHEAD(fd,len);
 				memcpy(WFIFOP(fd,0), buf, len);
 				WFIFOSET(fd,len);
 			}
 			break;
 
-		// New definitions for guilds [Valaris] - Cleaned up and reorganized by [Skotlex]
+		//New definitions for guilds [Valaris] - Cleaned up and reorganized by [Skotlex]
 		case GUILD_AREA:
 		case GUILD_AREA_WOS:
 			x0 = bl->x - AREA_SIZE;
@@ -528,26 +523,21 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 		case GUILD_NOBG:
 			if (sd && sd->status.guild_id)
 				g = sd->guild;
-
 			if (g) {
-				for(i = 0; i < g->max_member; i++) {
-					if( (sd = g->member[i].sd) != NULL ) {
-						if( !(fd=sd->fd) )
+				for (i = 0; i < g->max_member; i++) {
+					if ((sd = g->member[i].sd) != NULL) {
+						if (!(fd = sd->fd))
 							continue;
-						
-						if( type == GUILD_NOBG && sd->bg_id )
+						if (type == GUILD_NOBG && sd->bg_id)
 							continue;
-
-						if( sd->bl.id == bl->id && (type == GUILD_WOS || type == GUILD_SAMEMAP_WOS || type == GUILD_AREA_WOS) )
+						if (sd->bl.id == bl->id && (type == GUILD_WOS || type == GUILD_SAMEMAP_WOS || type == GUILD_AREA_WOS))
 							continue;
-						
-						if( type != GUILD && type != GUILD_NOBG && type != GUILD_WOS && sd->bl.m != bl->m )
+						if (type != GUILD && type != GUILD_NOBG && type != GUILD_WOS && sd->bl.m != bl->m)
 							continue;
-
-						if( (type == GUILD_AREA || type == GUILD_AREA_WOS) && (sd->bl.x < x0 || sd->bl.y < y0 || sd->bl.x > x1 || sd->bl.y > y1) )
+						if ((type == GUILD_AREA || type == GUILD_AREA_WOS) && (sd->bl.x < x0 || sd->bl.y < y0 ||
+							sd->bl.x > x1 || sd->bl.y > y1))
 							continue;
-
-						if( packet_db[sd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
+						if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { //Packet must exist for the client version
 							WFIFOHEAD(fd,len);
 							memcpy(WFIFOP(fd,0), buf, len);
 							WFIFOSET(fd,len);
@@ -556,11 +546,10 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 				}
 				if (!enable_spy) //Skip unnecessary parsing. [Skotlex]
 					break;
-
 				iter = mapit_getallusers();
-				while( (tsd = (TBL_PC*)mapit_next(iter)) != NULL ) {
-					if( tsd->guildspy == g->guild_id && packet_db[tsd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
-						WFIFOHEAD(tsd->fd, len);
+				while ((tsd = (TBL_PC*)mapit_next(iter)) != NULL) {
+					if (tsd->guildspy == g->guild_id && packet_db[tsd->packet_ver][RBUFW(buf,0)].len) { //Packet must exist for the client version
+						WFIFOHEAD(tsd->fd,len);
 						memcpy(WFIFOP(tsd->fd,0), buf, len);
 						WFIFOSET(tsd->fd,len);
 					}
@@ -579,17 +568,18 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 		case BG_SAMEMAP_WOS:
 		case BG:
 		case BG_WOS:
-			if( sd && sd->bg_id && (bg = bg_team_search(sd->bg_id)) != NULL ) {
-				for( i = 0; i < MAX_BG_MEMBERS; i++ ) {
-					if( (sd = bg->members[i].sd) == NULL || !(fd = sd->fd) )
+			if (sd && sd->bg_id && (bg = bg_team_search(sd->bg_id)) != NULL) {
+				for (i = 0; i < MAX_BG_MEMBERS; i++) {
+					if ((sd = bg->members[i].sd) == NULL || !(fd = sd->fd))
 						continue;
-					if( sd->bl.id == bl->id && (type == BG_WOS || type == BG_SAMEMAP_WOS || type == BG_AREA_WOS) )
+					if (sd->bl.id == bl->id && (type == BG_WOS || type == BG_SAMEMAP_WOS || type == BG_AREA_WOS))
 						continue;
-					if( type != BG && type != BG_WOS && sd->bl.m != bl->m )
+					if (type != BG && type != BG_WOS && sd->bl.m != bl->m)
 						continue;
-					if( (type == BG_AREA || type == BG_AREA_WOS) && (sd->bl.x < x0 || sd->bl.y < y0 || sd->bl.x > x1 || sd->bl.y > y1) )
+					if ((type == BG_AREA || type == BG_AREA_WOS) && (sd->bl.x < x0 || sd->bl.y < y0 ||
+						sd->bl.x > x1 || sd->bl.y > y1))
 						continue;
-					if( packet_db[sd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
+					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { //Packet must exist for the client version
 						WFIFOHEAD(fd,len);
 						memcpy(WFIFOP(fd,0), buf, len);
 						WFIFOSET(fd,len);
@@ -620,13 +610,13 @@ void clif_authok(struct map_session_data *sd)
 	int fd = sd->fd;
 
 	WFIFOHEAD(fd,packet_len(cmd));
-	WFIFOW(fd, 0) = cmd;
-	WFIFOL(fd, 2) = gettick();
-	WFIFOPOS(fd, 6, sd->bl.x, sd->bl.y, sd->ud.dir);
-	WFIFOB(fd, 9) = 5; // ignored
-	WFIFOB(fd,10) = 5; // ignored
+	WFIFOW(fd,0) = cmd;
+	WFIFOL(fd,2) = gettick();
+	WFIFOPOS(fd,6,sd->bl.x,sd->bl.y,sd->ud.dir);
+	WFIFOB(fd,9) = 5; //Ignored
+	WFIFOB(fd,10) = 5; //Ignored
 #if PACKETVER >= 20080102
-	WFIFOW(fd,11) = sd->user_font;  // FIXME: Font is currently not saved.
+	WFIFOW(fd,11) = sd->status.font;
 #endif
 	WFIFOSET(fd,packet_len(cmd));
 }
@@ -911,36 +901,38 @@ static int clif_set_unit_idle(struct block_list* bl, unsigned char* buffer, bool
 #if PACKETVER >= 20091103
 	const char *name;
 #endif
-	sd = BL_CAST(BL_PC, bl);
+
+	sd = BL_CAST(BL_PC,bl);
 
 #if PACKETVER < 20091103
 	if(type)
-		WBUFW(buf,0) = spawn?0x7c:0x78;
+		WBUFW(buf,0) = spawn ? 0x7c : 0x78;
 	else
 #endif
+
 #if PACKETVER < 4
-		WBUFW(buf,0) = spawn?0x79:0x78;
+		WBUFW(buf,0) = spawn ? 0x79 : 0x78;
 #elif PACKETVER < 7
-		WBUFW(buf,0) = spawn?0x1d9:0x1d8;
+		WBUFW(buf,0) = spawn ? 0x1d9 : 0x1d8;
 #elif PACKETVER < 20080102
-		WBUFW(buf,0) = spawn?0x22b:0x22a;
+		WBUFW(buf,0) = spawn ? 0x22b : 0x22a;
 #elif PACKETVER < 20091103
-		WBUFW(buf,0) = spawn?0x2ed:0x2ee;
+		WBUFW(buf,0) = spawn ? 0x2ed : 0x2ee;
 #elif PACKETVER < 20101124
-		WBUFW(buf,0) = spawn?0x7f8:0x7f9;
+		WBUFW(buf,0) = spawn ? 0x7f8 : 0x7f9;
 #else
-		WBUFW(buf,0) = spawn?0x858:0x857;
+		WBUFW(buf,0) = spawn ? 0x858 : 0x857;
 #endif
 
 #if PACKETVER >= 20091103
 	name = status_get_name(bl);
 #if PACKETVER < 20110111
-	WBUFW(buf,2) = (spawn?62:63)+strlen(name);
+	WBUFW(buf,2) = (spawn ? 62 : 63) + strlen(name);
 #else
-	WBUFW(buf,2) = (spawn?64:65)+strlen(name);
+	WBUFW(buf,2) = (spawn ? 64 : 65) + strlen(name);
 #endif
 	WBUFB(buf,4) = clif_bl_type(bl);
-	offset+=3;
+	offset += 3;
 	buf = WBUFP(buffer,offset);
 #elif PACKETVER >= 20071106
 	if (type) { //Non-player packets
@@ -949,13 +941,15 @@ static int clif_set_unit_idle(struct block_list* bl, unsigned char* buffer, bool
 		buf = WBUFP(buffer,offset);
 	}
 #endif
+
 	WBUFL(buf, 2) = bl->id;
 	WBUFW(buf, 6) = status_get_speed(bl);
-	WBUFW(buf, 8) = (sc)? sc->opt1 : 0;
-	WBUFW(buf,10) = (sc)? sc->opt2 : 0;
+	WBUFW(buf, 8) = (sc ? sc->opt1 : 0);
+	WBUFW(buf,10) = (sc ? sc->opt2 : 0);
+
 #if PACKETVER < 20091103
-	if (type&&spawn) { //uses an older and different packet structure
-		WBUFW(buf,12) = (sc)? sc->option : 0;
+	if (type&&spawn) { //Uses an older and different packet structure
+		WBUFW(buf,12) = (sc ? sc->option : 0);
 		WBUFW(buf,14) = vd->hair_style;
 		WBUFW(buf,16) = vd->weapon;
 		WBUFW(buf,18) = vd->head_bottom;
@@ -963,23 +957,26 @@ static int clif_set_unit_idle(struct block_list* bl, unsigned char* buffer, bool
 		WBUFW(buf,22) = vd->shield;
 	} else {
 #endif
+
 #if PACKETVER >= 20091103
-		WBUFL(buf,12) = (sc)? sc->option : 0;
-		offset+=2;
+		WBUFL(buf,12) = (sc ? sc->option : 0);
+		offset += 2;
 		buf = WBUFP(buffer,offset);
 #elif PACKETVER >= 7
 		if (!type) {
-			WBUFL(buf,12) = (sc)? sc->option : 0;
-			offset+=2;
+			WBUFL(buf,12) = (sc ? sc->option : 0);
+			offset += 2;
 			buf = WBUFP(buffer,offset);
 		} else
-			WBUFW(buf,12) = (sc)? sc->option : 0;
+			WBUFW(buf,12) = (sc ? sc->option : 0);
 #else
-		WBUFW(buf,12) = (sc)? sc->option : 0;
+		WBUFW(buf,12) = (sc ? sc->option : 0);
 #endif
+
 		WBUFW(buf,14) = vd->class_;
 		WBUFW(buf,16) = vd->hair_style;
 		WBUFW(buf,18) = vd->weapon;
+
 #if PACKETVER < 4
 		WBUFW(buf,20) = vd->head_bottom;
 		WBUFW(buf,22) = vd->shield;
@@ -987,24 +984,25 @@ static int clif_set_unit_idle(struct block_list* bl, unsigned char* buffer, bool
 		WBUFW(buf,20) = vd->shield;
 		WBUFW(buf,22) = vd->head_bottom;
 #endif
+
 #if PACKETVER < 20091103
 	}
 #endif
+
 	WBUFW(buf,24) = vd->head_top;
 	WBUFW(buf,26) = vd->head_mid;
-
-	if( bl->type == BL_NPC && vd->class_ == FLAG_CLASS ) { //The hell, why flags work like this?
+	if (bl->type == BL_NPC && vd->class_ == FLAG_CLASS) { //The hell, why flags work like this?
 		WBUFW(buf,22) = status_get_emblem_id(bl);
-		WBUFW(buf,24) = GetWord(status_get_guild_id(bl), 1);
-		WBUFW(buf,26) = GetWord(status_get_guild_id(bl), 0);
+		WBUFW(buf,24) = GetWord(status_get_guild_id(bl),1);
+		WBUFW(buf,26) = GetWord(status_get_guild_id(bl),0);
 	}
-
 	WBUFW(buf,28) = vd->hair_color;
 	WBUFW(buf,30) = vd->cloth_color;
-	WBUFW(buf,32) = (sd)? sd->head_dir : 0;
+	WBUFW(buf,32) = (sd ? sd->head_dir : 0);
+
 #if PACKETVER < 20091103
 	if (type&&spawn) { //End of packet 0x7c
-		WBUFB(buf,34) = (sd)?sd->status.karma:0; // karma
+		WBUFB(buf,34) = (sd ? sd->status.karma : 0); //Karma
 		WBUFB(buf,35) = vd->sex;
 		WBUFPOS(buf,36,bl->x,bl->y,unit_getdir(bl));
 		WBUFB(buf,39) = 0;
@@ -1012,48 +1010,55 @@ static int clif_set_unit_idle(struct block_list* bl, unsigned char* buffer, bool
 		return packet_len(0x7c);
 	}
 #endif
+
 #if PACKETVER >= 20110111
 	WBUFW(buf,34) = vd->robe;
-	offset+= 2;
+	offset += 2;
 	buf = WBUFP(buffer,offset);
 #endif
+
 	WBUFL(buf,34) = status_get_guild_id(bl);
 	WBUFW(buf,38) = status_get_emblem_id(bl);
-	WBUFW(buf,40) = (sd)? sd->status.manner : 0;
+	WBUFW(buf,40) = (sd ? sd->status.manner : 0);
+
 #if PACKETVER >= 20091103
-	WBUFL(buf,42) = (sc)? sc->opt3 : 0;
-	offset+=2;
+	WBUFL(buf,42) = (sc ? sc->opt3 : 0);
+	offset += 2;
 	buf = WBUFP(buffer,offset);
 #elif PACKETVER >= 7
 	if (!type) {
-		WBUFL(buf,42) = (sc)? sc->opt3 : 0;
-		offset+=2;
+		WBUFL(buf,42) = (sc ? sc->opt3 : 0);
+		offset += 2;
 		buf = WBUFP(buffer,offset);
 	} else
-		WBUFW(buf,42) = (sc)? sc->opt3 : 0;
+		WBUFW(buf,42) = (sc ? sc->opt3 : 0);
 #else
-	WBUFW(buf,42) = (sc)? sc->opt3 : 0;
+	WBUFW(buf,42) = (sc ? sc->opt3 : 0);
 #endif
-	WBUFB(buf,44) = (sd)? sd->status.karma : 0;
+
+	WBUFB(buf,44) = (sd ? sd->status.karma : 0);
 	WBUFB(buf,45) = vd->sex;
 	WBUFPOS(buf,46,bl->x,bl->y,unit_getdir(bl));
-	WBUFB(buf,49) = (sd)? 5 : 0;
-	WBUFB(buf,50) = (sd)? 5 : 0;
+	WBUFB(buf,49) = (sd ? 5 : 0);
+	WBUFB(buf,50) = (sd ? 5 : 0);
 	if (!spawn) {
 		WBUFB(buf,51) = vd->dead_sit;
 		offset++;
 		buf = WBUFP(buffer,offset);
 	}
 	WBUFW(buf,51) = clif_setlevel(bl);
+
 #if PACKETVER < 20091103
 	if (type) //End for non-player packet
 		return packet_len(WBUFW(buffer,0));
 #endif
+
 #if PACKETVER >= 20080102
-	WBUFW(buf,53) = sd?sd->user_font:0;
+	WBUFW(buf,53) = (sd ? sd->status.font : 0);
 #endif
+
 #if PACKETVER >= 20091103
-	memcpy((char*)WBUFP(buf,55), name, NAME_LENGTH);
+	memcpy((char*)WBUFP(buf,55),name,NAME_LENGTH);
 	return WBUFW(buffer,2);
 #else
 	return packet_len(WBUFW(buffer,0));
@@ -1075,51 +1080,56 @@ static int clif_set_unit_walking(struct block_list* bl, struct unit_data* ud, un
 	const char *name;
 #endif
 
-	sd = BL_CAST(BL_PC, bl);
+	sd = BL_CAST(BL_PC,bl);
 
 #if PACKETVER < 4
-	WBUFW(buf, 0) = 0x7b;
+	WBUFW(buf,0) = 0x7b;
 #elif PACKETVER < 7
-	WBUFW(buf, 0) = 0x1da;
+	WBUFW(buf,0) = 0x1da;
 #elif PACKETVER < 20080102
-	WBUFW(buf, 0) = 0x22c;
+	WBUFW(buf,0) = 0x22c;
 #elif PACKETVER < 20091103
-	WBUFW(buf, 0) = 0x2ec;
+	WBUFW(buf,0) = 0x2ec;
 #elif PACKETVER < 20101124
-	WBUFW(buf, 0) = 0x7f7;
+	WBUFW(buf,0) = 0x7f7;
 #else
-	WBUFW(buf, 0) = 0x856;
+	WBUFW(buf,0) = 0x856;
 #endif
 
 #if PACKETVER >= 20091103
 	name = status_get_name(bl);
 #if PACKETVER < 20110111
-	WBUFW(buf, 2) = 69+strlen(name);
+	WBUFW(buf,2) = 69 + strlen(name);
 #else
-	WBUFW(buf, 2) = 71+strlen(name);
+	WBUFW(buf,2) = 71 + strlen(name);
 #endif
 	offset += 2;
 	buf = WBUFP(buffer,offset);
 #endif
+
 #if PACKETVER >= 20071106
-	WBUFB(buf, 2) = clif_bl_type(bl);
+	WBUFB(buf,2) = clif_bl_type(bl);
 	offset++;
 	buf = WBUFP(buffer,offset);
 #endif
-	WBUFL(buf, 2) = bl->id;
-	WBUFW(buf, 6) = status_get_speed(bl);
-	WBUFW(buf, 8) = (sc)? sc->opt1 : 0;
-	WBUFW(buf,10) = (sc)? sc->opt2 : 0;
+
+	WBUFL(buf,2) = bl->id;
+	WBUFW(buf,6) = status_get_speed(bl);
+	WBUFW(buf,8) = (sc ? sc->opt1 : 0);
+	WBUFW(buf,10) = (sc ? sc->opt2 : 0);
+
 #if PACKETVER < 7
-	WBUFW(buf,12) = (sc)? sc->option : 0;
+	WBUFW(buf,12) = (sc ? sc->option : 0);
 #else
-	WBUFL(buf,12) = (sc)? sc->option : 0;
+	WBUFL(buf,12) = (sc ? sc->option : 0);
 	offset += 2; //Shift the rest of elements by 2 bytes.
 	buf = WBUFP(buffer,offset);
 #endif
+
 	WBUFW(buf,14) = vd->class_;
 	WBUFW(buf,16) = vd->hair_style;
 	WBUFW(buf,18) = vd->weapon;
+
 #if PACKETVER < 4
 	WBUFW(buf,20) = vd->head_bottom;
 	WBUFL(buf,22) = gettick();
@@ -1129,37 +1139,44 @@ static int clif_set_unit_walking(struct block_list* bl, struct unit_data* ud, un
 	WBUFW(buf,22) = vd->head_bottom;
 	WBUFL(buf,24) = gettick();
 #endif
+
 	WBUFW(buf,28) = vd->head_top;
 	WBUFW(buf,30) = vd->head_mid;
 	WBUFW(buf,32) = vd->hair_color;
 	WBUFW(buf,34) = vd->cloth_color;
-	WBUFW(buf,36) = (sd)? sd->head_dir : 0;
+	WBUFW(buf,36) = (sd ? sd->head_dir : 0);
+
 #if PACKETVER >= 20110111
 	WBUFW(buf,38) = vd->robe;
 	offset += 2;
 	buf = WBUFP(buffer,offset);
 #endif
+
 	WBUFL(buf,38) = status_get_guild_id(bl);
 	WBUFW(buf,42) = status_get_emblem_id(bl);
-	WBUFW(buf,44) = (sd)? sd->status.manner : 0;
+	WBUFW(buf,44) = (sd ? sd->status.manner : 0);
+
 #if PACKETVER < 7
-	WBUFW(buf,46) = (sc)? sc->opt3 : 0;
+	WBUFW(buf,46) = (sc ? sc->opt3 : 0);
 #else
-	WBUFL(buf,46) = (sc)? sc->opt3 : 0;
+	WBUFL(buf,46) = (sc ? sc->opt3 : 0);
 	offset += 2; //Shift the rest of elements by 2 bytes.
 	buf = WBUFP(buffer,offset);
 #endif
-	WBUFB(buf,48) = (sd)? sd->status.karma : 0;
+
+	WBUFB(buf,48) = (sd ? sd->status.karma : 0);
 	WBUFB(buf,49) = vd->sex;
 	WBUFPOS2(buf,50,bl->x,bl->y,ud->to_x,ud->to_y,8,8);
-	WBUFB(buf,56) = (sd)? 5 : 0;
-	WBUFB(buf,57) = (sd)? 5 : 0;
+	WBUFB(buf,56) = (sd ? 5 : 0);
+	WBUFB(buf,57) = (sd ? 5 : 0);
 	WBUFW(buf,58) = clif_setlevel(bl);
+
 #if PACKETVER >= 20080102
-	WBUFW(buf,60) = sd?sd->user_font:0;
+	WBUFW(buf,60) = (sd ? sd->status.font : 0);
 #endif
+
 #if PACKETVER >= 20091103
-	memcpy((char*)WBUFP(buf,62), name, NAME_LENGTH);
+	memcpy((char*)WBUFP(buf,62),name,NAME_LENGTH);
 	return WBUFW(buffer,2);
 #else
 	return packet_len(WBUFW(buffer,0));
@@ -5468,7 +5485,7 @@ void clif_status_change2(struct block_list *bl, int tid, enum send_target target
 	WBUFL(buf,13) = val1;
 	WBUFL(buf,17) = val2;
 	WBUFL(buf,21) = val3;
-	clif_send(buf,packet_len(WBUFW(buf,0)),bl,target);
+	clif_send(buf,packet_len(0x43f),bl,target);
 }
 
 
@@ -15521,9 +15538,9 @@ void clif_sendbgemblem_area(struct map_session_data *sd)
 
 	WBUFW(buf, 0) = 0x2dd;
 	WBUFL(buf,2) = sd->bl.id;
-	safestrncpy((char*)WBUFP(buf,6), sd->status.name, NAME_LENGTH); // name don't show in screen.
+	safestrncpy((char*)WBUFP(buf,6),sd->status.name,NAME_LENGTH); //Name don't show in screen.
 	WBUFW(buf,30) = sd->bg_id;
-	clif_send(buf,packet_len(0x2dd), &sd->bl, AREA);
+	clif_send(buf,packet_len(0x2dd),&sd->bl,AREA);
 }
 
 void clif_sendbgemblem_single(int fd, struct map_session_data *sd)
@@ -15532,7 +15549,7 @@ void clif_sendbgemblem_single(int fd, struct map_session_data *sd)
 	WFIFOHEAD(fd,32);
 	WFIFOW(fd,0) = 0x2dd;
 	WFIFOL(fd,2) = sd->bl.id;
-	safestrncpy((char*)WFIFOP(fd,6), sd->status.name, NAME_LENGTH);
+	safestrncpy((char*)WFIFOP(fd,6),sd->status.name,NAME_LENGTH);
 	WFIFOW(fd,30) = sd->bg_id;
 	WFIFOSET(fd,packet_len(0x2dd));
 }
@@ -15547,8 +15564,8 @@ void clif_font(struct map_session_data *sd)
 	nullpo_retv(sd);
 	WBUFW(buf,0) = 0x2ef;
 	WBUFL(buf,2) = sd->bl.id;
-	WBUFW(buf,6) = sd->user_font;
-	clif_send(buf, packet_len(0x2ef), &sd->bl, AREA);
+	WBUFW(buf,6) = sd->status.font;
+	clif_send(buf,packet_len(0x2ef),&sd->bl,AREA);
 #endif
 }
 
@@ -15564,11 +15581,11 @@ void clif_instance_create(struct map_session_data *sd, const char *name, int num
 	nullpo_retv(sd);
 
 	WBUFW(buf,0) = 0x2cb;
-	safestrncpy( WBUFP(buf,2), name, 62 );
+	safestrncpy(WBUFP(buf,2),name,62);
 	WBUFW(buf,63) = num;
-	if(flag) // A timer has changed or been added
+	if(flag) //A timer has changed or been added
 		clif_send(buf,packet_len(0x2cb),&sd->bl,PARTY);
-	else	// No notification
+	else //No notification
 		clif_send(buf,packet_len(0x2cb),&sd->bl,SELF);
 #endif
 
