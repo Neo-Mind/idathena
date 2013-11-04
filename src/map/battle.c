@@ -4340,6 +4340,7 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd, struct block_lis
 			ATK_ADD2(wd.damage, wd.damage2, sstatus->rhw.atk2, sstatus->lhw.atk2);
 	}
 #endif
+
 	//Set to min of 1
 	if(is_attack_right_handed(src, skill_id) && wd.damage < 1) wd.damage = 1;
 	if(is_attack_left_handed(src, skill_id) && wd.damage2 < 1) wd.damage2 = 1;
@@ -4900,11 +4901,11 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		int skill;
 		if(skill_id == TF_POISON) //Additional 15 * skill level damage
 			ATK_ADD(wd.damage, wd.damage2, 15 * skill_lv);
-		if((skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
+		if((skill = pc_checkskill(sd, BS_WEAPONRESEARCH)) > 0)
 			ATK_ADD(wd.damage, wd.damage2, skill * 2);
 		if(skill_id != CR_SHIELDBOOMERANG) //Only Shield Boomerang doesn't takes the Star Crumbs bonus.
 			ATK_ADD2(wd.damage, wd.damage2, wd.div_ * sd->right_weapon.star, wd.div_ * sd->left_weapon.star);
-		if(skill_id != MC_CARTREVOLUTION && pc_checkskill(sd,BS_HILTBINDING) > 0)
+		if(skill_id != MC_CARTREVOLUTION && pc_checkskill(sd, BS_HILTBINDING) > 0)
 			ATK_ADD(wd.damage, wd.damage2, 4);
 		if(skill_id == MO_FINGEROFFENSIVE) { //The finger offensive spheres on moment of attack do count. [Skotlex]
 			ATK_ADD(wd.damage, wd.damage2, wd.div_ * sd->spiritball_old * 3);

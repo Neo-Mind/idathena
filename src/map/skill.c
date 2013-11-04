@@ -9483,9 +9483,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case KO_KAZEHU_SEIRAN:
 		case KO_DOHU_KOUKAI:
 			if(sd) {
-				int ttype = skill_get_ele(skill_id,skill_lv);
+				int type = skill_get_ele(skill_id,skill_lv);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				pc_add_talisman(sd,skill_get_time(skill_id,skill_lv),10,ttype);
+				pc_add_talisman(sd,skill_get_time(skill_id,skill_lv),10,type);
 			}
 			break;
 
@@ -9501,38 +9501,46 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						delete_timer(md->deletetimer,mob_timer_delete);
 					md->deletetimer = add_timer (gettick() + skill_get_time(skill_id,skill_lv),mob_timer_delete,md->bl.id,0);
 					mob_spawn( md );
-					pc_setinvincibletimer(sd,500);//unlock target lock
+					pc_setinvincibletimer(sd,500); //Unlock target lock
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 					skill_blown(src,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
 				}
 			}
 			break;
 
-		case KO_KYOUGAKU:
-			if( dstsd && tsc && !tsc->data[type] && rnd()%100 < tstatus->int_/2 ) {
-				clif_skill_nodamage(src,bl,skill_id,skill_lv,
-					sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
-			} else if( sd )
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+		case KO_KYOUGAKU: {
+				int rate = max(5,(45 + (5 * skill_lv) - (status_get_int(bl) / 10)));
+				if( sd && !map_flag_gvg2(src->m) ) {
+					clif_skill_fail(sd,skill_id,USESKILL_FAIL_SIZE,0);
+					break;
+				}
+				if( dstsd && tsc && !tsc->data[type] && rnd()%100 < rate ) {
+					clif_skill_nodamage(src,bl,skill_id,skill_lv,
+						sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
+				} else if( sd )
+					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+			}
 			break;
 
-		case KO_JYUSATSU:
-			if( dstsd && tsc && !tsc->data[type] &&
-				rnd()%100 < ((45 + 5 * skill_lv) + skill_lv * 5 - status_get_int(bl) / 2) ) { //[(Base chance of success) + (Skill Level x 5) - (int / 2)]%.
-				clif_skill_nodamage(src,bl,skill_id,skill_lv,
-					status_change_start(src,bl,type,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),1));
-				status_zap(bl,tstatus->max_hp * skill_lv * 5 / 100,0);
-				if( status_get_lv(bl) <= status_get_lv(src) )
-					status_change_start(src,bl,SC_COMA,10,skill_lv,0,src->id,0,0,0);
-			} else if( sd )
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+		case KO_JYUSATSU: {
+				int rate = max(5,(45 + (10 * skill_lv) - (status_get_int(bl) / 2)));
+				if( dstsd && tsc && !tsc->data[type] && rnd()%100 < rate ) {
+					clif_skill_nodamage(src,bl,skill_id,skill_lv,
+						status_change_start(src,bl,type,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),1));
+					status_zap(bl,tstatus->max_hp * skill_lv * 5 / 100,0);
+					if( status_get_lv(bl) <= status_get_lv(src) )
+						status_change_start(src,bl,SC_COMA,10,skill_lv,0,src->id,0,0,0);
+				} else if( sd )
+					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+			}
 			break;
 
 		case KO_GENWAKU:
-			if( !map_flag_gvg2(src->m) && ( dstsd || dstmd ) && battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
+			if( !map_flag_gvg2(src->m) && (dstsd || dstmd) &&
+				!(tstatus->mode&MD_PLANT) && battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
 				int x = src->x, y = src->y;
-
-				if( sd && rnd()%100 > ((45 + 5 * skill_lv) - status_get_int(bl) / 10) ) { //[(Base chance of success) - (Intelligence Objectives / 10)]%.
+				int rate = max(5,(45 + (5 * skill_lv) - (status_get_int(bl) / 10)));
+				if( sd && rnd()%100 > rate ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
@@ -9540,26 +9548,24 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				if( unit_movepos(src,bl->x,bl->y,0,0) ) {
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 					clif_slide(src,bl->x,bl->y);
-					sc_start(src,src,SC_CONFUSION,80,skill_lv,skill_get_time(skill_id,skill_lv));
-					if( unit_movepos(bl,x,y,0,0) ) {
-						clif_skill_damage(bl,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,-1,6);
-						if( bl->type == BL_PC && pc_issit((TBL_PC*)bl) )
-							clif_sitting(bl); //Avoid sitting sync problem
+					sc_start(src,src,SC_CONFUSION,25,skill_lv,skill_get_time(skill_id,skill_lv));
+					if( !is_boss(bl) && unit_stop_walking(&sd->bl,1) && unit_movepos(bl,x,y,0,0) ) {
+						if( dstsd && pc_issit(dstsd) )
+							pc_setstand(dstsd);
 						clif_slide(bl,x,y);
-						sc_start(src,bl,SC_CONFUSION,80,skill_lv,skill_get_time(skill_id,skill_lv));
+						sc_start(src,bl,SC_CONFUSION,75,skill_lv,skill_get_time(skill_id,skill_lv));
 					}
 				}
 			}
 			break;
 
 		case OB_OBOROGENSOU:
-			if( sd && ( bl->type == BL_MOB || is_boss(bl) ) ) {  //This skill does not work on monsters.
+			if( sd && (bl->type == BL_MOB || is_boss(bl)) ) { //This skill does not work on monsters.
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			} else {
-				int chance = 25 + (10 * skill_lv) - (status_get_int(bl) / 2);
-				if (chance < 5) chance = 5;
+				int rate = max(5,(25 + (10 * skill_lv) - (status_get_int(bl) / 2)));
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,
-					sc_start(src,bl,type,chance,skill_lv,skill_get_time(skill_id,skill_lv)));
+					sc_start(src,bl,type,rate,skill_lv,skill_get_time(skill_id,skill_lv)));
 				clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 			}
 			break;

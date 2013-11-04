@@ -6929,12 +6929,12 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	}
 	//GvG
 	if( map_flag_gvg2(sd->bl.m) ) {
-		add_timer(tick + 1,pc_respawn_timer, sd->bl.id, 0);
+		add_timer(tick + 1,pc_respawn_timer,sd->bl.id,0);
 		return 1|8;
 	} else if( sd->bg_id ) {
 		struct battleground_data *bg = bg_team_search(sd->bg_id);
 		if( bg && bg->mapindex > 0 ) { //Respawn by BG
-			add_timer(tick + 1000,pc_respawn_timer, sd->bl.id, 0);
+			add_timer(tick + 1000,pc_respawn_timer,sd->bl.id,0);
 			return 1|8;
 		}
 	}
@@ -6946,13 +6946,13 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 }
 
 void pc_revive(struct map_session_data *sd,unsigned int hp, unsigned int sp) {
-	if(hp) clif_updatestatus(sd,SP_HP);
-	if(sp) clif_updatestatus(sd,SP_SP);
+	if( hp ) clif_updatestatus(sd,SP_HP);
+	if( sp ) clif_updatestatus(sd,SP_SP);
 
 	pc_setstand(sd);
-	if(battle_config.pc_invincible_time > 0)
-		pc_setinvincibletimer(sd, battle_config.pc_invincible_time);
-		
+	if( battle_config.pc_invincible_time > 0 )
+		pc_setinvincibletimer(sd,battle_config.pc_invincible_time);
+
 	if( sd->state.gmaster_flag ) {
 		guild_guildaura_refresh(sd,GD_LEADERSHIP,guild_checkskill(sd->state.gmaster_flag,GD_LEADERSHIP));
 		guild_guildaura_refresh(sd,GD_GLORYWOUNDS,guild_checkskill(sd->state.gmaster_flag,GD_GLORYWOUNDS));
@@ -6979,7 +6979,7 @@ int pc_readparam(struct map_session_data* sd,int type)
 		case SP_JOBLEVEL:	val = sd->status.job_level; break;
 		case SP_CLASS:		val = sd->status.class_; break;
 		case SP_BASEJOB:	val = pc_mapid2jobid(sd->class_&MAPID_UPPERMASK, sd->status.sex); break; //Base job, extracting upper type.
-		case SP_UPPER:		val = sd->class_&JOBL_UPPER?1:(sd->class_&JOBL_BABY?2:0); break;
+		case SP_UPPER:		val = sd->class_&JOBL_UPPER ? 1 : (sd->class_&JOBL_BABY ? 2 : 0); break;
 		case SP_BASECLASS:	val = pc_mapid2jobid(sd->class_&MAPID_BASEMASK, sd->status.sex); break; //Extract base class tree. [Skotlex]
 		case SP_SEX:		val = sd->status.sex; break;
 		case SP_WEIGHT:		val = sd->weight; break;
@@ -7003,11 +7003,11 @@ int pc_readparam(struct map_session_data* sd,int type)
 		case SP_FAME:		val = sd->status.fame; break;
 		case SP_KILLERRID:	val = sd->killerrid; break;
 		case SP_KILLEDRID:	val = sd->killedrid; break;
-		case SP_SITTING:	val = pc_issit(sd)?1:0; break;
+		case SP_SITTING:	val = pc_issit(sd) ? 1 : 0; break;
 		case SP_CHARMOVE:	val = sd->status.character_moves; break;
 		case SP_CHARRENAME:	val = sd->status.rename; break;
-		case SP_CRITICAL:	val = sd->battle_status.cri/10; break;
-		case SP_ASPD:		val = (2000-sd->battle_status.amotion)/10; break;
+		case SP_CRITICAL:	val = sd->battle_status.cri / 10; break;
+		case SP_ASPD:		val = (2000 - sd->battle_status.amotion) / 10; break;
 		case SP_BASE_ATK:	val = sd->battle_status.batk; break;
 		case SP_DEF1:		val = sd->battle_status.def; break;
 		case SP_DEF2:		val = sd->battle_status.def2; break;
@@ -7056,29 +7056,29 @@ int pc_readparam(struct map_session_data* sd,int type)
 		case SP_DEF2_RATE:		val = sd->def2_rate; break;
 		case SP_MDEF_RATE:		val = sd->mdef_rate; break;
 		case SP_MDEF2_RATE:		val = sd->mdef2_rate; break;
-		case SP_RESTART_FULL_RECOVER:	val = sd->special_state.restart_full_recover?1:0; break;
-		case SP_NO_CASTCANCEL:		val = sd->special_state.no_castcancel?1:0; break;
-		case SP_NO_CASTCANCEL2:		val = sd->special_state.no_castcancel2?1:0; break;
-		case SP_NO_SIZEFIX:		val = sd->special_state.no_sizefix?1:0; break;
+		case SP_RESTART_FULL_RECOVER:	val = sd->special_state.restart_full_recover ? 1 : 0; break;
+		case SP_NO_CASTCANCEL:		val = sd->special_state.no_castcancel ? 1 : 0; break;
+		case SP_NO_CASTCANCEL2:		val = sd->special_state.no_castcancel2 ? 1 : 0; break;
+		case SP_NO_SIZEFIX:		val = sd->special_state.no_sizefix ? 1 : 0; break;
 		case SP_NO_MAGIC_DAMAGE:	val = sd->special_state.no_magic_damage; break;
 		case SP_NO_WEAPON_DAMAGE:	val = sd->special_state.no_weapon_damage; break;
 		case SP_NO_MISC_DAMAGE:		val = sd->special_state.no_misc_damage; break;
-		case SP_NO_GEMSTONE:		val = sd->special_state.no_gemstone?1:0; break;
-		case SP_INTRAVISION:		val = sd->special_state.intravision?1:0; break;
-		case SP_NO_KNOCKBACK:		val = sd->special_state.no_knockback?1:0; break;
+		case SP_NO_GEMSTONE:		val = sd->special_state.no_gemstone ? 1 : 0; break;
+		case SP_INTRAVISION:		val = sd->special_state.intravision ? 1 : 0; break;
+		case SP_NO_KNOCKBACK:		val = sd->special_state.no_knockback ? 1 : 0; break;
 		case SP_SPLASH_RANGE:		val = sd->bonus.splash_range; break;
 		case SP_SPLASH_ADD_RANGE:	val = sd->bonus.splash_add_range; break;
 		case SP_SHORT_WEAPON_DAMAGE_RETURN:	val = sd->bonus.short_weapon_damage_return; break;
 		case SP_LONG_WEAPON_DAMAGE_RETURN:	val = sd->bonus.long_weapon_damage_return; break;
 		case SP_MAGIC_DAMAGE_RETURN:	val = sd->bonus.magic_damage_return; break;
-		case SP_PERFECT_HIDE:		val = sd->special_state.perfect_hiding?1:0; break;
+		case SP_PERFECT_HIDE:		val = sd->special_state.perfect_hiding ? 1 : 0; break;
 		case SP_UNBREAKABLE:		val = sd->bonus.unbreakable; break;
-		case SP_UNBREAKABLE_WEAPON:	val = (sd->bonus.unbreakable_equip&EQP_WEAPON)?1:0; break;
-		case SP_UNBREAKABLE_ARMOR:	val = (sd->bonus.unbreakable_equip&EQP_ARMOR)?1:0; break;
-		case SP_UNBREAKABLE_HELM:	val = (sd->bonus.unbreakable_equip&EQP_HELM)?1:0; break;
-		case SP_UNBREAKABLE_SHIELD:	val = (sd->bonus.unbreakable_equip&EQP_SHIELD)?1:0; break;
-		case SP_UNBREAKABLE_GARMENT:	val = (sd->bonus.unbreakable_equip&EQP_GARMENT)?1:0; break;
-		case SP_UNBREAKABLE_SHOES:	val = (sd->bonus.unbreakable_equip&EQP_SHOES)?1:0; break;
+		case SP_UNBREAKABLE_WEAPON:	val = (sd->bonus.unbreakable_equip&EQP_WEAPON) ? 1 : 0; break;
+		case SP_UNBREAKABLE_ARMOR:	val = (sd->bonus.unbreakable_equip&EQP_ARMOR) ? 1 : 0; break;
+		case SP_UNBREAKABLE_HELM:	val = (sd->bonus.unbreakable_equip&EQP_HELM) ? 1 : 0; break;
+		case SP_UNBREAKABLE_SHIELD:	val = (sd->bonus.unbreakable_equip&EQP_SHIELD) ? 1 : 0; break;
+		case SP_UNBREAKABLE_GARMENT:	val = (sd->bonus.unbreakable_equip&EQP_GARMENT) ? 1 : 0; break;
+		case SP_UNBREAKABLE_SHOES:	val = (sd->bonus.unbreakable_equip&EQP_SHOES) ? 1 : 0; break;
 		case SP_CLASSCHANGE:		val = sd->bonus.classchange; break;
 		case SP_LONG_ATK_RATE:		val = sd->bonus.long_attack_atk_rate; break;
 		case SP_BREAK_WEAPON_RATE:	val = sd->bonus.break_weapon_rate; break;
@@ -7086,13 +7086,13 @@ int pc_readparam(struct map_session_data* sd,int type)
 		case SP_ADD_STEAL_RATE:		val = sd->bonus.add_steal_rate; break;
 		case SP_DELAYRATE:		val = sd->delayrate; break;
 		case SP_CRIT_ATK_RATE:		val = sd->bonus.crit_atk_rate; break;
-		case SP_UNSTRIPABLE_WEAPON:	val = (sd->bonus.unstripable_equip&EQP_WEAPON)?1:0; break;
+		case SP_UNSTRIPABLE_WEAPON:	val = (sd->bonus.unstripable_equip&EQP_WEAPON) ? 1 : 0; break;
 		case SP_UNSTRIPABLE:
 		case SP_UNSTRIPABLE_ARMOR:
-			val = (sd->bonus.unstripable_equip&EQP_ARMOR)?1:0;
+			val = (sd->bonus.unstripable_equip&EQP_ARMOR) ? 1 : 0;
 			break;
-		case SP_UNSTRIPABLE_HELM:	val = (sd->bonus.unstripable_equip&EQP_HELM)?1:0; break;
-		case SP_UNSTRIPABLE_SHIELD:	val = (sd->bonus.unstripable_equip&EQP_SHIELD)?1:0; break;
+		case SP_UNSTRIPABLE_HELM:	val = (sd->bonus.unstripable_equip&EQP_HELM) ? 1 : 0; break;
+		case SP_UNSTRIPABLE_SHIELD:	val = (sd->bonus.unstripable_equip&EQP_SHIELD) ? 1 : 0; break;
 		case SP_SP_GAIN_VALUE:		val = sd->bonus.sp_gain_value; break;
 		case SP_HP_GAIN_VALUE:		val = sd->bonus.hp_gain_value; break;
 		case SP_MAGIC_SP_GAIN_VALUE:	val = sd->bonus.magic_sp_gain_value; break;

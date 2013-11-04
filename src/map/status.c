@@ -6582,12 +6582,12 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			break;
 		case SC_DECREASEAGI:
 		case SC_ADORAMUS:
-			if (sd) tick>>=1; //Half duration for players.
+			if (sd) tick >>= 1; //Half duration for players.
 			sc_def = status->mdef*100;
 			tick_def = 0; //No duration reduction
 			break;
 		case SC_ANKLE:
-			if(status->mode&MD_BOSS) //Lasts 5 times less on bosses
+			if (status->mode&MD_BOSS) //Lasts 5 times less on bosses
 				tick /= 5;
 			sc_def = status->agi*50;
 			break;
@@ -6651,7 +6651,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			tick_def2 = status->str*50;
 			break;
 		case SC_KYOUGAKU:
-			tick_def2 = 30*status->int_;
+			tick_def2 = status->int_*50;
 			break;
 		case SC_PARALYSIS:
 			tick_def2 = (status->vit + status->luk)*50;
@@ -8953,8 +8953,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick_time = 10000; //[GodLesZ] tick time
 				break;
 			case SC_KYOUGAKU:
-				val2 = 2 * val1 + rnd()%val1;
-				clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,0,1002,0,0);
+				val2 = rnd_value(val1 * 2,val1 * 3);
+				clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,0,1002,0,0); //Poring in disguise
 				break;
 			case SC_KAGEMUSYA:
 				val3 = val1 * 2;
