@@ -760,11 +760,10 @@ int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag)
 		nx = result>>16;
 		ny = result&0xffff;
 
-		if(!su) {
+		if(!su)
 			unit_stop_walking(bl, 0);
-		}
 	
-		if( sd ) {
+		if(sd) {
 			sd->ud.to_x = nx;
 			sd->ud.to_y = ny;
 		}
@@ -775,27 +774,23 @@ int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag)
 		if(dx || dy) {
 			map_foreachinmovearea(clif_outsight, bl, AREA_SIZE, dx, dy, bl->type == BL_PC ? BL_ALL : BL_PC, bl);
 
-			if(su) {
+			if(su)
 				skill_unit_move_unit_group(su->group, bl->m, dx, dy);
-			} else {
+			else
 				map_moveblock(bl, nx, ny, gettick());
-			}
 
 			map_foreachinmovearea(clif_insight, bl, AREA_SIZE, -dx, -dy, bl->type == BL_PC ? BL_ALL : BL_PC, bl);
 
-			if(!(flag&1)) {
+			if(!(flag&1))
 				clif_blown(bl);
-			}
 
 			if(sd) {
-				if(sd->touching_id) {
+				if(sd->touching_id)
 					npc_touchnext_areanpc(sd, false);
-				}
 				if(map_getcell(bl->m, bl->x, bl->y, CELL_CHKNPC)) {
 					npc_touch_areanpc(sd, bl->m, bl->x, bl->y);
-				} else {
+				} else
 					sd->areanpc_id = 0;
-				}
 			}
 		}
 

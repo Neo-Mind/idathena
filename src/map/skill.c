@@ -9548,12 +9548,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				if( unit_movepos(src,bl->x,bl->y,0,0) ) {
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 					clif_slide(src,bl->x,bl->y);
-					sc_start(src,src,SC_CONFUSION,25,skill_lv,skill_get_time(skill_id,skill_lv));
-					if( !is_boss(bl) && unit_stop_walking(&sd->bl,1) && unit_movepos(bl,x,y,0,0) ) {
+					sc_start(src,src,SC_CHAOS,25,skill_lv,skill_get_time(skill_id,skill_lv));
+					if( !is_boss(bl) && unit_movepos(bl,x,y,0,0) ) {
 						if( dstsd && pc_issit(dstsd) )
 							pc_setstand(dstsd);
 						clif_slide(bl,x,y);
-						sc_start(src,bl,SC_CONFUSION,75,skill_lv,skill_get_time(skill_id,skill_lv));
+						sc_start(src,bl,SC_CHAOS,75,skill_lv,skill_get_time(skill_id,skill_lv));
 					}
 				}
 			}

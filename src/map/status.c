@@ -1330,10 +1330,9 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 		case BL_ELEM: elemental_heal((TBL_ELEM*)target, hp, sp); break;
 	}
 
-	if (src && target->type == BL_PC && ((TBL_PC*)target)->disguise) {
-		//Stop walking when attacked in disguise to prevent walk-delay bug
+	//Stop walking when attacked in disguise to prevent walk-delay bug
+	if (src && target->type == BL_PC && ((TBL_PC*)target)->disguise)
 		unit_stop_walking(target, 1);
-	}
 
 	if (status->hp || (flag&8)) { //Still lives or has been dead before this damage.
 		if (walkdelay)
