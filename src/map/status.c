@@ -4483,11 +4483,8 @@ static unsigned short status_calc_agi(struct block_list *bl, struct status_chang
 		agi += ((sc->data[SC_MARIONETTE2]->val3)>>8)&0xFF;
 	if(sc->data[SC_ADORAMUS])
 		agi -= sc->data[SC_ADORAMUS]->val2;
-	if(sc->data[SC_MARSHOFABYSS]) {
+	if(sc->data[SC_MARSHOFABYSS])
 		agi -= agi * sc->data[SC_MARSHOFABYSS]->val2 / 100;
-		if (agi < 0)
-			agi = 0;
-	}
 	if(sc->data[SC_HARMONIZE])
 		agi -= sc->data[SC_HARMONIZE]->val2;
 	if(sc->data[SC_DROCERA_HERB_STEAMED])
@@ -4645,11 +4642,8 @@ static unsigned short status_calc_dex(struct block_list *bl, struct status_chang
 		dex -= ((sc->data[SC_MARIONETTE]->val4)>>8)&0xFF;
 	if(sc->data[SC_MARIONETTE2])
 		dex += ((sc->data[SC_MARIONETTE2]->val4)>>8)&0xFF;
-	if(sc->data[SC_MARSHOFABYSS]) {
+	if(sc->data[SC_MARSHOFABYSS])
 		dex -= dex * sc->data[SC_MARSHOFABYSS]->val2 / 100;
-		if (dex < 0)
-			dex = 0;
-	}
 	if(sc->data[SC_HARMONIZE])
 		dex -= sc->data[SC_HARMONIZE]->val2;
 	if(sc->data[SC_SIROMA_ICE_TEA])
@@ -4660,7 +4654,6 @@ static unsigned short status_calc_dex(struct block_list *bl, struct status_chang
 		dex -= sc->data[SC_STOMACHACHE]->val1;
 	if(sc->data[SC_KYOUGAKU])
 		dex -= sc->data[SC_KYOUGAKU]->val2;
-
 	if(sc->data[SC__STRIPACCESSORY] && bl->type != BL_PC)
 		dex -= dex * sc->data[SC__STRIPACCESSORY]->val2 / 100;
 	if(sc->data[SC_FULL_THROTTLE])
@@ -4706,7 +4699,6 @@ static unsigned short status_calc_luk(struct block_list *bl, struct status_chang
 		luk -= sc->data[SC_KYOUGAKU]->val2;
 	if(sc->data[SC_LAUDARAMUS])
 		luk += 4 + sc->data[SC_LAUDARAMUS]->val1;
-
 	if(sc->data[SC__STRIPACCESSORY] && bl->type != BL_PC)
 		luk -= luk * sc->data[SC__STRIPACCESSORY]->val2 / 100;
 	if(sc->data[SC_BANANA_BOMB])
@@ -4766,9 +4758,9 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk -= batk * 25 / 100;
 	if(sc->data[SC_CURSE])
 		batk -= batk * 25 / 100;
-/*Curse shouldn't effect on this?  <- Curse OR Bleeding??
+	/* Curse shouldn't effect on this? <- Curse OR Bleeding??
 	if(sc->data[SC_BLEEDING])
-		batk -= batk * 25 / 100;*/
+		batk -= batk * 25 / 100; */
 	if(sc->data[SC_FLEET])
 		batk += batk * sc->data[SC_FLEET]->val3 / 100;
 	if(sc->data[SC__ENERVATION])
@@ -8952,8 +8944,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick_time = 10000; //[GodLesZ] tick time
 				break;
 			case SC_KYOUGAKU:
+				val1 = 1002;
 				val2 = rnd_value(val1 * 2,val1 * 3);
-				clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,0,1002,0,0); //Poring in disguise
+				clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,0,val1,0,0);
 				break;
 			case SC_KAGEMUSYA:
 				val3 = val1 * 2;
@@ -9126,7 +9119,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				}
 				break;
 			case SC_KYOUGAKU:
-				clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,0,1002,0,0); //Poring in disguise
+				clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,0,1002,0,0);
 				break;
 		}
 	}
@@ -9144,6 +9137,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_SPHERE_5:
 		case SC_BANDING:
 		case SC_LIGHTNINGWALK:
+		case SC_KYOUGAKU:
 		case SC_MONSTER_TRANSFORM:
 			val_flag |= 1;
 			break;

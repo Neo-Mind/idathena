@@ -9433,12 +9433,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case EL_WIND_STEP: {
 				struct elemental_data *ele = BL_CAST(BL_ELEM,src);
 				if( ele ) {
-					sc_type type2 = (sc_type)(type - 1);
 					struct status_change *sc = status_get_sc(&ele->bl);
-
-					if( (sc && sc->data[type2]) || (tsc && tsc->data[type]) ) {
+					sc_type type2 = (sc_type)(type - 1);
+					if( (sc && sc->data[type2]) || (tsc && tsc->data[type]) )
 						elemental_clean_single_effect(ele,skill_id);
-					} else {
+					else {
 						clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 						clif_skill_damage(src,(skill_id == EL_GUST || skill_id == EL_BLAST || skill_id == EL_WILD_STORM) ? src : bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 						if( skill_id == EL_WIND_STEP ) //There aren't teleport, just push the master away.
@@ -9464,11 +9463,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				if( ele ) {
 					struct status_change *sc = status_get_sc(&ele->bl);
 					sc_type type2 = (sc_type)(type - 1);
-
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
-					if( (sc && sc->data[type2]) || (tsc && tsc->data[type]) ) {
+					if( (sc && sc->data[type2]) || (tsc && tsc->data[type]) )
 						elemental_clean_single_effect(ele,skill_id);
-					} else {
+					else {
 						//This not heals at the end.
 						clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 						sc_start(src,src,type2,100,skill_lv,skill_get_time(skill_id,skill_lv));
@@ -9492,15 +9490,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case KO_ZANZOU:
 			if( sd ) {
 				struct mob_data *md;
-
 				md = mob_once_spawn_sub(src,src->m,src->x,src->y,status_get_name(src),2308,"",SZ_SMALL,AI_NONE);
 				if( md ) {
 					md->master_id = src->id;
 					md->special_state.ai = AI_ZANZOU;
 					if( md->deletetimer != INVALID_TIMER )
 						delete_timer(md->deletetimer,mob_timer_delete);
-					md->deletetimer = add_timer (gettick() + skill_get_time(skill_id,skill_lv),mob_timer_delete,md->bl.id,0);
-					mob_spawn( md );
+					md->deletetimer = add_timer(gettick() + skill_get_time(skill_id,skill_lv),mob_timer_delete,md->bl.id,0);
+					mob_spawn(md);
 					pc_setinvincibletimer(sd,500); //Unlock target lock
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 					skill_blown(src,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
@@ -9544,7 +9541,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
-
 				if( unit_movepos(src,bl->x,bl->y,0,0) ) {
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 					clif_slide(src,bl->x,bl->y);

@@ -751,7 +751,7 @@ int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag)
 		struct map_session_data* sd;
 		struct skill_unit* su = NULL;
 		int nx, ny, result;
-				
+
 		sd = BL_CAST(BL_PC, bl);
 		su = BL_CAST(BL_SKILL, bl);
 
@@ -762,12 +762,12 @@ int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag)
 
 		if(!su)
 			unit_stop_walking(bl, 0);
-	
+
 		if(sd) {
 			sd->ud.to_x = nx;
 			sd->ud.to_y = ny;
 		}
-		
+
 		dx = nx-bl->x;
 		dy = ny-bl->y;
 
@@ -797,7 +797,7 @@ int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag)
 		count = distance(dx, dy);
 	}
 
-	return count;  // return amount of knocked back cells
+	return count; //Return amount of knocked back cells
 }
 
 //Warps a unit/ud to a given map/position.
