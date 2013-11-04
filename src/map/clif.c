@@ -4085,7 +4085,6 @@ static void clif_getareachar_pc(struct map_session_data* sd,struct map_session_d
 		clif_showvendingboard(&dstsd->bl,dstsd->message,sd->fd);
 	else if( dstsd->state.buyingstore )
 		clif_buyingstore_entry_single(sd, dstsd);
-
 	if( dstsd->spiritball > 0 )
 		clif_spiritball_single(sd->fd, dstsd);
 	for( i = 1; i < 5; i++ ) {
@@ -4099,14 +4098,13 @@ static void clif_getareachar_pc(struct map_session_data* sd,struct map_session_d
 		pc_has_permission(sd, PC_PERM_VIEW_HPMETER)
 	)
 		clif_hpmeter_single(sd->fd, dstsd->bl.id, dstsd->battle_status.hp, dstsd->battle_status.max_hp);
-
-	// display link (sd - dstsd) to sd
+	//Display link (sd - dstsd) to sd
 	ARR_FIND( 0, 5, i, sd->devotion[i] == dstsd->bl.id );
 	if( i < 5 ) clif_devotion(&sd->bl, sd);
-	// display links (dstsd - devotees) to sd
+	//Display links (dstsd - devotees) to sd
 	ARR_FIND( 0, 5, i, dstsd->devotion[i] > 0 );
 	if( i < 5 ) clif_devotion(&dstsd->bl, sd);
-	// display link (dstsd - crusader) to sd
+	//Display link (dstsd - crusader) to sd
 	if( dstsd->sc.data[SC_DEVOTION] && (d_bl = map_id2bl(dstsd->sc.data[SC_DEVOTION]->val1)) != NULL )
 		clif_devotion(d_bl, sd);
 }
@@ -4117,14 +4115,14 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 	struct unit_data *ud;
 	struct view_data *vd;
 	int len;
-	
+
 	vd = status_get_viewdata(bl);
+
 	if (!vd || vd->class_ == INVISIBLE_CLASS)
 		return;
-		
-	/**
-	* Hide NPC from maya purple card.
-	**/
+
+	
+	//Hide NPC from maya purple card.
 	if (bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
 		return;
 
@@ -4138,7 +4136,7 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 		case BL_PC: {
 				TBL_PC* tsd = (TBL_PC*)bl;
 				clif_getareachar_pc(sd, tsd);
-				if (tsd->state.size == SZ_BIG) // Tiny/big players [Valaris]
+				if (tsd->state.size == SZ_BIG) //Tiny/big players [Valaris]
 					clif_specialeffect_single(bl,423,sd->fd);
 				else if(tsd->state.size == SZ_MEDIUM)
 					clif_specialeffect_single(bl,421,sd->fd);
@@ -4150,7 +4148,7 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 					clif_refreshlook(&sd->bl,bl->id,LOOK_ROBE,tsd->status.robe,SELF);
 			}
 			break;
-		case BL_MER: // Devotion Effects
+		case BL_MER: //Devotion Effects
 			if (((TBL_MER*)bl)->devotion_flag)
 				clif_devotion(bl, sd);
 			break;
@@ -4166,14 +4164,14 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 			break;
 		case BL_MOB: {
 				TBL_MOB* md = (TBL_MOB*)bl;
-				if (md->special_state.size == SZ_BIG) // Tiny/big mobs [Valaris]
+				if (md->special_state.size == SZ_BIG) //Tiny/big mobs [Valaris]
 					clif_specialeffect_single(bl,423,sd->fd);
 				else if (md->special_state.size == SZ_MEDIUM)
 					clif_specialeffect_single(bl,421,sd->fd);
 #if PACKETVER >= 20120404
 				if (!(md->status.mode&MD_BOSS)) {
 					int i;
-					for (i = 0; i < DAMAGELOG_SIZE; i++) { // Must show hp bar to all char who already hit the mob.
+					for (i = 0; i < DAMAGELOG_SIZE; i++) { //Must show hp bar to all char who already hit the mob.
 						if (md->dmglog[i].id == sd->status.char_id) {
 							clif_monster_hp_bar(md,sd->fd);
 							break;
@@ -4185,7 +4183,7 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 			break;
 		case BL_PET:
 			if (vd->head_bottom)
-				clif_pet_equip(sd,(TBL_PET*)bl); // Needed to display pet equip properly
+				clif_pet_equip(sd,(TBL_PET*)bl); //Needed to display pet equip properly
 			break;
 	}
 }
@@ -5414,7 +5412,7 @@ void clif_cooking_list(struct map_session_data *sd, int trigger, uint16 skill_id
 /// 08ff <id>.L <index>.W <remain msec>.L { <val>.L }*3  (ZC_EFST_SET_ENTER) (PACKETVER >= 20111108)
 /// 0983 <index>.W <id>.L <state>.B <total msec>.L <remain msec>.L { <val>.L }*3 (ZC_MSG_STATE_CHANGE3) (PACKETVER >= 20120618)
 /// 0984 <id>.L <index>.W <total msec>.L <remain msec>.L { <val>.L }*3 (ZC_EFST_SET_ENTER2) (PACKETVER >= 20120618)
-void clif_status_change(struct block_list *bl,int type,int flag,int tick,int val1, int val2, int val3)
+void clif_status_change(struct block_list *bl,int type,int flag,int tick,int val1,int val2,int val3)
 {
 	unsigned char buf[32];
 	struct map_session_data *sd;
@@ -5526,7 +5524,7 @@ void clif_displaymessage(const int fd, const char* mes)
 void clif_broadcast(struct block_list* bl, const char* mes, int len, int type, enum send_target target)
 {
 	int lp = (type&BC_COLOR_MASK) ? 4 : 0;
-	unsigned char *buf = (unsigned char*)aMalloc((4 + lp + len)*sizeof(unsigned char));
+	unsigned char *buf = (unsigned char*)aMalloc((4 + lp + len) * sizeof(unsigned char));
 
 	WBUFW(buf,0) = 0x9a;
 	WBUFW(buf,2) = 4 + lp + len;
@@ -16407,7 +16405,7 @@ int clif_spellbook_list(struct map_session_data *sd)
 		sd->menuskill_val = c;
 	} else {
 		status_change_end(&sd->bl,SC_STOP,INVALID_TIMER);
-		clif_skill_fail(sd, WL_READING_SB, USESKILL_FAIL_SPELLBOOK, 0);
+		clif_skill_fail(sd,WL_READING_SB,USESKILL_FAIL_SPELLBOOK,0);
 	}
 
 	return 1;
