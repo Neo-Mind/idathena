@@ -3176,10 +3176,6 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		sd->subele[ELE_NEUTRAL] += skill;
 		sd->subele[ELE_FIRE] += skill * 4;
 	}
-	if( (skill = pc_checkskill(sd, NC_RESEARCHFE)) > 0 ) {
-		sd->subele[ELE_EARTH] += skill * 10;
-		sd->subele[ELE_FIRE] += skill * 10;
-	}
 	if( (skill = pc_checkskill(sd, SA_DRAGONOLOGY)) > 0 ) {
 #ifdef RENEWAL
 		skill = skill * 2;
@@ -3201,11 +3197,6 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		sd->subrace[RC_DEMON] += skill;
 		sd->subele[ELE_DARK] += skill;
 	}
-	if( (skill = pc_checkskill(sd, NC_RESEARCHFE)) > 0 ) {
-		sd->subele[ELE_FIRE] += skill * 10;
-		sd->subele[ELE_EARTH] += skill * 10;
-	}
-
 	if( sc->count ) {
      	if(sc->data[SC_CONCENTRATE]) { //Update the card-bonus data
 			sc->data[SC_CONCENTRATE]->val3 = sd->param_bonus[1]; //Agi

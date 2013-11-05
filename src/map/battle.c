@@ -1394,7 +1394,7 @@ int64 battle_addmastery(struct map_session_data *sd, struct block_list *target, 
 		damage += (skill * 10);
 
 	if(pc_ismadogear(sd))
-		damage += 15 * pc_checkskill(sd,NC_MADOLICENCE);
+		damage += (pc_checkskill(sd,NC_MADOLICENCE) * 15);
 
 	if((skill = pc_checkskill(sd,HT_BEASTBANE)) > 0 && (status->race == RC_BRUTE || status->race == RC_INSECT) ) {
 		damage += (skill * 4);
@@ -4189,8 +4189,8 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 			def1 -= def1 * i / 100;
 			def2 -= def2 * i / 100;
 			//Min 0 DEF
-			def1 = max(0,def1);
-			def2 = max(0,def2);
+			def1 = max(0, def1);
+			def2 = max(0, def2);
 		}
 
 		if(tsc->data[SC_GT_REVITALIZE] && tsc->data[SC_GT_REVITALIZE]->val2)
@@ -4224,22 +4224,25 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 	//[rodatazone: http://rodatazone.simgaming.net/mechanics/substats.php#def]
 	if(tsd) { //sd vit-eq
 #ifndef RENEWAL
-		//[VIT*0.5] + rnd([VIT*0.3], max([VIT*0.3],[VIT^2/150]-1))
+		//[VIT*0.5] + rnd([VIT*0.3], max([VIT*0.3], [VIT^2/150]-1))
 		vit_def = def2 * (def2 - 15) / 150;
 		vit_def = def2 / 2 + (vit_def > 0 ? rnd()%vit_def : 0);
 #else
 		vit_def = def2;
 #endif
 		//This bonus already doesn't work vs players
-		if((battle_check_undead(sstatus->race,sstatus->def_ele) || sstatus->race == RC_DEMON) &&
-			src->type == BL_MOB && (skill = pc_checkskill(tsd,AL_DP)) > 0)
+		if((battle_check_undead(sstatus->race, sstatus->def_ele) || sstatus->race == RC_DEMON) &&
+			src->type == BL_MOB && (skill = pc_checkskill(tsd, AL_DP)) > 0)
 			vit_def += skill * (int)(3 + (tsd->status.base_level + 1) * 0.04); //[orn]
-		if(src->type == BL_MOB && (skill = pc_checkskill(tsd,RA_RANGERMAIN)) > 0 &&
+		if(src->type == BL_MOB && (skill = pc_checkskill(tsd, RA_RANGERMAIN)) > 0 &&
 			(sstatus->race == RC_BRUTE || sstatus->race == RC_FISH || sstatus->race == RC_PLANT))
 			vit_def += skill * 5;
+		if(src->type == BL_MOB && (skill = pc_checkskill(tsd, NC_RESEARCHFE)) > 0 &&
+			(sstatus->def_ele == ELE_FIRE || sstatus->def_ele == ELE_EARTH))
+			vit_def += skill * 10;
 	} else { //Mob-Pet vit-eq
 #ifndef RENEWAL
-		//VIT + rnd(0,[VIT/20]^2-1)
+		//VIT + rnd(0, [VIT/20]^2-1)
 		vit_def = (def2 / 20) * (def2 / 20);
 		vit_def = def2 + (vit_def > 0 ? rnd()%vit_def : 0);
 #else
@@ -4291,7 +4294,7 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
  *	Initial refactoring by Baalberith
  *	Refined and optimized by helvetica
  */
-struct Damage battle_calc_attack_post_defense(struct Damage wd, struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv)
+struct Damage battle_calc_attack_post_defense(struct Damage wd,struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv)
 {
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 	struct status_change *sc = status_get_sc(src);
@@ -6283,10 +6286,9 @@ int64 battle_calc_return_damage(struct block_list* bl, struct block_list *src, i
 #endif
 	}
 
-	if( sc )
-		if( !sc->data[SC_DEATHBOUND] )
-			if( sc->data[SC_KYOMU] ) //Nullify reflecting ability
-				rdamage = 0;
+	if( sc && !sc->data[SC_DEATHBOUND] )
+		if( sc->data[SC_KYOMU] ) //Nullify reflecting ability
+			rdamage = 0;
 
 	return rdamage;
 }
@@ -6374,7 +6376,7 @@ int battle_damage_area( struct block_list *bl, va_list ap) {
 		if( amotion )
 			battle_delay_damage(tick, amotion, src, bl, 0, CR_REFLECTSHIELD, 0, damage, ATK_DEF, 0, true);
 		else
-			status_fix_damage(src ,bl, damage, 0);
+			status_fix_damage(src, bl, damage, 0);
 		clif_damage(bl, bl, tick, amotion, dmotion, damage, 1, 4, 0);
 		if( !(src && src->type == BL_PC && ((TBL_PC*)src)->state.autocast) )
 			skill_additional_effect(src, bl, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);

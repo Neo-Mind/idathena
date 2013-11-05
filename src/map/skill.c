@@ -4695,7 +4695,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case NC_MAGNETICFIELD:
-			if( !map_flag_vs(src->m) ) //Only affect enemies in non-PvP maps
+			if( !map[src->m].flag.pvp ) //Doesn't affect enemies in pvp mapflag
 				sc_start2(src,bl,SC_MAGNETICFIELD,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv));
 			break;
 
@@ -6797,7 +6797,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				int ebottle = pc_search_inventory(sd,713);
 				if (ebottle >= 0)
 					ebottle = sd->status.inventory[ebottle].amount;
-				//check if you can produce all three, if not, then fail:
+				//Check if you can produce all three, if not, then fail:
 				if (!skill_can_produce_mix(sd,970,-1,100) //100 Alcohol
 					|| !skill_can_produce_mix(sd,7136,-1,50) //50 Acid Bottle
 					|| !skill_can_produce_mix(sd,7135,-1,50) //50 Flame Bottle
@@ -6816,7 +6816,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if( flag&1 || (i = skill_get_splash(skill_id,skill_lv)) < 1 ) {
 				if( sd && dstsd && !map_flag_vs(sd->bl.m)
 					&& (!sd->status.party_id || sd->status.party_id != dstsd->status.party_id) ) {
-					// Outside PvP it should only affect party members and no skill fail message.
+					//Outside PvP it should only affect party members and no skill fail message.
 					break;
 				}
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -6972,7 +6972,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					status_percent_damage(bl,src,0,-20,false); //20% max SP damage.
 				} else {
 					struct unit_data *ud = unit_bl2ud(bl);
-					int bl_skill_id = 0,bl_skill_lv = 0,hp = 0;
+					int bl_skill_id = 0, bl_skill_lv = 0, hp = 0;
 					if (!ud || ud->skilltimer == INVALID_TIMER)
 						break; //Nothing to cancel.
 					bl_skill_id = ud->skill_id;
@@ -6983,7 +6983,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							break;
 						}
 					} else if (!dstsd || map_flag_vs(bl->m)) //HP damage only on pvp-maps when against players.
-						hp = tstatus->max_hp/50; //Recover 2% HP [Skotlex]
+						hp = tstatus->max_hp / 50; //Recover 2% HP [Skotlex]
 
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 					unit_skillcastcancel(bl,0);
@@ -6996,7 +6996,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						hp = 0;
 
 					if (sp) //Recover some of the SP used
-						sp = sp*(25*(skill_lv-1))/100;
+						sp = sp * (25 * (skill_lv - 1)) / 100;
 
 					if(hp || sp)
 						status_heal(src,hp,sp,2);
@@ -8569,7 +8569,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case NC_MAGNETICFIELD:
-			if( !map_flag_vs(src->m) ) { //Only affect enemies in non-PvP maps
+			if( !map[src->m].flag.pvp ) { //Doesn't affect enemies in pvp mapflag
 				if( (i = sc_start2(src,bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv))) ) {
 					map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),splash_target(src),
 					src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
@@ -11989,7 +11989,6 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 		if (diff < 0)
 			return 0;
 		ts->tick = tick + sg->interval;
-
 		if ((skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS) && !battle_config.gx_allhit)
 			ts->tick += sg->interval * (map_count_oncell(bl->m,bl->x,bl->y,BL_CHAR) - 1);
 	}
