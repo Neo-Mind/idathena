@@ -9661,7 +9661,19 @@ int status_change_clear(struct block_list* bl,int type)
 					continue;
 			}
 
-		if(type == 3) {
+		//Config if the monster transform status should end on death. [Rytech]
+		if(type == 0 && battle_config.transform_end_on_death == 0)
+			switch(i) {
+				case SC_MONSTER_TRANSFORM:
+				case SC_MTF_ASPD:
+				case SC_MTF_RANGEATK:
+				case SC_MTF_MATK:
+				case SC_MTF_MLEATKED:
+				case SC_MTF_CRIDAMAGE:
+					continue;
+			}
+
+		if(type == 3)
 			switch(i) { //TODO: This list may be incomplete
 				case SC_WEIGHT50:
 				case SC_WEIGHT90:
@@ -9673,10 +9685,6 @@ int status_change_clear(struct block_list* bl,int type)
 				case SC_SUPER_STAR:
 					continue;
 			}
-		}
-
-		if(sc && sc->data[SC_MONSTER_TRANSFORM] && battle_config.transform_end_on_death == 0 && type == 0)
-			continue; //Config if the monster transform status should end on death. [Rytech]
 
 		status_change_end(bl,(sc_type)i,INVALID_TIMER);
 
@@ -11328,7 +11336,7 @@ int status_change_clear_buffs (struct block_list* bl, int type)
 		for (i = SC_COMMON_MIN; i <= SC_COMMON_MAX; i++)
 			status_change_end(bl, (sc_type)i, INVALID_TIMER);
 
-	for (i = SC_COMMON_MAX+1; i < SC_MAX; i++) {
+	for (i = SC_COMMON_MAX + 1; i < SC_MAX; i++) {
 		if (!sc->data[i])
 			continue;
 
@@ -11398,6 +11406,11 @@ int status_change_clear_buffs (struct block_list* bl, int type)
 			case SC_MONSTER_TRANSFORM:
 			case SC_MOONSTAR:
 			case SC_SUPER_STAR:
+			case SC_MTF_ASPD:
+			case SC_MTF_RANGEATK:
+			case SC_MTF_MATK:
+			case SC_MTF_MLEATKED:
+			case SC_MTF_CRIDAMAGE:
 				continue;
 
 			//Debuffs that can be removed.

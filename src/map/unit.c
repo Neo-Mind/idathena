@@ -153,7 +153,7 @@ int unit_teleport_timer(int tid, unsigned int tick, int id, intptr_t data) {
 		if(msd && !check_distance_bl(&msd->bl, bl, data)) {
 			*mast_tid = INVALID_TIMER;
 			unit_warp(bl, msd->bl.id, msd->bl.x, msd->bl.y, CLR_TELEPORT );
-		} else // No timer needed
+		} else //No timer needed
 			*mast_tid = INVALID_TIMER;
 	}
 	return 0;

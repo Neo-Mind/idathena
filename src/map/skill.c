@@ -6880,7 +6880,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						case SC_INCREASING:			case SC_ADJUSTMENT:		case SC_MADNESSCANCEL:
 						case SC_ANGEL_PROTECT:			case SC_MONSTER_TRANSFORM:	case SC_FULL_THROTTLE:
 						case SC_REBOUND:			case SC_TELEKINESIS_INTENSE:	case SC_MOONSTAR:
-						case SC_SUPER_STAR:			case SC_ALL_RIDING:
+						case SC_SUPER_STAR:			case SC_ALL_RIDING:		case SC_MTF_ASPD:
+						case SC_MTF_RANGEATK:			case SC_MTF_MATK:		case SC_MTF_MLEATKED:
+						case SC_MTF_CRIDAMAGE:
 #ifdef RENEWAL
 						case SC_EXTREMITYFIST2:
 #endif
@@ -8316,6 +8318,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						case SC_GT_CHANGE:		case SC_ANGEL_PROTECT:		case SC_MONSTER_TRANSFORM:
 						case SC_FULL_THROTTLE:		case SC_REBOUND:		case SC_TELEKINESIS_INTENSE:
 						case SC_MOONSTAR:		case SC_SUPER_STAR:		case SC_ALL_RIDING:
+						case SC_MTF_ASPD:		case SC_MTF_RANGEATK:		case SC_MTF_MATK:
+						case SC_MTF_MLEATKED:		case SC_MTF_CRIDAMAGE:
 #ifdef RENEWAL
 						case SC_EXTREMITYFIST2:
 #endif
