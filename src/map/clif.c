@@ -14335,26 +14335,26 @@ void clif_Auction_results(struct map_session_data *sd, short count, short pages,
 		k = 12 + (i * 83);
 
 		WFIFOL(fd,k) = auction.auction_id;
-		safestrncpy((char*)WFIFOP(fd,4+k), auction.seller_name, NAME_LENGTH);
+		safestrncpy((char*)WFIFOP(fd,4 + k), auction.seller_name, NAME_LENGTH);
 
 		if( (item = itemdb_exists(auction.item.nameid)) != NULL && item->view_id > 0 )
-			WFIFOW(fd,28+k) = item->view_id;
+			WFIFOW(fd,28 + k) = item->view_id;
 		else
-			WFIFOW(fd,28+k) = auction.item.nameid;
+			WFIFOW(fd,28 + k) = auction.item.nameid;
 
-		WFIFOL(fd,30+k) = auction.type;
-		WFIFOW(fd,34+k) = auction.item.amount; // Always 1
-		WFIFOB(fd,36+k) = auction.item.identify;
-		WFIFOB(fd,37+k) = auction.item.attribute;
-		WFIFOB(fd,38+k) = auction.item.refine;
-		WFIFOW(fd,39+k) = auction.item.card[0];
-		WFIFOW(fd,41+k) = auction.item.card[1];
-		WFIFOW(fd,43+k) = auction.item.card[2];
-		WFIFOW(fd,45+k) = auction.item.card[3];
-		WFIFOL(fd,47+k) = auction.price;
-		WFIFOL(fd,51+k) = auction.buynow;
-		safestrncpy((char*)WFIFOP(fd,55+k), auction.buyer_name, NAME_LENGTH);
-		WFIFOL(fd,79+k) = (uint32)auction.timestamp;
+		WFIFOL(fd,30 + k) = auction.type;
+		WFIFOW(fd,34 + k) = auction.item.amount; //Always 1
+		WFIFOB(fd,36 + k) = auction.item.identify;
+		WFIFOB(fd,37 + k) = auction.item.attribute;
+		WFIFOB(fd,38 + k) = auction.item.refine;
+		WFIFOW(fd,39 + k) = auction.item.card[0];
+		WFIFOW(fd,41 + k) = auction.item.card[1];
+		WFIFOW(fd,43 + k) = auction.item.card[2];
+		WFIFOW(fd,45 + k) = auction.item.card[3];
+		WFIFOL(fd,47 + k) = auction.price;
+		WFIFOL(fd,51 + k) = auction.buynow;
+		safestrncpy((char*)WFIFOP(fd,55 + k), auction.buyer_name, NAME_LENGTH);
+		WFIFOL(fd,79 + k) = (uint32)auction.timestamp;
 	}
 	WFIFOSET(fd,WFIFOW(fd,2));
 }
@@ -14397,7 +14397,7 @@ void clif_parse_Auction_setitem(int fd, struct map_session_data *sd)
 {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
 	int idx = RFIFOW(fd,info->pos[0]) - 2;
-	int amount = RFIFOL(fd,info->pos[1]); // Always 1
+	int amount = RFIFOL(fd,info->pos[1]); //Always 1
 	struct item_data *item;
 
 	if( !battle_config.feature_auction )
@@ -14411,24 +14411,24 @@ void clif_parse_Auction_setitem(int fd, struct map_session_data *sd)
 		return;
 	}
 
-	if( amount != 1 || amount > sd->status.inventory[idx].amount ) { // By client, amount is always set to 1. Maybe this is a future implementation.
+	if( amount != 1 || amount > sd->status.inventory[idx].amount ) { //By client, amount is always set to 1. Maybe this is a future implementation.
 		ShowWarning("Character %s trying to set invalid amount in auctions.\n", sd->status.name);
 		return;
 	}
 
 	if( (item = itemdb_exists(sd->status.inventory[idx].nameid)) != NULL && !(item->type == IT_ARMOR || item->type == IT_PETARMOR || item->type == IT_WEAPON || item->type == IT_CARD || item->type == IT_ETC) )
-	{ // Consumable or pets are not allowed
+	{ //Consumable or pets are not allowed
 		clif_Auction_setitem(sd->fd, idx, true);
 		return;
 	}
-	
+
 	if( !pc_can_give_items(sd) || sd->status.inventory[idx].expire_time ||
-			!sd->status.inventory[idx].identify ||
-				!itemdb_canauction(&sd->status.inventory[idx],pc_get_group_level(sd)) ) { // Quest Item or something else
+		!sd->status.inventory[idx].identify || !itemdb_available(sd->status.inventory[idx].nameid) ||
+		!itemdb_canauction(&sd->status.inventory[idx],pc_get_group_level(sd)) ) { //Quest Item or something else
 		clif_Auction_setitem(sd->fd, idx, true);
 		return;
 	}
-	
+
 	sd->auction.index = idx;
 	sd->auction.amount = amount;
 	clif_Auction_setitem(fd, idx + 2, false);

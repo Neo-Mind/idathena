@@ -8945,7 +8945,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick_time = 10000; //[GodLesZ] tick time
 				break;
 			case SC_KYOUGAKU:
-				val1 = 1002;
+				val1 = 1002; //Poring in disguise
 				val2 = rnd_value(val1 * 2,val1 * 3);
 				clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,0,val1,0,0);
 				break;
@@ -9120,7 +9120,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				}
 				break;
 			case SC_KYOUGAKU:
-				clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,0,1002,0,0);
+				clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,0,1002,0,0); //Poring in disguise
 				break;
 		}
 	}
