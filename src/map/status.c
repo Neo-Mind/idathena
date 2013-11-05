@@ -1085,7 +1085,7 @@ void initChangeTables(void) {
 	StatusChangeStateTable[SC_ELECTRICSHOCKER]     |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_BITE]                |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_THORNSTRAP]          |= SCS_NOMOVE;
-	StatusChangeStateTable[SC_MAGNETICFIELD]       |= SCS_NOMOVE;
+	StatusChangeStateTable[SC_MAGNETICFIELD]       |= SCS_NOMOVE|SCS_NOMOVECOND;
 	StatusChangeStateTable[SC__MANHOLE]            |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_VACUUM_EXTREME]      |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_CURSEDCIRCLE_ATKER]  |= SCS_NOMOVE;
@@ -3721,9 +3721,10 @@ void status_calc_state( struct block_list *bl, struct status_change *sc, enum sc
 			(sc->data[SC_BASILICA] && sc->data[SC_BASILICA]->val4 == bl->id) || //Basilica caster cannot move
 			(sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF) ||
 			(sc->data[SC_CRYSTALIZE] && bl->type != BL_MOB) ||
-			(sc->data[SC_CAMOUFLAGE] && sc->data[SC_CAMOUFLAGE]->val1 < 3) )
+			(sc->data[SC_CAMOUFLAGE] && sc->data[SC_CAMOUFLAGE]->val1 < 3) ||
+			(sc->data[SC_MAGNETICFIELD] && sc->data[SC_MAGNETICFIELD]->val2 != bl->id) )
 			sc->cant.move += (start ? 1 : -1);
-		sc->cant.move = max(sc->cant.move, 0); //Safecheck
+		sc->cant.move = max(sc->cant.move, 0); //Safe check
 	}
 
 	/* Can't use skills */
@@ -11077,9 +11078,8 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			break;
 
 		case SC_OVERHEAT_LIMITPOINT:
-			if( --(sce->val1) > 0 ) { //Cooling
+			if( --(sce->val1) > 0 ) //Cooling
 				sc_timer_next(30000 + tick,status_change_timer,bl->id,data);
-			}
 			break;
 
 		case SC_OVERHEAT: {
@@ -11098,13 +11098,13 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				if( --(sce->val3) <= 0 )
 					break; //Time out
 				if( sce->val2 == bl->id ) {
-					if( !status_charge(bl,0,50) )
-						break; //No more SP status should end,and in the next second will end for the other affected players
-				} else {
 					struct block_list *src = map_id2bl(sce->val2);
 					struct status_change *ssc;
 					if( !src || (ssc = status_get_sc(src)) == NULL || !ssc->data[SC_MAGNETICFIELD] )
 						break; //Source no more under Magnetic Field
+				} else {
+					if( !status_charge(bl,0,50) )
+						break; //No more SP status should end,and in the next second will end for the other affected players
 				}
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 			}

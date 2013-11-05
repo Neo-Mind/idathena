@@ -4637,8 +4637,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 		case RA_WUGSTRIKE:
 			if (sd && pc_isridingwug(sd)) {
-				short x[8]={0,-1,-1,-1,0,1,1,1};
-				short y[8]={1,1,0,-1,-1,-1,0,1};
+				short x[8] = { 0,-1,-1,-1,0,1,1,1 };
+				short y[8] = { 1,1,0,-1,-1,-1,0,1 };
 				uint8 dir = map_calc_dir(bl,src->x,src->y);
 
 				if (unit_movepos(src,bl->x+x[dir],bl->y+y[dir],1,1)) {
@@ -4649,9 +4649,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				break;
 			}
 		case RA_WUGBITE:
-			if (path_search(NULL,src->m,src->x,src->y,bl->x,bl->y,1,CELL_CHKNOREACH)) {
+			if (path_search(NULL,src->m,src->x,src->y,bl->x,bl->y,1,CELL_CHKNOREACH))
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
-			} else if (sd && skill_id == RA_WUGBITE) //Only RA_WUGBITE has the skill fail message.
+			else if (sd && skill_id == RA_WUGBITE) //Only RA_WUGBITE has the skill fail message.
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
 
@@ -4695,7 +4695,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case NC_MAGNETICFIELD:
-			sc_start2(src,bl,SC_MAGNETICFIELD,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv));
+			if( !map_flag_vs(src->m) ) //Only affect enemies in non-PvP maps
+				sc_start2(src,bl,SC_MAGNETICFIELD,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv));
 			break;
 
 		case SC_FATALMENACE:
@@ -8564,12 +8565,15 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case NC_MAGNETICFIELD:
-			if( (i = sc_start2(src,bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv))) ) {
-				map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);;
-				clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
-				if (sd) pc_overheat(sd,1);
+			if( !map_flag_vs(src->m) ) { //Only affect enemies in non-PvP maps
+				if( (i = sc_start2(src,bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv))) ) {
+					map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),splash_target(src),
+					src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
+					clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
+					if( sd ) pc_overheat(sd,1);
+				}
+				clif_skill_nodamage(src,src,skill_id,skill_lv,i);
 			}
-			clif_skill_nodamage(src,src,skill_id,skill_lv,i);
 			break;
 
 		case NC_REPAIR:
@@ -9480,7 +9484,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case KO_HYOUHU_HUBUKI:
 		case KO_KAZEHU_SEIRAN:
 		case KO_DOHU_KOUKAI:
-			if(sd) {
+			if( sd ) {
 				int type = skill_get_ele(skill_id,skill_lv);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				pc_add_talisman(sd,skill_get_time(skill_id,skill_lv),10,type);
@@ -13109,17 +13113,17 @@ int skill_check_pc_partner (struct map_session_data *sd, uint16 skill_id, uint16
  *------------------------------------------*/
 static int skill_check_condition_mob_master_sub (struct block_list *bl, va_list ap)
 {
-	int *c,src_id,mob_class,skill;
+	int *c, src_id, mob_class, skill;
 	uint16 ai;
 	struct mob_data *md;
 
-	md=(struct mob_data*)bl;
-	src_id=va_arg(ap,int);
-	mob_class=va_arg(ap,int);
-	skill=va_arg(ap,int);
-	c=va_arg(ap,int *);
+	md = (struct mob_data*)bl;
+	src_id = va_arg(ap,int);
+	mob_class = va_arg(ap,int);
+	skill = va_arg(ap,int);
+	c = va_arg(ap,int *);
 
-	ai = (unsigned)(skill == AM_SPHEREMINE?2:skill == KO_ZANZOU?4:skill == MH_SUMMON_LEGION?5:3);
+	ai = (unsigned)(skill == AM_SPHEREMINE ? 2 : skill == KO_ZANZOU ? 4 : skill == MH_SUMMON_LEGION ? 5 : 3);
 
 	if( md->master_id != src_id || md->special_state.ai != ai )
 		return 0; //Non alchemist summoned mobs have nothing to do here.
