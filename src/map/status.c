@@ -7239,8 +7239,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_DEEPSLEEP:
 			case SC_CRYSTALIZE:
 			case SC_PAIN_KILLER:
-
-			//Exploit prevention - kRO Fix
 			case SC_PYREXIA:
 			case SC_DEATHHURT:
 			case SC_TOXIN:
@@ -7249,13 +7247,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_MAGICMUSHROOM:
 			case SC_OBLIVIONCURSE:
 			case SC_LEECHESEND:
-
-			//Ranger Effects
 			case SC_BITE:
 			case SC_ELECTRICSHOCKER:
 			case SC_MAGNETICFIELD:
-
-			//Shadow Chaser Effects
 			case SC__ENERVATION:
 			case SC__GROOMY:
 			case SC__LAZINESS:
@@ -7295,12 +7289,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			status_change_end(bl,SC_TRUESIGHT,INVALID_TIMER);
 			status_change_end(bl,SC_WINDWALK,INVALID_TIMER);
 			status_change_end(bl,SC_MAGNETICFIELD,INVALID_TIMER);
-			//Also blocks the ones below...
 		case SC_DECREASEAGI:
 		case SC_ADORAMUS:
 			status_change_end(bl,SC_CARTBOOST,INVALID_TIMER);
 			status_change_end(bl,SC_GN_CARTBOOST,INVALID_TIMER);
-			//Also blocks the ones below...
 		case SC_DONTFORGETME:
 			status_change_end(bl,SC_INCREASEAGI,INVALID_TIMER);
 			status_change_end(bl,SC_ADRENALINE,INVALID_TIMER);
@@ -9237,6 +9229,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_MEIKYOUSISUI:
 		case SC_KYOUGAKU:
 		case SC_PARALYSIS:
+		case SC_MAGNETICFIELD:
+		case SC_KAGEHUMI:
 			unit_stop_walking(bl,1);
 			break;
 		case SC_ANKLE:
@@ -11105,14 +11099,14 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_MAGNETICFIELD: {
 				if( --(sce->val3) <= 0 )
 					break; //Time out
-				if( sce->val2 == bl->id ) {
+				if( sce->val2 != bl->id ) {
+					if( !status_charge(bl,0,50) )
+						break; //No more SP status should end,and in the next second will end for the other affected players
+				} else {
 					struct block_list *src = map_id2bl(sce->val2);
 					struct status_change *ssc;
 					if( !src || (ssc = status_get_sc(src)) == NULL || !ssc->data[SC_MAGNETICFIELD] )
 						break; //Source no more under Magnetic Field
-				} else {
-					if( !status_charge(bl,0,50) )
-						break; //No more SP status should end,and in the next second will end for the other affected players
 				}
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 			}
