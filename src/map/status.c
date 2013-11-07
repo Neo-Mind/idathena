@@ -2372,7 +2372,7 @@ int status_calc_pet_(struct pet_data *pd, enum e_status_calc_opt opt)
 
 			status_calc_misc(&pd->bl,&pd->status,lv);
 
-			if (!(opt&SCO_FIRST))	//Not done the first time because the pet is not visible yet
+			if (!(opt&SCO_FIRST)) //Not done the first time because the pet is not visible yet
 				clif_send_petstatus(sd);
 		}
 	} else if (opt&SCO_FIRST) {
@@ -3323,7 +3323,7 @@ int status_calc_homunculus_(struct homun_data *hd, enum e_status_calc_opt opt)
 	status->int_ = hom->int_ / 10;
 	status->luk = hom->luk / 10;
 
-	if(opt&SCO_FIRST) {	//[orn]
+	if(opt&SCO_FIRST) { //[orn]
 		const struct s_homunculus_db *db = hd->homunculusDB;
 		status->def_ele =  db->element;
 		status->ele_lv = 1;

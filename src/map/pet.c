@@ -109,13 +109,12 @@ int pet_attackskill(struct pet_data *pd, int target_id)
 	if (DIFF_TICK(pd->ud.canact_tick, gettick()) > 0)
 		return 0;
 
-	if (rnd()%100 < (pd->a_skill->rate +pd->pet.intimate*pd->a_skill->bonusrate/1000))
-	{ //Skotlex: Use pet's skill
+	if (rnd()%100 < (pd->a_skill->rate + pd->pet.intimate * pd->a_skill->bonusrate / 1000)) { //Skotlex: Use pet's skill
 		int inf;
 		struct block_list *bl;
 
 		bl = map_id2bl(target_id);
-		if(bl == NULL || pd->bl.m != bl->m || bl->prev == NULL || status_isdead(bl) ||
+		if (bl == NULL || pd->bl.m != bl->m || bl->prev == NULL || status_isdead(bl) ||
 			!check_distance_bl(&pd->bl, bl, pd->db->range3))
 			return 0;
 
@@ -123,7 +122,7 @@ int pet_attackskill(struct pet_data *pd, int target_id)
 		if (inf&INF_GROUND_SKILL)
 			unit_skilluse_pos(&pd->bl, bl->x, bl->y, pd->a_skill->id, pd->a_skill->lv);
 		else //Offensive self skill? Could be stuff like GX.
-			unit_skilluse_id(&pd->bl,(inf&INF_SELF_SKILL?pd->bl.id:bl->id), pd->a_skill->id, pd->a_skill->lv);
+			unit_skilluse_id(&pd->bl, (inf&INF_SELF_SKILL ? pd->bl.id : bl->id), pd->a_skill->id, pd->a_skill->lv);
 		return 1; //Skill invoked.
 	}
 	return 0;
@@ -228,7 +227,7 @@ static int pet_hungry(int tid, unsigned int tick, int id, intptr_t data)
 	clif_send_petdata(sd,pd,2,pd->pet.hungry);
 
 	if(battle_config.pet_hungry_delay_rate != 100)
-		interval = (pd->petDB->hungry_delay*battle_config.pet_hungry_delay_rate) / 100;
+		interval = (pd->petDB->hungry_delay * battle_config.pet_hungry_delay_rate) / 100;
 	else
 		interval = pd->petDB->hungry_delay;
 	if(interval <= 0)
@@ -372,7 +371,7 @@ int pet_data_init(struct map_session_data *sd, struct s_pet *pet)
 		status_calc_pc(sd,SCO_NONE);
 
 	if( battle_config.pet_hungry_delay_rate != 100 )
-		interval = (pd->petDB->hungry_delay*battle_config.pet_hungry_delay_rate) / 100;
+		interval = (pd->petDB->hungry_delay * battle_config.pet_hungry_delay_rate) / 100;
 	else
 		interval = pd->petDB->hungry_delay;
 	if( interval <= 0 )

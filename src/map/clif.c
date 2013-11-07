@@ -55,8 +55,8 @@
 /* For clif_clearunit_delayed */
 static struct eri *delay_clearunit_ers;
 
-#define DUMP_UNKNOWN_PACKET
-#define DUMP_INVALID_PACKET
+//#define DUMP_UNKNOWN_PACKET
+//#define DUMP_INVALID_PACKET
 
 struct Clif_Config {
 	int packet_db_ver;	//Preferred packet version.
@@ -87,7 +87,7 @@ static inline void WBUFPOS(uint8* p, unsigned short pos, short x, short y, unsig
 }
 
 
-// client-side: x0+=sx0*0.0625-0.5 and y0+=sy0*0.0625-0.5
+// client-side: x0 += sx0 * 0.0625 - 0.5 and y0 += sy0 * 0.0625 - 0.5
 static inline void WBUFPOS2(uint8* p, unsigned short pos, short x0, short y0, short x1, short y1, unsigned char sx0, unsigned char sy0) {
 	p += pos;
 	p[0] = (uint8)(x0>>2);
@@ -203,9 +203,8 @@ void clif_setbindip(const char* ip) {
 	if (bind_ip) {
 		char ip_str[16];
 		ShowInfo("Map Server Bind IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", ip, ip2str(bind_ip, ip_str));
-	} else {
+	} else
 		ShowWarning("Failed to Resolve Map Server Address! (%s)\n", ip);
-	}
 }
 
 /*==========================================
@@ -4888,7 +4887,7 @@ void clif_skillcastcancel(struct block_list* bl)
 ///   ... = @see enum useskill_fail_cause
 ///     ? = ignored
 ///
-/// if(result!=0) doesn't display any of the previous messages
+/// if(result != 0) doesn't display any of the previous messages
 /// Note: when this packet is received an unknown flag is always set to 0,
 /// suggesting this is an ACK packet for the UseSkill packets and should be sent on success too [FlavioJS]
 void clif_skill_fail(struct map_session_data *sd,uint16 skill_id,enum useskill_fail_cause cause,int btype)
@@ -5563,7 +5562,7 @@ void clif_GlobalMessage(struct block_list* bl, const char* message, enum send_ta
 /// 01c3 <packet len>.W <fontColor>.L <fontType>.W <fontSize>.W <fontAlign>.W <fontY>.W <message>.?B
 void clif_broadcast2(struct block_list* bl, const char* mes, int len, unsigned long fontColor, short fontType, short fontSize, short fontAlign, short fontY, enum send_target target)
 {
-	unsigned char *buf = (unsigned char*)aMalloc((16 + len)*sizeof(unsigned char));
+	unsigned char *buf = (unsigned char*)aMalloc((16 + len) * sizeof(unsigned char));
 
 	WBUFW(buf,0)  = 0x1c3;
 	WBUFW(buf,2)  = len + 16;
@@ -5697,10 +5696,10 @@ void clif_map_type(struct map_session_data* sd, enum map_type type)
 	nullpo_retv(sd);
 
 	fd = sd->fd;
-	WFIFOHEAD(fd,packet_len(0x1D6));
-	WFIFOW(fd,0) = 0x1D6;
+	WFIFOHEAD(fd,packet_len(0x1d6));
+	WFIFOW(fd,0) = 0x1d6;
 	WFIFOW(fd,2) = type;
-	WFIFOSET(fd,packet_len(0x1D6));
+	WFIFOSET(fd,packet_len(0x1d6));
 }
 
 
@@ -6289,6 +6288,22 @@ void clif_bank_withdraw(struct map_session_data *sd, enum e_BANKING_WITHDRAW_ACK
 	WBUFQ(buf,4) = (int64)sd->status.bank_vault; /* Money in the bank */
 	WBUFL(buf,12) = sd->status.zeny; /* How much zeny char has after operation */
 	clif_send(buf,packet_len(0x9aa),&sd->bl,SELF);
+}
+
+/* TODO: Official response packet (tried 0x8cb/0x97b but the display was quite screwed up.) */
+/* Currently mimicing */
+void clif_show_modifiers(struct map_session_data *sd)
+{
+	if(sd->status.mod_exp != 100 || sd->status.mod_drop != 100 || sd->status.mod_death != 100) {
+		char output[256];
+
+		snprintf(output,256,
+			"E X P : %d%% ( Premium %d%% + Server Rate 100% ) | Drop rate : %d%% ( Premium %d%% + Server Rate 100% ) | Penalty of death : %d%%( Premium %d%% + Server Rate 100% )",
+			(sd->status.mod_exp + 100),sd->status.mod_exp,(sd->status.mod_drop + 100),sd->status.mod_drop,(sd->status.mod_death + 100),sd->status.mod_death);
+		clif_colormes(sd,color_table[COLOR_CUSTOM],"=================================================================");
+		clif_broadcast2(&sd->bl,output,strlen(output) + 1,0xffbc90,0x190,12,0,0,SELF);
+		clif_colormes(sd,color_table[COLOR_CUSTOM],"=================================================================");
+	}
 }
 
 
@@ -8148,16 +8163,16 @@ void clif_disp_message(struct block_list* src, const char* mes, int len, enum se
 {
 	unsigned char buf[256];
 
-	if( len == 0 ) {
+	if( len == 0 )
 		return;
-	} else if( len > sizeof(buf)-5 ) {
-		ShowWarning("clif_disp_message: Truncated message '%s' (len=%d, max=%d, aid=%d).\n", mes, len, sizeof(buf)-5, src->id);
-		len = sizeof(buf)-5;
+	else if( len > sizeof(buf) - 5 ) {
+		ShowWarning("clif_disp_message: Truncated message '%s' (len=%d, max=%d, aid=%d).\n", mes, len, sizeof(buf) - 5, src->id);
+		len = sizeof(buf) - 5;
 	}
 
 	WBUFW(buf, 0) = 0x17f;
 	WBUFW(buf, 2) = len + 5;
-	safestrncpy((char*)WBUFP(buf,4), mes, len+1);
+	safestrncpy((char*)WBUFP(buf,4), mes, len + 1);
 	clif_send(buf, WBUFW(buf,2), src, target);
 }
 
@@ -8401,18 +8416,19 @@ void clif_specialeffect_value(struct block_list* bl, int effect_id, int num, sen
 		clif_send(buf, packet_len(0x284), bl, SELF);
 	}
 }
+
 // Modification of clif_messagecolor to send colored messages to players to chat log only (doesn't display overhead)
 /// 02c1 <packet len>.W <id>.L <color>.L <message>.?B
 int clif_colormes(struct map_session_data *sd, unsigned long color, const char* msg) {
 	unsigned short msg_len = strlen(msg) + 1;
 
 	WFIFOHEAD(sd->fd,msg_len + 12);
-	WFIFOW(sd->fd,0) = 0x2C1;
+	WFIFOW(sd->fd,0) = 0x2c1;
 	WFIFOW(sd->fd,2) = msg_len + 12;
 	WFIFOL(sd->fd,4) = 0;
-	WFIFOL(sd->fd,8) = color; //either color_table or channel_table
+	WFIFOL(sd->fd,8) = color; //Either color_table or channel_table
 	safestrncpy((char*)WFIFOP(sd->fd,12), msg, msg_len);
-	WFIFOSET(sd->fd, msg_len + 12);
+	WFIFOSET(sd->fd,msg_len + 12);
 
 	return 0;
 }
@@ -8422,16 +8438,17 @@ int clif_colormes(struct map_session_data *sd, unsigned long color, const char* 
 void clif_messagecolor(struct block_list* bl, unsigned long color, const char* msg) {
 	unsigned short msg_len = strlen(msg) + 1;
 	uint8 buf[256];
-	color = (color & 0x0000FF) << 16 | (color & 0x00FF00) | (color & 0xFF0000) >> 16; // RGB to BGR
+
+	color = (color&0x0000FF)<<16 | (color&0x00FF00) | (color&0xFF0000)>>16; //RGB to BGR
 
 	nullpo_retv(bl);
 
-	if( msg_len > sizeof(buf)-12 ) {
+	if( msg_len > sizeof(buf) - 12 ) {
 		ShowWarning("clif_messagecolor: Truncating too long message '%s' (len=%u).\n", msg, msg_len);
-		msg_len = sizeof(buf)-12;
+		msg_len = sizeof(buf) - 12;
 	}
 
-	WBUFW(buf,0) = 0x2C1;
+	WBUFW(buf,0) = 0x2c1;
 	WBUFW(buf,2) = msg_len + 12;
 	WBUFL(buf,4) = bl->id;
 	WBUFL(buf,8) = color;
@@ -10742,7 +10759,7 @@ static void clif_noask_sub(struct map_session_data *src, struct map_session_data
 	msg = msg_txt(392);
 	clif_disp_onlyself(src, msg, strlen(msg));
 	//Notice that a request was rejected.
-	snprintf(output, 256, msg_txt(393+type), src->status.name, 256);
+	snprintf(output, 256, msg_txt(393 + type), src->status.name, 256);
 	clif_disp_onlyself(target, output, strlen(output));
 }
 
@@ -16772,7 +16789,7 @@ void clif_sub_ranklist(unsigned char *buf, int idx, struct map_session_data* sd,
 			}
 			WBUFL(buf, idx + 24 * 10 + i * 4) = list[i].fame; //points
 		}
-		for(;i < 10; i++) { //In case the MAX is less than 10.
+		for(; i < 10; i++) { //In case the MAX is less than 10.
 			strncpy((char *)(WBUFP(buf, idx + 24 * i)), "Unavailable", 12);
 			WBUFL(buf, idx + 24 * 10 + i * 4) = 0;
 		}
@@ -16784,8 +16801,8 @@ void clif_ranklist(struct map_session_data *sd, int16 rankingType) {
 	unsigned char buf[MAX_FAME_LIST * sizeof(struct fame_list)];
 	int mypoint = 0;
 
-	WBUFW(buf, 0) = 0x97d;
-	WBUFW(buf, 2) = rankingType;
+	WBUFW(buf,0) = 0x97d;
+	WBUFW(buf,2) = rankingType;
 	clif_sub_ranklist(buf, 4, sd,rankingType);
 
 	switch(sd->class_&MAPID_UPPERMASK) { //Mypoint (checking if valid type)
@@ -16794,7 +16811,7 @@ void clif_ranklist(struct map_session_data *sd, int16 rankingType) {
 		case MAPID_TAEKWON:
 			mypoint = sd->status.fame;
 	}
-	WBUFL(buf, 284) = mypoint; //Mypoint
+	WBUFL(buf,284) = mypoint; //Mypoint
 	clif_send(buf, 288, &sd->bl, SELF);
 }
 
@@ -16839,12 +16856,12 @@ void DumpUnknow(int fd,TBL_PC *sd,int cmd,int packet_len) {
 	struct tm *datetime;
 	char datestr[512];
 
-	time(&time_server);  //Get time in seconds since 1/1/1970
+	time(&time_server); //Get time in seconds since 1/1/1970
 	datetime = localtime(&time_server); //Convert seconds in structure
 	//Like sprintf, but only for date/time (Sunday, November 02 2003 15:12:52)
-	strftime(datestr, sizeof(datestr)-1, "%A, %B %d %Y %X.", datetime); //Server time (normal time): %A, %B %d %Y %X.
+	strftime(datestr, sizeof(datestr) - 1, "%A, %B %d %Y %X.", datetime); //Server time (normal time): %A, %B %d %Y %X.
 
-	if( ( fp = fopen( packet_txt , "a" ) ) != NULL ) {
+	if( (fp = fopen(packet_txt , "a")) != NULL ) {
 		if( sd )
 			fprintf(fp, "Unknown packet 0x%04X (length %d), %s session #%d, %d/%d (AID/CID) at %s \n", cmd, packet_len, sd->state.active ? "authed" : "unauthed", fd, sd->status.account_id, sd->status.char_id,datestr);
 		else
@@ -17057,7 +17074,7 @@ void packetdb_readdb(void)
 	    3,  3, 37,  5, 11, 26, -1,  4,  4,  6, 10, 12,  6, -1,  4,  4,
 #endif
 	   11,  7, -1, 67, 12, 18,114,  6,  3,  6, 26, 26, 26, 26,  2,  3,
-	//#0x01C0,   Set 0x1d5=-1
+	//#0x01C0,   Set 0x1d5 = -1
 	    2, 14, 10, -1, 22, 22,  4,  2, 13, 97,  3,  9,  9, 30,  6, 28,
 	    8, 14, 10, 35,  6, -1,  4, 11, 54, 53, 60,  2, -1, 47, 33,  6,
 	   30,  8, 34, 14,  2,  6, 26,  2, 28, 81,  6, 10, 26,  2, -1, -1,
@@ -17595,17 +17612,17 @@ void packetdb_readdb(void)
  *
  *------------------------------------------*/
 int do_init_clif(void) {
-	const char* colors[COLOR_MAX] = { "0xFF0000", "0xFFFFFF" };
+	const char* colors[COLOR_MAX] = { "0xFF0000", "0xFFFFFF", "0xFFBC90" };
 	int i;
 	/**
 	 * Setup Color Table (saves unnecessary load of strtoul on every call)
 	 **/
-	for(i = 0; i < COLOR_MAX; i++) {
+	for( i = 0; i < COLOR_MAX; i++ ) {
 		color_table[i] = strtoul(colors[i],NULL,0);
-		color_table[i] = (color_table[i] & 0x0000FF) << 16 | (color_table[i] & 0x00FF00) | (color_table[i] & 0xFF0000) >> 16;//RGB to BGR
+		color_table[i] = (color_table[i]&0x0000FF)<<16 | (color_table[i]&0x00FF00) | (color_table[i]&0xFF0000)>>16; //RGB to BGR
 	}
 
-	clif_config.packet_db_ver = -1; // the main packet version of the DB
+	clif_config.packet_db_ver = -1; //The main packet version of the DB
 	memset(clif_config.connect_cmd, 0, sizeof(clif_config.connect_cmd)); //The default connect command will be determined after reading the packet_db [Skotlex]
 
 	//Using the packet_db file is the only way to set up packets now [Skotlex]

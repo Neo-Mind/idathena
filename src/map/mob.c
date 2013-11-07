@@ -2034,8 +2034,8 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	
 	struct {
 		struct party_data *p;
-		int id,zeny;
-		unsigned int base_exp,job_exp;
+		int id, zeny;
+		unsigned int base_exp, job_exp;
 	} pt[DAMAGELOG_SIZE];
 	int i, temp, count, m = md->bl.m, pnum = 0;
 	int dmgbltypes = 0; //Bitfield of all bl types, that caused damage to the mob and are elligible for exp distribution
@@ -2300,7 +2300,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				drop_rate = (int)(drop_rate * 1.25); //pk_mode increase drops if 20 level difference [Valaris]
 
 			//Increase drop rate if user has SC_ITEMBOOST
-			if(sd && sd->sc.data[SC_ITEMBOOST]) //Now rig the drop rate to never be over 90% unless it is originally >90%.
+			if(sd && sd->sc.data[SC_ITEMBOOST]) //Now rig the drop rate to never be over 90% unless it is originally > 90%.
 				drop_rate = max(drop_rate, cap_value((int)(0.5 + drop_rate * (sd->sc.data[SC_ITEMBOOST]->val1) / 100.), 0, 9000));
 #ifdef RENEWAL_DROP
 			if(drop_modifier != 100) {
@@ -2309,8 +2309,14 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 					drop_rate = 1;
 			}
 #endif
+			if(sd && sd->status.mod_drop != 100) {
+				drop_rate = drop_rate * sd->status.mod_drop / 100;
+				if(drop_rate < 1)
+					drop_rate = 1;
+			}
+
 			//Attempt to drop the item
-			if(rnd() % 10000 >= drop_rate)
+			if(rnd()%10000 >= drop_rate)
 					continue;
 
 			if(mvp_sd && it->type == IT_PETEGG) {
@@ -2405,7 +2411,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 
 		//mapflag: noexp check [Lorky]
 		if(map[m].flag.nobaseexp || type&2)
-			exp =1;
+			exp = 1;
 		else {
 			exp = md->db->mexp;
 			if(count > 1)

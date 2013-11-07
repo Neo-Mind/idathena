@@ -5794,21 +5794,26 @@ static void pc_calcexp(struct map_session_data *sd, unsigned int *base_exp, unsi
 
 	if (sd->expaddrace[status->race])
 		bonus += sd->expaddrace[status->race];
-	bonus += sd->expaddrace[status->mode&MD_BOSS?RC_BOSS:RC_NONBOSS];
+	bonus += sd->expaddrace[status->mode&MD_BOSS ? RC_BOSS : RC_NONBOSS];
 
 	if (battle_config.pk_mode &&
 		(int)(status_get_lv(src) - sd->status.base_level) >= 20)
-		bonus += 15; // pk_mode additional exp if monster >20 levels [Valaris]
+		bonus += 15; //pk_mode additional exp if monster > 20 levels [Valaris]
 
 	if (sd->sc.data[SC_EXPBOOST])
 		bonus += sd->sc.data[SC_EXPBOOST]->val1;
 
-	*base_exp = (unsigned int) cap_value(*base_exp + (double)*base_exp * bonus/100., 1, UINT_MAX);
+	*base_exp = (unsigned int) cap_value(*base_exp + (double)*base_exp * bonus / 100., 1, UINT_MAX);
 
 	if (sd->sc.data[SC_JEXPBOOST])
 		bonus += sd->sc.data[SC_JEXPBOOST]->val1;
 
-	*job_exp = (unsigned int) cap_value(*job_exp + (double)*job_exp * bonus/100., 1, UINT_MAX);
+	*job_exp = (unsigned int) cap_value(*job_exp + (double)*job_exp * bonus / 100., 1, UINT_MAX);
+
+	if (sd->status.mod_exp != 100) {
+		*base_exp = (unsigned int) cap_value((double)*base_exp * sd->status.mod_exp / 100., 1, UINT_MAX);
+		*job_exp  = (unsigned int) cap_value((double)*job_exp  * sd->status.mod_exp / 100., 1, UINT_MAX);
+	}
 
 	return;
 }
@@ -5816,52 +5821,52 @@ static void pc_calcexp(struct map_session_data *sd, unsigned int *base_exp, unsi
 /*==========================================
  * Give x exp at sd player and calculate remaining exp for next lvl
  *------------------------------------------*/
-int pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned int base_exp,unsigned int job_exp,bool quest)
+int pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned int base_exp, unsigned int job_exp, bool quest)
 {
-	float nextbp=0, nextjp=0;
-	unsigned int nextb=0, nextj=0;
+	float nextbp = 0, nextjp = 0;
+	unsigned int nextb = 0, nextj = 0;
 	nullpo_ret(sd);
 
-	if(sd->bl.prev == NULL || pc_isdead(sd))
+	if (sd->bl.prev == NULL || pc_isdead(sd))
 		return 0;
 
-	if(!battle_config.pvp_exp && map[sd->bl.m].flag.pvp)  // [MouseJstr]
-		return 0; // no exp on pvp maps
+	if (!battle_config.pvp_exp && map[sd->bl.m].flag.pvp) //[MouseJstr]
+		return 0; //No exp on pvp maps
 
-	if(sd->status.guild_id>0)
-		base_exp-=guild_payexp(sd,base_exp);
+	if (sd->status.guild_id > 0)
+		base_exp -= guild_payexp(sd,base_exp);
 
-	if(src) pc_calcexp(sd, &base_exp, &job_exp, src);
+	if (src) pc_calcexp(sd, &base_exp, &job_exp, src);
 
 	nextb = pc_nextbaseexp(sd);
 	nextj = pc_nextjobexp(sd);
 		
-	if(sd->state.showexp || battle_config.max_exp_gain_rate){
+	if (sd->state.showexp || battle_config.max_exp_gain_rate) {
 		if (nextb > 0)
 			nextbp = (float) base_exp / (float) nextb;
 		if (nextj > 0)
 			nextjp = (float) job_exp / (float) nextj;
 
-		if(battle_config.max_exp_gain_rate) {
-			if (nextbp > battle_config.max_exp_gain_rate/1000.) {
+		if (battle_config.max_exp_gain_rate) {
+			if (nextbp > battle_config.max_exp_gain_rate / 1000.) {
 				//Note that this value should never be greater than the original
 				//base_exp, therefore no overflow checks are needed. [Skotlex]
-				base_exp = (unsigned int)(battle_config.max_exp_gain_rate/1000.*nextb);
+				base_exp = (unsigned int)(battle_config.max_exp_gain_rate / 1000. * nextb);
 				if (sd->state.showexp)
-					nextbp = (float) base_exp / (float) nextb;
+					nextbp = (float) base_exp/(float) nextb;
 			}
-			if (nextjp > battle_config.max_exp_gain_rate/1000.) {
-				job_exp = (unsigned int)(battle_config.max_exp_gain_rate/1000.*nextj);
+			if (nextjp > battle_config.max_exp_gain_rate / 1000.) {
+				job_exp = (unsigned int)(battle_config.max_exp_gain_rate / 1000. * nextj);
 				if (sd->state.showexp)
 					nextjp = (float) job_exp / (float) nextj;
 			}
 		}
 	}
-	
+
 	//Cap exp to the level up requirement of the previous level when you are at max level, otherwise cap at UINT_MAX (this is required for some S. Novice bonuses). [Skotlex]
 	if (base_exp) {
-		nextb = nextb?UINT_MAX:pc_thisbaseexp(sd);
-		if(sd->status.base_exp > nextb - base_exp)
+		nextb = nextb ? UINT_MAX : pc_thisbaseexp(sd);
+		if (sd->status.base_exp > nextb - base_exp)
 			sd->status.base_exp = nextb;
 		else
 			sd->status.base_exp += base_exp;
@@ -5871,7 +5876,7 @@ int pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned int
 
 	if (job_exp) {
 		nextj = nextj?UINT_MAX:pc_thisjobexp(sd);
-		if(sd->status.job_exp > nextj - job_exp)
+		if (sd->status.job_exp > nextj - job_exp)
 			sd->status.job_exp = nextj;
 		else
 			sd->status.job_exp += job_exp;
@@ -5879,14 +5884,14 @@ int pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned int
 		clif_updatestatus(sd,SP_JOBEXP);
 	}
 
-	if(base_exp)
-		clif_displayexp(sd, base_exp, SP_BASEEXP, quest);
-	if(job_exp)
-		clif_displayexp(sd, job_exp,  SP_JOBEXP, quest);
-	if(sd->state.showexp) {
+	if (base_exp)
+		clif_displayexp(sd,base_exp,SP_BASEEXP,quest);
+	if (job_exp)
+		clif_displayexp(sd,job_exp,SP_JOBEXP,quest);
+	if (sd->state.showexp) {
 		char output[256];
 		sprintf(output,
-			"Experience Gained Base:%u (%.2f%%) Job:%u (%.2f%%)",base_exp,nextbp*(float)100,job_exp,nextjp*(float)100);
+			"Experience Gained Base:%u (%.2f%%) Job:%u (%.2f%%)",base_exp,nextbp * (float)100,job_exp,nextjp * (float)100);
 		clif_disp_onlyself(sd,output,strlen(output));
 	}
 
@@ -6168,7 +6173,7 @@ int pc_skillup(struct map_session_data *sd,uint16 skill_id)
  *------------------------------------------*/
 int pc_allskillup(struct map_session_data *sd)
 {
-	int i,id;
+	int i, id;
 
 	nullpo_ret(sd);
 
@@ -6208,7 +6213,7 @@ int pc_allskillup(struct map_session_data *sd)
 				continue; //Cannot be learned normally.
 
 			sd->status.skill[id].id = id;
-			sd->status.skill[id].lv = skill_tree_get_max(id, sd->status.class_); //Celest
+			sd->status.skill[id].lv = skill_tree_get_max(id,sd->status.class_); //Celest
 		}
 	}
 	status_calc_pc(sd,SCO_NONE);
@@ -6812,7 +6817,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		item_tmp.identify = 1;
 		item_tmp.card[0] = CARD0_CREATE;
 		item_tmp.card[1] = 0;
-		item_tmp.card[2] = GetWord(sd->status.char_id,0); // CharId
+		item_tmp.card[2] = GetWord(sd->status.char_id,0); //CharId
 		item_tmp.card[3] = GetWord(sd->status.char_id,1);
 		map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 	}
@@ -6827,40 +6832,48 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		if( battle_config.death_penalty_base > 0 ) {
 			switch( battle_config.death_penalty_type ) {
 				case 1:
-					base_penalty = (unsigned int) ((double)pc_nextbaseexp(sd) * (double)battle_config.death_penalty_base/10000);
+					base_penalty = (unsigned int) ((double)pc_nextbaseexp(sd) * (double)battle_config.death_penalty_base / 10000);
 					break;
 				case 2:
-					base_penalty = (unsigned int) ((double)sd->status.base_exp * (double)battle_config.death_penalty_base/10000);
+					base_penalty = (unsigned int) ((double)sd->status.base_exp * (double)battle_config.death_penalty_base / 10000);
 					break;
 			}
+
 			if( base_penalty ) {
 				if( battle_config.pk_mode && src && src->type == BL_PC )
 					base_penalty *= 2;
+				if( sd->status.mod_death != 100 )
+					base_penalty = base_penalty * sd->status.mod_death / 100;
 				sd->status.base_exp -= min(sd->status.base_exp,base_penalty);
 				clif_updatestatus(sd,SP_BASEEXP);
 			}
 		}
+
 		if( battle_config.death_penalty_job > 0 ) {
 			base_penalty = 0;
 			switch( battle_config.death_penalty_type ) {
 				case 1:
-					base_penalty = (unsigned int) ((double)pc_nextjobexp(sd) * (double)battle_config.death_penalty_job/10000);
+					base_penalty = (unsigned int) ((double)pc_nextjobexp(sd) * (double)battle_config.death_penalty_job / 10000);
 					break;
 				case 2:
-					base_penalty = (unsigned int) ((double)sd->status.job_exp * (double)battle_config.death_penalty_job/10000);
+					base_penalty = (unsigned int) ((double)sd->status.job_exp * (double)battle_config.death_penalty_job / 10000);
 					break;
 			}
+
 			if( base_penalty ) {
 				if( battle_config.pk_mode && src && src->type == BL_PC )
 					base_penalty *= 2;
-				sd->status.job_exp -= min(sd->status.job_exp, base_penalty);
+				if( sd->status.mod_death != 100 )
+					base_penalty = base_penalty * sd->status.mod_death / 100;
+				sd->status.job_exp -= min(sd->status.job_exp,base_penalty);
 				clif_updatestatus(sd,SP_JOBEXP);
 			}
 		}
+
 		if( battle_config.zeny_penalty > 0 && !map[sd->bl.m].flag.nozenypenalty ) {
 			base_penalty = (unsigned int)((double)sd->status.zeny * (double)battle_config.zeny_penalty / 10000.);
 			if( base_penalty )
-				pc_payzeny(sd, base_penalty, LOG_TYPE_PICKDROP_PLAYER, NULL);
+				pc_payzeny(sd,base_penalty,LOG_TYPE_PICKDROP_PLAYER,NULL);
 		}
 	}
 
@@ -6876,9 +6889,9 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 				int eq_num = 0,eq_n[MAX_INVENTORY];
 				memset(eq_n,0,sizeof(eq_n));
 				for( i = 0; i < MAX_INVENTORY; i++ ) {
-					if( (type == 1 && !sd->status.inventory[i].equip)
-						|| (type == 2 && sd->status.inventory[i].equip)
-						||  type == 3 )
+					if( (type == 1 && !sd->status.inventory[i].equip) ||
+						(type == 2 && sd->status.inventory[i].equip) ||
+						type == 3 )
 					{
 						int k;
 						ARR_FIND(0,MAX_INVENTORY,k, eq_n[k] <= 0);
@@ -6900,9 +6913,10 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 				for( i = 0; i < MAX_INVENTORY; i++ ) {
 					if( sd->status.inventory[i].nameid == id
 						&& rnd()%10000 < per
-						&& ((type == 1 && !sd->status.inventory[i].equip)
-							|| (type == 2 && sd->status.inventory[i].equip)
-							|| type == 3) ) {
+						&& ((type == 1 && !sd->status.inventory[i].equip) ||
+							(type == 2 && sd->status.inventory[i].equip) ||
+							type == 3) )
+					{
 						if( sd->status.inventory[i].equip )
 							pc_unequipitem(sd,i,3);
 						pc_dropitem(sd,i,1);
@@ -7006,6 +7020,9 @@ int pc_readparam(struct map_session_data* sd,int type)
 		case SP_SITTING:	val = pc_issit(sd) ? 1 : 0; break;
 		case SP_CHARMOVE:	val = sd->status.character_moves; break;
 		case SP_CHARRENAME:	val = sd->status.rename; break;
+		case SP_MOD_EXP:	val = sd->status.mod_exp; break;
+		case SP_MOD_DROP:	val = sd->status.mod_drop; break;
+		case SP_MOD_DEATH:	val = sd->status.mod_death; break;
 		case SP_CRITICAL:	val = sd->battle_status.cri / 10; break;
 		case SP_ASPD:		val = (2000 - sd->battle_status.amotion) / 10; break;
 		case SP_BASE_ATK:	val = sd->battle_status.batk; break;
@@ -7134,7 +7151,7 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 			}
 			sd->status.base_level = (unsigned int)val;
 			sd->status.base_exp = 0;
-			// clif_updatestatus(sd, SP_BASELEVEL);  //Gets updated at the bottom
+			//clif_updatestatus(sd, SP_BASELEVEL); //Gets updated at the bottom
 			clif_updatestatus(sd, SP_NEXTBASEEXP);
 			clif_updatestatus(sd, SP_STATUSPOINT);
 			clif_updatestatus(sd, SP_BASEEXP);
@@ -7248,6 +7265,15 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 			return 1;
 		case SP_CHARRENAME:
 			sd->status.rename = val;
+			return 1;
+		case SP_MOD_EXP:
+			sd->status.mod_exp = val;
+			return 1;
+		case SP_MOD_DROP:
+			sd->status.mod_drop = val;
+			return 1;
+		case SP_MOD_DEATH:
+			sd->status.mod_death = val;
 			return 1;
 		default:
 			ShowError("pc_setparam: Attempted to set unknown parameter '%d'.\n", type);
@@ -10079,6 +10105,7 @@ void pc_damage_log_clear(struct map_session_data *sd, int id) {
 /* Status change data arrived from char-server */
 void pc_scdata_received(struct map_session_data *sd) {
 	pc_inventory_rentals(sd);
+	clif_show_modifiers(sd);
 }
 
 void pc_bank_deposit(struct map_session_data *sd, int money) {

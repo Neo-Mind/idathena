@@ -405,6 +405,9 @@ struct mmo_charstatus {
 	unsigned int character_moves;
 
 	unsigned char font;
+
+	/* `account_data` modifiers */
+	unsigned short mod_exp,mod_drop,mod_death;
 };
 
 typedef enum mail_status {

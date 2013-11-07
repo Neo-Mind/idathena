@@ -6964,22 +6964,22 @@ ACMD_FUNC(showmobs)
 	int number = 0;
 	struct s_mapiterator* it;
 
-	nullpo_retr(-1, sd);
+	nullpo_retr(-1,sd);
 
-	if (sscanf(message, "%99[^\n]", mob_name) < 0)
+	if (sscanf(message,"%99[^\n]",mob_name) < 0)
 		return -1;
 
 	if ((mob_id = atoi(mob_name)) == 0)
 		mob_id = mobdb_searchname(mob_name);
 	if (mob_id > 0 && mobdb_checkid(mob_id) == 0) {
-		snprintf(atcmd_output, sizeof atcmd_output, msg_txt(1250),mob_name); // Invalid mob id %s!
-		clif_displaymessage(fd, atcmd_output);
+		snprintf(atcmd_output,sizeof atcmd_output,msg_txt(1250),mob_name); // Invalid mob id %s!
+		clif_displaymessage(fd,atcmd_output);
 		return 0;
 	}
 
 	if (mob_db(mob_id)->status.mode&MD_BOSS && !pc_has_permission(sd,PC_PERM_SHOW_BOSS)) {
 		// If player group does not have access to boss mobs.
-		clif_displaymessage(fd, msg_txt(1251)); // Can't show boss mobs!
+		clif_displaymessage(fd,msg_txt(1251)); // Can't show boss mobs!
 		return 0;
 	}
 
@@ -6987,9 +6987,9 @@ ACMD_FUNC(showmobs)
 		strcpy(mob_name,mob_db(mob_id)->jname); // --ja--
 		//strcpy(mob_name,mob_db(mob_id)->name); // --en--
 
-	snprintf(atcmd_output, sizeof atcmd_output, msg_txt(1252), // Mob Search... %s %s
-		mob_name, mapindex_id2name(sd->mapindex));
-	clif_displaymessage(fd, atcmd_output);
+	snprintf(atcmd_output,sizeof atcmd_output,msg_txt(1252), // Mob Search... %s %s
+		mob_name,mapindex_id2name(sd->mapindex));
+	clif_displaymessage(fd,atcmd_output);
 
 	it = mapit_geteachmob();
 	for (;;) {

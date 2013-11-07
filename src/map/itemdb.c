@@ -1437,7 +1437,7 @@ void itemdb_reload(void)
 				continue;
 
 			if (id->mob[k].id != i)
-				memmove(&id->mob[k + 1], &id->mob[k], (MAX_SEARCH - k - 1)*sizeof(id->mob[0]));
+				memmove(&id->mob[k + 1], &id->mob[k], (MAX_SEARCH - k - 1) * sizeof(id->mob[0]));
 			id->mob[k].chance = entry->dropitem[d].p;
 			id->mob[k].id = i;
 		}
