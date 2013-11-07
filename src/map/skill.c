@@ -4065,6 +4065,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 						break;
 					case NPC_EARTHQUAKE: //FIXME: Isn't EarthQuake a ground skill after all?
 						skill_addtimerskill(src,tick + 250,src->id,0,0,skill_id,skill_lv,2,flag|BCT_ENEMY|SD_SPLASH|1);
+						break;
 					default:
 						break;
 				}
@@ -4076,7 +4077,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					skill_area_temp[4] = bl->x;
 					skill_area_temp[5] = bl->y;
 				}
-
 				if (skill_id == NC_VULCANARM)
 						if (sd) pc_overheat(sd,1);
 				if (skill_id == WM_REVERBERATION_MELEE || skill_id == WM_REVERBERATION_MAGIC)
@@ -4086,7 +4086,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				//Special case: Venom Splasher uses a different range for searching than for splashing
 				if (flag&SD_LEVEL || skill_get_nk(skill_id)&NK_SPLASHSPLIT)
 					skill_area_temp[0] = map_foreachinrange(skill_area_sub,bl,(skill_id == AS_SPLASHER) ? 1 : skill_get_splash(skill_id,skill_lv),BL_CHAR,src,skill_id,skill_lv,tick,BCT_ENEMY,skill_area_sub_count);
-
 				//Recursive invocation of skill_castend_damage_id() with flag|1
 				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),
 					(skill_id == WM_REVERBERATION_MELEE || skill_id == WM_REVERBERATION_MAGIC) ? BL_CHAR : splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);

@@ -3495,7 +3495,7 @@ static unsigned short status_calc_speed(struct block_list *,struct status_change
 static short status_calc_aspd_rate(struct block_list *,struct status_change *,int);
 static unsigned short status_calc_dmotion(struct block_list *bl, struct status_change *sc, int dmotion);
 #ifdef RENEWAL_ASPD
-	static short status_calc_aspd(struct block_list *bl, struct status_change *sc, short flag);
+static short status_calc_aspd(struct block_list *bl, struct status_change *sc, short flag);
 #endif
 static short status_calc_fix_aspd(struct block_list *bl, struct status_change *sc, int);
 static unsigned int status_calc_maxhp(struct block_list *,struct status_change *, uint64);
@@ -3504,7 +3504,7 @@ static unsigned char status_calc_element(struct block_list *bl, struct status_ch
 static unsigned char status_calc_element_lv(struct block_list *bl, struct status_change *sc, int lv);
 static unsigned short status_calc_mode(struct block_list *bl, struct status_change *sc, int mode);
 #ifdef RENEWAL
-	static unsigned short status_calc_ematk(struct block_list *,struct status_change *,int);
+static unsigned short status_calc_ematk(struct block_list *,struct status_change *,int);
 #endif
 
 //Calculates base regen values.
@@ -5508,8 +5508,15 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 }
 
 #ifdef RENEWAL_ASPD
-// flag&1 - fixed value [malufett]
-// flag&2 - percentage value
+/*==========================================
+* Renewal attack speed modifiers after base calculation
+* Note: This function only affects RENEWAL players
+* @param bl: Object to change aspd (PC)
+* @param sc: Object's status change information
+* @param flag:  flag&1 - fixed value [malufett]
+*               flag&2 - percentage value
+* @return modified aspd
+*------------------------------------------*/
 static short status_calc_aspd(struct block_list *bl, struct status_change *sc, short flag)
 {
 	int i, pots = 0, skills1 = 0, skills2 = 0;
@@ -5522,34 +5529,25 @@ static short status_calc_aspd(struct block_list *bl, struct status_change *sc, s
 		sc->data[i = SC_ASPDPOTION1] ||
 		sc->data[i = SC_ASPDPOTION0])
 		pots += sc->data[i]->val1;
-
 	if(!sc->data[SC_QUAGMIRE]) {
 		if(sc->data[SC_STAR_COMFORT])
 			skills1 = 5; //Needs more info
-
 		if(sc->data[SC_TWOHANDQUICKEN] && skills1 < 7)
 			skills1 = 7;
-
-		if(sc->data[SC_ONEHAND] && skills1 < 7) skills1 = 7;
-
+		if(sc->data[SC_ONEHAND] && skills1 < 7)
+			skills1 = 7;
 		if(sc->data[SC_MERC_QUICKEN] && skills1 < 7) //Needs more info
 			skills1 = 7;
-
 		if(sc->data[SC_ADRENALINE2] && skills1 < 6)
 			skills1 = 6;
-		
 		if(sc->data[SC_ADRENALINE] && skills1 < 7)
 			skills1 = 7;
-		
 		if(sc->data[SC_SPEARQUICKEN] && skills1 < 7)
 			skills1 = 7;
-
 		if(sc->data[SC_GATLINGFEVER] && skills1 < 9) //Needs more info
 			skills1 = 9;
-		
 		if(sc->data[SC_FLEET] && skills1 < 5)
 			skills1 = 5;
-
 		if(sc->data[SC_ASSNCROS] &&
 			skills1 < sc->data[SC_ASSNCROS]->val2 / 10)
 		{
@@ -5569,12 +5567,10 @@ static short status_calc_aspd(struct block_list *bl, struct status_change *sc, s
 				}
 		}
 	}
-
 	if(sc->data[SC_BERSERK] && skills1 < 15)
 		skills1 = 15;
 	else if(sc->data[SC_MADNESSCANCEL] && skills1 < 15) //Needs more info
 		skills1 = 15;
-
 	if(sc->data[SC_DONTFORGETME])
 		skills2 -= sc->data[SC_DONTFORGETME]->val2; //Needs more info
 	if(sc->data[SC_LONGING])
@@ -5634,6 +5630,15 @@ static short status_calc_aspd(struct block_list *bl, struct status_change *sc, s
 }
 #endif
 
+/*==========================================
+* Modifies ASPD by a number, rather than a percentage (10 = 1 ASPD)
+* A subtraction reduces the delay, meaning an increase in ASPD
+* Note: This comes after the percentage changes
+* @param bl: Object to change aspd (PC|HOM|MERC|MOB|ELEM)
+* @param sc: Object's status change information
+* @param aspd: Object's current ASPD
+* @return modified aspd
+*------------------------------------------*/
 static short status_calc_fix_aspd(struct block_list *bl, struct status_change *sc, int aspd)
 {
 	if (!sc || !sc->count)
@@ -5643,7 +5648,6 @@ static short status_calc_fix_aspd(struct block_list *bl, struct status_change *s
 		if (sc->data[SC_OVERED_BOOST])
 			aspd = 2000 - sc->data[SC_OVERED_BOOST]->val3 * 10;
     }
-
 	if ((sc->data[SC_GUST_OPTION] || sc->data[SC_BLAST_OPTION] ||
 		sc->data[SC_WILD_STORM_OPTION]))
 		aspd -= 50; //+5 ASPD
@@ -5655,8 +5659,15 @@ static short status_calc_fix_aspd(struct block_list *bl, struct status_change *s
     return cap_value(aspd, 0, 2000); //Will be recap for proper bl anyway
 }
 
-/// Calculates an object's ASPD modifier (alters the base amotion value).
-/// Note that the scale of aspd_rate is 1000 = 100%.
+/*==========================================
+* Calculates an object's ASPD modifier (alters the base amotion value).
+* Note: The scale of aspd_rate is 1000 = 100%.
+* Note2: This only affects Homunculus, Mercenaries, and Pre-renewal Players
+* @param bl: Object to change aspd (PC|HOM|MERC|MOB|ELEM)
+* @param sc: Object's status change information
+* @param aspd_rate: Object's current ASPD
+* @return modified aspd_rate
+*------------------------------------------*/
 static short status_calc_aspd_rate(struct block_list *bl, struct status_change *sc, int aspd_rate)
 {
 	int i;
@@ -5668,39 +5679,30 @@ static short status_calc_aspd_rate(struct block_list *bl, struct status_change *
 		int max = 0;
 		if(sc->data[SC_STAR_COMFORT])
 			max = sc->data[SC_STAR_COMFORT]->val2;
-
 		if(sc->data[SC_TWOHANDQUICKEN] &&
 			max < sc->data[SC_TWOHANDQUICKEN]->val2)
 			max = sc->data[SC_TWOHANDQUICKEN]->val2;
-
 		if(sc->data[SC_ONEHAND] &&
 			max < sc->data[SC_ONEHAND]->val2)
 			max = sc->data[SC_ONEHAND]->val2;
-
 		if(sc->data[SC_MERC_QUICKEN] &&
 			max < sc->data[SC_MERC_QUICKEN]->val2)
 			max = sc->data[SC_MERC_QUICKEN]->val2;
-
 		if(sc->data[SC_ADRENALINE2] &&
 			max < sc->data[SC_ADRENALINE2]->val3)
 			max = sc->data[SC_ADRENALINE2]->val3;
-
 		if(sc->data[SC_ADRENALINE] &&
 			max < sc->data[SC_ADRENALINE]->val3)
 			max = sc->data[SC_ADRENALINE]->val3;
-		
 		if(sc->data[SC_SPEARQUICKEN] &&
 			max < sc->data[SC_SPEARQUICKEN]->val2)
 			max = sc->data[SC_SPEARQUICKEN]->val2;
-
 		if(sc->data[SC_GATLINGFEVER] &&
 			max < sc->data[SC_GATLINGFEVER]->val2)
 			max = sc->data[SC_GATLINGFEVER]->val2;
-		
 		if(sc->data[SC_FLEET] &&
 			max < sc->data[SC_FLEET]->val2)
 			max = sc->data[SC_FLEET]->val2;
-			
 		if(sc->data[SC_ASSNCROS] &&
 			max < sc->data[SC_ASSNCROS]->val2)
 		{
@@ -5720,19 +5722,16 @@ static short status_calc_aspd_rate(struct block_list *bl, struct status_change *
 				}
 		}
 		aspd_rate -= max;
-
 		if(sc->data[SC_BERSERK])
 			aspd_rate -= 300;
 		else if(sc->data[SC_MADNESSCANCEL])
 			aspd_rate -= 200;
 	}
-
 	if(sc->data[i = SC_ASPDPOTION3] ||
 		sc->data[i = SC_ASPDPOTION2] ||
 		sc->data[i = SC_ASPDPOTION1] ||
 		sc->data[i = SC_ASPDPOTION0])
 		aspd_rate -= sc->data[i]->val2;
-
 	if(sc->data[SC_DONTFORGETME])
 		aspd_rate += 10 * sc->data[SC_DONTFORGETME]->val2;
 	if(sc->data[SC_LONGING])
@@ -5791,6 +5790,14 @@ static short status_calc_aspd_rate(struct block_list *bl, struct status_change *
 	return (short)cap_value(aspd_rate,0,SHRT_MAX);
 }
 
+/*==========================================
+* Modifies the damage delay time
+* The lower your delay, the quicker you can act after taking damage
+* @param bl: Object to change aspd (PC|HOM|MERC|MOB|ELEM)
+* @param sc: Object's status change information
+* @param dmotion: Object's current damage delay
+* @return modified delay rate
+*------------------------------------------*/
 static unsigned short status_calc_dmotion(struct block_list *bl, struct status_change *sc, int dmotion)
 {
 	if( !sc || !sc->count || map_flag_gvg2(bl->m) || map[bl->m].flag.battleground )
@@ -5806,6 +5813,16 @@ static unsigned short status_calc_dmotion(struct block_list *bl, struct status_c
 	return (unsigned short)cap_value(dmotion,0,USHRT_MAX);
 }
 
+/*==========================================
+* Calculates a player's max HP
+* Values can either be percentages or fixed, based on how equations are formulated
+* Examples: maxhp += maxhp * value; (percentage increase)
+*           maxhp -= value (fixed decrease)
+* @param bl: Object to change aspd (PC|HOM|MERC|MOB|ELEM)
+* @param sc: Object's status change information
+* @param maxhp: Object's current max HP
+* @return modified maxhp
+*------------------------------------------*/
 static unsigned int status_calc_maxhp(struct block_list *bl, struct status_change *sc, uint64 maxhp)
 {
 	if(!sc || !sc->count)
@@ -5824,15 +5841,13 @@ static unsigned int status_calc_maxhp(struct block_list *bl, struct status_chang
 	if(sc->data[SC_MARIONETTE])
 		maxhp -= 1000;
 	if(sc->data[SC_SOLID_SKIN_OPTION])
-		maxhp += 2000; //Fix amount.
+		maxhp += 2000;
 	if(sc->data[SC_POWER_OF_GAIA])
 		maxhp += maxhp * sc->data[SC_POWER_OF_GAIA]->val3 / 100;
 	if(sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 2)
 		maxhp += 500;
-
 	if(sc->data[SC_MERC_HPUP])
 		maxhp += maxhp * sc->data[SC_MERC_HPUP]->val2/100;
-
 	if(sc->data[SC_EPICLESIS])
 		maxhp += maxhp * 5 * sc->data[SC_EPICLESIS]->val1 / 100;
 	if(sc->data[SC_VENOMBLEED])
@@ -5873,6 +5888,16 @@ static unsigned int status_calc_maxhp(struct block_list *bl, struct status_chang
 	return (unsigned int)cap_value(maxhp,1,UINT_MAX);
 }
 
+/*==========================================
+* Calculates a player's max SP
+* Values can either be percentages or fixed, bas ed on how equations are formulated
+* Examples: maxsp += maxhp * value; (percentage increase)
+*           maxsp -= value (fixed decrease)
+* @param bl: Object to change aspd (PC|HOM|MERC|MOB|ELEM)
+* @param sc: Object's status change information
+* @param maxsp: Object's current max SP
+* @return modified maxsp
+*------------------------------------------*/
 static unsigned int status_calc_maxsp(struct block_list *bl, struct status_change *sc, unsigned int maxsp)
 {
 	if(!sc || !sc->count)
@@ -5896,6 +5921,13 @@ static unsigned int status_calc_maxsp(struct block_list *bl, struct status_chang
 	return (unsigned int)cap_value(maxsp,1,UINT_MAX);
 }
 
+/*==========================================
+* Changes a player's element based on status changes
+* @param bl: Object to change aspd (PC|HOM|MERC|MOB|ELEM)
+* @param sc: Object's status change information
+* @param element: Object's current element
+* @return new element
+*------------------------------------------*/
 static unsigned char status_calc_element(struct block_list *bl, struct status_change *sc, int element)
 {
 	if(!sc || !sc->count)
@@ -5917,6 +5949,13 @@ static unsigned char status_calc_element(struct block_list *bl, struct status_ch
 	return (unsigned char)cap_value(element,0,UCHAR_MAX);
 }
 
+/*==========================================
+* Changes a player's element level based on status changes
+* @param bl: Object to change aspd (PC|HOM|MERC|MOB|ELEM)
+* @param sc: Object's status change information
+* @param lv: Object's current element level
+* @return new element level
+*------------------------------------------*/
 static unsigned char status_calc_element_lv(struct block_list *bl, struct status_change *sc, int lv)
 {
 	if(!sc || !sc->count)
@@ -5938,6 +5977,13 @@ static unsigned char status_calc_element_lv(struct block_list *bl, struct status
 	return (unsigned char)cap_value(lv,1,4);
 }
 
+/*==========================================
+* Changes a player's attack element based on status changes
+* @param bl: Object to change aspd (PC|HOM|MERC|MOB|ELEM)
+* @param sc: Object's status change information
+* @param element: Object's current attack element
+* @return new attack element
+*------------------------------------------*/
 unsigned char status_calc_attack_element(struct block_list *bl, struct status_change *sc, int element)
 {
 	if(!sc || !sc->count)
@@ -9351,10 +9397,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			opt_flag = 0;
 			sc->opt3 |= OPT3_BERSERK;
 			break;
-//		case ???: //Doesn't seem to do anything
-//			sc->opt3 |= OPT3_LIGHTBLADE;
-//			opt_flag = 0;
-//			break;
+		//case ???: //Doesn't seem to do anything
+			//sc->opt3 |= OPT3_LIGHTBLADE;
+			//opt_flag = 0;
+			//break;
 		case SC_DANCING:
 			if ((val1&0xFFFF) == CG_MOONLIT)
 				sc->opt3 |= OPT3_MOONLIT;
@@ -9389,10 +9435,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			sc->opt3 |= OPT3_UNDEAD;
 			opt_flag = 0;
 			break;
-//		case ???: //From DA_CONTRACT (looks like biolab mobs aura)
-//			sc->opt3 |= OPT3_CONTRACT;
-//			opt_flag = 0;
-//			break;
+		//case ???: //From DA_CONTRACT (looks like biolab mobs aura)
+			//sc->opt3 |= OPT3_CONTRACT;
+			//opt_flag = 0;
+			//break;
 		//OPTION
 		case SC_HIDING:
 			sc->option |= OPTION_HIDE;

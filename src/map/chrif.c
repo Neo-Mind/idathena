@@ -66,8 +66,8 @@ static const int packet_len_table[0x3d] = { // U - used, F - free
 //2b07: Outgoing, chrif_removefriend -> 'Tell charserver to remove friend_id from char_id friend list'
 //2b08: Outgoing, chrif_searchcharid -> '...'
 //2b09: Incoming, map_addchariddb -> 'Adds a name to the nick db'
-//2b0a: Incoming, chrif_skillcooldown_request
-//2b0b: Incoming, chrif_skillcooldown_load
+//2b0a: Outgoing, chrif_skillcooldown_request -> requesting the list of skillcooldown for char
+//2b0b: Incoming, chrif_skillcooldown_load -> received the list of cooldown for char
 //2b0c: Outgoing, chrif_changeemail -> 'change mail address ...'
 //2b0d: Incoming, chrif_changedsex -> 'Change sex of acc XY'
 //2b0e: Outgoing, chrif_char_ask_name -> 'Do some operations (change sex, ban / unban etc)'
@@ -77,7 +77,7 @@ static const int packet_len_table[0x3d] = { // U - used, F - free
 //2b12: Incoming, chrif_divorceack -> 'divorce chars
 //2b13: Incoming/Outgoing, socket_datasync()
 //2b14: Incoming, chrif_accountban -> 'not sure: kick the player with message XY'
-//2b15: Incoming, chrif_skillcooldown_save
+//2b15: Outgoing, chrif_skillcooldown_save -> request to save skillcooldown
 //2b16: Outgoing, chrif_ragsrvinfo -> 'sends base / job / drop rates ....'
 //2b17: Outgoing, chrif_char_offline -> 'tell the charserver that the char is now offline'
 //2b18: Outgoing, chrif_char_reset_offline -> 'set all players OFF!'

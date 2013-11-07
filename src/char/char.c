@@ -4973,6 +4973,8 @@ void sql_config_read(const char* cfgName)
 			safestrncpy(elemental_db, w2,sizeof(elemental_db));
 		else if(!strcmpi(w1,"interreg_db"))
 			safestrncpy(interreg_db, w2, sizeof(interreg_db));
+		else if(!strcmpi(w1,"skillcooldown_db"))
+			safestrncpy(skillcooldown_db, w2, sizeof(skillcooldown_db));
 		else if(!strcmpi(w1, "account_data_db"))
 			safestrncpy(account_data_db, w2,sizeof(account_data_db));
 		//Support the import command, just like any other config

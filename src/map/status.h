@@ -1515,7 +1515,7 @@ enum e_mode
 //who were not on your field of sight when it happened)
 
 //opt1: Non stackable status changes.
-enum {
+enum sc_opt1 {
 	OPT1_STONE = 1, //Petrified
 	OPT1_FREEZE,
 	OPT1_STUN,
@@ -1528,7 +1528,7 @@ enum {
 };
 
 //opt2: Stackable status changes.
-enum {
+enum sc_opt2 {
 	OPT2_POISON		= 0x0001,
 	OPT2_CURSE		= 0x0002,
 	OPT2_SILENCE		= 0x0004,
@@ -1541,7 +1541,7 @@ enum {
 };
 
 //opt3: (SHOW_EFST_*)
-enum {
+enum sc_opt3 {
 	OPT3_NORMAL		= 0x00000000,
 	OPT3_QUICKEN		= 0x00000001,
 	OPT3_OVERTHRUST		= 0x00000002,
@@ -1563,7 +1563,7 @@ enum {
 	OPT3_CONTRACT		= 0x00020000,
 };
 
-enum {
+enum e_option {
 	OPTION_NOTHING		= 0x00000000,
 	OPTION_SIGHT		= 0x00000001,
 	OPTION_HIDE		= 0x00000002,

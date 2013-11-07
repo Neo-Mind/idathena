@@ -55,8 +55,8 @@
 /* For clif_clearunit_delayed */
 static struct eri *delay_clearunit_ers;
 
-//#define DUMP_UNKNOWN_PACKET
-//#define DUMP_INVALID_PACKET
+#define DUMP_UNKNOWN_PACKET
+#define DUMP_INVALID_PACKET
 
 struct Clif_Config {
 	int packet_db_ver;	//Preferred packet version.
@@ -112,46 +112,37 @@ static inline void WFIFOPOS2(int fd, unsigned short pos, short x0, short y0, sho
 static inline void RBUFPOS(const uint8* p, unsigned short pos, short* x, short* y, unsigned char* dir) {
 	p += pos;
 
-	if( x ) {
-		x[0] = ( ( p[0] & 0xff ) << 2 ) | ( p[1] >> 6 );
-	}
+	if( x )
+		x[0] = ((p[0]&0xff)<<2) | (p[1]>>6);
 
-	if( y ) {
-		y[0] = ( ( p[1] & 0x3f ) << 4 ) | ( p[2] >> 4 );
-	}
+	if( y )
+		y[0] = ((p[1]&0x3f)<<4) | (p[2]>>4);
 
-	if( dir ) {
-		dir[0] = ( p[2] & 0x0f );
-	}
+	if( dir )
+		dir[0] = (p[2]&0x0f);
 }
 
 
 static inline void RBUFPOS2(const uint8* p, unsigned short pos, short* x0, short* y0, short* x1, short* y1, unsigned char* sx0, unsigned char* sy0) {
 	p += pos;
 
-	if( x0 ) {
-		x0[0] = ( ( p[0] & 0xff ) << 2 ) | ( p[1] >> 6 );
-	}
+	if( x0 )
+		x0[0] = ((p[0]&0xff)<<2) | (p[1]>>6);
 
-	if( y0 ) {
-		y0[0] = ( ( p[1] & 0x3f ) << 4 ) | ( p[2] >> 4 );
-	}
+	if( y0 )
+		y0[0] = ((p[1]&0x3f)<<4) | (p[2]>>4);
 
-	if( x1 ) {
-		x1[0] = ( ( p[2] & 0x0f ) << 6 ) | ( p[3] >> 2 );
-	}
+	if( x1 )
+		x1[0] = ((p[2]&0x0f)<<6) | (p[3]>>2);
 
-	if( y1 ) {
-		y1[0] = ( ( p[3] & 0x03 ) << 8 ) | ( p[4] >> 0 );
-	}
+	if( y1 )
+		y1[0] = ((p[3]&0x03)<<8) | (p[4]>>0);
 
-	if( sx0 ) {
-		sx0[0] = ( p[5] & 0xf0 ) >> 4;
-	}
+	if( sx0 )
+		sx0[0] = (p[5]&0xf0)>>4;
 
-	if( sy0 ) {
-		sy0[0] = ( p[5] & 0x0f ) >> 0;
-	}
+	if( sy0 )
+		sy0[0] = (p[5]&0x0f)>>0;
 }
 
 
@@ -6151,11 +6142,14 @@ void clif_cart_additem(struct map_session_data *sd,int n,int amount,int fail)
 }
 
 
-/* [Ind] - Data Thanks to Yommy
- * - ADDITEM_TO_CART_FAIL_WEIGHT = 0x0
- * - ADDITEM_TO_CART_FAIL_COUNT  = 0x1
+/* [Ind] - Data Thanks to Yommy (ZC_ACK_ADDITEM_TO_CART)
+ * Acknowledge an item have been added to cart
+ * 012c <result>B
+ * result :
+ * 0 = ADDITEM_TO_CART_FAIL_WEIGHT
+ * 1 = ADDITEM_TO_CART_FAIL_COUNT
  */
-void clif_cart_additem_ack(struct map_session_data *sd, int flag)
+void clif_cart_additem_ack(struct map_session_data *sd, uint8 flag)
 {
 	int fd;
 	unsigned char *buf;
@@ -6165,16 +6159,20 @@ void clif_cart_additem_ack(struct map_session_data *sd, int flag)
 	fd = sd->fd;
 	buf = WFIFOP(fd,0);
 	WBUFW(buf,0) = 0x12c;
-	WBUFL(buf,2) = flag;
+	WBUFB(buf,2) = flag;
 	clif_send(buf,packet_len(0x12c),&sd->bl,SELF);
 }
 
 
-/* Bank System [Yommy] */
+///Bank System [Yommy]
+/* Request saving some money in bank
+ * @author : original [Yommy]
+ * 09A7 <AID>L <Money>L (PACKET_CZ_REQ_BANKING_DEPOSIT)
+ */
 void clif_parse_BankDeposit(int fd, struct map_session_data* sd)
 {
 	struct s_packet_db* info;
-	int money;
+	int aid, money;
 
 	nullpo_retv(sd);
 
@@ -6186,15 +6184,19 @@ void clif_parse_BankDeposit(int fd, struct map_session_data* sd)
 		return;
 	}
 
+	aid = RFIFOL(fd,info->pos[0]); //Unused should we check vs fd ?
 	money = (int)cap_value(RFIFOL(fd,info->pos[2]),0,INT_MAX);
 
 	pc_bank_deposit(sd,money);
 }
 
+/* Request Withdrawing some money from bank
+ * 09A9 <AID>L <Money>L (PACKET_CZ_REQ_BANKING_WITHDRAW)
+ */
 void clif_parse_BankWithdraw(int fd, struct map_session_data* sd)
 {
 	struct s_packet_db* info;
-	int money;
+	int aid, money;
 
 	nullpo_retv(sd);
 
@@ -6206,11 +6208,15 @@ void clif_parse_BankWithdraw(int fd, struct map_session_data* sd)
 		return;
 	}
 
+	aid = RFIFOL(fd,info->pos[0]); //Unused should we check vs fd ?
 	money = (int)cap_value(RFIFOL(fd,info->pos[2]),0,INT_MAX);
 
 	pc_bank_withdraw(sd,money);
 }
 
+/* Display how much we got in bank (I suppose)
+ * 09A6 <Bank_Vault>Q <Reason>W (PACKET_ZC_BANKING_CHECK)
+ */
 void clif_parse_BankCheck(int fd, struct map_session_data* sd)
 {
 	unsigned char *buf;
@@ -6226,21 +6232,30 @@ void clif_parse_BankCheck(int fd, struct map_session_data* sd)
 
 	buf = WFIFOP(fd,0);
 	WBUFW(buf,0) = 0x9a6;
-	WBUFL(buf,2) = (int)sd->status.bank_vault; //Money
+	WBUFQ(buf,2) = (int64)sd->status.bank_vault; //Money
 	WBUFW(buf,10) = (short)0; //Reason
 	clif_send(buf,packet_len(0x9a6),&sd->bl,SELF);
 }
 
+/* Request to Open the banking system
+ * 09B6 <aid>L ??? (dunno just wild guess checkme)
+ */
 void clif_parse_BankOpen(int fd, struct map_session_data* sd)
 {
 	return;
 }
 
+/* Request to close the banking system
+ * 09B8 <aid>L ??? (dunno just wild guess checkme)
+ */
 void clif_parse_BankClose(int fd, struct map_session_data* sd)
 {
 	return;
 }
 
+/* Acknowledge of deposit some money in bank
+ * 09A8 <Reason>W <Money>Q <balance>L (PACKET_ZC_ACK_BANKING_DEPOSIT)
+ */
 void clif_bank_deposit(struct map_session_data *sd, enum e_BANKING_DEPOSIT_ACK reason)
 {
 	int fd;
@@ -6257,6 +6272,9 @@ void clif_bank_deposit(struct map_session_data *sd, enum e_BANKING_DEPOSIT_ACK r
 	clif_send(buf,packet_len(0x9a8),&sd->bl,SELF);
 }
 
+/* Acknowledge of withdrawing some money from bank
+ * 09AA <Reason>W <Money>Q <balance>L (PACKET_ZC_ACK_BANKING_WITHDRAW)
+ */
 void clif_bank_withdraw(struct map_session_data *sd, enum e_BANKING_WITHDRAW_ACK reason)
 {
 	int fd;
