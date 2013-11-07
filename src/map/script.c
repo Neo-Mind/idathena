@@ -9679,18 +9679,16 @@ BUILDIN_FUNC(sc_end)
 			case SC_ALL_RIDING:
 			case SC_STYLE_CHANGE:
 			case SC_MONSTER_TRANSFORM:
-			case SC_MOONSTAR:
-			case SC_SUPER_STAR:
 			case SC_MTF_ASPD:
 			case SC_MTF_RANGEATK:
 			case SC_MTF_MATK:
 			case SC_MTF_MLEATKED:
 			case SC_MTF_CRIDAMAGE:
 				return 0;
-
 			default:
 				break;
 		}
+
 		//This should help status_change_end force disabling the SC in case it has no limit.
 		sce->val1 = sce->val2 = sce->val3 = sce->val4 = 0;
 		status_change_end(bl, (sc_type)type, INVALID_TIMER);

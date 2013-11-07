@@ -4,8 +4,8 @@
 // ID,AegisName,Name,Type,Buy,Sell,Weight,ATK,DEF,Range,Slots,Job,Upper,Gender,Loc,wLV,eLV,Refineable,View,{ Script },{ OnEquip_Script },{ OnUnequip_Script }
 //
 // Note (ATK field)
-// - in RE this field is able to store a optional value,for the weapons' matk
-// - You may use,for example: 10:25 for a item to give 10 atk and 25 weapon matk.
+// - in RE this field is able to store a optional value, for the weapons' matk
+// - You may use, for example: 10:25 for a item to give 10 atk and 25 weapon matk.
 // Healing Items
 //=============================================================
 501,Red_Potion,Red Potion,0,50,,70,,,,,0xFFFFFFFF,63,2,,,,,,{ itemheal rand(45,65),0; },{},{}
