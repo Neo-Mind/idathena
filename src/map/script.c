@@ -12506,7 +12506,7 @@ BUILDIN_FUNC(nude)
 	}
 
 	if( calcflag )
-		status_calc_pc(sd,0);
+		status_calc_pc(sd,SCO_NONE);
 
 	return 0;
 }
@@ -12954,18 +12954,17 @@ BUILDIN_FUNC(npcspeed)
 // make an npc walk to a position [Valaris]
 BUILDIN_FUNC(npcwalkto)
 {
-	struct npc_data *nd=(struct npc_data *)map_id2bl(st->oid);
-	int x=0,y=0;
+	struct npc_data *nd = (struct npc_data *)map_id2bl(st->oid);
+	int x = 0, y = 0;
 
-	x=script_getnum(st,2);
-	y=script_getnum(st,3);
+	x = script_getnum(st,2);
+	y = script_getnum(st,3);
 
 	if(nd) {
-		if (!nd->status.hp) {
-			status_calc_npc(nd, true);
-		} else {
-			status_calc_npc(nd, false);
-		}
+		if(!nd->status.hp)
+			status_calc_npc(nd,SCO_FIRST);
+		else
+			status_calc_npc(nd,SCO_NONE);
 		unit_walktoxy(&nd->bl,x,y,0);
 	}
 
@@ -12976,9 +12975,8 @@ BUILDIN_FUNC(npcstop)
 {
 	struct npc_data *nd=(struct npc_data *)map_id2bl(st->oid);
 
-	if(nd) {
+	if(nd)
 		unit_stop_walking(&nd->bl,1|4);
-	}
 
 	return 0;
 }
@@ -17280,9 +17278,9 @@ BUILDIN_FUNC(npcskill)
 	nd->stat_point = stat_point;
 
 	if (!nd->status.hp)
-		status_calc_npc(nd, true);
+		status_calc_npc(nd,SCO_FIRST);
 	else
-		status_calc_npc(nd, false);
+		status_calc_npc(nd,SCO_NONE);
 
 	if (skill_get_inf(skill_id)&INF_GROUND_SKILL)
 		unit_skilluse_pos(&nd->bl, sd->bl.x, sd->bl.y, skill_id, skill_level);

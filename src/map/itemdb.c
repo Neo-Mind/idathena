@@ -1437,7 +1437,7 @@ void itemdb_reload(void)
 				continue;
 
 			if (id->mob[k].id != i)
-				memmove(&id->mob[k+1], &id->mob[k], (MAX_SEARCH-k-1)*sizeof(id->mob[0]));
+				memmove(&id->mob[k + 1], &id->mob[k], (MAX_SEARCH - k - 1)*sizeof(id->mob[0]));
 			id->mob[k].chance = entry->dropitem[d].p;
 			id->mob[k].id = i;
 		}
@@ -1457,7 +1457,7 @@ void itemdb_reload(void)
 			sd->combos.id = NULL;
 			sd->combos.count = 0;
 			if( pc_load_combo(sd) > 0 )
-				status_calc_pc(sd,0);
+				status_calc_pc(sd, SCO_FORCE);
 		}
 
 	}

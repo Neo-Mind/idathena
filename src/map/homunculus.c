@@ -299,10 +299,10 @@ void merc_hom_skillup(struct homun_data *hd,uint16 skill_id)
 	{
 		hd->homunculus.hskill[i].lv++;
 		hd->homunculus.skillpts-- ;
-		status_calc_homunculus(hd,0);
+		status_calc_homunculus(hd, SCO_NONE);
 		if (hd->master) {
 			clif_homskillup(hd->master, skill_id);
-			clif_hominfo(hd->master,hd,0);
+			clif_hominfo(hd->master, hd, 0);
 			clif_homskillinfoblock(hd->master);
 		}
 	}
@@ -417,7 +417,7 @@ int merc_hom_evolution(struct homun_data *hd)
 	hom->str += 10*rnd_value(min->str, max->str);
 	hom->agi += 10*rnd_value(min->agi, max->agi);
 	hom->vit += 10*rnd_value(min->vit, max->vit);
-	hom->int_+= 10*rnd_value(min->int_,max->int_);
+	hom->int_+= 10*rnd_value(min->int_, max->int_);
 	hom->dex += 10*rnd_value(min->dex, max->dex);
 	hom->luk += 10*rnd_value(min->luk, max->luk);
 	hom->intimacy = 500;
@@ -427,15 +427,15 @@ int merc_hom_evolution(struct homun_data *hd)
 
 	clif_spawn(&hd->bl);
 	clif_emotion(&sd->bl, E_NO1);
-	clif_specialeffect(&hd->bl,568,AREA);
+	clif_specialeffect(&hd->bl, 568, AREA);
 
 	//status_Calc flag&1 will make current HP/SP be reloaded from hom structure
 	hom->hp = hd->battle_status.hp;
 	hom->sp = hd->battle_status.sp;
-	status_calc_homunculus(hd,1);
+	status_calc_homunculus(hd, SCO_FIRST);
 
 	if (!(battle_config.hom_setting&0x2))
-		skill_unit_move(&sd->hd->bl,gettick(),1); // apply land skills immediately
+		skill_unit_move(&sd->hd->bl, gettick(), 1); //Apply land skills immediately
 	
 	return 1 ;
 }
@@ -466,8 +466,8 @@ int hom_mutate(struct homun_data *hd, int homun_id)
 		return 0;
 	}
 
-	// Its said the player can rename the homunculus again after mutation.
-	// This might be true since the homunculus's form completely changes.
+	//Its said the player can rename the homunculus again after mutation.
+	//This might be true since the homunculus's form completely changes.
 	hd->homunculus.rename_flag = 0;
 
 	unit_remove_map(&hd->bl, CLR_OUTSIGHT);
@@ -475,17 +475,17 @@ int hom_mutate(struct homun_data *hd, int homun_id)
 
 	clif_spawn(&hd->bl);
 	clif_emotion(&sd->bl, E_NO1);
-	clif_specialeffect(&hd->bl,568,AREA);
+	clif_specialeffect(&hd->bl, 568, AREA);
 
 	//status_Calc flag&1 will make current HP/SP be reloaded from hom structure
 	hom = &hd->homunculus;
 	hom->hp = hd->battle_status.hp;
 	hom->sp = hd->battle_status.sp;
 	hom->prev_class = prev_class;
-	status_calc_homunculus(hd,1);
+	status_calc_homunculus(hd, SCO_FIRST);
 
 	if (!(battle_config.hom_setting&0x2))
-		skill_unit_move(&sd->hd->bl,gettick(),1); // apply land skills immediately
+		skill_unit_move(&sd->hd->bl, gettick(), 1); //Apply land skills immediately
 
 	return 1;
 }
@@ -523,7 +523,7 @@ int merc_hom_gainexp(struct homun_data *hd,int exp)
 		hd->homunculus.exp = 0 ;
 
 	clif_specialeffect(&hd->bl, 568, AREA);
-	status_calc_homunculus(hd, 0);
+	status_calc_homunculus(hd, SCO_NONE);
 	status_percent_heal(&hd->bl, 100, 100);
 	return 0;
 }
@@ -791,7 +791,7 @@ int merc_hom_alloc(struct map_session_data *sd, struct s_homunculus *hom)
 	hd->bl.y = hd->ud.to_y;
 
 	map_addiddb(&hd->bl);
-	status_calc_homunculus(hd,1);
+	status_calc_homunculus(hd, SCO_FIRST);
 
 	hd->hungry_timer = INVALID_TIMER;
 	hd->masterteleport_timer = INVALID_TIMER;
@@ -1022,21 +1022,21 @@ int merc_hom_shuffle(struct homun_data *hd)
 		struct h_stats *max = &hd->homunculusDB->emax, *min = &hd->homunculusDB->emin;
 		hom->max_hp += rnd_value(min->HP, max->HP);
 		hom->max_sp += rnd_value(min->SP, max->SP);
-		hom->str += 10*rnd_value(min->str, max->str);
-		hom->agi += 10*rnd_value(min->agi, max->agi);
-		hom->vit += 10*rnd_value(min->vit, max->vit);
-		hom->int_+= 10*rnd_value(min->int_,max->int_);
-		hom->dex += 10*rnd_value(min->dex, max->dex);
-		hom->luk += 10*rnd_value(min->luk, max->luk);
+		hom->str += 10 * rnd_value(min->str, max->str);
+		hom->agi += 10 * rnd_value(min->agi, max->agi);
+		hom->vit += 10 * rnd_value(min->vit, max->vit);
+		hom->int_+= 10 * rnd_value(min->int_, max->int_);
+		hom->dex += 10 * rnd_value(min->dex, max->dex);
+		hom->luk += 10 * rnd_value(min->luk, max->luk);
 	}
 
 	hd->homunculus.exp = exp;
 	memcpy(&hd->homunculus.hskill, &b_skill, sizeof(b_skill));
 	hd->homunculus.skillpts = skillpts;
 	clif_homskillinfoblock(sd);
-	status_calc_homunculus(hd,0);
+	status_calc_homunculus(hd, SCO_NONE);
 	status_percent_heal(&hd->bl, 100, 100);
-	clif_specialeffect(&hd->bl,568,AREA);
+	clif_specialeffect(&hd->bl, 568, AREA);
 
 	return 1;
 }

@@ -579,14 +579,12 @@ static int mob_spawn_guardian_sub(int tid, unsigned int tick, int id, intptr_t d
 	nullpo_ret(md->guardian_data);
 	g = guild_search((int)data);
 
-	if (g == NULL)
-	{	//Liberate castle, if the guild is not found this is an error! [Skotlex]
+	if (g == NULL) { //Liberate castle, if the guild is not found this is an error! [Skotlex]
 		ShowError("mob_spawn_guardian_sub: Couldn't load guild %d!\n", (int)data);
-		if (md->class_ == MOBID_EMPERIUM)
-		{	//Not sure this is the best way, but otherwise we'd be invoking this for ALL guardians spawned later on.
+		if (md->class_ == MOBID_EMPERIUM) {
+			//Not sure this is the best way, but otherwise we'd be invoking this for ALL guardians spawned later on.
 			md->guardian_data->guild_id = 0;
-			if (md->guardian_data->castle->guild_id) //Free castle up.
-			{
+			if (md->guardian_data->castle->guild_id) { //Free castle up.
 				ShowNotice("Clearing ownership of castle %d (%s)\n", md->guardian_data->castle->castle_id, md->guardian_data->castle->castle_name);
 				guild_castledatasave(md->guardian_data->castle->castle_id, 1, 0);
 			}
@@ -602,7 +600,7 @@ static int mob_spawn_guardian_sub(int tid, unsigned int tick, int id, intptr_t d
 	memcpy(md->guardian_data->guild_name, g->name, NAME_LENGTH);
 	md->guardian_data->guardup_lv = guardup_lv;
 	if( guardup_lv )
-		status_calc_mob(md, 0); //Give bonuses.
+		status_calc_mob(md, SCO_NONE); //Give bonuses.
 	return 0;
 }
 
@@ -611,9 +609,9 @@ static int mob_spawn_guardian_sub(int tid, unsigned int tick, int id, intptr_t d
  *------------------------------------------*/
 int mob_spawn_guardian(const char* mapname, short x, short y, const char* mobname, int class_, const char* event, int guardian, bool has_index)
 {
-	struct mob_data *md=NULL;
+	struct mob_data *md = NULL;
 	struct spawn_data data;
-	struct guild *g=NULL;
+	struct guild *g = NULL;
 	struct guild_castle *gc;
 	int16 m;
 	memset(&data, 0, sizeof(struct spawn_data));
@@ -913,7 +911,7 @@ int mob_spawn (struct mob_data *md)
 	}
 
 	memset(&md->state,0,sizeof(md->state));
-	status_calc_mob(md,1);
+	status_calc_mob(md,SCO_FIRST);
 	md->attacked_id = 0;
 	md->target_id = 0;
 	md->move_fail_count = 0;
@@ -2698,7 +2696,7 @@ int mob_class_change (struct mob_data *md, int class_)
 	unit_skillcastcancel(&md->bl, 0);
 	status_set_viewdata(&md->bl, class_);
 	clif_mob_class_change(md,md->vd->class_);
-	status_calc_mob(md, 1);
+	status_calc_mob(md, SCO_FIRST);
 	md->ud.state.speed_changed = 1; //Speed change update.
 
 	if( battle_config.monster_class_change_recover ) {

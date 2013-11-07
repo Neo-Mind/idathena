@@ -1290,7 +1290,7 @@ ACMD_FUNC(itemreset)
  *------------------------------------------*/
 ACMD_FUNC(baselevelup)
 {
-	int level=0, i=0, status_point=0;
+	int level = 0, i = 0, status_point = 0;
 	nullpo_retr(-1, sd);
 	level = atoi(message);
 
@@ -1300,17 +1300,18 @@ ACMD_FUNC(baselevelup)
 	}
 
 	if (level > 0) {
-		if (sd->status.base_level >= pc_maxbaselv(sd)) { // check for max level by Valaris
+		if (sd->status.base_level >= pc_maxbaselv(sd)) { // Check for max level by Valaris
 			clif_displaymessage(fd, msg_txt(47)); // Base level can't go any higher.
 			return -1;
 		} // End Addition
-		if ((unsigned int)level > pc_maxbaselv(sd) || (unsigned int)level > pc_maxbaselv(sd) - sd->status.base_level) // fix positiv overflow
+		if ((unsigned int)level > pc_maxbaselv(sd) || (unsigned int)level > pc_maxbaselv(sd) - sd->status.base_level) // Fix positiv overflow
 			level = pc_maxbaselv(sd) - sd->status.base_level;
 		for (i = 0; i < level; i++)
 			status_point += pc_gets_status_point(sd->status.base_level + i);
 
 		sd->status.status_point += status_point;
 		sd->status.base_level += (unsigned int)level;
+		status_calc_pc(sd, SCO_FORCE);
 		status_percent_heal(&sd->bl, 100, 100);
 		clif_misceffect(&sd->bl, 0);
 		clif_displaymessage(fd, msg_txt(21)); // Base level raised.
@@ -1319,9 +1320,9 @@ ACMD_FUNC(baselevelup)
 			clif_displaymessage(fd, msg_txt(158)); // Base level can't go any lower.
 			return -1;
 		}
-		level*=-1;
+		level *= -1;
 		if ((unsigned int)level >= sd->status.base_level)
-			level = sd->status.base_level-1;
+			level = sd->status.base_level - 1;
 		for (i = 0; i > -level; i--)
 			status_point += pc_gets_status_point(sd->status.base_level + i - 1);
 		if (sd->status.status_point < status_point)
@@ -1332,13 +1333,13 @@ ACMD_FUNC(baselevelup)
 			sd->status.status_point -= status_point;
 		sd->status.base_level -= (unsigned int)level;
 		clif_displaymessage(fd, msg_txt(22)); // Base level lowered.
+		status_calc_pc(sd, SCO_FORCE);
 	}
 	sd->status.base_exp = 0;
 	clif_updatestatus(sd, SP_STATUSPOINT);
 	clif_updatestatus(sd, SP_BASELEVEL);
 	clif_updatestatus(sd, SP_BASEEXP);
 	clif_updatestatus(sd, SP_NEXTBASEEXP);
-	status_calc_pc(sd, 0);
 	pc_baselevelchanged(sd);
 	if(sd->status.party_id)
 		party_send_levelup(sd);
@@ -1350,7 +1351,7 @@ ACMD_FUNC(baselevelup)
  *------------------------------------------*/
 ACMD_FUNC(joblevelup)
 {
-	int level=0;
+	int level = 0;
 	nullpo_retr(-1, sd);
 	
 	level = atoi(message);
@@ -1364,7 +1365,7 @@ ACMD_FUNC(joblevelup)
 			clif_displaymessage(fd, msg_txt(23)); // Job level can't go any higher.
 			return -1;
 		}
-		if ((unsigned int)level > pc_maxjoblv(sd) || (unsigned int)level > pc_maxjoblv(sd) - sd->status.job_level) // fix positiv overflow
+		if ((unsigned int)level > pc_maxjoblv(sd) || (unsigned int)level > pc_maxjoblv(sd) - sd->status.job_level) // Fix positiv overflow
 			level = pc_maxjoblv(sd) - sd->status.job_level;
 		sd->status.job_level += (unsigned int)level;
 		sd->status.skill_point += level;
@@ -1376,11 +1377,11 @@ ACMD_FUNC(joblevelup)
 			return -1;
 		}
 		level *=-1;
-		if ((unsigned int)level >= sd->status.job_level) // fix negativ overflow
-			level = sd->status.job_level-1;
+		if ((unsigned int)level >= sd->status.job_level) // Fix negativ overflow
+			level = sd->status.job_level - 1;
 		sd->status.job_level -= (unsigned int)level;
 		if (sd->status.skill_point < level)
-			pc_resetskill(sd,0);	//Reset skills since we need to substract more points.
+			pc_resetskill(sd,0); //Reset skills since we need to substract more points.
 		if (sd->status.skill_point < level)
 			sd->status.skill_point = 0;
 		else
@@ -1392,7 +1393,7 @@ ACMD_FUNC(joblevelup)
 	clif_updatestatus(sd, SP_JOBEXP);
 	clif_updatestatus(sd, SP_NEXTJOBEXP);
 	clif_updatestatus(sd, SP_SKILLPOINT);
-	status_calc_pc(sd, 0);
+	status_calc_pc(sd, SCO_FORCE);
 
 	return 0;
 }
@@ -2325,25 +2326,15 @@ ACMD_FUNC(skillpoint)
 		return -1;
 	}
 
-	if(point < 0)
-	{
+	if (point < 0) {
 		if(sd->status.skill_point < (unsigned int)(-point))
-		{
 			new_skill_point = 0;
-		}
 		else
-		{
 			new_skill_point = sd->status.skill_point + point;
-		}
-	}
-	else if(UINT_MAX - sd->status.skill_point < (unsigned int)point)
-	{
+	} else if(UINT_MAX - sd->status.skill_point < (unsigned int)point)
 		new_skill_point = UINT_MAX;
-	}
 	else
-	{
 		new_skill_point = sd->status.skill_point + point;
-	}
 
 	if (new_skill_point != sd->status.skill_point) {
 		sd->status.skill_point = new_skill_point;
@@ -2365,7 +2356,7 @@ ACMD_FUNC(skillpoint)
  *------------------------------------------*/
 ACMD_FUNC(zeny)
 {
-	int zeny=0, ret=-1;
+	int zeny = 0, ret = -1;
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message || (zeny = atoi(message)) == 0) {
@@ -2373,16 +2364,15 @@ ACMD_FUNC(zeny)
 		return -1;
 	}
 
-	if(zeny > 0) {
-		if((ret=pc_getzeny(sd,zeny,LOG_TYPE_COMMAND,NULL)) == 1)
+	if (zeny > 0) {
+		if((ret = pc_getzeny(sd, zeny, LOG_TYPE_COMMAND, NULL)) == 1)
 			clif_displaymessage(fd, msg_txt(149)); // Unable to increase the number/value.
-	}
-	else {
-		if( sd->status.zeny < -zeny ) zeny = -sd->status.zeny;
-		if((ret=pc_payzeny(sd,-zeny,LOG_TYPE_COMMAND,NULL)) == 1)
+	} else {
+		if (sd->status.zeny < -zeny ) zeny = -sd->status.zeny;
+		if ((ret = pc_payzeny(sd, -zeny, LOG_TYPE_COMMAND, NULL)) == 1)
 			clif_displaymessage(fd, msg_txt(41)); // Unable to decrease the number/value.
 	}
-	if(!ret) clif_displaymessage(fd, msg_txt(176)); //ret=0 mean cmd success
+	if(!ret) clif_displaymessage(fd, msg_txt(176)); // ret = 0 mean cmd success
 	return 0;
 }
 
@@ -2394,7 +2384,7 @@ ACMD_FUNC(param)
 	int i, value = 0, new_value, max;
 	const char* param[] = { "str", "agi", "vit", "int", "dex", "luk" };
 	short* status[6];
- 	//we don't use direct initialization because it isn't part of the c standard.
+ 	//We don't use direct initialization because it isn't part of the c standard.
 	nullpo_retr(-1, sd);
 	
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
@@ -2404,9 +2394,9 @@ ACMD_FUNC(param)
 		return -1;
 	}
 
-	ARR_FIND( 0, ARRAYLENGTH(param), i, strcmpi(command+1, param[i]) == 0 );
+	ARR_FIND(0, ARRAYLENGTH(param), i, strcmpi(command + 1, param[i]) == 0);
 
-	if( i == ARRAYLENGTH(param) || i > MAX_STATUS_TYPE) { // normally impossible...
+	if (i == ARRAYLENGTH(param) || i > MAX_STATUS_TYPE) { // Normally impossible...
 		clif_displaymessage(fd, msg_txt(1013)); // Please enter a valid value (usage: @str/@agi/@vit/@int/@dex/@luk <+/-adjustment>).
 		return -1;
 	}
@@ -2418,24 +2408,23 @@ ACMD_FUNC(param)
 	status[4] = &sd->status.dex;
 	status[5] = &sd->status.luk;
 
-	if( battle_config.atcommand_max_stat_bypass )
+	if (battle_config.atcommand_max_stat_bypass)
 		max = SHRT_MAX;
 	else
 		max = pc_maxparameter(sd);
 
-	if(value < 0 && *status[i] <= -value) {
+	if (value < 0 && *status[i] <= -value)
 		new_value = 1;
-	} else if(max - *status[i] < value) {
+	else if (max - *status[i] < value)
 		new_value = max;
-	} else {
+	else
 		new_value = *status[i] + value;
-	}
 
 	if (new_value != *status[i]) {
 		*status[i] = new_value;
 		clif_updatestatus(sd, SP_STR + i);
 		clif_updatestatus(sd, SP_USTR + i);
-		status_calc_pc(sd, 0);
+		status_calc_pc(sd, SCO_FORCE);
 		clif_displaymessage(fd, msg_txt(42)); // Stat changed.
 	} else {
 		if (value < 0)
@@ -2455,7 +2444,7 @@ ACMD_FUNC(stat_all)
 {
 	int index, count, value, max, new_value;
 	short* status[6];
- 	//we don't use direct initialization because it isn't part of the c standard.
+ 	//We don't use direct initialization because it isn't part of the c standard.
 	nullpo_retr(-1, sd);
 	
 	status[0] = &sd->status.str;
@@ -2469,7 +2458,7 @@ ACMD_FUNC(stat_all)
 		value = pc_maxparameter(sd);
 		max = pc_maxparameter(sd);
 	} else {
-		if( battle_config.atcommand_max_stat_bypass )
+		if (battle_config.atcommand_max_stat_bypass)
 			max = SHRT_MAX;
 		else
 			max = pc_maxparameter(sd);
@@ -2493,8 +2482,8 @@ ACMD_FUNC(stat_all)
 		}
 	}
 
-	if (count > 0) { // if at least 1 stat modified
-		status_calc_pc(sd, 0);
+	if (count > 0) { // If at least 1 stat modified
+		status_calc_pc(sd, SCO_FORCE);
 		clif_displaymessage(fd, msg_txt(84)); // All stats changed!
 	} else {
 		if (value < 0)
@@ -6974,26 +6963,27 @@ ACMD_FUNC(showmobs)
 	int mob_id;
 	int number = 0;
 	struct s_mapiterator* it;
+
 	nullpo_retr(-1, sd);
 
-	if(sscanf(message, "%99[^\n]", mob_name) < 0)
+	if (sscanf(message, "%99[^\n]", mob_name) < 0)
 		return -1;
 
-	if((mob_id = atoi(mob_name)) == 0)
+	if ((mob_id = atoi(mob_name)) == 0)
 		mob_id = mobdb_searchname(mob_name);
-	if(mob_id > 0 && mobdb_checkid(mob_id) == 0) {
+	if (mob_id > 0 && mobdb_checkid(mob_id) == 0) {
 		snprintf(atcmd_output, sizeof atcmd_output, msg_txt(1250),mob_name); // Invalid mob id %s!
 		clif_displaymessage(fd, atcmd_output);
 		return 0;
 	}
 
-	if(mob_db(mob_id)->status.mode&MD_BOSS && !pc_has_permission(sd, PC_PERM_SHOW_BOSS)) {
+	if (mob_db(mob_id)->status.mode&MD_BOSS && !pc_has_permission(sd,PC_PERM_SHOW_BOSS)) {
 		// If player group does not have access to boss mobs.
 		clif_displaymessage(fd, msg_txt(1251)); // Can't show boss mobs!
 		return 0;
 	}
 
-	if(mob_id == atoi(mob_name) && mob_db(mob_id)->jname)
+	if (mob_id == atoi(mob_name) && mob_db(mob_id)->jname)
 		strcpy(mob_name,mob_db(mob_id)->jname); // --ja--
 		//strcpy(mob_name,mob_db(mob_id)->name); // --en--
 
@@ -7002,22 +6992,22 @@ ACMD_FUNC(showmobs)
 	clif_displaymessage(fd, atcmd_output);
 
 	it = mapit_geteachmob();
-	for(;;) {
+	for (;;) {
 		TBL_MOB* md = (TBL_MOB*)mapit_next(it);
-		if( md == NULL )
-			break; // no more mobs
+		if (md == NULL)
+			break; // No more mobs
 
-		if( md->bl.m != sd->bl.m )
+		if (md->bl.m != sd->bl.m)
 			continue;
-		if( mob_id != -1 && md->class_ != mob_id )
+		if (mob_id != -1 && md->class_ != mob_id)
 			continue;
-		if( md->special_state.ai || md->master_id )
-			continue; // hide slaves and player summoned mobs
-		if( md->spawn_timer != INVALID_TIMER )
-			continue; // hide mobs waiting for respawn
+		if (md->special_state.ai || md->master_id)
+			continue; // Hide slaves and player summoned mobs
+		if (md->spawn_timer != INVALID_TIMER)
+			continue; // Hide mobs waiting for respawn
 
 		++number;
-		clif_viewpoint(sd, 1, 0, md->bl.x, md->bl.y, number, 0xFFFFFF);
+		clif_viewpoint(sd,1,0,md->bl.x,md->bl.y,number,0xFFFFFF);
 	}
 	mapit_free(it);
 
@@ -7031,6 +7021,7 @@ ACMD_FUNC(homlevel)
 {
 	TBL_HOM * hd;
 	int level = 0, m_class;
+
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message || ( level = atoi(message) ) < 1) {
@@ -7056,9 +7047,9 @@ ACMD_FUNC(homlevel)
 		hd->homunculus.exp += hd->exp_next;
 	} while (hd->homunculus.level < level && merc_hom_levelup(hd));
 
-	status_calc_homunculus(hd,0);
+	status_calc_homunculus(hd, SCO_NONE);
 	status_percent_heal(&hd->bl, 100, 100);
-	clif_specialeffect(&hd->bl,568,AREA);
+	clif_specialeffect(&hd->bl, 568, AREA);
 
 	return 0;
 }
