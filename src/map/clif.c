@@ -6290,6 +6290,7 @@ void clif_bank_withdraw(struct map_session_data *sd, enum e_BANKING_WITHDRAW_ACK
 	clif_send(buf,packet_len(0x9aa),&sd->bl,SELF);
 }
 
+
 /* TODO: Official response packet (tried 0x8cb/0x97b but the display was quite screwed up.) */
 /* Currently mimicing */
 void clif_show_modifiers(struct map_session_data *sd)
@@ -6298,7 +6299,7 @@ void clif_show_modifiers(struct map_session_data *sd)
 		char output[256];
 
 		snprintf(output,256,
-			"E X P : %d%% ( Premium %d%% + Server Rate 100% ) | Drop rate : %d%% ( Premium %d%% + Server Rate 100% ) | Penalty of death : %d%%( Premium %d%% + Server Rate 100% )",
+			"E X P : %d%% ( Premium Service : %d%% + Server Rate : 100%% ) | Drop rate : %d%% ( Premium Service : %d%% + Server Rate : 100%% ) | Penalty of death : %d%%( Premium Service : %d%% + Server Rate : 100%% )",
 			(sd->status.mod_exp + 100),sd->status.mod_exp,(sd->status.mod_drop + 100),sd->status.mod_drop,(sd->status.mod_death + 100),sd->status.mod_death);
 		clif_colormes(sd,color_table[COLOR_CUSTOM],"=================================================================");
 		clif_broadcast2(&sd->bl,output,strlen(output) + 1,0xffbc90,0x190,12,0,0,SELF);
