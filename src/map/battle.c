@@ -1267,7 +1267,7 @@ int64 battle_calc_bg_damage(struct block_list *src, struct block_list *bl, int64
 			return 0; //Crystal cannot receive skill damage on battlegrounds
 	}
 
-	if( skill_get_inf2(skill_id)&INF2_NO_BG_DMG )
+	if( skill_get_inf2(skill_id)&INF2_NO_BG_GVG_DMG )
 		return damage; //Skill that ignore bg map reduction
 
 	if( flag&BF_SKILL ) { //Skills get a different reduction than non-skills. [Skotlex]
@@ -1319,7 +1319,7 @@ int64 battle_calc_gvg_damage(struct block_list *src, struct block_list *bl, int6
 	if( !battle_can_hit_gvg_target(src,bl,skill_id,flag) )
 		return 0;
 
-	if( skill_get_inf2(skill_id)&INF2_NO_GVG_DMG ) //Skills with no gvg damage reduction.
+	if( skill_get_inf2(skill_id)&INF2_NO_BG_GVG_DMG )
 		return damage;
 
 	/* Uncomment if you want god-mode Emperiums at 100 defense. [Kisuka]
