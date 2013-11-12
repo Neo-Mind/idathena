@@ -6300,7 +6300,7 @@ void clif_show_modifiers(struct map_session_data *sd)
 
 		snprintf(output,256,
 			"E X P : %d%% ( Premium Service : %d%% + Server Rate : 100%% ) | Drop rate : %d%% ( Premium Service : %d%% + Server Rate : 100%% ) | Penalty of death : %d%%( Premium Service : %d%% + Server Rate : 100%% )",
-			(sd->status.mod_exp + 100),sd->status.mod_exp,(sd->status.mod_drop + 100),sd->status.mod_drop,(sd->status.mod_death + 100),sd->status.mod_death);
+			sd->status.mod_exp,(sd->status.mod_exp - 100),sd->status.mod_drop,(sd->status.mod_drop - 100),sd->status.mod_death,(sd->status.mod_death - 100));
 		clif_colormes(sd,color_table[COLOR_CUSTOM],"=================================================================");
 		clif_broadcast2(&sd->bl,output,strlen(output) + 1,0xffbc90,0x190,12,0,0,SELF);
 		clif_colormes(sd,color_table[COLOR_CUSTOM],"=================================================================");
@@ -9342,9 +9342,13 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if(map[sd->bl.m].users++ == 0 && battle_config.dynamic_mobs)
 		map_spawnmobs(sd->bl.m);
 
-	if(!(sd->sc.option&OPTION_INVISIBLE)) { //Increment the number of pvp players on the map
-		map[sd->bl.m].users_pvp++;
+	if(pc_has_permission(sd,PC_PERM_VIEW_HPMETER)) {
+		map[sd->bl.m].hpmeter_visible++;
+		sd->state.hpmeter_visible = 1;
 	}
+
+	if(!(sd->sc.option&OPTION_INVISIBLE)) //Increment the number of pvp players on the map
+		map[sd->bl.m].users_pvp++;
 
 	sd->state.debug_remove_map = 0; //Temporary state to track double remove_map's [FlavioJS]
 
@@ -9538,11 +9542,6 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 			char output[128];
 			sprintf(output,"[ Kill Steal Protection Disabled. KS is allowed in this map ]");
 			clif_broadcast(&sd->bl,output,strlen(output) + 1,BC_BLUE,SELF);
-		}
-
-		if(pc_has_permission(sd,PC_PERM_VIEW_HPMETER)) {
-			map[sd->bl.m].hpmeter_visible++;
-			sd->state.hpmeter_visible = 1;
 		}
 
 		map_iwall_get(sd); //Updates Walls Info on this Map to Client

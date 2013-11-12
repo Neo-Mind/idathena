@@ -47,14 +47,14 @@ const short diry[8]={1,1,0,-1,-1,-1,0,1};
 
 struct unit_data* unit_bl2ud(struct block_list *bl)
 {
-	if( bl == NULL) return NULL;
-	if( bl->type == BL_PC)  return &((struct map_session_data*)bl)->ud;
-	if( bl->type == BL_MOB) return &((struct mob_data*)bl)->ud;
-	if( bl->type == BL_PET) return &((struct pet_data*)bl)->ud;
-	if( bl->type == BL_NPC) return &((struct npc_data*)bl)->ud;
-	if( bl->type == BL_HOM) return &((struct homun_data*)bl)->ud;
-	if( bl->type == BL_MER) return &((struct mercenary_data*)bl)->ud;
-	if( bl->type == BL_ELEM) return &((struct elemental_data*)bl)->ud;
+	if( bl == NULL ) return NULL;
+	if( bl->type == BL_PC )  return &((struct map_session_data*)bl)->ud;
+	if( bl->type == BL_MOB ) return &((struct mob_data*)bl)->ud;
+	if( bl->type == BL_PET ) return &((struct pet_data*)bl)->ud;
+	if( bl->type == BL_NPC ) return &((struct npc_data*)bl)->ud;
+	if( bl->type == BL_HOM ) return &((struct homun_data*)bl)->ud;
+	if( bl->type == BL_MER ) return &((struct mercenary_data*)bl)->ud;
+	if( bl->type == BL_ELEM ) return &((struct elemental_data*)bl)->ud;
 	return NULL;
 }
 
@@ -82,7 +82,7 @@ int unit_walktoxy_sub(struct block_list *bl)
 		uint8 dir;
 		//Trim the last part of the path to account for range,
 		//but always move at least one cell when requested to move.
-		for( i = ud->chaserange*10; i > 0 && ud->walkpath.path_len > 1; ) {
+		for( i = ud->chaserange * 10; i > 0 && ud->walkpath.path_len > 1; ) {
 		   ud->walkpath.path_len--;
 			dir = ud->walkpath.path[ud->walkpath.path_len];
 			if( dir&1 )
@@ -152,7 +152,7 @@ int unit_teleport_timer(int tid, unsigned int tick, int id, intptr_t data) {
 		TBL_PC *msd = unit_get_master(bl);
 		if(msd && !check_distance_bl(&msd->bl, bl, data)) {
 			*mast_tid = INVALID_TIMER;
-			unit_warp(bl, msd->bl.id, msd->bl.x, msd->bl.y, CLR_TELEPORT );
+			unit_warp(bl, msd->bl.id, msd->bl.x, msd->bl.y, CLR_TELEPORT);
 		} else //No timer needed
 			*mast_tid = INVALID_TIMER;
 	}
@@ -173,7 +173,7 @@ int unit_check_start_teleport_timer(struct block_list *sbl) {
 		if(msd_tid == NULL) return 0;
 		if(!check_distance_bl(&msd->bl, sbl, max_dist)) {
 			if(*msd_tid == INVALID_TIMER || *msd_tid == 0)
-				*msd_tid = add_timer(gettick()+3000,unit_teleport_timer,sbl->id,max_dist);
+				*msd_tid = add_timer(gettick() + 3000,unit_teleport_timer,sbl->id,max_dist);
 		} else {
 			if(*msd_tid && *msd_tid != INVALID_TIMER)
 				delete_timer(*msd_tid,unit_teleport_timer);
@@ -216,9 +216,9 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 
 	ud->walktimer = INVALID_TIMER;
 
-	if(bl->prev == NULL) return 0; // Stop moved because it is missing from the block_list
+	if(bl->prev == NULL) return 0; //Stop moved because it is missing from the block_list
 
-	if(ud->walkpath.path_pos>=ud->walkpath.path_len)
+	if(ud->walkpath.path_pos >= ud->walkpath.path_len)
 		return 0;
 
 	if(ud->walkpath.path[ud->walkpath.path_pos] >= 8)
@@ -237,7 +237,7 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 		return unit_walktoxy_sub(bl);
 
 	//Refresh view for all those we lose sight
-	map_foreachinmovearea(clif_outsight, bl, AREA_SIZE, dx, dy, sd?BL_ALL:BL_PC, bl);
+	map_foreachinmovearea(clif_outsight, bl, AREA_SIZE, dx, dy, sd ? BL_ALL : BL_PC, bl);
 
 	x += dx;
 	y += dy;
@@ -300,7 +300,7 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 	if(ud->walkpath.path_pos >= ud->walkpath.path_len)
 		i = -1;
 	else if(ud->walkpath.path[ud->walkpath.path_pos]&1)
-		i = status_get_speed(bl)*14/10;
+		i = status_get_speed(bl) * 14 / 10;
 	else
 		i = status_get_speed(bl);
 
@@ -331,7 +331,7 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 				unit_attack(bl, tbl->id, ud->state.attack_continue);
 			}
 		} else { //Update chase-path
-			unit_walktobl(bl, tbl, ud->chaserange, ud->state.walk_easy|(ud->state.attack_continue?2:0));
+			unit_walktobl(bl, tbl, ud->chaserange, ud->state.walk_easy|(ud->state.attack_continue ? 2 : 0));
 			return 0;
 		}
 	} else { //Stopped walking. Update to_x and to_y to current location [Skotlex]
@@ -2249,7 +2249,6 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 			break;
 		case BL_HOM: {
 				struct homun_data *hd = (struct homun_data *)bl;
-				ud->canact_tick = ud->canmove_tick; //It appears HOM do reset the can-act tick.
 				//If logging out, this is deleted on unit_free
 				if (!hd->homunculus.intimacy && !(hd->master && !hd->master->state.active)) {
 					clif_emotion(bl,E_SOB);

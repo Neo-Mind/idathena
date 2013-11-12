@@ -56,11 +56,11 @@ struct homun_data {
 	struct s_homunculus_db *homunculusDB; //[orn]
 	struct s_homunculus homunculus; //[orn]
 
-	int masterteleport_timer;
+	int64 masterteleport_timer;
 	struct map_session_data *master; //Pointer back to its master
 	int hungry_timer; //[orn]
 	unsigned int exp_next;
-	char blockskill[MAX_SKILL]; // [orn]
+	char blockskill[MAX_SKILL]; //[orn]
 };
 
 #define MAX_HOM_SKILL_REQUIRE 5

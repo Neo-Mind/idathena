@@ -622,7 +622,7 @@ int merc_hom_food(struct map_session_data *sd, struct homun_data *hd)
 		emotion = E_HO;
 	}
 
-	hd->homunculus.hunger += 10;	//dunno increase value for each food
+	hd->homunculus.hunger += 10; //Dunno increase value for each food
 	if(hd->homunculus.hunger > 100)
 		hd->homunculus.hunger = 100;
 
@@ -714,7 +714,7 @@ int merc_hom_change_name_ack(struct map_session_data *sd, char* name, int flag)
 	struct homun_data *hd = sd->hd;
 	if (!merc_is_hom_active(hd)) return 0;
 
-	normalize_name(name," ");//bugreport:3032
+	normalize_name(name," "); //bugreport:3032
 	
 	if ( !flag || !strlen(name) ) {
 		clif_displaymessage(sd->fd, msg_txt(280)); // You cannot use this name
@@ -731,7 +731,7 @@ int search_homunculusDB_index(int key,int type)
 {
 	int i;
 
-	for(i=0;i<MAX_HOMUNCULUS_CLASS;i++) {
+	for(i = 0; i < MAX_HOMUNCULUS_CLASS; i++) {
 		if(homunculus_db[i].base_class <= 0)
 			continue;
 		switch(type) {
@@ -782,7 +782,7 @@ int merc_hom_alloc(struct map_session_data *sd, struct s_homunculus *hom)
 	unit_dataset(&hd->bl);
 	hd->ud.dir = sd->ud.dir;
 
-	// Find a random valid pos around the player
+	//Find a random valid pos around the player
 	hd->bl.m = sd->bl.m;
 	hd->bl.x = sd->bl.x;
 	hd->bl.y = sd->bl.y;
@@ -792,6 +792,7 @@ int merc_hom_alloc(struct map_session_data *sd, struct s_homunculus *hom)
 
 	map_addiddb(&hd->bl);
 	status_calc_homunculus(hd, SCO_FIRST);
+	status_percent_heal(&hd->bl, 100, 100);
 
 	hd->hungry_timer = INVALID_TIMER;
 	hd->masterteleport_timer = INVALID_TIMER;
@@ -801,7 +802,7 @@ int merc_hom_alloc(struct map_session_data *sd, struct s_homunculus *hom)
 void merc_hom_init_timers(struct homun_data * hd)
 {
 	if (hd->hungry_timer == INVALID_TIMER)
-		hd->hungry_timer = add_timer(gettick()+hd->homunculusDB->hungryDelay,merc_hom_hungry,hd->master->bl.id,0);
+		hd->hungry_timer = add_timer(gettick() + hd->homunculusDB->hungryDelay,merc_hom_hungry,hd->master->bl.id,0);
 	hd->regen.state.block = 0; //Restore HP/SP block.
 	hd->masterteleport_timer = INVALID_TIMER;
 }
@@ -813,7 +814,7 @@ int merc_call_homunculus(struct map_session_data *sd)
 	if (!sd->status.hom_id) //Create a new homun.
 		return merc_create_homunculus_request(sd, HM_CLASS_BASE + rnd_value(0, 7)) ;
 
-	// If homunc not yet loaded, load it
+	//If homunc not yet loaded, load it
 	if (!sd->hd)
 		return intif_homunculus_requestload(sd->status.account_id, sd->status.hom_id);
 
@@ -823,7 +824,7 @@ int merc_call_homunculus(struct map_session_data *sd)
 		return 0; //Can't use this if homun wasn't vaporized.
 
 	if (hd->homunculus.vaporize == HOM_ST_MORPH)
-		return 0; // Can't call homunculus (morph state).
+		return 0; //Can't call homunculus (morph state).
 
 	merc_hom_init_timers(hd);
 	hd->homunculus.vaporize = HOM_ST_ACTIVE;
@@ -835,7 +836,7 @@ int merc_call_homunculus(struct map_session_data *sd)
 		clif_spawn(&hd->bl);
 		clif_send_homdata(sd,SP_ACK,0);
 		clif_hominfo(sd,hd,1);
-		clif_hominfo(sd,hd,0); // send this x2. dunno why, but kRO does that [blackhole89]
+		clif_hominfo(sd,hd,0); //Send this x2. dunno why, but kRO does that [blackhole89]
 		clif_homskillinfoblock(sd);
 		if (battle_config.slaves_inherit_speed&1)
 			status_calc_bl(&hd->bl, SCB_SPEED);
