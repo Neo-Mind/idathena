@@ -1160,16 +1160,13 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 
 	if (!changing_mapservers) {
 
-		if (battle_config.display_version == 1) {
-			char buf[256];
-			sprintf(buf, "SVN version: %s", get_svn_revision());
-			clif_displaymessage(sd->fd, buf);
-		}
+		if (battle_config.display_version == 1)
+			pc_show_version(sd);
 
 		//Message of the Day [Valaris]
 		for (i = 0; motd_text[i][0] && i < MOTD_LINE_SIZE; i++) {
 			if (battle_config.motd_type)
-				clif_disp_onlyself(sd,motd_text[i],strlen(motd_text[i]));
+				clif_disp_onlyself(sd, motd_text[i],strlen(motd_text[i]));
 			else
 				clif_displaymessage(sd->fd, motd_text[i]);
 		}
@@ -9974,12 +9971,12 @@ int pc_read_motd(void)
 {
 	FILE* fp;
 
-	// clear old MOTD
+	// Clear old MOTD
 	memset(motd_text, 0, sizeof(motd_text));
 
-	// read current MOTD
-	if( ( fp = fopen(motd_txt, "r") ) != NULL ) {
-		char* buf, * ptr;
+	// Read current MOTD
+	if( (fp = fopen(motd_txt, "r")) != NULL ) {
+		char* buf, *ptr;
 		unsigned int lines = 0, entries = 0;
 		size_t len;
 
@@ -9988,23 +9985,21 @@ int pc_read_motd(void)
 
 			buf = motd_text[entries];
 
-			if( buf[0] == '/' && buf[1] == '/' ) {
+			if( buf[0] == '/' && buf[1] == '/' )
 				continue;
-			}
 
 			len = strlen(buf);
 
-			while( len && ( buf[len-1] == '\r' || buf[len-1] == '\n' ) ) { // strip trailing EOL characters
+			while( len && (buf[len-1] == '\r' || buf[len - 1] == '\n') ) // Strip trailing EOL characters
 				len--;
-			}
 
 			if( len ) {
 				buf[len] = 0;
 
-				if( ( ptr = strstr(buf, " :") ) != NULL && ptr-buf >= NAME_LENGTH ) { // crashes newer clients
+				if( (ptr = strstr(buf, " :") ) != NULL && ptr-buf >= NAME_LENGTH) { // Crashes newer clients
 					ShowWarning("Found sequence '"CL_WHITE" :"CL_RESET"' on line '"CL_WHITE"%u"CL_RESET"' in '"CL_WHITE"%s"CL_RESET"'. This can cause newer clients to crash.\n", lines, motd_txt);
 				}
-			} else { // empty line
+			} else { // Empty line
 				buf[0] = ' ';
 				buf[1] = 0;
 			}
@@ -10013,22 +10008,21 @@ int pc_read_motd(void)
 		fclose(fp);
 
 		ShowStatus("Done reading '"CL_WHITE"%u"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", entries, motd_txt);
-	} else {
+	} else
 		ShowWarning("File '"CL_WHITE"%s"CL_RESET"' not found.\n", motd_txt);
-	}
 
 	return 0;
 }
 void pc_itemcd_do(struct map_session_data *sd, bool load) {
-	int i,cursor = 0;
+	int i, cursor = 0;
 	struct item_cd* cd = NULL;
 	
 	if( load ) {
 		if( !(cd = idb_get(itemcd_db, sd->status.char_id)) ) {
-			// no skill cooldown is associated with this character
+			//No skill cooldown is associated with this character
 			return;
 		}
-		for(i = 0; i < MAX_ITEMDELAYS; i++) {
+		for( i = 0; i < MAX_ITEMDELAYS; i++ ) {
 			if( cd->nameid[i] && DIFF_TICK(gettick(),cd->tick[i]) < 0 ) {
 				sd->item_delay[cursor].tick = cd->tick[i];
 				sd->item_delay[cursor].nameid = cd->nameid[i];
@@ -10038,11 +10032,11 @@ void pc_itemcd_do(struct map_session_data *sd, bool load) {
 		idb_remove(itemcd_db,sd->status.char_id);
 	} else {
 		if( !(cd = idb_get(itemcd_db,sd->status.char_id)) ) {
-			// create a new skill cooldown object for map storage
+			// Create a new skill cooldown object for map storage
 			CREATE( cd, struct item_cd, 1 );
 			idb_put( itemcd_db, sd->status.char_id, cd );
 		}
-		for(i = 0; i < MAX_ITEMDELAYS; i++) {
+		for( i = 0; i < MAX_ITEMDELAYS; i++ ) {
 			if( sd->item_delay[i].nameid && DIFF_TICK(gettick(),sd->item_delay[i].tick) < 0 ) {
 				cd->tick[cursor] = sd->item_delay[i].tick;
 				cd->nameid[cursor] = sd->item_delay[i].nameid;
@@ -10057,9 +10051,9 @@ void pc_clear_log_damage_sub(int char_id, struct mob_data *md) {
 	int i;
 	ARR_FIND(0,DAMAGELOG_SIZE,i,md->dmglog[i].id == char_id);
 	if( i < DAMAGELOG_SIZE ) {
-		md->dmglog[i].id=0;
-		md->dmglog[i].dmg=0;
-		md->dmglog[i].flag=0;
+		md->dmglog[i].id = 0;
+		md->dmglog[i].dmg = 0;
+		md->dmglog[i].flag = 0;
 	}
 }
 
@@ -10069,7 +10063,7 @@ void pc_damage_log_add(struct map_session_data *sd, int id) {
 	if( !sd )
 		return;
 
-	for(i = 0; i < DAMAGELOG_SIZE_PC && sd->dmglog[i].id != id; i++)
+	for( i = 0; i < DAMAGELOG_SIZE_PC && sd->dmglog[i].id != id; i++ )
 		if( !sd->dmglog[i].id ) {
 			sd->dmglog[i].id = id;
 			break;
@@ -10152,6 +10146,17 @@ void pc_bank_withdraw(struct map_session_data *sd, int money) {
 			chrif_save(sd,0);
 		clif_bank_withdraw(sd,BWA_SUCCESS);
 	}
+}
+
+void pc_show_version(struct map_session_data *sd) {
+	const char *svn = get_svn_revision();
+	char buf[CHAT_SIZE_MAX];
+
+	if( svn[0] != 0 )
+		sprintf(buf,msg_txt(1295),"SVN: r",svn); //idAthena Version %s %s
+	else
+		sprintf(buf,msg_txt(1296)); //Cannot determine current version.
+	clif_displaymessage(sd->fd,buf);
 }
 
 /*==========================================

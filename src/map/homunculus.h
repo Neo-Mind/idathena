@@ -56,7 +56,7 @@ struct homun_data {
 	struct s_homunculus_db *homunculusDB; //[orn]
 	struct s_homunculus homunculus; //[orn]
 
-	int64 masterteleport_timer;
+	int masterteleport_timer;
 	struct map_session_data *master; //Pointer back to its master
 	int hungry_timer; //[orn]
 	unsigned int exp_next;
