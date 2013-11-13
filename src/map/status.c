@@ -8574,7 +8574,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_CLOAKINGEXCEED:
 				val2 = (val1 + 1) / 2; //Hits
-				val3 = 90 + val1 * 10; //Walk speed
+				val3 = (val1 - 1) * 10; //Walk speed
 				if( bl->type == BL_PC )
 					val4 |= battle_config.pc_cloak_check_type&7;
 				else
@@ -10879,7 +10879,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			break;
 
 		case SC_CLOAKINGEXCEED:
-			if( !status_charge(bl,0,10-sce->val1) )
+			if( !status_charge(bl,0,10 - sce->val1) )
 				break;
 			sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 			return 0;

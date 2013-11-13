@@ -682,22 +682,28 @@ int skillnotok_hom (uint16 skill_id, struct homun_data *hd)
 			if(hd->sc.data[SC_GOLDENE_FERSE]) return 1;
 			break;
 		case MH_TINDER_BREAKER: //Must be in grappling mode
-			if(!(hd->sc.data[SC_STYLE_CHANGE] && hd->sc.data[SC_STYLE_CHANGE]->val1 == MH_MD_GRAPPLING)) return 1;
+			if(!(hd->sc.data[SC_STYLE_CHANGE] && hd->sc.data[SC_STYLE_CHANGE]->val1 == MH_MD_GRAPPLING) ||
+			!hd->homunculus.spiritball) return 1;
 			break;
 		case MH_SONIC_CRAW: //Must be in fighting mode
-			if(!(hd->sc.data[SC_STYLE_CHANGE] && hd->sc.data[SC_STYLE_CHANGE]->val1 == MH_MD_FIGHTING)) return 1;
+			if(!(hd->sc.data[SC_STYLE_CHANGE] && hd->sc.data[SC_STYLE_CHANGE]->val1 == MH_MD_FIGHTING) ||
+			!hd->homunculus.spiritball) return 1;
 			break;
 		case MH_SILVERVEIN_RUSH:
-			if(!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_SONIC_CRAW)) return 1;
+			if(!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_SONIC_CRAW) ||
+			hd->homunculus.spiritball < 2) return 1;
 			break;
 		case MH_MIDNIGHT_FRENZY:
-			if(!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_SILVERVEIN_RUSH)) return 1;
+			if(!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_SILVERVEIN_RUSH) ||
+			!hd->homunculus.spiritball) return 1;
 			break;
 		case MH_CBC:
-			if(!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_TINDER_BREAKER)) return 1;
+			if(!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_TINDER_BREAKER) ||
+			!hd->homunculus.spiritball < 2) return 1;
 			break;
 		case MH_EQC:
-			if(!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_CBC)) return 1;
+			if(!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_CBC) ||
+			!hd->homunculus.spiritball < 3) return 1;
 			break;
 	}
 
@@ -4934,7 +4940,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		//Recursive homon skill
 		case MH_MAGMA_FLOW:
 		case MH_HEILIGE_STANGE:
-			if(flag&1) {
+			if (flag&1) {
 				if ((skill_id == MH_MAGMA_FLOW) && ((rnd()%100) > (3 * skill_lv))) break; //Chance to not trigger atk for magma
 				skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag);
 			} else
@@ -4949,8 +4955,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case MH_MIDNIGHT_FRENZY:
 		case MH_SILVERVEIN_RUSH: {
 				TBL_HOM *hd = BL_CAST(BL_HOM,src);
-				hom_delspiritball(hd,skill_id == MH_SILVERVEIN_RUSH ? 1 : 2,0);
 				skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag);
+				hom_delspiritball(hd,skill_id == MH_SILVERVEIN_RUSH ? 2 : 1,0);
 			}
 			break;
 		case MH_TINDER_BREAKER:
@@ -4960,7 +4966,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				int duration = 0;
 				TBL_HOM *hd = BL_CAST(BL_HOM,src);
 				duration = max(skill_lv,(status_get_str(src) / 7 - status_get_str(bl) / 10)) * 1000; //Yommy formula
-				hom_delspiritball(hd,skill_id == MH_EQC ? 2 : 1 ,0); //Only EQC consume 2 in grp 2
+				hom_delspiritball(hd,skill_id == MH_EQC ? 3 : skill_id == MH_CBC ? 2 : 1,0); //Only EQC consume 3 in grp 2
 				skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,
 					sc_start4(src,bl,status_skill2sc(skill_id),100,skill_lv,src->id,0,0,duration));

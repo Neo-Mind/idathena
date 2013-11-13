@@ -1166,7 +1166,7 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 		//Message of the Day [Valaris]
 		for (i = 0; motd_text[i][0] && i < MOTD_LINE_SIZE; i++) {
 			if (battle_config.motd_type)
-				clif_disp_onlyself(sd, motd_text[i],strlen(motd_text[i]));
+				clif_disp_onlyself(sd, motd_text[i], strlen(motd_text[i]));
 			else
 				clif_displaymessage(sd->fd, motd_text[i]);
 		}
@@ -1175,7 +1175,7 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 		if (expiration_time != 0) { //Don't display if it's unlimited or unknow value
 			char tmpstr[1024];
 			strftime(tmpstr, sizeof(tmpstr) - 1, msg_txt(501), localtime(&expiration_time)); //"Your account time limit is: %d-%m-%Y %H:%M:%S."
-			clif_wis_message(sd->fd, wisp_server_name, tmpstr, strlen(tmpstr)+1);
+			clif_wis_message(sd->fd, wisp_server_name, tmpstr, strlen(tmpstr) + 1);
 		}
 
 		/**
@@ -2916,6 +2916,12 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			if(sd->state.lr_flag != 2) {
 				sd->bonus.sp_vanish_rate += type2;
 				sd->bonus.sp_vanish_per += val;
+			}
+			break;
+		case SP_HP_VANISH_RATE:
+			if(sd->state.lr_flag != 2) {
+				sd->bonus.hp_vanish_rate += type2;
+				sd->bonus.hp_vanish_per += val;
 			}
 			break;
 		case SP_GET_ZENY_NUM:
@@ -8401,8 +8407,10 @@ int pc_checkcombo(struct map_session_data *sd, struct item_data *data ) {
 		}
 
 		/* Means we broke out of the count loop w/o finding all ids, we can move to the next combo */
-		if( j < data->combos[i]->count )
+		if( j < data->combos[i]->count ) {
+			aFree(pair);
 			continue;
+		}
 
 		/* We got here, means all items in the combo are matching */
 		idx = sd->combos.count;

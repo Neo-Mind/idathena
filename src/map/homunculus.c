@@ -311,7 +311,7 @@ void merc_hom_skillup(struct homun_data *hd,uint16 skill_id)
 int merc_hom_levelup(struct homun_data *hd)
 {
 	struct s_homunculus *hom;
-	struct h_stats *min, *max;
+	struct h_stats *min = NULL, *max = NULL;
 	int growth_str, growth_agi, growth_vit, growth_int, growth_dex, growth_luk;
 	int growth_max_hp, growth_max_sp;
 	int m_class;
@@ -321,21 +321,38 @@ int merc_hom_levelup(struct homun_data *hd)
 		return 0;
 	}
 
-	if(((m_class&HOM_REG) && hd->homunculus.level >= battle_config.hom_max_level)
-		|| ((m_class&HOM_S) && hd->homunculus.level >= battle_config.hom_S_max_level)
-		|| !hd->exp_next || hd->homunculus.exp < hd->exp_next)
+	//When homunculus is homunculus S, we check to see if we need to apply previous class stats
+	if(m_class&HOM_S && hd->homunculus.level < battle_config.hom_S_growth_level) {
+		int i;
+		//We also need to be sure that the previous class exists, otherwise give it something to work with
+		if(!hd->homunculus.prev_class)
+			hd->homunculus.prev_class = 6001;
+		//Give the homunculus the level up stats database it needs
+		i = search_homunculusDB_index(hd->homunculus.prev_class, HOMUNCULUS_CLASS);
+		if(i < 0) //Nothing should go wrong here, but check anyways
+			return 0;
+		max = &homunculus_db[i].gmax;
+		min = &homunculus_db[i].gmin;
+	}
+
+	if(((m_class&HOM_REG) && hd->homunculus.level >= battle_config.hom_max_level) ||
+		((m_class&HOM_S) && hd->homunculus.level >= battle_config.hom_S_max_level) ||
+		!hd->exp_next || hd->homunculus.exp < hd->exp_next)
 		return 0;
 
 	hom = &hd->homunculus;
 	hom->level++;
-	if(!(hom->level % 3))
+
+	if(!(hom->level%3))
 		hom->skillpts++; //1 skillpoint each 3 base level
 
 	hom->exp -= hd->exp_next;
 	hd->exp_next = hexptbl[hom->level - 1];
 
-	max  = &hd->homunculusDB->gmax;
-	min  = &hd->homunculusDB->gmin;
+	if(!max) {
+		max  = &hd->homunculusDB->gmax;
+		min  = &hd->homunculusDB->gmin;
+	}
 
 	growth_max_hp = rnd_value(min->HP, max->HP);
 	growth_max_sp = rnd_value(min->SP, max->SP);
@@ -1009,16 +1026,13 @@ int merc_hom_shuffle(struct homun_data *hd)
 	exp = hd->homunculus.exp;
 	memcpy(&b_skill, &hd->homunculus.hskill, sizeof(b_skill));
 	skillpts = hd->homunculus.skillpts;
-	//Reset values to level 1.
-	merc_reset_stats(hd);
+	merc_reset_stats(hd); //Reset values to level 1.
 
-	//Level it back up
-	do {
+	do { //Level it back up
 		hd->homunculus.exp += hd->exp_next;
 	} while( hd->homunculus.level < lv && merc_hom_levelup(hd) );
 
-	if( hd->homunculus.class_ == hd->homunculusDB->evo_class ) {
-		//Evolved bonuses
+	if( hd->homunculus.class_ == hd->homunculusDB->evo_class ) { //Evolved bonuses
 		struct s_homunculus *hom = &hd->homunculus;
 		struct h_stats *max = &hd->homunculusDB->emax, *min = &hd->homunculusDB->emin;
 		hom->max_hp += rnd_value(min->HP, max->HP);

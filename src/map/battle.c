@@ -1144,10 +1144,10 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			pc_addspiritball(sd,skill_get_time2(SR_GENTLETOUCH_ENERGYGAIN,sce->val1),spheremax);
 		}
 
-		if( sc->data[SC_STYLE_CHANGE] ) {
-			TBL_HOM *hd = BL_CAST(BL_HOM,bl); //When being hit
-			if ( hd && (rnd()%100 < (status_get_lv(bl) / 2)) )
-				hom_addspiritball(hd,10); //Add a sphere
+		if( sc->data[SC_STYLE_CHANGE] && sc->data[SC_STYLE_CHANGE]->val1 == MH_MD_GRAPPLING ) {
+			TBL_HOM *hd = BL_CAST(BL_HOM,bl); //We add a sphere for when the Homunculus is being hit
+			if( hd && (rnd()%100 < 50) ) //According to WarpPortal, this is a flat 50% chance
+				hom_addspiritball(hd,10);
 		}
 
 		if( sc->data[SC__DEADLYINFECT] && (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT && damage > 0 &&
@@ -1187,9 +1187,10 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( sc->data[SC__DEADLYINFECT] && (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT && damage > 0 &&
 			rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 && !(status_get_mode(bl)&MD_BOSS) )
 			status_change_spread(src,bl);
-		if( sc->data[SC_STYLE_CHANGE] ) {
+		if( sc->data[SC_STYLE_CHANGE] && sc->data[SC_STYLE_CHANGE]->val1 == MH_MD_FIGHTING ) {
 			TBL_HOM *hd = BL_CAST(BL_HOM,src); //When attacking
-			if( hd && (rnd()%100 < (20 + status_get_lv(bl) / 5)) ) hom_addspiritball(hd,10);
+			if( hd && (rnd()%100 < 50) ) //According to WarpPortal, this is a flat 50% chance
+				hom_addspiritball(hd,10);
 		}
 	}
 
@@ -3823,32 +3824,28 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			skillratio += 600 + 100 * skill_lv;
 			break;
 		case MH_STAHL_HORN:
-			skillratio += 400 + 100 * skill_lv * status_get_lv(src);
-			skillratio = skillratio / 100; //@TODO uv1 factor need to be confirmed
+			skillratio += 400 + 100 * skill_lv * status_get_lv(src) / 150;
 			break;
 		case MH_LAVA_SLIDE:
 			skillratio += -100 + 70 * skill_lv;
 			break;
 		case MH_SONIC_CRAW:
-			skillratio += -100 + 40 * skill_lv * status_get_lv(src);
-			skillratio = skillratio / 100; //@TODO uv1 factor need to be confirmed
+			skillratio += -100 + 40 * skill_lv * status_get_lv(src) / 150;
 			break;
 		case MH_SILVERVEIN_RUSH:
-			skillratio += -100 + (150 * skill_lv * status_get_lv(src)) / 100;
+			skillratio += -100 + 150 * skill_lv * status_get_lv(src) / 100;
 			break;
 		case MH_MIDNIGHT_FRENZY:
-			skillratio += -100 + (300 * skill_lv * status_get_lv(src)) / 150;
+			skillratio += -100 + 300 * skill_lv * status_get_lv(src) / 150;
 			break;
 		case MH_TINDER_BREAKER:
-			skillratio += -100 + (100 * skill_lv + status_get_str(src));
-			skillratio = (skillratio * status_get_lv(src)) / 120;
+			skillratio += -100 + (100 * skill_lv + 3 * status_get_str(src)) * status_get_lv(src) / 120;
 			break;
 		case MH_CBC:
 			skillratio += 300 * skill_lv + 4 * status_get_lv(src);
 			break;
 		case MH_MAGMA_FLOW:
-			skillratio += -100 + 100 * skill_lv + 3 * status_get_lv(src);
-			skillratio = (skillratio * status_get_lv(src)) / 120;
+			skillratio += -100 + (100 * skill_lv + 3 * status_get_lv(src)) * status_get_lv(src) / 120;
 			break;
 	}
 	return skillratio;
@@ -6301,6 +6298,7 @@ void battle_drain(TBL_PC *sd, struct block_list *tbl, int64 rdamage, int64 ldama
 	struct weapon_data *wd;
 	int64 *damage;
 	int type, thp = 0, tsp = 0, rhp = 0, rsp = 0, hp, sp, i;
+
 	for (i = 0; i < 4; i++) {
 		//First two iterations: Right hand
 		if (i < 2) { wd = &sd->right_weapon; damage = &rdamage; }
@@ -6310,7 +6308,7 @@ void battle_drain(TBL_PC *sd, struct block_list *tbl, int64 rdamage, int64 ldama
 		if (i == 0 || i == 2)
 			type = race;
 		else
-			type = boss?RC_BOSS:RC_NONBOSS;
+			type = boss ? RC_BOSS : RC_NONBOSS;
 
 		hp = wd->hp_drain[type].value;
 		if (wd->hp_drain[type].rate)
@@ -6334,6 +6332,9 @@ void battle_drain(TBL_PC *sd, struct block_list *tbl, int64 rdamage, int64 ldama
 
 	if (sd->bonus.sp_vanish_rate && rnd()%1000 < sd->bonus.sp_vanish_rate)
 		status_percent_damage(&sd->bl, tbl, 0, (unsigned char)sd->bonus.sp_vanish_per, false);
+	if (sd->bonus.hp_vanish_rate && rnd()%1000 < sd->bonus.hp_vanish_rate &&
+		tbl->type == BL_PC && (map[sd->bl.m].flag.pvp || map[sd->bl.m].flag.gvg))
+		status_percent_damage(&sd->bl, tbl, (unsigned char)sd->bonus.hp_vanish_per, 0, false);
 
 	if( sd->sp_gain_race_attack[race] )
 		tsp += sd->sp_gain_race_attack[race];
@@ -7589,6 +7590,7 @@ static const struct _battle_data {
 	{ "mon_trans_disable_in_gvg",           &battle_config.mon_trans_disable_in_gvg,        0,      0,      1,              },
 	{ "transform_end_on_death",             &battle_config.transform_end_on_death,          1,      0,      1,              },
 	{ "feature.banking",                    &battle_config.feature_banking,                 1,      0,      1,              },
+	{ "homunculus_S_growth_level",          &battle_config.hom_S_growth_level,             99,      0,      MAX_LEVEL,      },
 };
 #ifndef STATS_OPT_OUT
 /**

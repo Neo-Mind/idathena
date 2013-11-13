@@ -101,7 +101,6 @@ int channel_delete(struct Channel *channel) {
 		}
 		default:
 			strdb_remove(channel_db,channel->name);
-			aFree(channel);
 			break;
 	}
 	return 0;
