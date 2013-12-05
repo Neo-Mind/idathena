@@ -3112,9 +3112,8 @@ ACMD_FUNC(questskill)
 		// Send the error message as always
 		clif_displaymessage(fd, msg_txt(1027)); // Please enter a quest skill number.
 
-		if (text) { // Send the skill ID list associated with this command
+		if (text) // Send the skill ID list associated with this command
 			clif_displaymessage(fd, text);
-		}
 
 		return -1;
 	}
@@ -3148,15 +3147,14 @@ ACMD_FUNC(lostskill)
 	if (!message || !*message || (skill_id = atoi(message)) <= 0) { // also send a list of skills applicable to this command
 		const char* text;
 
-		// attempt to find the text corresponding to this command
+		// Attempt to find the text corresponding to this command
 		text = atcommand_help_string( command );
 		
-		// send the error message as always
+		// Send the error message as always
 		clif_displaymessage(fd, msg_txt(1027)); // Please enter a quest skill number.
 
-		if( text ) { // send the skill ID list associated with this command
+		if( text ) // Send the skill ID list associated with this command
 			clif_displaymessage( fd, text );
-		}
 
 		return -1;
 	}

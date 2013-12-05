@@ -1504,7 +1504,7 @@ int status_heal(struct block_list *bl, int64 in_hp, int64 in_sp, int flag)
 		sc->data[SC_PROVOKE] &&
 		sc->data[SC_PROVOKE]->val2 == 1 &&
 		status->hp >= status->max_hp >> 2
-	)	//End auto berserk.
+	) //End auto berserk.
 		status_change_end(bl, SC_PROVOKE, INVALID_TIMER);
 
 	//Send hp update to client
@@ -1524,11 +1524,11 @@ int status_heal(struct block_list *bl, int64 in_hp, int64 in_sp, int flag)
 //If rates are > 0, percent is of current HP/SP
 //If rates are < 0, percent is of max HP/SP
 //If !flag, this is heal, otherwise it is damage.
-//Furthermore, if flag==2, then the target must not die from the substraction.
+//Furthermore, if flag == 2, then the target must not die from the substraction.
 int status_percent_change(struct block_list *src,struct block_list *target,signed char hp_rate, signed char sp_rate, int flag)
 {
 	struct status_data *status;
-	unsigned int hp  =0, sp = 0;
+	unsigned int hp = 0, sp = 0;
 
 	status = status_get_status_data(target);
 
@@ -1536,29 +1536,25 @@ int status_percent_change(struct block_list *src,struct block_list *target,signe
 	if (hp_rate > 99)
 		hp = status->hp;
 	else if (hp_rate > 0)
-		hp = status->hp>10000?
-			hp_rate*(status->hp/100):
-			((int64)hp_rate*status->hp)/100;
+		hp = status->hp > 10000 ? hp_rate * (status->hp / 100) : ((int64)hp_rate * status->hp) / 100;
 	else if (hp_rate < -99)
 		hp = status->max_hp;
 	else if (hp_rate < 0)
-		hp = status->max_hp>10000?
-			(-hp_rate)*(status->max_hp/100):
-			((int64)-hp_rate*status->max_hp)/100;
+		hp = status->max_hp > 10000 ? (-hp_rate) * (status->max_hp / 100) : ((int64)-hp_rate * status->max_hp) / 100;
 	if (hp_rate && !hp)
 		hp = 1;
 
 	if (flag == 2 && hp >= status->hp)
-		hp = status->hp-1; //Must not kill target.
+		hp = status->hp - 1; //Must not kill target.
 
 	if (sp_rate > 99)
 		sp = status->sp;
 	else if (sp_rate > 0)
-		sp = ((int64)sp_rate*status->sp)/100;
+		sp = ((int64)sp_rate * status->sp) / 100;
 	else if (sp_rate < -99)
 		sp = status->max_sp;
 	else if (sp_rate < 0)
-		sp = ((int64)-sp_rate)*status->max_sp/100;
+		sp = ((int64)-sp_rate) * status->max_sp / 100;
 	if (sp_rate && !sp)
 		sp = 1;
 
@@ -1567,19 +1563,19 @@ int status_percent_change(struct block_list *src,struct block_list *target,signe
 	if (hp > INT_MAX) {
 	  	hp -= INT_MAX;
 		if (flag)
-			status_damage(src, target, INT_MAX, 0, 0, (!src||src==target?5:1));
+			status_damage(src, target, INT_MAX, 0, 0, (!src || src == target ? 5 : 1));
 		else
 		  	status_heal(target, INT_MAX, 0, 0);
 	}
   	if (sp > INT_MAX) {
 		sp -= INT_MAX;
 		if (flag)
-			status_damage(src, target, 0, INT_MAX, 0, (!src||src==target?5:1));
+			status_damage(src, target, 0, INT_MAX, 0, (!src || src == target ? 5 : 1));
 		else
 		  	status_heal(target, 0, INT_MAX, 0);
 	}
 	if (flag)
-		return status_damage(src, target, hp, sp, 0, (!src||src==target?5:1));
+		return status_damage(src, target, hp, sp, 0, (!src || src == target ? 5 : 1));
 	return status_heal(target, hp, sp, 0);
 }
 
@@ -1587,7 +1583,9 @@ int status_revive(struct block_list *bl, unsigned char per_hp, unsigned char per
 {
 	struct status_data *status;
 	unsigned int hp, sp;
-	if (!status_isdead(bl)) return 0;
+
+	if (!status_isdead(bl))
+		return 0;
 
 	status = status_get_status_data(bl);
 	if (status == &dummy_status)
@@ -9970,10 +9968,10 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_TINDER_BREAKER:
 		case SC_CLOSECONFINE:
 			if (sce->val2 > 0) {
-				//Caster has been unlocked... nearby chars need to be unlocked.
+				//Caster has been unlocked, nearby chars need to be unlocked.
 				int range = 1
 					+ skill_get_range2(bl,status_sc2skill(type),sce->val1)
-					+ skill_get_range2(bl,TF_BACKSLIDING,1); //Since most people use this to escape the hold....
+					+ skill_get_range2(bl,TF_BACKSLIDING,1); //Since most people use this to escape the hold.
 				map_foreachinarea(status_change_timer_sub,
 					bl->m,bl->x-range,bl->y-range,bl->x+range,bl->y+range,BL_CHAR,bl,sce,type,gettick());
 			}

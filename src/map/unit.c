@@ -493,7 +493,7 @@ int unit_walktobl(struct block_list *bl, struct block_list *tbl, int range, int 
 	}
 
 	if (DIFF_TICK(ud->canmove_tick, gettick()) > 0) { //Can't move, wait a bit before invoking the movement.
-		add_timer(ud->canmove_tick+1, unit_walktobl_sub, bl->id, ud->target);
+		add_timer(ud->canmove_tick + 1, unit_walktobl_sub, bl->id, ud->target);
 		return 1;
 	}
 
@@ -515,7 +515,7 @@ int unit_walktobl(struct block_list *bl, struct block_list *tbl, int range, int 
 int unit_run(struct block_list *bl)
 {
 	struct status_change *sc = status_get_sc(bl);
-	short to_x,to_y,dir_x,dir_y;
+	short to_x, to_y, dir_x, dir_y;
 	int lv;
 	int i;
 
@@ -531,23 +531,23 @@ int unit_run(struct block_list *bl)
 	dir_x = dirx[sc->data[SC_RUN]->val2];
 	dir_y = diry[sc->data[SC_RUN]->val2];
 
-	// determine destination cell
+	//Determine destination cell
 	to_x = bl->x;
 	to_y = bl->y;
-	for(i=0;i<AREA_SIZE;i++)
-	{
-		if(!map_getcell(bl->m,to_x+dir_x,to_y+dir_y,CELL_CHKPASS))
+	for (i = 0; i < AREA_SIZE; i++) {
+		if (!map_getcell(bl->m, to_x + dir_x, to_y + dir_y, CELL_CHKPASS))
 			break;
 
-		//if sprinting and there's a PC/Mob/NPC, block the path [Kevin]
-		if(sc->data[SC_RUN] && map_count_oncell(bl->m, to_x+dir_x, to_y+dir_y, BL_PC|BL_MOB|BL_NPC))
+		//If sprinting and there's a PC/Mob/NPC, block the path [Kevin]
+		if (sc->data[SC_RUN] && map_count_oncell(bl->m, to_x + dir_x, to_y + dir_y, BL_PC|BL_MOB|BL_NPC))
 			break;
-			
+
 		to_x += dir_x;
 		to_y += dir_y;
 	}
 
-	if( (to_x == bl->x && to_y == bl->y ) || (to_x == (bl->x+1) || to_y == (bl->y+1)) || (to_x == (bl->x-1) || to_y == (bl->y-1))) {
+	if ((to_x == bl->x && to_y == bl->y) || (to_x == (bl->x + 1) ||
+		to_y == (bl->y + 1)) || (to_x == (bl->x - 1) || to_y == (bl->y - 1))) {
 		//If you can't run forward, you must be next to a wall, so bounce back. [Skotlex]
 		clif_status_change(bl, SI_BUMP, 1, 0, 0, 0, 0);
 
@@ -555,7 +555,7 @@ int unit_run(struct block_list *bl)
 		unit_bl2ud(bl)->state.running = 0;
 		status_change_end(bl, SC_RUN, INVALID_TIMER);
 
-		skill_blown(bl,bl,skill_get_blewcount(TK_RUN,lv),unit_getdir(bl),0);
+		skill_blown(bl, bl, skill_get_blewcount(TK_RUN, lv), unit_getdir(bl), 0);
 		clif_fixpos(bl); //Why is a clif_slide (skill_blown) AND a fixpos needed? Ask Aegis.
 		clif_status_change(bl, SI_BUMP, 0, 0, 0, 0, 0);
 		return 0;
@@ -567,8 +567,8 @@ int unit_run(struct block_list *bl)
 		to_x -= dir_x;
 		to_y -= dir_y;
 	} while (--i > 0 && !unit_walktoxy(bl, to_x, to_y, 1));
-	if (i==0) {
-		// copy-paste from above
+	if (i == 0) {
+		//Copy-paste from above
 		clif_status_change(bl, SI_BUMP, 1, 0, 0, 0, 0);
 
 		//Set running to 0 beforehand so status_change_end knows not to enable spurt [Kevin]

@@ -1885,41 +1885,40 @@ static int pc_bonus_addeff_onskill(struct s_addeffectonskill* effect, int max, e
 static int pc_bonus_item_drop(struct s_add_drop *drop, const short max, short id, short group, int race, int rate)
 {
 	int i;
+
 	//Apply config rate adjustment settings.
-	if (rate >= 0) { //Absolute drop.
-		if (battle_config.item_rate_adddrop != 100)
-			rate = rate*battle_config.item_rate_adddrop/100;
-		if (rate < battle_config.item_drop_adddrop_min)
+	if( rate >= 0 ) { //Absolute drop.
+		if( battle_config.item_rate_adddrop != 100 )
+			rate = rate * battle_config.item_rate_adddrop / 100;
+		if( rate < battle_config.item_drop_adddrop_min )
 			rate = battle_config.item_drop_adddrop_min;
-		else if (rate > battle_config.item_drop_adddrop_max)
+		else if( rate > battle_config.item_drop_adddrop_max )
 			rate = battle_config.item_drop_adddrop_max;
 	} else { //Relative drop, max/min limits are applied at drop time.
-		if (battle_config.item_rate_adddrop != 100)
-			rate = rate*battle_config.item_rate_adddrop/100;
-		if (rate > -1)
+		if( battle_config.item_rate_adddrop != 100 )
+			rate = rate * battle_config.item_rate_adddrop / 100;
+		if( rate > -1 )
 			rate = -1;
 	}
-	for(i = 0; i < max && (drop[i].id || drop[i].group); i++) {
+	for( i = 0; i < max && (drop[i].id || drop[i].group); i++ ) {
 		if(
 			((id && drop[i].id == id) ||
-			(group && drop[i].group == group))
-			&& race > 0
+			(group && drop[i].group == group)) && race > 0
 		) {
 			drop[i].race |= race;
-			if(drop[i].rate > 0 && rate > 0) { //Both are absolute rates.
-				if (drop[i].rate < rate)
+			if( drop[i].rate > 0 && rate > 0 ) { //Both are absolute rates.
+				if( drop[i].rate < rate )
 					drop[i].rate = rate;
-			} else
-			if(drop[i].rate < 0 && rate < 0) {
+			} else if( drop[i].rate < 0 && rate < 0 ) {
 				//Both are relative rates.
-				if (drop[i].rate > rate)
+				if( drop[i].rate > rate )
 					drop[i].rate = rate;
-			} else if (rate < 0) //Give preference to relative rate.
-					drop[i].rate = rate;
+			} else if( rate < 0 ) //Give preference to relative rate.
+				drop[i].rate = rate;
 			return 1;
 		}
 	}
-	if(i == max) {
+	if( i == max ) {
 		ShowWarning("pc_bonus: Reached max (%d) number of added drops per character!\n", max);
 		return 0;
 	}
@@ -1942,14 +1941,14 @@ int pc_addautobonus(struct s_autobonus *bonus,char max,const char *script,short 
 
 	if( !onskill ) {
 		if( !(flag&BF_RANGEMASK) )
-			flag|=BF_SHORT|BF_LONG; //No range defined? Use both.
+			flag |= BF_SHORT|BF_LONG; //No range defined? Use both.
 		if( !(flag&BF_WEAPONMASK) )
-			flag|=BF_WEAPON; //No attack type defined? Use weapon.
+			flag |= BF_WEAPON; //No attack type defined? Use weapon.
 		if( !(flag&BF_SKILLMASK) ) {
 			if( flag&(BF_MAGIC|BF_MISC) )
-				flag|=BF_SKILL; //These two would never trigger without BF_SKILL
+				flag |= BF_SKILL; //These two would never trigger without BF_SKILL
 			if( flag&BF_WEAPON )
-				flag|=BF_NORMAL|BF_SKILL;
+				flag |= BF_NORMAL|BF_SKILL;
 		}
 	}
 
@@ -1959,7 +1958,7 @@ int pc_addautobonus(struct s_autobonus *bonus,char max,const char *script,short 
 	bonus[i].atk_type = flag;
 	bonus[i].pos = pos;
 	bonus[i].bonus_script = aStrdup(script);
-	bonus[i].other_script = other_script?aStrdup(other_script):NULL;
+	bonus[i].other_script = other_script ? aStrdup(other_script) : NULL;
 	return 1;
 }
 
@@ -10161,7 +10160,7 @@ void pc_show_version(struct map_session_data *sd) {
 	char buf[CHAT_SIZE_MAX];
 
 	if( svn[0] != 0 )
-		sprintf(buf,msg_txt(1295),"SVN: r",svn); //idAthena Version %s %s
+		sprintf(buf,msg_txt(1295),"SVN: r",svn); //idAthena Version %s%s
 	else
 		sprintf(buf,msg_txt(1296)); //Cannot determine current version.
 	clif_displaymessage(sd->fd,buf);
