@@ -1330,7 +1330,7 @@ int clif_spawn(struct block_list *bl)
 				}
 				for (i = 0; i < sd->sc_display_count; i++) {
 					if ((sc = status_get_sc(bl)) && sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE|OPTION_CHASEWALK))
-						clif_status_change2(&sd->bl,sd->bl.id,AREA,SI_BLANK,0,0,0);
+						clif_status_change2(&sd->bl,sd->bl.id,AREA,StatusIconChangeTable[sd->sc_display[i]->type],0,0,0);
 					else
 						clif_status_change2(&sd->bl,sd->bl.id,AREA,StatusIconChangeTable[sd->sc_display[i]->type],sd->sc_display[i]->val1,sd->sc_display[i]->val2,sd->sc_display[i]->val3);
 				}
@@ -4086,7 +4086,7 @@ static void clif_getareachar_pc(struct map_session_data* sd,struct map_session_d
 	}
 	for( i = 0; i < dstsd->sc_display_count; i++ ) {
 		if (dstsd->sc.option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE|OPTION_CHASEWALK))
-			clif_status_change2(&sd->bl,dstsd->bl.id,SELF,SI_BLANK,0,0,0);
+			clif_status_change2(&sd->bl,dstsd->bl.id,SELF,StatusIconChangeTable[dstsd->sc_display[i]->type],0,0,0);
 		else
 			clif_status_change2(&sd->bl,dstsd->bl.id,SELF,StatusIconChangeTable[dstsd->sc_display[i]->type],dstsd->sc_display[i]->val1,dstsd->sc_display[i]->val2,dstsd->sc_display[i]->val3);
 	}
@@ -4403,21 +4403,21 @@ void clif_changemapcell(int fd, int16 m, int x, int y, int type, enum send_targe
 void clif_getareachar_item(struct map_session_data* sd,struct flooritem_data* fitem)
 {
 	int view,fd;
-	fd=sd->fd;
+	fd = sd->fd;
 
 	WFIFOHEAD(fd,packet_len(0x9d));
-	WFIFOW(fd,0)=0x9d;
-	WFIFOL(fd,2)=fitem->bl.id;
+	WFIFOW(fd,0) = 0x9d;
+	WFIFOL(fd,2) = fitem->bl.id;
 	if((view = itemdb_viewid(fitem->item_data.nameid)) > 0)
-		WFIFOW(fd,6)=view;
+		WFIFOW(fd,6) = view;
 	else
-		WFIFOW(fd,6)=fitem->item_data.nameid;
-	WFIFOB(fd,8)=fitem->item_data.identify;
-	WFIFOW(fd,9)=fitem->bl.x;
-	WFIFOW(fd,11)=fitem->bl.y;
-	WFIFOW(fd,13)=fitem->item_data.amount;
-	WFIFOB(fd,15)=fitem->subx;
-	WFIFOB(fd,16)=fitem->suby;
+		WFIFOW(fd,6) = fitem->item_data.nameid;
+	WFIFOB(fd,8) = fitem->item_data.identify;
+	WFIFOW(fd,9) = fitem->bl.x;
+	WFIFOW(fd,11) = fitem->bl.y;
+	WFIFOW(fd,13) = fitem->item_data.amount;
+	WFIFOB(fd,15) = fitem->subx;
+	WFIFOB(fd,16) = fitem->suby;
 	WFIFOSET(fd,packet_len(0x9d));
 }
 
@@ -8464,7 +8464,7 @@ void clif_messagecolor(struct block_list* bl, unsigned long color, const char* m
 }
 
 
-// refresh the client's screen, getting rid of any effects
+// Refresh the client's screen, getting rid of any effects
 void clif_refresh(struct map_session_data *sd)
 {
 	int i;
@@ -8512,18 +8512,15 @@ void clif_refresh(struct map_session_data *sd)
 		clif_clearunit_single(sd->bl.id,CLR_DEAD,sd->fd);
 	else
 		clif_changed_dir(&sd->bl, SELF);
-
-	// unlike vending, resuming buyingstore crashes the client.
+	// Unlike vending, resuming buyingstore crashes the client.
 	buyingstore_close(sd);
-
 	mail_clear(sd);
-
-	if( disguised(&sd->bl) ) { /* refresh-da */
+	if( disguised(&sd->bl) ) { /* Refresh-da */
 		short disguise = sd->disguise;
-		pc_disguise(sd, 0);
-		pc_disguise(sd, disguise);
-	}
 
+		pc_disguise(sd,0);
+		pc_disguise(sd,disguise);
+	}
 }
 
 
