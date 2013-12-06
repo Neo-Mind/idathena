@@ -6846,9 +6846,8 @@ void status_display_remove(struct map_session_data *sd, enum sc_type type) {
 			if( sd->sc_display[i] == NULL )
 				continue;
 
-			if( i != cursor ) {
+			if( i != cursor )
 				sd->sc_display[cursor] = sd->sc_display[i];
-			}
 
 			cursor++;
 		}
@@ -9343,12 +9342,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_POISON:       sc->opt2 |= OPT2_POISON;       break;
 		case SC_CURSE:        sc->opt2 |= OPT2_CURSE;        break;
 		case SC_SILENCE:      sc->opt2 |= OPT2_SILENCE;      break;
-		
 		case SC_SIGNUMCRUCIS:
 		case SC_CHAOS:
 			sc->opt2 |= OPT2_SIGNUMCRUCIS;
 			break;
-
 		case SC_BLIND:        sc->opt2 |= OPT2_BLIND;        break;
 		case SC_ANGELUS:      sc->opt2 |= OPT2_ANGELUS;      break;
 		case SC_BLEEDING:     sc->opt2 |= OPT2_BLEEDING;     break;
@@ -10484,7 +10481,6 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_CHASEWALK:
 			if( !status_charge(bl,0,sce->val4) )
 				break; //Not enough SP to continue.
-				
 			if( !sc->data[SC_INCSTR] ) {
 				sc_start(bl,bl,SC_INCSTR,100,1<<(sce->val1 - 1),
 					(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_ROGUE ? 10 : 1) //SL bonus -> x10 duration
@@ -10504,7 +10500,6 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		case SC_HIDING:
 			if( --(sce->val2) > 0 ) {
-				
 				if( sce->val2 % sce->val4 == 0 && !status_charge(bl,0,1) )
 					break; //Fail if it's time to substract SP and there isn't.
 			
@@ -10559,6 +10554,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				if( !sc->data[SC_SLOWPOISON] ) {
 					if( sce->val2 && bl->type == BL_MOB ) {
 						struct block_list* src = map_id2bl(sce->val2);
+
 						if( src )
 							mob_log_damage((TBL_MOB*)bl,src,sce->val4);
 					}
@@ -10596,6 +10592,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			if( --(sce->val4) >= 0 ) {
 				int hp =  rnd()%600 + 200;
 				struct block_list* src = map_id2bl(sce->val2);
+
 				if( src && bl && bl->type == BL_MOB ) {
 					mob_log_damage((TBL_MOB*)bl,src,sd || hp < status->hp ? hp : status->hp - 1);
 				}
@@ -10618,6 +10615,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			if( sd && --(sce->val4) >= 0 ) {
 				//val1 < 0 = per max% | val1 > 0 = exact amount
 				int hp = 0;
+
 				if( status->hp < status->max_hp )
 					hp = (sce->val1 < 0) ? (int)(sd->status.max_hp * -1 * sce->val1 / 100.) : sce->val1 ;
 				status_heal(bl,hp,0,2);
@@ -10629,6 +10627,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_BOSSMAPINFO:
 			if( sd && --(sce->val4) >= 0 ) {
 				struct mob_data *boss_md = map_id2boss(sce->val1);
+
 				if( boss_md && sd->bl.m == boss_md->bl.m ) {
 					clif_bossmapinfo(sd->fd,boss_md,1); //Update X - Y on minimap
 					if( boss_md->bl.prev != NULL ) {
@@ -10642,6 +10641,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_DANCING: { //SP consumption by time of dancing skills
 				int s = 0;
 				int sp = 1;
+
 				if( --sce->val3 <= 0 )
 					break;
 				switch( sce->val1&0xFFFF ) {
@@ -10731,6 +10731,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_MARIONETTE2:
 			{
 				struct block_list *pbl = map_id2bl(sce->val1);
+
 				if( pbl && check_distance_bl(bl,pbl,7) ) {
 					sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 					return 0;
@@ -10741,6 +10742,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_GOSPEL:
 			if( sce->val4 == BCT_SELF && --(sce->val2) > 0 ) {
 				int hp, sp;
+
 				hp = (sce->val1 > 5) ? 45 : 30;
 				sp = (sce->val1 > 5) ? 35 : 20;
 				if( !status_charge(bl,hp,sp) )
@@ -10786,7 +10788,8 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		case SC_LEECHESEND:
 			if( --(sce->val4) >= 0 ) {
-				int damage = status->max_hp/100; //{Target VIT x (New Poison Research Skill Level - 3)} + (Target HP/100)
+				int damage = status->max_hp / 100; //{Target VIT x (New Poison Research Skill Level - 3)} + (Target HP/100)
+
 				damage += status->vit * (sce->val1 - 3);
 				unit_skillcastcancel(bl,2);
 				map_freeblock_lock();
@@ -10806,26 +10809,22 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 				if( status->hp <= damage )
 					damage = status->hp - 1; //Cannot Kill
-
 				if( damage > 0 ) { //3% Damage each 4 seconds
 					map_freeblock_lock();
 					status_zap(bl,damage,0);
 					flag = !sc->data[type]; //Killed? Should not
 					map_freeblock_unlock();
 				}
-
 				if( !flag ) { //Random Skill Cast
 					if( sd && !pc_issit(sd) ) { //Can't cast if sit
 						int mushroom_skill_id = 0, i;
 
 						unit_stop_attack(bl);
 						unit_skillcastcancel(bl,0);
-
 						do {
 							i = rnd() % MAX_SKILL_MAGICMUSHROOM_DB;
 							mushroom_skill_id = skill_magicmushroom_db[i].skill_id;
 						} while( mushroom_skill_id == 0 );
-
 						switch( skill_get_casttype(mushroom_skill_id) ) { //Magic Mushroom skills are buffs or area damage
 							case CAST_GROUND:
 								skill_castend_pos2(bl,bl->x,bl->y,mushroom_skill_id,1,tick,0);
@@ -10838,7 +10837,6 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 								break;
 						}
 					}
-
 					clif_emotion(bl,E_HEH);
 					sc_timer_next(4000 + tick,status_change_timer,bl->id,data);
 				}
@@ -10850,10 +10848,9 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			if( --(sce->val4) >= 0 ) { //Damage is every 10 seconds including 3% sp drain.
 				map_freeblock_lock();
 				clif_damage(bl,bl,tick,status_get_amotion(bl),1,1,0,0,0);
-				status_damage(NULL,bl,1,status->max_sp * 3 / 100,0,0); //cancel dmg only if cancelable
-				if( sc->data[type] ) {
+				status_damage(NULL,bl,1,status->max_sp * 3 / 100,0,0); //Cancel dmg only if cancelable
+				if( sc->data[type] )
 					sc_timer_next(10000 + tick,status_change_timer,bl->id,data );
-				}
 				map_freeblock_unlock();
 				return 0;
 			}
@@ -10885,6 +10882,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_RENOVATIO:
 			if( --(sce->val4) >= 0 ) {
 				int heal = status->max_hp * 3 / 100;
+
 				if( sc && sc->data[SC_AKAITSUKI] && heal )
 					heal = ~heal + 1;
 				status_heal(bl,heal,0,2);
@@ -10901,7 +10899,6 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				map_freeblock_lock();
 				clif_damage(bl,bl,tick,0,0,damage,1,9,0); //Damage is like endure effect with no walk delay
 				status_damage(src,bl,damage,0,0,1);
-
 				if( sc->data[type]) { //Target still lives. [LimitLine]
 					sc_timer_next(3000 + tick,status_change_timer,bl->id,data);
 				}
@@ -10935,6 +10932,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_READING_SB:
 			if( !status_charge(bl,0,sce->val2) ) {
 				int i;
+
 				for(i = SC_SPELLBOOK1; i <= SC_MAXSPELLBOOK; i++) //Also remove stored spell as well.
 					status_change_end(bl,(sc_type)i,INVALID_TIMER);
 				break;
@@ -11018,6 +11016,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			if( --(sce->val4) >= 0 ) {
 				struct block_list *src = map_id2bl(sce->val2);
 				int damage;
+
 				if( !src || (src && (status_isdead(src) || src->m != bl->m || distance_bl(src,bl) >= 12)) )
 					break;
 				map_freeblock_lock();
@@ -11146,6 +11145,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				} else {
 					struct block_list *src = map_id2bl(sce->val2);
 					struct status_change *ssc;
+
 					if( !src || (ssc = status_get_sc(src)) == NULL || !ssc->data[SC_MAGNETICFIELD] )
 						break; //Source no more under Magnetic Field
 				}
@@ -11166,6 +11166,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			if( --(sce->val4) > 0 ) {
 				int hp = status->max_hp * (7 / 2 - (1 / 2 * sce->val1)) / 100;
 				int sp = status->max_sp * (9 / 2 - (1 / 2 * sce->val1)) / 100;
+
 				if( !status_charge(bl,hp,sp) )
 					break;
 				sc_timer_next(5000 + tick,status_change_timer,bl->id,data);
@@ -11192,8 +11193,9 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_SOLID_SKIN:
 			if( !status_charge(bl,0,sce->val2) ) {
 				struct block_list *s_bl = battle_get_master(bl);
+
 				if( s_bl )
-					status_change_end(s_bl,type + 1,INVALID_TIMER);
+					status_change_end(s_bl,(sc_type)(type + 1),INVALID_TIMER);
 				status_change_end(bl,type,INVALID_TIMER);
 				break;
 			}
@@ -11246,6 +11248,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			if( --(sce->val4) >= 0 ) { //Drain hp/sp
 				int hp = 0;
 				int sp = (status->max_sp * sce->val3) / 100;
+
 				if( bl->type == BL_MOB ) hp = sp * 10;
 				if( !status_charge(bl,hp,sp) ) break;
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
@@ -11285,7 +11288,6 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
  *------------------------------------------*/
 int status_change_timer_sub(struct block_list* bl, va_list ap) {
 	struct status_change* tsc;
-
 	struct block_list* src = va_arg(ap, struct block_list*);
 	struct status_change_entry* sce = va_arg(ap, struct status_change_entry*);
 	enum sc_type type = (sc_type)va_arg(ap, int); //gcc: enum args get promoted to int
@@ -11335,15 +11337,16 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 			}
 			break;
 		case SC_TINDER_BREAKER:
-		case SC_CLOSECONFINE: {
-				int type2 = ((type == SC_CLOSECONFINE) ? SC_CLOSECONFINE2 : SC_TINDER_BREAKER2);
+		case SC_CLOSECONFINE:
+			{
+				enum sc_type type2 = ((type == SC_CLOSECONFINE) ? SC_CLOSECONFINE2 : SC_TINDER_BREAKER2);
 				//Lock char has released the hold on everyone.
 				if( tsc && tsc->data[type2] && tsc->data[type2]->val2 == src->id ) {
 					tsc->data[type2]->val2 = 0;
 					status_change_end(bl, type2, INVALID_TIMER);
 				}
-				break;
 			}
+			break;
 		case SC_CURSEDCIRCLE_TARGET:
 			if( tsc && tsc->data[SC_CURSEDCIRCLE_TARGET] && tsc->data[SC_CURSEDCIRCLE_TARGET]->val2 == src->id ) {
 				clif_bladestop(bl, tsc->data[SC_CURSEDCIRCLE_TARGET]->val2, 0);

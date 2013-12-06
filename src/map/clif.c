@@ -1176,15 +1176,15 @@ static int clif_set_unit_walking(struct block_list* bl, struct unit_data* ud, un
 //Used for spawn/walk packets, where the ID offset changes for packetver >=9
 static void clif_setdisguise(struct block_list *bl, unsigned char *buf,int len) {
 #if PACKETVER >= 20091103
-	WBUFB(buf, 4) = pcdb_checkid(status_get_viewdata(bl)->class_) ? 0x0 : 0x5; //PC_TYPE : NPC_MOB_TYPE
-	WBUFL(buf, 5) = -bl->id;
+	WBUFB(buf,4) = pcdb_checkid(status_get_viewdata(bl)->class_) ? 0x0 : 0x5; //PC_TYPE : NPC_MOB_TYPE
+	WBUFL(buf,5) = -bl->id;
 #elif PACKETVER >= 20071106
-	WBUFB(buf, 2) = pcdb_checkid(status_get_viewdata(bl)->class_) ? 0x0 : 0x5; //PC_TYPE : NPC_MOB_TYPE
-	WBUFL(buf, 3) = -bl->id;
+	WBUFB(buf,2) = pcdb_checkid(status_get_viewdata(bl)->class_) ? 0x0 : 0x5; //PC_TYPE : NPC_MOB_TYPE
+	WBUFL(buf,3) = -bl->id;
 #else
-	WBUFL(buf, 2) = -bl->id;
+	WBUFL(buf,2) = -bl->id;
 #endif
-	clif_send(buf, len, bl, SELF);
+	clif_send(buf,len,bl,SELF);
 }
 
 
@@ -1195,12 +1195,12 @@ static void clif_setdisguise(struct block_list *bl, unsigned char *buf,int len) 
 void clif_class_change(struct block_list *bl,int class_,int type) {
 	nullpo_retv(bl);
 
-	if(!pcdb_checkid(class_)) { // player classes yield missing sprites
+	if(!pcdb_checkid(class_)) { //Player classes yield missing sprites
 		unsigned char buf[16];
-		WBUFW(buf,0)=0x1b0;
-		WBUFL(buf,2)=bl->id;
-		WBUFB(buf,6)=type;
-		WBUFL(buf,7)=class_;
+		WBUFW(buf,0) = 0x1b0;
+		WBUFL(buf,2) = bl->id;
+		WBUFB(buf,6) = type;
+		WBUFL(buf,7) = class_;
 		clif_send(buf,packet_len(0x1b0),bl,AREA);
 	}
 }
@@ -1210,11 +1210,11 @@ void clif_class_change(struct block_list *bl,int class_,int type) {
 /// 01d0 <id>.L <amount>.W (ZC_SPIRITS)
 /// 01e1 <id>.L <amount>.W (ZC_SPIRITS2)
 static void clif_spiritball_single(int fd, struct map_session_data *sd) {
-	WFIFOHEAD(fd, packet_len(0x1e1));
-	WFIFOW(fd,0)=0x1e1;
-	WFIFOL(fd,2)=sd->bl.id;
-	WFIFOW(fd,6)=sd->spiritball;
-	WFIFOSET(fd, packet_len(0x1e1));
+	WFIFOHEAD(fd,packet_len(0x1e1));
+	WFIFOW(fd,0) = 0x1e1;
+	WFIFOL(fd,2) = sd->bl.id;
+	WFIFOW(fd,6) = sd->spiritball;
+	WFIFOSET(fd,packet_len(0x1e1));
 }
 
 /*==========================================
@@ -1222,12 +1222,12 @@ static void clif_spiritball_single(int fd, struct map_session_data *sd) {
  *------------------------------------------*/
 static void clif_talisman_single(int fd, struct map_session_data *sd, short type)
 {
-	WFIFOHEAD(fd, packet_len(0x08cf));
-	WFIFOW(fd,0)=0x08cf;
-	WFIFOL(fd,2)=sd->bl.id;
-	WFIFOW(fd,6)=type;
-	WFIFOW(fd,8)=sd->talisman[type];
-	WFIFOSET(fd, packet_len(0x08cf));
+	WFIFOHEAD(fd,packet_len(0x08cf));
+	WFIFOW(fd,0) = 0x08cf;
+	WFIFOL(fd,2) = sd->bl.id;
+	WFIFOW(fd,6) = type;
+	WFIFOW(fd,8) = sd->talisman[type];
+	WFIFOSET(fd,packet_len(0x08cf));
 }
 
 
@@ -1289,6 +1289,7 @@ int clif_spawn(struct block_list *bl)
 {
 	unsigned char buf[128];
 	struct view_data *vd;
+	struct status_change *sc = NULL;
 	int len;
 
 	vd = status_get_viewdata(bl);
@@ -1314,19 +1315,24 @@ int clif_spawn(struct block_list *bl)
 		case BL_PC: {
 				TBL_PC *sd = ((TBL_PC*)bl);
 				int i;
-				if (sd->spiritball > 0)
-					clif_spiritball(&sd->bl);
+
 				if (sd->state.size == SZ_BIG) //Tiny/Big players [Valaris]
 					clif_specialeffect(bl,423,AREA);
 				else if (sd->state.size == SZ_MEDIUM)
 					clif_specialeffect(bl,421,AREA);
 				if (sd->bg_id && map[sd->bl.m].flag.battleground)
 					clif_sendbgemblem_area(sd);
-				for (i = 0; i < sd->sc_display_count; i++)
-					clif_status_change2(&sd->bl,sd->bl.id,AREA,StatusIconChangeTable[sd->sc_display[i]->type],sd->sc_display[i]->val1,sd->sc_display[i]->val2,sd->sc_display[i]->val3);
+				if (sd->spiritball > 0)
+					clif_spiritball(&sd->bl);
 				for (i = 1; i < 5; i++) {
 					if (sd->talisman[i] > 0)
 						clif_talisman(sd,i);
+				}
+				for (i = 0; i < sd->sc_display_count; i++) {
+					if ((sc = status_get_sc(bl)) && sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE|OPTION_CHASEWALK))
+						clif_status_change2(&sd->bl,sd->bl.id,AREA,SI_BLANK,0,0,0);
+					else
+						clif_status_change2(&sd->bl,sd->bl.id,AREA,StatusIconChangeTable[sd->sc_display[i]->type],sd->sc_display[i]->val1,sd->sc_display[i]->val2,sd->sc_display[i]->val3);
 				}
 				if (sd->status.robe)
 					clif_refreshlook(bl,bl->id,LOOK_ROBE,sd->status.robe,AREA);
@@ -4065,6 +4071,7 @@ static void clif_getareachar_pc(struct map_session_data* sd,struct map_session_d
 
 	if( dstsd->chatID ) {
 		struct chat_data *cd = NULL;
+
 		if( (cd = (struct chat_data*)map_id2bl(dstsd->chatID)) && cd->usersd[0] == dstsd)
 			clif_dispchat(cd,sd->fd);
 	} else if( dstsd->state.vending )
@@ -4077,8 +4084,12 @@ static void clif_getareachar_pc(struct map_session_data* sd,struct map_session_d
 		if( dstsd->talisman[i] > 0 )
 			clif_talisman_single(sd->fd, dstsd, i);
 	}
-	for( i = 0; i < dstsd->sc_display_count; i++ )
-		clif_status_change2(&sd->bl,dstsd->bl.id,SELF,StatusIconChangeTable[dstsd->sc_display[i]->type],dstsd->sc_display[i]->val1,dstsd->sc_display[i]->val2,dstsd->sc_display[i]->val3);
+	for( i = 0; i < dstsd->sc_display_count; i++ ) {
+		if (dstsd->sc.option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE|OPTION_CHASEWALK))
+			clif_status_change2(&sd->bl,dstsd->bl.id,SELF,SI_BLANK,0,0,0);
+		else
+			clif_status_change2(&sd->bl,dstsd->bl.id,SELF,StatusIconChangeTable[dstsd->sc_display[i]->type],dstsd->sc_display[i]->val1,dstsd->sc_display[i]->val2,dstsd->sc_display[i]->val3);
+	}
 	if( (sd->status.party_id && dstsd->status.party_id == sd->status.party_id) || //Party-mate, or hpdisp setting.
 		(sd->bg_id && sd->bg_id == dstsd->bg_id) || //BattleGround
 		pc_has_permission(sd, PC_PERM_VIEW_HPMETER)
@@ -4103,11 +4114,9 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 	int len;
 
 	vd = status_get_viewdata(bl);
-
 	if (!vd || vd->class_ == INVISIBLE_CLASS)
 		return;
 
-	
 	//Hide NPC from maya purple card.
 	if (bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
 		return;
