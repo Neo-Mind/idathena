@@ -12,6 +12,7 @@
 #include "../common/db.h"
 #include "../common/socket.h"
 #include "map.h"
+#include "mapreg.h"
 #include "log.h"
 #include "clif.h"
 #include "intif.h"
@@ -1185,6 +1186,25 @@ int npc_click(struct map_session_data* sd, struct npc_data* nd)
 		case SHOP:
 			clif_npcbuysell(sd,nd->bl.id);
 			break;
+		case ITEMSHOP: {
+				char output[CHAT_SIZE_MAX];
+				struct item_data *id = itemdb_exists(nd->u.shop.itemshop_nameid);
+
+				memset(output,'\0',sizeof(output));
+				sprintf(output,msg_txt(714),id->jname,id->nameid); // Item Shop List: %s (%d)
+				clif_broadcast(&sd->bl,output,strlen(output) + 1,0x10,SELF);
+				clif_npcbuysell(sd,nd->bl.id);
+			}
+			break;
+		case POINTSHOP: {
+				char output[CHAT_SIZE_MAX];
+
+				memset(output,'\0',sizeof(output));
+				sprintf(output,msg_txt(715),nd->u.shop.pointshop_str); // Point Shop List: '%s'
+				clif_broadcast(&sd->bl,output,strlen(output) + 1,0x10,SELF);
+				clif_npcbuysell(sd,nd->bl.id);
+			}
+			break;
 		case CASHSHOP:
 			clif_cashshop_show(sd,nd);
 			break;
@@ -1251,7 +1271,7 @@ int npc_buysellsel(struct map_session_data* sd, int id, int type)
 	if ((nd = npc_checknear(sd,map_id2bl(id))) == NULL)
 		return 1;
 
-	if (nd->subtype != SHOP) {
+	if (nd->subtype != SHOP && nd->subtype != ITEMSHOP && nd->subtype != POINTSHOP) {
 		ShowError("no such shop npc : %d\n",id);
 		if (sd->npc_id == id)
 			sd->npc_id=0;
@@ -1462,7 +1482,8 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 {
 	struct npc_data* nd;
 	double z;
-	int i,j,w,skill,new_;
+	int i, j, k, w, skill, new_,count = 0;
+	char output[CHAT_SIZE_MAX];
 
 	nullpo_retr(3, sd);
 	nullpo_retr(3, item_list);
@@ -1470,41 +1491,40 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 	nd = npc_checknear(sd,map_id2bl(sd->npc_shopid));
 	if( nd == NULL )
 		return 3;
-	if( nd->subtype != SHOP )
+	if( nd->subtype != SHOP && nd->subtype != ITEMSHOP && nd->subtype != POINTSHOP )
 		return 3;
 
 	z = 0;
 	w = 0;
 	new_ = 0;
-	// process entries in buy list, one by one
+	//Process entries in buy list, one by one
 	for( i = 0; i < n; ++i ) {
 		int nameid, amount, value;
 
-		// find this entry in the shop's sell list
+		//Find this entry in the shop's sell list
 		ARR_FIND( 0, nd->u.shop.count, j,
-			item_list[i*2+1] == nd->u.shop.shop_item[j].nameid || //Normal items
-			item_list[i*2+1] == itemdb_viewid(nd->u.shop.shop_item[j].nameid) //item_avail replacement
+			item_list[i * 2 + 1] == nd->u.shop.shop_item[j].nameid || //Normal items
+			item_list[i * 2 + 1] == itemdb_viewid(nd->u.shop.shop_item[j].nameid) //item_avail replacement
 		);
 
 		if( j == nd->u.shop.count )
-			return 3; // no such item in shop
+			return 3; //No such item in shop
 
-		amount = item_list[i*2+0];
-		nameid = item_list[i*2+1] = nd->u.shop.shop_item[j].nameid; //item_avail replacement
+		amount = item_list[i * 2 + 0];
+		nameid = item_list[i * 2 + 1] = nd->u.shop.shop_item[j].nameid; //item_avail replacement
 		value = nd->u.shop.shop_item[j].value;
 
 		if( !itemdb_exists(nameid) )
-			return 3; // item no longer in itemdb
+			return 3; //Item no longer in itemdb
 
 		if( !itemdb_isstackable(nameid) && amount > 1 ) { //Exploit? You can't buy more than 1 of equipment types o.O
 			ShowWarning("Player %s (%d:%d) sent a hexed packet trying to buy %d of nonstackable item %d!\n",
 				sd->status.name, sd->status.account_id, sd->status.char_id, amount, nameid);
-			amount = item_list[i*2+0] = 1;
+			amount = item_list[i * 2 + 0] = 1;
 		}
 
-		if( nd->master_nd ) { // Script-controlled shops decide by themselves, what can be bought and for what price.
+		if( nd->master_nd ) // Script-controlled shops decide by themselves, what can be bought and for what price.
 			continue;
-		}
 
 		switch( pc_checkadditem(sd,nameid,amount) ) {
 			case CHKADDITEM_EXIST:
@@ -1518,7 +1538,8 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 				return 2;
 		}
 
-		value = pc_modifybuyvalue(sd,value);
+		if( npc_shop_discount(nd->subtype,nd->u.shop.discount) )
+			value = pc_modifybuyvalue(sd,value);
 
 		z += (double)value * amount;
 		w += itemdb_weight(nameid) * amount;
@@ -1527,42 +1548,105 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 	if( nd->master_nd != NULL ) //Script-based shops.
 		return npc_buylist_sub(sd,n,item_list,nd->master_nd);
 
-	if( z > (double)sd->status.zeny )
-		return 1;	// Not enough Zeny
-	if( w + sd->weight > sd->max_weight )
-		return 2;	// Too heavy
-	if( pc_inventoryblank(sd) < new_ )
-		return 3;	// Not enough space to store items
+	switch(nd->subtype) {
+		case SHOP:
+			if (z > (double)sd->status.zeny)
+				return 1; // Not enough Zeny
+			break;
+		case ITEMSHOP:
+			for (k = 0; k < MAX_INVENTORY; k++) {
+				if (sd->status.inventory[k].nameid == nd->u.shop.itemshop_nameid)
+					count += sd->status.inventory[k].amount;
+			}
+			if (z > (double)count) {
+				struct item_data *id = itemdb_exists(nd->u.shop.itemshop_nameid);
 
-	pc_payzeny(sd,(int)z,LOG_TYPE_NPC, NULL);
-	
+				sprintf(output,msg_txt(712),id->jname,id->nameid); //You do not have enough %s %d.
+				clif_colormes(sd,color_table[COLOR_RED],output);
+				return 1;
+			}
+			break;
+		case POINTSHOP:
+			switch(nd->u.shop.pointshop_str[0]) {
+				case '#':
+					if (nd->u.shop.pointshop_str[1] == '#')
+						count = pc_readaccountreg2(sd, nd->u.shop.pointshop_str);
+					else
+						count = pc_readaccountreg(sd, nd->u.shop.pointshop_str);
+					break;
+				case '@':
+				default:
+					count = pc_readglobalreg(sd, nd->u.shop.pointshop_str);
+					break;
+			}
+			if (z > (double)count) {
+				sprintf(output,msg_txt(713),nd->u.shop.pointshop_str); //You do not have enough '%s'.
+				clif_colormes(sd,color_table[COLOR_RED],output);
+				return 1;
+			}
+			break;
+	}
+
+	if( w + sd->weight > sd->max_weight )
+		return 2; // Too heavy
+	if( pc_inventoryblank(sd) < new_ )
+		return 3; // Not enough space to store items
+
+	switch( nd->subtype ) {
+		case SHOP:
+			pc_payzeny(sd, (int)z, LOG_TYPE_NPC, NULL);
+			break;
+		case ITEMSHOP:
+			pc_delitem(sd, pc_search_inventory(sd, nd->u.shop.itemshop_nameid), (int)z, 0, 0, LOG_TYPE_NPC);
+			break;
+		case POINTSHOP:
+			switch(nd->u.shop.pointshop_str[0]) {
+				case '#':
+					if (nd->u.shop.pointshop_str[1] == '#')
+						pc_setaccountreg2(sd, nd->u.shop.pointshop_str, count - (int)z);
+					else
+						pc_setaccountreg(sd, nd->u.shop.pointshop_str, count - (int)z);
+					break;
+				case '@':
+				default:
+					pc_setglobalreg(sd, nd->u.shop.pointshop_str, count - (int)z);
+					break;
+			}
+			break;
+	}
+
 	for( i = 0; i < n; ++i ) {
-		int nameid = item_list[i*2+1];
-		int amount = item_list[i*2+0];
+		int nameid = item_list[i * 2 + 1];
+		int amount = item_list[i * 2 + 0];
 		struct item item_tmp;
 
-		if (itemdb_type(nameid) == IT_PETEGG)
+		if( itemdb_type(nameid) == IT_PETEGG )
 			pet_create_egg(sd, nameid);
 		else {
 			memset(&item_tmp,0,sizeof(item_tmp));
 			item_tmp.nameid = nameid;
 			item_tmp.identify = 1;
-			
+
 			pc_additem(sd,&item_tmp,amount,LOG_TYPE_NPC);
 		}
 	}
 
-	// custom merchant shop exp bonus
+	//Custom merchant shop exp bonus
 	if( battle_config.shop_exp > 0 && z > 0 && (skill = pc_checkskill(sd,MC_DISCOUNT)) > 0 ) {
 		if( sd->status.skill[MC_DISCOUNT].flag >= SKILL_FLAG_REPLACED_LV_0 )
 			skill = sd->status.skill[MC_DISCOUNT].flag - SKILL_FLAG_REPLACED_LV_0;
 
 		if( skill > 0 ) {
-			z = z * (double)skill * (double)battle_config.shop_exp/10000.;
+			z = z * (double)skill * (double)battle_config.shop_exp / 10000.;
 			if( z < 1 )
 				z = 1;
 			pc_gainexp(sd,NULL,0,(int)z, false);
 		}
+	}
+
+	if( nd->subtype == POINTSHOP ) {
+		sprintf(output,msg_txt(716),nd->u.shop.pointshop_str,count - (int)z); // Your '%s' now: %d
+		clif_disp_onlyself(sd,output,strlen(output) + 1);
 	}
 
 	return 0;
@@ -1634,13 +1718,13 @@ int npc_selllist(struct map_session_data* sd, int n, unsigned short* item_list)
 	nullpo_retr(1, sd);
 	nullpo_retr(1, item_list);
 
-	if( ( nd = npc_checknear(sd, map_id2bl(sd->npc_shopid)) ) == NULL || nd->subtype != SHOP ) {
+	if( (nd = npc_checknear(sd, map_id2bl(sd->npc_shopid))) == NULL ||
+		(nd->subtype != SHOP && nd->subtype != ITEMSHOP && nd->subtype != POINTSHOP) )
 		return 1;
-	}
 
 	z = 0;
 
-	// verify the sell list
+	// Verify the sell list
 	for( i = 0; i < n; i++ ) {
 		int nameid, amount, idx, value;
 
@@ -1663,19 +1747,19 @@ int npc_selllist(struct map_session_data* sd, int n, unsigned short* item_list)
 
 		value = pc_modifysellvalue(sd, sd->inventory_data[idx]->value_sell);
 
-		z+= (double)value*amount;
+		z+= (double)value * amount;
 	}
 
 	if( nd->master_nd ) { // Script-controlled shops
 		return npc_selllist_sub(sd, n, item_list, nd->master_nd);
 	}
 
-	// delete items
+	// Delete items
 	for( i = 0; i < n; i++ ) {
 		int amount, idx;
 
-		idx    = item_list[i*2]-2;
-		amount = item_list[i*2+1];
+		idx    = item_list[i * 2] - 2;
+		amount = item_list[i * 2 + 1];
 
 		if( sd->inventory_data[idx]->type == IT_PETEGG && sd->status.inventory[idx].card[0] == CARD0_PET ) {
 			if( search_petDB_index(sd->status.inventory[idx].nameid, PET_EGG) >= 0 ) {
@@ -1791,8 +1875,9 @@ int npc_unload(struct npc_data* nd, bool single) {
 			aFree(nd->path);/* remove now that no other instances exist */
 		}
 	}
-	
-	if( (nd->subtype == SHOP || nd->subtype == CASHSHOP) && nd->src_id == 0) //src check for duplicate shops [Orcao]
+
+	//src check for duplicate shops [Orcao]
+	if( (nd->subtype == SHOP || nd->subtype == CASHSHOP || nd->subtype == ITEMSHOP || nd->subtype == POINTSHOP) && nd->src_id == 0 )
 		aFree(nd->u.shop.shop_item);
 	else if( nd->subtype == SCRIPT ) {
 		struct s_mapiterator* iter;
@@ -2130,8 +2215,8 @@ static const char* npc_parse_shop(char* w1, char* w2, char* w3, char* w4, const 
 	//TODO: could be rewritten to NOT need this temp array [ultramage]
 	#define MAX_SHOPITEM 100
 	struct npc_item_list items[MAX_SHOPITEM];
-	char *p;
-	int x, y, dir, m, i;
+	char *p, point_str[32];
+	int x, y, dir, m, i, nameid = 0, is_discount = 0;
 	struct npc_data *nd;
 	enum npc_subtype type;
 
@@ -2143,35 +2228,81 @@ static const char* npc_parse_shop(char* w1, char* w2, char* w3, char* w4, const 
 		if( sscanf(w1, "%31[^,],%d,%d,%d", mapname, &x, &y, &dir) != 4
 		||	strchr(w4, ',') == NULL )
 		{
-			ShowError("npc_parse_shop: Invalid shop definition in file '%s', line '%d'.\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer,start-buffer), w1, w2, w3, w4);
-			return strchr(start,'\n'); // skip and continue
+			ShowError("npc_parse_shop: Invalid shop definition in file '%s', line '%d'.\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer, start - buffer), w1, w2, w3, w4);
+			return strchr(start,'\n'); // Skip and continue
 		}
 		
 		m = map_mapname2mapid(mapname);
 	}
 
 	if( m != -1 && ( x < 0 || x >= map[m].xs || y < 0 || y >= map[m].ys ) ) {
-		ShowError("npc_parse_shop: out-of-bounds coordinates (\"%s\",%d,%d), map is %dx%d, in file '%s', line '%d'\n", map[m].name, x, y, map[m].xs, map[m].ys,filepath,strline(buffer,start-buffer));
-		return strchr(start,'\n'); //try next
+		ShowError("npc_parse_shop: out-of-bounds coordinates (\"%s\",%d,%d), map is %dx%d, in file '%s', line '%d'\n", map[m].name, x, y, map[m].xs, map[m].ys, filepath, strline(buffer, start - buffer));
+		return strchr(start,'\n'); //Try next
 	}
 
 	if( !strcasecmp(w2,"cashshop") )
 		type = CASHSHOP;
+	else if( !strcasecmp(w2,"itemshop") )
+		type = ITEMSHOP;
+	else if( !strcasecmp(w2,"pointshop") )
+		type = POINTSHOP;
 	else
 		type = SHOP;
 
 	p = strchr(w4,',');
+	memset(point_str,'\0',sizeof(point_str));
+
+	switch( type ) {
+		case ITEMSHOP: {
+				struct item_data* tmp;
+
+				if( sscanf(p,",%d:%d,",&nameid,&is_discount) < 1 ) {
+					ShowError("npc_parse_shop: Invalid item cost definition in file '%s', line '%d'. Ignoring the rest of the line...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer, start - buffer), w1, w2, w3, w4);
+					return strchr(start,'\n'); // Skip and continue
+				}
+				if( (tmp = itemdb_exists(nameid)) == NULL ) {
+					ShowWarning("npc_parse_shop: Invalid item ID cost in file '%s', line '%d' (id '%d').\n", filepath, strline(buffer,start-buffer), nameid);
+					return strchr(start,'\n'); // Skip and continue
+				}
+				p = strchr(p + 1,',');
+			}
+			break;
+		case POINTSHOP: {
+				if( sscanf(p, ",%32[^,:]:%d,",point_str,&is_discount) < 1 ) {
+					ShowError("npc_parse_shop: Invalid item cost definition in file '%s', line '%d'. Ignoring the rest of the line...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer, start - buffer), w1, w2, w3, w4);
+					return strchr(start,'\n'); // Skip and continue
+				}
+				switch( point_str[0] ) {
+					case '$':
+					case '.':
+					case '\'':
+						ShowWarning("npc_parse_shop: Invalid item cost variable type (must be permanent character or account based) in file '%s', line '%d'. Ignoring the rest of the line...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer, start - buffer), w1, w2, w3, w4);
+						return strchr(start,'\n'); // Skip and continue
+						break;
+				}
+				if (point_str[strlen(point_str) - 1] == '$') {
+					ShowWarning("npc_parse_shop: Invalid item cost variable type (must be integer) in file '%s', line '%d'. Ignoring the rest of the line...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer, start - buffer), w1, w2, w3, w4);
+					return strchr(start,'\n'); // Skip and continue
+				}
+				p = strchr(p + 1,',');
+			}
+			break;
+		default:
+			is_discount = 1;
+			break;
+	}
+
 	for( i = 0; i < ARRAYLENGTH(items) && p; ++i ) {
 		int nameid, value;
 		struct item_data* id;
 		if( sscanf(p, ",%d:%d", &nameid, &value) != 2 ) {
-			ShowError("npc_parse_shop: Invalid item definition in file '%s', line '%d'. Ignoring the rest of the line...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer,start-buffer), w1, w2, w3, w4);
+			ShowError("npc_parse_shop: Invalid item definition in file '%s', line '%d'. Ignoring the rest of the line...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer, start - buffer), w1, w2, w3, w4);
 			break;
 		}
 
 		if( (id = itemdb_exists(nameid)) == NULL ) {
-			ShowWarning("npc_parse_shop: Invalid sell item in file '%s', line '%d' (id '%d').\n", filepath, strline(buffer,start-buffer), nameid);
-			p = strchr(p+1,',');
+			ShowWarning("npc_parse_shop: Invalid sell item in file '%s', line '%d' (id '%d').\n", filepath, strline(buffer,start - buffer), nameid);
+			p = strchr(p + 1,',');
 			continue;
 		}
 
@@ -2180,44 +2311,47 @@ static const char* npc_parse_shop(char* w1, char* w2, char* w3, char* w4, const 
 			else value = 0; // Cashshop doesn't have a "buy price" in the item_db
 		}
 
-		if( type == SHOP && value == 0 ) { // NPC selling items for free!
+		if( (type == SHOP || type == ITEMSHOP || type == POINTSHOP) && value == 0 ) { // NPC selling items for free!
 			ShowWarning("npc_parse_shop: Item %s [%d] is being sold for FREE in file '%s', line '%d'.\n",
-				id->name, nameid, filepath, strline(buffer,start-buffer));
+				id->name, nameid, filepath, strline(buffer, start - buffer));
 		}
-		if( type == SHOP && value*0.75 < id->value_sell*1.24 ) { // Exploit possible: you can buy and sell back with profit
+		if( type == SHOP && value * 0.75 < id->value_sell * 1.24 ) { // Exploit possible: you can buy and sell back with profit
 			ShowWarning("npc_parse_shop: Item %s [%d] discounted buying price (%d->%d) is less than overcharged selling price (%d->%d) in file '%s', line '%d'.\n",
-				id->name, nameid, value, (int)(value*0.75), id->value_sell, (int)(id->value_sell*1.24), filepath, strline(buffer,start-buffer));
+				id->name, nameid, value, (int)(value * 0.75), id->value_sell, (int)(id->value_sell * 1.24), filepath, strline(buffer, start - buffer));
 		}
-		//for logs filters, atcommands and iteminfo script command
+		// For logs filters, atcommands and iteminfo script command
 		if( id->maxchance == 0 )
-			id->maxchance = -1; // -1 would show that the item's sold in NPC Shop
+			id->maxchance = -1; // -1 Would show that the item's sold in NPC Shop
 
 		items[i].nameid = nameid;
 		items[i].value = value;
-		p = strchr(p+1,',');
+		p = strchr(p + 1,',');
 	}
 	if( i == 0 ) {
-		ShowWarning("npc_parse_shop: Ignoring empty shop in file '%s', line '%d'.\n", filepath, strline(buffer,start-buffer));
-		return strchr(start,'\n');// continue
+		ShowWarning("npc_parse_shop: Ignoring empty shop in file '%s', line '%d'.\n", filepath, strline(buffer, start - buffer));
+		return strchr(start,'\n'); // Continue
 	}
 
 	CREATE(nd, struct npc_data, 1);
 	CREATE(nd->u.shop.shop_item, struct npc_item_list, i);
-	memcpy(nd->u.shop.shop_item, items, sizeof(struct npc_item_list)*i);
+	memcpy(nd->u.shop.shop_item, items, sizeof(struct npc_item_list) * i);
 	nd->u.shop.count = i;
+	nd->u.shop.itemshop_nameid = nameid; // Item shop currency
+	safestrncpy(nd->u.shop.pointshop_str, point_str, strlen(point_str) + 1); // Point shop currency
+	nd->u.shop.discount = is_discount;
 	nd->bl.prev = nd->bl.next = NULL;
 	nd->bl.m = m;
 	nd->bl.x = x;
 	nd->bl.y = y;
 	nd->bl.id = npc_get_new_npc_id();
 	npc_parsename(nd, w3, start, buffer, filepath);
-	nd->class_ = m==-1?-1:atoi(w4);
+	nd->class_ = m == -1 ? -1 : atoi(w4);
 	nd->speed = 200;
 
 	++npc_shop;
 	nd->bl.type = BL_NPC;
 	nd->subtype = type;
-	if( m >= 0 ) { // normal shop npc
+	if( m >= 0 ) { // Normal shop npc
 		map_addnpc(m,nd);
 		map_addblock(&nd->bl);
 		status_set_viewdata(&nd->bl, nd->class_);
@@ -2226,12 +2360,26 @@ static const char* npc_parse_shop(char* w1, char* w2, char* w3, char* w4, const 
 		nd->ud.dir = dir;
 		if( map[nd->bl.m].users )
 			clif_spawn(&nd->bl);
-	} else { // 'floating' shop?
+	} else // 'floating' shop?
 		map_addiddb(&nd->bl);
-	}
 	strdb_put(npcname_db, nd->exname, nd);
+	return strchr(start,'\n'); // Continue
+}
 
-	return strchr(start,'\n');// continue
+/** [Cydh]
+ * Check if the shop is affected by discount or not
+ * @param type Type of NPC shop (enum npc_subtype)
+ * @param discount Discount flag of NPC shop
+ * @return bool 'true' is discountable, 'false' otherwise
+ */
+bool npc_shop_discount(enum npc_subtype type, bool discount) {
+	if( type == SHOP || (type != SHOP && discount) )
+		return true;
+
+	if( (type == ITEMSHOP && battle_config.discount_item_point_shop&1) ||
+		(type == POINTSHOP && battle_config.discount_item_point_shop&2) )
+		return true;
+	return false;
 }
 
 /**
@@ -2508,7 +2656,7 @@ const char* npc_parse_duplicate(char* w1, char* w2, char* w3, char* w4, const ch
 	type = dnd->subtype;
 
 	//Get placement
-	if( (type == SHOP || type == CASHSHOP || type == SCRIPT) && strcmp(w1, "-") == 0 ) { //Floating shop/chashshop/script
+	if( (type == SHOP || type == CASHSHOP || type == ITEMSHOP || type == POINTSHOP || type == SCRIPT) && strcmp(w1, "-") == 0 ) { //Floating shop/chashshop/itemshop/pointshop/script
 		x = y = dir = 0;
 		m = -1;
 	} else {
@@ -2560,6 +2708,8 @@ const char* npc_parse_duplicate(char* w1, char* w2, char* w3, char* w4, const ch
 
 		case SHOP:
 		case CASHSHOP:
+		case ITEMSHOP:
+		case POINTSHOP:
 			++npc_shop;
 			nd->u.shop.shop_item = dnd->u.shop.shop_item;
 			nd->u.shop.count = dnd->u.shop.count;
@@ -3447,7 +3597,7 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 	char* buffer;
 	const char* p;
 
-	// read whole file to buffer
+	//Read whole file to buffer
 	fp = fopen(filepath, "rb");
 	if( fp == NULL ) {
 		ShowError("npc_parsesrcfile: File not found '%s'.\n", filepath);
@@ -3455,7 +3605,7 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 	}
 	fseek(fp, 0, SEEK_END);
 	len = ftell(fp);
-	buffer = (char*)aMalloc(len+1);
+	buffer = (char*)aMalloc(len + 1);
 	fseek(fp, 0, SEEK_SET);
 	len = fread(buffer, sizeof(char), len, fp);
 	buffer[len] = '\0';
@@ -3467,106 +3617,100 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 	}
 	fclose(fp);
 
-	// parse buffer
+	//Parse buffer
 	for( p = skip_space(buffer); p && *p ; p = skip_space(p) ) {
 		int pos[9];
 		char w1[2048], w2[2048], w3[2048], w4[2048];
 		int i, count;
 		lines++;
 
-		// w1<TAB>w2<TAB>w3<TAB>w4
-		count = sv_parse(p, len+buffer-p, 0, '\t', pos, ARRAYLENGTH(pos), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF));
+		//w1<TAB>w2<TAB>w3<TAB>w4
+		count = sv_parse(p, len + buffer - p, 0, '\t', pos, ARRAYLENGTH(pos), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF));
 		if( count < 0 ) {
-			ShowError("npc_parsesrcfile: Parse error in file '%s', line '%d'. Stopping...\n", filepath, strline(buffer,p-buffer));
+			ShowError("npc_parsesrcfile: Parse error in file '%s', line '%d'. Stopping...\n", filepath, strline(buffer, p - buffer));
 			break;
 		}
-		// fill w1
-		if( pos[3]-pos[2] > ARRAYLENGTH(w1)-1 )
-			ShowWarning("npc_parsesrcfile: w1 truncated, too much data (%d) in file '%s', line '%d'.\n", pos[3]-pos[2], filepath, strline(buffer,p-buffer));
-		i = min(pos[3]-pos[2], ARRAYLENGTH(w1)-1);
-		memcpy(w1, p+pos[2], i*sizeof(char));
+		//Fill w1
+		if( pos[3] - pos[2] > ARRAYLENGTH(w1) - 1 )
+			ShowWarning("npc_parsesrcfile: w1 truncated, too much data (%d) in file '%s', line '%d'.\n", pos[3] - pos[2], filepath, strline(buffer, p - buffer));
+		i = min(pos[3] - pos[2], ARRAYLENGTH(w1) - 1);
+		memcpy(w1, p + pos[2], i * sizeof(char));
 		w1[i] = '\0';
-		// fill w2
-		if( pos[5]-pos[4] > ARRAYLENGTH(w2)-1 )
-			ShowWarning("npc_parsesrcfile: w2 truncated, too much data (%d) in file '%s', line '%d'.\n", pos[5]-pos[4], filepath, strline(buffer,p-buffer));
-		i = min(pos[5]-pos[4], ARRAYLENGTH(w2)-1);
-		memcpy(w2, p+pos[4], i*sizeof(char));
+		//Fill w2
+		if( pos[5] - pos[4] > ARRAYLENGTH(w2) - 1 )
+			ShowWarning("npc_parsesrcfile: w2 truncated, too much data (%d) in file '%s', line '%d'.\n", pos[5] - pos[4], filepath, strline(buffer, p - buffer));
+		i = min(pos[5] - pos[4], ARRAYLENGTH(w2) - 1);
+		memcpy(w2, p + pos[4], i * sizeof(char));
 		w2[i] = '\0';
-		// fill w3
-		if( pos[7]-pos[6] > ARRAYLENGTH(w3)-1 )
-			ShowWarning("npc_parsesrcfile: w3 truncated, too much data (%d) in file '%s', line '%d'.\n", pos[7]-pos[6], filepath, strline(buffer,p-buffer));
-		i = min(pos[7]-pos[6], ARRAYLENGTH(w3)-1);
-		memcpy(w3, p+pos[6], i*sizeof(char));
+		//Fill w3
+		if( pos[7] - pos[6] > ARRAYLENGTH(w3) - 1 )
+			ShowWarning("npc_parsesrcfile: w3 truncated, too much data (%d) in file '%s', line '%d'.\n", pos[7] - pos[6], filepath, strline(buffer, p - buffer));
+		i = min(pos[7] - pos[6], ARRAYLENGTH(w3) - 1);
+		memcpy(w3, p + pos[6], i * sizeof(char));
 		w3[i] = '\0';
-		// fill w4 (to end of line)
-		if( pos[1]-pos[8] > ARRAYLENGTH(w4)-1 )
-			ShowWarning("npc_parsesrcfile: w4 truncated, too much data (%d) in file '%s', line '%d'.\n", pos[1]-pos[8], filepath, strline(buffer,p-buffer));
+		//Fill w4 (to end of line)
+		if( pos[1] - pos[8] > ARRAYLENGTH(w4) - 1 )
+			ShowWarning("npc_parsesrcfile: w4 truncated, too much data (%d) in file '%s', line '%d'.\n", pos[1] - pos[8], filepath, strline(buffer, p - buffer));
 		if( pos[8] != -1 ) {
-			i = min(pos[1]-pos[8], ARRAYLENGTH(w4)-1);
-			memcpy(w4, p+pos[8], i*sizeof(char));
+			i = min(pos[1] - pos[8], ARRAYLENGTH(w4) - 1);
+			memcpy(w4, p + pos[8], i * sizeof(char));
 			w4[i] = '\0';
 		} else
 			w4[0] = '\0';
 
-		if( count < 3 ) { // Unknown syntax
-			ShowError("npc_parsesrcfile: Unknown syntax in file '%s', line '%d'. Stopping...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer,p-buffer), w1, w2, w3, w4);
+		if( count < 3 ) { //Unknown syntax
+			ShowError("npc_parsesrcfile: Unknown syntax in file '%s', line '%d'. Stopping...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer, p - buffer), w1, w2, w3, w4);
 			break;
 		}
 
-		if( strcmp(w1,"-") !=0 && strcasecmp(w1,"function") != 0 ) { // w1 = <map name>,<x>,<y>,<facing>
-			char mapname[MAP_NAME_LENGTH*2];
+		if( strcmp(w1, "-") != 0 && strcasecmp(w1, "function") != 0 ) { //w1 = <map name>,<x>,<y>,<facing>
+			char mapname[MAP_NAME_LENGTH * 2];
 			x = y = 0;
-			sscanf(w1,"%23[^,],%hd,%hd[^,]",mapname,&x,&y);
-			if( !mapindex_name2id(mapname) ) { // Incorrect map, we must skip the script info...
-				ShowError("npc_parsesrcfile: Unknown map '%s' in file '%s', line '%d'. Skipping line...\n", mapname, filepath, strline(buffer,p-buffer));
-				if( strcasecmp(w2,"script") == 0 && count > 3 ) {
-					if((p = npc_skip_script(p,buffer,filepath)) == NULL) {
+			sscanf(w1, "%23[^,],%hd,%hd[^,]", mapname, &x, &y);
+			if( !mapindex_name2id(mapname) ) { //Incorrect map, we must skip the script info...
+				ShowError("npc_parsesrcfile: Unknown map '%s' in file '%s', line '%d'. Skipping line...\n", mapname, filepath, strline(buffer, p - buffer));
+				if( strcasecmp(w2, "script") == 0 && count > 3 )
+					if( (p = npc_skip_script(p, buffer, filepath)) == NULL )
 						break;
-					}
-				}
-				p = strchr(p,'\n');// next line
+				p = strchr(p, '\n'); //Next line
 				continue;
 			}
 			m = map_mapname2mapid(mapname);
-			if( m < 0 ) { // "mapname" is not assigned to this server, we must skip the script info...
-				if( strcasecmp(w2,"script") == 0 && count > 3 ) {
-					if((p = npc_skip_script(p,buffer,filepath)) == NULL) {
+			if( m < 0 ) { //"mapname" is not assigned to this server, we must skip the script info...
+				if( strcasecmp(w2, "script") == 0 && count > 3 )
+					if( (p = npc_skip_script(p, buffer, filepath)) == NULL )
 						break;
-					}
-				}
-				p = strchr(p,'\n');// next line
+				p = strchr(p, '\n'); //Next line
 				continue;
 			}
-			if (x < 0 || x >= map[m].xs || y < 0 || y >= map[m].ys) {
-				ShowError("npc_parsesrcfile: Unknown coordinates ('%d', '%d') for map '%s' in file '%s', line '%d'. Skipping line...\n", x, y, mapname, filepath, strline(buffer,p-buffer));
-				if( strcasecmp(w2,"script") == 0 && count > 3 ) {
-					if((p = npc_skip_script(p,buffer,filepath)) == NULL) {
+			if( x < 0 || x >= map[m].xs || y < 0 || y >= map[m].ys ) {
+				ShowError("npc_parsesrcfile: Unknown coordinates ('%d', '%d') for map '%s' in file '%s', line '%d'. Skipping line...\n", x, y, mapname, filepath, strline(buffer, p - buffer));
+				if( strcasecmp(w2, "script") == 0 && count > 3 )
+					if( (p = npc_skip_script(p,buffer,filepath)) == NULL )
 						break;
-					}
-				}
-				p = strchr(p,'\n');// next line
+				p = strchr(p, '\n'); //Next line
 				continue;
 			}
 		}
 
-		if( strcasecmp(w2,"warp") == 0 && count > 3 ) {
-			p = npc_parse_warp(w1,w2,w3,w4, p, buffer, filepath);
-		} else if( (!strcasecmp(w2,"shop") || !strcasecmp(w2,"cashshop")) && count > 3 ) {
-			p = npc_parse_shop(w1,w2,w3,w4, p, buffer, filepath);
-		} else if( strcasecmp(w2,"script") == 0 && count > 3 ) {
-			if( strcasecmp(w1,"function") == 0 )
+		if( strcasecmp(w2, "warp") == 0 && count > 3 )
+			p = npc_parse_warp(w1, w2, w3, w4, p, buffer, filepath);
+		else if( (!strcasecmp(w2, "shop") || !strcasecmp(w2, "cashshop") || !strcasecmp(w2, "itemshop") || !strcasecmp(w2, "pointshop")) && count > 3 )
+			p = npc_parse_shop(w1, w2, w3, w4, p, buffer, filepath);
+		else if( strcasecmp(w2, "script") == 0 && count > 3 ) {
+			if( strcasecmp(w1, "function") == 0 )
 				p = npc_parse_function(w1, w2, w3, w4, p, buffer, filepath);
 			else
-				p = npc_parse_script(w1,w2,w3,w4, p, buffer, filepath,runOnInit);
-		} else if( (i=0, sscanf(w2,"duplicate%n",&i), (i > 0 && w2[i] == '(')) && count > 3 ) {
-			p = npc_parse_duplicate(w1,w2,w3,w4, p, buffer, filepath);
-		} else if( (strcmpi(w2,"monster") == 0 || strcmpi(w2,"boss_monster") == 0) && count > 3 ) {
+				p = npc_parse_script(w1, w2, w3, w4, p, buffer, filepath, runOnInit);
+		} else if( (i = 0, sscanf(w2, "duplicate%n", &i), (i > 0 && w2[i] == '(')) && count > 3 )
+			p = npc_parse_duplicate(w1, w2, w3, w4, p, buffer, filepath);
+		else if( (strcmpi(w2, "monster") == 0 || strcmpi(w2, "boss_monster") == 0) && count > 3 )
 			p = npc_parse_mob(w1, w2, w3, w4, p, buffer, filepath);
-		} else if( strcmpi(w2,"mapflag") == 0 && count >= 3 ) {
+		else if( strcmpi(w2, "mapflag") == 0 && count >= 3 )
 			p = npc_parse_mapflag(w1, w2, trim(w3), trim(w4), p, buffer, filepath);
-		} else {
-			ShowError("npc_parsesrcfile: Unable to parse, probably a missing or extra TAB in file '%s', line '%d'. Skipping line...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer,p-buffer), w1, w2, w3, w4);
-			p = strchr(p,'\n');// skip and continue
+		else {
+			ShowError("npc_parsesrcfile: Unable to parse, probably a missing or extra TAB in file '%s', line '%d'. Skipping line...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer, p - buffer), w1, w2, w3, w4);
+			p = strchr(p, '\n'); //Skip and continue
 		}
 	}
 

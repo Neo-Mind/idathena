@@ -38,6 +38,17 @@ enum { // packet DB
 	MAX_PACKET_POS = 20,
 };
 
+enum e_packet_ack {
+	ZC_ACK_OPEN_BANKING = 0,
+	ZC_ACK_BANKING_DEPOSIT,
+	ZC_ACK_BANKING_WITHDRAW,
+	ZC_BANKING_CHECK,
+	ZC_PERSONAL_INFOMATION,
+	ZC_PERSONAL_INFOMATION_CHN,
+	//Add otehr here
+	MAX_ACK_FUNC //Auto upd len
+};
+
 struct s_packet_db {
 	short len;
 	void (*func)(int, struct map_session_data *);
@@ -47,7 +58,8 @@ struct s_packet_db {
 // packet_db[SERVER] is reserved for server use
 #define SERVER 0
 #define packet_len(cmd) packet_db[SERVER][cmd].len
-extern struct s_packet_db packet_db[MAX_PACKET_VER+1][MAX_PACKET_DB+1];
+extern struct s_packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB + 1];
+extern int packet_db_ack[MAX_PACKET_VER + 1][MAX_ACK_FUNC + 1];
 
 // local define
 typedef enum send_target {
@@ -355,6 +367,14 @@ enum e_BANKING_WITHDRAW_ACK {
 	BWA_SUCCESS = 0x0,
 	BWA_NO_MONEY = 0x1,
 	BWA_UNKNOWN_ERROR = 0x2,
+};
+
+enum e_personalinfo {
+	PINFO_BASIC = 0,
+	PINFO_PREMIUM,
+	PINFO_SERVER,
+	PINFO_CAFE,
+	PINFO_MAX,
 };
 
 int clif_setip(const char* ip);
@@ -775,6 +795,8 @@ void clif_search_store_info_click_ack(struct map_session_data* sd, short x, shor
 void clif_cashshop_result( struct map_session_data* sd, uint16 item_id, uint16 result );
 void clif_cashshop_open( struct map_session_data* sd );
 
+void clif_display_pinfo(struct map_session_data *sd, int type);
+
 /**
  * 3CeAM
  **/
@@ -823,8 +845,11 @@ void clif_update_rankingpoint(struct map_session_data *sd, int rankingtype, int 
 
 /* Bank System [Yommy] */
 void clif_bank_deposit(struct map_session_data *sd, enum e_BANKING_DEPOSIT_ACK reason);
-void clif_bank_withdraw(struct map_session_data *sd, enum e_BANKING_WITHDRAW_ACK reason);
-
-void clif_show_modifiers(struct map_session_data *sd);
+void clif_bank_withdraw(struct map_session_data *sd,enum e_BANKING_WITHDRAW_ACK reason);
+void clif_parse_BankDeposit(int fd, struct map_session_data *sd);
+void clif_parse_BankWithdraw(int fd, struct map_session_data *sd);
+void clif_parse_BankCheck(int fd, struct map_session_data *sd);
+void clif_parse_BankOpen(int fd, struct map_session_data *sd);
+void clif_parse_BankClose(int fd, struct map_session_data *sd);
 
 #endif /* _CLIF_H_ */

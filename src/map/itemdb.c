@@ -19,9 +19,15 @@
 #include <string.h>
 
 static struct item_data* itemdb_array[MAX_ITEMDB];
-static DBMap*            itemdb_other;// int nameid -> struct item_data*
+static DBMap* itemdb_other;// int nameid -> struct item_data*
 
 struct item_data dummy_item; //This is the default dummy item used for non-existant items. [Skotlex]
+
+static DBMap *itemdb_combo;
+
+DBMap* itemdb_get_combodb() {
+	return itemdb_combo;
+}
 
 /**
  * Search for item name
@@ -184,8 +190,7 @@ struct item_data* itemdb_exists(int nameid)
 /// @param type Type id to retrieve name for ( IT_* ).
 const char* itemdb_typename(int type)
 {
-	switch(type)
-	{
+	switch(type) {
 		case IT_HEALING:        return "Potion/Food";
 		case IT_USABLE:         return "Usable";
 		case IT_ETC:            return "Etc.";
@@ -196,6 +201,7 @@ const char* itemdb_typename(int type)
 		case IT_PETARMOR:       return "Pet Accessory";
 		case IT_AMMO:           return "Arrow/Ammunition";
 		case IT_DELAYCONSUME:   return "Delay-Consume Usable";
+		case IT_SHADOWGEAR:     return "Shadow Equipment";
 		case IT_CASH:           return "Cash Usable";
 	}
 	return "Unknown Type";
@@ -342,11 +348,12 @@ struct item_data* itemdb_search(int nameid)
  *------------------------------------------*/
 int itemdb_isequip(int nameid)
 {
-	int type=itemdb_type(nameid);
+	int type = itemdb_type(nameid);
 	switch (type) {
 		case IT_WEAPON:
 		case IT_ARMOR:
 		case IT_AMMO:
+		case IT_SHADOWGEAR:
 			return 1;
 		default:
 			return 0;
@@ -363,6 +370,7 @@ int itemdb_isequip2(struct item_data *data)
 		case IT_WEAPON:
 		case IT_ARMOR:
 		case IT_AMMO:
+		case IT_SHADOWGEAR:
 			return 1;
 		default:
 			return 0;
@@ -374,12 +382,13 @@ int itemdb_isequip2(struct item_data *data)
  *------------------------------------------*/
 int itemdb_isstackable(int nameid)
 {
-  int type=itemdb_type(nameid);
+  int type = itemdb_type(nameid);
   switch(type) {
 	  case IT_WEAPON:
 	  case IT_ARMOR:
 	  case IT_PETEGG:
 	  case IT_PETARMOR:
+	  case IT_SHADOWGEAR:
 		  return 0;
 	  default:
 		  return 1;
@@ -397,6 +406,7 @@ int itemdb_isstackable2(struct item_data *data)
 	  case IT_ARMOR:
 	  case IT_PETEGG:
 	  case IT_PETARMOR:
+	  case IT_SHADOWGEAR:
 		  return 0;
 	  default:
 		  return 1;
@@ -855,7 +865,7 @@ void itemdb_read_combos() {
 
 			idx = id->combos_count;
 
-			/* first entry, create */
+			/* First entry, create */
 			if (id->combos == NULL) {
 				CREATE(id->combos, struct item_combo*, 1);
 				id->combos_count = 1;
@@ -895,9 +905,8 @@ void itemdb_read_combos() {
 				/* We flag this way to ensure we don't double-dealloc same data */
 				it->combos[index]->isRef = true;
 			}
-
+			idb_put(itemdb_combo,id->combos[idx]->id,id->combos[idx]);
 		}
-
 		count++;
 	}
 
@@ -985,7 +994,7 @@ static bool itemdb_parse_dbrow(char** str, const char* source, int line, int scr
 
 	id->type = atoi(str[3]);
 
-	if (id->type < 0 || id->type == IT_UNKNOWN || id->type == IT_UNKNOWN2 || ( id->type > IT_DELAYCONSUME && id->type < IT_CASH ) || id->type >= IT_MAX)
+	if (id->type < 0 || id->type == IT_UNKNOWN || id->type == IT_UNKNOWN2 || ( id->type > IT_SHADOWGEAR && id->type < IT_CASH ) || id->type >= IT_MAX)
 	{ //Catch invalid item types
 		ShowWarning("itemdb_parse_dbrow: Invalid item type %d for item %d. IT_ETC will be used.\n", id->type, nameid);
 		id->type = IT_ETC;
@@ -1041,6 +1050,11 @@ static bool itemdb_parse_dbrow(char** str, const char* source, int line, int scr
 
 	if (!id->equip && itemdb_isequip2(id)) {
 		ShowWarning("Item %d (%s) is an equipment with no equip-field! Making it an etc item.\n", nameid, id->jname);
+		id->type = IT_ETC;
+	}
+
+	if (id->type != IT_SHADOWGEAR && id->equip&EQP_SHADOW_GEAR) {
+		ShowWarning("Item %d (%s) have invalid equipment slot! Making it an etc item.\n", nameid, id->jname);
 		id->type = IT_ETC;
 	}
 
@@ -1351,7 +1365,7 @@ static void itemdb_read(void) {
  *------------------------------------------*/
 
 /// Destroys the item_data.
-static void destroy_item_data(struct item_data* self, int free_self)
+static void destroy_item_data(struct item_data* self, bool free_self)
 {
 	if( self == NULL )
 		return;
@@ -1390,7 +1404,7 @@ static int itemdb_final_sub(DBKey key, DBData *data, va_list ap)
 	struct item_data *id = db_data2ptr(data);
 
 	if( id != &dummy_item )
-		destroy_item_data(id, 1);
+		destroy_item_data(id, true);
 
 	return 0;
 }
@@ -1399,19 +1413,18 @@ void itemdb_reload(void)
 {
 	struct s_mapiterator* iter;
 	struct map_session_data* sd;
-
 	int i,d,k;
 
-	// clear the previous itemdb data
+	//Clear the previous itemdb data
 	for( i = 0; i < ARRAYLENGTH(itemdb_array); ++i )
 		if( itemdb_array[i] )
-			destroy_item_data(itemdb_array[i], 1);
+			destroy_item_data(itemdb_array[i], true);
 
 	itemdb_other->clear(itemdb_other, itemdb_final_sub);
-
+	db_clear(itemdb_combo);
 	memset(itemdb_array, 0, sizeof(itemdb_array));
 
-	// read new data
+	//Read new data
 	itemdb_read();
 	cashshop_reloaddb();
 
@@ -1422,21 +1435,20 @@ void itemdb_reload(void)
 		if( !((i < 1324 || i > 1363) && (i < 1938 || i > 1946)) )
 			continue;
 		entry = mob_db(i);
-		for(d = 0; d < MAX_MOB_DROP; d++) {
+		for( d = 0; d < MAX_MOB_DROP; d++ ) {
 			struct item_data *id;
 			if( !entry->dropitem[d].nameid )
 				continue;
 			id = itemdb_search(entry->dropitem[d].nameid);
 
-			for (k = 0; k < MAX_SEARCH; k++) {
-				if (id->mob[k].chance <= entry->dropitem[d].p)
+			for( k = 0; k < MAX_SEARCH; k++ )
+				if( id->mob[k].chance <= entry->dropitem[d].p )
 					break;
-			}
 
-			if (k == MAX_SEARCH)
+			if( k == MAX_SEARCH )
 				continue;
 
-			if (id->mob[k].id != i)
+			if( id->mob[k].id != i )
 				memmove(&id->mob[k + 1], &id->mob[k], (MAX_SEARCH - k - 1) * sizeof(id->mob[0]));
 			id->mob[k].chance = entry->dropitem[d].p;
 			id->mob[k].id = i;
@@ -1470,15 +1482,17 @@ void do_final_itemdb(void)
 
 	for( i = 0; i < ARRAYLENGTH(itemdb_array); ++i )
 		if( itemdb_array[i] )
-			destroy_item_data(itemdb_array[i], 1);
+			destroy_item_data(itemdb_array[i], true);
 
 	itemdb_other->destroy(itemdb_other, itemdb_final_sub);
-	destroy_item_data(&dummy_item, 0);
+	destroy_item_data(&dummy_item, false);
+	db_destroy(itemdb_combo);
 }
 
 int do_init_itemdb(void) {
 	memset(itemdb_array, 0, sizeof(itemdb_array));
 	itemdb_other = idb_alloc(DB_OPT_BASE);
+	itemdb_combo = idb_alloc(DB_OPT_BASE);
 	create_dummy_data(); //Dummy data item.
 	itemdb_read();
 

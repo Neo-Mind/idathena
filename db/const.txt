@@ -379,6 +379,7 @@ mf_nolockon	58
 mf_notomb	59
 mf_skill_damage	60
 
+//'setcell' types
 cell_walkable	0
 cell_shootable	1
 cell_water	2
@@ -387,6 +388,8 @@ cell_basilica	4
 cell_landprotector	5
 cell_novending	6
 cell_nochat	7
+cell_malestrom	8
+cell_icewall	9
 
 //cell_gettype	0
 cell_chkwall	1
@@ -402,6 +405,8 @@ cell_chkbasilica	10
 cell_chklandprotector	11
 cell_chknovending	12
 cell_chknochat	13
+cell_chkmaelstrom	14
+cell_chkicewall	15
 
 StatusPoint	9	1
 BaseLevel	11	1
@@ -430,9 +435,6 @@ killedrid	122 1
 Sitting	123	1
 CharMoves	124	1
 CharRename	125	1
-ModExp	126	1
-ModDrop	127	1
-ModDeath	128	1
 
 bMaxHP	6
 bMaxSP	8
@@ -629,6 +631,13 @@ EQI_COSTUME_HEAD_LOW	11
 EQI_COSTUME_HEAD_MID	12
 EQI_COSTUME_HEAD_TOP	13
 EQI_COSTUME_GARMENT	14
+EQI_AMMO  15
+EQI_SHADOW_ARMOR  16
+EQI_SHADOW_WEAPON  17
+EQI_SHADOW_SHIELD  18
+EQI_SHADOW_SHOES  19
+EQI_SHADOW_ACC_R  20
+EQI_SHADOW_ACC_L  21
 
 LOOK_BASE	0
 LOOK_HAIR	1
@@ -1348,6 +1357,15 @@ SC_MTF_MLEATKED	579
 SC_MTF_CRIDAMAGE	580
 SC_MOONSTAR	581
 SC_SUPER_STAR	582
+SC_HEAT_BARREL	583
+SC_HEAT_BARREL_AFTER	584
+SC_P_ALTER	585
+SC_E_CHAIN	586
+SC_C_MARKER	587
+SC_ANTI_M_BLAST	588
+SC_B_TRAP	589
+SC_H_MINE	590
+SC_QD_SHOT_READY	591
 
 e_gasp	0
 e_what	1
@@ -3329,6 +3347,13 @@ THANATOS_KEEP	10009
 4_F_REBELLION	10063
 4_CHN_SHAOTH	10064
 4_SHOAL	10065
+4_AIRA	10071
+4_EZELLA	10072
+4_KULUNA	10073
+4_LUNE	10074
+4_MALLINA	10075
+4_MORIN	10076
+4_NASARIN	10077
 
 HAVEQUEST	0
 PLAYTIME	1
@@ -3386,3 +3411,5 @@ VAR_MAX_GUILD	6
 VAR_MAX_GUILDLEVEL	7
 VAR_MAX_GUILD_STORAGE	8
 VAR_MAX_BG_MEMBERS	9
+VAR_VIP_SCRIPT	10
+VAR_MIN_STORAGE	11

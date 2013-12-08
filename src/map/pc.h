@@ -25,6 +25,7 @@
 #define MAX_PC_SKILL_REQUIRE 5
 #define MAX_PC_FEELHATE 3
 #define DAMAGELOG_SIZE_PC 100 // Any idea for this value?
+#define MAX_PC_BONUS_SCRIPT 20
 
 //Update this max as necessary. 55 is the value needed for Super Baby currently
 //Raised to 84 since Expanded Super Novice needs it.
@@ -50,12 +51,12 @@ enum equip_index {
 	EQI_COSTUME_LOW,
 	EQI_COSTUME_GARMENT,
 	EQI_AMMO,
-	//EQI_SHADOW_ARMOR,
-	//EQI_SHADOW_WEAPON,
-	//EQI_SHADOW_SHIELD,
-	//EQI_SHADOW_SHOES,
-	//EQI_SHADOW_ACC_R,
-	//EQI_SHADOW_ACC_L,
+	EQI_SHADOW_ARMOR,
+	EQI_SHADOW_WEAPON,
+	EQI_SHADOW_SHIELD,
+	EQI_SHADOW_SHOES,
+	EQI_SHADOW_ACC_R,
+	EQI_SHADOW_ACC_L,
 	EQI_MAX
 };
 
@@ -133,13 +134,6 @@ enum npc_timeout_type {
 	NPCT_WAIT  = 2,
 };
 
-/*
- * Combo's items
- */
-struct s_combo_pair {
-	uint16 nameid[MAX_ITEMS_PER_COMBO];
-};
-
 struct map_session_data {
 	struct block_list bl;
 	struct unit_data ud;
@@ -202,6 +196,7 @@ struct map_session_data {
 		unsigned int hold_recalc : 1;
 		unsigned int snovice_call_flag : 3; //Summon Angel (stage 1~3)
 		unsigned int hpmeter_visible : 1;
+		unsigned int banking : 1; //When 1, we using the banking system, when 0, closed
 	} state;
 	struct {
 		unsigned char no_weapon_damage, no_magic_damage, no_misc_damage;
@@ -209,7 +204,7 @@ struct map_session_data {
 		unsigned int no_castcancel : 1;
 		unsigned int no_castcancel2 : 1;
 		unsigned int no_sizefix : 1;
-		unsigned int no_gemstone : 1;
+		unsigned int no_gemstone : 2;
 		unsigned int intravision : 1; //Maya Purple Card effect [DracoRPG]
 		unsigned int perfect_hiding : 1; //[Valaris]
 		unsigned int no_knockback : 1;
@@ -220,12 +215,12 @@ struct map_session_data {
 	int group_id, group_pos, group_level;
 	unsigned int permissions;/* Group permissions */
 
-	int packet_ver;  //5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 ... 18
+	uint32 packet_ver;  //5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 ... 18
 	struct mmo_charstatus status;
 	struct registry save_reg;
 	
 	struct item_data* inventory_data[MAX_INVENTORY]; //Direct pointers to itemdb entries (faster than doing item_id lookups)
-	short equip_index[EQI_MAX];
+	int equip_index[EQI_MAX];
 	unsigned int weight,max_weight;
 	int cart_weight,cart_num,cart_weight_max;
 	int fd;
@@ -531,7 +526,6 @@ struct map_session_data {
 		struct script_code **bonus; /* The script */
 		unsigned short *id; /* Array of combo ids */
 		unsigned char count;
-		struct s_combo_pair **pair;
 	} combos;
 
 	/**
@@ -562,6 +556,30 @@ struct map_session_data {
 	struct {
 		int id;
 	} dmglog[DAMAGELOG_SIZE_PC];
+
+	struct s_crimson_marker {
+		int target[MAX_SKILL_CRIMSON_MARKER]; //Target id storage
+		uint8 count; //Count of target for skill like RL_D_TAIL
+	} c_marker;
+	bool flicker;
+
+	//Timed bonus 'bonus_script' struct [Cydh]
+	struct s_script {
+		struct script_code *script;
+		char script_str[MAX_BONUS_SCRIPT_LENGTH]; //Used for comparing and storing on table
+		uint32 tick;
+		uint8 flag;
+		bool isBuff; //Can be used for deciding which bonus that buff or debuff
+		int tid;
+	} bonus_script[MAX_PC_BONUS_SCRIPT];
+
+	int storage_size; //Holds player storage size (VIP system).
+#ifdef VIP_ENABLE
+	struct {
+		unsigned int enabled : 1;
+		time_t time;
+	} vip;
+#endif
 };
 
 struct eri *pc_sc_display_ers;
@@ -615,28 +633,28 @@ enum ammo_type {
 
 //Equip position constants
 enum equip_pos {
-	EQP_HEAD_LOW         = 0x0001,
-	EQP_HEAD_MID         = 0x0200, //512
-	EQP_HEAD_TOP         = 0x0100, //256
-	EQP_HAND_R           = 0x0002, //2
-	EQP_HAND_L           = 0x0020, //32
-	EQP_ARMOR            = 0x0010, //16
-	EQP_SHOES            = 0x0040, //64
-	EQP_GARMENT          = 0x0004, //4
-	EQP_ACC_L            = 0x0008, //8
-	EQP_ACC_R            = 0x0080, //128
-	EQP_COSTUME_HEAD_TOP = 0x0400, //1024
-	EQP_COSTUME_HEAD_MID = 0x0800, //2048
-	EQP_COSTUME_HEAD_LOW = 0x1000, //4096
-	EQP_COSTUME_GARMENT  = 0x2000, //8192
-	EQP_AMMO             = 0x8000, //32768
-	//EQP_COSTUME_FLOOR  = 0x4000,
-	//EQP_SHADOW_ARMOR   = 0x10000,
-	//EQP_SHADOW_WEAPON  = 0x20000,
-	//EQP_SHADOW_SHIELD  = 0x40000,
-	//EQP_SHADOW_SHOES   = 0x80000,
-	//EQP_SHADOW_ACC_R   = 0x100000,
-	//EQP_SHADOW_ACC_L   = 0x200000,
+	EQP_HEAD_LOW         = 0x000001,
+	EQP_HEAD_MID         = 0x000200, //512
+	EQP_HEAD_TOP         = 0x000100, //256
+	EQP_HAND_R           = 0x000002, //2
+	EQP_HAND_L           = 0x000020, //32
+	EQP_ARMOR            = 0x000010, //16
+	EQP_SHOES            = 0x000040, //64
+	EQP_GARMENT          = 0x000004, //4
+	EQP_ACC_L            = 0x000008, //8
+	EQP_ACC_R            = 0x000080, //128
+	EQP_COSTUME_HEAD_TOP = 0x000400, //1024
+	EQP_COSTUME_HEAD_MID = 0x000800, //2048
+	EQP_COSTUME_HEAD_LOW = 0x001000, //4096
+	EQP_COSTUME_GARMENT  = 0x002000, //8192
+	//EQP_COSTUME_FLOOR  = 0x004000, //16384
+	EQP_AMMO             = 0x008000, //32768
+	EQP_SHADOW_ARMOR     = 0x010000, //65536
+	EQP_SHADOW_WEAPON    = 0x020000, //131072
+	EQP_SHADOW_SHIELD    = 0x040000, //262144
+	EQP_SHADOW_SHOES     = 0x080000, //524288
+	EQP_SHADOW_ACC_R     = 0x100000, //1048576
+	EQP_SHADOW_ACC_L     = 0x200000, //2097152
 };
 
 struct {
@@ -661,7 +679,8 @@ struct {
 #define EQP_HELM (EQP_HEAD_LOW|EQP_HEAD_MID|EQP_HEAD_TOP)
 #define EQP_ACC (EQP_ACC_L|EQP_ACC_R)
 #define EQP_COSTUME (EQP_COSTUME_HEAD_TOP|EQP_COSTUME_HEAD_MID|EQP_COSTUME_HEAD_LOW|EQP_COSTUME_GARMENT)
-//#define EQP_SHADOW_GEAR (EQP_SHADOW_ARMOR|EQP_SHADOW_WEAPON|EQP_SHADOW_SHIELD|EQP_SHADOW_SHOES|EQP_SHADOW_ACC_R|EQP_SHADOW_ACC_L)
+#define EQP_SHADOW_GEAR (EQP_SHADOW_ARMOR|EQP_SHADOW_WEAPON|EQP_SHADOW_SHIELD|EQP_SHADOW_SHOES|EQP_SHADOW_ACC_R|EQP_SHADOW_ACC_L)
+#define EQP_SHADOW_ACC (EQP_SHADOW_ACC_R|EQP_SHADOW_ACC_L)
 
 /// Equip positions that use a visible sprite
 #if PACKETVER < 20110111
@@ -687,10 +706,16 @@ struct {
 #define pc_iscloaking(sd)     ( !((sd)->sc.option&OPTION_CHASEWALK) && ((sd)->sc.option&OPTION_CLOAK) )
 #define pc_ischasewalk(sd)    ( (sd)->sc.option&OPTION_CHASEWALK )
 
-#ifdef NEW_CARTS
-	#define pc_iscarton(sd)       ( (sd)->sc.data[SC_PUSH_CART] )
+#ifdef VIP_ENABLE
+	#define pc_isvip(sd)      ( sd->vip.enabled ? 1 : 0 )
 #else
-	#define pc_iscarton(sd)       ( (sd)->sc.option&OPTION_CART )
+	#define pc_isvip(sd)      ( 0 )
+#endif
+
+#ifdef NEW_CARTS
+	#define pc_iscarton(sd)   ( (sd)->sc.data[SC_PUSH_CART] )
+#else
+	#define pc_iscarton(sd)   ( (sd)->sc.option&OPTION_CART )
 #endif
 
 #define pc_isfalcon(sd)       ( (sd)->sc.option&OPTION_FALCON )
@@ -1042,14 +1067,22 @@ void pc_damage_log_clear(struct map_session_data *sd, int id);
 
 void pc_show_version(struct map_session_data *sd);
 
+void pc_crimson_marker_clear(struct map_session_data *sd);
+
+int pc_bonus_script_timer(int tid, unsigned int tick, int id, intptr_t data);
+void pc_bonus_script_remove(struct map_session_data *sd, uint8 i);
+void pc_bonus_script_check(struct map_session_data *sd, enum e_bonus_script_flags flag);
+
+void pc_cell_basilica(struct map_session_data *sd);
+
 #if defined(RENEWAL_DROP) || defined(RENEWAL_EXP)
-	int pc_level_penalty_mod(struct map_session_data *sd, int mob_level, uint32 mob_race, uint32 mob_mode, int type);
+int pc_level_penalty_mod(struct map_session_data *sd, int mob_level, uint32 mob_race, uint32 mob_mode, int type);
 #endif
 
 void pc_rental_expire(struct map_session_data *sd, int i);
 void pc_scdata_received(struct map_session_data *sd);
 
-void pc_bank_deposit(struct map_session_data *sd, int money);
-void pc_bank_withdraw(struct map_session_data *sd, int money);
+enum e_BANKING_DEPOSIT_ACK pc_bank_deposit(struct map_session_data *sd, int money);
+enum e_BANKING_WITHDRAW_ACK pc_bank_withdraw(struct map_session_data *sd, int money);
 
 #endif /* _PC_H_ */

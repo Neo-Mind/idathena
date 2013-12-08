@@ -260,7 +260,7 @@ enum bl_type {
 //For common mapforeach calls. Since pets cannot be affected, they aren't included here yet.
 #define BL_CHAR (BL_PC|BL_MOB|BL_HOM|BL_MER|BL_ELEM)
 
-enum npc_subtype { WARP, SHOP, SCRIPT, CASHSHOP, TOMB };
+enum npc_subtype { WARP, SHOP, SCRIPT, CASHSHOP, ITEMSHOP, POINTSHOP, TOMB };
 
 enum {
 	RC_FORMLESS = 0, //Nothing
@@ -380,9 +380,6 @@ enum _sp {
 	SP_SITTING = 123,
 	SP_CHARMOVE = 124,
 	SP_CHARRENAME = 125,
-	SP_MOD_EXP = 126,
-	SP_MOD_DROP = 127,
-	SP_MOD_DEATH = 128,
 
 	// Mercenaries
 	SP_MERCFLEE = 165,SP_MERCKILLS = 189,SP_MERCFAITH = 190,

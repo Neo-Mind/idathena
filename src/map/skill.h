@@ -13,15 +13,15 @@ struct skill_unit;
 struct skill_unit_group;
 struct status_change_entry;
 
-#define MAX_SKILL_DB			MAX_SKILL
-#define MAX_SKILL_PRODUCE_DB	270
-#define MAX_PRODUCE_RESOURCE	12
-#define MAX_SKILL_ARROW_DB		150
-#define MAX_ARROW_RESOURCE		5
-#define MAX_SKILL_ABRA_DB		350
+#define MAX_SKILL_DB MAX_SKILL
+#define MAX_SKILL_PRODUCE_DB 270
+#define MAX_PRODUCE_RESOURCE 12
+#define MAX_SKILL_ARROW_DB 150
+#define MAX_ARROW_RESOURCE 5
+#define MAX_SKILL_ABRA_DB 350
 #define MAX_SKILL_IMPROVISE_DB 50
-
 #define MAX_SKILL_LEVEL 100
+#define MAX_SKILL_CRIMSON_MARKER 3
 
 DBMap* skilldb_name2id;
 
@@ -101,6 +101,7 @@ enum e_skill_display {
 
 #define MAX_SKILL_ITEM_REQUIRE 10
 #define MAX_SKILL_STATUS_REQUIRE 3
+#define MAX_SKILL_EQUIP_REQUIRE 10
 
 struct skill_condition {
 	int hp,
@@ -116,7 +117,7 @@ struct skill_condition {
 	    spiritball,
 	    itemid[MAX_SKILL_ITEM_REQUIRE],
 	    amount[MAX_SKILL_ITEM_REQUIRE],
-		eqItem[10]; //Max eq_item
+		eqItem[MAX_SKILL_EQUIP_REQUIRE]; //Max eq_item
 	uint8 status_count;
 	enum sc_type status[MAX_SKILL_STATUS_REQUIRE];
 };
@@ -135,7 +136,7 @@ struct s_skill_require {
 	    spiritball[MAX_SKILL_LEVEL],
 	    itemid[MAX_SKILL_ITEM_REQUIRE],
 	    amount[MAX_SKILL_ITEM_REQUIRE],
-		eqItem[10]; //Max eq_item
+		eqItem[MAX_SKILL_EQUIP_REQUIRE]; //Max eq_item
 	uint8 status_count;
 	enum sc_type status[MAX_SKILL_STATUS_REQUIRE];
 };

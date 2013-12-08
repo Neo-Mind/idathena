@@ -41,13 +41,14 @@ int chrif_scdata_request(int account_id, int char_id);
 int chrif_skillcooldown_request(int account_id, int char_id);
 int chrif_skillcooldown_save(struct map_session_data *sd);
 int chrif_skillcooldown_load(int fd);
+
 int chrif_save(struct map_session_data* sd, int flag);
 int chrif_charselectreq(struct map_session_data* sd, uint32 s_ip);
 int chrif_changemapserver(struct map_session_data* sd, uint32 ip, uint16 port);
 
 int chrif_searchcharid(int char_id);
 int chrif_changeemail(int id, const char *actual_email, const char *new_email);
-int chrif_char_ask_name(int acc, const char* character_name, unsigned short operation_type, int year, int month, int day, int hour, int minute, int second);
+int chrif_req_login_operation(int aid, const char* character_name, unsigned short operation_type, int timediff, int val1, int val2);
 int chrif_updatefamelist(struct map_session_data *sd);
 int chrif_buildfamelist(void);
 int chrif_save_scdata(struct map_session_data *sd);
@@ -62,6 +63,17 @@ int chrif_chardisconnect(struct map_session_data *sd);
 int chrif_divorce(int partner_id1, int partner_id2);
 int chrif_removefriend(int char_id, int friend_id);
 int chrif_send_report(char* buf, int len);
+
+void chrif_parse_ack_vipActive(int fd);
+
+int chrif_req_charban(int aid, const char* character_name, int timediff);
+int chrif_req_charunban(int cid);
+
+int chrif_load_bankdata(int fd);
+
+int chrif_bsdata_request(int char_id);
+int chrif_save_bsdata(struct map_session_data *sd);
+int chrif_load_bsdata(int fd);
 
 int do_final_chrif(void);
 int do_init_chrif(void);

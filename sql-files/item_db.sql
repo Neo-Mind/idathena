@@ -18,7 +18,7 @@ CREATE TABLE `item_db` (
   `equip_jobs` int(12) unsigned default NULL,
   `equip_upper` tinyint(8) unsigned default NULL,
   `equip_genders` tinyint(2) unsigned default NULL,
-  `equip_locations` smallint(4) unsigned default NULL,
+  `equip_locations` mediumint(7) unsigned default NULL,
   `weapon_level` tinyint(2) unsigned default NULL,
   `equip_level` tinyint(3) unsigned default NULL,
   `refineable` tinyint(1) unsigned default NULL,
@@ -181,7 +181,7 @@ REPLACE INTO `item_db` VALUES (643,'Pet_Incubator','Pet Incubator',2,3000,NULL,3
 REPLACE INTO `item_db` VALUES (644,'Gift_Box','Gift Box',2,1000,NULL,200,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,'getrandgroupitem(IG_GiftBox),1;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (645,'Center_Potion','Concentration Potion',2,800,NULL,100,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,'sc_start SC_ASPDPOTION0,1800000,0;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (656,'Awakening_Potion','Awakening Potion',2,1500,NULL,150,NULL,NULL,NULL,NULL,0xFFF7FEEF,7,2,NULL,NULL,40,NULL,NULL,'sc_start SC_ASPDPOTION1,1800000,0;',NULL,NULL);
-REPLACE INTO `item_db` VALUES (657,'Berserk_Potion','Berserk Potion',2,3000,NULL,200,NULL,NULL,NULL,NULL,0x01E646A6,7,2,NULL,NULL,85,NULL,NULL,'sc_start SC_ASPDPOTION2,1800000,0;',NULL,NULL);
+REPLACE INTO `item_db` VALUES (657,'Berserk_Potion','Berserk Potion',2,3000,NULL,200,NULL,NULL,NULL,NULL,0x41E646A6,7,2,NULL,NULL,85,NULL,NULL,'sc_start SC_ASPDPOTION2,1800000,0;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (658,'Union_Of_Tribe','Union of Tribe',2,2,NULL,500,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,'guildgetexp rand(600000,1200000);',NULL,NULL);
 REPLACE INTO `item_db` VALUES (659,'Heart_Of_Her','Her Heart',2,500,NULL,50,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,'pet 1188;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (660,'Prohibition_Red_Candle','Forbidden Red Candle',2,20000,NULL,50,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,'pet 1200;',NULL,NULL);
@@ -6594,3 +6594,4 @@ REPLACE INTO `item_db` VALUES (19504,'T_Sunglasses','T Sunglasses',5,0,NULL,0,NU
 REPLACE INTO `item_db` VALUES (19505,'T_Cigarette','T Cigarette',5,0,NULL,0,NULL,0,NULL,0,0xFFFFFFFF,7,2,4096,NULL,0,0,54,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (19506,'T_Valkyrie_Feather_Band','T Valkyrie Feather Band',5,0,NULL,0,NULL,0,NULL,0,0xFFFFFFFF,7,2,1024,NULL,0,1,300,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (19507,'Clear_Sun','Clear Sun',5,0,NULL,0,NULL,0,NULL,0,0xFFFFFFFF,7,2,1024,NULL,1,0,654,NULL,NULL,NULL);
+

@@ -72,6 +72,7 @@
 #define MAX_MAP_PER_SERVER 1500 //Increased to allow creation of Instance Maps
 #define MAX_INVENTORY 100
 //Max number of characters per account. Note that changing this setting alone is not enough if the client is not hexed to support more characters as well.
+//Max value tested was 265
 #define MAX_CHARS 9
 //Number of slots carded equipment can have. Never set to less than 4 as they are also used to keep the data of forged items/equipment. [Skotlex]
 //Note: The client seems unable to receive data for more than 4 slots due to all related packets having a fixed size.
@@ -79,7 +80,7 @@
 //Max amount of a single stacked item
 #define MAX_AMOUNT 30000
 #define MAX_ZENY 1000000000
-#define MAX_BANK_ZENY 2147483647
+#define MAX_BANK_ZENY SINT32_MAX
 #define MAX_FAME 1000000000
 #define MAX_CART 100
 #define MAX_SKILL 5020
@@ -91,7 +92,7 @@
 #define DEFAULT_WALK_SPEED 150
 #define MIN_WALK_SPEED 20 /* Below 20 clips animation */
 #define MAX_WALK_SPEED 1000
-#define MAX_STORAGE 600
+#define MAX_STORAGE 600 //Max number of storage slots the client can support. Used as a cap for the VIP System.
 #define MAX_GUILD_STORAGE 600
 #define MAX_PARTY 12
 #define MAX_GUILD 16 + 10 * 6 //Increased max guild members +6 per 1 extension levels [Lupus]
@@ -181,6 +182,7 @@ enum item_types {
 	IT_UNKNOWN2,//9
 	IT_AMMO,    //10
 	IT_DELAYCONSUME,//11
+	IT_SHADOWGEAR,  //12
 	IT_CASH = 18,
 	IT_MAX
 };
@@ -200,7 +202,7 @@ struct item {
 	int id;
 	short nameid;
 	short amount;
-	unsigned short equip; //Location(s) where item is equipped (using enum equip_pos for bitmasking)
+	unsigned int equip; //Location(s) where item is equipped (using enum equip_pos for bitmasking)
 	char identify;
 	char refine;
 	char attribute;
@@ -247,6 +249,13 @@ struct accreg {
 	int account_id, char_id;
 	int reg_num;
 	struct global_reg reg[MAX_REG_NUM];
+};
+
+#define MAX_BONUS_SCRIPT_LENGTH 1024
+struct bonus_script_data {
+	char script[MAX_BONUS_SCRIPT_LENGTH];
+	long tick;
+	short type, flag;
 };
 
 struct skill_cooldown_data {
@@ -400,14 +409,12 @@ struct mmo_charstatus {
 	short rename;
 
 	time_t delete_date;
+	time_t unban_time;
 
 	//Char server addon system
 	unsigned int character_moves;
 
 	unsigned char font;
-
-	/* `account_data` modifiers */
-	unsigned short mod_exp,mod_drop,mod_death;
 };
 
 typedef enum mail_status {
@@ -521,6 +528,7 @@ struct guild_skill {
 	int id,lv;
 };
 
+struct Channel;
 struct guild {
 	int guild_id;
 	short guild_lv, connect_member, max_member, average_lv;

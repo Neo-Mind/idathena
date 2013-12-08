@@ -688,6 +688,16 @@ typedef enum sc_type {
 	SC_MOONSTAR,
 	SC_SUPER_STAR,
 
+	SC_HEAT_BARREL,
+	SC_HEAT_BARREL_AFTER,
+	SC_P_ALTER,
+	SC_E_CHAIN,
+	SC_C_MARKER,
+	SC_ANTI_M_BLAST,
+	SC_B_TRAP,
+	SC_H_MINE,
+	SC_QD_SHOT_READY,
+
 	SC_MAX, //Automatically updated max, used in for's to check we are within bounds
 } sc_type;
 
@@ -1674,6 +1684,20 @@ enum e_status_calc_opt {
 	SCO_FORCE = 0x2, /* Only relevant to BL_PC types, ensures call bypasses the queue caused by delayed damage */
 };
 
+///Enum for bonus_script's flag
+enum e_bonus_script_flags {
+	BONUS_FLAG_REM_ON_DEAD = 0x1, //Remove bonus when dead
+	BONUS_FLAG_REM_ON_DISPELL = 0x2, //Removable by Dispell
+	BONUS_FLAG_REM_ON_CLEARANCE = 0x4, //Removable by Clearance
+	BONUS_FLAG_REM_ON_LOGOUT = 0x8, //Remove bonus when player logged out
+};
+
+///Enum for bonus_script's type
+enum e_bonus_script_types {
+	BONUS_TYPE_BUFF = 0,
+	BONUS_TYPE_DEBUFF = 1,
+};
+
 //Define to determine who gets HP/SP consumed on doing skills/etc. [Skotlex]
 #define BL_CONSUME (BL_PC|BL_HOM|BL_MER|BL_ELEM)
 //Define to determine who has regen
@@ -1694,18 +1718,18 @@ struct weapon_atk {
 #endif
 };
 
-sc_type SkillStatusChangeTable[MAX_SKILL];  //skill  -> status
-int StatusIconChangeTable[SC_MAX];          //status -> "icon" (icon is a bit of a misnomer, since there exist values with no icon associated)
-unsigned int StatusChangeFlagTable[SC_MAX]; //status -> flags
-int StatusSkillChangeTable[SC_MAX];         //status -> skill
-int StatusRelevantBLTypes[SI_MAX];          //"icon" -> enum bl_type (for clif->status_change to identify for which bl types to send packets)
-unsigned int StatusChangeStateTable[SC_MAX]; //status -> flags
+sc_type SkillStatusChangeTable[MAX_SKILL];   /// skill  -> status
+int StatusIconChangeTable[SC_MAX];           /// status -> "icon" (icon is a bit of a misnomer, since there exist values with no icon associated)
+unsigned int StatusChangeFlagTable[SC_MAX];  /// status -> flags
+int StatusSkillChangeTable[SC_MAX];          /// status -> skill
+int StatusRelevantBLTypes[SI_MAX];           /// "icon" -> enum bl_type (for clif->status_change to identify for which bl types to send packets)
+unsigned int StatusChangeStateTable[SC_MAX]; /// status -> flags
 bool StatusDisplayType[SC_MAX];
 
 //For holding basic status (which can be modified by status changes)
 struct status_data {
 	unsigned int
-		hp, sp,  // see status_cpy before adding members before hp and sp
+		hp, sp, /// See status_cpy before adding members before hp and sp
 		max_hp, max_sp;
 	unsigned short
 		str, agi, vit, int_, dex, luk,
@@ -1893,7 +1917,6 @@ unsigned char status_calc_attack_element(struct block_list *bl, struct status_ch
 int status_get_party_id(struct block_list *bl);
 int status_get_guild_id(struct block_list *bl);
 int status_get_emblem_id(struct block_list *bl);
-int status_get_mexp(struct block_list *bl);
 int status_get_race2(struct block_list *bl);
 
 struct view_data *status_get_viewdata(struct block_list *bl);
@@ -1917,7 +1940,7 @@ int kaahi_heal_timer(int tid, unsigned int tick, int id, intptr_t data);
 int status_change_timer(int tid, unsigned int tick, int id, intptr_t data);
 int status_change_timer_sub(struct block_list* bl, va_list ap);
 int status_change_clear(struct block_list* bl, int type);
-int status_change_clear_buffs(struct block_list* bl, int type);
+void status_change_clear_buffs(struct block_list* bl, int type);
 
 #define status_calc_bl(bl, flag) status_calc_bl_(bl, (enum scb_flag)(flag), SCO_NONE)
 #define status_calc_mob(md, opt) status_calc_bl_(&(md)->bl, SCB_ALL, opt)

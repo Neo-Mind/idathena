@@ -11,12 +11,12 @@
 // 32k array entries in array (the rest goes to the db)
 #define MAX_ITEMDB 0x8000
 
-#define MAX_RANDITEM	11000
+#define MAX_RANDITEM 11000
 
 // Maximum number of item delays
-#define MAX_ITEMDELAYS	30
+#define MAX_ITEMDELAYS 30
 
-#define MAX_SEARCH	5  //Designed for search functions, species max number of matches to display.
+#define MAX_SEARCH 5  //Designed for search functions, species max number of matches to display.
 
 /* Maximum amount of items a combo may require */
 #define MAX_ITEMS_PER_COMBO 6
@@ -91,7 +91,7 @@ enum e_item_job {
 #define IG_FINDINGORE 6
 #define IG_POTION 37
 //The max. item group count (increase this when needed).
-#define MAX_ITEMGROUP 70
+#define MAX_ITEMGROUP 71
 
 #define CARD0_FORGE 0x00FF
 #define CARD0_CREATE 0x00FE
@@ -247,6 +247,8 @@ int itemdb_isstackable(int);
 int itemdb_isstackable2(struct item_data *);
 uint64 itemdb_unique_id(int8 flag, int64 value); // Unique Item ID
 bool itemdb_isNoEquip(struct item_data *id, uint16 m);
+
+DBMap* itemdb_get_combodb();
 
 void itemdb_reload(void);
 

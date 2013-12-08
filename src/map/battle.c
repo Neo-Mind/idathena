@@ -416,6 +416,9 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 				if( tsc->data[SC_MAGNETICFIELD] )
 					status_change_end(target, SC_MAGNETICFIELD, INVALID_TIMER); //Freed if received earth damage
 				break;
+			case ELE_NEUTRAL:
+				if( tsc->data[SC_ANTI_M_BLAST] ) ratio += tsc->data[SC_ANTI_M_BLAST]->val2;
+				break;
 		}
 	} //End tsc check
 
@@ -1181,6 +1184,11 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 						damage += damage * sce->val1 / 100;
 						break;
 					}
+		}
+		/* Self Buff that destroys the armor of any target, hit with melee or ranged physical attacks */
+		if( sc->data[SC_SHIELDSPELL_REF] && sc->data[SC_SHIELDSPELL_REF]->val1 == 1 && flag&BF_WEAPON ) {
+			skill_break_equip(src,bl,EQP_ARMOR,10000,BCT_ENEMY);
+			status_change_end(src,SC_SHIELDSPELL_REF,INVALID_TIMER);
 		}
 		if( sc->data[SC_POISONINGWEAPON] && skill_id != GC_VENOMPRESSURE && flag&BF_WEAPON && damage > 0 && rnd()%100 < sc->data[SC_POISONINGWEAPON]->val3 )
 			sc_start(src,bl,(sc_type)sc->data[SC_POISONINGWEAPON]->val2,100,sc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON,1));
@@ -2007,7 +2015,7 @@ static bool is_attack_critical(struct Damage wd, struct block_list *src, struct 
  */
 static int is_attack_piercing(struct Damage wd, struct block_list *src, struct block_list *target, int skill_id, int skill_lv, short weapon_position)
 {
-	if(skill_id == MO_INVESTIGATE)
+	if(skill_id == MO_INVESTIGATE || skill_id == RL_MASS_SPIRAL)
 		return 2;
 
 	if(src != NULL) {
@@ -2173,6 +2181,10 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 				break;
 			case LG_BANISHINGPOINT:
 				hitrate += 3 * skill_lv;
+				break;
+			case RL_SLUGSHOT:
+				if(distance_bl(src,target) > 3)
+					hitrate -= 9 - skill_lv;
 				break;
 		} //+1 hit per level of Double Attack on a successful double attack (making sure other multi attack skills do not trigger this) [helvetica]
 	else if(sd && wd.type&0x08 && wd.div_ == 2)
@@ -2344,6 +2356,10 @@ static int battle_get_weapon_element(struct Damage wd, struct block_list *src, s
 		case LG_HESPERUSLIT:
 			if(sc && sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 4)
 				element = ELE_HOLY;
+			break;
+		case RL_H_MINE:
+			if(sd && sd->skill_id_old == RL_FLICKER) //Force RL_H_MINE deals fire damage if ativated by RL_FLICKER
+				element = ELE_FIRE;
 			break;
 	}
 
@@ -2928,6 +2944,9 @@ static struct Damage battle_calc_multi_attack(struct Damage wd, struct block_lis
 		if(sc && sc->data[SC_KAGEMUSYA] && sc->data[SC_KAGEMUSYA]->val3 > dachance && sd->weapontype1 != W_FIST)
 			dachance = sc->data[SC_KAGEMUSYA]->val3;
 
+		if(sc && sc->data[SC_E_CHAIN] && 5 * sc->data[SC_E_CHAIN]->val2 > dachance)
+			dachance = 5 * sc->data[SC_E_CHAIN]->val2;
+
 		if(5 * pc_checkskill(sd,TF_DOUBLE) > dachance && sd->weapontype1 == W_DAGGER)
 			dachance = 5 * pc_checkskill(sd,TF_DOUBLE);
 
@@ -2953,6 +2972,8 @@ static struct Damage battle_calc_multi_attack(struct Damage wd, struct block_lis
 		if(hitnumber > 1) { //Needed to allow critical attacks to hit when not hitting more then once.
 			wd.div_ = hitnumber;
 			wd.type = 0x08;
+			if(sc && sc->data[SC_E_CHAIN] && sc->data[SC_E_CHAIN]->val2 > 0)
+				sc_start(src,src,SC_QD_SHOT_READY,100,target->id,skill_get_time(RL_QD_SHOT,1));
 		}
 	}
 
@@ -3847,6 +3868,54 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 		case MH_MAGMA_FLOW:
 			skillratio += -100 + (100 * skill_lv + 3 * status_get_lv(src)) * status_get_lv(src) / 120;
 			break;
+		case RL_MASS_SPIRAL:
+			skillratio += -100 + (200 * skill_lv);
+			break;
+		case RL_FIREDANCE:
+			skillratio += -100 + (100 * skill_lv);
+			skillratio += (skillratio * status_get_lv(src)) / 300; //Custom values
+			break;
+		case RL_BANISHING_BUSTER:
+			skillratio += -100 + (400 * skill_lv); //Custom values
+			break;
+		case RL_S_STORM:
+			skillratio += -100 + (200 * skill_lv); //Custom values
+			break;
+		case RL_SLUGSHOT: {
+				uint16 w = 50;
+				if(sd->equip_index[EQI_AMMO] > 0) {
+					uint16 idx = sd->equip_index[EQI_AMMO];
+					struct item_data *id = NULL;
+					if((id = itemdb_exists(sd->status.inventory[idx].nameid)))
+						w = id->weight;
+				}
+				w /= 10;
+				skillratio += -100 + (max(w,1) * skill_lv * 30); //Custom values
+			}
+			break;
+		case RL_D_TAIL:
+			skillratio += -100 + (2500 + 500 * skill_lv);
+			if(sd && &sd->c_marker)
+				skillratio /= max(sd->c_marker.count,1);
+			break;
+		case RL_R_TRIP:
+			skillratio += -100 + (150 * skill_lv); //Custom values
+			break;
+		case RL_H_MINE:
+			skillratio += 100 + (200 * skill_lv);
+			//If damaged by Flicker
+			if(sd && sd->skill_id_old == RL_FLICKER && tsc && tsc->data[SC_H_MINE] && tsc->data[SC_H_MINE]->val2 == src->id)
+				skillratio += 800 + (skill_lv - 1) * 300;
+			break;
+		case RL_HAMMER_OF_GOD:
+			skillratio += -100 + (2000 + (skill_lv - 1) * 500);
+			break;
+		case RL_QD_SHOT:
+			skillratio += -100 + (max(pc_checkskill(sd,GS_CHAINACTION),1) * status_get_dex(src) / 5); //Custom values
+			break;
+		case RL_FIRE_RAIN:
+			skillratio += -100 + 500 + (200 * (skill_lv - 1)) + status_get_dex(src); //Custom values
+			break;
 	}
 	return skillratio;
 }
@@ -4120,6 +4189,14 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 			ATK_ADDRATE(wd.damage, wd.damage2, 25);
 			RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.long_attack_atk_rate'
 		}
+		if(sc->data[SC_HEAT_BARREL]) {
+			ATK_ADD(wd.damage, wd.damage2, sc->data[SC_HEAT_BARREL]->val2);
+			RE_ALLATK_ADD(wd, sc->data[SC_HEAT_BARREL]->val2);
+		}
+		if(sc->data[SC_P_ALTER]) {
+			ATK_ADD(wd.damage, wd.damage2, sc->data[SC_P_ALTER]->val2);
+			RE_ALLATK_ADD(wd, sc->data[SC_P_ALTER]->val2);
+		}
 	}
 
 	return wd;
@@ -4228,8 +4305,8 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 		vit_def = def2;
 #endif
 		//This bonus already doesn't work vs players
-		if((battle_check_undead(sstatus->race, sstatus->def_ele) || sstatus->race == RC_DEMON) &&
-			src->type == BL_MOB && (skill = pc_checkskill(tsd, AL_DP)) > 0)
+		if(src->type == BL_MOB && (battle_check_undead(sstatus->race, sstatus->def_ele) || sstatus->race == RC_DEMON) &&
+			(skill = pc_checkskill(tsd, AL_DP)) > 0)
 			vit_def += skill * (int)(3 + (tsd->status.base_level + 1) * 0.04); //[orn]
 		if(src->type == BL_MOB && (skill = pc_checkskill(tsd, RA_RANGERMAIN)) > 0 &&
 			(sstatus->race == RC_BRUTE || sstatus->race == RC_FISH || sstatus->race == RC_PLANT))
@@ -4237,9 +4314,12 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 		if(src->type == BL_MOB && (skill = pc_checkskill(tsd, NC_RESEARCHFE)) > 0 &&
 			(sstatus->def_ele == ELE_FIRE || sstatus->def_ele == ELE_EARTH))
 			vit_def += skill * 10;
+		if(src->type == BL_MOB && tsc && tsc->count && tsc->data[SC_P_ALTER] && //If the Platinum Alter is activated
+			(battle_check_undead(sstatus->race, sstatus->def_ele) || sstatus->race == RC_UNDEAD)) //Undead attacker
+			vit_def += tsc->data[SC_P_ALTER]->val3;
 	} else { //Mob-Pet vit-eq
 #ifndef RENEWAL
-		//VIT + rnd(0, [VIT/20]^2-1)
+		//VIT + rnd(0, [VIT / 20] ^ 2 - 1)
 		vit_def = (def2 / 20) * (def2 / 20);
 		vit_def = def2 + (vit_def > 0 ? rnd()%vit_def : 0);
 #else
@@ -6022,6 +6102,9 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				md.damage -= totalmdef;
 			}
 			break;
+		case RL_B_TRAP:
+			md.damage = (200 + status_get_int(src) + status_get_dex(src)) * skill_lv * 10; //Custom values
+			break;
 	}
 
 	//Divide ATK among targets
@@ -6931,6 +7014,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 						case SR_RAMPAGEBLASTER:
 						case NC_COLDSLOWER:
 						case NC_SELFDESTRUCTION:
+						case RL_FIRE_RAIN:
 #ifdef RENEWAL
 						case KN_BOWLINGBASH:
 						case KN_SPEARSTAB:
@@ -7591,6 +7675,23 @@ static const struct _battle_data {
 	{ "transform_end_on_death",             &battle_config.transform_end_on_death,          1,      0,      1,              },
 	{ "feature.banking",                    &battle_config.feature_banking,                 1,      0,      1,              },
 	{ "homunculus_S_growth_level",          &battle_config.hom_S_growth_level,             99,      0,      MAX_LEVEL,      },
+	{ "emblem_woe_change",                  &battle_config.emblem_woe_change,               0,      0,      1,              },
+	{ "emblem_transparency_limit",          &battle_config.emblem_transparency_limit,      80,      0,    100,              },
+#ifdef VIP_ENABLE
+	{ "vip_storage_increase",               &battle_config.vip_storage_increase,            0,      0,      MAX_STORAGE - MIN_STORAGE, },
+#else
+	{ "vip_storage_increase",               &battle_config.vip_storage_increase,            0,      0,      MAX_STORAGE, },
+#endif
+	{ "vip_base_exp_increase",              &battle_config.vip_base_exp_increase,           0,      0,      INT_MAX,        },
+	{ "vip_job_exp_increase",               &battle_config.vip_job_exp_increase,            0,      0,      INT_MAX,        },
+	{ "vip_exp_penalty_base_normal",        &battle_config.vip_exp_penalty_base_normal,     0,      0,      INT_MAX,        },
+	{ "vip_exp_penalty_job_normal",         &battle_config.vip_exp_penalty_job_normal,      0,      0,      INT_MAX,        },
+	{ "vip_exp_penalty_base",               &battle_config.vip_exp_penalty_base,            0,      0,      INT_MAX,        },
+	{ "vip_exp_penalty_job",                &battle_config.vip_exp_penalty_job,             0,      0,      INT_MAX,        },
+	{ "vip_bm_increase",                    &battle_config.vip_bm_increase,                 0,      0,      INT_MAX,        },
+	{ "vip_drop_increase",                  &battle_config.vip_drop_increase,               0,      0,      INT_MAX,        },
+	{ "vip_gemstone",                       &battle_config.vip_gemstone,                    0,      0,      1,              },
+	{ "discount_item_point_shop",           &battle_config.discount_item_point_shop,        0,      0,      3,              },
 };
 #ifndef STATS_OPT_OUT
 /**

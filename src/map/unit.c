@@ -185,7 +185,7 @@ int unit_check_start_teleport_timer(struct block_list *sbl) {
 
 static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data) {
 	int i;
-	int x,y,dx,dy;
+	int x, y, dx, dy;
 	uint8 dir;
 	struct block_list *bl;
 	struct unit_data *ud;
@@ -266,6 +266,8 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 		if(sd->ed) unit_check_start_teleport_timer(&sd->ed->bl);
 		if(sd->hd) unit_check_start_teleport_timer(&sd->hd->bl);
 		if(sd->pd) unit_check_start_teleport_timer(&sd->pd->bl);
+
+		pc_cell_basilica(sd);
 	} else if(md) {
 		if(map_getcell(bl->m,x,y,CELL_CHKNPC)) {
 			if( npc_touch_areanpc2(md) ) return 0; // Warped
@@ -1089,7 +1091,8 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		combo = 1;
 	} else if( target_id == src->id &&
 		skill_get_inf(skill_id)&INF_SELF_SKILL &&
-		skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF )
+		(skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF ||
+		(skill_id == RL_QD_SHOT && sc && sc->data[SC_QD_SHOT_READY])) )
 	{
 		target_id = ud->target; //Auto-select target. [Skotlex]
 		combo = 1;
@@ -1806,10 +1809,9 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 	struct mob_data *md = NULL;
 	int range;
 	
-	if( (ud=unit_bl2ud(src))==NULL )
+	if( (ud = unit_bl2ud(src)) == NULL )
 		return 0;
-	if( ud->attacktimer != tid )
-	{
+	if( ud->attacktimer != tid ) {
 		ShowError("unit_attack_timer %d != %d\n",ud->attacktimer,tid);
 		return 0;
 	}
@@ -1817,31 +1819,33 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 	sd = BL_CAST(BL_PC, src);
 	md = BL_CAST(BL_MOB, src);
 	ud->attacktimer = INVALID_TIMER;
-	target=map_id2bl(ud->target);
+	target = map_id2bl(ud->target);
 
-	if( src == NULL || src->prev == NULL || target==NULL || target->prev == NULL )
+	if( src == NULL || src->prev == NULL || target == NULL || target->prev == NULL )
 		return 0;
 
 	if( status_isdead(src) || status_isdead(target) ||
-			battle_check_target(src,target,BCT_ENEMY) <= 0 || !status_check_skilluse(src, target, 0, 0)
+			battle_check_target(src,target,BCT_ENEMY) <= 0 || !status_check_skilluse(src,target,0,0)
 #ifdef OFFICIAL_WALKPATH 
-			|| !path_search_long(NULL, src->m, src->x, src->y, target->x, target->y, CELL_CHKWALL)
+			|| !path_search_long(NULL,src->m,src->x,src->y,target->x,target->y,CELL_CHKWALL)
 #endif
 			)
-		return 0; // can't attack under these conditions
+		return 0; // Can't attack under these conditions
 
-	if( src->m != target->m )
-	{
+	if( sd && &sd->sc && sd->sc.count && sd->sc.data[SC_HEAT_BARREL_AFTER] )
+		return 0;
+
+	if( src->m != target->m ) {
 		if( src->type == BL_MOB && mob_warpchase((TBL_MOB*)src, target) )
 			return 1; // Follow up.
 		return 0;
 	}
 
 	if( ud->skilltimer != INVALID_TIMER && !(sd && pc_checkskill(sd,SA_FREECAST) > 0) )
-		return 0; // can't attack while casting
-	
+		return 0; // Can't attack while casting
+
 	if( !battle_config.sdelay_attack_enable && DIFF_TICK(ud->canact_tick,tick) > 0 && !(sd && pc_checkskill(sd,SA_FREECAST) > 0) ) {
-		// attacking when under cast delay has restrictions:
+		// Attacking when under cast delay has restrictions:
 		if( tid == INVALID_TIMER ) { //requested attack.
 			if(sd) clif_skill_fail(sd,1,USESKILL_FAIL_SKILLINTERVAL,0);
 			return 0;
@@ -1870,38 +1874,38 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 	if( !battle_check_range(src,target,range) ) {
 	  	//Within range, but no direct line of attack
 		if( ud->state.attack_continue ) {
-			if(ud->chaserange > 2) ud->chaserange-=2;
+			if(ud->chaserange > 2) ud->chaserange -= 2;
 			unit_walktobl(src,target,ud->chaserange,ud->state.walk_easy|2);
 		}
 		return 1;
 	}
 	//Sync packet only for players.
 	//Non-players use the sync packet on the walk timer. [Skotlex]
-	if (tid == INVALID_TIMER && sd) clif_fixpos(src);
+	if( tid == INVALID_TIMER && sd )
+		clif_fixpos(src);
 
-	if( DIFF_TICK(ud->attackabletime,tick) <= 0 )
-	{
-		if (battle_config.attack_direction_change && (src->type&battle_config.attack_direction_change)) {
+	if( DIFF_TICK(ud->attackabletime,tick) <= 0 ) {
+		if( battle_config.attack_direction_change && (src->type&battle_config.attack_direction_change) ) {
 			ud->dir = map_calc_dir(src, target->x,target->y );
 		}
-		if(ud->walktimer != INVALID_TIMER)
+		if( ud->walktimer != INVALID_TIMER )
 			unit_stop_walking(src,1);
-		if(md) {
-			if (mobskill_use(md,tick,-1))
+		if( md ) {
+			if( mobskill_use(md,tick,-1) )
 				return 1;
-			if (sstatus->mode&MD_ASSIST && DIFF_TICK(md->last_linktime, tick) < MIN_MOBLINKTIME)
-			{	// Link monsters nearby [Skotlex]
+			if( sstatus->mode&MD_ASSIST && DIFF_TICK(md->last_linktime,tick) < MIN_MOBLINKTIME )
+			{ // Link monsters nearby [Skotlex]
 				md->last_linktime = tick;
-				map_foreachinrange(mob_linksearch, src, md->db->range2, BL_MOB, md->class_, target, tick);
+				map_foreachinrange(mob_linksearch,src,md->db->range2,BL_MOB,md->class_,target,tick);
 			}
 		}
-		if(src->type == BL_PET && pet_attackskill((TBL_PET*)src, target->id))
+		if( src->type == BL_PET && pet_attackskill((TBL_PET*)src,target->id) )
 			return 1;
-		
+
 		map_freeblock_lock();
 		ud->attacktarget_lv = battle_weapon_attack(src,target,tick,0);
 
-		if(sd && sd->status.pet_id > 0 && sd->pd && battle_config.pet_attack_support)
+		if( sd && sd->status.pet_id > 0 && sd->pd && battle_config.pet_attack_support )
 			pet_target_check(sd,target,0);
 		map_freeblock_unlock();
 		/**
@@ -1910,11 +1914,11 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 		 **/
 		if( ud->attacktarget_lv == ATK_NONE )
 			return 1;
-		
+
 		ud->attackabletime = tick + sstatus->adelay;
-//		You can't move if you can't attack neither.
-		if (src->type&battle_config.attack_walk_delay)
-			unit_set_walkdelay(src, tick, sstatus->amotion, 1);
+		//You can't move if you can't attack neither.
+		if( src->type&battle_config.attack_walk_delay )
+			unit_set_walkdelay(src,tick,sstatus->amotion,1);
 	}
 
 	if( ud->state.attack_continue ) {

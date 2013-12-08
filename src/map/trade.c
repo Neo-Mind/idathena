@@ -176,52 +176,52 @@ int impossible_trade_check(struct map_session_data *sd)
 	int i, index;
 
 	nullpo_retr(1, sd);
-	
-	if(sd->deal.zeny > sd->status.zeny) {
+
+	if (sd->deal.zeny > sd->status.zeny) {
 		pc_setglobalreg(sd,"ZENY_HACKER",1);
 		return -1;
 	}
 
-	// get inventory of player
+	// Get inventory of player
 	memcpy(&inventory, &sd->status.inventory, sizeof(struct item) * MAX_INVENTORY);
 
-	// remove this part: arrows can be trade and equiped
-	// re-added! [celest]
-	// remove equiped items (they can not be trade)
+	// Remove this part: arrows can be trade and equiped
+	// Re-added! [celest]
+	// Remove equiped items (they can not be trade)
 	for (i = 0; i < MAX_INVENTORY; i++)
 		if (inventory[i].nameid > 0 && inventory[i].equip && !(inventory[i].equip & EQP_AMMO))
 			memset(&inventory[i], 0, sizeof(struct item));
 
-	// check items in player inventory
-	for(i = 0; i < 10; i++) {
+	// Check items in player inventory
+	for (i = 0; i < 10; i++) {
 		if (!sd->deal.item[i].amount)
 			continue;
 		index = sd->deal.item[i].index;
-		if (inventory[index].amount < sd->deal.item[i].amount) { // if more than the player have -> hack
+		if (inventory[index].amount < sd->deal.item[i].amount) { // If more than the player have -> hack
 			sprintf(message_to_gm, msg_txt(538), sd->status.name, sd->status.account_id); // Hack on trade: character '%s' (account: %d) try to trade more items that he has.
 			intif_wis_message_to_gm(wisp_server_name, PC_PERM_RECEIVE_HACK_INFO, message_to_gm);
 			sprintf(message_to_gm, msg_txt(539), inventory[index].amount, inventory[index].nameid, sd->deal.item[i].amount); // This player has %d of a kind of item (id: %d), and try to trade %d of them.
 			intif_wis_message_to_gm(wisp_server_name, PC_PERM_RECEIVE_HACK_INFO, message_to_gm);
-			// if we block people
+			// If we block people
 			if (battle_config.ban_hack_trade < 0) {
-				chrif_char_ask_name(-1, sd->status.name, 1, 0, 0, 0, 0, 0, 0); // type: 1 - block
+				chrif_req_login_operation(-1, sd->status.name, 1, 0, 0, 0); // Type: 1 - block
 				set_eof(sd->fd); // forced to disconnect because of the hack
-				// message about the ban
+				// Message about the ban
 				strcpy(message_to_gm, msg_txt(540)); //  This player has been definitively blocked.
-			// if we ban people
+			// If we ban people
 			} else if (battle_config.ban_hack_trade > 0) {
-				chrif_char_ask_name(-1, sd->status.name, 2, 0, 0, 0, 0, battle_config.ban_hack_trade, 0); // type: 2 - ban (year, month, day, hour, minute, second)
-				set_eof(sd->fd); // forced to disconnect because of the hack
-				// message about the ban
+				chrif_req_login_operation(-1, sd->status.name, 2, battle_config.ban_hack_trade * 60, 0, 0); // Type: 2 - ban (year, month, day, hour, minute, second)
+				set_eof(sd->fd); // Forced to disconnect because of the hack
+				// Nessage about the ban
 				sprintf(message_to_gm, msg_txt(507), battle_config.ban_hack_trade); //  This player has been banned for %d minute(s).
 			} else
-				// message about the ban
+				// Message about the ban
 				strcpy(message_to_gm, msg_txt(508)); //  This player hasn't been banned (Ban option is disabled).
 			
 			intif_wis_message_to_gm(wisp_server_name, PC_PERM_RECEIVE_HACK_INFO, message_to_gm);
 			return 1;
 		}
-		inventory[index].amount -= sd->deal.item[i].amount; // remove item from inventory
+		inventory[index].amount -= sd->deal.item[i].amount; // Remove item from inventory
 	}
 	return 0;
 }

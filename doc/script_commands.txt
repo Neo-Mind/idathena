@@ -5,7 +5,7 @@
 //===== Current Version: =====================================
 //= $Revision$
 //===== Last Updated: ========================================
-//= $LastChangedDate$
+//= 20131118
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -270,10 +270,16 @@ normally mean it's pointless since it can't do anything, but there are
 exceptions, mostly related to running scripts at specified time, which is what 
 these floating NPC objects are for. More on that below.
 
-** Define a shop/cashshop NPC.
+** Define a shop/cashshop/itemshop/pointshop NPC.
 
 -%TAB%shop%TAB%<NPC Name>%TAB%<sprite id>,<itemid>:<price>{,<itemid>:<price>...}
 <map name>,<x>,<y>,<facing>%TAB%shop%TAB%<NPC Name>%TAB%<sprite id>,<itemid>:<price>{,<itemid>:<price>...}
+
+-%TAB%itemshop%TAB%<NPC Name>%TAB%<sprite id>,<costitemid>{:<discount>},<itemid>:<price>{,<itemid>:<price>...}
+<map name>,<x>,<y>,<facing>%TAB%itemshop%TAB%<NPC Name>%TAB%<sprite id>,<costitemid>{:<discount>},<itemid>:<price>{,<itemid>:<price>...}
+
+-%TAB%pointshop%TAB%<NPC Name>%TAB%<sprite id>,<costvariable>{:<discount>},<itemid>:<price>{,<itemid>:<price>...}
+<map name>,<x>,<y>,<facing>%TAB%pointshop%TAB%<NPC Name>%TAB%<sprite id>,<costvariable>{:<discount>},<itemid>:<price>{,<itemid>:<price>...}
 
 This will define a shop NPC, which, when triggered (which can only be done by 
 clicking) will cause a shop window to come up. No code whatsoever runs in shop 
@@ -293,17 +299,25 @@ This type of shop will not allow you to sell items at it, you may only
 purchase items here. The layout used to define sale items still count, and
 "<price>" refers to how many points will be spent purchasing the them.
 
-** Define an warp/shop/cashshop/NPC duplicate.
+Since trunk rX you can alternatively use "itemshop" or "pointshop" in place
+of "shop" to use the Shop interface, allowing you to buy items with a specific
+item or special points from a variable. 'pointshop' only supported variable types
+are permanent character variables, temporary character variables, permanent
+local account variables, or permanent global account variables. These variables
+must be of integer type, not string. 'discount' flag is an option, makes the price
+at that shop is affected by discount skill.
+
+** Define an warp/shop/cashshop/itemshop/pointshop/NPC duplicate.
 
 warp: <map name>,<x>,<y>{,<facing>}%TAB%duplicate(<label>)%TAB%<NPC Name>%TAB%<spanx>,<spany>
-shop/cashshop/npc: -%TAB%duplicate(<label>)%TAB%<NPC Name>%TAB%<sprite id>
-shop/cashshop/npc: <map name>,<x>,<y>,<facing>%TAB%duplicate(<label>)%TAB%<NPC Name>%TAB%<sprite id>
+shop/cashshop/itemshop/pointshop/npc: -%TAB%duplicate(<label>)%TAB%<NPC Name>%TAB%<sprite id>
+shop/cashshop/itemshop/pointshop/npc: <map name>,<x>,<y>,<facing>%TAB%duplicate(<label>)%TAB%<NPC Name>%TAB%<sprite id>
 npc: -%TAB%duplicate(<label>)%TAB%<NPC Name>%TAB%<sprite id>,<triggerX>,<triggerY>
 npc: <map name>,<x>,<y>,<facing>%TAB%duplicate(<label>)%TAB%<NPC Name>%TAB%<sprite id>,<triggerX>,<triggerY>
 
-This will duplicate an warp/shop/cashshop/NPC referred to by 'label'.
+This will duplicate an warp/shop/cashshop/itemshop/pointshop/NPC referred to by 'label'.
 Warp duplicates inherit the target location.
-Shop/cashshop duplicates inherit the item list.
+Shop/cashshop/itemshop/pointshop duplicates inherit the item list.
 NPC duplicates inherit the script code.
 The rest (name, location, facing, sprite ID, span/trigger area)
 is obtained from the definition of the duplicate (not inherited).
@@ -2336,6 +2350,28 @@ Examples:
 	mes "Silver's IP: " + getcharip("Silver");
 
 ---------------------------------------
+
+*vip_status(<type>,{"<character name>"})
+
+Returns various information about a player's VIP status.
+
+Valid types:
+ 1 - VIP status. (1 if VIP, 0 if non-VIP)
+ 2 - VIP expire date. (timestamp string if VIP, 0 if non-VIP)
+ 3 - VIP time remaining. (timestamp string if VIP, 0 if non-VIP)
+
+NOTE: This command is only available if the VIP System is enabled.
+
+---------------------------------------
+
+*vip_time <time>,{"<character name>"};
+
+Changes a player's VIP time (in minutes). A positive value will increase time, and a
+negative value will decrease time.
+
+NOTE: This command is only available if the VIP System is enabled.
+
+---------------------------------------
 \\
 2,2 Item-related commands
 \\
@@ -2361,6 +2397,13 @@ EQI_COSTUME_HEAD_LOW (11) - Lower Costume Headgear
 EQI_COSTUME_HEAD_MID (12) - Middle Costume Headgear
 EQI_COSTUME_HEAD_TOP (13) - Upper Costume Headgear
 EQI_COSTUME_GARMENT (14)  - Costume Garment
+EQI_AMMO (15)             - Arrow/Ammunition
+EQI_SHADOW_ARMOR (16)     - Shadow Armor
+EQI_SHADOW_WEAPON (17)    - Shadow Weapon
+EQI_SHADOW_SHIELD (18)    - Shadow Shield
+EQI_SHADOW_SHOES (19)     - Shadow Shoes
+EQI_SHADOW_ACC_R (20)     - Shadow Accessory 2
+EQI_SHADOW_ACC_L (21)     - Shadow Accessory 1
 
 Notice that a few items occupy several equipment slots, and if the character is 
 wearing such an item, 'getequipid' will return its ID number for either slot.
@@ -3492,6 +3535,8 @@ Returns a server definition. Valid types are listed in 'db/const.txt':
 	VAR_MAX_GUILDLEVEL	7
 	VAR_MAX_GUILD_STORAGE	8
 	VAR_MAX_BG_MEMBERS	9
+	VAR_VIP_SCRIPT	10
+	VAR_MIN_STORAGE	11
 
 ---------------------------------------
 \\
@@ -4617,7 +4662,7 @@ storage or cart.
 ---------------------------------------
 
 *equip <item id>;
-*autoEquip <item id>,<option>;
+*autoequip <item id>,<option>;
 
 These commands are to equip a equipment on the attached character. 
 The equip function will equip the item ID given when the player has
@@ -5063,6 +5108,32 @@ autobonus and autobonus3).
 
 ---------------------------------------
 
+*bonus_script "<script code>",<duration>{,<flag>{,<type>{,<char_id>}}};
+
+This command will attach a script to a player for a given duration, in seconds.
+After that time, the script will automatically expire. The same bonus cannot be
+stacked. By default, this bonus will be stored on `bonus_script` table when player
+logs out.
+
+Note that the maximum number of 'bonus_script' commands that can run simultaneously
+for a player is 10 (MAX_PC_BONUS_SCRIPT in 'src/map/pc.h').
+
+Flags:
+	&1: Remove when dead.
+	&2: Removable by Dispell.
+	&4: Removable by Clearance.
+	&8: Remove when player logs out.
+
+Types:
+	0: Buff
+	1: Debuff
+
+Example:
+	// Apple gives you +5 Str bonus for 1 minute when it's consumed.
+	512,Apple,Apple,0,15,,20,,,,,0xFFFFFFFF,63,2,,,,,,{ bonus_script "{ bonus bStr,5; }",60; },{},{}
+
+---------------------------------------
+
 *skill <skill id>,<level>{,<flag>};
 *skill "<skill name>",<level>{,<flag>};
 *addtoskill <skill id>,<level>{,<flag>};
@@ -5162,7 +5233,7 @@ players, telling them they are now divorced.
 
 ---------------------------------------
 
-*montransform <monster name/ID>,<duration>,<sc type>{,<val1>,<val2>,<val3>,<val4>};
+*transform <monster name/ID>,<duration>,<sc type>{,<val1>,<val2>,<val3>,<val4>};
 
 This command will turn a player into a monster for a given duration and grants an
 SC attribute effect while transformed. Note that players cannot be transformed
@@ -7165,8 +7236,7 @@ Each of these can be 'on' or 'off'. Together they define a cell's behavior.
 
 This command lets you alter these flags for all map cells in the specified
 (x1,y1)-(x2,y2) rectangle. The 'flag' can be 0 or 1 (0:clear flag, 1:set flag).
-The 'type' defines which flag to modify. Possible options include cell_walkable,
-cell_shootable, cell_basilica. For a full list, see const.txt.
+The 'type' defines which flag to modify. Possible options see const.txt.
 
 Example:
 

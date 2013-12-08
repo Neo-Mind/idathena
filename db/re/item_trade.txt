@@ -1416,6 +1416,7 @@
 14605,475,100	// Orc Lord Scroll
 14606,475,100	// JOB Battle Manual
 14608,73,100	// Manchu-Han Imperial Feast
+14696,475,100	// Sealed Gloom Under Night Gachapon
 16002,507,100	// Stunner
 16134,475,100	// Frog King Hat Box
 16135,457,100	// Satanic Bone Helm Box
@@ -2011,8 +2012,12 @@
 12630,475,100	// Teddy Bear Scroll
 12778,473,100	// Bapho Jr Scroll
 12779,473,100	// Galapago Scroll
+17338,457,100	// Ore Box V
+17339,457,100	// Ore Box V(10)
 
 // Sealed Cards
+4485,457,100	// Sealed Gloom Under Night Card
+4488,457,100	// Sealed Dark Lord Card
 4489,457,100	// Sealed Pharaoh Card
 4490,457,100	// Sealed Moonlight Flower Card
 4491,457,100	// Sealed Sniper Card
@@ -2039,3 +2044,42 @@
 4542,457,100	// Sealed Detale Card
 4543,457,100	// Sealed Hatii Card
 4544,457,100	// Sealed Evil Snake Lord Card
+
+// kRO 2013-03-06 Items
+6713,457,100	// Heart of Soul
+6714,457,100	// Sheena's Soul
+6715,457,100	// God's Soul Piece
+16378,457,100	// Siege Teleport Scroll 30 Box
+16382,457,100	// WoE Teleport Scroll 30 Box
+16821,457,100	// Dungeon Teleport Scroll Box(5)
+16822,457,100	// Dungeon Teleport Scroll Box(10)
+16837,457,100	// Dungeon Teleport Scroll II Box(5)
+16838,457,100	// Dungeon Teleport Scroll II Box(10)
+16864,457,100	// Siege Map Teleport Scroll Box(10)
+16865,457,100	// Siege Map Teleport Scroll Box(30)
+16866,457,100	// Siege Map Teleport Scroll II Box(10)
+16867,457,100	// Siege Map Teleport Scroll II Box(30)
+17159,457,100	// Name Change Box
+17160,457,100	// Character Name Change Card Box
+18122,457,100	// Giant Bow
+18123,457,100	// Bow of Storms
+22540,457,100	// Lux Anima Rune
+
+// kRO 2013-07-17 Items
+6746,475,100	// Iron Artifacts
+6747,475,100	// Steel Workpiece
+13118,475,100	// Spark Light
+
+// kRO 2013-10-02 Items
+2997,475,100	// RWC Gold Brooch
+2999,475,100	// RWC Brooch
+18828,475,100	// 2013 RWC Winners Helmet
+18829,475,100	// 2013 RWC Runners-Up Helmet
+18830,475,100	// 2013 RWC 3rd Helmet
+22652,475,100	// Brilliant Hat Box
+
+// kRO 2013-10-08
+22675,475,100	// Mysterious Scroll
+
+// kRO 2013-11-13
+16628,475,100	// Brynhild Box

@@ -2199,12 +2199,11 @@ void intif_parse_itembound_ack(int fd) {
 int intif_parse(int fd)
 {
 	int packet_len, cmd;
+
 	cmd = RFIFOW(fd,0);
 	// Verify ID of the packet
-	if(cmd < 0x3800 || cmd >= 0x3800 + (sizeof(packet_len_table) / sizeof(packet_len_table[0])) ||
-	   packet_len_table[cmd - 0x3800] == 0) {
-	   	return 0;
-	}
+	if(cmd < 0x3800 || cmd >= 0x3800 + ARRAYLENGTH(packet_len_table) || packet_len_table[cmd - 0x3800] == 0)
+	   return 0;
 	// Check the length of the packet
 	packet_len = packet_len_table[cmd - 0x3800];
 	if(packet_len == -1) {
@@ -2212,9 +2211,8 @@ int intif_parse(int fd)
 			return 2;
 		packet_len = RFIFOW(fd,2);
 	}
-	if((int)RFIFOREST(fd) < packet_len) {
+	if((int)RFIFOREST(fd) < packet_len)
 		return 2;
-	}
 	// Processing branch
 	switch(cmd) {
 		case 0x3800:
