@@ -1241,13 +1241,13 @@ static void clif_weather_check(struct map_session_data *sd)
 	int16 m = sd->bl.m;
 	int fd = sd->fd;
 
-	if (map[m].flag.snow
-		|| map[m].flag.clouds
-		|| map[m].flag.fog
-		|| map[m].flag.fireworks
-		|| map[m].flag.sakura
-		|| map[m].flag.leaves
-		|| map[m].flag.clouds2)
+	if (map[m].flag.snow ||
+		map[m].flag.clouds ||
+		map[m].flag.fog ||
+		map[m].flag.fireworks ||
+		map[m].flag.sakura ||
+		map[m].flag.leaves ||
+		map[m].flag.clouds2)
 	{
 		if (map[m].flag.snow)
 			clif_specialeffect_single(&sd->bl, 162, fd);
@@ -4383,20 +4383,18 @@ void clif_changemapcell(int fd, int16 m, int x, int y, int type, enum send_targe
 	WBUFW(buf,6) = type;
 	mapindex_getmapname_ext(map[m].name,(char*)WBUFP(buf,8));
 
-	if( fd )
-	{
+	if( fd ) {
 		WFIFOHEAD(fd,packet_len(0x192));
 		memcpy(WFIFOP(fd,0), buf, packet_len(0x192));
 		WFIFOSET(fd,packet_len(0x192));
-	}
-	else
-	{
+	} else {
 		struct block_list dummy_bl;
+
 		dummy_bl.type = BL_NUL;
 		dummy_bl.x = x;
 		dummy_bl.y = y;
 		dummy_bl.m = m;
-		clif_send(buf,packet_len(0x192),&dummy_bl,target);
+		clif_send(buf, packet_len(0x192), &dummy_bl, target);
 	}
 }
 
@@ -14779,9 +14777,11 @@ void clif_parse_Auction_buysell(int fd, struct map_session_data* sd)
 
 
 /// CASH/POINT SHOP
-///
-
 void clif_cashshop_open(struct map_session_data* sd) {
+	if( map[sd->bl.m].flag.nocashshop ) {
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1511)); //Cash Shop is disabled in this map
+		return;
+	}
 	WFIFOHEAD(sd->fd, 10);
 	WFIFOW(sd->fd, 0) = 0x845;
 	WFIFOL(sd->fd, 2) = sd->cashPoints;
@@ -14790,13 +14790,13 @@ void clif_cashshop_open(struct map_session_data* sd) {
 }
 
 void clif_parse_cashshop_open_request(int fd, struct map_session_data* sd) {
-	sd->npc_shopid = -1; // Set npc_shopid when using cash shop from "cash shop" button [Aelys|Susu] bugreport:96 
-	clif_cashshop_open( sd );
+	sd->npc_shopid = -1; //Set npc_shopid when using cash shop from "cash shop" button [Aelys|Susu] bugreport:96 
+	clif_cashshop_open(sd);
 }
 
 void clif_parse_cashshop_close(int fd, struct map_session_data* sd) {
-	sd->npc_shopid = 0; // Reset npc_shopid when using cash shop from "cash shop" button [Aelys|Susu] bugreport:96 
-	// No need to do anything here
+	sd->npc_shopid = 0; //Reset npc_shopid when using cash shop from "cash shop" button [Aelys|Susu] bugreport:96 
+	//No need to do anything here
 }
 
 //0846 <tabid>.W (CZ_REQ_SE_CASH_TAB_CODE))
@@ -14846,7 +14846,7 @@ void clif_cashshop_list(int fd) {
 }
 
 void clif_parse_cashshop_list_request(int fd, struct map_session_data* sd) {
-	clif_cashshop_list( fd );
+	clif_cashshop_list(fd);
 }
 
 /// List of items offered in a cash shop (ZC_PC_CASH_POINT_ITEMLIST).
@@ -14866,20 +14866,21 @@ void clif_cashshop_show(struct map_session_data *sd, struct npc_data *nd)
 
 	fd = sd->fd;
 	sd->npc_shopid = nd->bl.id;
-	WFIFOHEAD(fd,offset+nd->u.shop.count*11);
+	WFIFOHEAD(fd,offset + nd->u.shop.count * 11);
 	WFIFOW(fd,0) = 0x287;
-	WFIFOW(fd,2) = offset+nd->u.shop.count*11;
-	WFIFOL(fd,4) = sd->cashPoints; // Cash Points
+	WFIFOW(fd,2) = offset + nd->u.shop.count * 11;
+	WFIFOL(fd,4) = sd->cashPoints; //Cash Points
 #if PACKETVER >= 20070711
-	WFIFOL(fd,8) = sd->kafraPoints; // Kafra Points
+	WFIFOL(fd,8) = sd->kafraPoints; //Kafra Points
 #endif
 
 	for( i = 0; i < nd->u.shop.count; i++ ) {
 		struct item_data* id = itemdb_search(nd->u.shop.shop_item[i].nameid);
-		WFIFOL(fd,offset+0+i*11) = nd->u.shop.shop_item[i].value;
-		WFIFOL(fd,offset+4+i*11) = nd->u.shop.shop_item[i].value; // Discount Price
-		WFIFOB(fd,offset+8+i*11) = itemtype(id->type);
-		WFIFOW(fd,offset+9+i*11) = ( id->view_id > 0 ) ? id->view_id : id->nameid;
+
+		WFIFOL(fd,offset + 0 + i * 11) = nd->u.shop.shop_item[i].value;
+		WFIFOL(fd,offset + 4 + i * 11) = nd->u.shop.shop_item[i].value; //Discount Price
+		WFIFOB(fd,offset + 8 + i * 11) = itemtype(id->type);
+		WFIFOW(fd,offset + 9 + i * 11) = (id->view_id > 0) ? id->view_id : id->nameid;
 	}
 	WFIFOSET(fd,WFIFOW(fd,2));
 }
@@ -14938,6 +14939,11 @@ void clif_parse_cashshop_buy(int fd, struct map_session_data *sd)
 	nullpo_retv(sd);
 
 	info = &packet_db[sd->packet_ver][cmd];
+
+	if( map[sd->bl.m].flag.nocashshop ) {
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1511)); //Cash Shop is disabled in this map
+		return;
+	}
 
 	if( sd->state.trading || !sd->npc_shopid )
 		fail = 1;

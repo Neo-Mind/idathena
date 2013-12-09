@@ -416,7 +416,8 @@ enum {
 	MF_NOMINEEFFECT,
 	MF_NOLOCKON,
 	MF_NOTOMB,
-	MF_SKILL_DAMAGE //60
+	MF_SKILL_DAMAGE, //60
+	MF_NOCASHSHOP
 };
 
 const char* script_op2name(int op)
@@ -10586,6 +10587,7 @@ BUILDIN_FUNC(getmapflag)
 			case MF_NOMINEEFFECT:		script_pushint(st,map[m].flag.nomineeffect); break;
 			case MF_NOLOCKON:		script_pushint(st,map[m].flag.nolockon); break;
 			case MF_NOTOMB:			script_pushint(st,map[m].flag.notomb); break;
+			case MF_NOCASHSHOP:			script_pushint(st,map[m].flag.nocashshop); break;
 #ifdef ADJUST_SKILL_DAMAGE
 			case MF_SKILL_DAMAGE: {
 					int ret_val = 0, type = 0;
@@ -10709,6 +10711,7 @@ BUILDIN_FUNC(setmapflag)
 			case MF_NOMINEEFFECT:		map[m].flag.nomineeffect = 1 ; break;
 			case MF_NOLOCKON:		map[m].flag.nolockon = 1 ; break;
 			case MF_NOTOMB:			map[m].flag.notomb = 1; break;
+			case MF_NOCASHSHOP:			map[m].flag.nocashshop = 1; break;
 #ifdef ADJUST_SKILL_DAMAGE
 			case MF_SKILL_DAMAGE: {
 					int type = 0;
@@ -10820,6 +10823,7 @@ BUILDIN_FUNC(removemapflag)
 			case MF_NOMINEEFFECT:		map[m].flag.nomineeffect = 0 ; break;
 			case MF_NOLOCKON:		map[m].flag.nolockon = 0 ; break;
 			case MF_NOTOMB:			map[m].flag.notomb = 0; break;
+			case MF_NOCASHSHOP:			map[m].flag.nocashshop = 0; break;
 #ifdef ADJUST_SKILL_DAMAGE
 			case MF_SKILL_DAMAGE: {
 					map[m].flag.skill_damage = 0;

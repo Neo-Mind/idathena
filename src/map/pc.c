@@ -1321,7 +1321,7 @@ int pc_reg_received(struct map_session_data *sd)
 	pc_check_available_item(sd); //Check for invalid(ated) items.
 	pc_load_combo(sd);
 
-	status_calc_pc(sd, (e_status_calc_opt)(SCO_FIRST|SCO_FORCE));
+	status_calc_pc(sd, (enum e_status_calc_opt)(SCO_FIRST|SCO_FORCE));
 	chrif_scdata_request(sd->status.account_id, sd->status.char_id);
 	chrif_skillcooldown_request(sd->status.account_id, sd->status.char_id);
 	chrif_bsdata_request(sd->status.char_id);
