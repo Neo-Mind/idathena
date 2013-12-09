@@ -3030,7 +3030,7 @@ int mapif_parse_req_alter_acc(int fd) {
 		char anwser = true;
 		int aid = RFIFOL(fd,2); //account_id of who ask (-1 if server itself made this request)
 		const char* name = (char*)RFIFOP(fd,6); //Name of the target character
-		int operation = RFIFOW(fd,30); //Type of operation: 1-block, 2-ban, 3-unblock, 4-unban,  5 changesex, 6 vip, 7 bank
+		int operation = RFIFOW(fd,30); //Type of operation: 1-block, 2-ban, 3-unblock, 4-unban, 5-changesex, 6-vip, 7-bank
 		int timediff = RFIFOL(fd,32);
 		int val1 = RFIFOL(fd,36);
 		int val2 = RFIFOL(fd,40);
@@ -3095,7 +3095,7 @@ int mapif_parse_req_alter_acc(int fd) {
 						WFIFOSET(login_fd,6);
 						break;
 					case 6:
-						anwser = (val1&4); //vip_req val1=type, &1 login send return, &2 upd timestamp &4 map send awnser
+						anwser = (val1&4); //vip_req val1 = type, &1 login send return, &2 upd timestamp &4 map send answer
 						loginif_reqviddata(aid, val1, timediff, fd);
 						break;
 					case 7:

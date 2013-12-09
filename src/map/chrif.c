@@ -289,7 +289,6 @@ int chrif_save(struct map_session_data *sd, int flag) {
 			chrif_save_bsdata(sd);
 			chrif_req_login_operation(sd->status.account_id, sd->status.name, 7, 0, 2, sd->status.bank_vault); //Save Bank data
 		}
-			chrif_save_scdata(sd);
 		if (!chrif_auth_logout(sd, flag == 1 ? ST_LOGOUT : ST_MAPCHANGE))
 			ShowError("chrif_save: Failed to set up player %d:%d for proper quitting!\n", sd->status.account_id, sd->status.char_id);
 	}
@@ -818,7 +817,7 @@ int chrif_changeemail(int id, const char *actual_email, const char *new_email) {
  * Send an account modification request to the login server (via char server).
  * @aid : Player requesting operation account id
  * @character_name : Target of operation Player name
- * @operation_type : 1: block, 2: ban, 3: unblock, 4: unban, 5: changesex (use next function for 5), 6 vip, 7 bank 
+ * @operation_type : 1: block, 2: ban, 3: unblock, 4: unban, 5: changesex (use next function for 5), 6: vip, 7: bank 
  * @timediff : tick to add or remove to unixtimestamp
  * @val1 : extra data value to transfer for operation
  * @val2 : extra data value to transfer for operation
@@ -1576,29 +1575,29 @@ int chrif_parse(int fd) {
 
 	while ( RFIFOREST(fd) >= 2 ) {
 		cmd = RFIFOW(fd,0);
-		if (cmd < 0x2af8 || cmd >= 0x2af8 + ARRAYLENGTH(packet_len_table) || packet_len_table[cmd-0x2af8] == 0) {
+		if ( cmd < 0x2af8 || cmd >= 0x2af8 + ARRAYLENGTH(packet_len_table) || packet_len_table[cmd-0x2af8] == 0 ) {
 			int r = intif_parse(fd); // Passed on to the intif
 
-			if (r == 1) continue;	// Treated in intif
-			if (r == 2) return 0;	// Didn't have enough data (len==-1)
+			if ( r == 1 ) continue;	// Treated in intif
+			if ( r == 2 ) return 0;	// Didn't have enough data (len==-1)
 
 			ShowWarning("chrif_parse: session #%d, intif_parse failed (unrecognized command 0x%.4x).\n", fd, cmd);
 			set_eof(fd);
 			return 0;
 		}
 
-		if ( ( packet_len = packet_len_table[cmd-0x2af8] ) == -1 ) { // Dynamic-length packet, second WORD holds the length
+		if ( (packet_len = packet_len_table[cmd-0x2af8]) == -1 ) { // Dynamic-length packet, second WORD holds the length
 			if (RFIFOREST(fd) < 4)
 				return 0;
 			packet_len = RFIFOW(fd,2);
 		}
 
-		if ((int)RFIFOREST(fd) < packet_len)
+		if ( (int)RFIFOREST(fd) < packet_len )
 			return 0;
 
 		//ShowDebug("Received packet 0x%4x (%d bytes) from char-server (connection %d)\n", RFIFOW(fd,0), packet_len, fd);
 
-		switch(cmd) {
+		switch ( cmd ) {
 			case 0x2af9: chrif_connectack(fd); break;
 			case 0x2afb: chrif_sendmapack(fd); break;
 			case 0x2afd: chrif_authok(fd); break;

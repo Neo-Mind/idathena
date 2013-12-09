@@ -3013,9 +3013,9 @@ ACMD_FUNC(kick)
 		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
 		return -1;
 	}
-	
+
 	clif_GM_kick(sd, pl_sd);
-	
+
 	return 0;
 }
 

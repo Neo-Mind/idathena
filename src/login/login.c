@@ -482,7 +482,7 @@ int chrif_sendvipdata(int fd, struct mmo_account acc, char isvip, int mapfd) {
 }
 
 /**
- * Received a vip data reqest from char
+ * Received a vip data request from char
  * type is the query to perform
  *  &1 : Select info and update old_groupid
  *  &2 : Update vip time
@@ -521,7 +521,7 @@ int chrif_parse_reqvipdata(int fd) {
 				acc.char_slots = login_config.char_per_account;
 			}
 			acc.vip_time = vip_time;
-			accounts->save(accounts,&acc);
+			accounts->save(accounts, &acc);
 			if( type&1 ) chrif_sendvipdata(fd, acc, isvip, mapfd);
 		}
 	}
@@ -1036,14 +1036,14 @@ int mmo_auth_new(const char* userid, const char* pass, const char sex, const cha
 		return 3;
 	}
 
-	if( login_config.new_acc_length_limit && ( strlen(userid) < 4 || strlen(pass) < 4 ) )
+	if( login_config.new_acc_length_limit && (strlen(userid) < 4 || strlen(pass) < 4) )
 		return 1;
 
-	// check for invalid inputs
+	//Check for invalid inputs
 	if( sex != 'M' && sex != 'F' )
 		return 0; // 0 = Unregistered ID
 
-	// check if the account doesn't exist already
+	//Check if the account doesn't exist already
 	if( accounts->load_str(accounts, &acc, userid) ) {
 		ShowNotice("Attempt of creation of an already existant account (account: %s_%c, pass: %s, received pass: %s)\n", userid, sex, acc.pass, pass);
 		return 1; // 1 = Incorrect Password

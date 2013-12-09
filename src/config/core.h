@@ -91,8 +91,8 @@
 #else
 	#define MIN_STORAGE 600 //If the VIP system is disabled the min = max.
 	#define MIN_CHARS 9 //Default number of characters per account.
-	#define MAX_CHAR_BILLING 0
 	#define MAX_CHAR_VIP 0
+	#define MAX_CHAR_BILLING 0
 #endif
 #if (MIN_CHARS + MAX_CHAR_VIP + MAX_CHAR_BILLING) > MAX_CHARS
 	#error "Config of MAX_CHARS is invalid"
