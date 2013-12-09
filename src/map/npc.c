@@ -1871,10 +1871,13 @@ int npc_unload(struct npc_data* nd, bool single) {
 		}
 		
 		if( npd && --npd->references == 0 ) {
-			strdb_remove(npc_path_db, nd->path);/* remove from db */
-			aFree(nd->path);/* remove now that no other instances exist */
+			strdb_remove(npc_path_db, nd->path); /* Remove from db */
+			aFree(nd->path); /* Remove now that no other instances exist */
 		}
 	}
+
+	if( single && nd->bl.m != -1 )
+		map_remove_questinfo(nd->bl.m, nd);
 
 	//src check for duplicate shops [Orcao]
 	if( (nd->subtype == SHOP || nd->subtype == CASHSHOP || nd->subtype == ITEMSHOP || nd->subtype == POINTSHOP) && nd->src_id == 0 )

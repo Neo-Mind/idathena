@@ -1453,7 +1453,7 @@ int mmo_char_sql_init(void)
 int rename_char_sql(struct char_session_data *sd, int char_id)
 {
 	struct mmo_charstatus char_dat;
-	char esc_name[NAME_LENGTH*2+1];
+	char esc_name[NAME_LENGTH * 2 + 1];
 
 	if( sd->new_name[0] == 0 ) // Not ready for rename
 		return 2;
@@ -4396,8 +4396,8 @@ int parse_char(int fd)
 					WFIFOSET(fd,3);
 				} else {
 					int len;
-					//Retrieve data
-					struct mmo_charstatus char_dat;
+					struct mmo_charstatus char_dat; //Retrieve data
+
 					mmo_char_fromsql(i,&char_dat,false); //Only the short data is needed.
 
 					//Send to player

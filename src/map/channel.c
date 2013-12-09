@@ -78,6 +78,7 @@ int channel_delete(struct Channel *channel) {
 		return -2;
 	if(db_size(channel->users)) {
 		struct map_session_data *sd;
+
 		DBIterator *iter = db_iterator(channel->users);
 		//For all users
 		for(sd = (struct map_session_data *)dbi_first(iter); dbi_exists(iter); sd = (struct map_session_data *)dbi_next(iter))
@@ -95,6 +96,7 @@ int channel_delete(struct Channel *channel) {
 			break;
 		case CHAN_TYPE_ALLY: {
 			struct guild *g = guild_search(channel->gid);
+
 			if(g) g->channel = NULL;
 			aFree(channel);
 			break;

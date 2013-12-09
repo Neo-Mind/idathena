@@ -9351,8 +9351,9 @@ void clif_parse_WantToConnection(int fd, struct map_session_data* sd)
 
 /// Notification from the client, that it has finished map loading and is about to display player's character (CZ_NOTIFY_ACTORINIT).
 /// 007d
-void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
-{
+void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
+	int i;
+
 	if(sd->bl.prev != NULL)
 		return;
 
@@ -9679,6 +9680,21 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	//Trigger skill effects if you appear standing on them
 	if(!battle_config.pc_invincible_time)
 		skill_unit_move(&sd->bl,gettick(),1);
+
+	//NPC Quest / Event Icon Check [Kisuka]
+#if PACKETVER >= 20090218
+	for(i = 0; i < map[sd->bl.m].qi_count; i++) {
+		struct questinfo *qi = &map[sd->bl.m].qi_data[i];
+
+		if(quest_check(sd, qi->quest_id, HAVEQUEST) == -1) { // Check if quest is not started
+			if(qi->hasJob) { // Check if quest is job-specific, check is user is said job class.
+				if(sd->class_ == qi->job)
+					clif_quest_show_event(sd,&qi->nd->bl,qi->icon,qi->color);
+			} else
+				clif_quest_show_event(sd,&qi->nd->bl,qi->icon,qi->color);
+		}
+	}
+#endif
 }
 
 
@@ -10340,13 +10356,12 @@ void clif_parse_WisMessage(int fd, struct map_session_data* sd)
 
 		channel = channel_name2channel(chname,sd,3);
 		if( channel ) {
-			if( channel_pc_haschan(sd,channel) >= 0 ) { // We are in the channel
+			if( channel_pc_haschan(sd,channel) >= 0 ) // We are in the channel
 				channel_send(channel,sd,message);
-			} else if( channel->pass[0] == '\0') { // No password needed
+			else if( channel->pass[0] == '\0') // No password needed
 				if( channel_join(channel,sd) == 0 ) channel_send(channel,sd,message); // Join success
-			} else {
+			else
 				clif_displaymessage(fd, msg_txt(1402)); // You're not in that channel, type '@join <#channel_name>'
-			}
 			return;
 		}
 	}

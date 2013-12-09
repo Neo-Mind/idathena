@@ -2999,15 +2999,13 @@ int map_readfromcache(struct map_data *m, char *buffer, char *decode_buffer)
 
 int map_addmap(char* mapname)
 {
-	if( strcmpi(mapname,"clear")==0 )
-	{
+	if( strcmpi(mapname,"clear") == 0 ) {
 		map_num = 0;
 		instance_start = 0;
 		return 0;
 	}
 
-	if( map_num >= MAX_MAP_PER_SERVER - 1 )
-	{
+	if( map_num >= MAX_MAP_PER_SERVER - 1 ) {
 		ShowError("Could not add map '"CL_WHITE"%s"CL_RESET"', the limit of maps has been reached.\n",mapname);
 		return 1;
 	}
@@ -3029,14 +3027,14 @@ int map_delmap(char* mapname)
 	int i;
 	char map_name[MAP_NAME_LENGTH];
 
-	if (strcmpi(mapname, "all") == 0) {
+	if( strcmpi(mapname, "all") == 0 ) {
 		map_num = 0;
 		return 0;
 	}
 
 	mapindex_getmapname(mapname, map_name);
-	for(i = 0; i < map_num; i++) {
-		if (strcmp(map[i].name, map_name) == 0) {
+	for( i = 0; i < map_num; i++ ) {
+		if( strcmp(map[i].name, map_name) == 0 ) {
 			map_delmapid(i);
 			return 1;
 		}
@@ -3049,16 +3047,17 @@ void do_final_maps(void) {
 
 	for( i = 0; i < map_num; i++ ) {
 
-		if(map[i].cell) aFree(map[i].cell);
-		if(map[i].block) aFree(map[i].block);
-		if(map[i].block_mob) aFree(map[i].block_mob);
+		if( map[i].cell ) aFree(map[i].cell);
+		if( map[i].block ) aFree(map[i].block);
+		if( map[i].block_mob ) aFree(map[i].block_mob);
 
-		if(battle_config.dynamic_mobs) { //Dynamic mobs flag by [random]
+		if( battle_config.dynamic_mobs ) { //Dynamic mobs flag by [random]
 			int j;
-			if(map[i].mob_delete_timer != INVALID_TIMER)
+
+			if( map[i].mob_delete_timer != INVALID_TIMER )
 				delete_timer(map[i].mob_delete_timer, map_removemobs_timer);
-			for (j=0; j<MAX_MOB_LIST_PER_MAP; j++)
-				if (map[i].moblist[j]) aFree(map[i].moblist[j]);
+			for( j = 0; j < MAX_MOB_LIST_PER_MAP; j++ )
+				if( map[i].moblist[j] ) aFree(map[i].moblist[j]);
 		}
 
 		if( map[i].unit_count ) {
@@ -3083,8 +3082,10 @@ void do_final_maps(void) {
 			map[i].skill_count = 0;
 		}
 
-	}
+		if( map[i].qi_data )
+			aFree(map[i].qi_data);
 
+	}
 }
 
 /// Initializes map flags and adjusts them depending on configuration.
@@ -3129,6 +3130,12 @@ void map_flags_init(void) {
 		// Adjustments
 		if( battle_config.pk_mode )
 			map[i].flag.pvp = 1; // Make all maps pvp for pk_mode [Valaris]
+
+		if( map[i].qi_data )
+			aFree(map[i].qi_data);
+
+		map[i].qi_data = NULL;
+		map[i].qi_count = 0;
 	}
 }
 
@@ -3637,8 +3644,7 @@ int map_sql_close(void)
 	Sql_Free(mmysql_handle);
 	mmysql_handle = NULL;
 #ifndef BETA_THREAD_TEST
-	if (log_config.sql_logs)
-	{
+	if( log_config.sql_logs ) {
 		ShowStatus("Close Log DB Connection....\n");
 		Sql_Free(logmysql_handle);
 		logmysql_handle = NULL;
@@ -3654,7 +3660,7 @@ int log_sql_init(void)
 	logmysql_handle = Sql_Malloc();
 
 	ShowInfo(""CL_WHITE"[SQL]"CL_RESET": Connecting to the Log Database "CL_WHITE"%s"CL_RESET" At "CL_WHITE"%s"CL_RESET"...\n",log_db_db,log_db_ip);
-	if ( SQL_ERROR == Sql_Connect(logmysql_handle, log_db_id, log_db_pw, log_db_ip, log_db_port, log_db_db) )
+	if( SQL_ERROR == Sql_Connect(logmysql_handle, log_db_id, log_db_pw, log_db_ip, log_db_port, log_db_db) )
 		exit(EXIT_FAILURE);
 	ShowStatus(""CL_WHITE"[SQL]"CL_RESET": Successfully '"CL_GREEN"connected"CL_RESET"' to Database '"CL_WHITE"%s"CL_RESET"'.\n", log_db_db);
 
@@ -3663,6 +3669,38 @@ int log_sql_init(void)
 			Sql_ShowDebug(logmysql_handle);
 #endif
 	return 0;
+}
+
+void map_add_questinfo(int m, struct questinfo *qi) {
+	unsigned short i;
+
+	/* Duplicate, override */
+	for( i = 0; i < map[m].qi_count; i++ ) {
+		if( map[m].qi_data[i].nd == qi->nd )
+			break;
+	}
+
+	if( i == map[m].qi_count )
+		RECREATE(map[m].qi_data, struct questinfo, ++map[m].qi_count);
+
+	memcpy(&map[m].qi_data[i], qi, sizeof(struct questinfo));
+}
+
+bool map_remove_questinfo(int m, struct npc_data *nd) {
+	unsigned short i;
+
+	for( i = 0; i < map[m].qi_count; i++ ) {
+		struct questinfo *qi = &map[m].qi_data[i];
+
+		if( qi->nd == nd ) {
+			memset(&map[m].qi_data[i], 0, sizeof(struct questinfo));
+			if( i != --map[m].qi_count )
+				memmove(&map[m].qi_data[i],&map[m].qi_data[i + 1],sizeof(struct questinfo) * (map[m].qi_count - i));
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /**
@@ -3749,13 +3787,13 @@ void do_final(void)
 	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) )
 		map_quit(sd);
 	mapit_free(iter);
-	
+
 	/* Prepares npcs for a faster shutdown process */
 	do_clear_npc();
-	
+
 	// Remove all objects on maps
 	for( i = 0; i < map_num; i++ ) {
-		ShowStatus("Cleaning up maps [%d/%d]: %s..."CL_CLL"\r", i+1, map_num, map[i].name);
+		ShowStatus("Cleaning up maps [%d/%d]: %s..."CL_CLL"\r", i + 1, map_num, map[i].name);
 		if( map[i].m >= 0 ) {
 			map_foreachinmap(cleanup_sub, i, BL_ALL);
 			channel_delete(map[i].channel);

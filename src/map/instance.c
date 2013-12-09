@@ -390,7 +390,7 @@ int instance_mapname2mapid(const char *name, short instance_id)
 		if(im->map[i].src_m == m) {
 			char alt_name[MAP_NAME_LENGTH];
 			if((strchr(iname,'@') == NULL) && strlen(iname) > 8) {
-				memmove(iname, iname+(strlen(iname)-9), strlen(iname));
+				memmove(iname, iname + (strlen(iname) - 9), strlen(iname));
 				snprintf(alt_name, sizeof(alt_name),"%d#%s", instance_id, iname);
 			} else
 				snprintf(alt_name, sizeof(alt_name),"%.3d%s", instance_id, iname);
@@ -616,19 +616,19 @@ int instance_delusers(short instance_id)
  *------------------------------------------*/
 static bool instance_readdb_sub(char* str[], int columns, int current)
 {
-	int i, type, k=0;
+	int i, type, k = 0;
 
-	type=atoi(str[0]);
+	type = atoi(str[0]);
 
-	instance_db[type].type=type;
+	instance_db[type].type = type;
 	safestrncpy(instance_db[type].name, str[1], 24);
-	instance_db[type].limit=atoi(str[2]);
+	instance_db[type].limit = atoi(str[2]);
 	safestrncpy(instance_db[type].enter.mapname, str[3], MAP_NAME_LENGTH);
-	instance_db[type].enter.x=atoi(str[4]);
-	instance_db[type].enter.y=atoi(str[5]);
+	instance_db[type].enter.x = atoi(str[4]);
+	instance_db[type].enter.y = atoi(str[5]);
 
 	//Instance maps
-	for(i=6; i<columns; i++)
+	for(i = 6; i < columns; i++)
 		if(strlen(str[i])) {
 			safestrncpy(instance_db[type].mapname[k], str[i], MAP_NAME_LENGTH);
 			k++;
@@ -641,7 +641,7 @@ void instance_readdb(void)
 {
 
 	memset(&instance_db, 0, sizeof(instance_db));
-	sv_readdb(db_path, DBPATH"instance_db.txt", ',', 7, 7+MAX_MAP_PER_INSTANCE, MAX_INSTANCE_DB, &instance_readdb_sub);
+	sv_readdb(db_path, DBPATH"instance_db.txt", ',', 7, 7 + MAX_MAP_PER_INSTANCE, MAX_INSTANCE_DB, &instance_readdb_sub);
 
 }
 
@@ -656,7 +656,7 @@ void do_reload_instance(void)
 	struct map_session_data *sd;
 	int i;
 
-	for( i = 1; i < MAX_INSTANCE_DATA; i++ ) {
+	for(i = 1; i < MAX_INSTANCE_DATA; i++) {
 		im = &instance_data[i];
 		if(!im->cnt_map)
 			continue;
@@ -672,9 +672,10 @@ void do_reload_instance(void)
 
 	// Reset player to instance beginning
 	iter = mapit_getallusers();
-	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) )
+	for(sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter))
 		if(sd && map[sd->bl.m].instance_id) {
 			struct party_data *p;
+
 			if(!(p = party_search(sd->status.party_id)) || p->instance_id != map[sd->bl.m].instance_id) // Someone not in party is on instance map
 				continue;
 			im = &instance_data[p->instance_id];

@@ -532,6 +532,15 @@ struct mapflag_skill_adjust {
 	unsigned short modifier;
 };
 
+struct questinfo {
+	struct npc_data *nd;
+	unsigned short icon;
+	unsigned char color;
+	int quest_id;
+	bool hasJob;
+	unsigned short job; /* Perhaps a mapid mask would be most flexible? */
+};
+
 struct map_data {
 	char name[MAP_NAME_LENGTH];
 	uint16 index; // The map index used by the mapindex* functions.
@@ -651,6 +660,10 @@ struct map_data {
 
 	/* Speeds up clif_updatestatus processing by causing hpmeter to run only when someone with the permission can view it */
 	unsigned short hpmeter_visible;
+
+	/* ShowEvent Data Cache */
+	struct questinfo *qi_data;
+	unsigned short qi_count;
 };
 
 /// Stores information about a remote map (for multi-mapserver setups).
@@ -806,6 +819,9 @@ void map_removemobs(int16 m); // [Wizputer]
 void do_reconnect_map(void); //Invoked on map-char reconnection [Skotlex]
 void map_addmap2db(struct map_data *m);
 void map_removemapdb(struct map_data *m);
+
+void map_add_questinfo(int m, struct questinfo *qi);
+bool map_remove_questinfo(int m, struct npc_data *nd);
 
 extern char *INTER_CONF_NAME;
 extern char *LOG_CONF_NAME;

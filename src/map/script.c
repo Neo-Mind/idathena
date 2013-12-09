@@ -15877,8 +15877,7 @@ BUILDIN_FUNC(mercenary_set_faith)
 	guild = script_getnum(st,2);
 	value = script_getnum(st,3);
 
-	switch( guild )
-	{
+	switch( guild ) {
 		case ARCH_MERC_GUILD:
 			calls = &sd->status.arch_faith;
 			break;
@@ -15893,7 +15892,7 @@ BUILDIN_FUNC(mercenary_set_faith)
 	}
 
 	*calls += value;
-	*calls = cap_value(*calls, 0, INT_MAX);
+	*calls = cap_value(*calls,0,INT_MAX);
 	if( mercenary_get_guild(sd->md) == guild )
 		clif_mercenary_updatestatus(sd,SP_MERCFAITH);
 
@@ -15922,12 +15921,82 @@ BUILDIN_FUNC(readbook)
 Questlog script commands
 *******************/
 
+BUILDIN_FUNC(questinfo)
+{
+	struct npc_data *nd = map_id2nd(st->oid);
+	int quest, icon, job, color = 0;
+	struct questinfo qi;
+
+	if( nd == NULL || nd->bl.m == -1 )
+		return 0;
+
+	quest = script_getnum(st,2);
+	icon = script_getnum(st,3);
+
+#if PACKETVER >= 20120410
+	if( icon < 0 || (icon > 8 && icon != 9999) || icon == 7 )
+		icon = 9999; // Default to nothing if icon id is invalid.
+#else
+	if( icon < 0 || icon > 7 )
+		icon = 0;
+	else
+		icon = icon + 1;
+#endif
+
+	qi.quest_id = quest;
+	qi.icon = (unsigned char)icon;
+	qi.nd = nd;
+
+	if( script_hasdata(st,4) ) {
+		color = script_getnum(st,4);
+		if( color < 0 || color > 3 ) {
+			ShowWarning("buildin_questinfo: invalid color '%d', changing to 0\n",color);
+			script_reportfunc(st);
+			color = 0;
+		}
+		qi.color = (unsigned char)color;
+	}
+
+	qi.hasJob = false;
+
+	if( script_hasdata(st,5) ) {
+		job = script_getnum(st,5);
+
+		if( !pcdb_checkid(job) )
+			ShowError("buildin_questinfo: Nonexistant Job Class.\n");
+		else {
+			qi.hasJob = true;
+			qi.job = (unsigned short)job;
+		}
+	}
+
+	map_add_questinfo(nd->bl.m,&qi);
+
+	return SCRIPT_CMD_SUCCESS;
+}
+
 BUILDIN_FUNC(setquest)
 {
 	struct map_session_data *sd = script_rid2sd(st);
-	nullpo_ret(sd);
+	unsigned short i;
+
+	if( !sd )
+		return 1;
 
 	quest_add(sd, script_getnum(st, 2));
+
+	// If questinfo is set, remove quest bubble once quest is set.
+	for( i = 0; i < map[sd->bl.m].qi_count; i++ ) {
+		struct questinfo *qi = &map[sd->bl.m].qi_data[i];
+		if( qi->quest_id == script_getnum(st, 2) ) {
+#if PACKETVER >= 20120410
+			clif_quest_show_event(sd, &qi->nd->bl, 9999, 0);
+#else
+			clif_quest_show_event(sd, &qi->nd->bl, 0, 0);
+#endif
+		}
+	}
+
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -15977,17 +16046,32 @@ BUILDIN_FUNC(showevent)
 {
 	TBL_PC *sd = script_rid2sd(st);
 	struct npc_data *nd = map_id2nd(st->oid);
-	int state, color;
+	int icon, color = 0;
 
 	if( sd == NULL || nd == NULL )
-	return 0;
-	state = script_getnum(st, 2);
-	color = script_getnum(st, 3);
+		return 0;
 
-	if( color < 0 || color > 3 )
-	color = 0; // set default color
+	icon = script_getnum(st, 2);
+	if( script_hasdata(st, 3) ) {
+		color = script_getnum(st, 3);
+		if( color < 0 || color > 3 ) {
+			ShowWarning("buildin_showevent: invalid color '%d', changing to 0\n", color);
+			script_reportfunc(st);
+			color = 0;
+		}
+	}
 
-	clif_quest_show_event(sd, &nd->bl, state, color);
+#if PACKETVER >= 20120410
+	if( icon < 0 || (icon > 8 && icon != 9999) || icon == 7 )
+		icon = 9999; // Default to nothing if icon id is invalid.
+#else
+	if( icon < 0 || icon > 7 )
+		icon = 0;
+	else
+		icon = icon + 1;
+#endif
+
+	clif_quest_show_event(sd, &nd->bl, icon, color);
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -16007,18 +16091,15 @@ BUILDIN_FUNC(waitingroom2bg)
 	else
 		nd = (struct npc_data *)map_id2bl(st->oid);
 
-	if( nd == NULL || (cd = (struct chat_data *)map_id2bl(nd->chat_id)) == NULL )
-	{
+	if( nd == NULL || (cd = (struct chat_data *)map_id2bl(nd->chat_id)) == NULL ) {
 		script_pushint(st,0);
 		return 0;
 	}
 
 	map_name = script_getstr(st,2);
-	if( strcmp(map_name,"-") != 0 )
-	{
+	if( strcmp(map_name,"-") != 0 ) {
 		mapindex = mapindex_name2id(map_name);
-		if( mapindex == 0 )
-		{ // Invalid Map
+		if( mapindex == 0 ) { // Invalid Map
 			script_pushint(st,0);
 			return 0;
 		}
@@ -18290,12 +18371,13 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(useatcmd,"s"),
 
 	//Quest Log System [Inkfish]
+	BUILDIN_DEF(questinfo,"ii??"),
 	BUILDIN_DEF(setquest,"i"),
 	BUILDIN_DEF(erasequest,"i"),
 	BUILDIN_DEF(completequest,"i"),
 	BUILDIN_DEF(checkquest,"i?"),
 	BUILDIN_DEF(changequest,"ii"),
-	BUILDIN_DEF(showevent,"ii"),
+	BUILDIN_DEF(showevent,"i?"),
 
 	//Party related
 	BUILDIN_DEF(party_create,"s???"),
