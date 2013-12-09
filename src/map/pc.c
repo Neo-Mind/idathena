@@ -53,27 +53,31 @@ int pc_split_atoui(char* str, unsigned int* val, char sep, int max);
 
 #define PVP_CALCRANK_INTERVAL 1000 // PVP calculation interval
 
-static unsigned int statp[MAX_LEVEL+1];
+static unsigned int statp[MAX_LEVEL + 1];
 #if defined(RENEWAL_DROP) || defined(RENEWAL_EXP)
-	static unsigned int level_penalty[3][RC_MAX][MAX_LEVEL*2+1];
+static unsigned int level_penalty[3][RC_MAX][MAX_LEVEL * 2 + 1];
 #endif
 
-// h-files are for declarations, not for implementations... [Shinomori]
+// H-files are for declarations, not for implementations... [Shinomori]
 struct skill_tree_entry skill_tree[CLASS_COUNT][MAX_SKILL_TREE];
-// timer for night.day implementation
-int day_timer_tid;
-int night_timer_tid;
+
+// Timer for night and day implementation
+int day_timer_tid = INVALID_TIMER;
+int night_timer_tid = INVALID_TIMER;
+
+struct eri *pc_sc_display_ers = NULL;
+int pc_expiration_tid = INVALID_TIMER;
 
 struct fame_list smith_fame_list[MAX_FAME_LIST];
 struct fame_list chemist_fame_list[MAX_FAME_LIST];
 struct fame_list taekwon_fame_list[MAX_FAME_LIST];
 
-static unsigned int equip_pos[EQI_MAX]={EQP_ACC_L,EQP_ACC_R,EQP_SHOES,EQP_GARMENT,EQP_HEAD_LOW,EQP_HEAD_MID,EQP_HEAD_TOP,EQP_ARMOR,EQP_HAND_L,EQP_HAND_R,EQP_COSTUME_HEAD_TOP,EQP_COSTUME_HEAD_MID,EQP_COSTUME_HEAD_LOW,EQP_COSTUME_GARMENT,EQP_AMMO,EQP_SHADOW_ARMOR,EQP_SHADOW_WEAPON,EQP_SHADOW_SHIELD,EQP_SHADOW_SHOES,EQP_SHADOW_ACC_R,EQP_SHADOW_ACC_L};
+static unsigned int equip_pos[EQI_MAX] = { EQP_ACC_L,EQP_ACC_R,EQP_SHOES,EQP_GARMENT,EQP_HEAD_LOW,EQP_HEAD_MID,EQP_HEAD_TOP,EQP_ARMOR,EQP_HAND_L,EQP_HAND_R,EQP_COSTUME_HEAD_TOP,EQP_COSTUME_HEAD_MID,EQP_COSTUME_HEAD_LOW,EQP_COSTUME_GARMENT,EQP_AMMO,EQP_SHADOW_ARMOR,EQP_SHADOW_WEAPON,EQP_SHADOW_SHIELD,EQP_SHADOW_SHOES,EQP_SHADOW_ACC_R,EQP_SHADOW_ACC_L };
 
 #define MOTD_LINE_SIZE 128
 static char motd_text[MOTD_LINE_SIZE][CHAT_SIZE_MAX]; // Message of the day buffer [Valaris]
 
-//Links related info to the sd->hate_mob[]/sd->feel_map[] entries
+// Links related info to the sd->hate_mob[]/sd->feel_map[] entries
 const struct sg_data sg_info[MAX_PC_FEELHATE] = {
 		{ SG_SUN_ANGER, SG_SUN_BLESS, SG_SUN_COMFORT, "PC_FEEL_SUN", "PC_HATE_MOB_SUN", is_day_of_sun },
 		{ SG_MOON_ANGER, SG_MOON_BLESS, SG_MOON_COMFORT, "PC_FEEL_MOON", "PC_HATE_MOB_MOON", is_day_of_moon },
@@ -88,8 +92,8 @@ const struct sg_data sg_info[MAX_PC_FEELHATE] = {
  **/
 DBMap* itemcd_db = NULL; // char_id -> struct skill_cd
 struct item_cd {
-	unsigned int tick[MAX_ITEMDELAYS];//tick
-	short nameid[MAX_ITEMDELAYS];//skill id
+	unsigned int tick[MAX_ITEMDELAYS]; //tick
+	short nameid[MAX_ITEMDELAYS]; //skill id
 };
 
 //Converts a class to its array index for CLASS_COUNT defined arrays.
@@ -113,10 +117,10 @@ static int pc_invincible_timer(int tid, unsigned int tick, int id, intptr_t data
 {
 	struct map_session_data *sd;
 
-	if( (sd=(struct map_session_data *)map_id2sd(id)) == NULL || sd->bl.type!=BL_PC )
+	if( (sd = (struct map_session_data *)map_id2sd(id)) == NULL || sd->bl.type!=BL_PC )
 		return 1;
 
-	if(sd->invincible_timer != tid) {
+	if( sd->invincible_timer != tid ) {
 		ShowError("invincible_timer %d != %d\n",sd->invincible_timer,tid);
 		return 0;
 	}
@@ -1062,6 +1066,7 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	sd->invincible_timer = INVALID_TIMER;
 	sd->npc_timer_id = INVALID_TIMER;
 	sd->pvp_timer = INVALID_TIMER;
+	sd->expiration_tid = INVALID_TIMER;
 
 #ifdef SECURE_NPCTIMEOUT
 	// Initialize to defaults/expected
@@ -1165,12 +1170,8 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 				clif_displaymessage(sd->fd, motd_text[i]);
 		}
 
-		//Message of the limited time of the account
-		if (expiration_time != 0) { //Don't display if it's unlimited or unknow value
-			char tmpstr[1024];
-			strftime(tmpstr, sizeof(tmpstr) - 1, msg_txt(501), localtime(&expiration_time)); //"Your account time limit is: %d-%m-%Y %H:%M:%S."
-			clif_wis_message(sd->fd, wisp_server_name, tmpstr, strlen(tmpstr) + 1);
-		}
+		if (expiration_time != 0)
+			sd->expiration_time = expiration_time;
 
 		/**
 		 * Fixes login-without-aura glitch (the screen won't blink at this point, don't worry :P)
@@ -9374,13 +9375,12 @@ static int pc_talisman_timer(int tid, unsigned int tick, int id, intptr_t data)
 	struct map_session_data *sd;
 	int i, type;
 
-	if( (sd=(struct map_session_data *)map_id2sd(id)) == NULL || sd->bl.type!=BL_PC )
+	if( (sd = (struct map_session_data *)map_id2sd(id)) == NULL || sd->bl.type != BL_PC )
 		return 1;
 
 	ARR_FIND(1, 5, type, sd->talisman[type] > 0);
 
-	if( sd->talisman[type] <= 0 )
-	{
+	if( sd->talisman[type] <= 0 ) {
 		ShowError("pc_talisman_timer: %d talisman's available. (aid=%d cid=%d tid=%d)\n", sd->talisman[type], sd->status.account_id, sd->status.char_id, tid);
 		sd->talisman[type] = 0;
 		return 0;
@@ -9409,25 +9409,24 @@ int pc_add_talisman(struct map_session_data *sd,int interval,int max,int type)
 
 	nullpo_ret(sd);
 
-	if(max > 10)
+	if( max > 10 )
 		max = 10;
-	if(sd->talisman[type] < 0)
+	if( sd->talisman[type] < 0 )
 		sd->talisman[type] = 0;
 
-	if( sd->talisman[type] && sd->talisman[type] >= max )
-	{
-		if(sd->talisman_timer[type][0] != INVALID_TIMER)
+	if( sd->talisman[type] && sd->talisman[type] >= max ) {
+		if( sd->talisman_timer[type][0] != INVALID_TIMER )
 			delete_timer(sd->talisman_timer[type][0],pc_talisman_timer);
 		sd->talisman[type]--;
 		if( sd->talisman[type] != 0 )
-			memmove(sd->talisman_timer[type]+0, sd->talisman_timer[type]+1, (sd->talisman[type])*sizeof(int));
+			memmove(sd->talisman_timer[type] + 0, sd->talisman_timer[type] + 1, (sd->talisman[type]) * sizeof(int));
 		sd->talisman_timer[type][sd->talisman[type]] = INVALID_TIMER;
 	}
 
-	tid = add_timer(gettick()+interval, pc_talisman_timer, sd->bl.id, 0);
+	tid = add_timer(gettick() + interval, pc_talisman_timer, sd->bl.id, 0);
 	ARR_FIND(0, sd->talisman[type], i, sd->talisman_timer[type][i] == INVALID_TIMER || DIFF_TICK(get_timer(tid)->tick, get_timer(sd->talisman_timer[type][i])->tick) < 0);
 	if( i != sd->talisman[type] )
-		memmove(sd->talisman_timer[type]+i+1, sd->talisman_timer[type]+i, (sd->talisman[type]-i)*sizeof(int));
+		memmove(sd->talisman_timer[type] + i + 1, sd->talisman_timer[type] + i, (sd->talisman[type] - i) * sizeof(int));
 	sd->talisman_timer[type][i] = tid;
 	sd->talisman[type]++;
 
@@ -10104,6 +10103,66 @@ void pc_damage_log_clear(struct map_session_data *sd, int id) {
 /* Status change data arrived from char-server */
 void pc_scdata_received(struct map_session_data *sd) {
 	pc_inventory_rentals(sd);
+
+	if( sd->expiration_time != 0 ) { //Don't display if it's unlimited or unknow value
+		time_t exp_time = sd->expiration_time;
+		char tmpstr[1024];
+
+		strftime(tmpstr,sizeof(tmpstr) - 1,msg_txt(501),localtime(&exp_time)); // "Your account time limit is: %d-%m-%Y %H:%M:%S."
+		clif_wis_message(sd->fd,wisp_server_name,tmpstr,strlen(tmpstr) + 1);
+
+		pc_expire_check(sd);
+	}
+}
+
+int pc_expiration_timer(int tid, unsigned int tick, int id, intptr_t data) {
+	struct map_session_data *sd = map_id2sd(id);
+
+	if( !sd ) return 0;
+
+	sd->expiration_tid = INVALID_TIMER;
+
+	if( sd->fd )
+		clif_authfail_fd(sd->fd,10);
+
+	map_quit(sd);
+
+	return 0;
+}
+
+/* This timer exists only when a character with a expire timer > 24h is online */
+/* It loops thru online players once an hour to check whether a new < 24h is available */
+int pc_global_expiration_timer(int tid, unsigned int tick, int id, intptr_t data) {
+	struct s_mapiterator* iter;
+	struct map_session_data* sd;
+
+	iter = mapit_getallusers();
+
+	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) )
+		if( sd->expiration_time )
+			pc_expire_check(sd);
+
+	mapit_free(iter);
+
+  return 0;
+}
+
+void pc_expire_check(struct map_session_data *sd) {  
+	/* Ongoing timer */
+	if( sd->expiration_tid != INVALID_TIMER )
+		return;
+
+	/* Not within the next 24h, enable the global check */
+	if( sd->expiration_time > (time(NULL) + ((60 * 60) * 24)) ) {
+
+		/* Global check not running, enable */
+		if( pc_expiration_tid == INVALID_TIMER ) /* Starts in 1h, repeats every hour */
+			pc_expiration_tid = add_timer_interval(gettick() + ((1000 * 60) * 60), pc_global_expiration_timer, 0, 0, ((1000 * 60) * 60));
+
+		return;
+	}
+
+	sd->expiration_tid = add_timer(gettick() + (unsigned int)(sd->expiration_time - time(NULL)) * 1000, pc_expiration_timer, sd->bl.id, 0);
 }
 
 /**
@@ -10112,7 +10171,7 @@ void pc_scdata_received(struct map_session_data *sd) {
 * @param money Amount of money to deposit
 **/
 enum e_BANKING_DEPOSIT_ACK pc_bank_deposit(struct map_session_data *sd, int money) {
-	unsigned int limit_check = money+sd->status.bank_vault;
+	unsigned int limit_check = money + sd->status.bank_vault;
 
 	if( money <= 0 || limit_check > MAX_BANK_ZENY )
 		return BDA_OVERFLOW;
@@ -10288,6 +10347,8 @@ int do_init_pc(void) {
 	add_timer_func_list(pc_follow_timer, "pc_follow_timer");
 	add_timer_func_list(pc_endautobonus, "pc_endautobonus");
 	add_timer_func_list(pc_talisman_timer, "pc_talisman_timer");
+	add_timer_func_list(pc_global_expiration_timer, "pc_global_expiration_timer");
+	add_timer_func_list(pc_expiration_timer, "pc_expiration_timer");
 
 	add_timer(gettick() + autosave_interval, pc_autosave, 0, 0);
 

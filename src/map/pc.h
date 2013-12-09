@@ -553,6 +553,10 @@ struct map_session_data {
 	const char* delunit_prevfile;
 	int delunit_prevline;
 
+	/* Expiration_time timer id */
+	int expiration_tid;
+	time_t expiration_time;
+
 	struct {
 		int id;
 	} dmglog[DAMAGELOG_SIZE_PC];
@@ -583,6 +587,8 @@ struct map_session_data {
 };
 
 struct eri *pc_sc_display_ers;
+/* Global expiration timer id */
+int pc_expiration_tid;
 
 enum weapon_type {
 	W_FIST,	//Bare hands
@@ -1081,6 +1087,10 @@ int pc_level_penalty_mod(struct map_session_data *sd, int mob_level, uint32 mob_
 
 void pc_rental_expire(struct map_session_data *sd, int i);
 void pc_scdata_received(struct map_session_data *sd);
+
+int pc_expiration_timer(int tid, unsigned int tick, int id, intptr_t data);
+int pc_global_expiration_timer(int tid, unsigned tick, int id, intptr_t data);
+void pc_expire_check(struct map_session_data *sd);
 
 enum e_BANKING_DEPOSIT_ACK pc_bank_deposit(struct map_session_data *sd, int money);
 enum e_BANKING_WITHDRAW_ACK pc_bank_withdraw(struct map_session_data *sd, int money);

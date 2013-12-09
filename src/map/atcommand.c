@@ -3749,7 +3749,7 @@ ACMD_FUNC(mapinfo)
 	if (map[m_id].flag.town)
 		clif_displaymessage(fd, msg_txt(1042)); // Town Map
 	if (map[m_id].flag.restricted) {
-		sprintf(atcmd_output, " Restricted (zone %d)",map[m_id].zone);
+		sprintf(atcmd_output, "Restricted (zone %d)",map[m_id].zone);
 		clif_displaymessage(fd, atcmd_output);
 	}
 
@@ -3979,14 +3979,14 @@ ACMD_FUNC(mapinfo)
 					sprintf(atcmd_output, msg_txt(484), // Chat: %s | Player: %s | Location: %d %d
 					cd->title, pl_sd->status.name, cd->bl.x, cd->bl.y);
 					clif_displaymessage(fd, atcmd_output);
-					sprintf(atcmd_output, msg_txt(485), //    Users: %d/%d | Password: %s | Public: %s
+					sprintf(atcmd_output, msg_txt(485), // Users: %d/%d | Password: %s | Public: %s
 					cd->users, cd->limit, cd->pass, (cd->pub) ? msg_txt(486) : msg_txt(487)); // Yes / No
 					clif_displaymessage(fd, atcmd_output);
 				}
 			}
 			mapit_free(iter);
 			break;
-		default: // normally impossible to arrive here
+		default: // Normally impossible to arrive here
 			clif_displaymessage(fd, msg_txt(488)); // Please enter at least one valid list number (usage: @mapinfo <0-3> <map>).
 			return -1;
 			break;
@@ -7688,7 +7688,7 @@ ACMD_FUNC(mapflag) {
 		clif_displaymessage(sd->fd,msg_txt(1313)); // Type "@mapflag available" to list the available mapflags.
 		return 1;
 	}
-	for (i = 0; flag_name[i]; i++) flag_name[i] = (char)tolower(flag_name[i]); //lowercase
+	for (i = 0; flag_name[i]; i++) flag_name[i] = (char)tolower(flag_name[i]); // Lowercase
 
 	setflag(town);
 	setflag(autotrade);		setflag(allowks);		setflag(nomemo);		setflag(noteleport);
@@ -7719,10 +7719,11 @@ ACMD_FUNC(mapflag) {
 	clif_displaymessage(sd->fd,"nozenypenalty, notrade, noskill, nowarp, nowarpto, noicewall, snow, clouds, clouds2,");
 	clif_displaymessage(sd->fd,"fog, fireworks, sakura, leaves, nogo, nobaseexp, nojobexp, nomobloot, nomvploot,");
 	clif_displaymessage(sd->fd,"nightenabled, restricted, nodrop, novending, loadevent, nochat, partylock, guildlock,");
-	clif_displaymessage(sd->fd,"reset, chmautojoin, nousecart, noitemconsumption, nosumstarmiracle, nolockon, notomb, ");
-	clif_displaymessage(sd->fd,"nocashshop, ");
+	clif_displaymessage(sd->fd,"reset, chmautojoin, nousecart, noitemconsumption, nosumstarmiracle, nolockon, notomb,");
 #ifdef ADJUST_SKILL_DAMAGE
-	clif_displaymessage(sd->fd,"skill_damage");
+	clif_displaymessage(sd->fd,"nocashshop, skill_damage");
+#else
+	clif_displaymessage(sd->fd,"nocashshop");
 #endif
 
 #undef checkflag

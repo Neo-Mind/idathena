@@ -89,8 +89,8 @@ char* search_timer_func_list(TimerFunc func)
 {
 	struct timer_func_list* tfl;
 
-	for( tfl=tfl_root; tfl != NULL; tfl=tfl->next )
-		if (func == tfl->func)
+	for( tfl = tfl_root; tfl != NULL; tfl = tfl->next )
+		if( func == tfl->func )
 			return tfl->name;
 
 	return "unknown timer function";
@@ -263,8 +263,7 @@ int add_timer_interval(unsigned int tick, TimerFunc func, int id, intptr_t data,
 {
 	int tid;
 
-	if( interval < 1 )
-	{
+	if( interval < 1 ) {
 		ShowError("add_timer_interval: invalid interval (tick=%u %p[%s] id=%d data=%d diff_tick=%d)\n", tick, func, search_timer_func_list(func), id, data, DIFF_TICK(tick, gettick()));
 		return INVALID_TIMER;
 	}
@@ -292,13 +291,11 @@ const struct TimerData* get_timer(int tid)
 /// Returns 0 on success, < 0 on failure.
 int delete_timer(int tid, TimerFunc func)
 {
-	if( tid < 0 || tid >= timer_data_num )
-	{
+	if( tid < 0 || tid >= timer_data_num ) {
 		ShowError("delete_timer error : no such timer %d (%p(%s))\n", tid, func, search_timer_func_list(func));
 		return -1;
 	}
-	if( timer_data[tid].func != func )
-	{
+	if( timer_data[tid].func != func ) {
 		ShowError("delete_timer error : function mismatch %p(%s) != %p(%s)\n", timer_data[tid].func, search_timer_func_list(timer_data[tid].func), func, search_timer_func_list(func));
 		return -2;
 	}

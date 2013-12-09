@@ -1292,7 +1292,7 @@ void map_clearflooritem(struct block_list *bl) {
 	if( fitem->cleartimer )
 		delete_timer(fitem->cleartimer,map_clearflooritem_timer);
 
-	clif_clearflooritem(fitem, 0);
+	clif_clearflooritem(fitem,0);
 	map_deliddb(&fitem->bl);
 	map_delblock(&fitem->bl);
 	map_freeblock(&fitem->bl);
@@ -1611,6 +1611,7 @@ void map_deliddb(struct block_list *bl)
  *------------------------------------------*/
 int map_quit(struct map_session_data *sd) {
 	int i;
+
 	if (!sd->state.active) { //Removing a player that is not active.
 		struct auth_node *node = chrif_search(sd->status.account_id);
 		if (node && node->char_id == sd->status.char_id &&
@@ -1620,6 +1621,9 @@ int map_quit(struct map_session_data *sd) {
 		//Non-active players should not have loaded any data yet (or it was cleared already) so no additional cleanups are needed.
 		return 0;
 	}
+
+	if (sd->expiration_tid != INVALID_TIMER)
+		delete_timer(sd->expiration_tid,pc_expiration_timer);
 
 	if (sd->npc_timer_id != INVALID_TIMER) //Cancel the event timer.
 		npc_timerevent_quit(sd);
@@ -2422,10 +2426,10 @@ int map_removemobs_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 void map_removemobs(int16 m)
 {
-	if (map[m].mob_delete_timer != INVALID_TIMER) // should never happen
+	if (map[m].mob_delete_timer != INVALID_TIMER) //Should never happen
 		return; //Mobs are already scheduled for removal
 
-	map[m].mob_delete_timer = add_timer(gettick()+battle_config.mob_remove_delay, map_removemobs_timer, m, 0);
+	map[m].mob_delete_timer = add_timer(gettick() + battle_config.mob_remove_delay, map_removemobs_timer, m, 0);
 }
 
 /*==========================================
@@ -2434,6 +2438,7 @@ void map_removemobs(int16 m)
 int16 map_mapname2mapid(const char* name)
 {
 	unsigned short map_index;
+
 	map_index = mapindex_name2id(name);
 	if (!map_index)
 		return -1;
@@ -3878,6 +3883,7 @@ void do_shutdown(void)
 		ShowStatus("Shutting down...\n"); {
 			struct map_session_data* sd;
 			struct s_mapiterator* iter = mapit_getallusers();
+
 			for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) )
 				clif_GM_kick(NULL, sd);
 			mapit_free(iter);
@@ -4010,7 +4016,7 @@ int do_init(int argc, char *argv[])
 
 	if (console) { // Start listening
 		add_timer_func_list(parse_console_timer, "parse_console_timer");
-		add_timer_interval(gettick()+1000, parse_console_timer, 0, 0, 1000); // Start in 1s each 1sec
+		add_timer_interval(gettick() + 1000, parse_console_timer, 0, 0, 1000); // Start in 1s each 1sec
 	}
 
 	return 0;
