@@ -2572,8 +2572,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	struct status_change *tsc;
 	struct map_session_data *sd, *tsd;
 	int64 damage;
-	int8 rmdamage = 0; //Magic reflected
 	int type;
+	bool rmdamage = false; //Magic reflected
 	bool additional_effects = true, shadow_flag = false;
 
 	if (skill_id > 0 && !skill_lv) return 0;
@@ -2633,7 +2633,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		if ((dmg.damage || dmg.damage2) && (type = skill_magic_reflect(src, bl, src == dsrc))) {
 			//Magic reflection, switch caster/target
 			struct block_list *tbl = bl;
-			rmdamage = 1;
+
+			rmdamage = true;
 			bl = src;
 			src = tbl;
 			dsrc = tbl;
@@ -2644,7 +2645,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				tsc = NULL; //Don't need it.
 			/* bugreport:2564 flag&2 disables double casting trigger */
 			flag |= 2;
-
+			/* bugreport:7859 magical reflect'd zeroes blewcount */
+			dmg.blewcount = 0;
 			//Spirit of Wizard blocks Kaite's reflection
 			if (type == 2 && tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_WIZARD) {
 				//Consume one Fragment per hit of the casted skill? [Skotlex]
@@ -2892,6 +2894,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		//Skills with can't walk delay also stop normal attacking for that
 		//duration when the attack connects. [Skotlex]
 		struct unit_data *ud = unit_bl2ud(src);
+
 		if (ud && DIFF_TICK(ud->attackabletime, tick + type) < 0)
 			ud->attackabletime = tick + type;
 	}

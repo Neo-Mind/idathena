@@ -136,7 +136,7 @@ void pc_setinvincibletimer(struct map_session_data* sd, int val)
 
 	if( sd->invincible_timer != INVALID_TIMER )
 		delete_timer(sd->invincible_timer,pc_invincible_timer);
-	sd->invincible_timer = add_timer(gettick()+val,pc_invincible_timer,sd->bl.id,0);
+	sd->invincible_timer = add_timer(gettick() + val,pc_invincible_timer,sd->bl.id,0);
 }
 
 void pc_delinvincibletimer(struct map_session_data* sd)
