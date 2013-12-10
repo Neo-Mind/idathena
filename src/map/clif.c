@@ -14267,8 +14267,13 @@ void clif_parse_Mail_getattach(int fd, struct map_session_data *sd)
 		struct item_data *data;
 		unsigned int weight;
 
-		if ((data = itemdb_exists(sd->mail.inbox.msg[i].item.nameid)) == NULL)
+		if( (data = itemdb_exists(sd->mail.inbox.msg[i].item.nameid)) == NULL )
 			return;
+
+		if( pc_is90overweight(sd) ) {
+			clif_Mail_getattachment(fd, 2);
+			return;
+		}
 
 		switch( pc_checkadditem(sd, data->nameid, sd->mail.inbox.msg[i].item.amount) ) {
 			case CHKADDITEM_NEW:
@@ -16704,10 +16709,10 @@ int clif_skill_itemlistwindow(struct map_session_data *sd, uint16 skill_id, uint
 // msgstringtable.txt
 // 0x291 <line>.W
 void clif_msgtable(int fd, int line) {
-	WFIFOHEAD(fd, packet_len(0x291));
-	WFIFOW(fd, 0) = 0x291;
-	WFIFOW(fd, 2) = line;
-	WFIFOSET(fd, packet_len(0x291));
+	WFIFOHEAD(fd,packet_len(0x291));
+	WFIFOW(fd,0) = 0x291;
+	WFIFOW(fd,2) = line;
+	WFIFOSET(fd,packet_len(0x291));
 }
 
 // msgstringtable.txt

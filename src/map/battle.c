@@ -6961,11 +6961,11 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 	if( s_bl->type == BL_PC ) {
 		switch( t_bl->type ) {
 			case BL_MOB: //Source => PC, Target => MOB
-				if ( pc_has_permission((TBL_PC*)s_bl, PC_PERM_DISABLE_PVM) )
+				if( pc_has_permission((TBL_PC*)s_bl, PC_PERM_DISABLE_PVM) )
 					return 0;
 				break;
 			case BL_PC:
-				if (pc_has_permission((TBL_PC*)s_bl, PC_PERM_DISABLE_PVP))
+				if( pc_has_permission((TBL_PC*)s_bl, PC_PERM_DISABLE_PVP) )
 					return 0;
 				break;
 			default: /* Anything else goes */
@@ -6976,7 +6976,8 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 	switch( target->type ) { //Checks on actual target
 		case BL_PC: {
 				struct status_change* sc = status_get_sc(src);
-				if (((TBL_PC*)target)->invincible_timer != INVALID_TIMER || pc_isinvisible((TBL_PC*)target))
+
+				if( ((TBL_PC*)target)->invincible_timer != INVALID_TIMER || pc_isinvisible((TBL_PC*)target) )
 					return -1; //Cannot be targeted yet.
 				if( sc && sc->count ) {
 					if( sc->data[SC_VOICEOFSIREN] && sc->data[SC_VOICEOFSIREN]->val2 == target->id )
@@ -6986,7 +6987,8 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			break;
 		case BL_MOB: {
 				struct mob_data *md = ((TBL_MOB*)target);
-				if(((md->special_state.ai == AI_SPHERE || //Marine Spheres
+
+				if( ((md->special_state.ai == AI_SPHERE || //Marine Spheres
 					(md->special_state.ai == AI_FLORA && battle_config.summon_flora&1)) && s_bl->type == BL_PC && src->type != BL_MOB) || //Floras
 					(md->special_state.ai == AI_ZANZOU && t_bl->id != s_bl->id) || //Zanzoe
 					(md->special_state.ai == AI_FAW && (t_bl->id != s_bl->id || (s_bl->type == BL_PC && src->type != BL_MOB)))
@@ -7050,8 +7052,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 							} else
 								return 0;
 					}
-				} else if( su->group->skill_id == WZ_ICEWALL ||
-						   su->group->skill_id == GN_WALLOFTHORN ) {
+				} else if( su->group->skill_id == WZ_ICEWALL || su->group->skill_id == GN_WALLOFTHORN ) {
 					state |= BCT_ENEMY;
 					strip_enemy = 0;
 				} else //Excepting traps and icewall, you should not be able to target skills.
@@ -7071,6 +7072,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 	switch( t_bl->type ) { //Checks on target master
 		case BL_PC: {
 			struct map_session_data *sd;
+
 			if( t_bl == s_bl ) break;
 			sd = BL_CAST(BL_PC, t_bl);
 
@@ -7097,27 +7099,29 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 
 	switch( src->type ) { //Checks on actual src type
 		case BL_PET:
-			if (t_bl->type != BL_MOB && flag&BCT_ENEMY)
+			if( t_bl->type != BL_MOB && flag&BCT_ENEMY )
 				return 0; //Pet may not attack non-mobs.
-			if (t_bl->type == BL_MOB && ((TBL_MOB*)t_bl)->guardian_data && flag&BCT_ENEMY)
+			if( t_bl->type == BL_MOB && ((TBL_MOB*)t_bl)->guardian_data && flag&BCT_ENEMY )
 				return 0; //Pet may not attack Guardians/Emperium
 			break;
 		case BL_SKILL: {
 				struct skill_unit *su = (struct skill_unit *)src;
-				if (!su->group)
+
+				if( !su->group )
 					return 0;
 
-				if (su->group->src_id == target->id) {
+				if( su->group->src_id == target->id ) {
 					int inf2 = skill_get_inf2(su->group->skill_id);
-					if (inf2&INF2_NO_TARGET_SELF)
+
+					if( inf2&INF2_NO_TARGET_SELF )
 						return -1;
-					if (inf2&INF2_TARGET_SELF)
+					if( inf2&INF2_TARGET_SELF )
 						return 1;
 				}
 			}
 			break;
 		case BL_MER:
-			if (t_bl->type == BL_MOB && ((TBL_MOB*)t_bl)->class_ == MOBID_EMPERIUM && flag&BCT_ENEMY)
+			if( t_bl->type == BL_MOB && ((TBL_MOB*)t_bl)->class_ == MOBID_EMPERIUM && flag&BCT_ENEMY )
 				return 0; //Mercenary may not attack Emperium
 			break;
 	} //End switch actual src
@@ -7125,6 +7129,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 	switch( s_bl->type ) { //Checks on source master
 		case BL_PC: {
 				struct map_session_data *sd = BL_CAST(BL_PC, s_bl);
+
 				if( s_bl != t_bl ) {
 					if( sd->state.killer ) {
 						state |= BCT_ENEMY; //Can kill anything
@@ -7145,6 +7150,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			break;
 		case BL_MOB: {
 				struct mob_data *md = BL_CAST(BL_MOB, s_bl);
+
 				if( !((agit_flag || agit2_flag) && map[m].flag.gvg_castle) && md->guardian_data && md->guardian_data->guild_id )
 					return 0; //Disable guardians/emperium owned by Guilds on non-woe times.
 
@@ -7164,7 +7170,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			break;
 		default:
 			//Need some sort of default behaviour for unhandled types.
-			if (t_bl->type != s_bl->type)
+			if( t_bl->type != s_bl->type )
 				state |= BCT_ENEMY;
 			break;
 	} //End switch on src master
@@ -7181,19 +7187,24 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 	if( t_bl == s_bl ) { //No need for further testing.
 		state |= BCT_SELF|BCT_PARTY|BCT_GUILD;
 		if( state&BCT_ENEMY && strip_enemy )
-			state&=~BCT_ENEMY;
+			state &= ~BCT_ENEMY;
 		return (flag&state) ? 1 : -1;
 	}
 
 	if( map_flag_vs(m) ) { //Check rivalry settings.
 		int sbg_id = 0, tbg_id = 0;
+
 		if( map[m].flag.battleground ) {
 			sbg_id = bg_team_get_id(s_bl);
 			tbg_id = bg_team_get_id(t_bl);
 		}
 		if( (flag&(BCT_PARTY|BCT_ENEMY)) ) {
 			int s_party = status_get_party_id(s_bl);
-			if( s_party && s_party == status_get_party_id(t_bl) && !(map[m].flag.pvp && map[m].flag.pvp_noparty) && !(map_flag_gvg(m) && map[m].flag.gvg_noparty) && (!map[m].flag.battleground || sbg_id == tbg_id) )
+			int s_guild = status_get_guild_id(s_bl);
+
+			if( s_party && s_party == status_get_party_id(t_bl) && !(map[m].flag.pvp && map[m].flag.pvp_noparty) &&
+				!(map_flag_gvg(m) && map[m].flag.gvg_noparty && !(s_guild && s_guild == status_get_guild_id(t_bl))) &&
+				(!map[m].flag.battleground || sbg_id == tbg_id) )
 				state |= BCT_PARTY;
 			else
 				state |= BCT_ENEMY;
@@ -7201,7 +7212,10 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 		if( (flag&(BCT_GUILD|BCT_ENEMY)) ) {
 			int s_guild = status_get_guild_id(s_bl);
 			int t_guild = status_get_guild_id(t_bl);
-			if( !(map[m].flag.pvp && map[m].flag.pvp_noguild) && s_guild && t_guild && (s_guild == t_guild || guild_isallied(s_guild, t_guild)) && (!map[m].flag.battleground || sbg_id == tbg_id) )
+
+			if( !(map[m].flag.pvp && map[m].flag.pvp_noguild) && s_guild &&
+				t_guild && (s_guild == t_guild || guild_isallied(s_guild, t_guild)) &&
+				(!map[m].flag.battleground || sbg_id == tbg_id) )
 				state |= BCT_GUILD;
 			else
 				state |= BCT_ENEMY;
@@ -7225,12 +7239,14 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 	else { //Non pvp/gvg, check party/guild settings.
 		if( flag&BCT_PARTY || state&BCT_ENEMY ) {
 			int s_party = status_get_party_id(s_bl);
+
 			if(s_party && s_party == status_get_party_id(t_bl))
 				state |= BCT_PARTY;
 		}
 		if( flag&BCT_GUILD || state&BCT_ENEMY ) {
 			int s_guild = status_get_guild_id(s_bl);
 			int t_guild = status_get_guild_id(t_bl);
+
 			if(s_guild && t_guild && (s_guild == t_guild || guild_isallied(s_guild, t_guild)))
 				state |= BCT_GUILD;
 		}
@@ -7238,11 +7254,10 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 
 	if( !state ) //If not an enemy, nor a guild, nor party, nor yourself, it's neutral.
 		state = BCT_NEUTRAL;
-	//Alliance state takes precedence over enemy one.
 	else if( state&BCT_ENEMY && strip_enemy && state&(BCT_SELF|BCT_PARTY|BCT_GUILD) )
-		state&=~BCT_ENEMY;
+		state &= ~BCT_ENEMY; //Alliance state takes precedence over enemy one.
 
-	return (flag&state)?1:-1;
+	return (flag&state) ? 1 : -1;
 }
 /*==========================================
  * Check if can attack from this range

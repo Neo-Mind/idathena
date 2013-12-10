@@ -728,7 +728,7 @@ IG_VioletBox	2
 IG_CardAlbum	3
 IG_GiftBox	4
 IG_ScrollBox	5
-IG_FingingOre	6
+IG_FindingOre	6
 IG_CookieBag	7
 IG_FirstAid	8
 IG_Herb	9
@@ -748,7 +748,7 @@ IG_Taming	22
 IG_Scroll	23
 IG_Quiver	24
 IG_Mask	25
-IG_Accesory	26
+IG_Accessory	26
 IG_Jewel	27
 IG_GiftBox_1	28
 IG_GiftBox_2	29
@@ -769,7 +769,7 @@ IG_OldGiftBox	43
 IG_MagicCardAlbum	44
 IG_HometownGift	45
 IG_Masquerade	46
-IG_Tresure_Box_WoE	47
+IG_Treasure_Box_WoE	47
 IG_Masquerade_2	48
 IG_Easter_Scroll	49
 IG_Pierre_Treasurebox	50
@@ -792,6 +792,7 @@ IG_CardAlbum_Shoes	66
 IG_CardAlbum_Shield	67
 IG_CardAlbum_Weapon	68
 IG_CardAlbum_Garment	69
+IG_Card_Flamel	70
 
 SC_ALL	-1
 SC_STONE	0

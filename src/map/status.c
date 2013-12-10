@@ -2168,8 +2168,6 @@ int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt)
 
 	if (md->guardian_data && md->guardian_data->guardup_lv)
 		flag |= 4;
-	if (md->class_ == MOBID_EMPERIUM)
-		flag |= 4;
 
 	if (battle_config.slaves_inherit_speed && md->master_id)
 		flag |= 8;
@@ -6927,6 +6925,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 	if( bl->type == BL_MOB ) {
 		struct mob_data *md = BL_CAST(BL_MOB,bl);
+
 		if( md && (md->class_ == MOBID_EMPERIUM || mob_is_battleground(md)) && type != SC_SAFETYWALL && type != SC_PNEUMA )
 			return 0; //Emperium/BG Monsters can't be afflicted by status changes
 		//if( md && mob_is_gvg(md) && status_sc2scb_flag(type)&SCB_MAXHP )

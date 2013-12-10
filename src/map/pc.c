@@ -1124,6 +1124,7 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	//Event Timers
 	for (i = 0; i < MAX_EVENTTIMER; i++)
 		sd->eventtimer[i] = INVALID_TIMER;
+
 	//Rental Timer
 	sd->rental_timer = INVALID_TIMER;
 
@@ -3686,9 +3687,9 @@ int pc_checkadditem(struct map_session_data *sd,int nameid,int amount)
 	if(data->stack.inventory && amount > data->stack.amount)
 		return CHKADDITEM_OVERAMOUNT;
 
-	for(i=0;i<MAX_INVENTORY;i++) {
+	for(i = 0; i < MAX_INVENTORY; i++) {
 		// FIXME: This does not consider the checked item's cards, thus could check a wrong slot for stackability.
-		if(sd->status.inventory[i].nameid==nameid) {
+		if(sd->status.inventory[i].nameid == nameid) {
 			if(amount > MAX_AMOUNT - sd->status.inventory[i].amount || ( data->stack.inventory && amount > data->stack.amount - sd->status.inventory[i].amount ))
 				return CHKADDITEM_OVERAMOUNT;
 			return CHKADDITEM_EXIST;
@@ -3708,10 +3709,9 @@ int pc_inventoryblank(struct map_session_data *sd)
 
 	nullpo_ret(sd);
 
-	for(i=0,b=0;i<MAX_INVENTORY;i++) {
-		if(sd->status.inventory[i].nameid==0)
+	for(i = 0, b = 0; i < MAX_INVENTORY; i++)
+		if(sd->status.inventory[i].nameid == 0)
 			b++;
-	}
 
 	return b;
 }
@@ -4140,7 +4140,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 		return 0;
 	if( pc_has_permission(sd,PC_PERM_ITEM_UNCONDITIONAL) )
 		return 1;
-	if(map[sd->bl.m].flag.noitemconsumption) //Consumable but mapflag prevent it
+	if( map[sd->bl.m].flag.noitemconsumption ) //Consumable but mapflag prevent it
 		return 0;
 	//Prevent mass item usage. [Skotlex]
 	if( DIFF_TICK(sd->canuseitem_tick,gettick()) > 0 ||
@@ -4148,7 +4148,8 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 	)
 		return 0;
 	if( (item->item_usage.flag&NOUSE_SITTING) && (pc_issit(sd) == 1) && (pc_get_group_level(sd) < item->item_usage.override) ) {
-		clif_colormes(sd,color_table[COLOR_WHITE],msg_txt(1477));
+		clif_msgtable(sd->fd,0x297);
+		//clif_colormes(sd,color_table[COLOR_WHITE],msg_txt(1477));
 		return 0; // You cannot use this item while sitting.
 	}
 
@@ -4210,7 +4211,6 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 			break;
 
 		// Mercenary Items
-
 		case 12184: // Mercenary's Red Potion
 		case 12185: // Mercenary's Blue Potion
 		case 12241: // Mercenary's Concentration Potion
@@ -4218,7 +4218,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 		case 12243: // Mercenary's Berserk Potion
 			if( sd->md == NULL || sd->md->db == NULL )
 				return 0;
-			if (sd->md->sc.data[SC_BERSERK])
+			if( sd->md->sc.data[SC_BERSERK] )
 				return 0;
 			if( nameid == 12242 && sd->md->db->lv < 40 )
 				return 0;
@@ -4233,26 +4233,33 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 	}
 
 	if( nameid >= 12153 && nameid <= 12182 && sd->md != NULL )
-		return 0; // Mercenary Scrolls
+		return 0; //Mercenary Scrolls
 
-	/**
-	 * Only Rune Knights may use runes
-	 **/
 	if( itemdb_is_rune(nameid) && (sd->class_&MAPID_THIRDMASK) != MAPID_RUNE_KNIGHT )
-		return 0;
-	/**
-	 * Only GCross may use poisons
-	 **/
+		return 0; //Only Rune Knights may use runes
 	else if( itemdb_is_poison(nameid) && (sd->class_&MAPID_THIRDMASK) != MAPID_GUILLOTINE_CROSS )
-		return 0;
+		return 0; //Only GCross may use poisons
+
+	//@TODO: Check if used item is a package type or a item that has a bunch of group items on it
+	/*if( itemdb_is_package(nameid) || itemdb_is_group(nameid) ) {
+		if( pc_is90overweight(sd) ) {
+			clif_msgtable(sd->fd,ITEM_CANT_OBTAIN_WEIGHT);
+			return 0;
+		}
+		if( !pc_inventoryblank(sd) ) {
+			clif_colormes(sd,color_table[COLOR_RED],msg_txt(1477)); //Item cannot be open when inventory is full
+			return 0;
+		}
+	}*/
 
 	//Gender check
 	if( item->sex != 2 && sd->status.sex != item->sex )
 		return 0;
+
 	//Required level check
 	if( item->elv && sd->status.base_level < (unsigned int)item->elv )
 		return 0;
-		
+
 #ifdef RENEWAL
 	if( item->elvmax && sd->status.base_level > (unsigned int)item->elvmax )
 		return 0;
@@ -4577,21 +4584,21 @@ int pc_cartitem_amount(struct map_session_data* sd, int idx, int amount)
  *	0 = player not found or (FIXME) succes (from pc_cart_delitem)
  *	1 = failure
  *------------------------------------------*/
-int pc_getitemfromcart(struct map_session_data *sd,int idx,int amount)
+int pc_getitemfromcart(struct map_session_data *sd, int idx, int amount)
 {
 	struct item *item_data;
 	int flag;
 
 	nullpo_ret(sd);
 
-	if (idx < 0 || idx >= MAX_CART) //Invalid index check [Skotlex]
+	if( idx < 0 || idx >= MAX_CART ) //Invalid index check [Skotlex]
 		return 1;
-	
-	item_data=&sd->status.cart[idx];
 
-	if(item_data->nameid==0 || amount < 1 || item_data->amount<amount || sd->state.vending )
+	item_data =& sd->status.cart[idx];
+
+	if( item_data->nameid == 0 || amount < 1 || item_data->amount<amount || sd->state.vending )
 		return 1;
-	if((flag = pc_additem(sd,item_data,amount,LOG_TYPE_NONE)) == 0)
+	if( (flag = pc_additem(sd,item_data,amount,LOG_TYPE_NONE)) == 0 )
 		return pc_cart_delitem(sd,idx,amount,0,LOG_TYPE_NONE);
 
 	clif_additem(sd,0,0,flag);
@@ -4606,11 +4613,12 @@ int pc_getitemfromcart(struct map_session_data *sd,int idx,int amount)
  * 3 Party Bound
  * 4 Character Bound
  *------------------------------------------*/
-int pc_bound_chk(TBL_PC *sd,int type,int *idxlist)
+int pc_bound_chk(TBL_PC *sd, int type, int *idxlist)
 {
-	int i=0, j=0;
-	for(i=0;i<MAX_INVENTORY;i++){
-		if(sd->status.inventory[i].nameid > 0 && sd->status.inventory[i].amount > 0 && sd->status.inventory[i].bound == type) {
+	int i = 0, j = 0;
+
+	for( i = 0; i < MAX_INVENTORY; i++ ) {
+		if( sd->status.inventory[i].nameid > 0 && sd->status.inventory[i].amount > 0 && sd->status.inventory[i].bound == type ) {
 			idxlist[j] = i;
 			j++;
 		}
@@ -4621,18 +4629,18 @@ int pc_bound_chk(TBL_PC *sd,int type,int *idxlist)
 /*==========================================
  *  Display item stolen msg to player sd
  *------------------------------------------*/
-int pc_show_steal(struct block_list *bl,va_list ap)
+int pc_show_steal(struct block_list *bl, va_list ap)
 {
 	struct map_session_data *sd;
 	int itemid;
 
-	struct item_data *item=NULL;
+	struct item_data *item = NULL;
 	char output[100];
 
-	sd=va_arg(ap,struct map_session_data *);
-	itemid=va_arg(ap,int);
+	sd = va_arg(ap,struct map_session_data *);
+	itemid = va_arg(ap,int);
 
-	if((item=itemdb_exists(itemid))==NULL)
+	if( (item = itemdb_exists(itemid) ) == NULL)
 		sprintf(output,"%s stole an Unknown Item (id: %i).",sd->status.name, itemid);
 	else
 		sprintf(output,"%s stole %s.",sd->status.name,item->jname);
@@ -4647,26 +4655,26 @@ int pc_show_steal(struct block_list *bl,va_list ap)
  *	0 = fail
  *	1 = succes
  *------------------------------------------*/
-int pc_steal_item(struct map_session_data *sd,struct block_list *bl, uint16 skill_lv)
+int pc_steal_item(struct map_session_data *sd, struct block_list *bl, uint16 skill_lv)
 {
-	int i,itemid,flag;
+	int i, itemid, flag;
 	double rate;
 	struct status_data *sd_status, *md_status;
 	struct mob_data *md;
 	struct item tmp_item;
 
-	if(!sd || !bl || bl->type != BL_MOB)
+	if( !sd || !bl || bl->type != BL_MOB )
 		return 0;
 
 	md = (TBL_MOB *)bl;
 
-	if(md->state.steal_flag == UCHAR_MAX || ( md->sc.opt1 && md->sc.opt1 != OPT1_BURNING && md->sc.opt1 != OPT1_CRYSTALIZE ) ) //Already stolen from / status change check
+	if( md->state.steal_flag == UCHAR_MAX || (md->sc.opt1 && md->sc.opt1 != OPT1_BURNING && md->sc.opt1 != OPT1_CRYSTALIZE) ) //Already stolen from / status change check
 		return 0;
 
-	sd_status= status_get_status_data(&sd->bl);
-	md_status= status_get_status_data(bl);
+	sd_status = status_get_status_data(&sd->bl);
+	md_status = status_get_status_data(bl);
 
-	if(md->master_id || md_status->mode&MD_BOSS || mob_is_treasure(md) ||
+	if( md->master_id || md_status->mode&MD_BOSS || mob_is_treasure(md) ||
 		map[bl->m].flag.nomobloot || //Check noloot map flag [Lorky]
 		(battle_config.skill_steal_max_tries && //Reached limit of steal attempts. [Lupus]
 			md->state.steal_flag++ >= battle_config.skill_steal_max_tries)
@@ -4679,15 +4687,15 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl, uint16 skil
 	rate = (sd_status->dex - md_status->dex) / 2 + skill_lv * 6 + 4;
 	rate += sd->bonus.add_steal_rate;
 
-	if(rate < 1)
+	if( rate < 1 )
 		return 0;
 
 	//Try dropping one item, in the order from first to last possible slot.
 	//Droprate is affected by the skill success rate.
-	for(i = 0; i < MAX_STEAL_DROP; i++)
-		if(md->db->dropitem[i].nameid > 0 && itemdb_exists(md->db->dropitem[i].nameid) && rnd() % 10000 < md->db->dropitem[i].p * rate / 100.)
+	for( i = 0; i < MAX_STEAL_DROP; i++ )
+		if( md->db->dropitem[i].nameid > 0 && itemdb_exists(md->db->dropitem[i].nameid) && rnd() % 10000 < md->db->dropitem[i].p * rate / 100. )
 			break;
-	if(i == MAX_STEAL_DROP)
+	if( i == MAX_STEAL_DROP )
 		return 0;
 
 	itemid = md->db->dropitem[i].nameid;
@@ -4700,19 +4708,19 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl, uint16 skil
 	//TODO: Should we disable stealing when the item you stole couldn't be added to your inventory? Perhaps players will figure out a way to exploit this behaviour otherwise?
 	md->state.steal_flag = UCHAR_MAX; //you can't steal from this mob any more
 
-	if(flag) { //Failed to steal due to overweight
+	if( flag ) { //Failed to steal due to overweight
 		clif_additem(sd,0,0,flag);
 		return 0;
 	}
 
-	if(battle_config.show_steal_in_same_party)
+	if( battle_config.show_steal_in_same_party )
 		party_foreachsamemap(pc_show_steal,sd,AREA_SIZE,sd,tmp_item.nameid);
 
 	//Logs items, Stolen from mobs [Lupus]
 	log_pick_mob(md,LOG_TYPE_STEAL,-1,&tmp_item);
 
 	//A Rare Steal Global Announce by Lupus
-	if(md->db->dropitem[i].p <= battle_config.rare_drop_announce) {
+	if( md->db->dropitem[i].p <= battle_config.rare_drop_announce ) {
 		struct item_data *i_data;
 		char message[128];
 		i_data = itemdb_search(itemid);
@@ -4723,17 +4731,20 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl, uint16 skil
 	return 1;
 }
 
-/*==========================================
- * Stole zeny from bl (mob)
- * return
- *	0 = fail
- *	1 = success
- *------------------------------------------*/
+/**
+ * Steals zeny from a monster through the RG_STEALCOIN skill.
+ *
+ * @param sd     Source character
+ * @param target Target monster
+ *
+ * @return Amount of stolen zeny (0 in case of failure)
+ **/
 int pc_steal_coin(struct map_session_data *sd,struct block_list *target)
 {
-	int rate,skill;
+	int rate, skill;
 	struct mob_data *md;
-	if(!sd || !target || target->type != BL_MOB)
+
+	if( !sd || !target || target->type != BL_MOB )
 		return 0;
 
 	md = (TBL_MOB*)target;
@@ -4743,16 +4754,15 @@ int pc_steal_coin(struct map_session_data *sd,struct block_list *target)
 	if( mob_is_treasure(md) )
 		return 0;
 
-	// FIXME: This formula is either custom or outdated.
-	skill = pc_checkskill(sd,RG_STEALCOIN)*10;
-	rate = skill + (sd->status.base_level - md->level)*3 + sd->battle_status.dex*2 + sd->battle_status.luk*2;
-	if(rnd()%1000 < rate)
-	{
-		int amount = md->level*10 + rnd()%100;
+	skill = pc_checkskill(sd,RG_STEALCOIN);
+	rate = skill * 10 + (sd->status.base_level - md->level) * 2 + sd->battle_status.dex / 2 + sd->battle_status.luk / 2;
+	if( rnd()%1000 < rate ) {
+		//mob_lv * skill_lv / 10 + random [mob_lv * 8; mob_lv * 10]
+		int amount = md->level * skill / 10 + md->level * 8 + rnd()%(md->level * 2 + 1);
 
-		pc_getzeny(sd, amount, LOG_TYPE_STEAL, NULL);
+		pc_getzeny(sd,amount,LOG_TYPE_STEAL,NULL);
 		md->state.steal_coin_flag = 1;
-		return 1;
+		return amount;
 	}
 	return 0;
 }
@@ -4917,6 +4927,11 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 	}
 
 	pc_cell_basilica(sd);
+
+	/* Given autotrades have no clients you have to trigger this manually
+	 * Otherwise they get stuck in memory limbo bugreport:7495 */
+	if( sd->state.autotrade )
+		clif_parse_LoadEndAck(0,sd);
 	return 0;
 }
 
@@ -7320,8 +7335,7 @@ int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 		//Item Group bonuses
 		bonus += bonus*itemdb_group_bonus(sd, itemid)/100;
 		//Individual item bonuses.
-		for(i = 0; i < ARRAYLENGTH(sd->itemhealrate) && sd->itemhealrate[i].nameid; i++)
-		{
+		for(i = 0; i < ARRAYLENGTH(sd->itemhealrate) && sd->itemhealrate[i].nameid; i++) {
 			if (sd->itemhealrate[i].nameid == itemid) {
 				bonus += bonus*sd->itemhealrate[i].rate/100;
 				break;

@@ -108,28 +108,26 @@ int itemdb_searchname_array(struct item_data** data, int size, const char *str)
 {
 	struct item_data* item;
 	int i;
-	int count=0;
+	int count = 0;
 
 	// Search in the array
-	for( i = 0; i < ARRAYLENGTH(itemdb_array); ++i )
-	{
+	for( i = 0; i < ARRAYLENGTH(itemdb_array); ++i ) {
 		item = itemdb_array[i];
 		if( item == NULL )
 			continue;
 
-		if( stristr(item->jname,str) || stristr(item->name,str) )
-		{
+		if( stristr(item->jname,str) || stristr(item->name,str) ) {
 			if( count < size )
 				data[count] = item;
 			++count;
 		}
 	}
 
-	// search in the db
-	if( count < size )
-	{
+	// Search in the db
+	if( count < size ) {
 		DBData *db_data[MAX_SEARCH];
 		int db_count = 0;
+
 		size -= count;
 		db_count = itemdb_other->getall(itemdb_other, (DBData**)&db_data, size, itemdb_searchname_array_sub, str);
 		for (i = 0; i < db_count; i++)
@@ -145,7 +143,7 @@ int itemdb_searchname_array(struct item_data** data, int size, const char *str)
  *------------------------------------------*/
 int itemdb_searchrandomid(int group)
 {
-	if(group<1 || group>=MAX_ITEMGROUP) {
+	if (group < 1 || group >= MAX_ITEMGROUP) {
 		ShowError("itemdb_searchrandomid: Invalid group id %d\n", group);
 		return UNKNOWN_ITEM_ID;
 	}
@@ -162,11 +160,12 @@ int itemdb_searchrandomid(int group)
 int itemdb_group_bonus(struct map_session_data* sd, int itemid)
 {
 	int bonus = 0, i, j;
-	for (i=0; i < MAX_ITEMGROUP; i++) {
+
+	for (i = 0; i < MAX_ITEMGROUP; i++) {
 		if (!sd->itemgrouphealrate[i])
 			continue;
-		ARR_FIND( 0, itemgroup_db[i].qty, j, itemgroup_db[i].nameid[j] == itemid );
-		if( j < itemgroup_db[i].qty )
+		ARR_FIND(0, itemgroup_db[i].qty, j, itemgroup_db[i].nameid[j] == itemid);
+		if (j < itemgroup_db[i].qty)
 			bonus += sd->itemgrouphealrate[i];
 	}
 	return bonus;

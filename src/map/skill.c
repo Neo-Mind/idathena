@@ -7657,6 +7657,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case CG_TAROTCARD: {
 				int eff, count = -1;
+
 				if( rnd()%100 > skill_lv * 8 || (tsc && tsc->data[SC_BASILICA]) ||
 					(dstmd && ((dstmd->guardian_data && dstmd->class_ == MOBID_EMPERIUM) || mob_is_battleground(dstmd))) ) {
 					if( sd )
@@ -13947,11 +13948,12 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			break;
 		case SR_CURSEDCIRCLE:
 			if( map_flag_gvg2(sd->bl.m) ) {
-				if( map_foreachinrange(mob_count_sub, &sd->bl, skill_get_splash(skill_id, skill_lv), BL_MOB,
-						MOBID_EMPERIUM, MOBID_GUARIDAN_STONE1, MOBID_GUARIDAN_STONE2) ) {
+				if( map_foreachinrange(mob_count_sub,&sd->bl,skill_get_splash(skill_id,skill_lv),BL_MOB,
+						MOBID_EMPERIUM,MOBID_GUARIDAN_STONE1,MOBID_GUARIDAN_STONE2) ) {
 					char output[128];
+
 					sprintf(output,"%s",msg_txt(382)); //You're too close to a stone or emperium to do this skill
-					clif_colormes(sd,color_table[COLOR_RED],output);
+					clif_colormes(sd,color_table[COLOR_RED],output); /* TODO: Official response or map_msg.conf it */
 					return 0;
 				}
 			}

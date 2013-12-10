@@ -348,12 +348,13 @@ enum useskill_fail_cause
 };
 
 enum clif_messages {
+	ADDITEM_TO_CART_FAIL_WEIGHT = 0x0,
+	ADDITEM_TO_CART_FAIL_COUNT = 0x1,
+	ITEM_CANT_OBTAIN_WEIGHT = 0x34, /* You cannot carry more items because you are overweight. */
 	MERC_MSG_BASE = 1266, //0x4f2
 	SKILL_CANT_USE_AREA = 0x536,
 	VIEW_EQUIP_FAIL = 0x54d,
 	USAGE_FAIL = 0x783,
-	ADDITEM_TO_CART_FAIL_WEIGHT = 0x0,
-	ADDITEM_TO_CART_FAIL_COUNT = 0x1,
 };
 
 enum e_BANKING_DEPOSIT_ACK {

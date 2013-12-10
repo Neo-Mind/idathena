@@ -463,6 +463,12 @@ int mob_once_spawn(struct map_session_data* sd, int16 m, int16 x, int16 y, const
 {
 	struct mob_data* md = NULL;
 	int count, lv;
+	bool no_guardian_data = false;
+
+	if (ai && ai&0x200) {
+		no_guardian_data = true;
+		ai &=~ 0x200;
+	}
 
 	if (m < 0 || amount <= 0)
 		return 0; // invalid input
@@ -471,14 +477,16 @@ int mob_once_spawn(struct map_session_data* sd, int16 m, int16 x, int16 y, const
 
 	for (count = 0; count < amount; count++) {
 		int c = (class_ >= 0) ? class_ : mob_get_random_id(-class_ - 1, (battle_config.random_monster_checklv) ? 3 : 1, lv);
+
 		md = mob_once_spawn_sub((sd) ? &sd->bl : NULL, m, x, y, mobname, c, event, size, ai);
 
 		if (!md)
 			continue;
 
-		if (class_ == MOBID_EMPERIUM) {
+		if (class_ == MOBID_EMPERIUM && !no_guardian_data) {
 			struct guild_castle* gc = guild_mapindex2gc(map_id2index(m));
 			struct guild* g = (gc) ? guild_search(gc->guild_id) : NULL;
+
 			if (gc) {
 				md->guardian_data = (struct guardian_data*)aCalloc(1, sizeof(struct guardian_data));
 				md->guardian_data->castle = gc;
@@ -581,7 +589,7 @@ static int mob_spawn_guardian_sub(int tid, unsigned int tick, int id, intptr_t d
 
 	if (g == NULL) { //Liberate castle, if the guild is not found this is an error! [Skotlex]
 		ShowError("mob_spawn_guardian_sub: Couldn't load guild %d!\n", (int)data);
-		if (md->class_ == MOBID_EMPERIUM) {
+		if (md->class_ == MOBID_EMPERIUM && md->guardian_data) {
 			//Not sure this is the best way, but otherwise we'd be invoking this for ALL guardians spawned later on.
 			md->guardian_data->guild_id = 0;
 			if (md->guardian_data->castle->guild_id) { //Free castle up.
@@ -1030,7 +1038,7 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 	mode = va_arg(ap,int);
 
 	//If can't seek yet, not an enemy, or you can't attack it, skip.
-	if((*target) == bl || !status_check_skilluse(&md->bl,bl,0,0))
+	if(md->bl.id == bl->id || (*target) == bl || !status_check_skilluse(&md->bl,bl,0,0))
 		return 0;
 
 	if((mode&MD_TARGETWEAK) && status_get_lv(bl) >= md->level - 5)
@@ -1088,12 +1096,12 @@ static int mob_ai_sub_hard_changechase(struct block_list *bl,va_list ap)
 	target = va_arg(ap,struct block_list**);
 
 	//If can't seek yet, not an enemy, or you can't attack it, skip.
-	if((*target) == bl ||
+	if(md->bl.id == bl->id || (*target) == bl ||
 		battle_check_target(&md->bl,bl,BCT_ENEMY) <= 0 ||
 	  	!status_check_skilluse(&md->bl,bl,0,0))
 		return 0;
 
-	if(battle_check_range (&md->bl,bl,md->status.rhw.range)) {
+	if(battle_check_range(&md->bl,bl,md->status.rhw.range)) {
 		(*target) = bl;
 		md->target_id = bl->id;
 		md->min_chase = md->db->range3;
@@ -2359,6 +2367,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		if(sd) {
 			//Process script-granted extra drop bonuses
 			int itemid = 0;
+
 			for(i = 0; i < ARRAYLENGTH(sd->add_drop) && (sd->add_drop[i].id || sd->add_drop[i].group); i++) {
 				if(sd->add_drop[i].race == -md->class_ ||
 					(sd->add_drop[i].race > 0 && (
@@ -2497,8 +2506,8 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		log_mvpdrop(mvp_sd, md->class_, log_mvp);
 	}
 
-	if(type&2 && !sd && md->class_ == MOBID_EMPERIUM)
-		//Emperium destroyed by script. Discard mvp character. [Skotlex]
+	//Emperium destroyed by script. Discard mvp character. [Skotlex]
+	if(type&2 && !sd && md->class_ == MOBID_EMPERIUM && md->guardian_data)
 		mvp_sd = NULL;
 
 	rebirth =  (md->sc.data[SC_KAIZEL] || (md->sc.data[SC_REBIRTH] && !md->state.rebirth));

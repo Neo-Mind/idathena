@@ -17185,10 +17185,10 @@ BUILDIN_FUNC(checkre)
 /* getrandgroupitem <group_id>,<quantity> */
 BUILDIN_FUNC(getrandgroupitem) {
 	TBL_PC* sd;
-	int i, get_count = 0, flag, nameid, group = script_getnum(st, 2), qty = script_getnum(st,3);
+	int i, get_count = 0, flag, nameid, group = script_getnum(st, 2), qty = script_getnum(st, 3);
 	struct item item_tmp;
 
-	if( !( sd = script_rid2sd(st) ) )
+	if( !(sd = script_rid2sd(st)) )
 		return 0;
 
 	if( qty <= 0 ) {
@@ -17219,12 +17219,12 @@ BUILDIN_FUNC(getrandgroupitem) {
 		get_count = qty;
 
 	for( i = 0; i < qty; i += get_count ) {
-		// if not pet egg
+		//If not pet egg
 		if( !pet_create_egg(sd, nameid) ) {
 			if( (flag = pc_additem(sd, &item_tmp, get_count, LOG_TYPE_SCRIPT)) ) {
 				clif_additem(sd, 0, 0, flag);
-				if( pc_candrop(sd,&item_tmp) )
-					map_addflooritem(&item_tmp,get_count,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
+				if( pc_candrop(sd, &item_tmp) )
+					map_addflooritem(&item_tmp, get_count, sd->bl.m, sd->bl.x, sd->bl.y, 0, 0, 0, 0);
 			}
 		}
 	}
@@ -17733,11 +17733,6 @@ BUILDIN_FUNC(montransform) {
 			ShowWarning("buildin_montransform: Attempted to use non-existing monster '%s'.\n", script_getstr(st,2));
 		else
 			ShowWarning("buildin_montransform: Attempted to use non-existing monster of ID '%d'.\n", script_getnum(st,2)); 
-		return 0;
-	}
-
-	if (mob_id == MOBID_EMPERIUM) {
-		ShowWarning("buildin_montransform: Monster 'Emperium' cannot be used.\n");
 		return 0;
 	}
 

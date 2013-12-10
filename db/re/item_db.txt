@@ -5568,7 +5568,7 @@
 12103,Bloody_Dead_Branch,Bloody Branch,2,10000,,200,,,,,0xFFFFFFFF,63,2,,,,,,{ monster "this",-1,-1,"--ja--",-3,1,""; },{},{}
 12104,Random_Quiver,Random Quiver,2,10000,,200,,,,,0xFFFFFFFF,63,2,,,,,,{ getrandgroupitem(IG_Quiver),1; },{},{}
 12105,Set_Of_Taiming_Item,Taming Gift Set,2,10000,,200,,,,,0xFFFFFFFF,63,2,,,,,,{ getrandgroupitem(IG_Taming),1; getrandgroupitem(IG_Taming),1; getrandgroupitem(IG_Taming),1; },{},{}
-12106,Accessory_Box,Jewelry Box,2,10000,,200,,,,,0xFFFFFFFF,63,2,,,,,,{ getrandgroupitem(IG_Accesory),1; },{},{}
+12106,Accessory_Box,Jewelry Box,2,10000,,200,,,,,0xFFFFFFFF,63,2,,,,,,{ getrandgroupitem(IG_Accessory),1; },{},{}
 12107,Wrapped_Mask,Wrapped Mask,2,10000,,200,,,,,0xFFFFFFFF,63,2,,,,,,{ getrandgroupitem(IG_Mask),1; },{},{}
 12108,Bundle_Of_Magic_Scroll,Scroll Package,2,10000,,200,,,,,0xFFFFFFFF,63,2,,,,,,{ getrandgroupitem(IG_Scroll),1; getrandgroupitem(IG_Scroll),1; getrandgroupitem(IG_Scroll),1; getrandgroupitem(IG_Scroll),1; getrandgroupitem(IG_Scroll),1; },{},{}
 12109,Poring_Box,Poring Box,2,10000,,200,,,,,0xFFFFFFFF,63,2,,,,,,{ monster "this",-1,-1,"--ja--",-2,1,""; },{},{}
@@ -5742,7 +5742,7 @@
 12278,Alice_Scroll,Alice Scroll,2,2,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ mercenary_create 2060,1800000; },{},{}
 12279,Undead_Element_Scroll,Undead Elemental Scroll,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ sc_start4 SC_ARMOR_RESIST,300000,20,20,20,20; },{},{}
 12280,Holy_Element_Scroll,Holy Elemental Scroll,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_BENEDICTIO; sc_start SC_BENEDICTIO,300000,1; },{},{}
-12281,Tresure_Box_WoE,Event Treasure Box,2,20,,150,,,,,0xFFFFFFFF,63,2,,,,,,{ getrandgroupitem(IG_Tresure_Box_WoE),1; },{},{}
+12281,Tresure_Box_WoE,Event Treasure Box,2,20,,150,,,,,0xFFFFFFFF,63,2,,,,,,{ getrandgroupitem(IG_Treasure_Box_WoE),1; },{},{}
 12282,Internet_Cafe1,Internet Cafe1,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ sc_start SC_INCALLSTATUS,5400000,3; sc_start SC_ATKPOTION,5400000,15; sc_start SC_MATKPOTION,5400000,15; },{},{}
 12283,Internet_Cafe2,Internet Cafe2,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ sc_start SC_INCSTR,5400000,8; sc_start SC_INCDEX,5400000,4; sc_start SC_INCAGI,5400000,6; sc_start SC_ATKPOTION,5400000,32; sc_start SC_INCFLEE,5400000,5; },{},{}
 12284,Internet_Cafe3,Internet Cafe3,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ sc_start SC_INCINT,5400000,8; sc_start SC_INCVIT,5400000,4; sc_start SC_INCDEX,5400000,6; sc_start SC_MATKPOTION,5400000,40; },{},{}
