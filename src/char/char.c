@@ -102,7 +102,8 @@ uint32 char_ip = 0;
 char bind_ip_str[128];
 uint32 bind_ip = INADDR_ANY;
 uint16 char_port = 6121;
-int char_maintenance = 0;
+int char_server_type = 0;
+int char_maintenance_min_group_id = 0;
 bool char_new = true;
 int char_new_display = 0;
 
@@ -1065,7 +1066,7 @@ int mmo_chars_fromsql(struct char_session_data* sd, uint8* buf)
 		sd->unban_time[i] = 0;
 	}
 
-	// read char data
+	// Read char data
 	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT "
 		"`char_id`,`char_num`,`name`,`class`,`base_level`,`job_level`,`base_exp`,`job_exp`,`zeny`,"
 		"`str`,`agi`,`vit`,`int`,`dex`,`luk`,`max_hp`,`hp`,`max_sp`,`sp`,"
@@ -2437,7 +2438,7 @@ int parse_fromlogin(int fd) {
 
 			// Acknowledgement of account authentication request
 			case 0x2713:
-				if( RFIFOREST(fd) < 25 )
+				if( RFIFOREST(fd) < 29 )
 					return 0;
 				{
 					int account_id = RFIFOL(fd,2);
@@ -2448,12 +2449,14 @@ int parse_fromlogin(int fd) {
 					int request_id = RFIFOL(fd,16);
 					uint32 version = RFIFOL(fd,20);
 					uint8 clienttype = RFIFOB(fd,24);
-					RFIFOSKIP(fd,25);
+					int group_id = RFIFOL(fd,25);
 
+					RFIFOSKIP(fd,29);
 					if( session_isActive(request_id) && (sd = (struct char_session_data*)session[request_id]->session_data) &&
 						!sd->auth && sd->account_id == account_id && sd->login_id1 == login_id1 && sd->login_id2 == login_id2 && sd->sex == sex )
 					{
 						int client_fd = request_id;
+
 						sd->version = version;
 						sd->clienttype = clienttype;
 						if( sd->version != date2version(PACKETVER) )
@@ -2462,6 +2465,14 @@ int parse_fromlogin(int fd) {
 
 						switch( result ) {
 							case 0: // Ok
+								/* Restrictions apply */
+								if( char_server_type == CST_MAINTENANCE && group_id < char_maintenance_min_group_id ) {
+									WFIFOHEAD(client_fd,3);
+									WFIFOW(client_fd,0) = 0x6c;
+									WFIFOB(client_fd,2) = 0; // Rejected from server
+									WFIFOSET(client_fd,3);
+									break;
+								}
 								char_auth_ok(client_fd, sd);
 								break;
 							case 1: // Auth failed
@@ -2482,7 +2493,6 @@ int parse_fromlogin(int fd) {
 				// Find the authenticated session with this account id
 				ARR_FIND( 0, fd_max, i, session[i] && (sd = (struct char_session_data*)session[i]->session_data) && sd->auth && sd->account_id == RFIFOL(fd,2) );
 				if( i < fd_max ) {
-					int server_id;
 					memcpy(sd->email, RFIFOP(fd,6), 40);
 					sd->expiration_time = (time_t)RFIFOL(fd,46);
 					sd->group_id = RFIFOB(fd,50);
@@ -2499,11 +2509,9 @@ int parse_fromlogin(int fd) {
 					sd->isvip = RFIFOB(fd,76);
 					sd->chars_vip = RFIFOB(fd,77);
 					sd->chars_billing = RFIFOB(fd,78);
-					ARR_FIND( 0, ARRAYLENGTH(server), server_id, server[server_id].fd > 0 && server[server_id].map[0] );
 					// Continued from char_auth_ok...
-					if( server_id == ARRAYLENGTH(server) || // Server not online, bugreport:2359
-						( max_connect_user == 0 && sd->group_id != gm_allow_group ) ||
-						( max_connect_user > 0 && count_users() >= max_connect_user && sd->group_id != gm_allow_group ) ) {
+					if( (max_connect_user == 0 && sd->group_id != gm_allow_group) ||
+						(max_connect_user > 0 && count_users() >= max_connect_user && sd->group_id != gm_allow_group) ) {
 						// Refuse connection (over populated)
 						WFIFOHEAD(i,3);
 						WFIFOW(i,0) = 0x6c;
@@ -4102,7 +4110,7 @@ static void char_delete2_cancel(int fd, struct char_session_data* sd)
 
 int parse_char(int fd)
 {
-	int i, ch;
+	int i;
 	char email[40];
 	unsigned short cmd;
 	int map_fd;
@@ -4118,6 +4126,7 @@ int parse_char(int fd)
 	if( session[fd]->flag.eof ) {
 		if( sd != NULL && sd->auth ) { //Already authed client
 			struct online_char_data* data = (struct online_char_data*)idb_get(online_char_db,sd->account_id);
+
 			if( data != NULL && data->fd == fd)
 				data->fd = -1;
 			if( data == NULL || data->server == -1) //If it is not in any server, send it offline. [Skotlex]
@@ -4141,13 +4150,12 @@ int parse_char(int fd)
 					return 0;
 				{
 					struct auth_node* node;
-
 					int account_id = RFIFOL(fd,2);
 					uint32 login_id1 = RFIFOL(fd,6);
 					uint32 login_id2 = RFIFOL(fd,10);
 					int sex = RFIFOB(fd,16);
-					RFIFOSKIP(fd,17);
 
+					RFIFOSKIP(fd,17);
 					ShowInfo("request connect - account_id:%d/login_id1:%d/login_id2:%d\n",account_id,login_id1,login_id2);
 
 					if( sd ) {
@@ -4186,6 +4194,14 @@ int parse_char(int fd)
 						node->login_id2  == login_id2 /*&&
 						node->ip         == ipl*/ )
 					{ //Authentication found (coming from map server)
+						/* Restrictions apply */
+						if( char_server_type == CST_MAINTENANCE && node->group_id < char_maintenance_min_group_id ) {
+							WFIFOHEAD(fd,3);
+							WFIFOW(fd,0) = 0x6c;
+							WFIFOB(fd,2) = 0; // Rejected from server
+							WFIFOSET(fd,3);
+							break;
+						}
 						sd->version = node->version;
 						idb_remove(auth_db,account_id);
 						char_auth_ok(fd,sd);
@@ -4220,9 +4236,21 @@ int parse_char(int fd)
 					int char_id;
 					uint32 subnet_map_ip;
 					struct auth_node* node;
-
+					int server_id = 0;
 					int slot = RFIFOB(fd,2);
+
 					RFIFOSKIP(fd,3);
+					ARR_FIND(0, ARRAYLENGTH(server), server_id, server[server_id].fd > 0 && server[server_id].map[0]);
+					/* Not available, tell it to wait (client wont close; char select will respawn).
+					 * Magic response found by Ind thanks to Yommy <3 */
+					if( server_id == ARRAYLENGTH(server) ) {
+						WFIFOHEAD(fd,24);
+						WFIFOW(fd,0) = 0x840;
+						WFIFOW(fd,2) = 24;
+						safestrncpy((char*)WFIFOP(fd,4),"0",20); /* We can't send empty (otherwise the list will pop up) */
+						WFIFOSET(fd,24);
+						break;
+					}
 
 					if( SQL_SUCCESS != Sql_Query(sql_handle,"SELECT `char_id` FROM `%s` WHERE `account_id`='%d' AND `char_num`='%d'",char_db,sd->account_id,slot)
 					  || SQL_SUCCESS != Sql_NextRow(sql_handle)
@@ -4387,6 +4415,7 @@ int parse_char(int fd)
 					/* Others I found [Ind] */
 					/* 0x02 = Symbols in Character Names are forbidden */
 					/* 0x03 = You are not elegible to open the Character Slot. */
+					/* 0x0B = This service is only available for premium users.  */
 					switch( i ) {
 						case -1: WFIFOB(fd,2) = 0x00; break;
 						case -2: WFIFOB(fd,2) = 0xFF; break;
@@ -4407,9 +4436,7 @@ int parse_char(int fd)
 					WFIFOSET(fd,len);
 
 					//Add new entry to the chars list
-					ARR_FIND(0,MAX_CHARS,ch,sd->found_char[ch] == -1);
-					if( ch < MAX_CHARS )
-						sd->found_char[ch] = i; //The char_id of the new char
+					sd->found_char[char_dat.slot] = i; //The char_id of the new char
 				}
 #if PACKETVER >= 20120307
 				RFIFOSKIP(fd,31);
@@ -4455,9 +4482,7 @@ int parse_char(int fd)
 					}
 
 					//Remove char from list and compact it
-					for( ch = i; ch < MAX_CHARS - 1; ch++ )
-						sd->found_char[ch] = sd->found_char[ch + 1];
-					sd->found_char[MAX_CHARS - 1] = -1;
+					sd->found_char[i] = -1;
 
 					/* Delete character */
 					if( delete_char_sql(cid) < 0 ) {
@@ -4892,7 +4917,7 @@ int check_connect_login_server(int tid, unsigned int tick, int id, intptr_t data
 	WFIFOW(login_fd,58) = htons(char_port);
 	memcpy(WFIFOP(login_fd,60),server_name,20);
 	WFIFOW(login_fd,80) = 0;
-	WFIFOW(login_fd,82) = char_maintenance;
+	WFIFOW(login_fd,82) = char_server_type;
 	WFIFOW(login_fd,84) = char_new_display; //Only display (New) if they want to [Kevin]
 	WFIFOSET(login_fd,86);
 
@@ -5418,8 +5443,8 @@ int char_config_read(const char* cfgName)
 			}
 		} else if (strcmpi(w1, "char_port") == 0) {
 			char_port = atoi(w2);
-		} else if (strcmpi(w1, "char_maintenance") == 0) {
-			char_maintenance = atoi(w2);
+		} else if (strcmpi(w1, "char_server_type") == 0) {
+			char_server_type = atoi(w2);
 		} else if (strcmpi(w1, "char_new") == 0) {
 			char_new = (bool)atoi(w2);
 		} else if (strcmpi(w1, "char_new_display") == 0) {
@@ -5534,6 +5559,8 @@ int char_config_read(const char* cfgName)
 			char_movetoused = config_switch(w2);
 		} else if (strcmpi(w1, "char_moves_unlimited") == 0) {
 			char_moves_unlimited = config_switch(w2);
+		} else if (strcmpi(w1, "char_maintenance_min_group_id") == 0) {
+			char_maintenance_min_group_id = atoi(w2);
 		} else if (strcmpi(w1, "import") == 0) {
 			char_config_read(w2);
 		}

@@ -9863,30 +9863,27 @@ static bool pc_readdb_job_exp(char* fields[], int columns, int current)
  *------------------------------------------*/
 int pc_readdb(void)
 {
-	int i,
-#if defined(RENEWAL_DROP) || defined(RENEWAL_EXP)
-	j,
-#endif
-	k,l,entries;
+	int i, j, k, l;
+	unsigned int entries = 0;
 	FILE *fp;
-	char line[24000];
+	char line[24000], *p;
 
-	//reset
-	memset(job_info,0,sizeof(job_info)); // job_info table
-
+	// Reset
+	memset(job_info, 0, sizeof(job_info)); // job_info table
 
 	// Reset and read skilltree
-	memset(skill_tree,0,sizeof(skill_tree));
-	sv_readdb(db_path, DBPATH"skill_tree.txt", ',', 3+MAX_PC_SKILL_REQUIRE*2, 4+MAX_PC_SKILL_REQUIRE*2, -1, &pc_readdb_skilltree);
+	memset(skill_tree, 0, sizeof(skill_tree));
+	sv_readdb(db_path, DBPATH"skill_tree.txt", ',', 3 + MAX_PC_SKILL_REQUIRE * 2, 4 + MAX_PC_SKILL_REQUIRE * 2, -1, &pc_readdb_skilltree);
 
 #if defined(RENEWAL_DROP) || defined(RENEWAL_EXP)
 	sv_readdb(db_path, "re/level_penalty.txt", ',', 4, 4, -1, &pc_readdb_levelpenalty);
-	for( k = 1; k < 3; k++ ) { // fill in the blanks
+	for( k = 1; k < 3; k++ ) { // Fill in the blanks
 		for( j = 0; j < RC_MAX; j++ ) {
 			int tmp = 0;
-			for( i = 0; i < MAX_LEVEL*2; i++ ) {
-				if( i == MAX_LEVEL+1 )
-					tmp = level_penalty[k][j][0]; // reset
+
+			for( i = 0; i < MAX_LEVEL * 2; i++ ) {
+				if( i == MAX_LEVEL + 1 )
+					tmp = level_penalty[k][j][0]; // Reset
 				if( level_penalty[k][j][i] > 0 )
 					tmp = level_penalty[k][j][i];
 				else
@@ -9896,19 +9893,73 @@ int pc_readdb(void)
 	}
 #endif
 
-	 // reset then read statspoint
+	// Reset then read attr_fix.txt
+	for( i = 0; i < 4; i++ )
+		for( j = 0; j < ELE_MAX; j++ )
+			for( k = 0; k < ELE_MAX; k++ )
+				attr_fix_table[i][j][k] = 100;
+
+	sprintf(line, "%s/"DBPATH"attr_fix.txt", db_path);
+	fp = fopen(line, "r");
+	if( fp == NULL ) {
+		ShowError("Can't read %s\n", line);
+		return 1;
+	}
+	while( fgets(line, sizeof(line), fp) ) {
+		char *split[10];
+		int lv, n;
+
+		if( line[0] == '/' && line[1] == '/' )
+			continue;
+		for( j = 0, p = line; j < 3 && p; j++ ) {
+			split[j] = p;
+			p = strchr(p,',');
+			if(p) *p++ = 0;
+		}
+		if( j < 2 )
+			continue;
+
+		lv = atoi(split[0]);
+		n = atoi(split[1]);
+
+		for( i = 0; i < n && i < ELE_MAX; ) {
+			if( !fgets(line, sizeof(line), fp) )
+				break;
+			if( line[0] == '/' && line[1] == '/' )
+				continue;
+			for( j = 0, p = line; j < n && j < ELE_MAX && p; j++ ) {
+				while( *p == 32 && *p > 0 )
+					p++;
+				attr_fix_table[lv - 1][i][j] = atoi(p);
+#ifndef RENEWAL
+				if( battle_config.attr_recover == 0 && attr_fix_table[lv - 1][i][j] < 0 )
+					attr_fix_table[lv - 1][i][j] = 0;
+#endif
+				p = strchr(p,',');
+				if( p ) *p++ = 0;
+			}
+
+			i++;
+		}
+		entries++;
+	}
+	fclose(fp);
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", entries, DBPATH"attr_fix.txt");
+
+	 // Reset then read statspoint
 	memset(statp,0,sizeof(statp));
 	i = 1;
 
 	sprintf(line, "%s/"DBPATH"statpoint.txt", db_path);
-	fp = fopen(line,"r");
+	fp = fopen(line, "r");
 	if( fp == NULL ) {
-		ShowWarning("Can't read '"CL_WHITE"%s"CL_RESET"'... Generating DB.\n",line);
+		ShowWarning("Can't read '"CL_WHITE"%s"CL_RESET"'... Generating DB.\n", line);
 		//return 1;
 	} else {
 		entries = 0;
 		while( fgets(line, sizeof(line), fp) ) {
 			int stat;
+
 			if( line[0]=='/' && line[1]=='/' )
 				continue;
 			if( (stat = strtoul(line,NULL,10)) < 0 )
@@ -9922,13 +9973,13 @@ int pc_readdb(void)
 		fclose(fp);
 		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", entries, DBPATH"statpoint.txt");
 	}
-	// generate the remaining parts of the db if necessary
-	k = battle_config.use_statpoint_table; //save setting
-	battle_config.use_statpoint_table = 0; //temporarily disable to force pc_gets_status_point use default values
-	statp[0] = 45; // seed value
+	// Generate the remaining parts of the db if necessary
+	k = battle_config.use_statpoint_table; // Save setting
+	battle_config.use_statpoint_table = 0; // Temporarily disable to force pc_gets_status_point use default values
+	statp[0] = 45; // Seed value
 	for( ; i <= MAX_LEVEL; i++ )
-		statp[i] = statp[i-1] + pc_gets_status_point(i-1);
-	battle_config.use_statpoint_table = k; //restore setting
+		statp[i] = statp[i - 1] + pc_gets_status_point(i - 1);
+	battle_config.use_statpoint_table = k; // Restore setting
 
 #ifdef RENEWAL_ASPD
 	sv_readdb(db_path, "re/job_db1.txt",',',6 + MAX_WEAPON_TYPE,6 + MAX_WEAPON_TYPE,CLASS_COUNT,&pc_readdb_job1);
@@ -9941,11 +9992,11 @@ int pc_readdb(void)
 #endif
 	sv_readdb(db_path, DBPATH"job_exp.txt",',',4,1000 + 3,CLASS_COUNT * 2,&pc_readdb_job_exp); //Support till 1000lvl
 
-	//Checking if all class have their data
+	// Checking if all class have their data
 	for( i = 0; i < JOB_MAX; i++ ) {
 		if( !pcdb_checkid(i) ) continue;
 		if( i == JOB_WEDDING || i == JOB_XMAS || i == JOB_SUMMER || i == JOB_HANBOK )
-			continue; //Classes that do not need exp tables.
+			continue; // Classes that do not need exp tables.
 		l = pc_class2idx(i);
 		if( !job_info[l].max_level[0] )
 			ShowWarning("Class %s (%d) does not have a base exp table.\n", job_name(i), i);

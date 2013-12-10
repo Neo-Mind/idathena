@@ -80,7 +80,6 @@ int mmo_auth_new(const char* userid, const char* pass, const char sex, const cha
 #define AUTH_TIMEOUT 30000
 
 struct auth_node {
-
 	int account_id;
 	uint32 login_id1;
 	uint32 login_id2;
@@ -88,6 +87,7 @@ struct auth_node {
 	char sex;
 	uint32 version;
 	uint8 clienttype;
+	int group_id;
 };
 
 static DBMap* auth_db; // int account_id -> struct auth_node*
@@ -583,7 +583,7 @@ int parse_fromchar(int fd) {
 						//ShowStatus("Char-server '%s': authentication of the account %d accepted (ip: %s).\n", server[id].name, account_id, ip);
 
 						//Send ack
-						WFIFOHEAD(fd,25);
+						WFIFOHEAD(fd,29);
 						WFIFOW(fd,0) = 0x2713;
 						WFIFOL(fd,2) = account_id;
 						WFIFOL(fd,6) = login_id1;
@@ -593,13 +593,14 @@ int parse_fromchar(int fd) {
 						WFIFOL(fd,16) = request_id;
 						WFIFOL(fd,20) = node->version;
 						WFIFOB(fd,24) = node->clienttype;
-						WFIFOSET(fd,25);
+						WFIFOL(fd,25) = node->group_id;
+						WFIFOSET(fd,29);
 
 						//Each auth entry can only be used once
 						idb_remove(auth_db, account_id);
 					} else { //Authentication not found
 						ShowStatus("Char-server '%s': authentication of the account %d REFUSED (ip: %s).\n", server[id].name, account_id, ip);
-						WFIFOHEAD(fd,25);
+						WFIFOHEAD(fd,29);
 						WFIFOW(fd,0) = 0x2713;
 						WFIFOL(fd,2) = account_id;
 						WFIFOL(fd,6) = login_id1;
@@ -609,7 +610,8 @@ int parse_fromchar(int fd) {
 						WFIFOL(fd,16) = request_id;
 						WFIFOL(fd,20) = 0;
 						WFIFOB(fd,24) = 0;
-						WFIFOSET(fd,25);
+						WFIFOL(fd,25) = 0;
+						WFIFOSET(fd,29);
 					}
 				}
 				break;
@@ -1298,34 +1300,33 @@ void login_auth_ok(struct login_session_data* sd)
 	login_log(ip, sd->userid, 100, "login ok");
 	ShowStatus("Connection of the account '%s' accepted.\n", sd->userid);
 
-	WFIFOHEAD(fd,47+32*server_num);
+	WFIFOHEAD(fd,47 + 32 * server_num);
 	WFIFOW(fd,0) = 0x69;
-	WFIFOW(fd,2) = 47+32*server_num;
+	WFIFOW(fd,2) = 47 + 32 * server_num;
 	WFIFOL(fd,4) = sd->login_id1;
 	WFIFOL(fd,8) = sd->account_id;
 	WFIFOL(fd,12) = sd->login_id2;
-	WFIFOL(fd,16) = 0; // in old version, that was for ip (not more used)
-	//memcpy(WFIFOP(fd,20), sd->lastlogin, 24); // in old version, that was for name (not more used)
+	WFIFOL(fd,16) = 0; // In old version, that was for ip (not more used)
+	//memcpy(WFIFOP(fd,20), sd->lastlogin, 24); // In old version, that was for name (not more used)
 	memset(WFIFOP(fd,20), 0, 24);
-	WFIFOW(fd,44) = 0; // unknown
+	WFIFOW(fd,44) = 0; // Unknown
 	WFIFOB(fd,46) = sex_str2num(sd->sex);
-	for( i = 0, n = 0; i < ARRAYLENGTH(server); ++i )
-	{
+	for( i = 0, n = 0; i < ARRAYLENGTH(server); ++i ) {
 		if( !session_isValid(server[i].fd) )
 			continue;
 
 		subnet_char_ip = lan_subnetcheck(ip); // Advanced subnet check [LuzZza]
-		WFIFOL(fd,47+n*32) = htonl((subnet_char_ip) ? subnet_char_ip : server[i].ip);
-		WFIFOW(fd,47+n*32+4) = ntows(htons(server[i].port)); // [!] LE byte order here [!]
-		memcpy(WFIFOP(fd,47+n*32+6), server[i].name, 20);
-		WFIFOW(fd,47+n*32+26) = server[i].users;
-		WFIFOW(fd,47+n*32+28) = server[i].type;
-		WFIFOW(fd,47+n*32+30) = server[i].new_;
+		WFIFOL(fd,47 + n * 32) = htonl((subnet_char_ip) ? subnet_char_ip : server[i].ip);
+		WFIFOW(fd,47 + n * 32 + 4) = ntows(htons(server[i].port)); // [!] LE byte order here [!]
+		memcpy(WFIFOP(fd,47 + n * 32 + 6), server[i].name, 20);
+		WFIFOW(fd,47 + n * 32 + 26) = server[i].users;
+		WFIFOW(fd,47 + n * 32 + 28) = server[i].type;
+		WFIFOW(fd,47 + n * 32 + 30) = server[i].new_;
 		n++;
 	}
-	WFIFOSET(fd,47+32*server_num);
+	WFIFOSET(fd,47 + 32 * server_num);
 
-	// create temporary auth entry
+	// Create temporary auth entry
 	CREATE(node, struct auth_node, 1);
 	node->account_id = sd->account_id;
 	node->login_id1 = sd->login_id1;
@@ -1334,15 +1335,16 @@ void login_auth_ok(struct login_session_data* sd)
 	node->ip = ip;
 	node->version = sd->version;
 	node->clienttype = sd->clienttype;
+	node->group_id = sd->group_id;
 	idb_put(auth_db, sd->account_id, node);
 
 	{
 		struct online_login_data* data;
 
-		// mark client as 'online'
+		// Mark client as 'online'
 		data = add_online_user(-1, sd->account_id);
 
-		// schedule deletion of this node
+		// Schedule deletion of this node
 		data->waiting_disconnect = add_timer(gettick()+AUTH_TIMEOUT, waiting_disconnect_timer, sd->account_id, 0);
 	}
 }

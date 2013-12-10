@@ -3675,10 +3675,9 @@ void map_add_questinfo(int m, struct questinfo *qi) {
 	unsigned short i;
 
 	/* Duplicate, override */
-	for( i = 0; i < map[m].qi_count; i++ ) {
+	for( i = 0; i < map[m].qi_count; i++ )
 		if( map[m].qi_data[i].nd == qi->nd )
 			break;
-	}
 
 	if( i == map[m].qi_count )
 		RECREATE(map[m].qi_data, struct questinfo, ++map[m].qi_count);

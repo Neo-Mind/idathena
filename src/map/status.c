@@ -11980,59 +11980,6 @@ static bool status_readdb_refine(char* fields[], int columns, int current)
 	return true;
 }
 
-static bool status_readdb_attrfix() {
-	FILE *fp;
-	char line[512], path[512],*p;
-	int entries = 0;
-
-
-	sprintf(path, "%s/"DBPATH"attr_fix.txt", db_path);
-	fp = fopen(path,"r");
-	if(fp == NULL) {
-		ShowError("can't read %s\n", path);
-		return 1;
-	}
-	while(fgets(line, sizeof(line), fp)) {
-		char *split[10];
-		int lv,n,i,j;
-		if(line[0] == '/' && line[1] == '/')
-			continue;
-		for(j = 0, p = line; j < 3 && p; j++) {
-			split[j] = p;
-			p = strchr(p,',');
-			if(p) *p++ = 0;
-		}
-		if( j < 2 )
-			continue;
-
-		lv = atoi(split[0]);
-		n = atoi(split[1]);
-
-		for(i = 0; i < n && i < ELE_MAX;) {
-			if(!fgets(line, sizeof(line), fp))
-				break;
-			if(line[0] == '/' && line[1] == '/')
-				continue;
-
-			for(j = 0, p = line; j < n && j < ELE_MAX && p; j++) {
-				while(*p == 32 && *p > 0)
-					p++;
-				attr_fix_table[lv - 1][i][j] = atoi(p);
-				if(battle_config.attr_recover == 0 && attr_fix_table[lv - 1][i][j] < 0)
-					attr_fix_table[lv - 1][i][j] = 0;
-				p = strchr(p,',');
-				if(p) *p++ = 0;
-			}
-
-			i++;
-		}
-		entries++;
-	}
-	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", entries, path);
-	return true;
-}
-
 /*------------------------------------------
  * DB reading.
  * size_fix.txt		- size adjustment table for weapons
@@ -12040,7 +11987,7 @@ static bool status_readdb_attrfix() {
  *------------------------------------------*/
 int status_readdb(void)
 {
-	int i, j, k;
+	int i, j;
 	//Initialize databases to default
 	//size_fix.txt
 	for(i = 0; i < ARRAYLENGTH(atkmods); i++)
@@ -12054,18 +12001,11 @@ int status_readdb(void)
 			refine_info[i].randombonus_max[j] = 0;
 		}
 	}
-	//attr_fix.txt
-	for(i = 0; i < 4; i++)
-		for(j = 0; j < ELE_MAX; j++)
-			for(k = 0; k < ELE_MAX; k++)
-				attr_fix_table[i][j][k] = 100;
 
 	//Read databases
 	//path,filename,separator,mincol,maxcol,maxrow,func_parsor
-	status_readdb_attrfix(); //TODO use sv_readdb ?
-	sv_readdb(db_path, "size_fix.txt",',',MAX_WEAPON_TYPE,MAX_WEAPON_TYPE,ARRAYLENGTH(atkmods),&status_readdb_sizefix);
-	sv_readdb(db_path, DBPATH"refine_db.txt", ',', 4+MAX_REFINE, 4+MAX_REFINE, ARRAYLENGTH(refine_info), &status_readdb_refine);
-
+	sv_readdb(db_path, "size_fix.txt", ',', MAX_WEAPON_TYPE, MAX_WEAPON_TYPE, ARRAYLENGTH(atkmods), &status_readdb_sizefix);
+	sv_readdb(db_path, DBPATH"refine_db.txt", ',', 4 + MAX_REFINE, 4 + MAX_REFINE, ARRAYLENGTH(refine_info), &status_readdb_refine);
 	return 0;
 }
 

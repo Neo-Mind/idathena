@@ -781,6 +781,14 @@ enum {
 	SEX_SERVER
 };
 
+enum e_char_server_type {
+	CST_NORMAL      = 0,
+	CST_MAINTENANCE = 1,
+	CST_OVER18      = 2,
+	CST_PAYING      = 3,
+	CST_P2P         = 4,
+};
+
 // Sanity checks
 #if MAX_ZENY > INT_MAX
 	#error MAX_ZENY is too big

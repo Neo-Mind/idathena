@@ -421,8 +421,10 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 				break;
 		}
 	} //End tsc check
-
-	return damage * ratio / 100;
+	if( ratio < 100 )
+		return damage - (damage * (100 - ratio) / 100);
+	else
+		return damage + (damage * (ratio - 100) / 100);
 }
 
 /*==========================================
