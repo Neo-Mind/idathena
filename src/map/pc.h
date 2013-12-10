@@ -588,7 +588,7 @@ struct map_session_data {
 
 struct eri *pc_sc_display_ers;
 /* Global expiration timer id */
-int pc_expiration_tid;
+extern int pc_expiration_tid;
 
 enum weapon_type {
 	W_FIST,	//Bare hands

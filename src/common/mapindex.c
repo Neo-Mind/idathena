@@ -162,12 +162,12 @@ void mapindex_init(void) {
 	}
 	fclose(fp);
 
-	if (!strdb_iget(mapindex_db, MAP_DEFAULT)) {
+	if (!strdb_iget(mapindex_db, MAP_DEFAULT))
 		ShowError("mapindex_init: MAP_DEFAULT '%s' not found in cache! Update MAP_DEFAULT in mapindex.h!\n",MAP_DEFAULT);
-	}
 }
 
 int mapindex_removemap(int index) {
+	strdb_remove(mapindex_db, indexes[index].name);
 	indexes[index].name[0] = '\0';
 	return 0;
 }

@@ -5394,43 +5394,43 @@ int char_config_read(const char* cfgName)
 	while (fgets(line, sizeof(line), fp)) {
 		if (line[0] == '/' && line[1] == '/')
 			continue;
-
 		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) != 2)
 			continue;
 
 		remove_control_chars(w1);
 		remove_control_chars(w2);
-		if (strcmpi(w1,"timestamp_format") == 0) {
+		if (strcmpi(w1,"timestamp_format") == 0)
 			safestrncpy(timestamp_format, w2, sizeof(timestamp_format));
-		} else if (strcmpi(w1,"console_silent") == 0) {
+		else if (strcmpi(w1,"console_silent") == 0) {
 			msg_silent = atoi(w2);
 			if (msg_silent) /* Only bother if its actually enabled */
 				ShowInfo("Console Silent Setting: %d\n", atoi(w2));
-		} else if (strcmpi(w1, "stdout_with_ansisequence") == 0) {
+		} else if (strcmpi(w1, "stdout_with_ansisequence") == 0)
 			stdout_with_ansisequence = config_switch(w2);
-		} else if (strcmpi(w1, "userid") == 0) {
+		else if (strcmpi(w1, "userid") == 0)
 			safestrncpy(userid, w2, sizeof(userid));
-		} else if (strcmpi(w1, "passwd") == 0) {
+		else if (strcmpi(w1, "passwd") == 0)
 			safestrncpy(passwd, w2, sizeof(passwd));
-		} else if (strcmpi(w1, "server_name") == 0) {
+		else if (strcmpi(w1, "server_name") == 0)
 			safestrncpy(server_name, w2, sizeof(server_name));
-		} else if (strcmpi(w1, "wisp_server_name") == 0) {
-			if (strlen(w2) >= 4) {
+		else if (strcmpi(w1, "wisp_server_name") == 0) {
+			if (strlen(w2) >= 4)
 				safestrncpy(wisp_server_name, w2, sizeof(wisp_server_name));
-			}
 		} else if (strcmpi(w1, "login_ip") == 0) {
 			login_ip = host2ip(w2);
 			if (login_ip) {
 				char ip_str[16];
+
 				safestrncpy(login_ip_str, w2, sizeof(login_ip_str));
 				ShowStatus("Login server IP address : %s -> %s\n", w2, ip2str(login_ip, ip_str));
 			}
-		} else if (strcmpi(w1, "login_port") == 0) {
+		} else if (strcmpi(w1, "login_port") == 0)
 			login_port = atoi(w2);
-		} else if (strcmpi(w1, "char_ip") == 0) {
+		else if (strcmpi(w1, "char_ip") == 0) {
 			char_ip = host2ip(w2);
 			if (char_ip) {
 				char ip_str[16];
+
 				safestrncpy(char_ip_str, w2, sizeof(char_ip_str));
 				ShowStatus("Character server IP address : %s -> %s\n", w2, ip2str(char_ip, ip_str));
 			}
@@ -5438,32 +5438,34 @@ int char_config_read(const char* cfgName)
 			bind_ip = host2ip(w2);
 			if (bind_ip) {
 				char ip_str[16];
+
 				safestrncpy(bind_ip_str, w2, sizeof(bind_ip_str));
 				ShowStatus("Character server binding IP address : %s -> %s\n", w2, ip2str(bind_ip, ip_str));
 			}
-		} else if (strcmpi(w1, "char_port") == 0) {
+		} else if (strcmpi(w1, "char_port") == 0)
 			char_port = atoi(w2);
-		} else if (strcmpi(w1, "char_server_type") == 0) {
+		else if (strcmpi(w1, "char_server_type") == 0)
 			char_server_type = atoi(w2);
-		} else if (strcmpi(w1, "char_new") == 0) {
+		else if (strcmpi(w1, "char_new") == 0)
 			char_new = (bool)atoi(w2);
-		} else if (strcmpi(w1, "char_new_display") == 0) {
+		else if (strcmpi(w1, "char_new_display") == 0)
 			char_new_display = atoi(w2);
-		} else if (strcmpi(w1, "max_connect_user") == 0) {
+		else if (strcmpi(w1, "max_connect_user") == 0) {
 			max_connect_user = atoi(w2);
 			if (max_connect_user < -1)
 				max_connect_user = -1;
-		} else if(strcmpi(w1, "gm_allow_group") == 0) {
+		} else if(strcmpi(w1, "gm_allow_group") == 0)
 			gm_allow_group = atoi(w2);
-		} else if (strcmpi(w1, "autosave_time") == 0) {
+		else if (strcmpi(w1, "autosave_time") == 0) {
 			autosave_interval = atoi(w2) * 1000;
 			if (autosave_interval <= 0)
 				autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
-		} else if (strcmpi(w1, "save_log") == 0) {
+		} else if (strcmpi(w1, "save_log") == 0)
 			save_log = config_switch(w2);
-		} else if (strcmpi(w1, "start_point") == 0) {
+		else if (strcmpi(w1, "start_point") == 0) {
 			char map[MAP_NAME_LENGTH_EXT];
 			int x, y;
+
 			if (sscanf(w2, "%15[^,],%d,%d", map, &x, &y) < 3)
 				continue;
 			start_point.map = mapindex_name2id(map);
@@ -5479,8 +5481,8 @@ int char_config_read(const char* cfgName)
 			int i = 0, n = 0;
 			char *lineitem, **fields;
 			int fields_length = 3 + 1;
-			fields = (char**)aMalloc(fields_length*sizeof(char*));
 
+			fields = (char**)aMalloc(fields_length*sizeof(char*));
 			lineitem = strtok(w2, ":");
 			while (lineitem != NULL) {
 				n = sv_split(lineitem, strlen(lineitem), 0, ',', fields, fields_length, SV_NOESCAPE_NOTERMINATE);
@@ -5489,9 +5491,9 @@ int char_config_read(const char* cfgName)
 					lineitem = strtok(NULL, ":"); //Next itemline
 					continue;
 				}
-				if (i > MAX_STARTITEM) {
+				if (i > MAX_STARTITEM)
 					ShowDebug("start_items: too many items, only %d are allowed! Ignoring parameter %s...\n", MAX_STARTITEM, lineitem);
-				} else {
+				else {
 					start_items[i].nameid = max(0,atoi(fields[1]));
 					start_items[i].amount = max(0,atoi(fields[2]));
 					start_items[i].pos = max(0,atoi(fields[3]));
@@ -5500,26 +5502,26 @@ int char_config_read(const char* cfgName)
 				i++;
 			}
 			aFree(fields);
-		} else if (strcmpi(w1,"log_char") == 0) { //Log char or not [devil]
+		} else if (strcmpi(w1,"log_char") == 0) //Log char or not [devil]
 			log_char = atoi(w2);
-		} else if (strcmpi(w1, "unknown_char_name") == 0) {
+		else if (strcmpi(w1, "unknown_char_name") == 0) {
 			safestrncpy(unknown_char_name, w2, sizeof(unknown_char_name));
 			unknown_char_name[NAME_LENGTH-1] = '\0';
-		} else if (strcmpi(w1, "name_ignoring_case") == 0) {
+		} else if (strcmpi(w1, "name_ignoring_case") == 0)
 			name_ignoring_case = (bool)config_switch(w2);
-		} else if (strcmpi(w1, "char_name_option") == 0) {
+		else if (strcmpi(w1, "char_name_option") == 0)
 			char_name_option = atoi(w2);
-		} else if (strcmpi(w1, "char_name_letters") == 0) {
+		else if (strcmpi(w1, "char_name_letters") == 0)
 			safestrncpy(char_name_letters, w2, sizeof(char_name_letters));
-		} else if (strcmpi(w1, "char_del_level") == 0) { //Disable/enable char deletion by its level condition [Lupus]
+		else if (strcmpi(w1, "char_del_level") == 0) //Disable/enable char deletion by its level condition [Lupus]
 			char_del_level = atoi(w2);
-		} else if (strcmpi(w1, "char_del_delay") == 0) {
+		else if (strcmpi(w1, "char_del_delay") == 0)
 			char_del_delay = atoi(w2);
-		} else if (strcmpi(w1,"db_path")==0) {
+		else if (strcmpi(w1, "db_path") == 0)
 			safestrncpy(db_path, w2, sizeof(db_path));
-		} else if (strcmpi(w1, "console") == 0) {
+		else if (strcmpi(w1, "console") == 0)
 			console = config_switch(w2);
-		} else if (strcmpi(w1, "fame_list_alchemist") == 0) {
+		else if (strcmpi(w1, "fame_list_alchemist") == 0) {
 			fame_list_size_chemist = atoi(w2);
 			if (fame_list_size_chemist > MAX_FAME_LIST) {
 				ShowWarning("Max fame list size is %d (fame_list_alchemist)\n", MAX_FAME_LIST);
@@ -5537,9 +5539,9 @@ int char_config_read(const char* cfgName)
 				ShowWarning("Max fame list size is %d (fame_list_taekwon)\n", MAX_FAME_LIST);
 				fame_list_size_taekwon = MAX_FAME_LIST;
 			}
-		} else if (strcmpi(w1, "guild_exp_rate") == 0) {
+		} else if (strcmpi(w1, "guild_exp_rate") == 0)
 			guild_exp_rate = atoi(w2);
-		} else if (strcmpi(w1, "pincode_enabled") == 0) {
+		else if (strcmpi(w1, "pincode_enabled") == 0) {
 			pincode_enabled = config_switch(w2);
 #if PACKETVER < 20110309
 			if (pincode_enabled) {
@@ -5547,23 +5549,22 @@ int char_config_read(const char* cfgName)
 				pincode_enabled = false;
 			}
 #endif
-		} else if (strcmpi(w1, "pincode_changetime") == 0) {
+		} else if (strcmpi(w1, "pincode_changetime") == 0)
 			pincode_changetime = atoi(w2) * 60 * 60 * 24;
-		} else if (strcmpi(w1, "pincode_maxtry") == 0) {
+		else if (strcmpi(w1, "pincode_maxtry") == 0)
 			pincode_maxtry = atoi(w2);
-		} else if (strcmpi(w1, "pincode_force") == 0) {
+		else if (strcmpi(w1, "pincode_force") == 0)
 			pincode_force = config_switch(w2);
-		} else if (strcmpi(w1, "char_move_enabled") == 0) {
+		else if (strcmpi(w1, "char_move_enabled") == 0)
 			char_move_enabled = config_switch(w2);
-		} else if (strcmpi(w1, "char_movetoused") == 0) {
+		else if (strcmpi(w1, "char_movetoused") == 0)
 			char_movetoused = config_switch(w2);
-		} else if (strcmpi(w1, "char_moves_unlimited") == 0) {
+		else if (strcmpi(w1, "char_moves_unlimited") == 0)
 			char_moves_unlimited = config_switch(w2);
-		} else if (strcmpi(w1, "char_maintenance_min_group_id") == 0) {
+		else if (strcmpi(w1, "char_maintenance_min_group_id") == 0)
 			char_maintenance_min_group_id = atoi(w2);
-		} else if (strcmpi(w1, "import") == 0) {
+		else if (strcmpi(w1, "import") == 0)
 			char_config_read(w2);
-		}
 	}
 	fclose(fp);
 

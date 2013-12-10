@@ -9674,8 +9674,10 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 	//If player is dead, and is spawned (such as @refresh) send death packet. [Valaris]
 	if(pc_isdead(sd))
 		clif_clearunit_area(&sd->bl,CLR_DEAD);
-	else
+	else {
 		skill_usave_trigger(sd);
+		sd->ud.dir = 0; /* Enforce north-facing (not visually, virtually) */
+	}
 
 	//Trigger skill effects if you appear standing on them
 	if(!battle_config.pc_invincible_time)

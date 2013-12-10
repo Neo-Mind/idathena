@@ -1219,7 +1219,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			if( flag&BF_LONG )
 				damage = damage * battle_config.pk_long_damage_rate / 100;
 		}
-		if( !damage ) damage  = 1;
+		damage = max(damage,1); //Min 1 dammage
 	}
 
 	if( battle_config.skill_min_damage && damage > 0 && damage < div_ ) {
@@ -1239,15 +1239,16 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 	if( sd ) {
 		if( pc_ismadogear(sd) && rnd()%100 < 50 ) {
 			short element = skill_get_ele(skill_id,skill_lv);
+
 			if( !skill_id || element == -1 ) { //Take weapon's element
 				struct status_data *sstatus = NULL;
+
 				if( src->type == BL_PC && ((TBL_PC*)src)->bonus.arrow_ele )
 					element = ((TBL_PC*)src)->bonus.arrow_ele;
 				else if( (sstatus = status_get_status_data(src)) ) {
 					element = sstatus->rhw.ele;
 				}
-			}
-			else if( element == -2 ) //Use enchantment's element
+			} else if( element == -2 ) //Use enchantment's element
 				element = status_get_attack_sc_element(src,status_get_sc(src));
 			else if( element == -3 ) //Use random element
 				element = rnd()%ELE_MAX;
@@ -1274,6 +1275,7 @@ int64 battle_calc_bg_damage(struct block_list *src, struct block_list *bl, int64
 
 	if( bl->type == BL_MOB ) {
 		struct mob_data* md = BL_CAST(BL_MOB, bl);
+
 		if( map[bl->m].flag.battleground && (md->class_ == MOBID_BLUE_CRYST || md->class_ == MOBID_PINK_CRYST) && flag&BF_SKILL )
 			return 0; //Crystal cannot receive skill damage on battlegrounds
 	}
@@ -4824,6 +4826,7 @@ void battle_do_reflect(int attack_type, struct Damage *wd, struct block_list* sr
 
 		if(tsc) {
 			struct status_data *tstatus = status_get_status_data(target);
+
 			rdamage = battle_calc_return_damage(target, src, &damage, wd->flag, skill_id, 1);
 			if(rdamage > 0) {
 				if(attack_type == BF_WEAPON && tsc->data[SC_REFLECTDAMAGE])
@@ -4899,6 +4902,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		wd.dmg_lv = ATK_FLEE;
 	else if(!target_has_infinite_defense(target, skill_id)) { //No need for math against plants
 		int ratio;
+
 		wd = battle_calc_skill_base_damage(wd, src, target, skill_id, skill_lv); //Base skill damage
 		ratio = battle_calc_attack_skill_ratio(wd, src, target, skill_id, skill_lv); //Skill level ratios
 
@@ -4912,6 +4916,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		ATK_ADD(wd.equipAtk, wd.equipAtk2, ratio); //Equip ATK gets modified by skill bonuses as well [helvetica]
 		if(skill_id == HW_MAGICCRASHER) { //Add weapon attack for MATK onto Magic Crasher
 			struct status_data *sstatus = status_get_status_data(src);
+
 			if(sstatus->matk_max > sstatus->matk_min) {
 				ATK_ADD(wd.weaponAtk, wd.weaponAtk2, sstatus->matk_min + rnd()%(sstatus->matk_max-sstatus->matk_min));
 			} else

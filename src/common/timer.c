@@ -283,7 +283,7 @@ int add_timer_interval(unsigned int tick, TimerFunc func, int id, intptr_t data,
 /// Retrieves internal timer data
 const struct TimerData* get_timer(int tid)
 {
-	return ( tid >= 0 && tid < timer_data_num ) ? &timer_data[tid] : NULL;
+	return (tid >= 0 && tid < timer_data_num) ? &timer_data[tid] : NULL;
 }
 
 /// Marks a timer specified by 'id' for immediate deletion once it expires.
