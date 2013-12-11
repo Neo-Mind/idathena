@@ -935,11 +935,18 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_MONSTER_TRANSFORM] = SI_MONSTER_TRANSFORM;
 	StatusIconChangeTable[SC_ALL_RIDING] = SI_ALL_RIDING;
 	StatusIconChangeTable[SC_PUSH_CART] = SI_ON_PUSH_CART;
+	StatusIconChangeTable[SC_MTF_ASPD] = SI_MTF_ASPD;
+	StatusIconChangeTable[SC_MTF_RANGEATK] = SI_MTF_RANGEATK;
+	StatusIconChangeTable[SC_MTF_MATK] = SI_MTF_MATK;
+	StatusIconChangeTable[SC_MTF_MLEATKED] = SI_MTF_MLEATKED;
+	StatusIconChangeTable[SC_MTF_CRIDAMAGE] = SI_MTF_CRIDAMAGE;
 	StatusIconChangeTable[SC_MOONSTAR] = SI_MOONSTAR;
 	StatusIconChangeTable[SC_SUPER_STAR] = SI_SUPER_STAR;
 	StatusIconChangeTable[SC_H_MINE] = SI_H_MINE;
 	StatusIconChangeTable[SC_QD_SHOT_READY] = SI_E_QD_SHOT_READY;
 	StatusIconChangeTable[SC_HEAT_BARREL_AFTER] = SI_HEAT_BARREL_AFTER;
+	StatusIconChangeTable[SC_STRANGELIGHTS] = SI_STRANGELIGHTS;
+	StatusIconChangeTable[SC_DECORATION_OF_MUSIC] = SI_DECORATION_OF_MUSIC;
 
 	if( !battle_config.display_hallucination ) //Disable Hallucination
 		StatusIconChangeTable[SC_HALLUCINATION] = SI_BLANK;
@@ -1043,6 +1050,8 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_MTF_MLEATKED] |= SCB_ALL;
 	StatusChangeFlagTable[SC_MOONSTAR] |= SCB_NONE;
 	StatusChangeFlagTable[SC_SUPER_STAR] |= SCB_NONE;
+	StatusChangeFlagTable[SC_STRANGELIGHTS] |= SCB_NONE;
+	StatusChangeFlagTable[SC_DECORATION_OF_MUSIC] |= SCB_NONE;
 
 	/* StatusDisplayType Table [Ind] */
 	StatusDisplayType[SC_ALL_RIDING]	  = true;
@@ -1074,6 +1083,8 @@ void initChangeTables(void) {
 	StatusDisplayType[SC_UNLIMIT]		  = true;
 	StatusDisplayType[SC_MOONSTAR]		  = true;
 	StatusDisplayType[SC_SUPER_STAR]	  = true;
+	StatusDisplayType[SC_STRANGELIGHTS]		  = true;
+	StatusDisplayType[SC_DECORATION_OF_MUSIC]	  = true;
 
 	/* StatusChangeState (SCS_) NOMOVE */
 	StatusChangeStateTable[SC_ANKLE]               |= SCS_NOMOVE;
@@ -6416,6 +6427,8 @@ void status_set_viewdata(struct block_list *bl, int class_)
 							sd->vd.cloth_color = 0;
 						if(sd->sc.option&OPTION_HANBOK && battle_config.hanbok_ignorepalette)
 							sd->vd.cloth_color = 0;
+						if(sd->sc.option&OPTION_OKTOBERFEST && battle_config.oktoberfest_ignorepalette)
+							sd->vd.cloth_color = 0;
 					}
 				} else if (vd)
 					memcpy(&sd->vd,vd,sizeof(struct view_data));
@@ -7936,6 +7949,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_XMAS:
 			case SC_SUMMER:
 			case SC_HANBOK:
+			case SC_OKTOBERFEST:
 				if( !vd )
 					return 0;
 				//Store previous values as they could be removed
@@ -8069,6 +8083,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_ALL_RIDING:
 			case SC_MOONSTAR:
 			case SC_SUPER_STAR:
+			case SC_STRANGELIGHTS:
+			case SC_DECORATION_OF_MUSIC:
 				tick = -1;
 				break;
 			case SC_AUTOGUARD:
@@ -9206,6 +9222,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_XMAS:
 			case SC_SUMMER:
 			case SC_HANBOK:
+			case SC_OKTOBERFEST:
 				if( !vd )
 					break;
 				clif_changelook(bl,LOOK_BASE,vd->class_);
@@ -9550,6 +9567,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			sc->option |= OPTION_HANBOK;
 			opt_flag |= 0x4;
 			break;
+		case SC_OKTOBERFEST:
+			sc->option |= OPTION_OKTOBERFEST;
+			opt_flag |= 0x4;
+			break;
 		case SC_ORCISH:
 			sc->option |= OPTION_ORCISH;
 			break;
@@ -9719,6 +9740,7 @@ int status_change_clear(struct block_list* bl,int type)
 				case SC_XMAS:
 				case SC_SUMMER:
 				case SC_HANBOK:
+				case SC_OKTOBERFEST:
 				case SC_NOCHAT:
 				case SC_FUSION:
 				case SC_EARTHSCROLL:
@@ -9762,6 +9784,8 @@ int status_change_clear(struct block_list* bl,int type)
 				case SC_MOONSTAR:
 				case SC_SUPER_STAR:
 				case SC_HEAT_BARREL_AFTER:
+				case SC_STRANGELIGHTS:
+				case SC_DECORATION_OF_MUSIC:
 					continue;
 			}
 
@@ -9787,6 +9811,8 @@ int status_change_clear(struct block_list* bl,int type)
 				case SC_STYLE_CHANGE:
 				case SC_MOONSTAR:
 				case SC_SUPER_STAR:
+				case SC_STRANGELIGHTS:
+				case SC_DECORATION_OF_MUSIC:
 					continue;
 			}
 
@@ -10362,6 +10388,10 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			break;
 		case SC_HANBOK:
 			sc->option &= ~OPTION_HANBOK;
+			opt_flag |= 0x4;
+			break;
+		case SC_OKTOBERFEST:
+			sc->option &= ~OPTION_OKTOBERFEST;
 			opt_flag |= 0x4;
 			break;
 		case SC_ORCISH:
@@ -11560,6 +11590,8 @@ void status_change_clear_buffs (struct block_list* bl, int type)
 			case SC_MTF_MLEATKED:
 			case SC_MTF_CRIDAMAGE:
 			case SC_HEAT_BARREL_AFTER:
+			case SC_STRANGELIGHTS:
+			case SC_DECORATION_OF_MUSIC:
 				continue;
 
 			//Debuffs that can be removed.

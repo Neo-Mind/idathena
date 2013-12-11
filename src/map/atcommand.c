@@ -956,7 +956,7 @@ ACMD_FUNC(jobchange)
 		}
 	}
 
-	if (job == JOB_KNIGHT2 || job == JOB_CRUSADER2 || job == JOB_WEDDING || job == JOB_XMAS || job == JOB_SUMMER || job == JOB_HANBOK
+	if (job == JOB_KNIGHT2 || job == JOB_CRUSADER2 || job == JOB_WEDDING || job == JOB_XMAS || job == JOB_SUMMER || job == JOB_HANBOK || job == JOB_OKTOBERFEST
 		|| job == JOB_LORD_KNIGHT2 || job == JOB_PALADIN2 || job == JOB_BABY_KNIGHT2 || job == JOB_BABY_CRUSADER2 || job == JOB_STAR_GLADIATOR2
 		|| (job >= JOB_RUNE_KNIGHT2 && job <= JOB_MECHANIC_T2) || (job >= JOB_BABY_RUNE2 && job <= JOB_BABY_MECHANIC2)
 	) { // Deny direct transformation into dummy jobs
@@ -8977,17 +8977,18 @@ ACMD_FUNC(fontcolor)
 }
 
 ACMD_FUNC(costume) {
-	const char* names[4] = {
+	const char* names[5] = {
 		"Wedding",
 		"Xmas",
 		"Summer",
 		"Hanbok",
+		"Oktoberfest",
 	};
-	const int name2id[4] = { SC_WEDDING, SC_XMAS, SC_SUMMER, SC_HANBOK };
+	const int name2id[5] = { SC_WEDDING, SC_XMAS, SC_SUMMER, SC_HANBOK, SC_OKTOBERFEST };
 	unsigned short k = 0;
 
 	if( !message || !*message ) {
-		for( k = 0; k < 4; k++ ) {
+		for( k = 0; k < 5; k++ ) {
 			if( sd->sc.data[name2id[k]] ) {
 				sprintf(atcmd_output, msg_txt(1488), names[k]); // Costume '%s' removed.
 				clif_displaymessage(sd->fd, atcmd_output);
@@ -8997,14 +8998,14 @@ ACMD_FUNC(costume) {
 		}
 
 		clif_displaymessage(sd->fd, msg_txt(1487)); // Available Costumes
-		for( k = 0; k < 4; k++ ) {
+		for( k = 0; k < 5; k++ ) {
 			sprintf(atcmd_output, msg_txt(1486), names[k]); // -- %s
 			clif_displaymessage(sd->fd, atcmd_output);
 		}
 		return -1;
 	}
 
-	for( k = 0; k < 4; k++ ) {
+	for( k = 0; k < 5; k++ ) {
 		if( sd->sc.data[name2id[k]] ) {
 			sprintf(atcmd_output, msg_txt(1485), names[k]); // You're already with a '%s' costume, type '@costume' to remove it.
 			clif_displaymessage(sd->fd, atcmd_output);
@@ -9012,11 +9013,11 @@ ACMD_FUNC(costume) {
 		}
 	}
 
-	for( k = 0; k < 4; k++ ) {
+	for( k = 0; k < 5; k++ ) {
 		if( strcmpi(message, names[k]) == 0 )
 			break;
 	}
-	if( k == 4 ) {
+	if( k == 5 ) {
 		sprintf(atcmd_output, msg_txt(1484), message); // '%s' is not a known costume
 		clif_displaymessage(sd->fd, atcmd_output);
 		return -1;

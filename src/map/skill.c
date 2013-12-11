@@ -3550,6 +3550,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					if (src->type == BL_PC) {
 						struct map_session_data *sd = NULL;
 						const enum e_skill combos[] = { SR_DRAGONCOMBO,SR_FALLENEMPIRE,SR_TIGERCANNON,SR_SKYNETBLOW };
+
 						if ((sd = ((TBL_PC*)src))) {
 							uint16 cid = combos[skl->skill_id - SR_FLASHCOMBO_ATK_STEP1];
 							skill_castend_damage_id(src,target,cid,pc_checkskill(sd,cid),tick,0);
@@ -3643,6 +3644,7 @@ int skill_cleartimerskill (struct block_list *src)
 {
 	int i;
 	struct unit_data *ud;
+
 	nullpo_ret(src);
 	ud = unit_bl2ud(src);
 	nullpo_ret(ud);
@@ -3670,6 +3672,7 @@ int skill_cleartimerskill (struct block_list *src)
 static int skill_ative_reverberation( struct block_list *bl, va_list ap) {
 	struct skill_unit *su = (TBL_SKILL*)bl;
 	struct skill_unit_group *sg;
+
 	if (bl->type != BL_SKILL)
 		return 0;
 	if (su->alive && (sg = su->group) && sg->skill_id == WM_REVERBERATION) {
@@ -7022,7 +7025,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						case SC_MTF_RANGEATK:			case SC_MTF_MATK:		case SC_MTF_MLEATKED:
 						case SC_MTF_CRIDAMAGE:			case SC_HEAT_BARREL:		case SC_HEAT_BARREL_AFTER:
 						case SC_P_ALTER:			case SC_E_CHAIN:		case SC_C_MARKER:
-						case SC_B_TRAP:				case SC_H_MINE:
+						case SC_B_TRAP:				case SC_H_MINE:			case SC_STRANGELIGHTS:
+						case SC_DECORATION_OF_MUSIC:
 #ifdef RENEWAL
 						case SC_EXTREMITYFIST2:
 #endif
@@ -8470,6 +8474,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						case SC_MTF_MLEATKED:		case SC_MTF_CRIDAMAGE:		case SC_HEAT_BARREL:
 						case SC_HEAT_BARREL_AFTER:	case SC_P_ALTER:		case SC_E_CHAIN:
 						case SC_C_MARKER:		case SC_B_TRAP:			case SC_H_MINE:
+						case SC_STRANGELIGHTS:		case SC_DECORATION_OF_MUSIC:
 #ifdef RENEWAL
 						case SC_EXTREMITYFIST2:
 #endif

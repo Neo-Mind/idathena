@@ -7715,6 +7715,7 @@ static const struct _battle_data {
 	{ "vip_drop_increase",                  &battle_config.vip_drop_increase,               0,      0,      INT_MAX,        },
 	{ "vip_gemstone",                       &battle_config.vip_gemstone,                    0,      0,      1,              },
 	{ "discount_item_point_shop",           &battle_config.discount_item_point_shop,        0,      0,      3,              },
+	{ "oktoberfest_ignorepalette",          &battle_config.oktoberfest_ignorepalette,       0,      0,      1,              },
 };
 #ifndef STATS_OPT_OUT
 /**

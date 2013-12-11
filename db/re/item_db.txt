@@ -8481,6 +8481,7 @@
 18737,Fortier_Mask,Fortier Masque,5,20,,200,,0,,0,0xFFFFFFFF,63,2,512,,10,0,876,{ bonus bUnbreakableHelm,0; },{},{}
 18739,Carnation_Hairband,Carnation Hairband,5,20,,100,,0,,0,0xFFFFFFFF,63,2,256,,0,1,878,{ bonus bLuk,1; },{},{}
 18740,Hair_Of_The_Strong,Hair Of The Strong,5,20,,0,,0,,0,0xFFFFFFFF,63,2,1024,,0,0,879,{},{},{}
+18741,C_Will_O_Wisp,Will O Wisp,5,20,,0,,0,,0,0xFFFFFFFF,63,2,1024,,0,0,880,{},{ sc_start SC_STRANGELIGHTS,-1,0; },{ sc_end SC_STRANGELIGHTS; }
 18742,C_MoonStar_Accessory,Moon and Stars,5,20,,0,,0,,0,0xFFFFFFFF,63,2,2048,,0,0,881,{},{ sc_start SC_MOONSTAR,-1,0; },{ sc_end SC_MOONSTAR; }
 18743,Spirit_Of_Chung_E,Spirit Of Chung E,5,20,,0,,0,,0,0xFFFFFFFF,63,2,1024,,0,0,882,{},{},{}
 18744,C_World_Star,Twilight,5,20,,0,,0,,0,0xFFFFFFFF,63,2,2048,,0,0,883,{},{ sc_start SC_SUPER_STAR,-1,0; },{ sc_end SC_SUPER_STAR; }
@@ -8621,6 +8622,7 @@
 19863,C_Incubus_Horn,Incubus Horn,5,20,,0,,0,,0,0xFFFFFFFF,63,2,1024,,0,0,156,{},{},{}
 19864,C_Dokebi's_Wig,Dokebi's Wig,5,20,,0,,0,,0,0xFFFFFFFF,63,2,3072,,0,0,307,{},{},{}
 19865,C_Joker_Jester,Joker Jester,5,20,,0,,0,,0,0xFFFFFFFF,63,2,1024,,0,0,89,{},{},{}
+19871,C_Decoration_Of_Music,Decoration of Music,5,20,,0,,0,,0,0xFFFFFFFF,63,2,2048,,0,0,1074,{},{ sc_start SC_DECORATION_OF_MUSIC,-1,0; },{ sc_end SC_DECORATION_OF_MUSIC; }
 19903,Costume_Witch's_Hat,Costume Witch's Hat,5,0,,0,,0,,0,0xFFFFFFFF,63,2,1024,,1,0,717,{ /*bonus bVariableCastrate,-10;*/ },{},{}
 19917,Costume_Pumpkin_Hat,Costume Pumpkin Hat,5,0,,0,,0,,0,0xFFFFFFFF,63,2,1024,,1,0,691,{ /*bonus bSpeedRate,10;*/ },{},{}
 //19918,Costume_Ruud_Mask,Costume Ruud Mask,5,0,,0,,0,,0,0xFFFFFFFF,63,2,6144,,1,0,0,{ /*bonus bAddItemHealRate,20;*/ },{},{}
@@ -8660,6 +8662,7 @@
 22619,Ghost_Scroll,Ghost Scroll,3,10,,0,,,,,,,,,,,,,{},{},{}
 22620,Box_Of_Memories,Box Of Memories,3,10,,0,,,,,,,,,,,,,{},{},{}
 22621,Barbecued_Squid,Barbecued Squid,3,10,,250,,,,,,,,,,,,,{},{},{}
+22625,Oktoberfest_Bag,Oktoberfest Bag,2,0,,100,,,,,0xFFFFFFFF,63,2,,,,,,{ sc_start SC_OKTOBERFEST,600000,0; },{},{}
 22648,Angel_Ring_Package,Angel Ring Package,3,10,,10,,,,,,,,,,,,,{},{},{}
 22649,Devil_Ring_Package,Devil Ring Package,3,10,,10,,,,,,,,,,,,,{},{},{}
 22652,Briliant_Hat_Box,Brilliant Hat Box,2,10,,200,,,,,0xFFFFFFFF,63,2,,,,,,{/* TODO */},{},{}
