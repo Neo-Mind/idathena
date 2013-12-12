@@ -3809,6 +3809,7 @@ void do_final(void)
 	do_final_chrif();
 	do_final_clif();
 	do_final_npc();
+	do_final_quest();
 	do_final_script();
 	do_final_instance();
 	do_final_itemdb();

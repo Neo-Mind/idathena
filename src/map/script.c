@@ -15819,8 +15819,7 @@ BUILDIN_FUNC(mercenary_set_calls)
 	guild = script_getnum(st,2);
 	value = script_getnum(st,3);
 
-	switch( guild )
-	{
+	switch( guild ) {
 		case ARCH_MERC_GUILD:
 			calls = &sd->status.arch_calls;
 			break;
@@ -15848,8 +15847,7 @@ BUILDIN_FUNC(mercenary_get_faith)
 		return 0;
 
 	guild = script_getnum(st,2);
-	switch( guild )
-	{
+	switch( guild ) {
 		case ARCH_MERC_GUILD:
 			script_pushint(st,sd->status.arch_faith);
 			break;
@@ -15979,16 +15977,19 @@ BUILDIN_FUNC(setquest)
 {
 	struct map_session_data *sd = script_rid2sd(st);
 	unsigned short i;
+	int quest_id;
 
-	if( !sd )
-		return 1;
+	nullpo_retr(1, sd);
 
-	quest_add(sd, script_getnum(st, 2));
+	quest_id = script_getnum(st, 2);
+
+	quest_add(sd, quest_id);
 
 	// If questinfo is set, remove quest bubble once quest is set.
 	for( i = 0; i < map[sd->bl.m].qi_count; i++ ) {
 		struct questinfo *qi = &map[sd->bl.m].qi_data[i];
-		if( qi->quest_id == script_getnum(st, 2) ) {
+
+		if( qi->quest_id == quest_id ) {
 #if PACKETVER >= 20120410
 			clif_quest_show_event(sd, &qi->nd->bl, 9999, 0);
 #else
@@ -16003,6 +16004,7 @@ BUILDIN_FUNC(setquest)
 BUILDIN_FUNC(erasequest)
 {
 	struct map_session_data *sd = script_rid2sd(st);
+
 	nullpo_ret(sd);
 
 	quest_delete(sd, script_getnum(st, 2));
@@ -16012,6 +16014,7 @@ BUILDIN_FUNC(erasequest)
 BUILDIN_FUNC(completequest)
 {
 	struct map_session_data *sd = script_rid2sd(st);
+
 	nullpo_ret(sd);
 
 	quest_update_status(sd, script_getnum(st, 2), Q_COMPLETE);
@@ -16021,6 +16024,7 @@ BUILDIN_FUNC(completequest)
 BUILDIN_FUNC(changequest)
 {
 	struct map_session_data *sd = script_rid2sd(st);
+
 	nullpo_ret(sd);
 
 	quest_change(sd, script_getnum(st, 2),script_getnum(st, 3));
@@ -16030,12 +16034,13 @@ BUILDIN_FUNC(changequest)
 BUILDIN_FUNC(checkquest)
 {
 	struct map_session_data *sd = script_rid2sd(st);
-	quest_check_type type = HAVEQUEST;
+
+	enum quest_check_type type = HAVEQUEST;
 
 	nullpo_ret(sd);
 
 	if( script_hasdata(st, 3) )
-		type = (quest_check_type)script_getnum(st, 3);
+		type = (enum quest_check_type)script_getnum(st, 3);
 
 	script_pushint(st, quest_check(sd, script_getnum(st, 2), type));
 

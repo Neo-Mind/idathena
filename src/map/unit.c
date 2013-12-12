@@ -2306,15 +2306,17 @@ void unit_remove_map_pc(struct map_session_data *sd, clr_type clrtype)
 {
 	unit_remove_map(&sd->bl,clrtype);
 
-	if (clrtype == CLR_TELEPORT) clrtype = CLR_OUTSIGHT; //CLR_TELEPORT is the warp from logging out, but pets/homunc need to just 'vanish' instead of showing the warping out animation.
+	//CLR_TELEPORT is the warp from logging out, but pets/homunc need to just 'vanish' instead of showing the warping out animation.
+	if (clrtype == CLR_TELEPORT)
+		clrtype = CLR_OUTSIGHT;
 
-	if(sd->pd)
+	if (sd->pd)
 		unit_remove_map(&sd->pd->bl, clrtype);
-	if(merc_is_hom_active(sd->hd))
+	if (merc_is_hom_active(sd->hd))
 		unit_remove_map(&sd->hd->bl, clrtype);
-	if(sd->md)
+	if (sd->md)
 		unit_remove_map(&sd->md->bl, clrtype);
-	if(sd->ed)
+	if (sd->ed)
 		unit_remove_map(&sd->ed->bl, clrtype);
 }
 
@@ -2333,7 +2335,8 @@ void unit_free_pc(struct map_session_data *sd)
  *------------------------------------------*/
 int unit_free(struct block_list *bl, clr_type clrtype)
 {
-	struct unit_data *ud = unit_bl2ud( bl );
+	struct unit_data *ud = unit_bl2ud(bl);
+
 	nullpo_ret(ud);
 
 	map_freeblock_lock();
@@ -2342,210 +2345,221 @@ int unit_free(struct block_list *bl, clr_type clrtype)
 
 	switch( bl->type ) {
 		case BL_PC: {
-			struct map_session_data *sd = (struct map_session_data*)bl;
-			int i;
+				struct map_session_data *sd = (struct map_session_data*)bl;
+				int i;
 
-			if( status_isdead(bl) )
-				pc_setrestartvalue(sd,2);
+				if( status_isdead(bl) )
+					pc_setrestartvalue(sd, 2);
 
-			pc_delinvincibletimer(sd);
-			pc_delautobonus(sd,sd->autobonus,ARRAYLENGTH(sd->autobonus),false);
-			pc_delautobonus(sd,sd->autobonus2,ARRAYLENGTH(sd->autobonus2),false);
-			pc_delautobonus(sd,sd->autobonus3,ARRAYLENGTH(sd->autobonus3),false);
+				pc_delinvincibletimer(sd);
+				pc_delautobonus(sd, sd->autobonus, ARRAYLENGTH(sd->autobonus), false);
+				pc_delautobonus(sd, sd->autobonus2, ARRAYLENGTH(sd->autobonus2), false);
+				pc_delautobonus(sd, sd->autobonus3, ARRAYLENGTH(sd->autobonus3), false);
 
-			if( sd->followtimer != INVALID_TIMER )
-				pc_stop_following(sd);
+				if( sd->followtimer != INVALID_TIMER )
+					pc_stop_following(sd);
 
-			if( sd->duel_invite > 0 )
-				duel_reject(sd->duel_invite, sd);
+				if( sd->duel_invite > 0 )
+					duel_reject(sd->duel_invite, sd);
 
-			channel_pcquit(sd,0xF); // Leave all channel
-			skill_blockpc_clear(sd); // Clear all skill cooldown related
+				channel_pcquit(sd,0xF); //Leave all channel
+				skill_blockpc_clear(sd); //Clear all skill cooldown related
 
-			// Notify friends that this char logged out. [Skotlex]
-			map_foreachpc(clif_friendslist_toggle_sub, sd->status.account_id, sd->status.char_id, 0);
-			party_send_logout(sd);
-			guild_send_memberinfoshort(sd,0);
-			pc_cleareventtimer(sd);
-			pc_inventory_rental_clear(sd);
-			pc_delspiritball(sd,sd->spiritball,1);
-			for(i = 1; i < 5; i++)
-				pc_del_talisman(sd, sd->talisman[i], i);
+				//Notify friends that this char logged out. [Skotlex]
+				map_foreachpc(clif_friendslist_toggle_sub, sd->status.account_id, sd->status.char_id, 0);
+				party_send_logout(sd);
+				guild_send_memberinfoshort(sd,0);
+				pc_cleareventtimer(sd);
+				pc_inventory_rental_clear(sd);
+				pc_delspiritball(sd,sd->spiritball,1);
+				for( i = 1; i < 5; i++ )
+					pc_del_talisman(sd, sd->talisman[i], i);
 
-			if( sd->reg ) { //Double logout already freed pointer fix... [Skotlex]
-				aFree(sd->reg);
-				sd->reg = NULL;
-				sd->reg_num = 0;
-			}
-			if( sd->regstr ) {
-				for( i = 0; i < sd->regstr_num; ++i )
-					if( sd->regstr[i].data )
-						aFree(sd->regstr[i].data);
-				aFree(sd->regstr);
-				sd->regstr = NULL;
-				sd->regstr_num = 0;
-			}
-			if( sd->st && sd->st->state != RUN ) {// free attached scripts that are waiting
-				script_free_state(sd->st);
-				sd->st = NULL;
-				sd->npc_id = 0;
-			}
-			if( sd->combos.count ) {
-				aFree(sd->combos.bonus);
-				aFree(sd->combos.id);
-				sd->combos.count = 0;
-			}
-			/* [Ind] */
-			if( sd->sc_display_count ) {
-				for( i = 0; i < sd->sc_display_count; i++ ) {
-					ers_free(pc_sc_display_ers, sd->sc_display[i]);
+				if( sd->reg ) { //Double logout already freed pointer fix... [Skotlex]
+					aFree(sd->reg);
+					sd->reg = NULL;
+					sd->reg_num = 0;
 				}
-				sd->sc_display_count = 0;
-				aFree(sd->sc_display);
-				sd->sc_display = NULL;
+				if( sd->regstr ) {
+					for( i = 0; i < sd->regstr_num; ++i )
+						if( sd->regstr[i].data )
+							aFree(sd->regstr[i].data);
+					aFree(sd->regstr);
+					sd->regstr = NULL;
+					sd->regstr_num = 0;
+				}
+				if( sd->st && sd->st->state != RUN ) {// free attached scripts that are waiting
+					script_free_state(sd->st);
+					sd->st = NULL;
+					sd->npc_id = 0;
+				}
+				if( sd->combos.count ) {
+					aFree(sd->combos.bonus);
+					aFree(sd->combos.id);
+					sd->combos.count = 0;
+				}
+				/* [Ind] */
+				if( sd->sc_display_count ) {
+					for( i = 0; i < sd->sc_display_count; i++ )
+						ers_free(pc_sc_display_ers, sd->sc_display[i]);
+					sd->sc_display_count = 0;
+					aFree(sd->sc_display);
+					sd->sc_display = NULL;
+				}
+				if( sd->quest_log != NULL ) {
+					aFree(sd->quest_log);
+					sd->quest_log = NULL;
+					sd->num_quests = sd->avail_quests = 0;
+				}
 			}
 			break;
-		}
 		case BL_PET: {
-			struct pet_data *pd = (struct pet_data*)bl;
-			struct map_session_data *sd = pd->master;
-			pet_hungry_timer_delete(pd);
-			if( pd->a_skill ) {
-				aFree(pd->a_skill);
-				pd->a_skill = NULL;
-			}
-			if( pd->s_skill ) {
-				if (pd->s_skill->timer != INVALID_TIMER) {
-					if (pd->s_skill->id)
-						delete_timer(pd->s_skill->timer, pet_skill_support_timer);
-					else
-						delete_timer(pd->s_skill->timer, pet_heal_timer);
+				struct pet_data *pd = (struct pet_data*)bl;
+				struct map_session_data *sd = pd->master;
+
+				pet_hungry_timer_delete(pd);
+				if( pd->a_skill ) {
+					aFree(pd->a_skill);
+					pd->a_skill = NULL;
 				}
-				aFree(pd->s_skill);
-				pd->s_skill = NULL;
+				if( pd->s_skill ) {
+					if (pd->s_skill->timer != INVALID_TIMER) {
+						if (pd->s_skill->id)
+							delete_timer(pd->s_skill->timer, pet_skill_support_timer);
+						else
+							delete_timer(pd->s_skill->timer, pet_heal_timer);
+					}
+					aFree(pd->s_skill);
+					pd->s_skill = NULL;
+				}
+				if( pd->recovery ) {
+					if(pd->recovery->timer != INVALID_TIMER)
+						delete_timer(pd->recovery->timer, pet_recovery_timer);
+					aFree(pd->recovery);
+					pd->recovery = NULL;
+				}
+				if( pd->bonus ) {
+					if (pd->bonus->timer != INVALID_TIMER)
+						delete_timer(pd->bonus->timer, pet_skill_bonus_timer);
+					aFree(pd->bonus);
+					pd->bonus = NULL;
+				}
+				if( pd->loot ) {
+					pet_lootitem_drop(pd,sd);
+					if (pd->loot->item)
+						aFree(pd->loot->item);
+					aFree (pd->loot);
+					pd->loot = NULL;
+				}
+				if( pd->pet.intimate > 0 )
+					intif_save_petdata(pd->pet.account_id,&pd->pet);
+				else { //Remove pet.
+					intif_delete_petdata(pd->pet.pet_id);
+					if (sd) sd->status.pet_id = 0;
+				}
+				if( sd )
+					sd->pd = NULL;
 			}
-			if( pd->recovery ) {
-				if(pd->recovery->timer != INVALID_TIMER)
-					delete_timer(pd->recovery->timer, pet_recovery_timer);
-				aFree(pd->recovery);
-				pd->recovery = NULL;
-			}
-			if( pd->bonus ) {
-				if (pd->bonus->timer != INVALID_TIMER)
-					delete_timer(pd->bonus->timer, pet_skill_bonus_timer);
-				aFree(pd->bonus);
-				pd->bonus = NULL;
-			}
-			if( pd->loot ) {
-				pet_lootitem_drop(pd,sd);
-				if (pd->loot->item)
-					aFree(pd->loot->item);
-				aFree (pd->loot);
-				pd->loot = NULL;
-			}
-			if( pd->pet.intimate > 0 )
-				intif_save_petdata(pd->pet.account_id,&pd->pet);
-			else { //Remove pet.
-				intif_delete_petdata(pd->pet.pet_id);
-				if (sd) sd->status.pet_id = 0;
-			}
-			if( sd )
-				sd->pd = NULL;
 			break;
-		}
 		case BL_MOB: {
-			struct mob_data *md = (struct mob_data*)bl;
-			if( md->spawn_timer != INVALID_TIMER ) {
-				delete_timer(md->spawn_timer,mob_delayspawn);
-				md->spawn_timer = INVALID_TIMER;
-			}
-			if( md->deletetimer != INVALID_TIMER ) {
-				delete_timer(md->deletetimer,mob_timer_delete);
-				md->deletetimer = INVALID_TIMER;
-			}
-			if( md->lootitem ) {
-				aFree(md->lootitem);
-				md->lootitem=NULL;
-			}
-			if( md->guardian_data ) {
-				struct guild_castle* gc = md->guardian_data->castle;
-				if( md->guardian_data->number >= 0 && md->guardian_data->number < MAX_GUARDIANS ) {
-					gc->guardian[md->guardian_data->number].id = 0;
-				} else {
-					int i;
-					ARR_FIND(0, gc->temp_guardians_max, i, gc->temp_guardians[i] == md->bl.id);
-					if( i < gc->temp_guardians_max )
-						gc->temp_guardians[i] = 0;
+				struct mob_data *md = (struct mob_data*)bl;
+
+				if( md->spawn_timer != INVALID_TIMER ) {
+					delete_timer(md->spawn_timer,mob_delayspawn);
+					md->spawn_timer = INVALID_TIMER;
 				}
-				aFree(md->guardian_data);
-				md->guardian_data = NULL;
-			}
-			if( md->spawn ) {
-				md->spawn->active--;
-				if( !md->spawn->state.dynamic ) { // permanently remove the mob
-					if( --md->spawn->num == 0 ) { // Last freed mob is responsible for deallocating the group's spawn data.
-						aFree(md->spawn);
-						md->spawn = NULL;
+				if( md->deletetimer != INVALID_TIMER ) {
+					delete_timer(md->deletetimer,mob_timer_delete);
+					md->deletetimer = INVALID_TIMER;
+				}
+				if( md->lootitem ) {
+					aFree(md->lootitem);
+					md->lootitem=NULL;
+				}
+				if( md->guardian_data ) {
+					struct guild_castle* gc = md->guardian_data->castle;
+
+					if( md->guardian_data->number >= 0 && md->guardian_data->number < MAX_GUARDIANS )
+						gc->guardian[md->guardian_data->number].id = 0;
+					else {
+						int i;
+
+						ARR_FIND(0, gc->temp_guardians_max, i, gc->temp_guardians[i] == md->bl.id);
+						if( i < gc->temp_guardians_max )
+							gc->temp_guardians[i] = 0;
+					}
+					aFree(md->guardian_data);
+					md->guardian_data = NULL;
+				}
+				if( md->spawn ) {
+					md->spawn->active--;
+					if( !md->spawn->state.dynamic ) { // permanently remove the mob
+						if( --md->spawn->num == 0 ) { // Last freed mob is responsible for deallocating the group's spawn data.
+							aFree(md->spawn);
+							md->spawn = NULL;
+						}
 					}
 				}
+				if( md->base_status) {
+					aFree(md->base_status);
+					md->base_status = NULL;
+				}
+				if( mob_is_clone(md->class_) )
+					mob_clone_delete(md);
+				if( md->tomb_nid )
+					mvptomb_destroy(md);
 			}
-			if( md->base_status) {
-				aFree(md->base_status);
-				md->base_status = NULL;
-			}
-			if( mob_is_clone(md->class_) )
-				mob_clone_delete(md);
-			if( md->tomb_nid )
-				mvptomb_destroy(md);
 			break;
-		}
 		case BL_HOM: {
-			struct homun_data *hd = (TBL_HOM*)bl;
-			struct map_session_data *sd = hd->master;
-			merc_hom_hungry_timer_delete(hd);
-			if( hd->homunculus.intimacy > 0 )
-				merc_save(hd);
-			else {
-				intif_homunculus_requestdelete(hd->homunculus.hom_id);
-				if( sd )
-					sd->status.hom_id = 0;
-			}
-			if( sd )
-				sd->hd = NULL;
-			break;
-		}
-		case BL_MER: {
-			struct mercenary_data *md = (TBL_MER*)bl;
-			struct map_session_data *sd = md->master;
-			if( mercenary_get_lifetime(md) > 0 )
-				mercenary_save(md);
-			else {
-				intif_mercenary_delete(md->mercenary.mercenary_id);
-				if( sd )
-					sd->status.mer_id = 0;
-			}
-			if( sd )
-				sd->md = NULL;
+				struct homun_data *hd = (TBL_HOM*)bl;
+				struct map_session_data *sd = hd->master;
 
-			merc_contract_stop(md);
-			break;
-		}
-		case BL_ELEM: {
-			struct elemental_data *ed = (TBL_ELEM*)bl;
-			struct map_session_data *sd = ed->master;
-			if( elemental_get_lifetime(ed) > 0 )
-				elemental_save(ed);
-			else {
-				intif_elemental_delete(ed->elemental.elemental_id);
+				merc_hom_hungry_timer_delete(hd);
+				if( hd->homunculus.intimacy > 0 )
+					merc_save(hd);
+				else {
+					intif_homunculus_requestdelete(hd->homunculus.hom_id);
+					if( sd )
+						sd->status.hom_id = 0;
+				}
 				if( sd )
-					sd->status.ele_id = 0;
+					sd->hd = NULL;
 			}
-			if( sd )
-				sd->ed = NULL;
-			
-			elemental_summon_stop(ed);
 			break;
-		}
+		case BL_MER: {
+				struct mercenary_data *md = (TBL_MER*)bl;
+				struct map_session_data *sd = md->master;
+
+				if( mercenary_get_lifetime(md) > 0 )
+					mercenary_save(md);
+				else {
+					intif_mercenary_delete(md->mercenary.mercenary_id);
+					if( sd )
+						sd->status.mer_id = 0;
+				}
+				if( sd )
+					sd->md = NULL;
+
+				merc_contract_stop(md);
+			}
+			break;
+		case BL_ELEM: {
+				struct elemental_data *ed = (TBL_ELEM*)bl;
+				struct map_session_data *sd = ed->master;
+
+				if( elemental_get_lifetime(ed) > 0 )
+					elemental_save(ed);
+				else {
+					intif_elemental_delete(ed->elemental.elemental_id);
+					if( sd )
+						sd->status.ele_id = 0;
+				}
+				if( sd )
+					sd->ed = NULL;
+				
+				elemental_summon_stop(ed);
+			}
+			break;
 	}
 
 	skill_clear_unitgroup(bl);

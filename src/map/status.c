@@ -1983,21 +1983,26 @@ int status_base_amotion_pc(struct map_session_data* sd, struct status_data* stat
 			- job_info[classidx].aspd_base[sd->weapontype2]
 			+ job_info[classidx].aspd_base[sd->weapontype1]);
 
-	if ( sd->status.shield )
-			amotion += ( 2000 - job_info[classidx].aspd_base[W_FIST] ) +
-					( job_info[classidx].aspd_base[MAX_WEAPON_TYPE] - 2000 );
+	if( sd->status.shield )
+		amotion += ( 2000 - job_info[classidx].aspd_base[W_FIST] ) +
+			( job_info[classidx].aspd_base[MAX_WEAPON_TYPE] - 2000 );
 
 #else
 	//Base weapon delay
 	amotion = (sd->status.weapon < MAX_WEAPON_TYPE)
 	 ? (job_info[classidx].aspd_base[sd->status.weapon]) //Single weapon
 	 : (job_info[classidx].aspd_base[sd->weapontype1] + job_info[classidx].aspd_base[sd->weapontype2]) * 7 / 10; //Dual-wield
-	
+
 	//Percentual delay reduction from stats
 	amotion -= amotion * (4 * status->agi + status->dex) / 1000;
 #endif
+
 	//Raw delay adjustment from bAspd bonus
 	amotion += sd->bonus.aspd_add;
+
+	/* Angra manyu disregards aspd_base and similar */
+	if( sd->equip_index[EQI_HAND_R] >= 0 && sd->status.inventory[sd->equip_index[EQI_HAND_R]].nameid == ITEMID_ANGRA_MANYU )
+		return 0;
 
  	return amotion;
 }
