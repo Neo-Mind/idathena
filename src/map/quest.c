@@ -484,14 +484,15 @@ void do_init_quest(void) {
  * Finalizes the quest interface before shutdown.
  */
 void do_final_quest(void) {
-  quest_clear_db();
+	memset(&quest_dummy, 0, sizeof(quest_dummy));
+
+	quest_clear_db();
 }
 
 /**
  * Reloads the quest database.
  */
 void do_reload_quest(void) {
-	//memset(&quest_db, 0, sizeof(quest_db));
 	memset(&quest_dummy, 0, sizeof(quest_dummy));
 
 	quest_clear_db();
