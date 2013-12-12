@@ -6671,7 +6671,7 @@ void pc_close_npc(struct map_session_data *sd, int flag) {
 
 		if (sd->st) {
 			if (sd->st->state == RUN) { // Wait ending code execution
-				add_timer(gettick()+500,pc_close_npc_timer,sd->bl.id,flag);
+				add_timer(gettick() + 500,pc_close_npc_timer,sd->bl.id,flag);
 				return;
 			}
 			sd->st->state = ((flag == 1 && sd->st->mes_active) ? CLOSE : END);
@@ -6680,10 +6680,12 @@ void pc_close_npc(struct map_session_data *sd, int flag) {
 		sd->state.menu_or_input = 0;
 		sd->npc_menu = 0;
 		sd->npc_shopid = 0;
+		clif_scriptmes(sd,sd->npc_id," ");
+		clif_scriptclose(sd,sd->npc_id);
+		clif_scriptclear(sd,sd->npc_id);
 #ifdef SECURE_NPCTIMEOUT
 		sd->npc_idle_timer = INVALID_TIMER;
 #endif
-		clif_scriptclose(sd,sd->npc_id);
 		if (sd->st && sd->st->state == END ) { // Free attached scripts that are waiting
 			script_free_state(sd->st);
 			sd->st = NULL;

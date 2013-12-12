@@ -853,4 +853,6 @@ void clif_parse_BankCheck(int fd, struct map_session_data *sd);
 void clif_parse_BankOpen(int fd, struct map_session_data *sd);
 void clif_parse_BankClose(int fd, struct map_session_data *sd);
 
+void clif_scriptclear(struct map_session_data *sd, int npcid);
+
 #endif /* _CLIF_H_ */

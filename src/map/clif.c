@@ -1792,17 +1792,15 @@ void clif_buylist(struct map_session_data *sd, struct npc_data *nd)
 /// 00c7 <packet len>.W { <index>.W <price>.L <overcharge price>.L }*
 void clif_selllist(struct map_session_data *sd)
 {
-	int fd,i,c=0,val;
+	int fd, i, c = 0, val;
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd, MAX_INVENTORY * 10 + 4);
-	WFIFOW(fd,0)=0xc7;
-	for( i = 0; i < MAX_INVENTORY; i++ )
-	{
-		if( sd->status.inventory[i].nameid > 0 && sd->inventory_data[i] )
-		{
+	WFIFOW(fd,0) = 0xc7;
+	for( i = 0; i < MAX_INVENTORY; i++ ) {
+		if( sd->status.inventory[i].nameid > 0 && sd->inventory_data[i] ) {
 			if( !itemdb_cansell(&sd->status.inventory[i], pc_get_group_level(sd)) )
 				continue;
 
@@ -1812,16 +1810,16 @@ void clif_selllist(struct map_session_data *sd)
 			if( sd->status.inventory[i].bound && !pc_can_give_bounded_items(sd))
 				continue; // Don't allow sale of bound items
 
-			val=sd->inventory_data[i]->value_sell;
+			val = sd->inventory_data[i]->value_sell;
 			if( val < 0 )
 				continue;
-			WFIFOW(fd,4+c*10)=i+2;
-			WFIFOL(fd,6+c*10)=val;
-			WFIFOL(fd,10+c*10)=pc_modifysellvalue(sd,val);
+			WFIFOW(fd,4 + c * 10) = i + 2;
+			WFIFOL(fd,6 + c * 10) = val;
+			WFIFOL(fd,10 + c * 10) = pc_modifysellvalue(sd,val);
 			c++;
 		}
 	}
-	WFIFOW(fd,2)=c*10+4;
+	WFIFOW(fd,2) = c * 10 + 4;
 	WFIFOSET(fd,WFIFOW(fd,2));
 }
 
@@ -1839,11 +1837,11 @@ void clif_scriptmes(struct map_session_data *sd, int npcid, const char *mes)
 	int fd = sd->fd;
 	int slen = strlen(mes) + 9;
 
-	WFIFOHEAD(fd, slen);
-	WFIFOW(fd,0)=0xb4;
-	WFIFOW(fd,2)=slen;
-	WFIFOL(fd,4)=npcid;
-	memcpy((char*)WFIFOP(fd,8), mes, slen-8);
+	WFIFOHEAD(fd,slen);
+	WFIFOW(fd,0) = 0xb4;
+	WFIFOW(fd,2) = slen;
+	WFIFOL(fd,4) = npcid;
+	memcpy((char*)WFIFOP(fd,8), mes, slen - 8);
 	WFIFOSET(fd,WFIFOW(fd,2));
 }
 
@@ -1864,10 +1862,10 @@ void clif_scriptnext(struct map_session_data *sd,int npcid)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
-	WFIFOHEAD(fd, packet_len(0xb5));
-	WFIFOW(fd,0)=0xb5;
-	WFIFOL(fd,2)=npcid;
+	fd = sd->fd;
+	WFIFOHEAD(fd,packet_len(0xb5));
+	WFIFOW(fd,0) = 0xb5;
+	WFIFOL(fd,2) = npcid;
 	WFIFOSET(fd,packet_len(0xb5));
 }
 
@@ -1893,10 +1891,10 @@ void clif_scriptclose(struct map_session_data *sd, int npcid)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
-	WFIFOHEAD(fd, packet_len(0xb6));
-	WFIFOW(fd,0)=0xb6;
-	WFIFOL(fd,2)=npcid;
+	fd = sd->fd;
+	WFIFOHEAD(fd,packet_len(0xb6));
+	WFIFOW(fd,0) = 0xb6;
+	WFIFOL(fd,2) = npcid;
 	WFIFOSET(fd,packet_len(0xb6));
 }
 
@@ -16514,7 +16512,7 @@ int clif_elementalconverter_list(struct map_session_data *sd) {
 
 	nullpo_ret(sd);
 
-/// Main client packet processing function
+	//Main client packet processing function
 	fd = sd->fd;
 	WFIFOHEAD(fd, MAX_SKILL_PRODUCE_DB * 2 + 4);
 	WFIFOW(fd,0) = 0x1ad;
@@ -16767,17 +16765,16 @@ void clif_parse_SkillSelectMenu(int fd, struct map_session_data *sd) {
 /*==========================================
  * Kagerou/Oboro amulet spirit
  *------------------------------------------*/
-void clif_talisman(struct map_session_data *sd,short type)
-{
+void clif_talisman(struct map_session_data *sd,short type) {
 	unsigned char buf[10];
 
 	nullpo_retv(sd);
 
-	WBUFW(buf,0) = 0x08cf;
+	WBUFW(buf,0) = 0x8cf;
 	WBUFL(buf,2) = sd->bl.id;
 	WBUFW(buf,6) = type;
 	WBUFW(buf,8) = sd->talisman[type];
-	clif_send(buf,packet_len(0x08cf),&sd->bl,AREA);
+	clif_send(buf,packet_len(0x8cf),&sd->bl,AREA);
 }
 
 
@@ -16820,7 +16817,7 @@ void clif_favorite_item(struct map_session_data* sd, unsigned short index) {
 
 	WFIFOHEAD(fd,packet_len(0x908));
 	WFIFOW(fd,0) = 0x908;
-	WFIFOW(fd,2) = index+2;
+	WFIFOW(fd,2) = index + 2;
 	WFIFOL(fd,4) = (sd->status.inventory[index].favorite == 1) ? 0 : 1;
 	WFIFOSET(fd,packet_len(0x908));
 }
@@ -17126,10 +17123,10 @@ void clif_display_pinfo(struct map_session_data *sd, int cmdtype) {
 		len = info->len; //This is the base len without details
 		if(!len) return; //Version as packet disable
 
-		if(cmdtype == ZC_PERSONAL_INFOMATION && cmd == 0x08cb) { //0x08cb version
+		if(cmdtype == ZC_PERSONAL_INFOMATION && cmd == 0x8cb) { //0x8cb version
 			szdetails = 7;
 			factor = 1;
-		} else if(cmd == 0x097b) {
+		} else if(cmd == 0x97b) {
 			tot_baseexp *= factor;
 			tot_drop *= factor;
 			tot_penalty *= factor;
@@ -17153,7 +17150,7 @@ void clif_display_pinfo(struct map_session_data *sd, int cmdtype) {
 			len += szdetails;
 		}
 		WFIFOW(fd,info->pos[0])  = len; //Packetlen
-		if(cmd == 0x08cb) { //0x08cb version
+		if(cmd == 0x8cb) { //0x8cb version
 			WFIFOW(fd,info->pos[1])  = tot_baseexp;
 			WFIFOW(fd,info->pos[2])  = tot_drop;
 			WFIFOW(fd,info->pos[3])  = tot_penalty;
@@ -17175,6 +17172,17 @@ void clif_parse_GMFullStrip(int fd, struct map_session_data *sd) {
 
 	safesnprintf(cmd, sizeof(cmd), "%cfullstrip %d", atcommand_symbol, t_aid);
 	is_atcommand(fd, sd, cmd, 1);
+}
+
+void clif_scriptclear(struct map_session_data *sd, int npcid) {
+	unsigned char buf[10];
+
+	nullpo_retv(sd);
+
+	WBUFW(buf,0) = 0x8d6;
+	WBUFL(buf,2) = npcid;
+
+	clif_send(buf, packet_len(0x8d6), &sd->bl, SELF);
 }
 
 #ifdef DUMP_UNKNOWN_PACKET
