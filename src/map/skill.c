@@ -3419,6 +3419,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case RG_INTIMIDATE:
 					if (unit_warp(src,-1,-1,-1,CLR_TELEPORT) == 0) {
 						short x,y;
+
 						map_search_freecell(src,0,&x,&y,1,1,0);
 						if (target != src && !status_isdead(target))
 							unit_warp(target,-1,x,y,CLR_TELEPORT);
@@ -15526,7 +15527,7 @@ int skill_sit(struct map_session_data *sd, int type)
 /*==========================================
  *
  *------------------------------------------*/
-int skill_frostjoke_scream (struct block_list *bl, va_list ap)
+int skill_frostjoke_scream(struct block_list *bl, va_list ap)
 {
 	struct block_list *src;
 	uint16 skill_id, skill_lv;
@@ -15544,6 +15545,7 @@ int skill_frostjoke_scream (struct block_list *bl, va_list ap)
 		return 0;
 	if(bl->type == BL_PC) {
 		struct map_session_data *sd = (struct map_session_data *)bl;
+
 		if(sd && sd->sc.option&(OPTION_INVISIBLE|OPTION_MADOGEAR))
 			return 0; //Frost Joke / Scream cannot target invisible or MADO Gear characters [Ind]
 	}

@@ -4187,6 +4187,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 		case 12024: // Red Pouch
 		case 12103: // Bloody Branch
 		case 12109: // Poring Box
+		case 12863: // Treasure_Chest_Summoned_II
 			if( map[sd->bl.m].flag.nobranch || map_flag_gvg2(sd->bl.m) )
 				return 0;
 			break;
@@ -4295,7 +4296,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 
 	//Dead Branch & Bloody Branch & Porings Box
 	//FIXME: outdated, use constants or database
-	if( nameid == 604 || nameid == 12103 || nameid == 12109 )
+	if( nameid == 604 || nameid == 12103 || nameid == 12109 || nameid == 12863 )
 		log_branch(sd);
 
 	return 1;
