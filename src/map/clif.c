@@ -10991,8 +10991,9 @@ void clif_parse_RemoveOption(int fd,struct map_session_data *sd)
 void clif_parse_ChangeCart(int fd,struct map_session_data *sd)
 {// TODO: State tracking?
 	int type;
+	nullpo_retv(sd);
 
-	if( sd && pc_checkskill(sd, MC_CHANGECART) < 1 )
+	if( pc_checkskill(sd, MC_CHANGECART) < 1 )
 		return;
 
 	type = (int)RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);

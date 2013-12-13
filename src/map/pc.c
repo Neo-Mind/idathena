@@ -1751,8 +1751,8 @@ int pc_disguise(struct map_session_data *sd, int class_)
 	if (class_ && sd->disguise == class_)
 		return 0;
 
-	if(sd->sc.option&OPTION_INVISIBLE) { //Character is invisible. Stealth class-change. [Skotlex]
-		sd->disguise = class_; //viewdata is set on uncloaking.
+	if (sd->sc.option&OPTION_INVISIBLE) { //Character is invisible. Stealth class-change. [Skotlex]
+		sd->disguise = class_; //Viewdata is set on uncloaking.
 		return 2;
 	}
 
@@ -1765,7 +1765,7 @@ int pc_disguise(struct map_session_data *sd, int class_)
 		sd->disguise = 0;
 		class_ = sd->status.class_;
 	} else
-		sd->disguise=class_;
+		sd->disguise = class_;
 
 	status_set_viewdata(&sd->bl, class_);
 	clif_changeoption(&sd->bl);
@@ -1774,14 +1774,13 @@ int pc_disguise(struct map_session_data *sd, int class_)
 		clif_spawn(&sd->bl);
 		if (class_ == sd->status.class_ && pc_iscarton(sd)) { //It seems the cart info is lost on undisguise.
 			clif_cartlist(sd);
-			clif_updatestatus(sd,SP_CARTINFO);
+			clif_updatestatus(sd, SP_CARTINFO);
 		}
 		if (sd->chatID) {
 			struct chat_data* cd;
-			nullpo_retr(1, sd);
-			cd = (struct chat_data*)map_id2bl(sd->chatID);
-			if( cd != NULL || (struct block_list*)sd == cd->owner )
-				clif_dispchat(cd,0);
+
+			if ((cd = (struct chat_data*)map_id2bl(sd->chatID)))
+				clif_dispchat(cd, 0);
 		}
 	}
 	return 1;

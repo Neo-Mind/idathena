@@ -1883,15 +1883,17 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 				bool is_detect = ((status->mode&MD_DETECTOR) ? true : false);
 				if (pc_isinvisible(sd))
 					return 0;
-				if (tsc->option&hide_flag && ((!is_boss &&
-					((sd->special_state.perfect_hiding || !is_detect) ||
-					(tsc->data[SC_CLOAKINGEXCEED] && is_detect))) ||
-					(tsc->data[SC_FEINT] && (is_boss || is_detect))))
-					return 0;
-				if (tsc->data[SC_CAMOUFLAGE] && !(is_boss || is_detect) && !skill_id)
-					return 0;
-				if (tsc->data[SC_STEALTHFIELD] && !(is_boss || is_detect))
-					return 0;
+				if (tsc) {
+					if (tsc->option&hide_flag && ((!is_boss &&
+						((sd->special_state.perfect_hiding || !is_detect) ||
+						(tsc->data[SC_CLOAKINGEXCEED] && is_detect))) ||
+						(tsc->data[SC_FEINT] && (is_boss || is_detect))))
+						return 0;
+					if (tsc->data[SC_CAMOUFLAGE] && !(is_boss || is_detect) && !skill_id)
+						return 0;
+					if (tsc->data[SC_STEALTHFIELD] && !(is_boss || is_detect))
+						return 0;
+				}
 			}
 			break;
 		case BL_ITEM: //Allow targetting of items to pick'em up (or in the case of mobs, to loot them).
@@ -1922,8 +1924,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 int status_check_visibility(struct block_list *src, struct block_list *target)
 {
 	int view_range;
-	struct status_data* status = status_get_status_data(src);
-	struct status_change* tsc = status_get_sc(target);
+	struct status_change *tsc = NULL;
 
 	switch( src->type ) {
 		case BL_MOB:
@@ -1939,22 +1940,25 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 	if( src->m != target->m || !check_distance_bl(src, target, view_range) )
 		return 0;
 
-	//Check for chase-walk/hiding/cloaking opponents.
-	switch( target->type ) {
-		case BL_PC:
-			if( tsc && tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS) )
-				return 0;
-			if( tsc && tsc->data[SC_FEINT] && (status->mode&MD_BOSS || status->mode&MD_DETECTOR) )
-				return 0;
-			if( tsc && (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) ||
-				tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_STEALTHFIELD]) && !(status->mode&MD_BOSS) &&
-				(((TBL_PC*)target)->special_state.perfect_hiding || !(status->mode&MD_DETECTOR)) )
-				return 0;
-			break;
-		default:
-			if( tsc && (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) ||
-				tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_STEALTHFIELD]) && !(status->mode&(MD_BOSS|MD_DETECTOR)) )
-				return 0;
+	if( (tsc = status_get_sc(target)) ) {
+		struct status_data *status = status_get_status_data(src);
+
+		switch( target->type ) { //Check for chase-walk/hiding/cloaking opponents.
+			case BL_PC:
+				if( tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS) )
+					return 0;
+				if( tsc->data[SC_FEINT] && (status->mode&MD_BOSS || status->mode&MD_DETECTOR) )
+					return 0;
+				if( (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) ||
+					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_STEALTHFIELD]) && !(status->mode&MD_BOSS) &&
+					(((TBL_PC*)target)->special_state.perfect_hiding || !(status->mode&MD_DETECTOR)) )
+					return 0;
+				break;
+			default:
+				if( (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) ||
+					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_STEALTHFIELD]) && !(status->mode&(MD_BOSS|MD_DETECTOR)) )
+					return 0;
+		}
 	}
 
 	return 1;
@@ -2210,12 +2214,13 @@ int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt)
 		mbl = map_id2bl(md->master_id);
 
 	if (flag&8 && mbl) {
-		struct status_data *mstatus = status_get_base_status(mbl);
-		if (mstatus &&
-			battle_config.slaves_inherit_speed&(mstatus->mode&MD_CANMOVE?1:2))
-			status->speed = mstatus->speed;
-		if (status->speed < 2) /* Minimum for the unit to function properly */
-			status->speed = 2;
+		struct status_data *status;
+		if ((status = status_get_base_status(mbl))) {
+			if (battle_config.slaves_inherit_speed&(status->mode&MD_CANMOVE ? 1 : 2))
+				status->speed = status->speed;
+			if (status->speed < 2) /* Minimum for the unit to function properly */
+				status->speed = 2;
+		}
 	}
 
 	if (flag&1) { //Increase from mobs leveling up [Valaris]
@@ -10517,7 +10522,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 	else if (opt_flag) {
 		clif_changeoption(bl);
 		if (sd && opt_flag&0x4) {
-			clif_changelook(bl,LOOK_BASE,vd->class_);
+			clif_changelook(bl,LOOK_BASE,sd->vd.class_);
 			clif_get_weapon_view(sd,&sd->vd.weapon,&sd->vd.shield);
 			clif_changelook(bl,LOOK_WEAPON,sd->vd.weapon);
 			clif_changelook(bl,LOOK_SHIELD,sd->vd.shield);

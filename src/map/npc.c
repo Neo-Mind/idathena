@@ -3287,7 +3287,7 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 
 		if (state == 0)
 			; //Map flag disabled.
-		else if (!strcmpi(w4,"SavePoint")) {
+		else if (w4 && !strcmpi(w4,"SavePoint")) {
 			map[m].save.map = 0;
 			map[m].save.x = -1;
 			map[m].save.y = -1;
@@ -3328,13 +3328,13 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 		map[m].flag.nozenypenalty = state;
 	} else if (!strcmpi(w3,"pvp")) {
 		map[m].flag.pvp = state;
-		if( state && (map[m].flag.gvg || map[m].flag.gvg_dungeon || map[m].flag.gvg_castle) ) {
+		if (state && (map[m].flag.gvg || map[m].flag.gvg_dungeon || map[m].flag.gvg_castle)) {
 			map[m].flag.gvg = 0;
 			map[m].flag.gvg_dungeon = 0;
 			map[m].flag.gvg_castle = 0;
 			ShowWarning("npc_parse_mapflag: You can't set PvP and GvG flags for the same map! Removing GvG flags from %s in file '%s', line '%d'.\n",map[m].name,filepath,strline(buffer,start - buffer));
 		}
-		if( state && map[m].flag.battleground ) {
+		if (state && map[m].flag.battleground) {
 			map[m].flag.battleground = 0;
 			ShowWarning("npc_parse_mapflag: You can't set PvP and BattleGround flags for the same map! Removing BattleGround flag from %s in file '%s', line '%d'.\n",map[m].name,filepath,strline(buffer,start - buffer));
 		}
@@ -3379,11 +3379,11 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 		map[m].flag.pvp_nocalcrank = state;
 	else if (!strcmpi(w3,"gvg")) {
 		map[m].flag.gvg = state;
-		if( state && map[m].flag.pvp ) {
+		if (state && map[m].flag.pvp) {
 			map[m].flag.pvp = 0;
 			ShowWarning("npc_parse_mapflag: You can't set PvP and GvG flags for the same map! Removing PvP flag from %s in file '%s', line '%d'.\n",map[m].name,filepath,strline(buffer,start - buffer));
 		}
-		if( state && map[m].flag.battleground ) {
+		if (state && map[m].flag.battleground) {
 			map[m].flag.battleground = 0;
 			ShowWarning("npc_parse_mapflag: You can't set GvG and BattleGround flags for the same map! Removing BattleGround flag from %s in file '%s', line '%d'.\n",map[m].name,filepath,strline(buffer,start - buffer));
 		}
@@ -3396,19 +3396,19 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 		map[m].flag.gvg_castle = state;
 		if (state) map[m].flag.pvp = 0;
 	} else if (!strcmpi(w3,"battleground")) {
-		if( state ) {
-			if( sscanf(w4,"%d",&state) == 1 )
+		if (state) {
+			if (sscanf(w4,"%d",&state) == 1)
 				map[m].flag.battleground = state;
 			else
 				map[m].flag.battleground = 1; // Default value
 		} else
 			map[m].flag.battleground = 0;
 
-		if( map[m].flag.battleground && map[m].flag.pvp ) {
+		if (map[m].flag.battleground && map[m].flag.pvp) {
 			map[m].flag.pvp = 0;
 			ShowWarning("npc_parse_mapflag: You can't set PvP and BattleGround flags for the same map! Removing PvP flag from %s in file '%s', line '%d'.\n",map[m].name,filepath,strline(buffer,start - buffer));
 		}
-		if( map[m].flag.battleground && (map[m].flag.gvg || map[m].flag.gvg_dungeon || map[m].flag.gvg_castle) ) {
+		if (map[m].flag.battleground && (map[m].flag.gvg || map[m].flag.gvg_dungeon || map[m].flag.gvg_castle)) {
 			map[m].flag.gvg = 0;
 			map[m].flag.gvg_dungeon = 0;
 			map[m].flag.gvg_castle = 0;
@@ -3536,6 +3536,7 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 				ShowWarning("npc_parse_mapflag: skill_damage: Invalid skill name '%s'. Skipping in file '%s', line '%d'\n",skill,filepath,strline(buffer,start - buffer));
 			else { //Damages for specified skill
 				int i;
+
 				ARR_FIND(0,MAX_MAP_SKILL_MODIFIER,i,map[m].skill_damage[i].skill_id <= 0);
 				if (i >= MAX_SKILL)
 					ShowWarning("npc_parse_mapflag: skill_damage: Skill damage for map '%s' is overflow.\n",map[m].name);
@@ -3558,14 +3559,15 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 
 		strtok(w4,"\t"); /* Makes w4 contain only 4th param */
 
-		if( !(mod = strtok(NULL,"\t")) ) { /* Makes mod contain only the 5th param */
+		if (!(mod = strtok(NULL,"\t"))) /* Makes mod contain only the 5th param */
 			ShowWarning("npc_parse_mapflag: Missing 5th param for 'adjust_unit_duration' flag! removing flag from %s in file '%s', line '%d'.\n",map[m].name,filepath,strline(buffer,start - buffer));
-		} else if( !( skill_id = skill_name2id(w4) ) || !skill_get_unit_id( skill_name2id(w4),0) ) {
+		else if (!(skill_id = skill_name2id(w4)) || !skill_get_unit_id(skill_name2id(w4),0))
 			ShowWarning("npc_parse_mapflag: Unknown skill (%s) for 'adjust_unit_duration' flag! removing flag from %s in file '%s', line '%d'.\n",w4,map[m].name,filepath,strline(buffer,start - buffer));
-		} else if ( atoi(mod) < 1 || atoi(mod) > USHRT_MAX ) {
+		else if (atoi(mod) < 1 || atoi(mod) > USHRT_MAX)
 			ShowWarning("npc_parse_mapflag: Invalid modifier '%d' for skill '%s' for 'adjust_unit_duration' flag! removing flag from %s in file '%s', line '%d'.\n",atoi(mod),w4,map[m].name,filepath,strline(buffer,start - buffer));
-		} else {
+		else {
 			int idx = map[m].unit_count;
+
 			RECREATE(map[m].units,struct mapflag_skill_adjust*,++map[m].unit_count);
 			CREATE(map[m].units[idx],struct mapflag_skill_adjust,1);
 			map[m].units[idx]->skill_id = (unsigned short)skill_id;
@@ -3575,16 +3577,17 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 		char *mod;
 		int skill_id;
 
-		strtok(w4,"\t"); /* makes w4 contain only 4th param */
+		strtok(w4,"\t"); /* Makes w4 contain only 4th param */
 
-		if( !(mod = strtok(NULL,"\t")) ) { /* makes mod contain only the 5th param */
+		if (!(mod = strtok(NULL,"\t"))) /* Makes mod contain only the 5th param */
 			ShowWarning("npc_parse_mapflag: Missing 5th param for 'adjust_skill_damage' flag! removing flag from %s in file '%s', line '%d'.\n",map[m].name,filepath,strline(buffer,start - buffer));
-		} else if( !( skill_id = skill_name2id(w4) ) ) {
+		else if(!(skill_id = skill_name2id(w4)))
 			ShowWarning("npc_parse_mapflag: Unknown skill (%s) for 'adjust_skill_damage' flag! removing flag from %s in file '%s', line '%d'.\n",w4,map[m].name,filepath,strline(buffer,start - buffer));
-		} else if ( atoi(mod) < 1 || atoi(mod) > USHRT_MAX ) {
+		else if (atoi(mod) < 1 || atoi(mod) > USHRT_MAX) {
 			ShowWarning("npc_parse_mapflag: Invalid modifier '%d' for skill '%s' for 'adjust_skill_damage' flag! removing flag from %s in file '%s', line '%d'.\n",atoi(mod),w4,map[m].name,filepath,strline(buffer,start - buffer));
 		} else {
 			int idx = map[m].skill_count;
+
 			RECREATE(map[m].skills,struct mapflag_skill_adjust*,++map[m].skill_count);
 			CREATE(map[m].skills[idx],struct mapflag_skill_adjust,1);
 			map[m].skills[idx]->skill_id = (unsigned short)skill_id;
@@ -3593,7 +3596,7 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 	} else
 		ShowError("npc_parse_mapflag: unrecognized mapflag '%s' in file '%s', line '%d'.\n",w3,filepath,strline(buffer,start - buffer));
 
-	return strchr(start,'\n');// continue
+	return strchr(start,'\n'); //Continue
 }
 
 //Read file and create npc/func/mapflag/monster... accordingly.

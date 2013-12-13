@@ -597,8 +597,8 @@ static int mob_spawn_guardian_sub(int tid, unsigned int tick, int id, intptr_t d
 				guild_castledatasave(md->guardian_data->castle->castle_id, 1, 0);
 			}
 		} else {
-			if (md->guardian_data->number >= 0 && md->guardian_data->number < MAX_GUARDIANS && md->guardian_data->castle->guardian[md->guardian_data->number].visible)
-				guild_castledatasave(md->guardian_data->castle->castle_id, 10+md->guardian_data->number,0);
+			if (md->guardian_data && md->guardian_data->number >= 0 && md->guardian_data->number < MAX_GUARDIANS && md->guardian_data->castle->guardian[md->guardian_data->number].visible)
+				guild_castledatasave(md->guardian_data->castle->castle_id, 10 + md->guardian_data->number,0);
 			unit_free(&md->bl,CLR_OUTSIGHT); //Remove guardian.
 		}
 		return 0;

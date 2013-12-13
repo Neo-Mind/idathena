@@ -564,35 +564,37 @@ int party_member_withdraw(int party_id, int account_id, int char_id)
 
 	if( p ) {
 		int i;
-		ARR_FIND( 0, MAX_PARTY, i, p->party.member[i].account_id == account_id && p->party.member[i].char_id == char_id );
+
+		ARR_FIND(0, MAX_PARTY, i, p->party.member[i].account_id == account_id && p->party.member[i].char_id == char_id);
 		if( i < MAX_PARTY ) {
-			clif_party_withdraw(p,sd,account_id,p->party.member[i].name,0x0);
+			clif_party_withdraw(p, sd,account_id, p->party.member[i].name, 0x0);
 			memset(&p->party.member[i], 0, sizeof(p->party.member[0]));
 			memset(&p->data[i], 0, sizeof(p->data[0]));
 			p->party.count--;
 			party_check_state(p);
 		}
-	}
 
-	if( sd && sd->status.party_id == party_id && sd->status.char_id == char_id ) {
+		if( sd && sd->status.party_id == party_id && sd->status.char_id == char_id ) {
 #ifdef BOUND_ITEMS
-		int idxlist[MAX_INVENTORY]; //or malloc to reduce consumtion
-		int j,i;
-		j = pc_bound_chk(sd,3,idxlist);
-		for(i=0;i<j;i++)
-			pc_delitem(sd,idxlist[i],sd->status.inventory[idxlist[i]].amount,0,1,LOG_TYPE_OTHER);
-#endif
-		sd->status.party_id = 0;
-		clif_charnameupdate(sd); //Update name display [Skotlex]
-		//TODO: hp bars should be cleared too
-		if( p->instance_id ) {
-			int16 m = sd->bl.m;
+			int idxlist[MAX_INVENTORY]; //Or malloc to reduce consumtion
+			int j, k;
 
-			if( map[m].instance_id ) { // User was on the instance map
-				if( map[m].save.map )
-					pc_setpos(sd, map[m].save.map, map[m].save.x, map[m].save.y, CLR_TELEPORT);
-				else
-					pc_setpos(sd, sd->status.save_point.map, sd->status.save_point.x, sd->status.save_point.y, CLR_TELEPORT);
+			j = pc_bound_chk(sd, 3, idxlist);
+			for( k = 0; k < j; k++ )
+				pc_delitem(sd, idxlist[k], sd->status.inventory[idxlist[k]].amount, 0, 1, LOG_TYPE_OTHER);
+#endif
+			sd->status.party_id = 0;
+			clif_charnameupdate(sd); //Update name display [Skotlex]
+			//TODO: HP bars should be cleared too
+			if( p->instance_id ) {
+				int16 m = sd->bl.m;
+
+				if( map[m].instance_id ) { // User was on the instance map
+					if( map[m].save.map )
+						pc_setpos(sd, map[m].save.map, map[m].save.x, map[m].save.y, CLR_TELEPORT);
+					else
+						pc_setpos(sd, sd->status.save_point.map, sd->status.save_point.x, sd->status.save_point.y, CLR_TELEPORT);
+				}
 			}
 		}
 	}
@@ -612,13 +614,13 @@ int party_broken(int party_id)
 		
 	if( p->instance_id ) {
 		instance_data[p->instance_id].party_id = 0;
-		instance_destroy( p->instance_id );
+		instance_destroy(p->instance_id);
 	}
 
 	for( i = 0; i < MAX_PARTY; i++ ) {
 		if( p->data[i].sd!=NULL ) {
 			clif_party_withdraw(p,p->data[i].sd,p->party.member[i].account_id,p->party.member[i].name,0x10);
-			p->data[i].sd->status.party_id=0;
+			p->data[i].sd->status.party_id = 0;
 		}
 	}
 
@@ -640,26 +642,26 @@ int party_changeoption(struct map_session_data *sd,int exp,int item)
 int party_setoption(struct party_data *party, int option, int flag)
 {
 	int i;
+
 	ARR_FIND(0,MAX_PARTY,i,party->party.member[i].leader);
-	if(i >= MAX_PARTY)
+	if( i >= MAX_PARTY )
 		return 0;
-	switch(option) {
+	switch( option ) {
 		case 0:
 			intif_party_changeoption(party->party.party_id,party->party.member[i].account_id,flag,party->party.item);
 			break;
 		case 1:
-			if(flag) flag = party->party.item|1;
+			if( flag ) flag = party->party.item|1;
 			else flag = party->party.item&~1;
 			intif_party_changeoption(party->party.party_id,party->party.member[i].account_id,party->party.exp,flag);
 			break;
 		case 2:
-			if(flag) flag = party->party.item|2;
+			if( flag ) flag = party->party.item|2;
 			else flag = party->party.item&~2;
 			intif_party_changeoption(party->party.party_id,party->party.member[i].account_id,party->party.exp,flag);
 			break;
 		default:
 			return 0;
-			break;
 	}
 	return 1;
 }
@@ -667,16 +669,15 @@ int party_setoption(struct party_data *party, int option, int flag)
 int party_optionchanged(int party_id,int account_id,int exp,int item,int flag)
 {
 	struct party_data *p;
-	struct map_session_data *sd=map_id2sd(account_id);
-	if( (p=party_search(party_id))==NULL)
+	struct map_session_data *sd = map_id2sd(account_id);
+	if( (p = party_search(party_id)) == NULL )
 		return 0;
 
 	//Flag&1: Exp change denied. Flag&2: Item change denied.
-	if(!(flag&0x01) && p->party.exp != exp)
-		p->party.exp=exp;
-	if(!(flag&0x10) && p->party.item != item) {
-		p->party.item=item;
-	}
+	if( !(flag&0x01) && p->party.exp != exp )
+		p->party.exp = exp;
+	if( !(flag&0x10) && p->party.item != item )
+		p->party.item = item;
 
 	clif_party_option(p,sd,flag);
 	return 0;
