@@ -2078,8 +2078,17 @@
 18830,475,100	// 2013 RWC 3rd Helmet
 22652,475,100	// Brilliant Hat Box
 
-// kRO 2013-10-08
+// kRO 2013-10-08 Items
 22675,475,100	// Mysterious Scroll
 
-// kRO 2013-11-13
+// kRO 2013-11-06 Items
+14616,475,100	// Bar Cookie Of Strength
+14617,475,100	// Bar Cookie Of Vitality
+14618,475,100	// Bar Cookie Of Agility
+14619,475,100	// Bar Cookie Of Intelligence
+14620,475,100	// Bar Cookie Of Dexterity
+14621,475,100	// Bar Cookie Of Lucky
+17449,475,100	// Set Bar Cookies
+
+// kRO 2013-11-13 Items
 16628,475,100	// Brynhild Box

@@ -2117,26 +2117,24 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		case SP_DEX:
 		case SP_LUK:
 			if(sd->state.lr_flag != 2)
-				sd->param_bonus[type-SP_STR]+=val;
+				sd->param_bonus[type - SP_STR] += val;
 			break;
 		case SP_ATK1:
 			if(!sd->state.lr_flag) {
 				bonus = status->rhw.atk + val;
 				status->rhw.atk = cap_value(bonus, 0, USHRT_MAX);
-			}
-			else if(sd->state.lr_flag == 1) {
+			} else if(sd->state.lr_flag == 1) {
 				bonus = status->lhw.atk + val;
-				status->lhw.atk =  cap_value(bonus, 0, USHRT_MAX);
+				status->lhw.atk = cap_value(bonus, 0, USHRT_MAX);
 			}
 			break;
 		case SP_ATK2:
 			if(!sd->state.lr_flag) {
 				bonus = status->rhw.atk2 + val;
 				status->rhw.atk2 = cap_value(bonus, 0, USHRT_MAX);
-			}
-			else if(sd->state.lr_flag == 1) {
+			} else if(sd->state.lr_flag == 1) {
 				bonus = status->lhw.atk2 + val;
-				status->lhw.atk2 =  cap_value(bonus, 0, USHRT_MAX);
+				status->lhw.atk2 = cap_value(bonus, 0, USHRT_MAX);
 			}
 			break;
 		case SP_BASE_ATK:
@@ -2173,9 +2171,8 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 #else
 				status->mdef = cap_value(bonus, CHAR_MIN, CHAR_MAX);
 #endif
-				if( sd->state.lr_flag == 3 ) {//Shield, used for royal guard
+				if( sd->state.lr_flag == 3 ) //Shield, used for royal guard
 					sd->bonus.shieldmdef += bonus;
-				}
 			}
 			break;
 		case SP_MDEF2:
@@ -2199,46 +2196,45 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 			break;
 		case SP_FLEE2:
 			if(sd->state.lr_flag != 2) {
-				bonus = status->flee2 + val*10;
+				bonus = status->flee2 + val * 10;
 				status->flee2 = cap_value(bonus, SHRT_MIN, SHRT_MAX);
 			}
 			break;
 		case SP_CRITICAL:
 			if(sd->state.lr_flag != 2) {
-				bonus = status->cri + val*10;
+				bonus = status->cri + val * 10;
 				status->cri = cap_value(bonus, SHRT_MIN, SHRT_MAX);
 			} else
-				sd->bonus.arrow_cri += val*10;
+				sd->bonus.arrow_cri += val * 10;
 			break;
 		case SP_ATKELE:
 			if(val >= ELE_MAX) {
 				ShowError("pc_bonus: SP_ATKELE: Invalid element %d\n", val);
 				break;
 			}
-			switch (sd->state.lr_flag)
-			{
-			case 2:
-				switch (sd->status.weapon) {
-					case W_BOW:
-					case W_REVOLVER:
-					case W_RIFLE:
-					case W_GATLING:
-					case W_SHOTGUN:
-					case W_GRENADE:
-						//Become weapon element.
-						status->rhw.ele=val;
-						break;
-					default: //Become arrow element.
-						sd->bonus.arrow_ele=val;
-						break;
-				}
-				break;
-			case 1:
-				status->lhw.ele=val;
-				break;
-			default:
-				status->rhw.ele=val;
-				break;
+			switch (sd->state.lr_flag) {
+				case 2:
+					switch (sd->status.weapon) {
+						case W_BOW:
+						case W_REVOLVER:
+						case W_RIFLE:
+						case W_GATLING:
+						case W_SHOTGUN:
+						case W_GRENADE:
+							//Become weapon element.
+							status->rhw.ele = val;
+							break;
+						default: //Become arrow element.
+							sd->bonus.arrow_ele = val;
+							break;
+					}
+					break;
+				case 1:
+					status->lhw.ele = val;
+					break;
+				default:
+					status->rhw.ele = val;
+					break;
 			}
 			break;
 		case SP_DEFELE:

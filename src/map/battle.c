@@ -3959,9 +3959,8 @@ static int battle_calc_skill_constant_addition(struct Damage wd, struct block_li
 		case GS_MAGICALBULLET:
 			if(sstatus->matk_max > sstatus->matk_min) {
 				atk = sstatus->matk_min + rnd()%(sstatus->matk_max - sstatus->matk_min);
-			} else {
+			} else
 				atk = sstatus->matk_min;
-			}
 			break;
 		case NJ_SYURIKEN:
 			atk = 4 * skill_lv;
@@ -4476,9 +4475,8 @@ struct Damage battle_calc_attack_plant(struct Damage wd, struct block_list *src,
 		wd.damage2 = 1;
 
 	if(attack_hits && class_ == MOBID_EMPERIUM) {
-		if(target && map_flag_gvg2(target->m) && !battle_can_hit_gvg_target(src, target, skill_id, (skill_id) ? BF_SKILL : 0)) {
+		if(target && map_flag_gvg2(target->m) && !battle_can_hit_gvg_target(src, target, skill_id, (skill_id) ? BF_SKILL : 0))
 			wd.damage = wd.damage2 = 0;
-		}
 		if(wd.damage > 0) {
 			wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
 			wd.damage = battle_calc_gvg_damage(src, target, wd.damage, wd.div_, skill_id, skill_lv, wd.flag);
@@ -4917,7 +4915,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		ATK_ADD(wd.equipAtk, wd.equipAtk2, ratio); //Equip ATK gets modified by skill bonuses as well [helvetica]
 		if(skill_id == HW_MAGICCRASHER) { //Add weapon attack for MATK onto Magic Crasher
 			struct status_data *sstatus = status_get_status_data(src);
-
 			if(sstatus->matk_max > sstatus->matk_min) {
 				ATK_ADD(wd.weaponAtk, wd.weaponAtk2, sstatus->matk_min + rnd()%(sstatus->matk_max-sstatus->matk_min));
 			} else
@@ -5246,9 +5243,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 #ifdef RENEWAL
 					if(sstatus->matk_max > sstatus->matk_min) {
 						MATK_ADD(sstatus->matk_min + rnd()%(sstatus->matk_max - sstatus->matk_min));
-					} else {
+					} else
 						MATK_ADD(sstatus->matk_min);
-					}
 					MATK_RATE(skill_lv);
 #else
 					ad.damage = status_get_lv(src) + sstatus->int_ + skill_lv * 10;
