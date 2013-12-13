@@ -2027,8 +2027,8 @@ static int is_attack_piercing(struct Damage wd, struct block_list *src, struct b
 		struct map_session_data *sd = BL_CAST(BL_PC, src);
 		struct status_data *tstatus = status_get_status_data(target);
 		//Renewal: Soul Breaker no longer gains ice pick effect and ice pick effect gets crit benefit [helvetica]
-		if(skill_id != PA_SACRIFICE && skill_id != CR_GRANDCROSS && skill_id != NPC_GRANDDARKNESS
-			&& skill_id != PA_SHIELDCHAIN && skill_id != NC_SELFDESTRUCTION && skill_id != KO_HAPPOKUNAI &&
+		if(skill_id != PA_SACRIFICE && skill_id != CR_GRANDCROSS && skill_id != NPC_GRANDDARKNESS &&
+			skill_id != PA_SHIELDCHAIN && skill_id != NC_SELFDESTRUCTION && skill_id != KO_HAPPOKUNAI &&
 #ifdef RENEWAL
 			skill_id != ASC_BREAKER
 #else
@@ -2037,14 +2037,14 @@ static int is_attack_piercing(struct Damage wd, struct block_list *src, struct b
 		) { //Elemental/Racial adjustments
 			if(sd && (sd->right_weapon.def_ratio_atk_ele & (1<<tstatus->def_ele) ||
 				sd->right_weapon.def_ratio_atk_race & (1<<tstatus->race) ||
-				sd->right_weapon.def_ratio_atk_race & (1<<(is_boss(target)?RC_BOSS:RC_NONBOSS)))
+				sd->right_weapon.def_ratio_atk_race & (1<<(is_boss(target) ? RC_BOSS : RC_NONBOSS)))
 			)
 				if(weapon_position == EQI_HAND_R)
 					return 1;
 
 			if(sd && (sd->left_weapon.def_ratio_atk_ele & (1<<tstatus->def_ele) ||
 				sd->left_weapon.def_ratio_atk_race & (1<<tstatus->race) ||
-				sd->left_weapon.def_ratio_atk_race & (1<<(is_boss(target)?RC_BOSS:RC_NONBOSS)))
+				sd->left_weapon.def_ratio_atk_race & (1<<(is_boss(target) ? RC_BOSS : RC_NONBOSS)))
 			)
 			{ //Pass effect onto right hand if configured so. [Skotlex]
 				if(battle_config.left_cardfix_to_right && is_attack_right_handed(src, skill_id)) {
@@ -5024,7 +5024,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 			case KO_HAPPOKUNAI:
 				break;
 			default:
-				wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.damage, is_attack_left_handed(src, skill_id), wd.flag);
+				wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.damage, 0, wd.flag);
+				if(is_attack_left_handed(src, skill_id))
+					wd.damage2 += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.damage2, 1, wd.flag);
 		}
 	}
 
@@ -5964,9 +5966,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			md.damage = 3;
 			break;
 		case NPC_DARKBREATH:
-			md.damage = 500 + (skill_lv - 1) * 1000 + rnd()%1000;
-			if(md.damage > 9999)
-				md.damage = 9999;
+			md.damage = tstatus->max_hp * (skill_lv * 10) / 100;
 			break;
 		case PA_PRESSURE:
 			md.damage = 500 + 300 * skill_lv;

@@ -42,8 +42,8 @@
 #include <string.h>
 
 
-const short dirx[8]={0,-1,-1,-1,0,1,1,1};
-const short diry[8]={1,1,0,-1,-1,-1,0,1};
+const short dirx[8] = { 0,-1,-1,-1,0,1,1,1 };
+const short diry[8] = { 1,1,0,-1,-1,-1,0,1 };
 
 struct unit_data* unit_bl2ud(struct block_list *bl)
 {
@@ -998,9 +998,9 @@ int unit_resume_running(int tid, unsigned int tick, int id, intptr_t data)
 {
 
 	struct unit_data *ud = (struct unit_data *)data;
-	TBL_PC * sd = map_id2sd(id);
+	TBL_PC *sd = map_id2sd(id);
 
-	if(sd && pc_isridingwug(sd))
+	if (sd && pc_isridingwug(sd))
 		clif_skill_nodamage(ud->bl,ud->bl,RA_WUGDASH,ud->skill_lv,
 			sc_start4(ud->bl,ud->bl,status_skill2sc(RA_WUGDASH),100,ud->skill_lv,unit_getdir(ud->bl),0,0,1));
 	else
@@ -1022,34 +1022,33 @@ int unit_resume_running(int tid, unsigned int tick, int id, intptr_t data)
 int unit_set_walkdelay(struct block_list *bl, unsigned int tick, int delay, int type)
 {
 	struct unit_data *ud = unit_bl2ud(bl);
+
 	if (delay <= 0 || !ud) return 0;
-	
-	/**
-	 * MvP mobs have no walk delay
-	 **/
-	if( bl->type == BL_MOB && (((TBL_MOB*)bl)->status.mode&MD_BOSS) )
+
+	//MvP mobs have no walk delay
+	if (bl->type == BL_MOB && (((TBL_MOB*)bl)->status.mode&MD_BOSS))
 		return 0;
 
 	if (type) {
-		if (DIFF_TICK(ud->canmove_tick, tick+delay) > 0)
+		if (DIFF_TICK(ud->canmove_tick, tick + delay) > 0)
 			return 0;
 	} else {
-		//Don't set walk delays when already trapped.
-		if (!unit_can_move(bl))
+		if (!unit_can_move(bl)) //Don't set walk delays when already trapped.
 			return 0;
 	}
 	ud->canmove_tick = tick + delay;
 	if (ud->walktimer != INVALID_TIMER) { //Stop walking, if chasing, readjust timers.
-		if (delay == 1) { //Minimal delay (walk-delay) disabled. Just stop walking.
+		if (delay == 1) //Minimal delay (walk-delay) disabled. Just stop walking.
 			unit_stop_walking(bl,4);
-		} else {
+		else {
 			//Resume running after can move again [Kevin]
-			if(ud->state.running) {
+			if (ud->state.running)
 				add_timer(ud->canmove_tick, unit_resume_running, bl->id, (intptr_t)ud);
-			} else {
+			else {
 				unit_stop_walking(bl,2|4);
-				if(ud->target)
-					add_timer(ud->canmove_tick+1, unit_walktobl_sub, bl->id, ud->target);
+				if (ud->target)
+					add_timer(ud->canmove_tick + 1, unit_walktobl_sub, bl->id, ud->target);
+				clif_fixpos(bl);
 			}
 		}
 	}
