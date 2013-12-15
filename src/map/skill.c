@@ -10981,9 +10981,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			if( (sg = skill_unitsetting(src,skill_id,skill_lv,src->x,src->y,0)) != NULL ) {
 				sc_start2(src,src,skill_id == NC_NEUTRALBARRIER ? SC_NEUTRALBARRIER_MASTER : SC_STEALTHFIELD_MASTER,100,
 					skill_lv,sg->group_id,skill_get_time(skill_id,skill_lv));
-				if( sd ) {
+				if( sd )
 					pc_overheat(sd,1);
-				}
 			}
 			break;
 
@@ -13412,7 +13411,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 
 	if( pc_has_permission(sd, PC_PERM_SKILL_UNCONDITIONAL) && sd->skillitem != skill_id ) {
 		//GMs don't override the skillItem check, otherwise they can use items without them being consumed! [Skotlex]
-		sd->state.arrow_atk = skill_get_ammotype(skill_id)?1:0; //Need to do arrow state check.
+		sd->state.arrow_atk = skill_get_ammotype(skill_id) ? 1 : 0; //Need to do arrow state check.
 		sd->spiritball_old = sd->spiritball; //Need to do Spiritball check.
 		return 1;
 	}
@@ -13635,7 +13634,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					return 0;
 				}
-				time = 1000*(sc->data[SC_DANCING]->val3>>16);
+				time = 1000 * (sc->data[SC_DANCING]->val3>>16);
 				if( skill_get_time(
 					(sc->data[SC_DANCING]->val1&0xFFFF), //Dance Skill ID
 					(sc->data[SC_DANCING]->val1>>16)) //Dance Skill LV
@@ -14182,8 +14181,8 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 		return 0;
 	}
 
-	if( require.spiritball > 0 && sd->spiritball < require.spiritball &&
-		(require.spiritball == -1 && sd->spiritball < 1) && skill_id != LG_RAGEBURST ) {
+	if( ((require.spiritball > 0 && sd->spiritball < require.spiritball) ||
+		(require.spiritball == -1 && sd->spiritball < 1)) && skill_id != LG_RAGEBURST ) {
 		clif_skill_fail(sd,skill_id,USESKILL_FAIL_SPIRITS,(require.spiritball == -1) ? 1 : require.spiritball);
 		return 0;
 	}

@@ -519,6 +519,7 @@ extern struct Battle_Config
 	int vip_gemstone;
 	int discount_item_point_shop;
 	int oktoberfest_ignorepalette;
+	int update_enemy_position;
 } battle_config;
 
 void do_init_battle(void);

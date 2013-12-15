@@ -319,8 +319,8 @@ static int clif_send_sub(struct block_list *bl, va_list ap) {
 	}
 
 	/* Unless visible, hold it here */
-	if (ally_only && !sd->special_state.intravision && !sd->sc.data[SC_INTRAVISION] &&
-		battle_check_target(src_bl, &sd->bl, BCT_ENEMY) > 0)
+	if (!battle_config.update_enemy_position && ally_only && !sd->special_state.intravision &&
+		!sd->sc.data[SC_INTRAVISION] && battle_check_target(src_bl, &sd->bl, BCT_ENEMY) > 0)
 		return 0;
 
 	if (session[fd] == NULL)
@@ -332,7 +332,7 @@ static int clif_send_sub(struct block_list *bl, va_list ap) {
 		ShowError("         Packet x%4x use a WFIFO of a player instead of to use a buffer.\n", WBUFW(buf,0));
 		ShowError("         Please correct your code.\n");
 		//Don't send to not move the pointer of the packet for next sessions in the loop
-		//WFIFOSET(fd,0);//## TODO is this ok?
+		//WFIFOSET(fd,0); //@TODO: Is this ok?
 		//NO. It is not ok. There is the chance WFIFOSET actually sends the buffer data, and shifts elements around, which will corrupt the buffer.
 		return 0;
 	}

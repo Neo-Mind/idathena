@@ -7712,6 +7712,7 @@ static const struct _battle_data {
 	{ "vip_gemstone",                       &battle_config.vip_gemstone,                    0,      0,      1,              },
 	{ "discount_item_point_shop",           &battle_config.discount_item_point_shop,        0,      0,      3,              },
 	{ "oktoberfest_ignorepalette",          &battle_config.oktoberfest_ignorepalette,       0,      0,      1,              },
+	{ "update_enemy_position",              &battle_config.update_enemy_position,           0,      0,      1,              },
 };
 #ifndef STATS_OPT_OUT
 /**
