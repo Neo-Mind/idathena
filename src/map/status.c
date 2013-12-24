@@ -6548,7 +6548,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 	if (src == NULL)
 		return tick ? tick : 1; //This should not happen in current implementation, but leave it anyway
 
-	//Status that are blocked by Golden Thief Bug card or Wand of Hermod
+	//Status effects that are blocked by Golden Thief Bug card or Wand of Hermod
 	if (status_isimmune(bl))
 		switch (type) {
 			case SC_DECREASEAGI:
@@ -6582,8 +6582,24 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 	status = status_get_status_data(bl);
 	status_src = status_get_status_data(src);
 	sc = status_get_sc(bl);
+
 	if (sc && !sc->count)
 		sc = NULL;
+
+	if (sc && sc->data[SC_KINGS_GRACE]) //Protects against status effects
+		switch (type) {
+			case SC_POISON:		case SC_BLIND:
+			case SC_FREEZE:		case SC_STONE:
+			case SC_STUN:		case SC_SLEEP:
+			case SC_BLEEDING:	case SC_CURSE:
+			case SC_CONFUSION:	case SC_HALLUCINATION:
+			case SC_SILENCE:	case SC_BURNING:
+			case SC_CRYSTALIZE:	case SC_FREEZING:
+			case SC_DEEPSLEEP:	case SC_FEAR:
+			case SC_MANDRAGORA:	case SC_CHAOS:
+				return 0;
+		}
+
 	switch (type) {
 		case SC_POISON:
 		case SC_DPOISON:
