@@ -520,6 +520,7 @@ extern struct Battle_Config
 	int discount_item_point_shop;
 	int oktoberfest_ignorepalette;
 	int update_enemy_position;
+	int devotion_rdamage;
 } battle_config;
 
 void do_init_battle(void);

@@ -162,14 +162,17 @@ int unit_teleport_timer(int tid, unsigned int tick, int id, intptr_t data) {
 int unit_check_start_teleport_timer(struct block_list *sbl) {
 	TBL_PC *msd = unit_get_master(sbl);
 	int max_dist = 0;
+
 	switch(sbl->type) {
 		case BL_HOM: max_dist = AREA_SIZE; break;
 		case BL_ELEM: max_dist = MAX_ELEDISTANCE; break;
 		case BL_PET : max_dist = AREA_SIZE; break;
 		case BL_MER : max_dist = MAX_MER_DISTANCE; break;
 	}
-	if(msd && max_dist) { //If there is a master and it's a valid type
+	//If there is a master and it's a valid type
+	if(msd && (msd->bl.type&BL_PC) && max_dist){ ///TODO the bl.type is an hotfix please dig it to remove it
 		int *msd_tid = unit_get_masterteleport_timer(sbl);
+
 		if(msd_tid == NULL) return 0;
 		if(!check_distance_bl(&msd->bl, sbl, max_dist)) {
 			if(*msd_tid == INVALID_TIMER || *msd_tid == 0)
@@ -803,9 +806,17 @@ int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag)
 	return count; //Return amount of knocked back cells
 }
 
-//Warps a unit/ud to a given map/position.
-//In the case of players, pc_setpos is used.
-//it respects the no warp flags, so it is safe to call this without doing nowarpto/nowarp checks.
+/**
+ * Warps a unit to a map/position \n
+ * pc_setpos is used for player warping \n
+ * This function checks for "no warp" map flags, so it's safe to call without doing nowarpto/nowarp checks
+ * @param bl: Object to warp
+ * @param m: Map ID from bl structure (NOT index)
+ * @param x: Destination cell X
+ * @param y: Destination cell Y
+ * @param type: Clear type used in clif_clearunit_area()
+ * @return Success(0); Failed(1); Error(2); unit_remove_map() Failed(3); map_addblock Failed(4)
+ */
 int unit_warp(struct block_list *bl,short m,short x,short y,clr_type type)
 {
 	struct unit_data *ud;
@@ -821,7 +832,7 @@ int unit_warp(struct block_list *bl,short m,short x,short y,clr_type type)
 		return 1;
 	
 	if (m < 0) m = bl->m;
-	
+
 	switch (bl->type) {
 		case BL_MOB:
 			if (map[bl->m].flag.monster_noteleport && ((TBL_MOB*)bl)->master_id == 0)
@@ -863,7 +874,8 @@ int unit_warp(struct block_list *bl,short m,short x,short y,clr_type type)
 	bl->y = ud->to_y = y;
 	bl->m = m;
 
-	map_addblock(bl);
+	if (map_addblock(bl))
+		return 4; //Error on adding bl to map
 	clif_spawn(bl);
 	skill_unit_move(bl,gettick(),1);
 

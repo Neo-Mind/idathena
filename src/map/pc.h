@@ -128,6 +128,13 @@ struct skill_cooldown_entry {
 	int timer;
 };
 
+#ifdef VIP_ENABLE
+struct vip_info {
+	unsigned int enabled : 1;
+	time_t time;
+};
+#endif
+
 enum npc_timeout_type {
 	NPCT_INPUT = 0,
 	NPCT_MENU  = 1,
@@ -578,10 +585,7 @@ struct map_session_data {
 
 	int storage_size; //Holds player storage size (VIP system).
 #ifdef VIP_ENABLE
-	struct {
-		unsigned int enabled : 1;
-		time_t time;
-	} vip;
+	struct vip_info vip;
 #endif
 };
 
@@ -670,7 +674,7 @@ struct {
 	int max_weight_base;
 	char job_bonus[MAX_LEVEL];
 #ifdef RENEWAL_ASPD
-	int aspd_base[MAX_WEAPON_TYPE+1];
+	int aspd_base[MAX_WEAPON_TYPE + 1];
 #else
 	int aspd_base[MAX_WEAPON_TYPE];	//[blackhole89]
 #endif

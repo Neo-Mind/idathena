@@ -99,11 +99,12 @@ int mobdb_searchname(const char *str)
 {
 	int i;
 	struct mob_db* mob;
-	for(i=0;i<=MAX_MOB_DB;i++){
+
+	for(i = 0; i <= MAX_MOB_DB; i++) {
 		mob = mob_db(i);
 		if(mob == mob_dummy) //Skip dummy mobs.
 			continue;
-		if(strcmpi(mob->name,str)==0 || strcmpi(mob->jname,str)==0 || strcmpi(mob->sprite,str)==0)
+		if(strcmpi(mob->name,str) == 0 || strcmpi(mob->jname,str) == 0 || strcmpi(mob->sprite,str) == 0)
 			return i;
 	}
 
@@ -111,7 +112,7 @@ int mobdb_searchname(const char *str)
 }
 static int mobdb_searchname_array_sub(struct mob_db* mob, const char *str)
 {
-	if (mob == mob_dummy)
+	if(mob == mob_dummy)
 		return 1;
 	if(!mob->base_exp && !mob->job_exp && mob->spawn[0].qty < 1)
 		return 1; // Monsters with no base/job exp and no spawn point are, by this criteria, considered "slave mobs" and excluded from search results
@@ -122,14 +123,18 @@ static int mobdb_searchname_array_sub(struct mob_db* mob, const char *str)
 	return strcmpi(mob->jname,str);
 }
 
-/*==========================================
- * MvP Tomb [GreenBox]
- *------------------------------------------*/
+/**
+ * Create and display a tombstone on the map
+ * @author [GreenBox]
+ * @param md : the mob to create a tombstone for
+ * @param killer : name of who has killed the mob
+ * @param time : time at wich the killed happen
+ */
 void mvptomb_create(struct mob_data *md, char *killer, time_t time)
 {
 	struct npc_data *nd;
 
-	if ( md->tomb_nid )
+	if(md->tomb_nid)
 		mvptomb_destroy(md);
 
 	CREATE(nd, struct npc_data, 1);
@@ -151,13 +156,14 @@ void mvptomb_create(struct mob_data *md, char *killer, time_t time)
 	nd->u.tomb.md = md;
 	nd->u.tomb.kill_time = time;
 	
-	if (killer)
+	if(killer)
 		safestrncpy(nd->u.tomb.killer_name, killer, NAME_LENGTH);
 	else
 		nd->u.tomb.killer_name[0] = '\0';
 
 	map_addnpc(nd->bl.m, nd);
-	map_addblock(&nd->bl);
+	if(map_addblock(&nd->bl))
+		return;
 	status_set_viewdata(&nd->bl, nd->class_);
 	status_change_init(&nd->bl);
 	unit_dataset(&nd->bl);
@@ -826,7 +832,7 @@ int mob_delayspawn(int tid, unsigned int tick, int id, intptr_t data)
 }
 
 /*==========================================
- * spawn timing calculation
+ * Spawn timing calculation
  *------------------------------------------*/
 int mob_setdelayspawn(struct mob_data *md)
 {
@@ -845,7 +851,7 @@ int mob_setdelayspawn(struct mob_data *md)
 	mode = db->status.mode;
 	if (mode & MD_BOSS) {	//Bosses
 		if (battle_config.boss_spawn_delay != 100) {
-			// Divide by 100 first to prevent overflows
+			//Divide by 100 first to prevent overflows
 			//(precision loss is minimal as duration is in ms already)
 			spawntime = spawntime/100*battle_config.boss_spawn_delay;
 		}
@@ -853,33 +859,35 @@ int mob_setdelayspawn(struct mob_data *md)
 		if (battle_config.plant_spawn_delay != 100) {
 			spawntime = spawntime/100*battle_config.plant_spawn_delay;
 		}
-	} else if (battle_config.mob_spawn_delay != 100) {	//Normal mobs
+	} else if (battle_config.mob_spawn_delay != 100) //Normal mobs
 		spawntime = spawntime/100*battle_config.mob_spawn_delay;
-	}
 
 	if (spawntime < 5000) //Monsters should never respawn faster than within 5 seconds
 		spawntime = 5000;
 
-	if( md->spawn_timer != INVALID_TIMER )
+	if (md->spawn_timer != INVALID_TIMER)
 		delete_timer(md->spawn_timer, mob_delayspawn);
-	md->spawn_timer = add_timer(gettick()+spawntime, mob_delayspawn, md->bl.id, 0);
+	md->spawn_timer = add_timer(gettick() + spawntime, mob_delayspawn, md->bl.id, 0);
 	return 0;
 }
 
 int mob_count_sub(struct block_list *bl, va_list ap) {
 	int mobid[10], i;
-	ARR_FIND(0, 10, i, (mobid[i] = va_arg(ap, int)) == 0); //fetch till 0
-	if (mobid[0]) { //if there one let's check it otherwise go backward
+
+	ARR_FIND(0, 10, i, (mobid[i] = va_arg(ap, int)) == 0); //Fetch till 0
+	if (mobid[0]) { //If there one let's check it otherwise go backward
 		TBL_MOB *md = BL_CAST(BL_MOB, bl);
 		ARR_FIND(0, 10, i, md->class_ == mobid[i]);
 		return (i < 10) ? 1 : 0;
 	}
-	return 1; //backward compatibility
+	return 1; //Backward compatibility
 }
 
-/*==========================================
- * Mob spawning. Initialization is also variously here.
- *------------------------------------------*/
+/**
+ * Mob spawning. Initialization is also variously here. (Spawn a mob in a map)
+ * @param md : mob data to spawn
+ * @return 0:spawned, 1:delayed, 2:error
+ */
 int mob_spawn (struct mob_data *md)
 {
 	int i = 0;
@@ -889,7 +897,7 @@ int mob_spawn (struct mob_data *md)
 	md->last_thinktime = tick;
 	if( md->bl.prev != NULL )
 		unit_remove_map(&md->bl,CLR_TELEPORT);
-	else if ( md->spawn && md->class_ != md->spawn->class_ ) {
+	else if( md->spawn && md->class_ != md->spawn->class_ ) {
 		md->class_ = md->spawn->class_;
 		status_set_viewdata(&md->bl,md->class_);
 		md->db = mob_db(md->class_);
@@ -930,12 +938,12 @@ int mob_spawn (struct mob_data *md)
 		md->spawn_timer = INVALID_TIMER;
 	}
 
-//	md->master_id = 0;
+	//md->master_id = 0;
 	md->master_dist = 0;
 
 	md->state.aggressive = md->status.mode&MD_ANGRY ? 1 : 0;
 	md->state.skillstate = MSS_IDLE;
-	md->next_walktime = tick+rnd()%5000 + 1000;
+	md->next_walktime = tick + rnd()%5000 + 1000;
 	md->last_linktime = tick;
 	md->dmgtick = tick - 5000;
 	md->last_pcneartime = 0;
@@ -951,15 +959,15 @@ int mob_spawn (struct mob_data *md)
 	
 	md->lootitem_count = 0;
 
-	if( md->db->option )
-		// Added for carts, falcons and pecos for cloned monsters. [Valaris]
+	if( md->db->option ) //Added for carts, falcons and pecos for cloned monsters. [Valaris]
 		md->sc.option = md->db->option;
 
-	// MvP tomb [GreenBox]
+	//MvP tomb [GreenBox]
 	if( md->tomb_nid )
 		mvptomb_destroy(md);
 
-	map_addblock(&md->bl);
+	if( map_addblock(&md->bl) )
+		return 2;
 	if( map[md->bl.m].users )
 		clif_spawn(&md->bl);
 	skill_unit_move(&md->bl,tick,1);
@@ -2486,6 +2494,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				if(temp <= battle_config.rare_drop_announce) {
 					struct item_data *i_data;
 					char message[128];
+
 					i_data = itemdb_exists(item.nameid);
 					sprintf (message, msg_txt(541), mvp_sd->status.name, md->name, i_data->jname, temp / 100.);
 					//MSG: "'%s' won %s's %s (chance: %0.02f%%)"
@@ -2540,7 +2549,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			else if(sd->avail_quests)
 				quest_update_objective(sd, md->class_);
 
-			if(sd->md && src && src->type != BL_HOM && mob_db(md->class_)->lv > sd->status.base_level / 2)
+			if(sd->md && src && src->type == BL_MER && mob_db(md->class_)->lv > sd->status.base_level / 2)
 				mercenary_kills(sd->md);
 		}
 
@@ -2599,9 +2608,15 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	return 3; //Remove from map.
 }
 
+/**
+ * Resurect a mob with x hp (reset value and respawn on map)
+ * @param md : mob pointer
+ * @param hp : hp to resurect him with, @FIXME unused atm
+ */
 void mob_revive(struct mob_data *md, unsigned int hp)
 {
 	unsigned int tick = gettick();
+
 	md->state.skillstate = MSS_IDLE;
 	md->last_thinktime = tick;
 	md->next_walktime = tick + rnd()%50 + 5000;
@@ -2610,7 +2625,8 @@ void mob_revive(struct mob_data *md, unsigned int hp)
 	memset(md->dmglog, 0, sizeof(md->dmglog)); //Reset the damage done on the rebirthed monster, otherwise will grant full exp + damage done. [Valaris]
 	md->tdmg = 0;
 	if (!md->bl.prev)
-		map_addblock(&md->bl);
+		if (map_addblock(&md->bl))
+			return;
 	clif_spawn(&md->bl);
 	skill_unit_move(&md->bl,tick,1);
 	mobskill_use(md, tick, MSC_SPAWN);
@@ -3526,42 +3542,40 @@ int mob_clone_delete(struct mob_data *md)
  *------------------------------------------*/
 static int mob_makedummymobdb(int class_)
 {
-	if (mob_dummy != NULL)
-	{
+	if (mob_dummy != NULL) {
 		if (mob_db(class_) == mob_dummy)
 			return 1; //Using the mob_dummy data already. [Skotlex]
-		if (class_ > 0 && class_ <= MAX_MOB_DB)
-		{	//Remove the mob data so that it uses the dummy data instead.
+		if (class_ > 0 && class_ <= MAX_MOB_DB) { //Remove the mob data so that it uses the dummy data instead.
 			aFree(mob_db_data[class_]);
 			mob_db_data[class_] = NULL;
 		}
 		return 0;
 	}
 	//Initialize dummy data.
-	mob_dummy = (struct mob_db*)aCalloc(1, sizeof(struct mob_db)); //Initializing the dummy mob.
+	mob_dummy = (struct mob_db*)aCalloc(1,sizeof(struct mob_db)); //Initializing the dummy mob.
 	sprintf(mob_dummy->sprite,"DUMMY");
 	sprintf(mob_dummy->name,"Dummy");
 	sprintf(mob_dummy->jname,"Dummy");
-	mob_dummy->lv=1;
-	mob_dummy->status.max_hp=1000;
-	mob_dummy->status.max_sp=1;
-	mob_dummy->status.rhw.range=1;
-	mob_dummy->status.rhw.atk=7;
-	mob_dummy->status.rhw.atk2=10;
-	mob_dummy->status.str=1;
-	mob_dummy->status.agi=1;
-	mob_dummy->status.vit=1;
-	mob_dummy->status.int_=1;
-	mob_dummy->status.dex=6;
-	mob_dummy->status.luk=2;
-	mob_dummy->status.speed=300;
-	mob_dummy->status.adelay=1000;
-	mob_dummy->status.amotion=500;
-	mob_dummy->status.dmotion=500;
-	mob_dummy->base_exp=2;
-	mob_dummy->job_exp=1;
-	mob_dummy->range2=10;
-	mob_dummy->range3=10;
+	mob_dummy->lv = 1;
+	mob_dummy->status.max_hp = 1000;
+	mob_dummy->status.max_sp = 1;
+	mob_dummy->status.rhw.range = 1;
+	mob_dummy->status.rhw.atk = 7;
+	mob_dummy->status.rhw.atk2 = 10;
+	mob_dummy->status.str = 1;
+	mob_dummy->status.agi = 1;
+	mob_dummy->status.vit = 1;
+	mob_dummy->status.int_ = 1;
+	mob_dummy->status.dex =6;
+	mob_dummy->status.luk = 2;
+	mob_dummy->status.speed = 300;
+	mob_dummy->status.adelay = 1000;
+	mob_dummy->status.amotion = 500;
+	mob_dummy->status.dmotion = 500;
+	mob_dummy->base_exp = 2;
+	mob_dummy->job_exp = 1;
+	mob_dummy->range2 = 10;
+	mob_dummy->range3 = 10;
 
 	return 0;
 }

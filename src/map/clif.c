@@ -1301,13 +1301,11 @@ int clif_spawn(struct block_list *bl)
 	if (!vd || vd->class_ == INVISIBLE_CLASS)
 		return 0;
 
-	/**
-	* Hide NPC from maya purple card.
-	**/
+	//Hide NPC from maya purple card.
 	if (bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
 		return 0;
 
-	len = clif_set_unit_idle(bl, buf,true);
+	len = clif_set_unit_idle(bl,buf,true);
 	clif_send(buf,len,bl,AREA_WOS);
 
 	if (disguised(bl))
@@ -1335,7 +1333,7 @@ int clif_spawn(struct block_list *bl)
 				}
 				for (i = 0; i < sd->sc_display_count; i++) {
 					if ((sc = status_get_sc(bl)) && sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE|OPTION_CHASEWALK))
-						clif_status_change2(&sd->bl,sd->bl.id,AREA,StatusIconChangeTable[sd->sc_display[i]->type],0,0,0);
+						clif_status_change2(&sd->bl,sd->bl.id,AREA,SI_BLANK,0,0,0);
 					else
 						clif_status_change2(&sd->bl,sd->bl.id,AREA,StatusIconChangeTable[sd->sc_display[i]->type],sd->sc_display[i]->val1,sd->sc_display[i]->val2,sd->sc_display[i]->val3);
 				}
@@ -2460,10 +2458,12 @@ void clif_equiplist(struct map_session_data *sd)
 
 void clif_storagelist(struct map_session_data* sd, struct item* items, int items_length)
 {
+	static const int client_buf = 0x5000; //Max buffer to send
 	struct item_data *id;
-	int i, n, ne;
+	int i, n, ne, nn;
 	unsigned char *buf;
 	unsigned char *bufe;
+	unsigned char *bufn;
 #if PACKETVER < 5
 	const int s = 10; //Entry size. Normal item
 	const int sidx = 4; //Start itemlist idx
@@ -2506,35 +2506,41 @@ void clif_storagelist(struct map_session_data* sd, struct item* items, int items
 			n++;
 		}
 	}
-	if( n ) {
+	for( i = 0; i < n; ) { //Loop through non-equipable items
+		nn = n - i < (client_buf - 4) / s ? n - i : (client_buf - 4) / s; //Split up non-equipable items
+		bufn = buf + i * s; //Update buffer to new index range
+		i += nn;
 #if PACKETVER < 5
-		WBUFW(buf, 0) = 0xa5;
+		WBUFW(bufn, 0) = 0xa5;
 #elif PACKETVER < 20080102
-		WBUFW(buf, 0) = 0x1f0;
+		WBUFW(bufn, 0) = 0x1f0;
 #elif PACKETVER < 20120925
-		WBUFW(buf, 0) = 0x2ea;
+		WBUFW(bufn, 0) = 0x2ea;
 #else
-		WBUFW(buf, 0) = 0x995;
-		memset((char*)WBUFP(buf, 4), 0, 24); //Storename
+		WBUFW(bufn, 0) = 0x995;
+		memset((char*)WBUFP(bufn, 4), 0, 24); //Storename
 #endif
-		WBUFW(buf, 2) = n * s + sidx;
-		clif_send(buf, WBUFW(buf, 2), &sd->bl, SELF);
+		WBUFW(bufn, 2) = nn * s + sidx;
+		clif_send(bufn, WBUFW(bufn, 2), &sd->bl, SELF);
 	}
-	if( ne ) {
+	for( i = 0; i < ne; ) { //Loop through equipable items
+		nn = ne - i < (client_buf - 4) / se ? ne - i : (client_buf - 4) / se; //Split up equipable items
+		bufn = bufe + i * se; //Update buffer to new index range
+		i += nn;
 #if PACKETVER < 20071002
-		WBUFW(bufe, 0) = 0xa6;
+		WBUFW(bufn, 0) = 0xa6;
 #elif PACKETVER < 20120925
-		WBUFW(bufe, 0) = 0x2d1;
+		WBUFW(bufn, 0) = 0x2d1;
 #else
-		WBUFW(bufe, 0) = 0x996;
-		memset((char*)WBUFP(bufe, 4), 0, 24); //Storename
+		WBUFW(bufn, 0) = 0x996;
+		memset((char*)WBUFP(bufn, 4), 0, 24); //Storename
 #endif
-		WBUFW(bufe, 2) = ne * se + sidxe;
-		clif_send(bufe, WBUFW(bufe, 2), &sd->bl, SELF);
+		WBUFW(bufn, 2) = nn * se + sidxe;
+		clif_send(bufn, WBUFW(bufn, 2), &sd->bl, SELF);
 	}
 
-	if( buf ) aFree(buf);
-	if( bufe ) aFree(bufe);
+	if( bufn )
+		aFree(bufn);
 }
 
 
@@ -4093,9 +4099,9 @@ static void clif_getareachar_pc(struct map_session_data* sd,struct map_session_d
 	}
 	for( i = 0; i < dstsd->sc_display_count; i++ ) {
 		if (dstsd->sc.option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE|OPTION_CHASEWALK))
-			clif_status_change2(&sd->bl,dstsd->bl.id,SELF,StatusIconChangeTable[dstsd->sc_display[i]->type],0,0,0);
+			clif_status_change2(&sd->bl, dstsd->bl.id, SELF, SI_BLANK, 0, 0, 0);
 		else
-			clif_status_change2(&sd->bl,dstsd->bl.id,SELF,StatusIconChangeTable[dstsd->sc_display[i]->type],dstsd->sc_display[i]->val1,dstsd->sc_display[i]->val2,dstsd->sc_display[i]->val3);
+			clif_status_change2(&sd->bl, dstsd->bl.id, SELF, StatusIconChangeTable[dstsd->sc_display[i]->type], dstsd->sc_display[i]->val1, dstsd->sc_display[i]->val2, dstsd->sc_display[i]->val3);
 	}
 	if( (sd->status.party_id && dstsd->status.party_id == sd->status.party_id) || //Party-mate, or hpdisp setting.
 		(sd->bg_id && sd->bg_id == dstsd->bg_id) || //BattleGround
@@ -4103,11 +4109,13 @@ static void clif_getareachar_pc(struct map_session_data* sd,struct map_session_d
 	)
 		clif_hpmeter_single(sd->fd, dstsd->bl.id, dstsd->battle_status.hp, dstsd->battle_status.max_hp);
 	//Display link (sd - dstsd) to sd
-	ARR_FIND( 0, 5, i, sd->devotion[i] == dstsd->bl.id );
-	if( i < 5 ) clif_devotion(&sd->bl, sd);
+	ARR_FIND(0, 5, i, sd->devotion[i] == dstsd->bl.id);
+	if( i < 5 )
+		clif_devotion(&sd->bl, sd);
 	//Display links (dstsd - devotees) to sd
-	ARR_FIND( 0, 5, i, dstsd->devotion[i] > 0 );
-	if( i < 5 ) clif_devotion(&dstsd->bl, sd);
+	ARR_FIND(0, 5, i, dstsd->devotion[i] > 0);
+	if( i < 5 )
+		clif_devotion(&dstsd->bl, sd);
 	//Display link (dstsd - crusader) to sd
 	if( dstsd->sc.data[SC_DEVOTION] && (d_bl = map_id2bl(dstsd->sc.data[SC_DEVOTION]->val1)) != NULL )
 		clif_devotion(d_bl, sd);
@@ -9427,7 +9435,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 	//Reset the callshop flag if the player changes map
 	sd->state.callshop = 0;
 
-	map_addblock(&sd->bl);
+	if(map_addblock(&sd->bl))
+		return;
 	clif_spawn(&sd->bl);
 
 	//Party
@@ -9470,7 +9479,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 			clif_displaymessage(sd->fd,msg_txt(666));
 			pet_menu(sd,3); //Option 3 is return to egg.
 		} else {
-			map_addblock(&sd->pd->bl);
+			if(map_addblock(&sd->pd->bl))
+				return;
 			clif_spawn(&sd->pd->bl);
 			clif_send_petdata(sd,sd->pd,0,0);
 			clif_send_petstatus(sd);
@@ -9480,7 +9490,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 
 	//Homunculus [blackhole89]
 	if(merc_is_hom_active(sd->hd)) {
-		map_addblock(&sd->hd->bl);
+		if(map_addblock(&sd->hd->bl))
+			return;
 		clif_spawn(&sd->hd->bl);
 		clif_send_homdata(sd,SP_ACK,0);
 		clif_hominfo(sd,sd->hd,1);
@@ -9493,7 +9504,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 	}
 
 	if(sd->md) {
-		map_addblock(&sd->md->bl);
+		if(map_addblock(&sd->md->bl))
+			return;
 		clif_spawn(&sd->md->bl);
 		clif_mercenary_info(sd);
 		clif_mercenary_skillblock(sd);
@@ -9501,7 +9513,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 	}
 
 	if(sd->ed) {
-		map_addblock(&sd->ed->bl);
+		if(map_addblock(&sd->ed->bl))
+			return;
 		clif_spawn(&sd->ed->bl);
 		clif_elemental_info(sd);
 		clif_elemental_updatestatus(sd,SP_HP);
@@ -9512,6 +9525,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 
 	if(sd->state.connect_new) {
 		int lv;
+
 		sd->state.connect_new = 0;
 		clif_skillinfoblock(sd);
 		clif_hotkeys_send(sd);
@@ -9590,10 +9604,6 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 		clif_partyinvitationstate(sd);
 		clif_equipcheckbox(sd);
 #endif
-#ifdef VIP_ENABLE
-		clif_display_pinfo(sd,ZC_PERSONAL_INFOMATION);
-		//clif_vip_display_info(sd,ZC_PERSONAL_INFOMATION_CHN);
-#endif
 		if((battle_config.bg_flee_penalty != 100 || battle_config.gvg_flee_penalty != 100) &&
 			(map_flag_gvg2(sd->state.pmap) || map_flag_gvg2(sd->bl.m) || map[sd->state.pmap].flag.battleground || map[sd->bl.m].flag.battleground))
 			status_calc_bl(&sd->bl,SCB_FLEE); //Refresh flee penalty
@@ -9622,14 +9632,22 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 		}
 
 		map_iwall_get(sd); //Updates Walls Info on this Map to Client
-		status_calc_pc(sd,SCO_NONE); /* Some conditions are map-dependent so we must recalculate */
-		sd->state.changemap = false;
+
+		status_calc_pc(sd,SCO_NONE); //Some conditions are map-dependent so we must recalculate
 
 		//Instances do not need their own channels
-		if(Channel_Config.map_enable && Channel_Config.map_autojoin && !map[sd->bl.m].flag.chmautojoin &&
-			!map[sd->bl.m].instance_id) {
+		if(Channel_Config.map_enable && Channel_Config.map_autojoin &&
+			!map[sd->bl.m].flag.chmautojoin && !map[sd->bl.m].instance_id)
 			channel_mjoin(sd); //Join new map
-		}
+
+#ifdef VIP_ENABLE
+		clif_display_pinfo(sd,ZC_PERSONAL_INFOMATION);
+		//clif_vip_display_info(sd,ZC_PERSONAL_INFOMATION_CHN);
+		if(battle_config.vip_gemstone && pc_isvip(sd))
+			sd->special_state.no_gemstone = 2;
+#endif
+
+		sd->state.changemap = 0;
 	}
 
 	mail_clear(sd);
@@ -9959,7 +9977,7 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data* sd)
 		unsigned int next = pc_nextbaseexp(sd);
 		if( next == 0 ) next = pc_thisbaseexp(sd);
 		if( next ) { //0%, 10%, 20%, ...
-			int percent = (int)( ( (float)sd->status.base_exp / (float)next ) * 1000. );
+			int percent = (int)(((float)sd->status.base_exp / (float)next) * 1000.);
 			if( (battle_config.snovice_call_type || percent) && ( percent%100 ) == 0 ) { //10.0%, 20.0%, ..., 90.0%
 				switch( sd->state.snovice_call_flag ) {
 					case 0:
@@ -13949,21 +13967,21 @@ void clif_parse_AutoRevive(int fd, struct map_session_data *sd)
 void clif_check(int fd, struct map_session_data* pl_sd)
 {
 	WFIFOHEAD(fd,packet_len(0x214));
-	WFIFOW(fd, 0) = 0x214;
-	WFIFOB(fd, 2) = min(pl_sd->status.str, UINT8_MAX);
-	WFIFOB(fd, 3) = pc_need_status_point(pl_sd, SP_STR, 1);
-	WFIFOB(fd, 4) = min(pl_sd->status.agi, UINT8_MAX);
-	WFIFOB(fd, 5) = pc_need_status_point(pl_sd, SP_AGI, 1);
-	WFIFOB(fd, 6) = min(pl_sd->status.vit, UINT8_MAX);
-	WFIFOB(fd, 7) = pc_need_status_point(pl_sd, SP_VIT, 1);
-	WFIFOB(fd, 8) = min(pl_sd->status.int_, UINT8_MAX);
-	WFIFOB(fd, 9) = pc_need_status_point(pl_sd, SP_INT, 1);
+	WFIFOW(fd,0) = 0x214;
+	WFIFOB(fd,2) = min(pl_sd->status.str, UINT8_MAX);
+	WFIFOB(fd,3) = pc_need_status_point(pl_sd, SP_STR, 1);
+	WFIFOB(fd,4) = min(pl_sd->status.agi, UINT8_MAX);
+	WFIFOB(fd,5) = pc_need_status_point(pl_sd, SP_AGI, 1);
+	WFIFOB(fd,6) = min(pl_sd->status.vit, UINT8_MAX);
+	WFIFOB(fd,7) = pc_need_status_point(pl_sd, SP_VIT, 1);
+	WFIFOB(fd,8) = min(pl_sd->status.int_, UINT8_MAX);
+	WFIFOB(fd,9) = pc_need_status_point(pl_sd, SP_INT, 1);
 	WFIFOB(fd,10) = min(pl_sd->status.dex, UINT8_MAX);
 	WFIFOB(fd,11) = pc_need_status_point(pl_sd, SP_DEX, 1);
 	WFIFOB(fd,12) = min(pl_sd->status.luk, UINT8_MAX);
 	WFIFOB(fd,13) = pc_need_status_point(pl_sd, SP_LUK, 1);
-	WFIFOW(fd,14) = pl_sd->battle_status.batk+pl_sd->battle_status.rhw.atk+pl_sd->battle_status.lhw.atk;
-	WFIFOW(fd,16) = pl_sd->battle_status.rhw.atk2+pl_sd->battle_status.lhw.atk2;
+	WFIFOW(fd,14) = pl_sd->battle_status.batk + pl_sd->battle_status.rhw.atk + pl_sd->battle_status.lhw.atk;
+	WFIFOW(fd,16) = pl_sd->battle_status.rhw.atk2 + pl_sd->battle_status.lhw.atk2;
 	WFIFOW(fd,18) = pl_sd->battle_status.matk_max;
 	WFIFOW(fd,20) = pl_sd->battle_status.matk_min;
 	WFIFOW(fd,22) = pl_sd->battle_status.def;
@@ -13972,10 +13990,10 @@ void clif_check(int fd, struct map_session_data* pl_sd)
 	WFIFOW(fd,28) = pl_sd->battle_status.mdef2;
 	WFIFOW(fd,30) = pl_sd->battle_status.hit;
 	WFIFOW(fd,32) = pl_sd->battle_status.flee;
-	WFIFOW(fd,34) = pl_sd->battle_status.flee2/10;
-	WFIFOW(fd,36) = pl_sd->battle_status.cri/10;
-	WFIFOW(fd,38) = (2000-pl_sd->battle_status.amotion)/10;  // aspd
-	WFIFOW(fd,40) = 0;  // FIXME: What is 'plusASPD' supposed to be? Maybe adelay?
+	WFIFOW(fd,34) = pl_sd->battle_status.flee2 / 10;
+	WFIFOW(fd,36) = pl_sd->battle_status.cri / 10;
+	WFIFOW(fd,38) = (2000 - pl_sd->battle_status.amotion) / 10; // Aspd
+	WFIFOW(fd,40) = 0; // FIXME: What is 'plusASPD' supposed to be? Maybe adelay?
 	WFIFOSET(fd,packet_len(0x214));
 }
 
@@ -14873,7 +14891,10 @@ void clif_cashshop_list(int fd) {
 }
 
 void clif_parse_cashshop_list_request(int fd, struct map_session_data* sd) {
-	clif_cashshop_list(fd);
+	if( !sd->status.cashshop_sent ) {
+		clif_cashshop_list(fd);
+		sd->status.cashshop_sent = true;
+	}
 }
 
 /// List of items offered in a cash shop (ZC_PC_CASH_POINT_ITEMLIST).
@@ -17572,7 +17593,7 @@ void packetdb_readdb(void)
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 	//#0x08C0
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 10,
-		9,  7, 10,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+		9,  7, 10,  0,  0,  0,  6,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 	//#0x0900

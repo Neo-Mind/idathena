@@ -1897,9 +1897,9 @@ ACMD_FUNC(go)
 			clif_displaymessage(fd, msg_txt(248));
 			return -1;
 		}
-		if (pc_setpos(sd, mapindex_name2id(data[town].map), data[town].x, data[town].y, CLR_TELEPORT) == 0) {
+		if (pc_setpos(sd, mapindex_name2id(data[town].map), data[town].x, data[town].y, CLR_TELEPORT) == 0)
 			clif_displaymessage(fd, msg_txt(0)); // Warped.
-		} else {
+		else {
 			clif_displaymessage(fd, msg_txt(1)); // Map not found.
 			return -1;
 		}
@@ -2087,17 +2087,19 @@ ACMD_FUNC(refine)
 	refine = cap_value(refine, -MAX_REFINE, MAX_REFINE);
 
 	count = 0;
-	for (j = 0; j < EQI_MAX-1; j++) {
+	for (j = 0; j < EQI_MAX; j++) {
 		if ((i = sd->equip_index[j]) < 0)
 			continue;
-		if(j == EQI_HAND_R && sd->equip_index[EQI_HAND_L] == i)
+		if (j == EQI_AMMO)
 			continue;
-		if(j == EQI_HEAD_MID && sd->equip_index[EQI_HEAD_LOW] == i)
+		if (j == EQI_HAND_R && sd->equip_index[EQI_HAND_L] == i)
 			continue;
-		if(j == EQI_HEAD_TOP && (sd->equip_index[EQI_HEAD_MID] == i || sd->equip_index[EQI_HEAD_LOW] == i))
+		if (j == EQI_HEAD_MID && sd->equip_index[EQI_HEAD_LOW] == i)
+			continue;
+		if (j == EQI_HEAD_TOP && (sd->equip_index[EQI_HEAD_MID] == i || sd->equip_index[EQI_HEAD_LOW] == i))
 			continue;
 
-		if(position && !(sd->status.inventory[i].equip & position))
+		if (position && !(sd->status.inventory[i].equip&position))
 			continue;
 
 		final_refine = cap_value(sd->status.inventory[i].refine + refine, 0, MAX_REFINE);
@@ -2742,7 +2744,7 @@ ACMD_FUNC(char_block)
 		return -1;
 	}
 
-	chrif_req_login_operation(sd->status.account_id, atcmd_player_name, 1, 0, 0, 0); // type: 1 - block
+	chrif_req_login_operation(sd->status.account_id, atcmd_player_name, 1, 0, 0, 0); // Type: 1 - block
 	clif_displaymessage(fd, msg_txt(88)); // Character name sent to char-server to ask it.
 
 	return 0;
@@ -2756,7 +2758,7 @@ ACMD_FUNC(char_block)
 ACMD_FUNC(char_ban)
 {
 	char * modif_p;
-	int timediff = 0;
+	int32 timediff = 0; //Don't set this as uint as we may want to decrease banned time
 	int bantype = 2; //2 = account block, 6 = char specific
 	char output[256];
 
@@ -2774,7 +2776,7 @@ ACMD_FUNC(char_ban)
 	atcmd_output[sizeof(atcmd_output) - 1] = '\0';
 
 	modif_p = atcmd_output;
-	timediff = (int)solve_time(modif_p); // Discard seconds
+	timediff = (int32)solve_time(modif_p); // Discard seconds
 
 	if (timediff == 0) { // Allow negative ?
 		char output[256];
@@ -9035,7 +9037,7 @@ ACMD_FUNC(costume) {
 ACMD_FUNC(vip) {
 	struct map_session_data *pl_sd = NULL;
 	char *modif_p;
-	int vipdifftime = 0;
+	int32 vipdifftime = 0;
 	time_t now = time(NULL);
 	nullpo_retr(-1, sd);
 
@@ -9049,7 +9051,7 @@ ACMD_FUNC(vip) {
 	atcmd_output[sizeof(atcmd_output) - 1] = '\0';
 
 	modif_p = atcmd_output;
-	vipdifftime = (int)solve_time(modif_p);
+	vipdifftime = (int32)solve_time(modif_p);
 	if (vipdifftime == 0) {
 		clif_displaymessage(fd, msg_txt(701)); // Invalid time for vip command.
 		clif_displaymessage(fd, msg_txt(702)); // Time parameter format is +/-<value> to alter. y/a = Year, m = Month, d/j = Day, h = Hour, n/mn = Minute, s = Second.

@@ -497,7 +497,7 @@ int chrif_parse_reqvipdata(int fd) {
 		struct mmo_account acc;
 		int aid = RFIFOL(fd,2);
 		int8 type = RFIFOB(fd,6);
-		int req_duration = RFIFOL(fd,7);
+		int32 timediff = RFIFOL(fd,7);
 		int mapfd =  RFIFOL(fd,11);
 
 		RFIFOSKIP(fd,15);
@@ -506,14 +506,17 @@ int chrif_parse_reqvipdata(int fd) {
 			time_t vip_time = acc.vip_time;
 			bool isvip = false;
 
-			if( type&2 ) vip_time = now + req_duration; //Set new duration
+			if( type&2 ) {
+				if( !vip_time ) vip_time = now; //New entry
+				vip_time += timediff; //Set new duration
+			}
 			if( now < vip_time ) { //isvip
 				if( acc.group_id != login_config.vip_sys.group ) //Only upd this if we're not vip already
 					acc.old_group = acc.group_id;
 				acc.group_id = login_config.vip_sys.group;
 				acc.char_slots = login_config.char_per_account + login_config.vip_sys.char_increase;
 				isvip = true;
-			} else if( vip_time ) { //Expired or @vip -xx
+			} else { //Expired or @vip -xx
 				vip_time = 0;
 				if( acc.group_id == login_config.vip_sys.group ) //Prevent alteration in case we wasn't registered vip yet
 					acc.group_id = acc.old_group;
@@ -1154,6 +1157,7 @@ int mmo_auth(struct login_session_data* sd, bool isServer) {
 
 	if( acc.unban_time != 0 && acc.unban_time > time(NULL) ) {
 		char tmpstr[24];
+
 		timestamp2string(tmpstr, sizeof(tmpstr), acc.unban_time, login_config.date_format);
 		ShowNotice("Connection refused (account: %s, pass: %s, banned until %s, ip: %s)\n", sd->userid, sd->passwd, tmpstr, ip);
 		return 6; // 6 = Your are Prohibited to log in until %s
@@ -1208,10 +1212,6 @@ int mmo_auth(struct login_session_data* sd, bool isServer) {
 	timestamp2string(acc.lastlogin, sizeof(acc.lastlogin), time(NULL), "%Y-%m-%d %H:%M:%S");
 	safestrncpy(acc.last_ip, ip, sizeof(acc.last_ip));
 	acc.unban_time = 0;
-#ifdef VIP_ENABLE
-	acc.vip_time = 0;
-	acc.old_group = 0;
-#endif
 	acc.logincount++;
 
 	accounts->save(accounts, &acc);

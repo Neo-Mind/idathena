@@ -1977,10 +1977,10 @@ int status_base_amotion_pc(struct map_session_data* sd, struct status_data* stat
 		case W_1HSWORD:
 		case W_1HAXE:	mod = 1;
 			if( (sd->class_&MAPID_THIRDMASK) == MAPID_GUILLOTINE_CROSS ) //0, 2, 3
-				mod = sd->weapontype2 / W_1HSWORD + W_1HSWORD / sd->weapontype2 ;
+				mod = sd->weapontype2 / W_1HSWORD + W_1HSWORD / sd->weapontype2;
 	}
 
-	amotion = ( sd->status.weapon < MAX_WEAPON_TYPE && mod < 0 )
+	amotion = (sd->status.weapon < MAX_WEAPON_TYPE && mod < 0)
 			? (job_info[classidx].aspd_base[sd->status.weapon]) //Single weapon
 			: ((job_info[classidx].aspd_base[sd->weapontype2] //Dual-wield
 			+ job_info[classidx].aspd_base[sd->weapontype2]) * 6 / 10 + 10 * mod
@@ -1988,8 +1988,7 @@ int status_base_amotion_pc(struct map_session_data* sd, struct status_data* stat
 			+ job_info[classidx].aspd_base[sd->weapontype1]);
 
 	if( sd->status.shield )
-		amotion += ( 2000 - job_info[classidx].aspd_base[W_FIST] ) +
-			( job_info[classidx].aspd_base[MAX_WEAPON_TYPE] - 2000 );
+		amotion += (2000 - job_info[classidx].aspd_base[W_FIST]) + (job_info[classidx].aspd_base[MAX_WEAPON_TYPE] - 2000);
 
 #else
 	//Base weapon delay
@@ -2058,7 +2057,7 @@ static unsigned short status_base_atk(const struct block_list *bl, const struct 
 	str += dstr * dstr;
 	if (bl->type == BL_PC)
 #ifdef RENEWAL
-		str = (int)(rstr + (float)dex / 5 + (float)status->luk / 3 + (float)((TBL_PC*)bl)->status.base_level / 4);
+		str = (int)floor(rstr + (float)dex / 5 + (float)status->luk / 3 + (float)((TBL_PC*)bl)->status.base_level / 4);
 	else if (bl->type == BL_MOB)
 		str = rstr + ((TBL_MOB*)bl)->level;
 #else
@@ -2070,21 +2069,20 @@ static unsigned short status_base_atk(const struct block_list *bl, const struct 
 #ifdef RENEWAL
 unsigned int status_weapon_atk(struct weapon_atk wa, struct status_data *status)
 {
-	int dstr;
-	float strdex_bonus;
+	int str, bonus;
 
 	if (wa.range > 1)
-		dstr = status->dex; //Range ATK count DEX as bonus
+		str = status->dex; //Range ATK count DEX as bonus
 	else
-		dstr = status->str; //Melee ATK count STR as bonus
+		str = status->str; //Melee ATK count STR as bonus
 
-	//Weapon ATK = (Base Weapon ATK + Variance + STR Bonus + Refinement Bonus) * Size Penalty
 	//wa.atk = Base Weapok ATK
 	//Variance and Size Penalty will be calculated in battle.c
-	//strdex_bonus = STR Bonus
+	//bonus = STR/DEX Bonus
 	//wa.atk2 = Refinement Bonus
-	strdex_bonus = wa.atk * dstr / 200.0f;
-	return wa.atk + (int)strdex_bonus + wa.atk2;
+	bonus = (int)((float)(wa.atk * str) / 200); //BaseWeaponATK * STR / 200
+	//Weapon ATK = (Base Weapon ATK + Variance + STR/DEX Bonus + Refinement Bonus) * Size Penalty
+	return wa.atk + bonus + wa.atk2;
 }
 #endif
 
@@ -2619,9 +2617,11 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 	pc_delautobonus(sd,sd->autobonus3,ARRAYLENGTH(sd->autobonus3),true);
 
 	//Parse equipment.
-	for(i = 0; i < EQI_MAX - 1; i++) {
+	for(i = 0; i < EQI_MAX; i++) {
 		current_equip_item_index = index = sd->equip_index[i]; //We pass INDEX to current_equip_item_index - for EQUIP_SCRIPT (new cards solution) [Lupus]
 		if(index < 0)
+			continue;
+		if(i == EQI_AMMO)
 			continue;
 		if(i == EQI_HAND_R && sd->equip_index[EQI_HAND_L] == index)
 			continue;
@@ -2771,9 +2771,12 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 	status->def += (refinedef + 50) / 100;
 
 	//Parse Cards
-	for(i = 0; i < EQI_MAX - 1; i++) {
-		current_equip_item_index = index = sd->equip_index[i]; //We pass INDEX to current_equip_item_index - for EQUIP_SCRIPT (new cards solution) [Lupus]
+	for(i = 0; i < EQI_MAX; i++) {
+		//We pass INDEX to current_equip_item_index - for EQUIP_SCRIPT (new cards solution) [Lupus]
+		current_equip_item_index = index = sd->equip_index[i];
 		if(index < 0)
+			continue;
+		if(i == EQI_AMMO)
 			continue;
 		if(i == EQI_HAND_R && sd->equip_index[EQI_HAND_L] == index)
 			continue;
@@ -3905,7 +3908,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 			status->watk = 0;
 			status->watk2 = status_calc_watk(bl, sc, b_status->watk2);
 		} else
-			status->watk = status_calc_watk(bl, sc, b_status->watk); 
+			status->watk = status_calc_watk(bl, sc, b_status->watk);
 #endif
 	}
 
@@ -4174,14 +4177,13 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 				amotion = amotion * status->aspd_rate / 1000;
 #else
 			//aspd = baseaspd + floor(sqrt((agi^2/2) + (dex^2/5))/4 + (potskillbonus*agi/200))
-			amotion -= (int)(sqrt( (pow(status->agi, 2) / 2) + (pow(status->dex, 2) / 5) ) / 4 + (status_calc_aspd(bl, sc, 1) * status->agi / 200)) * 10;
+			amotion -= (int)floor(sqrt((pow((float)status->agi, 2) / 2) + (pow((float)status->dex, 2) / 5)) / 4 + (float)(status_calc_aspd(bl, sc, 1) * status->agi) / 200) * 10;
 
 			if( (status_calc_aspd(bl, sc, 2) + status->aspd_rate2) != 0 ) //RE ASPD percertage modifier
-					amotion -= ( amotion - ((sd->class_&JOBL_THIRD) ? battle_config.max_third_aspd : battle_config.max_aspd) )
-											* (status_calc_aspd(bl, sc, 2) + status->aspd_rate2) / 100;
-			
+					amotion -= (amotion - ((sd->class_&JOBL_THIRD) ? battle_config.max_third_aspd : battle_config.max_aspd)) * (status_calc_aspd(bl, sc, 2) + status->aspd_rate2) / 100;
+
 			if( status->aspd_rate != 1000 ) //Absolute percentage modifier
-					amotion = ( 200 - (200 - amotion / 10) * status->aspd_rate / 1000 ) * 10;
+					amotion = (200 - (200 - amotion / 10) * status->aspd_rate / 1000) * 10;
 #endif
 			amotion = status_calc_fix_aspd(bl, sc, amotion);
 			status->amotion = cap_value(amotion,((sd->class_&JOBL_THIRD) ? battle_config.max_third_aspd : battle_config.max_aspd),2000);

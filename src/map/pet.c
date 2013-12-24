@@ -407,11 +407,12 @@ int pet_birth_process(struct map_session_data *sd, struct s_pet *pet)
 	}
 
 	intif_save_petdata(sd->status.account_id,pet);
-	if (save_settings&8)
-		chrif_save(sd,0); //is it REALLY Needed to save the char for hatching a pet? [Skotlex]
+	if(save_settings&8)
+		chrif_save(sd,0); //Is it REALLY Needed to save the char for hatching a pet? [Skotlex]
 
 	if(sd->bl.prev != NULL) {
-		map_addblock(&sd->pd->bl);
+		if(map_addblock(&sd->pd->bl))
+			return 1;
 		clif_spawn(&sd->pd->bl);
 		clif_send_petdata(sd,sd->pd, 0,0);
 		clif_send_petdata(sd,sd->pd, 5,battle_config.pet_hair_style);
@@ -452,7 +453,8 @@ int pet_recv_petdata(int account_id,struct s_pet *p,int flag)
 	} else {
 		pet_data_init(sd,p);
 		if(sd->pd && sd->bl.prev != NULL) {
-			map_addblock(&sd->pd->bl);
+			if(map_addblock(&sd->pd->bl))
+				return 1;
 			clif_spawn(&sd->pd->bl);
 			clif_send_petdata(sd,sd->pd,0,0);
 			clif_send_petdata(sd,sd->pd,5,battle_config.pet_hair_style);

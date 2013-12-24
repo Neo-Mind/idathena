@@ -660,7 +660,7 @@ int pc_equippoint(struct map_session_data *sd,int n)
 		sd->inventory_data[n]->look == W_1HSWORD ||
 		sd->inventory_data[n]->look == W_1HAXE) {
 		if(ep == EQP_HAND_R && (pc_checkskill(sd,AS_LEFT) > 0 || (sd->class_&MAPID_UPPERMASK) == MAPID_ASSASSIN ||
-			(sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO))//Kagerou and Oboro can dual wield daggers. [Rytech]
+			(sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO)) //Kagerou and Oboro can dual wield daggers. [Rytech]
 			return EQP_ARMS;
 	}
 	return ep;
@@ -672,9 +672,9 @@ int pc_setinventorydata(struct map_session_data *sd)
 
 	nullpo_ret(sd);
 
-	for(i=0;i<MAX_INVENTORY;i++) {
+	for(i = 0; i < MAX_INVENTORY; i++) {
 		id = sd->status.inventory[i].nameid;
-		sd->inventory_data[i] = id?itemdb_search(id):NULL;
+		sd->inventory_data[i] = id ? itemdb_search(id) : NULL;
 	}
 	return 0;
 }
@@ -683,7 +683,7 @@ int pc_calcweapontype(struct map_session_data *sd)
 {
 	nullpo_ret(sd);
 
-	// single-hand
+	//Single-hand
 	if(sd->weapontype2 == W_FIST) {
 		sd->status.weapon = sd->weapontype1;
 		return 1;
@@ -692,32 +692,33 @@ int pc_calcweapontype(struct map_session_data *sd)
 		sd->status.weapon = sd->weapontype2;
 		return 1;
 	}
-	// dual-wield
+	//Dual-wield
 	sd->status.weapon = 0;
-	switch (sd->weapontype1){
-	case W_DAGGER:
-		switch (sd->weapontype2) {
-		case W_DAGGER:  sd->status.weapon = W_DOUBLE_DD; break;
-		case W_1HSWORD: sd->status.weapon = W_DOUBLE_DS; break;
-		case W_1HAXE:   sd->status.weapon = W_DOUBLE_DA; break;
-		}
-		break;
-	case W_1HSWORD:
-		switch (sd->weapontype2) {
-		case W_DAGGER:  sd->status.weapon = W_DOUBLE_DS; break;
-		case W_1HSWORD: sd->status.weapon = W_DOUBLE_SS; break;
-		case W_1HAXE:   sd->status.weapon = W_DOUBLE_SA; break;
-		}
-		break;
-	case W_1HAXE:
-		switch (sd->weapontype2) {
-		case W_DAGGER:  sd->status.weapon = W_DOUBLE_DA; break;
-		case W_1HSWORD: sd->status.weapon = W_DOUBLE_SA; break;
-		case W_1HAXE:   sd->status.weapon = W_DOUBLE_AA; break;
-		}
+	switch(sd->weapontype1) {
+		case W_DAGGER:
+			switch(sd->weapontype2) {
+				case W_DAGGER:  sd->status.weapon = W_DOUBLE_DD; break;
+				case W_1HSWORD: sd->status.weapon = W_DOUBLE_DS; break;
+				case W_1HAXE:   sd->status.weapon = W_DOUBLE_DA; break;
+			}
+			break;
+		case W_1HSWORD:
+			switch(sd->weapontype2) {
+				case W_DAGGER:  sd->status.weapon = W_DOUBLE_DS; break;
+				case W_1HSWORD: sd->status.weapon = W_DOUBLE_SS; break;
+				case W_1HAXE:   sd->status.weapon = W_DOUBLE_SA; break;
+			}
+			break;
+		case W_1HAXE:
+			switch(sd->weapontype2) {
+				case W_DAGGER:  sd->status.weapon = W_DOUBLE_DA; break;
+				case W_1HSWORD: sd->status.weapon = W_DOUBLE_SA; break;
+				case W_1HAXE:   sd->status.weapon = W_DOUBLE_AA; break;
+			}
+			break;
 	}
-	// unknown, default to right hand type
-	if (!sd->status.weapon)
+	//Unknown, default to right hand type
+	if(!sd->status.weapon)
 		sd->status.weapon = sd->weapontype1;
 
 	return 2;
@@ -729,15 +730,15 @@ int pc_setequipindex(struct map_session_data *sd)
 
 	nullpo_ret(sd);
 
-	for(i=0;i<EQI_MAX;i++)
+	for(i = 0; i < EQI_MAX; i++)
 		sd->equip_index[i] = -1;
 
-	for(i=0;i<MAX_INVENTORY;i++) {
+	for(i = 0; i < MAX_INVENTORY; i++) {
 		if(sd->status.inventory[i].nameid <= 0)
 			continue;
 		if(sd->status.inventory[i].equip) {
-			for(j=0;j<EQI_MAX;j++)
-				if(sd->status.inventory[i].equip & equip_pos[j])
+			for(j = 0; j < EQI_MAX; j++)
+				if(sd->status.inventory[i].equip&equip_pos[j])
 					sd->equip_index[j] = i;
 
 			if(sd->status.inventory[i].equip & EQP_HAND_R) {
@@ -747,8 +748,8 @@ int pc_setequipindex(struct map_session_data *sd)
 					sd->weapontype1 = 0;
 			}
 
-			if( sd->status.inventory[i].equip & EQP_HAND_L ) {
-				if( sd->inventory_data[i] && sd->inventory_data[i]->type == IT_WEAPON )
+			if(sd->status.inventory[i].equip&EQP_HAND_L) {
+				if(sd->inventory_data[i] && sd->inventory_data[i]->type == IT_WEAPON)
 					sd->weapontype2 = sd->inventory_data[i]->look;
 				else
 					sd->weapontype2 = 0;
@@ -766,16 +767,16 @@ int pc_setequipindex(struct map_session_data *sd)
 	struct item *item = &sd->status.inventory[eqindex];
 	struct item_data *data;
 
-	// crafted/made/hatched items.
-	if (itemdb_isspecial(item->card[0]))
+	//Crafted/made/hatched items.
+	if(itemdb_isspecial(item->card[0]))
 		return 1;
 
-	// scan for enchant armor gems
-	if( item->card[MAX_SLOTS - 1] && s < MAX_SLOTS - 1 )
+	//Scan for enchant armor gems
+	if(item->card[MAX_SLOTS - 1] && s < MAX_SLOTS - 1)
 		s = MAX_SLOTS - 1;
 
-	ARR_FIND( 0, s, i, item->card[i] && (data = itemdb_exists(item->card[i])) != NULL && data->flag.no_equip&flag );
-	return( i < s ) ? 0 : 1;
+	ARR_FIND(0, s, i, item->card[i] && (data = itemdb_exists(item->card[i])) != NULL && data->flag.no_equip&flag);
+	return(i < s) ? 0 : 1;
 }*/
 
 bool pc_isequipped(struct map_session_data *sd, int nameid)
@@ -1201,6 +1202,9 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	/* [Ind] */
 	sd->sc_display = NULL;
 	sd->sc_display_count = 0;
+
+	//Player has not yet received the CashShop list
+	sd->status.cashshop_sent = false;
 
 	//Request all registries (auth is considered completed whence they arrive)
 	intif_request_registry(sd,7);
@@ -1982,8 +1986,9 @@ int pc_delautobonus(struct map_session_data* sd, struct s_autobonus *autobonus,c
 			if( restore && sd->state.autobonus&autobonus[i].pos ) {
 				if( autobonus[i].bonus_script ) {
 					int j;
-					ARR_FIND( 0, EQI_MAX-1, j, sd->equip_index[j] >= 0 && sd->status.inventory[sd->equip_index[j]].equip == autobonus[i].pos );
-					if( j < EQI_MAX-1 )
+
+					ARR_FIND(0, EQI_MAX, j, sd->equip_index[j] >= 0 && sd->status.inventory[sd->equip_index[j]].equip == autobonus[i].pos);
+					if( j < EQI_MAX )
 						script_run_autobonus(autobonus[i].bonus_script,sd->bl.id,sd->equip_index[j]);
 				}
 				continue;
@@ -2010,8 +2015,9 @@ int pc_exeautobonus(struct map_session_data *sd,struct s_autobonus *autobonus)
 
 	if( autobonus->other_script ) {
 		int j;
-		ARR_FIND( 0, EQI_MAX-1, j, sd->equip_index[j] >= 0 && sd->status.inventory[sd->equip_index[j]].equip == autobonus->pos );
-		if( j < EQI_MAX-1 )
+
+		ARR_FIND(0, EQI_MAX, j, sd->equip_index[j] >= 0 && sd->status.inventory[sd->equip_index[j]].equip == autobonus->pos);
+		if( j < EQI_MAX )
 			script_run_autobonus(autobonus->other_script,sd->bl.id,sd->equip_index[j]);
 	}
 
@@ -2306,14 +2312,14 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 			if(sd->state.lr_flag != 2)
 				sd->bonus.speed_add_rate -= val;
 			break;
-		case SP_ASPD:	//Raw increase
+		case SP_ASPD: //Raw increase
 			if(sd->state.lr_flag != 2)
-				sd->bonus.aspd_add -= 10*val;
+				sd->bonus.aspd_add -= 10 * val;
 			break;
-		case SP_ASPD_RATE:	//Stackable increase - Made it linear as per rodatazone
+		case SP_ASPD_RATE: //Stackable increase - Made it linear as per rodatazone
 			if(sd->state.lr_flag != 2)
 #ifndef RENEWAL_ASPD
-				status->aspd_rate -= 10*val;
+				status->aspd_rate -= 10 * val;
 #else
 				status->aspd_rate2 += val;
 #endif
@@ -2523,35 +2529,35 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 			if(sd->state.lr_flag != 2)
 				sd->bonus.magic_damage_return += val;
 			break;
-		case SP_ALL_STATS:	// [Valaris]
-			if(sd->state.lr_flag!=2) {
-				sd->param_bonus[SP_STR-SP_STR]+=val;
-				sd->param_bonus[SP_AGI-SP_STR]+=val;
-				sd->param_bonus[SP_VIT-SP_STR]+=val;
-				sd->param_bonus[SP_INT-SP_STR]+=val;
-				sd->param_bonus[SP_DEX-SP_STR]+=val;
-				sd->param_bonus[SP_LUK-SP_STR]+=val;
+		case SP_ALL_STATS: // [Valaris]
+			if(sd->state.lr_flag != 2) {
+				sd->param_bonus[SP_STR - SP_STR] += val;
+				sd->param_bonus[SP_AGI - SP_STR] += val;
+				sd->param_bonus[SP_VIT - SP_STR] += val;
+				sd->param_bonus[SP_INT - SP_STR] += val;
+				sd->param_bonus[SP_DEX - SP_STR] += val;
+				sd->param_bonus[SP_LUK - SP_STR] += val;
 			}
 			break;
-		case SP_AGI_VIT:	// [Valaris]
-			if(sd->state.lr_flag!=2) {
-				sd->param_bonus[SP_AGI-SP_STR]+=val;
-				sd->param_bonus[SP_VIT-SP_STR]+=val;
+		case SP_AGI_VIT: // [Valaris]
+			if(sd->state.lr_flag != 2) {
+				sd->param_bonus[SP_AGI - SP_STR] += val;
+				sd->param_bonus[SP_VIT - SP_STR] += val;
 			}
 			break;
-		case SP_AGI_DEX_STR:	// [Valaris]
-			if(sd->state.lr_flag!=2) {
-				sd->param_bonus[SP_AGI-SP_STR]+=val;
-				sd->param_bonus[SP_DEX-SP_STR]+=val;
-				sd->param_bonus[SP_STR-SP_STR]+=val;
+		case SP_AGI_DEX_STR: // [Valaris]
+			if(sd->state.lr_flag != 2) {
+				sd->param_bonus[SP_AGI - SP_STR] += val;
+				sd->param_bonus[SP_DEX - SP_STR] += val;
+				sd->param_bonus[SP_STR - SP_STR] += val;
 			}
 			break;
 		case SP_PERFECT_HIDE: // [Valaris]
-			if(sd->state.lr_flag!=2)
-				sd->special_state.perfect_hiding=1;
+			if(sd->state.lr_flag != 2)
+				sd->special_state.perfect_hiding = 1;
 			break;
 		case SP_UNBREAKABLE:
-			if(sd->state.lr_flag!=2)
+			if(sd->state.lr_flag != 2)
 				sd->bonus.unbreakable += val;
 			break;
 		case SP_UNBREAKABLE_WEAPON:
@@ -3763,7 +3769,7 @@ int pc_paycash(struct map_session_data *sd, int price, int points, e_log_pick_ty
 		points = price;
 	}
 
-	cash = price-points;
+	cash = price - points;
 
 	if( sd->cashPoints < cash || sd->kafraPoints < points ) {
 		ShowError("pc_paycash: Not enough points (cash=%d, kafra=%d) to cover the price (cash=%d, kafra=%d) (account_id=%d, char_id=%d).\n", sd->cashPoints, sd->kafraPoints, cash, points, sd->status.account_id, sd->status.char_id);
@@ -3784,7 +3790,7 @@ int pc_paycash(struct map_session_data *sd, int price, int points, e_log_pick_ty
 		sprintf(output, msg_txt(504), points, cash, sd->kafraPoints, sd->cashPoints);
 		clif_disp_onlyself(sd, output, strlen(output));
 	}
-	return cash+points;
+	return cash + points;
 }
 
 int pc_getcash( struct map_session_data *sd, int cash, int points, e_log_pick_type type ) {
@@ -3845,7 +3851,7 @@ int pc_getzeny(struct map_session_data *sd,int zeny, enum e_log_pick_type type, 
 {
 	nullpo_retr(-1,sd);
 
-	zeny = cap_value(zeny,-MAX_ZENY,MAX_ZENY); //prevent command UB
+	zeny = cap_value(zeny,-MAX_ZENY,MAX_ZENY); //Prevent command UB
 	if( zeny < 0 ) {
 		ShowError("pc_getzeny: Obtaining negative Zeny (zeny=%d, account_id=%d, char_id=%d).\n", zeny, sd->status.account_id, sd->status.char_id);
 		return 1;
@@ -3857,7 +3863,7 @@ int pc_getzeny(struct map_session_data *sd,int zeny, enum e_log_pick_type type, 
 	sd->status.zeny += zeny;
 	clif_updatestatus(sd,SP_ZENY);
 
-	if(!tsd) tsd = sd;
+	if( !tsd ) tsd = sd;
 	log_zeny(sd, type, tsd, zeny);
 	if( zeny > 0 && sd->state.showzeny ) {
 		char output[255];
@@ -3876,8 +3882,8 @@ int pc_search_inventory(struct map_session_data *sd,int item_id)
 	int i;
 	nullpo_retr(-1, sd);
 
-	ARR_FIND( 0, MAX_INVENTORY, i, sd->status.inventory[i].nameid == item_id && (sd->status.inventory[i].amount > 0 || item_id == 0) );
-	return ( i < MAX_INVENTORY ) ? i : -1;
+	ARR_FIND(0, MAX_INVENTORY, i, sd->status.inventory[i].nameid == item_id && (sd->status.inventory[i].amount > 0 || item_id == 0));
+	return (i < MAX_INVENTORY) ? i : -1;
 }
 
 /*==========================================
@@ -4798,12 +4804,14 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 
 	if( sd->status.party_id && map[sd->bl.m].instance_id && sd->state.changemap && !map[m].instance_id ) {
 		struct party_data *p;
+
 		if( (p = party_search(sd->status.party_id)) != NULL && p->instance_id )
 			instance_delusers(p->instance_id);
 	}
 
 	if( sd->state.changemap ) { // Misc map-changing settings
 		int i;
+
 		sd->state.pmap = sd->bl.m;
 		if( sd->sc.count ) { // Cancel some map related stuff.
 			if( sd->sc.data[SC_JAILED] )
@@ -4820,6 +4828,7 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 			status_change_end(&sd->bl, SC_STEALTHFIELD, INVALID_TIMER);
 			if( sd->sc.data[SC_KNOWLEDGE] ) {
 				struct status_change_entry *sce = sd->sc.data[SC_KNOWLEDGE];
+
 				if( sce->timer != INVALID_TIMER )
 					delete_timer(sce->timer, status_change_timer);
 				sce->timer = add_timer(gettick() + skill_get_time(SG_KNOWLEDGE, sce->val1), status_change_timer, sd->bl.id, SC_KNOWLEDGE);
@@ -4884,7 +4893,7 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 		} while( map_getcell(m, x, y, CELL_CHKNOPASS) );
 	}
 	
-	if ( sd->state.vending && map_getcell(m, x, y, CELL_CHKNOVENDING) ) {
+	if( sd->state.vending && map_getcell(m, x, y, CELL_CHKNOVENDING) ) {
 		clif_displaymessage(sd->fd, msg_txt(204)); // "You can't open a shop on this cell."
 		vending_closevending(sd);
 	}
@@ -4902,7 +4911,8 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 
 	if( sd->status.guild_id > 0 && map[m].flag.gvg_castle ) { // Increased guild castle regen [Valaris]
 		struct guild_castle *gc = guild_mapindex2gc(sd->mapindex);
-		if(gc && gc->guild_id == sd->status.guild_id)
+
+		if( gc && gc->guild_id == sd->status.guild_id )
 			sd->regen.state.gc = 1;
 	}
 
@@ -6519,8 +6529,7 @@ int pc_resetfeel(struct map_session_data* sd)
 	int i;
 	nullpo_ret(sd);
 
-	for (i=0; i<MAX_PC_FEELHATE; i++)
-	{
+	for( i = 0; i < MAX_PC_FEELHATE; i++ ) {
 		sd->feel_map[i].m = -1;
 		sd->feel_map[i].index = 0;
 		pc_setglobalreg(sd,sg_info[i].feel_var,0);
@@ -6534,8 +6543,7 @@ int pc_resethate(struct map_session_data* sd)
 	int i;
 	nullpo_ret(sd);
 
-	for (i=0; i<3; i++)
-	{
+	for( i = 0; i < 3; i++ ) {
 		sd->hate_mob[i] = -1;
 		pc_setglobalreg(sd,sg_info[i].hate_var,0);
 	}
@@ -7834,9 +7842,6 @@ int pc_setcart(struct map_session_data *sd,int type) {
 
 	if( pc_checkskill(sd,MC_PUSHCART) <= 0 && type != 0 )
 		return 1; //Push cart is required
-
-	if( type == 0 && pc_iscarton(sd) )
-		status_change_end(&sd->bl,SC_GN_CARTBOOST,INVALID_TIMER);
 
 #ifdef NEW_CARTS
 	switch( type ) {
@@ -9239,8 +9244,7 @@ int pc_autosave(int tid, unsigned int tick, int id, intptr_t data)
 		save_flag = 1; //Noone was saved, so save first found char.
 
 	iter = mapit_getallusers();
-	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) )
-	{
+	for(sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter)) {
 		if(sd->bl.id == last_save_id && save_flag != 1) {
 			save_flag = 1;
 			continue;
@@ -9252,16 +9256,19 @@ int pc_autosave(int tid, unsigned int tick, int id, intptr_t data)
 		//Save char.
 		last_save_id = sd->bl.id;
 		save_flag = 2;
-
+#ifdef VIP_ENABLE
+		if(pc_isvip(sd)) //Check if we're still vip
+			chrif_req_login_operation(sd->status.account_id,sd->status.name,6,0,1,0);
+#endif
 		chrif_save(sd,0);
 		break;
 	}
 	mapit_free(iter);
 
-	interval = autosave_interval/(map_usercount()+1);
+	interval = autosave_interval / (map_usercount() + 1);
 	if(interval < minsave_interval)
 		interval = minsave_interval;
-	add_timer(gettick()+interval,pc_autosave,0,0);
+	add_timer(gettick() + interval,pc_autosave,0,0);
 
 	return 0;
 }

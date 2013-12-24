@@ -411,6 +411,7 @@ void clif_selllist(struct map_session_data *sd); //Self
 void clif_scriptmes(struct map_session_data *sd, int npcid, const char *mes); //Self
 void clif_scriptnext(struct map_session_data *sd,int npcid); //Self
 void clif_scriptclose(struct map_session_data *sd, int npcid); //Self
+void clif_scriptclear(struct map_session_data *sd, int npcid); //Self
 void clif_scriptmenu(struct map_session_data* sd, int npcid, const char* mes); //Self
 void clif_scriptinput(struct map_session_data *sd, int npcid); //Self
 void clif_scriptinputstr(struct map_session_data *sd, int npcid); //Self
@@ -852,7 +853,5 @@ void clif_parse_BankWithdraw(int fd, struct map_session_data *sd);
 void clif_parse_BankCheck(int fd, struct map_session_data *sd);
 void clif_parse_BankOpen(int fd, struct map_session_data *sd);
 void clif_parse_BankClose(int fd, struct map_session_data *sd);
-
-void clif_scriptclear(struct map_session_data *sd, int npcid);
 
 #endif /* _CLIF_H_ */

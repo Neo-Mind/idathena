@@ -281,7 +281,7 @@ int map_addblock(struct block_list* bl)
 
 	nullpo_ret(bl);
 
-	if (bl->prev != NULL) {
+	if( bl->prev != NULL ) {
 		ShowError("map_addblock: bl->prev != NULL\n");
 		return 1;
 	}
@@ -289,35 +289,33 @@ int map_addblock(struct block_list* bl)
 	m = bl->m;
 	x = bl->x;
 	y = bl->y;
-	if( m < 0 || m >= map_num )
-	{
+	if( m < 0 || m >= map_num ) {
 		ShowError("map_addblock: invalid map id (%d), only %d are loaded.\n", m, map_num);
 		return 1;
 	}
-	if( x < 0 || x >= map[m].xs || y < 0 || y >= map[m].ys )
-	{
+	if( x < 0 || x >= map[m].xs || y < 0 || y >= map[m].ys ) {
 		ShowError("map_addblock: out-of-bounds coordinates (\"%s\",%d,%d), map is %dx%d\n", map[m].name, x, y, map[m].xs, map[m].ys);
 		return 1;
 	}
 
-	pos = x/BLOCK_SIZE+(y/BLOCK_SIZE)*map[m].bxs;
+	pos = x / BLOCK_SIZE + (y / BLOCK_SIZE) * map[m].bxs;
 
-	if (bl->type == BL_MOB) {
+	if( bl->type == BL_MOB ) {
 		bl->next = map[m].block_mob[pos];
 		bl->prev = &bl_head;
-		if (bl->next) bl->next->prev = bl;
+		if( bl->next ) bl->next->prev = bl;
 		map[m].block_mob[pos] = bl;
 	} else {
 		bl->next = map[m].block[pos];
 		bl->prev = &bl_head;
-		if (bl->next) bl->next->prev = bl;
+		if( bl->next ) bl->next->prev = bl;
 		map[m].block[pos] = bl;
 	}
 
 #ifdef CELL_NOSTACK
 	map_addblcell(bl);
 #endif
-	
+
 	return 0;
 }
 
@@ -329,12 +327,10 @@ int map_delblock(struct block_list* bl)
 	int pos;
 	nullpo_ret(bl);
 
-	// ?‚Éblocklist‚©‚ç?‚¯‚Ä‚¢‚é
+	//Blocklist (2ways chainlist)
 	if (bl->prev == NULL) {
-		if (bl->next != NULL) {
-			// can't delete block (already at the begining of the chain)
+		if (bl->next != NULL) //Can't delete block (already at the begining of the chain)
 			ShowError("map_delblock error : bl->next!=NULL\n");
-		}
 		return 0;
 	}
 
@@ -342,36 +338,39 @@ int map_delblock(struct block_list* bl)
 	map_delblcell(bl);
 #endif
 	
-	pos = bl->x/BLOCK_SIZE+(bl->y/BLOCK_SIZE)*map[bl->m].bxs;
+	pos = bl->x / BLOCK_SIZE + (bl->y / BLOCK_SIZE) * map[bl->m].bxs;
 
 	if (bl->next)
 		bl->next->prev = bl->prev;
 	if (bl->prev == &bl_head) {
 		//Since the head of the list, update the block_list map of []
-		if (bl->type == BL_MOB) {
+		if (bl->type == BL_MOB)
 			map[bl->m].block_mob[pos] = bl->next;
-		} else {
+		else
 			map[bl->m].block[pos] = bl->next;
-		}
-	} else {
+	} else
 		bl->prev->next = bl->next;
-	}
 	bl->next = NULL;
 	bl->prev = NULL;
 
 	return 0;
 }
 
-/*==========================================
+/**
  * Moves a block a x/y target position. [Skotlex]
  * Pass flag as 1 to prevent doing skill_unit_move checks
  * (which are executed by default on BL_CHAR types)
- *------------------------------------------*/
+ * @param bl : block(object) to move
+ * @param x1 : new x position
+ * @param y1 : new y position
+ * @param tick : when this was scheduled
+ * @return 0:sucess, 1:fail
+ */
 int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 {
 	int x0 = bl->x, y0 = bl->y;
 	struct status_change *sc = NULL;
-	int moveblock = ( x0 / BLOCK_SIZE != x1 / BLOCK_SIZE || y0 / BLOCK_SIZE != y1 / BLOCK_SIZE);
+	int moveblock = (x0 / BLOCK_SIZE != x1 / BLOCK_SIZE || y0 / BLOCK_SIZE != y1 / BLOCK_SIZE);
 
 	if (!bl->prev) {
 		//Block not in map, just update coordinates, but do naught else.
@@ -404,17 +403,19 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 #endif
 	bl->x = x1;
 	bl->y = y1;
-	if (moveblock) map_addblock(bl);
+	if (moveblock) {
+		if (map_addblock(bl))
+			return 1;
+	}
 #ifdef CELL_NOSTACK
 	else map_addblcell(bl);
 #endif
 
 	if (bl->type&BL_CHAR) {
-
 		skill_unit_move(bl, tick, 3);
-
 		if (bl->type == BL_PC && ((TBL_PC*)bl)->shadowform_id) { //Shadow Form Target Moving
 			struct block_list *d_bl;
+
 			if ((d_bl = map_id2bl(((TBL_PC*)bl)->shadowform_id)) == NULL || !check_distance_bl(bl, d_bl, 10)) {
 				if (d_bl)
 					status_change_end(d_bl, SC__SHADOWFORM, INVALID_TIMER);
@@ -674,7 +675,7 @@ int map_foreachinarea(int (*func)(struct block_list*,va_list), int16 m, int16 x0
 	int blockcount = bl_list_count, i;
 	va_list ap;
 
-	if ( m < 0 )
+	if ( m < 0 || m >= map_num )
 		return 0;
 
 	if ( x1 < x0 )
@@ -1355,8 +1356,7 @@ int map_search_freecell(struct block_list *src, int16 m, int16 *x,int16 *y, int1
 	int rx2 = 2*rx+1;
 	int ry2 = 2*ry+1;
 
-	if( !src && (!(flag&1) || flag&2) )
-	{
+	if (!src && (!(flag&1) || flag&2)) {
 		ShowDebug("map_search_freecell: Incorrect usage! When src is NULL, flag has to be &1 and can't have &2\n");
 		return 0;
 	}
@@ -1391,11 +1391,10 @@ int map_search_freecell(struct block_list *src, int16 m, int16 *x,int16 *y, int1
 		if (*x == bx && *y == by)
 			continue; //Avoid picking the same target tile.
 		
-		if (map_getcell(m,*x,*y,CELL_CHKREACH))
-		{
-			if(flag&2 && !unit_can_reach_pos(src, *x, *y, 1))
+		if (map_getcell(m,*x,*y,CELL_CHKREACH)) {
+			if (flag&2 && !unit_can_reach_pos(src, *x, *y, 1))
 				continue;
-			if(flag&4) {
+			if (flag&4) {
 				if (spawn >= 100) return 0; //Limit of retries reached.
 				if (spawn++ < battle_config.no_spawn_on_player &&
 					map_foreachinarea(map_count_sub, m,
@@ -1412,15 +1411,20 @@ int map_search_freecell(struct block_list *src, int16 m, int16 *x,int16 *y, int1
 	return 0;
 }
 
-/*==========================================
- * Add an item to location (m,x,y)
- * Parameters
- * @item_data item attributes
- * @amount quantity
- * @m, @x, @y mapid,x,y
- * @first_charid, @second_charid, @third_charid, looting priority
- * @flag: &1 MVP item. &2 do stacking check. &4 bypass droppable check.
- *------------------------------------------*/
+/**
+ * Add an item in floor to location (m,x,y) and add restriction for those who could pickup later
+ * NB : If charids are null their no restriction for pickup
+ * @param item_data : item attributes
+ * @param amount : items quantity
+ * @param m : mapid
+ * @param x : x coordinates
+ * @param y : y coordinates
+ * @param first_charid : 1st player that could loot the item (only charid that could loot for first_get_tick duration)
+ * @param second_charid :  2nd player that could loot the item (2nd charid that could loot for second_get_charid duration)
+ * @param third_charid : 3rd player that could loot the item (3rd charid that could loot for third_get_charid duration)
+ * @param flag: &1 MVP item. &2 do stacking check. &4 bypass droppable check.
+ * @return 0:failure, x:item_gid [MIN_FLOORITEM;MAX_FLOORITEM]==[2;START_ACCOUNT_NUM]
+ */
 int map_addflooritem(struct item *item_data,int amount,int16 m,int16 x,int16 y,int first_charid,int second_charid,int third_charid,int flags)
 {
 	int r;
@@ -1462,7 +1466,8 @@ int map_addflooritem(struct item *item_data,int amount,int16 m,int16 x,int16 y,i
 	fitem->cleartimer = add_timer(gettick() + battle_config.flooritem_lifetime, map_clearflooritem_timer, fitem->bl.id, 0);
 
 	map_addiddb(&fitem->bl);
-	map_addblock(&fitem->bl);
+	if(map_addblock(&fitem->bl))
+		return 0;
 	clif_dropflooritem(fitem);
 
 	return fitem->bl.id;
@@ -4005,7 +4010,7 @@ int do_init(int argc, char *argv[])
 	add_timer_func_list(map_freeblock_timer, "map_freeblock_timer");
 	add_timer_func_list(map_clearflooritem_timer, "map_clearflooritem_timer");
 	add_timer_func_list(map_removemobs_timer, "map_removemobs_timer");
-	add_timer_interval(gettick()+1000, map_freeblock_timer, 0, 0, 60*1000);
+	add_timer_interval(gettick() + 1000, map_freeblock_timer, 0, 0, 60 * 1000);
 
 	do_init_atcommand();
 	do_init_battle();

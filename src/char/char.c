@@ -158,7 +158,7 @@ struct startitem {
 	int nameid; //Item ID
 	int amount; //Number of items
 	int pos; //Position (for auto-equip)
-} start_items[MAX_STARTITEM+1];
+} start_items[MAX_STARTITEM + 1];
 
 int max_connect_user = -1;
 int gm_allow_group = -1;
@@ -190,7 +190,7 @@ void pincode_decrypt( uint32 userSeed, char* pin );
 int pincode_compare( int fd, struct char_session_data* sd, char* pin );
 
 int mapif_vipack(int mapfd, uint32 aid, uint32 vip_time, uint8 isvip, uint32 groupid);
-int loginif_reqviddata(uint32 aid, uint8 type, int add_vip_time, int mapfd);
+int loginif_reqviddata(uint32 aid, uint8 type, int32 timediff, int mapfd);
 int loginif_parse_vipack(int fd);
 
 // Addon system
@@ -2191,7 +2191,7 @@ static void char_auth_ok(int fd, struct char_session_data *sd)
 int send_accounts_tologin(int tid, unsigned int tick, int id, intptr_t data);
 void mapif_server_reset(int id);
 
-/*
+/**
  * HA 0x2740<aid>L <type>B <data>L
  * type:
  *  0 = select
@@ -2209,7 +2209,7 @@ int loginif_BankingReq(int32 account_id, int8 type, int32 data) {
 	return 0;
 }
 
-/*
+/**
  * Received the banking data from login and transmit it to all map-serv
  * AH 0x2741<aid>L <bank_vault>L <not_fw>B
  * HZ 0x2b29 <aid>L <bank_vault>L
@@ -2240,7 +2240,7 @@ int mapif_BankingAck(int32 account_id, int32 bank_vault) {
 	return 1;
 }
 
-/*
+/**
  * HZ 0x2b2b
  * Transmist vip data to mapserv
  */
@@ -2258,30 +2258,30 @@ int mapif_vipack(int mapfd, uint32 aid, uint32 vip_time, uint8 isvip, uint32 gro
 	return 0;
 }
 
-/*
+/**
  * HZ 0x2b2b
  * Request vip data from loginserv
  * @param aid : account_id to request the vip data
  * @param type : &2 define new duration, &1 load info
- * @param add_vip_time : tick to add to vip timestamp
+ * @param timediff : tick to add to vip timestamp
  * @param mapfd: link to mapserv for ack
  * @return 0 if succes
  */
-int loginif_reqviddata(uint32 aid, uint8 type, int add_vip_time, int mapfd) {
+int loginif_reqviddata(uint32 aid, uint8 type, int32 timediff, int mapfd) {
 	loginif_check(-1);
 #ifdef VIP_ENABLE
 	WFIFOHEAD(login_fd,15);
 	WFIFOW(login_fd,0) = 0x2742;
-	WFIFOL(login_fd,2) =  aid; //AID
+	WFIFOL(login_fd,2) = aid; //AID
 	WFIFOB(login_fd,6) = type; //Type
-	WFIFOL(login_fd,7) =  add_vip_time; //req_inc_duration
-	WFIFOL(login_fd,11) =  mapfd; //req_inc_duration
+	WFIFOL(login_fd,7) = timediff; //req_inc_duration
+	WFIFOL(login_fd,11) = mapfd; //req_inc_duration
 	WFIFOSET(login_fd,15);
 #endif
 	return 0;
 }
 
-/*
+/**
  * AH 0x2743
  * We received the info from login-serv, transmit it to map
  */
@@ -3039,7 +3039,7 @@ int mapif_parse_req_alter_acc(int fd) {
 		int aid = RFIFOL(fd,2); //account_id of who ask (-1 if server itself made this request)
 		const char* name = (char*)RFIFOP(fd,6); //Name of the target character
 		int operation = RFIFOW(fd,30); //Type of operation: 1-block, 2-ban, 3-unblock, 4-unban, 5-changesex, 6-vip, 7-bank
-		int timediff = RFIFOL(fd,32);
+		int32 timediff = RFIFOL(fd,32);
 		int val1 = RFIFOL(fd,36);
 		int val2 = RFIFOL(fd,40);
 
@@ -3104,7 +3104,7 @@ int mapif_parse_req_alter_acc(int fd) {
 						break;
 					case 6:
 						anwser = (val1&4); //vip_req val1 = type, &1 login send return, &2 upd timestamp &4 map send answer
-						loginif_reqviddata(aid, val1, timediff, fd);
+						loginif_reqviddata(account_id, val1, timediff, fd);
 						break;
 					case 7:
 						anwser = (val1&1); //val&1 request anwser, val1&2 save data
