@@ -2539,8 +2539,8 @@ void clif_storagelist(struct map_session_data* sd, struct item* items, int items
 		clif_send(bufn, WBUFW(bufn, 2), &sd->bl, SELF);
 	}
 
-	if( bufn )
-		aFree(bufn);
+	if( buf ) aFree(buf);
+	if( bufe ) aFree(bufe);
 }
 
 
