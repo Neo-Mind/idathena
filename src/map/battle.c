@@ -2747,12 +2747,6 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				}
 #endif
 				break;
-#ifdef RENEWAL
-			case TF_POISON:
-				//Additional ATK from Envenom is treated as mastery type damage [helvetica]
-				ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 15 * skill_lv);
-				break;
-#endif
 			case CR_SHIELDBOOMERANG:
 			case PA_SHIELDCHAIN:
 			case LG_SHIELDPRESS:
@@ -5003,11 +4997,18 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 	}
 #endif
 
+	if(skill_id == TF_POISON) {
+#ifdef RENEWAL
+		//Additional ATK from Envenom is treated as mastery type damage [helvetica]
+		ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 15 * skill_lv);
+#else
+		ATK_ADD(wd.damage, wd.damage2, 15 * skill_lv);
+#endif
+	}
+
 	if(sd) {
 #ifndef RENEWAL
 		int skill;
-		if(skill_id == TF_POISON) //Additional 15 * skill level damage
-			ATK_ADD(wd.damage, wd.damage2, 15 * skill_lv);
 		if((skill = pc_checkskill(sd, BS_WEAPONRESEARCH)) > 0)
 			ATK_ADD(wd.damage, wd.damage2, skill * 2);
 		if(skill_id != CR_SHIELDBOOMERANG) //Only Shield Boomerang doesn't takes the Star Crumbs bonus.
@@ -6864,6 +6865,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			status_check_skilluse(target,src,TF_POISON,0)
 		) {	//Poison React
 			struct status_change_entry *sce = tsc->data[SC_POISONREACT];
+
 			if (sstatus->def_ele == ELE_POISON) {
 				sce->val2 = 0;
 				skill_attack(BF_WEAPON,target,target,src,AS_POISONREACT,sce->val1,tick,0);
