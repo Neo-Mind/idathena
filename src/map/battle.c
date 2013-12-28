@@ -2026,10 +2026,11 @@ static int is_attack_piercing(struct Damage wd, struct block_list *src, struct b
 	if(src != NULL) {
 		struct map_session_data *sd = BL_CAST(BL_PC, src);
 		struct status_data *tstatus = status_get_status_data(target);
-		//Renewal: Soul Breaker no longer gains ice pick effect and ice pick effect gets crit benefit [helvetica]
+
 		if(skill_id != PA_SACRIFICE && skill_id != CR_GRANDCROSS && skill_id != NPC_GRANDDARKNESS &&
 			skill_id != PA_SHIELDCHAIN && skill_id != NC_SELFDESTRUCTION && skill_id != KO_HAPPOKUNAI &&
 #ifdef RENEWAL
+			//Renewal: Soul Breaker no longer gains ice pick effect and ice pick effect gets crit benefit [helvetica]
 			skill_id != ASC_BREAKER
 #else
 			!is_attack_critical(wd, src, target, skill_id, skill_lv, false)
@@ -2772,6 +2773,7 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 			case RK_DRAGONBREATH_WATER:
 				{
 					int damagevalue = 0;
+
 					wd.damage = wd.damage2 = 0;
 #ifdef RENEWAL
 					wd.weaponAtk = wd.weaponAtk2 = 0;
@@ -2791,6 +2793,7 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				break;
 			case NC_SELFDESTRUCTION: {
 					int damagevalue = 0;
+
 					wd.damage = wd.damage2 = 0;
 #ifdef RENEWAL
 					wd.weaponAtk = wd.weaponAtk2 = 0;
@@ -2808,12 +2811,14 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				break;
 			case KO_HAPPOKUNAI: {
 					int damagevalue = 0;
+
 					wd.damage = wd.damage2 = 0;
 #ifdef RENEWAL
 					wd.weaponAtk = wd.weaponAtk2 = 0;
 #endif
 					if(sd) {
 						short index = sd->equip_index[EQI_AMMO];
+
 						damagevalue = (3 * (sstatus->batk + sstatus->rhw.atk + sd->inventory_data[index]->atk)) * (skill_lv + 5) / 5;
 						if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_AMMO)
 							ATK_ADD(wd.damage, wd.damage2, damagevalue);
@@ -4964,6 +4969,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 			wd.damage2 = wd.statusAtk2 + wd.weaponAtk2 + wd.equipAtk2 + wd.masteryAtk2;
 			if(wd.flag&BF_LONG) //Long damage rate addition doesn't use weapon + equip attack
 				ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.long_attack_atk_rate);
+			//Custom fix for "a hole" in renewal attack calculation [exneval]
+			ATK_ADD(wd.damage, wd.damage2, 15);
 		}
 #else
 		//Final attack bonuses that aren't affected by cards
