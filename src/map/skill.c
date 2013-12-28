@@ -683,27 +683,27 @@ bool skill_isNotOk_hom(uint16 skill_id, struct homun_data *hd)
 			if (hd->sc.data[SC_GOLDENE_FERSE]) return true;
 			break;
 		case MH_TINDER_BREAKER: //Must be in grappling mode
-			if (!(hd->sc.data[SC_STYLE_CHANGE] && hd->sc.data[SC_STYLE_CHANGE]->val1 == MH_MD_GRAPPLING) ||
+			if ((hd->sc.data[SC_STYLE_CHANGE] && hd->sc.data[SC_STYLE_CHANGE]->val1 != MH_MD_GRAPPLING) ||
 			!hd->homunculus.spiritball) return true;
 			break;
 		case MH_SONIC_CRAW: //Must be in fighting mode
-			if (!(hd->sc.data[SC_STYLE_CHANGE] && hd->sc.data[SC_STYLE_CHANGE]->val1 == MH_MD_FIGHTING) ||
+			if ((hd->sc.data[SC_STYLE_CHANGE] && hd->sc.data[SC_STYLE_CHANGE]->val1 != MH_MD_FIGHTING) ||
 			!hd->homunculus.spiritball) return true;
 			break;
 		case MH_SILVERVEIN_RUSH:
-			if (!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_SONIC_CRAW) ||
+			if ((hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 != MH_SONIC_CRAW) ||
 			hd->homunculus.spiritball < 2) return true;
 			break;
 		case MH_MIDNIGHT_FRENZY:
-			if (!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_SILVERVEIN_RUSH) ||
+			if ((hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 != MH_SILVERVEIN_RUSH) ||
 			!hd->homunculus.spiritball) return true;
 			break;
 		case MH_CBC:
-			if (!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_TINDER_BREAKER) ||
+			if ((hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 != MH_TINDER_BREAKER) ||
 			hd->homunculus.spiritball < 2) return true;
 			break;
 		case MH_EQC:
-			if (!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_CBC) ||
+			if ((hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 != MH_CBC) ||
 			hd->homunculus.spiritball < 3) return true;
 			break;
 	}
@@ -2342,6 +2342,7 @@ void skill_combo_toogle_inf(struct block_list* bl, uint16 skill_id, int inf) {
 				int idx = skill_id2 - HM_SKILLBASE;
 				int flag = (inf ? SKILL_FLAG_TMP_COMBO : SKILL_FLAG_PERMANENT);
 				TBL_HOM *hd = BL_CAST(BL_HOM,bl);
+
 				sd = hd->master;
 				hd->homunculus.hskill[idx].flag = flag;
 				//Refresh info
@@ -5107,6 +5108,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case MH_EQC:
 			{
 				int duration = 0;
+
 				TBL_HOM *hd = BL_CAST(BL_HOM,src);
 				duration = max(skill_lv,(status_get_str(src) / 7 - status_get_str(bl) / 10)) * 1000; //Yommy formula
 				hom_delspiritball(hd,skill_id == MH_EQC ? 3 : skill_id == MH_CBC ? 2 : 1,0); //Only EQC consume 3 in grp 2
@@ -9885,11 +9887,15 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case MH_STYLE_CHANGE:
 			if(hd) {
 				struct status_change_entry *sce;
+
 				if((sce = hd->sc.data[SC_STYLE_CHANGE]) != NULL) { //In preparation for other bl usage
-					if(sce->val1 == MH_MD_FIGHTING) sce->val1 = MH_MD_GRAPPLING;
-					else sce->val1 = MH_MD_FIGHTING;
+					if(sce->val1 == MH_MD_FIGHTING)
+						sce->val1 = MH_MD_GRAPPLING;
+					else
+						sce->val1 = MH_MD_FIGHTING;
 					if(hd->master && hd->sc.data[SC_STYLE_CHANGE]) {
 						char output[128];
+
 						safesnprintf(output,sizeof(output),msg_txt(378),(sce->val1 == MH_MD_FIGHTING ? "fighthing" : "grappling"));
 						clif_colormes(hd->master,color_table[COLOR_RED],output);
 					}
