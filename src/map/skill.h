@@ -67,6 +67,7 @@ enum e_skill_inf2 {
 	INF2_NO_ENEMY       = 0x1000,
 	INF2_CHORUS_SKILL   = 0x2000, //Chorus skill
 	INF2_NO_BG_GVG_DMG  = 0x4000, //Spell that ignore bg and gvg reduction
+	INF2_NO_NEARNPC     = 0x8000, //Disable cast skill if near with NPC [Cydh]
 };
 
 ///Skill info type 3
@@ -164,6 +165,8 @@ struct s_skill_db {
 	int unit_interval;
 	int unit_target;
 	int unit_flag;
+	uint8 unit_nonearnpc_range; //Additional range for UF_NONEARNPC or INF2_NO_NEARNPC [Cydh]
+	uint8 unit_nonearnpc_type; //Type of NPC [Cydh]
 #ifdef ADJUST_SKILL_DAMAGE
 	struct s_skill_damage damage;
 #endif
@@ -175,7 +178,7 @@ struct s_skill_db {
 extern struct s_skill_db skill_db[MAX_SKILL_DB];
 
 #define MAX_SKILL_UNIT_LAYOUT 50
-#define MAX_SQUARE_LAYOUT 5 //11*11 Placement of a maximum unit
+#define MAX_SQUARE_LAYOUT 5 //11 * 11 Placement of a maximum unit
 #define MAX_SKILL_UNIT_COUNT ((MAX_SQUARE_LAYOUT * 2 + 1) * (MAX_SQUARE_LAYOUT * 2 + 1))
 struct s_skill_unit_layout {
 	int count;
@@ -248,7 +251,7 @@ enum {
 	UF_ENSEMBLE      = 0x0200, // Duet
 	UF_SONG          = 0x0400, // Song
 	UF_DUALMODE      = 0x0800, // Spells should trigger both ontimer and onplace/onout/onleft effects
-	UF_NONEARNPC     = 0x1000, // Spell cannot be placed near the NPC
+	//UF_????        = 0x1000, // Unused flag
 	UF_RANGEDSINGLEUNIT = 0x2000 // Hack for ranged layout, only display center
 };
 
@@ -363,7 +366,6 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 int skill_clear_unitgroup(struct block_list *src);
 int skill_clear_group(struct block_list *bl, int flag);
 void ext_skill_unit_onplace(struct skill_unit *src, struct block_list *bl, unsigned int tick);
-
 int skill_unit_ondamaged(struct skill_unit *src,struct block_list *bl,int64 damage,unsigned int tick);
 
 int skill_castfix( struct block_list *bl, uint16 skill_id, uint16 skill_lv);
@@ -410,9 +412,11 @@ bool skill_check_cloaking(struct block_list *bl, struct status_change_entry *sce
 
 ///Abnormal status
 int skill_enchant_elemental_end(struct block_list *bl, int type);
-int skillnotok(uint16 skill_id, struct map_session_data *sd);
-int skillnotok_hom(uint16 skill_id, struct homun_data *hd);
-int skillnotok_mercenary(uint16 skill_id, struct mercenary_data *md);
+bool skill_isNotOk(uint16 skill_id, struct map_session_data *sd);
+bool skill_isNotOk_hom(uint16 skill_id, struct homun_data *hd);
+bool skill_isNotOk_mercenary(uint16 skill_id, struct mercenary_data *md);
+
+bool skill_isNotOk_npcRange(struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv, int pos_x, int pos_y);
 
 int skill_chastle_mob_changetarget(struct block_list *bl,va_list ap);
 

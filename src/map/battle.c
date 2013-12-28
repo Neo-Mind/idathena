@@ -6745,12 +6745,14 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 				status_change_end(target,SC_DEVOTION,INVALID_TIMER);
 		} else if (tsc->data[SC_CIRCLE_OF_FIRE_OPTION] && (wd.flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT && target->type == BL_PC) {
 			struct elemental_data *ed = ((TBL_PC*)target)->ed;
+
 			if (ed) {
 				clif_skill_damage(&ed->bl,target,tick,status_get_amotion(src),0,-30000,1,EL_CIRCLE_OF_FIRE,tsc->data[SC_CIRCLE_OF_FIRE_OPTION]->val1,6);
 				skill_attack(BF_WEAPON,&ed->bl,&ed->bl,src,EL_CIRCLE_OF_FIRE,tsc->data[SC_CIRCLE_OF_FIRE_OPTION]->val1,tick,wd.flag);
 			}
 		} else if (tsc->data[SC_WATER_SCREEN_OPTION] && tsc->data[SC_WATER_SCREEN_OPTION]->val1) {
 			struct block_list *e_bl = map_id2bl(tsc->data[SC_WATER_SCREEN_OPTION]->val1);
+
 			if (e_bl && !status_isdead(e_bl)) {
 				clif_damage(e_bl,e_bl,tick,wd.amotion,wd.dmotion,damage,wd.div_,wd.type,wd.damage2);
 				status_damage(target,e_bl,damage,0,0,0);
@@ -6767,6 +6769,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		uint16 skill_id = sc->data[SC_AUTOSPELL]->val2;
 		uint16 skill_lv = sc->data[SC_AUTOSPELL]->val3;
 		int i = rnd()%100;
+
 		if (sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_SAGE)
 			i = 0; //Max chance, no skill_lv reduction. [Skotlex]
 		//Reduction only for skill_lv > 1
@@ -6812,6 +6815,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 						(maxcount = skill_get_maxcount(r_skill,r_lv)) > 0)
 					{
 						int v;
+
 						for (v = 0; v < MAX_SKILLUNITGROUP && sd->ud.skillunit[v] && maxcount; v++) {
 							if (sd->ud.skillunit[v]->skill_id == r_skill)
 								maxcount--;
@@ -6819,9 +6823,6 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 						if (maxcount == 0)
 							type = -1;
 					}
-
-					if (skill_get_unit_flag(r_skill)&UF_NONEARNPC)
-						type = -1;
 
 					if (type != CAST_GROUND) {
 						clif_skill_fail(sd,r_skill,USESKILL_FAIL_LEVEL,0);

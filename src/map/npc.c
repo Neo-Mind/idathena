@@ -111,17 +111,28 @@ struct view_data* npc_get_viewdata(int class_) { //Returns the viewdata for norm
 		return &npc_viewdb[class_];
 	if( npcdb_checkid(class_) || class_ == WARP_CLASS ) {
 		if( class_ > MAX_NPC_CLASS2_START ) {
-			return &npc_viewdb2[class_-MAX_NPC_CLASS2_START];
-		} else {
+			return &npc_viewdb2[class_ - MAX_NPC_CLASS2_START];
+		} else
 			return &npc_viewdb[class_];
-		}
 	}
 	return NULL;
 }
 
 int npc_isnear_sub(struct block_list* bl, va_list args) {
 	struct npc_data *nd = (struct npc_data*)bl;
+	int skill_id = va_arg(args, int);
+	uint16 idx = -1;
 
+	//Check the NPC type if is used by INF2_NO_NEARNPC or UF_NONEARNPC [Cydh]
+	if( skill_id && (idx = skill_get_index(skill_id)) && skill_db[idx].unit_nonearnpc_type ) {
+		while( 1 ) {
+			if( skill_db[idx].unit_nonearnpc_type&1 && nd->subtype == WARP ) break;
+			if( skill_db[idx].unit_nonearnpc_type&2 && nd->subtype == SHOP ) break;
+			if( skill_db[idx].unit_nonearnpc_type&4 && nd->subtype == SCRIPT ) break;
+			if( skill_db[idx].unit_nonearnpc_type&8 && nd->subtype == TOMB ) break;
+			return 0;
+		}
+	}
 	if( nd->sc.option&(OPTION_HIDE|OPTION_INVISIBLE) )
 		return 0;
 
@@ -131,7 +142,7 @@ int npc_isnear_sub(struct block_list* bl, va_list args) {
 bool npc_isnear(struct block_list *bl) {
 
 	if( battle_config.min_npc_vendchat_distance > 0 &&
-			map_foreachinrange(npc_isnear_sub, bl, battle_config.min_npc_vendchat_distance, BL_NPC) )
+			map_foreachinrange(npc_isnear_sub, bl, battle_config.min_npc_vendchat_distance, BL_NPC, 0) )
 		return true;
 
 	return false;

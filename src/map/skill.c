@@ -102,8 +102,8 @@ int icewall_unit_pos;
 int earthstrain_unit_pos;
 //Early declaration
 int skill_block_check(struct block_list *bl, enum sc_type type, uint16 skill_id);
-static int skill_check_unit_range (struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv);
-static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv, int type);
+static int skill_check_unit_range(struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv);
+static int skill_check_unit_range2(struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv, bool isNearNPC);
 static int skill_destroy_trap(struct block_list *bl, va_list ap);
 static int skill_check_condition_mob_master_sub(struct block_list *bl, va_list ap);
 //Since only mob-casted splash skills can hit ice-walls
@@ -506,7 +506,7 @@ static short skill_isCopyable (struct map_session_data *sd, uint16 skill_id, str
 
 //[MouseJstr] - skill ok to cast? and when?
 //Done before check_condition_begin, requirement
-int skillnotok (uint16 skill_id, struct map_session_data *sd)
+bool skill_isNotOk(uint16 skill_id, struct map_session_data *sd)
 {
 	int16 idx, m;
 	nullpo_retr(1, sd);
@@ -514,34 +514,34 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 	idx = skill_get_index(skill_id);
 
 	if (idx == 0)
-		return 1; //Invalid skill id
+		return true; //Invalid skill id
 
 	if (pc_has_permission(sd, PC_PERM_SKILL_UNCONDITIONAL))
-		return 0; //Can do any damn thing they want
+		return false; //Can do any damn thing they want
 
 	if (skill_id == AL_TELEPORT && sd->skillitem == skill_id && sd->skillitemlv > 2)
-		return 0; //Teleport lv 3 bypasses this check.[Inkfish]
+		return false; //Teleport lv 3 bypasses this check.[Inkfish]
 
 	//Epoque:
 	//This code will compare the player's attack motion value which is influenced by ASPD before
 	//allowing a skill to be cast. This is to prevent no-delay ACT files from spamming skills such as
 	//AC_DOUBLE which do not have a skill delay and are not regarded in terms of attack motion.
+	//Attempted to cast a skill before the attack motion has finished
 	if (!sd->state.autocast && sd->skillitem != skill_id && sd->canskill_tick &&
 		DIFF_TICK(gettick(), sd->canskill_tick) < (sd->battle_status.amotion * (battle_config.skill_amotion_leniency) / 100))
-	{ //Attempted to cast a skill before the attack motion has finished
-		return 1;
-	}
+		return true;
 
 	if (skill_blockpc_get(sd, skill_id) != -1) {
 		clif_skill_fail(sd, skill_id, USESKILL_FAIL_SKILLINTERVAL, 0);
-		return 1;
+		return true;
 	}
+
 	/**
 	 * It has been confirmed on a official server (thanks to Yommy) that item-cast skills bypass all the restrictions above
 	 * Also, without this check, an exploit where an item casting + healing (or any other kind buff) isn't deleted after used on a restricted map
 	 **/
 	if (sd->skillitem == skill_id)
-		return 0;
+		return false;
 	//Check skill restrictions [Celest]
 	if ((!map_flag_vs(m) && skill_get_nocast (skill_id)&1) ||
 		(map[m].flag.pvp && skill_get_nocast (skill_id)&2) ||
@@ -549,11 +549,11 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 		(map[m].flag.battleground && skill_get_nocast (skill_id)&8) ||
 		(map[m].flag.restricted && map[m].zone && skill_get_nocast (skill_id)&(8 * map[m].zone))) {
 			clif_msg(sd, 0x536); //This skill cannot be used within this area
-			return 1;
+			return true;
 	}
 
 	if (sd->sc.data[SC_ALL_RIDING])
-		return 1; //You can't use skills while in the new mounts (The client doesn't let you, this is to make cheat-safe)
+		return true; //You can't use skills while in the new mounts (The client doesn't let you, this is to make cheat-safe)
 
 	switch (skill_id) {
 		case AL_WARP:
@@ -562,24 +562,24 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 		case ECLAGE_RECALL:
 			if (map[m].flag.nowarp) {
 				clif_skill_teleportmessage(sd, 0);
-				return 1;
+				return true;
 			}
-			return 0;
+			return false;
 		case AL_TELEPORT:
 		case SC_FATALMENACE:
 		case SC_DIMENSIONDOOR:
 		case ALL_ODINS_RECALL:
 			if (map[m].flag.noteleport) {
 				clif_skill_teleportmessage(sd, 0);
-				return 1;
+				return true;
 			}
-			return 0; //Gonna be checked in 'skill_castend_nodamage_id'
+			return false; //Gonna be checked in 'skill_castend_nodamage_id'
 		case WE_CALLPARTNER:
 		case WE_CALLPARENT:
 		case WE_CALLBABY:
 			if (map[m].flag.nomemo) {
 				clif_skill_teleportmessage(sd, 1);
-				return 1;
+				return true;
 			}
 			break;
 		case MC_VENDING:
@@ -587,12 +587,12 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 			if (map[sd->bl.m].flag.novending) {
 				clif_displaymessage(sd->fd, msg_txt(276)); //"You can't open a shop on this map"
 				clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
-				return 1;
+				return true;
 			}
 			if (map_getcell(sd->bl.m, sd->bl.x, sd->bl.y, CELL_CHKNOVENDING)) {
 				clif_displaymessage(sd->fd, msg_txt(204)); //"You can't open a shop on this cell."
 				clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
-				return 1;
+				return true;
 			}
 			if (npc_isnear(&sd->bl)) {
 				//Uncomment for more verbose message.
@@ -600,21 +600,21 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 				//sprintf(output, msg_txt(662), battle_config.min_npc_vendchat_distance);
 				//clif_displaymessage(sd->fd, output);
 				clif_skill_fail(sd, skill_id, USESKILL_FAIL_THERE_ARE_NPC_AROUND, 0);
-				return 1;
+				return true;
 			}
 		case MC_IDENTIFY:
-			return 0; //Always allowed
+			return false; //Always allowed
 		case WZ_ICEWALL:
 			//Noicewall flag [Valaris]
 			if (map[m].flag.noicewall) {
 				clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
-				return 1;
+				return true;
 			}
 			break;
 		case GC_DARKILLUSION:
 			if (map_flag_gvg2(m)) {
 				clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
-				return 1;
+				return true;
 			}
 			break;
 		case GD_EMERGENCYCALL:
@@ -625,7 +625,7 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 				(battle_config.emergency_call & 16 && map[m].flag.nowarpto && !map[m].flag.gvg_castle)
 			) {
 				clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
-				return 1;
+				return true;
 			}
 			break;
 		case BS_GREED:
@@ -640,7 +640,7 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 			//These skills cannot be used while in mado gear (credits to Xantara)
 			if (pc_ismadogear(sd)) {
 				clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
-				return 1;
+				return true;
 			}
 			break;
 
@@ -650,7 +650,7 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 		case SO_ARRULLO:
 			if (!map_flag_vs(m)) {
 				clif_skill_teleportmessage(sd, 2); //This skill uses this msg instead of skill fails.
-				return 1;
+				return true;
 			}
 			break;
 
@@ -658,71 +658,98 @@ int skillnotok (uint16 skill_id, struct map_session_data *sd)
 	return (map[m].flag.noskill);
 }
 
-int skillnotok_hom (uint16 skill_id, struct homun_data *hd)
+bool skill_isNotOk_hom(uint16 skill_id, struct homun_data *hd)
 {
 	uint16 idx = skill_get_index(skill_id);
 	nullpo_retr(1,hd);
 
 	if (idx == 0)
-		return 1; //Invalid skill id
+		return true; //Invalid skill id
 
 	if (hd->blockskill[idx] > 0)
-		return 1;
+		return true;
 
 	switch (skill_id) {
 		case MH_LIGHT_OF_REGENE: //Must be cordial
-			if(hd->homunculus.intimacy <= 750) return 1;
+			if (hd->homunculus.intimacy <= 750) return true;
 			break;
 		case MH_OVERED_BOOST: //If we starving
-			if(hd->homunculus.hunger <= 1) return 1;
+			if (hd->homunculus.hunger <= 1) return true;
 			break;
 		case MH_GOLDENE_FERSE: //Can't be used with angriff
-			if(hd->sc.data[SC_ANGRIFFS_MODUS]) return 1;
+			if (hd->sc.data[SC_ANGRIFFS_MODUS]) return true;
 			break;
 		case MH_ANGRIFFS_MODUS:
-			if(hd->sc.data[SC_GOLDENE_FERSE]) return 1;
+			if (hd->sc.data[SC_GOLDENE_FERSE]) return true;
 			break;
 		case MH_TINDER_BREAKER: //Must be in grappling mode
-			if(!(hd->sc.data[SC_STYLE_CHANGE] && hd->sc.data[SC_STYLE_CHANGE]->val1 == MH_MD_GRAPPLING) ||
-			!hd->homunculus.spiritball) return 1;
+			if (!(hd->sc.data[SC_STYLE_CHANGE] && hd->sc.data[SC_STYLE_CHANGE]->val1 == MH_MD_GRAPPLING) ||
+			!hd->homunculus.spiritball) return true;
 			break;
 		case MH_SONIC_CRAW: //Must be in fighting mode
-			if(!(hd->sc.data[SC_STYLE_CHANGE] && hd->sc.data[SC_STYLE_CHANGE]->val1 == MH_MD_FIGHTING) ||
-			!hd->homunculus.spiritball) return 1;
+			if (!(hd->sc.data[SC_STYLE_CHANGE] && hd->sc.data[SC_STYLE_CHANGE]->val1 == MH_MD_FIGHTING) ||
+			!hd->homunculus.spiritball) return true;
 			break;
 		case MH_SILVERVEIN_RUSH:
-			if(!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_SONIC_CRAW) ||
-			hd->homunculus.spiritball < 2) return 1;
+			if (!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_SONIC_CRAW) ||
+			hd->homunculus.spiritball < 2) return true;
 			break;
 		case MH_MIDNIGHT_FRENZY:
-			if(!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_SILVERVEIN_RUSH) ||
-			!hd->homunculus.spiritball) return 1;
+			if (!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_SILVERVEIN_RUSH) ||
+			!hd->homunculus.spiritball) return true;
 			break;
 		case MH_CBC:
-			if(!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_TINDER_BREAKER) ||
-			!hd->homunculus.spiritball < 2) return 1;
+			if (!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_TINDER_BREAKER) ||
+			hd->homunculus.spiritball < 2) return true;
 			break;
 		case MH_EQC:
-			if(!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_CBC) ||
-			!hd->homunculus.spiritball < 3) return 1;
+			if (!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_CBC) ||
+			hd->homunculus.spiritball < 3) return true;
 			break;
 	}
 
 	//Use master's criteria.
-	return skillnotok(skill_id, hd->master);
+	return skill_isNotOk(skill_id, hd->master);
 }
 
-int skillnotok_mercenary (uint16 skill_id, struct mercenary_data *md)
+bool skill_isNotOk_mercenary(uint16 skill_id, struct mercenary_data *md)
 {
 	uint16 idx = skill_get_index(skill_id);
 	nullpo_retr(1, md);
 
-	if( idx == 0 )
-		return 1; //Invalid Skill ID
-	if( md->blockskill[idx] > 0 )
-		return 1;
+	if (idx == 0)
+		return true; //Invalid Skill ID
 
-	return skillnotok(skill_id, md->master);
+	if (md->blockskill[idx] > 0)
+		return true;
+
+	return skill_isNotOk(skill_id, md->master);
+}
+
+/// Check if the skill can be casted near NPC or not [Cydh]
+/// NOTE: 'target' may be NULL if the skill is targetting ground/area
+bool skill_isNotOk_npcRange(struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv, int pos_x, int pos_y) {
+	int inf;
+
+	if (!src || skill_get_index(skill_id) < 0)
+		return false;
+
+	if (src->type == BL_PC && pc_has_permission(BL_CAST(BL_PC, src), PC_PERM_SKILL_UNCONDITIONAL))
+		return false;
+
+	inf = skill_get_inf(skill_id);
+
+	if (inf&INF_SELF_SKILL) { //If self skill
+		pos_x = src->x;
+		pos_y = src->y;
+	}
+
+	if (pos_x <= 0 || pos_y <= 0) {
+		pos_x = src->x;
+		pos_y = src->y;
+	}
+
+	return skill_check_unit_range2(src, pos_x, pos_y, skill_id, skill_lv, true);
 }
 
 struct s_skill_unit_layout* skill_get_unit_layout (uint16 skill_id, uint16 skill_lv, struct block_list* src, int x, int y)
@@ -1616,10 +1643,9 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 	if( sd && !status_isdead(bl) && sd->autospell[0].id ) {
 		struct block_list *tbl;
 		struct unit_data *ud;
-		int i, skill_lv, type, notok;
+		int i, skill_lv, type;
 
 		for( i = 0; i < ARRAYLENGTH(sd->autospell) && sd->autospell[i].id; i++ ) {
-
 			if( !(sd->autospell[i].flag&attack_type&BF_WEAPONMASK &&
 				 sd->autospell[i].flag&attack_type&BF_RANGEMASK &&
 				 sd->autospell[i].flag&attack_type&BF_SKILLMASK) )
@@ -1628,14 +1654,13 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			skill = (sd->autospell[i].id > 0) ? sd->autospell[i].id : -sd->autospell[i].id;
 
 			sd->state.autocast = 1;
-			notok = skillnotok(skill,sd);
 			sd->state.autocast = 0;
-
-			if( notok )
-				continue;
 
 			skill_lv = sd->autospell[i].lv ? sd->autospell[i].lv : 1;
 			if( skill_lv < 0 ) skill_lv = 1 + rnd()%(-skill_lv);
+
+			if( skill_isNotOk(skill,sd) )
+				continue;
 
 			rate = (!sd->state.arrow_atk) ? sd->autospell[i].rate : sd->autospell[i].rate / 2;
 
@@ -1646,6 +1671,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 
 			if( (type = skill_get_casttype(skill)) == CAST_GROUND ) {
 				int maxcount = 0;
+
 				if( !(BL_PC&battle_config.skill_reiteration) &&
 					skill_get_unit_flag(skill)&UF_NOREITERATION &&
 					skill_check_unit_range(src,tbl->x,tbl->y,skill,skill_lv)
@@ -1653,13 +1679,14 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 					continue;
 				if( BL_PC&battle_config.skill_nofootset &&
 					skill_get_unit_flag(skill)&UF_NOFOOTSET &&
-					skill_check_unit_range2(src,tbl->x,tbl->y,skill,skill_lv,(src->type == BL_PC) ? BL_CHAR : BL_PC)
+					skill_check_unit_range2(src,tbl->x,tbl->y,skill,skill_lv,false)
 				  )
 					continue;
 				if( BL_PC&battle_config.land_skill_limit &&
 					(maxcount = skill_get_maxcount(skill,skill_lv)) > 0
 				  ) {
 					int v;
+
 					for( v = 0; v < MAX_SKILLUNITGROUP && sd->ud.skillunit[v] && maxcount; v++ ) {
 						if( sd->ud.skillunit[v]->skill_id == skill )
 							maxcount--;
@@ -1667,11 +1694,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 					if( maxcount == 0 )
 						continue;
 				}
-				if( skill_get_unit_flag(skill)&UF_NONEARNPC &&
-					skill_check_unit_range2(src,tbl->x,tbl->y,skill,skill_lv,BL_NPC)
-				  )
-					continue;
 			}
+
 			if( battle_config.autospell_check_range &&
 				!battle_check_range(src,tbl,skill_get_range2(src,skill,skill_lv) + (skill == RG_CLOSECONFINE ? 0 : 1)) )
 				continue;
@@ -1712,6 +1736,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 	//Autobonus when attacking
 	if( sd && sd->autobonus[0].rate ) {
 		int i;
+
 		for( i = 0; i < ARRAYLENGTH(sd->autobonus); i++ ) {
 			if( rnd()%1000 >= sd->autobonus[i].rate )
 				continue;
@@ -1732,6 +1757,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 	{
 		struct mob_db *mob;
 		int class_;
+
 		skill = 0;
 		do {
 			do {
@@ -1758,7 +1784,7 @@ int skill_onskillusage(struct map_session_data *sd, struct block_list *bl, uint1
 		return 0;
 
 	for( i = 0; i < ARRAYLENGTH(sd->autospell3) && sd->autospell3[i].flag; i++ ) {
-		int skill, skill_lv, type, notok;
+		int skill, skill_lv, type;
 
 		if( sd->autospell3[i].flag != skill_id )
 			continue;
@@ -1766,30 +1792,32 @@ int skill_onskillusage(struct map_session_data *sd, struct block_list *bl, uint1
 		if( sd->autospell3[i].lock )
 			continue; //Autospell already being executed
 
-		skill = (sd->autospell3[i].id > 0) ? sd->autospell3[i].id : -sd->autospell3[i].id;
+		skill = sd->autospell3[i].id;
+		sd->state.autocast = 1; //Set this to bypass sd->canskill_tick check
 
-		sd->state.autocast = 1;
-		notok = skillnotok(skill,sd);
-		sd->state.autocast = 0;
-
-		if( notok )
+		if( skill_isNotOk((skill > 0) ? skill : skill * -1, sd) )
 			continue;
 
-		skill_lv = sd->autospell3[i].lv ? sd->autospell3[i].lv : 1;
+		sd->state.autocast = 0;
 
-		if( skill_lv < 0 )
-			skill_lv = 1 + rnd()%(-skill_lv);
-
-		if( sd->autospell3[i].id >= 0 && bl == NULL )
+		if( skill >= 0 && bl == NULL )
 			continue; //No target
 
 		if( rnd()%1000 >= sd->autospell3[i].rate )
 			continue;
 
-		tbl = (sd->autospell3[i].id < 0) ? &sd->bl : bl;
+		skill_lv = sd->autospell3[i].lv ? sd->autospell3[i].lv : 1;
+
+		if( skill < 0 ) {
+			tbl = &sd->bl;
+			skill *= -1;
+			skill_lv = 1 + rnd()%(-skill_lv); //Random skill_lv
+		} else
+			tbl = bl;
 
 		if( (type = skill_get_casttype(skill)) == CAST_GROUND ) {
 			int maxcount = 0;
+
 			if( !(BL_PC&battle_config.skill_reiteration) &&
 				skill_get_unit_flag(skill)&UF_NOREITERATION &&
 				skill_check_unit_range(&sd->bl,tbl->x,tbl->y,skill,skill_lv)
@@ -1797,13 +1825,14 @@ int skill_onskillusage(struct map_session_data *sd, struct block_list *bl, uint1
 				continue;
 			if( BL_PC&battle_config.skill_nofootset &&
 				skill_get_unit_flag(skill)&UF_NOFOOTSET &&
-				skill_check_unit_range2(&sd->bl,tbl->x,tbl->y,skill,skill_lv,(tbl->type == BL_PC) ? BL_CHAR : BL_PC)
+				skill_check_unit_range2(&sd->bl,tbl->x,tbl->y,skill,skill_lv,false)
 			  )
 				continue;
 			if( BL_PC&battle_config.land_skill_limit &&
 				(maxcount = skill_get_maxcount(skill,skill_lv)) > 0
 			  ) {
 				int v;
+
 				for( v = 0; v < MAX_SKILLUNITGROUP && sd->ud.skillunit[v] && maxcount; v++ ) {
 					if( sd->ud.skillunit[v]->skill_id == skill )
 						maxcount--;
@@ -1811,10 +1840,6 @@ int skill_onskillusage(struct map_session_data *sd, struct block_list *bl, uint1
 				if( maxcount == 0 )
 					continue;
 			}
-			if( skill_get_unit_flag(skill)&UF_NONEARNPC &&
-				skill_check_unit_range2(&sd->bl,tbl->x,tbl->y,skill,skill_lv,BL_NPC)
-			  )
-				continue;
 		}
 
 		if( battle_config.autospell_check_range &&
@@ -1980,10 +2005,9 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	{
 		struct block_list *tbl;
 		struct unit_data *ud;
-		int i, skill_id, skill_lv, rate, type, notok;
+		int i, skill_id, skill_lv, rate, type;
 
 		for(i = 0; i < ARRAYLENGTH(dstsd->autospell2) && dstsd->autospell2[i].id; i++) {
-
 			if(!(dstsd->autospell2[i].flag&attack_type&BF_WEAPONMASK &&
 				 dstsd->autospell2[i].flag&attack_type&BF_RANGEMASK &&
 				 dstsd->autospell2[i].flag&attack_type&BF_SKILLMASK))
@@ -1998,10 +2022,9 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 				 rate >>= 1;
 
 			dstsd->state.autocast = 1;
-			notok = skillnotok(skill_id, dstsd);
 			dstsd->state.autocast = 0;
 
-			if(notok)
+			if(skill_isNotOk(skill_id,dstsd))
 				continue;
 
 			if(rnd()%1000 >= rate)
@@ -2011,6 +2034,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 
 			if((type = skill_get_casttype(skill_id)) == CAST_GROUND) {
 				int maxcount = 0;
+
 				if(!(BL_PC&battle_config.skill_reiteration) &&
 					skill_get_unit_flag(skill_id)&UF_NOREITERATION &&
 					skill_check_unit_range(bl,tbl->x,tbl->y,skill_id,skill_lv)
@@ -2018,13 +2042,14 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 					continue;
 				if(BL_PC&battle_config.skill_nofootset &&
 					skill_get_unit_flag(skill_id)&UF_NOFOOTSET &&
-					skill_check_unit_range2(bl,tbl->x,tbl->y,skill_id,skill_lv,(bl->type == BL_PC) ? BL_CHAR : BL_PC)
+					skill_check_unit_range2(bl,tbl->x,tbl->y,skill_id,skill_lv,false)
 				  )
 					continue;
 				if(BL_PC&battle_config.land_skill_limit &&
 					(maxcount = skill_get_maxcount(skill_id,skill_lv)) > 0
 				  ) {
 					int v;
+
 					for(v = 0; v < MAX_SKILLUNITGROUP && dstsd->ud.skillunit[v] && maxcount; v++) {
 						if(dstsd->ud.skillunit[v]->skill_id == skill_id)
 							maxcount--;
@@ -2032,10 +2057,6 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 					if(maxcount == 0)
 						continue;
 				}
-				if(skill_get_unit_flag(skill_id)&UF_NONEARNPC &&
-					skill_check_unit_range2(bl,tbl->x,tbl->y,skill_id,skill_lv,BL_NPC)
-				)
-					continue;
 			}
 
 			if(!battle_check_range(src,tbl,skill_get_range2(src,skill_id,skill_lv) + (skill_id == RG_CLOSECONFINE ? 0 : 1)) &&
@@ -3200,34 +3221,55 @@ static int skill_check_unit_range2_sub (struct block_list *bl, va_list ap)
 	return 1;
 }
 
-static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv, int type)
+//NOTE: 'isNearNPC' is used to check is the skill near NPC or not, if yes will use npc_isnear and range calculation [Cydh]
+static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv, bool isNearNPC)
 {
-	int range, range_npc;
+	int range = 0, type;
 
-	switch (skill_id) {
-		case WZ_ICEWALL:
-			range = 2;
-			break;
-		case SC_MANHOLE:
-		case GN_HELLS_PLANT:
-			range = 0;
-			break;
-		default: {
-				int layout_type = skill_get_unit_layout_type(skill_id,skill_lv);
-				if (layout_type == -1 || layout_type > MAX_SQUARE_LAYOUT) {
-					ShowError("skill_check_unit_range2: unsupported layout type %d for skill %d\n",layout_type,skill_id);
-					return 0;
+	//Range for INF2_NO_NEARNPC is using skill splash value [Cydh]
+	if (isNearNPC)
+		range = skill_get_splash(skill_id,skill_lv);
+
+	//While checking INF2_NO_NEARNPC and the range from splash is 0, get the range from skill_unit range and layout. [Cydh]
+	if (!isNearNPC || !range) {
+		switch (skill_id) {
+			case WZ_ICEWALL:
+				range = 2;
+				break;
+			case SC_MANHOLE:
+			case GN_HELLS_PLANT:
+				range = 0;
+				break;
+			default: {
+					int layout_type = skill_get_unit_layout_type(skill_id,skill_lv);
+					if (layout_type == -1 || layout_type > MAX_SQUARE_LAYOUT) {
+						ShowError("skill_check_unit_range2: unsupported layout type %d for skill %d\n",layout_type,skill_id);
+						return 0;
+					}
+					range = skill_get_unit_range(skill_id,skill_lv) + layout_type;
 				}
-				range = skill_get_unit_range(skill_id,skill_lv) + layout_type;
-			}
-			break;
+				break;
+		}
 	}
 
-	if ((skill_id == SC_CHAOSPANIC || skill_id == SC_MAELSTROM) && type&BL_NPC)
-		range_npc = range * 3;
+	//Check the additional range [Cydh]
+	if (isNearNPC && skill_db[skill_get_index(skill_id)].unit_nonearnpc_range)
+		range += skill_db[skill_get_index(skill_id)].unit_nonearnpc_range;
 
-	return map_foreachinarea(skill_check_unit_range2_sub,bl->m,x - range,y - range,x + range,y + range,type,skill_id)
-		+ (type&BL_NPC && range_npc > 0) ? map_foreachinarea(npc_isnear_sub,bl->m,x - range_npc,y - range_npc,x + range_npc,y + range_npc,type,skill_id) : 0;
+	if (!isNearNPC) { //Doesn't check the NPC range
+		//If the caster is a monster/NPC, only check for players. Otherwise just check characters
+		if (bl->type == BL_PC)
+			type = BL_CHAR;
+		else
+			type = BL_PC;
+	} else
+		type = BL_NPC;
+
+	return (!isNearNPC) ?
+		/* !isNearNPC is used for UF_NOFOOTSET, regardless the NPC position, only check the BL_CHAR or BL_PC */
+		map_foreachinarea(skill_check_unit_range2_sub,bl->m,x - range,y - range,x + range,y + range,type,skill_id) :
+		/* isNearNPC is used to check range from NPC */
+		map_foreachinarea(npc_isnear_sub,bl->m,x - range,y - range,x + range,y + range,type,skill_id);
 }
 
 int skill_guildaura_sub (struct map_session_data* sd, int id, int strvit, int agidex)
@@ -6658,6 +6700,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				}
 				if( !battle_config.duel_allow_teleport && sd->duel_group && skill_lv <= 2 ) { //duel restriction [LuzZza]
 					char output[128]; sprintf(output,msg_txt(365),skill_get_name(AL_TELEPORT));
+
 					clif_displaymessage(sd->fd,output); //"Duel: Can't use %s in duel."
 					break;
 				}
@@ -10340,7 +10383,7 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 		}
 		if( src->type&battle_config.skill_nofootset &&
 			skill_get_unit_flag(ud->skill_id)&UF_NOFOOTSET &&
-			skill_check_unit_range2(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv,(src->type == BL_PC) ? BL_CHAR : BL_PC)
+			skill_check_unit_range2(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv,false)
 		) {
 			if( sd ) clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
@@ -10349,6 +10392,7 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 			(maxcount = skill_get_maxcount(ud->skill_id,ud->skill_lv)) > 0
 		) {
 			int i;
+
 			for( i = 0; i < MAX_SKILLUNITGROUP && ud->skillunit[i] && maxcount; i++ ) {
 				if(ud->skillunit[i]->skill_id == ud->skill_id)
 					maxcount--;
@@ -10357,12 +10401,6 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 				if( sd ) clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
 				break;
 			}
-		}
-		if( skill_get_unit_flag(ud->skill_id)&UF_NONEARNPC && 
-			skill_check_unit_range2(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv,BL_NPC)
-		) {
-			if( sd ) clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
-			break;
 		}
 
 		if( tid != INVALID_TIMER ) { //Avoid double checks on instant cast skills. [Skotlex]
@@ -13766,7 +13804,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			}
 		case GD_EMERGENCYCALL:
 		case GD_ITEMEMERGENCYCALL:
-			//Other checks were already done in skillnotok()
+			//Other checks were already done in skill_isNotOk()
 			if( !sd->status.guild_id || !sd->state.gmaster_flag )
 				return 0;
 			break;
@@ -19035,10 +19073,24 @@ static bool skill_parse_row_copyabledb(char* split[], int column, int current) {
 	return true;
 }
 
+/// Reads additional range [Cydh]
+static bool skill_parse_row_nonearnpcrangedb(char* split[], int column, int current) {
+	uint16 skill_id = skill_name2id(split[0]), idx;
 
-static bool skill_parse_row_abradb(char* split[], int columns, int current)
-{ //skill_id,DummyName,RatePerLvl
+	if( (idx = skill_get_index(skill_id)) < 0 ) { //Invalid skill id
+		ShowError("skill_parse_row_nonearnpcrangedb: Invalid skill '%s'\n",split[0]);
+		return false;
+	}
+
+	skill_db[idx].unit_nonearnpc_range = max(atoi(split[1]), 0);
+	skill_db[idx].unit_nonearnpc_type = (atoi(split[2])) ? cap_value(atoi(split[2]), 1, 15) : 15;
+	return true;
+}
+
+//skill_id,DummyName,RatePerLvl
+static bool skill_parse_row_abradb(char* split[], int columns, int current) {
 	uint16 skill_id = atoi(split[0]);
+
 	if( !skill_get_index(skill_id) || !skill_get_max(skill_id) ) {
 		ShowError("abra_db: Invalid skill ID %d\n", skill_id);
 		return false;
@@ -19051,17 +19103,16 @@ static bool skill_parse_row_abradb(char* split[], int columns, int current)
 	skill_abra_db[current].skill_id = skill_id;
 	safestrncpy(skill_abra_db[current].name, trim(split[1]), sizeof(skill_abra_db[current].name)); //Store dummyname
 	skill_split_atoi(split[2],skill_abra_db[current].per);
-
 	return true;
 }
 
-static bool skill_parse_row_changematerialdb(char* split[], int columns, int current)
-{ //ProductID,BaseRate,MakeAmount1,MakeAmountRate1...,MakeAmount5,MakeAmountRate5
+//ProductID,BaseRate,MakeAmount1,MakeAmountRate1...,MakeAmount5,MakeAmountRate5
+static bool skill_parse_row_changematerialdb(char* split[], int columns, int current) {
 	uint16 skill_id = atoi(split[0]);
 	short j = atoi(split[1]);
-	int x,y;
+	int x, y;
 
-	for(x=0; x<MAX_SKILL_PRODUCE_DB; x++) {
+	for( x = 0; x < MAX_SKILL_PRODUCE_DB; x++ ) {
 		if( skill_produce_db[x].nameid == skill_id )
 			if( skill_produce_db[x].req_skill == GN_CHANGEMATERIAL )
 				break;
@@ -19072,16 +19123,15 @@ static bool skill_parse_row_changematerialdb(char* split[], int columns, int cur
 		return false;
 	}
 
-	if( current >= MAX_SKILL_PRODUCE_DB ) {
+	if( current >= MAX_SKILL_PRODUCE_DB )
 		ShowError("skill_changematerial_db: Maximum amount of entries reached (%d), increase MAX_SKILL_PRODUCE_DB\n",MAX_SKILL_PRODUCE_DB);
-	}
 
 	skill_changematerial_db[current].itemid = skill_id;
 	skill_changematerial_db[current].rate = j;
 
-	for( x = 2, y = 0; x+1 < columns && split[x] && split[x+1] && y < 5; x += 2, y++ ) {
+	for( x = 2, y = 0; x + 1 < columns && split[x] && split[x + 1] && y < 5; x += 2, y++ ) {
 		skill_changematerial_db[current].qty[y] = atoi(split[x]);
-		skill_changematerial_db[current].qty_rate[y] = atoi(split[x+1]);
+		skill_changematerial_db[current].qty_rate[y] = atoi(split[x + 1]);
 	}
 
 	return true;
@@ -19140,31 +19190,32 @@ static void skill_readdb(void)
 	safestrncpy(skill_db[0].name, "UNKNOWN_SKILL", sizeof(skill_db[0].name));
 	safestrncpy(skill_db[0].desc, "Unknown Skill", sizeof(skill_db[0].desc));
 
-	sv_readdb(db_path, DBPATH"skill_db.txt"          , ',',  18, 18, MAX_SKILL_DB, skill_parse_row_skilldb);
-	sv_readdb(db_path, DBPATH"skill_require_db.txt"  , ',',  34, 34, MAX_SKILL_DB, skill_parse_row_requiredb);
+	sv_readdb(db_path, DBPATH"skill_db.txt"          , ',',    18, 18, MAX_SKILL_DB, skill_parse_row_skilldb);
+	sv_readdb(db_path, DBPATH"skill_require_db.txt"  , ',',    34, 34, MAX_SKILL_DB, skill_parse_row_requiredb);
 #ifdef RENEWAL_CAST
-	sv_readdb(db_path, "re/skill_cast_db.txt"     , ',',   8,  8, MAX_SKILL_DB, skill_parse_row_castdb);
+	sv_readdb(db_path, "re/skill_cast_db.txt"        , ',',     8,  8, MAX_SKILL_DB, skill_parse_row_castdb);
 #else
-	sv_readdb(db_path, "pre-re/skill_cast_db.txt"     , ',',   7,  7, MAX_SKILL_DB, skill_parse_row_castdb);
+	sv_readdb(db_path, "pre-re/skill_cast_db.txt"    , ',',     7,  7, MAX_SKILL_DB, skill_parse_row_castdb);
 #endif
-	sv_readdb(db_path, DBPATH"skill_castnodex_db.txt", ',',   2,  3, MAX_SKILL_DB, skill_parse_row_castnodexdb);
-	sv_readdb(db_path, DBPATH"skill_unit_db.txt"     , ',',   8,  8, MAX_SKILL_DB, skill_parse_row_unitdb);
+	sv_readdb(db_path, DBPATH"skill_castnodex_db.txt", ',',     2,  3, MAX_SKILL_DB, skill_parse_row_castnodexdb);
+	sv_readdb(db_path, DBPATH"skill_unit_db.txt"     , ',',     8,  8, MAX_SKILL_DB, skill_parse_row_unitdb);
 
-	sv_readdb(db_path, DBPATH"skill_nocast_db.txt"   , ',',   2,  2, MAX_SKILL_DB, skill_parse_row_nocastdb);
+	sv_readdb(db_path, DBPATH"skill_nocast_db.txt"   , ',',     2,  2, MAX_SKILL_DB, skill_parse_row_nocastdb);
 
 	skill_init_unit_layout();
-	sv_readdb(db_path, "produce_db.txt"        , ',',    4,  4 + 2 * MAX_PRODUCE_RESOURCE, MAX_SKILL_PRODUCE_DB, skill_parse_row_producedb);
-	sv_readdb(db_path, "create_arrow_db.txt"   , ',',1 + 2,  1 + 2 * MAX_ARROW_RESOURCE, MAX_SKILL_ARROW_DB, skill_parse_row_createarrowdb);
-	sv_readdb(db_path, "abra_db.txt"           , ',',    3,  3, MAX_SKILL_ABRA_DB, skill_parse_row_abradb);
+	sv_readdb(db_path, "produce_db.txt"              , ',',     4,  4 + 2 * MAX_PRODUCE_RESOURCE, MAX_SKILL_PRODUCE_DB, skill_parse_row_producedb);
+	sv_readdb(db_path, "create_arrow_db.txt"         , ',', 1 + 2,  1 + 2 * MAX_ARROW_RESOURCE, MAX_SKILL_ARROW_DB, skill_parse_row_createarrowdb);
+	sv_readdb(db_path, "abra_db.txt"                 , ',',     3,  3, MAX_SKILL_ABRA_DB, skill_parse_row_abradb);
 	//Warlock
-	sv_readdb(db_path, "spellbook_db.txt"      , ',',   3,  3, MAX_SKILL_SPELLBOOK_DB, skill_parse_row_spellbookdb);
+	sv_readdb(db_path, "spellbook_db.txt"            , ',',     3,  3, MAX_SKILL_SPELLBOOK_DB, skill_parse_row_spellbookdb);
 	//Guillotine Cross
-	sv_readdb(db_path, "magicmushroom_db.txt"  , ',',   1,  1, MAX_SKILL_MAGICMUSHROOM_DB, skill_parse_row_magicmushroomdb);
-	sv_readdb(db_path, "skill_copyable_db.txt", ',',    2,  4, MAX_SKILL_DB, skill_parse_row_copyabledb);
-	sv_readdb(db_path, "skill_improvise_db.txt"      , ',',   2,  2, MAX_SKILL_IMPROVISE_DB, skill_parse_row_improvisedb);
-	sv_readdb(db_path, "skill_changematerial_db.txt" , ',',   4,  4 + 2 * 5, MAX_SKILL_PRODUCE_DB, skill_parse_row_changematerialdb);
+	sv_readdb(db_path, "magicmushroom_db.txt"        , ',',     1,  1, MAX_SKILL_MAGICMUSHROOM_DB, skill_parse_row_magicmushroomdb);
+	sv_readdb(db_path, "skill_copyable_db.txt"       , ',',     2,  4, MAX_SKILL_DB, skill_parse_row_copyabledb);
+	sv_readdb(db_path, "skill_improvise_db.txt"      , ',',     2,  2, MAX_SKILL_IMPROVISE_DB, skill_parse_row_improvisedb);
+	sv_readdb(db_path, "skill_changematerial_db.txt" , ',',     4,  4 + 2 * 5, MAX_SKILL_PRODUCE_DB, skill_parse_row_changematerialdb);
+	sv_readdb(db_path, "skill_nonearnpc_db.txt"      , ',',     2,  3, MAX_SKILL_DB, skill_parse_row_nonearnpcrangedb);
 #ifdef ADJUST_SKILL_DAMAGE
-	sv_readdb(db_path, "skill_damage_db.txt"      , ',',   4,  7, MAX_SKILL_DB, skill_parse_row_skilldamage);
+	sv_readdb(db_path, "skill_damage_db.txt"         , ',',     4,  7, MAX_SKILL_DB, skill_parse_row_skilldamage);
 #endif
 }
 
@@ -19172,7 +19223,7 @@ void skill_reload (void) {
 	struct s_mapiterator *iter;
 	struct map_session_data *sd;
 	skill_readdb();
-	/* lets update all players skill tree : so that if any skill modes were changed they're properly updated */
+	/* Lets update all players skill tree : so that if any skill modes were changed they're properly updated */
 	iter = mapit_getallusers();
 	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) )
 		clif_skillinfoblock(sd);

@@ -1091,7 +1091,8 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 
 	//Temp: Used to signal combo-skills right now.
 	if( sc && sc->data[SC_COMBO] && (sc->data[SC_COMBO]->val1 == skill_id ||
-		(sd ? skill_check_condition_castbegin(sd,skill_id,skill_lv) : 0)) ) {
+		(sd ? skill_check_condition_castbegin(sd,skill_id,skill_lv) : 0)) )
+	{
 		if( sc->data[SC_COMBO]->val2 )
 			target_id = sc->data[SC_COMBO]->val2;
 		else
@@ -1111,7 +1112,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 
 	if( sd ) {
 		//Target_id checking.
-		if( skillnotok(skill_id, sd) ) //[MouseJstr]
+		if( skill_isNotOk(skill_id, sd) ) //[MouseJstr]
 			return 0;
 
 		switch( skill_id ) { //Check for skills that auto-select target
@@ -1148,6 +1149,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 			case MH_TINDER_BREAKER:
 				{
 					int skill_id2 = ((skill_id == MH_SONIC_CRAW) ? MH_MIDNIGHT_FRENZY : MH_EQC);
+
 					if( sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == skill_id2 ) { //It's a combo
 						target_id = sc->data[SC_COMBO]->val2;
 						combo = 1;
@@ -1157,7 +1159,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 				break;
 		}
 
-	if( !target ) // choose default target
+	if( !target ) //Choose default target
 		target = map_id2bl(target_id);
 
 	if( !target || src->m != target->m || !src->prev || !target->prev )
@@ -1176,12 +1178,19 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	if( !status_check_skilluse(src, target, skill_id, 0) )
 		return 0;
 
+	//Fail if the targetted skill is near NPC [Cydh]
+	if( skill_get_inf2(skill_id)&INF2_NO_NEARNPC && skill_isNotOk_npcRange(src, target, skill_id, skill_lv, target->x, target->y) ) {
+		if( sd )
+			clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
+		return 0;
+	}
+
 	tstatus = status_get_status_data(target);
 	//Record the status of the previous skill)
 	if( sd ) {
 
 		if( (skill_get_inf2(skill_id)&INF2_ENSEMBLE_SKILL) && skill_check_pc_partner(sd, skill_id, &skill_lv, 1, 0) < 1 ) {
-			clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+			clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 			return 0;
 		}
 
@@ -1194,15 +1203,15 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 				break;
 			case BD_ENCORE:
 				//Prevent using the dance skill if you no longer have the skill in your tree.
-				if( !sd->skill_id_dance || pc_checkskill(sd,sd->skill_id_dance) <= 0 ) {
-					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+				if( !sd->skill_id_dance || pc_checkskill(sd, sd->skill_id_dance) <= 0 ) {
+					clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 					return 0;
 				}
 				sd->skill_id_old = skill_id;
 				break;
 			case WL_WHITEIMPRISON:
-				if( battle_check_target(src,target,BCT_SELF|BCT_ENEMY) < 0 ) {
-					clif_skill_fail(sd,skill_id,USESKILL_FAIL_TOTARGET,0);
+				if( battle_check_target(src, target, BCT_SELF|BCT_ENEMY) < 0 ) {
+					clif_skill_fail(sd, skill_id, USESKILL_FAIL_TOTARGET, 0);
 					return 0;
 				}
 				break;
@@ -1245,9 +1254,8 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		} else if( src->type == BL_MER && skill_id == MA_REMOVETRAP ) {
 			if( !battle_check_range(battle_get_master(src), target, range + 1) )
 				return 0; // Aegis calc remove trap based on Master position, ignoring mercenary O.O
-		} else if( !battle_check_range(src, target, range + (skill_id == RG_CLOSECONFINE?0:2)) ) {
+		} else if( !battle_check_range(src, target, range + (skill_id == RG_CLOSECONFINE ? 0 : 2)) )
 			return 0; // Arrow-path check failed.
-		}
 	}
 
 	if( !combo ) //Stop attack on non-combo skills [Skotlex]
@@ -1304,6 +1312,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		case KN_CHARGEATK: {
 				//+0.5s every 3 cells of distance but hard-limited to 1.5s.
 				unsigned int k = distance_bl(src, target) / 3;
+
 				if( k < 2 ) k = 0;
 				else if( k > 1 && k < 3 ) k = 1;
 				else if( k > 2 ) k = 2;
@@ -1338,6 +1347,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		case NC_DISJOINT:
 			if( target->type == BL_PC ) {
 				struct mob_data *md;
+
 				if( (md = map_id2md(target->id)) && md->master_id != src->id )
 					casttime <<= 1;
 			}
@@ -1408,16 +1418,16 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	ud->skill_id     = skill_id;
 	ud->skill_lv     = skill_lv;
 
+	/**
+	 * Why the if else chain: these 3 status do not stack, so its efficient that way.
+	 **/
 	if( sc ) {
-		/**
-		 * Why the if else chain: these 3 status do not stack, so its efficient that way.
-		 **/
  		if( sc->data[SC_CLOAKING] && !(sc->data[SC_CLOAKING]->val4&4) && skill_id != AS_CLOAKING ) {
 			status_change_end(src, SC_CLOAKING, INVALID_TIMER);
-			if (!src->prev) return 0; //Warped away!
+			if( !src->prev ) return 0; //Warped away!
 		} else if( sc->data[SC_CLOAKINGEXCEED] && !(sc->data[SC_CLOAKINGEXCEED]->val4&4) && skill_id != GC_CLOAKINGEXCEED ) {
 			status_change_end(src,SC_CLOAKINGEXCEED, INVALID_TIMER);
-			if (!src->prev) return 0;
+			if( !src->prev ) return 0;
 		}
 	}
 
@@ -1426,7 +1436,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		if( sd && (pc_checkskill(sd,SA_FREECAST) > 0 || skill_id == LG_EXEEDBREAK) )
 			status_calc_bl(&sd->bl, SCB_SPEED);
 	} else
-		skill_castend_id(ud->skilltimer,tick,src->id,0);
+		skill_castend_id(ud->skilltimer, tick, src->id, 0);
 
 	if( sd )
 		sd->canlog_tick = gettick();
@@ -1471,29 +1481,35 @@ int unit_skilluse_pos2( struct block_list *src, short skill_x, short skill_y, ui
 		sc = NULL;
 
 	if(sd) {
-		if(skillnotok(skill_id, sd) || !skill_check_condition_castbegin(sd, skill_id, skill_lv))
+		if(skill_isNotOk(skill_id, sd) || !skill_check_condition_castbegin(sd, skill_id, skill_lv))
 			return 0;
 		/**
 		 * "WHY IS IT HEREE": pneuma cannot be cancelled past this point, the client displays the animation even,
 		 * if we cancel it from nodamage_id, so it has to be here for it to not display the animation.
 		 **/
-		if(skill_id == AL_PNEUMA && map_getcell(src->m,skill_x,skill_y,CELL_CHKLANDPROTECTOR)) {
-			clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+		if(skill_id == AL_PNEUMA && map_getcell(src->m, skill_x, skill_y, CELL_CHKLANDPROTECTOR)) {
+			clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 			return 0;
 		}
 	}
 
 	if(sc && sc->data[SC__MAELSTROM] && (skill_id >= SC_MANHOLE && skill_id <= SC_FEINTBOMB)) {
-		clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+		clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 		return 0;
 	}
 
-	if(!status_check_skilluse(src,NULL,skill_id,0))
+	if(!status_check_skilluse(src, NULL, skill_id, 0))
 		return 0;
 
-	if(map_getcell(src->m,skill_x,skill_y,CELL_CHKWALL)) {
-		//Can't cast ground targeted spells on wall cells
-		if (sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+	//Fail if the targetted skill is near NPC [Cydh]
+	if(skill_get_inf2(skill_id)&INF2_NO_NEARNPC && skill_isNotOk_npcRange(src, NULL, skill_id, skill_lv, skill_x, skill_y)) {
+		if (sd) clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
+		return 0;
+	}
+
+	//Can't cast ground targeted spells on wall cells
+	if(map_getcell(src->m, skill_x, skill_y, CELL_CHKWALL)) {
+		if (sd) clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 		return 0;
 	}
 
@@ -2179,7 +2195,7 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 					guild_reply_reqalliance(sd,sd->guild_alliance_account,0);
 				if (sd->menuskill_id)
 					sd->menuskill_id = sd->menuskill_val = 0;
-				if ( sd->touching_id )
+				if (sd->touching_id)
 					npc_touchnext_areanpc(sd,true);
 				//Check if warping and not changing the map.
 				if (sd->state.warping && !sd->state.changemap) {
