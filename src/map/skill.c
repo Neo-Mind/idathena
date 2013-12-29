@@ -8652,6 +8652,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			{
 				short element = 0, sctype = 0, pos = -1;
 				struct status_change *sc = status_get_sc(src);
+
 				if( !sc ) break;
 
 				for( i = SC_SPHERE_1; i <= SC_SPHERE_5; i++ ) {
@@ -8747,7 +8748,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case NC_F_SIDESLIDE:
 		case NC_B_SIDESLIDE:
 			{
-				int dir = (skill_id == NC_F_SIDESLIDE) ? (unit_getdir(src)+4)%8 : unit_getdir(src);
+				int dir = (skill_id == NC_F_SIDESLIDE) ? (unit_getdir(src) + 4)%8 : unit_getdir(src);
 				skill_blown(src,bl,skill_get_blewcount(skill_id,skill_lv),dir,0x1);
 				clif_slide(src,src->x,src->y);
 				clif_fixpos(src); //Aegis sent this packet
@@ -8855,25 +8856,30 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SC_LAZINESS:
 		case SC_UNLUCKY:
 		case SC_WEAKNESS:
-			if( !(tsc && tsc->data[type]) ) {
+			if( tsc && !tsc->data[type] ) {
 				int joblvbonus = 0;
+
 				if( is_boss(bl) ) break;
-					joblvbonus = ( sd ? sd->status.job_level : 0 );
+					joblvbonus = (sd ? sd->status.job_level : 0);
 				//First we set the success chance based on the caster's build which increases the chance.
-				rate = 10 * skill_lv + rnd_value( sstatus->dex / 12,sstatus->dex / 4 ) + joblvbonus + status_get_lv(src) / 10 - 
+				rate = 10 * skill_lv + rnd_value(sstatus->dex / 12,sstatus->dex / 4) + joblvbonus + status_get_lv(src) / 10 - 
 				//We then reduce the success chance based on the target's build.
-				rnd_value( tstatus->agi / 6,tstatus->agi / 3 ) - tstatus->luk / 10 - ( dstsd ? (dstsd->max_weight / 10 - dstsd->weight / 10 ) / 100 : 0 ) - status_get_lv(bl) / 10;
+				rnd_value(tstatus->agi / 6,tstatus->agi / 3) - tstatus->luk / 10 - (dstsd ? (dstsd->max_weight / 10 - dstsd->weight / 10) / 100 : 0) - status_get_lv(bl) / 10;
 				//Finally we set the minimum success chance cap based on the caster's skill level and DEX.
-				rate = cap_value( rate,skill_lv + sstatus->dex / 20,100);
-					clif_skill_nodamage(src,bl,skill_id,0,sc_start(src,bl,type,rate,skill_lv,skill_get_time(skill_id,skill_lv)));
-				if( tsc && tsc->data[SC__IGNORANCE] && skill_id == SC_IGNORANCE ) { //If the target was successfully inflected with the Ignorance status, drain some of the targets SP.
+				rate = cap_value(rate,skill_lv + sstatus->dex / 20,100);
+				clif_skill_nodamage(src,bl,skill_id,0,sc_start(src,bl,type,rate,skill_lv,skill_get_time(skill_id,skill_lv)));
+				//If the target was successfully inflected with the Ignorance status, drain some of the targets SP.
+				if( tsc->data[SC__IGNORANCE] && skill_id == SC_IGNORANCE ) {
 						int sp = 100 * skill_lv;
+
 						if( dstmd ) sp = dstmd->level * 2;
 						if( !dstmd && status_zap(bl,0,sp) )
 							status_heal(src,0,sp / 2,3); //What does flag 3 do? [Rytech]
 				}
-				if( tsc && tsc->data[SC__UNLUCKY] && skill_id == SC_UNLUCKY ) //If the target was successfully inflected with the Unlucky status, give 1 of 3 random status's.
-					switch( rnd()%3 ) { //Targets in the Unlucky status will be affected by one of the 3 random status's reguardless of resistance.
+				//If the target was successfully inflected with the Unlucky status, give 1 of 3 random status's.
+				//Targets in the Unlucky status will be affected by one of the 3 random status's reguardless of resistance.
+				if( tsc->data[SC__UNLUCKY] && skill_id == SC_UNLUCKY )
+					switch( rnd()%3 ) {
 						case 0:
 							status_change_start(src,bl,SC_POISON,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),10);
 							break;
@@ -13935,7 +13941,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			}
 			break;
 		case RA_WUGMASTERY:
-			if( pc_isfalcon(sd) || pc_isridingwug(sd) || ( sc && sc->data[SC__GROOMY] ) ) {
+			if( pc_isfalcon(sd) || pc_isridingwug(sd) || (sc && sc->data[SC__GROOMY]) ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}

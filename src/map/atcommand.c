@@ -1156,7 +1156,7 @@ ACMD_FUNC(item)
 		number = 1;
 	get_count = number;
 
-	for(j--; j >= 0; j--){ //Produce items in list
+	for (j--; j >= 0; j--) { //Produce items in list
 		int16 item_id = item_data[j]->nameid;
 		//Check if it's stackable.
 		if (!itemdb_isstackable2(item_data[j]))
@@ -1196,7 +1196,7 @@ ACMD_FUNC(item2)
 
 	memset(item_name, '\0', sizeof(item_name));
 
-	if (!strcmpi(command+1,"itembound2") && (!message || !*message || (
+	if (!strcmpi(command + 1,"itembound2") && (!message || !*message || (
 		sscanf(message, "\"%99[^\"]\" %d %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4, &bound) < 10 &&
 		sscanf(message, "%99s %d %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4, &bound) < 10 ))) {
 		clif_displaymessage(fd, msg_txt(296)); // Please enter all parameters (usage: @item2 <item name/ID> <quantity>
@@ -1214,7 +1214,7 @@ ACMD_FUNC(item2)
 	if (number <= 0)
 		number = 1;
 
-	if( bound < 0 || bound > 4 ) {
+	if (bound < 0 || bound > 4) {
 		clif_displaymessage(fd, msg_txt(298)); // Invalid bound type
 		return -1;
 	}

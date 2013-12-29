@@ -2213,6 +2213,7 @@ int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt)
 
 	if (flag&8 && mbl) {
 		struct status_data *status;
+
 		if ((status = status_get_base_status(mbl))) {
 			if (battle_config.slaves_inherit_speed&(status->mode&MD_CANMOVE ? 1 : 2))
 				status->speed = status->speed;
@@ -2223,6 +2224,7 @@ int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt)
 
 	if (flag&1) { //Increase from mobs leveling up [Valaris]
 		int diff = md->level - md->db->lv;
+
 		status->str += diff;
 		status->agi += diff;
 		status->vit += diff;
@@ -2274,11 +2276,11 @@ int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt)
 
 	if (flag&4) { //Strengthen Guardians - custom value + 10% / lv
 		struct guild_castle *gc;
+
 		gc = guild_mapname2gc(map[md->bl.m].name);
 		if (!gc)
 			ShowError("status_calc_mob: No castle set at map %s\n", map[md->bl.m].name);
-		else
-		if (gc->castle_id < 24 || md->class_ == MOBID_EMPERIUM) {
+		else if (gc->castle_id < 24 || md->class_ == MOBID_EMPERIUM) {
 #ifdef RENEWAL
 			status->max_hp += 50 * gc->defense;
 			status->max_sp += 70 * gc->defense;
@@ -2302,6 +2304,7 @@ int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt)
 	if (flag&16 && mbl) { //Max HP setting from Summon Flora/marine Sphere
 		struct unit_data *ud = unit_bl2ud(mbl);
 		struct status_data *mstatus = status_get_status_data(mbl);
+
 		//Remove special AI when this is used by regular mobs.
 		if (mbl->type == BL_MOB && !((TBL_MOB*)mbl)->special_state.ai)
 			md->special_state.ai = AI_NONE;
@@ -2333,6 +2336,7 @@ int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt)
 					break;
 				case MH_SUMMON_LEGION: {
 						int homblvl = status_get_lv(mbl);
+
 						status->max_hp = 10 * (100 * (ud->skill_lv + 2) + homblvl);
 						status->batk = 100 * (ud->skill_lv + 5) / 2;
 						status->def = 10 * (100 * (ud->skill_lv + 2) + homblvl);
@@ -3502,7 +3506,7 @@ int status_calc_npc_(struct npc_data *nd, enum e_status_calc_opt opt) {
 		status->race = RC_DEMIHUMAN;
 		status->size = nd->size;
 		status->rhw.range = 1 + status->size;
-		status->mode = (MD_CANMOVE|MD_CANATTACK);
+		status->mode = MD_CANMOVE|MD_CANATTACK;
 		status->speed = nd->speed;
 	}
 
@@ -4067,13 +4071,12 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 
 			if( status->max_hp > (unsigned int)battle_config.max_hp )
 				status->max_hp = (unsigned int)battle_config.max_hp;
-		} else {
+		} else
 			status->max_hp = status_calc_maxhp(bl, sc, b_status->max_hp);
-		}
 
 		if( status->hp > status->max_hp ) { //FIXME: Should perhaps a status_zap should be issued?
 			status->hp = status->max_hp;
-			if( sd ) clif_updatestatus(sd,SP_HP);
+			if( sd ) clif_updatestatus(sd, SP_HP);
 		}
 	}
 

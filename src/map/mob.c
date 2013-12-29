@@ -1226,6 +1226,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 			unit_can_move(&md->bl))
 		{
 			short x = bl->x, y = bl->y;
+
 			mob_stop_attack(md);
 			if(map_search_freecell(&md->bl,bl->m,&x,&y,MOB_SLAVEDISTANCE,MOB_SLAVEDISTANCE,1)
 				&& unit_walktoxy(&md->bl,x,y,0))
@@ -1240,10 +1241,11 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 	//Avoid attempting to lock the master's target too often to avoid unnecessary overload. [Skotlex]
 	if(DIFF_TICK(md->last_linktime, tick) < MIN_MOBLINKTIME && !md->target_id) {
 		struct unit_data *ud = unit_bl2ud(bl);
-		md->last_linktime = tick;
 
+		md->last_linktime = tick;
 		if(ud) {
 			struct block_list *tbl = NULL;
+
 			if(ud->target && ud->state.attack_continue)
 				tbl = map_id2bl(ud->target);
 			else if(ud->skilltarget) {
@@ -1572,8 +1574,8 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 			memcpy (&md->lootitem[md->lootitem_count++], &fitem->item_data, sizeof(md->lootitem[0]));
 		} else { //Destroy first looted item...
 			if(md->lootitem[0].card[0] == CARD0_PET)
-				intif_delete_petdata( MakeDWord(md->lootitem[0].card[1],md->lootitem[0].card[2]) );
-			memmove(&md->lootitem[0], &md->lootitem[1], (LOOTITEM_SIZE-1)*sizeof(md->lootitem[0]));
+				intif_delete_petdata(MakeDWord(md->lootitem[0].card[1],md->lootitem[0].card[2]));
+			memmove(&md->lootitem[0], &md->lootitem[1], (LOOTITEM_SIZE - 1) * sizeof(md->lootitem[0]));
 			memcpy (&md->lootitem[LOOTITEM_SIZE-1], &fitem->item_data, sizeof(md->lootitem[0]));
 		}
 		if(pcdb_checkid(md->vd->class_)) { //Give them walk act/delay to properly mimic players. [Skotlex]
@@ -1632,6 +1634,7 @@ static int mob_ai_sub_hard_timer(struct block_list *bl,va_list ap)
 {
 	struct mob_data *md = (struct mob_data*)bl;
 	unsigned int tick = va_arg(ap, unsigned int);
+
 	if(mob_ai_sub_hard(md, tick)) { //Hard AI triggered.
 		if(!md->state.spotted)
 			md->state.spotted = 1;
@@ -2828,10 +2831,10 @@ int mob_countslave_sub(struct block_list *bl,va_list ap)
 {
 	int id;
 	struct mob_data *md;
-	id=va_arg(ap,int);
-	
+
+	id = va_arg(ap,int);	
 	md = (struct mob_data *)bl;
-	if( md->master_id==id )
+	if (md->master_id == id)
 		return 1;
 	return 0;
 }
@@ -2851,7 +2854,7 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,uint16 skill_id)
 {
 	struct mob_data *md;
 	struct spawn_data data;
-	int count = 0,k=0,hp_rate=0;
+	int count = 0,k = 0, hp_rate = 0;
 
 	nullpo_ret(md2);
 	nullpo_ret(value);
@@ -2864,26 +2867,26 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,uint16 skill_id)
 	data.state.size = md2->special_state.size;
 	data.state.ai = md2->special_state.ai;
 
-	if(mobdb_checkid(value[0]) == 0)
+	if (mobdb_checkid(value[0]) == 0)
 		return 0;
-	/**
-	 * Flags this monster is able to summon; saves a worth amount of memory upon deletion
-	 **/
+
+	//Flags this monster is able to summon; saves a worth amount of memory upon deletion
 	md2->can_summon = 1;
 
-	while(count < 5 && mobdb_checkid(value[count])) count++;
-	if(count < 1) return 0;
+	while (count < 5 && mobdb_checkid(value[count])) count++;
+	if (count < 1) return 0;
 	if (amount > 0 && amount < count) { //Do not start on 0, pick some random sub subset [Skotlex]
 		k = rnd()%count;
-		amount+=k; //Increase final value by same amount to preserve total number to summon.
+		amount += k; //Increase final value by same amount to preserve total number to summon.
 	}
-	
+
 	if (!battle_config.monster_class_change_recover &&
 		(skill_id == NPC_TRANSFORMATION || skill_id == NPC_METAMORPHOSIS))
 		hp_rate = get_percentage(md2->status.hp, md2->status.max_hp);
 
-	for(;k<amount;k++) {
+	for (; k < amount; k++) {
 		short x,y;
+
 		data.class_ = value[k%count]; //Summon slaves in round-robin fashion. [Skotlex]
 		if (mobdb_checkid(data.class_) == 0)
 			continue;
@@ -2897,45 +2900,45 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,uint16 skill_id)
 		}
 
 		//These two need to be loaded from the db for each slave.
-		if(battle_config.override_mob_names==1)
+		if (battle_config.override_mob_names == 1)
 			strcpy(data.name,"--en--");
 		else
 			strcpy(data.name,"--ja--");
 
 		if (!mob_parse_dataset(&data))
 			continue;
-		
-		md= mob_spawn_dataset(&data);
-		if(skill_id == NPC_SUMMONSLAVE){
-			md->master_id=md2->bl.id;
+
+		md = mob_spawn_dataset(&data);
+		if (skill_id == NPC_SUMMONSLAVE) {
+			md->master_id = md2->bl.id;
 			md->special_state.ai = md2->special_state.ai;
 		}
 		mob_spawn(md);
-		
+
 		if (hp_rate) //Scale HP
-			md->status.hp = md->status.max_hp*hp_rate/100;
+			md->status.hp = md->status.max_hp * hp_rate / 100;
 
 		//Inherit the aggressive mode of the master.
 		if (battle_config.slaves_inherit_mode && md->master_id) {
 			switch (battle_config.slaves_inherit_mode) {
 				case 1: //Always aggressive
 					if (!(md->status.mode&MD_AGGRESSIVE))
-						sc_start4(NULL, &md->bl, SC_MODECHANGE, 100,1,0, MD_AGGRESSIVE, 0, 0);
+						sc_start4(NULL, &md->bl, SC_MODECHANGE, 100, 1, 0, MD_AGGRESSIVE, 0, 0);
 					break;
 				case 2: //Always passive
 					if (md->status.mode&MD_AGGRESSIVE)
-						sc_start4(NULL, &md->bl, SC_MODECHANGE, 100,1,0, 0, MD_AGGRESSIVE, 0);
+						sc_start4(NULL, &md->bl, SC_MODECHANGE, 100, 1, 0, 0, MD_AGGRESSIVE, 0);
 					break;
 				default: //Copy master.
 					if (md2->status.mode&MD_AGGRESSIVE)
-						sc_start4(NULL, &md->bl, SC_MODECHANGE, 100,1,0, MD_AGGRESSIVE, 0, 0);
+						sc_start4(NULL, &md->bl, SC_MODECHANGE, 100, 1, 0, MD_AGGRESSIVE, 0, 0);
 					else
-						sc_start4(NULL, &md->bl, SC_MODECHANGE, 100,1,0, 0, MD_AGGRESSIVE, 0);
+						sc_start4(NULL, &md->bl, SC_MODECHANGE, 100, 1, 0, 0, MD_AGGRESSIVE, 0);
 					break;
 			}
 		}
 
-		clif_skill_nodamage(&md->bl,&md->bl,skill_id,amount,1);
+		clif_skill_nodamage(&md->bl, &md->bl, skill_id, amount, 1);
 	}
 
 	return 0;
