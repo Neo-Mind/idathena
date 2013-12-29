@@ -364,7 +364,7 @@ int map_delblock(struct block_list* bl)
  * @param x1 : new x position
  * @param y1 : new y position
  * @param tick : when this was scheduled
- * @return 0:sucess, 1:fail
+ * @return 0 : sucess, 1 : fail
  */
 int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 {

@@ -2951,13 +2951,13 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,uint16 skill_id)
 int mob_skill_id2skill_idx(int class_,uint16 skill_id)
 {
 	int i, max = mob_db(class_)->maxskill;
-	struct mob_skill *ms=mob_db(class_)->skill;
+	struct mob_skill *ms = mob_db(class_)->skill;
 
-	if(ms==NULL)
+	if(ms == NULL)
 		return -1;
 
-	ARR_FIND( 0, max, i, ms[i].skill_id == skill_id );
-	return ( i < max ) ? i : -1;
+	ARR_FIND(0, max, i, ms[i].skill_id == skill_id);
+	return (i < max) ? i : -1;
 }
 
 /*==========================================
@@ -2970,11 +2970,11 @@ int mob_getfriendhprate_sub(struct block_list *bl,va_list ap)
 	struct mob_data *md;
 
 	md = va_arg(ap,struct mob_data *);
-	min_rate=va_arg(ap,int);
-	max_rate=va_arg(ap,int);
-	fr=va_arg(ap,struct block_list **);
+	min_rate = va_arg(ap,int);
+	max_rate = va_arg(ap,int);
+	fr = va_arg(ap,struct block_list **);
 
-	if( md->bl.id == bl->id && !(battle_config.mob_ai&0x10))
+	if (md->bl.id == bl->id && !(battle_config.mob_ai&0x10))
 		return 0;
 
 	if ((*fr) != NULL) //A friend was already found.

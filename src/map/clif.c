@@ -6181,7 +6181,7 @@ void clif_cart_additem_ack(struct map_session_data *sd, uint8 flag)
 }
 
 
-// 09B7 <Unknow data> (ZC_ACK_OPEN_BANKING) 
+// 09B7 <Unknow data> (ZC_ACK_OPEN_BANKING)
 void clif_bank_open(struct map_session_data *sd) {
 	int fd;
 
@@ -6237,7 +6237,7 @@ void clif_bank_close(struct map_session_data *sd) {
  * Request to close the banking system
  * 09B8 <aid>L ??? (Dunno just wild guess checkme)
  */
-void clif_parse_BankClose(int fd, struct map_session_data* sd) {       
+void clif_parse_BankClose(int fd, struct map_session_data* sd) {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
 	int aid = RFIFOL(fd,info->pos[0]); //Unused should we check vs fd ?
 
@@ -6274,14 +6274,14 @@ void clif_Bank_Check(struct map_session_data* sd) {
 	WBUFW(buf,0) = cmd;
 	WBUFQ(buf,info->pos[0]) = sd->status.bank_vault; //Testing value
 	WBUFW(buf,info->pos[1]) = 0; //Reason
-	clif_send(buf,len,&sd->bl,SELF);       
+	clif_send(buf,len,&sd->bl,SELF);
 }
 
 /*
  * Requesting the data in bank
  * 09AB <aid>L (PACKET_CZ_REQ_BANKING_CHECK)
  */
-void clif_parse_BankCheck(int fd, struct map_session_data* sd) {  
+void clif_parse_BankCheck(int fd, struct map_session_data* sd) {
 	nullpo_retv(sd);
 
 	if(!battle_config.feature_banking) {
@@ -6310,11 +6310,11 @@ void clif_bank_deposit(struct map_session_data *sd, enum e_BANKING_DEPOSIT_ACK r
 
 	cmd = packet_db_ack[sd->packet_ver][ZC_ACK_BANKING_DEPOSIT];
 	if(!cmd) cmd = 0x09A8;
-	info = &packet_db[sd->packet_ver][cmd]; 
+	info = &packet_db[sd->packet_ver][cmd];
 	len = info->len;
 	if(!len) return; //Version as packet disable
 	WBUFW(buf,0) = cmd;
-	WBUFW(buf,info->pos[0]) = (short)reason;	
+	WBUFW(buf,info->pos[0]) = (short)reason;
 	WBUFQ(buf,info->pos[1]) = sd->status.bank_vault; /* Money in the bank */
 	WBUFL(buf,info->pos[2]) = sd->status.zeny; /* How much zeny char has after operation */
 	clif_send(buf,len,&sd->bl,SELF);
@@ -6358,7 +6358,7 @@ void clif_bank_withdraw(struct map_session_data *sd,enum e_BANKING_WITHDRAW_ACK 
 
 	cmd = packet_db_ack[sd->packet_ver][ZC_ACK_BANKING_WITHDRAW];
 	if(!cmd) cmd = 0x09AA;
-	info = &packet_db[sd->packet_ver][cmd]; 
+	info = &packet_db[sd->packet_ver][cmd];
 	len = info->len;
 	if(!len) return; //Version as packet disable
 	WBUFW(buf,0) = cmd;
@@ -13111,7 +13111,7 @@ void clif_parse_GMReqAccountName(int fd, struct map_session_data *sd)
 
 	//Tmp get all display
 	safesnprintf(command, sizeof(command), "%caccinfo %d", atcommand_symbol, account_id);
-	is_atcommand(fd, sd, command, 1); 
+	is_atcommand(fd, sd, command, 1);
 	//clif_account_name(sd, account_id, ""); //! TODO request to login-serv
 }
 
@@ -17008,7 +17008,7 @@ void clif_update_rankingpoint(struct map_session_data *sd, int rankingtype, int 
 /**
  * Transmit personal information to player. (rates)
  * 08cb <packet len>.W <exp>.W <death>.W <drop>.W <DETAIL_EXP_INFO>7B (ZC_PERSONAL_INFOMATION)
- * <InfoType>.B <Exp>.W <Death>.W <Drop>.W (DETAIL_EXP_INFO 0x8cb) 
+ * <InfoType>.B <Exp>.W <Death>.W <Drop>.W (DETAIL_EXP_INFO 0x8cb)
  * 097b <packet len>.W <exp>.L <death>.L <drop>.L <DETAIL_EXP_INFO>13B (ZC_PERSONAL_INFOMATION2)
  * 0981 <packet len>.W <exp>.W <death>.W <drop>.W <activity rate>.W <DETAIL_EXP_INFO>13B (ZC_PERSONAL_INFOMATION_CHN)
  * <InfoType>.B <Exp>.L <Death>.L <Drop>.L (DETAIL_EXP_INFO 0x97b|0981)
@@ -17179,7 +17179,7 @@ void clif_display_pinfo(struct map_session_data *sd, int cmdtype) {
 			WFIFOL(fd,info->pos[2])  = tot_drop;
 			WFIFOL(fd,info->pos[3])  = tot_penalty;
 		}
-		if(cmdtype == ZC_PERSONAL_INFOMATION_CHN) 
+		if(cmdtype == ZC_PERSONAL_INFOMATION_CHN)
 			WFIFOW(fd,info->pos[8])  = 0; //Activity rate case of event ??
 		WFIFOSET(fd,len);
 	}
@@ -17194,15 +17194,32 @@ void clif_parse_GMFullStrip(int fd, struct map_session_data *sd) {
 	is_atcommand(fd, sd, cmd, 1);
 }
 
+/**
+ * Close script when player is idle
+ * 08d6 <npc id>.L (ZC_CLEAR_DIALOG)
+ * @author [Ind]
+ * @param sd : player pointer
+ * @param npcid : npc gid to close
+ */
 void clif_scriptclear(struct map_session_data *sd, int npcid) {
-	unsigned char buf[10];
+	struct s_packet_db* info;
+	int16 len;
+	int cmd = 0;
+	int fd;
 
 	nullpo_retv(sd);
 
-	WBUFW(buf,0) = 0x8d6;
-	WBUFL(buf,2) = npcid;
+	cmd = packet_db_ack[sd->packet_ver][ZC_CLEAR_DIALOG];
+	if( !cmd )
+		cmd = 0x8d6; //Default
+	info = &packet_db[sd->packet_ver][cmd];
+	len = info->len;
+	fd = sd->fd;
 
-	clif_send(buf, packet_len(0x8d6), &sd->bl, SELF);
+	WFIFOHEAD(fd,len);
+	WFIFOW(fd,0) = 0x8d6;
+	WFIFOL(fd,info->pos[0]) = npcid;
+	WFIFOSET(fd,len);
 }
 
 #ifdef DUMP_UNKNOWN_PACKET
@@ -17844,6 +17861,7 @@ void packetdb_readdb(void)
 		{"ZC_BANKING_CHECK",ZC_BANKING_CHECK},
 		{"ZC_PERSONAL_INFOMATION",ZC_PERSONAL_INFOMATION},
 		{"ZC_PERSONAL_INFOMATION_CHN",ZC_PERSONAL_INFOMATION_CHN},
+		{"ZC_CLEAR_DIALOG",ZC_CLEAR_DIALOG},
 	};
 	// Initialize packet_db[SERVER] from hardcoded packet_len_table[] values
 	memset(packet_db,0,sizeof(packet_db));

@@ -1313,6 +1313,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 			}
 			if ((sce = sc->data[SC_GRAVITATION]) && sce->val3 == BCT_SELF) {
 				struct skill_unit_group* sg = skill_id2group(sce->val4);
+
 				if (sg) {
 					skill_delunitgroup(sg);
 					sce->val4 = 0;
@@ -1390,6 +1391,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 
 	if (target->type&BL_REGEN) { //Reset regen ticks.
 		struct regen_data *regen = status_get_regen_data(target);
+
 		if (regen) {
 			memset(&regen->tick, 0, sizeof(regen->tick));
 			if (regen->sregen)
@@ -1401,6 +1403,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
    
 	if (sc && sc->data[SC_KAIZEL] && !map_flag_gvg2(target->m)) { //flag&8 = disable Kaizel
 		int time = skill_get_time2(SL_KAIZEL,sc->data[SC_KAIZEL]->val1);
+
 		//Look for Osiris Card's bonus effect on the character and revive 100% or revive normally
 		if (target->type == BL_PC && BL_CAST(BL_PC,target)->special_state.restart_full_recover)
 			status_revive(target, 100, 100);
@@ -1452,10 +1455,13 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 	}
 
 	//Always run NPC scripts for players last
+	//FIXME: Those ain't always run if a player die if he was resurect meanwhile
+	//cf SC_REBIRTH, SC_LIGHT_OF_REGENE, SC_KAIZEL, pc_dead...
 	if (target->type == BL_PC) {
 		TBL_PC *sd = BL_CAST(BL_PC,target);
 		if (sd->bg_id) {
 			struct battleground_data *bg;
+
 			if ((bg = bg_team_search(sd->bg_id)) != NULL && bg->die_event[0])
 				npc_event(sd,bg->die_event, 0);
 		}

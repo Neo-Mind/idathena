@@ -45,6 +45,7 @@ enum e_packet_ack {
 	ZC_BANKING_CHECK,
 	ZC_PERSONAL_INFOMATION,
 	ZC_PERSONAL_INFOMATION_CHN,
+	ZC_CLEAR_DIALOG,
 	//Add otehr here
 	MAX_ACK_FUNC //Auto upd len
 };
