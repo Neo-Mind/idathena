@@ -17802,22 +17802,23 @@ BUILDIN_FUNC(montransform) {
 }
 
 /** [Cydh]
- * bonus_script "<script code>",<duration>{,<flag>{,<type>{,<char_id>}}};
+ * bonus_script "<script code>",<duration>{,<flag>{,<type>{,<status_icon>{,<char_id>}}}};
  * @param "script code"
  * @param duration
  * @param flag
  * @param char_id
  **/
 BUILDIN_FUNC(bonus_script) {
-	uint8 i, flag = 0;
+	uint8 i, type = 0;
+	uint16 flag = 0;
+	int16 icon = SI_BLANK;
 	uint32 dur;
-	bool isBuff = true;
 	TBL_PC* sd;
 	const char *script_str = NULL;
 	struct script_code *script = NULL;
 
-	if( script_hasdata(st,6) )
-		sd = map_charid2sd(script_getnum(st,6));
+	if( script_hasdata(st,7) )
+		sd = map_charid2sd(script_getnum(st,7));
 	else
 		sd = script_rid2sd(st);
 
@@ -17827,8 +17828,8 @@ BUILDIN_FUNC(bonus_script) {
 	script_str = script_getstr(st,2);
 	dur = 1000 * abs(script_getnum(st,3));
 	FETCH(4,flag);
-	if( script_getnum(st,5) == 1 )
-	isBuff = false;
+	FETCH(5,type);
+	FETCH(6,icon);
 
 	if( !strlen(script_str) || !dur ) {
 		//ShowWarning("buildin_bonus_script: Invalid value(s). Skipping...\n");
@@ -17859,8 +17860,13 @@ BUILDIN_FUNC(bonus_script) {
 	sd->bonus_script[i].script = script;
 	sd->bonus_script[i].tick = gettick() + dur;
 	sd->bonus_script[i].flag = flag;
-	sd->bonus_script[i].isBuff = isBuff;
-	status_calc_pc(sd,false);
+	sd->bonus_script[i].type = type;
+	sd->bonus_script[i].icon = icon;
+
+	if (sd->bonus_script[i].icon != SI_BLANK) //Gives status icon if exist
+		clif_status_change(&sd->bl,sd->bonus_script[i].icon,1,dur,1,0,0);
+
+	status_calc_pc(sd,SCO_NONE);
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -18408,7 +18414,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(getserverdef,"i"),
 	//Monster Transform [malufett]
 	BUILDIN_DEF2(montransform,"transform","vii????"),
-	BUILDIN_DEF(bonus_script,"si???"),
+	BUILDIN_DEF(bonus_script,"si????"),
 	BUILDIN_DEF(vip_status,"i?"),
 	BUILDIN_DEF(vip_time,"i?"),
 	BUILDIN_DEF(getgroupitem,"i"),

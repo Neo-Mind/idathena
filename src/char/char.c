@@ -216,8 +216,8 @@ struct fame_list chemist_fame_list[MAX_FAME_LIST];
 struct fame_list taekwon_fame_list[MAX_FAME_LIST];
 
 // Bonus Script
-void bonus_script_get(int fd); ///Get bonus_script data
-void bonus_script_save(int fd); ///Save bonus_script data
+void bonus_script_get(int fd); //Get bonus_script data
+void bonus_script_save(int fd); //Save bonus_script data
 
 // Check for exit signal
 // 0 is saving complete
@@ -1893,7 +1893,12 @@ int mmo_char_tobuf(uint8* buffer, struct mmo_charstatus* p)
 	offset += MAP_NAME_LENGTH_EXT;
 #endif
 #if PACKETVER >= 20100803
-	WBUFL(buf,124) = (p->delete_date ? TOL(p->delete_date - time(NULL)) : 0);
+	WBUFL(buf,124) =
+#if PACKETVER >= 20130320
+		(p->delete_date ? TOL(p->delete_date - time(NULL)) : 0);
+#else
+		TOL(p->delete_date);
+#endif
 	offset += 4;
 #endif
 #if PACKETVER >= 20110111
@@ -5126,7 +5131,7 @@ void bonus_script_get(int fd) {
 		cid = RFIFOL(fd,2);
 		RFIFOSKIP(fd,6);
 
-		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `script`, `tick`, `flag`, `type` FROM `%s` WHERE `char_id`='%d'",
+		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `script`, `tick`, `flag`, `type`, `icon` FROM `%s` WHERE `char_id`='%d'",
 			bonus_script_db, cid) )
 		{
 			Sql_ShowDebug(sql_handle);
@@ -5145,9 +5150,10 @@ void bonus_script_get(int fd) {
 				Sql_GetData(sql_handle, 1, &data, NULL); bsdata.tick = atoi(data);
 				Sql_GetData(sql_handle, 2, &data, NULL); bsdata.flag = atoi(data);
 				Sql_GetData(sql_handle, 3, &data, NULL); bsdata.type = atoi(data);
+				Sql_GetData(sql_handle, 4, &data, NULL); bsdata.icon = atoi(data);
 				memcpy(WFIFOP(fd,10 + count * sizeof(struct bonus_script_data)), &bsdata, sizeof(struct bonus_script_data));
 			}
-			if( count >= 50 )
+			if( count >= 20 )
 				ShowWarning("Too many bonus_script for %d, some of them were not loaded.\n", cid);
 			if( count > 0 ) {
 				WFIFOW(fd,2) = 10 + count * sizeof(struct bonus_script_data);
@@ -5155,8 +5161,9 @@ void bonus_script_get(int fd) {
 				WFIFOSET(fd,WFIFOW(fd,2));
 
 				//Clear the data once loaded.
-				if( SQL_ERROR == Sql_Query(sql_handle,"DELETE FROM `%s` WHERE `char_id`='%d'", bonus_script_db, cid) )
+				if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", bonus_script_db, cid) )
 					Sql_ShowDebug(sql_handle);
+				ShowInfo("Loaded %d bonus_script for char_id: %d\n", count, cid);
 			}
 		}
 		Sql_FreeResult(sql_handle);
@@ -5182,17 +5189,18 @@ void bonus_script_save(int fd) {
 			char esc_script[MAX_BONUS_SCRIPT_LENGTH] = "";
 
 			StringBuf_Init(&buf);
-			StringBuf_Printf(&buf, "INSERT INTO `%s` (`char_id`, `script`, `tick`, `flag`, `type`) VALUES ", bonus_script_db);
+			StringBuf_Printf(&buf, "INSERT INTO `%s` (`char_id`, `script`, `tick`, `flag`, `type`, `icon`) VALUES ", bonus_script_db);
 			for( i = 0; i < count; ++i ) {
 				memcpy(&bs, RFIFOP(fd,10 + i * sizeof(struct bonus_script_data)), sizeof(struct bonus_script_data));
 				Sql_EscapeString(sql_handle, esc_script, bs.script);
 				if( i > 0 )
 					StringBuf_AppendStr(&buf, ", ");
-				StringBuf_Printf(&buf, "(%d,'%s',%d,%d,%d)", cid, esc_script, bs.tick, bs.flag, bs.type);
+				StringBuf_Printf(&buf, "(%d,'%s',%d,%d,%d,%d)", cid, esc_script, bs.tick, bs.flag, bs.type, bs.icon);
 			}
 			if( SQL_ERROR == Sql_QueryStr(sql_handle,StringBuf_Value(&buf)) )
 				Sql_ShowDebug(sql_handle);
 			StringBuf_Destroy(&buf);
+			ShowInfo("Saved %d bonus_script for char_id: %d\n", count, cid);
 		}
 		RFIFOSKIP(fd,RFIFOW(fd,2));
 	}

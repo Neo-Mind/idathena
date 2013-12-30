@@ -231,7 +231,7 @@ struct accreg {
 struct bonus_script_data {
 	char script[MAX_BONUS_SCRIPT_LENGTH];
 	long tick;
-	short type, flag;
+	short type, flag, icon;
 };
 
 struct skill_cooldown_data {

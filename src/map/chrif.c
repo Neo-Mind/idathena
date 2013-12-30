@@ -1787,8 +1787,13 @@ int chrif_save_bsdata(struct map_session_data *sd) {
 	WFIFOHEAD(char_fd,10 + MAX_PC_BONUS_SCRIPT * sizeof(struct bonus_script_data));
 	WFIFOW(char_fd,0) = 0x2b2e;
 	WFIFOL(char_fd,4) = sd->status.char_id;
-	//Clear un-saved data
-	pc_bonus_script_check(sd,BONUS_FLAG_REM_ON_LOGOUT);
+	i = BONUS_FLAG_REM_ON_LOGOUT; //Remove bonus with this flag
+	if (battle_config.debuff_on_logout&1) //Remove negative buffs
+		i |= BONUS_FLAG_REM_DEBUFF;
+	if (battle_config.debuff_on_logout&2) //Remove positive buffs
+		i |= BONUS_FLAG_REM_BUFF;
+	//Clear data that won't be stored
+	pc_bonus_script_clear(sd,i);
 	for (i = 0; i < MAX_PC_BONUS_SCRIPT; i++) {
 		if (!(&sd->bonus_script[i]) || !sd->bonus_script[i].script || strlen(sd->bonus_script[i].script_str) == 0)
 			continue;
@@ -1798,7 +1803,8 @@ int chrif_save_bsdata(struct map_session_data *sd) {
 		memcpy(bs.script,sd->bonus_script[i].script_str,strlen(sd->bonus_script[i].script_str)+1);
 		bs.tick = DIFF_TICK(timer->tick,tick);
 		bs.flag = sd->bonus_script[i].flag;
-		bs.type = (sd->bonus_script[i].isBuff) ? 1 : 0;
+		bs.type = sd->bonus_script[i].type;
+		bs.icon = sd->bonus_script[i].icon;
 		memcpy(WFIFOP(char_fd,10 + count * sizeof(struct bonus_script_data)),&bs,sizeof(struct bonus_script_data));
 		delete_timer(sd->bonus_script[i].tid,pc_bonus_script_timer);
 		pc_bonus_script_remove(sd,i);
@@ -1842,12 +1848,15 @@ int chrif_load_bsdata(int fd) {
 		memcpy(sd->bonus_script[i].script_str,bs->script,strlen(bs->script));
 		sd->bonus_script[i].script = script;
 		sd->bonus_script[i].tick = gettick() + bs->tick;
-		sd->bonus_script[i].flag = (uint8)bs->flag;
-		sd->bonus_script[i].isBuff = (bs->type) ? true : false;
+		sd->bonus_script[i].flag = (uint16)bs->flag;
+		sd->bonus_script[i].type = (uint8)bs->type;
+		sd->bonus_script[i].icon = bs->icon;
+		if (bs->icon != SI_BLANK) //Gives status icon if exist
+			clif_status_change(&sd->bl,sd->bonus_script[i].icon,1,bs->tick,1,0,0);
 		count_++;
 	}
 	if (count_)
-		status_calc_pc(sd,false);
+		status_calc_pc(sd,SCO_NONE);
 	return 0;
 }
 
@@ -1855,7 +1864,7 @@ int chrif_load_bsdata(int fd) {
  * @see DBApply
  */
 int auth_db_final(DBKey key, DBData *data, va_list ap) {
-	struct auth_node *node = db_data2ptr(data);
+	struct auth_node *node = (struct auth_node*)db_data2ptr(data);
 
 	if (node->char_dat)
 		aFree(node->char_dat);

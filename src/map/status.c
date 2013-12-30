@@ -202,7 +202,7 @@ void initChangeTables(void) {
 	set_sc( TF_HIDING            , SC_HIDING          , SI_HIDING          , SCB_SPEED );
 	add_sc( TF_POISON            , SC_POISON          );
 	set_sc( KN_TWOHANDQUICKEN    , SC_TWOHANDQUICKEN  , SI_TWOHANDQUICKEN  , SCB_ASPD );
-	add_sc( KN_AUTOCOUNTER       , SC_AUTOCOUNTER     );
+	set_sc( KN_AUTOCOUNTER       , SC_AUTOCOUNTER     , SI_AUTOCOUNTER     , SCB_NONE );
 	set_sc( PR_IMPOSITIO         , SC_IMPOSITIO       , SI_IMPOSITIO       ,
 #ifdef RENEWAL
 			SCB_NONE );
@@ -228,7 +228,7 @@ void initChangeTables(void) {
 	set_sc( BS_OVERTHRUST        , SC_OVERTHRUST      , SI_OVERTHRUST      , SCB_NONE );
 	set_sc( BS_MAXIMIZE          , SC_MAXIMIZEPOWER   , SI_MAXIMIZEPOWER   , SCB_REGEN );
 	add_sc( HT_LANDMINE          , SC_STUN            );
-	add_sc( HT_ANKLESNARE        , SC_ANKLE           );
+	set_sc( HT_ANKLESNARE        , SC_ANKLE           , SI_ANKLESNARE      , SCB_NONE );
 	add_sc( HT_SANDMAN           , SC_SLEEP           );
 	add_sc( HT_FLASHER           , SC_BLIND           );
 	add_sc( HT_FREEZINGTRAP      , SC_FREEZE          );
@@ -237,7 +237,7 @@ void initChangeTables(void) {
 	set_sc( AS_ENCHANTPOISON     , SC_ENCPOISON       , SI_ENCPOISON       , SCB_ATK_ELE );
 	set_sc( AS_POISONREACT       , SC_POISONREACT     , SI_POISONREACT     , SCB_NONE );
 	add_sc( AS_VENOMDUST         , SC_POISON          );
-	add_sc( AS_SPLASHER          , SC_SPLASHER        );
+	set_sc( AS_SPLASHER          , SC_SPLASHER        , SI_SPLASHER        , SCB_NONE );
 	set_sc( NV_TRICKDEAD         , SC_TRICKDEAD       , SI_TRICKDEAD       , SCB_REGEN );
 	set_sc( SM_AUTOBERSERK       , SC_AUTOBERSERK     , SI_AUTOBERSERK     , SCB_NONE );
 	add_sc( TF_SPRINKLESAND      , SC_BLIND           );
@@ -265,7 +265,7 @@ void initChangeTables(void) {
 	add_sc( NPC_MAGICALATTACK    , SC_MAGICALATTACK   );
 	set_sc( NPC_KEEPING          , SC_KEEPING         , SI_BLANK           , SCB_DEF );
 	add_sc( NPC_DARKBLESSING     , SC_COMA            );
-	set_sc( NPC_BARRIER          , SC_BARRIER         , SI_BLANK           , SCB_MDEF|SCB_DEF );
+	set_sc( NPC_BARRIER          , SC_BARRIER         , SI_BARRIER         , SCB_MDEF|SCB_DEF );
 	add_sc( NPC_DEFENDER         , SC_ARMOR           );
 	add_sc( NPC_LICK             , SC_STUN            );
 	set_sc( NPC_HALLUCINATION    , SC_HALLUCINATION   , SI_HALLUCINATION   , SCB_NONE );
@@ -289,13 +289,13 @@ void initChangeTables(void) {
 	set_sc( CR_REFLECTSHIELD     , SC_REFLECTSHIELD   , SI_REFLECTSHIELD   , SCB_NONE );
 	add_sc( CR_HOLYCROSS         , SC_BLIND           );
 	add_sc( CR_GRANDCROSS        , SC_BLIND           );
-	add_sc( CR_DEVOTION          , SC_DEVOTION        );
+	set_sc( CR_DEVOTION          , SC_DEVOTION        , SI_DEVOTION        , SCB_NONE);
 	set_sc( CR_PROVIDENCE        , SC_PROVIDENCE      , SI_PROVIDENCE      , SCB_ALL );
 	set_sc( CR_DEFENDER          , SC_DEFENDER        , SI_DEFENDER        , SCB_SPEED|SCB_ASPD );
 	set_sc( CR_SPEARQUICKEN      , SC_SPEARQUICKEN    , SI_SPEARQUICKEN    , SCB_ASPD|SCB_CRI|SCB_FLEE );
 	set_sc( MO_STEELBODY         , SC_STEELBODY       , SI_STEELBODY       , SCB_DEF|SCB_MDEF|SCB_SPEED|SCB_ASPD );
 	add_sc( MO_BLADESTOP         , SC_BLADESTOP_WAIT  );
-	add_sc( MO_BLADESTOP         , SC_BLADESTOP       );
+	set_sc( MO_BLADESTOP         , SC_BLADESTOP       , SI_BLADESTOP       , SCB_NONE );
 	set_sc( MO_EXPLOSIONSPIRITS  , SC_EXPLOSIONSPIRITS, SI_EXPLOSIONSPIRITS, SCB_CRI|SCB_REGEN );
 	set_sc( MO_EXTREMITYFIST     ,
 #ifndef RENEWAL
@@ -304,7 +304,7 @@ void initChangeTables(void) {
 		SC_EXTREMITYFIST2   , SI_EXTREMITYFIST   , SCB_NONE
 #endif
 		);
-	add_sc( SA_MAGICROD          , SC_MAGICROD        );
+	set_sc( SA_MAGICROD          , SC_MAGICROD        , SI_MAGICROD        , SCB_NONE );
 	set_sc( SA_AUTOSPELL         , SC_AUTOSPELL       , SI_AUTOSPELL       , SCB_NONE );
 	set_sc( SA_FLAMELAUNCHER     , SC_FIREWEAPON      , SI_FIREWEAPON      , SCB_ATK_ELE );
 	set_sc( SA_FROSTWEAPON       , SC_WATERWEAPON     , SI_WATERWEAPON     , SCB_ATK_ELE );
@@ -315,24 +315,24 @@ void initChangeTables(void) {
 	set_sc( SA_VIOLENTGALE       , SC_VIOLENTGALE     , SI_LANDENDOW       , SCB_FLEE );
 	add_sc( SA_REVERSEORCISH     , SC_ORCISH          );
 	add_sc( SA_COMA              , SC_COMA            );
-	set_sc( BD_ENCORE            , SC_DANCING         , SI_BLANK           , SCB_SPEED|SCB_REGEN );
-	add_sc( BD_RICHMANKIM        , SC_RICHMANKIM      );
-	set_sc( BD_ETERNALCHAOS      , SC_ETERNALCHAOS    , SI_BLANK           , SCB_DEF2 );
-	set_sc( BD_DRUMBATTLEFIELD   , SC_DRUMBATTLE      , SI_BLANK           , SCB_WATK|SCB_DEF );
-	set_sc( BD_RINGNIBELUNGEN    , SC_NIBELUNGEN      , SI_BLANK           , SCB_WATK );
-	add_sc( BD_ROKISWEIL         , SC_ROKISWEIL       );
-	add_sc( BD_INTOABYSS         , SC_INTOABYSS       );
-	set_sc( BD_SIEGFRIED         , SC_SIEGFRIED       , SI_BLANK           , SCB_ALL );
+	set_sc( BD_ENCORE            , SC_DANCING         , SI_BDPLAYING       , SCB_SPEED|SCB_REGEN );
+	set_sc( BD_RICHMANKIM        , SC_RICHMANKIM      , SI_RICHMANKIM      , SCB_NONE  );
+	set_sc( BD_ETERNALCHAOS      , SC_ETERNALCHAOS    , SI_ETERNALCHAOS    , SCB_DEF2 );
+	set_sc( BD_DRUMBATTLEFIELD   , SC_DRUMBATTLE      , SI_DRUMBATTLEFIELD , SCB_WATK|SCB_DEF );
+	set_sc( BD_RINGNIBELUNGEN    , SC_NIBELUNGEN      , SI_RINGNIBELUNGEN  , SCB_WATK );
+	set_sc( BD_ROKISWEIL         , SC_ROKISWEIL       , SI_ROKISWEIL       , SCB_NONE );
+	set_sc( BD_INTOABYSS         , SC_INTOABYSS       , SI_INTOABYSS       , SCB_NONE );
+	set_sc( BD_SIEGFRIED         , SC_SIEGFRIED       , SI_SIEGFRIED       , SCB_ALL );
 	add_sc( BA_FROSTJOKER        , SC_FREEZE          );
-	set_sc( BA_WHISTLE           , SC_WHISTLE         , SI_BLANK           , SCB_FLEE|SCB_FLEE2 );
-	set_sc( BA_ASSASSINCROSS     , SC_ASSNCROS        , SI_BLANK           , SCB_ASPD );
-	add_sc( BA_POEMBRAGI         , SC_POEMBRAGI       );
-	set_sc( BA_APPLEIDUN         , SC_APPLEIDUN       , SI_BLANK           , SCB_MAXHP );
+	set_sc( BA_WHISTLE           , SC_WHISTLE         , SI_WHISTLE         , SCB_FLEE|SCB_FLEE2 );
+	set_sc( BA_ASSASSINCROSS     , SC_ASSNCROS        , SI_ASSASSINCROSS   , SCB_ASPD );
+	set_sc( BA_POEMBRAGI         , SC_POEMBRAGI       , SI_POEMBRAGI       , SCB_NONE  );
+	set_sc( BA_APPLEIDUN         , SC_APPLEIDUN       , SI_APPLEIDUN       , SCB_MAXHP );
 	add_sc( DC_SCREAM            , SC_STUN            );
-	set_sc( DC_HUMMING           , SC_HUMMING         , SI_BLANK           , SCB_HIT );
-	set_sc( DC_DONTFORGETME      , SC_DONTFORGETME    , SI_BLANK           , SCB_SPEED|SCB_ASPD );
-	set_sc( DC_FORTUNEKISS       , SC_FORTUNE         , SI_BLANK           , SCB_CRI );
-	set_sc( DC_SERVICEFORYOU     , SC_SERVICE4U       , SI_BLANK           , SCB_ALL );
+	set_sc( DC_HUMMING           , SC_HUMMING         , SI_HUMMING         , SCB_HIT );
+	set_sc( DC_DONTFORGETME      , SC_DONTFORGETME    , SI_DONTFORGETME    , SCB_SPEED|SCB_ASPD );
+	set_sc( DC_FORTUNEKISS       , SC_FORTUNE         , SI_FORTUNEKISS     , SCB_CRI );
+	set_sc( DC_SERVICEFORYOU     , SC_SERVICE4U       , SI_SERVICEFORYOU   , SCB_ALL );
 	add_sc( NPC_DARKCROSS        , SC_BLIND           );
 	add_sc( NPC_GRANDDARKNESS    , SC_BLIND           );
 	set_sc( NPC_STOP             , SC_STOP            , SI_STOP            , SCB_NONE );
@@ -363,7 +363,7 @@ void initChangeTables(void) {
 	add_sc( HP_BASILICA          , SC_BASILICA        );
 	set_sc( HW_MAGICPOWER        , SC_MAGICPOWER      , SI_MAGICPOWER      , SCB_MATK );
 	add_sc( PA_SACRIFICE         , SC_SACRIFICE       );
-	set_sc( PA_GOSPEL            , SC_GOSPEL          , SI_BLANK           , SCB_SPEED|SCB_ASPD );
+	set_sc( PA_GOSPEL            , SC_GOSPEL          , SI_GOSPEL          , SCB_SPEED|SCB_ASPD );
 	add_sc( PA_GOSPEL            , SC_SCRESIST        );
 	add_sc( CH_TIGERFIST         , SC_STOP            );
 	set_sc( ASC_EDP              , SC_EDP             , SI_EDP             , SCB_NONE );
@@ -371,7 +371,7 @@ void initChangeTables(void) {
 	set_sc( SN_WINDWALK          , SC_WINDWALK        , SI_WINDWALK        , SCB_FLEE|SCB_SPEED );
 	set_sc( WS_MELTDOWN          , SC_MELTDOWN        , SI_MELTDOWN        , SCB_NONE );
 	set_sc( WS_CARTBOOST         , SC_CARTBOOST       , SI_CARTBOOST       , SCB_SPEED );
-	set_sc( ST_CHASEWALK         , SC_CHASEWALK       , SI_BLANK           , SCB_SPEED );
+	set_sc( ST_CHASEWALK         , SC_CHASEWALK       , SI_CHASEWALK       , SCB_SPEED );
 	set_sc( ST_REJECTSWORD       , SC_REJECTSWORD     , SI_REJECTSWORD     , SCB_NONE );
 	add_sc( ST_REJECTSWORD       , SC_AUTOCOUNTER     );
 	set_sc( CG_MARIONETTE        , SC_MARIONETTE      , SI_MARIONETTE      , SCB_STR|SCB_AGI|SCB_VIT|SCB_INT|SCB_DEX|SCB_LUK );
@@ -380,10 +380,10 @@ void initChangeTables(void) {
 	add_sc( LK_HEADCRUSH         , SC_BLEEDING        );
 	set_sc( LK_JOINTBEAT         , SC_JOINTBEAT       , SI_JOINTBEAT       , SCB_BATK|SCB_DEF2|SCB_SPEED|SCB_ASPD );
 	add_sc( HW_NAPALMVULCAN      , SC_CURSE           );
-	set_sc( PF_MINDBREAKER       , SC_MINDBREAKER     , SI_BLANK           , SCB_MATK|SCB_MDEF2 );
-	add_sc( PF_MEMORIZE          , SC_MEMORIZE        );
-	add_sc( PF_FOGWALL           , SC_FOGWALL         );
-	set_sc( PF_SPIDERWEB         , SC_SPIDERWEB       , SI_BLANK           , SCB_FLEE );
+	set_sc( PF_MINDBREAKER       , SC_MINDBREAKER     , SI_MINDBREAKER     , SCB_MATK|SCB_MDEF2 );
+	set_sc( PF_MEMORIZE          , SC_MEMORIZE        , SI_MEMORIZE        , SCB_NONE );
+	set_sc( PF_FOGWALL           , SC_FOGWALL         , SI_FOGWALL         , SCB_NONE );
+	set_sc( PF_SPIDERWEB         , SC_SPIDERWEB       , SI_SPIDERWEB       , SCB_FLEE );
 	set_sc( WE_BABY              , SC_BABY            , SI_BABY            , SCB_NONE );
 	set_sc( TK_RUN               , SC_RUN             , SI_RUN             , SCB_SPEED|SCB_DSPD );
 	set_sc( TK_RUN               , SC_SPURT           , SI_SPURT           , SCB_STR );
@@ -412,18 +412,18 @@ void initChangeTables(void) {
 	set_sc( SL_KAUPE             , SC_KAUPE           , SI_KAUPE           , SCB_NONE );
 	set_sc( SL_KAITE             , SC_KAITE           , SI_KAITE           , SCB_NONE );
 	add_sc( SL_STUN              , SC_STUN            );
-	set_sc( SL_SWOO              , SC_SWOO            , SI_BLANK           , SCB_SPEED );
+	set_sc( SL_SWOO              , SC_SWOO            , SI_SWOO            , SCB_SPEED );
 	set_sc( SL_SKE               , SC_SKE             , SI_BLANK           , SCB_BATK|SCB_WATK|SCB_DEF|SCB_DEF2 );
 	set_sc( SL_SKA               , SC_SKA             , SI_BLANK           , SCB_DEF|SCB_MDEF|SCB_ASPD );
 	set_sc( SL_SMA               , SC_SMA             , SI_SMA             , SCB_NONE );
 	set_sc( SM_SELFPROVOKE       , SC_PROVOKE         , SI_PROVOKE         , SCB_DEF|SCB_DEF2|SCB_BATK|SCB_WATK );
 	set_sc( ST_PRESERVE          , SC_PRESERVE        , SI_PRESERVE        , SCB_NONE );
 	set_sc( PF_DOUBLECASTING     , SC_DOUBLECAST      , SI_DOUBLECAST      , SCB_NONE );
-	set_sc( HW_GRAVITATION       , SC_GRAVITATION     , SI_BLANK           , SCB_ASPD );
+	set_sc( HW_GRAVITATION       , SC_GRAVITATION     , SI_GRAVITATION     , SCB_ASPD );
 	add_sc( WS_CARTTERMINATION   , SC_STUN            );
 	set_sc( WS_OVERTHRUSTMAX     , SC_MAXOVERTHRUST   , SI_MAXOVERTHRUST   , SCB_NONE );
-	set_sc( CG_LONGINGFREEDOM    , SC_LONGING         , SI_BLANK           , SCB_SPEED|SCB_ASPD );
-	add_sc( CG_HERMODE           , SC_HERMODE         );
+	set_sc( CG_LONGINGFREEDOM    , SC_LONGING         , SI_LONGING         , SCB_SPEED|SCB_ASPD );
+	set_sc( CG_HERMODE           , SC_HERMODE         , SI_HERMODE         , SCB_NONE    );
 	set_sc( ITEM_ENCHANTARMS     , SC_ENCHANTARMS     , SI_BLANK           , SCB_ATK_ELE );
 	set_sc( SL_HIGH              , SC_SPIRIT          , SI_SPIRIT          , SCB_ALL );
 	set_sc( KN_ONEHAND           , SC_ONEHAND         , SI_ONEHAND         , SCB_ASPD );
@@ -555,8 +555,8 @@ void initChangeTables(void) {
 	set_sc( GD_SOULCOLD          , SC_SOULCOLD        , SI_BLANK           , SCB_AGI );
 	set_sc( GD_HAWKEYES          , SC_HAWKEYES        , SI_BLANK           , SCB_DEX );
 
-	set_sc( GD_BATTLEORDER       , SC_BATTLEORDERS    , SI_BLANK           , SCB_STR|SCB_INT|SCB_DEX );
-	set_sc( GD_REGENERATION      , SC_REGENERATION    , SI_BLANK           , SCB_REGEN );
+	set_sc( GD_BATTLEORDER       , SC_BATTLEORDERS    , SI_GDSKILL_BATTLEORDER , SCB_STR|SCB_INT|SCB_DEX );
+	set_sc( GD_REGENERATION      , SC_REGENERATION    , SI_GDSKILL_REGENERATION, SCB_REGEN );
 
 	set_sc( RK_ENCHANTBLADE      , SC_ENCHANTBLADE      , SI_ENCHANTBLADE      , SCB_NONE );
 	set_sc( RK_DRAGONHOWLING     , SC_FEAR              , SI_BLANK             , SCB_FLEE|SCB_HIT );
@@ -571,7 +571,7 @@ void initChangeTables(void) {
 	set_sc( RK_FIGHTINGSPIRIT    , SC_FIGHTINGSPIRIT    , SI_FIGHTINGSPIRIT        , SCB_WATK|SCB_ASPD );
 	set_sc( RK_ABUNDANCE         , SC_ABUNDANCE         , SI_ABUNDANCE             , SCB_NONE );
 	set_sc( RK_CRUSHSTRIKE       , SC_CRUSHSTRIKE       , SI_CRUSHSTRIKE           , SCB_NONE );
-	set_sc_with_vfx( RK_DRAGONBREATH_WATER , SC_FREEZING      , SI_FROSTMISTY      , SCB_SPEED|SCB_ASPD|SCB_DEF|SCB_DEF2 );
+	set_sc_with_vfx( RK_DRAGONBREATH_WATER, SC_FREEZING , SI_FROSTMISTY            , SCB_SPEED|SCB_ASPD|SCB_DEF|SCB_DEF2 );
 
 	set_sc_with_vfx( GC_VENOMIMPRESS , SC_VENOMIMPRESS , SI_VENOMIMPRESS     , SCB_NONE );
 	set_sc( GC_POISONINGWEAPON   , SC_POISONINGWEAPON  , SI_POISONINGWEAPON  , SCB_NONE );
@@ -711,7 +711,7 @@ void initChangeTables(void) {
 	set_sc( SO_EARTH_INSIGNIA    , SC_EARTH_INSIGNIA  , SI_EARTH_INSIGNIA  , SCB_MDEF|SCB_DEF|SCB_MAXHP|SCB_MAXSP|SCB_WATK|SCB_ATK_ELE|SCB_REGEN );
 	add_sc( SO_ELEMENTAL_SHIELD  , SC_ELEMENTAL_SHIELD );
 
-	set_sc( GN_CARTBOOST                  , SC_GN_CARTBOOST, SI_CARTSBOOST                 , SCB_SPEED );
+	set_sc( GN_CARTBOOST                  , SC_GN_CARTBOOST, SI_GN_CARTBOOST               , SCB_SPEED );
 	set_sc( GN_THORNS_TRAP                , SC_THORNSTRAP  , SI_THORNTRAP                  , SCB_NONE );
 	set_sc_with_vfx( GN_BLOOD_SUCKER      , SC_BLOODSUCKER , SI_BLOODSUCKER                , SCB_NONE );
 	set_sc( GN_WALLOFTHORN                , SC_STOP        , SI_BLANK                      , SCB_NONE );
@@ -780,10 +780,11 @@ void initChangeTables(void) {
 	set_sc( RL_B_TRAP          , SC_B_TRAP               , SI_B_TRAP               , SCB_SPEED );
 	set_sc( RL_E_CHAIN         , SC_E_CHAIN              , SI_E_CHAIN              , SCB_NONE );
 	set_sc( RL_C_MARKER        , SC_C_MARKER             , SI_C_MARKER             , SCB_SPEED );
-	set_sc( RL_P_ALTER         , SC_P_ALTER              , SI_P_ALTER              , SCB_BATK );
-	set_sc( RL_SLUGSHOT        , SC_STUN                 , SI_SLUGSHOT             , SCB_NONE );
-	set_sc( RL_AM_BLAST        , SC_ANTI_M_BLAST         , SI_ANTI_M_BLAST         , SCB_DEF_ELE );
-	set_sc( RL_HEAT_BARREL     , SC_HEAT_BARREL          , SI_HEAT_BARREL          , SCB_BATK|SCB_ASPD|SCB_HIT );
+	set_sc_with_vfx( RL_C_MARKER, SC_C_MARKER            , SI_C_MARKER             , SCB_SPEED );
+	set_sc( RL_P_ALTER          , SC_P_ALTER             , SI_P_ALTER              , SCB_BATK );
+	set_sc( RL_SLUGSHOT         , SC_STUN                , SI_SLUGSHOT             , SCB_NONE );
+	set_sc( RL_AM_BLAST         , SC_ANTI_M_BLAST        , SI_ANTI_M_BLAST         , SCB_DEF_ELE );
+	set_sc( RL_HEAT_BARREL      , SC_HEAT_BARREL         , SI_HEAT_BARREL          , SCB_BATK|SCB_ASPD|SCB_HIT );
 
 	//Storing the target job rather than simply SC_SPIRIT simplifies code later on.
 	SkillStatusChangeTable[SL_ALCHEMIST]   = (sc_type)MAPID_ALCHEMIST,
@@ -903,14 +904,14 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_SIROMA_ICE_TEA] = SI_SIROMA_ICE_TEA;
 	StatusIconChangeTable[SC_DROCERA_HERB_STEAMED] = SI_DROCERA_HERB_STEAMED;
 	StatusIconChangeTable[SC_PUTTI_TAILS_NOODLES] = SI_PUTTI_TAILS_NOODLES;
-	StatusIconChangeTable[SC_BOOST500] |= SI_BOOST500;
-	StatusIconChangeTable[SC_FULL_SWING_K] |= SI_FULL_SWING_K;
-	StatusIconChangeTable[SC_MANA_PLUS] |= SI_MANA_PLUS;
-	StatusIconChangeTable[SC_MUSTLE_M] |= SI_MUSTLE_M;
-	StatusIconChangeTable[SC_LIFE_FORCE_F] |= SI_LIFE_FORCE_F;
-	StatusIconChangeTable[SC_EXTRACT_WHITE_POTION_Z] |= SI_EXTRACT_WHITE_POTION_Z;
-	StatusIconChangeTable[SC_VITATA_500] |= SI_VITATA_500;
-	StatusIconChangeTable[SC_EXTRACT_SALAMINE_JUICE] |= SI_EXTRACT_SALAMINE_JUICE;
+	StatusIconChangeTable[SC_BOOST500] = SI_BOOST500;
+	StatusIconChangeTable[SC_FULL_SWING_K] = SI_FULL_SWING_K;
+	StatusIconChangeTable[SC_MANA_PLUS] = SI_MANA_PLUS;
+	StatusIconChangeTable[SC_MUSTLE_M] = SI_MUSTLE_M;
+	StatusIconChangeTable[SC_LIFE_FORCE_F] = SI_LIFE_FORCE_F;
+	StatusIconChangeTable[SC_EXTRACT_WHITE_POTION_Z] = SI_EXTRACT_WHITE_POTION_Z;
+	StatusIconChangeTable[SC_VITATA_500] = SI_VITATA_500;
+	StatusIconChangeTable[SC_EXTRACT_SALAMINE_JUICE] = SI_EXTRACT_SALAMINE_JUICE;
 	StatusIconChangeTable[SC_CIRCLE_OF_FIRE] = SI_CIRCLE_OF_FIRE;
 	StatusIconChangeTable[SC_FIRE_CLOAK] = SI_FIRE_CLOAK;
 	StatusIconChangeTable[SC_WATER_SCREEN] = SI_WATER_SCREEN;
@@ -992,8 +993,8 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_BATKFOOD] |= SCB_BATK;
 	StatusChangeFlagTable[SC_WATKFOOD] |= SCB_WATK;
 	StatusChangeFlagTable[SC_MATKFOOD] |= SCB_MATK;
-	StatusChangeFlagTable[SC_ARMOR_ELEMENT] |= SCB_ALL;
-	StatusChangeFlagTable[SC_ARMOR_RESIST] |= SCB_ALL;
+	StatusChangeFlagTable[SC_ARMOR_ELEMENT] |= SCB_DEF_ELE;
+	StatusChangeFlagTable[SC_ARMOR_RESIST] |= SCB_DEF_ELE;
 	StatusChangeFlagTable[SC_SPCOST_RATE] |= SCB_ALL;
 	StatusChangeFlagTable[SC_WALKSPEED] |= SCB_SPEED;
 	StatusChangeFlagTable[SC_ITEMSCRIPT] |= SCB_ALL;
@@ -1073,18 +1074,23 @@ void initChangeTables(void) {
 	StatusDisplayType[SC_DEEPSLEEP]		  = true;
 	StatusDisplayType[SC_CURSEDCIRCLE_ATKER]  = true;
 	StatusDisplayType[SC_CURSEDCIRCLE_TARGET] = true;
+	StatusDisplayType[SC_NETHERWORLD]	  = true;
+	StatusDisplayType[SC_VOICEOFSIREN]	  = true;
 	StatusDisplayType[SC_BLOODSUCKER]	  = true;
 	StatusDisplayType[SC__SHADOWFORM]	  = true;
 	StatusDisplayType[SC__MANHOLE]		  = true;
+	StatusDisplayType[SC_JYUMONJIKIRI]	  = true;
+	StatusDisplayType[SC_AKAITSUKI]		  = true;
 	StatusDisplayType[SC_MONSTER_TRANSFORM]	  = true;
 	StatusDisplayType[SC_DARKCROW]		  = true;
 	StatusDisplayType[SC_OFFERTORIUM]	  = true;
 	StatusDisplayType[SC_TELEKINESIS_INTENSE] = true;
 	StatusDisplayType[SC_UNLIMIT]		  = true;
+	StatusDisplayType[SC_ILLUSIONDOPING]	  = true;
 	StatusDisplayType[SC_MOONSTAR]		  = true;
 	StatusDisplayType[SC_SUPER_STAR]	  = true;
-	StatusDisplayType[SC_STRANGELIGHTS]		  = true;
-	StatusDisplayType[SC_DECORATION_OF_MUSIC]	  = true;
+	StatusDisplayType[SC_STRANGELIGHTS]	  = true;
+	StatusDisplayType[SC_DECORATION_OF_MUSIC] = true;
 
 	/* StatusChangeState (SCS_) NOMOVE */
 	StatusChangeStateTable[SC_ANKLE]               |= SCS_NOMOVE;
@@ -1146,7 +1152,6 @@ void initChangeTables(void) {
 	StatusChangeStateTable[SC_DEEPSLEEP]           |= SCS_NOCAST;
 	StatusChangeStateTable[SC_SATURDAYNIGHTFEVER]  |= SCS_NOCAST;
 	StatusChangeStateTable[SC_CURSEDCIRCLE_TARGET] |= SCS_NOCAST;
-	StatusChangeStateTable[SC_SILENCE]             |= SCS_NOCAST;
 	StatusChangeStateTable[SC_KINGS_GRACE]         |= SCS_NOCAST;
 	StatusChangeStateTable[SC_HEAT_BARREL_AFTER]   |= SCS_NOCAST;
 
@@ -2837,7 +2842,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 			run_script(data->script,0,sd->bl.id,0);
 	}
 
-	for( i = 0; i < MAX_PC_BONUS_SCRIPT; i++ ) { //Script Bonus
+	for( i = 0; i < MAX_PC_BONUS_SCRIPT; i++ ) { //Process script Bonus [Cydh]
 		if( !(&sd->bonus_script[i]) || !sd->bonus_script[i].script )
 			continue;
 		if( !sd->bonus_script[i].tid ) //Just add timer only for new attached script

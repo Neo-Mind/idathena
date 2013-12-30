@@ -1092,7 +1092,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case BD_LULLABY:
-			sc_start(src,bl,SC_SLEEP,15,skill_lv,skill_get_time2(skill_id,skill_lv));
+			//(Custom chance) "Chance is increased with INT", iRO Wiki
+			sc_start(src,bl,SC_SLEEP,15 + sstatus->int_ / 3,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
 
 		case DC_UGLYDANCE:
@@ -7021,7 +7022,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					break;
 				//Remove bonus_script when dispelled
 				if( dstsd )
-					pc_bonus_script_check(dstsd,BONUS_FLAG_REM_ON_DISPELL);
+					pc_bonus_script_clear(dstsd,BONUS_FLAG_REM_ON_DISPELL);
 				if( !tsc || !tsc->count )
 					break;
 				for( i = 0; i < SC_MAX; i++ ) {
@@ -8471,7 +8472,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					break;
 				//Remove bonus_script when cleared
 				if( dstsd )
-					pc_bonus_script_check(dstsd,BONUS_FLAG_REM_ON_CLEARANCE);
+					pc_bonus_script_clear(dstsd,BONUS_FLAG_REM_ON_CLEARANCE);
 				if( !tsc || !tsc->count )
 					break;
 				for( i = 0; i < SC_MAX ; i++ ) {
