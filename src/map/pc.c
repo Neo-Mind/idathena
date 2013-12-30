@@ -4131,7 +4131,6 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 {
 	struct item_data *item;
 	int nameid;
-	uint16 group_id;
 
 	nullpo_ret(sd);
 

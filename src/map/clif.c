@@ -17218,24 +17218,24 @@ void clif_scriptclear(struct map_session_data *sd, int npcid) {
 }
 
 void clif_broadcasting_special_item_obtain(struct map_session_data *sd, unsigned short nameid, unsigned short containerid) {
-	/* @TODO */
-	/* this+0x0 */ /* short PacketType */
-	/* this+0x2 */ /* short PacketLength */
-	/* this+0x4 */ /* unsigned char type {
-		TYPE_BOXITEM =  0x0,
-		TYPE_MONSTER_ITEM =  0x1,
+	/* this+0x0 short PacketType */
+	/* this+0x2 short PacketLength */
+	/* this+0x4 unsigned char type {
+		TYPE_BOXITEM = 0x0,
+		TYPE_MONSTER_ITEM = 0x1,
+		TYPE_NPC = 0x2,
 	} */
-	/* this+0x5 */ /* unsigned short ItemID */
-	/* this+0x7 */ /* struct VarString Holder { // related to MSI_BROADCASTING_SPECIAL_ITEM_OBTAIN = 0x65c */
-		/* this+0x0 */ /* char len */
-		/* this+0x1 */ /* char Name[...]
+	/* this+0x5 unsigned short ItemID */
+	/* this+0x7 struct VarString Holder { //Related to MSI_BROADCASTING_SPECIAL_ITEM_OBTAIN = 0x65c
+		this+0x0 char len
+		this+0x1 char Name[...]
 	} */
-	/* if (packet.type == TYPE_BOXITEM) { */
-		/* this+0x... */ /* unsigned short BoxItemID */
-	/* } else if (packet.type == TYPE_MONSTER_ITEM) { */
-		/* this+0x... */ /* struct VarString Monster { */
-			/* this+0x0 */ /* char len */
-			/* this+0x1 */ /* char Name[...]
+	/* if (packet.type == TYPE_BOXITEM) {
+		this+0x... unsigned short BoxItemID
+	} else if (packet.type == TYPE_MONSTER_ITEM) {
+		this+0x... struct VarString Monster {
+			this+0x0 char len
+			this+0x1 char Name[...]
 		}
 	} */
 }
