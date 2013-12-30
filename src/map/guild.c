@@ -99,6 +99,7 @@ int guild_skill_get_max (int id)
 // Retrive skill_lv learned by guild
 int guild_checkskill(struct guild *g, int id) {
 	int idx = id - GD_SKILLBASE;
+
 	if (idx < 0 || idx >= MAX_GUILDSKILL)
 		return 0;
 	return g->skill[idx].lv;

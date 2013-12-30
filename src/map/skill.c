@@ -3529,6 +3529,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 							int effects[4] = { SC_BURNING,SC_FREEZING,SC_BLEEDING,SC_STUN },
 								applyeffects[4] = { 0,0,0,0 },
 								i, j = 0, k = 0;
+
 							for (i = 1; i <= 8; i = i + i) {
 								if (skl->x&i) {
 									applyeffects[j] = effects[k];
@@ -3554,11 +3555,12 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					break;
 				case SC_FATALMENACE:
 					if (src == target) //Casters Part
-						unit_warp(src,-1,skl->x,skl->y,3);
+						unit_warp(src,-1,skl->x,skl->y,CLR_TELEPORT);
 					else { //Target's Part
 						short x = skl->x,y = skl->y;
+
 						map_search_freecell(NULL,target->m,&x,&y,2,2,1);
-						unit_warp(target,-1,x,y,3);
+						unit_warp(target,-1,x,y,CLR_TELEPORT);
 					}
 					break;
 				case LG_MOONSLASHER:
@@ -3566,6 +3568,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					{
 						if (target->type == BL_PC) {
 							struct map_session_data *tsd = NULL;
+
 							if ((tsd = ((TBL_PC*)target)) && !pc_issit(tsd)) {
 								pc_setsit(tsd);
 								skill_sit(tsd,1);
@@ -12745,7 +12748,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			if (tsd && !map[bl->m].flag.noteleport)
 				pc_randomwarp(tsd,3);
 			else if (bl->type == BL_MOB && battle_config.mob_warp&8)
-				unit_warp(bl,-1,-1,-1,3);
+				unit_warp(bl,-1,-1,-1,CLR_TELEPORT);
 			break;
 
 		case UNT_REVERBERATION:
