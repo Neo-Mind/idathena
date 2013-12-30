@@ -4131,6 +4131,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 {
 	struct item_data *item;
 	int nameid;
+	uint16 group_id;
 
 	nullpo_ret(sd);
 
@@ -4247,8 +4248,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 	else if( itemdb_is_poison(nameid) && (sd->class_&MAPID_THIRDMASK) != MAPID_GUILLOTINE_CROSS )
 		return 0; //Only GCross may use poisons
 
-	//@TODO: Check if used item is a package type or a item that has a bunch of group items on it
-	/*if( itemdb_is_package(nameid) || itemdb_is_group(nameid) ) {
+	/*if( item->group ) { //@TODO
 		if( pc_is90overweight(sd) ) {
 			clif_msgtable(sd->fd,ITEM_CANT_OBTAIN_WEIGHT);
 			return 0;
@@ -10388,8 +10388,7 @@ void pc_bonus_script_check(struct map_session_data *sd, enum e_bonus_script_flag
  * @param sd player
  */
 void pc_cell_basilica(struct map_session_data *sd) {
-	if (!sd)
-		return;
+	nullpo_retv(sd);
 
 	if (!map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKBASILICA)) {
 		if (&sd->sc && sd->sc.data[SC_BASILICA])

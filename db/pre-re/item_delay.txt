@@ -1,4 +1,4 @@
-// Item Delay Database
+// Items Delay Database
 // There is a max concurrent number of entries modifiable in src/map/itemdb.h as MAX_ITEMDELAYS
 //
 // Structure:

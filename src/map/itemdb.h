@@ -5,22 +5,41 @@
 #define _ITEMDB_H_
 
 #include "../common/db.h"
-#include "../common/mmo.h" // ITEM_NAME_LENGTH
+#include "../common/mmo.h" //ITEM_NAME_LENGTH
 #include "map.h"
 
-// 32k array entries in array (the rest goes to the db)
+//32k array entries in array (the rest goes to the db)
 #define MAX_ITEMDB 0x8000
 
-#define MAX_RANDITEM 11000
+//Use apple for unknown items.
+#define UNKNOWN_ITEM_ID 512
 
-// Maximum number of item delays
+//Maximum number of item delays
 #define MAX_ITEMDELAYS 30
 
-#define MAX_SEARCH 5  //Designed for search functions, species max number of matches to display.
+#define MAX_SEARCH 5 //Designed for search functions, species max number of matches to display.
 
 /* Maximum amount of items a combo may require */
 #define MAX_ITEMS_PER_COMBO 6
 
+//The only item group required by the code to be known. See const.txt for the full list.
+#define IG_FINDINGORE 6
+#define IG_POTION 37
+
+#define MAX_ITEMGROUP 390 //The max. item group count (increase this when needed).
+
+#define MAX_ITEMGROUP_RAND 11000 //Max item slots for random item group (increase this when needed).
+#define MAX_ITEMGROUP_MUST 15 //Max item for 'must' item group (increase this when needed).
+#define MAX_ITEMGROUP_RANDGROUP 4 //Max group for random item (increase this when needed).
+
+#define CARD0_FORGE 0x00FF
+#define CARD0_CREATE 0x00FE
+#define CARD0_PET ((short)0xFF00)
+
+//Marks if the card0 given is "special" (non-item id used to mark pets/created items. [Skotlex]
+#define itemdb_isspecial(i) (i == CARD0_FORGE || i == CARD0_CREATE || i == CARD0_PET)
+
+//Enum of item id (for hardcoded purpose)
 enum item_itemid {
 	ITEMID_HOLY_WATER = 523,
 	ITEMID_EMPERIUM = 714,
@@ -88,92 +107,6 @@ enum e_item_job {
 	ITEMJ_THIRD_BABY  = 0x20,
 };
 
-enum e_item_group {
-	IG_BLUEBOX = 1,
-	IG_VIOLETBOX,
-	IG_CARDALBUM,
-	IG_GIFTBOX,
-	IG_SCROLLBOX,
-	IG_FINDINGORE,
-	IG_COOKIEBAG,
-	IG_FIRSTAID,
-	IG_HERB,
-	IG_FRUIT,
-	IG_MEAT,
-	IG_CANDY,
-	IG_JUICE,
-	IG_FISH,
-	IG_BOX,
-	IG_GEMSTONE,
-	IG_RESIST,
-	IG_ORE,
-	IG_FOOD,
-	IG_RECOVERY,
-	IG_MINERAL,
-	IG_TAMING,
-	IG_SCROLL,
-	IG_QUIVER,
-	IG_MASK,
-	IG_ACCESSORY,
-	IG_JEWEL,
-	IG_GIFTBOX_1,
-	IG_GIFTBOX_2,
-	IG_GIFTBOX_3,
-	IG_GIFTBOX_4,
-	IG_EGGBOY,
-	IG_EGGGIRL,
-	IG_GIFTBOXCHINA,
-	IG_LOTTOBOX,
-	IG_FOODBAG,
-	IG_POTION,
-	IG_REDBOX_2,
-	IG_BLEUBOX,
-	IG_REDBOX,
-	IG_GREENBOX,
-	IG_YELLOWBOX,
-	IG_OLDGIFTBOX,
-	IG_MAGICCARDALBUM,
-	IG_HOMETOWNGIFT,
-	IG_MASQUERADE,
-	IG_TREASURE_BOX_WOE,
-	IG_MASQUERADE_2,
-	IG_EASTER_SCROLL,
-	IG_PIERRE_TREASUREBOX,
-	IG_CHERISH_BOX,
-	IG_CHERISH_BOX_ORI,
-	IG_LOUISE_COSTUME_BOX,
-	IG_XMAS_GIFT,
-	IG_FRUIT_BASKET,
-	IG_IMPROVED_COIN_BAG,
-	IG_INTERMEDIATE_COIN_BAG,
-	IG_MINOR_COIN_BAG,
-	IG_S_GRADE_COIN_BAG,
-	IG_A_GRADE_COIN_BAG,
-	IG_ADVANCED_WEAPONS_BOX,
-	IG_SPLENDID_BOX,
-	IG_CARDALBUM_ARMOR,
-	IG_CARDALBUM_HELM,
-	IG_CARDALBUM_ACC,
-	IG_CARDALBUM_SHOES,
-	IG_CARDALBUM_SHIELD,
-	IG_CARDALBUM_WEAPON,
-	IG_CARDALBUM_GARMENT,
-	IG_CARD_FLAMEL,
-};
-
-//The max. item group count (increase this when needed).
-#define MAX_ITEMGROUP 71
-
-#define CARD0_FORGE 0x00FF
-#define CARD0_CREATE 0x00FE
-#define CARD0_PET ((short)0xFF00)
-
-//Marks if the card0 given is "special" (non-item id used to mark pets/created items. [Skotlex]
-#define itemdb_isspecial(i) (i == CARD0_FORGE || i == CARD0_CREATE || i == CARD0_PET)
-
-//Use apple for unknown items.
-#define UNKNOWN_ITEM_ID 512
-
 struct item_data {
 	uint16 nameid;
 	char name[ITEM_NAME_LENGTH],jname[ITEM_NAME_LENGTH];
@@ -196,12 +129,12 @@ struct item_data {
 	int view_id;
 #ifdef RENEWAL
 	int matk;
-	int elvmax;/* maximum level for this item */
+	int elvmax; /* Maximum level for this item */
 #endif
 
 	int delay;
-//Lupus: I rearranged order of these fields due to compatibility with ITEMINFO script command
-//		some script commands should be revised as well...
+	/* Lupus: I rearranged order of these fields due to compatibility with ITEMINFO script command
+		some script commands should be revised as well... */
 	unsigned int class_base[3];	//Specifies if the base can wear this item (split in 3 indexes per type: 1-1, 2-1, 2-2)
 	unsigned class_upper : 6; //Specifies if the class-type can equip it (0x01: normal, 0x02: trans, 0x04: baby, 0x08:third, 0x10:trans-third, 0x20-third-baby)
 	struct {
@@ -209,8 +142,8 @@ struct item_data {
 		int id;
 	} mob[MAX_SEARCH]; //Holds the mobs that have the highest drop rate for this item. [Skotlex]
 	struct script_code *script;	//Default script for everything.
-	struct script_code *equip_script;	//Script executed once when equipping.
-	struct script_code *unequip_script;//Script executed once when unequipping.
+	struct script_code *equip_script; //Script executed once when equipping.
+	struct script_code *unequip_script; //Script executed once when unequipping.
 	struct {
 		unsigned available : 1;
 		uint32 no_equip;
@@ -222,10 +155,10 @@ struct item_data {
 	} flag;
 	struct { // Item stacking limitation
 		unsigned short amount;
-		unsigned int inventory:1;
-		unsigned int cart:1;
-		unsigned int storage:1;
-		unsigned int guildstorage:1;
+		unsigned int inventory: 1;
+		unsigned int cart: 1;
+		unsigned int storage: 1;
+		unsigned int guildstorage: 1;
 	} stack;
 	struct { // Used by item_nouse.txt
 		unsigned int flag;
@@ -237,20 +170,32 @@ struct item_data {
 	unsigned char combos_count;
 };
 
-struct item_group {
-	int nameid[MAX_RANDITEM];
-	int qty; //Counts amount of items in the group.
+/* Struct of item group */
+struct s_item_group {
+	uint16 nameid, //Item id
+	duration; //Duration if item as rental item
+	uint16 amount; //Amount of item will be obtained
+	bool isAnnounced, //Broadcast if player get this item
+	isNamed; //Named the item (if possible)
+	char bound; //Makes the item as bound item (according to bound type)
+};
+
+/* Struct of item group that will be used for db */
+struct s_item_group_db {
+	struct s_item_group must[MAX_ITEMGROUP_MUST];
+	struct s_item_group random[MAX_ITEMGROUP_RANDGROUP][MAX_ITEMGROUP_RAND]; //NOTE: Is this good?
+	uint16 must_qty, random_qty[MAX_ITEMGROUP_RANDGROUP];
 };
 
 struct item_combo {
 	struct script_code *script;
-	unsigned short *nameid;/* nameid array */
+	unsigned short *nameid; /* nameid array */
 	unsigned char count;
-	unsigned short id;/* id of this combo */
-	bool isRef;/* whether this struct is a reference or the master */
+	unsigned short id; /* id of this combo */
+	bool isRef; /* Whether this struct is a reference or the master */
 };
 
-struct item_group itemgroup_db[MAX_ITEMGROUP];
+struct s_item_group_db itemgroup_db[MAX_ITEMGROUP];
 
 struct item_data* itemdb_searchname(const char *name);
 int itemdb_searchname_array(struct item_data** data, int size, const char *str);
@@ -285,7 +230,7 @@ struct item_data* itemdb_exists(int nameid);
 const char* itemdb_typename(int type);
 
 int itemdb_group_bonus(struct map_session_data* sd, int itemid);
-int itemdb_searchrandomid(int flags);
+int itemdb_searchrandomid(int group_id, uint8 sub_group);
 
 #define itemdb_value_buy(n) itemdb_search(n)->value_buy
 #define itemdb_value_sell(n) itemdb_search(n)->value_sell
@@ -316,8 +261,11 @@ int itemdb_isequip2(struct item_data *);
 int itemdb_isidentified(int);
 int itemdb_isstackable(int);
 int itemdb_isstackable2(struct item_data *);
-uint64 itemdb_unique_id(int8 flag, int64 value); // Unique Item ID
+uint64 itemdb_unique_id(int8 flag, int64 value); //Unique Item ID
 bool itemdb_isNoEquip(struct item_data *id, uint16 m);
+
+uint8 itemdb_pc_get_itemgroup(uint16 group_id, uint16 nameid, struct map_session_data *sd);
+uint16 itemdb_get_randgroupitem_count(uint16 group_id, uint8 sub_group, uint16 nameid);
 
 DBMap* itemdb_get_combodb();
 

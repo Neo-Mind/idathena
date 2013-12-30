@@ -1,4 +1,4 @@
-// Buying Store Item List
+// Buying Store Items List
 // List of items, that can be sold to buying stores.
 // Format: <item id>
 // Example:

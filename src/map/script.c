@@ -6133,6 +6133,7 @@ BUILDIN_FUNC(getitem)
 	if( data_isstring(data) ) { // "<Item name>"
 		const char *name = conv_str(st,data);
 		struct item_data *item_data = itemdb_searchname(name);
+
 		if( item_data == NULL ) {
 			ShowError("buildin_getitem: Nonexistant item %s requested.\n",name);
 			return 1; //No item created.
@@ -6167,6 +6168,7 @@ BUILDIN_FUNC(getitem)
 
 	if( !strcmp(script_getfuncname(st),"getitembound") ) {
 		char bound = script_getnum(st,4);
+
 		if( bound < 1 || bound > 4) { //Not a correct bound type
 			ShowError("script_getitembound: Not a correct bound type! Type=%d\n",bound);
 			return 1;
@@ -6239,6 +6241,7 @@ BUILDIN_FUNC(getitem2)
 	if( data_isstring(data) ) {
 		const char *name = conv_str(st,data);
 		struct item_data *item_data = itemdb_searchname(name);
+
 		if( item_data )
 			nameid = item_data->nameid;
 		else
@@ -6286,7 +6289,7 @@ BUILDIN_FUNC(getitem2)
 		item_tmp.card[1] = (short)c2;
 		item_tmp.card[2] = (short)c3;
 		item_tmp.card[3] = (short)c4;
-		item_tmp.bound=bound;
+		item_tmp.bound = bound;
 
 		//Check if it's stackable.
 		if( !itemdb_isstackable(nameid) )
@@ -6426,15 +6429,12 @@ BUILDIN_FUNC(getnameditem)
 }
 
 /*==========================================
- * gets a random item ID from an item group [Skotlex]
+ * Gets a random item ID from an item group [Skotlex]
  * groupranditem group_num
  *------------------------------------------*/
 BUILDIN_FUNC(grouprandomitem)
 {
-	int group;
-
-	group = script_getnum(st,2);
-	script_pushint(st,itemdb_searchrandomid(group));
+	script_pushint(st,itemdb_searchrandomid(script_getnum(st,2),script_getnum(st,3)));
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -17184,51 +17184,67 @@ BUILDIN_FUNC(checkre)
 	return SCRIPT_CMD_SUCCESS;
 }
 
-/* getrandgroupitem <group_id>,<quantity> */
+/* getrandgroupitem <group_id>,<quantity>{,<sub_group>} */
 BUILDIN_FUNC(getrandgroupitem) {
 	TBL_PC* sd;
-	int i, get_count = 0, flag, nameid, group = script_getnum(st,2), qty = script_getnum(st,3);
+	int i, get_count = 0, flag;
+	uint16 nameid, group = script_getnum(st,2), qty = script_getnum(st,3);
+	uint8 sub_group = script_getnum(st,4);
 	struct item item_tmp;
 
 	if( !(sd = script_rid2sd(st)) )
 		return 0;
 
-	if( qty <= 0 ) {
-		ShowError("getrandgroupitem: qty is <= 0!\n");
-		return 1;
-	}
-
 	if( group < 1 || group >= MAX_ITEMGROUP ) {
-		ShowError("getrandgroupitem: Invalid group id %d\n",group);
+		ShowError("getrandgroupitem: Invalid group id (%d)!\n",group);
 		return 1;
 	}
 
-	if( !itemgroup_db[group].qty ) {
-		ShowError("getrandgroupitem: group id %d is empty!\n",group);
-		return 1;
-	}
-
-	nameid = itemdb_searchrandomid(group);
+	nameid = itemdb_searchrandomid(group,sub_group);
 	memset(&item_tmp,0,sizeof(item_tmp));
 
-	item_tmp.nameid   = nameid;
+	item_tmp.nameid = nameid;
 	item_tmp.identify = itemdb_isidentified(nameid);
 
-	//Check if it's stackable.
-	if( !itemdb_isstackable(nameid) )
-		get_count = 1;
-	else
-		get_count = qty;
+	if( !qty )
+		qty = itemdb_get_randgroupitem_count(group,sub_group,nameid);
 
-	for( i = 0; i < qty; i += get_count ) {
+	//Check if it's stackable.
+	if( !itemdb_isstackable(nameid) ) {
+		item_tmp.amount = 1;
+		get_count = qty;
+	} else {
+		item_tmp.amount = qty;
+		get_count = 1;
+	}
+
+	for( i = 0; i < get_count; i++ ) {
 		//If not pet egg
 		if( !pet_create_egg(sd,nameid) ) {
-			if( (flag = pc_additem(sd,&item_tmp,get_count,LOG_TYPE_SCRIPT)) ) {
+			if( (flag = pc_additem(sd,&item_tmp,item_tmp.amount,LOG_TYPE_SCRIPT)) ) {
 				clif_additem(sd,0,0,flag);
 				if( pc_candrop(sd,&item_tmp) )
-					map_addflooritem(&item_tmp,get_count,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
+					map_addflooritem(&item_tmp,item_tmp.amount,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 			}
 		}
+	}
+
+	return SCRIPT_CMD_SUCCESS;
+}
+
+/* getgroupitem <group_id>;
+ * Gives item(s) to the attached player based on item group contents
+ */
+BUILDIN_FUNC(getgroupitem) {
+	TBL_PC *sd;
+	int group_id = script_getnum(st,2);
+
+	if( !(sd = script_rid2sd(st)) )
+		return 0;
+
+	if( itemdb_pc_get_itemgroup(group_id,sd->itemid,sd) ) {
+		ShowError("getgroupitem: Invalid group id '%d' specified.",group_id);
+		return 1;
 	}
 
 	return SCRIPT_CMD_SUCCESS;
@@ -17969,7 +17985,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(rentitem,"vi"),
 	BUILDIN_DEF(getitem2,"viiiiiiii?"),
 	BUILDIN_DEF(getnameditem,"vv"),
-	BUILDIN_DEF2(grouprandomitem,"groupranditem","i"),
+	BUILDIN_DEF2(grouprandomitem,"groupranditem","i?"),
 	BUILDIN_DEF(makeitem,"visii"),
 	BUILDIN_DEF(delitem,"vi?"),
 	BUILDIN_DEF(delitem2,"viiiiiiii?"),
@@ -18356,7 +18372,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(is_function,"s"),
 	BUILDIN_DEF(get_revision,""),
 	BUILDIN_DEF(freeloop,"i"),
-	BUILDIN_DEF(getrandgroupitem,"ii"),
+	BUILDIN_DEF(getrandgroupitem,"ii?"),
 	BUILDIN_DEF(cleanmap,"s"),
 	BUILDIN_DEF2(cleanmap,"cleanarea","siiii"),
 	BUILDIN_DEF(npcskill,"viii"),
@@ -18395,6 +18411,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(bonus_script,"si???"),
 	BUILDIN_DEF(vip_status,"i?"),
 	BUILDIN_DEF(vip_time,"i?"),
+	BUILDIN_DEF(getgroupitem,"i"),
 
 #include "../custom/script_def.inc"
 
