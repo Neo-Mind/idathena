@@ -76,8 +76,10 @@ char item_db_re_db[32] = "item_db_re";
 char item_cash_db_db[32] = "item_cash_db";
 char item_cash_db2_db[32] = "item_cash_db2";
 char mob_db_db[32] = "mob_db";
+char mob_db_re_db[32] = "mob_db_re";
 char mob_db2_db[32] = "mob_db2";
 char mob_skill_db_db[32] = "mob_skill_db";
+char mob_skill_db_re_db[32] = "mob_skill_db_re";
 char mob_skill_db2_db[32] = "mob_skill_db2";
 
 // log database
@@ -1323,7 +1325,7 @@ int map_searchrandfreecell(int16 m,int16 *x,int16 *y,int stack) {
 			free_cells[free_cell++][1] = i+*y;
 		}
 	}
-	if(free_cell==0)
+	if(free_cell == 0)
 		return 0;
 	free_cell = rnd()%free_cell;
 	*x = free_cells[free_cell][0];
@@ -3428,16 +3430,16 @@ int map_config_read(char *cfgName)
 		while (--ptr >= w2 && *ptr == ' ');
 		ptr++;
 		*ptr = '\0';
-			
-		if(strcmpi(w1,"timestamp_format")==0)
+
+		if (strcmpi(w1, "timestamp_format") == 0)
 			safestrncpy(timestamp_format, w2, 20);
-		else if(strcmpi(w1,"stdout_with_ansisequence")==0)
+		else if (strcmpi(w1, "stdout_with_ansisequence") == 0)
 			stdout_with_ansisequence = config_switch(w2);
-		else if(strcmpi(w1,"console_silent")==0) {
+		else if (strcmpi(w1, "console_silent") == 0) {
 			msg_silent = atoi(w2);
-			if( msg_silent ) // only bother if its actually enabled
+			if (msg_silent) //Only bother if its actually enabled
 				ShowInfo("Console Silent Setting: %d\n", atoi(w2));
-		} else if (strcmpi(w1, "userid")==0)
+		} else if (strcmpi(w1, "userid") == 0)
 			chrif_setuserid(w2);
 		else if (strcmpi(w1, "passwd") == 0)
 			chrif_setpasswd(w2);
@@ -3547,7 +3549,7 @@ void map_reloadnpc_sub(char *cfgName)
 void map_reloadnpc(bool clear)
 {
 	if (clear)
-		npc_addsrcfile("clear"); // this will clear the current script list
+		npc_addsrcfile("clear"); //This will clear the current script list
 
 #ifdef RENEWAL
 	map_reloadnpc_sub("npc/re/scripts_main.conf");
@@ -3561,61 +3563,69 @@ int inter_config_read(char *cfgName)
 	char line[1024],w1[1024],w2[1024];
 	FILE *fp;
 
-	fp=fopen(cfgName,"r");
-	if(fp==NULL) {
-		ShowError("File not found: %s\n",cfgName);
+	fp = fopen(cfgName, "r");
+	if( fp == NULL ) {
+		ShowError("File not found: %s\n", cfgName);
 		return 1;
 	}
-	while(fgets(line, sizeof(line), fp)) {
-		if(line[0] == '/' && line[1] == '/')
+	while( fgets(line, sizeof(line), fp) ) {
+		if( line[0] == '/' && line[1] == '/' )
 			continue;
-		if( sscanf(line,"%[^:]: %[^\r\n]",w1,w2) < 2 )
+		if( sscanf(line, "%[^:]: %[^\r\n]", w1, w2) < 2 )
 			continue;
 
-		if(strcmpi(w1,"item_db_db")==0)
-			strcpy(item_db_db,w2);
-		else if(strcmpi(w1,"mob_db_db")==0)
-			strcpy(mob_db_db,w2);
-		else if(strcmpi(w1,"item_db2_db")==0)
-			strcpy(item_db2_db,w2);
-		else if(strcmpi(w1,"item_db_re_db")==0)
-			strcpy(item_db_re_db,w2);
-		else if(strcmpi(w1,"mob_db2_db")==0)
-			strcpy(mob_db2_db,w2);
-		else if(strcmpi(w1,"item_cash_db_db")==0)
-			strcpy(item_cash_db_db,w2);
-		else if(strcmpi(w1,"item_cash_db2_db" )==0)
-			strcpy(item_cash_db2_db,w2);
+		if( strcmpi(w1, "item_db_db") == 0 )
+			strcpy(item_db_db, w2);
+		else if( strcmpi(w1, "item_db2_db") == 0 )
+			strcpy(item_db2_db, w2);
+		else if( strcmpi(w1, "item_db_re_db") == 0 )
+			strcpy(item_db_re_db, w2);
+		else if( strcmpi(w1, "mob_db_db") == 0 )
+			strcpy(mob_db_db, w2);
+		else if( strcmpi(w1, "mob_db_re_db") == 0 )
+			strcpy(mob_db_re_db, w2);
+		else if( strcmpi(w1, "mob_db2_db") == 0 )
+			strcpy(mob_db2_db, w2);
+		else if( strcmpi(w1, "mob_skill_db_db") == 0 )
+			strcpy(mob_skill_db_db, w2);
+		else if( strcmpi(w1, "mob_skill_db_re_db") == 0 )
+			strcpy(mob_skill_db_re_db, w2);
+		else if( strcmpi(w1, "mob_skill_db2_db") == 0 )
+			strcpy(mob_skill_db2_db, w2);
+		else if( strcmpi(w1, "item_cash_db_db") == 0 )
+			strcpy(item_cash_db_db, w2);
+		else if( strcmpi(w1, "item_cash_db2_db") == 0 )
+			strcpy(item_cash_db2_db, w2);
 		//Map Server SQL DB
-		else if(strcmpi(w1,"map_server_ip")==0)
+		else if( strcmpi(w1, "map_server_ip") == 0 )
 			strcpy(map_server_ip, w2);
-		else if(strcmpi(w1,"map_server_port")==0)
-			map_server_port=atoi(w2);
-		else if(strcmpi(w1,"map_server_id")==0)
+		else if( strcmpi(w1, "map_server_port") == 0 )
+			map_server_port = atoi(w2);
+		else if( strcmpi(w1, "map_server_id") == 0 )
 			strcpy(map_server_id, w2);
-		else if(strcmpi(w1,"map_server_pw")==0)
+		else if( strcmpi(w1, "map_server_pw") == 0 )
 			strcpy(map_server_pw, w2);
-		else if(strcmpi(w1,"map_server_db")==0)
+		else if( strcmpi(w1, "map_server_db") == 0 )
 			strcpy(map_server_db, w2);
-		else if(strcmpi(w1,"default_codepage")==0)
+		else if( strcmpi(w1, "default_codepage") == 0 )
 			strcpy(default_codepage, w2);
-		else if(strcmpi(w1,"use_sql_db")==0) {
+		else if( strcmpi(w1, "use_sql_db") == 0 ) {
 			db_use_sqldbs = config_switch(w2);
-			ShowStatus ("Using SQL dbs: %s\n",w2);
-		} else if(strcmpi(w1,"log_db_ip")==0)
+			ShowStatus ("Using SQL dbs: %s\n", w2);
+		} else if( strcmpi(w1, "log_db_ip") == 0 )
 			strcpy(log_db_ip, w2);
-		else if(strcmpi(w1,"log_db_id")==0)
+		else if( strcmpi(w1, "log_db_id") == 0 )
 			strcpy(log_db_id, w2);
-		else if(strcmpi(w1,"log_db_pw")==0)
+		else if( strcmpi(w1, "log_db_pw") == 0 )
 			strcpy(log_db_pw, w2);
-		else if(strcmpi(w1,"log_db_port")==0)
+		else if( strcmpi(w1, "log_db_port") == 0 )
 			log_db_port = atoi(w2);
-		else if(strcmpi(w1,"log_db_db")==0)
+		else if( strcmpi(w1, "log_db_db") == 0 )
 			strcpy(log_db_db, w2);
-		else if( mapreg_config_read(w1,w2) )
+		else if( mapreg_config_read(w1, w2) )
 			continue;
-		//support the import command, just like any other config
-		else if(strcmpi(w1,"import")==0)
+		//Support the import command, just like any other config
+		else if( strcmpi(w1, "import") == 0 )
 			inter_config_read(w2);
 	}
 	fclose(fp);

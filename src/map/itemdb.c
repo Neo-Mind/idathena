@@ -1405,7 +1405,8 @@ static int itemdb_read_sqldb(void) {
 #else
 		item_db_db,
 #endif
-		item_db2_db };
+		item_db2_db
+	};
 	int fi;
 
 	for (fi = 0; fi < ARRAYLENGTH(item_db_name); ++fi) {

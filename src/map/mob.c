@@ -3850,7 +3850,7 @@ static bool mob_parse_dbrow(char** str)
 				continue;
 			
 			if (id->mob[k].id != class_)
-				memmove(&id->mob[k+1], &id->mob[k], (MAX_SEARCH - k - 1)*sizeof(id->mob[0]));
+				memmove(&id->mob[k + 1], &id->mob[k], (MAX_SEARCH - k - 1) * sizeof(id->mob[0]));
 			id->mob[k].chance = db->dropitem[i].p;
 			id->mob[k].id = class_;
 		}
@@ -3881,20 +3881,16 @@ static void mob_readdb(void)
 		DBPATH"mob_db.txt",
 		"mob_db2.txt" };
 	int fi;
-	
-	for( fi = 0; fi < ARRAYLENGTH(filename); ++fi )
-	{
-		if(fi > 0)
-		{
-			char path[256];
-			sprintf(path, "%s/%s", db_path, filename[fi]);
-			if(!exists(path))
-			{
-				continue;
-			}
-		}
 
-		sv_readdb(db_path, filename[fi], ',', 31+2*MAX_MVP_DROP+2*MAX_MOB_DROP, 31+2*MAX_MVP_DROP+2*MAX_MOB_DROP, -1, &mob_readdb_sub);
+	for( fi = 0; fi < ARRAYLENGTH(filename); ++fi ) {
+		if( fi > 0 ) {
+			char path[256];
+
+			sprintf(path, "%s/%s", db_path, filename[fi]);
+			if( !exists(path) )
+				continue;
+		}
+		sv_readdb(db_path, filename[fi], ',', 31 + 2 * MAX_MVP_DROP + 2 * MAX_MOB_DROP, 31 + 2 * MAX_MVP_DROP + 2 * MAX_MOB_DROP, -1, &mob_readdb_sub);
 	}
 }
 
@@ -3903,47 +3899,53 @@ static void mob_readdb(void)
  *------------------------------------------*/
 static int mob_read_sqldb(void)
 {
-	const char* mob_db_name[] = { mob_db_db, mob_db2_db };
+	const char* mob_db_name[] = {
+#ifndef RENEWAL
+		mob_db_db,
+#else
+		mob_db_re_db,
+#endif
+		mob_db2_db
+	};
 	int fi;
-	
+
 	for( fi = 0; fi < ARRAYLENGTH(mob_db_name); ++fi ) {
 		uint32 lines = 0, count = 0;
-		
-		// retrieve all rows from the mob database
+
+		//Retrieve all rows from the mob database
 		if( SQL_ERROR == Sql_Query(mmysql_handle, "SELECT * FROM `%s`", mob_db_name[fi]) ) {
 			Sql_ShowDebug(mmysql_handle);
 			continue;
 		}
-		
-		// process rows one by one
+
+		//Process rows one by one
 		while( SQL_SUCCESS == Sql_NextRow(mmysql_handle) ) {
-			// wrap the result into a TXT-compatible format
+			//Wrap the result into a TXT-compatible format
 			char line[1024];
-			char* str[31+2*MAX_MVP_DROP+2*MAX_MOB_DROP];
+			char* str[31 + 2 * MAX_MVP_DROP + 2 * MAX_MOB_DROP];
 			char* p;
 			int i;
-			
+
 			lines++;
-			for(i = 0, p = line; i < 31+2*MAX_MVP_DROP+2*MAX_MOB_DROP; i++)
-			{
+			for( i = 0, p = line; i < 31 + 2 * MAX_MVP_DROP + 2 * MAX_MOB_DROP; i++ ) {
 				char* data;
 				size_t len;
+
 				Sql_GetData(mmysql_handle, i, &data, &len);
-				
 				strcpy(p, data);
 				str[i] = p;
 				p+= len + 1;
 			}
-			
+
 			if (!mob_parse_dbrow(str))
 				continue;
-			
+
 			count++;
 		}
-		
-		// free the query result
+
+		//Free the query result
 		Sql_FreeResult(mmysql_handle);
-		
+
 		ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", count, mob_db_name[fi]);
 	}
 	return 0;
@@ -4389,46 +4391,51 @@ static void mob_readskilldb(void) {
  */
 static int mob_read_sqlskilldb(void)
 {
-	const char* mob_skill_db_name[] = { mob_skill_db_db, mob_skill_db2_db };
+	const char* mob_skill_db_name[] = {
+#ifndef RENEWAL
+		mob_skill_db_db,
+#else
+		mob_skill_db_re_db,
+#endif
+		mob_skill_db2_db
+	};
 	int fi;
-	
+
 	if( battle_config.mob_skill_rate == 0 ) {
 		ShowStatus("Mob skill use disabled. Not reading mob skills.\n");
 		return 0;
 	}
 
-
 	for( fi = 0; fi < ARRAYLENGTH(mob_skill_db_name); ++fi ) {
 		uint32 lines = 0, count = 0;
-		
-		// retrieve all rows from the mob skill database
+
+		//Retrieve all rows from the mob skill database
 		if( SQL_ERROR == Sql_Query(mmysql_handle, "SELECT * FROM `%s`", mob_skill_db_name[fi]) ) {
 			Sql_ShowDebug(mmysql_handle);
 			continue;
 		}
-		
-		// process rows one by one
+
+		//Process rows one by one
 		while( SQL_SUCCESS == Sql_NextRow(mmysql_handle) ) {
 			// wrap the result into a TXT-compatible format
 			char* str[19];
 			char* dummy = "";
 			int i;
 			++lines;
-			for( i = 0; i < 19; ++i )
-			{
+			for( i = 0; i < 19; ++i ) {
 				Sql_GetData(mmysql_handle, i, &str[i], NULL);
-				if( str[i] == NULL ) str[i] = dummy; // get rid of NULL columns
+				if( str[i] == NULL ) str[i] = dummy; //Get rid of NULL columns
 			}
-			
-			if (!mob_parse_row_mobskilldb(str, 19, count))
+
+			if( !mob_parse_row_mobskilldb(str, 19, count) )
 				continue;
-				
+
 			count++;
 		}
-		
-		// free the query result
+
+		//Free the query result
 		Sql_FreeResult(mmysql_handle);
-		
+
 		ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", count, mob_skill_db_name[fi]);
 	}
 	return 0;
