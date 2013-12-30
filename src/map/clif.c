@@ -4149,8 +4149,6 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 					clif_specialeffect_single(bl,421,sd->fd);
 				if (tsd->bg_id && map[tsd->bl.m].flag.battleground)
 					clif_sendbgemblem_single(sd->fd,tsd);
-				if (tsd->sc.data[SC_CAMOUFLAGE])
-					clif_status_load(bl,SI_CAMOUFLAGE,1);
 				if (tsd->status.robe)
 					clif_refreshlook(&sd->bl,bl->id,LOOK_ROBE,tsd->status.robe,SELF);
 			}
@@ -7283,14 +7281,14 @@ void clif_spiritball(struct block_list *bl) {
 
     nullpo_retv(bl);
 
-    WBUFW(buf, 0) = 0x1d0;
-    WBUFL(buf, 2) = bl->id;
-	WBUFW(buf, 6) = 0; //init to 0
-    switch(bl->type){
-        case BL_PC: WBUFW(buf, 6) = sd->spiritball; break;
-        case BL_HOM: WBUFW(buf, 6) = hd->homunculus.spiritball; break;
-    }
-    clif_send(buf, packet_len(0x1d0), bl, AREA);
+	WBUFW(buf,0) = 0x1d0;
+	WBUFL(buf,2) = bl->id;
+	WBUFW(buf,6) = 0; //init to 0
+	switch(bl->type) {
+		case BL_PC: WBUFW(buf,6) = sd->spiritball; break;
+		case BL_HOM: WBUFW(buf,6) = hd->homunculus.spiritball; break;
+	}
+	clif_send(buf,packet_len(0x1d0),bl,AREA);
 }
 
 

@@ -5097,11 +5097,12 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case MH_SONIC_CRAW:
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
+		case MH_SILVERVEIN_RUSH:
 		case MH_MIDNIGHT_FRENZY:
-		case MH_SILVERVEIN_RUSH: {
+			{
 				TBL_HOM *hd = BL_CAST(BL_HOM,src);
-				skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag);
-				hom_delspiritball(hd,skill_id == MH_SILVERVEIN_RUSH ? 2 : 1,0);
+				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
+				hom_delspiritball(hd,skill_id == MH_SILVERVEIN_RUSH ? 1 : 2,0);
 			}
 			break;
 		case MH_TINDER_BREAKER:
@@ -5112,8 +5113,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 				TBL_HOM *hd = BL_CAST(BL_HOM,src);
 				duration = max(skill_lv,(status_get_str(src) / 7 - status_get_str(bl) / 10)) * 1000; //Yommy formula
-				hom_delspiritball(hd,skill_id == MH_EQC ? 3 : skill_id == MH_CBC ? 2 : 1,0); //Only EQC consume 3 in grp 2
-				skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag);
+				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
+				hom_delspiritball(hd,skill_id == MH_EQC ? 2 : 1,0); //Only EQC consume 2 spiritballs
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,
 					sc_start4(src,bl,status_skill2sc(skill_id),100,skill_lv,src->id,0,0,duration));
 				if (skill_id == MH_TINDER_BREAKER && unit_movepos(src,bl->x,bl->y,1,1)) {
@@ -9265,7 +9266,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case WM_VOICEOFSIREN:
 			if( flag&1 ) {
-				tick = status_get_lv(bl) / 10 + ( dstsd ? dstsd->status.job_level / 5 : 0 );
+				tick = status_get_lv(bl) / 10 + (dstsd ? dstsd->status.job_level / 5 : 0);
 				sc_start2(src,bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv) - (1000 * tick));
 			} else if( sd ) {
 				rate = 6 * skill_lv + 2 * pc_checkskill(sd,WM_LESSON) + sd->status.job_level / 2;
