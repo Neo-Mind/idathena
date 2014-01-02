@@ -41,33 +41,137 @@
 
 //Enum of item id (for hardcoded purpose)
 enum item_itemid {
+	ITEMID_RED_POTION = 501,
+	ITEMID_YELLOW_POTION = 503,
+	ITEMID_WHITE_POTION,
+	ITEMID_BLUE_POTION,
 	ITEMID_HOLY_WATER = 523,
-	ITEMID_EMPERIUM = 714,
-	ITEMID_YELLOW_GEMSTONE = 715,
-	ITEMID_RED_GEMSTONE = 716,
-	ITEMID_BLUE_GEMSTONE = 717,
+	ITEMID_RED_SLIM_POTION = 545,
+	ITEMID_YELLOW_SLIM_POTION,
+	ITEMID_WHITE_SLIM_POTION,
+	ITEMID_WING_OF_FLY = 601,
+	ITEMID_WING_OF_BUTTERFLY,
+	ITEMID_BRANCH_OF_DEAD_TREE = 604,
+	ITEMID_ANODYNE,
+	ITEMID_ALOEBERA,
+	ITEMID_EMPTY_BOTTLE = 713,
+	ITEMID_EMPERIUM,
+	ITEMID_YELLOW_GEMSTONE,
+	ITEMID_RED_GEMSTONE,
+	ITEMID_BLUE_GEMSTONE,
+	ITEMID_ALCOHOL = 970,
+	ITEMID_ORIDECON = 984,
+	ITEMID_ANVIL = 986,
+	ITEMID_ORIDECON_ANVIL,
+	ITEMID_GOLDEN_ANVIL,
+	ITEMID_EMPERIUM_ANVIL,
+	ITEMID_BLOODY_RED,
+	ITEMID_CRYSTAL_BLUE,
+	ITEMID_WIND_OF_VERDURE,
+	ITEMID_YELLOW_LIVE,
+	ITEMID_FLAME_HEART,
+	ITEMID_MISTIC_FROZEN,
+	ITEMID_ROUGH_WIND,
+	ITEMID_GREAT_NATURE,
+	ITEMID_IRON,
+	ITEMID_STEEL,
+	ITEMID_STAR_CRUMB,
+	ITEMID_PHRACON = 1010,
+	ITEMID_EMVERETARCON,
 	ITEMID_TRAP = 1065,
 	ITEMID_ANGRA_MANYU = 1599,
 	ITEMID_PAINT_BRUSH = 6122,
+	ITEMID_SCARLET_PTS = 6360,
+	ITEMID_INDIGO_PTS,
+	ITEMID_YELLOW_WISH_PTS,
+	ITEMID_LIME_GREEN_PTS,
 	ITEMID_STRANGE_EMBRYO = 6415,
 	ITEMID_STONE = 7049,
+	ITEMID_FIRE_BOTTLE = 7135,
+	ITEMID_ACID_BOTTLE,
+	ITEMID_MAN_EATER_BOTTLE,
+	ITEMID_MINI_BOTTLE,
+	ITEMID_COATING_BOTTLE,
+	ITEMID_FRAGMENT_OF_CRYSTAL = 7321,
 	ITEMID_SKULL_ = 7420,
 	ITEMID_TOKEN_OF_SIEGFRIED = 7621,
 	ITEMID_TRAP_ALLOY = 7940,
+	ITEMID_RED_POUCH_OF_SURPRISE = 12024,
+	ITEMID_BLOODY_DEAD_BRANCH = 12103,
+	ITEMID_PORING_BOX = 12109,
+	ITEMID_MERCENARY_RED_POTION = 12184,
+	ITEMID_MERCENARY_BLUE_POTION,
+	ITEMID_BATTLE_MANUAL = 12208,
+	ITEMID_BUBBLE_GUM = 12210,
+	ITEMID_GIANT_FLY_WING = 12212,
+	ITEMID_NEURALIZER,
+	ITEMID_M_CENTER_POTION = 12241,
+	ITEMID_M_AWAKENING_POTION,
+	ITEMID_M_BERSERK_POTION,
+	ITEMID_COMP_BATTLE_MANUAL = 12263,
+	ITEMID_COMP_BUBBLE_GUM,
+	ITEMID_THICK_BATTLE_MANUAL = 12312,
 	ITEMID_ANCILLA = 12333,
-	ITEMID_REINS_OF_MOUNT = 12622,
+	ITEMID_DUN_TELE_SCROLL3 = 12352,
+	ITEMID_NOBLE_NAMEPLATE = 12705,
+	ITEMID_TREASURE_CHEST_SUMMONED_II = 12863,
 	ITEMID_LOVE_ANGEL = 12287,
-	ITEMID_SQUIRREL = 12288,
-	ITEMID_GOGO = 12289,
+	ITEMID_SQUIRREL,
+	ITEMID_GOGO,
 	ITEMID_PICTURE_DIARY = 12304,
-	ITEMID_MINI_HEART = 12305,
-	ITEMID_NEWCOMER = 12306,
-	ITEMID_KID = 12307,
-	ITEMID_MAGIC_CASTLE = 12308,
-	ITEMID_BULGING_HEAD = 12309,
+	ITEMID_MINI_HEART,
+	ITEMID_NEWCOMER,
+	ITEMID_KID,
+	ITEMID_MAGIC_CASTLE,
+	ITEMID_BULGING_HEAD,
+	ITEMID_REINS_OF_MOUNT = 12622,
+	ITEMID_DUN_TELE_SCROLL1 = 14527,
+	ITEMID_BATTLE_MANUAL25 = 14532,
+	ITEMID_BATTLE_MANUAL100,
+	ITEMID_BATTLE_MANUAL300 = 14545,
+	ITEMID_DUN_TELE_SCROLL2  = 14581,
+	ITEMID_WOB_RUNE = 14582,
+	ITEMID_WOB_SCHWALTZ,
+	ITEMID_WOB_RACHEL,
+	ITEMID_WOB_LOCAL,
+	ITEMID_SIEGE_TELEPORT_SCROLL = 14591,
+	ITEMID_JOB_MANUAL50,
 };
 
-enum rune_list {
+enum mercenary_scroll_item_list {
+	ITEMID_BOW_MERCENARY_SCROLL1 = 12153,
+	ITEMID_BOW_MERCENARY_SCROLL2,
+	ITEMID_BOW_MERCENARY_SCROLL3,
+	ITEMID_BOW_MERCENARY_SCROLL4,
+	ITEMID_BOW_MERCENARY_SCROLL5,
+	ITEMID_BOW_MERCENARY_SCROLL6,
+	ITEMID_BOW_MERCENARY_SCROLL7,
+	ITEMID_BOW_MERCENARY_SCROLL8,
+	ITEMID_BOW_MERCENARY_SCROLL9,
+	ITEMID_BOW_MERCENARY_SCROLL10,
+	ITEMID_SWORDMERCENARY_SCROLL1,
+	ITEMID_SWORDMERCENARY_SCROLL2,
+	ITEMID_SWORDMERCENARY_SCROLL3,
+	ITEMID_SWORDMERCENARY_SCROLL4,
+	ITEMID_SWORDMERCENARY_SCROLL5,
+	ITEMID_SWORDMERCENARY_SCROLL6,
+	ITEMID_SWORDMERCENARY_SCROLL7,
+	ITEMID_SWORDMERCENARY_SCROLL8,
+	ITEMID_SWORDMERCENARY_SCROLL9,
+	ITEMID_SWORDMERCENARY_SCROLL10,
+	ITEMID_SPEARMERCENARY_SCROLL1,
+	ITEMID_SPEARMERCENARY_SCROLL2,
+	ITEMID_SPEARMERCENARY_SCROLL3,
+	ITEMID_SPEARMERCENARY_SCROLL4,
+	ITEMID_SPEARMERCENARY_SCROLL5,
+	ITEMID_SPEARMERCENARY_SCROLL6,
+	ITEMID_SPEARMERCENARY_SCROLL7,
+	ITEMID_SPEARMERCENARY_SCROLL8,
+	ITEMID_SPEARMERCENARY_SCROLL9,
+	ITEMID_SPEARMERCENARY_SCROLL10,
+};
+
+enum rune_item_list {
 	ITEMID_NAUTHIZ = 12725,
 	ITEMID_RAIDO,
 	ITEMID_BERKANA,
@@ -80,7 +184,7 @@ enum rune_list {
 	ITEMID_LUX_ANIMA = 22540,
 };
 
-enum mecha_item_list {
+enum mechanic_item_list {
 	ITEMID_ACCELERATOR = 2800,
 	ITEMID_HOVERING_BOOSTER,
 	ITEMID_SUICIDAL_DEVICE,
@@ -92,6 +196,100 @@ enum mecha_item_list {
 	ITEMID_CAMOUFLAGE_GENERATOR,
 	ITEMID_HIGH_QUALITY_COOLER,
 	ITEMID_SPECIAL_COOLER,
+};
+
+enum genetic_item_list {
+	ITEMID_SEED_OF_HORNY_PLANT = 6210,
+	ITEMID_BLOODSUCK_PLANT_SEED,
+	ITEMID_BOMB_MUSHROOM_SPORE,
+	ITEMID_HP_INCREASE_POTION_SMALL = 12422,
+	ITEMID_HP_INCREASE_POTION_MEDIUM,
+	ITEMID_HP_INCREASE_POTION_LARGE,
+	ITEMID_SP_INCREASE_POTION_SMALL,
+	ITEMID_SP_INCREASE_POTION_MEDIUM,
+	ITEMID_SP_INCREASE_POTION_LARGE,
+	ITEMID_CONCENTRATED_WHITE_POTION_Z,
+	ITEMID_SAVAGE_FULL_ROAST,
+	ITEMID_COCKTAIL_WARG_BLOOD,
+	ITEMID_MINOR_STEW,
+	ITEMID_SIROMA_ICED_TEA,
+	ITEMID_DROSERA_HERB_SALAD,
+	ITEMID_PETITE_TAIL_NOODLES,
+	ITEMID_BLACK_MASS,
+	ITEMID_VITATA500,
+	ITEMID_CONCENTRATED_CEROMAIN_SOUP,
+	ITEMID_CURE_FREE = 12475,
+	ITEMID_APPLE_BOMB = 13260,
+	ITEMID_COCONUT_BOMB,
+	ITEMID_MELON_BOMB,
+	ITEMID_PINEAPPLE_BOMB,
+	ITEMID_BANANA_BOMB,
+	ITEMID_BLACK_LUMP,
+	ITEMID_BLACK_HARD_LUMP,
+	ITEMID_VERY_HARD_LUMP,
+	ITEMID_MYSTERIOUS_POWDER,
+	ITEMID_BOOST500_TO_THROW,
+	ITEMID_FULL_SWINGK_TO_THROW,
+	ITEMID_MANA_PLUS_TO_THROW,
+	ITEMID_CURE_FREE_TO_THROW,
+	ITEMID_STAMINA_UP_M_TO_THROW,
+	ITEMID_DIGESTIVE_F_TO_THROW,
+	ITEMID_HP_INC_POTS_TO_THROW,
+	ITEMID_HP_INC_POTM_TO_THROW,
+	ITEMID_HP_INC_POTL_TO_THROW,
+	ITEMID_SP_INC_POTS_TO_THROW,
+	ITEMID_SP_INC_POTM_TO_THROW,
+	ITEMID_SP_INC_POTL_TO_THROW,
+	ITEMID_EN_WHITE_POTZ_TO_THROW,
+	ITEMID_VITATA500_TO_THROW,
+	ITEMID_EN_CEL_JUICE_TO_THROW,
+	ITEMID_SAVAGE_BBQ_TO_THROW,
+	ITEMID_WUG_COCKTAIL_TO_THROW,
+	ITEMID_M_BRISKET_TO_THROW,
+	ITEMID_SIROMA_ICETEA_TO_THROW,
+	ITEMID_DROCERA_STEW_TO_THROW,
+	ITEMID_PETTI_NOODLE_TO_THROW,
+	ITEMID_BLACK_THING_TO_THROW,
+};
+
+enum poison_item_list {
+	ITEMID_PARALYSE = 12717,
+	ITEMID_LEECHESEND,
+	ITEMID_OBLIVIONCURSE,
+	ITEMID_DEATHHURT,
+	ITEMID_TOXIN,
+	ITEMID_PYREXIA,
+	ITEMID_MAGICMUSHROOM,
+	ITEMID_VENOMBLEED,
+};
+
+enum spell_book_item_list {
+	ITEMID_MAGIC_BOOK_FB = 6189,
+	ITEMID_MAGIC_BOOK_CB,
+	ITEMID_MAGIC_BOOK_LB,
+	ITEMID_MAGIC_BOOK_SG,
+	ITEMID_MAGIC_BOOK_LOV,
+	ITEMID_MAGIC_BOOK_MS,
+	ITEMID_MAGIC_BOOK_CM,
+	ITEMID_MAGIC_BOOK_TV,
+	ITEMID_MAGIC_BOOK_TS,
+	ITEMID_MAGIC_BOOK_JT,
+	ITEMID_MAGIC_BOOK_WB,
+	ITEMID_MAGIC_BOOK_HD,
+	ITEMID_MAGIC_BOOK_ES,
+	ITEMID_MAGIC_BOOK_ES_,
+	ITEMID_MAGIC_BOOK_CL,
+	ITEMID_MAGIC_BOOK_CR,
+	ITEMID_MAGIC_BOOK_DL,
+};
+
+enum cash_food_item_list {
+	ITEMID_STR_DISH10_ = 12202,
+	ITEMID_AGI_DISH10_,
+	ITEMID_INT_DISH10_,
+	ITEMID_DEX_DISH10_,
+	ITEMID_LUK_DISH10_,
+	ITEMID_VIT_DISH10_,
 };
 
 enum item_nouse_list {
@@ -220,17 +418,17 @@ struct item_data* itemdb_exists(int nameid);
 #define itemdb_viewid(n) (itemdb_search(n)->view_id)
 #define itemdb_autoequip(n) (itemdb_search(n)->flag.autoequip)
 #define itemdb_is_rune(n) ((n >= ITEMID_NAUTHIZ && n <= ITEMID_HAGALAZ) || n == ITEMID_LUX_ANIMA)
-#define itemdb_is_element(n) (n >= 6360 && n <= 6363)
-#define itemdb_is_spellbook(n) (n >= 6188 && n <= 6205)
-#define itemdb_is_poison(n) (n >= 12717 && n <= 12724)
-#define itemid_isgemstone(id) ( (id) >= ITEMID_YELLOW_GEMSTONE && (id) <= ITEMID_BLUE_GEMSTONE )
-#define itemdb_iscashfood(id) ( (id) >= 12202 && (id) <= 12207 )
-#define itemdb_is_GNbomb(n) (n >= 13260 && n <= 13267)
-#define itemdb_is_GNthrowable(n) (n >= 13268 && n <= 13290)
-const char* itemdb_typename(int type);
+#define itemdb_is_element(n) (n >= ITEMID_SCARLET_PTS && n <= ITEMID_LIME_GREEN_PTS)
+#define itemdb_is_spellbook(n) (n >= ITEMID_MAGIC_BOOK_FB && n <= ITEMID_MAGIC_BOOK_DL)
+#define itemdb_is_poison(n) (n >= ITEMID_PARALYSE && n <= ITEMID_VENOMBLEED)
+#define itemid_isgemstone(id) ((id) >= ITEMID_YELLOW_GEMSTONE && (id) <= ITEMID_BLUE_GEMSTONE)
+#define itemdb_iscashfood(id) ((id) >= ITEMID_STR_DISH10_ && (id) <= ITEMID_VIT_DISH10_)
+#define itemdb_is_GNbomb(n) (n >= ITEMID_APPLE_BOMB && n <= ITEMID_VERY_HARD_LUMP)
+#define itemdb_is_GNthrowable(n) (n >= ITEMID_MYSTERIOUS_POWDER && n <= ITEMID_BLACK_THING_TO_THROW)
+const char* itemdb_typename(enum item_types type);
 
 int itemdb_group_bonus(struct map_session_data* sd, int itemid);
-int itemdb_searchrandomid(int group_id, uint8 sub_group);
+unsigned short itemdb_searchrandomid(int group_id, uint8 sub_group);
 
 #define itemdb_value_buy(n) itemdb_search(n)->value_buy
 #define itemdb_value_sell(n) itemdb_search(n)->value_sell
@@ -245,7 +443,7 @@ int itemdb_canstore_sub(struct item_data*, int, int);
 int itemdb_canguildstore_sub(struct item_data*, int, int);
 int itemdb_canmail_sub(struct item_data*, int, int);
 int itemdb_canauction_sub(struct item_data*, int, int);
-int itemdb_isrestricted(struct item* item, int gmlv, int gmlv2, int (*func)(struct item_data*, int, int));
+bool itemdb_isrestricted(struct item* item, int gmlv, int gmlv2, int (*func)(struct item_data*, int, int));
 #define itemdb_isdropable(item, gmlv) itemdb_isrestricted(item, gmlv, 0, itemdb_isdropable_sub)
 #define itemdb_cantrade(item, gmlv, gmlv2) itemdb_isrestricted(item, gmlv, gmlv2, itemdb_cantrade_sub)
 #define itemdb_canpartnertrade(item, gmlv, gmlv2) itemdb_isrestricted(item, gmlv, gmlv2, itemdb_canpartnertrade_sub)
@@ -256,15 +454,15 @@ int itemdb_isrestricted(struct item* item, int gmlv, int gmlv2, int (*func)(stru
 #define itemdb_canmail(item, gmlv) itemdb_isrestricted(item , gmlv, 0, itemdb_canmail_sub)
 #define itemdb_canauction(item, gmlv) itemdb_isrestricted(item , gmlv, 0, itemdb_canauction_sub)
 
-int itemdb_isequip(int);
-int itemdb_isequip2(struct item_data *);
-int itemdb_isidentified(int);
-int itemdb_isstackable(int);
-int itemdb_isstackable2(struct item_data *);
+bool itemdb_isequip(int);
+bool itemdb_isequip2(struct item_data *);
+char itemdb_isidentified(int);
+bool itemdb_isstackable(uint16 nameid);
+bool itemdb_isstackable2(struct item_data *data);
 uint64 itemdb_unique_id(int8 flag, int64 value); //Unique Item ID
 bool itemdb_isNoEquip(struct item_data *id, uint16 m);
 
-uint8 itemdb_pc_get_itemgroup(uint16 group_id, uint16 nameid, struct map_session_data *sd);
+char itemdb_pc_get_itemgroup(uint16 group_id, struct map_session_data *sd);
 uint16 itemdb_get_randgroupitem_count(uint16 group_id, uint8 sub_group, uint16 nameid);
 
 DBMap* itemdb_get_combodb();

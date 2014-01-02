@@ -1481,6 +1481,7 @@ int map_addflooritem(struct item *item_data,int amount,int16 m,int16 x,int16 y,i
 static DBData create_charid2nick(DBKey key, va_list args)
 {
 	struct charid2nick *p;
+
 	CREATE(p, struct charid2nick, 1);
 	return db_ptr2data(p);
 }
@@ -1490,16 +1491,17 @@ static DBData create_charid2nick(DBKey key, va_list args)
 void map_addnickdb(int charid, const char* nick)
 {
 	struct charid2nick* p;
-	struct charid_request* req;
-	struct map_session_data* sd;
 
 	if( map_charid2sd(charid) )
-		return; // already online
+		return; //Already online
 
 	p = idb_ensure(nick_db, charid, create_charid2nick);
 	safestrncpy(p->nick, nick, sizeof(p->nick));
 
 	while( p->requests ) {
+		struct map_session_data* sd;
+		struct charid_request* req;
+
 		req = p->requests;
 		p->requests = req->next;
 		sd = map_charid2sd(req->charid);
@@ -1514,14 +1516,15 @@ void map_addnickdb(int charid, const char* nick)
 void map_delnickdb(int charid, const char* name)
 {
 	struct charid2nick* p;
-	struct charid_request* req;
-	struct map_session_data* sd;
 	DBData data;
 
 	if (!nick_db->remove(nick_db, db_i2key(charid), &data) || (p = db_data2ptr(&data)) == NULL)
 		return;
 
 	while( p->requests ) {
+		struct map_session_data* sd;
+		struct charid_request* req;
+
 		req = p->requests;
 		p->requests = req->next;
 		sd = map_charid2sd(req->charid);
@@ -2513,38 +2516,44 @@ uint8 map_calc_dir(struct block_list* src, int16 x, int16 y)
 	
 	nullpo_ret(src);
 	
-	dx = x-src->x;
-	dy = y-src->y;
-	if( dx == 0 && dy == 0 )
-	{	// both are standing on the same spot
-		//dir = 6; // aegis-style, makes knockback default to the left
-		dir = unit_getdir(src); // athena-style, makes knockback default to behind 'src'
-	}
-	else if( dx >= 0 && dy >=0 )
-	{	// upper-right
-		if( dx*2 <= dy )      dir = 0;	// up
-		else if( dx > dy*2 )  dir = 6;	// right
-		else                  dir = 7;	// up-right
-	}
-	else if( dx >= 0 && dy <= 0 )
-	{	// lower-right
-		if( dx*2 <= -dy )     dir = 4;	// down
-		else if( dx > -dy*2 ) dir = 6;	// right
-		else                  dir = 5;	// down-right
-	}
-	else if( dx <= 0 && dy <= 0 )
-	{	// lower-left
-		if( dx*2 >= dy )      dir = 4;	// down
-		else if( dx < dy*2 )  dir = 2;	// left
-		else                  dir = 3;	// down-left
-	}
-	else
-	{	// upper-left
-		if( -dx*2 <= dy )     dir = 0;	// up
-		else if( -dx > dy*2 ) dir = 2;	// left
-		else                  dir = 1;	// up-left
+	dx = x - src->x;
+	dy = y - src->y;
+
+	if(dx == 0 && dy == 0) {
+		//Both are standing on the same spot
+		//dir = 6; // Aegis-style, makes knockback default to the left
+		dir = unit_getdir(src); //Athena-style, makes knockback default to behind 'src'
+	} else if(dx >= 0 && dy >= 0) { //Upper-right
+		if(dx * 2 <= dy)
+			dir = 0; //Up
+		else if(dx > dy * 2)
+			dir = 6; //Right
+		else
+			dir = 7; //Up-right
+	} else if(dx >= 0 && dy <= 0) { //Lower-right
+		if(dx * 2 <= -dy)
+			dir = 4; //Down
+		else if(dx > -dy * 2)
+			dir = 6; //Right
+		else
+			dir = 5; //Down-right
+	} else if(dx <= 0 && dy <= 0) { //Lower-left
+		if(dx * 2 >= dy)
+			dir = 4; //Down
+		else if(dx < dy * 2)
+			dir = 2; //Left
+		else
+			dir = 3; //Down-left
+	} else { //Upper-left
+		if(-dx * 2 <= dy)
+			dir = 0; //Up
+		else if(-dx > dy * 2)
+			dir = 2; //Left
+		else
+			dir = 1; //Up-left
 	
 	}
+
 	return dir;
 }
 
@@ -2554,26 +2563,26 @@ uint8 map_calc_dir(struct block_list* src, int16 x, int16 y)
  *------------------------------------------*/
 int map_random_dir(struct block_list *bl, int16 *x, int16 *y)
 {
-	short xi = *x-bl->x;
-	short yi = *y-bl->y;
-	short i=0, j;
-	int dist2 = xi*xi + yi*yi;
+	short xi = *x - bl->x;
+	short yi = *y - bl->y;
+	short i = 0;
+	int dist2 = xi * xi + yi * yi;
 	short dist = (short)sqrt((float)dist2);
-	short segment;
-	
-	if (dist < 1) dist =1;
-	
+
+	if(dist < 1) dist = 1;
+
 	do {
-		j = 1 + 2*(rnd()%4); //Pick a random diagonal direction
-		segment = 1+(rnd()%dist); //Pick a random interval from the whole vector in that direction
-		xi = bl->x + segment*dirx[j];
-		segment = (short)sqrt((float)(dist2 - segment*segment)); //The complement of the previously picked segment
-		yi = bl->y + segment*diry[j];
-	} while (
+		short j = 1 + 2 * (rnd()%4); //Pick a random diagonal direction
+		short segment = 1 + (rnd()%dist); //Pick a random interval from the whole vector in that direction
+
+		xi = bl->x + segment * dirx[j];
+		segment = (short)sqrt((float)(dist2 - segment * segment)); //The complement of the previously picked segment
+		yi = bl->y + segment * diry[j];
+	} while(
 		(map_getcell(bl->m,xi,yi,CELL_CHKNOPASS) || !path_search(NULL,bl->m,bl->x,bl->y,xi,yi,1,CELL_CHKNOREACH))
-		&& (++i)<100 );
-	
-	if (i < 100) {
+		&& (++i) < 100);
+
+	if(i < 100) {
 		*x = xi;
 		*y = yi;
 		return 1;
@@ -2584,17 +2593,17 @@ int map_random_dir(struct block_list *bl, int16 *x, int16 *y)
 // gat system
 inline static struct mapcell map_gat2cell(int gat) {
 	struct mapcell cell;
-	
+
 	memset(&cell,0,sizeof(struct mapcell));
-	
-	switch( gat ) {
-		case 0: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; // walkable ground
-		case 1: cell.walkable = 0; cell.shootable = 0; cell.water = 0; break; // non-walkable ground
-		case 2: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; // ???
-		case 3: cell.walkable = 1; cell.shootable = 1; cell.water = 1; break; // walkable water
-		case 4: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; // ???
-		case 5: cell.walkable = 0; cell.shootable = 1; cell.water = 0; break; // gap (snipable)
-		case 6: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; // ???
+
+	switch(gat) {
+		case 0: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; //Walkable ground
+		case 1: cell.walkable = 0; cell.shootable = 0; cell.water = 0; break; //Non-walkable ground
+		case 2: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; //???
+		case 3: cell.walkable = 1; cell.shootable = 1; cell.water = 1; break; //Walkable water
+		case 4: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; //???
+		case 5: cell.walkable = 0; cell.shootable = 1; cell.water = 0; break; //Gap (snipable)
+		case 6: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; //???
 		default:
 			ShowWarning("map_gat2cell: unrecognized gat type '%d'\n", gat);
 			break;
@@ -2605,13 +2614,13 @@ inline static struct mapcell map_gat2cell(int gat) {
 
 static int map_cell2gat(struct mapcell cell)
 {
-	if( cell.walkable == 1 && cell.shootable == 1 && cell.water == 0 ) return 0;
-	if( cell.walkable == 0 && cell.shootable == 0 && cell.water == 0 ) return 1;
-	if( cell.walkable == 1 && cell.shootable == 1 && cell.water == 1 ) return 3;
-	if( cell.walkable == 0 && cell.shootable == 1 && cell.water == 0 ) return 5;
+	if(cell.walkable == 1 && cell.shootable == 1 && cell.water == 0) return 0;
+	if(cell.walkable == 0 && cell.shootable == 0 && cell.water == 0) return 1;
+	if(cell.walkable == 1 && cell.shootable == 1 && cell.water == 1) return 3;
+	if(cell.walkable == 0 && cell.shootable == 1 && cell.water == 0) return 5;
 
 	ShowWarning("map_cell2gat: cell has no matching gat type\n");
-	return 1; // default to 'wall'
+	return 1; //Default to 'wall'
 }
 
 /*==========================================
@@ -2629,18 +2638,17 @@ int map_getcellp(struct map_data* m,int16 x,int16 y,cell_chk cellchk)
 	nullpo_ret(m);
 
 	//NOTE: this intentionally overrides the last row and column
-	if(x<0 || x>=m->xs-1 || y<0 || y>=m->ys-1)
+	if(x < 0 || x >= m->xs - 1 || y < 0 || y >= m->ys - 1)
 		return( cellchk == CELL_CHKNOPASS );
 
-	cell = m->cell[x + y*m->xs];
+	cell = m->cell[x + y * m->xs];
 
-	switch(cellchk)
-	{
-		// gat type retrieval
+	switch(cellchk) {
+		//Gat type retrieval
 		case CELL_GETTYPE:
 			return map_cell2gat(cell);
 
-		// base gat type checks
+		//Base gat type checks
 		case CELL_CHKWALL:
 			return (!cell.walkable && !cell.shootable);
 
@@ -3164,11 +3172,12 @@ int map_waterheight(char* mapname)
 
 	found = grfio_find_file(fn);
 	if (found) strcpy(fn, found); // Replace with real name
-	
+
 	// Read & convert fn
 	rsw = (char *) grfio_read (fn);
 	if (rsw) { // Load water height from file
-		int wh = (int) *(float*)(rsw + 166);
+		//FIXME Casting between integer* and float* which have an incompatible binary data representation.
+		int wh = (int)*(float*)(rsw + 166);
 
 		aFree(rsw);
 		return wh;

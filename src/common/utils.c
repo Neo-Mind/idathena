@@ -272,7 +272,7 @@ uint32 date2version(int date) {
 	else if( date < 20070108 ) return 20;
 	else if( date < 20070212 ) return 21;
 	//WTF @FIXME
-	else if( date < 20080910 ) return 22;
+	//else if( date < 20080910 ) return 22;
 	else if( date < 20080827 ) return 23;
 	else if( date < 20080910 ) return 24;
 	//Unable to solve from date

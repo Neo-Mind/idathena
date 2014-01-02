@@ -368,13 +368,13 @@ int guild_create(struct map_session_data *sd, const char *name)
 	trim(tname);
 
 	if( !tname[0] )
-		return 0; // empty name
+		return 0; // Empty name
 
-	if( sd->status.guild_id ) { // already in a guild
+	if( sd->status.guild_id ) { // Already in a guild
 		clif_guild_created(sd,1);
 		return 0;
 	}
-	if( battle_config.guild_emperium_check && pc_search_inventory(sd,714) == -1 ) { // item required
+	if( battle_config.guild_emperium_check && pc_search_inventory(sd,ITEMID_EMPERIUM) == -1 ) { // Item required
 		clif_guild_created(sd,3);
 		return 0;
 	}

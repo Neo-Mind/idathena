@@ -25,14 +25,12 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <sys/stat.h> // For stat/lstat/fstat - [Dekamaster/Ultimate GM Tool]
+#include <sys/stat.h> //For stat/lstat/fstat - [Dekamaster/Ultimate GM Tool]
 
+#define WISDATA_TTL (60 * 1000) //Wis data Time To Live (60 seconds)
+#define WISDELLIST_MAX 256 //Number of elements in the list Delete data Wis
 
-#define WISDATA_TTL (60 * 1000) // Wis data Time To Live (60 seconds)
-#define WISDELLIST_MAX 256 // Number of elements in the list Delete data Wis
-
-
-Sql* sql_handle = NULL;
+Sql* sql_handle = NULL; //Link to mysql db, connection FD
 
 int char_server_port = 3306;
 char char_server_ip[32] = "127.0.0.1";
@@ -321,7 +319,7 @@ void geoip_readdb(void) {
 	struct stat bufa;
 	FILE *db = fopen("./db/GeoIP.dat", "rb");
 	fstat(fileno(db), &bufa);
-	geoip_cache = (unsigned char *) malloc(sizeof(unsigned char) * bufa.st_size);
+	geoip_cache = (unsigned char *)aMalloc(sizeof(unsigned char) * bufa.st_size);
 	if( fread(geoip_cache, sizeof(unsigned char), bufa.st_size, db) != bufa.st_size )
 		ShowError("geoip_cache reading didn't read all elements \n");
 	fclose(db);
@@ -467,7 +465,7 @@ void mapif_parse_accinfo(int fd) {
 		inter_to_fd(fd, u_fd, aid, "User: %s | GM Group: %d | State: %d", userid, level, state );
 
 		if( level < castergroup ) { /* Only show pass if your gm level is greater than the one you're searching for */
-			if( strlen(pincode) )
+			if( pincode[0] != '\0' )
 				inter_to_fd(fd, u_fd, aid, "Password: %s (PIN:%s)", user_pass, pincode );
 			else
 				inter_to_fd(fd, u_fd, aid, "Password: %s", user_pass );
@@ -754,6 +752,8 @@ void inter_final(void)
 
 	if (accreg_pt) aFree(accreg_pt);
 
+	if (geoip_cache) aFree(geoip_cache);
+
 	return;
 }
 
@@ -765,10 +765,12 @@ int inter_mapif_init(int fd)
 
 //--------------------------------------------------------
 
-// broadcast sending
+// Broadcast sending
 int mapif_broadcast(unsigned char *mes, int len, unsigned long fontColor, short fontType, short fontSize, short fontAlign, short fontY, int sfd)
 {
-	unsigned char *buf = (unsigned char*)aMalloc((len)*sizeof(unsigned char));
+	unsigned char *buf = (unsigned char*)aMalloc((len) * sizeof(unsigned char));
+
+	if (buf == NULL) return 1;
 
 	WBUFW(buf,0) = 0x3800;
 	WBUFW(buf,2) = len;
@@ -780,8 +782,7 @@ int mapif_broadcast(unsigned char *mes, int len, unsigned long fontColor, short 
 	memcpy(WBUFP(buf,16), mes, len - 16);
 	mapif_sendallwos(sfd, buf, len);
 
-	if (buf)
-		aFree(buf);
+	aFree(buf);
 	return 0;
 }
 

@@ -43,7 +43,7 @@ struct s_elemental_db elemental_db[MAX_ELEMENTAL_CLASS]; // Elemental Database
 int elemental_search_index(int class_) {
 	int i;
 	ARR_FIND(0, MAX_ELEMENTAL_CLASS, i, elemental_db[i].class_ == class_);
-	return (i == MAX_ELEMENTAL_CLASS)?-1:i;
+	return (i == MAX_ELEMENTAL_CLASS) ? -1 : i;
 }
 
 bool elemental_class(int class_) {
@@ -74,7 +74,7 @@ int elemental_create(struct map_session_data *sd, int class_, unsigned int lifet
 	ele.char_id = sd->status.char_id;
 	ele.class_ = class_;
 	ele.mode = EL_MODE_PASSIVE; // Initial mode
-	i = db->status.size+1; // summon level
+	i = db->status.size + 1; // summon level
 
 	//[(Caster’s Max HP/ 3 ) + (Caster’s INT x 10 )+ (Caster’s Job Level x 20 )] x [(Elemental Summon Level + 2) / 3]
 	ele.hp = ele.max_hp = (sd->battle_status.max_hp/3 + sd->battle_status.int_*10 + sd->status.job_level) * ((i + 2) / 3);
@@ -99,33 +99,41 @@ int elemental_create(struct map_session_data *sd, int class_, unsigned int lifet
 	//Caster’s HIT + (Caster’s Base Level )
 	ele.hit = sd->battle_status.hit + sd->status.base_level;
 
-	//per individual bonuses
-	switch(db->class_){
-	case 2114:	case 2115:
-	case 2116: //ATK + (Summon Agni Skill Level x 20) / HIT + (Summon Agni Skill Level x 10)
-		ele.atk += i * 20;
-		ele.atk2 += i * 20;
-		ele.hit += i * 10;
-		break;
-	case 2117:	case 2118:
-	case 2119: //MDEF + (Summon Aqua Skill Level x 10) / MATK + (Summon Aqua Skill Level x 20)
-		ele.mdef += i * 10;
-		ele.matk += i * 20;
-		break;
-	case 2120:	case 2121:
-	case 2122: //FLEE + (Summon Ventus Skill Level x 20) / MATK + (Summon Ventus Skill Level x 10)
-		ele.flee += i * 20;
-		ele.matk += i * 10;
-		break;
-	case 2123:	case 2124:
-	case 2125: //DEF + (Summon Tera Skill Level x 25) / ATK + (Summon Tera Skill Level x 5)
-		ele.def += i * 25;
-		ele.atk += i * 5;
-		ele.atk2 += i * 5;
-		break;
+	//Per individual bonuses
+	switch(db->class_) {
+		case ELEMENTALID_AGNI_S:
+		case ELEMENTALID_AGNI_M:
+		case ELEMENTALID_AGNI_L:
+			//ATK + (Summon Agni Skill Level x 20) / HIT + (Summon Agni Skill Level x 10)
+			ele.atk += i * 20;
+			ele.atk2 += i * 20;
+			ele.hit += i * 10;
+			break;
+		case ELEMENTALID_AQUA_S:
+		case ELEMENTALID_AQUA_M:
+		case ELEMENTALID_AQUA_L:
+			//MDEF + (Summon Aqua Skill Level x 10) / MATK + (Summon Aqua Skill Level x 20)
+			ele.mdef += i * 10;
+			ele.matk += i * 20;
+			break;
+		case ELEMENTALID_VENTUS_S:
+		case ELEMENTALID_VENTUS_M:
+		case ELEMENTALID_VENTUS_L:
+			//FLEE + (Summon Ventus Skill Level x 20) / MATK + (Summon Ventus Skill Level x 10)
+			ele.flee += i * 20;
+			ele.matk += i * 10;
+			break;
+		case ELEMENTALID_TERA_S:
+		case ELEMENTALID_TERA_M:
+		case ELEMENTALID_TERA_L:
+			//DEF + (Summon Tera Skill Level x 25) / ATK + (Summon Tera Skill Level x 5)
+			ele.def += i * 25;
+			ele.atk += i * 5;
+			ele.atk2 += i * 5;
+			break;
 	}
 
-	if( (i=pc_checkskill(sd,SO_EL_SYMPATHY)) > 0 ){
+	if( (i = pc_checkskill(sd,SO_EL_SYMPATHY)) > 0 ) {
 		ele.hp = ele.max_hp = ele.max_hp * 5 * i / 100;
 		ele.sp = ele.max_sp = ele.max_sp * 5 * i / 100;
 		ele.atk += 25 * i;
@@ -659,12 +667,16 @@ static int elemental_ai_sub_timer(struct elemental_data *ed, struct map_session_
 		int sp = 5;
 
 		switch(ed->vd->class_) {
-			case 2115:	case 2118:
-			case 2121:	case 2124:
+			case ELEMENTALID_AGNI_M:
+			case ELEMENTALID_AQUA_M:
+			case ELEMENTALID_VENTUS_M:
+			case ELEMENTALID_TERA_M:
 				sp = 8;
 				break;
-			case 2116:	case 2119:
-			case 2122:	case 2125:
+			case ELEMENTALID_AGNI_L:
+			case ELEMENTALID_AQUA_L:
+			case ELEMENTALID_VENTUS_L:
+			case ELEMENTALID_TERA_L:
 				sp = 11;
 				break;
 		}
@@ -755,6 +767,7 @@ static int elemental_ai_sub_timer(struct elemental_data *ed, struct map_session_
 
 static int elemental_ai_sub_foreachclient(struct map_session_data *sd, va_list ap) {
 	unsigned int tick = va_arg(ap,unsigned int);
+
 	if(sd->status.ele_id && sd->ed)
 		elemental_ai_sub_timer(sd->ed,sd,tick);
 
@@ -832,8 +845,8 @@ int read_elementaldb(void) {
 		ele = atoi(str[21]);
 		status->def_ele = ele%10;
 		status->ele_lv = ele/20;
-		if( status->def_ele >= ELE_MAX ) {
-			ShowWarning("Elemental %d has invalid element type %d (max element is %d)\n", db->class_, status->def_ele, ELE_MAX - 1);
+		if( status->def_ele >= ELE_ALL ) {
+			ShowWarning("Elemental %d has invalid element type %d (max element is %d)\n", db->class_, status->def_ele, ELE_ALL - 1);
 			status->def_ele = ELE_NEUTRAL;
 		}
 		if( status->ele_lv < 1 || status->ele_lv > 4 ) {

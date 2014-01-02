@@ -51,8 +51,8 @@ const char* mapindex_getmapname_ext(const char* string, char* output) {
 
 	size_t len;
 
-	strcpy(buf,string);
-	sscanf(string,"%*[^#]%*[#]%s",buf);
+	strcpy(buf, string);
+	sscanf(string, "%*[^#]%*[#]%15s", buf);
 
 	len = safestrnlen(buf, MAP_NAME_LENGTH);
 
@@ -60,11 +60,11 @@ const char* mapindex_getmapname_ext(const char* string, char* output) {
 		ShowWarning("(mapindex_normalize_name) Map name '%*s' is too long!\n", 2*MAP_NAME_LENGTH, buf);
 		len--;
 	}
-	safestrncpy(dest, buf, len+1);
+	safestrncpy(dest, buf, len + 1);
 
-	if (len < 4 || stricmp(&dest[len-4], ".gat") != 0) {
+	if (len < 4 || stricmp(&dest[len - 4], ".gat") != 0) {
 		strcpy(&dest[len], ".gat");
-		len += 4; // add .gat extension
+		len += 4; // Add .gat extension
 	}
 
 	memset(&dest[len], '\0', MAP_NAME_LENGTH_EXT-len);
@@ -139,7 +139,7 @@ void mapindex_init(void) {
 	int index;
 	char map_name[MAP_NAME_LENGTH];
 
-	if ((fp = fopen(mapindex_cfgfile,"r")) == NULL) {
+	if ((fp = fopen(mapindex_cfgfile, "r")) == NULL) {
 		ShowFatalError("Unable to read mapindex config file %s!\n", mapindex_cfgfile);
 		exit(EXIT_FAILURE); //Server can't really run without this file.
 	}
@@ -149,9 +149,9 @@ void mapindex_init(void) {
 		if (line[0] == '/' && line[1] == '/')
 			continue;
 
-		switch (sscanf(line, "%12s\t%d", map_name, &index)) {
+		switch (sscanf(line, "%11s\t%d", map_name, &index)) {
 			case 1: //Map with no ID given, auto-assign
-				index = last_index+1;
+				index = last_index + 1;
 			case 2: //Map with ID given
 				mapindex_addmap(index,map_name);
 				break;

@@ -1718,6 +1718,12 @@ enum e_bonus_script_flags {
 	BONUS_FLAG_REM_DEBUFF = 0x20, //Remove bonus when player logged out
 };
 
+//Enum for status_get_hpbonus and status_get_spbonus
+enum e_status_bonus {
+	STATUS_BONUS_FIX = 0,
+	STATUS_BONUS_RATE = 1,
+};
+
 //Define to determine who gets HP/SP consumed on doing skills/etc. [Skotlex]
 #define BL_CONSUME (BL_PC|BL_HOM|BL_MER|BL_ELEM)
 //Define to determine who has regen
@@ -1769,14 +1775,14 @@ struct status_data {
 		aspd_rate2,
 #endif
 		aspd_rate;
-	/**
-	 * defType is RENEWAL dependent and defined in src/map/config/data/const.h
-	 **/
+
+		//defType is RENEWAL dependent and defined in src/map/config/data/const.h
 		defType def,mdef;
 
 	unsigned char
 		def_ele, ele_lv,
-		size, race;
+		size, race,
+		class_;
 
 	struct weapon_atk rhw, lhw; //Right Hand/Left Hand Weapon.
 };
@@ -1932,6 +1938,7 @@ unsigned char status_calc_attack_element(struct block_list *bl, struct status_ch
 #define status_get_attack_element(bl) status_get_status_data(bl)->rhw.ele
 #define status_get_attack_lelement(bl) status_get_status_data(bl)->lhw.ele
 #define status_get_race(bl) status_get_status_data(bl)->race
+#define status_get_class_(bl) status_get_status_data(bl)->class_
 #define status_get_size(bl) status_get_status_data(bl)->size
 #define status_get_mode(bl) status_get_status_data(bl)->mode
 int status_get_party_id(struct block_list *bl);

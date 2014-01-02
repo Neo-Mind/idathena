@@ -1947,9 +1947,7 @@ enum {
  **/
 void skill_usave_add(struct map_session_data * sd, uint16 skill_id, uint16 skill_lv);
 void skill_usave_trigger(struct map_session_data *sd);
-/**
- * Warlock
- **/
+
 #define MAX_SKILL_SPELLBOOK_DB	17
 enum wl_spheres {
 	WLS_FIRE = 0x44,
@@ -1959,55 +1957,33 @@ enum wl_spheres {
 };
 int skill_spellbook (struct map_session_data *sd, int nameid);
 int skill_block_check(struct block_list *bl, enum sc_type type, uint16 skill_id);
-/**
- * Guilottine Cross
- **/
+
 #define MAX_SKILL_MAGICMUSHROOM_DB 23
 struct s_skill_magicmushroom_db {
 	uint16 skill_id;
 };
 extern struct s_skill_magicmushroom_db skill_magicmushroom_db[MAX_SKILL_MAGICMUSHROOM_DB];
-/**
- * Ranger
- **/
+
 int skill_detonator(struct block_list *bl, va_list ap);
 bool skill_check_camouflage(struct block_list *bl, struct status_change_entry *sce);
-/**
- * Mechanic
- **/
+
 int skill_magicdecoy(struct map_session_data *sd, int nameid);
-/**
- * Guiltoine Cross
- **/
+
 int skill_poisoningweapon( struct map_session_data *sd, int nameid);
-enum gx_poison {
-	PO_PARALYSE = 12717,
-	PO_LEECHESEND,
-	PO_OBLIVIONCURSE,
-	PO_DEATHHURT,
-	PO_TOXIN,
-	PO_PYREXIA,
-	PO_MAGICMUSHROOM,
-	PO_VENOMBLEED
-};
-/**
- * Shadow Chaser
- **/
+
 int skill_maelstrom_suction(struct block_list *bl, va_list ap);
 int skill_select_menu(struct map_session_data *sd,uint16 skill_id);
 bool skill_check_shadowform(struct block_list *bl, int64 damage, int hit);
 
-// Sorcerer Four Elemental Analisys.
 int skill_elementalanalysis(struct map_session_data *sd, int n, uint16 skill_lv, unsigned short *item_list);
 
- // Genetic Change Material.
 int skill_changematerial(struct map_session_data *sd, int n, unsigned short *item_list);
 int skill_get_elemental_type(uint16 skill_id, uint16 skill_lv);
 
 void skill_combo_toogle_inf(struct block_list* bl, uint16 skill_id, int inf);
 void skill_combo(struct block_list* src, struct block_list *dsrc, struct block_list *bl, uint16 skill_id, uint16 skill_lv, int tick);
 
-///Skill Damage target
+/// Skill Damage target
 #ifdef ADJUST_SKILL_DAMAGE
 enum e_skill_damage_caster {
 	SDC_PC   = 0x01,

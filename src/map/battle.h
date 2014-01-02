@@ -6,6 +6,7 @@
 
 #include "../common/mmo.h"
 #include "../config/core.h"
+#include "map.h" //ELE_MAX
 
 // State of a single attack attempt; used in flee/def penalty calculations when mobbed
 typedef enum damage_lv {
@@ -59,7 +60,7 @@ struct Damage {
 };
 
 //(Used in read pc.c,) attribute table (battle_attr_fix)
-extern int attr_fix_table[4][10][10];
+extern int attr_fix_table[4][ELE_MAX][ELE_MAX];
 
 struct map_session_data;
 struct mob_data;
@@ -94,7 +95,7 @@ struct block_list* battle_getenemy(struct block_list *target, int type, int rang
 int battle_gettarget(struct block_list *bl);
 int battle_getcurrentskill(struct block_list *bl);
 
-#define	is_boss(bl)	(status_get_mode(bl)&MD_BOSS) // Can refine later [Aru]
+#define	is_boss(bl)	(status_get_class_(bl) == CLASS_BOSS) // Can refine later [Aru]
 
 int battle_check_undead(int race,int element);
 int battle_check_target(struct block_list *src, struct block_list *target,int flag);
@@ -477,8 +478,10 @@ extern struct Battle_Config
 	int bg_flee_penalty;
 
 	int max_third_parameter;
-	int max_expanded_parameter;
 	int max_baby_third_parameter;
+	int max_trans_parameter;
+	int max_third_trans_parameter;
+	int max_extended_parameter;
 	int atcommand_max_stat_bypass;
 	int max_third_aspd;
 	int vcast_stat_scale;

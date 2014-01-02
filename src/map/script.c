@@ -4631,8 +4631,8 @@ BUILDIN_FUNC(prompt)
 		sd->state.menu_or_input = 0;
 		pc_setreg(sd, add_str("@menu"), 0xff);
 		script_pushint(st, 0xff);
-		st->state = RUN;
-	} else { // return selected option
+		st->state = END;
+	} else { // Return selected option
 		int menu = 0;
 
 		sd->state.menu_or_input = 0;
@@ -4640,7 +4640,7 @@ BUILDIN_FUNC(prompt)
 			text = script_getstr(st, i);
 			sd->npc_menu -= menu_countoptions(text, sd->npc_menu, &menu);
 			if( sd->npc_menu <= 0 )
-				break; // entry found
+				break; // Entry found
 		}
 		pc_setreg(sd, add_str("@menu"), menu);
 		script_pushint(st, menu);
@@ -8682,6 +8682,7 @@ BUILDIN_FUNC(monster)
 
 	for (i = 0; i < amount; i++) { //Not optimised
 		int mobid = mob_once_spawn(sd, m, x, y, str, class_, 1, event, size, ai);
+
 		mapreg_setreg(reference_uid(add_str("$@mobid"), i),mobid);
 	}
 	return SCRIPT_CMD_SUCCESS;
@@ -11028,7 +11029,7 @@ static int buildin_maprespawnguildid_sub_mob(struct block_list *bl,va_list ap)
 {
 	struct mob_data *md = (struct mob_data *)bl;
 
-	if(!md->guardian_data && md->class_ != MOBID_EMPERIUM)
+	if(!md->guardian_data && md->mob_id != MOBID_EMPERIUM)
 		status_kill(bl);
 
 	return 0;
@@ -11493,11 +11494,11 @@ BUILDIN_FUNC(mobcount) // Added by RoVeRT
 
 BUILDIN_FUNC(marriage)
 {
-	const char *partner=script_getstr(st,2);
-	TBL_PC *sd=script_rid2sd(st);
-	TBL_PC *p_sd=map_nick2sd(partner);
+	const char *partner = script_getstr(st,2);
+	TBL_PC *sd = script_rid2sd(st);
+	TBL_PC *p_sd = map_nick2sd(partner);
 
-	if(sd==NULL || p_sd==NULL || pc_marriage(sd,p_sd) < 0){
+	if(!sd || !p_sd || !pc_marriage(sd,p_sd)) {
 		script_pushint(st,0);
 		return 0;
 	}
@@ -11507,21 +11508,22 @@ BUILDIN_FUNC(marriage)
 
 BUILDIN_FUNC(wedding_effect)
 {
-	TBL_PC *sd=script_rid2sd(st);
+	TBL_PC *sd = script_rid2sd(st);
 	struct block_list *bl;
 
-	if(sd==NULL) {
-		bl=map_id2bl(st->oid);
+	if(sd == NULL) {
+		bl = map_id2bl(st->oid);
 	} else
-		bl=&sd->bl;
+		bl = &sd->bl;
 	clif_wedding_effect(bl);
 	return SCRIPT_CMD_SUCCESS;
 }
 
 BUILDIN_FUNC(divorce)
 {
-	TBL_PC *sd=script_rid2sd(st);
-	if(sd==NULL || pc_divorce(sd) < 0){
+	TBL_PC *sd = script_rid2sd(st);
+
+	if(!sd || !pc_divorce(sd)) {
 		script_pushint(st,0);
 		return 0;
 	}
@@ -11531,9 +11533,9 @@ BUILDIN_FUNC(divorce)
 
 BUILDIN_FUNC(ispartneron)
 {
-	TBL_PC *sd=script_rid2sd(st);
+	TBL_PC *sd = script_rid2sd(st);
 
-	if(sd==NULL || !pc_ismarried(sd) || map_charid2sd(sd->status.partner_id) == NULL) {
+	if(sd == NULL || !pc_ismarried(sd) || map_charid2sd(sd->status.partner_id) == NULL) {
 		script_pushint(st,0);
 		return 0;
 	}
@@ -16215,8 +16217,8 @@ BUILDIN_FUNC(bg_monster_set_team)
 	struct block_list *mbl;
 	int id = script_getnum(st,2),
 		bg_id = script_getnum(st,3);
-	
-	if( (mbl = map_id2bl(id)) == NULL || mbl->type != BL_MOB )
+
+	if( id == 0 || (mbl = map_id2bl(id)) == NULL || mbl->type != BL_MOB )
 		return 0;
 	md = (TBL_MOB *)mbl;
 	md->bg_id = bg_id;
@@ -16631,7 +16633,7 @@ static int buildin_mobuseskill_sub(struct block_list *bl,va_list ap)
 	int emotion		= va_arg(ap,int);
 	int target		= va_arg(ap,int);
 
-	if( md->class_ != mobid )
+	if( md->mob_id != mobid )
 		return 0;
 
 	//0:self, 1:target, 2:master, default:random
@@ -17242,7 +17244,7 @@ BUILDIN_FUNC(getgroupitem) {
 	if( !(sd = script_rid2sd(st)) )
 		return 0;
 
-	if( itemdb_pc_get_itemgroup(group_id,sd->itemid,sd) ) {
+	if (itemdb_pc_get_itemgroup(group_id,sd)) {
 		ShowError("getgroupitem: Invalid group id '%d' specified.",group_id);
 		return 1;
 	}
@@ -17806,6 +17808,7 @@ BUILDIN_FUNC(montransform) {
  * @param "script code"
  * @param duration
  * @param flag
+ * @param icon
  * @param char_id
  **/
 BUILDIN_FUNC(bonus_script) {
@@ -17831,7 +17834,7 @@ BUILDIN_FUNC(bonus_script) {
 	FETCH(5,type);
 	FETCH(6,icon);
 
-	if( !strlen(script_str) || !dur ) {
+	if( script_str[0] == '\0' || !dur ) {
 		//ShowWarning("buildin_bonus_script: Invalid value(s). Skipping...\n");
 		return 0;
 	}

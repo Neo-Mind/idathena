@@ -69,9 +69,7 @@
 	#define MAX_SKILL_DAMAGE_RATE 100000
 #endif
 
-/// Uncomment if MAX_LEVEL is l50 or lower
-/// Comment to disable the job HP/SP tables and use formulas instead,
-/// or MAX_LEVEL is higher than 150
+/// Uncomment to enable the job base HP/SP table (job_basehpsp_db.txt)
 //#define HP_SP_TABLES
 
 /// Uncomment to enable VIP system.

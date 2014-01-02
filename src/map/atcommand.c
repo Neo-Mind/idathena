@@ -14,6 +14,7 @@
 #include "../common/utils.h"
 #include "../common/conf.h"
 
+#include "map.h"
 #include "atcommand.h"
 #include "battle.h"
 #include "chat.h"
@@ -25,7 +26,6 @@
 #include "intif.h"
 #include "itemdb.h"
 #include "log.h"
-#include "map.h"
 #include "pc.h"
 #include "pc_groups.h" // groupid2name
 #include "status.h"
@@ -2011,7 +2011,7 @@ static int atkillmonster_sub(struct block_list *bl, va_list ap)
 	struct mob_data *md;
 	int flag;
 	
-	nullpo_ret(md=(struct mob_data *)bl);
+	nullpo_ret(md = (struct mob_data *)bl);
 	flag = va_arg(ap, int);
 
 	if (md->guardian_data)
@@ -2372,7 +2372,7 @@ ACMD_FUNC(zeny)
 		if ((ret = pc_payzeny(sd, -zeny, LOG_TYPE_COMMAND, NULL)) == 1)
 			clif_displaymessage(fd, msg_txt(41)); // Unable to decrease the number/value.
 	}
-	if(!ret) clif_displaymessage(fd, msg_txt(176)); // ret = 0 mean cmd success
+	if (!ret) clif_displaymessage(fd, msg_txt(176)); // ret = 0 mean cmd success
 	return 0;
 }
 
@@ -2381,12 +2381,13 @@ ACMD_FUNC(zeny)
  *------------------------------------------*/
 ACMD_FUNC(param)
 {
-	int i, value = 0, new_value, max;
+	uint8 i;
+	int value = 0;
 	const char* param[] = { "str", "agi", "vit", "int", "dex", "luk" };
-	short* status[6];
- 	//We don't use direct initialization because it isn't part of the c standard.
+	short new_value, *status[6], max_status[6];
+ 	// We don't use direct initialization because it isn't part of the c standard.
 	nullpo_retr(-1, sd);
-	
+
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
 	if (!message || !*message || sscanf(message, "%d", &value) < 1 || value == 0) {
@@ -2409,14 +2410,20 @@ ACMD_FUNC(param)
 	status[5] = &sd->status.luk;
 
 	if (battle_config.atcommand_max_stat_bypass)
-		max = SHRT_MAX;
-	else
-		max = pc_maxparameter(sd);
+		max_status[0] = max_status[1] = max_status[2] = max_status[3] = max_status[4] = max_status[5] = SHRT_MAX;
+	else {
+		max_status[0] = pc_maxparameter(sd,PARAM_STR);
+		max_status[1] = pc_maxparameter(sd,PARAM_AGI);
+		max_status[2] = pc_maxparameter(sd,PARAM_VIT);
+		max_status[3] = pc_maxparameter(sd,PARAM_INT);
+		max_status[4] = pc_maxparameter(sd,PARAM_DEX);
+		max_status[5] = pc_maxparameter(sd,PARAM_LUK);
+	}
 
-	if (value < 0 && *status[i] <= -value)
+	if (value > 0  && *status[i] + value >= max_status[i])
+		new_value = max_status[i];
+	else if (value < 0 && *status[i] <= -value)
 		new_value = 1;
-	else if (max - *status[i] < value)
-		new_value = max;
 	else
 		new_value = *status[i] + value;
 
@@ -2442,11 +2449,12 @@ ACMD_FUNC(param)
  *------------------------------------------*/
 ACMD_FUNC(stat_all)
 {
-	int index, count, value, max, new_value;
-	short* status[6];
- 	//We don't use direct initialization because it isn't part of the c standard.
+	int value = 0;
+	uint8 count, i;
+	short *status[PARAM_MAX], max_status[PARAM_MAX];
+ 	// We don't use direct initialization because it isn't part of the c standard.
 	nullpo_retr(-1, sd);
-	
+
 	status[0] = &sd->status.str;
 	status[1] = &sd->status.agi;
 	status[2] = &sd->status.vit;
@@ -2455,29 +2463,41 @@ ACMD_FUNC(stat_all)
 	status[5] = &sd->status.luk;
 
 	if (!message || !*message || sscanf(message, "%d", &value) < 1 || value == 0) {
-		value = pc_maxparameter(sd);
-		max = pc_maxparameter(sd);
+		max_status[0] = pc_maxparameter(sd,PARAM_STR);
+		max_status[1] = pc_maxparameter(sd,PARAM_AGI);
+		max_status[2] = pc_maxparameter(sd,PARAM_VIT);
+		max_status[3] = pc_maxparameter(sd,PARAM_INT);
+		max_status[4] = pc_maxparameter(sd,PARAM_DEX);
+		max_status[5] = pc_maxparameter(sd,PARAM_LUK);
+		value = SHRT_MAX;
 	} else {
 		if (battle_config.atcommand_max_stat_bypass)
-			max = SHRT_MAX;
-		else
-			max = pc_maxparameter(sd);
+			max_status[0] = max_status[1] = max_status[2] = max_status[3] = max_status[4] = max_status[5] = SHRT_MAX;
+		else {
+			max_status[0] = pc_maxparameter(sd,PARAM_STR);
+			max_status[1] = pc_maxparameter(sd,PARAM_AGI);
+			max_status[2] = pc_maxparameter(sd,PARAM_VIT);
+			max_status[3] = pc_maxparameter(sd,PARAM_INT);
+			max_status[4] = pc_maxparameter(sd,PARAM_DEX);
+			max_status[5] = pc_maxparameter(sd,PARAM_LUK);
+		}
 	}
 
 	count = 0;
-	for (index = 0; index < ARRAYLENGTH(status); index++) {
+	for (i = 0; i < ARRAYLENGTH(status); i++) {
+		short new_value;
 
-		if (value > 0 && *status[index] > max - value)
-			new_value = max;
-		else if (value < 0 && *status[index] <= -value)
+		if (value > 0 && *status[i] + value >= max_status[i])
+			new_value = max_status[i];
+		else if (value < 0 && *status[i] <= -value)
 			new_value = 1;
 		else
-			new_value = *status[index] +value;
-		
-		if (new_value != (int)*status[index]) {
-			*status[index] = new_value;
-			clif_updatestatus(sd, SP_STR + index);
-			clif_updatestatus(sd, SP_USTR + index);
+			new_value = *status[i] + value;
+
+		if (new_value != *status[i]) {
+			*status[i] = new_value;
+			clif_updatestatus(sd, SP_STR + i);
+			clif_updatestatus(sd, SP_USTR + i);
 			count++;
 		}
 	}
@@ -5471,7 +5491,7 @@ ACMD_FUNC(marry)
 		return -1;
 	}
 
-	if (pc_marriage(sd, pl_sd) == 0) {
+	if (pc_marriage(sd, pl_sd)) {
 		clif_displaymessage(fd, msg_txt(1173)); // They are married... wish them well.
 		clif_wedding_effect(&pl_sd->bl); //wedding effect and music [Lupus]
 		getring(sd); // Auto-give named rings (Aru)
@@ -5491,7 +5511,7 @@ ACMD_FUNC(divorce)
 {
 	nullpo_retr(-1, sd);
 
-	if (pc_divorce(sd) != 0) {
+	if (!pc_divorce(sd)) {
 		sprintf(atcmd_output, msg_txt(1175), sd->status.name); // '%s' is not married.
 		clif_displaymessage(fd, atcmd_output);
 		return -1;
@@ -6133,7 +6153,7 @@ ACMD_FUNC(mobsearch)
 
 		if( md->bl.m != sd->bl.m )
 			continue;
-		if( mob_id != -1 && md->class_ != mob_id )
+		if( mob_id != -1 && md->mob_id != mob_id )
 			continue;
 
 		++number;
@@ -6297,27 +6317,28 @@ ACMD_FUNC(users)
 	memset(users, 0, sizeof(users));
 	users_all = 0;
 
-	// count users on each map
+	// Count users on each map
 	iter = mapit_getallusers();
-	for(;;) {
+	for( ;; ) {
 		struct map_session_data* sd2 = (struct map_session_data*)mapit_next(iter);
+
 		if( sd2 == NULL )
-			break; // no more users
+			break; // No more users
 
 		if( sd2->mapindex >= MAX_MAPINDEX )
-			continue; // invalid mapindex
+			continue; // Invalid mapindex
 
 		if( users[sd2->mapindex] < INT_MAX ) ++users[sd2->mapindex];
 		if( users_all < INT_MAX ) ++users_all;
 	}
 	mapit_free(iter);
 
-	// display results for each map
+	// Display results for each map
 	for( i = 0; i < MAX_MAPINDEX; ++i ) {
 		if( users[i] == 0 )
-			continue; // empty
+			continue; // Empty
 
-		safesnprintf(buf, sizeof(buf), "%s: %d (%.2f%%)", mapindex_id2name(i), users[i], (float)(100.0f*users[i]/users_all));
+		safesnprintf(buf, sizeof(buf), "%s: %d (%.2f%%)", mapindex_id2name(i), users[i], (float)(100.0f * users[i] / users_all));
 		clif_displaymessage(sd->fd, buf);
 	}
 
@@ -6742,8 +6763,8 @@ ACMD_FUNC(mobinfo)
 		
 #ifdef RENEWAL_EXP
 		if (battle_config.atcommand_mobinfo_type) {
-			base_exp = base_exp * pc_level_penalty_mod(sd, mob->lv, mob->status.race, mob->status.mode, 1) / 100;
-			job_exp = job_exp * pc_level_penalty_mod(sd, mob->lv, mob->status.race, mob->status.mode, 1) / 100;
+			base_exp = base_exp * pc_level_penalty_mod(sd, mob->lv, mob->status.class_ , 1) / 100;
+			job_exp = job_exp * pc_level_penalty_mod(sd, mob->lv, mob->status.class_ , 1) / 100;
 		}
 #endif
 		// Stats
@@ -6781,7 +6802,7 @@ ACMD_FUNC(mobinfo)
 
 #ifdef RENEWAL_DROP
 			if (battle_config.atcommand_mobinfo_type) {
-				droprate = droprate * pc_level_penalty_mod(sd, mob->lv, mob->status.race, mob->status.mode, 2) / 100;
+				droprate = droprate * pc_level_penalty_mod(sd, mob->lv, mob->status.class_, 2) / 100;
 
 				if (droprate <= 0 && !battle_config.drop_rate0item)
 					droprate = 1;
@@ -6885,7 +6906,7 @@ ACMD_FUNC(showmobs)
 
 		if (md->bl.m != sd->bl.m)
 			continue;
-		if (mob_id != -1 && md->class_ != mob_id)
+		if (mob_id != -1 && md->mob_id != mob_id)
 			continue;
 		if (md->special_state.ai || md->master_id)
 			continue; // Hide slaves and player summoned mobs
@@ -7315,7 +7336,7 @@ ACMD_FUNC(whodrops)
 
 #ifdef RENEWAL_DROP
 				if (battle_config.atcommand_mobinfo_type)
-					dropchance = dropchance * pc_level_penalty_mod(sd, mob_db(item_data->mob[j].id)->lv, mob_db(item_data->mob[j].id)->status.race, mob_db(item_data->mob[j].id)->status.mode, 2) / 100;
+					dropchance = dropchance * pc_level_penalty_mod(sd, mob_db(item_data->mob[j].id)->lv, mob_db(item_data->mob[j].id)->status.class_, 2) / 100;
 #endif
 				sprintf(atcmd_output, "- %s (%02.02f%%)", mob_db(item_data->mob[j].id)->jname, dropchance / 100);
 				clif_displaymessage(fd, atcmd_output);
@@ -8786,20 +8807,17 @@ ACMD_FUNC(cart) {
 		return -1;
 	}
 
-	if( need_skill ) {
+	if( need_skill )
 		MC_CART_MDFY(1);
-	}
 
-	if( pc_setcart(sd, val) ) {
-		if( need_skill ) {
+	if( !pc_setcart(sd, val) ) {
+		if( need_skill )
 			MC_CART_MDFY(0);
-		}
-		return -1;/* @cart failed */
+		return -1; /* @cart failed */
 	}
 
-	if( need_skill ) {
+	if( need_skill )
 		MC_CART_MDFY(0);
-	}
 
 	clif_displaymessage(fd, msg_txt(1392)); // Cart Added
 
@@ -8811,7 +8829,7 @@ ACMD_FUNC(cart) {
 ACMD_FUNC(join) {
 	char chname[CHAN_NAME_LENGTH], pass[CHAN_NAME_LENGTH];
 
-	if( !message || !*message || sscanf(message, "%s %s", chname, pass) < 1 ) {
+	if( !message || !*message || sscanf(message, "%19s %19s", chname, pass) < 1 ) {
 		sprintf(atcmd_output, msg_txt(1399),command); // Unknown channel (usage: %s <#channel_name>)
 		clif_displaymessage(fd, atcmd_output);
 		return -1;
@@ -8913,7 +8931,7 @@ ACMD_FUNC(channel) {
 	char key[CHAN_NAME_LENGTH], sub1[CHAN_NAME_LENGTH], sub2[CHAN_NAME_LENGTH], sub3[CHAN_NAME_LENGTH];
 	sub1[0] = sub2[0] = sub3[0] = '\0';
 
-	if( !message || !*message || sscanf(message, "%s %s %s %s", key, sub1, sub2, sub3) < 1 ) {
+	if( !message || !*message || sscanf(message, "%19s %19s %19s %19s", key, sub1, sub2, sub3) < 1 ) {
 		atcmd_channel_help(sd,command);
 		return 0;
 	}
@@ -9542,7 +9560,7 @@ bool is_atcommand(const int fd, struct map_session_data* sd, const char* message
 	AtCommandInfo * info;
 
 	nullpo_retr(false, sd);
-	
+
 	//Shouldn't happen
 	if ( !message || !*message )
 		return false;

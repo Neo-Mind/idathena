@@ -4095,7 +4095,7 @@ This command will return the SVN revision number that the server is
 currently running on.
 
     if ( get_revision() >= 15000 )
-        mes "Welcome rAthena!";
+        mes "Welcome to idAthena!";
 
 ---------------------------------------
 \\
@@ -7513,15 +7513,15 @@ If questinfo is present, it will check if the quest has been started, if it has 
 
 Optionally, you can also specify a Job Class if the quest bubble should only appear for a certain class.
 
-Example
-izlude,100,100,4  script  Test  844,{
+Example:
+izlude,100,100,4	script	Test	844,{
 	mes "[Test]";
 	mes "Hello World.";
 	close;
 
-	OnInit:
-		questinfo 1001, QTYPE_QUEST, 0, Job_Novice;
-		end;
+OnInit:
+	questinfo 1001, QTYPE_QUEST, 0, Job_Novice;
+	end;
 }
 
 ---------------------------------------

@@ -432,14 +432,12 @@ static bool read_mercenarydb_sub(char* str[], int columns, int current)
 
 	ele = atoi(str[21]);
 	status->def_ele = ele%10;
-	status->ele_lv = ele/20;
-	if( status->def_ele >= ELE_MAX )
-	{
-		ShowWarning("Mercenary %d has invalid element type %d (max element is %d)\n", db->class_, status->def_ele, ELE_MAX - 1);
+	status->ele_lv = ele / 20;
+	if( status->def_ele >= ELE_ALL ) {
+		ShowWarning("Mercenary %d has invalid element type %d (max element is %d)\n", db->class_, status->def_ele, ELE_ALL - 1);
 		status->def_ele = ELE_NEUTRAL;
 	}
-	if( status->ele_lv < 1 || status->ele_lv > 4 )
-	{
+	if( status->ele_lv < 1 || status->ele_lv > 4 ) {
 		ShowWarning("Mercenary %d has invalid element level %d (max is 4)\n", db->class_, status->ele_lv);
 		status->ele_lv = 1;
 	}

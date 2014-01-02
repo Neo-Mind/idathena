@@ -79,12 +79,9 @@ bool buyingstore_setup(struct map_session_data* sd, unsigned char slots) {
 void buyingstore_create(struct map_session_data* sd, int zenylimit, unsigned char result, const char* storename, const uint8* itemlist, unsigned int count)
 {
 	unsigned int i, weight, listidx;
-	struct item_data* id;
 
-	if( !result || count == 0 )
-	{ // canceled, or no items
+	if( !result || count == 0 ) // canceled, or no items
 		return;
-	}
 
 	if( !battle_config.feature_buying_store || pc_istrading(sd) || sd->buyingstore.slots == 0 || count > sd->buyingstore.slots || zenylimit <= 0 || zenylimit > sd->status.zeny || !storename[0] )
 	{ // disabled or invalid input
@@ -119,29 +116,25 @@ void buyingstore_create(struct map_session_data* sd, int zenylimit, unsigned cha
 	// check item list
 	for( i = 0; i < count; i++ ) { // itemlist: <name id>.W <amount>.W <price>.L
 		unsigned short nameid, amount;
+		struct item_data* id;
 		int price, idx;
 
-		nameid = RBUFW(itemlist,i*8+0);
-		amount = RBUFW(itemlist,i*8+2);
-		price  = RBUFL(itemlist,i*8+4);
+		nameid = RBUFW(itemlist,i * 8 + 0);
+		amount = RBUFW(itemlist,i * 8 + 2);
+		price  = RBUFL(itemlist,i * 8 + 4);
 
-		if( ( id = itemdb_exists(nameid) ) == NULL || amount == 0 )
-		{ // invalid input
+		if( ( id = itemdb_exists(nameid) ) == NULL || amount == 0 ) // invalid input
 			break;
-		}
 
-		if( price <= 0 || price > BUYINGSTORE_MAX_PRICE ) { // invalid price: unlike vending, items cannot be bought at 0 Zeny
+		if( price <= 0 || price > BUYINGSTORE_MAX_PRICE ) // invalid price: unlike vending, items cannot be bought at 0 Zeny
 			break;
-		}
 
-		if( !id->flag.buyingstore || !itemdb_cantrade_sub(id, pc_get_group_level(sd), pc_get_group_level(sd)) || ( idx = pc_search_inventory(sd, nameid) ) == -1 )
-		{ // restrictions: allowed, no character-bound items and at least one must be owned
+		// restrictions: allowed, no character-bound items and at least one must be owned
+		if( !id->flag.buyingstore || !itemdb_cantrade_sub(id, pc_get_group_level(sd), pc_get_group_level(sd)) || (idx = pc_search_inventory(sd, nameid)) == -1 )
 			break;
-		}
 
-		if( sd->status.inventory[idx].amount+amount > BUYINGSTORE_MAX_AMOUNT ) { // too many items of same kind
+		if( sd->status.inventory[idx].amount+amount > BUYINGSTORE_MAX_AMOUNT ) // too many items of same kind
 			break;
-		}
 
 		if( i ) { // duplicate check. as the client does this too, only malicious intent should be caught here
 			ARR_FIND( 0, i, listidx, sd->buyingstore.items[listidx].nameid == nameid );
@@ -151,7 +144,7 @@ void buyingstore_create(struct map_session_data* sd, int zenylimit, unsigned cha
 			}
 		}
 
-		weight+= id->weight*amount;
+		weight+= id->weight * amount;
 		sd->buyingstore.items[i].nameid = nameid;
 		sd->buyingstore.items[i].amount = amount;
 		sd->buyingstore.items[i].price  = price;
@@ -163,7 +156,7 @@ void buyingstore_create(struct map_session_data* sd, int zenylimit, unsigned cha
 		return;
 	}
 
-	if( (sd->max_weight*90)/100 < weight ) { // not able to carry all wanted items without getting overweight (90%)
+	if( (sd->max_weight * 90) / 100 < weight ) { // not able to carry all wanted items without getting overweight (90%)
 		sd->buyingstore.slots = 0;
 		clif_buyingstore_open_failed(sd, BUYINGSTORE_CREATE_OVERWEIGHT, weight);
 		return;
