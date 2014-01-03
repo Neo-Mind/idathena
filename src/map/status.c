@@ -10996,7 +10996,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				if( sc->data[type] ) {
 					if( status->hp == 1 ) {
 						map_freeblock_unlock();
-						break;
+						return 0;
 					}
 					sc_timer_next(10000 + tick,status_change_timer,bl->id,data);
 				}
@@ -11423,8 +11423,8 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				if( sc->data[type] ) {
 					sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				}
-				map_freeblock_unlock();
 				status_heal(src,damage * (5 + 5 * sce->val1) / 100,0,0); //5 + 5% per level
+				map_freeblock_unlock();
 				return 0;
 			}
 			break;
@@ -11525,13 +11525,14 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_OVERHEAT: {
 				int damage = status->max_hp / 100; //Suggestion 1% each second
 
-				if( damage >= status->hp ) damage = status->hp - 1; //Do not kill,just keep you with 1 hp minimum
+				if( damage >= status->hp ) damage = status->hp - 1; //Do not kill, just keep you with 1 hp minimum
 				map_freeblock_lock();
 				status_fix_damage(NULL,bl,damage,clif_damage(bl,bl,tick,0,0,damage,0,0,0));
 				if( sc->data[type] ) {
 					sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				}
 				map_freeblock_unlock();
+				return 0;
 			}
 			break;
 

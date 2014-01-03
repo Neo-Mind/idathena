@@ -216,6 +216,7 @@ int map_freeblock_unlock (void)
 {
 	if ((--block_free_lock) == 0) {
 		int i;
+
 		for (i = 0; i < block_free_count; i++) {
 			aFree(block_free[i]);
 			block_free[i] = NULL;
@@ -229,7 +230,7 @@ int map_freeblock_unlock (void)
 	return block_free_lock;
 }
 
-// Timer fonction to check if there some remaining lock and remove them if so.
+// Timer function to check if there some remaining lock and remove them if so.
 // Called each 1s
 int map_freeblock_timer(int tid, unsigned int tick, int id, intptr_t data)
 {

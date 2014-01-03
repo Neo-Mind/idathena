@@ -292,7 +292,7 @@ int battle_delay_damage(unsigned int tick, int amotion, struct block_list *src, 
 	dat->damage = damage;
 	dat->dmg_lv = dmg_lv;
 	dat->delay = ddelay;
-	dat->distance = distance_bl(src, target)+10; //Attack should connect regardless unless you teleported.
+	dat->distance = distance_bl(src, target) + 10; //Attack should connect regardless unless you teleported.
 	dat->additional_effects = additional_effects;
 	dat->src_type = src->type;
 	if( src->type != BL_PC && amotion > 1000 )

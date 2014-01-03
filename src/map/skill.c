@@ -2972,6 +2972,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			case LG_OVERBRAND_BRANDISH:
 				if (skill_blown(dsrc, bl, dmg.blewcount, dir, 0)) {
 					short dir_x, dir_y;
+
 					dir_x = dirx[(dir + 4)%8];
 					dir_y = diry[(dir + 4)%8];
 					if (map_getcell(bl->m, bl->x + dir_x, bl->y + dir_y, CELL_CHKNOPASS) != 0)
@@ -2982,6 +2983,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			case SR_KNUCKLEARROW:
 				if (skill_blown(dsrc, bl, dmg.blewcount, dir, 0) && !(flag&4)) {
 					short dir_x, dir_y;
+
 					dir_x = dirx[(dir + 4)%8];
 					dir_y = diry[(dir + 4)%8];
 					if (map_getcell(bl->m, bl->x + dir_x, bl->y + dir_y, CELL_CHKNOPASS) != 0)
@@ -3038,6 +3040,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	if (damage > 0 && !(tstatus->mode&MD_BOSS)) {
 		if (skill_id == RG_INTIMIDATE) {
 			int rate = 50 + skill_lv * 5;
+
 			rate = rate + (status_get_lv(src) - status_get_lv(bl));
 			if (rnd()%100 < rate)
 				skill_addtimerskill(src, tick + 800, bl->id, 0, 0, skill_id, skill_lv, 0, flag);
@@ -3057,14 +3060,14 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			battle_drain(sd, bl, dmg.damage, dmg.damage2, tstatus->race, tstatus->class_);
 	}
 
-	if (damage > 0) {
-		//Post-damage effects
+	if (damage > 0) { //Post-damage effects
 		switch (skill_id) {
 			case RK_CRUSHSTRIKE:
 				skill_break_equip(src, src, EQP_WEAPON, 2000, BCT_SELF); //20% chance to destroy the weapon.
 				break;
 			case GC_VENOMPRESSURE: {
 					struct status_change *ssc = status_get_sc(src);
+
 					if (ssc && ssc->data[SC_POISONINGWEAPON] && rnd()%100 < 70 + 5 * skill_lv) {
 						sc_start(src, bl, (sc_type)ssc->data[SC_POISONINGWEAPON]->val2, 100, ssc->data[SC_POISONINGWEAPON]->val1,
 							skill_get_time2(GC_POISONINGWEAPON, 1));
@@ -5003,6 +5006,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 		case SO_POISON_BUSTER: {
 				struct status_change *tsc = status_get_sc(bl);
+
 				if  (flag&1) {
 					skill_attack(BF_MAGIC,src,src,bl,skill_id,skill_lv,tick,flag);
 				} else if (sd) {
@@ -5187,19 +5191,17 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 	if (sc && sc->data[SC_CURSEDCIRCLE_ATKER]) //Should only remove after the skill has been casted.
 		status_change_end(src,SC_CURSEDCIRCLE_ATKER,INVALID_TIMER);
 
-	map_freeblock_unlock();
-
 	if (sd && !(flag&1)) { //Ensure that the skill last-cast tick is recorded
 		sd->canskill_tick = gettick();
 
-		if (sd->state.arrow_atk) { //Consume arrow on last invocation to this skill.
+		if (sd->state.arrow_atk) //Consume arrow on last invocation to this skill.
 			battle_consume_ammo(sd,skill_id,skill_lv);
-		}
 
 		//Perform skill requirement consumption
 		skill_consume_requirement(sd,skill_id,skill_lv,2);
 	}
 
+	map_freeblock_unlock();
 	return 0;
 }
 
@@ -5505,6 +5507,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				break;
 			{
 				int per = 0, sper = 0;
+
 				if (tsc && tsc->data[SC_HELLPOWER])
 					break;
 
@@ -5524,6 +5527,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					if(sd && dstsd && battle_config.resurrection_exp > 0) {
 						int exp = 0,jexp = 0;
 						int lv = dstsd->status.base_level - sd->status.base_level,jlv = dstsd->status.job_level - sd->status.job_level;
+
 						if(lv > 0 && pc_nextbaseexp(dstsd)) {
 							exp = (int)((double)dstsd->status.base_exp * (double)lv * (double)battle_config.resurrection_exp / 1000000.);
 							if (exp < 1) exp = 1;
@@ -6419,6 +6423,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case ST_CHASEWALK:
 			if (tsc && tsc->data[SC_FEINT]) {
 				status_change_end(bl,SC_FEINT,INVALID_TIMER);
+				map_freeblock_unlock();
 				return 0;
 			}
 		case KO_YAMIKUMO:
@@ -6470,6 +6475,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SC_INVISIBILITY:
 			if (tsc && tsc->data[SC_FEINT]) {
 				status_change_end(bl,SC_FEINT,INVALID_TIMER);
+				map_freeblock_unlock();
 				return 0;
 			}
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
@@ -9149,6 +9155,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				}
 			} else {
 				int count = 0;
+
 				clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 				count = map_forcountinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),(sd) ? sd->spiritball_old : 15, //Assume 15 spiritballs in non-charactors
 					BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
@@ -9977,7 +9984,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 				int maxcount = qty[skill_lv - 1];
 				i = map_foreachinmap(skill_check_condition_mob_master_sub ,hd->bl.m,BL_MOB,hd->bl.id,summons[skill_lv - 1],skill_id,&c);
-				if(c >= maxcount) return 0; //Max qty already spawned
+				if(c >= maxcount) {
+					map_freeblock_unlock();
+					return 0; //Max qty already spawned
+				}
 
 				for(i = 0; i < qty[skill_lv - 1]; i++) { //Easy way
 					sum_md = mob_once_spawn_sub(src,src->m,src->x,src->y,status_get_name(src),summons[skill_lv - 1],"",SZ_SMALL,AI_ATTACK);
@@ -10057,6 +10067,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 	if(skill_id != SR_CURSEDCIRCLE) {
 		struct status_change *sc = status_get_sc(src);
+
 		if(sc && sc->data[SC_CURSEDCIRCLE_ATKER]) //Should only remove after the skill had been casted.
 			status_change_end(src,SC_CURSEDCIRCLE_ATKER,INVALID_TIMER);
 	}
@@ -10385,6 +10396,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 		}
 		if( target && target->m == src->m ) { //Move character to target anyway.
 			int dir, x, y;
+
 			dir = map_calc_dir(src,target->x,target->y);
 			if( dir > 0 && dir < 4) x = -2;
 			else if( dir > 4 ) x = 2;
@@ -16859,6 +16871,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 
 			case UNT_FEINTBOMB: {
 					struct block_list *src =  map_id2bl(group->src_id);
+
 					if( src )
 						map_foreachinrange(skill_area_sub, &group->unit->bl, unit->range, splash_target(src), src, SC_FEINTBOMB, group->skill_lv, tick, BCT_ENEMY|SD_ANIMATION|1, skill_castend_damage_id);
 					skill_delunit(unit);
@@ -16868,6 +16881,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 			case UNT_BANDING: {
 					struct block_list *src = map_id2bl(group->src_id);
 					struct status_change *sc;
+
 					if( !src || (sc = status_get_sc(src)) == NULL || !sc->data[SC_BANDING] ) {
 						skill_delunit(unit);
 						break;

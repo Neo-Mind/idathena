@@ -2171,10 +2171,9 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 		if( sd && sd->status.pet_id > 0 && sd->pd && battle_config.pet_attack_support )
 			pet_target_check(sd,target,0);
 		map_freeblock_unlock();
-		/**
-		 * Applied when you're unable to attack (e.g. out of ammo)
-		 * We should stop here otherwise timer keeps on and this happens endlessly
-		 **/
+
+		//Applied when you're unable to attack (e.g. out of ammo)
+		//We should stop here otherwise timer keeps on and this happens endlessly
 		if( ud->attacktarget_lv == ATK_NONE )
 			return 1;
 
