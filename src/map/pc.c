@@ -50,8 +50,6 @@
 #include <time.h>
 #include <math.h>
 
-int pc_split_atoui(char* str, unsigned int* val, char sep, int max);
-
 #define PVP_CALCRANK_INTERVAL 1000 // PVP calculation interval
 
 static unsigned int statp[MAX_LEVEL + 1];
@@ -804,7 +802,8 @@ bool pc_isequipped(struct map_session_data *sd, int nameid)
 	uint8 i;
 
 	for( i = 0; i < EQI_MAX; i++ ) {
-		uint8 index = sd->equip_index[i], j;
+		int index = sd->equip_index[i];
+		uint8 j;
 
 		if( index < 0 ) continue;
 
@@ -9099,7 +9098,7 @@ int pc_calc_pvprank(struct map_session_data *sd)
 
 	map_foreachinmap(pc_calc_pvprank_sub,sd->bl.m,BL_PC,sd);
 	if(old != sd->pvp_rank || sd->pvp_lastusers != m->users_pvp)
-		clif_pvpset(sd,sd->pvp_rank,sd->pvp_lastusers=m->users_pvp,0);
+		clif_pvpset(sd,sd->pvp_rank,sd->pvp_lastusers = m->users_pvp,0);
 	return sd->pvp_rank;
 }
 
@@ -9623,9 +9622,9 @@ static int pc_split_str(char *str, char **val, int num)
 	return i;
 }
 
-static int pc_split_atoi(char* str, int* val, char sep, int max)
+int pc_split_atoi(char* str, int* val, char sep, int max)
 {
-	int i,j;
+	int i, j;
 
 	for(i = 0; i < max; i++) {
 		if(!str) break;
@@ -9640,7 +9639,7 @@ static int pc_split_atoi(char* str, int* val, char sep, int max)
 	return i;
 }
 
-static int pc_split_atoui(char* str, unsigned int* val, char sep, int max)
+int pc_split_atoui(char* str, unsigned int* val, char sep, int max)
 {
 	static int warning = 0;
 	int i, j;

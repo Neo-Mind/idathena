@@ -10892,7 +10892,7 @@ BUILDIN_FUNC(pvpon)
 		if( sd->bl.m != m || sd->pvp_timer != INVALID_TIMER )
 			continue; // Not applicable
 
-		sd->pvp_timer = add_timer(gettick()+200,pc_calc_pvprank_timer,sd->bl.id,0);
+		sd->pvp_timer = add_timer(gettick() + 200,pc_calc_pvprank_timer,sd->bl.id,0);
 		sd->pvp_rank = 0;
 		sd->pvp_lastusers = 0;
 		sd->pvp_point = 5;

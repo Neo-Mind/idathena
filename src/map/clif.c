@@ -5723,6 +5723,7 @@ void clif_pvpset(struct map_session_data *sd,int pvprank,int pvpnum,int type)
 {
 	if (type == 2) {
 		int fd = sd->fd;
+
 		WFIFOHEAD(fd,packet_len(0x19a));
 		WFIFOW(fd,0) = 0x19a;
 		WFIFOL(fd,2) = sd->bl.id;
@@ -5731,6 +5732,7 @@ void clif_pvpset(struct map_session_data *sd,int pvprank,int pvpnum,int type)
 		WFIFOSET(fd,packet_len(0x19a));
 	} else {
 		unsigned char buf[32];
+
 		WBUFW(buf,0) = 0x19a;
 		WBUFL(buf,2) = sd->bl.id;
 		if (sd->sc.option&(OPTION_HIDE|OPTION_CLOAK))

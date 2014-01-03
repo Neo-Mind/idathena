@@ -2657,8 +2657,8 @@ static int status_get_spbonus(struct block_list *bl, enum e_status_bonus type) {
 			struct map_session_data *sd = map_id2sd(bl->id);
 			int i;
 
-			bonus += sd->hprate;
-			bonus -= 100; //Default hprate is 100, so it should be add 0%
+			bonus += sd->sprate;
+			bonus -= 100; //Default sprate is 100, so it should be add 0%
 
 			if ((i = pc_checkskill(sd,HP_MEDITATIO)) > 0)
 				bonus += i;

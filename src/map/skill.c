@@ -2559,7 +2559,7 @@ static void skill_do_copy(struct block_list* src,struct block_list *bl, uint16 s
 					clif_deleteskill(tsd, tsd->cloneskill_id);
 				}
 
-				if ((lv = pc_checkskill(tsd,RG_PLAGIARISM)) < skill_lv)
+				if ((lv = pc_checkskill(tsd, RG_PLAGIARISM)) < skill_lv)
 					skill_lv = lv;
 
 				tsd->cloneskill_id = skill_id;
@@ -9515,6 +9515,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SO_EL_CONTROL:
 			if( sd ) {
 				int mode = EL_MODE_PASSIVE;	//Standard mode.
+
 				if( !sd->ed )	break;
 				
 				if( skill_lv == 4 ) { //At level 4 delete elementals.
@@ -9536,6 +9537,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SO_EL_ACTION:
 			if( sd ) {
 				int duration = 3000;
+
 				if( !sd->ed )	break;
 				sd->skill_id_old = skill_id;
 				elemental_action(sd->ed,bl,tick);
@@ -9582,6 +9584,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case GN_BLOOD_SUCKER: {
 				struct status_change *sc = status_get_sc(src);
+
 				if( sc && sc->bs_counter < skill_get_maxcount(skill_id,skill_lv) ) {
 					if( tsc && tsc->data[type] ) {
 						(sc->bs_counter)--;
@@ -9600,6 +9603,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case GN_MANDRAGORA:
 			if( flag&1 ) {
 				int chance = 25 + (10 * skill_lv) - (tstatus->vit + tstatus->luk) / 5;
+
 				if ( chance < 10 )
 					chance = 10; //Minimal chance is 10%.
 				if( bl->type == BL_MOB ) break;
@@ -9617,6 +9621,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case GN_SLINGITEM:
 			if( sd ) {
 				short ammo_id;
+
 				i = sd->equip_index[EQI_AMMO];
 				if( i <= 0 )
 					break; //No ammo.
@@ -9634,6 +9639,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						clif_skill_fail(sd,GN_SLINGITEM_RANGEMELEEATK,USESKILL_FAIL,0);
 				} else if( itemdb_is_GNthrowable(ammo_id) ) {
 					struct script_code *script = sd->inventory_data[i]->script;
+
 					if( !script )
 						break;
 					if( dstsd )
@@ -9652,6 +9658,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case GN_S_PHARMACY:
 			if( sd ) {
 				int qty = 1;
+
 				sd->skill_id_old = skill_id;
 				sd->skill_lv_old = skill_lv;
 				if( skill_id != GN_S_PHARMACY && skill_lv > 1 )
@@ -9680,8 +9687,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case EL_STONE_SHIELD:
 		case EL_WIND_STEP: {
 				struct elemental_data *ele = BL_CAST(BL_ELEM,src);
+
 				if( ele ) {
 					struct status_change *sc = status_get_sc(&ele->bl);
+
 					sc_type type2 = (sc_type)(type - 1);
 					if( (sc && sc->data[type2]) || (tsc && tsc->data[type]) )
 						elemental_clean_single_effect(ele,skill_id);
@@ -9708,8 +9717,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case EL_WATER_SCREEN: {
 				struct elemental_data *ele = BL_CAST(BL_ELEM,src);
+
 				if( ele ) {
 					struct status_change *sc = status_get_sc(&ele->bl);
+
 					sc_type type2 = (sc_type)(type - 1);
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 					if( (sc && sc->data[type2]) || (tsc && tsc->data[type]) )
@@ -9730,6 +9741,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case KO_DOHU_KOUKAI:
 			if( sd ) {
 				int type = skill_get_ele(skill_id,skill_lv);
+
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				pc_add_talisman(sd,skill_get_time(skill_id,skill_lv),10,type);
 			}
@@ -9738,6 +9750,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case KO_ZANZOU:
 			if( sd ) {
 				struct mob_data *md;
+
 				md = mob_once_spawn_sub(src,src->m,src->x,src->y,status_get_name(src),2308,"",SZ_SMALL,AI_NONE);
 				if( md ) {
 					md->master_id = src->id;
@@ -9755,6 +9768,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case KO_KYOUGAKU: {
 				int rate = max(5,(45 + (5 * skill_lv) - (status_get_int(bl) / 10)));
+
 				if( sd && !map_flag_gvg2(src->m) ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_SIZE,0);
 					break;
@@ -9769,6 +9783,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case KO_JYUSATSU: {
 				int rate = max(5,(45 + (10 * skill_lv) - (status_get_int(bl) / 2)));
+
 				if( dstsd && tsc && !tsc->data[type] && rnd()%100 < rate ) {
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,
 						status_change_start(src,bl,type,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),1));
@@ -9785,6 +9800,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				!(tstatus->mode&MD_PLANT) && battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
 				int x = src->x, y = src->y;
 				int rate = max(5,(45 + (5 * skill_lv) - (status_get_int(bl) / 10)));
+
 				if( sd && rnd()%100 > rate ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;

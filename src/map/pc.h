@@ -757,14 +757,11 @@ enum e_params {
 };
 short pc_maxparameter(struct map_session_data *sd, enum e_params param);
 
-/**
- * Ranger
- **/
 #define pc_iswug(sd)       ( (sd)->sc.option&OPTION_WUG )
 #define pc_isridingwug(sd) ( (sd)->sc.option&OPTION_WUGRIDER )
-// Mechanic Magic Gear
+
 #define pc_ismadogear(sd) ( (sd)->sc.option&OPTION_MADOGEAR )
-// Rune Knight Dragon
+
 #define pc_isridingdragon(sd) ( (sd)->sc.option&OPTION_DRAGON )
 
 #define pc_stop_walking(sd, type) unit_stop_walking(&(sd)->bl, type)
@@ -819,6 +816,7 @@ short pc_maxparameter(struct map_session_data *sd, enum e_params param);
 #endif
 
 int pc_split_atoi(char* str, int* val, char sep, int max);
+int pc_split_atoui(char* str, unsigned int* val, char sep, int max);
 int pc_class2idx(int class_);
 int pc_get_group_level(struct map_session_data *sd);
 int pc_get_group_id(struct map_session_data *sd);
