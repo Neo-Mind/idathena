@@ -5936,10 +5936,10 @@
 12459,F_Med_Life_Potion,F Med Life Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
 12460,F_Small_Life_Potion,F Small Life Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
 12461,F_Regeneration_Potion,F Regeneration Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
-12462,F_B_Mdef_Potion,F B Mdef Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect EF_SPELLBREAKER; bonus_script "{ bonus3 bSubEle,Ele_All,3,BF_MAGIC; }",180,0,0,SI_PROTECT_MDEF; },{},{}
-12463,F_S_Mdef_Potion,F S Mdef Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect EF_SPELLBREAKER; bonus_script "{ bonus3 bSubEle,Ele_All,3,BF_MAGIC; }",60,0,0,SI_PROTECT_MDEF; },{},{}
-12464,F_B_Def_Potion,F B Def Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect EF_GUARD; bonus_script "{ bonus3 bSubEle,Ele_All,3,BF_SHORT; }",180,0,0,SI_PROTECT_DEF; },{},{}
-12465,F_S_Def_Potion,F S Def Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect EF_GUARD; bonus_script "{ bonus3 bSubEle,Ele_All,3,BF_SHORT; }",60,0,0,SI_PROTECT_DEF; },{},{}
+12462,F_B_Mdef_Potion,F B Mdef Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_SPELLBREAKER; bonus_script "{ bonus3 bSubEle,Ele_All,3,BF_MAGIC; }",180,0,0,SI_PROTECT_MDEF; },{},{}
+12463,F_S_Mdef_Potion,F S Mdef Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_SPELLBREAKER; bonus_script "{ bonus3 bSubEle,Ele_All,3,BF_MAGIC; }",60,0,0,SI_PROTECT_MDEF; },{},{}
+12464,F_B_Def_Potion,F B Def Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_GUARD; bonus_script "{ bonus3 bSubEle,Ele_All,3,BF_SHORT; }",180,0,0,SI_PROTECT_DEF; },{},{}
+12465,F_S_Def_Potion,F S Def Potion,2,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_GUARD; bonus_script "{ bonus3 bSubEle,Ele_All,3,BF_SHORT; }",60,0,0,SI_PROTECT_DEF; },{},{}
 12466,F_Blessing_10_Scroll,F Blessing 10 Scroll,2,2,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
 12467,F_Inc_Agi_10_Scroll,F Inc Agi 10 Scroll,2,2,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
 12468,F_Aspersio_5_Scroll,F Aspersio 5 Scroll,2,2,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}

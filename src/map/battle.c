@@ -1152,6 +1152,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 
 		if( sd && (sce = sc->data[SC_GT_ENERGYGAIN]) && flag&BF_WEAPON && rnd()%100 < sce->val3 ) {
 			int spheremax = 0;
+
 			if ( sc->data[SC_RAISINGDRAGON] )
 				spheremax = 5 + sc->data[SC_RAISINGDRAGON]->val1;
 			else
@@ -1680,6 +1681,7 @@ static int64 battle_calc_base_damage(struct status_data *status, struct weapon_a
 void battle_consume_ammo(TBL_PC*sd, int skill, int lv)
 {
 	int qty = 1;
+
 	if(!battle_config.arrow_decrement)
 		return;
 	
@@ -1878,6 +1880,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 static bool target_has_infinite_defense(struct block_list *target, int skill_id)
 {
 	struct status_data *tstatus = status_get_status_data(target);
+
 	if(target->type == BL_SKILL) {
 		TBL_SKILL *su = (TBL_SKILL*)target;
 		if(su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD) )
@@ -1903,6 +1906,7 @@ static bool is_skill_using_arrow(struct block_list *src, int skill_id)
 	if(src != NULL) {
 		struct status_data *sstatus = status_get_status_data(src);
 		struct map_session_data *sd = BL_CAST(BL_PC, src);
+
 		return ((sd && sd->state.arrow_atk) || (!sd && ((skill_id && skill_get_ammotype(skill_id)) || sstatus->rhw.range>3)) || (skill_id == HT_PHANTASMIC));
 	} else
 		return false;
@@ -1920,6 +1924,7 @@ static bool is_attack_right_handed(struct block_list *src, int skill_id)
 {
 	if(src != NULL) {
 		struct map_session_data *sd = BL_CAST(BL_PC, src);
+
 		//Skills ALWAYS use ONLY your right-hand weapon (tested on Aegis 10.2)
 		if(!skill_id && sd && sd->weapontype1 == 0 && sd->weapontype2 > 0)
 			return false;
@@ -1940,6 +1945,7 @@ static bool is_attack_left_handed(struct block_list *src, int skill_id)
 	if(src != NULL) {
 		struct status_data *sstatus = status_get_status_data(src);
 		struct map_session_data *sd = BL_CAST(BL_PC, src);
+
 		if(!skill_id) { //Skills ALWAYS use ONLY your right-hand weapon (tested on Aegis 10.2)
 			if(sd && sd->weapontype1 == 0 && sd->weapontype2 > 0)
 				return true;
@@ -3582,6 +3588,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			if(sd && skill_lv == 1) {
 				//[(Caster's Base Level x 4) + (Shield DEF x 10) + (Caster's VIT x 2)] %
 				struct item_data *shield_data = sd->inventory_data[sd->equip_index[EQI_HAND_L]];
+
 				skillratio += -100 + status_get_lv(src) * 4 + status_get_vit(src) * 2;
 				if(shield_data)
 					skillratio += shield_data->def * 10;

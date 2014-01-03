@@ -6249,6 +6249,7 @@ static unsigned short status_calc_mode(struct block_list *bl, struct status_chan
 
 const char* status_get_name(struct block_list *bl) {
 	nullpo_ret(bl);
+
 	switch (bl->type) {
 		case BL_PC:  return ((TBL_PC *)bl)->fakename[0] != '\0' ? ((TBL_PC*)bl)->fakename : ((TBL_PC*)bl)->status.name;
 		case BL_MOB: return ((TBL_MOB*)bl)->name;
@@ -6267,6 +6268,7 @@ const char* status_get_name(struct block_list *bl) {
  *------------------------------------------*/
 int status_get_class(struct block_list *bl) {
 	nullpo_ret(bl);
+
 	switch( bl->type ) {
 		case BL_PC:  return ((TBL_PC*)bl)->status.class_;
 		case BL_MOB: return ((TBL_MOB*)bl)->vd->class_; //Class used on all code should be the view class of the mob.
@@ -6278,6 +6280,7 @@ int status_get_class(struct block_list *bl) {
 	}
 	return 0;
 }
+
 /*==========================================
  * Get the base level of the current bl
  * Return:
@@ -6286,6 +6289,7 @@ int status_get_class(struct block_list *bl) {
  *------------------------------------------*/
 int status_get_lv(struct block_list *bl) {
 	nullpo_ret(bl);
+
 	switch (bl->type) {
 		case BL_PC:  return ((TBL_PC*)bl)->status.base_level;
 		case BL_MOB: return ((TBL_MOB*)bl)->level;
@@ -6301,6 +6305,7 @@ int status_get_lv(struct block_list *bl) {
 struct regen_data *status_get_regen_data(struct block_list *bl)
 {
 	nullpo_retr(NULL, bl);
+
 	switch (bl->type) {
 		case BL_PC:  return &((TBL_PC*)bl)->regen;
 		case BL_HOM: return &((TBL_HOM*)bl)->regen;
@@ -6331,6 +6336,7 @@ struct status_data *status_get_status_data(struct block_list *bl)
 struct status_data *status_get_base_status(struct block_list *bl)
 {
 	nullpo_retr(NULL, bl);
+
 	switch (bl->type) {
 		case BL_PC:  return &((TBL_PC*)bl)->base_status;
 		case BL_MOB: return ((TBL_MOB*)bl)->base_status ? ((TBL_MOB*)bl)->base_status : &((TBL_MOB*)bl)->db->status;

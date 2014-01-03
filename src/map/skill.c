@@ -1046,7 +1046,6 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			//Chance to cause blind status vs demon and undead element, but not against players
 			if( !dstsd && (battle_check_undead(tstatus->race,tstatus->def_ele) || tstatus->race == RC_DEMON) )
 				sc_start(src,bl,SC_BLIND,100,skill_lv,skill_get_time2(skill_id,skill_lv));
-			attack_type |= BF_WEAPON;
 			break;
 
 		case AM_ACIDTERROR:
@@ -1948,6 +1947,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		case LG_HESPERUSLIT:
 			if(sc && sc->data[SC_FORCEOFVANGUARD] && sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 6) {
 				char i;
+
 				for(i = 0; i < sc->data[SC_FORCEOFVANGUARD]->val3; i++)
 					if(sd)
 						pc_addspiritball(sd,skill_get_time(LG_FORCEOFVANGUARD,1),sc->data[SC_FORCEOFVANGUARD]->val3);
@@ -1985,6 +1985,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 			hp += sd->bonus.magic_hp_gain_value;
 			if(skill_id == WZ_WATERBALL) { //(bugreport:5303)
 				struct status_change *sc = NULL;
+
 				if(( sc = status_get_sc(src) )) {
 					if(sc->data[SC_SPIRIT] &&
 						sc->data[SC_SPIRIT]->val2 == SL_WIZARD &&
@@ -6094,7 +6095,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case ML_DEVOTION:
 		case CR_DEVOTION: {
-				int count,lv;
+				int count, lv;
+
 				if (!dstsd || (!sd && !mer)) { //Only players can be devoted
 					if (sd)
 						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -6141,6 +6143,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case MO_CALLSPIRITS:
 			if (sd) {
 				int limit = skill_lv;
+
 				if (sd->sc.data[SC_RAISINGDRAGON])
 					limit += sd->sc.data[SC_RAISINGDRAGON]->val1;
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -6151,6 +6154,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case CH_SOULCOLLECT:
 			if (sd) {
 				int limit = 5;
+
 				if (sd->sc.data[SC_RAISINGDRAGON])
 					limit += sd->sc.data[SC_RAISINGDRAGON]->val1;
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -10307,7 +10311,8 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 				case NPC_GRANDDARKNESS:
 					if( (sc = status_get_sc(src)) && sc->data[SC_STRIPSHIELD] ) {
 						const struct TimerData *timer = get_timer(sc->data[SC_STRIPSHIELD]->timer);
-						if( timer && timer->func == status_change_timer && DIFF_TICK(timer->tick,gettick()+skill_get_time(ud->skill_id,ud->skill_lv)) > 0 )
+
+						if( timer && timer->func == status_change_timer && DIFF_TICK(timer->tick,gettick() + skill_get_time(ud->skill_id,ud->skill_lv)) > 0 )
 							break;
 					}
 					sc_start2(src,src,SC_STRIPSHIELD,100,0,1,skill_get_time(ud->skill_id,ud->skill_lv));
