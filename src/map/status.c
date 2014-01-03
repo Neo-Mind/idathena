@@ -11483,7 +11483,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		case SC_CRYSTALIZE:
 			if( --(sce->val4) >= 0 ) { //Drains 2% of HP and 1% of SP every seconds.
-				if( bl->type != BL_MOB) //Doesn't work on mobs
+				if( bl->type != BL_MOB ) //Doesn't work on mobs
 					status_charge(bl,status->max_hp * 2 / 100,status->max_sp / 100);
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				return 0;
@@ -11517,8 +11517,9 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			break;
 
 		case SC_OVERHEAT_LIMITPOINT:
-			if( --(sce->val1) > 0 ) //Cooling
+			if( --(sce->val1) > 0 ) { //Cooling
 				sc_timer_next(30000 + tick,status_change_timer,bl->id,data);
+			}
 			break;
 
 		case SC_OVERHEAT: {
