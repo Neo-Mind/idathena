@@ -9096,6 +9096,7 @@ int pc_calc_pvprank(struct map_session_data *sd)
 	int old = sd->pvp_rank;
 	struct map_data *m = &map[sd->bl.m];
 
+	sd->pvp_rank = 1;
 	map_foreachinmap(pc_calc_pvprank_sub,sd->bl.m,BL_PC,sd);
 	if(old != sd->pvp_rank || sd->pvp_lastusers != m->users_pvp)
 		clif_pvpset(sd,sd->pvp_rank,sd->pvp_lastusers = m->users_pvp,0);
@@ -9107,11 +9108,11 @@ int pc_calc_pvprank(struct map_session_data *sd)
  *------------------------------------------*/
 int pc_calc_pvprank_timer(int tid, unsigned int tick, int id, intptr_t data)
 {
-	struct map_session_data *sd;
+	struct map_session_data *sd = map_id2sd(id);
 
-	sd = map_id2sd(id);
 	if(sd == NULL)
 		return 0;
+
 	sd->pvp_timer = INVALID_TIMER;
 
 	if(sd->sc.option&OPTION_INVISIBLE) //Do not calculate the pvp rank for a hidden GM

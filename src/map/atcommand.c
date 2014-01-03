@@ -892,11 +892,11 @@ ACMD_FUNC(hide)
 		// Increment the number of pvp players on the map
 		map[sd->bl.m].users_pvp++;
 
+		// Register the player for ranking calculations
 		if( map[sd->bl.m].flag.pvp && !map[sd->bl.m].flag.pvp_nocalcrank )
-		{ // Register the player for ranking calculations
 			sd->pvp_timer = add_timer(gettick() + 200, pc_calc_pvprank_timer, sd->bl.id, 0);
-		}
-		//bugreport:2266
+
+		// bugreport:2266
 		map_foreachinmovearea(clif_insight, &sd->bl, AREA_SIZE, sd->bl.x, sd->bl.y, BL_ALL, &sd->bl);
 	} else {
 		sd->sc.option |= OPTION_INVISIBLE;
@@ -1472,14 +1472,14 @@ ACMD_FUNC(help)
 	return 0;
 }
 
-// helper function, used in foreach calls to stop auto-attack timers
+// Helper function, used in foreach calls to stop auto-attack timers
 // parameter: '0' - everyone, 'id' - only those attacking someone with that id
 static int atcommand_stopattack(struct block_list *bl,va_list ap)
 {
 	struct unit_data *ud = unit_bl2ud(bl);
 	int id = va_arg(ap, int);
-	if (ud && ud->attacktimer != INVALID_TIMER && (!id || id == ud->target))
-	{
+
+	if (ud && ud->attacktimer != INVALID_TIMER && (!id || id == ud->target)) {
 		unit_stop_attack(bl);
 		return 1;
 	}
@@ -1491,6 +1491,7 @@ static int atcommand_stopattack(struct block_list *bl,va_list ap)
 static int atcommand_pvpoff_sub(struct block_list *bl,va_list ap)
 {
 	TBL_PC* sd = (TBL_PC*)bl;
+
 	clif_pvpset(sd, 0, 0, 2);
 	if (sd->pvp_timer != INVALID_TIMER) {
 		delete_timer(sd->pvp_timer, pc_calc_pvprank_timer);
@@ -1526,6 +1527,7 @@ ACMD_FUNC(pvpoff)
 static int atcommand_pvpon_sub(struct block_list *bl,va_list ap)
 {
 	TBL_PC* sd = (TBL_PC*)bl;
+
 	if (sd->pvp_timer == INVALID_TIMER) {
 		sd->pvp_timer = add_timer(gettick() + 200, pc_calc_pvprank_timer, sd->bl.id, 0);
 		sd->pvp_rank = 0;
@@ -1548,7 +1550,7 @@ ACMD_FUNC(pvpon)
 
 	map[sd->bl.m].flag.pvp = 1;
 
-	if (!battle_config.pk_mode) { // display pvp circle and rank
+	if (!battle_config.pk_mode) { // Display pvp circle and rank
 		clif_map_property_mapall(sd->bl.m, MAPPROPERTY_FREEPVPZONE);
 		clif_maptypeproperty2(&sd->bl, ALL_SAMEMAP);
 		map_foreachinmap(atcommand_pvpon_sub, sd->bl.m, BL_PC);
