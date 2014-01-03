@@ -815,6 +815,7 @@ short pc_maxparameter(struct map_session_data *sd, enum e_params param);
 		)
 #endif
 
+int pc_split_str(char *str, char **val, int num);
 int pc_split_atoi(char* str, int* val, char sep, int max);
 int pc_split_atoui(char* str, unsigned int* val, char sep, int max);
 int pc_class2idx(int class_);

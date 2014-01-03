@@ -45,6 +45,7 @@ int battle_getcurrentskill(struct block_list *bl) {	//Returns the current/last s
 
 	if( bl->type == BL_SKILL ) {
 		struct skill_unit * su = (struct skill_unit*)bl;
+
 		return su->group ? su->group->skill_id : 0;
 	}
 
@@ -86,6 +87,7 @@ static int battle_gettargeted_sub(struct block_list *bl, va_list ap) {
 struct block_list* battle_gettargeted(struct block_list *target) {
 	struct block_list *bl_list[24];
 	int c = 0;
+
 	nullpo_retr(NULL, target);
 
 	memset(bl_list, 0, sizeof(bl_list));

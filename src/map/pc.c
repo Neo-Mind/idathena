@@ -9610,7 +9610,8 @@ int pc_level_penalty_mod(struct map_session_data *sd, int mob_level, uint32 mob_
 	return rate;
 }
 #endif
-static int pc_split_str(char *str, char **val, int num)
+
+int pc_split_str(char *str, char **val, int num)
 {
 	int i;
 

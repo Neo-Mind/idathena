@@ -495,7 +495,8 @@ static char skill_isCopyable(struct map_session_data *sd, uint16 skill_id) {
 		return 1;
 
 	//Reproduce can copy skill if SC__REPRODUCE is active and the skill is copyable by Reproduce
-	if( skill_db[idx].copyable.reproduce && pc_checkskill(sd, SC_REPRODUCE) && (&sd->sc && sd->sc.data[SC__REPRODUCE]) && sd->sc.data[SC__REPRODUCE]->val1 )
+	if( skill_db[idx].copyable.reproduce && pc_checkskill(sd, SC_REPRODUCE) &&
+		(&sd->sc && sd->sc.data[SC__REPRODUCE] && sd->sc.data[SC__REPRODUCE]->val1) )
 		return 2;
 
 	return 0;
@@ -2560,8 +2561,7 @@ static void skill_do_copy(struct block_list* src,struct block_list *bl, uint16 s
 					clif_deleteskill(tsd, tsd->cloneskill_id);
 				}
 
-				if ((lv = pc_checkskill(tsd, RG_PLAGIARISM)) < skill_lv)
-					skill_lv = lv;
+				lv = min(pc_checkskill(tsd, RG_PLAGIARISM), skill_lv);
 
 				tsd->cloneskill_id = skill_id;
 				pc_setglobalreg(tsd, SKILL_VAR_PLAGIARISM, skill_id);
@@ -2640,8 +2640,10 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	//Skotlex: Adjusted to the new system
 	if (src->type == BL_PET) { //[Valaris]
 		struct pet_data *pd = (TBL_PET*)src;
+
 		if (pd->a_skill && pd->a_skill->div_ && pd->a_skill->id == skill_id) {
 			int element = skill_get_ele(skill_id, skill_lv);
+
 			/*if (skill_id == -1) Does it ever worked?
 				element = sstatus->rhw.ele;*/
 			if (element != ELE_NEUTRAL || !(battle_config.attack_attr_none&BL_PET))
@@ -2718,6 +2720,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		}
 		if (tsc && tsc->data[SC_MAGICROD] && src == dsrc) {
 			int sp = skill_get_sp(skill_id, skill_lv);
+
 			dmg.damage = dmg.damage2 = 0;
 			dmg.dmg_lv = ATK_MISS; //This will prevent skill additional effect from taking effect. [Skotlex]
 			sp = sp * tsc->data[SC_MAGICROD]->val2 / 100;
@@ -2783,6 +2786,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			break;
 		case TK_COUNTER: { //Bonus from SG_FRIEND [Komurka]
 				int level;
+
 				if (sd && sd->status.party_id > 0 && (level = pc_checkskill(sd, SG_FRIEND) > 0))
 					party_skill_check(sd, sd->status.party_id, TK_COUNTER, level);
 			}
@@ -2791,6 +2795,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		case SL_STUN:
 			if (skill_lv >= 7) {
 				struct status_change *sc = status_get_sc(src);
+
 				if (sc && !sc->data[SC_SMA])
 					sc_start(src, src, SC_SMA, 100, skill_lv, skill_get_time(SL_SMA, skill_lv));
 			}
