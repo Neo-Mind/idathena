@@ -8559,7 +8559,7 @@ static int pc_removecombo(struct map_session_data *sd, struct item_data *data) {
 		/* Check if this combo exists in this user */
 		int x = 0, cursor = 0, j;
 
-		ARR_FIND( 0, sd->combos.count, x, sd->combos.id[x] == data->combos[i]->id );
+		ARR_FIND(0, sd->combos.count, x, sd->combos.id[x] == data->combos[i]->id);
 		/* No match, skip this combo */
 		if( !(x < sd->combos.count) )
 			continue;
@@ -8578,7 +8578,7 @@ static int pc_removecombo(struct map_session_data *sd, struct item_data *data) {
 			cursor++;
 		}
 		/* Check if combo requirements still fit */
-		if( pc_checkcombo( sd, data ) )
+		if( pc_checkcombo(sd, data) )
 			continue;
 		/* It's empty, we can clear all the memory */
 		if( (sd->combos.count = cursor) == 0 ) {
@@ -8608,14 +8608,14 @@ int pc_load_combo(struct map_session_data *sd) {
 			continue;
 		if( id->combos_count )
 			ret += pc_checkcombo(sd,id);
-		if(!itemdb_isspecial(sd->status.inventory[idx].card[0])) {
+		if( !itemdb_isspecial(sd->status.inventory[idx].card[0]) ) {
 			struct item_data *data;
 			int j;
 
 			for( j = 0; j < id->slot; j++ ) {
-				if (!sd->status.inventory[idx].card[j])
+				if( !sd->status.inventory[idx].card[j] )
 					continue;
-				if ( ( data = itemdb_exists(sd->status.inventory[idx].card[j]) ) != NULL ) {
+				if( (data = itemdb_exists(sd->status.inventory[idx].card[j])) != NULL ) {
 					if( data->combos_count )
 						ret += pc_checkcombo(sd,data);
 				}
@@ -8742,23 +8742,23 @@ bool pc_equipitem(struct map_session_data *sd,int n,int req_pos)
 		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
 	}
 	if( pos&EQP_COSTUME_HEAD_TOP ) {
-		if( id ) {
+		if( id )
 			sd->status.head_top = id->look;
-		} else
+		else
 			sd->status.head_top = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_TOP,sd->status.head_top);
 	}
 	if( pos&EQP_COSTUME_HEAD_MID ) {
-		if( id && !(pos&EQP_HEAD_TOP) ) {
+		if( id && !(pos&EQP_HEAD_TOP) )
 			sd->status.head_mid = id->look;
-		} else
+		else
 			sd->status.head_mid = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
 	}
 	if( pos&EQP_COSTUME_HEAD_LOW ) {
-		if( id && !(pos&(EQP_HEAD_TOP|EQP_HEAD_MID)) ) {
+		if( id && !(pos&(EQP_HEAD_TOP|EQP_HEAD_MID)) )
 			sd->status.head_bottom = id->look;
-		} else
+		else
 			sd->status.head_bottom = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_BOTTOM,sd->status.head_bottom);
 	}

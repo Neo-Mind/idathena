@@ -5255,9 +5255,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		chorusbonus = party_foreachsamemap(party_sub_count_chorus,sd,0) - 2;
 
 	if(src != bl && status_isdead(bl)) {
-		/**
-		 * Skills that may be cast on dead targets
-		 **/
+		//Skills that may be cast on dead targets
 		switch(skill_id) {
 			case NPC_WIDESOULDRAIN:
 			case PR_REDEMPTIO:
@@ -5302,6 +5300,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case MH_STEINWAND: {
 				struct block_list *s_src = battle_get_master(src);
 				short ret = 0;
+
 				if(!skill_check_unit_range(src,src->x,src->y,skill_id,skill_lv)) //Prevent reiteration
 					ret = skill_castend_pos2(src,src->x,src->y,skill_id,skill_lv,tick,flag); //Cast on homon
 				if(s_src && !skill_check_unit_range(s_src,s_src->x,s_src->y,skill_id,skill_lv))
@@ -5324,6 +5323,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				struct item_data *i_data;
 				int nameid = 0;
 				int rate = rnd()%20 + 1;
+
 				switch(skill_id) {
 					case RK_MILLENNIUMSHIELD:
 						nameid = ITEMID_BERKANA;
@@ -11251,6 +11251,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case KO_MUCHANAGE: {
 				struct status_data *sstatus;
 				int rate = 0;
+
 				sstatus = status_get_status_data(src);
 				i = skill_get_splash(skill_id,skill_lv);
 				rate = (100 - (1000 / (sstatus->dex + sstatus->luk) * 5)) * (skill_lv / 2 + 5) / 10;
@@ -11266,6 +11267,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			if( unit_movepos(src,x,y,1,1) ) {
 				enum e_skill skill_use = GS_DESPERADO;
 				uint8 skill_use_lv = pc_checkskill(sd,skill_use);
+
 				clif_slide(src,x,y);
 				if( skill_check_condition_castbegin(sd,skill_use,skill_use_lv) ) {
 					sd->skill_id_old = RL_FALLEN_ANGEL;
