@@ -225,7 +225,6 @@ static void itemdb_pc_get_itemgroup_sub(struct map_session_data *sd, uint16 grou
 
 			sprintf(output, msg_txt(717), sd->status.name, itemdb_jname(group->nameid), itemdb_jname(sd->itemid));
 			clif_broadcast(&sd->bl, output,strlen(output), 0, ALL_CLIENT);
-			//clif_broadcasting_special_item_obtain(sd, itemdb_jname(group->nameid), itemdb_jname(nameid_from));
 		}
 		if (itemdb_isstackable(group->nameid))
 			break;

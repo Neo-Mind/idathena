@@ -6157,7 +6157,7 @@ void clif_cart_additem(struct map_session_data *sd,int n,int amount,int fail)
 }
 
 
-/* [Ind] - Data Thanks to Yommy (ZC_ACK_ADDITEM_TO_CART)
+/** [Ind] - Data Thanks to Yommy (ZC_ACK_ADDITEM_TO_CART)
  * Acknowledge an item have been added to cart
  * 012c <result>B
  * result :
@@ -6192,7 +6192,7 @@ void clif_bank_open(struct map_session_data *sd) {
 	WFIFOSET(fd,4);
 }
 
-/*
+/**
  * Request to Open the banking system
  * 09B6 <aid>L ??? (Dunno just wild guess checkme)
  */
@@ -6231,7 +6231,7 @@ void clif_bank_close(struct map_session_data *sd) {
 	WFIFOSET(fd,4);
 }
 
-/*
+/**
  * Request to close the banking system
  * 09B8 <aid>L ??? (Dunno just wild guess checkme)
  */
@@ -6251,9 +6251,9 @@ void clif_parse_BankClose(int fd, struct map_session_data* sd) {
 	}
 }
 
-/*
+/**
  * Display how much we got in bank (I suppose)
-  09A6 <Bank_Vault>Q <Reason>W (PACKET_ZC_BANKING_CHECK)
+ * 09A6 <Bank_Vault>Q <Reason>W (PACKET_ZC_BANKING_CHECK)
  */
 void clif_Bank_Check(struct map_session_data* sd) {
 	unsigned char buf[13];
@@ -6275,7 +6275,7 @@ void clif_Bank_Check(struct map_session_data* sd) {
 	clif_send(buf,len,&sd->bl,SELF);
 }
 
-/*
+/**
  * Requesting the data in bank
  * 09AB <aid>L (PACKET_CZ_REQ_BANKING_CHECK)
  */
@@ -6294,9 +6294,9 @@ void clif_parse_BankCheck(int fd, struct map_session_data* sd) {
 	}
 }
 
-/*
+/**
  * Acknowledge of deposit some money in bank
-  09A8 <Reason>W <Money>Q <balance>L (PACKET_ZC_ACK_BANKING_DEPOSIT)
+ * 09A8 <Reason>W <Money>Q <balance>L (PACKET_ZC_ACK_BANKING_DEPOSIT)
  */
 void clif_bank_deposit(struct map_session_data *sd, enum e_BANKING_DEPOSIT_ACK reason) {
 	unsigned char buf[17];
@@ -6318,7 +6318,7 @@ void clif_bank_deposit(struct map_session_data *sd, enum e_BANKING_DEPOSIT_ACK r
 	clif_send(buf,len,&sd->bl,SELF);
 }
 
-/*
+/**
  * Request saving some money in bank
  * @author : original [Yommy]
  * 09A7 <AID>L <Money>L (PACKET_CZ_REQ_BANKING_DEPOSIT)
@@ -6342,9 +6342,9 @@ void clif_parse_BankDeposit(int fd, struct map_session_data* sd) {
 	}
 }
 
-/*
+/**
  * Acknowledge of withdrawing some money from bank
-  09AA <Reason>W <Money>Q <balance>L (PACKET_ZC_ACK_BANKING_WITHDRAW)
+ * 09AA <Reason>W <Money>Q <balance>L (PACKET_ZC_ACK_BANKING_WITHDRAW)
  */
 void clif_bank_withdraw(struct map_session_data *sd,enum e_BANKING_WITHDRAW_ACK reason) {
 	unsigned char buf[17];
@@ -6366,7 +6366,7 @@ void clif_bank_withdraw(struct map_session_data *sd,enum e_BANKING_WITHDRAW_ACK 
 	clif_send(buf,len,&sd->bl,SELF);
 }
 
-/*
+/**
  * Request Withdrawing some money from bank
  * 09A9 <AID>L <Money>L (PACKET_CZ_REQ_BANKING_WITHDRAW)
  */
@@ -16934,11 +16934,9 @@ void clif_sub_ranklist(unsigned char *buf, int idx, struct map_session_data* sd,
 					strncpy((char *)(WBUFP(buf,idx + 24 * i)), name, NAME_LENGTH);
 				else
 					strncpy((char *)(WBUFP(buf,idx + 24 * i)), list[i].name, NAME_LENGTH);
-
 			} else
 				strncpy((char *)(WBUFP(buf, idx + 24 * i)), "None", 5);
-
-			WBUFL(buf, idx + 24 * 10 + i * 4) = list[i].fame; //points
+			WBUFL(buf, idx + 24 * 10 + i * 4) = list[i].fame; //Points
 		}
 		for(; i < 10; i++) { //In case the MAX is less than 10.
 			strncpy((char *)(WBUFP(buf, idx + 24 * i)), "Unavailable", 12);
@@ -17214,29 +17212,6 @@ void clif_scriptclear(struct map_session_data *sd, int npcid) {
 	WFIFOW(fd,0) = 0x8d6;
 	WFIFOL(fd,info->pos[0]) = npcid;
 	WFIFOSET(fd,len);
-}
-
-void clif_broadcasting_special_item_obtain(struct map_session_data *sd, unsigned short nameid, unsigned short containerid) {
-	/* this+0x0 short PacketType */
-	/* this+0x2 short PacketLength */
-	/* this+0x4 unsigned char type {
-		TYPE_BOXITEM = 0x0,
-		TYPE_MONSTER_ITEM = 0x1,
-		TYPE_NPC = 0x2,
-	} */
-	/* this+0x5 unsigned short ItemID */
-	/* this+0x7 struct VarString Holder { //Related to MSI_BROADCASTING_SPECIAL_ITEM_OBTAIN = 0x65c
-		this+0x0 char len
-		this+0x1 char Name[...]
-	} */
-	/* if (packet.type == TYPE_BOXITEM) {
-		this+0x... unsigned short BoxItemID
-	} else if (packet.type == TYPE_MONSTER_ITEM) {
-		this+0x... struct VarString Monster {
-			this+0x0 char len
-			this+0x1 char Name[...]
-		}
-	} */
 }
 
 #ifdef DUMP_UNKNOWN_PACKET
