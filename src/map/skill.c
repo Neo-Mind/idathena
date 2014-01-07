@@ -1652,13 +1652,12 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			skill = (sd->autospell[i].id > 0) ? sd->autospell[i].id : -sd->autospell[i].id;
 
 			sd->state.autocast = 1;
+			if( skill_isNotOk(skill,sd) )
+				continue;
 			sd->state.autocast = 0;
 
 			skill_lv = sd->autospell[i].lv ? sd->autospell[i].lv : 1;
 			if( skill_lv < 0 ) skill_lv = 1 + rnd()%(-skill_lv);
-
-			if( skill_isNotOk(skill,sd) )
-				continue;
 
 			rate = (!sd->state.arrow_atk) ? sd->autospell[i].rate : sd->autospell[i].rate / 2;
 
@@ -2022,10 +2021,9 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 				 rate >>= 1;
 
 			dstsd->state.autocast = 1;
-			dstsd->state.autocast = 0;
-
 			if(skill_isNotOk(skill_id,dstsd))
 				continue;
+			dstsd->state.autocast = 0;
 
 			if(rnd()%1000 >= rate)
 				continue;
@@ -7453,7 +7451,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case WE_MALE:
-			 if (status_get_hp(bl) < status_get_max_hp(bl) / 10) {
+			 if (status_get_hp(bl) > status_get_max_hp(bl) / 10) {
 				int hp_rate = (!skill_lv) ? 0 : skill_get_hp_rate(skill_id, skill_lv);
 				//The earned is the same % of the target HP than it costed the caster. [Skotlex]
 				int gain_hp = tstatus->max_hp * abs(hp_rate) / 100;
@@ -7462,7 +7460,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 		case WE_FEMALE:
-			if (status_get_sp(bl) < status_get_max_sp(bl) / 10) {
+			if (status_get_sp(bl) > status_get_max_sp(bl) / 10) {
 				int sp_rate = (!skill_lv) ? 0 : skill_get_sp_rate(skill_id, skill_lv);
 				//The earned is the same % of the target SP than it costed the caster. [Skotlex]
 				int gain_sp = tstatus->max_sp * abs(sp_rate) / 100;
@@ -9933,6 +9931,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case MH_PYROCLASTIC:
 			if(hd) {
 				struct block_list *m_src = battle_get_master(src);
+
 				if(m_src) //Start on master
 					sc_start2(src,m_src,type,100,skill_lv,hd->homunculus.level,skill_get_time(skill_id,skill_lv));
 				sc_start2(src,bl,type,100,skill_lv,hd->homunculus.level,skill_get_time(skill_id,skill_lv));
@@ -9941,10 +9940,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case MH_LIGHT_OF_REGENE: //Self
-			sc_start2(src,src,type,100,skill_lv,hd->homunculus.level,skill_get_time(skill_id,skill_lv));
 			if(hd) {
+				sc_start2(src,src,type,100,skill_lv,hd->homunculus.level,skill_get_time(skill_id,skill_lv));
 				hd->homunculus.intimacy = 251; //Change to neutral (can't be cast if < 750)
-				if(sd) clif_send_homdata(sd,SP_INTIMATE,hd->homunculus.intimacy); //Refresh intimacy info
+				if(sd)
+					clif_send_homdata(sd,SP_INTIMATE,hd->homunculus.intimacy); //Refresh intimacy info
 				skill_blockhomun_start(hd,skill_id,skill_get_cooldown(NULL,skill_id,skill_lv));
 			}
 			break;

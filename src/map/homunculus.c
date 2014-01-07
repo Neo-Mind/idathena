@@ -58,7 +58,8 @@ struct view_data* merc_get_hom_viewdata(int class_)
 
 enum homun_type hom_class2type(int class_) {
 	int mid = hom_class2mapid(class_);
-	if (mid&(HOM_REG|HOM_EVO))
+
+	if ((mid&(HOM_REG|HOM_EVO)) == (HOM_REG|HOM_EVO))
 		return HT_EVO;
 	else if (mid&(HOM_REG))
 		return HT_REG;

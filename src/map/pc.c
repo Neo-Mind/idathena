@@ -3428,24 +3428,6 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 				sd->left_weapon.sp_drain_class[CLASS_BOSS].type = val;
 			}
 			break;
-		case SP_HP_DRAIN_RATE_RACE:
-			if(!sd->state.lr_flag) {
-				sd->right_weapon.hp_drain_race[type2].rate += type3;
-				sd->right_weapon.hp_drain_race[type2].per += val;
-			} else if(sd->state.lr_flag == 1) {
-				sd->left_weapon.hp_drain_race[type2].rate += type3;
-				sd->left_weapon.hp_drain_race[type2].per += val;
-			}
-			break;
-		case SP_SP_DRAIN_RATE_RACE:
-			if(!sd->state.lr_flag) {
-				sd->right_weapon.sp_drain_race[type2].rate += type3;
-				sd->right_weapon.sp_drain_race[type2].per += val;
-			} else if(sd->state.lr_flag == 1) {
-				sd->left_weapon.sp_drain_race[type2].rate += type3;
-				sd->left_weapon.sp_drain_race[type2].per += val;
-			}
-			break;
 		case SP_ADD_MONSTER_DROP_ITEMGROUP:
 			if(sd->state.lr_flag != 2)
 				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), 0, type2, -1, 1<<type3, val);
@@ -6803,10 +6785,13 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	int i = 0, k = 0;
 	unsigned int tick = gettick();
 
+	nullpo_ret(sd);
+
 	//Activate Steel body if a super novice dies at 99+% exp [celest]
 	//Super Novices have no kill or die functions attached when saved by their angel
 	if( (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && !sd->state.snovice_dead_flag ) {
 		unsigned int next = pc_nextbaseexp(sd);
+
 		if( next == 0 ) next = pc_thisbaseexp(sd);
 		if( get_percentage(sd->status.base_exp,next) >= 99 ) {
 			sd->state.snovice_dead_flag = 1;
@@ -6825,15 +6810,17 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	for( k = 0; k < 5; k++ )
 		if( sd->devotion[k] ) {
 			struct map_session_data *devsd = map_id2sd(sd->devotion[k]);
+
 			if( devsd )
-				status_change_end(&devsd->bl, SC_DEVOTION, INVALID_TIMER);
+				status_change_end(&devsd->bl,SC_DEVOTION,INVALID_TIMER);
 			sd->devotion[k] = 0;
 		}
 
 	if( sd->status.pet_id > 0 && sd->pd ) {
 		struct pet_data *pd = sd->pd;
+
 		if( !map[sd->bl.m].flag.noexppenalty ) {
-			pet_set_intimate(pd, pd->pet.intimate - pd->petDB->die);
+			pet_set_intimate(pd,pd->pet.intimate - pd->petDB->die);
 			if( pd->pet.intimate < 0 )
 				pd->pet.intimate = 0;
 			clif_send_petdata(sd,sd->pd,1,pd->pet.intimate);
@@ -6844,33 +6831,33 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 
 	if( sd->status.hom_id > 0 ) {
 		if( battle_config.homunculus_auto_vapor && sd->hd && !sd->hd->sc.data[SC_LIGHT_OF_REGENE] )
-			merc_hom_vaporize(sd, HOM_ST_REST);
+			merc_hom_vaporize(sd,HOM_ST_REST);
 	}
 
 	if( sd->md )
-		merc_delete(sd->md, 3); //Your mercenary soldier has ran away
+		merc_delete(sd->md,3); //Your mercenary soldier has ran away
 
 	if( sd->ed )
-		elemental_delete(sd->ed, 0);
+		elemental_delete(sd->ed,0);
 	
 	//Leave duel if you die [LuzZza]
 	if( battle_config.duel_autoleave_when_die ) {
 		if( sd->duel_group > 0 )
-			duel_leave(sd->duel_group, sd);
+			duel_leave(sd->duel_group,sd);
 		if( sd->duel_invite > 0 )
-			duel_reject(sd->duel_invite, sd);
+			duel_reject(sd->duel_invite,sd);
 	}
 
 	pc_close_npc(sd,2); //Close npc if we were using one
 
 	/* e.g. not killed through pc_damage */
 	if( pc_issit(sd) )
-		clif_status_load(&sd->bl, SI_SIT, 0);
+		clif_status_load(&sd->bl,SI_SIT,0);
 
 	pc_setdead(sd);
 
-	pc_setglobalreg(sd, "PC_DIE_COUNTER", sd->die_counter + 1);
-	pc_setparam(sd, SP_KILLERRID, src ? src->id : 0);
+	pc_setglobalreg(sd,"PC_DIE_COUNTER",sd->die_counter + 1);
+	pc_setparam(sd,SP_KILLERRID,src ? src->id : 0);
 
 	//Reset menu skills/item skills
 	if( (sd->skillitem) != 0 )
@@ -6880,16 +6867,50 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	//Reset ticks.
 	sd->hp_loss.tick = sd->sp_loss.tick = sd->hp_regen.tick = sd->sp_regen.tick = 0;
 
-	if( sd && (sd->spiritball) != 0 )
-		pc_delspiritball(sd, sd->spiritball, 0);
+	if( sd->spiritball != 0 )
+		pc_delspiritball(sd,sd->spiritball,0);
 
 	for( i = 1; i < 5; i++ )
-		pc_del_talisman(sd, sd->talisman[i], i);
+		pc_del_talisman(sd,sd->talisman[i],i);
 
 	if( src )
 		switch( src->type ) {
+			case BL_PC: {
+					struct map_session_data *ssd = (struct map_session_data *)src;
+
+					pc_setparam(ssd,SP_KILLEDRID,sd->bl.id);
+					npc_script_event(ssd,NPCE_KILLPC);
+
+					if( battle_config.pk_mode&2 ) {
+						ssd->status.manner -= 5;
+						if( ssd->status.manner < 0 )
+							sc_start(&sd->bl,src,SC_NOCHAT,100,0,0);
+#if 0
+						//PK/Karma system code (not enabled yet) [celest]
+						//originally from Kade Online, so i don't know if any of these is correct ^^;
+						//note: karma is measured REVERSE, so more karma = more 'evil' / less honourable,
+						//karma going down = more 'good' / more honourable.
+						//The Karma System way.
+
+						if( sd->status.karma > ssd->status.karma ) { //If player killed was more evil
+							sd->status.karma--;
+							ssd->status.karma--;
+						} else if( sd->status.karma < ssd->status.karma ) // If player killed was more good
+							ssd->status.karma++;
+
+						//Or the PK System way
+						if( sd->status.karma > 0 ) //Player killed is dishonourable?
+							ssd->status.karma--; //Honour points earned
+						sd->status.karma++;	//Honour points lost
+
+						//@TODO: Receive exp on certain occasions
+#endif
+					}
+				}
+				break;
 			case BL_MOB: {
 					struct mob_data *md = (struct mob_data *)src;
+
 					if( md->target_id == sd->bl.id )
 						mob_unlocktarget(md,tick);
 					if( battle_config.mobs_level_up && md->status.hp &&
@@ -6914,41 +6935,9 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 				break;
 		}
 
-	if( src && src->type == BL_PC ) {
-		struct map_session_data *ssd = (struct map_session_data *)src;
-
-		pc_setparam(ssd, SP_KILLEDRID, sd->bl.id);
-		npc_script_event(ssd, NPCE_KILLPC);
-
-		if( battle_config.pk_mode&2 ) {
-			ssd->status.manner -= 5;
-			if( ssd->status.manner < 0 )
-				sc_start(&sd->bl,src,SC_NOCHAT,100,0,0);
-#if 0
-			//PK/Karma system code (not enabled yet) [celest]
-			//originally from Kade Online, so i don't know if any of these is correct ^^;
-			//note: karma is measured REVERSE, so more karma = more 'evil' / less honourable,
-			//karma going down = more 'good' / more honourable.
-			//The Karma System way.
-
-			if( sd->status.karma > ssd->status.karma ) { //If player killed was more evil
-				sd->status.karma--;
-				ssd->status.karma--;
-			} else if( sd->status.karma < ssd->status.karma ) // If player killed was more good
-				ssd->status.karma++;
-
-			//Or the PK System way
-			if( sd->status.karma > 0 ) //Player killed is dishonourable?
-				ssd->status.karma--; //Honour points earned
-			sd->status.karma++;	//Honour points lost
-
-			//To-do: Receive exp on certain occasions
-#endif
-		}
-	}
-
 	if( battle_config.bone_drop == 2 || (battle_config.bone_drop == 1 && map[sd->bl.m].flag.pvp) ) {
 		struct item item_tmp;
+
 		memset(&item_tmp,0,sizeof(item_tmp));
 		item_tmp.nameid = ITEMID_SKULL_;
 		item_tmp.identify = 1;
@@ -6969,8 +6958,9 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		!sd->sc.data[SC_BABY] && !sd->sc.data[SC_LIFEINSURANCE] )
 	{
 		unsigned int base_penalty = battle_config.death_penalty_base, job_penalty = battle_config.death_penalty_job;
+
 #ifdef VIP_ENABLE
-		if(pc_isvip(sd)) {
+		if( pc_isvip(sd) ) {
 			base_penalty = base_penalty * battle_config.vip_exp_penalty_base;
 			job_penalty = job_penalty * battle_config.vip_exp_penalty_job;
 		} else {
@@ -7035,7 +7025,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 					{
 						int k;
 
-						ARR_FIND(0,MAX_INVENTORY,k, eq_n[k] <= 0);
+						ARR_FIND(0,MAX_INVENTORY,k,eq_n[k] <= 0);
 						if( k < MAX_INVENTORY )
 							eq_n[k] = i;
 
@@ -7075,6 +7065,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		sd->pvp_lost++;
 		if( src && src->type == BL_PC ) {
 			struct map_session_data *ssd = (struct map_session_data *)src;
+
 			ssd->pvp_point++;
 			ssd->pvp_won++;
 		}
@@ -7089,6 +7080,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		return 1|8;
 	} else if( sd->bg_id ) {
 		struct battleground_data *bg = bg_team_search(sd->bg_id);
+
 		if( bg && bg->mapindex > 0 ) { //Respawn by BG
 			add_timer(tick + 1000,pc_respawn_timer,sd->bl.id,0);
 			return 1|8;
@@ -8473,7 +8465,7 @@ static int pc_checkcombo(struct map_session_data *sd, struct item_data *data) {
 		}
 
 		CREATE(combo_idx,int16,data->combos[i]->count);
-		memset(combo_idx,0,data->combos[i]->count);
+		memset(combo_idx,-1,data->combos[i]->count);
 		for( j = 0; j < data->combos[i]->count; j++ ) {
 			uint16 id = data->combos[i]->nameid[j], k;
 			bool found = false;
@@ -8566,7 +8558,9 @@ static int pc_removecombo(struct map_session_data *sd, struct item_data *data) {
 		sd->combos.bonus[x] = NULL;
 		sd->combos.id[x] = 0;
 		retval++;
-
+		/* Check if combo requirements still fit */
+		if( pc_checkcombo(sd, data) )
+			continue;
 		/* Move next value to empty slot */
 		for( j = 0, cursor = 0; j < sd->combos.count; j++ ) {
 			if( sd->combos.bonus[j] == NULL )
@@ -8577,9 +8571,6 @@ static int pc_removecombo(struct map_session_data *sd, struct item_data *data) {
 			}
 			cursor++;
 		}
-		/* Check if combo requirements still fit */
-		if( pc_checkcombo(sd, data) )
-			continue;
 		/* It's empty, we can clear all the memory */
 		if( (sd->combos.count = cursor) == 0 ) {
 			aFree(sd->combos.bonus);

@@ -99,9 +99,9 @@ enum {
 };
 
 enum homun_type {
-	HT_REG, // Regular Homunculus
-	HT_EVO, // Evolved Homunculus
-	HT_S, // Homunculus S
+	HT_REG = 0x1, // Regular Homunculus
+	HT_EVO = 0x2, // Evolved Homunculus
+	HT_S = 0x4, // Homunculus S
 	HT_INVALID = -1, // Invalid Homunculus
 };
 

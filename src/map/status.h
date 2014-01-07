@@ -1744,18 +1744,18 @@ struct weapon_atk {
 #endif
 };
 
-sc_type SkillStatusChangeTable[MAX_SKILL];   /// skill  -> status
-int StatusIconChangeTable[SC_MAX];           /// status -> "icon" (icon is a bit of a misnomer, since there exist values with no icon associated)
-unsigned int StatusChangeFlagTable[SC_MAX];  /// status -> flags
-int StatusSkillChangeTable[SC_MAX];          /// status -> skill
-int StatusRelevantBLTypes[SI_MAX];           /// "icon" -> enum bl_type (for clif->status_change to identify for which bl types to send packets)
-unsigned int StatusChangeStateTable[SC_MAX]; /// status -> flags
+sc_type SkillStatusChangeTable[MAX_SKILL];   // skill  -> status
+int StatusIconChangeTable[SC_MAX];           // status -> "icon" (icon is a bit of a misnomer, since there exist values with no icon associated)
+unsigned int StatusChangeFlagTable[SC_MAX];  // status -> flags
+int StatusSkillChangeTable[SC_MAX];          // status -> skill
+int StatusRelevantBLTypes[SI_MAX];           // "icon" -> enum bl_type (for clif->status_change to identify for which bl types to send packets)
+unsigned int StatusChangeStateTable[SC_MAX]; // status -> flags
 bool StatusDisplayType[SC_MAX];
 
 //For holding basic status (which can be modified by status changes)
 struct status_data {
 	unsigned int
-		hp, sp, /// See status_cpy before adding members before hp and sp
+		hp, sp, // See status_cpy before adding members before hp and sp
 		max_hp, max_sp;
 	unsigned short
 		str, agi, vit, int_, dex, luk,

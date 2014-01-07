@@ -2781,7 +2781,7 @@ ACMD_FUNC(char_ban)
 {
 	char * modif_p;
 	int32 timediff = 0; //Don't set this as uint as we may want to decrease banned time
-	int bantype = 2; //2 = account block, 6 = char specific
+	int bantype = 0; //2 = account block, 6 = char specific
 	char output[256];
 
 	nullpo_retr(-1, sd);
@@ -2853,11 +2853,11 @@ ACMD_FUNC(char_unblock)
  * char unban command (usage: charunban <player_name>)
  *------------------------------------------*/
 ACMD_FUNC(char_unban) {
-	int unbantype = 4;
+	int unbantype = 0;
 	nullpo_retr(-1, sd);
 
 	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-	unbantype = strcmpi(command + 1, "charunban") ? 4 : 7; //! FIXME this breaking alias recognition
+	unbantype = strcmpi(command + 1, "charunban") ? 4 : 7; //@FIXME this breaking alias recognition
 
 	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {	
 		if (unbantype == 4) clif_displaymessage(fd, msg_txt(1025)); // Please enter a player name (usage: @unblock <char name>).
@@ -7847,6 +7847,7 @@ ACMD_FUNC(duel)
 
 	if(!duel_checktime(sd)) {
 		char output[CHAT_SIZE_MAX];
+
 		// "Duel: You can take part in duel only one time per %d minutes."
 		sprintf(output, msg_txt(356), battle_config.duel_time_interval);
 		clif_displaymessage(fd, output);
@@ -7854,7 +7855,7 @@ ACMD_FUNC(duel)
 	}
 
 	if( message[0] ) {
-		if(sscanf(message, "%d", &maxpl) >= 1) {
+		if(sscanf(message, "%ui", &maxpl) >= 1) {
 			if(maxpl < 2 || maxpl > 65535) {
 				clif_displaymessage(fd, msg_txt(357)); // "Duel: Invalid value."
 				return 0;
@@ -7862,9 +7863,11 @@ ACMD_FUNC(duel)
 			duel_create(sd, maxpl);
 		} else {
 			struct map_session_data *target_sd;
+
 			target_sd = map_nick2sd((char *)message);
 			if(target_sd != NULL) {
 				unsigned int newduel;
+
 				if((newduel = duel_create(sd, 2)) != -1) {
 					if(target_sd->duel_group > 0 ||	target_sd->duel_invite > 0) {
 						clif_displaymessage(fd, msg_txt(353)); // "Duel: Player already in duel."
@@ -8519,9 +8522,11 @@ static void atcommand_commands_sub(struct map_session_data* sd, const int fd, At
 
 	if( atcmd_binding_count ) {
 		int i, count_bind, gm_lvl = pc_get_group_level(sd);
+
 		for( i = count_bind = 0; i < atcmd_binding_count; i++ ) {
-			if( gm_lvl >= (type - 1 ? atcmd_binding[i]->level2 : atcmd_binding[i]->level) ) {
+			if( gm_lvl >= ((type - 1) ? atcmd_binding[i]->level2 : atcmd_binding[i]->level) ) {
 				unsigned int slen = strlen(atcmd_binding[i]->command);
+
 				if( count_bind == 0 ) {
 					cur = line_buff;
 					memset(line_buff, ' ', CHATBOX_SIZE);

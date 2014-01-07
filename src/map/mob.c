@@ -1390,7 +1390,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 	int mode;
 	int view_range, can_move;
 
-	if(md->bl.prev == NULL || md->status.hp <= 0)
+	if(md->bl.prev == NULL || md->status.hp == 0)
 		return false;
 
 	if(DIFF_TICK(tick, md->last_thinktime) < MIN_MOBTHINKTIME)
@@ -1594,7 +1594,10 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 	if(battle_check_range (&md->bl, tbl, md->status.rhw.range)) { //Target within range, engage
 		if(tbl->type == BL_PC)
 			mob_log_damage(md, tbl, 0); //Log interaction (counts as 'attacker' for the exp bonus)
-		unit_attack(&md->bl,tbl->id,1);
+		if(!(md->sc.option&OPTION_HIDE))
+			unit_attack(&md->bl, tbl->id, 1);
+		else
+			mobskill_use(md, tick, -1);
 		return true;
 	}
 
@@ -3281,7 +3284,7 @@ int mobskill_event(struct mob_data *md, struct block_list *src, unsigned int tic
 {
 	int target_id, res = 0;
 
-	if(md->bl.prev == NULL || md->status.hp <= 0)
+	if(md->bl.prev == NULL || md->status.hp == 0)
 		return 0;
 
 	target_id = md->target_id;
@@ -3997,7 +4000,7 @@ static int mob_read_randommonster(void)
 	FILE *fp;
 	char line[1024];
 	char *str[10],*p;
-	int i,j,entries;
+	int i, j, entries;
 	const char* mobfile[] = {
 		DBPATH"mob_branch.txt",
 		DBPATH"mob_poring.txt",
