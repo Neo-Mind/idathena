@@ -467,7 +467,7 @@ int chrif_send_accdata(int fd, uint32 aid) {
 	WFIFOL(fd,72) = bank_vault;
 	WFIFOB(fd,76) = isvip;
 	WFIFOB(fd,77) = char_vip;
-	WFIFOB(fd,78) = MAX_CHAR_BILLING; //TODO create a config for this
+	WFIFOB(fd,78) = MAX_CHAR_BILLING; //@TODO: Create a config for this
 	WFIFOSET(fd,79);
 	return 0;
 }
@@ -1937,9 +1937,10 @@ void do_shutdown(void)
 	if( runflag != LOGINSERVER_ST_SHUTDOWN )
 	{
 		int id;
+
 		runflag = LOGINSERVER_ST_SHUTDOWN;
 		ShowStatus("Shutting down...\n");
-		// TODO proper shutdown procedure; kick all characters, wait for acks, ...  [FlavioJS]
+		//@TODO: Proper shutdown procedure; kick all characters, wait for acks, ...  [FlavioJS]
 		for( id = 0; id < ARRAYLENGTH(server); ++id )
 			chrif_server_reset(id);
 		flush_fifos();

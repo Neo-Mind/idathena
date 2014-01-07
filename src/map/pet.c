@@ -274,7 +274,7 @@ static int pet_performance(struct map_session_data *sd, struct pet_data *pd)
 
 	if (pd->pet.intimate > 900)
 		val = (pd->petDB->s_perfor > 0)? 4:3;
-	else if(pd->pet.intimate > 750) //TODO: this is way too high
+	else if(pd->pet.intimate > 750) //@TODO: This is way too high
 		val = 2;
 	else
 		val = 1;

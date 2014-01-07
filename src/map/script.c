@@ -71,7 +71,7 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
-//## TODO possible enhancements: [FlavioJS]
+// @TODO: Possible enhancements: [FlavioJS]
 // - 'callfunc' supporting labels in the current npc "::LabelName"
 // - 'callfunc' supporting labels in other npcs "NpcName::LabelName"
 // - 'function FuncName;' function declarations reverting to global functions
@@ -144,7 +144,7 @@
 /// Returns if this a reference to a param
 #define reference_toparam(data) ( str_data[reference_getid(data)].type == C_PARAM )
 /// Returns if this a reference to a variable
-//##TODO confirm it's C_NAME [FlavioJS]
+//@TODO: Confirm it's C_NAME [FlavioJS]
 #define reference_tovariable(data) ( str_data[reference_getid(data)].type == C_NAME )
 /// Returns the unique id of the reference (id and index)
 #define reference_getuid(data) ( (data)->u.num )
@@ -2497,21 +2497,21 @@ void get_val(struct script_state* st, struct script_data* data)
 	TBL_PC* sd = NULL;
 
 	if( !data_isreference(data) )
-		return;// not a variable/constant
+		return; // Not a variable/constant
 
 	name = reference_getname(data);
 	prefix = name[0];
 	postfix = name[strlen(name) - 1];
 
-	//##TODO use reference_tovariable(data) when it's confirmed that it works [FlavioJS]
+	// @TODO: Use reference_tovariable(data) when it's confirmed that it works [FlavioJS]
 	if( !reference_toconstant(data) && not_server_variable(prefix) ) {
 		sd = script_rid2sd(st);
-		if( sd == NULL ) { // needs player attached
-			if( postfix == '$' ) { // string variable
+		if( sd == NULL ) { // Needs player attached
+			if( postfix == '$' ) { // String variable
 				ShowWarning("script:get_val: cannot access player variable '%s', defaulting to \"\"\n", name);
 				data->type = C_CONSTSTR;
 				data->u.str = "";
-			} else { // integer variable
+			} else { // Integer variable
 				ShowWarning("script:get_val: cannot access player variable '%s', defaulting to 0\n", name);
 				data->type = C_INT;
 				data->u.num = 0;
@@ -2520,7 +2520,7 @@ void get_val(struct script_state* st, struct script_data* data)
 		}
 	}
 
-	if( postfix == '$' ) { // string variable
+	if( postfix == '$' ) { // String variable
 
 		switch( prefix ) {
 			case '@':
@@ -2531,15 +2531,15 @@ void get_val(struct script_state* st, struct script_data* data)
 				break;
 			case '#':
 				if( name[1] == '#' )
-					data->u.str = pc_readaccountreg2str(sd, name); // global
+					data->u.str = pc_readaccountreg2str(sd, name); // Global
 				else
-					data->u.str = pc_readaccountregstr(sd, name); // local
+					data->u.str = pc_readaccountregstr(sd, name); // Local
 				break;
 			case '.': {
 					struct DBMap* n =
 						data->ref      ? *data->ref:
-						name[1] == '@' ?  st->stack->var_function: // instance/scope variable
-										  st->script->script_vars; // npc variable
+						name[1] == '@' ?  st->stack->var_function: // Instance/scope variable
+										  st->script->script_vars; // Npc variable
 					if( n )
 						data->u.str = (char*)idb_get(n,reference_getuid(data));
 					else
@@ -2561,15 +2561,15 @@ void get_val(struct script_state* st, struct script_data* data)
 				break;
 		}
 
-		if( data->u.str == NULL || data->u.str[0] == '\0' ) { // empty string
+		if( data->u.str == NULL || data->u.str[0] == '\0' ) { // Empty string
 			data->type = C_CONSTSTR;
 			data->u.str = "";
-		} else { // duplicate string
+		} else { // Duplicate string
 			data->type = C_STR;
 			data->u.str = aStrdup(data->u.str);
 		}
 
-	} else { // integer variable
+	} else { // Integer variable
 
 		data->type = C_INT;
 
@@ -2587,15 +2587,15 @@ void get_val(struct script_state* st, struct script_data* data)
 					break;
 				case '#':
 					if( name[1] == '#' )
-						data->u.num = pc_readaccountreg2(sd, name); // global
+						data->u.num = pc_readaccountreg2(sd, name); // Global
 					else
-						data->u.num = pc_readaccountreg(sd, name); // local
+						data->u.num = pc_readaccountreg(sd, name); // Local
 					break;
 				case '.': {
 						struct DBMap* n =
 							data->ref      ? *data->ref:
-							name[1] == '@' ?  st->stack->var_function: // instance/scope variable
-											  st->script->script_vars; // npc variable
+							name[1] == '@' ?  st->stack->var_function: // Instance/scope variable
+											  st->script->script_vars; // Npc variable
 						if( n )
 							data->u.num = (int)idb_iget(n,reference_getuid(data));
 						else
@@ -2743,11 +2743,11 @@ const char* conv_str(struct script_state* st, struct script_data* data)
 	} else if( data_isint(data) ) { // int -> string
 		CREATE(p, char, ITEM_NAME_LENGTH);
 		snprintf(p, ITEM_NAME_LENGTH, "%d", data->u.num);
-		p[ITEM_NAME_LENGTH-1] = '\0';
+		p[ITEM_NAME_LENGTH - 1] = '\0';
 		data->type = C_STR;
 		data->u.str = p;
 	} else if( data_isreference(data) ) { // reference -> string
-		//##TODO when does this happen (check get_val) [FlavioJS]
+		// @TODO: When does this happen (check get_val) [FlavioJS]
 		data->type = C_CONSTSTR;
 		data->u.str = reference_getname(data);
 	} else { // unsupported data type
@@ -3455,7 +3455,7 @@ void run_script(struct script_code *rootscript,int pos,int rid,int oid)
 	if( rootscript == NULL || pos < 0 )
 		return;
 
-	// TODO In jAthena, this function can take over the pending script in the player. [FlavioJS]
+	// @TODO: In jAthena, this function can take over the pending script in the player. [FlavioJS]
 	//      It is unclear how that can be triggered, so it needs the be traced/checked in more detail.
 	// NOTE At the time of this change, this function wasn't capable of taking over the script state because st->scriptroot was never set.
 	st = script_alloc_state(rootscript, pos, rid, oid);
@@ -4388,12 +4388,12 @@ BUILDIN_FUNC(menu)
 	sd->npc_idle_type = NPCT_MENU;
 #endif
 
-	// TODO detect multiple scripts waiting for input at the same time, and what to do when that happens
+	// @TODO: Detect multiple scripts waiting for input at the same time, and what to do when that happens
 	if( sd->state.menu_or_input == 0 ) {
 		struct StringBuf buf;
 		struct script_data* data;
 
-		if( script_lastdata(st) % 2 == 0 ) { // argument count is not even (1st argument is at index 2)
+		if( script_lastdata(st) % 2 == 0 ) { // Argument count is not even (1st argument is at index 2)
 			ShowError("script:menu: illegal number of arguments (%d).\n", (script_lastdata(st) - 1));
 			st->state = END;
 			return SCRIPT_CMD_FAILURE;
@@ -4425,13 +4425,14 @@ BUILDIN_FUNC(menu)
 		}
 		st->state = RERUNLINE;
 		sd->state.menu_or_input = 1;
-		
+
 		/**
-		 * menus beyond this length crash the client (see bugreport:6402)
+		 * Menus beyond this length crash the client (see bugreport:6402)
 		 **/
 		if( StringBuf_Length(&buf) >= 2047 ) {
 			struct npc_data * nd = map_id2nd(st->oid);
 			char* menu;
+
 			CREATE(menu, char, 2048);
 			safestrncpy(menu, StringBuf_Value(&buf), 2047);
 			ShowWarning("NPC Menu too long! (source:%s / length:%d)\n",nd?nd->name:"Unknown",StringBuf_Length(&buf));
@@ -4442,45 +4443,39 @@ BUILDIN_FUNC(menu)
 		
 		StringBuf_Destroy(&buf);
 
-		if( sd->npc_menu >= 0xff )
-		{// client supports only up to 254 entries; 0 is not used and 255 is reserved for cancel; excess entries are displayed but cause 'uint8' overflow
+		if( sd->npc_menu >= 0xff ) {
+			// Client supports only up to 254 entries; 0 is not used and 255 is reserved for cancel; excess entries are displayed but cause 'uint8' overflow
 			ShowWarning("buildin_menu: Too many options specified (current=%d, max=254).\n", sd->npc_menu);
 			script_reportsrc(st);
 		}
-	}
-	else if( sd->npc_menu == 0xff )
-	{// Cancel was pressed
+	} else if( sd->npc_menu == 0xff ) { // Cancel was pressed
 		sd->state.menu_or_input = 0;
 		st->state = END;
-	}
-	else
-	{// goto target label
+	} else { // Goto target label
 		int menu = 0;
 
 		sd->state.menu_or_input = 0;
-		if( sd->npc_menu <= 0 )
-		{
+		if( sd->npc_menu <= 0 ) {
 			ShowDebug("script:menu: unexpected selection (%d)\n", sd->npc_menu);
 			st->state = END;
 			return SCRIPT_CMD_FAILURE;
 		}
 
-		// get target label
-		for( i = 2; i < script_lastdata(st); i += 2 )
-		{
+		// Get target label
+		for( i = 2; i < script_lastdata(st); i += 2 ) {
 			text = script_getstr(st, i);
 			sd->npc_menu -= menu_countoptions(text, sd->npc_menu, &menu);
 			if( sd->npc_menu <= 0 )
-				break;// entry found
+				break; // Entry found
 		}
 		if( sd->npc_menu > 0 )
-		{// Invalid selection
+		{ // Invalid selection
 			ShowDebug("script:menu: selection is out of range (%d pairs are missing?) - please report this\n", sd->npc_menu);
 			st->state = END;
 			return SCRIPT_CMD_FAILURE;
 		}
 		if( !data_islabel(script_getdata(st, i + 1)) )
-		{// TODO remove this temporary crash-prevention code (fallback for multiple scripts requesting user input)
+		{ // @TODO: Remove this temporary crash-prevention code (fallback for multiple scripts requesting user input)
 			ShowError("script:menu: unexpected data in label argument\n");
 			script_reportdata(script_getdata(st, i + 1));
 			st->state = END;
@@ -9689,7 +9684,7 @@ BUILDIN_FUNC(sc_end)
 	else
 		bl = map_id2bl(st->rid);
 
-	if( potion_flag == 1 && potion_target ) //##TODO how does this work [FlavioJS]
+	if( potion_flag == 1 && potion_target ) //@TODO: How does this work [FlavioJS]
 		bl = map_id2bl(potion_target);
 
 	if( !bl )
@@ -11811,8 +11806,7 @@ BUILDIN_FUNC(getitemslots)
 	return SCRIPT_CMD_SUCCESS;
 }
 
-// TODO: add matk here if needed/once we get rid of RENEWAL
-
+//@TODO: Add matk here if needed/once we get rid of RENEWAL
 /*==========================================
  * Returns some values of an item [Lupus]
  * Price, Weight, etc...
@@ -11845,7 +11839,7 @@ BUILDIN_FUNC(getiteminfo)
 	n	= script_getnum(st,3);
 	i_data = itemdb_exists(item_id);
 
-	if (i_data && n>=0 && n<=14) {
+	if (i_data && n >= 0 && n <= 14) {
 		item_arr = (int*)&i_data->value_buy;
 		script_pushint(st,item_arr[n]);
 	} else

@@ -382,7 +382,7 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 		return 0;
 	}
 
-	//TODO: Perhaps some outs of bounds checking should be placed here?
+	//@TODO: Perhaps some outs of bounds checking should be placed here?
 	if (bl->type&BL_CHAR) {
 		sc = status_get_sc(bl);
 
@@ -1071,7 +1071,7 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int16 m,int16 x0,i
 		return 0;
 
 	if ( length ) { //Adjust final position to fit in the given area.
-		//TODO: Find an alternate method which does not requires a square root calculation.
+		//@TODO: Find an alternate method which does not requires a square root calculation.
 		k = (int)sqrt((float)magnitude2);
 		mx1 = x0 + (x1 - x0) * length / k;
 		my1 = y0 + (y1 - y0) * length / k;
@@ -1681,7 +1681,7 @@ int map_quit(struct map_session_data *sd) {
 			status_change_end(&sd->bl,SC_EXPLOSIONSPIRITS,INVALID_TIMER);
 			if (sd->sc.data[SC_REGENERATION] && sd->sc.data[SC_REGENERATION]->val4)
 				status_change_end(&sd->bl,SC_REGENERATION,INVALID_TIMER);
-			//TODO Probably there are way more NPC_type negative status that are removed
+			//@TODO: Probably there are way more NPC_type negative status that are removed
 			status_change_end(&sd->bl,SC_CHANGEUNDEAD,INVALID_TIMER);
 			//These statuses are removed on logout. [L0ne_W0lf]
 			status_change_end(&sd->bl,SC_SLOWCAST,INVALID_TIMER);
@@ -2047,7 +2047,7 @@ struct s_mapiterator
 /// Allocates a new iterator.
 /// Returns the new iterator.
 /// types can represent several BL's as a bit field.
-/// TODO should this be expanded to allow filtering of map/guild/party/chat/cell/area/...?
+/// @TODO: Should this be expanded to allow filtering of map/guild/party/chat/cell/area/...?
 ///
 /// @param flags Flags of the iterator
 /// @param type Target types

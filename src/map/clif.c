@@ -1944,7 +1944,7 @@ void clif_sendfakenpc(struct map_session_data *sd, int npcid)
 /// - close a bunch of windows...
 /// WARNING: the 'cancel' button closes other windows besides the dialog window and the menu window.
 ///    Which suggests their have intertwined behavior. (probably the mouse targeting)
-/// TODO investigate behavior of other windows [FlavioJS]
+/// @TODO: investigate behavior of other windows [FlavioJS]
 void clif_scriptmenu(struct map_session_data* sd, int npcid, const char* mes)
 {
 	int fd = sd->fd;
@@ -2737,7 +2737,7 @@ static int clif_hpmeter(struct map_session_data *sd)
 /// 0121 <current count>.W <max count>.W <current weight>.L <max weight>.L (ZC_NOTIFY_CARTITEM_COUNTINFO)
 /// 013a <atk range>.W (ZC_ATTACK_RANGE)
 /// 0141 <status id>.L <base status>.L <plus status>.L (ZC_COUPLESTATUS)
-/// TODO: Extract individual packets.
+/// @TODO: Extract individual packets.
 /// FIXME: Packet lengths from packet_len(cmd)
 void clif_updatestatus(struct map_session_data *sd,int type)
 {
@@ -2803,7 +2803,7 @@ void clif_updatestatus(struct map_session_data *sd,int type)
 			break;
 		case SP_HP:
 			WFIFOL(fd,4) = sd->battle_status.hp;
-			//TODO: Won't these overwrite the current packet?
+			//@TODO: Won't these overwrite the current packet?
 			if( map[sd->bl.m].hpmeter_visible )
 				clif_hpmeter(sd);
 			if( !battle_config.party_hp_mode && sd->status.party_id )
@@ -6045,7 +6045,7 @@ void clif_item_damaged(struct map_session_data* sd, unsigned short position)
 	WFIFOHEAD(fd,packet_len(0x2bb));
 	WFIFOW(fd,0) = 0x2bb;
 	WFIFOW(fd,2) = position;
-	WFIFOL(fd,4) = sd->bl.id;  // TODO: the packet seems to be sent to other people as well, probably party and/or guild.
+	WFIFOL(fd,4) = sd->bl.id; //@TODO: the packet seems to be sent to other people as well, probably party and/or guild.
 	WFIFOSET(fd,packet_len(0x2bb));
 }
 
@@ -6205,7 +6205,7 @@ void clif_bank_open(struct map_session_data *sd) {
  * 09B6 <aid>L ??? (Dunno just wild guess checkme)
  */
 void clif_parse_BankOpen(int fd, struct map_session_data* sd) {
-	//TODO check if preventing trade or stuff like that
+	//@TODO: Check if preventing trade or stuff like that
 	//Also mark something in case char ain't available for saving, should we check now ?
 	nullpo_retv(sd);
 
@@ -6755,8 +6755,8 @@ void clif_party_invite(struct map_session_data *sd,struct map_session_data *tsd)
 /// result=4 : char of the same account already joined the party -> MsgStringTable[608]
 /// result=5 : char blocked party invite -> MsgStringTable[1324] (since 20070904)
 /// result=7 : char is not online or doesn't exist -> MsgStringTable[71] (since 20070904)
-/// result=8 : (%s) TODO instance related? -> MsgStringTable[1388] (since 20080527)
-/// return=9 : TODO map prohibits party joining? -> MsgStringTable[1871] (since 20110205)
+/// result=8 : (%s) @TODO: Instance related? -> MsgStringTable[1388] (since 20080527)
+/// return=9 : @TODO: Map prohibits party joining? -> MsgStringTable[1871] (since 20110205)
 void clif_party_inviteack(struct map_session_data* sd, const char* nick, int result)
 {
 	int fd;
@@ -7682,7 +7682,7 @@ void clif_guild_positionnamelist(struct map_session_data *sd)
 ///     &0x01 = allow invite
 ///     &0x10 = allow expel
 /// ranking:
-///     TODO
+///     @TODO
 void clif_guild_positioninfolist(struct map_session_data *sd)
 {
 	int i,fd;
@@ -7713,7 +7713,7 @@ void clif_guild_positioninfolist(struct map_session_data *sd)
 ///     &0x01 = allow invite
 ///     &0x10 = allow expel
 /// ranking:
-///     TODO
+///     @TODO
 void clif_guild_positionchanged(struct guild *g,int idx)
 {
 	// FIXME: This packet is intended to update the clients after a
@@ -7985,7 +7985,7 @@ void clif_guild_expulsionlist(struct map_session_data* sd)
 /// Guild chat message (ZC_GUILD_CHAT).
 /// 017f <packet len>.W <message>.?B
 void clif_guild_message(struct guild *g,int account_id,const char *mes,int len)
-{// TODO: account_id is not used, candidate for deletion? [Ai4rei]
+{ //@TODO: account_id is not used, candidate for deletion? [Ai4rei]
 	struct map_session_data *sd;
 	uint8 buf[256];
 
@@ -9471,7 +9471,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 		clif_map_property(sd,MAPPROPERTY_FREEPVPZONE);
 
 	if(map[sd->bl.m].flag.gvg_dungeon)
-		clif_map_property(sd,MAPPROPERTY_FREEPVPZONE); //TODO: Figure out the real packet to send here.
+		clif_map_property(sd,MAPPROPERTY_FREEPVPZONE); //@TODO: Figure out the real packet to send here.
 
 	if(map_flag_gvg2(sd->bl.m))
 		clif_map_property(sd,MAPPROPERTY_AGITZONE);
@@ -11015,7 +11015,7 @@ void clif_parse_RemoveOption(int fd,struct map_session_data *sd)
 /// Request to change cart's visual look (CZ_REQ_CHANGECART).
 /// 01af <num>.W
 void clif_parse_ChangeCart(int fd,struct map_session_data *sd)
-{ // TODO: State tracking?
+{ //@TODO: State tracking?
 	int type;
 	nullpo_retv(sd);
 
@@ -11190,7 +11190,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 
 	if( sd->npc_id ) {
 #ifdef RENEWAL
-		clif_msg(sd, USAGE_FAIL); // TODO look for the client date that has this message.
+		clif_msg(sd, USAGE_FAIL); //@TODO: Look for the client date that has this message.
 		return;
 #else
 		if( !sd->npc_item_flag || !(tmp&INF_SELF_SKILL) )
@@ -13038,7 +13038,7 @@ void clif_parse_GM_Monster_Item(int fd, struct map_session_data *sd)
 /// /hide (CZ_CHANGE_EFFECTSTATE).
 /// 019d <effect state>.L
 /// effect state:
-///     TODO: Any OPTION_* ?
+///     @TODO: Any OPTION_* ?
 void clif_parse_GMHide(int fd, struct map_session_data *sd) {
 	char cmd[6];
 	//int eff_st = RFIFOL(packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
@@ -13120,7 +13120,7 @@ void clif_parse_GMReqAccountName(int fd, struct map_session_data *sd)
 	//Tmp get all display
 	safesnprintf(command, sizeof(command), "%caccinfo %d", atcommand_symbol, account_id);
 	is_atcommand(fd, sd, command, 1);
-	//clif_account_name(sd, account_id, ""); //! TODO request to login-serv
+	//clif_account_name(sd, account_id, ""); //@TODO: request to login-serv
 }
 
 
@@ -13620,7 +13620,7 @@ void clif_PVPInfo(struct map_session_data* sd)
 /// 020f <char id>.L <account id>.L
 void clif_parse_PVPInfo(int fd,struct map_session_data *sd)
 {
-	// TODO: Is there a way to use this on an another player (char/acc id)?
+	//@TODO: Is there a way to use this on an another player (char/acc id)?
 	//int cid = RFIFOB(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
 	//int aid = RFIFOB(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]);
 	clif_PVPInfo(sd);
@@ -14163,7 +14163,7 @@ void clif_Mail_refreshinbox(struct map_session_data *sd)
 	}
 	WFIFOSET(fd,len);
 
-	if( md->full ) { //TODO: is this official?
+	if( md->full ) { //@TODO: is this official?
 		char output[100];
 
 		safesnprintf(output, sizeof(output), "Inbox is full (Max %d). Delete some mails.", MAIL_MAX_INBOX);
@@ -16053,7 +16053,7 @@ static void clif_parse_ReqOpenBuyingStore(int fd, struct map_session_data* sd)
 
 	packet_len = RFIFOW(fd,info->pos[0]);
 
-	// TODO: Make this check global for all variable length packets.
+	//@TODO: Make this check global for all variable length packets.
 	if( packet_len < 89 ) { // minimum packet length
 		ShowError("clif_parse_ReqOpenBuyingStore: Malformed packet (expected length=%u, length=%u, account_id=%d).\n", 89, packet_len, sd->bl.id);
 		return;
@@ -16202,7 +16202,7 @@ void clif_buyingstore_itemlist(struct map_session_data* sd, struct map_session_d
 
 	for( i = 0; i < pl_sd->buyingstore.slots; i++ ) {
 		WFIFOL(fd,16+i*9) = pl_sd->buyingstore.items[i].price;
-		WFIFOW(fd,20+i*9) = pl_sd->buyingstore.items[i].amount;  // TODO: Figure out, if no longer needed items (amount == 0) are listed on official.
+		WFIFOW(fd,20+i*9) = pl_sd->buyingstore.items[i].amount; //@TODO: Figure out, if no longer needed items (amount == 0) are listed on official.
 		WFIFOB(fd,22+i*9) = itemtype(itemdb_type(pl_sd->buyingstore.items[i].nameid));
 		WFIFOW(fd,23+i*9) = pl_sd->buyingstore.items[i].nameid;
 	}
@@ -17265,7 +17265,7 @@ static int clif_parse(int fd)
 	TBL_PC* sd;
 	int pnum;
 
-	//TODO apply delays or disconnect based on packet throughput [FlavioJS]
+	//@TODO: Apply delays or disconnect based on packet throughput [FlavioJS]
 	//Note: "click masters" can do 80+ clicks in 10 seconds
 
 	//Limit max packets per cycle to 3 (delay packet spammers) [FlavioJS] -- This actually aids packet spammers, but stuff like /str+ gets slow without it [Ai4rei]

@@ -3310,7 +3310,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == skill_id)
 				skillratio += 10 * status_get_lv(src) / 3; //Tumble bonus
 			if(wd.miscflag) {
-				skillratio += 10 * status_get_lv(src) / 3; //Running bonus (TODO: What is the real bonus?)
+				skillratio += 10 * status_get_lv(src) / 3; //Running bonus (@TODO: What is the real bonus?)
 				if(sc && sc->data[SC_SPURT]) //Spurt bonus
 					skillratio *= 2;
 			}
@@ -5828,7 +5828,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			ad.damage = 1;
 		//Only applies when hit
 		else if(sc) {
-			//TODO: there is another factor that contribute with the damage and need to be formulated. [malufett]
+			//@TODO: There is another factor that contribute with the damage and need to be formulated. [malufett]
 			switch(skill_id) {
 				case MG_LIGHTNINGBOLT:
 				case MG_THUNDERSTORM:
@@ -6295,7 +6295,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		md.damage += (int64)md.damage * skill_damage / 100;
 #endif
 
-	if(tstatus->mode&MD_IGNOREMISC && md.flag&BF_MISC) //Misc @TODO optimize me
+	if(tstatus->mode&MD_IGNOREMISC && md.flag&BF_MISC) //Misc @TODO: Optimize me
 		md.damage = md.damage2 = 1;
 
 	//Skill reflect gets calculated after all attack modifier

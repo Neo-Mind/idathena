@@ -51,7 +51,7 @@ struct Damage {
 	int64 statusAtk, statusAtk2, weaponAtk, weaponAtk2, equipAtk, equipAtk2, masteryAtk, masteryAtk2;
 #endif
 	int64 damage, damage2; // Right, left dmg
-	int type, div_; // Chk clif_damage for type @TODO add an enum ? ; nb of hit
+	int type, div_; // Chk clif_damage for type @TODO: Add an enum ? ; nb of hit
 	int amotion, dmotion;
 	int blewcount; // Nb of knockback
 	int flag; // Chk BF_* flag, (enum below)

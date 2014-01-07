@@ -663,7 +663,7 @@ int guild_reply_invite(struct map_session_data* sd, int guild_id, int flag)
 
 		guild_makemember(&m,sd);
 		intif_guild_addmember(guild_id, &m);
-		//TODO: send a minimap update to this player
+		//@TODO: Send a minimap update to this player
 	}
 
 	return 0;
@@ -741,7 +741,7 @@ int guild_member_added(int guild_id,int account_id,int char_id,int flag)
 	clif_guild_belonginfo(sd,g);
 	clif_guild_notice(sd,g);
 
-	//TODO: send new emblem info to others
+	//@TODO: Send new emblem info to others
 
 	if( sd2 != NULL )
 		clif_guild_inviteack(sd2,2);
@@ -855,7 +855,7 @@ int guild_member_withdraw(int guild_id, int account_id, int char_id, int flag, c
 		sd->guild_emblem_id = 0;
 
 		clif_charnameupdate(sd); //Update display name [Skotlex]
-		//TODO: send emblem update to self and people around
+		//@TODO: Send emblem update to self and people around
 	}
 	return 0;
 }

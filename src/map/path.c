@@ -191,7 +191,7 @@ int path_blownpos(int16 m,int16 x0,int16 y0,int16 dx,int16 dy,int count)
 		count--;
 	}
 
-	return (x0<<16)|y0; //TODO: use 'struct point' here instead?
+	return (x0<<16)|y0; //@TODO: Use 'struct point' here instead?
 }
 
 /*==========================================

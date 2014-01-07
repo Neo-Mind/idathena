@@ -1792,7 +1792,7 @@ REPLACE INTO `item_db` VALUES (4111,'Strouf_Card','Strouf Card',6,20,NULL,10,NUL
 REPLACE INTO `item_db` VALUES (4112,'Marduk_Card','Marduk Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,769,NULL,NULL,NULL,NULL,'bonus2 bResEff,Eff_Silence,10000;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (4113,'Marionette_Card','Marionette Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,4,NULL,NULL,NULL,NULL,'bonus2 bSubEle,Ele_Ghost,30; bonus bFlee,5;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (4114,'Argiope_Card','Argiope Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,16,NULL,NULL,NULL,NULL,'bonus bDefEle,Ele_Poison; bonus bDef,1;',NULL,NULL);
-REPLACE INTO `item_db` VALUES (4115,'Hunter_Fly_Card','Hunter Fly Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus2 bHpDrainRate,30,15;',NULL,NULL);
+REPLACE INTO `item_db` VALUES (4115,'Hunter_Fly_Card','Hunter Fly Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus2 bHPDrainRate,30,15;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (4116,'Isis_Card','Isis Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,4,NULL,NULL,NULL,NULL,'bonus2 bSubEle,Ele_Dark,30; bonus bFlee,5;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (4117,'Side_Winder_Card','Sidewinder Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'skill "TF_DOUBLE",1; bonus bDoubleRate,5;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (4118,'Petit_Card','Earth Petite Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus2 bAddRace,RC_Dragon,20;',NULL,NULL);
@@ -1811,7 +1811,7 @@ REPLACE INTO `item_db` VALUES (4130,'Scorpion_King_Card','Scorpion King Card',6,
 REPLACE INTO `item_db` VALUES (4131,'Moonlight_Flower_Card','Moonlight Flower Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,64,NULL,NULL,NULL,NULL,'bonus bSpeedRate,25;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (4132,'Mistress_Card','Mistress Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,769,NULL,NULL,NULL,NULL,'bonus bNoGemStone,0; bonus bUseSPrate,25;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (4133,'Daydric_Card','Raydric Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,4,NULL,NULL,NULL,NULL,'bonus2 bSubEle,Ele_Neutral,20;',NULL,NULL);
-REPLACE INTO `item_db` VALUES (4134,'Dracula_Card','Dracula Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus2 bSpDrainRate,100,5;',NULL,NULL);
+REPLACE INTO `item_db` VALUES (4134,'Dracula_Card','Dracula Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus2 bSPDrainRate,100,5;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (4135,'Orc_Load_Card','Orc Lord Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,16,NULL,NULL,NULL,NULL,'bonus bShortWeaponDamageReturn,30;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (4136,'Khalitzburg_Card','Khalitzburg Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,32,NULL,NULL,NULL,NULL,'bonus2 bSubRace,RC_Demon,30;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (4137,'Drake_Card','Drake Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus bNoSizeFix,0;',NULL,NULL);
@@ -2044,7 +2044,7 @@ REPLACE INTO `item_db` VALUES (4363,'B_Magaleta_Card','High Priest Card',6,20,NU
 REPLACE INTO `item_db` VALUES (4364,'Magaleta_Card','Margaretha Sorin Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,769,NULL,NULL,NULL,NULL,'bonus bInt,1; bonus5 bAutoSpellWhenHit,"PR_LEXDIVINA",5,150,BF_MAGIC,1;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (4365,'B_Katrinn_Card','High Wizard Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,769,NULL,NULL,NULL,NULL,'bonus bIgnoreMDefClass,Class_Normal; bonus bCastrate,100; bonus bSPrecovRate,-100;',NULL,'heal 0,-2000;');
 REPLACE INTO `item_db` VALUES (4366,'Katrinn_Card','Kathryne Keyron Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,769,NULL,NULL,NULL,NULL,'bonus bCastrate,getrefine()*-1; if(getrefine()>=9) { bonus bMatkRate,2; }',NULL,NULL);
-REPLACE INTO `item_db` VALUES (4367,'B_Shecil_Card','Sniper Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus2 bHpDrainRate,50,20; bonus bHPrecovRate,-10;',NULL,NULL);
+REPLACE INTO `item_db` VALUES (4367,'B_Shecil_Card','Sniper Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus2 bHPDrainRate,50,20; bonus bHPrecovRate,-10;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (4368,'Shecil_Card','Cecil Damon Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus bAspdRate,5; bonus bHit,-30;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (4369,'Venatu_Card','Venatu Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,16,NULL,NULL,NULL,NULL,'bonus bLuk,readparam(bAgi)/18;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (4370,'Dimik_Card','Dimik Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,16,NULL,NULL,NULL,NULL,'bonus bVit,getrefine()-5;',NULL,NULL);

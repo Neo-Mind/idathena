@@ -2127,7 +2127,7 @@
 4112,Marduk_Card,Marduk Card,6,20,,10,,,,,,,,769,,,,,{ bonus2 bResEff,Eff_Silence,10000; },{},{}
 4113,Marionette_Card,Marionette Card,6,20,,10,,,,,,,,4,,,,,{ bonus2 bSubEle,Ele_Ghost,30; bonus bFlee,5; },{},{}
 4114,Argiope_Card,Argiope Card,6,20,,10,,,,,,,,16,,,,,{ bonus bDefEle,Ele_Poison; bonus bDef,1; },{},{}
-4115,Hunter_Fly_Card,Hunter Fly Card,6,20,,10,,,,,,,,2,,,,,{ bonus2 bHpDrainRate,30,15; },{},{}
+4115,Hunter_Fly_Card,Hunter Fly Card,6,20,,10,,,,,,,,2,,,,,{ bonus2 bHPDrainRate,30,15; },{},{}
 4116,Isis_Card,Isis Card,6,20,,10,,,,,,,,4,,,,,{ bonus2 bSubEle,Ele_Dark,30; bonus bFlee,5; },{},{}
 4117,Side_Winder_Card,Sidewinder Card,6,20,,10,,,,,,,,2,,,,,{ if(BaseClass==Job_Thief) { skill "TF_DOUBLE",getskilllv("TF_DOUBLE"); bonus bDoubleRate,5*(getskilllv("TF_DOUBLE")); } else { skill "TF_DOUBLE",1; bonus bDoubleRate,5; } },{},{}
 4118,Petit_Card,Earth Petite Card,6,20,,10,,,,,,,,2,,,,,{ bonus2 bAddRace,RC_Dragon,20; },{},{}
@@ -2146,7 +2146,7 @@
 4131,Moonlight_Flower_Card,Moonlight Flower Card,6,20,,10,,,,,,,,64,,,,,{ bonus bSpeedRate,25; },{},{}
 4132,Mistress_Card,Mistress Card,6,20,,10,,,,,,,,769,,,,,{ bonus bNoGemStone,0; bonus bUseSPrate,25; },{},{}
 4133,Daydric_Card,Raydric Card,6,20,,10,,,,,,,,4,,,,,{ bonus2 bSubEle,Ele_Neutral,20; },{},{}
-4134,Dracula_Card,Dracula Card,6,20,,10,,,,,,,,2,,,,,{ bonus2 bSpDrainRate,100,5; },{},{}
+4134,Dracula_Card,Dracula Card,6,20,,10,,,,,,,,2,,,,,{ bonus2 bSPDrainRate,100,5; },{},{}
 4135,Orc_Load_Card,Orc Lord Card,6,20,,10,,,,,,,,16,,,,,{ bonus bShortWeaponDamageReturn,30; },{},{}
 4136,Khalitzburg_Card,Khalitzburg Card,6,20,,10,,,,,,,,32,,,,,{ bonus2 bSubRace,RC_Demon,30; },{},{}
 4137,Drake_Card,Drake Card,6,20,,10,,,,,,,,2,,,,,{ bonus bNoSizeFix,0; },{},{}
@@ -2379,7 +2379,7 @@
 4364,Magaleta_Card,Margaretha Sorin Card,6,20,,10,,,,,,,,769,,,,,{ bonus bInt,1; bonus5 bAutoSpellWhenHit,"PR_LEXDIVINA",5,150,BF_MAGIC,1; },{},{}
 4365,B_Katrinn_Card,High Wizard Card,6,20,,10,,,,,,,,769,,,,,{ bonus bIgnoreMDefClass,Class_Normal; bonus bVariableCastrate,100; bonus bSPrecovRate,-100; },{},{ heal 0,-2000; }
 4366,Katrinn_Card,Kathryne Keyron Card,6,20,,10,,,,,,,,769,,,,,{ bonus bVariableCastrate,getrefine()*-1; if(getrefine()>=9) { bonus bMatkRate,2; } },{},{}
-4367,B_Shecil_Card,Sniper Card,6,20,,10,,,,,,,,2,,,,,{ bonus2 bHpDrainRate,100,20; bonus bHPrecovRate,-10; },{},{}
+4367,B_Shecil_Card,Sniper Card,6,20,,10,,,,,,,,2,,,,,{ bonus2 bHPDrainRate,100,20; bonus bHPrecovRate,-10; },{},{}
 4368,Shecil_Card,Cecil Damon Card,6,20,,10,,,,,,,,2,,,,,{ bonus bAspdRate,5; bonus bHit,-30; },{},{}
 4369,Venatu_Card,Venatu Card,6,20,,10,,,,,,,,16,,,,,{ bonus bLuk,readparam(bAgi)/18; },{},{}
 4370,Dimik_Card,Dimik Card,6,20,,10,,,,,,,,16,,,,,{ bonus bVit,getrefine()-5; },{},{}
@@ -2502,7 +2502,7 @@
 4488,Sealed_D_Lord_Card,Sealed Dark Lord Card,6,20,,10,,,,,,,,64,,,,,{ bonus3 bAutoSpellWhenHit,"WZ_METEOR",5,50; },{},{}
 4489,Sealed_Pharaoh_Card,Sealed Pharaoh Card,6,20,,10,,,,,,,,769,,,,,{ bonus bUseSPrate,-15; },{},{}
 4490,Sealed_M_Flower_Card,Sealed Moonlight Flower Card,6,20,,10,,,,,,,,64,,,,,{ skill "AL_INCAGI",((getrefine()>14)?5:1); },{},{}
-4491,Sealed_B_Shecil_Card,Sealed Sniper Card,6,20,,10,,,,,,,,2,,,,,{ bonus bHPrecovRate,-100; bonus2 bHpDrainRate,50,((getrefine()>14)?15:10); },{},{}
+4491,Sealed_B_Shecil_Card,Sealed Sniper Card,6,20,,10,,,,,,,,2,,,,,{ bonus bHPrecovRate,-100; bonus2 bHPDrainRate,50,((getrefine()>14)?15:10); },{},{}
 4492,Sealed_Orc_Hero_Card,Sealed Orc Hero Card,6,20,,10,,,,,,,,769,,,,,{ bonus bVit,3; bonus2 bResEff,Eff_Stun,((getrefine()>14)?6000:4000); },{},{}
 4493,Sealed_Tao_Card,Sealed Tao Gunka Card,6,20,,10,,,,,,,,16,,,,,{ bonus bMaxHPrate,((getrefine()>14)?75:50); bonus bDefRate,-50; bonus bMdefRate,-50; },{},{}
 4494,Sealed_TurtleG_Card,Sealed Turtle General Card,6,20,,10,,,,,,,,2,,,,,{ set .@rate, ((getrefine()>14)?15:10); bonus2 bAddClass,Class_All,.@rate; bonus3 bAutoSpell,"SM_MAGNUM",10,15; },{},{}

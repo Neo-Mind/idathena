@@ -1847,7 +1847,7 @@ struct status_change {
 	unsigned short opt1;// body state
 	unsigned short opt2;// health state (bitfield)
 	unsigned char count;
-	//TODO: See if it is possible to implement the following SC's without requiring extra parameters while the SC is inactive.
+	//@TODO: See if it is possible to implement the following SC's without requiring extra parameters while the SC is inactive.
 	unsigned char jb_flag; //Joint Beat type flag
 	struct {
 		unsigned char move;

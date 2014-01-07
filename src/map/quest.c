@@ -59,7 +59,7 @@ int quest_pc_login(TBL_PC *sd) {
 	clif_quest_send_list(sd);
 	clif_quest_send_mission(sd);
 
-	//TODO[Haru]: Is this necessary? Does quest_send_mission not take care of this?
+	//@TODO[Haru]: Is this necessary? Does quest_send_mission not take care of this?
 	for( i = 0; i < sd->avail_quests; i++ )
 		clif_quest_update_objective(sd, &sd->quest_log[i]);
 
@@ -355,7 +355,7 @@ int quest_check(TBL_PC *sd, int quest_id, enum quest_check_type type) {
  * @return Number of loaded quests, or -1 if the file couldn't be read.
  */
 int quest_read_db(void) {
-	//TODO[Haru] This duplicates some sv_readdb functionalities, and it would be
+	//@TODO[Haru]: This duplicates some sv_readdb functionalities, and it would be
 	//nice if it could be replaced by it. The reason why it wasn't is probably
 	//because we need to accept commas (which is also used as delimiter) in the
 	//last field (quest name), and sv_readdb isn't capable of doing so.

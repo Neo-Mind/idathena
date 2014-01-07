@@ -1241,7 +1241,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		case GS_DISARM:
 			rate = 3 * skill_lv;
 			if( sstatus->dex > tstatus->dex )
-				rate += (sstatus->dex - tstatus->dex) / 5; //TODO: Made up formula
+				rate += (sstatus->dex - tstatus->dex) / 5; //@TODO: Made up formula
 			skill_strip_equip(src,bl,EQP_WEAPON,rate,skill_lv,skill_get_time(skill_id,skill_lv));
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			break;
@@ -1489,7 +1489,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			}
 			break;
 		case MH_XENO_SLASHER:
-			sc_start4(src,bl,SC_BLEEDING,skill_lv,skill_lv,src->id,0,0,skill_get_time2(skill_id,skill_lv)); //@TODO need real duration
+			sc_start4(src,bl,SC_BLEEDING,skill_lv,skill_lv,src->id,0,0,skill_get_time2(skill_id,skill_lv)); //@TODO: Need real duration
 			break;
 		case GN_ILLUSIONDOPING:
 			if( sc_start(src,bl,SC_ILLUSIONDOPING,10 * skill_lv,skill_lv,skill_get_time(skill_id,skill_lv)) ) //Custom rate
@@ -2851,8 +2851,12 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		case GN_SLINGITEM_RANGEMELEEATK:
 			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, GN_SLINGITEM, -2, 6);
 			break;
+		case LG_OVERBRAND:
 		case LG_OVERBRAND_BRANDISH:
+			dmg.amotion = status_get_amotion(src) * 2;
 		case LG_OVERBRAND_PLUSATK:
+			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, status_get_amotion(src), dmg.dmotion, damage, dmg.div_, skill_id, -1, 5);
+			break;
 		case EL_FIRE_BOMB:
 		case EL_FIRE_BOMB_ATK:
 		case EL_FIRE_WAVE:
@@ -2950,7 +2954,6 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			case MG_FIREWALL:
 			case PR_SANCTUARY:
 			case SC_TRIANGLESHOT:
-			case LG_OVERBRAND_BRANDISH:
 			case SR_KNUCKLEARROW:
 			case GN_WALLOFTHORN:
 			case EL_FIRE_MANTLE:
@@ -2968,15 +2971,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		//Blown-specific handling
 		switch (skill_id) {
 			case LG_OVERBRAND_BRANDISH:
-				if (skill_blown(dsrc, bl, dmg.blewcount, dir, 0)) {
-					short dir_x, dir_y;
-
-					dir_x = dirx[(dir + 4)%8];
-					dir_y = diry[(dir + 4)%8];
-					if (map_getcell(bl->m, bl->x + dir_x, bl->y + dir_y, CELL_CHKNOPASS) != 0)
-						skill_addtimerskill(src, tick + status_get_amotion(src), bl->id, 0, 0, LG_OVERBRAND_PLUSATK, skill_lv, BF_WEAPON, flag);
-				} else
-					skill_addtimerskill(src, tick + status_get_amotion(src), bl->id, 0, 0, LG_OVERBRAND_PLUSATK, skill_lv, BF_WEAPON, flag);
+				if (skill_blown(dsrc, bl, dmg.blewcount, dir, 0) < dmg.blewcount)
+					skill_addtimerskill(src, tick + status_get_amotion(src), bl->id, 0, 0, LG_OVERBRAND_PLUSATK, skill_lv, BF_WEAPON, flag|SD_ANIMATION);
 				break;
 			case SR_KNUCKLEARROW:
 				if (skill_blown(dsrc, bl, dmg.blewcount, dir, 0) && !(flag&4)) {
@@ -3501,10 +3497,11 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					range = path_search_long(NULL,src->m,src->x,src->y,target->x,target->y,CELL_CHKNOREACH);
 					if (!status_isdead(target) && range) 
 						skill_attack(BF_MAGIC,src,src,target,skl->skill_id,skl->skill_lv,tick,skl->flag);
-					if (skl->type > 1 && !status_isdead(target) && !status_isdead(src) && range) {
+					if (skl->type > 1 && !status_isdead(target) && !status_isdead(src) && range)
 						skill_addtimerskill(src,tick + 125,target->id,0,0,skl->skill_id,skl->skill_lv,skl->type - 1,skl->flag);
-					} else {
+					else {
 						struct status_change *sc = status_get_sc(src);
+
 						if (sc) {
 							if (sc->data[SC_SPIRIT] &&
 								sc->data[SC_SPIRIT]->val2 == SL_WIZARD &&
@@ -3515,6 +3512,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					break;
 				case WL_CHAINLIGHTNING_ATK: {
 						struct block_list *nbl = NULL; //Next Target of Chain
+
 						skill_attack(BF_MAGIC,src,src,target,skl->skill_id,skl->skill_lv,tick,(9 - skl->type)); //Hit a Lightning on the current Target
 						skill_toggle_magicpower(src,skl->skill_id); //Only the first hit will be amplify
 						
@@ -3589,16 +3587,6 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 						}
 					}
 					break;
-				case LG_OVERBRAND_BRANDISH:
-				case LG_OVERBRAND_PLUSATK:
-					if (target->type == BL_MOB && is_boss(target))
-						break;
-					if (status_check_skilluse(src,target,skl->skill_id,1))
-						skill_attack(BF_WEAPON,src,src,target,skl->skill_id,skl->skill_lv,tick,skl->flag|SD_LEVEL);
-					else
-						clif_skill_damage(src,target,tick,status_get_amotion(src),status_get_dmotion(target),0,1,
-							skl->skill_id,skl->skill_lv,skill_get_hit(skl->skill_id));
-					break;
 				case GN_SPORE_EXPLOSION:
 					map_foreachinrange(skill_area_sub,target,skill_get_splash(skl->skill_id,skl->skill_lv),BL_CHAR,
 						src,skl->skill_id,skl->skill_lv,0,skl->flag|1|BCT_ENEMY,skill_castend_damage_id);
@@ -3627,6 +3615,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case CH_PALMSTRIKE: {
 						struct status_change* tsc = status_get_sc(target);
 						struct status_change* sc = status_get_sc(src);
+
 						if ((tsc && tsc->option&OPTION_HIDE) || (sc && sc->option&OPTION_HIDE)) {
 							skill_blown(src,target,skill_get_blewcount(skl->skill_id,skl->skill_lv),-1,0x0);
 							break;
@@ -3643,18 +3632,20 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case WZ_METEOR:
 					if (skl->type >= 0) {
 						int x = skl->type>>16, y = skl->type&0xFFFF;
+
 						if (path_search_long(NULL,src->m,src->x,src->y,x,y,CELL_CHKWALL))
 							skill_unitsetting(src,skl->skill_id,skl->skill_lv,x,y,skl->flag);
 						if (path_search_long(NULL,src->m,src->x,src->y,skl->x,skl->y,CELL_CHKWALL))
 							clif_skill_poseffect(src,skl->skill_id,skl->skill_lv,skl->x,skl->y,tick);
-					}
-					else if (path_search_long(NULL,src->m,src->x,src->y,skl->x,skl->y,CELL_CHKWALL))
+					} else if (path_search_long(NULL,src->m,src->x,src->y,skl->x,skl->y,CELL_CHKWALL))
 						skill_unitsetting(src,skl->skill_id,skl->skill_lv,skl->x,skl->y,skl->flag);
 					break;
 				case GN_CRAZYWEED_ATK: {
 						int dummy = 1, i = skill_get_unit_range(skl->skill_id,skl->skill_lv);
+
 						map_foreachinarea(skill_cell_overlap,src->m,skl->x-i,skl->y-i,skl->x+i,skl->y+i,BL_SKILL,skl->skill_id,&dummy,src);
 					}
+				//Fall through
 				case WL_EARTHSTRAIN:
 					skill_unitsetting(src,skl->skill_id,skl->skill_lv,skl->x,skl->y,(skl->type<<16)|skl->flag);
 					break;
@@ -3935,6 +3926,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case SC_TRIANGLESHOT:
 		case SC_FEINTBOMB:
 		case LG_BANISHINGPOINT:
+		case LG_OVERBRAND:
+		case LG_OVERBRAND_BRANDISH:
 		case LG_SHIELDPRESS:
 		case LG_RAGEBURST:
 		case LG_RAYOFGENESIS:
@@ -3975,7 +3968,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				case 4: flag |= BREAK_WAIST; break;
 				case 5: flag |= BREAK_NECK; break;
 			}
-			//TODO: is there really no cleaner way to do this?
+			//@TODO: Is there really no cleaner way to do this?
 			sc = status_get_sc(bl);
 			if (sc) sc->jb_flag = flag;
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
@@ -4846,7 +4839,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case NC_INFRAREDSCAN:
-			if (flag&1) { //TODO: Need a confirmation if the other type of hidden status is included to be scanned. [Jobbie]
+			if (flag&1) { //@TODO: Need a confirmation if the other type of hidden status is included to be scanned. [Jobbie]
 				sc_start(src,bl,SC_INFRAREDSCAN,10000,skill_lv,skill_get_time(skill_id,skill_lv));
 				status_change_end(bl,SC_HIDING,INVALID_TIMER);
 				status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
@@ -4890,18 +4883,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			else if (skill_lv == 2)
 				skill_attack(BF_MAGIC,src,src,bl,skill_id,skill_lv,tick,flag);
-			break;
-
-		case LG_OVERBRAND:
-			if (status_check_skilluse(src,bl,skill_id,1))
-				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag|SD_LEVEL);
-			else
-				clif_skill_damage(src,bl,tick,status_get_amotion(src),status_get_dmotion(bl),0,1,
-					skill_id,skill_lv,skill_get_hit(skill_id));
-			break;
-
-		case LG_OVERBRAND_BRANDISH:
-			skill_addtimerskill(src,tick + status_get_amotion(src) * 8 / 10,bl->id,0,0,skill_id,skill_lv,BF_WEAPON,flag|SD_LEVEL);
 			break;
 
 		case SR_DRAGONCOMBO:
@@ -6075,7 +6056,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				map_freeblock_unlock();
 				return 1;
 			}
-			//TODO: How much does base level affects? Dummy value of 1% per level difference used. [Skotlex]
+			//@TODO: How much does base level affects? Dummy value of 1% per level difference used. [Skotlex]
 			clif_skill_nodamage(src,bl,skill_id == SM_SELFPROVOKE ? SM_PROVOKE : skill_id,skill_lv,
 				(i = sc_start(src,bl,type,skill_id == SM_SELFPROVOKE ? 100:( 50 + 3 * skill_lv + status_get_lv(src) - status_get_lv(bl)),skill_lv,skill_get_time(skill_id,skill_lv))));
 			if (!i) {
@@ -8058,7 +8039,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						clif_slide(bl,x,y) ;
 					}
 
-					//TODO: Shouldn't also players and the like switch targets?
+					//@TODO: Shouldn't also players and the like switch targets?
 					map_foreachinrange(skill_chastle_mob_changetarget,src,
 						AREA_SIZE,BL_MOB,bl,src);
 				}
@@ -9894,7 +9875,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					if(!tsc->data[SC_SILENCE] && !is_boss(bl)) //Put inavoidable silence on target
 						status_change_start(src,bl,SC_SILENCE,100,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),1|2|8);
 				}
-				heal = status_get_sp(src) + status_get_lv(src); //Current SP + Base Level @TODO need real value
+				heal = status_get_sp(src) + status_get_lv(src); //Current SP + Base Level, @TODO: Need real value
 				status_heal(bl,heal,0,7);
 
 				//Now inflict silence on everyone
@@ -11331,7 +11312,7 @@ int skill_castend_map (struct map_session_data *sd, uint16 skill_id, const char 
 		return 0;
 	}
 	//Note: If any of these status's are active, any skill you use will fail. So be careful when adding new status's here.
-	//TODO move that list into a new SCS ? SCS_NOCAST ??
+	//@TODO: Move that list into a new SCS ? SCS_NOCAST ??
 	if( sd->sc.count && (
 		sd->sc.data[SC_SILENCE] ||
 		sd->sc.data[SC_ROKISWEIL] ||
@@ -11490,7 +11471,7 @@ int skill_dance_overlap(struct skill_unit* unit, int flag)
 /*==========================================
  * Converts this group information so that it is handled as a Dissonance or Ugly Dance cell.
  * Flag: 0 - Convert, 1 - Revert.
- * TODO: This should be completely removed later and rewritten
+ * @TODO: This should be completely removed later and rewritten
  *	The entire execution of the overlapping songs instances is dirty and hacked together
  *	Overlapping cells should be checked on unit entry, not infinitely loop checked causing 1000's of executions a song/dance
  *------------------------------------------*/
@@ -14102,7 +14083,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 					char output[128];
 
 					sprintf(output,"%s",msg_txt(382)); //You're too close to a stone or emperium to do this skill
-					clif_colormes(sd,color_table[COLOR_RED],output); /* TODO: Official response or map_msg.conf it */
+					clif_colormes(sd,color_table[COLOR_RED],output); /* @TODO: Official response or map_msg.conf it */
 					return 0;
 				}
 			}
@@ -15211,6 +15192,7 @@ void skill_overbrand(struct block_list* src, uint16 skill_id, uint16 skill_lv, u
 	struct s_skill_unit_layout *layout;
 	int i, ux[53], uy[53]; //Number of cells we are attacking
 	short dir = map_calc_dir(src,x,y);
+
 	layout = skill_get_unit_layout(skill_id,skill_lv,src,x,y);
 	if(dir > 0 && dir < 4) { //Need to invert the cell locations for directions
 		for(i = 0; i < 53; i++) {
@@ -17079,7 +17061,7 @@ int skill_unit_move_sub (struct block_list* bl, va_list ap)
 			}
 		}
 
-		//TODO: Normally, this is dangerous since the unit and group could be freed
+		//@TODO: Normally, this is dangerous since the unit and group could be freed
 		//inside the onout/onplace functions. Currently it is safe because we know song/dance
 		//cells do not get deleted within them. [Skotlex]
 		if( dissonance ) skill_dance_switch(unit, 1);
@@ -17690,7 +17672,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 
 		//if(log_config.produce > 0)
 			//log_produce(sd,nameid,slot1,slot2,slot3,1);
-		//@TODO update PICKLOG
+		//@TODO: Update PICKLOG
 
 		if(equip) {
 			clif_produceeffect(sd,0,nameid);
@@ -17800,7 +17782,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 	//Failure
 //	if(log_config.produce)
 //		log_produce(sd,nameid,slot1,slot2,slot3,0);
-//TODO update PICKLOG
+//@TODO: Update PICKLOG
 
 	if(equip) {
 		clif_produceeffect(sd,1,nameid);

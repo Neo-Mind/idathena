@@ -562,8 +562,8 @@ bSPDrainValue	1080
 bWeaponAtk	1081
 bWeaponAtkRate	1082
 bDelayrate	1083
-bHpDrainValueRace	1084
-bSpDrainValueRace	1085
+bHPDrainValueRace	1084
+bSPDrainValueRace	1085
 bIgnoreMdefRaceRate	1086
 bIgnoreDefRaceRate	1087
 bSkillHeal2	1088

@@ -4404,7 +4404,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 	//This flag enables you to use items while in an NPC. [Skotlex]
 	if( sd->npc_id ) {
 #ifdef RENEWAL
-		clif_msg(sd, USAGE_FAIL); //TODO look for the client date that has this message.
+		clif_msg(sd, USAGE_FAIL); //@TODO look for the client date that has this message.
 		return 0;
 #else
 		if( !sd->npc_item_flag )
@@ -4789,7 +4789,7 @@ int pc_steal_item(struct map_session_data *sd, struct block_list *bl, uint16 ski
 	tmp_item.identify = itemdb_isidentified(itemid);
 	flag = pc_additem(sd,&tmp_item,1,LOG_TYPE_PICKDROP_PLAYER);
 
-	//TODO: Should we disable stealing when the item you stole couldn't be added to your inventory? Perhaps players will figure out a way to exploit this behaviour otherwise?
+	//@TODO: Should we disable stealing when the item you stole couldn't be added to your inventory? Perhaps players will figure out a way to exploit this behaviour otherwise?
 	md->state.steal_flag = UCHAR_MAX; //you can't steal from this mob any more
 
 	if( flag ) { //Failed to steal due to overweight

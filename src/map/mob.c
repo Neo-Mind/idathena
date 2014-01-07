@@ -1469,11 +1469,11 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 					)
 				))
 			{ //Rude attacked
-				if(md->state.attacked_count++ >= RUDE_ATTACKED_COUNT
-				&& !mobskill_use(md, tick, MSC_RUDEATTACKED) && can_move
-				&& !tbl && unit_escape(&md->bl, abl, rnd()%10 + 1))
+				if(md->state.attacked_count++ >= RUDE_ATTACKED_COUNT &&
+				!mobskill_use(md, tick, MSC_RUDEATTACKED) && can_move &&
+				!tbl && unit_escape(&md->bl, abl, rnd()%10 + 1))
 				{ //Escaped.
-					//TODO: Maybe it shouldn't attempt to run if it has another, valid target?
+					//@TODO: Maybe it shouldn't attempt to run if it has another, valid target?
 					md->attacked_id = 0;
 					return true;
 				}
@@ -2125,7 +2125,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	homkillonly = (bool)((dmgbltypes&BL_HOM) && !(dmgbltypes&~BL_HOM));
 
 	if(!battle_config.exp_calc_type && count > 1) { //Apply first-attacker 200% exp share bonus
-		//TODO: Determine if this should go before calculating the MVP player instead of after.
+		//@TODO: Determine if this should go before calculating the MVP player instead of after.
 		if (UINT_MAX - md->dmglog[0].dmg > md->tdmg) {
 			md->tdmg += md->dmglog[0].dmg;
 			md->dmglog[0].dmg <<= 1;

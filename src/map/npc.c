@@ -751,9 +751,10 @@ void npc_timerevent_quit(struct map_session_data* sd)
 int npc_gettimerevent_tick(struct npc_data* nd)
 {
 	int tick;
+
 	nullpo_ret(nd);
 
-	// TODO: Get player attached timer's tick. Now we can just get it by using 'getnpctimer' inside OnTimer event.
+	// @TODO: Get player attached timer's tick. Now we can just get it by using 'getnpctimer' inside OnTimer event.
 
 	tick = nd->u.scr.timer; // The last time it's active(start, stop or event trigger)
 	if( nd->u.scr.timertick ) // It's a running timer
@@ -773,7 +774,7 @@ int npc_settimerevent_tick(struct npc_data* nd, int newtimer)
 
 	nullpo_ret(nd);
 
-	// TODO: Set player attached timer's tick.
+	// @TODO: Set player attached timer's tick.
 
 	old_rid = nd->u.scr.rid;
 	nd->u.scr.rid = 0;
@@ -1157,7 +1158,7 @@ void run_tomb(struct map_session_data* sd, struct npc_data* nd)
 	
     strftime(time, sizeof(time), "%H:%M", localtime(&nd->u.tomb.kill_time));
 
-	// TODO: Find exact color?
+	// @TODO: Find exact color?
 	snprintf(buffer, sizeof(buffer), msg_txt(657), nd->u.tomb.md->db->name);
     clif_scriptmes(sd, nd->bl.id, buffer);
 
@@ -2531,7 +2532,7 @@ static const char* npc_skip_script(const char* start, const char* buffer, const 
  * Parses a npc script.
  * Line definition :
  * <map name>,<x>,<y>,<facing>%TAB%script%TAB%<NPC Name>%TAB%<sprite id>,{<code>}
- * <map name>,<x>,<y>,<facing>%TAB%script%TAB%<NPC Name>%TAB%<sprite id>,<triggerX>,<triggerY>,{<code>} * @TODO missing cashshop line definition
+ * <map name>,<x>,<y>,<facing>%TAB%script%TAB%<NPC Name>%TAB%<sprite id>,<triggerX>,<triggerY>,{<code>} * @TODO: Missing cashshop line definition
  * @param w1 : word 1 before tab (<from map name>,<x>,<y>,<facing>)
  * @param w2 : word 2 before tab (script), keyword that sent us in this parsing
  * @param w3 : word 3 before tab (<NPC Name>)
@@ -3905,7 +3906,7 @@ int npc_reload(void) {
 	//Reset mapflags
 	map_flags_init();
 
-	//TODO: the following code is copy-pasted from do_init_npc(); clean it up
+	//@TODO: The following code is copy-pasted from do_init_npc(); clean it up
 	//Reloading npcs now
 	for( nsl = npc_src_files; nsl; nsl = nsl->next ) {
 		ShowStatus("Loading NPC file: %s"CL_CLL"\r", nsl->name);

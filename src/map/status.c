@@ -1799,10 +1799,10 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		}
 
 		if (
-			(sc->data[SC_TRICKDEAD] && skill_id != NV_TRICKDEAD)
-			|| (sc->data[SC_AUTOCOUNTER] && !flag)
-			|| (sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF && skill_id != PA_GOSPEL)
-			|| (sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF && flag != 2)
+			(sc->data[SC_TRICKDEAD] && skill_id != NV_TRICKDEAD) ||
+			(sc->data[SC_AUTOCOUNTER] && !flag) ||
+			(sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF && skill_id != PA_GOSPEL) ||
+			(sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF && flag != 2)
 		)
 			return 0;
 
@@ -1910,10 +1910,13 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 	hide_flag = flag ? OPTION_HIDE : (OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK);
 
  	//You cannot hide from ground skills.
-	if (skill_get_ele(skill_id,1) == ELE_EARTH) //TODO: Need Skill Lv here :/
+	if (skill_get_ele(skill_id,1) == ELE_EARTH) //@TODO: Need Skill Lv here :/
 		hide_flag &= ~OPTION_HIDE;
 	else {
 		switch (skill_id) {
+			case MO_ABSORBSPIRITS: //It works when already casted and target suddenly hides.
+				hide_flag &= ~OPTION_HIDE;
+				break;
 			case LG_OVERBRAND:
 			case LG_OVERBRAND_BRANDISH:
 			case LG_OVERBRAND_PLUSATK:
@@ -1928,6 +1931,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 				bool is_boss = (status->mode&MD_BOSS);
 				//God-knows-why gcc doesn't shut up until this happens
 				bool is_detect = ((status->mode&MD_DETECTOR) ? true : false);
+
 				if (pc_isinvisible(sd))
 					return 0;
 				if (tsc) {
@@ -1944,7 +1948,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 			}
 			break;
 		case BL_ITEM: //Allow targetting of items to pick'em up (or in the case of mobs, to loot them).
-			//TODO: Would be nice if this could be used to judge whether the player can or not pick up the item it targets. [Skotlex]
+			//@TODO: Would be nice if this could be used to judge whether the player can or not pick up the item it targets. [Skotlex]
 			if (status->mode&MD_LOOTER)
 				return 1;
 			return 0;
@@ -8665,7 +8669,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_SWOO:
 				if( status->mode&MD_BOSS )
-					tick /= 5; //TODO: Reduce skill's duration. But for how long?
+					tick /= 5; //@TODO: Reduce skill's duration. But for how long?
 				break;
 			case SC_SPIDERWEB:
 				if( bl->type == BL_PC )
@@ -9946,7 +9950,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 /*==========================================
  * Ending all status except those listed.
- * @TODO maybe usefull for dispel instead reseting a liste there.
+ * @TODO: Maybe usefull for dispel instead reseting a liste there.
  * type:
  * 0 - PC killed -> Place here statuses that do not dispel on death.
  * 1 - If for some reason status_change_end decides to still keep the status when quitting.
@@ -10042,7 +10046,7 @@ int status_change_clear(struct block_list* bl,int type)
 			}
 
 		if(type == 3)
-			switch(i) { //TODO: This list may be incomplete
+			switch(i) { //@TODO: This list may be incomplete
 				case SC_WEIGHT50:
 				case SC_WEIGHT90:
 				case SC_NOCHAT:

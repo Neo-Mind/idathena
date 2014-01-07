@@ -127,7 +127,7 @@ int other_mapserver_count=0; //Holds count of how many other map servers are onl
 
 /// Resets all the data.
 void chrif_reset(void) {
-	// TODO kick everyone out and reset everything [FlavioJS]
+	//@TODO: Kick everyone out and reset everything [FlavioJS]
 	exit(EXIT_FAILURE);
 }
 
@@ -886,7 +886,7 @@ static void chrif_ack_login_req(int aid, const char* player_name, uint16 type, u
 
 	if (type > 0 && type <= 5)
 		snprintf(action, 25, "%s", msg_txt(427 + type)); //Block|Ban|Unblock|Unban|Change the sex of
-	else if (type == 6) snprintf(action, 25, "%s", "vip"); //TODO make some place for those type in msg_conf
+	else if (type == 6) snprintf(action, 25, "%s", "vip"); //@TODO: Make some place for those type in msg_conf
 	else if (type == 7) snprintf(action, 25, "%s", "bank");
 	else
 		snprintf(action, 25, "???");
