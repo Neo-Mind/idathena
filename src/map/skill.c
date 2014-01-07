@@ -11051,9 +11051,9 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_GC_POISONINGWEAPON,0);
 				return 0;
 			}
+			skill_unitsetting(src,skill_id,skill_lv,x,y,flag);
 			status_change_end(src,SC_POISONINGWEAPON,INVALID_TIMER);
 			clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
-			skill_unitsetting(src,skill_id,skill_lv,x,y,flag);
 			break;
 
 		case AB_EPICLESIS:
@@ -11663,6 +11663,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		case RL_B_TRAP:
 			{
 				struct skill_condition req = skill_get_requirement(sd,skill_id,skill_lv);
+
 				ARR_FIND(0,MAX_SKILL_ITEM_REQUIRE,i,req.itemid[i] && (req.itemid[i] == ITEMID_TRAP || req.itemid[i] == ITEMID_TRAP_ALLOY));
 				if( req.itemid[i] )
 					req_item = req.itemid[i];
@@ -11678,6 +11679,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		case SA_VIOLENTGALE:
 			{
 				struct skill_unit_group *old_sg;
+
 				if( (old_sg = skill_locate_element_field(src)) != NULL ) {
 					//HelloKitty confirmed that these are interchangeable.
 					//So you can change element and not consume gemstones.
