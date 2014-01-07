@@ -6451,10 +6451,13 @@ void battle_drain(TBL_PC *sd, struct block_list *tbl, int64 rdamage, int64 ldama
 
 	for (i = 0; i < 4; i++) {
 		//First two iterations: Right hand
-		if (i < 2)
-			wd = &sd->right_weapon; damage = &rdamage;
-		else
-			wd = &sd->left_weapon; damage = &ldamage;
+		if (i < 2) {
+			wd = &sd->right_weapon;
+			damage = &rdamage;
+		} else {
+			wd = &sd->left_weapon;
+			damage = &ldamage;
+		}
 		if (*damage <= 0)
 			continue;
 		if (i == 1 || i == 3) {

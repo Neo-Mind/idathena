@@ -1332,10 +1332,6 @@ int clif_spawn(struct block_list *bl)
 					if (sd->talisman[i] > 0)
 						clif_talisman(sd,i);
 				}
-				for (i = SC_SPHERE_1; i <= SC_SPHERE_5; i++) {
-					if (sd->sc.data[i])
-						clif_status_change(bl,StatusIconChangeTable[i],1,0,sd->sc.data[i]->val1,sd->sc.data[i]->val2,0);
-				}
 				for (i = 0; i < sd->sc_display_count; i++) {
 					if ((sc = status_get_sc(bl)) && sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE|OPTION_CHASEWALK))
 						clif_status_change2(&sd->bl,sd->bl.id,AREA,SI_BLANK,0,0,0);
@@ -4097,10 +4093,6 @@ static void clif_getareachar_pc(struct map_session_data* sd,struct map_session_d
 	for( i = 1; i < 5; i++ ) {
 		if( dstsd->talisman[i] > 0 )
 			clif_talisman_single(sd->fd, dstsd, i);
-	}
-	for( i = SC_SPHERE_1; i <= SC_SPHERE_5; i++ ) {
-		if( dstsd->sc.data[i] )
-			clif_status_load_single(sd->fd,dstsd->bl.id,StatusIconChangeTable[i],1,dstsd->sc.data[i]->val1,dstsd->sc.data[i]->val2,0);
 	}
 	for( i = 0; i < dstsd->sc_display_count; i++ ) {
 		if (dstsd->sc.option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE|OPTION_CHASEWALK))
