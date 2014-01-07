@@ -3740,9 +3740,8 @@ ACMD_FUNC(mapinfo)
 	if (mapname[0] == '\0') {
 		safestrncpy(mapname, mapindex_id2name(sd->mapindex), MAP_NAME_LENGTH);
 		m_id =  map_mapindex2mapid(sd->mapindex);
-	} else {
+	} else
 		m_id = map_mapname2mapid(mapname);
-	}
 
 	if (m_id < 0) {
 		clif_displaymessage(fd, msg_txt(1)); // Map not found.

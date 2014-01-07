@@ -109,6 +109,7 @@ static unsigned int status_calc_maxhpsp_pc(struct map_session_data *sd, uint8 fl
 sc_type status_skill2sc(int skill)
 {
 	int idx = skill_get_index(skill);
+
 	if( idx == 0 ) {
 		ShowError("status_skill2sc: Unsupported skill id %d\n", skill);
 		return SC_NONE;
@@ -168,7 +169,7 @@ int status_type2relevant_bl_types(int type)
 
 static void set_sc(uint16 skill_id, sc_type sc, int icon, unsigned int flag)
 {
-	uint16 idx = skill_get_index(skill_id);
+	int idx = skill_get_index(skill_id);
 	if( idx == 0 ) {
 		ShowError("set_sc: Unsupported skill id %d\n", skill_id);
 		return;

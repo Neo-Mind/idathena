@@ -120,8 +120,7 @@ struct view_data* npc_get_viewdata(int class_) { //Returns the viewdata for norm
 
 int npc_isnear_sub(struct block_list* bl, va_list args) {
 	struct npc_data *nd = (struct npc_data*)bl;
-	int skill_id = va_arg(args, int);
-	uint16 idx = -1;
+	int skill_id = va_arg(args, int), idx = -1;
 
 	//Check the NPC type if is used by INF2_NO_NEARNPC or UF_NONEARNPC [Cydh]
 	if( skill_id && (idx = skill_get_index(skill_id)) && skill_db[idx].unit_nonearnpc_type ) {

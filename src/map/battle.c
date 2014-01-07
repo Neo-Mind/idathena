@@ -1723,11 +1723,10 @@ static inline int battle_adjust_skill_damage(int m, unsigned short skill_id) {
 
 	if(map[m].skill_count) {
 		int i;
-		ARR_FIND(0, map[m].skill_count, i, map[m].skills[i]->skill_id == skill_id);
 
-		if(i < map[m].skill_count) {
+		ARR_FIND(0, map[m].skill_count, i, map[m].skills[i]->skill_id == skill_id);
+		if(i < map[m].skill_count)
 			return map[m].skills[i]->modifier;
-		}
 	}
 
 	return 0;
@@ -1778,7 +1777,7 @@ int battle_skill_damage_skill(struct block_list *src, struct block_list *target,
 	int idx;
 	struct s_skill_damage *damage = NULL;
 
-	if((idx = skill_get_index(skill_id)) < 0 || !skill_db[idx].damage.map)
+	if((idx = skill_get_index(skill_id)) == 0 || !skill_db[idx].damage.map)
 		return 0;
 
 	damage = &skill_db[idx].damage;
@@ -1792,7 +1791,7 @@ int battle_skill_damage_skill(struct block_list *src, struct block_list *target,
 		(damage->map&4 && map_flag_gvg(m)) ||
 		(damage->map&8 && map[m].flag.battleground) ||
 		(damage->map&16 && map[m].flag.skill_damage) ||
-		(map[m].flag.restricted && skill_db[idx].damage.map&(8*map[m].zone)))
+		(map[m].flag.restricted && skill_db[idx].damage.map&(8 * map[m].zone)))
 	{
 		switch(target->type) {
 			case BL_PC:

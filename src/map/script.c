@@ -10534,10 +10534,10 @@ BUILDIN_FUNC(setmapflagnosave)
 	mapindex = mapindex_name2id(str2);
 	
 	if(m >= 0 && mapindex) {
-		map[m].flag.nosave=1;
-		map[m].save.map=mapindex;
-		map[m].save.x=x;
-		map[m].save.y=y;
+		map[m].flag.nosave = 1;
+		map[m].save.map = mapindex;
+		map[m].save.x = x;
+		map[m].save.y = y;
 	}
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -10615,6 +10615,7 @@ BUILDIN_FUNC(getmapflag)
 #ifdef ADJUST_SKILL_DAMAGE
 			case MF_SKILL_DAMAGE: {
 					int ret_val = 0, type = 0;
+
 					FETCH(4,type);
 					switch(type) {
 						case 1: ret_val = map[m].adjust.damage.pc; break;
@@ -10669,14 +10670,14 @@ BUILDIN_FUNC(setmapflag)
 			case MF_NOZENYPENALTY:		map[m].flag.nozenypenalty = 1; break;
 			case MF_PVP:
 				map[m].flag.pvp = 1;
-				if( !battle_config.pk_mode ) {
+				if( !battle_config.pk_mode )
 					map_foreachinmap(script_mapflag_pvp_sub,m,BL_PC);
-				}
 				break;
 			case MF_PVP_NOPARTY:		map[m].flag.pvp_noparty = 1; break;
 			case MF_PVP_NOGUILD:		map[m].flag.pvp_noguild = 1; break;
 			case MF_GVG: {
 					struct block_list bl;
+
 					map[m].flag.gvg = 1;
 					clif_map_property_mapall(m, MAPPROPERTY_AGITZONE);
 					bl.type = BL_NUL;
@@ -10709,8 +10710,8 @@ BUILDIN_FUNC(setmapflag)
 			case MF_NOWARPTO:		map[m].flag.nowarpto = 1; break;
 			case MF_NIGHTMAREDROP:		map[m].flag.pvp_nightmaredrop = 1; break;
 			case MF_RESTRICTED:
-				map[m].zone |= 1<<(val+1);
-				map[m].flag.restricted=1;
+				map[m].zone |= 1<<(val + 1);
+				map[m].flag.restricted = 1;
 				break;
 			case MF_NOCOMMAND:		map[m].nocommand = (val <= 0) ? 100 : val; break;
 			case MF_NODROP:			map[m].flag.nodrop = 1; break;
@@ -10739,6 +10740,7 @@ BUILDIN_FUNC(setmapflag)
 #ifdef ADJUST_SKILL_DAMAGE
 			case MF_SKILL_DAMAGE: {
 					int type = 0;
+
 					FETCH(5,type);
 					switch (type) {
 						case 1: map[m].adjust.damage.pc = val; break;
@@ -10776,6 +10778,7 @@ BUILDIN_FUNC(removemapflag)
 			case MF_NOZENYPENALTY:		map[m].flag.nozenypenalty = 0; break;
 			case MF_PVP: {
 					struct block_list bl;
+
 					bl.type = BL_NUL;
 					bl.m = m;
 					map[m].flag.pvp = 0;
@@ -10787,6 +10790,7 @@ BUILDIN_FUNC(removemapflag)
 			case MF_PVP_NOGUILD:		map[m].flag.pvp_noguild = 0; break;
 			case MF_GVG: {
 					struct block_list bl;
+
 					bl.type = BL_NUL;
 					bl.m = m;
 					map[m].flag.gvg = 0;
@@ -10819,10 +10823,9 @@ BUILDIN_FUNC(removemapflag)
 			case MF_NOWARPTO:		map[m].flag.nowarpto = 0; break;
 			case MF_NIGHTMAREDROP:		map[m].flag.pvp_nightmaredrop = 0; break;
 			case MF_RESTRICTED:
-				map[m].zone ^= 1<<(val+1);
-				if (map[m].zone == 0){
-					map[m].flag.restricted=0;
-				}
+				map[m].zone ^= 1<<(val + 1);
+				if(map[m].zone == 0)
+					map[m].flag.restricted = 0;
 				break;
 			case MF_NOCOMMAND:		map[m].nocommand = 0; break;
 			case MF_NODROP:			map[m].flag.nodrop = 0; break;
