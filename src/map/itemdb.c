@@ -89,7 +89,7 @@ struct item_data* itemdb_searchname(const char *str)
  */
 static int itemdb_searchname_array_sub(DBKey key, DBData data, va_list ap)
 {
-	struct item_data *item = db_data2ptr(&data);
+	struct item_data *item = (struct item_data*)db_data2ptr(&data);
 	char *str;
 
 	str = va_arg(ap,char *);
@@ -132,7 +132,7 @@ int itemdb_searchname_array(struct item_data** data, int size, const char *str)
 		size -= count;
 		db_count = itemdb_other->getall(itemdb_other, (DBData**)&db_data, size, itemdb_searchname_array_sub, str);
 		for( i = 0; i < db_count; i++ )
-			data[count++] = db_data2ptr(db_data[i]);
+			data[count++] = (struct item_data*)db_data2ptr(db_data[i]);
 		count += db_count;
 	}
 	return count;

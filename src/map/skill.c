@@ -10968,6 +10968,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case HW_GANBANTEIN:
 			if (rnd()%100 < 80) {
 				int dummy = 1;
+
 				clif_skill_poseffect(src,skill_id,skill_lv,x,y,tick);
 				i = skill_get_splash(skill_id,skill_lv);
 				map_foreachinarea(skill_cell_overlap,src->m,x-i,y-i,x+i,y+i,BL_SKILL,HW_GANBANTEIN,&dummy,src);
@@ -10996,6 +10997,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 				} else {
 					TBL_MOB* md = mob_once_spawn_sub(src,src->m,x,y,"--ja--",(skill_lv < 2 ? 1084 + rnd()%2 : 1078 + rnd()%6),"",SZ_SMALL,AI_NONE);
 					int i;
+
 					if (!md) break;
 					if ((i = skill_get_time(skill_id,skill_lv)) > 0) {
 						if( md->deletetimer != INVALID_TIMER )
@@ -11063,11 +11065,12 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case GC_POISONSMOKE:
-			if( !(sc && sc->data[SC_POISONINGWEAPON]) ) {
+			if( sc && !sc->data[SC_POISONINGWEAPON] ) {
 				if( sd )
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_GC_POISONINGWEAPON,0);
 				return 0;
 			}
+			status_change_end(src,SC_POISONINGWEAPON,INVALID_TIMER);
 			clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 			skill_unitsetting(src,skill_id,skill_lv,x,y,flag);
 			break;
@@ -11833,7 +11836,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			}
 			break;
 		case GC_POISONSMOKE:
-			if( !(sc && sc->data[SC_POISONINGWEAPON]) )
+			if( sc && !sc->data[SC_POISONINGWEAPON] )
 				return NULL;
 			val2 = sc->data[SC_POISONINGWEAPON]->val2; //Type of Poison
 			val3 = sc->data[SC_POISONINGWEAPON]->val1;
@@ -12775,13 +12778,14 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;
 
 		case UNT_POISONSMOKE:
-			if (battle_check_target(ss,bl,BCT_ENEMY) > 0 && !(tsc && tsc->data[sg->val2]) && rnd()%100 < 50)
+			if (battle_check_target(ss,bl,BCT_ENEMY) > 0 && tsc && !tsc->data[sg->val2] && rnd()%100 < 50)
 				sc_start(ss,bl,sg->val2,100,sg->val3,skill_get_time2(GC_POISONINGWEAPON,1));
 			break;
 
 		case UNT_EPICLESIS:
 			if (bl->type == BL_PC && !battle_check_undead(tstatus->race,tstatus->def_ele) && tstatus->race != RC_DEMON) {
 				int hp, sp;
+
 				switch (sg->skill_lv) {
 					case 1: case 2: hp = 3; sp = 2; break;
 					case 3: case 4: hp = 4; sp = 3; break;
@@ -17860,7 +17864,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 	return 0;
 }
 
-int skill_arrow_create (struct map_session_data *sd, int nameid)
+int skill_arrow_create(struct map_session_data *sd, int nameid)
 {
 	int i,j,flag,index = -1;
 	struct item tmp_item;
@@ -17870,7 +17874,7 @@ int skill_arrow_create (struct map_session_data *sd, int nameid)
 	if(nameid <= 0)
 		return 1;
 
-	for(i=0;i<MAX_SKILL_ARROW_DB;i++)
+	for(i = 0; i < MAX_SKILL_ARROW_DB; i++)
 		if(nameid == skill_arrow_db[i].nameid) {
 			index = i;
 			break;
@@ -17880,16 +17884,16 @@ int skill_arrow_create (struct map_session_data *sd, int nameid)
 		return 1;
 
 	pc_delitem(sd,j,1,0,0,LOG_TYPE_PRODUCE);
-	for(i=0;i<MAX_ARROW_RESOURCE;i++) {
+	for(i = 0; i < MAX_ARROW_RESOURCE; i++) {
 		memset(&tmp_item,0,sizeof(tmp_item));
 		tmp_item.identify = 1;
 		tmp_item.nameid = skill_arrow_db[index].cre_id[i];
 		tmp_item.amount = skill_arrow_db[index].cre_amount[i];
 		if(battle_config.produce_item_name_input&0x4) {
-			tmp_item.card[0]=CARD0_CREATE;
-			tmp_item.card[1]=0;
-			tmp_item.card[2]=GetWord(sd->status.char_id,0); //CharId
-			tmp_item.card[3]=GetWord(sd->status.char_id,1);
+			tmp_item.card[0] = CARD0_CREATE;
+			tmp_item.card[1] = 0;
+			tmp_item.card[2] = GetWord(sd->status.char_id,0); //CharId
+			tmp_item.card[3] = GetWord(sd->status.char_id,1);
 		}
 		if(tmp_item.nameid <= 0 || tmp_item.amount <= 0)
 			continue;
@@ -17901,7 +17905,7 @@ int skill_arrow_create (struct map_session_data *sd, int nameid)
 
 	return 0;
 }
-int skill_poisoningweapon( struct map_session_data *sd, int nameid) {
+int skill_poisoningweapon(struct map_session_data *sd, int nameid) {
 	sc_type type;
 	int chance, i;
 
@@ -17925,7 +17929,8 @@ int skill_poisoningweapon( struct map_session_data *sd, int nameid) {
 			return 0;
 	}
 
-	status_change_end(&sd->bl, SC_POISONINGWEAPON, INVALID_TIMER); //Status must be forced to end so that a new poison will be applied if a player decides to change poisons. [Rytech]
+	//Status must be forced to end so that a new poison will be applied if a player decides to change poisons. [Rytech]
+	status_change_end(&sd->bl, SC_POISONINGWEAPON, INVALID_TIMER);
 	chance = 2 + 2 * sd->menuskill_val; //2 + 2 * skill_lv
 	sc_start4(&sd->bl, &sd->bl, SC_POISONINGWEAPON, 100, pc_checkskill(sd, GC_RESEARCHNEWPOISON), //in Aegis it store the level of GC_RESEARCHNEWPOISON in val1
 		type, chance, 0, skill_get_time(GC_POISONINGWEAPON, sd->menuskill_val));

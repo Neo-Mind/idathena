@@ -6771,22 +6771,22 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 	switch (type) {
 		case SC_POISON:
 		case SC_DPOISON:
-			sc_def = status->vit*100;
-			sc_def2 = status->luk*10 + status_get_lv(bl)*10 - status_get_lv(src)*10;
+			sc_def = status->vit * 100;
+			sc_def2 = status->luk * 10 + status_get_lv(bl) * 10 - status_get_lv(src) * 10;
 			if (sd) {
 				//For players: 60000 - 450*vit - 100*luk
-				tick_def = status->vit*75;
-				tick_def2 = status->luk*100;
+				tick_def = status->vit * 75;
+				tick_def2 = status->luk * 100;
 			} else {
 				//For monsters: 30000 - 200*vit
-				tick>>=1;
-				tick_def = (status->vit*200)/3;
+				tick >>= 1;
+				tick_def = (status->vit * 200) / 3;
 			}
 			break;
 		case SC_STUN:
-			sc_def = status->vit*100;
-			sc_def2 = status->luk*10 + status_get_lv(bl)*10 - status_get_lv(src)*10;
-			tick_def2 = status->luk*10;
+			sc_def = status->vit * 100;
+			sc_def2 = status->luk * 10 + status_get_lv(bl) * 10 - status_get_lv(src) * 10;
+			tick_def2 = status->luk * 10;
 			break;
 		case SC_SILENCE:
 			sc_def =
@@ -6795,15 +6795,15 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 #else
 				status->vit
 #endif
-				*100;
+				* 100;
 			sc_def2 =
 #ifdef RENEWAL
-				(status->vit + status->luk)*5
+				(status->vit + status->luk) * 5
 #else
-				status->luk*10
+				status->luk * 10
 #endif
-				+ status_get_lv(bl)*10 - status_get_lv(src)*10;
-			tick_def2 = status->luk*10;
+				+ status_get_lv(bl) * 10 - status_get_lv(src) * 10;
+			tick_def2 = status->luk * 10;
 			break;
 		case SC_BLEEDING:
 			sc_def =
@@ -6812,93 +6812,93 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 #else
 				status->vit
 #endif
-				*100;
-			sc_def2 = status->luk*10 + status_get_lv(bl)*10 - status_get_lv(src)*10;
-			tick_def2 = status->luk*10;
+				* 100;
+			sc_def2 = status->luk * 10 + status_get_lv(bl) * 10 - status_get_lv(src) * 10;
+			tick_def2 = status->luk * 10;
 			break;
 		case SC_SLEEP:
-			sc_def = status->int_*100;
-			sc_def2 = status->luk*10 + status_get_lv(bl)*10 - status_get_lv(src)*10;
-			tick_def2 = status->luk*10;
+			sc_def = status->int_ * 100;
+			sc_def2 = status->luk * 10 + status_get_lv(bl) * 10 - status_get_lv(src) * 10;
+			tick_def2 = status->luk * 10;
 			break;
 		case SC_STONE:
-			sc_def = status->mdef*100;
-			sc_def2 = status->luk*10 + status_get_lv(bl)*10 - status_get_lv(src)*10;
+			sc_def = status->mdef * 100;
+			sc_def2 = status->luk * 10 + status_get_lv(bl) * 10 - status_get_lv(src) * 10;
 			tick_def = 0; //No duration reduction
 			break;
 		case SC_FREEZE:
-			sc_def = status->mdef*100;
-			sc_def2 = status->luk*10 + status_get_lv(bl)*10 - status_get_lv(src)*10;
-			tick_def2 = status_src->luk*-10; //Caster can increase final duration with luk
+			sc_def = status->mdef * 100;
+			sc_def2 = status->luk * 10 + status_get_lv(bl) * 10 - status_get_lv(src) * 10;
+			tick_def2 = status_src->luk * -10; //Caster can increase final duration with luk
 			break;
 		case SC_CURSE:
 			//Special property: immunity when luk is zero
 			if (status->luk == 0)
 				return 0;
-			sc_def = status->luk*100;
-			sc_def2 = status->luk*10 - status_get_lv(src)*10; //Curse only has a level penalty and no resistance
-			tick_def = status->vit*100;
-			tick_def2 = status->luk*10;
+			sc_def = status->luk * 100;
+			sc_def2 = status->luk * 10 - status_get_lv(src) * 10; //Curse only has a level penalty and no resistance
+			tick_def = status->vit * 100;
+			tick_def2 = status->luk * 10;
 			break;
 		case SC_BLIND:
-			sc_def = (status->vit + status->int_)*50;
-			sc_def2 = status->luk*10 + status_get_lv(bl)*10 - status_get_lv(src)*10;
-			tick_def2 = status->luk*10;
+			sc_def = (status->vit + status->int_) * 50;
+			sc_def2 = status->luk * 10 + status_get_lv(bl) * 10 - status_get_lv(src) * 10;
+			tick_def2 = status->luk * 10;
 			break;
 		case SC_CONFUSION:
-			sc_def = (status->str + status->int_)*50;
-			sc_def2 = status_get_lv(src)*10 - status_get_lv(bl)*10 - status->luk*10; //Reversed sc_def2
-			tick_def2 = status->luk*10;
+			sc_def = (status->str + status->int_) * 50;
+			sc_def2 = status_get_lv(src) * 10 - status_get_lv(bl) * 10 - status->luk * 10; //Reversed sc_def2
+			tick_def2 = status->luk * 10;
 			break;
 		case SC_DECREASEAGI:
 		case SC_ADORAMUS:
 			if (sd) tick >>= 1; //Half duration for players.
-			sc_def = status->mdef*100;
+			sc_def = status->mdef * 100;
 			tick_def = 0; //No duration reduction
 			break;
 		case SC_ANKLE:
 			if (status->mode&MD_BOSS) //Lasts 5 times less on bosses
 				tick /= 5;
-			sc_def = status->agi*50;
+			sc_def = status->agi * 50;
 			break;
 		case SC_DEEPSLEEP:
 			//sc_def = status->int_*50; Needs info
 			tick_def = 0; //Linear reduction instead
-			tick_def2 = (status->int_ + status_get_lv(bl))*50; //kRO balance update lists this formula
+			tick_def2 = (status->int_ + status_get_lv(bl)) * 50; //kRO balance update lists this formula
 			break;
 		case SC_NETHERWORLD:
-			tick_def2 = status_get_lv(bl)*20 + (sd ? sd->status.job_level*100 : 0);
+			tick_def2 = status_get_lv(bl) * 20 + (sd ? sd->status.job_level * 100 : 0);
 			break;
 		case SC_MAGICMIRROR:
 		case SC_ARMORCHANGE:
 			if (sd) //Duration greatly reduced for players.
 				tick /= 15;
-			sc_def2 = status_get_lv(bl)*20 + status->vit*25 + status->agi*10; //Lineal Reduction of Rate
+			sc_def2 = status_get_lv(bl) * 20 + status->vit * 25 + status->agi * 10; //Lineal Reduction of Rate
 			break;
 		case SC_MARSHOFABYSS:
 			//5 second (Fixed) + 25 second - { ( INT + LUK ) / 20 second }
-			tick_def2 = (status->int_ + status->luk)*50;
+			tick_def2 = (status->int_ + status->luk) * 50;
 			break;
 		case SC_STASIS:
 			//5 second (fixed) + { Stasis Skill level * 5 - (Target VIT + DEX) / 20 }
-			tick_def2 = (status->vit + status->dex)*50;
+			tick_def2 = (status->vit + status->dex) * 50;
 			break;
 		case SC_WHITEIMPRISON:
 			if (tick == 5000) //100% on caster
 				break;
 			if (bl->type == BL_PC)
-				tick_def2 = status_get_lv(bl)*20 + status->vit*25 + status->agi*10;
+				tick_def2 = status_get_lv(bl) * 20 + status->vit * 25 + status->agi * 10;
 			else
-				tick_def2 = (status->vit + status->luk)*50;
+				tick_def2 = (status->vit + status->luk) * 50;
 			break;
 		case SC_BURNING:
-			tick_def2 = 75*status->luk + 125*status->agi;
+			tick_def2 = 75 * status->luk + 125 * status->agi;
 			break;
 		case SC_FREEZING:
-			tick_def2 = (status->vit + status->dex)*50;
+			tick_def2 = (status->vit + status->dex) * 50;
 			break;
 		case SC_OBLIVIONCURSE: //100% - (100 - 0.8 x INT)
-			sc_def = status->int_*80;
+			sc_def = status->int_ * 80;
 		case SC_TOXIN:
 		case SC_PARALYSE:
 		case SC_VENOMBLEED:
@@ -6906,25 +6906,25 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 		case SC_DEATHHURT:
 		case SC_PYREXIA:
 		case SC_LEECHESEND:
-			tick_def2 = (status->vit + status->luk)*500;
+			tick_def2 = (status->vit + status->luk) * 500;
 			break;
 		case SC_BITE: //{(Base Success chance) - (Target's AGI / 4)}
-			sc_def2 = status->agi*25;
+			sc_def2 = status->agi * 25;
 			break;
 		case SC_ELECTRICSHOCKER:
-			tick_def2 = (status->vit + status->agi)*70;
+			tick_def2 = (status->vit + status->agi) * 70;
 			break;
 		case SC_CRYSTALIZE:
-			tick_def2 = status->vit*100;
+			tick_def2 = status->vit * 100;
 			break;
 		case SC_VACUUM_EXTREME:
-			tick_def2 = status->str*50;
+			tick_def2 = status->str * 50;
 			break;
 		case SC_KYOUGAKU:
-			tick_def2 = status->int_*50;
+			tick_def2 = status->int_ * 50;
 			break;
 		case SC_PARALYSIS:
-			tick_def2 = (status->vit + status->luk)*50;
+			tick_def2 = (status->vit + status->luk) * 50;
 			break;
 		default:
 			//Effect that cannot be reduced? Likely a buff.
@@ -6935,39 +6935,39 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 
 	if (sd) {
 		if (battle_config.pc_sc_def_rate != 100) {
-			sc_def = sc_def*battle_config.pc_sc_def_rate/100;
-			sc_def2 = sc_def2*battle_config.pc_sc_def_rate/100;
+			sc_def = sc_def * battle_config.pc_sc_def_rate / 100;
+			sc_def2 = sc_def2 * battle_config.pc_sc_def_rate / 100;
 		}
 
-		sc_def = min(sc_def,battle_config.pc_max_sc_def*100);
-		sc_def2 = min(sc_def2,battle_config.pc_max_sc_def*100);
+		sc_def = min(sc_def,battle_config.pc_max_sc_def * 100);
+		sc_def2 = min(sc_def2,battle_config.pc_max_sc_def * 100);
 
 		if (tick_def > 0 && battle_config.pc_sc_def_rate != 100) {
-			tick_def = tick_def*battle_config.pc_sc_def_rate/100;
-			tick_def2 = tick_def2*battle_config.pc_sc_def_rate/100;
+			tick_def = tick_def * battle_config.pc_sc_def_rate / 100;
+			tick_def2 = tick_def2 * battle_config.pc_sc_def_rate / 100;
 		}
 	} else {
 		if (battle_config.mob_sc_def_rate != 100) {
-			sc_def = sc_def*battle_config.mob_sc_def_rate/100;
-			sc_def2 = sc_def2*battle_config.mob_sc_def_rate/100;
+			sc_def = sc_def * battle_config.mob_sc_def_rate / 100;
+			sc_def2 = sc_def2 * battle_config.mob_sc_def_rate / 100;
 		}
 
-		sc_def = min(sc_def,battle_config.mob_max_sc_def*100);
-		sc_def2 = min(sc_def2,battle_config.mob_max_sc_def*100);
+		sc_def = min(sc_def,battle_config.mob_max_sc_def * 100);
+		sc_def2 = min(sc_def2,battle_config.mob_max_sc_def * 100);
 
 		if (tick_def > 0 && battle_config.mob_sc_def_rate != 100) {
-			tick_def = tick_def*battle_config.mob_sc_def_rate/100;
-			tick_def2 = tick_def2*battle_config.mob_sc_def_rate/100;
+			tick_def = tick_def * battle_config.mob_sc_def_rate / 100;
+			tick_def2 = tick_def2 * battle_config.mob_sc_def_rate / 100;
 		}
 	}
 
 	if (sc) {
 		if (sc->data[SC_SCRESIST])
-			sc_def += sc->data[SC_SCRESIST]->val1*100; //Status resist.
+			sc_def += sc->data[SC_SCRESIST]->val1 * 100; //Status resist.
 		else if (sc->data[SC_SIEGFRIED])
-			sc_def += sc->data[SC_SIEGFRIED]->val3*100; //Status resistance.
+			sc_def += sc->data[SC_SIEGFRIED]->val3 * 100; //Status resistance.
 		else if (sc->data[SC_SHIELDSPELL_REF] && sc->data[SC_SHIELDSPELL_REF]->val1 == 2)
-			sc_def += sc->data[SC_SHIELDSPELL_REF]->val3*100;
+			sc_def += sc->data[SC_SHIELDSPELL_REF]->val3 * 100;
 	}
 
 	//When tick def not set, reduction is the same for both.
@@ -6976,7 +6976,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 
 	//Natural resistance
 	if (!(flag&8)) {
-		rate -= rate*sc_def/10000;
+		rate -= rate * sc_def / 10000;
 		rate -= sc_def2;
 
 		//Minimum chances
@@ -6991,10 +6991,10 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 
 		//Item resistance (only applies to rate%)
 		if(sd && SC_COMMON_MIN <= type && type <= SC_COMMON_MAX) {
-			if( sd->reseff[type-SC_COMMON_MIN] > 0 )
-				rate -= rate*sd->reseff[type-SC_COMMON_MIN]/10000;
+			if( sd->reseff[type - SC_COMMON_MIN] > 0 )
+				rate -= rate * sd->reseff[type - SC_COMMON_MIN] / 10000;
 			if( sd->sc.data[SC_COMMONSC_RESIST] )
-				rate -= rate*sd->sc.data[SC_COMMONSC_RESIST]->val1/100;
+				rate -= rate * sd->sc.data[SC_COMMONSC_RESIST]->val1 / 100;
 		}
 
 		//Aegis accuracy
@@ -7012,7 +7012,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 	if (flag&2)
 		return tick;
 
-	tick -= tick*tick_def/10000;
+	tick -= tick * tick_def / 10000;
 	tick -= tick_def2;
 
 	//Minimum durations

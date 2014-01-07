@@ -1969,7 +1969,7 @@ bool skill_check_camouflage(struct block_list *bl, struct status_change_entry *s
 
 int skill_magicdecoy(struct map_session_data *sd, int nameid);
 
-int skill_poisoningweapon( struct map_session_data *sd, int nameid);
+int skill_poisoningweapon(struct map_session_data *sd, int nameid);
 
 int skill_maelstrom_suction(struct block_list *bl, va_list ap);
 int skill_select_menu(struct map_session_data *sd,uint16 skill_id);
