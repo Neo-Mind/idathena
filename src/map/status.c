@@ -170,6 +170,7 @@ int status_type2relevant_bl_types(int type)
 static void set_sc(uint16 skill_id, sc_type sc, int icon, unsigned int flag)
 {
 	int idx = skill_get_index(skill_id);
+
 	if( idx == 0 ) {
 		ShowError("set_sc: Unsupported skill id %d\n", skill_id);
 		return;
@@ -1159,7 +1160,6 @@ void initChangeTables(void) {
 	StatusChangeStateTable[SC_CAMOUFLAGE]          |= SCS_NOMOVE|SCS_NOMOVECOND;
 	StatusChangeStateTable[SC_MEIKYOUSISUI]        |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_KAGEHUMI]            |= SCS_NOMOVE;
-	StatusChangeStateTable[SC_KYOUGAKU]            |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_PARALYSIS]           |= SCS_NOMOVE;
 
 	/* StatusChangeState (SCS_) NOPICKUPITEMS */
@@ -3905,21 +3905,21 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 	if (!sc || !sc->count)
 		return;
 
-	if (
-		(sc->data[SC_POISON] && !sc->data[SC_SLOWPOISON]) ||
+	if ((sc->data[SC_POISON] && !sc->data[SC_SLOWPOISON]) ||
 		(sc->data[SC_DPOISON] && !sc->data[SC_SLOWPOISON]) ||
 		sc->data[SC_BERSERK] ||
 		sc->data[SC_TRICKDEAD] ||
 		sc->data[SC_BLEEDING] ||
 		sc->data[SC_MAGICMUSHROOM] ||
-		sc->data[SC_SATURDAYNIGHTFEVER])
+		sc->data[SC_SATURDAYNIGHTFEVER] ||
+		sc->data[SC_REBOUND])
 		regen->flag = 0; //No natural HP and SP regen
 
 	if (sc->data[SC_DANCING] ||
 #ifdef RENEWAL
 		sc->data[SC_MAXIMIZEPOWER] ||
 #endif
-		sc->data[SC_VITALITYACTIVATION] || sc->data[SC_OBLIVIONCURSE] || sc->data[SC_REBOUND] ||
+		sc->data[SC_VITALITYACTIVATION] || sc->data[SC_OBLIVIONCURSE] ||
 		(bl->type == BL_PC && (((TBL_PC*)bl)->class_&MAPID_UPPERMASK) == MAPID_MONK && sc->data[SC_EXTREMITYFIST] &&
 		(!sc->data[SC_SPIRIT] || sc->data[SC_SPIRIT]->val2 != SL_MONK)))
 		regen->flag &= ~RGN_SP; //No natural SP regen
@@ -9249,9 +9249,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick_time = 10000; //[GodLesZ] tick time
 				break;
 			case SC_KYOUGAKU:
-				val1 = 1002; //Poring in disguise
 				val2 = rnd_value(val1 * 2,val1 * 3);
-				clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,0,val1,0,0);
+				clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,0,1002,0,0);
 				break;
 			case SC_KAGEMUSYA:
 				val3 = val1 * 2;
@@ -11665,7 +11664,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			break;
 		case SC_FULL_THROTTLE:
 			if( --(sce->val4) > 0 ) {
-				status_percent_damage(bl,bl,sce->val2,0,false);
+				status_percent_damage(bl,bl,sce->val2,sce->val2,false);
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}

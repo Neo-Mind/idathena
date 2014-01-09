@@ -58,7 +58,7 @@ static struct eri *delay_clearunit_ers;
 //#define DUMP_UNKNOWN_PACKET
 //#define DUMP_INVALID_PACKET
 
-struct Clif_Config {
+struct clif_config {
 	int packet_db_ver;	//Preferred packet version.
 	int connect_cmd[MAX_PACKET_VER + 1]; //Store the connect command for all versions. [Skotlex]
 } clif_config;
@@ -69,16 +69,13 @@ int packet_db_ack[MAX_PACKET_VER + 1][MAX_ACK_FUNC + 1];
 //Converts item type in case of pet eggs.
 static inline int itemtype(int type) {
 	switch( type ) {
-#if PACKETVER >= 20080827
-		case IT_PETARMOR:
-#endif
 		case IT_PETEGG:
+		case IT_PETARMOR:
 			return IT_ARMOR;
 		default:
 			return type;
 	}
 }
-
 
 static inline void WBUFPOS(uint8* p, unsigned short pos, short x, short y, unsigned char dir) {
 	p += pos;
@@ -87,8 +84,7 @@ static inline void WBUFPOS(uint8* p, unsigned short pos, short x, short y, unsig
 	p[2] = (uint8)((y<<4) | (dir&0xf));
 }
 
-
-// client-side: x0 += sx0 * 0.0625 - 0.5 and y0 += sy0 * 0.0625 - 0.5
+// Client-side: x0 += sx0 * 0.0625 - 0.5 and y0 += sy0 * 0.0625 - 0.5
 static inline void WBUFPOS2(uint8* p, unsigned short pos, short x0, short y0, short x1, short y1, unsigned char sx0, unsigned char sy0) {
 	p += pos;
 	p[0] = (uint8)(x0>>2);
@@ -99,16 +95,13 @@ static inline void WBUFPOS2(uint8* p, unsigned short pos, short x0, short y0, sh
 	p[5] = (uint8)((sx0<<4) | (sy0&0x0f));
 }
 
-
 static inline void WFIFOPOS(int fd, unsigned short pos, short x, short y, unsigned char dir) {
 	WBUFPOS(WFIFOP(fd,pos), 0, x, y, dir);
 }
 
-
 static inline void WFIFOPOS2(int fd, unsigned short pos, short x0, short y0, short x1, short y1, unsigned char sx0, unsigned char sy0) {
 	WBUFPOS2(WFIFOP(fd,pos), 0, x0, y0, x1, y1, sx0, sy0);
 }
-
 
 static inline void RBUFPOS(const uint8* p, unsigned short pos, short* x, short* y, unsigned char* dir) {
 	p += pos;
@@ -122,7 +115,6 @@ static inline void RBUFPOS(const uint8* p, unsigned short pos, short* x, short* 
 	if( dir )
 		dir[0] = (p[2]&0x0f);
 }
-
 
 static inline void RBUFPOS2(const uint8* p, unsigned short pos, short* x0, short* y0, short* x1, short* y1, unsigned char* sx0, unsigned char* sy0) {
 	p += pos;
@@ -146,22 +138,18 @@ static inline void RBUFPOS2(const uint8* p, unsigned short pos, short* x0, short
 		sy0[0] = (p[5]&0x0f)>>0;
 }
 
-
 static inline void RFIFOPOS(int fd, unsigned short pos, short* x, short* y, unsigned char* dir) {
 	RBUFPOS(RFIFOP(fd,pos), 0, x, y, dir);
 }
-
 
 static inline void RFIFOPOS2(int fd, unsigned short pos, short* x0, short* y0, short* x1, short* y1, unsigned char* sx0, unsigned char* sy0) {
 	RBUFPOS2(WFIFOP(fd,pos), 0, x0, y0, x1, y1, sx0, sy0);
 }
 
-
 //To idenfity disguised characters.
 static inline bool disguised(struct block_list* bl) {
 	return (bool)( bl->type == BL_PC && ((TBL_PC*)bl)->disguise );
 }
-
 
 //Guarantees that the given string does not exceeds the allowed size, as well as making sure it's null terminated. [Skotlex]
 static inline unsigned int mes_len_check(char* mes, unsigned int len, unsigned int max) {
@@ -172,7 +160,6 @@ static inline unsigned int mes_len_check(char* mes, unsigned int len, unsigned i
 
 	return len;
 }
-
 
 static char map_ip_str[128];
 static uint32 map_ip;
@@ -4110,8 +4097,7 @@ static void clif_getareachar_pc(struct map_session_data* sd,struct map_session_d
 	}
 	if( (sd->status.party_id && dstsd->status.party_id == sd->status.party_id) || //Party-mate, or hpdisp setting.
 		(sd->bg_id && sd->bg_id == dstsd->bg_id) || //BattleGround
-		pc_has_permission(sd, PC_PERM_VIEW_HPMETER)
-	)
+		pc_has_permission(sd, PC_PERM_VIEW_HPMETER) )
 		clif_hpmeter_single(sd->fd, dstsd->bl.id, dstsd->battle_status.hp, dstsd->battle_status.max_hp);
 	//Display link (sd - dstsd) to sd
 	ARR_FIND(0, 5, i, sd->devotion[i] == dstsd->bl.id);
@@ -5890,16 +5876,12 @@ void clif_use_card(struct map_session_data *sd, int idx)
 			continue;
 		if (itemdb_isspecial(sd->status.inventory[i].card[0])) //Can't slot it
 			continue;
-
 		if (sd->status.inventory[i].identify == 0) //Not identified
 			continue;
-
 		if ((sd->inventory_data[i]->equip&ep) == 0) //Not equippable on this part.
 			continue;
-
 		if (sd->inventory_data[i]->type == IT_WEAPON && ep == EQP_SHIELD) //Shield card won't go on left weapon.
 			continue;
-
 		ARR_FIND(0,sd->inventory_data[i]->slot,j,sd->status.inventory[i].card[j] == 0);
 		if (j == sd->inventory_data[i]->slot) //No room
 			continue;

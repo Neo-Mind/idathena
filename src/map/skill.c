@@ -13468,6 +13468,7 @@ int skill_check_pc_partner (struct map_session_data *sd, uint16 skill_id, uint16
 
 	if (cast_flag) { //Execute the skill on the partners.
 		struct map_session_data* tsd;
+
 		switch (skill_id) {
 			case PR_BENEDICTIO:
 				for (i = 0; i < c; i++) {
@@ -14134,6 +14135,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			break;
 		case WM_GREAT_ECHO: {
 				int count;
+
 				count = skill_check_pc_partner(sd,skill_id,&skill_lv,skill_get_splash(skill_id,skill_lv),0);
 				if( count < 1 ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_HELPER,0);
