@@ -71,10 +71,9 @@ static inline int itemtype(int type) {
 	switch( type ) {
 #if PACKETVER >= 20080827
 		case IT_PETARMOR:
-			return IT_WEAPON;
 #endif
 		case IT_PETEGG:
-			return IT_ETC;
+			return IT_ARMOR;
 		default:
 			return type;
 	}

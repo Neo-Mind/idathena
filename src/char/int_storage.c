@@ -60,8 +60,10 @@ int storage_fromsql(int account_id, struct storage_data* p)
 		Sql_GetData(sql_handle, 7, &data, NULL); item->expire_time = (unsigned int)atoi(data);
 		Sql_GetData(sql_handle, 8, &data, NULL); item->bound = atoi(data);
 		Sql_GetData(sql_handle, 9, &data, NULL); item->unique_id = strtoull(data, NULL, 10);
-		for( j = 0; j < MAX_SLOTS; ++j )
-			Sql_GetData(sql_handle, 10 + j, &data, NULL); item->card[j] = atoi(data);
+		for( j = 0; j < MAX_SLOTS; ++j ) {
+			Sql_GetData(sql_handle, 10 + j, &data, NULL);
+			item->card[j] = atoi(data);
+		}
 	}
 	p->storage_amount = i;
 	Sql_FreeResult(sql_handle);
@@ -115,8 +117,10 @@ int guild_storage_fromsql(int guild_id, struct guild_storage* p)
 		Sql_GetData(sql_handle, 7, &data, NULL); item->bound = atoi(data);
 		Sql_GetData(sql_handle, 8, &data, NULL); item->unique_id = strtoull(data, NULL, 10);
 		item->expire_time = 0;
-		for( j = 0; j < MAX_SLOTS; ++j )
-			Sql_GetData(sql_handle, 9 + j, &data, NULL); item->card[j] = atoi(data);
+		for( j = 0; j < MAX_SLOTS; ++j ) {
+			Sql_GetData(sql_handle, 9 + j, &data, NULL);
+			item->card[j] = atoi(data);
+		}
 	}
 	p->storage_amount = i;
 	Sql_FreeResult(sql_handle);
