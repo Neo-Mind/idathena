@@ -245,6 +245,7 @@ enum bl_type {
 enum npc_subtype { WARP, SHOP, SCRIPT, CASHSHOP, ITEMSHOP, POINTSHOP, TOMB };
 
 enum e_race {
+	RC_NONE_ = -1,   //Don't give us bonus
 	RC_FORMLESS = 0, //Nothing
 	RC_UNDEAD,       //Undead
 	RC_BRUTE,        //Animal
@@ -255,11 +256,12 @@ enum e_race {
 	RC_DEMIHUMAN,    //Human
 	RC_ANGEL,        //Angel
 	RC_DRAGON,       //Dragon
-	RC_ALL,           //All
-	RC_MAX            //Auto upd enum for array size
+	RC_ALL,          //All
+	RC_MAX           //Auto upd enum for array size
 };
 
-enum e_class {
+enum e_classAE {
+	CLASS_NONE = -1, //Don't give us bonus
 	CLASS_NORMAL = 0,
 	CLASS_BOSS,
 	CLASS_GUARDIAN,
@@ -419,7 +421,7 @@ enum _sp {
 
 	SP_IGNORE_DEF_CLASS,SP_IGNORE_DEF_CLASS_RATE,SP_IGNORE_MDEF_CLASS,SP_IGNORE_MDEF_CLASS_RATE, //2063-2066
 	SP_DEF_RATIO_ATK_CLASS,SP_ADDCLASS,SP_SUBCLASS,SP_MAGIC_ADDCLASS, //2067-2070
-	SP_WEAPON_COMA_CLASS,SP_MAGIC_SUBCLASS //2071-2072
+	SP_WEAPON_COMA_CLASS,SP_MAGIC_SUBCLASS,SP_EXP_ADDCLASS //2071-2073
 };
 
 enum _look {

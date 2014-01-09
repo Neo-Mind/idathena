@@ -1278,15 +1278,17 @@ int read_homunculus_skilldb(void)
 
 void read_homunculus_expdb(void)
 {
-	FILE *fp;
-	char line[1024];
-	int i, j = 0;
+	int i;
 	char *filename[] = {
 		DBPATH"exp_homun.txt",
 		"exp_homun2.txt"};
 
 	memset(hexptbl,0,sizeof(hexptbl));
 	for(i = 0; i < 2; i++) {
+		FILE *fp;
+		char line[1024];
+		int j = 0;
+
 		sprintf(line, "%s/%s", db_path, filename[i]);
 		fp = fopen(line,"r");
 		if(fp == NULL) {

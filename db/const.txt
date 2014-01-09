@@ -648,6 +648,7 @@ bSubClass	2069
 bMagicAddClass	2070
 bWeaponComaClass	2071
 bMagicSubClass	2072
+bExpAddClass	2073
 
 EQI_HEAD_TOP	1
 EQI_ARMOR	2

@@ -540,7 +540,7 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 					t_cf += sd->right_weapon.addclass[tstatus->class_] + sd->arrow_addclass[tstatus->class_] +
 						sd->right_weapon.addclass[CLASS_ALL] + sd->arrow_addclass[CLASS_ALL];
 				} else { //Melee attack
-					int skill_learnlv = 0;
+					int skill = 0;
 
 					if( !battle_config.left_cardfix_to_right ) {
 						t_cf += sd->right_weapon.addrace[tstatus->race] + sd->right_weapon.addrace[RC_ALL];
@@ -609,8 +609,8 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 							sd->right_weapon.addclass[CLASS_ALL] + sd->left_weapon.addclass[CLASS_ALL];
 					}
 					//Adv. Katar Mastery functions similar to a +%ATK card on official [helvetica]
-					if( sd->status.weapon == W_KATAR && (skill_learnlv = pc_checkskill(sd,ASC_KATAR)) > 0 )
-						t_cf += (10 + 2 * skill_learnlv);
+					if( sd->status.weapon == W_KATAR && (skill = pc_checkskill(sd,ASC_KATAR)) > 0 )
+						t_cf += (10 + 2 * skill);
 				}
 				for( i = 0; i < ARRAYLENGTH(sd->right_weapon.add_dmg) && sd->right_weapon.add_dmg[i].rate; i++ ) {
 					if( sd->right_weapon.add_dmg[i].class_ == t_class ) {
@@ -5061,6 +5061,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		if(skill_id == CR_SHIELDBOOMERANG || skill_id == PA_SHIELDCHAIN) {
 			//Refine bonus applies after cards and elements.
 			short index = sd->equip_index[EQI_HAND_L];
+
 			if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR)
 				ATK_ADD(wd.damage, wd.damage2, 10 * sd->status.inventory[index].refine);
 		}
@@ -5913,7 +5914,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
  */
 struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv,int mflag)
 {
-	int skill;
 #ifdef ADJUST_SKILL_DAMAGE
 	int skill_damage;
 #endif
@@ -5995,18 +5995,21 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 #endif
 		case HT_BLITZBEAT:
 		case SN_FALCONASSAULT:
-			//Blitz-beat Damage.
-			if(!sd || (skill = pc_checkskill(sd,HT_STEELCROW)) <= 0)
-				skill = 0;
-			md.damage = (sstatus->dex / 10 + sstatus->int_ / 2 + skill * 3 + 40) * 2;
-			if(mflag > 1) //Autocasted Blitz.
-				nk |= NK_SPLASHSPLIT;
-			if(skill_id == SN_FALCONASSAULT) {
-				//Div fix of Blitzbeat
-				md.div_ = skill_get_num(HT_BLITZBEAT,5);
-				damage_div_fix(md.damage,md.div_);
-				//Falcon Assault Modifier
-				md.damage = md.damage * (150 + 70 * skill_lv) / 100;
+			{
+				int skill;
+
+				//Blitz-beat Damage.
+				if(!sd || (skill = pc_checkskill(sd,HT_STEELCROW)) <= 0)
+					skill = 0;
+				md.damage = (sstatus->dex / 10 + sstatus->int_ / 2 + skill * 3 + 40) * 2;
+				if(mflag > 1) //Autocasted Blitz.
+					nk |= NK_SPLASHSPLIT;
+				if(skill_id == SN_FALCONASSAULT) {
+					//Div fix of Blitzbeat
+					damage_div_fix2(md.damage,skill_get_num(HT_BLITZBEAT,5));
+					//Falcon Assault Modifier
+					md.damage = md.damage * (150 + 70 * skill_lv) / 100;
+				}
 			}
 			break;
 		case TF_THROWSTONE:
@@ -6145,6 +6148,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			RE_LVL_TMDMOD();
 			if(sd) {
 				int researchskill_lv = pc_checkskill(sd,RA_RESEARCHTRAP);
+
 				if(researchskill_lv)
 					md.damage = md.damage * 20 * researchskill_lv / (skill_id == RA_CLUSTERBOMB ? 50 : 100);
 				else
@@ -6164,6 +6168,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			break;
 		case GN_HELLS_PLANT_ATK: {
 				short totalmdef = tstatus->mdef + tstatus->mdef2;
+
 				md.damage = (skill_lv * status_get_lv(src) * 10) + (sstatus->int_ * 7 / 2) * (18 + (sd ? sd->status.job_level : 0) / 4) * (5 / (10 - (sd ? pc_checkskill(sd,AM_CANNIBALIZE) : 0)));
 				md.damage -= totalmdef;
 			}
@@ -6185,6 +6190,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 
 	if(!(nk&NK_IGNORE_FLEE)) {
 		struct status_change *sc = status_get_sc(target);
+
 		i = 0; //Temp for "hit or no hit"
 		if(sc && sc->opt1 && sc->opt1 != OPT1_STONEWAIT && sc->opt1 != OPT1_BURNING)
 			i = 1;
@@ -6198,8 +6204,9 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 #endif
 
 			if(battle_config.agi_penalty_type && battle_config.agi_penalty_target&target->type) {
-				unsigned char attacker_count; //256 max targets should be a sane max
-				attacker_count = unit_counttargeted(target);
+				//256 max targets should be a sane max
+				unsigned char attacker_count = unit_counttargeted(target);
+
 				if(attacker_count >= battle_config.agi_penalty_count) {
 					if(battle_config.agi_penalty_type == 1)
 						flee = (flee * (100 - (attacker_count - (battle_config.agi_penalty_count - 1)) * battle_config.agi_penalty_num)) / 100;
@@ -6274,8 +6281,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
  		case RA_ICEBOUNDTRAP:
 			if(md.damage == 1) break;
 		case RA_CLUSTERBOMB: {
-				struct Damage wd;
-				wd = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
+				struct Damage wd = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
+
 				md.damage += wd.damage;
 			}
 			break;

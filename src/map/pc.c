@@ -1952,17 +1952,17 @@ static int pc_bonus_item_drop(struct s_add_drop *drop, const short max, short id
 			rate = -1;
 	}
 	for( i = 0; i < max && (drop[i].id || drop[i].group); i++ ) {
-		if(
-			((id && drop[i].id == id) ||
-			(group && drop[i].group == group)) && (race > 0 || class_ > -1)
-		) {
-			drop[i].race |= race;
-			drop[i].class_ |= class_;
+		if( ((id && drop[i].id == id) || (group && drop[i].group == group)) ) {
+			if( race < RC_NONE_ )
+				drop[i].race |= race;
+			if( race > RC_NONE_ && race < RC_MAX )
+				drop[i].race |= 1<<race;
+			if( class_ > CLASS_NONE && class_ < CLASS_MAX )
+				drop[i].class_ |= class_;
 			if( drop[i].rate > 0 && rate > 0 ) { //Both are absolute rates.
 				if( drop[i].rate < rate )
 					drop[i].rate = rate;
-			} else if( drop[i].rate < 0 && rate < 0 ) {
-				//Both are relative rates.
+			} else if( drop[i].rate < 0 && rate < 0 ) { //Both are relative rates.
 				if( drop[i].rate > rate )
 					drop[i].rate = rate;
 			} else if( rate < 0 ) //Give preference to relative rate.
@@ -1976,8 +1976,12 @@ static int pc_bonus_item_drop(struct s_add_drop *drop, const short max, short id
 	}
 	drop[i].id = id;
 	drop[i].group = group;
-	drop[i].race |= race;
-	drop[i].class_ |= class_;
+	if( race < RC_NONE_ )
+		drop[i].race |= race;
+	if( race > RC_NONE_ && race < RC_MAX )
+		drop[i].race |= 1<<race;
+	if( class_ > CLASS_NONE && class_ < CLASS_MAX )
+		drop[i].class_ |= class_;
 	drop[i].rate = rate;
 	return 1;
 }
@@ -3201,17 +3205,21 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			if(sd->state.lr_flag != 2)
 				sd->expaddrace[type2] += val;
 			break;
+		case SP_EXP_ADDCLASS:
+			if(sd->state.lr_flag != 2)
+				sd->expaddclass[type2] += val;
+			break;
 		case SP_SP_GAIN_RACE:
 			if(sd->state.lr_flag != 2)
 				sd->sp_gain_race[type2] += val;
 			break;
 		case SP_ADD_MONSTER_DROP_ITEM:
 			if(sd->state.lr_flag != 2)
-				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), type2, 0, (1<<CLASS_NORMAL)|(1<<CLASS_BOSS), 0, val);
+				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), type2, 0, (1<<CLASS_NORMAL)|(1<<CLASS_BOSS), RC_NONE_, val);
 			break;
 		case SP_ADD_MONSTER_DROP_ITEMGROUP:
 			if(sd->state.lr_flag != 2)
-				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), 0, type2, (1<<CLASS_NORMAL)|(1<<CLASS_BOSS), 0, val);
+				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), 0, type2, (1<<CLASS_NORMAL)|(1<<CLASS_BOSS), RC_NONE_, val);
 			break;
 		case SP_SP_LOSS_RATE:
 			if(sd->state.lr_flag != 2) {
@@ -3387,11 +3395,11 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 	switch(type) {
 		case SP_ADD_MONSTER_DROP_ITEM:
 			if(sd->state.lr_flag != 2)
-				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), type2, 0, -1, 1<<type3, val);
+				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), type2, 0, CLASS_NONE, type3, val);
 			break;
 		case SP_ADD_CLASS_DROP_ITEM:
 			if(sd->state.lr_flag != 2)
-				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), type2, 0, -1, -type3, val);
+				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), type2, 0, CLASS_NONE, -type3, val);
 			break;
 		case SP_AUTOSPELL:
 			if(sd->state.lr_flag != 2) {
@@ -3430,7 +3438,7 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 			break;
 		case SP_ADD_MONSTER_DROP_ITEMGROUP:
 			if(sd->state.lr_flag != 2)
-				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), 0, type2, -1, 1<<type3, val);
+				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), 0, type2, CLASS_NONE, type3, val);
 			break;
 
 		case SP_ADDEFF:
@@ -5921,6 +5929,11 @@ static void pc_calcexp(struct map_session_data *sd, unsigned int *base_exp, unsi
 	if (sd->expaddrace[RC_ALL])
 		bonus += sd->expaddrace[RC_ALL];
 
+	if (sd->expaddclass[status->class_])
+		bonus += sd->expaddclass[status->class_];
+	if (sd->expaddclass[CLASS_ALL])
+		bonus += sd->expaddclass[CLASS_ALL];
+
 	if (battle_config.pk_mode &&
 		(int)(status_get_lv(src) - sd->status.base_level) >= 20)
 		bonus += 15; //pk_mode additional exp if monster > 20 levels [Valaris]
@@ -6785,8 +6798,6 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	int i = 0, k = 0;
 	unsigned int tick = gettick();
 
-	nullpo_ret(sd);
-
 	//Activate Steel body if a super novice dies at 99+% exp [celest]
 	//Super Novices have no kill or die functions attached when saved by their angel
 	if( (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && !sd->state.snovice_dead_flag ) {
@@ -7435,66 +7446,67 @@ int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 
 	if(hp) {
 		int i;
+
 		bonus = 100 + (sd->battle_status.vit<<1)
-			+ pc_checkskill(sd,SM_RECOVERY)*10
-			+ pc_checkskill(sd,AM_LEARNINGPOTION)*5;
+			+ pc_checkskill(sd,SM_RECOVERY) * 10
+			+ pc_checkskill(sd,AM_LEARNINGPOTION) * 5;
 		// A potion produced by an Alchemist in the Fame Top 10 gets +50% effect [DracoRPG]
-		if (potion_flag > 1)
-			bonus += bonus*(potion_flag-1)*50/100;
+		if(potion_flag > 1)
+			bonus += bonus * (potion_flag - 1) * 50 / 100;
 		//All item bonuses.
 		bonus += sd->bonus.itemhealrate2;
 		//Item Group bonuses
-		bonus += bonus*itemdb_group_bonus(sd, itemid)/100;
+		bonus += bonus * itemdb_group_bonus(sd,itemid) / 100;
 		//Individual item bonuses.
 		for(i = 0; i < ARRAYLENGTH(sd->itemhealrate) && sd->itemhealrate[i].nameid; i++) {
-			if (sd->itemhealrate[i].nameid == itemid) {
-				bonus += bonus*sd->itemhealrate[i].rate/100;
+			if(sd->itemhealrate[i].nameid == itemid) {
+				bonus += bonus * sd->itemhealrate[i].rate / 100;
 				break;
 			}
 		}
 		if(bonus!=100)
 			hp = hp * bonus / 100;
 
-		// Recovery Potion
-		if( sd->sc.data[SC_INCHEALRATE] )
-			hp += (int)(hp * sd->sc.data[SC_INCHEALRATE]->val1/100.);
+		//Recovery Potion
+		if(sd->sc.data[SC_INCHEALRATE])
+			hp += (int)(hp * sd->sc.data[SC_INCHEALRATE]->val1 / 100.);
 	}
 	if(sp) {
 		bonus = 100 + (sd->battle_status.int_<<1)
-			+ pc_checkskill(sd,MG_SRECOVERY)*10
-			+ pc_checkskill(sd,AM_LEARNINGPOTION)*5;
-		if (potion_flag > 1)
-			bonus += bonus*(potion_flag-1)*50/100;
+			+ pc_checkskill(sd,MG_SRECOVERY) * 10
+			+ pc_checkskill(sd,AM_LEARNINGPOTION) * 5;
+		if(potion_flag > 1)
+			bonus += bonus * (potion_flag - 1) * 50 / 100;
 		if(bonus != 100)
 			sp = sp * bonus / 100;
 	}
-	if( sd->sc.count ) {
-		if ( sd->sc.data[SC_CRITICALWOUND] ) {
+	if(sd->sc.count) {
+		if(sd->sc.data[SC_CRITICALWOUND]) {
 			hp -= hp * sd->sc.data[SC_CRITICALWOUND]->val2 / 100;
 			sp -= sp * sd->sc.data[SC_CRITICALWOUND]->val2 / 100;
 		}
 
-		if ( sd->sc.data[SC_DEATHHURT] ) {
+		if(sd->sc.data[SC_DEATHHURT]) {
 			hp -= hp * 20 / 100;
 			sp -= sp * 20 / 100;
 		}
 
-		if( sd->sc.data[SC_VITALITYACTIVATION] ) {
+		if(sd->sc.data[SC_VITALITYACTIVATION]) {
 			hp += hp / 2; // 1.5 times
 			sp -= sp / 2;
 		}
 
-		if( sd->sc.data[SC_WATER_INSIGNIA] && sd->sc.data[SC_WATER_INSIGNIA]->val1 == 2 ) {
+		if(sd->sc.data[SC_WATER_INSIGNIA] && sd->sc.data[SC_WATER_INSIGNIA]->val1 == 2) {
 			hp += hp / 10;
 			sp += sp / 10;
 		}
 #ifdef RENEWAL
-		if( sd->sc.data[SC_EXTREMITYFIST2] )
+		if(sd->sc.data[SC_EXTREMITYFIST2])
 			sp = 0;
 #endif
 	}
 
-	return status_heal(&sd->bl, hp, sp, 1);
+	return status_heal(&sd->bl,hp,sp,1);
 }
 
 /*==========================================

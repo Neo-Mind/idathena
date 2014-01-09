@@ -1284,12 +1284,11 @@ int socket_getips(uint32* ips, int max)
 			return 0;
 		} else {
 			int pos;
-			struct ifreq* ir;
-			struct sockaddr_in* a;
 
 			for( pos = 0; pos < ic.ifc_len && num < max; ) {
-				ir = (struct ifreq*)(buf + pos);
-				a = (struct sockaddr_in*)&(ir->ifr_addr);
+				struct ifreq* ir = (struct ifreq*)(buf + pos);
+				struct sockaddr_in* a = (struct sockaddr_in*)&(ir->ifr_addr);
+
 				if( a->sin_family == AF_INET ) {
 					ad = ntohl(a->sin_addr.s_addr);
 					if( ad != INADDR_LOOPBACK && ad != INADDR_ANY )
@@ -1297,14 +1296,14 @@ int socket_getips(uint32* ips, int max)
 				}
 	#if (defined(BSD) && BSD >= 199103) || defined(_AIX) || defined(__APPLE__)
 				pos += ir->ifr_addr.sa_len + sizeof(ir->ifr_name);
-	#else// not AIX or APPLE
+	#else // Not AIX or APPLE
 				pos += sizeof(struct ifreq);
-	#endif//not AIX or APPLE
+	#endif // Not AIX or APPLE
 			}
 		}
 		sClose(fd);
 	}
-#endif // not W32
+#endif // Not W32
 
 	// Use loopback if no ips are found
 	if( num == 0 )

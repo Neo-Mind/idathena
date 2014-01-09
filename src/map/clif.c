@@ -1380,16 +1380,16 @@ void clif_hominfo(struct map_session_data *sd, struct homun_data *hd, int flag)
 	htype = hom_class2type(hd->homunculus.class_);
 
 	memset(buf,0,packet_len(0x22e));
-	WBUFW(buf,0)=0x22e;
+	WBUFW(buf,0) = 0x22e;
 	memcpy(WBUFP(buf,2),hd->homunculus.name,NAME_LENGTH);
 	// Bit field, bit 0 : rename_flag (1 = already renamed), bit 1 : homunc vaporized (1 = true), bit 2 : homunc dead (1 = true)
-	WBUFB(buf,26) = (battle_config.hom_rename?0:hd->homunculus.rename_flag) | (hd->homunculus.vaporize << 1) | (hd->homunculus.hp?0:4);
+	WBUFB(buf,26) = (battle_config.hom_rename ? 0 : hd->homunculus.rename_flag) | (hd->homunculus.vaporize << 1) | (hd->homunculus.hp ? 0 : 4);
 	WBUFW(buf,27) = hd->homunculus.level;
 	WBUFW(buf,29) = hd->homunculus.hunger;
 	WBUFW(buf,31) = (unsigned short) (hd->homunculus.intimacy / 100) ;
 	WBUFW(buf,33) = 0; // Equip id
 	WBUFW(buf,35) = cap_value(status->rhw.atk2 + status->batk, 0, INT16_MAX);
-	WBUFW(buf,37) = cap_value(status->matk_max, 0, INT16_MAX);
+	WBUFW(buf,37) = min(status->matk_max, INT16_MAX); //@FIXME: Capping to INT16 here is too late
 	WBUFW(buf,39) = status->hit;
 	if (battle_config.hom_setting&0x10)
 		WBUFW(buf,41) = status->luk / 3 + 1; //Crit is a +1 decimal value! Just display purpose.[Vicious]
@@ -8694,7 +8694,7 @@ void clif_charnameack (int fd, struct block_list *bl)
 					if( battle_config.show_mob_info&1 )
 						str_p += sprintf(str_p, "HP: %u/%u | ", md->status.hp, md->status.max_hp);
 					if( battle_config.show_mob_info&2 )
-						str_p += sprintf(str_p, "HP: %ui%% | ", get_percentage(md->status.hp, md->status.max_hp));
+						str_p += sprintf(str_p, "HP: %u%% | ", get_percentage(md->status.hp, md->status.max_hp));
 					//Even thought mobhp ain't a name, we send it as one so the client
 					//can parse it. [Skotlex]
 					if( str_p != mobhp ) {
@@ -13629,7 +13629,7 @@ void clif_blacksmith(struct map_session_data* sd)
 	WFIFOHEAD(fd,packet_len(0x219));
 	WFIFOW(fd,0) = 0x219;
 	//Packet size limits this list to 10 elements. [Skotlex]
-	for (i = 0; i < 10 && i < MAX_FAME_LIST; i++) {
+	for (i = 0; i < min(10, MAX_FAME_LIST); i++) { //Client is capped to 10 char
 		if (smith_fame_list[i].id > 0) {
 			if (strcmp(smith_fame_list[i].name, "-") == 0 && (name = map_charid2nick(smith_fame_list[i].id)) != NULL)
 				strncpy((char *)(WFIFOP(fd, 2 + 24 * i)), name, NAME_LENGTH);
@@ -13680,19 +13680,17 @@ void clif_alchemist(struct map_session_data* sd)
 	WFIFOHEAD(fd,packet_len(0x21a));
 	WFIFOW(fd,0) = 0x21a;
 	//Packet size limits this list to 10 elements. [Skotlex]
-	for (i = 0; i < 10 && i < MAX_FAME_LIST; i++) {
+	for (i = 0; i < min(10, MAX_FAME_LIST); i++) {
 		if (chemist_fame_list[i].id > 0) {
-			if (strcmp(chemist_fame_list[i].name, "-") == 0 &&
-				(name = map_charid2nick(chemist_fame_list[i].id)) != NULL)
-			{
+			if (strcmp(chemist_fame_list[i].name, "-") == 0 && (name = map_charid2nick(chemist_fame_list[i].id)) != NULL)
 				memcpy(WFIFOP(fd, 2 + 24 * i), name, NAME_LENGTH);
-			} else
+			else
 				memcpy(WFIFOP(fd, 2 + 24 * i), chemist_fame_list[i].name, NAME_LENGTH);
 		} else
 			memcpy(WFIFOP(fd, 2 + 24 * i), "None", NAME_LENGTH);
 		WFIFOL(fd, 242 + i * 4) = chemist_fame_list[i].fame;
 	}
-	for(;i < 10; i++) { //In case the MAX is less than 10.
+	for (; i < 10; i++) { //In case the MAX is less than 10.
 		memcpy(WFIFOP(fd, 2 + 24 * i), "Unavailable", NAME_LENGTH);
 		WFIFOL(fd, 242 + i * 4) = 0;
 	}
@@ -13733,18 +13731,17 @@ void clif_taekwon(struct map_session_data* sd)
 	WFIFOHEAD(fd,packet_len(0x226));
 	WFIFOW(fd,0) = 0x226;
 	//Packet size limits this list to 10 elements. [Skotlex]
-	for (i = 0; i < 10 && i < MAX_FAME_LIST; i++) {
+	for (i = 0; i < min(10, MAX_FAME_LIST); i++) {
 		if (taekwon_fame_list[i].id > 0) {
-			if (strcmp(taekwon_fame_list[i].name, "-") == 0 &&
-				(name = map_charid2nick(taekwon_fame_list[i].id)) != NULL) {
+			if (strcmp(taekwon_fame_list[i].name, "-") == 0 && (name = map_charid2nick(taekwon_fame_list[i].id)) != NULL)
 				memcpy(WFIFOP(fd, 2 + 24 * i), name, NAME_LENGTH);
-			} else
+			else
 				memcpy(WFIFOP(fd, 2 + 24 * i), taekwon_fame_list[i].name, NAME_LENGTH);
 		} else
 			memcpy(WFIFOP(fd, 2 + 24 * i), "None", NAME_LENGTH);
 		WFIFOL(fd, 242 + i * 4) = taekwon_fame_list[i].fame;
 	}
-	for(;i < 10; i++) { //In case the MAX is less than 10.
+	for (; i < 10; i++) { //In case the MAX is less than 10.
 		memcpy(WFIFOP(fd, 2 + 24 * i), "Unavailable", NAME_LENGTH);
 		WFIFOL(fd, 242 + i * 4) = 0;
 	}
@@ -15824,7 +15821,8 @@ void clif_instance_changestatus(struct map_session_data *sd, int type, unsigned 
 #if PACKETVER >= 20071128
 	unsigned char buf[10];
 
-	nullpo_retv(sd);
+	if(!sd)
+		return; //party_getavailablesd can return NULL
 
 	WBUFW(buf,0) = 0x2ce;
 	WBUFL(buf,2) = type;
@@ -16929,7 +16927,7 @@ void clif_sub_ranklist(unsigned char *buf, int idx, struct map_session_data* sd,
 
 	if(!skip) {
 		//Packet size limits this list to 10 elements. [Skotlex]
-		for(i = 0; i < 10 && i < MAX_FAME_LIST; i++) {
+		for(i = 0; i < min(10, MAX_FAME_LIST); i++) {
 			if(list[i].id > 0) {
 				if(strcmp(list[i].name, "-") == 0 && (name = map_charid2nick(list[i].id)) != NULL)
 					strncpy((char *)(WBUFP(buf,idx + 24 * i)), name, NAME_LENGTH);
@@ -17873,9 +17871,10 @@ void packetdb_readdb(void)
 		ln++;
 		if( line[0] == '/' && line[1] == '/' )
 			continue;
-		if( sscanf(line,"%256[^:]: %256[^\r\n]",w1,w2) == 2 ) {
+		if( sscanf(line,"%255[^:]: %255[^\r\n]",w1,w2) == 2 ) {
 			if(strcmpi(w1,"packet_ver") == 0) {
 				int prev_ver = packet_ver;
+
 				skip_ver = 0;
 				packet_ver = atoi(w2);
 				if ( packet_ver > MAX_PACKET_VER ) { // Check to avoid overflowing. [Skotlex]
@@ -17952,6 +17951,7 @@ void packetdb_readdb(void)
 			ARR_FIND(0,ARRAYLENGTH(clif_ack_func),j,clif_ack_func[j].name != NULL && strcmp(str[2],clif_ack_func[j].name) == 0);
 			if( j < ARRAYLENGTH(clif_ack_func)) {
 				int fidx = clif_ack_func[j].funcidx;
+
 				packet_db_ack[packet_ver][fidx] = cmd;
 				//ShowInfo("Added %s, <=> %X i=%d for v=%d\n",clif_ack_func[j].name,cmd,fidx,packet_ver);
 			}
@@ -17967,6 +17967,7 @@ void packetdb_readdb(void)
 		}
 		for( j = 0, p2 = str[3]; p2; j++ ) {
 			short k;
+
 			str2[j] = p2;
 			p2 = strchr(p2,':');
 			if( p2 ) *p2++ = 0;

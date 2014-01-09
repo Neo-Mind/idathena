@@ -427,3 +427,5 @@ bonus2 bSpDrainValueClass,n,x;		Heals +x SP when attacking a monster of class n 
 					n: 	Class_Normal, Class_Boss, Class_Guardian
 bonus2 bMagicSubClass,n,x;		Adds x% magical damage reduction against class n
 					n: 	Class_Normal, Class_Boss, Class_Guardian
+bonus2 bExpAddClass,n,x;		Increase exp gained by x% vs. enemies of class n
+					n: 	Class_Normal, Class_Boss, Class_Guardian

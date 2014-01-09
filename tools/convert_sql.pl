@@ -22,7 +22,7 @@
 #     --i=../db/mob_skill_db2.txt --o=../sql-files/mob_skill_db2_re.sql --t=re --m=mob_skill --table=mob_skill_db2_re
 #
 # List of options:
-#   item_db.pl --help
+#   convert_sql.pl --help
 
 use strict;
 use warnings;

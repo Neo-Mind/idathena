@@ -328,12 +328,10 @@ int main (int argc, char **argv)
 
 	do_init(argc,argv);
 
-	{// Main runtime cycle
-		int next;
-		while (runflag != CORE_ST_STOP) {
-			next = do_timer(gettick_nocache());
-			do_sockets(next);
-		}
+	// Main runtime cycle
+	while (runflag != CORE_ST_STOP) {
+		int next = do_timer(gettick_nocache());
+		do_sockets(next);
 	}
 
 	do_final();

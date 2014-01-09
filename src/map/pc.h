@@ -115,7 +115,8 @@ struct s_addeffectonskill {
 
 struct s_add_drop {
 	short id, group;
-	int race, rate, class_;
+	int rate;
+	int race, class_; //Bitwise value of 1<<x
 };
 
 struct s_autobonus {
@@ -313,6 +314,7 @@ struct map_session_data {
 	int magic_atk_ele[ELE_MAX];
 	int critaddrace[RC_MAX];
 	int expaddrace[RC_MAX];
+	int expaddclass[CLASS_MAX];
 	int ignore_mdef_by_race[RC_MAX];
 	int ignore_mdef_by_class[CLASS_MAX];
 	int ignore_def_by_race[RC_MAX];
