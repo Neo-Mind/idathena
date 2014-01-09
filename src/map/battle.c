@@ -2885,6 +2885,7 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 							break;
 						default:
 							i |= 16; //For ex. shuriken must not be influenced by DEX
+							break;
 					}
 				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, i);
 				if(is_attack_left_handed(src, skill_id))
@@ -2931,7 +2932,8 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 					}
 				}
 				break;
-			} //End default case
+			}
+			break;
 		} //End switch(skill_id)
 	return wd;
 }
@@ -3100,6 +3102,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 				if(sd) {
 					//ATK [{Weapon Level * (Weapon Upgrade Level + 6) * 100} + (Weapon ATK) + (Weapon Weight)]%
 					short index = sd->equip_index[EQI_HAND_R];
+
 					if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
 						skillratio = sd->inventory_data[index]->weight / 10 + sstatus->rhw.atk +
 							100 * sd->inventory_data[index]->wlv * (sd->status.inventory[index].refine + 6);
@@ -4159,7 +4162,6 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 	#else
 					ATK_RATE(wd.damage, wd.damage2, 100 + (sc->data[SC_EDP]->val1 * 80));
 	#endif
-					break;
 #endif
 
 #ifndef RENEWAL_EDP
@@ -4169,6 +4171,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 					ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sc->data[SC_EDP]->val3);
 	#endif
 #endif
+					break;
 			}
 		}
 		if(sc->data[SC_STRIKING]) {
@@ -4206,6 +4209,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 				default:
 					ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_UNLIMIT]->val2);
 					RE_ALLATK_ADDRATE(wd, sc->data[SC_UNLIMIT]->val2);
+					break;
 			}
 		}
 		if(sc->data[SC_FLASHCOMBO]) {
@@ -4714,6 +4718,7 @@ struct Damage battle_calc_weapon_final_atk_modifiers(struct Damage wd, struct bl
 #ifndef RENEWAL
 		case ASC_BREAKER: { //Breaker int-based damage
 				struct Damage md = battle_calc_misc_attack(src,target,skill_id,skill_lv,wd.miscflag);
+
 				wd.damage += md.damage;
 			}
 			break;
@@ -4723,6 +4728,7 @@ struct Damage battle_calc_weapon_final_atk_modifiers(struct Damage wd, struct bl
 		case LG_RAYOFGENESIS:
 			{
 				struct Damage ad = battle_calc_magic_attack(src,target,skill_id,skill_lv,wd.miscflag);
+
 				wd.damage += ad.damage;
 			}
 			break;
@@ -5075,17 +5081,18 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 
 	if(tsd) { //Card Fix for target (tsd), 2 is not added to the "left" flag meaning "target cards only"
 		switch(skill_id) { //These skills will do a card fix later
-			case CR_ACIDDEMONSTRATION:
 #ifdef RENEWAL
 			case NJ_ISSEN:
 			case ASC_BREAKER:
 #endif
+			case CR_ACIDDEMONSTRATION:
 			case KO_HAPPOKUNAI:
 				break;
 			default:
 				wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.damage, 0, wd.flag);
 				if(is_attack_left_handed(src, skill_id))
 					wd.damage2 += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.damage2, 1, wd.flag);
+				break;
 		}
 	}
 
@@ -5124,15 +5131,16 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 	wd = battle_calc_attack_left_right_hands(wd, src, target, skill_id, skill_lv);
 
 	switch(skill_id) { //These skills will do a GVG fix later
-		case CR_ACIDDEMONSTRATION:
 #ifdef RENEWAL
 		case NJ_ISSEN:
 		case ASC_BREAKER:
 #endif
+		case CR_ACIDDEMONSTRATION:
 		case KO_HAPPOKUNAI:
 			return wd;
 		default:
 			wd = battle_calc_attack_gvg_bg(wd, src, target, skill_id, skill_lv);
+			break;
 	}
 
 	wd = battle_calc_weapon_final_atk_modifiers(wd, src, target, skill_id, skill_lv);
@@ -5755,14 +5763,16 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				if(skill_id == WZ_FIREPILLAR)
 					MATK_ADD(50);
 			}
+			break;
 		}
 #ifdef RENEWAL
 	switch(skill_id) { //These skills will do a card fix later
-		case CR_ACIDDEMONSTRATION:
 		case ASC_BREAKER:
+		case CR_ACIDDEMONSTRATION:
 			break;
 		default:
 			ad.damage += battle_calc_cardfix(BF_MAGIC, src, target, nk, s_ele, 0, ad.damage, 0, ad.flag);
+			break;
 	}
 #endif
 		if(sd) {
@@ -5870,10 +5880,10 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		ad.damage = ad.damage > 0 ? 1 : -1;
 
 	switch(skill_id) { //These skills will do a GVG fix later
-		case CR_ACIDDEMONSTRATION:
 #ifdef RENEWAL
 		case ASC_BREAKER:
 #endif
+		case CR_ACIDDEMONSTRATION:
 			return ad;
 		default:
 			ad.damage = battle_calc_damage(src, target, &ad, ad.damage, skill_id, skill_lv);
@@ -5881,6 +5891,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				ad.damage = battle_calc_gvg_damage(src, target, ad.damage, ad.div_, skill_id, skill_lv, ad.flag);
 			else if(map[target->m].flag.battleground)
 				ad.damage = battle_calc_bg_damage(src, target, ad.damage, ad.div_, skill_id, skill_lv, ad.flag);
+			break;
 	}
 
 	switch(skill_id) { /* Post-calc modifiers */
@@ -6259,6 +6270,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 #endif
 			default:
 				md.damage = 1;
+				break;
 		}
 	} else if(target->type == BL_SKILL) {
 		TBL_SKILL *su = (TBL_SKILL*)target;
@@ -7161,6 +7173,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 								strip_enemy = 0;
 							} else
 								return 0;
+							break;
 					}
 				} else if( su->group->skill_id == WZ_ICEWALL || su->group->skill_id == GN_WALLOFTHORN ) {
 					state |= BCT_ENEMY;

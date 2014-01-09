@@ -70,12 +70,13 @@ int packet_db_ack[MAX_PACKET_VER + 1][MAX_ACK_FUNC + 1];
 static inline int itemtype(int type) {
 	switch( type ) {
 #if PACKETVER >= 20080827
-		case IT_WEAPON:	return IT_ARMOR;
-		case IT_ARMOR:
 		case IT_PETARMOR:
+			return IT_WEAPON;
 #endif
-		case IT_PETEGG:	return IT_WEAPON;
-		default:	return type;
+		case IT_PETEGG:
+			return IT_ETC;
+		default:
+			return type;
 	}
 }
 
@@ -1780,7 +1781,7 @@ void clif_buylist(struct map_session_data *sd, struct npc_data *nd)
 		c++;
 	}
 
-	WFIFOW(fd,2) = 4 + c*11;
+	WFIFOW(fd,2) = 4 + c * 11;
 	WFIFOSET(fd,WFIFOW(fd,2));
 }
 
@@ -2081,7 +2082,8 @@ void clif_cutin(struct map_session_data* sd, const char* image, int type)
  *------------------------------------------*/
 static void clif_addcards(unsigned char* buf, struct item* item)
 {
-	int i=0,j;
+	int i = 0, j;
+
 	if( item == NULL ) { //Blank data
 		WBUFW(buf,0) = 0;
 		WBUFW(buf,2) = 0;
@@ -2089,7 +2091,7 @@ static void clif_addcards(unsigned char* buf, struct item* item)
 		WBUFW(buf,6) = 0;
 		return;
 	}
-	if( item->card[0] == CARD0_PET ) { //pet eggs
+	if( item->card[0] == CARD0_PET ) { //Pet eggs
 		WBUFW(buf,0) = 0;
 		WBUFW(buf,2) = 0;
 		WBUFW(buf,4) = 0;
@@ -3796,6 +3798,7 @@ void clif_traderequest(struct map_session_data* sd, const char* name)
 	WFIFOSET(fd,packet_len(0xe5));
 #else
 	struct map_session_data* tsd = map_id2sd(sd->trade_partner);
+
 	if( !tsd ) return;
 	
 	WFIFOHEAD(fd,packet_len(0x1f4));
@@ -3822,6 +3825,7 @@ void clif_tradestart(struct map_session_data* sd, uint8 type)
 {
 	int fd = sd->fd;
 	struct map_session_data* tsd = map_id2sd(sd->trade_partner);
+
 	if( PACKETVER < 6 || !tsd ) {
 		WFIFOHEAD(fd,packet_len(0xe7));
 		WFIFOW(fd,0) = 0xe7;
@@ -3850,6 +3854,7 @@ void clif_tradeadditem(struct map_session_data* sd, struct map_session_data* tsd
 #else
 	const int cmd = 0x80f;
 #endif
+
 	nullpo_retv(sd);
 	nullpo_retv(tsd);
 
@@ -3909,6 +3914,7 @@ void clif_tradeadditem(struct map_session_data* sd, struct map_session_data* tsd
 void clif_tradeitemok(struct map_session_data* sd, int index, int fail)
 {
 	int fd;
+
 	nullpo_retv(sd);
 
 	fd = sd->fd;
@@ -3928,6 +3934,7 @@ void clif_tradeitemok(struct map_session_data* sd, int index, int fail)
 void clif_tradedeal_lock(struct map_session_data* sd, int fail)
 {
 	int fd;
+
 	nullpo_retv(sd);
 
 	fd = sd->fd;
@@ -3960,6 +3967,7 @@ void clif_tradecancelled(struct map_session_data* sd)
 void clif_tradecompleted(struct map_session_data* sd, int fail)
 {
 	int fd;
+
 	nullpo_retv(sd);
 
 	fd = sd->fd;
@@ -3992,7 +4000,7 @@ void clif_updatestorageamount(struct map_session_data* sd, int amount, int max_a
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0xf2));
 	WFIFOW(fd,0) = 0xf2;
 	WFIFOW(fd,2) = amount;
@@ -4010,15 +4018,16 @@ void clif_storageitemadded(struct map_session_data* sd, struct item* i, int inde
 
 	nullpo_retv(sd);
 	nullpo_retv(i);
-	fd=sd->fd;
+
+	fd = sd->fd;
 	view = itemdb_viewid(i->nameid);
 
 #if PACKETVER < 5
 	WFIFOHEAD(fd,packet_len(0xf4));
 	WFIFOW(fd, 0) = 0xf4; // Storage item added
-	WFIFOW(fd, 2) = index+1; // index
+	WFIFOW(fd, 2) = index + 1; // index
 	WFIFOL(fd, 4) = amount; // amount
-	WFIFOW(fd, 8) = ( view > 0 ) ? view : i->nameid; // id
+	WFIFOW(fd, 8) = (view > 0) ? view : i->nameid; // id
 	WFIFOB(fd,10) = i->identify; //identify flag
 	WFIFOB(fd,11) = i->attribute; // attribute
 	WFIFOB(fd,12) = i->refine; //refine
@@ -4027,9 +4036,9 @@ void clif_storageitemadded(struct map_session_data* sd, struct item* i, int inde
 #else
 	WFIFOHEAD(fd,packet_len(0x1c4));
 	WFIFOW(fd, 0) = 0x1c4; // Storage item added
-	WFIFOW(fd, 2) = index+1; // index
+	WFIFOW(fd, 2) = index + 1; // index
 	WFIFOL(fd, 4) = amount; // amount
-	WFIFOW(fd, 8) = ( view > 0 ) ? view : i->nameid; // id
+	WFIFOW(fd, 8) = (view > 0) ? view : i->nameid; // id
 	WFIFOB(fd,10) = itemdb_type(i->nameid); //type
 	WFIFOB(fd,11) = i->identify; //identify flag
 	WFIFOB(fd,12) = i->attribute; // attribute
@@ -4048,11 +4057,11 @@ void clif_storageitemremoved(struct map_session_data* sd, int index, int amount)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0xf6));
-	WFIFOW(fd,0)=0xf6; // Storage item removed
-	WFIFOW(fd,2)=index+1;
-	WFIFOL(fd,4)=amount;
+	WFIFOW(fd,0) = 0xf6; // Storage item removed
+	WFIFOW(fd,2) = index + 1;
+	WFIFOL(fd,4) = amount;
 	WFIFOSET(fd,packet_len(0xf6));
 }
 
@@ -4065,7 +4074,7 @@ void clif_storageclose(struct map_session_data* sd)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0xf8));
 	WFIFOW(fd,0) = 0xf8; // Storage Closed
 	WFIFOSET(fd,packet_len(0xf8));
@@ -10982,8 +10991,7 @@ void clif_parse_GetItemFromCart(int fd,struct map_session_data *sd)
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
 	if (!pc_iscarton(sd))
 		return;
-	pc_getitemfromcart(sd,RFIFOW(fd,info->pos[0])-2,
-		RFIFOL(fd,info->pos[1]));
+	pc_getitemfromcart(sd,RFIFOW(fd,info->pos[0]) - 2,RFIFOL(fd,info->pos[1]));
 }
 
 
@@ -10991,9 +10999,7 @@ void clif_parse_GetItemFromCart(int fd,struct map_session_data *sd)
 /// 012a
 void clif_parse_RemoveOption(int fd,struct map_session_data *sd)
 {
-	/**
-	 * Attempts to remove these options when this function is called (will remove all available)
-	 **/
+	//Attempts to remove these options when this function is called (will remove all available)
 #ifdef NEW_CARTS
 	pc_setoption(sd,sd->sc.option&~(OPTION_RIDING|OPTION_FALCON|OPTION_DRAGON|OPTION_MADOGEAR));
 	if( sd->sc.data[SC_PUSH_CART] )
@@ -12811,7 +12817,7 @@ void clif_parse_SelectEgg(int fd, struct map_session_data *sd)
 		clif_authfail_fd(fd, 0);
 		return;
 	}
-	pet_select_egg(sd,RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0])-2);
+	pet_select_egg(sd,RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]) - 2);
 	clif_menuskill_clear(sd);
 }
 

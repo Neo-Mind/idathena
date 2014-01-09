@@ -6539,25 +6539,21 @@ static bool buildin_delitem_search(struct map_session_data* sd, struct item* it,
 		for( i = 0; amount && i < ARRAYLENGTH(sd->status.inventory); i++ ) {
 			inv = &sd->status.inventory[i];
 
-			if( !inv->nameid || !sd->inventory_data[i] || inv->nameid != it->nameid ) { // Wrong / invalid item
+			if( !inv->nameid || !sd->inventory_data[i] || inv->nameid != it->nameid ) // Wrong / invalid item
 				continue;
-			}
 
 			if( inv->equip != it->equip || inv->refine != it->refine ) { // Not matching attributes
 				important++;
 				continue;
 			}
 
-			if( exact_match ) {
+			if( exact_match ) { // Not matching exact attributes
 				if( inv->identify != it->identify || inv->attribute != it->attribute || memcmp(inv->card, it->card, sizeof(inv->card)) )
-				{ // Not matching exact attributes
 					continue;
-				}
 			} else {
 				if( sd->inventory_data[i]->type == IT_PETEGG ) {
-					if( inv->card[0] == CARD0_PET && CheckForCharServer() ) { // Pet which cannot be deleted
+					if( inv->card[0] == CARD0_PET && CheckForCharServer() ) // Pet which cannot be deleted
 						continue;
-					}
 				} else if( memcmp(inv->card, it->card, sizeof(inv->card)) ) { // Named/carded item
 					important++;
 					continue;
@@ -6575,21 +6571,16 @@ static bool buildin_delitem_search(struct map_session_data* sd, struct item* it,
 			for( i = 0; amount && i < ARRAYLENGTH(sd->status.inventory); i++ ) {
 				inv = &sd->status.inventory[i];
 
-				if( !inv->nameid || !sd->inventory_data[i] || inv->nameid != it->nameid ) { // Wrong / invalid item
+				if( !inv->nameid || !sd->inventory_data[i] || inv->nameid != it->nameid ) // Wrong / invalid item
 					continue;
-				}
 
-				if( sd->inventory_data[i]->type == IT_PETEGG && inv->card[0] == CARD0_PET && CheckForCharServer() ) {
-					// Pet which cannot be deleted
+				// Pet which cannot be deleted
+				if( sd->inventory_data[i]->type == IT_PETEGG && inv->card[0] == CARD0_PET && CheckForCharServer() )
 					continue;
-				}
 
-				if( exact_match ) {
+				if( exact_match ) // Not matching attributes
 					if( inv->refine != it->refine || inv->identify != it->identify || inv->attribute != it->attribute || memcmp(inv->card, it->card, sizeof(inv->card)) )
-					{ // Not matching attributes
 						continue;
-					}
-				}
 
 				// Count / delete item
 				buildin_delitem_delete(sd, i, &amount, delete_items);
@@ -9964,11 +9955,13 @@ BUILDIN_FUNC(checkhomcall)
 BUILDIN_FUNC(eaclass)
 {
 	int class_;
+
 	if( script_hasdata(st,2) )
 		class_ = script_getnum(st,2);
 	else {
 		TBL_PC *sd;
-		sd=script_rid2sd(st);
+
+		sd = script_rid2sd(st);
 		if (!sd) {
 			script_pushint(st,-1);
 			return 0;
@@ -9981,18 +9974,20 @@ BUILDIN_FUNC(eaclass)
 
 BUILDIN_FUNC(roclass)
 {
-	int class_ =script_getnum(st,2);
+	int class_ = script_getnum(st,2);
 	int sex;
+
 	if( script_hasdata(st,3) )
 		sex = script_getnum(st,3);
 	else {
 		TBL_PC *sd;
-		if (st->rid && (sd=script_rid2sd(st)))
+
+		if (st->rid && (sd = script_rid2sd(st)))
 			sex = sd->status.sex;
 		else
 			sex = 1; //Just use male when not found.
 	}
-	script_pushint(st,pc_mapid2jobid(class_, sex));
+	script_pushint(st,pc_mapid2jobid(class_,sex));
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -10002,14 +9997,13 @@ BUILDIN_FUNC(roclass)
 BUILDIN_FUNC(birthpet)
 {
 	TBL_PC *sd;
-	sd=script_rid2sd(st);
+
+	sd = script_rid2sd(st);
 	if( sd == NULL )
 		return 0;
 
-	if( sd->status.pet_id )
-	{// do not send egg list, when you already have a pet
+	if( sd->status.pet_id ) //Do not send egg list, when you already have a pet
 		return 0;
-	}
 
 	clif_sendegg(sd);
 	return SCRIPT_CMD_SUCCESS;
@@ -10026,10 +10020,9 @@ BUILDIN_FUNC(birthpet)
 BUILDIN_FUNC(resetlvl)
 {
 	TBL_PC *sd;
+	int type = script_getnum(st,2);
 
-	int type=script_getnum(st,2);
-
-	sd=script_rid2sd(st);
+	sd = script_rid2sd(st);
 	if( sd == NULL )
 		return 0;
 

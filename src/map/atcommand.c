@@ -1192,10 +1192,10 @@ ACMD_FUNC(item2)
 	int item_id, number = 0, bound = 0;
 	int identify = 0, refine = 0, attr = 0;
 	int c1 = 0, c2 = 0, c3 = 0, c4 = 0;
+
 	nullpo_retr(-1, sd);
 
 	memset(item_name, '\0', sizeof(item_name));
-
 	if (!strcmpi(command + 1,"itembound2") && (!message || !*message || (
 		sscanf(message, "\"%99[^\"]\" %d %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4, &bound) < 10 &&
 		sscanf(message, "%99s %d %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4, &bound) < 10 ))) {
@@ -1227,6 +1227,7 @@ ACMD_FUNC(item2)
 	if (item_id > 500) {
 		int flag = 0;
 		int loop, get_count, i;
+
 		loop = 1;
 		get_count = number;
 		if (item_data->type == IT_WEAPON || item_data->type == IT_ARMOR ||
@@ -5132,7 +5133,7 @@ ACMD_FUNC(dropall)
 	struct item_data *item_data = NULL;
 
 	nullpo_retr(-1, sd);
-	
+
 	if (message[0]) {
 		type = atoi(message);
 		if (type != -1 && type != IT_HEALING && type != IT_USABLE && type != IT_ETC && type != IT_WEAPON &&
@@ -8413,9 +8414,8 @@ ACMD_FUNC(delitem)
 	while( amount && ( idx = pc_search_inventory(sd, nameid) ) != -1 ) {
 		int delamount = ( amount < sd->status.inventory[idx].amount ) ? amount : sd->status.inventory[idx].amount;
 
-		if( sd->inventory_data[idx]->type == IT_PETEGG && sd->status.inventory[idx].card[0] == CARD0_PET ) { // Delete pet
+		if( sd->inventory_data[idx]->type == IT_PETEGG && sd->status.inventory[idx].card[0] == CARD0_PET ) // Delete pet
 			intif_delete_petdata(MakeDWord(sd->status.inventory[idx].card[1], sd->status.inventory[idx].card[2]));
-		}
 		pc_delitem(sd, idx, delamount, 0, 0, LOG_TYPE_COMMAND);
 
 		amount-= delamount;

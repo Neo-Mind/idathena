@@ -114,7 +114,7 @@ static char log_cashtype2char( e_log_cash_type type )
 }
 
 
-/// check if this item should be logged according the settings
+/// Check if this item should be logged according the settings
 static bool should_log_item(int nameid, int amount, int refine)
 {
 	int filter = log_config.filter;

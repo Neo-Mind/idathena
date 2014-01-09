@@ -401,18 +401,19 @@ static void itemdb_jobid2mapid(unsigned int *bclass, unsigned int jobmask)
 static void create_dummy_data(void)
 {
 	memset(&dummy_item, 0, sizeof(struct item_data));
-	dummy_item.nameid=500;
-	dummy_item.weight=1;
-	dummy_item.value_sell=1;
-	dummy_item.type=IT_ETC; //Etc item
-	safestrncpy(dummy_item.name,"UNKNOWN_ITEM",sizeof(dummy_item.name));
-	safestrncpy(dummy_item.jname,"UNKNOWN_ITEM",sizeof(dummy_item.jname));
-	dummy_item.view_id=UNKNOWN_ITEM_ID;
+	dummy_item.nameid = 500;
+	dummy_item.weight = 1;
+	dummy_item.value_sell = 1;
+	dummy_item.type = IT_ETC; //Etc item
+	safestrncpy(dummy_item.name, "UNKNOWN_ITEM", sizeof(dummy_item.name));
+	safestrncpy(dummy_item.jname, "UNKNOWN_ITEM", sizeof(dummy_item.jname));
+	dummy_item.view_id = UNKNOWN_ITEM_ID;
 }
 
 static struct item_data* create_item_data(int nameid)
 {
 	struct item_data *id;
+
 	CREATE(id, struct item_data, 1);
 	id->nameid = nameid;
 	id->weight = 1;

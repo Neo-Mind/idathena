@@ -184,7 +184,7 @@ static int storage_additem(struct map_session_data* sd, struct item* item_data, 
 		clif_displaymessage(sd->fd, msg_txt(294));
 		return 1;
 	}
-	
+
 	if( itemdb_isstackable2(data) ) { //Stackable
 		for( i = 0; i < sd->storage_size; i++ ) {
 			if( compare_item(&stor->items[i], item_data) ) { //Existing items found, stack them
