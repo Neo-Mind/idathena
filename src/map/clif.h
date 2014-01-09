@@ -220,7 +220,7 @@ typedef enum clr_type
 } clr_type;
 
 enum map_property
-{// clif_map_property
+{ // clif_map_property
 	MAPPROPERTY_NOTHING       = 0,
 	MAPPROPERTY_FREEPVPZONE   = 1,
 	MAPPROPERTY_EVENTPVPZONE  = 2,
@@ -231,7 +231,7 @@ enum map_property
 };
 
 enum map_type
-{// clif_map_type
+{ // clif_map_type
 	MAPTYPE_VILLAGE              = 0,
 	MAPTYPE_VILLAGE_IN           = 1,
 	MAPTYPE_FIELD                = 2,
@@ -260,7 +260,7 @@ enum map_type
 };
 
 enum useskill_fail_cause
-{// clif_skill_fail
+{ // clif_skill_fail
 	USESKILL_FAIL_LEVEL = 0,
 	USESKILL_FAIL_SP_INSUFFICIENT = 1,
 	USESKILL_FAIL_HP_INSUFFICIENT = 2,

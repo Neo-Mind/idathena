@@ -4057,8 +4057,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 					dir = dir < 4 ? dir + 4 : dir - 4; //Change direction [Celest]
 					unit_setdir(bl,dir);
-				}
-				else if (sd)
+				} else if (sd)
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			}
 			break;
@@ -4067,6 +4066,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			if (battle_config.finger_offensive_type && sd) {
 				int i;
+
 				for (i = 1; i < sd->spiritball_old; i++)
 					skill_addtimerskill(src,tick + i * 200,bl->id,0,0,skill_id,skill_lv,BF_WEAPON,flag);
 			}
@@ -5383,6 +5383,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					ret = skill_castend_pos2(src,src->x,src->y,skill_id,skill_lv,tick,flag);
 				for(i = 0; i < MAX_PARTY; i++) {
 					struct map_session_data *psd = p->data[i].sd;
+
 					if(!psd)
 						continue;
 					if(psd->bl.m != sd->bl.m || !psd->bl.prev)
@@ -8218,6 +8219,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case RK_STONEHARDSKIN:
 			if( sd ) {
 				int heal = sstatus->hp / 5; //20% HP
+
 				if( status_charge(bl,heal,0) )
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,sc_start2(src,bl,type,100,skill_lv,heal,skill_get_time(skill_id,skill_lv)));
 				else
@@ -8389,6 +8391,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case GC_HALLUCINATIONWALK: {
 				int heal = status_get_max_hp(bl) * ( 18 - 2 * skill_lv ) / 100;
+
 				if( status_get_hp(bl) < heal ) { //if you haven't enough HP skill fails.
 					if( sd ) clif_skill_fail(sd,skill_id,USESKILL_FAIL_HP_INSUFFICIENT,0);
 					break;
@@ -8655,6 +8658,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					status_change_start(src,bl,SC_STONE,10000,skill_lv,0,0,1000,skill_get_time(skill_id,skill_lv),2);
 			} else {
 				int rate = 45 + 5 * skill_lv + ( sd ? sd->status.job_level / 4 : 0 );
+
 				//IroWiki says Rate should be reduced by target stats, but currently unknown
 				if( rnd()%100 < rate ) { //Success on First Target
 					if( !tsc->data[SC_STONE] )
@@ -14303,7 +14307,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 				char output[128];
 
 				//clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_EQUIPMENT,reqeqit);
-				sprintf(output,"need to put on [%d] in order to use.",reqeqit);
+				sprintf(output,"Need to put on [%s] in order to use.",itemdb_jname(reqeqit));
 				clif_colormes(sd,color_table[COLOR_RED],output);
 				return 0;
 			}
@@ -14470,6 +14474,7 @@ int skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id, 
 			return 0;
 		} else if( sd->status.inventory[i].amount < require.ammo_qty ) {
 			char e_msg[100];
+
 			sprintf(e_msg,msg_txt(381), //Skill Failed. [%s] requires %dx %s.
 				skill_get_desc(skill_id),
 				require.ammo_qty,
