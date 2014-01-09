@@ -117,10 +117,10 @@ struct skill_condition {
 	    state,
 	    spiritball,
 	    itemid[MAX_SKILL_ITEM_REQUIRE],
-	    amount[MAX_SKILL_ITEM_REQUIRE],
-		eqItem[MAX_SKILL_EQUIP_REQUIRE]; //Max eq_item
-	uint8 status_count;
-	enum sc_type status[MAX_SKILL_STATUS_REQUIRE];
+	    amount[MAX_SKILL_ITEM_REQUIRE];
+	short *eqItem;
+	enum sc_type *status;
+	uint8 status_count, eqItem_count;
 };
 
 struct s_skill_require {
@@ -136,10 +136,10 @@ struct s_skill_require {
 	    state,
 	    spiritball[MAX_SKILL_LEVEL],
 	    itemid[MAX_SKILL_ITEM_REQUIRE],
-	    amount[MAX_SKILL_ITEM_REQUIRE],
-		eqItem[MAX_SKILL_EQUIP_REQUIRE]; //Max eq_item
-	uint8 status_count;
-	enum sc_type status[MAX_SKILL_STATUS_REQUIRE];
+	    amount[MAX_SKILL_ITEM_REQUIRE];
+	short *eqItem;
+	enum sc_type *status;
+	uint8 status_count, eqItem_count;
 };
 
 /// Database skills
@@ -325,7 +325,6 @@ int skill_get_inf3(uint16 skill_id);
 int skill_get_hp(uint16 skill_id, uint16 skill_lv);
 int skill_get_mhp(uint16 skill_id, uint16 skill_lv);
 int skill_get_sp(uint16 skill_id, uint16 skill_lv);
-int skill_get_status_count(uint16 skill_id);
 int skill_get_hp_rate(uint16 skill_id, uint16 skill_lv);
 int skill_get_sp_rate(uint16 skill_id, uint16 skill_lv);
 int skill_get_zeny(uint16 skill_id, uint16 skill_lv);
@@ -333,7 +332,7 @@ int skill_get_weapontype(uint16 skill_id);
 int skill_get_ammotype(uint16 skill_id);
 int skill_get_ammo_qty(uint16 skill_id, uint16 skill_lv);
 int skill_get_state(uint16 skill_id);
-int skill_get_status(uint16 skill_id, int idx);
+//int skill_get_status(uint16 skill_id, int idx);
 int skill_get_status_count(uint16 skill_id);
 int skill_get_spiritball(uint16 skill_id, uint16 skill_lv);
 int skill_get_itemid(uint16 skill_id, int idx);

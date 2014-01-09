@@ -1934,8 +1934,7 @@ void set_server_type(void)
 /// Called when a terminate signal is received.
 void do_shutdown(void)
 {
-	if( runflag != LOGINSERVER_ST_SHUTDOWN )
-	{
+	if( runflag != LOGINSERVER_ST_SHUTDOWN ) {
 		int id;
 
 		runflag = LOGINSERVER_ST_SHUTDOWN;

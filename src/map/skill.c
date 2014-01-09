@@ -252,7 +252,7 @@ int skill_get_weapontype(uint16 skill_id)                  { skill_get(skill_db[
 int skill_get_ammotype(uint16 skill_id)                    { skill_get(skill_db[skill_id].require.ammo, skill_id); }
 int skill_get_ammo_qty(uint16 skill_id, uint16 skill_lv)   { skill_get2(skill_db[skill_id].require.ammo_qty[skill_lv - 1], skill_id, skill_lv); }
 int skill_get_state(uint16 skill_id)                       { skill_get(skill_db[skill_id].require.state, skill_id); }
-int skill_get_status(uint16 skill_id, int idx)             { skill_get3(skill_db[skill_id].require.status[idx], skill_id, idx); }
+//int skill_get_status(uint16 skill_id, int idx)           { skill_get3(skill_db[skill_id].require.status[idx], skill_id, idx); }
 int skill_get_status_count(uint16 skill_id)                { skill_get(skill_db[skill_id].require.status_count, skill_id); }
 int skill_get_spiritball(uint16 skill_id, uint16 skill_lv) { skill_get2(skill_db[skill_id].require.spiritball[skill_lv - 1], skill_id, skill_lv); }
 int skill_get_itemid(uint16 skill_id, int idx)             { skill_get3(skill_db[skill_id].require.itemid[idx], skill_id, idx); }
@@ -262,8 +262,8 @@ int skill_get_itemeq(uint16 skill_id, int idx)             { skill_get3(skill_db
 int skill_tree_get_max(uint16 skill_id, int b_class)
 {
 	int i;
-	b_class = pc_class2idx(b_class);
 
+	b_class = pc_class2idx(b_class);
 	ARR_FIND(0, MAX_SKILL_TREE, i, skill_tree[b_class][i].id == 0 || skill_tree[b_class][i].id == skill_id);
 	if( i < MAX_SKILL_TREE && skill_tree[b_class][i].id == skill_id )
 		return skill_tree[b_class][i].max;
@@ -291,6 +291,7 @@ int deluge_eff[5] = { 5, 9, 12, 14, 15 };
 int skill_get_casttype (uint16 skill_id)
 {
 	int inf = skill_get_inf(skill_id);
+
 	if (inf&(INF_GROUND_SKILL))
 		return CAST_GROUND;
 	if (inf&INF_SUPPORT_SKILL)
@@ -14293,17 +14294,19 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 	}
 
 	//Check if equiped item
-	for( i = 0; i < MAX_SKILL_EQUIP_REQUIRE; i++ ) {
-		int reqeqit = require.eqItem[i];
+	if( require.eqItem_count ) {
+		for( i = 0; i < require.eqItem_count; i++ ) {
+			int reqeqit = require.eqItem[i];
 
-		if( !reqeqit ) break; //No more required item get out of here
-		if( !pc_checkequip2(sd,reqeqit,EQI_ACC_L,EQI_MAX) ) {
-			char output[128];
+			if( !reqeqit ) break; //No more required item get out of here
+			if( !pc_checkequip2(sd,reqeqit,EQI_ACC_L,EQI_MAX) ) {
+				char output[128];
 
-			//clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_EQUIPMENT,reqeqit);
-			sprintf(output,"Need to put on [%s] in order to use.",itemdb_jname(reqeqit));
-			clif_colormes(sd,color_table[COLOR_RED],output);
-			return 0;
+				//clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_EQUIPMENT,reqeqit);
+				sprintf(output,"need to put on [%d] in order to use.",reqeqit);
+				clif_colormes(sd,color_table[COLOR_RED],output);
+				return 0;
+			}
 		}
 	}
 
@@ -14708,10 +14711,9 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 	}
 
 	req.status_count = skill_db[idx].require.status_count;
-	memset(req.status,SC_NONE,sizeof(req.status));
-	memcpy(req.status,skill_db[idx].require.status,sizeof(skill_db[idx].require.status));
-	memset(req.eqItem,0,sizeof(req.eqItem));
-	memcpy(req.eqItem,skill_db[idx].require.eqItem,sizeof(skill_db[idx].require.eqItem));
+	req.status = skill_db[idx].require.status;
+	req.eqItem_count = skill_db[idx].require.eqItem_count;
+	req.eqItem = skill_db[idx].require.eqItem;
 
 	for( i = 0; i < MAX_SKILL_ITEM_REQUIRE; i++ ) {
 		if( (skill_id == AM_POTIONPITCHER || skill_id == CR_SLIMPITCHER || skill_id == CR_CULTIVATION) && i != skill_lv%11 - 1 )
@@ -14904,10 +14906,10 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 		if( req_opt&0x0040 ) req.weapon = 0;
 		if( req_opt&0x0080 ) { req.ammo = 0; req.ammo_qty = 0; }
 		if( req_opt&0x0100 ) req.state = ST_NONE;
-		if( req_opt&0x0200 ) memset(req.status,SC_NONE,sizeof(req.status));
+		if( req_opt&0x0200 ) req.status_count = 0;
 		if( req_opt&0x0400 ) req.spiritball = 0;
 		if( req_opt&0x0800 ) { memset(req.itemid,0,sizeof(req.itemid)); memset(req.amount,0,sizeof(req.amount)); }
-		if( req_opt&0x1000 ) memset(req.eqItem,0,sizeof(req.eqItem));
+		if( req_opt&0x1000 ) req.eqItem_count = 0;
 	}
 
 	return req;
@@ -18904,6 +18906,46 @@ static bool skill_parse_row_skilldb(char* split[], int columns, int current)
 	return true;
 }
 
+/** Split string to int or constanta value (const.txt)
+ * @param *str: String input
+ * @param *val: Temporary storage
+ * @param *delim: Delimiter (for multiple value support)
+ * @param useConst: 'true' uses const.txt as reference, 'false' uses atoi()
+ * @param min: Min value of each const. Example: SC has min value SC_NONE (-1), so the value that less or equal won't be counted
+ * @return count: Number of success
+ */
+uint8 skill_split2(char *str, int *val, const char *delim, bool useConst, short min) {
+	uint8 i = 0;
+	char *p = strtok(str,delim);
+
+	while( p != NULL ) {
+		int n = -1;
+
+		if( useConst )
+			script_get_constant(trim(p), &n);
+		else
+			n = atoi(p);
+		if( n > min ) {
+			val[i] = n;
+			i++;
+		}
+		p = strtok(NULL, delim);
+	}
+	return i;
+}
+
+/// Clear status data from skill requirement
+static void skill_destroy_requirement(void) {
+	uint16 i;
+
+	for( i = 0; i < MAX_SKILL; i++ ) {
+		if( skill_db[i].require.status_count )
+			aFree(skill_db[i].require.status);
+		if( skill_db[i].require.eqItem_count )
+			aFree(skill_db[i].require.eqItem);
+	}
+}
+
 /**
  * Read skill requirement from skill_require_db.txt
  **/
@@ -18974,18 +19016,15 @@ static bool skill_parse_row_requiredb(char* split[], int columns, int current)
 	else skill_db[idx].require.state = ST_NONE; //Unknown or no state
 
 	//Status requirements
-	memset(skill_db[idx].require.status,SC_NONE,sizeof(skill_db[idx].require.status));
-	skill_db[idx].require.status_count = 0;
-	p = strtok(split[11],":");
-	for( i = 0; i < MAX_SKILL_STATUS_REQUIRE && p != NULL; i++ ) {
-		int status = SC_NONE;
+	trim(split[11]);
+	if( split[11][0] != '\0' ) {
+		int require[MAX_SKILL_STATUS_REQUIRE];
 
-		script_get_constant(trim(p),&status);
-		if( status > SC_NONE ) {
-			skill_db[idx].require.status[skill_db[idx].require.status_count] = (sc_type)status;
-			skill_db[idx].require.status_count++;
+		if( (skill_db[idx].require.status_count = skill_split2(split[11],require,":",true,SC_NONE)) ) {
+			skill_db[idx].require.status = aMalloc(skill_db[idx].require.status_count * sizeof(sc_type));
+			for( i = 0; i < skill_db[idx].require.status_count; i++ )
+				skill_db[idx].require.status[i] = (sc_type)require[i];
 		}
-		p = strtok(NULL,":");
 	}
 
 	skill_split_atoi(split[12],skill_db[idx].require.spiritball);
@@ -18995,22 +19034,18 @@ static bool skill_parse_row_requiredb(char* split[], int columns, int current)
 		skill_db[idx].require.amount[i] = atoi(split[14 + 2 * i]);
 	}
 
-	//Require equiped
-	memset(skill_db[idx].require.eqItem,0,sizeof(skill_db[idx].require.eqItem));
-	p = strtok(split[33],":");
+	//Equipped Item requirements.
+	//NOTE: We don't check the item is exist or not here
+	trim(split[33]);
+	if( split[33][0] != '\0' ) {
+		int require[MAX_SKILL_EQUIP_REQUIRE];
 
-	for( i = 0; i < MAX_SKILL_EQUIP_REQUIRE && p != NULL; i++ ) {
-		int itid = atoi(p);
-
-		p = strtok(NULL,":"); //For easy continue don't read 'p' after this
-		if( itid <= 0 ) continue; //Silent
-		if( itemdb_exists(itid) == NULL ) {
-			ShowWarning("Invalid reqIt=%d specified for skillid=%d\n",itid,skill_id);
-			continue; //Invalid id
+		if( (skill_db[idx].require.eqItem_count = skill_split2(split[33],require,":",false,501)) ) {
+			skill_db[idx].require.eqItem = aMalloc(skill_db[idx].require.eqItem_count * sizeof(short));
+			for( i = 0; i < skill_db[idx].require.eqItem_count; i++ )
+				skill_db[idx].require.eqItem[i] = require[i];
 		}
-		skill_db[idx].require.eqItem[i] = itid;
 	}
-
 	return true;
 }
 
@@ -19387,6 +19422,8 @@ static void skill_readdb(void)
 void skill_reload (void) {
 	struct s_mapiterator *iter;
 	struct map_session_data *sd;
+
+	skill_destroy_requirement();
 	skill_readdb();
 	/* Lets update all players skill tree : so that if any skill modes were changed they're properly updated */
 	iter = mapit_getallusers();
@@ -19424,6 +19461,7 @@ int do_init_skill (void)
 
 int do_final_skill(void)
 {
+	skill_destroy_requirement();
 	db_destroy(skilldb_name2id);
 	db_destroy(group_db);
 	db_destroy(skillunit_db);
