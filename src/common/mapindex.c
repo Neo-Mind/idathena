@@ -77,9 +77,8 @@ const char* mapindex_getmapname_ext(const char* string, char* output) {
 int mapindex_addmap(int index, const char* name) {
 	char map_name[MAP_NAME_LENGTH];
 
-	if (index == -1) { //autogive index
+	if (index == -1) // Autogive index
 		ARR_FIND(1,max_index,index,(indexes[index].name[0] == '\0'));
-	}
 
 	if (index < 0 || index >= MAX_MAPINDEX) {
 		ShowError("(mapindex_add) Map index (%d) for \"%s\" out of range (max is %d)\n", index, name, MAX_MAPINDEX);
@@ -106,7 +105,7 @@ int mapindex_addmap(int index, const char* name) {
 	safestrncpy(indexes[index].name, map_name, MAP_NAME_LENGTH);
 	strdb_iput(mapindex_db, map_name, index);
 	if (max_index <= index)
-		max_index = index+1;
+		max_index = index + 1;
 
 	return index;
 }
@@ -148,7 +147,6 @@ void mapindex_init(void) {
 	while (fgets(line, sizeof(line), fp)) {
 		if (line[0] == '/' && line[1] == '/')
 			continue;
-
 		switch (sscanf(line, "%11s\t%d", map_name, &index)) {
 			case 1: //Map with no ID given, auto-assign
 				index = last_index + 1;

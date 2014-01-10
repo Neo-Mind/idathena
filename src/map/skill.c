@@ -5426,15 +5426,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				int heal = skill_calc_heal(src,bl,skill_id,skill_lv,true);
 				int heal_get_jobexp;
 
-				if( status_isimmune(bl) ||
-						(dstmd && (dstmd->mob_id == MOBID_EMPERIUM || mob_is_battleground(dstmd))) )
+				if(status_isimmune(bl) || (dstmd && (dstmd->mob_id == MOBID_EMPERIUM || mob_is_battleground(dstmd))))
 					heal = 0;
 
-				if( tsc && tsc->count ) {
-					if( tsc->data[SC_KAITE] && !(sstatus->mode&MD_BOSS) ) { //Bounce back heal
-						if( --tsc->data[SC_KAITE]->val2 <= 0 )
+				if(tsc && tsc->count) {
+					if(tsc->data[SC_KAITE] && !(sstatus->mode&MD_BOSS)) { //Bounce back heal
+						if(--tsc->data[SC_KAITE]->val2 <= 0)
 							status_change_end(bl,SC_KAITE,INVALID_TIMER);
-						if( src == bl )
+						if(src == bl)
 							heal = 0; //When you try to heal yourself under Kaite, the heal is voided.
 						else {
 							bl = src;
@@ -5442,15 +5441,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						}
 					} else if( tsc->data[SC_BERSERK] || tsc->data[SC_SATURDAYNIGHTFEVER] )
 						heal = 0; //Needed so that it actually displays 0 when healing.
-					clif_skill_nodamage(src,bl,skill_id,heal,1);
-					if( tsc->data[SC_AKAITSUKI] && heal && skill_id != HLIF_HEAL )
-						heal = ~heal + 1;
-					heal_get_jobexp = status_heal(bl,heal,0,0);
 				}
 
-				if( sd && dstsd && heal > 0 && sd != dstsd && battle_config.heal_exp > 0 ) {
+				clif_skill_nodamage(src,bl,skill_id,heal,1);
+				if(tsc && tsc->data[SC_AKAITSUKI] && heal && skill_id != HLIF_HEAL)
+					heal = ~heal + 1;
+				heal_get_jobexp = status_heal(bl,heal,0,0);
+
+				if(sd && dstsd && heal > 0 && sd != dstsd && battle_config.heal_exp > 0) {
 					heal_get_jobexp = heal_get_jobexp * battle_config.heal_exp / 100;
-					if( heal_get_jobexp <= 0 )
+					if(heal_get_jobexp <= 0)
 						heal_get_jobexp = 1;
 					pc_gainexp(sd,bl,0,heal_get_jobexp,false);
 				}
@@ -5458,8 +5458,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case PR_REDEMPTIO:
-			if (sd && !(flag&1)) {
-				if (!sd->status.party_id) {
+			if(sd && !(flag&1)) {
+				if(!sd->status.party_id) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
@@ -5468,12 +5468,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					sd,skill_get_splash(skill_id,skill_lv),
 					src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,
 					skill_castend_nodamage_id);
-				if (skill_area_temp[0] == 0) {
+				if(skill_area_temp[0] == 0) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
 				skill_area_temp[0] = 5 - skill_area_temp[0]; //The actual penalty.
-				if (skill_area_temp[0] > 0 && !map[src->m].flag.noexppenalty) { //Apply penalty
+				if(skill_area_temp[0] > 0 && !map[src->m].flag.noexppenalty) { //Apply penalty
 					sd->status.base_exp -= min(sd->status.base_exp,pc_nextbaseexp(sd) * skill_area_temp[0] * 2 / 1000); //0.2% penalty per each.
 					sd->status.job_exp -= min(sd->status.job_exp,pc_nextjobexp(sd) * skill_area_temp[0] * 2 / 1000);
 					clif_updatestatus(sd,SP_BASEEXP);
@@ -5482,7 +5482,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				status_set_hp(src,1,0);
 				status_set_sp(src,0,0);
 				break;
-			} else if (status_isdead(bl) && flag&1) { //Revive
+			} else if(status_isdead(bl) && flag&1) { //Revive
 				skill_area_temp[0]++; //Count it in, then fall-through to the Resurrection code.
 				skill_lv = 3; //Resurrection level 3 is used
 			} else //Invalid target, skip resurrection.
@@ -5493,15 +5493,15 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				break;
 			}
-			if (!status_isdead(bl))
+			if(!status_isdead(bl))
 				break;
 			{
 				int per = 0, sper = 0;
 
-				if (tsc && tsc->data[SC_HELLPOWER])
+				if(tsc && tsc->data[SC_HELLPOWER])
 					break;
 
-				if (map[bl->m].flag.pvp && dstsd && dstsd->pvp_point < 0)
+				if(map[bl->m].flag.pvp && dstsd && dstsd->pvp_point < 0)
 					break;
 
 				switch(skill_lv) {
@@ -5512,7 +5512,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				}
 				if(dstsd && dstsd->special_state.restart_full_recover)
 					per = sper = 100;
-				if (status_revive(bl,per,sper)) {
+				if(status_revive(bl,per,sper)) {
 					clif_skill_nodamage(src,bl,ALL_RESURRECTION,skill_lv,1); //Both Redemptio and Res show this skill-animation.
 					if(sd && dstsd && battle_config.resurrection_exp > 0) {
 						int exp = 0,jexp = 0;

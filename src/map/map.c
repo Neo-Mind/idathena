@@ -3360,8 +3360,8 @@ int parse_console(const char* buf) {
 	memset(&sd, 0, sizeof(struct map_session_data));
 	strcpy(sd.status.name, "console");
 
-	if( ( n = sscanf(buf, "%63[^:]:%63[^:]:%63s %hd %hd[^\n]", type, command, map, &x, &y) ) < 5 ) {
-		if( ( n = sscanf(buf, "%63[^:]:%63[^\n]", type, command) ) < 2 ) {
+	if( (n = sscanf(buf, "%63[^:]:%63[^:]:%63s %hd %hd[^\n]", type, command, map, &x, &y)) < 5 ) {
+		if( (n = sscanf(buf, "%63[^:]:%63[^\n]", type, command)) < 2 ) {
 			if( (n = sscanf(buf, "%63[^\n]", type)) < 1 ) return -1; //nothing to do no arg
 		}
 	}
@@ -3378,8 +3378,8 @@ int parse_console(const char* buf) {
 	} else
 		ShowNotice("Type of command: '%s' || Command: '%s' || Map: '%s' Coords: %d %d\n", type, command, map, x, y);
 
-	if(strcmpi("admin",type) == 0 ) {
-		if(strcmpi("map",command) == 0) {
+	if( strcmpi("admin",type) == 0 ) {
+		if( strcmpi("map",command) == 0 ) {
 			m = map_mapname2mapid(map);
 			if( m < 0 ) {
 				ShowWarning("Console: Unknown map.\n");
@@ -3420,19 +3420,19 @@ int map_config_read(char *cfgName)
 	FILE *fp;
 
 	fp = fopen(cfgName,"r");
-	if( fp == NULL ) {
+	if (fp == NULL) {
 		ShowError("Map configuration file not found at: %s\n", cfgName);
 		return 1;
 	}
 
-	while( fgets(line, sizeof(line), fp) ) {
+	while (fgets(line, sizeof(line), fp)) {
 		char* ptr;
 
-		if( line[0] == '/' && line[1] == '/' )
+		if (line[0] == '/' && line[1] == '/')
 			continue;
-		if( (ptr = strstr(line, "//")) != NULL )
+		if ((ptr = strstr(line, "//")) != NULL)
 			*ptr = '\n'; //Strip comments
-		if( sscanf(line, "%1023[^:]: %1023[^\t\r\n]", w1, w2) < 2 )
+		if (sscanf(line, "%1023[^:]: %1023[^\t\r\n]", w1, w2) < 2)
 			continue;
 
 		//Strip trailing spaces
