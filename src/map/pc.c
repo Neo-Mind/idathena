@@ -1916,6 +1916,7 @@ static int pc_bonus_addeff(struct s_addeffect* effect, int max, enum sc_type id,
 static int pc_bonus_addeff_onskill(struct s_addeffectonskill* effect, int max, enum sc_type id, short rate, short skill, unsigned char target)
 {
 	int i;
+
 	for( i = 0; i < max && effect[i].skill; i++ ) {
 		if( effect[i].id == id && effect[i].skill == skill && effect[i].target == target ) {
 			effect[i].rate += rate;
@@ -1953,12 +1954,12 @@ static int pc_bonus_item_drop(struct s_add_drop *drop, const short max, short id
 	}
 	for( i = 0; i < max && (drop[i].id || drop[i].group); i++ ) {
 		if( ((id && drop[i].id == id) || (group && drop[i].group == group)) ) {
-			if( race < RC_NONE_ )
+			if( race < RC_NONE_ ) //bAddClassDropItem
 				drop[i].race |= race;
 			if( race > RC_NONE_ && race < RC_MAX )
 				drop[i].race |= 1<<race;
 			if( class_ > CLASS_NONE && class_ < CLASS_MAX )
-				drop[i].class_ |= class_;
+				drop[i].class_ |= 1<<class_;
 			if( drop[i].rate > 0 && rate > 0 ) { //Both are absolute rates.
 				if( drop[i].rate < rate )
 					drop[i].rate = rate;
@@ -1981,7 +1982,7 @@ static int pc_bonus_item_drop(struct s_add_drop *drop, const short max, short id
 	if( race > RC_NONE_ && race < RC_MAX )
 		drop[i].race |= 1<<race;
 	if( class_ > CLASS_NONE && class_ < CLASS_MAX )
-		drop[i].class_ |= class_;
+		drop[i].class_ |= 1<<class_;
 	drop[i].rate = rate;
 	return 1;
 }
@@ -3215,11 +3216,11 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			break;
 		case SP_ADD_MONSTER_DROP_ITEM:
 			if(sd->state.lr_flag != 2)
-				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), type2, 0, (1<<CLASS_NORMAL)|(1<<CLASS_BOSS), RC_NONE_, val);
+				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), type2, 0, CLASS_ALL, RC_NONE_, val);
 			break;
 		case SP_ADD_MONSTER_DROP_ITEMGROUP:
 			if(sd->state.lr_flag != 2)
-				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), 0, type2, (1<<CLASS_NORMAL)|(1<<CLASS_BOSS), RC_NONE_, val);
+				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), 0, type2, CLASS_ALL, RC_NONE_, val);
 			break;
 		case SP_SP_LOSS_RATE:
 			if(sd->state.lr_flag != 2) {
@@ -3397,9 +3398,13 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 			if(sd->state.lr_flag != 2)
 				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), type2, 0, CLASS_NONE, type3, val);
 			break;
-		case SP_ADD_CLASS_DROP_ITEM:
+		case SP_ADD_MONSTER_ID_DROP_ITEM:
 			if(sd->state.lr_flag != 2)
 				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), type2, 0, CLASS_NONE, -type3, val);
+			break;
+		case SP_ADD_CLASS_DROP_ITEM:
+			if(sd->state.lr_flag != 2)
+				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), type2, 0, type3, RC_NONE_, val);
 			break;
 		case SP_AUTOSPELL:
 			if(sd->state.lr_flag != 2) {
@@ -3440,16 +3445,18 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 			if(sd->state.lr_flag != 2)
 				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), 0, type2, CLASS_NONE, type3, val);
 			break;
-
+		case SP_ADD_CLASS_DROP_ITEMGROUP:
+			if (sd->state.lr_flag != 2)
+				pc_bonus_item_drop(sd->add_drop, ARRAYLENGTH(sd->add_drop), 0, type2, type3, RC_NONE_, val);
+			break;
 		case SP_ADDEFF:
 			if(type2 > SC_MAX) {
 				ShowWarning("pc_bonus3 (Add Effect): %d is not supported.\n", type2);
 				break;
 			}
 			pc_bonus_addeff(sd->addeff, ARRAYLENGTH(sd->addeff), (sc_type)type2,
-				sd->state.lr_flag!=2?type3:0, sd->state.lr_flag==2?type3:0, val);
+				sd->state.lr_flag != 2 ? type3 : 0, sd->state.lr_flag == 2 ? type3 : 0, val);
 			break;
-
 		case SP_ADDEFF_WHENHIT:
 			if(type2 > SC_MAX) {
 				ShowWarning("pc_bonus3 (Add Effect when hit): %d is not supported.\n", type2);
@@ -3458,7 +3465,6 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 			if(sd->state.lr_flag != 2)
 				pc_bonus_addeff(sd->addeff2, ARRAYLENGTH(sd->addeff2), (sc_type)type2, type3, 0, val);
 			break;
-
 		case SP_ADDEFF_ONSKILL:
 			if(type3 > SC_MAX) {
 				ShowWarning("pc_bonus3 (Add Effect on skill): %d is not supported.\n", type3);
@@ -3467,7 +3473,6 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 			if(sd->state.lr_flag != 2)
 				pc_bonus_addeff_onskill(sd->addeff3, ARRAYLENGTH(sd->addeff3), (sc_type)type3, val, type2, ATF_TARGET);
 			break;
-			
 		case SP_ADDELE:
 			if(type2 > ELE_ALL) {
 				ShowWarning("pc_bonus3 (SP_ADDELE): element %d is out of range.\n", type2);
@@ -3476,7 +3481,6 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 			if(sd->state.lr_flag != 2)
 				pc_bonus_addele(sd, (unsigned char)type2, type3, val);
 			break;
-
 		case SP_SUBELE:
 			if(type2 > ELE_ALL) {
 				ShowWarning("pc_bonus3 (SP_SUBELE): element %d is out of range.\n", type2);
@@ -3485,7 +3489,6 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 			if(sd->state.lr_flag != 2)
 				pc_bonus_subele(sd, (unsigned char)type2, type3, val);
 			break;
-
 		default:
 			ShowWarning("pc_bonus3: unknown type %d %d %d %d!\n",type,type2,type3,val);
 			break;

@@ -147,7 +147,7 @@ bonus2 bGetZenyNum,n,x;			When killing a monster, there is a x% chance of gainin
 bonus2 bAddGetZenyNum,n,x;		Same as bGetZenyNum, but the rates and zeny to gain stack.
 
 bonus3 bAddMonsterDropItem,n,x,y;	Adds a y/100% chance for item n to be dropped, when killing any monster of race x.
-						RC_Formless, RC_Undead, RC_Brute, RC_Plant, RC_Insect, RC_Fish, RC_Demon, RC_DemiHuman, RC_Angel, RC_Dragon, RC_All
+					x:	RC_Formless, RC_Undead, RC_Brute, RC_Plant, RC_Insect, RC_Fish, RC_Demon, RC_DemiHuman, RC_Angel, RC_Dragon, RC_All
 					If 'y' is negative value, then it's a part of formula
 						chance = -y*(killed_mob_level/10)+1
 bonus3 bAutoSpell,n,x,y;		Auto Spell casting on attack of spell n at level x with y/10% chance. (supports skill names)
@@ -274,12 +274,12 @@ bonus3 bAddEffWhenHit,n,x,y;		x/100 chance to cause n state to the enemy when be
 						ATF_LONG: Trigger in ranged attacks (default: trigger on all attacks)
 
 bonus3 bAddMonsterDropItemGroup,n,x,y;	Adds a y/100% chance to get an item of group type n when you kill a monster of race x (Check db/item_group_db.txt)
-						x: RC_Formless, RC_Undead, RC_Brute, RC_Plant, RC_Insect, RC_Fish, RC_Demon, RC_DemiHuman, RC_Angel, RC_Dragon, RC_All
+					x: RC_Formless, RC_Undead, RC_Brute, RC_Plant, RC_Insect, RC_Fish, RC_Demon, RC_DemiHuman, RC_Angel, RC_Dragon, RC_All
 					If 'y' is negative value, then it's a part of formula
 						chance = -y*(killed_mob_level/10)+1
 
 bonus2 bWeaponComaRace,x,y;		y/100% chance to cause Coma when attacking a monster of race x with a normal attack
-						x: RC_Formless, RC_Undead, RC_Brute, RC_Plant, RC_Insect, RC_Fish, RC_Demon, RC_DemiHuman, RC_Angel, RC_Dragon, RC_All
+					x: RC_Formless, RC_Undead, RC_Brute, RC_Plant, RC_Insect, RC_Fish, RC_Demon, RC_DemiHuman, RC_Angel, RC_Dragon, RC_All
 
 bonus bAddStealRate,n;			n/100% increase to Steal skill success chance
 
@@ -380,7 +380,7 @@ bonus2 bSPDrainValueRace,r,n;		Heals +n SP when attacking a monster of race r wi
 bonus bMagicSPGainValue,n;		Heals +n SP when killing an enemy with magic attack.
 bonus bMagicHPGainValue,n;		Heals +n HP when killing an enemy with magic attack.
 
-bonus3 bAddClassDropItem,s,x,n;		Adds an n/100% chance of dropping item s when killing monster class x.
+bonus3 bAddMonsterIdDropItem,s,x,n;	Adds an n/100% chance of dropping item s when killing monster id x.
 
 bonus2 bHPGainRaceAttack,x,n;		Heals n HP when attacking x Race on every hit
 bonus2 bSPGainRaceAttack,x,n;		Heals n SP when attacking x Race on every hit
@@ -407,17 +407,17 @@ bonus bIgnoreDefClass,n;		Disregard DEF against enemies of class n
 					n: 	Class_Normal, Class_Boss, Class_Guardian, Class_All
 bonus bIgnoreMdefClass,n;		Disregard MDEF against enemies of class n
 					n: 	Class_Normal, Class_Boss, Class_Guardian, Class_All
-bonus2 bIgnoreDefClassRate,n,x;		Disregard x% of the target's DEF if the target belongs to class n
-					n: 	Class_Normal, Class_Boss, Class_Guardian, Class_All
-bonus2 bIgnoreMdefClassRate,n,x;	Disregard x% of the target's MDEF if the target belongs to class n
-					n: 	Class_Normal, Class_Boss, Class_Guardian, Class_All
 bonus bDefRatioAtkClass,n;		Does more damage depending on monster Defense against class n (defense disregard)
 					n: 	Class_Normal, Class_Boss, Class_Guardian, Class_All
 bonus2 bAddClass,n,x;			+x% physical damage against class n
 					n: 	Class_Normal, Class_Boss, Class_Guardian, Class_All
 bonus2 bSubClass,n,x;			+x% damage reduction against class n
 					n: 	Class_Normal, Class_Boss, Class_Guardian, Class_All
+bonus2 bExpAddClass,n,x;		Increase exp gained by x% vs. enemies of class n
+					n: 	Class_Normal, Class_Boss, Class_Guardian, Class_All
 bonus2 bMagicAddClass,n,x;		+x% magical damage against class n
+					n: 	Class_Normal, Class_Boss, Class_Guardian, Class_All
+bonus2 bMagicSubClass,n,x;		+x% magical damage reduction against class n
 					n: 	Class_Normal, Class_Boss, Class_Guardian, Class_All
 bonus2 bWeaponComaClass,n,y;		y/100% chance to cause Coma when attacking a monster of class x with a normal attack
 					n: 	Class_Normal, Class_Boss, Class_Guardian, Class_All
@@ -425,7 +425,15 @@ bonus2 bHpDrainValueClass,n,x;		Heals +x HP when attacking a monster of class n 
 					n: 	Class_Normal, Class_Boss, Class_Guardian, Class_All
 bonus2 bSpDrainValueClass,n,x;		Heals +x SP when attacking a monster of class n with normal attack.
 					n: 	Class_Normal, Class_Boss, Class_Guardian, Class_All
-bonus2 bMagicSubClass,n,x;		Adds x% magical damage reduction against class n
+bonus2 bIgnoreDefClassRate,n,x;		Disregard x% of the target's DEF if the target belongs to class n
 					n: 	Class_Normal, Class_Boss, Class_Guardian, Class_All
-bonus2 bExpAddClass,n,x;		Increase exp gained by x% vs. enemies of class n
+bonus2 bIgnoreMdefClassRate,n,x;	Disregard x% of the target's MDEF if the target belongs to class n
 					n: 	Class_Normal, Class_Boss, Class_Guardian, Class_All
+bonus3 bAddClassDropItem,n,x,y;		Adds a y/100% chance for item n to be dropped, when killing any monster of class x.
+					x: Class_Normal, Class_Boss, Class_Guardian, Class_All
+					If 'y' is negative value, then it's a part of formula
+						chance = -y*(killed_mob_level/10)+1
+bonus3 bAddClassDropItemGroup,n,x,y;	Adds a y/100% chance to get an item of group type n when you kill a monster of class x (Check db/item_group_db.txt)
+					x: Class_Normal, Class_Boss, Class_Guardian, Class_All
+					If 'y' is negative value, then it's a part of formula
+						chance = -y*(killed_mob_level/10)+1

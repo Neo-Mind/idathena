@@ -617,7 +617,7 @@ bAddSkillBlow	2041
 bSPVanishRate	2042
 bMagicSPGainValue	2043
 bMagicHPGainValue	2044
-bAddClassDropItem	2045
+bAddMonsterIdDropItem	2045
 bMatk	2046
 bSPGainRaceAttack	2047
 bHPGainRaceAttack	2048
@@ -649,6 +649,8 @@ bMagicAddClass	2070
 bWeaponComaClass	2071
 bMagicSubClass	2072
 bExpAddClass	2073
+bAddClassDropItem	2074
+bAddClassDropItemGroup	2075
 
 EQI_HEAD_TOP	1
 EQI_ARMOR	2
