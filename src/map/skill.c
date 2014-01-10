@@ -3761,7 +3761,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 	struct map_session_data *sd = NULL, *tsd = NULL;
 	struct status_data *sstatus, *tstatus;
 	struct status_change *sc, *tsc;
-	//Chorus bonus value for chorus skills. Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 	int chorusbonus = 0;
 
 	if (skill_id > 0 && !skill_lv) return 0;
@@ -3778,14 +3777,16 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 	sd = BL_CAST(BL_PC,src);
 	tsd = BL_CAST(BL_PC,bl);
 
-	//Minstrel/Wanderer number check for chorus skills.
-	//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
-	if (sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus,sd,0) > 7)
+	if (sd && sd->status.party_id) {
+		//Minstrel/Wanderer number check for chorus skills.
+		//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 		//Maximum effect possiable from 7 or more Minstrel's/Wanderer's
-		chorusbonus = 5;
-	else if (sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus,sd,0) > 2)
+		if (party_foreachsamemap(party_sub_count_chorus,sd,0) > 7)
+			chorusbonus = 5;
 		//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
-		chorusbonus = party_foreachsamemap(party_sub_count_chorus,sd,0) - 2;
+		else if (party_foreachsamemap(party_sub_count_chorus,sd,0) > 2)
+			chorusbonus = party_foreachsamemap(party_sub_count_chorus,sd,0) - 2;
+	}
 
 	if (status_isdead(bl))
 		return 1;
@@ -5025,6 +5026,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				skill_attack(skill_get_type(skill_id + 1),src,src,bl,skill_id+1,skill_lv,tick,flag);
 			else {
 				int i = skill_get_splash(skill_id,skill_lv);
+
 				clif_skill_nodamage(src,battle_get_master(src),skill_id,skill_lv,1);
 				clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 				if (rnd()%100 < 30)
@@ -5048,6 +5050,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag);
 			else {
 				int i = skill_get_splash(skill_id,skill_lv);
+
 				clif_skill_nodamage(src,battle_get_master(src),skill_id,skill_lv,1);
 				clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 				if (rnd()%100 < 30)
@@ -5072,8 +5075,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				struct status_change *sc = status_get_sc(&ele->bl);
 				struct status_change *tsc = status_get_sc(bl);
 				sc_type type = status_skill2sc(skill_id), type2;
-				type2 = (sc_type)(type - 1);
 
+				type2 = (sc_type)(type - 1);
 				clif_skill_nodamage(src,battle_get_master(src),skill_id,skill_lv,1);
 				clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 				if ((sc && sc->data[type2]) || (tsc && tsc->data[type]))
@@ -5205,12 +5208,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 	struct status_data *sstatus, *tstatus;
 	struct status_change *tsc;
 	struct status_change_entry *tsce;
-
-	int i = 0;
 	enum sc_type type;
-	int rate = 0;
-	//Chorus bonus value for chorus skills. Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
-	int chorusbonus = 0;
+	int i = 0, rate = 0, partybonus = 0, chorusbonus = 0;
 
 	if(skill_id > 0 && !skill_lv) return 0; //Celest
 
@@ -5233,14 +5232,19 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 	if(status_isdead(src))
 		return 1;
 
-	//Minstrel/Wanderer number check for chorus skills.
-	//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
-	if(sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus,sd,0) > 7)
+	if(sd && sd->status.party_id) {
+		//Minstrel/Wanderer number check for chorus skills.
+		//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 		//Maximum effect possiable from 7 or more Minstrel's/Wanderer's
-		chorusbonus = 5;
-	else if(sd && sd->status.party_id && party_foreachsamemap(party_sub_count_chorus,sd,0) > 2)
+		if(party_foreachsamemap(party_sub_count_chorus,sd,0) > 7)
+			chorusbonus = 5;
 		//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
-		chorusbonus = party_foreachsamemap(party_sub_count_chorus,sd,0) - 2;
+		else if(party_foreachsamemap(party_sub_count_chorus,sd,0) > 2)
+			chorusbonus = party_foreachsamemap(party_sub_count_chorus,sd,0) - 2;
+
+		if(party_foreachsamemap(party_sub_count,sd,0) > 1)
+			partybonus = party_foreachsamemap(party_sub_count,sd,0);
+	}
 
 	if(src != bl && status_isdead(bl)) {
 		//Skills that may be cast on dead targets
@@ -5370,15 +5374,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					break;
 				if((p = party_search(sd->status.party_id)) == NULL)
 					break;
-
 				range = skill_get_splash(skill_id,skill_lv);
 				x0 = sd->bl.x - range;
 				y0 = sd->bl.y - range;
 				x1 = sd->bl.x + range;
 				y1 = sd->bl.y + range;
-
 				elemental_delete(sd->ed,0);
-
 				if(!skill_check_unit_range(src,src->x,src->y,skill_id,skill_lv))
 					ret = skill_castend_pos2(src,src->x,src->y,skill_id,skill_lv,tick,flag);
 				for(i = 0; i < MAX_PARTY; i++) {
@@ -5441,17 +5442,17 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						}
 					} else if( tsc->data[SC_BERSERK] || tsc->data[SC_SATURDAYNIGHTFEVER] )
 						heal = 0; //Needed so that it actually displays 0 when healing.
+					clif_skill_nodamage(src,bl,skill_id,heal,1);
+					if( tsc->data[SC_AKAITSUKI] && heal && skill_id != HLIF_HEAL )
+						heal = ~heal + 1;
+					heal_get_jobexp = status_heal(bl,heal,0,0);
 				}
-				clif_skill_nodamage(src,bl,skill_id,heal,1);
-				if( tsc && tsc->data[SC_AKAITSUKI] && heal && skill_id != HLIF_HEAL )
-					heal = ~heal + 1;
-				heal_get_jobexp = status_heal(bl,heal,0,0);
 
 				if( sd && dstsd && heal > 0 && sd != dstsd && battle_config.heal_exp > 0 ) {
 					heal_get_jobexp = heal_get_jobexp * battle_config.heal_exp / 100;
 					if( heal_get_jobexp <= 0 )
 						heal_get_jobexp = 1;
-					pc_gainexp (sd,bl,0,heal_get_jobexp,false);
+					pc_gainexp(sd,bl,0,heal_get_jobexp,false);
 				}
 			}
 			break;
@@ -8427,21 +8428,21 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case AB_PRAEFATIO:
 			if( sd == NULL || !sd->status.party_id || flag&1 )
-				clif_skill_nodamage(bl,bl,skill_id,skill_lv,sc_start4(src,bl,type,100,skill_lv,0,0,1,skill_get_time(skill_id,skill_lv)));
+				clif_skill_nodamage(bl,bl,skill_id,skill_lv,sc_start4(src,bl,type,100,skill_lv,0,0,partybonus,skill_get_time(skill_id,skill_lv)));
 			else if( sd )
 				party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
 			break;
 
 		case AB_CHEAL:
 			if( sd == NULL || !sd->status.party_id || flag&1 ) {
-				if( sd && tstatus && !battle_check_undead(tstatus->race,tstatus->def_ele) && !tsc->data[SC_BERSERK] ) {
+				if( sd && !battle_check_undead(tstatus->race,tstatus->def_ele) && tsc && !tsc->data[SC_BERSERK] ) {
 					i = skill_calc_heal(src,bl,AL_HEAL,pc_checkskill(sd,AL_HEAL),true);
-
-					if( (dstsd && pc_ismadogear(dstsd)) || status_isimmune(bl))
-							i = 0; //Should heal by 0 or won't do anything?? in iRO it breaks the healing to members.. [malufett]
-
+					if( partybonus )
+						i += (i / 100) * (partybonus * 10) / 4;
+					if( (dstsd && pc_ismadogear(dstsd)) || status_isimmune(bl) )
+						i = 0; //Should heal by 0 or won't do anything?? in iRO it breaks the healing to members.. [malufett]
 					clif_skill_nodamage(bl,bl,skill_id,i,1);
-					if( tsc && tsc->data[SC_AKAITSUKI] && i )
+					if( tsc->data[SC_AKAITSUKI] && i )
 						i = ~i + 1;
 					status_heal(bl,i,0,0);
 				}
@@ -8587,7 +8588,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case AB_SILENTIUM:
-			//Should the level of Lex Divina be equivalent to the level of Silentium or should the highest level learned be used? [LimitLine]
 			map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_CHAR,
 				src,PR_LEXDIVINA,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -9144,7 +9144,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case SR_CURSEDCIRCLE:
 			if( flag&1 ) {
-				if( is_boss(bl) ) break;
+				if( is_boss(bl) )
+					break;
 				if( sc_start2(src,bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv))) {
 					if( bl->type == BL_MOB )
 						mob_unlocktarget((TBL_MOB*)bl,gettick());
@@ -9159,7 +9160,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 				count = map_forcountinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),(sd) ? sd->spiritball_old : 15, //Assume 15 spiritballs in non-charactors
 					BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
-				if( sd ) pc_delspiritball(sd,count,0);
+				if( sd )
+					pc_delspiritball(sd,count,0);
 				clif_skill_nodamage(src,src,skill_id,skill_lv,
 					sc_start2(src,src,SC_CURSEDCIRCLE_ATKER,100,skill_lv,count,skill_get_time(skill_id,skill_lv)));
 			}
@@ -9168,6 +9170,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SR_RAISINGDRAGON:
 			if( sd ) {
 				short max = 5 + skill_lv;
+
 				if( pc_checkskill(sd,MO_EXPLOSIONSPIRITS) > 0 ) //Only starts the status at the highest learned level if you learned it.
 					sc_start(src,bl,SC_EXPLOSIONSPIRITS,100,pc_checkskill(sd,MO_EXPLOSIONSPIRITS),skill_get_time(skill_id,skill_lv));
 				for( i = 0; i < max; i++ ) //Don't call more than max available spheres.
@@ -9184,7 +9187,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					i = dstsd->spiritball; //1% sp per spiritball.
 					pc_delspiritball(dstsd,dstsd->spiritball,0);
 				}
-				if( i ) status_percent_heal(src,0,i);
+				if( i )
+					status_percent_heal(src,0,i);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,i ? 1 : 0);
 			} else {
 				clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
@@ -9270,6 +9274,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 				if( rnd()%100 < 88 + 2 * skill_lv ) {
 					int heal = 0;
+
 					status_zap(bl,0,tstatus->sp * ( 60 - 10 * skill_lv ) / 100);
 					heal = tstatus->sp;
 					if( heal <= 0 )
@@ -9284,11 +9289,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case WM_LULLABY_DEEPSLEEP:
 			if( flag&1 ) {
 				//[(Skill Level x 4) + (Voice Lessons Skill Level x 2) + (Caster Base Level / 15) + (Caster Job Level / 5)] %
-				rate = ( 4 * skill_lv ) + ( sd ? pc_checkskill(sd,WM_LESSON) * 2 + sd->status.job_level / 5 : 0 ) + status_get_lv(src) / 15;
-				tick = status_get_lv(bl) / 20 + status_get_int(bl) / 20;
-				if( rate > 60 ) rate = 60;
+				rate = (4 * skill_lv) + (sd ? pc_checkskill(sd,WM_LESSON) * 2 +
+					(sd->status.job_level > 50 ? 50 : sd->status.job_level) / 5 : 0) +
+						(status_get_lv(src) > 150 ? 150 : status_get_lv(src)) / 15;
+				if( rate > 60 )
+					rate = 60;
 				if( bl != src )
-					sc_start(src,bl,type,rate,skill_lv,skill_get_time(skill_id,skill_lv) - (1000 * tick));
+					sc_start(src,bl,type,rate,skill_lv,skill_get_time(skill_id,skill_lv));
 			} else {
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),BL_CHAR,
@@ -9299,7 +9306,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case WM_SIRCLEOFNATURE:
 			if( flag&1 )
 				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
-			else if( sd ) {
+			else {
 				map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_PC,src,skill_id,skill_lv,tick,flag|BCT_ALL|1,skill_castend_nodamage_id);
 				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 			}
@@ -9307,10 +9314,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case WM_VOICEOFSIREN:
 			if( flag&1 ) {
-				tick = status_get_lv(bl) / 10 + (dstsd ? dstsd->status.job_level / 5 : 0);
+				tick = (status_get_lv(bl) > 150 ? 150 :
+					status_get_lv(bl)) / 10 + (dstsd ? (dstsd->status.job_level > 50 ? 50 :
+						dstsd->status.job_level) / 5 : 0);
 				sc_start2(src,bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv) - (1000 * tick));
 			} else if( sd ) {
-				rate = 6 * skill_lv + 2 * pc_checkskill(sd,WM_LESSON) + sd->status.job_level / 2;
+				rate = 6 * skill_lv + 2 * pc_checkskill(sd,WM_LESSON) +
+					(sd->status.job_level > 50 ? 50 : sd->status.job_level) / 2;
 				if( rnd()%100 < rate ) {
 					map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_CHAR|BL_SKILL,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -9346,6 +9356,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case WM_SATURDAY_NIGHT_FEVER: {
 				int madnesscheck = 0;
+
 				if( sd ) //Required to check if the lord of madness effect will be applied.
 					madnesscheck = map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_PC,src,skill_id,skill_lv,tick,flag|BCT_ENEMY,skill_area_sub_count);
 				if( flag&1 ) {
@@ -9367,7 +9378,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case WM_BEYOND_OF_WARCRY:
 			if( flag&1 )
 				sc_start2(src,bl,type,100,skill_lv,chorusbonus,skill_get_time(skill_id,skill_lv));
-			else if( sd ) {
+			else {
 				if( rnd()%100 < 15 + 5 * skill_lv + 5 * chorusbonus ) {
 					map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_PC,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -9377,6 +9388,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case WM_RANDOMIZESPELL: {
 				int improv_skill_id = 0, improv_skill_lv;
+
 				do {
 					i = rnd()%MAX_SKILL_IMPROVISE_DB;
 					improv_skill_id = skill_improvise_db[i].skill_id;
@@ -9392,6 +9404,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				} else {
 					struct unit_data *ud = unit_bl2ud(src);
 					int inf = skill_get_inf(improv_skill_id);
+
 					if (!ud) break;
 					if (inf&INF_SELF_SKILL || inf&INF_SUPPORT_SKILL) {
 						if (src->type == BL_PET)
@@ -9400,6 +9413,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						unit_skilluse_id(src,bl->id,improv_skill_id,improv_skill_lv);
 					} else {
 						int target_id = 0;
+
 						if (ud->target)
 							target_id = ud->target;
 						else switch (src->type) {
@@ -11077,7 +11091,6 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 				return 0;
 			}
 			skill_unitsetting(src,skill_id,skill_lv,x,y,flag);
-			status_change_end(src,SC_POISONINGWEAPON,INVALID_TIMER);
 			clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 			break;
 
@@ -11192,11 +11205,11 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 		case GN_CRAZYWEED: {
 				int area = skill_get_splash(GN_CRAZYWEED_ATK,skill_lv);
-				short x1 = 0, y1 = 0;
 
 				for( i = 0; i < 3 + (skill_lv / 2); i++ ) {
-					x1 = x - area + rnd()%(area * 2 + 1);
-					y1 = y - area + rnd()%(area * 2 + 1);
+					int x1 = x - area + rnd()%(area * 2 + 1);
+					int y1 = y - area + rnd()%(area * 2 + 1);
+
 					skill_addtimerskill(src,tick + i * 150,0,x1,y1,GN_CRAZYWEED_ATK,skill_lv,-1,0);
 				}
 			}
@@ -12436,6 +12449,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 					skill_attack(BF_MISC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 			} else {
 				int heal = skill_calc_heal(ss,bl,sg->skill_id,sg->skill_lv,true);
+
 				if (tstatus->hp >= tstatus->max_hp)
 					break;
 				if (status_isimmune(bl))
@@ -12642,9 +12656,9 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				if (sg->src_id == bl->id && !(tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_BARDDANCER))
 					break; //Affects self only when soullinked
 				heal = skill_calc_heal(ss,bl,sg->skill_id,sg->skill_lv,true);
+				clif_skill_nodamage(&src->bl,bl,AL_HEAL,heal,1);
 				if (tsc && tsc->data[SC_AKAITSUKI] && heal)
 					heal = ~heal + 1;
-				clif_skill_nodamage(&src->bl,bl,AL_HEAL,heal,1);
 				status_heal(bl,heal,0,0);
 			}
 			break;
@@ -12927,6 +12941,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			if (bl->type == BL_PC && !battle_check_undead(tstatus->race,tstatus->def_ele) && tstatus->race != RC_DEMON) {
 				int hp = 0;
 				struct status_change *ssc = status_get_sc(ss);
+
 				if (ssc && ssc->data[SC_HEATER_OPTION])
 					hp = tstatus->max_hp * 3 * sg->skill_lv / 100;
 				else
@@ -13664,12 +13679,12 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			}
 			break;
 		case AS_CLOAKING: {
-				static int dx[] = { 0, 1, 0, -1, -1,  1, 1, -1};
-				static int dy[] = {-1, 0, 1,  0, -1, -1, 1,  1};
-
 				if( skill_lv < 3 && ((sd->bl.type == BL_PC && battle_config.pc_cloak_check_type&1) ||
 					(sd->bl.type != BL_PC && battle_config.monster_cloak_check_type&1)) ) { //Check for walls.
+					static int dx[] = { 0, 1, 0, -1, -1,  1, 1, -1};
+					static int dy[] = {-1, 0, 1,  0, -1, -1, 1,  1};
 					int i;
+
 					ARR_FIND( 0, 8, i, map_getcell(sd->bl.m, sd->bl.x+dx[i], sd->bl.y+dy[i], CELL_CHKNOPASS) != 0 );
 					if( i == 8 ) {
 						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -13818,11 +13833,13 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			}
 			break;
 		case CG_MOONLIT: { //Check there's no wall in the range+1 area around the caster. [Skotlex]
-				int i,x,y,range = skill_get_splash(skill_id, skill_lv)+1;
+				int i, range = skill_get_splash(skill_id, skill_lv)+1;
 				int size = range * 2 + 1;
+
 				for( i = 0; i < size * size; i++ ) {
-					x = sd->bl.x + (i % size - range);
-					y = sd->bl.y + (i / size - range);
+					int x = sd->bl.x + (i % size - range);
+					int y = sd->bl.y + (i / size - range);
+
 					if( map_getcell(sd->bl.m,x,y,CELL_CHKWALL) ) {
 						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 						return 0;
@@ -13832,6 +13849,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			break;
 		case PR_REDEMPTIO: {
 				int exp;
+
 				if( ((exp = pc_nextbaseexp(sd)) > 0 && get_percentage(sd->status.base_exp, exp) < 1) ||
 					((exp = pc_nextjobexp(sd)) > 0 && get_percentage(sd->status.job_exp, exp) < 1) ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0); //Not enough exp.
@@ -13842,11 +13860,13 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 		case HP_BASILICA:
 			if( !sc || (sc && !sc->data[SC_BASILICA]) ) {
 				if( sd ) {
-					int i,x,y,range = skill_get_unit_range(skill_id,skill_lv)+1;
+					int i, range = skill_get_unit_range(skill_id,skill_lv)+1;
 					int size = range * 2 + 1;
+
 					for( i = 0; i < size * size; i++ ) {
-						x = sd->bl.x + (i % size - range);
-						y = sd->bl.y + (i / size - range);
+						int x = sd->bl.x + (i % size - range);
+						int y = sd->bl.y + (i / size - range);
+
 						if( map_getcell(sd->bl.m,x,y,CELL_CHKWALL) ) {
 							clif_skill_fail(sd,skill_id,USESKILL_FAIL,0);
 							return 0;
@@ -14424,7 +14444,7 @@ int skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id, 
 		}
 		case NC_SILVERSNIPER:
 		case NC_MAGICDECOY: {
-				int c = 0, j;
+				int c = 0;
 				int maxcount = skill_get_maxcount(skill_id,skill_lv);
 				int mob_id = MOBID_SILVERSNIPER;
 
@@ -14433,6 +14453,8 @@ int skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id, 
 
 				if( battle_config.land_skill_limit && maxcount > 0 && ( battle_config.land_skill_limit&BL_PC ) ) {
 					if( skill_id == NC_MAGICDECOY ) {
+						int j;
+
 						for( j = mob_id; j <= MOBID_MAGICDECOY_WIND; j++ )
 							map_foreachinmap(skill_check_condition_mob_master_sub, sd->bl.m, BL_MOB, sd->bl.id, j, skill_id, &c);
 					} else
@@ -15503,13 +15525,14 @@ void skill_weaponrefine (struct map_session_data *sd, int idx)
 	nullpo_retv(sd);
 
 	if (idx >= 0 && idx < MAX_INVENTORY) {
-		int i = 0, ep = 0, per;
-		int material[5] = { 0,ITEMID_PHRACON,ITEMID_EMVERETARCON,ITEMID_ORIDECON,ITEMID_ORIDECON };
 		struct item *item;
 		struct item_data *ditem = sd->inventory_data[idx];
 
 		item = &sd->status.inventory[idx];
 		if (item->nameid > 0 && ditem->type == IT_WEAPON) {
+			int i = 0, ep = 0, per;
+			int material[5] = { 0,ITEMID_PHRACON,ITEMID_EMVERETARCON,ITEMID_ORIDECON,ITEMID_ORIDECON };
+
 			if( ditem->flag.no_refine ) { //If the item isn't refinable
 				clif_skill_fail(sd,sd->menuskill_id,USESKILL_FAIL_LEVEL,0);
 				return;
@@ -16246,15 +16269,16 @@ int skill_enchant_elemental_end (struct block_list *bl, int type)
 
 bool skill_check_cloaking(struct block_list *bl, struct status_change_entry *sce)
 {
-	static int dx[] = { 0, 1, 0, -1, -1,  1, 1, -1};
-	static int dy[] = {-1, 0, 1,  0, -1, -1, 1,  1};
 	bool wall = true;
 
-	if( (bl->type == BL_PC && battle_config.pc_cloak_check_type&1)
-	||	(bl->type != BL_PC && battle_config.monster_cloak_check_type&1) )
+	if( (bl->type == BL_PC && battle_config.pc_cloak_check_type&1) ||
+		(bl->type != BL_PC && battle_config.monster_cloak_check_type&1) )
 	{ //Check for walls.
+		static int dx[] = { 0, 1, 0, -1, -1,  1, 1, -1};
+		static int dy[] = {-1, 0, 1,  0, -1, -1, 1,  1};
 		int i;
-		ARR_FIND( 0, 8, i, map_getcell(bl->m, bl->x+dx[i], bl->y+dy[i], CELL_CHKNOPASS) != 0 );
+
+		ARR_FIND( 0, 8, i, map_getcell(bl->m, bl->x + dx[i], bl->y + dy[i], CELL_CHKNOPASS) != 0 );
 		if( i == 8 )
 			wall = false;
 	}
@@ -16279,22 +16303,22 @@ bool skill_check_cloaking(struct block_list *bl, struct status_change_entry *sce
 }
 bool skill_check_camouflage(struct block_list *bl, struct status_change_entry *sce)
 {
-	static int dx[] = { 0, 1, 0, -1, -1,  1, 1, -1};
-	static int dy[] = {-1, 0, 1,  0, -1, -1, 1,  1};
 	bool wall = true;
 
 	if( bl->type == BL_PC ) { //Check for walls.
+		static int dx[] = { 0, 1, 0, -1, -1,  1, 1, -1};
+		static int dy[] = {-1, 0, 1,  0, -1, -1, 1,  1};
 		int i;
-		ARR_FIND(0, 8, i, map_getcell(bl->m, bl->x+dx[i], bl->y+dy[i], CELL_CHKNOPASS) != 0);
+
+		ARR_FIND(0, 8, i, map_getcell(bl->m, bl->x + dx[i], bl->y + dy[i], CELL_CHKNOPASS) != 0);
 		if( i == 8 )
 			wall = false;
 	}
 
 	if( sce ) {
-		if( !wall ) {
+		if( !wall )
 			if( sce->val1 == 1 ) //End camouflage.
 				status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
-		}
 		status_calc_bl(bl, SCB_SPEED);
 	}
 
@@ -16519,12 +16543,16 @@ struct skill_unit_group* skill_initunitgroup (struct block_list* src, int count,
 	if(i == MAX_SKILLUNITGROUP) {
 		//Array is full, make room by discarding oldest group
 		int j = 0;
-		unsigned maxdiff = 0, x, tick = gettick();
-		for(i = 0; i < MAX_SKILLUNITGROUP && ud->skillunit[i]; i++)
-			if((x = DIFF_TICK(tick,ud->skillunit[i]->tick)) > maxdiff) {
+		unsigned maxdiff = 0, tick = gettick();
+
+		for(i = 0; i < MAX_SKILLUNITGROUP && ud->skillunit[i]; i++) {
+			unsigned int x = DIFF_TICK(tick,ud->skillunit[i]->tick);
+
+			if(x > maxdiff) {
 				maxdiff = x;
 				j = i;
 			}
+		}
 		skill_delunitgroup(ud->skillunit[j]);
 		//Since elements must have shifted, we use the last slot.
 		i = MAX_SKILLUNITGROUP - 1;
@@ -16711,7 +16739,7 @@ int skill_clear_unitgroup (struct block_list *src)
  *------------------------------------------*/
 struct skill_unit_group_tickset *skill_unitgrouptickset_search (struct block_list *bl, struct skill_unit_group *group, int tick)
 {
-	int i,j = -1,k,s,id;
+	int i, j = -1, s, id;
 	struct unit_data *ud;
 	struct skill_unit_group_tickset *set;
 
@@ -16730,7 +16758,8 @@ struct skill_unit_group_tickset *skill_unitgrouptickset_search (struct block_lis
 		id = s = group->group_id;
 
 	for (i = 0; i < MAX_SKILLUNITGROUPTICKSET; i++) {
-		k = (i + s) % MAX_SKILLUNITGROUPTICKSET;
+		int k = (i + s) % MAX_SKILLUNITGROUPTICKSET;
+
 		if (set[k].id == id)
 			return &set[k];
 		else if (j == -1 && (DIFF_TICK(tick,set[k].tick) > 0 || set[k].id == 0))
@@ -17230,7 +17259,7 @@ int skill_unit_move_unit_group (struct skill_unit_group *group, int16 m, int16 d
  *------------------------------------------*/
 int skill_can_produce_mix (struct map_session_data *sd, int nameid, int trigger, int qty)
 {
-	int i,j;
+	int i, j;
 
 	nullpo_ret(sd);
 
@@ -17251,9 +17280,8 @@ int skill_can_produce_mix (struct map_session_data *sd, int nameid, int trigger,
 	if (i >= MAX_SKILL_PRODUCE_DB)
 		return 0;
 
-	if (pc_checkadditem(sd, nameid, qty) == CHKADDITEM_OVERAMOUNT) { //Cannot carry the produced stuff
+	if (pc_checkadditem(sd, nameid, qty) == CHKADDITEM_OVERAMOUNT) //Cannot carry the produced stuff
 		return 0;
-	}
 
 	if (trigger >= 0) {
 		if (trigger > 20) { //Non-weapon, non-food item (itemlv must match)
@@ -17269,13 +17297,16 @@ int skill_can_produce_mix (struct map_session_data *sd, int nameid, int trigger,
 	}
 
 	for (j = 0; j < MAX_PRODUCE_RESOURCE; j++) {
-		int id,x,y;
+		int id;
+
 		if ((id = skill_produce_db[i].mat_id[j]) <= 0)
 			continue;
 		if (skill_produce_db[i].mat_amount[j] <= 0) {
 			if (pc_search_inventory(sd,id) < 0)
 				return 0;
 		} else {
+			int x, y;
+
 			for (y = 0, x = 0; y < MAX_INVENTORY; y++)
 				if (sd->status.inventory[y].nameid == id)
 					x += sd->status.inventory[y].amount;
@@ -18111,7 +18142,7 @@ int skill_elementalanalysis(struct map_session_data* sd, int n, uint16 skill_lv,
 		return 1;
 
 	for( i = 0; i < n; i++ ) {
-		int nameid, add_amount, del_amount, idx, product, flag;
+		int nameid, add_amount, del_amount, idx, product;
 		struct item tmp_item;
 
 		idx = item_list[i * 2 + 0] - 2;
@@ -18151,13 +18182,15 @@ int skill_elementalanalysis(struct map_session_data* sd, int n, uint16 skill_lv,
 			clif_skill_fail(sd,SO_EL_ANALYSIS,USESKILL_FAIL_LEVEL,0);
 			return 1;
 		}
-		
+
 		memset(&tmp_item,0,sizeof(tmp_item));
 		tmp_item.nameid = product;
 		tmp_item.amount = add_amount;
 		tmp_item.identify = 1;
 		if( tmp_item.amount ) {
-			if( (flag = pc_additem(sd,&tmp_item,tmp_item.amount,LOG_TYPE_CONSUME)) ) {
+			int flag = pc_additem(sd,&tmp_item,tmp_item.amount,LOG_TYPE_CONSUME);
+ 
+			if( flag ) {
 				clif_additem(sd,0,0,flag);
 				map_addflooritem(&tmp_item,tmp_item.amount,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 			}
@@ -18428,12 +18461,17 @@ int skill_split_str (char *str, char **val, int num)
 
 	return i;
 }
-/*
- *
+
+/**
+ * Split the string with ':' as separator and put each value for a skilllv
+ * if no more value found put the latest to fill the array
+ * @param str : string to split
+ * @param val : array of MAX_SKILL_LEVEL to put value into
+ * @return 0:error, x:number of value assign (should be MAX_SKILL_LEVEL)
  */
 int skill_split_atoi (char *str, int *val)
 {
-	int i, j, diff, step = 1;
+	int i, j, step = 1;
 
 	for( i = 0; i < MAX_SKILL_LEVEL; i++ ) {
 		if( !str ) break;
@@ -18451,7 +18489,8 @@ int skill_split_atoi (char *str, int *val)
 	}
 	//Check for linear change with increasing steps until we reach half of the data acquired.
 	for( step = 1; step <= i / 2; step++ ) {
-		diff = val[i - 1] - val[i - step - 1];
+		int diff = val[i - 1] - val[i - step - 1];
+
 		for( j = i-1; j >= step; j-- )
 			if( (val[j] - val[j - step]) != diff )
 				break;
@@ -18481,13 +18520,14 @@ int skill_split_atoi (char *str, int *val)
  */
 void skill_init_unit_layout (void)
 {
-	int i, j, size, pos = 0;
+	int i, j, pos = 0;
 
 	memset(skill_unit_layout,0,sizeof(skill_unit_layout));
 
 	//Standard square layouts go first
 	for( i = 0; i <= MAX_SQUARE_LAYOUT; i++ ) {
-		size = i * 2 + 1;
+		int size = i * 2 + 1;
+
 		skill_unit_layout[i].count = size * size;
 		for( j = 0; j < size * size; j++ ) {
 			skill_unit_layout[i].dx[j] = (j%size - i);

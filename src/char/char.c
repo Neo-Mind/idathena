@@ -4765,9 +4765,9 @@ int parse_console(const char* buf)
 	char command[64];
 	int n = 0;
 
-	if( ( n = sscanf(buf, "%63[^:]:%63[^\n]", type, command) ) < 2 ) {
-		if( (n = sscanf(buf, "%63[^\n]", type)) < 1 ) return -1; //Nothing to do no arg
-	}
+	if( (n = sscanf(buf, "%63[^:]:%63[^\n]", type, command)) < 2 )
+		if( (n = sscanf(buf, "%63[^\n]", type)) < 1 )
+			return -1; //Nothing to do no arg
 	if( n != 2 ) { //End string
 		ShowNotice("Type: '%s'\n",type);
 		command[0] = '\0';
@@ -4775,13 +4775,13 @@ int parse_console(const char* buf)
 		ShowNotice("Type of command: '%s' || Command: '%s'\n",type,command);
 
 	if( n == 2 && strcmpi("server", type) == 0 ) {
-		if( strcmpi("shutdown", command) == 0 || strcmpi("exit", command) == 0 || strcmpi("quit", command) == 0 ) {
-			runflag = 0;
-		} else if( strcmpi("alive", command) == 0 || strcmpi("status", command) == 0 )
+		if( strcmpi("shutdown", command) == 0 || strcmpi("exit", command) == 0 || strcmpi("quit", command) == 0 )
+			runflag = CHARSERVER_ST_SHUTDOWN;
+		else if( strcmpi("alive", command) == 0 || strcmpi("status", command) == 0 )
 			ShowInfo(CL_CYAN"Console: "CL_BOLD"I'm Alive."CL_RESET"\n");
-	} else if( strcmpi("ers_report", type) == 0 ) {
+	} else if( strcmpi("ers_report", type) == 0 )
 		ers_report();
-	} else if( strcmpi("help", type) == 0 ) {
+	else if( strcmpi("help", type) == 0 ) {
 		ShowInfo("Available commands:\n");
 		ShowInfo("\t server:shutdown => Stops the server.\n");
 		ShowInfo("\t server:alive => Checks if the server is running.\n");
@@ -5657,6 +5657,7 @@ void do_shutdown(void)
 int do_init(int argc, char **argv)
 {
 	//Read map indexes
+	runflag = CHARSERVER_ST_STARTING;
 	mapindex_init();
 	start_point.map = mapindex_name2id("new_zone01");
 

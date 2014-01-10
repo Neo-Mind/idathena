@@ -351,6 +351,11 @@ int chrif_save(struct map_session_data *sd, int flag) {
 }
 
 //Connects to char-server (plaintext)
+/**
+ * Map-serv request to login into char-serv
+ * @param fd : char-serv fd to log into
+ * @return 0:request sent
+ */
 int chrif_connect(int fd) {
 	ShowStatus("Logging in to char server...\n", char_fd);
 	WFIFOHEAD(fd,60);
@@ -1483,7 +1488,7 @@ void chrif_on_disconnect(void) {
 		ShowWarning("Connection to Char Server lost.\n\n");
 	chrif_connected = 0;
 
- 	other_mapserver_count = 0; //Reset counter. We receive ALL maps from all map-servers on reconnect.
+	other_mapserver_count = 0; //Reset counter. We receive ALL maps from all map-servers on reconnect.
 	map_eraseallipport();
 
 	//Attempt to reconnect in a second. [Skotlex]

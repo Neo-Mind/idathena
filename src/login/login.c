@@ -290,22 +290,21 @@ static int sync_ip_addresses(int tid, unsigned int tick, int id, intptr_t data)
 //-----------------------------------------------------
 bool check_encrypted(const char* str1, const char* str2, const char* passwd)
 {
-	char tmpstr[64+1], md5str[32+1];
+	char tmpstr[64 + 1], md5str[32 + 1];
 
 	safesnprintf(tmpstr, sizeof(tmpstr), "%s%s", str1, str2);
 	MD5_String(tmpstr, md5str);
 
-	return (0==strcmp(passwd, md5str));
+	return (0 == strcmp(passwd, md5str));
 }
 
 bool check_password(const char* md5key, int passwdenc, const char* passwd, const char* refpass)
 {
-	if(passwdenc == 0) {
-		return (0==strcmp(passwd, refpass));
-	} else {
+	if(passwdenc == 0)
+		return (0 == strcmp(passwd, refpass));
+	else {
 		// password mode set to 1 -> md5(md5key, refpass) enable with <passwordencrypt></passwordencrypt>
 		// password mode set to 2 -> md5(refpass, md5key) enable with <passwordencrypt2></passwordencrypt2>
-
 		return ((passwdenc&0x01) && check_encrypted(md5key, refpass, passwd)) ||
 		       ((passwdenc&0x02) && check_encrypted(refpass, md5key, passwd));
 	}
@@ -317,6 +316,7 @@ bool check_password(const char* md5key, int passwdenc, const char* passwd, const
 int lan_subnetcheck(uint32 ip)
 {
 	int i;
+
 	ARR_FIND( 0, subnet_count, i, (subnet[i].char_ip & subnet[i].mask) == (ip & subnet[i].mask) );
 	return ( i < subnet_count ) ? subnet[i].char_ip : 0;
 }
@@ -337,15 +337,15 @@ int login_lan_config_read(const char *lancfgName)
 
 	while(fgets(line, sizeof(line), fp)) {
 		line_num++;
-		if ((line[0] == '/' && line[1] == '/') || line[0] == '\n' || line[1] == '\n')
+		if((line[0] == '/' && line[1] == '/') || line[0] == '\n' || line[1] == '\n')
 			continue;
 
-		if(sscanf(line,"%[^:]: %[^:]:%[^:]:%[^\r\n]", w1, w2, w3, w4) != 4) {
+		if(sscanf(line,"%63[^:]: %63[^:]:%63[^:]:%63[^\r\n]", w1, w2, w3, w4) != 4) {
 			ShowWarning("Error syntax of configuration file %s in line %d.\n", lancfgName, line_num);
 			continue;
 		}
 
-		if( strcmpi(w1, "subnet") == 0 ) {
+		if(strcmpi(w1, "subnet") == 0) {
 			subnet[subnet_count].mask = str2ip(w2);
 			subnet[subnet_count].char_ip = str2ip(w3);
 			subnet[subnet_count].map_ip = str2ip(w4);
@@ -359,7 +359,7 @@ int login_lan_config_read(const char *lancfgName)
 		}
 	}
 
-	if( subnet_count > 1 ) /* only useful if there is more than 1 available */
+	if(subnet_count > 1) /* only useful if there is more than 1 available */
 		ShowStatus("Read information about %d subnetworks.\n", subnet_count);
 
 	fclose(fp);
@@ -903,15 +903,14 @@ int parse_fromchar(int fd) {
 				if( RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2) )
 					return 0;
 				else {
-					struct online_login_data *p;
-					int aid;
 					uint32 i, users;
 
 					online_db->foreach(online_db, online_db_setoffline, id); //Set all chars from this char-server offline first
 					users = RFIFOW(fd,4);
 					for( i = 0; i < users; i++ ) {
-						aid = RFIFOL(fd,6 + i * 4);
-						p = idb_ensure(online_db, aid, create_online_user);
+						int aid = RFIFOL(fd,6 + i * 4);
+						struct online_login_data *p = idb_ensure(online_db, aid, create_online_user);
+
 						p->char_server = id;
 						if( p->waiting_disconnect != INVALID_TIMER ) {
 							delete_timer(p->waiting_disconnect, waiting_disconnect_timer);
@@ -1724,7 +1723,7 @@ int login_config_read(const char* cfgName)
 		if (line[0] == '/' && line[1] == '/')
 			continue;
 
-		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) < 2)
+		if (sscanf(line, "%1023[^:]: %1023[^\r\n]", w1, w2) < 2)
 			continue;
 
 		if(!strcmpi(w1,"timestamp_format"))
@@ -1787,11 +1786,11 @@ int login_config_read(const char* cfgName)
 			int group = 0;
 			char md5[33];
 
-			if(sscanf(w2, "%d, %32s", &group, md5) == 2) {
+			if(sscanf(w2, "%3d, %32s", &group, md5) == 2) {
 				struct client_hash_node *nnode;
 				int i;
-				CREATE(nnode, struct client_hash_node, 1);
 
+				CREATE(nnode, struct client_hash_node, 1);
 				for(i = 0; i < 32; i += 2) {
 					char buf[3];
 					unsigned int byte;
@@ -1799,7 +1798,7 @@ int login_config_read(const char* cfgName)
 					memcpy(buf, &md5[i], 2);
 					buf[2] = 0;
 
-					sscanf(buf, "%x", &byte);
+					sscanf(buf, "%2x", &byte);
 					nnode->hash[i / 2] = (uint8)(byte & 0xFF);
 				}
 
@@ -1955,11 +1954,12 @@ int do_init(int argc, char** argv)
 {
 	int i;
 
-	// intialize engines (to accept config settings)
+	runflag = LOGINSERVER_ST_STARTING;
+	// Intialize engines (to accept config settings)
 	for( i = 0; account_engines[i].constructor; ++i )
 		account_engines[i].db = account_engines[i].constructor();
 
-	// read login-server configuration
+	// Read login-server configuration
 	login_set_defaults();
 
 	LOGIN_CONF_NAME = "conf/login_athena.conf";
@@ -1977,11 +1977,11 @@ int do_init(int argc, char** argv)
 	for( i = 0; i < ARRAYLENGTH(server); ++i )
 		chrif_server_init(i);
 
-	// initialize logging
+	// Initialize logging
 	if( login_config.log_login )
 		loginlog_init();
 
-	// initialize static and dynamic ipban system
+	// Initialize static and dynamic ipban system
 	ipban_init();
 
 	// Online user database init
@@ -1991,14 +1991,14 @@ int do_init(int argc, char** argv)
 	// Interserver auth init
 	auth_db = idb_alloc(DB_OPT_RELEASE_DATA);
 
-	// set default parser as parse_login function
+	// Set default parser as parse_login function
 	set_defaultparse(parse_login);
 
-	// every 10 minutes cleanup online account db.
+	// Every 10 minutes cleanup online account db.
 	add_timer_func_list(online_data_cleanup, "online_data_cleanup");
 	add_timer_interval(gettick() + 600*1000, online_data_cleanup, 0, 0, 600*1000);
 
-	// add timer to detect ip address change and perform update
+	// Add timer to detect ip address change and perform update
 	if (login_config.ip_sync_interval) {
 		add_timer_func_list(sync_ip_addresses, "sync_ip_addresses");
 		add_timer_interval(gettick() + login_config.ip_sync_interval, sync_ip_addresses, 0, 0, login_config.ip_sync_interval);

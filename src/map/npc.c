@@ -3931,10 +3931,8 @@ int npc_reload(void) {
 	do_reload_instance();
 
 	//Execute rest of the startup events if connected to char-server. [Lance]
-	if( !CheckForCharServer() ) {
+	if( !CheckForCharServer() )
 		ShowStatus("Event '"CL_WHITE"OnInterIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnInterIfInit"));
-		ShowStatus("Event '"CL_WHITE"OnInterIfInitOnce"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnInterIfInitOnce"));
-	}
 	return 0;
 }
 
@@ -3943,7 +3941,7 @@ bool npc_unloadfile( const char* path ) {
 	DBIterator * iter = db_iterator(npcname_db);
 	struct npc_data* nd = NULL;
 	bool found = false;
-	
+
 	for( nd = dbi_first(iter); dbi_exists(iter); nd = dbi_next(iter) ) {
 		if( nd->path && strcasecmp(nd->path,path) == 0 ) {
 			found = true;
@@ -3951,12 +3949,12 @@ bool npc_unloadfile( const char* path ) {
 			npc_unload(nd, true);
 		}
 	}
-	
+
 	dbi_destroy(iter);
-	
-	if( found ) /* refresh event cache */
+
+	if( found ) /* Refresh event cache */
 		npc_read_event_script();
-	
+
 	return found;
 }
 

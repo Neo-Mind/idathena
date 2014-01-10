@@ -3731,16 +3731,16 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			RE_LVL_DMOD(100);
 			break;
 		case WM_GREAT_ECHO: {
-				//Minstrel/Wanderer number check for chorus skills.
-				//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 				int chorusbonus = 0;
 
-				if(sd) {
+				if(sd && sd->status.party_id) {
+					//Minstrel/Wanderer number check for chorus skills.
+					//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 					//Maximum effect possiable from 7 or more Minstrel's/Wanderer's.
-					if(sd->status.party_id && party_foreachsamemap(party_sub_count_chorus,sd,0) > 7)
+					if(party_foreachsamemap(party_sub_count_chorus,sd,0) > 7)
 						chorusbonus = 5;
-					else if(sd->status.party_id && party_foreachsamemap(party_sub_count_chorus,sd,0) > 2)
-						//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
+					//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
+					else if(party_foreachsamemap(party_sub_count_chorus,sd,0) > 2)
 						chorusbonus = party_foreachsamemap(party_sub_count_chorus,sd,0) - 2;
 				}
 
@@ -4058,16 +4058,16 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 	struct status_change *sc = status_get_sc(src);
 	struct status_data *sstatus = status_get_status_data(src);
-	//Minstrel/Wanderer number check for chorus skills.
-	//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 	int chorusbonus = 0, type;
 
 	if(sd) {
+		//Minstrel/Wanderer number check for chorus skills.
+		//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 		//Maximum effect possiable from 7 or more Minstrel's/Wanderer's.
 		if(sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 7)
 			chorusbonus = 5;
+		//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
 		else if(sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 2)
-			//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
 			chorusbonus = party_foreachsamemap(party_sub_count_chorus, sd, 0) - 2;
 
 		//KO Earth Charm effect +15% wATK
@@ -4249,7 +4249,6 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 	struct status_change *tsc = status_get_sc(target);
 	struct status_data *sstatus = status_get_status_data(src);
 	struct status_data *tstatus = status_get_status_data(target);
-	int i;
 
 	//Defense reduction
 	short vit_def;
@@ -4264,39 +4263,43 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 
 	if(sd) {
 		int type;
+		int i = sd->ignore_def_by_race[tstatus->race] + sd->ignore_def_by_race[RC_ALL];
 
-		i = sd->ignore_def_by_race[tstatus->race] + sd->ignore_def_by_race[RC_ALL];
 		i += sd->ignore_def_by_class[tstatus->class_] + sd->ignore_def_by_class[CLASS_ALL];
 		if(i) {
-			if(i > 100) i = 100;
-			def1 -= def1 * i / 100;
-			def2 -= def2 * i / 100;
+			i = min(i, 100); //Cap it to 100 for 0 def min
+			def1 = (def1 * (100 - i)) / 100;
+			def2 = (def2 * (100 - i)) / 100;
 		}
 
 		//KO Earth Charm effect +5% eDEF
 		ARR_FIND(1, 6, type, sd->talisman[type] > 0);
-		if(type == 2)
-			def1 += def1 * (5 * sd->talisman[type]) / 100;
+		if(type == 2) {
+			short i = 5 * sd->talisman[type];
+
+			def1 = (def1 * (100 + i)) / 100;
+		}
 	}
 
 	if(sc && sc->data[SC_EXPIATIO]) {
 		short i = 5 * sc->data[SC_EXPIATIO]->val1; //5% per level
 
-		i = min(i, 100); //Cap it to 100 for 0 def min
+		i = min(i, 100);
 		def1 = (def1 * (100 - i)) / 100;
 		def2 = (def2 * (100 - i)) / 100;
 	}
 
 	if(tsc) {
 		if(tsc->data[SC_FORCEOFVANGUARD]) {
-			i = 2 * tsc->data[SC_FORCEOFVANGUARD]->val1;
-			def1 += def1 * i / 100;
+			short i = 2 * tsc->data[SC_FORCEOFVANGUARD]->val1;
+
+			def1 = (def1 * (100 + i)) / 100;
 		}
 
 		if(tsc->data[SC_CAMOUFLAGE]) {
 			short i = 5 * tsc->data[SC_CAMOUFLAGE]->val3; //5% per second
 
-			i = min(i, 100); //Cap it to 100 for 0 def min
+			i = min(i, 100);
 			def1 = (def1 * (100 - i)) / 100;
 			def2 = (def2 * (100 - i)) / 100;
 		}
@@ -5930,8 +5933,6 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 #endif
 	short i, nk;
 	short s_ele;
-	//Minstrel/Wanderer number check for chorus skills.
-	//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 	int chorusbonus = 0;
 
 	struct map_session_data *sd, *tsd;
@@ -5960,11 +5961,13 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	tsd = BL_CAST(BL_PC,target);
 
 	if(sd) {
+		//Minstrel/Wanderer number check for chorus skills.
+		//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
 		//Maximum effect possiable from 7 or more Minstrel's/Wanderer's
 		if(sd->status.party_id && party_foreachsamemap(party_sub_count_chorus,sd,0) > 7)
 			chorusbonus = 5;
+		//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
 		else if(sd->status.party_id && party_foreachsamemap(party_sub_count_chorus,sd,0) > 2)
-			//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
 			chorusbonus = party_foreachsamemap(party_sub_count_chorus,sd,0) - 2;
 
 		sd->state.arrow_atk = 0;

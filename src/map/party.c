@@ -1159,6 +1159,7 @@ int party_foreachsamemap(int (*func)(struct block_list*,va_list),struct map_sess
 
 	for(i = 0; i < MAX_PARTY; i++) {
 		struct map_session_data *psd = p->data[i].sd;
+
 		if(!psd)
 			continue;
 		if(psd->bl.m != sd->bl.m || !psd->bl.prev)

@@ -66,12 +66,20 @@ struct clif_config {
 struct s_packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB + 1];
 int packet_db_ack[MAX_PACKET_VER + 1][MAX_ACK_FUNC + 1];
 
-//Converts item type in case of pet eggs.
-static inline int itemtype(int type) {
+//Converts item type in case of pet eggs/shadow equip.
+static inline int itemtype(int item_id) {
+	struct item_data* id = itemdb_exists(item_id);
+	int type = id->type;
+
 	switch( type ) {
 		case IT_PETEGG:
 		case IT_PETARMOR:
 			return IT_ARMOR;
+		case IT_SHADOWGEAR:
+			if( id->equip&EQP_SHADOW_WEAPON )
+				return IT_WEAPON;
+			else
+				return IT_ARMOR;
 		default:
 			return type;
 	}
@@ -705,7 +713,7 @@ void clif_dropflooritem(struct flooritem_data* fitem)
 	WBUFL(buf,offset + 2) = fitem->bl.id;
 	WBUFW(buf,offset + 6) = ((view = itemdb_viewid(fitem->item_data.nameid)) > 0) ? view : fitem->item_data.nameid;
 #if PACKETVER >= 20130000
-	WBUFW(buf,offset + 8) = itemtype(itemdb_type(fitem->item_data.nameid));
+	WBUFW(buf,offset + 8) = itemtype(fitem->item_data.nameid);
 	offset += 2;
 #endif
 	WBUFB(buf,offset + 8) = fitem->item_data.identify ? 1 : 0;
@@ -1762,7 +1770,7 @@ void clif_buylist(struct map_session_data *sd, struct npc_data *nd)
 			continue;
 		WFIFOL(fd,4 + c * 11) = val;
 		WFIFOL(fd,8 + c * 11) = (discount) ? pc_modifybuyvalue(sd,val) : val;
-		WFIFOB(fd,12 + c * 11) = itemtype(id->type);
+		WFIFOB(fd,12 + c * 11) = itemtype(id->nameid);
 		WFIFOW(fd,13 + c * 11) = (id->view_id > 0) ? id->view_id : id->nameid;
 		c++;
 	}
@@ -2189,7 +2197,7 @@ void clif_additem(struct map_session_data *sd, int n, int amount, int fail)
 		WFIFOL(fd,offs + 19) = pc_equippoint(sd,n);
 		offs += 2;
 #endif
-		WFIFOB(fd,offs + 21) = itemtype(sd->inventory_data[n]->type);
+		WFIFOB(fd,offs + 21) = itemtype(sd->inventory_data[n]->nameid);
 		WFIFOB(fd,offs + 22) = fail;
 #if PACKETVER >= 20061218
 		WFIFOL(fd,offs + 23) = sd->status.inventory[n].expire_time;
@@ -2256,21 +2264,21 @@ void clif_item_sub_v5(unsigned char *buf, int n, int idx, struct item *i, struct
 	char normal = (equip < 0);
 
 	WBUFW(buf,n) = idx; //Index
-	WBUFW(buf,n+2) = (id->view_id > 0)?id->view_id:i->nameid;
-	WBUFB(buf,n+4) = itemtype(id->type);
+	WBUFW(buf,n+2) = (id->view_id > 0) ? id->view_id : i->nameid;
+	WBUFB(buf,n+4) = itemtype(id->nameid);
 
 	if( !normal ) { //Equip 31B
 		WBUFL(buf,n+5) = equip; //Location
 		WBUFL(buf,n+9) = i->equip; //Wear state
 		WBUFB(buf,n+13) = i->refine; //Refine lvl
-		clif_addcards(WBUFP(buf, n+14), i); //EQUIPSLOTINFO 8B
+		clif_addcards(WBUFP(buf,n+14), i); //EQUIPSLOTINFO 8B
 		WBUFL(buf,n+22) = i->expire_time;
 		WBUFW(buf,n+26) = 0; //BindOnEquipType
-		WBUFW(buf,n+28) = (id->equip&EQP_VISIBLE)?id->look:0;
+		WBUFW(buf,n+28) = (id->equip&EQP_VISIBLE) ? id->look : 0;
 		//V5_ITEM_flag
 		WBUFB(buf,n+30) = i->identify; //0x1 IsIdentified
-		WBUFB(buf,n+30) |= (i->attribute)?0x2:0; //0x2 IsDamaged
-		WBUFB(buf,n+30) |= (i->favorite)?0x4:0; //0x4 PlaceETCTab
+		WBUFB(buf,n+30) |= (i->attribute) ? 0x2 : 0; //0x2 IsDamaged
+		WBUFB(buf,n+30) |= (i->favorite) ? 0x4 : 0; //0x4 PlaceETCTab
 	} else { //Normal 24B
 		WBUFW(buf,n+5) = i->amount;
 		WBUFL(buf,n+7) = (equip == -2 && id->equip == EQP_AMMO)?id->equip:0; //Wear state
@@ -2278,7 +2286,7 @@ void clif_item_sub_v5(unsigned char *buf, int n, int idx, struct item *i, struct
 		WBUFL(buf,n+19) = i->expire_time;
 		//V5_ITEM_flag
 		WBUFB(buf,n+23) = i->identify; //0x1 IsIdentified
-		WBUFB(buf,n+23) |= (i->favorite)?0x2:0; //0x4,0x2 PlaceETCTab
+		WBUFB(buf,n+23) |= (i->favorite) ? 0x2 : 0; //0x4,0x2 PlaceETCTab
 	}
 }
 
@@ -2292,7 +2300,7 @@ void clif_item_sub(unsigned char *buf, int n, int idx, struct item *i, struct it
 #else
 	WBUFW(buf, n) = idx; //Index
 	WBUFW(buf, n + 2) = (id->view_id > 0) ? id->view_id : i->nameid; //Itid
-	WBUFB(buf, n + 4) = itemtype(id->type);
+	WBUFB(buf, n + 4) = itemtype(id->nameid);
 	WBUFB(buf, n + 5) = i->identify;
 	if( equip >= 0 ) { //Equippable item 28.B
 		WBUFW(buf, n + 6) = equip;
@@ -5885,10 +5893,16 @@ void clif_use_card(struct map_session_data *sd, int idx)
 		ARR_FIND(0,sd->inventory_data[i]->slot,j,sd->status.inventory[i].card[j] == 0);
 		if (j == sd->inventory_data[i]->slot) //No room
 			continue;
+		if (sd->status.inventory[i].equip > 0) //Do not check items that are already equipped
+			continue;
 
 		WFIFOW(fd,4 + c * 2) = i + 2;
 		c++;
 	}
+
+	if (!c) //No item is available for card insertion
+		return;
+
 	WFIFOW(fd,2) = 4 + c * 2;
 	WFIFOSET(fd,WFIFOW(fd,2));
 }
@@ -6492,7 +6506,7 @@ void clif_vendinglist(struct map_session_data* sd, int id, struct s_vending* ven
 		WFIFOL(fd,offset+ 0+i*22) = vending[i].value;
 		WFIFOW(fd,offset+ 4+i*22) = vending[i].amount;
 		WFIFOW(fd,offset+ 6+i*22) = vending[i].index + 2;
-		WFIFOB(fd,offset+ 8+i*22) = itemtype(data->type);
+		WFIFOB(fd,offset+ 8+i*22) = itemtype(data->nameid);
 		WFIFOW(fd,offset+ 9+i*22) = ( data->view_id > 0 ) ? data->view_id : vsd->status.cart[index].nameid;
 		WFIFOB(fd,offset+11+i*22) = vsd->status.cart[index].identify;
 		WFIFOB(fd,offset+12+i*22) = vsd->status.cart[index].attribute;
@@ -6551,7 +6565,7 @@ void clif_openvending(struct map_session_data* sd, int id, struct s_vending* ven
 		WFIFOL(fd, 8+i*22) = vending[i].value;
 		WFIFOW(fd,12+i*22) = vending[i].index + 2;
 		WFIFOW(fd,14+i*22) = vending[i].amount;
-		WFIFOB(fd,16+i*22) = itemtype(data->type);
+		WFIFOB(fd,16+i*22) = itemtype(data->nameid);
 		WFIFOW(fd,17+i*22) = ( data->view_id > 0 ) ? data->view_id : sd->status.cart[index].nameid;
 		WFIFOB(fd,19+i*22) = sd->status.cart[index].identify;
 		WFIFOB(fd,20+i*22) = sd->status.cart[index].attribute;
@@ -14909,7 +14923,7 @@ void clif_cashshop_show(struct map_session_data *sd, struct npc_data *nd)
 
 		WFIFOL(fd,offset + 0 + i * 11) = nd->u.shop.shop_item[i].value;
 		WFIFOL(fd,offset + 4 + i * 11) = nd->u.shop.shop_item[i].value; //Discount Price
-		WFIFOB(fd,offset + 8 + i * 11) = itemtype(id->type);
+		WFIFOB(fd,offset + 8 + i * 11) = itemtype(id->nameid);
 		WFIFOW(fd,offset + 9 + i * 11) = (id->view_id > 0) ? id->view_id : id->nameid;
 	}
 	WFIFOSET(fd,WFIFOW(fd,2));
@@ -15751,7 +15765,8 @@ void clif_instance_create(struct map_session_data *sd, const char *name, int num
 #if PACKETVER >= 20071128
 	unsigned char buf[65];
 
-	nullpo_retv(sd);
+	if(!sd)
+		return;
 
 	WBUFW(buf,0) = 0x2cb;
 	safestrncpy(WBUFP(buf,2),name,62);
@@ -15770,7 +15785,8 @@ void clif_instance_changewait(struct map_session_data *sd, int num, int flag)
 #if PACKETVER >= 20071128
 	unsigned char buf[4];
 
-	nullpo_retv(sd);
+	if(!sd)
+		return;
 
 	WBUFW(buf,0) = 0x2cc;
 	WBUFW(buf,2) = num;
@@ -15788,7 +15804,8 @@ void clif_instance_status(struct map_session_data *sd, const char *name, unsigne
 #if PACKETVER >= 20071128
 	unsigned char buf[71];
 
-	nullpo_retv(sd);
+	if(!sd)
+		return;
 
 	WBUFW(buf,0) = 0x2cd;
 	safestrncpy( WBUFP(buf,2), name, 62 );
@@ -15840,7 +15857,7 @@ void clif_party_show_picker(struct map_session_data * sd, struct item * item_dat
 	WBUFB(buf,10) = item_data->refine;
 	clif_addcards(WBUFP(buf,11), item_data);
 	WBUFW(buf,19) = id->equip; // equip location
-	WBUFB(buf,21) = itemtype(id->type); // item type
+	WBUFB(buf,21) = itemtype(id->nameid); // item type
 	clif_send(buf, packet_len(0x2b8), &sd->bl, PARTY_SAMEMAP_WOS);
 #endif
 }
@@ -16089,7 +16106,7 @@ void clif_buyingstore_myitemlist(struct map_session_data* sd)
 	for( i = 0; i < sd->buyingstore.slots; i++ ) {
 		WFIFOL(fd,12+i*9) = sd->buyingstore.items[i].price;
 		WFIFOW(fd,16+i*9) = sd->buyingstore.items[i].amount;
-		WFIFOB(fd,18+i*9) = itemtype(itemdb_type(sd->buyingstore.items[i].nameid));
+		WFIFOB(fd,18+i*9) = itemtype(sd->buyingstore.items[i].nameid);
 		WFIFOW(fd,19+i*9) = sd->buyingstore.items[i].nameid;
 	}
 
@@ -16180,7 +16197,7 @@ void clif_buyingstore_itemlist(struct map_session_data* sd, struct map_session_d
 	for( i = 0; i < pl_sd->buyingstore.slots; i++ ) {
 		WFIFOL(fd,16+i*9) = pl_sd->buyingstore.items[i].price;
 		WFIFOW(fd,20+i*9) = pl_sd->buyingstore.items[i].amount; //@TODO: Figure out, if no longer needed items (amount == 0) are listed on official.
-		WFIFOB(fd,22+i*9) = itemtype(itemdb_type(pl_sd->buyingstore.items[i].nameid));
+		WFIFOB(fd,22+i*9) = itemtype(pl_sd->buyingstore.items[i].nameid);
 		WFIFOW(fd,23+i*9) = pl_sd->buyingstore.items[i].nameid;
 	}
 
@@ -16378,7 +16395,7 @@ void clif_search_store_info_ack(struct map_session_data* sd)
 		WFIFOL(fd,i*blocksize+11) = ssitem->account_id;
 		memcpy(WFIFOP(fd,i*blocksize+15), ssitem->store_name, MESSAGE_SIZE);
 		WFIFOW(fd,i*blocksize+15+MESSAGE_SIZE) = ssitem->nameid;
-		WFIFOB(fd,i*blocksize+17+MESSAGE_SIZE) = itemtype(itemdb_type(ssitem->nameid));
+		WFIFOB(fd,i*blocksize+17+MESSAGE_SIZE) = itemtype(ssitem->nameid);
 		WFIFOL(fd,i*blocksize+18+MESSAGE_SIZE) = ssitem->price;
 		WFIFOW(fd,i*blocksize+22+MESSAGE_SIZE) = ssitem->amount;
 		WFIFOB(fd,i*blocksize+24+MESSAGE_SIZE) = ssitem->refine;

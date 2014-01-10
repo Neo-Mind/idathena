@@ -6778,7 +6778,8 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 		case SC_POISON:
 		case SC_DPOISON:
 			sc_def = status->vit * 100;
-			sc_def2 = status->luk * 10 + status_get_lv(bl) * 10 - status_get_lv(src) * 10;
+			sc_def2 = status->luk * 10 + (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 10 -
+				(status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10;
 			if (sd) {
 				//For players: 60000 - 450*vit - 100*luk
 				tick_def = status->vit * 75;
@@ -6791,7 +6792,8 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			break;
 		case SC_STUN:
 			sc_def = status->vit * 100;
-			sc_def2 = status->luk * 10 + status_get_lv(bl) * 10 - status_get_lv(src) * 10;
+			sc_def2 = status->luk * 10 + (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 10 -
+				(status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10;
 			tick_def2 = status->luk * 10;
 			break;
 		case SC_SILENCE:
@@ -6808,7 +6810,8 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 #else
 				status->luk * 10
 #endif
-				+ status_get_lv(bl) * 10 - status_get_lv(src) * 10;
+				+ (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 10 -
+					(status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10;
 			tick_def2 = status->luk * 10;
 			break;
 		case SC_BLEEDING:
@@ -6819,22 +6822,26 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 				status->vit
 #endif
 				* 100;
-			sc_def2 = status->luk * 10 + status_get_lv(bl) * 10 - status_get_lv(src) * 10;
+			sc_def2 = status->luk * 10 + (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 10 -
+				(status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10;
 			tick_def2 = status->luk * 10;
 			break;
 		case SC_SLEEP:
 			sc_def = status->int_ * 100;
-			sc_def2 = status->luk * 10 + status_get_lv(bl) * 10 - status_get_lv(src) * 10;
+			sc_def2 = status->luk * 10 + (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 10 -
+				(status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10;
 			tick_def2 = status->luk * 10;
 			break;
 		case SC_STONE:
 			sc_def = status->mdef * 100;
-			sc_def2 = status->luk * 10 + status_get_lv(bl) * 10 - status_get_lv(src) * 10;
+			sc_def2 = status->luk * 10 + (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 10 -
+				(status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10;
 			tick_def = 0; //No duration reduction
 			break;
 		case SC_FREEZE:
 			sc_def = status->mdef * 100;
-			sc_def2 = status->luk * 10 + status_get_lv(bl) * 10 - status_get_lv(src) * 10;
+			sc_def2 = status->luk * 10 + (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 10 -
+				(status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10;
 			tick_def2 = status_src->luk * -10; //Caster can increase final duration with luk
 			break;
 		case SC_CURSE:
@@ -6842,18 +6849,21 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			if (status->luk == 0)
 				return 0;
 			sc_def = status->luk * 100;
-			sc_def2 = status->luk * 10 - status_get_lv(src) * 10; //Curse only has a level penalty and no resistance
+			sc_def2 = status->luk * 10 -
+				(status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10; //Curse only has a level penalty and no resistance
 			tick_def = status->vit * 100;
 			tick_def2 = status->luk * 10;
 			break;
 		case SC_BLIND:
 			sc_def = (status->vit + status->int_) * 50;
-			sc_def2 = status->luk * 10 + status_get_lv(bl) * 10 - status_get_lv(src) * 10;
+			sc_def2 = status->luk * 10 + (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 10 -
+				(status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10;
 			tick_def2 = status->luk * 10;
 			break;
 		case SC_CONFUSION:
 			sc_def = (status->str + status->int_) * 50;
-			sc_def2 = status_get_lv(src) * 10 - status_get_lv(bl) * 10 - status->luk * 10; //Reversed sc_def2
+			sc_def2 = (status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10 -
+				(status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 10 - status->luk * 10; //Reversed sc_def2
 			tick_def2 = status->luk * 10;
 			break;
 		case SC_DECREASEAGI:
@@ -6868,21 +6878,24 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			sc_def = status->agi * 50;
 			break;
 		case SC_DEEPSLEEP:
-			//sc_def = status->int_*50; Needs info
+			//sc_def = status->int_ * 50; Needs info
 			tick_def = 0; //Linear reduction instead
-			tick_def2 = (status->int_ + status_get_lv(bl)) * 50; //kRO balance update lists this formula
+			tick_def2 = status->int_ * 50 +
+				(status_get_lv(bl) > 150 ? 150 : status_get_lv(bl)) * 50; //kRO balance update lists this formula
 			break;
 		case SC_NETHERWORLD:
-			tick_def2 = status_get_lv(bl) * 20 + (sd ? sd->status.job_level * 100 : 0);
+			tick_def2 = (status_get_lv(bl) > 150 ? 150 : status_get_lv(bl)) * 20 +
+				(sd ? (sd->status.job_level > 50 ? 50 : sd->status.job_level) * 100 : 0);
 			break;
 		case SC_MAGICMIRROR:
 		case SC_ARMORCHANGE:
 			if (sd) //Duration greatly reduced for players.
 				tick /= 15;
-			sc_def2 = status_get_lv(bl) * 20 + status->vit * 25 + status->agi * 10; //Lineal Reduction of Rate
+			sc_def2 = (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 20 +
+				status->vit * 25 + status->agi * 10; //Lineal Reduction of Rate
 			break;
 		case SC_MARSHOFABYSS:
-			//5 second (Fixed) + 25 second - { ( INT + LUK ) / 20 second }
+			//5 second (Fixed) + 25 second - { (INT + LUK) / 20 second }
 			tick_def2 = (status->int_ + status->luk) * 50;
 			break;
 		case SC_STASIS:
@@ -6893,7 +6906,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			if (tick == 5000) //100% on caster
 				break;
 			if (bl->type == BL_PC)
-				tick_def2 = status_get_lv(bl) * 20 + status->vit * 25 + status->agi * 10;
+				tick_def2 = (status_get_lv(bl) > 150 ? 150 : status_get_lv(bl)) * 20 + status->vit * 25 + status->agi * 10;
 			else
 				tick_def2 = (status->vit + status->luk) * 50;
 			break;
@@ -8004,7 +8017,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_KYRIE:
 				if( val4 ) { //Formula's for Praefatio
-					val2 = status->max_hp * (val1 * 2 + 16) / 100; //%Max HP to absorb
+					val2 = (status->max_hp * (val1 * 2 + 10) / 100) + val4 * 2; //%Max HP to absorb
 					val3 = 6 + val1; //Hits
 				} else { //Formula's for Kyrie Eleison
 					val2 = status->max_hp * (val1 * 2 + 10) / 100; //%Max HP to absorb
