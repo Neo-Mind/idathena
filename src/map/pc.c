@@ -8478,7 +8478,7 @@ static int pc_checkcombo(struct map_session_data *sd, struct item_data *data) {
 		}
 
 		CREATE(combo_idx,int16,data->combos[i]->count);
-		memset(combo_idx,-1,data->combos[i]->count);
+		memset(combo_idx,-1,sizeof(combo_idx));
 		for( j = 0; j < data->combos[i]->count; j++ ) {
 			uint16 id = data->combos[i]->nameid[j], k;
 			bool found = false;
@@ -8495,7 +8495,7 @@ static int pc_checkcombo(struct map_session_data *sd, struct item_data *data) {
 				if( !sd->inventory_data[index] )
 					continue;
 				if( j > 0 ) {
-					uint16 z;
+					uint8 z;
 
 					for( z = 0; z < data->combos[i]->count; z++ )
 						if( combo_idx[z] == index ) //We already have that index recorded
