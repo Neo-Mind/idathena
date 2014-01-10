@@ -1954,7 +1954,7 @@ static int pc_bonus_item_drop(struct s_add_drop *drop, const short max, short id
 	}
 	for( i = 0; i < max && (drop[i].id || drop[i].group); i++ ) {
 		if( ((id && drop[i].id == id) || (group && drop[i].group == group)) ) {
-			if( race < RC_NONE_ ) //bAddClassDropItem
+			if( race < RC_NONE_ ) //bAddMonsterIdDropItem
 				drop[i].race |= race;
 			if( race > RC_NONE_ && race < RC_MAX )
 				drop[i].race |= 1<<race;
