@@ -2433,6 +2433,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			ers_free(item_drop_list_ers, dlist);
 	} else if(md->lootitem && md->lootitem_count) { //Loot MUST drop!
 		struct item_drop_list *dlist = ers_alloc(item_drop_list_ers, struct item_drop_list);
+
 		dlist->m = md->bl.m;
 		dlist->x = md->bl.x;
 		dlist->y = md->bl.y;

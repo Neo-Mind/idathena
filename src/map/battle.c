@@ -4182,6 +4182,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 		}
 		if(sc->data[SC_GT_CHANGE] && sc->data[SC_GT_CHANGE]->val2) {
 			struct block_list *bl;
+
 			if((bl = map_id2bl(sc->data[SC_GT_CHANGE]->val2))) {
 				ATK_ADD(wd.damage, wd.damage2, (status_get_dex(bl) / 4 + status_get_str(bl) / 2) * sc->data[SC_GT_CHANGE]->val1 / 5);
 #ifdef RENEWAL

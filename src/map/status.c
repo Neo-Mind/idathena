@@ -9011,7 +9011,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_MOONLITSERENADE:
 			case SC_RUSHWINDMILL:
-				val3 = 6 * val1 + val2 + sd->status.job_level / 5; //MATK Increase In %
+				val3 = 6 * val1 + val2 + sd->status.job_level / 5; //MATK/ATK Increase In %
 				break;
 			case SC_ECHOSONG:
 				val3 = 6 * val1 + val2 + sd->status.job_level / 4; //DEF Increase In %
@@ -9073,7 +9073,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_UNLIMITEDHUMMINGVOICE: {
 					struct unit_data *ud = unit_bl2ud(bl);
-					if( ud == NULL ) return 0;
+
+					if( ud == NULL )
+						return 0;
 					ud->state.skillcastcancel = 0;
 					val3 = 15 - (3 * val2);
 				}
@@ -9103,6 +9105,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val1 = 100 * val1; //100 * skill_lv
 				if( sd ) { //Players
 					short index = sd->equip_index[EQI_HAND_R];
+
 					val1 += 10 * sd->status.job_level;
 					if( index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON )
 							val1 += sd->inventory_data[index]->weight / 10 * sd->inventory_data[index]->wlv * status_get_lv(bl) / 100;
@@ -9150,9 +9153,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_GT_CHANGE: { //Take note there is no def increase as skill desc says. [malufett]
 					struct block_list *src;
+
 					val3 = status->agi * val1 / 60; //ASPD increase: [(Target AGI x Skill Level) / 60] %
 					if( (src = map_id2bl(val2)) ) {
 						int casterint = status_get_int(src);
+
 						if( casterint <= 0 )
 							casterint = 1; //Prevents dividing by 0 since its possiable to reduce players stats to 0; [Rytech]
 						val4 = (200 / casterint) * val1; //MDEF decrease: MDEF [(200 / Caster INT) x Skill Level]
@@ -9161,6 +9166,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_GT_REVITALIZE: { //Take note there is no vit,aspd,speed increase as skill desc says. [malufett]
 					struct block_list *src;
+
 					val3 = val1 * 30 + 50; //Natural HP recovery increase: [(Skill Level x 30) + 50] %
 					if( (src = map_id2bl(val2)) ) //The stat def is not shown in the status window and it is process differently
 						val4 = (status_get_vit(src) / 4) * val1; //STAT DEF increase: [(Caster VIT / 4) x Skill Level]
@@ -9408,6 +9414,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_APPLEIDUN: {
 					uint8 i;
+
 					val2 = 5 + (2 * (val1 - 1)); //HP Rate
 					val3 = 30 + (5 * val1); //HP Recovery rate
 					if (sd && (i = pc_checkskill(sd,BA_MUSICALLESSON)) > 0) {
@@ -11097,7 +11104,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 						s = 10;
 						break;
 				}
-				if( s != 0 && sce->val3 % s == 0 ) {
+				if( s != 0 && sce->val3%s == 0 ) {
 					if( sc->data[SC_LONGING] )
 						sp *= 3;
 					if( !status_charge(bl,0,sp) )

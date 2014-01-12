@@ -11814,7 +11814,8 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			val2 = skill_lv * 10; //Status ailment resistance
 			break;
 		case WE_CALLPARTNER:
-			if( sd ) val1 = sd->status.partner_id;
+			if( sd )
+				val1 = sd->status.partner_id;
 			break;
 		case WE_CALLPARENT:
 			if( sd ) {
@@ -11823,7 +11824,8 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			}
 			break;
 		case WE_CALLBABY:
-			if( sd ) val1 = sd->status.child;
+			if( sd )
+				val1 = sd->status.child;
 			break;
 		case NJ_KAENSIN:
 			skill_clear_group(src,1); //Delete previous Kaensins/Suitons
@@ -11914,7 +11916,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			break;
 	}
 
-	nullpo_retr(NULL,group = skill_initunitgroup(src,layout->count,skill_id,skill_lv,skill_get_unit_id(skill_id,flag&1)+subunt,limit,interval));
+	nullpo_retr(NULL,group = skill_initunitgroup(src,layout->count,skill_id,skill_lv,skill_get_unit_id(skill_id,flag&1) + subunt,limit,interval));
 	group->val1 = val1;
 	group->val2 = val2;
 	group->val3 = val3;
@@ -11929,7 +11931,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		active_flag = 0;
 
 	if( skill_id == HT_TALKIEBOX || skill_id == RG_GRAFFITI ) {
-		group->valstr = (char *) aMalloc(MESSAGE_SIZE * sizeof(char));
+		group->valstr = (char *)aMalloc(MESSAGE_SIZE * sizeof(char));
 		if( sd )
 			safestrncpy(group->valstr,sd->message,MESSAGE_SIZE);
 		else //Eh, we have to write something here, even though mobs shouldn't use this. [Skotlex]
@@ -12225,7 +12227,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 			break;
 
 		case UNT_HERMODE:
-			if( sg->src_id!=bl->id && battle_check_target(&src->bl,bl,BCT_PARTY|BCT_GUILD) > 0 )
+			if( sg->src_id != bl->id && battle_check_target(&src->bl,bl,BCT_PARTY|BCT_GUILD) > 0 )
 				status_change_clear_buffs(bl,1); //Should dispell only allies.
 		case UNT_RICHMANKIM:
 		case UNT_ETERNALCHAOS:
@@ -12235,7 +12237,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 		case UNT_INTOABYSS:
 		case UNT_SIEGFRIED:
 			 //Needed to check when a dancer/bard leaves their ensemble area.
-			if( sg->src_id == bl->id && !(sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER) )
+			if( sg->src_id == bl->id && sc && sc->data[SC_SPIRIT] && !sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER )
 				return skill_id;
 			if( !sce )
 				sc_start4(ss,bl,type,100,sg->skill_lv,sg->val1,sg->val2,0,sg->limit);
@@ -12248,10 +12250,10 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 		case UNT_DONTFORGETME:
 		case UNT_FORTUNEKISS:
 		case UNT_SERVICEFORYOU:
-			if( sg->src_id == bl->id && !(sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER) )
+			if( !sc )
 				return 0;
-
-			if( !sc ) return 0;
+			if( sg->src_id == bl->id && sc && sc->data[SC_SPIRIT] && !sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER )
+				return 0;
 			if( !sce )
 				sc_start4(ss,bl,type,100,sg->skill_lv,sg->val1,sg->val2,0,sg->limit);
 			else if( sce->val4 == 1 ) { //Readjust timers since the effect will not last long.
@@ -12653,7 +12655,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				if (md && md->mob_id == MOBID_EMPERIUM)
 					break;
 #endif
-				if (sg->src_id == bl->id && !(tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_BARDDANCER))
+				if (sg->src_id == bl->id && tsc && tsc->data[SC_SPIRIT] && !tsc->data[SC_SPIRIT]->val2 == SL_BARDDANCER)
 					break; //Affects self only when soullinked
 				heal = skill_calc_heal(ss,bl,sg->skill_id,sg->skill_lv,true);
 				clif_skill_nodamage(&src->bl,bl,AL_HEAL,heal,1);
@@ -13166,7 +13168,7 @@ int skill_unit_onout (struct skill_unit *src, struct block_list *bl, unsigned in
 		case UNT_DONTFORGETME:
 		case UNT_FORTUNEKISS:
 		case UNT_SERVICEFORYOU:
-			if( sg->src_id == bl->id && !(sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER) )
+			if( sg->src_id == bl->id && sc && sc->data[SC_SPIRIT] && !sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER )
 				return -1;
 	}
 
@@ -15120,6 +15122,7 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 			fixcast_r = max(fixcast_r, sc->data[SC_SECRAMENT]->val2);
 		if( sd && ( skill_lv = pc_checkskill(sd, WL_RADIUS) ) && skill_id >= WL_WHITEIMPRISON && skill_id <= WL_FREEZE_SP  ) {
 			int reduce_fc_r = (status_get_int(bl) / 15) + (sd->status.base_level / 15) + (5 + skill_lv * 5);
+
 			fixcast_r = max(fixcast_r, reduce_fc_r);
 		}
 		//Fixed cast non percentage bonuses
@@ -15178,7 +15181,7 @@ int skill_delayfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 		case CH_CHAINCRUSH:
 		case SR_DRAGONCOMBO:
 		case SR_FALLENEMPIRE:
-			time -= 4*status_get_agi(bl) - 2*status_get_dex(bl);
+			time -= 4 * status_get_agi(bl) - 2 * status_get_dex(bl);
 			break;
 		case HP_BASILICA:
 			if (sc && !sc->data[SC_BASILICA])
@@ -15187,6 +15190,7 @@ int skill_delayfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 		default:
 			if (battle_config.delay_dependon_dex && !(delaynodex&1)) { //If skill delay is allowed to be reduced by dex
 				int scale = battle_config.castrate_dex_scale - status_get_dex(bl);
+
 				if (scale > 0)
 					time = time * scale / battle_config.castrate_dex_scale;
 				else //To be capped later to minimum.
@@ -15194,11 +15198,13 @@ int skill_delayfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 			}
 			if (battle_config.delay_dependon_agi && !(delaynodex&1)) { //If skill delay is allowed to be reduced by agi
 				int scale = battle_config.castrate_dex_scale - status_get_agi(bl);
+
 				if (scale > 0)
 					time = time * scale / battle_config.castrate_dex_scale;
 				else //To be capped later to minimum.
 					time = 0;
 			}
+			break;
 	}
 
 	if (sc && sc->data[SC_SPIRIT]) {
