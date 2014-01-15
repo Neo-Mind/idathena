@@ -600,7 +600,7 @@ typedef enum sc_type {
 	SC_WATER_INSIGNIA,
 	SC_WIND_INSIGNIA, //517
 	SC_EARTH_INSIGNIA,
-	/* new pushcart */
+	/* New pushcart */
 	SC_PUSH_CART,
 	/* Warlock Spell books */
 	SC_SPELLBOOK1,

@@ -6766,6 +6766,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				int eflag;
 				struct item item_tmp;
 				struct block_list tbl;
+
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				memset(&item_tmp,0,sizeof(item_tmp));
 				memset(&tbl,0,sizeof(tbl)); //[MouseJstr]
@@ -6796,20 +6797,20 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SC_STRIPACCESSARY: {
 			unsigned short location = 0;
 			int d = 0;
-			
-			//Rate in percent
-			if ( skill_id == ST_FULLSTRIP ) {
-				i = 5 + 2 * skill_lv + (sstatus->dex - tstatus->dex) / 5;
-			} else if( skill_id == SC_STRIPACCESSARY ) {
-				i = 12 + 2 * skill_lv + (sstatus->dex - tstatus->dex) / 5;
-			} else {
-				i = 5 + 5 * skill_lv + (sstatus->dex - tstatus->dex) / 5;
-			}
 
-			if (i < 5) i = 5; //Minimum rate 5%
+			//Rate in percent
+			if(skill_id == ST_FULLSTRIP)
+				i = 5 + 2 * skill_lv + (sstatus->dex - tstatus->dex) / 5;
+			else if(skill_id == SC_STRIPACCESSARY)
+				i = 12 + 2 * skill_lv + (sstatus->dex - tstatus->dex) / 5;
+			else
+				i = 5 + 5 * skill_lv + (sstatus->dex - tstatus->dex) / 5;
+
+			if(i < 5)
+				i = 5; //Minimum rate 5%
 
 			//Duration in ms
-			if( skill_id == GC_WEAPONCRUSH) {
+			if(skill_id == GC_WEAPONCRUSH) {
 				d = skill_get_time(skill_id,skill_lv);
 				if(bl->type == BL_PC)
 					d += skill_lv * 15 + (sstatus->dex - tstatus->dex) * 1000;
@@ -6818,9 +6819,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			} else
 				d = skill_get_time(skill_id,skill_lv) + (sstatus->dex - tstatus->dex) * 500;
 
-			if (d < 0) d = 0; //Minimum duration 0ms
+			if(d < 0)
+				d = 0; //Minimum duration 0ms
 
-			switch (skill_id) {
+			switch(skill_id) {
 				case RG_STRIPWEAPON:
 				case GC_WEAPONCRUSH:
 					location = EQP_WEAPON;
@@ -6843,18 +6845,18 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 
 			//Special message when trying to use strip on FCP [Jobbie]
-			if( sd && skill_id == ST_FULLSTRIP && tsc && tsc->data[SC_CP_WEAPON] && tsc->data[SC_CP_HELM] &&
-				tsc->data[SC_CP_ARMOR] && tsc->data[SC_CP_SHIELD] ) {
+			if(sd && skill_id == ST_FULLSTRIP && tsc && tsc->data[SC_CP_WEAPON] && tsc->data[SC_CP_HELM] &&
+				tsc->data[SC_CP_ARMOR] && tsc->data[SC_CP_SHIELD]) {
 				clif_gospel_info(sd,0x28);
 				break;
 			}
 
 			//Attempts to strip at rate i and duration d
-			if( (i = skill_strip_equip(src,bl,location,i,skill_lv,d)) || (skill_id != ST_FULLSTRIP && skill_id != GC_WEAPONCRUSH ) )
+			if((i = skill_strip_equip(src,bl,location,i,skill_lv,d)) || (skill_id != ST_FULLSTRIP && skill_id != GC_WEAPONCRUSH))
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,i);
 
 			//Nothing stripped.
-			if( sd && !i )
+			if(sd && !i)
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
 		}
@@ -19302,27 +19304,26 @@ static bool skill_parse_row_magicmushroomdb(char* split[], int column, int curre
 }
 
 static bool skill_parse_row_copyabledb(char* split[], int column, int current) {
-	int id;
-	uint8 option;
+	int id, option;
 
 	trim(split[0]);
-	if (ISDIGIT(split[0][0]))
+	if( ISDIGIT(split[0][0]) )
 		id = atoi(split[0]);
 	else
 		id = skill_name2id(split[0]);
 
-	if ((id = skill_get_index(id)) < 0) {
+	if( (id = skill_get_index(id)) < 0 ) {
 		ShowError("skill_parse_row_copyabledb: Invalid skill %s\n", split[0]);
 		return false;
 	}
-	if ((option = atoi(split[1])) < 0 || option > 3) {
+	if( (option = atoi(split[1])) < 0 || option > 3 ) {
 		ShowError("skill_parse_row_copyabledb: Invalid option '%s'\n", split[1]);
 		return false;
 	}
 
 	skill_db[id].copyable.option = option;
 	skill_db[id].copyable.joballowed = 63;
-	if (atoi(split[2]))
+	if( atoi(split[2]) )
 		skill_db[id].copyable.joballowed = cap_value(atoi(split[2]),1,63);
 	skill_db[id].copyable.req_opt = cap_value(atoi(split[3]),0,(0x2000)-1);
 

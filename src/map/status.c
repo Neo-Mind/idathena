@@ -9114,7 +9114,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_PRESTIGE:
 				val2 = (status->int_ + status->luk) * (val1 / 20) * (status_get_lv(bl) / 200) + val1; //Chance to evade magic damage.
-				val1 = (15 * val1) + (10 * pc_checkskill(sd,CR_DEFENDER)); //Defense added
+				val1 = (15 * val1) + (sd ? 10 * pc_checkskill(sd,CR_DEFENDER) : 0); //Defense added
 #ifdef RENEWAL
 				val1 = val1 * status_get_lv(bl) / 100;
 #else
@@ -9498,6 +9498,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_BANDING: {
 					struct skill_unit_group *sg;
+
 					if( (sg = skill_unitsetting(bl,LG_BANDING,val1,bl->x,bl->y,0)) != NULL )
 						val4 = sg->group_id;
 				}
@@ -9618,7 +9619,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_FEAR:
 		case SC_NETHERWORLD:
 		case SC_MEIKYOUSISUI:
-		case SC_KYOUGAKU:
 		case SC_PARALYSIS:
 		case SC_MAGNETICFIELD:
 		case SC_KAGEHUMI:

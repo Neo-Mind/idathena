@@ -694,6 +694,7 @@ int unit_wugdash(struct block_list *bl, struct map_session_data *sd) {
 	short to_x,to_y,dir_x,dir_y;
 	int lv;
 	int i;
+
 	if( !(sc && sc->data[SC_WUGDASH]) )
 		return 0;
 
@@ -1139,7 +1140,7 @@ int unit_can_move(struct block_list *bl) {
 		return 0; //Can't move
 	
 	if (sc) {
-		if( sc->cant.move /* status placed here are ones that cannot be cached by sc->cant.move for they depend on other conditions other than their availability */
+		if (sc->cant.move /* Status placed here are ones that cannot be cached by sc->cant.move for they depend on other conditions other than their availability */
 			|| (sc->data[SC_FEAR] && sc->data[SC_FEAR]->val2 > 0)
 			|| (sc->data[SC_SPIDERWEB] && sc->data[SC_SPIDERWEB]->val1)
 			|| (sc->data[SC_DANCING] && sc->data[SC_DANCING]->val4 && (
