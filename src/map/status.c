@@ -9417,7 +9417,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 					val2 = 5 + (2 * (val1 - 1)); //HP Rate
 					val3 = 30 + (5 * val1); //HP Recovery rate
-					if (sd && (i = pc_checkskill(sd,BA_MUSICALLESSON)) > 0) {
+					if( sd && (i = pc_checkskill(sd,BA_MUSICALLESSON)) > 0 ) {
 						val2 += i;
 						val3 += (5 * i);
 					}
@@ -9425,7 +9425,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_EPICLESIS:
 				val2 = 5 * val1; //HP rate bonus
-				switch (val1) { //@FIXME, looks so weird!
+				switch( val1 ) { //@FIXME, looks so weird!
 					//val3: HP regen rate bonus
 					//val4: SP regen rate bonus
 					case 1:
@@ -9453,6 +9453,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_HEAT_BARREL:
 				if( sd ) {
 					uint8 n = (uint8)sd->spiritball_old;
+
 					val2 = val1 * n * 4; //+ATK (Custom)
 					val3 = val1 * n / 5; //+ASPD (Custom)
 					val4 = val1 * n * 2; //-HIT (Custom)
@@ -9461,6 +9462,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_P_ALTER:
 				if( sd ) {
 					uint8 n = (uint8)sd->spiritball_old;
+
 					val2 = val1 * n * 2; //+ATK (Custom)
 					val3 = val1 * 15; //+DEF (Custom)
 				}
@@ -9574,6 +9576,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	/* [Ind] */
 	if (sd && StatusDisplayType[type]) {
 		int dval1 = 0, dval2 = 0, dval3 = 0;
+
 		switch (type) {
 			case SC_ALL_RIDING:
 				dval1 = 1;

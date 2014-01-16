@@ -1549,9 +1549,9 @@ static int battle_calc_base_weapon_attack(struct block_list *src, struct status_
 
 	if (sd->equip_index[type] >= 0 && sd->inventory_data[sd->equip_index[type]]) {
 		int variance = (int)(5 * ((float)(wa->atk * sd->inventory_data[sd->equip_index[type]]->wlv) / 100));
+
 		atkmin = max(0, atkmin - variance);
 		atkmax = min(UINT16_MAX, atkmax + variance);
-
 		if (sc && sc->data[SC_MAXIMIZEPOWER])
 			damage = atkmax;
 		else
@@ -2250,6 +2250,7 @@ static bool attack_ignores_def(struct Damage wd, struct block_list *src, struct 
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 
 	int nk = battle_skill_get_damage_properties(skill_id, wd.miscflag);
+
 #ifndef RENEWAL
 	if(is_attack_critical(wd, src, target, skill_id, skill_lv, false))
 		return true;
@@ -4436,10 +4437,10 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd,struct block_list
 		if(!skill_id) {
 			if(sc->data[SC_ENCHANTBLADE]) {
 				//[((Skill Lv x 20) + 100) x (casterBaseLevel / 150)] + casterInt
-				struct Damage matk;
+				struct Damage matk = battle_calc_magic_attack(src, target, skill_id, skill_lv, 0);
 				int64 i = (sc->data[SC_ENCHANTBLADE]->val1 * 20 + 100) * status_get_lv(src) / 150 + status_get_int(src);
 				short totalmdef = tstatus->mdef + tstatus->mdef2;
-				matk = battle_calc_magic_attack(src, target, skill_id, skill_lv, 0);
+
 				i = i - totalmdef + matk.damage;
 				if(i)
 					ATK_ADD(wd.damage, wd.damage2, i);
