@@ -2899,7 +2899,8 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 
 	//Parse equipment.
 	for(i = 0; i < EQI_MAX; i++) {
-		current_equip_item_index = index = sd->equip_index[i]; //We pass INDEX to current_equip_item_index - for EQUIP_SCRIPT (new cards solution) [Lupus]
+		//We pass INDEX to current_equip_item_index - for EQUIP_SCRIPT (new cards solution) [Lupus]
+		current_equip_item_index = index = sd->equip_index[i];
 		if(index < 0)
 			continue;
 		if(i == EQI_AMMO)
@@ -2936,7 +2937,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 			struct weapon_data *wd;
 			struct weapon_atk *wa;
 
-			if (wlv >= REFINE_TYPE_MAX)
+			if(wlv >= REFINE_TYPE_MAX)
 				wlv = REFINE_TYPE_MAX - 1;
 			if(i == EQI_HAND_L && sd->status.inventory[index].equip == EQP_HAND_L) {
 				wd = &sd->left_weapon; //Left-hand weapon
@@ -2946,9 +2947,9 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 				wa = &status->rhw;
 			}
 			wa->atk += sd->inventory_data[index]->atk;
-			if ((r = sd->status.inventory[index].refine))
-				wa->atk2 = refine_info[wlv].bonus[r - 1] / 100;
-
+			r = sd->status.inventory[index].refine;
+			if(r)
+				wa->atk2 += refine_info[wlv].bonus[r - 1] / 100;
 #ifdef RENEWAL
 			wa->matk += sd->inventory_data[index]->matk;
 			wa->wlv = wlv;
@@ -2956,8 +2957,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 				wa->matk += refine_info[wlv].bonus[r - 1] / 100;
 #endif
 
-			//Overrefine bonus.
-			if(r)
+			if(r) //Overrefine bonus.
 				wd->overrefine = refine_info[wlv].randombonus_max[r - 1] / 100;
 
 			wa->range += sd->inventory_data[index]->range;
@@ -2976,7 +2976,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 			if(sd->status.inventory[index].card[0] == CARD0_FORGE) { //Forged weapon
 				wd->star += (sd->status.inventory[index].card[1] >> 8);
 				if(wd->star >= 15) wd->star = 40; //3 Star Crumbs now give +40 dmg
-				if(pc_famerank(MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]) ,MAPID_BLACKSMITH))
+				if(pc_famerank(MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]),MAPID_BLACKSMITH))
 					wd->star += 10;
 
 				if(!wa->ele) //Do not overwrite element from previous bonuses.
@@ -2986,7 +2986,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 			int r;
 
 			if((r = sd->status.inventory[index].refine))
-				refinedef += refine_info[REFINE_TYPE_ARMOR].bonus[r-1];
+				refinedef += refine_info[REFINE_TYPE_ARMOR].bonus[r - 1];
 			if(sd->inventory_data[index]->script && (pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) ||
 				!itemdb_isNoEquip(sd->inventory_data[index],sd->bl.m))) {
 				if(i == EQI_HAND_L) //Shield
@@ -2997,9 +2997,9 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 				if(!calculating) //Abort, run_script retriggered this. [Skotlex]
 					return 1;
 			}
-		} else if( sd->inventory_data[index]->type == IT_SHADOWGEAR ) { // Shadow System
+		} else if(sd->inventory_data[index]->type == IT_SHADOWGEAR) { // Shadow System
 			run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
-			if( !calculating )
+			if(!calculating)
 				return 1;
 		}
 	}
@@ -3105,27 +3105,27 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 		}
 	}
 
-	if( sc->count && sc->data[SC_ITEMSCRIPT] ) {
+	if(sc->count && sc->data[SC_ITEMSCRIPT]) {
 		struct item_data *data = itemdb_exists(sc->data[SC_ITEMSCRIPT]->val1);
 
-		if( data && data->script )
+		if(data && data->script)
 			run_script(data->script,0,sd->bl.id,0);
 	}
 
-	for( i = 0; i < MAX_PC_BONUS_SCRIPT; i++ ) { //Process script Bonus [Cydh]
-		if( !(&sd->bonus_script[i]) || !sd->bonus_script[i].script )
+	for(i = 0; i < MAX_PC_BONUS_SCRIPT; i++) { //Process script Bonus [Cydh]
+		if(!(&sd->bonus_script[i]) || !sd->bonus_script[i].script)
 			continue;
-		if( !sd->bonus_script[i].tid ) //Just add timer only for new attached script
+		if(!sd->bonus_script[i].tid) //Just add timer only for new attached script
 			sd->bonus_script[i].tid = add_timer(sd->bonus_script[i].tick,pc_bonus_script_timer,sd->bl.id,i);
 		run_script(sd->bonus_script[i].script,0,sd->bl.id,0);
 	}
 
-	if( sd->pd ) { //Pet Bonus
+	if(sd->pd) { //Pet Bonus
 		struct pet_data *pd = sd->pd;
 
-		if( pd && pd->petDB && pd->petDB->equip_script && pd->pet.intimate >= battle_config.pet_equip_min_friendly )
+		if(pd && pd->petDB && pd->petDB->equip_script && pd->pet.intimate >= battle_config.pet_equip_min_friendly)
 			run_script(pd->petDB->equip_script,0,sd->bl.id,0);
-		if( pd && pd->pet.intimate > 0 && (!battle_config.pet_equip_required || pd->pet.equip > 0) && pd->state.skillbonus == 1 && pd->bonus )
+		if(pd && pd->pet.intimate > 0 && (!battle_config.pet_equip_required || pd->pet.equip > 0) && pd->state.skillbonus == 1 && pd->bonus)
 			pc_bonus(sd,pd->bonus->type, pd->bonus->val);
 	}
 
@@ -4197,7 +4197,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 
 	if( flag&SCB_MDEF ) {
 		status->mdef = status_calc_mdef(bl, sc, b_status->mdef);
-	
+
 		if( bl->type&BL_HOM )
 			status->mdef += (status->int_/5 - b_status->int_/5);
 	}
@@ -4298,7 +4298,8 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 
 		if( status->hp > status->max_hp ) { //FIXME: Should perhaps a status_zap should be issued?
 			status->hp = status->max_hp;
-			if( sd ) clif_updatestatus(sd, SP_HP);
+			if( sd )
+				clif_updatestatus(sd, SP_HP);
 		}
 	}
 
@@ -4313,7 +4314,8 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 
 		if( status->sp > status->max_sp ) {
 			status->sp = status->max_sp;
-			if( sd ) clif_updatestatus(sd,SP_SP);
+			if( sd )
+				clif_updatestatus(sd,SP_SP);
 		}
 	}
 
@@ -4328,18 +4330,18 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		 **/
 		status->matk_min = status->matk_max = status_base_matk(status, status_get_lv(bl));
 		if( bl->type&BL_PC ) {
-			int wMatk = 0;
-			int variance = 0;
+			int wMatk = 0, variance = 0;
 
 			//Any +MATK you get from skills and cards, including cards in weapon, is added here.
 			if( sd->bonus.ematk > 0 ) {
 				status->matk_max += sd->bonus.ematk;
 				status->matk_min += sd->bonus.ematk;
 			}
+
 			status->matk_min = status_calc_ematk(bl, sc, status->matk_min);
 			status->matk_max = status_calc_ematk(bl, sc, status->matk_max);
-			//This is the only portion in MATK that varies depending on the weapon level and refinement rate.
 
+			//This is the only portion in MATK that varies depending on the weapon level and refinement rate.
 			if( b_status->lhw.matk ) {
 				if( sd ) {
 					//sd->state.lr_flag = 1; //Why was that set here ?
@@ -4348,13 +4350,13 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 				} else
 					status->lhw.matk = b_status->lhw.matk;
 			}
-		
+
 			if( b_status->rhw.matk )
 				status->rhw.matk = b_status->rhw.matk;
 
 			if( status->rhw.matk ) {
 				wMatk += status->rhw.matk;
-				variance += wMatk * status->rhw.wlv / 10;
+				variance += status->rhw.matk * status->rhw.wlv / 10;
 			}
 
 			if( status->lhw.matk ) {
@@ -4373,8 +4375,8 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 
 		status->matk_max = status_calc_matk(bl, sc, status->matk_max);
 
-		if( (bl->type&BL_HOM && battle_config.hom_setting&0x20) //Hom Min Matk is always the same as Max Matk
-			|| (sc && sc->data[SC_RECOGNIZEDSPELL]) )
+		//Hom Min Matk is always the same as Max Matk
+		if( (bl->type&BL_HOM && battle_config.hom_setting&0x20) || (sc && sc->data[SC_RECOGNIZEDSPELL]) )
 			status->matk_min = status->matk_max;
 		else
 			status->matk_min = status_calc_matk(bl, sc, status->matk_min);
@@ -4389,6 +4391,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 
 	if( flag&SCB_ASPD ) {
 		int amotion;
+
 		if( bl->type&BL_PC ) {
 			amotion = status_base_amotion_pc(sd,status);
 #ifndef RENEWAL_ASPD
@@ -12255,9 +12258,8 @@ static int status_natural_heal_timer(int tid, unsigned int tick, int id, intptr_
  **/
 int status_get_refine_chance(enum refine_type wlv, int refine) {
 
-	 if ( refine < 0 || refine >= MAX_REFINE)
+	 if (refine < 0 || refine >= MAX_REFINE)
 		return 0;
-
 	return refine_info[wlv].chance[refine];
 }
 
@@ -12265,9 +12267,8 @@ static bool status_readdb_sizefix(char* fields[], int columns, int current)
 {
 	unsigned int i;
 
-	for(i = 0; i < MAX_WEAPON_TYPE; i++) {
+	for (i = 0; i < MAX_WEAPON_TYPE; i++)
 		atkmods[current][i] = atoi(fields[i]);
-	}
 	return true;
 }
 
@@ -12284,22 +12285,22 @@ static bool status_readdb_refine(char* fields[], int columns, int current)
 	random_bonus_start_level = atoi(fields[2]);
 	random_bonus = atoi(fields[3]);
 
-	for(i = 0; i < MAX_REFINE; i++) {
+	for (i = 0; i < MAX_REFINE; i++) {
 		char* delim;
 
-		if (!(delim = strchr(fields[4+i], ':')))
+		if (!(delim = strchr(fields[4 + i], ':')))
 			return false;
 
 		*delim = '\0';
 
-		refine_info[current].chance[i] = atoi(fields[4+i]);
+		refine_info[current].chance[i] = atoi(fields[4 + i]);
 
 		if (i >= random_bonus_start_level - 1)
 			refine_info[current].randombonus_max[i] = random_bonus * (i - random_bonus_start_level + 2);
 
-		refine_info[current].bonus[i] = bonus_per_level + atoi(delim+1);
+		refine_info[current].bonus[i] = bonus_per_level + atoi(delim + 1);
 		if (i > 0)
-			refine_info[current].bonus[i] += refine_info[current].bonus[i-1];
+			refine_info[current].bonus[i] += refine_info[current].bonus[i - 1];
 	}
 	return true;
 }

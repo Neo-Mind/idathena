@@ -3728,16 +3728,20 @@ int pc_insert_card(struct map_session_data* sd, int idx_card, int idx_equip)
  *------------------------------------------*/
 int pc_modifybuyvalue(struct map_session_data *sd,int orig_value)
 {
-	int skill,val = orig_value,rate1 = 0,rate2 = 0;
-	if((skill=pc_checkskill(sd,MC_DISCOUNT))>0)	// merchant discount
-		rate1 = 5+skill*2-((skill==10)? 1:0);
-	if((skill=pc_checkskill(sd,RG_COMPULSION))>0)	// rogue discount
-		rate2 = 5+skill*4;
-	if(rate1 < rate2) rate1 = rate2;
+	int skill, val = orig_value, rate1 = 0, rate2 = 0;
+
+	if((skill = pc_checkskill(sd,MC_DISCOUNT)) > 0) // Merchant discount
+		rate1 = 5 + skill * 2 - ((skill == 10) ? 1 : 0);
+	if((skill = pc_checkskill(sd,RG_COMPULSION)) > 0) // Rogue discount
+		rate2 = 5 + skill * 4;
+	if(rate1 < rate2)
+		rate1 = rate2;
 	if(rate1)
-		val = (int)((double)orig_value*(double)(100-rate1)/100.);
-	if(val < 0) val = 0;
-	if(orig_value > 0 && val < 1) val = 1;
+		val = (int)((double)orig_value * (double)(100 - rate1) / 100.);
+	if(val < 0)
+		val = 0;
+	if(orig_value > 0 && val < 1)
+		val = 1;
 
 	return val;
 }
@@ -3747,13 +3751,16 @@ int pc_modifybuyvalue(struct map_session_data *sd,int orig_value)
  *------------------------------------------*/
 int pc_modifysellvalue(struct map_session_data *sd,int orig_value)
 {
-	int skill,val = orig_value,rate = 0;
-	if((skill=pc_checkskill(sd,MC_OVERCHARGE))>0) // OverCharge
-		rate = 5+skill*2-((skill==10)? 1:0);
+	int skill, val = orig_value, rate = 0;
+
+	if((skill = pc_checkskill(sd,MC_OVERCHARGE)) > 0) // OverCharge
+		rate = 5 + skill * 2 - ((skill == 10) ? 1 : 0);
 	if(rate)
-		val = (int)((double)orig_value*(double)(100+rate)/100.);
-	if(val < 0) val = 0;
-	if(orig_value > 0 && val < 1) val = 1;
+		val = (int)((double)orig_value * (double)(100 + rate) / 100.);
+	if(val < 0)
+		val = 0;
+	if(orig_value > 0 && val < 1)
+		val = 1;
 
 	return val;
 }
@@ -5126,7 +5133,8 @@ int pc_memo(struct map_session_data* sd, int pos)
  *------------------------------------------*/
 int pc_checkskill(struct map_session_data *sd,uint16 skill_id)
 {
-	if( sd == NULL ) return 0;
+	if( sd == NULL )
+		return 0;
 	if( skill_id >= GD_SKILLBASE && skill_id < GD_MAX ) {
 		struct guild *g;
 

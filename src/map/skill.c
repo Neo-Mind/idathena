@@ -363,9 +363,9 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 	switch( skill_id ) {
 		case BA_APPLEIDUN:
 #ifdef RENEWAL
-			hp = 100 + 5 * skill_lv + 5 * (status_get_vit(src) / 10); //HP recovery
+			hp = 100 + 5 * skill_lv + 5 * (status_get_vit(src) / 10);
 #else
-			hp = 30 + 5 * skill_lv + 5 * (status_get_vit(src) / 10); //HP recovery
+			hp = 30 + 5 * skill_lv + 5 * (status_get_vit(src) / 10);
 #endif
 			if( sd )
 				hp += 5 * pc_checkskill(sd,BA_MUSICALLESSON);
@@ -427,22 +427,27 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 
 #ifdef RENEWAL
 	//MATK part of the RE heal formula [malufett]
-	//Note: in this part matk bonuses from items or skills are not applied
+	//Note: In this part matk bonuses from items and skills are not applied
 	switch( skill_id ) {
-		case BA_APPLEIDUN:	case PR_SANCTUARY:
-		case NPC_EVILLAND:	break;
+		case BA_APPLEIDUN:
+		case PR_SANCTUARY:
+		case NPC_EVILLAND:
+			break;
 		default: {
 				struct status_data *status = status_get_status_data(src);
-				int min, max;
+				int min, max, wMatk = 0, variance = 0;
 
 				min = max = status_base_matk(status, status_get_lv(src));
-				if( status->rhw.matk > 0 ) {
-					int wMatk, variance;
-					wMatk = status->rhw.matk;
-					variance = wMatk * status->rhw.wlv / 10;
-					min += wMatk - variance;
-					max += wMatk + variance;
+				if( status->rhw.matk ) {
+					wMatk += status->rhw.matk;
+					variance += status->rhw.matk * status->rhw.wlv / 10;
 				}
+				if( status->lhw.matk ) {
+					wMatk += status->lhw.matk;
+					variance += status->lhw.matk * status->lhw.wlv / 10;
+				}
+				min += wMatk - variance;
+				max += wMatk + variance;
 				if( sc && sc->data[SC_RECOGNIZEDSPELL] )
 					min = max;
 				if( sd && sd->right_weapon.overrefine > 0 ) {
@@ -456,6 +461,7 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 			}
 	}
 #endif
+
 	return hp;
 }
 

@@ -4429,6 +4429,7 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd,struct block_list
 #endif
 		) {
 			int lv = sc->data[SC_AURABLADE]->val1;
+
 #ifdef RENEWAL
 			lv *= ((skill_id == LK_SPIRALPIERCE || skill_id == ML_SPIRALPIERCE) ? wd.div_ : 1); //+100 per hit in lv 5
 #endif
@@ -4543,7 +4544,7 @@ struct Damage battle_calc_attack_left_right_hands(struct Damage wd, struct block
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 
 	if(sd) {
-		int skill = 0;
+		int skill;
 
 		if(!is_attack_right_handed(src, skill_id) && is_attack_left_handed(src, skill_id)) {
 			wd.damage = wd.damage2;
@@ -4557,21 +4558,23 @@ struct Damage battle_calc_attack_left_right_hands(struct Damage wd, struct block
 				if((sd->class_&MAPID_BASEMASK) == MAPID_THIEF) {
 					skill = pc_checkskill(sd,AS_RIGHT);
 					ATK_RATER(wd.damage, 50 + (skill * 10))
-				} else if(sd->class_ == MAPID_KAGEROUOBORO) {
+				} else if((sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) {
 					skill = pc_checkskill(sd,KO_RIGHT);
 					ATK_RATER(wd.damage, 70 + (skill * 10))
 				}
-				if(wd.damage < 1) wd.damage = 1;
+				if(wd.damage < 1)
+					wd.damage = 1;
 			}
 			if(wd.damage2) {
 				if((sd->class_&MAPID_BASEMASK) == MAPID_THIEF) {
 					skill = pc_checkskill(sd,AS_LEFT);
 					ATK_RATEL(wd.damage2, 30 + (skill * 10))
-				} else if(sd->class_ == MAPID_KAGEROUOBORO) {
+				} else if((sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) {
 					skill = pc_checkskill(sd,KO_LEFT);
 					ATK_RATEL(wd.damage2, 50 + (skill * 10))
 				}
-				if(wd.damage2 < 1) wd.damage2 = 1;
+				if(wd.damage2 < 1)
+					wd.damage2 = 1;
 			}
 		}
 	}
@@ -4837,6 +4840,7 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 			//When in banding, the number of hits is equal to the number of Royal Guards in banding.
 			case LG_HESPERUSLIT: {
 					struct status_change *sc = status_get_sc(src);
+
 					if(sc && sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 3)
 						wd.div_ = sc->data[SC_BANDING]->val2;
 				}
@@ -6061,8 +6065,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				//is considered "neutral" for purposes of resistances
 				struct Damage atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,0);
 				struct Damage matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,0);
-				md.damage = (int64)(7 * ((atk.damage / skill_lv + matk.damage / skill_lv) * tstatus->vit / 100));
 
+				md.damage = (int64)(7 * ((atk.damage / skill_lv + matk.damage / skill_lv) * tstatus->vit / 100));
 				//AD benefits from endow/element but damage is forced back to neutral
 				battle_attr_fix(src,target,md.damage,ELE_NEUTRAL,tstatus->def_ele,tstatus->ele_lv);
 			}
@@ -6099,7 +6103,6 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				struct status_change *sc = status_get_sc(src);
 
 				md.damage = sstatus->hp + (atk.damage * sstatus->hp * skill_lv) / sstatus->max_hp;
-
 				if(sc && sc->data[SC_BUNSINJYUTSU] && (i = sc->data[SC_BUNSINJYUTSU]->val2) > 0) {
 					//Mirror image bonus only occurs if active
 					md.div_ = -(i + 2); //Mirror image count + 2
@@ -6394,6 +6397,7 @@ int64 battle_calc_return_damage(struct block_list* bl, struct block_list *src, i
 						{
 							struct status_data *sstatus = status_get_status_data(bl);
 							short count = sstatus->size + 1;
+
 							damage = damage / count;
 						}
 						break;
