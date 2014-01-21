@@ -66,9 +66,14 @@ struct clif_config {
 struct s_packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB + 1];
 int packet_db_ack[MAX_PACKET_VER + 1][MAX_ACK_FUNC + 1];
 
-//Converts item type in case of pet eggs/shadow equip.
-static inline int itemtype(int item_id) {
-	struct item_data* id = itemdb_exists(item_id);
+/** Converts item type to display it on client if necessary.
+ * @param nameid: Item ID
+ * @return item type.
+ *	For IT_PETEGG will be displayed as IT_WEAPON. If Shadow Weapon of IT_SHADOWGEAR as IT_WEAPON and else as IT_ARMOR
+ */
+static inline int itemtype(int nameid) {
+	//Use itemdb_search, so non-existance item will use dummy data and won't crash the server. bugreport:8468
+	struct item_data* id = itemdb_search(nameid);
 	int type = id->type;
 
 	switch( type ) {

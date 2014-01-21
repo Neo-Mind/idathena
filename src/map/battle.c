@@ -4112,7 +4112,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 		if(sc->data[SC_DANCEWITHWUG] && (skill_id == RA_WUGSTRIKE || skill_id == RA_WUGBITE)) {
 			ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_DANCEWITHWUG]->val1 * 10 * (2 + chorusbonus));
 #ifdef RENEWAL
-			ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sc->data[SC_DANCEWITHWUG]->val1 * 10 * (2 + chorusbonus));
+			ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, sc->data[SC_DANCEWITHWUG]->val1 * 10 * (2 + chorusbonus));
 #endif
 		}
 		if(sc->data[SC_SPIRIT]) {
