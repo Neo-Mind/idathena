@@ -1999,6 +1999,9 @@
 11336,0,0,0,0,0,0,0,"Dreaming boy"
 11337,0,0,0,0,0,0,0,"Dreaming boy"
 
+// Halloween Event 2013
+11378,0,0,0,0,0,0,0,"Trick or treat"
+
 12000,0,0,0,0,0,0,0,"An old friend"
 12001,0,0,0,0,0,0,0,"Digotz, Maku's old friend"
 12002,0,0,0,0,0,0,0,"Messenger of Friendship"

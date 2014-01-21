@@ -5,7 +5,7 @@
 //===== Current Version: ===================================== 
 //= 1.0
 //===== Compatible With: ===================================== 
-//= rAthena Project
+//= rAthena SVN
 //===== Description: =========================================
 //= [Official Conversion] 
 //= Job change Quest from Ninja -> Kagerou/Oboro.

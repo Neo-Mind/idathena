@@ -14405,9 +14405,21 @@ BUILDIN_FUNC(compare)
 {
 	const char *message;
 	const char *cmpstring;
+
 	message = script_getstr(st,2);
 	cmpstring = script_getstr(st,3);
 	script_pushint(st,(stristr(message,cmpstring) != NULL));
+	return SCRIPT_CMD_SUCCESS;
+}
+
+BUILDIN_FUNC(strcmp)
+{
+	const char *str1;
+	const char *str2;
+
+	str1 = script_getstr(st,2);
+	str2 = script_getstr(st,3);
+	script_pushint(st,strcmp(str1,str2));
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -14415,6 +14427,7 @@ BUILDIN_FUNC(compare)
 BUILDIN_FUNC(sqrt)
 {
 	double i, a;
+
 	i = script_getnum(st,2);
 	a = sqrt(i);
 	script_pushint(st,(int)a);
@@ -14424,6 +14437,7 @@ BUILDIN_FUNC(sqrt)
 BUILDIN_FUNC(pow)
 {
 	double i, a, b;
+
 	a = script_getnum(st,2);
 	b = script_getnum(st,3);
 	i = pow(a,b);
@@ -18276,6 +18290,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(countstr,"ss?"),
 	BUILDIN_DEF(setnpcdisplay,"sv??"),
 	BUILDIN_DEF(compare,"ss"), //Lordalfa - To bring strstr to scripting Engine.
+	BUILDIN_DEF(strcmp,"ss"),
 	BUILDIN_DEF(getiteminfo,"ii"), //[Lupus] returns Items Buy / sell Price, etc info
 	BUILDIN_DEF(setiteminfo,"iii"), //[Lupus] set Items Buy / sell Price, etc info
 	BUILDIN_DEF(getequipcardid,"ii"), //[Lupus] returns CARD ID or other info from CARD slot N of equipped item
