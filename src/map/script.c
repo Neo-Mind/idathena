@@ -16023,7 +16023,6 @@ BUILDIN_FUNC(changequest)
 BUILDIN_FUNC(checkquest)
 {
 	struct map_session_data *sd = script_rid2sd(st);
-
 	enum quest_check_type type = HAVEQUEST;
 
 	nullpo_ret(sd);
@@ -16032,6 +16031,19 @@ BUILDIN_FUNC(checkquest)
 		type = (enum quest_check_type)script_getnum(st, 3);
 
 	script_pushint(st, quest_check(sd, script_getnum(st, 2), type));
+
+	return SCRIPT_CMD_SUCCESS;
+}
+
+BUILDIN_FUNC(isbegin_quest)
+{
+	struct map_session_data *sd = script_rid2sd(st);
+	int i;
+
+	nullpo_ret(sd);
+
+	i = quest_check(sd, script_getnum(st, 2), (quest_check_type) HAVEQUEST);
+	script_pushint(st, i + (i < 1));
 
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -18409,6 +18421,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(erasequest,"i"),
 	BUILDIN_DEF(completequest,"i"),
 	BUILDIN_DEF(checkquest,"i?"),
+	BUILDIN_DEF(isbegin_quest,"i"),
 	BUILDIN_DEF(changequest,"ii"),
 	BUILDIN_DEF(showevent,"i?"),
 	//Party related
