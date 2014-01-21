@@ -15026,6 +15026,7 @@ int skill_castfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv) {
 	int time = skill_get_cast(skill_id, skill_lv);
 
 	nullpo_ret(bl);
+
 #ifndef RENEWAL_CAST
 	{
 		struct map_session_data *sd;
@@ -15035,6 +15036,7 @@ int skill_castfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv) {
 		//Calculate base cast time (reduced by dex)
 		if( !(skill_get_castnodex(skill_id, skill_lv)&1) ) {
 			int scale = battle_config.castrate_dex_scale - status_get_dex(bl);
+
 			if( scale > 0 ) //Not instant cast
 				time = time * scale / battle_config.castrate_dex_scale;
 			else
@@ -15044,6 +15046,7 @@ int skill_castfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv) {
 		//Calculate cast time reduced by item/card bonuses
 		if( !(skill_get_castnodex(skill_id, skill_lv)&4) && sd ) {
 			int i;
+
 			if( sd->castrate != 100 )
 				time = time * sd->castrate / 100;
 			for( i = 0; i < ARRAYLENGTH(sd->skillcast) && sd->skillcast[i].id; i++ ) {
@@ -15203,7 +15206,7 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 			fixed += sc->data[SC_MANDRAGORA]->val1 * 1000 / 2;
 		if( sc->data[SC_GUST_OPTION] || sc->data[SC_BLAST_OPTION] || sc->data[SC_WILD_STORM_OPTION] )
 			fixed -= 1000;
-		if( sc->data[SC_IZAYOI] && (skill_id >= NJ_TOBIDOUGU && skill_id <= NJ_ISSEN) )
+		if( sc->data[SC_IZAYOI] )
 			fixed = 0;
 	}
 
