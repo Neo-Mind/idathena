@@ -631,10 +631,10 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 					t_cf += sd->bonus.long_attack_atk_rate;
 #endif
 				cardfix_ = cardfix_ * (100 + t_cf_) / 100;
-				cardfix = cardfix * (100 + t_cf) / 100;
 				if( (left&1) && cardfix_ != 1000 )
 					damage = damage * cardfix_ / 1000;
-				else if( cardfix != 1000 )
+				cardfix = cardfix * (100 + t_cf) / 100;
+				if( cardfix != 1000 )
 					damage = damage * cardfix / 1000;
 			} else if( tsd && !(nk&NK_NO_CARDFIX_DEF) && !(left&2) ) { //Target cards should be checked
 				if( !(nk&NK_NO_ELEFIX) ) {
@@ -6108,10 +6108,10 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				//Official Renewal formula [helvetica]
 				//Base damage = currenthp + ((atk * currenthp * skill level) / maxhp)
 				//Final damage = base damage + ((mirror image count + 1) / 5 * base damage) - (edef + sdef)
-				//Modified def formula
-				short totaldef;
 				struct Damage atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,0);
 				struct status_change *sc = status_get_sc(src);
+				//Modified def formula
+				short totaldef;
 
 				md.damage = sstatus->hp + (atk.damage * sstatus->hp * skill_lv) / sstatus->max_hp;
 				if(sc && sc->data[SC_BUNSINJYUTSU] && (i = sc->data[SC_BUNSINJYUTSU]->val2) > 0) {
