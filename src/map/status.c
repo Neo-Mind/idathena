@@ -2917,9 +2917,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 			continue;
 		if(!sd->inventory_data[index])
 			continue;
-
 		status->def += sd->inventory_data[index]->def;
-
 		//Items may be equipped, their effects however are nullified.
 		if(opt&SCO_FIRST && sd->inventory_data[index]->equip_script && (pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) ||
 			!itemdb_isNoEquip(sd->inventory_data[index],sd->bl.m))) { //Execute equip-script on login
@@ -2927,13 +2925,11 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 			if (!calculating)
 				return 1;
 		}
-
 		//Sanitize the refine level in case someone decreased the value inbetween
 		if(sd->status.inventory[index].refine > MAX_REFINE)
 			sd->status.inventory[index].refine = MAX_REFINE;
-
 		if(sd->inventory_data[index]->type == IT_WEAPON) {
-			int r, wlv = sd->inventory_data[index]->wlv;
+			int r = sd->status.inventory[index].refine, wlv = sd->inventory_data[index]->wlv;
 			struct weapon_data *wd;
 			struct weapon_atk *wa;
 
@@ -2947,7 +2943,6 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 				wa = &status->rhw;
 			}
 			wa->atk += sd->inventory_data[index]->atk;
-			r = sd->status.inventory[index].refine;
 			if(r)
 				wa->atk2 += refine_info[wlv].bonus[r - 1] / 100;
 #ifdef RENEWAL
@@ -2956,10 +2951,8 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 			if(r && sd->weapontype1 != W_BOW) //Renewal magic attack refine bonus
 				wa->matk += refine_info[wlv].bonus[r - 1] / 100;
 #endif
-
 			if(r) //Overrefine bonus.
 				wd->overrefine = refine_info[wlv].randombonus_max[r - 1] / 100;
-
 			wa->range += sd->inventory_data[index]->range;
 			if(sd->inventory_data[index]->script && (pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) ||
 				!itemdb_isNoEquip(sd->inventory_data[index],sd->bl.m))) {
@@ -2972,13 +2965,11 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 				if(!calculating) //Abort, run_script retriggered this. [Skotlex]
 					return 1;
 			}
-
 			if(sd->status.inventory[index].card[0] == CARD0_FORGE) { //Forged weapon
 				wd->star += (sd->status.inventory[index].card[1] >> 8);
 				if(wd->star >= 15) wd->star = 40; //3 Star Crumbs now give +40 dmg
 				if(pc_famerank(MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]),MAPID_BLACKSMITH))
 					wd->star += 10;
-
 				if(!wa->ele) //Do not overwrite element from previous bonuses.
 					wa->ele = (sd->status.inventory[index].card[1]&0x0f);
 			}
@@ -5067,7 +5058,7 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 	if(sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 1)
 		watk += (10 + 10 * sc->data[SC_BANDING]->val1) * sc->data[SC_BANDING]->val2;
 	if(sc->data[SC_INSPIRATION])
-		watk += sc->data[SC_INSPIRATION]->val2;
+		watk += 40 * sc->data[SC_INSPIRATION]->val1 + 3 * sc->data[SC_INSPIRATION]->val2;
 	if(sc->data[SC_RUSHWINDMILL])
 		watk += sc->data[SC_RUSHWINDMILL]->val3;
 	if(sc->data[SC_SATURDAYNIGHTFEVER])
@@ -5251,7 +5242,7 @@ static signed short status_calc_hit(struct block_list *bl, struct status_change 
 	if(sc->data[SC_CONCENTRATION])
 		hit += sc->data[SC_CONCENTRATION]->val3;
 	if(sc->data[SC_INSPIRATION])
-		hit += 5 * sc->data[SC_INSPIRATION]->val1 + 25;
+		hit += 5 * sc->data[SC_INSPIRATION]->val1 + sc->data[SC_INSPIRATION]->val2 / 2;
 	if(sc->data[SC_ADJUSTMENT])
 		hit -= 30;
 	if(sc->data[SC_INCREASING])
@@ -5637,9 +5628,9 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 				if( pc_isriding(sd) || sd->sc.option&(OPTION_DRAGON) || sd->sc.data[SC_ALL_RIDING] )
 					val = 25; //Same bonus
 				else if( pc_isridingwug(sd) )
-					val = 15 + 5 * pc_checkskill(sd, RA_WUGRIDER);
+					val = 15 + 5 * pc_checkskill(sd,RA_WUGRIDER);
 				else if( pc_ismadogear(sd) ) {
-					val = (-10 * (5 - pc_checkskill(sd,NC_MADOLICENCE)));
+					val = -(50 - 10 * pc_checkskill(sd,NC_MADOLICENCE));
 					if( sc->data[SC_ACCELERATION] )
 						val += 25;
 				}
@@ -7028,7 +7019,8 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 		return 0;
 
 	//Even if a status change doesn't have a duration, it should still trigger
-	if (tick < 1) return 1;
+	if (tick < 1)
+		return 1;
 
 	//Rate reduction
 	if (flag&2)
@@ -9112,7 +9104,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val1 += 10 * sd->status.job_level;
 					if( index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON )
 							val1 += sd->inventory_data[index]->weight / 10 * sd->inventory_data[index]->wlv * status_get_lv(bl) / 100;
-				} else //Monster Use
+				} else //Monster use
 					val1 += 500;
 				break;
 			case SC_PRESTIGE:
@@ -9133,8 +9125,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_INSPIRATION:
 				if( sd ) {
-					val2 = 40 * val1 + 3 * sd->status.job_level; //ATK bonus
-					val3 = sd->status.base_level / 10 + sd->status.job_level / 5; //All stat bonus
+					val2 = sd->status.job_level;
+					val3 = sd->status.base_level / 10 + val2 / 5; //All stat bonus
 				}
 				val4 = tick / 5000;
 				tick_time = 5000; //[GodLesZ] tick time
@@ -11499,7 +11491,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			//1% HP/SP drain every val3 seconds [Jobbie]
 			if( --(sce->val3) >= 0 ) {
 				if( !status_charge(bl,status->max_hp * 1 / 100,status->max_sp * 1 / 100) )
-				break;
+					break;
 				sc_timer_next(sce->val2 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}

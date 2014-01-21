@@ -642,7 +642,6 @@ bool skill_isNotOk(uint16 skill_id, struct map_session_data *sd)
 				return true;
 			}
 			break;
-		case BS_GREED:
 		case WS_CARTBOOST:
 		case BS_HAMMERFALL:
 		case BS_ADRENALINE:
@@ -1439,19 +1438,19 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			sc_start(src,bl,SC_CRYSTALIZE,rate,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
 		case SO_VARETYR_SPEAR:
-			sc_start(src,bl,SC_STUN,5 + 5 * skill_lv,skill_lv,skill_get_time(skill_id,skill_lv));
+			sc_start(src,bl,SC_STUN,5 * skill_lv,skill_lv,skill_get_time(skill_id,skill_lv));
 			break;
 		case GN_SLINGITEM_RANGEMELEEATK:
 			if( sd ) {
 				switch( sd->itemid ) { //Starting SCs here instead of do it in skill_additional_effect to simplify the code.
-					case 13261: //Coconut Bomb
+					case ITEMID_COCONUT_BOMB:
 						sc_start(src,bl,SC_STUN,100,skill_lv,5000); //5 seconds until I get official
 						sc_start2(src,bl,SC_BLEEDING,100,skill_lv,src->id,10000);
 						break;
-					case 13262: //Melon Bomb
+					case ITEMID_MELON_BOMB:
 						sc_start(src,bl,SC_MELON_BOMB,100,skill_lv,60000); //Reduces ASPD and moviment speed
 						break;
-					case 13264: //Banana Bomb
+					case ITEMID_BANANA_BOMB:
 						sc_start(src,bl,SC_BANANA_BOMB,100,skill_lv,60000); //Reduces LUK Needed confirm it,may be it's bugged in kRO RE?
 						sc_start(src,bl,SC_BANANA_BOMB_SITDOWN,sd->status.job_level + sstatus->dex / 6 + tstatus->agi / 4 - tstatus->luk / 5 - status_get_lv(bl) + status_get_lv(src),skill_lv,1000); //Sitdown for 3 seconds.
 						break;
@@ -1502,6 +1501,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		case MH_MIDNIGHT_FRENZY: {
 				TBL_HOM *hd = BL_CAST(BL_HOM,src);
 				int spiritball = (hd ? hd->homunculus.spiritball : 1);
+
 				sc_start4(src,bl,SC_FEAR,spiritball * (10 + 2 * skill_lv),skill_lv,src->id,
 					0,0,skill_get_time(skill_id,skill_lv));
 			}
@@ -3531,12 +3531,14 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case WL_CHAINLIGHTNING_ATK: {
 						struct block_list *nbl = NULL; //Next Target of Chain
 
-						skill_attack(BF_MAGIC,src,src,target,skl->skill_id,skl->skill_lv,tick,(9 - skl->type)); //Hit a Lightning on the current Target
+						//Hit a Lightning on the current Target
+						skill_attack(BF_MAGIC,src,src,target,skl->skill_id,skl->skill_lv,tick,(9 - skl->type));
 						skill_toggle_magicpower(src,skl->skill_id); //Only the first hit will be amplify
-						
+
 						if (skl->type < (4 + skl->skill_lv - 1) && skl->x < 3) { //Remaining Chains Hit
-							nbl = battle_getenemyarea(src,target->x,target->y,(skl->type > 2) ? 2 : 3, //After 2 bounces, it will bounce to other targets in 7x7 range.
-									BL_CHAR|BL_SKILL,target->id); //Search for a new Target around current one
+							//After 2 bounces, it will bounce to other targets in 7x7 range.
+							nbl = battle_getenemyarea(src,target->x,target->y,(skl->type > 2) ? 2 : 3,
+								BL_CHAR|BL_SKILL,target->id); //Search for a new Target around current one
 							if (nbl == NULL)
 								skl->x++;
 							else 
@@ -3969,11 +3971,13 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 		case NC_BOOSTKNUCKLE:
 		case NC_PILEBUNKER:
-			if (sd) pc_overheat(sd,1);
+			if (sd)
+				pc_overheat(sd,1);
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
 		case NC_COLDSLOWER:
-			if (sd) pc_overheat(sd,1);
+			if (sd)
+				pc_overheat(sd,1);
 		case RK_WINDCUTTER:
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag|SD_ANIMATION);
 			break;
@@ -4034,7 +4038,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case NC_FLAMELAUNCHER:
-			if (sd) pc_overheat(sd,1);
+			if (sd)
+				pc_overheat(sd,1);
 		case SN_SHARPSHOOTING:
 		case MA_SHARPSHOOTING:
 		case NJ_KAMAITACHI:
@@ -4257,7 +4262,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					skill_area_temp[5] = bl->y;
 				}
 				if (skill_id == NC_VULCANARM)
-						if (sd) pc_overheat(sd,1);
+					if (sd)
+						pc_overheat(sd,1);
 				if (skill_id == WM_REVERBERATION_MELEE || skill_id == WM_REVERBERATION_MAGIC)
 					skill_area_temp[1] = 0;
 				//If skill damage should be split among targets, count them
@@ -4870,7 +4876,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			} else {
 				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
 				clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
-				if (sd) pc_overheat(sd,1);
+				if (sd)
+					pc_overheat(sd,1);
 			}
 			break;
 
@@ -5942,8 +5949,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SO_STRIKING: 
 			if( src == bl || battle_check_target(src,bl,BCT_PARTY) > 0 ) {
 				int bonus = 0;
+
 				if( dstsd ) {
 					short index = dstsd->equip_index[EQI_HAND_R];
+
 					if( index >= 0 && dstsd->inventory_data[index] && dstsd->inventory_data[index]->type == IT_WEAPON )
 					bonus = (8 + 2 * skill_lv) * dstsd->inventory_data[index]->wlv;
 				}
@@ -8828,7 +8837,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
 				sc_start(src,bl,type,30 + 12 * skill_lv,skill_lv,skill_get_time(skill_id,skill_lv)));
-			if( sd ) pc_overheat(sd,1);
+			if( sd )
+				pc_overheat(sd,1);
 			break;
 
 		case NC_MAGNETICFIELD:
@@ -8837,7 +8847,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),splash_target(src),
 					src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
 					clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
-					if( sd ) pc_overheat(sd,1);
+					if( sd )
+						pc_overheat(sd,1);
 				}
 				clif_skill_nodamage(src,src,skill_id,skill_lv,i);
 			}
@@ -8847,6 +8858,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if( sd ) {
 				int heal;
 				int bonus = (skill_lv == 5 ? 3 : skill_lv > 2 && skill_lv < 5 ? 1 : 0);
+
 				if( dstsd && pc_ismadogear(dstsd) ) {
 					heal = dstsd->status.max_hp * (skill_lv + 3 * skill_lv + bonus) / 100;
 					status_heal(bl,heal,0,2);
@@ -8951,9 +8963,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case LG_TRAMPLE:
 			clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
-			if ( rnd()%100 < 25 + 25 * skill_lv ) {
+			if( rnd()%100 < 25 + 25 * skill_lv )
 				map_foreachinrange(skill_destroy_trap,bl,skill_get_splash(skill_id,skill_lv),BL_SKILL,tick);
-			}
 			break;
 
 		case LG_REFLECTDAMAGE:
@@ -8970,7 +8981,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			 else if( sd ) {
 				int opt = 0;
 				int val = 0;
-				struct item_data *shield_data = sd->inventory_data[sd->equip_index[EQI_HAND_L]];
+				int index = sd->equip_index[EQI_HAND_L];
+				struct item_data *shield_data = NULL;
+
+				if( index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR )
+					shield_data = sd->inventory_data[index];
 				if( !shield_data || shield_data->type != IT_ARMOR ) {
 					//Skill will first check if a shield is equipped. If none is found on the caster the skill will fail.
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -9230,7 +9245,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					break;
 				}
 
-				heal = 120 * skill_lv + ( status_get_max_hp(bl) * skill_lv / 100 );
+				heal = 120 * skill_lv + (status_get_max_hp(bl) * skill_lv / 100);
 				status_heal(bl,heal,0,0);
 
 				if( (tsc && tsc->opt1) && (rnd()%100 < ((skill_lv * 5) + (status_get_dex(src) + status_get_lv(src)) / 4) - (1 + (rnd() % 10))) )
@@ -9675,7 +9690,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				sd->itemid = ammo_id;
 				if( itemdb_is_GNbomb(ammo_id) ) {
 					if( battle_check_target(src,bl,BCT_ENEMY ) > 0) { //Only attack if the target is an enemy.
-						if( ammo_id == 13263 )
+						if( ammo_id == ITEMID_PINEAPPLE_BOMB )
 							map_foreachincell(skill_area_sub,bl->m,bl->x,bl->y,BL_CHAR,src,GN_SLINGITEM_RANGEMELEEATK,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 						else
 							skill_attack(BF_WEAPON,src,src,bl,GN_SLINGITEM_RANGEMELEEATK,skill_lv,tick,flag);
@@ -11156,7 +11171,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case NC_SILVERSNIPER: {
-				int class_ = 2042;
+				int class_ = MOBID_SILVERSNIPER;
 				struct mob_data *md;
 
 				md = mob_once_spawn_sub(src,src->m,x,y,status_get_name(src),class_,"",SZ_SMALL,AI_NONE);
@@ -14728,7 +14743,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 		if( sc->data[SC__LAZINESS] )
 			req.sp += sc->data[SC__LAZINESS]->val1 * 10;
 		if( sc->data[SC_UNLIMITEDHUMMINGVOICE] )
-			req.sp += req.sp * sc->data[SC_UNLIMITEDHUMMINGVOICE]->val2 / 100;
+			req.sp += req.sp * sc->data[SC_UNLIMITEDHUMMINGVOICE]->val3 / 100;
 		if( sc->data[SC_TELEKINESIS_INTENSE] && skill_get_ele(skill_id,skill_lv) == ELE_GHOST)
 			req.sp -= req.sp * sc->data[SC_TELEKINESIS_INTENSE]->val2 / 100;
 	}
