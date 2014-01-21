@@ -415,7 +415,7 @@ bool skill_isNotOk(uint16 skill_id, struct map_session_data *sd);
 bool skill_isNotOk_hom(uint16 skill_id, struct homun_data *hd);
 bool skill_isNotOk_mercenary(uint16 skill_id, struct mercenary_data *md);
 
-bool skill_isNotOk_npcRange(struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv, int pos_x, int pos_y);
+bool skill_isNotOk_npcRange(struct block_list *src, uint16 skill_id, uint16 skill_lv, int pos_x, int pos_y);
 
 int skill_chastle_mob_changetarget(struct block_list *bl,va_list ap);
 
