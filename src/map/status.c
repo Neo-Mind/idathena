@@ -10350,7 +10350,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				struct block_list *src = map_id2bl(sce->val3);
 
 				if (src && tid != INVALID_TIMER)
-					skill_castend_damage_id(src,bl,sce->val2,sce->val1,gettick(),SD_LEVEL );
+					skill_castend_damage_id(src,bl,sce->val2,sce->val1,gettick(),SD_LEVEL);
 			}
 			break;
 		case SC_TINDER_BREAKER2:

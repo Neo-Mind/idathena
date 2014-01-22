@@ -857,12 +857,13 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			skill_id != MS_REFLECTSHIELD && skill_id != ASC_BREAKER ) { //Trigger status effects
 			enum sc_type type;
 			int i;
+
 			for( i = 0; i < ARRAYLENGTH(sd->addeff) && sd->addeff[i].flag; i++ ) {
 				rate = sd->addeff[i].rate;
 				if( attack_type&BF_LONG ) //Any ranged physical attack takes status arrows into account (Grimtooth) [DracoRPG]
 					rate += sd->addeff[i].arrow_rate;
-				if( !rate ) continue;
-
+				if( !rate )
+					continue;
 				if( (sd->addeff[i].flag&(ATF_WEAPON|ATF_MAGIC|ATF_MISC)) != (ATF_WEAPON|ATF_MAGIC|ATF_MISC) ) {
 					//Trigger has attack type consideration.
 					if( (sd->addeff[i].flag&ATF_WEAPON && attack_type&BF_WEAPON) ||
@@ -892,6 +893,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		if( skill_id ) { //Trigger status effects on skills
 			enum sc_type type;
 			int i;
+
 			for( i = 0; i < ARRAYLENGTH(sd->addeff3) && sd->addeff3[i].skill; i++ ) {
 				if( skill_id != sd->addeff3[i].skill || !sd->addeff3[i].rate )
 					continue;
@@ -964,6 +966,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 
 				if( sc ) {
 					struct status_change_entry *sce;
+
 					//Enchant Poison gives a chance to poison attacked enemies
 					if( (sce = sc->data[SC_ENCPOISON]) ) //Don't use sc_start since chance comes in 1/10000 rate.
 						status_change_start(src,bl,SC_POISON,sce->val2,sce->val1,src->id,0,0,
@@ -993,8 +996,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 				skill_lv = pc_checkskill(sd,TF_POISON);
 		case TF_POISON:
 		case AS_SPLASHER:
-			if( !sc_start2(src,bl,SC_POISON,(4 * skill_lv + 10),skill_lv,src->id,skill_get_time2(skill_id,skill_lv) )
-				&& sd && skill_id == TF_POISON)
+			if( !sc_start2(src,bl,SC_POISON,(4 * skill_lv + 10),skill_lv,src->id,skill_get_time2(skill_id,skill_lv) ) &&
+				sd && skill_id == TF_POISON)
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
 
@@ -3000,6 +3003,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	//Reflected spells do not bounce back (bl == dsrc since it only happens for direct skills)
 	if (dmg.blewcount > 0 && bl != dsrc && !status_isdead(bl)) {
 		int8 dir = -1; //Default
+
 		switch (skill_id) { //Direction
 			case MG_FIREWALL:
 			case PR_SANCTUARY:
@@ -4045,7 +4049,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			}
 			//@TODO: Is there really no cleaner way to do this?
 			sc = status_get_sc(bl);
-			if (sc) sc->jb_flag = flag;
+			if (sc)
+				sc->jb_flag = flag;
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
 
@@ -4305,7 +4310,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					default:
 						break;
 				}
-
 				skill_area_temp[0] = 0;
 				skill_area_temp[1] = bl->id;
 				skill_area_temp[2] = 0;
@@ -4326,6 +4330,10 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				//Recursive invocation of skill_castend_damage_id() with flag|1
 				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),
 					(skill_id == WM_REVERBERATION_MELEE || skill_id == WM_REVERBERATION_MAGIC) ? BL_CHAR : splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
+				if (skill_id == AS_SPLASHER) {
+					map_freeblock_unlock();
+					return 0; //Already consume the requirement item, so end it
+				}
 			}
 			break;
 
@@ -6608,6 +6616,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case MG_STONECURSE: {
 				int brate = 0;
+
 				if (tstatus->mode&MD_BOSS) {
 					if (sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
@@ -6620,14 +6629,15 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 				if (tsc->data[SC_STONE]) {
 					status_change_end(bl,SC_STONE,INVALID_TIMER);
-					if (sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+					if (sd)
+						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
 				if (sc_start4(src,bl,SC_STONE,(skill_lv * 4 + 20) + brate,
 					skill_lv,0,0,skill_get_time(skill_id,skill_lv),
 					skill_get_time2(skill_id,skill_lv)))
 						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				else if(sd) {
+				else if (sd) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					//Level 6-10 doesn't consume a red gem if it fails [celest]
 					if (skill_lv > 5) { //Not to consume items
@@ -7672,21 +7682,21 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case AS_SPLASHER:
 			if (tstatus->mode&MD_BOSS
-			/**
-			* Renewal dropped the 3/4 hp requirement
-			**/
+			//Renewal dropped the 3/4 hp requirement
 #ifndef RENEWAL
 				|| tstatus-> hp > tstatus->max_hp * 3 / 4
 #endif
 			) {
-				if (sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+				if (sd)
+					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				map_freeblock_unlock();
 				return 1;
 			}
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
 				sc_start4(src,bl,type,100,skill_lv,skill_id,src->id,skill_get_time(skill_id,skill_lv),1000));
 #ifndef RENEWAL
-			if (sd) skill_blockpc_start (sd,skill_id,skill_get_time(skill_id,skill_lv) + 3000);
+			if (sd)
+				skill_blockpc_start (sd,skill_id,skill_get_time(skill_id,skill_lv) + 3000);
 #endif
 			break;
 
@@ -7707,7 +7717,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				if (!clif_skill_nodamage(src,bl,skill_id,skill_lv,
 					sc_start(src,bl,type,55 + 5 * skill_lv,skill_lv,skill_get_time(skill_id,skill_lv))))
 				{
-					if (sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+					if (sd)
+						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					map_freeblock_unlock();
 					return 0;
 				}
@@ -7728,9 +7739,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case PF_SOULCHANGE: {
 				unsigned int sp1 = 0, sp2 = 0;
+
 				if (dstmd) {
 					if (dstmd->state.soul_change_flag) {
-						if(sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+						if(sd)
+							clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 						break;
 					}
 					dstmd->state.soul_change_flag = 1;
@@ -8178,6 +8191,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if (flag&1) {
 				const enum sc_type sc[] = { SC_STUN,SC_SILENCE,SC_CONFUSION,SC_BLEEDING };
 				int j;
+
 				j = i = rnd()%ARRAYLENGTH(sc);
 				while (!sc_start2(src,bl,sc[i],100,skill_lv,src->id,skill_get_time2(skill_id,i + 1))) {
 					i++;
@@ -8225,7 +8239,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 		case NPC_WIDESOULDRAIN:
-			if (flag&1)
+			if( flag&1 )
 				status_percent_damage(src,bl,0,((skill_lv - 1)%5 + 1) * 20,false);
 			else {
 				skill_area_temp[2] = 0; //For SD_PREAMBLE
@@ -8287,6 +8301,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				i = skill_get_splash(skill_id,skill_lv);
 				if( skill_id == LG_EARTHDRIVE ) {
 					int dummy = 1;
+
 					map_foreachinarea(skill_cell_overlap,src->m,src->x-i,src->y-i,src->x+i,src->y+i,BL_SKILL,LG_EARTHDRIVE,&dummy,src);
 				}
 				map_foreachinrange(skill_area_sub,bl,i,BL_CHAR,
@@ -8304,6 +8319,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 		case RK_REFRESH: {
 				int heal = status_get_max_hp(bl) * 25 / 100;
+
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,
 					sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 				status_heal(bl,heal,0,1);
@@ -8315,6 +8331,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if( sd ) {
 				int8 generate = 0;
 				int16 shieldnumber = 0;
+
 				generate = rnd()%100 + 1; //Generates a random number between 1 - 100 which is then used to determine how many shields will generate.
 				if ( generate >= 1 && generate <= 20 ) //20% chance for 4 shields.
 					shieldnumber = 4;
@@ -10186,9 +10203,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 	if(sd && !(flag&1)) { //Ensure that the skill last-cast tick is recorded
 		sd->canskill_tick = gettick();
 
-		if(sd->state.arrow_atk) { //Consume arrow on last invocation to this skill.
+		if(sd->state.arrow_atk) //Consume arrow on last invocation to this skill.
 			battle_consume_ammo(sd,skill_id,skill_lv);
-		}
+
 		skill_onskillusage(sd,bl,skill_id,tick);
 
 		//Perform skill requirement consumption
