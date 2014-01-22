@@ -3709,7 +3709,18 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case WL_EARTHSTRAIN:
 					skill_unitsetting(src,skl->skill_id,skl->skill_lv,skl->x,skl->y,(skl->type<<16)|skl->flag);
 					break;
+				case LG_OVERBRAND_BRANDISH: {
+						short x2 = src->x, y2 = src->y, x = x2, y = y2;
 
+						switch (skl->type) {
+							case 0: case 1: case 7: x2 += 4; x -= 4; y2 += 4; break;
+							case 3: case 4: case 5: x2 += 4; x -= 4; y -= 4; break;
+							case 2: y2 += 4; y -= 4; x -= 4; break;
+							case 6: y2 += 4; y -= 4; x2 += 4; break;
+						}
+						map_foreachinarea(skill_area_sub,src->m,x,y,x2,y2,BL_CHAR,src,skl->skill_id,skl->skill_lv,tick,skl->flag|BCT_ENEMY|SD_ANIMATION|1,skill_castend_damage_id);
+					}
+					break;
 			}
 		}
 	} while (0);
@@ -11229,7 +11240,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case NC_MAGICDECOY:
-			if( sd ) clif_magicdecoy_list(sd,skill_lv,x,y);
+			if( sd )
+				clif_magicdecoy_list(sd,skill_lv,x,y);
 			break;
 
 		case SC_FEINTBOMB:
@@ -11246,8 +11258,19 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			skill_addtimerskill(src,tick,src->id,0,0,skill_id,skill_lv,0,0);
 			break;
 
-		case LG_OVERBRAND:
-			skill_overbrand(src,skill_id,skill_lv,x,y,tick,flag);
+		case LG_OVERBRAND: {
+				uint8 dir = map_calc_dir(src,x,y);
+				uint8 x2 = x = src->x, y2 = y = src->y;
+
+				switch( dir ) {
+					case 0: case 1: case 7: x2++; x--; y2 += 7; break;
+					case 3: case 4: case 5: x2++; x--; y -= 7; break;
+					case 2: y2++; y--; x -= 7; break;
+					case 6: y2++; y--; x2 += 7; break;
+				}
+				map_foreachinarea(skill_area_sub,src->m,x,y,x2,y2,BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_ANIMATION|1,skill_castend_damage_id);
+				skill_addtimerskill(src,gettick() + status_get_amotion(src),0,0,0,LG_OVERBRAND_BRANDISH,skill_lv,dir,flag);
+			}
 			break;
 
 		case LG_BANDING:
@@ -15318,49 +15341,6 @@ int skill_delayfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 	return time;
 }
 
-/*=========================================
- *
- *-----------------------------------------*/
-void skill_overbrand(struct block_list* src, uint16 skill_id, uint16 skill_lv, uint16 x, uint16 y, unsigned int tick, int flag)
-{
-	struct s_skill_unit_layout *layout;
-	int i, ux[53], uy[53]; //Number of cells we are attacking
-	short dir = map_calc_dir(src,x,y);
-
-	layout = skill_get_unit_layout(skill_id,skill_lv,src,x,y);
-	if(dir > 0 && dir < 4) { //Need to invert the cell locations for directions
-		for(i = 0; i < 53; i++) {
-			ux[i] = layout->dy[i];
-			uy[i] = layout->dx[i] * -1;
-		}
-	} else if(dir == 4) {
-		for(i = 0; i < 53; i++) {
-			ux[i] = layout->dx[i];
-			uy[i] = layout->dy[i];
-		}
-	} else if(dir > 4) {
-		for(i = 0; i < 53; i++) {
-			ux[i] = layout->dy[i] * -1;
-			uy[i] = layout->dx[i];
-		}
-	} else {
-		for(i = 0; i < 53; i++) {
-			ux[i] = layout->dx[i];
-			uy[i] = layout->dy[i] * -1;
-		}
-	}
-	for(i = 0; i < 53; i++) {
-		if(i < 12) { //Close range hits twice
-			map_foreachincell(skill_area_sub, src->m, x+ux[i], y+uy[i], splash_target(src), src, LG_OVERBRAND_BRANDISH, skill_lv, tick, flag|BCT_ENEMY,skill_castend_damage_id);
-			map_foreachincell(skill_area_sub, src->m, x+ux[i], y+uy[i], splash_target(src), src, skill_id, skill_lv, tick, flag|BCT_ENEMY,skill_castend_damage_id);
-		} else if(i > 11 && i < 45) //Far sides do knockback damage
-			map_foreachincell(skill_area_sub, src->m, x+ux[i], y+uy[i], splash_target(src), src, skill_id, skill_lv, tick, flag|BCT_ENEMY,skill_castend_damage_id);
-		else //Far middle does piercing damage
-			map_foreachincell(skill_area_sub, src->m, x+ux[i], y+uy[i], splash_target(src), src, LG_OVERBRAND_BRANDISH, skill_lv, tick, flag|BCT_ENEMY,skill_castend_damage_id);
-	}
-
-}
-
 struct square {
 	int val1[5];
 	int val2[5];
@@ -18794,11 +18774,11 @@ void skill_init_unit_layout (void)
 					break;
 				case LG_OVERBRAND: {
 						static const int dx[] = {-1,-1,-1,-1, 0, 0, 0, 0, 1, 1, 1, 1,
-									 -5,-5,-5,-5,-4,-4,-4,-4,-3,-3,-3,-3,-2,-2,-2,-2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5,
-									 -1,-1,-1, 0, 0, 0, 1, 1, 1};
+							-5,-5,-5,-5,-4,-4,-4,-4,-3,-3,-3,-3,-2,-2,-2,-2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5,
+							-1,-1,-1, 0, 0, 0, 1, 1, 1};
 						static const int dy[] = { 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 
-									  0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3,
-									 -4,-5,-6,-4,-5,-6,-4,-5,-6};
+							0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3,
+							-4,-5,-6,-4,-5,-6,-4,-5,-6};
 						skill_unit_layout[pos].count = 53;
 						memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 						memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
