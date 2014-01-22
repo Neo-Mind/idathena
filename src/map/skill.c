@@ -8557,95 +8557,96 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
 			break;
 
-		case AB_CLEARANCE:
-			int splash = skill_get_splash(skill_id,skill_lv);
+		case AB_CLEARANCE: {
+				int splash = skill_get_splash(skill_id,skill_lv);
 
-			if( flag&1 || splash < 1 ) {
-				//As of the behavior in official server Clearance is just a super version of Dispell skill. [Jobbie]
-				if( bl->type != BL_MOB && battle_check_target(src,bl,BCT_PARTY) <= 0 )
-					break;
-				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				if( (dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) || rnd()%100 >= 60 + 8 * skill_lv ) {
-					if( sd )
-						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
-					break;
-				}
-				if( status_isimmune(bl) )
-					break;
-				//Remove bonus_script when cleared
-				if( dstsd )
-					pc_bonus_script_clear(dstsd,BONUS_FLAG_REM_ON_CLEARANCE);
-				if( !tsc || !tsc->count )
-					break;
-				for( i = 0; i < SC_MAX ; i++ ) {
-					if( !tsc->data[i] )
-						continue;
-					switch( i ) {
-						case SC_WEIGHT50:		case SC_WEIGHT90:		case SC_HALLUCINATION:
-						case SC_STRIPWEAPON:		case SC_STRIPSHIELD:		case SC_STRIPARMOR:
-						case SC_STRIPHELM:		case SC_CP_WEAPON:		case SC_CP_SHIELD:
-						case SC_CP_ARMOR:		case SC_CP_HELM:		case SC_COMBO:
-						case SC_STRFOOD:		case SC_AGIFOOD:		case SC_VITFOOD:
-						case SC_INTFOOD:		case SC_DEXFOOD:		case SC_LUKFOOD:
-						case SC_HITFOOD:		case SC_FLEEFOOD:		case SC_BATKFOOD:
-						case SC_WATKFOOD:		case SC_MATKFOOD:		case SC_DANCING:
-						case SC_SPIRIT:			case SC_AUTOBERSERK:
-						case SC_CARTBOOST:		case SC_MELTDOWN:		case SC_SAFETYWALL:
-						case SC_SMA:			case SC_SPEEDUP0:		case SC_NOCHAT:
-						case SC_ANKLE:			case SC_SPIDERWEB:		case SC_JAILED:
-						case SC_ITEMBOOST:		case SC_EXPBOOST:		case SC_LIFEINSURANCE:
-						case SC_BOSSMAPINFO:		case SC_PNEUMA:			case SC_AUTOSPELL:
-						case SC_INCHITRATE:		case SC_INCATKRATE:		case SC_NEN:
-						case SC_READYSTORM:		case SC_READYDOWN:		case SC_READYTURN:
-						case SC_READYCOUNTER:		case SC_DODGE:			case SC_WARM:
-						case SC_SPEEDUP1:		case SC_AUTOTRADE:		case SC_CRITICALWOUND:
-						case SC_JEXPBOOST:		case SC_INVINCIBLE:		case SC_INVINCIBLEOFF:
-						case SC_HELLPOWER:		case SC_MANU_ATK:		case SC_MANU_DEF:
-						case SC_SPL_ATK:		case SC_SPL_DEF:		case SC_MANU_MATK:
-						case SC_SPL_MATK:		case SC_RICHMANKIM:		case SC_ETERNALCHAOS:
-						case SC_DRUMBATTLE:		case SC_NIBELUNGEN:		case SC_ROKISWEIL:
-						case SC_INTOABYSS:		case SC_SIEGFRIED:		case SC_WHISTLE:
-						case SC_ASSNCROS:		case SC_POEMBRAGI:		case SC_APPLEIDUN:
-						case SC_HUMMING:		case SC_DONTFORGETME:		case SC_FORTUNE:
-						case SC_SERVICE4U:		case SC_FOOD_STR_CASH:		case SC_FOOD_AGI_CASH:
-						case SC_FOOD_VIT_CASH:		case SC_FOOD_DEX_CASH:		case SC_FOOD_INT_CASH:
-						case SC_FOOD_LUK_CASH:		case SC_ELECTRICSHOCKER:	case SC_BITE:
-						case SC__STRIPACCESSORY:	case SC__ENERVATION:		case SC__GROOMY:
-						case SC__IGNORANCE: 		case SC__LAZINESS:		case SC__UNLUCKY:
-						case SC__WEAKNESS:		case SC_SAVAGE_STEAK:		case SC_COCKTAIL_WARG_BLOOD:
-						case SC_MAGNETICFIELD:		case SC_MINOR_BBQ:		case SC_SIROMA_ICE_TEA:
-						case SC_DROCERA_HERB_STEAMED:	case SC_PUTTI_TAILS_NOODLES:	case SC_NEUTRALBARRIER_MASTER:
-						case SC_NEUTRALBARRIER:		case SC_STEALTHFIELD_MASTER:	case SC_STEALTHFIELD:
-						case SC_LEADERSHIP:		case SC_GLORYWOUNDS:		case SC_SOULCOLD:
-						case SC_HAWKEYES:		case SC_GUILDAURA:		case SC_SEVENWIND:
-						case SC_MIRACLE:		case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:
-						case SC_INCHEALRATE:		case SC_PUSH_CART:		case SC_PARTYFLEE:
-						case SC_RAISINGDRAGON:		case SC_GT_REVITALIZE:		case SC_GT_ENERGYGAIN:
-						case SC_GT_CHANGE:		case SC_ANGEL_PROTECT:		case SC_MONSTER_TRANSFORM:
-						case SC_FULL_THROTTLE:		case SC_REBOUND:		case SC_TELEKINESIS_INTENSE:
-						case SC_MOONSTAR:		case SC_SUPER_STAR:		case SC_ALL_RIDING:
-						case SC_MTF_ASPD:		case SC_MTF_RANGEATK:		case SC_MTF_MATK:
-						case SC_MTF_MLEATKED:		case SC_MTF_CRIDAMAGE:		case SC_HEAT_BARREL:
-						case SC_HEAT_BARREL_AFTER:	case SC_P_ALTER:		case SC_E_CHAIN:
-						case SC_C_MARKER:		case SC_B_TRAP:			case SC_H_MINE:
-						case SC_STRANGELIGHTS:		case SC_DECORATION_OF_MUSIC:
-#ifdef RENEWAL
-						case SC_EXTREMITYFIST2:
-#endif
-							continue;
-						case SC_ASSUMPTIO:
-							if( bl->type == BL_MOB )
-								continue;
-							break;
+				if( flag&1 || splash < 1 ) {
+					//As of the behavior in official server Clearance is just a super version of Dispell skill. [Jobbie]
+					if( bl->type != BL_MOB && battle_check_target(src,bl,BCT_PARTY) <= 0 )
+						break;
+					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+					if( (dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) || rnd()%100 >= 60 + 8 * skill_lv ) {
+						if( sd )
+							clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+						break;
 					}
-					//Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
-					if( i == SC_BERSERK )
-						tsc->data[i]->val2 = 0;
-					status_change_end(bl,(sc_type)i,INVALID_TIMER);
+					if( status_isimmune(bl) )
+						break;
+					//Remove bonus_script when cleared
+					if( dstsd )
+						pc_bonus_script_clear(dstsd,BONUS_FLAG_REM_ON_CLEARANCE);
+					if( !tsc || !tsc->count )
+						break;
+					for( i = 0; i < SC_MAX ; i++ ) {
+						if( !tsc->data[i] )
+							continue;
+						switch( i ) {
+							case SC_WEIGHT50:		case SC_WEIGHT90:		case SC_HALLUCINATION:
+							case SC_STRIPWEAPON:		case SC_STRIPSHIELD:		case SC_STRIPARMOR:
+							case SC_STRIPHELM:		case SC_CP_WEAPON:		case SC_CP_SHIELD:
+							case SC_CP_ARMOR:		case SC_CP_HELM:		case SC_COMBO:
+							case SC_STRFOOD:		case SC_AGIFOOD:		case SC_VITFOOD:
+							case SC_INTFOOD:		case SC_DEXFOOD:		case SC_LUKFOOD:
+							case SC_HITFOOD:		case SC_FLEEFOOD:		case SC_BATKFOOD:
+							case SC_WATKFOOD:		case SC_MATKFOOD:		case SC_DANCING:
+							case SC_SPIRIT:			case SC_AUTOBERSERK:
+							case SC_CARTBOOST:		case SC_MELTDOWN:		case SC_SAFETYWALL:
+							case SC_SMA:			case SC_SPEEDUP0:		case SC_NOCHAT:
+							case SC_ANKLE:			case SC_SPIDERWEB:		case SC_JAILED:
+							case SC_ITEMBOOST:		case SC_EXPBOOST:		case SC_LIFEINSURANCE:
+							case SC_BOSSMAPINFO:		case SC_PNEUMA:			case SC_AUTOSPELL:
+							case SC_INCHITRATE:		case SC_INCATKRATE:		case SC_NEN:
+							case SC_READYSTORM:		case SC_READYDOWN:		case SC_READYTURN:
+							case SC_READYCOUNTER:		case SC_DODGE:			case SC_WARM:
+							case SC_SPEEDUP1:		case SC_AUTOTRADE:		case SC_CRITICALWOUND:
+							case SC_JEXPBOOST:		case SC_INVINCIBLE:		case SC_INVINCIBLEOFF:
+							case SC_HELLPOWER:		case SC_MANU_ATK:		case SC_MANU_DEF:
+							case SC_SPL_ATK:		case SC_SPL_DEF:		case SC_MANU_MATK:
+							case SC_SPL_MATK:		case SC_RICHMANKIM:		case SC_ETERNALCHAOS:
+							case SC_DRUMBATTLE:		case SC_NIBELUNGEN:		case SC_ROKISWEIL:
+							case SC_INTOABYSS:		case SC_SIEGFRIED:		case SC_WHISTLE:
+							case SC_ASSNCROS:		case SC_POEMBRAGI:		case SC_APPLEIDUN:
+							case SC_HUMMING:		case SC_DONTFORGETME:		case SC_FORTUNE:
+							case SC_SERVICE4U:		case SC_FOOD_STR_CASH:		case SC_FOOD_AGI_CASH:
+							case SC_FOOD_VIT_CASH:		case SC_FOOD_DEX_CASH:		case SC_FOOD_INT_CASH:
+							case SC_FOOD_LUK_CASH:		case SC_ELECTRICSHOCKER:	case SC_BITE:
+							case SC__STRIPACCESSORY:	case SC__ENERVATION:		case SC__GROOMY:
+							case SC__IGNORANCE: 		case SC__LAZINESS:		case SC__UNLUCKY:
+							case SC__WEAKNESS:		case SC_SAVAGE_STEAK:		case SC_COCKTAIL_WARG_BLOOD:
+							case SC_MAGNETICFIELD:		case SC_MINOR_BBQ:		case SC_SIROMA_ICE_TEA:
+							case SC_DROCERA_HERB_STEAMED:	case SC_PUTTI_TAILS_NOODLES:	case SC_NEUTRALBARRIER_MASTER:
+							case SC_NEUTRALBARRIER:		case SC_STEALTHFIELD_MASTER:	case SC_STEALTHFIELD:
+							case SC_LEADERSHIP:		case SC_GLORYWOUNDS:		case SC_SOULCOLD:
+							case SC_HAWKEYES:		case SC_GUILDAURA:		case SC_SEVENWIND:
+							case SC_MIRACLE:		case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:
+							case SC_INCHEALRATE:		case SC_PUSH_CART:		case SC_PARTYFLEE:
+							case SC_RAISINGDRAGON:		case SC_GT_REVITALIZE:		case SC_GT_ENERGYGAIN:
+							case SC_GT_CHANGE:		case SC_ANGEL_PROTECT:		case SC_MONSTER_TRANSFORM:
+							case SC_FULL_THROTTLE:		case SC_REBOUND:		case SC_TELEKINESIS_INTENSE:
+							case SC_MOONSTAR:		case SC_SUPER_STAR:		case SC_ALL_RIDING:
+							case SC_MTF_ASPD:		case SC_MTF_RANGEATK:		case SC_MTF_MATK:
+							case SC_MTF_MLEATKED:		case SC_MTF_CRIDAMAGE:		case SC_HEAT_BARREL:
+							case SC_HEAT_BARREL_AFTER:	case SC_P_ALTER:		case SC_E_CHAIN:
+							case SC_C_MARKER:		case SC_B_TRAP:			case SC_H_MINE:
+							case SC_STRANGELIGHTS:		case SC_DECORATION_OF_MUSIC:
+#ifdef RENEWAL
+							case SC_EXTREMITYFIST2:
+#endif
+								continue;
+							case SC_ASSUMPTIO:
+								if( bl->type == BL_MOB )
+									continue;
+								break;
+						}
+						//Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
+						if( i == SC_BERSERK )
+							tsc->data[i]->val2 = 0;
+						status_change_end(bl,(sc_type)i,INVALID_TIMER);
+					}
+					break;
 				}
-				break;
+				map_foreachinrange(skill_area_sub,bl,splash,BL_CHAR,src,skill_id,skill_lv,tick,flag|1,skill_castend_damage_id);
 			}
-			map_foreachinrange(skill_area_sub,bl,splash,BL_CHAR,src,skill_id,skill_lv,tick,flag|1,skill_castend_damage_id);
 			break;
 
 		case AB_SILENTIUM:
