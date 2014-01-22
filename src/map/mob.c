@@ -1862,7 +1862,7 @@ int mob_deleteslave_sub(struct block_list *bl,va_list ap)
 	nullpo_ret(bl);
 	nullpo_ret(md = (struct mob_data *)bl);
 
-	id=va_arg(ap,int);
+	id = va_arg(ap,int);
 	if(md->master_id > 0 && md->master_id == id )
 		status_kill(bl);
 	return 0;
@@ -1883,7 +1883,8 @@ int mob_respawn(int tid, unsigned int tick, int id, intptr_t data)
 {
 	struct block_list *bl = map_id2bl(id);
 
-	if(!bl) return 0;
+	if(!bl)
+		return 0;
 	status_revive(bl, (uint8)data, 0);
 	return 1;
 }
@@ -2474,10 +2475,10 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			int mdrop_p[MAX_MVP_DROP];
 
 			memset(&mdrop_id, 0, MAX_MVP_DROP * sizeof(int));
-
 			for(i = 0; i < MAX_MVP_DROP; i++) {
 				while(1) {
 					int va = rnd()%MAX_MVP_DROP;
+
 					if(!mdrop_id[va] || !md->db->mvpitem[i].nameid) {
 						mdrop_id[va] = md->db->mvpitem[i].nameid;
 						mdrop_p[va]  = md->db->mvpitem[i].p;
@@ -2533,7 +2534,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	if(type&2 && !sd && md->mob_id == MOBID_EMPERIUM && md->guardian_data)
 		mvp_sd = NULL;
 
-	rebirth =  (md->sc.data[SC_KAIZEL] || (md->sc.data[SC_REBIRTH] && !md->state.rebirth));
+	rebirth = (md->sc.data[SC_KAIZEL] || (md->sc.data[SC_REBIRTH] && !md->state.rebirth));
 	if(!rebirth) { //Only trigger event on final kill
 		if(src) {
 			switch(src->type) {
@@ -2543,6 +2544,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				case BL_ELEM:
 				case BL_MOB:
 					sd = BL_CAST(BL_PC, battle_get_master(src));
+					break;
 			}
 		}
 

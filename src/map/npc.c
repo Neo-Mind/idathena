@@ -3337,8 +3337,7 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 			}
 		}
 		map[m].flag.nosave = state;
-	}
-	else if (!strcmpi(w3,"autotrade"))
+	} else if (!strcmpi(w3,"autotrade"))
 		map[m].flag.autotrade = state;
 	else if (!strcmpi(w3,"allowks"))
 		map[m].flag.allowks = state; //[Kill Steal Protection]

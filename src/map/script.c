@@ -5131,40 +5131,37 @@ BUILDIN_FUNC(warpguild)
 	if( g == NULL )
 		return 0;
 	
-	type = ( strcmp(str,"Random")==0 ) ? 0
-	     : ( strcmp(str,"SavePointAll")==0 ) ? 1
-		 : ( strcmp(str,"SavePoint")==0 ) ? 2
+	type = ( strcmp(str,"Random") == 0 ) ? 0
+	     : ( strcmp(str,"SavePointAll") == 0 ) ? 1
+		 : ( strcmp(str,"SavePoint") == 0 ) ? 2
 		 : 3;
 
-	if( type == 2 && ( sd = script_rid2sd(st) ) == NULL )
-	{// "SavePoint" uses save point of the currently attached player
+	// "SavePoint" uses save point of the currently attached player
+	if( type == 2 && (sd = script_rid2sd(st)) == NULL )
 		return 0;
-	}
 
 	iter = mapit_getallusers();
-	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
-	{
+	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
 		if( pl_sd->status.guild_id != gid )
 			continue;
 
-		switch( type )
-		{
-		case 0: // Random
-			if(!map[pl_sd->bl.m].flag.nowarp)
-				pc_randomwarp(pl_sd,CLR_TELEPORT);
-		break;
-		case 1: // SavePointAll
-			if(!map[pl_sd->bl.m].flag.noreturn)
-				pc_setpos(pl_sd,pl_sd->status.save_point.map,pl_sd->status.save_point.x,pl_sd->status.save_point.y,CLR_TELEPORT);
-		break;
-		case 2: // SavePoint
-			if(!map[pl_sd->bl.m].flag.noreturn)
-				pc_setpos(pl_sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,CLR_TELEPORT);
-		break;
-		case 3: // m,x,y
-			if(!map[pl_sd->bl.m].flag.noreturn && !map[pl_sd->bl.m].flag.nowarp)
-				pc_setpos(pl_sd,mapindex_name2id(str),x,y,CLR_TELEPORT);
-		break;
+		switch( type ) {
+			case 0: // Random
+				if(!map[pl_sd->bl.m].flag.nowarp)
+					pc_randomwarp(pl_sd,CLR_TELEPORT);
+				break;
+			case 1: // SavePointAll
+				if(!map[pl_sd->bl.m].flag.noreturn)
+					pc_setpos(pl_sd,pl_sd->status.save_point.map,pl_sd->status.save_point.x,pl_sd->status.save_point.y,CLR_TELEPORT);
+				break;
+			case 2: // SavePoint
+				if(!map[pl_sd->bl.m].flag.noreturn)
+					pc_setpos(pl_sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,CLR_TELEPORT);
+				break;
+			case 3: // m,x,y
+				if(!map[pl_sd->bl.m].flag.noreturn && !map[pl_sd->bl.m].flag.nowarp)
+					pc_setpos(pl_sd,mapindex_name2id(str),x,y,CLR_TELEPORT);
+				break;
 		}
 	}
 	mapit_free(iter);

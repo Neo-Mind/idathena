@@ -10297,7 +10297,7 @@ void clif_parse_Restart(int fd, struct map_session_data *sd)
 			pc_respawn(sd,CLR_RESPAWN);
 			break;
 		case 0x01:
-			/*	Rovert's Prevent logout option - Fixed [Valaris]	*/
+			/* Rovert's Prevent logout option - Fixed [Valaris] */
 			if( !sd->sc.data[SC_CLOAKING] && !sd->sc.data[SC_HIDING] && !sd->sc.data[SC_CHASEWALK] && !sd->sc.data[SC_CLOAKINGEXCEED] &&
 				(!battle_config.prevent_logout || DIFF_TICK(gettick(), sd->canlog_tick) > battle_config.prevent_logout) )
 			{	//Send to char-server for character selection.

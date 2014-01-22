@@ -373,6 +373,7 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 
 			if( sg->unit_id != UNT_FIREWALL ) {
 				int x,y;
+
 				x = sg->val3 >> 16;
 				y = sg->val3 & 0xffff;
 				skill_unitsetting(src,su->group->skill_id,su->group->skill_lv,x,y,1);
@@ -925,7 +926,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			damage <<= 2; //400% damage receive
 #endif
 
-		if( flag&BF_MAGIC && (sce = sc->data[SC_PRESTIGE]) && rnd()%100 < sce->val2 ) {
+		if( (sce = sc->data[SC_PRESTIGE]) && flag&BF_MAGIC && rnd()%100 < sce->val2 ) {
 			clif_specialeffect(bl,462,AREA); //Still need confirm it.
 			return 0;
 		}
@@ -3361,10 +3362,10 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			skillratio += 50 + 150 * skill_lv;
 			break;
 		case NJ_TATAMIGAESHI:
-#ifdef RENEWAL
-			skillratio += 200;
-#endif
 			skillratio += 10 * skill_lv;
+#ifdef RENEWAL
+			skillratio *= 2;
+#endif
 			break;
 		case NJ_KASUMIKIRI:
 			skillratio += 10 * skill_lv;

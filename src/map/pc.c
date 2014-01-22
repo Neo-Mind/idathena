@@ -4462,6 +4462,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 
 	if( id->delay > 0 && !pc_has_permission(sd,PC_PERM_ITEM_UNCONDITIONAL) ) {
 		int i;
+
 		ARR_FIND(0, MAX_ITEMDELAYS, i, sd->item_delay[i].nameid == nameid );
 			if( i == MAX_ITEMDELAYS ) /* Item not found. try first empty now */
 				ARR_FIND(0, MAX_ITEMDELAYS, i, !sd->item_delay[i].nameid );
@@ -6704,9 +6705,9 @@ int pc_skillheal2_bonus(struct map_session_data *sd, uint16 skill_id) {
 void pc_respawn(struct map_session_data* sd, clr_type clrtype)
 {
 	if( !pc_isdead(sd) )
-		return; // not applicable
+		return; // Not applicable
 	if( sd->bg_id && bg_member_respawn(sd) )
-		return; // member revived by battleground
+		return; // Member revived by battleground
 
 	pc_setstand(sd);
 	pc_setrestartvalue(sd,3);
@@ -6717,9 +6718,9 @@ void pc_respawn(struct map_session_data* sd, clr_type clrtype)
 static int pc_respawn_timer(int tid, unsigned int tick, int id, intptr_t data)
 {
 	struct map_session_data *sd = map_id2sd(id);
-	if( sd != NULL )
-	{
-		sd->pvp_point=0;
+
+	if( sd != NULL ) {
+		sd->pvp_point = 0;
 		pc_respawn(sd,CLR_OUTSIGHT);
 	}
 
@@ -6731,9 +6732,12 @@ static int pc_respawn_timer(int tid, unsigned int tick, int id, intptr_t data)
  *------------------------------------------*/
 void pc_damage(struct map_session_data *sd,struct block_list *src,unsigned int hp, unsigned int sp)
 {
-	if (sp) clif_updatestatus(sd,SP_SP);
-	if (hp) clif_updatestatus(sd,SP_HP);
-	else return;
+	if( sp )
+		clif_updatestatus(sd,SP_SP);
+	if( hp )
+		clif_updatestatus(sd,SP_HP);
+	else
+		return;
 	
 	if( !src || src == &sd->bl )
 		return;

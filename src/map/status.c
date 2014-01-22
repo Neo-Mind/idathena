@@ -452,7 +452,7 @@ void initChangeTables(void) {
 	add_sc( SL_STUN              , SC_STUN            );
 	set_sc( SL_SWOO              , SC_SWOO            , SI_SWOO            , SCB_SPEED );
 	set_sc( SL_SKE               , SC_SKE             , SI_BLANK           , SCB_BATK|SCB_WATK|SCB_DEF|SCB_DEF2 );
-	set_sc( SL_SKA               , SC_SKA             , SI_BLANK           , SCB_DEF|SCB_MDEF|SCB_ASPD );
+	set_sc( SL_SKA               , SC_SKA             , SI_BLANK           , SCB_DEF|SCB_MDEF|SCB_SPEED|SCB_ASPD );
 	set_sc( SL_SMA               , SC_SMA             , SI_SMA             , SCB_NONE );
 	set_sc( SM_SELFPROVOKE       , SC_PROVOKE         , SI_PROVOKE         , SCB_DEF|SCB_DEF2|SCB_BATK|SCB_WATK );
 	set_sc( ST_PRESERVE          , SC_PRESERVE        , SI_PRESERVE        , SCB_NONE );
@@ -1454,16 +1454,14 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 
 		//Look for Osiris Card's bonus effect on the character and revive 100% or revive normally
 		if (target->type == BL_PC && BL_CAST(BL_PC,target)->special_state.restart_full_recover)
-			status_revive(target, 100, 100);
+			status_revive(target,100,100);
 		else
-			status_revive(target, sc->data[SC_KAIZEL]->val2, 0);
+			status_revive(target,sc->data[SC_KAIZEL]->val2,0);
 		status_change_clear(target,0);
 		clif_skill_nodamage(target,target,ALL_RESURRECTION,1,1);
 		sc_start(src,target,status_skill2sc(PR_KYRIE),100,10,time);
-
 		if (target->type == BL_MOB)
 			((TBL_MOB*)target)->state.rebirth = 1;
-
 		return (int)(hp + sp);
 	}
 	if (target->type == BL_PC) {
@@ -1472,15 +1470,15 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 		if (hd && hd->sc.data[SC_LIGHT_OF_REGENE]) {
 			status_change_clear(target,0);
 			//Just to display usage
-			clif_skillcasting(&hd->bl, hd->bl.id, target->id, 0,0, MH_LIGHT_OF_REGENE, skill_get_ele(MH_LIGHT_OF_REGENE, 1), 10);
-			clif_skill_nodamage(&sd->bl, target, ALL_RESURRECTION, 1, status_revive(&sd->bl,hd->sc.data[SC_LIGHT_OF_REGENE]->val2,0));
+			clif_skillcasting(&hd->bl,hd->bl.id,target->id,0,0,MH_LIGHT_OF_REGENE,skill_get_ele(MH_LIGHT_OF_REGENE,1),10);
+			clif_skill_nodamage(&sd->bl,target,ALL_RESURRECTION,1,status_revive(&sd->bl,hd->sc.data[SC_LIGHT_OF_REGENE]->val2,0));
 			status_change_end(&sd->hd->bl,SC_LIGHT_OF_REGENE,INVALID_TIMER);
 			return (int)(hp + sp);
 		}
 	}
 	if (target->type == BL_MOB && sc && sc->data[SC_REBIRTH] && !((TBL_MOB*) target)->state.rebirth) {
 		//Ensure the monster has not already rebirthed before doing so.
-		status_revive(target, sc->data[SC_REBIRTH]->val2, 0);
+		status_revive(target,sc->data[SC_REBIRTH]->val2,0);
 		status_change_clear(target,0);
 		((TBL_MOB*)target)->state.rebirth = 1;
 
@@ -1779,9 +1777,9 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		case AL_TELEPORT:
 		case ALL_ODINS_POWER:
 			//Should fail when used on top of Land Protector [Skotlex]
-			if (src && map_getcell(src->m, src->x, src->y, CELL_CHKLANDPROTECTOR)
-				&& !(status->mode&MD_BOSS)
-				&& (src->type != BL_PC || ((TBL_PC*)src)->skillitem != skill_id))
+			if (src && map_getcell(src->m, src->x, src->y, CELL_CHKLANDPROTECTOR) &&
+				!(status->mode&MD_BOSS) &&
+				(src->type != BL_PC || ((TBL_PC*)src)->skillitem != skill_id))
 				return 0;
 			break;
 		default:
@@ -4242,7 +4240,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		else
 			status->cri = status_calc_critical(bl, sc, b_status->cri + 3*(status->luk - b_status->luk));
 		/**
-		 * after status_calc_critical so the bonus is applied despite if you have or not a sc bugreport:5240
+		 * After status_calc_critical so the bonus is applied despite if you have or not a sc bugreport:5240
 		 **/
 		if( bl->type == BL_PC && ((TBL_PC*)bl)->status.weapon == W_KATAR )
 			status->cri <<= 1;
@@ -5703,6 +5701,8 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 					val = max( val, sc->data[SC_SUITON]->val3 );
 				if( sc->data[SC_SWOO] )
 					val = max( val, 300 );
+				if( sc->data[SC_SKA] )
+					val = max( val, 25 );
 				if( sc->data[SC_FREEZING] || sc->data[SC_HALLUCINATIONWALK_POSTDELAY] || (sc->data[SC_GLOOMYDAY] && sc->data[SC_GLOOMYDAY]->val4) )
 					val = max( val, 50 );
 				if( sc->data[SC_MARSHOFABYSS] )
@@ -8676,8 +8676,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				if( sd ) {
 					if( sd->mapindex != val2 ) {
 						int pos = (bl->x&0xFFFF)|(bl->y<<16), //Current coordinates
-						map = sd->mapindex; //Current map
 
+						map = sd->mapindex; //Current map
 						//1. Place in jail (val2 -> Jail Map, val3 -> x, val4 -> y
 						pc_setpos(sd,(unsigned short)val2,val3,val4,CLR_TELEPORT);
 						//2. Set restore point (val3 -> return map, val4 return coords

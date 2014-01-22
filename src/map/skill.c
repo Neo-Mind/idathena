@@ -2724,9 +2724,10 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			//Spirit of Wizard blocks Kaite's reflection
 			if (type == 2 && tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_WIZARD) {
 				//Consume one Fragment per hit of the casted skill? [Skotlex]
-				type = tsd ? pc_search_inventory(tsd, ITEMID_FRAGMENT_OF_CRYSTAL) : 0;
+				type = (tsd ? pc_search_inventory(tsd, ITEMID_FRAGMENT_OF_CRYSTAL) : 0);
 				if (type >= 0) {
-					if (tsd) pc_delitem(tsd, type, 1, 0, 1, LOG_TYPE_CONSUME);
+					if (tsd)
+						pc_delitem(tsd, type, 1, 0, 1, LOG_TYPE_CONSUME);
 					dmg.damage = dmg.damage2 = 0;
 					dmg.dmg_lv = ATK_MISS;
 					tsc->data[SC_SPIRIT]->val3 = skill_id;
@@ -4929,6 +4930,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			else {
 				short x, y;
+
 				map_search_freecell(src,0,&x,&y,-1,-1,0);
 				//Destination area
 				skill_area_temp[4] = x;
@@ -5490,12 +5492,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					if(tsc->data[SC_KAITE] && !(sstatus->mode&MD_BOSS)) { //Bounce back heal
 						if(--tsc->data[SC_KAITE]->val2 <= 0)
 							status_change_end(bl,SC_KAITE,INVALID_TIMER);
-						if(src == bl)
-							heal = 0; //When you try to heal yourself under Kaite, the heal is voided.
-						else {
-							bl = src;
-							dstsd = sd;
-						}
+						heal = 0; //When you try to heal under Kaite, the heal is voided.
 					} else if( tsc->data[SC_BERSERK] || tsc->data[SC_SATURDAYNIGHTFEVER] )
 						heal = 0; //Needed so that it actually displays 0 when healing.
 				}
@@ -5557,10 +5554,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 				if(tsc && tsc->data[SC_HELLPOWER])
 					break;
-
 				if(map[bl->m].flag.pvp && dstsd && dstsd->pvp_point < 0)
 					break;
-
 				switch(skill_lv) {
 					case 1: per = 10; break;
 					case 2: per = 30; break;
@@ -16721,6 +16716,7 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 
 	if( skill_get_unit_flag(group->skill_id)&(UF_DANCE|UF_SONG|UF_ENSEMBLE) ) {
 		struct status_change* sc = status_get_sc(src);
+
 		if( sc && sc->data[SC_DANCING] ) {
 			sc->data[SC_DANCING]->val2 = 0 ; //This prevents status_change_end attempting to redelete the group. [Skotlex]
 			status_change_end(src, SC_DANCING, INVALID_TIMER);
@@ -16731,6 +16727,7 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 	//(needs to be done when the group is deleted by other means than skill deactivation)
 	if( group->unit_id == UNT_GOSPEL ) {
 		struct status_change *sc = status_get_sc(src);
+
 		if( sc && sc->data[SC_GOSPEL] ) {
 			sc->data[SC_GOSPEL]->val3 = 0; //Remove reference to this group. [Skotlex]
 			status_change_end(src, SC_GOSPEL, INVALID_TIMER);
@@ -16743,7 +16740,8 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 		case SG_STAR_WARM:
 			{
 				struct status_change *sc = NULL;
-				if( (sc = status_get_sc(src)) != NULL  && sc->data[SC_WARM] ) {
+
+				if( (sc = status_get_sc(src)) != NULL && sc->data[SC_WARM] ) {
 					sc->data[SC_WARM]->val4 = 0;
 					status_change_end(src, SC_WARM, INVALID_TIMER);
 				}
@@ -16751,6 +16749,7 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 			break;
 		case NC_NEUTRALBARRIER: {
 				struct status_change *sc = NULL;
+
 				if( (sc = status_get_sc(src)) != NULL && sc->data[SC_NEUTRALBARRIER_MASTER] ) {
 					sc->data[SC_NEUTRALBARRIER_MASTER]->val2 = 0;
 					status_change_end(src, SC_NEUTRALBARRIER_MASTER, INVALID_TIMER);
@@ -16759,6 +16758,7 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 			break;
 		case NC_STEALTHFIELD: {
 				struct status_change *sc = NULL;
+
 				if( (sc = status_get_sc(src)) != NULL && sc->data[SC_STEALTHFIELD_MASTER] ) {
 					sc->data[SC_STEALTHFIELD_MASTER]->val2 = 0;
 					status_change_end(src, SC_STEALTHFIELD_MASTER, INVALID_TIMER);
@@ -16767,7 +16767,8 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 			break;
 		case LG_BANDING: {
 				struct status_change *sc = NULL;
-				if( (sc = status_get_sc(src)) && sc->data[SC_BANDING] ) {
+
+				if( (sc = status_get_sc(src)) != NULL && sc->data[SC_BANDING] ) {
 					sc->data[SC_BANDING]->val4 = 0;
 					status_change_end(src, SC_BANDING, INVALID_TIMER);
 				}
