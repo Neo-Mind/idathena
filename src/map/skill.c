@@ -3252,6 +3252,7 @@ static int skill_check_unit_range (struct block_list *bl, int x, int y, uint16 s
 	//Non players do not check for the skill's splash-trigger area.
 	int range = bl->type == BL_PC ? skill_get_unit_range(skill_id,skill_lv) : 0;
 	int layout_type = skill_get_unit_layout_type(skill_id,skill_lv);
+
 	if (layout_type == -1 || layout_type > MAX_SQUARE_LAYOUT) {
 		ShowError("skill_check_unit_range: unsupported layout type %d for skill %d\n",layout_type,skill_id);
 		return 0;
@@ -16558,6 +16559,7 @@ int skill_delunit (struct skill_unit* unit)
 			break;
 		case RA_ELECTRICSHOCKER: {
 				struct block_list* target = map_id2bl(group->val2);
+
 				if( target )
 					status_change_end(target, SC_ELECTRICSHOCKER, INVALID_TIMER);
 			}
@@ -16565,6 +16567,7 @@ int skill_delunit (struct skill_unit* unit)
 		case SC_MANHOLE: //Note : Removing the unit don't remove the status (official info)
 			if( group->val2 ) { //Someone Traped
 				struct status_change *tsc = status_get_sc(map_id2bl(group->val2));
+
 				if( tsc && tsc->data[SC__MANHOLE] )
 					tsc->data[SC__MANHOLE]->val4 = 0; //Remove the Unit ID
 			}
@@ -16960,9 +16963,10 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 			case UNT_B_TRAP:
 				{
 					struct block_list* src;
+
 					if( unit->val1 > 0 && (src = map_id2bl(group->src_id)) != NULL && src->type == BL_PC ) { 
-						//Revert unit back into a trap
-						struct item item_tmp;
+						struct item item_tmp; //Revert unit back into a trap
+
 						memset(&item_tmp,0,sizeof(item_tmp));
 						item_tmp.nameid = group->item_id?group->item_id:ITEMID_TRAP;
 						item_tmp.identify = 1;

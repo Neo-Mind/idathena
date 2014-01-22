@@ -9628,7 +9628,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_CLOSECONFINE2:
 		case SC_TINDER_BREAKER:
 		case SC_TINDER_BREAKER2:
-		case SC_ELECTRICSHOCKER:
 		case SC_BITE:
 		case SC_CAMOUFLAGE:
 		case SC_THORNSTRAP:
@@ -9647,6 +9646,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 		case SC_ANKLE:
 		case SC_SPIDERWEB:
+		case SC_ELECTRICSHOCKER:
 			{
 				int knockback_immune = sd ? !sd->special_state.no_knockback : !(status->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS));
 
@@ -11390,7 +11390,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_ELECTRICSHOCKER:
 			if( --(sce->val4) >= 0 ) {
 				status_charge(bl,0,status->max_sp / 100 * sce->val1 * 5);
-				sc_timer_next(3000 + tick,status_change_timer,bl->id,data);
+				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}
 			break;
