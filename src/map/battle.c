@@ -3688,12 +3688,13 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			}
 			break;
 		case SR_RAMPAGEBLASTER:
-			skillratio += -100 + 20 * skill_lv * (sd ? sd->spiritball_old : 1);
 			if(sc && sc->data[SC_EXPLOSIONSPIRITS]) {
-				skillratio += sc->data[SC_EXPLOSIONSPIRITS]->val1 * 20;
+				skillratio += -100 + (20 * sc->data[SC_EXPLOSIONSPIRITS]->val1 + 20 * skill_lv) * (sd ? sd->spiritball_old : 1);
 				RE_LVL_DMOD(120);
-			} else
+			} else {
+				skillratio += -100 + (20 * skill_lv) * (sd ? sd->spiritball_old : 1);
 				RE_LVL_DMOD(150);
+			}
 			break;
 		case SR_KNUCKLEARROW:
 			if(wd.miscflag&4) {

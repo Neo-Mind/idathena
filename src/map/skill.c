@@ -13845,7 +13845,6 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 		case MO_FINGEROFFENSIVE:
 		case GS_FLING:
 		case SR_RAMPAGEBLASTER:
-		case SR_RIDEINLIGHTNING:
 			if( sd->spiritball > 0 && sd->spiritball < require.spiritball )
 				sd->spiritball_old = require.spiritball = sd->spiritball;
 			else
@@ -13931,6 +13930,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			break; //Combo ready.
 		case BD_ADAPTATION: {
 				int time;
+
 				if( !(sc && sc->data[SC_DANCING]) ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					return 0;
@@ -14115,6 +14115,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			break;
 		case AB_ANCILLA: {
 				int count = 0;
+
 				for( i = 0; i < MAX_INVENTORY; i++ )
 					if( sd->status.inventory[i].nameid == ITEMID_ANCILLA )
 						count += sd->status.inventory[i].amount;
@@ -14163,6 +14164,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 		case WL_TETRAVORTEX:
 			if( sc ) {
 				int j = 0;
+
 				for( i = SC_SPHERE_1; i <= SC_SPHERE_5; i++ )
 					if( sc->data[i] )
 						j++;
@@ -14325,6 +14327,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 		case KO_DOHU_KOUKAI:
 			{
 				int ttype = skill_get_ele(skill_id, skill_lv);
+
 				ARR_FIND(1, 5, i, sd->talisman[i] > 0 && i != ttype);
 				if( (i < 5 && i != ttype) || sd->talisman[ttype] >= 10 ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -14384,21 +14387,18 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 		case ST_MOVE_ENABLE:
 			if( sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == skill_id )
 				sd->ud.canmove_tick = gettick(); //When using a combo, cancel the can't move delay to enable the skill. [Skotlex]
-
 			if( !unit_can_move(&sd->bl) ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}
 			break;
-		case ST_WATER: {
-				if( sc && (sc->data[SC_DELUGE] || sc->data[SC_SUITON]) )
-					break;
-				if( map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKWATER) )
-					break;
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
-				return 0;
-			}
-			break;
+		case ST_WATER:
+			if( sc && (sc->data[SC_DELUGE] || sc->data[SC_SUITON]) )
+				break;
+			if( map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKWATER) )
+				break;
+			clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+			return 0;
 		case ST_RIDINGDRAGON:
 			if( !pc_isridingdragon(sd) ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -14440,6 +14440,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 	/* Check the status required */
 	if( require.status_count ) {
 		uint8 i;
+
 		/* May has multiple requirements */
 		if( !sc ) {
 			clif_skill_fail(sd,skill_id,USESKILL_FAIL_CONDITION,0);
@@ -14458,7 +14459,8 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 		for( i = 0; i < require.eqItem_count; i++ ) {
 			int reqeqit = require.eqItem[i];
 
-			if( !reqeqit ) break; //No more required item get out of here
+			if( !reqeqit )
+				break; //No more required item get out of here
 			if( !pc_checkequip2(sd,reqeqit,EQI_ACC_L,EQI_MAX) ) {
 				char output[128];
 
