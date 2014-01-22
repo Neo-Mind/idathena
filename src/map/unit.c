@@ -1698,13 +1698,15 @@ int unit_skilluse_pos2(struct block_list *src, short skill_x, short skill_y, uin
 
 	//Fail if the targetted skill is near NPC [Cydh]
 	if(skill_get_inf2(skill_id)&INF2_NO_NEARNPC && skill_isNotOk_npcRange(src, skill_id, skill_lv, skill_x, skill_y)) {
-		if (sd) clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
+		if(sd)
+			clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 		return 0;
 	}
 
 	//Can't cast ground targeted spells on wall cells
 	if(map_getcell(src->m, skill_x, skill_y, CELL_CHKWALL)) {
-		if (sd) clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
+		if(sd)
+			clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 		return 0;
 	}
 

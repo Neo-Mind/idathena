@@ -8558,7 +8558,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case AB_CLEARANCE:
-			if( flag&1 || (i = skill_get_splash(skill_id,skill_lv)) < 1 ) {
+			int splash = skill_get_splash(skill_id,skill_lv);
+
+			if( flag&1 || splash < 1 ) {
 				//As of the behavior in official server Clearance is just a super version of Dispell skill. [Jobbie]
 				if( bl->type != BL_MOB && battle_check_target(src,bl,BCT_PARTY) <= 0 )
 					break;
@@ -8643,7 +8645,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				}
 				break;
 			}
-			map_foreachinrange(skill_area_sub,bl,i,BL_CHAR,src,skill_id,skill_lv,tick,flag|1,skill_castend_damage_id);
+			map_foreachinrange(skill_area_sub,bl,splash,BL_CHAR,src,skill_id,skill_lv,tick,flag|1,skill_castend_damage_id);
 			break;
 
 		case AB_SILENTIUM:

@@ -1934,7 +1934,17 @@ static int pc_bonus_addeff_onskill(struct s_addeffectonskill* effect, int max, e
 	return 1;
 }
 
-static int pc_bonus_item_drop(struct s_add_drop *drop, const short max, short id, short group, int class_, int race, int rate)
+/** Adjust/add drop rate modifier for player
+ * @param drop: sd->add_drop (struct s_add_drop)
+ * @param max: max stacked bonus
+ * @param id: item id that will be dropped
+ * @param group: group id
+ * @param class_: target class
+ * @param race: target race
+ * @param rate: rate value
+ * @return true/false: false if max limit is reached
+ */
+static void pc_bonus_item_drop(struct s_add_drop *drop, const short max, short id, short group, int class_, int race, int rate)
 {
 	int i;
 
@@ -1954,10 +1964,10 @@ static int pc_bonus_item_drop(struct s_add_drop *drop, const short max, short id
 	}
 	for( i = 0; i < max && (drop[i].id || drop[i].group); i++ ) {
 		if( ((id && drop[i].id == id) || (group && drop[i].group == group)) ) {
-			if( race < RC_NONE_ ) //bAddMonsterIdDropItem
-				drop[i].race |= race;
 			if( race > RC_NONE_ && race < RC_MAX )
 				drop[i].race |= 1<<race;
+			else
+				drop[i].race |= race; //bAddMonsterIdDropItem
 			if( class_ > CLASS_NONE && class_ < CLASS_MAX )
 				drop[i].class_ |= 1<<class_;
 			if( drop[i].rate > 0 && rate > 0 ) { //Both are absolute rates.
@@ -1968,33 +1978,32 @@ static int pc_bonus_item_drop(struct s_add_drop *drop, const short max, short id
 					drop[i].rate = rate;
 			} else if( rate < 0 ) //Give preference to relative rate.
 				drop[i].rate = rate;
-			return 1;
+			return;
 		}
 	}
 	if( i == max ) {
 		ShowWarning("pc_bonus: Reached max (%d) number of added drops per character!\n", max);
-		return 0;
+		return;
 	}
 	drop[i].id = id;
 	drop[i].group = group;
-	if( race < RC_NONE_ )
-		drop[i].race |= race;
 	if( race > RC_NONE_ && race < RC_MAX )
 		drop[i].race |= 1<<race;
+	else
+		drop[i].race |= race; //bAddMonsterIdDropItem
 	if( class_ > CLASS_NONE && class_ < CLASS_MAX )
 		drop[i].class_ |= 1<<class_;
 	drop[i].rate = rate;
-	return 1;
 }
 
-int pc_addautobonus(struct s_autobonus *bonus,char max,const char *script,short rate,unsigned int dur,short flag,const char *other_script,unsigned short pos,bool onskill)
+bool pc_addautobonus(struct s_autobonus *bonus,char max,const char *script,short rate,unsigned int dur,short flag,const char *other_script,unsigned short pos,bool onskill)
 {
 	int i;
 
 	ARR_FIND(0, max, i, bonus[i].rate == 0);
 	if( i == max ) {
 		ShowWarning("pc_addautobonus: Reached max (%d) number of autobonus per character!\n", max);
-		return 0;
+		return false;
 	}
 
 	if( !onskill ) {
@@ -2017,13 +2026,15 @@ int pc_addautobonus(struct s_autobonus *bonus,char max,const char *script,short 
 	bonus[i].pos = pos;
 	bonus[i].bonus_script = aStrdup(script);
 	bonus[i].other_script = other_script ? aStrdup(other_script) : NULL;
-	return 1;
+	return true;
 }
 
-int pc_delautobonus(struct map_session_data* sd, struct s_autobonus *autobonus,char max,bool restore)
+void pc_delautobonus(struct map_session_data* sd, struct s_autobonus *autobonus,char max,bool restore)
 {
 	int i;
-	nullpo_ret(sd);
+
+	if( !sd )
+		return;
 
 	for( i = 0; i < max; i++ ) {
 		if( autobonus[i].active != INVALID_TIMER ) {
@@ -2048,14 +2059,12 @@ int pc_delautobonus(struct map_session_data* sd, struct s_autobonus *autobonus,c
 		autobonus[i].rate = autobonus[i].atk_type = autobonus[i].duration = autobonus[i].pos = 0;
 		autobonus[i].active = INVALID_TIMER;
 	}
-
-	return 0;
 }
 
-int pc_exeautobonus(struct map_session_data *sd,struct s_autobonus *autobonus)
+void pc_exeautobonus(struct map_session_data *sd,struct s_autobonus *autobonus)
 {
-	nullpo_ret(sd);
-	nullpo_ret(autobonus);
+	if( !sd || !autobonus )
+		return;
 
 	if( autobonus->other_script ) {
 		int j;
@@ -2068,8 +2077,6 @@ int pc_exeautobonus(struct map_session_data *sd,struct s_autobonus *autobonus)
 	autobonus->active = add_timer(gettick()+autobonus->duration, pc_endautobonus, sd->bl.id, (intptr_t)autobonus);
 	sd->state.autobonus |= autobonus->pos;
 	status_calc_pc(sd,SCO_NONE);
-
-	return 0;
 }
 
 int pc_endautobonus(int tid, unsigned int tick, int id, intptr_t data)
@@ -5888,6 +5895,7 @@ int pc_checkbaselevelup(struct map_session_data *sd) {
 void pc_baselevelchanged(struct map_session_data *sd) {
 #ifdef RENEWAL
 	int i;
+
 	for( i = 0; i < EQI_MAX; i++ ) {
 		if( sd->equip_index[i] >= 0 ) {
 			if( sd->inventory_data[ sd->equip_index[i] ]->elvmax && sd->status.base_level > (unsigned int)sd->inventory_data[ sd->equip_index[i] ]->elvmax )
