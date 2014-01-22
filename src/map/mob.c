@@ -2424,10 +2424,10 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		}
 
 		//Process items looted by the mob
-		if(md->lootitem) {
+		if(md->lootitem)
 			for(i = 0; i < md->lootitem_count; i++)
 				mob_item_drop(md, dlist, mob_setlootitem(&md->lootitem[i]), 1, 10000, homkillonly);
-		}
+
 		if(dlist->item) //There are drop items.
 			add_timer(tick + (!battle_config.delay_battle_damage ? 500 : 0), mob_delay_item_drop, 0, (intptr_t)dlist);
 		else //No drops

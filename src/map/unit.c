@@ -1659,17 +1659,20 @@ int unit_skilluse_pos2(struct block_list *src, short skill_x, short skill_y, uin
 
 	nullpo_ret(src);
 
-	if(!src->prev) return 0; //Not on the map
-	if(status_isdead(src)) return 0;
+	if(!src->prev)
+		return 0; //Not on the map
+	if(status_isdead(src))
+		return 0;
 
 	sd = BL_CAST(BL_PC, src);
 	ud = unit_bl2ud(src);
-	if(ud == NULL) return 0;
-
-	if(ud->skilltimer != INVALID_TIMER)
-		//Normally not needed since clif.c checks for it, but at/char/script commands don't! [Skotlex]
+	if(ud == NULL)
 		return 0;
-	
+
+	//Normally not needed since clif.c checks for it, but at/char/script commands don't! [Skotlex]
+	if(ud->skilltimer != INVALID_TIMER)
+		return 0;
+
 	sc = status_get_sc(src);
 
 	if(sc && !sc->count)

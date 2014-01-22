@@ -1066,6 +1066,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		{
 			struct status_data *status = status_get_status_data(bl);
 			int per = 100 * status->sp / status->max_sp - 1; //100% should be counted as the 80~99% interval
+
 			per /= 20; //Uses 20% SP intervals.
 			//SP Cost: 1% + 0.5% per every 20% SP
 			if( !status_charge(bl,0,(10 + 5 * per) * status->max_sp / 1000) )
@@ -1102,7 +1103,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 #ifdef RENEWAL
 		//Renewal: steel body reduces all incoming damage to 1/10 [helvetica]
 		if( sc->data[SC_STEELBODY] )
-			damage = damage > 10 ? damage / 10 : 1;
+			damage = (damage > 10 ? damage / 10 : 1);
 #endif
 
 		//Finally added to remove the status of immobile when aimedbolt is used. [Jobbie]
@@ -1135,6 +1136,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			int dx[8] = { 0,-1,-1,-1,0,1,1,1 };
 			int dy[8] = { 1,1,0,-1,-1,-1,0,1 };
 			uint8 dir = map_calc_dir(bl,src->x,src->y);
+
 			if( unit_movepos(bl,src->x - dx[dir],src->y - dy[dir],1,1) ) {
 				clif_slide(bl,src->x - dx[dir],src->y - dy[dir]);
 				unit_setdir(bl,dir);
@@ -1146,8 +1148,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 
 		//Probably not the most correct place, but it'll do here
 		//(since battle_drain is strictly for players currently)
-		if( (sce = sc->data[SC_BLOODLUST]) && flag&BF_WEAPON && damage > 0 &&
-			rnd()%100 < sce->val3 )
+		if( (sce = sc->data[SC_BLOODLUST]) && flag&BF_WEAPON && damage > 0 && rnd()%100 < sce->val3 )
 			status_heal(src,damage * sce->val4 / 100,0,3);
 
 		if( sd && (sce = sc->data[SC_FORCEOFVANGUARD]) && flag&BF_WEAPON && rnd()%100 < sce->val2 )
@@ -1165,6 +1166,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 
 		if( sc->data[SC_STYLE_CHANGE] && sc->data[SC_STYLE_CHANGE]->val1 == MH_MD_GRAPPLING ) {
 			TBL_HOM *hd = BL_CAST(BL_HOM,bl); //We add a sphere for when the Homunculus is being hit
+
 			if( hd && (rnd()%100 < 50) ) //According to WarpPortal, this is a flat 50% chance
 				hom_addspiritball(hd,10);
 		}
@@ -1185,21 +1187,25 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			int i;
 
 			if( ((sce = sc->data[SC_MANU_ATK]) && flag&BF_WEAPON) ||
-				 ((sce = sc->data[SC_MANU_MATK]) && flag&BF_MAGIC)
-				)
-				for( i = 0; ARRAYLENGTH(mob_manuk) > i; i++ )
+				((sce = sc->data[SC_MANU_MATK]) && flag&BF_MAGIC) )
+			{
+				for( i = 0; ARRAYLENGTH(mob_manuk) > i; i++ ) {
 					if( ((TBL_MOB*)bl)->mob_id == mob_manuk[i] ) {
 						damage += damage * sce->val1 / 100;
 						break;
 					}
+				}
+			}
 			if( ((sce = sc->data[SC_SPL_ATK]) && flag&BF_WEAPON) ||
-				 ((sce = sc->data[SC_SPL_MATK]) && flag&BF_MAGIC)
-				)
-				for( i = 0; ARRAYLENGTH(mob_splendide) > i; i++ )
+				((sce = sc->data[SC_SPL_MATK]) && flag&BF_MAGIC) )
+			{
+				for( i = 0; ARRAYLENGTH(mob_splendide) > i; i++ ) {
 					if( ((TBL_MOB*)bl)->mob_id == mob_splendide[i] ) {
 						damage += damage * sce->val1 / 100;
 						break;
 					}
+				}
+			}
 		}
 		/* Self Buff that destroys the armor of any target, hit with melee or ranged physical attacks */
 		if( sc->data[SC_SHIELDSPELL_REF] && sc->data[SC_SHIELDSPELL_REF]->val1 == 1 && flag&BF_WEAPON ) {

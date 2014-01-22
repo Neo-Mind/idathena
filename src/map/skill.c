@@ -4027,6 +4027,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
 		case NC_COLDSLOWER:
+		case NC_ARMSCANNON:
 			if (sd)
 				pc_overheat(sd,1);
 		case RK_WINDCUTTER:
@@ -4229,7 +4230,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case RA_ARROWSTORM:
 		case RA_WUGDASH:
 		case NC_VULCANARM:
-		case NC_ARMSCANNON:
 		case NC_AXETORNADO:
 		case NC_SELFDESTRUCTION:
 		case GC_ROLLINGCUTTER:
@@ -4265,6 +4265,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				//skill_area_temp[1] holds the id of the original target
 				//skill_area_temp[2] counts how many targets have already been processed
 				int sflag = skill_area_temp[0]&0xFFF;
+
 				if (flag&SD_LEVEL)
 					sflag |= SD_LEVEL; //-1 will be used in packets instead of the skill level
 				if (skill_area_temp[1] != bl->id && !(skill_get_inf2(skill_id)&INF2_NPC_SKILL))
@@ -4340,7 +4341,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case KN_BOWLINGBASH:
 		case MS_BOWLINGBASH:
 			{
-				int min_x,max_x,min_y,max_y,i,c,dir,tx,ty;
+				int min_x, max_x, min_y, max_y, i, c, dir, tx, ty;
+
 				//Chain effect and check range gets reduction by recursive depth, as this can reach 0, we don't use blowcount
 				c = (skill_lv - (flag&0xFFF) + 1) / 2;
 				//Determine the Bowling Bash area depending on configuration
@@ -4608,6 +4610,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case RK_DRAGONBREATH_WATER:
 			{
 				struct status_change *tsc = NULL;
+
 				if ((tsc = status_get_sc(bl)) && (tsc->data[SC_HIDING])) {
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 				} else
@@ -4617,6 +4620,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 		case NPC_SELFDESTRUCTION: {
 			struct status_change *tsc = NULL;
+
 			if ((tsc = status_get_sc(bl)) && tsc->data[SC_HIDING])
 				break;
 			}
@@ -11041,8 +11045,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 				}
 			} else {
 				int i = skill_get_itemid(skill_id,skill_lv);
-				struct item_data *item;
-				item = itemdb_search(i);
+				struct item_data *item = itemdb_search(i);
+
 				potion_flag = 1;
 				potion_hp = 0;
 				potion_sp = 0;
@@ -11149,6 +11153,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case RK_DRAGONBREATH:
 		case RK_DRAGONBREATH_WATER:
 		case NC_COLDSLOWER:
+		case NC_ARMSCANNON:
 		case WM_GREAT_ECHO:
 		case WM_SOUND_OF_DESTRUCTION:
 			i = skill_get_splash(skill_id,skill_lv);
@@ -13762,16 +13767,18 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 
 	//Perform skill-group checks
 	inf2 = skill_get_inf2(skill_id);
+	if( inf2&INF2_ENSEMBLE_SKILL ) {
+	    if( skill_check_pc_partner(sd,skill_id,&skill_lv,1,0) < 1 ) {
+		    clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_HELPER,0);
+		    return 0;
+	    }
+	}
+
 	if( inf2&INF2_CHORUS_SKILL ) {
 		if( skill_check_pc_partner(sd,skill_id,&skill_lv,skill_get_splash(skill_id,skill_lv),0) < 1 ) {
 			clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_HELPER,0);
 		    return 0;
 		}
-	} else if( inf2&INF2_ENSEMBLE_SKILL ) {
-	    if( skill_check_pc_partner(sd,skill_id,&skill_lv,1,0) < 1 ) {
-		    clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_HELPER,0);
-		    return 0;
-	    }
 	}
 
 	//Perform skill-specific checks (and actions)
