@@ -1692,11 +1692,14 @@ int status_revive(struct block_list *bl, unsigned char per_hp, unsigned char per
 	return 1;
 }
 
+//Fixed HP/SP recovery resurrection function needed for the WM_DEADHILLHERE skill. [Rytech]
 int status_fixed_revive(struct block_list *bl, unsigned int per_hp, unsigned int per_sp)
 {
 	struct status_data *status;
 	unsigned int hp, sp;
-	if (!status_isdead(bl)) return 0;
+
+	if (!status_isdead(bl))
+		return 0;
 
 	status = status_get_status_data(bl);
 	if (status == &dummy_status)
@@ -9067,7 +9070,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_SONGOFMANA:
 				val3 = 10 + 5 * val2;
 				val4 = tick / 5000;
-				tick_time = 3000; //[GodLesZ] tick time
+				tick_time = 5000; //[GodLesZ] tick time
 				break;
 			case SC_DANCEWITHWUG:
 				val3 = 5 + 5 * val2; //ASPD Increase

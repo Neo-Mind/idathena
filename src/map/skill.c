@@ -3845,10 +3845,10 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 	if (sd && sd->status.party_id) {
 		//Minstrel/Wanderer number check for chorus skills.
 		//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
-		//Maximum effect possiable from 7 or more Minstrel's/Wanderer's
+		//Maximum effect possible from 7 or more Minstrel's/Wanderer's
 		if (party_foreachsamemap(party_sub_count_chorus,sd,0) > 7)
 			chorusbonus = 5;
-		//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
+		//Effect bonus from additional Minstrel's/Wanderer's if not above the max possible.
 		else if (party_foreachsamemap(party_sub_count_chorus,sd,0) > 2)
 			chorusbonus = party_foreachsamemap(party_sub_count_chorus,sd,0) - 2;
 	}
@@ -5306,10 +5306,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 	if(sd && sd->status.party_id) {
 		//Minstrel/Wanderer number check for chorus skills.
 		//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
-		//Maximum effect possiable from 7 or more Minstrel's/Wanderer's
+		//Maximum effect possible from 7 or more Minstrel's/Wanderer's
 		if(party_foreachsamemap(party_sub_count_chorus,sd,0) > 7)
 			chorusbonus = 5;
-		//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
+		//Effect bonus from additional Minstrel's/Wanderer's if not above the max possible.
 		else if(party_foreachsamemap(party_sub_count_chorus,sd,0) > 2)
 			chorusbonus = party_foreachsamemap(party_sub_count_chorus,sd,0) - 2;
 
@@ -9357,7 +9357,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				if( rnd()%100 < 88 + 2 * skill_lv ) {
 					int heal = 0;
 
-					status_zap(bl,0,tstatus->sp * ( 60 - 10 * skill_lv ) / 100);
+					status_zap(bl,0,tstatus->sp * (60 - 10 * skill_lv) / 100);
 					heal = tstatus->sp;
 					if( heal <= 0 )
 						heal = 1;
@@ -10293,22 +10293,22 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 		}
 
 		if( ud->skill_id == RG_BACKSTAP ) {
-			uint8 dir = map_calc_dir(src,target->x,target->y),t_dir = unit_getdir(target);
-			if( check_distance_bl(src,target,0) || map_check_dir(dir,t_dir) ) {
+			uint8 dir = map_calc_dir(src,target->x,target->y), t_dir = unit_getdir(target);
+
+			if( check_distance_bl(src,target,0) || map_check_dir(dir,t_dir) )
 				break;
-			}
 		}
 
 		if( ud->skill_id == PR_TURNUNDEAD ) {
 			struct status_data *tstatus = status_get_status_data(target);
+
 			if( !battle_check_undead(tstatus->race,tstatus->def_ele) )
 				break;
 		}
 
-		if( ud->skill_id == RA_WUGSTRIKE ) {
-			if( !path_search(NULL,src->m,src->x,src->y,target->x,target->y,1,CELL_CHKNOREACH))
-			break;
-		}
+		if( ud->skill_id == RA_WUGSTRIKE )
+			if( !path_search(NULL,src->m,src->x,src->y,target->x,target->y,1,CELL_CHKNOREACH) )
+				break;
 
 		if( ud->skill_id == PR_LEXDIVINA || ud->skill_id == MER_LEXDIVINA ) {
 			sc = status_get_sc(target);
@@ -10330,17 +10330,12 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 			else
 				inf = 0;
 
-			if( inf2 & (INF2_PARTY_ONLY|INF2_GUILD_ONLY) && src != target ) {
+			if( inf2&(INF2_PARTY_ONLY|INF2_GUILD_ONLY) && src != target ) {
 				inf |=
 					(inf2&INF2_PARTY_ONLY ? BCT_PARTY : 0)|
 					(inf2&INF2_GUILD_ONLY ? BCT_GUILD : 0);
 				//Remove neutral targets (but allow enemy if skill is designed to be so)
 				inf &= ~BCT_NEUTRAL;
-			}
-
-			if( sd && (inf2&INF2_CHORUS_SKILL) && skill_check_pc_partner(sd,ud->skill_id,&ud->skill_lv,1,0) < 1 ) {
-				clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_NEED_HELPER,0);
-				break;
 			}
 
 			if( ud->skill_id >= SL_SKE && ud->skill_id <= SL_SKA && target->type == BL_MOB ) {
@@ -10470,7 +10465,8 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 				skill_blockpc_start(sd,BD_ADAPTATION,3000);
 		}
 
-		if( sd && ud->skill_id != SA_ABRACADABRA && ud->skill_id != WM_RANDOMIZESPELL ) //They just set the data so leave it as it is.[Inkfish]
+		//They just set the data so leave it as it is.[Inkfish]
+		if( sd && ud->skill_id != SA_ABRACADABRA && ud->skill_id != WM_RANDOMIZESPELL )
 			sd->skillitem = sd->skillitemlv = 0;
 
 		if( ud->skilltimer == INVALID_TIMER ) {
@@ -12037,9 +12033,8 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			sd->skill_id_dance = skill_id;
 			sd->skill_lv_dance = skill_lv;
 		}
-		if (
-			sc_start4(src,src,SC_DANCING,100,skill_id,group->group_id,skill_lv,
-				(group->state.song_dance&2 ? BCT_SELF : 0),limit + 1000) &&
+		if( sc_start4(src,src,SC_DANCING,100,skill_id,group->group_id,skill_lv,
+			(group->state.song_dance&2 ? BCT_SELF : 0),limit + 1000) &&
 			sd && group->state.song_dance&2 && skill_id != CG_HERMODE //Hermod is a encore with a warp!
 		)
 			skill_check_pc_partner(sd,skill_id,&skill_lv,1,1);
@@ -13507,7 +13502,7 @@ int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 	if( pc_isdead(tsd) )
 		return 0;
 
-	if( tsd->sc.data[SC_SILENCE] || ( tsd->sc.opt1 && tsd->sc.opt1 != OPT1_BURNING ) )
+	if( tsd->sc.data[SC_SILENCE] || (tsd->sc.opt1 && tsd->sc.opt1 != OPT1_BURNING) )
 		return 0;
 
 	if( skill_get_inf2(skill_id)&INF2_CHORUS_SKILL ) {
@@ -13515,14 +13510,14 @@ int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 			p_sd[(*c)++] = tsd->bl.id;
 		return 1;
 	} else {
-
 		switch( skill_id ) {
 			case PR_BENEDICTIO: {
 				uint8 dir = map_calc_dir(&sd->bl,tsd->bl.x,tsd->bl.y);
+
 				dir = (unit_getdir(&sd->bl) + dir)%8; //This adjusts dir to account for the direction the sd is facing.
 				if( (tsd->class_&MAPID_BASEMASK) == MAPID_ACOLYTE && (dir == 2 || dir == 6) //Must be standing to the left/right of Priest.
 					&& sd->status.sp >= 10 )
-					p_sd[(*c)++]=tsd->bl.id;
+					p_sd[(*c)++] = tsd->bl.id;
 				return 1;
 			}
 			case AB_ADORAMUS:
@@ -13532,7 +13527,7 @@ int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 				return 1;
 			case WL_COMET:
 				//Comet does not consume Red Gemstones when there is at least 1 Warlock class next to the caster
-				if( ( tsd->class_&MAPID_THIRDMASK ) == MAPID_WARLOCK )
+				if( (tsd->class_&MAPID_THIRDMASK) == MAPID_WARLOCK )
 					p_sd[(*c)++] = tsd->bl.id;
 				return 1;
 			case LG_RAYOFGENESIS:
@@ -13542,21 +13537,21 @@ int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 				return 1;
 			default: { //Warning: Assuming Ensemble Dance/Songs for code speed. [Skotlex]
 					uint16 skill_lv;
+
 					if( pc_issit(tsd) || !unit_can_move(&tsd->bl) )
 						return 0;
 					if( sd->status.sex != tsd->status.sex &&
-							(tsd->class_&MAPID_UPPERMASK) == MAPID_BARDDANCER &&
-							(skill_lv = pc_checkskill(tsd, skill_id)) > 0 &&
-							(tsd->weapontype1==W_MUSICAL || tsd->weapontype1==W_WHIP) &&
-							sd->status.party_id && tsd->status.party_id &&
-							sd->status.party_id == tsd->status.party_id &&
-							!tsd->sc.data[SC_DANCING] )
+						(tsd->class_&MAPID_UPPERMASK) == MAPID_BARDDANCER &&
+						(skill_lv = pc_checkskill(tsd, skill_id)) > 0 &&
+						(tsd->weapontype1 == W_MUSICAL || tsd->weapontype1 == W_WHIP) &&
+						sd->status.party_id && tsd->status.party_id &&
+						sd->status.party_id == tsd->status.party_id &&
+						!tsd->sc.data[SC_DANCING] )
 					{
-						p_sd[(*c)++]=tsd->bl.id;
+						p_sd[(*c)++] = tsd->bl.id;
 						return skill_lv;
-					} else {
+					} else
 						return 0;
-					}
 				}
 				break;
 		}
@@ -13573,10 +13568,10 @@ int skill_check_pc_partner (struct map_session_data *sd, uint16 skill_id, uint16
 	static int c = 0;
 	static int p_sd[2] = { 0, 0 };
 	int i;
-	bool is_chorus = ( skill_get_inf2(skill_id)&INF2_CHORUS_SKILL );
+	bool is_chorus = (skill_get_inf2(skill_id)&INF2_CHORUS_SKILL);
 
 	if (!battle_config.player_skill_partner_check || pc_has_permission(sd, PC_PERM_SKILL_UNCONDITIONAL))
-		return is_chorus ? MAX_PARTY : 99; //As if there were infinite partners.
+		return (is_chorus ? MAX_PARTY : 99); //As if there were infinite partners.
 
 	if (cast_flag) { //Execute the skill on the partners.
 		struct map_session_data* tsd;
@@ -13595,9 +13590,11 @@ int skill_check_pc_partner (struct map_session_data *sd, uint16 skill_id, uint16
 				}
 				break;
 			default: //Warning: Assuming Ensemble skills here (for speed)
+				if (is_chorus)
+					break; //Chorus skills are not to be parsed as ensambles
 				if (c > 0 && sd->sc.data[SC_DANCING] && (tsd = map_id2sd(p_sd[0])) != NULL) {
 					sd->sc.data[SC_DANCING]->val4 = tsd->bl.id;
-					sc_start4(&sd->bl,&tsd->bl,SC_DANCING,100,skill_id,sd->sc.data[SC_DANCING]->val2,*skill_lv,sd->bl.id,skill_get_time(skill_id,*skill_lv)+1000);
+					sc_start4(&sd->bl, &tsd->bl, SC_DANCING, 100, skill_id, sd->sc.data[SC_DANCING]->val2, *skill_lv, sd->bl.id, skill_get_time(skill_id, *skill_lv) + 1000);
 					clif_skill_nodamage(&tsd->bl, &sd->bl, skill_id, *skill_lv, 1);
 					tsd->skill_id_dance = skill_id;
 					tsd->skill_lv_dance = *skill_lv;
@@ -13606,16 +13603,18 @@ int skill_check_pc_partner (struct map_session_data *sd, uint16 skill_id, uint16
 		}
 	}
 
-	//Else: new search for partners.
+	//Else: New search for partners.
 	c = 0;
-	memset (p_sd, 0, sizeof(p_sd));
-	if( is_chorus )
+	memset(p_sd, 0, sizeof(p_sd));
+	if (is_chorus)
 		i = party_foreachsamemap(skill_check_condition_char_sub, sd, AREA_SIZE, &sd->bl, &c, &p_sd, skill_id, *skill_lv);
 	else
 		i = map_foreachinrange(skill_check_condition_char_sub, &sd->bl, range, BL_PC, &sd->bl, &c, &p_sd, skill_id);
 
-	if ( skill_id != PR_BENEDICTIO && skill_id != AB_ADORAMUS && skill_id != WL_COMET ) //Apply the average lv to encore skills.
-		*skill_lv = (i+(*skill_lv))/(c+1); //I know c should be one, but this shows how it could be used for the average of n partners.
+	//Apply the average lv to encore skills.
+	//I know c should be one, but this shows how it could be used for the average of n partners.
+	if (skill_id != PR_BENEDICTIO && skill_id != AB_ADORAMUS && skill_id != WL_COMET)
+		*skill_lv = (i + (*skill_lv)) / (c + 1);
 	return c;
 }
 
@@ -13667,7 +13666,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 	struct status_change *sc;
 	struct skill_condition require;
 	int i;
-	uint32 inf3;
+	uint32 inf2, inf3;
 
 	nullpo_ret(sd);
 
@@ -13739,11 +13738,10 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 		return 1;
 
 	inf3 = skill_get_inf3(skill_id);
-
 	//Check the skills that can be used while mounted on a warg
 	if( pc_isridingwug(sd) )
-		if( !(inf3&INF3_USABLE_WARG) ) //In official there is no message.
-				return 0;
+		if( !(inf3&INF3_USABLE_WARG) )
+			return 0; //In official there is no message.
 
 	if( pc_ismadogear(sd) ) {
 		//None Mado skills are unusable when Mado is equipped. [Jobbie]
@@ -13761,6 +13759,20 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 
 	//Can only update state when weapon/arrow info is checked.
 	sd->state.arrow_atk = require.ammo ? 1 : 0;
+
+	//Perform skill-group checks
+	inf2 = skill_get_inf2(skill_id);
+	if( inf2&INF2_CHORUS_SKILL ) {
+		if( skill_check_pc_partner(sd,skill_id,&skill_lv,skill_get_splash(skill_id,skill_lv),0) < 1 ) {
+			clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_HELPER,0);
+		    return 0;
+		}
+	} else if( inf2&INF2_ENSEMBLE_SKILL ) {
+	    if( skill_check_pc_partner(sd,skill_id,&skill_lv,1,0) < 1 ) {
+		    clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_HELPER,0);
+		    return 0;
+	    }
+	}
 
 	//Perform skill-specific checks (and actions)
 	switch( skill_id ) {
@@ -13793,6 +13805,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 		case AL_WARP:
 			if( !battle_config.duel_allow_teleport && sd->duel_group ) { //Duel restriction [LuzZza]
 				char output[128]; sprintf(output, msg_txt(365), skill_get_name(AL_WARP));
+
 				clif_displaymessage(sd->fd, output); //"Duel: Can't use %s in duel."
 				return 0;
 			}
@@ -14847,7 +14860,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 
 		switch( skill_id ) {
 			case AM_CALLHOMUN:
-				if (sd->status.hom_id) //Don't delete items when hom is already out.
+				if( sd->status.hom_id ) //Don't delete items when hom is already out.
 					continue;
 				break;
 			case NC_SHAPESHIFT:

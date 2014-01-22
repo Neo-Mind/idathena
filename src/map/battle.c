@@ -3744,10 +3744,10 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 				if(sd && sd->status.party_id) {
 					//Minstrel/Wanderer number check for chorus skills.
 					//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
-					//Maximum effect possiable from 7 or more Minstrel's/Wanderer's.
+					//Maximum effect possible from 7 or more Minstrel's/Wanderer's.
 					if(party_foreachsamemap(party_sub_count_chorus,sd,0) > 7)
 						chorusbonus = 5;
-					//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
+					//Effect bonus from additional Minstrel's/Wanderer's if not above the max possible.
 					else if(party_foreachsamemap(party_sub_count_chorus,sd,0) > 2)
 						chorusbonus = party_foreachsamemap(party_sub_count_chorus,sd,0) - 2;
 				}
@@ -4073,10 +4073,10 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 	if(sd) {
 		//Minstrel/Wanderer number check for chorus skills.
 		//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
-		//Maximum effect possiable from 7 or more Minstrel's/Wanderer's.
+		//Maximum effect possible from 7 or more Minstrel's/Wanderer's.
 		if(sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 7)
 			chorusbonus = 5;
-		//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
+		//Effect bonus from additional Minstrel's/Wanderer's if not above the max possible.
 		else if(sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 2)
 			chorusbonus = party_foreachsamemap(party_sub_count_chorus, sd, 0) - 2;
 
@@ -5982,10 +5982,10 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	if(sd) {
 		//Minstrel/Wanderer number check for chorus skills.
 		//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
-		//Maximum effect possiable from 7 or more Minstrel's/Wanderer's
+		//Maximum effect possible from 7 or more Minstrel's/Wanderer's
 		if(sd->status.party_id && party_foreachsamemap(party_sub_count_chorus,sd,0) > 7)
 			chorusbonus = 5;
-		//Effect bonus from additional Minstrel's/Wanderer's if not above the max possiable.
+		//Effect bonus from additional Minstrel's/Wanderer's if not above the max possible.
 		else if(sd->status.party_id && party_foreachsamemap(party_sub_count_chorus,sd,0) > 2)
 			chorusbonus = party_foreachsamemap(party_sub_count_chorus,sd,0) - 2;
 
