@@ -2320,7 +2320,10 @@ int skill_blown(struct block_list* src, struct block_list* target, int count, in
 			if( su && su->group ) {
 				switch( su->group->unit_id ) {
 					case UNT_ANKLESNARE:
+					case UNT_ELECTRICSHOCKER:
+					case UNT_CLUSTERBOMB:
 					case UNT_MANHOLE:
+					case UNT_REVERBERATION:
 						return 0; //Cannot be knocked back
 				}
 			}
@@ -3315,6 +3318,7 @@ static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 
 				break;
 			default: {
 					int layout_type = skill_get_unit_layout_type(skill_id,skill_lv);
+
 					if (layout_type == -1 || layout_type > MAX_SQUARE_LAYOUT) {
 						ShowError("skill_check_unit_range2: unsupported layout type %d for skill %d\n",layout_type,skill_id);
 						return 0;
@@ -3795,7 +3799,7 @@ int skill_cleartimerskill (struct block_list *src)
 	}
 	return 1;
 }
-static int skill_ative_reverberation( struct block_list *bl, va_list ap) {
+static int skill_ative_reverberation(struct block_list *bl, va_list ap) {
 	struct skill_unit *su = (TBL_SKILL*)bl;
 	struct skill_unit_group *sg;
 
@@ -3812,6 +3816,7 @@ static int skill_ative_reverberation( struct block_list *bl, va_list ap) {
 static int skill_reveal_trap (struct block_list *bl, va_list ap)
 {
 	TBL_SKILL *su = (TBL_SKILL*)bl;
+
 	if (su->alive && su->group && skill_get_inf2(su->group->skill_id)&INF2_TRAP) { //Reveal trap.
 		//Change look is not good enough, the client ignores it as an actual trap still. [Skotlex]
 		//clif_changetraplook(bl, su->group->unit_id);
@@ -3832,7 +3837,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 	struct status_change *sc, *tsc;
 	int chorusbonus = 0;
 
-	if (skill_id > 0 && !skill_lv) return 0;
+	if (skill_id > 0 && !skill_lv)
+		return 0;
 
 	nullpo_retr(1,src);
 	nullpo_retr(1,bl);
@@ -11328,12 +11334,12 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case GN_FIRE_EXPANSION: {
-			int i;
 			//If player doesen't know Acid Demonstration or knows level 5 or lower, effect 5 will cast level 5 Acid Demo.
-			int aciddemocast = 5;
+			int i, aciddemocast = 5;
 			struct unit_data *ud = unit_bl2ud(src);
 
-			if( !ud ) break;
+			if( !ud )
+				break;
 
 			for( i = 0; i < MAX_SKILLUNITGROUP && ud->skillunit[i]; i ++ ) {
 				if( ud->skillunit[i]->skill_id == GN_DEMONIC_FIRE &&
@@ -12789,6 +12795,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				int heal;
 				int i = rnd()%13; //Positive buff count
 				int time = skill_get_time2(sg->skill_id,sg->skill_lv); //Duration
+
 				switch (i) {
 					case 0: //Heal 1~9999 HP
 						heal = rnd()%9999 + 1;
@@ -13692,7 +13699,8 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 
 	nullpo_ret(sd);
 
-	if( sd->chatID ) return 0;
+	if( sd->chatID )
+		return 0;
 
 	if( pc_has_permission(sd, PC_PERM_SKILL_UNCONDITIONAL) && sd->skillitem != skill_id ) {
 		//GMs don't override the skillItem check, otherwise they can use items without them being consumed! [Skotlex]
@@ -16282,9 +16290,11 @@ static int skill_trap_splash (struct block_list *bl, va_list ap)
 			break;
 		case UNT_FIRINGTRAP:
 		case UNT_ICEBOUNDTRAP:
-			if( src->id == bl->id ) break;
+			if( src->id == bl->id )
+				break;
 			if( bl->type == BL_SKILL ) {
 				struct skill_unit *su = (struct skill_unit *)bl;
+
 				if( su->group->unit_id == UNT_USED_TRAPS )
 					break;
 			}
@@ -17031,8 +17041,8 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 				}
 				clif_changetraplook(bl,UNT_USED_TRAPS);
 				map_foreachinrange(skill_trap_splash, bl, skill_get_splash(group->skill_id, group->skill_lv), group->bl_flag, bl, tick);
-				group->limit = DIFF_TICK(tick,group->tick) + 1500;
-				unit->limit = DIFF_TICK(tick,group->tick) + 1500;
+				group->limit = DIFF_TICK(tick,group->tick) + 1000;
+				unit->limit = DIFF_TICK(tick,group->tick) + 1000;
 				group->unit_id = UNT_USED_TRAPS;
 				break;
 
@@ -17061,6 +17071,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 
 			default:
 				skill_delunit(unit);
+				break;
 		}
 	} else { //Skill unit is still active
 		switch( group->unit_id ) {
@@ -17092,13 +17103,13 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 				}
 				break;
 			case UNT_REVERBERATION:
-				if (unit->val1 <= 0) {
+				if( unit->val1 <= 0 ) {
 					clif_changetraplook(bl,UNT_USED_TRAPS);
 					map_foreachinrange(skill_trap_splash, bl, skill_get_splash(group->skill_id, group->skill_lv), group->bl_flag, bl, tick);
-					group->limit = DIFF_TICK(tick,group->tick) + 1500;
-					unit->limit = DIFF_TICK(tick,group->tick) + 1500;
+					group->limit = DIFF_TICK(tick,group->tick) + 1000;
+					unit->limit = DIFF_TICK(tick,group->tick) + 1000;
 					group->unit_id = UNT_USED_TRAPS;
-				} 
+				}
 				break;
 			case UNT_WALLOFTHORN:
 				if( unit->val1 <= 0 ) {

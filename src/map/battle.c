@@ -1891,6 +1891,7 @@ static bool target_has_infinite_defense(struct block_list *target, int skill_id)
 
 	if(target->type == BL_SKILL) {
 		TBL_SKILL *su = (TBL_SKILL*)target;
+
 		if(su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD) )
 			return true;
 	}
@@ -4408,7 +4409,8 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 	if(is_attack_left_handed(src, skill_id) && !attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L) && !is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L))
 		wd.damage2 = wd.damage2 * (4000 + def1) / (4000 + 10 * def1) - vit_def;
 #else
-		if(def1 > 100) def1 = 100;
+		if(def1 > 100)
+			def1 = 100;
 		ATK_RATE2(wd.damage, wd.damage2,
 			attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_R) ? 100 : (is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_R) ? is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_R) * (def1 + vit_def) : (100 - def1)),
 			attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ? 100 : (is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ? is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L) * (def1 + vit_def) : (100 - def1))
@@ -5281,6 +5283,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	flag.infdef = (tstatus->mode&MD_PLANT ? 1 : 0);
 	if(target->type == BL_SKILL) {
 		TBL_SKILL *su = (TBL_SKILL*)target;
+
 		if(su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
 			flag.infdef = 1;
 	}
@@ -6302,6 +6305,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		}
 	} else if(target->type == BL_SKILL) {
 		TBL_SKILL *su = (TBL_SKILL*)target;
+
 		if(su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
 			md.damage = 1;
 	}
@@ -6812,6 +6816,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		if (sc->data[SC_SPELLFIST]) {
 			if (--(sc->data[SC_SPELLFIST]->val1) >= 0) {
 				struct Damage ad = battle_calc_attack(BF_MAGIC,src,target,sc->data[SC_SPELLFIST]->val3,sc->data[SC_SPELLFIST]->val4,flag|BF_SHORT);
+
 				wd.damage = ad.damage;
 			} else
 				status_change_end(src,SC_SPELLFIST,INVALID_TIMER);
