@@ -4080,13 +4080,8 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 
 	if(sd) {
 		//Minstrel/Wanderer number check for chorus skills.
-		//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
-		//Maximum effect possible from 7 or more Minstrel's/Wanderer's.
-		if(sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 7)
-			chorusbonus = 5;
-		//Effect bonus from additional Minstrel's/Wanderer's if not above the max possible.
-		else if(sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 2)
-			chorusbonus = party_foreachsamemap(party_sub_count_chorus, sd, 0) - 2;
+		if(sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 2)
+			chorusbonus = party_foreachsamemap(party_sub_count_chorus, sd, 0);
 
 		//KO Earth Charm effect +15% wATK
 		ARR_FIND(1, 6, type, sd->talisman[type] > 0);
@@ -4116,11 +4111,17 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 				ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_GLOOMYDAY_SK]->val2);
 				RE_ALLATK_ADDRATE(wd, sc->data[SC_GLOOMYDAY_SK]->val2);
 		}
-		if(sc->data[SC_DANCEWITHWUG] && (skill_id == RA_WUGSTRIKE || skill_id == RA_WUGBITE)) {
-			ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_DANCEWITHWUG]->val1 * 10 * (2 + chorusbonus));
+		if(sc->data[SC_DANCEWITHWUG]) {
+			ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_DANCEWITHWUG]->val1 * 2 * min(chorusbonus,7));
 #ifdef RENEWAL
-			ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, sc->data[SC_DANCEWITHWUG]->val1 * 10 * (2 + chorusbonus));
+			ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, sc->data[SC_DANCEWITHWUG]->val1 * 2 * min(chorusbonus,7));
 #endif
+			if(skill_id == RA_WUGSTRIKE || skill_id == RA_WUGBITE || skill_id == RA_WUGDASH) {
+				ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_DANCEWITHWUG]->val1 * 10 * min(chorusbonus,7));
+#ifdef RENEWAL
+				RE_ALLATK_ADDRATE(wd, sc->data[SC_DANCEWITHWUG]->val1 * 10 * min(chorusbonus,7));
+#endif
+			}
 		}
 		if(sc->data[SC_SPIRIT]) {
 			if(skill_id == AS_SONICBLOW && sc->data[SC_SPIRIT]->val2 == SL_ASSASIN) {

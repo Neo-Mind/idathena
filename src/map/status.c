@@ -2620,6 +2620,8 @@ static int status_get_hpbonus(struct block_list *bl, enum e_status_bonus type) {
 				bonus -= sc->data[SC_MYSTERIOUS_POWDER]->val1;
 			if(sc->data[SC_GT_CHANGE]) // Max HP decrease: [Skill Level x 4] %
 				bonus -= (4 * sc->data[SC_GT_CHANGE]->val1);
+			if(sc->data[SC_BEYONDOFWARCRY])
+				bonus -= sc->data[SC_BEYONDOFWARCRY]->val4;
 			if(sc->data[SC_EQC])
 				bonus -= sc->data[SC_EQC]->val4;
 		}
@@ -9070,29 +9072,29 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = rnd_value(15,(sd ? pc_checkskill(sd,WM_LESSON) * 5 : 0) + val1 * 10);
 				break;
 			case SC_SONGOFMANA:
-				val3 = 10 + 5 * val2;
+				val3 = 10 + min(5 * val2,35); //SP regen
 				val4 = tick / 5000;
 				tick_time = 5000; //[GodLesZ] tick time
 				break;
 			case SC_DANCEWITHWUG:
-				val3 = 5 + 5 * val2; //ASPD Increase
-				val4 = 20 + 10 * val2; //Fixed Cast Time Reduction
+				val3 = 5 + min(5 * val2,30); //ASPD Increase
+				val4 = 20 + min(10 * val2,70); //Fixed Cast Time Reduction
 				break;
 			case SC_SATURDAYNIGHTFEVER:
 				val3 = tick / 3000;
 				tick_time = 3000; //[GodLesZ] tick time
 				break;
 			case SC_LERADSDEW:
-				val3 = 200 * val1 + 300 * val2; //MaxHP Increase
+				val3 = 200 * val1 + min(300 * val2,2500); //MaxHP Increase
 				break;
 			case SC_MELODYOFSINK:
-				val3 = val1 * (2 + val2); //INT Reduction. Formula Includes Caster And 2nd Performer.
+				val3 = val1 * val2; //INT Reduction. Formula Includes Caster And 2nd Performer.
 				val4 = tick / 1000;
 				tick_time = 1000;
 				break;
 			case SC_BEYONDOFWARCRY:
-				val3 = val1 * (2 + val2); //STR And Crit Increase. Formula Includes Caster And 2nd Performer.
-				val4 = 4 * val1 + 4 * val2; //MaxHP Reduction
+				val3 = val1 * val2; //STR And Crit Increase. Formula Includes Caster And 2nd Performer.
+				val4 = 4 * val1 + min(4 * (val2 - 2),40); //MaxHP Reduction
 				break;
 			case SC_UNLIMITEDHUMMINGVOICE: {
 					struct unit_data *ud = unit_bl2ud(bl);
@@ -9100,7 +9102,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					if( ud == NULL )
 						return 0;
 					ud->state.skillcastcancel = 0;
-					val3 = 15 - (3 * val2);
+					val3 = 15 - min(3 * val2,15); //SP Cost
 				}
 				break;
 			case SC_SITDOWN_FORCE:
@@ -11530,7 +11532,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		case SC_MELODYOFSINK:
 			if( --(sce->val4) >= 0 ) {
-				status_charge(bl,0,status->max_sp * ( 2 * sce->val1 + 2 * sce->val2 ) / 100);
+				status_charge(bl,0,status->max_sp * (2 * sce->val1 + min(2 * (sce->val2 - 2),20)) / 100);
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}

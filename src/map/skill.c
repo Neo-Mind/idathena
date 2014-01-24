@@ -5318,18 +5318,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 	if(bl->prev == NULL)
 		return 1;
+
 	if(status_isdead(src))
 		return 1;
 
 	if(sd && sd->status.party_id) {
 		//Minstrel/Wanderer number check for chorus skills.
-		//Bonus remains 0 unless 3 or more Minstrel's/Wanderer's are in the party.
-		//Maximum effect possible from 7 or more Minstrel's/Wanderer's
-		if(party_foreachsamemap(party_sub_count_chorus,sd,0) > 7)
-			chorusbonus = 5;
-		//Effect bonus from additional Minstrel's/Wanderer's if not above the max possible.
-		else if(party_foreachsamemap(party_sub_count_chorus,sd,0) > 2)
-			chorusbonus = party_foreachsamemap(party_sub_count_chorus,sd,0) - 2;
+		if(party_foreachsamemap(party_sub_count_chorus,sd,0) > 2)
+			chorusbonus = party_foreachsamemap(party_sub_count_chorus,sd,0);
 
 		if(party_foreachsamemap(party_sub_count,sd,0) > 1)
 			partybonus = party_foreachsamemap(party_sub_count,sd,0);
@@ -9452,13 +9448,22 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case WM_SONG_OF_MANA:
 		case WM_DANCE_WITH_WUG:
-		case WM_LERADS_DEW:
-		case WM_UNLIMITED_HUMMING_VOICE:
 			if( flag&1 )
 				sc_start2(src,bl,type,100,skill_lv,chorusbonus,skill_get_time(skill_id,skill_lv));
 			else if( sd ) {
 				party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
 				sc_start2(src,bl,type,100,skill_lv,chorusbonus,skill_get_time(skill_id,skill_lv));
+				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+			}
+			break;
+
+		case WM_LERADS_DEW:
+		case WM_UNLIMITED_HUMMING_VOICE:
+			if( flag&1 )
+				sc_start2(src,bl,type,100,skill_lv,chorusbonus - 2,skill_get_time(skill_id,skill_lv));
+			else if( sd ) {
+				party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
+				sc_start2(src,bl,type,100,skill_lv,chorusbonus - 2,skill_get_time(skill_id,skill_lv));
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			}
 			break;
@@ -9484,11 +9489,21 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 
 		case WM_MELODYOFSINK:
+			if( flag&1 )
+				sc_start2(src,bl,type,100,skill_lv,chorusbonus,skill_get_time(skill_id,skill_lv));
+			else {
+				if( rnd()%100 < 15 + 5 * skill_lv + min(5 * (chorusbonus - 2),65) ) {
+					map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_PC,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
+					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+				}
+			}
+			break;
+
 		case WM_BEYOND_OF_WARCRY:
 			if( flag&1 )
 				sc_start2(src,bl,type,100,skill_lv,chorusbonus,skill_get_time(skill_id,skill_lv));
 			else {
-				if( rnd()%100 < 15 + 5 * skill_lv + 5 * chorusbonus ) {
+				if( rnd()%100 < 15 + 5 * skill_lv + min(5 * chorusbonus,65) ) {
 					map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_PC,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				}
@@ -12982,7 +12997,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 
 		case UNT_DIMENSIONDOOR:
 			if (tsd && !map[bl->m].flag.noteleport)
-				pc_randomwarp(tsd,3);
+				pc_randomwarp(tsd,(clr_type)3);
 			else if (bl->type == BL_MOB && (battle_config.mob_warp&8))
 				unit_warp(bl,-1,-1,-1,CLR_TELEPORT);
 			break;
