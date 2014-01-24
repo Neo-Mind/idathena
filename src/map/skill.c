@@ -6793,7 +6793,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				else {
 					sd->state.prevend = 1;
-					clif_openvendingreq(sd,2+skill_lv);
+					clif_openvendingreq(sd,2 + skill_lv);
 				}
 			}
 			break;
@@ -10788,6 +10788,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			{
 				//Does not consumes if the skill is already active. [Skotlex]
 				struct skill_unit_group *sg;
+
 				if ((sg = skill_locate_element_field(src)) != NULL && ( sg->skill_id == SA_VOLCANO || sg->skill_id == SA_DELUGE || sg->skill_id == SA_VIOLENTGALE )) {
 					if (sg->limit - DIFF_TICK(gettick(),sg->tick) > 0) {
 						skill_unitsetting(src,skill_id,skill_lv,x,y,0);
@@ -12062,8 +12063,8 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			sd->skill_lv_dance = skill_lv;
 		}
 		if( sc_start4(src,src,SC_DANCING,100,skill_id,group->group_id,skill_lv,
-			(group->state.song_dance&2 ? BCT_SELF : 0),limit + 1000) &&
-			sd && group->state.song_dance&2 && skill_id != CG_HERMODE //Hermod is a encore with a warp!
+			((group->state.song_dance&2) ? BCT_SELF : 0),limit + 1000) &&
+			sd && (group->state.song_dance&2) && skill_id != CG_HERMODE //Hermod is a encore with a warp!
 		)
 			skill_check_pc_partner(sd,skill_id,&skill_lv,1,1);
 	}
@@ -12077,7 +12078,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		int val2 = 0;
 		int alive = 1;
 
-		if( ux <= 0 || uy <= 0 || ux >= map[sd->bl.m].xs || uy >= map[sd->bl.m].ys )
+		if( ux <= 0 || uy <= 0 || ux >= map[src->m].xs || uy >= map[src->m].ys )
 			continue; //Are the coordinates out of range?
 		if( !group->state.song_dance && !map_getcell(src->m,ux,uy,CELL_CHKREACH) )
 			continue; //Don't place skill units on walls (except for songs/dances/encores)

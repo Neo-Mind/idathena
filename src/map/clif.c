@@ -6060,7 +6060,7 @@ void clif_item_damaged(struct map_session_data* sd, unsigned short position)
 /// 0221 <packet len>.W { <index>.W <name id>.W <refine>.B <card1>.W <card2>.W <card3>.W <card4>.W }*
 void clif_item_refine_list(struct map_session_data *sd)
 {
-	int i,c;
+	int i, c;
 	int fd;
 	uint16 skill_lv;
 	int wlv;
