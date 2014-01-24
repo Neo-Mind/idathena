@@ -3849,6 +3849,7 @@ void status_calc_regen(struct block_list *bl, struct status_data *status, struct
 
 	if( bl->type == BL_HOM ) {
 		struct homun_data *hd = (TBL_HOM*)bl;
+
 		if( (skill = merc_hom_checkskill(hd, HAMI_SKIN)) > 0 ) {
 			val = regen->hp * (100 + 5 * skill) / 100;
 			regen->hp = cap_value(val, 1, SHRT_MAX);
@@ -4231,7 +4232,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 			ud->state.change_walk_target = ud->state.speed_changed = 1;
 		if( bl->type&BL_PC && !(sd && sd->state.permanent_speed) && status->speed < battle_config.max_walk_speed )
 			status->speed = battle_config.max_walk_speed;
-		if( bl->type&BL_HOM && battle_config.hom_setting&0x8 && ((TBL_HOM*)bl)->master)
+		if( bl->type&BL_HOM && (battle_config.hom_setting&0x8) && ((TBL_HOM*)bl)->master)
 			status->speed = status_get_speed(&((TBL_HOM*)bl)->master->bl);
 		if( bl->type&BL_MER && ((TBL_MER*)bl)->master)
 			status->speed = status_get_speed(&((TBL_MER*)bl)->master->bl);
@@ -4376,7 +4377,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		status->matk_max = status_calc_matk(bl, sc, status->matk_max);
 
 		//Hom Min Matk is always the same as Max Matk
-		if( (bl->type&BL_HOM && battle_config.hom_setting&0x20) || (sc && sc->data[SC_RECOGNIZEDSPELL]) )
+		if( (bl->type&BL_HOM && (battle_config.hom_setting&0x20)) || (sc && sc->data[SC_RECOGNIZEDSPELL]) )
 			status->matk_min = status->matk_max;
 		else
 			status->matk_min = status_calc_matk(bl, sc, status->matk_min);

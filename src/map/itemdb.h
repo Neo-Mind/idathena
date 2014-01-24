@@ -17,17 +17,18 @@
 //Maximum number of item delays
 #define MAX_ITEMDELAYS 30
 
-#define MAX_SEARCH 5 //Designed for search functions, species max number of matches to display.
+//Designed for search functions, species max number of matches to display.
+#define MAX_SEARCH 5
 
-/* Maximum amount of items a combo may require */
+//Maximum amount of items a combo may require
 #define MAX_ITEMS_PER_COMBO 6
 
 //The only item group required by the code to be known. See const.txt for the full list.
 #define IG_FINDINGORE 6
 #define IG_POTION 37
 
-#define MAX_ITEMGROUP 390 //The max. item group count (increase this when needed). @TODO: Remove this limit and use dynamic allocaton
-#define MAX_ITEMGROUP_RANDGROUP 4 //Max group for random item (increase this when needed).
+#define MAX_ITEMGROUP 390 //The max. item group count (increase this when needed). @TODO: Remove this limit and use dynamic allocaton if needed
+#define MAX_ITEMGROUP_RANDGROUP 4 //Max group for random item (increase this when needed). @TODO: Remove this limit and use dynamic allocaton if needed
 
 #define CARD0_FORGE 0x00FF
 #define CARD0_CREATE 0x00FE
@@ -376,7 +377,7 @@ struct item_data {
 /* Struct of item group entry */
 struct s_item_group {
 	uint16 nameid, //Item id
-	duration; //Duration if item as rental item
+	duration; //Duration if item as rental item (in minute)
 	uint16 amount; //Amount of item will be obtained
 	bool isAnnounced, //Broadcast if player get this item
 	isNamed; //Named the item (if possible)
@@ -393,7 +394,7 @@ struct s_item_group_random {
 struct s_item_group_db {
 	struct s_item_group *must;
 	uint16 must_qty;
-	struct s_item_group_random random[MAX_ITEMGROUP_RANDGROUP]; //@TODO: Move this fixed array to dynamic allocation!
+	struct s_item_group_random random[MAX_ITEMGROUP_RANDGROUP]; //@TODO: Move this fixed array to dynamic allocation if needed
 };
 
 struct s_item_group_db itemgroup_db[MAX_ITEMGROUP];

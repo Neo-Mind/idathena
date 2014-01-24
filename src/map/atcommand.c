@@ -7959,7 +7959,7 @@ ACMD_FUNC(cash)
 {
 	char output[128];
 	int value;
-	int ret=0;
+	int ret = 0;
 	nullpo_retr(-1, sd);
 
 	if( !message || !*message || (value = atoi(message)) == 0 ) {
@@ -7967,9 +7967,9 @@ ACMD_FUNC(cash)
 		return -1;
 	}
 
-	if( !strcmpi(command+1,"cash") ) {
+	if( !strcmpi(command + 1,"cash") ) {
 		if( value > 0 ) {
-			if( (ret=pc_getcash(sd, value, 0, LOG_TYPE_COMMAND)) >= 0) {
+			if( (ret = pc_getcash(sd, value, 0, LOG_TYPE_COMMAND)) >= 0) {
 				// If this option is set, the message is already sent by pc function
 				if( !battle_config.cashshop_show_points ) {
 					sprintf(output, msg_txt(505), ret, sd->cashPoints);
@@ -7978,7 +7978,9 @@ ACMD_FUNC(cash)
 			} else
 				clif_displaymessage(fd, msg_txt(149)); // Unable to decrease the number/value.
 		} else {
-			if( (ret=pc_paycash(sd, -value, 0, LOG_TYPE_COMMAND)) >= 0) {
+			if( -value > sd->cashPoints ) //By command, if cash < value, force it to remove all
+				value = -sd->cashPoints;
+			if( (ret = pc_paycash(sd, -value, 0, LOG_TYPE_COMMAND)) >= 0) {
 				// If this option is set, the message is already sent by pc function
 				if( !battle_config.cashshop_show_points ) {
 					sprintf(output, msg_txt(410), ret, sd->cashPoints);
@@ -7989,13 +7991,13 @@ ACMD_FUNC(cash)
 		}
 	} else { // @points
 		if( value > 0 ) {
-			if( (ret=pc_getcash(sd, 0, value, LOG_TYPE_COMMAND)) >= 0) {
+			if( (ret = pc_getcash(sd, 0, value, LOG_TYPE_COMMAND)) >= 0) {
 				sprintf(output, msg_txt(506), ret, sd->kafraPoints);
 				clif_disp_onlyself(sd, output, strlen(output));
 			} else
 				clif_displaymessage(fd, msg_txt(149)); // Unable to decrease the number/value.
 		} else {
-			if( (ret=pc_paycash(sd, -value, -value, LOG_TYPE_COMMAND)) >= 0) {
+			if( (ret = pc_paycash(sd, -value, -value, LOG_TYPE_COMMAND)) >= 0) {
 				sprintf(output, msg_txt(411), ret, sd->kafraPoints);
 				clif_disp_onlyself(sd, output, strlen(output));
 			} else
@@ -8009,15 +8011,15 @@ ACMD_FUNC(cash)
 // @clone/@slaveclone/@evilclone <playername> [Valaris]
 ACMD_FUNC(clone)
 {
-	int x=0,y=0,flag=0,master=0,i=0;
-	struct map_session_data *pl_sd=NULL;
+	int x = 0, y = 0, flag = 0, master = 0, i = 0;
+	struct map_session_data *pl_sd = NULL;
 
 	if (!message || !*message) {
 		clif_displaymessage(sd->fd,msg_txt(1323)); // You must enter a player name or ID.
 		return 0;
 	}
 
-	if((pl_sd=map_nick2sd((char *)message)) == NULL && (pl_sd=map_charid2sd(atoi(message))) == NULL) {
+	if((pl_sd = map_nick2sd((char *)message)) == NULL && (pl_sd = map_charid2sd(atoi(message))) == NULL) {
 		clif_displaymessage(fd, msg_txt(3));	// Character not found.
 		return 0;
 	}

@@ -538,6 +538,9 @@ bool skill_isNotOk(uint16 skill_id, struct map_session_data *sd)
 	if (skill_id == AL_TELEPORT && sd->skillitem == skill_id && sd->skillitemlv > 2)
 		return false; //Teleport lv 3 bypasses this check.[Inkfish]
 
+	if (map[m].flag.noskill)
+		return true;
+
 	//Epoque:
 	//This code will compare the player's attack motion value which is influenced by ASPD before
 	//allowing a skill to be cast. This is to prevent no-delay ACT files from spamming skills such as
@@ -670,7 +673,7 @@ bool skill_isNotOk(uint16 skill_id, struct map_session_data *sd)
 			break;
 
 	}
-	return (map[m].flag.noskill);
+	return false;
 }
 
 /** Check if the homunculus skill is ok to be processed
@@ -1935,7 +1938,8 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	nullpo_ret(src);
 	nullpo_ret(bl);
 
-	if(skill_id > 0 && !skill_lv) return 0;	//Don't forget auto attacks! - celest
+	if(skill_id > 0 && !skill_lv)
+		return 0; //Don't forget auto attacks! - Celest
 
 	sc = status_get_sc(src);
 
@@ -1945,6 +1949,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	if(dstsd && attack_type&BF_WEAPON) { //Counter effects.
 		enum sc_type type;
 		int i, time;
+
 		for(i = 0; i < ARRAYLENGTH(dstsd->addeff2) && dstsd->addeff2[i].flag; i++) {
 			rate = dstsd->addeff2[i].rate;
 			if(attack_type&BF_LONG)
@@ -5300,7 +5305,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 	enum sc_type type;
 	int i = 0, rate = 0, partybonus = 0, chorusbonus = 0;
 
-	if(skill_id > 0 && !skill_lv) return 0; //Celest
+	if(skill_id > 0 && !skill_lv)
+		return 0; //Celest
 
 	nullpo_retr(1,src);
 	nullpo_retr(1,bl);
@@ -9978,6 +9984,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			} else {
 				int rate = max(5,(25 + (10 * skill_lv) - (status_get_int(bl) / 2)));
+
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,
 					sc_start(src,bl,type,rate,skill_lv,skill_get_time(skill_id,skill_lv)));
 				clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
@@ -10021,32 +10028,24 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case MH_SILENT_BREEZE: {
-				struct status_change *ssc = status_get_sc(src);
-				struct block_list *m_src = battle_get_master(src);
-				int heal;
+				struct status_change *sc = status_get_sc(src);
 
+				//Silences the homunculus
+				if(sc && !sc->data[SC_SILENCE])
+					status_change_start(src,src,SC_SILENCE,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),1|2|8);
+				//Recover the target's HP [5 * (Homunculus MATK + Homunculus Level)]
+				status_heal(bl,5 * (sstatus->matk_max + status_get_lv(src)),0,3);
+				//Removes these SC from target
 				if(tsc) {
 					const enum sc_type scs[] = {
 						SC_MANDRAGORA, SC_HARMONIZE, SC_DEEPSLEEP, SC_VOICEOFSIREN, SC_SLEEP, SC_CONFUSION, SC_HALLUCINATION
 					};
-
-					for(i = 0; i < ARRAYLENGTH(scs); i++) {
-						if(tsc->data[scs[i]]) status_change_end(bl,scs[i],INVALID_TIMER);
-					}
-					if(!tsc->data[SC_SILENCE] && !is_boss(bl)) //Put inavoidable silence on target
-						status_change_start(src,bl,SC_SILENCE,100,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),1|2|8);
-				}
-				heal = status_get_sp(src) + status_get_lv(src); //Current SP + Base Level, @TODO: Need real value
-				status_heal(bl,heal,0,7);
-
-				//Now inflict silence on everyone
-				if(ssc && !ssc->data[SC_SILENCE]) //Put inavoidable silence on homun
-					status_change_start(src,src,SC_SILENCE,100,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),1|2|8);
-				if(m_src) {
-					struct status_change *msc = status_get_sc(m_src);
-
-					if(msc && !msc->data[SC_SILENCE]) //Put inavoidable silence on master
-						status_change_start(src,m_src,SC_SILENCE,100,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),1|2|8);
+					for(i = 0; i < ARRAYLENGTH(scs); i++)
+						if(tsc->data[scs[i]])
+							status_change_end(bl,scs[i],INVALID_TIMER);
+					//Silences the target
+					if(!tsc->data[SC_SILENCE])
+						status_change_start(src,bl,SC_SILENCE,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),1|2|8);
 				}
 				if(hd)
 					skill_blockhomun_start(hd,skill_id,skill_get_cooldown(NULL,skill_id,skill_lv));
@@ -10733,7 +10732,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 	int i;
 
 	//if(skill_lv <= 0) return 0;
-	if(skill_id > 0 && !skill_lv) return 0; //Celest
+	if(skill_id > 0 && !skill_lv)
+		return 0; //Celest
 
 	nullpo_ret(src);
 
