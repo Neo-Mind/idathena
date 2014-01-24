@@ -10044,7 +10044,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						if(tsc->data[scs[i]])
 							status_change_end(bl,scs[i],INVALID_TIMER);
 					//Silences the target
-					if(!tsc->data[SC_SILENCE])
+					if(!tsc->data[SC_SILENCE] && !is_boss(bl))
 						status_change_start(src,bl,SC_SILENCE,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),1|2|8);
 				}
 				if(hd)

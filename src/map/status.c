@@ -7600,7 +7600,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	if( status->mode&MD_MVP && !(flag&1) ) {
 		switch( type ) {
 			case SC_COMA:
-			//Continue list...
+			//Continue list
 				return 0;
 		}
 	}
