@@ -4261,7 +4261,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 	)
 		return 0;
 	if( (item->item_usage.flag&NOUSE_SITTING) && (pc_issit(sd) == 1) && (pc_get_group_level(sd) < item->item_usage.override) ) {
-		clif_msgtable(sd->fd,0x297);
+		clif_msgtable(sd->fd,ITEM_NOUSE_SITTING);
 		//clif_colormes(sd,color_table[COLOR_WHITE],msg_txt(1477));
 		return 0; // You cannot use this item while sitting.
 	}
@@ -4512,6 +4512,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 
 	/* On restricted maps the item is consumed but the effect is not used */
 	if( !pc_has_permission(sd,PC_PERM_ITEM_UNCONDITIONAL) && itemdb_isNoEquip(id,sd->bl.m) ) {
+		clif_msg(sd,ITEM_CANT_USE_AREA); // This item cannot be used within this area
 		if( battle_config.allow_consume_restricted_item ) {
 			clif_useitemack(sd,n,item.amount - 1,true);
 			pc_delitem(sd,n,1,1,0,LOG_TYPE_CONSUME);

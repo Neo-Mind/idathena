@@ -564,7 +564,7 @@ bool skill_isNotOk(uint16 skill_id, struct map_session_data *sd)
 		(map_flag_gvg(m) && skill_get_nocast (skill_id)&4) ||
 		(map[m].flag.battleground && skill_get_nocast (skill_id)&8) ||
 		(map[m].flag.restricted && map[m].zone && skill_get_nocast (skill_id)&(8 * map[m].zone))) {
-			clif_msg(sd, 0x536); //This skill cannot be used within this area
+			clif_msg(sd, SKILL_CANT_USE_AREA); //This skill cannot be used within this area
 			return true;
 	}
 
@@ -17519,7 +17519,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 			for( i = 0; i < MAX_INVENTORY; i++ ) {
 				if( sd->status.inventory[i].nameid == nameid ) {
 					if( sd->status.inventory[i].amount >= data->stack.amount ) {
-						clif_msgtable(sd->fd,0x61b);
+						clif_msgtable(sd->fd,RUNE_CANT_CREATE);
 						return 0;
 					} else {
 						/**
@@ -17949,6 +17949,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 		}
 		if(skill_id == GN_CHANGEMATERIAL && tmp_item.amount) { //Success
 			int j, k = 0;
+
 			for(i = 0; i < MAX_SKILL_PRODUCE_DB; i++)
 				if(skill_changematerial_db[i].itemid == nameid) {
 					for(j = 0; j < 5; j++) {
@@ -17964,7 +17965,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 					break;
 				}
 			if(k) {
-				clif_msg_skill(sd,skill_id,0x627);
+				clif_msg_skill(sd,skill_id,ITEM_PRODUCE_SUCCESS);
 				return 1;
 			}
 		} else if(tmp_item.amount) { //Success
@@ -17973,7 +17974,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 				map_addflooritem(&tmp_item,tmp_item.amount,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 			}
 			if(skill_id == GN_MIX_COOKING || skill_id == GN_MAKEBOMB || skill_id ==  GN_S_PHARMACY)
-				clif_msg_skill(sd,skill_id,0x627);
+				clif_msg_skill(sd,skill_id,ITEM_PRODUCE_SUCCESS);
 			return 1;
 		}
 	}
@@ -18025,13 +18026,13 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 						clif_additem(sd,0,0,flag);
 						map_addflooritem(&tmp_item,tmp_item.amount,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 					}
-					clif_msg_skill(sd,skill_id,0x628);
+					clif_msg_skill(sd,skill_id,ITEM_PRODUCE_FAIL);
 				}
 				break;
 			case GN_MAKEBOMB:
 			case GN_S_PHARMACY:
 			case GN_CHANGEMATERIAL:
-				clif_msg_skill(sd,skill_id,0x628);
+				clif_msg_skill(sd,skill_id,ITEM_PRODUCE_FAIL);
 				break;
 			default:
 				if(skill_produce_db[idx].itemlv > 10 && skill_produce_db[idx].itemlv <= 20) { //Cooking items.
@@ -18353,16 +18354,17 @@ int skill_changematerial(struct map_session_data *sd, int n, unsigned short *ite
 				for( j = 0; j < MAX_PRODUCE_RESOURCE; j++ ) {
 					if( skill_produce_db[i].mat_id[j] > 0 ) {
 						for( k = 0; k < n; k++ ) {
-							int idx = item_list[k*2+0]-2;
+							int idx = item_list[k * 2 + 0] - 2;
+
 							nameid = sd->status.inventory[idx].nameid;
-							amount = item_list[k*2+1];
-							if( nameid > 0 && sd->status.inventory[idx].identify == 0 ){
-								clif_msg_skill(sd,GN_CHANGEMATERIAL,0x62D);
+							amount = item_list[k * 2 + 1];
+							if( nameid > 0 && sd->status.inventory[idx].identify == 0 ) {
+								clif_msg_skill(sd,GN_CHANGEMATERIAL,ITEM_UNIDENTIFIED);
 								return 0;
 							}
-							if( nameid == skill_produce_db[i].mat_id[j] && (amount-p*skill_produce_db[i].mat_amount[j]) >= skill_produce_db[i].mat_amount[j]
-								&& (amount-p*skill_produce_db[i].mat_amount[j])%skill_produce_db[i].mat_amount[j] == 0 ) //must be in exact amount
-								c++; //match
+							if( nameid == skill_produce_db[i].mat_id[j] && (amount - p * skill_produce_db[i].mat_amount[j]) >= skill_produce_db[i].mat_amount[j]
+								&& (amount - p * skill_produce_db[i].mat_amount[j])%skill_produce_db[i].mat_amount[j] == 0 ) //Must be in exact amount
+								c++; //Match
 						}
 					}
 					else
@@ -18379,7 +18381,7 @@ int skill_changematerial(struct map_session_data *sd, int n, unsigned short *ite
 	}
 
 	if( p == 0 )
-		clif_msg_skill(sd,GN_CHANGEMATERIAL,0x623);
+		clif_msg_skill(sd,GN_CHANGEMATERIAL,ITEM_CANT_COMBINE);
 
 	return 0;
 }
