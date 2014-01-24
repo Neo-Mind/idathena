@@ -12004,6 +12004,8 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			val2 = 1;
 		case WM_SEVERE_RAINSTORM:
 		case WM_POEMOFNETHERWORLD:
+			if( skill_id == WM_POEMOFNETHERWORLD && map_flag_gvg2(src->m) )
+				target = BCT_ALL;
 			if( map_getcell(src->m,x,y,CELL_CHKLANDPROTECTOR) )
 				return NULL;
 			break;
@@ -12660,10 +12662,12 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				break;
 			if (sg->val2 == 0 && tsc && (sg->unit_id == UNT_ANKLESNARE || bl->id != sg->src_id)) {
 				int sec = skill_get_time2(sg->skill_id,sg->skill_lv);
+
 				if (status_change_start(ss,bl,type,10000,sg->skill_lv,sg->group_id,0,0,sec,8)) {
 					const struct TimerData* td = tsc->data[type] ? get_timer(tsc->data[type]->timer) : NULL;
 					int range = skill_get_unit_range(sg->skill_id,sg->skill_lv);
 					int knockback_immune = tsd ? !tsd->special_state.no_knockback : !(tstatus->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS));
+
 					if (td)
 						sec = DIFF_TICK(td->tick,tick);
 					if ((sg->unit_id == UNT_MANHOLE && distance_xy(src->bl.x,src->bl.y,bl->x,bl->y) <= range &&
@@ -12859,6 +12863,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			} else if (battle_check_target(&src->bl,bl,BCT_ENEMY) > 0) { //Offensive Effect
 				int i = rnd()%9; //Negative buff count
 				int time = skill_get_time2(sg->skill_id,sg->skill_lv);
+
 				switch (i) {
 					case 0: //Deal 1~9999 damage
 						skill_attack(BF_MISC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
@@ -12893,6 +12898,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 
 		case UNT_BASILICA: {
 				int i = battle_check_target(&src->bl,bl,BCT_ENEMY);
+
 				if (i > 0 && !(status_get_mode(bl)&MD_BOSS)) { //Knock-back any enemy except Boss
 					skill_blown(&src->bl,bl,2,unit_getdir(bl),0);
 					clif_fixpos(bl);
@@ -12927,8 +12933,8 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;
 
 		case UNT_POISONSMOKE:
-			if (battle_check_target(ss,bl,BCT_ENEMY) > 0 && tsc && !tsc->data[sg->val2] && rnd()%100 < 50)
-				sc_start(ss,bl,sg->val2,100,sg->val3,skill_get_time2(GC_POISONINGWEAPON,1));
+			if (battle_check_target(&src->bl,bl,BCT_ENEMY) > 0 && tsc && !tsc->data[sg->val2] && rnd()%100 < 50)
+				sc_start(ss,bl,(sc_type)sg->val2,100,sg->val3,skill_get_time2(GC_POISONINGWEAPON,1));
 			break;
 
 		case UNT_EPICLESIS:
@@ -12977,7 +12983,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 		case UNT_DIMENSIONDOOR:
 			if (tsd && !map[bl->m].flag.noteleport)
 				pc_randomwarp(tsd,3);
-			else if (bl->type == BL_MOB && battle_config.mob_warp&8)
+			else if (bl->type == BL_MOB && (battle_config.mob_warp&8))
 				unit_warp(bl,-1,-1,-1,CLR_TELEPORT);
 			break;
 
@@ -12994,12 +13000,13 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;
 
 		case UNT_NETHERWORLD:
-			if ((status_get_mode(bl)&MD_BOSS) || ss == bl || battle_check_target(&src->bl,bl,BCT_PARTY) > 0)
+			if ((status_get_mode(bl)&MD_BOSS) || ss == bl ||
+				(map_flag_gvg2(ss->m) && battle_check_target(&src->bl,bl,BCT_PARTY) > 0))
 				break;
 			if (!(tsc && tsc->data[type])) {
-					sc_start(ss,bl,type,100,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
-					sg->limit = DIFF_TICK(tick,sg->tick);
-					sg->unit_id = UNT_USED_TRAPS;
+				sc_start(ss,bl,type,100,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
+				sg->limit = DIFF_TICK(tick,sg->tick);
+				sg->unit_id = UNT_USED_TRAPS;
 			}
 			break;
 
@@ -13007,8 +13014,10 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			if (tsc) {
 				if (!sg->val2) {
 					int sec = skill_get_time2(sg->skill_id,sg->skill_lv);
+
 					if (sc_start(ss,bl,type,100,sg->skill_lv,sec)) {
 						const struct TimerData* td = tsc->data[type] ? get_timer(tsc->data[type]->timer) : NULL;
+
 						if (td)
 							sec = DIFF_TICK(td->tick,tick);
 						//In official server it doesn't behave like this. [malufett]
@@ -13025,6 +13034,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 
 		case UNT_DEMONIC_FIRE: {
 				TBL_PC* sd = BL_CAST(BL_PC,ss);
+
 				switch (sg->val2) {
 					case 1:
 					case 2:
@@ -13142,7 +13152,8 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;
 
 		case UNT_BANDING: {
-			int rate = 0;
+				int rate = 0;
+
 				if (battle_check_target(ss,bl,BCT_ENEMY) > 0 && !(status_get_mode(bl)&MD_BOSS) &&
 					!(tsc && tsc->data[SC_BANDING_DEFENCE])) {
 					rate = status_get_lv(ss) / 5 + 5 * sg->skill_lv - tstatus->agi / 10;
@@ -18371,9 +18382,9 @@ int skill_changematerial(struct map_session_data *sd, int n, unsigned short *ite
 						break;	//No more items required
 				}
 				p++;
-			} while(n == j && c == n);
+			} while( n == j && c == n );
 			p--;
-			if ( p > 0 ) {
+			if( p > 0 ) {
 				skill_produce_mix(sd,GN_CHANGEMATERIAL,skill_produce_db[i].nameid,0,0,0,p);
 				return 1;
 			}
