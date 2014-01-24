@@ -9439,7 +9439,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case WM_GLOOMYDAY:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1); 
-			if( dstsd &&( pc_checkskill(dstsd,KN_BRANDISHSPEAR) || pc_checkskill(dstsd,CR_SHIELDCHARGE) || 
+			if( dstsd &&(pc_checkskill(dstsd,KN_BRANDISHSPEAR) || pc_checkskill(dstsd,CR_SHIELDCHARGE) || 
 				pc_checkskill(dstsd,CR_SHIELDBOOMERANG) || pc_checkskill(dstsd,LK_SPIRALPIERCE) || 
 				pc_checkskill(dstsd,PA_SHIELDCHAIN) || pc_checkskill(dstsd,RK_HUNDREDSPEAR) || 
 				pc_checkskill(dstsd,LG_SHIELDPRESS)) )
@@ -11708,8 +11708,8 @@ static int skill_icewall_block(struct block_list *bl,va_list ap) {
 struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill_id, uint16 skill_lv, int16 x, int16 y, int flag)
 {
 	struct skill_unit_group *group;
-	int i,limit,val1 = 0,val2 = 0,val3 = 0;
-	int target,interval,range,unit_flag,req_item = 0;
+	int i, limit, val1 = 0, val2 = 0, val3 = 0;
+	int target, interval, range, unit_flag, req_item = 0;
 	struct s_skill_unit_layout *layout;
 	struct map_session_data *sd;
 	struct status_data *status;
@@ -12077,6 +12077,8 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		int val2 = 0;
 		int alive = 1;
 
+		if( ux <= 0 || uy <= 0 || ux >= map[sd->bl.m].xs || uy >= map[sd->bl.m].ys )
+			continue; //Are the coordinates out of range?
 		if( !group->state.song_dance && !map_getcell(src->m,ux,uy,CELL_CHKREACH) )
 			continue; //Don't place skill units on walls (except for songs/dances/encores)
 		if( battle_config.skill_wall_check && unit_flag&UF_PATHCHECK && !path_search_long(NULL,src->m,ux,uy,x,y,CELL_CHKWALL) )
@@ -12120,12 +12122,15 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 				val1 = abs(layout->dx[i]);
 				val2 = abs(layout->dy[i]);
 				if( val1 < 2 || val2 < 2 ) { //Nearby cross, linear decrease with no diagonals
-					if( val2 > val1 ) val1 = val2;
-					if( val1 ) val1--;
+					if( val2 > val1 )
+						val1 = val2;
+					if( val1 )
+						val1--;
 					val1 = 36 - 12 * val1;
 				} else //Diagonal edges
 					val1 = 28 - 4 * val1 - 4 * val2;
-				if( val1 < 1 ) val1 = 1;
+				if( val1 < 1 )
+					val1 = 1;
 				val2 = 0;
 				break;
 			case WM_REVERBERATION:
@@ -12354,7 +12359,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 		case UNT_INTOABYSS:
 		case UNT_SIEGFRIED:
 			 //Needed to check when a dancer/bard leaves their ensemble area.
-			if( sg->src_id == bl->id && sc && sc->data[SC_SPIRIT] && !sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER )
+			if( sg->src_id == bl->id && sc && !(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER) )
 				return skill_id;
 			if( !sce )
 				sc_start4(ss,bl,type,100,sg->skill_lv,sg->val1,sg->val2,0,sg->limit);
@@ -12369,7 +12374,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 		case UNT_SERVICEFORYOU:
 			if( !sc )
 				return 0;
-			if( sg->src_id == bl->id && sc && sc->data[SC_SPIRIT] && !sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER )
+			if( sg->src_id == bl->id && sc && !(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER) )
 				return 0;
 			if( !sce )
 				sc_start4(ss,bl,type,100,sg->skill_lv,sg->val1,sg->val2,0,sg->limit);
@@ -12773,7 +12778,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				if (md && md->mob_id == MOBID_EMPERIUM)
 					break;
 #endif
-				if (sg->src_id == bl->id && tsc && tsc->data[SC_SPIRIT] && !tsc->data[SC_SPIRIT]->val2 == SL_BARDDANCER)
+				if (sg->src_id == bl->id && tsc && !(tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_BARDDANCER))
 					break; //Affects self only when soullinked
 				heal = skill_calc_heal(ss,bl,sg->skill_id,sg->skill_lv,true);
 				clif_skill_nodamage(&src->bl,bl,AL_HEAL,heal,1);
@@ -13287,7 +13292,7 @@ int skill_unit_onout (struct skill_unit *src, struct block_list *bl, unsigned in
 		case UNT_DONTFORGETME:
 		case UNT_FORTUNEKISS:
 		case UNT_SERVICEFORYOU:
-			if( sg->src_id == bl->id && sc && sc->data[SC_SPIRIT] && !sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER )
+			if( sg->src_id == bl->id && sc && !(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER) )
 				return -1;
 	}
 

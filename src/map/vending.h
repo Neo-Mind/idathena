@@ -18,6 +18,7 @@ struct s_vending {
 DBMap* vending_db; //Db holder the vender : charid -> map_session_data
 DBMap* vending_getdb();
 
+void vending_reopen(struct map_session_data* sd);
 void vending_closevending(struct map_session_data* sd);
 void vending_openvending(struct map_session_data* sd, const char* message, const uint8* data, int count);
 void vending_vendinglistreq(struct map_session_data* sd, int id);
@@ -27,5 +28,6 @@ bool vending_searchall(struct map_session_data* sd, const struct s_search_store_
 
 void do_final_vending(void);
 void do_init_vending(void);
+void do_init_vending_autotrade(void);
 
 #endif /* _VENDING_H_ */

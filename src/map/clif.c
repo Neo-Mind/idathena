@@ -9370,7 +9370,7 @@ void clif_parse_WantToConnection(int fd, struct map_session_data* sd)
 	WFIFOSET(fd,packet_len(0x283));
 #endif
 
-	chrif_authreq(sd);
+	chrif_authreq(sd, false);
 }
 
 
@@ -17388,8 +17388,8 @@ void packetdb_readdb(void)
 {
 	FILE *fp;
 	char line[1024];
-	int ln = 0,entries = 0;
-	int cmd,i,j,packet_ver;
+	int ln = 0, entries = 0;
+	int cmd, i, j, packet_ver;
 	int max_cmd = -1;
 	int skip_ver = 0;
 	int warned = 0;
@@ -18004,8 +18004,8 @@ void packetdb_readdb(void)
 	}
 	if (!clif_config.connect_cmd[clif_config.packet_db_ver]) { //Locate the nearest version that we still support. [Skotlex]
 		for(j = clif_config.packet_db_ver; j >= 0 && !clif_config.connect_cmd[j]; j--);
-		
-		clif_config.packet_db_ver = j?j:MAX_PACKET_VER;
+
+		clif_config.packet_db_ver = j ? j : MAX_PACKET_VER;
 	}
 	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",entries,"packet_db.txt");
 	ShowStatus("Using default packet version: "CL_WHITE"%d"CL_RESET".\n",clif_config.packet_db_ver);

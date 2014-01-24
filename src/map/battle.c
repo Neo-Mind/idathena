@@ -4114,9 +4114,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 			skill_id == CR_SHIELDBOOMERANG || skill_id == PA_SHIELDCHAIN ||
 			skill_id == RK_HUNDREDSPEAR || skill_id == LG_SHIELDPRESS)) {
 				ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_GLOOMYDAY_SK]->val2);
-#ifdef RENEWAL
-				ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sc->data[SC_GLOOMYDAY_SK]->val2);
-#endif
+				RE_ALLATK_ADDRATE(wd, sc->data[SC_GLOOMYDAY_SK]->val2);
 		}
 		if(sc->data[SC_DANCEWITHWUG] && (skill_id == RA_WUGSTRIKE || skill_id == RA_WUGBITE)) {
 			ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_DANCEWITHWUG]->val1 * 10 * (2 + chorusbonus));
@@ -7877,6 +7875,9 @@ static const struct _battle_data {
 	{ "oktoberfest_ignorepalette",          &battle_config.oktoberfest_ignorepalette,       0,      0,      1,              },
 	{ "update_enemy_position",              &battle_config.update_enemy_position,           0,      0,      1,              },
 	{ "devotion_rdamage",                   &battle_config.devotion_rdamage,                0,      0,    100,              },
+	{ "feature.autotrade",                  &battle_config.feature_autotrade,               1,      0,      1,              },
+	{ "feature.autotrade_direction",        &battle_config.feature_autotrade_direction,     4,      0,      7,              },
+	{ "feature.autotrade_sit",              &battle_config.feature_autotrade_sit,           1,      0,      1,              },
 };
 #ifndef STATS_OPT_OUT
 /**
@@ -7911,7 +7912,7 @@ void rAthena_report(char* date, char *time_c) {
 	if( (rev_str = get_svn_revision()) != 0 )
 		rev = atoi(rev_str);
 	
-	/* we get the current time */
+	/* We get the current time */
 	time(&curtime);
 	strftime(timestring, 24, "%Y-%m-%d %H:%M:%S", localtime(&curtime));
 

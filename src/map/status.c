@@ -9059,13 +9059,15 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val3 = 15 + 5 * val1; //ASPD reduction.
 				if( sd && rnd()%100 < val1 ) { //(Skill Lv) %
 					val4 = 1; //Reduce walk speed by half.
-					if( pc_isriding(sd) ) pc_setriding(sd,0);
-					if( pc_isridingdragon(sd) ) pc_setoption(sd,sd->sc.option&~OPTION_DRAGON);
+					if( pc_isriding(sd) )
+						pc_setriding(sd,0);
+					if( pc_isridingdragon(sd) )
+						pc_setoption(sd,sd->sc.option&~OPTION_DRAGON);
 				} 
 				break;
 			case SC_GLOOMYDAY_SK: 
-				//Random number between [15 ~ (Voice Lesson Skill Level x 5) + (Skill Level x 10)] %. 
-				val2 = 15 + rnd()%((sd ? pc_checkskill(sd,WM_LESSON) * 5 : 0) + val1 * 10);
+				//Random number between [15 ~ (Voice Lesson Skill Level x 5) + (Skill Level x 10)] %.
+				val2 = rnd_value(15,(sd ? pc_checkskill(sd,WM_LESSON) * 5 : 0) + val1 * 10);
 				break;
 			case SC_SONGOFMANA:
 				val3 = 10 + 5 * val2;

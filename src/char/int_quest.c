@@ -37,6 +37,7 @@ struct quest *mapif_quests_fromsql(int char_id, int *count) {
 	stmt = SqlStmt_Malloc(sql_handle);
 	if( stmt == NULL ) {
 		SqlStmt_ShowDebug(stmt);
+		*count = 0;
 		return NULL;
 	}
 
@@ -71,7 +72,7 @@ struct quest *mapif_quests_fromsql(int char_id, int *count) {
 		if( i < *count ) {
 			//Should never happen. Compact array
 			*count = i;
-			questlog = aRealloc(questlog, sizeof(struct quest) * i);
+			questlog = (struct quest *)aRealloc(questlog, sizeof(struct quest) * i);
 		}
 	}
 
@@ -143,11 +144,10 @@ int mapif_parse_quest_save(int fd) {
 	struct quest *old_qd = NULL, *new_qd = NULL;
 	bool success = true;
 
-	if( new_n )
+	if( new_n > 0 )
 		new_qd = (struct quest*)RFIFOP(fd,8);
 
 	old_qd = mapif_quests_fromsql(char_id, &old_n);
-
 	for( i = 0; i < new_n; i++ ) {
 		ARR_FIND(0, old_n, j, new_qd[i].quest_id == old_qd[j].quest_id);
 		if( j < old_n ) { //Update existing quests

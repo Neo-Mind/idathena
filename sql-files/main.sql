@@ -684,6 +684,7 @@ INSERT INTO `sql_updates` (`timestamp`) VALUES (1382892428);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1383162785);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1383167577);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1383205740);
+INSERT INTO `sql_updates` (`timestamp`) VALUES (1383955424);
 
 --
 -- Table structure for table `sstatus`
@@ -741,4 +742,33 @@ CREATE TABLE IF NOT EXISTS `bonus_script` (
 	`flag` tinyint(3) unsigned NOT NULL default '0',
 	`type` tinyint(1) unsigned NOT NULL default '0',
 	`icon` smallint(4) NOT NULL default '-1'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB default CHARSET=latin1;
+
+--
+-- Table structure for table `vending_items`
+--
+
+CREATE TABLE IF NOT EXISTS `vending_items` (
+  `vending_id` int(10) unsigned NOT NULL,
+  `index` smallint(5) unsigned NOT NULL,
+  `cartinventory_id` int(10) unsigned NOT NULL,
+  `amount` smallint(5) unsigned NOT NULL,
+  `price` int(10) unsigned NOT NULL
+) ENGINE=MyISAM default CHARSET=latin1;
+
+--
+-- Table structure for table `vendings`
+--
+
+CREATE TABLE IF NOT EXISTS `vendings` (
+  `id` int(10) unsigned NOT NULL,
+  `account_id` int(11) unsigned NOT NULL,
+  `char_id` int(10) unsigned NOT NULL,
+  `sex` enum('F','M') NOT NULL default 'M',
+  `map` varchar(20) NOT NULL,
+  `x` smallint(5) unsigned NOT NULL,
+  `y` smallint(5) unsigned NOT NULL,
+  `title` varchar(80) NOT NULL,
+  `autotrade` tinyint(4) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM default CHARSET=latin1;

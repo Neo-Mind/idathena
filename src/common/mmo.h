@@ -51,29 +51,29 @@
 //Note: The client seems unable to receive data for more than 4 slots due to all related packets having a fixed size.
 #define MAX_SLOTS 4
 //Max amount of a single stacked item
-#define MAX_AMOUNT 30000
-#define MAX_ZENY 1000000000
-#define MAX_BANK_ZENY SINT32_MAX
-#define MAX_FAME 1000000000
-#define MAX_CART 100
-#define MAX_SKILL 5020
+#define MAX_AMOUNT 30000 //Max amount of a single stacked item
+#define MAX_ZENY 1000000000 //Max zeny
+#define MAX_BANK_ZENY SINT32_MAX //Max zeny in Bank
+#define MAX_FAME 1000000000 //Max fame points
+#define MAX_CART 100 //Maximum item in cart
+#define MAX_SKILL 5020 //Maximum skill data
 #define GLOBAL_REG_NUM 256 //Max permanent character variables per char
 #define ACCOUNT_REG_NUM 64 //Max permanent local account variables per account
 #define ACCOUNT_REG2_NUM 16 //Max permanent global account variables per account
 //Should hold the max of GLOBAL/ACCOUNT/ACCOUNT2 (Needed for some arrays that hold all three)
-#define MAX_REG_NUM 256
-#define DEFAULT_WALK_SPEED 150
+#define MAX_REG_NUM 256 //Should hold the max of GLOBAL/ACCOUNT/ACCOUNT2 (needed for some arrays that hold all three)
+#define DEFAULT_WALK_SPEED 150 //Default walk speed
 #define MIN_WALK_SPEED 20 /* Below 20 clips animation */
-#define MAX_WALK_SPEED 1000
+#define MAX_WALK_SPEED 1000 //Max walk speed
 #define MAX_STORAGE 600 //Max number of storage slots a player can have, (up to ~850 tested)
-#define MAX_GUILD_STORAGE 600
-#define MAX_PARTY 12
+#define MAX_GUILD_STORAGE 600 //Max number of storage slots a guild
+#define MAX_PARTY 12 //Max party member
 #define MAX_GUILD 16 + 10 * 6 //Increased max guild members +6 per 1 extension levels [Lupus]
 #define MAX_GUILDPOSITION 20 //Increased max guild positions to accomodate for all members [Valaris] (removed) [PoW]
-#define MAX_GUILDEXPULSION 32
-#define MAX_GUILDALLIANCE 16
+#define MAX_GUILDEXPULSION 32 //Max Guild expulsion
+#define MAX_GUILDALLIANCE 16 //Max Guild alliance
 #define MAX_GUILDSKILL 17 //Increased max guild skills because of new skills [Sara-chan]
-#define MAX_GUILDLEVEL 50
+#define MAX_GUILDLEVEL 50 //Max Guild level
 #define MAX_GUARDIANS 8 //Local max per castle. [Skotlex]
 #define MAX_QUEST_OBJECTIVES 3 //Max quest objectives for a quest
 

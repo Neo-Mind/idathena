@@ -2169,9 +2169,9 @@ void do_init_guild(void) {
 	guild_flags_count = 0;
 
 	sv_readdb(db_path, "castle_db.txt", ',', 4, 4, -1, &guild_read_castledb);
-
 	memset(guild_skill_tree,0,sizeof(guild_skill_tree));
-	sv_readdb(db_path, "guild_skill_tree.txt", ',', 2+MAX_GUILD_SKILL_REQUIRE*2, 2+MAX_GUILD_SKILL_REQUIRE*2, -1, &guild_read_guildskill_tree_db); //guild skill tree [Komurka]
+	//Guild skill tree [Komurka]
+	sv_readdb(db_path, "guild_skill_tree.txt", ',', 2 + MAX_GUILD_SKILL_REQUIRE * 2, 2 + MAX_GUILD_SKILL_REQUIRE * 2, -1, &guild_read_guildskill_tree_db);
 
 	add_timer_func_list(guild_payexp_timer,"guild_payexp_timer");
 	add_timer_func_list(guild_send_xy_timer, "guild_send_xy_timer");
@@ -2195,5 +2195,5 @@ void do_final_guild(void) {
 	guild_infoevent_db->destroy(guild_infoevent_db,eventlist_db_final);
 	ers_destroy(expcache_ers);
 
-	aFree(guild_flags);/* never empty; created on boot */
+	aFree(guild_flags); /* Never empty; Created on boot */
 }

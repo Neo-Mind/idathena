@@ -3262,10 +3262,6 @@ int parse_frommap(int fd)
 							WFIFOW(fd,2) = 14 + count * sizeof(struct status_change_data);
 							WFIFOW(fd,12) = count;
 							WFIFOSET(fd,WFIFOW(fd,2));
-
-							//Clear the data once loaded.
-							if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `account_id`='%d' AND `char_id`='%d'", scdata_db, aid, cid) )
-								Sql_ShowDebug(sql_handle);
 						}
 					} else { //No sc (needs a response)
 						WFIFOHEAD(fd,14);
@@ -3700,7 +3696,10 @@ int parse_frommap(int fd)
 					cid = RFIFOL(fd,8);
 					count = RFIFOW(fd,12);
 
-					if( count > 0 ) {
+					// Whatever comes from the mapserver, now is the time to drop previous entries
+					if( Sql_Query(sql_handle, "DELETE FROM `%s` where `account_id` = %d and `char_id` = %d;", scdata_db, aid, cid) != SQL_SUCCESS )
+						Sql_ShowDebug(sql_handle);
+					else if( count > 0 ) {
 						struct status_change_data data;
 						StringBuf buf;
 						int i;
@@ -3731,7 +3730,7 @@ int parse_frommap(int fd)
 				break;
 
 			case 0x2b26: //Auth request from map-server
-				if( RFIFOREST(fd) < 19 )
+				if( RFIFOREST(fd) < 20 )
 					return 0;
 
 				{
@@ -3743,13 +3742,15 @@ int parse_frommap(int fd)
 					struct auth_node* node;
 					struct mmo_charstatus* cd;
 					struct mmo_charstatus char_dat;
+					bool autotrade = false;
 
 					account_id = RFIFOL(fd,2);
 					char_id    = RFIFOL(fd,6);
 					login_id1  = RFIFOL(fd,10);
 					sex        = RFIFOB(fd,14);
 					ip         = ntohl(RFIFOL(fd,15));
-					RFIFOSKIP(fd,19);
+					autotrade  = RFIFOB(fd,19);
+					RFIFOSKIP(fd,20);
 
 					node = (struct auth_node*)idb_get(auth_db, account_id);
 					cd = (struct mmo_charstatus*)uidb_get(char_db_, char_id);
@@ -3757,7 +3758,24 @@ int parse_frommap(int fd)
 						mmo_char_fromsql(char_id, &char_dat, true);
 						cd = (struct mmo_charstatus*)uidb_get(char_db_, char_id);
 					}
-					if( runflag == CHARSERVER_ST_RUNNING &&
+					if( runflag == CHARSERVER_ST_RUNNING && autotrade && cd ) {
+						uint32 mmo_charstatus_len = sizeof(struct mmo_charstatus) + 25;
+						cd->sex = sex;
+
+						WFIFOHEAD(fd,mmo_charstatus_len);
+						WFIFOW(fd,0) = 0x2afd;
+						WFIFOW(fd,2) = mmo_charstatus_len;
+						WFIFOL(fd,4) = account_id;
+						WFIFOL(fd,8) = 0;
+						WFIFOL(fd,12) = 0;
+						WFIFOL(fd,16) = 0;
+						WFIFOL(fd,20) = 0;
+						WFIFOB(fd,24) = 0;
+						memcpy(WFIFOP(fd,25), cd, sizeof(struct mmo_charstatus));
+						WFIFOSET(fd, WFIFOW(fd,2));
+
+						set_char_online(id, char_id, account_id);
+					} else if( runflag == CHARSERVER_ST_RUNNING &&
 						cd != NULL &&
 						node != NULL &&
 						node->account_id == account_id &&
@@ -3775,7 +3793,8 @@ int parse_frommap(int fd)
 						WFIFOL(fd,4) = account_id;
 						WFIFOL(fd,8) = node->login_id1;
 						WFIFOL(fd,12) = node->login_id2;
-						WFIFOL(fd,16) = (uint32)node->expiration_time; //FIXME: will wrap to negative after "19-Jan-2038, 03:14:07 AM GMT"
+						//@FIXME: Will wrap to negative after "19-Jan-2038, 03:14:07 AM GMT"
+						WFIFOL(fd,16) = (uint32)node->expiration_time;
 						WFIFOL(fd,20) = node->group_id;
 						WFIFOB(fd,24) = node->changing_mapservers;
 						memcpy(WFIFOP(fd,25), cd, sizeof(struct mmo_charstatus));

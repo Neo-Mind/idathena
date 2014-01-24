@@ -865,7 +865,8 @@ bool pc_can_Adopt(struct map_session_data *p1_sd, struct map_session_data *p2_sd
 		return false;
 	}
 
-	if( !( ( b_sd->status.class_ >= JOB_NOVICE && b_sd->status.class_ <= JOB_THIEF ) || b_sd->status.class_ == JOB_SUPER_NOVICE ) )
+	if( !((b_sd->status.class_ >= JOB_NOVICE && b_sd->status.class_ <= JOB_THIEF) ||
+		b_sd->status.class_ == JOB_SUPER_NOVICE) )
 		return false;
 
 	return true;
@@ -1395,6 +1396,9 @@ int pc_reg_received(struct map_session_data *sd)
 		}
 		clif_changeoption(&sd->bl); 
 	}
+
+	if (sd->state.autotrade)
+		clif_parse_LoadEndAck(sd->fd, sd);
 
 	return 1;
 }
