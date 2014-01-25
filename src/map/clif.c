@@ -1178,7 +1178,7 @@ static int clif_set_unit_walking(struct block_list* bl, struct unit_data* ud, un
 }
 
 //Modifies the buffer for disguise characters and sends it to self.
-//Used for spawn/walk packets, where the ID offset changes for packetver >=9
+//Used for spawn/walk packets, where the ID offset changes for packetver >= 9
 static void clif_setdisguise(struct block_list *bl, unsigned char *buf,int len) {
 #if PACKETVER >= 20091103
 	WBUFB(buf,4) = pcdb_checkid(status_get_viewdata(bl)->class_) ? 0x0 : 0x5; //PC_TYPE : NPC_MOB_TYPE
@@ -4167,7 +4167,7 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 			break;
 		case BL_MER: //Devotion Effects
 			if (((TBL_MER*)bl)->devotion_flag)
-				clif_devotion(bl, sd);
+				clif_devotion(bl,sd);
 			break;
 		case BL_NPC: {
 				TBL_NPC* nd = (TBL_NPC*)bl;
@@ -9654,8 +9654,10 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 			channel_mjoin(sd); //Join new map
 
 #ifdef VIP_ENABLE
-		clif_display_pinfo(sd,ZC_PERSONAL_INFOMATION);
-		//clif_vip_display_info(sd,ZC_PERSONAL_INFOMATION_CHN);
+		if(!sd->disableshowrate) {
+			clif_display_pinfo(sd,ZC_PERSONAL_INFOMATION);
+			//clif_vip_display_info(sd,ZC_PERSONAL_INFOMATION_CHN);
+		}
 		if(battle_config.vip_gemstone && pc_isvip(sd))
 			sd->special_state.no_gemstone = 2;
 #endif

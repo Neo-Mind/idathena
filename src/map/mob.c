@@ -1902,95 +1902,103 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 
 	switch( src->type ) {
 		case BL_PC: {
-			struct map_session_data *sd = (TBL_PC*)src;
-			char_id = sd->status.char_id;
-			if( damage )
-				md->attacked_id = src->id;
+				struct map_session_data *sd = (TBL_PC*)src;
+
+				char_id = sd->status.char_id;
+				if( damage )
+					md->attacked_id = src->id;
+			}
 			break;
-		}
 		case BL_HOM: {
-			struct homun_data *hd = (TBL_HOM*)src;
-			flag = MDLF_HOMUN;
-			if( hd->master )
-				char_id = hd->master->status.char_id;
-			if( damage )
-				md->attacked_id = src->id;
+				struct homun_data *hd = (TBL_HOM*)src;
+
+				flag = MDLF_HOMUN;
+				if( hd->master )
+					char_id = hd->master->status.char_id;
+				if( damage )
+					md->attacked_id = src->id;
+			}
 			break;
-		}
 		case BL_MER: {
-			struct mercenary_data *mer = (TBL_MER*)src;
-			if( mer->master )
-				char_id = mer->master->status.char_id;
-			if( damage )
-				md->attacked_id = src->id;
+				struct mercenary_data *mer = (TBL_MER*)src;
+
+				if( mer->master )
+					char_id = mer->master->status.char_id;
+				if( damage )
+					md->attacked_id = src->id;			
+			}
 			break;
-		}
 		case BL_PET: {
-			struct pet_data *pd = (TBL_PET*)src;
-			flag = MDLF_PET;
-			if( pd->master ) {
-				char_id = pd->master->status.char_id;
-				if( damage ) //Let mobs retaliate against the pet's master [Skotlex]
-					md->attacked_id = pd->master->bl.id;
+				struct pet_data *pd = (TBL_PET*)src;
+
+				flag = MDLF_PET;
+				if( pd->master ) {
+					char_id = pd->master->status.char_id;
+					if( damage ) //Let mobs retaliate against the pet's master [Skotlex]
+						md->attacked_id = pd->master->bl.id;
+				}
 			}
 			break;
-		}
 		case BL_MOB: {
-			struct mob_data* md2 = (TBL_MOB*)src;
-			if( md2->special_state.ai && md2->master_id ) {
-				struct map_session_data* msd = map_id2sd(md2->master_id);
-				if( msd )
-					char_id = msd->status.char_id;
+				struct mob_data* md2 = (TBL_MOB*)src;
+
+				if( md2->special_state.ai && md2->master_id ) {
+					struct map_session_data* msd = map_id2sd(md2->master_id);
+
+					if( msd )
+						char_id = msd->status.char_id;
+				}
+				if( !damage )
+					break;
+				//Let players decide whether to retaliate versus the master or the mob. [Skotlex]
+				if( md2->master_id && battle_config.retaliate_to_master )
+					md->attacked_id = md2->master_id;
+				else
+					md->attacked_id = src->id;
 			}
-			if( !damage )
-				break;
-			//Let players decide whether to retaliate versus the master or the mob. [Skotlex]
-			if( md2->master_id && battle_config.retaliate_to_master )
-				md->attacked_id = md2->master_id;
-			else
-				md->attacked_id = src->id;
 			break;
-		}
 		case BL_ELEM: {
-			struct elemental_data *ele = (TBL_ELEM*)src;
-			if( ele->master )
-				char_id = ele->master->status.char_id;
-			if( damage )
-				md->attacked_id = src->id;
+				struct elemental_data *ele = (TBL_ELEM*)src;
+
+				if( ele->master )
+					char_id = ele->master->status.char_id;
+				if( damage )
+					md->attacked_id = src->id;
+			}
 			break;
-		}
 		default: //For all unhandled types.
 			md->attacked_id = src->id;
 	}
 	
-	if( char_id ) { //Log damage...
-		int i,minpos;
+	if( char_id ) { //Log damage.
+		int i, minpos;
 		unsigned int mindmg;
-		for(i=0,minpos=DAMAGELOG_SIZE-1,mindmg=UINT_MAX;i<DAMAGELOG_SIZE;i++) {
-			if(md->dmglog[i].id==char_id &&
-				md->dmglog[i].flag==flag)
-				break;
-			if(md->dmglog[i].id==0) {	//Store data in first empty slot.
-				md->dmglog[i].id  = char_id;
-				md->dmglog[i].flag= flag;
 
-				if(md->db->mexp)
+		for( i = 0, minpos = DAMAGELOG_SIZE - 1, mindmg = UINT_MAX; i < DAMAGELOG_SIZE; i++ ) {
+			if( md->dmglog[i].id == char_id &&
+				md->dmglog[i].flag == flag )
+				break;
+			if( md->dmglog[i].id == 0 ) { //Store data in first empty slot.
+				md->dmglog[i].id = char_id;
+				md->dmglog[i].flag = flag;
+
+				if( md->db->mexp )
 					pc_damage_log_add(map_charid2sd(char_id),md->bl.id);
 				break;
 			}
-			if(md->dmglog[i].dmg<mindmg && i) { //Never overwrite first hit slot (he gets double exp bonus)
-				minpos=i;
-				mindmg=md->dmglog[i].dmg;
+			if( md->dmglog[i].dmg < mindmg && i ) { //Never overwrite first hit slot (he gets double exp bonus)
+				minpos = i;
+				mindmg = md->dmglog[i].dmg;
 			}
 		}
-		if(i<DAMAGELOG_SIZE)
-			md->dmglog[i].dmg+=damage;
+		if( i < DAMAGELOG_SIZE )
+			md->dmglog[i].dmg += damage;
 		else {
-			md->dmglog[minpos].id  = char_id;
-			md->dmglog[minpos].flag= flag;
+			md->dmglog[minpos].id = char_id;
+			md->dmglog[minpos].flag = flag;
 			md->dmglog[minpos].dmg = damage;
 
-			if(md->db->mexp)
+			if( md->db->mexp )
 				pc_damage_log_add(map_charid2sd(char_id),md->bl.id);
 		}
 	}
@@ -1999,12 +2007,12 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 //Call when a mob has received damage.
 void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 {
-	if (damage > 0) { //Store total damage...
+	if (damage > 0) { //Store total damage.
 		if (UINT_MAX - (unsigned int)damage > md->tdmg)
 			md->tdmg += damage;
 		else if (md->tdmg == UINT_MAX)
 			damage = 0; //Stop recording damage once the cap has been reached.
-		else { //Cap damage log...
+		else { //Cap damage log.
 			damage = (int)(UINT_MAX - md->tdmg);
 			md->tdmg = UINT_MAX;
 		}
@@ -2022,7 +2030,7 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 	}
 
 	if (battle_config.show_mob_info&3)
-		clif_charnameack (0, &md->bl);
+		clif_charnameack(0, &md->bl);
 
 	if (!src)
 		return;
@@ -2647,7 +2655,7 @@ void mob_revive(struct mob_data *md, unsigned int hp)
 	skill_unit_move(&md->bl,tick,1);
 	mobskill_use(md, tick, MSC_SPAWN);
 	if (battle_config.show_mob_info&3)
-		clif_charnameack (0, &md->bl);
+		clif_charnameack(0, &md->bl);
 }
 
 int mob_guardian_guildchange(struct mob_data *md)
@@ -2760,7 +2768,7 @@ int mob_class_change (struct mob_data *md, int mob_id)
 		memset(md->dmglog,0,sizeof(md->dmglog));
 		md->tdmg = 0;
 	} else {
-		md->status.hp = md->status.max_hp*hp_rate/100;
+		md->status.hp = md->status.max_hp * hp_rate / 100;
 		if( md->status.hp < 1 ) md->status.hp = 1;
 	}
 
@@ -2785,7 +2793,7 @@ int mob_class_change (struct mob_data *md, int mob_id)
 void mob_heal(struct mob_data *md,unsigned int heal)
 {
 	if (battle_config.show_mob_info&3)
-		clif_charnameack (0, &md->bl);
+		clif_charnameack(0,&md->bl);
 
 #if PACKETVER >= 20120404
 	if (!(md->status.mode&MD_BOSS)) {
@@ -2795,8 +2803,8 @@ void mob_heal(struct mob_data *md,unsigned int heal)
 			if (md->dmglog[i].id) {
 				struct map_session_data *sd = map_charid2sd(md->dmglog[i].id);
 
-				if (sd && check_distance_bl(&md->bl, &sd->bl, AREA_SIZE)) //Check if in range
-					clif_monster_hp_bar(md, sd->fd);
+				if (sd && check_distance_bl(&md->bl,&sd->bl,AREA_SIZE)) //Check if in range
+					clif_monster_hp_bar(md,sd->fd);
 			}
 		}
 	}

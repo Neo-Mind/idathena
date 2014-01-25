@@ -875,7 +875,7 @@ int chrif_changesex(struct map_session_data *sd) {
  * @param aid : player account id the request was concerning
  * @param player_name : name the request was concerning
  * @param type : code of operation done:
- *   1: block, 2: ban, 3: unblock, 4: unban, 5: changesex, 6:vip
+ *   1: block, 2: ban, 3: unblock, 4: unban, 5: changesex, 6: vip, 7: bank
  * @param awnser : type of anwser \n
  *   0: login-server request done \n
  *   1: player not found \n
@@ -896,12 +896,15 @@ static void chrif_ack_login_req(int aid, const char* player_name, uint16 type, u
 	if (type > 0 && type <= 5)
 		snprintf(action, 25, "%s", msg_txt(427 + type)); //Block|Ban|Unblock|Unban|Change the sex of
 	else if (type == 6) snprintf(action, 25, "%s", "vip"); //@TODO: Make some place for those type in msg_conf
-	else if (type == 7) snprintf(action, 25, "%s", "bank");
-	else
+	else if (type == 7) {
+		if (!battle_config.disp_serverbank_msg)
+			return;
+		snprintf(action, 25, "%s", "bank");
+	} else
 		snprintf(action, 25, "???");
 
 	switch (answer) {
-		case 0 : sprintf(output, msg_txt(424), action, NAME_LENGTH, player_name); break; //%s has been asked to %s the player '%.*s'.
+		case 0 : sprintf(output, msg_txt(424), action, NAME_LENGTH, player_name); break; //Login-serv has been asked to %s the player '%.*s'.
 		case 1 : sprintf(output, msg_txt(425), NAME_LENGTH, player_name); break;
 		case 2 : sprintf(output, msg_txt(426), action, NAME_LENGTH, player_name); break;
 		case 3 : sprintf(output, msg_txt(427), action, NAME_LENGTH, player_name); break;

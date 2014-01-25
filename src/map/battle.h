@@ -520,10 +520,12 @@ extern struct Battle_Config
 	int vip_bm_increase;
 	int vip_drop_increase;
 	int vip_gemstone;
+	int vip_disp_rate;
 	int discount_item_point_shop;
 	int oktoberfest_ignorepalette;
 	int update_enemy_position;
 	int devotion_rdamage;
+	int disp_serverbank_msg;
 
 	// Autotrade persistency
 	int feature_autotrade;

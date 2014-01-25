@@ -7877,6 +7877,7 @@ static const struct _battle_data {
 	{ "vip_bm_increase",                    &battle_config.vip_bm_increase,                 0,      0,      INT_MAX,        },
 	{ "vip_drop_increase",                  &battle_config.vip_drop_increase,               0,      0,      INT_MAX,        },
 	{ "vip_gemstone",                       &battle_config.vip_gemstone,                    0,      0,      1,              },
+	{ "vip_disp_rate",                      &battle_config.vip_disp_rate,                   1,      0,      1,              },
 	{ "discount_item_point_shop",           &battle_config.discount_item_point_shop,        0,      0,      3,              },
 	{ "oktoberfest_ignorepalette",          &battle_config.oktoberfest_ignorepalette,       0,      0,      1,              },
 	{ "update_enemy_position",              &battle_config.update_enemy_position,           0,      0,      1,              },
@@ -7884,6 +7885,7 @@ static const struct _battle_data {
 	{ "feature.autotrade",                  &battle_config.feature_autotrade,               1,      0,      1,              },
 	{ "feature.autotrade_direction",        &battle_config.feature_autotrade_direction,     4,      0,      7,              },
 	{ "feature.autotrade_sit",              &battle_config.feature_autotrade_sit,           1,      0,      1,              },
+	{ "disp_serverbank_msg",                &battle_config.disp_serverbank_msg,             0,      0,      1,              },
 };
 #ifndef STATS_OPT_OUT
 /**

@@ -9133,6 +9133,23 @@ ACMD_FUNC(vip) {
 
 	return 0;
 }
+
+/**
+ * Enable/disable rate info
+ */
+ACMD_FUNC(showrate) {
+	nullpo_retr(-1,sd);
+
+	if (!sd->disableshowrate) {
+		sprintf(atcmd_output, msg_txt(718)); //Personal rate information is not displayed now.
+		sd->disableshowrate = 1;
+	} else {
+		sprintf(atcmd_output, msg_txt(719)); //Personal rate information will be shown.
+		sd->disableshowrate = 0;
+	}
+	clif_displaymessage(fd, atcmd_output);
+	return 0;
+}
 #endif
 
 ACMD_FUNC(fullstrip) {
@@ -9441,6 +9458,7 @@ void atcommand_basecommands(void) {
 		ACMD_DEF(costume),
 #ifdef VIP_ENABLE
 		ACMD_DEF(vip),
+		ACMD_DEF(showrate),
 #endif
 		ACMD_DEF(fullstrip),
 	};
