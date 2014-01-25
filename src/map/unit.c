@@ -1255,13 +1255,15 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	int combo = 0, range;
 
 	nullpo_ret(src);
+
 	if( status_isdead(src) )
 		return 0; //Do not continue source is dead
 
 	sd = BL_CAST(BL_PC, src);
 	ud = unit_bl2ud(src);
 
-	if( ud == NULL ) return 0;
+	if( ud == NULL )
+		return 0;
 	sc = status_get_sc(src);
 	if( sc && !sc->count )
 		sc = NULL; //Unneeded
@@ -1542,6 +1544,18 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	if( src->type == BL_NPC ) //NPC-objects do not have cast time
 		casttime = 0;
 
+	if( sc ) { //Why the if else chain: These 3 status do not stack, so its efficient that way.
+ 		if( sc->data[SC_CLOAKING] && !(sc->data[SC_CLOAKING]->val4&4) && skill_id != AS_CLOAKING ) {
+			status_change_end(src, SC_CLOAKING, INVALID_TIMER);
+			if( !src->prev )
+				return 0; //Warped away!
+		} else if( sc->data[SC_CLOAKINGEXCEED] && !(sc->data[SC_CLOAKINGEXCEED]->val4&4) && skill_id != GC_CLOAKINGEXCEED ) {
+			status_change_end(src, SC_CLOAKINGEXCEED, INVALID_TIMER);
+			if( !src->prev )
+				return 0;
+		}
+	}
+
 	if( !ud->state.running ) //Need TK_RUN or WUGDASH handler to be done before that, see bugreport:6026
 		unit_stop_walking(src, 1); //Eventhough this is not how official works but this will do the trick. bugreport:6829
 	//In official this is triggered even if no cast time.
@@ -1594,17 +1608,6 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	ud->skilly       = 0;
 	ud->skill_id     = skill_id;
 	ud->skill_lv     = skill_lv;
-
-	//Why the if else chain: these 3 status do not stack, so its efficient that way.
-	if( sc ) {
- 		if( sc->data[SC_CLOAKING] && !(sc->data[SC_CLOAKING]->val4&4) && skill_id != AS_CLOAKING ) {
-			status_change_end(src, SC_CLOAKING, INVALID_TIMER);
-			if( !src->prev ) return 0; //Warped away!
-		} else if( sc->data[SC_CLOAKINGEXCEED] && !(sc->data[SC_CLOAKINGEXCEED]->val4&4) && skill_id != GC_CLOAKINGEXCEED ) {
-			status_change_end(src,SC_CLOAKINGEXCEED, INVALID_TIMER);
-			if( !src->prev ) return 0;
-		}
-	}
 
 	if( casttime > 0 ) {
 		ud->skilltimer = add_timer( tick+casttime, skill_castend_id, src->id, 0 );
@@ -1758,16 +1761,15 @@ int unit_skilluse_pos2(struct block_list *src, short skill_x, short skill_y, uin
 	ud->skilly       = skill_y;
 	ud->skilltarget  = 0;
 
-	if(sc) {
-		/**
-		 * Why the if else chain: these 3 status do not stack, so its efficient that way.
-		 **/
+	if(sc) { //Why the if else chain: These 3 status do not stack, so its efficient that way.
 		if(sc->data[SC_CLOAKING] && !(sc->data[SC_CLOAKING]->val4&4)) {
 			status_change_end(src, SC_CLOAKING, INVALID_TIMER);
-			if(!src->prev) return 0; //Warped away!
+			if(!src->prev)
+				return 0; //Warped away!
 		} else if(sc->data[SC_CLOAKINGEXCEED] && !(sc->data[SC_CLOAKINGEXCEED]->val4&4)) {
 			status_change_end(src, SC_CLOAKINGEXCEED, INVALID_TIMER);
-			if(!src->prev) return 0;
+			if(!src->prev)
+				return 0;
 		}
 	}
 

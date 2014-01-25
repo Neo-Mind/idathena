@@ -10154,6 +10154,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 	struct status_data *status;
 	struct view_data *vd;
 	int opt_flag = 0, calc_flag, temp_n = 0;
+	bool invisible = false;
 
 	nullpo_ret(bl);
 
@@ -10209,6 +10210,9 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 
 	if (sd && StatusDisplayType[type])
 		status_display_remove(sd,type);
+
+	if (sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE))
+		invisible = true;
 
 	vd = status_get_viewdata(bl);
 	calc_flag = StatusChangeFlagTable[type];
@@ -10814,6 +10818,9 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		default:
 			opt_flag = 0;
 	}
+
+	if (!battle_config.update_enemy_position && invisible && !(sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE)))
+		clif_fixpos(bl);
 
 	if (calc_flag&SCB_DYE) { //Restore DYE color
 		if (vd && !vd->cloth_color && sce->val4)
