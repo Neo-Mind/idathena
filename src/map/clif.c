@@ -12350,10 +12350,10 @@ void clif_parse_OpenVending(int fd, struct map_session_data* sd)
 		return;
 	}
 
-	if( message[0] == '\0' ) // invalid input
+	if( message[0] == '\0' ) // Invalid input
 		return;
 
-	vending_openvending(sd, message, data, len/8);
+	vending_openvending(sd, message, data, len / 8);
 }
 
 /// Guild creation request (CZ_REQ_MAKE_GUILD).

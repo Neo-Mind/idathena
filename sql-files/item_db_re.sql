@@ -4290,6 +4290,7 @@ REPLACE INTO `item_db_re` VALUES (6657,'Memory_Of_Jack','Memory Of Jack',3,0,NUL
 REPLACE INTO `item_db_re` VALUES (6658,'Halloween_Coin','Halloween Coin',3,0,NULL,0,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (6665,'RWC_Inicializer','RWC Inicializer',3,0,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (6681,'XMAS_Cookie','Christmas Cookie',3,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (6682,'Bag_Of_Selling_Goods','Bag Of Selling Goods',3,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (6712,'Lovely_Stick','Lovely Stick',3,0,NULL,0,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (6713,'Heart_of_Soul','Heart of Soul',3,0,NULL,0,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (6714,'Sheenas_Soul','Sheena\'s Soul',3,20,NULL,0,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
@@ -6203,7 +6204,7 @@ REPLACE INTO `item_db_re` VALUES (12671,'99lv_Battle_Manual','99lv Battle Manual
 REPLACE INTO `item_db_re` VALUES (12672,'Start_New_Box','Start New Box',2,20,NULL,10,NULL,NULL,NULL,NULL,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'getitem 617,2; getitem 12263,2; getitem 12329,3; getitem 12330,2;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (12673,'Lucky_Egg_C10','Lucky Egg C10',2,20,NULL,10,NULL,NULL,NULL,NULL,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'getgroupitem(IG_Lucky_Egg_C10);',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (12674,'God_Material_Box','God Material Box',2,20,NULL,500,NULL,NULL,NULL,NULL,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
-REPLACE INTO `item_db_re` VALUES (12675,'Sg_Weapon_Supply_Box','WoE Weapon Supply Box',2,20,NULL,500,NULL,NULL,NULL,NULL,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'getitem callfunc("F_Rand",18113,2016,1586,1395,21001,18114,13072,16021,1492,1587,1396,1293,21002,1294,1436,16020,1775,1776),1;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (12675,'Sg_Weapon_Supply_Box','WoE Weapon Supply Box',2,20,NULL,500,NULL,NULL,NULL,NULL,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'getgroupitem(IG_Sg_Weapon_Supply_Box);',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (12676,'Sg_Violet_Potion_Box','Siege Violet Potion Box',2,20,NULL,500,NULL,NULL,NULL,NULL,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'getitem 11547,50;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (12677,'Siege_Arrow_Quiver_S','Siege Arrow Quiver S',2,2,NULL,100,NULL,NULL,NULL,NULL,0xFFFFFFFF,63,2,NULL,NULL,'130',NULL,NULL,'getitem 1776,200;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (12678,'Siege_Arrow_Quiver_A','Siege Arrow Quiver A',2,2,NULL,100,NULL,NULL,NULL,NULL,0xFFFFFFFF,63,2,NULL,NULL,'95',NULL,NULL,'getitem 1775,200;',NULL,NULL);
@@ -6564,7 +6565,7 @@ REPLACE INTO `item_db_re` VALUES (13070,'Scarletto_Nail','Scarlet-nail',5,56000,
 REPLACE INTO `item_db_re` VALUES (13071,'Upg_Dagger','Upg Dagger',5,20,NULL,600,'55',NULL,1,1,0xFE9F7EEF,63,2,2,3,'1',1,1,'bonus bBaseAtk,(getrefine()*10); bonus bMatk,(getrefine()*5); if(BaseLevel>70) bonus bBaseAtk,(((BaseLevel-70)/10)*5);',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (13072,'Velum_Damascus','Vellum Damascus',5,20,NULL,1000,'180',NULL,1,0,0xFE9F7EEF,63,2,2,4,'95',1,1,'bonus bAspdRate,getrefine();',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (13073,'Counter_Dagger_','Counter Dagger',5,120000,NULL,550,'140',NULL,1,1,0x00810204,63,2,2,4,'55',1,1,NULL,NULL,NULL);
-REPLACE INTO `item_db_re` VALUES (13074,'Ninja_Cutter','Ninja Sword Prototype',5,0,NULL,0,'0',NULL,1,0,0x22000000,63,2,2,4,'99',0,1,NULL,NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (13074,'Ninja_Cutter','Ninja Sword Prototype',5,0,NULL,0,'0',NULL,1,0,0x02000000,63,2,2,4,'99',1,1,NULL,NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (13075,'Kurenai','Kurenai',5,5000,NULL,700,'130',NULL,1,0,0x22000000,63,2,2,3,'99',1,1,'bonus bInt,3;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (13076,'Raksasa_Dagger','Nachal Sword',5,40000,NULL,600,'120:100',NULL,1,1,0x22000000,63,2,2,3,'110',1,1,'bonus bInt,3;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (13077,'Kagekiri','Kagekiri',5,40000,NULL,600,'50:120',NULL,1,0,74,7,2,2,4,'100',1,1,NULL,NULL,NULL);
@@ -7812,7 +7813,7 @@ REPLACE INTO `item_db_re` VALUES (15026,'Aqua_Robe','Aqua Robe',4,20,NULL,500,NU
 REPLACE INTO `item_db_re` VALUES (15027,'Crimson_Robe','Crimson Robe',4,20,NULL,500,NULL,40,NULL,0,0x00000200,63,2,16,NULL,'100',1,0,'bonus bDefEle,Ele_Fire; bonus bMdef,10; bonus bInt,1; bonus2 bSkillVariableCast,"WZ_METEOR",-3000; if(readparam(bInt)>=120){ bonus bInt,1; }',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (15028,'Forest_Robe','Forest Robe',4,20,NULL,500,NULL,40,NULL,0,0x00000200,63,2,16,NULL,'100',1,0,'bonus bDefEle,Ele_Earth; bonus bMdef,10; bonus bInt,1; bonus2 bSkillVariableCast,"WZ_HEAVENDRIVE",-3000; if(readparam(bInt)>=120){ bonus bInt,1; }',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (15029,'Robe_Of_Affection','Robe Of Affection',4,20,NULL,300,NULL,22,NULL,0,0x00000100,18,2,16,NULL,'100',1,0,'bonus bDefEle,Ele_Holy; bonus bMdef,10; bonus bInt,1; bonus2 bSkillUseSP,"AB_CLEMENTIA",50;',NULL,NULL);
-REPLACE INTO `item_db_re` VALUES (15030,'Robe_Of_Judgement','Robe Of Judgement',4,20,NULL,300,NULL,22,NULL,0,0x00000100,18,2,16,NULL,'100',1,0,'bonus bDefEle,Ele_Dark; bonus bMdef,10; bonus bStr,2; bonus bInt,1; bonus2 bSubRace,RC_Demon,10; bonus2 bSubRace,RC_Undead,10; bonus2 bSubRace,RC_Formless,-10; bonus2 bSubRace,RC_Brute,-10; bonus2 bSubRace,RC_DemiHuman,-10; bonus2 bSubRace,RC_Plant,-10; bonus2 bSubRace,RC_Insect,-10; bonus2 bSubRace,RC_Fish,-10; bonus2 bSubRace,RC_Angel,-10; bonus2 bSubRace,RC_Dragon,-10;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (15030,'Robe_Of_Judgement','Robe Of Judgement',4,20,NULL,300,NULL,22,NULL,0,0x00000100,18,2,16,NULL,'100',1,0,'bonus bDefEle,Ele_Dark; bonus bMdef,10; bonus bStr,2; bonus bInt,1; bonus2 bSubRace,RC_All,-10; bonus2 bSubRace,RC_Undead,20; bonus2 bSubRace,RC_Demon,20;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (15031,'Para_Team_Armor','Paradise Uniform IV',4,0,NULL,0,NULL,70,NULL,0,0xFFFFFFFF,63,2,16,NULL,'60',0,0,'bonus bMdef,5; bonus bMaxHP,500; bonus bMaxSP,50; bonus bStr,1; bonus bInt,1; bonus bDex,1;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (15032,'Tidung','Tidung',4,10,NULL,500,NULL,2,NULL,1,0xFFFFFFFE,63,2,16,NULL,'0',1,0,'bonus bMdef,10; bonus2 bResEff,Eff_Stun,1500; bonus2 bResEff,Eff_Freeze,1500; bonus2 bSubClass,Class_All,5;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (15033,'Tutorial_Mattle','Tutorial Mantle',4,0,NULL,600,NULL,37,NULL,0,0x00000000,63,2,16,NULL,'1',0,0,NULL,NULL,NULL);
