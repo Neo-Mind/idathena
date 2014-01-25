@@ -16687,9 +16687,12 @@ int clif_poison_list(struct map_session_data *sd, uint16 skill_lv) {
 
 int clif_autoshadowspell_list(struct map_session_data *sd) {
 	int fd, i, c;
+
 	nullpo_ret(sd);
+
 	fd = sd->fd;
-	if( !fd ) return 0;
+	if( !fd )
+		return 0;
 
 	if( sd->menuskill_id == SC_AUTOSHADOWSPELL )
 		return 0;

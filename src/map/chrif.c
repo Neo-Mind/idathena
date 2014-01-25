@@ -617,7 +617,7 @@ int chrif_skillcooldown_request(int account_id, int char_id) {
  * Request auth confirmation
  *------------------------------------------*/
 void chrif_authreq(struct map_session_data *sd, bool autotrade) {
-	struct auth_node *node= chrif_search(sd->bl.id);
+	struct auth_node *node = chrif_search(sd->bl.id);
 
 	if( node != NULL || !chrif_isconnected() ) {
 		set_eof(sd->fd);
@@ -641,7 +641,7 @@ void chrif_authreq(struct map_session_data *sd, bool autotrade) {
  *------------------------------------------*/
 void chrif_authok(int fd) {
 	int account_id, group_id, char_id;
-	uint32 login_id1,login_id2;
+	uint32 login_id1, login_id2;
 	time_t expiration_time;
 	struct mmo_charstatus* status;
 	struct auth_node *node;
@@ -701,7 +701,7 @@ void chrif_authok(int fd) {
 	chrif_auth_delete(account_id, char_id, ST_LOGIN);
 }
 
-// client authentication failed
+// Client authentication failed
 void chrif_authfail(int fd) {/* HELLO WORLD. ip in RFIFOL 15 is not being used (but is available) */
 	int account_id, char_id;
 	uint32 login_id1;
