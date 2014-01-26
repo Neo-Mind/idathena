@@ -1060,7 +1060,7 @@ static int clif_set_unit_idle(struct block_list* bl, unsigned char* buffer, bool
 }
 
 
-#ifdef VISIBLE_MONSTER
+#ifdef VISIBLE_MONSTER_HP
 static int clif_spawn_unit(struct block_list* bl, unsigned char* buffer) {
 	struct map_session_data* sd;
 	struct status_change* sc = status_get_sc(bl);
@@ -1299,7 +1299,7 @@ static int clif_set_unit_walking(struct block_list* bl, struct unit_data* ud, un
 #endif
 }
 
-#ifdef VISIBLE_MONSTER
+#ifdef VISIBLE_MONSTER_HP
 static int clif_walking_unit(struct block_list* bl, struct unit_data* ud, unsigned char* buffer) {
 	struct map_session_data* sd;
 	struct status_change* sc = status_get_sc(bl);
@@ -1489,7 +1489,7 @@ int clif_spawn(struct block_list *bl)
 	if (bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
 		return 0;
 
-#ifndef VISIBLE_MONSTER
+#ifndef VISIBLE_MONSTER_HP
 	len = clif_set_unit_idle(bl,buf,true);
 #else
 	len = clif_spawn_unit(bl,buf);
@@ -1736,7 +1736,7 @@ static void clif_move2(struct block_list *bl, struct view_data *vd, struct unit_
 	if ((sc = status_get_sc(bl)) && sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE))
 		ally_only = true;
 
-#ifndef VISIBLE_MONSTER
+#ifndef VISIBLE_MONSTER_HP
 	len = clif_set_unit_walking(bl,ud,buf);
 #else
 	len = clif_walking_unit(bl,ud,buf);
@@ -4340,7 +4340,7 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 		return;
 
 	ud = unit_bl2ud(bl);
-#ifndef VISIBLE_MONSTER
+#ifndef VISIBLE_MONSTER_HP
 	len = (ud && ud->walktimer != INVALID_TIMER) ? clif_set_unit_walking(bl,ud,buf) : clif_set_unit_idle(bl,buf,false);
 #else
 	len = (ud && ud->walktimer != INVALID_TIMER) ? clif_walking_unit(bl,ud,buf) : clif_idle_unit(bl,buf);
@@ -4387,7 +4387,7 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 				else if (md->special_state.size == SZ_MEDIUM)
 					clif_specialeffect_single(bl,421,sd->fd);
 #if PACKETVER >= 20120404
-#ifndef VISIBLE_MONSTER
+#ifndef VISIBLE_MONSTER_HP
 				if (!(md->status.mode&MD_BOSS))
 #endif
 				{
@@ -5130,7 +5130,8 @@ void clif_skill_fail(struct map_session_data *sd,uint16 skill_id,enum useskill_f
 	}
 
 	fd = sd->fd;
-	if(!fd) return;
+	if(!fd)
+		return;
 
 	if(battle_config.display_skill_fail&1)
 		return; //Disable all skill failed messages
@@ -5148,7 +5149,7 @@ void clif_skill_fail(struct map_session_data *sd,uint16 skill_id,enum useskill_f
 	WFIFOW(fd,0) = 0x110;
 	WFIFOW(fd,2) = skill_id;
 	WFIFOL(fd,4) = btype;
-	WFIFOB(fd,8) = 0;// success
+	WFIFOB(fd,8) = 0; //Success
 	WFIFOB(fd,9) = cause;
 	WFIFOSET(fd,packet_len(0x110));
 }
@@ -10345,21 +10346,20 @@ void clif_parse_Emotion(int fd, struct map_session_data *sd)
 	int emoticon = RFIFOB(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
 
 	if (battle_config.basic_skill_check == 0 || pc_checkskill(sd, NV_BASIC) >= 2) {
-		if (emoticon == E_MUTE) {// prevent use of the mute emote [Valaris]
+		if (emoticon == E_MUTE) { // Prevent use of the mute emote [Valaris]
 			clif_skill_fail(sd, 1, USESKILL_FAIL_LEVEL, 1);
 			return;
 		}
-		// fix flood of emotion icon (ro-proxy): flood only the hacker player
-		if (sd->emotionlasttime + 1 >= time(NULL)) { // not more than 1 per second
+		// Fix flood of emotion icon (ro-proxy): flood only the hacker player
+		if (sd->emotionlasttime + 1 >= time(NULL)) { // Not more than 1 per second
 			sd->emotionlasttime = time(NULL);
 			clif_skill_fail(sd, 1, USESKILL_FAIL_LEVEL, 1);
 			return;
 		}
 		sd->emotionlasttime = time(NULL);
 
-		if(battle_config.client_reshuffle_dice && emoticon>=E_DICE1 && emoticon<=E_DICE6) { // re-roll dice
-			emoticon = rnd()%6+E_DICE1;
-		}
+		if(battle_config.client_reshuffle_dice && emoticon >= E_DICE1 && emoticon <= E_DICE6) // Re-roll dice
+			emoticon = rnd()%6 + E_DICE1;
 
 		clif_emotion(&sd->bl, emoticon);
 	} else
@@ -10448,10 +10448,10 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 			if( sd->ud.skilltimer != INVALID_TIMER || (sd->sc.opt1 && sd->sc.opt1 != OPT1_BURNING ) )
 				break;
 
-			if( sd->sc.count && (
-				sd->sc.data[SC_DANCING] ||
-				//No sitting during these states either.
-				(sd->sc.data[SC_GRAVITATION] && sd->sc.data[SC_GRAVITATION]->val3 == BCT_SELF)) )
+			if( sd->sc.count && sd->sc.data[SC_DANCING] )
+				break;
+
+			if( sd->sc.cant.move ) //No sitting during these states either.
 				break;
 
 			sd->idletime = last_tick;
@@ -11441,7 +11441,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 
 	if( sd->menuskill_id ) {
 		if( sd->menuskill_id == SA_TAMINGMONSTER ) {
-			clif_menuskill_clear(sd); //Cancel pet capture.
+			clif_menuskill_clear(sd); // Cancel pet capture.
 		} else if( sd->menuskill_id != SA_AUTOSPELL )
 			return; // Can't use skills while a menu is open.
 	}
@@ -11521,7 +11521,7 @@ static void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, uin
 		return;
 
 	if( sd->sc.data[SC_BASILICA] && (skill_id != HP_BASILICA || sd->sc.data[SC_BASILICA]->val4 != sd->bl.id) )
-		return; // On basilica only caster can use Basilica again to stop it.
+		return; //On basilica only caster can use Basilica again to stop it.
 
 	if( sd->menuskill_id ) {
 		if( sd->menuskill_id == SA_TAMINGMONSTER ) {
@@ -11538,6 +11538,7 @@ static void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, uin
 		unit_skilluse_pos(&sd->bl, x, y, skill_id, skill_lv);
 	} else {
 		int lv;
+
 		sd->skillitem = sd->skillitemlv = 0;
 		if( (lv = pc_checkskill(sd, skill_id)) > 0 ) {
 			if( skill_lv > lv )

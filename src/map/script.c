@@ -6393,12 +6393,12 @@ BUILDIN_FUNC(getnameditem)
 		return 0;
 	}
 
-	data=script_getdata(st,3);
+	data = script_getdata(st,3);
 	get_val(st,data);
 	if( data_isstring(data) ) //Char Name
-		tsd=map_nick2sd(conv_str(st,data));
-	else	//Char Id was given
-		tsd=map_charid2sd(conv_num(st,data));
+		tsd = map_nick2sd(conv_str(st,data));
+	else //Char Id was given
+		tsd = map_charid2sd(conv_num(st,data));
 	
 	if( tsd == NULL ) { //Failed
 		script_pushint(st,0);
@@ -6406,15 +6406,15 @@ BUILDIN_FUNC(getnameditem)
 	}
 
 	memset(&item_tmp,0,sizeof(item_tmp));
-	item_tmp.nameid=nameid;
-	item_tmp.amount=1;
-	item_tmp.identify=1;
-	item_tmp.card[0]=CARD0_CREATE; //we don't use 255! because for example SIGNED WEAPON shouldn't get TOP10 BS Fame bonus [Lupus]
-	item_tmp.card[2]=tsd->status.char_id;
-	item_tmp.card[3]=tsd->status.char_id >> 16;
+	item_tmp.nameid = nameid;
+	item_tmp.amount = 1;
+	item_tmp.identify = 1;
+	item_tmp.card[0] = CARD0_CREATE; //We don't use 255! because for example SIGNED WEAPON shouldn't get TOP10 BS Fame bonus [Lupus]
+	item_tmp.card[2] = tsd->status.char_id;
+	item_tmp.card[3] = tsd->status.char_id>>16;
 	if(pc_additem(sd,&item_tmp,1,LOG_TYPE_SCRIPT)) {
 		script_pushint(st,0);
-		return 0;	//Failed to add item, we will not drop if they don't fit
+		return 0; //Failed to add item, we will not drop if they don't fit
 	}
 
 	script_pushint(st,1);
@@ -9527,16 +9527,17 @@ BUILDIN_FUNC(getareadropitem)
 
 	data=script_getdata(st,7);
 	get_val(st,data);
-	if( data_isstring(data) ){
-		const char *name=conv_str(st,data);
+	if( data_isstring(data) ) {
+		const char *name = conv_str(st,data);
 		struct item_data *item_data = itemdb_searchname(name);
-		item=UNKNOWN_ITEM_ID;
-		if( item_data )
-			item=item_data->nameid;
-	}else
-		item=conv_num(st,data);
 
-	if( (m=map_mapname2mapid(str))< 0){
+		item = UNKNOWN_ITEM_ID;
+		if( item_data )
+			item = item_data->nameid;
+	} else
+		item = conv_num(st,data);
+
+	if( (m = map_mapname2mapid(str))< 0) {
 		script_pushint(st,-1);
 		return 0;
 	}
@@ -12953,7 +12954,7 @@ BUILDIN_FUNC(npcwalkto)
 	}
 	return SCRIPT_CMD_SUCCESS;
 }
-// stop an npc's movement [Valaris]
+// Stop an npc's movement [Valaris]
 BUILDIN_FUNC(npcstop)
 {
 	struct npc_data *nd = (struct npc_data *)map_id2bl(st->oid);

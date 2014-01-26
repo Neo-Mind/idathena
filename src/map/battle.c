@@ -781,10 +781,9 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 				skill_id == MG_SOULSTRIKE ||
 				skill_id == WL_SOULEXPANSION ||
 				(skill_id && skill_get_ele(skill_id,skill_lv) == ELE_GHOST) ||
-				(!skill_id && (status_get_status_data(src))->rhw.ele == ELE_GHOST)
-					) {
+				(!skill_id && (status_get_status_data(src))->rhw.ele == ELE_GHOST) )
 				status_change_end(bl,SC_WHITEIMPRISON,INVALID_TIMER); //Those skills do damage and removes effect
-			} else {
+			else {
 				d->dmg_lv = ATK_BLOCK;
 				return 0;
 			}
@@ -792,7 +791,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 
 		if( sc->data[SC_ZEPHYR] && ((((flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT ||
 			(flag&(BF_LONG|BF_MAGIC)) == BF_LONG) && skill_id) || (flag&BF_MAGIC &&
-				!(skill_get_inf(skill_id)&(INF_GROUND_SKILL|INF_SELF_SKILL)))) ) {
+			!(skill_get_inf(skill_id)&(INF_GROUND_SKILL|INF_SELF_SKILL)))) )
+		{
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}

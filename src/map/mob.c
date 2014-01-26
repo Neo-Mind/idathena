@@ -2036,7 +2036,7 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 		return;
 
 #if PACKETVER >= 20120404
-#ifndef VISIBLE_MONSTER
+#ifndef VISIBLE_MONSTER_HP
 	if (!(md->status.mode&MD_BOSS))
 #endif
 	{
@@ -2799,7 +2799,7 @@ void mob_heal(struct mob_data *md,unsigned int heal)
 		clif_charnameack(0,&md->bl);
 
 #if PACKETVER >= 20120404
-#ifndef VISIBLE_MONSTER
+#ifndef VISIBLE_MONSTER_HP
 	if (!(md->status.mode&MD_BOSS))
 #endif
 	{

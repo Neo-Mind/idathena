@@ -5741,6 +5741,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SA_MONOCELL:
 			if (dstmd) {
 				int class_;
+
 				if (sd && dstmd->status.mode&MD_BOSS) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
@@ -5749,7 +5750,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				mob_class_change(dstmd,class_);
 				if (tsc && dstmd->status.mode&MD_BOSS) {
-					const enum sc_type scs[] = { SC_QUAGMIRE,SC_PROVOKE,SC_ROKISWEIL,SC_GRAVITATION,SC_SUITON,SC_STRIPWEAPON,SC_STRIPSHIELD,SC_STRIPARMOR,SC_STRIPHELM,SC_BLADESTOP };
+					const enum sc_type scs[] = { SC_QUAGMIRE, SC_PROVOKE, SC_ROKISWEIL, SC_GRAVITATION, SC_SUITON, SC_STRIPWEAPON, SC_STRIPSHIELD, SC_STRIPARMOR, SC_STRIPHELM, SC_BLADESTOP };
+	
 					for (i = SC_COMMON_MIN; i <= SC_COMMON_MAX; i++)
 						if (tsc->data[i]) status_change_end(bl,(sc_type)i,INVALID_TIMER);
 					for (i = 0; i < ARRAYLENGTH(scs); i++)
