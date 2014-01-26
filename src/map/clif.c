@@ -1060,6 +1060,7 @@ static int clif_set_unit_idle(struct block_list* bl, unsigned char* buffer, bool
 }
 
 
+#ifdef VISIBLE_MONSTER
 static int clif_spawn_unit(struct block_list* bl, unsigned char* buffer) {
 	struct map_session_data* sd;
 	struct status_change* sc = status_get_sc(bl);
@@ -1177,6 +1178,7 @@ static int clif_idle_unit(struct block_list* bl, unsigned char* buffer) {
 
 	return WBUFW(buffer,2);
 }
+#endif
 
 
 /*==========================================
@@ -1297,7 +1299,7 @@ static int clif_set_unit_walking(struct block_list* bl, struct unit_data* ud, un
 #endif
 }
 
-
+#ifdef VISIBLE_MONSTER
 static int clif_walking_unit(struct block_list* bl, struct unit_data* ud, unsigned char* buffer) {
 	struct map_session_data* sd;
 	struct status_change* sc = status_get_sc(bl);
@@ -1351,6 +1353,7 @@ static int clif_walking_unit(struct block_list* bl, struct unit_data* ud, unsign
 
 	return WBUFW(buffer,2);
 }
+#endif
 
 
 //Modifies the buffer for disguise characters and sends it to self.
@@ -1486,7 +1489,7 @@ int clif_spawn(struct block_list *bl)
 	if (bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
 		return 0;
 
-#if PACKETVER < 20120221
+#ifndef VISIBLE_MONSTER
 	len = clif_set_unit_idle(bl,buf,true);
 #else
 	len = clif_spawn_unit(bl,buf);
@@ -1733,7 +1736,7 @@ static void clif_move2(struct block_list *bl, struct view_data *vd, struct unit_
 	if ((sc = status_get_sc(bl)) && sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE))
 		ally_only = true;
 
-#if PACKETVER < 20120221
+#ifndef VISIBLE_MONSTER
 	len = clif_set_unit_walking(bl,ud,buf);
 #else
 	len = clif_walking_unit(bl,ud,buf);
@@ -4337,7 +4340,7 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 		return;
 
 	ud = unit_bl2ud(bl);
-#if PACKETVER < 20120221
+#ifndef VISIBLE_MONSTER
 	len = (ud && ud->walktimer != INVALID_TIMER) ? clif_set_unit_walking(bl,ud,buf) : clif_set_unit_idle(bl,buf,false);
 #else
 	len = (ud && ud->walktimer != INVALID_TIMER) ? clif_walking_unit(bl,ud,buf) : clif_idle_unit(bl,buf);
@@ -4349,7 +4352,8 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 	switch (bl->type) {
 		case BL_PC: {
 				TBL_PC* tsd = (TBL_PC*)bl;
-				clif_getareachar_pc(sd, tsd);
+
+				clif_getareachar_pc(sd,tsd);
 				if (tsd->state.size == SZ_BIG) //Tiny/big players [Valaris]
 					clif_specialeffect_single(bl,423,sd->fd);
 				else if(tsd->state.size == SZ_MEDIUM)
@@ -4366,6 +4370,7 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 			break;
 		case BL_NPC: {
 				TBL_NPC* nd = (TBL_NPC*)bl;
+
 				if (nd->chat_id)
 					clif_dispchat((struct chat_data*)map_id2bl(nd->chat_id),sd->fd);
 				if (nd->size == SZ_BIG)
@@ -4376,11 +4381,15 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 			break;
 		case BL_MOB: {
 				TBL_MOB* md = (TBL_MOB*)bl;
+
 				if (md->special_state.size == SZ_BIG) //Tiny/big mobs [Valaris]
 					clif_specialeffect_single(bl,423,sd->fd);
 				else if (md->special_state.size == SZ_MEDIUM)
 					clif_specialeffect_single(bl,421,sd->fd);
 #if PACKETVER >= 20120404
+#ifndef VISIBLE_MONSTER
+				if (!(md->status.mode&MD_BOSS))
+#endif
 				{
 					int i;
 

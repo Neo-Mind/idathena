@@ -99,6 +99,12 @@
 	#error "Config of MIN_STORAGE is invalid"
 #endif
 
+/// Uncomment to enable Visible Monsters' HP
+/// All type Monsters' HP will visible to all players, instead of only those who hit it.
+/// Monsters spawned with 'boss' flag have a greater bar (2-3x normal size)
+/// Requires PACKETVER >= 20120404
+//#define VISIBLE_MONSTER
+
 /**
  * No settings past this point
  **/
