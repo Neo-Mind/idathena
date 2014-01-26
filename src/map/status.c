@@ -7996,8 +7996,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = 7; //Hit-count [Celest]
 				if( !(flag&1) && (bl->type&(BL_PC|BL_MER)) && !map_flag_gvg(bl->m) && !map[bl->m].flag.battleground && !val4 ) {
 					struct map_session_data *tsd;
+
 					if( sd ) {
 						int i;
+
 						for( i = 0; i < 5; i++ ) {
 							if( sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])) )
 								status_change_start(src,&tsd->bl,type,10000,val1,val2,val3,val4,tick,1);

@@ -1171,14 +1171,14 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		case NPC_BLEEDING:
 			sc_start2(src,bl,SC_BLEEDING,(20 * skill_lv),skill_lv,src->id,skill_get_time2(skill_id,skill_lv));
 			break;
-		case NPC_MENTALBREAKER: { //Based on observations by Tharis, Mental Breaker should do SP damage
-				//Equal to Matk * SkLevel.
-				rate = sstatus->matk_min;
-				if( rate < sstatus->matk_max )
-					rate += rnd()%(sstatus->matk_max - sstatus->matk_min);
-				rate *= skill_lv;
-				status_zap(bl,0,rate);
-			}
+		case NPC_MENTALBREAKER:
+			//Based on observations by Tharis, Mental Breaker should do SP damage
+			//Equal to MATK * Skill Level.
+			rate = sstatus->matk_min;
+			if( rate < sstatus->matk_max )
+				rate += rnd()%(sstatus->matk_max - sstatus->matk_min);
+			rate *= skill_lv;
+			status_zap(bl,0,rate);
 			break;
 		//Equipment breaking monster skills [Celest]
 		case NPC_WEAPONBRAKER:
@@ -1200,7 +1200,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 
 		case LK_SPIRALPIERCE:
 		case ML_SPIRALPIERCE:
-			if( dstsd || ( dstmd && !is_boss(bl) ) ) //Does not work on bosses
+			if( dstsd || (dstmd && !is_boss(bl)) ) //Does not work on bosses
 				sc_start(src,bl,SC_STOP,100,0,skill_get_time2(skill_id,skill_lv));
 			break;
 
@@ -1301,7 +1301,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			break;
 		case RK_HUNDREDSPEAR:
 			if( rnd()%100 < (10 + 3 * skill_lv) ) {
-				int skill_req = sd ? pc_checkskill(sd,KN_SPEARBOOMERANG) : 1;
+				int skill_req = (sd ? pc_checkskill(sd,KN_SPEARBOOMERANG) : 1);
+
 				if( !skill_req )
 					break; //Spear Boomerang auto cast chance only works if you have it.
 				skill_blown(src,bl,6,-1,0);
@@ -2747,9 +2748,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			} else if (type != 2) /* Kaite bypasses */
 				additional_effects = false;
 
-		/**
-		 * Official Magic Reflection Behavior : damage reflected depends on gears caster wears, not target
-		 **/
+			//Official Magic Reflection Behavior : damage reflected depends on gears caster wears, not target
 #if MAGIC_REFLECTION_TYPE
 			if (dmg.dmg_lv != ATK_MISS) { //Wiz SL cancelled and consumed fragment
 				short s_ele = skill_get_ele(skill_id, skill_lv);
@@ -2797,8 +2796,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		damage = 1;
 
 	if (damage && tsc && tsc->data[SC_GENSOU] && dmg.flag&BF_MAGIC) {
-		struct block_list *nbl;
-		nbl = battle_getenemyarea(bl, bl->x, bl->y, 2, BL_CHAR, bl->id);
+		struct block_list nbl = battle_getenemyarea(bl, bl->x, bl->y, 2, BL_CHAR, bl->id);
+
 		if (nbl) { //Only one target is chosen.
 			damage = damage / 2; //Deflect half of the damage to a target nearby
 			clif_skill_damage(bl, nbl, tick, status_get_amotion(src), 0, status_fix_damage(bl, nbl, damage,0), dmg.div_, OB_OBOROGENSOU_TRANSITION_ATK, -1, 6);
@@ -7959,10 +7958,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SL_NINJA:
 		case SL_GUNNER:
 			//NOTE: here, 'type' has the value of the associated MAPID, not of the SC_SPIRIT constant.
-			if (sd && !(dstsd && ((dstsd->class_&MAPID_UPPERMASK) == type ||
+			if (sd && dstsd && !((dstsd->class_&MAPID_UPPERMASK) == type ||
 				(skill_id == SL_SUPERNOVICE && (dstsd->class_&MAPID_THIRDMASK) == MAPID_SUPER_NOVICE_E) ||
 				(skill_id == SL_NINJA && (dstsd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) ||
-				(skill_id == SL_GUNNER && (dstsd->class_&MAPID_UPPERMASK) == MAPID_REBELLION)))) {
+				(skill_id == SL_GUNNER && (dstsd->class_&MAPID_UPPERMASK) == MAPID_REBELLION))) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				break;
 			}
@@ -7977,7 +7976,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			sc_start(src,src,SC_SMA,100,skill_lv,skill_get_time(SL_SMA,skill_lv));
 			break;
 		case SL_HIGH:
-			if (sd && !(dstsd && (dstsd->class_&JOBL_UPPER) && !(dstsd->class_&JOBL_2) && dstsd->status.base_level < 70)) {
+			if (sd && dstsd && !(dstsd->class_&JOBL_UPPER) && !(dstsd->class_&JOBL_2) && dstsd->status.base_level < 70) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				break;
 			}
@@ -7988,7 +7987,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case SL_SWOO:
 			if (tsce) {
-				if(sd)
+				if (sd)
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				status_change_start(src,src,SC_STUN,10000,skill_lv,0,0,0,10000,8);
 				status_change_end(bl,SC_SWOO,INVALID_TIMER);
@@ -8008,7 +8007,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		//New guild skills [Celest]
 		case GD_BATTLEORDER:
-			if(flag&1) {
+			if (flag&1) {
 				if (status_get_guild_id(src) == status_get_guild_id(bl))
 					sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 			} else if (status_get_guild_id(src)) {
@@ -8022,7 +8021,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 		case GD_REGENERATION:
-			if(flag&1) {
+			if (flag&1) {
 				if (status_get_guild_id(src) == status_get_guild_id(bl))
 					sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 			} else if (status_get_guild_id(src)) {
@@ -8036,7 +8035,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 		case GD_RESTORE:
-			if(flag&1) {
+			if (flag&1) {
 				if (status_get_guild_id(src) == status_get_guild_id(bl))
 					clif_skill_nodamage(src,bl,AL_HEAL,status_percent_heal(bl,90,90),1);
 			} else if (status_get_guild_id(src)) {
@@ -8055,9 +8054,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				int8 dx[9] = {-1, 1, 0, 0,-1, 1,-1, 1, 0};
 				int8 dy[9] = { 0, 0, 1,-1, 1,-1,-1, 1, 0};
 				uint8 j = 0, calls = 0, called = 0;
-				struct guild *g;
+				struct guild *g = (sd ? sd->state.gmaster_flag : guild_search(status_get_guild_id(src)));
+
 				//I don't know if it actually summons in a circle, but oh well. ;P
-				g = sd ? sd->state.gmaster_flag : guild_search(status_get_guild_id(src));
 				if (!g)
 					break;
 				if (skill_id == GD_ITEMEMERGENCYCALL)
