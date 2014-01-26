@@ -2796,7 +2796,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		damage = 1;
 
 	if (damage && tsc && tsc->data[SC_GENSOU] && dmg.flag&BF_MAGIC) {
-		struct block_list nbl = battle_getenemyarea(bl, bl->x, bl->y, 2, BL_CHAR, bl->id);
+		struct block_list *nbl = battle_getenemyarea(bl, bl->x, bl->y, 2, BL_CHAR, bl->id);
 
 		if (nbl) { //Only one target is chosen.
 			damage = damage / 2; //Deflect half of the damage to a target nearby
