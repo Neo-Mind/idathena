@@ -7114,16 +7114,17 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 		case SA_DISPELL:
 			if( flag&1 || (i = skill_get_splash(skill_id,skill_lv)) < 1 ) {
-				if( sd && dstsd && !map_flag_vs(sd->bl.m)
-					&& (!sd->status.party_id || sd->status.party_id != dstsd->status.party_id) ) {
-					//Outside PvP it should only affect party members and no skill fail message.
+				//Outside PvP it should only affect party members and no skill fail message.
+				if( sd && dstsd && !map_flag_vs(sd->bl.m) &&
+					(!sd->status.party_id || sd->status.party_id != dstsd->status.party_id) )
 					break;
-				}
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				if( (dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER)
-					|| (tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_ROGUE) //Rogue's spirit defends againt dispel.
-					|| rnd()%100 >= 50+10*skill_lv
-					|| ( tsc && tsc->option&OPTION_MADOGEAR ) ) //Mado Gear is immune to dispell according to bug report 49 [Ind]
+				if( (dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) ||
+					//Rogue's spirit defends againt dispel.
+					(tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_ROGUE) ||
+					rnd()%100 >= 50 + 10 * skill_lv ||
+					//Mado Gear is immune to dispell according to bug report 49 [Ind]
+					(tsc && tsc->option&OPTION_MADOGEAR) )
 				{
 					if( sd )
 						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -7189,7 +7190,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						case SC_MTF_CRIDAMAGE:			case SC_HEAT_BARREL:		case SC_HEAT_BARREL_AFTER:
 						case SC_P_ALTER:			case SC_E_CHAIN:		case SC_C_MARKER:
 						case SC_B_TRAP:				case SC_H_MINE:			case SC_STRANGELIGHTS:
-						case SC_DECORATION_OF_MUSIC:
+						case SC_DECORATION_OF_MUSIC:		case SC_GN_CARTBOOST:
 #ifdef RENEWAL
 						case SC_EXTREMITYFIST2:
 #endif
@@ -8669,7 +8670,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							case SC_MTF_MLEATKED:		case SC_MTF_CRIDAMAGE:		case SC_HEAT_BARREL:
 							case SC_HEAT_BARREL_AFTER:	case SC_P_ALTER:		case SC_E_CHAIN:
 							case SC_C_MARKER:		case SC_B_TRAP:			case SC_H_MINE:
-							case SC_STRANGELIGHTS:		case SC_DECORATION_OF_MUSIC:
+							case SC_STRANGELIGHTS:		case SC_DECORATION_OF_MUSIC:	case SC_GN_CARTBOOST:
 #ifdef RENEWAL
 							case SC_EXTREMITYFIST2:
 #endif

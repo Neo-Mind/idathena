@@ -6891,7 +6891,8 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			break;
 		case SC_DECREASEAGI:
 		case SC_ADORAMUS:
-			if (sd) tick >>= 1; //Half duration for players.
+			if (sd)
+				tick >>= 1; //Half duration for players.
 			sc_def = status->mdef * 100;
 			tick_def = 0; //No duration reduction
 			break;
@@ -7695,7 +7696,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_CARTBOOST:
 		case SC_GN_CARTBOOST:
 			if (sc->data[SC_DECREASEAGI] || sc->data[SC_ADORAMUS]) {
-				//Cancel Decrease Agi,but take no further effect [Skotlex]
+				//Cancel Decrease Agi, but take no further effect [Skotlex]
 				status_change_end(bl,SC_DECREASEAGI,INVALID_TIMER);
 				return 0;
 			}
