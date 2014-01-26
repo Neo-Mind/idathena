@@ -2036,7 +2036,7 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 		return;
 
 #if PACKETVER >= 20120404
-	if (!(md->status.mode&MD_BOSS)) {
+	{
 		int i;
 
 		for (i = 0; i < DAMAGELOG_SIZE; i++) { //Must show hp bar to all char who already hit the mob.
@@ -2796,7 +2796,7 @@ void mob_heal(struct mob_data *md,unsigned int heal)
 		clif_charnameack(0,&md->bl);
 
 #if PACKETVER >= 20120404
-	if (!(md->status.mode&MD_BOSS)) {
+	{
 		int i;
 
 		for (i = 0; i < DAMAGELOG_SIZE; i++) { //Must show hp bar to all char who already hit the mob.

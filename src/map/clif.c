@@ -936,9 +936,9 @@ static int clif_set_unit_idle(struct block_list* bl, unsigned char* buffer, bool
 	}
 #endif
 
-	WBUFL(buf, 2) = bl->id;
-	WBUFW(buf, 6) = status_get_speed(bl);
-	WBUFW(buf, 8) = (sc ? sc->opt1 : 0);
+	WBUFL(buf,2) = bl->id;
+	WBUFW(buf,6) = status_get_speed(bl);
+	WBUFW(buf,8) = (sc ? sc->opt1 : 0);
 	WBUFW(buf,10) = (sc ? sc->opt2 : 0);
 
 #if PACKETVER < 20091103
@@ -1059,6 +1059,126 @@ static int clif_set_unit_idle(struct block_list* bl, unsigned char* buffer, bool
 #endif
 }
 
+
+static int clif_spawn_unit(struct block_list* bl, unsigned char* buffer) {
+	struct map_session_data* sd;
+	struct status_change* sc = status_get_sc(bl);
+	struct view_data* vd = status_get_viewdata(bl);
+	unsigned char* buf = WBUFP(buffer,0);
+	int g_id = status_get_guild_id(bl);
+
+	nullpo_ret(bl);
+
+	sd = BL_CAST(BL_PC,bl);
+
+	WBUFW(buf,0) = 0x90f;
+	WBUFW(buf,2) = 73;
+	WBUFB(buf,4) = clif_bl_type(bl);
+	WBUFQ(buf,5) = bl->id;
+	WBUFW(buf,9) = status_get_speed(bl);
+	WBUFW(buf,11) = (sc ? sc->opt1 : 0);
+	WBUFW(buf,13) = (sc ? sc->opt2 : 0);
+	WBUFL(buf,15) = (sc ? sc->option : 0);
+	WBUFW(buf,19) = vd->class_;
+	WBUFW(buf,21) = vd->hair_style;
+	WBUFL(buf,23) = vd->weapon;
+	WBUFW(buf,27) = vd->head_bottom;
+	WBUFW(buf,29) = vd->head_top;
+	WBUFW(buf,31) = vd->head_mid;
+	if( bl->type == BL_NPC && vd->class_ == FLAG_CLASS ) { //The hell, why flags work like this?
+		WBUFW(buf,27) = status_get_emblem_id(bl);
+		WBUFW(buf,29) = GetWord(g_id,1);
+		WBUFW(buf,31) = GetWord(g_id,0);
+	}
+	WBUFW(buf,33) = vd->hair_color;
+	WBUFW(buf,35) = vd->cloth_color;
+	WBUFW(buf,37) = (sd ? sd->head_dir : 0);
+	WBUFW(buf,39) = vd->robe;
+	WBUFQ(buf,41) = g_id;
+	WBUFW(buf,45) = status_get_emblem_id(bl);
+	WBUFW(buf,47) = (sd ? sd->status.manner : 0);
+	WBUFL(buf,49) = (sc ? sc->opt3 : 0);
+	WBUFB(buf,53) = (sd && sd->status.karma) ? 1 : 0;
+	WBUFB(buf,54) = vd->sex;
+	WBUFPOS(buf,55,bl->x,bl->y,unit_getdir(bl));
+	WBUFB(buf,58) = (sd ? 5 : 0);
+	WBUFB(buf,59) = (sd ? 5 : 0);
+	WBUFW(buf,60) = clif_setlevel(bl);
+	WBUFW(buf,62) = (sd ? sd->status.font : 0);
+	if( bl->type == BL_MOB ) {
+		WBUFL(buf,64) = status_get_max_hp(bl);
+		WBUFL(buf,68) = status_get_hp(bl);
+		WBUFB(buf,72) = (((TBL_MOB*)bl)->spawn && ((TBL_MOB*)bl)->spawn->state.boss) ? 1 : 0;
+	} else {
+		WBUFL(buf,64) = -1;
+		WBUFL(buf,68) = -1;
+		WBUFB(buf,72) = 0;
+	}
+
+	return WBUFW(buffer,2);
+}
+
+
+static int clif_idle_unit(struct block_list* bl, unsigned char* buffer) {
+	struct map_session_data* sd;
+	struct status_change* sc = status_get_sc(bl);
+	struct view_data* vd = status_get_viewdata(bl);
+	unsigned char* buf = WBUFP(buffer,0);
+	int g_id = status_get_guild_id(bl);
+
+	nullpo_ret(bl);
+
+	sd = BL_CAST(BL_PC,bl);
+
+	WBUFW(buf,0) = 0x915;
+	WBUFW(buf,2) = 74;
+	WBUFB(buf,4) = clif_bl_type(bl);
+	WBUFQ(buf,5) = bl->id;
+	WBUFW(buf,9) = status_get_speed(bl);
+	WBUFW(buf,11) = (sc ? sc->opt1 : 0);
+	WBUFW(buf,13) = (sc ? sc->opt2 : 0);
+	WBUFL(buf,15) = (sc ? sc->option : 0);
+	WBUFW(buf,19) = vd->class_;
+	WBUFW(buf,21) = vd->hair_style;
+	WBUFL(buf,23) = vd->weapon;
+	WBUFW(buf,27) = vd->head_bottom;
+	WBUFW(buf,29) = vd->head_top;
+	WBUFW(buf,31) = vd->head_mid;
+	if( bl->type == BL_NPC && vd->class_ == FLAG_CLASS ) { //The hell, why flags work like this?
+		WBUFW(buf,27) = status_get_emblem_id(bl);
+		WBUFW(buf,29) = GetWord(g_id,1);
+		WBUFW(buf,31) = GetWord(g_id,0);
+	}
+	WBUFW(buf,33) = vd->hair_color;
+	WBUFW(buf,35) = vd->cloth_color;
+	WBUFW(buf,37) = (sd ? sd->head_dir : 0);
+	WBUFW(buf,39) = vd->robe;
+	WBUFQ(buf,41) = g_id;
+	WBUFW(buf,45) = status_get_emblem_id(bl);
+	WBUFW(buf,47) = (sd ? sd->status.manner : 0);
+	WBUFL(buf,49) = (sc ? sc->opt3 : 0);
+	WBUFB(buf,53) = (sd && sd->status.karma) ? 1 : 0;
+	WBUFB(buf,54) = vd->sex;
+	WBUFPOS(buf,55,bl->x,bl->y,unit_getdir(bl));
+	WBUFB(buf,58) = (sd ? 5 : 0);
+	WBUFB(buf,59) = (sd ? 5 : 0);
+	WBUFB(buf,60) = vd->dead_sit;
+	WBUFW(buf,61) = clif_setlevel(bl);
+	WBUFW(buf,63) = (sd ? sd->status.font : 0);
+	if( bl->type == BL_MOB ) {
+		WBUFL(buf,65) = status_get_max_hp(bl);
+		WBUFL(buf,69) = status_get_hp(bl);
+		WBUFB(buf,73) = (((TBL_MOB*)bl)->spawn && ((TBL_MOB*)bl)->spawn->state.boss) ? 1 : 0;
+	} else {
+		WBUFL(buf,65) = -1;
+		WBUFL(buf,69) = -1;
+		WBUFB(buf,73) = 0;
+	}
+
+	return WBUFW(buffer,2);
+}
+
+
 /*==========================================
  * Prepares 'unit walking' packet
  *------------------------------------------*/
@@ -1177,9 +1297,65 @@ static int clif_set_unit_walking(struct block_list* bl, struct unit_data* ud, un
 #endif
 }
 
+
+static int clif_walking_unit(struct block_list* bl, struct unit_data* ud, unsigned char* buffer) {
+	struct map_session_data* sd;
+	struct status_change* sc = status_get_sc(bl);
+	struct view_data* vd = status_get_viewdata(bl);
+	unsigned char* buf = WBUFP(buffer,0);
+	int g_id = status_get_guild_id(bl);
+
+	nullpo_ret(bl);
+
+	sd = BL_CAST(BL_PC,bl);
+
+	WBUFW(buf,0) = 0x914;
+	WBUFW(buf,2) = 80;
+	WBUFB(buf,4) = clif_bl_type(bl);
+	WBUFQ(buf,5) = bl->id;
+	WBUFW(buf,9) = status_get_speed(bl);
+	WBUFW(buf,11) = (sc ? sc->opt1 : 0);
+	WBUFW(buf,13) = (sc ? sc->opt2 : 0);
+	WBUFL(buf,15) = (sc ? sc->option : 0);
+	WBUFW(buf,19) = vd->class_;
+	WBUFW(buf,21) = vd->hair_style;
+	WBUFL(buf,23) = vd->weapon;
+	WBUFW(buf,27) = vd->head_bottom;
+	WBUFQ(buf,29) = gettick();
+	WBUFW(buf,33) = vd->head_top;
+	WBUFW(buf,35) = vd->head_mid;
+	WBUFW(buf,37) = vd->hair_color;
+	WBUFW(buf,39) = vd->cloth_color;
+	WBUFW(buf,41) = (sd ? sd->head_dir : 0);
+	WBUFW(buf,43) = vd->robe;
+	WBUFQ(buf,45) = g_id;
+	WBUFW(buf,49) = status_get_emblem_id(bl);
+	WBUFW(buf,51) = (sd ? sd->status.manner : 0);
+	WBUFL(buf,53) = (sc ? sc->opt3 : 0);
+	WBUFB(buf,57) = (sd && sd->status.karma) ? 1 : 0;
+	WBUFB(buf,58) = vd->sex;
+	WBUFPOS2(buf,59,bl->x,bl->y,ud->to_x,ud->to_y,8,8);
+	WBUFB(buf,65) = (sd ? 5 : 0);
+	WBUFB(buf,66) = (sd ? 5 : 0);
+	WBUFW(buf,67) = clif_setlevel(bl);
+	WBUFW(buf,69) = (sd ? sd->status.font : 0);
+	if( bl->type == BL_MOB ) {
+		WBUFL(buf,71) = status_get_max_hp(bl);
+		WBUFL(buf,75) = status_get_hp(bl);
+		WBUFB(buf,79) = (((TBL_MOB*)bl)->spawn && ((TBL_MOB*)bl)->spawn->state.boss) ? 1 : 0;
+	} else {
+		WBUFL(buf,71) = -1;
+		WBUFL(buf,75) = -1;
+		WBUFB(buf,79) = 0;
+	}
+
+	return WBUFW(buffer,2);
+}
+
+
 //Modifies the buffer for disguise characters and sends it to self.
 //Used for spawn/walk packets, where the ID offset changes for packetver >= 9
-static void clif_setdisguise(struct block_list *bl, unsigned char *buf,int len) {
+static void clif_setdisguise(struct block_list *bl, unsigned char *buf, int len) {
 #if PACKETVER >= 20091103
 	WBUFB(buf,4) = pcdb_checkid(status_get_viewdata(bl)->class_) ? 0x0 : 0x5; //PC_TYPE : NPC_MOB_TYPE
 	WBUFL(buf,5) = -bl->id;
@@ -1273,6 +1449,8 @@ static void clif_weather_check(struct map_session_data *sd)
 			clif_specialeffect_single(&sd->bl, 333, fd);
 	}
 }
+
+
 /**
  * Run when the weather on a map changes, throws all players in map id 'm' to clif_weather_check function
  **/
@@ -1288,6 +1466,8 @@ void clif_weather(int16 m)
 	}
 	mapit_free(iter);
 }
+
+
 /**
  * Main function to spawn a unit on the client (player/mob/pet/etc)
  **/
@@ -1306,7 +1486,11 @@ int clif_spawn(struct block_list *bl)
 	if (bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
 		return 0;
 
+#if PACKETVER < 20120221
 	len = clif_set_unit_idle(bl,buf,true);
+#else
+	len = clif_spawn_unit(bl,buf);
+#endif
 	clif_send(buf,len,bl,AREA_WOS);
 
 	if (disguised(bl))
@@ -1365,6 +1549,7 @@ int clif_spawn(struct block_list *bl)
 	}
 	return 0;
 }
+
 
 /// Sends information about owned homunculus to the client (ZC_PROPERTY_HOMUN). [orn]
 /// 022e <name>.24B <modified>.B <level>.W <hunger>.W <intimacy>.W <equip id>.W <atk>.W <matk>.W <hit>.W <crit>.W <def>.W <mdef>.W <flee>.W <aspd>.W <hp>.W <max hp>.W <sp>.W <max sp>.W <exp>.L <max exp>.L <skill points>.W <atk range>.W
@@ -1548,7 +1733,11 @@ static void clif_move2(struct block_list *bl, struct view_data *vd, struct unit_
 	if ((sc = status_get_sc(bl)) && sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE))
 		ally_only = true;
 
+#if PACKETVER < 20120221
 	len = clif_set_unit_walking(bl,ud,buf);
+#else
+	len = clif_walking_unit(bl,ud,buf);
+#endif
 	clif_send(buf,len,bl,AREA_WOS);
 
 	if (disguised(bl))
@@ -1560,6 +1749,7 @@ static void clif_move2(struct block_list *bl, struct view_data *vd, struct unit_
 	switch (bl->type) {
 		case BL_PC: {
 				TBL_PC *sd = ((TBL_PC*)bl);
+
 				//clif_movepc(sd);
 				if (sd->state.size == SZ_BIG) //Tiny/big players [Valaris]
 					clif_specialeffect(&sd->bl,423,AREA);
@@ -1569,6 +1759,7 @@ static void clif_move2(struct block_list *bl, struct view_data *vd, struct unit_
 			break;
 		case BL_MOB: {
 				TBL_MOB *md = ((TBL_MOB*)bl);
+
 				if (md->special_state.size == SZ_BIG) //Tiny/big mobs [Valaris]
 					clif_specialeffect(&md->bl,423,AREA);
 				else if (md->special_state.size == SZ_MEDIUM)
@@ -4146,7 +4337,11 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 		return;
 
 	ud = unit_bl2ud(bl);
+#if PACKETVER < 20120221
 	len = (ud && ud->walktimer != INVALID_TIMER) ? clif_set_unit_walking(bl,ud,buf) : clif_set_unit_idle(bl,buf,false);
+#else
+	len = (ud && ud->walktimer != INVALID_TIMER) ? clif_walking_unit(bl,ud,buf) : clif_idle_unit(bl,buf);
+#endif
 	clif_send(buf,len,&sd->bl,SELF);
 
 	if (vd->cloth_color)
@@ -4186,8 +4381,9 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 				else if (md->special_state.size == SZ_MEDIUM)
 					clif_specialeffect_single(bl,421,sd->fd);
 #if PACKETVER >= 20120404
-				if (!(md->status.mode&MD_BOSS)) {
+				{
 					int i;
+
 					for (i = 0; i < DAMAGELOG_SIZE; i++) { //Must show hp bar to all char who already hit the mob.
 						if (md->dmglog[i].id == sd->status.char_id) {
 							clif_monster_hp_bar(md,sd->fd);
@@ -17626,8 +17822,8 @@ void packetdb_readdb(void)
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 	//#0x0900
-		0,  0,  0,  0,  0,  0,  0,  0,  5,  0,  0,  0,  0,  0,  0,  0,
-		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+		0,  0,  0,  0,  0,  0,  0,  0,  5,  0,  0,  0,  0,  0,  0, -1,
+		0,  0,  0,  0, -1, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 	//#0x0940
