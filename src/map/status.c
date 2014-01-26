@@ -9134,7 +9134,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 					val1 += 10 * sd->status.job_level;
 					if( index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON )
-							val1 += sd->inventory_data[index]->weight / 10 * sd->inventory_data[index]->wlv * status_get_lv(bl) / 100;
+						val1 += sd->inventory_data[index]->weight / 10 * sd->inventory_data[index]->wlv * status_get_lv(bl) / 100;
 				} else //Monster use
 					val1 += 500;
 				break;
@@ -9295,7 +9295,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_KYOUGAKU:
 				val2 = rnd_value(val1 * 2,val1 * 3);
-				clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,0,1002,0,0);
+				val1 = 1002;
+				clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,tick,val1,0,0);
 				break;
 			case SC_KAGEMUSYA:
 				val3 = val1 * 2;
@@ -9532,7 +9533,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				}
 				break;
 			case SC_KYOUGAKU:
-				clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,0,1002,0,0); //Poring in disguise
+				val1 = 1002;
+				clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,tick,val1,0,0);
 				break;
 		}
 	}
@@ -10585,9 +10587,10 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			if (!map_flag_gvg2(bl->m) && sc && sce->val2 && sc->cant.move > 0)
 				sc->cant.move--;
 			break;
-		case SC_KYOUGAKU:
-			clif_status_load(bl,SI_ACTIVE_MONSTER_TRANSFORM,0);
-			break;
+		//case SC_KYOUGAKU:
+			//@FIXME: This will cause client crashed right after the duration end. Why? [exneval]
+			//clif_status_load(bl,SI_ACTIVE_MONSTER_TRANSFORM,0);
+			//break;
 		case SC_INTRAVISION:
 			calc_flag = SCB_ALL; /* Required for overlapping */
 			break;
