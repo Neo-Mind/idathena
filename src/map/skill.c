@@ -6027,7 +6027,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					short index = dstsd->equip_index[EQI_HAND_R];
 
 					if( index >= 0 && dstsd->inventory_data[index] && dstsd->inventory_data[index]->type == IT_WEAPON )
-					bonus = (8 + 2 * skill_lv) * dstsd->inventory_data[index]->wlv;
+						bonus = (8 + 2 * skill_lv) * dstsd->inventory_data[index]->wlv;
 				}
 				bonus += 5 * (sd ? (pc_checkskill(sd,SA_FLAMELAUNCHER) + pc_checkskill(sd,SA_FROSTWEAPON) + pc_checkskill(sd,SA_LIGHTNINGLOADER) + pc_checkskill(sd,SA_SEISMICWEAPON)) : 1);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,sc_start2(src,bl,type,100,skill_lv,bonus,skill_get_time(skill_id,skill_lv)));

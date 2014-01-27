@@ -737,7 +737,7 @@ int pc_calcweapontype(struct map_session_data *sd)
 
 int pc_setequipindex(struct map_session_data *sd)
 {
-	int i,j;
+	int i, j;
 
 	nullpo_ret(sd);
 
@@ -990,25 +990,23 @@ int pc_isequip(struct map_session_data *sd,int n)
 		return 0;
 
 	if(sd->sc.count) {
-
-		if(item->equip & EQP_ARMS && item->type == IT_WEAPON && sd->sc.data[SC_STRIPWEAPON]) // Also works with left-hand weapons [DracoRPG]
+		// Also works with left-hand weapons [DracoRPG]
+		if((item->equip&EQP_ARMS) && item->type == IT_WEAPON && sd->sc.data[SC_STRIPWEAPON])
 			return 0;
-		if(item->equip & EQP_SHIELD && item->type == IT_ARMOR && sd->sc.data[SC_STRIPSHIELD])
+		if((item->equip&EQP_SHIELD) && item->type == IT_ARMOR && sd->sc.data[SC_STRIPSHIELD])
 			return 0;
-		if(item->equip & EQP_ARMOR && sd->sc.data[SC_STRIPARMOR])
+		if((item->equip&EQP_ARMOR) && sd->sc.data[SC_STRIPARMOR])
 			return 0;
-		if(item->equip & EQP_HEAD_TOP && sd->sc.data[SC_STRIPHELM])
+		if((item->equip&EQP_HEAD_TOP) && sd->sc.data[SC_STRIPHELM])
 			return 0;
-		if(item->equip & EQP_ACC && sd->sc.data[SC__STRIPACCESSORY])
+		if((item->equip&EQP_ACC) && sd->sc.data[SC__STRIPACCESSORY])
 			return 0;
 		if(item->equip && sd->sc.data[SC_KYOUGAKU])
 			return 0;
-
 		if(sd->sc.data[SC_SPIRIT] && sd->sc.data[SC_SPIRIT]->val2 == SL_SUPERNOVICE) {
 			//Spirit of Super Novice equip bonuses. [Skotlex]
 			if(sd->status.base_level > 90 && item->equip & EQP_HELM)
 				return 1; //Can equip all helms
-
 			if(sd->status.base_level > 96 && item->equip & EQP_ARMS && item->type == IT_WEAPON && item->wlv == 4)
 				switch(item->look) { //In weapons, the look determines type of weapon.
 					case W_DAGGER: //All daggers
@@ -8888,6 +8886,8 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		return false;
 	}
 	if( &sd->sc ) {
+		if( sd->sc.data[SC_EXEEDBREAK] && sd->inventory_data[n]->type == IT_WEAPON )
+			status_change_end(&sd->bl,SC_EXEEDBREAK,INVALID_TIMER);
 		if( sd->sc.data[SC_HEAT_BARREL] )
 			status_change_end(&sd->bl,SC_HEAT_BARREL,INVALID_TIMER);
 		if( sd->sc.data[SC_P_ALTER] && (sd->inventory_data[n]->type == IT_WEAPON || sd->inventory_data[n]->type == IT_AMMO) )

@@ -9135,14 +9135,15 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				if( sd ) { //Players
 					short index = sd->equip_index[EQI_HAND_R];
 
-					val1 += 10 * sd->status.job_level;
-					if( index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON )
-						val1 += sd->inventory_data[index]->weight / 10 * sd->inventory_data[index]->wlv * status_get_lv(bl) / 100;
+					if( index >= 0 && sd->inventory_data[index] )
+						val1 += 10 * sd->status.job_level + sd->inventory_data[index]->weight / 10 *
+							sd->inventory_data[index]->wlv * status_get_lv(bl) / 100;
 				} else //Monster use
 					val1 += 500;
 				break;
 			case SC_PRESTIGE:
-				val2 = (status->int_ + status->luk) * (val1 / 20) * (status_get_lv(bl) / 200) + val1; //Chance to evade magic damage.
+				//Chance to evade magic damage.
+				val2 = (status->int_ + status->luk) * (val1 / 20) * (status_get_lv(bl) / 200) + val1;
 				val1 = (15 * val1) + (sd ? 10 * pc_checkskill(sd,CR_DEFENDER) : 0); //Defense added
 #ifdef RENEWAL
 				val1 = val1 * status_get_lv(bl) / 100;
