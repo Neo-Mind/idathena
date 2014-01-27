@@ -2323,6 +2323,7 @@ int skill_blown(struct block_list* src, struct block_list* target, int count, in
 			break;
 		case BL_SKILL:
 			su = (struct skill_unit *)target;
+
 			if( su && su->group ) {
 				switch( su->group->unit_id ) {
 					case UNT_ANKLESNARE:
@@ -3803,7 +3804,7 @@ int skill_cleartimerskill (struct block_list *src)
 	}
 	return 1;
 }
-static int skill_ative_reverberation(struct block_list *bl, va_list ap) {
+static int skill_active_reverberation(struct block_list *bl, va_list ap) {
 	struct skill_unit *su = (TBL_SKILL*)bl;
 	struct skill_unit_group *sg;
 
@@ -4916,20 +4917,23 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 		case RA_SENSITIVEKEEN:
 			if (bl->type != BL_SKILL) { //Only Hits Invisible Targets
-				struct status_change * tsc = status_get_sc(bl);
+				struct status_change *tsc = status_get_sc(bl);
+
 				if (tsc && tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK)) {
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 					status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER);
 				}
 			} else {
 				struct skill_unit *su = BL_CAST(BL_SKILL,bl);
-				struct skill_unit_group* sg;
+				struct skill_unit_group *sg = su->group;
 
-				if (su && (sg = su->group) && skill_get_inf2(sg->skill_id)&INF2_TRAP) {
+				if (su && sg && (skill_get_inf2(sg->skill_id)&INF2_TRAP) &&
+					(sg->item_id == ITEMID_TRAP || sg->item_id == ITEMID_TRAP_ALLOY)) {
 					if (!(sg->unit_id == UNT_USED_TRAPS || (sg->unit_id == UNT_ANKLESNARE && sg->val2 != 0))) {
 						struct item item_tmp;
+
 						memset(&item_tmp,0,sizeof(item_tmp));
-						item_tmp.nameid = sg->item_id?sg->item_id:ITEMID_TRAP;
+						item_tmp.nameid = sg->item_id;
 						item_tmp.identify = 1;
 						if (item_tmp.nameid)
 							map_addflooritem(&item_tmp,1,bl->m,bl->x,bl->y,0,0,0,4);
@@ -7482,9 +7486,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case NPC_METAMORPHOSIS:
 			if (md && md->skill_idx >= 0) {
 				int class_ = mob_random_class (md->db->skill[md->skill_idx].val,0);
+
 				if (skill_lv > 1) //Multiply the rest of mobs. [Skotlex]
-					mob_summonslave(md,md->db->skill[md->skill_idx].val,skill_lv-1,skill_id);
-				if (class_) mob_class_change(md,class_);
+					mob_summonslave(md,md->db->skill[md->skill_idx].val,skill_lv - 1,skill_id);
+				if (class_)
+					mob_class_change(md,class_);
 			}
 			break;
 
@@ -7610,27 +7616,28 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case MA_REMOVETRAP:
 		case HT_REMOVETRAP:
 			{
-				struct skill_unit* su;
-				struct skill_unit_group* sg;
-				su = BL_CAST(BL_SKILL,bl);
+				struct skill_unit* su = BL_CAST(BL_SKILL,bl);
+				struct skill_unit_group* sg = su->group;
 
 				//Mercenaries can remove any trap
-				//Players can only remove their own traps or traps on Vs maps.
-				if (su && (sg = su->group) && (src->type == BL_MER || sg->src_id == src->id || map_flag_vs(bl->m)) &&
-					(skill_get_inf2(sg->skill_id)&INF2_TRAP)) {
+				//Players can only remove their own traps or traps on vs maps.
+				if (su && sg && (src->type == BL_MER || sg->src_id == src->id || map_flag_vs(bl->m)) &&
+					(skill_get_inf2(sg->skill_id)&INF2_TRAP) &&
+					(sg->item_id == ITEMID_TRAP || sg->item_id == ITEMID_TRAP_ALLOY)) {
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 					if (sd && !(sg->unit_id == UNT_USED_TRAPS || (sg->unit_id == UNT_ANKLESNARE && sg->val2 != 0))) {
 						//Prevent picking up expired traps
 						if (battle_config.skill_removetrap_type) {
 							//Get back all items used to deploy the trap
 							for (i = 0; i < 10; i++) {
-								if (skill_get_itemid(su->group->skill_id,i + 1) > 0) {
+								if (skill_get_itemid(sg->skill_id,i + 1) > 0) {
 									int flag;
 									struct item item_tmp;
+
 									memset(&item_tmp,0,sizeof(item_tmp));
-									item_tmp.nameid = skill_get_itemid(su->group->skill_id,i + 1);
+									item_tmp.nameid = skill_get_itemid(sg->skill_id,i + 1);
 									item_tmp.identify = 1;
-									item_tmp.amount = skill_get_itemqty(su->group->skill_id,i + 1);
+									item_tmp.amount = skill_get_itemqty(sg->skill_id,i + 1);
 									if (item_tmp.nameid && (flag = pc_additem(sd,&item_tmp,item_tmp.amount,LOG_TYPE_OTHER))) {
 										clif_additem(sd,0,0,flag);
 										map_addflooritem(&item_tmp,item_tmp.amount,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,4);
@@ -7639,8 +7646,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							}
 						} else { //Get back 1 trap
 							struct item item_tmp;
+
 							memset(&item_tmp,0,sizeof(item_tmp));
-							item_tmp.nameid = su->group->item_id?su->group->item_id:ITEMID_TRAP;
+							item_tmp.nameid = sg->item_id;
 							item_tmp.identify = 1;
 							if (item_tmp.nameid && (flag = pc_additem(sd,&item_tmp,1,LOG_TYPE_OTHER))) {
 								clif_additem(sd,0,0,flag);
@@ -7657,8 +7665,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case HT_SPRINGTRAP:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			{
-				struct skill_unit *su = NULL;
-				if ((bl->type == BL_SKILL) && (su = (struct skill_unit *)bl) && (su->group)) {
+				struct skill_unit *su = (struct skill_unit *)bl;
+
+				if (bl->type == BL_SKILL && su && su->group) {
 					switch (su->group->unit_id) {
 						case UNT_ANKLESNARE: //Ankle snare
 							if (su->group->val2 != 0)
@@ -11336,7 +11345,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 		case WM_DOMINION_IMPULSE:
 			i = skill_get_splash(skill_id,skill_lv);
-			map_foreachinarea(skill_ative_reverberation,src->m,x-i,y-i,x+i,y+i,BL_SKILL);
+			map_foreachinarea(skill_active_reverberation,src->m,x-i,y-i,x+i,y+i,BL_SKILL);
 			break;
 
 		case GN_CRAZYWEED: {
@@ -13578,8 +13587,8 @@ int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 				uint8 dir = map_calc_dir(&sd->bl,tsd->bl.x,tsd->bl.y);
 
 				dir = (unit_getdir(&sd->bl) + dir)%8; //This adjusts dir to account for the direction the sd is facing.
-				if( (tsd->class_&MAPID_BASEMASK) == MAPID_ACOLYTE && (dir == 2 || dir == 6) //Must be standing to the left/right of Priest.
-					&& sd->status.sp >= 10 )
+				if( (tsd->class_&MAPID_BASEMASK) == MAPID_ACOLYTE && (dir == 2 || dir == 6) && //Must be standing to the left/right of Priest.
+					sd->status.sp >= 10 )
 					p_sd[(*c)++] = tsd->bl.id;
 				return 1;
 			}
@@ -14991,7 +15000,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 		}
 		if( skill_id >= HT_SKIDTRAP && skill_id <= HT_TALKIEBOX && pc_checkskill(sd,RA_RESEARCHTRAP) > 0 ) {
 			int16 itIndex;
-			if( (itIndex = pc_search_inventory(sd,req.itemid[i])) < 0  || ( itIndex >= 0 && sd->status.inventory[itIndex].amount < req.amount[i] ) ){
+			if( (itIndex = pc_search_inventory(sd,req.itemid[i])) < 0  || (itIndex >= 0 && sd->status.inventory[itIndex].amount < req.amount[i]) ){
 				req.itemid[i] = ITEMID_TRAP_ALLOY;
 				req.amount[i] = 1;
 			}
@@ -16340,6 +16349,7 @@ static int skill_trap_splash (struct block_list *bl, va_list ap)
 			if( src->id == bl->id ) break;
 			if( bl->type == BL_SKILL ) {
 				struct skill_unit *su = (struct skill_unit *)bl;
+
 				switch( su->group->unit_id ) {
 					case UNT_CLAYMORETRAP:
 					case UNT_LANDMINE:
@@ -16997,7 +17007,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 				//clif_changetraplook(bl,UNT_FIREPILLAR_ACTIVE);
 				group->limit = DIFF_TICK(tick + 1500,group->tick);
 				unit->limit = DIFF_TICK(tick + 1500,group->tick);
-			break;
+				break;
 
 			case UNT_ANKLESNARE:
 			case UNT_ELECTRICSHOCKER:
@@ -17025,13 +17035,14 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 			case UNT_ICEBOUNDTRAP:
 			case UNT_B_TRAP:
 				{
-					struct block_list* src;
+					struct block_list* src = map_id2bl(group->src_id);
 
-					if( unit->val1 > 0 && (src = map_id2bl(group->src_id)) != NULL && src->type == BL_PC ) { 
+					if( unit->val1 > 0 && src && src->type == BL_PC &&
+						(group->item_id == ITEMID_TRAP || group->item_id == ITEMID_TRAP_ALLOY) ) { 
 						struct item item_tmp; //Revert unit back into a trap
 
 						memset(&item_tmp,0,sizeof(item_tmp));
-						item_tmp.nameid = group->item_id?group->item_id:ITEMID_TRAP;
+						item_tmp.nameid = group->item_id;
 						item_tmp.identify = 1;
 						map_addflooritem(&item_tmp,1,bl->m,bl->x,bl->y,0,0,0,4);
 					}
@@ -18418,13 +18429,13 @@ int skill_changematerial(struct map_session_data *sd, int n, unsigned short *ite
  **/
 static int skill_destroy_trap( struct block_list *bl, va_list ap ) {
 	struct skill_unit *su = (struct skill_unit *)bl;
-	struct skill_unit_group *sg;
+	struct skill_unit_group *sg = su->group;
 	unsigned int tick;
 
 	nullpo_ret(su);
 	tick = va_arg(ap, unsigned int);
 
-	if( su->alive && (sg = su->group) && skill_get_inf2(sg->skill_id)&INF2_TRAP ) {
+	if( su->alive && sg && skill_get_inf2(sg->skill_id)&INF2_TRAP ) {
 		switch( sg->unit_id ) {
 			case UNT_CLAYMORETRAP:
 			case UNT_FIRINGTRAP:
