@@ -1784,8 +1784,9 @@ struct status_data {
 
 	unsigned char
 		def_ele, ele_lv,
-		size, race,
-		class_;
+		size,
+		race, //See enum e_race
+		class_; //See enum e_classAE
 
 	struct weapon_atk rhw, lhw; //Right Hand/Left Hand Weapon.
 };

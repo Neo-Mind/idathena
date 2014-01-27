@@ -4039,7 +4039,8 @@ ACMD_FUNC(mount_peco)
 		}
 		return 0;
 	}
-	if( (sd->class_&MAPID_THIRDMASK) == MAPID_RANGER && pc_checkskill(sd,RA_WUGRIDER) > 0 ) {
+	if( (sd->class_&MAPID_THIRDMASK) == MAPID_RANGER && pc_checkskill(sd,RA_WUGRIDER) > 0 &&
+		(!pc_isfalcon(sd) || battle_config.warg_can_falcon) ) {
 		if( !pc_isridingwug(sd) ) {
 			clif_displaymessage(sd->fd,msg_txt(1121)); // You have mounted your Warg.
 			pc_setoption(sd, sd->sc.option|OPTION_WUGRIDER);
@@ -4059,13 +4060,11 @@ ACMD_FUNC(mount_peco)
 		}
 		return 0;
 	}
-	if (!pc_isriding(sd)) { // if actually no peco
-
+	if (!pc_isriding(sd)) { // If actually no peco
 		if (!pc_checkskill(sd, KN_RIDING)) {
 			clif_displaymessage(fd, msg_txt(213)); // You can not mount a Peco Peco with your current job.
 			return -1;
 		}
-
 		pc_setoption(sd, sd->sc.option | OPTION_RIDING);
 		clif_displaymessage(fd, msg_txt(102)); // You have mounted a Peco Peco.
 	} else {//Dismount

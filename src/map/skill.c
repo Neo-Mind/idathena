@@ -13724,7 +13724,7 @@ static int skill_check_condition_mob_master_sub (struct block_list *bl, va_list 
  *------------------------------------------*/
 int skill_isammotype (struct map_session_data *sd, int skill) {
 	return (
-		battle_config.arrow_decrement==2 &&
+		battle_config.arrow_decrement == 2 &&
 		(sd->status.weapon == W_BOW || (sd->status.weapon >= W_REVOLVER && sd->status.weapon <= W_GRENADE)) &&
 		skill != HT_PHANTASMIC &&
 		skill_get_type(skill) == BF_WEAPON &&
@@ -14241,7 +14241,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			}
 			break;
 		case RA_WUGMASTERY:
-			if( pc_isfalcon(sd) || pc_isridingwug(sd) || (sc && sc->data[SC__GROOMY]) ) {
+			if( (pc_isfalcon(sd) && !battle_config.warg_can_falcon) || pc_isridingwug(sd) || (sc && sc->data[SC__GROOMY]) ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}
@@ -14253,7 +14253,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_id
 			}
 			break;
 		case RA_WUGRIDER:
-			if( pc_isfalcon(sd) || ( !pc_isridingwug(sd) && !pc_iswug(sd) ) ) {
+			if( (pc_isfalcon(sd) && !battle_config.warg_can_falcon) || (!pc_isridingwug(sd) && !pc_iswug(sd)) ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return 0;
 			}

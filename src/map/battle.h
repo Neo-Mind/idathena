@@ -525,12 +525,14 @@ extern struct Battle_Config
 	int oktoberfest_ignorepalette;
 	int update_enemy_position;
 	int devotion_rdamage;
-	int disp_serverbank_msg;
 
 	// Autotrade persistency
 	int feature_autotrade;
 	int feature_autotrade_direction;
 	int feature_autotrade_sit;
+
+	int disp_serverbank_msg;
+	int warg_can_falcon;
 } battle_config;
 
 void do_init_battle(void);

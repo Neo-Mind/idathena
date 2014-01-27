@@ -62,9 +62,9 @@ enum equip_index {
 
 struct weapon_data {
 	int atkmods[3];
-	// All the variables except atkmods get zero'ed in each call of status_calc_pc
-	// NOTE: if you want to add a non-zeroed variable, you need to update the memset call
-	//  in status_calc_pc as well! All the following are automatically zero'ed. [Skotlex]
+	//All the variables except atkmods get zero'ed in each call of status_calc_pc
+	//NOTE: if you want to add a non-zeroed variable, you need to update the memset call
+	//in status_calc_pc as well! All the following are automatically zero'ed. [Skotlex]
 	int overrefine;
 	int star;
 	int ignore_def_ele;
@@ -98,7 +98,7 @@ struct weapon_data {
 
 struct s_autospell {
 	short id, lv, rate, card_id, flag;
-	bool lock;  // bAutoSpellOnSkill: blocks autospell from triggering again, while being executed
+	bool lock; //bAutoSpellOnSkill: blocks autospell from triggering again, while being executed
 };
 
 struct s_addeffect {
@@ -113,10 +113,13 @@ struct s_addeffectonskill {
 	unsigned char target;
 };
 
+//Struct of add drop item/group rate
 struct s_add_drop {
-	short id, group;
-	int rate;
-	int race, class_; //Bitwise value of 1<<x
+	uint16 nameid, //Item ID
+	group; //Group ID
+	int rate, //Rate, 1 ~ 10000, -1 ~ -100000
+	race; //Target Race, bitwise value of 1<<x. if < 0 means Monster ID
+	char class_; //Target Class, bitwise value of 1<<x
 };
 
 struct s_autobonus {
