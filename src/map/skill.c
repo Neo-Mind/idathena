@@ -2407,10 +2407,12 @@ void skill_combo_toogle_inf(struct block_list* bl, uint16 skill_id, int inf) {
 		case MO_COMBOFINISH:
 		case CH_TIGERFIST:
 		case CH_CHAINCRUSH:
-			if (sd) clif_skillinfo(sd,MO_EXTREMITYFIST,inf);
+			if (sd)
+				clif_skillinfo(sd,MO_EXTREMITYFIST,inf);
 			break;
 		case TK_JUMPKICK:
-			if (sd) clif_skillinfo(sd,TK_JUMPKICK,inf);
+			if (sd)
+				clif_skillinfo(sd,TK_JUMPKICK,inf);
 			break;
 		case MO_TRIPLEATTACK:
 			if (sd && pc_checkskill(sd,SR_DRAGONCOMBO) > 0)
@@ -4170,13 +4172,13 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			status_change_end(src,SC_HIDING,INVALID_TIMER);
 #endif
 		//Fall through
-		case MO_EXTREMITYFIST: {
-				short x, y, i = 2; //Move 2 cells for Issen(from target)
+		case MO_EXTREMITYFIST:
+			{
+				short x, y, i = 2; //Move 2 cells (from target)
 				struct block_list *mbl = bl;
 				short dir = 0;
 
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
-
 				if (skill_id == MO_EXTREMITYFIST) {
 					mbl = src;
 					i = 3; //For Asura(from caster)
@@ -4194,17 +4196,22 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					1
 #endif
 					,0);
-
 				dir = map_calc_dir(src,bl->x,bl->y);
-				if (dir > 0 && dir < 4) x = -i;
-				else if (dir > 4) x = i;
-				else x = 0;
-				if (dir > 2 && dir < 6) y = -i;
-				else if (dir == 7 || dir < 2) y = i;
-				else y = 0;
-				//Only NJ_ISSEN don't have slide effect in GVG
+				if (dir > 0 && dir < 4)
+					x = -i;
+				else if (dir > 4)
+					x = i;
+				else
+					x = 0;
+				if (dir > 2 && dir < 6)
+					y = -i;
+				else if (dir == 7 || dir < 2)
+					y = i;
+				else
+					y = 0;
+				//Don't have slide effect in GVG
 				if ((mbl == src || (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground)) &&
-					unit_movepos(src,mbl->x+x,mbl->y+y,1,1)) {
+					unit_movepos(src,mbl->x + x,mbl->y + y,1,1)) {
 					clif_slide(src,src->x,src->y);
 					clif_fixpos(src);
 					clif_spiritball(src);
@@ -4595,28 +4602,31 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 #ifdef RENEWAL
-		case NJ_ISSEN: { //Teleport for Issen
-			short x, y, i = 2; //Move 2 cells for Issen(from target)
+		case NJ_ISSEN: {
+			short x, y, i = 2; //Move 2 cells (from target)
 			struct block_list *mbl = bl;
 			short dir = 0;
 
 			status_change_end(src,SC_NEN,INVALID_TIMER);
 			status_change_end(src,SC_HIDING,INVALID_TIMER);
-
 			skill_attack(BF_MISC,src,src,bl,skill_id,skill_lv,tick,flag);
-
 			status_set_hp(src,max(status_get_max_hp(src) / 100,1),0);
-
 			dir = map_calc_dir(src,bl->x,bl->y);
-			if (dir > 0 && dir < 4) x = -i;
-			else if (dir > 4) x = i;
-			else x = 0;
-			if (dir > 2 && dir < 6) y = -i;
-			else if (dir == 7 || dir < 2) y = i;
-			else y = 0;
-			//Only NJ_ISSEN don't have slide effect in GVG
+			if (dir > 0 && dir < 4)
+				x = -i;
+			else if (dir > 4)
+				x = i;
+			else
+				x = 0;
+			if (dir > 2 && dir < 6)
+				y = -i;
+			else if (dir == 7 || dir < 2)
+				y = i;
+			else
+				y = 0;
+			//Don't have slide effect in GVG
 			if ((mbl == src || (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground)) &&
-				unit_movepos(src,mbl->x+x,mbl->y+y,1,1)) {
+				unit_movepos(src,mbl->x + x,mbl->y + y,1,1)) {
 				clif_slide(src,src->x,src->y);
 				clif_fixpos(src);
 				clif_spiritball(src);
@@ -4667,7 +4677,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case NPC_ENERGYDRAIN:
 			{
 				int heal = skill_attack((skill_id == NPC_BLOODDRAIN) ? BF_WEAPON : BF_MAGIC,
-						src,src,bl,skill_id,skill_lv,tick,flag);
+					src,src,bl,skill_id,skill_lv,tick,flag);
 				if (heal > 0) {
 					clif_skill_nodamage(NULL,src,AL_HEAL,heal,1);
 					status_heal(src,heal,0,0);
@@ -4686,6 +4696,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case NJ_KIRIKAGE:
 			if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground) { //You don't move on GVG grounds.
 				short x, y;
+
 				map_search_freecell(bl,0,&x,&y,1,1,0);
 				if (unit_movepos(src,x,y,0,0))
 					clif_slide(src,src->x,src->y);
@@ -4697,15 +4708,20 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				short x,y;
 				short dir = map_calc_dir(src,bl->x,bl->y);
 
-				if (dir > 0 && dir < 4) x = 2;
-				else if (dir > 4) x = -2;
-				else x = 0;
-				if (dir > 2 && dir < 6) y = 2;
-				else if (dir == 7 || dir < 2) y = -2;
-				else y = 0;
-
-				if (unit_movepos(src,bl->x+x,bl->y+y,1,1)) {
-					clif_slide(src,bl->x+x,bl->y+y);
+				if (dir > 0 && dir < 4)
+					x = 2;
+				else if (dir > 4)
+					x = -2;
+				else
+					x = 0;
+				if (dir > 2 && dir < 6)
+					y = 2;
+				else if (dir == 7 || dir < 2)
+					y = -2;
+				else
+					y = 0;
+				if (unit_movepos(src,bl->x + x,bl->y + y,1,1)) {
+					clif_slide(src,bl->x + x,bl->y + y);
 					clif_fixpos(src); //The official server send these two packts.
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 					if (rnd()%100 < 4 * skill_lv)
@@ -4734,6 +4750,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case GC_PHANTOMMENACE:
 			if (flag&1) { //Only Hits Invisible Targets
 				struct status_change *tsc = status_get_sc(bl);
+
 				if (tsc && (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK)))
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			}
@@ -4747,10 +4764,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				int rate = 70 + 5 * skill_lv;
 
 				heal = heal * (5 + 5 * skill_lv) / 100;
-
 				if (bl->type == BL_SKILL)
 					heal = 0; //Don't absorb heal from Ice Walls or other skill units.
-
 				if (heal && rnd()%100 < rate) {
 					status_heal(src,heal,0,0);
 					clif_skill_nodamage(NULL,src,AL_HEAL,heal,1);
@@ -4761,23 +4776,26 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case WL_TETRAVORTEX:
 			if (sd && sc) { //No SC? No spheres
 				int spheres[5] = { 0,0,0,0,0 },
-					positions[5] = {-1,-1,-1,-1,-1 },
+					positions[5] = { -1,-1,-1,-1,-1 },
 					i, j = 0, k, subskill = 0;
 
-				for (i = SC_SPHERE_1; i <= SC_SPHERE_5; i++)
+				for (i = SC_SPHERE_1; i <= SC_SPHERE_5; i++) {
 					if (sc->data[i]) {
 						spheres[j] = i;
 						positions[j] = sc->data[i]->val2;
 						j++;
 					}
+				}
 
 				//Sphere Sort, this time from new to old
-				for (i = 0; i <= j - 2; i++)
-					for (k = i + 1; k <= j - 1; k++)
+				for (i = 0; i <= j - 2; i++) {
+					for (k = i + 1; k <= j - 1; k++) {
 						if (positions[i] < positions[k]) {
 							swap(positions[i],positions[k]);
 							swap(spheres[i],spheres[k]);
 						}
+					}
+				}
 
 				if (j == 5) { //If 5 spheres, remove last one and only do 4 actions (Official behavior)
 					status_change_end(src,spheres[4],INVALID_TIMER);
@@ -4792,7 +4810,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 						case WLS_WATER: subskill = WL_TETRAVORTEX_WATER; k |= 2; break;
 						case WLS_STONE: subskill = WL_TETRAVORTEX_GROUND; k |= 8; break;
 					}
-
 					skill_addtimerskill(src,tick + i * 200,bl->id,k,0,subskill,skill_lv,i,flag);
 					clif_skill_nodamage(src,bl,subskill,skill_lv,1);
 					status_change_end(src,spheres[i],INVALID_TIMER);
@@ -4812,7 +4829,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					for (i = SC_MAXSPELLBOOK; i >= SC_SPELLBOOK1; i--) //List all available spell to be released
 						if (sc->data[i]) spell[s++] = i;
 
-					if  (s == 0)
+					if (s == 0)
 						break;
 
 					i = spell[s == 1 ? 0 : rnd()%s]; //Random select of spell to be released.
@@ -4848,21 +4865,21 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 							skill_castend_damage_id(src,bl,skill_id,skill_lv,tick,0);
 							break;
 					}
-
 					sd->ud.canact_tick = tick + skill_delayfix(src,skill_id,skill_lv);
 					clif_status_change(src,SI_ACTIONDELAY,1,skill_delayfix(src,skill_id,skill_lv),0,0,0);
 				} else { //Summon Balls
 					int j = 0, k;
 					int spheres[5] = { 0,0,0,0,0 },
-						positions[5] = {-1,-1,-1,-1,-1 };
+						positions[5] = { -1,-1,-1,-1,-1 };
 
-					for (i = SC_SPHERE_1; i <= SC_SPHERE_5; i++)
+					for (i = SC_SPHERE_1; i <= SC_SPHERE_5; i++) {
 						if (sc && sc->data[i]) {
 							spheres[j] = i;
 							positions[j] = sc->data[i]->val2;
 							sc->data[i]->val2--; //Prepares for next position
 							j++;
 						}
+					}
 
 					if (j == 0) { //No Spheres
 						clif_skill_fail(sd,skill_id,USESKILL_FAIL_SUMMON_NONE,0);
@@ -4870,14 +4887,17 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					}
 
 					//Sphere Sort
-					for (i = 0; i <= j - 2; i++)
-						for (k = i + 1; k <= j - 1; k++)
+					for (i = 0; i <= j - 2; i++) {
+						for (k = i + 1; k <= j - 1; k++) {
 							if (positions[i] > positions[k]) {
 								swap(positions[i],positions[k]);
 								swap(spheres[i],spheres[k]);
 							}
+						}
+					}
 
-					if (skill_lv == 1) j = 1; //Limit only to one ball
+					if (skill_lv == 1)
+						j = 1; //Limit only to one ball
 					for (i = 0; i < j; i++) {
 						int skele = WL_RELEASE - 5 + sc->data[spheres[i]]->val1 - WLS_FIRE; //Convert Ball Element into Skill ATK for balls
 

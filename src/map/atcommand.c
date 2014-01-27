@@ -5574,7 +5574,7 @@ ACMD_FUNC(autotrade)
 	sd->state.autotrade = 1;
 
 	if( battle_config.feature_autotrade && sd->state.vending &&
-		Sql_Query(mmysql_handle, "UPDATE `%s` SET `autotrade` = 1 WHERE `id` = %d;", "vendings", sd->vender_id) != SQL_SUCCESS )
+		Sql_Query(mmysql_handle, "UPDATE `%s` SET `autotrade` = 1 WHERE `id` = %d;", vendings_db, sd->vender_id) != SQL_SUCCESS )
 		Sql_ShowDebug(mmysql_handle);
 
 	if( battle_config.at_timeout ) {
