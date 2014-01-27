@@ -1123,7 +1123,7 @@ int chrif_disconnectplayer(int fd) {
 
 	if (!sd->fd) { //No connection
 		if (sd->state.autotrade) {
-			if(sd->state.vending)
+			if (sd->state.vending)
 				vending_closevending(sd);
 			map_quit(sd); //Remove it.
 		}
@@ -1133,11 +1133,11 @@ int chrif_disconnectplayer(int fd) {
 	}
 
 	switch(RFIFOB(fd, 6)) {
-		case 1: clif_authfail_fd(sd->fd, 1); break; //server closed
-		case 2: clif_authfail_fd(sd->fd, 2); break; //someone else logged in
-		case 3: clif_authfail_fd(sd->fd, 4); break; //server overpopulated
-		case 4: clif_authfail_fd(sd->fd, 10); break; //out of available time paid for
-		case 5: clif_authfail_fd(sd->fd, 15); break; //forced to dc by gm
+		case 1: clif_authfail_fd(sd->fd, 1); break; //Server closed
+		case 2: clif_authfail_fd(sd->fd, 2); break; //Someone else logged in
+		case 3: clif_authfail_fd(sd->fd, 4); break; //Server overpopulated
+		case 4: clif_authfail_fd(sd->fd, 10); break; //Out of available time paid for
+		case 5: clif_authfail_fd(sd->fd, 15); break; //Forced to dc by gm
 	}
 	return 0;
 }

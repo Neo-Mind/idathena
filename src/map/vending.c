@@ -75,7 +75,7 @@ void vending_closevending(struct map_session_data* sd)
 		if( Sql_Query(mmysql_handle, "DELETE FROM `%s` WHERE vending_id = %d;", vending_items_db, sd->vender_id) != SQL_SUCCESS ||
 			Sql_Query(mmysql_handle, "DELETE FROM `%s` WHERE `id` = %d;", vendings_db, sd->vender_id) != SQL_SUCCESS )
 			Sql_ShowDebug(mmysql_handle);
-		sd->state.vending = false;
+		sd->state.vending = 0;
 		clif_closevendingboard(&sd->bl, 0);
 		idb_remove(vending_db, sd->status.char_id);
 	}
@@ -306,7 +306,7 @@ void vending_openvending(struct map_session_data* sd, const char* message, const
 	}
 
 	//Check number of items in shop
-	if( count < 1 || count > MAX_VENDING || count > 2 + vending_skill_lvl ) { // invalid item count
+	if( count < 1 || count > MAX_VENDING || count > 2 + vending_skill_lvl ) { //Invalid item count
 		clif_skill_fail(sd, MC_VENDING, USESKILL_FAIL_LEVEL, 0);
 		return;
 	}
@@ -346,7 +346,7 @@ void vending_openvending(struct map_session_data* sd, const char* message, const
 	}
 
 	sd->state.prevend = 0;
-	sd->state.vending = true;
+	sd->state.vending = 1;
 	sd->vender_id = vending_getuid();
 	sd->vend_num = i;
 	safestrncpy(sd->message, message, MESSAGE_SIZE);

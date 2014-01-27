@@ -6702,32 +6702,32 @@ void clif_vendinglist(struct map_session_data* sd, int id, struct s_vending* ven
 
 	nullpo_retv(sd);
 	nullpo_retv(vending);
-	nullpo_retv(vsd=map_id2sd(id));
+	nullpo_retv(vsd = map_id2sd(id));
 
 	fd = sd->fd;
 	count = vsd->vend_num;
 
-	WFIFOHEAD(fd, offset+count*22);
+	WFIFOHEAD(fd,offset + count * 22);
 	WFIFOW(fd,0) = cmd;
-	WFIFOW(fd,2) = offset+count*22;
+	WFIFOW(fd,2) = offset + count * 22;
 	WFIFOL(fd,4) = id;
 #if PACKETVER >= 20100105
 	WFIFOL(fd,8) = vsd->vender_id;
 #endif
 
-	for( i = 0; i < count; i++ )
-	{
+	for( i = 0; i < count; i++ ) {
 		int index = vending[i].index;
 		struct item_data* data = itemdb_search(vsd->status.cart[index].nameid);
-		WFIFOL(fd,offset+ 0+i*22) = vending[i].value;
-		WFIFOW(fd,offset+ 4+i*22) = vending[i].amount;
-		WFIFOW(fd,offset+ 6+i*22) = vending[i].index + 2;
-		WFIFOB(fd,offset+ 8+i*22) = itemtype(data->nameid);
-		WFIFOW(fd,offset+ 9+i*22) = ( data->view_id > 0 ) ? data->view_id : vsd->status.cart[index].nameid;
-		WFIFOB(fd,offset+11+i*22) = vsd->status.cart[index].identify;
-		WFIFOB(fd,offset+12+i*22) = vsd->status.cart[index].attribute;
-		WFIFOB(fd,offset+13+i*22) = vsd->status.cart[index].refine;
-		clif_addcards(WFIFOP(fd,offset+14+i*22), &vsd->status.cart[index]);
+
+		WFIFOL(fd,offset + 0 + i * 22) = vending[i].value;
+		WFIFOW(fd,offset + 4 + i * 22) = vending[i].amount;
+		WFIFOW(fd,offset + 6 + i * 22) = vending[i].index + 2;
+		WFIFOB(fd,offset + 8 + i * 22) = itemtype(data->nameid);
+		WFIFOW(fd,offset + 9 + i * 22) = (data->view_id > 0) ? data->view_id : vsd->status.cart[index].nameid;
+		WFIFOB(fd,offset + 11 + i * 22) = vsd->status.cart[index].identify;
+		WFIFOB(fd,offset + 12 + i * 22) = vsd->status.cart[index].attribute;
+		WFIFOB(fd,offset + 13 + i * 22) = vsd->status.cart[index].refine;
+		clif_addcards(WFIFOP(fd,offset + 14 + i * 22), &vsd->status.cart[index]);
 	}
 	WFIFOSET(fd,WFIFOW(fd,2));
 }
@@ -11185,6 +11185,7 @@ void clif_parse_PutItemToCart(int fd,struct map_session_data *sd)
 {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
 	short flag = 0;
+
 	if (pc_istrading(sd))
 		return;
 	if (!pc_iscarton(sd))
@@ -12009,7 +12010,7 @@ void clif_parse_MoveFromKafraToCart(int fd, struct map_session_data *sd)
 	int idx = RFIFOW(fd,info->pos[0]) - 1;
 	int amount = RFIFOL(fd,info->pos[1]);
 
-	if( sd->state.vending )
+	if (sd->state.vending)
 		return;
 	if (!pc_iscarton(sd))
 		return;

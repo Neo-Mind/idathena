@@ -475,7 +475,8 @@ void set_all_offline_sql(void)
 static DBData create_charstatus(DBKey key, va_list args)
 {
 	struct mmo_charstatus *cp;
-	cp = (struct mmo_charstatus *) aCalloc(1,sizeof(struct mmo_charstatus));
+
+	cp = (struct mmo_charstatus *)aCalloc(1,sizeof(struct mmo_charstatus));
 	cp->char_id = key.i;
 	return db_ptr2data(cp);
 }
@@ -492,9 +493,10 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
 	int errors = 0; //If there are any errors while saving, "cp" will not be updated at the end.
 	StringBuf buf;
 
-	if (char_id != p->char_id) return 0;
+	if (char_id != p->char_id)
+		return 0;
 
-	cp = (struct mmo_charstatus *) idb_ensure(char_db_, char_id, create_charstatus);
+	cp = (struct mmo_charstatus *)idb_ensure(char_db_, char_id, create_charstatus);
 
 	StringBuf_Init(&buf);
 	memset(save_status, 0, sizeof(save_status));
@@ -617,7 +619,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
 
 	//Memo points
 	if( memcmp(p->memo_point, cp->memo_point, sizeof(p->memo_point)) ) {
-		char esc_mapname[NAME_LENGTH*2+1];
+		char esc_mapname[NAME_LENGTH * 2 + 1];
 
 		//`memo` (`memo_id`,`char_id`,`map`,`x`,`y`)
 		if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", memo_db, p->char_id) ) {
@@ -674,7 +676,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
 					StringBuf_AppendStr(&buf, ",");
 				StringBuf_Printf(&buf, "('%d','%d','%d','%d')", char_id, p->skill[i].id,
 					( (p->skill[i].flag == SKILL_FLAG_PERMANENT || p->skill[i].flag == SKILL_FLAG_PERM_GRANTED) ? p->skill[i].lv : p->skill[i].flag - SKILL_FLAG_REPLACED_LV_0),
-					p->skill[i].flag == SKILL_FLAG_PERM_GRANTED ? p->skill[i].flag : 0);/* other flags do not need to be saved */
+					p->skill[i].flag == SKILL_FLAG_PERM_GRANTED ? p->skill[i].flag : 0); /* Other flags do not need to be saved */
 				++count;
 			}
 		}
@@ -744,7 +746,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
 	}
 #endif
 	StringBuf_Destroy(&buf);
-	if( save_status[0]!='\0' && save_log )
+	if( save_status[0] != '\0' && save_log )
 		ShowInfo("Saved char %d - %s:%s.\n", char_id, p->name, save_status);
 	if( !errors )
 		memcpy(cp, p, sizeof(struct mmo_charstatus));

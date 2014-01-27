@@ -5260,6 +5260,7 @@ ACMD_FUNC(cleargstorage)
 ACMD_FUNC(clearcart)
 {
 	int i;
+
 	nullpo_retr(-1, sd);
 	
 	if (pc_iscarton(sd) == 0) {
@@ -5267,12 +5268,11 @@ ACMD_FUNC(clearcart)
 		return -1;
 	}
 
-	if (sd->state.vending == 1) { //Somehow...
+	if (sd->state.vending == 1) //Somehow.
 		return -1;
-	}
 
-	 for( i = 0; i < MAX_CART; i++ )
-		if(sd->status.cart[i].nameid > 0)
+	 for (i = 0; i < MAX_CART; i++)
+		if (sd->status.cart[i].nameid > 0)
 			pc_cart_delitem(sd, i, sd->status.cart[i].amount, 1, LOG_TYPE_OTHER);
 
 	clif_clearcart(fd);
@@ -5414,12 +5414,12 @@ ACMD_FUNC(skilltree)
 	struct skill_tree_entry *ent;
 	nullpo_retr(-1, sd);
 
-	if(!message || !*message || sscanf(message, "%hu %23[^\r\n]", &skill_id, target) != 2) {
+	if (!message || !*message || sscanf(message, "%hu %23[^\r\n]", &skill_id, target) != 2) {
 		clif_displaymessage(fd, msg_txt(1167)); // Usage: @skilltree <skill ID> <target>
 		return -1;
 	}
 
-	if ( (pl_sd = map_nick2sd(target)) == NULL ) {
+	if ((pl_sd = map_nick2sd(target)) == NULL) {
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
 	}
@@ -5430,8 +5430,8 @@ ACMD_FUNC(skilltree)
 	sprintf(atcmd_output, msg_txt(1168), job_name(c), pc_checkskill(pl_sd, NV_BASIC)); // Player is using %s skill tree (%d basic points).
 	clif_displaymessage(fd, atcmd_output);
 
-	ARR_FIND( 0, MAX_SKILL_TREE, j, skill_tree[c][j].id == 0 || skill_tree[c][j].id == skill_id );
-	if( j == MAX_SKILL_TREE || skill_tree[c][j].id == 0 ) {
+	ARR_FIND(0, MAX_SKILL_TREE, j, skill_tree[c][j].id == 0 || skill_tree[c][j].id == skill_id);
+	if (j == MAX_SKILL_TREE || skill_tree[c][j].id == 0) {
 		clif_displaymessage(fd, msg_txt(1169)); // The player cannot use that skill.
 		return 0;
 	}
@@ -5439,16 +5439,15 @@ ACMD_FUNC(skilltree)
 	ent = &skill_tree[c][j];
 
 	meets = 1;
-	for(j=0;j<MAX_PC_SKILL_REQUIRE;j++) {
-		if( ent->need[j].id && pc_checkskill(sd,ent->need[j].id) < ent->need[j].lv) {
+	for (j = 0; j < MAX_PC_SKILL_REQUIRE; j++) {
+		if (ent->need[j].id && pc_checkskill(sd,ent->need[j].id) < ent->need[j].lv) {
 			sprintf(atcmd_output, msg_txt(1170), ent->need[j].lv, skill_db[ent->need[j].id].desc); // Player requires level %d of skill %s.
 			clif_displaymessage(fd, atcmd_output);
 			meets = 0;
 		}
 	}
-	if (meets == 1) {
+	if (meets == 1)
 		clif_displaymessage(fd, msg_txt(1171)); // The player meets all the requirements for that skill.
-	}
 
 	return 0;
 }

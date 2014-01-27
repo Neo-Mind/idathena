@@ -1754,12 +1754,10 @@ static void intif_parse_Mail_send(int fd)
 
 	// notify sender
 	sd = map_charid2sd(msg.send_id);
-	if( sd != NULL )
-	{
+	if( sd != NULL ) {
 		if( fail )
 			mail_deliveryfail(sd, &msg);
-		else
-		{
+		else {
 			clif_Mail_send(sd->fd, false);
 			if( save_settings&16 )
 				chrif_save(sd, 0);
@@ -1849,15 +1847,12 @@ static void intif_parse_Auction_register(int fd)
 	if( (sd = map_charid2sd(auction.seller_id)) == NULL )
 		return;
 
-	if( auction.auction_id > 0 )
-	{
+	if( auction.auction_id > 0 ) {
 		clif_Auction_message(sd->fd, 1); // Confirmation Packet ??
 		if( save_settings&32 )
 			chrif_save(sd,0);
-	}
-	else
-	{
-		int zeny = auction.hours*battle_config.auction_feeperhour;
+	} else {
+		int zeny = auction.hours * battle_config.auction_feeperhour;
 
 		clif_Auction_message(sd->fd, 4);
 		pc_additem(sd, &auction.item, auction.item.amount, LOG_TYPE_AUCTION);

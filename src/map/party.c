@@ -1068,7 +1068,7 @@ int party_share_loot(struct party_data* p, struct map_session_data* sd, struct i
 
 	if (!target) {
 		target = sd; //Give it to the char that picked it up
-		if ((i=pc_additem(sd,item_data,item_data->amount,LOG_TYPE_PICKDROP_PLAYER)))
+		if ((i = pc_additem(sd,item_data,item_data->amount,LOG_TYPE_PICKDROP_PLAYER)))
 			return i;
 	}
 

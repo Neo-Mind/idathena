@@ -362,9 +362,8 @@ void buyingstore_trade(struct map_session_data* sd, int account_id, unsigned int
 	buyingstore_close(pl_sd);
 
 	// remove auto-trader
-	if( pl_sd->state.autotrade ) {
+	if( pl_sd->state.autotrade )
 		map_quit(pl_sd);
-	}
 }
 
 

@@ -4596,7 +4596,7 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 		return 1;
 	}
 
-	if( (w = data->weight*amount) + sd->cart_weight > sd->cart_weight_max )
+	if( (w = data->weight * amount) + sd->cart_weight > sd->cart_weight_max )
 		return 1;
 
 	i = MAX_CART;
@@ -4623,7 +4623,7 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 		sd->cart_num++;
 		clif_cart_additem(sd,i,amount,0);
 	}
-	sd->status.cart[i].favorite = 0;/* clear */
+	sd->status.cart[i].favorite = 0; /* Clear */
 	log_pick_pc(sd, log_type, amount, &sd->status.cart[i]);
 
 	sd->cart_weight += w;
@@ -4642,15 +4642,15 @@ int pc_cart_delitem(struct map_session_data *sd,int n,int amount,int type,e_log_
 {
 	nullpo_retr(1, sd);
 
-	if(sd->status.cart[n].nameid==0 ||
-	   sd->status.cart[n].amount<amount)
+	if(sd->status.cart[n].nameid == 0 ||
+	   sd->status.cart[n].amount < amount)
 		return 1;
 
 	log_pick_pc(sd, log_type, -amount, &sd->status.cart[n]);
 
 	sd->status.cart[n].amount -= amount;
-	sd->cart_weight -= itemdb_weight(sd->status.cart[n].nameid)*amount ;
-	if(sd->status.cart[n].amount <= 0){
+	sd->cart_weight -= itemdb_weight(sd->status.cart[n].nameid) * amount;
+	if(sd->status.cart[n].amount <= 0) {
 		memset(&sd->status.cart[n],0,sizeof(sd->status.cart[0]));
 		sd->cart_num--;
 	}
@@ -4666,7 +4666,7 @@ int pc_cart_delitem(struct map_session_data *sd,int n,int amount,int type,e_log_
  * Transfer item from inventory to cart.
  * Return:
  *	0 = fail
- *	1 = succes
+ *	1 = success
  *------------------------------------------*/
 int pc_putitemtocart(struct map_session_data *sd,int idx,int amount)
 {
@@ -10432,7 +10432,7 @@ enum e_BANKING_DEPOSIT_ACK pc_bank_deposit(struct map_session_data *sd, int mone
 
 	if( money <= 0 || limit_check > MAX_BANK_ZENY )
 		return BDA_OVERFLOW;
-	else if ( money > sd->status.zeny )
+	else if( money > sd->status.zeny )
 		return BDA_NO_MONEY;
 	if( pc_payzeny(sd,money,LOG_TYPE_BANK,NULL) )
 		return BDA_NO_MONEY;

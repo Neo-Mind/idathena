@@ -1627,6 +1627,7 @@ int map_quit(struct map_session_data *sd) {
 
 	if (!sd->state.active) { //Removing a player that is not active.
 		struct auth_node *node = chrif_search(sd->status.account_id);
+
 		if (node && node->char_id == sd->status.char_id &&
 			node->state != ST_LOGOUT)
 			//Except when logging out, clear the auth-connect data immediately.
@@ -1708,14 +1709,15 @@ int map_quit(struct map_session_data *sd) {
 
 	for (i = 0; i < EQI_MAX; i++) {
 		if (sd->equip_index[i] >= 0)
-			if (!pc_isequip(sd ,sd->equip_index[i]))
-				pc_unequipitem(sd ,sd->equip_index[i] ,2);
+			if (!pc_isequip(sd, sd->equip_index[i]))
+				pc_unequipitem(sd, sd->equip_index[i], 2);
 	}
 
-	//Return loot to owner
-	if (sd->pd) pet_lootitem_drop(sd->pd,sd);
+	if (sd->pd) //Return loot to owner
+		pet_lootitem_drop(sd->pd,sd);
 
-	if (sd->state.storage_flag == 1) sd->state.storage_flag = 0; //No need to double save storage on quit.
+	if (sd->state.storage_flag == 1) //No need to double save storage on quit.
+		sd->state.storage_flag = 0;
 
 	if (map[sd->bl.m].instance_id)
 		instance_delusers(map[sd->bl.m].instance_id);
@@ -1730,6 +1732,7 @@ int map_quit(struct map_session_data *sd) {
 	if (map[sd->bl.m].instance_id) { //Avoid map conflicts and warnings on next login
 		int16 m;
 		struct point *pt;
+
 		if (map[sd->bl.m].save.map)
 			pt = &map[sd->bl.m].save;
 		else
@@ -1743,9 +1746,8 @@ int map_quit(struct map_session_data *sd) {
 		}
 	}
 
-	if (sd->state.vending) {
+	if (sd->state.vending)
 		idb_remove(vending_db,sd->status.char_id);
-	}
 
 	pc_damage_log_clear(sd,0);
 	party_booking_delete(sd); //Party Booking [Spiria]
