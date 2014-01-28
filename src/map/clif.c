@@ -11284,13 +11284,13 @@ static void clif_parse_UseSkillToId_homun(struct homun_data *hd, struct map_sess
 		return;
 	if( skill_isNotOk_hom(skill_id, hd) )
 		return;
-	if( hd->bl.id != target_id && skill_get_inf(skill_id)&INF_SELF_SKILL )
+	if( hd->bl.id != target_id && (skill_get_inf(skill_id)&INF_SELF_SKILL) )
 		target_id = hd->bl.id;
 	if( hd->ud.skilltimer != INVALID_TIMER ) {
-		if( skill_id != SA_CASTCANCEL && skill_id != SO_SPELLFIST ) return;
+		if( skill_id != SA_CASTCANCEL && skill_id != SO_SPELLFIST )
+			return;
 	} else if( DIFF_TICK(tick, hd->ud.canact_tick) < 0 )
 		return;
-
 	lv = merc_hom_checkskill(hd, skill_id);
 	if( skill_lv > lv )
 		skill_lv = lv;
@@ -11301,15 +11301,16 @@ static void clif_parse_UseSkillToId_homun(struct homun_data *hd, struct map_sess
 static void clif_parse_UseSkillToPos_homun(struct homun_data *hd, struct map_session_data *sd, unsigned int tick, uint16 skill_id, uint16 skill_lv, short x, short y, int skillmoreinfo)
 {
 	int lv;
+
 	if( !hd )
 		return;
 	if( skill_isNotOk_hom(skill_id, hd) )
 		return;
 	if( hd->ud.skilltimer != INVALID_TIMER ) {
-		if( skill_id != SA_CASTCANCEL && skill_id != SO_SPELLFIST ) return;
+		if( skill_id != SA_CASTCANCEL && skill_id != SO_SPELLFIST )
+			return;
 	} else if( DIFF_TICK(tick, hd->ud.canact_tick) < 0 )
 		return;
-	
 	if( hd->sc.data[SC_BASILICA] )
 		return;
 	lv = merc_hom_checkskill(hd, skill_id);
@@ -11327,13 +11328,13 @@ static void clif_parse_UseSkillToId_mercenary(struct mercenary_data *md, struct 
 		return;
 	if( skill_isNotOk_mercenary(skill_id, md) )
 		return;
-	if( md->bl.id != target_id && skill_get_inf(skill_id)&INF_SELF_SKILL )
+	if( md->bl.id != target_id && (skill_get_inf(skill_id)&INF_SELF_SKILL) )
 		target_id = md->bl.id;
 	if( md->ud.skilltimer != INVALID_TIMER ) {
-		if( skill_id != SA_CASTCANCEL && skill_id != SO_SPELLFIST ) return;
+		if( skill_id != SA_CASTCANCEL && skill_id != SO_SPELLFIST )
+			return;
 	} else if( DIFF_TICK(tick, md->ud.canact_tick) < 0 )
 		return;
-
 	lv = mercenary_checkskill(md, skill_id);
 	if( skill_lv > lv )
 		skill_lv = lv;
@@ -11380,7 +11381,8 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 	skill_id = RFIFOW(fd,info->pos[1]);
 	target_id = RFIFOL(fd,info->pos[2]);
 
-	if( skill_lv < 1 ) skill_lv = 1; //No clue, I have seen the client do this with guild skills :/ [Skotlex]
+	if( skill_lv < 1 )
+		skill_lv = 1; //No clue, I have seen the client do this with guild skills :/ [Skotlex]
 
 	tmp = skill_get_inf(skill_id);
 	if (tmp&INF_GROUND_SKILL || !tmp)
@@ -11412,18 +11414,19 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 	if( (pc_cant_act2(sd) || sd->chatID) && skill_id != RK_REFRESH && !(skill_id == SR_GENTLETOUCH_CURE &&
 		(sd->sc.opt1 == OPT1_STONE || sd->sc.opt1 == OPT1_FREEZE || sd->sc.opt1 == OPT1_STUN)) )
 		return;
+
 	if( pc_issit(sd) )
 		return;
 
 	if( skill_isNotOk(skill_id, sd) )
 		return;
 
-	if( sd->bl.id != target_id && tmp&INF_SELF_SKILL )
+	if( sd->bl.id != target_id && (tmp&INF_SELF_SKILL) )
 		target_id = sd->bl.id; // Never trust the client
-	
+
 	if( target_id < 0 && -target_id == sd->bl.id ) // For disguises [Valaris]
 		target_id = sd->bl.id;
-	
+
 	if( sd->ud.skilltimer != INVALID_TIMER ) {
 		if( skill_id != SA_CASTCANCEL && skill_id != SO_SPELLFIST )
 			return;

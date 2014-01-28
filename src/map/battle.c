@@ -5228,13 +5228,13 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	ad.damage = 1;
 	ad.div_ = skill_get_num(skill_id, skill_lv);
 	//Amotion should be 0 for ground skills.
-	ad.amotion = skill_get_inf(skill_id)&INF_GROUND_SKILL ? 0 : sstatus->amotion;
+	ad.amotion = (skill_get_inf(skill_id)&INF_GROUND_SKILL ? 0 : sstatus->amotion);
 	ad.dmotion = tstatus->dmotion;
 	ad.blewcount = skill_get_blewcount(skill_id, skill_lv);
 	ad.flag = BF_MAGIC|BF_SKILL;
 	ad.dmg_lv = ATK_DEF;
 	nk = skill_get_nk(skill_id);
-	flag.imdef = nk&NK_IGNORE_DEF ? 1 : 0;
+	flag.imdef = (nk&NK_IGNORE_DEF ? 1 : 0);
 
 	sd = BL_CAST(BL_PC, src);
 	tsd = BL_CAST(BL_PC, target);
@@ -5884,14 +5884,22 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			switch(skill_id) {
 				case MG_LIGHTNINGBOLT:
 				case MG_THUNDERSTORM:
+					if(sc->data[SC_GUST_OPTION])
+						ad.damage += (6 + sstatus->int_ / 4) + max(sstatus->dex - 10, 0) / 30;
+					break;
 				case MG_FIREBOLT:
 				case MG_FIREWALL:
+					if(sc->data[SC_PYROTECHNIC_OPTION])
+						ad.damage += (6 + sstatus->int_ / 4) + max(sstatus->dex - 10, 0) / 30;
+					break;
 				case MG_COLDBOLT:
 				case MG_FROSTDIVER:
+					if(sc->data[SC_AQUAPLAY_OPTION])
+						ad.damage += (6 + sstatus->int_ / 4) + max(sstatus->dex - 10, 0) / 30;
+					break;
 				case WZ_EARTHSPIKE:
 				case WZ_HEAVENDRIVE:
-					if(sc->data[SC_GUST_OPTION] || sc->data[SC_PETROLOGY_OPTION] ||
-						sc->data[SC_PYROTECHNIC_OPTION] || sc->data[SC_AQUAPLAY_OPTION])
+					if(sc->data[SC_PETROLOGY_OPTION])
 						ad.damage += (6 + sstatus->int_ / 4) + max(sstatus->dex - 10, 0) / 30;
 					break;
 			}
@@ -5903,6 +5911,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		if(skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS) {
 			//Apply the physical part of the skill's damage. [Skotlex]
 			struct Damage wd = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
+
 			ad.damage = battle_attr_fix(src, target, wd.damage + ad.damage, s_ele, tstatus->def_ele, tstatus->ele_lv) * (100 + 40 * skill_lv) / 100;
 			if(src == target) {
 				if(src->type == BL_PC)
@@ -6828,6 +6837,8 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 				struct Damage ad = battle_calc_attack(BF_MAGIC,src,target,sc->data[SC_SPELLFIST]->val3,sc->data[SC_SPELLFIST]->val4,flag|BF_SHORT);
 
 				wd.damage = ad.damage;
+				if (wd.div_ > 1)
+					wd.damage *= 2; //Double the damage for multiple attack.
 			} else
 				status_change_end(src,SC_SPELLFIST,INVALID_TIMER);
 		}
@@ -6846,6 +6857,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			rnd()%100 <= 10 + 2 * sc->data[SC_DUPLELIGHT]->val1) {
 			//Activates it only from melee damage
 			uint16 skill_id;
+
 			if (rnd()%2 == 1)
 				skill_id = AB_DUPLELIGHT_MELEE;
 			else
@@ -6860,6 +6872,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		skill_castend_damage_id(src,target,0,1,tick,0);
 	if (target->type == BL_SKILL && damage > 0) {
 		TBL_SKILL *su = (TBL_SKILL*)target;
+
 		if (su->group && su->group->skill_id == HT_BLASTMINE)
 			skill_blown(src,target,3,-1,0);
 	}

@@ -18,7 +18,7 @@
 //    0x80 - Skill ignores target's defense cards
 // 07 Splash/Effect Range (-1 for screen-wide)
 // 08 Max level
-// 09 Number of hits (when positive, damage is increased by hits, 
+// 09 Number of hits (when positive, damage is increased by hits,
 //    negative values just show number of hits without increasing total damage)
 // 10 Cast interrupted when hit?
 // 11 Defense-reduction rate during cast.

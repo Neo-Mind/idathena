@@ -7286,37 +7286,43 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			unit_skillcastcancel(src,1);
 			if(sd) {
 				int sp = skill_get_sp(sd->skill_id_old,sd->skill_lv_old);
+
 				if( skill_id == SO_SPELLFIST ) {
-					sc_start4(src,src,type,100,skill_lv+1,skill_lv,sd->skill_id_old,sd->skill_lv_old,skill_get_time(skill_id,skill_lv));
+					sc_start4(src,src,type,100,skill_lv + 1,skill_lv,sd->skill_id_old,sd->skill_lv_old,skill_get_time(skill_id,skill_lv));
 					sd->skill_id_old = sd->skill_lv_old = 0;
 					break;
 				}
 				sp = sp * (90 - (skill_lv - 1) * 20) / 100;
-				if(sp < 0) sp = 0;
+				if(sp < 0)
+					sp = 0;
 				status_zap(src,0,sp);
 			}
 			break;
 		case SA_SPELLBREAKER: {
 				int sp;
+
 				if(tsc && tsc->data[SC_MAGICROD]) {
 					sp = skill_get_sp(skill_id,skill_lv);
 					sp = sp * tsc->data[SC_MAGICROD]->val2 / 100;
-					if(sp < 1) sp = 1;
+					if(sp < 1)
+						sp = 1;
 					status_heal(bl,0,sp,2);
 					status_percent_damage(bl,src,0,-20,false); //20% max SP damage.
 				} else {
 					struct unit_data *ud = unit_bl2ud(bl);
 					int bl_skill_id = 0, bl_skill_lv = 0, hp = 0;
-					if (!ud || ud->skilltimer == INVALID_TIMER)
+
+					if(!ud || ud->skilltimer == INVALID_TIMER)
 						break; //Nothing to cancel.
 					bl_skill_id = ud->skill_id;
 					bl_skill_lv = ud->skill_lv;
-					if (tstatus->mode & MD_BOSS) { //Only 10% success chance against bosses. [Skotlex]
-						if (rnd()%100 < 90) {
-							if (sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+					if(tstatus->mode & MD_BOSS) { //Only 10% success chance against bosses. [Skotlex]
+						if(rnd()%100 < 90) {
+							if(sd)
+								clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 							break;
 						}
-					} else if (!dstsd || map_flag_vs(bl->m)) //HP damage only on pvp-maps when against players.
+					} else if(!dstsd || map_flag_vs(bl->m)) //HP damage only on pvp-maps when against players.
 						hp = tstatus->max_hp / 50; //Recover 2% HP [Skotlex]
 
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -7324,12 +7330,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					sp = skill_get_sp(bl_skill_id,bl_skill_lv);
 					status_zap(bl,hp,sp);
 
-					if (hp && skill_lv >= 5)
+					if(hp && skill_lv >= 5)
 						hp >>= 1;	//Recover half damaged HP at level 5 [Skotlex]
 					else
 						hp = 0;
 
-					if (sp) //Recover some of the SP used
+					if(sp) //Recover some of the SP used
 						sp = sp * (25 * (skill_lv - 1)) / 100;
 
 					if(hp || sp)
