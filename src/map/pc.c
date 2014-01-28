@@ -1079,7 +1079,8 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	sd->status.clothes_color = cap_value(sd->status.clothes_color,MIN_CLOTH_COLOR,MAX_CLOTH_COLOR);
 
 	//Initializations to null/0 unneeded since map_session_data was filled with 0 upon allocation.
-	if (!sd->status.hp) pc_setdead(sd);
+	if (!sd->status.hp)
+		pc_setdead(sd);
 	sd->state.connect_new = 1;
 
 	sd->followtimer = INVALID_TIMER; // [MouseJstr]

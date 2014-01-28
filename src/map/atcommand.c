@@ -5394,7 +5394,7 @@ ACMD_FUNC(displayskill)
 	}
 	status = status_get_status_data(&sd->bl);
 	tick = gettick();
-	clif_skill_damage(&sd->bl,&sd->bl, tick, status->amotion, status->dmotion, 1, 1, skill_id, skill_lv, 5);
+	clif_skill_damage(&sd->bl, &sd->bl, tick, status->amotion, status->dmotion, 1, 1, skill_id, skill_lv, 5);
 	clif_skill_nodamage(&sd->bl, &sd->bl, skill_id, skill_lv, 1);
 	clif_skill_poseffect(&sd->bl, skill_id, skill_lv, sd->bl.x, sd->bl.y, tick);
 	return 0;
@@ -5690,25 +5690,28 @@ ACMD_FUNC(partyoption)
 ACMD_FUNC(autoloot)
 {
 	int rate;
+
 	nullpo_retr(-1, sd);
 
-	// autoloot command without value
-	if(!message || !*message) {
+	// Autoloot command without value
+	if (!message || !*message) {
 		if (sd->state.autoloot)
 			rate = 0;
 		else
 			rate = 10000;
 	} else {
 		double drate;
-		drate = atof(message);
-		rate = (int)(drate*100);
-	}
-	if (rate < 0) rate = 0;
-	if (rate > 10000) rate = 10000;
 
+		drate = atof(message);
+		rate = (int)(drate * 100);
+	}
+	if (rate < 0)
+		rate = 0;
+	if (rate > 10000)
+		rate = 10000;
 	sd->state.autoloot = rate;
 	if (sd->state.autoloot) {
-		snprintf(atcmd_output, sizeof atcmd_output, msg_txt(1187),((double)sd->state.autoloot)/100.); // Autolooting items with drop rates of %0.02f%% and below.
+		snprintf(atcmd_output, sizeof atcmd_output, msg_txt(1187),((double)sd->state.autoloot) / 100.); // Autolooting items with drop rates of %0.02f%% and below.
 		clif_displaymessage(fd, atcmd_output);
 	} else
 		clif_displaymessage(fd, msg_txt(1188)); // Autoloot is now off.
@@ -8805,15 +8808,15 @@ ACMD_FUNC(unloadnpcfile) {
 }
 ACMD_FUNC(cart) {
 #define MC_CART_MDFY(x) \
-	sd->status.skill[MC_PUSHCART].id = x?MC_PUSHCART:0; \
-	sd->status.skill[MC_PUSHCART].lv = x?1:0; \
-	sd->status.skill[MC_PUSHCART].flag = x?SKILL_FLAG_TEMPORARY:SKILL_FLAG_PERMANENT;
+	sd->status.skill[MC_PUSHCART].id = x ? MC_PUSHCART : 0; \
+	sd->status.skill[MC_PUSHCART].lv = x ? 1 : 0; \
+	sd->status.skill[MC_PUSHCART].flag = x ? SKILL_FLAG_TEMPORARY : SKILL_FLAG_PERMANENT;
 
 	int val = atoi(message);
 	bool need_skill = pc_checkskill(sd, MC_PUSHCART) ? false : true;
 
 	if( !message || !*message || val < 0 || val > MAX_CARTS ) {
-		sprintf(atcmd_output, msg_txt(1390),command,MAX_CARTS); // Unknown Cart (usage: %s <0-%d>).
+		sprintf(atcmd_output, msg_txt(1390), command, MAX_CARTS); // Unknown Cart (usage: %s <0-%d>).
 		clif_displaymessage(fd, atcmd_output);
 		return -1;
 	}

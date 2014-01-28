@@ -397,29 +397,38 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 					status_change_end(target, SC_THORNSTRAP, INVALID_TIMER);
 				if( tsc->data[SC_CRYSTALIZE] )
 					status_change_end(target, SC_CRYSTALIZE, INVALID_TIMER);
-				if( tsc->data[SC_EARTH_INSIGNIA] ) ratio += 150;
-				if( tsc->data[SC_ASH] ) ratio += 150;
+				if( tsc->data[SC_EARTH_INSIGNIA] )
+					ratio += 150;
+				if( tsc->data[SC_ASH] )
+					ratio += 150;
 				break;
 			case ELE_HOLY:
-				if( tsc->data[SC_ORATIO] ) ratio += tsc->data[SC_ORATIO]->val1 * 2;
+				if( tsc->data[SC_ORATIO] )
+					ratio += tsc->data[SC_ORATIO]->val1 * 2;
 				break;
 			case ELE_POISON:
-				if( tsc->data[SC_VENOMIMPRESS] ) ratio += tsc->data[SC_VENOMIMPRESS]->val2;
+				if( tsc->data[SC_VENOMIMPRESS] )
+					ratio += tsc->data[SC_VENOMIMPRESS]->val2;
 				break;
 			case ELE_WIND:
-				if( tsc->data[SC_CRYSTALIZE] ) ratio += 150;
-				if( tsc->data[SC_WATER_INSIGNIA] ) ratio += 150;
+				if( tsc->data[SC_CRYSTALIZE] )
+					ratio += 150;
+				if( tsc->data[SC_WATER_INSIGNIA] )
+					ratio += 150;
 				break;
 			case ELE_WATER:
-				if( tsc->data[SC_FIRE_INSIGNIA] ) ratio += 150;
+				if( tsc->data[SC_FIRE_INSIGNIA] )
+					ratio += 150;
 				break;
 			case ELE_EARTH:
-				if( tsc->data[SC_WIND_INSIGNIA] ) ratio += 150;
+				if( tsc->data[SC_WIND_INSIGNIA] )
+					ratio += 150;
 				if( tsc->data[SC_MAGNETICFIELD] )
 					status_change_end(target, SC_MAGNETICFIELD, INVALID_TIMER); //Freed if received earth damage
 				break;
 			case ELE_NEUTRAL:
-				if( tsc->data[SC_ANTI_M_BLAST] ) ratio += tsc->data[SC_ANTI_M_BLAST]->val2;
+				if( tsc->data[SC_ANTI_M_BLAST] )
+					ratio += tsc->data[SC_ANTI_M_BLAST]->val2;
 				break;
 		}
 	} //End tsc check

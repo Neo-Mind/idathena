@@ -817,11 +817,10 @@ void initChangeTables(void) {
 	add_sc( RL_HAMMER_OF_GOD   , SC_STUN );
 	set_sc( RL_B_TRAP          , SC_B_TRAP               , SI_B_TRAP               , SCB_SPEED );
 	set_sc( RL_E_CHAIN         , SC_E_CHAIN              , SI_E_CHAIN              , SCB_NONE );
-	set_sc( RL_C_MARKER        , SC_C_MARKER             , SI_C_MARKER             , SCB_SPEED );
 	set_sc_with_vfx( RL_C_MARKER, SC_C_MARKER            , SI_C_MARKER             , SCB_SPEED );
 	set_sc( RL_P_ALTER          , SC_P_ALTER             , SI_P_ALTER              , SCB_BATK );
 	set_sc( RL_SLUGSHOT         , SC_STUN                , SI_SLUGSHOT             , SCB_NONE );
-	set_sc( RL_AM_BLAST         , SC_ANTI_M_BLAST        , SI_ANTI_M_BLAST         , SCB_DEF_ELE );
+	set_sc( RL_AM_BLAST         , SC_ANTI_M_BLAST        , SI_ANTI_M_BLAST         , SCB_NONE );
 	set_sc( RL_HEAT_BARREL      , SC_HEAT_BARREL         , SI_HEAT_BARREL          , SCB_BATK|SCB_ASPD|SCB_HIT );
 
 	//Storing the target job rather than simply SC_SPIRIT simplifies code later on.
@@ -1131,6 +1130,7 @@ void initChangeTables(void) {
 	StatusDisplayType[SC_TELEKINESIS_INTENSE] = true;
 	StatusDisplayType[SC_UNLIMIT]		  = true;
 	StatusDisplayType[SC_ILLUSIONDOPING]	  = true;
+	StatusDisplayType[SC_C_MARKER]		  = true;
 	StatusDisplayType[SC_MOONSTAR]		  = true;
 	StatusDisplayType[SC_SUPER_STAR]	  = true;
 	StatusDisplayType[SC_STRANGELIGHTS]	  = true;
