@@ -561,6 +561,7 @@ bool skill_isNotOk(uint16 skill_id, struct map_session_data *sd)
 	 **/
 	if (sd->skillitem == skill_id)
 		return false;
+
 	//Check skill restrictions [Celest]
 	if ((!map_flag_vs(m) && skill_get_nocast (skill_id)&1) ||
 		(map[m].flag.pvp && skill_get_nocast (skill_id)&2) ||
@@ -3752,14 +3753,18 @@ int skill_addtimerskill (struct block_list *src, unsigned int tick, int target, 
 {
 	int i;
 	struct unit_data *ud;
+
 	nullpo_retr(1, src);
+
 	if (src->prev == NULL)
 		return 0;
 	ud = unit_bl2ud(src);
+
 	nullpo_retr(1, ud);
 
 	ARR_FIND(0, MAX_SKILLTIMERSKILL, i, ud->skilltimerskill[i] == 0);
-	if (i == MAX_SKILLTIMERSKILL) return 1;
+	if (i == MAX_SKILLTIMERSKILL)
+		return 1;
 
 	ud->skilltimerskill[i] = ers_alloc(skill_timer_ers, struct skill_timerskill);
 	ud->skilltimerskill[i]->timer = add_timer(tick, skill_timerskill, src->id, i);
@@ -5390,8 +5395,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 	switch(skill_id) {
 		case HLIF_HEAL:	//[orn]
 			if(bl->type != BL_HOM) {
-				if(sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
-					break;
+				if(sd)
+					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+				break;
 			}
  		case AL_HEAL:
 		case AB_RENOVATIO:

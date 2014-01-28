@@ -419,6 +419,7 @@ int pc_setrestartvalue(struct map_session_data *sd,int type) {
 static int pc_inventory_rental_end(int tid, unsigned int tick, int id, intptr_t data)
 {
 	struct map_session_data *sd = map_id2sd(id);
+
 	if( sd == NULL )
 		return 0;
 	if( tid != sd->rental_timer ) {
@@ -520,7 +521,6 @@ void pc_inventory_rentals(struct map_session_data *sd)
 			continue; // Nothing here
 		if( sd->status.inventory[i].expire_time == 0 )
 			continue;
-
 		if( sd->status.inventory[i].expire_time <= time(NULL) )
 			pc_rental_expire(sd, i);
 		else {
@@ -531,7 +531,7 @@ void pc_inventory_rentals(struct map_session_data *sd)
 		}
 	}
 
-	if( c > 0 ) // min(next_tick,3600000) 1 hour each timer to keep announcing to the owner, and to avoid a but with rental time > 15 days
+	if( c > 0 ) // min(next_tick, 3600000) 1 hour each timer to keep announcing to the owner, and to avoid a but with rental time > 15 days
 		sd->rental_timer = add_timer(gettick() + min(next_tick,3600000), pc_inventory_rental_end, sd->bl.id, 0);
 	else
 		sd->rental_timer = INVALID_TIMER;
@@ -544,18 +544,16 @@ void pc_inventory_rental_add(struct map_session_data *sd, int seconds)
 	if( sd == NULL )
 		return;
 
-	if( sd->rental_timer != INVALID_TIMER )
-	{
+	if( sd->rental_timer != INVALID_TIMER ) {
 		const struct TimerData * td;
+
 		td = get_timer(sd->rental_timer);
-		if( DIFF_TICK(td->tick, gettick()) > tick )
-		{ // Update Timer as this one ends first than the current one
+		if( DIFF_TICK(td->tick, gettick()) > tick ) { // Update Timer as this one ends first than the current one
 			pc_inventory_rental_clear(sd);
 			sd->rental_timer = add_timer(gettick() + tick, pc_inventory_rental_end, sd->bl.id, 0);
 		}
-	}
-	else
-		sd->rental_timer = add_timer(gettick() + min(tick,3600000), pc_inventory_rental_end, sd->bl.id, 0);
+	} else
+		sd->rental_timer = add_timer(gettick() + min(tick, 3600000), pc_inventory_rental_end, sd->bl.id, 0);
 }
 
 /**
@@ -4479,7 +4477,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 	//perform a skill-use check before going through. [Skotlex]
 	//resurrection was picked as testing skill, as a non-offensive, generic skill, it will do.
 	//FIXME: Is this really needed here? It'll be checked in unit.c after all and this prevents skill items using when silenced [Inkfish]
-	if( id->flag.delay_consume && ( sd->ud.skilltimer != INVALID_TIMER /*|| !status_check_skilluse(&sd->bl, &sd->bl, ALL_RESURRECTION, 0)*/ ) )
+	if( id->flag.delay_consume && (sd->ud.skilltimer != INVALID_TIMER /*|| !status_check_skilluse(&sd->bl, &sd->bl, ALL_RESURRECTION, 0)*/) )
 		return 0;
 
 	if( id->delay > 0 && !pc_has_permission(sd,PC_PERM_ITEM_UNCONDITIONAL) ) {
@@ -4487,12 +4485,13 @@ int pc_useitem(struct map_session_data *sd,int n)
 
 		ARR_FIND(0, MAX_ITEMDELAYS, i, sd->item_delay[i].nameid == nameid );
 			if( i == MAX_ITEMDELAYS ) /* Item not found. try first empty now */
-				ARR_FIND(0, MAX_ITEMDELAYS, i, !sd->item_delay[i].nameid );
+				ARR_FIND(0, MAX_ITEMDELAYS, i, !sd->item_delay[i].nameid);
 		if( i < MAX_ITEMDELAYS ) {
 			if( sd->item_delay[i].nameid ) { //Found
 				if( DIFF_TICK(sd->item_delay[i].tick, tick) > 0 ) {
 					int e_tick = DIFF_TICK(sd->item_delay[i].tick, tick) / 1000;
 					char e_msg[100];
+
 					if( e_tick > 99 )
 						sprintf(e_msg,msg_txt(379), //Item Failed. [%s] is cooling down. Wait %.1f minutes.
 							itemdb_jname(item.nameid),
@@ -4504,14 +4503,12 @@ int pc_useitem(struct map_session_data *sd,int n)
 					clif_colormes(sd,color_table[COLOR_RED],e_msg);
 					return 0; //Delay has not expired yet
 				}
-			} else { //Not yet used item (all slots are initially empty)
+			} else //Not yet used item (all slots are initially empty)
 				sd->item_delay[i].nameid = nameid;
-			}
 			if( !(nameid == ITEMID_REINS_OF_MOUNT && sd->sc.option&(OPTION_WUGRIDER|OPTION_RIDING|OPTION_DRAGON|OPTION_MADOGEAR)) )
 				sd->item_delay[i].tick = tick + id->delay;
-		} else { //Should not happen
+		} else //Should not happen
 			ShowError("pc_useitem: Exceeded item delay array capacity! (nameid=%d, char_id=%d)\n", nameid, sd->status.char_id);
-		}
 		//Clean up used delays so we can give room for more
 		for( i = 0; i < MAX_ITEMDELAYS; i++ ) {
 			if( DIFF_TICK(sd->item_delay[i].tick, tick) <= 0 ) {
@@ -4543,7 +4540,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 	if( id->flag.delay_consume )
 		clif_useitemack(sd,n,amount,true);
 	else {
-		if( item.expire_time == 0 ) {
+		if( item.expire_time == 0 && nameid != ITEMID_REINS_OF_MOUNT ) {
 			clif_useitemack(sd,n,amount - 1,true);
 			pc_delitem(sd,n,1,1,0,LOG_TYPE_CONSUME); //Rental Usable Items are not deleted until expiration
 		} else
@@ -7572,24 +7569,28 @@ int pc_percentheal(struct map_session_data *sd,int hp,int sp)
 {
 	nullpo_ret(sd);
 
-	if(hp > 100) hp = 100;
-	else if(hp <-100) hp =-100;
+	if(hp > 100)
+		hp = 100;
+	else if(hp < -100)
+		hp = -100;
 
-	if(sp > 100) sp = 100;
-	else if(sp <-100) sp =-100;
+	if(sp > 100)
+		sp = 100;
+	else if(sp <-100)
+		sp = -100;
 
 	if(hp >= 0 && sp >= 0) //Heal
 		return status_percent_heal(&sd->bl, hp, sp);
 
 	if(hp <= 0 && sp <= 0) //Damage (negative rates indicate % of max rather than current), and only kill target IF the specified amount is 100%
-		return status_percent_damage(NULL, &sd->bl, hp, sp, hp==-100);
+		return status_percent_damage(NULL, &sd->bl, hp, sp, hp == -100);
 
 	//Crossed signs
 	if(hp) {
 		if(hp > 0)
 			status_percent_heal(&sd->bl, hp, 0);
 		else
-			status_percent_damage(NULL, &sd->bl, hp, 0, hp==-100);
+			status_percent_damage(NULL, &sd->bl, hp, 0, hp == -100);
 	}
 	
 	if(sp) {
@@ -8045,6 +8046,9 @@ void pc_setfalcon(TBL_PC* sd, int flag)
  *------------------------------------------*/
 void pc_setriding(TBL_PC* sd, int flag)
 {
+	if( sd->sc.data[SC_ALL_RIDING] )
+		return;
+
 	if( flag ) {
 		if( pc_checkskill(sd,KN_RIDING) > 0 ) //Add peco
 			pc_setoption(sd,sd->sc.option|OPTION_RIDING);

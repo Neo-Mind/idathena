@@ -534,6 +534,7 @@ extern struct Battle_Config
 	int disp_serverbank_msg;
 	int warg_can_falcon;
 	int path_blown_halt;
+	int rental_mount_speed_boost;
 } battle_config;
 
 void do_init_battle(void);

@@ -691,7 +691,7 @@ int unit_run(struct block_list *bl)
  */
 int unit_wugdash(struct block_list *bl, struct map_session_data *sd) {
 	struct status_change *sc = status_get_sc(bl);
-	short to_x,to_y,dir_x,dir_y;
+	short to_x, to_y, dir_x, dir_y;
 	int lv;
 	int i;
 

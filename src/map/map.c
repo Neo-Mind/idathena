@@ -2090,10 +2090,9 @@ struct block_list* mapit_first(struct s_mapiterator* mapit)
 	nullpo_retr(NULL,mapit);
 
 	for( bl = (struct block_list*)dbi_first(mapit->dbi); bl != NULL; bl = (struct block_list*)dbi_next(mapit->dbi) )
-	{
 		if( MAPIT_MATCHES(mapit,bl) )
-			break;// found match
-	}
+			break; // Found match
+
 	return bl;
 }
 
@@ -2109,10 +2108,9 @@ struct block_list* mapit_last(struct s_mapiterator* mapit)
 	nullpo_retr(NULL,mapit);
 
 	for( bl = (struct block_list*)dbi_last(mapit->dbi); bl != NULL; bl = (struct block_list*)dbi_prev(mapit->dbi) )
-	{
 		if( MAPIT_MATCHES(mapit,bl) )
-			break;// found match
-	}
+			break; // Found match
+
 	return bl;
 }
 

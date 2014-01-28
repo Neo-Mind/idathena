@@ -7416,6 +7416,7 @@ static int atcommand_mutearea_sub(struct block_list *bl,va_list ap)
 	
 	int time, id;
 	struct map_session_data *pl_sd = (struct map_session_data *)bl;
+
 	if (pl_sd == NULL)
 		return 0;
 
@@ -7435,6 +7436,7 @@ static int atcommand_mutearea_sub(struct block_list *bl,va_list ap)
 ACMD_FUNC(mutearea)
 {
 	int time;
+
 	nullpo_ret(sd);
 
 	if (!message || !*message) {

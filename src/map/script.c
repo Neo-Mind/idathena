@@ -16915,6 +16915,7 @@ BUILDIN_FUNC(setdragon) {
  **/
 BUILDIN_FUNC(ismounting) {
 	TBL_PC* sd;
+
 	if( (sd = script_rid2sd(st)) == NULL )
 		return 0;
 	if( sd->sc.data[SC_ALL_RIDING] )
@@ -16932,6 +16933,7 @@ BUILDIN_FUNC(ismounting) {
  **/
 BUILDIN_FUNC(setmounting) {
 	TBL_PC* sd;
+
 	if( (sd = script_rid2sd(st)) == NULL )
 		return 0;
 	if( sd->sc.option&(OPTION_WUGRIDER|OPTION_RIDING|OPTION_DRAGON|OPTION_MADOGEAR) ) {
