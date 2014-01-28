@@ -296,10 +296,10 @@ struct item_data* itemdb_exists(int nameid)
 {
 	struct item_data* item;
 
-	if( nameid >= 0 && nameid < ARRAYLENGTH(itemdb_array) )
+	if (nameid >= 0 && nameid < ARRAYLENGTH(itemdb_array))
 		return itemdb_array[nameid];
 	item = (struct item_data*)idb_get(itemdb_other,nameid);
-	if( item == &dummy_item )
+	if (item == &dummy_item)
 		return NULL; //Dummy data, doesn't exist
 	return item;
 }
@@ -308,21 +308,37 @@ struct item_data* itemdb_exists(int nameid)
 /// @param type Type id to retrieve name for ( IT_* ).
 const char* itemdb_typename(enum item_types type)
 {
-	switch(type) {
-		case IT_HEALING:        return "Potion/Food";
-		case IT_USABLE:         return "Usable";
-		case IT_ETC:            return "Etc.";
-		case IT_WEAPON:         return "Weapon";
-		case IT_ARMOR:          return "Armor";
-		case IT_CARD:           return "Card";
-		case IT_PETEGG:         return "Pet Egg";
-		case IT_PETARMOR:       return "Pet Accessory";
-		case IT_AMMO:           return "Arrow/Ammunition";
-		case IT_DELAYCONSUME:   return "Delay-Consume Usable";
-		case IT_SHADOWGEAR:     return "Shadow Equipment";
-		case IT_CASH:           return "Cash Usable";
+	switch (type) {
+		case IT_HEALING:      return "Potion/Food";
+		case IT_USABLE:       return "Usable";
+		case IT_ETC:          return "Etc.";
+		case IT_WEAPON:       return "Weapon";
+		case IT_ARMOR:        return "Armor";
+		case IT_CARD:         return "Card";
+		case IT_PETEGG:       return "Pet Egg";
+		case IT_PETARMOR:     return "Pet Accessory";
+		case IT_AMMO:         return "Arrow/Ammunition";
+		case IT_DELAYCONSUME: return "Delay-Consume Usable";
+		case IT_SHADOWGEAR:   return "Shadow Equipment";
+		case IT_CASH:         return "Cash Usable";
 	}
 	return "Unknown Type";
+}
+
+/// Returns name type of ammunition [Cydh]
+const char *itemdb_typename_ammo(enum e_item_ammo ammo) {
+	switch (ammo) {
+		case AMMO_ARROW:            return "Arrow";
+		case AMMO_THROWABLE_DAGGER: return "Throwable Dagger";
+		case AMMO_BULLET:           return "Bullet";
+		case AMMO_SHELL:            return "Shell";
+		case AMMO_GRENADE:          return "Grenade";
+		case AMMO_SHURIKEN:         return "Shuriken";
+		case AMMO_KUNAI:            return "Kunai";
+		case AMMO_CANNONBALL:       return "Cannonball";
+		case AMMO_THROWABLE_ITEM:   return "Throwable Item/Sling Item";
+	}
+	return "Ammunition";
 }
 
 /*==========================================
@@ -332,7 +348,8 @@ const char* itemdb_typename(enum item_types type)
 static void itemdb_jobid2mapid(unsigned int *bclass, unsigned int jobmask)
 {
 	int i;
-	bclass[0]= bclass[1]= bclass[2]= 0;
+
+	bclass[0] = bclass[1] = bclass[2] = 0;
 	//Base classes
 	if (jobmask & 1<<JOB_NOVICE) { //Both Novice/Super-Novice are counted with the same ID
 		bclass[0] |= 1<<MAPID_NOVICE;
