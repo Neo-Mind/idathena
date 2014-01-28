@@ -1887,7 +1887,7 @@ bool map_blid_exists( int id ) {
 }
 
 /*==========================================
- * Convext Mirror
+ * Convex Mirror
  *------------------------------------------*/
 struct mob_data * map_getmob_boss(int16 m)
 {
@@ -1896,17 +1896,15 @@ struct mob_data * map_getmob_boss(int16 m)
 	bool found = false;
 
 	iter = db_iterator(bossid_db);
-	for( md = (struct mob_data*)dbi_first(iter); dbi_exists(iter); md = (struct mob_data*)dbi_next(iter) )
-	{
-		if( md->bl.m == m )
-		{
+	for( md = (struct mob_data*)dbi_first(iter); dbi_exists(iter); md = (struct mob_data*)dbi_next(iter) ) {
+		if( md->bl.m == m ) {
 			found = true;
 			break;
 		}
 	}
 	dbi_destroy(iter);
 
-	return (found)? md : NULL;
+	return (found) ? md : NULL;
 }
 
 struct mob_data * map_id2boss(int id)

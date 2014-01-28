@@ -439,8 +439,8 @@ bool vending_searchall(struct map_session_data* sd, const struct s_search_store_
 }
 
 void vending_reopen(struct map_session_data* sd) {
-	int i, count;
-	uint8 *data, *p;
+	int i, count = 0;
+	uint8 *data = 0, *p;
 	uint16 *index, *amount;
 	uint32 *value;
 	struct vending *vending;

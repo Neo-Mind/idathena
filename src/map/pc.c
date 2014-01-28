@@ -672,7 +672,7 @@ int pc_equippoint(struct map_session_data *sd,int n)
 }
 
 /**
- * Fill inventory_data with struct *item_data trough inventory (fill with struct *item)
+ * Fill inventory_data with struct *item_data through inventory (fill with struct *item)
  * @param sd : player session
  * @return 0 sucess, 1:invalid sd
  */
@@ -5998,6 +5998,7 @@ int pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned int
 {
 	float nextbp = 0, nextjp = 0;
 	unsigned int nextb = 0, nextj = 0;
+
 	nullpo_ret(sd);
 
 	if (sd->bl.prev == NULL || pc_isdead(sd))
@@ -6006,10 +6007,19 @@ int pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned int
 	if (!battle_config.pvp_exp && map[sd->bl.m].flag.pvp) //[MouseJstr]
 		return 0; //No exp on pvp maps
 
+	//Increase base EXP rate for VIP.
+	if (src && (src->type&BL_MOB) && (battle_config.vip_base_exp_increase && (sd && pc_isvip(sd))))
+		base_exp = (unsigned int)cap_value(base_exp * (battle_config.vip_base_exp_increase) / 100., 1, UINT_MAX);
+
+	// Increase job EXP rate for VIP.
+	if (src && (src->type&BL_MOB) && (battle_config.vip_job_exp_increase && (sd && pc_isvip(sd))))
+		job_exp = (unsigned int)cap_value(job_exp * (battle_config.vip_job_exp_increase) / 100., 1, UINT_MAX);
+
 	if (sd->status.guild_id > 0)
 		base_exp -= guild_payexp(sd,base_exp);
 
-	if (src) pc_calcexp(sd, &base_exp, &job_exp, src);
+	if (src)
+		pc_calcexp(sd, &base_exp, &job_exp, src);
 
 	nextb = pc_nextbaseexp(sd);
 	nextj = pc_nextjobexp(sd);
@@ -6048,7 +6058,7 @@ int pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned int
 	}
 
 	if (job_exp) {
-		nextj = nextj?UINT_MAX:pc_thisjobexp(sd);
+		nextj = nextj ? UINT_MAX : pc_thisjobexp(sd);
 		if (sd->status.job_exp > nextj - job_exp)
 			sd->status.job_exp = nextj;
 		else
@@ -6063,6 +6073,7 @@ int pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned int
 		clif_displayexp(sd,job_exp,SP_JOBEXP,quest);
 	if (sd->state.showexp) {
 		char output[256];
+
 		sprintf(output,
 			"Experience Gained Base:%u (%.2f%%) Job:%u (%.2f%%)",base_exp,nextbp * (float)100,job_exp,nextjp * (float)100);
 		clif_disp_onlyself(sd,output,strlen(output));

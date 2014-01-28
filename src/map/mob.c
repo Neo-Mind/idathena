@@ -1130,8 +1130,8 @@ static int mob_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 
 	dist = distance_bl(&md->bl,bl);
 	if(mob_can_reach(md,bl,dist + 1,MSS_LOOT) &&
-		((*target) == NULL || !check_distance_bl(&md->bl,*target,dist)) //New target closer than previous one.
-	) {
+		((*target) == NULL || !check_distance_bl(&md->bl,*target,dist))) //New target closer than previous one.
+	{
 		(*target) = bl;
 		md->target_id = bl->id;
 		md->min_chase = md->db->range3;
@@ -1487,20 +1487,19 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 	if(md->master_id > 0 && mob_ai_sub_hard_slavemob(md, tick))
 		return true;
 
-	//Scan area for targets
-	if(!tbl && mode&MD_LOOTER && md->lootitem && DIFF_TICK(tick, md->ud.canact_tick) > 0 &&
+	//Scan area for targets and items to loot, avoid trying to loot if the mob is full and can't consume the items.
+	if(!tbl && (mode&MD_LOOTER) && md->lootitem && DIFF_TICK(tick, md->ud.canact_tick) > 0 &&
 		(md->lootitem_count < LOOTITEM_SIZE || battle_config.monster_loot_type != 1))
-	{ //Scan area for items to loot, avoid trying to loot if the mob is full and can't consume the items.
-		map_foreachinrange (mob_ai_sub_hard_lootsearch, &md->bl, view_range, BL_ITEM, md, &tbl);
-	}
+		if(!map_foreachinrange(mob_ai_sub_hard_lootsearch, &md->bl, view_range, BL_ITEM, md, &tbl))
+			mob_stop_walking(md, 1); //Stop walking immediately if item is no longer on the ground.
 
-	if((!tbl && mode&MD_AGGRESSIVE) || md->state.skillstate == MSS_FOLLOW) {
-		map_foreachinrange (mob_ai_sub_hard_activesearch, &md->bl, view_range, DEFAULT_ENEMY_TYPE(md), md, &tbl, mode);
-	} else if(mode&MD_CHANGECHASE && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW ||
+	if((!tbl && (mode&MD_AGGRESSIVE)) || md->state.skillstate == MSS_FOLLOW) {
+		map_foreachinrange(mob_ai_sub_hard_activesearch, &md->bl, view_range, DEFAULT_ENEMY_TYPE(md), md, &tbl, mode);
+	} else if((mode&MD_CHANGECHASE) && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW ||
 		(md->sc.count && md->sc.data[SC_CHAOS]))) {
-		int search_size;
-		search_size = view_range<md->status.rhw.range ? view_range : md->status.rhw.range;
-		map_foreachinrange (mob_ai_sub_hard_changechase, &md->bl, search_size, DEFAULT_ENEMY_TYPE(md), md, &tbl);
+		int search_size = (view_range < md->status.rhw.range ? view_range : md->status.rhw.range);
+
+		map_foreachinrange(mob_ai_sub_hard_changechase, &md->bl, search_size, DEFAULT_ENEMY_TYPE(md), md, &tbl);
 	}
 
 	if(!tbl) { //No targets available.
@@ -1508,14 +1507,13 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 			md->state.aggressive = 1; //Restore angry state when no targets are available.
 
 		/* Bg guardians follow allies when no targets nearby */
-		if(md->bg_id && mode&MD_CANATTACK) {
+		if(md->bg_id && (mode&MD_CANATTACK)) {
 			if(md->ud.walktimer != INVALID_TIMER)
 				return true; /* We are already moving */
 			map_foreachinrange (mob_ai_sub_hard_bg_ally, &md->bl, view_range, BL_PC, md, &tbl, mode);
-			if(tbl) {
+			if(tbl)
 				if(distance_blxy(&md->bl, tbl->x, tbl->y) <= 3 || unit_walktobl(&md->bl, tbl, 1, 1))
 					return true; /* We're moving or close enough don't unlock the target. */
-			}
 		}
 
 		//This handles triggering idle walk/skill.
@@ -2170,7 +2168,8 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			else {
 				//eAthena's exp formula based on max hp.
 				per = (double)md->dmglog[i].dmg / (double)status->max_hp;
-				if (per > 2) per = 2; //Prevents unlimited exp gain
+				if (per > 2)
+					per = 2; //Prevents unlimited exp gain
 			}
 
 			if(count > 1 && battle_config.exp_bonus_attacker) {
@@ -2204,25 +2203,14 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 
 			if(map[m].flag.nobaseexp || !md->db->base_exp)
 				base_exp = 0;
-			else {
-				int vip_bonus = 0;
+			else
+				base_exp = (unsigned int)cap_value(md->db->base_exp * per * bonus / 100. * map[m].adjust.bexp / 100., 1, UINT_MAX);
 
-				//Increase base EXP rate for VIP.
-				if (battle_config.vip_base_exp_increase && (sd && pc_isvip(sd)))
-					vip_bonus += battle_config.vip_base_exp_increase;
-				base_exp = (unsigned int)cap_value(md->db->base_exp * per * (bonus+vip_bonus)/100. * map[m].adjust.bexp/100., 1, UINT_MAX);
-			}
-
-			if(map[m].flag.nojobexp || !md->db->job_exp || md->dmglog[i].flag == MDLF_HOMUN) //Homun earned job-exp is always lost.
+			//Homun earned job-exp is always lost.
+			if(map[m].flag.nojobexp || !md->db->job_exp || md->dmglog[i].flag == MDLF_HOMUN)
 				job_exp = 0;
-			else {
-				int vip_bonus = 0;
-
-				//Increase job EXP rate for VIP.
-				if (battle_config.vip_job_exp_increase && (sd && pc_isvip(sd)))
-					vip_bonus += battle_config.vip_job_exp_increase;
-				job_exp = (unsigned int)cap_value(md->db->job_exp * per * (bonus+vip_bonus)/100. * map[m].adjust.jexp/100., 1, UINT_MAX);
-			}
+			else
+				job_exp = (unsigned int)cap_value(md->db->job_exp * per * bonus / 100. * map[m].adjust.jexp / 100., 1, UINT_MAX);
 
 			if((temp = tmpsd[i]->status.party_id) > 0) {
 				int j;
@@ -2807,7 +2795,8 @@ int mob_warpslave_sub(struct block_list *bl,va_list ap)
 {
 	struct mob_data *md = (struct mob_data *)bl;
 	struct block_list *master;
-	short x,y,range = 0;
+	short x, y, range = 0;
+
 	master = va_arg(ap, struct block_list*);
 	range = va_arg(ap, int);
 	

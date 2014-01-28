@@ -5064,14 +5064,15 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case SR_TIGERCANNON:
-			if  (flag&1) {
+			if (flag&1)
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
-			} else if  (sd) {
-				int hpcost, spcost;
-				hpcost = 10 + 2 * skill_lv;
-				spcost = 5 + 1 * skill_lv;
+			else if (sd) {
+				int hpcost = 10 + 2 * skill_lv,
+					spcost = 5 + 1 * skill_lv;
+
 				if (!status_charge(src,status_get_max_hp(src) * hpcost / 100,status_get_max_sp(src) * spcost / 100)) {
-					if (sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+					if (sd)
+						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
 				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
@@ -10762,7 +10763,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 	enum sc_type type;
 	int i;
 
-	//if(skill_lv <= 0) return 0;
+	//if(skill_lv <= 0)
+		//return 0;
 	if(skill_id > 0 && !skill_lv)
 		return 0; //Celest
 
@@ -10772,7 +10774,6 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		return 0;
 
 	sd = BL_CAST(BL_PC,src);
-
 	sc = status_get_sc(src);
 	type = status_skill2sc(skill_id);
 	sce = (sc && type != -1) ? sc->data[type] : NULL;
@@ -11349,7 +11350,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 				status_change_end(src,SC_BANDING,INVALID_TIMER);
 			else if( (sg = skill_unitsetting(src,skill_id,skill_lv,src->x,src->y,0)) != NULL ) {
 				sc_start4(src,src,SC_BANDING,100,skill_lv,0,0,sg->group_id,skill_get_time(skill_id,skill_lv));
-				if( sd ) pc_banding(sd,skill_lv);
+				if( sd )
+					pc_banding(sd,skill_lv);
 			}
 			clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 			break;
@@ -11451,19 +11453,21 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case RL_FALLEN_ANGEL:
-			if( unit_movepos(src,x,y,1,1) ) {
-				enum e_skill skill_use = GS_DESPERADO;
-				uint8 skill_use_lv = pc_checkskill(sd,skill_use);
+			if( sd ) {
+				if( unit_movepos(src,x,y,1,1) ) {
+					enum e_skill skill_use = GS_DESPERADO;
+					uint8 skill_use_lv = pc_checkskill(sd,skill_use);
 
-				clif_slide(src,x,y);
-				if( skill_check_condition_castbegin(sd,skill_use,skill_use_lv) ) {
-					sd->skill_id_old = RL_FALLEN_ANGEL;
-					skill_castend_pos2(src,src->x,src->y,skill_use,skill_use_lv,tick,SD_LEVEL|SD_ANIMATION|SD_SPLASH);
-					skill_consume_requirement(sd,skill_use,skill_use_lv,1); //Consume Desperado ammunitions
-				}
-				sd->skill_id_old = 0;
-			} else if( sd )
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+					clif_slide(src,x,y);
+					if( skill_check_condition_castbegin(sd,skill_use,skill_use_lv) ) {
+						sd->skill_id_old = RL_FALLEN_ANGEL;
+						skill_castend_pos2(src,src->x,src->y,skill_use,skill_use_lv,tick,SD_LEVEL|SD_ANIMATION|SD_SPLASH);
+						skill_consume_requirement(sd,skill_use,skill_use_lv,1); //Consume Desperado ammunitions
+					}
+					sd->skill_id_old = 0;
+				} else
+					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+			}
 			break;
 
 		case RL_HAMMER_OF_GOD:

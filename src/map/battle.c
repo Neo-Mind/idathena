@@ -1135,7 +1135,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( !damage )
 			return 0;
 
-		if( (sce = sc->data[SC_LIGHTNINGWALK]) && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG && rnd()%100 < sce->val1 ) {
+		if( (sce = sc->data[SC_LIGHTNINGWALK]) && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG && rnd()%100 < sce->val2 ) {
 			int dx[8] = { 0,-1,-1,-1,0,1,1,1 };
 			int dy[8] = { 1,1,0,-1,-1,-1,0,1 };
 			uint8 dir = map_calc_dir(bl,src->x,src->y);
@@ -1175,7 +1175,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 
 		if( sc->data[SC__DEADLYINFECT] && (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT && damage > 0 &&
-			rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 && !(status_get_mode(src)&MD_BOSS) )
+			rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 )
 			status_change_spread(bl,src); //Deadly infect attacked side
 	}
 
@@ -1185,6 +1185,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 	if( sc && sc->count ) {
 		if( sc->data[SC_INVINCIBLE] && !sc->data[SC_INVINCIBLEOFF] )
 			damage += damage * 75 / 100;
+
 		//[Epoque]
 		if( bl->type == BL_MOB ) {
 			int i;
@@ -1199,6 +1200,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 					}
 				}
 			}
+
 			if( ((sce = sc->data[SC_SPL_ATK]) && flag&BF_WEAPON) ||
 				((sce = sc->data[SC_SPL_MATK]) && flag&BF_MAGIC) )
 			{
@@ -1210,18 +1212,23 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 				}
 			}
 		}
+
 		/* Self Buff that destroys the armor of any target, hit with melee or ranged physical attacks */
 		if( sc->data[SC_SHIELDSPELL_REF] && sc->data[SC_SHIELDSPELL_REF]->val1 == 1 && flag&BF_WEAPON ) {
 			skill_break_equip(src,bl,EQP_ARMOR,10000,BCT_ENEMY);
 			status_change_end(src,SC_SHIELDSPELL_REF,INVALID_TIMER);
 		}
+
 		if( sc->data[SC_POISONINGWEAPON] && skill_id != GC_VENOMPRESSURE && flag&BF_WEAPON && damage > 0 && rnd()%100 < sc->data[SC_POISONINGWEAPON]->val3 )
 			sc_start(src,bl,(sc_type)sc->data[SC_POISONINGWEAPON]->val2,100,sc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON,1));
+
 		if( sc->data[SC__DEADLYINFECT] && (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT && damage > 0 &&
-			rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 && !(status_get_mode(bl)&MD_BOSS) )
+			rnd()%100 < 30 + 10 * sc->data[SC__DEADLYINFECT]->val1 )
 			status_change_spread(src,bl);
+
 		if( sc->data[SC_STYLE_CHANGE] && sc->data[SC_STYLE_CHANGE]->val1 == MH_MD_FIGHTING ) {
 			TBL_HOM *hd = BL_CAST(BL_HOM,src); //When attacking
+
 			if( hd && (rnd()%100 < 50) ) //According to WarpPortal, this is a flat 50% chance
 				hom_addspiritball(hd,10);
 		}
@@ -2171,7 +2178,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 		hitrate += pc_checkskill(sd,AC_VULTURE);
 #endif
 
-	if(skill_id)
+	if(skill_id) {
 		switch(skill_id) { //Hit skill modifiers
 			//It is proven that bonus is applied on final hitrate, not hit.
 			case SM_BASH:
@@ -2224,7 +2231,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 					hitrate -= 9 - skill_lv;
 				break;
 		} //+1 hit per level of Double Attack on a successful double attack (making sure other multi attack skills do not trigger this) [helvetica]
-	else if(sd && wd.type&0x08 && wd.div_ == 2)
+	} else if(sd && (wd.type&0x08) && wd.div_ == 2)
 		hitrate += pc_checkskill(sd,TF_DOUBLE);
 
 	if(sd) {
@@ -3020,7 +3027,7 @@ static struct Damage battle_calc_multi_attack(struct Damage wd, struct block_lis
 	switch(skill_id) {
 		case RA_AIMEDBOLT:
 			if(tsc && (tsc->data[SC_BITE] || tsc->data[SC_ANKLE] || tsc->data[SC_ELECTRICSHOCKER]))
-				wd.div_ = tstatus->size + 2 + ((rnd()%100 < 50-tstatus->size * 10) ? 1 : 0);
+				wd.div_ = tstatus->size + 2 + ((rnd()%100 < 50 - tstatus->size * 10) ? 1 : 0);
 			break;
 		case SC_JYUMONJIKIRI:
 			if(tsc && tsc->data[SC_JYUMONJIKIRI])
@@ -7138,10 +7145,9 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 
 				if( ((TBL_PC*)target)->invincible_timer != INVALID_TIMER || pc_isinvisible((TBL_PC*)target) )
 					return -1; //Cannot be targeted yet.
-				if( sc && sc->count ) {
+				if( sc && sc->count )
 					if( sc->data[SC_VOICEOFSIREN] && sc->data[SC_VOICEOFSIREN]->val2 == target->id )
 						return -1;
-				}
 			}
 			break;
 		case BL_MOB: {

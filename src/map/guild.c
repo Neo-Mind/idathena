@@ -41,7 +41,7 @@ struct eventlist {
 };
 
 //Constant related to the flash of the Guild EXP cache
-#define GUILD_SEND_XY_INVERVAL	5000 // Interval of sending coordinates and HP
+#define GUILD_SEND_XY_INVERVAL 5000 // Interval of sending coordinates and HP
 #define GUILD_PAYEXP_INVERVAL 10000 //Interval (maximum survival time of the cache, in milliseconds)
 #define GUILD_PAYEXP_LIST 8192 //The maximum number of cache
 
@@ -1659,18 +1659,19 @@ int guild_allianceack(int guild_id1,int guild_id2,int account_id1,int account_id
 int guild_broken_sub(DBKey key, DBData *data, va_list ap)
 {
 	struct guild *g = db_data2ptr(data);
-	int guild_id=va_arg(ap,int);
-	int i,j;
-	struct map_session_data *sd=NULL;
+	int guild_id = va_arg(ap,int);
+	int i, j;
+	struct map_session_data *sd = NULL;
+
 	nullpo_ret(g);
 
-	for(i=0;i<MAX_GUILDALLIANCE;i++) { // Destroy all relationships
-		if(g->alliance[i].guild_id==guild_id) {
-			for(j=0;j<g->max_member;j++)
-				if( (sd=g->member[j].sd)!=NULL )
+	for (i = 0; i < MAX_GUILDALLIANCE; i++) { // Destroy all relationships
+		if (g->alliance[i].guild_id == guild_id) {
+			for (j = 0; j < g->max_member; j++)
+				if ((sd = g->member[j].sd) != NULL)
 					clif_guild_delalliance(sd,guild_id,g->alliance[i].opposition);
 			intif_guild_alliance(g->guild_id, guild_id,0,0,g->alliance[i].opposition|8);
-			g->alliance[i].guild_id=0;
+			g->alliance[i].guild_id = 0;
 		}
 	}
 
@@ -2175,8 +2176,8 @@ void do_init_guild(void) {
 
 	add_timer_func_list(guild_payexp_timer,"guild_payexp_timer");
 	add_timer_func_list(guild_send_xy_timer, "guild_send_xy_timer");
-	add_timer_interval(gettick()+GUILD_PAYEXP_INVERVAL,guild_payexp_timer,0,0,GUILD_PAYEXP_INVERVAL);
-	add_timer_interval(gettick()+GUILD_SEND_XY_INVERVAL,guild_send_xy_timer,0,0,GUILD_SEND_XY_INVERVAL);
+	add_timer_interval(gettick() + GUILD_PAYEXP_INVERVAL,guild_payexp_timer,0,0,GUILD_PAYEXP_INVERVAL);
+	add_timer_interval(gettick() + GUILD_SEND_XY_INVERVAL,guild_send_xy_timer,0,0,GUILD_SEND_XY_INVERVAL);
 }
 
 void do_final_guild(void) {
