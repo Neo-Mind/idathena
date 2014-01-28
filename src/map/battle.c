@@ -3556,6 +3556,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			skillratio += 150 + 50 * skill_lv;
 			if(sd) {
 				short index = sd->equip_index[EQI_HAND_R];
+
 				//Weight is divided by 10 since 10 weight in coding make 1 whole actural weight. [Rytech]
 				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
 					skillratio += sd->inventory_data[index]->weight / 10;
@@ -5045,7 +5046,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 			if(wd.flag&BF_LONG) //Long damage rate addition doesn't use weapon + equip attack
 				ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.long_attack_atk_rate);
 			//Custom fix for "a hole" in renewal attack calculation [exneval]
-			ATK_ADD(wd.damage, wd.damage2, 15);
+			ATK_ADDRATE(wd.damage, wd.damage2, 6);
 		}
 #else
 		//Final attack bonuses that aren't affected by cards
