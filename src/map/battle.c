@@ -6838,7 +6838,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 
 				wd.damage = ad.damage;
 				if (wd.div_ > 1)
-					wd.damage *= 2; //Double the damage for multiple attack.
+					wd.damage *= 2; //Double the damage for multiple hits.
 			} else
 				status_change_end(src,SC_SPELLFIST,INVALID_TIMER);
 		}
@@ -7906,6 +7906,7 @@ static const struct _battle_data {
 	{ "feature.autotrade_sit",              &battle_config.feature_autotrade_sit,           1,      0,      1,              },
 	{ "disp_serverbank_msg",                &battle_config.disp_serverbank_msg,             0,      0,      1,              },
 	{ "warg_can_falcon",                    &battle_config.warg_can_falcon,                 0,      0,      1,              },
+	{ "path_blown_halt",                    &battle_config.path_blown_halt,                 1,      0,      1,              },
 };
 #ifndef STATS_OPT_OUT
 /**
