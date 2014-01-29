@@ -1897,7 +1897,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		if (sc->data[SC_ALL_RIDING])
 			return 0; //New mounts can't attack nor use skills in the client. This check makes it cheat-safe [Ind]
 	}
-	
+
 	if (target == NULL || target == src) //No further checking needed.
 		return 1;
 
@@ -7369,15 +7369,19 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				int mode;
 				struct status_data *bstatus = status_get_base_status(bl);
 
-				if(!bstatus) return 0;
+				if(!bstatus)
+					return 0;
 				if(sc->data[type]) { //Pile up with previous values.
-					if(!val2) val2 = sc->data[type]->val2;
+					if(!val2)
+						val2 = sc->data[type]->val2;
 					val3 |= sc->data[type]->val3;
 					val4 |= sc->data[type]->val4;
 				}
-				mode = val2 ? val2 : bstatus->mode; //Base mode
-				if(val4) mode &= ~val4; //Del mode
-				if(val3) mode |= val3; //Add mode
+				mode = (val2 ? val2 : bstatus->mode); //Base mode
+				if(val4)
+					mode &= ~val4; //Del mode
+				if(val3)
+					mode |= val3; //Add mode
 				if(mode == bstatus->mode) { //No change.
 					if(sc->data[type]) { //Abort previous status
 						return status_change_end(bl,type,INVALID_TIMER);
@@ -7400,14 +7404,18 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					opt_flag |= 2;
 					pc_unequipitem(sd,i,3);
 				}
-				if(!opt_flag) return 0;
+				if(!opt_flag)
+					return 0;
 			}
-			if(tick == 1) return 1; //Minimal duration: Only strip without causing the SC
+			if(tick == 1)
+				return 1; //Minimal duration: Only strip without causing the SC
 			break;
 		case SC_STRIPSHIELD:
-			if(val2 == 1) val2 = 0; //GX effect. Do not take shield off..
+			if(val2 == 1)
+				val2 = 0; //GX effect. Do not take shield off..
 			else if(sd && !(flag&4)) {
 				int i;
+
 				if(sd->bonus.unstripable_equip&EQP_SHIELD)
 					return 0;
 				i = sd->equip_index[EQI_HAND_L];
@@ -7415,11 +7423,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					return 0;
 				pc_unequipitem(sd,i,3);
 			}
-			if(tick == 1) return 1; //Minimal duration: Only strip without causing the SC
+			if(tick == 1)
+				return 1; //Minimal duration: Only strip without causing the SC
 			break;
 		case SC_STRIPARMOR:
 			if(sd && !(flag&4)) {
 				int i;
+
 				if(sd->bonus.unstripable_equip&EQP_ARMOR)
 					return 0;
 				i = sd->equip_index[EQI_ARMOR];
@@ -7427,11 +7437,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					return 0;
 				pc_unequipitem(sd,i,3);
 			}
-			if(tick == 1) return 1; //Minimal duration: Only strip without causing the SC
+			if(tick == 1)
+				return 1; //Minimal duration: Only strip without causing the SC
 			break;
 		case SC_STRIPHELM:
 			if(sd && !(flag&4)) {
 				int i;
+
 				if(sd->bonus.unstripable_equip&EQP_HELM)
 					return 0;
 				i = sd->equip_index[EQI_HEAD_TOP];
@@ -7439,7 +7451,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					return 0;
 				pc_unequipitem(sd,i,3);
 			}
-			if(tick == 1) return 1; //Minimal duration: Only strip without causing the SC
+			if(tick == 1)
+				return 1; //Minimal duration: Only strip without causing the SC
 			break;
 		case SC_MERC_FLEEUP:
 		case SC_MERC_ATKUP:
@@ -7517,7 +7530,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				if(i < 0)
 					return 0;
 			}
-			if(tick == 1) return 1; //Minimal duration: Only strip without causing the SC
+			if(tick == 1)
+				return 1; //Minimal duration: Only strip without causing the SC
 			break;
 		case SC_TOXIN:
 		case SC_PARALYSE:
@@ -7546,6 +7560,14 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_SATURDAYNIGHTFEVER:
 			if(sc->data[SC_BERSERK] || sc->data[SC_INSPIRATION])
 				return 0;
+			break;
+		case SC_ALL_RIDING:
+			if( sc->option && (sc->option&(OPTION_RIDING|OPTION_DRAGON|OPTION_WUG|OPTION_MADOGEAR)) )
+				return 0;
+			if( sc->data[type] ) { // Already mounted, just dismount.
+				status_change_end(bl, SC_ALL_RIDING, INVALID_TIMER);
+				return 0;
+			}
 			break;
 		case SC_C_MARKER:
 			if(src == bl)
@@ -8231,10 +8253,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				//Lose 10/15% of your life as long as it doesn't brings life below 25%
 				if( status->hp > status->max_hp>>2 ) {
 					int diff = status->max_hp * (bl->type == BL_PC ? 10 : 15) / 100;
+
 					if( status->hp - diff < status->max_hp>>2 )
 						diff = status->hp - (status->max_hp>>2);
 					if( val2 && bl->type == BL_MOB ) {
 						struct block_list* src = map_id2bl(val2);
+
 						if( src )
 							mob_log_damage((TBL_MOB*)bl,src,diff);
 					}
