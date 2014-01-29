@@ -21,6 +21,7 @@ struct status_change;
 	#define MAX_REFINE 10
 #endif
 
+// Refine type
 enum refine_type {
 	REFINE_TYPE_ARMOR	= 0,
 	REFINE_TYPE_WEAPON1	= 1,
@@ -30,6 +31,7 @@ enum refine_type {
 	REFINE_TYPE_MAX		= 5
 };
 
+// Get refine chance
 int status_get_refine_chance(enum refine_type wlv, int refine);
 
 // Status changes listing. These code are for use by the server.
@@ -1596,6 +1598,7 @@ enum sc_opt3 {
 	OPT3_CONTRACT		= 0x00020000,
 };
 
+//Option
 enum e_option {
 	OPTION_NOTHING		= 0x00000000,
 	OPTION_SIGHT		= 0x00000001,
@@ -1608,7 +1611,7 @@ enum e_option {
 	OPTION_WEDDING		= 0x00001000,
 	OPTION_RUWACH		= 0x00002000,
 	OPTION_CHASEWALK	= 0x00004000,
-	OPTION_FLYING		= 0x00008000, //Note that clientside Flying and Xmas are 0x8000 for clients prior to 2007.
+	OPTION_FLYING		= 0x00008000, //NOTE: That clientside Flying and Xmas are 0x8000 for clients prior to 2007.
 	OPTION_XMAS		= 0x00010000,
 	OPTION_TRANSFORM	= 0x00020000,
 	OPTION_SUMMER		= 0x00040000,
@@ -1731,9 +1734,10 @@ enum e_status_bonus {
 //Define to determine who will receive a clif_status_change packet for effects that require one to display correctly
 #define BL_SCEFFECT (BL_PC|BL_HOM|BL_MER|BL_MOB|BL_ELEM)
 
-//Basic damage info of a weapon
-//Required because players have two of these, one in status_data
-//and another for their left hand weapon.
+/** Basic damage info of a weapon
+ * Required because players have two of these, one in status_data
+ * and another for their left hand weapon.
+ */
 struct weapon_atk {
 	unsigned short atk, atk2;
 	unsigned short range;
@@ -1791,57 +1795,61 @@ struct status_data {
 //Additional regen data that only players have.
 struct regen_data_sub {
 	unsigned short
-		hp,sp;
+		hp, sp;
 
 	//tick accumulation before healing.
 	struct {
-		unsigned int hp,sp;
+		unsigned int hp, sp;
 	} tick;
 
 	//Regen rates (where every 1 means +100% regen)
 	struct {
-		unsigned char hp,sp;
+		unsigned char hp, sp;
 	} rate;
 };
 
+//Regen data
 struct regen_data {
 
 	unsigned short flag; //Marks what stuff you may heal or not.
 	unsigned short
-		hp,sp,shp,ssp;
+		hp, sp, shp, ssp;
 
 	//tick accumulation before healing.
 	struct {
-		unsigned int hp,sp,shp,ssp;
+		unsigned int hp, sp, shp, ssp;
 	} tick;
 
 	//Regen rates (where every 1 means +100% regen)
 	struct {
 		unsigned char
-		hp,sp,shp,ssp;
+		hp, sp, shp, ssp;
 	} rate;
 
 	struct {
-		unsigned walk:1; //Can you regen even when walking?
-		unsigned gc:1;	//Tags when you should have double regen due to GVG castle
-		unsigned overweight:2; //overweight state (1: 50%, 2: 90%)
-		unsigned block:2; //Block regen flag (1: Hp, 2: Sp)
+		unsigned walk: 1; //Can you regen even when walking?
+		unsigned gc: 1;	//Tags when you should have double regen due to GVG castle
+		unsigned overweight: 2; //overweight state (1: 50%, 2: 90%)
+		unsigned block: 2; //Block regen flag (1: Hp, 2: Sp)
 	} state;
 
 	//skill-regen, sitting-skill-regen (since not all chars with regen need it)
 	struct regen_data_sub *sregen, *ssregen;
 };
 
+//Status display entry
 struct sc_display_entry {
 	enum sc_type type;
-	int val1,val2,val3;
+	int val1, val2, val3;
 };
 
+//Status change entry
 struct status_change_entry {
 	int timer;
-	int val1,val2,val3,val4;
+	int val1, val2, val3, val4;
 };
 
+//Status change
 struct status_change {
 	unsigned int option;// effect state (bitfield)
 	unsigned int opt3;// skill state (bitfield)

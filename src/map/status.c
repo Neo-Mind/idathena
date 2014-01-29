@@ -1748,7 +1748,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 	struct status_change *sc = NULL, *tsc;
 	int hide_flag;
 
-	status = src ? status_get_status_data(src) : &dummy_status;
+	status = (src ? status_get_status_data(src) : &dummy_status);
 
 	if (src && src->type != BL_PC && status_isdead(src))
 		return 0;
@@ -1799,7 +1799,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 			return 0;
 		}
 
-		if (skill_id != RK_REFRESH && sc->opt1 >0 && !(sc->opt1 == OPT1_CRYSTALIZE && src->type == BL_MOB) && sc->opt1 != OPT1_BURNING && skill_id != SR_GENTLETOUCH_CURE) {   //Stuned/Frozen/etc
+		if (skill_id != RK_REFRESH && sc->opt1 > 0 && !(sc->opt1 == OPT1_CRYSTALIZE && src->type == BL_MOB) && sc->opt1 != OPT1_BURNING && skill_id != SR_GENTLETOUCH_CURE) {   //Stuned/Frozen/etc
 			if (flag != 1) //Can't cast, casted stuff can't damage.
 				return 0;
 			if (!(skill_get_inf(skill_id)&INF_GROUND_SKILL))
@@ -1886,12 +1886,14 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		}
 	}
 
-	if (sc && sc->option) {
-		//Non players can use all skills while hidden.
-		if ((sc->option&OPTION_HIDE) && src->type == BL_PC && (!skill_id || !(skill_get_inf3(skill_id)&INF3_USABLE_HIDING)))
-			return 0;
-		if (sc->option&OPTION_CHASEWALK && skill_id != ST_CHASEWALK)
-			return 0;
+	if (sc) {
+		if (sc->option) {
+			//Non players can use all skills while hidden.
+			if ((sc->option&OPTION_HIDE) && src->type == BL_PC && (!skill_id || !(skill_get_inf3(skill_id)&INF3_USABLE_HIDING)))
+				return 0;
+			if ((sc->option&OPTION_CHASEWALK) && skill_id != ST_CHASEWALK)
+				return 0;
+		}
 		if (sc->data[SC_ALL_RIDING])
 			return 0; //New mounts can't attack nor use skills in the client. This check makes it cheat-safe [Ind]
 	}
@@ -5651,6 +5653,8 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 
 			if( sc->data[SC_FUSION] )
 				val = 25;
+			if( sc->data[SC_ALL_RIDING] )
+				val = battle_config.rental_mount_speed_boost;
 			else if( sd ) {
 				if( pc_isriding(sd) || sd->sc.option&(OPTION_DRAGON) )
 					val = 25; //Same bonus
@@ -5660,8 +5664,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 					val = -(50 - 10 * pc_checkskill(sd,NC_MADOLICENCE));
 					if( sc->data[SC_ACCELERATION] )
 						val += 25;
-				} else if( sd->sc.data[SC_ALL_RIDING] )
-					val = battle_config.rental_mount_speed_boost;
+				}
 			}
 
 			speed_rate -= val;

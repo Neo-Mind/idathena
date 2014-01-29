@@ -449,7 +449,8 @@ void pc_rental_expire(struct map_session_data *sd, int i)
 	/* Soon to be dropped, we got plans to integrate it with item db */
 	switch( nameid ) {
 		case ITEMID_REINS_OF_MOUNT:
-			status_change_end(&sd->bl, SC_ALL_RIDING, INVALID_TIMER);
+			if( &sd->sc && sd->sc.data[SC_ALL_RIDING] )
+				status_change_end(&sd->bl, SC_ALL_RIDING, INVALID_TIMER);
 			break;
 		case ITEMID_LOVE_ANGEL:
 			if( sd->status.font == 1 ) {
@@ -506,7 +507,6 @@ void pc_rental_expire(struct map_session_data *sd, int i)
 			}
 			break;
 	}
-
 	clif_rental_expired(sd->fd, i, sd->status.inventory[i].nameid);
 	pc_delitem(sd, i, sd->status.inventory[i].amount, 0, 0, LOG_TYPE_OTHER);
 }
@@ -4081,7 +4081,8 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount,e_l
 		if( time(NULL) > item_data->expire_time )
 			pc_rental_expire(sd, i);
 		else {
-			int seconds = (int)( item_data->expire_time - time(NULL) );
+			int seconds = (int)(item_data->expire_time - time(NULL));
+
 			clif_rental_time(sd->fd, sd->status.inventory[i].nameid, seconds);
 			pc_inventory_rental_add(sd, seconds);
 		}
@@ -4468,7 +4469,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 
 	/* Items with delayed consume are not meant to work while in mounts except reins of mount(12622) */
 	if( id->flag.delay_consume ) {
-		if( nameid != ITEMID_REINS_OF_MOUNT && sd->sc.data[SC_ALL_RIDING] )
+		if( &sd->sc && sd->sc.data[SC_ALL_RIDING] && nameid != ITEMID_REINS_OF_MOUNT )
 			return 0;
 		else if( pc_issit(sd) )
 			return 0;
@@ -8046,9 +8047,8 @@ void pc_setfalcon(TBL_PC* sd, int flag)
  *------------------------------------------*/
 void pc_setriding(TBL_PC* sd, int flag)
 {
-	if( sd->sc.data[SC_ALL_RIDING] )
+	if( &sd->sc && sd->sc.data[SC_ALL_RIDING] )
 		return;
-
 	if( flag ) {
 		if( pc_checkskill(sd,KN_RIDING) > 0 ) //Add peco
 			pc_setoption(sd,sd->sc.option|OPTION_RIDING);
