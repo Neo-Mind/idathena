@@ -1154,7 +1154,7 @@ int unit_can_move(struct block_list *bl) {
 		if (sc->opt1 > 0 && sc->opt1 != OPT1_STONEWAIT && sc->opt1 != OPT1_BURNING && !(sc->opt1 == OPT1_CRYSTALIZE && bl->type == BL_MOB))
 			return 0;
 
-		if ((sc->option & OPTION_HIDE) && (!sd || pc_checkskill(sd, RG_TUNNELDRIVE) <= 0))
+		if ((sc->option&OPTION_HIDE) && (!sd || pc_checkskill(sd, RG_TUNNELDRIVE) <= 0))
 			return 0;
 
 	}
@@ -1264,7 +1264,9 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 
 	if( ud == NULL )
 		return 0;
+
 	sc = status_get_sc(src);
+
 	if( sc && !sc->count )
 		sc = NULL; //Unneeded
 

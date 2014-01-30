@@ -1769,7 +1769,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 			if (flag && target) {
 				//Gloria Avoids pretty much everything....
 				tsc = status_get_sc(target);
-				if (tsc && tsc->option&OPTION_HIDE)
+				if (tsc && (tsc->option&OPTION_HIDE))
 					return 0;
 			}
 			break;
@@ -1887,13 +1887,10 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 	}
 
 	if (sc) {
-		if (sc->option) {
-			//Non players can use all skills while hidden.
-			if ((sc->option&OPTION_HIDE) && src->type == BL_PC && (!skill_id || !(skill_get_inf3(skill_id)&INF3_USABLE_HIDING)))
-				return 0;
-			if ((sc->option&OPTION_CHASEWALK) && skill_id != ST_CHASEWALK)
-				return 0;
-		}
+		if ((sc->option&OPTION_HIDE) && src->type == BL_PC && (!skill_id || !(skill_get_inf3(skill_id)&INF3_USABLE_HIDING)))
+			return 0;
+		if ((sc->option&OPTION_CHASEWALK) && skill_id != ST_CHASEWALK)
+			return 0;
 		if (sc->data[SC_ALL_RIDING])
 			return 0; //New mounts can't attack nor use skills in the client. This check makes it cheat-safe [Ind]
 	}
@@ -1945,7 +1942,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 				if (pc_isinvisible(sd))
 					return 0;
 				if (tsc) {
-					if (tsc->option&hide_flag && ((!is_boss &&
+					if ((tsc->option&hide_flag) && ((!is_boss &&
 						((sd->special_state.perfect_hiding || !is_detect) ||
 						(tsc->data[SC_CLOAKINGEXCEED] && is_detect))) ||
 						(tsc->data[SC_FEINT] && (is_boss || is_detect))))
@@ -1973,9 +1970,8 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 				return 0; //Can't use Potion Pitcher on Mercenaries
 		default:
 			//Check for chase-walk/hiding/cloaking opponents.
-			if (tsc)
-				if (tsc->option&hide_flag && !(status->mode&(MD_BOSS|MD_DETECTOR)))
-					return 0;
+			if (tsc && (tsc->option&hide_flag) && !(status->mode&(MD_BOSS|MD_DETECTOR)))
+				return 0;
 	}
 
 	return 1;
@@ -2010,13 +2006,13 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 					return 0;
 				if( tsc->data[SC_FEINT] && (status->mode&MD_BOSS || status->mode&MD_DETECTOR) )
 					return 0;
-				if( (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) ||
+				if( ((tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK)) ||
 					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_STEALTHFIELD]) && !(status->mode&MD_BOSS) &&
 					(((TBL_PC*)target)->special_state.perfect_hiding || !(status->mode&MD_DETECTOR)) )
 					return 0;
 				break;
 			default:
-				if( (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) ||
+				if( ((tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK)) ||
 					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_STEALTHFIELD]) && !(status->mode&(MD_BOSS|MD_DETECTOR)) )
 					return 0;
 		}
@@ -7325,7 +7321,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			if(sc->data[SC_QUAGMIRE] ||
 				sc->data[SC_DECREASEAGI] ||
 				sc->data[SC_ADORAMUS] ||
-				sc->option&OPTION_MADOGEAR) //Adrenaline doesn't affect Mado Gear [Ind]
+				(sc->option&OPTION_MADOGEAR)) //Adrenaline doesn't affect Mado Gear [Ind]
 				return 0;
 			break;
 		case SC_ADRENALINE2:

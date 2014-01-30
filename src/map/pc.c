@@ -8916,10 +8916,10 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		return false;
 	}
 	for( i = 0; i < EQI_MAX; i++ ) {
-		if( sd->status.inventory[n].equip & equip_pos[i] )
+		if( sd->status.inventory[n].equip&equip_pos[i] )
 			sd->equip_index[i] = -1;
 	}
-	if( sd->status.inventory[n].equip & EQP_HAND_R ) {
+	if( sd->status.inventory[n].equip&EQP_HAND_R ) {
 		sd->weapontype1 = 0;
 		sd->status.weapon = sd->weapontype2;
 		pc_calcweapontype(sd);
@@ -8927,52 +8927,52 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		if( !battle_config.dancing_weaponswitch_fix )
 			status_change_end(&sd->bl,SC_DANCING,INVALID_TIMER); //Unequipping => stop dancing.
 	}
-	if( sd->status.inventory[n].equip & EQP_HAND_L ) {
+	if( sd->status.inventory[n].equip&EQP_HAND_L ) {
 		sd->status.shield = sd->weapontype2 = 0;
 		pc_calcweapontype(sd);
 		clif_changelook(&sd->bl,LOOK_SHIELD,sd->status.shield);
 	}
-	if( sd->status.inventory[n].equip & EQP_HEAD_LOW && pc_checkequip(sd,EQP_COSTUME_HEAD_LOW) == -1 ) {
+	if( (sd->status.inventory[n].equip&EQP_HEAD_LOW) && pc_checkequip(sd,EQP_COSTUME_HEAD_LOW) == -1 ) {
 		sd->status.head_bottom = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_BOTTOM,sd->status.head_bottom);
 	}
-	if( sd->status.inventory[n].equip & EQP_HEAD_TOP && pc_checkequip(sd,EQP_COSTUME_HEAD_TOP) == -1 ) {
+	if( (sd->status.inventory[n].equip&EQP_HEAD_TOP) && pc_checkequip(sd,EQP_COSTUME_HEAD_TOP) == -1 ) {
 		sd->status.head_top = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_TOP,sd->status.head_top);
 	}
-	if( sd->status.inventory[n].equip & EQP_HEAD_MID && pc_checkequip(sd,EQP_COSTUME_HEAD_MID) == -1 ) {
+	if( (sd->status.inventory[n].equip&EQP_HEAD_MID) && pc_checkequip(sd,EQP_COSTUME_HEAD_MID) == -1 ) {
 		sd->status.head_mid = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
 	}
-	if( sd->status.inventory[n].equip & EQP_COSTUME_HEAD_TOP ) {
-		sd->status.head_top = ( pc_checkequip(sd,EQP_HEAD_TOP) >= 0 ) ? sd->inventory_data[pc_checkequip(sd,EQP_HEAD_TOP)]->look : 0;
+	if( sd->status.inventory[n].equip&EQP_COSTUME_HEAD_TOP ) {
+		sd->status.head_top = (pc_checkequip(sd,EQP_HEAD_TOP) >= 0) ? sd->inventory_data[pc_checkequip(sd,EQP_HEAD_TOP)]->look : 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_TOP,sd->status.head_top);
 	}
-	if( sd->status.inventory[n].equip & EQP_COSTUME_HEAD_MID ) {
-		sd->status.head_mid = ( pc_checkequip(sd,EQP_HEAD_MID) >= 0 ) ? sd->inventory_data[pc_checkequip(sd,EQP_HEAD_MID)]->look : 0;
+	if( sd->status.inventory[n].equip&EQP_COSTUME_HEAD_MID ) {
+		sd->status.head_mid = (pc_checkequip(sd,EQP_HEAD_MID) >= 0) ? sd->inventory_data[pc_checkequip(sd,EQP_HEAD_MID)]->look : 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
 	}
-	if( sd->status.inventory[n].equip & EQP_COSTUME_HEAD_LOW ) {
-		sd->status.head_bottom = ( pc_checkequip(sd,EQP_HEAD_LOW) >= 0 ) ? sd->inventory_data[pc_checkequip(sd,EQP_HEAD_LOW)]->look : 0;
+	if( sd->status.inventory[n].equip&EQP_COSTUME_HEAD_LOW ) {
+		sd->status.head_bottom = (pc_checkequip(sd,EQP_HEAD_LOW) >= 0) ? sd->inventory_data[pc_checkequip(sd,EQP_HEAD_LOW)]->look : 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_BOTTOM,sd->status.head_bottom);
 	}
-	if( sd->status.inventory[n].equip & EQP_SHOES )
+	if( sd->status.inventory[n].equip&EQP_SHOES )
 		clif_changelook(&sd->bl,LOOK_SHOES,0);
-	if( sd->status.inventory[n].equip&EQP_GARMENT && pc_checkequip(sd,EQP_COSTUME_GARMENT) == -1 ) {
+	if( (sd->status.inventory[n].equip&EQP_GARMENT) && pc_checkequip(sd,EQP_COSTUME_GARMENT) == -1 ) {
 		sd->status.robe = 0;
 		clif_changelook(&sd->bl,LOOK_ROBE,0);
 	}
-	if( sd->status.inventory[n].equip & EQP_COSTUME_GARMENT ) {
-		sd->status.robe = ( pc_checkequip(sd,EQP_GARMENT) >= 0 ) ? sd->inventory_data[pc_checkequip(sd,EQP_GARMENT)]->look : 0;
+	if( sd->status.inventory[n].equip&EQP_COSTUME_GARMENT ) {
+		sd->status.robe = (pc_checkequip(sd,EQP_GARMENT) >= 0) ? sd->inventory_data[pc_checkequip(sd,EQP_GARMENT)]->look : 0;
 		clif_changelook(&sd->bl,LOOK_ROBE,sd->status.robe);
 	}
 
 	clif_unequipitemack(sd,n,sd->status.inventory[n].equip,1);
 
-	if( (sd->status.inventory[n].equip & EQP_ARMS) &&
+	if( (sd->status.inventory[n].equip&EQP_ARMS) &&
 		sd->weapontype1 == 0 && sd->weapontype2 == 0 && (!sd->sc.data[SC_SEVENWIND] || sd->sc.data[SC_ASPERSIO]) ) //Check for seven wind (but not level seven!)
 		skill_enchant_elemental_end(&sd->bl,-1);
-	if( sd->status.inventory[n].equip & EQP_ARMOR ) {
+	if( sd->status.inventory[n].equip&EQP_ARMOR ) {
 		//On Armor Change
 		status_change_end(&sd->bl,SC_BENEDICTIO,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_ARMOR_RESIST,INVALID_TIMER);
@@ -9007,7 +9007,7 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		}
 	}
 
-	if( flag&1 || status_cacl ) {
+	if( (flag&1) || status_cacl ) {
 		pc_checkallowskill(sd);
 		status_calc_pc(sd,SCO_NONE);
 	}

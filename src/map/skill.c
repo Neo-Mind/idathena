@@ -2267,7 +2267,7 @@ int skill_strip_equip(struct block_list *src, struct block_list *bl, unsigned sh
 		return 0;
 
 	sc = status_get_sc(bl);
-	if (!sc || sc->option&OPTION_MADOGEAR ) //Mado Gear cannot be divested [Ind]
+	if (!sc || (sc->option&OPTION_MADOGEAR) ) //Mado Gear cannot be divested [Ind]
 		return 0;
 
 	for (i = 0; i < ARRAYLENGTH(pos); i++) {
@@ -3678,6 +3678,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 
 						if ((sd = ((TBL_PC*)src))) {
 							uint16 cid = combos[skl->skill_id - SR_FLASHCOMBO_ATK_STEP1];
+
 							skill_castend_damage_id(src,target,cid,pc_checkskill(sd,cid),tick,0);
 						}
 					}
@@ -3693,7 +3694,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 						struct status_change* tsc = status_get_sc(target);
 						struct status_change* sc = status_get_sc(src);
 
-						if ((tsc && tsc->option&OPTION_HIDE) || (sc && sc->option&OPTION_HIDE)) {
+						if ((tsc && (tsc->option&OPTION_HIDE)) || (sc && (sc->option&OPTION_HIDE))) {
 							skill_blown(src,target,skill_get_blewcount(skl->skill_id,skl->skill_lv),-1,0x0);
 							break;
 						}
@@ -4845,7 +4846,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 						skill_lv = sc->data[i]->val2;
 						point = sc->data[i]->val3;
 						status_change_end(src,(sc_type)i,INVALID_TIMER);
-					} else //something went wrong :(
+					} else //Something went wrong :(
 						break;
 
 					if (sc->data[SC_READING_SB]->val2 > point)
@@ -4946,7 +4947,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			if (bl->type != BL_SKILL) { //Only Hits Invisible Targets
 				struct status_change *tsc = status_get_sc(bl);
 
-				if (tsc && tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK)) {
+				if (tsc && (tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK))) {
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 					status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER);
 				}
@@ -5540,8 +5541,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 	tsc = status_get_sc(bl);
 	tsce = (tsc && type != -1) ? tsc->data[type] : NULL;
 
-	if(src != bl && type > -1 &&
-		(i = skill_get_ele(skill_id,skill_lv)) > ELE_NEUTRAL &&
+	if(src != bl && type > -1 && (i = skill_get_ele(skill_id,skill_lv)) > ELE_NEUTRAL &&
 		skill_get_inf(skill_id) != INF_SUPPORT_SKILL &&
 		battle_attr_fix(NULL,NULL,100,i,tstatus->def_ele,tstatus->ele_lv) <= 0)
 		return 1; //Skills that cause an status should be blocked if the target element blocks its element.
@@ -6551,9 +6551,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				clif_skill_nodamage(src,bl,skill_id,-1,status_change_end(bl,type,INVALID_TIMER)); //Hide skill-scream animation.
 				map_freeblock_unlock();
 				return 0;
-			} else if (tsc && tsc->option&OPTION_MADOGEAR) {
+			} else if (tsc && (tsc->option&OPTION_MADOGEAR)) {
 				//Mado Gear cannot hide
-				if (sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+				if (sd)
+					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				map_freeblock_unlock();
 				return 0;
 			}
@@ -7165,7 +7166,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					(tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_ROGUE) ||
 					rnd()%100 >= 50 + 10 * skill_lv ||
 					//Mado Gear is immune to dispell according to bug report 49 [Ind]
-					(tsc && tsc->option&OPTION_MADOGEAR) )
+					(tsc && (tsc->option&OPTION_MADOGEAR)) )
 				{
 					if( sd )
 						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -10059,7 +10060,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case KG_KAGEHUMI:
 			if( flag&1 ) {
-				if( tsc && ( tsc->option&(OPTION_HIDE|OPTION_CLOAK) ||
+				if( tsc && ((tsc->option&(OPTION_HIDE|OPTION_CLOAK)) ||
 					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC__SHADOWFORM] || tsc->data[SC_FEINT] ||
 					tsc->data[SC_MARIONETTE] || tsc->data[SC_HARMONIZE]) ) {
 						sc_start(src,src,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
@@ -10419,9 +10420,8 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 			inf = skill_get_inf(ud->skill_id);
 			inf2 = skill_get_inf2(ud->skill_id);
 
-			if( inf&INF_ATTACK_SKILL ||
-				(inf&INF_SELF_SKILL && inf2&INF2_NO_TARGET_SELF) //Combo skills
-					) //Casted through combo.
+			//Combo skills
+			if( (inf&INF_ATTACK_SKILL) || ((inf&INF_SELF_SKILL) && (inf2&INF2_NO_TARGET_SELF)) ) //Casted through combo.
 				inf = BCT_ENEMY; //Offensive skill.
 			else if( inf2&INF2_NO_ENEMY )
 				inf = BCT_NOENEMY;
@@ -10450,7 +10450,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 					break; //You can use Clearance on party members in normal maps too. [pakpil]
 			}
 
-			if( inf&BCT_ENEMY && (sc = status_get_sc(target)) && (sc->data[SC_FOGWALL] && rnd() % 100 < 75) ) {
+			if( (inf&BCT_ENEMY) && (sc = status_get_sc(target)) && (sc->data[SC_FOGWALL] && rnd() % 100 < 75) ) {
 				//Fogwall makes all offensive-type targetted skills fail at 75%, and
 				if( sd )
 					clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
@@ -12031,7 +12031,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			skill_clear_group(src,1);
 			break;
 		case GS_GROUNDDRIFT: {
-				int element[5] = {ELE_WIND,ELE_DARK,ELE_POISON,ELE_WATER,ELE_FIRE};
+				int element[5] = { ELE_WIND,ELE_DARK,ELE_POISON,ELE_WATER,ELE_FIRE };
 
 				val1 = status->rhw.ele;
 				if( !val1 )
@@ -12319,7 +12319,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 		}
 	}
 
-	if( sc && sc->option&OPTION_HIDE && sg->skill_id != WZ_HEAVENDRIVE && sg->skill_id != WL_EARTHSTRAIN )
+	if( sc && (sc->option&OPTION_HIDE) && sg->skill_id != WZ_HEAVENDRIVE && sg->skill_id != WL_EARTHSTRAIN )
 		return 0; //Hidden characters are immune to AoE skills except to these. [Skotlex]
 
 	status = status_get_status_data(bl);
@@ -13071,9 +13071,14 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			sg->unit_id = UNT_USED_TRAPS;
 			break;
 
-		case UNT_SEVERE_RAINSTORM:
-			if (battle_check_target(&src->bl,bl,BCT_ENEMY) > 0)
-				skill_attack(BF_WEAPON,ss,&src->bl,bl,WM_SEVERE_RAINSTORM_MELEE,sg->skill_lv,tick,0);
+		case UNT_SEVERE_RAINSTORM: {
+				struct map_session_data* sd = BL_CAST(BL_PC, ss);
+
+				if (sd)
+					sd->canequip_tick = tick + skill_get_time(sg->skill_id,sg->skill_lv);
+				if (battle_check_target(&src->bl,bl,BCT_ENEMY) > 0)
+					skill_attack(BF_WEAPON,ss,&src->bl,bl,WM_SEVERE_RAINSTORM_MELEE,sg->skill_lv,tick,0);
+			}
 			break;
 
 		case UNT_NETHERWORLD:
@@ -13179,19 +13184,19 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			sc_start(ss,bl,type,100,sg->skill_lv,sg->interval);
 			if (sg->unit_id != UNT_ZEPHYR && !battle_check_undead(tstatus->race,tstatus->def_ele)) {
 				int hp = tstatus->max_hp / 100; //+1% each 5s
+
 				if ((sg->val3) % 5) { //Each 5s
-					if (tstatus->def_ele == skill_get_ele(sg->skill_id,sg->skill_lv)) {
+					if (tstatus->def_ele == skill_get_ele(sg->skill_id,sg->skill_lv))
 						status_heal(bl,hp,0,2);
-					} else if ((sg->unit_id ==  UNT_FIRE_INSIGNIA && tstatus->def_ele == ELE_EARTH)
-						||(sg->unit_id ==  UNT_WATER_INSIGNIA && tstatus->def_ele == ELE_FIRE)
-						||(sg->unit_id ==  UNT_WIND_INSIGNIA && tstatus->def_ele == ELE_WATER)
-						||(sg->unit_id ==  UNT_EARTH_INSIGNIA && tstatus->def_ele == ELE_WIND))
-					{
+					else if ((sg->unit_id ==  UNT_FIRE_INSIGNIA && tstatus->def_ele == ELE_EARTH) ||
+						(sg->unit_id ==  UNT_WATER_INSIGNIA && tstatus->def_ele == ELE_FIRE) ||
+						(sg->unit_id ==  UNT_WIND_INSIGNIA && tstatus->def_ele == ELE_WATER) ||
+						(sg->unit_id ==  UNT_EARTH_INSIGNIA && tstatus->def_ele == ELE_WIND))
 						status_heal(bl,-hp,0,0);
-					}
 				}
 				sg->val3++; //Timer
-				if (sg->val3 > 5) sg->val3 = 0;
+				if (sg->val3 > 5)
+					sg->val3 = 0;
 			}
 			break;
 
@@ -14440,10 +14445,10 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		case KO_KAZEHU_SEIRAN:
 		case KO_DOHU_KOUKAI:
 			{
-				int ttype = skill_get_ele(skill_id, skill_lv);
+				int type = skill_get_ele(skill_id, skill_lv);
 
-				ARR_FIND(1, 5, i, sd->talisman[i] > 0 && i != ttype);
-				if( (i < 5 && i != ttype) || sd->talisman[ttype] >= 10 ) {
+				ARR_FIND(1, 5, i, sd->talisman[i] > 0 && i != type);
+				if( (i < 5 && i != type) || sd->talisman[type] >= 10 ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					return false;
 				}
@@ -15877,9 +15882,8 @@ int skill_autospell(struct map_session_data *sd, uint16 skill_id)
  *------------------------------------------*/
 static int skill_sit_count (struct block_list *bl, va_list ap)
 {
-	struct map_session_data *sd;
+	struct map_session_data *sd = (struct map_session_data*)bl;
 	int type = va_arg(ap,int);
-	sd=(struct map_session_data*)bl;
 
 	if(!pc_issit(sd))
 		return 0;

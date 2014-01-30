@@ -1520,7 +1520,7 @@ int clif_spawn(struct block_list *bl)
 						clif_talisman(sd,i);
 				}
 				for (i = 0; i < sd->sc_display_count; i++) {
-					if ((sc = status_get_sc(bl)) && sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE|OPTION_CHASEWALK))
+					if ((sc = status_get_sc(bl)) && (sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE|OPTION_CHASEWALK)))
 						clif_status_change2(&sd->bl,sd->bl.id,AREA,SI_BLANK,0,0,0);
 					else
 						clif_status_change2(&sd->bl,sd->bl.id,AREA,StatusIconChangeTable[sd->sc_display[i]->type],sd->sc_display[i]->val1,sd->sc_display[i]->val2,sd->sc_display[i]->val3);
@@ -1733,7 +1733,7 @@ static void clif_move2(struct block_list *bl, struct view_data *vd, struct unit_
 	uint8 buf[128];
 	int len;
 
-	if ((sc = status_get_sc(bl)) && sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE))
+	if ((sc = status_get_sc(bl)) && (sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE)))
 		ally_only = true;
 
 #ifndef VISIBLE_MONSTER_HP
@@ -1807,7 +1807,7 @@ void clif_move(struct unit_data *ud)
 		return;
 	}
 
-	if ((sc = status_get_sc(bl)) && sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE))
+	if ((sc = status_get_sc(bl)) && (sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE)))
 		ally_only = true;
 
 	WBUFW(buf,0) = 0x86;
@@ -3282,7 +3282,7 @@ void clif_changelook(struct block_list *bl,int type,int val)
 	}
 
 	//Prevent leaking the presence of GM-hidden objects
-	if( sc && sc->option&OPTION_INVISIBLE )
+	if( sc && (sc->option&OPTION_INVISIBLE) )
 		target = SELF;
 
 #if PACKETVER < 4
@@ -10147,7 +10147,7 @@ void clif_parse_GetCharNameRequest(int fd, struct map_session_data *sd)
 	// 'See people in GM hide' cheat detection
 	/* disabled due to false positives (network lag + request name of char that's about to hide = race condition)
 	sc = status_get_sc(bl);
-	if (sc && sc->option&OPTION_INVISIBLE && !disguised(bl) &&
+	if (sc && (sc->option&OPTION_INVISIBLE) && !disguised(bl) &&
 		bl->type != BL_NPC && //Skip hidden NPCs which can be seen using Maya Purple
 		pc_get_group_level(sd) < battle_config.hack_info_GM_level
 	) {

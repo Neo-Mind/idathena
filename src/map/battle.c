@@ -6006,7 +6006,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	}
 
 	//Some initial values
-	md.amotion = skill_get_inf(skill_id)&INF_GROUND_SKILL ? 0 : sstatus->amotion;
+	md.amotion = (skill_get_inf(skill_id)&INF_GROUND_SKILL ? 0 : sstatus->amotion);
 	md.dmotion = tstatus->dmotion;
 	md.div_ = skill_get_num(skill_id,skill_lv);
 	md.blewcount = skill_get_blewcount(skill_id,skill_lv);
@@ -6036,9 +6036,15 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	//Attack that takes weapon's element for misc attacks? Make it neutral [Skotlex]
 	if(s_ele < 0 && s_ele != -3)
 		s_ele = ELE_NEUTRAL;
-	//Use random element
-	else if (s_ele == -3)
-		s_ele = rnd()%ELE_ALL;
+	else if(s_ele == -3) { //Use random element
+		if(skill_id == SN_FALCONASSAULT) {
+			if(sstatus->rhw.ele && !status_get_attack_sc_element(src,status_get_sc(src)))
+				s_ele = sstatus->rhw.ele;
+			else
+				s_ele = status_get_attack_sc_element(src,status_get_sc(src));
+		} else
+			s_ele = rnd()%ELE_ALL;
+	}
 
 	//Skill Range Criteria
 	md.flag |= battle_range_type(src,target,skill_id,skill_lv);

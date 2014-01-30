@@ -424,8 +424,8 @@ struct map_session_data {
 
 	short spiritball, spiritball_old;
 	int spirit_timer[MAX_SPIRITBALL];
-	short talisman[ELE_POISON+1]; //There are actually 5 talisman Fire, Ice, Wind, Earth & Poison maybe because its color violet.
-	int talisman_timer[ELE_POISON+1][10];
+	short talisman[ELE_POISON + 1]; //There are actually 5 talisman Fire, Ice, Wind, Earth & Poison maybe because its color violet.
+	int talisman_timer[ELE_POISON + 1][10];
 
 	unsigned char potion_success_counter; //Potion successes in row counter
 	unsigned char mission_count; //Stores the bounty kill count for TK_MISSION
