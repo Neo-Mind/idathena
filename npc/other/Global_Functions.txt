@@ -5,7 +5,7 @@
 //===== Current Version: ===================================== 
 //= 2.23
 //===== Compatible With: ===================================== 
-//= rAthena Project
+//= rAthena SVN
 //===== Description: ========================================= 
 //= General script functions.
 //===== Additional Comments: ================================= 
