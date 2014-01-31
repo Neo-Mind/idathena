@@ -10784,14 +10784,13 @@ void clif_parse_EquipItem(int fd,struct map_session_data *sd)
 		clif_clearunit_area(&sd->bl,CLR_DEAD);
 		return;
 	}
-	index = RFIFOW(fd,info->pos[0])-2;
+	index = RFIFOW(fd,info->pos[0]) - 2;
 	if (index < 0 || index >= MAX_INVENTORY)
 		return; //Out of bounds check.
 
-	if (sd->npc_id) {
-		if (!sd->npc_item_flag)
-			return;
-	} else if (sd->state.storage_flag || sd->sc.opt1)
+	if (sd->npc_id && !sd->npc_item_flag)
+		return;
+	else if (sd->state.storage_flag || sd->sc.opt1)
 		; //You can equip/unequip stuff while storage is open/under status changes
 	else if (pc_cant_act2(sd))
 		return;
@@ -10834,15 +10833,14 @@ void clif_parse_UnequipItem(int fd,struct map_session_data *sd)
 		return;
 	}
 
-	if (sd->npc_id) {
-		if (!sd->npc_item_flag)
-			return;
-	} else if (sd->state.storage_flag || sd->sc.opt1)
+	if (sd->npc_id && !sd->npc_item_flag)
+		return;
+	else if (sd->state.storage_flag || sd->sc.opt1)
 		; //You can equip/unequip stuff while storage is open/under status changes
 	else if (pc_cant_act2(sd))
 		return;
 
-	index = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0])-2;
+	index = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]) - 2;
 
 	pc_unequipitem(sd,index,1);
 }

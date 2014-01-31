@@ -124,7 +124,7 @@ struct script_state {
 	int rid,oid;
 	struct script_code *script, *scriptroot;
 	struct sleep_data {
-		int tick,timer,charid;
+		int tick, timer, charid;
 	} sleep;
 	//For backing up purposes
 	struct script_state *bk_st;
@@ -134,6 +134,7 @@ struct script_state {
 	unsigned npc_item_flag : 1;
 	unsigned mes_active : 1;  // Store if invoking character has a NPC dialog box open.
 	unsigned char* funcname; // Stores the current running function name
+	uint8 atcommand_enable_npc;
 };
 
 struct script_reg {

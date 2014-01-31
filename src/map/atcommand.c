@@ -9592,7 +9592,6 @@ bool is_atcommand(const int fd, struct map_session_data* sd, const char* message
 	char charname2[NAME_LENGTH], params2[100];
 	char command[100];
 	char output[CHAT_SIZE_MAX];
-	
 	//Reconstructed message
 	char atcmd_msg[CHAT_SIZE_MAX];
 	
@@ -9604,19 +9603,23 @@ bool is_atcommand(const int fd, struct map_session_data* sd, const char* message
 	//Shouldn't happen
 	if ( !message || !*message )
 		return false;
-	
+
+	//If cannot use atcomamnd while talking with NPC [Kichi]
+	if ( sd->npc_id && sd->state.disable_atcommand_on_npc )
+		return false;
+
 	//Block NOCHAT but do not display it as a normal message
 	if ( sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOCOMMAND )
 		return true;
-		
+
 	//Skip 10/11-langtype's codepage indicator, if detected
 	if ( message[0] == '|' && strlen(message) >= 4 && (message[3] == atcommand_symbol || message[3] == charcommand_symbol) )
 		message += 3;
-		
+
 	//Should display as a normal message
 	if ( *message != atcommand_symbol && *message != charcommand_symbol )
 		return false;
-	
+
 	//Type value 0|2 = script|console invoked: bypass restrictions
 	if ( type == 1 || type == 3 ) {
 		//Commands are disabled on maps flagged as 'nocommand'
@@ -9635,7 +9638,7 @@ bool is_atcommand(const int fd, struct map_session_data* sd, const char* message
 			y = sscanf(message, "%99s %23s %99[^\n]", command, charname2, params2);
 		
 			//z always has the value of the scan that was successful
-			z = ( x > 1 ) ? x : y;
+			z = (x > 1) ? x : y;
 
 			//#command + name means the sufficient target was used and anything else after
 			//Can be looked at by the actual command function since most scan to see if the
@@ -9643,8 +9646,7 @@ bool is_atcommand(const int fd, struct map_session_data* sd, const char* message
 			if ( x > 2 ) {
 				sprintf(atcmd_msg, "%s %s", command, params);
 				break;
-			}
-			else if ( y > 2 ) {
+			} else if ( y > 2 ) {
 				sprintf(atcmd_msg, "%s %s", command, params2);
 				break;
 			}
@@ -9654,7 +9656,7 @@ bool is_atcommand(const int fd, struct map_session_data* sd, const char* message
 				sprintf(atcmd_msg, "%s", command);
 				break;
 			}
-			
+
 			if ( !pc_get_group_level(sd) ) {
 				if ( x >= 1 || y >= 1 ) { /* We have command */
 					info = get_atcommandinfo_byname(atcommand_checkalias(command + 1));
@@ -9663,7 +9665,7 @@ bool is_atcommand(const int fd, struct map_session_data* sd, const char* message
 				} else
 					return false; /* Display as normal message */
 			}
-		
+
 			sprintf(output, msg_txt(1388), charcommand_symbol); //Charcommand failed (usage: %c<command> <char name> <parameters>).
 			clif_displaymessage(fd, output);
 			return true;
