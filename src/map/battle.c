@@ -326,9 +326,11 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 	struct status_change *sc = NULL, *tsc = NULL;
 	int ratio;
 
-	if( src ) sc = status_get_sc(src);
+	if( src )
+		sc = status_get_sc(src);
 
-	if( target ) tsc = status_get_sc(target);
+	if( target )
+		tsc = status_get_sc(target);
 
 	if( atk_elem < ELE_NEUTRAL || atk_elem >= ELE_ALL )
 		atk_elem = rnd()%ELE_ALL;
@@ -945,7 +947,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 
 		if( ((sce = sc->data[SC_UTSUSEMI]) || sc->data[SC_BUNSINJYUTSU]) &&
 			flag&BF_WEAPON && !(skill_get_nk(skill_id)&NK_NO_CARDFIX_ATK) ) {
-			skill_additional_effect(src,bl,skill_id,skill_lv,flag,ATK_BLOCK,gettick() );
+			skill_additional_effect(src,bl,skill_id,skill_lv,flag,ATK_BLOCK,gettick());
 			if( !status_isdead(src) )
 				skill_counter_additional_effect(src,bl,skill_id,skill_lv,flag,gettick());
 			if( sce ) {
@@ -2128,14 +2130,11 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 	struct status_change *sc = status_get_sc(src);
 	struct status_change *tsc = status_get_sc(target);
 	struct map_session_data *sd = BL_CAST(BL_PC,src);
-	int nk;
+	int nk = battle_skill_get_damage_properties(skill_id,wd.miscflag);
 	short flee, hitrate;
 
 	if(!first_call)
 		return (wd.dmg_lv != ATK_FLEE);
-
-	nk = battle_skill_get_damage_properties(skill_id,wd.miscflag);
-
 	if(is_attack_critical(wd,src,target,skill_id,skill_lv,false))
 		return true;
 	else if(sd && sd->bonus.perfect_hit > 0 && rnd()%100 < sd->bonus.perfect_hit)
@@ -2354,7 +2353,7 @@ static int battle_calc_equip_attack(struct block_list *src, int skill_id)
 
 		//Add arrow atk if using an applicable skill
 		if(sd)
-			eatk += is_skill_using_arrow(src, skill_id) ? sd->bonus.arrow_atk : 0;
+			eatk += (is_skill_using_arrow(src, skill_id) ? sd->bonus.arrow_atk : 0);
 
 		return eatk + status->eatk;
 	}
@@ -3317,7 +3316,8 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			break;
 		case WS_CARTTERMINATION:
 			i = 10 * (16 - skill_lv);
-			if(i < 1) i = 1;
+			if(i < 1)
+				i = 1;
 			//Preserve damage ratio when max cart weight is changed.
 			if(sd && sd->cart_weight)
 				skillratio += sd->cart_weight / i * 80000 / battle_config.max_cart_weight - 100;
@@ -3400,14 +3400,23 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 		case NJ_KIRIKAGE:
 			skillratio += 100 * (skill_lv - 1);
 			break;
+		case NJ_KUNAI:
+			skillratio += 200;
+			break;
 		case KN_CHARGEATK: {
 				//+100% every 3 cells of distance but hard-limited to 500%.
 				unsigned int k = wd.miscflag / 3;
-				if( k < 2 ) k = 0;
-				else if( k > 1 && k < 3 ) k = 1;
-				else if( k > 2 && k < 4 ) k = 2;
-				else if( k > 3 && k < 5 ) k = 3;
-				else k = 4;
+
+				if( k < 2 )
+					k = 0;
+				else if( k > 1 && k < 3 )
+					k = 1;
+				else if( k > 2 && k < 4 )
+					k = 2;
+				else if( k > 3 && k < 5 )
+					k = 3;
+				else
+					k = 4;
 				skillratio += 100 * k;
 			}
 			break;
@@ -4056,17 +4065,6 @@ static int battle_calc_skill_constant_addition(struct Damage wd, struct block_li
 				atk = damagevalue;
 			}
 			break;
-		case SR_GATEOFHELL: {
-				short nk = skill_get_nk(skill_id);
-
-				nk |= NK_IGNORE_FLEE;
-				atk = (sstatus->max_hp - status_get_hp(src));
-				if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE)
-					atk += ((sstatus->max_sp * (1 + skill_lv * 2 / 10)) + 40 * status_get_lv(src));
-				else
-					atk += ((sstatus->sp * (1 + skill_lv * 2 / 10)) + 10 * status_get_lv(src));
-			}
-			break;
 		case SR_TIGERCANNON:
 			if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE)
 				atk = (skill_lv * 500 + status_get_lv(target) * 40);
@@ -4507,11 +4505,6 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd,struct block_list
 		wd.damage = 1;
 	if(is_attack_left_handed(src, skill_id) && wd.damage2 < 1)
 		wd.damage2 = 1;
-
-	if(skill_id == NJ_KUNAI) {
-		RE_ALLATK_ADD(wd, 60);
-		ATK_ADD(wd.damage, wd.damage2, 60);
-	}
 
 	switch(skill_id) {
 		case AS_SONICBLOW:
@@ -4988,7 +4981,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		//Check for Lucky Dodge
 		wd.type = 0x0b;
 		wd.dmg_lv = ATK_LUCKY;
-		if(wd.div_ < 0) wd.div_ *= -1;
+		if(wd.div_ < 0)
+			wd.div_ *= -1;
 		return wd;
 	}
 
@@ -5096,6 +5090,25 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 #else
 		ATK_ADD(wd.damage, wd.damage2, 15 * skill_lv);
 #endif
+	}
+
+#ifndef RENEWAL
+	if(skill_id == NJ_KUNAI) {
+		short nk = battle_skill_get_damage_properties(skill_id, wd.miscflag);
+
+		ATK_ADD(wd.damage, wd.damage2, 90);
+		nk |= NK_IGNORE_DEF;
+	}
+#endif
+
+	if(skill_id == SR_GATEOFHELL) {
+		struct status_data *sstatus = status_get_status_data(src);
+
+		ATK_ADD(wd.damage, wd.damage2, sstatus->max_hp - status_get_hp(src));
+		if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE) {
+			ATK_ADD(wd.damage, wd.damage2, (sstatus->max_sp * (1 + skill_lv * 2 / 10)) + 40 * status_get_lv(src));
+		} else
+			ATK_ADD(wd.damage, wd.damage2, (sstatus->sp * (1 + skill_lv * 2 / 10)) + 10 * status_get_lv(src));
 	}
 
 	if(sd) {
@@ -6208,7 +6221,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			}
 #else
 			md.damage = 500 + rnd()%500 + 5 * skill_lv * sstatus->int_;
-			nk |= NK_IGNORE_FLEE|NK_NO_ELEFIX; //These two are not properties of the weapon based part.
+			nk |= NK_NO_ELEFIX|NK_IGNORE_FLEE; //These two are not properties of the weapon based part.
 #endif
 			break;
 		case HW_GRAVITATION:
@@ -6470,6 +6483,7 @@ int64 battle_calc_return_damage(struct block_list* bl, struct block_list *src, i
 			}
 			if( sc->data[SC_DEATHBOUND] && skill_id != WS_CARTTERMINATION && !(src->type == BL_MOB && is_boss(src)) ) {
 				uint8 dir = map_calc_dir(bl, src->x, src->y), t_dir = unit_getdir(bl);
+
 				if( distance_bl(src, bl) <= 0 || !map_check_dir(dir, t_dir) ) {
 					int64 rd1 = 0;
 					rd1 = min(damage, status_get_max_hp(bl)) * sc->data[SC_DEATHBOUND]->val2 / 100; //Amplify damage.

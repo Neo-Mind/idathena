@@ -4978,8 +4978,9 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 	if( m < 0 ) {
 		uint32 ip;
 		uint16 port;
+
 		// If can't find any map-servers, just abort setting position.
-		if( !sd->mapindex || map_mapname2ipport(mapindex,&ip,&port) )
+		if( !sd->mapindex || map_mapname2ipport(mapindex, &ip, &port) )
 			return 2;
 
 		if( sd->npc_id )
@@ -5061,7 +5062,7 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 	/* Given autotrades have no clients you have to trigger this manually
 	 * Otherwise they get stuck in memory limbo bugreport:7495 */
 	if( sd->state.autotrade )
-		clif_parse_LoadEndAck(0,sd);
+		clif_parse_LoadEndAck(0, sd);
 	return 0;
 }
 

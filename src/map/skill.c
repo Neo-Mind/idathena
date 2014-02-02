@@ -6849,15 +6849,15 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					clif_skill_teleportmessage(sd,0);
 					break;
 				}
-				if( !battle_config.duel_allow_teleport && sd->duel_group && skill_lv <= 2 ) { //duel restriction [LuzZza]
+				if( !battle_config.duel_allow_teleport && sd->duel_group && skill_lv <= 2 ) { //Duel restriction [LuzZza]
 					char output[128]; sprintf(output,msg_txt(365),skill_get_name(AL_TELEPORT));
 
 					clif_displaymessage(sd->fd,output); //"Duel: Can't use %s in duel."
 					break;
 				}
 
-				if( sd->state.autocast || ( (sd->skillitem == AL_TELEPORT || battle_config.skip_teleport_lv1_menu) && skill_lv == 1 ) || skill_lv == 3 )
-				{
+				if( sd->state.autocast || ((sd->skillitem == AL_TELEPORT ||
+					battle_config.skip_teleport_lv1_menu) && skill_lv == 1) || skill_lv == 3 ) {
 					if( skill_lv == 1 )
 						pc_randomwarp(sd,CLR_TELEPORT);
 					else
@@ -8812,9 +8812,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				else
 					status_change_start(src,bl,SC_STONE,10000,skill_lv,0,0,1000,skill_get_time(skill_id,skill_lv),2);
 			} else {
-				int rate = 45 + 5 * skill_lv + ( sd ? sd->status.job_level / 4 : 0 );
+				int rate = 45 + 5 * skill_lv + (sd ? sd->status.job_level / 4 : 0);
 
-				//IroWiki says Rate should be reduced by target stats, but currently unknown
 				if( rnd()%100 < rate ) { //Success on First Target
 					if( !tsc->data[SC_STONE] )
 						rate = status_change_start(src,bl,SC_STONE,10000,skill_lv,0,0,1000,skill_get_time(skill_id,skill_lv),2);
@@ -8827,7 +8826,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						skill_area_temp[1] = bl->id;
 						map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
 					}
-					//Doesn't send failure packet if it fails on defense.
+				//Doesn't send failure packet if it fails on defense.
 				} else if( sd ) //Failure on Rate
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			}
@@ -9074,7 +9073,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				if( tsc->data[SC__IGNORANCE] && skill_id == SC_IGNORANCE ) {
 						int sp = 100 * skill_lv;
 
-						if( dstmd ) sp = dstmd->level * 2;
+						if( dstmd )
+							sp = dstmd->level * 2;
 						if( !dstmd && status_zap(bl,0,sp) )
 							status_heal(src,0,sp / 2,3); //What does flag 3 do? [Rytech]
 				}

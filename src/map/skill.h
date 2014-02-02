@@ -29,8 +29,8 @@ DBMap* skilldb_name2id;
 enum e_skill_inf {
 	INF_ATTACK_SKILL  = 0x01,
 	INF_GROUND_SKILL  = 0x02,
-	INF_SELF_SKILL    = 0x04, // Skills casted on self where target is automatically chosen
-	// 0x08 not assigned
+	INF_SELF_SKILL    = 0x04, //Skills casted on self where target is automatically chosen
+	//0x08 not assigned
 	INF_SUPPORT_SKILL = 0x10,
 	INF_TARGET_TRAP   = 0x20,
 };
@@ -40,7 +40,7 @@ enum e_skill_inf {
 ///when determining skill castend function to invoke.
 enum e_skill_nk {
 	NK_NO_DAMAGE      = 0x01,
-	NK_SPLASH         = 0x02|0x04, // 0x4 = splash & split
+	NK_SPLASH         = 0x02|0x04, //0x4 = splash & split
 	NK_SPLASHSPLIT    = 0x04,
 	NK_NO_CARDFIX_ATK = 0x08,
 	NK_NO_ELEFIX      = 0x10,
@@ -94,10 +94,10 @@ enum e_skill_inf3 {
 
 ///Flags passed to skill_attack/skill_area_sub
 enum e_skill_display {
-	SD_LEVEL     = 0x1000, // skill_attack will send -1 instead of skill level (affects display of some skills)
-	SD_ANIMATION = 0x2000, // skill_attack will use '5' instead of the skill's 'type' (this makes skills show an animation)
-	SD_SPLASH    = 0x4000, // skill_area_sub will count targets in skill_area_temp[2]
-	SD_PREAMBLE  = 0x8000, // skill_area_sub will transmit a 'magic' damage packet (-30000 dmg) for the first target selected
+	SD_LEVEL     = 0x1000, //skill_attack will send -1 instead of skill level (affects display of some skills)
+	SD_ANIMATION = 0x2000, //skill_attack will use '5' instead of the skill's 'type' (this makes skills show an animation)
+	SD_SPLASH    = 0x4000, //skill_area_sub will count targets in skill_area_temp[2]
+	SD_PREAMBLE  = 0x8000, //skill_area_sub will transmit a 'magic' damage packet (-30000 dmg) for the first target selected
 };
 
 #define MAX_SKILL_ITEM_REQUIRE 10

@@ -1125,8 +1125,8 @@ int unit_can_move(struct block_list *bl) {
 	if (!ud)
 		return 0;
 	
-	if (ud->skilltimer != INVALID_TIMER && ud->skill_id != LG_EXEEDBREAK && (!sd || !pc_checkskill(sd, SA_FREECAST) || skill_get_inf2(ud->skill_id)&INF2_GUILD_SKILL))
-		return 0; // prevent moving while casting
+	if (ud->skilltimer != INVALID_TIMER && ud->skill_id != LG_EXEEDBREAK && (!sd || !pc_checkskill(sd, SA_FREECAST) || (skill_get_inf2(ud->skill_id)&INF2_GUILD_SKILL)))
+		return 0; // Prevent moving while casting
 	
 	if (DIFF_TICK(ud->canmove_tick, gettick()) > 0)
 		return 0;
@@ -1611,8 +1611,8 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	ud->skill_lv     = skill_lv;
 
 	if( casttime > 0 ) {
-		ud->skilltimer = add_timer( tick+casttime, skill_castend_id, src->id, 0 );
-		if( sd && (pc_checkskill(sd,SA_FREECAST) > 0 || skill_id == LG_EXEEDBREAK) )
+		ud->skilltimer = add_timer(tick + casttime, skill_castend_id, src->id, 0);
+		if( sd && (pc_checkskill(sd, SA_FREECAST) > 0 || skill_id == LG_EXEEDBREAK) )
 			status_calc_bl(&sd->bl, SCB_SPEED);
 	} else
 		skill_castend_id(ud->skilltimer, tick, src->id, 0);
@@ -1778,8 +1778,8 @@ int unit_skilluse_pos2(struct block_list *src, short skill_x, short skill_y, uin
 	//In official this is triggered even if no cast time.
 	clif_skillcasting(src, src->id, 0, skill_x, skill_y, skill_id, skill_get_ele(skill_id, skill_lv), casttime);
 	if(casttime > 0) {
-		ud->skilltimer = add_timer( tick+casttime, skill_castend_pos, src->id, 0 );
-		if((sd && pc_checkskill(sd,SA_FREECAST) > 0) || skill_id == LG_EXEEDBREAK)
+		ud->skilltimer = add_timer( tick + casttime, skill_castend_pos, src->id, 0 );
+		if(sd && (pc_checkskill(sd, SA_FREECAST) > 0 || skill_id == LG_EXEEDBREAK))
 			status_calc_bl(&sd->bl, SCB_SPEED);
 	} else {
 		ud->skilltimer = INVALID_TIMER;
@@ -2122,11 +2122,12 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 
 	if( !battle_config.sdelay_attack_enable && DIFF_TICK(ud->canact_tick,tick) > 0 && !(sd && pc_checkskill(sd,SA_FREECAST) > 0) ) {
 		// Attacking when under cast delay has restrictions:
-		if( tid == INVALID_TIMER ) { //requested attack.
-			if(sd) clif_skill_fail(sd,1,USESKILL_FAIL_SKILLINTERVAL,0);
+		if( tid == INVALID_TIMER ) { // Requested attack.
+			if( sd )
+				clif_skill_fail(sd,1,USESKILL_FAIL_SKILLINTERVAL,0);
 			return 0;
 		}
-		//Otherwise, we are in a combo-attack, delay this until your canact time is over. [Skotlex]
+		// Otherwise, we are in a combo-attack, delay this until your canact time is over. [Skotlex]
 		if( ud->state.attack_continue ) {
 			if( DIFF_TICK(ud->canact_tick, ud->attackabletime) > 0 )
 				ud->attackabletime = ud->canact_tick;
@@ -2253,19 +2254,19 @@ int unit_skillcastcancel(struct block_list *bl,int type)
 		if (!ud->state.skillcastcancel)
 			return 0;
 
-		if (sd && (sd->special_state.no_castcancel2 ||
-		((sd->sc.data[SC_UNLIMITEDHUMMINGVOICE] || sd->special_state.no_castcancel) && !map_flag_gvg(bl->m) && !map[bl->m].flag.battleground))) //fixed flags being read the wrong way around [blackhole89]
+		if (sd && (sd->special_state.no_castcancel2 || ((sd->sc.data[SC_UNLIMITEDHUMMINGVOICE] ||
+			sd->special_state.no_castcancel) && !map_flag_gvg(bl->m) && !map[bl->m].flag.battleground))) //Fixed flags being read the wrong way around [blackhole89]
 			return 0;
 	}
 
 	ud->canact_tick = tick;
 
-	if (type&1 && sd)
+	if ((type&1) && sd)
 		skill_id = sd->skill_id_old;
 	else
 		skill_id = ud->skill_id;
 
-	if (skill_get_inf(skill_id) & INF_GROUND_SKILL)
+	if (skill_get_inf(skill_id)&INF_GROUND_SKILL)
 		ret = delete_timer(ud->skilltimer, skill_castend_pos);
 	else
 		ret = delete_timer(ud->skilltimer, skill_castend_id);
@@ -2275,7 +2276,7 @@ int unit_skillcastcancel(struct block_list *bl,int type)
 
 	ud->skilltimer = INVALID_TIMER;
 
-	if (sd && pc_checkskill(sd,SA_FREECAST) > 0)
+	if (sd && (pc_checkskill(sd,SA_FREECAST) > 0 || skill_id == LG_EXEEDBREAK))
 		status_calc_bl(&sd->bl, SCB_SPEED);
 
 	if (sd) {

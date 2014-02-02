@@ -10423,7 +10423,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 				return;
 
 			if( !battle_config.sdelay_attack_enable && pc_checkskill(sd, SA_FREECAST) <= 0 ) {
-				if (DIFF_TICK(tick, sd->ud.canact_tick) < 0) {
+				if( DIFF_TICK(tick, sd->ud.canact_tick) < 0 ) {
 					clif_skill_fail(sd, 1, USESKILL_FAIL_SKILLINTERVAL, 0);
 					return;
 				}
