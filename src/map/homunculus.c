@@ -1294,7 +1294,7 @@ void read_homunculus_expdb(void)
 		if(fp == NULL) {
 			if(i != 0)
 				continue;
-			ShowError("can't read %s\n",line);
+			ShowError("Can't read %s\n",line);
 			return;
 		}
 		while(fgets(line, sizeof(line), fp) && j < MAX_LEVEL) {

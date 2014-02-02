@@ -1561,11 +1561,12 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		unit_stop_walking(src, 1); //Eventhough this is not how official works but this will do the trick. bugreport:6829
 	//In official this is triggered even if no cast time.
 	clif_skillcasting(src, src->id, target_id, 0, 0, skill_id, skill_get_ele(skill_id, skill_lv), casttime);
-	if( casttime > 0 || combo ) {
+	if( casttime >= 0 || combo ) {
 		if( sd && target->type == BL_MOB ) {
 			TBL_MOB *md = (TBL_MOB*)target;
+
 			mobskill_event(md, src, tick, -1); //Cast targetted skill event.
-			if( tstatus->mode&(MD_CASTSENSOR_IDLE|MD_CASTSENSOR_CHASE) &&
+			if( (tstatus->mode&(MD_CASTSENSOR_IDLE|MD_CASTSENSOR_CHASE)) &&
 				battle_check_target(target, src, BCT_ENEMY) > 0 )
 			{
 				switch( md->state.skillstate ) {

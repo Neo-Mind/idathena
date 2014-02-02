@@ -9904,14 +9904,8 @@ static bool pc_readdb_job_exp(char* fields[], int columns, int current)
 	idx = pc_class2idx(job_id);
 
 	job_info[idx].max_level[type] = maxlvl;
-	for(i = 0; i < maxlvl; i++) {
+	for(i = 0; i < maxlvl; i++)
 		job_info[idx].exp_table[type][i] = ((uint32)atoi(fields[3 + i]));
-		//Place the BaseHP/SP calculation here, so we can use the maxlevel from job_exp
-		if(type != 0)
-			continue;
-		job_info[idx].base_hp[i] = pc_calc_basehp(i + 1, idx);
-		job_info[idx].base_sp[i] = 10 + ((i + 1) * (job_info[idx].sp_factor / 100));
-	}
 	//Reverse check in case the array has a bunch of trailing zeros... [Skotlex]
 	//The reasoning behind the -2 is this... if the max level is 5, then the array
 	//should look like this:
@@ -9927,9 +9921,8 @@ static bool pc_readdb_job_exp(char* fields[], int columns, int current)
 			job_info[idx].exp_table[type][ui] = job_info[idx].exp_table[type][ui - 1];
 		job_info[idx].max_level[type] = maxlvl;
 	}
-	//ShowInfo("%s - Class %d: %d\n", type?"Job":"Base", job_id, job_info[idx].max_level[type]);
+	//ShowInfo("%s - Class %d: %d\n", type ? "Job" : "Base", job_id, job_info[idx].max_level[type]);
 	for(i = 1; i < job_count; i++) {
-		uint16 j;
 		job_id = jobs[i];
 		if(!pcdb_checkid(job_id)) {
 			ShowError("pc_readdb_job_exp: Invalid job ID %d.\n", job_id);
@@ -9938,14 +9931,7 @@ static bool pc_readdb_job_exp(char* fields[], int columns, int current)
 		idx = pc_class2idx(job_id);
 		memcpy(job_info[idx].exp_table[type], job_info[pc_class2idx(jobs[0])].exp_table[type], sizeof(job_info[pc_class2idx(jobs[0])].exp_table[type]));
 		job_info[idx].max_level[type] = maxlvl;
-		//ShowInfo("%s - Class %d: %u\n", type?"Job":"Base", job_id, job_info[idx].max_level[type]);
-		//Place the BaseHP/SP calculation here, so we can use the maxlevel from job_exp
-		if(type != 0)
-			continue;
-		for(j = 0; j < maxlvl; j++) {
-			job_info[idx].base_hp[j] = pc_calc_basehp(j + 1, idx);
-			job_info[idx].base_sp[j] = 10 + ((j + 1) * (job_info[idx].sp_factor / 100));
-		}
+		//ShowInfo("%s - Class %d: %u\n", type ? "Job" : "Base", job_id, job_info[idx].max_level[type]);
 	}
 	return true;
 }
@@ -10128,8 +10114,9 @@ int pc_readdb(void)
 			continue;
 		for( j = 0, p = line; j < 3 && p; j++ ) {
 			split[j] = p;
-			p = strchr(p,',');
-			if(p) *p++ = 0;
+			p = strchr(p, ',');
+			if( p )
+				*p++ = 0;
 		}
 		if( j < 2 )
 			continue;
@@ -10150,8 +10137,9 @@ int pc_readdb(void)
 				if( battle_config.attr_recover == 0 && attr_fix_table[lv - 1][i][j] < 0 )
 					attr_fix_table[lv - 1][i][j] = 0;
 #endif
-				p = strchr(p,',');
-				if( p ) *p++ = 0;
+				p = strchr(p, ',');
+				if( p )
+					*p++ = 0;
 			}
 
 			i++;
@@ -10175,9 +10163,9 @@ int pc_readdb(void)
 		while( fgets(line, sizeof(line), fp) ) {
 			int stat;
 
-			if( line[0]=='/' && line[1]=='/' )
+			if( line[0] == '/' && line[1] == '/' )
 				continue;
-			if( (stat = strtoul(line,NULL,10)) < 0 )
+			if( (stat = strtoul(line, NULL, 10)) < 0 )
 				stat = 0;
 			if( i > MAX_LEVEL )
 				break;
@@ -10197,16 +10185,16 @@ int pc_readdb(void)
 	battle_config.use_statpoint_table = k; // Restore setting
 
 #ifdef RENEWAL_ASPD
-	sv_readdb(db_path, "re/job_db1.txt",',',6 + MAX_WEAPON_TYPE,6 + MAX_WEAPON_TYPE,CLASS_COUNT,&pc_readdb_job1);
+	sv_readdb(db_path, "re/job_db1.txt", ',', 6 + MAX_WEAPON_TYPE, 6 + MAX_WEAPON_TYPE,CLASS_COUNT, &pc_readdb_job1);
 #else
-	sv_readdb(db_path, "pre-re/job_db1.txt",',',5 + MAX_WEAPON_TYPE,5 + MAX_WEAPON_TYPE,CLASS_COUNT,&pc_readdb_job1);
+	sv_readdb(db_path, "pre-re/job_db1.txt" , ',', 5 + MAX_WEAPON_TYPE, 5 + MAX_WEAPON_TYPE,CLASS_COUNT, &pc_readdb_job1);
 #endif
-	sv_readdb(db_path, "job_db2.txt",',',1,1 + MAX_LEVEL,CLASS_COUNT,&pc_readdb_job2);
-	sv_readdb(db_path, DBPATH"job_exp.txt",',',4,1000 + 3,CLASS_COUNT * 2,&pc_readdb_job_exp); //Support till 1000lvl
+	sv_readdb(db_path, "job_db2.txt", ',', 1, 1 + MAX_LEVEL, CLASS_COUNT, &pc_readdb_job2);
+	sv_readdb(db_path, DBPATH"job_exp.txt", ',', 4, 1000 + 3, CLASS_COUNT * 2, &pc_readdb_job_exp); //Support till 1000lvl
 #ifdef HP_SP_TABLES
-	sv_readdb(db_path, DBPATH"job_basehpsp_db.txt",',',4,4 + 500,CLASS_COUNT * 2,&pc_readdb_job_basehpsp); //Make it support until lvl 500!
+	sv_readdb(db_path, DBPATH"job_basehpsp_db.txt", ',', 4, 4 + 500, CLASS_COUNT * 2, &pc_readdb_job_basehpsp); //Make it support until lvl 500!
 #endif
-	sv_readdb(db_path, DBPATH"job_param_db.txt",',',2,PARAM_MAX + 1,CLASS_COUNT,&pc_readdb_job_param);
+	sv_readdb(db_path, DBPATH"job_param_db.txt", ',', 2, PARAM_MAX + 1, CLASS_COUNT, &pc_readdb_job_param);
 
 	// Checking if all class have their data
 	for( i = 0; i < JOB_MAX; i++ ) {
@@ -10221,6 +10209,13 @@ int pc_readdb(void)
 			ShowWarning("Class %s (%d) does not have a base exp table.\n", job_name(i), i);
 		if( !job_info[idx].max_level[1] )
 			ShowWarning("Class %s (%d) does not have a job exp table.\n", job_name(i), i);
+		//Init and checking the empty value of Base HP/SP [Cydh]
+		for( j = 0; j < (job_info[idx].max_level[0] ? job_info[idx].max_level[0] : MAX_LEVEL); j++ ) {
+			if( job_info[idx].base_hp[j] == 0 )
+				job_info[idx].base_hp[j] = pc_calc_basehp(j + 1, idx);
+			if( job_info[idx].base_sp[j] == 0 )
+				job_info[idx].base_sp[j] = 10 + ((j + 1) * (job_info[idx].sp_factor / 100));
+		}
 	}
  	return 0;
 }

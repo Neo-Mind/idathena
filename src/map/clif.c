@@ -17606,7 +17606,7 @@ void packetdb_readdb(void)
 	int ln = 0, entries = 0;
 	int cmd, i, j, packet_ver;
 	int max_cmd = -1;
-	int skip_ver = 0;
+	bool skip_ver = false;
 	int warned = 0;
 	char *str[64], *p, *str2[64], *p2, w1[256], w2[256];
 	int packet_len_table[MAX_PACKET_DB] = {
@@ -18072,9 +18072,9 @@ void packetdb_readdb(void)
 		{NULL,NULL}
 	};
 	struct {
-		char *name; //Function name
-		int funcidx; //
-	} clif_ack_func[] = { //Hash
+		char *name; // Function name
+		int funcidx; // Function index
+	} clif_ack_func[] = { // Hash
 		{"ZC_ACK_OPEN_BANKING",ZC_ACK_OPEN_BANKING},
 		{"ZC_ACK_BANKING_DEPOSIT",ZC_ACK_BANKING_DEPOSIT},
 		{"ZC_ACK_BANKING_WITHDRAW",ZC_ACK_BANKING_WITHDRAW},
@@ -18088,13 +18088,13 @@ void packetdb_readdb(void)
 	for( i = 0; i < ARRAYLENGTH(packet_len_table); ++i )
 		packet_len(i) = packet_len_table[i];
 
+	clif_config.packet_db_ver = MAX_PACKET_VER;
 	sprintf(line,"%s/packet_db.txt",db_path);
 	if( (fp = fopen(line,"r")) == NULL ) {
-		ShowFatalError("can't read %s\n",line);
+		ShowFatalError("Can't read %s\n",line);
 		exit(EXIT_FAILURE);
 	}
 
-	clif_config.packet_db_ver = MAX_PACKET_VER;
 	packet_ver = MAX_PACKET_VER; // Read into packet_db's version by default
 	while( fgets(line,sizeof(line),fp) ) {
 		ln++;
@@ -18110,17 +18110,17 @@ void packetdb_readdb(void)
 					if( (warned&1) == 0 )
 						ShowWarning("The packet_db table only has support up to version %d.\n",MAX_PACKET_VER);
 					warned &= 1;
-					skip_ver = 1;
+					skip_ver = true;
 				} else if( packet_ver < 0 ) {
 					if( (warned&2) == 0 )
 						ShowWarning("Negative packet versions are not supported.\n");
 					warned &= 2;
-					skip_ver = 1;
+					skip_ver = true;
 				} else if( packet_ver == SERVER ) {
 					if( (warned&4) == 0 )
 						ShowWarning("Packet version %d is reserved for server use only.\n",SERVER);
 					warned &= 4;
-					skip_ver = 1;
+					skip_ver = true;
 				}
 
 				if( skip_ver ) {
@@ -18134,7 +18134,7 @@ void packetdb_readdb(void)
 				memcpy(&packet_db_ack[packet_ver],&packet_db_ack[prev_ver],sizeof(packet_db_ack[0]));
 				continue;
 			} else if( strcmpi(w1,"packet_db_ver") == 0 ) {
-				if( strcmpi(w2,"default") == 0 ) //This is the preferred version.
+				if( strcmpi(w2,"default") == 0 ) // This is the preferred version.
 					clif_config.packet_db_ver = MAX_PACKET_VER;
 				else // To manually set the packet DB version
 					clif_config.packet_db_ver = cap_value(atoi(w2),0,MAX_PACKET_VER);
@@ -18142,7 +18142,7 @@ void packetdb_readdb(void)
 			}
 		}
 
-		if( skip_ver != 0 )
+		if( skip_ver )
 			continue; // Skipping current packet version
 
 		memset(str,0,sizeof(str));
