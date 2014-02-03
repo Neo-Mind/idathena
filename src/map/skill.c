@@ -1558,6 +1558,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			if( dstsd && tsc ) {
 				uint16 i = 0;
 				uint8 n = skill_lv * 2 + 2; //4, 6, 8, 10, 12
+
 				for( i = 0; i < SC_MAX && n > 0; i++ ) {
 					if( tsc->data[i] && rnd()%400 < status_get_dex(src) ) { //Custom
 						status_change_end(bl,(sc_type)i,INVALID_TIMER);
@@ -2936,9 +2937,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		case EL_ROCK_CRUSHER_ATK:
 		case EL_HURRICANE:
 		case EL_HURRICANE_ATK:
-		case NC_ARMSCANNON:
 		case GN_CRAZYWEED_ATK:
-		case KO_BAKURETSU:
 		case NC_MAGMA_ERUPTION:
 			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, 5);
 			break;
@@ -4327,7 +4326,10 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					case GN_CARTCANNON:
 						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 						break;
+					case NC_ARMSCANNON:
 					case LG_MOONSLASHER:
+					case KO_BAKURETSU:
+					case RL_BANISHING_BUSTER:
 						clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 						break;
 					case NPC_EARTHQUAKE: //FIXME: Isn't EarthQuake a ground skill after all?
@@ -6380,7 +6382,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			i = map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),
 				src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
-			if( !i && ( skill_id == NC_AXETORNADO || skill_id == SR_SKYNETBLOW || skill_id == KO_HAPPOKUNAI ) )
+			if( !i && (skill_id == NC_AXETORNADO || skill_id == SR_SKYNETBLOW || skill_id == KO_HAPPOKUNAI) )
 				clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 			if( skill_id == GC_COUNTERSLASH )
 				status_change_end(src,SC_WEAPONBLOCKING,INVALID_TIMER);

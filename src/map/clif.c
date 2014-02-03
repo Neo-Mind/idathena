@@ -5332,7 +5332,7 @@ int clif_skill_nodamage(struct block_list *src,struct block_list *dst,uint16 ski
 	WBUFW(buf,2) = skill_id;
 	WBUFW(buf,4) = min(heal,INT16_MAX);
 	WBUFL(buf,6) = dst->id;
-	WBUFL(buf,10) = src ? src->id : 0;
+	WBUFL(buf,10) = (src ? src->id : 0);
 	WBUFB(buf,14) = fail;
 
 	if(disguised(dst)) {

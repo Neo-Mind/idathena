@@ -4158,7 +4158,6 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 		}
 		if(sc->data[SC_EDP]) {
 			switch(skill_id) {
-				case AS_SPLASHER:
 				//Pre-Renewal only: Soul Breaker and Meteor Assault ignores EDP 
 				//Renewal only: Grimtooth and Venom Knife ignore EDP
 				//Both: Venom Splasher ignores EDP [helvetica]
@@ -4169,6 +4168,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 				case AS_GRIMTOOTH:
 				case AS_VENOMKNIFE:
 #endif
+				case AS_SPLASHER:
 					break; //Skills above have no effect with edp
 #ifdef RENEWAL_EDP
 				//Renewal EDP: damage gets a half modifier on top of EDP bonus for skills [helvetica]
@@ -4181,22 +4181,20 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 				case GC_COUNTERSLASH:
 				case GC_CROSSIMPACT:
 					//Only modifier is halved but still benefit with the damage bonus
+					ATK_RATE(wd.damage, wd.damage2, 50);
 	#ifdef RENEWAL
 					ATK_RATE(wd.weaponAtk, wd.weaponAtk2, 50);
 					ATK_RATE(wd.equipAtk, wd.equipAtk2, 50);
-	#else
-					ATK_RATE(wd.damage, wd.damage2, 50);
 	#endif
 				default:
 					//Fall through to apply EDP bonuses
 					//Renewal EDP formula [helvetica]
 					//Weapon atk * (1 + (edp level * .8))
 					//Equip atk * (1 + (edp level * .6))
+					ATK_RATE(wd.damage, wd.damage2, 100 + (sc->data[SC_EDP]->val1 * 80));
 	#ifdef RENEWAL
 					ATK_RATE(wd.weaponAtk, wd.weaponAtk2, 100 + (sc->data[SC_EDP]->val1 * 80));
 					ATK_RATE(wd.equipAtk, wd.equipAtk2, 100 + (sc->data[SC_EDP]->val1 * 60));
-	#else
-					ATK_RATE(wd.damage, wd.damage2, 100 + (sc->data[SC_EDP]->val1 * 80));
 	#endif
 #endif
 
