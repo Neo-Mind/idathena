@@ -1570,7 +1570,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		case RL_S_STORM:
 			if( dstsd ) {
 				uint8 i = 0, n, rand_pos[EQI_MAX];
-				uint16 pos[] = { EQP_HEAD_LOW,EQP_HEAD_MID,EQP_HEAD_TOP,EQP_HAND_R,EQP_HAND_L,EQP_ARMOR,EQP_SHOES,EQP_GARMENT,EQP_ACC_L,EQP_ACC_R };
+				uint16 pos[] = { EQP_HEAD_LOW, EQP_HEAD_MID, EQP_HEAD_TOP, EQP_HAND_R, EQP_HAND_L, EQP_ARMOR, EQP_SHOES, EQP_GARMENT, EQP_ACC_L, EQP_ACC_R };
+
 				n = cap_value(skill_lv,2,ARRAYLENGTH(pos));
 
 				while( i < n ) {
@@ -4266,8 +4267,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case GC_COUNTERSLASH:
 		case LG_MOONSLASHER:
 		case LG_EARTHDRIVE:
-		case SR_RAMPAGEBLASTER:
 		case SR_SKYNETBLOW:
+		case SR_RAMPAGEBLASTER:
 		case SR_WINDMILL:
 		case SR_RIDEINLIGHTNING:
 		case WM_REVERBERATION_MELEE:
@@ -4275,20 +4276,20 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case SO_VARETYR_SPEAR:
 		case GN_CART_TORNADO:
 		case GN_CARTCANNON:
-		case KO_HAPPOKUNAI:
-		case KO_HUUMARANKA:
-		case KO_MUCHANAGE:
 		case KO_BAKURETSU:
+		case KO_HAPPOKUNAI:
+		case KO_MUCHANAGE:
+		case KO_HUUMARANKA:
 		case GN_ILLUSIONDOPING:
-		case RL_FIREDANCE:
 		case RL_BANISHING_BUSTER:
-		case RL_S_STORM:
-		case RL_D_TAIL:
-		case RL_R_TRIP:
 		case RL_FLICKER:
-		case RL_HAMMER_OF_GOD:
+		case RL_S_STORM:
 		case RL_QD_SHOT:
+		case RL_FIREDANCE:
+		case RL_R_TRIP:
+		case RL_D_TAIL:
 		case RL_FIRE_RAIN:
+		case RL_HAMMER_OF_GOD:
 			if (flag&1) {
 				//Recursive invocation
 				//skill_area_temp[0] holds number of targets in area
@@ -4330,6 +4331,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					case LG_MOONSLASHER:
 					case KO_BAKURETSU:
 					case RL_BANISHING_BUSTER:
+					case RL_S_STORM:
+					case RL_FIRE_RAIN:
 						clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 						break;
 					case NPC_EARTHQUAKE: //FIXME: Isn't EarthQuake a ground skill after all?
@@ -6376,8 +6379,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SR_RAMPAGEBLASTER:
 		case SR_HOWLINGOFLION:
 		case KO_HAPPOKUNAI:
+		case RL_R_TRIP:
 		case RL_FIREDANCE:
-		case RL_R_TRIP: 
 			skill_area_temp[1] = 0;
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			i = map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),
@@ -11499,12 +11502,6 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			}
 			break;
 
-		case RL_HAMMER_OF_GOD:
-			i = skill_get_splash(skill_id,skill_lv);
-			map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,BL_CHAR,
-				src,skill_id,skill_lv,tick,flag|BCT_ENEMY|2,skill_castend_damage_id);
-			break;
-
 		default:
 			ShowWarning("skill_castend_pos2: Unknown skill used:%d\n",skill_id);
 			return 1;
@@ -16011,7 +16008,7 @@ int skill_frostjoke_scream(struct block_list *bl, va_list ap)
 
 int skill_check_target_c_marker(struct block_list *bl, va_list ap) {
 	struct block_list *src;
-	struct status_change *tsc;
+	struct status_change *tsc = status_get_sc(bl);
 	struct map_session_data *sd;
 
 	nullpo_ret(bl);
@@ -16021,9 +16018,7 @@ int skill_check_target_c_marker(struct block_list *bl, va_list ap) {
 		return 0;
 	if(!(sd = (struct map_session_data *)src) || !(&sd->c_marker) || !sd->c_marker.target)
 		return 0;
-
 	//Skip target with no Crimson Marker
-	tsc = status_get_sc(bl);
 	if(!tsc || !tsc->data[SC_C_MARKER] || tsc->data[SC_C_MARKER]->val2 != src->id)
 		return 0;
 
