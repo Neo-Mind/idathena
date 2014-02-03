@@ -10214,7 +10214,7 @@ int pc_readdb(void)
 			if( job_info[idx].base_hp[j] == 0 )
 				job_info[idx].base_hp[j] = pc_calc_basehp(j + 1, idx);
 			if( job_info[idx].base_sp[j] == 0 )
-				job_info[idx].base_sp[j] = 10 + ((j + 1) * (job_info[idx].sp_factor / 100));
+				job_info[idx].base_sp[j] = 10 + (unsigned int)floor((j + 1) * (job_info[idx].sp_factor / 100.));
 		}
 	}
  	return 0;
