@@ -15341,7 +15341,7 @@ void clif_bossmapinfo(int fd, struct mob_data *md, short flag)
 				WFIFOL(fd,7) = md->bl.y;
 			} else
 				WFIFOB(fd,2) = 2; // First Time
-		} else if (md->spawn_timer != INVALID_TIMER) { // Boss is Dead
+		} else if( md->spawn_timer != INVALID_TIMER ) { // Boss is Dead
 			const struct TimerData * timer_data = get_timer(md->spawn_timer);
 			unsigned int seconds;
 			int hours, minutes;
@@ -16909,14 +16909,19 @@ int clif_autoshadowspell_list(struct map_session_data *sd) {
 
 	WFIFOHEAD(fd, 2 * 6 + 4);
 	WFIFOW(fd,0) = 0x442;
-	for( i = 0, c = 0; i < MAX_SKILL; i++ )
+	// Only list the magic skills that learned through Intimidate and Reproduce
+	// Cannot autocasted 3rd and extended skills
+	// Some holy skills cannot be autocasted, marked as INF3_NO_AUTOSHADOWSPELL [Cydh]
+	// NOTE: Maybe later can get rid of 'sd->status.skill[i].id < GS_GLITTERING' since there is INF3_NO_AUTOSHADOWSPELL
+	for( i = 0, c = 0; i < MAX_SKILL; i++ ) {
 		if( sd->status.skill[i].flag == SKILL_FLAG_PLAGIARIZED && sd->status.skill[i].id > 0 && 
-			( (sd->status.skill[i].id >= MG_NAPALMBEAT && sd->status.skill[i].id <= MG_THUNDERSTORM) || 
-				sd->status.skill[i].id == AL_HEAL || (sd->status.skill[i].id >= WZ_FIREPILLAR && sd->status.skill[i].id <= WZ_HEAVENDRIVE) ) )
-		{ // Can't auto cast both Extended class and 3rd class skills.
+			sd->status.skill[i].id < GS_GLITTERING && skill_get_type(sd->status.skill[i].id) == BF_MAGIC &&
+			!(skill_get_inf3(sd->status.skill[i].id)&INF3_NO_AUTOSHADOWSPELL) )
+		{
 			WFIFOW(fd,8 + c * 2) = sd->status.skill[i].id;
 			c++;
 		}
+	}
 
 	if( c > 0 ) {
 		WFIFOW(fd,2) = 8 + c * 2;

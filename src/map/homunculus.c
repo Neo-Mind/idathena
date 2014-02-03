@@ -1206,21 +1206,17 @@ static bool read_homunculusdb_sub(char* str[], int columns, int current)
 int read_homunculusdb(void)
 {
 	int i;
-	const char *filename[]={"homunculus_db.txt","homunculus_db2.txt"};
+	const char *filename[] = { "homunculus_db.txt", "homunculus_db2.txt" };
 
 	memset(homunculus_db,0,sizeof(homunculus_db));
-	for(i = 0; i<ARRAYLENGTH(filename); i++)
-	{
-		if( i > 0 )
-		{
+	for(i = 0; i < ARRAYLENGTH(filename); i++) {
+		if(i > 0) {
 			char path[256];
 
 			sprintf(path, "%s/%s", db_path, filename[i]);
 
-			if( !exists(path) )
-			{
+			if(!exists(path))
 				continue;
-			}
 		}
 
 		sv_readdb(db_path, filename[i], ',', 50, 50, MAX_HOMUNCULUS_CLASS, &read_homunculusdb_sub);
@@ -1230,40 +1226,40 @@ int read_homunculusdb(void)
 }
 
 static bool read_homunculus_skilldb_sub(char* split[], int columns, int current)
-{// <hom class>,<skill id>,<max level>[,<job level>],<req id1>,<req lv1>,<req id2>,<req lv2>,<req id3>,<req lv3>,<req id4>,<req lv4>,<req id5>,<req lv5>,<intimacy lv req>
+{ // <hom class>,<skill id>,<max level>[,<job level>],<req id1>,<req lv1>,<req id2>,<req lv2>,<req id3>,<req lv3>,<req id4>,<req lv4>,<req id5>,<req lv5>,<intimacy lv req>
 	int k, classid;
 	int j;
 	int minJobLevelPresent = 0;
 
-	if( columns == 15 )
+	if(columns == 15)
 		minJobLevelPresent = 1;	// MinJobLvl has been added
 
 	// Check for bounds [celest]
 	classid = atoi(split[0]) - HM_CLASS_BASE;
-	if ( classid >= MAX_HOMUNCULUS_CLASS ) {
+	if(classid >= MAX_HOMUNCULUS_CLASS) {
 		ShowWarning("read_homunculus_skilldb: Invalud homunculus class %d.\n", atoi(split[0]));
 		return false;
 	}
 
 	k = atoi(split[1]); // This is to avoid adding two lines for the same skill. [Skotlex]
 	// Search an empty line or a line with the same skill_id (stored in j)
-	ARR_FIND( 0, MAX_SKILL_TREE, j, !hskill_tree[classid][j].id || hskill_tree[classid][j].id == k );
-	if (j == MAX_SKILL_TREE) {
+	ARR_FIND(0, MAX_SKILL_TREE, j, !hskill_tree[classid][j].id || hskill_tree[classid][j].id == k);
+	if(j == MAX_SKILL_TREE) {
 		ShowWarning("Unable to load skill %d into homunculus %d's tree. Maximum number of skills per class has been reached.\n", k, classid);
 		return false;
 	}
 
 	hskill_tree[classid][j].id = k;
 	hskill_tree[classid][j].max = atoi(split[2]);
-	if (minJobLevelPresent)
+	if(minJobLevelPresent)
 		hskill_tree[classid][j].joblv = atoi(split[3]);
 
-	for( k = 0; k < MAX_PC_SKILL_REQUIRE; k++ ) {
-		hskill_tree[classid][j].need[k].id = atoi(split[3+k*2+minJobLevelPresent]);
-		hskill_tree[classid][j].need[k].lv = atoi(split[3+k*2+minJobLevelPresent+1]);
+	for(k = 0; k < MAX_PC_SKILL_REQUIRE; k++) {
+		hskill_tree[classid][j].need[k].id = atoi(split[3 + k * 2 + minJobLevelPresent]);
+		hskill_tree[classid][j].need[k].lv = atoi(split[3 + k * 2 + minJobLevelPresent + 1]);
 	}
 
-	hskill_tree[classid][j].intimacylv = atoi(split[13+minJobLevelPresent]);
+	hskill_tree[classid][j].intimacylv = atoi(split[13 + minJobLevelPresent]);
 
 	return true;
 }

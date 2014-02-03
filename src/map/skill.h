@@ -66,27 +66,28 @@ enum e_skill_inf2 {
 	INF2_GUILD_ONLY     = 0x0800,
 	INF2_NO_ENEMY       = 0x1000,
 	INF2_CHORUS_SKILL   = 0x2000, //Chorus skill
-	INF2_NO_BG_GVG_DMG  = 0x4000, //Spell that ignore bg and gvg reduction
+	INF2_NO_BG_GVG_DMG  = 0x4000, //Skill that ignores bg and gvg reduction
 	INF2_NO_NEARNPC     = 0x8000, //Disable cast skill if near with NPC [Cydh]
 };
 
 ///Skill info type 3
 enum e_skill_inf3 {
-	INF3_NOLP             = 0x0001, //Spells that can ignore Land Protector
-	INF3_NOENDCAMOUFLAGE  = 0x0002, //Spell that doesn't end camouflage
-	INF3_USABLE_HIDING    = 0x0004, //Spell that can be use in hiding
-	INF3_USABLE_DANCE     = 0x0008, //Spell that can be use while in dancing state
-	INF3_HIT_EMP          = 0x0010, //Spell that could hit emperium
-	INF3_STATIS_BL        = 0x0020, //Spell blocked by statis
-	INF3_KAGEHUMI_BL      = 0x0040, //Spell blocked by kagehumi
-	INF3_EFF_VULTURE      = 0x0080, //Spell range affected by AC_VULTURE
-	INF3_EFF_SNAKEEYE     = 0x0100, //Spell range affected by GS_SNAKEEYE
-	INF3_EFF_SHADOWJUMP   = 0x0200, //Spell range affected by NJ_SHADOWJUMP
-	INF3_EFF_RADIUS       = 0x0400, //Spell range affected by WL_RADIUS
-	INF3_EFF_RESEARCHTRAP = 0x0800, //Spell range affected by RA_RESEARCHTRAP
-	INF3_USABLE_MANHOLE   = 0x1000, //Spell that can be used even under Man Hole effect
-	INF3_USABLE_WARG      = 0x2000, //Spell that can be use while riding warg
-	INF3_DIS_MADO         = 0x4000, //Spell that can't be used while in mado
+	INF3_NOLP               = 0x0001, //Skill that can ignores Land Protector
+	INF3_NOENDCAMOUFLAGE    = 0x0002, //Skill that doesn't end camouflage
+	INF3_USABLE_HIDING      = 0x0004, //Skill that can be use in hiding
+	INF3_USABLE_DANCE       = 0x0008, //Skill that can be use while in dancing state
+	INF3_HIT_EMP            = 0x0010, //Skill that could hit emperium
+	INF3_STATIS_BL          = 0x0020, //Skill blocked by statis
+	INF3_KAGEHUMI_BL        = 0x0040, //Skill blocked by kagehumi
+	INF3_EFF_VULTURE        = 0x0080, //Skill range affected by AC_VULTURE
+	INF3_EFF_SNAKEEYE       = 0x0100, //Skill range affected by GS_SNAKEEYE
+	INF3_EFF_SHADOWJUMP     = 0x0200, //Skill range affected by NJ_SHADOWJUMP
+	INF3_EFF_RADIUS         = 0x0400, //Skill range affected by WL_RADIUS
+	INF3_EFF_RESEARCHTRAP   = 0x0800, //Skill range affected by RA_RESEARCHTRAP
+	INF3_USABLE_MANHOLE     = 0x1000, //Skill that can be used even under Man Hole effect
+	INF3_USABLE_WARG        = 0x2000, //Skill that can be use while riding warg
+	INF3_DIS_MADO           = 0x4000, //Skill that can't be used while in mado
+	INF3_NO_AUTOSHADOWSPELL = 0x8000, //Skill that can't be auto casted by Auto Shadow Spell
 };
 
 ///Walk intervals at which chase-skills are attempted to be triggered.

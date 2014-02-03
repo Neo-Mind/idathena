@@ -795,18 +795,17 @@ ACMD_FUNC(speed)
 ACMD_FUNC(storage)
 {
 	nullpo_retr(-1, sd);
-	
+
 	if (sd->npc_id || sd->state.vending || sd->state.buyingstore || sd->state.trading || sd->state.storage_flag)
 		return -1;
 
-	if (storage_storageopen(sd) == 1)
-	{	//Already open.
+	if (storage_storageopen(sd) == 1) { //Already open.
 		clif_displaymessage(fd, msg_txt(250));
 		return -1;
 	}
-	
+
 	clif_displaymessage(fd, msg_txt(919)); // Storage opened.
-	
+
 	return 0;
 }
 

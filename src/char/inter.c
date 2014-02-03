@@ -433,7 +433,8 @@ void mapif_parse_accinfo(int fd) {
 		char userid[NAME_LENGTH], user_pass[NAME_LENGTH], email[40], last_ip[20], lastlogin[30], pincode[5], birthdate[11];
 		short level = -1;
 		int logincount = 0, state = 0;
-		// FIXME: No, this doesn't really look right. We can't, and shouldn't, access the login table from the char server.
+
+		//@FIXME: No, this doesn't really look right. We can't, and shouldn't, access the login table from the char server.
 		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `userid`, `user_pass`, `email`, `last_ip`, `group_id`, `lastlogin`, `logincount`, `state`,`pincode`,`birthdate` FROM `login` WHERE `account_id` = '%d' LIMIT 1", account_id)
 			|| Sql_NumRows(sql_handle) == 0 ) {
 			if( Sql_NumRows(sql_handle) == 0 )
@@ -1166,8 +1167,7 @@ int inter_parse_frommap(int fd)
 		  || inter_elemental_parse_frommap(fd)
 		  || inter_mail_parse_frommap(fd)
 		  || inter_auction_parse_frommap(fd)
-		  || inter_quest_parse_frommap(fd)
-		   )
+		  || inter_quest_parse_frommap(fd) )
 			break;
 		else
 			return 0;

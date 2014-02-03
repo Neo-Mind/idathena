@@ -19363,7 +19363,7 @@ static bool skill_parse_row_requiredb(char* split[], int columns, int current)
 }
 
 static bool skill_parse_row_castdb(char* split[], int columns, int current)
-{ //skill_id,CastingTime,AfterCastActDelay,AfterCastWalkDelay,Duration1,Duration2
+{ //skill_id,CastingTime,AfterCastActDelay,AfterCastWalkDelay,Duration1,Duration2,Cooldown{,FixedCast}
 	uint16 skill_id = atoi(split[0]);
 	int idx = skill_get_index(skill_id);
 

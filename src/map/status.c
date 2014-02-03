@@ -8296,6 +8296,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_BOSSMAPINFO:
 				if( sd != NULL ) {
 					struct mob_data *boss_md = map_getmob_boss(bl->m); //Search for Boss on this Map
+
 					if( boss_md == NULL || boss_md->bl.prev == NULL ) { //No MVP on this map - MVP is dead
 						clif_bossmapinfo(sd->fd,boss_md,1);
 						return 0; //No need to start SC
@@ -9978,6 +9979,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 		case SC_RUN: {
 				struct unit_data *ud = unit_bl2ud(bl);
+
 				if(ud)
 					ud->state.running = unit_run(bl);
 			}

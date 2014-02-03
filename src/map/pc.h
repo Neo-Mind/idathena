@@ -266,9 +266,9 @@ struct map_session_data {
 
 	time_t emotionlasttime; //To limit flood with emotion packets
 
-	short skillitem,skillitemlv;
-	uint16 skill_id_old,skill_lv_old;
-	uint16 skill_id_dance,skill_lv_dance;
+	short skillitem, skillitemlv;
+	uint16 skill_id_old, skill_lv_old;
+	uint16 skill_id_dance, skill_lv_dance;
 	short cook_mastery; //Range: [0,1999] [Inkfish]
 	struct skill_cooldown_entry * scd[MAX_SKILLCOOLDOWN]; // Skill Cooldown
 	int cloneskill_idx, //Stores index of copied skill by Intimidate/Plagiarism
