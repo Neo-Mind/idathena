@@ -4257,8 +4257,8 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 			RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.long_attack_atk_rate'
 		}
 		if(sc->data[SC_HEAT_BARREL]) {
-			ATK_ADD(wd.damage, wd.damage2, sc->data[SC_HEAT_BARREL]->val2);
-			RE_ALLATK_ADD(wd, sc->data[SC_HEAT_BARREL]->val2);
+			ATK_ADDRATE(wd.damage, wd.damage2, 200);
+			RE_ALLATK_ADDRATE(wd, 200);
 		}
 		if(sc->data[SC_P_ALTER]) {
 			ATK_ADD(wd.damage, wd.damage2, sc->data[SC_P_ALTER]->val2);

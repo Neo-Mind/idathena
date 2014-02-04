@@ -2114,7 +2114,7 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 		return 0;
 
 	if( src->m != target->m ) {
-		if( src->type == BL_MOB && mob_warpchase((TBL_MOB*)src, target) )
+		if( src->type == BL_MOB && mob_warpchase((TBL_MOB*)src,target) )
 			return 1; // Follow up.
 		return 0;
 	}

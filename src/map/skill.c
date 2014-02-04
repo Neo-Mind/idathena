@@ -10269,10 +10269,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 					break;
 				}
-				if(skill_id == RL_D_TAIL) {
+				if(skill_id == RL_D_TAIL)
 					status_zap(src,0,skill_get_sp(skill_id,skill_lv));
-					skill_area_temp[0] = map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),src,skill_id,skill_lv,tick,BCT_ENEMY,skill_area_sub_count);;
-				}
 				skill_area_temp[1] = 0;
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				i = map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
@@ -15395,15 +15393,17 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 		if( sc->data[SC_TELEKINESIS_INTENSE] )
 			VARCAST_REDUCTION(sc->data[SC_TELEKINESIS_INTENSE]->val2);
 		//Fixed cast reduction bonuses
-		if( sc->data[SC_DANCEWITHWUG] )
-			fixcast_r = max(fixcast_r, sc->data[SC_DANCEWITHWUG]->val4);
 		if( sc->data[SC_SECRAMENT] )
 			fixcast_r = max(fixcast_r, sc->data[SC_SECRAMENT]->val2);
-		if( sd && ( skill_lv = pc_checkskill(sd, WL_RADIUS) ) && skill_id >= WL_WHITEIMPRISON && skill_id <= WL_FREEZE_SP  ) {
+		if( sd && (skill_lv = pc_checkskill(sd, WL_RADIUS)) && skill_id >= WL_WHITEIMPRISON && skill_id <= WL_FREEZE_SP  ) {
 			int reduce_fc_r = (status_get_int(bl) / 15) + (sd->status.base_level / 15) + (5 + skill_lv * 5);
 
 			fixcast_r = max(fixcast_r, reduce_fc_r);
 		}
+		if( sc->data[SC_DANCEWITHWUG] )
+			fixcast_r = max(fixcast_r, sc->data[SC_DANCEWITHWUG]->val4);
+		if( sc->data[SC_HEAT_BARREL] )
+			fixcast_r = max(fixcast_r, sc->data[SC_DANCEWITHWUG]->val2);
 		//Fixed cast non percentage bonuses
 		if( sc->data[SC_MANDRAGORA] )
 			fixed += sc->data[SC_MANDRAGORA]->val1 * 1000 / 2;

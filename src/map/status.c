@@ -821,7 +821,7 @@ void initChangeTables(void) {
 	set_sc( RL_P_ALTER          , SC_P_ALTER             , SI_P_ALTER              , SCB_BATK );
 	set_sc( RL_SLUGSHOT         , SC_STUN                , SI_SLUGSHOT             , SCB_NONE );
 	set_sc( RL_AM_BLAST         , SC_ANTI_M_BLAST        , SI_ANTI_M_BLAST         , SCB_NONE );
-	set_sc( RL_HEAT_BARREL      , SC_HEAT_BARREL         , SI_HEAT_BARREL          , SCB_BATK|SCB_ASPD|SCB_HIT );
+	set_sc( RL_HEAT_BARREL      , SC_HEAT_BARREL         , SI_HEAT_BARREL          , SCB_ASPD|SCB_HIT );
 
 	//Storing the target job rather than simply SC_SPIRIT simplifies code later on.
 	SkillStatusChangeTable[SL_ALCHEMIST]   = (sc_type)MAPID_ALCHEMIST,
@@ -9504,7 +9504,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				if( sd ) {
 					uint8 n = (uint8)sd->spiritball_old;
 
-					val2 = val1 * n * 4; //+ATK (Custom)
+					val2 = val1 * 5; //-%Fixed cast (Custom)
 					val3 = val1 * n / 5; //+ASPD (Custom)
 					val4 = val1 * n * 2; //-HIT (Custom)
 				}
