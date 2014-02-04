@@ -1051,7 +1051,7 @@ static void itemdb_read_combos() {
 		} else {
 			int items[MAX_ITEMS_PER_COMBO];
 			int v = 0, retcount = 0;
-			struct item_data * id = NULL;
+			struct item_data* id = NULL;
 			int idx = 0;
 
 			if ((retcount = itemdb_combo_split_atoi(str[0], items)) < 2) {
