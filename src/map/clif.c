@@ -1637,12 +1637,12 @@ void clif_send_homdata(struct map_session_data *sd, int state, int param)
 	if ( (state == SP_INTIMATE) && (param >= 910) && (sd->hd->homunculus.class_ == sd->hd->homunculusDB->evo_class) )
 		merc_hom_calc_skilltree(sd->hd, 0);
 
-	WFIFOHEAD(fd, packet_len(0x230));
-	WFIFOW(fd,0)=0x230;
-	WFIFOB(fd,2)=0;
-	WFIFOB(fd,3)=state;
-	WFIFOL(fd,4)=sd->hd->bl.id;
-	WFIFOL(fd,8)=param;
+	WFIFOHEAD(fd,packet_len(0x230));
+	WFIFOW(fd,0) = 0x230;
+	WFIFOB(fd,2) = 0;
+	WFIFOB(fd,3) = state;
+	WFIFOL(fd,4) = sd->hd->bl.id;
+	WFIFOL(fd,8) = param;
 	WFIFOSET(fd,packet_len(0x230));
 }
 
@@ -1651,30 +1651,32 @@ int clif_homskillinfoblock(struct map_session_data *sd)
 {	//[orn]
 	struct homun_data *hd;
 	int fd = sd->fd;
-	int i,j,len=4,id;
-	WFIFOHEAD(fd, 4+37*MAX_HOMUNSKILL);
+	int i, j, len = 4, id;
+
+	WFIFOHEAD(fd,4 + 37 * MAX_HOMUNSKILL);
 
 	hd = sd->hd;
 	if ( !hd )
 		return 0 ;
 
-	WFIFOW(fd,0)=0x235;
+	WFIFOW(fd,0) = 0x235;
 	for ( i = 0; i < MAX_HOMUNSKILL; i++) {
 		if( (id = hd->homunculus.hskill[i].id) != 0 ) {
 			int combo = (hd->homunculus.hskill[i].flag)&SKILL_FLAG_TMP_COMBO;
+
 			j = id - HM_SKILLBASE;
-			WFIFOW(fd,len  ) = id;
-			WFIFOW(fd,len+2) = ((combo)?INF_SELF_SKILL:skill_get_inf(id));
-			WFIFOW(fd,len+4) = 0;
-			WFIFOW(fd,len+6) = hd->homunculus.hskill[j].lv;
-			WFIFOW(fd,len+8) = skill_get_sp(id,hd->homunculus.hskill[j].lv);
-			WFIFOW(fd,len+10)= skill_get_range2(&sd->hd->bl, id,hd->homunculus.hskill[j].lv);
-			safestrncpy((char*)WFIFOP(fd,len+12), skill_get_name(id), NAME_LENGTH);
-			WFIFOB(fd,len+36) = (hd->homunculus.hskill[j].lv < merc_skill_tree_get_max(id, hd->homunculus.class_))?1:0;
-			len+=37;
+			WFIFOW(fd,len) = id;
+			WFIFOW(fd,len + 2) = ((combo) ? INF_SELF_SKILL : skill_get_inf(id));
+			WFIFOW(fd,len + 4) = 0;
+			WFIFOW(fd,len + 6) = hd->homunculus.hskill[j].lv;
+			WFIFOW(fd,len + 8) = skill_get_sp(id,hd->homunculus.hskill[j].lv);
+			WFIFOW(fd,len + 10) = skill_get_range2(&sd->hd->bl, id,hd->homunculus.hskill[j].lv);
+			safestrncpy((char*)WFIFOP(fd,len + 12), skill_get_name(id), NAME_LENGTH);
+			WFIFOB(fd,len + 36) = (hd->homunculus.hskill[j].lv < merc_skill_tree_get_max(id, hd->homunculus.class_)) ? 1 : 0;
+			len += 37;
 		}
 	}
-	WFIFOW(fd,2)=len;
+	WFIFOW(fd,2) = len;
 	WFIFOSET(fd,len);
 
 	return 0;
@@ -2096,8 +2098,8 @@ void clif_sendfakenpc(struct map_session_data *sd, int npcid)
 {
 	unsigned char *buf;
 	int fd = sd->fd;
-	sd->state.using_fake_npc = 1;
 
+	sd->state.using_fake_npc = 1;
 	WFIFOHEAD(fd,packet_len(0x78));
 	buf = WFIFOP(fd,0);
 	memset(WBUFP(buf,0),0,packet_len(0x78));
@@ -2139,18 +2141,18 @@ void clif_scriptmenu(struct map_session_data* sd, int npcid, const char* mes)
 {
 	int fd = sd->fd;
 	int slen = strlen(mes) + 9;
-	struct block_list *bl = NULL;
+	struct block_list *bl = map_id2bl(npcid);
 
-	if (!sd->state.using_fake_npc && (npcid == fake_nd->bl.id || ((bl = map_id2bl(npcid)) && (bl->m!=sd->bl.m ||
-	   bl->x<sd->bl.x-AREA_SIZE-1 || bl->x>sd->bl.x+AREA_SIZE+1 ||
-	   bl->y<sd->bl.y-AREA_SIZE-1 || bl->y>sd->bl.y+AREA_SIZE+1))))
+	if (!sd->state.using_fake_npc && (npcid == fake_nd->bl.id || (bl && (bl->m != sd->bl.m ||
+	   bl->x < sd->bl.x - AREA_SIZE - 1 || bl->x > sd->bl.x + AREA_SIZE + 1 ||
+	   bl->y < sd->bl.y - AREA_SIZE - 1 || bl->y > sd->bl.y + AREA_SIZE + 1))))
 	   clif_sendfakenpc(sd, npcid);
 
-	WFIFOHEAD(fd, slen);
-	WFIFOW(fd,0)=0xb7;
-	WFIFOW(fd,2)=slen;
-	WFIFOL(fd,4)=npcid;
-	memcpy((char*)WFIFOP(fd,8), mes, slen-8);
+	WFIFOHEAD(fd,slen);
+	WFIFOW(fd,0) = 0xb7;
+	WFIFOW(fd,2) = slen;
+	WFIFOL(fd,4) = npcid;
+	memcpy((char*)WFIFOP(fd,8), mes, slen - 8);
 	WFIFOSET(fd,WFIFOW(fd,2));
 }
 
@@ -2169,19 +2171,19 @@ void clif_scriptmenu(struct map_session_data* sd, int npcid, const char* mes)
 void clif_scriptinput(struct map_session_data *sd, int npcid)
 {
 	int fd;
-	struct block_list *bl = NULL;
+	struct block_list *bl = map_id2bl(npcid);
 
 	nullpo_retv(sd);
 
-	if (!sd->state.using_fake_npc && (npcid == fake_nd->bl.id || ((bl = map_id2bl(npcid)) && (bl->m!=sd->bl.m ||
-	   bl->x<sd->bl.x-AREA_SIZE-1 || bl->x>sd->bl.x+AREA_SIZE+1 ||
-	   bl->y<sd->bl.y-AREA_SIZE-1 || bl->y>sd->bl.y+AREA_SIZE+1))))
+	if (!sd->state.using_fake_npc && (npcid == fake_nd->bl.id || (bl && (bl->m != sd->bl.m ||
+	   bl->x < sd->bl.x - AREA_SIZE - 1 || bl->x > sd->bl.x + AREA_SIZE + 1 ||
+	   bl->y < sd->bl.y - AREA_SIZE - 1 || bl->y > sd->bl.y + AREA_SIZE + 1))))
 	   clif_sendfakenpc(sd, npcid);
-	
-	fd=sd->fd;
-	WFIFOHEAD(fd, packet_len(0x142));
-	WFIFOW(fd,0)=0x142;
-	WFIFOL(fd,2)=npcid;
+
+	fd = sd->fd;
+	WFIFOHEAD(fd,packet_len(0x142));
+	WFIFOW(fd,0) = 0x142;
+	WFIFOL(fd,2) = npcid;
 	WFIFOSET(fd,packet_len(0x142));
 }
 
@@ -2200,19 +2202,19 @@ void clif_scriptinput(struct map_session_data *sd, int npcid)
 void clif_scriptinputstr(struct map_session_data *sd, int npcid)
 {
 	int fd;
-	struct block_list *bl = NULL;
+	struct block_list *bl = map_id2bl(npcid);
 
 	nullpo_retv(sd);
 
-	if (!sd->state.using_fake_npc && (npcid == fake_nd->bl.id || ((bl = map_id2bl(npcid)) && (bl->m!=sd->bl.m ||
-	   bl->x<sd->bl.x-AREA_SIZE-1 || bl->x>sd->bl.x+AREA_SIZE+1 ||
-	   bl->y<sd->bl.y-AREA_SIZE-1 || bl->y>sd->bl.y+AREA_SIZE+1))))
+	if (!sd->state.using_fake_npc && (npcid == fake_nd->bl.id || (bl && (bl->m != sd->bl.m ||
+	   bl->x < sd->bl.x - AREA_SIZE - 1 || bl->x > sd->bl.x + AREA_SIZE + 1 ||
+	   bl->y < sd->bl.y - AREA_SIZE - 1 || bl->y > sd->bl.y + AREA_SIZE + 1))))
 	   clif_sendfakenpc(sd, npcid);
 
-	fd=sd->fd;
-	WFIFOHEAD(fd, packet_len(0x1d4));
-	WFIFOW(fd,0)=0x1d4;
-	WFIFOL(fd,2)=npcid;
+	fd = sd->fd;
+	WFIFOHEAD(fd,packet_len(0x1d4));
+	WFIFOW(fd,0) = 0x1d4;
+	WFIFOL(fd,2) = npcid;
 	WFIFOSET(fd,packet_len(0x1d4));
 }
 
@@ -2233,15 +2235,15 @@ void clif_viewpoint(struct map_session_data *sd, int npc_id, int type, int x, in
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
-	WFIFOHEAD(fd, packet_len(0x144));
-	WFIFOW(fd,0)=0x144;
-	WFIFOL(fd,2)=npc_id;
-	WFIFOL(fd,6)=type;
-	WFIFOL(fd,10)=x;
-	WFIFOL(fd,14)=y;
-	WFIFOB(fd,18)=id;
-	WFIFOL(fd,19)=color;
+	fd = sd->fd;
+	WFIFOHEAD(fd,packet_len(0x144));
+	WFIFOW(fd,0) = 0x144;
+	WFIFOL(fd,2) = npc_id;
+	WFIFOL(fd,6) = type;
+	WFIFOL(fd,10) = x;
+	WFIFOL(fd,14) = y;
+	WFIFOB(fd,18) = id;
+	WFIFOL(fd,19) = color;
 	WFIFOSET(fd,packet_len(0x144));
 }
 
@@ -2261,11 +2263,11 @@ void clif_cutin(struct map_session_data* sd, const char* image, int type)
 	
 	nullpo_retv(sd);
 
-	fd=sd->fd;
-	WFIFOHEAD(fd, packet_len(0x1b3));
-	WFIFOW(fd,0)=0x1b3;
-	strncpy((char*)WFIFOP(fd,2),image,64);
-	WFIFOB(fd,66)=type;
+	fd = sd->fd;
+	WFIFOHEAD(fd,packet_len(0x1b3));
+	WFIFOW(fd,0) = 0x1b3;
+	strncpy((char*)WFIFOP(fd,2), image, 64);
+	WFIFOB(fd,66) = type;
 	WFIFOSET(fd,packet_len(0x1b3));
 }
 

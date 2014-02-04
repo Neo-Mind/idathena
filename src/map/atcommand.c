@@ -6911,9 +6911,9 @@ ACMD_FUNC(showmobs)
 	it = mapit_geteachmob();
 	for (;;) {
 		TBL_MOB* md = (TBL_MOB*)mapit_next(it);
+
 		if (md == NULL)
 			break; // No more mobs
-
 		if (md->bl.m != sd->bl.m)
 			continue;
 		if (mob_id != -1 && md->mob_id != mob_id)

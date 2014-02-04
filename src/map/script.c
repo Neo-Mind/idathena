@@ -5872,14 +5872,14 @@ BUILDIN_FUNC(cutin)
  *------------------------------------------*/
 BUILDIN_FUNC(viewpoint)
 {
-	int type,x,y,id,color;
+	int type, x, y, id, color;
 	TBL_PC* sd;
 
-	type=script_getnum(st,2);
-	x=script_getnum(st,3);
-	y=script_getnum(st,4);
-	id=script_getnum(st,5);
-	color=script_getnum(st,6);
+	type = script_getnum(st,2);
+	x = script_getnum(st,3);
+	y = script_getnum(st,4);
+	id = script_getnum(st,5);
+	color = script_getnum(st,6);
 	
 	sd = script_rid2sd(st);
 	if( sd == NULL )
@@ -16666,7 +16666,8 @@ static int buildin_mobuseskill_sub(struct block_list *bl,va_list ap)
 		case 0: tbl = map_id2bl(md->bl.id); break;
 		case 1: tbl = map_id2bl(md->target_id); break;
 		case 2: tbl = map_id2bl(md->master_id); break;
-		default:tbl = battle_getenemy(&md->bl,DEFAULT_ENEMY_TYPE(md),skill_get_range2(&md->bl,skill_id,skill_lv)); break;
+		default:
+			tbl = battle_getenemy(&md->bl,DEFAULT_ENEMY_TYPE(md),skill_get_range2(&md->bl,skill_id,skill_lv)); break;
 	}
 
 	if( !tbl )

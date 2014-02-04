@@ -1746,8 +1746,8 @@ static int battle_range_type(struct block_list *src, struct block_list *target, 
 	return BF_LONG;
 }
 
-static inline int battle_adjust_skill_damage(int m, unsigned short skill_id) {
-
+static inline int battle_adjust_skill_damage(int m, unsigned short skill_id)
+{
 	if(map[m].skill_count) {
 		int i;
 
@@ -1762,6 +1762,7 @@ static inline int battle_adjust_skill_damage(int m, unsigned short skill_id) {
 static int battle_blewcount_bonus(struct map_session_data *sd, uint16 skill_id)
 {
 	uint8 i;
+
 	if(!sd->skillblown[0].id)
 		return 0;
 	//Apply the bonus blewcount. [Skotlex]
@@ -3978,8 +3979,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			break;
 		case RL_H_MINE:
 			skillratio += 100 + (200 * skill_lv);
-			//If damaged by Flicker
-			if(sd && sd->skill_id_old == RL_FLICKER && tsc && tsc->data[SC_H_MINE] && tsc->data[SC_H_MINE]->val2 == src->id)
+			if(sd && sd->skill_id_old == RL_FLICKER) //Explode bonus damage
 				skillratio += 800 + (skill_lv - 1) * 300;
 			break;
 		case RL_HAMMER_OF_GOD:

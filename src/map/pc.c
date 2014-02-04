@@ -1855,11 +1855,15 @@ static int pc_bonus_autospell(struct s_autospell *spell, int max, short id, shor
 	spell[i].lv = lv;
 	spell[i].rate = rate;
 	//Auto-update flag value.
-	if (!(flag&BF_RANGEMASK)) flag|=BF_SHORT|BF_LONG; //No range defined? Use both.
-	if (!(flag&BF_WEAPONMASK)) flag|=BF_WEAPON; //No attack type defined? Use weapon.
-	if (!(flag&BF_SKILLMASK)) {
-		if (flag&(BF_MAGIC|BF_MISC)) flag|=BF_SKILL; //These two would never trigger without BF_SKILL
-		if (flag&BF_WEAPON) flag|=BF_NORMAL; //By default autospells should only trigger on normal weapon attacks.
+	if( !(flag&BF_RANGEMASK) )
+		flag |= BF_SHORT|BF_LONG; //No range defined? Use both.
+	if( !(flag&BF_WEAPONMASK) )
+		flag |= BF_WEAPON; //No attack type defined? Use weapon.
+	if( !(flag&BF_SKILLMASK) ) {
+		if( flag&(BF_MAGIC|BF_MISC) )
+			flag |= BF_SKILL; //These two would never trigger without BF_SKILL
+		if( flag&BF_WEAPON )
+			flag |= BF_NORMAL; //By default autospells should only trigger on normal weapon attacks.
 	}
 	spell[i].flag|= flag;
 	spell[i].card_id = card_id;
@@ -10504,8 +10508,9 @@ void pc_crimson_marker_clear(struct map_session_data *sd) {
 	if( !sd || !(&sd->c_marker) || !sd->c_marker.target )
 		return;
 	for( i = 0; i < MAX_SKILL_CRIMSON_MARKER; i++ ) {
-		struct block_list *bl = NULL;
-		if( sd->c_marker.target[i] && (bl = map_id2bl(sd->c_marker.target[i])) )
+		struct block_list *bl = map_id2bl(sd->c_marker.target[i]);
+
+		if( bl && sd->c_marker.target[i] )
 			status_change_end(bl,SC_C_MARKER,INVALID_TIMER);
 	}
 }

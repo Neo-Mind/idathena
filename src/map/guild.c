@@ -1307,8 +1307,8 @@ int guild_skillupack(int guild_id,uint16 skill_id,int account_id)
 	if( sd != NULL ) {
 		int lv = g->skill[skill_id-GD_SKILLBASE].lv;
 		int range = skill_get_range(skill_id, lv);
-		clif_skillup(sd,skill_id,lv,range,1);
 
+		clif_skillup(sd,skill_id,lv,range,1);
 		/* Guild Aura handling */
 		switch( skill_id ) {
 			case GD_LEADERSHIP:

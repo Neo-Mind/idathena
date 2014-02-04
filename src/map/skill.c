@@ -311,7 +311,7 @@ int skill_get_range2 (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 {
 	int range, inf3 = 0;
 
-	if( bl->type == BL_MOB && battle_config.mob_ai&0x400 )
+	if( bl->type == BL_MOB && (battle_config.mob_ai&0x400) )
 		return 9; //Mobs have a range of 9 regardless of skill used.
 
 	range = skill_get_range(skill_id, skill_lv);
@@ -5276,15 +5276,17 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),
 						src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 				} else {
-					if (sd && sd->flicker && tsc && tsc->data[SC_H_MINE] && tsc->data[SC_H_MINE]->val2 == src->id) {
-						skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
+					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+					if (sd->flicker && tsc && tsc->data[SC_H_MINE] && tsc->data[SC_H_MINE]->val2 == src->id) {
+						clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
+						skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag|SD_ANIMATION);
 						tsc->data[SC_H_MINE]->val3 = 1; //Mark the SC end because not expired
 						status_change_end(bl,SC_H_MINE,INVALID_TIMER);
 						sc_start4(src,bl,SC_BURNING,10 * skill_lv + rnd()%50,skill_lv,1000,src->id,0,skill_get_time2(skill_id,skill_lv));
-					} else if (skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag) && !sd->flicker && !status_isdead(bl))
+					} else if (skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag|SD_ANIMATION) && !sd->flicker && !status_isdead(bl))
 						sc_start(src,bl,SC_H_MINE,100,skill_id,skill_get_time(skill_id,skill_lv));
 				}
-			} else if (skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag))
+			} else if (skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag|SD_ANIMATION))
 				sc_start4(src,bl,SC_BURNING,10 * skill_lv + rnd()%50,skill_lv,1000,src->id,0,skill_get_time2(skill_id,skill_lv));
 			break;
 
@@ -6381,12 +6383,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			i = map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),
 				src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
-			if( !i && (skill_id == NC_AXETORNADO || skill_id == SR_SKYNETBLOW || skill_id == KO_HAPPOKUNAI) )
+			if (!i && (skill_id == NC_AXETORNADO || skill_id == SR_SKYNETBLOW || skill_id == KO_HAPPOKUNAI))
 				clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
-			if( skill_id == GC_COUNTERSLASH )
+			if (skill_id == GC_COUNTERSLASH)
 				status_change_end(src,SC_WEAPONBLOCKING,INVALID_TIMER);
-			if( sd && skill_id == RL_FLICKER )
+			if (sd && skill_id == RL_FLICKER) {
+				sd->skill_id_old = 0;
 				sd->flicker = false;
+			}
 			break;
 
 		case NC_EMERGENCYCOOL:
@@ -6445,7 +6449,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				skill_get_splash(skill_id,skill_lv),splash_target(src),
 				src,skill_id,skill_lv,tick,flag|i,
 				skill_castend_damage_id);
-			if( map_addblock(src) )
+			if (map_addblock(src))
 				return 1;
 			status_damage(src,src,sstatus->max_hp,0,0,1);
 			break;
