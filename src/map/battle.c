@@ -3079,6 +3079,8 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 		if(sc->data[SC_CONCENTRATION])
 			skillratio += sc->data[SC_CONCENTRATION]->val2;
 #endif
+		if(sc->data[SC_HEAT_BARREL])
+			skillratio += 200;
 	}
 
 	switch(skill_id) {
@@ -4256,10 +4258,6 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 		if(sc->data[SC_MTF_RANGEATK] && (wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG) {
 			ATK_ADDRATE(wd.damage, wd.damage2, 25);
 			RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.long_attack_atk_rate'
-		}
-		if(sc->data[SC_HEAT_BARREL]) {
-			ATK_ADDRATE(wd.damage, wd.damage2, 200);
-			RE_ALLATK_ADDRATE(wd, 200);
 		}
 		if(sc->data[SC_P_ALTER]) {
 			ATK_ADD(wd.damage, wd.damage2, sc->data[SC_P_ALTER]->val2);
