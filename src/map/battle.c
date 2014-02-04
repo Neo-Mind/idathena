@@ -1802,7 +1802,7 @@ bool battle_skill_damage_iscaster(uint8 caster, enum bl_type type)
 int battle_skill_damage_skill(struct block_list *src, struct block_list *target, uint16 skill_id)
 {
 	unsigned short m = src->m;
-	int idx = skill_get_index(skill_id);
+	int16 idx = skill_get_index(skill_id);
 	struct s_skill_damage *damage = NULL;
 
 	if(idx == 0 || !skill_db[idx].damage.map)
@@ -1814,11 +1814,11 @@ int battle_skill_damage_skill(struct block_list *src, struct block_list *target,
 	if(!battle_skill_damage_iscaster(damage->caster,src->type))
 		return 0;
 
-	if((damage->map&1 && (!map[m].flag.pvp && !map_flag_gvg(m) && !map[m].flag.battleground && !map[m].flag.skill_damage && !map[m].flag.restricted)) ||
-		(damage->map&2 && map[m].flag.pvp) ||
-		(damage->map&4 && map_flag_gvg(m)) ||
-		(damage->map&8 && map[m].flag.battleground) ||
-		(damage->map&16 && map[m].flag.skill_damage) ||
+	if(((damage->map&1) && (!map[m].flag.pvp && !map_flag_gvg(m) && !map[m].flag.battleground && !map[m].flag.skill_damage && !map[m].flag.restricted)) ||
+		((damage->map&2) && map[m].flag.pvp) ||
+		((damage->map&4) && map_flag_gvg(m)) ||
+		((damage->map&8) && map[m].flag.battleground) ||
+		((damage->map&16) && map[m].flag.skill_damage) ||
 		(map[m].flag.restricted && skill_db[idx].damage.map&(8 * map[m].zone)))
 	{
 		switch(target->type) {

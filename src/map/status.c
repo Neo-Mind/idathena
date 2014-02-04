@@ -1185,16 +1185,17 @@ void initChangeTables(void) {
 	/* StatusChangeState (SCS_) NOCAST (skills) */
 	StatusChangeStateTable[SC_SILENCE]             |= SCS_NOCAST;
 	StatusChangeStateTable[SC_STEELBODY]           |= SCS_NOCAST;
-	StatusChangeStateTable[SC_BERSERK]             |= SCS_NOCAST;
 	StatusChangeStateTable[SC_BASILICA]            |= SCS_NOCAST;
-	StatusChangeStateTable[SC_DEATHBOUND]          |= SCS_NOCAST;
+	StatusChangeStateTable[SC_BERSERK]             |= SCS_NOCAST;
 	StatusChangeStateTable[SC__BLOODYLUST]         |= SCS_NOCAST;
+	StatusChangeStateTable[SC_DEATHBOUND]          |= SCS_NOCAST;
 	StatusChangeStateTable[SC_OBLIVIONCURSE]       |= SCS_NOCAST;
 	StatusChangeStateTable[SC_WHITEIMPRISON]       |= SCS_NOCAST;
 	StatusChangeStateTable[SC__SHADOWFORM]         |= SCS_NOCAST;
 	StatusChangeStateTable[SC__INVISIBILITY]       |= SCS_NOCAST;
 	StatusChangeStateTable[SC_CRYSTALIZE]          |= SCS_NOCAST|SCS_NOCASTCOND;
 	StatusChangeStateTable[SC__IGNORANCE]          |= SCS_NOCAST;
+	StatusChangeStateTable[SC__MANHOLE]            |= SCS_NOCAST;
 	StatusChangeStateTable[SC_DEEPSLEEP]           |= SCS_NOCAST;
 	StatusChangeStateTable[SC_SATURDAYNIGHTFEVER]  |= SCS_NOCAST;
 	StatusChangeStateTable[SC_CURSEDCIRCLE_TARGET] |= SCS_NOCAST;
@@ -1847,9 +1848,9 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 				return 0; //Can't amp out of Wand of Hermode :/ [Skotlex]
 		}
 
-		if (skill_id && //Do not block item-casted skills.
-			(src->type != BL_PC || ((TBL_PC*)src)->skillitem != skill_id)
-		) {	//Skills blocked through status changes.
+		if (skill_id &&
+			(src->type != BL_PC || ((TBL_PC*)src)->skillitem != skill_id)) //Do not block item-casted skills.
+		{ //Skills blocked through status changes.
 			if (!flag && //Blocked only from using the skill (stuff like autospell may still go through
 				(sc->cant.cast ||
 				(sc->data[SC_MARIONETTE] && skill_id != CG_MARIONETTE) || //Only skill you can use is marionette again to cancel it
@@ -1866,12 +1867,10 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 				(sc->data[SC_NOCHAT] && (sc->data[SC_NOCHAT]->val1&MANNER_NOSKILL))
 			)
 				return 0;
-
-			//Skill that can be used to target while under Man Hole effect.
-			if (tsc && tsc->data[SC__MANHOLE])
-				if (!(skill_get_inf3(skill_id)&INF3_USABLE_MANHOLE))
-					return 0;
 		}
+
+		if (sc->data[SC_ALL_RIDING])
+			return 0; //New mounts can't attack nor use skills in the client. This check makes it cheat-safe [Ind]
 	}
 
 	if (sc) {
@@ -1879,8 +1878,6 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 			return 0;
 		if ((sc->option&OPTION_CHASEWALK) && skill_id != ST_CHASEWALK)
 			return 0;
-		if (sc->data[SC_ALL_RIDING])
-			return 0; //New mounts can't attack nor use skills in the client. This check makes it cheat-safe [Ind]
 	}
 
 	if (target == NULL || target == src) //No further checking needed.
@@ -1897,6 +1894,10 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 			return 0;
 		if (skill_id == PR_LEXAETERNA && (tsc->data[SC_FREEZE] || (tsc->data[SC_STONE] && tsc->opt1 == OPT1_STONE)))
 			return 0;
+		//Skill that can be used to target while under Man Hole effect.
+		if (tsc->data[SC__MANHOLE])
+			if (!(skill_get_inf3(skill_id)&INF3_USABLE_MANHOLE))
+				return 0;
 	}
 
 	//If targetting, cloak + hide protect you, otherwise only hiding does.
