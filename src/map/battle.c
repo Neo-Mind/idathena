@@ -3963,6 +3963,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 				if(sd->equip_index[EQI_AMMO] > 0) {
 					uint16 idx = sd->equip_index[EQI_AMMO];
 					struct item_data *id = NULL;
+
 					if((id = itemdb_exists(sd->status.inventory[idx].nameid)))
 						w = id->weight;
 				}
@@ -3972,8 +3973,6 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			break;
 		case RL_D_TAIL:
 			skillratio += -100 + (2500 + 500 * skill_lv);
-			if(sd && &sd->c_marker)
-				skillratio /= max(sd->c_marker.count,1);
 			break;
 		case RL_R_TRIP:
 			skillratio += -100 + (150 * skill_lv); //Custom values

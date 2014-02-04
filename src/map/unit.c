@@ -1259,7 +1259,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	if( status_isdead(src) )
 		return 0; //Do not continue source is dead
 
-	sd = BL_CAST(BL_PC, src);
+	sd = BL_CAST(BL_PC,src);
 	ud = unit_bl2ud(src);
 
 	if( ud == NULL )
@@ -1283,8 +1283,8 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 			target_id = src->id;
 		combo = 1;
 	} else if( target_id == src->id &&
-		skill_get_inf(skill_id)&INF_SELF_SKILL &&
-		(skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF ||
+		(skill_get_inf(skill_id)&INF_SELF_SKILL) &&
+		((skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF) ||
 		(skill_id == RL_QD_SHOT && sc && sc->data[SC_QD_SHOT_READY])) )
 	{
 		target_id = ud->target; //Auto-select target. [Skotlex]
@@ -1323,7 +1323,8 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 			case HAMI_DEFENCE:
 			case HAMI_CASTLE:
 				target = battle_get_master(src);
-				if( !target ) return 0;
+				if( !target )
+					return 0;
 				target_id = target->id;
 				break;
 			case MH_SONIC_CRAW:
