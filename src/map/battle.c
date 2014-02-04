@@ -3992,6 +3992,9 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 		case RL_FIRE_RAIN:
 			skillratio += -100 + 500 + (200 * (skill_lv - 1)) + status_get_dex(src); //Custom values
 			break;
+		case RL_AM_BLAST:
+			skillratio += -100 + (300 * skill_lv) + (status_get_dex(src) / 5); //Custom values
+			break;
 	}
 	return skillratio;
 }
