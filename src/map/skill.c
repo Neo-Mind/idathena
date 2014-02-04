@@ -7426,8 +7426,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 		case NPC_CHANGEUNDEAD:
 			//This skill should fail if target is wearing bathory/evil druid card [Brainstorm]
-			//TO-DO This is ugly, fix it
-			if(tstatus->def_ele == ELE_UNDEAD || tstatus->def_ele == ELE_DARK) break;
+			//@TODO: This is ugly, fix it
+			if(tstatus->def_ele == ELE_UNDEAD || tstatus->def_ele == ELE_DARK)
+				break;
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
 				sc_start2(src,bl,type,100,skill_lv,skill_get_ele(skill_id,skill_lv),
 					skill_get_time(skill_id,skill_lv)));
@@ -7435,7 +7436,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case NPC_PROVOCATION:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-			if (md) mob_unlocktarget(md,tick);
+			if (md)
+				mob_unlocktarget(md,tick);
 			break;
 
 		case NPC_KEEPING:
@@ -7443,6 +7445,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			{
 				int skill_time = skill_get_time(skill_id,skill_lv);
 				struct unit_data *ud = unit_bl2ud(bl);
+
 				if (clif_skill_nodamage(src,bl,skill_id,skill_lv,
 						sc_start(src,bl,type,100,skill_lv,skill_time))
 				&& ud) { //Disable attacking/acting/moving for skill's duration.
@@ -7495,6 +7498,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case NPC_SPEEDUP: {
 				//Or does it increase casting rate? just a guess xD
 				int i = SC_ASPDPOTION0 + skill_lv - 1;
+
 				if (i > SC_ASPDPOTION3)
 					i = SC_ASPDPOTION3;
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,
@@ -7506,6 +7510,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			//Not really needed, but adding here anyway ^^
 			if (md && md->master_id > 0) {
 				struct block_list *mbl, *tbl;
+
 				if ((mbl = map_id2bl(md->master_id)) == NULL ||
 					(tbl = battle_gettargeted(mbl)) == NULL)
 					break;
@@ -8388,20 +8393,19 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 
-		case RK_MILLENNIUMSHIELD:
-			if( sd ) {
+		case RK_MILLENNIUMSHIELD: {
 				int8 generate = 0;
 				int16 shieldnumber = 0;
 
 				generate = rnd()%100 + 1; //Generates a random number between 1 - 100 which is then used to determine how many shields will generate.
-				if ( generate >= 1 && generate <= 20 ) //20% chance for 4 shields.
+				if( generate >= 1 && generate <= 20 ) //20% chance for 4 shields.
 					shieldnumber = 4;
-				else if ( generate >= 21 && generate <= 50 ) //30% chance for 3 shields.
+				else if( generate >= 21 && generate <= 50 ) //30% chance for 3 shields.
 					shieldnumber = 3;
-				else if ( generate >= 51 && generate <= 100 ) //50% chance for 2 shields.
+				else if( generate >= 51 && generate <= 100 ) //50% chance for 2 shields.
 					shieldnumber = 2;
 				sc_start4(src,bl,type,100,skill_lv,shieldnumber,1000,0,skill_get_time(skill_id,skill_lv));
-				clif_millenniumshield(sd,shieldnumber);
+				clif_millenniumshield(bl,shieldnumber);
 				clif_skill_nodamage(src,bl,skill_id,1,1);
 			}
 			break;
@@ -8431,12 +8435,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					type = SC_NONE;
 					i = 0;
 					if( skill_area_temp[5]&0x10 ) {
-						if( dstsd ) {
-							i = (rnd()%100 < 50) ? 4 : ((rnd()%100 < 80) ? 3 : 2);
-							clif_millenniumshield(dstsd,i);
-							skill_area_temp[5] &= ~0x10;
-							type = SC_MILLENNIUMSHIELD;
-						}
+						i = (rnd()%100 < 50) ? 4 : ((rnd()%100 < 80) ? 3 : 2);
+						clif_millenniumshield(bl,i);
+						skill_area_temp[5] &= ~0x10;
+						type = SC_MILLENNIUMSHIELD;
 					} else if( skill_area_temp[5]&0x20 ) {
 						i = status_get_max_hp(bl) * 25 / 100;
 						status_change_clear_buffs(bl,4);

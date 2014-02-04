@@ -195,18 +195,18 @@ int pc_addspiritball(struct map_session_data *sd,int interval,int max)
 			delete_timer(sd->spirit_timer[0],pc_spiritball_timer);
 		sd->spiritball--;
 		if( sd->spiritball != 0 )
-			memmove(sd->spirit_timer+0, sd->spirit_timer+1, (sd->spiritball)*sizeof(int));
+			memmove(sd->spirit_timer + 0, sd->spirit_timer + 1, (sd->spiritball) * sizeof(int));
 		sd->spirit_timer[sd->spiritball] = INVALID_TIMER;
 	}
 
-	tid = add_timer(gettick()+interval, pc_spiritball_timer, sd->bl.id, 0);
+	tid = add_timer(gettick() + interval, pc_spiritball_timer, sd->bl.id, 0);
 	ARR_FIND(0, sd->spiritball, i, sd->spirit_timer[i] == INVALID_TIMER || DIFF_TICK(get_timer(tid)->tick, get_timer(sd->spirit_timer[i])->tick) < 0);
 	if( i != sd->spiritball )
-		memmove(sd->spirit_timer+i+1, sd->spirit_timer+i, (sd->spiritball-i)*sizeof(int));
+		memmove(sd->spirit_timer + i + 1, sd->spirit_timer + i, (sd->spiritball - i) * sizeof(int));
 	sd->spirit_timer[i] = tid;
 	sd->spiritball++;
 	if( (sd->class_&MAPID_THIRDMASK) == MAPID_ROYAL_GUARD )
-		clif_millenniumshield(sd,sd->spiritball);
+		clif_millenniumshield(&sd->bl,sd->spiritball);
 	else
 		clif_spiritball(&sd->bl);
 
@@ -232,7 +232,7 @@ int pc_delspiritball(struct map_session_data *sd,int count,int type)
 	if( count > MAX_SPIRITBALL )
 		count = MAX_SPIRITBALL;
 
-	for(i = 0; i < count; i++) {
+	for( i = 0; i < count; i++ ) {
 		if( sd->spirit_timer[i] != INVALID_TIMER ) {
 			delete_timer(sd->spirit_timer[i],pc_spiritball_timer);
 			sd->spirit_timer[i] = INVALID_TIMER;
@@ -245,7 +245,7 @@ int pc_delspiritball(struct map_session_data *sd,int count,int type)
 
 	if( !type ) {
 		if( (sd->class_&MAPID_THIRDMASK) == MAPID_ROYAL_GUARD )
-			clif_millenniumshield(sd,sd->spiritball);
+			clif_millenniumshield(&sd->bl,sd->spiritball);
 		else
 			clif_spiritball(&sd->bl);
 	}

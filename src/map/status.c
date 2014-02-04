@@ -8836,8 +8836,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = 500 + 100 * val1;
 				break;
 			case SC_MILLENNIUMSHIELD:
-				if( sd )
-					clif_millenniumshield(sd,0);
+				clif_millenniumshield(bl,0);
 				break;
 			case SC_VITALITYACTIVATION:
 				val2 = 50; //Increase HP recovery effects by 50%

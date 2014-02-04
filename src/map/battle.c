@@ -882,8 +882,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			if( sce->val3 <= 0 ) { //Shield down
 				sce->val2--;
 				if( sce->val2 >= 0 ) {
-					if( sd )
-						clif_millenniumshield(sd,sce->val2);
+					clif_millenniumshield(bl,sce->val2);
 					if( !sce->val2 )
 						status_change_end(bl,SC_MILLENNIUMSHIELD,INVALID_TIMER); //All shields down
 					else
