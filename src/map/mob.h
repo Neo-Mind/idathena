@@ -32,11 +32,11 @@
 #define MOB_SLAVEDISTANCE 2
 
 // These define the range of available IDs for clones. [Valaris]
-#define MOB_CLONE_START (MAX_MOB_DB-999)
+#define MOB_CLONE_START (MAX_MOB_DB - 999)
 #define MOB_CLONE_END MAX_MOB_DB
 
 //Used to determine default enemy type of mobs (for use in eachinrange calls)
-#define DEFAULT_ENEMY_TYPE(md) (md->special_state.ai?BL_CHAR:BL_MOB|BL_PC|BL_HOM|BL_MER)
+#define DEFAULT_ENEMY_TYPE(md) (md->special_state.ai ? BL_CHAR : BL_MOB|BL_PC|BL_HOM|BL_MER)
 
 //Externals for the status effects. [Epoque]
 extern const int mob_manuk[8];

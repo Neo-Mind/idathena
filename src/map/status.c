@@ -11000,9 +11000,9 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_RUWACH:
 		case SC_SIGHTBLASTER:
 			if( type == SC_SIGHTBLASTER )
-				map_foreachinrange( status_change_timer_sub,bl,sce->val3,BL_CHAR|BL_SKILL,bl,sce,type,tick);
+				map_foreachinrange(status_change_timer_sub,bl,sce->val3,BL_CHAR|BL_SKILL,bl,sce,type,tick);
 			else
-				map_foreachinrange( status_change_timer_sub,bl,sce->val3,BL_CHAR,bl,sce,type,tick);
+				map_foreachinrange(status_change_timer_sub,bl,sce->val3,BL_CHAR,bl,sce,type,tick);
 			if( --(sce->val2) >= 0 ) {
 				sc_timer_next(250 + tick,status_change_timer,bl->id,data);
 				sce->val4 += 250; //Use for Shadow Form 2 seconds checking.

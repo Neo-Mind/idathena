@@ -12328,9 +12328,11 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 				break;
 			} else if( sc && battle_check_target(&sg->unit->bl,bl,sg->target_flag) > 0 ) {
 				int sec = skill_get_time2(sg->skill_id,sg->skill_lv);
+
 				if( status_change_start(ss,bl,type,10000,sg->skill_lv,1,sg->group_id,0,sec,8) ) {
 					const struct TimerData* td = sc->data[type] ? get_timer(sc->data[type]->timer) : NULL;
 					int knockback_immune = sd ? !sd->special_state.no_knockback : !(status->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS));
+
 					if( td )
 						sec = DIFF_TICK(td->tick,tick);
 					if( knockback_immune ) {
@@ -12366,8 +12368,9 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 			break;
 
 		case UNT_BLOODYLUST:
-			if( sg->src_id == bl->id )
-				break; //Does not affect the caster.
+			//Only player type that'll receive the status
+			if( sg->src_id == bl->id || bl->type != BL_PC )
+				break; //Doesn't affect the caster
 			if( !sce )
 				sc_start4(ss,bl,type,100,sg->skill_lv,0,SC__BLOODYLUST,0,sg->limit);
 			break;
@@ -12472,12 +12475,12 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 				sc_start4(ss,bl,type,100,sg->skill_lv,0,BCT_ENEMY,sg->group_id,sg->limit);
 			break;
 
-	  //Officially, icewall has no problems existing on occupied cells [ultramage]
-	  //case UNT_ICEWALL: //Destroy the cell. [Skotlex]
-	  //	src->val1 = 0;
-	  //	if( src->limit + sg->tick > tick + 700 )
-	  //		src->limit = DIFF_TICK(tick+700,sg->tick);
-	  //	break;
+		//Officially, icewall has no problems existing on occupied cells [ultramage]
+		//case UNT_ICEWALL: //Destroy the cell. [Skotlex]
+			//src->val1 = 0;
+			//if( src->limit + sg->tick > tick + 700 )
+				//src->limit = DIFF_TICK(tick + 700,sg->tick);
+			//break;
 
 		case UNT_MOONLIT:
 			//Knockback out of area if affected char isn't in Moonlit effect
