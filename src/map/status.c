@@ -7565,6 +7565,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					return 0;
 			}
 			break;
+		case SC_MADNESSCANCEL:
+		case SC_HEAT_BARREL:
+			if((type == SC_MADNESSCANCEL && sc->data[SC_HEAT_BARREL]) ||
+				(type == SC_HEAT_BARREL && sc->data[SC_MADNESSCANCEL]))
+				return 0;
+			break;
 	}
 
 	//Check for Boss resistances
@@ -7611,7 +7617,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	}
 
 	//Check for mvp resistance //ATM only those who OS
-	if( status->mode&MD_MVP && !(flag&1) ) {
+	if( (status->mode&MD_MVP) && !(flag&1) ) {
 		switch( type ) {
 			case SC_COMA:
 			//Continue list

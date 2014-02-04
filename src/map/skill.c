@@ -6051,9 +6051,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case RK_ABUNDANCE:
 		case RK_CRUSHSTRIKE:
 		case ALL_ODINS_POWER:
-		case RL_HEAT_BARREL:
-		case RL_P_ALTER:
 		case RL_E_CHAIN:
+		case RL_P_ALTER:
+		case RL_HEAT_BARREL:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
 				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			break;
@@ -9596,8 +9596,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					struct unit_data *ud = unit_bl2ud(src);
 					int inf = skill_get_inf(improv_skill_id);
 
-					if (!ud) break;
-					if (inf&INF_SELF_SKILL || inf&INF_SUPPORT_SKILL) {
+					if (!ud)
+						break;
+					if ((inf&INF_SELF_SKILL) || (inf&INF_SUPPORT_SKILL)) {
 						if (src->type == BL_PET)
 							bl = (struct block_list*)((TBL_PET*)src)->master;
 						if (!bl) bl = src;
@@ -9783,7 +9784,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				int s_hp = sd->battle_status.hp * 10 / 100, s_sp = sd->battle_status.sp * 10 / 100;
 				int e_hp, e_sp;
 
-				if( !ed ) break;
+				if( !ed )
+					break;
 				if( !status_charge(&sd->bl,s_hp,s_sp) ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;

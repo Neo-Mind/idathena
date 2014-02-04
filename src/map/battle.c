@@ -3960,6 +3960,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			break;
 		case RL_SLUGSHOT: {
 				uint16 w = 50;
+
 				if(sd->equip_index[EQI_AMMO] > 0) {
 					uint16 idx = sd->equip_index[EQI_AMMO];
 					struct item_data *id = NULL;
