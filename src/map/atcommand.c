@@ -5288,7 +5288,8 @@ ACMD_FUNC(clearcart)
 #define MAX_SKILLID_PARTIAL_RESULTS_LEN 74 /* "skill " (6) + "%d:" (up to 5) + "%s" (up to 30) + " (%s)" (up to 33) */
 ACMD_FUNC(skillid)
 {
-	int skillen, idx, i, found = 0;
+	int skillen, i, found = 0;
+	int16 idx;
 	DBIterator* iter;
 	DBKey key;
 	DBData *data;

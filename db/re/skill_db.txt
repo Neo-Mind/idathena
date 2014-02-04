@@ -50,17 +50,16 @@
 //    0x0004 - Usable skills while hiding
 //    0x0008 - Skill that can be used while in dancing state
 //    0x0010 - Skill that could hit emperium
-//    0x0020 - Skill blocked by statis
+//    0x0020 - Skill that can be auto casted by Auto Shadow Spell
 //    0x0040 - Skill blocked by kagehumi
 //    0x0080 - Skill range affected by AC_VULTURE
 //    0x0100 - Skill range affected by GS_SNAKEEYE
 //    0x0200 - Skill range affected by NJ_SHADOWJUMP
 //    0x0400 - Skill range affected by WL_RADIUS
 //    0x0800 - Skill range affected by RA_RESEARCHTRAP
-//    0x1000 - Skill that can be used even under Man Hole effect
+//    0x1000 - Skill that can be used to target while under Man Hole effect
 //    0x2000 - Skill that can be used while riding warg
 //    0x4000 - Skill that can't be used while in mado
-//    0x8000 - Skill that can't be auto casted by Auto Shadow Spell
 // 17 Name
 // 18 Description
 1,0,0,0,0,0,0,9,0,no,0,0,0,none,0,0,		NV_BASIC,Basic Skill
@@ -73,24 +72,24 @@
 8,0,6,4,0,0x1,0,10,1,no,0,0,0,weapon,0,0,	SM_ENDURE,Endure
 9,0,0,0,0,0,0,10,0,no,0,0,0,none,0,0,		MG_SRECOVERY,Increase SP Recovery
 10,0,6,4,3,0x3,3,1,1,yes,0,0,0,magic,0,0,	MG_SIGHT,Sight
-11,9,6,1,8,0x6,1,10,1,yes,0,0,0,magic,0,0,	MG_NAPALMBEAT,Napalm Beat
+11,9,6,1,8,0x6,1,10,1,yes,0,0,0,magic,0,0x20,	MG_NAPALMBEAT,Napalm Beat
 12,9,8,2,8,0x1,0,10,1,yes,0,0,0,magic,0,0,	MG_SAFETYWALL,Safety Wall
-13,9,8,1,8,0,0,10,1:1:2:2:3:3:4:4:5:5,yes,0,0,0,magic,0,0,	MG_SOULSTRIKE,Soul Strike
-14,9,8,1,1,0,0,10,1:2:3:4:5:6:7:8:9:10,yes,0,0,0,magic,0,0,	MG_COLDBOLT,Cold Bolt
-15,9,6,1,1,0,0,10,1,yes,0,0,0,magic,0,0,	MG_FROSTDIVER,Frost Diver
+13,9,8,1,8,0,0,10,1:1:2:2:3:3:4:4:5:5,yes,0,0,0,magic,0,0x20,	MG_SOULSTRIKE,Soul Strike
+14,9,8,1,1,0,0,10,1:2:3:4:5:6:7:8:9:10,yes,0,0,0,magic,0,0x20,	MG_COLDBOLT,Cold Bolt
+15,9,6,1,1,0,0,10,1,yes,0,0,0,magic,0,0x20,	MG_FROSTDIVER,Frost Diver
 16,2,6,1,2,0x1,0,10,1,yes,0,0,0,magic,0,0,	MG_STONECURSE,Stone Curse
-17,9,6,1,3,0x2,2,10,1,yes,0,0,0,magic,0,0,	MG_FIREBALL,Fire Ball
-18,9,6,2,3,0,0,10,1,yes,0,0,3,magic,2,0,	MG_FIREWALL,Fire Wall
-19,9,8,1,3,0,0,10,1:2:3:4:5:6:7:8:9:10,yes,0,0,0,magic,0,0,	MG_FIREBOLT,Fire Bolt
-20,9,8,1,4,0,0,10,1:2:3:4:5:6:7:8:9:10,yes,0,0,0,magic,0,0,	MG_LIGHTNINGBOLT,Lightning Bolt
-21,9,8,2,4,0,0,10,1:2:3:4:5:6:7:8:9:10,yes,0,0,0,magic,0,0,	MG_THUNDERSTORM,Thunderstorm
+17,9,6,1,3,0x2,2,10,1,yes,0,0,0,magic,0,0x20,	MG_FIREBALL,Fire Ball
+18,9,6,2,3,0,0,10,1,yes,0,0,3,magic,2,0x20,	MG_FIREWALL,Fire Wall
+19,9,8,1,3,0,0,10,1:2:3:4:5:6:7:8:9:10,yes,0,0,0,magic,0,0x20,	MG_FIREBOLT,Fire Bolt
+20,9,8,1,4,0,0,10,1:2:3:4:5:6:7:8:9:10,yes,0,0,0,magic,0,0x20,	MG_LIGHTNINGBOLT,Lightning Bolt
+21,9,8,2,4,0,0,10,1:2:3:4:5:6:7:8:9:10,yes,0,0,0,magic,0,0x20,	MG_THUNDERSTORM,Thunderstorm
 22,0,0,0,0,0,0,10,0,no,0,0,0,weapon,0,0,	AL_DP,Divine Protection
 23,0,0,0,0,0,0,10,0,no,0,0,0,weapon,0,0,	AL_DEMONBANE,Demon Bane
-24,0,6,4,6,0x3,2,1,1,yes,0,0,0,magic,0,0x8000,	AL_RUWACH,Ruwach
+24,0,6,4,6,0x3,2,1,1,yes,0,0,0,magic,0,0,	AL_RUWACH,Ruwach
 25,9,6,2,0,0x1,0,1,1,yes,0,0,0,magic,0,0,	AL_PNEUMA,Pneuma
 26,0,6,4,0,0x1,0,2,1,yes,0,0,0,magic,0,0x40,	AL_TELEPORT,Teleport
 27,9,6,2,0,0x1,0,4,1,yes,0,0,3,magic,0,0,	AL_WARP,Warp Portal
-28,9,6,16,6,0x21,0,10,1,yes,0,0,0,magic,0,0,	AL_HEAL,Heal
+28,9,6,16,6,0x21,0,10,1,yes,0,0,0,magic,0,0x20,	AL_HEAL,Heal
 29,9,6,16,0,0x1,0,10,1,yes,0,0,0,magic,0,0,	AL_INCAGI,Increase AGI
 30,9,6,1,0,0x1,0,10,1,yes,0,0,0,magic,0,0,	AL_DECAGI,Decrease AGI
 31,0,6,4,0,0x1,0,1,1,yes,0,0,0,magic,0,0,	AL_HOLYWATER,Aqua Benedicta
@@ -116,7 +115,7 @@
 51,1,6,4,0,1,0,10,1,no,0,0,0,none,0,0x44,	TF_HIDING,Hiding
 52,-2,6,1,5,0,0,10,1,no,0,0,0,weapon,0,0,	TF_POISON,Envenom
 53,9,6,16,5,0x1,0,1,1,no,0,0,0,weapon,0,0,	TF_DETOXIFY,Detoxify
-54,9,6,16,6,0x1,0,4,1,yes,0,0,0,magic,0,0x8000,	ALL_RESURRECTION,Resurrection
+54,9,6,16,6,0x1,0,4,1,yes,0,0,0,magic,0,0,	ALL_RESURRECTION,Resurrection
 55,0,0,0,0,0,0,10,0,no,0,0,0,weapon,0,0,	KN_SPEARMASTERY,Spear Mastery
 56,-2,8,1,-1,0,0,10,3,no,0,0,0,weapon,0,0,	KN_PIERCE,Pierce
 57,-2,6,1,-1,0x1,0,10,1,no,0,0,0,weapon,3,0,	KN_BRANDISHSPEAR,Brandish Spear
@@ -130,29 +129,29 @@
 65,0,0,0,0,0,0,10,0,no,0,0,0,weapon,0,0,	PR_MACEMASTERY,Mace Mastery
 66,9,6,16,0,0x1,0,5,1,yes,0,0,0,magic,0,0,	PR_IMPOSITIO,Impositio Manus
 67,9,6,16,0,0x1,0,3,1,yes,0,0x200,0,magic,0,0,	PR_SUFFRAGIUM,Suffragium
-68,9,6,16,6,0x31,0,5,1,yes,0,0,0,magic,0,0x8000,	PR_ASPERSIO,Aspersio
+68,9,6,16,6,0x31,0,5,1,yes,0,0,0,magic,0,0,	PR_ASPERSIO,Aspersio
 69,9,6,2,0,0x23,1,5,1,yes,0,0x40,0,magic,0,0,	PR_BENEDICTIO,B.S. Sacramenti
-70,9,6,2,6,0x21,0,10,1,yes,0,0,0,magic,1,0x8000,	PR_SANCTUARY,Sanctuary
+70,9,6,2,6,0x21,0,10,1,yes,0,0,0,magic,1,0,	PR_SANCTUARY,Sanctuary
 71,9,6,16,0,0x1,0,4,1,yes,0,0,0,magic,0,0,	PR_SLOWPOISON,Slow Poison
 72,9,6,16,0,0x1,0,1,1,yes,0,0,0,magic,0,0,	PR_STRECOVERY,Status Recovery
 73,9,6,16,0,0x1,0,10,1,yes,0,0,0,magic,0,0,	PR_KYRIE,Kyrie Eleison
 74,0,6,4,0,0x3,-1,5,1,yes,0,0,0,magic,0,0,	PR_MAGNIFICAT,Magnificat
 75,0,6,4,0,0x3,-1,5,1,yes,0,0,0,magic,0,0,	PR_GLORIA,Gloria
 76,5,6,1,0,0x1,0,10,0,yes,0,0,0,magic,0,0,	PR_LEXDIVINA,Lex Divina
-77,5,6,1,6,0x28,0,10,1,yes,0,0,0,magic,0,0x8000,	PR_TURNUNDEAD,Turn Undead
+77,5,6,1,6,0x28,0,10,1,yes,0,0,0,magic,0,0,	PR_TURNUNDEAD,Turn Undead
 78,9,6,1,0,0x1,0,1,0,yes,0,0,0,magic,0,0,	PR_LEXAETERNA,Lex Aeterna
-79,9,8,2,6,0,0,10,1:2:3:4:5:6:7:8:9:10,yes,0,0,0,magic,0,0x8000,	PR_MAGNUS,Magnus Exorcismus
-80,9,8,2,3,0x20,1:1:1:1:1:2:2:2:2:2:2,10,3:4:5:6:7:8:9:10:11:12:12,yes,0,0x80,5,magic,0,0,	WZ_FIREPILLAR,Fire Pillar
-81,0,6,4,3,0,3,10,1,yes,0,0,0,magic,5,0,	WZ_SIGHTRASHER,Sightrasher
-83,9,8,2,3,0,3:3:3:3:3:3:3:3:3:3:14,10,1:1:2:2:3:3:4:4:5:5:15,yes,0,0,0,magic,0,0,	WZ_METEOR,Meteor Storm
-84,9,8,1,4,0,0,10,3:4:5:6:7:8:9:10:11:12,yes,0,0,0,magic,2:3:3:4:4:5:5:6:6:7,0,	WZ_JUPITEL,Jupitel Thunder
-85,9,8,2,4,0,0,10,-10,yes,0,0,0,magic,0,0,	WZ_VERMILION,Lord of Vermilion
-86,9,8,1,1,0,0,5,1,yes,0,0,0,magic,0,0,	WZ_WATERBALL,Water Ball
+79,9,8,2,6,0,0,10,1:2:3:4:5:6:7:8:9:10,yes,0,0,0,magic,0,0,	PR_MAGNUS,Magnus Exorcismus
+80,9,8,2,3,0x20,1:1:1:1:1:2:2:2:2:2:2,10,3:4:5:6:7:8:9:10:11:12:12,yes,0,0x80,5,magic,0,0x20,	WZ_FIREPILLAR,Fire Pillar
+81,0,6,4,3,0,3,10,1,yes,0,0,0,magic,5,0x20,	WZ_SIGHTRASHER,Sightrasher
+83,9,8,2,3,0,3:3:3:3:3:3:3:3:3:3:14,10,1:1:2:2:3:3:4:4:5:5:15,yes,0,0,0,magic,0,0x20,	WZ_METEOR,Meteor Storm
+84,9,8,1,4,0,0,10,3:4:5:6:7:8:9:10:11:12,yes,0,0,0,magic,2:3:3:4:4:5:5:6:6:7,0x20,	WZ_JUPITEL,Jupitel Thunder
+85,9,8,2,4,0,0,10,-10,yes,0,0,0,magic,0,0x20,	WZ_VERMILION,Lord of Vermilion
+86,9,8,1,1,0,0,5,1,yes,0,0,0,magic,0,0x20,	WZ_WATERBALL,Water Ball
 87,9,6,2,1,0x1,0,10,1,yes,0,0,0,magic,0,0,	WZ_ICEWALL,Ice Wall
-88,0,6,4,1,0x2,2,10,1,yes,0,0,0,magic,0,0,	WZ_FROSTNOVA,Frost Nova
-89,9,6,2,1,0,0,10,1,yes,0,0,0,magic,2,0,	WZ_STORMGUST,Storm Gust
-90,9,8,1,2,0,0,5,1:2:3:4:5,yes,0,0,0,magic,0,0,	WZ_EARTHSPIKE,Earth Spike
-91,9,8,2,2,0,0,5,1:2:3:4:5,yes,0,0,0,magic,0,0,	WZ_HEAVENDRIVE,Heaven's Drive
+88,0,6,4,1,0x2,2,10,1,yes,0,0,0,magic,0,0x20,	WZ_FROSTNOVA,Frost Nova
+89,9,6,2,1,0,0,10,1,yes,0,0,0,magic,2,0x20,	WZ_STORMGUST,Storm Gust
+90,9,8,1,2,0,0,5,1:2:3:4:5,yes,0,0,0,magic,0,0x20,	WZ_EARTHSPIKE,Earth Spike
+91,9,8,2,2,0,0,5,1:2:3:4:5,yes,0,0,0,magic,0,0x20,	WZ_HEAVENDRIVE,Heaven's Drive
 92,9,6,2,2,0x1,0,5,1,yes,0,0,3,magic,0,0,	WZ_QUAGMIRE,Quagmire
 93,9,6,1,0,0x1,0,1,1,yes,0,0,0,magic,0,0,	WZ_ESTIMATION,Sense
 94,0,0,0,0,0,0,5,0,no,0,0,0,weapon,0,0,	BS_IRON,Iron Tempering
@@ -217,7 +216,7 @@
 153,1,6,1,-1,0x2,1,1,1,no,0,0x1,0,weapon,2,0,	MC_CARTREVOLUTION,Cart Revolution
 154,0,6,4,0,0x1,0,1,1,no,0,0x1,0,none,0,0,	MC_CHANGECART,Change Cart
 155,0,6,4,0,0x1,0,1,1,no,0,0x1,0,weapon,0,0,	MC_LOUD,Crazy Uproar
-156,9,6,1,6,0,0,1,1,yes,0,0x1,0,magic,0,0x8000,	AL_HOLYLIGHT,Holy Light
+156,9,6,1,6,0,0,1,1,yes,0,0x1,0,magic,0,0,	AL_HOLYLIGHT,Holy Light
 157,0,6,4,0,0x1,0,1,1,yes,0,0x1,0,magic,0,0,	MG_ENERGYCOAT,Energy Coat
 158,3,6,1,-1,0x20,0,10,1,no,0,0x2,0,weapon,0,0,	NPC_PIERCINGATT,Piercing Attack
 159,-1,6,1,-1,0x40,0,5,1,no,0,0x2,0,weapon,0,0,	NPC_MENTALBREAKER,Spirit Destruction
@@ -315,7 +314,7 @@
 251,3:5:7:9:11,6,1,0,0,0,5,1,no,0,0,0,weapon,0,0,	CR_SHIELDBOOMERANG,Shield Boomerang
 252,0,6,4,0,0,0,10,1,no,0,0,0,weapon,0,0,	CR_REFLECTSHIELD,Shield Reflect
 253,-2,8,1,6,0,0,10,-2,no,0,0,0,weapon,0,0,	CR_HOLYCROSS,Holy Cross
-254,5,6,4,6,0x48,0,10,1,no,33,0x100,0,magic,0,0x8000,	CR_GRANDCROSS,Grand Cross
+254,5,6,4,6,0x48,0,10,1,no,33,0x100,0,magic,0,0,	CR_GRANDCROSS,Grand Cross
 255,7:8:9:10:11,6,16,0,0x1,0,5,1,yes,0,0x600,0,none,0,0,	CR_DEVOTION,Sacrifice
 256,9,6,16,0,0x1,0,5,1,yes,0,0x200,0,none,0,0,	CR_PROVIDENCE,Resistant Souls
 257,0,6,4,0,0x1,0,5,1,no,0,0,0,weapon,0,0,	CR_DEFENDER,Defending Aura

@@ -800,20 +800,21 @@ bool pc_isequipped(struct map_session_data *sd, int nameid)
 	uint8 i;
 
 	for( i = 0; i < EQI_MAX; i++ ) {
-		int index = sd->equip_index[i];
+		int8 index = sd->equip_index[i];
 		uint8 j;
 
-		if( index < 0 ) continue;
-
-		if( i == EQI_HAND_R && sd->equip_index[EQI_HAND_L] == index ) continue;
-		if( i == EQI_HEAD_MID && sd->equip_index[EQI_HEAD_LOW] == index ) continue;
-		if( i == EQI_HEAD_TOP && (sd->equip_index[EQI_HEAD_MID] == index || sd->equip_index[EQI_HEAD_LOW] == index) ) continue;
-
-		if( !sd->inventory_data[index] ) continue;
-
+		if( index < 0 )
+			continue;
+		if( i == EQI_HAND_R && sd->equip_index[EQI_HAND_L] == index )
+			continue;
+		if( i == EQI_HEAD_MID && sd->equip_index[EQI_HEAD_LOW] == index )
+			continue;
+		if( i == EQI_HEAD_TOP && (sd->equip_index[EQI_HEAD_MID] == index || sd->equip_index[EQI_HEAD_LOW] == index) )
+			continue;
+		if( !sd->inventory_data[index] )
+			continue;
 		if( sd->inventory_data[index]->nameid == nameid )
 			return true;
-
 		for( j = 0; j < sd->inventory_data[index]->slot; j++ )
 			if( sd->status.inventory[index].card[j] == nameid )
 				return true;

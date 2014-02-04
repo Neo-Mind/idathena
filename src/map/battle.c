@@ -1802,10 +1802,10 @@ bool battle_skill_damage_iscaster(uint8 caster, enum bl_type type)
 int battle_skill_damage_skill(struct block_list *src, struct block_list *target, uint16 skill_id)
 {
 	unsigned short m = src->m;
-	int idx;
+	int idx = skill_get_index(skill_id);
 	struct s_skill_damage *damage = NULL;
 
-	if((idx = skill_get_index(skill_id)) == 0 || !skill_db[idx].damage.map)
+	if(idx == 0 || !skill_db[idx].damage.map)
 		return 0;
 
 	damage = &skill_db[idx].damage;
@@ -6758,6 +6758,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		uint8 dir = map_calc_dir(target,src->x,src->y);
 		int t_dir = unit_getdir(target);
 		int dist = distance_bl(src,target);
+
 		if (dist <= 0 || (!map_check_dir(dir,t_dir) && dist <= tstatus->rhw.range + 1)) {
 			uint16 skill_lv = tsc->data[SC_AUTOCOUNTER]->val1;
 			clif_skillcastcancel(target); //Remove the casting bar. [Skotlex]

@@ -77,7 +77,7 @@ enum e_skill_inf3 {
 	INF3_USABLE_HIDING      = 0x0004, //Skill that can be use in hiding
 	INF3_USABLE_DANCE       = 0x0008, //Skill that can be use while in dancing state
 	INF3_HIT_EMP            = 0x0010, //Skill that could hit emperium
-	INF3_STATIS_BL          = 0x0020, //Skill blocked by statis
+	INF3_AUTOSHADOWSPELL    = 0x0020, //Skill that can be auto casted by Auto Shadow Spell
 	INF3_KAGEHUMI_BL        = 0x0040, //Skill blocked by kagehumi
 	INF3_EFF_VULTURE        = 0x0080, //Skill range affected by AC_VULTURE
 	INF3_EFF_SNAKEEYE       = 0x0100, //Skill range affected by GS_SNAKEEYE
@@ -87,7 +87,6 @@ enum e_skill_inf3 {
 	INF3_USABLE_MANHOLE     = 0x1000, //Skill that can be used even under Man Hole effect
 	INF3_USABLE_WARG        = 0x2000, //Skill that can be use while riding warg
 	INF3_DIS_MADO           = 0x4000, //Skill that can't be used while in mado
-	INF3_NO_AUTOSHADOWSPELL = 0x8000, //Skill that can't be auto casted by Auto Shadow Spell
 };
 
 ///Walk intervals at which chase-skills are attempted to be triggered.

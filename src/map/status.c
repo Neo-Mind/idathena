@@ -108,7 +108,7 @@ static unsigned int status_calc_maxhpsp_pc(struct map_session_data *sd, uint8 fl
  **/
 sc_type status_skill2sc(int skill)
 {
-	int idx = skill_get_index(skill);
+	int16 idx = skill_get_index(skill);
 
 	if( idx == 0 ) {
 		ShowError("status_skill2sc: Unsupported skill id %d\n", skill);
@@ -169,7 +169,7 @@ int status_type2relevant_bl_types(int type)
 
 static void set_sc(uint16 skill_id, sc_type sc, int icon, unsigned int flag)
 {
-	int idx = skill_get_index(skill_id);
+	int16 idx = skill_get_index(skill_id);
 
 	if( idx == 0 ) {
 		ShowError("set_sc: Unsupported skill id %d\n", skill_id);
@@ -1186,9 +1186,12 @@ void initChangeTables(void) {
 	StatusChangeStateTable[SC_SILENCE]             |= SCS_NOCAST;
 	StatusChangeStateTable[SC_STEELBODY]           |= SCS_NOCAST;
 	StatusChangeStateTable[SC_BERSERK]             |= SCS_NOCAST;
+	StatusChangeStateTable[SC_BASILICA]            |= SCS_NOCAST;
+	StatusChangeStateTable[SC_DEATHBOUND]          |= SCS_NOCAST;
 	StatusChangeStateTable[SC__BLOODYLUST]         |= SCS_NOCAST;
 	StatusChangeStateTable[SC_OBLIVIONCURSE]       |= SCS_NOCAST;
 	StatusChangeStateTable[SC_WHITEIMPRISON]       |= SCS_NOCAST;
+	StatusChangeStateTable[SC__SHADOWFORM]         |= SCS_NOCAST;
 	StatusChangeStateTable[SC__INVISIBILITY]       |= SCS_NOCAST;
 	StatusChangeStateTable[SC_CRYSTALIZE]          |= SCS_NOCAST|SCS_NOCASTCOND;
 	StatusChangeStateTable[SC__IGNORANCE]          |= SCS_NOCAST;
@@ -1368,7 +1371,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 					status_change_end(target, SC_GRAVITATION, INVALID_TIMER);
 				}
 			}
-			if (sc->data[SC_DANCING] && (unsigned int)hp > status->max_hp>>2)
+			if (sc->data[SC_DANCING] && (unsigned int)hp > (status->max_hp>>2))
 				status_change_end(target, SC_DANCING, INVALID_TIMER);
 			if (sc->data[SC_CLOAKINGEXCEED] && --(sc->data[SC_CLOAKINGEXCEED]->val2) <= 0)
 				status_change_end(target, SC_CLOAKINGEXCEED, INVALID_TIMER);
@@ -1745,7 +1748,8 @@ int status_fixed_revive(struct block_list *bl, unsigned int per_hp, unsigned int
 int status_check_skilluse(struct block_list *src, struct block_list *target, uint16 skill_id, int flag)
 {
 	struct status_data *status;
-	struct status_change *sc = NULL, *tsc;
+	struct status_change *sc = status_get_sc(src);
+	struct status_change *tsc = status_get_sc(target);
 	int hide_flag;
 
 	status = (src ? status_get_status_data(src) : &dummy_status);
@@ -1760,7 +1764,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		//on dead characters, said checks are left to skill.c [Skotlex]
 		if (target && status_isdead(target))
 			return 0;
-		if (src && (sc = status_get_sc(src)) && sc->data[SC_CRYSTALIZE] && src->type != BL_MOB)
+		if (src && sc && sc->data[SC_CRYSTALIZE] && src->type != BL_MOB)
 			return 0;
 	}
 
@@ -1768,7 +1772,6 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		case PA_PRESSURE:
 			if (flag && target) {
 				//Gloria Avoids pretty much everything....
-				tsc = status_get_sc(target);
 				if (tsc && (tsc->option&OPTION_HIDE))
 					return 0;
 			}
@@ -1789,13 +1792,10 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 			break;
 	}
 
-	if (src)
-		sc = status_get_sc(src);
-
 	if (sc && sc->count) {
 		if ((sc->data[SC_ASH] && rnd()%2)) {
 			if (src->type == BL_PC)
-				clif_skill_fail((TBL_PC*)src,skill_id,0,0);
+				clif_skill_fail((TBL_PC*)src, skill_id, 0, 0);
 			return 0;
 		}
 
@@ -1806,8 +1806,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 				return 0; //Targetted spells can't come off.
 		}
 
-		if (
-			(sc->data[SC_TRICKDEAD] && skill_id != NV_TRICKDEAD) ||
+		if ((sc->data[SC_TRICKDEAD] && skill_id != NV_TRICKDEAD) ||
 			(sc->data[SC_AUTOCOUNTER] && !flag) ||
 			(sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF && skill_id != PA_GOSPEL) ||
 			(sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF && flag != 2)
@@ -1827,7 +1826,8 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 				case 4: if (skill_id == MO_CHAINCOMBO) break;
 				case 3: if (skill_id == MO_INVESTIGATE) break;
 				case 2: if (skill_id == MO_FINGEROFFENSIVE) break;
-				default: return 0;
+				default:
+					return 0;
 			}
 		}
 
@@ -1838,7 +1838,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 					return 0;
 			} else if (sc->data[SC_LONGING]) { //Allow everything except dancing/re-dancing. [Skotlex]
 				if (skill_id == BD_ENCORE ||
-					skill_get_inf2(skill_id)&(INF2_SONG_DANCE|INF2_ENSEMBLE_SKILL)
+					(skill_get_inf2(skill_id)&(INF2_SONG_DANCE|INF2_ENSEMBLE_SKILL))
 				)
 					return 0;
 			} else if (!(skill_get_inf3(skill_id)&INF3_USABLE_DANCE)) //Skills that can be used in dancing state
@@ -1850,39 +1850,27 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		if (skill_id && //Do not block item-casted skills.
 			(src->type != BL_PC || ((TBL_PC*)src)->skillitem != skill_id)
 		) {	//Skills blocked through status changes.
-			if (!flag && ( //Blocked only from using the skill (stuff like autospell may still go through
-				sc->cant.cast ||
+			if (!flag && //Blocked only from using the skill (stuff like autospell may still go through
+				(sc->cant.cast ||
 				(sc->data[SC_MARIONETTE] && skill_id != CG_MARIONETTE) || //Only skill you can use is marionette again to cancel it
 				(sc->data[SC_MARIONETTE2] && skill_id == CG_MARIONETTE) || //Cannot use marionette if you are being buffed by another
-				sc->data[SC_STEELBODY] ||
-				sc->data[SC_BERSERK] ||
-				sc->data[SC_OBLIVIONCURSE] ||
-				sc->data[SC_WHITEIMPRISON] ||
 				(sc->data[SC_STASIS] && skill_block_check(src, SC_STASIS, skill_id)) ||
-				sc->data[SC__INVISIBILITY] ||
-				sc->data[SC_CRYSTALIZE] ||
-				sc->data[SC__IGNORANCE] ||
-				sc->data[SC_DEEPSLEEP] ||
-				sc->data[SC_CURSEDCIRCLE_TARGET] ||
-				sc->data[SC__SHADOWFORM] ||
-				(sc->data[SC_KAGEHUMI] && skill_block_check(src, SC_KAGEHUMI, skill_id))
-			))
-				return 0;
-
-			//Skill blocking.
-			if (
-				(sc->data[SC_VOLCANO] && skill_id == WZ_ICEWALL) ||
-				(sc->data[SC_ROKISWEIL] && skill_id != BD_ADAPTATION) ||
-				(sc->data[SC_HERMODE] && skill_get_inf(skill_id) & INF_SUPPORT_SKILL) ||
-				(sc->data[SC_NOCHAT] && sc->data[SC_NOCHAT]->val1&MANNER_NOSKILL)
+				(sc->data[SC_KAGEHUMI] && skill_block_check(src, SC_KAGEHUMI, skill_id)))
 			)
 				return 0;
 
-			if (sc->data[SC__MANHOLE] || ((tsc = status_get_sc(target)) && tsc->data[SC__MANHOLE])) {
-				//Skills that can be used even under Man Hole effect.
+			//Skill blocking.
+			if ((sc->data[SC_VOLCANO] && skill_id == WZ_ICEWALL) ||
+				(sc->data[SC_ROKISWEIL] && skill_id != BD_ADAPTATION) ||
+				(sc->data[SC_HERMODE] && (skill_get_inf(skill_id)&INF_SUPPORT_SKILL)) ||
+				(sc->data[SC_NOCHAT] && (sc->data[SC_NOCHAT]->val1&MANNER_NOSKILL))
+			)
+				return 0;
+
+			//Skill that can be used to target while under Man Hole effect.
+			if (tsc && tsc->data[SC__MANHOLE])
 				if (!(skill_get_inf3(skill_id)&INF3_USABLE_MANHOLE))
 					return 0;
-			}
 		}
 	}
 
@@ -1898,8 +1886,6 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 	if (target == NULL || target == src) //No further checking needed.
 		return 1;
 
-	tsc = status_get_sc(target);
-
 	if (tsc && tsc->count) {
 		/* Attacks in invincible are capped to 1 damage and handled in batte.c. Allow spell break and eske for sealed shrine GDB when in INVINCIBLE state. */
 		if (tsc->data[SC_INVINCIBLE] && !tsc->data[SC_INVINCIBLEOFF] && skill_id && !(skill_id&(SA_SPELLBREAKER|SL_SKE)))
@@ -1914,10 +1900,10 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 	}
 
 	//If targetting, cloak + hide protect you, otherwise only hiding does.
-	hide_flag = flag ? OPTION_HIDE : (OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK);
+	hide_flag = (flag ? OPTION_HIDE : (OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK));
 
  	//You cannot hide from ground skills.
-	if (skill_get_ele(skill_id,1) == ELE_EARTH) //@TODO: Need Skill Lv here :/
+	if (skill_get_ele(skill_id, 1) == ELE_EARTH) //@TODO: Need Skill Lv here :/
 		hide_flag &= ~OPTION_HIDE;
 	else {
 		switch (skill_id) {
@@ -1981,7 +1967,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 int status_check_visibility(struct block_list *src, struct block_list *target)
 {
 	int view_range;
-	struct status_change *tsc = NULL;
+	struct status_change *tsc = status_get_sc(target);
 
 	switch( src->type ) {
 		case BL_MOB:
@@ -1997,7 +1983,7 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 	if( src->m != target->m || !check_distance_bl(src, target, view_range) )
 		return 0;
 
-	if( (tsc = status_get_sc(target)) ) {
+	if( tsc ) {
 		struct status_data *status = status_get_status_data(src);
 
 		switch( target->type ) { //Check for chase-walk/hiding/cloaking opponents.
@@ -3995,7 +3981,7 @@ void status_calc_state( struct block_list *bl, struct status_change *sc, enum sc
 	if( flag&SCS_NOCAST ) {
 		if( !(flag&SCS_NOCASTCOND) )
 			sc->cant.cast += (start ? 1 : -1);
-		else if( (sc->data[SC_CRYSTALIZE] && bl->type != BL_MOB) )
+		else if( sc->data[SC_CRYSTALIZE] && bl->type != BL_MOB )
 			sc->cant.cast += (start ? 1 : -1);
 	}
 
@@ -4003,7 +3989,7 @@ void status_calc_state( struct block_list *bl, struct status_change *sc, enum sc
 	if( flag&SCS_NOCHAT ) {
 		if( !(flag&SCS_NOCHATCOND) )
 			sc->cant.chat += (start ? 1 : -1);
-		else if( sc->data[SC_NOCHAT] && sc->data[SC_NOCHAT]->val1&MANNER_NOCHAT )
+		else if( sc->data[SC_NOCHAT] && (sc->data[SC_NOCHAT]->val1&MANNER_NOCHAT) )
 			sc->cant.chat += (start ? 1 : -1);
 	}
 
@@ -4013,7 +3999,7 @@ void status_calc_state( struct block_list *bl, struct status_change *sc, enum sc
 		if( flag&SCS_NOPICKITEM ) {
 			if( !(flag&SCS_NOPICKITEMCOND) )
 				sc->cant.pickup += (start ? 1 : -1);
-			else if( (sc->data[SC_NOCHAT] && sc->data[SC_NOCHAT]->val1&MANNER_NOITEM) )
+			else if( sc->data[SC_NOCHAT] && (sc->data[SC_NOCHAT]->val1&MANNER_NOITEM) )
 				sc->cant.pickup += (start ? 1 : -1);
 		}
 
@@ -4021,7 +4007,7 @@ void status_calc_state( struct block_list *bl, struct status_change *sc, enum sc
 		if( flag&SCS_NODROPITEM ) {
 			if( !(flag&SCS_NODROPITEMCOND) )
 				sc->cant.drop += (start ? 1 : -1);
-			else if( (sc->data[SC_NOCHAT] && sc->data[SC_NOCHAT]->val1&MANNER_NOITEM) )
+			else if( sc->data[SC_NOCHAT] && (sc->data[SC_NOCHAT]->val1&MANNER_NOITEM) )
 				sc->cant.drop += (start ? 1 : -1);
 		}
 	}
