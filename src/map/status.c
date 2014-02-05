@@ -10660,7 +10660,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			if (sd)
 				sc_start(bl,bl,SC_HEAT_BARREL_AFTER,100,sce->val1,skill_get_time2(RL_HEAT_BARREL,sce->val1));
 			break;
-		case SC_C_MARKER: { //Remove mark data from caster
+		case SC_C_MARKER: {
 				struct map_session_data *sd = map_id2sd(temp_n);
 				uint8 i = 0;
 
@@ -10668,7 +10668,11 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 					break;
 				ARR_FIND(0,MAX_SKILL_CRIMSON_MARKER,i,sd->c_marker.target[i] == bl->id);
 				if (i < MAX_SKILL_CRIMSON_MARKER) {
-					clif_crimson_marker(sd,bl,1);
+					//Remove mark data from caster
+					if (battle_config.crimson_marker_type)
+						clif_crimson_marker2(sd,bl->id,2,bl->x,bl->y,i,0xFF0000);
+					else
+						clif_crimson_marker(sd,bl,1);
 					sd->c_marker.target[i] = 0;
 				}
 			}
@@ -11806,8 +11810,12 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				if( !sd || !&sd->c_marker || !sd->c_marker.target )
 					break;
 				ARR_FIND(0,MAX_SKILL_CRIMSON_MARKER,i,sd->c_marker.target[i] == bl->id);
-				if( i < MAX_SKILL_CRIMSON_MARKER )
-					clif_crimson_marker(sd,bl,0);
+				if( i < MAX_SKILL_CRIMSON_MARKER ) {
+					if( battle_config.crimson_marker_type )
+						clif_crimson_marker2(sd,bl->id,1,bl->x,bl->y,i,0xFF0000);
+					else
+						clif_crimson_marker(sd,bl,0);
+				}
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}

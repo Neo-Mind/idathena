@@ -866,5 +866,7 @@ void clif_parse_BankClose(int fd, struct map_session_data *sd);
 
 void clif_crimson_marker(struct map_session_data *sd, struct block_list *bl, uint8 flag);
 void clif_crimson_marker_single(int fd, struct block_list *bl, uint8 flag);
+void clif_crimson_marker2(struct map_session_data *sd, int target_id, int type, int x, int y, int id, int color);
+void clif_crimson_marker2_single(int fd, int target_id, int type, int x, int y, int id, int color);
 
 #endif /* _CLIF_H_ */

@@ -17499,6 +17499,42 @@ void clif_crimson_marker_single(int fd, struct block_list *bl, uint8 flag) {
 	WFIFOSET(fd,packet_len(0x107));
 }
 
+/** This is another version of clif_crimson_marker
+ * Mark a target in mini-map and send it to party members
+ */
+void clif_crimson_marker2(struct map_session_data *sd, int target_id, int type, int x, int y, int id, int color) {
+	unsigned char buf[32];
+
+	nullpo_retv(sd);
+
+	WBUFW(buf,0) = 0x144;
+	WBUFL(buf,2) = target_id;
+	WBUFL(buf,6) = type;
+	WBUFL(buf,10) = x;
+	WBUFL(buf,14) = y;
+	WBUFB(buf,18) = id;
+	WBUFL(buf,19) = color;
+
+	clif_crimson_marker2_single(sd->fd,target_id,type,x,y,id,color);
+	if( sd->status.party_id )
+		clif_send(buf,packet_len(0x144),&sd->bl,PARTY_SAMEMAP_WOS);
+}
+
+/** This is another version of clif_crimson_marker_single
+ * Mark a target in mini-map and send it to SELF
+ */
+void clif_crimson_marker2_single(int fd, int target_id, int type, int x, int y, int id, int color) {
+	WFIFOHEAD(fd,packet_len(0x144));
+	WFIFOW(fd,0) = 0x144;
+	WFIFOL(fd,2) = target_id;
+	WFIFOL(fd,6) = type;
+	WFIFOL(fd,10) = x;
+	WFIFOL(fd,14) = y;
+	WFIFOB(fd,18) = id;
+	WFIFOL(fd,19) = color;
+	WFIFOSET(fd,packet_len(0x144));
+}
+
 #ifdef DUMP_UNKNOWN_PACKET
 void DumpUnknow(int fd,TBL_PC *sd,int cmd,int packet_len) {
 	const char* packet_txt = "save/packet.txt";

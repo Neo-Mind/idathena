@@ -536,6 +536,7 @@ extern struct Battle_Config
 	int path_blown_halt;
 	int rental_mount_speed_boost;
 	int atcommand_enable_npc;
+	int crimson_marker_type;
 } battle_config;
 
 void do_init_battle(void);
