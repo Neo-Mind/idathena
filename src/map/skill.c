@@ -1591,7 +1591,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 				status_change_end(bl,SC_B_TRAP,INVALID_TIMER);
 			break;
 		case RL_HAMMER_OF_GOD:
-			sc_start(src,bl,SC_STUN,100,skill_lv,skill_get_time2(skill_id,skill_lv));
+			sc_start(src,bl,SC_STUN,10 * skill_lv + rnd()%50,skill_lv,skill_get_time2(skill_id,skill_lv)); //Custom
 		case RL_D_TAIL:
 		case RL_QD_SHOT:
 			status_change_end(bl,SC_C_MARKER,INVALID_TIMER);

@@ -817,7 +817,7 @@ void initChangeTables(void) {
 	add_sc( RL_HAMMER_OF_GOD   , SC_STUN );
 	set_sc( RL_B_TRAP          , SC_B_TRAP               , SI_B_TRAP               , SCB_SPEED );
 	set_sc( RL_E_CHAIN         , SC_E_CHAIN              , SI_E_CHAIN              , SCB_NONE );
-	set_sc_with_vfx( RL_C_MARKER, SC_C_MARKER            , SI_C_MARKER             , SCB_SPEED );
+	set_sc_with_vfx( RL_C_MARKER, SC_C_MARKER            , SI_C_MARKER             , SCB_FLEE );
 	set_sc( RL_P_ALTER          , SC_P_ALTER             , SI_P_ALTER              , SCB_BATK );
 	set_sc( RL_SLUGSHOT         , SC_STUN                , SI_SLUGSHOT             , SCB_NONE );
 	set_sc( RL_AM_BLAST         , SC_ANTI_M_BLAST        , SI_ANTI_M_BLAST         , SCB_NONE );
@@ -1131,6 +1131,7 @@ void initChangeTables(void) {
 	StatusDisplayType[SC_UNLIMIT]		  = true;
 	StatusDisplayType[SC_ILLUSIONDOPING]	  = true;
 	StatusDisplayType[SC_C_MARKER]		  = true;
+	StatusDisplayType[SC_ANTI_M_BLAST]	  = true;
 	StatusDisplayType[SC_MOONSTAR]		  = true;
 	StatusDisplayType[SC_SUPER_STAR]	  = true;
 	StatusDisplayType[SC_STRANGELIGHTS]	  = true;
@@ -5331,6 +5332,8 @@ static signed short status_calc_flee(struct block_list *bl, struct status_change
 	if(sc->data[SC_SPEARQUICKEN])
 		flee += 2 * sc->data[SC_SPEARQUICKEN]->val1;
 #endif
+	if(sc->data[SC_C_MARKER])
+		flee -= 10;
 	if(sc->data[SC_INCFLEERATE])
 		flee += flee * sc->data[SC_INCFLEERATE]->val1 / 100;
 	if(sc->data[SC_SPIDERWEB] && sc->data[SC_SPIDERWEB]->val1)
@@ -5714,8 +5717,6 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 					val = max( val, sc->data[SC_POWER_OF_GAIA]->val2 );
 				if( sc->data[SC_MELON_BOMB] )
 					val = max( val, sc->data[SC_MELON_BOMB]->val1 );
-				if( sc->data[SC_C_MARKER] )
-					val = max( val, 10 );
 				if( sc->data[SC_B_TRAP] )
 					val = max( val, sc->data[SC_B_TRAP]->val3 );
 
@@ -9500,9 +9501,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 						break;
 				}
 				break;
+			case SC_C_MARKER:
+				val2 = src->id;
+				tick_time = 1000;
+				val4 = tick / tick_time;
+				break;
 			case SC_B_TRAP:
 				val3 = val1 * 25; //-Speed (Custom)
-			case SC_C_MARKER:
 			case SC_H_MINE:
 				val2 = src->id;
 				break;
@@ -10656,14 +10661,16 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				sc_start(bl,bl,SC_HEAT_BARREL_AFTER,100,sce->val1,skill_get_time2(RL_HEAT_BARREL,sce->val1));
 			break;
 		case SC_C_MARKER: { //Remove mark data from caster
-				struct map_session_data *caster = map_id2sd(temp_n);
+				struct map_session_data *sd = map_id2sd(temp_n);
 				uint8 i = 0;
 
-				if (!caster || !&caster->c_marker || !caster->c_marker.target)
+				if (!sd || !&sd->c_marker || !sd->c_marker.target)
 					break;
-				ARR_FIND(0,MAX_SKILL_CRIMSON_MARKER,i,caster->c_marker.target[i] == bl->id);
-				if (i < MAX_SKILL_CRIMSON_MARKER)
-					caster->c_marker.target[i] = 0;
+				ARR_FIND(0,MAX_SKILL_CRIMSON_MARKER,i,sd->c_marker.target[i] == bl->id);
+				if (i < MAX_SKILL_CRIMSON_MARKER) {
+					clif_crimson_marker(sd,bl,1);
+					sd->c_marker.target[i] = 0;
+				}
 			}
 			break;
 		case SC_H_MINE: { //Drop the material from target if expired
@@ -11787,6 +11794,20 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_FRIGG_SONG:
 			if( --(sce->val4) >= 0 ) {
 				status_heal(bl,sce->val3,0,0);
+				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
+				return 0;
+			}
+			break;
+		case SC_C_MARKER:
+			if( --(sce->val4) >= 0 ) {
+				struct map_session_data *sd = map_id2sd(sce->val2);
+				uint8 i = 0;
+
+				if( !sd || !&sd->c_marker || !sd->c_marker.target )
+					break;
+				ARR_FIND(0,MAX_SKILL_CRIMSON_MARKER,i,sd->c_marker.target[i] == bl->id);
+				if( i < MAX_SKILL_CRIMSON_MARKER )
+					clif_crimson_marker(sd,bl,0);
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}

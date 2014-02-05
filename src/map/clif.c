@@ -6486,11 +6486,13 @@ void clif_Bank_Check(struct map_session_data* sd) {
 	nullpo_retv(sd);
 
 	cmd = packet_db_ack[sd->packet_ver][ZC_BANKING_CHECK];
-	if(!cmd) cmd = 0x9a6; //Default
+	if(!cmd)
+		cmd = 0x9a6; //Default
 	info = &packet_db[sd->packet_ver][cmd]; 
 	len = info->len;
-	if(!len) return; //Version as packet disable
-		//sd->state.banking = 1; //Mark opening and closing
+	if(!len)
+		return; //Version as packet disable
+	//sd->state.banking = 1; //Mark opening and closing
 	WBUFW(buf,0) = cmd;
 	WBUFQ(buf,info->pos[0]) = sd->status.bank_vault; //Testing value
 	WBUFW(buf,info->pos[1]) = 0; //Reason
@@ -6529,10 +6531,12 @@ void clif_bank_deposit(struct map_session_data *sd, enum e_BANKING_DEPOSIT_ACK r
 	nullpo_retv(sd);
 
 	cmd = packet_db_ack[sd->packet_ver][ZC_ACK_BANKING_DEPOSIT];
-	if(!cmd) cmd = 0x9a8;
+	if(!cmd)
+		cmd = 0x9a8;
 	info = &packet_db[sd->packet_ver][cmd];
 	len = info->len;
-	if(!len) return; //Version as packet disable
+	if(!len)
+		return; //Version as packet disable
 	WBUFW(buf,0) = cmd;
 	WBUFW(buf,info->pos[0]) = (short)reason;
 	WBUFQ(buf,info->pos[1]) = sd->status.bank_vault; /* Money in the bank */
@@ -6577,10 +6581,12 @@ void clif_bank_withdraw(struct map_session_data *sd,enum e_BANKING_WITHDRAW_ACK 
 	nullpo_retv(sd);
 
 	cmd = packet_db_ack[sd->packet_ver][ZC_ACK_BANKING_WITHDRAW];
-	if(!cmd) cmd = 0x9aa;
+	if(!cmd)
+		cmd = 0x9aa;
 	info = &packet_db[sd->packet_ver][cmd];
 	len = info->len;
-	if(!len) return; //Version as packet disable
+	if(!len)
+		return; //Version as packet disable
 	WBUFW(buf,0) = cmd;
 	WBUFW(buf,info->pos[0]) = (short)reason;
 	WBUFQ(buf,info->pos[1]) = sd->status.bank_vault;/* Money in the bank */
@@ -6594,6 +6600,7 @@ void clif_bank_withdraw(struct map_session_data *sd,enum e_BANKING_WITHDRAW_ACK 
  */
 void clif_parse_BankWithdraw(int fd, struct map_session_data* sd) {
 	nullpo_retv(sd);
+
 	if(!battle_config.feature_banking) {
 		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1496)); //Banking is disabled
 		return;
@@ -6825,10 +6832,10 @@ void clif_party_created(struct map_session_data *sd,int result)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0xfa));
-	WFIFOW(fd,0)=0xfa;
-	WFIFOB(fd,2)=result;
+	WFIFOW(fd,0) = 0xfa;
+	WFIFOB(fd,2) = result;
 	WFIFOSET(fd,packet_len(0xfa));
 }
 
@@ -6852,20 +6859,21 @@ void clif_party_member_info(struct party_data *p, struct map_session_data *sd)
 	else //Pick any party member (this call is used when changing item share rules)
 		ARR_FIND(0, MAX_PARTY, i, p->data[i].sd != 0);
 
-	if (i >= MAX_PARTY) return; //Should never happen
+	if (i >= MAX_PARTY)
+		return; //Should never happen
 	sd = p->data[i].sd;
 
-	WBUFW(buf, 0) = 0x1e9;
-	WBUFL(buf, 2) = sd->status.account_id;
-	WBUFL(buf, 6) = (p->party.member[i].leader) ? 0 : 1;
+	WBUFW(buf,0) = 0x1e9;
+	WBUFL(buf,2) = sd->status.account_id;
+	WBUFL(buf,6) = (p->party.member[i].leader) ? 0 : 1;
 	WBUFW(buf,10) = sd->bl.x;
 	WBUFW(buf,12) = sd->bl.y;
 	WBUFB(buf,14) = (p->party.member[i].online) ? 0 : 1;
 	memcpy(WBUFP(buf,15), p->party.name, NAME_LENGTH);
 	memcpy(WBUFP(buf,39), sd->status.name, NAME_LENGTH);
 	mapindex_getmapname_ext(map[sd->bl.m].name, (char*)WBUFP(buf,63));
-	WBUFB(buf,79) = (p->party.item&1)?1:0;
-	WBUFB(buf,80) = (p->party.item&2)?1:0;
+	WBUFB(buf,79) = (p->party.item&1) ? 1 : 0;
+	WBUFB(buf,80) = (p->party.item&2) ? 1 : 0;
 	clif_send(buf,packet_len(0x1e9),&sd->bl,PARTY);
 }
 
@@ -7110,10 +7118,10 @@ void clif_party_xy(struct map_session_data *sd)
 
 	nullpo_retv(sd);
 
-	WBUFW(buf,0)=0x107;
-	WBUFL(buf,2)=sd->status.account_id;
-	WBUFW(buf,6)=sd->bl.x;
-	WBUFW(buf,8)=sd->bl.y;
+	WBUFW(buf,0) = 0x107;
+	WBUFL(buf,2) = sd->status.account_id;
+	WBUFW(buf,6) = sd->bl.x;
+	WBUFW(buf,8) = sd->bl.y;
 	clif_send(buf,packet_len(0x107),&sd->bl,PARTY_SAMEMAP_WOS);
 }
 
@@ -7124,10 +7132,10 @@ void clif_party_xy(struct map_session_data *sd)
 void clif_party_xy_single(int fd, struct map_session_data *sd)
 {
 	WFIFOHEAD(fd,packet_len(0x107));
-	WFIFOW(fd,0)=0x107;
-	WFIFOL(fd,2)=sd->status.account_id;
-	WFIFOW(fd,6)=sd->bl.x;
-	WFIFOW(fd,8)=sd->bl.y;
+	WFIFOW(fd,0) = 0x107;
+	WFIFOL(fd,2) = sd->status.account_id;
+	WFIFOW(fd,6) = sd->bl.x;
+	WFIFOW(fd,8) = sd->bl.y;
 	WFIFOSET(fd,packet_len(0x107));
 }
 
@@ -7146,11 +7154,11 @@ void clif_party_hp(struct map_session_data *sd)
 
 	nullpo_retv(sd);
 
-	WBUFW(buf,0)=cmd;
-	WBUFL(buf,2)=sd->status.account_id;
+	WBUFW(buf,0) = cmd;
+	WBUFL(buf,2) = sd->status.account_id;
 #if PACKETVER < 20100126
 	if (sd->battle_status.max_hp > INT16_MAX) { //To correctly display the %hp bar. [Skotlex]
-		WBUFW(buf,6) = sd->battle_status.hp/(sd->battle_status.max_hp/100);
+		WBUFW(buf,6) = sd->battle_status.hp / (sd->battle_status.max_hp / 100);
 		WBUFW(buf,8) = 100;
 	} else {
 		WBUFW(buf,6) = sd->battle_status.hp;
@@ -7178,9 +7186,8 @@ void clif_hpmeter_single(int fd, int id, unsigned int hp, unsigned int maxhp)
 	WFIFOW(fd,0) = cmd;
 	WFIFOL(fd,2) = id;
 #if PACKETVER < 20100126
-	if( maxhp > INT16_MAX )
-	{// To correctly display the %hp bar. [Skotlex]
-		WFIFOW(fd,6) = hp/(maxhp/100);
+	if( maxhp > INT16_MAX ) { // To correctly display the %hp bar. [Skotlex]
+		WFIFOW(fd,6) = hp / (maxhp / 100);
 		WFIFOW(fd,8) = 100;
 	} else {
 		WFIFOW(fd,6) = hp;
@@ -9060,11 +9067,13 @@ void clif_disp_overhead(struct block_list *bl, const char* mes)
 void clif_party_xy_remove(struct map_session_data *sd)
 {
 	unsigned char buf[16];
+
 	nullpo_retv(sd);
-	WBUFW(buf,0)=0x107;
-	WBUFL(buf,2)=sd->status.account_id;
-	WBUFW(buf,6)=-1;
-	WBUFW(buf,8)=-1;
+
+	WBUFW(buf,0) = 0x107;
+	WBUFL(buf,2) = sd->status.account_id;
+	WBUFW(buf,6) = -1;
+	WBUFW(buf,8) = -1;
 	clif_send(buf,packet_len(0x107),&sd->bl,PARTY_SAMEMAP_WOS);
 }
 
@@ -9850,6 +9859,13 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 
 			safesnprintf(output,sizeof(output),"[ Kill Steal Protection Disabled. KS is allowed in this map ]");
 			clif_broadcast(&sd->bl,output,strlen(output) + 1,BC_BLUE,SELF);
+		}
+
+		if(map_flag_gvg2(sd->bl.m)) {
+			if(sd->sc.data[SC_C_MARKER])
+				status_change_end(&sd->bl,SC_C_MARKER,INVALID_TIMER);
+			if(sd->sc.data[SC_ANTI_M_BLAST])
+				status_change_end(&sd->bl,SC_ANTI_M_BLAST,INVALID_TIMER);
 		}
 
 		map_iwall_get(sd); //Updates Walls Info on this Map to Client
@@ -17444,6 +17460,43 @@ void clif_scriptclear(struct map_session_data *sd, int npcid) {
 	WFIFOW(fd,0) = 0x8d6;
 	WFIFOL(fd,info->pos[0]) = npcid;
 	WFIFOSET(fd,len);
+}
+
+/** Mark a target in mini-map and send it to party members
+ * Flag:
+ *	0: Add
+ *	1: Remove
+ */
+void clif_crimson_marker(struct map_session_data *sd, struct block_list *bl, uint8 flag) {
+	unsigned char buf[16];
+
+	nullpo_retv(sd);
+
+	WBUFW(buf,0) = 0x107;
+	WBUFL(buf,2) = bl->id;
+	WBUFW(buf,6) = (flag ? -1 : bl->x);
+	WBUFW(buf,8) = (flag ? -1 : bl->y);
+
+	if( flag )
+		clif_crimson_marker_single(sd->fd,bl,1);
+	else
+		clif_crimson_marker_single(sd->fd,bl,0);
+	if( sd->status.party_id )
+		clif_send(buf,packet_len(0x107),&sd->bl,PARTY_SAMEMAP_WOS);
+}
+
+/** Mark a target in mini-map and send it to SELF
+ * Flag:
+ *	0: Add
+ *	1: Remove
+ */
+void clif_crimson_marker_single(int fd, struct block_list *bl, uint8 flag) {
+	WFIFOHEAD(fd,packet_len(0x107));
+	WFIFOW(fd,0) = 0x107;
+	WFIFOL(fd,2) = bl->id;
+	WFIFOW(fd,6) = (flag ? -1 : bl->x);
+	WFIFOW(fd,8) = (flag ? -1 : bl->y);
+	WFIFOSET(fd,packet_len(0x107));
 }
 
 #ifdef DUMP_UNKNOWN_PACKET
