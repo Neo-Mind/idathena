@@ -5958,40 +5958,52 @@ int pc_checkjoblevelup(struct map_session_data *sd)
 	return 1;
 }
 
-/*==========================================
- * Alters experienced based on self bonuses that do not get even shared to the party.
- *------------------------------------------*/
+/** Alters experiences calculation based on self bonuses that do not get even shared to the party.
+ * @param sd Player
+ * @param base_exp Base EXP before peronal bonuses
+ * @param job_exp Job EXP before peronal bonuses
+ * @param src Block list that affecting the exp calculation
+ */
 static void pc_calcexp(struct map_session_data *sd, unsigned int *base_exp, unsigned int *job_exp, struct block_list *src)
 {
-	int bonus = 0;
+	int bonus = 0, vip_bonus_base = 0, vip_bonus_job = 0;
 	struct status_data *status = status_get_status_data(src);
 
 	if (sd->expaddrace[status->race])
 		bonus += sd->expaddrace[status->race];
+
 	if (sd->expaddrace[RC_ALL])
 		bonus += sd->expaddrace[RC_ALL];
 
 	if (sd->expaddclass[status->class_])
 		bonus += sd->expaddclass[status->class_];
+
 	if (sd->expaddclass[CLASS_ALL])
 		bonus += sd->expaddclass[CLASS_ALL];
 
-	if (battle_config.pk_mode &&
-		(int)(status_get_lv(src) - sd->status.base_level) >= 20)
+	if (battle_config.pk_mode && (int)(status_get_lv(src) - sd->status.base_level) >= 20)
 		bonus += 15; //pk_mode additional exp if monster > 20 levels [Valaris]
+
+#ifdef VIP_ENABLE
+	//EXP bonus for VIP player
+	if (src && src->type == BL_MOB && pc_isvip(sd)) {
+		vip_bonus_base = battle_config.vip_base_exp_increase;
+		vip_bonus_job = battle_config.vip_job_exp_increase;
+	}
+#endif
 
 	if (sd->sc.data[SC_EXPBOOST]) {
 		bonus += sd->sc.data[SC_EXPBOOST]->val1;
-		if( battle_config.vip_bm_increase && pc_isvip(sd) ) //Increase Battle Manual EXP rate for VIP.
+		if (battle_config.vip_bm_increase && pc_isvip(sd)) //Increase Battle Manual EXP rate for VIP.
 			bonus += (sd->sc.data[SC_EXPBOOST]->val1 / battle_config.vip_bm_increase);
 	}
 
-	*base_exp = (unsigned int) cap_value(*base_exp + (double)*base_exp * bonus / 100., 1, UINT_MAX);
+	*base_exp = (unsigned int)cap_value(*base_exp + (double)*base_exp * (bonus + vip_bonus_base) / 100., 1, UINT_MAX);
 
 	if (sd->sc.data[SC_JEXPBOOST])
 		bonus += sd->sc.data[SC_JEXPBOOST]->val1;
 
-	*job_exp = (unsigned int) cap_value(*job_exp + (double)*job_exp * bonus / 100., 1, UINT_MAX);
+	*job_exp = (unsigned int)cap_value(*job_exp + (double)*job_exp * (bonus + vip_bonus_job) / 100., 1, UINT_MAX);
 
 	return;
 }
@@ -6011,14 +6023,6 @@ int pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned int
 
 	if (!battle_config.pvp_exp && map[sd->bl.m].flag.pvp) //[MouseJstr]
 		return 0; //No exp on pvp maps
-
-	//Increase base EXP rate for VIP.
-	if (src && (src->type&BL_MOB) && (battle_config.vip_base_exp_increase && (sd && pc_isvip(sd))))
-		base_exp = (unsigned int)cap_value(base_exp * (battle_config.vip_base_exp_increase) / 100., 1, UINT_MAX);
-
-	// Increase job EXP rate for VIP.
-	if (src && (src->type&BL_MOB) && (battle_config.vip_job_exp_increase && (sd && pc_isvip(sd))))
-		job_exp = (unsigned int)cap_value(job_exp * (battle_config.vip_job_exp_increase) / 100., 1, UINT_MAX);
 
 	if (sd->status.guild_id > 0)
 		base_exp -= guild_payexp(sd,base_exp);

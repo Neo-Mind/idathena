@@ -11224,9 +11224,10 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 					TBL_MOB* md = mob_once_spawn_sub(src,src->m,x,y,"--ja--",(skill_lv < 2 ? 1084 + rnd()%2 : 1078 + rnd()%6),"",SZ_SMALL,AI_NONE);
 					int i;
 
-					if (!md) break;
+					if (!md)
+						break;
 					if ((i = skill_get_time(skill_id,skill_lv)) > 0) {
-						if( md->deletetimer != INVALID_TIMER )
+						if (md->deletetimer != INVALID_TIMER)
 							delete_timer(md->deletetimer,mob_timer_delete);
 						md->deletetimer = add_timer (tick + i,mob_timer_delete,md->bl.id,0);
 					}
@@ -11250,7 +11251,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 				return 0;
 			} else {
 				sg = skill_unitsetting(src,skill_id,skill_lv,src->x,src->y,0);
-				if (!sg) break;
+				if (!sg)
+					break;
 				if (sce)
 					status_change_end(src,type,INVALID_TIMER); //Was under someone else's Gospel. [Skotlex]
 				sc_start4(src,src,type,100,skill_lv,0,sg->group_id,BCT_SELF,skill_get_time(skill_id,skill_lv));
@@ -11303,7 +11305,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case AB_EPICLESIS:
 			if( (sg = skill_unitsetting(src,skill_id,skill_lv,x,y,0)) ) {
 				i = sg->unit->range;
-				map_foreachinarea(skill_area_sub,src->m,x - i,y - i,x + i,y + i,BL_CHAR,src,ALL_RESURRECTION,1,tick,flag|BCT_NOENEMY|1,skill_castend_nodamage_id);
+				map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,BL_CHAR,src,ALL_RESURRECTION,1,tick,flag|BCT_NOENEMY|1,skill_castend_nodamage_id);
 			}
 			break;
 

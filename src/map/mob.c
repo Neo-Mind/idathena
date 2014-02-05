@@ -3281,13 +3281,13 @@ int mobskill_event(struct mob_data *md, struct block_list *src, unsigned int tic
 {
 	int target_id, res = 0;
 
-	if(md->bl.prev == NULL || md->status.hp == 0)
+	if (md->bl.prev == NULL || md->status.hp == 0)
 		return 0;
 
 	target_id = md->target_id;
 	if (!target_id || battle_config.mob_changetarget_byskill)
 		md->target_id = src->id;
-			
+
 	if (flag == -1)
 		res = mobskill_use(md, tick, MSC_CASTTARGETED);
 	else if ((flag&0xffff) == MSC_SKILLUSED)
@@ -3296,14 +3296,14 @@ int mobskill_event(struct mob_data *md, struct block_list *src, unsigned int tic
 		res = mobskill_use(md, tick, MSC_CLOSEDATTACKED);
 	else if (flag&BF_LONG && !(flag&BF_MAGIC)) //Long-attacked should not include magic.
 		res = mobskill_use(md, tick, MSC_LONGRANGEATTACKED);
-	
+
 	if (!res)
 	//Restore previous target only if skill condition failed to trigger. [Skotlex]
 		md->target_id = target_id;
 	//Otherwise check if the target is an enemy, and unlock if needed.
 	else if (battle_check_target(&md->bl, src, BCT_ENEMY) <= 0)
 		md->target_id = target_id;
-	
+
 	return res;
 }
 
