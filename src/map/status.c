@@ -7152,6 +7152,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	bool sc_isnew = true;
 
 	nullpo_ret(bl);
+
 	sc = status_get_sc(bl);
 	status = status_get_status_data(bl);
 
@@ -7617,7 +7618,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		}
 	}
 
-	//Check for mvp resistance //ATM only those who OS
+	//Check for mvp resistance
+	//ATM only those who OS
 	if( (status->mode&MD_MVP) && !(flag&1) ) {
 		switch( type ) {
 			case SC_COMA:
