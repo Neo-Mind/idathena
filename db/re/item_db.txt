@@ -8266,9 +8266,9 @@
 17091,Upg_Mace_Box,Upg Mace Box,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getitem 16019,1; },{},{}
 17092,Upg_Bow_Box,Upg Bow Box,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getitem 18112,1; },{},{}
 17093,Upg_Twohand_Sword_Box,Upg Two-Handed Sword Box,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getitem 21000,1; },{},{}
-17094,Upg_Katar_Box2,Upg Katar Box,2,20,,,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
-17095,Upg_Two_Handed_Axe_Box2,Upg Two-Hand Axe Box,2,20,,,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
-17096,Upg_Lance_Box2,Upg Lance Box,2,20,,,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
+17094,Upg_Katar_Box2,Upg Katar Box,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
+17095,Upg_Two_Handed_Axe_Box2,Upg Two-Hand Axe Box,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
+17096,Upg_Lance_Box2,Upg Lance Box,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
 17104,HD_Oridecon_50Box,HD Oridecon 50 Box,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getitem 6240,50; },{},{}
 17105,HD_Elunium_50Box,HD Elunium 50 Box,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getitem 6241,50; },{},{}
 17106,Max_Weight_Up_10Box,Heavy Lifter Box,18,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getitem 7776,10; },{},{}
@@ -8329,8 +8329,8 @@
 17256,Good_Student_Gift_Box,Good Student Gift Box,18,20,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ getgroupitem(IG_Good_Student_Gift_Box); },{},{}
 17257,Bad_Student_Gift_Box,Bad Student Gift Box,18,20,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ getgroupitem(IG_Bad_Student_Gift_Box); },{},{}
 17262,Ex_Def_Potion_Box,Special Defense Potion Box,18,20,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ getgroupitem(IG_Ex_Def_Potion_Box); /*getitem Ex_Def_Potion,5; getitem RWC_Scroll_2012,1;*/ },{},{}
-17270,STR_Biscuit_Stick_Box,Bar of Strength Box,18,0,,,,,,,0xFFFFFFFF,63,2,,,,,,{ getitem 14616,20; },{},{}
-17271,VIT_Biscuit_Stick_Box,VIT Biscuit Stick Box,18,0,,,,,,,0xFFFFFFFF,63,2,,,,,,{ getitem 14617,20; },{},{}
+17270,STR_Biscuit_Stick_Box,Bar of Strength Box,18,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getitem 14616,20; },{},{}
+17271,VIT_Biscuit_Stick_Box,VIT Biscuit Stick Box,18,0,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getitem 14617,20; },{},{}
 17308,Half_Asprika_box1,Half Asprika box1,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ rentitem 2566,86400; },{},{}
 17311,Half_Brynhild_box1,Half Brynhild box1,2,20,,0,,,,,0xFFFFFFFF,63,2,,,47,,,{ rentitem 15023,86400; },{},{}
 17338,Ore_Box_V,Ore Box V,18,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getitem 7619,5; getitem 7620,5; getitem 14696,1; },{},{}
