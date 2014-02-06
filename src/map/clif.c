@@ -16462,7 +16462,7 @@ static void clif_parse_ReqTradeBuyingStore(int fd, struct map_session_data* sd)
 
 	packet_len = RFIFOW(fd,info->pos[0]);
 
-	if( packet_len < 12 ) { // minimum packet length
+	if( packet_len < 12 ) { // Minimum packet length
 		ShowError("clif_parse_ReqTradeBuyingStore: Malformed packet (expected length=%u, length=%u, account_id=%d).\n", 12, packet_len, sd->bl.id);
 		return;
 	}
@@ -16471,14 +16471,14 @@ static void clif_parse_ReqTradeBuyingStore(int fd, struct map_session_data* sd)
 	buyer_id   = RFIFOL(fd,info->pos[2]);
 	itemlist   = RFIFOP(fd,info->pos[3]);
 
-	// so that buyingstore_trade knows, how many elements it has access to
-	packet_len-= info->pos[3];
+	// So that buyingstore_trade knows, how many elements it has access to
+	packet_len -= info->pos[3];
 
 	if( packet_len%blocksize ) {
 		ShowError("clif_parse_ReqTradeBuyingStore: Unexpected item list size %u (account_id=%d, buyer_id=%d, block size=%u)\n", packet_len, sd->bl.id, account_id, blocksize);
 		return;
 	}
-	count = packet_len/blocksize;
+	count = packet_len / blocksize;
 
 	buyingstore_trade(sd, account_id, buyer_id, itemlist, count);
 }

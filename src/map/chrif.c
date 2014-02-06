@@ -563,6 +563,7 @@ void chrif_on_ready(void) {
 	guild_castle_reconnect(-1, 0, 0);
 
 	//Charserver is ready for loading autotrader
+	do_init_buyingstore_autotrade();
 	do_init_vending_autotrade();
 }
 
@@ -1372,8 +1373,10 @@ int chrif_load_scdata(int fd) {
 	pc_scdata_received(sd);
 #endif
 
-	if (sd->state.autotrade)
+	if (sd->state.autotrade) {
+		buyingstore_reopen(sd);
 		vending_reopen(sd);
+	}
 
 	return 0;
 }

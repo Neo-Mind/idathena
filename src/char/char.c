@@ -3959,16 +3959,16 @@ void char_delete2_ack(int fd, int char_id, uint32 result, time_t delete_date)
 void char_delete2_accept_ack(int fd, int char_id, uint32 result)
 { // HC: <082a>.W <char id>.L <Msg:0-5>.L
 	if( result == 1 ) {
-		struct char_session_data* sd;
-		sd = (struct char_session_data*)session[fd]->session_data;
-		mmo_char_send(fd,sd);
-	} else {
-		WFIFOHEAD(fd,10);
-		WFIFOW(fd,0) = 0x82a;
-		WFIFOL(fd,2) = char_id;
-		WFIFOL(fd,6) = result;
-		WFIFOSET(fd,10);
+		struct char_session_data* sd = (struct char_session_data*)session[fd]->session_data;
+
+		if( sd->version >= date2version(20130320) )
+			mmo_char_send(fd,sd);
 	}
+	WFIFOHEAD(fd,10);
+	WFIFOW(fd,0) = 0x82a;
+	WFIFOL(fd,2) = char_id;
+	WFIFOL(fd,6) = result;
+	WFIFOSET(fd,10);
 }
 
 
