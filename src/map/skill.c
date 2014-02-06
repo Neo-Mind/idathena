@@ -11545,10 +11545,14 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 				for( i = 1; i <= wave; i++ ) {
 					switch( dir ) {
-						case 0: case 1: case 7: sy = y + i; break;
-						case 3: case 4: case 5: sy = y - i; break;
+						case 0: sy = y + i; break;
+						case 1: sy = y + i; sx = x - i; break;
 						case 2: sx = x - i; break;
+						case 3: sx = x - i; sy = y - i; break;
+						case 4: sy = y - i; break;
+						case 5: sx = x + i; sy = y - i; break;
 						case 6: sx = x + i; break;
+						case 7: sy = y + i; sx = x + i; break;
 					}
 					skill_addtimerskill(src,gettick() + (140 * i),0,sx,sy,skill_id,skill_lv,dir,flag);
 				}
