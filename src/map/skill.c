@@ -100,6 +100,7 @@ struct s_skill_unit_layout skill_unit_layout[MAX_SKILL_UNIT_LAYOUT];
 int firewall_unit_pos;
 int icewall_unit_pos;
 int earthstrain_unit_pos;
+int firerain_unit_pos;
 //Early declaration
 int skill_block_check(struct block_list *bl, enum sc_type type, uint16 skill_id);
 static int skill_check_unit_range(struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv);
@@ -807,11 +808,13 @@ struct s_skill_unit_layout* skill_get_unit_layout (uint16 skill_id, uint16 skill
 	dir = (src->x == x && src->y == y) ? 6 : map_calc_dir(src,x,y); //6 - default aegis direction
 
 	if( skill_id == MG_FIREWALL )
-		return &skill_unit_layout [firewall_unit_pos + dir];
+		return &skill_unit_layout[firewall_unit_pos + dir];
 	else if( skill_id == WZ_ICEWALL )
-		return &skill_unit_layout [icewall_unit_pos + dir];
-	else if( skill_id == WL_EARTHSTRAIN ) //Warlock
-		return &skill_unit_layout [earthstrain_unit_pos + dir];
+		return &skill_unit_layout[icewall_unit_pos + dir];
+	else if( skill_id == WL_EARTHSTRAIN )
+		return &skill_unit_layout[earthstrain_unit_pos + dir];
+	else if( skill_id == RL_FIRE_RAIN )
+		return &skill_unit_layout[firerain_unit_pos + dir];
 
 	ShowError("skill_get_unit_layout: unknown unit layout for skill %d (level %d)\n", skill_id, skill_lv);
 	return &skill_unit_layout[0]; //Default 1x1 layout
@@ -3745,6 +3748,13 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 						map_foreachinarea(skill_area_sub,src->m,x,y,x2,y2,BL_CHAR,src,skl->skill_id,skl->skill_lv,tick,skl->flag|BCT_ENEMY|SD_ANIMATION|1,skill_castend_damage_id);
 					}
 					break;
+				case RL_FIRE_RAIN: {
+						int dummy = 1, i = skill_get_splash(skl->skill_id,skl->skill_lv);
+
+						map_foreachinarea(skill_cell_overlap,src->m,skl->x-i,skl->y-i,skl->x+i,skl->y+i,BL_SKILL,skl->skill_id,&dummy,src);
+						skill_unitsetting(src,skl->skill_id,skl->skill_lv,skl->x,skl->y,0);
+					}
+					break;
 			}
 		}
 	} while (0);
@@ -4289,7 +4299,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case RL_FIREDANCE:
 		case RL_R_TRIP:
 		case RL_D_TAIL:
-		case RL_FIRE_RAIN:
 		case RL_HAMMER_OF_GOD:
 			if (flag&1) {
 				//Recursive invocation
@@ -4333,7 +4342,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					case KO_BAKURETSU:
 					case RL_BANISHING_BUSTER:
 					case RL_S_STORM:
-					case RL_FIRE_RAIN:
 						clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 						break;
 					case NPC_EARTHQUAKE: //FIXME: Isn't EarthQuake a ground skill after all?
@@ -11320,7 +11328,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 				int sx = x = src->x, sy = y = src->y; //Store first caster's location to avoid glitch on unit setting
 
 				for( i = 1; i <= wave; i++ ) {
-					switch( dir ){
+					switch( dir ) {
 						case 0: case 1: case 7: sy = y + i; break;
 						case 3: case 4: case 5: sy = y - i; break;
 						case 2: sx = x - i; break;
@@ -11528,6 +11536,22 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 					sd->skill_id_old = 0;
 				} else
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+			}
+			break;
+
+		case RL_FIRE_RAIN: {
+				int i, wave = skill_lv + 5, dir = map_calc_dir(src,x,y);
+				int sx = x = src->x, sy = y = src->y;
+
+				for( i = 1; i <= wave; i++ ) {
+					switch( dir ) {
+						case 0: case 1: case 7: sy = y + i; break;
+						case 3: case 4: case 5: sy = y - i; break;
+						case 2: sx = x - i; break;
+						case 6: sx = x + i; break;
+					}
+					skill_addtimerskill(src,gettick() + (140 * i),0,sx,sy,skill_id,skill_lv,dir,flag);
+				}
 			}
 			break;
 
@@ -11846,10 +11870,12 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 				limit = 2000;
 			else { //Previous implementation (not used anymore)
 				//Warp Portal morphing to active mode, extract relevant data from src. [Skotlex]
-				if( src->type != BL_SKILL ) return NULL;
+				if( src->type != BL_SKILL )
+					return NULL;
 				group = ((TBL_SKILL*)src)->group;
 				src = map_id2bl(group->src_id);
-				if( !src ) return NULL;
+				if( !src )
+					return NULL;
 				val2 = group->val2; //Copy the (x,y) position you warp to.
 				val3 = group->val3; //As well as the mapindex to warp to.
 			}
@@ -12132,6 +12158,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 	group->state.song_dance = (unit_flag&(UF_DANCE|UF_SONG) ? 1 : 0)|(unit_flag&UF_ENSEMBLE ? 2 : 0); //Signals if this is a song/dance/duet
 	group->state.guildaura = (skill_id >= GD_LEADERSHIP && skill_id <= GD_HAWKEYES) ? 1 : 0;
   	group->item_id = req_item;
+
 	//If tick is greater than current, do not invoke onplace function just yet. [Skotlex]
 	if( DIFF_TICK(group->tick,gettick()) > SKILLUNITTIMER_INTERVAL )
 		active_flag = 0;
@@ -12241,6 +12268,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 
 		if( range <= 0 )
 			map_foreachincell(skill_cell_overlap,src->m,ux,uy,BL_SKILL,skill_id,&alive,src);
+
 		if( !alive )
 			continue;
 
@@ -12723,7 +12751,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 					if (bl->type == BL_SKILL) {
 						struct skill_unit *su = (struct skill_unit *)bl;
 
-						if( su && !(skill_get_inf2(su->group->skill_id)&INF2_TRAP) )
+						if (su && !(skill_get_inf2(su->group->skill_id)&INF2_TRAP))
 							break;
 					}
 				default:
@@ -13132,16 +13160,17 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 					case 1:
 					case 2:
 					default:
-						sc_start(ss,bl,SC_BURNING,4 + 4 * sg->skill_lv,sg->skill_lv,
-							skill_get_time2(sg->skill_id,sg->skill_lv));
-						skill_attack(skill_get_type(sg->skill_id),ss,&src->bl,bl,
-							sg->skill_id,sg->skill_lv + 10 * sg->val2,tick,0);
+						if (sg->skill_id != RL_FIRE_RAIN) {
+							sc_start(ss,bl,SC_BURNING,4 + 4 * sg->skill_lv,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
+							skill_attack(skill_get_type(sg->skill_id),ss,&src->bl,bl,sg->skill_id,sg->skill_lv + 10 * sg->val2,tick,0);
+						} else
+							skill_attack(skill_get_type(sg->skill_id),ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 						break;
 					case 3:
-						skill_attack(skill_get_type(CR_ACIDDEMONSTRATION),ss,&src->bl,bl,
-							CR_ACIDDEMONSTRATION,(sd ? pc_checkskill(sd,CR_ACIDDEMONSTRATION) : sg->skill_lv),tick,0);
+						if (sg->skill_id != RL_FIRE_RAIN)
+							skill_attack(skill_get_type(CR_ACIDDEMONSTRATION),ss,&src->bl,bl,CR_ACIDDEMONSTRATION,
+								(sd ? pc_checkskill(sd,CR_ACIDDEMONSTRATION) : sg->skill_lv),tick,0);
 						break;
-						
 				}
 			}
 			break;
@@ -13325,9 +13354,11 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			sg->limit = DIFF_TICK(tick,sg->tick) + 1500;
 			break;
 
-		/*case UNT_FIRE_RAIN:
-			skill_attack(skill_get_type(sg->skill_id),ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,SD_LEVEL|SD_ANIMATION|SD_SPLASH);
-			break;*/
+		//Currently use UNT_DEMONIC_FIRE as replacement
+		//Until the information about RL_FIRE_RAIN unit id is provided
+		//case UNT_FIRE_RAIN:
+			//skill_attack(skill_get_type(sg->skill_id),ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,SD_LEVEL|SD_ANIMATION|SD_SPLASH);
+			//break;
 	}
 
 	if (bl->type == BL_MOB && ss != bl)
@@ -16332,6 +16363,10 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 					return 1;
 			}
 			break;
+		case RL_FIRE_RAIN:
+			if (rnd()%100 < 80) //Custom chance
+				skill_delunit(unit);
+			return 1;
 	}
 
 	//It deletes everything except non-essamble dance skills, traps and barriers
@@ -16444,7 +16479,8 @@ static int skill_trap_splash (struct block_list *bl, va_list ap)
 				skill_attack(BF_MISC,ss,src,bl,sg->skill_id,sg->skill_lv,tick,sg->val1|SD_LEVEL);
 			break;
 		case UNT_CLAYMORETRAP:
-			if( src->id == bl->id ) break;
+			if( src->id == bl->id )
+				break;
 			if( bl->type == BL_SKILL ) {
 				struct skill_unit *su = (struct skill_unit *)bl;
 
@@ -18835,7 +18871,8 @@ void skill_init_unit_layout (void)
 			switch( i ) {
 				case MG_FIREWALL:
 				case WZ_ICEWALL:
-				case WL_EARTHSTRAIN://Warlock
+				case WL_EARTHSTRAIN:
+				case RL_FIRE_RAIN:
 					//These will be handled later
 					break;
 				case PR_SANCTUARY:
@@ -18988,14 +19025,14 @@ void skill_init_unit_layout (void)
 		}
 		if (!skill_unit_layout[pos].count)
 			continue;
-		for (j=0;j<MAX_SKILL_LEVEL;j++)
+		for (j = 0; j < MAX_SKILL_LEVEL; j++)
 			skill_db[i].unit_layout_type[j] = pos;
 		pos++;
 	}
 
 	//Firewall and icewall have 8 layouts (direction-dependent)
 	firewall_unit_pos = pos;
-	for (i=0;i<8;i++) {
+	for (i = 0; i < 8; i++) {
 		if (i&1) {
 			skill_unit_layout[pos].count = 5;
 			if (i&0x2) {
@@ -19011,7 +19048,7 @@ void skill_init_unit_layout (void)
 			}
 		} else {
 			skill_unit_layout[pos].count = 3;
-			if (i%4==0) {
+			if (i%4 == 0) {
 				int dx[] = {-1, 0, 1};
 				int dy[] = { 0, 0, 0};
 				memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
@@ -19026,7 +19063,7 @@ void skill_init_unit_layout (void)
 		pos++;
 	}
 	icewall_unit_pos = pos;
-	for (i=0;i<8;i++) {
+	for (i = 0; i < 8; i++) {
 		skill_unit_layout[pos].count = 5;
 		if (i&1) {
 			if (i&0x2) {
@@ -19041,7 +19078,7 @@ void skill_init_unit_layout (void)
 				memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
 			}
 		} else {
-			if (i%4==0) {
+			if (i%4 == 0) {
 				int dx[] = {-2,-1, 0, 1, 2};
 				int dy[] = { 0, 0, 0, 0, 0};
 				memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
@@ -19056,9 +19093,9 @@ void skill_init_unit_layout (void)
 		pos++;
 	}
 	earthstrain_unit_pos = pos;
-	for( i = 0; i < 8; i++ ) { //For each Direction
+	for (i = 0; i < 8; i++) { //For each Direction
 		skill_unit_layout[pos].count = 15;
-		switch( i ) {
+		switch (i) {
 			case 0: case 1: case 3: case 4: case 5: case 7:
 				{
 					int dx[] = {-7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7};
@@ -19079,7 +19116,30 @@ void skill_init_unit_layout (void)
 		}
 		pos++;
 	}
-
+	firerain_unit_pos = pos;
+	for (i = 0; i < 8; i++) {
+		skill_unit_layout[pos].count = 3;
+		switch (i) {
+			case 0: case 1: case 3: case 4: case 5: case 7:
+				{
+					int dx[] = {-1, 0, 1};
+					int dy[] = { 0, 0, 0};
+					memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
+				}
+				break;
+			case 2:
+			case 6:
+				{
+					int dx[] = { 0, 0, 0};
+					int dy[] = {-1, 0, 1};
+					memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
+				}
+				break;
+		}
+		pos++;
+	}
 }
 
 int skill_block_check(struct block_list *bl, sc_type type , uint16 skill_id) {

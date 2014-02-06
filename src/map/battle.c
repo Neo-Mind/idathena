@@ -7234,7 +7234,6 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 						case SR_RAMPAGEBLASTER:
 						case NC_COLDSLOWER:
 						case NC_SELFDESTRUCTION:
-						case RL_FIRE_RAIN:
 #ifdef RENEWAL
 						case KN_BOWLINGBASH:
 						case KN_SPEARSTAB:

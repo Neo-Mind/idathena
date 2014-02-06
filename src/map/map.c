@@ -2514,9 +2514,9 @@ uint8 map_calc_dir(struct block_list* src, int16 x, int16 y)
 {
 	uint8 dir = 0;
 	int dx, dy;
-	
+
 	nullpo_ret(src);
-	
+
 	dx = x - src->x;
 	dy = y - src->y;
 
