@@ -2163,13 +2163,13 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 --------------------------------------------------------------------------*/
 int skill_break_equip (struct block_list *src, struct block_list *bl, unsigned short where, int rate, int flag)
 {
-	const int where_list[4]     = {EQP_WEAPON, EQP_ARMOR, EQP_SHIELD, EQP_HELM};
-	const enum sc_type scatk[4] = {SC_STRIPWEAPON, SC_STRIPARMOR, SC_STRIPSHIELD, SC_STRIPHELM};
-	const enum sc_type scdef[4] = {SC_CP_WEAPON, SC_CP_ARMOR, SC_CP_SHIELD, SC_CP_HELM};
+	const int where_list[4]     = { EQP_WEAPON, EQP_ARMOR, EQP_SHIELD, EQP_HELM };
+	const enum sc_type scatk[4] = { SC_STRIPWEAPON, SC_STRIPARMOR, SC_STRIPSHIELD, SC_STRIPHELM };
+	const enum sc_type scdef[4] = { SC_CP_WEAPON, SC_CP_ARMOR, SC_CP_SHIELD, SC_CP_HELM };
 	struct status_change *sc = status_get_sc(bl);
 	int i;
-	TBL_PC *sd;
-	sd = BL_CAST(BL_PC, bl);
+	TBL_PC *sd = BL_CAST(BL_PC, bl);
+
 	if (sc && !sc->count)
 		sc = NULL;
 
@@ -2177,7 +2177,7 @@ int skill_break_equip (struct block_list *src, struct block_list *bl, unsigned s
 		if (sd->bonus.unbreakable_equip)
 			where &= ~sd->bonus.unbreakable_equip;
 		if (sd->bonus.unbreakable)
-			rate -= rate*sd->bonus.unbreakable/100;
+			rate -= rate * sd->bonus.unbreakable / 100;
 		if (where&EQP_WEAPON) {
 			switch (sd->status.weapon) {
 				case W_FIST:	//Bare fists should not break :P
@@ -2195,18 +2195,18 @@ int skill_break_equip (struct block_list *src, struct block_list *bl, unsigned s
 	}
 	if (flag&BCT_ENEMY) {
 		if (battle_config.equip_skill_break_rate != 100)
-			rate = rate*battle_config.equip_skill_break_rate/100;
+			rate = rate * battle_config.equip_skill_break_rate / 100;
 	} else if (flag&(BCT_PARTY|BCT_SELF)) {
 		if (battle_config.equip_self_break_rate != 100)
-			rate = rate*battle_config.equip_self_break_rate/100;
+			rate = rate * battle_config.equip_self_break_rate / 100;
 	}
 
 	for (i = 0; i < 4; i++) {
 		if (where&where_list[i]) {
 			if (sc && sc->count && sc->data[scdef[i]])
-				where&=~where_list[i];
+				where &= ~where_list[i];
 			else if (rnd()%10000 >= rate)
-				where&=~where_list[i];
+				where &= ~where_list[i];
 			else if (!sd && !(status_get_mode(bl)&MD_BOSS)) //Cause Strip effect.
 				sc_start(src,bl,scatk[i],100,0,skill_get_time(status_sc2skill(scatk[i]),1));
 		}
@@ -2272,13 +2272,14 @@ int skill_strip_equip(struct block_list *src, struct block_list *bl, unsigned sh
 		if (where&pos[i] && sc_def[i] > SC_NONE && sc->data[sc_def[i]])
 			where &= ~pos[i];
 	}
-	if (!where) return 0;
+	if (!where)
+		return 0;
 
 	for (i = 0; i < ARRAYLENGTH(pos); i++) {
 		if (where&pos[i] && !sc_start(src, bl, sc_atk[i], 100, lv, time))
 			where &= ~pos[i];
 	}
-	return where ? 1 : 0;
+	return (where ? 1 : 0);
 }
 
 /*=========================================================================
@@ -2916,6 +2917,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		case LG_OVERBRAND_BRANDISH:
 			dmg.amotion = status_get_amotion(src) * 2;
 		case LG_OVERBRAND_PLUSATK:
+		case RL_R_TRIP_PLUSATK:
 			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, status_get_amotion(src), dmg.dmotion, damage, dmg.div_, skill_id, -1, 5);
 			break;
 		case EL_FIRE_BOMB:
@@ -3046,10 +3048,15 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 						skill_addtimerskill(src, tick + 300 * ((flag&2) ? 1 : 2), bl->id, 0, 0, skill_id, skill_lv, BF_WEAPON, flag|4);
 				}
 				break;
+			case RL_R_TRIP:
+				if (skill_blown(dsrc, bl, dmg.blewcount, dir, 0) < dmg.blewcount)
+					skill_addtimerskill(src, tick + status_get_amotion(src), bl->id, 0, 0, RL_R_TRIP_PLUSATK, skill_lv, BF_WEAPON, flag|SD_ANIMATION);
+				break;
 			default:
 				skill_blown(dsrc, bl, dmg.blewcount, dir, 0x0);
 				if (!dmg.blewcount && bl->type == BL_SKILL && damage > 0) {
-					TBL_SKILL *su = (TBL_SKILL*)bl;
+					TBL_SKILL *su = ((TBL_SKILL*)bl);
+
 					if (su->group && su->group->skill_id == HT_BLASTMINE)
 						skill_blown(src, bl, 3, -1, 0);
 				}
@@ -13119,7 +13126,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;
 
 		case UNT_DEMONIC_FIRE: {
-				TBL_PC* sd = (BL_CAST(BL_PC,ss));
+				TBL_PC* sd = BL_CAST(BL_PC,ss);
 
 				switch (sg->val2) {
 					case 1:

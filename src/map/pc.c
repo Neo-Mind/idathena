@@ -1513,6 +1513,7 @@ int pc_calc_skilltree(struct map_session_data *sd)
 				case LG_OVERBRAND_BRANDISH:
 				case LG_OVERBRAND_PLUSATK:
 				case WM_SEVERE_RAINSTORM_MELEE:
+				case RL_R_TRIP_PLUSATK:
 					continue;
 				default:
 					break;

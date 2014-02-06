@@ -3979,6 +3979,9 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 		case RL_R_TRIP:
 			skillratio += -100 + (150 * skill_lv); //Custom values
 			break;
+		case RL_R_TRIP_PLUSATK:
+			skillratio += -100 + 100 * skill_lv + rnd_value(10,100); //Custom values
+			break;
 		case RL_H_MINE:
 			skillratio += 100 + (200 * skill_lv);
 			if(sd && sd->skill_id_old == RL_FLICKER) //Explode bonus damage
