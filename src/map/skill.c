@@ -15425,7 +15425,7 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 	if( varcast_r < 0 ) //Now compute overall factors
 		time = time * (1 - (float)varcast_r / 100);
 	if( !(skill_get_castnodex(skill_id, skill_lv)&1) ) //Reduction from status point
-		time = (1 - sqrt( ((float)(status_get_dex(bl) * 2 + status_get_int(bl)) / battle_config.vcast_stat_scale) )) * time;
+		time = (1 - sqrt(((float)(status_get_dex(bl) * 2 + status_get_int(bl)) / battle_config.vcast_stat_scale))) * time;
 	//Underflow checking/capping
 	time = max(time, 0) + (1 - (float)min(fixcast_r, 100) / 100) * max(fixed,0);
 

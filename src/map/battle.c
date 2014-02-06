@@ -1575,7 +1575,7 @@ static int battle_calc_base_weapon_attack(struct block_list *src, struct status_
 	struct status_change *sc = status_get_sc(src);
 
 	if (sd->equip_index[type] >= 0 && sd->inventory_data[sd->equip_index[type]]) {
-		int variance = (int)(5 * ((float)(wa->atk * sd->inventory_data[sd->equip_index[type]]->wlv) / 100));
+		int variance = (int)(5 * (float)(wa->atk * sd->inventory_data[sd->equip_index[type]]->wlv) / 100);
 
 		atkmin = max(0, atkmin - variance);
 		atkmax = min(UINT16_MAX, atkmax + variance);
@@ -2942,10 +2942,9 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 						RE_ALLATK_ADDRATE(wd, sd->bonus.atk_rate);
 					}
 #ifndef RENEWAL
-					if(is_attack_critical(wd, src, target, skill_id, skill_lv, false) && sd->bonus.crit_atk_rate) {
-						//Add +crit damage bonuses here in pre-renewal mode [helvetica]
+					//Add +crit damage bonuses here in pre-renewal mode [helvetica]
+					if(is_attack_critical(wd, src, target, skill_id, skill_lv, false) && sd->bonus.crit_atk_rate)
 						ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.crit_atk_rate);
-					}
 #endif
 					if(is_attack_critical(wd, src, target, skill_id, skill_lv, false) && sc && sc->data[SC_MTF_CRIDAMAGE]) {
 						ATK_ADDRATE(wd.damage, wd.damage2, 25);
@@ -5073,11 +5072,11 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 #ifdef RENEWAL
 	if(is_attack_critical(wd, src, target, skill_id, skill_lv, false)) {
 		if(sd) { //Check for player so we don't crash out, monsters don't have bonus crit rates [helvetica]
-			wd.damage = (int)floor(((float)(wd.damage * (140 / 100) * (100 + sd->bonus.crit_atk_rate)) / 100));
+			wd.damage = (int)floor((float)((wd.damage * 140) / 100 * (100 + sd->bonus.crit_atk_rate)) / 100);
 			if(is_attack_left_handed(src, skill_id))
-				wd.damage2 = (int)floor(((float)(wd.damage2 * (140 / 100) * (100 + sd->bonus.crit_atk_rate)) / 100));
+				wd.damage2 = (int)floor((float)((wd.damage2 * 140) / 100 * (100 + sd->bonus.crit_atk_rate)) / 100);
 		} else
-			wd.damage = (int)floor(((float)(wd.damage * 140) / 100));
+			wd.damage = (int)floor((float)(wd.damage * 140) / 100);
 	}
 #endif
 
