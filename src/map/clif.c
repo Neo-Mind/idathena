@@ -1577,10 +1577,10 @@ void clif_hominfo(struct map_session_data *sd, struct homun_data *hd, int flag)
 	WBUFW(buf,31) = (unsigned short) (hd->homunculus.intimacy / 100) ;
 	WBUFW(buf,33) = 0; // Equip id
 	WBUFW(buf,35) = cap_value(status->rhw.atk2 + status->batk, 0, INT16_MAX);
-	WBUFW(buf,37) = min(status->matk_max, INT16_MAX); //@FIXME: Capping to INT16 here is too late
+	WBUFW(buf,37) = min(status->matk_max, INT16_MAX); // FIXME: Capping to INT16 here is too late
 	WBUFW(buf,39) = status->hit;
 	if (battle_config.hom_setting&0x10)
-		WBUFW(buf,41) = status->luk / 3 + 1; //Crit is a +1 decimal value! Just display purpose.[Vicious]
+		WBUFW(buf,41) = status->luk / 3 + 1; // Crit is a +1 decimal value! Just display purpose.[Vicious]
 	else
 		WBUFW(buf,41) = status->cri / 10;
 	WBUFW(buf,43) = status->def + status->vit ;
@@ -5904,7 +5904,7 @@ void clif_maptypeproperty2(struct block_list *bl,enum send_target t) {
 	WBUFB(buf,4) |= ((map_flag_gvg2(bl->m)) ? 0x04 : 0); //Siege
 	//Disable mine effect on nomineeffect map and enable it on gvgmap by default
 	WBUFB(buf,4) |= (map[bl->m].flag.nomineeffect || !map_flag_gvg2(bl->m)) ? 0 : 0x08;
-	WBUFB(buf,4) |= ((map[bl->m].flag.nolockon) ? 0x10 : 0); //Nolockon 0x10 @FIXME what this do
+	WBUFB(buf,4) |= ((map[bl->m].flag.nolockon) ? 0x10 : 0); //Nolockon 0x10 FIXME: What this do
 	WBUFB(buf,4) |= ((map[bl->m].flag.pvp) ? 0x20 : 0); //Countpk
 	WBUFB(buf,4) |= 0; //Nopartyformation 0x40
 	WBUFB(buf,4) |= ((map[bl->m].flag.battleground) ? 0x80 : 0); //Battleground
@@ -8811,7 +8811,7 @@ void clif_refresh(struct map_session_data *sd)
 	if( sd->state.vending )
 		clif_openvending(sd, sd->bl.id, sd->vending);
 	if( pc_issit(sd) )
-		clif_sitting(&sd->bl); // FIXME: just send to self, not area
+		clif_sitting(&sd->bl); // FIXME: Just send to self, not area
 	if( pc_isdead(sd) ) // When you refresh, resend the death packet.
 		clif_clearunit_single(sd->bl.id,CLR_DEAD,sd->fd);
 	else
@@ -10461,8 +10461,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 				break;
 			}
 
-			if( pc_issit(sd) ) {
-				//Bugged client? Just refresh them.
+			if( pc_issit(sd) ) { //Bugged client? Just refresh them.
 				clif_sitting(&sd->bl);
 				return;
 			}

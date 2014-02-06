@@ -1545,12 +1545,10 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			sc_start(src,bl,SC_BLEEDING,10 * skill_lv + rnd()%50,skill_lv,skill_get_time2(skill_id,skill_lv)); //Custom
 			break;
 		case RL_SLUGSHOT:
-			if( bl->type != BL_PC )
+			if( dstsd )
+				skill_addtimerskill(src,tick + 500,bl->id,0,0,skill_id,skill_lv,BF_WEAPON,0);
+			else if( dstmd && !is_boss(bl) )
 				sc_start(src,bl,SC_STUN,10 * skill_lv + rnd()%50,skill_lv,skill_get_time2(skill_id,skill_lv)); //Custom
-			else if( dstsd ) {
-				pc_setsit(dstsd);
-				clif_sitting(bl);
-			}
 			break;
 		case RL_BANISHING_BUSTER:
 			if( dstsd && tsc ) {
@@ -3652,14 +3650,15 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					break;
 				case LG_MOONSLASHER:
 				case SR_WINDMILL:
+				case RL_SLUGSHOT:
 					{
 						if (target->type == BL_PC) {
-							struct map_session_data *tsd = NULL;
+							struct map_session_data *tsd = ((TBL_PC*)target);
 
-							if ((tsd = ((TBL_PC*)target)) && !pc_issit(tsd)) {
+							if (tsd && !pc_issit(tsd)) {
 								pc_setsit(tsd);
 								skill_sit(tsd,1);
-								clif_sitting(&tsd->bl);
+								clif_sitting(target);
 							}
 						}
 					}
@@ -3673,10 +3672,10 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case SR_FLASHCOMBO_ATK_STEP3:
 				case SR_FLASHCOMBO_ATK_STEP4:
 					if (src->type == BL_PC) {
-						struct map_session_data *sd = NULL;
+						struct map_session_data *sd = ((TBL_PC*)src);
 						const enum e_skill combos[] = { SR_DRAGONCOMBO,SR_FALLENEMPIRE,SR_TIGERCANNON,SR_SKYNETBLOW };
 
-						if ((sd = ((TBL_PC*)src))) {
+						if (sd) {
 							uint16 cid = combos[skl->skill_id - SR_FLASHCOMBO_ATK_STEP1];
 
 							skill_castend_damage_id(src,target,cid,pc_checkskill(sd,cid),tick,0);
@@ -13120,7 +13119,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			break;
 
 		case UNT_DEMONIC_FIRE: {
-				TBL_PC* sd = BL_CAST(BL_PC,ss);
+				TBL_PC* sd = (BL_CAST(BL_PC,ss));
 
 				switch (sg->val2) {
 					case 1:
@@ -16481,9 +16480,11 @@ int skill_maelstrom_suction(struct block_list *bl, va_list ap)
 		return 0;
 
 	if( unit->group->skill_id == SC_MAELSTROM ) {
-		struct block_list *src;
-		if( (src = map_id2bl(unit->group->src_id)) ) {
+		struct block_list *src = map_id2bl(unit->group->src_id);
+
+		if( src ) {
 			int sp = unit->group->skill_lv * skill_lv;
+
 			if( src->type == BL_PC )
 				sp += ((TBL_PC*)src)->status.job_level / 5;
 			status_heal(src, 0, sp / 2, 1);

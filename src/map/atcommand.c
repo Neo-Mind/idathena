@@ -2857,7 +2857,7 @@ ACMD_FUNC(char_unban) {
 	nullpo_retr(-1, sd);
 
 	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-	unbantype = strcmpi(command + 1, "charunban") ? 4 : 7; //@FIXME this breaking alias recognition
+	unbantype = strcmpi(command + 1, "charunban") ? 4 : 7; //FIXME: this breaking alias recognition
 
 	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {	
 		if (unbantype == 4) clif_displaymessage(fd, msg_txt(1025)); // Please enter a player name (usage: @unblock <char name>).
