@@ -2237,7 +2237,7 @@ static int unit_attack_timer(int tid, unsigned int tick, int id, intptr_t data)
  *  &2: Cancel only if skill is cancellable
  * @return Success(1); Fail(0);
  */
-int unit_skillcastcancel(struct block_list *bl,int type)
+int unit_skillcastcancel(struct block_list *bl,uint8 type)
 {
 	struct map_session_data *sd = NULL;
 	struct unit_data *ud = unit_bl2ud( bl);

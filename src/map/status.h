@@ -703,6 +703,7 @@ typedef enum sc_type {
 	SC_QUEST_BUFF1,
 	SC_QUEST_BUFF2,
 	SC_QUEST_BUFF3,
+	SC_TEARGAS_SOB,
 	SC_MAX, //Automatically updated max, used in for's to check we are within bounds
 } sc_type;
 

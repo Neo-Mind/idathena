@@ -3708,13 +3708,13 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			RE_LVL_DMOD(150);
  			break;
 		case SR_TIGERCANNON: {
-				//ATK [((Caster's consumed HP + SP) / 4) x Caster's Base Level / 100] %
 				int hp = sstatus->max_hp * (10 + 2 * skill_lv) / 100,
 					sp = sstatus->max_sp * (5 + skill_lv) / 100;
+
 				//ATK [((Caster's consumed HP + SP) / 2) x Caster's Base Level / 100] %
 				if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE)
 					skillratio += -100 + (hp + sp) / 2;
-				else
+				else //ATK [((Caster's consumed HP + SP) / 4) x Caster's Base Level / 100] %
 					skillratio += -100 + (hp + sp) / 4;
 				RE_LVL_DMOD(100);
 			}
@@ -5719,6 +5719,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						break;
 					case KO_KAIHOU: {
 							int type;
+
 							if(sd) {
 								ARR_FIND(1, 6, type, sd->talisman[type] > 0);
 								if(type < 5) {
@@ -6715,6 +6716,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		sd->state.arrow_atk = (sd->status.weapon == W_BOW || (sd->status.weapon >= W_REVOLVER && sd->status.weapon <= W_GRENADE));
 		if (sd->state.arrow_atk) {
 			int index = sd->equip_index[EQI_AMMO];
+
 			if (index < 0) {
 				clif_arrow_fail(sd,0);
 				return ATK_NONE;
@@ -6775,6 +6777,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		distance_bl(src,target) <= (tsd->status.weapon == W_FIST ? 1 : 2))) {
 		uint16 skill_lv = tsc->data[SC_BLADESTOP_WAIT]->val1;
 		int duration = skill_get_time2(MO_BLADESTOP,skill_lv);
+
 		status_change_end(target,SC_BLADESTOP_WAIT,INVALID_TIMER);
 		if (sc_start4(src,src,SC_BLADESTOP,100,sd ? pc_checkskill(sd,MO_BLADESTOP) : 0,0,0,target->id,duration)) {
 			//Target locked.
@@ -6787,6 +6790,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 
 	if (sd && (skillv = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0) {
 		int triple_rate = 30 - skillv; //Base Rate
+
 		if (sc && sc->data[SC_SKILLRATE_UP] && sc->data[SC_SKILLRATE_UP]->val1 == MO_TRIPLEATTACK) {
 			triple_rate += triple_rate * (sc->data[SC_SKILLRATE_UP]->val2) / 100;
 			status_change_end(src,SC_SKILLRATE_UP,INVALID_TIMER);
@@ -6824,6 +6828,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		}
 		if (sc->data[SC_GT_ENERGYGAIN] && sc->data[SC_GT_ENERGYGAIN]->val2) {
 			int spheremax = 0;
+
 			if (sc->data[SC_RAISINGDRAGON])
 				spheremax = 5 + sc->data[SC_RAISINGDRAGON]->val1;
 			else
@@ -6833,6 +6838,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		}
 		if (sc && sc->data[SC_CRUSHSTRIKE]) {
 			uint16 skill_lv = sc->data[SC_CRUSHSTRIKE]->val1;
+
 			status_change_end(src,SC_CRUSHSTRIKE,INVALID_TIMER);
 			if (skill_attack(BF_WEAPON,src,src,target,RK_CRUSHSTRIKE,skill_lv,tick,0))
 				return ATK_DEF;
@@ -6842,6 +6848,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 
 	if (tsc && tsc->data[SC_GT_ENERGYGAIN] && tsc->data[SC_GT_ENERGYGAIN]->val2) {
 		int spheremax = 0;
+
 		if (tsc->data[SC_RAISINGDRAGON])
 			spheremax = 5 + tsc->data[SC_RAISINGDRAGON]->val1;
 		else
@@ -6932,14 +6939,16 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 				status_fix_damage(NULL,d_bl,damage,0);
 			} else
 				status_change_end(target,SC_DEVOTION,INVALID_TIMER);
-		} else if (tsc->data[SC_CIRCLE_OF_FIRE_OPTION] && (wd.flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT && target->type == BL_PC) {
+		}
+		if (tsc->data[SC_CIRCLE_OF_FIRE_OPTION] && (wd.flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT && target->type == BL_PC) {
 			struct elemental_data *ed = ((TBL_PC*)target)->ed;
 
 			if (ed) {
 				clif_skill_damage(&ed->bl,target,tick,status_get_amotion(src),0,-30000,1,EL_CIRCLE_OF_FIRE,tsc->data[SC_CIRCLE_OF_FIRE_OPTION]->val1,6);
 				skill_attack(BF_WEAPON,&ed->bl,&ed->bl,src,EL_CIRCLE_OF_FIRE,tsc->data[SC_CIRCLE_OF_FIRE_OPTION]->val1,tick,wd.flag);
 			}
-		} else if (tsc->data[SC_WATER_SCREEN_OPTION] && tsc->data[SC_WATER_SCREEN_OPTION]->val1) {
+		}
+		if (tsc->data[SC_WATER_SCREEN_OPTION] && tsc->data[SC_WATER_SCREEN_OPTION]->val1) {
 			struct block_list *e_bl = map_id2bl(tsc->data[SC_WATER_SCREEN_OPTION]->val1);
 
 			if (e_bl && !status_isdead(e_bl)) {
@@ -6963,8 +6972,10 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			i = 0; //Max chance, no skill_lv reduction. [Skotlex]
 		//Reduction only for skill_lv > 1
 		if (skill_lv > 1) {
-			if (i >= 50) skill_lv -= 2;
-			else if (i >= 15) skill_lv--;
+			if (i >= 50)
+				skill_lv -= 2;
+			else if (i >= 15)
+				skill_lv--;
 		}
 		sp = skill_get_sp(skill_id,skill_lv) * 2 / 3;
 

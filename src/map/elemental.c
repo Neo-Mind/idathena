@@ -73,19 +73,17 @@ int elemental_create(struct map_session_data *sd, int class_, unsigned int lifet
 
 	ele.char_id = sd->status.char_id;
 	ele.class_ = class_;
-	ele.mode = EL_MODE_PASSIVE; // Initial mode
-	i = db->status.size + 1; // summon level
+	ele.mode = EL_MODE_PASSIVE; //Initial mode
+	i = db->status.size + 1; //Summon level
 
-	//[(Caster’s Max HP/ 3 ) + (Caster’s INT x 10 )+ (Caster’s Job Level x 20 )] x [(Elemental Summon Level + 2) / 3]
-	ele.hp = ele.max_hp = (sd->battle_status.max_hp / 3 + sd->battle_status.int_ * 10 + sd->status.job_level) * ((i + 2) / 3);
-	//Caster’s Max SP /4
+	//[(Caster’s Max HP / 3) + (Caster’s INT x 10) + (Caster’s Job Level x 20)] x [(Elemental Summon Level + 2) / 3]
+	ele.hp = ele.max_hp = (sd->battle_status.max_hp / 3 + sd->battle_status.int_ * 10 + sd->status.job_level * 20) * ((i + 2) / 3);
+	//Caster’s Max SP / 4
 	ele.sp = ele.max_sp = sd->battle_status.max_sp / 4;
-	//Caster’s [ Max SP / (18 / Elemental Summon Skill Level) 1- 100 ]
-	ele.atk = (sd->battle_status.max_sp / (18 / i)  * 1 - 100);
-	//Caster’s [ Max SP / (18 / Elemental Summon Skill Level) ]
-	ele.atk2 = sd->battle_status.max_sp / 18;
-	//Caster’s HIT + (Caster’s Base Level )
-	ele.hit = sd->battle_status.hit + sd->status.base_level;
+	//Caster’s [Max SP / (18 / Elemental Summon Skill Level) + (1 ~ 100)]
+	ele.atk = (sd->battle_status.max_sp / (18 / i) + rnd_value(1,100));
+	//Caster’s [Max SP / (18 / Elemental Summon Skill Level)]
+	ele.atk2 = sd->battle_status.max_sp / (18 / i);
 	//[Elemental Summon Skill Level x (Caster’s INT / 2 + Caster’s DEX / 4)]
 	ele.matk = i * (sd->battle_status.int_ / 2 + sd->battle_status.dex / 4);
 	//150 + [Caster’s DEX / 10] + [Elemental Summon Skill Level x 3 ]
@@ -95,10 +93,12 @@ int elemental_create(struct map_session_data *sd, int class_, unsigned int lifet
 	//Caster’s MDEF + (Caster’s INT / (5 - Elemental Summon Skill Level)
 	ele.mdef = sd->battle_status.mdef + sd->battle_status.int_ / (5 - i);
 	//Caster’s FLEE + (Caster’s Base Level / (5 – Elemental Summon Skill Level)
-	ele.flee = sd->status.base_level / (5 - i);
+	ele.flee = sd->battle_status.flee + sd->status.base_level / (5 - i);
+	//Caster’s HIT + (Caster’s Base Level)
+	ele.hit = sd->battle_status.hit + sd->status.base_level;
 
 	//Per individual bonuses
-	switch(db->class_) {
+	switch( db->class_ ) {
 		case ELEMENTALID_AGNI_S:
 		case ELEMENTALID_AGNI_M:
 		case ELEMENTALID_AGNI_L:
@@ -305,7 +305,7 @@ int elemental_clean_single_effect(struct elemental_data *ed, uint16 skill_id) {
 
 	if( type ) {
 		switch( type ) {
-				// Just remove status change.
+			// Just remove status change.
 			case SC_PYROTECHNIC_OPTION:
 			case SC_HEATER_OPTION:
 			case SC_TROPIC_OPTION:
@@ -327,11 +327,13 @@ int elemental_clean_single_effect(struct elemental_data *ed, uint16 skill_id) {
 			case SC_UPHEAVAL_OPTION:
 			case SC_CIRCLE_OF_FIRE_OPTION:
 			case SC_TIDAL_WEAPON_OPTION:
-				if( bl ) status_change_end(bl,type,INVALID_TIMER); // Master
-				status_change_end(&ed->bl,type-1,INVALID_TIMER); // Elemental Spirit
+				if( bl )
+					status_change_end(bl,type,INVALID_TIMER); // Master
+				status_change_end(&ed->bl,type - 1,INVALID_TIMER); // Elemental Spirit
 				break;
 			case SC_ZEPHYR:
-				if( bl ) status_change_end(bl,type,INVALID_TIMER);
+				if( bl )
+					status_change_end(bl,type,INVALID_TIMER);
 				break;
 			default:
 				ShowWarning("Invalid SC=%d in elemental_clean_single_effect\n",type);

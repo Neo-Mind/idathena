@@ -11545,7 +11545,7 @@ BUILDIN_FUNC(ispartneron)
 
 BUILDIN_FUNC(getpartnerid)
 {
-	TBL_PC *sd=script_rid2sd(st);
+	TBL_PC *sd = script_rid2sd(st);
 	if (sd == NULL) {
 		script_pushint(st,0);
 		return 0;
@@ -11557,7 +11557,7 @@ BUILDIN_FUNC(getpartnerid)
 
 BUILDIN_FUNC(getchildid)
 {
-	TBL_PC *sd=script_rid2sd(st);
+	TBL_PC *sd = script_rid2sd(st);
 	if (sd == NULL) {
 		script_pushint(st,0);
 		return 0;
@@ -11569,7 +11569,7 @@ BUILDIN_FUNC(getchildid)
 
 BUILDIN_FUNC(getmotherid)
 {
-	TBL_PC *sd=script_rid2sd(st);
+	TBL_PC *sd = script_rid2sd(st);
 	if (sd == NULL) {
 		script_pushint(st,0);
 		return 0;
@@ -11581,7 +11581,7 @@ BUILDIN_FUNC(getmotherid)
 
 BUILDIN_FUNC(getfatherid)
 {
-	TBL_PC *sd=script_rid2sd(st);
+	TBL_PC *sd = script_rid2sd(st);
 	if (sd == NULL) {
 		script_pushint(st,0);
 		return 0;
