@@ -836,9 +836,7 @@ void clif_talisman(struct map_session_data *sd, short type);
 void clif_snap(struct block_list *bl, short x, short y);
 void clif_monster_hp_bar(struct mob_data* md, int fd);
 
-/**
- * Color Table
- **/
+// Color Table
 enum clif_colors {
 	COLOR_RED,
 	COLOR_WHITE,

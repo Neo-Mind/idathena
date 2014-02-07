@@ -9026,18 +9026,24 @@ ACMD_FUNC(fontcolor)
 }
 
 ACMD_FUNC(costume) {
-	const char* names[5] = {
+	const char* names[] = {
 		"Wedding",
 		"Xmas",
 		"Summer",
 		"Hanbok",
 		"Oktoberfest",
 	};
-	const int name2id[5] = { SC_WEDDING, SC_XMAS, SC_SUMMER, SC_HANBOK, SC_OKTOBERFEST };
-	unsigned short k = 0;
+	const int name2id[] = {
+		SC_WEDDING,
+		SC_XMAS,
+		SC_SUMMER,
+		SC_HANBOK,
+		SC_OKTOBERFEST
+	};
+	unsigned short k = 0, len = ARRAYLENGTH(names);
 
 	if( !message || !*message ) {
-		for( k = 0; k < 5; k++ ) {
+		for( k = 0; k < len; k++ ) {
 			if( sd->sc.data[name2id[k]] ) {
 				sprintf(atcmd_output, msg_txt(1488), names[k]); // Costume '%s' removed.
 				clif_displaymessage(sd->fd, atcmd_output);
@@ -9047,14 +9053,14 @@ ACMD_FUNC(costume) {
 		}
 
 		clif_displaymessage(sd->fd, msg_txt(1487)); // Available Costumes
-		for( k = 0; k < 5; k++ ) {
+		for( k = 0; k < len; k++ ) {
 			sprintf(atcmd_output, msg_txt(1486), names[k]); // -- %s
 			clif_displaymessage(sd->fd, atcmd_output);
 		}
 		return -1;
 	}
 
-	for( k = 0; k < 5; k++ ) {
+	for( k = 0; k < len; k++ ) {
 		if( sd->sc.data[name2id[k]] ) {
 			sprintf(atcmd_output, msg_txt(1485), names[k]); // You're already with a '%s' costume, type '@costume' to remove it.
 			clif_displaymessage(sd->fd, atcmd_output);
@@ -9062,11 +9068,11 @@ ACMD_FUNC(costume) {
 		}
 	}
 
-	for( k = 0; k < 5; k++ ) {
+	for( k = 0; k < len; k++ ) {
 		if( strcmpi(message, names[k]) == 0 )
 			break;
 	}
-	if( k == 5 ) {
+	if( k == len ) {
 		sprintf(atcmd_output, msg_txt(1484), message); // '%s' is not a known costume
 		clif_displaymessage(sd->fd, atcmd_output);
 		return -1;

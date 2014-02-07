@@ -11534,6 +11534,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 		case RL_FALLEN_ANGEL:
 			if( sd ) {
+				clif_specialeffect(src,411,AREA);
 				if( unit_movepos(src,x,y,1,1) ) {
 					enum e_skill skill_use = GS_DESPERADO;
 					uint8 skill_use_lv = pc_checkskill(sd,skill_use);
@@ -14647,18 +14648,32 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		uint8 i;
 
 		/* May has multiple requirements */
-		if( !sc ) {
-			clif_skill_fail(sd,skill_id,USESKILL_FAIL_CONDITION,0);
-			return false;
-		}
 		for( i = 0; i < require.status_count; i++ ) {
-			if( require.status[i] >= 0 && !sc->data[require.status[i]] ) {
-				if( require.status[i] == SC_PUSH_CART ) {
-					clif_skill_fail(sd,skill_id,USESKILL_FAIL_CART,0);
-					return false;
-				}
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_CONDITION,0);
-				return false;
+			enum sc_type req_sc = require.status[i];
+
+			if( req_sc == SC_NONE )
+				continue;
+
+			switch( req_sc ) {
+				/* Official fail message */
+				case SC_PUSH_CART:
+					if( !sc || !sc->data[SC_PUSH_CART] ) {
+						clif_skill_fail(sd,skill_id,USESKILL_FAIL_CART,0);
+						return false;
+					}
+					break;
+				case SC_POISONINGWEAPON:
+					if( !sc || !sc->data[SC_POISONINGWEAPON] ) {
+						clif_skill_fail(sd,skill_id,USESKILL_FAIL_GC_POISONINGWEAPON,0);
+						return false;
+					}
+					break;
+				default:
+					if( !sc || !sc->data[req_sc] ) {
+						clif_skill_fail(sd,skill_id,USESKILL_FAIL_CONDITION,0);
+						return false;
+					}
+					break;
 			}
 		}
 	}
@@ -14675,7 +14690,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 
 				//Officially, some Mechanic skills failure message displays this rather than just "Skill has failed."
 				//clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_EQUIPMENT,reqeqit);
-				sprintf(output,"Please equip with a %d.",itemdb_jname(reqeqit));
+				sprintf(output,"Please equip with a %s.",itemdb_jname(reqeqit));
 				clif_colormes(sd,color_table[COLOR_RED],output);
 				return false;
 			}
@@ -14879,21 +14894,22 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 		index[i] = pc_search_inventory(sd,require.itemid[i]);
 		if( index[i] < 0 || sd->status.inventory[index[i]].amount < require.amount[i] ) {
 			if( require.itemid[i] == ITEMID_HOLY_WATER )
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_HOLYWATER,0); //Holy water required
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_HOLYWATER,0); //Holy water is required.
 			else if( require.itemid[i] == ITEMID_RED_GEMSTONE )
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_REDJAMSTONE,0); //Red gemstone required
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_REDJAMSTONE,0); //Red gemstone is required.
 			else if( require.itemid[i] == ITEMID_BLUE_GEMSTONE )
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_BLUEJAMSTONE,0); //Blue gemstone required
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_BLUEJAMSTONE,0); //Blue gemstone is required.
 			else if( require.itemid[i] == ITEMID_PAINT_BRUSH )
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_PAINTBRUSH,0); //Paint brush required
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_PAINTBRUSH,0); //Paint brush is required.
 			else if( require.itemid[i] == ITEMID_ANCILLA )
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_ANCILLA,0); //Ancilla required
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_ANCILLA,0); //Ancilla is required.
 			else {
-				//char output[128]; //Not official but more explicit msg
+				char output[128];
 
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
-				//sprintf(output,"You need itemid=%d, amount=%d",require.itemid[i],require.amount[i]);
-				//clif_colormes(sd,color_table[COLOR_RED],output);
+				//Official is using msgstringtable.txt for each requirement failure
+				//clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+				sprintf(output,"%s is required.",itemdb_jname(require.itemid[i]));
+				clif_colormes(sd,color_table[COLOR_RED],output);
 			}
 			return false;
 		}
@@ -18326,6 +18342,8 @@ int skill_arrow_create(struct map_session_data *sd, int nameid)
 int skill_poisoningweapon(struct map_session_data *sd, int nameid) {
 	sc_type type;
 	int chance, i;
+	char output[128];
+	const char *msg;
 
 	nullpo_ret(sd);
 
@@ -18334,14 +18352,14 @@ int skill_poisoningweapon(struct map_session_data *sd, int nameid) {
 		return 0;
 	}
 	switch( nameid ) { //t_lv used to take duration from skill_get_time2
-		case ITEMID_PARALYSE:      type = SC_PARALYSE;      break;
-		case ITEMID_PYREXIA:       type = SC_PYREXIA;       break;
-		case ITEMID_DEATHHURT:     type = SC_DEATHHURT;     break;
-		case ITEMID_LEECHESEND:    type = SC_LEECHESEND;    break;
-		case ITEMID_VENOMBLEED:    type = SC_VENOMBLEED;    break;
-		case ITEMID_TOXIN:         type = SC_TOXIN;         break;
-		case ITEMID_MAGICMUSHROOM: type = SC_MAGICMUSHROOM; break;
-		case ITEMID_OBLIVIONCURSE: type = SC_OBLIVIONCURSE; break;
+		case ITEMID_PARALYSE:      type = SC_PARALYSE;      msg = "Paralyze";       break;
+		case ITEMID_PYREXIA:       type = SC_PYREXIA;       msg = "Pyrexia";        break;
+		case ITEMID_DEATHHURT:     type = SC_DEATHHURT;     msg = "Deathhurt";      break;
+		case ITEMID_LEECHESEND:    type = SC_LEECHESEND;    msg = "Leech End";      break;
+		case ITEMID_VENOMBLEED:    type = SC_VENOMBLEED;    msg = "Venom Bleed";    break;
+		case ITEMID_TOXIN:         type = SC_TOXIN;         msg = "Toxin";          break;
+		case ITEMID_MAGICMUSHROOM: type = SC_MAGICMUSHROOM; msg = "Magic Mushroom"; break;
+		case ITEMID_OBLIVIONCURSE: type = SC_OBLIVIONCURSE; msg = "Oblivion Curse"; break;
 		default:
 			clif_skill_fail(sd,GC_POISONINGWEAPON,USESKILL_FAIL_LEVEL,0);
 			return 0;
@@ -18350,8 +18368,12 @@ int skill_poisoningweapon(struct map_session_data *sd, int nameid) {
 	//Status must be forced to end so that a new poison will be applied if a player decides to change poisons. [Rytech]
 	status_change_end(&sd->bl, SC_POISONINGWEAPON, INVALID_TIMER);
 	chance = 2 + 2 * sd->menuskill_val; //2 + 2 * skill_lv
-	sc_start4(&sd->bl, &sd->bl, SC_POISONINGWEAPON, 100, pc_checkskill(sd, GC_RESEARCHNEWPOISON), //in Aegis it store the level of GC_RESEARCHNEWPOISON in val1
-		type, chance, 0, skill_get_time(GC_POISONINGWEAPON, sd->menuskill_val));
+	//In Aegis it store the level of GC_RESEARCHNEWPOISON in val1
+	if(sc_start4(&sd->bl, &sd->bl, SC_POISONINGWEAPON, 100, pc_checkskill(sd, GC_RESEARCHNEWPOISON),
+		type, chance, 0, skill_get_time(GC_POISONINGWEAPON, sd->menuskill_val))) {
+		sprintf(output, "[%s] Poison effect was applied to the weapon.", msg);
+		clif_colormes(sd, color_table[COLOR_WHITE], output);
+	}
 
 	return 0;
 }

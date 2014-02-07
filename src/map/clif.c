@@ -13174,7 +13174,7 @@ void clif_parse_GMKickAll(int fd, struct map_session_data* sd) {
 /// Request to warp to a character with given name.
 /// 01bb <char name>.24B
 void clif_parse_GMShift(int fd, struct map_session_data *sd)
-{// FIXME: remove is supposed to receive account name for clients prior 20100803RE
+{ //@FIXME: remove is supposed to receive account name for clients prior 20100803RE
 	char *player_name;
 	char command[NAME_LENGTH + 8];
 
@@ -13197,6 +13197,7 @@ void clif_parse_GMRemove2(int fd, struct map_session_data* sd)
 	account_id = RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
 	if( (pl_sd = map_id2sd(account_id)) != NULL ) {
 		char command[NAME_LENGTH + 8];
+
 		safesnprintf(command, sizeof(command), "%cjumpto %s", atcommand_symbol, pl_sd->status.name);
 		is_atcommand(fd, sd, command, 1);
 	}
@@ -13211,7 +13212,7 @@ void clif_parse_GMRemove2(int fd, struct map_session_data* sd)
 /// Request to summon a player with given name to own position.
 /// 01bd <char name>.24B
 void clif_parse_GMRecall(int fd, struct map_session_data *sd)
-{ // FIXME: recall is supposed to receive account name for clients prior 20100803RE
+{ //@FIXME: recall is supposed to receive account name for clients prior 20100803RE
 	char *player_name;
 	char command [NAME_LENGTH + 8];
 
@@ -13233,7 +13234,8 @@ void clif_parse_GMRecall2(int fd, struct map_session_data* sd)
 
 	account_id = RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
 	if( (pl_sd = map_id2sd(account_id)) != NULL ) {
-		char command[NAME_LENGTH+8];
+		char command[NAME_LENGTH + 8];
+
 		sprintf(command, "%crecall %s", atcommand_symbol, pl_sd->status.name);
 		is_atcommand(fd, sd, command, 1);
 	}
@@ -13246,21 +13248,21 @@ void clif_parse_GMRecall2(int fd, struct map_session_data* sd)
 void clif_parse_GM_Monster_Item(int fd, struct map_session_data *sd)
 {
 	char *monster_item_name;
-	char command[NAME_LENGTH+10];
+	char command[NAME_LENGTH + 10];
 
 	monster_item_name = (char*)RFIFOP(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
 	monster_item_name[NAME_LENGTH - 1] = '\0';
 
-	// FIXME: Should look for item first, then for monster.
-	// FIXME: /monster takes mob_db Sprite_Name as argument
+	//@FIXME: Should look for item first, then for monster.
+	//@FIXME: /monster takes mob_db Sprite_Name as argument
 	if( mobdb_searchname(monster_item_name) ) {
 		safesnprintf(command, sizeof(command) - 1, "%cmonster %s", atcommand_symbol, monster_item_name);
 		is_atcommand(fd, sd, command, 1);
 		return;
 	}
 
-	// FIXME: Stackables have a quantity of 20.
-	// FIXME: Equips are supposed to be unidentified.
+	//@FIXME: Stackables have a quantity of 20.
+	//@FIXME: Equips are supposed to be unidentified.
 	if( itemdb_searchname(monster_item_name) ) {
 		safesnprintf(command, sizeof(command) - 1, "%citem %s", atcommand_symbol, monster_item_name);
 		is_atcommand(fd, sd, command, 1);
@@ -18330,9 +18332,8 @@ void packetdb_readdb(void)
 int do_init_clif(void) {
 	const char* colors[COLOR_MAX] = { "0xFF0000", "0xFFFFFF", "0xFFBC90" };
 	int i;
-	/**
-	 * Setup Color Table (saves unnecessary load of strtoul on every call)
-	 **/
+
+	//Setup Color Table (saves unnecessary load of strtoul on every call)
 	for( i = 0; i < COLOR_MAX; i++ ) {
 		color_table[i] = strtoul(colors[i],NULL,0);
 		color_table[i] = (color_table[i]&0x0000FF)<<16 | (color_table[i]&0x00FF00) | (color_table[i]&0xFF0000)>>16; //RGB to BGR
