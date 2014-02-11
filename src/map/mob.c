@@ -3003,9 +3003,9 @@ static struct block_list *mob_getfriendhprate(struct mob_data *md,int min_rate,i
  *------------------------------------------*/
 struct block_list *mob_getmasterhpltmaxrate(struct mob_data *md,int rate)
 {
-	if( md && md->master_id > 0 )
-	{
+	if( md && md->master_id > 0 ) {
 		struct block_list *bl = map_id2bl(md->master_id);
+
 		if( bl && get_percentage(status_get_hp(bl), status_get_max_hp(bl)) < rate )
 			return bl;
 	}
@@ -3019,30 +3019,31 @@ int mob_getfriendstatus_sub(struct block_list *bl,va_list ap)
 {
 	int cond1,cond2;
 	struct mob_data **fr, *md, *mmd;
-	int flag=0;
+	int flag = 0;
 
 	nullpo_ret(bl);
-	nullpo_ret(md=(struct mob_data *)bl);
-	nullpo_ret(mmd=va_arg(ap,struct mob_data *));
+	nullpo_ret(md = (struct mob_data *)bl);
+	nullpo_ret(mmd = va_arg(ap,struct mob_data *));
 
 	if( mmd->bl.id == bl->id && !(battle_config.mob_ai&0x10) )
 		return 0;
 
-	if (battle_check_target(&mmd->bl,bl,BCT_ENEMY)>0)
+	if( battle_check_target(&mmd->bl,bl,BCT_ENEMY) > 0 )
 		return 0;
-	cond1=va_arg(ap,int);
-	cond2=va_arg(ap,int);
-	fr=va_arg(ap,struct mob_data **);
-	if( cond2==-1 ){
+	cond1 = va_arg(ap,int);
+	cond2 = va_arg(ap,int);
+	fr = va_arg(ap,struct mob_data **);
+	if( cond2 == -1 ) {
 		int j;
-		for(j=SC_COMMON_MIN;j<=SC_COMMON_MAX && !flag;j++){
-			if ((flag=(md->sc.data[j] != NULL))) //Once an effect was found, break out. [Skotlex]
+
+		for( j = SC_COMMON_MIN; j <= SC_COMMON_MAX && !flag; j++ ) {
+			if( (flag = (md->sc.data[j] != NULL)) ) //Once an effect was found, break out. [Skotlex]
 				break;
 		}
-	}else
-		flag=( md->sc.data[cond2] != NULL );
-	if( flag^( cond1==MSC_FRIENDSTATUSOFF ) )
-		(*fr)=md;
+	} else
+		flag = (md->sc.data[cond2] != NULL);
+	if( flag^(cond1 == MSC_FRIENDSTATUSOFF) )
+		(*fr) = md;
 
 	return 0;
 }

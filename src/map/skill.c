@@ -2225,7 +2225,7 @@ int skill_break_equip (struct block_list *src, struct block_list *bl, unsigned s
 
 			if (j < 0 || sd->status.inventory[j].attribute == 1 || !sd->inventory_data[j])
 				continue;
-				
+
 			switch(i) {
 				case EQI_HEAD_TOP: //Upper Head
 					flag = (where&EQP_HELM);
@@ -2235,9 +2235,8 @@ int skill_break_equip (struct block_list *src, struct block_list *bl, unsigned s
 					break;
 				case EQI_HAND_R: //Left/Right hands
 				case EQI_HAND_L:
-					flag = (
-						(where&EQP_WEAPON && sd->inventory_data[j]->type == IT_WEAPON) ||
-						(where&EQP_SHIELD && sd->inventory_data[j]->type == IT_ARMOR));
+					flag = (((where&EQP_WEAPON) && sd->inventory_data[j]->type == IT_WEAPON) ||
+						((where&EQP_SHIELD) && sd->inventory_data[j]->type == IT_ARMOR));
 					break;
 				case EQI_SHOES:
 					flag = (where&EQP_SHOES);
@@ -2250,7 +2249,7 @@ int skill_break_equip (struct block_list *src, struct block_list *bl, unsigned s
 			}
 			if (flag) {
 				sd->status.inventory[j].attribute = 1;
-				pc_unequipitem(sd, j, 3);
+				pc_unequipitem(sd, j, 7);
 			}
 		}
 		clif_equiplist(sd);
@@ -15359,7 +15358,6 @@ int skill_castfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv) {
 				}
 			}
 		}
-		
 	}
 #endif
 	//Config cast time multiplier
@@ -15440,9 +15438,11 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 		fixed = 0;
 
 	//Increases/Decreases fixed/variable cast time of a skill by item/card bonuses.
-	if( sd  && !(skill_get_castnodex(skill_id, skill_lv)&4) ) {
-		if( sd->bonus.varcastrate < 0 )
+	if( sd && !(skill_get_castnodex(skill_id, skill_lv)&4) ) {
+		if( sd->bonus.varcastrate < 0 ) //bonus bVariableCastrate
 			VARCAST_REDUCTION(sd->bonus.varcastrate);
+		if( sd->bonus.fixcastrate < 0 ) //bonus bFixedCastrate
+			fixcast_r = sd->bonus.fixcastrate; //Just speculation
 		if( sd->bonus.add_varcast != 0 ) //bonus bVariableCast
 			time += sd->bonus.add_varcast;
 		if( sd->bonus.add_fixcast != 0 ) //bonus bFixedCast
@@ -15464,7 +15464,7 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 			}
 		for( i = 0; i < ARRAYLENGTH(sd->skillfixcastrate) && sd->skillfixcastrate[i].id; i++ )
 			if( sd->skillfixcastrate[i].id == skill_id ) { //bonus2 bFixedCastrate
-				fixcast_r = sd->skillfixcastrate[i].val; //Just speculation
+				fixcast_r = max(fixcast_r, sd->skillfixcastrate[i].val);
 				break;
 			}
 	}
@@ -15513,11 +15513,6 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 			fixed -= 1000;
 		if( sc->data[SC_IZAYOI] )
 			fixed = 0;
-	}
-
-	if( sd && !(skill_get_castnodex(skill_id, skill_lv)&4) ){
-		VARCAST_REDUCTION( max(sd->bonus.varcastrate, 0) + max(i, 0) );
-		fixcast_r = max(fixcast_r, sd->bonus.fixcastrate) + min(sd->bonus.fixcastrate,0);
 	}
 
 	if( varcast_r < 0 ) //Now compute overall factors
@@ -16361,6 +16356,9 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 	if (unit == NULL || unit->group == NULL || (*alive) == 0)
 		return 0;
 
+	if (unit->group->state.guildaura) /* Guild auras are not cancelled! */
+		return 0;
+
 	switch (skill_id) {
 		case SA_LANDPROTECTOR:
 			//Check for offensive Land Protector to delete both. [Skotlex]
@@ -16623,10 +16621,12 @@ int skill_enchant_elemental_end (struct block_list *bl, int type)
 	struct status_change *sc;
 	const enum sc_type scs[] = { SC_ENCPOISON, SC_ASPERSIO, SC_FIREWEAPON, SC_WATERWEAPON, SC_WINDWEAPON, SC_EARTHWEAPON, SC_SHADOWWEAPON, SC_GHOSTWEAPON, SC_ENCHANTARMS };
 	int i;
+
 	nullpo_ret(bl);
 	nullpo_ret(sc = status_get_sc(bl));
 
-	if (!sc->count) return 0;
+	if (!sc->count)
+		return 0;
 
 	for (i = 0; i < ARRAYLENGTH(scs); i++)
 		if (type != scs[i] && sc->data[scs[i]])
@@ -17537,14 +17537,14 @@ int skill_unit_move (struct block_list *bl, unsigned int tick, int flag)
 	if( bl->prev == NULL )
 		return 0;
 
-	if( flag&2 && !(flag&1) ) { //Onout, clear data
+	if( (flag&2) && !(flag&1) ) //Onout, clear data
 		memset(skill_unit_temp, 0, sizeof(skill_unit_temp));
-	}
 
 	map_foreachincell(skill_unit_move_sub,bl->m,bl->x,bl->y,BL_SKILL,bl,tick,flag);
 
-	if( flag&2 && flag&1 ) { //Onplace, check any skill units you have left.
+	if( (flag&2) && (flag&1) ) { //Onplace, check any skill units you have left.
 		int i;
+
 		for( i = 0; i < ARRAYLENGTH(skill_unit_temp); i++ )
 			if( skill_unit_temp[i] )
 				skill_unit_onleft(skill_unit_temp[i], bl, tick);

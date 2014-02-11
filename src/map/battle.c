@@ -765,7 +765,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( flag&BF_MISC && sd->special_state.no_misc_damage )
 			damage -= damage * sd->special_state.no_misc_damage / 100;
 
-		if( !damage ) return 0;
+		if( !damage )
+			return 0;
 	}
 
 	sc = status_get_sc(bl);
@@ -4214,6 +4215,11 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 					break;
 			}
 		}
+		if( sc->data[SC_EXEEDBREAK] ) {
+			ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_EXEEDBREAK]->val1);
+			RE_ALLATK_ADDRATE(wd, sc->data[SC_EXEEDBREAK]->val1);
+			status_change_end(src, SC_EXEEDBREAK, INVALID_TIMER);
+		}
 		if(sc->data[SC_STRIKING]) {
 			ATK_ADD(wd.damage, wd.damage2, sc->data[SC_STRIKING]->val2);
 #ifdef RENEWAL
@@ -4238,6 +4244,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 		}
 		if(sc->data[SC_STYLE_CHANGE]) {
 			TBL_HOM *hd = BL_CAST(BL_HOM, src);
+
 			if(hd)
 				ATK_ADD(wd.damage, wd.damage2, hd->homunculus.spiritball * 3);
 		}
@@ -5019,15 +5026,54 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 				ATK_ADD(wd.weaponAtk, wd.weaponAtk2, sstatus->matk_min);
 		}
 #endif
-		//Add any miscellaneous player ATK bonuses
-		if(sd && skill_id && (i = pc_skillatk_bonus(sd, skill_id))) {
-			ATK_ADDRATE(wd.damage, wd.damage2, i);
-			RE_ALLATK_ADDRATE(wd, i);
-		}
 
-		if((i = battle_adjust_skill_damage(src->m, skill_id))) {
-			ATK_RATE(wd.damage, wd.damage2, i);
-			RE_ALLATK_RATE(wd, i);
+		if(sd) {
+			uint16 skill;
+
+			switch(skill_id) {
+				case AB_DUPLELIGHT_MELEE:
+					skill = AB_DUPLELIGHT;
+					break;
+				case LG_OVERBRAND_BRANDISH:
+				case LG_OVERBRAND_PLUSATK:
+					skill = LG_OVERBRAND;
+					break;
+				case WM_SEVERE_RAINSTORM_MELEE:
+					skill = WM_SEVERE_RAINSTORM;
+					break;
+				case WM_REVERBERATION_MELEE:
+					skill = WM_REVERBERATION;
+					break;
+				case GN_CRAZYWEED_ATK:
+					skill = GN_CRAZYWEED;
+					break;
+				case GN_SLINGITEM_RANGEMELEEATK:
+					skill = GN_SLINGITEM;
+					break;
+				case RL_R_TRIP_PLUSATK:
+					skill = RL_R_TRIP;
+					break;
+				case RL_B_FLICKER_ATK:
+					skill = RL_FLICKER;
+					break;
+				case RL_GLITTERING_GREED_ATK:
+					skill = RL_GLITTERING_GREED;
+					break;
+				default:
+					skill = skill_id;
+					break;
+			}
+
+			//Add any miscellaneous player ATK bonuses
+			if((i = pc_skillatk_bonus(sd, skill))) {
+				ATK_ADDRATE(wd.damage, wd.damage2, i);
+				RE_ALLATK_ADDRATE(wd, i);
+			}
+
+			if((i = battle_adjust_skill_damage(src->m, skill))) {
+				ATK_RATE(wd.damage, wd.damage2, i);
+				RE_ALLATK_RATE(wd, i);
+			}
 		}
 
 #ifdef RENEWAL
@@ -5842,11 +5888,40 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	}
 #endif
 		if(sd) {
+			uint16 skill;
+
+			switch(skill_id) {
+				case WL_CHAINLIGHTNING_ATK:
+					skill = WL_CHAINLIGHTNING;
+					break;
+				case AB_DUPLELIGHT_MAGIC:
+					skill = AB_DUPLELIGHT;
+					break;
+				case WL_TETRAVORTEX_FIRE:
+				case WL_TETRAVORTEX_WATER:
+				case WL_TETRAVORTEX_WIND:
+				case WL_TETRAVORTEX_GROUND:
+					skill = WL_TETRAVORTEX;
+					break;
+				case WL_SUMMON_ATK_FIRE:
+				case WL_SUMMON_ATK_WIND:
+				case WL_SUMMON_ATK_WATER:
+				case WL_SUMMON_ATK_GROUND:
+					skill = WL_RELEASE;
+					break;
+				case WM_REVERBERATION_MAGIC:
+					skill = WM_REVERBERATION;
+					break;
+				default:
+					skill = skill_id;
+					break;
+			}
+
 			//Damage bonuses
-			if((i = pc_skillatk_bonus(sd, skill_id)))
+			if((i = pc_skillatk_bonus(sd, skill)))
 				ad.damage += ad.damage * i / 100;
 
-			if((i = battle_adjust_skill_damage(src->m, skill_id)))
+			if((i = battle_adjust_skill_damage(src->m, skill)))
 				MATK_RATE(i);
 
 			//Ignore Magic Defense?
@@ -6326,15 +6401,28 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 
 	md.damage += battle_calc_cardfix(BF_MISC,src,target,nk,s_ele,0,md.damage,0,md.flag);
 
-	if(sd && (i = pc_skillatk_bonus(sd,skill_id)))
-		md.damage += md.damage * i / 100;
+	if(sd) {
+		uint16 skill;
 
-	if((i = battle_adjust_skill_damage(src->m,skill_id)))
-		md.damage = md.damage * i / 100;
+		switch(skill_id) {
+			case GN_HELLS_PLANT_ATK:
+				skill = GN_HELLS_PLANT;
+				break;
+			default:
+				skill = skill_id;
+				break;
+		}
+
+		if((i = pc_skillatk_bonus(sd,skill)))
+			md.damage += md.damage * i / 100;
+
+		if((i = battle_adjust_skill_damage(src->m,skill)))
+			md.damage = md.damage * i / 100;
+	}
 
 	if(md.damage < 0)
 		md.damage = 0;
-	else if(md.damage && tstatus->mode&MD_PLANT) {
+	else if(md.damage && (tstatus->mode&MD_PLANT)) {
 		switch(skill_id) {
 			case NJ_ISSEN: //Final Strike will MISS on "plant"-type mobs [helvetica]
 				md.damage = 0;
@@ -6866,10 +6954,6 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	wd = battle_calc_attack(BF_WEAPON,src,target,0,0,flag);
 
 	if (sc && sc->count) {
-		if (sc->data[SC_EXEEDBREAK]) {
-			ATK_RATER(wd.damage,sc->data[SC_EXEEDBREAK]->val1)
-			status_change_end(src,SC_EXEEDBREAK,INVALID_TIMER);
-		}
 		if (sc->data[SC_SPELLFIST]) {
 			if (--(sc->data[SC_SPELLFIST]->val1) >= 0) {
 				struct Damage ad = battle_calc_attack(BF_MAGIC,src,target,sc->data[SC_SPELLFIST]->val3,sc->data[SC_SPELLFIST]->val4,flag|BF_SHORT);
