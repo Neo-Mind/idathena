@@ -7055,10 +7055,10 @@ BUILDIN_FUNC(strnpcinfo)
 
 	num = script_getnum(st,2);
 	switch(num){
-		case 0: // display name
+		case 0: // Display name
 			name = aStrdup(nd->name);
 			break;
-		case 1: // visible part of display name
+		case 1: // Visible part of display name
 			if((buf = strchr(nd->name,'#')) != NULL)
 			{
 				name = aStrdup(nd->name);
@@ -7066,14 +7066,14 @@ BUILDIN_FUNC(strnpcinfo)
 			} else // Return the name, there is no '#' present
 				name = aStrdup(nd->name);
 			break;
-		case 2: // # fragment
+		case 2: // # Fragment
 			if((buf = strchr(nd->name,'#')) != NULL)
 				name = aStrdup(buf+1);
 			break;
-		case 3: // unique name
+		case 3: // Unique name
 			name = aStrdup(nd->exname);
 			break;
-		case 4: // map name
+		case 4: // Map name
 			name = aStrdup(map[nd->bl.m].name);
 			break;
 	}
@@ -7103,16 +7103,14 @@ BUILDIN_FUNC(getequipid)
 		return 0;
 
 	num = script_getnum(st,2) - 1;
-	if( num < 0 || num >= ARRAYLENGTH(equip) )
-	{
+	if( num < 0 || num >= ARRAYLENGTH(equip) ) {
 		script_pushint(st,-1);
 		return 0;
 	}
 
-	// get inventory position of item
+	// Get inventory position of item
 	i = pc_checkequip(sd,equip[num]);
-	if( i < 0 )
-	{
+	if( i < 0 ) {
 		script_pushint(st,-1);
 		return 0;
 	}

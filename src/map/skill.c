@@ -2722,8 +2722,10 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		}
 	}
 
-	if (dmg.flag&BF_MAGIC && (skill_id != NPC_EARTHQUAKE || (battle_config.eq_single_target_reflectable && (flag&0xFFF) == 1))) {
-		//Earthquake on multiple targets is not counted as a target skill. [Inkfish]
+	//Earthquake on multiple targets is not counted as a target skill. [Inkfish]
+	if ((dmg.flag&BF_MAGIC) && (skill_id != NPC_EARTHQUAKE ||
+		(battle_config.eq_single_target_reflectable && (flag&0xFFF) == 1)))
+	{
 		if ((dmg.damage || dmg.damage2) && (type = skill_magic_reflect(src, bl, src == dsrc))) {
 			//Magic reflection, switch caster/target
 			struct block_list *tbl = bl;
@@ -2756,30 +2758,36 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			} else if (type != 2) /* Kaite bypasses */
 				additional_effects = false;
 
-			//Official Magic Reflection Behavior : damage reflected depends on gears caster wears, not target
 #if MAGIC_REFLECTION_TYPE
-			if (dmg.dmg_lv != ATK_MISS) { //Wiz SL cancelled and consumed fragment
-				short s_ele = skill_get_ele(skill_id, skill_lv);
+	#ifndef RENEWAL
+			if (type != 2) { //In pre-renewal Kaite's reflection will do a full damage.
+	#endif
+				//Official Magic Reflection Behavior : Damage reflected are also affected by caster's gears
+				if (dmg.dmg_lv != ATK_MISS) { //Wiz SL cancelled and consumed fragment
+					short s_ele = skill_get_ele(skill_id, skill_lv);
 
-				if (s_ele == -1) //The skill takes the weapon's element
-					s_ele = sstatus->rhw.ele;
-				else if (s_ele == -2) //Use status element
-					s_ele = status_get_attack_sc_element(src, status_get_sc(src));
-				else if (s_ele == -3) //Use random element
-					s_ele = rnd()%ELE_ALL;
-				dmg.damage = battle_attr_fix(bl, bl, dmg.damage, s_ele, status_get_element(bl), status_get_element_level(bl));
-				if (tsc && tsc->data[SC_ENERGYCOAT]) {
-					struct status_data *status = status_get_status_data(bl);
-					int per = 100 * status->sp / status->max_sp - 1; //100% should be counted as the 80~99% interval
+					if (s_ele == -1) //The skill takes the weapon's element
+						s_ele = sstatus->rhw.ele;
+					else if (s_ele == -2) //Use status element
+						s_ele = status_get_attack_sc_element(src, status_get_sc(src));
+					else if (s_ele == -3) //Use random element
+						s_ele = rnd()%ELE_ALL;
+					dmg.damage = battle_attr_fix(bl, bl, dmg.damage, s_ele, status_get_element(bl), status_get_element_level(bl));
+					if (tsc && tsc->data[SC_ENERGYCOAT]) {
+						struct status_data *status = status_get_status_data(bl);
+						int per = 100 * status->sp / status->max_sp - 1; //100% should be counted as the 80~99% interval
 
-					per /= 20; //Uses 20% SP intervals.
-					//SP Cost: 1% + 0.5% per every 20% SP
-					if (!status_charge(bl, 0, (10 + 5 * per) * status->max_sp / 1000))
-						status_change_end(bl, SC_ENERGYCOAT, INVALID_TIMER);
-					//Reduction: 6% + 6% every 20%
-					dmg.damage -= dmg.damage * (6 * (1 + per)) / 100;
+						per /= 20; //Uses 20% SP intervals.
+						//SP Cost: 1% + 0.5% per every 20% SP
+						if (!status_charge(bl, 0, (10 + 5 * per) * status->max_sp / 1000))
+							status_change_end(bl, SC_ENERGYCOAT, INVALID_TIMER);
+						//Reduction: 6% + 6% every 20%
+						dmg.damage -= dmg.damage * (6 * (1 + per)) / 100;
+					}
 				}
+	#ifndef RENEWAL
 			}
+	#endif
 #endif
 		}
 		if (tsc) {
