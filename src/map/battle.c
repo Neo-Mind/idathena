@@ -4373,7 +4373,8 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 #else
 			def1 = 0; //Ignores only armor defense. [Skotlex]
 #endif
-		if(def2 < 1) def2 = 1;
+		if(def2 < 1)
+			def2 = 1;
 	}
 
 	//Vitality reduction
@@ -4417,6 +4418,7 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 		vit_def += def1 * battle_config.weapon_defense_type;
 		def1 = 0;
 	}
+
 #ifdef RENEWAL
 	/**
 	* RE DEF Reduction

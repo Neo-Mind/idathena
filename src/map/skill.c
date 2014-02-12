@@ -1030,7 +1030,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 #endif
 
 		case WZ_STORMGUST:
-			 //Storm Gust counter was dropped in renewal
+			//Storm Gust counter was dropped in renewal
 #ifdef RENEWAL
 			sc_start(src,bl,SC_FREEZE,65 - (5 * skill_lv),skill_lv,skill_get_time2(skill_id,skill_lv));
 #else
@@ -4346,6 +4346,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					}
 				}
 			} else {
+				skill_area_temp[0] = 0;
+				skill_area_temp[1] = bl->id;
+				skill_area_temp[2] = 0;
 				switch (skill_id) {
 					case NJ_BAKUENRYU:
 					case LG_EARTHDRIVE:
@@ -4362,21 +4365,21 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					case NPC_EARTHQUAKE: //FIXME: Isn't EarthQuake a ground skill after all?
 						skill_addtimerskill(src,tick + 250,src->id,0,0,skill_id,skill_lv,2,flag|BCT_ENEMY|SD_SPLASH|1);
 						break;
+					case WL_CRIMSONROCK:
+						skill_area_temp[4] = bl->x;
+						skill_area_temp[5] = bl->y;
+						break;
+					case NC_VULCANARM:
+						if (sd)
+							pc_overheat(sd,1);
+						break;
+					case WM_REVERBERATION_MELEE:
+					case WM_REVERBERATION_MAGIC:
+						skill_area_temp[1] = 0;
+						break;
 					default:
 						break;
 				}
-				skill_area_temp[0] = 0;
-				skill_area_temp[1] = bl->id;
-				skill_area_temp[2] = 0;
-				if (skill_id == WL_CRIMSONROCK) {
-					skill_area_temp[4] = bl->x;
-					skill_area_temp[5] = bl->y;
-				}
-				if (skill_id == NC_VULCANARM)
-					if (sd)
-						pc_overheat(sd,1);
-				if (skill_id == WM_REVERBERATION_MELEE || skill_id == WM_REVERBERATION_MAGIC)
-					skill_area_temp[1] = 0;
 				//If skill damage should be split among targets, count them
 				//SD_LEVEL -> Forced splash damage for Auto Blitz-Beat -> count targets
 				//Special case: Venom Splasher uses a different range for searching than for splashing
@@ -11042,7 +11045,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			skill_unitsetting(src,skill_id,skill_lv,x,y,0);
 			break;
 
-		case RG_GRAFFITI:
+		case RG_GRAFFITI: //Graffiti [Valaris]
 			skill_clear_unitgroup(src);
 			skill_unitsetting(src,skill_id,skill_lv,x,y,0);
 			flag |= 1;
@@ -12780,14 +12783,15 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 							++count < SKILLUNITTIMER_INTERVAL / sg->interval && !status_isdead(bl));
 					}
 					break;
-				//The storm gust counter was dropped in renewal
+				//Storm Gust counter was dropped in renewal
 #ifndef RENEWAL
-				case WZ_STORMGUST: //SG counter does not reset per stormgust. IE: One hit from a SG and two hits from another will freeze you.
-					if (tsc)
-						tsc->sg_counter++; //SG hit counter.
-					if (skill_attack(skill_get_type(sg->skill_id),ss,&src->bl,bl,
-						sg->skill_id,sg->skill_lv,tick,0) <= 0 && tsc)
-						tsc->sg_counter = 0; //Attack absorbed.
+				case WZ_STORMGUST:
+					//SG counter does not reset per stormgust. IE: One hit from a SG and two hits from another will freeze you
+					if (tsc) {
+						tsc->sg_counter++; //SG hit counter
+						if (skill_attack(skill_get_type(sg->skill_id),ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0) <= 0)
+							tsc->sg_counter = 0; //Attack absorbed
+					}
 					break;
 #endif
 				case GS_DESPERADO:
@@ -15447,9 +15451,9 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 
 	//Increases/Decreases fixed/variable cast time of a skill by item/card bonuses.
 	if( sd && !(skill_get_castnodex(skill_id, skill_lv)&4) ) {
-		if( sd->bonus.varcastrate < 0 ) //bonus bVariableCastrate
+		if( sd->bonus.varcastrate != 0 ) //bonus bVariableCastrate
 			VARCAST_REDUCTION(sd->bonus.varcastrate);
-		if( sd->bonus.fixcastrate < 0 ) //bonus bFixedCastrate
+		if( sd->bonus.fixcastrate != 0 ) //bonus bFixedCastrate
 			fixcast_r = sd->bonus.fixcastrate; //Just speculation
 		if( sd->bonus.add_varcast != 0 ) //bonus bVariableCast
 			time += sd->bonus.add_varcast;
