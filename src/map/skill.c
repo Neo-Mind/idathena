@@ -2762,7 +2762,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	#ifndef RENEWAL
 			if (type != 2) { //In pre-renewal Kaite's reflection will do a full damage.
 	#endif
-				//Official Magic Reflection Behavior : Damage reflected are also affected by caster's gears
+				//Official Magic Reflection Behavior : Reflected damage also affected by caster's gears
 				if (dmg.dmg_lv != ATK_MISS) { //Wiz SL cancelled and consumed fragment
 					short s_ele = skill_get_ele(skill_id, skill_lv);
 
