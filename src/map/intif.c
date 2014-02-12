@@ -2151,7 +2151,7 @@ int intif_parse_elemental_saved(int fd)
 	return 0;
 }
 
-void intif_request_accinfo( int u_fd, int aid, int group_lv, char* query ) {
+void intif_request_accinfo(int u_fd, int aid, int group_lv, char* query) {
 
 	WFIFOHEAD(inter_fd,2 + 4 + 4 + 4 + NAME_LENGTH);
 

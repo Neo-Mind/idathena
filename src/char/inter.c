@@ -429,83 +429,65 @@ void mapif_parse_accinfo(int fd) {
 	}
 
 	/* It will only get here if we have a single match */
-	if( account_id ) {
-		char userid[NAME_LENGTH], user_pass[NAME_LENGTH], email[40], last_ip[20], lastlogin[30], pincode[5], birthdate[11];
-		short level = -1;
-		int logincount = 0, state = 0;
+	/* And we will send packet with account id to login server asking for account info */
+	if( account_id )
+		mapif_on_parse_accinfo(account_id, u_fd, aid, castergroup, fd);
 
-		//@FIXME: No, this doesn't really look right. We can't, and shouldn't, access the login table from the char server.
-		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `userid`, `user_pass`, `email`, `last_ip`, `group_id`, `lastlogin`, `logincount`, `state`,`pincode`,`birthdate` FROM `login` WHERE `account_id` = '%d' LIMIT 1", account_id)
-			|| Sql_NumRows(sql_handle) == 0 ) {
-			if( Sql_NumRows(sql_handle) == 0 )
-				inter_to_fd(fd, u_fd, aid, "No account with ID '%d' was found.", account_id );
-			else {
-				inter_to_fd(fd, u_fd, aid, "An error occured, bother your admin about it.");
-				Sql_ShowDebug(sql_handle);
-			}
-		} else {
-			Sql_NextRow(sql_handle);
-			Sql_GetData(sql_handle, 0, &data, NULL); safestrncpy(userid, data, sizeof(userid));
-			Sql_GetData(sql_handle, 1, &data, NULL); safestrncpy(user_pass, data, sizeof(user_pass));
-			Sql_GetData(sql_handle, 2, &data, NULL); safestrncpy(email, data, sizeof(email));
-			Sql_GetData(sql_handle, 3, &data, NULL); safestrncpy(last_ip, data, sizeof(last_ip));
-			Sql_GetData(sql_handle, 4, &data, NULL); level = atoi(data);
-			Sql_GetData(sql_handle, 5, &data, NULL); safestrncpy(lastlogin, data, sizeof(lastlogin));
-			Sql_GetData(sql_handle, 6, &data, NULL); logincount = atoi(data);
-			Sql_GetData(sql_handle, 7, &data, NULL); state = atoi(data);
-			Sql_GetData(sql_handle, 8, &data, NULL); safestrncpy(pincode, data, sizeof(pincode));
-			Sql_GetData(sql_handle, 9, &data, NULL); safestrncpy(birthdate, data, sizeof(birthdate));
-		}
+	return;
+}
+void mapif_parse_accinfo2(bool success, int map_fd, int u_fd, int u_aid, int account_id, const char *userid, const char *user_pass, const char *email, const char *last_ip, const char *lastlogin, const char *pin_code, const char *birthdate, int group_id, int logincount, int state) {
+	if( map_fd <= 0 || !session_isActive(map_fd) )
+		return; // Check if we have a valid fd
 
-		Sql_FreeResult(sql_handle);
-
-		if( level == -1 )
-			return;
-
-		inter_to_fd(fd, u_fd, aid, "-- Account %d --", account_id );
-		inter_to_fd(fd, u_fd, aid, "User: %s | GM Group: %d | State: %d", userid, level, state );
-
-		if( level < castergroup ) { /* Only show pass if your gm level is greater than the one you're searching for */
-			if( pincode[0] != '\0' )
-				inter_to_fd(fd, u_fd, aid, "Password: %s (PIN:%s)", user_pass, pincode );
-			else
-				inter_to_fd(fd, u_fd, aid, "Password: %s", user_pass );
-		}
-
-		inter_to_fd(fd, u_fd, aid, "Account e-mail: %s | Birthdate: %s", email, birthdate);
-		inter_to_fd(fd, u_fd, aid, "Last IP: %s (%s)", last_ip, geoip_getcountry(str2ip(last_ip)) );
-		inter_to_fd(fd, u_fd, aid, "This user has logged in %d times, the last time was at %s", logincount, lastlogin );
-		inter_to_fd(fd, u_fd, aid, "-- Character Details --" );
-
-		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id`, `name`, `char_num`, `class`, `base_level`, `job_level`, `online` FROM `%s` WHERE `account_id` = '%d' ORDER BY `char_num` LIMIT %d", char_db, account_id, MAX_CHARS)
-			|| Sql_NumRows(sql_handle) == 0 ) {
-
-			if( Sql_NumRows(sql_handle) == 0 )
-				inter_to_fd(fd, u_fd, aid, "This account doesn't have characters.");
-			else {
-				inter_to_fd(fd, u_fd, aid, "An error occured, bother your admin about it.");
-				Sql_ShowDebug(sql_handle);
-			}
-
-		} else {
-			while( SQL_SUCCESS == Sql_NextRow(sql_handle) ) {
-				int char_id, class_;
-				short char_num, base_level, job_level, online;
-				char name[NAME_LENGTH];
-
-				Sql_GetData(sql_handle, 0, &data, NULL); char_id = atoi(data);
-				Sql_GetData(sql_handle, 1, &data, NULL); safestrncpy(name, data, sizeof(name));
-				Sql_GetData(sql_handle, 2, &data, NULL); char_num = atoi(data);
-				Sql_GetData(sql_handle, 3, &data, NULL); class_ = atoi(data);
-				Sql_GetData(sql_handle, 4, &data, NULL); base_level = atoi(data);
-				Sql_GetData(sql_handle, 5, &data, NULL); job_level = atoi(data);
-				Sql_GetData(sql_handle, 6, &data, NULL); online = atoi(data);
-
-				inter_to_fd(fd, u_fd, aid, "[Slot/CID: %d/%d] %s | %s | Level: %d/%d | %s", char_num, char_id, name, job_name(class_), base_level, job_level, online ? "On" : "Off");
-			}
-		}
-		Sql_FreeResult(sql_handle);
+	if( !success ) {
+		inter_to_fd(map_fd, u_fd, u_aid, "No account with ID '%d' was found.", account_id);
+		return;
 	}
+
+	inter_to_fd(map_fd, u_fd, u_aid, "-- Account %d --", account_id);
+	inter_to_fd(map_fd, u_fd, u_aid, "User: %s | GM Group: %d | State: %d", userid, group_id, state);
+
+	/* Password is only received if your gm level is greater than the one you're searching for */
+	if( user_pass && *user_pass != '\0' ) {
+		if( pin_code && *pin_code != '\0' )
+			inter_to_fd(map_fd, u_fd, u_aid, "Password: %s (PIN:%s)", user_pass, pin_code);
+		else
+			inter_to_fd(map_fd, u_fd, u_aid, "Password: %s", user_pass );
+	}
+
+	inter_to_fd(map_fd, u_fd, u_aid, "Account e-mail: %s | Birthdate: %s", email, birthdate);
+	inter_to_fd(map_fd, u_fd, u_aid, "Last IP: %s (%s)", last_ip, geoip_getcountry(str2ip(last_ip)));
+	inter_to_fd(map_fd, u_fd, u_aid, "This user has logged %d times, the last time were at %s", logincount, lastlogin);
+	inter_to_fd(map_fd, u_fd, u_aid, "-- Character Details --");
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id`, `name`, `char_num`, `class`, `base_level`, `job_level`, `online` FROM `%s` WHERE `account_id` = '%d' ORDER BY `char_num` LIMIT %d",
+		char_db, account_id, MAX_CHARS) || Sql_NumRows(sql_handle) == 0 )
+	{
+		if( Sql_NumRows(sql_handle) == 0 )
+			inter_to_fd(map_fd, u_fd, u_aid, "This account doesn't have characters.");
+		else {
+			inter_to_fd(map_fd, u_fd, u_aid, "An error occured, bother your admin about it.");
+			Sql_ShowDebug(sql_handle);
+		}
+	} else {
+		while ( SQL_SUCCESS == Sql_NextRow(sql_handle) ) {
+			char *data;
+			int char_id, class_;
+			short char_num, base_level, job_level, online;
+			char name[NAME_LENGTH];
+
+			Sql_GetData(sql_handle, 0, &data, NULL); char_id = atoi(data);
+			Sql_GetData(sql_handle, 1, &data, NULL); safestrncpy(name, data, sizeof(name));
+			Sql_GetData(sql_handle, 2, &data, NULL); char_num = atoi(data);
+			Sql_GetData(sql_handle, 3, &data, NULL); class_ = atoi(data);
+			Sql_GetData(sql_handle, 4, &data, NULL); base_level = atoi(data);
+			Sql_GetData(sql_handle, 5, &data, NULL); job_level = atoi(data);
+			Sql_GetData(sql_handle, 6, &data, NULL); online = atoi(data);
+
+			inter_to_fd(map_fd, u_fd, u_aid, "[Slot/CID: %d/%d] %s | %s | Level: %d/%d | %s", char_num, char_id, name, job_name(class_), base_level, job_level, online ? "On" : "Off");
+		}
+	}
+	Sql_FreeResult(sql_handle);
 
 	return;
 }

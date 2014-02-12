@@ -2660,8 +2660,8 @@ int parse_fromlogin(int fd) {
 					int aid = RFIFOL(fd,2);
 					struct online_char_data* character = (struct online_char_data*)idb_get(online_char_db, aid);
 					RFIFOSKIP(fd,6);
-					if( character != NULL ) { // account is already marked as online!
-						if( character->server > -1 ) { //Kick it from the map server it is on.
+					if( character != NULL ) { // Account is already marked as online!
+						if( character->server > -1 ) { // Kick it from the map server it is on.
 							mapif_disconnectplayer(server[character->server].fd, character->account_id, character->char_id, 2);
 							if (character->waiting_disconnect == INVALID_TIMER)
 								character->waiting_disconnect = add_timer(gettick()+AUTH_TIMEOUT, chardb_waiting_disconnect, character->account_id, 0);
@@ -2679,7 +2679,7 @@ int parse_fromlogin(int fd) {
 								set_char_offline(-1, aid);
 						}
 					}
-					idb_remove(auth_db, aid);// reject auth attempts from map-server
+					idb_remove(auth_db, aid); // Reject auth attempts from map-server
 				}
 				break;
 
@@ -2693,10 +2693,10 @@ int parse_fromlogin(int fd) {
 
 					new_ip = host2ip(login_ip_str);
 					if( new_ip && new_ip != login_ip )
-						login_ip = new_ip; //Update login ip, too.
+						login_ip = new_ip; // Update login ip, too.
 
 					new_ip = host2ip(char_ip_str);
-					if( new_ip && new_ip != char_ip ) { //Update ip.
+					if( new_ip && new_ip != char_ip ) { // Update ip.
 						char_ip = new_ip;
 						ShowInfo("Updating IP for [%s].\n", char_ip_str);
 						// Notify login server about the change
@@ -2708,6 +2708,26 @@ int parse_fromlogin(int fd) {
 
 					RFIFOSKIP(fd,2);
 				}
+				break;
+
+			case 0x2737: // Failed accinfo lookup to forward to mapserver
+				if( RFIFOREST(fd) < 18 )
+					return 0;
+
+				mapif_parse_accinfo2(false, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10), RFIFOL(fd,14),
+					NULL, NULL, NULL, NULL, NULL, NULL, NULL, -1, 0, 0);
+				RFIFOSKIP(fd,18);
+				break;
+
+			case 0x2738: // Successful accinfo lookup to forward to mapserver
+				if( RFIFOREST(fd) < 183 )
+					return 0;
+
+				mapif_parse_accinfo2(true, RFIFOL(fd,167), RFIFOL(fd,171), RFIFOL(fd,175), RFIFOL(fd,179),
+					(char*)RFIFOP(fd,2), (char*)RFIFOP(fd,26), (char*)RFIFOP(fd,59),
+					(char*)RFIFOP(fd,99), (char*)RFIFOP(fd,119), (char*)RFIFOP(fd,151),
+					(char*)RFIFOP(fd,156), RFIFOL(fd,115), RFIFOL(fd,143), RFIFOL(fd,147));
+				RFIFOSKIP(fd,183);
 				break;
 
 			case 0x2741: loginif_parse_BankingAck(fd); break;
@@ -3135,6 +3155,18 @@ int mapif_parse_req_alter_acc(int fd) {
 		}
 	}
 	return 1;
+}
+
+
+void mapif_on_parse_accinfo(int account_id, int u_fd, int u_aid, int u_group, int map_fd) {
+	WFIFOHEAD(login_fd,22);
+	WFIFOW(login_fd,0) = 0x2744;
+	WFIFOL(login_fd,2) = account_id;
+	WFIFOL(login_fd,6) = u_fd;
+	WFIFOL(login_fd,10) = u_aid;
+	WFIFOL(login_fd,14) = u_group;
+	WFIFOL(login_fd,18) = map_fd;
+	WFIFOSET(login_fd,22);
 }
 
 
