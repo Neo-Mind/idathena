@@ -300,7 +300,8 @@ int channel_pcquit(struct map_session_data *sd, int type){
 
 	//On closing state we could have clean all chan by sd but pcquit is more used to free unit when
 	//he quit a map_server, not call in map_quit cause we need to cleanup when we switch map-server as well
-	if(!sd) return -1;
+	if(!sd)
+		return -1;
 
 	// Leave all chat channels.
 	if(type&(1|2) && Channel_Config.ally_enable && sd->guild) { //Quit guild and ally chan

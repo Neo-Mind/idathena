@@ -1959,7 +1959,7 @@ static int pc_bonus_addeff_onskill(struct s_addeffectonskill* effect, int max, e
 * @param race: target race. if < 0, means monster_id
 * @param rate: rate value: 1 ~ 10000. If < 0, it will be multiplied with mob level/10
 */
-static void pc_bonus_item_drop(struct s_add_drop *drop, const short max, uint16 nameid, uint16 group, int class_, int race, int rate)
+static void pc_bonus_item_drop(struct s_add_drop *drop, const short max, uint16 nameid, uint16 group, int class_, short race, int rate)
 {
 	uint8 i;
 

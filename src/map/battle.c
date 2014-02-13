@@ -870,7 +870,6 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			else
 				delay = 100;
 			unit_set_walkdelay(bl,gettick(),delay,1);
-
 			if( sc->data[SC_SHRINK] && rnd()%100 < 5 * sce->val1 )
 				skill_blown(bl,src,skill_get_blewcount(CR_SHRINK,1),-1,0);
 			d->dmg_lv = ATK_MISS;
@@ -1092,10 +1091,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( sc->data[SC_GRANITIC_ARMOR] )
 			damage -= damage * sc->data[SC_GRANITIC_ARMOR]->val2 / 100;
 
-		if( sc->data[SC_PAIN_KILLER] ) {
+		if( sc->data[SC_PAIN_KILLER] )
 			damage -= damage * sc->data[SC_PAIN_KILLER]->val3 / 100;
-			damage = max(1,damage);
-		}
 
 		if( sc->data[SC_DARKCROW] && (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT )
 			damage += damage * sc->data[SC_DARKCROW]->val2 / 100;
@@ -1103,8 +1100,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( (sce = sc->data[SC_MAGMA_FLOW]) && (rnd()%100 <= sce->val2) )
 			skill_castend_damage_id(bl,src,MH_MAGMA_FLOW,sce->val1,gettick(),0);
 
-		if( damage > 0 && (flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON)
-			&& (sce = sc->data[SC_STONEHARDSKIN]) ) {
+		if( damage > 0 && (flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON) &&
+			(sce = sc->data[SC_STONEHARDSKIN]) ) {
 			sce->val2 -= (int)cap_value(damage,INT_MIN,INT_MAX);
 			if( src->type == BL_MOB ) //Using explicite call instead break_equip for duration
 				sc_start(src,src,SC_STRIPWEAPON,30,0,skill_get_time2(RK_STONEHARDSKIN,sce->val1));
@@ -1260,14 +1257,12 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			if( flag&BF_LONG )
 				damage = damage * battle_config.pk_long_damage_rate / 100;
 		}
-		damage = max(damage,1); //Min 1 dammage
 	}
 
 	if( battle_config.skill_min_damage && damage > 0 && damage < div_ ) {
-		if( (flag&BF_WEAPON && battle_config.skill_min_damage&1)
-			|| (flag&BF_MAGIC && battle_config.skill_min_damage&2)
-			|| (flag&BF_MISC && battle_config.skill_min_damage&4)
-		)
+		if( (flag&BF_WEAPON && battle_config.skill_min_damage&1) ||
+			(flag&BF_MAGIC && battle_config.skill_min_damage&2) ||
+			(flag&BF_MISC && battle_config.skill_min_damage&4) )
 			damage = div_;
 	}
 
@@ -1277,6 +1272,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( skill_id )
 			mobskill_event((TBL_MOB*)bl,src,gettick(),MSC_SKILLUSED|(skill_id<<16));
 	}
+
 	if( sd ) {
 		if( pc_ismadogear(sd) && rnd()%100 < 50 ) {
 			short element = skill_get_ele(skill_id,skill_lv);
@@ -1298,6 +1294,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 	}
 
+	damage = max(damage,1); //Min 1 damage
 	return damage;
 }
 
@@ -1338,7 +1335,7 @@ int64 battle_calc_bg_damage(struct block_list *src, struct block_list *bl, int64
 			damage = damage * battle_config.bg_long_damage_rate / 100;
 	}
 
-	damage = max(damage,1); //Min 1 dammage
+	damage = max(damage,1);
 	return damage;
 }
 

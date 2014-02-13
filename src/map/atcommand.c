@@ -6641,16 +6641,14 @@ ACMD_FUNC(identify)
 
 	nullpo_retr(-1, sd);
 
-	for(i=num=0;i<MAX_INVENTORY;i++) {
-		if(sd->status.inventory[i].nameid > 0 && sd->status.inventory[i].identify!=1) {
+	for (i = num = 0; i < MAX_INVENTORY; i++) {
+		if(sd->status.inventory[i].nameid > 0 && sd->status.inventory[i].identify != 1)
 			num++;
-		}
 	}
-	if (num > 0) {
+	if (num > 0)
 		clif_item_identify_list(sd);
-	} else {
+	else
 		clif_displaymessage(fd,msg_txt(1238)); // There are no items to appraise.
-	}
 	return 0;
 }
 
