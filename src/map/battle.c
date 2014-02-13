@@ -1806,7 +1806,7 @@ int battle_skill_damage_skill(struct block_list *src, struct block_list *target,
 	int16 idx = skill_get_index(skill_id);
 	struct s_skill_damage *damage = NULL;
 
-	if(idx == 0 || !skill_db[idx].damage.map)
+	if(!idx || !skill_db[idx].damage.map)
 		return 0;
 
 	damage = &skill_db[idx].damage;

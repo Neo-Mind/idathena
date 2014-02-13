@@ -574,7 +574,7 @@ int elemental_skillnotok(uint16 skill_id, struct elemental_data *ed) {
 	int16 idx = skill_get_index(skill_id);
 	nullpo_retr(1,ed);
 
-	if( idx == 0 )
+	if( !idx )
 		return 1; // Invalid skill id
 
 	return skill_isNotOk(skill_id,ed->master);
@@ -586,7 +586,7 @@ struct skill_condition elemental_skill_get_requirements(uint16 skill_id, uint16 
 
 	memset(&req,0,sizeof(req));
 
-	if( idx == 0 ) // Invalid skill id
+	if( !idx ) // Invalid skill id
   		return req;
 
 	if( skill_lv < 1 || skill_lv > MAX_SKILL_LEVEL )

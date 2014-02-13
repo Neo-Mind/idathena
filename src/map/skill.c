@@ -529,7 +529,7 @@ bool skill_isNotOk(uint16 skill_id, struct map_session_data *sd)
 
 	m = sd->bl.m;
 
-	if (idx == 0)
+	if (!idx)
 		return true; //Invalid skill id
 
 	if (pc_has_permission(sd, PC_PERM_SKILL_UNCONDITIONAL))
@@ -688,7 +688,7 @@ bool skill_isNotOk_hom(uint16 skill_id, struct homun_data *hd)
 
 	nullpo_retr(true, hd);
 
-	if (idx == 0)
+	if (!idx)
 		return true; //Invalid skill id
 
 	if (hd->blockskill[idx] > 0)
@@ -749,7 +749,7 @@ bool skill_isNotOk_mercenary(uint16 skill_id, struct mercenary_data *md)
 
 	nullpo_retr(true, md);
 
-	if (idx == 0)
+	if (!idx)
 		return true; //Invalid Skill ID
 
 	if (md->blockskill[idx] > 0)
@@ -3057,12 +3057,17 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 					skill_addtimerskill(src, tick + status_get_amotion(src), bl->id, 0, 0, LG_OVERBRAND_PLUSATK, skill_lv, BF_WEAPON, flag|SD_ANIMATION);
 				break;
 			case SR_KNUCKLEARROW:
-				if (skill_blown(dsrc, bl, dmg.blewcount, dir, 0) && !(flag&4)) {
-					short dir_x, dir_y;
+				if (!(flag&4)) {
+					short i, dir_x, dir_y;
 
 					dir_x = dirx[(dir + 4)%8];
 					dir_y = diry[(dir + 4)%8];
-					if (map_getcell(bl->m, bl->x + dir_x, bl->y + dir_y, CELL_CHKNOPASS) != 0)
+					i = skill_blown(dsrc, bl, dmg.blewcount, dir, 0);
+					if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src,bl->x,bl->y,1,1)) {
+						clif_slide(src,bl->x,bl->y);
+						clif_fixpos(src); //Aegis send this packet too
+					}
+					if (i < dmg.blewcount)
 						skill_addtimerskill(src, tick + 300 * ((flag&2) ? 1 : 2), bl->id, 0, 0, skill_id, skill_lv, BF_WEAPON, flag|4);
 				}
 				break;
@@ -3071,7 +3076,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 					skill_addtimerskill(src, tick + status_get_amotion(src), bl->id, 0, 0, RL_R_TRIP_PLUSATK, skill_lv, BF_WEAPON, flag|SD_ANIMATION);
 				break;
 			default:
-				skill_blown(dsrc, bl, dmg.blewcount, dir, 0x0);
+				skill_blown(dsrc, bl, dmg.blewcount, dir, 0);
 				if (!dmg.blewcount && bl->type == BL_SKILL && damage > 0) {
 					TBL_SKILL *su = ((TBL_SKILL*)bl);
 
@@ -3422,7 +3427,7 @@ static int skill_check_condition_mercenary(struct block_list *bl, int skill, int
 	}
 
 	status = status_get_status_data(bl);
-	if( idx == 0 )
+	if( !idx )
 		return 0;
 
 	//Requeriments
@@ -3690,7 +3695,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					break;
 				case GN_SPORE_EXPLOSION:
 					map_foreachinrange(skill_area_sub,target,skill_get_splash(skl->skill_id,skl->skill_lv),BL_CHAR,
-						src,skl->skill_id,skl->skill_lv,0,skl->flag|1|BCT_ENEMY,skill_castend_damage_id);
+						src,skl->skill_id,skl->skill_lv,0,skl->flag|BCT_ENEMY|1,skill_castend_damage_id);
 					break;
 				case SR_FLASHCOMBO_ATK_STEP1:
 				case SR_FLASHCOMBO_ATK_STEP2:
@@ -5056,15 +5061,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case SR_KNUCKLEARROW:
-				if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src,bl->x,bl->y,1,1)) {
-					clif_slide(src,bl->x,bl->y);
-					clif_fixpos(src); //Aegis send this packet too.
-				}
-
-				if (flag&1)
-					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag|SD_LEVEL);
-				else
-					skill_addtimerskill(src,tick + 300,bl->id,0,0,skill_id,skill_lv,BF_WEAPON,flag|SD_LEVEL|2);
+			skill_addtimerskill(src,tick,bl->id,0,0,skill_id,skill_lv,BF_WEAPON,flag|SD_LEVEL|2);
 			break;
 
 		case SR_HOWLINGOFLION:
@@ -15061,7 +15058,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 	//Checks if disabling skill - in which case no SP requirements are necessary
 	if( sc && skill_disable_check(sc,skill_id) )
 		return req;
-	if( idx == 0 ) //Invalid skill id
+	if( !idx ) //Invalid skill id
   		return req;
 	if( skill_lv < 1 || skill_lv > MAX_SKILL_LEVEL )
 		return req;
@@ -18789,7 +18786,7 @@ int skill_blockhomun_start(struct homun_data *hd, uint16 skill_id, int tick) //[
 
 	nullpo_retr(-1, hd);
 
-	if (idx == 0)
+	if (!idx)
 		return -1;
 
 	if (tick < 1) {
@@ -18817,7 +18814,7 @@ int skill_blockmerc_start(struct mercenary_data *md, uint16 skill_id, int tick)
 
 	nullpo_retr(-1, md);
 
-	if( idx == 0 )
+	if( !idx )
 		return -1;
 	if( tick < 1 ) {
 		md->blockskill[idx] = 0;
@@ -19872,7 +19869,7 @@ static bool skill_parse_row_skilldamage(char* split[], int columns, int current)
 	uint16 skill_id = skill_name2id(split[0]);
 	int16 idx = skill_get_index(skill_id);
 
-	if( idx == 0 ) { //Invalid skill id
+	if( !idx ) { //Invalid skill id
 		ShowWarning("skill_parse_row_skilldamage: Invalid skill '%s'. Skipping..\n", split[0]);
 		return false;
 	}
