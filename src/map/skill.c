@@ -2539,7 +2539,7 @@ static void skill_do_copy(struct block_list* src,struct block_list *bl, uint16 s
 	if (!tsd)
 		return;
 	else {
-		int16 idx = skill_get_index(skill_id);
+		int16 idx;
 		unsigned char lv;
 
 		//Copy Referal: dummy skills should point to their source upon copying
@@ -2592,7 +2592,7 @@ static void skill_do_copy(struct block_list* src,struct block_list *bl, uint16 s
 		}
 
 		//Use skill index, avoiding out-of-bound array [Cydh]
-		if (idx < 0)
+		if ((idx = skill_get_index(skill_id)) < 0)
 			return;
 
 		switch (skill_isCopyable(tsd, skill_id)) {
