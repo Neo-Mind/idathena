@@ -97,7 +97,7 @@ struct atcmd_binding_data* get_atcommandbind_byname(const char* name) {
 
 	ARR_FIND( 0, atcmd_binding_count, i, strcmp(atcmd_binding[i]->command, name) == 0 );
 
-	return ( i < atcmd_binding_count ) ? atcmd_binding[i] : NULL;
+	return (i < atcmd_binding_count) ? atcmd_binding[i] : NULL;
 }
 
 /**

@@ -485,12 +485,12 @@ static char skill_isCopyable(struct map_session_data *sd, uint16 skill_id) {
 		uint16 job_allowed = skill_db[idx].copyable.joballowed;
 
 		while( 1 ) {
-			if( job_allowed&0x01 && sd->status.class_ == JOB_ROGUE ) break;
-			if( job_allowed&0x02 && sd->status.class_ == JOB_STALKER ) break;
-			if( job_allowed&0x04 && sd->status.class_ == JOB_SHADOW_CHASER ) break;
-			if( job_allowed&0x08 && sd->status.class_ == JOB_SHADOW_CHASER_T ) break;
-			if( job_allowed&0x10 && sd->status.class_ == JOB_BABY_ROGUE ) break;
-			if( job_allowed&0x20 && sd->status.class_ == JOB_BABY_CHASER ) break;
+			if( (job_allowed&0x01) && sd->status.class_ == JOB_ROGUE ) break;
+			if( (job_allowed&0x02) && sd->status.class_ == JOB_STALKER ) break;
+			if( (job_allowed&0x04) && sd->status.class_ == JOB_SHADOW_CHASER ) break;
+			if( (job_allowed&0x08) && sd->status.class_ == JOB_SHADOW_CHASER_T ) break;
+			if( (job_allowed&0x10) && sd->status.class_ == JOB_BABY_ROGUE ) break;
+			if( (job_allowed&0x20) && sd->status.class_ == JOB_BABY_CHASER ) break;
 				return 0;
 		}
 	}
@@ -498,15 +498,15 @@ static char skill_isCopyable(struct map_session_data *sd, uint16 skill_id) {
 	if( &sd->sc ) {
 		if( pc_checkskill(sd, RG_PLAGIARISM) ) {
 			//Plagiarism only able to copy skill while SC_PRESERVE is not active and skill is copyable by Plagiarism
-			if( skill_db[idx].copyable.option&1 && sd->sc.data[SC_PRESERVE] && sd->sc.data[SC__REPRODUCE] )
+			if( (skill_db[idx].copyable.option&1) && sd->sc.data[SC_PRESERVE] && sd->sc.data[SC__REPRODUCE] )
 				return 0;
 
-			if( skill_db[idx].copyable.option&1 && !sd->sc.data[SC_PRESERVE] )
+			if( (skill_db[idx].copyable.option&1) && !sd->sc.data[SC_PRESERVE] )
 				return 1;
 		}
 
 		//Reproduce can copy skill if SC__REPRODUCE is active and the skill is copyable by Reproduce
-		if( skill_db[idx].copyable.option&2 && pc_checkskill(sd, SC_REPRODUCE) && sd->sc.data[SC__REPRODUCE] )
+		if( (skill_db[idx].copyable.option&2) && pc_checkskill(sd, SC_REPRODUCE) && sd->sc.data[SC__REPRODUCE] )
 			return 2;
 	}
 
@@ -2993,7 +2993,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			if (bl->type == BL_SKILL) {
 				TBL_SKILL *su = (TBL_SKILL*)bl;
 
-				if (su->group && skill_get_inf2(su->group->skill_id)&INF2_TRAP) //Show damage on trap targets
+				if (su->group && (skill_get_inf2(su->group->skill_id)&INF2_TRAP)) //Show damage on trap targets
 					clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, (flag&SD_LEVEL) ? -1 : skill_lv, 5);
 			}
 			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, (flag&SD_LEVEL) ? -1 : skill_lv, type);
@@ -3003,7 +3003,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	map_freeblock_lock();
 
 	//Cannot copy skills if the blow will kill you. [Skotlex]
-	if (skill_id && skill_get_index(skill_id) >= 0 && dmg.flag&BF_SKILL &&
+	if (skill_id && skill_get_index(skill_id) >= 0 && (dmg.flag&BF_SKILL) &&
 		dmg.damage + dmg.damage2 > 0 && damage < status_get_hp(bl))
 		skill_do_copy(src, bl, skill_id, skill_lv);
 
@@ -4376,8 +4376,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					case WM_REVERBERATION_MELEE:
 					case WM_REVERBERATION_MAGIC:
 						skill_area_temp[1] = 0;
-						break;
-					default:
 						break;
 				}
 				//If skill damage should be split among targets, count them
@@ -11676,17 +11674,18 @@ int skill_castend_map (struct map_session_data *sd, uint16 skill_id, const char 
 					}
 				}
 
-				lv = sd->skillitem == (skill_id ? sd->skillitemlv : pc_checkskill(sd,skill_id));
+				lv = sd->skillitem == (skill_id) ? sd->skillitemlv : pc_checkskill(sd,skill_id);
 				wx = sd->menuskill_val>>16;
 				wy = sd->menuskill_val&0xffff;
 
 				if(lv <= 0)
 					return 0;
+
 				if(lv > 4)
 					lv = 4; //Crash prevention
 
 				//Check if the chosen map exists in the memo list
-				ARR_FIND( 0, lv, i, mapindex == p[i]->map );
+				ARR_FIND(0, lv, i, mapindex == p[i]->map);
 				if( i < lv ) {
 					x = p[i]->x;
 					y = p[i]->y;
@@ -12461,6 +12460,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 
 				if( bl->type == BL_PC && !working ) {
 					struct map_session_data *sd = (struct map_session_data *)bl;
+
 					if( (!sd->chatID || battle_config.chat_warpportal)
 						&& sd->ud.to_x == src->bl.x && sd->ud.to_y == src->bl.y )
 					{
