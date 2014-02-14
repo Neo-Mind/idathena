@@ -7024,8 +7024,8 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 
 			if (d_bl && (
 				(d_bl->type == BL_MER && ((TBL_MER*)d_bl)->master && ((TBL_MER*)d_bl)->master->bl.id == target->id) ||
-				(d_bl->type == BL_PC && ((TBL_PC*)d_bl)->devotion[sce->val2] == target->id)
-				) && check_distance_bl(target,d_bl,sce->val3))
+				(d_bl->type == BL_PC && ((TBL_PC*)d_bl)->devotion[sce->val2] == target->id)) &&
+				check_distance_bl(target,d_bl,sce->val3))
 			{
 				clif_damage(d_bl,d_bl,gettick(),0,0,damage,0,0,0);
 				status_fix_damage(NULL,d_bl,damage,0);

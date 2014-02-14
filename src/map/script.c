@@ -6122,7 +6122,7 @@ BUILDIN_FUNC(checkweight2) {
  *------------------------------------------*/
 BUILDIN_FUNC(getitem)
 {
-	int nameid,amount,get_count,i,flag = 0;
+	int nameid, amount, get_count, i, flag = 0;
 	struct item it;
 	TBL_PC *sd;
 	struct script_data *data;
@@ -6209,8 +6209,8 @@ BUILDIN_FUNC(getitem)
  *------------------------------------------*/
 BUILDIN_FUNC(getitem2)
 {
-	int nameid,amount,get_count,i,flag = 0;
-	int iden,ref,attr,c1,c2,c3,c4;
+	int nameid, amount, get_count, i, flag = 0;
+	int iden, ref, attr, c1, c2, c3, c4;
 	char bound = 0;
 	struct item_data *item_data;
 	struct item item_tmp;
@@ -6268,7 +6268,8 @@ BUILDIN_FUNC(getitem2)
 		if( item_data == NULL )
 			return -1;
 		if( item_data->type == IT_WEAPON || item_data->type == IT_ARMOR || item_data->type == IT_SHADOWGEAR ) {
-			if( ref > MAX_REFINE ) ref = MAX_REFINE;
+			if( ref > MAX_REFINE )
+				ref = MAX_REFINE;
 		} else if( item_data->type == IT_PETEGG ) {
 			iden = 1;
 			ref = 0;
@@ -6310,10 +6311,10 @@ BUILDIN_FUNC(getitem2)
 	return SCRIPT_CMD_SUCCESS;
 }
 
-/*==========================================
+/** Gives rental item to player
  * rentitem <item id>,<seconds>
  * rentitem "<item name>",<seconds>
- *------------------------------------------*/
+ */
 BUILDIN_FUNC(rentitem)
 {
 	struct map_session_data *sd;
@@ -6331,6 +6332,7 @@ BUILDIN_FUNC(rentitem)
 	if( data_isstring(data) ) {
 		const char *name = conv_str(st,data);
 		struct item_data *itd = itemdb_searchname(name);
+
 		if( itd == NULL ) {
 			ShowError("buildin_rentitem: Nonexistant item %s requested.\n", name);
 			return 1;
@@ -6361,8 +6363,87 @@ BUILDIN_FUNC(rentitem)
 	return SCRIPT_CMD_SUCCESS;
 }
 
+/** Gives rental item to player with advanced option
+ * rentitem2 <item id>,<time>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>;
+ * rentitem2 "<item name>",<time>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>;
+ */
+BUILDIN_FUNC(rentitem2) {
+	struct map_session_data *sd;
+	struct script_data *data;
+	struct item it;
+	struct item_data *id;
+	int seconds, flag;
+	uint16 nameid = 0;
+	int iden, ref, attr, c1, c2, c3, c4;
+
+	data = script_getdata(st,2);
+	get_val(st,data);
+
+	if( (sd = script_rid2sd(st)) == NULL )
+		return 0;
+
+	if( data_isstring(data) ) {
+		const char *name = conv_str(st,data);
+
+		id = itemdb_searchname(name);
+		if( id == NULL ) {
+			ShowError("buildin_rentitem2: Nonexistant item %s requested.\n", name);
+			return 1;
+		}
+		nameid = id->nameid;
+	} else if( data_isint(data) ) {
+		nameid = conv_num(st,data);
+		if( !(id = itemdb_search(nameid)) ) {
+			ShowError("buildin_rentitem2: Nonexistant item %d requested.\n", nameid);
+			return 1;
+		}
+	} else {
+		ShowError("buildin_rentitem2: invalid data type for argument #1 (%d).\n", data->type);
+		return 1;
+	}
+
+	seconds = script_getnum(st,3);
+	iden = script_getnum(st,4);
+	ref = script_getnum(st,5);
+	attr = script_getnum(st,6);
+
+	if( id->type == IT_WEAPON || id->type == IT_ARMOR || id->type == IT_SHADOWGEAR ) {
+		if( ref > MAX_REFINE )
+			ref = MAX_REFINE;
+	} else if( id->type == IT_PETEGG ) {
+		iden = 1;
+		ref = 0;
+	} else {
+		iden = 1;
+		ref = attr = 0;
+	}
+
+	c1 = (short)script_getnum(st,7);
+	c2 = (short)script_getnum(st,8);
+	c3 = (short)script_getnum(st,9);
+	c4 = (short)script_getnum(st,10);
+
+	memset(&it, 0, sizeof(it));
+	it.nameid = nameid;
+	it.identify = iden;
+	it.refine = ref;
+	it.attribute = attr;
+	it.card[0] = (short)c1;
+	it.card[1] = (short)c2;
+	it.card[2] = (short)c3;
+	it.card[3] = (short)c4;
+	it.expire_time = (unsigned int)(time(NULL) + seconds);
+
+	if( (flag = pc_additem(sd, &it, 1, LOG_TYPE_SCRIPT)) ) {
+		clif_additem(sd, 0, 0, flag);
+		return 1;
+	}
+
+	return SCRIPT_CMD_SUCCESS;
+}
+
 /*==========================================
- * gets an item with someone's name inscribed [Skotlex]
+ * Gets an item with someone's name inscribed [Skotlex]
  * getinscribeditem item_num, character_name
  * Returned Qty is always 1, only works on equip-able
  * equipment
@@ -6379,12 +6460,13 @@ BUILDIN_FUNC(getnameditem)
 		script_pushint(st,0);
 		return 0;
 	}
-	
-	data=script_getdata(st,2);
+
+	data = script_getdata(st,2);
 	get_val(st,data);
 	if( data_isstring(data) ) {
-		const char *name=conv_str(st,data);
+		const char *name = conv_str(st,data);
 		struct item_data *item_data = itemdb_searchname(name);
+
 		if( item_data == NULL) { //Failed
 			script_pushint(st,0);
 			return 0;
@@ -6393,7 +6475,7 @@ BUILDIN_FUNC(getnameditem)
 	} else
 		nameid = conv_num(st,data);
 
-	if(!itemdb_exists(nameid)/* || itemdb_isstackable(nameid)*/) {
+	if( !itemdb_exists(nameid) /*|| itemdb_isstackable(nameid)*/ ) {
 		//Even though named stackable items "could" be risky, they are required for certain quests.
 		script_pushint(st,0);
 		return 0;
@@ -6437,60 +6519,138 @@ BUILDIN_FUNC(grouprandomitem)
 	return SCRIPT_CMD_SUCCESS;
 }
 
-/*==========================================
- *
- *------------------------------------------*/
+/**
+ * makeitem <item id>,<amount>,"<map name>",<X>,<Y>;
+ * makeitem "<item name>",<amount>,"<map name>",<X>,<Y>;
+ */
 BUILDIN_FUNC(makeitem)
 {
-	int nameid,amount,flag = 0;
-	int x,y,m;
+	int16 nameid;
+	uint16 amount, flag = 0, x, y;
 	const char *mapname;
+	int m;
 	struct item item_tmp;
 	struct script_data *data;
 
-	data=script_getdata(st,2);
+	data = script_getdata(st,2);
 	get_val(st,data);
 	if( data_isstring(data) ) {
-		const char *name=conv_str(st,data);
+		const char *name = conv_str(st,data);
 		struct item_data *item_data = itemdb_searchname(name);
+
 		if( item_data )
-			nameid=item_data->nameid;
+			nameid = item_data->nameid;
 		else
-			nameid=UNKNOWN_ITEM_ID;
+			nameid = UNKNOWN_ITEM_ID;
 	} else
-		nameid=conv_num(st,data);
+		nameid = conv_num(st,data);
 
-	amount=script_getnum(st,3);
-	mapname	=script_getstr(st,4);
-	x	=script_getnum(st,5);
-	y	=script_getnum(st,6);
+	amount = script_getnum(st,3);
+	mapname = script_getstr(st,4);
+	x = script_getnum(st,5);
+	y = script_getnum(st,6);
 
-	if(strcmp(mapname,"this")==0) {
-		TBL_PC *sd;
-		sd = script_rid2sd(st);
-		if (!sd) return 0; //Failed...
-		m=sd->bl.m;
+	if( strcmp(mapname,"this") == 0 ) {
+		TBL_PC *sd = script_rid2sd(st);
+
+		if( !sd )
+			return 0; //Failed
+		m = sd->bl.m;
 	} else
-		m=map_mapname2mapid(mapname);
+		m = map_mapname2mapid(mapname);
 
-	if(nameid<0) {
+	if( nameid < 0 ) {
 		nameid = -nameid;
 		flag = 1;
 	}
 
-	if(nameid > 0) {
+	if( nameid > 0 ) {
 		memset(&item_tmp,0,sizeof(item_tmp));
-		item_tmp.nameid=nameid;
-		if(!flag)
-			item_tmp.identify=1;
+		item_tmp.nameid = nameid;
+		if( !flag )
+			item_tmp.identify = 1;
 		else
-			item_tmp.identify=itemdb_isidentified(nameid);
+			item_tmp.identify = itemdb_isidentified(nameid);
 
 		map_addflooritem(&item_tmp,amount,m,x,y,0,0,0,4);
 	}
 	return SCRIPT_CMD_SUCCESS;
 }
 
+/**
+ * makeitem2 <item id>,<amount>,"<map name>",<X>,<Y>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>;
+ * makeitem2 "<item name>",<amount>,"<map name>",<X>,<Y>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>;
+ */
+BUILDIN_FUNC(makeitem2) {
+	uint16 nameid, amount, x, y;
+	const char *mapname;
+	int m;
+	struct item item_tmp;
+	struct script_data *data;
+	struct item_data *id;
+
+	data = script_getdata(st,2);
+	get_val(st,data);
+	if( data_isstring(data) ) {
+		const char *name = conv_str(st,data);
+		struct item_data *item_data = itemdb_searchname(name);
+
+		if( item_data )
+			nameid = item_data->nameid;
+		else
+			nameid = UNKNOWN_ITEM_ID;
+	} else
+		nameid = conv_num(st,data);
+
+	amount = script_getnum(st,3);
+	mapname	= script_getstr(st,4);
+	x = script_getnum(st,5);
+	y = script_getnum(st,6);
+
+	if( strcmp(mapname,"this") == 0 ) {
+		TBL_PC *sd;
+
+		sd = script_rid2sd(st);
+		if( !sd )
+			return 0; //Failed
+		m = sd->bl.m;
+	} else
+		m = map_mapname2mapid(mapname);
+
+	if( (id = itemdb_search(nameid)) ) {
+		char iden, ref, attr;
+
+		memset(&item_tmp,0,sizeof(item_tmp));
+		item_tmp.nameid = nameid;
+
+		iden = (char)script_getnum(st,7);
+		ref = (char)script_getnum(st,8);
+		attr = (char)script_getnum(st,9);		
+
+		if( id->type == IT_WEAPON || id->type == IT_ARMOR || id->type == IT_SHADOWGEAR ) {
+			if( ref > MAX_REFINE )
+				ref = MAX_REFINE;
+		} else if( id->type == IT_PETEGG ) {
+			iden = 1;
+			ref = 0;
+		} else {
+			iden = 1;
+			ref = attr = 0;
+		}
+
+		item_tmp.identify = iden;
+		item_tmp.refine = ref;
+		item_tmp.attribute = attr;
+		item_tmp.card[0] = script_getnum(st,10);
+		item_tmp.card[1] = script_getnum(st,11);
+		item_tmp.card[2] = script_getnum(st,12);
+		item_tmp.card[3] = script_getnum(st,13);
+
+		map_addflooritem(&item_tmp,amount,m,x,y,0,0,0,4);
+	} else
+		return 1;
+	return SCRIPT_CMD_SUCCESS;
+}
 
 /// Counts / deletes the current item given by idx.
 /// Used by buildin_delitem_search
@@ -6503,7 +6663,7 @@ static void buildin_delitem_delete(struct map_session_data* sd, int idx, int* am
 	delamount = ( amount[0] < inv->amount ) ? amount[0] : inv->amount;
 
 	if( delete_items ) {
-		if( sd->inventory_data[idx]->type == IT_PETEGG && inv->card[0] == CARD0_PET ) { // delete associated pet
+		if( sd->inventory_data[idx]->type == IT_PETEGG && inv->card[0] == CARD0_PET ) { //Delete associated pet
 			intif_delete_petdata(MakeDWord(inv->card[1], inv->card[2]));
 		}
 		pc_delitem(sd, idx, delamount, 0, 0, LOG_TYPE_SCRIPT);
@@ -18096,10 +18256,12 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(getelementofarray,"ri"),
 	BUILDIN_DEF(getitem,"vi?"),
 	BUILDIN_DEF(rentitem,"vi"),
+	BUILDIN_DEF(rentitem2,"viiiiiiii"),
 	BUILDIN_DEF(getitem2,"viiiiiiii?"),
 	BUILDIN_DEF(getnameditem,"vv"),
 	BUILDIN_DEF2(grouprandomitem,"groupranditem","i?"),
 	BUILDIN_DEF(makeitem,"visii"),
+	BUILDIN_DEF(makeitem2,"visiiiiiiiii"),
 	BUILDIN_DEF(delitem,"vi?"),
 	BUILDIN_DEF(delitem2,"viiiiiiii?"),
 	BUILDIN_DEF2(enableitemuse,"enable_items",""),

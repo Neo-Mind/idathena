@@ -247,14 +247,12 @@ int merc_delete(struct mercenary_data *md, int reply)
 	if( !sd )
 		return unit_free(&md->bl, CLR_OUTSIGHT);
 
-	if( md->devotion_flag )
-	{
+	if( md->devotion_flag ) {
 		md->devotion_flag = 0;
 		status_change_end(&sd->bl, SC_DEVOTION, INVALID_TIMER);
 	}
 
-	switch( reply )
-	{
+	switch( reply ) {
 		case 0: mercenary_set_faith(md, 1); break; // +1 Loyalty on Contract ends.
 		case 1: mercenary_set_faith(md, -1); break; // -1 Loyalty on Mercenary killed
 	}

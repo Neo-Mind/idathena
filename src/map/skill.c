@@ -360,7 +360,7 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 	tsc = status_get_sc(target);
 
 	switch( skill_id ) {
-		case BA_APPLEIDUN:
+		case BA_APPLEIDUN: //HP recovery
 #ifdef RENEWAL
 			hp = 100 + 5 * skill_lv + 5 * (status_get_vit(src) / 10);
 #else
@@ -384,9 +384,9 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 				return battle_config.max_heal;
 #ifdef RENEWAL
 			/**
-			* Renewal Heal Formula
-			* Formula: ( [(Base Level + INT) / 5] x 30 ) x (Heal Level / 10) x (Modifiers) + MATK
-			**/
+			 * Renewal Heal Formula
+			 * Formula: ( [(Base Level + INT) / 5] x 30 ) x (Heal Level / 10) x (Modifiers) + MATK
+			 */
 			hp = (status_get_lv(src) + status_get_int(src)) / 5 * 30 * skill_lv / 10;
 #else
 			hp = (status_get_lv(src) + status_get_int(src)) / 8 * (4 + (skill_lv * 8));
@@ -620,17 +620,10 @@ bool skill_isNotOk(uint16 skill_id, struct map_session_data *sd)
 				clif_skill_fail(sd, skill_id, USESKILL_FAIL_THERE_ARE_NPC_AROUND, 0);
 				return true;
 			}
-		case MC_IDENTIFY:
-			return false; //Always allowed
-		case WZ_ICEWALL:
-			//Noicewall flag [Valaris]
+		case MC_IDENTIFY: //Always allowed
+			return false;
+		case WZ_ICEWALL: //Noicewall flag [Valaris]
 			if (map[m].flag.noicewall) {
-				clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
-				return true;
-			}
-			break;
-		case GC_DARKILLUSION:
-			if (map_flag_gvg2(m)) {
 				clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 				return true;
 			}
@@ -645,21 +638,26 @@ bool skill_isNotOk(uint16 skill_id, struct map_session_data *sd)
 				return true;
 			}
 			break;
-		case WS_CARTBOOST:
-		case BS_HAMMERFALL:
-		case BS_ADRENALINE:
-		case MC_CARTREVOLUTION:
-		case MC_MAMMONITE:
-		case WS_MELTDOWN:
 		case MG_SIGHT:
 		case TF_HIDING:
+		case MC_MAMMONITE:
+		case MC_CARTREVOLUTION:
+		case BS_HAMMERFALL:
+		case BS_ADRENALINE:
+		case WS_CARTBOOST:
+		case WS_MELTDOWN:
 			//These skills cannot be used while in mado gear (credits to Xantara)
 			if (pc_ismadogear(sd)) {
 				clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 				return true;
 			}
 			break;
-
+		case GC_DARKILLUSION:
+			if (map_flag_gvg2(m)) {
+				clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
+				return true;
+			}
+			break;
 		case WM_LULLABY_DEEPSLEEP:
 		case WM_SIRCLEOFNATURE:
 		case WM_SATURDAY_NIGHT_FEVER:
@@ -669,7 +667,6 @@ bool skill_isNotOk(uint16 skill_id, struct map_session_data *sd)
 				return true;
 			}
 			break;
-
 	}
 	return false;
 }
@@ -6191,6 +6188,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case TK_MISSION:
 			if (sd) {
 				int id;
+
 				if (sd->mission_mobid && (sd->mission_count || rnd()%100)) { //Cannot change target when already have one
 					clif_mission_info(sd,sd->mission_mobid,sd->mission_count);
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -6235,7 +6233,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				return 0;
 			}
 			unit_skillcastcancel(bl,2);
-
 			if (tsc && tsc->count) {
 				status_change_end(bl,SC_FREEZE,INVALID_TIMER);
 				if (tsc->data[SC_STONE] && tsc->opt1 == OPT1_STONE)
@@ -6250,8 +6247,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 
+		case CR_DEVOTION:
 		case ML_DEVOTION:
-		case CR_DEVOTION: {
+			{
 				int count, lv;
 
 				if (!dstsd || (!sd && !mer)) { //Only players can be devoted
@@ -6259,7 +6257,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
-
 				if ((lv = status_get_lv(src) - dstsd->status.base_level) < 0)
 					lv = -lv;
 				if (lv > battle_config.devotion_level_difference || //Level difference requeriments
@@ -6286,11 +6283,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							return 1;
 						}
 					}
-
 					sd->devotion[i] = bl->id;
 				} else
 					mer->devotion_flag = 1; //Mercenary Devoting Owner
-
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,
 					sc_start4(src,bl,type,100,src->id,i,skill_get_range2(src,skill_id,skill_lv),0,skill_get_time2(skill_id,skill_lv)));
 				clif_devotion(src,NULL);

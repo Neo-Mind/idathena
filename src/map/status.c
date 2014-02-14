@@ -365,7 +365,7 @@ void initChangeTables(void) {
 	set_sc( BA_WHISTLE           , SC_WHISTLE         , SI_WHISTLE         , SCB_FLEE|SCB_FLEE2 );
 	set_sc( BA_ASSASSINCROSS     , SC_ASSNCROS        , SI_ASSASSINCROSS   , SCB_ASPD );
 	set_sc( BA_POEMBRAGI         , SC_POEMBRAGI       , SI_POEMBRAGI       , SCB_NONE  );
-	set_sc( BA_APPLEIDUN         , SC_APPLEIDUN       , SI_APPLEIDUN       , SCB_MAXHP|SCB_REGEN );
+	set_sc( BA_APPLEIDUN         , SC_APPLEIDUN       , SI_APPLEIDUN       , SCB_MAXHP );
 	add_sc( DC_SCREAM            , SC_STUN            );
 	set_sc( DC_HUMMING           , SC_HUMMING         , SI_HUMMING         , SCB_HIT );
 	set_sc( DC_DONTFORGETME      , SC_DONTFORGETME    , SI_DONTFORGETME    , SCB_SPEED|SCB_ASPD );
@@ -622,7 +622,7 @@ void initChangeTables(void) {
 	set_sc( AB_ADORAMUS          , SC_ADORAMUS        , SI_ADORAMUS        , SCB_AGI|SCB_SPEED );
 	set_sc( AB_CLEMENTIA         , SC_BLESSING        , SI_BLESSING        , SCB_STR|SCB_INT|SCB_DEX );
 	set_sc( AB_CANTO             , SC_INCREASEAGI     , SI_INCREASEAGI     , SCB_AGI|SCB_SPEED );
-	set_sc( AB_EPICLESIS         , SC_EPICLESIS       , SI_EPICLESIS       , SCB_MAXHP|SCB_REGEN );
+	set_sc( AB_EPICLESIS         , SC_EPICLESIS       , SI_EPICLESIS       , SCB_MAXHP );
 	set_sc( AB_PRAEFATIO         , SC_KYRIE           , SI_KYRIE           , SCB_NONE );
 	set_sc_with_vfx( AB_ORATIO   , SC_ORATIO          , SI_ORATIO          , SCB_NONE );
 	set_sc( AB_LAUDAAGNUS        , SC_LAUDAAGNUS      , SI_LAUDAAGNUS      , SCB_VIT );
@@ -3943,13 +3943,6 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 			regen->rate.sp += sce->val3;
 		} else
 			regen->flag &= ~sce->val4; //Remove regen as specified by val4
-	}
-
-	if (sc->data[SC_APPLEIDUN])
-		regen->rate.hp += sc->data[SC_APPLEIDUN]->val3;
-	if (sc->data[SC_EPICLESIS]) {
-		regen->rate.hp += sc->data[SC_EPICLESIS]->val3;
-		regen->rate.sp += sc->data[SC_EPICLESIS]->val4;
 	}
 
 	if (sc->data[SC_GT_REVITALIZE]) {
@@ -8887,6 +8880,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_SECRAMENT:
 				val2 = 10 * val1;
 				break;
+			case SC_EPICLESIS:
+				val2 = 5 * val1; //HP rate bonus
+				break;
 			case SC_VENOMIMPRESS:
 				val2 = 10 * val1;
 				break;
@@ -9490,38 +9486,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_MONSTER_TRANSFORM:
 				if( !mobdb_checkid(val1) )
 					val1 = 1002; //Default poring
-				break;
-			case SC_APPLEIDUN: {
-					uint8 i;
-
-					val2 = 5 + (2 * (val1 - 1)); //HP Rate
-					val3 = 30 + (5 * val1); //HP Recovery rate
-					if( sd && (i = pc_checkskill(sd,BA_MUSICALLESSON)) > 0 ) {
-						val2 += i;
-						val3 += (5 * i);
-					}
-				}
-				break;
-			case SC_EPICLESIS:
-				val2 = 5 * val1; //HP rate bonus
-				switch( val1 ) { //@FIXME, looks so weird!
-					//val3: HP regen rate bonus
-					//val4: SP regen rate bonus
-					case 1:
-					case 2:
-						val3 = 3; //HP regen rate bonus
-						val4 = 2; //SP regen rate bonus
-						break;
-					case 3:
-					case 4:
-						val3 = 4; //HP regen rate bonus
-						val4 = 3; //SP regen rate bonus
-						break;
-					case 5:
-						val3 = 5; //HP regen rate bonus
-						val4 = 4; //SP regen rate bonus
-						break;
-				}
 				break;
 			case SC_C_MARKER:
 				val2 = src->id;
