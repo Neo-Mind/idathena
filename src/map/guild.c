@@ -1279,9 +1279,9 @@ int guild_skillup(TBL_PC* sd, uint16 skill_id)
 
 	nullpo_ret(sd);
 
-	if( idx < 0 || idx >= MAX_GUILDSKILL || // not a guild skill
-			sd->status.guild_id == 0 || (g=sd->guild) == NULL || // no guild
-			strcmp(sd->status.name, g->master) ) // not the guild master
+	if( idx < 0 || idx >= MAX_GUILDSKILL || // Not a guild skill
+		sd->status.guild_id == 0 || (g = sd->guild) == NULL || // No guild
+		strcmp(sd->status.name, g->master) ) // Not the guild master
 		return 0;
 
 	if( g->skill_point > 0 &&
@@ -1297,16 +1297,16 @@ int guild_skillup(TBL_PC* sd, uint16 skill_id)
  *---------------------------------------------------*/
 int guild_skillupack(int guild_id,uint16 skill_id,int account_id)
 {
-	struct map_session_data *sd=map_id2sd(account_id);
-	struct guild *g=guild_search(guild_id);
+	struct map_session_data *sd = map_id2sd(account_id);
+	struct guild *g = guild_search(guild_id);
 	int i;
 
 	if( g == NULL )
 		return 0;
 
 	if( sd != NULL ) {
-		int lv = g->skill[skill_id-GD_SKILLBASE].lv;
-		int range = skill_get_range(skill_id, lv);
+		int lv = g->skill[skill_id - GD_SKILLBASE].lv;
+		int range = skill_get_range(skill_id,lv);
 
 		clif_skillup(sd,skill_id,lv,range,1);
 		/* Guild Aura handling */
@@ -1321,8 +1321,8 @@ int guild_skillupack(int guild_id,uint16 skill_id,int account_id)
 	}
 
 	// Inform all members
-	for(i=0;i<g->max_member;i++)
-		if((sd=g->member[i].sd)!=NULL)
+	for( i = 0; i < g->max_member; i++ )
+		if( (sd = g->member[i].sd) != NULL )
 			clif_guild_skillinfo(sd);
 
 	return 0;

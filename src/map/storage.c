@@ -590,7 +590,7 @@ int storage_guild_storageadd(struct map_session_data* sd, int index, int amount)
 	if( !stor->storage_status || stor->storage_amount > MAX_GUILD_STORAGE )
 		return 0;
 	
-	if( index<0 || index>=MAX_INVENTORY )
+	if( index < 0 || index >= MAX_INVENTORY )
 		return 0;
 
 	if( sd->status.inventory[index].nameid <= 0 )

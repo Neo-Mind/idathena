@@ -316,7 +316,6 @@ int skill_get_range2 (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 		return 9; //Mobs have a range of 9 regardless of skill used.
 
 	range = skill_get_range(skill_id, skill_lv);
-
 	if( range < 0 ) {
 		if( battle_config.use_weapon_skill_range&bl->type )
 			return status_get_range(bl);
@@ -324,7 +323,6 @@ int skill_get_range2 (struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 	}
 
 	inf3 = skill_get_inf3(skill_id);
-
 	if( inf3&(INF3_EFF_VULTURE|INF3_EFF_SNAKEEYE) ) {
 		if( bl->type == BL_PC ) {
 			if( inf3&INF3_EFF_VULTURE )

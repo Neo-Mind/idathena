@@ -1340,7 +1340,7 @@ int pc_reg_received(struct map_session_data *sd)
 		}
 	}
 
-	//Weird... maybe registries were reloaded?
+	//Weird, maybe registries were reloaded?
 	if (sd->state.active)
 		return 0;
 	sd->state.active = 1;

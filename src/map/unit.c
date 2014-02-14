@@ -1443,7 +1443,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		unit_stop_attack(src);
 	else if( ud->attacktimer != INVALID_TIMER ) //Elsewise, delay current attack sequence
 		ud->attackabletime = tick + status_get_adelay(src);
-	
+
 	ud->state.skillcastcancel = castcancel;
 
 	//Combo: Used to signal force cast now.
@@ -1494,9 +1494,12 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 				//+0.5s every 3 cells of distance but hard-limited to 1.5s.
 				unsigned int k = distance_bl(src, target) / 3;
 
-				if( k < 2 ) k = 0;
-				else if( k > 1 && k < 3 ) k = 1;
-				else if( k > 2 ) k = 2;
+				if( k < 2 )
+					k = 0;
+				else if( k > 1 && k < 3 )
+					k = 1;
+				else if( k > 2 )
+					k = 2;
 				casttime += casttime * k;
 			}
 			break;
@@ -1667,11 +1670,13 @@ int unit_skilluse_pos2(struct block_list *src, short skill_x, short skill_y, uin
 
 	if(!src->prev)
 		return 0; //Not on the map
+
 	if(status_isdead(src))
 		return 0;
 
 	sd = BL_CAST(BL_PC, src);
 	ud = unit_bl2ud(src);
+
 	if(ud == NULL)
 		return 0;
 

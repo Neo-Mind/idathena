@@ -1730,9 +1730,8 @@ static int battle_range_type(struct block_list *src, struct block_list *target, 
 		return BF_SHORT;
 
 	//Skill Range Criteria
-	if(battle_config.skillrange_by_distance &&
-		(src->type&battle_config.skillrange_by_distance)
-	) { //Based on distance between src/target [Skotlex]
+	if(battle_config.skillrange_by_distance && (src->type&battle_config.skillrange_by_distance)) {
+		//Based on distance between src/target [Skotlex]
 		if(check_distance_bl(src, target, 5))
 			return BF_SHORT;
 		return BF_LONG;
@@ -2984,6 +2983,7 @@ static struct Damage battle_calc_multi_attack(struct Damage wd, struct block_lis
 
 	//If no skill_id passed, check for double attack [helvetica]
 	if(sd && !skill_id) {
+		short i;
 		short dachance = 0; //Success chance of double attacking. If player is in fear breeze status and generated number is within fear breeze's range, this will be ignored.
 		short hitnumber = 0; //Used for setting how many hits will hit.
 		short gendetect[] = { 12, 12, 21, 27, 30 }; //If generated number is outside this value while in fear breeze status, it will check if their's a chance for double attacking.
@@ -3006,7 +3006,10 @@ static struct Damage battle_calc_multi_attack(struct Damage wd, struct block_lis
 			dachance = 5 * pc_checkskill(sd,GS_CHAINACTION);
 
 		//This checks if the generated value is within fear breeze's success chance range for the level used as set by gendetect.
-		if(sc && sc->data[SC_FEARBREEZE] && generate <= gendetect[sc->data[SC_FEARBREEZE]->val1 - 1] && sd->weapontype1 == W_BOW) {
+		if(sc && sc->data[SC_FEARBREEZE] && generate <= gendetect[sc->data[SC_FEARBREEZE]->val1 - 1] &&
+			sd->weapontype1 == W_BOW && (i = sd->equip_index[EQI_AMMO]) > 0 && sd->inventory_data[i] &&
+			sd->status.inventory[i].amount > 1)
+		{
 				if(generate >= 1 && generate <= 12) //12% chance to deal 2 hits.
 					hitnumber = 2;
 				else if(generate >= 13 && generate <= 21) //9% chance to deal 3 hits.
@@ -3015,9 +3018,12 @@ static struct Damage battle_calc_multi_attack(struct Damage wd, struct block_lis
 					hitnumber = 4;
 				else if(generate >= 28 && generate <= 30) //3% chance to deal 5 hits.
 					hitnumber = 5;
+				hitnumber = min(hitnumber,sd->status.inventory[i].amount);
+				//Requires 7 arrows for dealing 5 hits before attacking, since each attack uses an arrow.
+				sc->data[SC_FEARBREEZE]->val4 = hitnumber + 1;
 		}
-		//If the generated value is higher then Fear Breeze's success chance range, but not higher then the player's double attack success chance,
-		//then allow a double attack to happen.
+		//If the generated value is higher then Fear Breeze's success chance range,
+		//but not higher then the player's double attack success chance, then allow a double attack to happen.
 		else if(generate < dachance)
 			hitnumber = 2;
 
@@ -6963,7 +6969,10 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			} else
 				status_change_end(src,SC_SPELLFIST,INVALID_TIMER);
 		}
-		if (sd && sc->data[SC_FEARBREEZE] && sc->data[SC_FEARBREEZE]->val4 > 0 && sd->status.inventory[sd->equip_index[EQI_AMMO]].amount >= sc->data[SC_FEARBREEZE]->val4 && battle_config.arrow_decrement) {
+		if (sd && sc->data[SC_FEARBREEZE] && sc->data[SC_FEARBREEZE]->val4 > 0 &&
+			sd->status.inventory[sd->equip_index[EQI_AMMO]].amount >= sc->data[SC_FEARBREEZE]->val4 &&
+			battle_config.arrow_decrement)
+		{
 			pc_delitem(sd,sd->equip_index[EQI_AMMO],sc->data[SC_FEARBREEZE]->val4,0,1,LOG_TYPE_CONSUME);
 			sc->data[SC_FEARBREEZE]->val4 = 0;
 		}

@@ -930,15 +930,15 @@ int chrif_changedsex(int fd) {
 		ShowNotice("chrif_changedsex %d.\n", acc);
 
 	sd = map_id2sd(acc);
-	if ( sd ) { //Normally there should not be a char logged on right now!
-		if ( sd->status.sex == sex )
+	if (sd) { //Normally there should not be a char logged on right now!
+		if (sd->status.sex == sex)
 			return 0; //Do nothing? Likely safe.
 		sd->status.sex = !sd->status.sex;
-
-		// reset skill of some job
+		//Reset skill of some job
 		if ((sd->class_&MAPID_UPPERMASK) == MAPID_BARDDANCER) {
 			int i;
-			// remove specifical skills of Bard classes 
+
+			//Remove specifical skills of Bard classes 
 			for(i = 315; i <= 322; i++) {
 				if (sd->status.skill[i].id > 0 && sd->status.skill[i].flag == SKILL_FLAG_PERMANENT) {
 					sd->status.skill_point += sd->status.skill[i].lv;
@@ -946,7 +946,7 @@ int chrif_changedsex(int fd) {
 					sd->status.skill[i].lv = 0;
 				}
 			}
-			// remove specifical skills of Dancer classes 
+			//Remove specifical skills of Dancer classes 
 			for(i = 323; i <= 330; i++) {
 				if (sd->status.skill[i].id > 0 && sd->status.skill[i].flag == SKILL_FLAG_PERMANENT) {
 					sd->status.skill_point += sd->status.skill[i].lv;
@@ -955,19 +955,19 @@ int chrif_changedsex(int fd) {
 				}
 			}
 			clif_updatestatus(sd, SP_SKILLPOINT);
-			// change job if necessary
+			//Change job if necessary
 			if (sd->status.sex) //Changed from Dancer
 				sd->status.class_ -= 1;
-			else	//Changed from Bard
+			else //Changed from Bard
 				sd->status.class_ += 1;
 			//sd->class_ needs not be updated as both Dancer/Bard are the same.
 		}
-		// save character
-		sd->login_id1++; // change identify, because if player come back in char within the 5 seconds, he can change its characters
-							  // do same modify in login-server for the account, but no in char-server (it ask again login_id1 to login, and don't remember it)
+		//Save character
+		sd->login_id1++; //Change identify, because if player come back in char within the 5 seconds, he can change its characters
+		//Do same modify in login-server for the account, but no in char-server (it ask again login_id1 to login, and don't remember it)
 		clif_displaymessage(sd->fd, msg_txt(409)); //"Your sex has been changed (need disconnection by the server)..."
-		set_eof(sd->fd); // forced to disconnect for the change
-		map_quit(sd); // Remove leftovers (e.g. autotrading) [Paradox924X]
+		set_eof(sd->fd); //Forced to disconnect for the change
+		map_quit(sd); //Remove leftovers (e.g. autotrading) [Paradox924X]
 	}
 	return 0;
 }
