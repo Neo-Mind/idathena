@@ -1276,7 +1276,7 @@ bool pc_set_hate_mob(struct map_session_data *sd, int pos, struct block_list *bl
 			return false; //Wrong size
 	}
 	sd->hate_mob[pos] = class_;
-	pc_setglobalreg(sd,sg_info[pos].hate_var,class_+1);
+	pc_setglobalreg(sd, sg_info[pos].hate_var, class_ + 1);
 	clif_hate_info(sd, pos, class_, 1);
 	return true;
 }

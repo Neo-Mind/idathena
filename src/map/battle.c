@@ -4218,11 +4218,6 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 					break;
 			}
 		}
-		if( sc->data[SC_EXEEDBREAK] ) {
-			ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_EXEEDBREAK]->val1);
-			RE_ALLATK_ADDRATE(wd, sc->data[SC_EXEEDBREAK]->val1);
-			status_change_end(src, SC_EXEEDBREAK, INVALID_TIMER);
-		}
 		if(sc->data[SC_STRIKING]) {
 			ATK_ADD(wd.damage, wd.damage2, sc->data[SC_STRIKING]->val2);
 #ifdef RENEWAL
@@ -6960,6 +6955,10 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	wd = battle_calc_attack(BF_WEAPON,src,target,0,0,flag);
 
 	if (sc && sc->count) {
+		if (sc->data[SC_EXEEDBREAK]) {
+			ATK_RATER(wd.damage,sc->data[SC_EXEEDBREAK]->val1);
+			status_change_end(src,SC_EXEEDBREAK,INVALID_TIMER);
+		}
 		if (sc->data[SC_SPELLFIST]) {
 			if (--(sc->data[SC_SPELLFIST]->val1) >= 0) {
 				struct Damage ad = battle_calc_attack(BF_MAGIC,src,target,sc->data[SC_SPELLFIST]->val3,sc->data[SC_SPELLFIST]->val4,flag|BF_SHORT);
