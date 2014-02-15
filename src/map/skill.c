@@ -4005,7 +4005,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case CG_ARROWVULCAN:
 		case HW_MAGICCRASHER:
 		case ITM_TOMAHAWK:
-		case MO_TRIPLEATTACK:
 		case CH_CHAINCRUSH:
 		case CH_TIGERFIST:
 		case PA_SHIELDCHAIN: //Shield Chain
@@ -4078,6 +4077,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case NC_COLDSLOWER:
 			if (sd)
 				pc_overheat(sd,1);
+		case MO_TRIPLEATTACK:
 		case RK_WINDCUTTER:
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag|SD_ANIMATION);
 			break;
@@ -16274,7 +16274,7 @@ int skill_graffitiremover (struct block_list *bl, va_list ap)
 	if(bl->type != BL_SKILL || (unit = (struct skill_unit *)bl) == NULL)
 		return 0;
 
-	if((unit->group) && (unit->group->unit_id == UNT_GRAFFITI))
+	if(unit->group && unit->group->unit_id == UNT_GRAFFITI)
 		skill_delunit(unit);
 
 	return 0;
@@ -16289,7 +16289,8 @@ int skill_greed (struct block_list *bl, va_list ap)
 	nullpo_ret(bl);
 	nullpo_ret(src = va_arg(ap,struct block_list *));
 
-	if(src->type == BL_PC && (sd = (struct map_session_data *)src) && bl->type == BL_ITEM && (fitem = (struct flooritem_data *)bl))
+	if(src->type == BL_PC && (sd = (struct map_session_data *)src) &&
+		bl->type == BL_ITEM && (fitem = (struct flooritem_data *)bl))
 		pc_takeitem(sd, fitem);
 
 	return 0;

@@ -3019,8 +3019,7 @@ static struct Damage battle_calc_multi_attack(struct Damage wd, struct block_lis
 				else if(generate >= 28 && generate <= 30) //3% chance to deal 5 hits.
 					hitnumber = 5;
 				hitnumber = min(hitnumber,sd->status.inventory[i].amount);
-				//Requires 7 arrows for dealing 5 hits before attacking, since each attack uses an arrow.
-				sc->data[SC_FEARBREEZE]->val4 = hitnumber + 1;
+				sc->data[SC_FEARBREEZE]->val4 = hitnumber - 1;
 		}
 		//If the generated value is higher then Fear Breeze's success chance range,
 		//but not higher then the player's double attack success chance, then allow a double attack to happen.
@@ -8043,6 +8042,7 @@ static const struct _battle_data {
 	{ "rental_mount_speed_boost",           &battle_config.rental_mount_speed_boost,        25,     0,      100,            },
 	{ "atcommand_enable_npc",               &battle_config.atcommand_enable_npc,            0,      0,      100,            },
 	{ "crimson_marker_type",                &battle_config.crimson_marker_type,             1,      0,      1,              },
+	{ "feature.warp_suggestions",           &battle_config.warp_suggestions_enabled,        0,      0,      1,              },
 };
 #ifndef STATS_OPT_OUT
 /**

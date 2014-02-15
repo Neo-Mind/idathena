@@ -87,6 +87,7 @@ static char atcmd_player_name[NAME_LENGTH];
 static AtCommandInfo* get_atcommandinfo_byname(const char *name); //@help
 static const char* atcommand_checkalias(const char *aliasname); //@help
 static void atcommand_get_suggestions(struct map_session_data* sd, const char *name, bool atcommand); //@help
+static void warp_get_suggestions(struct map_session_data* sd, const char *name); //@rura, @warp, @mapmove
 
 //@commands (script-based)
 struct atcmd_binding_data* get_atcommandbind_byname(const char* name) {
@@ -122,13 +123,11 @@ static const char* atcommand_help_string(const char* command)
 	// Attept to find the first default help command
 	info = config_lookup(&atcommand_config, "help");
 
-	if( info == NULL ) { // Failed to find the help property in the configuration file
+	if( info == NULL ) // Failed to find the help property in the configuration file
 		return NULL;
-	}
-	
-	if( !config_setting_lookup_string( info, command, &str ) ) { // Failed to find the matching help string
+
+	if( !config_setting_lookup_string(info, command, &str) ) // Failed to find the matching help string
 		return NULL;
-	}
 
 	// Push the result from the method
 	return str;
@@ -148,6 +147,7 @@ ACMD_FUNC(send)
 		|| sscanf(message, "%x", &type) == 1) )
 	{
 		int i;
+
 		for(i = 900; i <= 903; ++i)
 			clif_displaymessage(fd, msg_txt(i));
 		return -1;
@@ -185,7 +185,6 @@ ACMD_FUNC(send)
 //define GET_VALUE
 
 	if(type > 0 && type < MAX_PACKET_DB) {
-
 		if(len) { // Show packet length
 			sprintf(atcmd_output, msg_txt(904), type, packet_db[sd->packet_ver][type].len); // Packet 0x%x length: %d
 			clif_displaymessage(fd, atcmd_output);
@@ -344,13 +343,85 @@ ACMD_FUNC(send)
 		clif_displaymessage(fd, msg_txt(259)); // Invalid packet
 		return -1;
 	}
-	sprintf (atcmd_output, msg_txt(258), type, type); // Sent packet 0x%x (%d)
+	sprintf(atcmd_output, msg_txt(258), type, type); // Sent packet 0x%x (%d)
 	clif_displaymessage(fd, atcmd_output);
 	return 0;
 #undef PARSE_ERROR
 #undef CHECK_EOS
 #undef SKIP_VALUE
 #undef GET_VALUE
+}
+
+/**
+ * Retrieves map name suggestions for a given string.
+ * This will first check if any map names contain the given string, and will
+ *   print out MAX_SUGGESTIONS results if any maps are found.
+ * Otherwise, suggestions will be calculated through Levenshtein distance,
+ *   and up to 5 of the closest matches will be printed.
+ *
+ * @author Euphy
+ */
+static void warp_get_suggestions(struct map_session_data* sd, const char *name) {
+	char buffer[512];
+	int i, count = 0;
+
+	if (strlen(name) < 2)
+		return;
+
+	// Build the suggestion string
+	strcpy(buffer, msg_txt(205)); // Maybe you meant:
+	strcat(buffer, "\n");
+
+	// Check for maps that contain string
+	for (i = 0; i < MAX_MAP_PER_SERVER; i++) {
+		if (count < MAX_SUGGESTIONS && strstr(map[i].name, name) != NULL) {
+			strcat(buffer, map[i].name);
+			strcat(buffer, " ");
+			if (++count >= MAX_SUGGESTIONS)
+				break;
+		}
+	}
+
+	// If no maps found, search by edit distance
+	if (!count) {
+		unsigned int distance[MAX_MAP_PER_SERVER][2];
+		int j, min;
+
+		// Calculate Levenshtein distance for all maps
+		for (i = 0; i < MAX_MAP_PER_SERVER; i++) {
+			if (strlen(map[i].name) < 4) // Invalid map name?
+				distance[i][0] = INT_MAX;
+			else {
+				distance[i][0] = levenshtein(map[i].name, name);
+				distance[i][1] = i;
+			}
+		}
+
+		// Selection sort elements as needed
+		count = min(MAX_SUGGESTIONS, 5); // Results past 5 aren't worth showing
+		for (i = 0; i < count; i++) {
+			min = i;
+			for (j = i + 1; j < MAX_MAP_PER_SERVER; j++) {
+				if (distance[j][0] < distance[min][0])
+					min = j;
+			}
+
+			// Print map name
+			if (distance[min][0] > 4) { // Awful results, don't bother
+				if (!i)
+					return;
+				break;
+			}
+			strcat(buffer, map[distance[min][1]].name);
+			strcat(buffer, " ");
+
+			// Swap elements
+			swap(distance[i][0], distance[min][0]);
+			swap(distance[i][1], distance[min][1]);
+		}
+	}
+
+	clif_displaymessage(sd->fd, buffer);
 }
 
 /*==========================================
@@ -378,9 +449,12 @@ ACMD_FUNC(mapmove)
 	mapindex = mapindex_name2id(map_name);
 	if (mapindex)
 		m = map_mapindex2mapid(mapindex);
-	
+
 	if (!mapindex) { // m < 0 means on different server! [Kevin]
 		clif_displaymessage(fd, msg_txt(1)); // Map not found.
+
+		if (battle_config.warp_suggestions_enabled)
+			warp_get_suggestions(sd, map_name);
 		return -1;
 	}
 
@@ -451,26 +525,22 @@ ACMD_FUNC(jumpto)
 		return -1;
 	}
 
-	if((pl_sd = map_nick2sd((char *)message)) == NULL && (pl_sd = map_charid2sd(atoi(message))) == NULL)
-	{
+	if ((pl_sd = map_nick2sd((char *)message)) == NULL && (pl_sd = map_charid2sd(atoi(message))) == NULL) {
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
 	}
 	
-	if (pl_sd->bl.m >= 0 && map[pl_sd->bl.m].flag.nowarpto && !pc_has_permission(sd, PC_PERM_WARP_ANYWHERE))
-	{
+	if (pl_sd->bl.m >= 0 && map[pl_sd->bl.m].flag.nowarpto && !pc_has_permission(sd, PC_PERM_WARP_ANYWHERE)) {
 		clif_displaymessage(fd, msg_txt(247));	// You are not authorized to warp to this map.
 		return -1;
 	}
 	
-	if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarp && !pc_has_permission(sd, PC_PERM_WARP_ANYWHERE))
-	{
+	if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarp && !pc_has_permission(sd, PC_PERM_WARP_ANYWHERE)) {
 		clif_displaymessage(fd, msg_txt(248));	// You are not authorized to warp from your current map.
 		return -1;
 	}
 
-	if( pc_isdead(sd) )
-	{
+	if( pc_isdead(sd) ) {
 		clif_displaymessage(fd, msg_txt(664));
 		return -1;
 	}
@@ -4023,23 +4093,35 @@ ACMD_FUNC(mount_peco)
 {
 	nullpo_retr(-1, sd);
 
-	if (sd->disguise) {
+	if( sd->disguise ) {
 		clif_displaymessage(fd, msg_txt(212)); // Cannot mount while in disguise.
 		return -1;
 	}
 
 	if( (sd->class_&MAPID_THIRDMASK) == MAPID_RUNE_KNIGHT && pc_checkskill(sd,RK_DRAGONTRAINING) > 0 ) {
-		if( !(sd->sc.option&OPTION_DRAGON1) ) {
+		if( !(sd->sc.option&OPTION_DRAGON) ) {
+			unsigned int option = OPTION_DRAGON1;
+
+			if( message[0] ) {
+				int color = atoi(message);
+
+				option = (color == 2 ? OPTION_DRAGON2 :
+				           color == 3 ? OPTION_DRAGON3 :
+				           color == 4 ? OPTION_DRAGON4 :
+				           color == 5 ? OPTION_DRAGON5 :
+				                        OPTION_DRAGON1);
+			}
 			clif_displaymessage(sd->fd,msg_txt(1119)); // You have mounted your Dragon.
-			pc_setoption(sd, sd->sc.option|OPTION_DRAGON1);
+			pc_setoption(sd, sd->sc.option|option);
 		} else {
 			clif_displaymessage(sd->fd,msg_txt(1120)); // You have released your Dragon.
-			pc_setoption(sd, sd->sc.option&~OPTION_DRAGON1);
+			pc_setoption(sd, sd->sc.option&~OPTION_DRAGON);
 		}
 		return 0;
 	}
 	if( (sd->class_&MAPID_THIRDMASK) == MAPID_RANGER && pc_checkskill(sd,RA_WUGRIDER) > 0 &&
-		(!pc_isfalcon(sd) || battle_config.warg_can_falcon) ) {
+		(!pc_isfalcon(sd) || battle_config.warg_can_falcon) )
+	{
 		if( !pc_isridingwug(sd) ) {
 			clif_displaymessage(sd->fd,msg_txt(1121)); // You have mounted your Warg.
 			pc_setoption(sd, sd->sc.option|OPTION_WUGRIDER);
@@ -4059,15 +4141,15 @@ ACMD_FUNC(mount_peco)
 		}
 		return 0;
 	}
-	if (!pc_isriding(sd)) { // If actually no peco
-		if (!pc_checkskill(sd, KN_RIDING)) {
+	if( !pc_isriding(sd) ) { // If actually no peco
+		if( !pc_checkskill(sd, KN_RIDING) ) {
 			clif_displaymessage(fd, msg_txt(213)); // You can not mount a Peco Peco with your current job.
 			return -1;
 		}
-		pc_setoption(sd, sd->sc.option | OPTION_RIDING);
+		pc_setoption(sd, sd->sc.option|OPTION_RIDING);
 		clif_displaymessage(fd, msg_txt(102)); // You have mounted a Peco Peco.
 	} else {//Dismount
-		pc_setoption(sd, sd->sc.option & ~OPTION_RIDING);
+		pc_setoption(sd, sd->sc.option&~OPTION_RIDING);
 		clif_displaymessage(fd, msg_txt(214)); // You have released your Peco Peco.
 	}
 
