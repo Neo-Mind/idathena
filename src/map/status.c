@@ -9163,15 +9163,15 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick_time = 10000; //[GodLesZ] tick time
 				break;
 			case SC_EXEEDBREAK:
-				val1 = 100 * val1; //100 * skill_lv
+				val2 = 100 * val1;
 				if( sd ) { //Players
 					short index = sd->equip_index[EQI_HAND_R];
 
 					if( index >= 0 && sd->inventory_data[index] )
-						val1 += 10 * sd->status.job_level + sd->inventory_data[index]->weight / 10 *
+						val2 += 10 * sd->status.job_level + sd->inventory_data[index]->weight / 10 *
 							sd->inventory_data[index]->wlv * status_get_lv(bl) / 100;
 				} else //Monster use
-					val1 += 500;
+					val2 += 500;
 				break;
 			case SC_PRESTIGE:
 				//Chance to evade magic damage.
@@ -10387,8 +10387,8 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			break;
 		case SC_TINDER_BREAKER2:
 		case SC_CLOSECONFINE2: {
-				struct block_list *src = sce->val2 ? map_id2bl(sce->val2) : NULL;
-				struct status_change *sc2 = src ? status_get_sc(src) : NULL;
+				struct block_list *src = (sce->val2 ? map_id2bl(sce->val2) : NULL);
+				struct status_change *sc2 = (src ? status_get_sc(src) : NULL);
 				enum sc_type type2 = ((type == SC_CLOSECONFINE2) ? SC_CLOSECONFINE : SC_TINDER_BREAKER);
 
 				if (src && sc2 && sc2->data[type2]) {
@@ -10496,7 +10496,6 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			//Because map_quit calls status_change_end with tid -1
 			//From here it's not neccesary to continue
 			return 1;
-			break;
 		case SC_STOP:
 			if (sce->val2) {
 				struct block_list* tbl = map_id2bl(sce->val2);
@@ -10548,6 +10547,14 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 
 				if (s_sd)
 					s_sd->shadowform_id = 0;
+			}
+			break;
+		case SC_FEINT:
+			if( sd && pc_ishiding(sd) ) {
+				status_change_end(bl,SC_HIDING,INVALID_TIMER);
+				status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
+				status_change_end(bl,SC_CHASEWALK,INVALID_TIMER);
+				status_change_end(bl,SC__INVISIBILITY,INVALID_TIMER);
 			}
 			break;
 		case SC_BANDING:
@@ -10695,7 +10702,6 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_CRYSTALIZE:
 			sc->opt1 = 0;
 			break;
-
 		case SC_POISON:
 		case SC_CURSE:
 		case SC_SILENCE:
@@ -10709,7 +10715,6 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_CHAOS:
 			sc->opt2 &= ~OPT2_SIGNUMCRUCIS;
 			break;
-
 		case SC_HIDING:
 			sc->option &= ~OPTION_HIDE;
 			opt_flag|= 2|4; //Check for warp trigger + AoE trigger
@@ -12210,10 +12215,13 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 	regen = status_get_regen_data(bl);
 	if (!regen)
 		return 0;
+
 	status = status_get_status_data(bl);
+
 	sc = status_get_sc(bl);
 	if (sc && !sc->count)
 		sc = NULL;
+
 	sd = BL_CAST(BL_PC,bl);
 
 	flag = regen->flag;
@@ -12222,10 +12230,7 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 	if (flag&RGN_SP && (status->sp >= status->max_sp || regen->state.block&2))
 		flag &= ~(RGN_SP|RGN_SSP);
 
-	if (flag && (
-		status_isdead(bl) ||
-		(sc && (sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK)))
-	))
+	if (flag && (status_isdead(bl) || (sd && pc_ishiding(sd))))
 		flag = 0;
 
 	if (sd) {

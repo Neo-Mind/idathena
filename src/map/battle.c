@@ -5472,8 +5472,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					case MG_COLDBOLT:
 					case MG_LIGHTNINGBOLT:
 						if(sc && sc->data[SC_SPELLFIST] && (mflag&(BF_SHORT|BF_MAGIC)) == BF_SHORT)  {
-							//val4 = used bolt level, val2 = used spellfist level. [Rytech]
-							skillratio += -100 + (sc->data[SC_SPELLFIST]->val4 * 100) + (sc->data[SC_SPELLFIST]->val2 * 50);
+							//val1 = used spellfist level, val4 = used bolt level. [Rytech]
+							skillratio += -100 + (sc->data[SC_SPELLFIST]->val1 * 50) + (sc->data[SC_SPELLFIST]->val4 * 100);
 							ad.div_ = 1; //ad mods, to make it work similar to regular hits [Xazax]
 							ad.flag = BF_SHORT|BF_WEAPON;
 							ad.type = 0;
@@ -6956,11 +6956,11 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 
 	if (sc && sc->count) {
 		if (sc->data[SC_EXEEDBREAK]) {
-			ATK_RATER(wd.damage,sc->data[SC_EXEEDBREAK]->val1);
+			ATK_RATER(wd.damage,sc->data[SC_EXEEDBREAK]->val2);
 			status_change_end(src,SC_EXEEDBREAK,INVALID_TIMER);
 		}
 		if (sc->data[SC_SPELLFIST]) {
-			if (--(sc->data[SC_SPELLFIST]->val1) >= 0) {
+			if (--(sc->data[SC_SPELLFIST]->val2) >= 0) {
 				struct Damage ad = battle_calc_attack(BF_MAGIC,src,target,sc->data[SC_SPELLFIST]->val3,sc->data[SC_SPELLFIST]->val4,flag|BF_SHORT);
 
 				wd.damage = ad.damage;

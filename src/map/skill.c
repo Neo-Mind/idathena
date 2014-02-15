@@ -6566,18 +6566,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case TF_HIDING:
 		case ST_CHASEWALK:
-			if (tsc && tsc->data[SC_FEINT]) {
-				status_change_end(bl,SC_FEINT,INVALID_TIMER);
-				map_freeblock_unlock();
-				return 0;
-			}
 		case KO_YAMIKUMO:
 			if (tsce) {
 				clif_skill_nodamage(src,bl,skill_id,-1,status_change_end(bl,type,INVALID_TIMER)); //Hide skill-scream animation.
 				map_freeblock_unlock();
 				return 0;
-			} else if (tsc && (tsc->option&OPTION_MADOGEAR)) {
-				//Mado Gear cannot hide
+			} else if (tsc && (tsc->option&OPTION_MADOGEAR)) { //Mado Gear cannot hide
 				if (sd)
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				map_freeblock_unlock();
@@ -6619,11 +6613,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case SC_INVISIBILITY:
-			if (tsc && tsc->data[SC_FEINT]) {
-				status_change_end(bl,SC_FEINT,INVALID_TIMER);
-				map_freeblock_unlock();
-				return 0;
-			}
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
 				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			break;
@@ -7327,7 +7316,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				int sp = skill_get_sp(sd->skill_id_old,sd->skill_lv_old);
 
 				if( skill_id == SO_SPELLFIST ) {
-					sc_start4(src,src,type,100,skill_lv + 1,skill_lv,sd->skill_id_old,sd->skill_lv_old,skill_get_time(skill_id,skill_lv));
+					sc_start4(src,src,type,100,skill_lv,skill_lv + 1,sd->skill_id_old,sd->skill_lv_old,skill_get_time(skill_id,skill_lv));
 					sd->skill_id_old = sd->skill_lv_old = 0;
 					break;
 				}
