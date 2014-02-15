@@ -198,7 +198,7 @@ struct block_list* battle_getenemyarea(struct block_list *src, int x, int y, int
 	return bl_list[rnd()%c];
 }
 
-//Dammage delayed info
+//Damage delayed info
 struct delay_damage {
 	int src_id;
 	int target_id;
@@ -275,7 +275,7 @@ int battle_delay_damage(unsigned int tick, int amotion, struct block_list *src, 
 
 	if( !battle_config.delay_battle_damage || amotion <= 1 ) {
 		map_freeblock_lock();
-		status_fix_damage(src, target, damage, ddelay); //We have to seperate here between reflect damage and others [icescope]
+		status_fix_damage(src, target, damage, ddelay); //We have to separate here between reflect damage and others [icescope]
 		if( attack_type && !status_isdead(target) && additional_effects )
 			skill_additional_effect(src, target, skill_id, skill_lv, attack_type, dmg_lv, gettick());
 		if( dmg_lv > ATK_BLOCK && attack_type )
@@ -734,7 +734,7 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 }
 
 /*==========================================
- * Check dammage trough status.
+ * Check Damage trough status.
  * ATK may be MISS, BLOCKED FAIL, reduc, increase, end status...
  * After this we apply bg/gvg reduction
  *------------------------------------------*/
@@ -1103,7 +1103,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( damage > 0 && (flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON) &&
 			(sce = sc->data[SC_STONEHARDSKIN]) ) {
 			sce->val2 -= (int)cap_value(damage,INT_MIN,INT_MAX);
-			if( src->type == BL_MOB ) //Using explicite call instead break_equip for duration
+			if( src->type == BL_MOB ) //Using explicit call instead break_equip for duration
 				sc_start(src,src,SC_STRIPWEAPON,30,0,skill_get_time2(RK_STONEHARDSKIN,sce->val1));
 			else
 				skill_break_equip(src,src,EQP_WEAPON,3000,BCT_SELF);
@@ -1117,7 +1117,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			damage = (damage > 10 ? damage / 10 : 1);
 #endif
 
-		//Finally added to remove the status of immobile when aimedbolt is used. [Jobbie]
+		//Finally added to remove the status of immobile when Aimed Bolt is used. [Jobbie]
 		if( skill_id == RA_AIMEDBOLT && (sc->data[SC_BITE] || sc->data[SC_ANKLE] || sc->data[SC_ELECTRICSHOCKER]) ) {
 			status_change_end(bl,SC_BITE,INVALID_TIMER);
 			status_change_end(bl,SC_ANKLE,INVALID_TIMER);
@@ -1434,7 +1434,7 @@ int64 battle_addmastery(struct map_session_data *sd, struct block_list *target, 
 	nullpo_ret(sd);
 
 	if((skill = pc_checkskill(sd,AL_DEMONBANE)) > 0 &&
-		target->type == BL_MOB && //This bonus doesnt work against players.
+		target->type == BL_MOB && //This bonus doesn't work against players.
 		(battle_check_undead(status->race,status->def_ele) || status->race == RC_DEMON))
 		damage += (skill * (int)(3 + (sd->status.base_level + 1) * 0.05)); //Submitted by orn
 		//damage += (skill * 3);
@@ -2163,7 +2163,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 		if(attacker_count >= battle_config.agi_penalty_count) {
 			if(battle_config.agi_penalty_type == 1)
 				flee = (flee * (100 - (attacker_count - (battle_config.agi_penalty_count - 1)) * battle_config.agi_penalty_num)) / 100;
-			else //Asume type 2 : absolute reduction
+			else //assume type 2 : absolute reduction
 				flee -= (attacker_count - (battle_config.agi_penalty_count - 1)) * battle_config.agi_penalty_num;
 			if(flee < 1) flee = 1;
 		}
@@ -2334,7 +2334,7 @@ static bool battle_skill_stacks_masteries_vvs(uint16 skill_id)
 
 #ifdef RENEWAL
 /*========================================
- * Calulate equipment ATK for renewal ATK
+ * Calculate equipment ATK for renewal ATK
  *----------------------------------------
  * Credits:
  *	Original coder Skoltex
@@ -2408,7 +2408,7 @@ static int battle_get_weapon_element(struct Damage wd, struct block_list *src, s
 				element = ELE_HOLY;
 			break;
 		case RL_H_MINE:
-			if(sd && sd->skill_id_old == RL_FLICKER) //Force RL_H_MINE deals fire damage if ativated by RL_FLICKER
+			if(sd && sd->skill_id_old == RL_FLICKER) //Force RL_H_MINE deals fire damage if activated by RL_FLICKER
 				element = ELE_FIRE;
 			break;
 	}
@@ -3468,7 +3468,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 				if(i > 3 && i <= 7)
 					dmg -= 50; //Greater than 3 cells, less than 8. (250 damage)
 				else if(i > 7 && i <= 11)
-					dmg -= 100; //Greather than 7 cells, less than 12. (200 damage)
+					dmg -= 100; //Greater than 7 cells, less than 12. (200 damage)
 				dmg = (skill_lv * dmg) * (1 + (status_get_lv(src) - 100) / 100);
 				//Elemental check, +(Skill Level x 100)% damage if your element is fire.
 				if(sstatus->rhw.ele == ELE_FIRE)
@@ -3572,14 +3572,14 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 				case SZ_BIG: skillratio += 200 + 300 * skill_lv; break; //Large
 			}
 			RE_LVL_DMOD(120);
-			//NOTE: Their's some other factors that affects damage, but not sure how exactly. Will recheck one day. [Rytech]
+			//NOTE: There are some other factors that affect damage, but not sure how exactly. Will recheck one day. [Rytech]
 			break;
 		case NC_AXEBOOMERANG:
 			skillratio += 150 + 50 * skill_lv;
 			if(sd) {
 				short index = sd->equip_index[EQI_HAND_R];
 
-				//Weight is divided by 10 since 10 weight in coding make 1 whole actural weight. [Rytech]
+				//Weight is divided by 10 since 10 weight in coding make 1 whole actual weight. [Rytech]
 				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
 					skillratio += sd->inventory_data[index]->weight / 10;
 			}
@@ -4901,7 +4901,7 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 }
 
 /*
- * Check if we should reflect the dammage and calculate it if so
+ * Check if we should reflect the Damage and calculate it if so
  * @param attack_type : BL_WEAPON, BL_MAGIC or BL_MISC
  * @param wd : weapon damage
  * @param src : bl who did the attack
@@ -6380,7 +6380,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				if(attacker_count >= battle_config.agi_penalty_count) {
 					if(battle_config.agi_penalty_type == 1)
 						flee = (flee * (100 - (attacker_count - (battle_config.agi_penalty_count - 1)) * battle_config.agi_penalty_num)) / 100;
-					else //Asume type 2: absolute reduction
+					else //Assume type 2: absolute reduction
 						flee -= (attacker_count - (battle_config.agi_penalty_count - 1)) * battle_config.agi_penalty_num;
 					if(flee < 1) flee = 1;
 				}
@@ -6388,7 +6388,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 
 			hitrate += sstatus->hit - flee;
 #ifdef RENEWAL
-			if(sd) //In Renewal hit bonus from Vultures Eye is not anymore shown in status window
+			if(sd) //In Renewal hit bonus from Vultures Eye is not shown anymore in status window
 				hitrate += pc_checkskill(sd,AC_VULTURE);
 #endif
 			hitrate = cap_value(hitrate,battle_config.min_hitrate,battle_config.max_hitrate);
@@ -6904,7 +6904,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 
 			/**
 			 * We need to calculate the DMG before the hp reduction,because it can kill the source.
-			 * For futher information: bugreport:4950
+			 * For further information: bugreport:4950
 			 **/
 			ret_val = (damage_lv)skill_attack(BF_WEAPON,src,src,target,PA_SACRIFICE,skill_lv,tick,0);
 
@@ -7389,7 +7389,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			sd = BL_CAST(BL_PC, t_bl);
 
 			if( sd->state.monster_ignore && flag&BCT_ENEMY )
-				return 0; //Global inminuty only to Attacks
+				return 0; //Global immunity only to Attacks
 			if( sd->status.karma && s_bl->type == BL_PC && ((TBL_PC*)s_bl)->status.karma )
 				state |= BCT_ENEMY; //Characters with bad karma may fight amongst them
 			if( sd->state.killable ) {
@@ -7547,7 +7547,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			)
 				state &= ~BCT_ENEMY;
 		}
-	} //End map_flag_vs chk rivality
+	} //End map_flag_vs check rivality
 	else { //Non pvp/gvg, check party/guild settings.
 		if( flag&BCT_PARTY || state&BCT_ENEMY ) {
 			int s_party = status_get_party_id(s_bl);
@@ -7562,7 +7562,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			if(s_guild && t_guild && (s_guild == t_guild || guild_isallied(s_guild, t_guild)))
 				state |= BCT_GUILD;
 		}
-	} //End non pvp/gvg chk rivality
+	} //End non pvp/gvg check rivality
 
 	if( !state ) //If not an enemy, nor a guild, nor party, nor yourself, it's neutral.
 		state = BCT_NEUTRAL;

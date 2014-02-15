@@ -94,7 +94,7 @@ char log_db_pw[32] = "ragnarok";
 char log_db_db[32] = "log";
 Sql* logmysql_handle;
 
-// DBMap declaartion
+// DBMap declaration
 static DBMap* id_db = NULL; // int id -> struct block_list*
 static DBMap* pc_db = NULL; // int id -> struct map_session_data*
 static DBMap* mobid_db = NULL; // int id -> struct mob_data*
@@ -252,7 +252,7 @@ int map_freeblock_timer(int tid, unsigned int tick, int id, intptr_t data)
 //
 /*==========================================
  * Handling of map_bl[]
- * The adresse of bl_heal is set in bl->prev
+ * The address of bl_heal is set in bl->prev
  *------------------------------------------*/
 static struct block_list bl_head;
 
@@ -336,7 +336,7 @@ int map_delblock(struct block_list* bl)
 
 	//Blocklist (2ways chainlist)
 	if (bl->prev == NULL) {
-		if (bl->next != NULL) //Can't delete block (already at the begining of the chain)
+		if (bl->next != NULL) //Can't delete block (already at the beginning of the chain)
 			ShowError("map_delblock error : bl->next!=NULL\n");
 		return 0;
 	}
@@ -371,7 +371,7 @@ int map_delblock(struct block_list* bl)
  * @param x1 : new x position
  * @param y1 : new y position
  * @param tick : when this was scheduled
- * @return 0 : sucess, 1 : fail
+ * @return 0 : success, 1 : fail
  */
 int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 {
@@ -588,7 +588,7 @@ int map_foreachinrange(int (*func)(struct block_list*, va_list), struct block_li
 	map_freeblock_lock();
 
 	for( i = blockcount; i < bl_list_count; i++ )
-		if( bl_list[ i ]->prev ) { //func() may delete this bl_list[] slot, checking for prev ensures it wasnt queued for deletion.
+		if( bl_list[ i ]->prev ) { //func() may delete this bl_list[] slot, checking for prev ensures it wasn't queued for deletion.
 			va_start(ap, type);
 			returnCount += func(bl_list[ i ], ap);
 			va_end(ap);
@@ -657,7 +657,7 @@ int map_foreachinshootrange(int (*func)(struct block_list*,va_list),struct block
 	map_freeblock_lock();
 
 	for( i = blockcount; i < bl_list_count; i++ )
-		if( bl_list[ i ]->prev ) { //func() may delete this bl_list[] slot, checking for prev ensures it wasnt queued for deletion.
+		if( bl_list[ i ]->prev ) { //func() may delete this bl_list[] slot, checking for prev ensures it wasn't queued for deletion.
 			va_start(ap, type);
 			returnCount += func(bl_list[ i ], ap);
 			va_end(ap);
@@ -714,7 +714,7 @@ int map_foreachinarea(int (*func)(struct block_list*,va_list), int16 m, int16 x0
 	map_freeblock_lock();
 
 	for( i = blockcount; i < bl_list_count; i++ )
-		if( bl_list[ i ]->prev ) { //func() may delete this bl_list[] slot, checking for prev ensures it wasnt queued for deletion.
+		if( bl_list[ i ]->prev ) { //func() may delete this bl_list[] slot, checking for prev ensures it wasn't queued for deletion.
 			va_start(ap, type);
 			returnCount += func(bl_list[ i ], ap);
 			va_end(ap);
@@ -777,7 +777,7 @@ int map_forcountinrange(int (*func)(struct block_list*,va_list), struct block_li
 	map_freeblock_lock();
 
 	for( i = blockcount; i < bl_list_count; i++ )
-		if( bl_list[ i ]->prev ) { //func() may delete this bl_list[] slot, checking for prev ensures it wasnt queued for deletion.
+		if( bl_list[ i ]->prev ) { //func() may delete this bl_list[] slot, checking for prev ensures it wasn't queued for deletion.
 			va_start(ap, type);
 			returnCount += func(bl_list[ i ], ap);
 			va_end(ap);
@@ -831,7 +831,7 @@ int map_forcountinarea(int (*func)(struct block_list*,va_list), int16 m, int16 x
 	map_freeblock_lock();
 
 	for( i = blockcount; i < bl_list_count; i++ )
-		if(bl_list[ i ]->prev) { //func() may delete this bl_list[] slot, checking for prev ensures it wasnt queued for deletion.
+		if(bl_list[ i ]->prev) { //func() may delete this bl_list[] slot, checking for prev ensures it wasn't queued for deletion.
 			va_start(ap, type);
 			returnCount += func(bl_list[ i ], ap);
 			va_end(ap);
@@ -848,7 +848,7 @@ int map_forcountinarea(int (*func)(struct block_list*,va_list), int16 m, int16 x
 /*==========================================
  * For what I get
  * Move bl and do func* with va_list while moving.
- * Mouvement is set by dx dy wich are distance in x and y
+ * Movement is set by dx dy which are distance in x and y
  *------------------------------------------*/
 int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_list* center, int16 range, int16 dx, int16 dy, int type, ...)
 {
@@ -959,7 +959,7 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_
 	map_freeblock_lock();	// Prohibit the release from memory
 
 	for( i = blockcount; i < bl_list_count; i++ )
-		if( bl_list[ i ]->prev ) { //func() may delete this bl_list[] slot, checking for prev ensures it wasnt queued for deletion.
+		if( bl_list[ i ]->prev ) { //func() may delete this bl_list[] slot, checking for prev ensures it wasn't queued for deletion.
 			va_start(ap, type);
 			returnCount += func(bl_list[ i ], ap);
 			va_end(ap);
@@ -1003,7 +1003,7 @@ int map_foreachincell(int (*func)(struct block_list*,va_list), int16 m, int16 x,
 	map_freeblock_lock();
 
 	for( i = blockcount; i < bl_list_count; i++ )
-		if( bl_list[ i ]->prev ) { //func() may delete this bl_list[] slot, checking for prev ensures it wasnt queued for deletion.
+		if( bl_list[ i ]->prev ) { //func() may delete this bl_list[] slot, checking for prev ensures it wasn't queued for deletion.
 			va_start(ap, type);
 			returnCount += func(bl_list[ i ], ap);
 			va_end(ap);
@@ -1040,7 +1040,7 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int16 m,int16 x0,i
 //////////////////////////////////////////////////////////////
 // Methodology:
 // My trigonometrics and math are a little rusty... so the approach I am writing
-// here is basicly do a double for to check for all targets in the square that
+// here is basically do a double for to check for all targets in the square that
 // contains the initial and final positions (area range increased to match the
 // radius given), then for each object to test, calculate the distance to the
 // path and include it if the range fits and the target is in the line (0<k<1,
@@ -1182,7 +1182,7 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int16 m,int16 x0,i
 	map_freeblock_lock();
 
 	for( i = blockcount; i < bl_list_count; i++ )
-		if( bl_list[ i ]->prev ) { //func() may delete this bl_list[] slot, checking for prev ensures it wasnt queued for deletion.
+		if( bl_list[ i ]->prev ) { //func() may delete this bl_list[] slot, checking for prev ensures it wasn't queued for deletion.
 			va_start(ap, type);
 			returnCount += func(bl_list[ i ], ap);
 			va_end(ap);
@@ -1224,7 +1224,7 @@ int map_foreachinmap(int (*func)(struct block_list*,va_list), int16 m, int type,
 	map_freeblock_lock();
 
 	for( i = blockcount; i < bl_list_count ; i++ )
-		if( bl_list[ i ]->prev ) { //func() may delete this bl_list[] slot, checking for prev ensures it wasnt queued for deletion.
+		if( bl_list[ i ]->prev ) { //func() may delete this bl_list[] slot, checking for prev ensures it wasn't queued for deletion.
 			va_start(ap, type);
 			returnCount += func(bl_list[ i ], ap);
 			va_end(ap);
@@ -1358,10 +1358,10 @@ static int map_count_sub(struct block_list *bl,va_list ap)
  *------------------------------------------*/
 int map_search_freecell(struct block_list *src, int16 m, int16 *x,int16 *y, int16 rx, int16 ry, int flag)
 {
-	int tries, spawn=0;
+	int tries, spawn = 0;
 	int bx, by;
-	int rx2 = 2*rx+1;
-	int ry2 = 2*ry+1;
+	int rx2 = 2 * rx + 1;
+	int ry2 = 2 * ry + 1;
 
 	if (!src && (!(flag&1) || flag&2)) {
 		ShowDebug("map_search_freecell: Incorrect usage! When src is NULL, flag has to be &1 and can't have &2\n");
@@ -1384,30 +1384,30 @@ int map_search_freecell(struct block_list *src, int16 m, int16 *x,int16 *y, int1
 	}
 	
 	if (rx >= 0 && ry >= 0) {
-		tries = rx2*ry2;
-		if (tries > 100) tries = 100;
+		tries = rx2 * ry2;
+		if (tries > 100)
+			tries = 100;
 	} else {
-		tries = map[m].xs*map[m].ys;
-		if (tries > 500) tries = 500;
+		tries = map[m].xs * map[m].ys;
+		if (tries > 500)
+			tries = 500;
 	}
 	
-	while(tries--) {
-		*x = (rx >= 0)?(rnd()%rx2-rx+bx):(rnd()%(map[m].xs-2)+1);
-		*y = (ry >= 0)?(rnd()%ry2-ry+by):(rnd()%(map[m].ys-2)+1);
-		
+	while (tries--) {
+		*x = (rx >= 0) ? (rnd()%rx2 - rx + bx) : (rnd()%(map[m].xs - 2) + 1);
+		*y = (ry >= 0) ? (rnd()%ry2 - ry + by) : (rnd()%(map[m].ys - 2) + 1);
+
 		if (*x == bx && *y == by)
 			continue; //Avoid picking the same target tile.
-		
+
 		if (map_getcell(m,*x,*y,CELL_CHKREACH)) {
-			if (flag&2 && !unit_can_reach_pos(src, *x, *y, 1))
+			if (flag&2 && !unit_can_reach_pos(src,*x,*y,1))
 				continue;
 			if (flag&4) {
-				if (spawn >= 100) return 0; //Limit of retries reached.
+				if (spawn >= 100)
+					return 0; //Limit of retries reached.
 				if (spawn++ < battle_config.no_spawn_on_player &&
-					map_foreachinarea(map_count_sub, m,
-						*x-AREA_SIZE, *y-AREA_SIZE,
-					  	*x+AREA_SIZE, *y+AREA_SIZE, BL_PC)
-				)
+					map_foreachinarea(map_count_sub,m,*x-AREA_SIZE,*y-AREA_SIZE,*x+AREA_SIZE,*y+AREA_SIZE,BL_PC))
 				continue;
 			}
 			return 1;
@@ -1491,7 +1491,7 @@ static DBData create_charid2nick(DBKey key, va_list args)
 	return db_ptr2data(p);
 }
 
-/// Adds(or replaces) the nick of charid to nick_db and fullfils pending requests.
+/// Adds(or replaces) the nick of charid to nick_db and fulfils pending requests.
 /// Does nothing if the character is online.
 void map_addnickdb(int charid, const char* nick)
 {
@@ -1986,7 +1986,7 @@ void map_foreachnpc(int (*func)(struct npc_data* nd, va_list args), ...)
 }
 
 /// Applies func to everything in the db.
-/// Stops iteratin gif func returns -1.
+/// Stops iterating if func returns -1.
 void map_foreachregen(int (*func)(struct block_list* bl, va_list args), ...)
 {
 	DBIterator* iter;
@@ -3328,7 +3328,7 @@ int map_readallmaps (void)
 	if( !enable_grf ) {
 		fclose(fp);
 
-		//The cache isn't needed anymore, so free it.. [Shinryo]
+		//The cache isn't needed anymore, so free it. [Shinryo]
 		aFree(map_cache_buffer);
 	}
 

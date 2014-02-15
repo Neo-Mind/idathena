@@ -11664,7 +11664,7 @@ int skill_castend_map (struct map_session_data *sd, uint16 skill_id, const char 
 					}
 				}
 
-				lv = sd->skillitem == (skill_id) ? sd->skillitemlv : pc_checkskill(sd,skill_id);
+				lv = (sd->skillitem == skill_id ? sd->skillitemlv : pc_checkskill(sd,skill_id));
 				wx = sd->menuskill_val>>16;
 				wy = sd->menuskill_val&0xffff;
 

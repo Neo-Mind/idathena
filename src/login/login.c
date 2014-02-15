@@ -1226,26 +1226,28 @@ int mmo_auth(struct login_session_data* sd, bool isServer) {
 	}
 
 	if( login_config.client_hash_check && !isServer ) {
-		struct client_hash_node *node = login_config.client_hash_nodes;
+		struct client_hash_node *node = NULL;
 		bool match = false;
 
-		if( !sd->has_client_hash ) {
-			ShowNotice("Client doesn't sent client hash (account: %s, pass: %s, ip: %s)\n", sd->userid, sd->passwd, acc.state, ip);
-			return 5;
-		}
-
-		while( node ) {
-			if( node->group_id <= acc.group_id && memcmp(node->hash, sd->client_hash, 16) == 0 ) {
+		for( node = login_config.client_hash_nodes; node; node = node->next ) {
+			if( acc.group_id < node->group_id )
+				continue;
+			if( *node->hash == '\0' || // Allowed to login without hash
+				(sd->has_client_hash && memcmp(node->hash, sd->client_hash, 16) == 0) ) // Correct hash
+			{
 				match = true;
 				break;
 			}
-
-			node = node->next;
 		}
 
 		if( !match ) {
 			char smd5[33];
 			int i;
+
+			if( !sd->has_client_hash ) {
+				ShowNotice("Client didn't send client hash (account: %s, pass: %s, ip: %s)\n", sd->userid, sd->passwd, acc.state, ip);
+				return 5;
+			}
 
 			for( i = 0; i < 16; i++ )
 				sprintf(&smd5[i * 2], "%02x", sd->client_hash[i]);
@@ -1755,39 +1757,35 @@ int login_config_read(const char* cfgName)
 {
 	char line[1024], w1[1024], w2[1024];
 	FILE* fp = fopen(cfgName, "r");
-	if (fp == NULL) {
+
+	if(fp == NULL) {
 		ShowError("Configuration file (%s) not found.\n", cfgName);
 		return 1;
 	}
 	while(fgets(line, sizeof(line), fp)) {
-		if (line[0] == '/' && line[1] == '/')
+		if(line[0] == '/' && line[1] == '/')
 			continue;
-
-		if (sscanf(line, "%1023[^:]: %1023[^\r\n]", w1, w2) < 2)
+		if(sscanf(line, "%1023[^:]: %1023[^\r\n]", w1, w2) < 2)
 			continue;
-
-		if(!strcmpi(w1,"timestamp_format"))
+		if(!strcmpi(w1, "timestamp_format"))
 			safestrncpy(timestamp_format, w2, 20);
-		else if(!strcmpi(w1,"stdout_with_ansisequence"))
+		else if(!strcmpi(w1, "stdout_with_ansisequence"))
 			stdout_with_ansisequence = config_switch(w2);
-		else if(!strcmpi(w1,"console_silent")) {
+		else if(!strcmpi(w1, "console_silent")) {
 			msg_silent = atoi(w2);
-			if( msg_silent ) /* only bother if we actually have this enabled */
+			if(msg_silent) /* Only bother if we actually have this enabled */
 				ShowInfo("Console Silent Setting: %d\n", atoi(w2));
-		}
-		else if( !strcmpi(w1, "bind_ip") ) {
+		} else if(!strcmpi(w1, "bind_ip")) {
 			login_config.login_ip = host2ip(w2);
-			if( login_config.login_ip ) {
+			if(login_config.login_ip) {
 				char ip_str[16];
+
 				ShowStatus("Login server binding IP address : %s -> %s\n", w2, ip2str(login_config.login_ip, ip_str));
 			}
-		}
-		else if( !strcmpi(w1, "login_port") ) {
+		} else if(!strcmpi(w1, "login_port"))
 			login_config.login_port = (uint16)atoi(w2);
-		}
 		else if(!strcmpi(w1, "log_login"))
 			login_config.log_login = (bool)config_switch(w2);
-
 		else if(!strcmpi(w1, "new_account"))
 			login_config.new_account_flag = (bool)config_switch(w2);
 		else if(!strcmpi(w1, "new_acc_length_limit"))
@@ -1808,7 +1806,7 @@ int login_config_read(const char* cfgName)
 			safestrncpy(login_config.date_format, w2, sizeof(login_config.date_format));
 		else if(!strcmpi(w1, "console"))
 			login_config.console = (bool)config_switch(w2);
-		else if(!strcmpi(w1, "allowed_regs")) //account flood protection system
+		else if(!strcmpi(w1, "allowed_regs")) //Account flood protection system
 			allowed_regs = atoi(w2);
 		else if(!strcmpi(w1, "time_allowed"))
 			time_allowed = atoi(w2);
@@ -1819,7 +1817,7 @@ int login_config_read(const char* cfgName)
 		else if(!strcmpi(w1, "ipban_cleanup_interval"))
 			login_config.ipban_cleanup_interval = (unsigned int)atoi(w2);
 		else if(!strcmpi(w1, "ip_sync_interval"))
-			login_config.ip_sync_interval = (unsigned int)1000*60*atoi(w2); //w2 comes in minutes.
+			login_config.ip_sync_interval = (unsigned int)1000 * 60 * atoi(w2); //w2 comes in minutes.
 		else if(!strcmpi(w1, "client_hash_check"))
 			login_config.client_hash_check = config_switch(w2);
 		else if(!strcmpi(w1, "client_hash")) {
@@ -1831,20 +1829,21 @@ int login_config_read(const char* cfgName)
 				int i;
 
 				CREATE(nnode, struct client_hash_node, 1);
-				for(i = 0; i < 32; i += 2) {
-					char buf[3];
-					unsigned int byte;
+				if(strcmpi(md5, "disabled") == 0) {
+					nnode->hash[0] = '\0';
+				} else {
+					for(i = 0; i < 32; i += 2) {
+						char buf[3];
+						unsigned int byte;
 
-					memcpy(buf, &md5[i], 2);
-					buf[2] = 0;
-
-					sscanf(buf, "%2x", &byte);
-					nnode->hash[i / 2] = (uint8)(byte & 0xFF);
+						memcpy(buf, &md5[i], 2);
+						buf[2] = 0;
+						sscanf(buf, "%2x", &byte);
+						nnode->hash[i / 2] = (uint8)(byte&0xFF);
+					}
 				}
-
 				nnode->group_id = group;
 				nnode->next = login_config.client_hash_nodes;
-
 				login_config.client_hash_nodes = nnode;
 			}
 		} else if(strcmpi(w1, "chars_per_account") == 0) { //maxchars per account [Sirius]

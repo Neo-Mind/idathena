@@ -96,7 +96,7 @@ struct atcmd_binding_data* get_atcommandbind_byname(const char* name) {
 	if( *name == atcommand_symbol || *name == charcommand_symbol )
 		name++; //For backwards compatibility
 
-	ARR_FIND( 0, atcmd_binding_count, i, strcmp(atcmd_binding[i]->command, name) == 0 );
+	ARR_FIND(0, atcmd_binding_count, i, strcmpi(atcmd_binding[i]->command, name) == 0);
 
 	return (i < atcmd_binding_count) ? atcmd_binding[i] : NULL;
 }
@@ -120,7 +120,7 @@ static const char* atcommand_help_string(const char* command)
 	// Convert alias to the real command name
 	command = atcommand_checkalias(command);
 
-	// Attept to find the first default help command
+	// Attempt to find the first default help command
 	info = config_lookup(&atcommand_config, "help");
 
 	if( info == NULL ) // Failed to find the help property in the configuration file
@@ -1377,7 +1377,7 @@ ACMD_FUNC(baselevelup)
 			clif_displaymessage(fd, msg_txt(47)); // Base level can't go any higher.
 			return -1;
 		} // End Addition
-		if ((unsigned int)level > pc_maxbaselv(sd) || (unsigned int)level > pc_maxbaselv(sd) - sd->status.base_level) // Fix positiv overflow
+		if ((unsigned int)level > pc_maxbaselv(sd) || (unsigned int)level > pc_maxbaselv(sd) - sd->status.base_level) // Fix positive overflow
 			level = pc_maxbaselv(sd) - sd->status.base_level;
 		for (i = 0; i < level; i++)
 			status_point += pc_gets_status_point(sd->status.base_level + i);
@@ -1438,7 +1438,7 @@ ACMD_FUNC(joblevelup)
 			clif_displaymessage(fd, msg_txt(23)); // Job level can't go any higher.
 			return -1;
 		}
-		if ((unsigned int)level > pc_maxjoblv(sd) || (unsigned int)level > pc_maxjoblv(sd) - sd->status.job_level) // Fix positiv overflow
+		if ((unsigned int)level > pc_maxjoblv(sd) || (unsigned int)level > pc_maxjoblv(sd) - sd->status.job_level) // Fix positive overflow
 			level = pc_maxjoblv(sd) - sd->status.job_level;
 		sd->status.job_level += (unsigned int)level;
 		sd->status.skill_point += level;
@@ -1450,11 +1450,11 @@ ACMD_FUNC(joblevelup)
 			return -1;
 		}
 		level *=-1;
-		if ((unsigned int)level >= sd->status.job_level) // Fix negativ overflow
+		if ((unsigned int)level >= sd->status.job_level) // Fix negative overflow
 			level = sd->status.job_level - 1;
 		sd->status.job_level -= (unsigned int)level;
 		if (sd->status.skill_point < level)
-			pc_resetskill(sd,0); //Reset skills since we need to substract more points.
+			pc_resetskill(sd,0); //Reset skills since we need to subtract more points.
 		if (sd->status.skill_point < level)
 			sd->status.skill_point = 0;
 		else
@@ -1695,7 +1695,7 @@ ACMD_FUNC(model)
 			pc_changelook(sd, LOOK_HAIR, hair_style);
 			pc_changelook(sd, LOOK_HAIR_COLOR, hair_color);
 			pc_changelook(sd, LOOK_CLOTHES_COLOR, cloth_color);
-			clif_displaymessage(fd, msg_txt(36)); // Appearence changed.
+			clif_displaymessage(fd, msg_txt(36)); // Appearance changed.
 	} else {
 		clif_displaymessage(fd, msg_txt(37)); // An invalid number was specified.
 		return -1;
@@ -1722,7 +1722,7 @@ ACMD_FUNC(dye)
 
 	if (cloth_color >= MIN_CLOTH_COLOR && cloth_color <= MAX_CLOTH_COLOR) {
 		pc_changelook(sd, LOOK_CLOTHES_COLOR, cloth_color);
-		clif_displaymessage(fd, msg_txt(36)); // Appearence changed.
+		clif_displaymessage(fd, msg_txt(36)); // Appearance changed.
 	} else {
 		clif_displaymessage(fd, msg_txt(37)); // An invalid number was specified.
 		return -1;
@@ -1749,7 +1749,7 @@ ACMD_FUNC(hair_style)
 
 	if (hair_style >= MIN_HAIR_STYLE && hair_style <= MAX_HAIR_STYLE) {
 			pc_changelook(sd, LOOK_HAIR, hair_style);
-			clif_displaymessage(fd, msg_txt(36)); // Appearence changed.
+			clif_displaymessage(fd, msg_txt(36)); // Appearance changed.
 	} else {
 		clif_displaymessage(fd, msg_txt(37)); // An invalid number was specified.
 		return -1;
@@ -1776,7 +1776,7 @@ ACMD_FUNC(hair_color)
 
 	if (hair_color >= MIN_HAIR_COLOR && hair_color <= MAX_HAIR_COLOR) {
 			pc_changelook(sd, LOOK_HAIR_COLOR, hair_color);
-			clif_displaymessage(fd, msg_txt(36)); // Appearence changed.
+			clif_displaymessage(fd, msg_txt(36)); // Appearance changed.
 	} else {
 		clif_displaymessage(fd, msg_txt(37)); // An invalid number was specified.
 		return -1;
@@ -2024,7 +2024,7 @@ ACMD_FUNC(monster)
 		return -1;
 	}
 
-	if ((mob_id = mobdb_searchname(monster)) == 0) // check name first (to avoid possible name begining by a number)
+	if ((mob_id = mobdb_searchname(monster)) == 0) // Check name first (to avoid possible name beginning by a number)
 		mob_id = mobdb_checkid(atoi(monster));
 
 	if (mob_id == 0) {
@@ -2612,9 +2612,9 @@ ACMD_FUNC(guildlevelup) {
 	//}
 
 	added_level = (short)level;
-	if (level > 0 && (level > MAX_GUILDLEVEL || added_level > ((short)MAX_GUILDLEVEL - guild_info->guild_lv))) // fix positiv overflow
+	if (level > 0 && (level > MAX_GUILDLEVEL || added_level > ((short)MAX_GUILDLEVEL - guild_info->guild_lv))) // Fix positive overflow
 		added_level = (short)MAX_GUILDLEVEL - guild_info->guild_lv;
-	else if (level < 0 && (level < -MAX_GUILDLEVEL || added_level < (1 - guild_info->guild_lv))) // fix negativ overflow
+	else if (level < 0 && (level < -MAX_GUILDLEVEL || added_level < (1 - guild_info->guild_lv))) // Fix negative overflow
 		added_level = 1 - guild_info->guild_lv;
 
 	if (added_level != 0) {
@@ -2870,7 +2870,7 @@ ACMD_FUNC(char_ban)
 	modif_p = atcmd_output;
 	timediff = (int32)solve_time(modif_p); // Discard seconds
 
-	if (timediff == 0) { // Allow negative ?
+	if (timediff == 0) { // Allow negativee ?
 		char output[256];
 
 		safesnprintf(output, sizeof(output), msg_txt(85), bantype == 6 ? "charban" : "ban", timediff); // Invalid time for %s command (time=%d)
@@ -3468,7 +3468,7 @@ ACMD_FUNC(recallall)
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
 	if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarpto && !pc_has_permission(sd, PC_PERM_WARP_ANYWHERE)) {
-		clif_displaymessage(fd, msg_txt(1032)); // You are not authorized to warp somenone to your current map.
+		clif_displaymessage(fd, msg_txt(1032)); // You are not authorized to warp someone to your current map.
 		return -1;
 	}
 
@@ -3521,7 +3521,7 @@ ACMD_FUNC(guildrecall)
 	}
 
 	if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarpto && !pc_has_permission(sd, PC_PERM_WARP_ANYWHERE)) {
-		clif_displaymessage(fd, msg_txt(1032)); // You are not authorized to warp somenone to your current map.
+		clif_displaymessage(fd, msg_txt(1032)); // You are not authorized to warp someone to your current map.
 		return -1;
 	}
 
@@ -3578,7 +3578,7 @@ ACMD_FUNC(partyrecall)
 	}
 
 	if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarpto && !pc_has_permission(sd, PC_PERM_WARP_ANYWHERE)) {
-		clif_displaymessage(fd, msg_txt(1032)); // You are not authorized to warp somenone to your current map.
+		clif_displaymessage(fd, msg_txt(1032)); // You are not authorized to warp someone to your current map.
 		return -1;
 	}
 
@@ -4493,7 +4493,7 @@ ACMD_FUNC(servertime)
 		const struct TimerData *timer_data2 = get_timer(day_timer_tid);
 
 		if (night_flag == 0) {
-			sprintf(temp, msg_txt(235), txt_time(DIFF_TICK(timer_data->tick,gettick()) / 1000)); // Game time: The game is actualy in daylight for %s.
+			sprintf(temp, msg_txt(235), txt_time(DIFF_TICK(timer_data->tick,gettick()) / 1000)); // Game time: The game is in daylight for %s.
 			clif_displaymessage(fd, temp);
 			if (DIFF_TICK(timer_data->tick, timer_data2->tick) > 0)
 				sprintf(temp, msg_txt(237), txt_time(DIFF_TICK(timer_data->interval,DIFF_TICK(timer_data->tick,timer_data2->tick)) / 1000)); // Game time: After, the game will be in night for %s.
@@ -4501,7 +4501,7 @@ ACMD_FUNC(servertime)
 				sprintf(temp, msg_txt(237), txt_time(DIFF_TICK(timer_data2->tick,timer_data->tick) / 1000)); // Game time: After, the game will be in night for %s.
 			clif_displaymessage(fd, temp);
 		} else {
-			sprintf(temp, msg_txt(233), txt_time(DIFF_TICK(timer_data2->tick,gettick()) / 1000)); // Game time: The game is actualy in night for %s.
+			sprintf(temp, msg_txt(233), txt_time(DIFF_TICK(timer_data2->tick,gettick()) / 1000)); // Game time: The game is in night for %s.
 			clif_displaymessage(fd, temp);
 			if (DIFF_TICK(timer_data2->tick,timer_data->tick) > 0)
 				sprintf(temp, msg_txt(239), txt_time((timer_data2->interval - DIFF_TICK(timer_data2->tick, timer_data->tick)) / 1000)); // Game time: After, the game will be in daylight for %s.
@@ -4782,7 +4782,7 @@ ACMD_FUNC(disguiseall)
 		return -1;
 	}
 
-	if ((mob_id = mobdb_searchname(message)) == 0) // check name first (to avoid possible name begining by a number)
+	if ((mob_id = mobdb_searchname(message)) == 0) // Check name first (to avoid possible name beginning by a number)
 		mob_id = atoi(message);
 
 	if (!mobdb_checkid(mob_id) && !npcdb_checkid(mob_id)) { //if mob or npc...
@@ -5014,7 +5014,7 @@ ACMD_FUNC(email)
 	}
 
 	chrif_changeemail(sd->status.account_id, actual_email, new_email);
-	clif_displaymessage(fd, msg_txt(148)); // Information sended to login-server via char-server.
+	clif_displaymessage(fd, msg_txt(148)); // Information sent to login-server via char-server.
 	return 0;
 }
 
