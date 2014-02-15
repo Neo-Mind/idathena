@@ -2870,7 +2870,7 @@ ACMD_FUNC(char_ban)
 	modif_p = atcmd_output;
 	timediff = (int32)solve_time(modif_p); // Discard seconds
 
-	if (timediff == 0) { // Allow negativee ?
+	if (timediff == 0) { // Allow negative ?
 		char output[256];
 
 		safesnprintf(output, sizeof(output), msg_txt(85), bantype == 6 ? "charban" : "ban", timediff); // Invalid time for %s command (time=%d)

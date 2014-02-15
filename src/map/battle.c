@@ -734,7 +734,7 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 }
 
 /*==========================================
- * Check Damage trough status.
+ * Check damage trough status.
  * ATK may be MISS, BLOCKED FAIL, reduc, increase, end status...
  * After this we apply bg/gvg reduction
  *------------------------------------------*/
@@ -2163,9 +2163,10 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 		if(attacker_count >= battle_config.agi_penalty_count) {
 			if(battle_config.agi_penalty_type == 1)
 				flee = (flee * (100 - (attacker_count - (battle_config.agi_penalty_count - 1)) * battle_config.agi_penalty_num)) / 100;
-			else //assume type 2 : absolute reduction
+			else //Assume type 2 : absolute reduction
 				flee -= (attacker_count - (battle_config.agi_penalty_count - 1)) * battle_config.agi_penalty_num;
-			if(flee < 1) flee = 1;
+			if(flee < 1)
+				flee = 1;
 		}
 	}
 
@@ -4901,7 +4902,7 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 }
 
 /*
- * Check if we should reflect the Damage and calculate it if so
+ * Check if we should reflect the damage and calculate it if so
  * @param attack_type : BL_WEAPON, BL_MAGIC or BL_MISC
  * @param wd : weapon damage
  * @param src : bl who did the attack
@@ -6382,7 +6383,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 						flee = (flee * (100 - (attacker_count - (battle_config.agi_penalty_count - 1)) * battle_config.agi_penalty_num)) / 100;
 					else //Assume type 2: absolute reduction
 						flee -= (attacker_count - (battle_config.agi_penalty_count - 1)) * battle_config.agi_penalty_num;
-					if(flee < 1) flee = 1;
+					if(flee < 1)
+						flee = 1;
 				}
 			}
 
