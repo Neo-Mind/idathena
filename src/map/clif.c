@@ -2449,13 +2449,13 @@ void clif_delitem(struct map_session_data *sd,int n,int amount, short reason)
 
 	nullpo_retv(sd);
 	
-	fd=sd->fd;
+	fd = sd->fd;
 	
-	WFIFOHEAD(fd, packet_len(0x7fa));
-	WFIFOW(fd,0)=0x7fa;
-	WFIFOW(fd,2)=reason;
-	WFIFOW(fd,4)=n+2;
-	WFIFOW(fd,6)=amount;
+	WFIFOHEAD(fd,packet_len(0x7fa));
+	WFIFOW(fd,0) = 0x7fa;
+	WFIFOW(fd,2) = reason;
+	WFIFOW(fd,4) = n + 2;
+	WFIFOW(fd,6) = amount;
 	WFIFOSET(fd,packet_len(0x7fa));
 #endif
 }
@@ -2482,7 +2482,7 @@ void clif_item_sub_v5(unsigned char *buf, int n, int idx, struct item *i, struct
 		WBUFB(buf,n+30) |= (i->favorite) ? 0x4 : 0; //0x4 PlaceETCTab
 	} else { //Normal 24B
 		WBUFW(buf,n+5) = i->amount;
-		WBUFL(buf,n+7) = (equip == -2 && id->equip == EQP_AMMO)?id->equip:0; //Wear state
+		WBUFL(buf,n+7) = (equip == -2 && id->equip == EQP_AMMO) ? id->equip : 0; //Wear state
 		clif_addcards(WBUFP(buf,n+11),i); //EQUIPSLOTINFO 8B
 		WBUFL(buf,n+19) = i->expire_time;
 		//V5_ITEM_flag
@@ -3639,7 +3639,8 @@ void clif_changeoption(struct block_list* bl)
 
 	nullpo_retv(bl);
 	sc = status_get_sc(bl);
-	if (!sc) return; //How can an option change if there's no sc?
+	if(!sc)
+		return; //How can an option change if there's no sc?
 	sd = BL_CAST(BL_PC, bl);
 	
 #if PACKETVER >= 7
@@ -3686,7 +3687,8 @@ void clif_changeoption2(struct block_list* bl)
 	struct status_change *sc;
 	
 	sc = status_get_sc(bl);
-	if (!sc) return; //How can an option change if there's no sc?
+	if(!sc)
+		return; //How can an option change if there's no sc?
 
 	WBUFW(buf,0) = 0x28a;
 	WBUFL(buf,2) = bl->id;
@@ -3713,35 +3715,36 @@ void clif_useitemack(struct map_session_data *sd,int index,int amount,bool ok)
 	nullpo_retv(sd);
 
 	if(!ok) {
-		int fd=sd->fd;
+		int fd = sd->fd;
+
 		WFIFOHEAD(fd,packet_len(0xa8));
-		WFIFOW(fd,0)=0xa8;
-		WFIFOW(fd,2)=index+2;
-		WFIFOW(fd,4)=amount;
-		WFIFOB(fd,6)=ok;
+		WFIFOW(fd,0) = 0xa8;
+		WFIFOW(fd,2) = index + 2;
+		WFIFOW(fd,4) = amount;
+		WFIFOB(fd,6) = ok;
 		WFIFOSET(fd,packet_len(0xa8));
-	}
-	else {
+	} else {
 #if PACKETVER < 3
-		int fd=sd->fd;
+		int fd = sd->fd;
+
 		WFIFOHEAD(fd,packet_len(0xa8));
-		WFIFOW(fd,0)=0xa8;
-		WFIFOW(fd,2)=index+2;
-		WFIFOW(fd,4)=amount;
-		WFIFOB(fd,6)=ok;
+		WFIFOW(fd,0) = 0xa8;
+		WFIFOW(fd,2) = index + 2;
+		WFIFOW(fd,4) = amount;
+		WFIFOB(fd,6) = ok;
 		WFIFOSET(fd,packet_len(0xa8));
 #else
 		unsigned char buf[32];
 
-		WBUFW(buf,0)=0x1c8;
-		WBUFW(buf,2)=index+2;
+		WBUFW(buf,0) = 0x1c8;
+		WBUFW(buf,2) = index + 2;
 		if(sd->inventory_data[index] && sd->inventory_data[index]->view_id > 0)
-			WBUFW(buf,4)=sd->inventory_data[index]->view_id;
+			WBUFW(buf,4) = sd->inventory_data[index]->view_id;
 		else
-			WBUFW(buf,4)=sd->status.inventory[index].nameid;
-		WBUFL(buf,6)=sd->bl.id;
-		WBUFW(buf,10)=amount;
-		WBUFB(buf,12)=ok;
+			WBUFW(buf,4) = sd->status.inventory[index].nameid;
+		WBUFL(buf,6) = sd->bl.id;
+		WBUFW(buf,10) = amount;
+		WBUFB(buf,12) = ok;
 		clif_send(buf,packet_len(0x1c8),&sd->bl,AREA);
 #endif
 	}

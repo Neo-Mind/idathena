@@ -1550,25 +1550,25 @@ enum e_mode
 //Status change option definitions (options are what makes status changes visible to chars
 //who were not on your field of sight when it happened)
 
-//opt1: Non stackable status changes.
+//OPT1: (BODYSTATE_) Non stackable status changes.
 enum sc_opt1 {
 	OPT1_STONE = 1, //Petrified
 	OPT1_FREEZE,
 	OPT1_STUN,
 	OPT1_SLEEP,
-	//Aegis uses OPT1 = 5 to identify undead enemies (which also grants them immunity to the other opt1 changes)
+	//Aegis uses OPT1 = 5 to identify undead enemies (which also grants them immunity to the other OPT1 changes)
 	OPT1_STONEWAIT = 6, //Petrifying
 	OPT1_BURNING,
 	OPT1_IMPRISON,
 	OPT1_CRYSTALIZE,
 };
 
-//opt2: Stackable status changes.
+//OPT2: (HEALTHSTATE_) Stackable status changes.
 enum sc_opt2 {
 	OPT2_POISON		= 0x0001,
 	OPT2_CURSE		= 0x0002,
 	OPT2_SILENCE		= 0x0004,
-	OPT2_SIGNUMCRUCIS	= 0x0008,
+	OPT2_SIGNUMCRUCIS	= 0x0008, //Confusion
 	OPT2_BLIND		= 0x0010,
 	OPT2_ANGELUS		= 0x0020,
 	OPT2_BLEEDING		= 0x0040,
@@ -1576,7 +1576,7 @@ enum sc_opt2 {
 	OPT2_FEAR		= 0x0100,
 };
 
-//opt3: (SHOW_EFST_*)
+//OPT3: (SHOW_EFST_)
 enum sc_opt3 {
 	OPT3_NORMAL		= 0x00000000,
 	OPT3_QUICKEN		= 0x00000001,
@@ -1599,7 +1599,7 @@ enum sc_opt3 {
 	OPT3_CONTRACT		= 0x00020000,
 };
 
-//Option
+//OPTION: (EFFECTSTATE_)
 enum e_option {
 	OPTION_NOTHING		= 0x00000000,
 	OPTION_SIGHT		= 0x00000001,

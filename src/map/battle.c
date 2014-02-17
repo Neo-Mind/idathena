@@ -3151,13 +3151,20 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 		case KN_BRANDISHSPEAR:
 		case ML_BRANDISH: {
 				int ratio = 100 + 20 * skill_lv;
+
 				skillratio += ratio - 100;
-				if(skill_lv > 3 && wd.miscflag == 1) skillratio += ratio / 2;
-				if(skill_lv > 6 && wd.miscflag == 1) skillratio += ratio / 4;
-				if(skill_lv > 9 && wd.miscflag == 1) skillratio += ratio / 8;
-				if(skill_lv > 6 && wd.miscflag == 2) skillratio += ratio / 2;
-				if(skill_lv > 9 && wd.miscflag == 2) skillratio += ratio / 4;
-				if(skill_lv > 9 && wd.miscflag == 3) skillratio += ratio / 2;
+				if(skill_lv > 3 && wd.miscflag == 1)
+					skillratio += ratio / 2;
+				if(skill_lv > 6 && wd.miscflag == 1)
+					skillratio += ratio / 4;
+				if(skill_lv > 9 && wd.miscflag == 1)
+					skillratio += ratio / 8;
+				if(skill_lv > 6 && wd.miscflag == 2)
+					skillratio += ratio / 2;
+				if(skill_lv > 9 && wd.miscflag == 2)
+					skillratio += ratio / 4;
+				if(skill_lv > 9 && wd.miscflag == 3)
+					skillratio += ratio / 2;
 				break;
 			}
 		case KN_BOWLINGBASH:
@@ -4717,13 +4724,12 @@ struct Damage battle_calc_weapon_final_atk_modifiers(struct Damage wd, struct bl
 
 	//Reject Sword bugreport:4493 by Daegaladh
 	if(wd.damage && tsc && tsc->data[SC_REJECTSWORD] &&
-		(src->type != BL_PC || (
-			((TBL_PC *)src)->weapontype1 == W_DAGGER ||
-			((TBL_PC *)src)->weapontype1 == W_1HSWORD ||
-			((TBL_PC *)src)->status.weapon == W_2HSWORD
-		)) &&
-		rnd()%100 < tsc->data[SC_REJECTSWORD]->val2
-	) {
+		(src->type != BL_PC ||
+		(((TBL_PC *)src)->weapontype1 == W_DAGGER ||
+		((TBL_PC *)src)->weapontype1 == W_1HSWORD ||
+		((TBL_PC *)src)->status.weapon == W_2HSWORD)) &&
+		rnd()%100 < tsc->data[SC_REJECTSWORD]->val2)
+	{
 		ATK_RATER(wd.damage,50)
 		status_fix_damage(target,src,wd.damage,clif_damage(target,src,gettick(),0,0,wd.damage,0,0,0));
 		clif_skill_nodamage(target,target,ST_REJECTSWORD,tsc->data[SC_REJECTSWORD]->val1,1);
@@ -6955,8 +6961,15 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	wd = battle_calc_attack(BF_WEAPON,src,target,0,0,flag);
 
 	if (sc && sc->count) {
+		if (sd && sc->data[SC_FEARBREEZE] && sc->data[SC_FEARBREEZE]->val4 > 0 &&
+			sd->status.inventory[sd->equip_index[EQI_AMMO]].amount >= sc->data[SC_FEARBREEZE]->val4 &&
+			battle_config.arrow_decrement)
+		{
+			pc_delitem(sd,sd->equip_index[EQI_AMMO],sc->data[SC_FEARBREEZE]->val4,0,1,LOG_TYPE_CONSUME);
+			sc->data[SC_FEARBREEZE]->val4 = 0;
+		}
 		if (sc->data[SC_EXEEDBREAK]) {
-			ATK_RATER(wd.damage,sc->data[SC_EXEEDBREAK]->val2);
+			wd.damage += wd.damage * sc->data[SC_EXEEDBREAK]->val2 / 100;
 			status_change_end(src,SC_EXEEDBREAK,INVALID_TIMER);
 		}
 		if (sc->data[SC_SPELLFIST]) {
@@ -6969,13 +6982,6 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			} else
 				status_change_end(src,SC_SPELLFIST,INVALID_TIMER);
 		}
-		if (sd && sc->data[SC_FEARBREEZE] && sc->data[SC_FEARBREEZE]->val4 > 0 &&
-			sd->status.inventory[sd->equip_index[EQI_AMMO]].amount >= sc->data[SC_FEARBREEZE]->val4 &&
-			battle_config.arrow_decrement)
-		{
-			pc_delitem(sd,sd->equip_index[EQI_AMMO],sc->data[SC_FEARBREEZE]->val4,0,1,LOG_TYPE_CONSUME);
-			sc->data[SC_FEARBREEZE]->val4 = 0;
-		}
 	}
 	if (sd && sd->state.arrow_atk) //Consume arrow.
 		battle_consume_ammo(sd,0,0);
@@ -6984,8 +6990,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 
 	if (damage > 0 && src != target) {
 		if (sc && sc->data[SC_DUPLELIGHT] && (wd.flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT &&
-			rnd()%100 <= 10 + 2 * sc->data[SC_DUPLELIGHT]->val1) {
-			//Activates it only from melee damage
+			rnd()%100 <= 10 + 2 * sc->data[SC_DUPLELIGHT]->val1) { //Activates it only from melee damage
 			uint16 skill_id;
 
 			if (rnd()%2 == 1)

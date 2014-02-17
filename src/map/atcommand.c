@@ -2330,6 +2330,9 @@ ACMD_FUNC(displaystatus)
 	}
 	if (i < 2) flag = 1;
 	if (i < 3) tick = 0;
+	if (i < 4) val1 = 0;
+	if (i < 5) val2 = 0;
+	if (i < 6) val3 = 0;
 
 	clif_status_change(&sd->bl, type, flag, tick, val1, val2, val3);
 
@@ -2349,25 +2352,15 @@ ACMD_FUNC(statuspoint)
 		return -1;
 	}
 
-	if(point < 0)
-	{
-		if(sd->status.status_point < (unsigned int)(-point))
-		{
+	if (point < 0) {
+		if (sd->status.status_point < (unsigned int)(-point))
 			new_status_point = 0;
-		}
 		else
-		{
 			new_status_point = sd->status.status_point + point;
-		}
-	}
-	else if(UINT_MAX - sd->status.status_point < (unsigned int)point)
-	{
+	} else if (UINT_MAX - sd->status.status_point < (unsigned int)point)
 		new_status_point = UINT_MAX;
-	}
 	else
-	{
 		new_status_point = sd->status.status_point + point;
-	}
 
 	if (new_status_point != sd->status.status_point) {
 		sd->status.status_point = new_status_point;
@@ -5611,7 +5604,7 @@ ACMD_FUNC(changelook)
 {
 	int i, j = 0, k = 0;
 	int pos[7] = { LOOK_HEAD_TOP,LOOK_HEAD_MID,LOOK_HEAD_BOTTOM,LOOK_WEAPON,LOOK_SHIELD,LOOK_SHOES,LOOK_ROBE };
-	
+
 	if((i = sscanf(message, "%d %d", &j, &k)) < 1) {
 		clif_displaymessage(fd, msg_txt(1177)); // Usage: @changelook {<position>} <view id>
 		clif_displaymessage(fd, msg_txt(1178)); // Position: 1-Top 2-Middle 3-Bottom 4-Weapon 5-Shield 6-Shoes 7-Robe
@@ -8295,15 +8288,15 @@ ACMD_FUNC(itemlist)
 	nullpo_retr(-1, sd);
 
 	if( strcmp(command + 1, "storagelist") == 0 ) {
-		location = "storage";
+		location = "Storage";
 		items = sd->status.storage.items;
 		size = sd->storage_size;
 	} else if( strcmp(command + 1, "cartlist") == 0 ) {
-		location = "cart";
+		location = "Cart";
 		items = sd->status.cart;
 		size = MAX_CART;
 	} else if( strcmp(command + 1, "itemlist") == 0 ) {
-		location = "inventory";
+		location = "Inventory";
 		items = sd->status.inventory;
 		size = MAX_INVENTORY;
 	} else
@@ -8324,7 +8317,7 @@ ACMD_FUNC(itemlist)
 		count++;
 
 		if( count == 1 ) {
-			StringBuf_Printf(&buf, msg_txt(1332), location, sd->status.name); // ------ %s items list of '%s' ------
+			StringBuf_Printf(&buf, msg_txt(1332), location, sd->status.name); // ------ %s Items List of '%s' ------
 			clif_displaymessage(fd, StringBuf_Value(&buf));
 			StringBuf_Clear(&buf);
 		}
@@ -8336,35 +8329,67 @@ ACMD_FUNC(itemlist)
 
 		if( it->equip ) {
 			char equipstr[CHAT_SIZE_MAX];
-			strcpy(equipstr, msg_txt(1333)); //  | equipped:
-			if( it->equip & EQP_GARMENT )
-				strcat(equipstr, msg_txt(1334)); // garment,
-			if( it->equip & EQP_ACC_L )
-				strcat(equipstr, msg_txt(1335)); // left accessory,
-			if( it->equip & EQP_ARMOR )
-				strcat(equipstr, msg_txt(1336)); // body/armor,
-			if( (it->equip & EQP_ARMS) == EQP_HAND_R )
-				strcat(equipstr, msg_txt(1337)); // right hand,
-			if( (it->equip & EQP_ARMS) == EQP_HAND_L )
-				strcat(equipstr, msg_txt(1338)); // left hand,
-			if( (it->equip & EQP_ARMS) == EQP_ARMS )
-				strcat(equipstr, msg_txt(1339)); // both hands,
-			if( it->equip & EQP_SHOES )
-				strcat(equipstr, msg_txt(1340)); // feet,
-			if( it->equip & EQP_ACC_R )
-				strcat(equipstr, msg_txt(1341)); // right accessory,
-			if( (it->equip & EQP_HELM) == EQP_HEAD_LOW )
-				strcat(equipstr, msg_txt(1342)); // lower head,
-			if( (it->equip & EQP_HELM) == EQP_HEAD_TOP )
-				strcat(equipstr, msg_txt(1343)); // top head,
-			if( (it->equip & EQP_HELM) == (EQP_HEAD_LOW|EQP_HEAD_TOP) )
-				strcat(equipstr, msg_txt(1344)); // lower/top head,
-			if( (it->equip & EQP_HELM) == EQP_HEAD_MID )
-				strcat(equipstr, msg_txt(1345)); // mid head,
-			if( (it->equip & EQP_HELM) == (EQP_HEAD_LOW|EQP_HEAD_MID) )
-				strcat(equipstr, msg_txt(1346)); // lower/mid head,
-			if( (it->equip & EQP_HELM) == EQP_HELM )
-				strcat(equipstr, msg_txt(1347)); // lower/mid/top head,
+			strcpy(equipstr, msg_txt(1333)); // | Equipped:
+			if( it->equip&EQP_GARMENT )
+				strcat(equipstr, msg_txt(1334)); // Robe,
+			if( it->equip&EQP_ACC_L )
+				strcat(equipstr, msg_txt(1335)); // Left Accessory,
+			if( it->equip&EQP_ARMOR )
+				strcat(equipstr, msg_txt(1336)); // Body,
+			if( (it->equip&EQP_ARMS) == EQP_HAND_R )
+				strcat(equipstr, msg_txt(1337)); // Right Hand,
+			if( (it->equip&EQP_ARMS) == EQP_HAND_L )
+				strcat(equipstr, msg_txt(1338)); // Left Hand,
+			if( (it->equip&EQP_ARMS) == EQP_ARMS )
+				strcat(equipstr, msg_txt(1339)); // Both Hands,
+			if( it->equip&EQP_SHOES )
+				strcat(equipstr, msg_txt(1340)); // Shoes,
+			if( it->equip&EQP_ACC_R )
+				strcat(equipstr, msg_txt(1341)); // Right Accessory,
+			if( (it->equip&EQP_HELM) == EQP_HEAD_LOW )
+				strcat(equipstr, msg_txt(1342)); // Lower Head,
+			if( (it->equip&EQP_HELM) == EQP_HEAD_TOP )
+				strcat(equipstr, msg_txt(1343)); // Top Head,
+			if( (it->equip&EQP_HELM) == (EQP_HEAD_LOW|EQP_HEAD_TOP) )
+				strcat(equipstr, msg_txt(1344)); // Top/Lower Head,
+			if( (it->equip&EQP_HELM) == EQP_HEAD_MID )
+				strcat(equipstr, msg_txt(1345)); // Mid Head,
+			if( (it->equip&EQP_HELM) == (EQP_HEAD_LOW|EQP_HEAD_MID) )
+				strcat(equipstr, msg_txt(1346)); // Mid/Lower Head,
+			if( (it->equip&EQP_HELM) == EQP_HELM )
+				strcat(equipstr, msg_txt(1347)); // Top/Mid/Lower Head,
+			if( (it->equip&EQP_COSTUME_HELM) == EQP_COSTUME_HEAD_LOW )
+				strcat(equipstr, "Lower Costume Head, ");
+			if( (it->equip&EQP_COSTUME_HELM) == EQP_COSTUME_HEAD_TOP )
+				strcat(equipstr, "Top Costume Head, ");
+			if( (it->equip&EQP_COSTUME_HELM) == (EQP_COSTUME_HEAD_LOW|EQP_COSTUME_HEAD_TOP) )
+				strcat(equipstr, "Top/Lower Costume Head, ");
+			if( (it->equip&EQP_COSTUME_HELM) == EQP_COSTUME_HEAD_MID )
+				strcat(equipstr, "Mid Costume Head, ");
+			if( (it->equip&EQP_COSTUME_HELM) == (EQP_COSTUME_HEAD_LOW|EQP_COSTUME_HEAD_MID) )
+				strcat(equipstr, "Mid/Lower Costume Head, ");
+			if( (it->equip&EQP_COSTUME_HELM) == EQP_COSTUME_HELM )
+				strcat(equipstr, "Top/Mid/Lower Costume Head, ");
+			if( it->equip&EQP_COSTUME_GARMENT )
+				strcat(equipstr, "Costume Robe, ");
+			//if( it->equip&EQP_COSTUME_FLOOR )
+				//strcat(equipstr, "Costume Floor, ");
+			if( it->equip&EQP_AMMO )
+				strcat(equipstr, "Ammo, ");
+			if( it->equip&EQP_SHADOW_ARMOR )
+				strcat(equipstr, "Shadow Body, ");
+			if( (it->equip&EQP_SHADOW_ARMS) == EQP_SHADOW_WEAPON )
+				strcat(equipstr, "Shadow Right Hand, ");
+			if( (it->equip&EQP_SHADOW_ARMS) == EQP_SHADOW_SHIELD )
+				strcat(equipstr, "Shadow Left Hand, ");
+			if( (it->equip&EQP_SHADOW_ARMS) == EQP_SHADOW_ARMS )
+				strcat(equipstr, "Shadow Both Hands, ");
+			if( it->equip&EQP_SHADOW_SHOES )
+				strcat(equipstr, "Shadow Shoes, ");
+			if( it->equip&EQP_SHADOW_ACC_R )
+				strcat(equipstr, "Shadow Right Accessory, ");
+			if( it->equip&EQP_SHADOW_ACC_L )
+				strcat(equipstr, "Shadow Left Accessory, ");
 			// Remove final ', '
 			equipstr[strlen(equipstr) - 2] = '\0';
 			StringBuf_AppendStr(&buf, equipstr);
@@ -8373,15 +8398,15 @@ ACMD_FUNC(itemlist)
 		clif_displaymessage(fd, StringBuf_Value(&buf));
 		StringBuf_Clear(&buf);
 
-		if( it->card[0] == CARD0_PET ) { // Pet egg
+		if( it->card[0] == CARD0_PET ) { // Pet Egg
 			if (it->card[3])
-				StringBuf_Printf(&buf, msg_txt(1348), (unsigned int)MakeDWord(it->card[1], it->card[2])); //  -> (pet egg, pet id: %u, named)
+				StringBuf_Printf(&buf, msg_txt(1348), (unsigned int)MakeDWord(it->card[1], it->card[2])); // -> (Pet Egg, Pet ID: %u, Named)
 			else
-				StringBuf_Printf(&buf, msg_txt(1349), (unsigned int)MakeDWord(it->card[1], it->card[2])); //  -> (pet egg, pet id: %u, unnamed)
-		} else if(it->card[0] == CARD0_FORGE) { // Forged item
-			StringBuf_Printf(&buf, msg_txt(1350), (unsigned int)MakeDWord(it->card[2], it->card[3]), it->card[1]>>8, it->card[1]&0x0f); //  -> (crafted item, creator id: %u, star crumbs %d, element %d)
-		} else if(it->card[0] == CARD0_CREATE) { // Created item
-			StringBuf_Printf(&buf, msg_txt(1351), (unsigned int)MakeDWord(it->card[2], it->card[3])); //  -> (produced item, creator id: %u)
+				StringBuf_Printf(&buf, msg_txt(1349), (unsigned int)MakeDWord(it->card[1], it->card[2])); // -> (Pet Egg, Pet ID: %u, Unnamed)
+		} else if(it->card[0] == CARD0_FORGE) { // Forged Item
+			StringBuf_Printf(&buf, msg_txt(1350), (unsigned int)MakeDWord(it->card[2], it->card[3]), it->card[1]>>8, it->card[1]&0x0f); // -> (Crafted item, Creator ID: %u, Star Crumbs %d, Element %d)
+		} else if(it->card[0] == CARD0_CREATE) { // Created Item
+			StringBuf_Printf(&buf, msg_txt(1351), (unsigned int)MakeDWord(it->card[2], it->card[3])); // -> (Produced Item, Creator ID: %u)
 		} else { // Normal item
 			int counter2 = 0;
 
@@ -8394,7 +8419,7 @@ ACMD_FUNC(itemlist)
 				counter2++;
 
 				if( counter2 == 1 )
-					StringBuf_AppendStr(&buf, msg_txt(1352)); //  -> (card(s):
+					StringBuf_AppendStr(&buf, msg_txt(1352)); //  -> (Card(s):
 
 				if( counter2 != 1 )
 					StringBuf_AppendStr(&buf, ", ");
