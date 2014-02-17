@@ -2412,7 +2412,7 @@ int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt)
 					break;
 				case AM_CANNIBALIZE:
 					status->max_hp = 1500 + 200 * ud->skill_lv + 10 * status_get_lv(mbl);
-					status->mode|= MD_CANATTACK|MD_AGGRESSIVE;
+					status->mode |= MD_CANATTACK|MD_AGGRESSIVE;
 					break;
 				case NC_SILVERSNIPER:
 					if (!mstatus)
@@ -2432,8 +2432,8 @@ int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt)
 						status->max_hp = 10 * (100 * (ud->skill_lv + 2) + homblvl);
 						status->batk = 100 * (ud->skill_lv + 5) / 2;
 						status->def = 10 * (100 * (ud->skill_lv + 2) + homblvl);
-						//status->aspd_rate = 10 * (2 * (20 - ud->skill_lv) - homblvl/10);
-						//status->aspd_rate = max(100,status->aspd_rate);
+						//status->aspd_rate = 10 * (2 * (20 - ud->skill_lv) - homblvl / 10);
+						//status->aspd_rate = max(100, status->aspd_rate);
 						break;
 					}
 			}
