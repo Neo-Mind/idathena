@@ -9016,7 +9016,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					heal = sd->status.max_hp * (skill_lv + 3 * skill_lv + bonus) / 100;
 					status_heal(src,heal,0,2);
 				}
-
 				clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,heal);
 			}
@@ -11868,6 +11867,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		case MG_FIREWALL:
 			if( sc && sc->data[SC_VIOLENTGALE] )
 				limit = limit * 3 / 2;
+		case EL_FIRE_MANTLE:
 			val2 = 4 + skill_lv;
 			break;
 		case AL_WARP:
@@ -12218,6 +12218,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		switch( skill_id ) {
 			case MG_FIREWALL:
 			case NJ_KAENSIN:
+			case EL_FIRE_MANTLE:
 				val2 = group->val2;
 				break;
 			case WZ_ICEWALL:
@@ -12654,6 +12655,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 	switch (sg->unit_id) {
 		case UNT_FIREWALL:
 		case UNT_KAEN:
+		case UNT_FIRE_MANTLE:
 			{
 				int count = 0;
 				const int x = bl->x, y = bl->y;
@@ -12856,13 +12858,13 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 		case UNT_COBALTTRAP:
 		case UNT_MAIZETRAP:
 		case UNT_VERDURETRAP:
-			if (bl->type == BL_PC) //It won't work on players
-				break;
+			if (bl->type == BL_PC)
+				break; //It won't work on players
 		case UNT_FIRINGTRAP:
 		case UNT_ICEBOUNDTRAP:
 		case UNT_CLUSTERBOMB:
-			if (bl->id == ss->id) //It won't trigger on caster
-				break;
+			if (bl->id == ss->id)
+				break; //It won't trigger on caster
 		case UNT_LANDMINE:
 		case UNT_BLASTMINE:
 		case UNT_SHOCKWAVE:
@@ -13167,7 +13169,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 					int sec = skill_get_time2(sg->skill_id,sg->skill_lv);
 
 					if (sc_start(ss,bl,type,100,sg->skill_lv,sec)) {
-						const struct TimerData* td = tsc->data[type] ? get_timer(tsc->data[type]->timer) : NULL;
+						const struct TimerData* td = (tsc->data[type] ? get_timer(tsc->data[type]->timer) : NULL);
 
 						if (td)
 							sec = DIFF_TICK(td->tick,tick);
@@ -13185,7 +13187,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 
 		case UNT_WALLOFTHORN:
 			if( status_get_mode(bl)&MD_BOSS )
-				break; //This skill don't affect to Boss monsters. [iRO Wiki]
+				break; //This skill doesn't affect to Boss monsters. [iRO Wiki]
 			if( battle_check_target(ss,bl,BCT_ENEMY) <= 0 ) {
 				unit_stop_walking(bl,1);
 				skill_blown(&src->bl,bl,skill_get_blewcount(sg->skill_id,sg->skill_lv),unit_getdir(bl),0x2);
@@ -13243,19 +13245,24 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				if (tsc && tsc->data[SC_AKAITSUKI] && hp)
 					hp = ~hp + 1;
 				status_heal(bl,hp,0,0);
-				sc_start(ss,bl,SC_WARMER,100,sg->skill_lv,skill_get_time2(sg->skill_id,sg->skill_lv));
+				sc_start(ss,bl,SC_WARMER,100,sg->skill_lv,sg->interval + 100);
 			}
 			break;
 
+		case UNT_WATER_BARRIER:
 		case UNT_ZEPHYR:
-			if (ss == bl) //Doesn't affect Ventus itself
-				break;
+		case UNT_POWER_OF_GAIA:
+			if (ss == bl)
+				break; //Doesn't affect the Elemental
+			sc_start(ss,bl,type,100,sg->skill_lv,sg->interval + 100);
+			break;
+
 		case UNT_FIRE_INSIGNIA:
 		case UNT_WATER_INSIGNIA:
 		case UNT_WIND_INSIGNIA:
 		case UNT_EARTH_INSIGNIA:
-			sc_start(ss,bl,type,100,sg->skill_lv,sg->interval);
-			if (sg->unit_id != UNT_ZEPHYR && !battle_check_undead(tstatus->race,tstatus->def_ele)) {
+			sc_start(ss,bl,type,100,sg->skill_lv,sg->interval + 100);
+			if (!battle_check_undead(tstatus->race,tstatus->def_ele)) {
 				int hp = tstatus->max_hp / 100; //+1% each 5s
 
 				if ((sg->val3) % 5) { //Each 5s
@@ -13316,11 +13323,6 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 					sc_start(ss,bl,SC_BANDING_DEFENCE,rate,90,skill_get_time2(sg->skill_id,sg->skill_lv));
 				}
 			}
-			break;
-
-		case UNT_FIRE_MANTLE:
-			if (battle_check_target(&src->bl,bl,BCT_ENEMY) > 0)
-				skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 			break;
 
 		case UNT_ZENKAI_WATER:
@@ -13417,17 +13419,13 @@ int skill_unit_onout (struct skill_unit *src, struct block_list *bl, unsigned in
 	type = status_skill2sc(sg->skill_id);
 	sce = (sc && type != -1) ? sc->data[type] : NULL;
 
-	if( bl->prev == NULL ||
-		(status_isdead(bl) && sg->unit_id != UNT_ANKLESNARE && sg->unit_id != UNT_SPIDERWEB) ) //Need to delete the trap if the source died.
+	if( bl->prev == NULL || (status_isdead(bl) &&
+		sg->unit_id != UNT_ANKLESNARE && sg->unit_id != UNT_SPIDERWEB) ) //Need to delete the trap if the source died.
 		return 0;
 
 	switch( sg->unit_id ) {
 		case UNT_SAFETYWALL:
 		case UNT_PNEUMA:
-		case UNT_BASILICA:
-		case UNT_EPICLESIS:
-		case UNT_NEUTRALBARRIER:
-		case UNT_STEALTHFIELD:
 		case UNT_FIRE_EXPANSION_SMOKE_POWDER:
 		case UNT_FIRE_EXPANSION_TEAR_GAS:
 			if( sce )
@@ -13439,7 +13437,8 @@ int skill_unit_onout (struct skill_unit *src, struct block_list *bl, unsigned in
 				status_change_end(bl, type, INVALID_TIMER);
 			break;
 
-		case UNT_UGLYDANCE: //Used for updating timers in song overlap instances
+		//Used for updating timers in song overlap instances
+		case UNT_UGLYDANCE:
 		case UNT_DISSONANCE:
 			{
 				short i;
@@ -13517,20 +13516,12 @@ int skill_unit_onleft (uint16 skill_id, struct block_list *bl, unsigned int tick
 		case SA_VIOLENTGALE:
 		case CG_HERMODE:
 		case HW_GRAVITATION:
-		case HP_BASILICA:
 		case NJ_SUITON:
 		case SC_MAELSTROM:
 		case SC_BLOODYLUST:
 		case GN_FIRE_EXPANSION_SMOKE_POWDER:
 		case GN_FIRE_EXPANSION_TEAR_GAS:
-		case SO_FIRE_INSIGNIA:
-		case SO_WATER_INSIGNIA:
-		case SO_WIND_INSIGNIA:
-		case SO_EARTH_INSIGNIA:
 		case SO_ELEMENTAL_SHIELD:
-		case EL_WATER_BARRIER:
-		case EL_ZEPHYR:
-		case EL_POWER_OF_GAIA:
 			if (sce)
 				status_change_end(bl, type, INVALID_TIMER);
 			break;
@@ -16263,7 +16254,10 @@ struct skill_unit_group *skill_locate_element_field(struct block_list *bl)
 			case SA_VIOLENTGALE:
 			case SA_LANDPROTECTOR:
 			case NJ_SUITON:
+			case SO_CLOUD_KILL:
 			case SO_WARMER:
+			case SC_CHAOSPANIC:
+			case SC_BLOODYLUST:
 				return ud->skillunit[i];
 		}
 	}
@@ -17504,6 +17498,7 @@ int skill_unit_move_sub (struct block_list* bl, va_list ap)
 	} else {
 		if( flag&1 ) {
 			int result = skill_unit_onplace(unit,target,tick);
+
 			if( flag&2 && result ) { //Clear skill ids we have stored in onout.
 				ARR_FIND( 0, ARRAYLENGTH(skill_unit_temp), i, skill_unit_temp[i] == result );
 				if( i < ARRAYLENGTH(skill_unit_temp) )
@@ -17511,6 +17506,7 @@ int skill_unit_move_sub (struct block_list* bl, va_list ap)
 			}
 		} else {
 			int result = skill_unit_onout(unit,target,tick);
+
 			if( flag&2 && result ) { //Store this unit id.
 				ARR_FIND( 0, ARRAYLENGTH(skill_unit_temp), i, skill_unit_temp[i] == 0 );
 				if( i < ARRAYLENGTH(skill_unit_temp) )

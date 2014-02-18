@@ -1247,7 +1247,7 @@
 // Elemental Spirits Skills
 8401,0,6,4,3,0,0,1,1,no,0,0,0,weapon,2,0,	EL_CIRCLE_OF_FIRE,Circle of Fire
 8402,0,6,4,0,0x1,0,1,1,no,0,0,0,none,0,0,	EL_FIRE_CLOAK,Fire Cloak
-8403,0,6,4,3,0,0,1,1,no,0,0,3,magic,2,0,	EL_FIRE_MANTLE,Fire Mantle
+8403,0,6,4,3,0x1,0,1,1,no,0,0,3,magic,2,0,	EL_FIRE_MANTLE,Fire Mantle
 8404,0,6,4,0,0x1,0,1,1,no,0,0,0,none,0,0,	EL_WATER_SCREEN,Water Screen
 8405,0,6,4,0,0x1,0,1,1,no,0,0,0,none,0,0,	EL_WATER_DROP,Water Drop
 8406,0,6,4,0,0x1,0,1,1,no,0,0,0,none,0,0,	EL_WATER_BARRIER,Water Barrier

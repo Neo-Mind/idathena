@@ -5377,6 +5377,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	switch(skill_id) {
 		case MG_FIREWALL:
 		case NJ_KAENSIN:
+		case EL_FIRE_MANTLE:
 			ad.dmotion = 0; //No flinch animation.
 			if(tstatus->def_ele == ELE_FIRE || battle_check_undead(tstatus->race, tstatus->def_ele))
 				ad.blewcount = 0; //No knockback
@@ -5802,13 +5803,17 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						skillratio += 1100;
 						break;
 					case MH_ERASER_CUTTER:
-						if(skill_lv%2) skillratio += 400; //600:800:1000
-						else skillratio += 700; //1000:1200
+						if(skill_lv%2)
+							skillratio += 400; //600:800:1000
+						else
+							skillratio += 700; //1000:1200
 						skillratio += 100 * skill_lv;
 						break;
 					case MH_XENO_SLASHER:
-						if(skill_lv%2) skillratio += 350 + 50 * skill_lv; //500:600:700
-						else skillratio += 400 + 100 * skill_lv; //700:900
+						if(skill_lv%2)
+							skillratio += 350 + 50 * skill_lv; //500:600:700
+						else
+							skillratio += 400 + 100 * skill_lv; //700:900
 						break;
 					case MH_HEILIGE_STANGE:
 						skillratio += 400 + 250 * skill_lv;

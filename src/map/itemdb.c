@@ -312,8 +312,8 @@ const char* itemdb_typename(enum item_types type)
 		case IT_HEALING:      return "Potion/Food";
 		case IT_USABLE:       return "Usable";
 		case IT_ETC:          return "Etc.";
-		case IT_WEAPON:       return "Weapon";
 		case IT_ARMOR:        return "Armor";
+		case IT_WEAPON:       return "Weapon";
 		case IT_CARD:         return "Card";
 		case IT_PETEGG:       return "Pet Egg";
 		case IT_PETARMOR:     return "Pet Accessory";
