@@ -1192,13 +1192,13 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case CH_TIGERFIST:
-			sc_start(src,bl,SC_STOP,(10 + skill_lv * 10),0,skill_get_time2(skill_id,skill_lv));
+			sc_start(src,bl,SC_STOP,(10 + skill_lv * 10),skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
 
 		case LK_SPIRALPIERCE:
 		case ML_SPIRALPIERCE:
 			if( dstsd || (dstmd && !is_boss(bl)) ) //Does not work on bosses
-				sc_start(src,bl,SC_STOP,100,0,skill_get_time2(skill_id,skill_lv));
+				sc_start(src,bl,SC_STOP,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
 
 		case ST_REJECTSWORD:
@@ -2298,6 +2298,7 @@ int skill_blown(struct block_list* src, struct block_list* target, int count, in
 
 	if( src != target && (map_flag_gvg(target->m) || map[target->m].flag.battleground) )
 		return 0; //No knocking back in WoE
+
 	if( count == 0 )
 		return 0; //Actual knockback distance is 0.
 
@@ -3719,7 +3720,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 						struct status_change* sc = status_get_sc(src);
 
 						if ((tsc && (tsc->option&OPTION_HIDE)) || (sc && (sc->option&OPTION_HIDE))) {
-							skill_blown(src,target,skill_get_blewcount(skl->skill_id,skl->skill_lv),-1,0x0);
+							skill_blown(src,target,skill_get_blewcount(skl->skill_id,skl->skill_lv),-1,0);
 							break;
 						}
 					}
@@ -11899,12 +11900,13 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 				limit = 1000;
 			val1 = skill_lv + 2;
 			break;
-		case WZ_QUAGMIRE: //The target changes to "all" if used in a gvg map. [Skotlex]
+		case WZ_QUAGMIRE:
 		case AM_DEMONSTRATION:
 		case GN_THORNS_TRAP:
 		case GN_HELLS_PLANT:
 			if( skill_id == GN_HELLS_PLANT && map_getcell(src->m,x,y,CELL_CHKLANDPROTECTOR) )
 				return NULL;
+			//The target changes to "all" if used in a gvg map. [Skotlex]
 			if( map_flag_vs(src->m) && battle_config.vs_traps_bctall &&
 				(src->type&battle_config.vs_traps_bctall) )
 				target = BCT_ALL;
@@ -11941,7 +11943,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 				if( req.itemid[i] )
 					req_item = req.itemid[i];
 				if( map_flag_gvg2(src->m) || map[src->m].flag.battleground )
-					limit *= 4; //Longer trap times in WOE [celest]
+					limit *= 4; //Longer trap times in WoE [celest]
 				if( battle_config.vs_traps_bctall && map_flag_vs(src->m) && (src->type&battle_config.vs_traps_bctall) )
 					target = BCT_ALL;
 			}
@@ -11956,11 +11958,10 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 				if( (old_sg = skill_locate_element_field(src)) != NULL ) {
 					//HelloKitty confirmed that these are interchangeable.
 					//So you can change element and not consume gemstones.
-					if( (
-						old_sg->skill_id == SA_VOLCANO ||
+					if( (old_sg->skill_id == SA_VOLCANO ||
 						old_sg->skill_id == SA_DELUGE ||
-						old_sg->skill_id == SA_VIOLENTGALE
-					) && old_sg->limit > 0 )
+						old_sg->skill_id == SA_VIOLENTGALE) &&
+						old_sg->limit > 0 )
 					{ //Use the previous limit (minus the elapsed time) [Skotlex]
 						limit = old_sg->limit - DIFF_TICK(gettick(),old_sg->tick);
 						if( limit < 0 ) //This can happen.
@@ -12551,17 +12552,6 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 			skill_blown(ss,bl,skill_get_blewcount(sg->skill_id,sg->skill_lv),unit_getdir(bl),0);
 			break;
 
-		case UNT_WALLOFTHORN:
-			if( status_get_mode(bl)&MD_BOSS )
-				break; //iRO Wiki says that this skill don't affect to Boss monsters.
-			if( battle_check_target(ss,bl,BCT_ENEMY) <= 0 ) {
-				unit_stop_walking(bl,1);
-				skill_blown(&src->bl,bl,skill_get_blewcount(sg->skill_id,sg->skill_lv),unit_getdir(bl),0x2);
-				clif_fixpos(bl);
-			} else
-				skill_attack(skill_get_type(sg->skill_id),ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
-			break;
-
 		case UNT_FIRE_EXPANSION_SMOKE_POWDER:
 			if( !sce )
 				sc_start(ss,bl,type,100,sg->skill_lv,sg->limit);
@@ -12639,8 +12629,8 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 	skill_id = sg->skill_id;
 
 	if (sg->interval == -1) {
-		switch (sg->unit_id) {
-			case UNT_ANKLESNARE: //These happen when a trap is splash-triggered by multiple targets on the same cell.
+		switch (sg->unit_id) { //These happen when a trap is splash-triggered by multiple targets on the same cell.
+			case UNT_ANKLESNARE:
 			case UNT_FIREPILLAR_ACTIVE:
 			case UNT_ELECTRICSHOCKER:
 			case UNT_MANHOLE:
@@ -12668,7 +12658,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				int count = 0;
 				const int x = bl->x, y = bl->y;
 
-				if (sg->skill_id == GN_WALLOFTHORN && !map_flag_vs(bl->m))
+				if (sg->skill_id == GN_WALLOFTHORN && battle_check_target(ss,bl,BCT_ENEMY) <= 0)
 					break;
 
 				//Take into account these hit more times than the timer interval can handle.
@@ -12812,7 +12802,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				if (status_change_start(ss,bl,type,10000,sg->skill_lv,sg->group_id,0,0,sec,8)) {
 					const struct TimerData* td = tsc->data[type] ? get_timer(tsc->data[type]->timer) : NULL;
 					int range = skill_get_unit_range(sg->skill_id,sg->skill_lv);
-					int knockback_immune = tsd ? !tsd->special_state.no_knockback : !(tstatus->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS));
+					int knockback_immune = (tsd ? !tsd->special_state.no_knockback : !(tstatus->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS)));
 
 					if (td)
 						sec = DIFF_TICK(td->tick,tick);
@@ -13191,6 +13181,17 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				} else if (tsc->data[SC_THORNSTRAP] && bl->id == sg->val2)
 					skill_attack(skill_get_type(GN_THORNS_TRAP),ss,ss,bl,sg->skill_id,sg->skill_lv,tick,SD_LEVEL|SD_ANIMATION);
 			}
+			break;
+
+		case UNT_WALLOFTHORN:
+			if( status_get_mode(bl)&MD_BOSS )
+				break; //iRO Wiki says that this skill don't affect to Boss monsters.
+			if( battle_check_target(ss,bl,BCT_ENEMY) <= 0 ) {
+				unit_stop_walking(bl,1);
+				skill_blown(&src->bl,bl,skill_get_blewcount(sg->skill_id,sg->skill_lv),unit_getdir(bl),0x2);
+				clif_fixpos(bl);
+			} else
+				skill_attack(skill_get_type(sg->skill_id),ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 			break;
 
 		case UNT_DEMONIC_FIRE: {
@@ -13617,7 +13618,7 @@ static int skill_unit_effect (struct block_list* bl, va_list ap)
 	if( !(flag&8) ) {
 		dissonance = skill_dance_switch(unit, 0);
 		//Target-type check.
-		isTarget = group->bl_flag & bl->type && battle_check_target( &unit->bl, bl, group->target_flag ) > 0;
+		isTarget = group->bl_flag & bl->type && battle_check_target(&unit->bl, bl, group->target_flag) > 0;
 	}
 
 	//Necessary in case the group is deleted after calling on_place/on_out [Skotlex]
@@ -16818,6 +16819,7 @@ int skill_delunit (struct skill_unit* unit)
 	switch (group->skill_id) {
 		case HT_ANKLESNARE: {
 				struct block_list* target = map_id2bl(group->val2);
+
 				if( target )
 					status_change_end(target, SC_ANKLE, INVALID_TIMER);
 			}
@@ -17217,8 +17219,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 
 			case UNT_ANKLESNARE:
 			case UNT_ELECTRICSHOCKER:
-				if( group->val2 > 0 || group->val3 == SC_ESCAPE ) {
-					//Used Trap don't returns back to item
+				if( group->val2 > 0 || group->val3 == SC_ESCAPE ) { //Used Trap don't returns back to item
 					skill_delunit(unit);
 					break;
 				}
@@ -17550,7 +17551,7 @@ int skill_unit_move (struct block_list *bl, unsigned int tick, int flag)
  *------------------------------------------*/
 int skill_unit_move_unit_group (struct skill_unit_group *group, int16 m, int16 dx, int16 dy)
 {
-	int i,j;
+	int i, j;
 	unsigned int tick = gettick();
 	int *m_flag;
 	struct skill_unit *unit1;
@@ -17558,9 +17559,11 @@ int skill_unit_move_unit_group (struct skill_unit_group *group, int16 m, int16 d
 
 	if (group == NULL)
 		return 0;
-	if (group->unit_count<=0)
+
+	if (group->unit_count <= 0)
 		return 0;
-	if (group->unit==NULL)
+
+	if (group->unit == NULL)
 		return 0;
 
 	if (skill_get_unit_flag(group->skill_id)&UF_ENSEMBLE)
@@ -17568,32 +17571,30 @@ int skill_unit_move_unit_group (struct skill_unit_group *group, int16 m, int16 d
 
 	if (group->unit_id == UNT_ICEWALL || group->unit_id == UNT_WALLOFTHORN)
 		return 0; //Icewalls and Wall of Thorns don't get knocked back
-	
+
 	m_flag = (int *) aCalloc(group->unit_count, sizeof(int));
 	//   m_flag
 	//		0: Neither of the following (skill_unit_onplace & skill_unit_onout are needed)
 	//		1: Unit will move to a slot that had another unit of the same group (skill_unit_onplace not needed)
 	//		2: Another unit from same group will end up positioned on this unit (skill_unit_onout not needed)
 	//		3: Both 1+2.
-	for (i=0;i<group->unit_count;i++) {
+	for (i = 0; i < group->unit_count; i++) {
 		unit1 = &group->unit[i];
-		if (!unit1->alive || unit1->bl.m!=m)
+		if (!unit1->alive || unit1->bl.m != m)
 			continue;
-		for (j=0;j<group->unit_count;j++) {
+		for (j = 0; j < group->unit_count; j++) {
 			unit2 = &group->unit[j];
 			if (!unit2->alive)
 				continue;
-			if (unit1->bl.x+dx==unit2->bl.x && unit1->bl.y+dy==unit2->bl.y) {
+			if (unit1->bl.x + dx == unit2->bl.x && unit1->bl.y + dy == unit2->bl.y)
 				m_flag[i] |= 0x1;
-			}
-			if (unit1->bl.x-dx==unit2->bl.x && unit1->bl.y-dy==unit2->bl.y) {
+			if (unit1->bl.x - dx == unit2->bl.x && unit1->bl.y - dy == unit2->bl.y)
 				m_flag[i] |= 0x2;
-			}
 		}
 	}
 	j = 0;
-	for (i=0;i<group->unit_count;i++) {
-		unit1=&group->unit[i];
+	for (i = 0; i < group->unit_count; i++) {
+		unit1 = &group->unit[i];
 		if (!unit1->alive)
 			continue;
 		if (!(m_flag[i]&0x2)) {
@@ -17610,8 +17611,8 @@ int skill_unit_move_unit_group (struct skill_unit_group *group, int16 m, int16 d
 			case 1:
 				//Cell moves unto another cell, look for a replacement cell that won't collide
 				//and has no cell moving into it (flag == 2)
-				for(;j<group->unit_count;j++) {
-					if(m_flag[j]!=2 || !group->unit[j].alive)
+				for(; j < group->unit_count; j++) {
+					if(m_flag[j] != 2 || !group->unit[j].alive)
 						continue;
 					//Move to where this cell would had moved.
 					unit2 = &group->unit[j];

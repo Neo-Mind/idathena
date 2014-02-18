@@ -174,7 +174,7 @@ static int battle_getenemyarea_sub(struct block_list *bl, va_list ap) {
 	if( status_isdead(bl) )
 		return 0;
 
-	if( battle_check_target(src, bl, BCT_ENEMY) > 0 ) { //Is Enemy!...
+	if( battle_check_target(src, bl, BCT_ENEMY) > 0 ) { //Is Enemy!
 		bl_list[(*c)++] = bl;
 		return 1;
 	}
@@ -374,10 +374,10 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 				return 0;
 
 			if( sg->unit_id != UNT_FIREWALL ) {
-				int x,y;
+				int x, y;
 
-				x = sg->val3 >> 16;
-				y = sg->val3 & 0xffff;
+				x = sg->val3>>16;
+				y = sg->val3&0xffff;
 				skill_unitsetting(src,su->group->skill_id,su->group->skill_lv,x,y,1);
 				sg->val3 = -1;
 				sg->limit = DIFF_TICK(gettick(),sg->tick) + 300;
@@ -434,6 +434,7 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 				break;
 		}
 	} //End tsc check
+
 	if( ratio < 100 )
 		return damage - (damage * (100 - ratio) / 100);
 	else

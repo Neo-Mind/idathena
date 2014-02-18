@@ -752,7 +752,6 @@ void initChangeTables(void) {
 	set_sc( GN_CARTBOOST                  , SC_GN_CARTBOOST, SI_GN_CARTBOOST               , SCB_SPEED );
 	set_sc( GN_THORNS_TRAP                , SC_THORNSTRAP  , SI_THORNTRAP                  , SCB_NONE );
 	set_sc_with_vfx( GN_BLOOD_SUCKER      , SC_BLOODSUCKER , SI_BLOODSUCKER                , SCB_NONE );
-	set_sc( GN_WALLOFTHORN                , SC_STOP        , SI_BLANK                      , SCB_NONE );
 	set_sc( GN_FIRE_EXPANSION_SMOKE_POWDER, SC_SMOKEPOWDER , SI_FIRE_EXPANSION_SMOKE_POWDER, SCB_FLEE );
 	set_sc( GN_FIRE_EXPANSION_TEAR_GAS    , SC_TEARGAS     , SI_FIRE_EXPANSION_TEAR_GAS    , SCB_HIT|SCB_FLEE );
 	set_sc( GN_MANDRAGORA                 , SC_MANDRAGORA  , SI_MANDRAGORA                 , SCB_INT );
@@ -1781,11 +1780,9 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 
 	switch (skill_id) {
 		case PA_PRESSURE:
-			if (flag && target) {
-				//Gloria Avoids pretty much everything....
+			if (flag && target) //Gloria Avoids pretty much everything.
 				if (tsc && (tsc->option&OPTION_HIDE))
 					return 0;
-			}
 			break;
 		case GN_WALLOFTHORN:
 			if (target && status_isdead(target))
@@ -1795,11 +1792,8 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		case ALL_ODINS_POWER:
 			//Should fail when used on top of Land Protector [Skotlex]
 			if (src && map_getcell(src->m, src->x, src->y, CELL_CHKLANDPROTECTOR) &&
-				!(status->mode&MD_BOSS) &&
-				(src->type != BL_PC || ((TBL_PC*)src)->skillitem != skill_id))
+				!(status->mode&MD_BOSS) && (src->type != BL_PC || ((TBL_PC*)src)->skillitem != skill_id))
 				return 0;
-			break;
-		default:
 			break;
 	}
 
@@ -1810,7 +1804,8 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 			return 0;
 		}
 
-		if (skill_id != RK_REFRESH && sc->opt1 > 0 && !(sc->opt1 == OPT1_CRYSTALIZE && src->type == BL_MOB) && sc->opt1 != OPT1_BURNING && skill_id != SR_GENTLETOUCH_CURE) {   //Stuned/Frozen/etc
+		if (skill_id != RK_REFRESH && sc->opt1 > 0 && !(sc->opt1 == OPT1_CRYSTALIZE &&
+			src->type == BL_MOB) && sc->opt1 != OPT1_BURNING && skill_id != SR_GENTLETOUCH_CURE) { //Stuned/Frozen/etc
 			if (flag != 1) //Can't cast, casted stuff can't damage.
 				return 0;
 			if (!(skill_get_inf(skill_id)&INF_GROUND_SKILL))
