@@ -1450,7 +1450,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 				return true;
 			}
 		} else if((abl = map_id2bl(md->attacked_id)) && ((!tbl || mob_can_changetarget(md, abl, mode)) ||
-			(md->sc.count && md->sc.data[SC_CHAOS]))) {
+			(md->sc.count && md->sc.data[SC__CHAOS]))) {
 			int dist;
 			if(md->bl.m != abl->m || abl->prev == NULL
 				|| (dist = distance_bl(&md->bl, abl)) >= MAX_MINCHASE //Attacker longer than visual area
@@ -1508,7 +1508,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 	if((!tbl && (mode&MD_AGGRESSIVE)) || md->state.skillstate == MSS_FOLLOW) {
 		map_foreachinrange(mob_ai_sub_hard_activesearch, &md->bl, view_range, DEFAULT_ENEMY_TYPE(md), md, &tbl, mode);
 	} else if((mode&MD_CHANGECHASE) && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW ||
-		(md->sc.count && md->sc.data[SC_CHAOS]))) {
+		(md->sc.count && md->sc.data[SC__CHAOS]))) {
 		int search_size = (view_range < md->status.rhw.range ? view_range : md->status.rhw.range);
 
 		map_foreachinrange(mob_ai_sub_hard_changechase, &md->bl, search_size, DEFAULT_ENEMY_TYPE(md), md, &tbl);

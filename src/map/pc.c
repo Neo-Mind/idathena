@@ -2873,7 +2873,7 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			}
 			if(sd->state.lr_flag == 2)
 				break;
-			i = sd->reseff[type2-SC_COMMON_MIN] + val;
+			i = sd->reseff[type2 - SC_COMMON_MIN] + val;
 			sd->reseff[type2 - SC_COMMON_MIN] = cap_value(i, 0, 10000);
 			break;
 		case SP_MAGIC_ADDELE:
@@ -3180,7 +3180,7 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 				sd->skillcast[i].val -= val;
 			else {
 				sd->skillcast[i].id = type2;
-				sd->skillcast[i].val -= val;
+				sd->skillcast[i].val = val;
 			}
 			break;
 #endif
@@ -3196,7 +3196,7 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 				sd->skillfixcastrate[i].val -= val;
 			else {
 				sd->skillfixcastrate[i].id = type2;
-				sd->skillfixcastrate[i].val -= val;
+				sd->skillfixcastrate[i].val = val;
 			}
 			break;
 		case SP_HP_LOSS_RATE:
@@ -3352,7 +3352,7 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 				sd->cooldown[i].val += val;
 			else {
 				sd->cooldown[i].id = type2;
-				sd->cooldown[i].val += val;
+				sd->cooldown[i].val = val;
 			}
 			break;
 		case SP_SKILL_FIXEDCAST:
@@ -7263,7 +7263,7 @@ int pc_readparam(struct map_session_data* sd,int type)
 		case SP_VARCASTRATE:
 #endif	
 		case SP_CASTRATE:
-				val = sd->castrate += val;
+				val = sd->castrate;
 			break;
 		case SP_MAXHPRATE:	val = sd->hprate; break;
 		case SP_MAXSPRATE:	val = sd->sprate; break;

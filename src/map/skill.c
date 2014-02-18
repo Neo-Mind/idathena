@@ -1131,7 +1131,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case BD_LULLABY:
-			//(Custom chance) "Chance is increased with INT", iRO Wiki
+			//(Custom chance) "Chance is increased with INT" [iRO Wiki]
 			sc_start(src,bl,SC_SLEEP,15 + sstatus->int_ / 3,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
 
@@ -5009,7 +5009,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				status_change_end(bl,SC_HIDING,INVALID_TIMER);
 				status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
 				status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER); //Need confirm it.
-				status_change_end(bl,SC_FEINT,INVALID_TIMER);
+				status_change_end(bl,SC__FEINT,INVALID_TIMER);
 			} else {
 				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
 				clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
@@ -5088,7 +5088,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 				status_change_end(bl,SC_HIDING,INVALID_TIMER);
 				status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER);
-				status_change_end(bl,SC_FEINT,INVALID_TIMER);
+				status_change_end(bl,SC__FEINT,INVALID_TIMER);
 			} else {
 				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
 				clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
@@ -6726,7 +6726,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			status_change_end(bl,SC_SILENCE,INVALID_TIMER);
 			status_change_end(bl,SC_BLIND,INVALID_TIMER);
 			status_change_end(bl,SC_CONFUSION,INVALID_TIMER);
-			status_change_end(bl,SC_CHAOS,INVALID_TIMER);
+			status_change_end(bl,SC__CHAOS,INVALID_TIMER);
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			break;
 
@@ -6774,7 +6774,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 		case MER_MENTALCURE:
 			status_change_end(bl,SC_CONFUSION,INVALID_TIMER);
-			status_change_end(bl,SC_CHAOS,INVALID_TIMER);
+			status_change_end(bl,SC__CHAOS,INVALID_TIMER);
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			break;
 		case MER_RECUPERATE:
@@ -8774,7 +8774,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				switch( i ) {
 					case SC_BLIND:			case SC_CURSE:
 					case SC_POISON:			case SC_HALLUCINATION:
-					case SC_CONFUSION:		case SC_CHAOS:
+					case SC_CONFUSION:		case SC__CHAOS:
 					case SC_BLEEDING:		case SC_BURNING:
 					case SC_FREEZING:		case SC_TOXIN:
 					case SC_PARALYSE:		case SC_VENOMBLEED:
@@ -9055,11 +9055,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SC_BODYPAINT:
 			if( flag&1 ) {
 				if( tsc && (tsc->data[SC_HIDING] || tsc->data[SC_CLOAKING] ||
-					tsc->data[SC_CLOAKINGEXCEED] || tsc->data[SC_FEINT]) ) {
+					tsc->data[SC_CLOAKINGEXCEED] || tsc->data[SC__FEINT]) ) {
 					status_change_end(bl,SC_HIDING,INVALID_TIMER);
 					status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
 					status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER);
-					status_change_end(bl,SC_FEINT,INVALID_TIMER);
+					status_change_end(bl,SC__FEINT,INVALID_TIMER);
 					sc_start(src,bl,type,20 + 5 * skill_lv,skill_lv,skill_get_time(skill_id,skill_lv));
 				}
 					sc_start(src,bl,SC_BLIND,53 + 2 * skill_lv,skill_lv,skill_get_time2(skill_id,skill_lv));
@@ -9311,7 +9311,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						case SC_SILENCE:	case SC_BURNING:
 						case SC_CRYSTALIZE:	case SC_FREEZING:
 						case SC_DEEPSLEEP:	case SC_FEAR:
-						case SC_MANDRAGORA:	case SC_CHAOS:
+						case SC_MANDRAGORA:	case SC__CHAOS:
 							status_change_end(bl,(sc_type)i,INVALID_TIMER);
 							break;
 					}
@@ -9690,7 +9690,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				case ECL_SADAGUI:
 					status_change_end(bl,SC_STUN,INVALID_TIMER);
 					status_change_end(bl,SC_CONFUSION,INVALID_TIMER);
-					status_change_end(bl,SC_CHAOS,INVALID_TIMER);
+					status_change_end(bl,SC__CHAOS,INVALID_TIMER);
 					status_change_end(bl,SC_HALLUCINATION,INVALID_TIMER);
 					status_change_end(bl,SC_FEAR,INVALID_TIMER);
 					break;
@@ -10042,12 +10042,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				if( unit_movepos(src,bl->x,bl->y,0,0) ) {
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 					clif_slide(src,bl->x,bl->y);
-					sc_start(src,src,SC_CHAOS,25,skill_lv,skill_get_time(skill_id,skill_lv));
+					sc_start(src,src,SC__CHAOS,25,skill_lv,skill_get_time(skill_id,skill_lv));
 					if( !is_boss(bl) && unit_movepos(bl,x,y,0,0) ) {
 						if( dstsd && pc_issit(dstsd) )
 							pc_setstand(dstsd);
 						clif_slide(bl,x,y);
-						sc_start(src,bl,SC_CHAOS,75,skill_lv,skill_get_time(skill_id,skill_lv));
+						sc_start(src,bl,SC__CHAOS,75,skill_lv,skill_get_time(skill_id,skill_lv));
 					}
 				}
 			}
@@ -10083,7 +10083,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case KG_KAGEHUMI:
 			if( flag&1 ) {
 				if( tsc && ((tsc->option&(OPTION_HIDE|OPTION_CLOAK)) ||
-					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC__SHADOWFORM] || tsc->data[SC_FEINT] ||
+					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC__SHADOWFORM] || tsc->data[SC__FEINT] ||
 					tsc->data[SC_MARIONETTE] || tsc->data[SC_HARMONIZE]) ) {
 						sc_start(src,src,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 						sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
@@ -10092,7 +10092,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER);
 						status_change_end(bl,SC_CAMOUFLAGE,INVALID_TIMER);
 						status_change_end(bl,SC__SHADOWFORM,INVALID_TIMER);
-						status_change_end(bl,SC_FEINT,INVALID_TIMER);
+						status_change_end(bl,SC__FEINT,INVALID_TIMER);
 						status_change_end(bl,SC_MARIONETTE,INVALID_TIMER);
 						status_change_end(bl,SC_HARMONIZE,INVALID_TIMER);
 				}
@@ -13111,7 +13111,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 					status_change_end(bl,SC_CHASEWALK,INVALID_TIMER);
 					status_change_end(bl,SC_CAMOUFLAGE,INVALID_TIMER);
 					status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER);
-					status_change_end(bl,SC_FEINT,INVALID_TIMER);
+					status_change_end(bl,SC__FEINT,INVALID_TIMER);
 				}
 			}
 			/* Enable this if kRO fix the current skill. Currently no damage on undead and demon monster. [Jobbie]
@@ -13185,7 +13185,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 
 		case UNT_WALLOFTHORN:
 			if( status_get_mode(bl)&MD_BOSS )
-				break; //iRO Wiki says that this skill don't affect to Boss monsters.
+				break; //This skill don't affect to Boss monsters. [iRO Wiki]
 			if( battle_check_target(ss,bl,BCT_ENEMY) <= 0 ) {
 				unit_stop_walking(bl,1);
 				skill_blown(&src->bl,bl,skill_get_blewcount(sg->skill_id,sg->skill_lv),unit_getdir(bl),0x2);
@@ -15323,9 +15323,9 @@ int skill_castfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv) {
 
 #ifndef RENEWAL_CAST
 	{
-		struct map_session_data *sd;
-
-		sd = BL_CAST(BL_PC, bl);
+		struct map_session_data *sd = BL_CAST(BL_PC, bl);
+		struct status_change *sc = status_get_sc(bl);
+		int reduce_ct_r = 100;
 
 		//Calculate base cast time (reduced by dex)
 		if( !(skill_get_castnodex(skill_id, skill_lv)&1) ) {
@@ -15342,28 +15342,44 @@ int skill_castfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv) {
 			int i;
 
 			if( sd->castrate != 100 )
-				time = time * sd->castrate / 100;
+				reduce_ct_r -= sd->castrate;
 			for( i = 0; i < ARRAYLENGTH(sd->skillcast) && sd->skillcast[i].id; i++ ) {
 				if( sd->skillcast[i].id == skill_id ) {
-					time += time * sd->skillcast[i].val / 100;
+					reduce_ct_r += sd->skillcast[i].val;
 					break;
 				}
 			}
 		}
+
+		//NOTE: Magic Strings and Foresight are treated as separate factors in the calculation
+		//They are not added to the other modifiers. [iRO Wiki]
+		if( sc && sc->count && !(skill_get_castnodex(skill_id, skill_lv)&2) ) {
+			if( sc->data[SC_MEMORIZE] ) {
+				reduce_ct_r -= 50;
+				if( (--sc->data[SC_MEMORIZE]->val2) <= 0 )
+					status_change_end(bl, SC_MEMORIZE, INVALID_TIMER);
+			}
+			if( sc->data[SC_POEMBRAGI] )
+				reduce_ct_r -= sc->data[SC_POEMBRAGI]->val2;
+		}
+
+		time = time * reduce_ct_r / 100;
 	}
 #endif
+
 	//Config cast time multiplier
 	if( battle_config.cast_rate != 100 )
 		time = time * battle_config.cast_rate / 100;
+
 	//Return final cast time
 	time = max(time, 0);
-
 	//ShowInfo("Castime castfix = %d\n",time);
+
 	return time;
 }
 
 #ifndef RENEWAL_CAST
-/** Get the skill cast time for Pre-Re cast
+/** Skill cast time modifiers for Pre-Re cast
  * @param bl: The caster
  * @param time: Cast time before Status Change addition or reduction
  * @return time: Modified castime after status change addition or reduction
@@ -15375,36 +15391,29 @@ int skill_castfix_sc (struct block_list *bl, int time)
 	if( time < 0 )
 		return 0;
 
-	if( bl->type == BL_MOB ) //mobs cast-time is fixed nothing to alter.
+	if( bl->type == BL_MOB ) //Mobs cast-time is fixed nothing to alter.
 		return time;
 
-	if (sc && sc->count) {
-		if (sc->data[SC_SLOWCAST])
+	if( sc && sc->count ) {
+		if( sc->data[SC_SLOWCAST] )
 			time += time * sc->data[SC_SLOWCAST]->val2 / 100;
-		if (sc->data[SC_PARALYSIS])
+		if( sc->data[SC_PARALYSIS] )
 			time += sc->data[SC_PARALYSIS]->val3;
-		if (sc->data[SC_SUFFRAGIUM]) {
+		if( sc->data[SC_SUFFRAGIUM] ) {
 			time -= time * sc->data[SC_SUFFRAGIUM]->val2 / 100;
 			status_change_end(bl, SC_SUFFRAGIUM, INVALID_TIMER);
 		}
-		if (sc->data[SC_MEMORIZE]) {
-			time >>= 1;
-			if ((--sc->data[SC_MEMORIZE]->val2) <= 0)
-				status_change_end(bl, SC_MEMORIZE, INVALID_TIMER);
-		}
-		if (sc->data[SC_POEMBRAGI])
-			time -= time * sc->data[SC_POEMBRAGI]->val2 / 100;
-		if (sc->data[SC_IZAYOI])
+		if( sc->data[SC_IZAYOI] )
 			time -= time * 50 / 100;
 	}
 
 	time = max(time, 0);
-
 	//ShowInfo("Castime castfix_sc = %d\n",time);
+
 	return time;
 }
 #else
-/** Get the skill cast time for RENEWAL_CAST
+/** Skill cast time calculation for RENEWAL_CAST
  * @param bl: The caster
  * @param time: Cast time without reduction
  * @param skill_id: Skill ID of the casted skill
@@ -15415,7 +15424,7 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 {
 	struct status_change *sc = status_get_sc(bl);
 	struct map_session_data *sd = BL_CAST(BL_PC,bl);
-	int fixed = skill_get_fixed_cast(skill_id, skill_lv), fixcast_r = 0, varcast_r = 0, i = 0;
+	int fixed = skill_get_fixed_cast(skill_id, skill_lv), fixcast_r = 0, varcast_r = 0, i = 0, reduce_ct_r = 100;
 
 	if( time < 0 )
 		return 0;
@@ -15432,54 +15441,59 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 	//Increases/Decreases fixed/variable cast time of a skill by item/card bonuses.
 	if( sd && !(skill_get_castnodex(skill_id, skill_lv)&4) ) {
 		if( sd->bonus.varcastrate != 0 ) //bonus bVariableCastrate
-			VARCAST_REDUCTION(sd->bonus.varcastrate);
+			reduce_ct_r -= sd->bonus.varcastrate;
 		if( sd->bonus.fixcastrate != 0 ) //bonus bFixedCastrate
 			fixcast_r = sd->bonus.fixcastrate; //Just speculation
 		if( sd->bonus.add_varcast != 0 ) //bonus bVariableCast
 			time += sd->bonus.add_varcast;
 		if( sd->bonus.add_fixcast != 0 ) //bonus bFixedCast
 			fixed += sd->bonus.add_fixcast;
-		for( i = 0; i < ARRAYLENGTH(sd->skillfixcast) && sd->skillfixcast[i].id; i++ )
+		for( i = 0; i < ARRAYLENGTH(sd->skillfixcast) && sd->skillfixcast[i].id; i++ ) {
 			if( sd->skillfixcast[i].id == skill_id ) { //bonus2 bSkillFixedCast
 				fixed += sd->skillfixcast[i].val;
 				break;
 			}
-		for( i = 0; i < ARRAYLENGTH(sd->skillvarcast) && sd->skillvarcast[i].id; i++ )
+		}
+		for( i = 0; i < ARRAYLENGTH(sd->skillvarcast) && sd->skillvarcast[i].id; i++ ) {
 			if( sd->skillvarcast[i].id == skill_id ) { //bonus2 bSkillVariableCast
 				time += sd->skillvarcast[i].val;
 				break;
 			}
-		for( i = 0; i < ARRAYLENGTH(sd->skillcast) && sd->skillcast[i].id; i++ )
+		}
+		for( i = 0; i < ARRAYLENGTH(sd->skillcast) && sd->skillcast[i].id; i++ ) {
 			if( sd->skillcast[i].id == skill_id ) { //bonus2 bVariableCastrate
-				VARCAST_REDUCTION(sd->skillcast[i].val);
+				reduce_ct_r -= sd->skillcast[i].val;
 				break;
 			}
-		for( i = 0; i < ARRAYLENGTH(sd->skillfixcastrate) && sd->skillfixcastrate[i].id; i++ )
+		}
+		for( i = 0; i < ARRAYLENGTH(sd->skillfixcastrate) && sd->skillfixcastrate[i].id; i++ ) {
 			if( sd->skillfixcastrate[i].id == skill_id ) { //bonus2 bFixedCastrate
 				fixcast_r = max(fixcast_r, sd->skillfixcastrate[i].val);
 				break;
 			}
+		}
 	}
 
+	//NOTE: Magic Strings and Foresight are treated as separate factors in the calculation
+	//They are not added to the other modifiers. [iRO Wiki]
 	if( sc && sc->count && !(skill_get_castnodex(skill_id, skill_lv)&2) ) {
 		//All variable cast additive bonuses must come first
 		if( sc->data[SC_SLOWCAST] )
 			VARCAST_REDUCTION(-sc->data[SC_SLOWCAST]->val2);
 		if( sc->data[SC__LAZINESS] )
 			VARCAST_REDUCTION(-sc->data[SC__LAZINESS]->val3);
-
 		//Variable cast reduction bonuses
 		if( sc->data[SC_SUFFRAGIUM] ) {
 			VARCAST_REDUCTION(sc->data[SC_SUFFRAGIUM]->val2);
 			status_change_end(bl, SC_SUFFRAGIUM, INVALID_TIMER);
 		}
 		if( sc->data[SC_MEMORIZE] ) {
-			VARCAST_REDUCTION(50);
+			reduce_ct_r -= 50;
 			if( (--sc->data[SC_MEMORIZE]->val2) <= 0 )
 				status_change_end(bl, SC_MEMORIZE, INVALID_TIMER);
 		}
 		if( sc->data[SC_POEMBRAGI] )
-			VARCAST_REDUCTION(sc->data[SC_POEMBRAGI]->val2);
+			reduce_ct_r -= sc->data[SC_POEMBRAGI]->val2;
 		if( sc->data[SC_IZAYOI] )
 			VARCAST_REDUCTION(50);
 		if( sc->data[SC_WATER_INSIGNIA] && sc->data[SC_WATER_INSIGNIA]->val1 == 3 && (skill_get_ele(skill_id, skill_lv) == ELE_WATER) )
@@ -15507,12 +15521,15 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 			fixed = 0;
 	}
 
-	if( varcast_r < 0 ) //Now compute overall factors
+	/* Now compute overall factors */
+	if( varcast_r < 0 )
 		time = time * (1 - (float)varcast_r / 100);
+
 	if( !(skill_get_castnodex(skill_id, skill_lv)&1) ) //Reduction from status point
 		time = (1 - sqrt(((float)(status_get_dex(bl) * 2 + status_get_int(bl)) / battle_config.vcast_stat_scale))) * time;
-	//Underflow checking/capping
-	time = max(time, 0) + (1 - (float)min(fixcast_r, 100) / 100) * max(fixed,0);
+
+	time = time * reduce_ct_r / 100;
+	time = max(time, 0) + (1 - (float)min(fixcast_r, 100) / 100) * max(fixed,0); //Underflow checking/capping
 
 	return (int)time;
 }
@@ -15620,96 +15637,95 @@ static void skill_brandishspear_first (struct square *tc, uint8 dir, int16 x, in
 {
 	nullpo_retv(tc);
 
-	if(dir == 0) {
-		tc->val1[0]=x-2;
-		tc->val1[1]=x-1;
-		tc->val1[2]=x;
-		tc->val1[3]=x+1;
-		tc->val1[4]=x+2;
-		tc->val2[0]=
-		tc->val2[1]=
-		tc->val2[2]=
-		tc->val2[3]=
-		tc->val2[4]=y-1;
-	} else if(dir==2) {
-		tc->val1[0]=
-		tc->val1[1]=
-		tc->val1[2]=
-		tc->val1[3]=
-		tc->val1[4]=x+1;
-		tc->val2[0]=y+2;
-		tc->val2[1]=y+1;
-		tc->val2[2]=y;
-		tc->val2[3]=y-1;
-		tc->val2[4]=y-2;
-	} else if(dir==4) {
-		tc->val1[0]=x-2;
-		tc->val1[1]=x-1;
-		tc->val1[2]=x;
-		tc->val1[3]=x+1;
-		tc->val1[4]=x+2;
-		tc->val2[0]=
-		tc->val2[1]=
-		tc->val2[2]=
-		tc->val2[3]=
-		tc->val2[4]=y+1;
-	} else if(dir==6) {
-		tc->val1[0]=
-		tc->val1[1]=
-		tc->val1[2]=
-		tc->val1[3]=
-		tc->val1[4]=x-1;
-		tc->val2[0]=y+2;
-		tc->val2[1]=y+1;
-		tc->val2[2]=y;
-		tc->val2[3]=y-1;
-		tc->val2[4]=y-2;
-	} else if(dir==1) {
-		tc->val1[0]=x-1;
-		tc->val1[1]=x;
-		tc->val1[2]=x+1;
-		tc->val1[3]=x+2;
-		tc->val1[4]=x+3;
-		tc->val2[0]=y-4;
-		tc->val2[1]=y-3;
-		tc->val2[2]=y-1;
-		tc->val2[3]=y;
-		tc->val2[4]=y+1;
-	} else if(dir==3) {
-		tc->val1[0]=x+3;
-		tc->val1[1]=x+2;
-		tc->val1[2]=x+1;
-		tc->val1[3]=x;
-		tc->val1[4]=x-1;
-		tc->val2[0]=y-1;
-		tc->val2[1]=y;
-		tc->val2[2]=y+1;
-		tc->val2[3]=y+2;
-		tc->val2[4]=y+3;
-	} else if(dir==5) {
-		tc->val1[0]=x+1;
-		tc->val1[1]=x;
-		tc->val1[2]=x-1;
-		tc->val1[3]=x-2;
-		tc->val1[4]=x-3;
-		tc->val2[0]=y+3;
-		tc->val2[1]=y+2;
-		tc->val2[2]=y+1;
-		tc->val2[3]=y;
-		tc->val2[4]=y-1;
-	} else if(dir==7) {
-		tc->val1[0]=x-3;
-		tc->val1[1]=x-2;
-		tc->val1[2]=x-1;
-		tc->val1[3]=x;
-		tc->val1[4]=x+1;
-		tc->val2[1]=y;
-		tc->val2[0]=y+1;
-		tc->val2[2]=y-1;
-		tc->val2[3]=y-2;
-		tc->val2[4]=y-3;
+	if (dir == 0) {
+		tc->val1[0] = x - 2;
+		tc->val1[1] = x - 1;
+		tc->val1[2] = x;
+		tc->val1[3] = x + 1;
+		tc->val1[4] = x + 2;
+		tc->val2[0] =
+		tc->val2[1] =
+		tc->val2[2] =
+		tc->val2[3] =
+		tc->val2[4] = y - 1;
+	} else if (dir == 2) {
+		tc->val1[0] =
+		tc->val1[1] =
+		tc->val1[2] =
+		tc->val1[3] =
+		tc->val1[4] = x + 1;
+		tc->val2[0] = y + 2;
+		tc->val2[1] = y + 1;
+		tc->val2[2] = y;
+		tc->val2[3] = y - 1;
+		tc->val2[4] = y - 2;
+	} else if (dir == 4) {
+		tc->val1[0] = x - 2;
+		tc->val1[1] = x - 1;
+		tc->val1[2] = x;
+		tc->val1[3] = x + 1;
+		tc->val1[4] = x + 2;
+		tc->val2[0] =
+		tc->val2[1] =
+		tc->val2[2] =
+		tc->val2[3] =
+		tc->val2[4] = y + 1;
+	} else if (dir == 6) {
+		tc->val1[0] =
+		tc->val1[1] =
+		tc->val1[2] =
+		tc->val1[3] =
+		tc->val1[4] = x - 1;
+		tc->val2[0] = y + 2;
+		tc->val2[1] = y + 1;
+		tc->val2[2] = y;
+		tc->val2[3] = y - 1;
+		tc->val2[4] = y - 2;
+	} else if (dir == 1) {
+		tc->val1[0] = x - 1;
+		tc->val1[1] = x;
+		tc->val1[2] = x + 1;
+		tc->val1[3] = x + 2;
+		tc->val1[4] = x + 3;
+		tc->val2[0] = y - 4;
+		tc->val2[1] = y - 3;
+		tc->val2[2] = y - 1;
+		tc->val2[3] = y;
+		tc->val2[4] = y + 1;
+	} else if (dir == 3) {
+		tc->val1[0] = x + 3;
+		tc->val1[1] = x + 2;
+		tc->val1[2] = x + 1;
+		tc->val1[3] = x;
+		tc->val1[4] = x - 1;
+		tc->val2[0] = y - 1;
+		tc->val2[1] = y;
+		tc->val2[2] = y + 1;
+		tc->val2[3] = y + 2;
+		tc->val2[4] = y + 3;
+	} else if (dir == 5) {
+		tc->val1[0] = x + 1;
+		tc->val1[1] = x;
+		tc->val1[2] = x - 1;
+		tc->val1[3] = x - 2;
+		tc->val1[4] = x - 3;
+		tc->val2[0] = y + 3;
+		tc->val2[1] = y + 2;
+		tc->val2[2] = y + 1;
+		tc->val2[3] = y;
+		tc->val2[4] = y - 1;
+	} else if (dir == 7) {
+		tc->val1[0] = x - 3;
+		tc->val1[1] = x - 2;
+		tc->val1[2] = x - 1;
+		tc->val1[3] = x;
+		tc->val1[4] = x + 1;
+		tc->val2[1] = y;
+		tc->val2[0] = y + 1;
+		tc->val2[2] = y - 1;
+		tc->val2[3] = y - 2;
+		tc->val2[4] = y - 3;
 	}
-
 }
 
 static void skill_brandishspear_dir (struct square* tc, uint8 dir, int are)
@@ -15719,24 +15735,25 @@ static void skill_brandishspear_dir (struct square* tc, uint8 dir, int are)
 
 	for( c = 0; c < 5; c++ ) {
 		switch( dir ) {
-			case 0:                   tc->val2[c]+=are; break;
-			case 1: tc->val1[c]-=are; tc->val2[c]+=are; break;
-			case 2: tc->val1[c]-=are;                   break;
-			case 3: tc->val1[c]-=are; tc->val2[c]-=are; break;
-			case 4:                   tc->val2[c]-=are; break;
-			case 5: tc->val1[c]+=are; tc->val2[c]-=are; break;
-			case 6: tc->val1[c]+=are;                   break;
-			case 7: tc->val1[c]+=are; tc->val2[c]+=are; break;
+			case 0:                     tc->val2[c] += are; break;
+			case 1: tc->val1[c] -= are; tc->val2[c] += are; break;
+			case 2: tc->val1[c] -= are;                     break;
+			case 3: tc->val1[c] -= are; tc->val2[c] -= are; break;
+			case 4:                     tc->val2[c] -= are; break;
+			case 5: tc->val1[c] += are; tc->val2[c] -= are; break;
+			case 6: tc->val1[c] += are;                     break;
+			case 7: tc->val1[c] += are; tc->val2[c] += are; break;
 		}
 	}
 }
 
 void skill_brandishspear(struct block_list* src, struct block_list* bl, uint16 skill_id, uint16 skill_lv, unsigned int tick, int flag)
 {
-	int c,n = 4;
+	int c, n = 4;
 	uint8 dir = map_calc_dir(src,bl->x,bl->y);
 	struct square tc;
-	int x = bl->x,y = bl->y;
+	int x = bl->x, y = bl->y;
+
 	skill_brandishspear_first(&tc,dir,x,y);
 	skill_brandishspear_dir(&tc,dir,4);
 	skill_area_temp[1] = bl->id;
