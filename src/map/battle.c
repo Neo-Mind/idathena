@@ -319,7 +319,7 @@ int battle_attr_ratio(int atk_elem,int def_type, int def_lv)
 /*==========================================
  * Does attribute fix modifiers.
  * Added passing of the chars so that the status changes can affect it. [Skotlex]
- * Note: Passing src/target == NULL is perfectly valid, it skips SC_ checks.
+ * NOTE: Passing src/target == NULL is perfectly valid, it skips SC_ checks.
  *------------------------------------------*/
 int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 damage, int atk_elem, int def_type, int def_lv)
 {
@@ -7302,10 +7302,9 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 				struct status_change* sc = status_get_sc(src);
 
 				if( ((TBL_PC*)target)->invincible_timer != INVALID_TIMER || pc_isinvisible((TBL_PC*)target) )
-					return -1; //Cannot be targeted yet.
-				if( sc && sc->count )
-					if( sc->data[SC_VOICEOFSIREN] && sc->data[SC_VOICEOFSIREN]->val2 == target->id )
-						return -1;
+					return -1; //Cannot be targeted yet
+				if( sc && sc->count && sc->data[SC_VOICEOFSIREN] && sc->data[SC_VOICEOFSIREN]->val2 == target->id )
+					return -1;
 			}
 			break;
 		case BL_MOB: {
@@ -7331,7 +7330,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 						case RK_DRAGONBREATH: //It can only hit traps in pvp/gvg maps
 						case RK_DRAGONBREATH_WATER:
 							if( !map[m].flag.pvp && !map[m].flag.gvg )
-							break;
+								break;
 						case 0: //You can hit them without skills
 						case MA_REMOVETRAP:
 						case HT_REMOVETRAP:
@@ -7369,17 +7368,12 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 							strip_enemy = 0;
 							break;
 						default:
-							if( su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD ) {
-								state |= BCT_ENEMY;
-								strip_enemy = 0;
-							} else
-								return 0;
-							break;
+							return 0;
 					}
 				} else if( su->group->skill_id == WZ_ICEWALL || su->group->skill_id == GN_WALLOFTHORN ) {
 					state |= BCT_ENEMY;
 					strip_enemy = 0;
-				} else //Excepting traps and icewall, you should not be able to target skills.
+				} else //Excepting traps, icewall, wall of thornes, you should not be able to target skills.
 					return 0;
 			}
 			break;
@@ -7395,30 +7389,30 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 
 	switch( t_bl->type ) { //Checks on target master
 		case BL_PC: {
-			struct map_session_data *sd;
+				struct map_session_data *sd;
 
-			if( t_bl == s_bl ) break;
-			sd = BL_CAST(BL_PC, t_bl);
+				if( t_bl == s_bl )
+					break;
 
-			if( sd->state.monster_ignore && flag&BCT_ENEMY )
-				return 0; //Global immunity only to Attacks
-			if( sd->status.karma && s_bl->type == BL_PC && ((TBL_PC*)s_bl)->status.karma )
-				state |= BCT_ENEMY; //Characters with bad karma may fight amongst them
-			if( sd->state.killable ) {
-				state |= BCT_ENEMY; //Everything can kill it
-				strip_enemy = 0;
+				sd = BL_CAST(BL_PC, t_bl);
+
+				if( sd->state.monster_ignore && flag&BCT_ENEMY )
+					return 0; //Global immunity only to Attacks
+				if( sd->status.karma && s_bl->type == BL_PC && ((TBL_PC*)s_bl)->status.karma )
+					state |= BCT_ENEMY; //Characters with bad karma may fight amongst them
+				if( sd->state.killable ) {
+					state |= BCT_ENEMY; //Everything can kill it
+					strip_enemy = 0;
+				}
 			}
 			break;
-		}
 		case BL_MOB: {
-			struct mob_data *md = BL_CAST(BL_MOB, t_bl);
+				struct mob_data *md = BL_CAST(BL_MOB, t_bl);
 
-			if( !((agit_flag || agit2_flag) && map[m].flag.gvg_castle) && md->guardian_data && md->guardian_data->guild_id )
-				return 0; //Disable guardians/emperiums owned by Guilds on non-woe times.
+				if( !((agit_flag || agit2_flag) && map[m].flag.gvg_castle) && md->guardian_data && md->guardian_data->guild_id )
+					return 0; //Disable guardians/emperiums owned by Guilds on non-woe times.
+			}
 			break;
-		}
-		default:
-			break; //Other type doesn't have slave yet
 	} //End switch master target
 
 	switch( src->type ) { //Checks on actual src type
@@ -7433,7 +7427,6 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 
 				if( !su->group )
 					return 0;
-
 				if( su->group->src_id == target->id ) {
 					int inf2 = skill_get_inf2(su->group->skill_id);
 
@@ -7458,8 +7451,8 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 					if( sd->state.killer ) {
 						state |= BCT_ENEMY; //Can kill anything
 						strip_enemy = 0;
-					} else if( sd->duel_group && !((!battle_config.duel_allow_pvp && map[m].flag.pvp) || (!battle_config.duel_allow_gvg && map_flag_gvg(m))) )
-					{
+					} else if( sd->duel_group && !((!battle_config.duel_allow_pvp && map[m].flag.pvp) ||
+						(!battle_config.duel_allow_gvg && map_flag_gvg(m))) ) {
 						if( t_bl->type == BL_PC && (sd->duel_group == ((TBL_PC*)t_bl)->duel_group) )
 							return (BCT_ENEMY&flag) ? 1 : -1; //Duel targets can ONLY be your enemy, nothing else.
 						else
@@ -7492,8 +7485,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 				}
 			}
 			break;
-		default:
-			//Need some sort of default behaviour for unhandled types.
+		default: //Need some sort of default behaviour for unhandled types.
 			if( t_bl->type != s_bl->type )
 				state |= BCT_ENEMY;
 			break;

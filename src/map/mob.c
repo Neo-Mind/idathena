@@ -2606,7 +2606,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	}
 
 	if(!md->spawn) //Tell status_damage to remove it from memory.
-		return 5; //Note: Actually, it's 4. Oh well.
+		return 5; //NOTE: Actually, it's 4. Oh well.
 
 	//MvP tomb [GreenBox]
 	if(battle_config.mvp_tomb_enabled && md->spawn->state.boss && map[md->bl.m].flag.notomb != 1)

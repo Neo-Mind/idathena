@@ -1783,7 +1783,7 @@ static void clif_move2(struct block_list *bl, struct view_data *vd, struct unit_
 
 /// Notifies clients in an area, that an other visible object is walking (ZC_NOTIFY_PLAYERMOVE).
 /// 0086 <id>.L <walk data>.6B <walk start time>.L
-/// Note: unit must not be self
+/// NOTE: unit must not be self
 void clif_move(struct unit_data *ud)
 {
 	unsigned char buf[16];
@@ -5123,7 +5123,7 @@ void clif_skillcastcancel(struct block_list* bl)
 ///     ? = ignored
 ///
 /// if(result != 0) doesn't display any of the previous messages
-/// Note: when this packet is received an unknown flag is always set to 0,
+/// NOTE: when this packet is received an unknown flag is always set to 0,
 /// suggesting this is an ACK packet for the UseSkill packets and should be sent on success too [FlavioJS]
 void clif_skill_fail(struct map_session_data *sd,uint16 skill_id,enum useskill_fail_cause cause,int btype)
 {
@@ -10437,13 +10437,14 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 		case 0x00: // Once attack
 		case 0x07: // Continuous attack
 
-			if( pc_cant_act(sd) || sd->sc.option&OPTION_HIDE )
+			if( pc_cant_act(sd) || (sd->sc.option&OPTION_HIDE) )
 				return;
 
 			if( sd->sc.option&(OPTION_WEDDING|OPTION_XMAS|OPTION_SUMMER|OPTION_HANBOK|OPTION_OKTOBERFEST) )
 				return;
 
-			if( sd->sc.data[SC_BASILICA] || sd->sc.data[SC__SHADOWFORM] )
+			if( sd->sc.data[SC_BASILICA] || sd->sc.data[SC__SHADOWFORM] ||
+				(sd->sc.data[SC_VOICEOFSIREN] && sd->sc.data[SC_VOICEOFSIREN]->val2 == target_id) )
 				return;
 
 			if( !battle_config.sdelay_attack_enable && pc_checkskill(sd, SA_FREECAST) <= 0 ) {
@@ -11474,7 +11475,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 		if( skill_lv != sd->skillitemlv )
 			skill_lv = sd->skillitemlv;
 		if( !(tmp&INF_SELF_SKILL) )
-			pc_delinvincibletimer(sd); // Target skills thru items cancel invincibility. [Inkfish]
+			pc_delinvincibletimer(sd); // Target skills through items cancel invincibility. [Inkfish]
 		unit_skilluse_id(&sd->bl, target_id, skill_id, skill_lv);
 		return;
 	}
@@ -13522,7 +13523,7 @@ void clif_parse_NoviceDoriDori(int fd, struct map_session_data *sd)
 
 /// Request to invoke the effect of super novice's guardian angel prayer (CZ_CHOPOKGI).
 /// 01ed
-/// Note: This packet is caused by 7 lines of any text, followed by
+/// NOTE: This packet is caused by 7 lines of any text, followed by
 ///       the prayer and an another line of any text. The prayer is
 ///       defined by lines 790~793 in data\msgstringtable.txt
 ///       "Dear angel, can you hear my voice?"
@@ -17587,7 +17588,7 @@ static int clif_parse(int fd)
 	int pnum;
 
 	//@TODO: Apply delays or disconnect based on packet throughput [FlavioJS]
-	//Note: "click masters" can do 80+ clicks in 10 seconds
+	//NOTE: "click masters" can do 80+ clicks in 10 seconds
 
 	//Limit max packets per cycle to 3 (delay packet spammers) [FlavioJS] -- This actually aids packet spammers, but stuff like /str+ gets slow without it [Ai4rei]
 	for( pnum = 0; pnum < 3; ++pnum ) { //Begin main client packet processing loop

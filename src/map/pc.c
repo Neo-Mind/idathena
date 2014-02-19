@@ -6979,7 +6979,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 #if 0
 						//PK/Karma system code (not enabled yet) [celest]
 						//originally from Kade Online, so i don't know if any of these is correct ^^;
-						//note: karma is measured REVERSE, so more karma = more 'evil' / less honourable,
+						//NOTE: karma is measured REVERSE, so more karma = more 'evil' / less honourable,
 						//karma going down = more 'good' / more honourable.
 						//The Karma System way.
 

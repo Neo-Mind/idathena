@@ -426,7 +426,7 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 
 #ifdef RENEWAL
 	//MATK part of the RE heal formula [malufett]
-	//Note: In this part matk bonuses from items and skills are not applied
+	//NOTE: In this part matk bonuses from items and skills are not applied
 	switch( skill_id ) {
 		case BA_APPLEIDUN:
 		case PR_SANCTUARY:
@@ -1112,7 +1112,6 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		case RG_RAID:
 			sc_start(src,bl,SC_STUN,(10 + 3 * skill_lv),skill_lv,skill_get_time(skill_id,skill_lv));
 			sc_start(src,bl,SC_BLIND,(10 + 3 * skill_lv),skill_lv,skill_get_time2(skill_id,skill_lv));
-
 #ifdef RENEWAL
 			sc_start(src,bl,SC_RAID,100,7,5000);
 			break;
@@ -1263,7 +1262,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			}
 			break;
 		case TK_TURNKICK:
-		case MO_BALKYOUNG: //Note: attack_type is passed as BF_WEAPON for the actual target, BF_MISC for the splash-affected mobs.
+		case MO_BALKYOUNG: //NOTE: attack_type is passed as BF_WEAPON for the actual target, BF_MISC for the splash-affected mobs.
 			if( attack_type&BF_MISC ) //70% base stun chance.
 				sc_start(src,bl,SC_STUN,70,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
@@ -1925,7 +1924,7 @@ static int skill_area_temp[8];
  * attack skill kills the enemy. Place in this function counter status effects
  * when using skills (eg: Asura's sp regen penalty, or counter-status effects
  * from cards) that will take effect on the source, not the target. [Skotlex]
- * Note: Currently this function only applies to Extremity Fist and BF_WEAPON
+ * NOTE: Currently this function only applies to Extremity Fist and BF_WEAPON
  * type of skills, so not every instance of skill_additional_effect needs a call
  * to this one.
  */
@@ -3268,11 +3267,12 @@ static int skill_check_unit_range_sub (struct block_list *bl, va_list ap)
 		case RA_FIRINGTRAP:
 		case RA_ICEBOUNDTRAP:
 		case SC_DIMENSIONDOOR:
+		case SC_CHAOSPANIC:
 		case SC_BLOODYLUST:
 		case GN_THORNS_TRAP:
 		case GN_HELLS_PLANT:
 		case RL_B_TRAP:
-			//Non stackable on themselves and traps (including venom dust which does not has the trap inf2 set)
+			//Non stackable on themselves and traps (including venom dust and poison mist which does not has the trap inf2 set)
 			if (skill_id != g_skill_id && !(skill_get_inf2(g_skill_id)&INF2_TRAP) && g_skill_id != AS_VENOMDUST && g_skill_id != MH_POISON_MIST)
 				return 0;
 			break;
@@ -3288,7 +3288,7 @@ static int skill_check_unit_range_sub (struct block_list *bl, va_list ap)
 static int skill_check_unit_range (struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv)
 {
 	//Non players do not check for the skill's splash-trigger area.
-	int range = bl->type == BL_PC ? skill_get_unit_range(skill_id,skill_lv) : 0;
+	int range = (bl->type == BL_PC ? skill_get_unit_range(skill_id,skill_lv) : 0);
 	int layout_type = skill_get_unit_layout_type(skill_id,skill_lv);
 
 	if (layout_type == -1 || layout_type > MAX_SQUARE_LAYOUT) {
@@ -10898,7 +10898,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 				//Does not consumes if the skill is already active. [Skotlex]
 				struct skill_unit_group *sg;
 
-				if ((sg = skill_locate_element_field(src)) != NULL && ( sg->skill_id == SA_VOLCANO || sg->skill_id == SA_DELUGE || sg->skill_id == SA_VIOLENTGALE )) {
+				if ((sg = skill_locate_element_field(src)) != NULL && (sg->skill_id == SA_VOLCANO || sg->skill_id == SA_DELUGE || sg->skill_id == SA_VIOLENTGALE)) {
 					if (sg->limit - DIFF_TICK(gettick(),sg->tick) > 0) {
 						skill_unitsetting(src,skill_id,skill_lv,x,y,0);
 						return 0; //Not to consume items
@@ -11948,10 +11948,10 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 					target = BCT_ALL;
 			}
 			break;
-		case SA_LANDPROTECTOR:
 		case SA_VOLCANO:
 		case SA_DELUGE:
 		case SA_VIOLENTGALE:
+		case SA_LANDPROTECTOR:
 			{
 				struct skill_unit_group *old_sg;
 
@@ -11969,8 +11969,8 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 					}
 					skill_clear_group(src,1);
 				}
-				break;
 			}
+			break;
 		case BA_WHISTLE:
 			val1 = skill_lv + status->agi / 10; //Flee increase
 			val2 = ((skill_lv + 1) / 2) + status->luk / 10; //Perfect dodge increase
@@ -12589,7 +12589,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 	struct block_list *ss;
 	TBL_PC* tsd;
 	struct status_data *tstatus;
-	struct status_change *tsc;
+	struct status_change *sc, *tsc;
 	struct skill_unit_group_tickset *ts;
 	enum sc_type type;
 	uint16 skill_id;
@@ -12603,8 +12603,13 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 
 	nullpo_ret(sg = src->group);
 	nullpo_ret(ss = map_id2bl(sg->src_id));
+	sc = status_get_sc(ss);
 	tsd = BL_CAST(BL_PC,bl);
 	tsc = status_get_sc(bl);
+
+	if (sc && sc->data[SC_VOICEOFSIREN] && sc->data[SC_VOICEOFSIREN]->val2 == bl->id &&
+		(skill_get_inf2(sg->skill_id)&INF2_TRAP))
+		return 0;
 
 	if (tsc && tsc->data[SC_HOVERING]) {
 		switch (sg->unit_id) {
@@ -12663,8 +12668,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				if (sg->skill_id == GN_WALLOFTHORN && battle_check_target(ss,bl,BCT_ENEMY) <= 0)
 					break;
 
-				//Take into account these hit more times than the timer interval can handle.
-				do
+				do //Take into account these hit more times than the timer interval can handle.
 					skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick + count * sg->interval,0);
 				while (--src->val2 && x == bl->x && y == bl->y &&
 					++count < SKILLUNITTIMER_INTERVAL / sg->interval && !status_isdead(bl));
@@ -16254,6 +16258,7 @@ struct skill_unit_group *skill_locate_element_field(struct block_list *bl)
 			case SA_VIOLENTGALE:
 			case SA_LANDPROTECTOR:
 			case NJ_SUITON:
+			case NJ_KAENSIN:
 			case SO_CLOUD_KILL:
 			case SO_WARMER:
 			case SC_CHAOSPANIC:
@@ -16856,7 +16861,7 @@ int skill_delunit (struct skill_unit* unit)
 					status_change_end(target, SC_ELECTRICSHOCKER, INVALID_TIMER);
 			}
 			break;
-		case SC_MANHOLE: //Note : Removing the unit don't remove the status (official info)
+		case SC_MANHOLE: //NOTE: Removing the unit don't remove the status (official info)
 			if( group->val2 ) { //Someone Traped
 				struct status_change *tsc = status_get_sc(map_id2bl(group->val2));
 
@@ -17281,6 +17286,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 
 			case UNT_CALLFAMILY: {
 					struct map_session_data *sd = NULL;
+
 					if(group->val1) {
 						sd = map_charid2sd(group->val1);
 						group->val1 = 0;
@@ -17359,7 +17365,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 					if( group->unit_id == UNT_ANKLESNARE && group->val2 > 0 )
 						skill_delunit(unit);
 					else {
-						clif_changetraplook(bl, group->unit_id == UNT_LANDMINE ? UNT_FIREPILLAR_ACTIVE : UNT_USED_TRAPS);
+						clif_changetraplook(bl, (group->unit_id == UNT_LANDMINE ? UNT_FIREPILLAR_ACTIVE : UNT_USED_TRAPS));
 						group->limit = DIFF_TICK(tick, group->tick) + 1500;
 						group->unit_id = UNT_USED_TRAPS;
 					}

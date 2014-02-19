@@ -184,7 +184,7 @@ int mapif_parse_quest_save(int fd) {
 /**
  * Sends questlog to the map server
  *
- * Note: Completed quests (state == Q_COMPLETE) are guaranteed to be sent last
+ * NOTE: Completed quests (state == Q_COMPLETE) are guaranteed to be sent last
  * and the map server relies on this behavior (once the first Q_COMPLETE quest,
  * all of them are considered to be Q_COMPLETE)
  *

@@ -5780,7 +5780,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 #ifdef RENEWAL_ASPD
 /*==========================================
 * Renewal attack speed modifiers after base calculation
-* Note: This function only affects RENEWAL players
+* NOTE: This function only affects RENEWAL players
 * @param bl: Object to change aspd (PC)
 * @param sc: Object's status change information
 * @param flag:  flag&1 - fixed value [malufett]
@@ -5905,7 +5905,7 @@ static short status_calc_aspd(struct block_list *bl, struct status_change *sc, s
 /*==========================================
 * Modifies ASPD by a number, rather than a percentage (10 = 1 ASPD)
 * A subtraction reduces the delay, meaning an increase in ASPD
-* Note: This comes after the percentage changes
+* NOTE: This comes after the percentage changes
 * @param bl: Object to change aspd (PC|HOM|MERC|MOB|ELEM)
 * @param sc: Object's status change information
 * @param aspd: Object's current ASPD
@@ -5933,7 +5933,7 @@ static short status_calc_fix_aspd(struct block_list *bl, struct status_change *s
 
 /*==========================================
 * Calculates an object's ASPD modifier (alters the base amotion value).
-* Note: The scale of aspd_rate is 1000 = 100%.
+* NOTE: The scale of aspd_rate is 1000 = 100%.
 * Note2: This only affects Homunculus, Mercenaries, and Pre-renewal Players
 * @param bl: Object to change aspd (PC|HOM|MERC|MOB|ELEM)
 * @param sc: Object's status change information
@@ -10470,7 +10470,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_AUTOTRADE:
 			if (tid == INVALID_TIMER)
 				break;
-			//Note: vending/buying is closed by unit_remove_map, no
+			//NOTE: vending/buying is closed by unit_remove_map, no
 			//need to do it here.
 			map_quit(sd);
 			//Because map_quit calls status_change_end with tid -1
