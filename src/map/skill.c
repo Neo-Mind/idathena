@@ -2329,6 +2329,7 @@ int skill_blown(struct block_list* src, struct block_list* target, int count, in
 					case UNT_ANKLESNARE:
 					case UNT_ELECTRICSHOCKER:
 					case UNT_REVERBERATION:
+					case UNT_NETHERWORLD:
 						return 0; //Cannot be knocked back
 				}
 			}
@@ -3845,11 +3846,11 @@ int skill_cleartimerskill (struct block_list *src)
 }
 static int skill_active_reverberation(struct block_list *bl, va_list ap) {
 	struct skill_unit *su = (TBL_SKILL*)bl;
-	struct skill_unit_group *sg;
+	struct skill_unit_group *sg = su->group;
 
 	if (bl->type != BL_SKILL)
 		return 0;
-	if (su->alive && (sg = su->group) && sg->skill_id == WM_REVERBERATION) {
+	if (su->alive && sg && sg->skill_id == WM_REVERBERATION) {
 		map_foreachinrange(skill_trap_splash, bl, skill_get_splash(sg->skill_id, sg->skill_lv), sg->bl_flag, bl, gettick());
 		su->limit = DIFF_TICK(gettick(), sg->tick);
 		sg->unit_id = UNT_USED_TRAPS;
@@ -12264,6 +12265,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 				val2 = 0;
 				break;
 			case WM_REVERBERATION:
+			case WM_POEMOFNETHERWORLD:
 				val1 = 1 + skill_lv;
 				break;
 			case GN_WALLOFTHORN:
@@ -13662,8 +13664,9 @@ int skill_unit_ondamaged (struct skill_unit *src, struct block_list *bl, int64 d
 		case UNT_TALKIEBOX:
 		case UNT_ANKLESNARE:
 		case UNT_ICEWALL:
-		case UNT_REVERBERATION:
 		case UNT_WALLOFTHORN:
+		case UNT_REVERBERATION:
+		case UNT_NETHERWORLD:
 			src->val1 -= (int)cap_value(damage,INT_MIN,INT_MAX);
 			break;
 		default:
@@ -16544,8 +16547,7 @@ static int skill_trap_splash (struct block_list *bl, va_list ap)
 			if( bl->type != BL_PC && !is_boss(bl) )
 				sc_start2(ss,bl,SC_ELEMENTALCHANGE,100,sg->skill_lv,skill_get_ele(sg->skill_id,sg->skill_lv),skill_get_time2(sg->skill_id,sg->skill_lv));
 			break;
-		case UNT_REVERBERATION:
-			//For proper skill delay animation when use with Dominion Impulse
+		case UNT_REVERBERATION: //For proper skill delay animation when use with Dominion Impulse
 			skill_addtimerskill(ss,tick + 50,bl->id,0,0,WM_REVERBERATION_MELEE,sg->skill_lv,BF_WEAPON,0);
 			skill_addtimerskill(ss,tick + 250,bl->id,0,0,WM_REVERBERATION_MAGIC,sg->skill_lv,BF_MAGIC,0);
 			break;
@@ -17275,8 +17277,8 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 
 			case UNT_WARP_ACTIVE:
 				//Warp portal opens (morph to a UNT_WARP_WAITING cell)
-				group->unit_id = skill_get_unit_id(group->skill_id, 1); //UNT_WARP_WAITING
-				clif_changelook(&unit->bl, LOOK_BASE, group->unit_id);
+				group->unit_id = skill_get_unit_id(group->skill_id,1); //UNT_WARP_WAITING
+				clif_changelook(&unit->bl,LOOK_BASE,group->unit_id);
 				//Restart timers
 				group->limit = skill_get_time(group->skill_id,group->skill_lv);
 				unit->limit = skill_get_time(group->skill_id,group->skill_lv);
@@ -17304,12 +17306,14 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 				break;
 
 			case UNT_REVERBERATION:
+			case UNT_NETHERWORLD:
 				if( unit->val1 <= 0 ) { //If it was deactivated.
 					skill_delunit(unit);
 					break;
 				}
 				clif_changetraplook(bl,UNT_USED_TRAPS);
-				map_foreachinrange(skill_trap_splash, bl, skill_get_splash(group->skill_id, group->skill_lv), group->bl_flag, bl, tick);
+				if( group->unit_id == UNT_REVERBERATION )
+					map_foreachinrange(skill_trap_splash,bl,skill_get_splash(group->skill_id,group->skill_lv),group->bl_flag,bl,tick);
 				group->limit = DIFF_TICK(tick,group->tick) + 1000;
 				unit->limit = DIFF_TICK(tick,group->tick) + 1000;
 				group->unit_id = UNT_USED_TRAPS;
@@ -17319,7 +17323,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 					struct block_list *src =  map_id2bl(group->src_id);
 
 					if( src )
-						map_foreachinrange(skill_area_sub, &group->unit->bl, unit->range, splash_target(src), src, SC_FEINTBOMB, group->skill_lv, tick, BCT_ENEMY|SD_ANIMATION|1, skill_castend_damage_id);
+						map_foreachinrange(skill_area_sub,&group->unit->bl,unit->range,splash_target(src),src,SC_FEINTBOMB,group->skill_lv,tick,BCT_ENEMY|SD_ANIMATION|1,skill_castend_damage_id);
 					skill_delunit(unit);
 				}
 				break;
@@ -17365,16 +17369,18 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 					if( group->unit_id == UNT_ANKLESNARE && group->val2 > 0 )
 						skill_delunit(unit);
 					else {
-						clif_changetraplook(bl, (group->unit_id == UNT_LANDMINE ? UNT_FIREPILLAR_ACTIVE : UNT_USED_TRAPS));
-						group->limit = DIFF_TICK(tick, group->tick) + 1500;
+						clif_changetraplook(bl,(group->unit_id == UNT_LANDMINE ? UNT_FIREPILLAR_ACTIVE : UNT_USED_TRAPS));
+						group->limit = DIFF_TICK(tick,group->tick) + 1500;
 						group->unit_id = UNT_USED_TRAPS;
 					}
 				}
 				break;
 			case UNT_REVERBERATION:
+			case UNT_NETHERWORLD:
 				if( unit->val1 <= 0 ) {
 					clif_changetraplook(bl,UNT_USED_TRAPS);
-					map_foreachinrange(skill_trap_splash, bl, skill_get_splash(group->skill_id, group->skill_lv), group->bl_flag, bl, tick);
+					if( group->unit_id == UNT_REVERBERATION )
+						map_foreachinrange(skill_trap_splash,bl,skill_get_splash(group->skill_id,group->skill_lv),group->bl_flag,bl,tick);
 					group->limit = DIFF_TICK(tick,group->tick) + 1000;
 					unit->limit = DIFF_TICK(tick,group->tick) + 1000;
 					group->unit_id = UNT_USED_TRAPS;
@@ -17383,7 +17389,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 			case UNT_WALLOFTHORN:
 				if( unit->val1 <= 0 ) {
 					group->unit_id = UNT_USED_TRAPS;
-					group->limit = DIFF_TICK(tick, group->tick) + 1500;
+					group->limit = DIFF_TICK(tick,group->tick) + 1500;
 				}
 				break;
 		}
@@ -17393,13 +17399,13 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 	if( !group || !unit->alive )
 		return 0;
 
-	dissonance = skill_dance_switch(unit, 0);
+	dissonance = skill_dance_switch(unit,0);
 
 	if( unit->range >= 0 && group->interval != -1 ) {
 		if( battle_config.skill_wall_check )
-			map_foreachinshootrange(skill_unit_timer_sub_onplace, bl, unit->range, group->bl_flag, bl,tick);
+			map_foreachinshootrange(skill_unit_timer_sub_onplace,bl,unit->range,group->bl_flag,bl,tick);
 		else
-			map_foreachinrange(skill_unit_timer_sub_onplace, bl, unit->range, group->bl_flag, bl,tick);
+			map_foreachinrange(skill_unit_timer_sub_onplace,bl,unit->range,group->bl_flag,bl,tick);
 
 		if( unit->range == -1 ) //Unit disabled, but it should not be deleted yet.
 			group->unit_id = UNT_USED_TRAPS;
@@ -17413,7 +17419,8 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 		}
 	}
 
-	if( dissonance ) skill_dance_switch(unit, 1);
+	if( dissonance )
+		skill_dance_switch(unit,1);
 
 	return 0;
 }

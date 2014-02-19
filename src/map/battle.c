@@ -1911,7 +1911,7 @@ static bool target_has_infinite_defense(struct block_list *target, int skill_id)
 	if(target->type == BL_SKILL) {
 		TBL_SKILL *su = (TBL_SKILL*)target;
 
-		if(su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD) )
+		if(su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
 			return true;
 	}
 	return (tstatus->mode&MD_PLANT && skill_id != RA_CLUSTERBOMB
