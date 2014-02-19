@@ -4705,7 +4705,7 @@ static unsigned short status_calc_agi(struct block_list *bl, struct status_chang
 		agi -= sc->data[SC_DECREASEAGI]->val2;
 	if(sc->data[SC_QUAGMIRE])
 		agi -= sc->data[SC_QUAGMIRE]->val2;
-	if(sc->data[SC_SUITON] && sc->data[SC_SUITON]->val3)
+	if(sc->data[SC_SUITON] && sc->data[SC_SUITON]->val2)
 		agi -= sc->data[SC_SUITON]->val2;
 	if(sc->data[SC_MARIONETTE])
 		agi -= ((sc->data[SC_MARIONETTE]->val3)>>8)&0xFF;
@@ -8143,16 +8143,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 #endif
 				break;
 			case SC_SUITON:
-				if( !val2 || (sd && (sd->class_&MAPID_BASEMASK) == MAPID_NINJA) ) {
-					//No penalties
-					val2 = 0; //Agi penalty
-					val3 = 0; //Walk speed penalty
+				if( !val2 || (sd && (sd->class_&MAPID_BASEMASK) == MAPID_NINJA) ) { //No penalties
+					val2 = 0;
+					val3 = 0;
 					break;
 				}
-				val3 = 50;
-				val2 = 3 * ((val1 + 1) / 3);
-				if( val1 > 4 )
-					val2--;
+				val2 = (val1 < 2) ? 0 : (val1 > 1 && val1 < 5) ? 3 : (val1 > 4 && val1 < 8) ? 5 : 8 ; //Agi penalty
+				val3 = 50; //Walk speed penalty
 				break;
 			case SC_ONEHAND:
 			case SC_TWOHANDQUICKEN:
