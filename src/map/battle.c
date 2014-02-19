@@ -6473,7 +6473,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	switch(skill_id) {
 		case RA_FIRINGTRAP:
  		case RA_ICEBOUNDTRAP:
-			if(md.damage == 1) break;
+			if(md.damage == 1)
+				break;
 		case RA_CLUSTERBOMB: {
 				struct Damage wd = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
 
@@ -6560,7 +6561,8 @@ int64 battle_calc_return_damage(struct block_list* bl, struct block_list *src, i
 	if( (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT ) { //Bounces back part of the damage.
 		if( !status_reflect && sd && sd->bonus.short_weapon_damage_return ) {
 			rdamage += (damage * sd->bonus.short_weapon_damage_return) / 100;
-			if( rdamage < 1 ) rdamage = 1;
+			if( rdamage < 1 )
+				rdamage = 1;
 		} else if( status_reflect && sc && sc->count ) {
 			if( sc->data[SC_REFLECTSHIELD] && skill_id != WS_CARTTERMINATION ) {
 #ifndef RENEWAL
@@ -6580,7 +6582,8 @@ int64 battle_calc_return_damage(struct block_list* bl, struct block_list *src, i
 #ifdef RENEWAL
 				rdamage = cap_value(rdamage, 1, max_damage);
 #else
-				if( rdamage < 1 ) rdamage = 1;
+				if( rdamage < 1 )
+					rdamage = 1;
 #endif
 			}
 			if( sc->data[SC_DEATHBOUND] && skill_id != WS_CARTTERMINATION && !(src->type == BL_MOB && is_boss(src)) ) {
@@ -6588,6 +6591,7 @@ int64 battle_calc_return_damage(struct block_list* bl, struct block_list *src, i
 
 				if( distance_bl(src, bl) <= 0 || !map_check_dir(dir, t_dir) ) {
 					int64 rd1 = 0;
+
 					rd1 = min(damage, status_get_max_hp(bl)) * sc->data[SC_DEATHBOUND]->val2 / 100; //Amplify damage.
 					damage = rd1 * 30 / 100; //Player receives 30% of the amplified damage.
 					clif_skill_damage(src, bl, gettick(), status_get_amotion(src), 0, -30000, 1, RK_DEATHBOUND, sc->data[SC_DEATHBOUND]->val1, 6);
@@ -6603,7 +6607,8 @@ int64 battle_calc_return_damage(struct block_list* bl, struct block_list *src, i
 					max_damage = max_damage * status_get_lv(bl) / 100;
 					rdamage = cap_value(rdamage, 1, max_damage);
 #else
-					if( rdamage < 1 ) rdamage = 1;
+					if( rdamage < 1 )
+						rdamage = 1;
 #endif
 					if( (--sc->data[SC_REFLECTDAMAGE]->val3) <= 0 )
 						status_change_end(bl, SC_REFLECTDAMAGE, INVALID_TIMER);
@@ -6615,14 +6620,16 @@ int64 battle_calc_return_damage(struct block_list* bl, struct block_list *src, i
 #ifdef RENEWAL
 				rdamage = cap_value(rdamage, 1, max_damage);
 #else
-				if( rdamage < 1 ) rdamage = 1;
+				if( rdamage < 1 )
+					rdamage = 1;
 #endif
 			}
 		}
 	} else {
 		if( !status_reflect && sd && sd->bonus.long_weapon_damage_return ) {
 			rdamage += (damage * sd->bonus.long_weapon_damage_return) / 100;
-			if( rdamage < 1 ) rdamage = 1;
+			if( rdamage < 1 )
+				rdamage = 1;
 		}
 	}
 
@@ -6631,7 +6638,8 @@ int64 battle_calc_return_damage(struct block_list* bl, struct block_list *src, i
 #ifdef RENEWAL
 		rdamage = cap_value(rdamage, 1, max_damage);
 #else
-		if( rdamage < 1 ) rdamage = 1;
+		if( rdamage < 1 )
+			rdamage = 1;
 #endif
 	}
 

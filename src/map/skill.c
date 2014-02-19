@@ -2328,8 +2328,6 @@ int skill_blown(struct block_list* src, struct block_list* target, int count, in
 				switch( su->group->unit_id ) {
 					case UNT_ANKLESNARE:
 					case UNT_ELECTRICSHOCKER:
-					case UNT_CLUSTERBOMB:
-					case UNT_MANHOLE:
 					case UNT_REVERBERATION:
 						return 0; //Cannot be knocked back
 				}
@@ -12809,7 +12807,7 @@ static int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *
 				int sec = skill_get_time2(skill_id,skill_lv);
 
 				if (status_change_start(ss,bl,type,10000,skill_lv,sg->group_id,0,0,sec,8)) {
-					const struct TimerData* td = tsc->data[type] ? get_timer(tsc->data[type]->timer) : NULL;
+					const struct TimerData* td = (tsc->data[type] ? get_timer(tsc->data[type]->timer) : NULL);
 					int range = skill_get_unit_range(skill_id,skill_lv);
 					int knockback_immune = (tsd ? !tsd->special_state.no_knockback : !(tstatus->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS)));
 
@@ -13412,7 +13410,7 @@ static int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *
 /*==========================================
  * Triggered when a char steps out of a skill cell
  *------------------------------------------*/
-int skill_unit_onout (struct skill_unit *src, struct block_list *bl, unsigned int tick)
+static int skill_unit_onout (struct skill_unit *src, struct block_list *bl, unsigned int tick)
 {
 	struct skill_unit_group *sg;
 	struct status_change *sc;
@@ -16863,7 +16861,7 @@ int skill_delunit (struct skill_unit* unit)
 					status_change_end(target, SC_ELECTRICSHOCKER, INVALID_TIMER);
 			}
 			break;
-		case SC_MANHOLE: //NOTE: Removing the unit don't remove the status (official info)
+		case SC_MANHOLE: //NOTE: Removing the unit don't remove the status (Official info)
 			if( group->val2 ) { //Someone Traped
 				struct status_change *tsc = status_get_sc(map_id2bl(group->val2));
 
