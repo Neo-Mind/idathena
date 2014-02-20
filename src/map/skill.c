@@ -9213,6 +9213,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 					case 2: {
 							int splashrange = 0;
+
 							if ( sd->bonus.shieldmdef >= 1 && sd->bonus.shieldmdef <= 3 )
 								splashrange = 1;
 							else if ( sd->bonus.shieldmdef >= 4 && sd->bonus.shieldmdef <= 5 )
@@ -9243,6 +9244,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					case 3: {
 							int val_def = 0;
 							struct item *shield = &sd->status.inventory[sd->equip_index[EQI_HAND_L]];
+
 							switch( opt ) {
 								case 1:
 									//Allows you to break armor at a 100% rate when you do damage.
