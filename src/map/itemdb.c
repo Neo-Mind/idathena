@@ -1423,7 +1423,7 @@ static int itemdb_readdb(void)
 				continue;
 
 			if (duplicate[id])
-				ShowWarning("itemdb_readdb: %s: duplicate entry of ID #%d (%s/%s)\n", filename[fi], id, itemdb_name(id), itemdb_jname(id));
+				ShowWarning("itemdb_readdb: %s: duplicate entry of ID #%d (%s/%s)\n", path, id, itemdb_name(id), itemdb_jname(id));
 			else
 				duplicate[id] = true;
 
@@ -1432,7 +1432,7 @@ static int itemdb_readdb(void)
 
 		fclose(fp);
 
-		ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", count, filename[fi]);
+		ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", count, path);
 	}
 
 	return 0;
