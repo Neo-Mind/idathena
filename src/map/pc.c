@@ -5037,15 +5037,15 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 			y = rnd()%(map[m].ys - 2) + 1;
 		} while( map_getcell(m, x, y, CELL_CHKNOPASS) );
 	}
-	
+
 	if( sd->state.vending && map_getcell(m, x, y, CELL_CHKNOVENDING) ) {
 		clif_displaymessage(sd->fd, msg_txt(204)); // "You can't open a shop on this cell."
 		vending_closevending(sd);
 	}
 
 	if( sd->bl.prev != NULL ) {
-		unit_remove_map_pc(sd,clrtype);
-		clif_changemap(sd,m,x,y); // [MouseJstr]
+		unit_remove_map_pc(sd, clrtype);
+		clif_changemap(sd, m, x, y); // [MouseJstr]
 	} else if( sd->state.active ) // Tag player for rewarping after map-loading is done. [Skotlex]
 		sd->state.rewarp = 1;
 

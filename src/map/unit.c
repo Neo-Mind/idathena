@@ -787,12 +787,14 @@ int unit_movepos(struct block_list *bl, short dst_x, short dst_y, int easy, bool
 	sd = BL_CAST(BL_PC, bl);
 	ud = unit_bl2ud(bl);
 
-	if( ud == NULL) return 0;
+	if( ud == NULL )
+		return 0;
 
-	unit_stop_walking(bl,1);
+	unit_stop_walking(bl, 1);
 	unit_stop_attack(bl);
 
-	if( checkpath && (map_getcell(bl->m,dst_x,dst_y,CELL_CHKNOPASS) || !path_search(NULL,bl->m,bl->x,bl->y,dst_x,dst_y,easy,CELL_CHKNOREACH)) )
+	if( checkpath && (map_getcell(bl->m, dst_x, dst_y, CELL_CHKNOPASS) ||
+		!path_search(NULL, bl->m, bl->x, bl->y, dst_x, dst_y, easy, CELL_CHKNOREACH)) )
 		return 0; //Unreachable
 
 	ud->to_x = dst_x;
@@ -804,19 +806,19 @@ int unit_movepos(struct block_list *bl, short dst_x, short dst_y, int easy, bool
 	dx = dst_x - bl->x;
 	dy = dst_y - bl->y;
 
-	map_foreachinmovearea(clif_outsight, bl, AREA_SIZE, dx, dy, sd?BL_ALL:BL_PC, bl);
+	map_foreachinmovearea(clif_outsight, bl, AREA_SIZE, dx, dy, (sd ? BL_ALL : BL_PC), bl);
 
 	map_moveblock(bl, dst_x, dst_y, gettick());
 
 	ud->walktimer = CLIF_WALK_TIMER; //Arbitrary non-INVALID_TIMER value to make the clif code send walking packets
-	map_foreachinmovearea(clif_insight, bl, AREA_SIZE, -dx, -dy, sd?BL_ALL:BL_PC, bl);
+	map_foreachinmovearea(clif_insight, bl, AREA_SIZE, -dx, -dy, (sd ? BL_ALL : BL_PC), bl);
 	ud->walktimer = INVALID_TIMER;
 
 	if( sd ) {
 		if( sd->touching_id )
-			npc_touchnext_areanpc(sd,false);
-		if( map_getcell(bl->m,bl->x,bl->y,CELL_CHKNPC) ) {
-			npc_touch_areanpc(sd,bl->m,bl->x,bl->y);
+			npc_touchnext_areanpc(sd, false);
+		if( map_getcell(bl->m, bl->x, bl->y, CELL_CHKNPC) ) {
+			npc_touch_areanpc(sd, bl->m, bl->x, bl->y);
 			if( bl->prev == NULL ) //Script could have warped char, abort remaining of the function.
 				return 0;
 		} else
@@ -826,13 +828,13 @@ int unit_movepos(struct block_list *bl, short dst_x, short dst_y, int easy, bool
 			int flag = 0;
 			struct block_list* bl = &sd->pd->bl;
 
-			if( !checkpath && !path_search(NULL,bl->m,bl->x,bl->y,dst_x,dst_y,0,CELL_CHKNOPASS) )
+			if( !checkpath && !path_search(NULL, bl->m, bl->x, bl->y, dst_x, dst_y, 0, CELL_CHKNOPASS) )
 				flag = 1;
 			else if (!check_distance_bl(&sd->bl, bl, AREA_SIZE)) //Too far, teleport.
 				flag = 2;
 			if( flag ) {
-				unit_movepos(bl,sd->bl.x,sd->bl.y, 0, 0);
-				clif_slide(bl,bl->x,bl->y);
+				unit_movepos(bl, sd->bl.x, sd->bl.y, 0, 0);
+				clif_slide(bl, bl->x, bl->y);
 			}
 		}
 	}
@@ -845,7 +847,7 @@ int unit_movepos(struct block_list *bl, short dst_x, short dst_y, int easy, bool
  * @param dir: Direction (0-7)
  * @return 0
  */
-int unit_setdir(struct block_list *bl,unsigned char dir)
+int unit_setdir(struct block_list *bl, unsigned char dir)
 {
 	struct unit_data *ud;
 
@@ -962,12 +964,13 @@ int unit_warp(struct block_list *bl,short m,short x,short y,clr_type type)
 	if (bl->prev == NULL || !ud)
 		return 1;
 
+	//Type 1 is invalid, since you shouldn't warp a bl with the "death"
+	//animation, it messes up with unit_remove_map! [Skotlex]
 	if (type == CLR_DEAD)
-		//Type 1 is invalid, since you shouldn't warp a bl with the "death"
-		//animation, it messes up with unit_remove_map! [Skotlex]
 		return 1;
 
-	if (m < 0) m = bl->m;
+	if (m < 0)
+		m = bl->m;
 
 	switch (bl->type) {
 		case BL_MOB:
@@ -2614,7 +2617,7 @@ void unit_remove_map_pc(struct map_session_data *sd, clr_type clrtype)
 	unit_remove_map(&sd->bl,clrtype);
 
 	//CLR_TELEPORT is the warp from logging out, but pets/homunc need to just 'vanish' instead of showing the warping out animation.
-	if (clrtype == CLR_TELEPORT)
+	if (clrtype == CLR_RESPAWN || clrtype == CLR_TELEPORT)
 		clrtype = CLR_OUTSIGHT;
 
 	if (sd->pd)
@@ -2666,32 +2669,26 @@ int unit_free(struct block_list *bl, clr_type clrtype)
 
 				if( status_isdead(bl) )
 					pc_setrestartvalue(sd, 2);
-
 				pc_delinvincibletimer(sd);
 				pc_delautobonus(sd, sd->autobonus, ARRAYLENGTH(sd->autobonus), false);
 				pc_delautobonus(sd, sd->autobonus2, ARRAYLENGTH(sd->autobonus2), false);
 				pc_delautobonus(sd, sd->autobonus3, ARRAYLENGTH(sd->autobonus3), false);
-
 				if( sd->followtimer != INVALID_TIMER )
 					pc_stop_following(sd);
-
 				if( sd->duel_invite > 0 )
 					duel_reject(sd->duel_invite, sd);
-
-				channel_pcquit(sd,0xF); //Leave all channel
+				channel_pcquit(sd, 0xF); //Leave all channel
 				skill_blockpc_clear(sd); //Clear all skill cooldown related
-
 				//Notify friends that this char logged out. [Skotlex]
 				map_foreachpc(clif_friendslist_toggle_sub, sd->status.account_id, sd->status.char_id, 0);
 				party_send_logout(sd);
-				guild_send_memberinfoshort(sd,0);
+				guild_send_memberinfoshort(sd, 0);
 				pc_cleareventtimer(sd);
 				pc_inventory_rental_clear(sd);
-				pc_delspiritball(sd,sd->spiritball,1);
+				pc_delspiritball(sd, sd->spiritball, 1);
 				for( i = 1; i < 5; i++ )
 					pc_del_talisman(sd, sd->talisman[i], i);
-
-				if( sd->reg ) { //Double logout already freed pointer fix... [Skotlex]
+				if( sd->reg ) { //Double logout already freed pointer fix. [Skotlex]
 					aFree(sd->reg);
 					sd->reg = NULL;
 					sd->reg_num = 0;
@@ -2704,7 +2701,7 @@ int unit_free(struct block_list *bl, clr_type clrtype)
 					sd->regstr = NULL;
 					sd->regstr_num = 0;
 				}
-				if( sd->st && sd->st->state != RUN ) {// free attached scripts that are waiting
+				if( sd->st && sd->st->state != RUN ) { //Free attached scripts that are waiting
 					script_free_state(sd->st);
 					sd->st = NULL;
 					sd->npc_id = 0;

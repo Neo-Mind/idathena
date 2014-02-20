@@ -2483,6 +2483,7 @@ void skill_combo(struct block_list* src, struct block_list *dsrc, struct block_l
 				break;
 			case AC_DOUBLE: {
 					unsigned char race = status_get_race(bl);
+
 					if ((race == RC_BRUTE || race == RC_INSECT) && pc_checkskill(sd, HT_POWER) > 0)
 						duration = 2000;
 					break;
@@ -4201,35 +4202,17 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 #ifndef RENEWAL
 		case NJ_ISSEN:
-			status_change_end(src,SC_NEN,INVALID_TIMER);
-			status_change_end(src,SC_HIDING,INVALID_TIMER);
 #endif
-		//Fall through
 		case MO_EXTREMITYFIST:
 			{
-				short x, y, i = 2; //Move 2 cells (from target)
-				struct block_list *mbl = bl;
-				short dir = 0;
+				struct block_list *mbl = bl; //For NJ_ISSEN
+				short x, y, i = 2; //Move 2 cells (From target)
+				short dir = map_calc_dir(src,bl->x,bl->y);
 
-				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 				if (skill_id == MO_EXTREMITYFIST) {
-					mbl = src;
-					i = 3; //For Asura(from caster)
-					status_set_sp(src,0,0);
-					status_change_end(src,SC_EXPLOSIONSPIRITS,INVALID_TIMER);
-					status_change_end(src,SC_BLADESTOP,INVALID_TIMER);
-#ifdef RENEWAL
-					sc_start(src,src,SC_EXTREMITYFIST2,100,skill_lv,skill_get_time(skill_id,skill_lv));
-#endif
-				} else
-					status_set_hp(src,
-#ifdef RENEWAL
-					max(status_get_max_hp(src) / 100,1)
-#else
-					1
-#endif
-					,0);
-				dir = map_calc_dir(src,bl->x,bl->y);
+					mbl = src; //For MO_EXTREMITYFIST
+					i = 3; //Move 3 cells (From caster)
+				}
 				if (dir > 0 && dir < 4)
 					x = -i;
 				else if (dir > 4)
@@ -4242,12 +4225,25 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					y = i;
 				else
 					y = 0;
-				//Don't have slide effect in GVG
+				//Ashura Strike still has slide effect in GVG
 				if ((mbl == src || (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground)) &&
 					unit_movepos(src,mbl->x + x,mbl->y + y,1,1)) {
-					clif_slide(src,src->x,src->y);
+					clif_slide(src,mbl->x + x,mbl->y + y);
 					clif_fixpos(src);
 					clif_spiritball(src);
+				}
+				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
+				if (skill_id == MO_EXTREMITYFIST) {
+					status_set_sp(src,0,0);
+					status_change_end(src,SC_EXPLOSIONSPIRITS,INVALID_TIMER);
+					status_change_end(src,SC_BLADESTOP,INVALID_TIMER);
+#ifdef RENEWAL
+					sc_start(src,src,SC_EXTREMITYFIST2,100,skill_lv,skill_get_time(skill_id,skill_lv));
+#endif
+				} else {
+					status_set_hp(src,1,0);
+					status_change_end(src,SC_NEN,INVALID_TIMER);
+					status_change_end(src,SC_HIDING,INVALID_TIMER);
 				}
 			}
 			break;
@@ -4642,34 +4638,33 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 #ifdef RENEWAL
 		case NJ_ISSEN: {
-			short x, y, i = 2; //Move 2 cells (from target)
-			struct block_list *mbl = bl;
-			short dir = 0;
+			short x, y;
+			short dir = map_calc_dir(src,bl->x,bl->y);
 
-			status_change_end(src,SC_NEN,INVALID_TIMER);
-			status_change_end(src,SC_HIDING,INVALID_TIMER);
-			skill_attack(BF_MISC,src,src,bl,skill_id,skill_lv,tick,flag);
-			status_set_hp(src,max(status_get_max_hp(src) / 100,1),0);
-			dir = map_calc_dir(src,bl->x,bl->y);
+			//Move 2 cells (From target)
 			if (dir > 0 && dir < 4)
-				x = -i;
+				x = -2;
 			else if (dir > 4)
-				x = i;
+				x = 2;
 			else
 				x = 0;
 			if (dir > 2 && dir < 6)
-				y = -i;
+				y = -2;
 			else if (dir == 7 || dir < 2)
-				y = i;
+				y = 2;
 			else
 				y = 0;
-			//Don't have slide effect in GVG
-			if ((mbl == src || (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground)) &&
-				unit_movepos(src,mbl->x + x,mbl->y + y,1,1)) {
-				clif_slide(src,src->x,src->y);
+			//Doesn't have slide effect in GVG
+			if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground &&
+				unit_movepos(src,bl->x + x,bl->y + y,1,1)) {
+				clif_slide(src,bl->x + x,bl->y + y);
 				clif_fixpos(src);
 				clif_spiritball(src);
 			}
+			skill_attack(BF_MISC,src,src,bl,skill_id,skill_lv,tick,flag);
+			status_set_hp(src,max(status_get_max_hp(src) / 100,1),0);
+			status_change_end(src,SC_NEN,INVALID_TIMER);
+			status_change_end(src,SC_HIDING,INVALID_TIMER);
 		}
 		break;
 #endif
@@ -4677,20 +4672,20 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case RK_DRAGONBREATH:
 		case RK_DRAGONBREATH_WATER:
 			{
-				struct status_change *tsc = NULL;
+				struct status_change *tsc = status_get_sc(bl);
 
-				if ((tsc = status_get_sc(bl)) && (tsc->data[SC_HIDING])) {
+				if (tsc && tsc->data[SC_HIDING])
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
-				} else
+				else
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			}
 			break;
 
 		case NPC_SELFDESTRUCTION: {
-			struct status_change *tsc = NULL;
+				struct status_change *tsc = status_get_sc(bl);
 
-			if ((tsc = status_get_sc(bl)) && tsc->data[SC_HIDING])
-				break;
+				if (tsc && tsc->data[SC_HIDING])
+					break;
 			}
 		case HVAN_EXPLOSION:
 			if (src != bl)
@@ -4717,6 +4712,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			{
 				int heal = skill_attack((skill_id == NPC_BLOODDRAIN) ? BF_WEAPON : BF_MAGIC,
 					src,src,bl,skill_id,skill_lv,tick,flag);
+
 				if (heal > 0) {
 					clif_skill_nodamage(NULL,src,AL_HEAL,heal,1);
 					status_heal(src,heal,0,0);
@@ -4744,7 +4740,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
 		case GC_DARKILLUSION: {
-				short x,y;
+				short x, y;
 				short dir = map_calc_dir(src,bl->x,bl->y);
 
 				if (dir > 0 && dir < 4)
@@ -10613,11 +10609,9 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 		return 1;
 	} while( 0 );
 
-	//Skill failed.
+	//When Asura Strike fails. (Except when it fails from Wall of Fog)
 	if( ud->skill_id == MO_EXTREMITYFIST && sd && !(sc && sc->data[SC_FOGWALL]) ) {
-		//When Asura fails... (except when it fails from Wall of Fog)
-		//Consume SP/spheres
-		skill_consume_requirement(sd,ud->skill_id,ud->skill_lv,1);
+		skill_consume_requirement(sd,ud->skill_id,ud->skill_lv,1); //Consume SP/spheres
 		status_set_sp(src,0,0);
 		sc = &sd->sc;
 		if( sc->count ) { //End states
@@ -10628,20 +10622,28 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 #endif
 		}
 		if( target && target->m == src->m ) { //Move character to target anyway.
-			int dir, x, y;
+			short x, y;
+			short dir = map_calc_dir(src,target->x,target->y);
 
-			dir = map_calc_dir(src,target->x,target->y);
-			if( dir > 0 && dir < 4) x = -2;
-			else if( dir > 4 ) x = 2;
-			else x = 0;
-			if( dir > 2 && dir < 6 ) y = -2;
-			else if( dir == 7 || dir < 2 ) y = 2;
-			else y = 0;
+			//Move 3 cells (From Caster)
+			if( dir > 0 && dir < 4 )
+				x = -3;
+			else if( dir > 4 )
+				x = 3;
+			else
+				x = 0;
+			if( dir > 2 && dir < 6 )
+				y = -3;
+			else if( dir == 7 || dir < 2 )
+				y = 3;
+			else
+				y = 0;
 			if( unit_movepos(src,src->x + x,src->y + y,1,1) ) { //Display movement + animation.
-				clif_slide(src,src->x,src->y);
-				clif_skill_damage(src,target,tick,sd->battle_status.amotion,0,0,1,ud->skill_id,ud->skill_lv,5);
+				clif_slide(src,src->x + x,src->y + y);
+				clif_fixpos(src);
+				clif_spiritball(src);
 			}
-			clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
+			clif_skill_damage(src,target,tick,sd->battle_status.amotion,0,0,1,ud->skill_id,ud->skill_lv,5);
 		}
 	}
 

@@ -10530,13 +10530,13 @@ void clif_parse_Restart(int fd, struct map_session_data *sd)
 {
 	switch(RFIFOB(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0])) {
 		case 0x00:
-			pc_respawn(sd,CLR_RESPAWN);
+			pc_respawn(sd, CLR_OUTSIGHT);
 			break;
 		case 0x01:
 			/* Rovert's Prevent logout option - Fixed [Valaris] */
 			if( !sd->sc.data[SC_CLOAKING] && !sd->sc.data[SC_HIDING] && !sd->sc.data[SC_CHASEWALK] && !sd->sc.data[SC_CLOAKINGEXCEED] &&
 				(!battle_config.prevent_logout || DIFF_TICK(gettick(), sd->canlog_tick) > battle_config.prevent_logout) )
-			{	//Send to char-server for character selection.
+			{ //Send to char-server for character selection.
 				pc_damage_log_clear(sd, 0);
 				chrif_charselectreq(sd, session[fd]->client_addr);
 			} else
