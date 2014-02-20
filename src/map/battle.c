@@ -3603,7 +3603,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			skillratio += 100 + 100 * skill_lv + sstatus->vit;
 			RE_LVL_DMOD(100);
 			i = distance_bl(src,target);
-			if( i > 5 )
+			if(i > 5)
 				skillratio = skillratio * 75 / 100;
 			break;
 		case SC_FATALMENACE:

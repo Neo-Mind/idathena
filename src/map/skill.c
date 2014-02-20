@@ -11981,7 +11981,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			}
 			break;
 		case DC_HUMMING:
-			val1 = 2 * skill_lv+status->dex / 10; //Hit increase
+			val1 = 2 * skill_lv + status->dex / 10; //Hit increase
 #ifdef RENEWAL
 				val1 *= 2;
 #endif
@@ -11993,7 +11993,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			//For some reason at level 10 the base delay reduction is 50%.
 			val2 = (skill_lv < 10 ? 3 * skill_lv : 50) + status->int_ / 5; //After-cast delay reduction
 			if( sd ) {
-				val1 += 2 * pc_checkskill(sd,BA_MUSICALLESSON);
+				val1 += pc_checkskill(sd,BA_MUSICALLESSON);
 				val2 += 2 * pc_checkskill(sd,BA_MUSICALLESSON);
 			}
 			break;
@@ -12013,7 +12013,6 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		case DC_SERVICEFORYOU:
 			//val1: MaxSP percent increase
 			val1 = 15 + skill_lv + status->int_ / 10; //Bonus rate by Dancer's INT
-
 			//val2: SP cost reduction
 			val2 = 20 + 3 * skill_lv;
 			if( sd )
