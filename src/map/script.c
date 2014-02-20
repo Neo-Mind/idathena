@@ -7072,18 +7072,18 @@ BUILDIN_FUNC(getpartyleader)
 
 	p = party_search(party_id);
 
-	if (p) //Search leader
-		for(i = 0; i < MAX_PARTY && !p->party.member[i].leader; i++);
+	if( p ) //Search leader
+		for( i = 0; i < MAX_PARTY && !p->party.member[i].leader; i++ );
 
-	if (!p || i == MAX_PARTY) { //Leader not found
-		if (type)
+	if( !p || i == MAX_PARTY ) { //Leader not found
+		if( type )
 			script_pushint(st,-1);
 		else
 			script_pushconststr(st,"null");
 		return 0;
 	}
 
-	switch (type) {
+	switch( type ) {
 		case 1: script_pushint(st,p->party.member[i].account_id); break;
 		case 2: script_pushint(st,p->party.member[i].char_id); break;
 		case 3: script_pushint(st,p->party.member[i].class_); break;
@@ -7157,29 +7157,27 @@ BUILDIN_FUNC(strcharinfo)
 	struct guild* g;
 	struct party_data* p;
 
-	sd=script_rid2sd(st);
-	if (!sd) { //Avoid crashing....
+	sd = script_rid2sd(st);
+	if( !sd ) { //Avoid crashing
 		script_pushconststr(st,"");
 		return 0;
 	}
-	num=script_getnum(st,2);
-	switch(num) {
+	num = script_getnum(st,2);
+	switch( num ) {
 		case 0:
 			script_pushstrcopy(st,sd->status.name);
 			break;
 		case 1:
-			if( ( p = party_search(sd->status.party_id) ) != NULL ) {
+			if( (p = party_search(sd->status.party_id)) != NULL )
 				script_pushstrcopy(st,p->party.name);
-			} else {
+			else
 				script_pushconststr(st,"");
-			}
 			break;
 		case 2:
-			if( ( g = sd->guild ) != NULL ) {
+			if( (g = sd->guild) != NULL )
 				script_pushstrcopy(st,g->name);
-			} else {
+			else
 				script_pushconststr(st,"");
-			}
 			break;
 		case 3:
 			script_pushconststr(st,map[sd->bl.m].name);
@@ -7206,49 +7204,49 @@ BUILDIN_FUNC(strnpcinfo)
 {
 	TBL_NPC* nd;
 	int num;
-	char *buf,*name=NULL;
+	char *buf, *name = NULL;
 
 	nd = map_id2nd(st->oid);
-	if (!nd) {
-		script_pushconststr(st, "");
+	if( !nd ) {
+		script_pushconststr(st,"");
 		return 0;
 	}
 
 	num = script_getnum(st,2);
-	switch(num){
+	switch( num ) {
 		case 0: // Display name
 			name = aStrdup(nd->name);
 			break;
 		case 1: // Visible part of display name
-			if((buf = strchr(nd->name,'#')) != NULL)
-			{
+			if( (buf = strchr(nd->name,'#')) != NULL ) {
 				name = aStrdup(nd->name);
 				name[buf - nd->name] = 0;
 			} else // Return the name, there is no '#' present
 				name = aStrdup(nd->name);
 			break;
 		case 2: // # Fragment
-			if((buf = strchr(nd->name,'#')) != NULL)
-				name = aStrdup(buf+1);
+			if( (buf = strchr(nd->name,'#')) != NULL )
+				name = aStrdup(buf + 1);
 			break;
 		case 3: // Unique name
 			name = aStrdup(nd->exname);
 			break;
 		case 4: // Map name
-			name = aStrdup(map[nd->bl.m].name);
+			if( nd->bl.m >= 0 ) // Only valid map indexes allowed (bugreport:8034)
+				name = aStrdup(map[nd->bl.m].name);
 			break;
 	}
 
-	if(name)
-		script_pushstr(st, name);
+	if( name )
+		script_pushstr(st,name);
 	else
-		script_pushconststr(st, "");
+		script_pushconststr(st,"");
 
 	return SCRIPT_CMD_SUCCESS;
 }
 
 // Aegis->Athena slot position conversion table
-static unsigned int equip[] = {EQP_HEAD_TOP,EQP_ARMOR,EQP_HAND_L,EQP_HAND_R,EQP_GARMENT,EQP_SHOES,EQP_ACC_L,EQP_ACC_R,EQP_HEAD_MID,EQP_HEAD_LOW,EQP_COSTUME_HEAD_LOW,EQP_COSTUME_HEAD_MID,EQP_COSTUME_HEAD_TOP,EQP_COSTUME_GARMENT,EQP_AMMO,EQP_SHADOW_ARMOR,EQP_SHADOW_WEAPON,EQP_SHADOW_SHIELD,EQP_SHADOW_SHOES,EQP_SHADOW_ACC_R,EQP_SHADOW_ACC_L};
+static unsigned int equip[] = { EQP_HEAD_TOP,EQP_ARMOR,EQP_HAND_L,EQP_HAND_R,EQP_GARMENT,EQP_SHOES,EQP_ACC_L,EQP_ACC_R,EQP_HEAD_MID,EQP_HEAD_LOW,EQP_COSTUME_HEAD_LOW,EQP_COSTUME_HEAD_MID,EQP_COSTUME_HEAD_TOP,EQP_COSTUME_GARMENT,EQP_AMMO,EQP_SHADOW_ARMOR,EQP_SHADOW_WEAPON,EQP_SHADOW_SHIELD,EQP_SHADOW_SHOES,EQP_SHADOW_ACC_R,EQP_SHADOW_ACC_L };
 
 /*==========================================
  * GetEquipID(Pos);     Pos: 1-14
@@ -7300,16 +7298,14 @@ BUILDIN_FUNC(getequipname)
 		return 0;
 
 	num = script_getnum(st,2) - 1;
-	if( num < 0 || num >= ARRAYLENGTH(equip) )
-	{
+	if( num < 0 || num >= ARRAYLENGTH(equip) ) {
 		script_pushconststr(st,"");
 		return 0;
 	}
 
-	// get inventory position of item
+	// Get inventory position of item
 	i = pc_checkequip(sd,equip[num]);
-	if( i < 0 )
-	{
+	if( i < 0 ) {
 		script_pushconststr(st,"");
 		return 0;
 	}

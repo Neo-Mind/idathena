@@ -12713,8 +12713,7 @@ static int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *
 				skill_delunitgroup(sg);
 			break;
 
-		case UNT_EVILLAND:
-			//Will heal demon and undead element monsters, but not players.
+		case UNT_EVILLAND: //Will heal demon and undead element monsters, but not players.
 			if ((bl->type == BL_PC) || (!battle_check_undead(tstatus->race,tstatus->def_ele) && tstatus->race != RC_DEMON)) {
 				if (battle_check_target(&src->bl,bl,BCT_ENEMY) > 0) //Damage enemies
 					skill_attack(BF_MISC,ss,&src->bl,bl,skill_id,skill_lv,tick,0);
@@ -12745,8 +12744,8 @@ static int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *
 						int count = 0;
 						const int x = bl->x, y = bl->y;
 
-						//If target isn't knocked back it should hit every "interval" ms [Playtester]
-						do {
+						map_freeblock_lock();
+						do { //If target isn't knocked back it should hit every "interval" ms [Playtester]
 							if (bl->type == BL_PC)
 								status_zap(bl,0,15); //Sp damage to players
 							else if (status_charge(ss,0,2)) { //Costs 2 SP per hit to mobs
@@ -12757,12 +12756,12 @@ static int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *
 								sg->limit = DIFF_TICK(tick,sg->tick);
 								break;
 							}
-						} while (x == bl->x && y == bl->y &&
+						} while (x == bl->x && y == bl->y && sg->alive_count &&
 							++count < SKILLUNITTIMER_INTERVAL / sg->interval && !status_isdead(bl));
+						map_freeblock_unlock();
 					}
 					break;
-				//Storm Gust counter was dropped in renewal
-#ifndef RENEWAL
+#ifndef RENEWAL //Storm Gust counter was dropped in renewal
 				case WZ_STORMGUST:
 					//SG counter does not reset per stormgust. IE: One hit from a SG and two hits from another will freeze you
 					if (tsc) {
