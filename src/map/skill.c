@@ -4762,7 +4762,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					if (rnd()%100 < 4 * skill_lv)
 						skill_castend_damage_id(src,bl,GC_CROSSIMPACT,skill_lv,tick,flag);
 				}
-
 			}
 			break;
 
