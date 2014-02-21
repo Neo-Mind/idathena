@@ -12152,7 +12152,6 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		case GN_WALLOFTHORN:
 			if( flag&1 )
 				limit = 3000;
-			val2 = 20; //Max hits
 			val3 = (x<<16)|y;
 			break;
 		case GN_FIRE_EXPANSION_SMOKE_POWDER:
@@ -12280,6 +12279,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 				break;
 			case GN_WALLOFTHORN:
 				val1 = 2000 + 2000 * skill_lv; //Thorn Walls HP
+				val2 = 20; //Max hits
 				break;
 			default:
 				if( group->state.song_dance&0x1 )
