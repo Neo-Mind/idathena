@@ -4898,7 +4898,7 @@ int pc_steal_coin(struct map_session_data *sd,struct block_list *target)
 	if( !sd || !target || target->type != BL_MOB )
 		return 0;
 
-	md = (TBL_MOB*)target;
+	md = ((TBL_MOB*)target);
 	if( md->state.steal_coin_flag || md->sc.data[SC_STONE] || md->sc.data[SC_FREEZE] || md->status.mode&MD_BOSS )
 		return 0;
 

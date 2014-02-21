@@ -2291,7 +2291,6 @@ int skill_strip_equip(struct block_list *src, struct block_list *bl, unsigned sh
 int skill_blown(struct block_list* src, struct block_list* target, int count, int8 dir, int flag)
 {
 	int dx = 0, dy = 0;
-	struct skill_unit* su = NULL;
 
 	nullpo_ret(src);
 
@@ -2321,16 +2320,18 @@ int skill_blown(struct block_list* src, struct block_list* target, int count, in
 					return 0;
 			}
 			break;
-		case BL_SKILL:
-			su = (struct skill_unit *)target;
+		case BL_SKILL: {
+				struct skill_unit* su = ((struct skill_unit *)target);
 
-			if( su && su->group ) {
-				switch( su->group->unit_id ) {
-					case UNT_ANKLESNARE:
-					case UNT_ELECTRICSHOCKER:
-					case UNT_REVERBERATION:
-					case UNT_NETHERWORLD:
-						return 0; //Cannot be knocked back
+				if( su && su->group ) {
+					switch( su->group->unit_id ) {
+						case UNT_ICEWALL:
+						case UNT_ANKLESNARE:
+						case UNT_ELECTRICSHOCKER:
+						case UNT_REVERBERATION:
+						case UNT_NETHERWORLD:
+							return 0; //Cannot be knocked back
+					}
 				}
 			}
 			break;
@@ -3043,7 +3044,6 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			case WL_CRIMSONROCK:
 				dir = map_calc_dir(bl, skill_area_temp[4], skill_area_temp[5]);
 				break;
-
 		}
 		//Blown-specific handling
 		switch (skill_id) {
@@ -3072,12 +3072,6 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				break;
 			default:
 				skill_blown(dsrc, bl, dmg.blewcount, dir, 0);
-				if (!dmg.blewcount && bl->type == BL_SKILL && damage > 0) {
-					TBL_SKILL *su = ((TBL_SKILL*)bl);
-
-					if (su->group && su->group->skill_id == HT_BLASTMINE)
-						skill_blown(src, bl, 3, -1, 0);
-				}
 				break;
 		}
 	}
@@ -10996,7 +10990,6 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case WM_POEMOFNETHERWORLD:
 		case SO_PSYCHIC_WAVE:
 		case SO_VACUUM_EXTREME:
-		case GN_WALLOFTHORN:
 		case GN_THORNS_TRAP:
 		case GN_DEMONIC_FIRE:
 		case GN_HELLS_PLANT:
@@ -11436,6 +11429,20 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case WM_DOMINION_IMPULSE:
 			i = skill_get_splash(skill_id,skill_lv);
 			map_foreachinarea(skill_active_reverberation,src->m,x-i,y-i,x+i,y+i,BL_SKILL);
+			break;
+
+		case GN_WALLOFTHORN: {
+				static const int dx[] = {-1,-2,-2,-2,-2,-2,-1, 0, 1, 2, 2, 2, 2, 2, 1, 0};
+				static const int dy[] = { 2, 2, 1, 0,-1,-2,-2,-2,-2,-2,-1, 0, 1, 2, 2, 2};
+				struct unit_data *ud = unit_bl2ud(src);
+
+				for( i = 0; i < 16; i++ ) {
+					x = ud->skillx + dx[i];
+					y = ud->skilly + dy[i];
+					skill_unitsetting(src,skill_id,skill_lv,x,y,0);
+				}
+				flag |= 1;
+			}
 			break;
 
 		case GN_CRAZYWEED: {
@@ -12145,6 +12152,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		case GN_WALLOFTHORN:
 			if( flag&1 )
 				limit = 3000;
+			val2 = 20; //Max hits
 			val3 = (x<<16)|y;
 			break;
 		case GN_FIRE_EXPANSION_SMOKE_POWDER:
@@ -12395,7 +12403,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 
 					if( status_change_start(ss,bl,type,10000,skill_lv,1,sg->group_id,0,sec,8) ) {
 						const struct TimerData* td = (sc->data[type] ? get_timer(sc->data[type]->timer) : NULL);
-						int knockback_immune = sd ? !sd->special_state.no_knockback : !(status->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS));
+						int knockback_immune = (sd ? !sd->special_state.no_knockback : !(status->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS)));
 
 						if( td )
 							sec = DIFF_TICK(td->tick,tick);
@@ -12446,8 +12454,8 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 				if( bl->type == BL_PC && !working ) {
 					struct map_session_data *sd = (struct map_session_data *)bl;
 
-					if( (!sd->chatID || battle_config.chat_warpportal)
-						&& sd->ud.to_x == src->bl.x && sd->ud.to_y == src->bl.y )
+					if( (!sd->chatID || battle_config.chat_warpportal) &&
+						sd->ud.to_x == src->bl.x && sd->ud.to_y == src->bl.y )
 					{
 						int x = sg->val2>>16;
 						int y = sg->val2&0xffff;
@@ -12464,9 +12472,11 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 
 						pc_setpos(sd,m,x,y,CLR_TELEPORT);
 					}
-				} else if( bl->type == BL_MOB && battle_config.mob_warp&2 ) {
+				} else if( bl->type == BL_MOB && (battle_config.mob_warp&2) ) {
 					int16 m = map_mapindex2mapid(sg->val3);
-					if( m < 0 ) break; //Map not available on this map-server.
+
+					if( m < 0 )
+						break; //Map not available on this map-server.
 					unit_warp(bl,m,sg->val2>>16,sg->val2&0xffff,CLR_TELEPORT);
 				}
 			}
@@ -13059,7 +13069,6 @@ static int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *
 					skill_blown(&src->bl,bl,2,unit_getdir(bl),0);
 					clif_fixpos(bl);
 				}
-
 				if (sg->src_id != bl->id && i <= 0)
 					sc_start4(ss,bl,type,100,0,0,0,src->bl.id,sg->interval + 100);
 			}
@@ -14013,8 +14022,8 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		case AS_CLOAKING: {
 				if( skill_lv < 3 && ((sd->bl.type == BL_PC && (battle_config.pc_cloak_check_type&1)) ||
 					(sd->bl.type != BL_PC && (battle_config.monster_cloak_check_type&1))) ) { //Check for walls.
-					static int dx[] = { 0, 1, 0, -1, -1,  1, 1, -1};
-					static int dy[] = {-1, 0, 1,  0, -1, -1, 1,  1};
+					static const int dx[] = { 0, 1, 0, -1, -1,  1, 1, -1};
+					static const int dy[] = {-1, 0, 1,  0, -1, -1, 1,  1};
 					int i;
 
 					ARR_FIND(0,8,i,map_getcell(sd->bl.m,sd->bl.x + dx[i],sd->bl.y + dy[i],CELL_CHKNOPASS) != 0);
@@ -16654,8 +16663,8 @@ bool skill_check_cloaking(struct block_list *bl, struct status_change_entry *sce
 	if( (bl->type == BL_PC && battle_config.pc_cloak_check_type&1) ||
 		(bl->type != BL_PC && battle_config.monster_cloak_check_type&1) )
 	{ //Check for walls.
-		static int dx[] = { 0, 1, 0, -1, -1,  1, 1, -1};
-		static int dy[] = {-1, 0, 1,  0, -1, -1, 1,  1};
+		static const int dx[] = { 0, 1, 0, -1, -1,  1, 1, -1};
+		static const int dy[] = {-1, 0, 1,  0, -1, -1, 1,  1};
 		int i;
 
 		ARR_FIND( 0, 8, i, map_getcell(bl->m, bl->x + dx[i], bl->y + dy[i], CELL_CHKNOPASS) != 0 );
@@ -16686,8 +16695,8 @@ bool skill_check_camouflage(struct block_list *bl, struct status_change_entry *s
 	bool wall = true;
 
 	if( bl->type == BL_PC ) { //Check for walls.
-		static int dx[] = { 0, 1, 0, -1, -1,  1, 1, -1};
-		static int dy[] = {-1, 0, 1,  0, -1, -1, 1,  1};
+		static const int dx[] = { 0, 1, 0, -1, -1,  1, 1, -1};
+		static const int dy[] = {-1, 0, 1,  0, -1, -1, 1,  1};
 		int i;
 
 		ARR_FIND(0, 8, i, map_getcell(bl->m, bl->x + dx[i], bl->y + dy[i], CELL_CHKNOPASS) != 0);
@@ -17331,9 +17340,9 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 
 			case UNT_BANDING: {
 					struct block_list *src = map_id2bl(group->src_id);
-					struct status_change *sc;
+					struct status_change *sc = status_get_sc(src);
 
-					if( !src || (sc = status_get_sc(src)) == NULL || !sc->data[SC_BANDING] ) {
+					if( !src || !sc || !sc->data[SC_BANDING] ) {
 						skill_delunit(unit);
 						break;
 					}
@@ -17349,8 +17358,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 		}
 	} else { //Skill unit is still active
 		switch( group->unit_id ) {
-			case UNT_ICEWALL:
-				//Icewall loses 50 hp every second
+			case UNT_ICEWALL: //Icewall loses 50 hp every second
 				unit->val1 -= SKILLUNITTIMER_INTERVAL / 20; //Trap's hp
 				if( unit->val1 <= 0 && unit->limit + group->tick > tick + 700 )
 					unit->limit = DIFF_TICK(tick + 700,group->tick);
@@ -17389,8 +17397,8 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 				break;
 			case UNT_WALLOFTHORN:
 				if( unit->val1 <= 0 ) {
+					group->limit = DIFF_TICK(tick,group->tick);
 					group->unit_id = UNT_USED_TRAPS;
-					group->limit = DIFF_TICK(tick,group->tick) + 1500;
 				}
 				break;
 		}
@@ -17596,15 +17604,13 @@ int skill_unit_move_unit_group (struct skill_unit_group *group, int16 m, int16 d
 	if (skill_get_unit_flag(group->skill_id)&UF_ENSEMBLE)
 		return 0; //Ensembles may not be moved around.
 
-	if (group->unit_id == UNT_ICEWALL || group->unit_id == UNT_WALLOFTHORN)
-		return 0; //Icewalls and Wall of Thorns don't get knocked back
-
 	m_flag = (int *) aCalloc(group->unit_count, sizeof(int));
 	//   m_flag
 	//		0: Neither of the following (skill_unit_onplace & skill_unit_onout are needed)
 	//		1: Unit will move to a slot that had another unit of the same group (skill_unit_onplace not needed)
 	//		2: Another unit from same group will end up positioned on this unit (skill_unit_onout not needed)
-	//		3: Both 1+2.
+	//		3: Both (1 + 2)
+
 	for (i = 0; i < group->unit_count; i++) {
 		unit1 = &group->unit[i];
 		if (!unit1->alive || unit1->bl.m != m)
@@ -17619,7 +17625,9 @@ int skill_unit_move_unit_group (struct skill_unit_group *group, int16 m, int16 d
 				m_flag[i] |= 0x2;
 		}
 	}
+
 	j = 0;
+
 	for (i = 0; i < group->unit_count; i++) {
 		unit1 = &group->unit[i];
 		if (!unit1->alive)
@@ -17659,7 +17667,9 @@ int skill_unit_move_unit_group (struct skill_unit_group *group, int16 m, int16 d
 			map_foreachincell(skill_unit_effect,unit1->bl.m,unit1->bl.x,unit1->bl.y,group->bl_flag,&unit1->bl,tick,1);
 		}
 	}
+
 	aFree(m_flag);
+
 	return 0;
 }
 
@@ -18970,6 +18980,7 @@ void skill_init_unit_layout (void)
 			if( skill == EL_FIRE_MANTLE ) {
 				static const int dx[] = {-1, 0, 1, 1, 1, 0,-1,-1};
 				static const int dy[] = { 1, 1, 1, 0,-1,-1,-1, 0};
+
 				skill_unit_layout[pos].count = 8;
 				memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 				memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
@@ -18990,6 +19001,7 @@ void skill_init_unit_layout (void)
 						static const int dy[]={
 							-2,-2,-2,-1,-1,-1,-1,-1, 0, 0,
 							 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2};
+
 						skill_unit_layout[pos].count = 21;
 						memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 						memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
@@ -19004,6 +19016,7 @@ void skill_init_unit_layout (void)
 							-3,-3,-3,-2,-2,-2,-1,-1,-1,-1,
 							-1,-1,-1, 0, 0, 0, 0, 0, 0, 0,
 							 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3};
+
 						skill_unit_layout[pos].count = 33;
 						memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 						memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
@@ -19012,6 +19025,7 @@ void skill_init_unit_layout (void)
 				case AS_VENOMDUST: {
 						static const int dx[] = {-1, 0, 0, 0, 1};
 						static const int dy[] = { 0,-1, 0, 1, 0};
+
 						skill_unit_layout[pos].count = 5;
 						memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 						memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
@@ -19027,6 +19041,7 @@ void skill_init_unit_layout (void)
 							-4,-3,-2,-2,-2,-1,-1,-1,-1,-1,
 							 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 							 1, 1, 1, 1, 2, 2, 2, 3, 4};
+
 						skill_unit_layout[pos].count = 29;
 						memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 						memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
@@ -19037,6 +19052,7 @@ void skill_init_unit_layout (void)
 							-2,-1, 0, 1, 2,-2,-1, 0, 1, 2,-2,-1, 0, 1, 2};
 						static const int dy[] = {
 							-1,-1,-1,-1,-1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1};
+
 						skill_unit_layout[pos].count = 15;
 						memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 						memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
@@ -19053,6 +19069,7 @@ void skill_init_unit_layout (void)
 							-1,-1,-1, 0, 0, 0, 0, 0, 0, 0,
 							 1, 1, 1, 1, 1, 1, 1, 2, 2, 2,
 							 3, 3, 3};
+
 						skill_unit_layout[pos].count = 33;
 						memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 						memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
@@ -19061,6 +19078,7 @@ void skill_init_unit_layout (void)
 				case NJ_KAENSIN: {
 						static const int dx[] = {-2,-1, 0, 1, 2,-2,-1, 0, 1, 2,-2,-1, 1, 2,-2,-1, 0, 1, 2,-2,-1, 0, 1, 2};
 						static const int dy[] = { 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0, 0, 0, 0,-1,-1,-1,-1,-1,-2,-2,-2,-2,-2};
+
 						skill_unit_layout[pos].count = 24;
 						memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 						memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
@@ -19076,6 +19094,7 @@ void skill_init_unit_layout (void)
 						//Level 4-5 (count 12, cross of 7x7
 						static const int dx3[] = {-3,-2,-1, 1, 2, 3, 0, 0, 0, 0, 0, 0};
 						static const int dy3[] = { 0, 0, 0, 0, 0, 0,-3,-2,-1, 1, 2, 3};
+
 						//lv1
 						j = 0;
 						skill_unit_layout[pos].count = 4;
@@ -19099,18 +19118,10 @@ void skill_init_unit_layout (void)
 						skill_db[i].unit_layout_type[j] = pos;
 						skill_db[i].unit_layout_type[++j] = pos;
 						//Fill in the rest using lv 5.
-						for (;j<MAX_SKILL_LEVEL;j++)
+						for( ; j < MAX_SKILL_LEVEL; j++ )
 							skill_db[i].unit_layout_type[j] = pos;
 						//Skip, this way the check below will fail and continue to the next skill.
 						pos++;
-					}
-					break;
-				case GN_WALLOFTHORN: {
-						static const int dx[] = {-1,-2,-2,-2,-2,-2,-1, 0, 1, 2, 2, 2, 2, 2, 1, 0};
-						static const int dy[] = { 2, 2, 1, 0,-1,-2,-2,-2,-2,-2,-1, 0, 1, 2, 2, 2};
-						skill_unit_layout[pos].count = 16;
-						memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
-						memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
 					}
 					break;
 				case LG_OVERBRAND: {
@@ -19120,6 +19131,7 @@ void skill_init_unit_layout (void)
 						static const int dy[] = { 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 
 							0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3,
 							-4,-5,-6,-4,-5,-6,-4,-5,-6};
+
 						skill_unit_layout[pos].count = 53;
 						memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 						memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
@@ -19130,39 +19142,43 @@ void skill_init_unit_layout (void)
 					break;
 			}
 		}
-		if (!skill_unit_layout[pos].count)
+		if( !skill_unit_layout[pos].count )
 			continue;
-		for (j = 0; j < MAX_SKILL_LEVEL; j++)
+		for( j = 0; j < MAX_SKILL_LEVEL; j++ )
 			skill_db[i].unit_layout_type[j] = pos;
 		pos++;
 	}
 
 	//Firewall and icewall have 8 layouts (direction-dependent)
 	firewall_unit_pos = pos;
-	for (i = 0; i < 8; i++) {
-		if (i&1) {
+	for( i = 0; i < 8; i++ ) {
+		if( i&1 ) {
 			skill_unit_layout[pos].count = 5;
-			if (i&0x2) {
-				int dx[] = {-1,-1, 0, 0, 1};
-				int dy[] = { 1, 0, 0,-1,-1};
+			if( i&0x2 ) {
+				static const int dx[] = {-1,-1, 0, 0, 1};
+				static const int dy[] = { 1, 0, 0,-1,-1};
+
 				memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 				memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
 			} else {
-				int dx[] = { 1, 1 ,0, 0,-1};
-				int dy[] = { 1, 0, 0,-1,-1};
+				static const int dx[] = { 1, 1 ,0, 0,-1};
+				static const int dy[] = { 1, 0, 0,-1,-1};
+
 				memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 				memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
 			}
 		} else {
 			skill_unit_layout[pos].count = 3;
-			if (i%4 == 0) {
-				int dx[] = {-1, 0, 1};
-				int dy[] = { 0, 0, 0};
+			if( i%4 == 0 ) {
+				static const int dx[] = {-1, 0, 1};
+				static const int dy[] = { 0, 0, 0};
+
 				memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 				memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
 			} else {
-				int dx[] = { 0, 0, 0};
-				int dy[] = {-1, 0, 1};
+				static const int dx[] = { 0, 0, 0};
+				static const int dy[] = {-1, 0, 1};
+
 				memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 				memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
 			}
@@ -19170,29 +19186,33 @@ void skill_init_unit_layout (void)
 		pos++;
 	}
 	icewall_unit_pos = pos;
-	for (i = 0; i < 8; i++) {
+	for( i = 0; i < 8; i++ ) {
 		skill_unit_layout[pos].count = 5;
-		if (i&1) {
-			if (i&0x2) {
-				int dx[] = {-2,-1, 0, 1, 2};
-				int dy[] = { 2, 1, 0,-1,-2};
+		if( i&1 ) {
+			if( i&0x2 ) {
+				static const int dx[] = {-2,-1, 0, 1, 2};
+				static const int dy[] = { 2, 1, 0,-1,-2};
+
 				memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 				memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
 			} else {
-				int dx[] = { 2, 1 ,0,-1,-2};
-				int dy[] = { 2, 1, 0,-1,-2};
+				static const int dx[] = { 2, 1 ,0,-1,-2};
+				static const int dy[] = { 2, 1, 0,-1,-2};
+
 				memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 				memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
 			}
 		} else {
-			if (i%4 == 0) {
-				int dx[] = {-2,-1, 0, 1, 2};
-				int dy[] = { 0, 0, 0, 0, 0};
+			if( i%4 == 0 ) {
+				static const int dx[] = {-2,-1, 0, 1, 2};
+				static const int dy[] = { 0, 0, 0, 0, 0};
+
 				memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 				memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
 			} else {
-				int dx[] = { 0, 0, 0, 0, 0};
-				int dy[] = {-2,-1, 0, 1, 2};
+				static const int dx[] = { 0, 0, 0, 0, 0};
+				static const int dy[] = {-2,-1, 0, 1, 2};
+
 				memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 				memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
 			}
@@ -19200,13 +19220,14 @@ void skill_init_unit_layout (void)
 		pos++;
 	}
 	earthstrain_unit_pos = pos;
-	for (i = 0; i < 8; i++) { //For each Direction
+	for( i = 0; i < 8; i++ ) { //For each Direction
 		skill_unit_layout[pos].count = 15;
-		switch (i) {
+		switch( i ) {
 			case 0: case 1: case 3: case 4: case 5: case 7:
 				{
-					int dx[] = {-7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7};
-					int dy[] = { 0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0};
+					static const int dx[] = {-7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7};
+					static const int dy[] = { 0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0};
+
 					memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 					memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
 				}
@@ -19214,8 +19235,9 @@ void skill_init_unit_layout (void)
 			case 2:
 			case 6:
 				{
-					int dx[] = { 0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0};
-					int dy[] = {-7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7};
+					static const int dx[] = { 0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0};
+					static const int dy[] = {-7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7};
+
 					memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 					memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
 				}
@@ -19224,13 +19246,14 @@ void skill_init_unit_layout (void)
 		pos++;
 	}
 	firerain_unit_pos = pos;
-	for (i = 0; i < 8; i++) {
+	for( i = 0; i < 8; i++ ) {
 		skill_unit_layout[pos].count = 3;
-		switch (i) {
+		switch( i ) {
 			case 0: case 1: case 3: case 4: case 5: case 7:
 				{
-					int dx[] = {-1, 0, 1};
-					int dy[] = { 0, 0, 0};
+					static const int dx[] = {-1, 0, 1};
+					static const int dy[] = { 0, 0, 0};
+
 					memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 					memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
 				}
@@ -19238,8 +19261,9 @@ void skill_init_unit_layout (void)
 			case 2:
 			case 6:
 				{
-					int dx[] = { 0, 0, 0};
-					int dy[] = {-1, 0, 1};
+					static const int dx[] = { 0, 0, 0};
+					static const int dy[] = {-1, 0, 1};
+
 					memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
 					memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
 				}

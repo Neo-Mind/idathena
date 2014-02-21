@@ -365,7 +365,7 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 
 	if( target && target->type == BL_SKILL ) {
 		if( atk_elem == ELE_FIRE && battle_getcurrentskill(target) == GN_WALLOFTHORN ) {
-			struct skill_unit *su = (struct skill_unit*)target;
+			struct skill_unit *su = ((struct skill_unit*)target);
 			struct skill_unit_group *sg;
 			struct block_list *src;
 
@@ -1909,7 +1909,7 @@ static bool target_has_infinite_defense(struct block_list *target, int skill_id)
 	struct status_data *tstatus = status_get_status_data(target);
 
 	if(target->type == BL_SKILL) {
-		TBL_SKILL *su = (TBL_SKILL*)target;
+		TBL_SKILL *su = ((TBL_SKILL*)target);
 
 		if(su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
 			return true;
@@ -5368,7 +5368,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	ad.flag |= battle_range_type(src, target, skill_id, skill_lv);
 	flag.infdef = (tstatus->mode&MD_PLANT ? 1 : 0);
 	if(target->type == BL_SKILL) {
-		TBL_SKILL *su = (TBL_SKILL*)target;
+		TBL_SKILL *su = ((TBL_SKILL*)target);
 
 		if(su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
 			flag.infdef = 1;
@@ -6454,7 +6454,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				break;
 		}
 	} else if(target->type == BL_SKILL) {
-		TBL_SKILL *su = (TBL_SKILL*)target;
+		TBL_SKILL *su = ((TBL_SKILL*)target);
 
 		if(su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
 			md.damage = 1;
@@ -7020,10 +7020,15 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	if (sd && sd->bonus.splash_range > 0 && damage > 0)
 		skill_castend_damage_id(src,target,0,1,tick,0);
 	if (target->type == BL_SKILL && damage > 0) {
-		TBL_SKILL *su = (TBL_SKILL*)target;
+		TBL_SKILL *su = ((TBL_SKILL*)target);
 
-		if (su->group && su->group->skill_id == HT_BLASTMINE)
-			skill_blown(src,target,3,-1,0);
+		if (su->group) {
+			if (su->group->skill_id == HT_BLASTMINE)
+				skill_blown(src,target,3,-1,0);
+			if (su->group->skill_id == GN_WALLOFTHORN)
+				if (--su->group->val2 <= 0)
+					skill_delunit(su);
+		}
 	}
 
 	map_freeblock_lock();
@@ -7329,7 +7334,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			}
 			break;
 		case BL_SKILL: {
-				TBL_SKILL *su = (TBL_SKILL*)target;
+				TBL_SKILL *su = ((TBL_SKILL*)target);
 
 				if( !su->group )
 					return 0;
