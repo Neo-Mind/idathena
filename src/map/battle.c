@@ -3258,7 +3258,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			skillratio += 50 * skill_lv;
 			break;
 		case MO_INVESTIGATE:
-			skillratio += 75 * skill_lv;
+			skillratio += 100 + 150 * skill_lv;
 			break;
 		case MO_EXTREMITYFIST:
 			skillratio += 100 * (7 + sstatus->sp / 10);
@@ -5217,6 +5217,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 	//But final damage is considered "the element" and resistances are applied again
 	switch(skill_id) {
 		case MC_CARTREVOLUTION:
+		case MO_INVESTIGATE:
 		case KO_BAKURETSU:
 			//Forced to neutral element
 			wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
