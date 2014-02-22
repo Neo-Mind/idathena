@@ -2933,6 +2933,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		case EL_HURRICANE:
 		case EL_HURRICANE_ATK:
 		case GN_CRAZYWEED_ATK:
+		case KO_BAKURETSU:
 		case NC_MAGMA_ERUPTION:
 			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, 5);
 			break;
@@ -4328,7 +4329,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 						break;
 					case NC_ARMSCANNON:
 					case LG_MOONSLASHER:
-					case KO_BAKURETSU:
 					case RL_S_STORM:
 						clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 						break;
