@@ -2233,9 +2233,12 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 			case LG_BANISHINGPOINT:
 				hitrate += 3 * skill_lv;
 				break;
-			case RL_SLUGSHOT:
-				if(distance_bl(src,target) > 3)
-					hitrate -= 9 - skill_lv;
+			case RL_SLUGSHOT: {
+					uint8 range = distance_bl(src,target);
+
+					if(range > 3)
+						hitrate -= (11 - skill_lv) * (range - 3);
+				}
 				break;
 		} //+1 hit per level of Double Attack on a successful double attack (making sure other multi attack skills do not trigger this) [helvetica]
 	} else if(sd && (wd.type&0x08) && wd.div_ == 2)
@@ -2410,13 +2413,13 @@ static int battle_get_weapon_element(struct Damage wd, struct block_list *src, s
 				element = ELE_HOLY;
 			break;
 		case RL_H_MINE:
-			if(sd && sd->skill_id_old == RL_FLICKER) //Force RL_H_MINE deals fire damage if activated by RL_FLICKER
-				element = ELE_FIRE;
+			if(sd && sd->skill_id_old == RL_FLICKER)
+				element = ELE_FIRE; //Force RL_H_MINE deals fire damage if activated by RL_FLICKER
 			break;
 	}
 
-	if(sc && sc->data[SC_GOLDENE_FERSE] &&
-		((!skill_id && (rnd() % 100 < sc->data[SC_GOLDENE_FERSE]->val4)) || skill_id == MH_STAHL_HORN))
+	if(sc && ((sc->data[SC_GOLDENE_FERSE] && ((!skill_id && (rnd()%100 < sc->data[SC_GOLDENE_FERSE]->val4)) ||
+		skill_id == MH_STAHL_HORN)) || sc->data[SC_P_ALTER]))
 		element = ELE_HOLY;
 
 	//Calc_flag means the element should be calculated for damage only
@@ -2998,8 +3001,8 @@ static struct Damage battle_calc_multi_attack(struct Damage wd, struct block_lis
 		if(sc && sc->data[SC_KAGEMUSYA] && sc->data[SC_KAGEMUSYA]->val3 > dachance && sd->weapontype1 != W_FIST)
 			dachance = sc->data[SC_KAGEMUSYA]->val3;
 
-		if(sc && sc->data[SC_E_CHAIN] && 5 * sc->data[SC_E_CHAIN]->val2 > dachance)
-			dachance = 5 * sc->data[SC_E_CHAIN]->val2;
+		if(sc && sc->data[SC_E_CHAIN] && 5 * sc->data[SC_E_CHAIN]->val1 > dachance)
+			dachance = 5 * sc->data[SC_E_CHAIN]->val1;
 
 		if(5 * pc_checkskill(sd,TF_DOUBLE) > dachance && sd->weapontype1 == W_DAGGER)
 			dachance = 5 * pc_checkskill(sd,TF_DOUBLE);
@@ -3031,7 +3034,7 @@ static struct Damage battle_calc_multi_attack(struct Damage wd, struct block_lis
 		if(hitnumber > 1) { //Needed to allow critical attacks to hit when not hitting more then once.
 			wd.div_ = hitnumber;
 			wd.type = 0x08;
-			if(sc && sc->data[SC_E_CHAIN] && sc->data[SC_E_CHAIN]->val2 > 0)
+			if(sc && sc->data[SC_E_CHAIN])
 				sc_start(src,src,SC_QD_SHOT_READY,100,target->id,skill_get_time(RL_QD_SHOT,1));
 		}
 	}
@@ -3965,9 +3968,6 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			skillratio += -100 + (100 * skill_lv);
 			skillratio += (skillratio * status_get_lv(src)) / 300; //Custom values
 			break;
-		case RL_BANISHING_BUSTER:
-			skillratio += -100 + (400 * skill_lv); //Custom values
-			break;
 		case RL_S_STORM:
 			skillratio += -100 + (200 * skill_lv); //Custom values
 			break;
@@ -4000,13 +4000,13 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 				skillratio += 800 + (skill_lv - 1) * 300;
 			break;
 		case RL_HAMMER_OF_GOD:
-			skillratio += -100 + (2000 + (skill_lv - 1) * 500);
+			skillratio += -100 + (2400 + (skill_lv - 1) * 800) + 10 * (sd ? sd->spiritball_old : 1); //Custom values
 			break;
 		case RL_QD_SHOT:
 			skillratio += -100 + (max(pc_checkskill(sd,GS_CHAINACTION),1) * status_get_dex(src) / 5); //Custom values
 			break;
 		case RL_FIRE_RAIN:
-			skillratio += -100 + 500 + (200 * (skill_lv - 1)) + status_get_dex(src); //Custom values
+			skillratio += -100 + 2000 + (200 * (skill_lv - 1)) + status_get_dex(src); //Custom values
 			break;
 		case RL_AM_BLAST:
 			skillratio += -100 + (300 * skill_lv) + (status_get_dex(src) / 5); //Custom values
@@ -6352,7 +6352,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			}
 			break;
 		case RL_B_TRAP:
-			md.damage = (200 + status_get_int(src) + status_get_dex(src)) * skill_lv * 10; //Custom values
+			md.damage = ((200 + status_get_dex(src)) * skill_lv * 10) + sstatus->hp; //Custom values
 			break;
 	}
 

@@ -820,7 +820,7 @@ void initChangeTables(void) {
 	set_sc( RL_P_ALTER          , SC_P_ALTER             , SI_P_ALTER              , SCB_BATK );
 	set_sc( RL_SLUGSHOT         , SC_STUN                , SI_SLUGSHOT             , SCB_NONE );
 	set_sc( RL_AM_BLAST         , SC_ANTI_M_BLAST        , SI_ANTI_M_BLAST         , SCB_NONE );
-	set_sc( RL_HEAT_BARREL      , SC_HEAT_BARREL         , SI_HEAT_BARREL          , SCB_ASPD|SCB_HIT );
+	set_sc( RL_HEAT_BARREL      , SC_HEAT_BARREL         , SI_HEAT_BARREL          , SCB_ASPD|SCB_FLEE );
 
 	//Storing the target job rather than simply SC_SPIRIT simplifies code later on.
 	SkillStatusChangeTable[SL_ALCHEMIST]   = (sc_type)MAPID_ALCHEMIST,
@@ -5252,8 +5252,6 @@ static signed short status_calc_hit(struct block_list *bl, struct status_change 
 		hit -= (hit * sc->data[SC_ASH]->val2) / 100;
 	if(sc->data[SC_ILLUSIONDOPING])
 		hit -= hit * (5 + sc->data[SC_ILLUSIONDOPING]->val1) / 100; //Custom
-	if(sc->data[SC_HEAT_BARREL])
-		hit -= sc->data[SC_HEAT_BARREL]->val4;
 
 	return (short)cap_value(hit,1,SHRT_MAX);
 }
@@ -5342,6 +5340,8 @@ static signed short status_calc_flee(struct block_list *bl, struct status_change
 		flee -= flee * sc->data[SC_ASH]->val4 / 100;
 	if(sc->data[SC_GOLDENE_FERSE])
 		flee += flee * sc->data[SC_GOLDENE_FERSE]->val2 / 100;
+	if(sc->data[SC_HEAT_BARREL])
+		flee -= sc->data[SC_HEAT_BARREL]->val4;
 
 	return (short)cap_value(flee,1,SHRT_MAX);
 }
@@ -7543,9 +7543,15 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			}
 			break;
 		case SC_MADNESSCANCEL:
+			if(sc->data[SC_HEAT_BARREL] || sc->data[SC_P_ALTER])
+				return 0;
+			break;
 		case SC_HEAT_BARREL:
-			if((type == SC_MADNESSCANCEL && sc->data[SC_HEAT_BARREL]) ||
-				(type == SC_HEAT_BARREL && sc->data[SC_MADNESSCANCEL]))
+			if(sc->data[SC_MADNESSCANCEL] || sc->data[SC_P_ALTER])
+				return 0;
+			break;
+		case SC_P_ALTER:
+			if(sc->data[SC_MADNESSCANCEL] || sc->data[SC_HEAT_BARREL])
 				return 0;
 			break;
 	}
@@ -9479,7 +9485,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 					val2 = val1 * 5; //-%Fixed cast (Custom)
 					val3 = val1 * n / 5; //+ASPD (Custom)
-					val4 = val1 * n * 2; //-HIT (Custom)
+					val4 = 75 - 5 * val1; //-Flee
 				}
 				break;
 			case SC_P_ALTER:
@@ -9490,12 +9496,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val3 = val1 * 15; //+DEF (Custom)
 				}
 				break;
-			case SC_E_CHAIN:
-				if( sd )
-					val2 = (uint8)sd->spiritball_old;
-				break;
 			case SC_ANTI_M_BLAST:
-				val2 = val1 * 10;
+				if( bl->type == BL_PC )
+					val2 = val1 * 10;
+				else
+					val2 = val1 * 5; //Custom
 				break;
 			default:
 				if( calc_flag == SCB_NONE && StatusSkillChangeTable[type] == 0 && StatusIconChangeTable[type] == 0 ) {
@@ -9999,7 +10004,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 /*==========================================
  * Ending all status except those listed.
- * @TODO: Maybe usefull for dispel instead reseting a liste there.
+ * @TODO: Maybe usefull for dispel instead reseting a list there.
  * type:
  * 0 - PC killed -> Place here statuses that do not dispel on death.
  * 1 - If for some reason status_change_end decides to still keep the status when quitting.
@@ -11905,23 +11910,23 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
  *	$2: Clear Debuffs
  *	&4: Specific debuffs with a refresh
  **/
-void status_change_clear_buffs (struct block_list* bl, int type)
+void status_change_clear_buffs(struct block_list* bl, int type)
 {
 	int i;
 	struct status_change *sc = status_get_sc(bl);
 
-	if (!sc || !sc->count)
+	if( !sc || !sc->count )
 		return;
 
-	if (type&6) //Debuffs
-		for (i = SC_COMMON_MIN; i <= SC_COMMON_MAX; i++)
+	if( type&6 ) //Debuffs
+		for( i = SC_COMMON_MIN; i <= SC_COMMON_MAX; i++ )
 			status_change_end(bl, (sc_type)i, INVALID_TIMER);
 
-	for (i = SC_COMMON_MAX + 1; i < SC_MAX; i++) {
-		if (!sc->data[i])
+	for( i = SC_COMMON_MAX + 1; i < SC_MAX; i++ ) {
+		if( !sc->data[i] )
 			continue;
 
-		switch (i) {
+		switch( i ) {
 			//Stuff that cannot be removed
 			case SC_WEIGHT50:
 			case SC_WEIGHT90:
@@ -12015,7 +12020,7 @@ void status_change_clear_buffs (struct block_list* bl, int type)
 			case SC_LEECHESEND:
 			case SC_MARSHOFABYSS:
 			case SC_MANDRAGORA:
-				if (!(type&4))
+				if( !(type&4) )
 					continue;
 				break;
 			case SC_STUN:
@@ -12047,18 +12052,18 @@ void status_change_clear_buffs (struct block_list* bl, int type)
 			case SC_MAGNETICFIELD:
 			case SC__CHAOS:
 			case SC_NETHERWORLD:
-				if (!(type&2))
+				if( !(type&2) )
 					continue;
 				break;
 			//The rest are buffs that can be removed.
 			case SC_BERSERK:
 			case SC_SATURDAYNIGHTFEVER:
-				if (!(type&1))
+				if( !(type&1) )
 					continue;
 				sc->data[i]->val2 = 0;
 				break;
 			default:
-				if (!(type&1))
+				if( !(type&1) )
 					continue;
 				break;
 		}
