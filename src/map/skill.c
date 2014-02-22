@@ -15321,8 +15321,8 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 /*==========================================
  * Does cast-time reductions based on dex, item bonuses and config setting
  *------------------------------------------*/
-int skill_castfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv) {
-	int time = skill_get_cast(skill_id, skill_lv);
+int skill_castfix(struct block_list *bl, uint16 skill_id, uint16 skill_lv) {
+	double time = skill_get_cast(skill_id, skill_lv);
 
 	nullpo_ret(bl);
 
@@ -15330,14 +15330,14 @@ int skill_castfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv) {
 	{
 		struct map_session_data *sd = BL_CAST(BL_PC, bl);
 		struct status_change *sc = status_get_sc(bl);
-		int reduce_ct_r = 100;
+		int reduce_ct_r = 0;
 
 		//Calculate base cast time (reduced by dex)
 		if( !(skill_get_castnodex(skill_id, skill_lv)&1) ) {
 			int scale = battle_config.castrate_dex_scale - status_get_dex(bl);
 
 			if( scale > 0 ) //Not instant cast
-				time = time * scale / battle_config.castrate_dex_scale;
+				time = time * (float)scale / battle_config.castrate_dex_scale;
 			else
 				return 0; //Instant cast
 		}
@@ -15347,10 +15347,10 @@ int skill_castfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv) {
 			int i;
 
 			if( sd->castrate != 100 )
-				reduce_ct_r -= sd->castrate;
+				reduce_ct_r += 100 - sd->castrate;
 			for( i = 0; i < ARRAYLENGTH(sd->skillcast) && sd->skillcast[i].id; i++ ) {
 				if( sd->skillcast[i].id == skill_id ) {
-					reduce_ct_r += sd->skillcast[i].val;
+					reduce_ct_r -= sd->skillcast[i].val;
 					break;
 				}
 			}
@@ -15360,15 +15360,15 @@ int skill_castfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv) {
 		//They are not added to the other modifiers. [iRO Wiki]
 		if( sc && sc->count && !(skill_get_castnodex(skill_id, skill_lv)&2) ) {
 			if( sc->data[SC_MEMORIZE] ) {
-				reduce_ct_r -= 50;
+				reduce_ct_r += 50;
 				if( (--sc->data[SC_MEMORIZE]->val2) <= 0 )
 					status_change_end(bl, SC_MEMORIZE, INVALID_TIMER);
 			}
 			if( sc->data[SC_POEMBRAGI] )
-				reduce_ct_r -= sc->data[SC_POEMBRAGI]->val2;
+				reduce_ct_r += sc->data[SC_POEMBRAGI]->val2;
 		}
 
-		time = time * reduce_ct_r / 100;
+		time = time * (1 - (float)reduce_ct_r / 100);
 	}
 #endif
 
@@ -15380,7 +15380,7 @@ int skill_castfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv) {
 	time = max(time, 0);
 	//ShowInfo("Castime castfix = %d\n",time);
 
-	return time;
+	return (int)time;
 }
 
 #ifndef RENEWAL_CAST
@@ -15389,7 +15389,7 @@ int skill_castfix (struct block_list *bl, uint16 skill_id, uint16 skill_lv) {
  * @param time: Cast time before Status Change addition or reduction
  * @return time: Modified castime after status change addition or reduction
  */
-int skill_castfix_sc (struct block_list *bl, int time)
+int skill_castfix_sc(struct block_list *bl, double time)
 {
 	struct status_change *sc = status_get_sc(bl);
 
@@ -15397,7 +15397,7 @@ int skill_castfix_sc (struct block_list *bl, int time)
 		return 0;
 
 	if( bl->type == BL_MOB ) //Mobs cast-time is fixed nothing to alter.
-		return time;
+		return (int)time;
 
 	if( sc && sc->count ) {
 		if( sc->data[SC_SLOWCAST] )
@@ -15415,7 +15415,7 @@ int skill_castfix_sc (struct block_list *bl, int time)
 	time = max(time, 0);
 	//ShowInfo("Castime castfix_sc = %d\n",time);
 
-	return time;
+	return (int)time;
 }
 #else
 /** Skill cast time calculation for RENEWAL_CAST
@@ -15425,11 +15425,11 @@ int skill_castfix_sc (struct block_list *bl, int time)
  * @param skill_lv: Skill level of the casted skill
  * @return time: Modified castime after status and bonus addition or reduction
  */
-int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16 skill_lv)
+int skill_vfcastfix(struct block_list *bl, double time, uint16 skill_id, uint16 skill_lv)
 {
 	struct status_change *sc = status_get_sc(bl);
 	struct map_session_data *sd = BL_CAST(BL_PC,bl);
-	int fixed = skill_get_fixed_cast(skill_id, skill_lv), fixcast_r = 0, varcast_r = 0, i = 0, reduce_ct_r = 100;
+	int fixed = skill_get_fixed_cast(skill_id, skill_lv), fixcast_r = 0, varcast_r = 0, i = 0, reduce_ct_r = 0;
 
 	if( time < 0 )
 		return 0;
@@ -15446,7 +15446,7 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 	//Increases/Decreases fixed/variable cast time of a skill by item/card bonuses.
 	if( sd && !(skill_get_castnodex(skill_id, skill_lv)&4) ) {
 		if( sd->bonus.varcastrate != 0 ) //bonus bVariableCastrate
-			reduce_ct_r -= sd->bonus.varcastrate;
+			reduce_ct_r += sd->bonus.varcastrate;
 		if( sd->bonus.fixcastrate != 0 ) //bonus bFixedCastrate
 			fixcast_r = sd->bonus.fixcastrate; //Just speculation
 		if( sd->bonus.add_varcast != 0 ) //bonus bVariableCast
@@ -15467,7 +15467,7 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 		}
 		for( i = 0; i < ARRAYLENGTH(sd->skillcast) && sd->skillcast[i].id; i++ ) {
 			if( sd->skillcast[i].id == skill_id ) { //bonus2 bVariableCastrate
-				reduce_ct_r -= sd->skillcast[i].val;
+				reduce_ct_r += sd->skillcast[i].val;
 				break;
 			}
 		}
@@ -15493,12 +15493,12 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 			status_change_end(bl, SC_SUFFRAGIUM, INVALID_TIMER);
 		}
 		if( sc->data[SC_MEMORIZE] ) {
-			reduce_ct_r -= 50;
+			reduce_ct_r += 50;
 			if( (--sc->data[SC_MEMORIZE]->val2) <= 0 )
 				status_change_end(bl, SC_MEMORIZE, INVALID_TIMER);
 		}
 		if( sc->data[SC_POEMBRAGI] )
-			reduce_ct_r -= sc->data[SC_POEMBRAGI]->val2;
+			reduce_ct_r += sc->data[SC_POEMBRAGI]->val2;
 		if( sc->data[SC_IZAYOI] )
 			VARCAST_REDUCTION(50);
 		if( sc->data[SC_WATER_INSIGNIA] && sc->data[SC_WATER_INSIGNIA]->val1 == 3 && (skill_get_ele(skill_id, skill_lv) == ELE_WATER) )
@@ -15533,7 +15533,7 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 	if( !(skill_get_castnodex(skill_id, skill_lv)&1) ) //Reduction from status point
 		time = (1 - sqrt(((float)(status_get_dex(bl) * 2 + status_get_int(bl)) / battle_config.vcast_stat_scale))) * time;
 
-	time = time * reduce_ct_r / 100;
+	time = time * (1 - (float)reduce_ct_r / 100);
 	time = max(time, 0) + (1 - (float)min(fixcast_r, 100) / 100) * max(fixed,0); //Underflow checking/capping
 
 	return (int)time;

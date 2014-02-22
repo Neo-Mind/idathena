@@ -969,7 +969,7 @@ int party_exp_share(struct party_data* p, struct block_list* src, unsigned int b
 
 	// Count the number of players eligible for exp sharing
 	for (i = c = 0; i < MAX_PARTY; i++) {
-		if( (sd[c] = p->data[i].sd) == NULL || sd[c]->bl.m != src->m || pc_isdead(sd[c]) || (battle_config.idle_no_share && pc_isidle(sd[c])) )
+		if ((sd[c] = p->data[i].sd) == NULL || sd[c]->bl.m != src->m || pc_isdead(sd[c]) || (battle_config.idle_no_share && pc_isidle(sd[c])))
 			continue;
 		c++;
 	}
@@ -981,13 +981,14 @@ int party_exp_share(struct party_data* p, struct block_list* src, unsigned int b
 	zeny /= c;
 
 	if (battle_config.party_even_share_bonus && c > 1) {
-		double bonus = 100 + battle_config.party_even_share_bonus*(c-1);
+		double bonus = 100 + battle_config.party_even_share_bonus * (c - 1);
+
 		if (base_exp)
-			base_exp = (unsigned int) cap_value(base_exp * bonus/100, 0, UINT_MAX);
+			base_exp = (unsigned int) cap_value(base_exp * bonus / 100, 0, UINT_MAX);
 		if (job_exp)
-			job_exp = (unsigned int) cap_value(job_exp * bonus/100, 0, UINT_MAX);
+			job_exp = (unsigned int) cap_value(job_exp * bonus / 100, 0, UINT_MAX);
 		if (zeny)
-			zeny = (unsigned int) cap_value(zeny * bonus/100, INT_MIN, INT_MAX);
+			zeny = (unsigned int) cap_value(zeny * bonus / 100, INT_MIN, INT_MAX);
 	}
 
 #ifdef RENEWAL_EXP
@@ -997,7 +998,7 @@ int party_exp_share(struct party_data* p, struct block_list* src, unsigned int b
 
 	for (i = 0; i < c; i++) {
 #ifdef RENEWAL_EXP
-		if( !(src && src->type == BL_MOB && ((TBL_MOB*)src)->db->mexp) ) {
+		if (!(src && src->type == BL_MOB && ((TBL_MOB*)src)->db->mexp)) {
 			TBL_MOB *md = BL_CAST(BL_MOB, src);
 			int rate = 0;
 
@@ -1011,7 +1012,7 @@ int party_exp_share(struct party_data* p, struct block_list* src, unsigned int b
 #endif
 		pc_gainexp(sd[i], src, base_exp, job_exp, false);
 
-		if (zeny) // zeny from mobs [Valaris]
+		if (zeny) // Zeny from mobs [Valaris]
 			pc_getzeny(sd[i],zeny,LOG_TYPE_PICKDROP_MONSTER,NULL);
 	}
 	return 0;
@@ -1022,7 +1023,8 @@ int party_share_loot(struct party_data* p, struct map_session_data* sd, struct i
 {
 	TBL_PC* target = NULL;
 	int i;
-	if (p && p->party.item&2 && (first_charid || !(battle_config.party_share_type&1))) {
+
+	if (p && (p->party.item&2) && (first_charid || !(battle_config.party_share_type&1))) {
 		//Iem distribution to party members.
 		if (battle_config.party_share_type&2) { //Round Robin
 			TBL_PC* psd;
