@@ -8851,6 +8851,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = tick / 5000;
 				tick_time = 5000;
 				break;
+			case SC_LAUDAAGNUS:
+				clif_specialeffect(bl,747,AREA);
+				break;
+			case SC_LAUDARAMUS:
+				clif_specialeffect(bl,748,AREA);
+				break;
 			case SC_SECRAMENT:
 				val2 = 10 * val1;
 				break;

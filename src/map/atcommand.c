@@ -138,14 +138,12 @@ static const char* atcommand_help_string(const char* command)
  *------------------------------------------*/
 ACMD_FUNC(send)
 {
-	int len = 0,off,end,type;
+	int len = 0, off, end, type;
 	long num;
 
 	// Read message type as hex number (without the 0x)
-	if(!message || !*message ||
-		!((sscanf(message, "len %x", &type) == 1 && (len = 1))
-		|| sscanf(message, "%x", &type) == 1) )
-	{
+	if(!message || !*message || !((sscanf(message, "len %x", &type) == 1 && (len = 1)) ||
+		sscanf(message, "%x", &type) == 1) ) {
 		int i;
 
 		for(i = 900; i <= 903; ++i)
@@ -201,30 +199,30 @@ ACMD_FUNC(send)
 			len = SHRT_MAX - 4; // Maximum length
 			off = 4;
 		}
-		WFIFOHEAD(fd, len);
-		WFIFOW(fd,0) = TOW(type);
+		WFIFOHEAD(sd->fd,len);
+		WFIFOW(sd->fd,0) = TOW(type);
 
 		// Parse packet contents
 		SKIP_VALUE(message);
 		while(*message != 0 && off < len) {
 			if(ISDIGIT(*message) || *message == '-' || *message == '+') { // Default (byte)
 				GET_VALUE(message,num);
-				WFIFOB(fd,off) = TOB(num);
+				WFIFOB(sd->fd,off) = TOB(num);
 				++off;
 			} else if(TOUPPER(*message) == 'B') { // Byte
 				++message;
 				GET_VALUE(message,num);
-				WFIFOB(fd,off) = TOB(num);
+				WFIFOB(sd->fd,off) = TOB(num);
 				++off;
 			} else if(TOUPPER(*message) == 'W') { // Word (2 bytes)
 				++message;
 				GET_VALUE(message,num);
-				WFIFOW(fd,off) = TOW(num);
+				WFIFOW(sd->fd,off) = TOW(num);
 				off += 2;
 			} else if(TOUPPER(*message) == 'L') { // Long word (4 bytes)
 				++message;
 				GET_VALUE(message,num);
-				WFIFOL(fd,off) = TOL(num);
+				WFIFOL(sd->fd,off) = TOL(num);
 				off += 4;
 			} else if(TOUPPER(*message) == 'S') { // String - escapes are valid
 				// Get string length - num <= 0 means not fixed length (default)
@@ -275,7 +273,7 @@ ACMD_FUNC(send)
 										num <<= 8;
 										num += (ISDIGIT(*message) ? *message - '0' : TOLOWER(*message) - 'a' + 10);
 									}
-									WFIFOB(fd,off) = TOB(num);
+									WFIFOB(sd->fd,off) = TOB(num);
 									++message;
 									CHECK_EOS(message);
 									continue;
@@ -304,13 +302,13 @@ ACMD_FUNC(send)
 											CHECK_EOS(message);
 										}
 									}
-									WFIFOB(fd,off) = TOB(num);
+									WFIFOB(sd->fd,off) = TOB(num);
 									continue;
 								}
 						}
 					} else
 						num = *message;
-					WFIFOB(fd,off) = TOB(num);
+					WFIFOB(sd->fd,off) = TOB(num);
 					++message;
 					CHECK_EOS(message);
 				} // For
@@ -321,7 +319,7 @@ ACMD_FUNC(send)
 
 				// Terminate the string
 				if(off < end) { // Fill the rest with 0's
-					memset(WFIFOP(fd,off),0,end - off);
+					memset(WFIFOP(sd->fd,off),0,end - off);
 					off = end;
 				}
 			} else { // Unknown
@@ -332,12 +330,12 @@ ACMD_FUNC(send)
 		}
 
 		if(packet_db[sd->packet_ver][type].len == -1) { // Send dynamic packet
-			WFIFOW(fd,2) = TOW(off);
-			WFIFOSET(fd,off);
+			WFIFOW(sd->fd,2) = TOW(off);
+			WFIFOSET(sd->fd,off);
 		} else { // Send static packet
 			if(off < len)
-				memset(WFIFOP(fd,off),0,len - off);
-			WFIFOSET(fd,len);
+				memset(WFIFOP(sd->fd,off),0,len - off);
+			WFIFOSET(sd->fd,len);
 		}
 	} else {
 		clif_displaymessage(fd, msg_txt(259)); // Invalid packet

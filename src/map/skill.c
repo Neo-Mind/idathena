@@ -8581,7 +8581,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					if( partybonus )
 						i += (i / 100) * (partybonus * 10) / 4;
 					if( (dstsd && pc_ismadogear(dstsd)) || status_isimmune(bl) )
-						i = 0; //Should heal by 0 or won't do anything?? in iRO it breaks the healing to members.. [malufett]
+						i = 0; //Should heal by 0 or won't do anything?? in iRO it breaks the healing to members. [malufett]
 					clif_skill_nodamage(bl,bl,skill_id,i,1);
 					if( tsc->data[SC_AKAITSUKI] && i )
 						i = ~i + 1;
@@ -8602,11 +8602,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case AB_LAUDAAGNUS:
-			if( flag&1 || sd == NULL ) {
+			if( sd == NULL || !sd->status.party_id || flag&1 ) {
 				if( tsc && (tsc->data[SC_FREEZE] || tsc->data[SC_STONE] || tsc->data[SC_BLIND] ||
 					tsc->data[SC_BURNING] || tsc->data[SC_FREEZING] || tsc->data[SC_CRYSTALIZE])) {
 					//Success Chance: (40 + 10 * Skill Level) %
-					if( rnd()%100 > 40 + 10 * skill_lv ) break;
+					if( rnd()%100 > 40 + 10 * skill_lv )
+						break;
 					status_change_end(bl,SC_FREEZE,INVALID_TIMER);
 					status_change_end(bl,SC_STONE,INVALID_TIMER);
 					status_change_end(bl,SC_BLIND,INVALID_TIMER);
@@ -8622,10 +8623,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case AB_LAUDARAMUS:
-			if( flag&1 || sd == NULL ) {
-				if( tsc && (tsc->data[SC_SLEEP] || tsc->data[SC_STUN] || tsc->data[SC_MANDRAGORA] || tsc->data[SC_SILENCE] || tsc->data[SC_DEEPSLEEP]) ) {
+			if( sd == NULL || !sd->status.party_id || flag&1 ) {
+				if( tsc && (tsc->data[SC_SLEEP] || tsc->data[SC_STUN] ||
+					tsc->data[SC_MANDRAGORA] || tsc->data[SC_SILENCE] || tsc->data[SC_DEEPSLEEP]) ) {
 					//Success Chance: (40 + 10 * Skill Level) %
-					if( rnd()%100 > 40 + 10 * skill_lv )  break;
+					if( rnd()%100 > 40 + 10 * skill_lv )
+						break;
 					status_change_end(bl,SC_SLEEP,INVALID_TIMER);
 					status_change_end(bl,SC_STUN,INVALID_TIMER);
 					status_change_end(bl,SC_MANDRAGORA,INVALID_TIMER);
