@@ -4289,11 +4289,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case RL_R_TRIP:
 		case RL_D_TAIL:
 		case RL_HAMMER_OF_GOD:
-			if (flag&1) {
-				//Recursive invocation
-				//skill_area_temp[0] holds number of targets in area
-				//skill_area_temp[1] holds the id of the original target
-				//skill_area_temp[2] counts how many targets have already been processed
+			if (flag&1) { //Recursive invocation
 				int sflag = skill_area_temp[0]&0xFFF;
 
 				if (flag&SD_LEVEL)
@@ -4320,6 +4316,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					}
 				}
 			} else {
+				//skill_area_temp[0] holds number of targets in area
+				//skill_area_temp[1] holds the id of the original target
+				//skill_area_temp[2] counts how many targets have already been processed
 				skill_area_temp[0] = 0;
 				skill_area_temp[1] = bl->id;
 				skill_area_temp[2] = 0;
@@ -9464,7 +9463,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 			else {
 				map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_PC,src,skill_id,skill_lv,tick,flag|BCT_ALL|1,skill_castend_nodamage_id);
-				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
+				clif_specialeffect(bl,851,AREA);
+				clif_specialeffect(bl,852,AREA);
+				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			}
 			break;
 
@@ -13483,6 +13484,8 @@ static int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *
 			status_change_start(ss,bl,SC_BLIND,(10 + 10 * skill_lv) * 100,skill_lv,skill_id,0,0,skill_get_time2(skill_id,skill_lv),2|8);
 			break;
 
+		//Currently use UNT_BLASTMINE as replacement
+		//Until the information about RL_B_TRAP unit id is provided
 		//case UNT_B_TRAP:
 			//sc_start(ss,bl,SC_B_TRAP,100,skill_lv,max(status_get_str(bl) * 150,5000)); //Custom
 			//clif_changetraplook(&src->bl,UNT_USED_TRAPS);
