@@ -1549,17 +1549,14 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			else if( dstmd && !is_boss(bl) )
 				sc_start(src,bl,SC_STUN,10 * skill_lv + rnd()%50,skill_lv,skill_get_time2(skill_id,skill_lv)); //Custom
 			break;
-		case RL_S_STORM:
-			if( dstsd ) {
-				uint16 pos[] = { EQP_HEAD_LOW,EQP_HEAD_MID,EQP_HEAD_TOP,EQP_HAND_R,EQP_HAND_L,EQP_ARMOR,EQP_SHOES,EQP_GARMENT,EQP_ACC_L,EQP_ACC_R };
-				uint8 res = rnd()%ARRAYLENGTH(pos);
+		case RL_S_STORM: {
+				uint16 where[] = { EQP_HELM,EQP_ARMS,EQP_ARMOR,EQP_SHIELD,EQP_SHOES,EQP_GARMENT };
 				uint16 mrate, rate;
 
 				mrate = skill_lv * 500;
 				rate = (status_get_dex(src) * skill_lv * 10) - (status_get_agi(bl) * status_get_lv(bl) / 5); //Custom
-				if( rate < mrate )
-					rate = mrate;
-				skill_break_equip(src,bl,pos[res],rate,BCT_ENEMY);
+				rate = max(rate,mrate);
+				skill_break_equip(src,bl,where[rnd()%6],rate,BCT_ENEMY);
 			}
 			break;
 		case RL_AM_BLAST:
@@ -2164,7 +2161,7 @@ int skill_break_equip (struct block_list *src, struct block_list *bl, unsigned s
 			rate -= rate * sd->bonus.unbreakable / 100;
 		if (where&EQP_WEAPON) {
 			switch (sd->status.weapon) {
-				case W_FIST:	//Bare fists should not break :P
+				case W_FIST: //Bare fists should not break :P
 				case W_1HAXE:
 				case W_2HAXE:
 				case W_MACE: //Axes and Maces can't be broken [DracoRPG]
@@ -2184,7 +2181,6 @@ int skill_break_equip (struct block_list *src, struct block_list *bl, unsigned s
 		if (battle_config.equip_self_break_rate != 100)
 			rate = rate * battle_config.equip_self_break_rate / 100;
 	}
-
 	for (i = 0; i < 4; i++) {
 		if (where&where_list[i]) {
 			if (sc && sc->count && sc->data[scdef[i]])
@@ -2203,7 +2199,6 @@ int skill_break_equip (struct block_list *src, struct block_list *bl, unsigned s
 
 			if (j < 0 || sd->status.inventory[j].attribute == 1 || !sd->inventory_data[j])
 				continue;
-
 			switch(i) {
 				case EQI_HEAD_TOP: //Upper Head
 					flag = (where&EQP_HELM);
@@ -7925,6 +7920,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 								clif_damage(src,bl,tick,0,0,1000,0,0,0);
 								if( !status_isdead(bl) ) {
 									int where[] = { EQP_ARMOR,EQP_SHIELD,EQP_HELM,EQP_SHOES,EQP_GARMENT };
+
 									skill_break_equip(src,bl,where[rnd()%5],10000,BCT_ENEMY);
 								}
 							}
