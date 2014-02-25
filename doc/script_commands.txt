@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Last Updated: ========================================
-//= 20140218
+//= 20140225
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -2374,6 +2374,24 @@ Changes a player's VIP time (in minutes). A positive value will increase time, a
 negative value will decrease time.
 
 NOTE: This command is only available if the VIP System is enabled.
+
+---------------------------------------
+
+*addspiritball <count>,<duration>{,<char_id>};
+
+Adds spirit ball to player for 'duration' in milisecond.
+
+---------------------------------------
+
+*delspiritball <count>{,<char_id>};
+
+Deletes the spirit ball(s) from player.
+
+---------------------------------------
+
+*countspiritball {<char_id>};
+
+Counts the spirit ball that player has.
 
 ---------------------------------------
 \\

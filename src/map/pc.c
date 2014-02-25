@@ -179,11 +179,18 @@ static int pc_spiritball_timer(int tid, unsigned int tick, int id, intptr_t data
 	return 0;
 }
 
-int pc_addspiritball(struct map_session_data *sd,int interval,int max)
+/**
+ * Adds a spiritball to player for 'interval' ms
+ * @param sd
+ * @param interval
+ * @param max
+ */
+void pc_addspiritball(struct map_session_data *sd,int interval,int max)
 {
-	int tid, i;
+	int tid;
+	uint8 i;
 
-	nullpo_ret(sd);
+	nullpo_retv(sd);
 
 	if( max > MAX_SPIRITBALL )
 		max = MAX_SPIRITBALL;
@@ -209,29 +216,31 @@ int pc_addspiritball(struct map_session_data *sd,int interval,int max)
 		clif_millenniumshield(&sd->bl,sd->spiritball);
 	else
 		clif_spiritball(&sd->bl);
-
-	return 0;
 }
 
-int pc_delspiritball(struct map_session_data *sd,int count,int type)
+/**
+ * Removes number of spiritball from player
+ * @param sd
+ * @param count
+ * @param type 1 = doesn't give client effect
+ */
+void pc_delspiritball(struct map_session_data *sd,int count,int type)
 {
-	int i;
+	uint8 i;
 
-	nullpo_ret(sd);
+	nullpo_retv(sd);
 
 	if( sd->spiritball <= 0 ) {
 		sd->spiritball = 0;
-		return 0;
+		return;
 	}
-
-	if( count <= 0 )
-		return 0;
+	if( !count )
+		return;
 	if( count > sd->spiritball )
 		count = sd->spiritball;
 	sd->spiritball -= count;
 	if( count > MAX_SPIRITBALL )
 		count = MAX_SPIRITBALL;
-
 	for( i = 0; i < count; i++ ) {
 		if( sd->spirit_timer[i] != INVALID_TIMER ) {
 			delete_timer(sd->spirit_timer[i],pc_spiritball_timer);
@@ -242,14 +251,12 @@ int pc_delspiritball(struct map_session_data *sd,int count,int type)
 		sd->spirit_timer[i-count] = sd->spirit_timer[i];
 		sd->spirit_timer[i] = INVALID_TIMER;
 	}
-
 	if( !type ) {
 		if( (sd->class_&MAPID_THIRDMASK) == MAPID_ROYAL_GUARD )
 			clif_millenniumshield(&sd->bl,sd->spiritball);
 		else
 			clif_spiritball(&sd->bl);
 	}
-	return 0;
 }
 
 static int pc_check_banding(struct block_list *bl, va_list ap) {

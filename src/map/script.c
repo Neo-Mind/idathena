@@ -18168,8 +18168,7 @@ BUILDIN_FUNC(disable_command) {
  * @param guild_id: ID of guild
  * @param type: Type of option (optional)
  */
-BUILDIN_FUNC(getguildmember)
-{
+BUILDIN_FUNC(getguildmember) {
 	int i, j = 0, type = 0;
 	struct guild *g = guild_search(script_getnum(st,2));
 
@@ -18194,6 +18193,77 @@ BUILDIN_FUNC(getguildmember)
 		}
 	}
 	mapreg_setreg(add_str("$@guildmembercount"), j);
+	return SCRIPT_CMD_SUCCESS;
+}
+
+/** Adds spirit ball to player for 'duration' in milisecond
+ * @param count How many spirit ball will be added
+ * @param duration How long spiritball is active until it disappears
+ * @param char_id Target player (Optional)
+ * @author [Cydh]
+ */
+BUILDIN_FUNC(addspiritball) {
+	uint8 i, count = script_getnum(st,2);
+	uint16 duration = script_getnum(st,3);
+	struct map_session_data *sd = NULL;
+
+	if (!count)
+		return 0;
+	if (script_hasdata(st,4)) {
+		if (script_isstring(st,4))
+			sd = map_charid2sd(script_getnum(st,4));
+		else
+			sd = map_nick2sd(script_getstr(st,4));
+	} else
+		sd = script_rid2sd(st);
+	if (!sd)
+		return 1;
+	for (i = 0; i < count; i++)
+		pc_addspiritball(sd,duration,10);
+	return SCRIPT_CMD_SUCCESS;
+}
+
+/** Deletes the spirit ball(s) from player
+ * @param count How many spirit ball will be deleted
+ * @param char_id Target player (Optional)
+ * @author [Cydh]
+ */
+BUILDIN_FUNC(delspiritball) {
+	uint8 count = script_getnum(st,2);
+	struct map_session_data *sd = NULL;
+
+	if (!count)
+		count = 1;
+	if (script_hasdata(st,3)) {
+		if (script_isstring(st,3))
+			sd = map_charid2sd(script_getnum(st,3));
+		else
+			sd = map_nick2sd(script_getstr(st,3));
+	} else
+		sd = script_rid2sd(st);
+	if (!sd)
+		return 1;
+	pc_delspiritball(sd,count,0);
+	return SCRIPT_CMD_SUCCESS;
+}
+
+/** Counts the spirit ball that player has
+ * @param char_id Target player (Optional)
+ * @author [Cydh]
+ */
+BUILDIN_FUNC(countspiritball) {
+	struct map_session_data *sd;
+
+	if (script_hasdata(st,2)) {
+		if (script_isstring(st,2))
+			sd = map_charid2sd(script_getnum(st,2));
+		else
+			sd = map_nick2sd(script_getstr(st,2));
+	} else
+		sd = script_rid2sd(st);
+	if (!sd)
+		return 1;
+	script_pushint(st,sd->spiritball);
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -18719,6 +18789,9 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(enable_command,""),
 	BUILDIN_DEF(disable_command,""),
 	BUILDIN_DEF(getguildmember,"i?"),
+	BUILDIN_DEF(addspiritball,"ii?"),
+	BUILDIN_DEF(delspiritball,"i?"),
+	BUILDIN_DEF(countspiritball,"?"),
 
 #include "../custom/script_def.inc"
 
