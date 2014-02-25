@@ -1838,14 +1838,12 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		}
 
 		if (sc->data[SC_DANCING] && flag != 2) {
-			if (src->type == BL_PC && skill_id >= WA_SWING_DANCE && skill_id <= WM_UNLIMITED_HUMMING_VOICE)
-			{ //Lvl 5 Lesson or higher allow you use 3rd job skills while dancing.v
+			//Lvl 5 Lesson or higher allow you use 3rd job skills while dancing.v
+			if (src->type == BL_PC && skill_id >= WA_SWING_DANCE && skill_id <= WM_UNLIMITED_HUMMING_VOICE) {
 				if (pc_checkskill((TBL_PC*)src, WM_LESSON) < 5)
 					return 0;
 			} else if (sc->data[SC_LONGING]) { //Allow everything except dancing/re-dancing. [Skotlex]
-				if (skill_id == BD_ENCORE ||
-					(skill_get_inf2(skill_id)&(INF2_SONG_DANCE|INF2_ENSEMBLE_SKILL))
-				)
+				if (skill_id == BD_ENCORE || (skill_get_inf2(skill_id)&(INF2_SONG_DANCE|INF2_ENSEMBLE_SKILL)))
 					return 0;
 			} else if (!(skill_get_inf3(skill_id)&INF3_USABLE_DANCE)) //Skills that can be used in dancing state
 				return 0;
@@ -1894,8 +1892,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 			return 0;
 		if (!skill_id && tsc->data[SC_TRICKDEAD])
 			return 0;
-		if ((skill_id == WZ_STORMGUST || skill_id == WZ_FROSTNOVA || skill_id == NJ_HYOUSYOURAKU)
-			&& tsc->data[SC_FREEZE])
+		if ((skill_id == WZ_STORMGUST || skill_id == WZ_FROSTNOVA || skill_id == NJ_HYOUSYOURAKU) && tsc->data[SC_FREEZE])
 			return 0;
 		if (skill_id == PR_LEXAETERNA && (tsc->data[SC_FREEZE] || (tsc->data[SC_STONE] && tsc->opt1 == OPT1_STONE)))
 			return 0;
@@ -1913,8 +1910,11 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		hide_flag &= ~OPTION_HIDE;
 	else {
 		switch (skill_id) {
-			case MO_ABSORBSPIRITS: //It works when already casted and target suddenly hides.
-				hide_flag &= ~OPTION_HIDE;
+			case MO_ABSORBSPIRITS:
+			case SA_DISPELL:
+			case AB_CLEARANCE:
+			case RL_BANISHING_BUSTER:
+				hide_flag &= ~OPTION_HIDE; //It works when already casted and target suddenly hides.
 				break;
 			case LG_OVERBRAND:
 			case LG_OVERBRAND_BRANDISH:
@@ -8289,7 +8289,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = val1 + 3; //Seconds before SP substraction happen
 				break;
 			case SC_CHASEWALK:
-				val2 = tick > 0 ? tick : 10000; //Interval at which SP is drained
+				val2 = (tick > 0 ? tick : 10000); //Interval at which SP is drained
 				val3 = 35 - 5 * val1; //Speed adjustment
 				if( sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_ROGUE )
 					val3 -= 40;
@@ -9841,6 +9841,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC__FEINT:
 		case SC__INVISIBILITY:
 			sc->option |= OPTION_CLOAK;
+		case SC_CAMOUFLAGE:
 			opt_flag = 2;
 			break;
 		case SC_CHASEWALK:

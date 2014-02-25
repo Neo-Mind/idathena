@@ -665,7 +665,7 @@ int pc_equippoint(struct map_session_data *sd,int n)
 		if((pc_checkskill(sd,AS_LEFT) > 0 ||
 			(sd->class_&MAPID_UPPERMASK) == MAPID_ASSASSIN ||
 			(sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO)) { //Kagerou and Oboro can dual wield daggers. [Rytech]
-			if(ep == EQP_HAND_R)
+			if(ep == EQP_WEAPON)
 				return EQP_ARMS;
 			if(ep == EQP_SHADOW_WEAPON)
 				return EQP_SHADOW_ARMS;
@@ -993,8 +993,7 @@ int pc_isequip(struct map_session_data *sd,int n)
 	if(item->sex != 2 && sd->status.sex != item->sex)
 		return 0;
 
-	if(sd->sc.count) {
-		// Also works with left-hand weapons [DracoRPG]
+	if(sd->sc.count) { // Also works with left-hand weapons [DracoRPG]
 		if((item->equip&EQP_ARMS) && item->type == IT_WEAPON && sd->sc.data[SC_STRIPWEAPON])
 			return 0;
 		if((item->equip&EQP_SHIELD) && item->type == IT_ARMOR && sd->sc.data[SC_STRIPSHIELD])

@@ -101,6 +101,11 @@ int firewall_unit_pos;
 int icewall_unit_pos;
 int earthstrain_unit_pos;
 int firerain_unit_pos;
+
+struct s_skill_nounit_layout skill_nounit_layout[MAX_SKILL_UNIT_LAYOUT];
+int overbrand_nounit_pos;
+int overbrand_brandish_nounit_pos;
+
 //Early declaration
 int skill_block_check(struct block_list *bl, enum sc_type type, uint16 skill_id);
 static int skill_check_unit_range(struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv);
@@ -787,7 +792,7 @@ bool skill_isNotOk_npcRange(struct block_list *src, uint16 skill_id, uint16 skil
 	return skill_check_unit_range2(src, pos_x, pos_y, skill_id, skill_lv, true);
 }
 
-struct s_skill_unit_layout* skill_get_unit_layout (uint16 skill_id, uint16 skill_lv, struct block_list* src, int x, int y)
+struct s_skill_unit_layout* skill_get_unit_layout(uint16 skill_id, uint16 skill_lv, struct block_list* src, int x, int y)
 {
 	int pos = skill_get_unit_layout_type(skill_id,skill_lv);
 	uint8 dir;
@@ -815,10 +820,21 @@ struct s_skill_unit_layout* skill_get_unit_layout (uint16 skill_id, uint16 skill
 	return &skill_unit_layout[0]; //Default 1x1 layout
 }
 
+struct s_skill_nounit_layout* skill_get_nounit_layout(uint16 skill_id, uint16 skill_lv, struct block_list* src, int x, int y, int dir)
+{
+	if( skill_id == LG_OVERBRAND )
+		return &skill_nounit_layout[overbrand_nounit_pos + dir];
+	else if( skill_id == LG_OVERBRAND_BRANDISH )
+		return &skill_nounit_layout[overbrand_brandish_nounit_pos + dir];
+
+	ShowError("skill_get_nounit_layout: unknown no-unit layout for skill %d (level %d)\n", skill_id, skill_lv);
+	return &skill_nounit_layout[0];
+}
+
 /*==========================================
  * Add effect to skill when hit succesfully target 
  *------------------------------------------*/
-int skill_additional_effect (struct block_list* src, struct block_list *bl, uint16 skill_id, uint16 skill_lv, int attack_type, int dmg_lv, unsigned int tick)
+int skill_additional_effect(struct block_list* src, struct block_list *bl, uint16 skill_id, uint16 skill_lv, int attack_type, int dmg_lv, unsigned int tick)
 {
 	struct map_session_data *sd, *dstsd;
 	struct mob_data *md, *dstmd;
@@ -1326,7 +1342,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 			break;
 		case WL_EARTHSTRAIN: {
 				int i;
-				const int pos[5] = { EQP_WEAPON,EQP_HELM,EQP_SHIELD,EQP_ARMOR,EQP_ACC };
+				const int pos[5] = { EQP_WEAPON,EQP_SHIELD,EQP_ARMOR,EQP_HELM,EQP_ACC };
 
 				if( !tsc->data[SC_WHITEIMPRISON] )
 					for( i = 0; i < skill_lv; i++ )
@@ -1550,7 +1566,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 				sc_start(src,bl,SC_STUN,10 * skill_lv + rnd()%50,skill_lv,skill_get_time2(skill_id,skill_lv)); //Custom
 			break;
 		case RL_S_STORM: {
-				uint16 where[] = { EQP_HELM,EQP_ARMS,EQP_ARMOR,EQP_SHIELD,EQP_SHOES,EQP_GARMENT };
+				uint16 where[] = { EQP_HELM,EQP_WEAPON,EQP_SHIELD,EQP_ARMOR,EQP_SHOES,EQP_GARMENT };
 				uint16 mrate, rate;
 
 				mrate = skill_lv * 500;
@@ -2144,12 +2160,12 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 --------------------------------------------------------------------------*/
 int skill_break_equip (struct block_list *src, struct block_list *bl, unsigned short where, int rate, int flag)
 {
-	const int where_list[4]     = { EQP_WEAPON, EQP_ARMOR, EQP_SHIELD, EQP_HELM };
-	const enum sc_type scatk[4] = { SC_STRIPWEAPON, SC_STRIPARMOR, SC_STRIPSHIELD, SC_STRIPHELM };
-	const enum sc_type scdef[4] = { SC_CP_WEAPON, SC_CP_ARMOR, SC_CP_SHIELD, SC_CP_HELM };
+	const int where_list[4]     = { EQP_HELM,EQP_WEAPON,EQP_SHIELD,EQP_ARMOR };
+	const enum sc_type scatk[4] = { SC_STRIPHELM,SC_STRIPWEAPON,SC_STRIPSHIELD,SC_STRIPARMOR };
+	const enum sc_type scdef[4] = { SC_CP_HELM,SC_CP_WEAPON,SC_CP_SHIELD,SC_CP_ARMOR };
 	struct status_change *sc = status_get_sc(bl);
 	int i;
-	TBL_PC *sd = BL_CAST(BL_PC, bl);
+	TBL_PC *sd = BL_CAST(BL_PC,bl);
 
 	if (sc && !sc->count)
 		sc = NULL;
@@ -2206,7 +2222,7 @@ int skill_break_equip (struct block_list *src, struct block_list *bl, unsigned s
 				case EQI_ARMOR: //Body
 					flag = (where&EQP_ARMOR);
 					break;
-				case EQI_HAND_R: //Left/Right hands
+				case EQI_HAND_R: //Right/Left hands
 				case EQI_HAND_L:
 					flag = (((where&EQP_WEAPON) && sd->inventory_data[j]->type == IT_WEAPON) ||
 						((where&EQP_SHIELD) && sd->inventory_data[j]->type == IT_ARMOR));
@@ -2222,7 +2238,7 @@ int skill_break_equip (struct block_list *src, struct block_list *bl, unsigned s
 			}
 			if (flag) {
 				sd->status.inventory[j].attribute = 1;
-				pc_unequipitem(sd, j, 7);
+				pc_unequipitem(sd,j,7);
 			}
 		}
 		clif_equiplist(sd);
@@ -2234,27 +2250,24 @@ int skill_break_equip (struct block_list *src, struct block_list *bl, unsigned s
 int skill_strip_equip(struct block_list *src, struct block_list *bl, unsigned short where, int rate, int lv, int time)
 {
 	struct status_change *sc;
-	const int pos[5]             = { EQP_WEAPON, EQP_SHIELD, EQP_ARMOR, EQP_HELM, EQP_ACC };
-	const enum sc_type sc_atk[5] = { SC_STRIPWEAPON, SC_STRIPSHIELD, SC_STRIPARMOR, SC_STRIPHELM, SC__STRIPACCESSORY };
-	const enum sc_type sc_def[5] = { SC_CP_WEAPON, SC_CP_SHIELD, SC_CP_ARMOR, SC_CP_HELM, SC_NONE };
+	const int pos[5]             = { EQP_WEAPON,EQP_SHIELD,EQP_ARMOR,EQP_HELM,EQP_ACC };
+	const enum sc_type sc_atk[5] = { SC_STRIPWEAPON,SC_STRIPSHIELD,SC_STRIPARMOR,SC_STRIPHELM,SC__STRIPACCESSORY };
+	const enum sc_type sc_def[5] = { SC_CP_WEAPON,SC_CP_SHIELD,SC_CP_ARMOR,SC_CP_HELM,SC_NONE };
 	int i;
 
 	if (rnd()%100 >= rate)
 		return 0;
-
 	sc = status_get_sc(bl);
 	if (!sc || (sc->option&OPTION_MADOGEAR) ) //Mado Gear cannot be divested [Ind]
 		return 0;
-
 	for (i = 0; i < ARRAYLENGTH(pos); i++) {
 		if (where&pos[i] && sc_def[i] > SC_NONE && sc->data[sc_def[i]])
 			where &= ~pos[i];
 	}
 	if (!where)
 		return 0;
-
 	for (i = 0; i < ARRAYLENGTH(pos); i++) {
-		if (where&pos[i] && !sc_start(src, bl, sc_atk[i], 100, lv, time))
+		if (where&pos[i] && !sc_start(src,bl,sc_atk[i],100,lv,time))
 			where &= ~pos[i];
 	}
 	return (where ? 1 : 0);
@@ -3727,15 +3740,12 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					skill_unitsetting(src,skl->skill_id,skl->skill_lv,skl->x,skl->y,(skl->type<<16)|skl->flag);
 					break;
 				case LG_OVERBRAND_BRANDISH: {
-						short x2 = src->x, y2 = src->y, x = x2, y = y2;
+						int x = src->x, y = src->y;
+						int i, dir = map_calc_dir(src,x,y);
+						struct s_skill_nounit_layout *layout = skill_get_nounit_layout(skl->skill_id,skl->skill_lv,src,x,y,dir);
 
-						switch (skl->type) {
-							case 0: case 1: case 7: x2 += 4; x -= 4; y2 += 4; break;
-							case 3: case 4: case 5: x2 += 4; x -= 4; y -= 4; break;
-							case 2: y2 += 4; y -= 4; x -= 4; break;
-							case 6: y2 += 4; y -= 4; x2 += 4; break;
-						}
-						map_foreachinarea(skill_area_sub,src->m,x,y,x2,y2,BL_CHAR,src,skl->skill_id,skl->skill_lv,tick,skl->flag|BCT_ENEMY|SD_ANIMATION|1,skill_castend_damage_id);
+						for( i = 0; i < layout->count; i++ )
+							map_foreachincell(skill_area_sub,src->m,x+layout->dx[i],y+layout->dy[i],BL_CHAR,src,skl->skill_id,skl->skill_lv,tick,skl->flag|BCT_ENEMY|SD_ANIMATION|1,skill_castend_damage_id);
 					}
 					break;
 				case RL_FIRE_RAIN: {
@@ -6023,6 +6033,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case NC_SHAPESHIFT:
 		case WL_RECOGNIZEDSPELL:
 		case GC_VENOMIMPRESS:
+		case SC_INVISIBILITY:
 		case SC_DEADLYINFECT:
 		case LG_EXEEDBREAK:
 		case LG_PRESTIGE:
@@ -6584,11 +6595,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
 
-		case SC_INVISIBILITY:
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,
-				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
-			break;
-
 		case BD_ADAPTATION:
 			if (tsc && tsc->data[SC_DANCING]) {
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -6907,183 +6913,185 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case RG_STRIPHELM:
 		case ST_FULLSTRIP:
 		case GC_WEAPONCRUSH:
-		case SC_STRIPACCESSARY: {
-			unsigned short location = 0;
-			int d = 0;
+		case SC_STRIPACCESSARY:
+			{
+				unsigned short location = 0;
+				int d = 0;
 
-			//Rate in percent
-			if(skill_id == ST_FULLSTRIP)
-				i = 5 + 2 * skill_lv + (sstatus->dex - tstatus->dex) / 5;
-			else if(skill_id == SC_STRIPACCESSARY)
-				i = 12 + 2 * skill_lv + (sstatus->dex - tstatus->dex) / 5;
-			else
-				i = 5 + 5 * skill_lv + (sstatus->dex - tstatus->dex) / 5;
-
-			if(i < 5)
-				i = 5; //Minimum rate 5%
-
-			//Duration in ms
-			if(skill_id == GC_WEAPONCRUSH) {
-				d = skill_get_time(skill_id,skill_lv);
-				if(bl->type == BL_PC)
-					d += skill_lv * 15 + (sstatus->dex - tstatus->dex) * 1000;
+				//Rate in percent
+				if(skill_id == ST_FULLSTRIP)
+					i = 5 + 2 * skill_lv + (sstatus->dex - tstatus->dex) / 5;
+				else if(skill_id == SC_STRIPACCESSARY)
+					i = 12 + 2 * skill_lv + (sstatus->dex - tstatus->dex) / 5;
 				else
-					d += skill_lv * 30 + (sstatus->dex - tstatus->dex) * 500;
-			} else
-				d = skill_get_time(skill_id,skill_lv) + (sstatus->dex - tstatus->dex) * 500;
+					i = 5 + 5 * skill_lv + (sstatus->dex - tstatus->dex) / 5;
 
-			if(d < 0)
-				d = 0; //Minimum duration 0ms
+				if(i < 5)
+					i = 5; //Minimum rate 5%
 
-			switch(skill_id) {
-				case RG_STRIPWEAPON:
-				case GC_WEAPONCRUSH:
-					location = EQP_WEAPON;
+				//Duration in ms
+				if(skill_id == GC_WEAPONCRUSH) {
+					d = skill_get_time(skill_id,skill_lv);
+					if(bl->type == BL_PC)
+						d += skill_lv * 15 + (sstatus->dex - tstatus->dex) * 1000;
+					else
+						d += skill_lv * 30 + (sstatus->dex - tstatus->dex) * 500;
+				} else
+					d = skill_get_time(skill_id,skill_lv) + (sstatus->dex - tstatus->dex) * 500;
+
+				if(d < 0)
+					d = 0; //Minimum duration 0ms
+
+				switch(skill_id) {
+					case RG_STRIPWEAPON:
+					case GC_WEAPONCRUSH:
+						location = EQP_WEAPON;
+						break;
+					case RG_STRIPSHIELD:
+						location = EQP_SHIELD;
+						break;
+					case RG_STRIPARMOR:
+						location = EQP_ARMOR;
+						break;
+					case RG_STRIPHELM:
+						location = EQP_HELM;
+						break;
+					case ST_FULLSTRIP:
+						location = EQP_WEAPON|EQP_SHIELD|EQP_ARMOR|EQP_HELM;
+						break;
+					case SC_STRIPACCESSARY:
+						location = EQP_ACC;
+						break;
+				}
+
+				//Special message when trying to use strip on FCP [Jobbie]
+				if(sd && skill_id == ST_FULLSTRIP && tsc && tsc->data[SC_CP_WEAPON] && tsc->data[SC_CP_HELM] &&
+					tsc->data[SC_CP_ARMOR] && tsc->data[SC_CP_SHIELD]) {
+					clif_gospel_info(sd,0x28);
 					break;
-				case RG_STRIPSHIELD:
-					location = EQP_SHIELD;
-					break;
-				case RG_STRIPARMOR:
-					location = EQP_ARMOR;
-					break;
-				case RG_STRIPHELM:
-					location = EQP_HELM;
-					break;
-				case ST_FULLSTRIP:
-					location = EQP_WEAPON|EQP_SHIELD|EQP_ARMOR|EQP_HELM;
-					break;
-				case SC_STRIPACCESSARY:
-					location = EQP_ACC;
-					break;
+				}
+
+				//Attempts to strip at rate i and duration d
+				if((i = skill_strip_equip(src,bl,location,i,skill_lv,d)) || (skill_id != ST_FULLSTRIP && skill_id != GC_WEAPONCRUSH))
+					clif_skill_nodamage(src,bl,skill_id,skill_lv,i);
+
+				//Nothing stripped.
+				if(sd && !i)
+					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			}
-
-			//Special message when trying to use strip on FCP [Jobbie]
-			if(sd && skill_id == ST_FULLSTRIP && tsc && tsc->data[SC_CP_WEAPON] && tsc->data[SC_CP_HELM] &&
-				tsc->data[SC_CP_ARMOR] && tsc->data[SC_CP_SHIELD]) {
-				clif_gospel_info(sd,0x28);
-				break;
-			}
-
-			//Attempts to strip at rate i and duration d
-			if((i = skill_strip_equip(src,bl,location,i,skill_lv,d)) || (skill_id != ST_FULLSTRIP && skill_id != GC_WEAPONCRUSH))
-				clif_skill_nodamage(src,bl,skill_id,skill_lv,i);
-
-			//Nothing stripped.
-			if(sd && !i)
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
-		}
 
 		case AM_BERSERKPITCHER:
-		case AM_POTIONPITCHER: {
-			int i, hp = 0, sp = 0;
+		case AM_POTIONPITCHER:
+			{
+				int i, hp = 0, sp = 0;
 
-			if( dstmd && dstmd->mob_id == MOBID_EMPERIUM ) {
-				map_freeblock_unlock();
-				return 1;
-			}
-			if( sd ) {
-				int x, bonus = 100;
-				struct skill_condition require = skill_get_requirement(sd,skill_id,skill_lv);
-
-				x = skill_lv%11 - 1;
-				i = pc_search_inventory(sd,require.itemid[x]);
-				if( i < 0 || require.itemid[x] <= 0 ) {
-					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+				if( dstmd && dstmd->mob_id == MOBID_EMPERIUM ) {
 					map_freeblock_unlock();
 					return 1;
 				}
-				if( sd->inventory_data[i] == NULL || sd->status.inventory[i].amount < require.amount[x] ) {
-					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
-					map_freeblock_unlock();
-					return 1;
-				}
-				if( skill_id == AM_BERSERKPITCHER ) {
-					if( dstsd && dstsd->status.base_level < (unsigned int)sd->inventory_data[i]->elv ) {
+				if( sd ) {
+					int x, bonus = 100;
+					struct skill_condition require = skill_get_requirement(sd,skill_id,skill_lv);
+
+					x = skill_lv%11 - 1;
+					i = pc_search_inventory(sd,require.itemid[x]);
+					if( i < 0 || require.itemid[x] <= 0 ) {
 						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 						map_freeblock_unlock();
 						return 1;
 					}
-				}
-				potion_flag = 1;
-				potion_hp = potion_sp = potion_per_hp = potion_per_sp = 0;
-				potion_target = bl->id;
-				run_script(sd->inventory_data[i]->script,0,sd->bl.id,0);
-				potion_flag = potion_target = 0;
-				if( sd->sc.data[SC_SPIRIT] && sd->sc.data[SC_SPIRIT]->val2 == SL_ALCHEMIST )
-					bonus += sd->status.base_level;
-				if( potion_per_hp > 0 || potion_per_sp > 0 ) {
-					hp = tstatus->max_hp * potion_per_hp / 100;
-					hp = hp * (100 + pc_checkskill(sd,AM_POTIONPITCHER) * 10 + pc_checkskill(sd,AM_LEARNINGPOTION) * 5) * bonus / 10000;
-					if( dstsd ) {
-						sp = dstsd->status.max_sp * potion_per_sp / 100;
-						sp = sp * (100 + pc_checkskill(sd,AM_POTIONPITCHER) * 10 + pc_checkskill(sd,AM_LEARNINGPOTION) * 5) * bonus / 10000;
+					if( sd->inventory_data[i] == NULL || sd->status.inventory[i].amount < require.amount[x] ) {
+						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+						map_freeblock_unlock();
+						return 1;
 					}
-				} else {
-					if( potion_hp > 0 ) {
-						hp = potion_hp * (100 + pc_checkskill(sd,AM_POTIONPITCHER) * 10 + pc_checkskill(sd,AM_LEARNINGPOTION) * 5) * bonus / 10000;
+					if( skill_id == AM_BERSERKPITCHER ) {
+						if( dstsd && dstsd->status.base_level < (unsigned int)sd->inventory_data[i]->elv ) {
+							clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+							map_freeblock_unlock();
+							return 1;
+						}
+					}
+					potion_flag = 1;
+					potion_hp = potion_sp = potion_per_hp = potion_per_sp = 0;
+					potion_target = bl->id;
+					run_script(sd->inventory_data[i]->script,0,sd->bl.id,0);
+					potion_flag = potion_target = 0;
+					if( sd->sc.data[SC_SPIRIT] && sd->sc.data[SC_SPIRIT]->val2 == SL_ALCHEMIST )
+						bonus += sd->status.base_level;
+					if( potion_per_hp > 0 || potion_per_sp > 0 ) {
+						hp = tstatus->max_hp * potion_per_hp / 100;
+						hp = hp * (100 + pc_checkskill(sd,AM_POTIONPITCHER) * 10 + pc_checkskill(sd,AM_LEARNINGPOTION) * 5) * bonus / 10000;
+						if( dstsd ) {
+							sp = dstsd->status.max_sp * potion_per_sp / 100;
+							sp = sp * (100 + pc_checkskill(sd,AM_POTIONPITCHER) * 10 + pc_checkskill(sd,AM_LEARNINGPOTION) * 5) * bonus / 10000;
+						}
+					} else {
+						if( potion_hp > 0 ) {
+							hp = potion_hp * (100 + pc_checkskill(sd,AM_POTIONPITCHER) * 10 + pc_checkskill(sd,AM_LEARNINGPOTION) * 5) * bonus / 10000;
+							hp = hp * (100 + (tstatus->vit<<1)) / 100;
+							if( dstsd )
+								hp = hp * (100 + pc_checkskill(dstsd,SM_RECOVERY) * 10) / 100;
+						}
+						if( potion_sp > 0 ) {
+							sp = potion_sp * (100 + pc_checkskill(sd,AM_POTIONPITCHER) * 10 + pc_checkskill(sd,AM_LEARNINGPOTION) * 5) * bonus / 10000;
+							sp = sp * (100 + (tstatus->int_<<1)) / 100;
+							if( dstsd )
+								sp = sp * (100 + pc_checkskill(dstsd,MG_SRECOVERY) * 10) / 100;
+						}
+					}
+
+						if( sd->itemgrouphealrate[IG_POTION] > 0 ) {
+							hp += hp * sd->itemgrouphealrate[IG_POTION] / 100;
+							sp += sp * sd->itemgrouphealrate[IG_POTION] / 100;
+						}
+
+						if( (i = pc_skillheal_bonus(sd,skill_id)) ) {
+							hp += hp * i / 100;
+							sp += sp * i / 100;
+						}
+					} else {
+						//Maybe replace with potion_hp, but I'm unsure how that works [Playtester]
+						switch( skill_lv ) {
+							case 1: hp = 45; break;
+							case 2: hp = 105; break;
+							case 3: hp = 175; break;
+							default: hp = 325; break;
+						}
+						hp = (hp + rnd()%(skill_lv * 20 + 1)) * (150 + skill_lv * 10) / 100;
 						hp = hp * (100 + (tstatus->vit<<1)) / 100;
 						if( dstsd )
 							hp = hp * (100 + pc_checkskill(dstsd,SM_RECOVERY) * 10) / 100;
 					}
-					if( potion_sp > 0 ) {
-						sp = potion_sp * (100 + pc_checkskill(sd,AM_POTIONPITCHER) * 10 + pc_checkskill(sd,AM_LEARNINGPOTION) * 5) * bonus / 10000;
-						sp = sp * (100 + (tstatus->int_<<1)) / 100;
-						if( dstsd )
-							sp = sp * (100 + pc_checkskill(dstsd,MG_SRECOVERY) * 10) / 100;
-					}
-				}
-
-					if( sd->itemgrouphealrate[IG_POTION] > 0 ) {
-						hp += hp * sd->itemgrouphealrate[IG_POTION] / 100;
-						sp += sp * sd->itemgrouphealrate[IG_POTION] / 100;
-					}
-
-					if( (i = pc_skillheal_bonus(sd,skill_id)) ) {
+					if( dstsd && (i = pc_skillheal2_bonus(dstsd,skill_id)) ) {
 						hp += hp * i / 100;
 						sp += sp * i / 100;
 					}
-				} else {
-					//Maybe replace with potion_hp, but I'm unsure how that works [Playtester]
-					switch( skill_lv ) {
-						case 1: hp = 45; break;
-						case 2: hp = 105; break;
-						case 3: hp = 175; break;
-						default: hp = 325; break;
+					if( tsc && tsc->count ) {
+						if( tsc->data[SC_CRITICALWOUND] ) {
+							hp -= hp * tsc->data[SC_CRITICALWOUND]->val2 / 100;
+							sp -= sp * tsc->data[SC_CRITICALWOUND]->val2 / 100;
+						}
+						if( tsc->data[SC_DEATHHURT] ) {
+							hp -= hp * 20 / 100;
+							sp -= sp * 20 / 100;
+						}
+						if( tsc->data[SC_WATER_INSIGNIA] && tsc->data[SC_WATER_INSIGNIA]->val1 == 2 ) {
+							hp += hp / 10;
+							sp += sp / 10;
+						}
 					}
-					hp = (hp + rnd()%(skill_lv * 20 + 1)) * (150 + skill_lv * 10) / 100;
-					hp = hp * (100 + (tstatus->vit<<1)) / 100;
-					if( dstsd )
-						hp = hp * (100 + pc_checkskill(dstsd,SM_RECOVERY) * 10) / 100;
-				}
-				if( dstsd && (i = pc_skillheal2_bonus(dstsd,skill_id)) ) {
-					hp += hp * i / 100;
-					sp += sp * i / 100;
-				}
-				if( tsc && tsc->count ) {
-					if( tsc->data[SC_CRITICALWOUND] ) {
-						hp -= hp * tsc->data[SC_CRITICALWOUND]->val2 / 100;
-						sp -= sp * tsc->data[SC_CRITICALWOUND]->val2 / 100;
-					}
-					if( tsc->data[SC_DEATHHURT] ) {
-						hp -= hp * 20 / 100;
-						sp -= sp * 20 / 100;
-					}
-					if( tsc->data[SC_WATER_INSIGNIA] && tsc->data[SC_WATER_INSIGNIA]->val1 == 2 ) {
-						hp += hp / 10;
-						sp += sp / 10;
-					}
-				}
-				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				if( hp > 0 || (skill_id == AM_POTIONPITCHER && sp <= 0) )
-					clif_skill_nodamage(NULL,bl,AL_HEAL,hp,1);
-				if( sp > 0 )
-					clif_skill_nodamage(NULL,bl,MG_SRECOVERY,sp,1);
+					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+					if( hp > 0 || (skill_id == AM_POTIONPITCHER && sp <= 0) )
+						clif_skill_nodamage(NULL,bl,AL_HEAL,hp,1);
+					if( sp > 0 )
+						clif_skill_nodamage(NULL,bl,MG_SRECOVERY,sp,1);
 #ifdef RENEWAL
-				if( tsc && tsc->data[SC_EXTREMITYFIST2] )
-					sp = 0;
+					if( tsc && tsc->data[SC_EXTREMITYFIST2] )
+						sp = 0;
 #endif
-				status_heal(bl,hp,sp,0);
+					status_heal(bl,hp,sp,0);
 			}
 			break;
 		case AM_CP_WEAPON:
@@ -7103,33 +7111,33 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 		case AM_TWILIGHT1:
-			if (sd) {
+			if( sd ) {
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				//Prepare 200 White Potions.
-				if (!skill_produce_mix(sd,skill_id,ITEMID_WHITE_POTION,0,0,0,200))
+				if( !skill_produce_mix(sd,skill_id,ITEMID_WHITE_POTION,0,0,0,200) )
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			}
 			break;
 		case AM_TWILIGHT2:
-			if (sd) {
+			if( sd ) {
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				//Prepare 200 Slim White Potions.
-				if (!skill_produce_mix(sd,skill_id,ITEMID_WHITE_SLIM_POTION,0,0,0,200))
+				if( !skill_produce_mix(sd,skill_id,ITEMID_WHITE_SLIM_POTION,0,0,0,200) )
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			}
 			break;
 		case AM_TWILIGHT3:
-			if (sd) {
+			if( sd ) {
 				int ebottle = pc_search_inventory(sd,ITEMID_EMPTY_BOTTLE);
 
-				if (ebottle >= 0)
+				if( ebottle >= 0 )
 					ebottle = sd->status.inventory[ebottle].amount;
 				//Check if you can produce all three, if not, then fail:
-				if (!skill_can_produce_mix(sd,ITEMID_ALCOHOL,-1,100) || //100 Alcohol
+				if( !skill_can_produce_mix(sd,ITEMID_ALCOHOL,-1,100) || //100 Alcohol
 					!skill_can_produce_mix(sd,ITEMID_ACID_BOTTLE,-1,50) || //50 Acid Bottle
 					!skill_can_produce_mix(sd,ITEMID_FIRE_BOTTLE,-1,50) || //50 Flame Bottle
-					ebottle < 200 //200 empty bottle are required at total.
-				) {
+					ebottle < 200 ) //200 empty bottle are required at total.
+				{
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
@@ -7151,9 +7159,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					if( (dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) ||
 						//Rogue's spirit defends againt dispel.
 						(tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_ROGUE) ||
-						rnd()%100 >= 50 + 10 * skill_lv ||
 						//Mado Gear is immune to dispell according to bug report 49 [Ind]
-						(tsc && (tsc->option&OPTION_MADOGEAR)) )
+						(tsc && (tsc->option&OPTION_MADOGEAR)) ||
+						rnd()%100 >= 50 + 10 * skill_lv )
 					{
 						if( sd )
 							clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -7223,10 +7231,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 #ifdef RENEWAL
 							case SC_EXTREMITYFIST2:
 #endif
+							case SC_HIDING:				case SC_CLOAKING:		case SC_CHASEWALK:
+							case SC_CLOAKINGEXCEED:			case SC__FEINT:			case SC__INVISIBILITY:
 								continue;
-							/**
-							 * bugreport:4888 these songs may only be dispelled if you're not in their song area anymore
-							 **/
+							//bugreport:4888 these songs may only be dispelled if you're not in their song area anymore
 							case SC_WHISTLE:
 							case SC_ASSNCROS:
 							case SC_POEMBRAGI:
@@ -7857,7 +7865,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 		//Full Chemical Protection
 		case CR_FULLPROTECTION: {
-				unsigned int equip[] = {EQP_WEAPON,EQP_SHIELD,EQP_ARMOR,EQP_HEAD_TOP};
+				unsigned int equip[] = { EQP_WEAPON,EQP_SHIELD,EQP_ARMOR,EQP_HEAD_TOP };
 				int i, s = 0, skilltime = skill_get_time(skill_id,skill_lv);
 
 				for (i = 0; i < 4; i++) {
@@ -7919,7 +7927,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 								status_fix_damage(src,bl,1000,0);
 								clif_damage(src,bl,tick,0,0,1000,0,0,0);
 								if( !status_isdead(bl) ) {
-									int where[] = { EQP_ARMOR,EQP_SHIELD,EQP_HELM,EQP_SHOES,EQP_GARMENT };
+									int where[] = { EQP_HELM,EQP_SHIELD,EQP_ARMOR,EQP_SHOES,EQP_GARMENT };
 
 									skill_break_equip(src,bl,where[rnd()%5],10000,BCT_ENEMY);
 								}
@@ -8534,7 +8542,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case GC_HALLUCINATIONWALK: {
-				int heal = status_get_max_hp(bl) * ( 18 - 2 * skill_lv ) / 100;
+				int heal = status_get_max_hp(bl) * (18 - 2 * skill_lv) / 100;
 
 				if( status_get_hp(bl) < heal ) { //if you haven't enough HP skill fails.
 					if( sd ) clif_skill_fail(sd,skill_id,USESKILL_FAIL_HP_INSUFFICIENT,0);
@@ -8719,6 +8727,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 #ifdef RENEWAL
 							case SC_EXTREMITYFIST2:
 #endif
+							case SC_HIDING:			case SC_CLOAKING:		case SC_CHASEWALK:
+							case SC_CLOAKINGEXCEED:		case SC__FEINT:			case SC__INVISIBILITY:
 								continue;
 							case SC_ASSUMPTIO:
 								if( bl->type == BL_MOB )
@@ -10284,6 +10294,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 #ifdef RENEWAL
 							case SC_EXTREMITYFIST2:
 #endif
+							case SC_HIDING:			case SC_CLOAKING:		case SC_CHASEWALK:
+							case SC_CLOAKINGEXCEED:		case SC__FEINT:			case SC__INVISIBILITY:
 								continue;
 							case SC_ASSUMPTIO:
 								if( bl->type == BL_MOB )
@@ -11467,16 +11479,11 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case LG_OVERBRAND: {
-				uint8 dir = map_calc_dir(src,x,y);
-				uint8 x2 = x = src->x, y2 = y = src->y;
+				int dir = map_calc_dir(src,x,y);
+				struct s_skill_nounit_layout *layout = skill_get_nounit_layout(skill_id,skill_lv,src,x,y,dir);
 
-				switch( dir ) {
-					case 0: case 1: case 7: x2++; x--; y2 += 7; break;
-					case 3: case 4: case 5: x2++; x--; y -= 7; break;
-					case 2: y2++; y--; x -= 7; break;
-					case 6: y2++; y--; x2 += 7; break;
-				}
-				map_foreachinarea(skill_area_sub,src->m,x,y,x2,y2,BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_ANIMATION|1,skill_castend_damage_id);
+				for( i = 0; i < layout->count; i++ )
+					map_foreachincell(skill_area_sub,src->m,x+layout->dx[i],y+layout->dy[i],BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_ANIMATION|1,skill_castend_damage_id);
 				skill_addtimerskill(src,gettick() + status_get_amotion(src),0,0,0,LG_OVERBRAND_BRANDISH,skill_lv,dir,flag);
 			}
 			break;
@@ -12309,7 +12316,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			continue; //Are the coordinates out of range?
 		if( !group->state.song_dance && !map_getcell(src->m,ux,uy,CELL_CHKREACH) )
 			continue; //Don't place skill units on walls (except for songs/dances/encores)
-		if( battle_config.skill_wall_check && unit_flag&UF_PATHCHECK && !path_search_long(NULL,src->m,ux,uy,x,y,CELL_CHKWALL) )
+		if( battle_config.skill_wall_check && (unit_flag&UF_PATHCHECK) && !path_search_long(NULL,src->m,ux,uy,x,y,CELL_CHKWALL) )
 			continue; //No path between cell and center of casting.
 
 		switch( skill_id ) {
@@ -19245,19 +19252,6 @@ void skill_init_unit_layout (void)
 						pos++;
 					}
 					break;
-				case LG_OVERBRAND: {
-						static const int dx[] = {-1,-1,-1,-1, 0, 0, 0, 0, 1, 1, 1, 1,
-							-5,-5,-5,-5,-4,-4,-4,-4,-3,-3,-3,-3,-2,-2,-2,-2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5,
-							-1,-1,-1, 0, 0, 0, 1, 1, 1};
-						static const int dy[] = { 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 
-							0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3, 0,-1,-2,-3,
-							-4,-5,-6,-4,-5,-6,-4,-5,-6};
-
-						skill_unit_layout[pos].count = 53;
-						memcpy(skill_unit_layout[pos].dx,dx,sizeof(dx));
-						memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
-					}
-					break;
 				default:
 					ShowError("unknown unit layout at skill %d\n",i);
 					break;
@@ -19389,6 +19383,173 @@ void skill_init_unit_layout (void)
 					memcpy(skill_unit_layout[pos].dy,dy,sizeof(dy));
 				}
 				break;
+		}
+		pos++;
+	}
+}
+
+void skill_init_nounit_layout (void)
+{
+	int i, pos = 0;
+
+	memset(skill_nounit_layout,0,sizeof(skill_nounit_layout));
+
+	overbrand_nounit_pos = pos;
+	for( i = 0; i < 8; i++ ) {
+		if( i&1 ) {
+			skill_nounit_layout[pos].count = 33;
+			if( i&2 ) {
+				if( i&4 ) { // 7
+					int dx[] = { 5, 6, 7, 5, 6, 4, 5, 6, 4, 5, 3, 4, 5, 3, 4, 2, 3, 4, 2, 3, 1, 2, 3, 1, 2, 0, 1, 2, 0, 1,-1, 0, 1};
+					int dy[] = { 7, 6, 5, 6, 5, 6, 5, 4, 5, 4, 5, 4, 3, 4, 3, 4, 3, 2, 3, 2, 3, 2, 1, 2, 1, 2, 1, 0, 1, 0, 1, 0,-1};
+
+					memcpy(skill_nounit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_nounit_layout[pos].dy,dy,sizeof(dy));
+				} else { // 3
+					int dx[] = {-5,-6,-7,-5,-6,-4,-5,-6,-4,-5,-3,-4,-5,-3,-4,-2,-3,-4,-2,-3,-1,-2,-3,-1,-2, 0,-1,-2, 0,-1, 1, 0,-1};
+					int dy[] = {-7,-6,-5,-6,-5,-6,-5,-4,-5,-4,-5,-4,-3,-4,-3,-4,-3,-2,-3,-2,-3,-2,-1,-2,-1,-2,-1, 0,-1, 0,-1, 0, 1};
+
+					memcpy(skill_nounit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_nounit_layout[pos].dy,dy,sizeof(dy));
+				}
+			} else {
+				if( i&4 ) { // 5
+					int dx[] = { 7, 6, 5, 6, 5, 6, 5, 4, 5, 4, 5, 4, 3, 4, 3, 4, 3, 2, 3, 2, 3, 2, 1, 2, 1, 2, 1, 0, 1, 0, 1, 0,-1};
+					int dy[] = {-5,-6,-7,-5,-6,-4,-5,-6,-4,-5,-3,-4,-5,-3,-4,-2,-3,-4,-2,-3,-1,-2,-3,-1,-2, 0,-1,-2, 0,-1, 1, 0,-1};
+
+					memcpy(skill_nounit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_nounit_layout[pos].dy,dy,sizeof(dy));
+				} else { // 1
+					int dx[] = {-7,-6,-5,-6,-5,-6,-5,-4,-5,-4,-5,-4,-3,-4,-3,-4,-3,-2,-3,-2,-3,-2,-1,-2,-1,-2,-1, 0,-1, 0,-1, 0, 1};
+					int dy[] = { 5, 6, 7, 5, 6, 4, 5, 6, 4, 5, 3, 4, 5, 3, 4, 2, 3, 4, 2, 3, 1, 2, 3, 1, 2, 0, 1, 2, 0, 1,-1, 0, 1};
+
+					memcpy(skill_nounit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_nounit_layout[pos].dy,dy,sizeof(dy));
+				}
+			}
+		} else {
+			skill_nounit_layout[pos].count = 21;
+			if( i&2 ) {
+				if( i&4 ) { // 6
+					int dx[] = { 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6};
+					int dy[] = { 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1};
+
+					memcpy(skill_nounit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_nounit_layout[pos].dy,dy,sizeof(dy));
+				} else { // 2
+					int dx[] = {-6,-5,-4,-3,-2,-1, 0,-6,-5,-4,-3,-2,-1, 0,-6,-5,-4,-3,-2,-1, 0};
+					int dy[] = { 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1};
+
+					memcpy(skill_nounit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_nounit_layout[pos].dy,dy,sizeof(dy));
+				}
+			} else {
+				if( i&4 ) { // 4
+					int dx[] = {-1, 0, 1,-1, 0, 1,-1, 0, 1,-1, 0, 1,-1, 0, 1,-1, 0, 1,-1, 0, 1};
+					int dy[] = { 0, 0, 0,-1,-1,-1,-2,-2,-2,-3,-3,-3,-4,-4,-4,-5,-5,-5,-6,-6,-6};
+
+					memcpy(skill_nounit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_nounit_layout[pos].dy,dy,sizeof(dy));
+				} else { // 0
+					int dx[] = {-1, 0, 1,-1, 0, 1,-1, 0, 1,-1, 0, 1,-1, 0, 1,-1, 0, 1,-1, 0, 1};
+					int dy[] = { 6, 6, 6, 5, 5, 5, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 0, 0, 0};
+
+					memcpy(skill_nounit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_nounit_layout[pos].dy,dy,sizeof(dy));
+				}
+			}
+		}
+		pos++;
+	}
+
+	overbrand_brandish_nounit_pos = pos;
+	for( i = 0; i < 8; i++ ) {
+		if( i&1 ) {
+			skill_nounit_layout[pos].count = 74;
+			if( i&2 ) {
+				if( i&4 ) { // 7
+					int dx[] = {-2,-1, 0, 1, 2, 3, 4, 5, 6, 7, 8,-2,-1, 0, 1, 2, 3, 4, 5, 6, 7,
+								-3,-2,-1, 0, 1, 2, 3, 4, 5, 6, 7,-3,-2,-1,-0, 1, 2, 3, 4, 5, 6,
+								-4,-3,-2,-1, 0, 1, 2, 3, 4, 5, 6,-4,-3,-2,-1,-0, 1, 2, 3, 4, 5,
+								-5,-4,-3,-2,-1, 0, 1, 2, 3, 4, 5};
+					int dy[] = { 8, 7, 6, 5, 4, 3, 2, 1, 0,-1,-2, 7, 6, 5, 4, 3, 2, 1, 0,-1,-2,
+								 7, 6, 5, 4, 3, 2, 1, 0,-1,-2,-3, 6, 5, 4, 3, 2, 1, 0,-1,-2,-3,
+								 6, 5, 4, 3, 2, 1, 0,-1,-2,-3,-4, 5, 4, 3, 2, 1, 0,-1,-2,-3,-4,
+								 5, 4, 3, 2, 1, 0,-1,-2,-3,-4,-5};
+
+					memcpy(skill_nounit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_nounit_layout[pos].dy,dy,sizeof(dy));
+				} else { // 3
+					int dx[] = { 2, 1, 0,-1,-2,-3,-4,-5,-6,-7,-8, 2, 1, 0,-1,-2,-3,-4,-5,-6,-7,
+								 3, 2, 1, 0,-1,-2,-3,-4,-5,-6,-7, 3, 2, 1, 0,-1,-2,-3,-4,-5,-6,
+								 4, 3, 2, 1, 0,-1,-2,-3,-4,-5,-6, 4, 3, 2, 1, 0,-1,-2,-3,-4,-5,
+								 5, 4, 3, 2, 1, 0,-1,-2,-3,-4,-5};
+					int dy[] = {-8,-7,-6,-5,-4,-3,-2,-1, 0, 1, 2,-7,-6,-5,-4,-3,-2,-1, 0, 1, 2,
+								-7,-6,-5,-4,-3,-2,-1, 0, 1, 2, 3,-6,-5,-4,-3,-2,-1, 0, 1, 2, 3,
+								-6,-5,-4,-3,-2,-1, 0, 1, 2, 3, 4,-5,-4,-3,-2,-1, 0, 1, 2, 3, 4,
+								-5,-4,-3,-2,-1, 0, 1, 2, 3, 4, 5};
+
+					memcpy(skill_nounit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_nounit_layout[pos].dy,dy,sizeof(dy));
+				}
+			} else {
+				if( i&4 ) { // 5
+					int dx[] = { 8, 7, 6, 5, 4, 3, 2, 1, 0,-1,-2, 7, 6, 5, 4, 3, 2, 1, 0,-1,-2,
+								 7, 6, 5, 4, 3, 2, 1, 0,-1,-2,-3, 6, 5, 4, 3, 2, 1, 0,-1,-2,-3,
+								 6, 5, 4, 3, 2, 1, 0,-1,-2,-3,-4, 5, 4, 3, 2, 1, 0,-1,-2,-3,-4,
+								 5, 4, 3, 2, 1, 0,-1,-2,-3,-4,-5};
+					int dy[] = { 2, 1, 0,-1,-2,-3,-4,-5,-6,-7,-8, 2, 1, 0,-1,-2,-3,-4,-5,-6,-7,
+								 3, 2, 1, 0,-1,-2,-3,-4,-5,-6,-7, 3, 2, 1, 0,-1,-2,-3,-4,-5,-6,
+								 4, 3, 2, 1, 0,-1,-2,-3,-4,-5,-6, 4, 3, 2, 1, 0,-1,-2,-3,-4,-5,
+								 5, 4, 3, 2, 1, 0,-1,-2,-3,-4,-5};
+
+					memcpy(skill_nounit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_nounit_layout[pos].dy,dy,sizeof(dy));
+				} else { // 1
+					int dx[] = {-8,-7,-6,-5,-4,-3,-2,-1, 0, 1, 2,-7,-6,-5,-4,-3,-2,-1, 0, 1, 2,
+								-7,-6,-5,-4,-3,-2,-1, 0, 1, 2, 3,-6,-5,-4,-3,-2,-1, 0, 1, 2, 3,
+								-6,-5,-4,-3,-2,-1, 0, 1, 2, 3, 4,-5,-4,-3,-2,-1, 0, 1, 2, 3, 4,
+								-5,-4,-3,-2,-1, 0, 1, 2, 3, 4, 5};
+					int dy[] = {-2,-1, 0, 1, 2, 3, 4, 5, 6, 7, 8,-2,-1, 0, 1, 2, 3, 4, 5, 6, 7,
+								-3,-2,-1, 0, 1, 2, 3, 4, 5, 6, 7,-3,-2,-1, 0, 1, 2, 3, 4, 5, 6,
+								-4,-3,-2,-1, 0, 1, 2, 3, 4, 5, 6,-4,-3,-2,-1, 0, 1, 2, 3, 4, 5,
+								-5,-4,-3,-2,-1, 0, 1, 2, 3, 4, 5};
+
+					memcpy(skill_nounit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_nounit_layout[pos].dy,dy,sizeof(dy));
+				}
+			}
+		} else {
+			skill_nounit_layout[pos].count = 44;
+			if( i&2 ) {
+				if( i&4 ) { // 6
+					int dx[] = { 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3};
+					int dy[] = { 5, 5, 5, 5, 4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0,-1,-1,-1,-1,-2,-2,-2,-2,-3,-3,-3,-3,-4,-4,-4,-4,-5,-5,-5,-5};
+
+					memcpy(skill_nounit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_nounit_layout[pos].dy,dy,sizeof(dy));
+				} else { // 2
+					int dx[] = {-3,-2,-1, 0,-3,-2,-1, 0,-3,-2,-1, 0,-3,-2,-1, 0,-3,-2,-1, 0,-3,-2,-1, 0,-3,-2,-1, 0,-3,-2,-1, 0,-3,-2,-1, 0,-3,-2,-1, 0,-3,-2,-1, 0};
+					int dy[] = { 5, 5, 5, 5, 4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0,-1,-1,-1,-1,-2,-2,-2,-2,-3,-3,-3,-3,-4,-4,-4,-4,-5,-5,-5,-5};
+
+					memcpy(skill_nounit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_nounit_layout[pos].dy,dy,sizeof(dy));
+				}
+			} else {
+				if( i&4 ) { // 4
+					int dx[] = { 5, 4, 3, 2, 1, 0,-1,-2,-3,-4,-5, 5, 4, 3, 2, 1, 0,-1,-2,-3,-4,-5, 5, 4, 3, 2, 1, 0,-1,-2,-3,-4,-5, 5, 4, 3, 2, 1, 0,-1,-2,-3,-4,-5};
+					int dy[] = {-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+					memcpy(skill_nounit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_nounit_layout[pos].dy,dy,sizeof(dy));
+				} else { // 0
+					int dx[] = {-5,-4,-3,-2,-1, 0, 1, 2, 3, 4, 5,-5,-4,-3,-2,-1, 0, 1, 2, 3, 4, 5,-5,-4,-3,-2,-1, 0, 1, 2, 3, 4, 5,-5,-4,-3,-2,-1, 0, 1, 2, 3, 4, 5};
+					int dy[] = { 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+					memcpy(skill_nounit_layout[pos].dx,dx,sizeof(dx));
+					memcpy(skill_nounit_layout[pos].dy,dy,sizeof(dy));
+				}
+			}
 		}
 		pos++;
 	}
@@ -20080,10 +20241,9 @@ static void skill_readdb(void)
 #endif
 	sv_readdb(db_path, DBPATH"skill_castnodex_db.txt", ',',     2,  3, MAX_SKILL_DB, skill_parse_row_castnodexdb);
 	sv_readdb(db_path, DBPATH"skill_unit_db.txt"     , ',',     8,  8, MAX_SKILL_DB, skill_parse_row_unitdb);
-
 	sv_readdb(db_path, DBPATH"skill_nocast_db.txt"   , ',',     2,  2, MAX_SKILL_DB, skill_parse_row_nocastdb);
-
 	skill_init_unit_layout();
+	skill_init_nounit_layout();
 	sv_readdb(db_path, "produce_db.txt"              , ',',     4,  4 + 2 * MAX_PRODUCE_RESOURCE, MAX_SKILL_PRODUCE_DB, skill_parse_row_producedb);
 	sv_readdb(db_path, "create_arrow_db.txt"         , ',', 1 + 2,  1 + 2 * MAX_ARROW_RESOURCE, MAX_SKILL_ARROW_DB, skill_parse_row_createarrowdb);
 	sv_readdb(db_path, "abra_db.txt"                 , ',',     3,  3, MAX_SKILL_ABRA_DB, skill_parse_row_abradb);

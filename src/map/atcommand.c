@@ -2239,8 +2239,8 @@ ACMD_FUNC(produce)
 		tmp_item.amount = 1;
 		tmp_item.identify = 1;
 		tmp_item.card[0] = CARD0_FORGE;
-		tmp_item.card[1] = item_data->type==IT_WEAPON?
-			((star*5) << 8) + attribute:0;
+		tmp_item.card[1] = (item_data->type == IT_WEAPON) ?
+			((star * 5) << 8) + attribute : 0;
 		tmp_item.card[2] = GetWord(sd->status.char_id, 0);
 		tmp_item.card[3] = GetWord(sd->status.char_id, 1);
 		clif_produceeffect(sd, 0, item_id);
@@ -8327,6 +8327,7 @@ ACMD_FUNC(itemlist)
 
 		if( it->equip ) {
 			char equipstr[CHAT_SIZE_MAX];
+
 			strcpy(equipstr, msg_txt(1333)); // | Equipped:
 			if( it->equip&EQP_GARMENT )
 				strcat(equipstr, msg_txt(1334)); // Robe,

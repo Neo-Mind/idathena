@@ -1478,7 +1478,7 @@ int clif_spawn(struct block_list *bl)
 {
 	unsigned char buf[128];
 	struct view_data *vd;
-	struct status_change *sc = NULL;
+	struct status_change *sc = status_get_sc(bl);
 	int len;
 
 	vd = status_get_viewdata(bl);
@@ -1520,7 +1520,7 @@ int clif_spawn(struct block_list *bl)
 						clif_talisman(sd,i);
 				}
 				for (i = 0; i < sd->sc_display_count; i++) {
-					if ((sc = status_get_sc(bl)) && (sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE|OPTION_CHASEWALK)))
+					if (sc && (sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE|OPTION_CHASEWALK)))
 						clif_status_change2(&sd->bl,sd->bl.id,AREA,SI_BLANK,0,0,0);
 					else
 						clif_status_change2(&sd->bl,sd->bl.id,AREA,StatusIconChangeTable[sd->sc_display[i]->type],sd->sc_display[i]->val1,sd->sc_display[i]->val2,sd->sc_display[i]->val3);
@@ -1731,11 +1731,11 @@ void clif_walkok(struct map_session_data *sd)
 
 static void clif_move2(struct block_list *bl, struct view_data *vd, struct unit_data *ud)
 {
-	struct status_change *sc = NULL;
+	struct status_change *sc = status_get_sc(bl);
 	uint8 buf[128];
 	int len;
 
-	if ((sc = status_get_sc(bl)) && (sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE)))
+	if (sc && (sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE)))
 		ally_only = true;
 
 #ifndef VISIBLE_MONSTER_HP
@@ -1789,7 +1789,7 @@ void clif_move(struct unit_data *ud)
 	unsigned char buf[16];
 	struct view_data* vd;
 	struct block_list* bl = ud->bl;
-	struct status_change *sc = NULL;
+	struct status_change *sc = status_get_sc(bl);
 
 	vd = status_get_viewdata(bl);
 	if (!vd || vd->class_ == INVISIBLE_CLASS)
@@ -1809,7 +1809,7 @@ void clif_move(struct unit_data *ud)
 		return;
 	}
 
-	if ((sc = status_get_sc(bl)) && (sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE)))
+	if (sc && (sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE)))
 		ally_only = true;
 
 	WBUFW(buf,0) = 0x86;
