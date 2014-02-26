@@ -9385,12 +9385,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,0);
 					break;
 				}
-
 				heal = 120 * skill_lv + (status_get_max_hp(bl) * skill_lv / 100);
 				status_heal(bl,heal,0,0);
-
-				if( (tsc && tsc->opt1) && (rnd()%100 < ((skill_lv * 5) + (status_get_dex(src) + status_get_lv(src)) / 4) - (1 + (rnd() % 10))) )
-				{
+				if( (tsc && tsc->opt1) && (rnd()%100 < ((skill_lv * 5) +
+					(status_get_dex(src) + status_get_lv(src)) / 4) - (1 + (rnd()%10))) ) {
 					status_change_end(bl,SC_STONE,INVALID_TIMER);
 					status_change_end(bl,SC_FREEZE,INVALID_TIMER);
 					status_change_end(bl,SC_STUN,INVALID_TIMER);
@@ -9399,7 +9397,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					status_change_end(bl,SC_BLIND,INVALID_TIMER);
 					status_change_end(bl,SC_HALLUCINATION,INVALID_TIMER);
 				}
-
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			}
 			break;

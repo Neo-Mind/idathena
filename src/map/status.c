@@ -1867,8 +1867,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 			if ((sc->data[SC_VOLCANO] && skill_id == WZ_ICEWALL) ||
 				(sc->data[SC_ROKISWEIL] && skill_id != BD_ADAPTATION) ||
 				(sc->data[SC_HERMODE] && (skill_get_inf(skill_id)&INF_SUPPORT_SKILL)) ||
-				(sc->data[SC_NOCHAT] && (sc->data[SC_NOCHAT]->val1&MANNER_NOSKILL))
-			)
+				(sc->data[SC_NOCHAT] && (sc->data[SC_NOCHAT]->val1&MANNER_NOSKILL)))
 				return 0;
 		}
 
@@ -1960,8 +1959,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 				return 0; //Can't use Weapon endow skills on Mercenary (only Master)
 			if (skill_id == AM_POTIONPITCHER && (target->type == BL_MER || target->type == BL_ELEM))
 				return 0; //Can't use Potion Pitcher on Mercenaries
-		default:
-			//Check for chase-walk/hiding/cloaking opponents.
+		default: //Check for chase-walk/hiding/cloaking opponents.
 			if (tsc && (tsc->option&hide_flag) && !(status->mode&(MD_BOSS|MD_DETECTOR)))
 				return 0;
 	}
@@ -2842,7 +2840,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 
 	//FIXME: Most of these stuff should be calculated once, but how do I fix the memset above to do that? [Skotlex]
 	//Give them all modes except these (useful for clones)
-	status->mode = MD_MASK&~(MD_BOSS|MD_PLANT|MD_DETECTOR|MD_ANGRY|MD_TARGETWEAK);
+	status->mode = (enum e_mode)(MD_MASK&~(MD_BOSS|MD_PLANT|MD_DETECTOR|MD_ANGRY|MD_TARGETWEAK));
 
 	status->size = (sd->class_&JOBL_BABY) ? SZ_SMALL : SZ_MEDIUM;
 	if (battle_config.character_size && pc_isriding(sd)) { //[Lupus]
@@ -9646,7 +9644,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_TINDER_BREAKER:
 		case SC_TINDER_BREAKER2:
 		case SC_BITE:
-		case SC_CAMOUFLAGE:
 		case SC_THORNSTRAP:
 		case SC__MANHOLE:
 		case SC__CHAOS:
@@ -9675,12 +9672,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				}
 			}
 			break;
+		case SC_WEIGHT90:
 		case SC_HIDING:
 		case SC_CLOAKING:
 		case SC_CLOAKINGEXCEED:
-		case SC__FEINT:
 		case SC_CHASEWALK:
-		case SC_WEIGHT90:
+		case SC_CAMOUFLAGE:
+		case SC__FEINT:
 		case SC_VOICEOFSIREN:
 		case SC_HEAT_BARREL_AFTER:
 			unit_stop_attack(bl);
@@ -10705,7 +10703,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			break;
 		case SC_HIDING:
 			sc->option &= ~OPTION_HIDE;
-			opt_flag|= 2|4; //Check for warp trigger + AoE trigger
+			opt_flag |= 2|4; //Check for warp trigger + AoE trigger
 			break;
 		case SC_CLOAKING:
 		case SC_CLOAKINGEXCEED:
@@ -10713,11 +10711,11 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC__INVISIBILITY:
 			sc->option &= ~OPTION_CLOAK;
 		case SC_CAMOUFLAGE:
-			opt_flag|= 2;
+			opt_flag |= 2;
 			break;
 		case SC_CHASEWALK:
 			sc->option &= ~(OPTION_CHASEWALK|OPTION_CLOAK);
-			opt_flag|= 2;
+			opt_flag |= 2;
 			break;
 		case SC_SIGHT:
 			sc->option &= ~OPTION_SIGHT;
