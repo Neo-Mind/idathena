@@ -3599,6 +3599,8 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 		map[m].flag.notomb = state;
 	else if (!strcmpi(w3,"nocashshop"))
 		map[m].flag.nocashshop = state;
+	else if (!strcmpi(w3,"nobanking"))
+		map[m].flag.nobanking = state;
 	else if (!strcmpi(w3,"skill_damage")) {
 #ifdef ADJUST_SKILL_DAMAGE
 		char skill[NAME_LENGTH];

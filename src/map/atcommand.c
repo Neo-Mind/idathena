@@ -4007,6 +4007,8 @@ ACMD_FUNC(mapinfo)
 		strcat(atcmd_output, " NoTomb |");
 	if (map[m_id].flag.nocashshop)
 		strcat(atcmd_output, " NoCashShop |");
+	if (map[m_id].flag.nobanking)
+		strcat(atcmd_output, " NoBanking |");
 	clif_displaymessage(fd, atcmd_output);
 
 	switch (list) {
@@ -7748,7 +7750,9 @@ ACMD_FUNC(mapflag) {
 	}
 	char flag_name[100];
 	short flag = 0,i;
+
 	nullpo_retr(-1, sd);
+
 	memset(flag_name, '\0', sizeof(flag_name));
 
 	if (!message || !*message || (sscanf(message, "%99s %hd", flag_name, &flag) < 1)) {
@@ -7769,6 +7773,7 @@ ACMD_FUNC(mapflag) {
 		checkflag(nochat);		checkflag(partylock);		checkflag(guildlock);		checkflag(reset);
 		checkflag(chmautojoin);		checkflag(nousecart);		checkflag(noitemconsumption);	checkflag(nosumstarmiracle);
 		checkflag(nomineeffect);	checkflag(nolockon);		checkflag(notomb);		checkflag(nocashshop);
+		checkflag(nobanking);
 #ifdef ADJUST_SKILL_DAMAGE
 		checkflag(skill_damage);
 #endif
@@ -7777,7 +7782,8 @@ ACMD_FUNC(mapflag) {
 		clif_displaymessage(sd->fd,msg_txt(1313)); // Type "@mapflag available" to list the available mapflags.
 		return 1;
 	}
-	for (i = 0; flag_name[i]; i++) flag_name[i] = (char)tolower(flag_name[i]); // Lowercase
+	for (i = 0; flag_name[i]; i++)
+		flag_name[i] = (char)tolower(flag_name[i]); // Lowercase
 
 	setflag(town);
 	setflag(autotrade);		setflag(allowks);		setflag(nomemo);		setflag(noteleport);
@@ -7794,6 +7800,7 @@ ACMD_FUNC(mapflag) {
 	setflag(nochat);		setflag(partylock);		setflag(guildlock);		setflag(reset);
 	setflag(chmautojoin);		setflag(nousecart);		setflag(noitemconsumption);	setflag(nosumstarmiracle);
 	setflag(nomineeffect);		setflag(nolockon);		setflag(notomb);		setflag(nocashshop);
+	setflag(nobanking);
 #ifdef ADJUST_SKILL_DAMAGE
 	setflag(skill_damage);
 #endif
@@ -7810,9 +7817,9 @@ ACMD_FUNC(mapflag) {
 	clif_displaymessage(sd->fd,"nightenabled, restricted, nodrop, novending, loadevent, nochat, partylock, guildlock,");
 	clif_displaymessage(sd->fd,"reset, chmautojoin, nousecart, noitemconsumption, nosumstarmiracle, nolockon, notomb,");
 #ifdef ADJUST_SKILL_DAMAGE
-	clif_displaymessage(sd->fd,"nocashshop, skill_damage");
+	clif_displaymessage(sd->fd,"nocashshop, nobanking, skill_damage");
 #else
-	clif_displaymessage(sd->fd,"nocashshop");
+	clif_displaymessage(sd->fd,"nocashshop, nobanking");
 #endif
 
 #undef checkflag

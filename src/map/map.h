@@ -607,6 +607,7 @@ struct map_data {
 		unsigned nolockon : 1;
 		unsigned notomb : 1;
 		unsigned nocashshop : 1;
+		unsigned nobanking : 1;
 #ifdef ADJUST_SKILL_DAMAGE
 		unsigned skill_damage : 1;
 #endif

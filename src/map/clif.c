@@ -6429,6 +6429,9 @@ void clif_parse_BankOpen(int fd, struct map_session_data* sd) {
 	if(!battle_config.feature_banking) {
 		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1510)); //Banking is disabled
 		return;
+	} else if(map[sd->bl.m].flag.nobanking) {
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1512)); //Banking is disabled in this map
+		return;
 	} else {
 		struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
 		int aid = RFIFOL(fd,info->pos[0]); //Unused should we check vs fd ?
@@ -6466,10 +6469,11 @@ void clif_parse_BankClose(int fd, struct map_session_data* sd) {
 
 	nullpo_retv(sd);
 
-	if(!battle_config.feature_banking) {
+	//Still allow to go trough to not stuck player if we have disable it while they was in
+	if(!battle_config.feature_banking)
 		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1510)); //Banking is disabled
-		//Still allow to go trough to not stuck player if we have disable it while they was in
-	}
+	if(map[sd->bl.m].flag.nobanking)
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1512)); //Banking is disabled in this map
 	if(sd->status.account_id == aid) {
 		sd->state.banking = 0;
 		clif_bank_close(sd);
@@ -6511,6 +6515,9 @@ void clif_parse_BankCheck(int fd, struct map_session_data* sd) {
 
 	if(!battle_config.feature_banking) {
 		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1510)); //Banking is disabled
+		return;
+	} else if(map[sd->bl.m].flag.nobanking) {
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1512)); //Banking is disabled in this map
 		return;
 	} else {
 		struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
@@ -6557,6 +6564,9 @@ void clif_parse_BankDeposit(int fd, struct map_session_data* sd) {
 
 	if(!battle_config.feature_banking) {
 		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1510)); //Banking is disabled
+		return;
+	} else if(map[sd->bl.m].flag.nobanking) {
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1512)); //Banking is disabled in this map
 		return;
 	} else {
 		struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
@@ -6606,6 +6616,9 @@ void clif_parse_BankWithdraw(int fd, struct map_session_data* sd) {
 
 	if(!battle_config.feature_banking) {
 		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1496)); //Banking is disabled
+		return;
+	} else if(map[sd->bl.m].flag.nobanking) {
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1512)); //Banking is disabled in this map
 		return;
 	} else {
 		struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
@@ -15235,7 +15248,6 @@ void clif_parse_cashshop_buy(int fd, struct map_session_data *sd)
 		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1511)); //Cash Shop is disabled in this map
 		return;
 	}
-
 	if( sd->state.trading || !sd->npc_shopid ) {
 		clif_cashshop_ack(sd,1);
 		return;

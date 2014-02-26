@@ -4811,7 +4811,7 @@
 12244,Old_Gift_Box,Old Gift Box,2,20,,200,,,,,0xFFFFFFFF,7,2,,,,,,{ getrandgroupitem(IG_OldGiftBox),1; },{},{}
 12245,Green_Ale_US,Green Ale,0,5000,,500,,,,,0xFFFFFFFF,7,2,,,,,,{ percentheal 100,0; },{},{}
 12246,Magic_Card_Album,Mystical Card Album,2,10000,,50,,,,,0xFFFFFFFF,7,2,,,,,,{ getrandgroupitem(IG_MagicCardAlbum),1; },{},{}
-12247,Halohalo,Halo-Halo,2,2,,100,,,,,0xFFFFFFFF,7,2,,,20,,,{ sc_start SC_INCALLSTATUS,600000,3; },{},{}
+12247,Halohalo,Halo-Halo,2,2,,100,,,,,0xFFFFFFFF,7,2,,,20,,,{ sc_start SC_STRFOOD,600000,3; sc_start SC_DEXFOOD,600000,3; sc_start SC_AGIFOOD,600000,3; sc_start SC_INTFOOD,600000,3; sc_start SC_VITFOOD,600000,3; sc_start SC_LUKFOOD,600000,3; },{},{}
 12248,Masquerade_Ball_Box,Fancy Ball Box,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getrandgroupitem(IG_Masquerade),1; },{},{}
 12249,Payroll_Of_Kafra_,Payment Statement for Kafra Employee,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
 12250,Str_Dish10_M,Steamed Tongue,2,0,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ sc_start SC_STRFOOD,3600000,10; percentheal 20,20; },{},{}

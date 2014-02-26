@@ -399,6 +399,7 @@ mf_nolockon	58
 mf_notomb	59
 mf_skill_damage	60
 mf_nocashshop	61
+mf_nobanking	62
 
 //'setcell' types
 cell_walkable	0
