@@ -5304,8 +5304,6 @@ static signed short status_calc_flee(struct block_list *bl, struct status_change
 	if(sc->data[SC_SPEARQUICKEN])
 		flee += 2 * sc->data[SC_SPEARQUICKEN]->val1;
 #endif
-	if(sc->data[SC_C_MARKER])
-		flee -= 10;
 	if(sc->data[SC_INCFLEERATE])
 		flee += flee * sc->data[SC_INCFLEERATE]->val1 / 100;
 	if(sc->data[SC_SPIDERWEB] && sc->data[SC_SPIDERWEB]->val1)
@@ -5338,6 +5336,8 @@ static signed short status_calc_flee(struct block_list *bl, struct status_change
 		flee -= flee * sc->data[SC_ASH]->val4 / 100;
 	if(sc->data[SC_GOLDENE_FERSE])
 		flee += flee * sc->data[SC_GOLDENE_FERSE]->val2 / 100;
+	if(sc->data[SC_C_MARKER])
+		flee -= 10;
 	if(sc->data[SC_HEAT_BARREL])
 		flee -= sc->data[SC_HEAT_BARREL]->val4;
 
@@ -5660,7 +5660,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 				if( sc->data[SC_JOINTBEAT] && sc->data[SC_JOINTBEAT]->val2&(BREAK_ANKLE|BREAK_KNEE) )
 					val = max( val, (sc->data[SC_JOINTBEAT]->val2&BREAK_ANKLE ? 50 : 0) + (sc->data[SC_JOINTBEAT]->val2&BREAK_KNEE ? 30 : 0) );
 				if( sc->data[SC_CLOAKING] && (sc->data[SC_CLOAKING]->val4&1) == 0 )
-					val = max( val, sc->data[SC_CLOAKING]->val1 < 3 ? 300 : 30 - 3 * sc->data[SC_CLOAKING]->val1 );
+					val = max( val, (sc->data[SC_CLOAKING]->val1 < 3 ? 300 : 30 - 3 * sc->data[SC_CLOAKING]->val1) );
 				if( sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_ENEMY )
 					val = max( val, 75 );
 				if( sc->data[SC_SLOWDOWN] ) //Slow Potion
@@ -5678,7 +5678,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 				if( sc->data[SC_MARSHOFABYSS] )
 					val = max( val, sc->data[SC_MARSHOFABYSS]->val3 );
 				if( sc->data[SC_CAMOUFLAGE] )
-					val = max( val, sc->data[SC_CAMOUFLAGE]->val1 < 3 ? 0 : 25 * (5 - sc->data[SC_CAMOUFLAGE]->val1) );
+					val = max( val, (sc->data[SC_CAMOUFLAGE]->val1 < 3 ? 0 : 25 * (5 - sc->data[SC_CAMOUFLAGE]->val1)) );
 				if( sc->data[SC_STEALTHFIELD_MASTER] )
 					val = max( val, 20 );
 				if( sc->data[SC__LAZINESS] )
@@ -5708,8 +5708,8 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 		{
 			int val = 0;
 
-			if( sc->data[SC_SPEEDUP1] ) //FIXME: Used both by NPC_AGIUP and Speed Potion script
-				val = max( val, 50 );
+			if( sc->data[SC_SPEEDUP1] )
+				val = max( val, 100 );
 			if( sc->data[SC_INCREASEAGI] )
 				val = max( val, 25 );
 			if( sc->data[SC_WINDWALK] )
@@ -5719,7 +5719,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 			if( sd && (sd->class_&MAPID_UPPERMASK) == MAPID_ASSASSIN && pc_checkskill(sd,TF_MISS) > 0 )
 				val = max( val, 1 * pc_checkskill(sd,TF_MISS) );
 			if( sc->data[SC_CLOAKING] && (sc->data[SC_CLOAKING]->val4&1) == 1 )
-				val = max( val, sc->data[SC_CLOAKING]->val1 >= 10 ? 25 : 3 * sc->data[SC_CLOAKING]->val1 - 3 );
+				val = max( val, (sc->data[SC_CLOAKING]->val1 >= 10 ? 25 : 3 * sc->data[SC_CLOAKING]->val1 - 3) );
 			if( sc->data[SC_BERSERK] )
 				val = max( val, 25 );
 			if( sc->data[SC_RUN] )
@@ -5740,7 +5740,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 				val = max( val, sc->data[SC_WIND_STEP_OPTION]->val2 );
 			if( sc->data[SC_FULL_THROTTLE] )
 				val = max( val, 30 );
-			//FIXME: official items use a single bonus for this [ultramage]
+			//FIXME: Official items use a single bonus for this [ultramage]
 			if( sc->data[SC_SPEEDUP0] ) //Temporary item-based speedup
 				val = max( val, 25 );
 			if( sd && sd->bonus.speed_rate + sd->bonus.speed_add_rate < 0 ) //Permanent item-based speedup
@@ -7227,6 +7227,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	undead_flag = battle_check_undead(status->race,status->def_ele);
 	//Check for immunities / sc fails
 	switch(type) {
+		case SC_DECREASEAGI:
+		case SC_QUAGMIRE:
+		case SC_DONTFORGETME:
+		case SC_ADORAMUS:
+			if(sc->data[SC_SPEEDUP1])
+				return 0;
+			break;
 		case SC_ANGRIFFS_MODUS:
 		case SC_GOLDENE_FERSE:
 			if((type == SC_GOLDENE_FERSE && sc->data[SC_ANGRIFFS_MODUS]) ||
@@ -7237,9 +7244,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			if(sc->data[SC_POWER_OF_GAIA])
 				return 0;
 		case SC_FREEZE:
-			//Undead are immune to Freeze / Stone
 			if(undead_flag && !(flag&1))
-				return 0;
+				return 0; //Undead are immune to Freeze/Stone
 		case SC_DEEPSLEEP:
 		case SC_SLEEP:
 		case SC_STUN:
