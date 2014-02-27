@@ -5483,13 +5483,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				} else if(rate >= 14 && rate <= 16)
 					status_heal(src,i_data->weight / 10 * 1000,0,2);
 				else if(rate >= 17 && rate <= 18) {
-					if(sd && !map[src->m].flag.noteleport)
+					if(!map[src->m].flag.noteleport)
 						pc_randomwarp(sd,CLR_TELEPORT);
 				} else if(rate == 19)
 					status_heal(src,status_get_max_hp(src),status_get_max_sp(src),0);
-				else if(sd->status.party_id && rate == 20) {
+				else if(rate == 20 && sd->status.party_id)
 					party_foreachsamemap(skill_area_sub,sd,skill_get_splash(ALL_RESURRECTION,1),src,ALL_RESURRECTION,1,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
-				}
 				skill_consume_requirement(sd,skill_id,skill_lv,2);
 				return 0;
 			}

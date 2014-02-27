@@ -1762,8 +1762,8 @@ struct status_data {
 	unsigned int
 		hp, sp, // See status_cpy before adding members before hp and sp
 		max_hp, max_sp;
+	short str, agi, vit, int_, dex, luk;
 	unsigned short
-		str, agi, vit, int_, dex, luk,
 		batk,
 #ifdef RENEWAL
 		watk, watk2,
@@ -1781,8 +1781,8 @@ struct status_data {
 #endif
 		aspd_rate;
 
-		//defType is RENEWAL dependent and defined in src/map/config/data/const.h
-		defType def,mdef;
+	//defType is RENEWAL dependent and defined in src/map/config/data/const.h
+	defType def, mdef;
 
 	unsigned char
 		def_ele, ele_lv,
