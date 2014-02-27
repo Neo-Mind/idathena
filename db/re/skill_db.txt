@@ -852,7 +852,7 @@
 2264,0,6,4,0,0x1,0,1,1,no,0,0,0,none,7,0,	NC_F_SIDESLIDE,Front-Side Slide
 2265,0,6,4,0,0x1,0,1,1,no,0,0,0,none,7,0,	NC_B_SIDESLIDE,Back-Side Slide
 2266,0,0,0,0,0,0,4,0,no,0,0,0,none,0,0,	NC_MAINFRAME,Mainframe Restructure
-2267,0,6,4,0,0x4A,2:3:4,3,1,no,0,0,0,weapon,5,0,	NC_SELFDESTRUCTION,Self Destruction
+2267,0,6,4,0,0xCA,2:3:4,3,1,no,0,0,0,weapon,5,0,	NC_SELFDESTRUCTION,Self Destruction
 2268,0,6,4,0,0x1,0,4,1,yes,0,0,0,none,0,0,	NC_SHAPESHIFT,Shape Shift
 2269,0,6,4,0,0x1,0,1,1,no,0,0,0,none,0,0,	NC_EMERGENCYCOOL,Emergency Cool
 2270,0,6,4,0,0x3,7,1,1,no,0,0,0,none,0,0,	NC_INFRAREDSCAN,Infrared Scan
