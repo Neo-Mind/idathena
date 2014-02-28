@@ -1837,7 +1837,7 @@ int mob_timer_delete(int tid, unsigned int tick, int id, intptr_t data)
 			ShowError("mob_timer_delete: Timer mismatch: %d != %d\n", tid, md->deletetimer);
 			return 0;
 		}
-		//for Alchemist CANNIBALIZE [Lupus]
+		//For Alchemist CANNIBALIZE [Lupus]
 		md->deletetimer = INVALID_TIMER;
 		unit_free(bl, CLR_TELEPORT);
 	}

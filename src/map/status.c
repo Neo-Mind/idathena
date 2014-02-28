@@ -65,12 +65,12 @@ int current_equip_item_index; /// Contains inventory index of an equipped item. 
 int current_equip_card_id; /// To prevent card-stacking (from jA) [Skotlex]
 // We need it for new cards 15 Feb 2005, to check if the combo cards are insrerted into the CURRENT weapon only to avoid cards exploits
 
-static short status_calc_str(struct block_list *bl, struct status_change *sc, int str);
-static short status_calc_agi(struct block_list *bl, struct status_change *sc, int agi);
-static short status_calc_vit(struct block_list *bl, struct status_change *sc, int vit);
-static short status_calc_int(struct block_list *bl, struct status_change *sc, int int_);
-static short status_calc_dex(struct block_list *bl, struct status_change *sc, int dex);
-static short status_calc_luk(struct block_list *bl, struct status_change *sc, int luk);
+static unsigned short status_calc_str(struct block_list *bl, struct status_change *sc, int str);
+static unsigned short status_calc_agi(struct block_list *bl, struct status_change *sc, int agi);
+static unsigned short status_calc_vit(struct block_list *bl, struct status_change *sc, int vit);
+static unsigned short status_calc_int(struct block_list *bl, struct status_change *sc, int int_);
+static unsigned short status_calc_dex(struct block_list *bl, struct status_change *sc, int dex);
+static unsigned short status_calc_luk(struct block_list *bl, struct status_change *sc, int luk);
 static unsigned short status_calc_batk(struct block_list *bl, struct status_change *sc, int batk);
 static unsigned short status_calc_watk(struct block_list *bl, struct status_change *sc, int watk);
 #ifdef RENEWAL
@@ -4485,6 +4485,7 @@ void status_calc_bl_(struct block_list* bl, enum scb_flag flag, enum e_status_ca
 	//Compare against new values and send client updates
 	if( bl->type == BL_PC ) {
 		TBL_PC* sd = BL_CAST(BL_PC, bl);
+
 		if( b_status.str != status->str )
 			clif_updatestatus(sd,SP_STR);
 		if( b_status.agi != status->agi )
@@ -4618,10 +4619,10 @@ void status_calc_bl_(struct block_list* bl, enum scb_flag flag, enum e_status_ca
 /*==========================================
  * Apply shared stat mods from status changes [DracoRPG]
  *------------------------------------------*/
-static short status_calc_str(struct block_list *bl, struct status_change *sc, int str)
+static unsigned short status_calc_str(struct block_list *bl, struct status_change *sc, int str)
 {
 	if(!sc || !sc->count)
-		return (short)cap_value(str,0,SHRT_MAX);
+		return (unsigned short)cap_value(str,0,USHRT_MAX);
 
 	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH && str < 50)
 		return 50;
@@ -4672,13 +4673,13 @@ static short status_calc_str(struct block_list *bl, struct status_change *sc, in
 	if(sc->data[SC_FULL_THROTTLE])
 		str += str * 20 / 100;
 
-	return (short)cap_value(str,0,SHRT_MAX);
+	return (unsigned short)cap_value(str,0,USHRT_MAX);
 }
 
-static short status_calc_agi(struct block_list *bl, struct status_change *sc, int agi)
+static unsigned short status_calc_agi(struct block_list *bl, struct status_change *sc, int agi)
 {
 	if(!sc || !sc->count)
-		return (short)cap_value(agi,0,SHRT_MAX);
+		return (unsigned short)cap_value(agi,0,USHRT_MAX);
 
 	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH && agi < 50)
 		return 50;
@@ -4727,13 +4728,13 @@ static short status_calc_agi(struct block_list *bl, struct status_change *sc, in
 	if(sc->data[SC_FULL_THROTTLE])
 		agi += agi * 20 / 100;
 
-	return (short)cap_value(agi,0,SHRT_MAX);
+	return (unsigned short)cap_value(agi,0,USHRT_MAX);
 }
 
-static short status_calc_vit(struct block_list *bl, struct status_change *sc, int vit)
+static unsigned short status_calc_vit(struct block_list *bl, struct status_change *sc, int vit)
 {
 	if(!sc || !sc->count)
-		return (short)cap_value(vit,0,SHRT_MAX);
+		return (unsigned short)cap_value(vit,0,USHRT_MAX);
 
 	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH && vit < 50)
 		return 50;
@@ -4776,13 +4777,13 @@ static short status_calc_vit(struct block_list *bl, struct status_change *sc, in
 		vit += sc->data[SC_DEFENCE]->val2;
 #endif
 
-	return (short)cap_value(vit,0,SHRT_MAX);
+	return (unsigned short)cap_value(vit,0,USHRT_MAX);
 }
 
-static short status_calc_int(struct block_list *bl, struct status_change *sc, int int_)
+static unsigned short status_calc_int(struct block_list *bl, struct status_change *sc, int int_)
 {
 	if(!sc || !sc->count)
-		return (short)cap_value(int_,0,SHRT_MAX);
+		return (unsigned short)cap_value(int_,0,USHRT_MAX);
 
 	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH && int_ < 50)
 		return 50;
@@ -4835,13 +4836,13 @@ static short status_calc_int(struct block_list *bl, struct status_change *sc, in
 	if(sc->data[SC_FULL_THROTTLE])
 		int_ += int_ * 20 / 100;
 
-	return (short)cap_value(int_,0,SHRT_MAX);
+	return (unsigned short)cap_value(int_,0,USHRT_MAX);
 }
 
-static short status_calc_dex(struct block_list *bl, struct status_change *sc, int dex)
+static unsigned short status_calc_dex(struct block_list *bl, struct status_change *sc, int dex)
 {
 	if(!sc || !sc->count)
-		return (short)cap_value(dex,0,SHRT_MAX);
+		return (unsigned short)cap_value(dex,0,USHRT_MAX);
 
 	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH && dex < 50)
 		return 50;
@@ -4892,13 +4893,13 @@ static short status_calc_dex(struct block_list *bl, struct status_change *sc, in
 	if(sc->data[SC_FULL_THROTTLE])
 		dex += dex * 20 / 100;
 
-	return (short)cap_value(dex,0,SHRT_MAX);
+	return (unsigned short)cap_value(dex,0,USHRT_MAX);
 }
 
-static short status_calc_luk(struct block_list *bl, struct status_change *sc, int luk)
+static unsigned short status_calc_luk(struct block_list *bl, struct status_change *sc, int luk)
 {
 	if(!sc || !sc->count)
-		return (short)cap_value(luk,0,SHRT_MAX);
+		return (unsigned short)cap_value(luk,0,USHRT_MAX);
 
 	if(sc->data[SC_CURSE])
 		return 0;
@@ -4939,7 +4940,7 @@ static short status_calc_luk(struct block_list *bl, struct status_change *sc, in
 	if(sc->data[SC_FULL_THROTTLE])
 		luk += luk * 20 / 100;
 
-	return (short)cap_value(luk,0,SHRT_MAX);
+	return (unsigned short)cap_value(luk,0,USHRT_MAX);
 }
 
 static unsigned short status_calc_batk(struct block_list *bl, struct status_change *sc, int batk)
@@ -6336,16 +6337,17 @@ struct status_data *status_get_base_status(struct block_list *bl)
 
 	switch (bl->type) {
 		case BL_PC:  return &((TBL_PC*)bl)->base_status;
-		case BL_MOB: return ((TBL_MOB*)bl)->base_status ? ((TBL_MOB*)bl)->base_status : &((TBL_MOB*)bl)->db->status;
+		case BL_MOB: return (((TBL_MOB*)bl)->base_status ? ((TBL_MOB*)bl)->base_status : &((TBL_MOB*)bl)->db->status);
 		case BL_PET: return &((TBL_PET*)bl)->db->status;
 		case BL_HOM: return &((TBL_HOM*)bl)->base_status;
 		case BL_MER: return &((TBL_MER*)bl)->base_status;
 		case BL_ELEM: return &((TBL_ELEM*)bl)->base_status;
-		case BL_NPC: return ((mobdb_checkid(((TBL_NPC*)bl)->class_) == 0) ? &((TBL_NPC*)bl)->status : NULL);
+		case BL_NPC: return (((mobdb_checkid(((TBL_NPC*)bl)->class_) == 0) ? &((TBL_NPC*)bl)->status : NULL));
 		default:
 			return NULL;
 	}
 }
+
 defType status_get_def(struct block_list *bl) {
 	struct unit_data *ud;
 	struct status_data *status = status_get_status_data(bl);

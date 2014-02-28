@@ -10213,12 +10213,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					skill_blockhomun_start(hd,skill_id,skill_get_cooldown(NULL,skill_id,skill_lv));
 			}
 			break;
+
 		case RL_RICHS_COIN:
 			if( sd ) {
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				if( rnd()%100 < 80 )
-					for( i = 0; i < 10; i++ )
-						pc_addspiritball(sd,skill_get_time(skill_id,skill_lv),10);
+				for( i = 0; i < 10; i++ )
+					pc_addspiritball(sd,skill_get_time(skill_id,skill_lv),10);
 			}
 			break;
 
@@ -14887,7 +14887,8 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 			skill_check_pc_partner(sd, skill_id, &skill_lv, 1, 1);
 			break;
 		case AM_CANNIBALIZE:
-		case AM_SPHEREMINE: {
+		case AM_SPHEREMINE:
+			{
 				int c = 0;
 				int summons[5] = { MOBID_G_MANDRAGORA,MOBID_G_HYDRA,MOBID_G_FLORA,MOBID_G_PARASITE,MOBID_G_GEOGRAPHER };
 				int maxcount = (skill_id == AM_CANNIBALIZE) ? 6 - skill_lv : skill_get_maxcount(skill_id,skill_lv);
@@ -14904,7 +14905,8 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 			}
 			break;
 		case NC_SILVERSNIPER:
-		case NC_MAGICDECOY: {
+		case NC_MAGICDECOY:
+			{
 				int c = 0;
 				int maxcount = skill_get_maxcount(skill_id,skill_lv);
 				int mob_id = MOBID_SILVERSNIPER;
@@ -16561,9 +16563,31 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 			}
 			break;
 		case RL_FIRE_RAIN:
-			if (rnd()%100 < 80) //Custom chance
-				skill_delunit(unit);
-			return 1;
+			switch (unit->group->unit_id) {
+				case UNT_DUMMYSKILL:
+					if (unit->group->skill_id != GN_CRAZYWEED_ATK)
+						break;
+				case UNT_BLASTMINE:
+					if (unit->group->unit_id == UNT_BLASTMINE && unit->group->val3 == RL_B_TRAP)
+						break;
+				case UNT_LANDPROTECTOR:	case UNT_ICEWALL:	case UNT_FIREWALL:
+				case UNT_WARMER:	case UNT_CLOUD_KILL:	case UNT_VACUUM_EXTREME:
+				case UNT_SPIDERWEB:	case UNT_FOGWALL:	case UNT_DELUGE:
+				case UNT_VIOLENTGALE:	case UNT_VOLCANO:	case UNT_QUAGMIRE:
+				case UNT_GRAVITATION:	case UNT_MAGNUS:	case UNT_THORNS_TRAP:
+				case UNT_WALLOFTHORN:	case UNT_DEMONIC_FIRE:	case UNT_HELLS_PLANT:
+				case UNT_POISONSMOKE:	case UNT_VENOMDUST:	case UNT_MAELSTROM:
+				case UNT_MANHOLE:	case UNT_DIMENSIONDOOR:	case UNT_GRAFFITI:
+				case UNT_LANDMINE:	case UNT_SANDMAN:	case UNT_SHOCKWAVE:
+				case UNT_SKIDTRAP:	case UNT_ANKLESNARE:	case UNT_CLAYMORETRAP:
+				case UNT_TALKIEBOX:	case UNT_FREEZINGTRAP:	case UNT_VERDURETRAP:
+				case UNT_ICEBOUNDTRAP:	case UNT_FIRINGTRAP:	case UNT_ELECTRICSHOCKER:
+				case UNT_DISSONANCE:	case UNT_ROKISWEIL:	case UNT_ETERNALCHAOS:
+				case UNT_SUITON:	case UNT_KAEN:
+					skill_delunit(unit);
+					return 1;
+			}
+			break;
 	}
 
 	//It deletes everything except non-essamble dance skills, traps and barriers
