@@ -7725,7 +7725,7 @@ BUILDIN_FUNC(statusup)
 	if( sd == NULL )
 		return 0;
 
-	pc_statusup(sd,type);
+	pc_statusup(sd,type,1);
 
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -7734,11 +7734,11 @@ BUILDIN_FUNC(statusup)
  *------------------------------------------*/
 BUILDIN_FUNC(statusup2)
 {
-	int type,val;
+	int type, val;
 	TBL_PC *sd;
 
-	type=script_getnum(st,2);
-	val=script_getnum(st,3);
+	type = script_getnum(st,2);
+	val = script_getnum(st,3);
 	sd = script_rid2sd(st);
 	if( sd == NULL )
 		return 0;

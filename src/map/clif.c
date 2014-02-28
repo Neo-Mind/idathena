@@ -3795,17 +3795,16 @@ void clif_dispchat(struct chat_data* cd, int fd)
 	WBUFL(buf, 4) = cd->owner->id;
 	WBUFL(buf, 8) = cd->bl.id;
 	WBUFW(buf,12) = cd->limit;
-	WBUFW(buf,14) = (cd->owner->type == BL_NPC) ? cd->users+1 : cd->users;
+	WBUFW(buf,14) = (cd->owner->type == BL_NPC) ? cd->users + 1 : cd->users;
 	WBUFB(buf,16) = type;
-	memcpy((char*)WBUFP(buf,17), cd->title, strlen(cd->title)); // not zero-terminated
+	memcpy((char*)WBUFP(buf,17), cd->title, strlen(cd->title)); // Not zero-terminated
 
 	if( fd ) {
 		WFIFOHEAD(fd,WBUFW(buf,2));
 		memcpy(WFIFOP(fd,0),buf,WBUFW(buf,2));
 		WFIFOSET(fd,WBUFW(buf,2));
-	} else {
+	} else
 		clif_send(buf,WBUFW(buf,2),cd->owner,AREA_WOSC);
-	}
 }
 
 
@@ -4419,7 +4418,7 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 //Aegis data specifies that: 4 endure against single hit sources, 9 against multi-hit.
 static inline int clif_calc_delay(int type, int div, int damage, int delay)
 {
-	return ( delay == 0 && damage > 0 ) ? ( div > 1 ? 9 : 4 ) : type;
+	return (delay == 0 && damage > 0) ? (div > 1 ? 9 : 4) : type;
 }
 
 /*==========================================
@@ -11295,12 +11294,12 @@ void clif_parse_ChangeCart(int fd,struct map_session_data *sd)
 /// status id:
 ///     SP_STR ~ SP_LUK
 /// amount:
-///     client sends always 1 for this, even when using /str+ and
-///     the like
+///     Old clients send always 1 for this, even when using /str+ and the like.
+///     Newer clients (2013-12-23 and newer) send the correct amount.
 void clif_parse_StatusUp(int fd,struct map_session_data *sd)
 {
-	//char amount = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]);
-	pc_statusup(sd,RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]));
+	pc_statusup(sd,RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]),
+		RFIFOB(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]));
 }
 
 
@@ -13064,11 +13063,8 @@ void clif_parse_CatchPet(int fd, struct map_session_data *sd)
 /// 01a7 <index>.W
 void clif_parse_SelectEgg(int fd, struct map_session_data *sd)
 {
-	if (sd->menuskill_id != SA_TAMINGMONSTER || sd->menuskill_val != -1) {
-		//Forged packet, disconnect them [Kevin]
-		clif_authfail_fd(fd, 0);
+	if (sd->menuskill_id != SA_TAMINGMONSTER || sd->menuskill_val != -1)
 		return;
-	}
 	pet_select_egg(sd,RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]) - 2);
 	clif_menuskill_clear(sd);
 }
@@ -13259,30 +13255,64 @@ void clif_parse_GMRecall2(int fd, struct map_session_data* sd)
 
 
 /// /item /monster (CZ_ITEM_CREATE).
-/// Request to make items or spawn monsters.
+/// Request to execute GM commands.
+/// Usage:
+/// /item n - summon n monster or acquire n item/s
+/// /item money - grants 2147483647 zenies
+/// /item whereisboss - locate boss mob in current map.(not yet implemented)
+/// /item regenboss_n t - regenerate n boss monster by t millisecond.(not yet implemented)
+/// /item onekillmonster - toggle an ability to kill mobs in one hit.(not yet implemented)
+/// /item bossinfo - display the information of a boss monster in current map.(not yet implemented)
+/// /item cap_n - capture n monster as pet.(not yet implemented)
+/// /item agitinvest - reset current global agit investments.(not yet implemented)
 /// 013f <item/mob name>.24B
-void clif_parse_GM_Monster_Item(int fd, struct map_session_data *sd)
+/// 09ce <item/mob name>.100B [Ind/Yommy]
+void clif_parse_GM_Item_Monster(int fd, struct map_session_data *sd)
 {
-	char *monster_item_name;
-	char command[NAME_LENGTH + 10];
+	int i, count;
+	char *item_monster_name;
+	struct item_data *item_array[10];
+	struct mob_db *mob_array[10];
+	char command[256];
+#if PACKETVER >= 20131218
+	char str[100];
+#else
+	char str[24];
+#endif
 
-	monster_item_name = (char*)RFIFOP(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
-	monster_item_name[NAME_LENGTH - 1] = '\0';
+	item_monster_name = str;
+	item_monster_name[(sizeof(str) - 2) - 1] = '\0';
 
-	//@FIXME: Should look for item first, then for monster.
-	//@FIXME: /monster takes mob_db Sprite_Name as argument
-	if( mobdb_searchname(monster_item_name) ) {
-		safesnprintf(command, sizeof(command) - 1, "%cmonster %s", atcommand_symbol, monster_item_name);
+	if( (count = itemdb_searchname_array(item_array, 10, item_monster_name)) > 0 ) {
+		for( i = 0; i < count; i++ )
+			if( !item_array[i] )
+				continue;
+
+		if( i < count ) {
+			if( item_array[i]->type == IT_WEAPON || item_array[i]->type == IT_ARMOR ) //Nonstackable
+				safesnprintf(command, sizeof(command) - 1, "%citem2 %d 1 0 0 0 0 0 0 0", atcommand_symbol, item_array[i]->nameid);
+			else
+				safesnprintf(command, sizeof(command) - 1, "%citem %d 20", atcommand_symbol, item_array[i]->nameid);
+			is_atcommand(fd, sd, command, 1);
+			return;
+		}
+	}
+
+	if( strcmp(item_monster_name, "money") == 0 ) {
+		safesnprintf(command, sizeof(command) - 1, "%czeny %d", atcommand_symbol, INT_MAX);
 		is_atcommand(fd, sd, command, 1);
 		return;
 	}
 
-	//@FIXME: Stackables have a quantity of 20.
-	//@FIXME: Equips are supposed to be unidentified.
-	if( itemdb_searchname(monster_item_name) ) {
-		safesnprintf(command, sizeof(command) - 1, "%citem %s", atcommand_symbol, monster_item_name);
-		is_atcommand(fd, sd, command, 1);
-		return;
+	if( (count = mobdb_searchname_array(mob_array, 10, item_monster_name)) > 0 ) {
+		for( i = 0; i < count; i++ )
+			if( !mob_array[i] )
+				continue;
+
+		if( i < count ) {
+			safesnprintf(command, sizeof(command) - 1, "%cmonster %s", atcommand_symbol, mob_array[i]->sprite);
+			is_atcommand(fd, sd, command, 1);
+		}
 	}
 }
 
@@ -13414,7 +13444,7 @@ void clif_parse_PMIgnore(int fd, struct map_session_data* sd)
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
 
 	nick = (char*)RFIFOP(fd,info->pos[0]);
-	nick[NAME_LENGTH-1] = '\0'; // to be sure that the player name has at most 23 characters
+	nick[NAME_LENGTH - 1] = '\0'; // To be sure that the player name has at most 23 characters
 	type = RFIFOB(fd,info->pos[1]);
 
 	if( type == 0 ) { // Add name to ignore list (block)
@@ -13423,13 +13453,13 @@ void clif_parse_PMIgnore(int fd, struct map_session_data* sd)
 			return;
 		}
 
-		// try to find a free spot, while checking for duplicates at the same time
-		ARR_FIND( 0, MAX_IGNORE_LIST, i, sd->ignore[i].name[0] == '\0' || strcmp(sd->ignore[i].name, nick) == 0 );
-		if( i == MAX_IGNORE_LIST ) { // no space for new entry
-			clif_wisexin(sd, type, 2); // too many blocks
+		// Try to find a free spot, while checking for duplicates at the same time
+		ARR_FIND(0, MAX_IGNORE_LIST, i, sd->ignore[i].name[0] == '\0' || strcmp(sd->ignore[i].name, nick) == 0);
+		if( i == MAX_IGNORE_LIST ) { // No space for new entry
+			clif_wisexin(sd, type, 2); // Too many blocks
 			return;
 		}
-		if( sd->ignore[i].name[0] != '\0' ) { // name already exists
+		if( sd->ignore[i].name[0] != '\0' ) { // Name already exists
 			clif_wisexin(sd, type, 0); // Aegis reports success.
 			return;
 		}
@@ -13438,19 +13468,19 @@ void clif_parse_PMIgnore(int fd, struct map_session_data* sd)
 		safestrncpy(sd->ignore[i].name, nick, NAME_LENGTH);
 	} else { // Remove name from ignore list (unblock)
 
-		// find entry
-		ARR_FIND( 0, MAX_IGNORE_LIST, i, sd->ignore[i].name[0] == '\0' || strcmp(sd->ignore[i].name, nick) == 0 );
-		if( i == MAX_IGNORE_LIST || sd->ignore[i].name[i] == '\0' ) { //Not found
-			clif_wisexin(sd, type, 1); // fail
+		// Find entry
+		ARR_FIND(0, MAX_IGNORE_LIST, i, sd->ignore[i].name[0] == '\0' || strcmp(sd->ignore[i].name, nick) == 0);
+		if( i == MAX_IGNORE_LIST || sd->ignore[i].name[i] == '\0' ) { // Not found
+			clif_wisexin(sd, type, 1); // Fail
 			return;
 		}
-		// move everything one place down to overwrite removed entry
-		memmove(sd->ignore[i].name, sd->ignore[i+1].name, (MAX_IGNORE_LIST-i-1)*sizeof(sd->ignore[0].name));
-		// wipe last entry
-		memset(sd->ignore[MAX_IGNORE_LIST-1].name, 0, sizeof(sd->ignore[0].name));
+		// Move everything one place down to overwrite removed entry
+		memmove(sd->ignore[i].name, sd->ignore[i + 1].name, (MAX_IGNORE_LIST - i - 1) * sizeof(sd->ignore[0].name));
+		// Wipe last entry
+		memset(sd->ignore[MAX_IGNORE_LIST - 1].name, 0, sizeof(sd->ignore[0].name));
 	}
 
-	clif_wisexin(sd, type, 0); // success
+	clif_wisexin(sd, type, 0); // Success
 }
 
 
@@ -17123,12 +17153,10 @@ void clif_snap(struct block_list *bl, short x, short y) {
 void clif_monster_hp_bar(struct mob_data* md, int fd) {
 #if PACKETVER >= 20120404
 	WFIFOHEAD(fd,packet_len(0x977));
-
 	WFIFOW(fd,0) = 0x977;
 	WFIFOL(fd,2) = md->bl.id;
 	WFIFOL(fd,6) = md->status.hp;
 	WFIFOL(fd,10) = md->status.max_hp;
-
 	WFIFOSET(fd,packet_len(0x977));
 #endif
 }
@@ -17140,8 +17168,8 @@ void __attribute__ ((unused)) clif_parse_dull(int fd, struct map_session_data *s
 
 void clif_partytickack(struct map_session_data* sd, bool flag) {
 	WFIFOHEAD(sd->fd, packet_len(0x2c9));
-	WFIFOW(sd->fd, 0) = 0x2c9; 
-	WFIFOB(sd->fd, 2) = flag;
+	WFIFOW(sd->fd,0) = 0x2c9; 
+	WFIFOB(sd->fd,2) = flag;
 	WFIFOSET(sd->fd, packet_len(0x2c9)); 
 }
 
@@ -17963,6 +17991,11 @@ void packetdb_readdb(void)
 		31, 0,  0,  0,  0,  0,  0, -1,  8, 11,  9,  8,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0, 12, 10, 16, 10, 16,  6,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  6,  4,  6,  4,  0,  0,  0,  0,  0,  0,
+	//#0x09C0
+		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,102,  0,
+		0,  0,  0,  0,  2,  0, -1,  0,  2,  0,  0,  0,  0,  0,  0,  0,
+		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 	};
 	struct {
 		void (*func)(int, struct map_session_data *);
@@ -18085,7 +18118,7 @@ void packetdb_readdb(void)
 		{clif_parse_GMKickAll,"killall"},
 		{clif_parse_GMRecall,"recall"},
 		{clif_parse_GMRecall,"summon"},
-		{clif_parse_GM_Monster_Item,"itemmonster"},
+		{clif_parse_GM_Item_Monster,"itemmonster"},
 		{clif_parse_GMShift,"remove"},
 		{clif_parse_GMShift,"shift"},
 		{clif_parse_GMChangeMapType,"changemaptype"},
@@ -18219,7 +18252,7 @@ void packetdb_readdb(void)
 			if(strcmpi(w1,"packet_ver") == 0) {
 				int prev_ver = packet_ver;
 
-				skip_ver = 0;
+				skip_ver = false;
 				packet_ver = atoi(w2);
 				if ( packet_ver > MAX_PACKET_VER ) { // Check to avoid overflowing. [Skotlex]
 					if( (warned&1) == 0 )
@@ -18335,7 +18368,7 @@ void packetdb_readdb(void)
 	if (!clif_config.connect_cmd[clif_config.packet_db_ver]) { //Locate the nearest version that we still support. [Skotlex]
 		for(j = clif_config.packet_db_ver; j >= 0 && !clif_config.connect_cmd[j]; j--);
 
-		clif_config.packet_db_ver = j ? j : MAX_PACKET_VER;
+		clif_config.packet_db_ver = (j ? j : MAX_PACKET_VER);
 	}
 	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",entries,"packet_db.txt");
 	ShowStatus("Using default packet version: "CL_WHITE"%d"CL_RESET".\n",clif_config.packet_db_ver);

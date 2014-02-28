@@ -296,11 +296,12 @@ uint32 date2version(int date) {
 	else if( date < 20130710 ) return 42;
 	else if( date < 20130717 ) return 43;
 	else if( date < 20130807 ) return 44;
-	else if( date >= 20130807 ) return 45;
-	else return 30; //default
+	else if( date < 20131223 ) return 45;
+	else if( date >= 20131223 ) return 46;
+	else return 30; //Default
 }
 
-/// calculates the value of A / B, in percent (rounded down)
+/// Calculates the value of A / B, in percent (rounded down)
 unsigned int get_percentage(const unsigned int A, const unsigned int B)
 {
 	double result;

@@ -32,9 +32,9 @@ struct quest;
 struct party_booking_ad_info;
 #include <stdarg.h>
 
-enum { // packet DB
+enum { //packet_db
 	MAX_PACKET_DB  = 0xF00,
-	MAX_PACKET_VER = 45,
+	MAX_PACKET_VER = 46,
 	MAX_PACKET_POS = 20,
 };
 
@@ -62,17 +62,17 @@ struct s_packet_db {
 extern struct s_packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB + 1];
 extern int packet_db_ack[MAX_PACKET_VER + 1][MAX_ACK_FUNC + 1];
 
-// local define
+// Local define
 typedef enum send_target {
 	ALL_CLIENT,
 	ALL_SAMEMAP,
-	AREA,               // area
-	AREA_WOS,           // area, without self
-	AREA_WOC,           // area, without chatrooms
-	AREA_WOSC,          // area, without own chatroom
-	AREA_CHAT_WOC,      // hearable area, without chatrooms
-	CHAT,               // current chatroom
-	CHAT_WOS,           // current chatroom, without self
+	AREA,               // Area
+	AREA_WOS,           // Area, without self
+	AREA_WOC,           // Area, without chatrooms
+	AREA_WOSC,          // Area, without own chatroom
+	AREA_CHAT_WOC,      // Hearable area, without chatrooms
+	CHAT,               // Current chatroom
+	CHAT_WOS,           // Current chatroom, without self
 	PARTY,
 	PARTY_WOS,
 	PARTY_SAMEMAP,
