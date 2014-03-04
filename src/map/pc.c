@@ -4073,7 +4073,7 @@ char pc_additem(struct map_session_data *sd,struct item *item,int amount,e_log_p
 			{
 				if( amount > MAX_AMOUNT - sd->status.inventory[i].amount ||
 					(id->stack.inventory && amount > id->stack.amount - sd->status.inventory[i].amount) )
-					return 5;
+					return ADDITEM_OVERAMOUNT;
 				sd->status.inventory[i].amount += amount;
 				clif_additem(sd, i, amount, 0);
 				break;
@@ -4086,10 +4086,12 @@ char pc_additem(struct map_session_data *sd,struct item *item,int amount,e_log_p
 		if( i < 0 )
 			return ADDITEM_OVERITEM;
 
-		//Clear equips field first, just in case
+		//Clear equip and favorite fields first, just in case
 		memcpy(&sd->status.inventory[i], item, sizeof(sd->status.inventory[0]));
 		if( item->equip )
 			sd->status.inventory[i].equip = 0;
+		if( item->favorite )
+			sd->status.inventory[i].favorite = 0;
 
 		sd->status.inventory[i].amount = amount;
 		sd->inventory_data[i] = id;
@@ -6274,7 +6276,7 @@ int pc_maxparameterincrease(struct map_session_data* sd, int type)
 
 	final--;
 
-	return (final > base ? final-base : 0);
+	return (final > base ? final - base : 0);
 }
 
 /**

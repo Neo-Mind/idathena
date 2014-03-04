@@ -3475,12 +3475,13 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 				//3x3 cell Damage = ATK [{(Skill Level x 300) x (1 + [(Caster's Base Level - 100) / 100])}] %
 				//7x7 cell Damage = ATK [{(Skill Level x 250) x (1 + [(Caster's Base Level - 100) / 100])}] %
 				//11x11 cell Damage = ATK [{(Skill Level x 200) x (1 + [(Caster's Base Level - 100) / 100])}] %
-				int dmg = 300; //Base maximum damage at less than 3 cells.
+				int dmg = 300; //Base maximum damage at 3x3 cell.
+
 				i = distance_bl(src,target);
-				if(i > 3 && i <= 7)
-					dmg -= 50; //Greater than 3 cells, less than 8. (250 damage)
-				else if(i > 7 && i <= 11)
-					dmg -= 100; //Greater than 7 cells, less than 12. (200 damage)
+				if(i > 1 && i <= 3)
+					dmg -= 50; //7x7 cell. (250 damage)
+				else if(i > 3 && i <= 5)
+					dmg -= 100; //11x11 cell. (200 damage)
 				dmg = (skill_lv * dmg) * (1 + (status_get_lv(src) - 100) / 100);
 				//Elemental check, +(Skill Level x 100)% damage if your element is fire.
 				if(sstatus->rhw.ele == ELE_FIRE)
@@ -3606,7 +3607,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			skillratio += 100 + 100 * skill_lv + sstatus->vit;
 			RE_LVL_DMOD(100);
 			i = distance_bl(src,target);
-			if(i > 5)
+			if(i > 2)
 				skillratio = skillratio * 75 / 100;
 			break;
 		case SC_FATALMENACE:
@@ -4141,6 +4142,12 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 		if(sc->data[SC_TRUESIGHT])
 			ATK_ADDRATE(wd.damage, wd.damage2, 2 * sc->data[SC_TRUESIGHT]->val1);
 #endif
+		if(sc->data[SC_RUSHWINDMILL]) {
+			ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_RUSHWINDMILL]->val3);
+#ifdef RENEWAL
+			ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, sc->data[SC_RUSHWINDMILL]->val3);
+#endif
+		}
 		if(sc->data[SC_GLOOMYDAY_SK] && (
 			skill_id == LK_SPIRALPIERCE || skill_id == KN_BRANDISHSPEAR ||
 			skill_id == CR_SHIELDBOOMERANG || skill_id == PA_SHIELDCHAIN ||

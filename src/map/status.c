@@ -716,7 +716,7 @@ void initChangeTables(void) {
 	set_sc( WA_SWING_DANCE            , SC_SWINGDANCE           , SI_SWINGDANCE           , SCB_SPEED|SCB_ASPD );
 	set_sc( WA_SYMPHONY_OF_LOVER      , SC_SYMPHONYOFLOVER      , SI_SYMPHONYOFLOVERS     , SCB_MDEF );
 	set_sc( WA_MOONLIT_SERENADE       , SC_MOONLITSERENADE      , SI_MOONLITSERENADE      , SCB_MATK );
-	set_sc( MI_RUSH_WINDMILL          , SC_RUSHWINDMILL         , SI_RUSHWINDMILL         , SCB_WATK );
+	set_sc( MI_RUSH_WINDMILL          , SC_RUSHWINDMILL         , SI_RUSHWINDMILL         , SCB_NONE );
 	set_sc( MI_ECHOSONG               , SC_ECHOSONG             , SI_ECHOSONG             , SCB_DEF );
 	set_sc( MI_HARMONIZE              , SC_HARMONIZE            , SI_HARMONIZE            , SCB_STR|SCB_AGI|SCB_VIT|SCB_INT|SCB_DEX|SCB_LUK );
 	set_sc_with_vfx( WM_POEMOFNETHERWORLD , SC_NETHERWORLD      , SI_NETHERWORLD          , SCB_NONE );
@@ -1554,7 +1554,8 @@ int status_heal(struct block_list *bl, int64 in_hp, int64 in_sp, int flag)
 		sc = NULL;
 
 	if (hp < 0) {
-		if (hp == INT_MIN) hp++; //-INT_MIN == INT_MIN in some architectures!
+		if (hp == INT_MIN)
+			hp++; //-INT_MIN == INT_MIN in some architectures!
 		status_damage(NULL, bl, -hp, 0, 0, 1);
 		hp = 0;
 	}
@@ -1572,7 +1573,8 @@ int status_heal(struct block_list *bl, int64 in_hp, int64 in_sp, int flag)
 	}
 
 	if (sp < 0) {
-		if (sp == INT_MIN) sp++;
+		if (sp == INT_MIN)
+			sp++;
 		status_damage(NULL, bl, 0, -sp, 0, 1);
 		sp = 0;
 	}
@@ -1582,7 +1584,8 @@ int status_heal(struct block_list *bl, int64 in_hp, int64 in_sp, int flag)
 			sp = status->max_sp - status->sp;
 	}
 
-	if (!sp && !hp) return 0;
+	if (!sp && !hp)
+		return 0;
 
 	status->hp+= hp;
 	status->sp+= sp;
@@ -1597,7 +1600,7 @@ int status_heal(struct block_list *bl, int64 in_hp, int64 in_sp, int flag)
 
 	//Send hp update to client
 	switch (bl->type) {
-		case BL_PC:  pc_heal((TBL_PC*)bl, hp, sp, flag&2 ? 1 : 0); break;
+		case BL_PC:  pc_heal((TBL_PC*)bl, hp, sp, (flag&2 ? 1 : 0)); break;
 		case BL_MOB: mob_heal((TBL_MOB*)bl, hp); break;
 		case BL_HOM: merc_hom_heal((TBL_HOM*)bl); break;
 		case BL_MER: mercenary_heal((TBL_MER*)bl, hp, sp); break;
@@ -5038,8 +5041,6 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 		watk += (10 + 10 * sc->data[SC_BANDING]->val1) * sc->data[SC_BANDING]->val2;
 	if(sc->data[SC_INSPIRATION])
 		watk += 40 * sc->data[SC_INSPIRATION]->val1 + 3 * sc->data[SC_INSPIRATION]->val2;
-	if(sc->data[SC_RUSHWINDMILL])
-		watk += sc->data[SC_RUSHWINDMILL]->val3;
 	if(sc->data[SC_SATURDAYNIGHTFEVER])
 		watk += 100 * sc->data[SC_SATURDAYNIGHTFEVER]->val1;
 	if(sc->data[SC_TROPIC_OPTION])
@@ -9067,7 +9068,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_MOONLITSERENADE:
 			case SC_RUSHWINDMILL:
-				val3 = 6 * val1 + val2 + sd->status.job_level / 5; //MATK/ATK Increase In %
+				val3 = 6 * val1 + val2 + sd->status.job_level / 5; //MATK/ATK Increase
 				break;
 			case SC_ECHOSONG:
 				val3 = 6 * val1 + val2 + sd->status.job_level / 4; //DEF Increase In %
@@ -11385,7 +11386,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 				if( sc && sc->data[SC_AKAITSUKI] && heal )
 					heal = ~heal + 1;
-				status_heal(bl,heal,0,2);
+				status_heal(bl,heal,0,3);
 				sc_timer_next(5000 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}

@@ -163,7 +163,7 @@ int* unit_get_masterteleport_timer(struct block_list *bl) {
 }
 
 /**
- * Warps a unit to its master master has gone out of site (3 second default)
+ * Warps a unit to its master if the master has gone out of sight (3 second default)
  * Can be any object with a master [MOB|PET|HOM|MER|ELEM]
  * @param tid: Timer
  * @param tick: tick (unused)
@@ -192,7 +192,7 @@ int unit_teleport_timer(int tid, unsigned int tick, int id, intptr_t data) {
 
 /**
  * Checks if a slave unit is outside their max distance from master
- * If so, starts a timer for (default: 3 seconds) which will teleport the unit back to master
+ * If so, starts a timer (default: 3 seconds) which will teleport the unit back to master
  * @param sbl: Object with a master [MOB|PET|HOM|MER|ELEM]
  * @return 0
  */
