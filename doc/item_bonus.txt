@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Last Updated: ========================================
-//= 20140124
+//= 20140301
 //===== Description: =========================================
 //= List of script instructions used in item bonuses,
 //= mainly bonus/bonus2/bonus3/bonus4/bonus5 arguments.
@@ -72,7 +72,6 @@ bonus bIgnoreMDefRace,n;		Disregard MDEF against enemies of race n
 					n: 	RC_Formless, RC_Undead, RC_Brute, RC_Plant, RC_Insect, RC_Fish, RC_Demon, RC_DemiHuman, RC_Angel, RC_Dragon, RC_All 
 bonus bIgnoreMDefEle,n;			Disregard MDEF against enemies of element n
 					n:	Ele_Neutral, Ele_Water, Ele_Earth, Ele_Fire, Ele_Wind, Ele_Poison Ele_Holy, Ele_Dark, Ele_Ghost, Ele_Undead, Ele_All
-bonus bIgnoreMdefRate,n;		Disregard n% of the target's MDEF
 bonus bDefRatioAtkRace,n;		Does more damage depending on monster Defense against race n (defense disregard)
 					n: 	RC_Formless, RC_Undead, RC_Brute, RC_Plant, RC_Insect, RC_Fish, RC_Demon, RC_DemiHuman, RC_Angel, RC_Dragon, RC_All
 bonus bDefRatioAtkEle,n;		n attribute if defensive power is high the high extent big damage is given, (defense disregard)

@@ -2163,9 +2163,9 @@ bool script_get_constant(const char* name, int* value)
 {
 	int n = search_str(name);
 
-	if( n == -1 || str_data[n].type != C_INT ) { //Not found or not a constant
+	if( n == -1 || str_data[n].type != C_INT ) //Not found or not a constant
 		return false;
-	}
+
 	value[0] = str_data[n].val;
 
 	return true;
@@ -2177,13 +2177,12 @@ void script_set_constant(const char* name, int value, bool isparameter)
 	int n = add_str(name);
 
 	if( str_data[n].type == C_NOP ) { //New
-		str_data[n].type = isparameter ? C_PARAM : C_INT;
+		str_data[n].type = (isparameter ? C_PARAM : C_INT);
 		str_data[n].val  = value;
-	} else if( str_data[n].type == C_PARAM || str_data[n].type == C_INT ) { //Existing parameter or constant
-		ShowError("script_set_constant: Attempted to overwrite existing %s '%s' (old value=%d, new value=%d).\n", ( str_data[n].type == C_PARAM ) ? "parameter" : "constant", name, str_data[n].val, value);
-	} else { //Existing name
-		ShowError("script_set_constant: Invalid name for %s '%s' (already defined as %s).\n", isparameter ? "parameter" : "constant", name, script_op2name(str_data[n].type));
-	}
+	} else if( str_data[n].type == C_PARAM || str_data[n].type == C_INT ) //Existing parameter or constant
+		ShowError("script_set_constant: Attempted to overwrite existing %s '%s' (old value=%d, new value=%d).\n", (str_data[n].type == C_PARAM) ? "parameter" : "constant", name, str_data[n].val, value);
+	else //Existing name
+		ShowError("script_set_constant: Invalid name for %s '%s' (already defined as %s).\n", (isparameter ? "parameter" : "constant"), name, script_op2name(str_data[n].type));
 }
 
 /*==========================================
@@ -2208,10 +2207,62 @@ static void read_constdb(void)
 		type = 0;
 		if(sscanf(line,"%[A-Za-z0-9_],%[-0-9xXA-Fa-f],%d",name,val,&type) >= 2 ||
 		   sscanf(line,"%[A-Za-z0-9_] %[-0-9xXA-Fa-f] %d",name,val,&type) >= 2) {
-			script_set_constant(name,(int)strtol(val, NULL, 0),(bool)type);
+			script_set_constant(name, (int)strtol(val, NULL, 0), (bool)type);
 		}
 	}
 	fclose(fp);
+}
+
+/**
+ * Sets source-end constants for NPC scripts to access.
+ **/
+void script_hardcoded_constants(void)
+{
+	/* Server defines */
+	script_set_constant("PACKETVER", PACKETVER, false);
+	script_set_constant("MAX_LEVEL", MAX_LEVEL, false);
+	script_set_constant("MAX_STORAGE", MAX_STORAGE, false);
+	script_set_constant("MAX_INVENTORY", MAX_INVENTORY, false);
+	script_set_constant("MAX_CART", MAX_INVENTORY, false);
+	script_set_constant("MAX_ZENY", MAX_ZENY, false);
+	script_set_constant("MAX_PARTY", MAX_PARTY, false);
+	script_set_constant("MAX_GUILD", MAX_GUILD, false);
+	script_set_constant("MAX_GUILDLEVEL", MAX_GUILDLEVEL, false);
+	script_set_constant("MAX_GUILD_STORAGE", MAX_GUILD_STORAGE, false);
+	script_set_constant("MAX_BG_MEMBERS", MAX_BG_MEMBERS, false);
+	script_set_constant("MAX_CHAT_USERS", MAX_CHAT_USERS, false);
+	script_set_constant("VIP_SCRIPT", VIP_SCRIPT, false);
+	script_set_constant("MIN_STORAGE", MIN_STORAGE, false);
+
+	/* Status options */
+	script_set_constant("Option_Nothing", OPTION_NOTHING, false);
+	script_set_constant("Option_Sight", OPTION_SIGHT, false);
+	script_set_constant("Option_Hide", OPTION_HIDE, false);
+	script_set_constant("Option_Cloak", OPTION_CLOAK, false);
+	script_set_constant("Option_Falcon", OPTION_FALCON, false);
+	script_set_constant("Option_Riding", OPTION_RIDING, false);
+	script_set_constant("Option_Invisible", OPTION_INVISIBLE, false);
+	script_set_constant("Option_Orcish", OPTION_ORCISH, false);
+	script_set_constant("Option_Wedding", OPTION_WEDDING, false);
+	script_set_constant("Option_Chasewalk", OPTION_CHASEWALK, false);
+	script_set_constant("Option_Flying", OPTION_FLYING, false);
+	script_set_constant("Option_Xmas", OPTION_XMAS, false);
+	script_set_constant("Option_Transform", OPTION_TRANSFORM, false);
+	script_set_constant("Option_Summer", OPTION_SUMMER, false);
+	script_set_constant("Option_Dragon1", OPTION_DRAGON1, false);
+	script_set_constant("Option_Wug", OPTION_WUG, false);
+	script_set_constant("Option_Wugrider", OPTION_WUGRIDER, false);
+	script_set_constant("Option_Madogear", OPTION_MADOGEAR, false);
+	script_set_constant("Option_Dragon2", OPTION_DRAGON2, false);
+	script_set_constant("Option_Dragon3", OPTION_DRAGON3, false);
+	script_set_constant("Option_Dragon4", OPTION_DRAGON4, false);
+	script_set_constant("Option_Dragon5", OPTION_DRAGON5, false);
+	script_set_constant("Option_Hanbok", OPTION_HANBOK, false);
+	script_set_constant("Option_Oktoberfest", OPTION_OKTOBERFEST, false);
+
+	/* Status option compounds */
+	script_set_constant("Option_Dragon", OPTION_DRAGON, false);
+	script_set_constant("Option_Costume", OPTION_COSTUME, false);
 }
 
 /*==========================================
@@ -2312,6 +2363,7 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 	if( first ) {
 		add_buildin_func();
 		read_constdb();
+		script_hardcoded_constants();
 		first = 0;
 	}
 
@@ -16569,9 +16621,12 @@ BUILDIN_FUNC(instance_enter)
 {
 	struct map_session_data *sd;
 
-	if((sd = script_rid2sd(st)) != NULL)
-		script_pushint(st,instance_enter(sd,script_getstr(st, 2)));
-	else
+	if( (sd = script_rid2sd(st)) != NULL ) {
+		if( script_hasdata(st,3) && script_hasdata(st,4) )
+			script_pushint(st,instance_enter_position(sd,script_getstr(st,2),script_getnum(st,3),script_getnum(st,4)));
+		else
+			script_pushint(st,instance_enter(sd,script_getstr(st,2)));
+	} else
 		return 1;
 	return SCRIPT_CMD_SUCCESS;
 
@@ -17890,33 +17945,6 @@ BUILDIN_FUNC(is_clientver) {
 	return SCRIPT_CMD_SUCCESS;
 }
 
-/** Retrieves server definitions
- * @param type: See in const.txt
- */
-BUILDIN_FUNC(getserverdef) {
-	int type = script_getnum(st,2);
-
-	switch( type ) {
-		case 0: script_pushint(st,PACKETVER); break;
-		case 1: script_pushint(st,MAX_LEVEL); break;
-		case 2: script_pushint(st,MAX_STORAGE); break;
-		case 3: script_pushint(st,MAX_INVENTORY); break;
-		case 4: script_pushint(st,MAX_ZENY); break;
-		case 5: script_pushint(st,MAX_PARTY); break;
-		case 6: script_pushint(st,MAX_GUILD); break;
-		case 7: script_pushint(st,MAX_GUILDLEVEL); break;
-		case 8: script_pushint(st,MAX_GUILD_STORAGE); break;
-		case 9: script_pushint(st,MAX_BG_MEMBERS); break;
-		case 10: script_pushint(st,VIP_SCRIPT); break;
-		case 11: script_pushint(st,MIN_STORAGE); break;
-		default:
-			ShowWarning("buildin_getserverdef: unknown type %d.\n",type);
-			script_pushint(st,0);
-			break;
-	}
-	return SCRIPT_CMD_SUCCESS;
-}
-
 /** Turns a player into a monster and grants SC attribute effect. [malufett]
  * montransform <monster name/ID>, <duration>, <sc type>, <val1>, <val2>, <val3>, <val4>;
  * @param monster: Monster ID or name
@@ -18730,7 +18758,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(instance_create,"s"),
 	BUILDIN_DEF(instance_destroy,"?"),
 	BUILDIN_DEF(instance_id,""),
-	BUILDIN_DEF(instance_enter,"s"),
+	BUILDIN_DEF(instance_enter,"s??"),
 	BUILDIN_DEF(instance_npcname,"s?"),
 	BUILDIN_DEF(instance_mapname,"s?"),
 	BUILDIN_DEF(instance_warpall,"sii?"),
@@ -18783,7 +18811,6 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF2(getitem2,"getitembound2","viiiiiiiii?"),
 	BUILDIN_DEF(countbound,"?"),
 	BUILDIN_DEF(is_clientver,"ii?"),
-	BUILDIN_DEF(getserverdef,"i"),
 	//Monster Transform [malufett]
 	BUILDIN_DEF2(montransform,"transform","vii????"),
 	BUILDIN_DEF(bonus_script,"si????"),
