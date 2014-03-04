@@ -3367,24 +3367,6 @@ static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 
 		map_foreachinarea(npc_isnear_sub,bl->m,x - range,y - range,x + range,y + range,type,skill_id);
 }
 
-int skill_guildaura_sub (struct map_session_data* sd, int id, int strvit, int agidex)
-{
-	if (id == sd->bl.id && battle_config.guild_aura&16)
-		return 0; //Do not affect guild leader
-
-	if (sd->sc.data[SC_GUILDAURA]) {
-		struct status_change_entry *sce = sd->sc.data[SC_GUILDAURA];
-		if (sce->val3 != strvit || sce->val4 != agidex) {
-			sce->val3 = strvit;
-			sce->val4 = agidex;
-			status_calc_bl(&sd->bl,status_sc2scb_flag(SC_GUILDAURA));
-		}
-		return 0;
-	}
-	sc_start4(&sd->bl,&sd->bl,SC_GUILDAURA,100,1,id,strvit,agidex,1000);
-	return 1;
-}
-
 /*==========================================
  * Checks that you have the requirements for casting a skill for homunculus/mercenary.
  * Flag:
@@ -7212,7 +7194,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							case SC_REFRESH:			case SC_STONEHARDSKIN:		case SC_VITALITYACTIVATION:
 							case SC_FIGHTINGSPIRIT:			case SC_ABUNDANCE:		case SC__SHADOWFORM:
 							case SC_RECOGNIZEDSPELL:		case SC_LEADERSHIP:		case SC_GLORYWOUNDS:
-							case SC_SOULCOLD:			case SC_HAWKEYES:		case SC_GUILDAURA:
+							case SC_SOULCOLD:			case SC_HAWKEYES:		/*case SC_GUILDAURA*/:
 							case SC_PUSH_CART:			case SC_RAISINGDRAGON:		case SC_GT_ENERGYGAIN:
 							case SC_GT_CHANGE:			case SC_GT_REVITALIZE:		case SC_REFLECTDAMAGE:
 							case SC_INSPIRATION:			case SC_EXEEDBREAK:		case SC_FORCEOFVANGUARD:
@@ -8720,7 +8702,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							case SC_DROCERA_HERB_STEAMED:	case SC_PUTTI_TAILS_NOODLES:	case SC_NEUTRALBARRIER_MASTER:
 							case SC_NEUTRALBARRIER:		case SC_STEALTHFIELD_MASTER:	case SC_STEALTHFIELD:
 							case SC_LEADERSHIP:		case SC_GLORYWOUNDS:		case SC_SOULCOLD:
-							case SC_HAWKEYES:		case SC_GUILDAURA:		case SC_SEVENWIND:
+							case SC_HAWKEYES:		/*case SC_GUILDAURA:*/		case SC_SEVENWIND:
 							case SC_MIRACLE:		case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:
 							case SC_INCHEALRATE:		case SC_PUSH_CART:		case SC_PARTYFLEE:
 							case SC_RAISINGDRAGON:		case SC_GT_REVITALIZE:		case SC_GT_ENERGYGAIN:
@@ -10286,7 +10268,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							case SC_DROCERA_HERB_STEAMED:	case SC_PUTTI_TAILS_NOODLES:	case SC_NEUTRALBARRIER_MASTER:
 							case SC_NEUTRALBARRIER:		case SC_STEALTHFIELD_MASTER:	case SC_STEALTHFIELD:
 							case SC_LEADERSHIP:		case SC_GLORYWOUNDS:		case SC_SOULCOLD:
-							case SC_HAWKEYES:		case SC_GUILDAURA:		case SC_SEVENWIND:
+							case SC_HAWKEYES:		/*case SC_GUILDAURA:*/		case SC_SEVENWIND:
 							case SC_MIRACLE:		case SC_S_LIFEPOTION:		case SC_L_LIFEPOTION:
 							case SC_INCHEALRATE:		case SC_PUSH_CART:		case SC_PARTYFLEE:
 							case SC_RAISINGDRAGON:		case SC_GT_REVITALIZE:		case SC_GT_ENERGYGAIN:

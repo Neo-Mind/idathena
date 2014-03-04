@@ -853,8 +853,11 @@ int guild_member_withdraw(int guild_id, int account_id, int char_id, int flag, c
 		sd->status.guild_id = 0;
 		sd->guild = NULL;
 		sd->guild_emblem_id = 0;
-
 		clif_charnameupdate(sd); //Update display name [Skotlex]
+		status_change_end(&sd->bl,SC_LEADERSHIP,INVALID_TIMER);
+		status_change_end(&sd->bl,SC_GLORYWOUNDS,INVALID_TIMER);
+		status_change_end(&sd->bl,SC_SOULCOLD,INVALID_TIMER);
+		status_change_end(&sd->bl,SC_HAWKEYES,INVALID_TIMER);
 		//@TODO: Send emblem update to self and people around
 	}
 	return 0;
@@ -1315,7 +1318,7 @@ int guild_skillupack(int guild_id,uint16 skill_id,int account_id)
 			case GD_GLORYWOUNDS:
 			case GD_SOULCOLD:
 			case GD_HAWKEYES:
-					guild_guildaura_refresh(sd,skill_id,g->skill[skill_id-GD_SKILLBASE].lv);
+				guild_guildaura_refresh(sd,skill_id,g->skill[skill_id - GD_SKILLBASE].lv);
 				break;
 		}
 	}
@@ -1327,11 +1330,13 @@ int guild_skillupack(int guild_id,uint16 skill_id,int account_id)
 
 	return 0;
 }
+
 void guild_guildaura_refresh(struct map_session_data *sd, uint16 skill_id, uint16 skill_lv) {
 	struct skill_unit_group* group = NULL;
 	int type = status_skill2sc(skill_id);
-	if( !(battle_config.guild_aura&((agit_flag || agit2_flag)?2:1)) &&
-			!(battle_config.guild_aura&(map_flag_gvg2(sd->bl.m)?8:4)) )
+
+	if( !(battle_config.guild_aura&((agit_flag || agit2_flag) ? 2 : 1)) &&
+		!(battle_config.guild_aura&(map_flag_gvg2(sd->bl.m) ? 8 : 4)) )
 		return;
 	if( !skill_lv )
 		return;
@@ -1340,9 +1345,8 @@ void guild_guildaura_refresh(struct map_session_data *sd, uint16 skill_id, uint1
 		status_change_end(&sd->bl,type,INVALID_TIMER);
 	}
 	group = skill_unitsetting(&sd->bl,skill_id,skill_lv,sd->bl.x,sd->bl.y,0);
-	if( group ) {
-		sc_start4(NULL,&sd->bl,type,100,(battle_config.guild_aura&16)?0:skill_lv,0,0,group->group_id,600000); //Duration doesn't matter these status never end with val4
-	}
+	if( group ) //Duration doesn't matter these status never end with val4
+		sc_start4(NULL,&sd->bl,type,100,(battle_config.guild_aura&16) ? 0 : skill_lv,0,0,group->group_id,600000);
 	return;
 }
 
@@ -1354,7 +1358,8 @@ void guild_guildaura_refresh(struct map_session_data *sd, uint16 skill_id, uint1
  *---------------------------------------------------*/
 int guild_get_alliance_count(struct guild *g,int flag)
 {
-	int i,c;
+	int i, c;
+
 	nullpo_ret(g);
 
 	for( i = c = 0; i < MAX_GUILDALLIANCE; i++ ) {
@@ -1368,8 +1373,9 @@ int guild_get_alliance_count(struct guild *g,int flag)
 // Blocks all guild skills which have a common delay time.
 void guild_block_skill(struct map_session_data *sd, int time)
 {
-	int skill_id[] = { GD_BATTLEORDER, GD_REGENERATION, GD_RESTORE, GD_EMERGENCYCALL };
+	int skill_id[] = { GD_BATTLEORDER,GD_REGENERATION,GD_RESTORE,GD_EMERGENCYCALL };
 	int i;
+
 	for( i = 0; i < 4; i++ )
 		skill_blockpc_start(sd, skill_id[i], time);
 }
@@ -1391,8 +1397,8 @@ int guild_check_alliance(int guild_id1, int guild_id2, int flag)
 	if (g == NULL)
 		return 0;
 
-	ARR_FIND( 0, MAX_GUILDALLIANCE, i, g->alliance[i].guild_id == guild_id2 && g->alliance[i].opposition == flag );
-	return( i < MAX_GUILDALLIANCE ) ? 1 : 0;
+	ARR_FIND(0, MAX_GUILDALLIANCE, i, g->alliance[i].guild_id == guild_id2 && g->alliance[i].opposition == flag);
+	return(i < MAX_GUILDALLIANCE) ? 1 : 0;
 }
 
 /*====================================================
@@ -1403,14 +1409,14 @@ int guild_reqalliance(struct map_session_data *sd,struct map_session_data *tsd)
 	struct guild *g[2];
 	int i;
 
-	if(agit_flag || agit2_flag)	{	// Disable alliance creation during woe [Valaris]
+	if(agit_flag || agit2_flag)	{ // Disable alliance creation during woe [Valaris]
 		clif_displaymessage(sd->fd,msg_txt(676)); //"Alliances cannot be made during Guild Wars!"
 		return 0;
-	}	// end addition [Valaris]
+	} // end addition [Valaris]
 
 	nullpo_ret(sd);
 
-	if(tsd==NULL || tsd->status.guild_id<=0)
+	if(tsd == NULL || tsd->status.guild_id <= 0)
 		return 0;
 
 	g[0]=sd->guild;
@@ -1720,6 +1726,10 @@ int guild_broken(int guild_id,int flag)
 			sd->guild = NULL;
 			clif_guild_broken(g->member[i].sd,0);
 			clif_charnameupdate(sd); // [LuzZza]
+			status_change_end(&sd->bl,SC_LEADERSHIP,INVALID_TIMER);
+			status_change_end(&sd->bl,SC_GLORYWOUNDS,INVALID_TIMER);
+			status_change_end(&sd->bl,SC_SOULCOLD,INVALID_TIMER);
+			status_change_end(&sd->bl,SC_HAWKEYES,INVALID_TIMER);
 		}
 	}
 
