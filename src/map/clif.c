@@ -6056,12 +6056,25 @@ void clif_wis_message(int fd, const char* nick, const char* mes, int mes_len)
 ///     1 = target character is not loged in
 ///     2 = ignored by target
 ///     3 = everyone ignored by target
-void clif_wis_end(int fd, int flag)
+void clif_wis_end(int fd, int result)
 {
+	struct map_session_data *sd = (session_isValid(fd) ? session[fd]->session_data : NULL);
+
+	if (!sd)
+		return;
+
+#if PACKETVER >= 20131223
+	WFIFOHEAD(fd,packet_len(0x9df));
+	WFIFOW(fd,0) = 0x9df;
+	WFIFOB(fd,2) = (char)result;
+	WFIFOL(fd,3) = 0;
+	WFIFOSET(fd,packet_len(0x9df));
+#else
 	WFIFOHEAD(fd,packet_len(0x98));
 	WFIFOW(fd,0) = 0x98;
-	WFIFOW(fd,2) = flag;
+	WFIFOB(fd,2) = (char)result;
 	WFIFOSET(fd,packet_len(0x98));
+#endif
 }
 
 
@@ -17995,7 +18008,7 @@ void packetdb_readdb(void)
 		0,  0,  0,  0,  0,  0,  6,  4,  6,  4,  0,  0,  0,  0,  0,  0,
 	//#0x09C0
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,102,  0,
-		0,  0,  0,  0,  2,  0, -1,  0,  2,  0,  0,  0,  0,  0,  0,  0,
+		0,  0,  0,  0,  2,  0, -1,  0,  2,  0,  0,  0,  0,  0,  0,  7,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 	};

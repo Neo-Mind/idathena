@@ -220,11 +220,10 @@ int charif_sendallwos(int sfd, uint8* buf, size_t len)
 {
 	int i, c;
 
-	for( i = 0, c = 0; i < ARRAYLENGTH(server); ++i )
-	{
+	for( i = 0, c = 0; i < ARRAYLENGTH(server); ++i ) {
 		int fd = server[i].fd;
-		if( session_isValid(fd) && fd != sfd )
-		{
+
+		if( session_isValid(fd) && fd != sfd ) {
 			WFIFOHEAD(fd,len);
 			memcpy(WFIFOP(fd,0), buf, len);
 			WFIFOSET(fd,len);

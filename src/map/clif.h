@@ -540,7 +540,7 @@ void clif_status_change(struct block_list *bl, int type, int flag, int tick, int
 void clif_status_change2(struct block_list *bl, int tid, enum send_target target, int type, int val1, int val2, int val3);
 
 void clif_wis_message(int fd, const char* nick, const char* mes, int mes_len);
-void clif_wis_end(int fd, int flag);
+void clif_wis_end(int fd, int result);
 
 void clif_solved_charname(int fd, int charid, const char* name);
 void clif_charnameack(int fd, struct block_list *bl);
