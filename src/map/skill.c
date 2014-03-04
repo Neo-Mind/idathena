@@ -7194,7 +7194,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							case SC_REFRESH:			case SC_STONEHARDSKIN:		case SC_VITALITYACTIVATION:
 							case SC_FIGHTINGSPIRIT:			case SC_ABUNDANCE:		case SC__SHADOWFORM:
 							case SC_RECOGNIZEDSPELL:		case SC_LEADERSHIP:		case SC_GLORYWOUNDS:
-							case SC_SOULCOLD:			case SC_HAWKEYES:		/*case SC_GUILDAURA*/:
+							case SC_SOULCOLD:			case SC_HAWKEYES:		/*case SC_GUILDAURA:*/
 							case SC_PUSH_CART:			case SC_RAISINGDRAGON:		case SC_GT_ENERGYGAIN:
 							case SC_GT_CHANGE:			case SC_GT_REVITALIZE:		case SC_REFLECTDAMAGE:
 							case SC_INSPIRATION:			case SC_EXEEDBREAK:		case SC_FORCEOFVANGUARD:
