@@ -5042,7 +5042,7 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 		do {
 			x = rnd()%(map[m].xs - 2) + 1;
 			y = rnd()%(map[m].ys - 2) + 1;
-		} while( map_getcell(m, x, y, CELL_CHKNOPASS) || || (!battle_config.teleport_on_portal && npc_check_areanpc(1, m, x, y, 1)) );
+		} while( map_getcell(m, x, y, CELL_CHKNOPASS) || (!battle_config.teleport_on_portal && npc_check_areanpc(1, m, x, y, 1)) );
 	}
 
 	if( sd->state.vending && map_getcell(m, x, y, CELL_CHKNOVENDING) ) {
