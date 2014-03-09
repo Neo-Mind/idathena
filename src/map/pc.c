@@ -357,7 +357,9 @@ int pc_banding(struct map_session_data *sd, uint16 skill_lv) {
 void pc_addfame(struct map_session_data *sd, int count)
 {
 	int ranktype = -1;
+
 	nullpo_retv(sd);
+
 	sd->status.fame += count;
 	if(sd->status.fame > MAX_FAME)
 		sd->status.fame = MAX_FAME;
@@ -377,21 +379,21 @@ unsigned char pc_famerank(int char_id, int job)
 {
 	int i;
 	
-	switch(job){
+	switch(job) {
 		case MAPID_BLACKSMITH: // Blacksmith
-		    for(i = 0; i < MAX_FAME_LIST; i++){
+		    for(i = 0; i < MAX_FAME_LIST; i++) {
 				if(smith_fame_list[i].id == char_id)
 				    return i + 1;
 			}
 			break;
 		case MAPID_ALCHEMIST: // Alchemist
-			for(i = 0; i < MAX_FAME_LIST; i++){
+			for(i = 0; i < MAX_FAME_LIST; i++) {
 				if(chemist_fame_list[i].id == char_id)
 					return i + 1;
 			}
 			break;
 		case MAPID_TAEKWON: // Taekwon
-			for(i = 0; i < MAX_FAME_LIST; i++){
+			for(i = 0; i < MAX_FAME_LIST; i++) {
 				if(taekwon_fame_list[i].id == char_id)
 					return i + 1;
 			}
@@ -403,6 +405,7 @@ unsigned char pc_famerank(int char_id, int job)
 
 int pc_setrestartvalue(struct map_session_data *sd,int type) {
 	struct status_data *status, *b_status;
+
 	nullpo_ret(sd);
 
 	b_status = &sd->base_status;
@@ -1555,7 +1558,7 @@ int pc_calc_skilltree(struct map_session_data *sd)
 					if( (k = skill_tree[c][i].need[j].id) ) {
 						if( sd->status.skill[k].id == 0 || sd->status.skill[k].flag == SKILL_FLAG_TEMPORARY || sd->status.skill[k].flag == SKILL_FLAG_PLAGIARIZED )
 							k = 0; //Not learned.
-						else if( sd->status.skill[k].flag >= SKILL_FLAG_REPLACED_LV_0 ) //Real lerned level
+						else if( sd->status.skill[k].flag >= SKILL_FLAG_REPLACED_LV_0 ) //Real learned level
 							k = sd->status.skill[skill_tree[c][i].need[j].id].flag - SKILL_FLAG_REPLACED_LV_0;
 						else
 							k = pc_checkskill(sd,k);
@@ -1597,25 +1600,21 @@ int pc_calc_skilltree(struct map_session_data *sd)
 	} while(flag);
 
 	//
-	if( c > 0 && (sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && sd->status.skill_point == 0 && pc_famerank(sd->status.char_id, MAPID_TAEKWON) )
-	{
+	if( c > 0 && (sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 &&
+		sd->status.skill_point == 0 && pc_famerank(sd->status.char_id, MAPID_TAEKWON) ) {
 		/* Taekwon Ranger Bonus Skill Tree
 		============================================
 		- Grant All Taekwon Tree, but only as Bonus Skills in case they drop from ranking.
 		- (c > 0) to avoid grant Novice Skill Tree in case of Skill Reset (need more logic)
-		- (sd->status.skill_point == 0) to wait until all skill points are asigned to avoid problems with Job Change quest. */
-
+		- (sd->status.skill_point == 0) to wait until all skill points are assigned to avoid problems with Job Change quest. */
 		for( i = 0; i < MAX_SKILL_TREE && (id = skill_tree[c][i].id) > 0; i++ ) {
 			if( (skill_get_inf2(id)&(INF2_QUEST_SKILL|INF2_WEDDING_SKILL)) )
 				continue; //Do not include Quest/Wedding skills.
-
 			if( sd->status.skill[id].id == 0 ) {
 				sd->status.skill[id].id = id;
 				sd->status.skill[id].flag = SKILL_FLAG_TEMPORARY; // So it is not saved, and tagged as a "bonus" skill.
-			} else if( id != NV_BASIC ) {
+			} else if( id != NV_BASIC )
 				sd->status.skill[id].flag = SKILL_FLAG_REPLACED_LV_0 + sd->status.skill[id].lv; // Remember original level
-			}
-
 			sd->status.skill[id].lv = skill_tree_get_max(id, sd->status.class_);
 		}
 	}
@@ -5043,7 +5042,7 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 		do {
 			x = rnd()%(map[m].xs - 2) + 1;
 			y = rnd()%(map[m].ys - 2) + 1;
-		} while( map_getcell(m, x, y, CELL_CHKNOPASS) );
+		} while( map_getcell(m, x, y, CELL_CHKNOPASS) || || (!battle_config.teleport_on_portal && npc_check_areanpc(1, m, x, y, 1)) );
 	}
 
 	if( sd->state.vending && map_getcell(m, x, y, CELL_CHKNOVENDING) ) {
@@ -5115,13 +5114,13 @@ int pc_randomwarp(struct map_session_data *sd, clr_type type)
 
 	m = sd->bl.m;
 
-	if (map[sd->bl.m].flag.noteleport) //Teleport forbiden
+	if (map[sd->bl.m].flag.noteleport) //Teleport forbidden
 		return 0;
 
 	do {
 		x = rnd()%(map[m].xs - 2) + 1;
 		y = rnd()%(map[m].ys - 2) + 1;
-	} while (map_getcell(m,x,y,CELL_CHKNOPASS) && (i++) < 1000);
+	} while ((map_getcell(m,x,y,CELL_CHKNOPASS) || (!battle_config.teleport_on_portal && npc_check_areanpc(1,m,x,y,1))) && (i++) < 1000);
 
 	if (i < 1000)
 		return pc_setpos(sd,map_id2index(sd->bl.m),x,y,type);
@@ -6406,7 +6405,7 @@ int pc_skillup(struct map_session_data *sd,uint16 skill_id)
 		if( !skill_get_inf(skill_id) )
 			status_calc_pc(sd,SCO_NONE); //Only recalculate for passive skills.
 		else if( sd->status.skill_point == 0 && (sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->status.char_id, MAPID_TAEKWON) )
-			pc_calc_skilltree(sd); //Required to grant all TK Ranger skills.
+			pc_calc_skilltree(sd); //Required to grant all TK Ranker skills.
 		else
 			pc_check_skilltree(sd,skill_id); // Check if a new skill can Lvlup
 
@@ -6646,10 +6645,9 @@ int pc_resetskill(struct map_session_data* sd, int flag)
 		return 0;
 
 	if( !(flag&2) ) { //Remove stuff lost when resetting skills.
-		//It has been confirmed on official server that when you reset skills with a ranked tweakwon your skills are not reset (because you have all of them anyway)
+		//It has been confirmed on official servers that when you reset skills with a ranked Taekwon your skills are not reset (because you have all of them anyway)
 		if( (sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->status.char_id, MAPID_TAEKWON) )
 			return 0;
-
 		if( pc_checkskill(sd, SG_DEVIL) &&  !pc_nextjobexp(sd) )
 			clif_status_load(&sd->bl, SI_DEVIL, 0); //Remove perma blindness due to skill-reset. [Skotlex]
 		i = sd->sc.option;
@@ -6674,7 +6672,6 @@ int pc_resetskill(struct map_session_data* sd, int flag)
 #endif
 		if( i != sd->sc.option )
 			pc_setoption(sd, i);
-
 		if( merc_is_hom_active(sd->hd) && pc_checkskill(sd, AM_CALLHOMUN) )
 			merc_hom_vaporize(sd, HOM_ST_REST);
 	}
@@ -6683,30 +6680,24 @@ int pc_resetskill(struct map_session_data* sd, int flag)
 		int inf2;
 		int lv = sd->status.skill[i].lv;
 
-		if (lv < 1) continue;
-
+		if( lv < 1 )
+			continue;
 		inf2 = skill_get_inf2(i);
-
 		if( inf2&(INF2_WEDDING_SKILL|INF2_SPIRIT_SKILL) ) //Avoid reseting wedding/linker skills.
 			continue;
-
 		//Don't reset trick dead if not a novice/baby
 		if( i == NV_TRICKDEAD && (sd->class_&MAPID_UPPERMASK) != MAPID_NOVICE ) {
 			sd->status.skill[i].lv = 0;
 			sd->status.skill[i].flag = SKILL_FLAG_PERMANENT;
 			continue;
 		}
-
 		//Do not reset basic skill
 		if( i == NV_BASIC && (sd->class_&MAPID_UPPERMASK) != MAPID_NOVICE )
 			continue;
-
 		if( sd->status.skill[i].flag == SKILL_FLAG_PERM_GRANTED )
 			continue;
-
 		if( flag&4 && !skill_ischangesex(i) )
 			continue;
-
 		if( inf2&INF2_QUEST_SKILL && !battle_config.quest_skill_learn ) {
 			//Only handle quest skills in a special way when you can't learn them manually
 			if( battle_config.quest_skill_reset && !(flag&2) ) { //Wipe them
@@ -6719,17 +6710,14 @@ int pc_resetskill(struct map_session_data* sd, int flag)
 			skill_point += lv;
 		else if( sd->status.skill[i].flag == SKILL_FLAG_REPLACED_LV_0 )
 			skill_point += (sd->status.skill[i].flag - SKILL_FLAG_REPLACED_LV_0);
-
 		if( !(flag&2) ) { //Reset
 			sd->status.skill[i].lv = 0;
 			sd->status.skill[i].flag = SKILL_FLAG_PERMANENT;
 		}
 	}
-
-	if( flag&2 || !skill_point ) return skill_point;
-
+	if( flag&2 || !skill_point )
+		return skill_point;
 	sd->status.skill_point += skill_point;
-
 	if( flag&1 ) {
 		clif_updatestatus(sd, SP_SKILLPOINT);
 		clif_skillinfoblock(sd);

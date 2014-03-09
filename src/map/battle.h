@@ -543,6 +543,8 @@ extern struct Battle_Config
 	int atcommand_enable_npc;
 	int crimson_marker_type;
 	int warp_suggestions_enabled;
+	int taekwon_mission_mobname;
+	int teleport_on_portal;
 } battle_config;
 
 void do_init_battle(void);

@@ -872,7 +872,7 @@ int chrif_changesex(struct map_session_data *sd) {
 /**
  * R 2b0f <accid>.l <name>.24B <type>.w <answer>.w
  * Processing a reply to chrif_req_login_operation() (request to modify an account).
- * NB: That ack is received just after the char as sent the request to login and therefore didn't have login reply yet
+ * NB: That ack is received just after the char has sent the request to login and therefore didn't have login reply yet
  * @param aid : player account id the request was concerning
  * @param player_name : name the request was concerning
  * @param type : code of operation done:
@@ -896,7 +896,8 @@ static void chrif_ack_login_req(int aid, const char* player_name, uint16 type, u
 
 	if (type > 0 && type <= 5)
 		snprintf(action, 25, "%s", msg_txt(427 + type)); //Block|Ban|Unblock|Unban|Change the sex of
-	else if (type == 6) snprintf(action, 25, "%s", "vip"); //@TODO: Make some place for those type in msg_conf
+	else if (type == 6)
+		snprintf(action, 25, "%s", msg_txt(436)); //VIP
 	else if (type == 7) {
 		if (!battle_config.disp_serverbank_msg)
 			return;
@@ -905,11 +906,11 @@ static void chrif_ack_login_req(int aid, const char* player_name, uint16 type, u
 		snprintf(action, 25, "???");
 
 	switch (answer) {
-		case 0 : sprintf(output, msg_txt(424), action, NAME_LENGTH, player_name); break; //Login-serv has been asked to %s the player '%.*s'.
-		case 1 : sprintf(output, msg_txt(425), NAME_LENGTH, player_name); break;
-		case 2 : sprintf(output, msg_txt(426), action, NAME_LENGTH, player_name); break;
-		case 3 : sprintf(output, msg_txt(427), action, NAME_LENGTH, player_name); break;
-		case 4 : sprintf(output, msg_txt(424), action, NAME_LENGTH, player_name); break;
+		case 0: sprintf(output, msg_txt(424), action, NAME_LENGTH, player_name); break; //Login-serv has been asked to %s the player '%.*s'.
+		case 1: sprintf(output, msg_txt(425), NAME_LENGTH, player_name); break;
+		case 2: sprintf(output, msg_txt(426), action, NAME_LENGTH, player_name); break;
+		case 3: sprintf(output, msg_txt(427), action, NAME_LENGTH, player_name); break;
+		case 4: sprintf(output, msg_txt(424), action, NAME_LENGTH, player_name); break;
 		default: output[0] = '\0'; break;
 	}
 
@@ -1546,7 +1547,8 @@ void chrif_parse_ack_vipActive(int fd) {
 	int aid = RFIFOL(fd,2);
 	uint32 vip_time = RFIFOL(fd,6);
 	bool isvip = RFIFOB(fd,10);
-	uint32 groupid = RFIFOL(fd,11);
+	bool isgm = RFIFOB(fd,11);
+	uint32 groupid = RFIFOL(fd,12);
 	TBL_PC *sd = map_id2sd(aid);
 
 	if (sd == NULL)
@@ -1555,6 +1557,10 @@ void chrif_parse_ack_vipActive(int fd) {
 	sd->group_id = groupid;
 	pc_group_pc_load(sd);
 
+	if (isgm) {
+		clif_displaymessage(sd->fd, msg_txt(437));
+		return;
+	}
 	if (isvip) {
 		sd->vip.enabled = 1;
 		sd->vip.time = vip_time;
@@ -1573,7 +1579,7 @@ void chrif_parse_ack_vipActive(int fd) {
 			sd->vip.time = 0;
 			sd->storage_size = MIN_STORAGE;
 			sd->special_state.no_gemstone = 0;
-			clif_displaymessage(sd->fd, "You're no longer a VIP_Member");
+			clif_displaymessage(sd->fd, msg_txt(438));
 		}
 	}
 #endif

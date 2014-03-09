@@ -2682,10 +2682,6 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	if (tsc && !tsc->count)
 		tsc = NULL; //Don't need it.
 
-	//Is this check really needed? FrostNova won't hurt you if you step right where the caster is?
-	if (skill_id == WZ_FROSTNOVA && dsrc->x == bl->x && dsrc->y == bl->y)
-		return 0;
-
 	//Trick Dead protects you from damage, but not from buffs and the like, hence it's placed here.
 	if (tsc && tsc->data[SC_TRICKDEAD])
 		return 0;

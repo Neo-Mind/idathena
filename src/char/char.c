@@ -189,8 +189,8 @@ void pincode_notifyLoginPinError(int account_id);
 void pincode_decrypt(uint32 userSeed, char* pin);
 int pincode_compare(int fd, struct char_session_data* sd, char* pin);
 
-int mapif_vipack(int mapfd, uint32 aid, uint32 vip_time, uint8 isvip, uint32 groupid);
-int loginif_reqviddata(uint32 aid, uint8 type, int32 timediff, int mapfd);
+int mapif_vipack(int mapfd, uint32 aid, uint32 vip_time, uint8 isvip, uint8 isgm, uint32 groupid);
+int loginif_reqvipdata(uint32 aid, uint8 type, int32 timediff, int mapfd);
 int loginif_parse_vipack(int fd);
 
 // Addon system
@@ -2253,7 +2253,7 @@ int mapif_BankingAck(int32 account_id, int32 bank_vault) {
  * HZ 0x2b2b
  * Transmist vip data to mapserv
  */
-int mapif_vipack(int mapfd, uint32 aid, uint32 vip_time, uint8 isvip, uint32 groupid) {
+int mapif_vipack(int mapfd, uint32 aid, uint32 vip_time, uint8 isvip, uint8 isgm, uint32 groupid) {
 #ifdef VIP_ENABLE
 	uint8 buf[16];
 
@@ -2261,8 +2261,9 @@ int mapif_vipack(int mapfd, uint32 aid, uint32 vip_time, uint8 isvip, uint32 gro
 	WBUFL(buf,2) = aid;
 	WBUFL(buf,6) = vip_time;
 	WBUFB(buf,10) = isvip;
-	WBUFL(buf,11) = groupid;
-	mapif_send(mapfd, buf, 15); //Inform the mapserv back
+	WBUFB(buf,11) = isgm;
+	WBUFL(buf,12) = groupid;
+	mapif_send(mapfd, buf, 16); //Inform the mapserv back
 #endif
 	return 0;
 }
@@ -2274,9 +2275,9 @@ int mapif_vipack(int mapfd, uint32 aid, uint32 vip_time, uint8 isvip, uint32 gro
  * @param type : &2 define new duration, &1 load info
  * @param timediff : tick to add to vip timestamp
  * @param mapfd: link to mapserv for ack
- * @return 0 if succes
+ * @return 0 if success
  */
-int loginif_reqviddata(uint32 aid, uint8 type, int32 timediff, int mapfd) {
+int loginif_reqvipdata(uint32 aid, uint8 type, int32 timediff, int mapfd) {
 	loginif_check(-1);
 #ifdef VIP_ENABLE
 	WFIFOHEAD(login_fd,15);
@@ -2296,17 +2297,18 @@ int loginif_reqviddata(uint32 aid, uint8 type, int32 timediff, int mapfd) {
  */
 int loginif_parse_vipack(int fd) {
 #ifdef VIP_ENABLE
-	if (RFIFOREST(fd) < 19)
+	if (RFIFOREST(fd) < 20)
 		return 0;
 	else {
 		uint32 aid = RFIFOL(fd,2); //AID
 		uint32 vip_time = RFIFOL(fd,6); //vip_time
 		uint8 isvip = RFIFOB(fd,10); //isvip
 		uint32 groupid = RFIFOL(fd,11); //New group id
-		int mapfd = RFIFOL(fd,15); //Link to mapserv for ack
+		uint8 isgm = RFIFOB(fd,15); //isgm
+		int mapfd = RFIFOL(fd,16); //Link to mapserv for ack
 
-		RFIFOSKIP(fd,19);
-		mapif_vipack(mapfd, aid, vip_time, isvip, groupid);
+		RFIFOSKIP(fd,20);
+		mapif_vipack(mapfd, aid, vip_time, isvip, isgm, groupid);
 	}
 #endif
 	return 1;
@@ -3064,7 +3066,7 @@ int mapif_parse_req_alter_acc(int fd) {
 	else {
 		int result = 0; //0-login-server request done, 1-player not found, 2-gm level too low, 3-login-server offline
 		char esc_name[NAME_LENGTH * 2 + 1];
-		char anwser = true;
+		char answer = true;
 		int aid = RFIFOL(fd,2); //account_id of who ask (-1 if server itself made this request)
 		const char* name = (char*)RFIFOP(fd,6); //Name of the target character
 		int operation = RFIFOW(fd,30); //Type of operation: 1-block, 2-ban, 3-unblock, 4-unban, 5-changesex, 6-vip, 7-bank
@@ -3125,18 +3127,18 @@ int mapif_parse_req_alter_acc(int fd) {
 						WFIFOSET(login_fd,6);
 						break;
 					case 5: //Changesex
-						anwser = false;
+						answer = false;
 						WFIFOHEAD(login_fd,6);
 						WFIFOW(login_fd,0) = 0x2727;
 						WFIFOL(login_fd,2) = account_id;
 						WFIFOSET(login_fd,6);
 						break;
 					case 6:
-						anwser = (val1&4); //vip_req val1 = type, &1 login send return, &2 upd timestamp &4 map send answer
-						loginif_reqviddata(account_id, val1, timediff, fd);
+						answer = (val1&4); //vip_req val1 = type, &1 login send return, &2 upd timestamp &4 map send answer
+						loginif_reqvipdata(account_id, val1, timediff, fd);
 						break;
 					case 7:
-						anwser = (val1&1); //val&1 request anwser, val1&2 save data
+						answer = (val1&1); //val&1 request answer, val1&2 save data
 						loginif_BankingReq(aid, val1, val2);
 						break;
 				} //End switch operation
@@ -3144,7 +3146,7 @@ int mapif_parse_req_alter_acc(int fd) {
 		}
 
 		//Send answer if a player ask, not if the server ask
-		if( aid != -1 && anwser ) { //Don't send answer for changesex
+		if( aid != -1 && answer ) { //Don't send answer for changesex
 			WFIFOHEAD(fd,34);
 			WFIFOW(fd,0) = 0x2b0f;
 			WFIFOL(fd,2) = aid;
@@ -4882,6 +4884,7 @@ int mapif_send(int fd, unsigned char *buf, unsigned int len)
 {
 	if( fd >= 0 ) {
 		int i;
+
 		ARR_FIND(0,ARRAYLENGTH(server),i,fd == server[i].fd);
 		if( i < ARRAYLENGTH(server) ) {
 			WFIFOHEAD(fd,len);

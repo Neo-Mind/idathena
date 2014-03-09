@@ -1657,11 +1657,14 @@ int map_quit(struct map_session_data *sd) {
 	//Unit_free handles clearing the player related data,
 	//map_quit handles extra specific data which is related to quitting normally
 	//(changing map-servers invokes unit_free but bypasses map_quit)
-	if (sd->sc.count) {
-		//Status that are not saved
+	if (sd->sc.count) { //Status that are not saved
 		status_change_end(&sd->bl,SC_BOSSMAPINFO,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_AUTOTRADE,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_SPURT,INVALID_TIMER);
+		status_change_end(&sd->bl,SC_READYSTORM,INVALID_TIMER);
+		status_change_end(&sd->bl,SC_READYDOWN,INVALID_TIMER);
+		status_change_end(&sd->bl,SC_READYTURN,INVALID_TIMER);
+		status_change_end(&sd->bl,SC_READYCOUNTER,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_BERSERK,INVALID_TIMER);
 		status_change_end(&sd->bl,SC__BLOODYLUST,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_TRICKDEAD,INVALID_TIMER);
