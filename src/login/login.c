@@ -490,10 +490,10 @@ int chrif_sendvipdata(int fd, struct mmo_account acc, char isvip, char isgm, int
 	WFIFOL(fd,2) = acc.account_id;
 	WFIFOL(fd,6) = (uint32)acc.vip_time;
 	WFIFOB(fd,10) = isvip;
-	WFIFOL(fd,11) = acc.group_id; //New group id
-	WFIFOL(fd,15) = isgm;
-	WFIFOL(fd,16) = mapfd; //Link to mapserv
-	WFIFOSET(fd,20);
+	WFIFOB(fd,11) = isgm;
+	WFIFOL(fd,12) = acc.group_id; //New group id
+	WFIFOL(fd,15) = mapfd; //Link to mapserv
+	WFIFOSET(fd,19);
 	chrif_send_accdata(fd, acc.account_id); //Refresh char with new setting
 #endif
 	return 1;
@@ -523,9 +523,11 @@ int chrif_parse_reqvipdata(int fd) {
 			time_t now = time(NULL);
 			time_t vip_time = acc.vip_time;
 			bool isvip = false;
+			bool isgm = false;
 
 			if( acc.group_id > login_config.vip_sys.group ) { //Don't change group if it's higher.
-				chrif_sendvipdata(fd, acc, false, true, mapfd);
+				isgm = true;
+				chrif_sendvipdata(fd, acc, isvip, isgm, mapfd);
 				return 1;
 			}
 			if( type&2 ) {
@@ -549,7 +551,7 @@ int chrif_parse_reqvipdata(int fd) {
 			acc.vip_time = vip_time;
 			accounts->save(accounts, &acc);
 			if( type&1 )
-				chrif_sendvipdata(fd, acc, isvip, false, mapfd);
+				chrif_sendvipdata(fd, acc, isvip, isgm, mapfd);
 		}
 	}
 #endif

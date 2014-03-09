@@ -2263,13 +2263,13 @@ int mapif_vipack(int mapfd, uint32 aid, uint32 vip_time, uint8 isvip, uint8 isgm
 	WBUFB(buf,10) = isvip;
 	WBUFB(buf,11) = isgm;
 	WBUFL(buf,12) = groupid;
-	mapif_send(mapfd, buf, 16); //Inform the mapserv back
+	mapif_send(mapfd, buf, 15); //Inform the mapserv back
 #endif
 	return 0;
 }
 
 /**
- * HZ 0x2b2b
+ * HZ 0x2742
  * Request vip data from loginserv
  * @param aid : account_id to request the vip data
  * @param type : &2 define new duration, &1 load info
@@ -2297,17 +2297,17 @@ int loginif_reqvipdata(uint32 aid, uint8 type, int32 timediff, int mapfd) {
  */
 int loginif_parse_vipack(int fd) {
 #ifdef VIP_ENABLE
-	if (RFIFOREST(fd) < 20)
+	if (RFIFOREST(fd) < 19)
 		return 0;
 	else {
 		uint32 aid = RFIFOL(fd,2); //AID
 		uint32 vip_time = RFIFOL(fd,6); //vip_time
 		uint8 isvip = RFIFOB(fd,10); //isvip
-		uint32 groupid = RFIFOL(fd,11); //New group id
-		uint8 isgm = RFIFOB(fd,15); //isgm
-		int mapfd = RFIFOL(fd,16); //Link to mapserv for ack
+		uint8 isgm = RFIFOB(fd,11); //isgm
+		uint32 groupid = RFIFOL(fd,12); //New group id
+		int mapfd = RFIFOL(fd,15); //Link to mapserv for ack
 
-		RFIFOSKIP(fd,20);
+		RFIFOSKIP(fd,19);
 		mapif_vipack(mapfd, aid, vip_time, isvip, isgm, groupid);
 	}
 #endif
