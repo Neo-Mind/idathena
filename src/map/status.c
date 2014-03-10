@@ -523,7 +523,7 @@ void initChangeTables(void) {
 		, SCB_NONE );
 
 	set_sc( ALL_PARTYFLEE        , SC_INCFLEE         , SI_PARTYFLEE       , SCB_NONE );
-	set_sc( ALL_ODINS_POWER      , SC_ODINS_POWER     , SI_ODINS_POWER     , SCB_BATK|SCB_MATK|SCB_DEF|SCB_MDEF );
+	set_sc( ALL_ODINS_POWER      , SC_ODINS_POWER     , SI_ODINS_POWER     , SCB_WATK|SCB_MATK|SCB_DEF|SCB_MDEF );
 
 	set_sc( CR_SHRINK            , SC_SHRINK          , SI_SHRINK          , SCB_NONE );
 	set_sc( RG_CLOSECONFINE      , SC_CLOSECONFINE2   , SI_CLOSECONFINE2   , SCB_NONE );
@@ -5004,8 +5004,6 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk -= batk * sc->data[SC_EQC]->val3 / 100;
 	if(sc->data[SC_ZANGETSU])
 		batk += sc->data[SC_ZANGETSU]->val2;
-	if(sc->data[SC_ODINS_POWER])
-		batk += 40 + 30 * sc->data[SC_ODINS_POWER]->val1;
 	if(sc->data[SC_QUEST_BUFF1])
 		batk += sc->data[SC_QUEST_BUFF1]->val1;
 	if(sc->data[SC_QUEST_BUFF2])
@@ -5091,6 +5089,8 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 		watk += sc->data[SC_PYROCLASTIC]->val2;
 	if(sc->data[SC_ANGRIFFS_MODUS])
 		watk += watk * sc->data[SC_ANGRIFFS_MODUS]->val2 / 100;
+	if(sc->data[SC_ODINS_POWER])
+		watk += 40 + 30 * sc->data[SC_ODINS_POWER]->val1;
 
 	return (unsigned short)cap_value(watk,0,USHRT_MAX);
 }

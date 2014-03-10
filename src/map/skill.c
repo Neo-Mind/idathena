@@ -12238,6 +12238,10 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		case WM_POEMOFNETHERWORLD:
 			if( skill_id == WM_POEMOFNETHERWORLD && map_flag_gvg2(src->m) )
 				target = BCT_ALL;
+		case SO_FIRE_INSIGNIA:
+		case SO_WATER_INSIGNIA:
+		case SO_WIND_INSIGNIA:
+		case SO_EARTH_INSIGNIA:
 			if( map_getcell(src->m,x,y,CELL_CHKLANDPROTECTOR) )
 				return NULL;
 			break;
@@ -15262,8 +15266,8 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 			case SO_SUMMON_AQUA:
 			case SO_SUMMON_VENTUS:
 			case SO_SUMMON_TERA:
-			case SO_WATER_INSIGNIA:
 			case SO_FIRE_INSIGNIA:
+			case SO_WATER_INSIGNIA:
 			case SO_WIND_INSIGNIA:
 			case SO_EARTH_INSIGNIA:
 				if( i < 3 )
@@ -15329,8 +15333,8 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 		case SO_SUMMON_AQUA:
 		case SO_SUMMON_VENTUS:
 		case SO_SUMMON_TERA:
-		case SO_WATER_INSIGNIA:
 		case SO_FIRE_INSIGNIA:
+		case SO_WATER_INSIGNIA:
 		case SO_WIND_INSIGNIA:
 		case SO_EARTH_INSIGNIA:
 			req.itemid[skill_lv - 1] = skill_db[idx].require.itemid[skill_lv - 1];

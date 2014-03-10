@@ -1729,10 +1729,16 @@ static int battle_range_type(struct block_list *src, struct block_list *target, 
 	if(skill_get_inf2(skill_id)&INF2_TRAP)
 		return BF_SHORT;
 
+	if(skill_id == SR_GATEOFHELL) {
+		if(skill_lv < 5)
+			return BF_SHORT;
+		else
+			return BF_LONG;
+	}
+
 	//Skill Range Criteria
 	if(battle_config.skillrange_by_distance && (src->type&battle_config.skillrange_by_distance)) {
-		//Based on distance between src/target [Skotlex]
-		if(check_distance_bl(src, target, 5))
+		if(check_distance_bl(src, target, 5)) //Based on distance between src/target [Skotlex]
 			return BF_SHORT;
 		return BF_LONG;
 	}
@@ -7626,7 +7632,7 @@ bool battle_check_range(struct block_list *src, struct block_list *bl, int range
 		return false;
 
 	if( (d = distance_bl(src, bl)) < 2 )
-		return true;  //No need for path checking.
+		return true; //No need for path checking.
 
 	if( d > AREA_SIZE )
 		return false; //Avoid targetting objects beyond your range of sight.
