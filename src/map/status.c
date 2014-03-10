@@ -6708,7 +6708,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 	//Example: 25% -> sc_def2 = 2000 -> 5%; 2500ms -> tick_def2 = 2000 -> 500ms
 	int sc_def2 = 0, tick_def2 = 0;
 
-	struct status_data *status, *status_src;
+	struct status_data *status, *status_src, *b_status;
 	struct status_change *sc;
 	struct map_session_data *sd;
 
@@ -6750,6 +6750,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 	sd = BL_CAST(BL_PC,bl);
 	status = status_get_status_data(bl);
 	status_src = status_get_status_data(src);
+	b_status = status_get_base_status(bl);
 	sc = status_get_sc(bl);
 
 	if (sc && !sc->count)
@@ -6871,9 +6872,9 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			sc_def = status->agi * 50;
 			break;
 		case SC_DEEPSLEEP:
-			//sc_def = status->int_ * 50; Needs info
+			//sc_def = b_status->int_ * 50; Needs info
 			tick_def = 0; //Linear reduction instead
-			tick_def2 = status->int_ * 50 +
+			tick_def2 = b_status->int_ * 50 +
 				(status_get_lv(bl) > 150 ? 150 : status_get_lv(bl)) * 50; //kRO balance update lists this formula
 			break;
 		case SC_NETHERWORLD:
@@ -6927,10 +6928,10 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			tick_def2 = (status->vit + status->agi) * 70;
 			break;
 		case SC_CRYSTALIZE:
-			tick_def2 = status->vit * 100;
+			tick_def2 = b_status->vit * 100;
 			break;
 		case SC_VACUUM_EXTREME:
-			tick_def2 = status->str * 50;
+			tick_def2 = b_status->str * 50;
 			break;
 		case SC_KYOUGAKU:
 			tick_def2 = status->int_ * 50;
