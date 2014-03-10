@@ -1503,7 +1503,7 @@ int parse_login(int fd)
 	if( sd == NULL ) {
 		// Perform ip-ban check
 		if( login_config.ipban && ipban_check(ipl) ) {
-			ShowStatus("Connection refused: IP isn't authorised (deny/allow, ip: %s).\n", ip);
+			ShowStatus("Connection refused: IP isn't authorized (deny/allow, ip: %s).\n", ip);
 			login_log(ipl, "unknown", -3, "ip banned");
 			WFIFOHEAD(fd,23);
 			WFIFOW(fd,0) = 0x6a;

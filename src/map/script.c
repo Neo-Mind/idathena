@@ -18173,7 +18173,7 @@ BUILDIN_FUNC(vip_time) {
 
 	if (pc_get_group_level(sd) > 5) {
 		clif_displaymessage(sd->fd, msg_txt(437)); // GM's cannot become a VIP.
-		return -1;
+		return 0;
 	}
 
 	chrif_req_login_operation(sd->status.account_id,sd->status.name,6,viptime,7,0);

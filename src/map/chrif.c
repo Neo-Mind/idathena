@@ -1067,7 +1067,7 @@ int chrif_ban(int fd) {
 		else if( ret_status == 100 )
 			clif_displaymessage(sd->fd, msg_txt(421));
 		else
-			clif_displaymessage(sd->fd, msg_txt(420)); // "Your account has not more authorised."
+			clif_displaymessage(sd->fd, msg_txt(420)); // "Your account has not more authorized."
 	} else if( res == 1 || res == 2 ) {
 		time_t timestamp;
 		char tmpstr[256];

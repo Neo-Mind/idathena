@@ -2787,7 +2787,7 @@ ACMD_FUNC(recall) {
 	}
 
 	if ( pc_get_group_level(sd) < pc_get_group_level(pl_sd) ) {
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorise you to do this action on this player.
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorize you to do this action on this player.
 		return -1;
 	}
 
@@ -3093,7 +3093,7 @@ ACMD_FUNC(kick)
 	}
 
 	if (pc_get_group_level(sd) < pc_get_group_level(pl_sd)) {
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorise you to do this action on this player.
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorize you to do this action on this player.
 		return -1;
 	}
 
@@ -4281,7 +4281,7 @@ ACMD_FUNC(nuke)
 			skill_castend_nodamage_id(&pl_sd->bl, &pl_sd->bl, NPC_SELFDESTRUCTION, 99, gettick(), 0);
 			clif_displaymessage(fd, msg_txt(109)); // Player has been nuked!
 		} else {
-			clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorise you to do this action on this player.
+			clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorize you to do this action on this player.
 			return -1;
 		}
 	} else {
@@ -4538,7 +4538,7 @@ ACMD_FUNC(jail)
 	}
 
 	if (pc_get_group_level(sd) < pc_get_group_level(pl_sd)) { // You can jail only lower or same GM
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorise you to do this action on this player.
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorize you to do this action on this player.
 		return -1;
 	}
 
@@ -4588,7 +4588,7 @@ ACMD_FUNC(unjail)
 	}
 
 	if (pc_get_group_level(sd) < pc_get_group_level(pl_sd)) { // You can jail only lower or same GM
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorise you to do this action on this player.
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorize you to do this action on this player.
 		return -1;
 	}
 
@@ -4635,7 +4635,7 @@ ACMD_FUNC(jailfor) {
 	}
 
 	if (pc_get_group_level(sd) < pc_get_group_level(pl_sd)) {
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorise you to do this action on this player.
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorize you to do this action on this player.
 		return -1;
 	}
 
@@ -5430,7 +5430,7 @@ ACMD_FUNC(useskill)
 	}
 
 	if (pc_get_group_level(sd) < pc_get_group_level(pl_sd)) {
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorise you to do this action on this player.
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorize you to do this action on this player.
 		return -1;
 	}
 
@@ -6663,7 +6663,7 @@ ACMD_FUNC(mute)
 	}
 
 	if( pc_get_group_level(sd) < pc_get_group_level(pl_sd) ) {
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorise you to do this action on this player.
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorize you to do this action on this player.
 		return -1;
 	}
 
@@ -9249,7 +9249,7 @@ ACMD_FUNC(vip) {
 	}
 
 	if (pc_get_group_level(sd) < pc_get_group_level(pl_sd)) {
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorise you to do this action on this player.
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorize you to do this action on this player.
 		return -1;
 	}
 

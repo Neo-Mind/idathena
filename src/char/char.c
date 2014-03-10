@@ -107,7 +107,7 @@ bool char_new = true;
 int char_new_display = 0;
 
 bool name_ignoring_case = false; // Allow or not identical name for characters but with a different case by [Yor]
-int char_name_option = 0; // Option to know which letters/symbols are authorised in the name of a character (0: all, 1: only those in char_name_letters, 2: all EXCEPT those in char_name_letters) by [Yor]
+int char_name_option = 0; // Option to know which letters/symbols are authorized in the name of a character (0: all, 1: only those in char_name_letters, 2: all EXCEPT those in char_name_letters) by [Yor]
 char unknown_char_name[NAME_LENGTH] = "Unknown"; // Name to use when the requested name cannot be determined
 #define TRIM_CHARS "\255\xA0\032\t\x0A\x0D " // The following characters are trimmed regardless because they cause confusion and problems on the servers. [Skotlex]
 char char_name_letters[1024] = ""; // List of letters/symbols allowed (or not) in a character name. by [Yor]
@@ -1520,8 +1520,8 @@ int check_char_name(char * name, char * esc_name)
 	if( strcmpi(name, wisp_server_name) == 0 )
 		return -1; // nick reserved for internal server messages
 
-	// Check Authorised letters/symbols in the name of the character
-	if( char_name_option == 1 ) { // only letters/symbols in char_name_letters are authorised
+	// Check authorized letters/symbols in the name of the character
+	if( char_name_option == 1 ) { // only letters/symbols in char_name_letters are authorized
 		for( i = 0; i < NAME_LENGTH && name[i]; i++ )
 			if( strchr(char_name_letters, name[i]) == NULL )
 				return -2;
