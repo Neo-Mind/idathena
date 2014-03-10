@@ -2467,37 +2467,39 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			int mdrop_id[MAX_MVP_DROP];
 			int mdrop_p[MAX_MVP_DROP];
 
-			memset(&mdrop_id, 0, MAX_MVP_DROP * sizeof(int));
+			memset(mdrop_id, 0, MAX_MVP_DROP * sizeof(int));
+			memset(mdrop_p, 0, MAX_MVP_DROP * sizeof(int));
+			//Make random order
 			for(i = 0; i < MAX_MVP_DROP; i++) {
 				while(1) {
-					int va = rnd()%MAX_MVP_DROP;
+					uint8 va = rnd()%MAX_MVP_DROP;
 
-					if(!mdrop_id[va] || !md->db->mvpitem[i].nameid) {
-						mdrop_id[va] = md->db->mvpitem[i].nameid;
-						mdrop_p[va]  = md->db->mvpitem[i].p;
+					if(mdrop_id[va] == 0) {
+						if(md->db->mvpitem[i].nameid > 0) {
+							mdrop_id[va] = md->db->mvpitem[i].nameid;
+							mdrop_p[va] = md->db->mvpitem[i].p;
+						} else
+							mdrop_id[va] = -1;
 						break;
 					}
 				}
 			}
 
 			for(i = 0; i < MAX_MVP_DROP; i++) {
-				if(mdrop_id[i] <= 0)
+				if(mdrop_id[i] <= 0 || !itemdb_exists(mdrop_id[i]))
 					continue;
-				if(!itemdb_exists(mdrop_id[i]))
-					continue;
-
 				temp = mdrop_p[i];
-				if(temp <= 0 && !battle_config.drop_rate0item)
-					temp = 1;
-				if(temp <= rnd()%10000 + 1) //if == 0, then it doesn't drop
-					continue;
-
+				if(temp != 10000) {
+					if(temp <= 0 && !battle_config.drop_rate0item)
+						temp = 1;
+					if(rnd()%10000 >= temp) //if ==0, then it doesn't drop
+						continue;
+				}
 				memset(&item, 0, sizeof(item));
 				item.nameid = mdrop_id[i];
-				item.identify= itemdb_isidentified(item.nameid);
+				item.identify = itemdb_isidentified(item.nameid);
 				clif_mvp_item(mvp_sd, item.nameid);
 				log_mvp[0] = item.nameid;
-
 				//A Rare MVP Drop Global Announce by Lupus
 				if(temp <= battle_config.rare_drop_announce) {
 					struct item_data *i_data;
@@ -2508,18 +2510,15 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 					//MSG: "'%s' won %s's %s (chance: %0.02f%%)"
 					intif_broadcast(message, strlen(message) + 1, BC_DEFAULT);
 				}
-
 				if((temp = pc_additem(mvp_sd, &item, 1, LOG_TYPE_PICKDROP_PLAYER)) != 0) {
 					clif_additem(mvp_sd, 0, 0, temp);
 					map_addflooritem(&item, 1, mvp_sd->bl.m, mvp_sd->bl.x, mvp_sd->bl.y, mvp_sd->status.char_id, (second_sd ? second_sd->status.char_id : 0), (third_sd ? third_sd->status.char_id : 0), 1);
 				}
-
 				//Logs items, MVP prizes [Lupus]
 				log_pick_mob(md, LOG_TYPE_MVP, -1, &item);
 				break;
 			}
 		}
-
 		log_mvpdrop(mvp_sd, md->mob_id, log_mvp);
 	}
 
