@@ -3115,18 +3115,16 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 		}
 		if (rnd() % 10000 > ms[i].permillage) //Lupus (max value = 10000)
 			continue;
-		
 		if (ms[i].cond1 == event)
 			flag = 1; //Trigger skill.
 		else if (ms[i].cond1 == MSC_SKILLUSED)
 			flag = ((event & 0xffff) == MSC_SKILLUSED && ((event >> 16) == c2 || c2 == 0));
 		else if(event == -1){
 			//Avoid entering on defined events to avoid "hyper-active skill use" due to the overflow of calls to this function in battle.
-			switch (ms[i].cond1)
-			{
+			switch (ms[i].cond1) {
 				case MSC_ALWAYS:
 					flag = 1; break;
-				case MSC_MYHPLTMAXRATE:		// HP< maxhp%
+				case MSC_MYHPLTMAXRATE:	 //HP < maxhp %
 					flag = get_percentage(md->status.hp, md->status.max_hp);
 					flag = (flag <= c2);
 				  	break;
@@ -3134,43 +3132,43 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					flag = get_percentage(md->status.hp, md->status.max_hp);
 					flag = (flag >= c2 && flag <= ms[i].val[0]);
 					break;
-				case MSC_MYSTATUSON:		// status[num] on
-				case MSC_MYSTATUSOFF:		// status[num] off
+				case MSC_MYSTATUSON: //status[num] on
+				case MSC_MYSTATUSOFF: //status[num] off
 					if (!md->sc.count) {
 						flag = 0;
 					} else if (ms[i].cond2 == -1) {
 						for (j = SC_COMMON_MIN; j <= SC_COMMON_MAX; j++)
-							if ((flag = (md->sc.data[j]!=NULL)) != 0)
+							if ((flag = (md->sc.data[j] != NULL)) != 0)
 								break;
-					} else {
-						flag = (md->sc.data[ms[i].cond2]!=NULL);
-					}
+					} else
+						flag = (md->sc.data[ms[i].cond2] != NULL);
 					flag ^= (ms[i].cond1 == MSC_MYSTATUSOFF); break;
-				case MSC_FRIENDHPLTMAXRATE:	// friend HP < maxhp%
+				case MSC_FRIENDHPLTMAXRATE: //Friend HP < maxhp %
 					flag = ((fbl = mob_getfriendhprate(md, 0, ms[i].cond2)) != NULL); break;
 				case MSC_FRIENDHPINRATE	:
 					flag = ((fbl = mob_getfriendhprate(md, ms[i].cond2, ms[i].val[0])) != NULL); break;
-				case MSC_FRIENDSTATUSON:	// friend status[num] on
-				case MSC_FRIENDSTATUSOFF:	// friend status[num] off
+				case MSC_FRIENDSTATUSON: //Friend status[num] on
+				case MSC_FRIENDSTATUSOFF: //Friend status[num] off
 					flag = ((fmd = mob_getfriendstatus(md, ms[i].cond1, ms[i].cond2)) != NULL); break;
-				case MSC_SLAVELT:		// slave < num
-					flag = (mob_countslave(&md->bl) < c2 ); break;
-				case MSC_ATTACKPCGT:	// attack pc > num
+				case MSC_SLAVELT: //Slave < num
+					flag = (mob_countslave(&md->bl) < c2); break;
+				case MSC_ATTACKPCGT: //Attack pc > num
 					flag = (unit_counttargeted(&md->bl) > c2); break;
-				case MSC_SLAVELE:		// slave <= num
-					flag = (mob_countslave(&md->bl) <= c2 ); break;
-				case MSC_ATTACKPCGE:	// attack pc >= num
+				case MSC_SLAVELE: //Slave <= num
+					flag = (mob_countslave(&md->bl) <= c2); break;
+				case MSC_ATTACKPCGE: //Attack pc >= num
 					flag = (unit_counttargeted(&md->bl) >= c2); break;
 				case MSC_AFTERSKILL:
 					flag = (md->ud.skill_id == c2); break;
 				case MSC_RUDEATTACKED:
 					flag = (md->state.attacked_count >= RUDE_ATTACKED_COUNT);
-					if (flag) md->state.attacked_count = 0;	//Rude attacked count should be reset after the skill condition is met. Thanks to Komurka [Skotlex]
+					if (flag) //Rude attacked count should be reset after the skill condition is met. Thanks to Komurka [Skotlex]
+						md->state.attacked_count = 0;
 					break;
 				case MSC_MASTERHPLTMAXRATE:
 					flag = ((fbl = mob_getmasterhpltmaxrate(md, ms[i].cond2)) != NULL); break;
 				case MSC_MASTERATTACKED:
-					flag = (md->master_id > 0 && (fbl=map_id2bl(md->master_id)) && unit_counttargeted(fbl) > 0); break;
+					flag = (md->master_id > 0 && (fbl = map_id2bl(md->master_id)) && unit_counttargeted(fbl) > 0); break;
 				case MSC_ALCHEMIST:
 					flag = (md->state.alchemist);
 					break;
@@ -3181,9 +3179,9 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 			continue; //Skill requisite failed to be fulfilled.
 		
 		//Execute skill
-		if (skill_get_casttype(ms[i].skill_id) == CAST_GROUND)
-		{	//Ground skill.
+		if (skill_get_casttype(ms[i].skill_id) == CAST_GROUND) { //Ground skill.
 			short x, y;
+
 			switch (ms[i].target) {
 				case MST_RANDOM: //Pick a random enemy within skill range.
 					bl = battle_getenemy(&md->bl, DEFAULT_ENEMY_TYPE(md),
@@ -3203,7 +3201,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					if (bl) //Otherwise, fall through.
 						break;
 				case MST_FRIEND:
-					bl = fbl?fbl:(fmd?&fmd->bl:&md->bl);
+					bl = (fbl ? fbl : (fmd ? &fmd->bl : &md->bl));
 					break;
 				default:
 					bl = &md->bl;
@@ -3213,18 +3211,17 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 						
 			x = bl->x;
 		  	y = bl->y;
-			// Look for an area to cast the spell around...
+			//Look for an area to cast the spell around...
 			if (ms[i].target >= MST_AROUND1 || ms[i].target >= MST_AROUND5) {
-				j = ms[i].target >= MST_AROUND1?
-					(ms[i].target-MST_AROUND1) +1:
-					(ms[i].target-MST_AROUND5) +1;
+				j = ms[i].target >= MST_AROUND1 ?
+					(ms[i].target - MST_AROUND1) + 1:
+					(ms[i].target - MST_AROUND5) + 1;
 				map_search_freecell(&md->bl, md->bl.m, &x, &y, j, j, 3);
 			}
 			md->skill_idx = i;
 			map_freeblock_lock();
-			if( !battle_check_range(&md->bl,bl,skill_get_range2(&md->bl, ms[i].skill_id,ms[i].skill_lv)) ||
-				!unit_skilluse_pos2(&md->bl, x, y,ms[i].skill_id, ms[i].skill_lv,ms[i].casttime, ms[i].cancel) )
-			{
+			if (!battle_check_range(&md->bl, bl, skill_get_range2(&md->bl, ms[i].skill_id, ms[i].skill_lv)) ||
+				!unit_skilluse_pos2(&md->bl, x, y, ms[i].skill_id, ms[i].skill_lv, ms[i].casttime, ms[i].cancel)) {
 				map_freeblock_unlock();
 				continue;
 			}
@@ -3251,18 +3248,18 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					} else if (fmd) {
 						bl = &fmd->bl;
 						break;
-					} // else fall through
+					} //Else fall through
 				default:
 					bl = &md->bl;
 					break;
 			}
-			if (!bl) continue;
-						
+			if (!bl)
+				continue;
+	
 			md->skill_idx = i;
 			map_freeblock_lock();
-			if( !battle_check_range(&md->bl,bl,skill_get_range2(&md->bl, ms[i].skill_id,ms[i].skill_lv)) ||
-				!unit_skilluse_id2(&md->bl, bl->id,ms[i].skill_id, ms[i].skill_lv,ms[i].casttime, ms[i].cancel) )
-			{
+			if (!battle_check_range(&md->bl, bl, skill_get_range2(&md->bl, ms[i].skill_id, ms[i].skill_lv)) ||
+				!unit_skilluse_id2(&md->bl, bl->id, ms[i].skill_id, ms[i].skill_lv, ms[i].casttime, ms[i].cancel)) {
 				map_freeblock_unlock();
 				continue;
 			}
@@ -3272,17 +3269,17 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 			struct mob_chat *mc = mob_chat(ms[i].msg_id);
 			char temp[CHAT_SIZE_MAX];
  			char name[NAME_LENGTH];
- 			snprintf(name, sizeof name,"%s", md->name);
- 			strtok(name, "#"); // discard extra name identifier if present [Daegaladh]
- 			snprintf(temp, sizeof temp,"%s : %s", name, mc->msg);
+ 			snprintf(name, sizeof name, "%s", md->name);
+ 			strtok(name, "#"); //Discard extra name identifier if present [Daegaladh]
+ 			snprintf(temp, sizeof temp, "%s : %s", name, mc->msg);
 			clif_messagecolor(&md->bl, mc->color, temp);
 		}
-		if(!(battle_config.mob_ai&0x200)) { //pass on delay to same skill.
+		if (!(battle_config.mob_ai&0x200)) { //Pass on delay to same skill.
 			for (j = 0; j < md->db->maxskill; j++)
 				if (md->db->skill[j].skill_id == ms[i].skill_id)
-					md->skilldelay[j]=tick;
+					md->skilldelay[j] = tick;
 		} else
-			md->skilldelay[i]=tick;
+			md->skilldelay[i] = tick;
 		map_freeblock_unlock();
 		return 1;
 	}

@@ -2897,7 +2897,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -2, 5); //Needs -2(!) as skill level
 			break;
 		case WL_HELLINFERNO:
-		case SR_EARTHSHAKER:
+		case MH_MAGMA_FLOW:
 			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, 1, skill_id, -2, 6);
 			break;
 		case NJ_HUUMA:
@@ -5196,10 +5196,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		//Recursive homon skill
 		case MH_MAGMA_FLOW:
 		case MH_HEILIGE_STANGE:
-			if (flag&1) {
-				if ((skill_id == MH_MAGMA_FLOW) && ((rnd()%100) > (3 * skill_lv))) break; //Chance to not trigger atk for magma
+			if (flag&1)
 				skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag);
-			} else
+			else
 				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
 			break;
 
@@ -6382,11 +6381,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			status_change_end(src,SC_OVERHEAT,INVALID_TIMER);
 			break;
 
+		case NC_INFRAREDSCAN:
+		case SR_EARTHSHAKER:
 		case SR_WINDMILL:
 		case GN_CART_TORNADO:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-		case SR_EARTHSHAKER:
-		case NC_INFRAREDSCAN:
 		case NPC_EARTHQUAKE:
 		case NPC_VAMPIRE_GIFT:
 		case NPC_HELLJUDGEMENT:
@@ -10084,6 +10083,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case MH_SILENT_BREEZE: {
 				struct status_change *sc = status_get_sc(src);
 
+				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				//Silences the homunculus
 				if( sc && !sc->data[SC_SILENCE] )
 					status_change_start(src,src,SC_SILENCE,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),1|2|8);
@@ -10166,7 +10166,20 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 
-		case MH_MAGMA_FLOW:
+		case MH_MAGMA_FLOW: {
+				struct status_change* sc = status_get_sc(src);
+
+				if( sc && sc->data[SC_MAGMA_FLOW] )
+					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+				else {
+					clif_skill_nodamage(src,bl,skill_id,skill_lv,
+						sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
+					if( hd )
+						skill_blockhomun_start(hd,skill_id,skill_get_cooldown(NULL,skill_id,skill_lv));
+				}
+			}
+			break;
+
 		case MH_PAIN_KILLER:
 			sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 			if( hd )

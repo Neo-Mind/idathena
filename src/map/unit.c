@@ -1085,11 +1085,8 @@ int unit_stop_walking(struct block_list *bl,int type)
  */
 int unit_skilluse_id(struct block_list *src, int target_id, uint16 skill_id, uint16 skill_lv)
 {
-	return unit_skilluse_id2(
-		src, target_id, skill_id, skill_lv,
-		skill_castfix(src, skill_id, skill_lv),
-		skill_get_castcancel(skill_id)
-	);
+	return unit_skilluse_id2(src, target_id, skill_id, skill_lv,
+		skill_castfix(src, skill_id, skill_lv), skill_get_castcancel(skill_id));
 }
 
 /**
@@ -1275,8 +1272,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 
 	//Temp: Used to signal combo-skills right now.
 	if( sc && sc->data[SC_COMBO] && (sc->data[SC_COMBO]->val1 == skill_id ||
-		(sd ? skill_check_condition_castbegin(sd,skill_id,skill_lv) : 0)) )
-	{
+		(sd ? skill_check_condition_castbegin(sd,skill_id,skill_lv) : 0)) ) {
 		if( sc->data[SC_COMBO]->val2 )
 			target_id = sc->data[SC_COMBO]->val2;
 		else
@@ -1574,8 +1570,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 
 			mobskill_event(md, src, tick, -1); //Cast targetted skill event.
 			if( (tstatus->mode&(MD_CASTSENSOR_IDLE|MD_CASTSENSOR_CHASE)) &&
-				battle_check_target(target, src, BCT_ENEMY) > 0 )
-			{
+				battle_check_target(target, src, BCT_ENEMY) > 0 ) {
 				switch( md->state.skillstate ) {
 					case MSS_RUSH:
 					case MSS_FOLLOW:
@@ -1642,11 +1637,8 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
  */
 int unit_skilluse_pos(struct block_list *src, short skill_x, short skill_y, uint16 skill_id, uint16 skill_lv)
 {
-	return unit_skilluse_pos2(
-		src, skill_x, skill_y, skill_id, skill_lv,
-		skill_castfix(src, skill_id, skill_lv),
-		skill_get_castcancel(skill_id)
-	);
+	return unit_skilluse_pos2(src, skill_x, skill_y, skill_id, skill_lv,
+		skill_castfix(src, skill_id, skill_lv),skill_get_castcancel(skill_id));
 }
 
 /**
@@ -1751,13 +1743,13 @@ int unit_skilluse_pos2(struct block_list *src, short skill_x, short skill_y, uin
 	if(!(skill_get_castnodex(skill_id, skill_lv)&2))
 		casttime = skill_castfix_sc(src, casttime);
 #else
-	casttime = skill_vfcastfix(src, casttime, skill_id, skill_lv );
+	casttime = skill_vfcastfix(src, casttime, skill_id, skill_lv);
 #endif
 
 	if(src->type == BL_NPC) //NPC-objects do not have cast time
 		casttime = 0;
 
-	ud->state.skillcastcancel = castcancel&&casttime > 0 ? 1 : 0;
+	ud->state.skillcastcancel = (castcancel && casttime > 0 ? 1 : 0);
 	if(!sd || sd->skillitem != skill_id || skill_get_cast(skill_id,skill_lv))
 		ud->canact_tick  = tick + casttime + 100;
 	//if(sd) {
