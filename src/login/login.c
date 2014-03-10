@@ -525,7 +525,7 @@ int chrif_parse_reqvipdata(int fd) {
 			bool isvip = false;
 			bool isgm = false;
 
-			if( acc.group_id > login_config.vip_sys.group ) { //Don't change group if it's higher.
+			if( acc.group_id > (int)login_config.vip_sys.group ) { //Don't change group if it's higher.
 				isgm = true;
 				chrif_sendvipdata(fd, acc, isvip, isgm, mapfd);
 				return 1;
