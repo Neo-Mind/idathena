@@ -704,7 +704,7 @@ bool skill_isNotOk_hom(uint16 skill_id, struct homun_data *hd)
 
 	switch (skill_id) {
 		case MH_LIGHT_OF_REGENE: //Must be cordial
-			if (hd->homunculus.intimacy <= 750) return true;
+			if (hd->homunculus.intimacy <= 75000) return true;
 			break;
 		case MH_OVERED_BOOST: //If we starving
 			if (hd->homunculus.hunger <= 1) return true;
@@ -1988,6 +1988,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		case HVAN_EXPLOSION:
 			if(src->type == BL_HOM) {
 				TBL_HOM *hd = (TBL_HOM*)src;
+
 				hd->homunculus.intimacy = 200;
 				if(hd->master)
 					clif_send_homdata(hd->master,SP_INTIMATE,hd->homunculus.intimacy / 100);
@@ -3422,6 +3423,7 @@ static int skill_check_condition_mercenary(struct block_list *bl, int skill, int
 
 	if( bl->type == BL_HOM ) { //Intimacy Requeriments
 		struct homun_data *hd = BL_CAST(BL_HOM,bl);
+
 		switch( skill ) {
 			case HFLI_SBR44:
 				if( hd->homunculus.intimacy <= 200 )
@@ -10147,7 +10149,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case MH_LIGHT_OF_REGENE: //Self
 			if( hd ) {
 				sc_start2(src,src,type,100,skill_lv,hd->homunculus.level,skill_get_time(skill_id,skill_lv));
-				hd->homunculus.intimacy = 251; //Change to neutral (can't be cast if < 750)
+				hd->homunculus.intimacy = 25100; //Change to neutral (can't be cast if < 75000)
 				if( sd )
 					clif_send_homdata(sd,SP_INTIMATE,hd->homunculus.intimacy); //Refresh intimacy info
 				skill_blockhomun_start(hd,skill_id,skill_get_cooldown(NULL,skill_id,skill_lv));

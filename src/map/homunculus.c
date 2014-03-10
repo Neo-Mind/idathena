@@ -957,12 +957,12 @@ int merc_create_homunculus_request(struct map_session_data *sd, int class_)
 	base = &homunculus_db[i].base;
 	homun.max_hp = base->HP;
 	homun.max_sp = base->SP;
-	homun.str = base->str *10;
-	homun.agi = base->agi *10;
-	homun.vit = base->vit *10;
-	homun.int_= base->int_*10;
-	homun.dex = base->dex *10;
-	homun.luk = base->luk *10;
+	homun.str = base->str  * 10;
+	homun.agi = base->agi  * 10;
+	homun.vit = base->vit  * 10;
+	homun.int_= base->int_ * 10;
+	homun.dex = base->dex  * 10;
+	homun.luk = base->luk  * 10;
 
 	// Request homunculus creation
 	intif_homunculus_create(sd->status.account_id, &homun);
