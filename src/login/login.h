@@ -89,7 +89,7 @@ struct Login_Config {
 	int char_per_account;                           // Number of characters an account can have
 #ifdef VIP_ENABLE
 	struct {
-		unsigned int group; // Vip groupid
+		int group_id; // Vip groupid
 		unsigned int char_increase; // Number of char-slot to increase in vip state
 	} vip_sys;
 #endif

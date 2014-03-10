@@ -435,7 +435,7 @@ struct auction_data {
 
 	unsigned short hours;
 	int price, buynow;
-	time_t timestamp; // auction's end time
+	time_t timestamp; // Auction's end time
 	int auction_end_timer;
 };
 

@@ -1743,8 +1743,7 @@ static void intif_parse_Mail_send(int fd)
 	struct map_session_data *sd;
 	bool fail;
 
-	if( RFIFOW(fd,2) - 4 != sizeof(struct mail_message) )
-	{
+	if( RFIFOW(fd,2) - 4 != sizeof(struct mail_message) ) {
 		ShowError("intif_parse_Mail_send: data size error %d %d\n", RFIFOW(fd,2) - 4, sizeof(struct mail_message));
 		return;
 	}
@@ -1837,8 +1836,7 @@ static void intif_parse_Auction_register(int fd)
 	struct map_session_data *sd;
 	struct auction_data auction;
 
-	if( RFIFOW(fd,2) - 4 != sizeof(struct auction_data) )
-	{
+	if( RFIFOW(fd,2) - 4 != sizeof(struct auction_data) ) {
 		ShowError("intif_parse_Auction_register: data size error %d %d\n", RFIFOW(fd,2) - 4, sizeof(struct auction_data));
 		return;
 	}
@@ -1883,12 +1881,11 @@ static void intif_parse_Auction_cancel(int fd)
 	if( sd == NULL )
 		return;
 
-	switch( result )
-	{
-	case 0: clif_Auction_message(sd->fd, 2); break;
-	case 1: clif_Auction_close(sd->fd, 2); break;
-	case 2: clif_Auction_close(sd->fd, 1); break;
-	case 3: clif_Auction_message(sd->fd, 3); break;
+	switch( result ) {
+		case 0: clif_Auction_message(sd->fd, 2); break;
+		case 1: clif_Auction_close(sd->fd, 2); break;
+		case 2: clif_Auction_close(sd->fd, 1); break;
+		case 3: clif_Auction_message(sd->fd, 3); break;
 	}
 }
 
@@ -1915,8 +1912,7 @@ static void intif_parse_Auction_close(int fd)
 		return;
 
 	clif_Auction_close(sd->fd, result);
-	if( result == 0 )
-	{
+	if( result == 0 ) {
 		// FIXME: Leeching off a parse function
 		clif_parse_Auction_cancelreg(fd, sd);
 		intif_Auction_requestlist(sd->status.char_id, 6, 0, "", 1);
@@ -1953,11 +1949,8 @@ static void intif_parse_Auction_bid(int fd)
 
 	clif_Auction_message(sd->fd, result);
 	if( bid > 0 )
-	{
 		pc_getzeny(sd, bid, LOG_TYPE_AUCTION,NULL);
-	}
-	if( result == 1 )
-	{ // To update the list, display your buy list
+	if( result == 1 ) { // To update the list, display your buy list
 		clif_parse_Auction_cancelreg(fd, sd);
 		intif_Auction_requestlist(sd->status.char_id, 7, 0, "", 1);
 	}

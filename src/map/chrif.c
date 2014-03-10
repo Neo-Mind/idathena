@@ -666,22 +666,22 @@ void chrif_authok(int fd) {
 
 	//Check if we don't already have player data in our server
 	//Causes problems if the currently connected player tries to quit or this data belongs to an already connected player which is trying to re-auth.
-	if ( ( sd = map_id2sd(account_id) ) != NULL )
+	if( (sd = map_id2sd(account_id)) != NULL )
 		return;
 
-	if ( ( node = chrif_search(account_id) ) == NULL )
-		return; // should not happen
+	if( (node = chrif_search(account_id)) == NULL )
+		return; //Should not happen
 
-	if ( node->state != ST_LOGIN )
-		return; //character in logout phase, do not touch that data.
+	if( node->state != ST_LOGIN )
+		return; //Character in logout phase, do not touch that data.
 
-	if ( node->sd == NULL ) {
+	if( node->sd == NULL ) {
 		/*
 		//When we receive double login info and the client has not connected yet,
 		//discard the older one and keep the new one.
 		chrif_auth_delete(node->account_id, node->char_id, ST_LOGIN);
 		*/
-		return; // should not happen
+		return; //Should not happen
 	}
 
 	sd = node->sd;
@@ -692,11 +692,10 @@ void chrif_authok(int fd) {
 		node->char_id == char_id &&
 		node->login_id1 == login_id1 )
 	{ //Auth Ok
-		if (pc_authok(sd, login_id2, expiration_time, group_id, status, changing_mapservers))
+		if( pc_authok(sd, login_id2, expiration_time, group_id, status, changing_mapservers) )
 			return;
-	} else { //Auth Failed
+	} else //Auth Failed
 		pc_authfail(sd);
-	}
 
 	chrif_char_offline(sd); //Set him offline, the char server likely has it set as online already.
 	chrif_auth_delete(account_id, char_id, ST_LOGIN);
@@ -1547,20 +1546,15 @@ void chrif_parse_ack_vipActive(int fd) {
 	int aid = RFIFOL(fd,2);
 	uint32 vip_time = RFIFOL(fd,6);
 	bool isvip = RFIFOB(fd,10);
-	bool isgm = RFIFOB(fd,11);
-	uint32 groupid = RFIFOL(fd,12);
+	int group_id = RFIFOL(fd,11);
 	TBL_PC *sd = map_id2sd(aid);
 
 	if (sd == NULL)
 		return;
 
-	sd->group_id = groupid;
+	sd->group_id = group_id;
 	pc_group_pc_load(sd);
 
-	if (isgm) {
-		clif_displaymessage(sd->fd, msg_txt(437));
-		return;
-	}
 	if (isvip) {
 		sd->vip.enabled = 1;
 		sd->vip.time = vip_time;

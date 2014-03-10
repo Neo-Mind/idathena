@@ -189,7 +189,7 @@ void pincode_notifyLoginPinError(int account_id);
 void pincode_decrypt(uint32 userSeed, char* pin);
 int pincode_compare(int fd, struct char_session_data* sd, char* pin);
 
-int mapif_vipack(int mapfd, uint32 aid, uint32 vip_time, uint8 isvip, uint8 isgm, uint32 groupid);
+int mapif_vipack(int mapfd, uint32 aid, uint32 vip_time, uint8 isvip, int group_id);
 int loginif_reqvipdata(uint32 aid, uint8 type, int32 timediff, int mapfd);
 int loginif_parse_vipack(int fd);
 
@@ -2253,7 +2253,7 @@ int mapif_BankingAck(int32 account_id, int32 bank_vault) {
  * HZ 0x2b2b
  * Transmist vip data to mapserv
  */
-int mapif_vipack(int mapfd, uint32 aid, uint32 vip_time, uint8 isvip, uint8 isgm, uint32 groupid) {
+int mapif_vipack(int mapfd, uint32 aid, uint32 vip_time, uint8 isvip, int group_id) {
 #ifdef VIP_ENABLE
 	uint8 buf[16];
 
@@ -2261,8 +2261,7 @@ int mapif_vipack(int mapfd, uint32 aid, uint32 vip_time, uint8 isvip, uint8 isgm
 	WBUFL(buf,2) = aid;
 	WBUFL(buf,6) = vip_time;
 	WBUFB(buf,10) = isvip;
-	WBUFB(buf,11) = isgm;
-	WBUFL(buf,12) = groupid;
+	WBUFL(buf,11) = group_id;
 	mapif_send(mapfd, buf, 15); //Inform the mapserv back
 #endif
 	return 0;
@@ -2303,12 +2302,11 @@ int loginif_parse_vipack(int fd) {
 		uint32 aid = RFIFOL(fd,2); //AID
 		uint32 vip_time = RFIFOL(fd,6); //vip_time
 		uint8 isvip = RFIFOB(fd,10); //isvip
-		uint8 isgm = RFIFOB(fd,11); //isgm
-		uint32 groupid = RFIFOL(fd,12); //New group id
+		int group_id = RFIFOL(fd,11); //New group id
 		int mapfd = RFIFOL(fd,15); //Link to mapserv for ack
 
 		RFIFOSKIP(fd,19);
-		mapif_vipack(mapfd, aid, vip_time, isvip, isgm, groupid);
+		mapif_vipack(mapfd, aid, vip_time, isvip, group_id);
 	}
 #endif
 	return 1;

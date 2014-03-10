@@ -15894,6 +15894,11 @@ BUILDIN_FUNC(openauction)
 	if( sd == NULL )
 		return 0;
 
+	if( !battle_config.feature_auction ) {
+		clif_colormes(sd, color_table[COLOR_RED], msg_txt(1489));
+		return 0;
+	}
+
 	clif_Auction_openwindow(sd);
 
 	return SCRIPT_CMD_SUCCESS;
@@ -18165,6 +18170,11 @@ BUILDIN_FUNC(vip_time) {
 
 	if (sd == NULL)
 		return 0;
+
+	if (pc_get_group_level(sd) > 5) {
+		clif_displaymessage(sd->fd, msg_txt(437)); // GM's cannot become a VIP.
+		return -1;
+	}
 
 	chrif_req_login_operation(sd->status.account_id,sd->status.name,6,viptime,7,0);
 #endif

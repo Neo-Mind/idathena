@@ -2787,7 +2787,7 @@ ACMD_FUNC(recall) {
 	}
 
 	if ( pc_get_group_level(sd) < pc_get_group_level(pl_sd) ) {
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorize you to preform this action on the specified player.
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorise you to do this action on this player.
 		return -1;
 	}
 
@@ -3093,7 +3093,7 @@ ACMD_FUNC(kick)
 	}
 
 	if (pc_get_group_level(sd) < pc_get_group_level(pl_sd)) {
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorise you to do this action on this player.
 		return -1;
 	}
 
@@ -4281,7 +4281,7 @@ ACMD_FUNC(nuke)
 			skill_castend_nodamage_id(&pl_sd->bl, &pl_sd->bl, NPC_SELFDESTRUCTION, 99, gettick(), 0);
 			clif_displaymessage(fd, msg_txt(109)); // Player has been nuked!
 		} else {
-			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
+			clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorise you to do this action on this player.
 			return -1;
 		}
 	} else {
@@ -4538,7 +4538,7 @@ ACMD_FUNC(jail)
 	}
 
 	if (pc_get_group_level(sd) < pc_get_group_level(pl_sd)) { // You can jail only lower or same GM
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorise you to do this action on this player.
 		return -1;
 	}
 
@@ -4587,8 +4587,8 @@ ACMD_FUNC(unjail)
 		return -1;
 	}
 
-	if (pc_get_group_level(sd) < pc_get_group_level(pl_sd)) { // you can jail only lower or same GM
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
+	if (pc_get_group_level(sd) < pc_get_group_level(pl_sd)) { // You can jail only lower or same GM
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorise you to do this action on this player.
 		return -1;
 	}
 
@@ -4634,8 +4634,8 @@ ACMD_FUNC(jailfor) {
 		return -1;
 	}
 
-	if (pc_get_group_level(pl_sd) > pc_get_group_level(sd)) {
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
+	if (pc_get_group_level(sd) < pc_get_group_level(pl_sd)) {
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorise you to do this action on this player.
 		return -1;
 	}
 
@@ -5430,7 +5430,7 @@ ACMD_FUNC(useskill)
 	}
 
 	if (pc_get_group_level(sd) < pc_get_group_level(pl_sd)) {
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorise you to do this action on this player.
 		return -1;
 	}
 
@@ -6518,7 +6518,7 @@ ACMD_FUNC(adjgroup)
 	}
 
 	sd->group_id = new_group;
-	pc_group_pc_load(sd);/* update cache */
+	pc_group_pc_load(sd); /* Update cache */
 	clif_displaymessage(fd, msg_txt(1228)); // Group changed successfully.
 	clif_displaymessage(sd->fd, msg_txt(1229)); // Your group has changed.
 	return 0;
@@ -6663,7 +6663,7 @@ ACMD_FUNC(mute)
 	}
 
 	if( pc_get_group_level(sd) < pc_get_group_level(pl_sd) ) {
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorise you to do this action on this player.
 		return -1;
 	}
 
@@ -6752,7 +6752,7 @@ ACMD_FUNC(gmotd)
 {
 	FILE* fp;
 
-	if( ( fp = fopen(motd_txt, "r") ) != NULL ) {
+	if( (fp = fopen(motd_txt, "r")) != NULL ) {
 		char buf[CHAT_SIZE_MAX];
 		size_t len;
 
@@ -8553,9 +8553,9 @@ ACMD_FUNC(delitem)
 		return -1;
 	}
 
-	if( ( id = itemdb_searchname(item_name) ) != NULL || ( id = itemdb_exists(atoi(item_name)) ) != NULL ) {
+	if( (id = itemdb_searchname(item_name)) != NULL || (id = itemdb_exists(atoi(item_name))) != NULL )
 		nameid = id->nameid;
-	} else {
+	else {
 		clif_displaymessage(fd, msg_txt(19)); // Invalid item ID or name.
 		return -1;
 	}
@@ -8780,7 +8780,7 @@ ACMD_FUNC(set) {
 
 	is_str = ( reg[strlen(reg) - 1] == '$' ) ? true : false;
 
-	if( ( len = strlen(val) ) > 1 ) {
+	if( (len = strlen(val)) > 1 ) {
 		if( val[0] == '"' && val[len-1] == '"') {
 			val[len-1] = '\0'; //Strip quotes.
 			memmove(val, val+1, len-1);
@@ -8928,6 +8928,7 @@ ACMD_FUNC(addperm) {
 
 	return 0;
 }
+
 ACMD_FUNC(unloadnpcfile) {
 
 	if( !message || !*message ) {
@@ -8941,8 +8942,10 @@ ACMD_FUNC(unloadnpcfile) {
 		clif_displaymessage(fd, msg_txt(1387)); // File not found.
 		return -1;
 	}
+
 	return 0;
 }
+
 ACMD_FUNC(cart) {
 #define MC_CART_MDFY(x) \
 	sd->status.skill[MC_PUSHCART].id = x ? MC_PUSHCART : 0; \
@@ -8990,6 +8993,7 @@ ACMD_FUNC(join) {
 		clif_displaymessage(fd, atcmd_output);
 		return -1;
 	}
+
 	return channel_pcjoin(sd, chname, pass);
 }
 /*
@@ -9002,21 +9006,21 @@ static inline void atcmd_channel_help(struct map_session_data *sd, const char *c
 	bool can_create = (can_delete || Channel_Config.user_chenable);
 	clif_displaymessage(fd, msg_txt(1414)); // ---- Available options:
 
-	//option create
+	//Option create
 	if( can_create ) {
 		sprintf(atcmd_output, msg_txt(1415),command);// * %s create <#channel_name> <channel_password>
 		clif_displaymessage(fd, atcmd_output);
 		clif_displaymessage(fd, msg_txt(1416)); // -- Creates a new channel.
 	}
 
-	//option delete
+	//Option delete
 	if( can_delete ) {
 		sprintf(atcmd_output, msg_txt(1469),command); // * %s delete <channel_name>
 		clif_displaymessage(fd, atcmd_output);
 		clif_displaymessage(fd, msg_txt(1470)); // -- Destroys the specified channel.
 	}
 
-	//option list
+	//Option list
 	sprintf(atcmd_output, msg_txt(1417),command); // * %s list
 	clif_displaymessage(fd, atcmd_output);
 	clif_displaymessage(fd, msg_txt(1418)); // -- Lists all public channels.
@@ -9029,34 +9033,34 @@ static inline void atcmd_channel_help(struct map_session_data *sd, const char *c
 		clif_displaymessage(fd, msg_txt(1420)); // -- Lists all available colors for custom channels.
 	}
 
-	//option setcolor
+	//Option setcolor
 	if( can_create ) {
 		sprintf(atcmd_output, msg_txt(1421),command); // * %s setcolor <#channel_name> <color_name>
 		clif_displaymessage(fd, atcmd_output);
 		clif_displaymessage(fd, msg_txt(1422)); // -- Changes channel text to the specified color (channel owners only).
 	}
 
-	//option join
+	//Option join
 	sprintf(atcmd_output, msg_txt(1473),command); // * %s join <#channel_name> <channel_password>
 	clif_displaymessage(fd, atcmd_output);
 	clif_displaymessage(fd, msg_txt(1474)); // -- Joins the specified channel.
 
-	//option leave
+	//Option leave
 	sprintf(atcmd_output, msg_txt(1423),command); // * %s leave <#channel_name>
 	clif_displaymessage(fd, atcmd_output);
 	clif_displaymessage(fd, msg_txt(1424)); // -- Leaves the specified channel.
 
-	//option bindto
+	//Option bindto
 	sprintf(atcmd_output, msg_txt(1427),command); // * %s bindto <#channel_name>
 	clif_displaymessage(fd, atcmd_output);
 	clif_displaymessage(fd, msg_txt(1428)); // -- Binds your global chat to the specified channel, sending all global messages to that channel.
 
-	//option unbind
+	//Option unbind
 	sprintf(atcmd_output, msg_txt(1429),command); // * %s unbind
 	clif_displaymessage(fd, atcmd_output);
 	clif_displaymessage(fd, msg_txt(1430)); // -- Unbinds your global chat from the attached channel, if any.
 
-	//option ban/unban/banlist
+	//Option ban/unban/banlist
 	if( can_create ) {
 		sprintf(atcmd_output, msg_txt(1456),command); // * %s ban <#channel_name> <player>
 		clif_displaymessage(fd, atcmd_output);
@@ -9072,7 +9076,7 @@ static inline void atcmd_channel_help(struct map_session_data *sd, const char *c
 		clif_displaymessage(fd, msg_txt(1468)); // -- Clears all bans from the specified channel.
 	}
 
-	//option setopt
+	//Option setopt
 	if( can_create ) {
 		sprintf(atcmd_output, msg_txt(1462),command); // * %s setopt <#channel_name> <option> <value>
 		clif_displaymessage(fd, atcmd_output);
@@ -9093,38 +9097,37 @@ ACMD_FUNC(channel) {
 	}
 
 	if( strcmpi(key,"create") == 0 && ( Channel_Config.user_chenable || pc_has_permission(sd, PC_PERM_CHANNEL_ADMIN) ) ) {
-		if(sub3[0] != '\0'){
+		if( sub3[0] != '\0' ) {
 			clif_displaymessage(fd, msg_txt(1408)); // Channel password may not contain spaces.
 			return -1;
 		}
 		return channel_pccreate(sd,sub1,sub2);
-	} else if( strcmpi(key,"delete") == 0 && pc_has_permission(sd, PC_PERM_CHANNEL_ADMIN) ) {
+	} else if( strcmpi(key,"delete") == 0 && pc_has_permission(sd, PC_PERM_CHANNEL_ADMIN) )
 		return channel_pcdelete(sd,sub1);
-	} else if ( strcmpi(key,"list") == 0 ) {
+	else if( strcmpi(key,"list") == 0 )
 		return channel_display_list(sd,sub1);
-	} else if ( strcmpi(key,"setcolor") == 0 ) {
+	else if( strcmpi(key,"setcolor") == 0 )
 		return channel_pccolor(sd,sub1,sub2);
-	} else if ( strcmpi(key,"join") == 0 ) {
+	else if( strcmpi(key,"join") == 0 )
 		return channel_pcjoin(sd,sub1,sub2);
-	}else if ( strcmpi(key,"leave") == 0 ) {
+	else if( strcmpi(key,"leave") == 0 )
 		return channel_pcleave(sd,sub1);
-	} else if ( strcmpi(key,"bindto") == 0 ) {
+	else if( strcmpi(key,"bindto") == 0 )
 		return channel_pcbind(sd,sub1);
-	} else if ( strcmpi(key,"unbind") == 0 ) {
+	else if( strcmpi(key,"unbind") == 0 )
 		return channel_pcunbind(sd);
-	} else if ( strcmpi(key,"ban") == 0 ) {
+	else if( strcmpi(key,"ban") == 0 )
 		return channel_pcban(sd,sub1,map_nick2sd(sub2),0);
-	} else if ( strcmpi(key,"banlist") == 0 ) {
+	else if( strcmpi(key,"banlist") == 0 )
 		return channel_pcban(sd,sub1,NULL,3);
-	} else if ( strcmpi(key,"unban") == 0 ) {
+	else if( strcmpi(key,"unban") == 0 )
 		return channel_pcban(sd,sub1,map_nick2sd(sub2),1);
-	} else if ( strcmpi(key,"unbanall") == 0 ) {
+	else if( strcmpi(key,"unbanall") == 0 )
 		return channel_pcban(sd,sub1,NULL,2);
-	} else if ( strcmpi(key,"setopt") == 0 ) {
+	else if( strcmpi(key,"setopt") == 0 )
 		return channel_pcsetopt(sd,sub1,sub2,sub3);
-	} else {
+	else
 		atcmd_channel_help(sd,command);
-	}
 
 	return 0;
 }
@@ -9149,6 +9152,7 @@ ACMD_FUNC(fontcolor)
 		}
 		sd->fontcolor = k;
 	}
+
 	sprintf(atcmd_output, msg_txt(1454), message); // Color set to '%s'.
 	clif_displaymessage(fd, atcmd_output);
 
@@ -9198,10 +9202,10 @@ ACMD_FUNC(costume) {
 		}
 	}
 
-	for( k = 0; k < len; k++ ) {
+	for( k = 0; k < len; k++ )
 		if( strcmpi(message, names[k]) == 0 )
 			break;
-	}
+
 	if( k == len ) {
 		sprintf(atcmd_output, msg_txt(1484), message); // '%s' is not a known costume
 		clif_displaymessage(sd->fd, atcmd_output);
@@ -9224,7 +9228,7 @@ ACMD_FUNC(vip) {
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
 	if (!message || !*message || sscanf(message, "%255s %23[^\n]",atcmd_output,atcmd_player_name) < 2) {
-		clif_displaymessage(fd, msg_txt(700)); //Usage: @vip <timef> <character name>
+		clif_displaymessage(fd, msg_txt(700)); //Usage: @vip <time> <character name>
 		return -1;
 	}
 
@@ -9232,6 +9236,7 @@ ACMD_FUNC(vip) {
 
 	modif_p = atcmd_output;
 	vipdifftime = (int32)solve_time(modif_p);
+
 	if (vipdifftime == 0) {
 		clif_displaymessage(fd, msg_txt(701)); // Invalid time for vip command.
 		clif_displaymessage(fd, msg_txt(702)); // Time parameter format is +/-<value> to alter. y/a = Year, m = Month, d/j = Day, h = Hour, n/mn = Minute, s = Second.
@@ -9243,12 +9248,19 @@ ACMD_FUNC(vip) {
 		return -1;
 	}
 
-	if (pc_get_group_level(pl_sd) > pc_get_group_level(sd)) {
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
+	if (pc_get_group_level(sd) < pc_get_group_level(pl_sd)) {
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorise you to do this action on this player.
 		return -1;
 	}
 
-	if (pl_sd->vip.time == 0) pl_sd->vip.time = now;
+	if (pc_get_group_level(pl_sd) > 5) {
+		clif_displaymessage(fd, msg_txt(437)); // GM's cannot become a VIP.
+		return -1;
+	}
+
+	if (pl_sd->vip.time == 0)
+		pl_sd->vip.time = now;
+
 	pl_sd->vip.time += vipdifftime; // Increase or reduce VIP duration
 
 	if (pl_sd->vip.time <= now) {
@@ -9273,6 +9285,7 @@ ACMD_FUNC(vip) {
 			clif_displaymessage(fd, atcmd_output);
 		}
 	}
+
 	chrif_req_login_operation(pl_sd->status.account_id, pl_sd->status.name, 6, vipdifftime, 7, 0);
 
 	return 0;
@@ -9291,7 +9304,9 @@ ACMD_FUNC(showrate) {
 		sprintf(atcmd_output, msg_txt(719)); //Personal rate information will be shown.
 		sd->disableshowrate = 0;
 	}
+
 	clif_displaymessage(fd, atcmd_output);
+
 	return 0;
 }
 #endif

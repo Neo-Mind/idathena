@@ -14988,6 +14988,7 @@ void clif_parse_Auction_register(int fd, struct map_session_data *sd)
 		clif_Auction_message(fd, 2); // The auction has been canceled
 		return;
 	}
+
 	if( sd->status.zeny < (auction.hours * battle_config.auction_feeperhour) ) {
 		clif_Auction_message(fd, 5); // You do not have enough zeny to pay the Auction Fee.
 		return;
@@ -15039,6 +15040,7 @@ void clif_parse_Auction_register(int fd, struct map_session_data *sd)
 void clif_parse_Auction_cancel(int fd, struct map_session_data *sd)
 {
 	unsigned int auction_id = RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
+
 	intif_Auction_cancel(sd->status.char_id, auction_id);
 }
 
@@ -15048,6 +15050,7 @@ void clif_parse_Auction_cancel(int fd, struct map_session_data *sd)
 void clif_parse_Auction_close(int fd, struct map_session_data *sd)
 {
 	unsigned int auction_id = RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
+
 	intif_Auction_close(sd->status.char_id, auction_id);
 }
 
@@ -15069,7 +15072,7 @@ void clif_parse_Auction_bid(int fd, struct map_session_data *sd)
 		clif_Auction_message(fd, 0); // You have failed to bid into the auction
 	else if( bid > sd->status.zeny )
 		clif_Auction_message(fd, 8); // You do not have enough zeny
-	else if ( CheckForCharServer() ) // char server is down (bugreport:1138)
+	else if ( CheckForCharServer() ) // Char server is down (bugreport:1138)
 		clif_Auction_message(fd, 0); // You have failed to bid into the auction
 	else {
 		pc_payzeny(sd, bid, LOG_TYPE_AUCTION, NULL);

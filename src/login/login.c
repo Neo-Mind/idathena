@@ -483,15 +483,14 @@ int chrif_parse_reqaccdata(int fd, int cid, char *ip) {
 	return 0;
 }
 
-int chrif_sendvipdata(int fd, struct mmo_account acc, char isvip, char isgm, int mapfd) {
+int chrif_sendvipdata(int fd, struct mmo_account acc, char isvip, int mapfd) {
 #ifdef VIP_ENABLE
 	WFIFOHEAD(fd,19);
 	WFIFOW(fd,0) = 0x2743;
 	WFIFOL(fd,2) = acc.account_id;
 	WFIFOL(fd,6) = (uint32)acc.vip_time;
 	WFIFOB(fd,10) = isvip;
-	WFIFOB(fd,11) = isgm;
-	WFIFOL(fd,12) = acc.group_id; //New group id
+	WFIFOL(fd,11) = acc.group_id; //New group id
 	WFIFOL(fd,15) = mapfd; //Link to mapserv
 	WFIFOSET(fd,19);
 	chrif_send_accdata(fd, acc.account_id); //Refresh char with new setting
@@ -523,27 +522,22 @@ int chrif_parse_reqvipdata(int fd) {
 			time_t now = time(NULL);
 			time_t vip_time = acc.vip_time;
 			bool isvip = false;
-			bool isgm = false;
 
-			if( (unsigned int)acc.group_id > login_config.vip_sys.group ) { //Don't change group if it's higher.
-				isgm = true;
-				chrif_sendvipdata(fd, acc, isvip, isgm, mapfd);
-				return 1;
-			}
 			if( type&2 ) {
 				if( !vip_time )
 					vip_time = now; //New entry
 				vip_time += timediff; //Set new duration
 			}
 			if( now < vip_time ) { //isvip
-				if( acc.group_id != login_config.vip_sys.group ) //Only upd this if we're not vip already
+				if( acc.group_id != login_config.vip_sys.group_id ) //Only upadate this if we're not vip already
 					acc.old_group = acc.group_id;
-				acc.group_id = login_config.vip_sys.group;
+				acc.group_id = login_config.vip_sys.group_id;
 				acc.char_slots = login_config.char_per_account + login_config.vip_sys.char_increase;
 				isvip = true;
 			} else { //Expired or @vip -xx
 				vip_time = 0;
-				if( acc.group_id == login_config.vip_sys.group ) //Prevent alteration in case account wasn't registered as vip yet
+				//Prevent alteration in case account wasn't registered as vip yet
+				if( acc.group_id == login_config.vip_sys.group_id )
 					acc.group_id = acc.old_group;
 				acc.old_group = 0;
 				acc.char_slots = login_config.char_per_account;
@@ -551,7 +545,7 @@ int chrif_parse_reqvipdata(int fd) {
 			acc.vip_time = vip_time;
 			accounts->save(accounts, &acc);
 			if( type&1 )
-				chrif_sendvipdata(fd, acc, isvip, isgm, mapfd);
+				chrif_sendvipdata(fd, acc, isvip, mapfd);
 		}
 	}
 #endif
@@ -1754,7 +1748,7 @@ void login_set_defaults() {
 	login_config.char_per_account = MAX_CHARS - MAX_CHAR_VIP - MAX_CHAR_BILLING;
 #ifdef VIP_ENABLE
 	login_config.vip_sys.char_increase = MAX_CHAR_VIP;
-	login_config.vip_sys.group = 5;
+	login_config.vip_sys.group_id = 5;
 #endif
 }
 
@@ -1854,7 +1848,7 @@ int login_config_read(const char* cfgName)
 				nnode->next = login_config.client_hash_nodes;
 				login_config.client_hash_nodes = nnode;
 			}
-		} else if(strcmpi(w1, "chars_per_account") == 0) { //maxchars per account [Sirius]
+		} else if(strcmpi(w1, "chars_per_account") == 0) { //Max chars per account [Sirius]
 			login_config.char_per_account = atoi(w2);
 			if(login_config.char_per_account <= 0 || login_config.char_per_account > MAX_CHARS) {
 				if(login_config.char_per_account > MAX_CHARS) {
@@ -1866,9 +1860,9 @@ int login_config_read(const char* cfgName)
 		}
 #ifdef VIP_ENABLE
 		else if(strcmpi(w1, "vip_group") == 0)
-			login_config.vip_sys.group = cap_value(atoi(w2), 0, 99);
+			login_config.vip_sys.group_id = cap_value(atoi(w2), 0, 99);
 		else if(strcmpi(w1, "vip_char_increase") == 0) {
-			if(login_config.vip_sys.char_increase > (unsigned int) MAX_CHARS - login_config.char_per_account)
+			if(login_config.vip_sys.char_increase > (unsigned int)MAX_CHARS - login_config.char_per_account)
 				ShowWarning("vip_char_increase too high, can only go up to %d, according to your char_per_account config %d\n",
 					MAX_CHARS - login_config.char_per_account, login_config.char_per_account);
 			login_config.vip_sys.char_increase =  cap_value(atoi(w2), 0, MAX_CHARS - login_config.char_per_account);
@@ -1878,7 +1872,7 @@ int login_config_read(const char* cfgName)
 			login_config_read(w2);
 		else if(!strcmpi(w1, "account.engine"))
 			safestrncpy(login_config.account_engine, w2, sizeof(login_config.account_engine));
-		else { // try the account engines
+		else { //Try the account engines
 			int i;
 
 			for( i = 0; account_engines[i].constructor; ++i ) {
@@ -1886,7 +1880,7 @@ int login_config_read(const char* cfgName)
 				if( db && db->set_property(db, w1, w2) )
 					break;
 			}
-			// try others
+			//Try others
 			ipban_config_read(w1, w2);
 			loginlog_config_read(w1, w2);
 		}
