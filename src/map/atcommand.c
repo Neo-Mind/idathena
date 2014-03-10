@@ -6848,20 +6848,22 @@ ACMD_FUNC(mobinfo)
 		mob = mob_array[k];
 		base_exp = mob->base_exp;
 		job_exp = mob->job_exp;
-		
+
 #ifdef RENEWAL_EXP
 		if (battle_config.atcommand_mobinfo_type) {
 			base_exp = base_exp * pc_level_penalty_mod(sd, mob->lv, mob->status.class_ , 1) / 100;
 			job_exp = job_exp * pc_level_penalty_mod(sd, mob->lv, mob->status.class_ , 1) / 100;
 		}
 #endif
+
 #ifdef VIP_ENABLE
 		// Display EXP rate increase for VIP.
 		if (pc_isvip(sd) && (battle_config.vip_base_exp_increase || battle_config.vip_job_exp_increase)) {
-			base_exp = base_exp * battle_config.vip_base_exp_increase / 100;
-			job_exp = base_exp * battle_config.vip_job_exp_increase / 100;
+			base_exp += base_exp * battle_config.vip_base_exp_increase / 100;
+			job_exp += base_exp * battle_config.vip_job_exp_increase / 100;
 		}
 #endif
+
 		// Stats
 		if (mob->mexp)
 			sprintf(atcmd_output, msg_txt(1240), mob->name, mob->jname, mob->sprite, mob->vd.class_); // MVP Monster: '%s'/'%s'/'%s' (%d)
