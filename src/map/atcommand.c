@@ -6858,8 +6858,8 @@ ACMD_FUNC(mobinfo)
 #ifdef VIP_ENABLE
 		// Display EXP rate increase for VIP.
 		if (pc_isvip(sd) && (battle_config.vip_base_exp_increase || battle_config.vip_job_exp_increase)) {
-			base_exp += battle_config.vip_base_exp_increase;
-			job_exp += battle_config.vip_job_exp_increase;
+			base_exp = base_exp * battle_config.vip_base_exp_increase / 100;
+			job_exp = base_exp * battle_config.vip_job_exp_increase / 100;
 		}
 #endif
 		// Stats
