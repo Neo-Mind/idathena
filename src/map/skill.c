@@ -8905,9 +8905,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case RA_WUGMASTERY:
 			if( sd ) {
-				if( !pc_iswug(sd) )
+				if( !pc_iswug(sd) && !pc_isridingwug(sd) )
 					pc_setoption(sd,sd->sc.option|OPTION_WUG);
-				else
+				else if( !pc_isridingwug(sd) )
 					pc_setoption(sd,sd->sc.option&~OPTION_WUG);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			}
@@ -8915,7 +8915,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case RA_WUGRIDER:
 			if( sd ) {
-				if( !pc_isridingwug(sd) && pc_iswug(sd) ) {
+				if( pc_iswug(sd) && !pc_isridingwug(sd) ) {
 					pc_setoption(sd,sd->sc.option&~OPTION_WUG);
 					pc_setoption(sd,sd->sc.option|OPTION_WUGRIDER);
 				} else if( pc_isridingwug(sd) ) {

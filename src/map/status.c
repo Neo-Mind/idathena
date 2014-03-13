@@ -8259,7 +8259,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val4 = (type == SC_DPOISON) ? 2 + status->max_hp / 100 : 2 + status->max_hp / 200;
 				break;
 			case SC_CONFUSION:
-			case SC__CHAOS:
 				clif_emotion(bl,E_WHAT);
 				break;
 			case SC_BLEEDING:
