@@ -301,7 +301,7 @@ int battle_delay_damage(unsigned int tick, int amotion, struct block_list *src, 
 	if( src->type == BL_PC )
 		((TBL_PC*)src)->delayed_damage++;
 
-	add_timer(tick+amotion, battle_delay_damage_sub, 0, (intptr_t)dat);
+	add_timer(tick + amotion, battle_delay_damage_sub, 0, (intptr_t)dat);
 
 	return 0;
 }
@@ -436,9 +436,11 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 	} //End tsc check
 
 	if( ratio < 100 )
-		return damage - (damage * (100 - ratio) / 100);
+		damage = damage - (damage * (100 - ratio) / 100);
 	else
-		return damage + (damage * (ratio - 100) / 100);
+		damage = damage + (damage * (ratio - 100) / 100);
+
+	return max(damage,0);
 }
 
 /*==========================================
@@ -2760,12 +2762,10 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 
 				switch(tstatus->size) { //Size-fix. Is this modified by weapon perfection?
 					case SZ_SMALL: //Small: 125%
-						ATK_RATE(wd.damage, wd.damage2, 125);
 						RE_ALLATK_RATE(wd, 125);
 						break;
 					//case SZ_MEDIUM: //Medium: 100%
 					case SZ_BIG: //Large: 75%
-						ATK_RATE(wd.damage, wd.damage2, 75);
 						RE_ALLATK_RATE(wd, 75);
 						break;
 				}
@@ -2890,7 +2890,6 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				if(src->type == BL_HOM)
 					wd.damage = ((TBL_HOM*)src)->homunculus.intimacy;
 				break;
-
 			default: {
 #ifdef RENEWAL
 				if(sd)
@@ -4465,6 +4464,7 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 			attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L) || is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ? 0 : -vit_def
 		);
 #endif
+
 	return wd;
 }
 
@@ -5134,7 +5134,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		wd.div_ *= -1;
 
 #ifdef RENEWAL
-	if(!sd) //Monsters only have a single ATK for element, in pre-renewal we also apply element to entire ATK on players [helvetica]
+	if(!sd) //Only monsters have a single ATK for element, in pre-renewal we also apply element to entire ATK on players [helvetica]
 #endif
 		wd = battle_calc_element_damage(wd, src, target, skill_id, skill_lv);
 
@@ -5238,14 +5238,41 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 			//Forced to neutral element
 			wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 			break;
+		case CR_SHIELDBOOMERANG:
+		case LK_SPIRALPIERCE:
+		case ML_SPIRALPIERCE:
+		case PA_SHIELDCHAIN:
+		case PA_SACRIFICE:
 		case RK_DRAGONBREATH:
 		case RK_DRAGONBREATH_WATER:
+		case NC_SELFDESTRUCTION:
+		case LG_SHIELDPRESS:
 		case LG_EARTHDRIVE:
-			//Forced to it's element
-			wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
+		case KO_HAPPOKUNAI:
+			{
+				int64 tmp = wd.damage;
+
+				if(sd) {
+					if(skill_id == PA_SHIELDCHAIN) {
+						wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+						if(wd.damage > 0) {
+							wd.damage = battle_attr_fix(src, target, tmp, right_element, tstatus->def_ele, tstatus->ele_lv);
+							if(!wd.damage)
+								wd.damage = battle_attr_fix(src, target, tmp, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+						}
+					} else if(skill_id == KO_HAPPOKUNAI) {
+						wd.damage = battle_attr_fix(src, target, wd.damage, (sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+						if(wd.damage > 0) {
+							wd.damage = battle_attr_fix(src, target, tmp, right_element, tstatus->def_ele, tstatus->ele_lv);
+							if(!wd.damage)
+								wd.damage = battle_attr_fix(src, target, tmp, (sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+						}
+					} else
+						wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
+				}
+			}
 			break;
 		case GN_CARTCANNON:
-		case KO_HAPPOKUNAI:
 			//Forced to ammo's element
 			wd.damage = battle_attr_fix(src, target, wd.damage, (sd && sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 			break;
