@@ -4291,12 +4291,12 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 	} else if (ms->target > MST_MASTER) {
 		ShowWarning("mob_parse_row_mobskilldb: Wrong mob skill target 'around' for non-ground skill %d (%s) for %s.\n",
 			ms->skill_id, skill_get_name(ms->skill_id),
-			mob_id < 0?"all mobs":mob_db_data[mob_id]->sprite);
+			mob_id < 0 ? "all mobs" : mob_db_data[mob_id]->sprite);
 		ms->target = MST_TARGET;
 	}
 
 	//Cond1
-	ARR_FIND( 0, ARRAYLENGTH(cond1), j, strcmp(str[10],cond1[j].str) == 0 );
+	ARR_FIND(0, ARRAYLENGTH(cond1), j, strcmp(str[10],cond1[j].str) == 0);
 	if (j < ARRAYLENGTH(cond1))
 		ms->cond1 = cond1[j].id;
 	else {
@@ -4308,19 +4308,18 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 	//Numeric value
 	ms->cond2 = atoi(str[11]);
 	//Or special constant
-	ARR_FIND( 0, ARRAYLENGTH(cond2), j, strcmp(str[11],cond2[j].str) == 0 );
+	ARR_FIND(0, ARRAYLENGTH(cond2), j, strcmp(str[11],cond2[j].str) == 0);
 	if (j < ARRAYLENGTH(cond2))
 		ms->cond2 = cond2[j].id;
-	
+
 	ms->val[0] = (int)strtol(str[12],NULL,0);
 	ms->val[1] = (int)strtol(str[13],NULL,0);
 	ms->val[2] = (int)strtol(str[14],NULL,0);
 	ms->val[3] = (int)strtol(str[15],NULL,0);
 	ms->val[4] = (int)strtol(str[16],NULL,0);
-	
+
 	if (ms->skill_id == NPC_EMOTION && mob_id > 0 &&
-		ms->val[1] == mob_db(mob_id)->status.mode)
-	{
+		ms->val[1] == mob_db(mob_id)->status.mode) {
 		ms->val[1] = 0;
 		ms->val[4] = 1; //Request to return mode to normal.
 	}

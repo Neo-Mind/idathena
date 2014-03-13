@@ -277,7 +277,7 @@ int merc_hom_checkskill(struct homun_data *hd,uint16 skill_id)
 int merc_skill_tree_get_max(int id, int b_class) {
 	int i, skill_id;
 	b_class -= HM_CLASS_BASE;
-	for(i = 0;(skill_id = hskill_tree[b_class][i].id) > 0; i++)
+	for(i = 0; (skill_id = hskill_tree[b_class][i].id) > 0; i++)
 		if(id == skill_id)
 			return hskill_tree[b_class][i].max;
 	return skill_get_max(id);

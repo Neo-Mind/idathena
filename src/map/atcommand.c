@@ -5679,7 +5679,7 @@ ACMD_FUNC(changegm)
 	struct map_session_data *pl_sd;
 	nullpo_retr(-1, sd);
 
-	if (sd->status.guild_id == 0 || (g = sd->guild) == NULL || strcmp(g->master,sd->status.name)) {
+	if( sd->status.guild_id == 0 || (g = sd->guild) == NULL || strcmp(g->master,sd->status.name) ) {
 		clif_displaymessage(fd, msg_txt(1181)); // You need to be a Guild Master to use this command.
 		return -1;
 	}
@@ -5693,8 +5693,8 @@ ACMD_FUNC(changegm)
 		clif_displaymessage(fd, msg_txt(1183)); // Usage: @changegm <guild_member_name>
 		return -1;
 	}
-	
-	if((pl_sd=map_nick2sd((char *) message)) == NULL || pl_sd->status.guild_id != sd->status.guild_id) {
+
+	if( (pl_sd = map_nick2sd((char *)message)) == NULL || pl_sd->status.guild_id != sd->status.guild_id ) {
 		clif_displaymessage(fd, msg_txt(1184)); // Target character must be online and be a guild member.
 		return -1;
 	}

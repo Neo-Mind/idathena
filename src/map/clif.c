@@ -10356,7 +10356,7 @@ void clif_changed_dir(struct block_list *bl, enum send_target target)
 
 	WBUFW(buf,0) = 0x9c;
 	WBUFL(buf,2) = bl->id;
-	WBUFW(buf,6) = bl->type==BL_PC?((TBL_PC*)bl)->head_dir:0;
+	WBUFW(buf,6) = (bl->type == BL_PC ? ((TBL_PC*)bl)->head_dir : 0);
 	WBUFB(buf,8) = unit_getdir(bl);
 
 	clif_send(buf, packet_len(0x9c), bl, target);
@@ -11255,18 +11255,20 @@ void clif_parse_GetItemFromCart(int fd,struct map_session_data *sd)
 }
 
 
-/// Request to remove cart/falcon/peco/dragon (CZ_REQ_CARTOFF).
+/// Request to remove cart/falcon/peco/dragon/mado (CZ_REQ_CARTOFF).
 /// 012a
 void clif_parse_RemoveOption(int fd,struct map_session_data *sd)
 {
-	//Attempts to remove these options when this function is called (will remove all available)
+	if( !(sd->sc.option&(OPTION_RIDING|OPTION_FALCON|OPTION_DRAGON|OPTION_MADOGEAR))
 #ifdef NEW_CARTS
-	pc_setoption(sd,sd->sc.option&~(OPTION_RIDING|OPTION_FALCON|OPTION_DRAGON|OPTION_MADOGEAR));
-	if( sd->sc.data[SC_PUSH_CART] )
+		&& sd->sc.data[SC_PUSH_CART] )
 		pc_setcart(sd,0);
 #else
-	pc_setoption(sd,sd->sc.option&~(OPTION_CART|OPTION_RIDING|OPTION_FALCON|OPTION_DRAGON|OPTION_MADOGEAR));
+		)
+		pc_setoption(sd,sd->sc.option&~OPTION_CART);
 #endif
+	else //Priority to remove this option before we can clear cart
+		pc_setoption(sd,sd->sc.option&~(OPTION_RIDING|OPTION_FALCON|OPTION_DRAGON|OPTION_MADOGEAR));
 }
 
 

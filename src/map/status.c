@@ -10385,7 +10385,8 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			}
 			break;
 		case SC_TINDER_BREAKER2:
-		case SC_CLOSECONFINE2: {
+		case SC_CLOSECONFINE2:
+			{
 				struct block_list *src = (sce->val2 ? map_id2bl(sce->val2) : NULL);
 				struct status_change *sc2 = (src ? status_get_sc(src) : NULL);
 				enum sc_type type2 = ((type == SC_CLOSECONFINE2) ? SC_CLOSECONFINE : SC_TINDER_BREAKER);

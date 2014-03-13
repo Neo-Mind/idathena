@@ -3754,7 +3754,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 /*==========================================
  *
  *------------------------------------------*/
-int skill_addtimerskill (struct block_list *src, unsigned int tick, int target, int x,int y, uint16 skill_id, uint16 skill_lv, int type, int flag)
+int skill_addtimerskill (struct block_list *src, unsigned int tick, int target, int x, int y, uint16 skill_id, uint16 skill_lv, int type, int flag)
 {
 	int i;
 	struct unit_data *ud;
@@ -4538,7 +4538,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 		case WZ_WATERBALL: {
 				int range = skill_lv / 2;
-				int maxlv = skill_get_max(skill_id); //learnable level
+				int maxlv = skill_get_max(skill_id); //Learnable level
 				int count = 0;
 				int x, y;
 				struct skill_unit* unit;
@@ -4553,10 +4553,11 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				for (y = src->y - range; y <= src->y + range; ++y)
 					for (x = src->x - range; x <= src->x + range; ++x) {
 						if (!map_find_skill_unit_oncell(src,x,y,SA_LANDPROTECTOR,NULL,1)) {
-							if (src->type != BL_PC || map_getcell(src->m,x,y,CELL_CHKWATER)) //Non-players bypass the water requirement
+							//Non-players bypass the water requirement
+							if (src->type != BL_PC || map_getcell(src->m,x,y,CELL_CHKWATER))
 								count++; //Natural water cell
-							else if ((unit = map_find_skill_unit_oncell(src,x,y,SA_DELUGE,NULL,1)) != NULL || (unit = map_find_skill_unit_oncell(src,x,y,NJ_SUITON,NULL,1)) != NULL)
-							{
+							else if ((unit = map_find_skill_unit_oncell(src,x,y,SA_DELUGE,NULL,1)) != NULL ||
+								(unit = map_find_skill_unit_oncell(src,x,y,NJ_SUITON,NULL,1)) != NULL) {
 								count++; //Skill-induced water cell
 								skill_delunit(unit); //Consume cell
 							}
@@ -4759,7 +4760,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 		case WL_CHAINLIGHTNING:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-			skill_addtimerskill(src,tick + status_get_amotion(src),bl->id,0,0,WL_CHAINLIGHTNING_ATK,skill_lv,0,flag);
+			skill_addtimerskill(src,tick + 150,bl->id,0,0,WL_CHAINLIGHTNING_ATK,skill_lv,0,flag);
 			break;
 		case WL_DRAINLIFE: {
 				int heal = skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag);
@@ -4812,7 +4813,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 						case WLS_WATER: subskill = WL_TETRAVORTEX_WATER; k |= 2; break;
 						case WLS_STONE: subskill = WL_TETRAVORTEX_GROUND; k |= 8; break;
 					}
-					skill_addtimerskill(src,tick + i * 200,bl->id,k,0,subskill,skill_lv,i,flag);
+					skill_addtimerskill(src,tick + i * 250,bl->id,k,0,subskill,skill_lv,i,flag);
 					clif_skill_nodamage(src,bl,subskill,skill_lv,1);
 					status_change_end(src,(sc_type)spheres[i],INVALID_TIMER);
 				}
@@ -7499,9 +7500,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case NPC_RUN: {
 				const int mask[8][2] = {{0,-1},{1,-1},{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1}};
-				uint8 dir = (bl == src) ? unit_getdir(src) : map_calc_dir(src,bl->x,bl->y); //If cast on self, run forward, else run away.
+				//If cast on self, run forward, else run away.
+				uint8 dir = (bl == src) ? unit_getdir(src) : map_calc_dir(src,bl->x,bl->y);
+
 				unit_stop_attack(src);
-				//Run skillv tiles overriding the can-move check.
+				//Run skill_lv tiles overriding the can-move check.
 				if (unit_walktoxy(src,src->x + skill_lv * mask[dir][0],src->y + skill_lv * mask[dir][1],2) && md)
 					md->state.skillstate = MSS_WALK; //Otherwise it isn't updated in the ai.
 			}
