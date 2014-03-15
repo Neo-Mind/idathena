@@ -10184,7 +10184,7 @@ void pc_readdb(void)
 	fp = fopen(line, "r");
 	if( fp == NULL ) {
 		ShowError("Can't read %s\n", line);
-		return 1;
+		return;
 	}
 	while( fgets(line, sizeof(line), fp) ) {
 		char *split[10];
@@ -10237,7 +10237,7 @@ void pc_readdb(void)
 	fp = fopen(line, "r");
 	if( fp == NULL ) {
 		ShowWarning("Can't read '"CL_WHITE"%s"CL_RESET"'... Generating DB.\n", line);
-		//return 1;
+		//return;
 	} else {
 		entries = 0;
 		while( fgets(line, sizeof(line), fp) ) {

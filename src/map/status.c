@@ -9166,7 +9166,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_PRESTIGE:
 				//Chance to evade magic damage.
-				val2 = (status->int_ + status->luk) * (val1 / 20) * (status_get_lv(bl) / 200) + val1;
+				val2 = (status->int_ + status->luk) * val1 / 20 * status_get_lv(bl) / 200 + val1;
 				val1 = (15 * val1) + (sd ? 10 * pc_checkskill(sd,CR_DEFENDER) : 0); //Defense added
 #ifdef RENEWAL
 				val1 = val1 * status_get_lv(bl) / 100;
@@ -10661,8 +10661,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				if (!sd || !&sd->c_marker || !sd->c_marker.target)
 					break;
 				ARR_FIND(0,MAX_SKILL_CRIMSON_MARKER,i,sd->c_marker.target[i] == bl->id);
-				if (i < MAX_SKILL_CRIMSON_MARKER) {
-					//Remove mark data from caster
+				if (i < MAX_SKILL_CRIMSON_MARKER) { //Remove mark data from caster
 					if (battle_config.crimson_marker_type)
 						clif_crimson_marker2(sd,bl->id,2,bl->x,bl->y,i,0xFF0000);
 					else
