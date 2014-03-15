@@ -246,13 +246,13 @@ uint16 clif_getport(void) {
 #if PACKETVER >= 20071106
 static inline unsigned char clif_bl_type(struct block_list *bl) {
 	switch (bl->type) {
-		case BL_PC:    return (disguised(bl) && !pcdb_checkid(status_get_viewdata(bl)->class_))? 0x1:0x0; //PC_TYPE
+		case BL_PC:    return (disguised(bl) && !pcdb_checkid(status_get_viewdata(bl)->class_)) ? 0x1 : 0x0; //PC_TYPE
 		case BL_ITEM:  return 0x2; //ITEM_TYPE
 		case BL_SKILL: return 0x3; //SKILL_TYPE
 		case BL_CHAT:  return 0x4; //UNKNOWN_TYPE
-		case BL_MOB:   return pcdb_checkid(status_get_viewdata(bl)->class_)?0x0:0x5; //NPC_MOB_TYPE
-		case BL_NPC:   return 0x6; //NPC_EVT_TYPE
-		case BL_PET:   return pcdb_checkid(status_get_viewdata(bl)->class_)?0x0:0x7; //NPC_PET_TYPE
+		case BL_MOB:   return pcdb_checkid(status_get_viewdata(bl)->class_) ? 0x0 : 0x5; //NPC_MOB_TYPE
+		case BL_NPC:   return pcdb_checkid(status_get_viewdata(bl)->class_) ? 0x0 : 0x6; //NPC_EVT_TYPE
+		case BL_PET:   return pcdb_checkid(status_get_viewdata(bl)->class_) ? 0x0 : 0x7; //NPC_PET_TYPE
 		case BL_HOM:   return 0x8; //NPC_HOM_TYPE
 		case BL_MER:   return 0x9; //NPC_MERSOL_TYPE
 		case BL_ELEM:  return 0xa; //NPC_ELEMENTAL_TYPE
@@ -1635,7 +1635,7 @@ void clif_send_homdata(struct map_session_data *sd, int state, int param)
 	int fd = sd->fd;
 
 	if ( (state == SP_INTIMATE) && (param >= 910) && (sd->hd->homunculus.class_ == sd->hd->homunculusDB->evo_class) )
-		merc_hom_calc_skilltree(sd->hd, 0);
+		hom_calc_skilltree(sd->hd, 0);
 
 	WFIFOHEAD(fd,packet_len(0x230));
 	WFIFOW(fd,0) = 0x230;
@@ -1672,7 +1672,7 @@ int clif_homskillinfoblock(struct map_session_data *sd)
 			WFIFOW(fd,len + 8) = skill_get_sp(id,hd->homunculus.hskill[j].lv);
 			WFIFOW(fd,len + 10) = skill_get_range2(&sd->hd->bl, id,hd->homunculus.hskill[j].lv);
 			safestrncpy((char*)WFIFOP(fd,len + 12), skill_get_name(id), NAME_LENGTH);
-			WFIFOB(fd,len + 36) = (hd->homunculus.hskill[j].lv < merc_skill_tree_get_max(id, hd->homunculus.class_)) ? 1 : 0;
+			WFIFOB(fd,len + 36) = (hd->homunculus.hskill[j].lv < hom_skill_tree_get_max(id, hd->homunculus.class_)) ? 1 : 0;
 			len += 37;
 		}
 	}
@@ -3961,7 +3961,7 @@ void clif_changechatowner(struct chat_data* cd, struct map_session_data* sd)
 	WBUFL(buf,32) = 0;
 	memcpy(WBUFP(buf,36),sd->status.name,NAME_LENGTH);
 
-	clif_send(buf,packet_len(0xe1)*2,&sd->bl,CHAT);
+	clif_send(buf,packet_len(0xe1) * 2,&sd->bl,CHAT);
 }
 
 
@@ -3978,7 +3978,7 @@ void clif_leavechat(struct chat_data* cd, struct map_session_data* sd, bool flag
 	nullpo_retv(cd);
 
 	WBUFW(buf, 0) = 0xdd;
-	WBUFW(buf, 2) = cd->users-1;
+	WBUFW(buf, 2) = cd->users - 1;
 	memcpy(WBUFP(buf,4),sd->status.name,NAME_LENGTH);
 	WBUFB(buf,28) = flag;
 
@@ -8823,7 +8823,7 @@ void clif_refresh(struct map_session_data *sd)
 	}
 	if( sd->vd.cloth_color )
 		clif_refreshlook(&sd->bl,sd->bl.id,LOOK_CLOTHES_COLOR,sd->vd.cloth_color,SELF);
-	if( merc_is_hom_active(sd->hd) )
+	if( hom_is_active(sd->hd) )
 		clif_send_homdata(sd,SP_ACK,0);
 	if( sd->md ) {
 		clif_mercenary_info(sd);
@@ -9746,7 +9746,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 	}
 
 	//Homunculus [blackhole89]
-	if(merc_is_hom_active(sd->hd)) {
+	if(hom_is_active(sd->hd)) {
 		if(map_addblock(&sd->hd->bl))
 			return;
 		clif_spawn(&sd->hd->bl);
@@ -9819,8 +9819,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 		if(sd->pd && sd->pd->pet.intimate > 900)
 			clif_pet_emotion(sd->pd,(sd->pd->pet.class_ - 100) * 100 + 50 + pet_hungry_val(sd->pd));
 
-		if(merc_is_hom_active(sd->hd))
-			merc_hom_init_timers(sd->hd);
+		if(hom_is_active(sd->hd))
+			hom_init_timers(sd->hd);
 
 		if(night_flag && map[sd->bl.m].flag.nightenabled) {
 			sd->state.night = 1;
@@ -11340,7 +11340,7 @@ static void clif_parse_UseSkillToId_homun(struct homun_data *hd, struct map_sess
 			return;
 	} else if( DIFF_TICK(tick, hd->ud.canact_tick) < 0 )
 		return;
-	lv = merc_hom_checkskill(hd, skill_id);
+	lv = hom_checkskill(hd, skill_id);
 	if( skill_lv > lv )
 		skill_lv = lv;
 	if( skill_lv )
@@ -11362,7 +11362,7 @@ static void clif_parse_UseSkillToPos_homun(struct homun_data *hd, struct map_ses
 		return;
 	if( hd->sc.data[SC_BASILICA] )
 		return;
-	lv = merc_hom_checkskill(hd, skill_id);
+	lv = hom_checkskill(hd, skill_id);
 	if( skill_lv > lv )
 		skill_lv = lv;
 	if( skill_lv )
@@ -14152,7 +14152,7 @@ void clif_feel_req(int fd, struct map_session_data *sd, uint16 skill_lv)
 /// 0231 <name>.24B
 void clif_parse_ChangeHomunculusName(int fd, struct map_session_data *sd)
 {
-	merc_hom_change_name(sd,(char*)RFIFOP(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]));
+	hom_change_name(sd,(char*)RFIFOP(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]));
 }
 
 
@@ -14166,7 +14166,7 @@ void clif_parse_HomMoveToMaster(int fd, struct map_session_data *sd)
 
 	if( sd->md && sd->md->bl.id == id )
 		bl = &sd->md->bl;
-	else if( merc_is_hom_active(sd->hd) && sd->hd->bl.id == id )
+	else if( hom_is_active(sd->hd) && sd->hd->bl.id == id )
 		bl = &sd->hd->bl; // Moving Homunculus
 	else
 		return;
@@ -14190,7 +14190,7 @@ void clif_parse_HomMoveTo(int fd, struct map_session_data *sd)
 
 	if( sd->md && sd->md->bl.id == id )
 		bl = &sd->md->bl; // Moving Mercenary
-	else if( merc_is_hom_active(sd->hd) && sd->hd->bl.id == id )
+	else if( hom_is_active(sd->hd) && sd->hd->bl.id == id )
 		bl = &sd->hd->bl; // Moving Homunculus
 	else
 		return;
@@ -14211,7 +14211,7 @@ void clif_parse_HomAttack(int fd,struct map_session_data *sd)
 	int target_id = RFIFOL(fd,info->pos[1]);
 	int action_type = RFIFOB(fd,info->pos[2]);
 
-	if( merc_is_hom_active(sd->hd) && sd->hd->bl.id == id )
+	if( hom_is_active(sd->hd) && sd->hd->bl.id == id )
 		bl = &sd->hd->bl;
 	else if( sd->md && sd->md->bl.id == id )
 		bl = &sd->md->bl;
@@ -14234,10 +14234,10 @@ void clif_parse_HomMenu(int fd, struct map_session_data *sd)
 { //[orn]
 	int cmd = RFIFOW(fd,0);
 	//int type = RFIFOW(fd,packet_db[sd->packet_ver][cmd].pos[0]);
-	if(!merc_is_hom_active(sd->hd))
+	if(!hom_is_active(sd->hd))
 		return;
 
-	merc_menu(sd,RFIFOB(fd,packet_db[sd->packet_ver][cmd].pos[1]));
+	hom_menu(sd,RFIFOB(fd,packet_db[sd->packet_ver][cmd].pos[1]));
 }
 
 
@@ -15826,10 +15826,11 @@ void clif_mercenary_skillblock(struct map_session_data *sd)
 void clif_parse_mercenary_action(int fd, struct map_session_data* sd)
 {
 	int option = RFIFOB(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
+
 	if( sd->md == NULL )
 		return;
-
-	if( option == 2 ) merc_delete(sd->md, 2);
+	if( option == 2 )
+		mercenary_delete(sd->md, 2);
 }
 
 
@@ -18397,7 +18398,7 @@ void packetdb_readdb(void)
 /*==========================================
  *
  *------------------------------------------*/
-int do_init_clif(void) {
+void do_init_clif(void) {
 	const char* colors[COLOR_MAX] = { "0xFF0000", "0xFFFFFF", "0xFFBC90" };
 	int i;
 
@@ -18423,8 +18424,6 @@ int do_init_clif(void) {
 	add_timer_func_list(clif_delayquit, "clif_delayquit");
 	
 	delay_clearunit_ers = ers_new(sizeof(struct block_list),"clif.c::delay_clearunit_ers",ERS_OPT_CLEAR);
-
-	return 0;
 }
 
 void do_final_clif(void) {

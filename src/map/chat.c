@@ -250,7 +250,7 @@ int chat_changechatowner(struct map_session_data* sd, const char* nextownername)
 	nullpo_retr(1, sd);
 
 	cd = (struct chat_data*)map_id2bl(sd->chatID);
-	if( cd == NULL || (struct block_list*) sd != cd->owner )
+	if( cd == NULL || (struct block_list*)sd != cd->owner )
 		return 1;
 
 	ARR_FIND(1, cd->users, i, strncmp(cd->usersd[i]->status.name, nextownername, NAME_LENGTH) == 0);
@@ -261,7 +261,7 @@ int chat_changechatowner(struct map_session_data* sd, const char* nextownername)
 	clif_clearchat(cd,0);
 
 	// Set new owner
-	cd->owner = (struct block_list*) cd->usersd[i];
+	cd->owner = (struct block_list*)cd->usersd[i];
 	clif_changechatowner(cd, cd->usersd[i]);
 
 	// Swap the old and new owners' positions
@@ -318,16 +318,16 @@ int chat_kickchat(struct map_session_data* sd, const char* kickusername)
 
 	cd = (struct chat_data *)map_id2bl(sd->chatID);
 	
-	if( cd==NULL || (struct block_list *)sd != cd->owner )
+	if( cd == NULL || (struct block_list *)sd != cd->owner )
 		return -1;
 
-	ARR_FIND( 0, cd->users, i, strncmp(cd->usersd[i]->status.name, kickusername, NAME_LENGTH) == 0 );
+	ARR_FIND(0, cd->users, i, strncmp(cd->usersd[i]->status.name, kickusername, NAME_LENGTH) == 0);
 	if( i == cd->users )
 		return -1;
 
-	if (pc_has_permission(cd->usersd[i], PC_PERM_NO_CHAT_KICK))
-		return 0; //gm kick protection [Valaris]
-	
+	if( pc_has_permission(cd->usersd[i], PC_PERM_NO_CHAT_KICK) )
+		return 0; //GM kick protection [Valaris]
+
 	idb_put(cd->kick_list,cd->usersd[i]->status.char_id,(void*)1);
 
 	chat_leavechat(cd->usersd[i],1);

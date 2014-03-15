@@ -63,12 +63,10 @@ static void storage_sortitem(struct item* items, unsigned int size)
 /**
  * Initiate storage module
  * Called from map.c::do_init()
- * @return 1
  */
-int do_init_storage(void)
+void do_init_storage(void)
 {
 	guild_storage_db = idb_alloc(DB_OPT_RELEASE_DATA);
-	return 1;
 }
 
 /**

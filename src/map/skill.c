@@ -406,7 +406,7 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 #endif
 			if( sd && ((skill = pc_checkskill(sd, HP_MEDITATIO)) > 0) )
 				hp += hp * skill * 2 / 100;
-			else if( src->type == BL_HOM && (skill = merc_hom_checkskill(((TBL_HOM*)src), HLIF_BRAIN)) > 0 )
+			else if( src->type == BL_HOM && (skill = hom_checkskill(((TBL_HOM*)src), HLIF_BRAIN)) > 0 )
 				hp += hp * skill * 2 / 100;
 			if( sd && tsd && sd->status.partner_id == tsd->status.char_id && (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && sd->status.sex == 0 )
 				hp *= 2;
@@ -8164,7 +8164,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case AM_CALLHOMUN: //[orn]
 			if (sd) {
-				if (merc_call_homunculus(sd))
+				if (hom_call(sd))
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				else
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -8173,7 +8173,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case AM_REST:
 			if (sd) {
-				if (merc_hom_vaporize(sd,HOM_ST_REST))
+				if (hom_vaporize(sd,HOM_ST_REST))
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				else
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -10388,6 +10388,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				sd->c_marker.count = 0;
 			}
 			break;
+
 		default:
 			ShowWarning("skill_castend_nodamage_id: Unknown skill used:%d\n",skill_id);
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -11367,7 +11368,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 		case AM_RESURRECTHOMUN:	//[orn]
 			if (sd) {
-				if (!merc_resurrect_homunculus(sd,20 * skill_lv,x,y)) {
+				if (!hom_ressurect(sd,20 * skill_lv,x,y)) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
@@ -13278,12 +13279,9 @@ static int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *
 			sg->unit_id = UNT_USED_TRAPS;
 			break;
 
-		case UNT_SEVERE_RAINSTORM: {
-				struct map_session_data* sd = BL_CAST(BL_PC,ss);
-
-				if (battle_check_target(&src->bl,bl,BCT_ENEMY) > 0)
-					skill_attack(BF_WEAPON,ss,&src->bl,bl,WM_SEVERE_RAINSTORM_MELEE,skill_lv,tick,0);
-			}
+		case UNT_SEVERE_RAINSTORM:
+			if (battle_check_target(&src->bl,bl,BCT_ENEMY) > 0)
+				skill_attack(BF_WEAPON,ss,&src->bl,bl,WM_SEVERE_RAINSTORM_MELEE,skill_lv,tick,0);
 			break;
 
 		case UNT_NETHERWORLD:
@@ -14434,7 +14432,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 			}
 			break;
 		case AM_REST: //Can't vapo homun if you don't have an active homunc or it's hp is < 80%
-			if( !merc_is_hom_active(sd->hd) || sd->hd->battle_status.hp < (sd->hd->battle_status.max_hp * 80 / 100) ) {
+			if( !hom_is_active(sd->hd) || sd->hd->battle_status.hp < (sd->hd->battle_status.max_hp * 80 / 100) ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return false;
 			}
@@ -18066,10 +18064,10 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 				make_per = pc_checkskill(sd,AM_LEARNINGPOTION) * 50
 					+ pc_checkskill(sd,AM_PHARMACY) * 300 + sd->status.job_level * 20
 					+ (status->int_ / 2) * 10 + status->dex * 10 + status->luk * 10;
-				if( merc_is_hom_active(sd->hd) ) { //Player got a homun
+				if( hom_is_active(sd->hd) ) { //Player got a homun
 					int skill;
 
-					if( (skill = merc_hom_checkskill(sd->hd,HVAN_INSTRUCT)) > 0 ) //His homun is a vanil with instruction change
+					if( (skill = hom_checkskill(sd->hd,HVAN_INSTRUCT)) > 0 ) //His homun is a vanil with instruction change
 						make_per += skill * 100; //+1% bonus per level
 				}
 				switch( nameid ) {
@@ -20342,7 +20340,7 @@ void skill_reload (void) {
 /*==========================================
  *
  *------------------------------------------*/
-int do_init_skill (void)
+void do_init_skill(void)
 {
 	skilldb_name2id = strdb_alloc(DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA, 0);
 	skill_readdb();
@@ -20361,11 +20359,9 @@ int do_init_skill (void)
 	add_timer_func_list(skill_blockpc_end, "skill_blockpc_end");
 
 	add_timer_interval(gettick() + SKILLUNITTIMER_INTERVAL,skill_unit_timer,0,0,SKILLUNITTIMER_INTERVAL);
-
-	return 0;
 }
 
-int do_final_skill(void)
+void do_final_skill(void)
 {
 	skill_destroy_requirement();
 	db_destroy(skilldb_name2id);
@@ -20375,5 +20371,4 @@ int do_final_skill(void)
 	db_destroy(bowling_db);
 	ers_destroy(skill_unit_ers);
 	ers_destroy(skill_timer_ers);
-	return 0;
 }

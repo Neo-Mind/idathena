@@ -5075,7 +5075,7 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 		sd->pd->ud.dir = sd->ud.dir;
 	}
 
-	if( merc_is_hom_active(sd->hd) ) {
+	if( hom_is_active(sd->hd) ) {
 		sd->hd->bl.m = m;
 		sd->hd->bl.x = sd->hd->ud.to_x = x;
 		sd->hd->bl.y = sd->hd->ud.to_y = y;
@@ -6386,7 +6386,7 @@ int pc_skillup(struct map_session_data *sd,uint16 skill_id)
 	}
 
 	if( skill_id >= HM_SKILLBASE && skill_id < HM_SKILLBASE + MAX_HOMUNSKILL && sd->hd ) {
-		merc_hom_skillup(sd->hd,skill_id);
+		hom_skillup(sd->hd,skill_id);
 		return 0;
 	}
 
@@ -6672,8 +6672,8 @@ int pc_resetskill(struct map_session_data* sd, int flag)
 #endif
 		if( i != sd->sc.option )
 			pc_setoption(sd, i);
-		if( merc_is_hom_active(sd->hd) && pc_checkskill(sd, AM_CALLHOMUN) )
-			merc_hom_vaporize(sd, HOM_ST_REST);
+		if( hom_is_active(sd->hd) && pc_checkskill(sd, AM_CALLHOMUN) )
+			hom_vaporize(sd, HOM_ST_REST);
 	}
 
 	for( i = 1; i < MAX_SKILL; i++ ) {
@@ -6958,11 +6958,11 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 
 	if( sd->status.hom_id > 0 ) {
 		if( battle_config.homunculus_auto_vapor && sd->hd && !sd->hd->sc.data[SC_LIGHT_OF_REGENE] )
-			merc_hom_vaporize(sd,HOM_ST_REST);
+			hom_vaporize(sd,HOM_ST_REST);
 	}
 
 	if( sd->md )
-		merc_delete(sd->md,3); //Your mercenary soldier has ran away
+		mercenary_delete(sd->md,3); //Your mercenary soldier has ran away
 
 	if( sd->ed )
 		elemental_delete(sd->ed,0);
@@ -7566,7 +7566,7 @@ void pc_heal(struct map_session_data *sd,unsigned int hp,unsigned int sp, int ty
  *------------------------------------------*/
 int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 {
-	int bonus;
+	int bonus, tmp;
 
 	if(hp) {
 		int i;
@@ -7574,7 +7574,7 @@ int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 		bonus = 100 + (sd->battle_status.vit<<1)
 			+ pc_checkskill(sd,SM_RECOVERY) * 10
 			+ pc_checkskill(sd,AM_LEARNINGPOTION) * 5;
-		// A potion produced by an Alchemist in the Fame Top 10 gets +50% effect [DracoRPG]
+		//A potion produced by an Alchemist in the Fame Top 10 gets +50% effect [DracoRPG]
 		if(potion_flag > 1)
 			bonus += bonus * (potion_flag - 1) * 50 / 100;
 		//All item bonuses.
@@ -7588,9 +7588,9 @@ int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 				break;
 			}
 		}
-		if(bonus!=100)
-			hp = hp * bonus / 100;
-
+		tmp = hp * bonus / 100; //Overflow check
+		if(bonus != 100 && tmp > hp)
+			hp = tmp;
 		//Recovery Potion
 		if(sd->sc.data[SC_INCHEALRATE])
 			hp += (int)(hp * sd->sc.data[SC_INCHEALRATE]->val1 / 100.);
@@ -7601,25 +7601,23 @@ int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 			+ pc_checkskill(sd,AM_LEARNINGPOTION) * 5;
 		if(potion_flag > 1)
 			bonus += bonus * (potion_flag - 1) * 50 / 100;
-		if(bonus != 100)
-			sp = sp * bonus / 100;
+		tmp = sp * bonus / 100;
+		if(bonus != 100 && tmp > sp)
+			sp = tmp;
 	}
 	if(sd->sc.count) {
 		if(sd->sc.data[SC_CRITICALWOUND]) {
 			hp -= hp * sd->sc.data[SC_CRITICALWOUND]->val2 / 100;
 			sp -= sp * sd->sc.data[SC_CRITICALWOUND]->val2 / 100;
 		}
-
 		if(sd->sc.data[SC_DEATHHURT]) {
 			hp -= hp * 20 / 100;
 			sp -= sp * 20 / 100;
 		}
-
 		if(sd->sc.data[SC_VITALITYACTIVATION]) {
 			hp += hp / 2; // 1.5 times
 			sp -= sp / 2;
 		}
-
 		if(sd->sc.data[SC_WATER_INSIGNIA] && sd->sc.data[SC_WATER_INSIGNIA]->val1 == 2) {
 			hp += hp / 10;
 			sp += sp / 10;
@@ -7629,7 +7627,6 @@ int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 			sp = 0;
 #endif
 	}
-
 	return status_heal(&sd->bl,hp,sp,1);
 }
 
@@ -7856,8 +7853,8 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 	if (i != sd->sc.option)
 		pc_setoption(sd,i);
 
-	if (merc_is_hom_active(sd->hd) && !pc_checkskill(sd,AM_CALLHOMUN))
-		merc_hom_vaporize(sd,HOM_ST_REST);
+	if (hom_is_active(sd->hd) && !pc_checkskill(sd,AM_CALLHOMUN))
+		hom_vaporize(sd,HOM_ST_REST);
 
 	if(sd->status.manner < 0)
 		clif_changestatus(sd,SP_MANNER,sd->status.manner);
@@ -10145,7 +10142,7 @@ static bool pc_readdb_job_param(char* fields[], int columns, int current)
  * job_db2.txt		- job,stats bonuses/lvl
  * job_maxhpsp_db.txt	- strtlvl,maxlvl,job,type,values/lvl (values=hp|sp)
  *------------------------------------------*/
-int pc_readdb(void)
+void pc_readdb(void)
 {
 	int i, j, k;
 	unsigned int entries = 0;
@@ -10300,7 +10297,6 @@ int pc_readdb(void)
 				job_info[idx].base_sp[j] = 10 + (unsigned int)floor((j + 1) * (job_info[idx].sp_factor / 100.));
 		}
 	}
- 	return 0;
 }
 
 // Read MOTD on startup. [Valaris]
@@ -10590,7 +10586,9 @@ void pc_crimson_marker_clear(struct map_session_data *sd) {
 
 		if( bl && sd->c_marker.target[i] )
 			status_change_end(bl,SC_C_MARKER,INVALID_TIMER);
+		sd->c_marker.target[i] = 0;
 	}
+	sd->c_marker.count = 0;
 }
 
 /** [Cydh]
@@ -10718,10 +10716,9 @@ void do_final_pc(void) {
 	do_final_pc_groups();
 
 	ers_destroy(pc_sc_display_ers);
-	return;
 }
 
-int do_init_pc(void) {
+void do_init_pc(void) {
 
 	itemcd_db = idb_alloc(DB_OPT_RELEASE_DATA);
 
@@ -10759,6 +10756,4 @@ int do_init_pc(void) {
 	do_init_pc_groups();
 
 	pc_sc_display_ers = ers_new(sizeof(struct sc_display_entry), "pc.c:pc_sc_display_ers", ERS_OPT_NONE);
-
-	return 0;
 }

@@ -3854,6 +3854,8 @@ void do_final(void)
 	do_final_party();
 	do_final_pc();
 	do_final_pet();
+	do_final_homunculus();
+	do_final_mercenary();
 	do_final_mob();
 	do_final_msg();
 	do_final_skill();
@@ -4061,7 +4063,7 @@ int do_init(int argc, char *argv[])
 	do_init_guild();
 	do_init_storage();
 	do_init_pet();
-	do_init_merc();
+	do_init_homunculus();
 	do_init_mercenary();
 	do_init_elemental();
 	do_init_quest();

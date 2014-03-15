@@ -780,7 +780,11 @@ static int elemental_ai_timer(int tid, unsigned int tick, int id, intptr_t data)
 	return 0;
 }
 
-int read_elementaldb(void) {
+/**
+ * Reads Elemental DB lines
+ * ID,Sprite_Name,Name,LV,HP,SP,Range1,ATK1,ATK2,DEF,MDEF,STR,AGI,VIT,INT,DEX,LUK,Range2,Range3,Scale,Race,Element,Speed,aDelay,aMotion,dMotion
+ */
+void read_elementaldb(void) {
 	FILE *fp;
 	char line[1024], *p;
 	char *str[26];
@@ -789,12 +793,12 @@ int read_elementaldb(void) {
 	struct status_data *status;
 
 	sprintf(line, "%s/%s", db_path, "elemental_db.txt");
-	memset(elemental_db,0,sizeof(elemental_db));
+	memset(elemental_db, 0, sizeof(elemental_db));
 
 	fp = fopen(line, "r");
 	if( !fp ) {
 		ShowError("read_elementaldb: Can't read elemental_db.txt\n");
-		return -1;
+		return;
 	}
 
 	while( fgets(line, sizeof(line), fp) && j < MAX_ELEMENTAL_CLASS ) {
@@ -845,7 +849,7 @@ int read_elementaldb(void) {
 
 		ele = atoi(str[21]);
 		status->def_ele = ele%10;
-		status->ele_lv = ele/20;
+		status->ele_lv = ele / 20;
 		if( status->def_ele >= ELE_ALL ) {
 			ShowWarning("Elemental %d has invalid element type %d (max element is %d)\n", db->class_, status->def_ele, ELE_ALL - 1);
 			status->def_ele = ELE_NEUTRAL;
@@ -866,11 +870,13 @@ int read_elementaldb(void) {
 
 	fclose(fp);
 	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' elementals in '"CL_WHITE"db/elemental_db.txt"CL_RESET"'.\n",j);
-
-	return 0;
 }
 
-int read_elemental_skilldb(void) {
+/**
+ * Reads Elemental Skill DB lines
+ * ElementalID,SkillID,SkillLevel,ReqMode
+ */
+void read_elemental_skilldb(void) {
 	FILE *fp;
 	char line[1024], *p;
 	char *str[4];
@@ -883,7 +889,7 @@ int read_elemental_skilldb(void) {
 	fp = fopen(line, "r");
 	if( !fp ) {
 		ShowError("read_elemental_skilldb: Can't read elemental_skill_db.txt\n");
-		return -1;
+		return;
 	}
 
 	while( fgets(line, sizeof(line), fp) ) {
@@ -939,7 +945,6 @@ int read_elemental_skilldb(void) {
 
 	fclose(fp);
 	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"db/elemental_skill_db.txt"CL_RESET"'.\n",j);
-	return 0;
 }
 
 void reload_elementaldb(void) {
@@ -951,14 +956,12 @@ void reload_elemental_skilldb(void) {
 	read_elemental_skilldb();
 }
 
-int do_init_elemental(void) {
+void do_init_elemental(void) {
 	read_elementaldb();
 	read_elemental_skilldb();
 
 	add_timer_func_list(elemental_ai_timer,"elemental_ai_timer");
-	add_timer_interval(gettick()+MIN_ELETHINKTIME,elemental_ai_timer,0,0,MIN_ELETHINKTIME);
-
-	return 0;
+	add_timer_interval(gettick() + MIN_ELETHINKTIME,elemental_ai_timer,0,0,MIN_ELETHINKTIME);
 }
 
 void do_final_elemental(void) {

@@ -1410,7 +1410,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 	switch (target->type) {
 		case BL_PC:  pc_damage((TBL_PC*)target, src, hp, sp); break;
 		case BL_MOB: mob_damage((TBL_MOB*)target, src, hp); break;
-		case BL_HOM: merc_damage((TBL_HOM*)target); break;
+		case BL_HOM: hom_damage((TBL_HOM*)target); break;
 		case BL_MER: mercenary_heal((TBL_MER*)target, hp, sp); break;
 		case BL_ELEM: elemental_heal((TBL_ELEM*)target, hp, sp); break;
 	}
@@ -1434,7 +1434,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 	switch (target->type) {
 		case BL_PC:  flag = pc_dead((TBL_PC*)target,src); break;
 		case BL_MOB: flag = mob_dead((TBL_MOB*)target, src, (flag&4 ? 3 : 0)); break;
-		case BL_HOM: flag = merc_hom_dead((TBL_HOM*)target); break;
+		case BL_HOM: flag = hom_dead((TBL_HOM*)target); break;
 		case BL_MER: flag = mercenary_dead((TBL_MER*)target); break;
 		case BL_ELEM: flag = elemental_dead((TBL_ELEM*)target); break;
 		default:	//Unhandled case, do nothing to object.
@@ -1602,7 +1602,7 @@ int status_heal(struct block_list *bl, int64 in_hp, int64 in_sp, int flag)
 	switch (bl->type) {
 		case BL_PC:  pc_heal((TBL_PC*)bl, hp, sp, (flag&2 ? 1 : 0)); break;
 		case BL_MOB: mob_heal((TBL_MOB*)bl, hp); break;
-		case BL_HOM: merc_hom_heal((TBL_HOM*)bl); break;
+		case BL_HOM: hom_heal((TBL_HOM*)bl); break;
 		case BL_MER: mercenary_heal((TBL_MER*)bl, hp, sp); break;
 		case BL_ELEM: elemental_heal((TBL_ELEM*)bl, hp, sp); break;
 	}
@@ -1703,7 +1703,7 @@ int status_revive(struct block_list *bl, unsigned char per_hp, unsigned char per
 	switch (bl->type) {
 		case BL_PC:  pc_revive((TBL_PC*)bl, hp, sp); break;
 		case BL_MOB: mob_revive((TBL_MOB*)bl, hp); break;
-		case BL_HOM: merc_hom_revive((TBL_HOM*)bl, hp, sp); break;
+		case BL_HOM: hom_revive((TBL_HOM*)bl, hp, sp); break;
 	}
 	return 1;
 }
@@ -1742,7 +1742,7 @@ int status_fixed_revive(struct block_list *bl, unsigned int per_hp, unsigned int
 	switch (bl->type) {
 		case BL_PC:  pc_revive((TBL_PC*)bl, hp, sp); break;
 		case BL_MOB: mob_revive((TBL_MOB*)bl, hp); break;
-		case BL_HOM: merc_hom_revive((TBL_HOM*)bl, hp, sp); break;
+		case BL_HOM: hom_revive((TBL_HOM*)bl, hp, sp); break;
 	}
 	return 1;
 }
@@ -2714,12 +2714,11 @@ static unsigned int status_calc_maxhpsp_pc(struct map_session_data* sd, bool isH
 	if (isHP) { //Calculates MaxHP
 		max = job_info[idx].base_hp[level - 1] * (1 + (max(sd->battle_status.vit, 1) * 0.01)) * ((sd->class_&JOBL_UPPER) ? 1.25 : 1);
 		max += status_get_hpbonus(&sd->bl, STATUS_BONUS_FIX);
-		max = max * (1 + status_get_hpbonus(&sd->bl, STATUS_BONUS_RATE) * 0.01);
+		max *= (1 + status_get_hpbonus(&sd->bl, STATUS_BONUS_RATE) * 0.01);
 	} else { //Calculates MaxSP
-		max = job_info[idx].base_sp[level - 1] * (1 + (max(sd->battle_status.int_, 1) * 0.01));
+		max = job_info[idx].base_sp[level - 1] * (1 + (max(sd->battle_status.int_, 1) * 0.01)) * ((sd->class_&JOBL_UPPER) ? 1.25 : 1);
 		max += status_get_spbonus(&sd->bl, STATUS_BONUS_FIX);
-		max = max * (1 + status_get_spbonus(&sd->bl, STATUS_BONUS_RATE) * 0.01);
-		max = (max * ((sd->class_&JOBL_UPPER) ? 1.25 : 1)) + 0.5; //Don't have round()
+		max *= (1 + status_get_spbonus(&sd->bl, STATUS_BONUS_RATE) * 0.01);
 	}
 
 	return cap_value((unsigned int)max, 1, UINT_MAX);
@@ -3211,22 +3210,18 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 #endif
 
 	//----- HP MAX CALCULATION -----
-	status->max_hp = sd->status.max_hp = status_calc_maxhpsp_pc(sd,true);
+	status->max_hp = status_calc_maxhpsp_pc(sd,true);
 	if(battle_config.hp_rate != 100)
-		status->max_hp = (int64)status->max_hp * battle_config.hp_rate / 100;
-	if(status->max_hp > (unsigned int)battle_config.max_hp)
-		status->max_hp = battle_config.max_hp;
-	else if(!status->max_hp)
-		status->max_hp = 1;
+		status->max_hp = (unsigned int)(battle_config.hp_rate * (status->max_hp / 100.));
+	status->max_hp = cap_value(status->max_hp,1,(unsigned int)battle_config.max_hp);
+	sd->status.max_hp = status->max_hp;
 
 	//----- SP MAX CALCULATION -----
-	status->max_sp = sd->status.max_sp = status_calc_maxhpsp_pc(sd,false);
+	status->max_sp = status_calc_maxhpsp_pc(sd,false);
 	if(battle_config.sp_rate != 100)
-		status->max_sp = (int64)status->max_sp * battle_config.sp_rate / 100;
-	if(status->max_sp > (unsigned int)battle_config.max_sp)
-		status->max_sp = battle_config.max_sp;
-	else if(!status->max_sp)
-		status->max_sp = 1;
+		status->max_sp = (unsigned int)(battle_config.sp_rate * (status->max_sp / 100.));
+	status->max_sp = cap_value(status->max_sp,1,(unsigned int)battle_config.max_sp);
+	sd->status.max_sp = status->max_sp;
 
 	//----- RESPAWN HP/SP -----
 	//Calc respawn hp and store it on base_status
@@ -3630,20 +3625,20 @@ int status_calc_homunculus_(struct homun_data *hd, enum e_status_calc_opt opt)
 	status->max_hp = hom->max_hp ;
 	status->max_sp = hom->max_sp ;
 
-	merc_hom_calc_skilltree(hd, 0);
+	hom_calc_skilltree(hd, 0);
 
-	if((skill = merc_hom_checkskill(hd,HAMI_SKIN)) > 0)
+	if((skill = hom_checkskill(hd,HAMI_SKIN)) > 0)
 		status->def +=	skill * 4;
 
-	if((skill = merc_hom_checkskill(hd,HVAN_INSTRUCT)) > 0) {
+	if((skill = hom_checkskill(hd,HVAN_INSTRUCT)) > 0) {
 		status->int_ += 1 + skill / 2 + skill / 4 + skill / 5;
 		status->str  += 1 + skill / 3 + skill / 3 + skill / 4;
 	}
 
-	if((skill = merc_hom_checkskill(hd,HAMI_SKIN)) > 0)
+	if((skill = hom_checkskill(hd,HAMI_SKIN)) > 0)
 		status->max_hp += skill * 2 * status->max_hp / 100;
 
-	if((skill = merc_hom_checkskill(hd,HLIF_BRAIN)) > 0)
+	if((skill = hom_checkskill(hd,HLIF_BRAIN)) > 0)
 		status->max_sp += (1 + skill / 2 - skill / 4 + skill / 5) * status->max_sp / 100 ;
 
 	if(opt&SCO_FIRST) {
@@ -3823,11 +3818,11 @@ void status_calc_regen(struct block_list *bl, struct status_data *status, struct
 	if( bl->type == BL_HOM ) {
 		struct homun_data *hd = (TBL_HOM*)bl;
 
-		if( (skill = merc_hom_checkskill(hd, HAMI_SKIN)) > 0 ) {
+		if( (skill = hom_checkskill(hd, HAMI_SKIN)) > 0 ) {
 			val = regen->hp * (100 + 5 * skill) / 100;
 			regen->hp = cap_value(val, 1, SHRT_MAX);
 		}
-		if( (skill = merc_hom_checkskill(hd, HLIF_BRAIN)) > 0 ) {
+		if( (skill = hom_checkskill(hd, HLIF_BRAIN)) > 0 ) {
 			val = regen->sp * (100 + 3 * skill) / 100;
 			regen->sp = cap_value(val, 1, SHRT_MAX);
 		}
@@ -4257,9 +4252,9 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 	if( flag&SCB_MAXHP ) {
 		if( bl->type&BL_PC ) {
 			status->max_hp = status_calc_maxhpsp_pc(sd, true);
-
-			if( status->max_hp > (unsigned int)battle_config.max_hp )
-				status->max_hp = (unsigned int)battle_config.max_hp;
+			if( battle_config.hp_rate != 100 )
+				status->max_hp = (unsigned int)(battle_config.hp_rate * (status->max_hp / 100.));
+			status->max_hp = min(status->max_hp, (unsigned int)battle_config.max_hp);
 		} else
 			status->max_hp = status_calc_maxhp(bl, b_status->max_hp);
 
@@ -4273,9 +4268,9 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 	if( flag&SCB_MAXSP ) {
 		if( bl->type&BL_PC ) {
 			status->max_sp = status_calc_maxhpsp_pc(sd, false);
-
-			if( status->max_sp > (unsigned int)battle_config.max_sp )
-				status->max_sp = (unsigned int)battle_config.max_sp;
+			if( battle_config.sp_rate != 100 )
+				status->max_sp = (unsigned int)(battle_config.sp_rate * (status->max_sp / 100.));
+			status->max_sp = min(status->max_sp,(unsigned int)battle_config.max_sp);
 		} else
 			status->max_sp = status_calc_maxsp(bl, b_status->max_sp);
 
@@ -6094,7 +6089,6 @@ static unsigned short status_calc_dmotion(struct block_list *bl, struct status_c
 /**
  * Calculates a max HP based on status changes
  * Values can either be percentages or fixed, based on how equations are formulated
- * Examples: maxhp += maxhp * value; (percentage increase)
  * @param bl: Object's block_list data
  * @param maxhp: Object's current max HP
  * @return modified maxhp
@@ -6114,7 +6108,6 @@ static unsigned int status_calc_maxhp(struct block_list *bl, uint64 maxhp)
 /**
  * Calculates a max SP based on status changes
  * Values can either be percentages or fixed, bas ed on how equations are formulated
- * Examples: maxsp += maxsp * value; (percentage increase)
  * @param bl: Object's block_list data
  * @param maxsp: Object's current max SP
  * @return modified maxsp
@@ -6548,9 +6541,9 @@ void status_set_viewdata(struct block_list *bl, int class_)
 	else if (npcdb_checkid(class_) || (bl->type == BL_NPC && class_ == WARP_CLASS))
 		vd = npc_get_viewdata(class_);
 	else if (homdb_checkid(class_))
-		vd = merc_get_hom_viewdata(class_);
-	else if (merc_class(class_))
-		vd = merc_get_viewdata(class_);
+		vd = hom_get_viewdata(class_);
+	else if (mercenary_class(class_))
+		vd = mercenary_get_viewdata(class_);
 	else if (elemental_class(class_))
 		vd = elemental_get_viewdata(class_);
 	else
@@ -9012,10 +9005,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 						pc_setoption(sd,sd->sc.option&~OPTION_WUG);
 					if( sd->status.pet_id > 0 )
 						pet_menu(sd,3);
-					if( merc_is_hom_active(sd->hd) )
-						merc_hom_vaporize(sd,HOM_ST_REST);
+					if( hom_is_active(sd->hd) )
+						hom_vaporize(sd,HOM_ST_REST);
 					//if( sd->md ) //Info shows nothing about Merc being removed. Probely true since their not a animal. [Rytech]
-						//merc_delete(sd->md,3);
+						//mercenary_delete(sd->md,3);
 					//Are rental mounts stripped as well? Well find out once I add them in.
 				}
 				break;
@@ -9519,8 +9512,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val2 = val1 * 5; //Custom
 				break;
 			default:
-				if( calc_flag == SCB_NONE && StatusSkillChangeTable[type] == 0 && StatusIconChangeTable[type] == 0 ) {
-					//Status change with no calc, no icon, and no skill associated...?
+				if( calc_flag == SCB_NONE && StatusSkillChangeTable[type] == 0 && StatusIconChangeTable[type] == SI_BLANK ) {
+					//Status change with no calc, no icon, and no skill associated?
 					ShowError("UnknownStatusChange [%d]\n",type);
 					return 0;
 				}
@@ -10011,9 +10004,14 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_FULL_THROTTLE:
 			status_percent_heal(bl,100,0);
 			break;
+		case SC_C_MARKER: //Send mini-map, don't wait for first timer triggered
+			if(src->type == BL_PC && (sd = map_id2sd(src->id)))
+				if(!battle_config.crimson_marker_type)
+					clif_crimson_marker(sd,bl,0);
+			break;
 	}
 
-	if(opt_flag&2 && sd && sd->touching_id)
+	if((opt_flag&2) && sd && sd->touching_id)
 		npc_touchnext_areanpc(sd,false); //Run OnTouch_ on next char in range
 
 	return 1;

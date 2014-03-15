@@ -4025,20 +4025,19 @@ void do_clear_npc(void) {
 /*==========================================
  * Destructor
  *------------------------------------------*/
-int do_final_npc(void) {
+void do_final_npc(void) {
 	npc_clear_pathlist();
 	ev_db->destroy(ev_db, NULL);
 	npcname_db->destroy(npcname_db, NULL);
 	npc_path_db->destroy(npc_path_db, NULL);
 	ers_destroy(timer_event_ers);
 	npc_clearsrcfile();
-
-	return 0;
 }
 
 static void npc_debug_warps_sub(struct npc_data* nd)
 {
 	int16 m;
+
 	if (nd->bl.type != BL_NPC || nd->subtype != WARP || nd->bl.m < 0)
 		return;
 
@@ -4073,7 +4072,7 @@ static void npc_debug_warps(void)
 /*==========================================
  * npc initialization
  *------------------------------------------*/
-int do_init_npc(void)
+void do_init_npc(void)
 {
 	struct npc_src_list *file;
 	int i;
@@ -4135,6 +4134,4 @@ int do_init_npc(void)
 	fake_nd->u.scr.timerid = INVALID_TIMER;
 	map_addiddb(&fake_nd->bl);
 	// End of initialization
-	
-	return 0;
 }

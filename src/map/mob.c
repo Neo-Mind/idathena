@@ -2108,7 +2108,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		count++; //Only logged into same map chars are counted for the total.
 		if(pc_isdead(tsd))
 			continue; //Skip dead players
-		if(md->dmglog[i].flag == MDLF_HOMUN && !merc_is_hom_active(tsd->hd))
+		if(md->dmglog[i].flag == MDLF_HOMUN && !hom_is_active(tsd->hd))
 			continue; //Skip homunc's share if inactive
 		if(md->dmglog[i].flag == MDLF_PET && (!tsd->status.pet_id || !tsd->pd))
 			continue; //Skip pet's share if inactive
@@ -2254,7 +2254,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				}
 			}
 			if(base_exp && md->dmglog[i].flag == MDLF_HOMUN) //tmpsd[i] is null if it has no homunc.
-				merc_hom_gainexp(tmpsd[i]->hd, base_exp);
+				hom_gainexp(tmpsd[i]->hd, base_exp);
 			if(flag) {
 				if(base_exp || job_exp) {
 					if(md->dmglog[i].flag != MDLF_PET || battle_config.pet_attack_exp_to_master) {
@@ -4556,8 +4556,8 @@ void mob_clear_spawninfo() { //Clears spawn related information for a script rel
 /*==========================================
  * Circumference initialization of mob
  *------------------------------------------*/
-int do_init_mob(void)
-{	//Initialize the mob database
+void do_init_mob(void)
+{ //Initialize the mob database
 	memset(mob_db_data,0,sizeof(mob_db_data)); //Clear the array
 	mob_db_data[0] = (struct mob_db*)aCalloc(1, sizeof (struct mob_db));	//This mob is used for random spawns
 	mob_makedummymobdb(0); //The first time this is invoked, it creates the dummy mob
@@ -4573,48 +4573,39 @@ int do_init_mob(void)
 	add_timer_func_list(mob_timer_delete,"mob_timer_delete");
 	add_timer_func_list(mob_spawn_guardian_sub,"mob_spawn_guardian_sub");
 	add_timer_func_list(mob_respawn,"mob_respawn");
-	add_timer_interval(gettick()+MIN_MOBTHINKTIME,mob_ai_hard,0,0,MIN_MOBTHINKTIME);
-	add_timer_interval(gettick()+MIN_MOBTHINKTIME*10,mob_ai_lazy,0,0,MIN_MOBTHINKTIME*10);
-
-	return 0;
+	add_timer_interval(gettick() + MIN_MOBTHINKTIME,mob_ai_hard,0,0,MIN_MOBTHINKTIME);
+	add_timer_interval(gettick() + MIN_MOBTHINKTIME * 10,mob_ai_lazy,0,0,MIN_MOBTHINKTIME * 10);
 }
 
 /*==========================================
  * Clean memory usage.
  *------------------------------------------*/
-int do_final_mob(void)
+void do_final_mob(void)
 {
 	int i;
-	if (mob_dummy)
-	{
+
+	if (mob_dummy) {
 		aFree(mob_dummy);
 		mob_dummy = NULL;
 	}
-	for (i = 0; i <= MAX_MOB_DB; i++)
-	{
-		if (mob_db_data[i] != NULL)
-		{
+	for (i = 0; i <= MAX_MOB_DB; i++) {
+		if (mob_db_data[i] != NULL) {
 			aFree(mob_db_data[i]);
 			mob_db_data[i] = NULL;
 		}
 	}
-	for (i = 0; i <= MAX_MOB_CHAT; i++)
-	{
-		if (mob_chat_db[i] != NULL)
-		{
+	for (i = 0; i <= MAX_MOB_CHAT; i++) {
+		if (mob_chat_db[i] != NULL) {
 			aFree(mob_chat_db[i]);
 			mob_chat_db[i] = NULL;
 		}
 	}
-	for (i = 0; i < MAX_ITEMDB; i++)
-	{
-		if (item_drop_ratio_db[i] != NULL)
-		{
+	for (i = 0; i < MAX_ITEMDB; i++) {
+		if (item_drop_ratio_db[i] != NULL) {
 			aFree(item_drop_ratio_db[i]);
 			item_drop_ratio_db[i] = NULL;
 		}
 	}
 	ers_destroy(item_drop_ers);
 	ers_destroy(item_drop_list_ers);
-	return 0;
 }

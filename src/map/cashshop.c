@@ -364,7 +364,7 @@ void cashshop_reloaddb( void ){
  * Destroys cashshop class.
  * Closes all and cleanup.
  */
-int do_final_cashshop( void ){
+void do_final_cashshop( void ){
 	int tab, i;
 
 	for( tab = CASHSHOP_TAB_NEW; tab < CASHSHOP_TAB_SEARCH; tab++ ){
@@ -374,17 +374,11 @@ int do_final_cashshop( void ){
 		aFree( cash_shop_items[tab].item );
 	}
 	memset( cash_shop_items, 0, sizeof( cash_shop_items ) );
-
-	return 0;
 }
 
 /*
  * Initializes cashshop class.
- * return
- *  0 : success
  */
-int do_init_cashshop( void ){
+void do_init_cashshop( void ){
 	cashshop_read_db();
-
-	return 0;
 }

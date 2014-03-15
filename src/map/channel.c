@@ -1144,14 +1144,11 @@ void channel_read_config(void) {
 
 /*
  * Initialise db and read config
- * return
- *  0 : success
  */
-int do_init_channel(void) {
+void do_init_channel(void) {
 	channel_db = stridb_alloc(DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA, CHAN_NAME_LENGTH);
 	Channel_Config.ally_enable = Channel_Config.map_enable = Channel_Config.ally_autojoin = Channel_Config.map_autojoin = false;
 	channel_read_config();
-	return 0;
 }
 
 /*

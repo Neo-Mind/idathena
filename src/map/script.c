@@ -4088,52 +4088,51 @@ static void *queryThread_main(void *x) {
 /*==========================================
  * Destructor
  *------------------------------------------*/
-int do_final_script() {
+void do_final_script(void) {
 	int i;
+
 #ifdef DEBUG_HASH
-	if (battle_config.etc_log)
-	{
+	if(battle_config.etc_log) {
 		FILE *fp = fopen("hash_dump.txt","wt");
 		if(fp) {
 			int count[SCRIPT_HASH_SIZE];
-			int count2[SCRIPT_HASH_SIZE]; // number of buckets with a certain number of items
-			int n=0;
-			int min=INT_MAX,max=0,zero=0;
-			double mean=0.0f;
-			double median=0.0f;
+			int count2[SCRIPT_HASH_SIZE]; // Number of buckets with a certain number of items
+			int n = 0;
+			int min = INT_MAX, max = 0, zero = 0;
+			double mean = 0.0f;
+			double median = 0.0f;
 
 			ShowNotice("Dumping script str hash information to hash_dump.txt\n");
 			memset(count, 0, sizeof(count));
 			fprintf(fp,"num : hash : data_name\n");
 			fprintf(fp,"---------------------------------------------------------------\n");
-			for(i=LABEL_START; i<str_num; i++) {
+			for(i = LABEL_START; i<str_num; i++) {
 				unsigned int h = calc_hash(get_str(i));
 				fprintf(fp,"%04d : %4u : %s\n",i,h, get_str(i));
 				++count[h];
 			}
 			fprintf(fp,"--------------------\n\n");
 			memset(count2, 0, sizeof(count2));
-			for(i=0; i<SCRIPT_HASH_SIZE; i++) {
+			for(i = 0; i < SCRIPT_HASH_SIZE; i++) {
 				fprintf(fp,"  hash %3d = %d\n",i,count[i]);
 				if(min > count[i])
-					min = count[i];		// minimun count of collision
+					min = count[i]; // Minimun count of collision
 				if(max < count[i])
-					max = count[i];		// maximun count of collision
+					max = count[i]; // Maximun count of collision
 				if(count[i] == 0)
 					zero++;
 				++count2[count[i]];
 			}
 			fprintf(fp,"\n--------------------\n  items : buckets\n--------------------\n");
-			for( i=min; i <= max; ++i ){
+			for(i = min; i <= max; ++i) {
 				fprintf(fp,"  %5d : %7d\n",i,count2[i]);
-				mean += 1.0f*i*count2[i]/SCRIPT_HASH_SIZE; // NOTE: this will always result in <nr labels>/<nr buckets>
+				mean += 1.0f * i * count2[i] / SCRIPT_HASH_SIZE; // NOTE: this will always result in <nr labels>/<nr buckets>
 			}
-			for( i=min; i <= max; ++i ){
+			for(i = min; i <= max; ++i) {
 				n += count2[i];
-				if( n*2 >= SCRIPT_HASH_SIZE )
-				{
-					if( SCRIPT_HASH_SIZE%2 == 0 && SCRIPT_HASH_SIZE/2 == n )
-						median = (i+i+1)/2.0f;
+				if(n * 2 >= SCRIPT_HASH_SIZE) {
+					if(SCRIPT_HASH_SIZE%2 == 0 && SCRIPT_HASH_SIZE / 2 == n)
+						median = (i + i + 1) / 2.0f;
 					else
 						median = i;
 					break;
@@ -4152,57 +4151,54 @@ int do_final_script() {
 	autobonus_db->destroy(autobonus_db, db_script_free_code_sub);
 	if(sleep_db) {
 		struct linkdb_node *n = (struct linkdb_node *)sleep_db;
+
 		while(n) {
 			struct script_state *st = (struct script_state *)n->data;
+
 			script_free_state(st);
 			n = n->next;
 		}
 		linkdb_final(&sleep_db);
 	}
 
-	if (str_data)
+	if(str_data)
 		aFree(str_data);
-	if (str_buf)
+	if(str_buf)
 		aFree(str_buf);
 
-	for( i = 0; i < atcmd_binding_count; i++ ) {
+	for(i = 0; i < atcmd_binding_count; i++)
 		aFree(atcmd_binding[i]);
-	}
-	
-	if( atcmd_binding_count != 0 )
+
+	if(atcmd_binding_count != 0)
 		aFree(atcmd_binding);
 #ifdef BETA_THREAD_TEST
 	/* QueryThread */
 	InterlockedIncrement(&queryThreadTerminate);
 	racond_signal(queryThreadCond);
 	rathread_wait(queryThread, NULL);
-	
+
 	// Destroy cond var and mutex.
 	racond_destroy( queryThreadCond );
 	ramutex_destroy( queryThreadMutex );
-	
+
 	/* Clear missing vars */
-	for( i = 0; i < queryThreadData.count; i++ ) {
+	for(i = 0; i < queryThreadData.count; i++)
 		aFree(queryThreadData.entry[i]);
-	}
-	
+
 	aFree(queryThreadData.entry);
-	
-	for( i = 0; i < logThreadData.count; i++ ) {
+
+	for(i = 0; i < logThreadData.count; i++)
 		aFree(logThreadData.entry[i]);
-	}
-	
+
 	aFree(logThreadData.entry);
 #endif
-	
-	return 0;
 }
 /*==========================================
  * Initialization
  *------------------------------------------*/
-int do_init_script() {
-	userfunc_db=strdb_alloc(DB_OPT_DUP_KEY,0);
-	scriptlabel_db=strdb_alloc(DB_OPT_DUP_KEY,50);
+void do_init_script(void) {
+	userfunc_db = strdb_alloc(DB_OPT_DUP_KEY,0);
+	scriptlabel_db = strdb_alloc(DB_OPT_DUP_KEY,50);
 	autobonus_db = strdb_alloc(DB_OPT_DUP_KEY,0);
 
 	mapreg_init();
@@ -4222,17 +4218,16 @@ int do_init_script() {
 	
 	queryThread = rathread_create(queryThread_main, NULL);
 	
-	if(queryThread == NULL){
+	if(queryThread == NULL) {
 		ShowFatalError("do_init_script: cannot spawn Query Thread.\n");
 		exit(EXIT_FAILURE);
 	}
 
 	add_timer_func_list(queryThread_timer, "queryThread_timer");
 #endif
-	return 0;
 }
 
-int script_reload() {
+void script_reload(void) {
 	int i;
 
 #ifdef BETA_THREAD_TEST
@@ -4269,15 +4264,16 @@ int script_reload() {
 
 	if(sleep_db) {
 		struct linkdb_node *n = (struct linkdb_node *)sleep_db;
+
 		while(n) {
 			struct script_state *st = (struct script_state *)n->data;
+
 			script_free_state(st);
 			n = n->next;
 		}
 		linkdb_final(&sleep_db);
 	}
 	mapreg_reload();
-	return 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -10034,9 +10030,9 @@ BUILDIN_FUNC(homunculus_evolution)
 	if( sd == NULL )
 		return 0;
 
-	if( merc_is_hom_active(sd->hd) ) {
+	if( hom_is_active(sd->hd) ) {
 		if( sd->hd->homunculus.intimacy > 91000 )
-			merc_hom_evolution(sd->hd);
+			hom_evolution(sd->hd);
 		else
 			clif_emotion(&sd->hd->bl,E_SWT);
 	}
@@ -10069,7 +10065,7 @@ BUILDIN_FUNC(homunculus_mutate)
 
 		if( m_class != HT_INVALID && m_id != HT_INVALID && m_class&HOM_EVO && m_id&HOM_S && sd->hd->homunculus.level >= 99 && i >= 0 ) {
 			sd->hd->homunculus.vaporize = HOM_ST_REST; // Remove morph st
-			merc_call_homunculus(sd); // Respawn homunculus.
+			hom_call(sd); // Respawn homunculus.
 			hom_mutate(sd->hd, homun_id);
 			pc_delitem(sd, i, 1, 0, 0, LOG_TYPE_SCRIPT);
 			script_pushint(st, 1);
@@ -10099,7 +10095,7 @@ BUILDIN_FUNC(morphembryo)
 	if( sd == NULL || sd->hd == NULL )
 		return 0;
 
-	if( merc_is_hom_active(sd->hd) ) {
+	if( hom_is_active(sd->hd) ) {
 		m_class = hom_class2mapid(sd->hd->homunculus.class_);
 
 		if( m_class != HT_INVALID && m_class&HOM_EVO && sd->hd->homunculus.level >= 99 ) {
@@ -10111,7 +10107,7 @@ BUILDIN_FUNC(morphembryo)
 				clif_additem(sd, 0, 0, i);
 				clif_emotion(&sd->bl, E_SWT); // Fail to avoid item drop exploit.
 			} else {
-				merc_hom_vaporize(sd, HOM_ST_MORPH);
+				hom_vaporize(sd, HOM_ST_MORPH);
 				script_pushint(st, 1);
 				return 0;
 			}
@@ -10134,8 +10130,8 @@ BUILDIN_FUNC(homunculus_shuffle)
 	if( sd == NULL )
 		return 0;
 
-	if(merc_is_hom_active(sd->hd))
-		merc_hom_shuffle(sd->hd);
+	if(hom_is_active(sd->hd))
+		hom_shuffle(sd->hd);
 
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -15960,11 +15956,11 @@ BUILDIN_FUNC(mercenary_create)
 
 	class_ = script_getnum(st,2);
 
-	if( !merc_class(class_) )
+	if( !mercenary_class(class_) )
 		return 0;
 
 	contract_time = script_getnum(st,3);
-	merc_create(sd,class_,contract_time);
+	mercenary_create(sd,class_,contract_time);
 	return SCRIPT_CMD_SUCCESS;
 }
 

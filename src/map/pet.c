@@ -1200,86 +1200,76 @@ int pet_skill_support_timer(int tid, unsigned int tick, int id, intptr_t data)
  * pet_db.txt
  * pet_db2.txt
  *------------------------------------------*/
-int read_petdb()
+void read_petdb()
 {
 	char* filename[] = {"pet_db.txt","pet_db2.txt"};
 	FILE *fp;
 	int nameid,i,j,k;
 
 	// Remove any previous scripts in case reloaddb was invoked.
-	for( j = 0; j < MAX_PET_DB; j++ )
-	{
-		if( pet_db[j].pet_script )
-		{
+	for( j = 0; j < MAX_PET_DB; j++ ) {
+		if( pet_db[j].pet_script ) {
 			script_free_code(pet_db[j].pet_script);
 			pet_db[j].pet_script = NULL;
 		}
-		if( pet_db[j].equip_script )
-		{
+		if( pet_db[j].equip_script ) {
 			script_free_code(pet_db[j].equip_script);
 			pet_db[j].pet_script = NULL;
 		}
 	}
 
-	// clear database
+	// Clear database
 	memset(pet_db,0,sizeof(pet_db));
 
-	j = 0; // entry counter
-	for( i = 0; i < ARRAYLENGTH(filename); i++ )
-	{
+	j = 0; // Entry counter
+	for( i = 0; i < ARRAYLENGTH(filename); i++ ) {
 		char line[1024];
 		int lines, entries;
 
 		sprintf(line, "%s/%s", db_path, filename[i]);
-		fp=fopen(line,"r");
-		if( fp == NULL )
-		{
+		fp = fopen(line,"r");
+		if( fp == NULL ) {
 			if( i == 0 )
 				ShowError("can't read %s\n",line);
 			continue;
 		}
 
 		lines = entries = 0;
-		while( fgets(line, sizeof(line), fp) && j < MAX_PET_DB )
-		{
+		while( fgets(line, sizeof(line), fp) && j < MAX_PET_DB ) {
 			char *str[22], *p;
 			lines++;
 
-			if(line[0] == '/' && line[1] == '/')
+			if( line[0] == '/' && line[1] == '/' )
 				continue;
 			memset(str, 0, sizeof(str));
 			p = line;
 			while( ISSPACE(*p) )
 				++p;
 			if( *p == '\0' )
-				continue; // empty line
-			for( k = 0; k < 20; ++k )
-			{
+				continue; // Empty line
+			for( k = 0; k < 20; ++k ) {
 				str[k] = p;
 				p = strchr(p,',');
 				if( p == NULL )
-					break; // comma not found
+					break; // Comma not found
 				*p = '\0';
 				++p;
 			}
 
-			if( p == NULL )
-			{
+			if( p == NULL ) {
 				ShowError("read_petdb: Insufficient columns in line %d, skipping.\n", lines);
 				continue;
 			}
 
 			// Pet Script
-			if( *p != '{' )
-			{
+			if( *p != '{' ) {
 				ShowError("read_petdb: Invalid format (Pet Script column) in line %d, skipping.\n", lines);
 				continue;
 			}
 
 			str[20] = p;
-			p = strstr(p+1,"},");
-			if( p == NULL )
-			{
+			p = strstr(p + 1,"},");
+			if( p == NULL ) {
 				ShowError("read_petdb: Invalid format (Pet Script column) in line %d, skipping.\n", lines);
 				continue;
 			}
@@ -1287,8 +1277,7 @@ int read_petdb()
 			p += 2;
 
 			// Equip Script
-			if( *p != '{' )
-			{
+			if( *p != '{' ) {
 				ShowError("read_petdb: Invalid format (Equip Script column) in line %d, skipping.\n", lines);
 				continue;
 			}
@@ -1297,8 +1286,7 @@ int read_petdb()
 			if( (nameid = atoi(str[0])) <= 0 )
 				continue;
 
-			if( !mobdb_checkid(nameid) )
-			{
+			if( !mobdb_checkid(nameid) ) {
 				ShowWarning("pet_db reading: Invalid mob-class %d, pet not read.\n", nameid);
 				continue;
 			}
@@ -1306,25 +1294,25 @@ int read_petdb()
 			pet_db[j].class_ = nameid;
 			safestrncpy(pet_db[j].name,str[1],NAME_LENGTH);
 			safestrncpy(pet_db[j].jname,str[2],NAME_LENGTH);
-			pet_db[j].itemID=atoi(str[3]);
-			pet_db[j].EggID=atoi(str[4]);
-			pet_db[j].AcceID=atoi(str[5]);
-			pet_db[j].FoodID=atoi(str[6]);
-			pet_db[j].fullness=atoi(str[7]);
-			pet_db[j].hungry_delay=atoi(str[8])*1000;
-			pet_db[j].r_hungry=atoi(str[9]);
+			pet_db[j].itemID = atoi(str[3]);
+			pet_db[j].EggID = atoi(str[4]);
+			pet_db[j].AcceID = atoi(str[5]);
+			pet_db[j].FoodID = atoi(str[6]);
+			pet_db[j].fullness = atoi(str[7]);
+			pet_db[j].hungry_delay = atoi(str[8]) * 1000;
+			pet_db[j].r_hungry = atoi(str[9]);
 			if( pet_db[j].r_hungry <= 0 )
-				pet_db[j].r_hungry=1;
-			pet_db[j].r_full=atoi(str[10]);
-			pet_db[j].intimate=atoi(str[11]);
-			pet_db[j].die=atoi(str[12]);
-			pet_db[j].capture=atoi(str[13]);
-			pet_db[j].speed=atoi(str[14]);
-			pet_db[j].s_perfor=(char)atoi(str[15]);
-			pet_db[j].talk_convert_class=atoi(str[16]);
-			pet_db[j].attack_rate=atoi(str[17]);
-			pet_db[j].defence_attack_rate=atoi(str[18]);
-			pet_db[j].change_target_rate=atoi(str[19]);
+				pet_db[j].r_hungry = 1;
+			pet_db[j].r_full = atoi(str[10]);
+			pet_db[j].intimate = atoi(str[11]);
+			pet_db[j].die = atoi(str[12]);
+			pet_db[j].capture = atoi(str[13]);
+			pet_db[j].speed = atoi(str[14]);
+			pet_db[j].s_perfor = (char)atoi(str[15]);
+			pet_db[j].talk_convert_class = atoi(str[16]);
+			pet_db[j].attack_rate = atoi(str[17]);
+			pet_db[j].defence_attack_rate = atoi(str[18]);
+			pet_db[j].change_target_rate = atoi(str[19]);
 			pet_db[j].pet_script = NULL;
 			pet_db[j].equip_script = NULL;
 
@@ -1342,13 +1330,12 @@ int read_petdb()
 		fclose(fp);
 		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' pets in '"CL_WHITE"%s"CL_RESET"'.\n", entries, filename[i]);
 	}
-	return 0;
 }
 
 /*==========================================
  * Initialization process relationship skills
  *------------------------------------------*/
-int do_init_pet(void)
+void do_init_pet(void)
 {
 	read_petdb();
 
@@ -1363,27 +1350,22 @@ int do_init_pet(void)
 	add_timer_func_list(pet_recovery_timer,"pet_recovery_timer"); // [Valaris]
 	add_timer_func_list(pet_heal_timer,"pet_heal_timer"); // [Valaris]
 	add_timer_interval(gettick()+MIN_PETTHINKTIME,pet_ai_hard,0,0,MIN_PETTHINKTIME);
-
-	return 0;
 }
 
-int do_final_pet(void)
+void do_final_pet(void)
 {
 	int i;
-	for( i = 0; i < MAX_PET_DB; i++ )
-	{
-		if( pet_db[i].pet_script )
-		{
+
+	for( i = 0; i < MAX_PET_DB; i++ ) {
+		if( pet_db[i].pet_script ) {
 			script_free_code(pet_db[i].pet_script);
 			pet_db[i].pet_script = NULL;
 		}
-		if( pet_db[i].equip_script )
-		{
+		if( pet_db[i].equip_script ) {
 			script_free_code(pet_db[i].equip_script);
 			pet_db[i].equip_script = NULL;
 		}
 	}
 	ers_destroy(item_drop_ers);
 	ers_destroy(item_drop_list_ers);
-	return 0;
 }
