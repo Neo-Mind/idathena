@@ -10438,6 +10438,8 @@ void clif_parse_HowManyConnections(int fd, struct map_session_data *sd)
 
 void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, int target_id, unsigned int tick)
 {
+	struct block_list *target = NULL;
+
 	if( pc_isdead(sd) ) {
 		clif_clearunit_area(&sd->bl, CLR_DEAD);
 		return;
@@ -10461,6 +10463,10 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 	switch( action_type ) {
 		case 0x00: // Once attack
 		case 0x07: // Continuous attack
+			if( (target = map_id2bl(target_id)) && target->type == BL_NPC ) {
+				npc_click(sd,(TBL_NPC*)target);
+				return;
+			}
 
 			if( pc_cant_act(sd) || (sd->sc.option&OPTION_HIDE) )
 				return;

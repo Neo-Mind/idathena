@@ -1990,6 +1990,9 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 	if( src->m != target->m || !check_distance_bl(src, target, view_range) )
 		return 0;
 
+	if( src->type == BL_NPC ) /* NPCs don't care for the rest */
+		return 1;
+
 	if( tsc ) {
 		struct status_data *status = status_get_status_data(src);
 

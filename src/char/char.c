@@ -3387,7 +3387,7 @@ int parse_frommap(int fd)
 				break;
 
 			case 0x2b02: //Req char selection
-				if( RFIFOREST(fd) < 19 )
+				if( RFIFOREST(fd) < 22 )
 					return 0;
 				else {
 					int account_id = RFIFOL(fd,2);
@@ -3395,7 +3395,8 @@ int parse_frommap(int fd)
 					uint32 login_id2 = RFIFOL(fd,10);
 					uint32 ip = RFIFOL(fd,14);
 					uint8 version = RFIFOB(fd,18);
-					RFIFOSKIP(fd,19);
+					int32 group_id = RFIFOL(fd,19);
+					RFIFOSKIP(fd,22);
 
 					if( runflag != CHARSERVER_ST_RUNNING ) {
 						WFIFOHEAD(fd,7);
@@ -3412,6 +3413,7 @@ int parse_frommap(int fd)
 						node->char_id = 0;
 						node->login_id1 = login_id1;
 						node->login_id2 = login_id2;
+						node->group_id = group_id;
 						//node->sex = 0;
 						node->ip = ntohl(ip);
 						node->version = version; //Upd version for mapserv

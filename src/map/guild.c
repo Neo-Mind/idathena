@@ -866,7 +866,8 @@ int guild_member_withdraw(int guild_id, int account_id, int char_id, int flag, c
 #ifdef BOUND_ITEMS
 void guild_retrieveitembound(int char_id,int aid,int guild_id)
 {
-	TBL_PC *sd = map_id2sd(aid);
+	TBL_PC *sd = map_charid2sd(aid);
+
 	if( sd ) { //Character is online
 		int idxlist[MAX_INVENTORY];
 		int j;
