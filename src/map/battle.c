@@ -5903,22 +5903,22 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					if(t < 5 && s_ele == t) {
 						switch(skill_id) {
 							case NJ_HYOUSYOURAKU:
-								skillratio -= 25 * tsd->talisman[s];
+								skillratio -= 25 * tsd->talisman[t];
 								break;
 							case NJ_KOUENKA:
 							case NJ_HUUJIN:
-								skillratio -= 20 * tsd->talisman[s];
+								skillratio -= 20 * tsd->talisman[t];
 								break;
 							case NJ_BAKUENRYU:
 							case NJ_RAIGEKISAI:
-								skillratio -= 15 * tsd->talisman[s];
+								skillratio -= 15 * tsd->talisman[t];
 								break;
 							case NJ_KAMAITACHI:
-								skillratio -= 10 * tsd->talisman[s];
+								skillratio -= 10 * tsd->talisman[t];
 								break;
 							case NJ_KAENSIN:
 							case NJ_HYOUSENSOU:
-								skillratio -= 5 * tsd->talisman[s];
+								skillratio -= 5 * tsd->talisman[t];
 								break;
 						}
 					}
