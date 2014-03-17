@@ -3051,11 +3051,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				break;
 			case SR_KNUCKLEARROW:
 				if (!(flag&4)) {
-					short i, dir_x, dir_y;
+					short i = skill_blown(dsrc, bl, dmg.blewcount, dir, 0);
 
-					dir_x = dirx[(dir + 4)%8];
-					dir_y = diry[(dir + 4)%8];
-					i = skill_blown(dsrc, bl, dmg.blewcount, dir, 0);
 					if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src,bl->x,bl->y,1,1)) {
 						clif_slide(src,bl->x,bl->y);
 						clif_fixpos(src); //Aegis send this packet too
@@ -3850,8 +3847,8 @@ static int skill_reveal_trap (struct block_list *bl, va_list ap)
  *------------------------------------------*/
 int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint16 skill_id, uint16 skill_lv, unsigned int tick, int flag)
 {
-	struct map_session_data *sd = NULL, *tsd = NULL;
-	struct status_data *sstatus, *tstatus;
+	struct map_session_data *sd = NULL;
+	struct status_data *tstatus;
 	struct status_change *sc, *tsc;
 	int chorusbonus = 0;
 
@@ -3868,7 +3865,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		return 1;
 
 	sd = BL_CAST(BL_PC,src);
-	tsd = BL_CAST(BL_PC,bl);
 
 	if (sd && sd->status.party_id) {
 		//Minstrel/Wanderer number check for chorus skills.
@@ -3902,7 +3898,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 	if (tsc && !tsc->count)
 		tsc = NULL;
 
-	sstatus = status_get_status_data(src);
 	tstatus = status_get_status_data(bl);
 
 	switch (skill_id) {

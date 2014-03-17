@@ -327,7 +327,7 @@ struct map_session_data {
 	int itemgrouphealrate[MAX_ITEMGROUP];
 	int magic_subrace[RC_MAX];
 	int magic_subclass[CLASS_MAX];
-	short sp_gain_race[RC_ALL];
+	short sp_gain_race[RC_MAX];
 	short sp_gain_race_attack[RC_MAX];
 	short hp_gain_race_attack[RC_MAX];
 	//Zeroed arrays end here.
@@ -1008,8 +1008,8 @@ struct map_session_data *pc_get_father(struct map_session_data *sd);
 struct map_session_data *pc_get_mother(struct map_session_data *sd);
 struct map_session_data *pc_get_child(struct map_session_data *sd);
 
-void pc_bleeding (struct map_session_data *sd, unsigned int diff_tick);
-void pc_regen (struct map_session_data *sd, unsigned int diff_tick);
+void pc_bleeding(struct map_session_data *sd, unsigned int diff_tick);
+void pc_regen(struct map_session_data *sd, unsigned int diff_tick);
 
 void pc_setstand(struct map_session_data *sd);
 bool pc_candrop(struct map_session_data *sd,struct item *item);

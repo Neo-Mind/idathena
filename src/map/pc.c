@@ -9357,7 +9357,7 @@ struct map_session_data *pc_get_partner(struct map_session_data *sd)
  */
 struct map_session_data *pc_get_father(struct map_session_data *sd)
 {
-	if (!sd || !sd->class_&JOBL_BABY || !sd->status.father)
+	if (!sd || !(sd->class_&JOBL_BABY) || !sd->status.father)
 		return NULL;
 	return map_charid2sd(sd->status.father);
 }
@@ -9369,7 +9369,7 @@ struct map_session_data *pc_get_father(struct map_session_data *sd)
  */
 struct map_session_data *pc_get_mother(struct map_session_data *sd)
 {
-	if (!sd || sd->class_&JOBL_BABY || !sd->status.mother)
+	if (!sd || (sd->class_&JOBL_BABY) || !sd->status.mother)
 		return NULL;
 	return map_charid2sd(sd->status.mother);
 }
@@ -9421,7 +9421,7 @@ void pc_bleeding(struct map_session_data *sd, unsigned int diff_tick)
 //Character regen. Flag is used to know which types of regen can take place.
 //&1: HP regen
 //&2: SP regen
-void pc_regen (struct map_session_data *sd, unsigned int diff_tick)
+void pc_regen(struct map_session_data *sd, unsigned int diff_tick)
 {
 	int hp = 0, sp = 0;
 

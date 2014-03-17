@@ -5896,8 +5896,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					}
 				}
 
-				//FIXME: Is this behavior really exist in offical? [exneval]
-				/*if(tsd) {
+				if(tsd) {
 					int t;
 
 					ARR_FIND(1, 6, t, tsd->talisman[t] > 0);
@@ -5923,7 +5922,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 								break;
 						}
 					}
-				}*/
+				}
 
 				MATK_RATE(skillratio);
 

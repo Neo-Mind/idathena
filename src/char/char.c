@@ -4128,7 +4128,7 @@ static void char_delete2_accept(int fd, struct char_session_data* sd)
 	}
 
 	if( (char_del_level > 0 && base_level >= (unsigned int)char_del_level) ||
-		(char_del_level < 0 && base_level <= (unsigned int)(-char_del_level)) || !char_del_option&2 )
+		(char_del_level < 0 && base_level <= (unsigned int)(-char_del_level)) || !(char_del_option&2) )
 	{ // Character level config restriction
 		char_delete2_accept_ack(fd, char_id, 2);
 		return;
