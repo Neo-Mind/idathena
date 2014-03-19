@@ -277,7 +277,7 @@ int chat_changechatowner(struct map_session_data* sd, const char* nextownername)
 		return 1;
 
 	// And display again
-	clif_dispchat(cd, 1);
+	clif_dispchat(cd, 0);
 
 	return 0;
 }
