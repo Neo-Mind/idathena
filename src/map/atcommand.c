@@ -138,7 +138,7 @@ static const char* atcommand_help_string(const char* command)
  *------------------------------------------*/
 ACMD_FUNC(send)
 {
-	int len = 0, off, end, type;
+	int len = 0, type;
 	long num;
 
 	// Read message type as hex number (without the 0x)
@@ -157,21 +157,18 @@ ACMD_FUNC(send)
 		sprintf(atcmd_output, ">%s", (p));\
 		clif_displaymessage(fd, atcmd_output);\
 	}
-//define PARSE_ERROR
 
 #define CHECK_EOS(p) \
 	if(*(p) == 0){\
 		clif_displaymessage(fd, "Unexpected end of string");\
 		return -1;\
 	}
-//define CHECK_EOS
 
 #define SKIP_VALUE(p) \
 	{\
 		while(*(p) && !ISSPACE(*(p))) ++(p); /* Non-space */\
 		while(*(p) && ISSPACE(*(p)))  ++(p); /* Space */\
 	}
-//define SKIP_VALUE
 
 #define GET_VALUE(p,num) \
 	{\
@@ -180,9 +177,10 @@ ACMD_FUNC(send)
 			return -1;\
 		}\
 	}
-//define GET_VALUE
 
 	if(type > 0 && type < MAX_PACKET_DB) {
+		int off, end;
+
 		if(len) { // Show packet length
 			sprintf(atcmd_output, msg_txt(904), type, packet_db[sd->packet_ver][type].len); // Packet 0x%x length: %d
 			clif_displaymessage(fd, atcmd_output);
@@ -243,8 +241,8 @@ ACMD_FUNC(send)
 				// Parse string
 				++message;
 				CHECK_EOS(message);
-				end = (num <= 0 ? 0: min(off + ((int)num),len));
-				for(; *message != '"' && (off < end || end == 0); ++off){
+				end = (num <= 0 ? 0 : min(off + ((int)num),len));
+				for(; *message != '"' && (off < end || end == 0); ++off) {
 					if(*message == '\\') {
 						++message;
 						CHECK_EOS(message);
@@ -383,7 +381,7 @@ static void warp_get_suggestions(struct map_session_data* sd, const char *name) 
 	// If no maps found, search by edit distance
 	if (!count) {
 		unsigned int distance[MAX_MAP_PER_SERVER][2];
-		int j, min;
+		int j;
 
 		// Calculate Levenshtein distance for all maps
 		for (i = 0; i < MAX_MAP_PER_SERVER; i++) {
@@ -398,7 +396,8 @@ static void warp_get_suggestions(struct map_session_data* sd, const char *name) 
 		// Selection sort elements as needed
 		count = min(MAX_SUGGESTIONS, 5); // Results past 5 aren't worth showing
 		for (i = 0; i < count; i++) {
-			min = i;
+			int min = i;
+
 			for (j = i + 1; j < MAX_MAP_PER_SERVER; j++) {
 				if (distance[j][0] < distance[min][0])
 					min = j;
@@ -595,7 +594,6 @@ ACMD_FUNC(who)
 {
 	struct map_session_data *pl_sd = NULL;
 	struct s_mapiterator *iter = NULL;
-	char map_name[MAP_NAME_LENGTH_EXT] = "";
 	char player_name[NAME_LENGTH] = "";
 	int count = 0;
 	int level = 0;
@@ -611,11 +609,12 @@ ACMD_FUNC(who)
 	nullpo_retr(-1, sd);
 
 	if (strstr(command, "map") != NULL) {
+		char map_name[MAP_NAME_LENGTH_EXT] = "";
+
 		if (sscanf(message, "%15s %23s", map_name, player_name) < 1 || (map_id = map_mapname2mapid(map_name)) < 0)
 			map_id = sd->bl.m;
-	} else {
+	} else
 		sscanf(message, "%23s", player_name);
-	}
 
 	if (strstr(command, "2") != NULL)
 		display_type = 2;
@@ -698,7 +697,7 @@ ACMD_FUNC(whogm)
 	struct map_session_data* pl_sd;
 	struct s_mapiterator* iter;
 	int j, count;
-	int pl_level, level;
+	int level;
 	char match_text[CHAT_SIZE_MAX];
 	char player_name[NAME_LENGTH];
 	struct guild *g;
@@ -720,7 +719,8 @@ ACMD_FUNC(whogm)
 
 	iter = mapit_getallusers();
 	for (pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter)) {
-		pl_level = pc_get_group_level(pl_sd);
+		int pl_level = pc_get_group_level(pl_sd);
+
 		if (!pl_level)
 			continue;
 
@@ -728,7 +728,7 @@ ACMD_FUNC(whogm)
 			memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
 			for (j = 0; player_name[j]; j++)
 				player_name[j] = TOLOWER(player_name[j]);
-			// search with no case sensitive
+			// Search with no case sensitive
 			if (strstr(player_name, match_text) == NULL)
 				continue;
 		}
@@ -1992,7 +1992,7 @@ ACMD_FUNC(monster)
 	int mob_id;
 	int number = 0;
 	int count;
-	int i, k, range;
+	int i, range;
 	short mx, my;
 	unsigned int size;
 	nullpo_retr(-1, sd);
@@ -2051,11 +2051,16 @@ ACMD_FUNC(monster)
 		ShowInfo("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, sd->bl.x, sd->bl.y);
 
 	count = 0;
-	range = (int)sqrt((float)number) + 2; // calculation of an odd number (+4 area around)
+	range = (int)sqrt((float)number) + 2; // Calculation of an odd number (+4 area around)
 	for (i = 0; i < number; i++) {
+		int k;
+
 		map_search_freecell(&sd->bl, 0, &mx,  &my, range, range, 0);
 		k = mob_once_spawn(sd, sd->bl.m, mx, my, name, mob_id, 1, eventname, size, AI_NONE|(mob_id == MOBID_EMPERIUM ? 0x200 : 0x0));
-		count += (k != 0) ? 1 : 0;
+		if (k) {
+			//mapreg_setreg(reference_uid(add_str("$@mobid"), i),k); // Retain created mobid in array uncomment if needed
+			count++;
+		}
 	}
 
 	if (count != 0)
@@ -2123,7 +2128,7 @@ ACMD_FUNC(killmonster)
  *------------------------------------------*/
 ACMD_FUNC(refine)
 {
-	int i,j, position = 0, refine = 0, current_position, final_refine;
+	int j, position = 0, refine = 0, current_position, final_refine;
 	int count;
 	nullpo_retr(-1, sd);
 
@@ -2158,6 +2163,8 @@ ACMD_FUNC(refine)
 
 	count = 0;
 	for (j = 0; j < EQI_MAX; j++) {
+		int i;
+
 		if ((i = sd->equip_index[j]) < 0)
 			continue;
 		if (j == EQI_AMMO)
@@ -3778,7 +3785,6 @@ ACMD_FUNC(mapinfo)
 {
 	struct map_session_data* pl_sd;
 	struct s_mapiterator* iter;
-	struct npc_data *nd = NULL;
 	struct chat_data *cd = NULL;
 	char direction[12];
 	int i, m_id, chat_num = 0, list = 0, vend_num = 0;
@@ -4030,7 +4036,8 @@ ACMD_FUNC(mapinfo)
 		case 2:
 			clif_displaymessage(fd, msg_txt(482)); // ----- NPCs in Map -----
 			for (i = 0; i < map[m_id].npc_num;) {
-				nd = map[m_id].npc[i];
+				struct npc_data *nd = map[m_id].npc[i];
+
 				switch(nd->ud.dir) {
 					case 0:  strcpy(direction, msg_txt(491)); break; // North
 					case 1:  strcpy(direction, msg_txt(492)); break; // North West
@@ -4799,7 +4806,6 @@ ACMD_FUNC(disguiseguild)
 {
 	int id = 0, i;
 	char monster[NAME_LENGTH], guild[NAME_LENGTH];
-	struct map_session_data *pl_sd;
 	struct guild *g;
 
 	memset(monster, '\0', sizeof(monster));
@@ -4831,9 +4837,12 @@ ACMD_FUNC(disguiseguild)
 		return -1;
 	}
 
-	for( i = 0; i < g->max_member; i++ )
+	for( i = 0; i < g->max_member; i++ ) {
+		struct map_session_data *pl_sd;
+
 		if( (pl_sd = g->member[i].sd) && !pc_isriding(pl_sd) )
 			pc_disguise(pl_sd, id);
+	}
 
 	clif_displaymessage(fd, msg_txt(122)); // Disguise applied.
 	return 0;
@@ -4884,7 +4893,6 @@ ACMD_FUNC(undisguiseall)
 ACMD_FUNC(undisguiseguild)
 {
 	char guild_name[NAME_LENGTH];
-	struct map_session_data *pl_sd;
 	struct guild *g;
 	int i;
 	nullpo_retr(-1, sd);
@@ -4901,9 +4909,12 @@ ACMD_FUNC(undisguiseguild)
 		return -1;
 	}
 
-	for(i = 0; i < g->max_member; i++)
+	for(i = 0; i < g->max_member; i++) {
+		struct map_session_data *pl_sd;
+
 		if( (pl_sd = g->member[i].sd) && pl_sd->disguise )
 			pc_disguise(pl_sd, 0);
+	}
 
 	clif_displaymessage(fd, msg_txt(124)); // Undisguise applied.
 
@@ -5364,7 +5375,6 @@ ACMD_FUNC(clearcart)
 ACMD_FUNC(skillid)
 {
 	int skillen, i, found = 0;
-	int16 idx;
 	DBIterator* iter;
 	DBKey key;
 	DBData *data;
@@ -5382,13 +5392,13 @@ ACMD_FUNC(skillid)
 	iter = db_iterator(skilldb_name2id);
 
 	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) ) {
-		idx = skill_get_index(db_data2i(data));
+		int16 idx = skill_get_index(db_data2i(data));
+
 		if (strnicmp(key.str, message, skillen) == 0 || strnicmp(skill_db[idx].desc, message, skillen) == 0) {
 			sprintf(atcmd_output, msg_txt(1164), db_data2i(data), skill_db[idx].desc, key.str); // skill %d: %s (%s)
 			clif_displaymessage(fd, atcmd_output);
-		} else if ( found < MAX_SKILLID_PARTIAL_RESULTS && ( stristr(key.str,message) || stristr(skill_db[idx].desc,message) ) ) {
+		} else if ( found < MAX_SKILLID_PARTIAL_RESULTS && (stristr(key.str,message) || stristr(skill_db[idx].desc,message)) )
 			snprintf(partials[found++], MAX_SKILLID_PARTIAL_RESULTS_LEN, msg_txt(1164), db_data2i(data), skill_db[idx].desc, key.str);
-		}
 	}
 
 	dbi_destroy(iter);
@@ -6815,8 +6825,7 @@ ACMD_FUNC(mobinfo)
 	struct item_data *item_data;
 	struct mob_db *mob, *mob_array[MAX_SEARCH];
 	int count;
-	int i, j, k;
-	unsigned int base_exp, job_exp;
+	int i, k;
 
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 	memset(atcmd_output2, '\0', sizeof(atcmd_output2));
@@ -6845,6 +6854,8 @@ ACMD_FUNC(mobinfo)
 	}
 
 	for (k = 0; k < count; k++) {
+		unsigned int j, base_exp, job_exp;
+
 		mob = mob_array[k];
 		base_exp = mob->base_exp;
 		job_exp = mob->job_exp;
@@ -7351,7 +7362,7 @@ ACMD_FUNC(homshuffle)
  *------------------------------------------*/
 ACMD_FUNC(iteminfo)
 {
-	struct item_data *item_data, *item_array[MAX_SEARCH];
+	struct item_data *item_array[MAX_SEARCH];
 	int i, count = 1;
 
 	if (!message || !*message) {
@@ -7370,7 +7381,8 @@ ACMD_FUNC(iteminfo)
 		count = MAX_SEARCH;
 	}
 	for (i = 0; i < count; i++) {
-		item_data = item_array[i];
+		struct item_data *item_data = item_array[i];
+
 		sprintf(atcmd_output, msg_txt(1277), // Item: '%s'/'%s'[%d] (%d) Type: %s | Extra Effect: %s
 			item_data->name,item_data->jname,item_data->slot,item_data->nameid,
 			(item_data->type != IT_AMMO) ? itemdb_typename((enum item_types)item_data->type) : itemdb_typename_ammo((enum e_item_ammo)item_data->look),
@@ -7454,7 +7466,7 @@ ACMD_FUNC(whodrops)
 
 ACMD_FUNC(whereis)
 {
-	struct mob_db *mob, *mob_array[MAX_SEARCH];
+	struct mob_db *mob_array[MAX_SEARCH];
 	int count;
 	int i, j, k;
 
@@ -7480,11 +7492,12 @@ ACMD_FUNC(whereis)
 		clif_displaymessage(fd, atcmd_output);
 		count = MAX_SEARCH;
 	}
+
 	for (k = 0; k < count; k++) {
-		mob = mob_array[k];
+		struct mob_db *mob = mob_array[k];
+
 		snprintf(atcmd_output, sizeof atcmd_output, msg_txt(1289), mob->jname); // %s spawns in:
 		clif_displaymessage(fd, atcmd_output);
-
 		for (i = 0; i < ARRAYLENGTH(mob->spawn) && mob->spawn[i].qty; i++) {
 			j = map_mapindex2mapid(mob->spawn[i].mapindex);
 			if (j < 0) continue;
@@ -9133,8 +9146,6 @@ ACMD_FUNC(channel) {
 
 ACMD_FUNC(fontcolor)
 {
-	unsigned char k;
-
 	if( !message || !*message ) {
 		channel_display_list(sd, "colors");
 		return -1;
@@ -9143,6 +9154,8 @@ ACMD_FUNC(fontcolor)
 	if( strcmpi(message, "Normal") == 0 ) {
 		sd->fontcolor = 0;
 	} else {
+		unsigned char k;
+
 		ARR_FIND(0, Channel_Config.colors_count,k, (strcmpi(message, Channel_Config.colors_name[k]) == 0));
 		if( k == Channel_Config.colors_count ) {
 			sprintf(atcmd_output, msg_txt(1411), message); // Unknown color '%s'.
@@ -9743,7 +9756,7 @@ static void atcommand_get_suggestions(struct map_session_data* sd, const char *n
 bool is_atcommand(const int fd, struct map_session_data* sd, const char* message, int type)
 {
 	char charname[NAME_LENGTH], params[100];
-	char charname2[NAME_LENGTH], params2[100];
+	char charname2[NAME_LENGTH];
 	char command[100];
 	char output[CHAT_SIZE_MAX];
 	//Reconstructed message
@@ -9786,6 +9799,7 @@ bool is_atcommand(const int fd, struct map_session_data* sd, const char* message
 	if ( *message == charcommand_symbol ) {
 		do {
 			int x, y, z;
+			char params2[100];
 
 			//Checks to see if #command has a name or a name + parameters.
 			x = sscanf(message, "%99s \"%23[^\"]\" %99[^\n]", command, charname, params);

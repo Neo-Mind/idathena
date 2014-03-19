@@ -8337,7 +8337,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_READYTURN:
 			case SC_DODGE:
 			case SC_PUSH_CART:
-			case SC_ALL_RIDING:
 			case SC_MOONSTAR:
 			case SC_SUPER_STAR:
 			case SC_STRANGELIGHTS:
@@ -9480,6 +9479,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_MONSTER_TRANSFORM:
 				if( !mobdb_checkid(val1) )
 					val1 = 1002; //Default poring
+				break;
+			case SC_ALL_RIDING:
+				unit_stop_attack(bl);
+				tick = -1;
 				break;
 			case SC_C_MARKER:
 				val2 = src->id;
@@ -11714,8 +11717,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			}
 			break;
 
-		case SC_RAISINGDRAGON:
-			//1% every 5 seconds [Jobbie]
+		case SC_RAISINGDRAGON: //1% every 5 seconds [Jobbie]
 			if( --(sce->val3) >= 0 && status_charge(bl,sce->val2,0) ) {
 				if( !sc->data[type] )
 					return 0;

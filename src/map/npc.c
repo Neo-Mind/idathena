@@ -1199,26 +1199,9 @@ int npc_click(struct map_session_data* sd, struct npc_data* nd)
 
 	switch(nd->subtype) {
 		case SHOP:
+		case ITEMSHOP:
+		case POINTSHOP:
 			clif_npcbuysell(sd,nd->bl.id);
-			break;
-		case ITEMSHOP: {
-				char output[CHAT_SIZE_MAX];
-				struct item_data *id = itemdb_exists(nd->u.shop.itemshop_nameid);
-
-				memset(output,'\0',sizeof(output));
-				sprintf(output,msg_txt(714),id->jname,id->nameid); // Item Shop List: %s (%d)
-				clif_broadcast(&sd->bl,output,strlen(output) + 1,0x10,SELF);
-				clif_npcbuysell(sd,nd->bl.id);
-			}
-			break;
-		case POINTSHOP: {
-				char output[CHAT_SIZE_MAX];
-
-				memset(output,'\0',sizeof(output));
-				sprintf(output,msg_txt(715),nd->u.shop.pointshop_str); // Point Shop List: '%s'
-				clif_broadcast(&sd->bl,output,strlen(output) + 1,0x10,SELF);
-				clif_npcbuysell(sd,nd->bl.id);
-			}
 			break;
 		case CASHSHOP:
 			clif_cashshop_show(sd,nd);
@@ -1289,24 +1272,44 @@ int npc_buysellsel(struct map_session_data* sd, int id, int type)
 	if (nd->subtype != SHOP && nd->subtype != ITEMSHOP && nd->subtype != POINTSHOP) {
 		ShowError("no such shop npc : %d\n",id);
 		if (sd->npc_id == id)
-			sd->npc_id=0;
+			sd->npc_id = 0;
 		return 1;
 	}
+
 	if (nd->sc.option&OPTION_INVISIBLE)	// Can't buy if npc is not visible (hack?)
 		return 1;
-	if (nd->class_ < 0 && !sd->state.callshop) { // Not called through a script and is not a visible NPC so an invalid call
+
+	if (nd->class_ < 0 && !sd->state.callshop) // Not called through a script and is not a visible NPC so an invalid call
 		return 1;
+
+	if (nd->subtype == ITEMSHOP) {
+		char output[CHAT_SIZE_MAX];
+		struct item_data *id = itemdb_exists(nd->u.shop.itemshop_nameid);
+
+		memset(output,'\0',sizeof(output));
+
+		if (id) {
+			sprintf(output,msg_txt(714),id->jname,id->nameid); // Item Shop List: %s (ID: %d)
+			clif_broadcast(&sd->bl,output,strlen(output) + 1,0x10,SELF);
+		}
+	} else if (nd->subtype == POINTSHOP) {
+		char output[CHAT_SIZE_MAX];
+
+		memset(output,'\0',sizeof(output));
+
+		sprintf(output,msg_txt(715),nd->u.shop.pointshop_str); // Point Shop List: '%s'
+		clif_broadcast(&sd->bl,output,strlen(output) + 1,0x10,SELF);
 	}
 
 	// Reset the callshop state for future calls
 	sd->state.callshop = 0;
 	sd->npc_shopid = id;
 
-	if (type == 0) {
+	if (type == 0)
 		clif_buylist(sd,nd);
-	} else {
+	else
 		clif_selllist(sd);
-	}
+
 	return 0;
 }
 /*==========================================

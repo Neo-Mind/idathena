@@ -1828,12 +1828,13 @@ int login_config_read(const char* cfgName)
 
 			if(sscanf(w2, "%3d, %32s", &group, md5) == 2) {
 				struct client_hash_node *nnode;
-				int i;
 
 				CREATE(nnode, struct client_hash_node, 1);
 				if(strcmpi(md5, "disabled") == 0) {
 					nnode->hash[0] = '\0';
 				} else {
+					int i;
+
 					for(i = 0; i < 32; i += 2) {
 						char buf[3];
 						unsigned int byte;

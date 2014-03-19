@@ -4118,9 +4118,11 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 	struct status_change *sc = status_get_sc(src);
 	struct status_data *sstatus = status_get_status_data(src);
-	int chorusbonus = 0, type;
+	int chorusbonus = 0;
 
 	if(sd) {
+		int type;
+
 		//Minstrel/Wanderer number check for chorus skills.
 		if(sd->status.party_id && party_foreachsamemap(party_sub_count_chorus, sd, 0) > 2)
 			chorusbonus = party_foreachsamemap(party_sub_count_chorus, sd, 0);
@@ -5253,21 +5255,21 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 				int64 tmp = wd.damage;
 
 				if(sd) {
-					if(skill_id == PA_SHIELDCHAIN) {
+					if(skill_id == PA_SHIELDCHAIN) { //Forced to neutral element
 						wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 						if(wd.damage > 0) {
 							wd.damage = battle_attr_fix(src, target, tmp, right_element, tstatus->def_ele, tstatus->ele_lv);
 							if(!wd.damage)
 								wd.damage = battle_attr_fix(src, target, tmp, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 						}
-					} else if(skill_id == KO_HAPPOKUNAI) {
+					} else if(skill_id == KO_HAPPOKUNAI) { //Forced to neutral element
 						wd.damage = battle_attr_fix(src, target, wd.damage, (sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 						if(wd.damage > 0) {
 							wd.damage = battle_attr_fix(src, target, tmp, right_element, tstatus->def_ele, tstatus->ele_lv);
 							if(!wd.damage)
 								wd.damage = battle_attr_fix(src, target, tmp, (sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 						}
-					} else
+					} else //Forced to its element
 						wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
 				}
 			}
@@ -8107,6 +8109,7 @@ static const struct _battle_data {
 	{ "feature.warp_suggestions",           &battle_config.warp_suggestions_enabled,        0,      0,      1,              },
 	{ "taekwon_mission_mobname",            &battle_config.taekwon_mission_mobname,         0,      0,      2,              },
 	{ "teleport_on_portal",                 &battle_config.teleport_on_portal,              0,      0,      1,              },
+	{ "cart_revo_knockback",                &battle_config.cart_revo_knockback,             1,      0,      1,              },
 };
 #ifndef STATS_OPT_OUT
 /**

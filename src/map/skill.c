@@ -1423,17 +1423,22 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				(sd ? sd->status.job_level / 4 : 0)) * 100,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),2);
 			break;
 		case LG_PINPOINTATTACK:
-			rate = 30 + (((sd ? pc_checkskill(sd,LG_PINPOINTATTACK) * 5 : 0) + (sstatus->agi + status_get_lv(src))) / 10);
+			rate = 30 + ((sd ? pc_checkskill(sd,LG_PINPOINTATTACK) * 5 : 0) + (sstatus->agi + status_get_lv(src)) / 10);
 			switch( skill_lv ) {
 				case 1:
 					sc_start2(src,bl,SC_BLEEDING,rate,skill_lv,src->id,skill_get_time(skill_id,skill_lv));
 					break;
 				case 2:
-					if( dstsd && dstsd->spiritball && rnd()%100 < rate )
-						pc_delspiritball(dstsd,dstsd->spiritball,0);
+					skill_break_equip(src,bl,EQP_HELM,rate * 100,BCT_ENEMY);
 					break;
-				default:
-					skill_break_equip(src,bl,(skill_lv == 3) ? EQP_SHIELD : (skill_lv == 4) ? EQP_ARMOR : EQP_WEAPON,rate * 100,BCT_ENEMY);
+				case 3:
+					skill_break_equip(src,bl,EQP_SHIELD,rate * 100,BCT_ENEMY);
+					break;
+				case 4:
+					skill_break_equip(src,bl,EQP_ARMOR,rate * 100,BCT_ENEMY);
+					break;
+				case 5:
+					skill_break_equip(src,bl,EQP_WEAPON,rate * 100,BCT_ENEMY);
 					break;
 			}
 			break;
@@ -3027,6 +3032,10 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		int8 dir = -1; //Default
 
 		switch (skill_id) { //Direction
+			case MC_CARTREVOLUTION:
+				if (battle_config.cart_revo_knockback)
+					dir = 2; //Official servers push target to the West
+				break;
 			case MG_FIREWALL:
 			case PR_SANCTUARY:
 			case SC_TRIANGLESHOT:
@@ -3582,13 +3591,13 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					}
 					break;
 				case WL_CHAINLIGHTNING_ATK: {
-						struct block_list *nbl = NULL; //Next Target of Chain
-
 						//Hit a Lightning on the current Target
 						skill_attack(BF_MAGIC,src,src,target,skl->skill_id,skl->skill_lv,tick,(9 - skl->type));
 						skill_toggle_magicpower(src,skl->skill_id); //Only the first hit will be amplify
 
 						if (skl->type < (4 + skl->skill_lv - 1) && skl->x < 3) { //Remaining Chains Hit
+							struct block_list *nbl = NULL; //Next Target of Chain
+
 							//After 2 bounces, it will bounce to other targets in 7x7 range.
 							nbl = battle_getenemyarea(src,target->x,target->y,(skl->type > 2) ? 2 : 3,
 								BL_CHAR|BL_SKILL,target->id); //Search for a new Target around current one
@@ -3596,7 +3605,6 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 								skl->x++;
 							else 
 								skl->x = 0;
-
 							skill_addtimerskill(src,tick + 651,(nbl ? nbl : target)->id,skl->x,0,WL_CHAINLIGHTNING_ATK,skl->skill_lv,skl->type + 1,skl->flag);
 						}
 					}
@@ -5771,7 +5779,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				mob_class_change(dstmd,class_);
 				if (tsc && dstmd->status.mode&MD_BOSS) {
-					const enum sc_type scs[] = { SC_QUAGMIRE, SC_PROVOKE, SC_ROKISWEIL, SC_GRAVITATION, SC_SUITON, SC_STRIPWEAPON, SC_STRIPSHIELD, SC_STRIPARMOR, SC_STRIPHELM, SC_BLADESTOP };
+					const enum sc_type scs[] = { SC_QUAGMIRE,SC_PROVOKE,SC_ROKISWEIL,SC_GRAVITATION,SC_SUITON,SC_STRIPWEAPON,SC_STRIPSHIELD,SC_STRIPARMOR,SC_STRIPHELM,SC_BLADESTOP };
 	
 					for (i = SC_COMMON_MIN; i <= SC_COMMON_MAX; i++)
 						if (tsc->data[i]) status_change_end(bl,(sc_type)i,INVALID_TIMER);
@@ -7082,12 +7090,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case AM_CP_HELM:
 			{
 				unsigned int equip[] = { EQP_WEAPON,EQP_SHIELD,EQP_ARMOR,EQP_HEAD_TOP };
+				enum sc_type sc_id = (sc_type)(SC_STRIPWEAPON + (skill_id - AM_CP_WEAPON));
 
 				if( sd && (bl->type != BL_PC || (dstsd && pc_checkequip(dstsd,equip[skill_id - AM_CP_WEAPON]) < 0)) ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					map_freeblock_unlock(); //Don't consume item requirements
 					return 0;
 				}
+				status_change_end(bl,sc_id,INVALID_TIMER);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,
 					sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			}
@@ -7855,6 +7865,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				for (i = 0; i < 4; i++) {
 					if (bl->type != BL_PC || (dstsd && pc_checkequip(dstsd,equip[i]) < 0))
 						continue;
+					status_change_end(bl,(sc_type)(SC_STRIPWEAPON + i),INVALID_TIMER);
 					sc_start(src,bl,(sc_type)(SC_CP_WEAPON + i),100,skill_lv,skilltime);
 					s++;
 				}
@@ -16020,7 +16031,7 @@ void skill_weaponrefine (struct map_session_data *sd, int idx)
 
 		item = &sd->status.inventory[idx];
 		if (item->nameid > 0 && ditem->type == IT_WEAPON) {
-			int i = 0, ep = 0, per;
+			int i = 0, per;
 			int material[5] = { 0,ITEMID_PHRACON,ITEMID_EMVERETARCON,ITEMID_ORIDECON,ITEMID_ORIDECON };
 
 			if( ditem->flag.no_refine ) { //If the item isn't refinable
@@ -16042,6 +16053,8 @@ void skill_weaponrefine (struct map_session_data *sd, int idx)
 				per += (((signed int)sd->status.job_level) - 50) / 2; //Updated per the new kro descriptions. [Skotlex]
 			pc_delitem(sd,i,1,0,0,LOG_TYPE_OTHER);
 			if (per > rnd()%100) {
+				int ep = 0;
+
 				log_pick_pc(sd,LOG_TYPE_OTHER,-1,item);
 				item->refine++;
 				log_pick_pc(sd,LOG_TYPE_OTHER, 1,item);
@@ -18149,10 +18162,10 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 			case GN_S_PHARMACY: {
 					int difficulty = 0;
 					
-					difficulty = (620 - 20 * skill_lv);//(620 - 20 * Skill Level)
+					difficulty = (620 - 20 * skill_lv); //(620 - 20 * Skill Level)
 
 					make_per = status->int_ + status->dex / 2 + status->luk + sd->status.job_level + (30 + rnd()%120) + //(Caster INT) + (Caster DEX / 2) + (Caster LUK) + (Caster Job Level) + Random number between (30 ~ 150) +
-								(sd->status.base_level - 100) + pc_checkskill(sd,AM_LEARNINGPOTION) + pc_checkskill(sd,CR_FULLPROTECTION) * (4 + rnd()%6); //(Caster Base Level - 100) + (Potion Research x 5) + (Full Chemical Protection Skill Level) x (Random number between 4 ~ 10)
+						(sd->status.base_level - 100) + pc_checkskill(sd,AM_LEARNINGPOTION) + pc_checkskill(sd,CR_FULLPROTECTION) * (4 + rnd()%6); //(Caster Base Level - 100) + (Potion Research x 5) + (Full Chemical Protection Skill Level) x (Random number between 4 ~ 10)
 					
 					switch(nameid) { //Difficulty factor
 						case ITEMID_HP_INCREASE_POTION_SMALL:
