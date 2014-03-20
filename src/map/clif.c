@@ -4803,7 +4803,7 @@ static int clif_getareachar(struct block_list* bl,va_list ap)
 	if (sd == NULL || !sd->fd)
 		return 0;
 
-	switch(bl->type) {
+	switch (bl->type) {
 		case BL_ITEM:
 			clif_getareachar_item(sd,(struct flooritem_data*) bl);
 			break;
@@ -4811,7 +4811,7 @@ static int clif_getareachar(struct block_list* bl,va_list ap)
 			clif_getareachar_skillunit(1,sd,(TBL_SKILL*)bl);
 			break;
 		default:
-			if(&sd->bl == bl)
+			if (&sd->bl == bl)
 				break;
 			clif_getareachar_unit(sd,bl);
 			break;
@@ -4828,24 +4828,27 @@ int clif_outsight(struct block_list *bl,va_list ap)
 	struct view_data *vd;
 	TBL_PC *sd, *tsd;
 	tbl = va_arg(ap,struct block_list*);
-	if(bl == tbl) return 0;
+
+	if (bl == tbl)
+		return 0;
+
 	sd = BL_CAST(BL_PC, bl);
 	tsd = BL_CAST(BL_PC, tbl);
 
 	if (tsd && tsd->fd) { //tsd has lost sight of the bl object.
-		switch(bl->type) {
+		switch (bl->type) {
 			case BL_PC:
 				if (sd->vd.class_ != INVISIBLE_CLASS)
 					clif_clearunit_single(bl->id,CLR_OUTSIGHT,tsd->fd);
-				if(sd->chatID){
-					struct chat_data *cd;
-					cd=(struct chat_data*)map_id2bl(sd->chatID);
-					if(cd->usersd[0]==sd)
+				if (sd->chatID) {
+					struct chat_data *cd = (struct chat_data*)map_id2bl(sd->chatID);
+
+					if (cd->usersd[0] == sd)
 						clif_dispchat(cd,tsd->fd);
 				}
-				if( sd->state.vending )
+				if (sd->state.vending)
 					clif_closevendingboard(bl,tsd->fd);
-				if( sd->state.buyingstore )
+				if (sd->state.buyingstore)
 					clif_buyingstore_disappear_entry_single(tsd, sd);
 				break;
 			case BL_ITEM:
@@ -4855,17 +4858,17 @@ int clif_outsight(struct block_list *bl,va_list ap)
 				clif_clearchar_skillunit((struct skill_unit *)bl,tsd->fd);
 				break;
 			case BL_NPC:
-				if( !(((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE) )
+				if (!(((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
 					clif_clearunit_single(bl->id,CLR_OUTSIGHT,tsd->fd);
 				break;
 			default:
-				if ((vd=status_get_viewdata(bl)) && vd->class_ != INVISIBLE_CLASS)
+				if ((vd = status_get_viewdata(bl)) && vd->class_ != INVISIBLE_CLASS)
 					clif_clearunit_single(bl->id,CLR_OUTSIGHT,tsd->fd);
 				break;
 		}
 	}
 	if (sd && sd->fd) { //sd is watching tbl go out of view.
-		if (((vd=status_get_viewdata(tbl)) && vd->class_ != INVISIBLE_CLASS) &&
+		if (((vd = status_get_viewdata(tbl)) && vd->class_ != INVISIBLE_CLASS) &&
 			!(tbl->type == BL_NPC && (((TBL_NPC*)tbl)->sc.option&OPTION_INVISIBLE)))
 			clif_clearunit_single(tbl->id,CLR_OUTSIGHT,sd->fd);
 	}
@@ -4888,7 +4891,7 @@ int clif_insight(struct block_list *bl,va_list ap)
 	tsd = BL_CAST(BL_PC,tbl);
 
 	if (tsd && tsd->fd) { //Tell tsd that bl entered into his view
-		switch(bl->type) {
+		switch (bl->type) {
 			case BL_ITEM:
 				clif_getareachar_item(tsd,(struct flooritem_data*)bl);
 				break;
@@ -4917,7 +4920,8 @@ void clif_skillinfoblock(struct map_session_data *sd)
 	nullpo_retv(sd);
 
 	fd = sd->fd;
-	if (!fd) return;
+	if (!fd)
+		return;
 
 	WFIFOHEAD(fd, MAX_SKILL * 37 + 4);
 	WFIFOW(fd,0) = 0x10f;

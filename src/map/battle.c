@@ -966,7 +966,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		//Now damage increasing effects
 		if( sc->data[SC_AETERNA] && skill_id != PF_SOULBURN ) {
 			//Lex Aeterna only doubles damage of regular attacks from mercenaries
-			if( src->type != BL_MER || skill_id == 0 )
+			if( src->type != BL_MER || !skill_id )
 				damage <<= 1;
 #ifndef RENEWAL
 			//Shouldn't end until Breaker's non-weapon part connects.

@@ -2824,7 +2824,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	}
 
 	//Skill hit type
-	type = (skill_id == 0) ? 5 : skill_get_hit(skill_id);
+	type = (!skill_id) ? 5 : skill_get_hit(skill_id);
 
 	switch (skill_id) {
 		case WL_HELLINFERNO: //Hell Inferno burning status only starts if Fire part hits
@@ -6601,6 +6601,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				//Custom hack to make the mob display the skill, because these skills don't show the skill use text themselves
 				//NOTE: mobs don't have the sprite animation that is used when performing this skill (will cause glitches)
 				char temp[70];
+
 				snprintf(temp,sizeof(temp),"%s : %s !!",md->name,skill_db[skill_get_index(skill_id)].desc);
 				clif_disp_overhead(&md->bl,temp);
 			}
@@ -18949,7 +18950,7 @@ int skill_blockpc_start(struct map_session_data *sd, uint16 skill_id, int tick) 
 	int i;
 	nullpo_retr(-1, sd);
 
-	if (skill_id == 0 || tick < 1)
+	if (!skill_id || tick < 1)
 		return -1;
 
 	ARR_FIND(0, MAX_SKILLCOOLDOWN, i, sd->scd[i] && sd->scd[i]->skill_id == skill_id);

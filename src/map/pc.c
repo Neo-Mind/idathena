@@ -1401,7 +1401,7 @@ int pc_reg_received(struct map_session_data *sd)
 
 	if (sd->sc.option&OPTION_INVISIBLE) {
 		sd->vd.class_ = INVISIBLE_CLASS;
-		clif_disp_overhead(&sd->bl, msg_txt(11)); //Invisible: On
+		clif_displaymessage(sd->fd, msg_txt(11)); //Invisible: On
 		//Decrement the number of pvp players on the map
 		map[sd->bl.m].users_pvp--;
 
@@ -1807,17 +1807,14 @@ int pc_disguise(struct map_session_data *sd, int class_)
 		return 0;
 	if (class_ && sd->disguise == class_)
 		return 0;
-
 	if (sd->sc.option&OPTION_INVISIBLE) { //Character is invisible. Stealth class-change. [Skotlex]
 		sd->disguise = class_; //Viewdata is set on uncloaking.
 		return 2;
 	}
-
 	if (sd->bl.prev != NULL) {
 		pc_stop_walking(sd, 0);
 		clif_clearunit_area(&sd->bl, CLR_OUTSIGHT);
 	}
-
 	if (!class_) {
 		sd->disguise = 0;
 		class_ = sd->status.class_;
@@ -1834,9 +1831,9 @@ int pc_disguise(struct map_session_data *sd, int class_)
 			clif_updatestatus(sd, SP_CARTINFO);
 		}
 		if (sd->chatID) {
-			struct chat_data* cd;
+			struct chat_data* cd = (struct chat_data*)map_id2bl(sd->chatID);
 
-			if ((cd = (struct chat_data*)map_id2bl(sd->chatID)))
+			if (cd)
 				clif_dispchat(cd, 0);
 		}
 	}
@@ -1849,7 +1846,6 @@ static int pc_bonus_autospell(struct s_autospell *spell, int max, short id, shor
 
 	if( !rate )
 		return 0;
-
 	for( i = 0; i < max && spell[i].id; i++ ) {
 		if( (spell[i].card_id == card_id || spell[i].rate < 0 || rate < 0) && spell[i].id == id && spell[i].lv == lv ) {
 			if( !battle_config.autospell_stacking && spell[i].rate > 0 && rate > 0 )

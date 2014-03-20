@@ -183,7 +183,7 @@ int chat_leavechat(struct map_session_data* sd, bool kicked)
 	}
 
 	ARR_FIND(0, cd->users, i, cd->usersd[i] == sd);
-	if ( i == cd->users ) { // Not found in the chatroom?
+	if ( i == cd->users ) { //Not found in the chatroom?
 		pc_setchatid(sd, 0);
 		return -1;
 	}
@@ -195,10 +195,10 @@ int chat_leavechat(struct map_session_data* sd, bool kicked)
 	leavechar = i;
 
 	for( i = leavechar; i < cd->users; i++ )
-		cd->usersd[i] = cd->usersd[i+1];
+		cd->usersd[i] = cd->usersd[i + 1];
 
 
-	if( cd->users == 0 && cd->owner->type == BL_PC ) { // Delete empty chatroom
+	if( cd->users == 0 && cd->owner->type == BL_PC ) { //Delete empty chatroom
 		struct skill_unit* unit;
 		struct skill_unit_group* group;
 
@@ -216,21 +216,21 @@ int chat_leavechat(struct map_session_data* sd, bool kicked)
 		return 1;
 	}
 
-	if( leavechar == 0 && cd->owner->type == BL_PC ) { // Set and announce new owner
+	if( leavechar == 0 && cd->owner->type == BL_PC ) { //Set and announce new owner
 		cd->owner = (struct block_list*) cd->usersd[0];
 		clif_changechatowner(cd, cd->usersd[0]);
 		clif_clearchat(cd, 0);
 
-		// Adjust Chat location after owner has been changed.
+		//Adjust Chat location after owner has been changed.
 		map_delblock(&cd->bl);
 		cd->bl.x = cd->usersd[0]->bl.x;
 		cd->bl.y = cd->usersd[0]->bl.y;
 		if( map_addblock(&cd->bl) )
 			return 1;
 
-		clif_dispchat(cd,0);
+		clif_dispchat(cd, 0);
 	} else
-		clif_dispchat(cd,0); // Refresh chatroom
+		clif_dispchat(cd, 0); //Refresh chatroom
 
 	return 0;
 }
@@ -292,7 +292,7 @@ int chat_changechatstatus(struct map_session_data* sd, const char* title, const 
 	nullpo_retr(1, sd);
 
 	cd = (struct chat_data*)map_id2bl(sd->chatID);
-	if( cd==NULL || (struct block_list *)sd != cd->owner )
+	if( cd == NULL || (struct block_list *)sd != cd->owner )
 		return 1;
 
 	safestrncpy(cd->title, title, CHATROOM_TITLE_SIZE);

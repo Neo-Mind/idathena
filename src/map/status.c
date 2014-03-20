@@ -5408,7 +5408,7 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 	if(sc->data[SC_CONCENTRATION])
 		def -= def * sc->data[SC_CONCENTRATION]->val4 / 100;
 	if(sc->data[SC_SKE])
-		def >>=1;
+		def >>= 1;
 	if(sc->data[SC_PROVOKE] && bl->type != BL_PC) //Provoke doesn't alter player defense.
 		def -= def * sc->data[SC_PROVOKE]->val4 / 100;
 	if(sc->data[SC_STRIPSHIELD] && bl->type != BL_PC)
