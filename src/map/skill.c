@@ -2454,7 +2454,7 @@ void skill_combo(struct block_list* src, struct block_list *dsrc, struct block_l
 					sce->val3 = skill_id;
 					if( sce->timer != INVALID_TIMER )
 						delete_timer(sce->timer, status_change_timer);
-					sce->timer = add_timer(tick+sce->val4, status_change_timer, src->id, SC_COMBO);
+					sce->timer = add_timer(tick + sce->val4, status_change_timer, src->id, SC_COMBO);
 					break;
 				}
 				unit_cancel_combo(src); //Cancel combo wait

@@ -9914,9 +9914,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	if(!(flag&4 && StatusDisplayType[type]))
 		clif_status_change(bl,StatusIconChangeTable[type],1,tick,(val_flag&1) ? val1 : 1,(val_flag&2) ? val2 : 0,(val_flag&4) ? val3 : 0);
 
-	/**
-	 * Used as temporary storage for scs with interval ticks, so that the actual duration is sent to the client first.
-	 **/
+	//Used as temporary storage for scs with interval ticks, so that the actual duration is sent to the client first.
 	if(tick_time)
 		tick = tick_time;
 
@@ -9980,6 +9978,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 		case SC_WUGDASH: {
 				struct unit_data *ud = unit_bl2ud(bl);
+
 				if(ud)
 					ud->state.running = unit_wugdash(bl,sd);
 			}
