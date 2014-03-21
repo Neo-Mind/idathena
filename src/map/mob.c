@@ -3810,8 +3810,9 @@ static bool mob_parse_dbrow(char** str)
 		type = id->type;
 		rate = atoi(str[k + 1]);
 		if (battle_config.drop_rateincrease)
-			if (rate < 5000) rate++;
-		if ((mob_id >= 1324 && mob_id <= 1363) || (mob_id >= 1938 && mob_id <= 1946)) { //Treasure box drop rates [Skotlex]
+			if (rate < 5000)
+				rate++;
+		if ((mob_id >= MOBID_TREAS01 && mob_id <= MOBID_TREAS40) || (mob_id >= MOBID_TREAS41 && mob_id <= MOBID_TREAS49)) { //Treasure box drop rates [Skotlex]
 			rate_adjust = battle_config.item_rate_treasure;
 			ratemin = battle_config.item_drop_treasure_min;
 			ratemax = battle_config.item_drop_treasure_max;
@@ -3850,7 +3851,7 @@ static bool mob_parse_dbrow(char** str)
 		db->dropitem[i].p = mob_drop_adjust(rate, rate_adjust, ratemin, ratemax);
 
 		//Calculate and store Max available drop chance of the item
-		if (db->dropitem[i].p && (mob_id < 1324 || mob_id > 1363) && (mob_id < 1938 || mob_id > 1946)) { //Skip treasure chests.
+		if (db->dropitem[i].p && (mob_id < MOBID_TREAS01 || mob_id > MOBID_TREAS40) && (mob_id < MOBID_TREAS41 || mob_id > MOBID_TREAS49)) { //Skip treasure chests.
 			if (id->maxchance == -1 || (id->maxchance < db->dropitem[i].p) ) {
 				id->maxchance = db->dropitem[i].p; //Item has bigger drop chance or sold in shops
 			}

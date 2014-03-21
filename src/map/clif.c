@@ -1485,7 +1485,7 @@ int clif_spawn(struct block_list *bl)
 	if (!vd || vd->class_ == INVISIBLE_CLASS)
 		return 0;
 
-	//Hide NPC from maya purple card.
+	//Hide NPC from maya purple card
 	if (bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
 		return 0;
 
@@ -1531,6 +1531,7 @@ int clif_spawn(struct block_list *bl)
 			break;
 		case BL_MOB: {
 				TBL_MOB *md = ((TBL_MOB*)bl);
+
 				if (md->special_state.size == SZ_BIG) //Tiny/Big mobs [Valaris]
 					clif_specialeffect(&md->bl,423,AREA);
 				else if (md->special_state.size == SZ_MEDIUM)
@@ -1539,6 +1540,7 @@ int clif_spawn(struct block_list *bl)
 			break;
 		case BL_NPC: {
 				TBL_NPC *nd = ((TBL_NPC*)bl);
+
 				if (nd->size == SZ_BIG)
 					clif_specialeffect(&nd->bl,423,AREA);
 				else if (nd->size == SZ_MEDIUM)
@@ -1797,9 +1799,7 @@ void clif_move(struct unit_data *ud)
 	if (!vd || vd->class_ == INVISIBLE_CLASS)
 		return; //This performance check is needed to keep GM-hidden objects from being notified to bots.
 
-	/**
-	* Hide NPC from maya purple card.
-	**/
+	//Hide NPC from maya purple card
 	if (bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
 		return;
 
@@ -4341,7 +4341,7 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 	if (!vd || vd->class_ == INVISIBLE_CLASS)
 		return;
 
-	//Hide NPC from maya purple card.
+	//Hide NPC from maya purple card
 	if (bl->type == BL_NPC && !((TBL_NPC*)bl)->chat_id && (((TBL_NPC*)bl)->sc.option&OPTION_INVISIBLE))
 		return;
 
@@ -9802,14 +9802,14 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 		if(sd->sc.option&OPTION_FALCON)
 			clif_status_load(&sd->bl,SI_FALCON,1);
 
-		if(sd->sc.option&OPTION_RIDING)
+		if(sd->sc.option&(OPTION_RIDING|OPTION_DRAGON))
 			clif_status_load(&sd->bl,SI_RIDING,1);
 
-		else if(sd->sc.option&OPTION_DRAGON)
-			clif_status_load(&sd->bl,SI_RIDING,1);
-
-		else if(sd->sc.option&OPTION_WUGRIDER)
+		if(sd->sc.option&OPTION_WUGRIDER)
 			clif_status_load(&sd->bl,SI_WUGRIDER,1);
+
+		if(sd->sc.data[SC_ALL_RIDING])
+			clif_status_load(&sd->bl,SI_ALL_RIDING,1);
 
 		if(sd->status.manner < 0)
 			sc_start(&sd->bl,&sd->bl,SC_NOCHAT,100,0,0);
@@ -10196,16 +10196,17 @@ void clif_parse_GetCharNameRequest(int fd, struct map_session_data *sd)
 		return; // Block namerequests past view range
 
 	// 'See people in GM hide' cheat detection
-	/* disabled due to false positives (network lag + request name of char that's about to hide = race condition)
+	/* Disabled due to false positives (network lag + request name of char that's about to hide = race condition)
 	sc = status_get_sc(bl);
 	if (sc && (sc->option&OPTION_INVISIBLE) && !disguised(bl) &&
 		bl->type != BL_NPC && //Skip hidden NPCs which can be seen using Maya Purple
 		pc_get_group_level(sd) < battle_config.hack_info_GM_level
 	) {
 		char gm_msg[256];
+
 		sprintf(gm_msg, "Hack on NameRequest: character '%s' (account: %d) requested the name of an invisible target (id: %d).\n", sd->status.name, sd->status.account_id, id);
 		ShowWarning(gm_msg);
-		// information is sent to all online GMs
+		// Information is sent to all online GMs
 		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, gm_msg);
 		return;
 	}
@@ -10457,7 +10458,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 		sd->sc.data[SC_BLADESTOP] ||
 		sd->sc.data[SC__MANHOLE] ||
 		sd->sc.data[SC_CURSEDCIRCLE_ATKER] ||
-		sd->sc.data[SC_CURSEDCIRCLE_TARGET] ) )
+		sd->sc.data[SC_CURSEDCIRCLE_TARGET]) )
 		return;
 
 	pc_stop_walking(sd, 1);

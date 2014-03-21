@@ -2577,7 +2577,7 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 			if(sd->state.lr_flag != 2 && sd->special_state.no_gemstone != 2)
 				sd->special_state.no_gemstone = 1;
 			break;
-		case SP_INTRAVISION: // Maya Purple Card effect allowing to see Hiding/Cloaking people [DracoRPG]
+		case SP_INTRAVISION: //Maya Purple Card effect allowing to see Hiding/Cloaking people [DracoRPG]
 			if(sd->state.lr_flag != 2) {
 				sd->special_state.intravision = 1;
 				clif_status_load(&sd->bl, SI_INTRAVISION, 1);
@@ -3437,7 +3437,7 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 			if(sd->state.lr_flag != 2) {
 				int target = skill_get_inf(type2); //Support or Self (non-auto-target) skills should pick self.
 
-				target = target&INF_SUPPORT_SKILL || (target&INF_SELF_SKILL && !(skill_get_inf2(type2)&INF2_NO_TARGET_SELF));
+				target = (target&INF_SUPPORT_SKILL) || ((target&INF_SELF_SKILL) && !(skill_get_inf2(type2)&INF2_NO_TARGET_SELF));
 				pc_bonus_autospell(sd->autospell, ARRAYLENGTH(sd->autospell),
 					target?-type2:type2, type3, val, 0, current_equip_card_id);
 			}
@@ -3446,7 +3446,7 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 			if(sd->state.lr_flag != 2) {
 				int target = skill_get_inf(type2); //Support or Self (non-auto-target) skills should pick self.
 
-				target = target&INF_SUPPORT_SKILL || (target&INF_SELF_SKILL && !(skill_get_inf2(type2)&INF2_NO_TARGET_SELF));
+				target = (target&INF_SUPPORT_SKILL) || ((target&INF_SELF_SKILL) && !(skill_get_inf2(type2)&INF2_NO_TARGET_SELF));
 				pc_bonus_autospell(sd->autospell2, ARRAYLENGTH(sd->autospell2),
 					target?-type2:type2, type3, val, BF_NORMAL|BF_SKILL, current_equip_card_id);
 			}
@@ -3543,8 +3543,7 @@ int pc_bonus4(struct map_session_data *sd,int type,int type2,int type3,int type4
 			if( sd->state.lr_flag != 2 ) {
 				int target = skill_get_inf(type2); //Support or Self (non-auto-target) skills should pick self.
 
-				target = target&INF_SUPPORT_SKILL || (target&INF_SELF_SKILL && !(skill_get_inf2(type2)&INF2_NO_TARGET_SELF));
-
+				target = (target&INF_SUPPORT_SKILL) || ((target&INF_SELF_SKILL) && !(skill_get_inf2(type2)&INF2_NO_TARGET_SELF));
 				pc_bonus_autospell_onskill(sd->autospell3, ARRAYLENGTH(sd->autospell3), type2, target?-type3:type3, type4, val, current_equip_card_id);
 			}
 			break;
@@ -4439,8 +4438,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 		sd->sc.data[SC_DEEPSLEEP] ||
 		sd->sc.data[SC_KAGEHUMI] ||
 		(sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOITEM) ||
-		sd->sc.data[SC_HEAT_BARREL_AFTER])
-	)
+		sd->sc.data[SC_HEAT_BARREL_AFTER]) )
 		return 0;
 
 	if( !pc_isItemClass(sd,item) )
@@ -6657,7 +6655,7 @@ int pc_resetskill(struct map_session_data* sd, int flag)
 			i &= ~OPTION_WUG;
 		if( i&OPTION_WUGRIDER && pc_checkskill(sd, RA_WUGRIDER) )
 			i &= ~OPTION_WUGRIDER;
-		if( i&OPTION_MADOGEAR && ( sd->class_&MAPID_THIRDMASK ) == MAPID_MECHANIC )
+		if( i&OPTION_MADOGEAR && (sd->class_&MAPID_THIRDMASK) == MAPID_MECHANIC )
 			i &= ~OPTION_MADOGEAR;
 #ifndef NEW_CARTS
 		if( i&OPTION_CART && pc_checkskill(sd, MC_PUSHCART) )

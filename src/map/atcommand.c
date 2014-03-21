@@ -626,8 +626,8 @@ ACMD_FUNC(who)
 
 	iter = mapit_getallusers();
 	for (pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter))	{
-		if (!((pc_has_permission(pl_sd, PC_PERM_HIDE_SESSION) || (pl_sd->sc.option & OPTION_INVISIBLE)) && pc_get_group_level(pl_sd) > level)) { // you can look only lower or same level
-			if (stristr(pl_sd->status.name, player_name) == NULL // search with no case sensitive
+		if (!((pc_has_permission(pl_sd, PC_PERM_HIDE_SESSION) || (pl_sd->sc.option&OPTION_INVISIBLE)) && pc_get_group_level(pl_sd) > level)) { // you can look only lower or same level
+			if (stristr(pl_sd->status.name, player_name) == NULL // Search with no case sensitive
 				|| (map_id >= 0 && pl_sd->bl.m != map_id))
 				continue;
 			switch (display_type) {
@@ -948,7 +948,8 @@ ACMD_FUNC(option)
 ACMD_FUNC(hide)
 {
 	nullpo_retr(-1, sd);
-	if (sd->sc.option & OPTION_INVISIBLE) {
+
+	if (sd->sc.option&OPTION_INVISIBLE) {
 		sd->sc.option &= ~OPTION_INVISIBLE;
 		if (sd->disguise)
 			status_set_viewdata(&sd->bl, sd->disguise);

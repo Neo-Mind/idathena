@@ -1176,7 +1176,6 @@ void initChangeTables(void) {
 	StatusChangeStateTable[SC_TRICKDEAD]           |= SCS_NOPICKITEM;
 	StatusChangeStateTable[SC_BLADESTOP]           |= SCS_NOPICKITEM;
 	StatusChangeStateTable[SC_CLOAKINGEXCEED]      |= SCS_NOPICKITEM;
-	StatusChangeStateTable[SC__FEINT]              |= SCS_NOPICKITEM;
 	StatusChangeStateTable[SC_NOCHAT]              |= SCS_NOPICKITEM|SCS_NOPICKITEMCOND;
 
 	/* StatusChangeState (SCS_) NODROPITEMS */
@@ -1231,7 +1230,6 @@ static void initDummyData(void)
 	dummy_status.ele_lv = 1; //Min elemental level.
 	dummy_status.mode = MD_CANMOVE;
 }
-
 
 //For copying a status_data structure from b to a, without overwriting current Hp and Sp
 static inline void status_cpy(struct status_data* a, const struct status_data* b)
@@ -1364,7 +1362,6 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 			status_change_end(target, SC_CHASEWALK, INVALID_TIMER);
 			status_change_end(target, SC_CAMOUFLAGE, INVALID_TIMER);
 			status_change_end(target, SC__CHAOS, INVALID_TIMER);
-			status_change_end(target, SC__FEINT, INVALID_TIMER);
 			status_change_end(target, SC_DEEPSLEEP, INVALID_TIMER);
 			if ((sce = sc->data[SC_ENDURE]) && !sce->val4 && !sc->data[SC_CONCENTRATION]) {
 				//Endure count is only reduced by non-players on non-gvg maps.
@@ -1928,22 +1925,20 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 
 	switch (target->type) {
 		case BL_PC: {
-				struct map_session_data *sd = (TBL_PC*) target;
-				bool is_boss = (status->mode&MD_BOSS);
-				//God-knows-why gcc doesn't shut up until this happens
-				bool is_detect = ((status->mode&MD_DETECTOR) ? true : false);
+				struct map_session_data *tsd = (TBL_PC*)target;
 
-				if (pc_isinvisible(sd))
+				if (pc_isinvisible(tsd))
 					return 0;
 				if (tsc) {
-					if ((tsc->option&hide_flag) && ((!is_boss &&
-						((sd->special_state.perfect_hiding || !is_detect) ||
-						(tsc->data[SC_CLOAKINGEXCEED] && is_detect))) ||
-						(tsc->data[SC__FEINT] && (is_boss || is_detect))))
+					if ((tsc->option&hide_flag) && !(status->mode&MD_BOSS) &&
+						(tsd->special_state.perfect_hiding || !(status->mode&MD_DETECTOR)))
 						return 0;
-					if (tsc->data[SC_CAMOUFLAGE] && !(is_boss || is_detect) && !skill_id)
+					if (tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS) &&
+						(tsd->special_state.perfect_hiding || (status->mode&MD_DETECTOR)))
 						return 0;
-					if (tsc->data[SC_STEALTHFIELD] && !(is_boss || is_detect))
+					if (tsc->data[SC_CAMOUFLAGE] && !((status->mode&MD_BOSS) || (status->mode&MD_DETECTOR)) && !skill_id)
+						return 0;
+					if (tsc->data[SC_STEALTHFIELD] && !((status->mode&MD_BOSS) || (status->mode&MD_DETECTOR)))
 						return 0;
 				}
 			}
@@ -1956,15 +1951,17 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		case BL_HOM:
 		case BL_MER:
 		case BL_ELEM:
-			if (target->type == BL_HOM && skill_id && battle_config.hom_setting&0x1 && skill_get_inf(skill_id)&INF_SUPPORT_SKILL && battle_get_master(target) != src)
+			if (target->type == BL_HOM && skill_id && (battle_config.hom_setting&0x1) && (skill_get_inf(skill_id)&INF_SUPPORT_SKILL) && battle_get_master(target) != src)
 				return 0; //Can't use support skills on Homunculus (only Master/Self)
 			if (target->type == BL_MER && (skill_id == PR_ASPERSIO || (skill_id >= SA_FLAMELAUNCHER && skill_id <= SA_SEISMICWEAPON)) && battle_get_master(target) != src)
 				return 0; //Can't use Weapon endow skills on Mercenary (only Master)
 			if (skill_id == AM_POTIONPITCHER && (target->type == BL_MER || target->type == BL_ELEM))
 				return 0; //Can't use Potion Pitcher on Mercenaries
+			break;
 		default: //Check for chase-walk/hiding/cloaking opponents.
 			if (tsc && (tsc->option&hide_flag) && !(status->mode&(MD_BOSS|MD_DETECTOR)))
 				return 0;
+			break;
 	}
 
 	return 1;
@@ -1985,6 +1982,7 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 			break;
 		default:
 			view_range = AREA_SIZE;
+			break;
 	}
 
 	if( src->m != target->m || !check_distance_bl(src, target, view_range) )
@@ -1997,20 +1995,25 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 		struct status_data *status = status_get_status_data(src);
 
 		switch( target->type ) { //Check for chase-walk/hiding/cloaking opponents.
-			case BL_PC:
-				if( tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS) )
-					return 0;
-				if( tsc->data[SC__FEINT] && (status->mode&MD_BOSS || status->mode&MD_DETECTOR) )
-					return 0;
-				if( ((tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK)) ||
-					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_STEALTHFIELD]) && !(status->mode&MD_BOSS) &&
-					(((TBL_PC*)target)->special_state.perfect_hiding || !(status->mode&MD_DETECTOR)) )
-					return 0;
+			case BL_PC: {
+					struct map_session_data *tsd = (TBL_PC*)target;
+
+					if( ((tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK)) ||
+						tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_STEALTHFIELD]) && !(status->mode&MD_BOSS) &&
+						(tsd->special_state.perfect_hiding || !(status->mode&MD_DETECTOR)) )
+						return 0;
+					if( tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS) &&
+						(tsd->special_state.perfect_hiding || (status->mode&MD_DETECTOR)) )
+						return 0;
+					if( tsc->data[SC__FEINT] )
+						return 0;
+				}
 				break;
 			default:
 				if( ((tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK)) ||
 					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_STEALTHFIELD]) && !(status->mode&(MD_BOSS|MD_DETECTOR)) )
 					return 0;
+				break;
 		}
 	}
 
@@ -3316,7 +3319,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 	if((skill = pc_checkskill(sd,TF_MISS)) > 0)
 		status->flee += skill * (sd->class_&JOBL_2 && (sd->class_&MAPID_BASEMASK) == MAPID_THIEF? 4 : 3);
 	if((skill = pc_checkskill(sd,MO_DODGE)) > 0)
-		status->flee += (skill * 3) >> 1;
+		status->flee += (skill * 3)>>1;
 
 	//----- EQUIPMENT-DEF CALCULATION -----
 	//Apply relative modifiers from equipment
@@ -3348,7 +3351,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 
 #ifndef RENEWAL
 	if(!battle_config.magic_defense_type && status->mdef > battle_config.max_def) {
-		status->mdef2 += battle_config.over_def_bonus*(status->mdef - battle_config.max_def);
+		status->mdef2 += battle_config.over_def_bonus * (status->mdef - battle_config.max_def);
 		status->mdef = (defType)battle_config.max_def;
 	}
 #endif
@@ -3481,8 +3484,9 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 			sd->subele[ELE_UNDEAD] += i;
 		}
 		if(sc->data[SC_PROVIDENCE]) {
-			sd->subele[ELE_HOLY] += sc->data[SC_PROVIDENCE]->val2;
-			sd->subrace[RC_DEMON] += sc->data[SC_PROVIDENCE]->val2;
+			i = sc->data[SC_PROVIDENCE]->val2;
+			sd->subele[ELE_HOLY] += i;
+			sd->subrace[RC_DEMON] += i;
 		}
 		if(sc->data[SC_ARMOR_ELEMENT]) { //This status change should grant card-type elemental resist.
 			sd->subele[ELE_WATER] += sc->data[SC_ARMOR_ELEMENT]->val1;
@@ -3558,7 +3562,7 @@ int status_calc_mercenary_(struct mercenary_data *md, enum e_status_calc_opt opt
 	if( opt&SCO_FIRST ) {
 		memcpy(status, &md->db->status, sizeof(struct status_data));
 		status->class_ = CLASS_NORMAL;
-		status->mode = MD_CANMOVE|MD_CANATTACK;
+		status->mode = (enum e_mode)(MD_CANMOVE|MD_CANATTACK);
 		status->hp = status->max_hp;
 		status->sp = status->max_sp;
 		md->battle_status.hp = merc->hp;
@@ -3596,7 +3600,7 @@ int status_calc_homunculus_(struct homun_data *hd, enum e_status_calc_opt opt)
 		status->class_ = CLASS_NORMAL;
 		status->size = (hom->class_ == db->evo_class) ? db->evo_size : db->base_size;
 		status->rhw.range = 1 + status->size;
-		status->mode = MD_CANMOVE|MD_CANATTACK;
+		status->mode = (enum e_mode)(MD_CANMOVE|MD_CANATTACK);
 		status->speed = DEFAULT_WALK_SPEED;
 		if (battle_config.hom_setting&0x8 && hd->master)
 			status->speed = status_get_speed(&hd->master->bl);
@@ -3727,7 +3731,7 @@ int status_calc_npc_(struct npc_data *nd, enum e_status_calc_opt opt) {
 		status->class_ = CLASS_NORMAL;
 		status->size = nd->size;
 		status->rhw.range = 1 + status->size;
-		status->mode = MD_CANMOVE|MD_CANATTACK;
+		status->mode = (enum e_mode)(MD_CANMOVE|MD_CANATTACK);
 		status->speed = nd->speed;
 	}
 
@@ -4462,13 +4466,13 @@ void status_calc_bl_(struct block_list* bl, enum scb_flag flag, enum e_status_ca
 
 	if( flag&SCB_BASE ) { //Calculate the object's base status too
 		switch( bl->type ) {
-			case BL_PC:  status_calc_pc_(BL_CAST(BL_PC,bl), opt); break;
-			case BL_MOB: status_calc_mob_(BL_CAST(BL_MOB,bl), opt); break;
-			case BL_PET: status_calc_pet_(BL_CAST(BL_PET,bl), opt); break;
-			case BL_HOM: status_calc_homunculus_(BL_CAST(BL_HOM,bl), opt); break;
-			case BL_MER: status_calc_mercenary_(BL_CAST(BL_MER,bl), opt); break;
-			case BL_ELEM: status_calc_elemental_(BL_CAST(BL_ELEM,bl), opt); break;
-			case BL_NPC: status_calc_npc_(BL_CAST(BL_NPC,bl), opt); break;
+			case BL_PC:  status_calc_pc_(BL_CAST(BL_PC, bl), opt); break;
+			case BL_MOB: status_calc_mob_(BL_CAST(BL_MOB, bl), opt); break;
+			case BL_PET: status_calc_pet_(BL_CAST(BL_PET, bl), opt); break;
+			case BL_HOM: status_calc_homunculus_(BL_CAST(BL_HOM, bl), opt); break;
+			case BL_MER: status_calc_mercenary_(BL_CAST(BL_MER, bl), opt); break;
+			case BL_ELEM: status_calc_elemental_(BL_CAST(BL_ELEM, bl), opt); break;
+			case BL_NPC: status_calc_npc_(BL_CAST(BL_NPC, bl), opt); break;
 		}
 	}
 
@@ -4488,37 +4492,37 @@ void status_calc_bl_(struct block_list* bl, enum scb_flag flag, enum e_status_ca
 		TBL_PC* sd = BL_CAST(BL_PC, bl);
 
 		if( b_status.str != status->str )
-			clif_updatestatus(sd,SP_STR);
+			clif_updatestatus(sd, SP_STR);
 		if( b_status.agi != status->agi )
-			clif_updatestatus(sd,SP_AGI);
+			clif_updatestatus(sd, SP_AGI);
 		if( b_status.vit != status->vit )
-			clif_updatestatus(sd,SP_VIT);
+			clif_updatestatus(sd, SP_VIT);
 		if( b_status.int_ != status->int_ )
-			clif_updatestatus(sd,SP_INT);
+			clif_updatestatus(sd, SP_INT);
 		if( b_status.dex != status->dex )
-			clif_updatestatus(sd,SP_DEX);
+			clif_updatestatus(sd, SP_DEX);
 		if( b_status.luk != status->luk )
-			clif_updatestatus(sd,SP_LUK);
+			clif_updatestatus(sd, SP_LUK);
 		if( b_status.hit != status->hit )
-			clif_updatestatus(sd,SP_HIT);
+			clif_updatestatus(sd, SP_HIT);
 		if( b_status.flee != status->flee )
-			clif_updatestatus(sd,SP_FLEE1);
+			clif_updatestatus(sd, SP_FLEE1);
 		if( b_status.amotion != status->amotion )
-			clif_updatestatus(sd,SP_ASPD);
+			clif_updatestatus(sd, SP_ASPD);
 		if( b_status.speed != status->speed )
-			clif_updatestatus(sd,SP_SPEED);
+			clif_updatestatus(sd, SP_SPEED);
 
 		if( b_status.batk != status->batk
 #ifndef RENEWAL
 			|| b_status.rhw.atk != status->rhw.atk || b_status.lhw.atk != status->lhw.atk
 #endif
 			)
-			clif_updatestatus(sd,SP_ATK1);
+			clif_updatestatus(sd, SP_ATK1);
 
 		if( b_status.def != status->def ) {
-			clif_updatestatus(sd,SP_DEF1);
+			clif_updatestatus(sd, SP_DEF1);
 #ifdef RENEWAL
-			clif_updatestatus(sd,SP_DEF2);
+			clif_updatestatus(sd, SP_DEF2);
 #endif
 		}
 
@@ -4529,57 +4533,59 @@ void status_calc_bl_(struct block_list* bl, enum scb_flag flag, enum e_status_ca
 			b_status.rhw.atk2 != status->rhw.atk2 || b_status.lhw.atk2 != status->lhw.atk2
 #endif
 			)
-			clif_updatestatus(sd,SP_ATK2);
+			clif_updatestatus(sd, SP_ATK2);
 
 		if( b_status.def2 != status->def2 ) {
-			clif_updatestatus(sd,SP_DEF2);
+			clif_updatestatus(sd, SP_DEF2);
 #ifdef RENEWAL
-			clif_updatestatus(sd,SP_DEF1);
+			clif_updatestatus(sd, SP_DEF1);
 #endif
 		}
 		if( b_status.flee2 != status->flee2 )
-			clif_updatestatus(sd,SP_FLEE2);
+			clif_updatestatus(sd, SP_FLEE2);
 		if( b_status.cri != status->cri )
-			clif_updatestatus(sd,SP_CRITICAL);
+			clif_updatestatus(sd, SP_CRITICAL);
 #ifndef RENEWAL
 		if( b_status.matk_max != status->matk_max )
-			clif_updatestatus(sd,SP_MATK1);
+			clif_updatestatus(sd, SP_MATK1);
 		if( b_status.matk_min != status->matk_min )
-			clif_updatestatus(sd,SP_MATK2);
+			clif_updatestatus(sd, SP_MATK2);
 #else
 		if( b_status.matk_max != status->matk_max || b_status.matk_min != status->matk_min ) {
-			clif_updatestatus(sd,SP_MATK2);
-			clif_updatestatus(sd,SP_MATK1);
+			clif_updatestatus(sd, SP_MATK2);
+			clif_updatestatus(sd, SP_MATK1);
 		}
 #endif
 		if( b_status.mdef != status->mdef ) {
-			clif_updatestatus(sd,SP_MDEF1);
+			clif_updatestatus(sd, SP_MDEF1);
 #ifdef RENEWAL
-			clif_updatestatus(sd,SP_MDEF2);
+			clif_updatestatus(sd, SP_MDEF2);
 #endif
 		}
 		if( b_status.mdef2 != status->mdef2 ) {
-			clif_updatestatus(sd,SP_MDEF2);
+			clif_updatestatus(sd, SP_MDEF2);
 #ifdef RENEWAL
-			clif_updatestatus(sd,SP_MDEF1);
+			clif_updatestatus(sd, SP_MDEF1);
 #endif
 		}
 		if( b_status.rhw.range != status->rhw.range )
-			clif_updatestatus(sd,SP_ATTACKRANGE);
+			clif_updatestatus(sd, SP_ATTACKRANGE);
 		if( b_status.max_hp != status->max_hp )
-			clif_updatestatus(sd,SP_MAXHP);
+			clif_updatestatus(sd, SP_MAXHP);
 		if( b_status.max_sp != status->max_sp )
-			clif_updatestatus(sd,SP_MAXSP);
+			clif_updatestatus(sd, SP_MAXSP);
 		if( b_status.hp != status->hp )
-			clif_updatestatus(sd,SP_HP);
+			clif_updatestatus(sd, SP_HP);
 		if( b_status.sp != status->sp )
-			clif_updatestatus(sd,SP_SP);
+			clif_updatestatus(sd, SP_SP);
 	} else if( bl->type == BL_HOM ) {
 		TBL_HOM* hd = BL_CAST(BL_HOM, bl);
+
 		if( hd->master && memcmp(&b_status, status, sizeof(struct status_data)) != 0 )
 			clif_hominfo(hd->master,hd,0);
 	} else if( bl->type == BL_MER ) {
 		TBL_MER* md = BL_CAST(BL_MER, bl);
+
 		if( b_status.rhw.atk != status->rhw.atk || b_status.rhw.atk2 != status->rhw.atk2 )
 			clif_mercenary_updatestatus(md->master, SP_ATK1);
 		if( b_status.matk_max != status->matk_max )
@@ -4606,6 +4612,7 @@ void status_calc_bl_(struct block_list* bl, enum scb_flag flag, enum e_status_ca
 			clif_mercenary_updatestatus(md->master, SP_SP);
 	} else if( bl->type == BL_ELEM ) {
 		TBL_ELEM* ed = BL_CAST(BL_ELEM, bl);
+
 		if( b_status.max_hp != status->max_hp )
 			clif_elemental_updatestatus(ed->master, SP_MAXHP);
 		if( b_status.max_sp != status->max_sp )
@@ -8784,11 +8791,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_KAIZEL:
 				val2 = 10 * val1; //% of life to be revived with
 				break;
-			//case SC_ARMOR_ELEMENT:
-			//case SC_ARMOR_RESIST:
-				//Mod your resistance against elements:
-				//val1 = water | val2 = earth | val3 = fire | val4 = wind
-				//break;
 			//case ????:
 				//Place here SCs that have no SCB_* data, no skill associated, no ICON
 				//associated, and yet are not wrong/unknown. [Skotlex]
@@ -9578,7 +9580,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_FIGHTINGSPIRIT:
 		case SC_VENOMIMPRESS:
 		case SC_WEAPONBLOCKING:
-		case SC__FEINT:
 		case SC__INVISIBILITY:
 		case SC__ENERVATION:
 		case SC__WEAKNESS:
@@ -9847,7 +9848,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 		case SC_CLOAKING:
 		case SC_CLOAKINGEXCEED:
-		case SC__FEINT:
 		case SC__INVISIBILITY:
 			sc->option |= OPTION_CLOAK;
 		case SC_CAMOUFLAGE:
@@ -10553,6 +10553,8 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			}
 			break;
 		case SC__FEINT:
+			sc->option &= ~OPTION_INVISIBLE;
+			clif_changeoption(bl);
 			if( sd && pc_ishiding(sd) ) {
 				status_change_end(bl,SC_HIDING,INVALID_TIMER);
 				status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
@@ -10723,7 +10725,6 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			break;
 		case SC_CLOAKING:
 		case SC_CLOAKINGEXCEED:
-		case SC__FEINT:
 		case SC__INVISIBILITY:
 			sc->option &= ~OPTION_CLOAK;
 		case SC_CAMOUFLAGE:
@@ -11872,18 +11873,17 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 			status_change_end(bl, SC_HIDING, INVALID_TIMER);
 			status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
 			status_change_end(bl, SC_CLOAKINGEXCEED, INVALID_TIMER);
-			status_change_end(bl, SC__FEINT, INVALID_TIMER);
 			status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
 			break;
 		case SC_RUWACH: /* Reveal hidden target and deal little dammages if enemy */
 			if( tsc && (tsc->data[SC_HIDING] || tsc->data[SC_CLOAKING] ||
 					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_CLOAKINGEXCEED] ||
-					tsc->data[SC__FEINT] || tsc->data[SC__INVISIBILITY]) ) { //Invisibility should hit only
+					tsc->data[SC__INVISIBILITY]) ) //Invisibility should hit only
+			{
 				status_change_end(bl, SC_HIDING, INVALID_TIMER);
 				status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
 				status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
 				status_change_end(bl, SC_CLOAKINGEXCEED, INVALID_TIMER);
-				status_change_end(bl, SC__FEINT, INVALID_TIMER);
 				if( battle_check_target(src, bl, BCT_ENEMY) > 0 )
 					skill_attack(BF_MAGIC, src, src, bl, AL_RUWACH, 1, tick, 0);
 			}

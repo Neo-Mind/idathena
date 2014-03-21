@@ -3034,7 +3034,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		switch (skill_id) { //Direction
 			case MC_CARTREVOLUTION:
 				if (battle_config.cart_revo_knockback)
-					dir = 2; //Official servers push target to the West
+					dir = 6; //Official servers push target to the West
 				break;
 			case MG_FIREWALL:
 			case PR_SANCTUARY:
@@ -3390,7 +3390,7 @@ static int skill_check_condition_mercenary(struct block_list *bl, int skill, int
 	struct map_session_data *sd = NULL;
 	int i, hp, sp, hp_rate, sp_rate, state, mhp;
 	int16 idx = skill_get_index(skill);
-	int itemid[MAX_SKILL_ITEM_REQUIRE],amount[ARRAYLENGTH(itemid)],index[ARRAYLENGTH(itemid)];
+	int itemid[MAX_SKILL_ITEM_REQUIRE], amount[ARRAYLENGTH(itemid)], index[ARRAYLENGTH(itemid)];
 
 	if( lv < 1 || lv > MAX_SKILL_LEVEL )
 		return 0;
@@ -4975,7 +4975,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				status_change_end(bl,SC_HIDING,INVALID_TIMER);
 				status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
 				status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER); //Need confirm it.
-				status_change_end(bl,SC__FEINT,INVALID_TIMER);
 			} else {
 				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
 				clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
@@ -5054,7 +5053,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 				status_change_end(bl,SC_HIDING,INVALID_TIMER);
 				status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER);
-				status_change_end(bl,SC__FEINT,INVALID_TIMER);
 			} else {
 				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
 				clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
@@ -5699,11 +5697,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					struct unit_data *ud = unit_bl2ud(src);
 					int inf = skill_get_inf(abra_skill_id);
 
-					if (!ud) break;
-					if (inf&INF_SELF_SKILL || inf&INF_SUPPORT_SKILL) {
+					if (!ud)
+						break;
+					if ((inf&INF_SELF_SKILL) || (inf&INF_SUPPORT_SKILL)) {
 						if (src->type == BL_PET)
 							bl = (struct block_list*)((TBL_PET*)src)->master;
-						if (!bl) bl = src;
+						if (!bl)
+							bl = src;
 						unit_skilluse_id(src,bl->id,abra_skill_id,abra_skill_lv);
 					} else { //Assume offensive skills
 						int target_id = 0;
@@ -7091,14 +7091,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case AM_CP_HELM:
 			{
 				unsigned int equip[] = { EQP_WEAPON,EQP_SHIELD,EQP_ARMOR,EQP_HEAD_TOP };
-				enum sc_type sc_id = (sc_type)(SC_STRIPWEAPON + (skill_id - AM_CP_WEAPON));
 
 				if( sd && (bl->type != BL_PC || (dstsd && pc_checkequip(dstsd,equip[skill_id - AM_CP_WEAPON]) < 0)) ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					map_freeblock_unlock(); //Don't consume item requirements
 					return 0;
 				}
-				status_change_end(bl,sc_id,INVALID_TIMER);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,
 					sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			}
@@ -7225,7 +7223,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							case SC_EXTREMITYFIST2:
 #endif
 							case SC_HIDING:				case SC_CLOAKING:		case SC_CHASEWALK:
-							case SC_CLOAKINGEXCEED:			case SC__FEINT:			case SC__INVISIBILITY:
+							case SC_CLOAKINGEXCEED:			case SC__INVISIBILITY:
 								continue;
 							//bugreport:4888 these songs may only be dispelled if you're not in their song area anymore
 							case SC_WHISTLE:
@@ -7866,7 +7864,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				for (i = 0; i < 4; i++) {
 					if (bl->type != BL_PC || (dstsd && pc_checkequip(dstsd,equip[i]) < 0))
 						continue;
-					status_change_end(bl,(sc_type)(SC_STRIPWEAPON + i),INVALID_TIMER);
 					sc_start(src,bl,(sc_type)(SC_CP_WEAPON + i),100,skill_lv,skilltime);
 					s++;
 				}
@@ -8734,7 +8731,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							case SC_EXTREMITYFIST2:
 #endif
 							case SC_HIDING:			case SC_CLOAKING:		case SC_CHASEWALK:
-							case SC_CLOAKINGEXCEED:		case SC__FEINT:			case SC__INVISIBILITY:
+							case SC_CLOAKINGEXCEED:		case SC__INVISIBILITY:
 								continue;
 							case SC_ASSUMPTIO:
 								if( bl->type == BL_MOB )
@@ -9046,12 +9043,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case SC_BODYPAINT:
 			if( flag&1 ) {
-				if( tsc && (tsc->data[SC_HIDING] || tsc->data[SC_CLOAKING] ||
-					tsc->data[SC_CLOAKINGEXCEED] || tsc->data[SC__FEINT]) ) {
+				if( tsc && (tsc->data[SC_HIDING] || tsc->data[SC_CLOAKING] || tsc->data[SC_CLOAKINGEXCEED]) ) {
 					status_change_end(bl,SC_HIDING,INVALID_TIMER);
 					status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
 					status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER);
-					status_change_end(bl,SC__FEINT,INVALID_TIMER);
 					sc_start(src,bl,type,20 + 5 * skill_lv,skill_lv,skill_get_time(skill_id,skill_lv));
 				}
 					sc_start(src,bl,SC_BLIND,53 + 2 * skill_lv,skill_lv,skill_get_time2(skill_id,skill_lv));
@@ -10078,8 +10073,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case KG_KAGEHUMI:
 			if( flag&1 ) {
 				if( tsc && ((tsc->option&(OPTION_HIDE|OPTION_CLOAK)) ||
-					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC__SHADOWFORM] || tsc->data[SC__FEINT] ||
-					tsc->data[SC_MARIONETTE] || tsc->data[SC_HARMONIZE]) ) {
+					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC__SHADOWFORM] ||
+					tsc->data[SC_MARIONETTE] || tsc->data[SC_HARMONIZE]) )
+				{
 						sc_start(src,src,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 						sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 						status_change_end(bl,SC_HIDING,INVALID_TIMER);
@@ -10087,7 +10083,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER);
 						status_change_end(bl,SC_CAMOUFLAGE,INVALID_TIMER);
 						status_change_end(bl,SC__SHADOWFORM,INVALID_TIMER);
-						status_change_end(bl,SC__FEINT,INVALID_TIMER);
 						status_change_end(bl,SC_MARIONETTE,INVALID_TIMER);
 						status_change_end(bl,SC_HARMONIZE,INVALID_TIMER);
 				}
@@ -10315,7 +10310,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							case SC_EXTREMITYFIST2:
 #endif
 							case SC_HIDING:			case SC_CLOAKING:		case SC_CHASEWALK:
-							case SC_CLOAKINGEXCEED:		case SC__FEINT:			case SC__INVISIBILITY:
+							case SC_CLOAKINGEXCEED:		case SC__INVISIBILITY:
 								continue;
 							case SC_ASSUMPTIO:
 								if( bl->type == BL_MOB )
@@ -11131,8 +11126,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case HP_BASILICA:
-			if( sc->data[SC_BASILICA] ) {
-				status_change_end(src,SC_BASILICA,INVALID_TIMER); //Cancel Basilica and return so requirement isn't consumed again
+			if( sc && sc->data[SC_BASILICA] ) { //Cancel Basilica and return so requirement isn't consumed again
+				status_change_end(src,SC_BASILICA,INVALID_TIMER);
 				return 0;
 			} else { //Create Basilica. Start SC on caster. Unit timer start SC on others.
 				if( map_getcell(src->m,x,y,CELL_CHKLANDPROTECTOR) ) {
@@ -11450,10 +11445,12 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case NC_STEALTHFIELD:
 			if( sd )
 				skill_consume_requirement(sd,skill_id,skill_lv,2);
-			if( (sc->data[SC_NEUTRALBARRIER_MASTER] && skill_id == NC_NEUTRALBARRIER) ||
-				(sc->data[SC_STEALTHFIELD_MASTER] && skill_id == NC_STEALTHFIELD) ) {
-				skill_clear_unitgroup(src);
-				return 0;
+			if( sc ) {
+				if( (sc->data[SC_NEUTRALBARRIER_MASTER] && skill_id == NC_NEUTRALBARRIER) ||
+					(sc->data[SC_STEALTHFIELD_MASTER] && skill_id == NC_STEALTHFIELD) ) {
+					skill_clear_unitgroup(src);
+					return 0;
+				}
 			}
 			skill_clear_unitgroup(src); //To remove previous skills - cannot used combined
 			if( (sg = skill_unitsetting(src,skill_id,skill_lv,src->x,src->y,0)) != NULL ) {
@@ -11494,9 +11491,11 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case SC_FEINTBOMB:
 			clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 			skill_unitsetting(src,skill_id,skill_lv,x,y,0); //Set bomb on current Position
-			if( skill_blown(src,src,3 * skill_lv,unit_getdir(src),0) )
-				clif_skill_nodamage(src,src,skill_id,skill_lv,
-					sc_start(src,src,type,100,skill_lv,skill_get_time2(skill_id,skill_lv)));
+			if( skill_blown(src,src,3 * skill_lv,unit_getdir(src),0) && sc ) {
+				sc_start(src,src,type,100,skill_lv,skill_get_time2(skill_id,skill_lv));
+				sc->option |= OPTION_INVISIBLE;
+				clif_changeoption(src);
+			}
 			break;
 
 		case SC_ESCAPE:
@@ -11798,7 +11797,7 @@ int skill_castend_map (struct map_session_data *sd, uint16 skill_id, const char 
 					return 0;
 				}
 
-				if(!skill_check_condition_castend(sd,sd->menuskill_id,lv)) { //This checks versus skill_id/skill_lv...
+				if(!skill_check_condition_castend(sd,sd->menuskill_id,lv)) { //This checks versus skill_id/skill_lv
 					skill_failed(sd);
 					return 0;
 				}
@@ -13257,7 +13256,6 @@ static int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *
 					status_change_end(bl,SC_CHASEWALK,INVALID_TIMER);
 					status_change_end(bl,SC_CAMOUFLAGE,INVALID_TIMER);
 					status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER);
-					status_change_end(bl,SC__FEINT,INVALID_TIMER);
 				}
 			}
 			/* Enable this if kRO fix the current skill. Currently no damage on undead and demon monster. [Jobbie]
@@ -14865,7 +14863,6 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 	struct skill_condition require;
 	struct status_data *status;
 	int i;
-	int index[MAX_SKILL_ITEM_REQUIRE];
 
 	nullpo_retr(false,sd);
 
@@ -14976,11 +14973,11 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 
 	require = skill_get_requirement(sd,skill_id,skill_lv);
 
-	if( require.hp > 0 && status->hp <= (unsigned int)require.hp) {
+	if( require.hp > 0 && status->hp <= (unsigned int)require.hp ) {
 		clif_skill_fail(sd,skill_id,USESKILL_FAIL_HP_INSUFFICIENT,0);
 		return false;
 	}
-	
+
 	if( require.weapon && !pc_check_weapontype(sd,require.weapon) ) {
 		clif_skill_fail(sd,skill_id,USESKILL_FAIL_THIS_WEAPON,0);
 		return false;
@@ -15016,6 +15013,8 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 	}
 
 	for( i = 0; i < MAX_SKILL_ITEM_REQUIRE; ++i ) {
+		int index[MAX_SKILL_ITEM_REQUIRE];
+
 		if( !require.itemid[i] )
 			continue;
 		index[i] = pc_search_inventory(sd,require.itemid[i]);
@@ -16259,7 +16258,7 @@ int skill_frostjoke_scream(struct block_list *bl, va_list ap)
 		struct map_session_data *sd = (struct map_session_data *)bl;
 
 		if(sd && sd->sc.option&(OPTION_INVISIBLE|OPTION_MADOGEAR))
-			return 0; //Frost Joke / Scream cannot target invisible or MADO Gear characters [Ind]
+			return 0; //Frost Joke/Scream cannot target invisible or MADO Gear characters [Ind]
 	}
 	//It has been reported that Scream/Joke works the same regardless of woe-setting. [Skotlex]
 	if(battle_check_target(src,bl,BCT_ENEMY) > 0)
