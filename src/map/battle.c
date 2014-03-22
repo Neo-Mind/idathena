@@ -5237,6 +5237,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 	switch(skill_id) {
 		case MC_CARTREVOLUTION:
 		case MO_INVESTIGATE:
+		case CR_ACIDDEMONSTRATION:
 		case KO_BAKURETSU:
 			//Forced to neutral element
 			wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
@@ -6264,15 +6265,13 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 #ifdef RENEWAL
 			{
 				//Official Renewal formula [helvetica]
-				//Damage = 7 * ((atk + matk)/skill level) * (target vit/100)
+				//Damage = 7 * ((atk + matk) / skill level) * (target vit / 100)
 				//Skill is a "forced neutral" type skill, it benefits from weapon element but final damage
 				//is considered "neutral" for purposes of resistances
 				struct Damage atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,0);
 				struct Damage matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,0);
 
 				md.damage = (int64)(7 * ((atk.damage / skill_lv + matk.damage / skill_lv) * tstatus->vit / 100));
-				//AD benefits from endow/element but damage is forced back to neutral
-				battle_attr_fix(src,target,md.damage,ELE_NEUTRAL,tstatus->def_ele,tstatus->ele_lv);
 			}
 #else
 			if(tstatus->vit + sstatus->int_) //Crash fix
