@@ -132,8 +132,10 @@ int elemental_create(struct map_session_data *sd, int class_, unsigned int lifet
 	}
 
 	if( (i = pc_checkskill(sd,SO_EL_SYMPATHY)) > 0 ) {
-		ele.hp = ele.max_hp = ele.max_hp * 5 * i / 100;
-		ele.sp = ele.max_sp = ele.max_sp * 5 * i / 100;
+		ele.max_hp += ele.max_hp * 5 * i / 100;
+		ele.hp = ele.max_hp;
+		ele.max_sp += ele.max_sp * 5 * i / 100;
+		ele.sp = ele.max_sp;
 		ele.atk += 25 * i;
 		ele.atk2 += 25 * i;
 		ele.matk += 25 * i;
@@ -172,6 +174,7 @@ int elemental_save(struct elemental_data *ed) {
 	ed->elemental.hit = ed->battle_status.hit;
 	ed->elemental.life_time = elemental_get_lifetime(ed);
 	intif_elemental_save(&ed->elemental);
+
 	return 1;
 }
 
@@ -181,6 +184,7 @@ static int elemental_summon_end(int tid, unsigned int tick, int id, intptr_t dat
 
 	if( (sd = map_id2sd(id)) == NULL )
 		return 1;
+
 	if( (ed = sd->ed) == NULL )
 		return 1;
 
@@ -197,6 +201,7 @@ static int elemental_summon_end(int tid, unsigned int tick, int id, intptr_t dat
 
 void elemental_summon_stop(struct elemental_data *ed) {
 	nullpo_retv(ed);
+
 	if( ed->summon_timer != INVALID_TIMER )
 		delete_timer(ed->summon_timer, elemental_summon_end);
 	ed->summon_timer = INVALID_TIMER;
