@@ -8977,10 +8977,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					tick_time = 1000; //[GodLesZ] tick time
 				}
 				break;
-			case SC__FEINT:
-				val4 = tick / 1000;
-				tick_time = 1000; // [GodLesZ] tick time
-				break;
 			case SC__INVISIBILITY:
 				val2 = 20 * val1; //Critical Amount Increase
 				val3 = 50 - 10 * val1; //ASPD Reduction
@@ -9703,19 +9699,23 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_ITEMSCRIPT:
 			if (sd) {
 				switch (val1) {
-					//case 4121: //Phree
-					//case 4047: //Ghostring
-					case 4302: //Tao Gunka
-						clif_status_change(bl,SI_MVPCARD_TAOGUNKA,1,tick,0,0,0);
+					case ITEMID_GHOSTRING_CARD:
+						clif_status_change(bl,SI_ARMOR_PROPERTY,1,tick,0,0,0);
 						break;
-					case 4132: //Mistress
+					case ITEMID_PHREEONI_CARD:
+						clif_status_change(bl,SI_FOODHIT,1,tick,0,0,0);
+						break;
+					case ITEMID_MISTRESS_CARD:
 						clif_status_change(bl,SI_MVPCARD_MISTRESS,1,tick,0,0,0);
 						break;
-					case 4143: //Orc Hero
+					case ITEMID_ORC_LORD_CARD:
+						clif_status_change(bl,SI_MVPCARD_ORCLORD,1,tick,0,0,0);
+						break;
+					case ITEMID_ORC_HERO_CARD:
 						clif_status_change(bl,SI_MVPCARD_ORCHERO,1,tick,0,0,0);
 						break;
-					case 4135: //Orc Lord
-						clif_status_change(bl,SI_MVPCARD_ORCLORD,1,tick,0,0,0);
+					case ITEMID_TAO_GUNKA_CARD:
+						clif_status_change(bl,SI_MVPCARD_TAOGUNKA,1,tick,0,0,0);
 						break;
 				}
 			}
@@ -9857,6 +9857,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			sc->option |= OPTION_CHASEWALK|OPTION_CLOAK;
 			opt_flag = 2;
 			break;
+		case SC__FEINT:
+			sc->option |= OPTION_INVISIBLE;
+			opt_flag |= 0x4;
+			break;
 		case SC_SIGHT:
 			sc->option |= OPTION_SIGHT;
 			break;
@@ -9896,7 +9900,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	//On Aegis, when turning on a status change, first goes the option packet, then the sc packet.
 	if(opt_flag) {
 		clif_changeoption(bl);
-		if(sd && opt_flag&0x4) {
+		if(sd && (opt_flag&0x4)) {
 			clif_changelook(bl,LOOK_BASE,vd->class_);
 			clif_changelook(bl,LOOK_WEAPON,0);
 			clif_changelook(bl,LOOK_SHIELD,0);
@@ -10555,8 +10559,6 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			}
 			break;
 		case SC__FEINT:
-			sc->option &= ~OPTION_INVISIBLE;
-			clif_changeoption(bl);
 			if( sd && pc_ishiding(sd) ) {
 				status_change_end(bl,SC_HIDING,INVALID_TIMER);
 				status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
@@ -10643,19 +10645,23 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_ITEMSCRIPT:
 			if (sd) {
 				switch (sce->val1) {
-					//case 4121: //Phree
-					//case 4047: //Ghostring
-					case 4302: //Tao Gunka
-						clif_status_load(bl,SI_MVPCARD_TAOGUNKA,0);
+					case ITEMID_GHOSTRING_CARD:
+						clif_status_load(bl,SI_ARMOR_PROPERTY,0);
 						break;
-					case 4132: //Mistress
+					case ITEMID_PHREEONI_CARD:
+						clif_status_load(bl,SI_FOODHIT,0);
+						break;
+					case ITEMID_MISTRESS_CARD:
 						clif_status_load(bl,SI_MVPCARD_MISTRESS,0);
 						break;
-					case 4143: //Orc Hero
+					case ITEMID_ORC_LORD_CARD:
+						clif_status_load(bl,SI_MVPCARD_ORCLORD,0);
+						break;
+					case ITEMID_ORC_HERO_CARD:
 						clif_status_load(bl,SI_MVPCARD_ORCHERO,0);
 						break;
-					case 4135: //Orc Lord
-						clif_status_load(bl,SI_MVPCARD_ORCLORD,0);
+					case ITEMID_TAO_GUNKA_CARD:
+						clif_status_load(bl,SI_MVPCARD_TAOGUNKA,0);
 						break;
 				}
 			}
@@ -10735,6 +10741,10 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_CHASEWALK:
 			sc->option &= ~(OPTION_CHASEWALK|OPTION_CLOAK);
 			opt_flag |= 2;
+			break;
+		case SC__FEINT:
+			sc->option &= ~OPTION_INVISIBLE;
+			opt_flag |= 0x4;
 			break;
 		case SC_SIGHT:
 			sc->option &= ~OPTION_SIGHT;
@@ -11476,15 +11486,6 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC__SHADOWFORM:
 			if( --(sce->val4) >= 0 ) {
 				if( !status_charge(bl,0,11 - sce->val1) )
-					break;
-				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
-				return 0;
-			}
-			break;
-
-		case SC__FEINT:
-			if( --(sce->val4) >= 0 ) {
-				if( !status_charge(bl,0,1) )
 					break;
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				return 0;

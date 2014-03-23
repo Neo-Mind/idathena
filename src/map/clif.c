@@ -1739,7 +1739,7 @@ static void clif_move2(struct block_list *bl, struct view_data *vd, struct unit_
 	uint8 buf[128];
 	int len;
 
-	if (sc && (sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE)))
+	if (sc && (sc->option&(OPTION_HIDE|OPTION_CLOAK)))
 		ally_only = true;
 
 #ifndef VISIBLE_MONSTER_HP
@@ -1811,7 +1811,7 @@ void clif_move(struct unit_data *ud)
 		return;
 	}
 
-	if (sc && (sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE)))
+	if (sc && (sc->option&(OPTION_HIDE|OPTION_CLOAK)))
 		ally_only = true;
 
 	WBUFW(buf,0) = 0x86;

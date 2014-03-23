@@ -9761,9 +9761,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 				if( !sd->ed )
 					break;
-				sd->skill_id_old = skill_id;
-				elemental_action(sd->ed,bl,tick);
-				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				switch( sd->ed->db->class_ ) {
 					case 2115:case 2124:
 					case 2118:case 2121:
@@ -9774,6 +9771,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						duration = 9000;
 						break;
 				}
+				sd->skill_id_old = skill_id;
+				elemental_action(sd->ed,bl,tick);
+				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				skill_blockpc_start(sd,skill_id,duration);
 			}
 			break;
@@ -11491,11 +11491,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case SC_FEINTBOMB:
 			clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 			skill_unitsetting(src,skill_id,skill_lv,x,y,0); //Set bomb on current Position
-			if( skill_blown(src,src,3 * skill_lv,unit_getdir(src),0) && sc ) {
+			if( skill_blown(src,src,3 * skill_lv,unit_getdir(src),0) && sc )
 				sc_start(src,src,type,100,skill_lv,skill_get_time2(skill_id,skill_lv));
-				sc->option |= OPTION_INVISIBLE;
-				clif_changeoption(src);
-			}
 			break;
 
 		case SC_ESCAPE:
