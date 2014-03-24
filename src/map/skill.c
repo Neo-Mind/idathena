@@ -12125,11 +12125,11 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			}
 			break;
 		case DC_DONTFORGETME:
-			val1 = status->dex / 10 + 3 * skill_lv + 5; //ASPD decrease
-			val2 = status->agi / 10 + 3 * skill_lv + 5; //Movement speed adjustment.
+			val1 = 30 * skill_lv + status->dex; //ASPD decrease 
+			val2 = 20 * skill_lv + status->agi; //Movement speed adjustment.
 			if( sd ) {
 				val1 += pc_checkskill(sd,DC_DANCINGLESSON);
-				val2 += pc_checkskill(sd,DC_DANCINGLESSON);
+				val2 += 10 * ((pc_checkskill(sd,DC_DANCINGLESSON) + 1) / 2); //ASPD +1% per 2 lvl
 			}
 			break;
 		case BA_APPLEIDUN:
@@ -12147,9 +12147,9 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			val2 += status->int_ / 10; //Bonus rate by Dancer's INT
 			break;
 		case BA_ASSASSINCROSS:
-			val1 = 100 + (10 * skill_lv) + status->agi; //ASPD increase
+			val1 = 100 + 10 * skill_lv + status->agi; //ASPD increase
 			if( sd )
-				val1 += 10 * ((pc_checkskill(sd,BA_MUSICALLESSON) + 1) / 2); //ASPD +1% per 2 lvl
+				val1 += 10 * ((pc_checkskill(sd,BA_MUSICALLESSON) + 1) / 2);
 			break;
 		case DC_FORTUNEKISS:
 			val1 = 10 + skill_lv + (status->luk / 10); //Critical increase
