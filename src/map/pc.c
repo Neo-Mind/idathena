@@ -5128,7 +5128,7 @@ int pc_randomwarp(struct map_session_data *sd, clr_type type)
  *------------------------------------------*/
 int pc_memo(struct map_session_data* sd, int pos)
 {
-	int skill;
+	uint16 skill;
 
 	nullpo_ret(sd);
 
@@ -5145,11 +5145,11 @@ int pc_memo(struct map_session_data* sd, int pos)
 	// Check required skill level
 	skill = pc_checkskill(sd, AL_WARP);
 	if( skill < 1 ) {
-		clif_skill_memomessage(sd,2); // "You haven't learned Warp."
+		clif_skill_memomessage(sd, 2); // "You haven't learned Warp."
 		return 0;
 	}
 	if( skill < 2 || skill - 2 < pos ) {
-		clif_skill_memomessage(sd,1); // "Skill Level is not high enough."
+		clif_skill_memomessage(sd, 1); // "Skill Level is not high enough."
 		return 0;
 	}
 

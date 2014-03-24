@@ -930,6 +930,7 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_GLOOMYDAY_SK] = SI_GLOOMYDAY;
 	StatusIconChangeTable[SC_CURSEDCIRCLE_ATKER] = SI_CURSEDCIRCLE_ATKER;
 	StatusIconChangeTable[SC_TEARGAS_SOB] = SI_BLANK;
+	StatusIconChangeTable[SC__BLOODYLUST] = SI_BLOODYLUST;
 	StatusIconChangeTable[SC_STOMACHACHE] = SI_STOMACHACHE;
 	StatusIconChangeTable[SC_MYSTERIOUS_POWDER] = SI_MYSTERIOUS_POWDER;
 	StatusIconChangeTable[SC_MELON_BOMB] = SI_MELON_BOMB;
@@ -1062,6 +1063,7 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_SHIELDSPELL_DEF] |= SCB_WATK;
 	StatusChangeFlagTable[SC_SHIELDSPELL_REF] |= SCB_DEF;
 	StatusChangeFlagTable[SC_TEARGAS_SOB] |= SCB_NONE;
+	StatusChangeFlagTable[SC__BLOODYLUST] |= SCB_NONE;
 	StatusChangeFlagTable[SC_STOMACHACHE] |= SCB_STR|SCB_AGI|SCB_VIT|SCB_DEX|SCB_INT|SCB_LUK;
 	StatusChangeFlagTable[SC_MYSTERIOUS_POWDER] |= SCB_MAXHP;
 	StatusChangeFlagTable[SC_MELON_BOMB] |= SCB_SPEED|SCB_ASPD;
@@ -9525,6 +9527,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					ShowError("UnknownStatusChange [%d]\n",type);
 					return 0;
 				}
+				break;
 		}
 	} else { //Special considerations when loading SC data.
 		switch( type ) {

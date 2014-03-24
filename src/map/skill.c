@@ -4125,7 +4125,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			//It won't shoot through walls since on castend there has to be a direct
 			//line of sight between caster and target.
 			skill_area_temp[1] = bl->id;
-			map_foreachinpath (skill_attack_area,src->m,src->x,src->y,bl->x,bl->y,
+			map_foreachinpath(skill_attack_area,src->m,src->x,src->y,bl->x,bl->y,
 				skill_get_splash(skill_id,skill_lv),skill_get_maxcount(skill_id,skill_lv),splash_target(src),
 				skill_get_type(skill_id),src,src,skill_id,skill_lv,tick,flag,BCT_ENEMY);
 			break;
@@ -5026,26 +5026,26 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case SR_HOWLINGOFLION:
-				status_change_end(bl,SC_SWINGDANCE,INVALID_TIMER);
-				status_change_end(bl,SC_SYMPHONYOFLOVER,INVALID_TIMER);
-				status_change_end(bl,SC_MOONLITSERENADE,INVALID_TIMER);
-				status_change_end(bl,SC_RUSHWINDMILL,INVALID_TIMER);
-				status_change_end(bl,SC_ECHOSONG,INVALID_TIMER);
-				status_change_end(bl,SC_HARMONIZE,INVALID_TIMER);
-				status_change_end(bl,SC_NETHERWORLD,INVALID_TIMER);
-				status_change_end(bl,SC_VOICEOFSIREN,INVALID_TIMER);
-				status_change_end(bl,SC_DEEPSLEEP,INVALID_TIMER);
-				status_change_end(bl,SC_SIRCLEOFNATURE,INVALID_TIMER);
-				status_change_end(bl,SC_GLOOMYDAY,INVALID_TIMER);
-				status_change_end(bl,SC_GLOOMYDAY_SK,INVALID_TIMER);
-				status_change_end(bl,SC_SONGOFMANA,INVALID_TIMER);
-				status_change_end(bl,SC_DANCEWITHWUG,INVALID_TIMER);
-				status_change_end(bl,SC_SATURDAYNIGHTFEVER,INVALID_TIMER);
-				status_change_end(bl,SC_LERADSDEW,INVALID_TIMER);
-				status_change_end(bl,SC_MELODYOFSINK,INVALID_TIMER);
-				status_change_end(bl,SC_BEYONDOFWARCRY,INVALID_TIMER);
-				status_change_end(bl,SC_UNLIMITEDHUMMINGVOICE,INVALID_TIMER);
-				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag|SD_ANIMATION);
+			status_change_end(bl,SC_SWINGDANCE,INVALID_TIMER);
+			status_change_end(bl,SC_SYMPHONYOFLOVER,INVALID_TIMER);
+			status_change_end(bl,SC_MOONLITSERENADE,INVALID_TIMER);
+			status_change_end(bl,SC_RUSHWINDMILL,INVALID_TIMER);
+			status_change_end(bl,SC_ECHOSONG,INVALID_TIMER);
+			status_change_end(bl,SC_HARMONIZE,INVALID_TIMER);
+			status_change_end(bl,SC_NETHERWORLD,INVALID_TIMER);
+			status_change_end(bl,SC_VOICEOFSIREN,INVALID_TIMER);
+			status_change_end(bl,SC_DEEPSLEEP,INVALID_TIMER);
+			status_change_end(bl,SC_SIRCLEOFNATURE,INVALID_TIMER);
+			status_change_end(bl,SC_GLOOMYDAY,INVALID_TIMER);
+			status_change_end(bl,SC_GLOOMYDAY_SK,INVALID_TIMER);
+			status_change_end(bl,SC_SONGOFMANA,INVALID_TIMER);
+			status_change_end(bl,SC_DANCEWITHWUG,INVALID_TIMER);
+			status_change_end(bl,SC_SATURDAYNIGHTFEVER,INVALID_TIMER);
+			status_change_end(bl,SC_LERADSDEW,INVALID_TIMER);
+			status_change_end(bl,SC_MELODYOFSINK,INVALID_TIMER);
+			status_change_end(bl,SC_BEYONDOFWARCRY,INVALID_TIMER);
+			status_change_end(bl,SC_UNLIMITEDHUMMINGVOICE,INVALID_TIMER);
+			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag|SD_ANIMATION);
 			break;
 
 		case SR_EARTHSHAKER:
@@ -5062,7 +5062,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case SR_TIGERCANNON:
 			if (flag&1)
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
-			else if (sd) {
+			else {
 				int hpcost = 10 + 2 * skill_lv,
 					spcost = 5 + 1 * skill_lv;
 
@@ -5071,19 +5071,23 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
-				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
+				if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE)
+					map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1|4,skill_castend_damage_id);
+				else
+					map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
 				status_zap(src,hpcost,spcost);
 			}
 			break;
 
 		case WM_SOUND_OF_DESTRUCTION:
 			if (tsc && (tsc->data[SC_SWINGDANCE] || tsc->data[SC_SYMPHONYOFLOVER] || tsc->data[SC_MOONLITSERENADE] || 
-			tsc->data[SC_RUSHWINDMILL] || tsc->data[SC_ECHOSONG] || tsc->data[SC_HARMONIZE] || 
-			tsc->data[SC_VOICEOFSIREN] || tsc->data[SC_DEEPSLEEP] || tsc->data[SC_SIRCLEOFNATURE] || 
-			tsc->data[SC_GLOOMYDAY] || tsc->data[SC_GLOOMYDAY_SK] || tsc->data[SC_SONGOFMANA] || 
-			tsc->data[SC_DANCEWITHWUG] || tsc->data[SC_SATURDAYNIGHTFEVER] || tsc->data[SC_LERADSDEW] || 
-			tsc->data[SC_MELODYOFSINK] || tsc->data[SC_BEYONDOFWARCRY] || tsc->data[SC_UNLIMITEDHUMMINGVOICE]) && 
-			rnd()%100 < 4 * skill_lv + 2 * (sd ? pc_checkskill(sd,WM_LESSON) : 1) + 10 * chorusbonus) {
+				tsc->data[SC_RUSHWINDMILL] || tsc->data[SC_ECHOSONG] || tsc->data[SC_HARMONIZE] || 
+				tsc->data[SC_VOICEOFSIREN] || tsc->data[SC_DEEPSLEEP] || tsc->data[SC_SIRCLEOFNATURE] || 
+				tsc->data[SC_GLOOMYDAY] || tsc->data[SC_GLOOMYDAY_SK] || tsc->data[SC_SONGOFMANA] || 
+				tsc->data[SC_DANCEWITHWUG] || tsc->data[SC_SATURDAYNIGHTFEVER] || tsc->data[SC_LERADSDEW] || 
+				tsc->data[SC_MELODYOFSINK] || tsc->data[SC_BEYONDOFWARCRY] || tsc->data[SC_UNLIMITEDHUMMINGVOICE]) && 
+				rnd()%100 < 4 * skill_lv + 2 * (sd ? pc_checkskill(sd,WM_LESSON) : 1) + 10 * chorusbonus)
+			{
 				skill_attack(BF_MISC,src,src,bl,skill_id,skill_lv,tick,flag);
 				status_change_start(src,bl,SC_STUN,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),8);
 				status_change_end(bl,SC_SWINGDANCE,INVALID_TIMER);
@@ -5137,7 +5141,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case EL_HURRICANE:
 		case EL_TYPOON_MIS:
 			if (flag&1)
-				skill_attack(skill_get_type(skill_id + 1),src,src,bl,skill_id+1,skill_lv,tick,flag);
+				skill_attack(skill_get_type(skill_id + 1),src,src,bl,skill_id + 1,skill_lv,tick,flag);
 			else {
 				int i = skill_get_splash(skill_id,skill_lv);
 
@@ -16319,14 +16323,11 @@ int skill_attack_area (struct block_list *bl, va_list ap)
 	flag = va_arg(ap,int);
 	type = va_arg(ap,int);
 
-
 	if (skill_area_temp[1] == bl->id) //This is the target of the skill, do a full attack and skip target checks.
 		return skill_attack(atk_type,src,dsrc,bl,skill_id,skill_lv,tick,flag);
 
-	if (battle_check_target(dsrc,bl,type) <= 0 ||
-		!status_check_skilluse(NULL, bl, skill_id, 2))
+	if (battle_check_target(dsrc,bl,type) <= 0 || !status_check_skilluse(NULL,bl,skill_id,2))
 		return 0;
-
 
 	switch (skill_id) {
 		case WZ_FROSTNOVA: //Skills that don't require the animation to be removed
@@ -16336,8 +16337,7 @@ int skill_attack_area (struct block_list *bl, va_list ap)
 		case NPC_ICEBREATH:
 		case NPC_THUNDERBREATH:
 			return skill_attack(atk_type,src,dsrc,bl,skill_id,skill_lv,tick,flag);
-		default:
-			//Area-splash, disable skill animation.
+		default: //Area-splash, disable skill animation.
 			return skill_attack(atk_type,src,dsrc,bl,skill_id,skill_lv,tick,flag|SD_ANIMATION);
 	}
 }
@@ -18070,7 +18070,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 					+ pc_checkskill(sd,AM_PHARMACY) * 300 + sd->status.job_level * 20
 					+ (status->int_ / 2) * 10 + status->dex * 10 + status->luk * 10;
 				if( hom_is_active(sd->hd) ) { //Player got a homun
-					int skill;
+					uint16 skill;
 
 					if( (skill = hom_checkskill(sd->hd,HVAN_INSTRUCT)) > 0 ) //His homun is a vanil with instruction change
 						make_per += skill * 100; //+1% bonus per level
