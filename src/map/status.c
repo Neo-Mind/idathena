@@ -2477,6 +2477,7 @@ int status_calc_pet_(struct pet_data *pd, enum e_status_calc_opt opt)
 			lv = 1;
 		if (lv != pd->pet.level || opt&SCO_FIRST) {
 			struct status_data *bstat = &pd->db->status, *status = &pd->status;
+
 			pd->pet.level = lv;
 			if (!(opt&SCO_FIRST)) //Lv Up animation
 				clif_misceffect(&pd->bl, 0);
@@ -3903,7 +3904,7 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		regen->flag &= ~RGN_SP; //No natural SP regen
 
 	if (sc->data[SC_MAGNIFICAT])
-		regen->rate.sp += 1; //2x HP regen
+		regen->rate.sp += 1; //2x SP regen
 
 	if (bl->type == BL_PC && (((TBL_PC*)bl)->class_&MAPID_UPPERMASK) == MAPID_MONK &&
 		sc->data[SC_EXPLOSIONSPIRITS] && (!sc->data[SC_SPIRIT] || sc->data[SC_SPIRIT]->val2 != SL_MONK))
@@ -3930,7 +3931,7 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 	}
 
 	if (sc->data[SC_GT_REVITALIZE]) {
-		regen->hp = cap_value(regen->hp * sc->data[SC_GT_REVITALIZE]->val3 / 100, 1, SHRT_MAX);
+		regen->hp += cap_value(regen->hp * sc->data[SC_GT_REVITALIZE]->val3 / 100, 1, SHRT_MAX);
 		regen->state.walk = 1;
 	}
 
@@ -3939,6 +3940,12 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		(sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 1) ||
 		(sc->data[SC_WIND_INSIGNIA] && sc->data[SC_WIND_INSIGNIA]->val1 == 1))
 		regen->rate.hp *= 2;
+
+	if (sc->data[SC_EXTRACT_WHITE_POTION_Z])
+		regen->rate.hp += regen->rate.hp * sc->data[SC_EXTRACT_WHITE_POTION_Z]->val1 / 100;
+
+	if (sc->data[SC_VITATA_500])
+		regen->rate.sp += regen->rate.sp * sc->data[SC_VITATA_500]->val1 / 100;
 }
 
 void status_calc_state( struct block_list *bl, struct status_change *sc, enum scs_flag flag, bool start ) {
@@ -4078,8 +4085,8 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 	}
 
 	if( flag&SCB_BATK && b_status->batk ) {
-		status->batk = status_base_atk(bl,status);
-		temp = b_status->batk - status_base_atk(bl,b_status);
+		status->batk = status_base_atk(bl, status);
+		temp = b_status->batk - status_base_atk(bl, b_status);
 		if( temp ) {
 			temp += status->batk;
 			status->batk = cap_value(temp, 0, USHRT_MAX);
@@ -10630,6 +10637,13 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			break;
 		case SC_TEARGAS:
 			status_change_end(bl,SC_TEARGAS_SOB,INVALID_TIMER);
+			break;
+		case SC_BANANA_BOMB_SITDOWN:
+			if( sd && pc_issit(sd) ) {
+				pc_setstand(sd);
+				skill_sit(sd,0);
+				clif_standing(bl);
+			}
 			break;
 		case SC_VACUUM_EXTREME:
 			if (!map_flag_gvg2(bl->m) && sc && sce->val2 && sc->cant.move > 0)

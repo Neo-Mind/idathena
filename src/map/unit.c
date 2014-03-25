@@ -1116,39 +1116,37 @@ int unit_can_move(struct block_list *bl) {
 	struct map_session_data *sd;
 	struct unit_data *ud;
 	struct status_change *sc;
-	
+
 	nullpo_ret(bl);
+
 	ud = unit_bl2ud(bl);
 	sc = status_get_sc(bl);
 	sd = BL_CAST(BL_PC, bl);
-	
+
 	if (!ud)
 		return 0;
-	
+
 	if (ud->skilltimer != INVALID_TIMER && ud->skill_id != LG_EXEEDBREAK && (!sd || !pc_checkskill(sd, SA_FREECAST) || (skill_get_inf2(ud->skill_id)&INF2_GUILD_SKILL)))
 		return 0; // Prevent moving while casting
-	
+
 	if (DIFF_TICK(ud->canmove_tick, gettick()) > 0)
 		return 0;
-	
-	if (sd && (
-		pc_issit(sd) ||
+
+	if (sd &&
+		(pc_issit(sd) ||
 		sd->state.vending ||
 		sd->state.buyingstore ||
-		sd->state.blockedmove
-	))
+		sd->state.blockedmove))
 		return 0; //Can't move
-	
+
 	if (sc) {
-		if (sc->cant.move /* Status placed here are ones that cannot be cached by sc->cant.move for they depend on other conditions other than their availability */
-			|| (sc->data[SC_FEAR] && sc->data[SC_FEAR]->val2 > 0)
-			|| (sc->data[SC_SPIDERWEB] && sc->data[SC_SPIDERWEB]->val1)
-			|| (sc->data[SC_DANCING] && sc->data[SC_DANCING]->val4 && (
-				!sc->data[SC_LONGING] ||
-				(sc->data[SC_DANCING]->val1&0xFFFF) == CG_MOONLIT ||
-				(sc->data[SC_DANCING]->val1&0xFFFF) == CG_HERMODE )
-				)
-		)
+		if (sc->cant.move || /* Status placed here are ones that cannot be cached by sc->cant.move for they depend on other conditions other than their availability */
+			(sc->data[SC_FEAR] && sc->data[SC_FEAR]->val2 > 0) ||
+			(sc->data[SC_SPIDERWEB] && sc->data[SC_SPIDERWEB]->val1) ||
+			(sc->data[SC_DANCING] && sc->data[SC_DANCING]->val4 &&
+			(!sc->data[SC_LONGING] ||
+			(sc->data[SC_DANCING]->val1&0xFFFF) == CG_MOONLIT ||
+			(sc->data[SC_DANCING]->val1&0xFFFF) == CG_HERMODE)))
 			return 0;
 
 		if (sc->opt1 > 0 && sc->opt1 != OPT1_STONEWAIT && sc->opt1 != OPT1_BURNING && !(sc->opt1 == OPT1_CRYSTALIZE && bl->type == BL_MOB))
@@ -1156,7 +1154,6 @@ int unit_can_move(struct block_list *bl) {
 
 		if ((sc->option&OPTION_HIDE) && (!sd || pc_checkskill(sd, RG_TUNNELDRIVE) <= 0))
 			return 0;
-
 	}
 	return 1;
 }
@@ -2103,11 +2100,11 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 		return 0;
 
 	if( status_isdead(src) || status_isdead(target) ||
-			battle_check_target(src,target,BCT_ENEMY) <= 0 || !status_check_skilluse(src,target,0,0)
+		battle_check_target(src,target,BCT_ENEMY) <= 0 || !status_check_skilluse(src,target,0,0)
 #ifdef OFFICIAL_WALKPATH 
-			|| !path_search_long(NULL,src->m,src->x,src->y,target->x,target->y,CELL_CHKWALL)
+		|| !path_search_long(NULL,src->m,src->x,src->y,target->x,target->y,CELL_CHKWALL)
 #endif
-			)
+	)
 		return 0; // Can't attack under these conditions
 
 	if( sd && &sd->sc && sd->sc.count && sd->sc.data[SC_HEAT_BARREL_AFTER] )
@@ -2119,21 +2116,20 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 		return 0;
 	}
 
-	if( ud->skilltimer != INVALID_TIMER && !(sd && pc_checkskill(sd,SA_FREECAST) > 0) )
+	if( ud->skilltimer != INVALID_TIMER && sd && !pc_checkskill(sd,SA_FREECAST) > 0 )
 		return 0; // Can't attack while casting
 
-	if( !battle_config.sdelay_attack_enable && DIFF_TICK(ud->canact_tick,tick) > 0 && !(sd && pc_checkskill(sd,SA_FREECAST) > 0) ) {
-		// Attacking when under cast delay has restrictions:
+	if( !battle_config.sdelay_attack_enable && DIFF_TICK(ud->canact_tick,tick) > 0 &&
+		sd && !pc_checkskill(sd,SA_FREECAST) > 0 ) { // Attacking when under cast delay has restrictions:
 		if( tid == INVALID_TIMER ) { // Requested attack.
 			if( sd )
 				clif_skill_fail(sd,1,USESKILL_FAIL_SKILLINTERVAL,0);
 			return 0;
-		}
-		// Otherwise, we are in a combo-attack, delay this until your canact time is over. [Skotlex]
+		} // Otherwise, we are in a combo-attack, delay this until your canact time is over. [Skotlex]
 		if( ud->state.attack_continue ) {
 			if( DIFF_TICK(ud->canact_tick, ud->attackabletime) > 0 )
 				ud->attackabletime = ud->canact_tick;
-			ud->attacktimer=add_timer(ud->attackabletime,unit_attack_timer,src->id,0);
+			ud->attacktimer = add_timer(ud->attackabletime,unit_attack_timer,src->id,0);
 		}
 		return 1;
 	}
@@ -2237,7 +2233,7 @@ static int unit_attack_timer(int tid, unsigned int tick, int id, intptr_t data)
  *  &2: Cancel only if skill is cancellable
  * @return Success(1); Fail(0);
  */
-int unit_skillcastcancel(struct block_list *bl,uint8 type)
+int unit_skillcastcancel(struct block_list *bl, uint8 type)
 {
 	struct map_session_data *sd = NULL;
 	struct unit_data *ud = unit_bl2ud( bl);
@@ -2251,8 +2247,7 @@ int unit_skillcastcancel(struct block_list *bl,uint8 type)
 
 	sd = BL_CAST(BL_PC, bl);
 
-	if (type&2) {
-		//See if it can be cancelled.
+	if (type&2) { //See if it can be cancelled.
 		if (!ud->state.skillcastcancel)
 			return 0;
 
@@ -2278,7 +2273,7 @@ int unit_skillcastcancel(struct block_list *bl,uint8 type)
 
 	ud->skilltimer = INVALID_TIMER;
 
-	if (sd && (pc_checkskill(sd,SA_FREECAST) > 0 || skill_id == LG_EXEEDBREAK))
+	if (sd && (pc_checkskill(sd, SA_FREECAST) > 0 || skill_id == LG_EXEEDBREAK))
 		status_calc_bl(&sd->bl, SCB_SPEED);
 
 	if (sd) {

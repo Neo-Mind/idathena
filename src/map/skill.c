@@ -1504,11 +1504,11 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 						sc_start2(src,bl,SC_BLEEDING,100,skill_lv,src->id,10000);
 						break;
 					case ITEMID_MELON_BOMB:
-						sc_start(src,bl,SC_MELON_BOMB,100,skill_lv,60000); //Reduces ASPD and moviment speed
+						sc_start(src,bl,SC_MELON_BOMB,100,skill_lv,60000); //Reduces ASPD and movement speed
 						break;
 					case ITEMID_BANANA_BOMB:
-						sc_start(src,bl,SC_BANANA_BOMB,100,skill_lv,60000); //Reduces LUK Needed confirm it,may be it's bugged in kRO RE?
-						sc_start(src,bl,SC_BANANA_BOMB_SITDOWN,sd->status.job_level + sstatus->dex / 6 + tstatus->agi / 4 - tstatus->luk / 5 - status_get_lv(bl) + status_get_lv(src),skill_lv,1000); //Sitdown for 3 seconds.
+						sc_start(src,bl,SC_BANANA_BOMB,100,skill_lv,60000); //Reduces LUK
+						sc_start(src,bl,SC_BANANA_BOMB_SITDOWN,sd->status.job_level + sstatus->dex / 6 + tstatus->agi / 4 - tstatus->luk / 5 - status_get_lv(bl) + status_get_lv(src),skill_lv,3000); //Sitdown for 3 seconds.
 						break;
 				}
 				sd->itemid = -1;
@@ -2045,7 +2045,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 			if(skill_id == WZ_WATERBALL) { //(bugreport:5303)
 				struct status_change *sc = NULL;
 
-				if(( sc = status_get_sc(src) )) {
+				if((sc = status_get_sc(src))) {
 					if(sc->data[SC_SPIRIT] &&
 						sc->data[SC_SPIRIT]->val2 == SL_WIZARD &&
 						sc->data[SC_SPIRIT]->val3 == WZ_WATERBALL)
@@ -19116,7 +19116,7 @@ int skill_split_atoi (char *str, int *val)
 	for( step = 1; step <= i / 2; step++ ) {
 		int diff = val[i - 1] - val[i - step - 1];
 
-		for( j = i-1; j >= step; j-- )
+		for( j = i - 1; j >= step; j-- )
 			if( (val[j] - val[j - step]) != diff )
 				break;
 
@@ -19125,7 +19125,7 @@ int skill_split_atoi (char *str, int *val)
 
 		for( ; i < MAX_SKILL_LEVEL; i++ ) { //Apply linear increase
 			val[i] = val[i - step] + diff;
-			if( val[i] < 1 && val[i-1] >= 0 ) {
+			if( val[i] < 1 && val[i - 1] >= 0 ) {
 				//Check if we have switched from + to -, cap the decrease to 0 in said cases.
 				val[i] = 1;
 				diff = 0;
@@ -19193,7 +19193,7 @@ void skill_init_unit_layout (void)
 						static const int dx[] = {
 							-1, 0, 1,-2,-1, 0, 1, 2,-2,-1,
 							 0, 1, 2,-2,-1, 0, 1, 2,-1, 0, 1};
-						static const int dy[]={
+						static const int dy[] = {
 							-2,-2,-2,-1,-1,-1,-1,-1, 0, 0,
 							 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2};
 

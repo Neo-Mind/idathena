@@ -4891,6 +4891,7 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 			case KN_AUTOCOUNTER:
 				wd.flag = (wd.flag&~BF_SKILLMASK)|BF_NORMAL;
 				break;
+
 			case LK_SPIRALPIERCE:
 				if(!sd)
 					wd.flag = (wd.flag&~(BF_RANGEMASK|BF_WEAPONMASK))|BF_LONG|BF_MISC;
@@ -6934,6 +6935,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 
 		if (dist <= 0 || (!map_check_dir(dir,t_dir) && dist <= tstatus->rhw.range + 1)) {
 			uint16 skill_lv = tsc->data[SC_AUTOCOUNTER]->val1;
+
 			clif_skillcastcancel(target); //Remove the casting bar. [Skotlex]
 			clif_damage(src,target,tick,sstatus->amotion,1,0,1,0,0); //Display MISS.
 			status_change_end(target,SC_AUTOCOUNTER,INVALID_TIMER);
