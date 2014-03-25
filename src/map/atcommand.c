@@ -627,8 +627,8 @@ ACMD_FUNC(who)
 	iter = mapit_getallusers();
 	for (pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter))	{
 		if (!((pc_has_permission(pl_sd, PC_PERM_HIDE_SESSION) || (pl_sd->sc.option&OPTION_INVISIBLE)) && pc_get_group_level(pl_sd) > level)) { // you can look only lower or same level
-			if (stristr(pl_sd->status.name, player_name) == NULL // Search with no case sensitive
-				|| (map_id >= 0 && pl_sd->bl.m != map_id))
+			if (stristr(pl_sd->status.name, player_name) == NULL || // Search with no case sensitive
+				(map_id >= 0 && pl_sd->bl.m != map_id))
 				continue;
 			switch (display_type) {
 				case 2: {
@@ -974,8 +974,8 @@ ACMD_FUNC(hide)
 		// Decrement the number of pvp players on the map
 		map[sd->bl.m].users_pvp--;
 
-		if( map[sd->bl.m].flag.pvp && !map[sd->bl.m].flag.pvp_nocalcrank && sd->pvp_timer != INVALID_TIMER )
-		{ // Unregister the player for ranking
+		// Unregister the player for ranking
+		if( map[sd->bl.m].flag.pvp && !map[sd->bl.m].flag.pvp_nocalcrank && sd->pvp_timer != INVALID_TIMER ) {
 			delete_timer(sd->pvp_timer, pc_calc_pvprank_timer);
 			sd->pvp_timer = INVALID_TIMER;
 		}

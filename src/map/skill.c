@@ -1983,9 +1983,11 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	}
 
 	switch(skill_id) {
+#ifndef RENEWAL
 		case MO_EXTREMITYFIST:
 			sc_start(src,src,SC_EXTREMITYFIST,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
+#endif
 		case GS_FULLBUSTER:
 			sc_start(src,src,SC_BLIND,2 * skill_lv,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
@@ -7811,7 +7813,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				}
 				sp1 = sstatus->sp;
 				sp2 = tstatus->sp;
-#ifdef  RENEWAL
+#ifdef RENEWAL
 				sp1 = sp1 / 2;
 				sp2 = sp2 / 2;
 				if (tsc && tsc->data[SC_EXTREMITYFIST2])
@@ -12088,8 +12090,8 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 				struct skill_unit_group *old_sg;
 
 				if( (old_sg = skill_locate_element_field(src)) != NULL ) {
-					//HelloKitty confirmed that these are interchangeable.
-					//So you can change element and not consume gemstones.
+					//HelloKitty confirmed that these are interchangeable
+					//So you can change element and not consume gemstones
 					if( (old_sg->skill_id == SA_VOLCANO ||
 						old_sg->skill_id == SA_DELUGE ||
 						old_sg->skill_id == SA_VIOLENTGALE) &&
@@ -12121,7 +12123,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			break;
 		case BA_POEMBRAGI:
 			val1 = 3 * skill_lv + status->dex / 10; //Casting time reduction
-			//For some reason at level 10 the base delay reduction is 50%.
+			//For some reason at level 10 the base delay reduction is 50%
 			val2 = (skill_lv < 10 ? 3 * skill_lv : 50) + status->int_ / 5; //After-cast delay reduction
 			if( sd ) {
 				val1 += pc_checkskill(sd,BA_MUSICALLESSON);
@@ -12130,10 +12132,10 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			break;
 		case DC_DONTFORGETME:
 			val1 = 30 * skill_lv + status->dex; //ASPD decrease 
-			val2 = 20 * skill_lv + status->agi; //Movement speed adjustment.
+			val2 = 20 * skill_lv + status->agi; //Movement speed adjustment
 			if( sd ) {
 				val1 += pc_checkskill(sd,DC_DANCINGLESSON);
-				val2 += 10 * ((pc_checkskill(sd,DC_DANCINGLESSON) + 1) / 2); //ASPD +1% per 2 lvl
+				val2 += 10 * ((pc_checkskill(sd,DC_DANCINGLESSON) + 1) / 2); //Movement speed -1% per 2 lvl
 			}
 			break;
 		case BA_APPLEIDUN:
@@ -12153,13 +12155,13 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		case BA_ASSASSINCROSS:
 			val1 = 100 + 10 * skill_lv + status->agi; //ASPD increase
 			if( sd )
-				val1 += 10 * ((pc_checkskill(sd,BA_MUSICALLESSON) + 1) / 2);
+				val1 += 10 * ((pc_checkskill(sd,BA_MUSICALLESSON) + 1) / 2); //ASPD +1% per 2 lvl
 			break;
 		case DC_FORTUNEKISS:
 			val1 = 10 + skill_lv + (status->luk / 10); //Critical increase
 			if( sd )
 				val1 += pc_checkskill(sd,DC_DANCINGLESSON);
-			val1 *= 10; //Because every 10 crit is an actual cri point.
+			val1 *= 10; //Because every 10 crit is an actual cri point
 			break;
 		case BD_DRUMBATTLEFIELD:
 #ifdef RENEWAL
@@ -12174,7 +12176,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			val1 = (skill_lv + 2) * 25; //Watk increase
 			break;
 		case BD_RICHMANKIM:
-			val1 = 25 + 11 * skill_lv; //Exp increase bonus.
+			val1 = 25 + 11 * skill_lv; //Exp increase bonus
 			break;
 		case BD_SIEGFRIED:
 			val1 = 55 + skill_lv * 5; //Elemental Resistance
@@ -14206,8 +14208,10 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 				return false;
 			break;
 		case MO_EXTREMITYFIST:
+#ifndef RENEWAL
 			//if( sc && sc->data[SC_EXTREMITYFIST] ) //To disable Asura during the 5 min skill block uncomment this...
 				//return false;
+#endif
 			if( sc && (sc->data[SC_BLADESTOP] || sc->data[SC_CURSEDCIRCLE_ATKER]) )
 				break;
 			if( sc && sc->data[SC_COMBO] ) {

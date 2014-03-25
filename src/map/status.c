@@ -3899,7 +3899,10 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		sc->data[SC_MAXIMIZEPOWER] ||
 #endif
 		sc->data[SC_VITALITYACTIVATION] || sc->data[SC_OBLIVIONCURSE] ||
-		(bl->type == BL_PC && (((TBL_PC*)bl)->class_&MAPID_UPPERMASK) == MAPID_MONK && sc->data[SC_EXTREMITYFIST] &&
+		(bl->type == BL_PC && (((TBL_PC*)bl)->class_&MAPID_UPPERMASK) == MAPID_MONK &&
+#ifndef RENEWAL
+		sc->data[SC_EXTREMITYFIST] &&
+#endif
 		(!sc->data[SC_SPIRIT] || sc->data[SC_SPIRIT]->val2 != SL_MONK)))
 		regen->flag &= ~RGN_SP; //No natural SP regen
 

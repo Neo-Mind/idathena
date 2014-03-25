@@ -301,12 +301,14 @@ static int clif_send_sub(struct block_list *bl, va_list ap) {
 		case AREA_WOSC: {
 				if (src_bl->type == BL_PC) {
 					struct map_session_data *ssd = (struct map_session_data *)src_bl;
+
 					if (ssd && sd->chatID && (sd->chatID == ssd->chatID))
-					return 0;
+						return 0;
 				} else if (src_bl->type == BL_NPC) {
 					struct npc_data *nd = (struct npc_data *)src_bl;
+
 					if (nd && sd->chatID && (sd->chatID == nd->chat_id))
-					return 0;
+						return 0;
 				}
 			}
 			break;
@@ -10688,7 +10690,7 @@ void clif_parse_WisMessage(int fd, struct map_session_data* sd)
 
 	// If player ignores everyone
 	if( dstsd->state.ignoreAll ) {
-		if (dstsd->sc.option & OPTION_INVISIBLE && pc_get_group_level(sd) < pc_get_group_level(dstsd))
+		if( (dstsd->sc.option&OPTION_INVISIBLE) && pc_get_group_level(sd) < pc_get_group_level(dstsd) )
 			clif_wis_end(fd, 1); // 1: Target character is not loged in
 		else
 			clif_wis_end(fd, 3); // 3: Everyone ignored by target
