@@ -18978,6 +18978,7 @@ int skill_blockpc_start(struct map_session_data *sd, uint16 skill_id, int tick) 
 
 int skill_blockpc_clear(struct map_session_data *sd) {
 	int i;
+
 	nullpo_ret(sd);
 
 	for (i = 0; i < MAX_SKILLCOOLDOWN; i++) {
@@ -18993,9 +18994,12 @@ int skill_blockpc_clear(struct map_session_data *sd) {
 int skill_blockhomun_end(int tid, unsigned int tick, int id, intptr_t data) //[orn]
 {
 	struct homun_data *hd = (TBL_HOM*) map_id2bl(id);
+
 	if (data <= 0 || data >= MAX_SKILL)
 		return 0;
-	if (hd) hd->blockskill[data] = 0;
+
+	if (hd)
+		hd->blockskill[data] = 0;
 
 	return 1;
 }
@@ -19013,7 +19017,9 @@ int skill_blockhomun_start(struct homun_data *hd, uint16 skill_id, int tick) //[
 		hd->blockskill[idx] = 0;
 		return -1;
 	}
+
 	hd->blockskill[idx] = 1;
+
 	return add_timer(gettick() + tick, skill_blockhomun_end, hd->bl.id, idx);
 }
 
@@ -19023,7 +19029,9 @@ int skill_blockmerc_end(int tid, unsigned int tick, int id, intptr_t data) //[or
 
 	if( data <= 0 || data >= MAX_SKILL )
 		return 0;
-	if( md ) md->blockskill[data] = 0;
+
+	if( md )
+		md->blockskill[data] = 0;
 
 	return 1;
 }
@@ -19036,11 +19044,14 @@ int skill_blockmerc_start(struct mercenary_data *md, uint16 skill_id, int tick)
 
 	if( !idx )
 		return -1;
+
 	if( tick < 1 ) {
 		md->blockskill[idx] = 0;
 		return -1;
 	}
+
 	md->blockskill[idx] = 1;
+
 	return add_timer(gettick() + tick, skill_blockmerc_end, md->bl.id, idx);
 }
 /**
@@ -19064,14 +19075,12 @@ void skill_usave_add(struct map_session_data * sd, uint16 skill_id, uint16 skill
 void skill_usave_trigger(struct map_session_data *sd) {
 	struct skill_usave * sus = NULL;
 
-	if( ! (sus = idb_get(skillusave_db,sd->status.char_id)) ) {
+	if( ! (sus = idb_get(skillusave_db,sd->status.char_id)) )
 		return;
-	}
 
 	skill_unitsetting(&sd->bl,sus->skill_id,sus->skill_lv,sd->bl.x,sd->bl.y,0);
-
 	idb_remove(skillusave_db,sd->status.char_id);
-	
+
 	return;
 }
 /*

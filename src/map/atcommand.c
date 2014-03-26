@@ -7105,20 +7105,18 @@ ACMD_FUNC(hommutate)
 		return -1;
 	}
 
-	if (!message || !*message) {
-		homun_id = 6048 + (rnd() % 4);
-	} else {
+	if (!message || !*message)
+		homun_id = 6048 + (rnd()%4);
+	else
 		homun_id = atoi(message);
-	}
 
 	m_class = hom_class2mapid(sd->hd->homunculus.class_);
 	m_id	= hom_class2mapid(homun_id);
 
-	if (m_class != HT_INVALID && m_id != HT_INVALID && m_class&HOM_EVO && m_id&HOM_S && sd->hd->homunculus.level >= 99) {
+	if (m_class != HT_INVALID && m_id != HT_INVALID && m_class&HOM_EVO && m_id&HOM_S && sd->hd->homunculus.level >= 99)
 		hom_mutate(sd->hd, homun_id);
-	} else {
+	else
 		clif_emotion(&sd->hd->bl, E_SWT);
-	}
 	return 0;
 }
 
