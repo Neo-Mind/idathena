@@ -4234,12 +4234,6 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 					break;
 			}
 		}
-		if(sc->data[SC_STRIKING]) {
-			ATK_ADD(wd.damage, wd.damage2, sc->data[SC_STRIKING]->val2);
-#ifdef RENEWAL
-			ATK_ADD(wd.weaponAtk, wd.weaponAtk2, sc->data[SC_STRIKING]->val2);
-#endif
-		}
 		if(sc->data[SC_GT_CHANGE] && sc->data[SC_GT_CHANGE]->val2) {
 			struct block_list *bl;
 
