@@ -418,7 +418,7 @@ int pc_setrestartvalue(struct map_session_data *sd,int type) {
 			status_set_sp(&sd->bl, b_status->sp, 1);
 	} else { //Just for saving on the char-server (with values as if respawned)
 		sd->status.hp = b_status->hp;
-		sd->status.sp = (status->sp < b_status->sp)?b_status->sp:status->sp;
+		sd->status.sp = (status->sp < b_status->sp) ? b_status->sp : status->sp;
 	}
 	return 0;
 }

@@ -6356,7 +6356,7 @@ struct status_data *status_get_status_data(struct block_list *bl)
 
 struct status_data *status_get_base_status(struct block_list *bl)
 {
-	nullpo_retr(NULL, bl);
+	nullpo_retr(&dummy_status, bl);
 
 	switch (bl->type) {
 		case BL_PC:  return &((TBL_PC*)bl)->base_status;
@@ -6365,9 +6365,9 @@ struct status_data *status_get_base_status(struct block_list *bl)
 		case BL_HOM: return &((TBL_HOM*)bl)->base_status;
 		case BL_MER: return &((TBL_MER*)bl)->base_status;
 		case BL_ELEM: return &((TBL_ELEM*)bl)->base_status;
-		case BL_NPC: return (((mobdb_checkid(((TBL_NPC*)bl)->class_) == 0) ? &((TBL_NPC*)bl)->status : NULL));
+		case BL_NPC: return (((mobdb_checkid(((TBL_NPC*)bl)->class_) == 0) ? &((TBL_NPC*)bl)->status : &dummy_status));
 		default:
-			return NULL;
+			return &dummy_status;
 	}
 }
 
@@ -6878,12 +6878,10 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			sc_def2 = (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 20 +
 				status->vit * 25 + status->agi * 10; //Lineal Reduction of Rate
 			break;
-		case SC_MARSHOFABYSS:
-			//5 second (Fixed) + 25 second - { (INT + LUK) / 20 second }
+		case SC_MARSHOFABYSS: //5 second (Fixed) + 25 second - { (INT + LUK) / 20 second }
 			tick_def2 = (status->int_ + status->luk) * 50;
 			break;
-		case SC_STASIS:
-			//5 second (fixed) + { Stasis Skill level * 5 - (Target VIT + DEX) / 20 }
+		case SC_STASIS: //5 second (fixed) + { Stasis Skill level * 5 - (Target VIT + DEX) / 20 }
 			tick_def2 = (status->vit + status->dex) * 50;
 			break;
 		case SC_WHITEIMPRISON:

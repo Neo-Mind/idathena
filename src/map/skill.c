@@ -9708,7 +9708,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				else
 					tsc->opt1 = OPT1_SLEEP;
 				clif_changeoption(bl);
-				clif_skill_nodamage (src,bl,skill_id,skill_lv,1);
+				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			}
 			break;
 
@@ -9728,7 +9728,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SO_SUMMON_TERA:
 			if( sd ) {
 				int elemental_class = skill_get_elemental_type(skill_id,skill_lv);
-				
+
 				//Remove previous elemental fisrt.
 				if( sd->ed )
 					elemental_delete(sd->ed,0);
