@@ -10459,7 +10459,8 @@ void pc_scdata_received(struct map_session_data *sd) {
 int pc_expiration_timer(int tid, unsigned int tick, int id, intptr_t data) {
 	struct map_session_data *sd = map_id2sd(id);
 
-	if( !sd ) return 0;
+	if( !sd )
+		return 0;
 
 	sd->expiration_tid = INVALID_TIMER;
 

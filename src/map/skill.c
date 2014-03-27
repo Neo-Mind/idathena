@@ -2397,6 +2397,7 @@ static int skill_magic_reflect(struct block_list* src, struct block_list* bl, in
  */
 void skill_combo_toogle_inf(struct block_list* bl, uint16 skill_id, int inf) {
 	TBL_PC *sd = BL_CAST(BL_PC,bl);
+
 	switch (skill_id) {
 		case MH_MIDNIGHT_FRENZY:
 		case MH_EQC: {
@@ -2409,7 +2410,8 @@ void skill_combo_toogle_inf(struct block_list* bl, uint16 skill_id, int inf) {
 				hd->homunculus.hskill[idx].flag = flag;
 				//Refresh info
 				//FIXME: We only want to refresh one skill
-				if(sd) clif_homskillinfoblock(sd);
+				if (sd)
+					clif_homskillinfoblock(sd);
 			}
 			break;
 		case MO_COMBOFINISH:

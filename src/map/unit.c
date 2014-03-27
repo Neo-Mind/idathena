@@ -1275,7 +1275,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		else
 			target_id = ud->target;
 
-		if( skill_get_inf(skill_id)&INF_SELF_SKILL && skill_get_nk(skill_id)&NK_NO_DAMAGE ) //Exploit fix
+		if( (skill_get_inf(skill_id)&INF_SELF_SKILL) && (skill_get_nk(skill_id)&NK_NO_DAMAGE) ) //Exploit fix
 			target_id = src->id;
 		combo = 1;
 	} else if( target_id == src->id &&
@@ -1328,7 +1328,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 				{
 					int skill_id2 = ((skill_id == MH_SONIC_CRAW) ? MH_MIDNIGHT_FRENZY : MH_EQC);
 
-					if( sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == skill_id2 ) { //It's a combo
+					if( sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == skill_id2 ) { //It's a combo
 						target_id = sc->data[SC_COMBO]->val2;
 						combo = 1;
 						casttime = -1;
