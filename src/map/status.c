@@ -1359,6 +1359,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 			status_change_end(target, SC_SLEEP, INVALID_TIMER);
 			status_change_end(target, SC_WINKCHARM, INVALID_TIMER);
 			status_change_end(target, SC_CONFUSION, INVALID_TIMER);
+			status_change_end(target, SC__CHAOS, INVALID_TIMER);
 			status_change_end(target, SC_TRICKDEAD, INVALID_TIMER);
 			status_change_end(target, SC_HIDING, INVALID_TIMER);
 			status_change_end(target, SC_CLOAKING, INVALID_TIMER);
@@ -6759,38 +6760,6 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 	if (sc && !sc->count)
 		sc = NULL;
 
-	if (sc) {
-		if (sc->data[SC_INSPIRATION])
-			switch (type) { //Protects against status effects
-				case SC_POISON:		case SC_BLIND:		case SC_STUN:
-				case SC_SILENCE:	case SC_CONFUSION:	case SC_STONE:
-				case SC_SLEEP:		case SC_BLEEDING:	case SC_CURSE:
-				case SC_BURNING:	case SC_FREEZE:		case SC_FREEZING:
-				case SC_CRYSTALIZE:	case SC_FEAR:		case SC_TOXIN:
-				case SC_PARALYSE:	case SC_VENOMBLEED:	case SC_MAGICMUSHROOM:
-				case SC_DEATHHURT:	case SC_PYREXIA:	case SC_OBLIVIONCURSE:
-				case SC_LEECHESEND:	case SC_DEEPSLEEP:	case SC_SATURDAYNIGHTFEVER:
-				case SC__BODYPAINT:	case SC_ENERVATION:	case SC_GROOMY:
-				case SC_IGNORANCE:	case SC_LAZINESS:	case SC_UNLUCKY:
-				case SC_WEAKNESS:
-					return 0;
-			}
-
-		if (sc->data[SC_KINGS_GRACE])
-			switch (type) {
-				case SC_POISON:		case SC_BLIND:
-				case SC_FREEZE:		case SC_STONE:
-				case SC_STUN:		case SC_SLEEP:
-				case SC_BLEEDING:	case SC_CURSE:
-				case SC_CONFUSION:	case SC_HALLUCINATION:
-				case SC_SILENCE:	case SC_BURNING:
-				case SC_CRYSTALIZE:	case SC_FREEZING:
-				case SC_DEEPSLEEP:	case SC_FEAR:
-				case SC_MANDRAGORA:
-					return 0;
-			}
-	}
-
 	switch (type) {
 		case SC_POISON:
 		case SC_DPOISON:
@@ -7174,40 +7143,48 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		if( md && (md->mob_id == MOBID_EMPERIUM || mob_is_battleground(md)) && type != SC_SAFETYWALL && type != SC_PNEUMA )
 			return 0; //Emperium/BG Monsters can't be afflicted by status changes
 		//if( md && mob_is_gvg(md) && status_sc2scb_flag(type)&SCB_MAXHP )
-			//return 0; //Prevent status addin hp to gvg mob (like bloodylust = hp * 3 etc...
+			//return 0; //Prevent status addin hp to gvg mob (like bloodylust = hp * 3, and etc)
 	}
 
 	if( sc->data[SC_REFRESH] ) {
-		if( type >= SC_COMMON_MIN && type <= SC_COMMON_MAX ) //Confirmed.
-			return 0; //Immune to status ailements
-		switch( type ) {
+		switch( type ) { //Immunes against status effects
 			case SC_STUN:		case SC_SLEEP:		case SC_CURSE:
 			case SC_STONE:		case SC_POISON:		case SC_BLIND:
 			case SC_SILENCE:	case SC_BLEEDING:	case SC_CONFUSION:
-			case SC_FREEZE:		case SC_DEEPSLEEP:	case SC_BURNING:
-			case SC_FREEZING:	case SC_CRYSTALIZE:	case SC_TOXIN:
-			case SC_PARALYSE:	case SC_VENOMBLEED:	case SC_MAGICMUSHROOM:
-			case SC_DEATHHURT:	case SC_PYREXIA:	case SC_OBLIVIONCURSE:
-			case SC_MARSHOFABYSS:	case SC_MANDRAGORA:
+			case SC__CHAOS:		case SC_FREEZE:		case SC_DEEPSLEEP:
+			case SC_BURNING:	case SC_FREEZING:	case SC_CRYSTALIZE:
+			case SC_TOXIN:		case SC_PARALYSE:	case SC_VENOMBLEED:
+			case SC_MAGICMUSHROOM:	case SC_DEATHHURT:	case SC_PYREXIA:
+			case SC_OBLIVIONCURSE:	case SC_MARSHOFABYSS:	case SC_MANDRAGORA:
 				return 0;
 		}
 	}
 
 	if( sc->data[SC_INSPIRATION] ) {
-		if( type >= SC_COMMON_MIN && type <= SC_COMMON_MAX )
-			return 0;
 		switch( type ) {
-			case SC_POISON:		case SC_BLIND:		case SC_STUN:
-			case SC_SILENCE:	case SC_CONFUSION:	case SC_STONE:
-			case SC_SLEEP:		case SC_BLEEDING:	case SC_CURSE:
-			case SC_BURNING:	case SC_FREEZE:		case SC_FREEZING:
-			case SC_CRYSTALIZE:	case SC_FEAR:		case SC_TOXIN:
-			case SC_PARALYSE:	case SC_VENOMBLEED:	case SC_MAGICMUSHROOM:
-			case SC_DEATHHURT:	case SC_PYREXIA:	case SC_OBLIVIONCURSE:
-			case SC_LEECHESEND:	case SC_DEEPSLEEP:	case SC_SATURDAYNIGHTFEVER:
-			case SC__BODYPAINT:	case SC_ENERVATION:	case SC_GROOMY:
-			case SC_IGNORANCE:	case SC_LAZINESS:	case SC_UNLUCKY:
-			case SC_WEAKNESS:
+			case SC_POISON:			case SC_BLIND:		case SC_STUN:
+			case SC_SILENCE:		case SC_CONFUSION:	case SC__CHAOS:
+			case SC_STONE:			case SC_SLEEP:		case SC_BLEEDING:
+			case SC_CURSE:			case SC_BURNING:	case SC_FREEZE:
+			case SC_FREEZING:		case SC_CRYSTALIZE:	case SC_FEAR:
+			case SC_TOXIN:			case SC_PARALYSE:	case SC_VENOMBLEED:
+			case SC_MAGICMUSHROOM:		case SC_DEATHHURT:	case SC_PYREXIA:
+			case SC_OBLIVIONCURSE:		case SC_LEECHESEND:	case SC_DEEPSLEEP:
+			case SC_SATURDAYNIGHTFEVER:	case SC__BODYPAINT:	case SC__ENERVATION:
+			case SC__GROOMY:			case SC__IGNORANCE:	case SC__LAZINESS:
+			case SC__UNLUCKY:		case SC__WEAKNESS:
+				return 0;
+		}
+	}
+
+	if( sc->data[SC_KINGS_GRACE] ) {
+		switch( type ) {
+			case SC_POISON:		case SC_BLIND:		case SC_FREEZE:
+			case SC_STONE:		case SC_STUN:		case SC_SLEEP:
+			case SC_BLEEDING:	case SC_CURSE:		case SC_CONFUSION:
+			case SC_HALLUCINATION:	case SC_SILENCE:	case SC_BURNING:
+			case SC_CRYSTALIZE:	case SC_FREEZING:	case SC_DEEPSLEEP:
+			case SC_FEAR:		case SC_MANDRAGORA:
 				return 0;
 		}
 	}
@@ -7595,10 +7572,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_MAGNETICFIELD:
 			case SC__ENERVATION:
 			case SC__GROOMY:
+			case SC__IGNORANCE:
 			case SC__LAZINESS:
 			case SC__UNLUCKY:
 			case SC__WEAKNESS:
-			case SC__IGNORANCE:
 				return 0;
 		}
 	}
@@ -7895,6 +7872,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_CURSE:
 			case SC_SILENCE:
 			case SC_CONFUSION:
+			case SC__CHAOS:
 			case SC_BLIND:
 			case SC_BLEEDING:
 			case SC_DPOISON:
@@ -7918,9 +7896,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC__GROOMY:
 			case SC__IGNORANCE:
 			case SC__LAZINESS:
-			case SC__WEAKNESS:
 			case SC__UNLUCKY:
-			case SC__CHAOS:
+			case SC__WEAKNESS:
 				return 0;
 			case SC_COMBO:
 			case SC_DANCING:
@@ -9175,7 +9152,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				}
 				val4 = tick / 5000;
 				tick_time = 5000; //[GodLesZ] tick time
-				status_change_clear_buffs(bl,3); //Remove buffs/debuffs
 				break;
 			case SC_CRESCENTELBOW:
 				if( sd )
@@ -9635,6 +9611,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			unit_stop_attack(bl);
 		case SC_STOP:
 		case SC_CONFUSION:
+		case SC__CHAOS:
 		case SC_CLOSECONFINE:
 		case SC_CLOSECONFINE2:
 		case SC_TINDER_BREAKER:
@@ -9642,7 +9619,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_BITE:
 		case SC_THORNSTRAP:
 		case SC__MANHOLE:
-		case SC__CHAOS:
 		case SC_CRYSTALIZE:
 		case SC_CURSEDCIRCLE_ATKER:
 		case SC_CURSEDCIRCLE_TARGET:
@@ -12050,6 +12026,7 @@ void status_change_clear_buffs(struct block_list* bl, int type)
 			case SC_BLEEDING:
 			case SC_SILENCE:
 			case SC_CONFUSION:
+			case SC__CHAOS:
 			case SC_FREEZE:
 			case SC_HALLUCINATION:
 			case SC_QUAGMIRE:
@@ -12127,6 +12104,7 @@ int status_change_spread(struct block_list *src, struct block_list *bl) {
 			case SC_CURSE:
 			case SC_SILENCE:
 			case SC_CONFUSION:
+			case SC__CHAOS:
 			case SC_BLIND:
 			//case SC_NOCHAT:
 			case SC_HALLUCINATION:

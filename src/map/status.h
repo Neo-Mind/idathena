@@ -40,7 +40,7 @@ typedef enum sc_type {
 
 	//First we enumerate common status ailments which are often used around.
 	SC_STONE = 0,
-	SC_COMMON_MIN = 0, // begin
+	SC_COMMON_MIN = 0, //Begin
 	SC_FREEZE,
 	SC_STUN,
 	SC_SLEEP,
@@ -51,7 +51,7 @@ typedef enum sc_type {
 	SC_BLIND,
 	SC_BLEEDING,
 	SC_DPOISON, //10
-	SC_COMMON_MAX = 10, // end
+	SC_COMMON_MAX = 10, //End
 
 	//Next up, we continue on 20, to leave enough room for additional "common" ailments in the future.
 	SC_PROVOKE = 20,

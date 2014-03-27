@@ -6702,6 +6702,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			status_change_end(bl,SC_SILENCE,INVALID_TIMER);
 			status_change_end(bl,SC_BLIND,INVALID_TIMER);
 			status_change_end(bl,SC_CONFUSION,INVALID_TIMER);
+			status_change_end(bl,SC__CHAOS,INVALID_TIMER);
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			break;
 
@@ -6749,6 +6750,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 		case MER_MENTALCURE:
 			status_change_end(bl,SC_CONFUSION,INVALID_TIMER);
+			status_change_end(bl,SC__CHAOS,INVALID_TIMER);
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			break;
 		case MER_RECUPERATE:
@@ -8769,12 +8771,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				switch( i ) {
 					case SC_BLIND:		case SC_CURSE:
 					case SC_POISON:		case SC_HALLUCINATION:
-					case SC_CONFUSION:	case SC_BLEEDING:
-					case SC_BURNING:	case SC_FREEZING:
-					case SC_TOXIN:		case SC_PARALYSE:
-					case SC_VENOMBLEED:	case SC_MAGICMUSHROOM:
-					case SC_DEATHHURT:	case SC_PYREXIA:
-					case SC_LEECHESEND:	case SC_MANDRAGORA:
+					case SC_CONFUSION:	case SC__CHAOS:
+					case SC_BLEEDING:	case SC_BURNING:
+					case SC_FREEZING:	case SC_TOXIN:
+					case SC_PARALYSE:	case SC_VENOMBLEED:
+					case SC_MAGICMUSHROOM:	case SC_DEATHHURT:
+					case SC_PYREXIA:	case SC_LEECHESEND:
+					case SC_MANDRAGORA:
 						status_change_end(bl,(sc_type)i,INVALID_TIMER);
 						break;
 				}
@@ -9286,6 +9289,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				clif_updatestatus(sd,SP_BASEEXP);
 				clif_updatestatus(sd,SP_JOBEXP);
 			}
+			status_change_clear_buffs(bl,7);
 			clif_skill_nodamage(bl,src,skill_id,skill_lv,
 				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			break;
@@ -9301,11 +9305,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						case SC_FREEZE:		case SC_STONE:
 						case SC_STUN:		case SC_SLEEP:
 						case SC_BLEEDING:	case SC_CURSE:
-						case SC_CONFUSION:	case SC_HALLUCINATION:
-						case SC_SILENCE:	case SC_BURNING:
-						case SC_CRYSTALIZE:	case SC_FREEZING:
-						case SC_DEEPSLEEP:	case SC_FEAR:
-						case SC_MANDRAGORA:
+						case SC_CONFUSION:	case SC__CHAOS:
+						case SC_HALLUCINATION:	case SC_SILENCE:
+						case SC_BURNING:	case SC_CRYSTALIZE:
+						case SC_FREEZING:	case SC_DEEPSLEEP:
+						case SC_FEAR:		case SC_MANDRAGORA:
 							status_change_end(bl,(sc_type)i,INVALID_TIMER);
 							break;
 					}
