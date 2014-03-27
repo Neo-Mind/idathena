@@ -1340,10 +1340,10 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 	if (!status->hp)
 		flag |= 8;
 
-//Let through. battle.c/skill.c have the whole logic of when it's possible or
-//not to hurt someone (and this check breaks pet catching) [Skotlex]
-//	if (!target->prev && !(flag&2))
-//		return 0; //Cannot damage a bl not on a map, except when "charging" hp/sp
+	//Let through. battle.c/skill.c have the whole logic of when it's possible or
+	//not to hurt someone (and this check breaks pet catching) [Skotlex]
+	//if (!target->prev && !(flag&2))
+		//return 0; //Cannot damage a bl not on a map, except when "charging" hp/sp
 
 	sc = status_get_sc(target);
 	if (hp && battle_config.invincible_nodamage && src && sc && sc->data[SC_INVINCIBLE] && !sc->data[SC_INVINCIBLEOFF])
@@ -1364,7 +1364,6 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 			status_change_end(target, SC_CLOAKING, INVALID_TIMER);
 			status_change_end(target, SC_CHASEWALK, INVALID_TIMER);
 			status_change_end(target, SC_CAMOUFLAGE, INVALID_TIMER);
-			status_change_end(target, SC__CHAOS, INVALID_TIMER);
 			status_change_end(target, SC_DEEPSLEEP, INVALID_TIMER);
 			if ((sce = sc->data[SC_ENDURE]) && !sce->val4 && !sc->data[SC_CONCENTRATION]) {
 				//Endure count is only reduced by non-players on non-gvg maps.
@@ -6532,13 +6531,12 @@ int status_isdead(struct block_list *bl)
 
 int status_isimmune(struct block_list *bl)
 {
-	struct status_change *sc =status_get_sc(bl);
+	struct status_change *sc = status_get_sc(bl);
 
 	if (sc && sc->data[SC_HERMODE])
 		return 100;
 
-	if (bl->type == BL_PC &&
-		((TBL_PC*)bl)->special_state.no_magic_damage >= battle_config.gtb_sc_immunity)
+	if (bl->type == BL_PC && ((TBL_PC*)bl)->special_state.no_magic_damage >= battle_config.gtb_sc_immunity)
 		return ((TBL_PC*)bl)->special_state.no_magic_damage;
 	return 0;
 }
@@ -6739,33 +6737,16 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 	if (src == NULL)
 		return (tick ? tick : 1); //This should not happen in current implementation, but leave it anyway
 
-	//Status effects that are blocked by Golden Thief Bug card or Wand of Hermod
 	if (status_isimmune(bl))
-		switch (type) {
-			case SC_DECREASEAGI:
-			case SC_SILENCE:
-			case SC_COMA:
-			case SC_INCREASEAGI:
-			case SC_BLESSING:
-			case SC_SLOWPOISON:
-			case SC_IMPOSITIO:
-			case SC_AETERNA:
-			case SC_SUFFRAGIUM:
-			case SC_BENEDICTIO:
-			case SC_PROVIDENCE:
-			case SC_KYRIE:
-			case SC_ASSUMPTIO:
-			case SC_ANGELUS:
-			case SC_MAGNIFICAT:
-			case SC_GLORIA:
-			case SC_WINDWALK:
-			case SC_MAGICROD:
-			case SC_HALLUCINATION:
-			case SC_STONE:
-			case SC_QUAGMIRE:
-			case SC_SUITON:
-			case SC_SECRAMENT:
-			case SC_ADORAMUS:
+		switch (type) { //Status effects that are blocked by Golden Thief Bug card or Wand of Hermod
+			case SC_DECREASEAGI:	case SC_SILENCE:	case SC_COMA:
+			case SC_INCREASEAGI:	case SC_BLESSING:	case SC_SLOWPOISON:
+			case SC_IMPOSITIO:	case SC_AETERNA:	case SC_SUFFRAGIUM:
+			case SC_BENEDICTIO:	case SC_PROVIDENCE:	case SC_KYRIE:
+			case SC_ASSUMPTIO:	case SC_ANGELUS:	case SC_MAGNIFICAT:
+			case SC_GLORIA:		case SC_WINDWALK:	case SC_MAGICROD:
+			case SC_HALLUCINATION:	case SC_STONE:		case SC_QUAGMIRE:
+			case SC_SUITON:		case SC_SECRAMENT:	case SC_ADORAMUS:
 				return 0;
 		}
 
@@ -6778,19 +6759,37 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 	if (sc && !sc->count)
 		sc = NULL;
 
-	if (sc && sc->data[SC_KINGS_GRACE]) //Protects against status effects
-		switch (type) {
-			case SC_POISON:		case SC_BLIND:
-			case SC_FREEZE:		case SC_STONE:
-			case SC_STUN:		case SC_SLEEP:
-			case SC_BLEEDING:	case SC_CURSE:
-			case SC_CONFUSION:	case SC_HALLUCINATION:
-			case SC_SILENCE:	case SC_BURNING:
-			case SC_CRYSTALIZE:	case SC_FREEZING:
-			case SC_DEEPSLEEP:	case SC_FEAR:
-			case SC_MANDRAGORA:	case SC__CHAOS:
-				return 0;
-		}
+	if (sc) {
+		if (sc->data[SC_INSPIRATION])
+			switch (type) { //Protects against status effects
+				case SC_POISON:		case SC_BLIND:		case SC_STUN:
+				case SC_SILENCE:	case SC_CONFUSION:	case SC_STONE:
+				case SC_SLEEP:		case SC_BLEEDING:	case SC_CURSE:
+				case SC_BURNING:	case SC_FREEZE:		case SC_FREEZING:
+				case SC_CRYSTALIZE:	case SC_FEAR:		case SC_TOXIN:
+				case SC_PARALYSE:	case SC_VENOMBLEED:	case SC_MAGICMUSHROOM:
+				case SC_DEATHHURT:	case SC_PYREXIA:	case SC_OBLIVIONCURSE:
+				case SC_LEECHESEND:	case SC_DEEPSLEEP:	case SC_SATURDAYNIGHTFEVER:
+				case SC__BODYPAINT:	case SC_ENERVATION:	case SC_GROOMY:
+				case SC_IGNORANCE:	case SC_LAZINESS:	case SC_UNLUCKY:
+				case SC_WEAKNESS:
+					return 0;
+			}
+
+		if (sc->data[SC_KINGS_GRACE])
+			switch (type) {
+				case SC_POISON:		case SC_BLIND:
+				case SC_FREEZE:		case SC_STONE:
+				case SC_STUN:		case SC_SLEEP:
+				case SC_BLEEDING:	case SC_CURSE:
+				case SC_CONFUSION:	case SC_HALLUCINATION:
+				case SC_SILENCE:	case SC_BURNING:
+				case SC_CRYSTALIZE:	case SC_FREEZING:
+				case SC_DEEPSLEEP:	case SC_FEAR:
+				case SC_MANDRAGORA:
+					return 0;
+			}
+	}
 
 	switch (type) {
 		case SC_POISON:
@@ -7179,67 +7178,36 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	}
 
 	if( sc->data[SC_REFRESH] ) {
-		if( type >= SC_COMMON_MIN && type <= SC_COMMON_MAX) //Confirmed.
+		if( type >= SC_COMMON_MIN && type <= SC_COMMON_MAX ) //Confirmed.
 			return 0; //Immune to status ailements
 		switch( type ) {
-			case SC_STUN:
-			case SC_SLEEP:
-			case SC_CURSE:
-			case SC_STONE:
-			case SC_POISON:
-			case SC_BLIND:
-			case SC_SILENCE:
-			case SC_BLEEDING:
-			case SC_FREEZE:
-			case SC_DEEPSLEEP:
-			case SC_BURNING:
-			case SC_FREEZING:
-			case SC_CRYSTALIZE:
-			case SC_TOXIN:
-			case SC_PARALYSE:
-			case SC_VENOMBLEED:
-			case SC_MAGICMUSHROOM:
-			case SC_DEATHHURT:
-			case SC_PYREXIA:
-			case SC_OBLIVIONCURSE:
-			case SC_MARSHOFABYSS:
-			case SC_MANDRAGORA:
+			case SC_STUN:		case SC_SLEEP:		case SC_CURSE:
+			case SC_STONE:		case SC_POISON:		case SC_BLIND:
+			case SC_SILENCE:	case SC_BLEEDING:	case SC_CONFUSION:
+			case SC_FREEZE:		case SC_DEEPSLEEP:	case SC_BURNING:
+			case SC_FREEZING:	case SC_CRYSTALIZE:	case SC_TOXIN:
+			case SC_PARALYSE:	case SC_VENOMBLEED:	case SC_MAGICMUSHROOM:
+			case SC_DEATHHURT:	case SC_PYREXIA:	case SC_OBLIVIONCURSE:
+			case SC_MARSHOFABYSS:	case SC_MANDRAGORA:
 				return 0;
 		}
-	} else if( sc->data[SC_INSPIRATION] ) {
+	}
+
+	if( sc->data[SC_INSPIRATION] ) {
 		if( type >= SC_COMMON_MIN && type <= SC_COMMON_MAX )
-			return 0; //Immune to status ailements
+			return 0;
 		switch( type ) {
-			case SC_POISON:
-			case SC_BLIND:
-			case SC_STUN:
-			case SC_SILENCE:
-			case SC_CONFUSION:
-			case SC_STONE:
-			case SC_SLEEP:
-			case SC_BLEEDING:
-			case SC_CURSE:
-			case SC_BURNING:
-			case SC_FREEZING:
-			case SC_FEAR:
-			case SC_TOXIN:
-			case SC_PARALYSE:
-			case SC_VENOMBLEED:
-			case SC_MAGICMUSHROOM:
-			case SC_DEATHHURT:
-			case SC_PYREXIA:
-			case SC_OBLIVIONCURSE:
-			case SC_LEECHESEND:
-			case SC__BODYPAINT:
-			case SC_ENERVATION:
-			case SC_GROOMY:
-			case SC_IGNORANCE:
-			case SC_LAZINESS:
-			case SC_UNLUCKY:
+			case SC_POISON:		case SC_BLIND:		case SC_STUN:
+			case SC_SILENCE:	case SC_CONFUSION:	case SC_STONE:
+			case SC_SLEEP:		case SC_BLEEDING:	case SC_CURSE:
+			case SC_BURNING:	case SC_FREEZE:		case SC_FREEZING:
+			case SC_CRYSTALIZE:	case SC_FEAR:		case SC_TOXIN:
+			case SC_PARALYSE:	case SC_VENOMBLEED:	case SC_MAGICMUSHROOM:
+			case SC_DEATHHURT:	case SC_PYREXIA:	case SC_OBLIVIONCURSE:
+			case SC_LEECHESEND:	case SC_DEEPSLEEP:	case SC_SATURDAYNIGHTFEVER:
+			case SC__BODYPAINT:	case SC_ENERVATION:	case SC_GROOMY:
+			case SC_IGNORANCE:	case SC_LAZINESS:	case SC_UNLUCKY:
 			case SC_WEAKNESS:
-			case SC_DEEPSLEEP:
-			case SC_CRYSTALIZE:
-			case SC_SATURDAYNIGHTFEVER:
 				return 0;
 		}
 	}
@@ -7254,6 +7222,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	}
 
 	undead_flag = battle_check_undead(status->race,status->def_ele);
+
 	//Check for immunities / sc fails
 	switch(type) {
 		case SC_DECREASEAGI:
@@ -7285,9 +7254,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			if((type == SC_FREEZE || type == SC_FREEZING || type == SC_CRYSTALIZE) && sc->data[SC_WARMER])
 				return 0; //Immune to Frozen, Freezing and Crystalize status if under Warmer status. [Jobbie]
 			break;
-		//There all like berserk, do not everlap each other
-		case SC_BERSERK:
-			if(sc->data[SC_SATURDAYNIGHTFEVER] || sc->data[SC__BLOODYLUST])
+		case SC_BERSERK: //There all like berserk, do not everlap each other
+			if(sc->data[SC_SATURDAYNIGHTFEVER])
 				return 0;
 			break;
 		case SC_BURNING:
@@ -7553,7 +7521,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				return 0;
 			break;
 		case SC_SATURDAYNIGHTFEVER:
-			if(sc->data[SC_BERSERK] || sc->data[SC_INSPIRATION])
+			if(sc->data[SC_BERSERK])
 				return 0;
 			break;
 		case SC_ALL_RIDING:
@@ -12096,12 +12064,11 @@ void status_change_clear_buffs(struct block_list* bl, int type)
 			case SC_STRIPSHIELD:
 			case SC_STRIPARMOR:
 			case SC_STRIPHELM:
+			case SC_FEAR:
 			case SC_BITE:
 			case SC_ADORAMUS:
-			case SC_VACUUM_EXTREME:
-			case SC_FEAR:
 			case SC_MAGNETICFIELD:
-			case SC__CHAOS:
+			case SC_VACUUM_EXTREME:
 			case SC_NETHERWORLD:
 				if( !(type&2) )
 					continue;

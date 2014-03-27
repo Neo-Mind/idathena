@@ -6702,7 +6702,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			status_change_end(bl,SC_SILENCE,INVALID_TIMER);
 			status_change_end(bl,SC_BLIND,INVALID_TIMER);
 			status_change_end(bl,SC_CONFUSION,INVALID_TIMER);
-			status_change_end(bl,SC__CHAOS,INVALID_TIMER);
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			break;
 
@@ -6750,7 +6749,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 		case MER_MENTALCURE:
 			status_change_end(bl,SC_CONFUSION,INVALID_TIMER);
-			status_change_end(bl,SC__CHAOS,INVALID_TIMER);
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			break;
 		case MER_RECUPERATE:
@@ -8769,15 +8767,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				if( !tsc->data[i] )
 					continue;
 				switch( i ) {
-					case SC_BLIND:			case SC_CURSE:
-					case SC_POISON:			case SC_HALLUCINATION:
-					case SC_CONFUSION:		case SC__CHAOS:
-					case SC_BLEEDING:		case SC_BURNING:
-					case SC_FREEZING:		case SC_TOXIN:
-					case SC_PARALYSE:		case SC_VENOMBLEED:
-					case SC_MAGICMUSHROOM:	case SC_DEATHHURT:
-					case SC_PYREXIA:		case SC_LEECHESEND:
-					case SC_MANDRAGORA:
+					case SC_BLIND:		case SC_CURSE:
+					case SC_POISON:		case SC_HALLUCINATION:
+					case SC_CONFUSION:	case SC_BLEEDING:
+					case SC_BURNING:	case SC_FREEZING:
+					case SC_TOXIN:		case SC_PARALYSE:
+					case SC_VENOMBLEED:	case SC_MAGICMUSHROOM:
+					case SC_DEATHHURT:	case SC_PYREXIA:
+					case SC_LEECHESEND:	case SC_MANDRAGORA:
 						status_change_end(bl,(sc_type)i,INVALID_TIMER);
 						break;
 				}
@@ -9308,7 +9305,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						case SC_SILENCE:	case SC_BURNING:
 						case SC_CRYSTALIZE:	case SC_FREEZING:
 						case SC_DEEPSLEEP:	case SC_FEAR:
-						case SC_MANDRAGORA:	case SC__CHAOS:
+						case SC_MANDRAGORA:
 							status_change_end(bl,(sc_type)i,INVALID_TIMER);
 							break;
 					}
@@ -9686,7 +9683,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				case ECL_SADAGUI:
 					status_change_end(bl,SC_STUN,INVALID_TIMER);
 					status_change_end(bl,SC_CONFUSION,INVALID_TIMER);
-					status_change_end(bl,SC__CHAOS,INVALID_TIMER);
 					status_change_end(bl,SC_HALLUCINATION,INVALID_TIMER);
 					status_change_end(bl,SC_FEAR,INVALID_TIMER);
 					break;
