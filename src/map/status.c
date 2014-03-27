@@ -7171,7 +7171,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_MAGICMUSHROOM:		case SC_DEATHHURT:	case SC_PYREXIA:
 			case SC_OBLIVIONCURSE:		case SC_LEECHESEND:	case SC_DEEPSLEEP:
 			case SC_SATURDAYNIGHTFEVER:	case SC__BODYPAINT:	case SC__ENERVATION:
-			case SC__GROOMY:			case SC__IGNORANCE:	case SC__LAZINESS:
+			case SC__GROOMY:		case SC__IGNORANCE:	case SC__LAZINESS:
 			case SC__UNLUCKY:		case SC__WEAKNESS:
 				return 0;
 		}
@@ -7182,9 +7182,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_POISON:		case SC_BLIND:		case SC_FREEZE:
 			case SC_STONE:		case SC_STUN:		case SC_SLEEP:
 			case SC_BLEEDING:	case SC_CURSE:		case SC_CONFUSION:
-			case SC_HALLUCINATION:	case SC_SILENCE:	case SC_BURNING:
-			case SC_CRYSTALIZE:	case SC_FREEZING:	case SC_DEEPSLEEP:
-			case SC_FEAR:		case SC_MANDRAGORA:
+			case SC__CHAOS:		case SC_HALLUCINATION:	case SC_SILENCE:
+			case SC_BURNING:	case SC_CRYSTALIZE:	case SC_FREEZING:
+			case SC_DEEPSLEEP:	case SC_FEAR:		case SC_MANDRAGORA:
 				return 0;
 		}
 	}
