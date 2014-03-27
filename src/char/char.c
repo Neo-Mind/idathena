@@ -1470,14 +1470,14 @@ int rename_char_sql(struct char_session_data *sd, int char_id)
 
 	Sql_EscapeStringLen(sql_handle, esc_name, sd->new_name, strnlen(sd->new_name, NAME_LENGTH));
 
-	// check if the char exist
+	// Check if the char exist
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT 1 FROM `%s` WHERE `name` LIKE '%s' LIMIT 1", char_db, esc_name) ) {
 		Sql_ShowDebug(sql_handle);
 		return 4;
 	}
 
-	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `name` = '%s', `rename` = '%d' WHERE `char_id` = '%d'", char_db, esc_name, --char_dat.rename, char_id) )
-	{
+	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `name` = '%s', `rename` = '%d' WHERE `char_id` = '%d'",
+		char_db, esc_name, --char_dat.rename, char_id) ) {
 		Sql_ShowDebug(sql_handle);
 		return 3;
 	}
@@ -1489,11 +1489,11 @@ int rename_char_sql(struct char_session_data *sd, int char_id)
 	safestrncpy(char_dat.name, sd->new_name, NAME_LENGTH);
 	memset(sd->new_name,0,sizeof(sd->new_name));
 
-	// log change
+	// Log change
 	if( log_char ) {
-		if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
-			"VALUES (NOW(), '%s', '%d', '%d', '%s', '0', '0', '0', '0', '0', '0', '0', '0')",
-			charlog_db, "change char name", sd->account_id, char_dat.slot, esc_name) )
+		if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
+			"VALUES (NOW(), '%s', '%d', '%d', '%d', '%s', '0', '0', '0', '0', '0', '0', '0', '0')",
+			charlog_db, "change char name", sd->account_id, char_dat.char_id, char_dat.slot, esc_name) )
 			Sql_ShowDebug(sql_handle);
 	}
 
@@ -1504,32 +1504,32 @@ int check_char_name(char * name, char * esc_name)
 {
 	int i;
 
-	// check length of character name
+	// Check length of character name
 	if( name[0] == '\0' )
-		return -2; // empty character name
+		return -2; // Empty character name
 	/**
 	 * The client does not allow you to create names with less than 4 characters, however,
 	 * the use of WPE can bypass this, and this fixes the exploit.
 	 **/
 	if( strlen( name ) < 4 )
 		return -2;
-	// check content of character name
+	// Check content of character name
 	if( remove_control_chars(name) )
-		return -2; // control chars in name
+		return -2; // Control chars in name
 
-	// check for reserved names
+	// Check for reserved names
 	if( strcmpi(name, wisp_server_name) == 0 )
-		return -1; // nick reserved for internal server messages
+		return -1; // Nick reserved for internal server messages
 
 	// Check authorized letters/symbols in the name of the character
-	if( char_name_option == 1 ) { // only letters/symbols in char_name_letters are authorized
+	if( char_name_option == 1 ) { // Only letters/symbols in char_name_letters are authorized
 		for( i = 0; i < NAME_LENGTH && name[i]; i++ )
 			if( strchr(char_name_letters, name[i]) == NULL )
 				return -2;
-	} else if( char_name_option == 2 ) { // letters/symbols in char_name_letters are forbidden
+	} else if( char_name_option == 2 ) { // Letters/symbols in char_name_letters are forbidden
 		for( i = 0; i < NAME_LENGTH && name[i]; i++ )
 			if( strchr(char_name_letters, name[i]) != NULL )
-				return -2;
+				return -5;
 	}
 	if( name_ignoring_case ) {
 		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT 1 FROM `%s` WHERE BINARY `name` = '%s' LIMIT 1", char_db, esc_name) ) {
@@ -1543,14 +1543,21 @@ int check_char_name(char * name, char * esc_name)
 		}
 	}
 	if( Sql_NumRows(sql_handle) > 0 )
-		return -1; // name already exists
+		return -1; // Name already exists
 
 	return 0;
 }
 
-//-----------------------------------
-// Function to create a new character
-//-----------------------------------
+/**
+ * Creates a new character
+ * Return values:
+ *  -1: 'Charname already exists'
+ *  -2: 'Char creation denied'/ Unknown error
+ *  -3: 'You are underaged'
+ *  -4: 'You are not elegible to open the Character Slot.'
+ *  -5: 'Symbols in Character Names are forbidden'
+ *  char_id: Success
+ */
 #if PACKETVER >= 20120307
 int make_new_char_sql(struct char_session_data* sd, char* name_, int slot, int hair_color, int hair_style) {
 	int str = 1, agi = 1, vit = 1, int_ = 1, dex = 1, luk = 1;
@@ -1575,9 +1582,9 @@ int make_new_char_sql(struct char_session_data* sd, char* name_, int str, int ag
 	if(slot < 0 || slot >= sd->char_slots)
 #else
 	if((slot < 0 || slot >= sd->char_slots) //Slots
-	|| (str + agi + vit + int_ + dex + luk != 6 * 5 ) //Stats
-	|| (str < 1 || str > 9 || agi < 1 || agi > 9 || vit < 1 || vit > 9 || int_ < 1 || int_ > 9 || dex < 1 || dex > 9 || luk < 1 || luk > 9) // individual stat values
-	|| (str + int_ != 10 || agi + luk != 10 || vit + dex != 10) ) //Pairs
+	|| (str + agi + vit + int_ + dex + luk != 6 * 5) //Stats
+	|| (str < 1 || str > 9 || agi < 1 || agi > 9 || vit < 1 || vit > 9 || int_ < 1 || int_ > 9 || dex < 1 || dex > 9 || luk < 1 || luk > 9) //Individual stat values
+	|| (str + int_ != 10 || agi + luk != 10 || vit + dex != 10)) //Pairs
 #endif
 #if PACKETVER >= 20100413
 		return -4; //Invalid slot
@@ -1589,20 +1596,13 @@ int make_new_char_sql(struct char_session_data* sd, char* name_, int str, int ag
 	if(sd->found_char[slot] != -1)
 		return -2; /* Character account limit exceeded */
 
-	//Validation success, log result
-	if(log_char) {
-		if(SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
-			"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-			charlog_db, "make new char", sd->account_id, slot, esc_name, str, agi, vit, int_, dex, luk, hair_style, hair_color))
-			Sql_ShowDebug(sql_handle);
-	}
 #if PACKETVER >= 20120307
 	//Insert the new char entry to the database
 	if(SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`account_id`, `char_num`, `name`, `zeny`, `status_point`,`str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`,"
 		"`max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ("
 		"'%d', '%d', '%s', '%d',  '%d','%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')",
 		char_db, sd->account_id , slot, esc_name, start_zeny, 48, str, agi, vit, int_, dex, luk,
-		(40 * (100 + vit)/100) , (40 * (100 + vit)/100 ),  (11 * (100 + int_)/100), (11 * (100 + int_)/100), hair_style, hair_color,
+		(40 * (100 + vit) / 100) , (40 * (100 + vit) / 100 ),  (11 * (100 + int_) / 100), (11 * (100 + int_) / 100), hair_style, hair_color,
 		mapindex_id2name(start_point.map), start_point.x, start_point.y, mapindex_id2name(start_point.map), start_point.x, start_point.y))
 	{
 		Sql_ShowDebug(sql_handle);
@@ -1611,22 +1611,35 @@ int make_new_char_sql(struct char_session_data* sd, char* name_, int str, int ag
 #else
 	//Insert the new char entry to the database
 	if(SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`,"
-							   "`max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ("
-							   "'%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')",
-							   char_db, sd->account_id , slot, esc_name, start_zeny, str, agi, vit, int_, dex, luk,
-							   (40 * (100 + vit)/100) , (40 * (100 + vit)/100 ),  (11 * (100 + int_)/100), (11 * (100 + int_)/100), hair_style, hair_color,
-							   mapindex_id2name(start_point.map), start_point.x, start_point.y, mapindex_id2name(start_point.map), start_point.x, start_point.y))
+		"`max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ("
+		"'%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')",
+		char_db, sd->account_id , slot, esc_name, start_zeny, str, agi, vit, int_, dex, luk,
+		(40 * (100 + vit) / 100) , (40 * (100 + vit) / 100 ),  (11 * (100 + int_) / 100), (11 * (100 + int_) / 100), hair_style, hair_color,
+		mapindex_id2name(start_point.map), start_point.x, start_point.y, mapindex_id2name(start_point.map), start_point.x, start_point.y))
 	{
 		Sql_ShowDebug(sql_handle);
 		return -2; //No, stop the procedure!
 	}
 #endif
+
 	//Retrieve the newly auto-generated char id
 	char_id = (int)Sql_LastInsertId(sql_handle);
+
+	if(!char_id)
+		return -2;
+
+	//Validation success, log result
+	if(log_char) {
+		if(SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
+			"VALUES (NOW(), '%s', '%d', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
+			charlog_db, "make new char", sd->account_id, char_id, slot, esc_name, str, agi, vit, int_, dex, luk, hair_style, hair_color))
+			Sql_ShowDebug(sql_handle);
+	}
+
 	//Give the char the default items
-	for (k = 0; k <= MAX_STARTITEM && start_items[k].nameid != 0; k ++) {
-		if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')",
-							        inventory_db, char_id, start_items[k].nameid, start_items[k].amount, start_items[k].pos, 1) )
+	for(k = 0; k <= MAX_STARTITEM && start_items[k].nameid != 0; k ++) {
+		if(SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')",
+			inventory_db, char_id, start_items[k].nameid, start_items[k].amount, start_items[k].pos, 1))
 			Sql_ShowDebug(sql_handle);
 	}
 
@@ -1795,15 +1808,16 @@ int delete_char_sql(int char_id)
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id` = '%d'", bonus_script_db, char_id) )
 		Sql_ShowDebug(sql_handle);
 
-	if( log_char ) {
-		if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s`(`time`, `account_id`,`char_num`,`char_msg`,`name`) VALUES (NOW(), '%d', '%d', 'Deleted char (CID %d)', '%s')",
-			charlog_db, account_id, 0, char_id, esc_name) )
-			Sql_ShowDebug(sql_handle);
-	}
-
 	/* Delete character */
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", char_db, char_id) )
 		Sql_ShowDebug(sql_handle);
+	else if( log_char ) {
+		if( SQL_ERROR == Sql_Query(sql_handle,
+			"INSERT INTO `%s`(`time`, `account_id`, `char_id`, `char_num`, `char_msg`, `name`)"
+			"VALUES (NOW(), '%d', '%d', '%d', 'Deleted character', '%s')",
+			charlog_db, account_id, char_id, 0, esc_name) )
+			Sql_ShowDebug(sql_handle);
+	}
 
 	/* No need as we used inter_guild_leave [Skotlex]
 	//Also delete info from guildtables.
@@ -4328,9 +4342,9 @@ int parse_char(int fd)
 					}
 
 					if( SQL_SUCCESS != Sql_Query(sql_handle,"SELECT `char_id` FROM `%s` WHERE `account_id`='%d' AND `char_num`='%d'",char_db,sd->account_id,slot)
-					  || SQL_SUCCESS != Sql_NextRow(sql_handle)
-					  || SQL_SUCCESS != Sql_GetData(sql_handle,0,&data,NULL) )
-					{ //Not found?? May be forged packet.
+					|| SQL_SUCCESS != Sql_NextRow(sql_handle)
+					|| SQL_SUCCESS != Sql_GetData(sql_handle,0,&data,NULL) )
+					{ //Not found? May be forged packet.
 						Sql_ShowDebug(sql_handle);
 						Sql_FreeResult(sql_handle);
 						WFIFOHEAD(fd,3);
@@ -4372,10 +4386,12 @@ int parse_char(int fd)
 						char esc_name[NAME_LENGTH * 2 + 1];
 
 						Sql_EscapeStringLen(sql_handle,esc_name,char_dat.name,strnlen(char_dat.name,NAME_LENGTH));
-						if( SQL_ERROR == Sql_Query(sql_handle,"INSERT INTO `%s`(`time`, `account_id`,`char_num`,`name`) VALUES (NOW(), '%d', '%d', '%s')",
-							charlog_db,sd->account_id,slot,esc_name) )
+						if( SQL_ERROR == Sql_Query(sql_handle,
+							"INSERT INTO `%s`(`time`, `account_id`, `char_id`, `char_num`, `name`) VALUES (NOW(), '%d', '%d', '%d', '%s')",
+							charlog_db,sd->account_id,cd->char_id,slot,esc_name) )
 							Sql_ShowDebug(sql_handle);
 					}
+
 					ShowInfo("Selected char: (Account %d: %d - %s)\n",sd->account_id,slot,char_dat.name);
 
 					//Searching map server
@@ -4384,6 +4400,7 @@ int parse_char(int fd)
 					//If map is not found, we check major cities
 					if( i < 0 || !cd->last_point.map ) {
 						unsigned short j;
+
 						//First check that there's actually a map server online.
 						ARR_FIND( 0,ARRAYLENGTH(server),j,server[j].fd >= 0 && server[j].map[0] );
 						if( j == ARRAYLENGTH(server) ) {
@@ -4483,7 +4500,6 @@ int parse_char(int fd)
 					i = make_new_char_sql(sd,(char*)RFIFOP(fd,2),RFIFOB(fd,26),RFIFOB(fd,27),RFIFOB(fd,28),RFIFOB(fd,29),RFIFOB(fd,30),RFIFOB(fd,31),RFIFOB(fd,32),RFIFOW(fd,33),RFIFOW(fd,35));
 #endif
 
-				//'Charname already exists' (-1), 'Char creation denied' (-2) and 'You are underaged' (-3)
 				if( i < 0 ) {
 					WFIFOHEAD(fd,3);
 					WFIFOW(fd,0) = 0x6e;
@@ -4492,10 +4508,15 @@ int parse_char(int fd)
 					/* 0x03 = You are not elegible to open the Character Slot. */
 					/* 0x0B = This service is only available for premium users.  */
 					switch( i ) {
-						case -1: WFIFOB(fd,2) = 0x00; break;
-						case -2: WFIFOB(fd,2) = 0xFF; break;
-						case -3: WFIFOB(fd,2) = 0x01; break;
-						case -4: WFIFOB(fd,2) = 0x03; break;
+						case -1: WFIFOB(fd,2) = 0x00; break; //'Charname already exists'
+						case -2: WFIFOB(fd,2) = 0xFF; break; //'Char creation denied'
+						case -3: WFIFOB(fd,2) = 0x01; break; //'You are underaged'
+						case -4: WFIFOB(fd,2) = 0x03; break; //'You are not elegible to open the Character Slot.'
+						case -5: WFIFOB(fd,2) = 0x02; break; //'Symbols in Character Names are forbidden'
+						default:
+							ShowWarning("parse_char: Unknown result received from make_new_char_sql!\n");
+							WFIFOB(fd,2) = 0xFF;
+							break;
 					}
 					WFIFOSET(fd,3);
 				} else {
