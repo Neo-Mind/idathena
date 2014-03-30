@@ -7414,18 +7414,18 @@ void clif_pet_emotion(struct pet_data *pd,int param)
 
 	memset(buf,0,packet_len(0x1aa));
 
-	WBUFW(buf,0)=0x1aa;
-	WBUFL(buf,2)=pd->bl.id;
+	WBUFW(buf,0) = 0x1aa;
+	WBUFL(buf,2) = pd->bl.id;
 	if(param >= 100 && pd->petDB->talk_convert_class) {
 		if(pd->petDB->talk_convert_class < 0)
 			return;
 		else if(pd->petDB->talk_convert_class > 0) {
-			// replace mob_id component of talk/act data
-			param -= (pd->pet.class_ - 100)*100;
-			param += (pd->petDB->talk_convert_class - 100)*100;
+			//Replace mob_id component of talk/act data
+			param -= (pd->pet.class_ - 100) * 100;
+			param += (pd->petDB->talk_convert_class - 100) * 100;
 		}
 	}
-	WBUFL(buf,6)=param;
+	WBUFL(buf,6) = param;
 
 	clif_send(buf,packet_len(0x1aa),&pd->bl,AREA);
 }
@@ -7442,11 +7442,11 @@ void clif_pet_food(struct map_session_data *sd,int foodid,int fail)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x1a3));
-	WFIFOW(fd,0)=0x1a3;
-	WFIFOB(fd,2)=fail;
-	WFIFOW(fd,3)=foodid;
+	WFIFOW(fd,0) = 0x1a3;
+	WFIFOB(fd,2) = fail;
+	WFIFOW(fd,3) = foodid;
 	WFIFOSET(fd,packet_len(0x1a3));
 }
 
@@ -7459,38 +7459,38 @@ void clif_autospell(struct map_session_data *sd,uint16 skill_lv)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x1cd));
-	WFIFOW(fd, 0)=0x1cd;
+	WFIFOW(fd,0) = 0x1cd;
 
-	if(skill_lv>0 && pc_checkskill(sd,MG_NAPALMBEAT)>0)
-		WFIFOL(fd,2)= MG_NAPALMBEAT;
+	if(skill_lv > 0 && pc_checkskill(sd,MG_NAPALMBEAT) > 0)
+		WFIFOL(fd,2) = MG_NAPALMBEAT;
 	else
-		WFIFOL(fd,2)= 0x00000000;
-	if(skill_lv>1 && pc_checkskill(sd,MG_COLDBOLT)>0)
-		WFIFOL(fd,6)= MG_COLDBOLT;
+		WFIFOL(fd,2) = 0x00000000;
+	if(skill_lv > 1 && pc_checkskill(sd,MG_COLDBOLT) > 0)
+		WFIFOL(fd,6) = MG_COLDBOLT;
 	else
-		WFIFOL(fd,6)= 0x00000000;
-	if(skill_lv>1 && pc_checkskill(sd,MG_FIREBOLT)>0)
-		WFIFOL(fd,10)= MG_FIREBOLT;
+		WFIFOL(fd,6) = 0x00000000;
+	if(skill_lv > 1 && pc_checkskill(sd,MG_FIREBOLT) > 0)
+		WFIFOL(fd,10) = MG_FIREBOLT;
 	else
-		WFIFOL(fd,10)= 0x00000000;
-	if(skill_lv>1 && pc_checkskill(sd,MG_LIGHTNINGBOLT)>0)
-		WFIFOL(fd,14)= MG_LIGHTNINGBOLT;
+		WFIFOL(fd,10) = 0x00000000;
+	if(skill_lv > 1 && pc_checkskill(sd,MG_LIGHTNINGBOLT) > 0)
+		WFIFOL(fd,14) = MG_LIGHTNINGBOLT;
 	else
-		WFIFOL(fd,14)= 0x00000000;
-	if(skill_lv>4 && pc_checkskill(sd,MG_SOULSTRIKE)>0)
-		WFIFOL(fd,18)= MG_SOULSTRIKE;
+		WFIFOL(fd,14) = 0x00000000;
+	if(skill_lv > 4 && pc_checkskill(sd,MG_SOULSTRIKE) > 0)
+		WFIFOL(fd,18) = MG_SOULSTRIKE;
 	else
-		WFIFOL(fd,18)= 0x00000000;
-	if(skill_lv>7 && pc_checkskill(sd,MG_FIREBALL)>0)
-		WFIFOL(fd,22)= MG_FIREBALL;
+		WFIFOL(fd,18) = 0x00000000;
+	if(skill_lv > 7 && pc_checkskill(sd,MG_FIREBALL) > 0)
+		WFIFOL(fd,22) = MG_FIREBALL;
 	else
-		WFIFOL(fd,22)= 0x00000000;
-	if(skill_lv>9 && pc_checkskill(sd,MG_FROSTDIVER)>0)
-		WFIFOL(fd,26)= MG_FROSTDIVER;
+		WFIFOL(fd,22) = 0x00000000;
+	if(skill_lv > 9 && pc_checkskill(sd,MG_FROSTDIVER) > 0)
+		WFIFOL(fd,26) = MG_FROSTDIVER;
 	else
-		WFIFOL(fd,26)= 0x00000000;
+		WFIFOL(fd,26) = 0x00000000;
 
 	WFIFOSET(fd,packet_len(0x1cd));
 	sd->menuskill_id = SA_AUTOSPELL;
@@ -10504,7 +10504,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 				break;
 			}
 
-			if( pc_issit(sd) ) { //Bugged client? Just refresh them.
+			if( pc_issit(sd) ) { // Bugged client? Just refresh them.
 				clif_sitting(&sd->bl);
 				return;
 			}
@@ -10515,17 +10515,16 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 			if( sd->sc.count && sd->sc.data[SC_DANCING] )
 				break;
 
-			if( sd->sc.cant.move ) //No sitting during these states either.
+			if( sd->sc.cant.move ) // No sitting during these states either.
 				break;
 
 			sd->idletime = last_tick;
-			pc_setsit(sd);
 			skill_sit(sd,1);
+			pc_setsit(sd);
 			clif_sitting(&sd->bl);
 			break;
 		case 0x03: // Standup
-			if( !pc_issit(sd) ) {
-				//Bugged client? Just refresh them.
+			if( !pc_issit(sd) ) { // Bugged client? Just refresh them.
 				clif_standing(&sd->bl);
 				return;
 			}
@@ -10553,6 +10552,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 void clif_parse_ActionRequest(int fd, struct map_session_data *sd)
 {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
+
 	clif_parse_ActionRequest_sub(sd,
 		RFIFOB(fd,info->pos[1]),
 		RFIFOL(fd,info->pos[0]),

@@ -4235,9 +4235,9 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 			}
 		}
 		if(sc->data[SC_GT_CHANGE] && sc->data[SC_GT_CHANGE]->val2) {
-			struct block_list *bl;
+			struct block_list *bl = map_id2bl(sc->data[SC_GT_CHANGE]->val2);
 
-			if((bl = map_id2bl(sc->data[SC_GT_CHANGE]->val2))) {
+			if(bl) {
 				ATK_ADD(wd.damage, wd.damage2, (status_get_dex(bl) / 4 + status_get_str(bl) / 2) * sc->data[SC_GT_CHANGE]->val1 / 5);
 #ifdef RENEWAL
 				ATK_ADD(wd.weaponAtk, wd.weaponAtk2, (status_get_dex(bl) / 4 + status_get_str(bl) / 2) * sc->data[SC_GT_CHANGE]->val1 / 5);
@@ -5482,7 +5482,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				i = 20 * skill_lv + sstatus->luk + sstatus->int_ + status_get_lv(src)
 				  	+ 200 - 200 * tstatus->hp / tstatus->max_hp;
 #endif
-				if(i > 700) i = 700;
+				if(i > 700)
+					i = 700;
 				if(rnd()%1000 < i && !(tstatus->mode&MD_BOSS))
 					ad.damage = tstatus->hp;
 				else {
@@ -5884,56 +5885,56 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				}
 
 				if(sd) {
-					int s;
+					int sd_charm;
 
-					ARR_FIND(1, 6, s, sd->talisman[s] > 0);
-					if(s < 5 && s_ele == s) {
+					ARR_FIND(1, 6, sd_charm, sd->talisman[sd_charm] > 0);
+					if(sd_charm < 5 && s_ele == sd_charm) {
 						switch(skill_id) {
 							case NJ_HYOUSYOURAKU:
-								skillratio += 25 * sd->talisman[s];
+								skillratio += 25 * sd->talisman[sd_charm];
 								break;
 							case NJ_KOUENKA:
 							case NJ_HUUJIN:
-								skillratio += 20 * sd->talisman[s];
+								skillratio += 20 * sd->talisman[sd_charm];
 								break;
 							case NJ_BAKUENRYU:
 							case NJ_RAIGEKISAI:
-								skillratio += 15 * sd->talisman[s];
+								skillratio += 15 * sd->talisman[sd_charm];
 								break;
 							case NJ_KAMAITACHI:
-								skillratio += 10 * sd->talisman[s];
+								skillratio += 10 * sd->talisman[sd_charm];
 								break;
 							case NJ_KAENSIN:
 							case NJ_HYOUSENSOU:
-								skillratio += 5 * sd->talisman[s];
+								skillratio += 5 * sd->talisman[sd_charm];
 								break;
 						}
 					}
 				}
 
 				if(tsd) {
-					int t;
+					int tsd_charm;
 
-					ARR_FIND(1, 6, t, tsd->talisman[t] > 0);
-					if(t < 5 && s_ele == t) {
+					ARR_FIND(1, 6, tsd_charm, tsd->talisman[tsd_charm] > 0);
+					if(tsd_charm < 5 && s_ele == tsd_charm) {
 						switch(skill_id) {
 							case NJ_HYOUSYOURAKU:
-								skillratio -= 25 * tsd->talisman[t];
+								skillratio -= 25 * tsd->talisman[tsd_charm];
 								break;
 							case NJ_KOUENKA:
 							case NJ_HUUJIN:
-								skillratio -= 20 * tsd->talisman[t];
+								skillratio -= 20 * tsd->talisman[tsd_charm];
 								break;
 							case NJ_BAKUENRYU:
 							case NJ_RAIGEKISAI:
-								skillratio -= 15 * tsd->talisman[t];
+								skillratio -= 15 * tsd->talisman[tsd_charm];
 								break;
 							case NJ_KAMAITACHI:
-								skillratio -= 10 * tsd->talisman[t];
+								skillratio -= 10 * tsd->talisman[tsd_charm];
 								break;
 							case NJ_KAENSIN:
 							case NJ_HYOUSENSOU:
-								skillratio -= 5 * tsd->talisman[t];
+								skillratio -= 5 * tsd->talisman[tsd_charm];
 								break;
 						}
 					}

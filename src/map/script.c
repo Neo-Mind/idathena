@@ -5234,10 +5234,11 @@ BUILDIN_FUNC(heal)
 	int hp,sp;
 	
 	sd = script_rid2sd(st);
-	if (!sd) return 0;
-	
-	hp=script_getnum(st,2);
-	sp=script_getnum(st,3);
+	if( !sd )
+		return 0;
+
+	hp = script_getnum(st,2);
+	sp = script_getnum(st,3);
 	status_heal(&sd->bl, hp, sp, 1);
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -5250,17 +5251,19 @@ BUILDIN_FUNC(itemheal)
 	TBL_PC *sd;
 	int hp,sp;
 
-	hp=script_getnum(st,2);
-	sp=script_getnum(st,3);
+	hp = script_getnum(st,2);
+	sp = script_getnum(st,3);
 
-	if(potion_flag==1) {
+	if( potion_flag == 1 ) {
 		potion_hp = hp;
 		potion_sp = sp;
 		return 0;
 	}
-	
+
 	sd = script_rid2sd(st);
-	if (!sd) return 0;
+	if( !sd )
+		return 0;
+
 	pc_itemheal(sd,sd->itemid,hp,sp);
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -5273,10 +5276,10 @@ BUILDIN_FUNC(percentheal)
 	int hp,sp;
 	TBL_PC* sd;
 
-	hp=script_getnum(st,2);
-	sp=script_getnum(st,3);
+	hp = script_getnum(st,2);
+	sp = script_getnum(st,3);
 
-	if(potion_flag==1) {
+	if( potion_flag == 1 ) {
 		potion_per_hp = hp;
 		potion_per_sp = sp;
 		return 0;
@@ -5285,10 +5288,12 @@ BUILDIN_FUNC(percentheal)
 	sd = script_rid2sd(st);
 	if( sd == NULL )
 		return 0;
+
 #ifdef RENEWAL
 	if( sd->sc.data[SC_EXTREMITYFIST2] )
 		sp = 0;
 #endif
+
 	pc_percentheal(sd,hp,sp);
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -5298,17 +5303,15 @@ BUILDIN_FUNC(percentheal)
  *------------------------------------------*/
 BUILDIN_FUNC(jobchange)
 {
-	int job, upper=-1;
+	int job, upper = -1;
 
-	job=script_getnum(st,2);
+	job = script_getnum(st,2);
 	if( script_hasdata(st,3) )
-		upper=script_getnum(st,3);
+		upper = script_getnum(st,3);
 
-	if (pcdb_checkid(job))
-	{
-		TBL_PC* sd;
-		
-		sd = script_rid2sd(st);
+	if( pcdb_checkid(job) ) {
+		TBL_PC* sd = script_rid2sd(st);
+
 		if( sd == NULL )
 			return 0;
 
@@ -5323,7 +5326,8 @@ BUILDIN_FUNC(jobchange)
  *------------------------------------------*/
 BUILDIN_FUNC(jobname)
 {
-	int class_=script_getnum(st,2);
+	int class_ = script_getnum(st,2);
+
 	script_pushconststr(st, (char*)job_name(class_));
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -17636,9 +17640,8 @@ BUILDIN_FUNC(sit)
 		return 0;
 
 	if( !pc_issit(sd) ) {
-		unit_stop_walking(&sd->bl,1|4);
-		pc_setsit(sd);
 		skill_sit(sd,1);
+		pc_setsit(sd);
 		clif_sitting(&sd->bl);
 	}
 	return SCRIPT_CMD_SUCCESS;

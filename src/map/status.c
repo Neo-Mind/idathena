@@ -1532,7 +1532,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 }
 
 //Heals a character.
-//If flag&1, this is forced healing (otherwise stuff like Berserk can block it)
+//If flag&1, this is forced healing (otherwise, stuff like Berserk can block it)
 //If flag&2, when the player is healed, show the HP/SP heal effect.
 int status_heal(struct block_list *bl, int64 in_hp, int64 in_sp, int flag)
 {
@@ -1545,7 +1545,8 @@ int status_heal(struct block_list *bl, int64 in_hp, int64 in_sp, int flag)
 	if (status == &dummy_status || !status->hp)
 		return 0;
 
-	//Here onwards we consider it a 32-type, the client does not support higher and from here onwards the value doesn't get thru percentage modifiers 
+	//Here onwards we consider it a 32-type, the client does not support higher and,
+	//from here onwards the value doesn't get thru percentage modifiers 
 	hp = (int)cap_value(in_hp, INT_MIN, INT_MAX);
 	sp = (int)cap_value(in_sp, INT_MIN, INT_MAX);
 
@@ -1594,8 +1595,7 @@ int status_heal(struct block_list *bl, int64 in_hp, int64 in_sp, int flag)
 		sc->data[SC_AUTOBERSERK] &&
 		sc->data[SC_PROVOKE] &&
 		sc->data[SC_PROVOKE]->val2 == 1 &&
-		status->hp >= status->max_hp >> 2
-	) //End auto berserk.
+		status->hp >= status->max_hp>>2) //End auto berserk.
 		status_change_end(bl, SC_PROVOKE, INVALID_TIMER);
 
 	//Send hp update to client
@@ -1650,7 +1650,7 @@ int status_percent_change(struct block_list *src,struct block_list *target,signe
 		sp = 1;
 
 	//Ugly check in case damage dealt is too much for the received args of
-	//status_heal / status_damage. [Skotlex]
+	//status_heal/status_damage. [Skotlex]
 	if (hp > INT_MAX) {
 	  	hp -= INT_MAX;
 		if (flag)
@@ -1842,7 +1842,8 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 
 		if (sc->data[SC_DANCING] && flag != 2) {
 			//Lvl 5 Lesson or higher allow you use 3rd job skills while dancing.v
-			if (src->type == BL_PC && skill_id >= WA_SWING_DANCE && skill_id <= WM_UNLIMITED_HUMMING_VOICE) {
+			if (src->type == BL_PC && ((skill_id >= WA_SWING_DANCE && skill_id <= WM_UNLIMITED_HUMMING_VOICE) ||
+				skill_id == WM_FRIGG_SONG)) {
 				if (pc_checkskill((TBL_PC*)src, WM_LESSON) < 5)
 					return 0;
 			} else if (sc->data[SC_LONGING]) { //Allow everything except dancing/re-dancing. [Skotlex]
@@ -3902,17 +3903,19 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		sc->data[SC_VITALITYACTIVATION] || sc->data[SC_OBLIVIONCURSE] ||
 		(bl->type == BL_PC && (((TBL_PC*)bl)->class_&MAPID_UPPERMASK) == MAPID_MONK &&
 #ifndef RENEWAL
-		sc->data[SC_EXTREMITYFIST] &&
+		(sc->data[SC_EXPLOSIONSPIRITS] || sc->data[SC_EXTREMITYFIST]) &&
 #endif
 		(!sc->data[SC_SPIRIT] || sc->data[SC_SPIRIT]->val2 != SL_MONK)))
 		regen->flag &= ~RGN_SP; //No natural SP regen
 
-	if (sc->data[SC_MAGNIFICAT])
-		regen->rate.sp += 1; //2x SP regen
-
+#ifdef RENEWAL
 	if (bl->type == BL_PC && (((TBL_PC*)bl)->class_&MAPID_UPPERMASK) == MAPID_MONK &&
 		sc->data[SC_EXPLOSIONSPIRITS] && (!sc->data[SC_SPIRIT] || sc->data[SC_SPIRIT]->val2 != SL_MONK))
 		regen->rate.sp = regen->rate.sp / 2; //50% SP regen on fury state
+#endif
+
+	if (sc->data[SC_MAGNIFICAT])
+		regen->rate.sp += 1; //2x SP regen
 
 	if (sc->data[SC_TENSIONRELAX]) {
 		if (sc->data[SC_WEIGHT50] || sc->data[SC_WEIGHT90])
@@ -4133,7 +4136,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		else
 			status->hit = status_calc_hit(bl, sc, b_status->hit + (status->dex - b_status->dex)
 #ifdef RENEWAL
-			 + (status->luk/3 - b_status->luk/3)
+			 + (status->luk / 3 - b_status->luk / 3)
 #endif
 			 );
 	}
@@ -4148,7 +4151,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		else
 			status->flee = status_calc_flee(bl, sc, b_status->flee +(status->agi - b_status->agi)
 #ifdef RENEWAL
-			+ (status->luk/5 - b_status->luk/5)
+			+ (status->luk / 5 - b_status->luk / 5)
 #endif
 			);
 	}
@@ -4157,7 +4160,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		status->def = status_calc_def(bl, sc, b_status->def);
 
 		if( bl->type&BL_HOM )
-			status->def += (status->vit/5 - b_status->vit/5);
+			status->def += (status->vit / 5 - b_status->vit / 5);
 	}
 
 	if( flag&SCB_DEF2 ) {
@@ -4170,7 +4173,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		else
 			status->def2 = status_calc_def2(bl, sc, b_status->def2
 #ifdef RENEWAL
-			+ (int)( ((float)status->vit/2 - (float)b_status->vit/2) + ((float)status->agi/5 - (float)b_status->agi/5) )
+			+ (int)(((float)status->vit / 2 - (float)b_status->vit / 2) + ((float)status->agi / 5 - (float)b_status->agi / 5))
 #else
 			+ (status->vit - b_status->vit)
 #endif
@@ -4181,7 +4184,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		status->mdef = status_calc_mdef(bl, sc, b_status->mdef);
 
 		if( bl->type&BL_HOM )
-			status->mdef += (status->int_/5 - b_status->int_/5);
+			status->mdef += (status->int_ / 5 - b_status->int_ / 5);
 	}
 		
 	if( flag&SCB_MDEF2 ) {
@@ -4194,7 +4197,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		else
 			status->mdef2 = status_calc_mdef2(bl, sc, b_status->mdef2 +(status->int_ - b_status->int_)
 #ifdef RENEWAL
-			+ (int)( ((float)status->dex/5 - (float)b_status->dex/5) + ((float)status->vit/5 - (float)b_status->vit/5) )
+			+ (int)(((float)status->dex / 5 - (float)b_status->dex / 5) + ((float)status->vit / 5 - (float)b_status->vit / 5))
 #else
 			+ ((status->vit - b_status->vit)>>1)
 #endif
@@ -4225,10 +4228,8 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		if( status->luk == b_status->luk )
 			status->cri = status_calc_critical(bl, sc, b_status->cri);
 		else
-			status->cri = status_calc_critical(bl, sc, b_status->cri + 3*(status->luk - b_status->luk));
-		/**
-		 * After status_calc_critical so the bonus is applied despite if you have or not a sc bugreport:5240
-		 **/
+			status->cri = status_calc_critical(bl, sc, b_status->cri + 3 * (status->luk - b_status->luk));
+		//After status_calc_critical so the bonus is applied despite if you have or not a sc bugreport:5240
 		if( bl->type == BL_PC && ((TBL_PC*)bl)->status.weapon == W_KATAR )
 			status->cri <<= 1;
 
@@ -8352,6 +8353,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_TENSIONRELAX:
 				if( sd ) {
+					skill_sit(sd,1);
 					pc_setsit(sd);
 					clif_sitting(&sd->bl);
 				}
@@ -9097,8 +9099,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_SITDOWN_FORCE:
 			case SC_BANANA_BOMB_SITDOWN:
 				if( sd && !pc_issit(sd) ) {
-					pc_setsit(sd);
 					skill_sit(sd,1);
+					pc_setsit(sd);
 					clif_sitting(bl);
 				}
 				break;
@@ -9176,12 +9178,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 						int casterint = status_get_int(src);
 
 						if( casterint <= 0 )
-							casterint = 1; //Prevents dividing by 0 since its possiable to reduce players stats to 0; [Rytech]
+							casterint = 1; //Prevents dividing by 0 since its possiable to reduce players stats to 0 [Rytech]
 						val4 = (200 / casterint) * val1; //MDEF decrease: MDEF [(200 / Caster INT) x Skill Level]
 					}
 				}
 				break;
-			case SC_GT_REVITALIZE: { //Take note there is no vit,aspd,speed increase as skill desc says. [malufett]
+			case SC_GT_REVITALIZE: { //Take note there is no vit, aspd, speed increase as skill desc says. [malufett]
 					struct block_list *src;
 
 					val3 = val1 * 30 + 50; //Natural HP recovery increase: [(Skill Level x 30) + 50] %
@@ -11722,8 +11724,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			if( --(sce->val4) >= 0 ) {
 				status_charge(bl,0,sce->val2); //Reduce 8 SP every 10 seconds.
 				if( sd && !pc_issit(sd) ) { //Force to sit every 10 seconds.
-					pc_stop_walking(sd,1|4);
-					pc_stop_attack(sd);
+					skill_sit(sd,1);
 					pc_setsit(sd);
 					clif_sitting(bl);
 				}
