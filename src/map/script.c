@@ -12627,6 +12627,14 @@ BUILDIN_FUNC(skilleffect)
 	skill_lv = script_getnum(st,3);
 	sd = script_rid2sd(st);
 
+	/* Ensure we're standing because the following packet causes the client to virtually set the char to stand,
+	 * which leaves the server thinking it still is sitting. */
+	if( pc_issit(sd) ) {
+		pc_setstand(sd);
+		skill_sit(sd,0);
+		clif_standing(&sd->bl);
+	}
+
 	clif_skill_nodamage(&sd->bl,&sd->bl,skill_id,skill_lv,1);
 	return SCRIPT_CMD_SUCCESS;
 }

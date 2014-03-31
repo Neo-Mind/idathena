@@ -4700,7 +4700,8 @@ static void clif_getareachar_skillunit(int type, struct map_session_data *sd, st
 		case 2: header = 0x1c9; break;
 		case 3: header = 0x8c7; break;
 		case 4: header = 0x99f; break;
-		default: case 1: header = 0x11f; break;
+		default:
+			case 1: header = 0x11f; break;
 	}
 
 	WFIFOHEAD(fd,packet_len(header));

@@ -5812,7 +5812,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
-				class_ = skill_id == SA_MONOCELL ? 1002 : mob_get_random_id(4,1,0);
+				class_ = (skill_id == SA_MONOCELL ? MOBID_PORING : mob_get_random_id(4,1,0));
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				mob_class_change(dstmd,class_);
 				if (tsc && dstmd->status.mode&MD_BOSS) {
@@ -15994,23 +15994,24 @@ void skill_brandishspear(struct block_list* src, struct block_list* bl, uint16 s
  *------------------------------------------*/
 void skill_repairweapon (struct map_session_data *sd, int idx) {
 	int material;
-	int materials[4] = { 1002, 998, 999, 756 };
+	int materials[4] = { 1002,998,999,756 };
 	struct item *item;
 	struct map_session_data *target_sd;
 
 	nullpo_retv(sd);
 
-	if ( !( target_sd = map_id2sd(sd->menuskill_val) ) ) //Failed....
+	if( !(target_sd = map_id2sd(sd->menuskill_val)) ) //Failed
 		return;
-	
+
 	if( idx == 0xFFFF ) //No item selected ('Cancel' clicked)
 		return;
+
 	if( idx < 0 || idx >= MAX_INVENTORY )
 		return; //Invalid index??
 
 	item = &target_sd->status.inventory[idx];
 	if( item->nameid <= 0 || item->attribute == 0 )
-		return; //Again invalid item....
+		return; //Again invalid item
 
 	if( sd != target_sd && !battle_check_range(&sd->bl,&target_sd->bl, skill_get_range2(&sd->bl, sd->menuskill_id,sd->menuskill_val2) ) ){
 		clif_item_repaireffect(sd,idx,1);
@@ -16021,21 +16022,22 @@ void skill_repairweapon (struct map_session_data *sd, int idx) {
 		material = materials [ target_sd->inventory_data[idx]->wlv - 1 ]; //Lv1/2/3/4 weapons consume 1 Iron Ore/Iron/Steel/Rough Oridecon
 	else
 		material = materials [2]; //Armors consume 1 Steel
+
 	if( pc_search_inventory(sd,material) < 0 ) {
 		clif_skill_fail(sd,sd->menuskill_id,USESKILL_FAIL_LEVEL,0);
 		return;
 	}
-	
+
 	clif_skill_nodamage(&sd->bl,&target_sd->bl,sd->menuskill_id,1,1);
-	
+
 	item->attribute = 0; /* Clear broken state */
-	
+
 	clif_equiplist(target_sd);
-	
+
 	pc_delitem(sd,pc_search_inventory(sd,material),1,0,0,LOG_TYPE_CONSUME);
-	
+
 	clif_item_repaireffect(sd,idx,0);
-	
+
 	if( sd != target_sd )
 		clif_item_repaireffect(target_sd,idx,0);
 }
@@ -16074,7 +16076,7 @@ void skill_weaponrefine (struct map_session_data *sd, int idx)
 			int i = 0, per;
 			int material[5] = { 0,ITEMID_PHRACON,ITEMID_EMVERETARCON,ITEMID_ORIDECON,ITEMID_ORIDECON };
 
-			if( ditem->flag.no_refine ) { //If the item isn't refinable
+			if (ditem->flag.no_refine) { //If the item isn't refinable
 				clif_skill_fail(sd,sd->menuskill_id,USESKILL_FAIL_LEVEL,0);
 				return;
 			}
