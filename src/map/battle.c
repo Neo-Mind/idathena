@@ -930,8 +930,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			//Shouldn't end until Breaker's non-weapon part connects.
 			if( skill_id != ASC_BREAKER || !flag&BF_WEAPON )
 #endif
+				//We make it work like Safety Wall, even though it only blocks 1 time.
 				if( --(sce->val3) <= 0 )
-					//We make it work like Safety Wall, even though it only blocks 1 time.
 					status_change_end(bl,SC_KAUPE,INVALID_TIMER);
 			return 0;
 		}
@@ -2294,9 +2294,9 @@ static bool attack_ignores_def(struct Damage wd, struct block_list *src, struct 
 #endif
 	if(sc && sc->data[SC_FUSION])
 		return true;
-	//Renewal: Soul Breaker no longer gains ignore DEF from weapon [helvetica]
 	else if(skill_id != CR_GRANDCROSS && skill_id != NPC_GRANDDARKNESS
 #ifdef RENEWAL
+		//Renewal: Soul Breaker no longer gains ignore DEF from weapon [helvetica]
 		&& skill_id != ASC_BREAKER
 #endif
 	) { //Ignore Defense?
@@ -2559,6 +2559,33 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 		}
 
 		if(sc) { //Status change considered as masteries
+#ifdef RENEWAL
+			if(sc->data[SC_IMPOSITIO])
+				ATK_ADD(wd.masteryAtk, wd.masteryAtk2, sc->data[SC_IMPOSITIO]->val2);
+			if(sc->data[SC_DRUMBATTLE]) {
+				if(tstatus->size == SZ_SMALL)
+					ATK_ADD(wd.masteryAtk, wd.masteryAtk2, sc->data[SC_DRUMBATTLE]->val2);
+				else if(tstatus->size == SZ_MEDIUM)
+					ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 10 * sc->data[SC_DRUMBATTLE]->val1);
+			}
+			if(sc->data[SC_NIBELUNGEN]) {
+				TBL_PC *sd = (TBL_PC*)target;
+				int index = sd->equip_index[sd->state.lr_flag ? EQI_HAND_L : EQI_HAND_R];
+
+				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->wlv == 4)
+					ATK_ADD(wd.masteryAtk, wd.masteryAtk2, sc->data[SC_NIBELUNGEN]->val2);
+			}
+			if(sc->data[SC_MADNESSCANCEL])
+				ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 100);
+			if(sc->data[SC_GATLINGFEVER]) {
+				if(tstatus->size == SZ_SMALL)
+					ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 10 * sc->data[SC_GATLINGFEVER]->val1);
+				else if(tstatus->size == SZ_MEDIUM)
+					ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 5 * sc->data[SC_GATLINGFEVER]->val1);
+				else if(tstatus->size == SZ_BIG)
+					ATK_ADD(wd.masteryAtk, wd.masteryAtk2, sc->data[SC_GATLINGFEVER]->val1);
+			}
+#endif
 			if(sc->data[SC_CAMOUFLAGE]) {
 				ATK_ADD(wd.damage, wd.damage2, 30 * min(10, sc->data[SC_CAMOUFLAGE]->val3));
 #ifdef RENEWAL
@@ -2570,59 +2597,6 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 #ifdef RENEWAL
 				ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 10 * sc->data[SC_GN_CARTBOOST]->val1);
 #endif
-			}
-			if(sc->data[SC_NIBELUNGEN]) {
-				TBL_PC *sd = (TBL_PC*)target;
-				int index = sd->equip_index[sd->state.lr_flag ? EQI_HAND_L : EQI_HAND_R];
-
-				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->wlv == 4)
-					ATK_ADD(wd.damage, wd.damage2, sc->data[SC_NIBELUNGEN]->val2);
-#ifdef RENEWAL
-					ATK_ADD(wd.masteryAtk, wd.masteryAtk2, sc->data[SC_NIBELUNGEN]->val2);
-#endif
-			}
-			if(sc->data[SC_IMPOSITIO]) {
-				ATK_ADD(wd.damage, wd.damage2, sc->data[SC_IMPOSITIO]->val2);
-#ifdef RENEWAL
-				ATK_ADD(wd.masteryAtk, wd.masteryAtk2, sc->data[SC_IMPOSITIO]->val2);
-#endif
-			}
-			if(sc->data[SC_DRUMBATTLE]) {
-				if(tstatus->size == SZ_SMALL) {
-					ATK_ADD(wd.damage, wd.damage2, sc->data[SC_DRUMBATTLE]->val2);
-#ifdef RENEWAL
-					ATK_ADD(wd.masteryAtk, wd.masteryAtk2, sc->data[SC_DRUMBATTLE]->val2);
-#endif
-				} else if(tstatus->size == SZ_MEDIUM) {
-					ATK_ADD(wd.damage, wd.damage2, 10 * sc->data[SC_DRUMBATTLE]->val1);
-#ifdef RENEWAL
-					ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 10 * sc->data[SC_DRUMBATTLE]->val1);
-#endif
-				}
-			}
-			if(sc->data[SC_MADNESSCANCEL]) {
-				ATK_ADD(wd.damage, wd.damage2, 100);
-#ifdef RENEWAL
-				ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 100);
-#endif
-			}
-			if(sc->data[SC_GATLINGFEVER]) {
-				if(tstatus->size == SZ_SMALL) {
-					ATK_ADD(wd.damage, wd.damage2, 10 * sc->data[SC_GATLINGFEVER]->val1);
-#ifdef RENEWAL
-					ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 10 * sc->data[SC_GATLINGFEVER]->val1);
-#endif
-				} else if(tstatus->size == SZ_MEDIUM) {
-					ATK_ADD(wd.damage, wd.damage2, 5 * sc->data[SC_GATLINGFEVER]->val1);
-#ifdef RENEWAL
-					ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 5 * sc->data[SC_GATLINGFEVER]->val1);
-#endif
-				} else if(tstatus->size == SZ_BIG) {
-					ATK_ADD(wd.damage, wd.damage2, sc->data[SC_GATLINGFEVER]->val1);
-#ifdef RENEWAL
-					ATK_ADD(wd.masteryAtk, wd.masteryAtk2, sc->data[SC_GATLINGFEVER]->val1);
-#endif
-				}
 			}
 		}
 
@@ -3084,6 +3058,8 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 		if(sc->data[SC_CONCENTRATION])
 			skillratio += sc->data[SC_CONCENTRATION]->val2;
 #endif
+		if(sc->data[SC_P_ALTER])
+			skillratio += sc->data[SC_P_ALTER]->val2;
 		if(sc->data[SC_HEAT_BARREL])
 			skillratio += 200;
 	}
@@ -4163,9 +4139,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 #endif
 			if(skill_id == RA_WUGSTRIKE || skill_id == RA_WUGBITE || skill_id == RA_WUGDASH) {
 				ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_DANCEWITHWUG]->val1 * 10 * min(chorusbonus,7));
-#ifdef RENEWAL
 				RE_ALLATK_ADDRATE(wd, sc->data[SC_DANCEWITHWUG]->val1 * 10 * min(chorusbonus,7));
-#endif
 			}
 		}
 		if(sc->data[SC_SPIRIT]) {
@@ -4253,8 +4227,10 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 		if(sc->data[SC_STYLE_CHANGE]) {
 			TBL_HOM *hd = BL_CAST(BL_HOM, src);
 
-			if(hd)
+			if(hd) {
 				ATK_ADD(wd.damage, wd.damage2, hd->homunculus.spiritball * 3);
+				RE_ALLATK_ADD(wd, hd->homunculus.spiritball * 3);
+			}
 		}
 		if(sc->data[SC_UNLIMIT] && (wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG) {
 			switch(skill_id) {
@@ -4275,10 +4251,6 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, u
 		if(sc->data[SC_MTF_RANGEATK] && (wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG) {
 			ATK_ADDRATE(wd.damage, wd.damage2, 25);
 			RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.long_attack_atk_rate'
-		}
-		if(sc->data[SC_P_ALTER]) {
-			ATK_ADD(wd.damage, wd.damage2, sc->data[SC_P_ALTER]->val2);
-			RE_ALLATK_ADD(wd, sc->data[SC_P_ALTER]->val2);
 		}
 	}
 
@@ -4999,8 +4971,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 	sd = BL_CAST(BL_PC, src);
 	tsd = BL_CAST(BL_PC, target);
 
+	//Check for Lucky Dodge
 	if((!skill_id || skill_id == PA_SACRIFICE) && tstatus->flee2 && rnd()%1000 < tstatus->flee2) {
-		//Check for Lucky Dodge
 		wd.type = 0x0b;
 		wd.dmg_lv = ATK_LUCKY;
 		if(wd.div_ < 0)

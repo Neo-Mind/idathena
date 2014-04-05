@@ -356,8 +356,17 @@ void initChangeTables(void) {
 	set_sc( BD_ENCORE            , SC_DANCING         , SI_BDPLAYING       , SCB_SPEED|SCB_REGEN );
 	set_sc( BD_RICHMANKIM        , SC_RICHMANKIM      , SI_RICHMANKIM      , SCB_NONE  );
 	set_sc( BD_ETERNALCHAOS      , SC_ETERNALCHAOS    , SI_ETERNALCHAOS    , SCB_DEF2 );
-	set_sc( BD_DRUMBATTLEFIELD   , SC_DRUMBATTLE      , SI_DRUMBATTLEFIELD , SCB_WATK|SCB_DEF );
-	set_sc( BD_RINGNIBELUNGEN    , SC_NIBELUNGEN      , SI_RINGNIBELUNGEN  , SCB_WATK );
+	set_sc( BD_DRUMBATTLEFIELD   , SC_DRUMBATTLE      , SI_DRUMBATTLEFIELD , SCB_DEF
+#ifndef RENEWAL
+			|SCB_WATK
+#endif
+			);
+	set_sc( BD_RINGNIBELUNGEN    , SC_NIBELUNGEN      , SI_RINGNIBELUNGEN  ,
+#ifdef RENEWAL
+			SCB_NONE );
+#else
+			SCB_WATK );
+#endif
 	set_sc( BD_ROKISWEIL         , SC_ROKISWEIL       , SI_ROKISWEIL       , SCB_NONE );
 	set_sc( BD_INTOABYSS         , SC_INTOABYSS       , SI_INTOABYSS       , SCB_NONE );
 	set_sc( BD_SIEGFRIED         , SC_SIEGFRIED       , SI_SIEGFRIED       , SCB_ALL );
@@ -818,7 +827,7 @@ void initChangeTables(void) {
 	set_sc( RL_B_TRAP          , SC_B_TRAP               , SI_B_TRAP               , SCB_SPEED );
 	set_sc( RL_E_CHAIN         , SC_E_CHAIN              , SI_E_CHAIN              , SCB_NONE );
 	set_sc_with_vfx( RL_C_MARKER, SC_C_MARKER            , SI_C_MARKER             , SCB_FLEE );
-	set_sc( RL_P_ALTER          , SC_P_ALTER             , SI_P_ALTER              , SCB_BATK );
+	set_sc( RL_P_ALTER          , SC_P_ALTER             , SI_P_ALTER              , SCB_NONE );
 	set_sc( RL_SLUGSHOT         , SC_STUN                , SI_SLUGSHOT             , SCB_NONE );
 	set_sc( RL_AM_BLAST         , SC_ANTI_M_BLAST        , SI_ANTI_M_BLAST         , SCB_NONE );
 	set_sc( RL_HEAT_BARREL      , SC_HEAT_BARREL         , SI_HEAT_BARREL          , SCB_ASPD|SCB_FLEE );
@@ -1063,8 +1072,6 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_BANDING_DEFENCE] |= SCB_SPEED;
 	StatusChangeFlagTable[SC_SHIELDSPELL_DEF] |= SCB_WATK;
 	StatusChangeFlagTable[SC_SHIELDSPELL_REF] |= SCB_DEF;
-	StatusChangeFlagTable[SC_TEARGAS_SOB] |= SCB_NONE;
-	StatusChangeFlagTable[SC__BLOODYLUST] |= SCB_NONE;
 	StatusChangeFlagTable[SC_STOMACHACHE] |= SCB_STR|SCB_AGI|SCB_VIT|SCB_DEX|SCB_INT|SCB_LUK;
 	StatusChangeFlagTable[SC_MYSTERIOUS_POWDER] |= SCB_MAXHP;
 	StatusChangeFlagTable[SC_MELON_BOMB] |= SCB_SPEED|SCB_ASPD;
@@ -1084,7 +1091,6 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_VITATA_500] |= SCB_REGEN;
 	StatusChangeFlagTable[SC_EXTRACT_SALAMINE_JUICE] |= SCB_ASPD;
 	StatusChangeFlagTable[SC_REBOUND] |= SCB_SPEED|SCB_REGEN;
-	StatusChangeFlagTable[SC_MONSTER_TRANSFORM] |= SCB_NONE;
 	StatusChangeFlagTable[SC_DEFSET] |= SCB_DEF;
 	StatusChangeFlagTable[SC_MDEFSET] |= SCB_MDEF;
 	StatusChangeFlagTable[SC_WEDDING] |= SCB_SPEED;
@@ -1093,10 +1099,6 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_MTF_ASPD] |= SCB_ASPD|SCB_HIT;
 	StatusChangeFlagTable[SC_MTF_MATK] |= SCB_MATK;
 	StatusChangeFlagTable[SC_MTF_MLEATKED] |= SCB_ALL;
-	StatusChangeFlagTable[SC_MOONSTAR] |= SCB_NONE;
-	StatusChangeFlagTable[SC_SUPER_STAR] |= SCB_NONE;
-	StatusChangeFlagTable[SC_STRANGELIGHTS] |= SCB_NONE;
-	StatusChangeFlagTable[SC_DECORATION_OF_MUSIC] |= SCB_NONE;
 	StatusChangeFlagTable[SC_QUEST_BUFF1] |= SCB_BATK|SCB_MATK;
 	StatusChangeFlagTable[SC_QUEST_BUFF2] |= SCB_BATK|SCB_MATK;
 	StatusChangeFlagTable[SC_QUEST_BUFF3] |= SCB_BATK|SCB_MATK;
@@ -5041,8 +5043,6 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 #ifndef RENEWAL
 	if(sc->data[SC_IMPOSITIO])
 		watk += sc->data[SC_IMPOSITIO]->val2;
-	if(sc->data[SC_DRUMBATTLE])
-		watk += sc->data[SC_DRUMBATTLE]->val2;
 #endif
 	if(sc->data[SC_WATKFOOD])
 		watk += sc->data[SC_WATKFOOD]->val1;
@@ -5069,6 +5069,8 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 	if(sc->data[SC_PYROTECHNIC_OPTION])
 		watk += sc->data[SC_PYROTECHNIC_OPTION]->val2;
 #ifndef RENEWAL
+	if(sc->data[SC_DRUMBATTLE])
+		watk += sc->data[SC_DRUMBATTLE]->val2;
 	if(sc->data[SC_NIBELUNGEN]) {
 		if (bl->type != BL_PC)
 			watk += sc->data[SC_NIBELUNGEN]->val2;
@@ -8181,7 +8183,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				unit_stop_attack(bl);
 				break;
 			case SC_NOCHAT:
-				//[GodLesZ] FIXME: is this correct? a hardcoded interval of 60sec? what about configuration ?_?
+				//A hardcoded interval of 60 seconds is expected, as the time that SC_NOCHAT uses is defined by
+				//mmocharstatus.manner, each negative point results in 1 minute with this status activated.
+				//This is done this way because the message that the client displays is hardcoded, and only
+				//shows how many minutes are remaining. [Panikon]
 				tick = 60000;
 				val1 = battle_config.manner_system; //Mute filters
 				if( sd ) {
@@ -8613,9 +8618,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_GATLINGFEVER:
 				val2 = 20 * val1; //Aspd increase
-#ifndef RENEWAL
 				val3 = 20 + 10 * val1; //Batk increase
-#endif
 				val4 = 5 * val1; //Flee decrease
 				break;
 			case SC_FLING:

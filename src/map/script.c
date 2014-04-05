@@ -8622,7 +8622,7 @@ BUILDIN_FUNC(savepoint)
 
 	sd = script_rid2sd(st);
 	if( sd == NULL )
-		return 0; // No player attached, report source
+		return 1; // No player attached, report source
 
 	str = script_getstr(st,2);
 	x   = script_getnum(st,3);

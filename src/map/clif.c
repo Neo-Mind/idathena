@@ -8570,7 +8570,7 @@ void clif_manner_message(struct map_session_data* sd, uint32 type)
 {
 	int fd;
 	nullpo_retv(sd);
-	
+
 	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x14a));
 	WFIFOW(fd,0) = 0x14a;

@@ -7494,29 +7494,35 @@ bool pc_setparam(struct map_session_data *sd,int type,int val) {
 			}
 			break;
 		case SP_STR:
-			sd->status.str = cap_value(val, 1, pc_maxparameter(sd,PARAM_STR));
+			sd->status.str = cap_value(val, 1, pc_maxparameter(sd, PARAM_STR));
 			break;
 		case SP_AGI:
-			sd->status.agi = cap_value(val, 1, pc_maxparameter(sd,PARAM_AGI));
+			sd->status.agi = cap_value(val, 1, pc_maxparameter(sd, PARAM_AGI));
 			break;
 		case SP_VIT:
-			sd->status.vit = cap_value(val, 1, pc_maxparameter(sd,PARAM_VIT));
+			sd->status.vit = cap_value(val, 1, pc_maxparameter(sd, PARAM_VIT));
 			break;
 		case SP_INT:
-			sd->status.int_ = cap_value(val, 1, pc_maxparameter(sd,PARAM_INT));
+			sd->status.int_ = cap_value(val, 1, pc_maxparameter(sd, PARAM_INT));
 			break;
 		case SP_DEX:
-			sd->status.dex = cap_value(val, 1, pc_maxparameter(sd,PARAM_DEX));
+			sd->status.dex = cap_value(val, 1, pc_maxparameter(sd, PARAM_DEX));
 			break;
 		case SP_LUK:
-			sd->status.luk = cap_value(val, 1, pc_maxparameter(sd,PARAM_LUK));
+			sd->status.luk = cap_value(val, 1, pc_maxparameter(sd, PARAM_LUK));
 			break;
 		case SP_KARMA:
 			sd->status.karma = val;
 			break;
 		case SP_MANNER:
 			sd->status.manner = val;
-			break;
+			if( val < 0 )
+				sc_start(NULL, &sd->bl, SC_NOCHAT, 100, 0, 0);
+			else {
+				status_change_end(&sd->bl, SC_NOCHAT, INVALID_TIMER);
+				clif_manner_message(sd, 5);
+			}
+			return true; //status_change_start/status_change_end already sends packets warning the client
 		case SP_FAME:
 			sd->status.fame = val;
 			break;

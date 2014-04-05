@@ -346,16 +346,16 @@ struct mmo_charstatus {
 	unsigned int status_point,skill_point;
 	int hp,max_hp,sp,max_sp;
 	unsigned int option;
-	short manner;
+	short manner; // Defines how many minutes a char will be muted, each negative point is equivalent to a minute
 	unsigned char karma;
 	short hair,hair_color,clothes_color;
 	int party_id,guild_id,pet_id,hom_id,mer_id,ele_id;
 	int fame;
 
 	// Mercenary Guilds Rank
-	int arch_faith, arch_calls;
-	int spear_faith, spear_calls;
-	int sword_faith, sword_calls;
+	int arch_faith,arch_calls;
+	int spear_faith,spear_calls;
+	int sword_faith,sword_calls;
 
 	short weapon; // enum weapon_type
 	short shield; // view-id
@@ -379,7 +379,7 @@ struct mmo_charstatus {
 #ifdef HOTKEY_SAVING
 	struct hotkey hotkeys[MAX_HOTKEYS];
 #endif
-	bool show_equip, allow_party;
+	bool show_equip,allow_party;
 	short rename;
 
 	time_t delete_date;
