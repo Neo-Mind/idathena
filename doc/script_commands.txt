@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= rAthena Dev Team
 //===== Last Updated: ========================================
-//= 20140313
+//= 20140405
 //===== Description: =========================================
 //= A reference manual for the rAthena scripting language.
 //= Commands are sorted depending on their functionality.
@@ -5221,9 +5221,9 @@ behavior of the command.
 
 *statusup <stat>;
 
-This command will bump a specified stat of the invoking character up by one 
-permanently. Stats are to be given as number, but you can use these constants to 
-replace them:
+This command will bump a specified stat of the invoking character up by one permanently
+using status points to do so, if there aren't enough to perform the change nothing will happen.
+Stats are to be given as number, but you can use these constants to replace them:
 
 bStr -  Strength
 bVit -  Vitality
@@ -5237,10 +5237,11 @@ bLuk -  Luck
 *statusup2 <stat>,<amount>;
 
 This command will bump a specified stat of the invoking character up by the 
-specified amount permanently. The amount can be negative. See 'statusup'.
+the specified amount permanently without using status points.
+Amount can be negative. See 'statusup'.
 
 // This will decrease a character's Vit forever.
-    statusup bVit,-1;
+    statusup2 bVit,-1;
 
 ---------------------------------------
 
