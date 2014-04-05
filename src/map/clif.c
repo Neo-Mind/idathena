@@ -8867,10 +8867,10 @@ void clif_refresh(struct map_session_data *sd)
 /// Updates the object's (bl) name on client.
 /// 0095 <id>.L <char name>.24B (ZC_ACK_REQNAME)
 /// 0195 <id>.L <char name>.24B <party name>.24B <guild name>.24B <position name>.24B (ZC_ACK_REQNAMEALL)
-void clif_charnameack (int fd, struct block_list *bl)
+void clif_charnameack(int fd, struct block_list *bl)
 {
 	unsigned char buf[103];
-	int cmd = 0x95, i, ps = -1;
+	int cmd = 0x95;
 
 	nullpo_retv(bl);
 
@@ -8882,43 +8882,39 @@ void clif_charnameack (int fd, struct block_list *bl)
 				struct map_session_data *ssd = (struct map_session_data *)bl;
 				struct party_data *p = NULL;
 				struct guild *g = NULL;
-				
+				int ps = -1;
+
 				//Requesting your own "shadow" name. [Skotlex]
 				if (ssd->fd == fd && ssd->disguise)
 					WBUFL(buf,2) = -bl->id;
-
 				if( ssd->fakename[0] ) {
-					WBUFW(buf, 0) = cmd = 0x195;
+					WBUFW(buf,0) = cmd = 0x195;
 					memcpy(WBUFP(buf,6), ssd->fakename, NAME_LENGTH);
 					WBUFB(buf,30) = WBUFB(buf,54) = WBUFB(buf,78) = 0;
 					break;
 				}
 				memcpy(WBUFP(buf,6), ssd->status.name, NAME_LENGTH);
-
-				if( ssd->status.party_id ) {
+				if( ssd->status.party_id )
 					p = party_search(ssd->status.party_id);
-				}
 				if( ssd->status.guild_id ) {
-					if( ( g = ssd->guild ) != NULL ) {
+					if( (g = ssd->guild) != NULL ) {
+						int i;
+
 						ARR_FIND(0, g->max_member, i, g->member[i].account_id == ssd->status.account_id && g->member[i].char_id == ssd->status.char_id);
-						if( i < g->max_member ) ps = g->member[i].position;
+						if( i < g->max_member )
+							ps = g->member[i].position;
 					}
 				}
-
-				if( !battle_config.display_party_name && g == NULL ) { // do not display party unless the player is also in a guild
+				if( !battle_config.display_party_name && g == NULL ) //Do not display party unless the player is also in a guild
 					p = NULL;
-				}
-
-				if (p == NULL && g == NULL)
+				if( p == NULL && g == NULL )
 					break;
-				
 				WBUFW(buf, 0) = cmd = 0x195;
-				if (p)
+				if( p )
 					memcpy(WBUFP(buf,30), p->party.name, NAME_LENGTH);
 				else
 					WBUFB(buf,30) = 0;
-				
-				if (g && ps >= 0 && ps < MAX_GUILDPOSITION) {
+				if( g && ps >= 0 && ps < MAX_GUILDPOSITION ) {
 					memcpy(WBUFP(buf,54), g->name,NAME_LENGTH);
 					memcpy(WBUFP(buf,78), g->position[ps].name, NAME_LENGTH);
 				} else { //Assume no guild.
@@ -8942,6 +8938,7 @@ void clif_charnameack (int fd, struct block_list *bl)
 			break;
 		case BL_MOB: {
 				struct mob_data *md = (struct mob_data *)bl;
+
 				nullpo_retv(md);
 
 				memcpy(WBUFP(buf,6), md->name, NAME_LENGTH);
@@ -8984,12 +8981,12 @@ void clif_charnameack (int fd, struct block_list *bl)
 	}
 
 	// if no receipient specified just update nearby clients
-	if (fd == 0)
+	if( fd == 0 )
 		clif_send(buf, packet_len(cmd), bl, AREA);
 	else {
-		WFIFOHEAD(fd, packet_len(cmd));
-		memcpy(WFIFOP(fd, 0), buf, packet_len(cmd));
-		WFIFOSET(fd, packet_len(cmd));
+		WFIFOHEAD(fd,packet_len(cmd));
+		memcpy(WFIFOP(fd,0), buf, packet_len(cmd));
+		WFIFOSET(fd,packet_len(cmd));
 	}
 }
 
@@ -10842,14 +10839,16 @@ void clif_parse_UseItem(int fd, struct map_session_data *sd)
 /// 0998 <index>.W <position>.L (CZ_REQ_WEAR_EQUIP_V5)
 void clif_parse_EquipItem(int fd,struct map_session_data *sd)
 {
-	int index, req_pos;
+	int index;
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
 
 	if (pc_isdead(sd)) {
 		clif_clearunit_area(&sd->bl,CLR_DEAD);
 		return;
 	}
+
 	index = RFIFOW(fd,info->pos[0]) - 2;
+
 	if (index < 0 || index >= MAX_INVENTORY)
 		return; //Out of bounds check.
 
@@ -10877,6 +10876,8 @@ void clif_parse_EquipItem(int fd,struct map_session_data *sd)
 	if (sd->inventory_data[index]->type == IT_AMMO)
 		pc_equipitem(sd,index,EQP_AMMO);
 	else {
+		int req_pos;
+
 #if PACKETVER  >= 20120925
 		req_pos = RFIFOL(fd,info->pos[1]);
 #else
@@ -12604,14 +12605,14 @@ void clif_parse_OpenVending(int fd, struct map_session_data* sd)
 	struct s_packet_db* info = &packet_db[sd->packet_ver][cmd];
 	short len = (short)RFIFOW(fd,info->pos[0]);
 	const char* message = (char*)RFIFOP(fd,info->pos[1]);
-	bool flag;
 	const uint8* data = (uint8*)RFIFOP(fd,info->pos[3]);
 
-	if( cmd == 0x12f ) { // (CZ_REQ_OPENSTORE)
+	if( cmd == 0x12f ) { //(CZ_REQ_OPENSTORE)
 		len -= 84;
 	} else { //(CZ_REQ_OPENSTORE2)
+		bool flag = (bool)RFIFOB(fd,info->pos[2]);
+
 		len -= 85;
-		flag = (bool)RFIFOB(fd,info->pos[2]);
 		if( !flag )
 			sd->state.prevend = 0;
 	}
@@ -12753,16 +12754,17 @@ void clif_parse_GuildRequestEmblem(int fd,struct map_session_data *sd)
 static bool clif_validate_emblem(const uint8* emblem, unsigned long emblem_len) {
 	uint8 buf[1800]; // No well-formed emblem bitmap is larger than 1782 (24 bit) / 1654 (8 bit) bytes
 	unsigned long buf_len = sizeof(buf);
-	int i,j , transcount = 1, offset = 0, tmp[3];
+	int offset = 0;
 
-	if( !((decode_zip(buf, &buf_len, emblem, emblem_len) == 0 && buf_len >= 18) // sizeof(BITMAPFILEHEADER) + sizeof(biSize) of the following info header struct
-		&& RBUFW(buf,0) == 0x4d42 // BITMAPFILEHEADER.bfType (signature)
-		&& RBUFL(buf,2) == buf_len // BITMAPFILEHEADER.bfSize (file size)
-		&& (offset = RBUFL(buf,10)) < buf_len) // BITMAPFILEHEADER.bfOffBits (offset to bitmap bits)
-	)
+	if( !((decode_zip(buf, &buf_len, emblem, emblem_len) == 0 && buf_len >= 18) && // sizeof(BITMAPFILEHEADER) + sizeof(biSize) of the following info header struct
+		RBUFW(buf,0) == 0x4d42 && // BITMAPFILEHEADER.bfType (signature)
+		RBUFL(buf,2) == buf_len && // BITMAPFILEHEADER.bfSize (file size)
+		(offset = RBUFL(buf,10)) < buf_len) ) // BITMAPFILEHEADER.bfOffBits (offset to bitmap bits)
 		return -1;
 
 	if( battle_config.emblem_transparency_limit != 100 ) {
+		int i, j, transcount = 1, tmp[3];
+
 		for( i = offset; i < buf_len - 1; i++ ) {
 			j = i%3;
 			tmp[j] = RBUFL(buf,i);
@@ -17252,7 +17254,7 @@ void clif_parse_client_version(int fd, struct map_session_data *sd) {
 void clif_sub_ranklist(unsigned char *buf, int idx, struct map_session_data* sd, int16 rankingtype) {
 	const char* name;
 	struct fame_list* list;
-	int i, skip = 0;
+	int skip = 0;
 
 	switch(rankingtype + 1) { //To keep the same case as char.c
 		case 1: list = smith_fame_list; break;
@@ -17262,6 +17264,8 @@ void clif_sub_ranklist(unsigned char *buf, int idx, struct map_session_data* sd,
 	}
 
 	if(!skip) {
+		int i;
+
 		//Packet size limits this list to 10 elements. [Skotlex]
 		for(i = 0; i < min(10, MAX_FAME_LIST); i++) {
 			if(list[i].id > 0) {

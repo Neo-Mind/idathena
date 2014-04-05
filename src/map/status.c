@@ -1366,7 +1366,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 			status_change_end(target, SC_CHASEWALK, INVALID_TIMER);
 			status_change_end(target, SC_CAMOUFLAGE, INVALID_TIMER);
 			status_change_end(target, SC_DEEPSLEEP, INVALID_TIMER);
-			if ((sce = sc->data[SC_ENDURE]) && !sce->val4 && !sc->data[SC_CONCENTRATION]) {
+			if ((sce = sc->data[SC_ENDURE]) && !sce->val4) {
 				//Endure count is only reduced by non-players on non-gvg maps.
 				//val4 signals infinite endure. [Skotlex]
 				if (src && src->type != BL_PC && !map_flag_gvg2(target->m) && !map[target->m].flag.battleground && --(sce->val2) < 0)
@@ -3335,7 +3335,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 		status->def = (defType)cap_value(i,DEFTYPE_MIN,DEFTYPE_MAX);
 	}
 
-	if(pc_isriding(sd) && pc_checkskill(sd,NC_MAINFRAME) > 0)
+	if(pc_ismadogear(sd) && pc_checkskill(sd,NC_MAINFRAME) > 0)
 		status->def += 20 + (pc_checkskill(sd,NC_MAINFRAME) * 20);
 
 #ifndef RENEWAL
@@ -5417,7 +5417,7 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 	if(sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 2)
 		def += 50;
 	if(sc->data[SC_ODINS_POWER])
-		def -= 20;
+		def -= 20 * sc->data[SC_ODINS_POWER]->val1;
 	if(sc->data[SC_ANGRIFFS_MODUS])
 		def -= 30 + 20 * sc->data[SC_ANGRIFFS_MODUS]->val1;
 	if(sc->data[SC_STONEHARDSKIN])
@@ -5581,7 +5581,7 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 			return 0;
 	}
 	if(sc->data[SC_ODINS_POWER])
-		mdef -= 20;
+		mdef -= 20 * sc->data[SC_ODINS_POWER]->val1;
 	if(sc->data[SC_UNLIMIT])
 		return 1;
 

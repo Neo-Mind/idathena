@@ -3205,7 +3205,6 @@ int parse_frommap(int fd)
 
 	while( RFIFOREST(fd) >= 2 ) {
 		switch( RFIFOW(fd,0) ) {
-
 			case 0x2736: //Ip address update
 				if( RFIFOREST(fd) < 6 ) return 0;
 				server[id].ip = ntohl(RFIFOL(fd,2));
@@ -3225,7 +3224,7 @@ int parse_frommap(int fd)
 				}
 
 				ShowStatus("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d.\n",
-							id, j, CONVIP(server[id].ip), server[id].port);
+					id, j, CONVIP(server[id].ip), server[id].port);
 				ShowStatus("Map-server %d loading complete.\n", id);
 
 				//Send name for wisp to player
@@ -3236,13 +3235,13 @@ int parse_frommap(int fd)
 				WFIFOSET(fd,3 + NAME_LENGTH);
 
 				char_send_fame_list(fd); //Send fame list.
-
 				{
-					unsigned char buf[16384];
 					int x;
-					if( j == 0 ) {
+					if( j == 0 )
 						ShowWarning("Map-server %d has NO maps.\n", id);
-					} else {
+					else {
+						unsigned char buf[16384];
+
 						//Transmitting maps information to the other map-servers
 						WBUFW(buf,0) = 0x2b04;
 						WBUFW(buf,2) = j * 4 + 10;
@@ -3277,9 +3276,8 @@ int parse_frommap(int fd)
 					return 0;
 				{
 #ifdef ENABLE_SC_SAVING
-					int aid, cid;
-					aid = RFIFOL(fd,2);
-					cid = RFIFOL(fd,6);
+					int aid = RFIFOL(fd,2), cid = RFIFOL(fd,6);
+
 					if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `type`, `tick`, `val1`, `val2`, `val3`, `val4` "
 						"FROM `%s` WHERE `account_id`='%d' AND `char_id`='%d'",
 						scdata_db, aid, cid) )
@@ -3793,7 +3791,7 @@ int parse_frommap(int fd)
 					struct auth_node* node;
 					struct mmo_charstatus* cd;
 					struct mmo_charstatus char_dat;
-					bool autotrade = false;
+					bool autotrade;
 
 					account_id = RFIFOL(fd,2);
 					char_id    = RFIFOL(fd,6);

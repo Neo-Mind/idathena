@@ -1315,7 +1315,7 @@ int pc_reg_received(struct map_session_data *sd)
 	}
 
 	//SG map and mob read [Komurka]
-	for (i = 0; i < MAX_PC_FEELHATE; i++) { //for now - someone need to make reading from txt/sql
+	for (i = 0; i < MAX_PC_FEELHATE; i++) { //For now - someone need to make reading from txt/sql
 		uint16 j;
 
 		if ((j = pc_readglobalreg(sd,sg_info[i].feel_var)) != 0) {

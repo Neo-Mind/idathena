@@ -651,20 +651,6 @@ bool skill_isNotOk(uint16 skill_id, struct map_session_data *sd)
 				return true;
 			}
 			break;
-		case MG_SIGHT:
-		case TF_HIDING:
-		case MC_MAMMONITE:
-		case MC_CARTREVOLUTION:
-		case BS_HAMMERFALL:
-		case BS_ADRENALINE:
-		case WS_CARTBOOST:
-		case WS_MELTDOWN:
-			//These skills cannot be used while in mado gear (credits to Xantara)
-			if (pc_ismadogear(sd)) {
-				clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
-				return true;
-			}
-			break;
 		case GC_DARKILLUSION:
 			if (map_flag_gvg2(m)) {
 				clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
@@ -2356,9 +2342,12 @@ int skill_blown(struct block_list* src, struct block_list* target, int count, in
 	return unit_blown(target, dx, dy, count, flag); //Send over the proper flag
 }
 
-
-//Checks if 'bl' should reflect back a spell cast by 'src'.
-//type is the type of magic attack: 0: indirect (aoe), 1: direct (targetted)
+/** Checks if 'bl' should reflect back a spell cast by 'src'.
+ * type is the type of magic attack: 0: indirect (aoe), 1: direct (targetted)
+ * In case of success returns type of reflection, otherwise 0
+ *	1 - Regular reflection (Maya)
+ *	2 - SL_KAITE reflection
+ */
 static int skill_magic_reflect(struct block_list* src, struct block_list* bl, int type)
 {
 	struct status_change *sc = status_get_sc(bl);
@@ -11535,6 +11524,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case LG_OVERBRAND: {
+				int x = src->x, y = src->y;
 				int dir = map_calc_dir(src,x,y);
 				struct s_skill_nounit_layout *layout = skill_get_nounit_layout(skill_id,skill_lv,src,x,y,dir);
 
@@ -14126,9 +14116,8 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		if( !(inf3&INF3_USABLE_WARG) )
 			return false; //In official there is no message.
 
+	//Check the skills that can be used while mounted on a mado
 	if( pc_ismadogear(sd) ) {
-		//None Mado skills are unusable when Mado is equipped. [Jobbie]
-		//Only Mechanic exlcusive skill can be used.
 		if( inf3&INF3_DIS_MADO ) {
 			clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			return false;
@@ -19517,6 +19506,9 @@ void skill_init_unit_layout (void)
 		}
 		pos++;
 	}
+
+	if( pos >= MAX_SKILL_UNIT_LAYOUT )
+		ShowError("skill_init_unit_layout: The skill_unit_layout has met the limit or overflowed (pos=%d)\n",pos);
 }
 
 void skill_init_nounit_layout (void)
@@ -19684,6 +19676,9 @@ void skill_init_nounit_layout (void)
 		}
 		pos++;
 	}
+
+	if( pos >= MAX_SKILL_UNIT_LAYOUT )
+		ShowError("skill_init_nounit_layout: The skill_nounit_layout has met the limit or overflowed (pos=%d)\n",pos);
 }
 
 int skill_block_check(struct block_list *bl, sc_type type , uint16 skill_id) {

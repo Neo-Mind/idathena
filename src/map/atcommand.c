@@ -9190,7 +9190,7 @@ ACMD_FUNC(costume) {
 	if( !message || !*message ) {
 		for( k = 0; k < len; k++ ) {
 			if( sd->sc.data[name2id[k]] ) {
-				sprintf(atcmd_output, msg_txt(1488), names[k]); // Costume '%s' removed.
+				sprintf(atcmd_output, msg_txt(1488), names[k]); // '%s' costume removed.
 				clif_displaymessage(sd->fd, atcmd_output);
 				status_change_end(&sd->bl, (sc_type)name2id[k], INVALID_TIMER);
 				return 0;
@@ -9218,7 +9218,7 @@ ACMD_FUNC(costume) {
 			break;
 
 	if( k == len ) {
-		sprintf(atcmd_output, msg_txt(1484), message); // '%s' is not a known costume
+		sprintf(atcmd_output, msg_txt(1484), message); // '%s' is an unknown costume.
 		clif_displaymessage(sd->fd, atcmd_output);
 		return -1;
 	}
@@ -9239,7 +9239,7 @@ ACMD_FUNC(vip) {
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
 	if (!message || !*message || sscanf(message, "%255s %23[^\n]",atcmd_output,atcmd_player_name) < 2) {
-		clif_displaymessage(fd, msg_txt(700)); //Usage: @vip <time> <character name>
+		clif_displaymessage(fd, msg_txt(700)); // Usage: @vip <time> <character name>
 		return -1;
 	}
 

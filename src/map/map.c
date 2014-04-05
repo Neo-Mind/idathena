@@ -379,8 +379,8 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 	struct status_change *sc = NULL;
 	int moveblock = (x0 / BLOCK_SIZE != x1 / BLOCK_SIZE || y0 / BLOCK_SIZE != y1 / BLOCK_SIZE);
 
+	//Block not in map, just update coordinates, but do naught else.
 	if (!bl->prev) {
-		//Block not in map, just update coordinates, but do naught else.
 		bl->x = x1;
 		bl->y = y1;
 		return 0;
@@ -389,7 +389,6 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 	//@TODO: Perhaps some outs of bounds checking should be placed here?
 	if (bl->type&BL_CHAR) {
 		sc = status_get_sc(bl);
-
 		skill_unit_move(bl, tick, 2);
 		status_change_end(bl, SC_CLOSECONFINE, INVALID_TIMER);
 		status_change_end(bl, SC_CLOSECONFINE2, INVALID_TIMER);
@@ -404,18 +403,22 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 	} else if (bl->type == BL_NPC)
 		npc_unsetcells((TBL_NPC*)bl);
 
-	if (moveblock) map_delblock(bl);
+	if (moveblock)
+		map_delblock(bl);
 #ifdef CELL_NOSTACK
-	else map_delblcell(bl);
+	else
+		map_delblcell(bl);
 #endif
 	bl->x = x1;
 	bl->y = y1;
+
 	if (moveblock) {
 		if (map_addblock(bl))
 			return 1;
 	}
 #ifdef CELL_NOSTACK
-	else map_addblcell(bl);
+	else
+		map_addblcell(bl);
 #endif
 
 	if (bl->type&BL_CHAR) {
@@ -429,7 +432,6 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 				((TBL_PC*)bl)->shadowform_id = 0;
 			}
 		}
-
 		if (sc && sc->count) {
 			if (sc->data[SC_DANCING])
 				skill_unit_move_unit_group(skill_id2group(sc->data[SC_DANCING]->val2), bl->m, x1-x0, y1-y0);
@@ -440,27 +442,23 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 					skill_unit_move_unit_group(skill_id2group(sc->data[SC_WARM]->val4), bl->m, x1-x0, y1-y0);
 				if (sc->data[SC_BANDING])
 					skill_unit_move_unit_group(skill_id2group(sc->data[SC_BANDING]->val4), bl->m, x1-x0, y1-y0);
-
 				if (sc->data[SC_NEUTRALBARRIER_MASTER])
 					skill_unit_move_unit_group(skill_id2group(sc->data[SC_NEUTRALBARRIER_MASTER]->val2), bl->m, x1-x0, y1-y0);
 				else if (sc->data[SC_STEALTHFIELD_MASTER])
 					skill_unit_move_unit_group(skill_id2group(sc->data[SC_STEALTHFIELD_MASTER]->val2), bl->m, x1-x0, y1-y0);
-
 				if (sc->data[SC__SHADOWFORM]) { //Shadow Form Caster Moving
 					struct block_list *d_bl;
 
 					if( (d_bl = map_id2bl(sc->data[SC__SHADOWFORM]->val2)) == NULL || !check_distance_bl(bl, d_bl, 10) )
 						status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
 				}
-
-				if (sc->data[SC_PROPERTYWALK]
-					&& sc->data[SC_PROPERTYWALK]->val3 < skill_get_maxcount(sc->data[SC_PROPERTYWALK]->val1, sc->data[SC_PROPERTYWALK]->val2)
-					&& map_find_skill_unit_oncell(bl, bl->x, bl->y, SO_ELECTRICWALK, NULL, 0) == NULL
-					&& map_find_skill_unit_oncell(bl, bl->x, bl->y, SO_FIREWALK, NULL, 0) == NULL
-					&& skill_unitsetting(bl, sc->data[SC_PROPERTYWALK]->val1, sc->data[SC_PROPERTYWALK]->val2, x0,  y0, 0)) {
+				if (sc->data[SC_PROPERTYWALK] &&
+					sc->data[SC_PROPERTYWALK]->val3 < skill_get_maxcount(sc->data[SC_PROPERTYWALK]->val1, sc->data[SC_PROPERTYWALK]->val2) &&
+					map_find_skill_unit_oncell(bl, bl->x, bl->y, SO_ELECTRICWALK, NULL, 0) == NULL &&
+					map_find_skill_unit_oncell(bl, bl->x, bl->y, SO_FIREWALK, NULL, 0) == NULL &&
+					skill_unitsetting(bl, sc->data[SC_PROPERTYWALK]->val1, sc->data[SC_PROPERTYWALK]->val2, x0,  y0, 0)) {
 						sc->data[SC_PROPERTYWALK]->val3++;
 				}
-
 			}
 			/* Guild Aura Moving */
 			if (bl->type == BL_PC && ((TBL_PC*)bl)->state.gmaster_flag) {

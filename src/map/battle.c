@@ -7332,7 +7332,7 @@ struct block_list* battle_get_master(struct block_list *src)
  * Credits:
  *	Original coder unknown
  *	Rewritten by Skoltex
-*/
+ */
 int battle_check_target(struct block_list *src, struct block_list *target, int flag)
 {
 	int16 m; //Map
