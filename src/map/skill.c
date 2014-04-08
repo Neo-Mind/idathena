@@ -3726,8 +3726,8 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					skill_unitsetting(src,skl->skill_id,skl->skill_lv,skl->x,skl->y,(skl->type<<16)|skl->flag);
 					break;
 				case LG_OVERBRAND_BRANDISH: {
+						int i, dir = map_calc_dir(src,skl->x,skl->y);
 						int x = src->x, y = src->y;
-						int i, dir = map_calc_dir(src,x,y);
 						struct s_skill_nounit_layout *layout = skill_get_nounit_layout(skl->skill_id,skl->skill_lv,src,x,y,dir);
 
 						for( i = 0; i < layout->count; i++ )
@@ -11524,13 +11524,13 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case LG_OVERBRAND: {
-				int x = src->x, y = src->y;
 				int dir = map_calc_dir(src,x,y);
-				struct s_skill_nounit_layout *layout = skill_get_nounit_layout(skill_id,skill_lv,src,x,y,dir);
+				int sx = src->x, sy = src->y;
+				struct s_skill_nounit_layout *layout = skill_get_nounit_layout(skill_id,skill_lv,src,sx,sy,dir);
 
 				for( i = 0; i < layout->count; i++ )
-					map_foreachincell(skill_area_sub,src->m,x+layout->dx[i],y+layout->dy[i],BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_ANIMATION|1,skill_castend_damage_id);
-				skill_addtimerskill(src,gettick() + status_get_amotion(src),0,0,0,LG_OVERBRAND_BRANDISH,skill_lv,dir,flag);
+					map_foreachincell(skill_area_sub,src->m,sx+layout->dx[i],sy+layout->dy[i],BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_ANIMATION|1,skill_castend_damage_id);
+				skill_addtimerskill(src,gettick() + status_get_amotion(src),0,x,y,LG_OVERBRAND_BRANDISH,skill_lv,dir,flag);
 			}
 			break;
 
