@@ -2563,9 +2563,9 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 			if(sc->data[SC_IMPOSITIO])
 				ATK_ADD(wd.masteryAtk, wd.masteryAtk2, sc->data[SC_IMPOSITIO]->val2);
 			if(sc->data[SC_DRUMBATTLE]) {
-				if(tstatus->size == SZ_SMALL)
+				if(tstatus->size == SZ_SMALL) {
 					ATK_ADD(wd.masteryAtk, wd.masteryAtk2, sc->data[SC_DRUMBATTLE]->val2);
-				else if(tstatus->size == SZ_MEDIUM)
+				} else if(tstatus->size == SZ_MEDIUM)
 					ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 10 * sc->data[SC_DRUMBATTLE]->val1);
 			}
 			if(sc->data[SC_NIBELUNGEN]) {
@@ -2578,11 +2578,11 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 			if(sc->data[SC_MADNESSCANCEL])
 				ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 100);
 			if(sc->data[SC_GATLINGFEVER]) {
-				if(tstatus->size == SZ_SMALL)
+				if(tstatus->size == SZ_SMALL) {
 					ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 10 * sc->data[SC_GATLINGFEVER]->val1);
-				else if(tstatus->size == SZ_MEDIUM)
+				} else if(tstatus->size == SZ_MEDIUM) {
 					ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 5 * sc->data[SC_GATLINGFEVER]->val1);
-				else if(tstatus->size == SZ_BIG)
+				} else if(tstatus->size == SZ_BIG)
 					ATK_ADD(wd.masteryAtk, wd.masteryAtk2, sc->data[SC_GATLINGFEVER]->val1);
 			}
 #endif
