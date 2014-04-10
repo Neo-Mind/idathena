@@ -1823,6 +1823,13 @@ int pc_disguise(struct map_session_data *sd, int class_)
 	status_set_viewdata(&sd->bl, class_);
 	clif_changeoption(&sd->bl);
 
+	//We need to update the client so it knows that a costume is being used
+	if (sd->sc.option&OPTION_COSTUME) {
+		clif_changelook(&sd->bl, LOOK_BASE, sd->vd.class_);
+		clif_changelook(&sd->bl, LOOK_WEAPON, 0);
+		clif_changelook(&sd->bl, LOOK_SHIELD, 0);
+		clif_changelook(&sd->bl, LOOK_CLOTHES_COLOR, sd->vd.cloth_color);
+	}
 	if (sd->bl.prev != NULL) {
 		clif_spawn(&sd->bl);
 		if (class_ == sd->status.class_ && pc_iscarton(sd)) { //It seems the cart info is lost on undisguise.
