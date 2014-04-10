@@ -7054,18 +7054,18 @@ BUILDIN_FUNC(delitem2)
  *------------------------------------------*/
 BUILDIN_FUNC(enableitemuse)
 {
-	TBL_PC *sd;
-	sd = script_rid2sd(st);
-	if (sd)
+	TBL_PC *sd = script_rid2sd(st);
+
+	if( sd )
 		st->npc_item_flag = sd->npc_item_flag = 1;
 	return SCRIPT_CMD_SUCCESS;
 }
 
 BUILDIN_FUNC(disableitemuse)
 {
-	TBL_PC *sd;
-	sd = script_rid2sd(st);
-	if (sd)
+	TBL_PC *sd = script_rid2sd(st);
+
+	if( sd )
 		st->npc_item_flag = sd->npc_item_flag = 0;
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -7083,9 +7083,9 @@ BUILDIN_FUNC(readparam)
 	if( script_hasdata(st,3) )
 		sd = map_nick2sd(script_getstr(st,3));
 	else
-		sd=script_rid2sd(st);
+		sd = script_rid2sd(st);
 
-	if(sd == NULL) {
+	if( sd == NULL ) {
 		script_pushint(st,-1);
 		return 0;
 	}

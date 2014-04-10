@@ -500,12 +500,12 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 					}
 					cardfix = cardfix * (100 - ele_fix) / 100;
 				}
-				cardfix = cardfix * (100 - tsd->subsize[sstatus->size] + tsd->subsize[SZ_ALL]) / 100;
+				cardfix = cardfix * (100 - (tsd->subsize[sstatus->size] + tsd->subsize[SZ_ALL])) / 100;
 				cardfix = cardfix * (100 - tsd->subrace2[s_race2]) / 100;
-				cardfix = cardfix * (100 - tsd->subrace[sstatus->race] + tsd->subrace[RC_ALL]) / 100;
-				cardfix = cardfix * (100 - tsd->subclass[sstatus->class_] + tsd->subclass[CLASS_ALL]) / 100;
-				cardfix = cardfix * (100 - tsd->magic_subrace[sstatus->race] + tsd->magic_subrace[RC_ALL]) / 100;
-				cardfix = cardfix * (100 - tsd->magic_subclass[sstatus->class_] + tsd->magic_subclass[CLASS_ALL]) / 100;
+				cardfix = cardfix * (100 - (tsd->subrace[sstatus->race] + tsd->subrace[RC_ALL])) / 100;
+				cardfix = cardfix * (100 - (tsd->subclass[sstatus->class_] + tsd->subclass[CLASS_ALL])) / 100;
+				cardfix = cardfix * (100 - (tsd->magic_subrace[sstatus->race] + tsd->magic_subrace[RC_ALL])) / 100;
+				cardfix = cardfix * (100 - (tsd->magic_subclass[sstatus->class_] + tsd->magic_subclass[CLASS_ALL])) / 100;
 				for( i = 0; i < ARRAYLENGTH(tsd->add_mdef) && tsd->add_mdef[i].rate; i++ ) {
 					if( tsd->add_mdef[i].class_ == s_class ) {
 						cardfix = cardfix * (100 - tsd->add_mdef[i].rate) / 100;
@@ -682,10 +682,10 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 						cardfix = cardfix * (100 - ele_fix_lh) / 100;
 					}
 				}
-				cardfix = cardfix * (100 - tsd->subsize[sstatus->size] + tsd->subsize[SZ_ALL]) / 100;
+				cardfix = cardfix * (100 - (tsd->subsize[sstatus->size] + tsd->subsize[SZ_ALL])) / 100;
 				cardfix = cardfix * (100 - tsd->subrace2[s_race2]) / 100;
-				cardfix = cardfix * (100 - tsd->subrace[sstatus->race] + tsd->subrace[RC_ALL]) / 100;
-				cardfix = cardfix * (100 - tsd->subclass[sstatus->class_] + tsd->subclass[CLASS_ALL]) / 100;
+				cardfix = cardfix * (100 - (tsd->subrace[sstatus->race] + tsd->subrace[RC_ALL])) / 100;
+				cardfix = cardfix * (100 - (tsd->subclass[sstatus->class_] + tsd->subclass[CLASS_ALL])) / 100;
 				for( i = 0; i < ARRAYLENGTH(tsd->add_def) && tsd->add_def[i].rate;i++ ) {
 					if( tsd->add_def[i].class_ == s_class ) {
 						cardfix = cardfix * (100 - tsd->add_def[i].rate) / 100;
@@ -718,10 +718,10 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 					}
 					cardfix = cardfix * (100 - ele_fix) / 100;
 				}
-				cardfix = cardfix * (100 - tsd->subsize[sstatus->size] + tsd->subsize[SZ_ALL]) / 100;
+				cardfix = cardfix * (100 - (tsd->subsize[sstatus->size] + tsd->subsize[SZ_ALL])) / 100;
 				cardfix = cardfix * (100 - tsd->subrace2[s_race2]) / 100;
-				cardfix = cardfix * (100 - tsd->subrace[sstatus->race] + tsd->subrace[RC_ALL]) / 100;
-				cardfix = cardfix * (100 - tsd->subclass[sstatus->class_] + tsd->subclass[CLASS_ALL]) / 100;
+				cardfix = cardfix * (100 - (tsd->subrace[sstatus->race] + tsd->subrace[RC_ALL])) / 100;
+				cardfix = cardfix * (100 - (tsd->subclass[sstatus->class_] + tsd->subclass[CLASS_ALL])) / 100;
 				cardfix = cardfix * (100 - tsd->bonus.misc_def_rate) / 100;
 				if( flag&BF_SHORT )
 					cardfix = cardfix * (100 - tsd->bonus.near_attack_def_rate) / 100;
@@ -2558,6 +2558,20 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 #endif
 		}
 
+#ifdef RENEWAL
+		//General skill masteries
+		if(skill_id == TF_POISON) //Additional ATK from Envenom is treated as mastery type damage [helvetica]
+			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 15 * skill_lv);
+		if(skill_id != CR_SHIELDBOOMERANG)
+			ATK_ADD2(wd.masteryAtk, wd.masteryAtk2, wd.div_ * sd->right_weapon.star, wd.div_ * sd->left_weapon.star);
+		if(skill_id != MC_CARTREVOLUTION && pc_checkskill(sd,BS_HILTBINDING) > 0)
+			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 4);
+		if(skill_id == MO_FINGEROFFENSIVE) {
+			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, wd.div_ * sd->spiritball_old * 3);
+		} else
+			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, wd.div_ * sd->spiritball * 3);
+#endif
+
 		if(sc) { //Status change considered as masteries
 #ifdef RENEWAL
 			if(sc->data[SC_IMPOSITIO])
@@ -2604,6 +2618,7 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 			i = 2; //Star anger
 		else
 			ARR_FIND(0, MAX_PC_FEELHATE, i, t_class == sd->hate_mob[i]);
+
 		if(i < MAX_PC_FEELHATE && (skill = pc_checkskill(sd,sg_info[i].anger_id))) {
 			int skillratio = sd->status.base_level + sstatus->dex + sstatus->luk;
 
@@ -2623,18 +2638,6 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 3 * skill);
 #endif
 		}
-
-#ifdef RENEWAL
-		//General skill masteries
-		if(skill_id != CR_SHIELDBOOMERANG)
-			ATK_ADD2(wd.masteryAtk, wd.masteryAtk2, wd.div_ * sd->right_weapon.star, wd.div_ * sd->left_weapon.star);
-		if(skill_id != MC_CARTREVOLUTION && pc_checkskill(sd,BS_HILTBINDING) > 0)
-			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 4);
-		if(skill_id == MO_FINGEROFFENSIVE) {
-			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, wd.div_ * sd->spiritball_old * 3);
-		} else
-			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, wd.div_ * sd->spiritball * 3);
-#endif
 	}
 
 	return wd;
@@ -4489,13 +4492,11 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd,struct block_list
 			ATK_ADD2(wd.damage, wd.damage2, sstatus->rhw.atk2, sstatus->lhw.atk2);
 	}
 #endif
-
 	//Set to min of 1
 	if(is_attack_right_handed(src, skill_id) && wd.damage < 1)
 		wd.damage = 1;
 	if(is_attack_left_handed(src, skill_id) && wd.damage2 < 1)
 		wd.damage2 = 1;
-
 	switch(skill_id) {
 		case AS_SONICBLOW:
 			if(sd && pc_checkskill(sd, AS_SONICACCEL) > 0)
@@ -4534,7 +4535,6 @@ struct Damage battle_calc_attack_plant(struct Damage wd, struct block_list *src,
 	//Force left hand to 1 damage while dual wielding [helvetica]
 	if(is_attack_right_handed(src, skill_id) && is_attack_left_handed(src, skill_id))
 		wd.damage2 = 1;
-
 	if(attack_hits && mob_id == MOBID_EMPERIUM) {
 		if(target && map_flag_gvg2(target->m) && !battle_can_hit_gvg_target(src, target, skill_id, (skill_id) ? BF_SKILL : 0))
 			wd.damage = wd.damage2 = 0;
@@ -4548,7 +4548,7 @@ struct Damage battle_calc_attack_plant(struct Damage wd, struct block_list *src,
 		return wd;
 	}
 
-	//if( !(battle_config.skill_min_damage&1) )
+	//if(!(battle_config.skill_min_damage&1))
 	//Do not return if you are supposed to deal greater damage to plants than 1. [Skotlex]
 	return wd;
 }
@@ -5117,15 +5117,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 	}
 #endif
 
-	if(skill_id == TF_POISON) {
-#ifdef RENEWAL
-		//Additional ATK from Envenom is treated as mastery type damage [helvetica]
-		ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 15 * skill_lv);
-#else
-		ATK_ADD(wd.damage, wd.damage2, 15 * skill_lv);
-#endif
-	}
-
 #ifndef RENEWAL
 	if(skill_id == NJ_KUNAI) {
 		short nk = battle_skill_get_damage_properties(skill_id, wd.miscflag);
@@ -5172,6 +5163,8 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 
 		if((skill = pc_checkskill(sd, BS_WEAPONRESEARCH)) > 0)
 			ATK_ADD(wd.damage, wd.damage2, skill * 2);
+		if(skill_id == TF_POISON)
+			ATK_ADD(wd.damage, wd.damage2, 15 * skill_lv);
 		if(skill_id != CR_SHIELDBOOMERANG) //Only Shield Boomerang doesn't takes the Star Crumbs bonus.
 			ATK_ADD2(wd.damage, wd.damage2, wd.div_ * sd->right_weapon.star, wd.div_ * sd->left_weapon.star);
 		if(skill_id != MC_CARTREVOLUTION && pc_checkskill(sd, BS_HILTBINDING) > 0)
@@ -6551,7 +6544,7 @@ struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct bl
 		case BF_MAGIC:  d = battle_calc_magic_attack(bl,target,skill_id,skill_lv,count);  break;
 		case BF_MISC:   d = battle_calc_misc_attack(bl,target,skill_id,skill_lv,count);   break;
 		default:
-			ShowError("battle_calc_attack: unknown attack type! %d\n",attack_type);
+			ShowError("battle_calc_attack: unknown attack: attack_type=%d skill_id=%d\n",attack_type,skill_id);
 			memset(&d,0,sizeof(d));
 			break;
 	}

@@ -7528,16 +7528,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 
-		case NPC_RUN: {
-				const int mask[8][2] = {{0,-1},{1,-1},{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1}};
-				//If cast on self, run forward, else run away.
-				uint8 dir = (bl == src) ? unit_getdir(src) : map_calc_dir(src,bl->x,bl->y);
-
-				unit_stop_attack(src);
-				//Run skill_lv tiles overriding the can-move check.
-				if (unit_walktoxy(src,src->x + skill_lv * mask[dir][0],src->y + skill_lv * mask[dir][1],2) && md)
-					md->state.skillstate = MSS_WALK; //Otherwise it isn't updated in the ai.
-			}
+		case NPC_RUN:
+			if (md && unit_escape(src,bl,rnd()%10 + 1))
+				mob_unlocktarget(md,tick);
 			break;
 
 		case NPC_TRANSFORMATION:

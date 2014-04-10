@@ -3852,7 +3852,7 @@ void npc_read_event_script(void)
 		DBKey key;
 		DBData *data;
 
-		char name[64]="::";
+		char name[64] = "::";
 		safestrncpy(name + 2, config[i].event_name, 62);
 
 		script_event[i].event_count = 0;
