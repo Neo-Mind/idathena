@@ -11533,6 +11533,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 		} else if( sd->menuskill_id != SA_AUTOSPELL )
 			return; // Can't use skills while a menu is open.
 	}
+
 	if( sd->skillitem == skill_id ) {
 		if( skill_lv != sd->skillitemlv )
 			skill_lv = sd->skillitemlv;
@@ -15105,12 +15106,11 @@ void clif_parse_Auction_bid(int fd, struct map_session_data *sd)
 		clif_displaymessage(sd->fd, msg_txt(246));
 		return;
 	}
-
 	if( bid <= 0 )
 		clif_Auction_message(fd, 0); // You have failed to bid into the auction
 	else if( bid > sd->status.zeny )
 		clif_Auction_message(fd, 8); // You do not have enough zeny
-	else if ( CheckForCharServer() ) // Char server is down (bugreport:1138)
+	else if( CheckForCharServer() ) // Char server is down (bugreport:1138)
 		clif_Auction_message(fd, 0); // You have failed to bid into the auction
 	else {
 		pc_payzeny(sd, bid, LOG_TYPE_AUCTION, NULL);

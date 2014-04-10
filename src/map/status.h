@@ -1950,10 +1950,10 @@ defType status_get_def(struct block_list *bl);
 #define status_get_batk(bl) status_get_status_data(bl)->batk
 #define status_get_watk(bl) status_get_status_data(bl)->rhw.atk
 #define status_get_watk2(bl) status_get_status_data(bl)->rhw.atk2
-#define status_get_matk_max(bl) status_get_status_data(bl)->matk_max
-#define status_get_matk_min(bl) status_get_status_data(bl)->matk_min
 #define status_get_lwatk(bl) status_get_status_data(bl)->lhw.atk
 #define status_get_lwatk2(bl) status_get_status_data(bl)->lhw.atk2
+#define status_get_matk_max(bl) status_get_status_data(bl)->matk_max
+#define status_get_matk_min(bl) status_get_status_data(bl)->matk_min
 unsigned short status_get_speed(struct block_list *bl);
 #define status_get_adelay(bl) status_get_status_data(bl)->adelay
 #define status_get_amotion(bl) status_get_status_data(bl)->amotion

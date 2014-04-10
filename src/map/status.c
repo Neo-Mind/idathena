@@ -3336,7 +3336,6 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 		i = status->def * sd->def_rate / 100;
 		status->def = (defType)cap_value(i,DEFTYPE_MIN,DEFTYPE_MAX);
 	}
-
 	if(pc_ismadogear(sd) && pc_checkskill(sd,NC_MAINFRAME) > 0)
 		status->def += 20 + (pc_checkskill(sd,NC_MAINFRAME) * 20);
 
@@ -6105,14 +6104,13 @@ static short status_calc_aspd_rate(struct block_list *bl, struct status_change *
 static unsigned short status_calc_dmotion(struct block_list *bl, struct status_change *sc, int dmotion)
 {
 	//It has been confirmed on official servers that MvP mobs have no dmotion even without endure
-	if( bl->type == BL_MOB && (((TBL_MOB*)bl)->status.mode&MD_BOSS) )
+	if(bl->type == BL_MOB && (((TBL_MOB*)bl)->status.mode&MD_BOSS))
 		return 0;
-	if( !sc || !sc->count || map_flag_gvg2(bl->m) || map[bl->m].flag.battleground )
+	if(!sc || !sc->count || map_flag_gvg2(bl->m) || map[bl->m].flag.battleground)
 		return (unsigned short)cap_value(dmotion,0,USHRT_MAX);
-
-	if( sc->data[SC_ENDURE] )
+	if(sc->data[SC_ENDURE])
 		return 0;
-	if( sc->data[SC_RUN] || sc->data[SC_WUGDASH] )
+	if(sc->data[SC_RUN] || sc->data[SC_WUGDASH])
 		return 0;
 
 	return (unsigned short)cap_value(dmotion,0,USHRT_MAX);
@@ -6131,7 +6129,7 @@ static unsigned int status_calc_maxhp(struct block_list *bl, uint64 maxhp)
 
 	maxhp += status_get_hpbonus(bl,STATUS_BONUS_FIX);
 
-	if ((rate += status_get_hpbonus(bl,STATUS_BONUS_RATE)) != 100)
+	if((rate += status_get_hpbonus(bl,STATUS_BONUS_RATE)) != 100)
 		maxhp = maxhp * rate / 100;
 
 	return (unsigned int)cap_value(maxhp,1,UINT_MAX);
@@ -6150,7 +6148,7 @@ static unsigned int status_calc_maxsp(struct block_list *bl, uint64 maxsp)
 
 	maxsp += status_get_spbonus(bl,STATUS_BONUS_FIX);
 
-	if ((rate += status_get_spbonus(bl,STATUS_BONUS_RATE)) != 100)
+	if((rate += status_get_spbonus(bl,STATUS_BONUS_RATE)) != 100)
 		maxsp = maxsp * rate / 100;
 
 	return (unsigned int)cap_value(maxsp,1,UINT_MAX);
@@ -6405,9 +6403,11 @@ int status_get_party_id(struct block_list *bl) {
 			break;
 		case BL_MOB: {
 				struct mob_data *md = (TBL_MOB*)bl;
+
 				if (md->master_id > 0) {
-					struct map_session_data *msd;
-					if (md->special_state.ai && (msd = map_id2sd(md->master_id)) != NULL)
+					struct map_session_data *msd = map_id2sd(md->master_id);
+
+					if (md->special_state.ai && msd)
 						return msd->status.party_id;
 					return -md->master_id;
 				}
@@ -6442,12 +6442,12 @@ int status_get_guild_id(struct block_list *bl) {
 				return ((TBL_PET*)bl)->master->status.guild_id;
 			break;
 		case BL_MOB: {
-				struct map_session_data *msd;
 				struct mob_data *md = (struct mob_data *)bl;
+				struct map_session_data *msd = map_id2sd(md->master_id);
 
 				if (md->guardian_data)	//Guardian's guild [Skotlex]
 					return md->guardian_data->guild_id;
-				if (md->special_state.ai && (msd = map_id2sd(md->master_id)) != NULL)
+				if (md->special_state.ai && msd)
 					return msd->status.guild_id; //Alchemist's mobs [Skotlex]
 			}
 			break;
@@ -6484,11 +6484,12 @@ int status_get_emblem_id(struct block_list *bl) {
 				return ((TBL_PET*)bl)->master->guild_emblem_id;
 			break;
 		case BL_MOB: {
-				struct map_session_data *msd;
 				struct mob_data *md = (struct mob_data *)bl;
+				struct map_session_data *msd = map_id2sd(md->master_id);
+
 				if (md->guardian_data)	//Guardian's guild [Skotlex]
 					return md->guardian_data->emblem_id;
-				if (md->special_state.ai && (msd = map_id2sd(md->master_id)) != NULL)
+				if (md->special_state.ai && msd)
 					return msd->guild_emblem_id; //Alchemist's mobs [Skotlex]
 			}
 			break;
@@ -6503,6 +6504,7 @@ int status_get_emblem_id(struct block_list *bl) {
 		case BL_NPC:
 			if (((TBL_NPC*)bl)->subtype == SCRIPT && ((TBL_NPC*)bl)->u.scr.guild_id > 0) {
 				struct guild *g = guild_search(((TBL_NPC*)bl)->u.scr.guild_id);
+
 				if (g)
 					return g->emblem_id;
 			}
@@ -6539,7 +6541,6 @@ int status_isimmune(struct block_list *bl)
 
 	if (sc && sc->data[SC_HERMODE])
 		return 100;
-
 	if (bl->type == BL_PC && ((TBL_PC*)bl)->special_state.no_magic_damage >= battle_config.gtb_sc_immunity)
 		return ((TBL_PC*)bl)->special_state.no_magic_damage;
 	return 0;
@@ -10170,8 +10171,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		return 0;
 
 	if (tid == INVALID_TIMER) {
-		if (type == SC_ENDURE && sce->val4)
-			//Do not end infinite endure.
+		if (type == SC_ENDURE && sce->val4) //Do not end infinite endure.
 			return 0;
 		if (sce->timer != INVALID_TIMER) //Could be a SC with infinite duration
 			delete_timer(sce->timer,status_change_timer);
@@ -10405,7 +10405,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			}
 			break;
 		case SC_BERSERK:
-			if (status->hp > 200 && sc && sc->data[SC__BLOODYLUST]) {
+			if (status->hp > 200 && sc->data[SC__BLOODYLUST]) {
 				status_percent_heal(bl,100,0);
 				status_change_end(bl,SC__BLOODYLUST,INVALID_TIMER);
 			} else if (status->hp > 100 && sce->val2)
@@ -10586,7 +10586,8 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				if (src) {
 					struct status_change *sc = status_get_sc(src);
 
-					sc->bs_counter--;
+					if (sc)
+						sc->bs_counter--;
 				}
 			}
 			break;
@@ -10594,14 +10595,14 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			status_change_end(bl,SC_TEARGAS_SOB,INVALID_TIMER);
 			break;
 		case SC_BANANA_BOMB_SITDOWN:
-			if( sd && pc_issit(sd) ) {
+			if (sd && pc_issit(sd)) {
 				pc_setstand(sd);
 				skill_sit(sd,0);
 				clif_standing(bl);
 			}
 			break;
 		case SC_VACUUM_EXTREME:
-			if (!map_flag_gvg2(bl->m) && sc && sce->val2 && sc->cant.move > 0)
+			if (!map_flag_gvg2(bl->m) && sce->val2 && sc->cant.move > 0)
 				sc->cant.move--;
 			break;
 		//case SC_KYOUGAKU:
@@ -11436,7 +11437,8 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		case SC_ELECTRICSHOCKER:
 			if( --(sce->val4) >= 0 ) {
-				status_charge(bl,0,status->max_sp / 100 * sce->val1 * 5);
+				if( !status_charge(bl,0,5 * sce->val1 * status->max_sp / 100) )
+					break;
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}

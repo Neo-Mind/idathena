@@ -2564,7 +2564,7 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 15 * skill_lv);
 		if(skill_id != CR_SHIELDBOOMERANG)
 			ATK_ADD2(wd.masteryAtk, wd.masteryAtk2, wd.div_ * sd->right_weapon.star, wd.div_ * sd->left_weapon.star);
-		if(skill_id != MC_CARTREVOLUTION && pc_checkskill(sd,BS_HILTBINDING) > 0)
+		if(skill_id != MC_CARTREVOLUTION && pc_checkskill(sd, BS_HILTBINDING) > 0)
 			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 4);
 		if(skill_id == MO_FINGEROFFENSIVE) {
 			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, wd.div_ * sd->spiritball_old * 3);
@@ -2929,8 +2929,7 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 						RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.crit_atk_rate'
 					}
 					if(sd->status.party_id && (skill = pc_checkskill(sd, TK_POWER)) > 0) {
-						//Exclude the player himself [Inkfish]
-						if((i = party_foreachsamemap(party_sub_count, sd, 0)) > 1) {
+						if((i = party_foreachsamemap(party_sub_count, sd, 0)) > 1) { //Exclude the player himself [Inkfish]
 							ATK_ADDRATE(wd.damage, wd.damage2, 2 * skill * i);
 							RE_ALLATK_ADDRATE(wd, 2 * skill * i);
 						}
@@ -6812,7 +6811,7 @@ int battle_damage_area(struct block_list *bl, va_list ap) {
 	return 0;
 }
 /*==========================================
- * Do a basic physical attack (call trough unit_attack_timer)
+ * Do a basic physical attack (call through unit_attack_timer)
  *------------------------------------------*/
 enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* target, unsigned int tick, int flag) {
 	struct map_session_data *sd = NULL, *tsd = NULL;
