@@ -155,16 +155,16 @@ char* trim(char* str)
 // deallocated using the same allocator with which it was allocated.  The return
 // value must NOT be deallocated using free() etc.
 char *trim2(char *str,char flag) {
-	char *end;
-	if(flag&1) { // Trim leading space
-		while(isspace(*str)) str++;
-		if(*str == 0) // All spaces?
+	if( flag&1 ) { // Trim leading space
+		while( isspace(*str) ) str++;
+		if( *str == 0 ) // All spaces?
 			return str;
 	}
-	if(flag&2) { // Trim trailing space
-		end = str + strlen(str) - 1;
-		while(end > str && isspace(*end)) end--;
-		*(end+1) = 0; // Write new null terminator
+	if( flag&2 ) { // Trim trailing space
+		char *end = str + strlen(str) - 1;
+
+		while( end > str && isspace(*end) ) end--;
+		*(end + 1) = 0; // Write new null terminator
 	}
 
 	return str;

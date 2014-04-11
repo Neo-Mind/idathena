@@ -829,7 +829,8 @@ static int pet_ai_sub_hard(struct pet_data *pd, struct map_session_data *sd, uns
 
 	if(DIFF_TICK(tick,pd->last_thinktime) < MIN_PETTHINKTIME)
 		return 0;
-	pd->last_thinktime=tick;
+
+	pd->last_thinktime = tick;
 
 	if(pd->ud.attacktimer != INVALID_TIMER || pd->ud.skilltimer != INVALID_TIMER || pd->bl.m != sd->bl.m)
 		return 0;
@@ -837,61 +838,55 @@ static int pet_ai_sub_hard(struct pet_data *pd, struct map_session_data *sd, uns
 	if(pd->ud.walktimer != INVALID_TIMER && pd->ud.walkpath.path_pos <= 2)
 		return 0; //No thinking when you just started to walk.
 
-	if(pd->pet.intimate <= 0) {
-		//Pet should just... well, random walk.
+	if(pd->pet.intimate <= 0) { //Pet should just... well, random walk.
 		pet_randomwalk(pd,tick);
 		return 0;
 	}
 
-	if (!check_distance_bl(&sd->bl, &pd->bl, pd->db->range3)) {
-		//Master too far, chase.
+	if(!check_distance_bl(&sd->bl,&pd->bl,pd->db->range3)) { //Master too far, chase.
 		if(pd->target_id)
 			pet_unlocktarget(pd);
 		if(pd->ud.walktimer != INVALID_TIMER && pd->ud.target == sd->bl.id)
 			return 0; //Already walking to him
-		if (DIFF_TICK(tick, pd->ud.canmove_tick) < 0)
+		if(DIFF_TICK(tick,pd->ud.canmove_tick) < 0)
 			return 0; //Can't move yet.
 		pd->status.speed = (sd->battle_status.speed>>1);
-		if(pd->status.speed <= 0)
+		if(!pd->status.speed)
 			pd->status.speed = 1;
-		if (!unit_walktobl(&pd->bl, &sd->bl, 3, 0))
+		if(!unit_walktobl(&pd->bl,&sd->bl,3,0))
 			pet_randomwalk(pd,tick);
 		return 0;
 	}
 
 	//Return speed to normal.
-	if (pd->status.speed != pd->petDB->speed) {
-		if (pd->ud.walktimer != INVALID_TIMER)
+	if(pd->status.speed != pd->petDB->speed) {
+		if(pd->ud.walktimer != INVALID_TIMER)
 			return 0; //Wait until the pet finishes walking back to master.
 		pd->status.speed = pd->petDB->speed;
 		pd->ud.state.change_walk_target = pd->ud.state.speed_changed = 1;
 	}
 
-	if (pd->target_id) {
-		target= map_id2bl(pd->target_id);
-		if (!target || pd->bl.m != target->m || status_isdead(target) ||
-			!check_distance_bl(&pd->bl, target, pd->db->range3))
-		{
+	if(pd->target_id) {
+		target = map_id2bl(pd->target_id);
+		if(!target || pd->bl.m != target->m || status_isdead(target) ||
+			!check_distance_bl(&pd->bl,target,pd->db->range3)) {
 			target = NULL;
 			pet_unlocktarget(pd);
 		}
 	}
 
-	if(!target && pd->loot && pd->loot->count < pd->loot->max && DIFF_TICK(tick,pd->ud.canact_tick)>0) {
-		//Use half the pet's range of sight.
-		map_foreachinrange(pet_ai_sub_hard_lootsearch,&pd->bl,
-			pd->db->range2/2, BL_ITEM,pd,&target);
-	}
+	//Use half the pet's range of sight.
+	if(!target && pd->loot && pd->loot->count < pd->loot->max && DIFF_TICK(tick,pd->ud.canact_tick) > 0)
+		map_foreachinrange(pet_ai_sub_hard_lootsearch,&pd->bl,pd->db->range2 / 2,BL_ITEM,pd,&target);
 
-	if (!target) {
-	//Just walk around.
-		if (check_distance_bl(&sd->bl, &pd->bl, 3))
+	if (!target) { //Just walk around.
+		if(check_distance_bl(&sd->bl,&pd->bl,3))
 			return 0; //Already next to master.
 
-		if(pd->ud.walktimer != INVALID_TIMER && check_distance_blxy(&sd->bl, pd->ud.to_x,pd->ud.to_y, 3))
+		if(pd->ud.walktimer != INVALID_TIMER && check_distance_blxy(&sd->bl,pd->ud.to_x,pd->ud.to_y,3))
 			return 0; //Already walking to him
 
-		unit_calc_pos(&pd->bl, sd->bl.x, sd->bl.y, sd->ud.dir);
+		unit_calc_pos(&pd->bl,sd->bl.x,sd->bl.y,sd->ud.dir);
 		if(!unit_walktoxy(&pd->bl,pd->ud.to_x,pd->ud.to_y,0))
 			pet_randomwalk(pd,tick);
 
@@ -902,25 +897,23 @@ static int pet_ai_sub_hard(struct pet_data *pd, struct map_session_data *sd, uns
 		(pd->ud.attacktimer != INVALID_TIMER || pd->ud.walktimer != INVALID_TIMER))
 		return 0; //Target already locked.
 
-	if (target->type != BL_ITEM)
-	{ //enemy targetted
-		if(!battle_check_range(&pd->bl,target,pd->status.rhw.range))
-		{	//Chase
-			if(!unit_walktobl(&pd->bl, target, pd->status.rhw.range, 2))
+	if(target->type != BL_ITEM) { //enemy targetted
+		if(!battle_check_range(&pd->bl,target,pd->status.rhw.range)) { //Chase
+			if(!unit_walktobl(&pd->bl,target,pd->status.rhw.range,2))
 				pet_unlocktarget(pd); //Unreachable target.
 			return 0;
 		}
 		//Continuous attack.
-		unit_attack(&pd->bl, pd->target_id, 1);
-	} else {	//Item Targeted, attempt loot
-		if (!check_distance_bl(&pd->bl, target, 1))
-		{	//Out of range
-			if(!unit_walktobl(&pd->bl, target, 1, 1)) //Unreachable target.
+		unit_attack(&pd->bl,pd->target_id,1);
+	} else { //Item Targeted, attempt loot
+		if(!check_distance_bl(&pd->bl,target,1)) { //Out of range
+			if(!unit_walktobl(&pd->bl,target,1,1)) //Unreachable target.
 				pet_unlocktarget(pd);
 			return 0;
-		} else{
+		} else {
 			struct flooritem_data *fitem = (struct flooritem_data *)target;
-			if(pd->loot->count < pd->loot->max){
+
+			if(pd->loot->count < pd->loot->max) {
 				memcpy(&pd->loot->item[pd->loot->count++],&fitem->item_data,sizeof(pd->loot->item[0]));
 				pd->loot->weight += itemdb_weight(fitem->item_data.nameid)*fitem->item_data.amount;
 				map_clearflooritem(target);

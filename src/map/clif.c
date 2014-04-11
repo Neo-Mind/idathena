@@ -3184,119 +3184,120 @@ void clif_changelook(struct block_list *bl,int type,int val)
 	struct status_change* sc;
 	struct view_data* vd;
 	enum send_target target = AREA;
+
 	nullpo_retv(bl);
 
 	sd = BL_CAST(BL_PC, bl);
 	sc = status_get_sc(bl);
 	vd = status_get_viewdata(bl);
 	//nullpo_ret(vd);
-	if( vd ) //temp hack to let Warp Portal change appearance
-	switch(type) {
-		case LOOK_WEAPON:
-			if (sd) {
-				clif_get_weapon_view(sd, &vd->weapon, &vd->shield);
-				val = vd->weapon;
-			} else
-				vd->weapon = val;
-			break;
-		case LOOK_SHIELD:
-			if (sd) {
-				clif_get_weapon_view(sd, &vd->weapon, &vd->shield);
-				val = vd->shield;
-			} else
-				vd->shield = val;
-			break;
-		case LOOK_BASE:
-			if (!sd)
-				break;
-
-			//We shouldn't update LOOK_BASE if the player is disguised
-			//if we do so the client will think that the player class
-			//is really a mob and issues like 7725 will happen in every
-			//SC_ that alters class_ in any way [Panikon]
-			if (sd->disguise != -1)
-				return;
-
-			if (sd->sc.option&OPTION_COSTUME)
-				vd->weapon = vd->shield = 0;
-
-			if (!vd->cloth_color)
-				break;
-
-			if (sd) {
-				if (sd->sc.option&OPTION_WEDDING && battle_config.wedding_ignorepalette)
-					vd->cloth_color = 0;
-				if (sd->sc.option&OPTION_XMAS && battle_config.xmas_ignorepalette)
-					vd->cloth_color = 0;
-				if (sd->sc.option&OPTION_SUMMER && battle_config.summer_ignorepalette)
-					vd->cloth_color = 0;
-				if (sd->sc.option&OPTION_HANBOK && battle_config.hanbok_ignorepalette)
-					vd->cloth_color = 0;
-				if (sd->sc.option&OPTION_OKTOBERFEST && battle_config.oktoberfest_ignorepalette)
-					vd->cloth_color = 0;
-			}
-			break;
-		case LOOK_HAIR:
-			vd->hair_style = val;
-			break;
-		case LOOK_HEAD_BOTTOM:
-			vd->head_bottom = val;
-			break;
-		case LOOK_HEAD_TOP:
-			vd->head_top = val;
-			break;
-		case LOOK_HEAD_MID:
-			vd->head_mid = val;
-			break;
-		case LOOK_HAIR_COLOR:
-			vd->hair_color = val;
-			break;
-		case LOOK_CLOTHES_COLOR:
-			if (val && sd) {
-				if (sd->sc.option&OPTION_WEDDING && battle_config.wedding_ignorepalette)
-					val = 0;
-				if (sd->sc.option&OPTION_XMAS && battle_config.xmas_ignorepalette)
-					val = 0;
-				if (sd->sc.option&OPTION_SUMMER && battle_config.summer_ignorepalette)
-					val = 0;
-				if (sd->sc.option&OPTION_HANBOK && battle_config.hanbok_ignorepalette)
-					val = 0;
-				if (sd->sc.option&OPTION_OKTOBERFEST && battle_config.oktoberfest_ignorepalette)
-					val = 0;
-			}
-			vd->cloth_color = val;
-			break;
-		case LOOK_SHOES:
-#if PACKETVER > 3
-			if (sd) {
-				int n;
-
-				if((n = sd->equip_index[2]) >= 0 && sd->inventory_data[n]) {
-					if(sd->inventory_data[n]->view_id > 0)
-						val = sd->inventory_data[n]->view_id;
-					else
-						val = sd->status.inventory[n].nameid;
+	if(vd) //temp hack to let Warp Portal change appearance
+		switch(type) {
+			case LOOK_WEAPON:
+				if(sd) {
+					clif_get_weapon_view(sd, &vd->weapon, &vd->shield);
+					val = vd->weapon;
 				} else
-					val = 0;
-			}
+					vd->weapon = val;
+				break;
+			case LOOK_SHIELD:
+				if(sd) {
+					clif_get_weapon_view(sd, &vd->weapon, &vd->shield);
+					val = vd->shield;
+				} else
+					vd->shield = val;
+				break;
+			case LOOK_BASE:
+				if(!sd)
+					break;
+
+				//We shouldn't update LOOK_BASE if the player is disguised
+				//if we do so the client will think that the player class
+				//is really a mob and issues like 7725 will happen in every
+				//SC_ that alters class_ in any way [Panikon]
+				if(sd->disguise)
+					return;
+
+				if(sd->sc.option&OPTION_COSTUME)
+					vd->weapon = vd->shield = 0;
+
+				if(!vd->cloth_color)
+					break;
+
+				if(sd) {
+					if(sd->sc.option&OPTION_WEDDING && battle_config.wedding_ignorepalette)
+						vd->cloth_color = 0;
+					if(sd->sc.option&OPTION_XMAS && battle_config.xmas_ignorepalette)
+						vd->cloth_color = 0;
+					if(sd->sc.option&OPTION_SUMMER && battle_config.summer_ignorepalette)
+						vd->cloth_color = 0;
+					if(sd->sc.option&OPTION_HANBOK && battle_config.hanbok_ignorepalette)
+						vd->cloth_color = 0;
+					if(sd->sc.option&OPTION_OKTOBERFEST && battle_config.oktoberfest_ignorepalette)
+						vd->cloth_color = 0;
+				}
+				break;
+			case LOOK_HAIR:
+				vd->hair_style = val;
+				break;
+			case LOOK_HEAD_BOTTOM:
+				vd->head_bottom = val;
+				break;
+			case LOOK_HEAD_TOP:
+				vd->head_top = val;
+				break;
+			case LOOK_HEAD_MID:
+				vd->head_mid = val;
+				break;
+			case LOOK_HAIR_COLOR:
+				vd->hair_color = val;
+				break;
+			case LOOK_CLOTHES_COLOR:
+				if(val && sd) {
+					if(sd->sc.option&OPTION_WEDDING && battle_config.wedding_ignorepalette)
+						val = 0;
+					if(sd->sc.option&OPTION_XMAS && battle_config.xmas_ignorepalette)
+						val = 0;
+					if(sd->sc.option&OPTION_SUMMER && battle_config.summer_ignorepalette)
+						val = 0;
+					if(sd->sc.option&OPTION_HANBOK && battle_config.hanbok_ignorepalette)
+						val = 0;
+					if(sd->sc.option&OPTION_OKTOBERFEST && battle_config.oktoberfest_ignorepalette)
+						val = 0;
+				}
+				vd->cloth_color = val;
+				break;
+			case LOOK_SHOES:
+#if PACKETVER > 3
+				if(sd) {
+					int n;
+
+					if((n = sd->equip_index[2]) >= 0 && sd->inventory_data[n]) {
+						if(sd->inventory_data[n]->view_id > 0)
+							val = sd->inventory_data[n]->view_id;
+						else
+							val = sd->status.inventory[n].nameid;
+					} else
+						val = 0;
+				}
 #endif
-			//Shoes? No packet uses this....
-			break;
-		case LOOK_BODY:
-		case LOOK_FLOOR:
-			//Unknown purpose
-			break;
-		case LOOK_ROBE:
+				//Shoes? No packet uses this....
+				break;
+			case LOOK_BODY:
+			case LOOK_FLOOR:
+				//Unknown purpose
+				break;
+			case LOOK_ROBE:
 #if PACKETVER < 20110111
-			return;
+				return;
 #else
-			vd->robe = val;
+				vd->robe = val;
 #endif
-		break;
-	}
+			break;
+		}
 
 	//Prevent leaking the presence of GM-hidden objects
-	if( sc && (sc->option&OPTION_INVISIBLE) )
+	if(sc && (sc->option&OPTION_INVISIBLE))
 		target = SELF;
 
 #if PACKETVER < 4

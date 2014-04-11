@@ -407,7 +407,7 @@ int instance_destroy(short instance_id)
 {
 	struct instance_data *im;
 	struct party_data *p;
-	int i, type = 0, count = 0;
+	int i, type = 0;
 	unsigned int now = (unsigned int)time(NULL);
 
 	if(instance_id <= 0 || instance_id > MAX_INSTANCE_DATA)
@@ -422,16 +422,16 @@ int instance_destroy(short instance_id)
 		for(i = 0; i < instance_wait.count; i++) {
 			if(instance_wait.id[i] == instance_id) {
 				instance_wait.count--;
-				memmove(&instance_wait.id[i],&instance_wait.id[i+1],sizeof(instance_wait.id[0])*(instance_wait.count-i));
+				memmove(&instance_wait.id[i], &instance_wait.id[i + 1], sizeof(instance_wait.id[0]) * (instance_wait.count - i));
 				memset(&instance_wait.id[instance_wait.count], 0, sizeof(instance_wait.id[0]));
 
 				for(i = 0; i < instance_wait.count; i++)
 					if(instance_data[instance_wait.id[i]].state == INSTANCE_IDLE)
 						if((p = party_search(instance_data[instance_wait.id[i]].party_id)) != NULL)
-							clif_instance_changewait( party_getavailablesd( p ), i+1, 1);
+							clif_instance_changewait(party_getavailablesd(p), i + 1, 1);
 
 				if(instance_wait.count)
-					instance_wait.timer = add_timer(gettick()+INSTANCE_INTERVAL, instance_subscription_timer, 0, 0);
+					instance_wait.timer = add_timer(gettick() + INSTANCE_INTERVAL, instance_subscription_timer, 0, 0);
 				else
 					instance_wait.timer = -1;
 				type = 0;
@@ -447,13 +447,14 @@ int instance_destroy(short instance_id)
 			type = 3;
 
 		for(i = 0; i < MAX_MAP_PER_INSTANCE; i++)
-			count += map_delinstancemap(im->map[i].m);
+			map_delinstancemap(im->map[i].m);
 	}
 
 	if(im->keep_timer != -1) {
 		delete_timer(im->keep_timer, instance_delete_timer);
 		im->keep_timer = -1;
 	}
+
 	if(im->idle_timer != -1) {
 		delete_timer(im->idle_timer, instance_delete_timer);
 		im->idle_timer = -1;
@@ -463,9 +464,9 @@ int instance_destroy(short instance_id)
 		p->instance_id = 0;
 
 		if(type)
-			clif_instance_changestatus( party_getavailablesd( p ), type, 0, 1 );
+			clif_instance_changestatus(party_getavailablesd(p), type, 0, 1);
 		else
-			clif_instance_changewait( party_getavailablesd( p ), 0xffff, 1 );
+			clif_instance_changewait(party_getavailablesd(p), 0xffff, 1);
 	}
 
 	if( im->vars ) {

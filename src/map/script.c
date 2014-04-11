@@ -9188,7 +9188,7 @@ BUILDIN_FUNC(clone)
 	TBL_PC *sd, *msd = NULL;
 	int char_id, master_id = 0, x, y, mode = 0, flag = 0, m;
 	unsigned int duration = 0;
-	const char *map, *event = "";
+	const char *map, *event;
 
 	map = script_getstr(st,2);
 	x = script_getnum(st,3);
@@ -10403,11 +10403,9 @@ BUILDIN_FUNC(changebase)
 		return 0;
 
 	vclass = script_getnum(st,2);
-	if(vclass == JOB_WEDDING)
-	{
+	if(vclass == JOB_WEDDING) {
 		if (!battle_config.wedding_modifydisplay || //Do not show the wedding sprites
-			sd->class_&JOBL_BABY //Baby classes screw up when showing wedding sprites. [Skotlex] They don't seem to anymore.
-			)
+			sd->class_&JOBL_BABY) //Baby classes screw up when showing wedding sprites. [Skotlex] They don't seem to anymore.
 		return 0;
 	}
 
@@ -10431,11 +10429,12 @@ BUILDIN_FUNC(changesex)
 {
 	int i;
 	TBL_PC *sd = NULL;
+
 	sd = script_rid2sd(st);
 
 	pc_resetskill(sd,4);
-	// to avoid any problem with equipment and invalid sex, equipment is unequiped.
-	for( i=0; i<EQI_MAX; i++ )
+	//To avoid any problem with equipment and invalid sex, equipment is unequiped.
+	for( i = 0; i < EQI_MAX; i++ )
 		if( sd->equip_index[i] >= 0 ) pc_unequipitem(sd, sd->equip_index[i], 3);
 	chrif_changesex(sd);
 	return SCRIPT_CMD_SUCCESS;
@@ -10448,18 +10447,18 @@ BUILDIN_FUNC(globalmes)
 {
 	struct block_list *bl = map_id2bl(st->oid);
 	struct npc_data *nd = (struct npc_data *)bl;
-	const char *name=NULL,*mes;
+	const char *name = NULL, *mes;
 
-	mes=script_getstr(st,2);
-	if(mes==NULL) return 0;
-	
-	if(script_hasdata(st,3)){	// npc name to display
-		name=script_getstr(st,3);
-	} else {
-		name=nd->name;	//use current npc name
-	}
+	mes = script_getstr(st,2);
+	if( mes == NULL )
+		return 0;
 
-	npc_globalmessage(name,mes);	// broadcast to all players connected
+	if(script_hasdata(st,3)) { //NPC name to display
+		name = script_getstr(st,3);
+	else
+		name = nd->name; //Use current npc name
+
+	npc_globalmessage(name,mes); // Broadcast to all players connected
 
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -17624,7 +17623,7 @@ static int atcommand_cleanfloor_sub(struct block_list *bl, va_list ap)
 BUILDIN_FUNC(cleanmap)
 {
 	const char *map;
-	int16 m = -1;
+	int16 m;
 	int16 x0 = 0, y0 = 0, x1 = 0, y1 = 0;
 
 	map = script_getstr(st,2);

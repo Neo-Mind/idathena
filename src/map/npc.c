@@ -2330,13 +2330,11 @@ static const char* npc_parse_shop(char* w1, char* w2, char* w3, char* w4, const 
 
 	switch( type ) {
 		case ITEMSHOP: {
-				struct item_data* tmp;
-
 				if( sscanf(p,",%d:%d,",&nameid,&is_discount) < 1 ) {
 					ShowError("npc_parse_shop: Invalid item cost definition in file '%s', line '%d'. Ignoring the rest of the line...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer, start - buffer), w1, w2, w3, w4);
 					return strchr(start,'\n'); //Skip and continue
 				}
-				if( (tmp = itemdb_exists(nameid)) == NULL ) {
+				if( !itemdb_exists(nameid) ) {
 					ShowWarning("npc_parse_shop: Invalid item ID cost in file '%s', line '%d' (id '%d').\n", filepath, strline(buffer,start-buffer), nameid);
 					return strchr(start,'\n'); //Skip and continue
 				}
@@ -3219,7 +3217,7 @@ static const char* npc_parse_mob(char* w1, char* w2, char* w3, char* w4, const c
 		return strchr(start,'\n'); //Skip and continue
 	}
 
-	if( (mob.state.size < 0 || mob.state.size > 2) && size != -1 ) {
+	if( mob.state.size > SZ_BIG && size != -1 ) {
 		ShowError("npc_parse_mob: Invalid size number %d for mob ID %d in file '%s', line '%d'.\n", mob.state.size, mob_id, filepath, strline(buffer, start - buffer));
 		return strchr(start, '\n');
 	}
@@ -3241,10 +3239,13 @@ static const char* npc_parse_mob(char* w1, char* w2, char* w3, char* w4, const c
 	mob.y = (unsigned short)y;
 	mob.xs = (signed short)xs;
 	mob.ys = (signed short)ys;
+
 	if (mob_lv > 0 && mob_lv <= MAX_LEVEL)
 		mob.level = mob_lv;
-	if (size > 0 && size <= 2)
+
+	if (size > SZ_SMALL && size <= SZ_BIG)
 		mob.state.size = size;
+
 	if (ai > AI_NONE && ai <= AI_MAX)
 		mob.state.ai = ai;
 
@@ -3687,18 +3688,21 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 		ShowError("npc_parsesrcfile: File not found '%s'.\n", filepath);
 		return;
 	}
+
 	fseek(fp, 0, SEEK_END);
 	len = ftell(fp);
 	buffer = (char*)aMalloc(len + 1);
 	fseek(fp, 0, SEEK_SET);
 	len = fread(buffer, sizeof(char), len, fp);
 	buffer[len] = '\0';
+
 	if( ferror(fp) ) {
 		ShowError("npc_parsesrcfile: Failed to read file '%s' - %s\n", filepath, strerror(errno));
 		aFree(buffer);
 		fclose(fp);
 		return;
 	}
+
 	fclose(fp);
 
 	if( (unsigned char)buffer[0] == 0xEF && (unsigned char)buffer[1] == 0xBB && (unsigned char)buffer[2] == 0xBF ) {
@@ -3709,7 +3713,6 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 		//More info at http://unicode.org/faq/utf_bom.html#bom5 and http://en.wikipedia.org/wiki/Byte_order_mark#UTF-8
 		ShowError("npc_parsesrcfile: Detected unsupported UTF-8 BOM in file '%s'. Stopping (please consider using another character set).\n", filepath);
 		aFree(buffer);
-		fclose(fp);
 		return;
 	}
 
@@ -3761,6 +3764,7 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 
 		if( strcmp(w1, "-") != 0 && strcasecmp(w1, "function") != 0 ) { //w1 = <map name>,<x>,<y>,<facing>
 			char mapname[MAP_NAME_LENGTH * 2];
+
 			x = y = 0;
 			sscanf(w1, "%23[^,],%hd,%hd[^,]", mapname, &x, &y);
 			if( !mapindex_name2id(mapname) ) { //Incorrect map, we must skip the script info...

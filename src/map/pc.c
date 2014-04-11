@@ -7718,10 +7718,10 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 		return 1;
 	switch (upper) {
 		case 1:
-			b_class|= JOBL_UPPER;
+			b_class |= JOBL_UPPER;
 			break;
 		case 2:
-			b_class|= JOBL_BABY;
+			b_class |= JOBL_BABY;
 			break;
 	}
 	//This will automatically adjust bard/dancer classes to the correct gender
@@ -7782,18 +7782,19 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 	if ((b_class&MAPID_UPPERMASK) != (sd->class_&MAPID_UPPERMASK)) { //Things to remove when changing class tree.
 		const int class_ = pc_class2idx(sd->status.class_);
 		short id;
+
 		for (i = 0; i < MAX_SKILL_TREE && (id = skill_tree[class_][i].id) > 0; i++) {
-			//Remove status specific to your current tree skills.
 			enum sc_type sc = status_skill2sc(id);
+
+			//Remove status specific to your current tree skills.
 			if (sc > SC_COMMON_MAX && sd->sc.data[sc])
 				status_change_end(&sd->bl,sc,INVALID_TIMER);
 		}
 	}
 
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR && (b_class&MAPID_UPPERMASK) != MAPID_STAR_GLADIATOR) {
-		/* Going off star glad lineage, reset feel to not store no-longer-used vars in the database */
+	/* Going off star glad lineage, reset feel to not store no-longer-used vars in the database */
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR && (b_class&MAPID_UPPERMASK) != MAPID_STAR_GLADIATOR)
 		pc_resetfeel(sd);
-	}
 
 	sd->status.class_ = job;
 	fame_flag = pc_famerank(sd->status.char_id,sd->class_&MAPID_UPPERMASK);
