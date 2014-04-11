@@ -425,10 +425,11 @@ int guild_npc_request_info(int guild_id,const char *event)
 	if( event && *event ) {
 		struct eventlist *ev;
 		DBData prev;
-		ev=(struct eventlist *)aCalloc(sizeof(struct eventlist),1);
+
+		ev = (struct eventlist *)aCalloc(sizeof(struct eventlist),1);
 		memcpy(ev->name,event,strlen(event));
 		//The one in the db (if present) becomes the next event from this.
-		if (guild_infoevent_db->put(guild_infoevent_db, db_i2key(guild_id), db_ptr2data(ev), &prev))
+		if( guild_infoevent_db->put(guild_infoevent_db, db_i2key(guild_id), db_ptr2data(ev), &prev) )
 			ev->next = db_data2ptr(&prev);
 	}
 
@@ -450,7 +451,7 @@ int guild_check_member(struct guild *g)
 			continue;
 
 		i = guild_getindex(g,sd->status.account_id,sd->status.char_id);
-		if (i < 0) {
+		if( i < 0 ) {
 			sd->guild = NULL;
 			sd->status.guild_id = 0;
 			sd->guild_emblem_id = 0;
@@ -505,7 +506,7 @@ int guild_recv_info(struct guild *sg)
 
 			// Also set the guild master flag.
 			sd->guild = g;
-			sd->state.gmaster_flag = g;
+			sd->state.gmaster_flag = 1;
 			clif_charnameupdate(sd); // [LuzZza]
 			clif_guild_masterormember(sd);
 		}
@@ -684,9 +685,9 @@ void guild_member_joined(struct map_session_data *sd)
 		guild_request_info(sd->status.guild_id);
 		return;
 	}
-	if( strcmp(sd->status.name,g->master) == 0 ) { // set the Guild Master flag
-		sd->state.gmaster_flag = g;
-		// prevent Guild Skills from being used directly after relog
+	if( strcmp(sd->status.name,g->master) == 0 ) { // Set the Guild Master flag
+		sd->state.gmaster_flag = 1;
+		// Prevent Guild Skills from being used directly after relog
 		if( battle_config.guild_skill_relog_delay )
 			guild_block_skill(sd, battle_config.guild_skill_relog_delay);
 	}
@@ -697,9 +698,8 @@ void guild_member_joined(struct map_session_data *sd)
 		g->member[i].sd = sd;
 		sd->guild = g;
 
-		if( Channel_Config.ally_enable && Channel_Config.ally_autojoin ) {
+		if( Channel_Config.ally_enable && Channel_Config.ally_autojoin )
 			channel_gjoin(sd,3);
-		}
 	}
 }
 
@@ -1543,11 +1543,11 @@ int guild_opposition(struct map_session_data *sd,struct map_session_data *tsd)
 {
 	struct guild *g;
 	int i;
+
 	nullpo_ret(sd);
 
-	g=sd->guild;
-
-	if(g==NULL || tsd==NULL)
+	g = sd->guild;
+	if(g == NULL || tsd == NULL)
 		return 0;
 
 	// Prevent creation opposition with same guilds [LuzZza]
@@ -1560,7 +1560,7 @@ int guild_opposition(struct map_session_data *sd,struct map_session_data *tsd)
 	}
 
 	for(i = 0; i < MAX_GUILDALLIANCE; i++) { // Checking relations
-		if(g->alliance[i].guild_id==tsd->status.guild_id) {
+		if(g->alliance[i].guild_id == tsd->status.guild_id) {
 			if(g->alliance[i].opposition == 1) { // Check if not already hostile
 				clif_guild_oppositionack(sd,2);
 				return 0;
@@ -1725,6 +1725,7 @@ int guild_broken(int guild_id,int flag)
 				storage_guild_storage_quit(sd,1);
 			sd->status.guild_id = 0;
 			sd->guild = NULL;
+			sd->state.gmaster_flag = 0;
 			clif_guild_broken(g->member[i].sd,0);
 			clif_charnameupdate(sd); // [LuzZza]
 			status_change_end(&sd->bl,SC_LEADERSHIP,INVALID_TIMER);
@@ -1753,7 +1754,7 @@ int guild_gm_change(int guild_id, struct map_session_data *sd)
 	if (sd->status.guild_id != guild_id)
 		return 0;
 
-	g=guild_search(guild_id);
+	g = guild_search(guild_id);
 
 	nullpo_ret(g);
 
@@ -1782,7 +1783,8 @@ int guild_gm_changed(int guild_id, int account_id, int char_id)
 		g->member[pos].char_id == char_id);
 		pos++);
 
-	if (pos == 0 || pos == g->max_member) return 0;
+	if (pos == 0 || pos == g->max_member)
+		return 0;
 
 	memcpy(&gm, &g->member[pos], sizeof (struct guild_member));
 	memcpy(&g->member[pos], &g->member[0], sizeof(struct guild_member));
@@ -1796,10 +1798,10 @@ int guild_gm_changed(int guild_id, int account_id, int char_id)
 		clif_displaymessage(g->member[pos].sd->fd, msg_txt(678)); //"You no longer are the Guild Master."
 		g->member[pos].sd->state.gmaster_flag = 0;
 	}
-	
+
 	if (g->member[0].sd && g->member[0].sd->fd) {
 		clif_displaymessage(g->member[0].sd->fd, msg_txt(679)); //"You have become the Guild Master!"
-		g->member[0].sd->state.gmaster_flag = g;
+		g->member[0].sd->state.gmaster_flag = 1;
 		//Block his skills to prevent abuse.
 		if (battle_config.guild_skill_relog_delay)
 			guild_block_skill(g->member[0].sd, battle_config.guild_skill_relog_delay);
@@ -1822,6 +1824,7 @@ int guild_gm_changed(int guild_id, int account_id, int char_id)
 int guild_break(struct map_session_data *sd,char *name)
 {
 	struct guild *g;
+	struct unit_data *ud;
 	int i;
 #ifdef BOUND_ITEMS
 	int j;
@@ -1832,19 +1835,45 @@ int guild_break(struct map_session_data *sd,char *name)
 
 	if((g = sd->guild) == NULL)
 		return 0;
+
 	if(strcmp(g->name,name) != 0)
 		return 0;
+
 	if(!sd->state.gmaster_flag)
 		return 0;
+
 	for(i = 0; i < g->max_member; i++) {
-		if (g->member[i].account_id > 0 && (
-			g->member[i].account_id!=sd->status.account_id ||
-			g->member[i].char_id!=sd->status.char_id))
+		if(g->member[i].account_id > 0 && (
+			g->member[i].account_id != sd->status.account_id ||
+			g->member[i].char_id != sd->status.char_id))
 			break;
 	}
+
 	if(i < g->max_member) {
 		clif_guild_broken(sd,2);
 		return 0;
+	}
+
+	/* Regardless of char server allowing it, we clear the guild master's auras */
+	if((ud = unit_bl2ud(&sd->bl))) {
+		int count = 0;
+		struct skill_unit_group *group[4];
+
+		for(i = 0; i < MAX_SKILLUNITGROUP && ud->skillunit[i]; i++) {
+			switch(ud->skillunit[i]->skill_id) {
+				case GD_LEADERSHIP:
+				case GD_GLORYWOUNDS:
+				case GD_SOULCOLD:
+				case GD_HAWKEYES:
+					if(count == 4)
+						ShowWarning("guild_break:'%s' got more than 4 guild aura instances! (%d)\n",sd->status.name,ud->skillunit[i]->skill_id);
+					else
+						group[count++] = ud->skillunit[i];
+					break;
+			}
+		}
+		for(i = 0; i < count; i++)
+			skill_delunitgroup(group[i]);
 	}
 
 #ifdef BOUND_ITEMS

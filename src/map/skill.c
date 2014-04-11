@@ -8117,7 +8117,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				int8 dx[9] = {-1, 1, 0, 0,-1, 1,-1, 1, 0};
 				int8 dy[9] = { 0, 0, 1,-1, 1,-1,-1, 1, 0};
 				uint8 j = 0, calls = 0, called = 0;
-				struct guild *g = (sd ? sd->state.gmaster_flag : guild_search(status_get_guild_id(src)));
+				struct guild *g = (sd ? sd->guild : guild_search(status_get_guild_id(src)));
 
 				//I don't know if it actually summons in a circle, but oh well. ;P
 				if (!g)

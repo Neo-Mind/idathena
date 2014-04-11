@@ -203,7 +203,7 @@ struct map_session_data {
 		unsigned int autolooting : 1; //Performance-saver, autolooting state for @alootid
 		unsigned int autolootingtype : 1; //Performance-saver, autolooting state for @autoloottype
 		unsigned short autobonus; //Flag to indicate if an autobonus is activated. [Inkfish]
-		struct guild *gmaster_flag;
+		unsigned int gmaster_flag : 1;
 		unsigned int prevend : 1; //Used to flag wheather you've spent 40sp to open the vending or not.
 		unsigned int warping : 1; //States whether you're in the middle of a warp processing
 		unsigned int permanent_speed : 1; //When 1, speed cannot be changed through status_calc_pc().

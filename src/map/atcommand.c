@@ -3309,17 +3309,16 @@ ACMD_FUNC(breakguild)
 	nullpo_retr(-1, sd);
 
 	if (sd->status.guild_id) { // Check if the player has a guild
-		struct guild *g;
-		g = sd->guild; // Search the guild
+		struct guild *g = sd->guild; // Search the guild
+
 		if (g) { // Check if guild was found
 			if (sd->state.gmaster_flag) { // Check if player is guild master
-				int ret = 0;
-				ret = guild_break(sd, g->name); // Break guild
-				if (ret) { // Check if anything went wrong
+				int ret = guild_break(sd, g->name); // Break guild
+
+				if (ret) // Check if anything went wrong
 					return 0; // Guild was broken
-				} else {
+				else
 					return -1; // Something went wrong
-				}
 			} else { // Not guild master
 				clif_displaymessage(fd, msg_txt(1181)); // You need to be a Guild Master to use this command.
 				return -1;

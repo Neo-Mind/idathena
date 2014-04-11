@@ -505,7 +505,7 @@ int32 network_connect(bool v6,
 	int32 fd, ret;
 	struct sockaddr_in ip4;
 #ifdef SO_REUSEADDR
-	int optval;
+	int32 optval;
 #endif
 #ifdef ENABLE_IPV6
 	struct sockaddr_in6 ip6;

@@ -7244,10 +7244,10 @@ void pc_revive(struct map_session_data *sd,unsigned int hp, unsigned int sp)
 		pc_setinvincibletimer(sd,battle_config.pc_invincible_time);
 
 	if( sd->state.gmaster_flag ) {
-		guild_guildaura_refresh(sd,GD_LEADERSHIP,guild_checkskill(sd->state.gmaster_flag,GD_LEADERSHIP));
-		guild_guildaura_refresh(sd,GD_GLORYWOUNDS,guild_checkskill(sd->state.gmaster_flag,GD_GLORYWOUNDS));
-		guild_guildaura_refresh(sd,GD_SOULCOLD,guild_checkskill(sd->state.gmaster_flag,GD_SOULCOLD));
-		guild_guildaura_refresh(sd,GD_HAWKEYES,guild_checkskill(sd->state.gmaster_flag,GD_HAWKEYES));
+		guild_guildaura_refresh(sd,GD_LEADERSHIP,guild_checkskill(sd->guild,GD_LEADERSHIP));
+		guild_guildaura_refresh(sd,GD_GLORYWOUNDS,guild_checkskill(sd->guild,GD_GLORYWOUNDS));
+		guild_guildaura_refresh(sd,GD_SOULCOLD,guild_checkskill(sd->guild,GD_SOULCOLD));
+		guild_guildaura_refresh(sd,GD_HAWKEYES,guild_checkskill(sd->guild,GD_HAWKEYES));
 	}
 }
 
@@ -9161,7 +9161,6 @@ void pc_checkitem(struct map_session_data *sd) {
 			calc_flag = 1;
 			continue;
 		}
-
 		if( !pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) &&
 			!battle_config.allow_equip_restricted_item && itemdb_isNoEquip(sd->inventory_data[i],sd->bl.m) ) {
 			pc_unequipitem(sd,i,2);

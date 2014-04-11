@@ -449,7 +449,7 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 				if (sc->data[SC__SHADOWFORM]) { //Shadow Form Caster Moving
 					struct block_list *d_bl;
 
-					if( (d_bl = map_id2bl(sc->data[SC__SHADOWFORM]->val2)) == NULL || !check_distance_bl(bl, d_bl, 10) )
+					if ((d_bl = map_id2bl(sc->data[SC__SHADOWFORM]->val2)) == NULL || !check_distance_bl(bl, d_bl, 10))
 						status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
 				}
 				if (sc->data[SC_PROPERTYWALK] &&
@@ -515,7 +515,7 @@ struct skill_unit* map_find_skill_unit_oncell(struct block_list* target,int16 x,
 	struct skill_unit *unit;
 	m = target->m;
 
-	if (x < 0 || y < 0 || (x >= map[m].xs) || (y >= map[m].ys))
+	if( x < 0 || y < 0 || (x >= map[m].xs) || (y >= map[m].ys) )
 		return NULL;
 
 	bx = x / BLOCK_SIZE;
@@ -552,8 +552,8 @@ int map_foreachinrange(int (*func)(struct block_list*, va_list), struct block_li
 	x1 = min(center->x + range, map[ m ].xs - 1);
 	y1 = min(center->y + range, map[ m ].ys - 1);
 
-	if ( type&~BL_MOB )
-		for ( by = y0 / BLOCK_SIZE; by <= y1 / BLOCK_SIZE; by++ ) {
+	if( type&~BL_MOB )
+		for( by = y0 / BLOCK_SIZE; by <= y1 / BLOCK_SIZE; by++ ) {
 			for( bx = x0 / BLOCK_SIZE; bx <= x1 / BLOCK_SIZE; bx++ ) {
 				for( bl = map[m].block[ bx + by * map[ m ].bxs ]; bl != NULL; bl = bl->next ) {
 					if( bl->type&type
@@ -569,7 +569,7 @@ int map_foreachinrange(int (*func)(struct block_list*, va_list), struct block_li
 
 	if( type&BL_MOB )
 		for( by = y0 / BLOCK_SIZE; by <= y1 / BLOCK_SIZE; by++ ) {
-			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++) {
+			for( bx = x0 / BLOCK_SIZE; bx <= x1 / BLOCK_SIZE; bx++ ) {
 				for( bl = map[ m ].block_mob[ bx + by * map[ m ].bxs ]; bl != NULL; bl = bl->next ) {
 					if( bl->x >= x0 && bl->x <= x1 && bl->y >= y0 && bl->y <= y1
 #ifdef CIRCULAR_AREA
