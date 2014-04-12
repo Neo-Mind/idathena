@@ -10453,12 +10453,12 @@ BUILDIN_FUNC(globalmes)
 	if( mes == NULL )
 		return 0;
 
-	if(script_hasdata(st,3)) //NPC name to display
+	if( script_hasdata(st,3) ) //NPC name to display
 		name = script_getstr(st,3);
 	else
 		name = nd->name; //Use current npc name
 
-	npc_globalmessage(name,mes); // Broadcast to all players connected
+	npc_globalmessage(name,mes); //Broadcast to all players connected
 
 	return SCRIPT_CMD_SUCCESS;
 }

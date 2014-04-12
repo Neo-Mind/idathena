@@ -18087,9 +18087,9 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 					case ITEMID_STAR_CRUMB:
 						make_per = 100000; //Star Crumbs are 100% success crafting rate? (made 1000% so it succeeds even after penalties) [Skotlex]
 						break;
-					default: //Enchanted Stones
-						make_per += 1000 + i * 500; //Enchantedstone Craft bonus: +15/+20/+25/+30/+35
-					break;
+					default:
+						make_per += 1000 + i * 500; //Enchanted Stones Craft bonus: +15/+20/+25/+30/+35
+						break;
 				}
 				break;
 			case ASC_CDP:
@@ -18134,7 +18134,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 					case ITEMID_COATING_BOTTLE:
 						make_per -= (1 + rnd()%100) * 10;
 					    break;
-					//Common items, recieve no bonus or penalty, listed just because they are commonly produced
+					//Common items, receive no bonus or penalty, listed just because they are commonly produced
 					case ITEMID_BLUE_POTION:
 					case ITEMID_RED_SLIM_POTION:
 					case ITEMID_ANODYNE:

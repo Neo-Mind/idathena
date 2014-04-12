@@ -11785,7 +11785,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			break;
 		case SC_FULL_THROTTLE:
 			if( --(sce->val4) >= 0 ) {
-				status_percent_damage(bl,bl,sce->val2,sce->val2,false);
+				status_percent_damage(bl,bl,0,sce->val2,false);
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}
