@@ -1956,7 +1956,7 @@ enum wl_spheres {
 	WLS_WATER,
 	WLS_STONE,
 };
-int skill_spellbook (struct map_session_data *sd, int nameid);
+int skill_spellbook(struct map_session_data *sd, int nameid);
 int skill_block_check(struct block_list *bl, enum sc_type type, uint16 skill_id);
 
 #define MAX_SKILL_MAGICMUSHROOM_DB 23

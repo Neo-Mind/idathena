@@ -5189,14 +5189,15 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 	}
 
 	if(tsd) { //Card Fix for target (tsd), 2 is not added to the "left" flag meaning "target cards only"
-		switch(skill_id) { //These skills will do a card fix later
+		switch(skill_id) {
 #ifdef RENEWAL
 			case NJ_ISSEN:
 			case ASC_BREAKER:
-#endif
 			case CR_ACIDDEMONSTRATION:
+			case GN_FIRE_EXPANSION_ACID:
+#endif
 			case KO_HAPPOKUNAI:
-				break;
+				break; //These skills will do a card fix later
 			default:
 				wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.damage, 0, wd.flag);
 				if(is_attack_left_handed(src, skill_id))
@@ -5213,6 +5214,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		case MC_CARTREVOLUTION:
 		case MO_INVESTIGATE:
 		case CR_ACIDDEMONSTRATION:
+		case GN_FIRE_EXPANSION_ACID:
 		case KO_BAKURETSU:
 			//Forced to neutral element
 			wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
@@ -5268,14 +5270,15 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 
 	wd = battle_calc_attack_left_right_hands(wd, src, target, skill_id, skill_lv);
 
-	switch(skill_id) { //These skills will do a GVG fix later
+	switch(skill_id) {
 #ifdef RENEWAL
 		case NJ_ISSEN:
 		case ASC_BREAKER:
-#endif
 		case CR_ACIDDEMONSTRATION:
+		case GN_FIRE_EXPANSION_ACID:
+#endif
 		case KO_HAPPOKUNAI:
-			return wd;
+			return wd; //These skills will do a GVG fix later
 		default:
 			wd = battle_calc_attack_gvg_bg(wd, src, target, skill_id, skill_lv);
 			break;
@@ -5415,6 +5418,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 	if(!flag.infdef) { //No need to do the math for plants
 		unsigned int skillratio = 100; //Skill dmg modifiers.
+
 #ifdef RENEWAL
 		ad.damage = 0; //Reinitialize.
 #endif
@@ -5468,6 +5472,16 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			case AB_RENOVATIO:
 				ad.damage = status_get_lv(src) * 10 + sstatus->int_;
 				break;
+#ifndef RENEWAL
+			case GN_FIRE_EXPANSION_ACID:
+				if(tstatus->vit + sstatus->int_)
+					ad.damage = (int64)(7 * tstatus->vit * sstatus->int_ * sstatus->int_ / (10 * (tstatus->vit + sstatus->int_)));
+				else
+					ad.damage = 0;
+				if(tsd)
+					ad.damage >>= 1;
+				break;
+#endif
 			default: {
 				if(sstatus->matk_max > sstatus->matk_min) {
 					MATK_ADD(sstatus->matk_min + rnd()%(sstatus->matk_max - sstatus->matk_min));
@@ -5912,16 +5926,18 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			}
 			break;
 		}
+
 #ifdef RENEWAL
-	switch(skill_id) { //These skills will do a card fix later
+	switch(skill_id) {
 		case ASC_BREAKER:
 		case CR_ACIDDEMONSTRATION:
-			break;
+			break; //These skills will do a card fix later
 		default:
 			ad.damage += battle_calc_cardfix(BF_MAGIC, src, target, nk, s_ele, 0, ad.damage, 0, ad.flag);
 			break;
 	}
 #endif
+
 		if(sd) {
 			uint16 skill;
 
@@ -6012,8 +6028,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 		if(ad.damage < 1)
 			ad.damage = 1;
-		//Only applies when hit
-		else if(sc) {
+		else if(sc) { //Only applies when hit
 			//@TODO: There is another factor that contribute with the damage and need to be formulated. [malufett]
 			switch(skill_id) {
 				case MG_LIGHTNINGBOLT:
@@ -6062,14 +6077,14 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	damage_div_fix(ad.damage, ad.div_);
 
 	if(flag.infdef && ad.damage)
-		ad.damage = ad.damage > 0 ? 1 : -1;
+		ad.damage = (ad.damage > 0 ? 1 : -1);
 
-	switch(skill_id) { //These skills will do a GVG fix later
+	switch(skill_id) {
 #ifdef RENEWAL
 		case ASC_BREAKER:
-#endif
 		case CR_ACIDDEMONSTRATION:
-			return ad;
+			return ad; //These skills will do a GVG fix later
+#endif
 		default:
 			ad.damage = battle_calc_damage(src, target, &ad, ad.damage, skill_id, skill_lv);
 			if(map_flag_gvg2(target->m))
@@ -6081,22 +6096,32 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 	switch(skill_id) { /* Post-calc modifiers */
 		case SO_VARETYR_SPEAR: { //Physical damage.
-			struct Damage wd = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
-			if(!flag.infdef && ad.damage > 1)
-				ad.damage += wd.damage;
+				struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, mflag);
+
+				if(!flag.infdef && ad.damage > 1)
+					ad.damage += wd.damage;
+			}
 			break;
-		}
-		//case HM_ERASER_CUTTER:
+#ifdef RENEWAL
+		case GN_FIRE_EXPANSION_ACID: {
+				struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, 0);
+
+				ad.damage = (int64)(7 * ((wd.damage / skill_lv + ad.damage / skill_lv) * tstatus->vit / 100));
+				damage_div_fix(ad.damage, ad.div_);
+			}
+			break;
+#endif
+		//case MH_ERASER_CUTTER:
 	}
 
 	/* Skill damage adjustment */
 #ifdef ADJUST_SKILL_DAMAGE
-	if((skill_damage = battle_skill_damage(src,target,skill_id)) != 0)
+	if((skill_damage = battle_skill_damage(src, target, skill_id)) != 0)
 		MATK_ADDRATE(skill_damage);
 #endif
 
 	//Skill reflect gets calculated after all attack modifier
-	//battle_do_reflect(BF_MAGIC,&ad,src,target,skill_id,skill_lv); //WIP [lighta]
+	//battle_do_reflect(BF_MAGIC, &ad, src, target, skill_id, skill_lv); //WIP [lighta]
 
 	return ad;
 }

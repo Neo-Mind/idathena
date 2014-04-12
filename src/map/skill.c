@@ -1254,6 +1254,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			break;
 
 		case CR_ACIDDEMONSTRATION:
+		case GN_FIRE_EXPANSION_ACID:
 			skill_break_equip(src,bl,EQP_WEAPON|EQP_ARMOR,100 * skill_lv,BCT_ENEMY);
 			break;
 
@@ -1552,7 +1553,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			sc_start4(src,bl,SC_BLEEDING,skill_lv,skill_lv,src->id,0,0,skill_get_time2(skill_id,skill_lv)); //@TODO: Need real duration
 			break;
 		case GN_ILLUSIONDOPING:
-			if( sc_start(src,bl,SC_ILLUSIONDOPING,10 * skill_lv,skill_lv,skill_get_time(skill_id,skill_lv)) ) //Custom rate
+			if( sc_start(src,bl,SC_ILLUSIONDOPING,100 - skill_lv * 10,skill_lv,skill_get_time(skill_id,skill_lv)) )
 				sc_start(src,bl,SC_HALLUCINATION,100,skill_lv,skill_get_time(skill_id,skill_lv));
 			break;
 		case RL_MASS_SPIRAL:
@@ -4826,15 +4827,16 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				//Priority is to release SpellBook
 				if (sc && sc->data[SC_READING_SB]) { //SpellBook
 					uint16 skill_id, skill_lv, point, s = 0;
-					int spell[SC_MAXSPELLBOOK-SC_SPELLBOOK1 + 1];
+					int spell[SC_MAXSPELLBOOK - SC_SPELLBOOK1 + 1];
 
 					for (i = SC_MAXSPELLBOOK; i >= SC_SPELLBOOK1; i--) //List all available spell to be released
-						if (sc->data[i]) spell[s++] = i;
+						if (sc->data[i])
+							spell[s++] = i;
 
 					if (s == 0)
 						break;
 
-					i = spell[s == 1 ? 0 : rnd()%s]; //Random select of spell to be released.
+					i = spell[(s == 1 ? 0 : rnd()%s)]; //Random select of spell to be released.
 					if (sc->data[i]) { //Now extract the data from the preserved spell
 						skill_id = sc->data[i]->val1;
 						skill_lv = sc->data[i]->val2;
@@ -4848,8 +4850,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					else //Last spell to be released
 						status_change_end(src,SC_READING_SB,INVALID_TIMER);
 
-					if (bl->type != BL_SKILL) /* skill types will crash the client */
+					if (bl->type != BL_SKILL) /* Skill types will crash the client */
 						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+
 					if (!skill_check_condition_castbegin(sd,skill_id,skill_lv))
 						break;
 
@@ -5073,6 +5076,12 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
 				status_zap(src,hpcost,spcost);
 			}
+			break;
+
+		case GN_DEMONIC_FIRE:
+		case GN_FIRE_EXPANSION_ACID:
+			if (flag&1)
+				skill_attack(BF_MAGIC,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
 
 		case WM_SOUND_OF_DESTRUCTION:
@@ -11589,6 +11598,17 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 				if( ud->skillunit[i]->skill_id == GN_DEMONIC_FIRE &&
 				   distance_xy(x,y,ud->skillunit[i]->unit->bl.x,ud->skillunit[i]->unit->bl.y) < 3 ) {
 					switch( skill_lv ) {
+						case 1:
+							ud->skillunit[i]->unit->val2 = skill_lv;
+							ud->skillunit[i]->unit->group->val2 = skill_lv;
+							break;
+						case 2:
+							map_foreachinarea(skill_area_sub,src->m,
+								ud->skillunit[i]->unit->bl.x - 2,ud->skillunit[i]->unit->bl.y - 2,
+								ud->skillunit[i]->unit->bl.x + 2,ud->skillunit[i]->unit->bl.y + 2,BL_CHAR,
+								src,GN_DEMONIC_FIRE,skill_lv + 20,tick,flag|BCT_ENEMY|SD_LEVEL|1,skill_castend_damage_id);
+							skill_delunit(ud->skillunit[i]->unit);
+							break;
 						case 3:
 							skill_delunit(ud->skillunit[i]->unit);
 							skill_unitsetting(src,GN_FIRE_EXPANSION_SMOKE_POWDER,1,x,y,0);
@@ -11605,12 +11625,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 							map_foreachinarea(skill_area_sub,src->m,
 								ud->skillunit[i]->unit->bl.x - 2,ud->skillunit[i]->unit->bl.y - 2,
 								ud->skillunit[i]->unit->bl.x + 2,ud->skillunit[i]->unit->bl.y + 2,BL_CHAR,
-								src,CR_ACIDDEMONSTRATION,aciddemocast,tick,flag|BCT_ENEMY|SD_LEVEL|1,skill_castend_damage_id);
+								src,GN_FIRE_EXPANSION_ACID,aciddemocast,tick,flag|BCT_ENEMY|SD_LEVEL|1,skill_castend_damage_id);
 							skill_delunit(ud->skillunit[i]->unit);
-							break;
-						default:
-							ud->skillunit[i]->unit->val2 = skill_lv;
-							ud->skillunit[i]->unit->group->val2 = skill_lv;
 							break;
 						}
 					}
@@ -12219,7 +12235,6 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 				val1 = status->rhw.ele;
 				if( !val1 )
 					val1 = element[rnd()%5];
-
 				switch( val1 ) {
 					case ELE_FIRE:
 						subunt++;
@@ -12357,8 +12372,10 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 
 		if( ux <= 0 || uy <= 0 || ux >= map[src->m].xs || uy >= map[src->m].ys )
 			continue; //Are the coordinates out of range?
+
 		if( !group->state.song_dance && !map_getcell(src->m,ux,uy,CELL_CHKREACH) )
 			continue; //Don't place skill units on walls (except for songs/dances/encores)
+
 		if( battle_config.skill_wall_check && (unit_flag&UF_PATHCHECK) && !path_search_long(NULL,src->m,ux,uy,x,y,CELL_CHKWALL) )
 			continue; //No path between cell and center of casting.
 
@@ -13306,7 +13323,7 @@ static int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *
 			if ((status_get_mode(bl)&MD_BOSS) || ss == bl ||
 				(map_flag_gvg2(ss->m) && battle_check_target(&src->bl,bl,BCT_PARTY) > 0))
 				break;
-			if (!(tsc && tsc->data[type])) {
+			if (tsc && !tsc->data[type]) {
 				sc_start(ss,bl,type,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 				sg->limit = DIFF_TICK(tick,sg->tick);
 				sg->unit_id = UNT_USED_TRAPS;
@@ -13351,18 +13368,12 @@ static int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *
 
 				switch (sg->val2) {
 					case 1:
-					case 2:
 					default:
 						if (skill_id != RL_FIRE_RAIN) {
 							sc_start4(ss,bl,SC_BURNING,4 + 4 * skill_lv,skill_lv,1000,ss->id,0,skill_get_time2(skill_id,skill_lv));
 							skill_attack(skill_get_type(skill_id),ss,&src->bl,bl,skill_id,skill_lv + 10 * sg->val2,tick,0);
 						} else
 							skill_attack(skill_get_type(skill_id),ss,&src->bl,bl,skill_id,skill_lv,tick,0);
-						break;
-					case 3:
-						if (skill_id != RL_FIRE_RAIN)
-							skill_attack(skill_get_type(CR_ACIDDEMONSTRATION),ss,&src->bl,bl,CR_ACIDDEMONSTRATION,
-								(sd ? pc_checkskill(sd,CR_ACIDDEMONSTRATION) : skill_lv),tick,0);
 						break;
 				}
 			}
@@ -18714,7 +18725,7 @@ int skill_magicdecoy(struct map_session_data *sd, int nameid) {
 }
 
 //Warlock Spellbooks. [LimitLine/3CeAM]
-int skill_spellbook (struct map_session_data *sd, int nameid) {
+int skill_spellbook(struct map_session_data *sd, int nameid) {
 	int i, max_preserve, skill_id, point;
 	struct status_change *sc;
 	
@@ -18723,14 +18734,18 @@ int skill_spellbook (struct map_session_data *sd, int nameid) {
 	sc = status_get_sc(&sd->bl);
 	status_change_end(&sd->bl, SC_STOP, INVALID_TIMER);
 
-	for( i = SC_SPELLBOOK1; i <= SC_MAXSPELLBOOK; i++ ) if( sc && !sc->data[i] ) break;
+	for( i = SC_SPELLBOOK1; i <= SC_MAXSPELLBOOK; i++ )
+		if( sc && !sc->data[i] )
+			break;
+
 	if( i > SC_MAXSPELLBOOK ) {
 		clif_skill_fail(sd, WL_READING_SB, USESKILL_FAIL_SPELLBOOK_READING, 0);
 		return 0;
 	}
 
 	ARR_FIND(0, MAX_SKILL_SPELLBOOK_DB, i, skill_spellbook_db[i].nameid == nameid); //Search for information of this item
-	if( i == MAX_SKILL_SPELLBOOK_DB ) return 0;
+	if( i == MAX_SKILL_SPELLBOOK_DB )
+		return 0;
 
 	if( !pc_checkskill(sd, (skill_id = skill_spellbook_db[i].skill_id)) ) { //User don't know the skill
 		sc_start(&sd->bl, &sd->bl, SC_SLEEP, 100, 1, skill_get_time(WL_READING_SB, pc_checkskill(sd, WL_READING_SB)));
