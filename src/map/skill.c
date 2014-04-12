@@ -13353,9 +13353,9 @@ static int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *
 			break;
 
 		case UNT_WALLOFTHORN:
-			if( status_get_mode(bl)&MD_BOSS )
+			if (status_get_mode(bl)&MD_BOSS)
 				break; //This skill doesn't affect to Boss monsters. [iRO Wiki]
-			if( battle_check_target(ss,bl,BCT_ENEMY) <= 0 ) {
+			if (battle_check_target(ss,bl,BCT_ENEMY) <= 0) {
 				unit_stop_walking(bl,1);
 				skill_blown(&src->bl,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0x2);
 				clif_fixpos(bl);
@@ -13363,19 +13363,16 @@ static int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *
 				skill_attack(skill_get_type(skill_id),ss,&src->bl,bl,skill_id,skill_lv,tick,0);
 			break;
 
-		case UNT_DEMONIC_FIRE: {
-				TBL_PC* sd = BL_CAST(BL_PC,ss);
-
-				switch (sg->val2) {
-					case 1:
-					default:
-						if (skill_id != RL_FIRE_RAIN) {
-							sc_start4(ss,bl,SC_BURNING,4 + 4 * skill_lv,skill_lv,1000,ss->id,0,skill_get_time2(skill_id,skill_lv));
-							skill_attack(skill_get_type(skill_id),ss,&src->bl,bl,skill_id,skill_lv + 10 * sg->val2,tick,0);
-						} else
-							skill_attack(skill_get_type(skill_id),ss,&src->bl,bl,skill_id,skill_lv,tick,0);
-						break;
-				}
+		case UNT_DEMONIC_FIRE:
+			switch (sg->val2) {
+				case 1:
+				default:
+					if (skill_id != RL_FIRE_RAIN) {
+						sc_start4(ss,bl,SC_BURNING,4 + 4 * skill_lv,skill_lv,1000,ss->id,0,skill_get_time2(skill_id,skill_lv));
+						skill_attack(skill_get_type(skill_id),ss,&src->bl,bl,skill_id,skill_lv + 10 * sg->val2,tick,0);
+					} else
+						skill_attack(skill_get_type(skill_id),ss,&src->bl,bl,skill_id,skill_lv,tick,0);
+					break;
 			}
 			break;
 
