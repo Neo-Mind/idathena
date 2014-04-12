@@ -10610,8 +10610,15 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_INTRAVISION:
 			calc_flag = SCB_ALL; /* Required for overlapping */
 			break;
-		case SC_FULL_THROTTLE:
-			sc_start(bl,bl,SC_REBOUND,100,sce->val1,skill_get_time2(ALL_FULL_THROTTLE,sce->val1));
+		case SC_FULL_THROTTLE: {
+				int sec = skill_get_time2(status_sc2skill(type),sce->val1);
+
+				clif_status_change(bl,SI_DECREASEAGI,1,sec,0,0,0);
+				sc_start(bl,bl,SC_REBOUND,100,sce->val1,sec);
+			}
+			break;
+		case SC_REBOUND:
+			clif_status_load(bl,SI_DECREASEAGI,0);
 			break;
 		case SC_MONSTER_TRANSFORM:
 			if (sce->val2)
