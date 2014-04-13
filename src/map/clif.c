@@ -9630,14 +9630,16 @@ void clif_parse_WantToConnection(int fd, struct map_session_data* sd)
 /// Notification from the client, that it has finished map loading and is about to display player's character (CZ_NOTIFY_ACTORINIT).
 /// 007d
 void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
+#if PACKETVER >= 20090218
 	int i;
+#endif
+	bool first_time = false;
 
 	if(sd->bl.prev != NULL)
 		return;
 
 	if(!sd->state.active) { //Character loading is not complete yet!
-		//Let pc_reg_received reinvoke this when ready.
-		sd->state.connect_new = 0;
+		sd->state.connect_new = 0; //Let pc_reg_received reinvoke this when ready.
 		return;
 	}
 
@@ -9792,6 +9794,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 	if(sd->state.connect_new) {
 		int lv;
 
+		first_time = true;
 		sd->state.connect_new = 0;
 		clif_skillinfoblock(sd);
 		clif_hotkeys_send(sd);
@@ -9957,6 +9960,10 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 	}
 
 	clif_weather_check(sd);
+
+	//This should be displayed last
+	if(sd->guild && first_time)
+		clif_guild_notice(sd,sd->guild);
 
 	//For automatic triggering of NPCs after map loading (so you don't need to walk 1 step first)
 	if(map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKNPC))
@@ -11472,7 +11479,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 		return;
 	}
 
-	// Whether skill fails or not is irrelevant, the char ain't idle. [Skotlex]
+	//Whether skill fails or not is irrelevant, the char ain't idle. [Skotlex]
 	sd->idletime = last_tick;
 
 	if( sd->npc_id ) {
@@ -11486,13 +11493,13 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 	}
 
 	if( (pc_cant_act2(sd) || sd->chatID) && skill_id != RK_REFRESH && !(skill_id == SR_GENTLETOUCH_CURE &&
-		(sd->sc.opt1 == OPT1_STONE || sd->sc.opt1 == OPT1_FREEZE || sd->sc.opt1 == OPT1_STUN)) ) {
-		// SELF skills can be used with the storage open, issue: 8027
-		if( sd->state.storage_flag && (tmp&INF_SELF_SKILL) )
-			storage_storageclose(sd);
-		else
-			return;
-	}
+		(sd->sc.opt1 == OPT1_STONE || sd->sc.opt1 == OPT1_FREEZE || sd->sc.opt1 == OPT1_STUN)) &&
+		sd->state.storage_flag && !(tmp&INF_SELF_SKILL) ) //SELF skills can be used with the storage open, issue: 8027
+		return;
+
+	//Some self skills need to close the storage to work properly
+	if( skill_id == AL_TELEPORT && sd->state.storage_flag )
+		storage_storageclose(sd);
 
 	if( pc_issit(sd) )
 		return;
@@ -11501,9 +11508,9 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 		return;
 
 	if( sd->bl.id != target_id && (tmp&INF_SELF_SKILL) )
-		target_id = sd->bl.id; // Never trust the client
+		target_id = sd->bl.id; //Never trust the client
 
-	if( target_id < 0 && -target_id == sd->bl.id ) // For disguises [Valaris]
+	if( target_id < 0 && -target_id == sd->bl.id ) //For disguises [Valaris]
 		target_id = sd->bl.id;
 
 	if( sd->ud.skilltimer != INVALID_TIMER ) {
@@ -11520,20 +11527,20 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 		return;
 
 	if( sd->sc.data[SC_BASILICA] && (skill_id != HP_BASILICA || sd->sc.data[SC_BASILICA]->val4 != sd->bl.id) )
-		return; // On basilica only caster can use Basilica again to stop it.
+		return; //On basilica only caster can use Basilica again to stop it.
 
 	if( sd->menuskill_id ) {
 		if( sd->menuskill_id == SA_TAMINGMONSTER ) {
-			clif_menuskill_clear(sd); // Cancel pet capture.
+			clif_menuskill_clear(sd); //Cancel pet capture.
 		} else if( sd->menuskill_id != SA_AUTOSPELL )
-			return; // Can't use skills while a menu is open.
+			return; //Can't use skills while a menu is open.
 	}
 
 	if( sd->skillitem == skill_id ) {
 		if( skill_lv != sd->skillitemlv )
 			skill_lv = sd->skillitemlv;
 		if( !(tmp&INF_SELF_SKILL) )
-			pc_delinvincibletimer(sd); // Target skills through items cancel invincibility. [Inkfish]
+			pc_delinvincibletimer(sd); //Target skills through items cancel invincibility. [Inkfish]
 		unit_skilluse_id(&sd->bl, target_id, skill_id, skill_lv);
 		return;
 	}

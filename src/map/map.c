@@ -3999,6 +3999,7 @@ int do_init(int argc, char *argv[])
 
 	if (!map_ip_set || !char_ip_set) {
 		char ip_str[16];
+
 		ip2str(addr_[0], ip_str);
 
 		ShowWarning("Not all IP addresses in map_athena.conf configured, autodetecting...\n");

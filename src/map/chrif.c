@@ -921,57 +921,35 @@ static void chrif_ack_login_req(int aid, const char* player_name, uint16 type, u
  * Request char server to change sex of char (modified by Yor)
  *------------------------------------------*/
 int chrif_changedsex(int fd) {
-	int acc, sex;
 	struct map_session_data *sd;
-
-	acc = RFIFOL(fd,2);
-	sex = RFIFOL(fd,6);
+	int acc = RFIFOL(fd,2);
+	//int sex = RFIFOL(fd,6); //Dead store. Uncomment if needed again.
 
 	if (battle_config.etc_log)
 		ShowNotice("chrif_changedsex %d.\n", acc);
 
-	sd = map_id2sd(acc);
-	if (sd) { //Normally there should not be a char logged on right now!
-		if (sd->status.sex == sex)
-			return 0; //Do nothing? Likely safe.
-		sd->status.sex = !sd->status.sex;
-		//Reset skill of some job
-		if ((sd->class_&MAPID_UPPERMASK) == MAPID_BARDDANCER) {
-			int i;
+	//Path to activate this response:
+	//Map(start) (0x2b0e) -> Char(0x2727) -> Login
+	//Login(0x2723) [ALL] -> Char (0x2b0d)[ALL] -> Map (HERE)
+	//Char will usually be "logged in" despite being forced to log-out in the begining
+	//of this process [Panikon]
+	if ((sd = map_id2sd(acc)) != NULL) {
+		int i;
 
-			//Remove specifical skills of Bard classes 
-			for(i = 315; i <= 322; i++) {
-				if (sd->status.skill[i].id > 0 && sd->status.skill[i].flag == SKILL_FLAG_PERMANENT) {
-					sd->status.skill_point += sd->status.skill[i].lv;
-					sd->status.skill[i].id = 0;
-					sd->status.skill[i].lv = 0;
-				}
+		for (i = 0; i < SC_MAX; i++) {
+			if (!sd->sc.data[i])
+				continue;
+			switch (i) {
+				case SC_MOONSTAR:	case SC_SUPER_STAR:
+				case SC_STRANGELIGHTS:	case SC_DECORATION_OF_MUSIC:
+					status_change_end(&sd->bl,(sc_type)i,INVALID_TIMER);
+					break;
 			}
-			//Remove specifical skills of Dancer classes 
-			for(i = 323; i <= 330; i++) {
-				if (sd->status.skill[i].id > 0 && sd->status.skill[i].flag == SKILL_FLAG_PERMANENT) {
-					sd->status.skill_point += sd->status.skill[i].lv;
-					sd->status.skill[i].id = 0;
-					sd->status.skill[i].lv = 0;
-				}
-			}
-			clif_updatestatus(sd, SP_SKILLPOINT);
-			//Change job if necessary
-			if (sd->status.sex) //Changed from Dancer
-				sd->status.class_ -= 1;
-			else //Changed from Bard
-				sd->status.class_ += 1;
-			//sd->class_ needs not be updated as both Dancer/Bard are the same.
 		}
-		//Save character
-		sd->login_id1++; //Change identify, because if player come back in char within the 5 seconds, he can change its characters
-		//Do same modify in login-server for the account, but no in char-server (it ask again login_id1 to login, and don't remember it)
-		clif_displaymessage(sd->fd, msg_txt(409)); //"Your sex has been changed (need disconnection by the server)..."
-		set_eof(sd->fd); //Forced to disconnect for the change
-		map_quit(sd); //Remove leftovers (e.g. autotrading) [Paradox924X]
 	}
 	return 0;
 }
+
 /*==========================================
  * Request Char Server to Divorce Players
  *------------------------------------------*/

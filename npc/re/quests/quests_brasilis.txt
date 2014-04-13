@@ -3,7 +3,7 @@
 //===== By ===================================================
 //= L0ne_W0lf
 //===== Version ==============================================
-//= 1.3
+//= 1.3a
 //===== Compatible With ======================================
 //= rAthena SVN
 //===== Description ==========================================
@@ -20,6 +20,8 @@
 //= 1.2 Optimization. [Euphy]
 //= 1.2a Added 'consumeitem' command. [Euphy]
 //= 1.3 Added VIP features and fixed some EXP values. [Euphy]
+//= 1.3a Put "end;" before OnTouch events in npcs that
+//= have view id of a mob [Panikon]
 //============================================================
 
 // Lost Puppies :: dogdog.sc
@@ -869,6 +871,8 @@ brasilis,59,226,3	script	Poring#bra	909,{
 }
 
 bra_fild01,75,83,5	script	Toucan#bra	2073,2,2,{
+	end;
+
 OnTouch:
 	if (brazil_gua == 6) {
 		mes "[Toucan]";
@@ -929,6 +933,8 @@ OnTouch:
 }
 
 bra_fild01,34,184,5	script	Jaguar#bra	2072,2,2,{
+	end;
+
 OnTouch_:
 	if (brazil_gua == 7) {
 		mes "[Jaguar]";
