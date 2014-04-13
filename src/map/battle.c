@@ -2494,6 +2494,7 @@ static struct Damage battle_calc_element_damage(struct Damage wd, struct block_l
 		if(sc && sc->data[SC_WATK_ELEMENT]) {
 			//Descriptions indicate this means adding a percent of a normal attack in another element. [Skotlex]
 			int64 damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, (is_skill_using_arrow(src, skill_id) ? 2 : 0)) * sc->data[SC_WATK_ELEMENT]->val2 / 100;
+
 			wd.damage += battle_attr_fix(src, target, damage, sc->data[SC_WATK_ELEMENT]->val1, tstatus->def_ele, tstatus->ele_lv);
 			if(is_attack_left_handed(src, skill_id)) {
 				damage = battle_calc_base_damage(sstatus, &sstatus->lhw, sc, tstatus->size, sd, (is_skill_using_arrow(src, skill_id) ? 2 : 0)) * sc->data[SC_WATK_ELEMENT]->val2 / 100;
@@ -4664,13 +4665,15 @@ struct Damage battle_calc_attack_gvg_bg(struct Damage wd, struct block_list *src
 				wd.damage2 = battle_calc_bg_damage(src, target, wd.damage2, wd.div_, skill_id, skill_lv, wd.flag);
 		} else {
 			int64 d1 = wd.damage + wd.damage2, d2 = wd.damage2;
+
 			wd.damage = battle_calc_damage(src, target, &wd, d1, skill_id, skill_lv);
 			if( map_flag_gvg2(target->m) )
 				wd.damage = battle_calc_gvg_damage(src, target, wd.damage, wd.div_, skill_id, skill_lv, wd.flag);
 			else if( map[target->m].flag.battleground )
 				wd.damage = battle_calc_bg_damage(src, target, wd.damage, wd.div_, skill_id, skill_lv, wd.flag);
 			wd.damage2 = d2 * 100 / d1 * wd.damage / 100;
-			if( wd.damage > 1 && wd.damage2 < 1 ) wd.damage2 = 1;
+			if( wd.damage > 1 && wd.damage2 < 1 )
+				wd.damage2 = 1;
 			wd.damage -= wd.damage2;
 		}
 	}
@@ -5089,11 +5092,12 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		wd = battle_attack_sc_bonus(wd, src, skill_id);
 #endif
 
-		//Check if attack ignores DEF
-		if(!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L) || !attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_R))
-			wd = battle_calc_defense_reduction(wd, src, target, skill_id, skill_lv);
+		if(wd.damage + wd.damage2) { //Check if attack ignores DEF
+			if(!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L) || !attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_R))
+				wd = battle_calc_defense_reduction(wd, src, target, skill_id, skill_lv);
 
-		wd = battle_calc_attack_post_defense(wd, src, target, skill_id, skill_lv);
+			wd = battle_calc_attack_post_defense(wd, src, target, skill_id, skill_lv);
+		}
 	} else if(wd.div_ < 0) //Since the attack missed.
 		wd.div_ *= -1;
 
