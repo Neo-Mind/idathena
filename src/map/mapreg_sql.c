@@ -17,7 +17,7 @@
 
 static DBMap* mapreg_db = NULL; // int var_id -> int value
 static DBMap* mapregstr_db = NULL; // int var_id -> char* value
-static struct eri *mapreg_ers; //[Ind/Hercules]
+static struct eri *mapreg_ers; //[Ind]
 
 static char mapreg_table[32] = "mapreg";
 static bool mapreg_i_dirty = false;

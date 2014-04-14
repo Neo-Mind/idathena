@@ -16920,7 +16920,7 @@ void clif_millenniumshield(struct block_list *bl, short shields) {
 
 
 /*==========================================
- * Spellbook list [LimitLine/3CeAM]
+ * Spellbook list [LimitLine]
  *------------------------------------------*/
 int clif_spellbook_list(struct map_session_data *sd)
 {

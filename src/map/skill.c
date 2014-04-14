@@ -4522,6 +4522,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case HVAN_CAPRICE: { //[blackhole89]
 				int ran = rnd()%4;
 				int sid = 0;
+
 				switch(ran) {
 					case 0: sid = MG_COLDBOLT; break;
 					case 1: sid = MG_FIREBOLT; break;
@@ -4824,8 +4825,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			if (sd) {
 				int i;
 
-				//Priority is to release SpellBook
-				if (sc && sc->data[SC_READING_SB]) { //SpellBook
+				//Priority is to release Spell Book
+				if (sc && sc->data[SC_FREEZE_SP]) { //Check sealed spells
 					uint16 skill_id, skill_lv, point, s = 0;
 					int spell[SC_MAXSPELLBOOK - SC_SPELLBOOK1 + 1];
 
@@ -4845,10 +4846,10 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					} else //Something went wrong :(
 						break;
 
-					if (sc->data[SC_READING_SB]->val2 > point)
-						sc->data[SC_READING_SB]->val2 -= point;
+					if (sc->data[SC_FREEZE_SP]->val2 > point)
+						sc->data[SC_FREEZE_SP]->val2 -= point;
 					else //Last spell to be released
-						status_change_end(src,SC_READING_SB,INVALID_TIMER);
+						status_change_end(src,SC_FREEZE_SP,INVALID_TIMER);
 
 					if (bl->type != BL_SKILL) /* Skill types will crash the client */
 						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -5753,7 +5754,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							break;
 						if (skill_get_casttype(abra_skill_id) == CAST_GROUND) {
 							bl = map_id2bl(target_id);
-							if (!bl) bl = src;
+							if (!bl)
+								bl = src;
 							unit_skilluse_pos(src,bl->x,bl->y,abra_skill_id,abra_skill_lv);
 						} else
 							unit_skilluse_id(src,target_id,abra_skill_id,abra_skill_lv);
@@ -6123,7 +6125,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case HAMI_DEFENCE:
 			i = skill_get_time(skill_id,skill_lv);
 			clif_skill_nodamage(bl,bl,skill_id,skill_lv,sc_start(src,bl,type,100,skill_lv,i)); //Master
-			clif_skill_nodamage(src,src,skill_id,skill_lv,sc_start(src,src,type,100,skill_lv,i)); //Homunc
+			clif_skill_nodamage(src,src,skill_id,skill_lv,sc_start(src,src,type,100,skill_lv,i)); //Homun
 			break;
 		case NJ_BUNSINJYUTSU:
 			//On official recasting cancels existing mirror image [helvetica]
@@ -8213,33 +8215,31 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case HAMI_CASTLE: //[orn]
-			if(rnd()%100 < 20 * skill_lv && src != bl) {
-				int x,y;
-				x = src->x;
-				y = src->y;
+			if (rnd()%100 < 20 * skill_lv && src != bl) {
+				int x = src->x, y = src->y;
+
 				if (hd)
 					skill_blockhomun_start(hd,skill_id,skill_get_time2(skill_id,skill_lv));
-
 				if (unit_movepos(src,bl->x,bl->y,0,0)) {
-					clif_skill_nodamage(src,src,skill_id,skill_lv,1); //Homunc
+					clif_skill_nodamage(src,src,skill_id,skill_lv,1); //Homun
 					clif_slide(src,bl->x,bl->y) ;
 					if (unit_movepos(bl,x,y,0,0)) {
 						clif_skill_nodamage(bl,bl,skill_id,skill_lv,1); //Master
 						clif_slide(bl,x,y) ;
 					}
-
-					//@TODO: Shouldn't also players and the like switch targets?
-					map_foreachinrange(skill_chastle_mob_changetarget,src,
-						AREA_SIZE,BL_MOB,bl,src);
+					//@TODO: Shouldn't players also switch targets?
+					map_foreachinrange(skill_castle_mob_changetarget,src,AREA_SIZE,BL_MOB,bl,src);
 				}
 			} else if (hd && hd->master) //Failed
 				clif_skill_fail(hd->master,skill_id,USESKILL_FAIL_LEVEL,0);
 			else if (sd)
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
+
 		case HVAN_CHAOTIC: { //[orn]
 				static const int per[5][2] = {{20,50},{50,60},{25,75},{60,64},{34,67}};
 				int r = rnd()%100;
+
 				i = (skill_lv - 1)%5;
 				if (r < per[i][0]) //Self
 					bl = src;
@@ -8247,20 +8247,21 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					bl = battle_get_master(src);
 				else //Enemy
 					bl = map_id2bl(battle_gettarget(src));
-
-				if (!bl) bl = src;
+				if (!bl)
+					bl = src;
 				i = skill_calc_heal(src,bl,skill_id,1 + rnd()%skill_lv,true);
-				//Eh? why double skill packet?
+				//Eh? Why double skill packet?
 				clif_skill_nodamage(src,bl,AL_HEAL,i,1);
 				clif_skill_nodamage(src,bl,skill_id,i,1);
 				status_heal(bl,i,0,0);
 			}
 			break;
+
 		//Homun single-target support skills [orn]
+		case HLIF_CHANGE:
 		case HAMI_BLOODLUST:
 		case HFLI_FLEET:
 		case HFLI_SPEED:
-		case HLIF_CHANGE:
 		case MH_ANGRIFFS_MODUS:
 		case MH_GOLDENE_FERSE:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
@@ -8923,7 +8924,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					clif_skill_fail(sd,WL_READING_SB,USESKILL_FAIL_SPELLBOOK_READING,0);
 					break;
 				}
-
 				sc_start(src,bl,SC_STOP,100,skill_lv,INVALID_TIMER); //Can't move while selecting a spellbook.
 				clif_spellbook_list(sd);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -9625,7 +9625,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					if( (inf&INF_SELF_SKILL) || (inf&INF_SUPPORT_SKILL) ) {
 						if (src->type == BL_PET)
 							bl = (struct block_list*)((TBL_PET*)src)->master;
-						if (!bl) bl = src;
+						if (!bl)
+							bl = src;
 						unit_skilluse_id(src,bl->id,improv_skill_id,improv_skill_lv);
 					} else {
 						int target_id = 0;
@@ -16503,7 +16504,7 @@ int skill_greed (struct block_list *bl, va_list ap)
 
 	return 0;
 }
-//For Ranger's Detonator [Jobbie/3CeAM]
+//For Ranger's Detonator [Jobbie]
 int skill_detonator(struct block_list *bl, va_list ap)
 {
 	struct skill_unit *unit = NULL;
@@ -16694,13 +16695,13 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 /*==========================================
  *
  *------------------------------------------*/
-int skill_chastle_mob_changetarget(struct block_list *bl, va_list ap)
+int skill_castle_mob_changetarget(struct block_list *bl, va_list ap)
 {
-	struct mob_data* md;
-	struct unit_data*ud = unit_bl2ud(bl);
+	struct mob_data *md;
+	struct unit_data *ud = unit_bl2ud(bl);
 	struct block_list *from_bl;
 	struct block_list *to_bl;
-	md = (struct mob_data*)bl;
+	md = (struct mob_data *)bl;
 	from_bl = va_arg(ap,struct block_list *);
 	to_bl = va_arg(ap,struct block_list *);
 
@@ -18721,11 +18722,11 @@ int skill_magicdecoy(struct map_session_data *sd, int nameid) {
 	return 0;
 }
 
-//Warlock Spellbooks. [LimitLine/3CeAM]
+//Warlock spell books. [LimitLine]
 int skill_spellbook(struct map_session_data *sd, int nameid) {
 	int i, max_preserve, skill_id, point;
 	struct status_change *sc;
-	
+
 	nullpo_ret(sd);
 
 	sc = status_get_sc(&sd->bl);
@@ -18740,11 +18741,11 @@ int skill_spellbook(struct map_session_data *sd, int nameid) {
 		return 0;
 	}
 
-	ARR_FIND(0, MAX_SKILL_SPELLBOOK_DB, i, skill_spellbook_db[i].nameid == nameid); //Search for information of this item
+	ARR_FIND(0, MAX_SKILL_SPELLBOOK_DB, i, skill_spellbook_db[i].nameid == nameid); //Search for information of this item.
 	if( i == MAX_SKILL_SPELLBOOK_DB )
 		return 0;
 
-	if( !pc_checkskill(sd, (skill_id = skill_spellbook_db[i].skill_id)) ) { //User don't know the skill
+	if( !pc_checkskill(sd, (skill_id = skill_spellbook_db[i].skill_id)) ) { //User doesn't learn the skill.
 		sc_start(&sd->bl, &sd->bl, SC_SLEEP, 100, 1, skill_get_time(WL_READING_SB, pc_checkskill(sd, WL_READING_SB)));
 		clif_skill_fail(sd, WL_READING_SB, USESKILL_FAIL_SPELLBOOK_DIFFICULT_SLEEP, 0);
 		return 0;
@@ -18753,22 +18754,25 @@ int skill_spellbook(struct map_session_data *sd, int nameid) {
 	max_preserve = 4 * pc_checkskill(sd, WL_FREEZE_SP) + status_get_int(&sd->bl) / 10 + sd->status.base_level / 10;
 	point = skill_spellbook_db[i].point;
 
-	if( sc && sc->data[SC_READING_SB] ) {
-		if( (sc->data[SC_READING_SB]->val2 + point) > max_preserve ) {
+	if( sc && sc->data[SC_FREEZE_SP] ) {
+		if( (sc->data[SC_FREEZE_SP]->val2 + point) > max_preserve ) {
 			clif_skill_fail(sd, WL_READING_SB, USESKILL_FAIL_SPELLBOOK_PRESERVATION_POINT, 0);
 			return 0;
 		}
-		for( i = SC_MAXSPELLBOOK; i >= SC_SPELLBOOK1; i-- ) { //This is how official saves spellbook. [malufett]
+		for( i = SC_MAXSPELLBOOK; i >= SC_SPELLBOOK1; i-- ) { //This is how official seals the spells. [malufett]
 			if( !sc->data[i] ) {
-				sc->data[SC_READING_SB]->val2 += point; //Increase points
-				sc_start4(&sd->bl, &sd->bl, (sc_type)i, 100, skill_id, pc_checkskill(sd,skill_id), point, 0, INVALID_TIMER);
+				sc->data[SC_FREEZE_SP]->val2 += point; //Increase points.
+				sc_start4(&sd->bl, &sd->bl, (sc_type)i, 100, skill_id, pc_checkskill(sd, skill_id), point, 0, INVALID_TIMER);
 				break;
 			}
 		}
 	} else {
-		sc_start2(&sd->bl, &sd->bl, SC_READING_SB, 100, 0, point, INVALID_TIMER);
-		sc_start4(&sd->bl, &sd->bl, SC_MAXSPELLBOOK, 100, skill_id, pc_checkskill(sd,skill_id), point, 0, INVALID_TIMER);
+		sc_start2(&sd->bl, &sd->bl, SC_FREEZE_SP, 100, 0, point, INVALID_TIMER);
+		sc_start4(&sd->bl, &sd->bl, SC_MAXSPELLBOOK, 100, skill_id, pc_checkskill(sd, skill_id), point, 0, INVALID_TIMER);
 	}
+
+	//Reading Spell Book SP cost same as the sealed spell.
+	status_zap(&sd->bl, 0, skill_get_sp(skill_id, pc_checkskill(sd, skill_id)));
 
 	return 1;
 }

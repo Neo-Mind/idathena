@@ -652,7 +652,6 @@ void initChangeTables(void) {
 	add_sc( WL_CRIMSONROCK       , SC_STUN            );
 	set_sc( WL_HELLINFERNO       , SC_BURNING         , SI_BURNT           , SCB_MDEF );
 	set_sc( WL_COMET             , SC_BURNING         , SI_BURNT           , SCB_MDEF );
-	add_sc( WL_READING_SB        , SC_READING_SB      );
 	set_sc( WL_TELEKINESIS_INTENSE , SC_TELEKINESIS_INTENSE , SI_TELEKINESIS_INTENSE , SCB_MATK );
 
 	set_sc( RA_FEARBREEZE        , SC_FEARBREEZE      , SI_FEARBREEZE      , SCB_NONE );
@@ -917,6 +916,7 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_SPELLBOOK5] = SI_SPELLBOOK5;
 	StatusIconChangeTable[SC_SPELLBOOK6] = SI_SPELLBOOK6;
 	StatusIconChangeTable[SC_MAXSPELLBOOK] = SI_SPELLBOOK7;
+	StatusIconChangeTable[SC_FREEZE_SP] = SI_FREEZE_SP;
 	StatusIconChangeTable[SC_NEUTRALBARRIER_MASTER] = SI_NEUTRALBARRIER_MASTER;
 	StatusIconChangeTable[SC_STEALTHFIELD_MASTER] = SI_STEALTHFIELD_MASTER;
 	StatusIconChangeTable[SC_OVERHEAT] = SI_OVERHEAT;
@@ -936,7 +936,6 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_SHIELDSPELL_REF] = SI_SHIELDSPELL_REF;
 	StatusIconChangeTable[SC_GLOOMYDAY_SK] = SI_GLOOMYDAY;
 	StatusIconChangeTable[SC_CURSEDCIRCLE_ATKER] = SI_CURSEDCIRCLE_ATKER;
-	StatusIconChangeTable[SC_TEARGAS_SOB] = SI_BLANK;
 	StatusIconChangeTable[SC__BLOODYLUST] = SI_BLOODYLUST;
 	StatusIconChangeTable[SC_STOMACHACHE] = SI_STOMACHACHE;
 	StatusIconChangeTable[SC_MYSTERIOUS_POWDER] = SI_MYSTERIOUS_POWDER;
@@ -8886,8 +8885,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val2 = 6 * val1;
 				val3 = 10 * val1; //Movement Speed Reduction
 				break;
-			case SC_READING_SB:
-				//val2 = SP reduction per second
+			case SC_FREEZE_SP:
+				//val2 = SP drain per 10 seconds
 				tick_time = 10000; //[GodLesZ] tick time
 				break;
 			case SC_SPHERE_1:
@@ -9485,7 +9484,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			default:
 				//Status change with no calc, no icon, and no skill associated?
 				if( calc_flag == SCB_NONE && StatusSkillChangeTable[type] == 0 && StatusIconChangeTable[type] == SI_BLANK ) {
-					ShowError("UnknownStatusChange [%d]\n",type);
+					ShowError("Unknown Status Change [%d]\n",type);
 					return 0;
 				}
 				break;
@@ -11429,7 +11428,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			}
 			break;
 
-		case SC_READING_SB:
+		case SC_FREEZE_SP:
 			if( !status_charge(bl,0,sce->val2) ) {
 				int i;
 
