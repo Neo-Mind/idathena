@@ -8388,7 +8388,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				if( !val4 )
 					val4 = skill_get_time2(status_sc2skill(type),val1);
 				if( !val4 ) //val4 holds damage interval
-					tick_time = val4 = 10000; //[GodLesZ] tick time
+					val4 = 10000; //[GodLesZ] tick time
+				tick_time = val4;
 				val3 = tick / tick_time; //val3 holds skill duration
 				break;
 			case SC_GOSPEL:

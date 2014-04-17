@@ -1274,7 +1274,6 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 			target_id = sc->data[SC_COMBO]->val2;
 		else
 			target_id = ud->target;
-
 		if( (skill_get_inf(skill_id)&INF_SELF_SKILL) && (skill_get_nk(skill_id)&NK_NO_DAMAGE) ) //Exploit fix
 			target_id = src->id;
 		combo = 1;
@@ -1291,7 +1290,6 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		//Target_id checking
 		if( skill_isNotOk(skill_id, sd) ) //[MouseJstr]
 			return 0;
-
 		switch( skill_id ) { //Check for skills that auto-select target
 			case MO_CHAINCOMBO:
 				if( sc && sc->data[SC_BLADESTOP] ) {
@@ -1370,7 +1368,6 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 			clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 			return 0;
 		}
-
 		switch( skill_id ) {
 			case SA_CASTCANCEL:
 				if( ud->skill_id != skill_id ) {
@@ -1559,8 +1556,10 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 
 	if( !ud->state.running ) //Need TK_RUN or WUGDASH handler to be done before that, see bugreport:6026
 		unit_stop_walking(src, 1); //Eventhough this is not how official works but this will do the trick. bugreport:6829
+
 	//In official this is triggered even if no cast time.
 	clif_skillcasting(src, src->id, target_id, 0, 0, skill_id, skill_get_ele(skill_id, skill_lv), casttime);
+
 	if( casttime >= 0 || combo ) {
 		if( sd && target->type == BL_MOB ) {
 			TBL_MOB *md = ((TBL_MOB*)target);

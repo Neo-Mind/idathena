@@ -3447,6 +3447,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			skillratio += 500 + (80 * skill_lv);
 			if(sd) {
 				short index = sd->equip_index[EQI_HAND_R];
+
 				if(index >= 0 && sd->inventory_data[index]
 					&& sd->inventory_data[index]->type == IT_WEAPON)
 					skillratio += max(10000 - sd->inventory_data[index]->weight,0) / 10;

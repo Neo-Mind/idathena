@@ -4677,7 +4677,7 @@ static void clif_getareachar_skillunit(int type, struct map_session_data *sd, st
 	if( unit->group->state.guildaura )
 		return;
 
-	if( skill_get_unit_flag(unit->group->skill_id)&UF_RANGEDSINGLEUNIT && !(unit->val2&UF_RANGEDSINGLEUNIT) )
+	if( (skill_get_unit_flag(unit->group->skill_id)&UF_RANGEDSINGLEUNIT) && !(unit->val2&UF_RANGEDSINGLEUNIT) )
 		unit_id = UNT_DUMMYSKILL; //Use invisible unit id for other case of rangedsingle unit
 	else
 		unit_id = unit->group->unit_id;
