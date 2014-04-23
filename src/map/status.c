@@ -6217,9 +6217,9 @@ unsigned char status_calc_attack_element(struct block_list *bl, struct status_ch
 {
 	if(!sc || !sc->count)
 		return (unsigned char)cap_value(element,0,UCHAR_MAX);
+
 	if(sc->data[SC_ENCHANTARMS])
 		return sc->data[SC_ENCHANTARMS]->val2;
-
 	if(sc->data[SC_WATERWEAPON] ||
 		(sc->data[SC_WATER_INSIGNIA] && sc->data[SC_WATER_INSIGNIA]->val1 == 2))
 		return ELE_WATER;
@@ -11661,7 +11661,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 					break; //Time out
 				if( sce->val2 != bl->id ) {
 					if( !status_charge(bl,0,50) )
-						break; //No more SP status should end,and in the next second will end for the other affected players
+						break; //No more SP status should end, and in the next second will end for the other affected players
 				} else {
 					struct block_list *src = map_id2bl(sce->val2);
 					struct status_change *ssc = status_get_sc(src);
@@ -11744,6 +11744,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				return 0;
 			}
 			break;
+
 		case SC_LEADERSHIP:
 		case SC_GLORYWOUNDS:
 		case SC_SOULCOLD:
@@ -11751,6 +11752,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			/* They only end by status_change_end */
 			sc_timer_next(600000 + tick,status_change_timer,bl->id,data);
 			return 0;
+
 		case SC_MEIKYOUSISUI:
 			if( --(sce->val4) >= 0 ) {
 				status_heal(bl,status->max_hp * (sce->val1 + 1) / 100,status->max_sp * sce->val1 / 100,0);
@@ -11758,6 +11760,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				return 0;
 			}
 			break;
+
 		case SC_IZAYOI:
 		case SC_KAGEMUSYA:
 			if( --(sce->val2) >= 0 ) {
@@ -11767,6 +11770,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				return 0;
 			}
 			break;
+
 		case SC_ANGRIFFS_MODUS:
 			if( --(sce->val4) >= 0 ) { //Drain hp/sp
 				if( !status_charge(bl,100,20) )
@@ -11775,6 +11779,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				return 0;
 			}
 			break;
+
 		case SC_CBC:
 			if( --(sce->val4) >= 0 ) { //Drain hp/sp
 				int hp = 0;
@@ -11788,6 +11793,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				return 0;
 			}
 			break;
+
 		case SC_FULL_THROTTLE:
 			if( --(sce->val4) >= 0 ) {
 				status_percent_damage(bl,bl,0,sce->val2,false);
@@ -11795,6 +11801,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				return 0;
 			}
 			break;
+
 		case SC_KINGS_GRACE:
 			if( --(sce->val4) >= 0 ) {
 				status_percent_heal(bl,sce->val2,0);
@@ -11802,6 +11809,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				return 0;
 			}
 			break;
+
 		case SC_FRIGG_SONG:
 			if( --(sce->val4) >= 0 ) {
 				status_heal(bl,sce->val3,0,0);
@@ -11809,6 +11817,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				return 0;
 			}
 			break;
+
 		case SC_C_MARKER:
 			if( --(sce->val4) >= 0 ) {
 				struct map_session_data *sd = map_id2sd(sce->val2);

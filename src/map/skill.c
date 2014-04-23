@@ -8227,7 +8227,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						clif_skill_nodamage(bl,bl,skill_id,skill_lv,1); //Master
 						clif_slide(bl,x,y) ;
 					}
-					//@TODO: Make casted skill also change it's target
+					//@TODO: Make casted skill also change its target
 					map_foreachinrange(skill_changetarget,src,AREA_SIZE,BL_CHAR,bl,src);
 				}
 			} else if (hd && hd->master) //Failed
@@ -10856,7 +10856,6 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 				break;
 			}
 		}
-
 		if( tid != INVALID_TIMER ) { //Avoid double checks on instant cast skills. [Skotlex]
 			if( !status_check_skilluse(src,NULL,ud->skill_id,1) )
 				break;
@@ -10867,30 +10866,25 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 				break;
 			}
 		}
-
 		if( sd ) {
 			if( ud->skill_id != AL_WARP && !skill_check_condition_castend(sd,ud->skill_id,ud->skill_lv) )
 				break;
 			else
 				skill_consume_requirement(sd,ud->skill_id,ud->skill_lv,1);
 		}
-
-		if( (src->type == BL_MER || src->type == BL_HOM) && !skill_check_condition_mercenary(src,ud->skill_id,ud->skill_lv,1) )
+		if( (src->type == BL_MER || src->type == BL_HOM) &&
+			!skill_check_condition_mercenary(src,ud->skill_id,ud->skill_lv,1) )
 			break;
-
 		if( md ) {
 			md->last_thinktime = tick + MIN_MOBTHINKTIME;
 			if( md->skill_idx >= 0 && md->db->skill[md->skill_idx].emotion >= 0 )
 				clif_emotion(src,md->db->skill[md->skill_idx].emotion);
 		}
-
 		if( battle_config.skill_log && battle_config.skill_log&src->type )
 			ShowInfo("Type %d, ID %d skill castend pos [id=%d, lv=%d, (%d,%d)]\n",
 				src->type,src->id,ud->skill_id,ud->skill_lv,ud->skillx,ud->skilly);
-
 		if( ud->walktimer != INVALID_TIMER )
 			unit_stop_walking(src,1);
-
 		if( !sd || sd->skillitem != ud->skill_id || skill_get_delay(ud->skill_id,ud->skill_lv) )
 			ud->canact_tick = tick + skill_delayfix(src,ud->skill_id,ud->skill_lv);
 		if( sd && (inf = skill_get_cooldown(sd,ud->skill_id,ud->skill_lv)) > 0 )
@@ -10910,16 +10904,15 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 			status_change_end(src,SC_CAMOUFLAGE,INVALID_TIMER);
 		map_freeblock_lock();
 		skill_castend_pos2(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv,tick,0);
-
 		if( sd && sd->skillitem != AL_WARP ) //Warp-Portal thru items will clear data in skill_castend_map. [Inkfish]
 			sd->skillitem = sd->skillitemlv = 0;
-
 		if( ud->skilltimer == INVALID_TIMER ) {
-			if( md ) md->skill_idx = -1;
-			else ud->skill_id = 0; //Non mobs can't clear this one as it is used for skill condition 'afterskill'
+			if( md )
+				md->skill_idx = -1;
+			else //Non mobs can't clear this one as it is used for skill condition 'afterskill'
+				ud->skill_id = 0;
 			ud->skill_lv = ud->skillx = ud->skilly = 0;
 		}
-
 		map_freeblock_unlock();
 		return 1;
 	} while( 0 );
@@ -10938,9 +10931,9 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 /* Skill count without self */
 static int skill_count_wos(struct block_list *bl,va_list ap) {
 	struct block_list* src = va_arg(ap, struct block_list*);
-	if( src->id != bl->id ) {
+
+	if( src->id != bl->id )
 		return 1;
-	}
 	return 0;
 }
 
@@ -16596,8 +16589,7 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 			break;
 		case HW_GANBANTEIN:
 		case LG_EARTHDRIVE:
-			//Officially songs/dances are removed
-			skill_delunit(unit);
+			skill_delunit(unit); //Officially songs/dances are removed
 			return 1;
 		case SA_VOLCANO:
 		case SA_DELUGE:
@@ -17049,26 +17041,28 @@ int skill_delunit (struct skill_unit* unit)
 	struct skill_unit_group *group;
 
 	nullpo_ret(unit);
+
 	if( !unit->alive )
 		return 0;
+
 	unit->alive = 0;
 
 	nullpo_ret(group = unit->group);
 
 	if( group->state.song_dance&0x1 ) //Cancel dissonance effect.
-		skill_dance_overlap(unit, 0);
+		skill_dance_overlap(unit,0);
 
 	//Invoke onout event
 	if( !unit->range )
 		map_foreachincell(skill_unit_effect,unit->bl.m,unit->bl.x,unit->bl.y,group->bl_flag,&unit->bl,gettick(),4);
 
 	//Perform ondelete actions
-	switch (group->skill_id) {
+	switch( group->skill_id ) {
 		case HT_ANKLESNARE: {
 				struct block_list* target = map_id2bl(group->val2);
 
 				if( target )
-					status_change_end(target, SC_ANKLE, INVALID_TIMER);
+					status_change_end(target,SC_ANKLE,INVALID_TIMER);
 			}
 			break;
 		case WZ_ICEWALL:
@@ -17089,7 +17083,7 @@ int skill_delunit (struct skill_unit* unit)
 				struct block_list* target = map_id2bl(group->val2);
 
 				if( target )
-					status_change_end(target, SC_ELECTRICSHOCKER, INVALID_TIMER);
+					status_change_end(target,SC_ELECTRICSHOCKER,INVALID_TIMER);
 			}
 			break;
 		case SC_MANHOLE: //NOTE: Removing the unit don't remove the status (Official info)
@@ -17107,8 +17101,8 @@ int skill_delunit (struct skill_unit* unit)
 	unit->group = NULL;
 	map_delblock(&unit->bl); //Don't free yet
 	map_deliddb(&unit->bl);
-	idb_remove(skillunit_db, unit->bl.id);
-	if(--group->alive_count == 0)
+	idb_remove(skillunit_db,unit->bl.id);
+	if( --group->alive_count == 0 )
 		skill_delunitgroup(group);
 
 	return 0;
@@ -18339,6 +18333,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 
 	if(rnd()%10000 < make_per || qty > 1){ //Success, or crafting multiple items.
 		struct item tmp_item;
+
 		memset(&tmp_item,0,sizeof(tmp_item));
 		tmp_item.nameid = nameid;
 		tmp_item.amount = 1;
@@ -18348,8 +18343,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 			tmp_item.card[1] = ((sc * 5)<<8) + ele;
 			tmp_item.card[2] = GetWord(sd->status.char_id,0); //CharId
 			tmp_item.card[3] = GetWord(sd->status.char_id,1);
-		} else {
-			//Flag is only used on the end, so it can be used here. [Skotlex]
+		} else { //Flag is only used on the end, so it can be used here. [Skotlex]
 			switch(skill_id) {
 				case BS_DAGGER:
 				case BS_SWORD:

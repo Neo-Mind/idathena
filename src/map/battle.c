@@ -2360,8 +2360,7 @@ static int battle_calc_equip_attack(struct block_list *src, int skill_id)
 		struct status_data *status = status_get_status_data(src);
 		struct map_session_data *sd = BL_CAST(BL_PC, src);
 
-		//Add arrow atk if using an applicable skill
-		if(sd)
+		if(sd) //Add arrow atk if using an applicable skill
 			eatk += (is_skill_using_arrow(src, skill_id) ? sd->bonus.arrow_atk : 0);
 
 		return eatk + status->eatk;
@@ -2685,6 +2684,8 @@ struct Damage battle_calc_damage_parts(struct Damage wd, struct block_list *src,
 	wd.equipAtk2 += battle_calc_equip_attack(src, skill_id);
 	wd.equipAtk2 = battle_attr_fix(src, target, wd.equipAtk2, left_element, tstatus->def_ele, tstatus->ele_lv);
 
+	//Mastery ATK is a special kind of ATK that has no elemental properties
+	//Because masteries are not elemental, they are unaffected by Ghost armors or Raydric Card
 	wd = battle_calc_attack_masteries(wd, src, target, skill_id, skill_lv);
 
 	wd.damage = 0;
@@ -2782,18 +2783,12 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 			break;
 		case CR_SHIELDBOOMERANG:
 		case PA_SHIELDCHAIN:
-		case LG_SHIELDPRESS:
-		case LG_EARTHDRIVE:
 			wd.damage = sstatus->batk;
 			if(sd) {
 				short index = sd->equip_index[EQI_HAND_L];
 
-				if(index >= 0 &&
-					sd->inventory_data[index] &&
-					sd->inventory_data[index]->type == IT_ARMOR)
-					ATK_ADD(wd.damage, wd.damage2, skill_id == LG_EARTHDRIVE ?
-					(skill_lv + 1) * sd->inventory_data[index]->weight / 10 :
-					sd->inventory_data[index]->weight / 10);
+				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR)
+					ATK_ADD(wd.damage, wd.damage2, sd->inventory_data[index]->weight / 10);
 			} else
 				ATK_ADD(wd.damage, wd.damage2, sstatus->rhw.atk2); //Else use Atk2
 #ifdef RENEWAL
@@ -3620,6 +3615,12 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			break;
 		case LG_SHIELDPRESS:
 			skillratio += -100 + 150 * skill_lv + sstatus->str;
+			if(sd) {
+				short index = sd->equip_index[EQI_HAND_L];
+
+				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR)
+					skillratio += sd->inventory_data[index]->weight / 10;
+			}
 			RE_LVL_DMOD(100);
 			break;
 		case LG_PINPOINTATTACK:
@@ -3667,7 +3668,12 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 			RE_LVL_DMOD(100);
 			break;
 		case LG_EARTHDRIVE:
-			skillratio += -100 + skillratio;
+			if(sd) {
+				short index = sd->equip_index[EQI_HAND_L];
+
+				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR)
+					skillratio += -100 + (skill_lv + 1) * sd->inventory_data[index]->weight / 10;
+			}
 			RE_LVL_DMOD(100);
 			break;
 		case LG_HESPERUSLIT:
@@ -5232,8 +5238,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		case RK_DRAGONBREATH:
 		case RK_DRAGONBREATH_WATER:
 		case NC_SELFDESTRUCTION:
-		case LG_SHIELDPRESS:
-		case LG_EARTHDRIVE:
 		case KO_HAPPOKUNAI:
 			{
 				int64 tmp = wd.damage;
