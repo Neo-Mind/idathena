@@ -969,6 +969,30 @@ static bool itemdb_read_nouse(char* fields[], int columns, int current)
 	return true;
 }
 
+/** Misc Item flags
+ * <item_id>,<flag>
+ * &1 - Log as dead branch
+ * &2 - As item container
+ */
+static bool itemdb_read_flag(char* fields[], int columns, int current) {
+	uint16 nameid = atoi(fields[0]);
+	uint8 flag = atoi(fields[1]);
+	struct item_data *id;
+
+	if( !(id = itemdb_exists(nameid)) ) {
+		ShowError("itemdb_read_flag: Invalid item item with id %d\n", nameid);
+		return true;
+	}
+
+	if( flag&1 )
+		id->flag.dead_branch = 1;
+
+	if( flag&2 )
+		id->flag.group = 1;
+
+	return true;
+}
+
 /**
  * @return: amount of retrieved entries.
  **/
@@ -1568,18 +1592,19 @@ static void itemdb_read(void) {
 	itemdb_read_combos();
 	itemdb_read_itemgroup();
 	sv_readdb(db_path, "item_avail.txt",         ',', 2, 2, -1, &itemdb_read_itemavail);
-	sv_readdb(db_path, DBPATH"item_noequip.txt", ',', 2, 2, -1, &itemdb_read_noequip);
-	sv_readdb(db_path, DBPATH"item_trade.txt",   ',', 3, 3, -1, &itemdb_read_itemtrade);
-	sv_readdb(db_path, DBPATH"item_delay.txt",   ',', 2, 2, -1, &itemdb_read_itemdelay);
-	sv_readdb(db_path, "item_stack.txt",         ',', 3, 3, -1, &itemdb_read_stack);
 	sv_readdb(db_path, DBPATH"item_buyingstore.txt",   ',', 1, 1, -1, &itemdb_read_buyingstore);
+	sv_readdb(db_path, DBPATH"item_delay.txt",   ',', 2, 2, -1, &itemdb_read_itemdelay);
+	sv_readdb(db_path, DBPATH"item_flag.txt",    ',', 1, 1, -1, &itemdb_read_flag);
+	sv_readdb(db_path, DBPATH"item_noequip.txt", ',', 2, 2, -1, &itemdb_read_noequip);
 	sv_readdb(db_path, "item_nouse.txt",         ',', 3, 3, -1, &itemdb_read_nouse);
+	sv_readdb(db_path, "item_stack.txt",         ',', 3, 3, -1, &itemdb_read_stack);
+	sv_readdb(db_path, DBPATH"item_trade.txt",   ',', 3, 3, -1, &itemdb_read_itemtrade);
 
 	itemdb_uid_load();
 }
 
 /*==========================================
- * Initialize / Finalize
+ * Initialize/Finalize
  *------------------------------------------*/
 
 /**

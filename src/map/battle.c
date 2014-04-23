@@ -2473,6 +2473,7 @@ static struct Damage battle_calc_element_damage(struct Damage wd, struct block_l
 			wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
 			switch(skill_id) {
 				case MC_CARTREVOLUTION:
+				case SR_GATEOFHELL:
 				case KO_BAKURETSU:
 					//Forced to neutral element
 					wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
@@ -2728,10 +2729,8 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 			if(sd) {
 				short index = sd->equip_index[EQI_HAND_R];
 
-				if(index >= 0 &&
-					sd->inventory_data[index] &&
-					sd->inventory_data[index]->type == IT_WEAPON)
-					//Weight from spear is treated as equipment ATK on official [helvetica]
+				//Weight from spear is treated as equipment ATK on official [helvetica]
+				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
 					wd.equipAtk += sd->inventory_data[index]->weight / 20;
 
 				wd = battle_calc_damage_parts(wd, src, target, skill_id, skill_lv);
@@ -2750,7 +2749,7 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 			}
 #else
 		case NJ_ISSEN:
-			wd.damage = (40 * sstatus->str) + (8 * skill_lv / 100 * sstatus->hp);
+			wd.damage = (40 * sstatus->str) + (sstatus->hp * 8 * skill_lv / 100);
 			wd.damage2 = 0;
 			break;
 		case LK_SPIRALPIERCE:
@@ -2758,9 +2757,7 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 			if(sd) {
 				short index = sd->equip_index[EQI_HAND_R];
 
-				if(index >= 0 &&
-					sd->inventory_data[index] &&
-					sd->inventory_data[index]->type == IT_WEAPON)
+				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
 					wd.damage = sd->inventory_data[index]->weight * 8 / 100; //80% of weight
 
 				ATK_ADDRATE(wd.damage, wd.damage2, 50 * skill_lv); //Skill modifier applies to weight only.
@@ -5225,6 +5222,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		case MC_CARTREVOLUTION:
 		case MO_INVESTIGATE:
 		case CR_ACIDDEMONSTRATION:
+		case SR_GATEOFHELL:
 		case GN_FIRE_EXPANSION_ACID:
 		case KO_BAKURETSU:
 			//Forced to neutral element

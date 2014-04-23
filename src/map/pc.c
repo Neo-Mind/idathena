@@ -4314,6 +4314,9 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 		return 0; // You cannot use this item while storage is open.
 	}
 
+	if( item->flag.dead_branch && (map[sd->bl.m].flag.nobranch || map_flag_gvg2(sd->bl.m)) )
+		return 0;
+
 	switch( nameid ) {
 		case ITEMID_ANODYNE:
 			if( map_flag_gvg2(sd->bl.m) )
@@ -4342,14 +4345,6 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 				return 0;
 			}
 			if( nameid != 601 && nameid != 12212 && map[sd->bl.m].flag.noreturn )
-				return 0;
-			break;
-		case ITEMID_BRANCH_OF_DEAD_TREE:
-		case ITEMID_RED_POUCH_OF_SURPRISE:
-		case ITEMID_BLOODY_DEAD_BRANCH:
-		case ITEMID_PORING_BOX:
-		case ITEMID_TREASURE_CHEST_SUMMONED_II:
-			if( map[sd->bl.m].flag.nobranch || map_flag_gvg2(sd->bl.m) )
 				return 0;
 			break;
 		case ITEMID_BUBBLE_GUM:
@@ -4399,7 +4394,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 	else if( itemdb_is_poison(nameid) && (sd->class_&MAPID_THIRDMASK) != MAPID_GUILLOTINE_CROSS )
 		return 0; //Only GCross may use poisons
 
-	/*if( item->group ) { //@TODO
+	if( item->flag.group ) {
 		if( pc_is90overweight(sd) ) {
 			clif_msgtable(sd->fd,ITEM_CANT_OBTAIN_WEIGHT);
 			return 0;
@@ -4408,7 +4403,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 			clif_colormes(sd,color_table[COLOR_RED],msg_txt(1477)); //Item cannot be open when inventory is full
 			return 0;
 		}
-	}*/
+	}
 
 	//Gender check
 	if( item->sex != 2 && sd->status.sex != item->sex )
@@ -4450,8 +4445,7 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 	if( !pc_isItemClass(sd,item) )
 		return 0;
 
-	//Dead Branch & Bloody Branch & Porings Box
-	if( nameid == ITEMID_BRANCH_OF_DEAD_TREE || nameid == ITEMID_BLOODY_DEAD_BRANCH || nameid == ITEMID_PORING_BOX || nameid == ITEMID_TREASURE_CHEST_SUMMONED_II )
+	if( item->flag.dead_branch )
 		log_branch(sd);
 
 	return 1;
@@ -9658,15 +9652,14 @@ static int pc_talisman_timer(int tid, unsigned int tick, int id, intptr_t data)
 	}
 
 	ARR_FIND(0, sd->talisman[type], i, sd->talisman_timer[type][i] == tid);
-	if( i == sd->talisman[type] )
-	{
+	if( i == sd->talisman[type] ) {
 		ShowError("pc_talisman_timer: timer not found (aid=%d cid=%d tid=%d)\n", sd->status.account_id, sd->status.char_id, tid);
 		return 0;
 	}
 
 	sd->talisman[type]--;
 	if( i != sd->talisman[type] )
-		memmove(sd->talisman_timer[type]+i, sd->talisman_timer[type]+i+1, (sd->talisman[type]-i)*sizeof(int));
+		memmove(sd->talisman_timer[type] + i, sd->talisman_timer[type] + i + 1, (sd->talisman[type] - i) * sizeof(int));
 	sd->talisman_timer[type][sd->talisman[type]] = INVALID_TIMER;
 
 	clif_talisman(sd, type);

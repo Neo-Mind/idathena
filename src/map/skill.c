@@ -9990,9 +9990,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case KO_KAZEHU_SEIRAN:
 		case KO_DOHU_KOUKAI:
 			if( sd ) {
-				int type = skill_get_ele(skill_id,skill_lv);
+				int i, type = skill_get_ele(skill_id,skill_lv);
 
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+				ARR_FIND(1,6,i,sd->talisman[i] > 0 && type != i);
+				if( i < 6 )
+					pc_del_talisman(sd,sd->talisman[i],i); //Replace talisman
 				pc_add_talisman(sd,skill_get_time(skill_id,skill_lv),10,type);
 			}
 			break;
@@ -14684,20 +14687,20 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		case KO_KAZEHU_SEIRAN:
 		case KO_DOHU_KOUKAI:
 			{
-				int type = skill_get_ele(skill_id, skill_lv);
+				int type = skill_get_ele(skill_id,skill_lv);
 
-				ARR_FIND(1, 5, i, sd->talisman[i] > 0 && i != type);
-				if( (i < 5 && i != type) || sd->talisman[type] >= 10 ) {
-					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+				ARR_FIND(1,5,i,sd->talisman[i] > 0 && i != type);
+				if( sd->talisman[type] >= 10 ) {
+					clif_skill_fail(sd,skill_id,USESKILL_FAIL_SUMMON,0);
 					return false;
 				}
 			}
 			break;
 		case KO_KAIHOU:
 		case KO_ZENKAI:
-			ARR_FIND(1, 6, i, sd->talisman[i] > 0);
+			ARR_FIND(1,6,i,sd->talisman[i] > 0);
 			if( i > 4 ) {
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_SUMMON,0);
 				return false;
 			}
 			break;

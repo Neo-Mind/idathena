@@ -9409,7 +9409,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val4 = 50;
 				break;
 			case SC_FULL_THROTTLE:
-				val2 = 7 - val1;
+				val2 = (val1 == 1 ? 6 : 6 - val1);
 				tick_time = 1000;
 				val4 = tick / tick_time;
 				tick = -1;
