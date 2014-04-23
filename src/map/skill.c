@@ -14700,7 +14700,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		case KO_ZENKAI:
 			ARR_FIND(1,6,i,sd->talisman[i] > 0);
 			if( i > 4 ) {
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_SUMMON,0);
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return false;
 			}
 			break;
@@ -16737,27 +16737,35 @@ static int skill_trap_splash(struct block_list *bl, va_list ap)
 			skill_additional_effect(ss,bl,sg->skill_id,sg->skill_lv,BF_MISC,ATK_DEF,tick);
 			break;
 		case UNT_GROUNDDRIFT_WIND:
-			if(skill_attack(BF_MISC,ss,src,bl,sg->skill_id,sg->skill_lv,tick,sg->val1))
+			if( skill_attack(BF_MISC,ss,src,bl,sg->skill_id,sg->skill_lv,tick,sg->val1) )
 				sc_start(ss,bl,SC_STUN,5,sg->skill_lv,skill_get_time2(sg->skill_id, sg->skill_lv));
 			break;
 		case UNT_GROUNDDRIFT_DARK:
-			if(skill_attack(BF_MISC,ss,src,bl,sg->skill_id,sg->skill_lv,tick,sg->val1))
+			if( skill_attack(BF_MISC,ss,src,bl,sg->skill_id,sg->skill_lv,tick,sg->val1) )
 				sc_start(ss,bl,SC_BLIND,5,sg->skill_lv,skill_get_time2(sg->skill_id, sg->skill_lv));
 			break;
 		case UNT_GROUNDDRIFT_POISON:
-			if(skill_attack(BF_MISC,ss,src,bl,sg->skill_id,sg->skill_lv,tick,sg->val1))
+			if( skill_attack(BF_MISC,ss,src,bl,sg->skill_id,sg->skill_lv,tick,sg->val1) )
 				sc_start(ss,bl,SC_POISON,5,sg->skill_lv,skill_get_time2(sg->skill_id, sg->skill_lv));
 			break;
 		case UNT_GROUNDDRIFT_WATER:
-			if(skill_attack(BF_MISC,ss,src,bl,sg->skill_id,sg->skill_lv,tick,sg->val1))
+			if( skill_attack(BF_MISC,ss,src,bl,sg->skill_id,sg->skill_lv,tick,sg->val1) )
 				sc_start(ss,bl,SC_FREEZE,5,sg->skill_lv,skill_get_time2(sg->skill_id, sg->skill_lv));
 			break;
 		case UNT_GROUNDDRIFT_FIRE:
-			if(skill_attack(BF_MISC,ss,src,bl,sg->skill_id,sg->skill_lv,tick,sg->val1))
+			if( skill_attack(BF_MISC,ss,src,bl,sg->skill_id,sg->skill_lv,tick,sg->val1) )
 				skill_blown(src,bl,skill_get_blewcount(sg->skill_id,sg->skill_lv),-1,0);
 			break;
 		case UNT_ELECTRICSHOCKER:
-			clif_skill_damage(src,bl,tick,0,0,-30000,1,sg->skill_id,sg->skill_lv,5);
+			if( bl->id != ss->id ) {
+				if( status_get_mode(bl)&MD_BOSS )
+					break;
+				if( status_change_start(ss,bl,SC_ELECTRICSHOCKER,10000,sg->skill_lv,sg->group_id,0,0,skill_get_time2(sg->skill_id,sg->skill_lv),8) ) {
+					map_moveblock(bl,unit->bl.x,unit->bl.y,tick);
+					clif_fixpos(bl);
+					clif_skill_damage(src,bl,tick,0,0,-30000,1,sg->skill_id,sg->skill_lv,5);
+				}
+			}
 			break;
 		case UNT_MAGENTATRAP:
 		case UNT_COBALTTRAP:

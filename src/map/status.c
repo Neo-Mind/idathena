@@ -11443,7 +11443,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_ELECTRICSHOCKER:
 			if( --(sce->val4) >= 0 ) {
 				if( !status_charge(bl,0,5 * sce->val1 * status->max_sp / 100) )
-					break;
+					; //Keep immobilize status even the SP is already running out.
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}

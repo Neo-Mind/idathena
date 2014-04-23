@@ -1594,7 +1594,7 @@ static void itemdb_read(void) {
 	sv_readdb(db_path, "item_avail.txt",         ',', 2, 2, -1, &itemdb_read_itemavail);
 	sv_readdb(db_path, DBPATH"item_buyingstore.txt",   ',', 1, 1, -1, &itemdb_read_buyingstore);
 	sv_readdb(db_path, DBPATH"item_delay.txt",   ',', 2, 2, -1, &itemdb_read_itemdelay);
-	sv_readdb(db_path, DBPATH"item_flag.txt",    ',', 1, 1, -1, &itemdb_read_flag);
+	sv_readdb(db_path, DBPATH"item_flag.txt",    ',', 2, 2, -1, &itemdb_read_flag);
 	sv_readdb(db_path, DBPATH"item_noequip.txt", ',', 2, 2, -1, &itemdb_read_noequip);
 	sv_readdb(db_path, "item_nouse.txt",         ',', 3, 3, -1, &itemdb_read_nouse);
 	sv_readdb(db_path, "item_stack.txt",         ',', 3, 3, -1, &itemdb_read_stack);
