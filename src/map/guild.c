@@ -549,7 +549,7 @@ int guild_recv_info(struct guild *sg)
 			clif_guild_skillinfo(sd); // Submit information skills
 		if( guild_new ) { // Send information and affiliation if unsent
 			clif_guild_belonginfo(sd,g);
-			clif_guild_notice(sd,g);
+			//clif_guild_notice(sd,g); // Is already sent in clif_parse_LoadEndAck
 			sd->guild_emblem_id = g->emblem_id;
 		}
 	}

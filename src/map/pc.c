@@ -4097,10 +4097,10 @@ char pc_additem(struct map_session_data *sd,struct item *item,int amount,e_log_p
 		sd->inventory_data[i] = id;
 		clif_additem(sd, i, amount, 0);
 	}
-#ifdef NSI_UNIQUE_ID
+
 	if( !itemdb_isstackable2(id) && !item->unique_id )
-		sd->status.inventory[i].unique_id = itemdb_unique_id(0, 0);
-#endif
+		sd->status.inventory[i].unique_id = itemdb_unique_id(sd);
+
 	log_pick_pc(sd, log_type, amount, &sd->status.inventory[i]);
 
 	sd->weight += w;
@@ -6920,7 +6920,8 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	if( (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && !sd->state.snovice_dead_flag ) {
 		unsigned int next = pc_nextbaseexp(sd);
 
-		if( next == 0 ) next = pc_thisbaseexp(sd);
+		if( next == 0 )
+			next = pc_thisbaseexp(sd);
 		if( get_percentage(sd->status.base_exp,next) >= 99 ) {
 			sd->state.snovice_dead_flag = 1;
 			pc_setrestartvalue(sd,1);
@@ -6935,7 +6936,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		}
 	}
 
-	for( k = 0; k < 5; k++ )
+	for( k = 0; k < 5; k++ ) {
 		if( sd->devotion[k] ) {
 			struct map_session_data *devsd = map_id2sd(sd->devotion[k]);
 
@@ -6943,6 +6944,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 				status_change_end(&devsd->bl,SC_DEVOTION,INVALID_TIMER);
 			sd->devotion[k] = 0;
 		}
+	}
 
 	if( sd->status.pet_id > 0 && sd->pd ) {
 		struct pet_data *pd = sd->pd;
@@ -7001,7 +7003,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	for( i = 1; i < 5; i++ )
 		pc_del_talisman(sd,sd->talisman[i],i);
 
-	if( src )
+	if( src ) {
 		switch( src->type ) {
 			case BL_PC: {
 					struct map_session_data *ssd = (struct map_session_data *)src;
@@ -7062,6 +7064,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 				src = battle_get_master(src);
 				break;
 		}
+	}
 
 	if( battle_config.bone_drop == 2 || (battle_config.bone_drop == 1 && map[sd->bl.m].flag.pvp) ) {
 		struct item item_tmp;
@@ -7134,8 +7137,8 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		}
 	}
 
+	//Moved this outside so it works when PVP isn't enabled and during pk mode [Ancyker]
 	if( map[sd->bl.m].flag.pvp_nightmaredrop ) {
-		//Moved this outside so it works when PVP isn't enabled and during pk mode [Ancyker]
 		int j;
 
 		for( j = 0; j < MAX_DROP_PER_MAP; j++ ) {
@@ -7189,6 +7192,14 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			}
 		}
 	}
+
+	//Remove autotrade to prevent autotrading from save point
+	if( sd->state.autotrade && (map[sd->bl.m].flag.pvp || map[sd->bl.m].flag.gvg) ) {
+		if( sd->state.vending )
+			vending_closevending(sd);
+		map_quit(sd);
+	}
+
 	//PVP
 	//Disable certain pvp functions on pk_mode [Valaris]
 	if( map[sd->bl.m].flag.pvp && !battle_config.pk_mode && !map[sd->bl.m].flag.pvp_nocalcrank ) {
@@ -7205,6 +7216,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			return 1|8;
 		}
 	}
+
 	//GvG
 	if( map_flag_gvg2(sd->bl.m) ) {
 		add_timer(tick + 1,pc_respawn_timer,sd->bl.id,0);
@@ -7221,6 +7233,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	//Reset "can log out" tick.
 	if( battle_config.prevent_logout )
 		sd->canlog_tick = gettick() - battle_config.prevent_logout;
+
 	return 1;
 }
 

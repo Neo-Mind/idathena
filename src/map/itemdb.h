@@ -482,7 +482,7 @@ bool itemdb_isequip2(struct item_data *);
 char itemdb_isidentified(int);
 bool itemdb_isstackable(uint16 nameid);
 bool itemdb_isstackable2(struct item_data *data);
-uint64 itemdb_unique_id(int8 flag, int64 value); //Unique Item ID
+uint64 itemdb_unique_id(struct map_session_data *sd);
 bool itemdb_isNoEquip(struct item_data *id, uint16 m);
 
 char itemdb_pc_get_itemgroup(uint16 group_id, struct map_session_data *sd);

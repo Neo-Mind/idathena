@@ -455,6 +455,11 @@ ACMD_FUNC(mapmove)
 		return -1;
 	}
 
+	if (sd->bl.m == m && sd->bl.x == x && sd->bl.y == y) {
+		clif_displaymessage(fd, msg_txt(253)); // You already are at your destination!
+		return -1;
+	}
+
 	if ((x || y) && map_getcell(m, x, y, CELL_CHKNOPASS) && pc_get_group_level(sd) < battle_config.gm_ignore_warpable_area) {
 		//This is to prevent the pc_setpos call from printing an error.
 		clif_displaymessage(fd, msg_txt(2));
@@ -522,6 +527,16 @@ ACMD_FUNC(jumpto)
 		return -1;
 	}
 
+	if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarp && !pc_has_permission(sd, PC_PERM_WARP_ANYWHERE)) {
+		clif_displaymessage(fd, msg_txt(248)); // You are not authorized to warp from your current map.
+		return -1;
+	}
+
+	if( pc_isdead(sd) ) {
+		clif_displaymessage(fd, msg_txt(664)); // You cannot use this command when dead.
+		return -1;
+	}
+
 	if ((pl_sd = map_nick2sd((char *)message)) == NULL && (pl_sd = map_charid2sd(atoi(message))) == NULL) {
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
@@ -531,14 +546,9 @@ ACMD_FUNC(jumpto)
 		clif_displaymessage(fd, msg_txt(247));	// You are not authorized to warp to this map.
 		return -1;
 	}
-	
-	if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarp && !pc_has_permission(sd, PC_PERM_WARP_ANYWHERE)) {
-		clif_displaymessage(fd, msg_txt(248));	// You are not authorized to warp from your current map.
-		return -1;
-	}
 
-	if( pc_isdead(sd) ) {
-		clif_displaymessage(fd, msg_txt(664));
+	if (pl_sd->bl.m == sd->bl.m && pl_sd->bl.x == sd->bl.x && pl_sd->bl.y == sd->bl.y) {
+		clif_displaymessage(fd, msg_txt(253)); // You already are at your destination!
 		return -1;
 	}
 
@@ -563,21 +573,25 @@ ACMD_FUNC(jump)
 	sscanf(message, "%hd %hd", &x, &y);
 
 	if (map[sd->bl.m].flag.noteleport && !pc_has_permission(sd, PC_PERM_WARP_ANYWHERE)) {
-		clif_displaymessage(fd, msg_txt(248));	// You are not authorized to warp from your current map.
+		clif_displaymessage(fd, msg_txt(248)); // You are not authorized to warp from your current map.
 		return -1;
 	}
 
-	if( pc_isdead(sd) )
-	{
-		clif_displaymessage(fd, msg_txt(664));
+	if (pc_isdead(sd)) {
+		clif_displaymessage(fd, msg_txt(664)); // You cannot use this command when dead.
 		return -1;
 	}
 
-	if ((x || y) && map_getcell(sd->bl.m, x, y, CELL_CHKNOPASS))
-  	{	//This is to prevent the pc_setpos call from printing an error.
+	if ((x || y) && map_getcell(sd->bl.m, x, y, CELL_CHKNOPASS)) {
+		//This is to prevent the pc_setpos call from printing an error.
 		clif_displaymessage(fd, msg_txt(2));
 		if (!map_search_freecell(NULL, sd->bl.m, &x, &y, 10, 10, 1))
 			x = y = 0; //Invalid cell, use random spot.
+	}
+
+	if (x && y && sd->bl.x == x && sd->bl.y == y) {
+		clif_displaymessage(fd, msg_txt(253)); // You already are at your destination!
+		return -1;
 	}
 
 	pc_setpos(sd, sd->mapindex, x, y, CLR_TELEPORT);
@@ -903,7 +917,11 @@ ACMD_FUNC(guildstorage)
 		return -1;
 	}
 
-	storage_guild_storageopen(sd);
+	if (storage_guild_storageopen(sd)) {
+		clif_displaymessage(fd, msg_txt(548)); // Your guild's storage has already been opened by another member, try again later.
+		return -1;
+	}
+
 	clif_displaymessage(fd, msg_txt(920)); // Guild storage opened.
 	return 0;
 }
@@ -2287,9 +2305,9 @@ ACMD_FUNC(memo)
  		}
 		return 0;
  	}
- 
+
 	if( position < 0 || position >= MAX_MEMOPOINTS ) {
-		sprintf(atcmd_output, msg_txt(1008), 0, MAX_MEMOPOINTS-1); // Please enter a valid position (usage: @memo <memo_position:%d-%d>).
+		sprintf(atcmd_output, msg_txt(1008), 0, MAX_MEMOPOINTS - 1); // Please enter a valid position (usage: @memo <memo_position:%d-%d>).
 		clif_displaymessage(fd, atcmd_output);
 		return -1;
 	}
@@ -2436,14 +2454,18 @@ ACMD_FUNC(zeny)
 	}
 
 	if (zeny > 0) {
-		if((ret = pc_getzeny(sd, zeny, LOG_TYPE_COMMAND, NULL)) == 1)
+		if ((ret = pc_getzeny(sd, zeny, LOG_TYPE_COMMAND, NULL)) == 1)
 			clif_displaymessage(fd, msg_txt(149)); // Unable to increase the number/value.
 	} else {
-		if (sd->status.zeny < -zeny ) zeny = -sd->status.zeny;
+		if (sd->status.zeny < -zeny )
+			zeny = -sd->status.zeny;
 		if ((ret = pc_payzeny(sd, -zeny, LOG_TYPE_COMMAND, NULL)) == 1)
 			clif_displaymessage(fd, msg_txt(41)); // Unable to decrease the number/value.
 	}
-	if (!ret) clif_displaymessage(fd, msg_txt(176)); // ret = 0 mean cmd success
+	if (ret) //ret != 0 means cmd failure
+		return -1;
+
+	clif_displaymessage(fd, msg_txt(176));
 	return 0;
 }
 
@@ -5352,8 +5374,10 @@ ACMD_FUNC(clearcart)
 		return -1;
 	}
 
-	if (sd->state.vending == 1) //Somehow.
+	if (sd->state.vending == 1) {
+		clif_displaymessage(fd, msg_txt(547)); // You can't clean a cart while vending!
 		return -1;
+	}
 
 	 for (i = 0; i < MAX_CART; i++)
 		if (sd->status.cart[i].nameid > 0)
@@ -6984,32 +7008,41 @@ ACMD_FUNC(showmobs)
 	int number = 0;
 	struct s_mapiterator* it;
 
-	nullpo_retr(-1,sd);
+	nullpo_retr(-1, sd);
 
-	if (sscanf(message,"%99[^\n]",mob_name) < 0)
+	if (sscanf(message, "%99[^\n]", mob_name) < 0) {
+		clif_displaymessage(fd, msg_txt(545)); // Please enter mob name/ID (usage: @showmobs <mob name/ID>)
 		return -1;
+	}
 
 	if ((mob_id = atoi(mob_name)) == 0)
 		mob_id = mobdb_searchname(mob_name);
-	if (mob_id > 0 && mobdb_checkid(mob_id) == 0) {
-		snprintf(atcmd_output,sizeof atcmd_output,msg_txt(1250),mob_name); // Invalid mob id %s!
-		clif_displaymessage(fd,atcmd_output);
-		return 0;
+
+	if (mob_id == 0) {
+		snprintf(atcmd_output, sizeof atcmd_output, msg_txt(546), mob_name); // Invalid mob name %s!
+		clif_displaymessage(fd, atcmd_output);
+		return -1;
 	}
 
-	if (mob_db(mob_id)->status.mode&MD_BOSS && !pc_has_permission(sd,PC_PERM_SHOW_BOSS)) {
-		// If player group does not have access to boss mobs.
-		clif_displaymessage(fd,msg_txt(1251)); // Can't show boss mobs!
-		return 0;
+	if (mob_id > 0 && mobdb_checkid(mob_id) == 0) {
+		snprintf(atcmd_output, sizeof atcmd_output, msg_txt(1250), mob_name); // Invalid mob id %s!
+		clif_displaymessage(fd, atcmd_output);
+		return -1;
+	}
+
+	// If player group does not have access to boss mobs.
+	if (mob_db(mob_id)->status.mode&MD_BOSS && !pc_has_permission(sd, PC_PERM_SHOW_BOSS)) {
+		clif_displaymessage(fd, msg_txt(1251)); // Can't show boss mobs!
+		return -1;
 	}
 
 	if (mob_id == atoi(mob_name) && mob_db(mob_id)->jname)
-		strcpy(mob_name,mob_db(mob_id)->jname); // --ja--
-		//strcpy(mob_name,mob_db(mob_id)->name); // --en--
+		strcpy(mob_name, mob_db(mob_id)->jname); // --ja--
+	//strcpy(mob_name, mob_db(mob_id)->name); // --en--
 
-	snprintf(atcmd_output,sizeof atcmd_output,msg_txt(1252), // Mob Search... %s %s
-		mob_name,mapindex_id2name(sd->mapindex));
-	clif_displaymessage(fd,atcmd_output);
+	snprintf(atcmd_output, sizeof atcmd_output, msg_txt(1252),  // Mob Search... %s %s
+		mob_name, mapindex_id2name(sd->mapindex));
+	clif_displaymessage(fd, atcmd_output);
 
 	it = mapit_geteachmob();
 	for (;;) {
@@ -7027,7 +7060,7 @@ ACMD_FUNC(showmobs)
 			continue; // Hide mobs waiting for respawn
 
 		++number;
-		clif_viewpoint(sd,1,0,md->bl.x,md->bl.y,number,0xFFFFFF);
+		clif_viewpoint(sd, 1, 0, md->bl.x, md->bl.y, number, 0xFFFFFF);
 	}
 	mapit_free(it);
 

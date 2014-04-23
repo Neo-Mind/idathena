@@ -522,7 +522,8 @@ int pet_catch_process2(struct map_session_data* sd, int target_id)
 
 	pet_catch_rate = (pet_db[i].capture + (sd->status.base_level - md->level)*30 + sd->battle_status.luk*20)*(200 - get_percentage(md->status.hp, md->status.max_hp))/100;
 
-	if(pet_catch_rate < 1) pet_catch_rate = 1;
+	if(pet_catch_rate < 1)
+		pet_catch_rate = 1;
 	if(battle_config.pet_catch_rate != 100)
 		pet_catch_rate = (pet_catch_rate*battle_config.pet_catch_rate)/100;
 
@@ -540,25 +541,39 @@ int pet_catch_process2(struct map_session_data* sd, int target_id)
 	return 0;
 }
 
-int pet_get_egg(int account_id,int pet_id,int flag)
-{	//This function is invoked when a new pet has been created, and at no other time!
+/**
+ * Is invoked _only_ when a new pet has been created is a product of packet 0x3880
+ * see mapif_pet_created@int_pet.c for more information
+ * Handles new pet data from inter-server and prepares item information
+ * to add pet egg
+ *
+ * pet_id - Should contain pet id otherwise means failure
+ * returns true on success
+ */
+bool pet_get_egg(int account_id, short pet_class, int pet_id)
+{
 	struct map_session_data *sd;
 	struct item tmp_item;
-	int i=0,ret=0;
+	int i = 0, ret = 0;
 
-	if(flag)
-		return 0;
+	if(pet_id == 0 || pet_class == 0)
+		return false;
 
 	sd = map_id2sd(account_id);
 	if(sd == NULL)
-		return 0;
+		return false;
 
-	i = search_petDB_index(sd->catch_target_class,PET_CLASS);
+	//i = search_petDB_index(sd->catch_target_class,PET_CLASS);
+	//bugreport:8150
+	//Before this change in cases where more than one pet egg were requested in a short
+	//period of time it wasn't possible to know which kind of egg was being requested after
+	//the first request. [Panikon]
+	i = search_petDB_index(pet_class,PET_CLASS);
 	sd->catch_target_class = -1;
 
 	if(i < 0) {
 		intif_delete_petdata(pet_id);
-		return 0;
+		return false;
 	}
 
 	memset(&tmp_item,0,sizeof(tmp_item));
@@ -573,7 +588,7 @@ int pet_get_egg(int account_id,int pet_id,int flag)
 		map_addflooritem(&tmp_item,1,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 	}
 
-	return 1;
+	return true;
 }
 
 static int pet_unequipitem(struct map_session_data *sd, struct pet_data *pd);
@@ -630,8 +645,8 @@ int pet_change_name(struct map_session_data *sd,char *name)
 	if((pd == NULL) || (pd->pet.rename_flag == 1 && !battle_config.pet_rename))
 		return 1;
 
-	for(i=0;i<NAME_LENGTH && name[i];i++){
-		if( !(name[i]&0xe0) || name[i]==0x7f)
+	for(i = 0; i < NAME_LENGTH && name[i]; i++) {
+		if(!(name[i]&0xe0) || name[i] == 0x7f)
 			return 1;
 	}
 
@@ -641,17 +656,19 @@ int pet_change_name(struct map_session_data *sd,char *name)
 int pet_change_name_ack(struct map_session_data *sd, char* name, int flag)
 {
 	struct pet_data *pd = sd->pd;
-	if (!pd) return 0;
 
-	normalize_name(name," ");//bugreport:3032
+	if (!pd)
+		return 0;
 
-	if ( !flag || !strlen(name) ) {
-		clif_displaymessage(sd->fd, msg_txt(280)); // You cannot use this name for your pet.
+	normalize_name(name," "); //bugreport:3032
+
+	if (!flag || !strlen(name)) {
+		clif_displaymessage(sd->fd, msg_txt(280)); //You cannot use this name for your pet.
 		clif_send_petstatus(sd); //Send status so client knows oet name change got rejected.
 		return 0;
 	}
 	memcpy(pd->pet.name, name, NAME_LENGTH);
-	clif_charnameack (0,&pd->bl);
+	clif_charnameack(0,&pd->bl);
 	pd->pet.rename_flag = 1;
 	clif_pet_equip_area(pd);
 	clif_send_petstatus(sd);

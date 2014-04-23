@@ -107,7 +107,8 @@ int inter_pet_sql_init(void){
 	return 0;
 }
 void inter_pet_sql_final(void){
-	if (pet_pt) aFree(pet_pt);
+	if( pet_pt )
+		aFree(pet_pt);
 	return;
 }
 //----------------------------------
@@ -121,62 +122,57 @@ int inter_pet_delete(int pet_id){
 //------------------------------------------------------
 int mapif_pet_created(int fd, int account_id, struct s_pet *p)
 {
-	WFIFOHEAD(fd, 11);
-	WFIFOW(fd, 0) =0x3880;
-	WFIFOL(fd, 2) =account_id;
-	if(p!=NULL){
-		WFIFOB(fd, 6)=0;
-		WFIFOL(fd, 7) =p->pet_id;
+	WFIFOHEAD(fd,12);
+	WFIFOW(fd,0) = 0x3880;
+	WFIFOL(fd,2) = account_id;
+	if( p != NULL ) {
+		WFIFOW(fd,6) = p->class_;
+		WFIFOL(fd,8) = p->pet_id;
 		ShowInfo("int_pet: created pet %d - %s\n", p->pet_id, p->name);
-	}else{
-		WFIFOB(fd, 6)=1;
-		WFIFOL(fd, 7)=0;
+	} else {
+		WFIFOW(fd,6) = 0;
+		WFIFOL(fd,8) = 0;
 	}
-	WFIFOSET(fd, 11);
-
+	WFIFOSET(fd,12);
 	return 0;
 }
 
-int mapif_pet_info(int fd, int account_id, struct s_pet *p){
-	WFIFOHEAD(fd, sizeof(struct s_pet) + 9);
-	WFIFOW(fd, 0) =0x3881;
-	WFIFOW(fd, 2) =sizeof(struct s_pet) + 9;
-	WFIFOL(fd, 4) =account_id;
-	WFIFOB(fd, 8)=0;
-	memcpy(WFIFOP(fd, 9), p, sizeof(struct s_pet));
-	WFIFOSET(fd, WFIFOW(fd, 2));
-
+int mapif_pet_info(int fd, int account_id, struct s_pet *p) {
+	WFIFOHEAD(fd,sizeof(struct s_pet) + 9);
+	WFIFOW(fd,0) = 0x3881;
+	WFIFOW(fd,2) = sizeof(struct s_pet) + 9;
+	WFIFOL(fd,4) = account_id;
+	WFIFOB(fd,8) = 0;
+	memcpy(WFIFOP(fd,9), p, sizeof(struct s_pet));
+	WFIFOSET(fd,WFIFOW(fd,2));
 	return 0;
 }
 
-int mapif_pet_noinfo(int fd, int account_id){
-	WFIFOHEAD(fd, sizeof(struct s_pet) + 9);
-	WFIFOW(fd, 0) =0x3881;
-	WFIFOW(fd, 2) =sizeof(struct s_pet) + 9;
-	WFIFOL(fd, 4) =account_id;
-	WFIFOB(fd, 8)=1;
-	memset(WFIFOP(fd, 9), 0, sizeof(struct s_pet));
-	WFIFOSET(fd, WFIFOW(fd, 2));
-
+int mapif_pet_noinfo(int fd, int account_id) {
+	WFIFOHEAD(fd,sizeof(struct s_pet) + 9);
+	WFIFOW(fd,0) = 0x3881;
+	WFIFOW(fd,2) = sizeof(struct s_pet) + 9;
+	WFIFOL(fd,4) = account_id;
+	WFIFOB(fd,8) = 1;
+	memset(WFIFOP(fd,9), 0, sizeof(struct s_pet));
+	WFIFOSET(fd,WFIFOW(fd,2));
 	return 0;
 }
 
-int mapif_save_pet_ack(int fd, int account_id, int flag){
-	WFIFOHEAD(fd, 7);
-	WFIFOW(fd, 0) =0x3882;
-	WFIFOL(fd, 2) =account_id;
-	WFIFOB(fd, 6) =flag;
-	WFIFOSET(fd, 7);
-
+int mapif_save_pet_ack(int fd, int account_id, int flag) {
+	WFIFOHEAD(fd,7);
+	WFIFOW(fd,0) = 0x3882;
+	WFIFOL(fd,2) = account_id;
+	WFIFOB(fd,6) = flag;
+	WFIFOSET(fd,7);
 	return 0;
 }
 
-int mapif_delete_pet_ack(int fd, int flag){
-	WFIFOHEAD(fd, 3);
-	WFIFOW(fd, 0) =0x3883;
-	WFIFOB(fd, 2) =flag;
-	WFIFOSET(fd, 3);
-
+int mapif_delete_pet_ack(int fd, int flag) {
+	WFIFOHEAD(fd,3);
+	WFIFOW(fd,0) = 0x3883;
+	WFIFOB(fd,2) = flag;
+	WFIFOSET(fd,3);
 	return 0;
 }
 

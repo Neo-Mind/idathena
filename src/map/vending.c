@@ -81,7 +81,9 @@ void vending_closevending(struct map_session_data* sd)
 		if( Sql_Query(mmysql_handle, "DELETE FROM `%s` WHERE vending_id = %d;", vending_items_db, sd->vender_id) != SQL_SUCCESS ||
 			Sql_Query(mmysql_handle, "DELETE FROM `%s` WHERE `id` = %d;", vendings_db, sd->vender_id) != SQL_SUCCESS )
 			Sql_ShowDebug(mmysql_handle);
+
 		sd->state.vending = 0;
+
 		clif_closevendingboard(&sd->bl, 0);
 		idb_remove(vending_db, sd->status.char_id);
 	}

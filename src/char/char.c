@@ -543,7 +543,8 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
 		(p->ele_id != cp->ele_id) || (p->shield != cp->shield) || (p->head_top != cp->head_top) ||
 		(p->head_mid != cp->head_mid) || (p->head_bottom != cp->head_bottom) || (p->delete_date != cp->delete_date) ||
 		(p->rename != cp->rename) || (p->robe != cp->robe) || (p->character_moves != cp->character_moves) ||
-		(p->show_equip != cp->show_equip) || (p->allow_party != cp->allow_party) || (p->font != cp->font)
+		(p->show_equip != cp->show_equip) || (p->allow_party != cp->allow_party) || (p->font != cp->font) ||
+		(p->uniqueitem_counter != cp->uniqueitem_counter)
 	) {	//Save status
 		unsigned int opt = 0;
 
@@ -559,7 +560,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
 			"`option`='%d',`party_id`='%d',`guild_id`='%d',`pet_id`='%d',`homun_id`='%d',`elemental_id`='%d',"
 			"`weapon`='%d',`shield`='%d',`head_top`='%d',`head_mid`='%d',`head_bottom`='%d',"
 			"`last_map`='%s',`last_x`='%d',`last_y`='%d',`save_map`='%s',`save_x`='%d',`save_y`='%d',`rename`='%d',"
-			"`delete_date`='%lu',`robe`='%d',`moves`='%d',`char_opt`='%u',`font`='%u'"
+			"`delete_date`='%lu',`robe`='%d',`moves`='%d',`char_opt`='%u',`font`='%u',`uniqueitem_counter`='%u'"
 			" WHERE `account_id`='%d' AND `char_id` = '%d'",
 			char_db, p->base_level, p->job_level,
 			p->base_exp, p->job_exp, p->zeny,
@@ -570,7 +571,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
 			mapindex_id2name(p->last_point.map), p->last_point.x, p->last_point.y,
 			mapindex_id2name(p->save_point.map), p->save_point.x, p->save_point.y, p->rename,
 			(unsigned long)p->delete_date, // FIXME: platform-dependent size
-			p->robe,p->character_moves,opt,p->font,
+			p->robe,p->character_moves,opt,p->font,p->uniqueitem_counter,
 			p->account_id, p->char_id) )
 		{
 			Sql_ShowDebug(sql_handle);
@@ -812,14 +813,14 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 	for( j = 0; j < MAX_SLOTS; ++j )
 		SqlStmt_BindColumn(stmt, 9+j, SQLDT_SHORT, &item.card[j], 0, NULL, NULL);
 
-	// bit array indicating which inventory items have already been matched
+	// Bit array indicating which inventory items have already been matched
 	flag = (bool*) aCalloc(max, sizeof(bool));
 
 	while( SQL_SUCCESS == SqlStmt_NextRow(stmt) ) {
 		found = false;
-		// search for the presence of the item in the char's inventory
+		// Search for the presence of the item in the char's inventory
 		for( i = 0; i < max; ++i ) {
-			// skip empty and already matched entries
+			// Skip empty and already matched entries
 			if( items[i].nameid == 0 || flag[i] )
 				continue;
 
@@ -827,7 +828,7 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 			&&  items[i].card[0] == item.card[0]
 			&&  items[i].card[2] == item.card[2]
 			&&  items[i].card[3] == item.card[3]
-			) {	//They are the same item.
+			) {	// They are the same item.
 				ARR_FIND( 0, MAX_SLOTS, j, items[i].card[j] != item.card[j] );
 				if( j == MAX_SLOTS &&
 				    items[i].amount == item.amount &&
@@ -837,9 +838,9 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 				    items[i].attribute == item.attribute &&
 				    items[i].expire_time == item.expire_time &&
 					items[i].bound == item.bound )
-				;	//Do nothing.
+				;	// Do nothing.
 				else {
-					// update all fields.
+					// Update all fields.
 					StringBuf_Clear(&buf);
 					StringBuf_Printf(&buf, "UPDATE `%s` SET `amount`='%d', `equip`='%d', `identify`='%d', `refine`='%d',`attribute`='%d', `expire_time`='%u', `bound`='%d'",
 						tablename, items[i].amount, items[i].equip, items[i].identify, items[i].refine, items[i].attribute, items[i].expire_time, items[i].bound);
@@ -853,8 +854,8 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 					}
 				}
 
-				found = flag[i] = true; //Item dealt with,
-				break; //skip to next item in the db.
+				found = flag[i] = true; // Item dealt with,
+				break; // Skip to next item in the db.
 			}
 		}
 		if( !found ) { // Item not present in inventory, remove it.
@@ -873,9 +874,9 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 	StringBuf_AppendStr(&buf, ") VALUES ");
 
 	found = false;
-	// insert non-matched items into the db as new items
+	// Insert non-matched items into the db as new items
 	for( i = 0; i < max; ++i ) {
-		// skip empty and already matched entries
+		// Skip empty and already matched entries
 		if( items[i].nameid == 0 || flag[i] )
 			continue;
 
@@ -889,10 +890,7 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 		for( j = 0; j < MAX_SLOTS; ++j )
 			StringBuf_Printf(&buf, ", '%d'", items[i].card[j]);
 		StringBuf_AppendStr(&buf, ")");
-
-		updateLastUid(items[i].unique_id); // Unique Non Stackable Item ID
 	}
-	dbUpdateUid(sql_handle); // Unique Non Stackable Item ID
 
 	if( found && SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) ) {
 		Sql_ShowDebug(sql_handle);
@@ -911,8 +909,8 @@ int inventory_to_sql(const struct item items[], int max, int id) {
 	SqlStmt* stmt;
 	int i;
 	int j;
-	struct item item; // temp storage variable
-	bool* flag; // bit array for inventory matching
+	struct item item; // Temp storage variable
+	bool* flag; // Bit array for inventory matching
 	bool found;
 	int errors = 0;
 
@@ -951,14 +949,14 @@ int inventory_to_sql(const struct item items[], int max, int id) {
 	for( j = 0; j < MAX_SLOTS; ++j )
 		SqlStmt_BindColumn(stmt, 10+j, SQLDT_SHORT, &item.card[j], 0, NULL, NULL);
 
-	// bit array indicating which inventory items have already been matched
+	// Bit array indicating which inventory items have already been matched
 	flag = (bool*) aCalloc(max, sizeof(bool));
 
 	while( SQL_SUCCESS == SqlStmt_NextRow(stmt) ) {
 		found = false;
-		// search for the presence of the item in the char's inventory
+		// Search for the presence of the item in the char's inventory
 		for( i = 0; i < max; ++i ) {
-			// skip empty and already matched entries
+			// Skip empty and already matched entries
 			if( items[i].nameid == 0 || flag[i] )
 				continue;
 
@@ -966,7 +964,7 @@ int inventory_to_sql(const struct item items[], int max, int id) {
 			   &&  items[i].card[0] == item.card[0]
 			   &&  items[i].card[2] == item.card[2]
 			   &&  items[i].card[3] == item.card[3]
-			   ) {	//They are the same item.
+			   ) {	// They are the same item.
 				ARR_FIND( 0, MAX_SLOTS, j, items[i].card[j] != item.card[j] );
 				if( j == MAX_SLOTS &&
 				   items[i].amount == item.amount &&
@@ -977,9 +975,9 @@ int inventory_to_sql(const struct item items[], int max, int id) {
 				   items[i].expire_time == item.expire_time &&
 				   items[i].favorite == item.favorite &&
 				   items[i].bound == item.bound )
-					;	//Do nothing.
+					;	// Do nothing.
 				else {
-					// update all fields.
+					// Update all fields.
 					StringBuf_Clear(&buf);
 					StringBuf_Printf(&buf, "UPDATE `%s` SET `amount`='%d', `equip`='%d', `identify`='%d', `refine`='%d',`attribute`='%d', `expire_time`='%u', `favorite`='%d', `bound`='%d'",
 									 inventory_db, items[i].amount, items[i].equip, items[i].identify, items[i].refine, items[i].attribute, items[i].expire_time, items[i].favorite, items[i].bound);
@@ -993,11 +991,11 @@ int inventory_to_sql(const struct item items[], int max, int id) {
 					}
 				}
 
-				found = flag[i] = true; //Item dealt with,
-				break; //skip to next item in the db.
+				found = flag[i] = true; // Item dealt with,
+				break; // Skip to next item in the db.
 			}
 		}
-		if( !found ) {// Item not present in inventory, remove it.
+		if( !found ) { // Item not present in inventory, remove it.
 			if( SQL_ERROR == Sql_Query(sql_handle, "DELETE from `%s` where `id`='%d' LIMIT 1", inventory_db, item.id) ) {
 				Sql_ShowDebug(sql_handle);
 				errors++;
@@ -1013,9 +1011,9 @@ int inventory_to_sql(const struct item items[], int max, int id) {
 	StringBuf_AppendStr(&buf, ") VALUES ");
 
 	found = false;
-	// insert non-matched items into the db as new items
+	// Insert non-matched items into the db as new items
 	for( i = 0; i < max; ++i ) {
-		// skip empty and already matched entries
+		// Skip empty and already matched entries
 		if( items[i].nameid == 0 || flag[i] )
 			continue;
 
@@ -1029,10 +1027,7 @@ int inventory_to_sql(const struct item items[], int max, int id) {
 		for( j = 0; j < MAX_SLOTS; ++j )
 			StringBuf_Printf(&buf, ", '%d'", items[i].card[j]);
 		StringBuf_AppendStr(&buf, ")");
-
-		updateLastUid(items[i].unique_id);// Unique Non Stackable Item ID
 	}
-	dbUpdateUid(sql_handle);
 
 	if( found && SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) ) {
 		Sql_ShowDebug(sql_handle);
@@ -1182,7 +1177,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 		"`status_point`,`skill_point`,`option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`,`homun_id`,`elemental_id`,`hair`,"
 		"`hair_color`,`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`,`last_map`,`last_x`,`last_y`,"
 		"`save_map`,`save_x`,`save_y`,`partner_id`,`father`,`mother`,`child`,`fame`,`rename`,`delete_date`,`robe`,`moves`,"
-		"`char_opt`,`font`,`unban_time`"
+		"`char_opt`,`font`,`unban_time`,`uniqueitem_counter`"
 		" FROM `%s` WHERE `char_id`=? LIMIT 1", char_db)
 	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_INT, &char_id, 0)
 	||	SQL_ERROR == SqlStmt_Execute(stmt)
@@ -1242,6 +1237,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 53, SQLDT_UINT,   &opt, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 54, SQLDT_UCHAR,  &p->font, 0, NULL, NULL)
 	||  SQL_ERROR == SqlStmt_BindColumn(stmt, 55, SQLDT_LONG,   &p->unban_time, 0, NULL, NULL)
+	||  SQL_ERROR == SqlStmt_BindColumn(stmt, 56, SQLDT_UINT32, &p->uniqueitem_counter, 0, NULL, NULL)
 	)
 	{
 		SqlStmt_ShowDebug(stmt);
@@ -3392,6 +3388,7 @@ int parse_frommap(int fd)
 						character->char_id == cid) )
 					{
 						struct mmo_charstatus char_dat;
+
 						memcpy(&char_dat, RFIFOP(fd,13), sizeof(struct mmo_charstatus));
 						mmo_char_tosql(cid, &char_dat);
 					} else { //This may be valid on char-server reconnection, when re-sending characters that already logged off.

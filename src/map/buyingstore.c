@@ -188,7 +188,7 @@ bool buyingstore_create(struct map_session_data* sd, int zenylimit, unsigned cha
 	}
 
 	// Success
-	sd->state.buyingstore = true;
+	sd->state.buyingstore = 1;
 	sd->buyer_id = buyingstore_getuid();
 	sd->buyingstore.zenylimit = zenylimit;
 	sd->buyingstore.slots = i; // Store actual amount of items
@@ -219,7 +219,7 @@ void buyingstore_close(struct map_session_data* sd) {
 				Sql_ShowDebug(mmysql_handle);
 
 		// Invalidate data
-		sd->state.buyingstore = false;
+		sd->state.buyingstore = 0;
 		memset(&sd->buyingstore, 0, sizeof(sd->buyingstore));
 
 		// Notify other players

@@ -75,9 +75,8 @@ int chat_createpcchat(struct map_session_data* sd, const char* title, const char
 	if( sd->chatID )
 		return 0; //Prevent people abusing the chat system by creating multiple chats, as pointed out by End of Exam. [Skotlex]
 
-	if( sd->state.vending || sd->state.buyingstore ) { // not chat, when you already have a store open
-		return 0;
-	}
+	if( sd->state.vending || sd->state.buyingstore )
+		return 0; //Not chat, when you already have a store open
 
 	if( map[sd->bl.m].flag.nochat ) {
 		clif_displaymessage(sd->fd, msg_txt(281));

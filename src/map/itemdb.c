@@ -930,7 +930,7 @@ static bool itemdb_read_buyingstore(char* fields[], int columns, int current)
 
 	nameid = atoi(fields[0]);
 
-	if( ( id = itemdb_exists(nameid) ) == NULL ) {
+	if( (id = itemdb_exists(nameid)) == NULL ) {
 		ShowWarning("itemdb_read_buyingstore: Invalid item id %d.\n", nameid);
 		return false;
 	}
@@ -940,7 +940,7 @@ static bool itemdb_read_buyingstore(char* fields[], int columns, int current)
 		return false;
 	}
 
-	id->flag.buyingstore = true;
+	id->flag.buyingstore = 1;
 
 	return true;
 }
@@ -1516,48 +1516,9 @@ static int itemdb_read_sqldb(void) {
 
 /** Unique item ID function
  * Only one operation by once
- * @param flag
- * 0 return new id
- * 1 set new value, checked with current value
- * 2 set new value bypassing anything
- * 3/other return last value
- * @param value
- * @return last value
  */
-uint64 itemdb_unique_id(int8 flag, int64 value) {
-	static uint64 item_uid = 0;
-
-	if (flag) {
-		if (flag == 1) {
-			if (item_uid < value)
-				return (item_uid = value);
-		} else if (flag == 2)
-			return (item_uid = value);
-
-		return item_uid;
-	}
-
-	return ++item_uid;
-}
-
-/**
- * Load Unique ID for Item
- */
-static void itemdb_uid_load(void) {
-	char * uid;
-
-	if (SQL_ERROR == Sql_Query(mmysql_handle, "SELECT `value` FROM `interreg` WHERE `varname`='unique_id'"))
-		Sql_ShowDebug(mmysql_handle);
-
-	if (SQL_SUCCESS != Sql_NextRow(mmysql_handle)) {
-		ShowError("itemdb_uid_load: Unable to fetch unique_id data\n");
-		Sql_FreeResult(mmysql_handle);
-		return;
-	}
-
-	Sql_GetData(mmysql_handle, 0, &uid, NULL);
-	itemdb_unique_id(1, (uint64)strtoull(uid, NULL, 10));
-	Sql_FreeResult(mmysql_handle);
+uint64 itemdb_unique_id(struct map_session_data *sd) {
+	return ((uint64)sd->status.char_id<<32)|sd->status.uniqueitem_counter++;
 }
 
 /** Check if the item is restricted by item_noequip.txt
@@ -1599,8 +1560,6 @@ static void itemdb_read(void) {
 	sv_readdb(db_path, "item_nouse.txt",         ',', 3, 3, -1, &itemdb_read_nouse);
 	sv_readdb(db_path, "item_stack.txt",         ',', 3, 3, -1, &itemdb_read_stack);
 	sv_readdb(db_path, DBPATH"item_trade.txt",   ',', 3, 3, -1, &itemdb_read_itemtrade);
-
-	itemdb_uid_load();
 }
 
 /*==========================================

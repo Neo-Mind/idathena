@@ -8807,26 +8807,55 @@ void clif_messagecolor(struct block_list* bl, unsigned long color, const char* m
 }
 
 
+/**
+ * Notifies the client that the storage window is still open
+ *
+ * Should only be used in cases where the client closed the 
+ * storage window without server's consent
+ */
+void clif_refresh_storagewindow(struct map_session_data *sd) {
+	// Notify the client that the storage is open
+	if( sd->state.storage_flag == 1 ) {
+		storage_sortitem(sd->status.storage.items, ARRAYLENGTH(sd->status.storage.items));
+		clif_storagelist(sd, sd->status.storage.items, ARRAYLENGTH(sd->status.storage.items));
+		clif_updatestorageamount(sd, sd->status.storage.storage_amount, MAX_STORAGE);
+	}
+	// Notify the client that the gstorage is open otherwise it will
+	// remain locked forever and nobody will be able to access it
+	if( sd->state.storage_flag == 2 ) {
+		struct guild_storage *gstor = guild2storage2(sd->status.guild_id);
+
+		if( !gstor ) // Shouldn't happen. The information should already be at the map-server
+			intif_request_guild_storage(sd->status.account_id, sd->status.guild_id);
+		else {
+			storage_sortitem(gstor->items, ARRAYLENGTH(gstor->items));
+			clif_storagelist(sd, gstor->items, ARRAYLENGTH(gstor->items));
+			clif_updatestorageamount(sd, gstor->storage_amount, MAX_GUILD_STORAGE);
+		}
+	}
+}
+
+
 // Refresh the client's screen, getting rid of any effects
 void clif_refresh(struct map_session_data *sd)
 {
 	int i;
 	nullpo_retv(sd);
 
-	clif_changemap(sd,sd->bl.m,sd->bl.x,sd->bl.y);
+	clif_changemap(sd, sd->bl.m, sd->bl.x, sd->bl.y);
 	clif_inventorylist(sd);
 	if( pc_iscarton(sd) ) {
 		clif_cartlist(sd);
-		clif_updatestatus(sd,SP_CARTINFO);
+		clif_updatestatus(sd, SP_CARTINFO);
 	}
-	clif_updatestatus(sd,SP_WEIGHT);
-	clif_updatestatus(sd,SP_MAXWEIGHT);
-	clif_updatestatus(sd,SP_STR);
-	clif_updatestatus(sd,SP_AGI);
-	clif_updatestatus(sd,SP_VIT);
-	clif_updatestatus(sd,SP_INT);
-	clif_updatestatus(sd,SP_DEX);
-	clif_updatestatus(sd,SP_LUK);
+	clif_updatestatus(sd, SP_WEIGHT);
+	clif_updatestatus(sd, SP_MAXWEIGHT);
+	clif_updatestatus(sd, SP_STR);
+	clif_updatestatus(sd, SP_AGI);
+	clif_updatestatus(sd, SP_VIT);
+	clif_updatestatus(sd, SP_INT);
+	clif_updatestatus(sd, SP_DEX);
+	clif_updatestatus(sd, SP_LUK);
 	if ( sd->spiritball )
 		clif_spiritball_single(sd->fd, sd);
 	for( i = 1; i < 5; i++ ) {
@@ -8834,25 +8863,25 @@ void clif_refresh(struct map_session_data *sd)
 			clif_talisman_single(sd->fd, sd, i);
 	}
 	if( sd->vd.cloth_color )
-		clif_refreshlook(&sd->bl,sd->bl.id,LOOK_CLOTHES_COLOR,sd->vd.cloth_color,SELF);
+		clif_refreshlook(&sd->bl, sd->bl.id, LOOK_CLOTHES_COLOR, sd->vd.cloth_color, SELF);
 	if( hom_is_active(sd->hd) )
-		clif_send_homdata(sd,SP_ACK,0);
+		clif_send_homdata(sd, SP_ACK, 0);
 	if( sd->md ) {
 		clif_mercenary_info(sd);
 		clif_mercenary_skillblock(sd);
 	}
 	if( sd->ed )
 		clif_elemental_info(sd);
-	map_foreachinrange(clif_getareachar,&sd->bl,AREA_SIZE,BL_ALL,sd);
+	map_foreachinrange(clif_getareachar, &sd->bl, AREA_SIZE, BL_ALL, sd);
 	clif_weather_check(sd);
 	if( sd->chatID )
-		chat_leavechat(sd,0);
+		chat_leavechat(sd, 0);
 	if( sd->state.vending )
 		clif_openvending(sd, sd->bl.id, sd->vending);
 	if( pc_issit(sd) )
 		clif_sitting(&sd->bl); // FIXME: Just send to self, not area
 	if( pc_isdead(sd) ) // When you refresh, resend the death packet.
-		clif_clearunit_single(sd->bl.id,CLR_DEAD,sd->fd);
+		clif_clearunit_single(sd->bl.id, CLR_DEAD, sd->fd);
 	else
 		clif_changed_dir(&sd->bl, SELF);
 	// Unlike vending, resuming buyingstore crashes the client.
@@ -8861,9 +8890,10 @@ void clif_refresh(struct map_session_data *sd)
 	if( disguised(&sd->bl) ) { /* Refresh-da */
 		short disguise = sd->disguise;
 
-		pc_disguise(sd,0);
-		pc_disguise(sd,disguise);
+		pc_disguise(sd, 0);
+		pc_disguise(sd, disguise);
 	}
+	clif_refresh_storagewindow(sd);
 }
 
 
@@ -11494,12 +11524,8 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 
 	if( (pc_cant_act2(sd) || sd->chatID) && skill_id != RK_REFRESH && !(skill_id == SR_GENTLETOUCH_CURE &&
 		(sd->sc.opt1 == OPT1_STONE || sd->sc.opt1 == OPT1_FREEZE || sd->sc.opt1 == OPT1_STUN)) &&
-		sd->state.storage_flag && !(tmp&INF_SELF_SKILL) ) //SELF skills can be used with the storage open, issue: 8027
+		sd->state.storage_flag && !(tmp&INF_SELF_SKILL) ) //SELF skills can be used with the storage open, bugreport:8027
 		return;
-
-	//Some self skills need to close the storage to work properly
-	if( skill_id == AL_TELEPORT && sd->state.storage_flag )
-		storage_storageclose(sd);
 
 	if( pc_issit(sd) )
 		return;
@@ -11691,12 +11717,14 @@ void clif_parse_UseSkillMap(int fd, struct map_session_data* sd)
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
 	uint16 skill_id = RFIFOW(fd,info->pos[0]);
 	char map_name[MAP_NAME_LENGTH];
+
 	mapindex_getmapname((char*)RFIFOP(fd,info->pos[1]), map_name);
 
-	if(skill_id != sd->menuskill_id)
+	if (skill_id != sd->menuskill_id)
 		return;
 
-	if( pc_cant_act(sd) ) {
+	//It is possible to use teleport with the storage window open bugreport:8027
+	if (pc_cant_act(sd) && !sd->state.storage_flag && skill_id != AL_TELEPORT) {
 		clif_menuskill_clear(sd);
 		return;
 	}
@@ -11724,6 +11752,7 @@ void clif_parse_ProduceMix(int fd,struct map_session_data *sd)
 	int slot1  = RFIFOW(fd,info->pos[1]);
 	int slot2  = RFIFOW(fd,info->pos[2]);
 	int slot3  = RFIFOW(fd,info->pos[3]);
+
 	switch( sd->menuskill_id ) {
 		case -1:
 		case AM_PHARMACY:
@@ -16407,8 +16436,8 @@ static void clif_parse_ReqOpenBuyingStore(int fd, struct map_session_data* sd)
 	safestrncpy(storename, (const char*)RFIFOP(fd,info->pos[3]), sizeof(storename));
 	itemlist  = RFIFOP(fd,info->pos[4]);
 
-	// so that buyingstore_create knows, how many elements it has access to
-	packet_len-= info->pos[4];
+	// So that buyingstore_create knows, how many elements it has access to
+	packet_len -= info->pos[4];
 
 	if( packet_len%blocksize ) {
 		ShowError("clif_parse_ReqOpenBuyingStore: Unexpected item list size %u (account_id=%d, block size=%u)\n", packet_len, sd->bl.id, blocksize);

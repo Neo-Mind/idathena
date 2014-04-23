@@ -111,6 +111,7 @@ CREATE TABLE IF NOT EXISTS `char` (
   `char_opt` int(11) unsigned NOT NULL default '0',
   `font` tinyint(3) unsigned NOT NULL default '0',
   `unban_time` int(11) unsigned NOT NULL default '0',
+  `uniqueitem_counter` bigint(20) unsigned NOT NULL default '0',
   PRIMARY KEY (`char_id`),
   UNIQUE KEY `name_key` (`name`),
   KEY `account_id` (`account_id`),
@@ -688,6 +689,7 @@ INSERT INTO `sql_updates` (`timestamp`) VALUES (1383205740);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1383955424);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1384473995);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1384545461);
+INSERT INTO `sql_updates` (`timestamp`) VALUES (1384588175);
 
 --
 -- Table structure for table `sstatus`
@@ -732,7 +734,6 @@ CREATE TABLE IF NOT EXISTS `interreg` (
   `value` varchar(20) NOT NULL,
    PRIMARY KEY (`varname`)
 ) ENGINE=InnoDB;
-INSERT INTO `interreg` (`varname`, `value`) VALUES ('unique_id', '0');
 
 --
 -- Table structure for table `bonus_script`
