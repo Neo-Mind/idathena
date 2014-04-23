@@ -1594,15 +1594,14 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			break;
 	} //End of switch skill_id
 
+	//Pass heritage to Master for status causing effects. [Skotlex]
 	if( md && battle_config.summons_trigger_autospells && md->master_id && md->special_state.ai ) {
-		//Pass heritage to Master for status causing effects. [Skotlex]
 		sd = map_id2sd(md->master_id);
 		src = (sd ? &sd->bl : src);
 	}
 
 	if( attack_type&BF_WEAPON ) {
-		//Coma, Breaking Equipment
-		if( sd && sd->special_state.bonus_coma ) {
+		if( sd && sd->special_state.bonus_coma ) { //Coma, Breaking Equipment
 			rate  = sd->weapon_coma_ele[tstatus->def_ele] + sd->weapon_coma_ele[ELE_ALL];
 			rate += sd->weapon_coma_race[tstatus->race] + sd->weapon_coma_race[RC_ALL];
 			rate += sd->weapon_coma_class[tstatus->class_] + sd->weapon_coma_class[CLASS_ALL];
@@ -1610,7 +1609,6 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				status_change_start(src,bl,SC_COMA,rate,0,0,src->id,0,0,0);
 		}
 		if( sd && battle_config.equip_self_break_rate ) {
-			//Self weapon breaking
 			rate = battle_config.equip_natural_break_rate;
 			if( sc ) {
 				if( sc->data[SC_GIANTGROWTH] )
@@ -1620,35 +1618,37 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				if( sc->data[SC_MAXOVERTHRUST] )
 					rate += 10;
 			}
-			if( rate )
+			if( rate ) //Self weapon breaking
 				skill_break_equip(src,src,EQP_WEAPON,rate,BCT_SELF);
 		}
+		//Cart Termination / Tomahawk won't trigger breaking data. Why? No idea, go ask Gravity.
 		if( battle_config.equip_skill_break_rate && skill_id != WS_CARTTERMINATION && skill_id != ITM_TOMAHAWK ) {
-			//Cart Termination / Tomahawk won't trigger breaking data. Why? No idea, go ask Gravity.
-			//Target weapon breaking
 			rate = 0;
 			if( sd )
 				rate += sd->bonus.break_weapon_rate;
 			if( sc && sc->data[SC_MELTDOWN] )
 				rate += sc->data[SC_MELTDOWN]->val2;
-			if( rate )
+			if( rate ) //Target weapon breaking
 				skill_break_equip(src,bl,EQP_WEAPON,rate,BCT_ENEMY);
 
-			//Target armor breaking
 			rate = 0;
 			if( sd )
 				rate += sd->bonus.break_armor_rate;
 			if( sc && sc->data[SC_MELTDOWN] )
 				rate += sc->data[SC_MELTDOWN]->val3;
-			if( rate )
+			if( rate ) //Target armor breaking
 				skill_break_equip(src,bl,EQP_ARMOR,rate,BCT_ENEMY);
 		}
-		if( sd && sd->def_set_race[tstatus->race].rate )
-			status_change_start(src,bl,SC_DEFSET,sd->def_set_race[tstatus->race].rate,sd->def_set_race[tstatus->race].value,
-			0,0,0,sd->def_set_race[tstatus->race].tick,2);
-		if( sd && sd->def_set_race[tstatus->race].rate )
-			status_change_start(src,bl,SC_MDEFSET,sd->mdef_set_race[tstatus->race].rate,sd->mdef_set_race[tstatus->race].value,
-			0,0,0,sd->mdef_set_race[tstatus->race].tick,2);
+		if( sd && !skill_id ) { //This effect does not work with skills
+			if( bl->type == BL_PC ) {
+				if( sd->def_set_race[tstatus->race].rate )
+					status_change_start(src,bl,SC_DEFSET,sd->def_set_race[tstatus->race].rate,sd->def_set_race[tstatus->race].value,
+						0,0,0,sd->def_set_race[tstatus->race].tick,2);
+				if( sd->def_set_race[tstatus->race].rate )
+					status_change_start(src,bl,SC_MDEFSET,sd->mdef_set_race[tstatus->race].rate,sd->mdef_set_race[tstatus->race].value,
+						0,0,0,sd->mdef_set_race[tstatus->race].tick,2);
+			}
+		}
 	}
 
 	if( sd && sd->ed && sc && !status_isdead(bl) && !skill_id ) {

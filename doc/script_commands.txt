@@ -5315,7 +5315,7 @@ autobonus and autobonus3).
 //Grants a 1% chance of starting the state "all stats +10" for 10 seconds when
 //using weapon or misc attacks (both melee and ranged skills) and shows a special 
 //effect when the bonus is active.
-	autobonus "{ bonus bAllStats,10; }",10,10000,BF_WEAPON|BF_MISC,"{ specialeffect2 EF_FIRESPLASHHIT; }";
+	autobonus "{ bonus bAllStats,10; }",100,10000,BF_WEAPON|BF_MISC,"{ specialeffect2 EF_FIRESPLASHHIT; }";
 
 ---------------------------------------
 

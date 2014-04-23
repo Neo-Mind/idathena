@@ -1087,8 +1087,8 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_VITATA_500] |= SCB_REGEN;
 	StatusChangeFlagTable[SC_EXTRACT_SALAMINE_JUICE] |= SCB_ASPD;
 	StatusChangeFlagTable[SC_REBOUND] |= SCB_SPEED|SCB_REGEN;
-	StatusChangeFlagTable[SC_DEFSET] |= SCB_DEF;
-	StatusChangeFlagTable[SC_MDEFSET] |= SCB_MDEF;
+	StatusChangeFlagTable[SC_DEFSET] |= SCB_DEF|SCB_DEF2;
+	StatusChangeFlagTable[SC_MDEFSET] |= SCB_MDEF|SCB_MDEF2;
 	StatusChangeFlagTable[SC_WEDDING] |= SCB_SPEED;
 	StatusChangeFlagTable[SC_ALL_RIDING] |= SCB_SPEED;
 	StatusChangeFlagTable[SC_PUSH_CART] |= SCB_SPEED;
@@ -5386,8 +5386,6 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 	if(!sc || !sc->count)
 		return (defType)cap_value(def,DEFTYPE_MIN,DEFTYPE_MAX);
 
-	if(sc->data[SC_DEFSET]) //FIXME: Find out if this really overrides all other SCs
-		return sc->data[SC_DEFSET]->val1;
 	if(sc->data[SC_BERSERK])
 		return 0;
 	if(sc->data[SC_SKA])
@@ -5400,6 +5398,10 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 	if(sc->data[SC_STEELBODY])
 		return 90;
 #endif
+	if(sc->data[SC_DEFSET])
+		return sc->data[SC_DEFSET]->val1;
+	if(sc->data[SC_UNLIMIT])
+		return 1;
 
 	if(sc->data[SC_ARMORCHANGE])
 		def += sc->data[SC_ARMORCHANGE]->val2;
@@ -5465,8 +5467,6 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 		def -= def * sc->data[SC_ASH]->val3 / 100;
 	if(sc->data[SC_OVERED_BOOST])
 		def -= def * sc->data[SC_OVERED_BOOST]->val3 / 100;
-	if(sc->data[SC_UNLIMIT])
-		return 1;
 
 	return (defType)cap_value(def,DEFTYPE_MIN,DEFTYPE_MAX);;
 }
@@ -5484,6 +5484,10 @@ static short status_calc_def2(struct block_list *bl, struct status_change *sc, i
 		return 0;
 	if(sc->data[SC_ETERNALCHAOS])
 		return 0;
+	if(sc->data[SC_DEFSET])
+		return sc->data[SC_DEFSET]->val1;
+	if(sc->data[SC_UNLIMIT])
+		return 1;
 
 	if(sc->data[SC_SUN_COMFORT])
 		def2 += sc->data[SC_SUN_COMFORT]->val2;
@@ -5523,8 +5527,6 @@ static short status_calc_def2(struct block_list *bl, struct status_change *sc, i
 		def2 -= def2 * sc->data[SC_PARALYSIS]->val2 / 100;
 	if(sc->data[SC_EQC])
 		def2 -= def2 * sc->data[SC_EQC]->val2 / 100;
-	if(sc->data[SC_UNLIMIT])
-		return 1;
 
 #ifdef RENEWAL
 	return (short)cap_value(def2,SHRT_MIN,SHRT_MAX);
@@ -5539,8 +5541,6 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 	if(!sc || !sc->count)
 		return (defType)cap_value(mdef,DEFTYPE_MIN,DEFTYPE_MAX);
 
-	if(sc->data[SC_MDEFSET]) //FIXME: Find out if this really overrides all other SCs
-		return sc->data[SC_MDEFSET]->val1;
 	if(sc->data[SC_BERSERK])
 		return 0;
 	if(sc->data[SC_BARRIER])
@@ -5549,6 +5549,10 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 	if(sc->data[SC_STEELBODY])
 		return 90;
 #endif
+	if(sc->data[SC_MDEFSET])
+		return sc->data[SC_MDEFSET]->val1;
+	if(sc->data[SC_UNLIMIT])
+		return 1;
 
 	if(sc->data[SC_ARMORCHANGE])
 		mdef += sc->data[SC_ARMORCHANGE]->val3;
@@ -5579,8 +5583,6 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 	}
 	if(sc->data[SC_ODINS_POWER])
 		mdef -= 20 * sc->data[SC_ODINS_POWER]->val1;
-	if(sc->data[SC_UNLIMIT])
-		return 1;
 
 	return (defType)cap_value(mdef,DEFTYPE_MIN,DEFTYPE_MAX);
 }
@@ -5598,14 +5600,17 @@ static short status_calc_mdef2(struct block_list *bl, struct status_change *sc, 
 		return 0;
 	if(sc->data[SC_SKA])
 		return 90;
+	if(sc->data[SC_MDEFSET])
+		return sc->data[SC_MDEFSET]->val1;
+	if(sc->data[SC_UNLIMIT])
+		return 1;
+
 	if(sc->data[SC_MINDBREAKER])
 		mdef2 -= mdef2 * sc->data[SC_MINDBREAKER]->val3 / 100;
 	if(sc->data[SC_BURNING])
 		mdef2 -= mdef2 * 25 / 100;
 	if(sc->data[SC_ANALYZE])
 		mdef2 -= mdef2 * (14 * sc->data[SC_ANALYZE]->val1) / 100;
-	if(sc->data[SC_UNLIMIT])
-		return 1;
 
 #ifdef RENEWAL
 	return (short)cap_value(mdef2,SHRT_MIN,SHRT_MAX);
