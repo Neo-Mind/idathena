@@ -4607,11 +4607,10 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 
 	if( item_data->nameid <= 0 || amount <= 0 )
 		return 1;
-	data = itemdb_search(item_data->nameid);
 
-	if( data->stack.cart && amount > data->stack.amount ) { //Item stack limitation
-		return 1;
-	}
+	data = itemdb_search(item_data->nameid);
+	if( data->stack.cart && amount > data->stack.amount )
+		return 1; //Item stack limitation
 
 	if( !itemdb_cancartstore(item_data, pc_get_group_level(sd)) || (item_data->bound > 1 && !pc_can_give_bounded_items(sd)) ) { //Check item trade restrictions [Skotlex]
 		clif_displaymessage(sd->fd, msg_txt(264));
@@ -4620,6 +4619,9 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 
 	if( (w = data->weight * amount) + sd->cart_weight > sd->cart_weight_max )
 		return 1;
+
+	//ID no longer points to inventory/kafra id, while we get a new one, we don't want to mess up vending creation [Baalberith]
+	item_data->id = 0;
 
 	i = MAX_CART;
 	if( itemdb_isstackable2(data) && !item_data->expire_time ) {
@@ -9005,6 +9007,11 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 				status_change_end(&sd->bl,SC_FEARBREEZE,INVALID_TIMER);
 			if( sd->sc.data[SC_EXEEDBREAK] )
 				status_change_end(&sd->bl,SC_EXEEDBREAK,INVALID_TIMER);
+		}
+		if( sd->inventory_data[n]->type == IT_ARMOR &&
+			sd->inventory_data[n]->nameid == ITEMID_HOVERING_BOOSTER ) {
+			if( sd->sc.data[SC_HOVERING] )
+				status_change_end(&sd->bl,SC_HOVERING,INVALID_TIMER);
 		}
 		if( sd->sc.data[SC_HEAT_BARREL] )
 			status_change_end(&sd->bl,SC_HEAT_BARREL,INVALID_TIMER);

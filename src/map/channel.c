@@ -492,8 +492,8 @@ int channel_display_list(struct map_session_data *sd, char *options){
 
 		clif_displaymessage(sd->fd, msg_txt(1444)); // ---- Available Colors ----
 		for(k = 0; k < Channel_Config.colors_count; k++) {
-			sprintf(msg, msg_txt(1445),Channel_Config.colors_name[k]); // - '%s'
-			clif_colormes(sd,Channel_Config.colors[k],msg);
+			sprintf(msg, msg_txt(1445), Channel_Config.colors_name[k]); // - '%s'
+			clif_colormes(sd, Channel_Config.colors[k], msg);
 		}
 	} else if(options[0] != '\0' && strcmpi(options,"mine") == 0) { //Display chan I'm into
 		clif_displaymessage(sd->fd, msg_txt(1475)); // ---- My Channels ----

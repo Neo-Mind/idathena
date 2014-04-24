@@ -342,6 +342,17 @@ bool vending_openvending(struct map_session_data* sd, const char* message, const
 		sd->vending[i].amount = amount;
 		sd->vending[i].value = min(value, (unsigned int)battle_config.vending_max_value);
 
+		//Player just moved item to cart and we don't have the correct cart ID yet [Baalberith]
+		if( sd->status.cart[sd->vending[i].index].id == 0 ) {
+			struct item_data *idb = itemdb_search(sd->status.cart[index].nameid);
+			char msg[256];
+
+			snprintf(msg, 256, "Item %s isn't yet saved. Please relog in order to correctly save your vending.", idb->jname);
+			clif_colormes(sd, color_table[COLOR_RED], msg);
+			clif_skill_fail(sd, MC_VENDING, USESKILL_FAIL_LEVEL, 0);
+			return false;
+		}
+
 		i++; //Item successfully added
 	}
 
