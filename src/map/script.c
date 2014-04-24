@@ -17800,13 +17800,13 @@ BUILDIN_FUNC(countbound)
 	if( (sd = script_rid2sd(st)) == NULL )
 		return 0;
 
-	type = script_hasdata(st,2) ? script_getnum(st,2) : 0;
+	type = (script_hasdata(st,2) ? script_getnum(st,2) : 0);
 
 	for( i = 0; i < MAX_INVENTORY; i++ ) {
-		if( sd->status.inventory[i].nameid > 0 && (
-			(!type && sd->status.inventory[i].bound > 0) ||
-			(type && sd->status.inventory[i].bound == type)
-		) ) {
+		if( sd->status.inventory[i].nameid > 0 &&
+			((!type && sd->status.inventory[i].bound > 0) ||
+			(type && sd->status.inventory[i].bound == type)) )
+		{
 			pc_setreg(sd,reference_uid(add_str("@bound_items"),k),sd->status.inventory[i].nameid);
 			k++;
 			j += sd->status.inventory[i].amount;

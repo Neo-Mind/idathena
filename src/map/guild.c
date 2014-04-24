@@ -866,7 +866,7 @@ int guild_member_withdraw(int guild_id, int account_id, int char_id, int flag, c
 #ifdef BOUND_ITEMS
 void guild_retrieveitembound(int char_id,int aid,int guild_id)
 {
-	TBL_PC *sd = map_charid2sd(aid);
+	TBL_PC *sd = map_charid2sd(char_id);
 
 	if( sd ) { //Character is online
 		int idxlist[MAX_INVENTORY];
@@ -895,6 +895,7 @@ void guild_retrieveitembound(int char_id,int aid,int guild_id)
 
 			for( i = 0; i < g->max_member; i++ ) {
 				TBL_PC *pl_sd = g->member[i].sd;
+
 				if( pl_sd && pl_sd->state.storage_flag == 2 )
 					storage_guild_storageclose(pl_sd);
 			}
