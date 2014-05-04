@@ -4007,7 +4007,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case RK_SONICWAVE:
 		case RK_HUNDREDSPEAR:
 		case RK_STORMBLAST:
-		case RK_CRUSHSTRIKE:
 		case AB_DUPLELIGHT_MELEE:
 		case RA_AIMEDBOLT:
 		case NC_AXEBOOMERANG:
@@ -6071,7 +6070,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case RK_GIANTGROWTH:
 		case RK_VITALITYACTIVATION:
 		case RK_ABUNDANCE:
-		case RK_CRUSHSTRIKE:
 		case ALL_ODINS_POWER:
 		case RL_E_CHAIN:
 		case RL_P_ALTER:
@@ -8404,6 +8402,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				else
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			}
+			break;
+
+		case RK_CRUSHSTRIKE:
+			clif_skill_nodamage(src,bl,skill_id,skill_lv,
+				sc_start2(src,bl,type,100,skill_lv,0,skill_get_time(skill_id,skill_lv)));
 			break;
 
 		case RK_REFRESH: {

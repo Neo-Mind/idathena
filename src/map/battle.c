@@ -2029,8 +2029,13 @@ static bool is_attack_critical(struct Damage wd, struct block_list *src, struct 
 			if(is_skill_using_arrow(src, skill_id))
 				cri += sd->bonus.arrow_cri;
 		}
-		if(sc && sc->data[SC_CAMOUFLAGE])
-			cri += 100 * min(10, sc->data[SC_CAMOUFLAGE]->val3); //Max 100% (1K)
+
+		if(sc) {
+			if(sc->data[SC_CRUSHSTRIKE] && sc->data[SC_CRUSHSTRIKE]->val2)
+				return true; //From Knight Auto Counter
+			if(sc->data[SC_CAMOUFLAGE])
+				cri += 100 * min(10, sc->data[SC_CAMOUFLAGE]->val3); //Max 100% (1K)
+		}
 
 		//The official equation is * 2, but that only applies when sd's do critical.
 		//Therefore, we use the old value 3 on cases when an sd gets attacked by a mob
@@ -2055,6 +2060,7 @@ static bool is_attack_critical(struct Damage wd, struct block_list *src, struct 
 				cri += 250 + 50 * skill_lv;
 				break;
 		}
+
 		if(tsd && tsd->bonus.critical_def)
 			cri = cri * (100 - tsd->bonus.critical_def) / 100;
 		return (rnd()%1000 < cri);
@@ -3103,18 +3109,6 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 		case MER_CRASH:
 			skillratio += 10 * skill_lv;
 			break;
-		case KN_AUTOCOUNTER:
-			if(sc && sc->data[SC_CRUSHSTRIKE]) {
-				if(sd) {
-					//ATK [{Weapon Level * (Weapon Upgrade Level + 6) * 100} + (Weapon ATK) + (Weapon Weight)]%
-					short index = sd->equip_index[EQI_HAND_R];
-
-					if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
-						skillratio = sd->inventory_data[index]->weight / 10 + sstatus->rhw.atk +
-							100 * sd->inventory_data[index]->wlv * (sd->status.inventory[index].refine + 6);
-				}
-			}
-			break;
 		case KN_SPEARSTAB:
 			skillratio += 15 * skill_lv;
 			break;
@@ -3125,7 +3119,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd, struct block_list *s
 		case ML_BRANDISH: {
 				int ratio = 100 + 20 * skill_lv;
 
-				skillratio += ratio - 100;
+				skillratio += -100 + ratio;
 				if(skill_lv > 3 && wd.miscflag == 1)
 					skillratio += ratio / 2;
 				if(skill_lv > 6 && wd.miscflag == 1)
@@ -6929,9 +6923,24 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			clif_skillcastcancel(target); //Remove the casting bar. [Skotlex]
 			clif_damage(src,target,tick,sstatus->amotion,1,0,1,0,0); //Display MISS.
 			status_change_end(target,SC_AUTOCOUNTER,INVALID_TIMER);
-			skill_attack(BF_WEAPON,target,target,src,KN_AUTOCOUNTER,skill_lv,tick,0);
-			if (tsc->data[SC_CRUSHSTRIKE])
+			if (tsc->data[SC_CRUSHSTRIKE]) {
+				int damagerate = 0;
+
+				wd = battle_calc_attack(BF_WEAPON,target,src,0,0,flag);
+				tsc->data[SC_CRUSHSTRIKE]->val2 = 1;
+				if(tsd) {
+					short index = tsd->equip_index[EQI_HAND_R];
+
+					//ATK [{Weapon Level * (Weapon Upgrade Level + 6) * 100} + (Weapon ATK) + (Weapon Weight)]%
+					if(index >= 0 && tsd->inventory_data[index] && tsd->inventory_data[index]->type == IT_WEAPON)
+						damagerate = tsd->inventory_data[index]->weight / 10 + tstatus->rhw.atk +
+							100 * tsd->inventory_data[index]->wlv * (tsd->status.inventory[index].refine + 6);
+				}
+				wd.damage += wd.damage * damagerate / 100;
+				unit_attack(target,src->id,0);
 				status_change_end(target,SC_CRUSHSTRIKE,INVALID_TIMER);
+			} else
+				skill_attack(BF_WEAPON,target,target,src,KN_AUTOCOUNTER,skill_lv,tick,0);
 			return ATK_BLOCK;
 		}
 	}
@@ -6999,14 +7008,6 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			if (sd && rnd()%100 < sc->data[SC_GT_ENERGYGAIN]->val3)
 				pc_addspiritball(sd,skill_get_time2(SR_GENTLETOUCH_ENERGYGAIN,sc->data[SC_GT_ENERGYGAIN]->val1),spheremax);
 		}
-		if (sc && sc->data[SC_CRUSHSTRIKE]) {
-			uint16 skill_lv = sc->data[SC_CRUSHSTRIKE]->val1;
-
-			status_change_end(src,SC_CRUSHSTRIKE,INVALID_TIMER);
-			if (skill_attack(BF_WEAPON,src,src,target,RK_CRUSHSTRIKE,skill_lv,tick,0))
-				return ATK_DEF;
-			return ATK_MISS;
-		}
 	}
 
 	if (tsc && tsc->data[SC_GT_ENERGYGAIN] && tsc->data[SC_GT_ENERGYGAIN]->val2) {
@@ -7029,6 +7030,19 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	wd = battle_calc_attack(BF_WEAPON,src,target,0,0,flag);
 
 	if (sc && sc->count) {
+		if (sc->data[SC_CRUSHSTRIKE]) {
+			int damagerate = 0;
+
+			if(sd) {
+				short index = sd->equip_index[EQI_HAND_R];
+
+				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
+					damagerate = sd->inventory_data[index]->weight / 10 + sstatus->rhw.atk +
+						100 * sd->inventory_data[index]->wlv * (sd->status.inventory[index].refine + 6);
+			}
+			wd.damage += wd.damage * damagerate / 100;
+			status_change_end(src,SC_CRUSHSTRIKE,INVALID_TIMER);
+		}
 		if (sd && sc->data[SC_FEARBREEZE] && sc->data[SC_FEARBREEZE]->val4 > 0 &&
 			sd->status.inventory[sd->equip_index[EQI_AMMO]].amount >= sc->data[SC_FEARBREEZE]->val4 &&
 			battle_config.arrow_decrement)

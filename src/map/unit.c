@@ -1870,30 +1870,32 @@ int unit_attack(struct block_list *src,int target_id,int continuous)
 	nullpo_ret(ud = unit_bl2ud(src));
 
 	target = map_id2bl(target_id);
-	if( target == NULL || status_isdead(target) ) {
+	if(target == NULL || status_isdead(target)) {
 		unit_unattackable(src);
 		return 1;
 	}
 
-	if( src->type == BL_PC ) {
+	if(src->type == BL_PC) {
 		TBL_PC* sd = (TBL_PC*)src;
-		if( target->type == BL_NPC ) { //Monster npcs [Valaris]
+		if(target->type == BL_NPC) { //Monster npcs [Valaris]
 			npc_click(sd,(TBL_NPC*)target); //Submitted by leinsirk10 [Celest]
 			return 0;
 		}
-		if( pc_is90overweight(sd) || pc_isridingwug(sd) ) { //Overweight or mounted on warg - stop attacking
+		if(pc_is90overweight(sd) || pc_isridingwug(sd)) { //Overweight or mounted on warg - stop attacking
 			unit_stop_attack(src);
 			return 0;
 		}
 	}
-	if( battle_check_target(src,target,BCT_ENEMY) <= 0 || !status_check_skilluse(src, target, 0, 0) ) {
+
+	if(battle_check_target(src,target,BCT_ENEMY) <= 0 || !status_check_skilluse(src,target,0,0)) {
 		unit_unattackable(src);
 		return 1;
 	}
+
 	ud->state.attack_continue = continuous;
 	unit_set_target(ud, target_id);
 
-	if (continuous) //If you're to attack continously, set to auto-case character
+	if(continuous) //If you're to attack continously, set to auto-case character
 		ud->chaserange = status_get_range(src);
 
 	//Just change target/type. [Skotlex]
@@ -1902,10 +1904,10 @@ int unit_attack(struct block_list *src,int target_id,int continuous)
 
 	//Set Mob's ANGRY/BERSERK states.
 	if(src->type == BL_MOB)
-		((TBL_MOB*)src)->state.skillstate = ((TBL_MOB*)src)->state.aggressive?MSS_ANGRY:MSS_BERSERK;
+		((TBL_MOB*)src)->state.skillstate = (((TBL_MOB*)src)->state.aggressive ? MSS_ANGRY : MSS_BERSERK);
 
+	//Do attack next time it is possible. [Skotlex]
 	if(DIFF_TICK(ud->attackabletime,gettick()) > 0)
-		//Do attack next time it is possible. [Skotlex]
 		ud->attacktimer = add_timer(ud->attackabletime,unit_attack_timer,src->id,0);
 	else //Attack NOW.
 		unit_attack_timer(INVALID_TIMER,gettick(),src->id,0);

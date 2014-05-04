@@ -758,7 +758,7 @@ static int elemental_ai_sub_timer(struct elemental_data *ed, struct map_session_
 		if( ed->ud.target == target->id && ed->ud.attacktimer != INVALID_TIMER ) //Already locked.
 			return 1;
 
-		if( battle_check_range(&ed->bl, target, ed->base_status.rhw.range) ) {//Target within range, engage
+		if( battle_check_range(&ed->bl, target, ed->base_status.rhw.range) ) { //Target within range, engage
 			unit_attack(&ed->bl,target->id,1);
 			return 1;
 		}
