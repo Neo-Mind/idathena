@@ -5287,7 +5287,7 @@ static short status_calc_flee(struct block_list *bl, struct status_change *sc, i
 	if(!sc || !sc->count)
 		return (short)cap_value(flee,1,SHRT_MAX);
 	if(sc->data[SC_TINDER_BREAKER] || sc->data[SC_TINDER_BREAKER2])
-		return 1; //1 = Min flee
+		return 1;
 
 	if(sc->data[SC_INCFLEE])
 		flee += sc->data[SC_INCFLEE]->val1;
@@ -8485,16 +8485,15 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					if( src )
 						mob_log_damage((TBL_MOB*)bl,src,status->hp - 1);
 				}
-				status_zap(bl,status->hp - 1,val2 ? 0 : status->sp);
+				status_zap(bl,status->hp - 1,(val2 ? 0 : status->sp));
 				return 1;
-				break;
 			case SC_TINDER_BREAKER2:
 			case SC_CLOSECONFINE2:
 				{
-					struct block_list *src = val2 ? map_id2bl(val2) : NULL;
-					struct status_change *sc2 = src ? status_get_sc(src) : NULL;
-					enum sc_type type2 = ((type == SC_TINDER_BREAKER2) ? SC_TINDER_BREAKER : SC_CLOSECONFINE);
-					struct status_change_entry *sce2 = sc2 ? sc2->data[type2] : NULL;
+					struct block_list *src = (val2 ? map_id2bl(val2) : NULL);
+					struct status_change *sc2 = (src ? status_get_sc(src) : NULL);
+					enum sc_type type2 = (type == SC_TINDER_BREAKER2 ? SC_TINDER_BREAKER : SC_CLOSECONFINE);
+					struct status_change_entry *sce2 = (sc2 ? sc2->data[type2] : NULL);
 
 					if( src && sc2 ) {
 						if( !sce2 ) //Start lock on caster
@@ -8533,6 +8532,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					//val3: TK: Last used kick
 					//val4: TK: Combo time
 					struct unit_data *ud = unit_bl2ud(bl);
+
 					if( ud && !val3 ) {
 						tick += 300 * battle_config.combo_delay_rate / 100;
 						ud->attackabletime = gettick() + tick;
@@ -9630,7 +9630,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC__MANHOLE:
 		case SC_CRYSTALIZE:
 		case SC_CURSEDCIRCLE_ATKER:
-		case SC_CURSEDCIRCLE_TARGET:
 		case SC_FEAR:
 		case SC_NETHERWORLD:
 		case SC_MEIKYOUSISUI:
@@ -9642,8 +9641,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_ANKLE:
 		case SC_SPIDERWEB:
 		case SC_ELECTRICSHOCKER:
+		case SC_CURSEDCIRCLE_TARGET:
 			{
-				int knockback_immune = sd ? !sd->special_state.no_knockback : !(status->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS));
+				int knockback_immune = (sd ? !sd->special_state.no_knockback : !(status->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS)));
 
 				if (knockback_immune) {
 					if (!battle_config.skill_trap_type && map_flag_gvg2(bl->m))
@@ -10370,10 +10370,10 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			{
 				struct block_list *src = (sce->val2 ? map_id2bl(sce->val2) : NULL);
 				struct status_change *sc2 = (src ? status_get_sc(src) : NULL);
-				enum sc_type type2 = ((type == SC_CLOSECONFINE2) ? SC_CLOSECONFINE : SC_TINDER_BREAKER);
+				enum sc_type type2 = (type == SC_CLOSECONFINE2 ? SC_CLOSECONFINE : SC_TINDER_BREAKER);
 
+				//If status was already ended, do nothing.
 				if (src && sc2 && sc2->data[type2]) {
-					//If status was already ended, do nothing.
 					//Decrease count
 					if (type == SC_TINDER_BREAKER2 || (--(sc2->data[type2]->val1) <= 0)) //No more holds, free him up.
 						status_change_end(src,type2,INVALID_TIMER);
@@ -10383,9 +10383,9 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_CLOSECONFINE:
 			if (sce->val2 > 0) {
 				//Caster has been unlocked, nearby chars need to be unlocked.
-				int range = 1
-					+ skill_get_range2(bl,status_sc2skill(type),sce->val1)
-					+ skill_get_range2(bl,TF_BACKSLIDING,1); //Since most people use this to escape the hold.
+				int range = 1 +
+					skill_get_range2(bl,status_sc2skill(type),sce->val1) +
+					skill_get_range2(bl,TF_BACKSLIDING,1); //Since most people use this to escape the hold.
 
 				map_foreachinarea(status_change_timer_sub,
 					bl->m,bl->x-range,bl->y-range,bl->x+range,bl->y+range,BL_CHAR,bl,sce,type,gettick());
@@ -11905,8 +11905,9 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 		case SC_TINDER_BREAKER:
 		case SC_CLOSECONFINE:
 			{
-				enum sc_type type2 = ((type == SC_CLOSECONFINE) ? SC_CLOSECONFINE2 : SC_TINDER_BREAKER2);
-				//Lock char has released the hold on everyone.
+				enum sc_type type2 = (type == SC_CLOSECONFINE ? SC_CLOSECONFINE2 : SC_TINDER_BREAKER2);
+
+				//Locked char has released the hold on everyone.
 				if( tsc && tsc->data[type2] && tsc->data[type2]->val2 == src->id ) {
 					tsc->data[type2]->val2 = 0;
 					status_change_end(bl, type2, INVALID_TIMER);

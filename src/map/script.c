@@ -13537,7 +13537,8 @@ BUILDIN_FUNC(summon)
 	int tick = gettick();
 
 	sd = script_rid2sd(st);
-	if( !sd ) return 0;
+	if( !sd )
+		return 0;
 
 	str	= script_getstr(st,2);
 	_class = script_getnum(st,3);

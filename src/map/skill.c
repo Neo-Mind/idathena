@@ -5298,17 +5298,14 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				TBL_HOM *hd = BL_CAST(BL_HOM,src);
 
 				duration = max(skill_lv,(status_get_str(src) / 7 - status_get_str(bl) / 10)) * 1000; //Yommy formula
-				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
-				hom_delspiritball(hd,(skill_id == MH_EQC ? 2 : 1),0); //Only EQC consume 2 spiritballs
+				if (skill_id == MH_TINDER_BREAKER && unit_movepos(src,bl->x,bl->y,1,1)) {
+					clif_slide(src,bl->x,bl->y);
+					clif_fixpos(src);
+				}
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,
 					sc_start4(src,bl,status_skill2sc(skill_id),100,skill_lv,src->id,0,0,duration));
-				if (skill_id == MH_TINDER_BREAKER && unit_movepos(src,bl->x,bl->y,1,1)) {
-#if PACKETVER >= 20111005
-					clif_snap(src,bl->x,bl->y);
-#else
-					clif_skill_poseffect(src,skill_id,skill_lv,bl->x,bl->y,tick);
-#endif
-				}
+				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
+				hom_delspiritball(hd,(skill_id == MH_EQC ? 2 : 1),0); //Only EQC consume 2 spiritballs
 			}
 			break;
 
@@ -5985,8 +5982,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			/* Check if the target is an enemy; if not,skill should fail so the character doesn't unit_movepos (exploitable) */
 			if( battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
 				if( unit_movepos(src,bl->x,bl->y,1,1) ) {
-					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 					clif_slide(src,bl->x,bl->y);
+					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 				}
 			}
 			else

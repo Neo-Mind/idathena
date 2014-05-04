@@ -8043,7 +8043,7 @@ void pc_setoption(struct map_session_data *sd,int type)
 			status_change_end(&sd->bl,SC_CARTBOOST,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_MELTDOWN,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_MAXOVERTHRUST,INVALID_TIMER);
-		} else if (!(type&OPTION_MADOGEAR) && p_type&OPTION_MADOGEAR) {
+		} else if (!(type&OPTION_MADOGEAR) && (p_type&OPTION_MADOGEAR)) {
 			status_calc_pc(sd,SCO_NONE);
 			status_change_end(&sd->bl,SC_SHAPESHIFT,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_HOVERING,INVALID_TIMER);
@@ -9106,7 +9106,7 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 
 				if( !sd->status.inventory[n].card[i] )
 					continue;
-				if( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
+				if( (data = itemdb_exists(sd->status.inventory[n].card[i])) != NULL ) {
 					if( data->combos_count ) {
 						if( pc_removecombo(sd,data) )
 							status_cacl = true;
@@ -9137,7 +9137,7 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 				if( !sd->status.inventory[n].card[i] )
 					continue;
 
-				if( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
+				if( (data = itemdb_exists(sd->status.inventory[n].card[i])) != NULL ) {
 					if( data->unequip_script )
 						run_script(data->unequip_script,0,sd->bl.id,fake_nd->bl.id);
 				}
