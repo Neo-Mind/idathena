@@ -1685,7 +1685,7 @@ int unit_skilluse_pos2(struct block_list *src, short skill_x, short skill_y, uin
 		if(skill_isNotOk(skill_id, sd) || !skill_check_condition_castbegin(sd, skill_id, skill_lv))
 			return 0;
 		/**
-		 * "WHY IS IT HEREE": pneuma cannot be cancelled past this point, the client displays the animation even,
+		 * "WHY IS IT HEREE": Pneuma cannot be cancelled past this point, the client displays the animation even,
 		 * if we cancel it from nodamage_id, so it has to be here for it to not display the animation.
 		 **/
 		if(skill_id == AL_PNEUMA && map_getcell(src->m, skill_x, skill_y, CELL_CHKLANDPROTECTOR)) {

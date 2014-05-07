@@ -5912,9 +5912,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						dstsd->sc.data[SC_SHADOWWEAPON] ||
 						dstsd->sc.data[SC_GHOSTWEAPON] ||
 						dstsd->sc.data[SC_ENCPOISON]
+					)
 					))
-					) {
-					if (sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+				{
+					if (sd)
+						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,0);
 					break;
 				}
@@ -11161,7 +11163,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 				status_change_end(src,SC_BASILICA,INVALID_TIMER);
 				return 0;
 			} else { //Create Basilica. Start SC on caster. Unit timer start SC on others.
-				if( map_getcell(src->m,x,y,CELL_CHKLANDPROTECTOR) ) {
+				if( sd && map_getcell(src->m,x,y,CELL_CHKLANDPROTECTOR) ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL,0);
 					return 0;
 				}
@@ -14648,6 +14650,12 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		case SC_MANHOLE:
 		case SC_DIMENSIONDOOR:
 			if( sc && sc->data[SC_MAGNETICFIELD] ) {
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+				return false;
+			}
+			break;
+		case SC_FEINTBOMB:
+			if( map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKLANDPROTECTOR) ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return false;
 			}
