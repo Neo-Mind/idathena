@@ -10525,7 +10525,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 				(sd->sc.data[SC_VOICEOFSIREN] && sd->sc.data[SC_VOICEOFSIREN]->val2 == target_id) )
 				return;
 
-			if( !battle_config.sdelay_attack_enable && pc_checkskill(sd, SA_FREECAST) <= 0 ) {
+			if( !battle_config.sdelay_attack_enable && !pc_checkskill(sd, SA_FREECAST) ) {
 				if( DIFF_TICK(tick, sd->ud.canact_tick) < 0 ) {
 					clif_skill_fail(sd, 1, USESKILL_FAIL_SKILLINTERVAL, 0);
 					return;
@@ -10869,6 +10869,7 @@ void clif_parse_UseItem(int fd, struct map_session_data *sd)
 
 	if (n < 0 || n >= MAX_INVENTORY)
 		return;
+
 	if (!pc_useitem(sd,n))
 		clif_useitemack(sd,n,0,false); //Send an empty ack packet or the client gets stuck.
 }
@@ -18466,7 +18467,7 @@ void packetdb_readdb(void)
  *
  *------------------------------------------*/
 void do_init_clif(void) {
-	const char* colors[COLOR_MAX] = { "0xFF0000", "0xFFFFFF", "0xFFBC90" };
+	const char* colors[COLOR_MAX] = { "0xFF0000", "0xFFFFFF", "0xFFFF00" };
 	int i;
 
 	//Setup Color Table (saves unnecessary load of strtoul on every call)

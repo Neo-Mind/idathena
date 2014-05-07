@@ -4520,14 +4520,12 @@ int pc_useitem(struct map_session_data *sd,int n)
 					char e_msg[100];
 
 					if( e_tick > 99 )
-						sprintf(e_msg,msg_txt(379), //Item Failed. [%s] is cooling down. Wait %.1f minutes.
-							itemdb_jname(item.nameid),
-								(double)e_tick / 60);
+						sprintf(e_msg,msg_txt(379), //Able to use %.1f min later.
+							(double)e_tick / 60);
 					else
-						sprintf(e_msg,msg_txt(380), //Item Failed. [%s] is cooling down. Wait %d seconds.
-							itemdb_jname(item.nameid),
-								e_tick + 1);
-					clif_colormes(sd,color_table[COLOR_RED],e_msg);
+						sprintf(e_msg,msg_txt(380), //Able to use %d sec later.
+							e_tick + 1);
+					clif_colormes(sd,color_table[COLOR_YELLOW],e_msg);
 					return 0; //Delay has not expired yet
 				}
 			} else //Not yet used item (all slots are initially empty)

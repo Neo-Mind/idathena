@@ -1126,7 +1126,8 @@ int unit_can_move(struct block_list *bl) {
 	if (!ud)
 		return 0;
 
-	if (ud->skilltimer != INVALID_TIMER && ud->skill_id != LG_EXEEDBREAK && (!sd || !pc_checkskill(sd, SA_FREECAST) || (skill_get_inf2(ud->skill_id)&INF2_GUILD_SKILL)))
+	if (ud->skilltimer != INVALID_TIMER && ud->skill_id != LG_EXEEDBREAK &&
+		(!sd || !pc_checkskill(sd, SA_FREECAST) || (skill_get_inf2(ud->skill_id)&INF2_GUILD_SKILL)))
 		return 0; // Prevent moving while casting
 
 	if (DIFF_TICK(ud->canmove_tick, gettick()) > 0)
@@ -2117,11 +2118,11 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 		return 0;
 	}
 
-	if( ud->skilltimer != INVALID_TIMER && sd && !pc_checkskill(sd,SA_FREECAST) > 0 )
+	if( ud->skilltimer != INVALID_TIMER && sd && !pc_checkskill(sd,SA_FREECAST) )
 		return 0; // Can't attack while casting
 
 	if( !battle_config.sdelay_attack_enable && DIFF_TICK(ud->canact_tick,tick) > 0 &&
-		sd && !pc_checkskill(sd,SA_FREECAST) > 0 ) { // Attacking when under cast delay has restrictions:
+		sd && !pc_checkskill(sd,SA_FREECAST) ) { // Attacking when under cast delay has restrictions:
 		if( tid == INVALID_TIMER ) { // Requested attack.
 			if( sd )
 				clif_skill_fail(sd,1,USESKILL_FAIL_SKILLINTERVAL,0);

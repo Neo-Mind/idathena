@@ -2471,7 +2471,7 @@ void skill_combo(struct block_list* src, struct block_list *dsrc, struct block_l
 					duration = 1;
 				break;
 			case MO_COMBOFINISH:
-				if (sd->status.party_id > 0) //bonus from SG_FRIEND [Komurka]
+				if (sd->status.party_id > 0) //Bonus from SG_FRIEND [Komurka]
 					party_skill_check(sd, sd->status.party_id, MO_COMBOFINISH, skill_lv);
 				if (pc_checkskill(sd, CH_TIGERFIST) > 0 && sd->spiritball > 0)
 					duration = 1;
@@ -2891,7 +2891,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			if (src->type == BL_PC)
 				dmg.blewcount = 10;
 			dmg.amotion = 0; //Disable delay or attack will do no damage since source is dead by the time it takes effect. [Skotlex]
-			//Fall through
+		//Fall through
 		case KN_AUTOCOUNTER:
 		case NPC_CRITICALSLASH:
 		case TF_DOUBLE:
@@ -2919,6 +2919,9 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			break;
 		case SC_FEINTBOMB:
 			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, 5);
+			break;
+		case GN_FIRE_EXPANSION_ACID:
+			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, CR_ACIDDEMONSTRATION, skill_lv, 8);
 			break;
 		case GN_SLINGITEM_RANGEMELEEATK:
 			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, GN_SLINGITEM, -2, 6);
@@ -5984,8 +5987,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					clif_slide(src,bl->x,bl->y);
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 				}
-			}
-			else
+			} else
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL,0);
 			break;
 
@@ -10494,8 +10496,8 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 			return 0;
 		}
 
+		//Restore original walk speed
 		if( sd && ud->skilltimer != INVALID_TIMER && (pc_checkskill(sd,SA_FREECAST) > 0 || ud->skill_id == LG_EXEEDBREAK) ) {
-			//Restore original walk speed
 			ud->skilltimer = INVALID_TIMER;
 			status_calc_bl(&sd->bl,SCB_SPEED);
 		}
@@ -10613,8 +10615,8 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 					break; //You can use Clearance on party members in normal maps too. [pakpil]
 			}
 
-			if( (inf&BCT_ENEMY) && (sc = status_get_sc(target)) && (sc->data[SC_FOGWALL] && rnd() % 100 < 75) ) {
-				//Fogwall makes all offensive-type targetted skills fail at 75%, and
+			//Fogwall makes all offensive-type targetted skills fail at 75%, and
+			if( (inf&BCT_ENEMY) && (sc = status_get_sc(target)) && (sc->data[SC_FOGWALL] && rnd()%100 < 75) ) {
 				if( sd )
 					clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
 				break;
@@ -10819,8 +10821,8 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 		return 0;
 	}
 
+	//Restore original walk speed
 	if( sd && ud->skilltimer != INVALID_TIMER && (pc_checkskill(sd,SA_FREECAST) > 0 || ud->skill_id == LG_EXEEDBREAK) ) {
-		//Restore original walk speed
 		ud->skilltimer = INVALID_TIMER;
 		status_calc_bl(&sd->bl,SCB_SPEED);
 	}
@@ -10835,14 +10837,16 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 			skill_get_unit_flag(ud->skill_id)&UF_NOREITERATION &&
 			skill_check_unit_range(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv)
 		) {
-			if( sd ) clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
+			if( sd )
+				clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
 		}
 		if( src->type&battle_config.skill_nofootset &&
 			skill_get_unit_flag(ud->skill_id)&UF_NOFOOTSET &&
 			skill_check_unit_range2(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv,false)
 		) {
-			if( sd ) clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
+			if( sd )
+				clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
 		}
 		if( src->type&battle_config.land_skill_limit &&
@@ -10855,7 +10859,8 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 					maxcount--;
 			}
 			if( maxcount == 0 ) {
-				if( sd ) clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
+				if( sd )
+					clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
 				break;
 			}
 		}
@@ -14233,7 +14238,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 			break;
 		case MO_EXTREMITYFIST:
 #ifndef RENEWAL
-			//if( sc && sc->data[SC_EXTREMITYFIST] ) //To disable Asura during the 5 min skill block uncomment this...
+			//if( sc && sc->data[SC_EXTREMITYFIST] ) //To disable Asura during the 5 min skill block uncomment this
 				//return false;
 #endif
 			if( sc && (sc->data[SC_BLADESTOP] || sc->data[SC_CURSEDCIRCLE_ATKER]) )
@@ -15448,7 +15453,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 							req.spiritball = 3;
 							break;
 						case CH_CHAINCRUSH:	//It should consume whatever is left as long as it's at least 1.
-							req.spiritball = sd->spiritball ? sd->spiritball : 1;
+							req.spiritball = (sd->spiritball ? sd->spiritball : 1);
 							break;
 					}
 				} else if( sc->data[SC_RAISINGDRAGON] && sd->spiritball > 5 )

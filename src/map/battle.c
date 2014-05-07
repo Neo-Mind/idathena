@@ -2187,7 +2187,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 	hitrate += sstatus->hit - flee;
 
 	//Fogwall's hit penalty is only for normal ranged attacks.
-	if((wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG && !skill_id && tsc && tsc->data[SC_FOGWALL])
+	if(!skill_id && (wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG && tsc && tsc->data[SC_FOGWALL])
 		hitrate -= 50;
 
 	if(sd && is_skill_using_arrow(src,skill_id))
@@ -4796,8 +4796,8 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 	//Amotion should be 0 for ground skills.
 	wd.amotion = (skill_id && skill_get_inf(skill_id)&INF_GROUND_SKILL) ? 0 : sstatus->amotion;
 	//Counter attack DOES obey ASPD delay on official, uncomment if you want the old (bad) behavior [helvetica]
-	/*if(skill_id == KN_AUTOCOUNTER)
-		wd.amotion >>= 1; */
+	//if(skill_id == KN_AUTOCOUNTER)
+		//wd.amotion >>= 1;
 	wd.dmotion = tstatus->dmotion;
 	wd.blewcount = skill_get_blewcount(skill_id,skill_lv);
 	wd.miscflag = wflag;
@@ -7065,6 +7065,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 				status_change_end(src,SC_SPELLFIST,INVALID_TIMER);
 		}
 	}
+
 	if (sd && sd->state.arrow_atk) //Consume arrow.
 		battle_consume_ammo(sd,0,0);
 

@@ -11894,8 +11894,7 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 			break;
 		case SC_SIGHTBLASTER:
 			if( battle_check_target(src, bl, BCT_ENEMY) > 0 &&
-				status_check_skilluse(src, bl, WZ_SIGHTBLASTER, 2) )
-			{
+				status_check_skilluse(src, bl, WZ_SIGHTBLASTER, 2) ) {
 				if( sce && !(bl->type&BL_SKILL) //The hit is not counted if it's against a trap
 					&& skill_attack(BF_MAGIC, src, src, bl, WZ_SIGHTBLASTER, 1, tick, 0) ) {
 					sce->val2 = 0; //This signals it to end.
