@@ -8889,7 +8889,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				short element = 0, sctype = 0, pos = -1;
 				struct status_change *sc = status_get_sc(src);
 
-				if( !sc ) break;
+				if( !sc )
+					break;
 
 				for( i = SC_SPHERE_1; i <= SC_SPHERE_5; i++ ) {
 					if( !sctype && !sc->data[i] )

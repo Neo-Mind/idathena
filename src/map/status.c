@@ -6890,7 +6890,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 		case SC_MARSHOFABYSS: //5 second (Fixed) + 25 second - { (INT + LUK) / 20 second }
 			tick_def2 = (status->int_ + status->luk) * 50;
 			break;
-		case SC_STASIS: //5 second (fixed) + { Stasis Skill level * 5 - (Target VIT + DEX) / 20 }
+		case SC_STASIS: //10 second (fixed) + { Stasis Skill level * 10 - (Target VIT + DEX) / 20 }
 			tick_def2 = (status->vit + status->dex) * 50;
 			break;
 		case SC_WHITEIMPRISON:
@@ -7031,12 +7031,14 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 		case SC_ANKLE:
 		case SC_BURNING:
 		case SC_MARSHOFABYSS:
-		case SC_STASIS:
 		case SC_DEEPSLEEP:
 			tick = max(tick,5000); //Minimum duration 5s
 			break;
 		case SC_FREEZING:
 			tick = max(tick,6000); //Minimum duration 6s
+			break;
+		case SC_STASIS:
+			tick = max(tick,10000); //Minimum duration 10s
 			break;
 		default:
 			//Skills need to trigger even if the duration is reduced below 1ms
