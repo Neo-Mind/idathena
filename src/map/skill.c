@@ -7259,7 +7259,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							case SC_EXTREMITYFIST2:
 #endif
 							case SC_HIDING:				case SC_CLOAKING:		case SC_CHASEWALK:
-							case SC_CLOAKINGEXCEED:			case SC__INVISIBILITY:
+							case SC_CLOAKINGEXCEED:			case SC__INVISIBILITY:		case SC_CRIFOOD:
 								continue;
 							//bugreport:4888 these songs may only be dispelled if you're not in their song area anymore
 							case SC_WHISTLE:
@@ -8764,7 +8764,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							case SC_EXTREMITYFIST2:
 #endif
 							case SC_HIDING:			case SC_CLOAKING:		case SC_CHASEWALK:
-							case SC_CLOAKINGEXCEED:		case SC__INVISIBILITY:
+							case SC_CLOAKINGEXCEED:		case SC__INVISIBILITY:		case SC_CRIFOOD:
 								continue;
 							case SC_ASSUMPTIO:
 								if( bl->type == BL_MOB )
@@ -10343,7 +10343,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							case SC_EXTREMITYFIST2:
 #endif
 							case SC_HIDING:			case SC_CLOAKING:		case SC_CHASEWALK:
-							case SC_CLOAKINGEXCEED:		case SC__INVISIBILITY:
+							case SC_CLOAKINGEXCEED:		case SC__INVISIBILITY:		case SC_CRIFOOD:
 								continue;
 							case SC_ASSUMPTIO:
 								if( bl->type == BL_MOB )
@@ -18049,11 +18049,14 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 
 	if( skill_id == RK_RUNEMASTERY ) {
 		int temp_qty, skill_lv = pc_checkskill(sd,skill_id);
-		data = itemdb_search(nameid);
 
-		if( skill_lv == 10 ) temp_qty = 1 + rnd()%3;
-		else if( skill_lv >= 5 ) temp_qty = 1 + rnd()%2;
-		else temp_qty = 1;
+		data = itemdb_search(nameid);
+		if( skill_lv == 10 )
+			temp_qty = 1 + rnd()%3;
+		else if( skill_lv >= 5 )
+			temp_qty = 1 + rnd()%2;
+		else
+			temp_qty = 1;
 
 		if( data->stack.inventory ) {
 			for( i = 0; i < MAX_INVENTORY; i++ ) {
@@ -18062,9 +18065,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 						clif_msgtable(sd->fd,RUNE_CANT_CREATE);
 						return 0;
 					} else {
-						/**
-						 * The amount fits, say we got temp_qty 4 and 19 runes, we trim temp_qty to 1.
-						 **/
+						//The amount fits, say we got temp_qty 4 and 19 runes, we trim temp_qty to 1.
 						if( temp_qty + sd->status.inventory[i].amount >= data->stack.amount )
 							temp_qty = data->stack.amount - sd->status.inventory[i].amount;
 					}

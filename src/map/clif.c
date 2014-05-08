@@ -2392,7 +2392,7 @@ void clif_additem(struct map_session_data *sd, int n, int amount, int fail)
 			WFIFOW(fd,offs + 6) = sd->inventory_data[n]->view_id;
 		else
 			WFIFOW(fd,offs + 6) = sd->status.inventory[n].nameid;
-		WFIFOB(fd,offs + 8) = sd->status.inventory[n].identify ? 1 : 0;
+		WFIFOB(fd,offs + 8) = (sd->status.inventory[n].identify ? 1 : 0);
 		WFIFOB(fd,offs + 9) = sd->status.inventory[n].attribute;
 		WFIFOB(fd,offs + 10) = sd->status.inventory[n].refine;
 		clif_addcards(WFIFOP(fd,offs + 11),&sd->status.inventory[n]);
@@ -2408,7 +2408,7 @@ void clif_additem(struct map_session_data *sd, int n, int amount, int fail)
 		WFIFOL(fd,offs + 23) = sd->status.inventory[n].expire_time;
 #endif
 #if PACKETVER >= 20071002
-		WFIFOW(fd,offs + 27) = sd->status.inventory[n].bound ? 2 : 0;
+		WFIFOW(fd,offs + 27) = (sd->status.inventory[n].bound ? 2 : 0);
 #endif
 	}
 
@@ -2424,11 +2424,11 @@ void clif_dropitem(struct map_session_data *sd,int n,int amount)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
-	WFIFOHEAD(fd, packet_len(0xaf));
-	WFIFOW(fd,0)=0xaf;
-	WFIFOW(fd,2)=n+2;
-	WFIFOW(fd,4)=amount;
+	fd = sd->fd;
+	WFIFOHEAD(fd,packet_len(0xaf));
+	WFIFOW(fd,0) = 0xaf;
+	WFIFOW(fd,2) = n + 2;
+	WFIFOW(fd,4) = amount;
 	WFIFOSET(fd,packet_len(0xaf));
 }
 

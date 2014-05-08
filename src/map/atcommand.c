@@ -1209,7 +1209,7 @@ ACMD_FUNC(item)
 	nullpo_retr(-1, sd);
 	memset(item_name, '\0', sizeof(item_name));
 
-	if (!strcmpi(command+1,"itembound") && (!message || !*message || (
+	if (!strcmpi(command + 1,"itembound") && (!message || !*message || (
 		sscanf(message, "\"%99[^\"]\" %d %d", item_name, &number, &bound) < 2 &&
 		sscanf(message, "%99s %d %d", item_name, &number, &bound) < 2
 	))) {

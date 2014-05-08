@@ -869,8 +869,9 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_INTFOOD] = SI_FOODINT;
 	StatusIconChangeTable[SC_DEXFOOD] = SI_FOODDEX;
 	StatusIconChangeTable[SC_LUKFOOD] = SI_FOODLUK;
-	StatusIconChangeTable[SC_FLEEFOOD]= SI_FOODFLEE;
+	StatusIconChangeTable[SC_FLEEFOOD] = SI_FOODFLEE;
 	StatusIconChangeTable[SC_HITFOOD] = SI_FOODHIT;
+	StatusIconChangeTable[SC_CRIFOOD] = SI_FOODCRI;
 	StatusIconChangeTable[SC_MANU_ATK] = SI_MANU_ATK;
 	StatusIconChangeTable[SC_MANU_DEF] = SI_MANU_DEF;
 	StatusIconChangeTable[SC_SPL_ATK] = SI_SPL_ATK;
@@ -1035,8 +1036,9 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_INTFOOD] |= SCB_INT;
 	StatusChangeFlagTable[SC_DEXFOOD] |= SCB_DEX;
 	StatusChangeFlagTable[SC_LUKFOOD] |= SCB_LUK;
-	StatusChangeFlagTable[SC_HITFOOD] |= SCB_HIT;
 	StatusChangeFlagTable[SC_FLEEFOOD] |= SCB_FLEE;
+	StatusChangeFlagTable[SC_HITFOOD] |= SCB_HIT;
+	StatusChangeFlagTable[SC_CRIFOOD] |= SCB_CRI;
 	StatusChangeFlagTable[SC_BATKFOOD] |= SCB_BATK;
 	StatusChangeFlagTable[SC_WATKFOOD] |= SCB_WATK;
 	StatusChangeFlagTable[SC_MATKFOOD] |= SCB_MATK;
@@ -5210,6 +5212,8 @@ static short status_calc_critical(struct block_list *bl, struct status_change *s
 
 	if (sc->data[SC_INCCRI])
 		critical += sc->data[SC_INCCRI]->val2;
+	if (sc->data[SC_CRIFOOD])
+		critical += sc->data[SC_CRIFOOD]->val1;
 	if (sc->data[SC_EXPLOSIONSPIRITS])
 		critical += sc->data[SC_EXPLOSIONSPIRITS]->val2;
 	if (sc->data[SC_FORTUNE])
@@ -11974,8 +11978,9 @@ void status_change_clear_buffs(struct block_list* bl, int type)
 			case SC_INTFOOD:
 			case SC_DEXFOOD:
 			case SC_LUKFOOD:
-			case SC_HITFOOD:
 			case SC_FLEEFOOD:
+			case SC_HITFOOD:
+			case SC_CRIFOOD:
 			case SC_BATKFOOD:
 			case SC_WATKFOOD:
 			case SC_MATKFOOD:
