@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <errno.h>
 
-
 #define J_MAX_MALLOC_SIZE 65535
 
 // escapes a string in-place (' -> \' , \ -> \\ , % -> _)

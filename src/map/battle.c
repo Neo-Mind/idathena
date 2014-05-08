@@ -8253,18 +8253,18 @@ void rAthena_report(char* date, char *time_c) {
 	WBUFL(buf,6 + 12 + 9 + 24 + 4 + 4 + 4) = bd_size;
 	
 	for( i = 0; i < bd_size; i++ ) {
-		safestrncpy((char*)WBUFP(buf,6 + 12 + 9+ 24  + 4 + 4 + 4 + 4 + ( i * ( BFLAG_LENGTH + 4 ) ) ), battle_data[i].str, 35);
+		safestrncpy((char*)WBUFP(buf,6 + 12 + 9 + 24 + 4 + 4 + 4 + 4 + ( i * ( BFLAG_LENGTH + 4 ) ) ), battle_data[i].str, 35);
 		WBUFL(buf,6 + 12 + 9 + 24 + 4 + 4 + 4 + 4 + BFLAG_LENGTH + ( i * ( BFLAG_LENGTH + 4 )  )  ) = *battle_data[i].val;
 	}
 	
-	chrif_send_report(buf,  6 + 12 + 9 + 24 + 4 + 4 + 4 + 4 + ( bd_size * ( BFLAG_LENGTH + 4 ) ) );
+	chrif_send_report(buf, 6 + 12 + 9 + 24 + 4 + 4 + 4 + 4 + ( bd_size * ( BFLAG_LENGTH + 4 ) ) );
 	
 	aFree(buf);
 	
 #undef BFLAG_LENGTH
 }
 static int rAthena_report_timer(int tid, unsigned int tick, int id, intptr_t data) {
-	if( chrif_isconnected() ) {/* char server relays it, so it must be online. */
+	if( chrif_isconnected() ) { /* char server relays it, so it must be online. */
 		rAthena_report(__DATE__,__TIME__);
 	}
 	return 0;
@@ -8393,6 +8393,7 @@ int battle_config_read(const char* cfgName)
 		ShowError("File not found: %s\n", cfgName);
 	else {
 		char line[1024], w1[1024], w2[1024];
+
 		while(fgets(line, sizeof(line), fp)) {
 			if (line[0] == '/' && line[1] == '/')
 				continue;
@@ -8426,7 +8427,7 @@ void do_init_battle(void)
 	
 #ifndef STATS_OPT_OUT
 	add_timer_func_list(rAthena_report_timer, "rAthena_report_timer");
-	add_timer_interval(gettick()+30000, rAthena_report_timer, 0, 0, 60000 * 30);
+	add_timer_interval(gettick() + 30000, rAthena_report_timer, 0, 0, 60000 * 30);
 #endif
 
 }

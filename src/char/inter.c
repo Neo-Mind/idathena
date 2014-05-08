@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include <sys/stat.h> //For stat/lstat/fstat - [Dekamaster/Ultimate GM Tool]
 
@@ -402,12 +403,14 @@ void geoip_init(void) {
 		geoip_final();
 		return;
 	}
+
 	fno = fileno(db);
 	if( fstat(fno, &bufa) < 0 ) {
 		ShowError("geoip_readdb: Error stating GeoIP.dat! Error %d\n", errno);
 		geoip_final();
 		return;
 	}
+
 	geoip.cache = aMalloc((sizeof(geoip.cache) * bufa.st_size));
 	if( fread(geoip.cache, sizeof(unsigned char), bufa.st_size, db) != bufa.st_size ) {
 		ShowError("geoip_cache: Couldn't read all elements!\n");
@@ -423,11 +426,10 @@ void geoip_init(void) {
 		if( delim[0] == 255 && delim[1] == 255 && delim[2] == 255 ) {
 			fread(&db_type, sizeof(db_type), 1, db);
 			break;
-		} else {
+		} else
 			fseek(db, -4l, SEEK_CUR);
-		}
 	}
-	
+
 	fclose(db);
 
 	if( db_type != 1 ) {
@@ -439,6 +441,7 @@ void geoip_init(void) {
 		geoip_final();
 		return;
 	}
+
 	ShowStatus("Finished Reading "CL_GREEN"GeoIP"CL_RESET" Database.\n");
 }
 

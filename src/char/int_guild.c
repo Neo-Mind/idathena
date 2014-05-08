@@ -1436,7 +1436,7 @@ int mapif_parse_GuildBasicInfoChange(int fd,int guild_id,int type,const char *da
 
 		case GBI_SKILLPOINT:
 			value = *((const int16 *)data);
-			if(g->skill_point+value < 0)
+			if(g->skill_point + value < 0)
 				return 0;
 			g->skill_point += value;
 			break;

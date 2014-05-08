@@ -23,7 +23,6 @@
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 
-
 #include "../common/cbasetypes.h"
 #include "../common/showmsg.h"
 #include "../common/timer.h"
