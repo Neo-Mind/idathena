@@ -2930,7 +2930,7 @@ int map_eraseipport(unsigned short mapindex, uint32 ip, uint16 port)
 	if(!mdos || mdos->cell) //Map either does not exists or is a local map.
 		return 0;
 
-	if(mdos->ip==ip && mdos->port == port) {
+	if(mdos->ip == ip && mdos->port == port) {
 		uidb_remove(map_db,(unsigned int)mapindex);
 		aFree(mdos);
 		return 1;
@@ -2943,6 +2943,7 @@ int map_eraseipport(unsigned short mapindex, uint32 ip, uint16 port)
  *------------------------------------------*/
 static char *map_init_mapcache(FILE *fp)
 {
+	struct map_cache_main_header header;
 	size_t size = 0;
 	char *buffer;
 
@@ -2963,6 +2964,23 @@ static char *map_init_mapcache(FILE *fp)
 	// Read file into buffer..
 	if(fread(buffer, sizeof(char), size, fp) != size) {
 		ShowError("map_init_mapcache: Could not read entire mapcache file\n");
+		aFree(buffer);
+		return NULL;
+	}
+
+	rewind(fp);
+
+	// Get main header to verify if data is corrupted
+	if( fread(&header, sizeof(header), 1, fp) != 1 ) {
+		ShowError("map_init_mapcache: Error obtaining main header!\n");
+		aFree(buffer);
+		return NULL;
+	}
+
+	// If the file is totally corrupted this will allow us to warn the user
+	if( GetULong((unsigned char *)&(header.file_size)) != size ) {
+		ShowError("map_init_mapcache: Map cache is corrupted!\n");
+		aFree(buffer);
 		return NULL;
 	}
 
@@ -2998,7 +3016,7 @@ int map_readfromcache(struct map_data *m, char *buffer, char *decode_buffer)
 
 		m->xs = info->xs;
 		m->ys = info->ys;
-		size = (unsigned long)info->xs*(unsigned long)info->ys;
+		size = (unsigned long)info->xs * (unsigned long)info->ys;
 
 		if(size > MAX_MAP_SIZE) {
 			ShowWarning("map_readfromcache: %s exceeded MAX_MAP_SIZE of %d\n", info->name, MAX_MAP_SIZE);
@@ -3006,7 +3024,7 @@ int map_readfromcache(struct map_data *m, char *buffer, char *decode_buffer)
 		}
 
 		// TO-DO: Maybe handle the scenario, if the decoded buffer isn't the same size as expected? [Shinryo]
-		decode_zip(decode_buffer, &size, p+sizeof(struct map_cache_map_info), info->len);
+		decode_zip(decode_buffer, &size, p + sizeof(struct map_cache_map_info), info->len);
 
 		CREATE(m->cell, struct mapcell, size);
 

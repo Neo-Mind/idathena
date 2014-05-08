@@ -8188,23 +8188,38 @@ BUILDIN_FUNC(addtoskill)
 /// guildskill "<skill name>",<amount>;
 BUILDIN_FUNC(guildskill)
 {
-	int id;
+	int skill_id, id, max_points;
 	int level;
 	TBL_PC* sd;
-	int i;
+	struct guild *gd;
+	struct guild_skill gd_skill;
 	struct script_data *data;
 
 	sd = script_rid2sd(st);
 	if( sd == NULL )
 		return 0; // No player attached, report source
 
+	if( (gd = sd->guild) == NULL )
+		return 1;
+
 	data = script_getdata(st,2);
 	get_val(st,data); // Convert into value in case of a variable
-	id = (data_isstring(data) ? skill_name2id(script_getstr(st,2)) : script_getnum(st,2));
+	skill_id = (data_isstring(data) ? skill_name2id(script_getstr(st,2)) : script_getnum(st,2));
 	level = script_getnum(st,3);
-	for( i = 0; i < level; i++ )
-		guild_skillup(sd,id);
 
+	id = skill_id - GD_SKILLBASE;
+	max_points = guild_skill_get_max(skill_id);
+
+	if( (gd->skill[id].lv + level) > max_points )
+		level = max_points - gd->skill[id].lv;
+
+	if( level == 0 )
+		return 1;
+
+	memcpy(&gd_skill,&(gd->skill[id]),sizeof(gd->skill[id]));
+	gd_skill.lv += level;
+
+	intif_guild_change_basicinfo(gd->guild_id,GBI_SKILLLV,&(gd_skill),sizeof(gd_skill));
 	return SCRIPT_CMD_SUCCESS;
 }
 

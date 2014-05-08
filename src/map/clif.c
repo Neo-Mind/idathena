@@ -17520,7 +17520,8 @@ void clif_display_pinfo(struct map_session_data *sd, int cmdtype) {
 		cmd = packet_db_ack[sd->packet_ver][cmdtype];
 		info = &packet_db[sd->packet_ver][cmd];
 		len = info->len; //This is the base len without details
-		if(!len) return; //Version as packet disable
+		if(!len)
+			return; //Version as packet disable
 
 		if(cmdtype == ZC_PERSONAL_INFOMATION && cmd == 0x8cb) { //0x8cb version
 			szdetails = 7;

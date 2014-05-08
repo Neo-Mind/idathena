@@ -589,11 +589,11 @@ int intif_guild_change_gm(int guild_id, const char* name, int len)
 {
 	if (CheckForCharServer())
 		return 0;
-	WFIFOHEAD(inter_fd, len + 8);
-	WFIFOW(inter_fd, 0) = 0x3033;
-	WFIFOW(inter_fd, 2) = len + 8;
-	WFIFOL(inter_fd, 4) = guild_id;
-	memcpy(WFIFOP(inter_fd, 8),name,len);
+	WFIFOHEAD(inter_fd,len + 8);
+	WFIFOW(inter_fd,0) = 0x3033;
+	WFIFOW(inter_fd,2) = len + 8;
+	WFIFOL(inter_fd,4) = guild_id;
+	memcpy(WFIFOP(inter_fd,8),name,len);
 	WFIFOSET(inter_fd,len + 8);
 	return 0;
 }
@@ -603,10 +603,10 @@ int intif_guild_leave(int guild_id,int account_id,int char_id,int flag,const cha
 {
 	if (CheckForCharServer())
 		return 0;
-	WFIFOHEAD(inter_fd, 55);
-	WFIFOW(inter_fd, 0) = 0x3034;
-	WFIFOL(inter_fd, 2) = guild_id;
-	WFIFOL(inter_fd, 6) = account_id;
+	WFIFOHEAD(inter_fd,55);
+	WFIFOW(inter_fd,0) = 0x3034;
+	WFIFOL(inter_fd,2) = guild_id;
+	WFIFOL(inter_fd,6) = account_id;
 	WFIFOL(inter_fd,10) = char_id;
 	WFIFOB(inter_fd,14) = flag;
 	safestrncpy((char*)WFIFOP(inter_fd,15),mes,40);
@@ -619,10 +619,10 @@ int intif_guild_memberinfoshort(int guild_id,int account_id,int char_id,int onli
 {
 	if (CheckForCharServer())
 		return 0;
-	WFIFOHEAD(inter_fd, 19);
-	WFIFOW(inter_fd, 0) = 0x3035;
-	WFIFOL(inter_fd, 2) = guild_id;
-	WFIFOL(inter_fd, 6) = account_id;
+	WFIFOHEAD(inter_fd,19);
+	WFIFOW(inter_fd,0) = 0x3035;
+	WFIFOL(inter_fd,2) = guild_id;
+	WFIFOL(inter_fd,6) = account_id;
 	WFIFOL(inter_fd,10) = char_id;
 	WFIFOB(inter_fd,14) = online;
 	WFIFOW(inter_fd,15) = lv;
@@ -636,9 +636,9 @@ int intif_guild_break(int guild_id)
 {
 	if (CheckForCharServer())
 		return 0;
-	WFIFOHEAD(inter_fd, 6);
-	WFIFOW(inter_fd, 0) = 0x3036;
-	WFIFOL(inter_fd, 2) = guild_id;
+	WFIFOHEAD(inter_fd,6);
+	WFIFOW(inter_fd,0) = 0x3036;
+	WFIFOL(inter_fd,2) = guild_id;
 	WFIFOSET(inter_fd,6);
 	return 0;
 }
@@ -648,33 +648,33 @@ int intif_guild_message(int guild_id,int account_id,const char *mes,int len)
 {
 	if (CheckForCharServer())
 		return 0;
-
 	if (other_mapserver_count < 1)
 		return 0; //No need to send.
-
-	WFIFOHEAD(inter_fd, len + 12);
-	WFIFOW(inter_fd,0)=0x3037;
-	WFIFOW(inter_fd,2)=len+12;
-	WFIFOL(inter_fd,4)=guild_id;
-	WFIFOL(inter_fd,8)=account_id;
+	WFIFOHEAD(inter_fd,len + 12);
+	WFIFOW(inter_fd,0) = 0x3037;
+	WFIFOW(inter_fd,2) = len + 12;
+	WFIFOL(inter_fd,4) = guild_id;
+	WFIFOL(inter_fd,8) = account_id;
 	memcpy(WFIFOP(inter_fd,12),mes,len);
-	WFIFOSET(inter_fd,len+12);
-
+	WFIFOSET(inter_fd,len + 12);
 	return 0;
 }
 
-// Request a change of Guild basic information
+/**
+ * Requests to change a basic guild information, it is parsed via mapif_parse_GuildBasicInfoChange
+ * To see the information types that can be changed see mmo.h::guild_basic_info
+ */
 int intif_guild_change_basicinfo(int guild_id,int type,const void *data,int len)
 {
 	if (CheckForCharServer())
 		return 0;
-	WFIFOHEAD(inter_fd, len + 10);
-	WFIFOW(inter_fd,0)=0x3039;
-	WFIFOW(inter_fd,2)=len+10;
-	WFIFOL(inter_fd,4)=guild_id;
-	WFIFOW(inter_fd,8)=type;
+	WFIFOHEAD(inter_fd,len + 10);
+	WFIFOW(inter_fd,0) = 0x3039;
+	WFIFOW(inter_fd,2) = len + 10;
+	WFIFOL(inter_fd,4) = guild_id;
+	WFIFOW(inter_fd,8) = type;
 	memcpy(WFIFOP(inter_fd,10),data,len);
-	WFIFOSET(inter_fd,len+10);
+	WFIFOSET(inter_fd,len + 10);
 	return 0;
 }
 
@@ -1180,7 +1180,7 @@ int intif_parse_GuildBroken(int fd)
 	return 0;
 }
 
-// basic guild info change notice
+// Basic guild info change notice
 // 0x3839 <packet len>.w <guild id>.l <type>.w <data>.?b
 int intif_parse_GuildBasicInfoChanged(int fd)
 {
@@ -1190,19 +1190,34 @@ int intif_parse_GuildBasicInfoChanged(int fd)
 	//void* data = RFIFOP(fd,10);
 
 	struct guild* g = guild_search(guild_id);
+
 	if( g == NULL )
 		return 0;
 
 	switch(type) {
-	case GBI_EXP:        g->exp = RFIFOQ(fd,10); break;
-	case GBI_GUILDLV:    g->guild_lv = RFIFOW(fd,10); break;
-	case GBI_SKILLPOINT: g->skill_point = RFIFOL(fd,10); break;
-	}
+		case GBI_EXP:        g->exp = RFIFOQ(fd,10); break;
+		case GBI_GUILDLV:    g->guild_lv = RFIFOW(fd,10); break;
+		case GBI_SKILLPOINT: g->skill_point = RFIFOL(fd,10); break;
+		case GBI_SKILLLV: {
+			int idx, max;
+			struct guild_skill *gs = (struct guild_skill *)RFIFOP(fd,10);
 
+			if( gs == NULL )
+				return 0;
+
+			idx = gs->id - GD_SKILLBASE;
+			max = guild_skill_get_max(gs->id);
+			if( gs->lv > max )
+				gs->lv = max;
+
+			memcpy(&(g->skill[idx]),gs,sizeof(g->skill[idx]));
+			break;
+		}
+	}
 	return 0;
 }
 
-// guild member info change notice
+// Guild member info change notice
 // 0x383a <packet len>.w <guild id>.l <account id>.l <char id>.l <type>.w <data>.?b
 int intif_parse_GuildMemberInfoChanged(int fd)
 {
