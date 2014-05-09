@@ -371,14 +371,15 @@ const char* geoip_getcountry(uint32 ipnum) {
  * Disables GeoIP
  * frees geoip.cache
  **/
-void geoip_final( void ) {
+void geoip_final(bool shutdown) {
 	if( geoip.cache ) {
 		aFree(geoip.cache);
 		geoip.cache = NULL;
 	}
 
 	if( geoip.active ) {
-		ShowStatus("GeoIP "CL_RED"disabled"CL_RESET".\n");
+		if( !shutdown )
+			ShowStatus("GeoIP "CL_RED"disabled"CL_RESET".\n");
 		geoip.active = false;
 	}
 }
@@ -400,14 +401,14 @@ void geoip_init(void) {
 	db = fopen("./db/GeoIP.dat","rb");
 	if( db == NULL ) {
 		ShowError("geoip_readdb: Error reading GeoIP.dat!\n");
-		geoip_final();
+		geoip_final(false);
 		return;
 	}
 
 	fno = fileno(db);
 	if( fstat(fno, &bufa) < 0 ) {
 		ShowError("geoip_readdb: Error stating GeoIP.dat! Error %d\n", errno);
-		geoip_final();
+		geoip_final(false);
 		return;
 	}
 
@@ -415,7 +416,7 @@ void geoip_init(void) {
 	if( fread(geoip.cache, sizeof(unsigned char), bufa.st_size, db) != bufa.st_size ) {
 		ShowError("geoip_cache: Couldn't read all elements!\n");
 		fclose(db);
-		geoip_final();
+		geoip_final(false);
 		return;
 	}
 
@@ -438,7 +439,7 @@ void geoip_init(void) {
 		else
 			ShowError("geoip_init(): GeoIP is corrupted!\n");
 
-		geoip_final();
+		geoip_final(false);
 		return;
 	}
 
@@ -827,7 +828,7 @@ void inter_final(void)
 	if( accreg_pt )
 		aFree(accreg_pt);
 
-	geoip_final();
+	geoip_final(true);
 
 	return;
 }
