@@ -8946,7 +8946,7 @@ REPLACE INTO `item_db_re` VALUES (19885,'C_Blinker','Costume Blinker',4,10,NULL,
 REPLACE INTO `item_db_re` VALUES (19886,'C_Purple_Glasses','Costume Purple Glasses',4,10,NULL,0,NULL,NULL,NULL,NULL,0xFFFFFFFF,63,2,2048,NULL,'1',NULL,26,NULL,NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (19887,'C_Cyclops_Glasses','Costume Cyclops Glasses',4,10,NULL,0,NULL,NULL,NULL,NULL,0xFFFFFFFF,63,2,2048,NULL,'1',NULL,23,NULL,NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (19888,'C_Glasses','Costume Glasses',4,10,NULL,0,NULL,NULL,NULL,NULL,0xFFFFFFFF,63,2,2048,NULL,'1',NULL,3,NULL,NULL,NULL);
-REPLACE INTO `item_db_re` VALUES (19871,'C_DecorationOfMusic_Accessory','Decoration of Music',4,20,NULL,0,NULL,0,NULL,0,0xFFFFFFFF,63,2,2048,NULL,'0',0,1074,'sc_start SC_DECORATION_OF_MUSIC,-1,0;',NULL,'sc_end SC_DECORATION_OF_MUSIC;');
+REPLACE INTO `item_db_re` VALUES (19871,'C_DecorationOfMusic_Accessory','Decoration of Music',4,20,NULL,0,NULL,0,NULL,0,0xFFFFFFFF,63,2,2048,NULL,'0',0,1074,NULL,'sc_start SC_DECORATION_OF_MUSIC,-1,0;','sc_end SC_DECORATION_OF_MUSIC;');
 REPLACE INTO `item_db_re` VALUES (19903,'C_Witchs_Hat','Costume Witch\'s Hat',4,0,NULL,0,NULL,0,NULL,0,0xFFFFFFFF,63,2,1024,NULL,'1',0,717,'bonus bVariableCastrate,-10;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (19917,'C_Gloomy_Pumpkin_Hat','Costume Pumpkin Hat',4,0,NULL,0,NULL,0,NULL,0,0xFFFFFFFF,63,2,1024,NULL,'1',0,691,'bonus bSpeedRate,25;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (19918,'C_Lude_Mask','Costume Lude Mask',4,0,NULL,0,NULL,0,NULL,0,0xFFFFFFFF,63,2,6144,NULL,'1',0,802,'bonus bAddItemHealRate,20;',NULL,NULL);
