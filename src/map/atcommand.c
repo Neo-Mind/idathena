@@ -1089,8 +1089,7 @@ ACMD_FUNC(kill)
 ACMD_FUNC(alive)
 {
 	nullpo_retr(-1, sd);
-	if (!status_revive(&sd->bl, 100, 100))
-	{
+	if (!status_revive(&sd->bl, 100, 100)) {
 		clif_displaymessage(fd, msg_txt(667));
 		return -1;
 	}

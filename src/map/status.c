@@ -557,8 +557,8 @@ void initChangeTables(void) {
 	set_sc( MH_ANGRIFFS_MODUS     , SC_ANGRIFFS_MODUS  , SI_ANGRIFFS_MODUS     , SCB_BATK|SCB_DEF|SCB_FLEE|SCB_MAXHP );
 	set_sc( MH_GOLDENE_FERSE      , SC_GOLDENE_FERSE   , SI_GOLDENE_FERSE      , SCB_ASPD|SCB_FLEE );
 	add_sc( MH_STEINWAND          , SC_SAFETYWALL );
-	set_sc( MH_OVERED_BOOST       , SC_OVERED_BOOST    , SI_BLANK              , SCB_FLEE|SCB_ASPD );
-	add_sc( MH_LIGHT_OF_REGENE    , SC_LIGHT_OF_REGENE );
+	set_sc( MH_LIGHT_OF_REGENE    , SC_LIGHT_OF_REGENE , SI_LIGHT_OF_REGENE    , SCB_NONE );
+	set_sc( MH_OVERED_BOOST       , SC_OVERED_BOOST    , SI_OVERED_BOOST       , SCB_FLEE|SCB_ASPD|SCB_DEF );
 	set_sc( MH_VOLCANIC_ASH       , SC_ASH             , SI_VOLCANIC_ASH       , SCB_DEF|SCB_DEF2|SCB_HIT|SCB_BATK|SCB_FLEE );
 	set_sc( MH_GRANITIC_ARMOR     , SC_GRANITIC_ARMOR  , SI_GRANITIC_ARMOR     , SCB_NONE );
 	set_sc( MH_MAGMA_FLOW         , SC_MAGMA_FLOW      , SI_MAGMA_FLOW         , SCB_NONE );
@@ -1477,24 +1477,12 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 			((TBL_MOB*)target)->state.rebirth = 1;
 		return (int)(hp + sp);
 	}
-	if (target->type == BL_PC) {
-		TBL_PC *sd = BL_CAST(BL_PC,target);
-		TBL_HOM *hd = sd->hd;
-		if (hd && hd->sc.data[SC_LIGHT_OF_REGENE]) {
-			status_change_clear(target,0);
-			//Just to display usage
-			clif_skillcasting(&hd->bl,hd->bl.id,target->id,0,0,MH_LIGHT_OF_REGENE,skill_get_ele(MH_LIGHT_OF_REGENE,1),10);
-			clif_skill_nodamage(&sd->bl,target,ALL_RESURRECTION,1,status_revive(&sd->bl,hd->sc.data[SC_LIGHT_OF_REGENE]->val2,0));
-			status_change_end(&sd->hd->bl,SC_LIGHT_OF_REGENE,INVALID_TIMER);
-			return (int)(hp + sp);
-		}
-	}
+
+	//Ensure the monster has not already rebirthed before doing so.
 	if (target->type == BL_MOB && sc && sc->data[SC_REBIRTH] && !((TBL_MOB*) target)->state.rebirth) {
-		//Ensure the monster has not already rebirthed before doing so.
 		status_revive(target,sc->data[SC_REBIRTH]->val2,0);
 		status_change_clear(target,0);
 		((TBL_MOB*)target)->state.rebirth = 1;
-
 		return (int)(hp + sp);
 	}
 
@@ -1515,19 +1503,18 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 
 	//Always run NPC scripts for players last
 	//FIXME: Those ain't always run if a player die if he was resurect meanwhile
-	//cf SC_REBIRTH, SC_LIGHT_OF_REGENE, SC_KAIZEL, pc_dead...
+	//cf SC_REBIRTH, SC_KAIZEL, pc_dead
 	if (target->type == BL_PC) {
 		TBL_PC *sd = BL_CAST(BL_PC,target);
+
 		if (sd->bg_id) {
 			struct battleground_data *bg;
 
 			if ((bg = bg_team_search(sd->bg_id)) != NULL && bg->die_event[0])
 				npc_event(sd,bg->die_event, 0);
 		}
-
 		npc_script_event(sd,NPCE_DIE);
 	}
-
 	return (int)(hp + sp);
 }
 
@@ -1816,7 +1803,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		}
 
 		if ((sc->data[SC_TRICKDEAD] && skill_id != NV_TRICKDEAD) ||
-			(sc->data[SC_AUTOCOUNTER] && !flag) ||
+			(sc->data[SC_AUTOCOUNTER] && !flag && skill_id) ||
 			(sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF && skill_id != PA_GOSPEL) ||
 			(sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF && flag != 2)
 		)
@@ -5272,7 +5259,7 @@ static short status_calc_hit(struct block_list *bl, struct status_change *sc, in
 	if(sc->data[SC_TEARGAS])
 		hit -= hit * 50 / 100;
 	if(sc->data[SC_ASH])
-		hit -= (hit * sc->data[SC_ASH]->val2) / 100;
+		hit -= hit * sc->data[SC_ASH]->val2 / 100;
 	if(sc->data[SC_ILLUSIONDOPING])
 		hit -= 50;
 
@@ -5290,6 +5277,8 @@ static short status_calc_flee(struct block_list *bl, struct status_change *sc, i
 
 	if(!sc || !sc->count)
 		return (short)cap_value(flee,1,SHRT_MAX);
+	if(sc->data[SC_OVERED_BOOST]) //Should be final and unmodifiable by any means
+		return sc->data[SC_OVERED_BOOST]->val2;
 	if(sc->data[SC_TINDER_BREAKER] || sc->data[SC_TINDER_BREAKER2])
 		return 1;
 
@@ -5309,8 +5298,6 @@ static short status_calc_flee(struct block_list *bl, struct status_change *sc, i
 		flee += 10;
 	if(sc->data[SC_ANGRIFFS_MODUS])
 		flee -= sc->data[SC_ANGRIFFS_MODUS]->val3;
-	if(sc->data[SC_OVERED_BOOST])
-		flee = max(flee,sc->data[SC_OVERED_BOOST]->val2);
 	if(sc->data[SC_ADJUSTMENT])
 		flee += 30;
 	if(sc->data[SC_SPEED])
@@ -5426,9 +5413,9 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 	if(sc->data[SC_STONEHARDSKIN])
 		def += sc->data[SC_STONEHARDSKIN]->val1;
 	if(sc->data[SC_STONE] && sc->opt1 == OPT1_STONE)
-		def >>=1;
+		def >>= 1;
 	if(sc->data[SC_FREEZE])
-		def >>=1;
+		def >>= 1;
 	if(sc->data[SC_SIGNUMCRUCIS])
 		def -= def * sc->data[SC_SIGNUMCRUCIS]->val2 / 100;
 	if(sc->data[SC_CONCENTRATION])
@@ -5469,8 +5456,8 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 		def += def * sc->data[SC_POWER_OF_GAIA]->val2 / 100;
 	if(sc->data[SC_ASH])
 		def -= def * sc->data[SC_ASH]->val3 / 100;
-	if(sc->data[SC_OVERED_BOOST])
-		def -= def * sc->data[SC_OVERED_BOOST]->val3 / 100;
+	if(sc->data[SC_OVERED_BOOST] && bl->type == BL_HOM)
+		def -= def * sc->data[SC_OVERED_BOOST]->val4 / 100;
 
 	return (defType)cap_value(def,DEFTYPE_MIN,DEFTYPE_MAX);;
 }
@@ -5947,11 +5934,9 @@ static short status_calc_fix_aspd(struct block_list *bl, struct status_change *s
 {
 	if (!sc || !sc->count)
 		return cap_value(aspd, 0, 2000);
+	if (sc->data[SC_OVERED_BOOST])
+		return cap_value(2000 - sc->data[SC_OVERED_BOOST]->val3 * 10, 0, 2000);
 
-	if (!sc->data[SC_QUAGMIRE]) {
-		if (sc->data[SC_OVERED_BOOST])
-			aspd = 2000 - sc->data[SC_OVERED_BOOST]->val3 * 10;
-    }
 	if ((sc->data[SC_GUST_OPTION] || sc->data[SC_BLAST_OPTION] ||
 		sc->data[SC_WILD_STORM_OPTION]))
 		aspd -= 50; //+5 ASPD
@@ -7745,6 +7730,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				status_change_end(bl,SC_CONCENTRATION,INVALID_TIMER);
 			break;
 		case SC_FIGHTINGSPIRIT:
+		case SC_OVERED_BOOST:
 			status_change_end(bl,type,INVALID_TIMER); //Remove previous one.
 			break;
 		case SC_MARSHOFABYSS:
@@ -9413,7 +9399,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_ASH:
 				val2 = 50; //Hit % reduc
 				val3 = 0; //Def % reduc
-				val4 = 0; //Atk flee & reduc
+				val4 = 0; //Atk & flee % reduc
 				if( status_get_race(bl) == RC_PLANT ) //Plant type
 					val3 = 50;
 				if( status_get_element(bl) == ELE_WATER ) //Defense water type
@@ -10084,6 +10070,7 @@ int status_change_clear(struct block_list* bl,int type)
 				case SC_L_LIFEPOTION:
 				case SC_PUSH_CART:
 				case SC_ALL_RIDING:
+				case SC_LIGHT_OF_REGENE:
 				case SC_STYLE_CHANGE:
 				case SC_MOONSTAR:
 				case SC_SUPER_STAR:
@@ -10620,6 +10607,20 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			//break;
 		case SC_INTRAVISION:
 			calc_flag = SCB_ALL; /* Required for overlapping */
+			break;
+		case SC_OVERED_BOOST:
+			switch (bl->type) {
+				case BL_HOM: {
+						struct homun_data *hd = BL_CAST(BL_HOM,bl);
+
+						if( hd )
+							hd->homunculus.hunger = max(1,hd->homunculus.hunger - 50);
+					}
+					break;
+				case BL_PC:
+					status_zap(bl,0,status_get_max_sp(bl) / 2);
+					break;
+			}
 			break;
 		case SC_FULL_THROTTLE: {
 				int sec = skill_get_time2(status_sc2skill(type),sce->val1);

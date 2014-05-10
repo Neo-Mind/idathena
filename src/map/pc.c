@@ -6959,10 +6959,9 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			pet_unlocktarget(sd->pd);
 	}
 
-	if( sd->status.hom_id > 0 ) {
-		if( battle_config.homunculus_auto_vapor && sd->hd && !sd->hd->sc.data[SC_LIGHT_OF_REGENE] )
+	if( sd->status.hom_id > 0 )
+		if( battle_config.homunculus_auto_vapor && sd->hd )
 			hom_vaporize(sd,HOM_ST_REST);
-	}
 
 	if( sd->md )
 		mercenary_delete(sd->md,3); //Your mercenary soldier has ran away

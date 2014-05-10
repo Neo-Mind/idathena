@@ -690,40 +690,49 @@ bool skill_isNotOk_hom(uint16 skill_id, struct homun_data *hd)
 
 	switch (skill_id) {
 		case MH_LIGHT_OF_REGENE: //Must be cordial
-			if (hd->homunculus.intimacy <= 75000) return true;
-			break;
-		case MH_OVERED_BOOST: //If we starving
-			if (hd->homunculus.hunger <= 1) return true;
+			if (hom_get_intimacy_grade(hd) != 4) {
+				if (hd->master)
+					clif_skill_fail(hd->master, skill_id, USESKILL_FAIL_RELATIONGRADE, 0);
+				return true;
+			}
 			break;
 		case MH_GOLDENE_FERSE: //Can't be used with angriff
-			if (hd->sc.data[SC_ANGRIFFS_MODUS]) return true;
+			if (hd->sc.data[SC_ANGRIFFS_MODUS])
+				return true;
 			break;
 		case MH_ANGRIFFS_MODUS:
-			if (hd->sc.data[SC_GOLDENE_FERSE]) return true;
+			if (hd->sc.data[SC_GOLDENE_FERSE])
+				return true;
 			break;
 		case MH_TINDER_BREAKER: //Must be in grappling mode
 			if ((hd->sc.data[SC_STYLE_CHANGE] && hd->sc.data[SC_STYLE_CHANGE]->val1 != MH_MD_GRAPPLING) ||
-				!hd->homunculus.spiritball) return true;
+				!hd->homunculus.spiritball)
+				return true;
 			break;
 		case MH_SONIC_CRAW: //Must be in fighting mode
 			if ((hd->sc.data[SC_STYLE_CHANGE] && hd->sc.data[SC_STYLE_CHANGE]->val1 != MH_MD_FIGHTING) ||
-				!hd->homunculus.spiritball) return true;
+				!hd->homunculus.spiritball)
+				return true;
 			break;
 		case MH_SILVERVEIN_RUSH:
 			if ((hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 != MH_SONIC_CRAW) ||
-				hd->homunculus.spiritball < 2) return true;
+				hd->homunculus.spiritball < 2)
+				return true;
 			break;
 		case MH_MIDNIGHT_FRENZY:
 			if ((hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 != MH_SILVERVEIN_RUSH) ||
-				!hd->homunculus.spiritball) return true;
+				!hd->homunculus.spiritball)
+				return true;
 			break;
 		case MH_CBC:
 			if ((hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 != MH_TINDER_BREAKER) ||
-				hd->homunculus.spiritball < 2) return true;
+				hd->homunculus.spiritball < 2)
+				return true;
 			break;
 		case MH_EQC:
 			if ((hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 != MH_CBC) ||
-				hd->homunculus.spiritball < 3) return true;
+				hd->homunculus.spiritball < 3)
+				return true;
 			break;
 	}
 
@@ -1550,7 +1559,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			}
 			break;
 		case MH_XENO_SLASHER:
-			sc_start4(src,bl,SC_BLEEDING,skill_lv,skill_lv,src->id,0,0,skill_get_time2(skill_id,skill_lv)); //@TODO: Need real duration
+			sc_start4(src,bl,SC_BLEEDING,10 * skill_lv,skill_lv,src->id,0,0,skill_get_time2(skill_id,skill_lv)); //@TODO: Need real duration
 			break;
 		case GN_ILLUSIONDOPING:
 			if( sc_start(src,bl,SC_ILLUSIONDOPING,100 - skill_lv * 10,skill_lv,skill_get_time(skill_id,skill_lv)) )
@@ -3138,9 +3147,6 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 	if (damage > 0) { //Post-damage effects
 		switch (skill_id) {
-			case RK_CRUSHSTRIKE:
-				skill_break_equip(src, src, EQP_WEAPON, 2000, BCT_SELF); //20% chance to destroy the weapon.
-				break;
 			case GC_VENOMPRESSURE: {
 					struct status_change *ssc = status_get_sc(src);
 
@@ -3545,6 +3551,9 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				break;
 
 			switch (skl->skill_id) {
+				case KN_AUTOCOUNTER:
+					clif_skill_nodamage(src,target,skl->skill_id,skl->skill_lv,1);
+					break;
 				case RG_INTIMIDATE:
 					if (unit_warp(src,-1,-1,-1,CLR_TELEPORT) == 0) {
 						short x,y;
@@ -4280,6 +4289,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case RL_R_TRIP:
 		case RL_D_TAIL:
 		case RL_HAMMER_OF_GOD:
+		case MH_XENO_SLASHER:
 			if (flag&1) { //Recursive invocation
 				int sflag = skill_area_temp[0]&0xFFF;
 
@@ -4322,6 +4332,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					case NC_ARMSCANNON:
 					case LG_MOONSLASHER:
 					case RL_S_STORM:
+					case MH_XENO_SLASHER:
 						clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 						break;
 					case NPC_EARTHQUAKE: //FIXME: Isn't EarthQuake a ground skill after all?
@@ -6008,7 +6019,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case PR_BENEDICTIO:
 		case LK_BERSERK:
 		case MS_BERSERK:
-		case KN_AUTOCOUNTER:
 		case KN_TWOHANDQUICKEN:
 		case KN_ONEHAND:
 		case MER_QUICKEN:
@@ -6074,12 +6084,18 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case RK_GIANTGROWTH:
 		case RK_VITALITYACTIVATION:
 		case RK_ABUNDANCE:
+		case RK_CRUSHSTRIKE:
 		case ALL_ODINS_POWER:
 		case RL_E_CHAIN:
 		case RL_P_ALTER:
 		case RL_HEAT_BARREL:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
 				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
+			break;
+
+		case KN_AUTOCOUNTER:
+			sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
+			skill_addtimerskill(src,tick + 100,bl->id,0,0,skill_id,skill_lv,BF_WEAPON,flag);
 			break;
 
 		case SO_STRIKING: 
@@ -6103,6 +6119,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				sc_start2(src,bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv)) ) )
 				sc_start2(src,src,type,100,skill_lv,bl->id,skill_get_time(skill_id,skill_lv));
 			break;
+
 		case HP_ASSUMPTIO:
 			if( sd && dstmd )
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -6110,6 +6127,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,
 					sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			break;
+
 		case MG_SIGHT:
 		case MER_SIGHT:
 		case AL_RUWACH:
@@ -6120,12 +6138,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
 				sc_start2(src,bl,type,100,skill_lv,skill_id,skill_get_time(skill_id,skill_lv)));
 			break;
+
 		case HLIF_AVOID:
 		case HAMI_DEFENCE:
 			i = skill_get_time(skill_id,skill_lv);
 			clif_skill_nodamage(bl,bl,skill_id,skill_lv,sc_start(src,bl,type,100,skill_lv,i)); //Master
 			clif_skill_nodamage(src,src,skill_id,skill_lv,sc_start(src,src,type,100,skill_lv,i)); //Homun
 			break;
+
 		case NJ_BUNSINJYUTSU:
 			//On official recasting cancels existing mirror image [helvetica]
 			status_change_end(bl,SC_BUNSINJYUTSU,INVALID_TIMER);
@@ -6133,6 +6153,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			status_change_end(bl,SC_NEN,INVALID_TIMER);
 			break;
+
 		/* Was modified to only affect targetted char.	[Skotlex]
 		case HP_ASSUMPTIO:
 			if (flag&1)
@@ -6146,6 +6167,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 		*/
+
 		case SM_ENDURE:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
 				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
@@ -6158,6 +6180,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			else if (sd)
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
+
 		case AS_ENCHANTPOISON: //Prevent spamming [Valaris]
 			if (sd && dstsd && dstsd->sc.count) {
 				if (dstsd->sc.data[SC_FIREWEAPON] ||
@@ -8408,11 +8431,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 
-		case RK_CRUSHSTRIKE:
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,
-				sc_start2(src,bl,type,100,skill_lv,0,skill_get_time(skill_id,skill_lv)));
-			break;
-
 		case RK_REFRESH: {
 				int heal = status_get_max_hp(bl) * 25 / 100;
 
@@ -9388,7 +9406,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case SR_ASSIMILATEPOWER:
 			if( flag&1 ) {
-				i = 0;
 				if( dstsd && dstsd->spiritball && (sd == dstsd || map_flag_vs(src->m)) &&
 					((dstsd->class_&MAPID_BASEMASK) != MAPID_GUNSLINGER || (dstsd->class_&MAPID_UPPERMASK) != MAPID_REBELLION) ) {
 					i = dstsd->spiritball; //1% sp per spiritball.
@@ -10130,46 +10147,42 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			break;
 
-		case MH_SILENT_BREEZE: {
-				struct status_change *sc = status_get_sc(src);
-
-				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				//Silences the homunculus
-				if( sc && !sc->data[SC_SILENCE] )
-					status_change_start(src,src,SC_SILENCE,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),1|2|8);
-				//Recover the target's HP [5 * (Homunculus MATK + Homunculus Level)]
-				status_heal(bl,5 * (sstatus->matk_max + status_get_lv(src)),0,3);
-				//Removes these SC from target
-				if( tsc ) {
-					const enum sc_type scs[] = {
-						SC_MANDRAGORA, SC_HARMONIZE, SC_DEEPSLEEP, SC_VOICEOFSIREN, SC_SLEEP, SC_CONFUSION, SC_HALLUCINATION
-					};
-					for( i = 0; i < ARRAYLENGTH(scs); i++ )
-						if( tsc->data[scs[i]] )
-							status_change_end(bl,scs[i],INVALID_TIMER);
-					//Silences the target
-					if( !tsc->data[SC_SILENCE] && !is_boss(bl) )
-						status_change_start(src,bl,SC_SILENCE,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),1|2|8);
-				}
-				if( hd )
-					skill_blockhomun_start(hd,skill_id,skill_get_cooldown(NULL,skill_id,skill_lv));
+		case MH_LIGHT_OF_REGENE:
+			if( hd && battle_get_master(src) ) {
+				hd->homunculus.intimacy = (751 + rnd()%99) * 100; //Random between 751 ~ 850
+				clif_send_homdata(hd->master,SP_INTIMATE,hd->homunculus.intimacy / 100); //Refresh intimacy info
+				sc_start(src,battle_get_master(src),type,100,skill_lv,skill_get_time(skill_id,skill_lv));
+				skill_blockhomun_start(hd,skill_id,skill_get_cooldown(NULL,skill_id,skill_lv));
 			}
 			break;
 
 		case MH_OVERED_BOOST:
-			if( hd ) {
-				struct block_list *m_src = battle_get_master(src);
-
-				if( hd->homunculus.hunger > 50 ) //Reduce hunger
-					hd->homunculus.hunger = hd->homunculus.hunger / 2;
-				else
-					hd->homunculus.hunger = min(1,hd->homunculus.hunger);
-				if( m_src && m_src->type == BL_PC ) {
-					status_set_sp(m_src,status_get_max_sp(m_src) / 2,0); //Master drain 50% sp
-					clif_send_homdata(((TBL_PC *)m_src),SP_HUNGRY,hd->homunculus.hunger); //Refresh hunger info
-					sc_start(src,m_src,type,100,skill_lv,skill_get_time(skill_id,skill_lv)); //Gene bonus
-				}
+			if( hd && battle_get_master(src) ) {
 				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
+				sc_start(src,battle_get_master(src),type,100,skill_lv,skill_get_time(skill_id,skill_lv));
+				skill_blockhomun_start(hd,skill_id,skill_get_cooldown(NULL,skill_id,skill_lv));
+			}
+			break;
+
+		case MH_SILENT_BREEZE:
+			if( hd ) {
+				int heal;
+
+				if( tsc ) {
+					const enum sc_type scs[] = {
+						SC_MANDRAGORA,SC_HARMONIZE,SC_DEEPSLEEP,SC_VOICEOFSIREN,
+						SC_SLEEP,SC_CONFUSION,SC__CHAOS,SC_HALLUCINATION
+					};
+
+					for( i = 0; i < ARRAYLENGTH(scs); i++ )
+						if( tsc->data[scs[i]] )
+							status_change_end(bl,scs[i],INVALID_TIMER);
+				}
+				heal = 5 * status_get_lv(&hd->bl) + status_base_matk(&hd->battle_status,status_get_lv(&hd->bl));
+				status_heal(bl,heal,0,0);
+				clif_skill_nodamage(src,src,skill_id,skill_lv,clif_skill_nodamage(src,bl,AL_HEAL,heal,1));
+				if( !is_boss(bl) )
+					status_change_start(src,bl,SC_SILENCE,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),1|2|8);
 				skill_blockhomun_start(hd,skill_id,skill_get_cooldown(NULL,skill_id,skill_lv));
 			}
 			break;
@@ -10182,16 +10195,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				if( m_src ) //Start on master
 					sc_start2(src,m_src,type,100,skill_lv,hd->homunculus.level,skill_get_time(skill_id,skill_lv));
 				sc_start2(src,bl,type,100,skill_lv,hd->homunculus.level,skill_get_time(skill_id,skill_lv));
-				skill_blockhomun_start(hd,skill_id,skill_get_cooldown(NULL,skill_id,skill_lv));
-			}
-			break;
-
-		case MH_LIGHT_OF_REGENE: //Self
-			if( hd ) {
-				sc_start2(src,src,type,100,skill_lv,hd->homunculus.level,skill_get_time(skill_id,skill_lv));
-				hd->homunculus.intimacy = 25100; //Change to neutral (can't be cast if < 75000)
-				if( sd )
-					clif_send_homdata(sd,SP_INTIMATE,hd->homunculus.intimacy); //Refresh intimacy info
 				skill_blockhomun_start(hd,skill_id,skill_get_cooldown(NULL,skill_id,skill_lv));
 			}
 			break;
