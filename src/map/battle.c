@@ -2044,6 +2044,7 @@ static bool is_attack_critical(struct Damage wd, struct block_list *src, struct 
 			case 0:
 				if(sc && !sc->data[SC_AUTOCOUNTER])
 					break;
+				clif_specialeffect(src, 131, AREA);
 				status_change_end(src, SC_AUTOCOUNTER, INVALID_TIMER);
 			case KN_AUTOCOUNTER:
 				if(battle_config.auto_counter_type &&
