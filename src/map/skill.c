@@ -9235,7 +9235,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 #endif
 									break;
 								case 3:
-									//Weapon Attack Increase.
+									//Equipment Attack Increase.
 									val = shield_data->def
 #ifdef RENEWAL
 										;
@@ -12209,15 +12209,15 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			break;
 		case BD_DRUMBATTLEFIELD:
 #ifdef RENEWAL
-			val1 = (skill_lv + 5) * 25; //Watk increase
+			val1 = (skill_lv + 5) * 25; //Atk increase
 			val2 = skill_lv * 10; //Def increase
 #else
-			val1 = (skill_lv + 1) * 25; //Watk increase
+			val1 = (skill_lv + 1) * 25; //Atk increase
 			val2 = (skill_lv + 1) * 2; //Def increase
 #endif
 			break;
 		case BD_RINGNIBELUNGEN:
-			val1 = (skill_lv + 2) * 25; //Watk increase
+			val1 = (skill_lv + 2) * 25; //Atk increase
 			break;
 		case BD_RICHMANKIM:
 			val1 = 25 + 11 * skill_lv; //Exp increase bonus

@@ -6763,10 +6763,8 @@ int pc_skillatk_bonus(struct map_session_data *sd, uint16 skill_id)
 	nullpo_ret(sd);
 
 	ARR_FIND(0, ARRAYLENGTH(sd->skillatk), i, sd->skillatk[i].id == skill_id);
-	if( i < ARRAYLENGTH(sd->skillatk) ) bonus = sd->skillatk[i].val;
-	
-	if( sd->sc.data[SC_PYROTECHNIC_OPTION] || sd->sc.data[SC_AQUAPLAY_OPTION] )
-		bonus += 10;
+	if( i < ARRAYLENGTH(sd->skillatk) )
+		bonus = sd->skillatk[i].val;
 
 	return bonus;
 }
@@ -6785,7 +6783,6 @@ int pc_skillheal_bonus(struct map_session_data *sd, uint16 skill_id) {
 	}
 
 	ARR_FIND(0, ARRAYLENGTH(sd->skillheal), i, sd->skillheal[i].id == skill_id);
-	
 	if( i < ARRAYLENGTH(sd->skillheal) )
 		bonus += sd->skillheal[i].val;
 
