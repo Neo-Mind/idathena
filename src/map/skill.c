@@ -12176,10 +12176,10 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			break;
 		case DC_DONTFORGETME:
 			val1 = 30 * skill_lv + status->dex; //ASPD decrease 
-			val2 = 20 * skill_lv + status->agi; //Movement speed adjustment
+			val2 = 2 * skill_lv + status->agi / 10; //Movement speed adjustment
 			if( sd ) {
-				val1 += pc_checkskill(sd,DC_DANCINGLESSON);
-				val2 += 10 * ((pc_checkskill(sd,DC_DANCINGLESSON) + 1) / 2); //Movement speed -1% per 2 lvl
+				val1 += 10 * pc_checkskill(sd,DC_DANCINGLESSON);
+				val2 += (pc_checkskill(sd,DC_DANCINGLESSON) + 1) / 2; //Movement speed -1% per 2 lvl
 			}
 			break;
 		case BA_APPLEIDUN:

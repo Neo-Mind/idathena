@@ -5043,10 +5043,10 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 		if (bl->type != BL_PC)
 			watk += sc->data[SC_NIBELUNGEN]->val2;
 		else {
-			TBL_PC *tsd = (TBL_PC*)bl;
-			int index = tsd->equip_index[(tsd->state.lr_flag ? EQI_HAND_L : EQI_HAND_R)];
+			TBL_PC *sd = (TBL_PC*)bl;
+			int index = sd->equip_index[(sd->state.lr_flag ? EQI_HAND_L : EQI_HAND_R)];
 
-			if(index >= 0 && tsd->inventory_data[index] && tsd->inventory_data[index]->wlv == 4)
+			if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->wlv == 4)
 				watk += sc->data[SC_NIBELUNGEN]->val2;
 		}
 	}
