@@ -2711,12 +2711,10 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				//Weight from spear is treated as equipment ATK on official [helvetica]
 				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
 					wd.equipAtk += sd->inventory_data[index]->weight / 20;
-
 				wd = battle_calc_damage_parts(wd, src, target, skill_id, skill_lv);
 				wd.masteryAtk = 0; //Weapon mastery is ignored for spiral
 			} else //Monsters have no weight and use ATK instead
 				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, 0);
-
 			switch(tstatus->size) { //Size-fix. Is this modified by weapon perfection?
 				case SZ_SMALL: //Small: 125%
 					RE_ALLATK_RATE(wd, 125);
@@ -2742,7 +2740,6 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				ATK_ADDRATE(wd.damage, wd.damage2, 50 * skill_lv); //Skill modifier applies to weight only.
 			} else //Monsters have no weight and use ATK instead
 				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, 0);
-
 			i = sstatus->str / 10;
 			i *= i;
 			ATK_ADD(wd.damage, wd.damage2, i); //Add STR bonus.

@@ -3101,10 +3101,10 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		struct status_change_entry *sce = tsc->data[SC_DEVOTION];
 		struct block_list *d_bl = map_id2bl(sce->val1);
 
-		if (d_bl && (
-			(d_bl->type == BL_MER && ((TBL_MER*)d_bl)->master && ((TBL_MER*)d_bl)->master->bl.id == bl->id) ||
-			(d_bl->type == BL_PC && ((TBL_PC*)d_bl)->devotion[sce->val2] == bl->id)
-			) && check_distance_bl(bl, d_bl, sce->val3))
+		if (d_bl &&
+			((d_bl->type == BL_MER && ((TBL_MER*)d_bl)->master && ((TBL_MER*)d_bl)->master->bl.id == bl->id) ||
+			(d_bl->type == BL_PC && ((TBL_PC*)d_bl)->devotion[sce->val2] == bl->id)) &&
+			check_distance_bl(bl, d_bl, sce->val3))
 		{
 			if (!rmdamage) {
 				clif_damage(d_bl, d_bl, gettick(), 0, 0, damage, 0, 0, 0);
@@ -5786,6 +5786,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 		case NPC_ALLHEAL: {
 				int heal;
+
 				if (status_isimmune(bl))
 					break;
 				heal = status_percent_heal(bl,100,0);
@@ -5798,11 +5799,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 		case SA_SUMMONMONSTER:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-			if (sd) mob_once_spawn(sd,src->m,src->x,src->y," --ja--",-1,1,"",SZ_SMALL,AI_NONE);
+			if (sd)
+				mob_once_spawn(sd,src->m,src->x,src->y," --ja--",-1,1,"",SZ_SMALL,AI_NONE);
 			break;
 		case SA_LEVELUP:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-			if (sd && pc_nextbaseexp(sd)) pc_gainexp(sd,NULL,pc_nextbaseexp(sd) * 10 / 100,0,false);
+			if (sd && pc_nextbaseexp(sd))
+				pc_gainexp(sd,NULL,pc_nextbaseexp(sd) * 10 / 100,0,false);
 			break;
 		case SA_INSTANTDEATH:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -6265,7 +6268,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				status_change_end(bl,SC_SLEEP,INVALID_TIMER);
 				status_change_end(bl,SC_TRICKDEAD,INVALID_TIMER);
 			}
-
 			if (dstmd) {
 				dstmd->state.provoke_flag = src->id;
 				mob_target(dstmd,src,skill_get_range2(src,skill_id,skill_lv));
@@ -6275,7 +6277,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case CR_DEVOTION:
 		case ML_DEVOTION:
 			{
-				int count, lv;
+				int lv, count;
 
 				if (!dstsd || (!sd && !mer)) { //Only players can be devoted
 					if (sd)
@@ -6295,14 +6297,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					map_freeblock_unlock();
 					return 1;
 				}
-
-				i = 0;
-				count = (sd) ? min(skill_lv,5) : 1; //Mercenary only can Devote owner
+				count = (sd ? min(skill_lv,5) : 1);
 				if (sd) { //Player Devoting Player
-					ARR_FIND(0,count,i,sd->devotion[i] == bl->id);
+					ARR_FIND(0,count,i,sd->devotion[i] == bl->id); //Check if target's already devoted
 					if (i == count) {
 						ARR_FIND(0,count,i,sd->devotion[i] == 0);
-						if (i == count) { //No free slots, skill Fail
+						if (i == count) { //No free slots, skill fail
 							clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 							map_freeblock_unlock();
 							return 1;
@@ -6354,7 +6354,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case MO_ABSORBSPIRITS:
-			i = 0;
 			if (dstsd && dstsd->spiritball && (sd == dstsd || map_flag_vs(src->m)) &&
 				((dstsd->class_&MAPID_BASEMASK) != MAPID_GUNSLINGER || (dstsd->class_&MAPID_UPPERMASK) != MAPID_REBELLION)) {
 				//Split the if for readability, and included gunslingers in the check so that their coins cannot be removed [Reddozen]
@@ -8481,7 +8480,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					break;
 				while( skill_area_temp[5] >= 0x10 ) {
 					type = SC_NONE;
-					i = 0;
 					if( skill_area_temp[5]&0x10 ) {
 						i = (rnd()%100 < 50) ? 4 : ((rnd()%100 < 80) ? 3 : 2);
 						clif_millenniumshield(bl,i);
@@ -10178,7 +10176,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						if( tsc->data[scs[i]] )
 							status_change_end(bl,scs[i],INVALID_TIMER);
 				}
-				heal = 5 * status_get_lv(&hd->bl) + status_base_matk(&hd->battle_status,status_get_lv(&hd->bl));
+				heal = 5 * status_get_lv(&hd->bl) +
+#ifdef RENEWAL
+					status_base_matk(&hd->battle_status,status_get_lv(&hd->bl))
+#else
+					status_base_matk_min(&hd->battle_status)
+#endif
+				;
 				status_heal(bl,heal,0,0);
 				clif_skill_nodamage(src,src,skill_id,skill_lv,clif_skill_nodamage(src,bl,AL_HEAL,heal,1));
 				if( !is_boss(bl) )
@@ -12223,7 +12227,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			val1 = 25 + 11 * skill_lv; //Exp increase bonus
 			break;
 		case BD_SIEGFRIED:
-			val1 = 55 + skill_lv * 5; //Elemental Resistance
+			val1 = 55 + skill_lv * 5; //Elemental resistance
 			val2 = skill_lv * 10; //Status ailment resistance
 			break;
 		case WE_CALLPARTNER:
@@ -14170,6 +14174,14 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 
 	//Perform skill-specific checks (and actions)
 	switch( skill_id ) {
+		case AL_WARP:
+			if( !battle_config.duel_allow_teleport && sd->duel_group ) { //Duel restriction [LuzZza]
+				char output[128]; sprintf(output,msg_txt(365),skill_get_name(AL_WARP));
+
+				clif_displaymessage(sd->fd,output); //"Duel: Can't use %s in duel."
+				return false;
+			}
+			break;
 		case SO_SPELLFIST:
 			if( sd->skill_id_old != MG_FIREBOLT && sd->skill_id_old != MG_COLDBOLT && sd->skill_id_old != MG_LIGHTNINGBOLT ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -14194,14 +14206,6 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 						return false;
 					}
 				}
-			}
-			break;
-		case AL_WARP:
-			if( !battle_config.duel_allow_teleport && sd->duel_group ) { //Duel restriction [LuzZza]
-				char output[128]; sprintf(output,msg_txt(365),skill_get_name(AL_WARP));
-
-				clif_displaymessage(sd->fd,output); //"Duel: Can't use %s in duel."
-				return false;
 			}
 			break;
 		case MO_CALLSPIRITS:
