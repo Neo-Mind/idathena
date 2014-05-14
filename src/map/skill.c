@@ -15229,9 +15229,9 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 		return req; //Hocus-Pocus don't have requirements.
 
 	sc = &sd->sc;
+
 	if( !sc->count )
 		sc = NULL;
-
 	//Checks if disabling skill - in which case no SP requirements are necessary
 	if( sc && skill_disable_check(sc,skill_id) )
 		return req;
@@ -15241,18 +15241,21 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 		return req;
 
 	status = &sd->battle_status;
-
 	req.hp = skill_db[idx].require.hp[skill_lv - 1];
 	hp_rate = skill_db[idx].require.hp_rate[skill_lv - 1];
+
 	if( hp_rate > 0 )
 		req.hp += (status->hp * hp_rate) / 100;
 	else
 		req.hp += (status->max_hp * (-hp_rate)) / 100;
 
 	req.sp = skill_db[idx].require.sp[skill_lv - 1];
+
 	if( (sd->skill_id_old == BD_ENCORE) && skill_id == sd->skill_id_dance )
 		req.sp /= 2;
+
 	sp_rate = skill_db[idx].require.sp_rate[skill_lv - 1];
+
 	if( sp_rate > 0 )
 		req.sp += (status->sp * sp_rate) / 100;
 	else
@@ -15261,14 +15264,17 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 		req.sp = req.sp * sd->dsprate / 100;
 
 	ARR_FIND(0,ARRAYLENGTH(sd->skillusesprate),i,sd->skillusesprate[i].id == skill_id);
+
 	if( i < ARRAYLENGTH(sd->skillusesprate) )
 		sp_skill_rate_bonus += sd->skillusesprate[i].val;
+
 	ARR_FIND(0,ARRAYLENGTH(sd->skillusesp),i,sd->skillusesp[i].id == skill_id);
+
 	if( i < ARRAYLENGTH(sd->skillusesp) )
 		req.sp -= sd->skillusesp[i].val;
-	
+
 	req.sp = cap_value(req.sp * sp_skill_rate_bonus / 100,0,SHRT_MAX);
-	
+
 	if( sc ) {
 		if( sc->data[SC_RECOGNIZEDSPELL] )
 			req.sp += req.sp * 25 / 100;
@@ -15278,6 +15284,8 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 			req.sp += req.sp * sc->data[SC_UNLIMITEDHUMMINGVOICE]->val3 / 100;
 		if( sc->data[SC_TELEKINESIS_INTENSE] && skill_get_ele(skill_id,skill_lv) == ELE_GHOST)
 			req.sp -= req.sp * sc->data[SC_TELEKINESIS_INTENSE]->val2 / 100;
+		if( sc->data[SC_OFFERTORIUM] )
+			req.sp += req.sp * sc->data[SC_OFFERTORIUM]->val3 / 100;
 	}
 
 	req.zeny = skill_db[idx].require.zeny[skill_lv - 1];
@@ -15294,6 +15302,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 	req.mhp = skill_db[idx].require.mhp[skill_lv - 1];
 	req.weapon = skill_db[idx].require.weapon;
 	req.ammo_qty = skill_db[idx].require.ammo_qty[skill_lv - 1];
+
 	if( req.ammo_qty )
 		req.ammo = skill_db[idx].require.ammo;
 
@@ -15377,7 +15386,8 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 		if( skill_id >= HT_SKIDTRAP && skill_id <= HT_TALKIEBOX && pc_checkskill(sd,RA_RESEARCHTRAP) > 0 ) {
 			int16 itIndex;
 
-			if( (itIndex = pc_search_inventory(sd,req.itemid[i])) < 0  || (itIndex >= 0 && sd->status.inventory[itIndex].amount < req.amount[i]) ) {
+			if( (itIndex = pc_search_inventory(sd,req.itemid[i])) < 0  ||
+				(itIndex >= 0 && sd->status.inventory[itIndex].amount < req.amount[i]) ) {
 				req.itemid[i] = ITEMID_TRAP_ALLOY;
 				req.amount[i] = 1;
 			}

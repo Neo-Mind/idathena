@@ -9410,10 +9410,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_OFFERTORIUM:
 				val2 = 30 * val1;
+				val3 = 100 + 20 * val1;
 				break;
 			case SC_FRIGG_SONG:
 				val2 = 5 * val1;
-				val3 = (20 * val1) + 80;
+				val3 = 80 + 20 * val1;
 				tick_time = 1000;
 				val4 = tick / tick_time;
 				break;
@@ -9424,7 +9425,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = 50 * val1;
 				break;
 			case SC_FLASHCOMBO:
-				val2 = (20 * val1) + 20;
+				val2 = 20 + 20 * val1;
 				break;
 			case SC_MONSTER_TRANSFORM:
 				if( !mobdb_checkid(val1) )
