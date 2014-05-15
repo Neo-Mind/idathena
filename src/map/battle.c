@@ -390,10 +390,10 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 			case ELE_FIRE:
 				if( tsc->data[SC_SPIDERWEB] ) {
 					tsc->data[SC_SPIDERWEB]->val1 = 0; //Free to move now
-						if( tsc->data[SC_SPIDERWEB]->val2-- > 0 )
-							ratio += 200; //Double damage
-						if( tsc->data[SC_SPIDERWEB]->val2 == 0 )
-							status_change_end(target, SC_SPIDERWEB, INVALID_TIMER);
+					if( tsc->data[SC_SPIDERWEB]->val2-- > 0 )
+						ratio += 200; //Double damage
+					if( tsc->data[SC_SPIDERWEB]->val2 == 0 )
+						status_change_end(target, SC_SPIDERWEB, INVALID_TIMER);
 				}
 				if( tsc->data[SC_THORNSTRAP] )
 					status_change_end(target, SC_THORNSTRAP, INVALID_TIMER);
@@ -790,6 +790,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}
+
 		//Gravitation and Pressure do damage without removing the effect
 		if( sc->data[SC_WHITEIMPRISON] && skill_id != HW_GRAVITATION ) {
 			if( skill_id == MG_NAPALMBEAT ||
@@ -861,7 +862,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			return 0;
 		}
 
-		if( (sce = sc->data[SC_AUTOGUARD]) && flag&BF_WEAPON && !(skill_get_nk(skill_id)&NK_NO_CARDFIX_ATK) && rnd()%100 < sce->val2 ) {
+		if( (sce = sc->data[SC_AUTOGUARD]) && flag&BF_WEAPON &&
+			!(skill_get_nk(skill_id)&NK_NO_CARDFIX_ATK) && rnd()%100 < sce->val2 ) {
 			int delay;
 
 			clif_skill_nodamage(bl,bl,CR_AUTOGUARD,sce->val1,1);
@@ -5252,7 +5254,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 			case CR_ACIDDEMONSTRATION:
 			case GN_FIRE_EXPANSION_ACID:
 #endif
-			case KO_HAPPOKUNAI:
+			case SO_VARETYR_SPEAR:
 				break; //These skills will do a card fix later
 			default:
 				wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.damage, 0, wd.flag);
@@ -5332,7 +5334,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		case CR_ACIDDEMONSTRATION:
 		case GN_FIRE_EXPANSION_ACID:
 #endif
-		case KO_HAPPOKUNAI:
+		case SO_VARETYR_SPEAR:
 			return wd; //These skills will do a GVG fix later
 		default:
 			wd = battle_calc_attack_gvg_bg(wd, src, target, skill_id, skill_lv);
@@ -5499,11 +5501,11 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			case PR_TURNUNDEAD:
 				//Undead check is on skill_castend_damageid code.
 #ifdef RENEWAL
-				i = 10 * skill_lv + sstatus->luk + sstatus->int_ + status_get_lv(src)
-				  	+ 300 - 300 * tstatus->hp / tstatus->max_hp;
+				i = 10 * skill_lv + sstatus->luk + sstatus->int_ + status_get_lv(src) +
+					300 - 300 * tstatus->hp / tstatus->max_hp;
 #else
-				i = 20 * skill_lv + sstatus->luk + sstatus->int_ + status_get_lv(src)
-				  	+ 200 - 200 * tstatus->hp / tstatus->max_hp;
+				i = 20 * skill_lv + sstatus->luk + sstatus->int_ + status_get_lv(src) +
+					200 - 200 * tstatus->hp / tstatus->max_hp;
 #endif
 				if(i > 700)
 					i = 700;
@@ -5527,16 +5529,22 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			case AB_RENOVATIO:
 				ad.damage = status_get_lv(src) * 10 + sstatus->int_;
 				break;
-#ifndef RENEWAL
 			case GN_FIRE_EXPANSION_ACID:
+#ifdef RENEWAL
+				{
+					struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, 0);
+
+					ad.damage = (int64)(7 * ((wd.damage / skill_lv + ad.damage / skill_lv) * tstatus->vit / 100));
+				}
+#else
 				if(tstatus->vit + sstatus->int_)
 					ad.damage = (int64)(7 * tstatus->vit * sstatus->int_ * sstatus->int_ / (10 * (tstatus->vit + sstatus->int_)));
 				else
 					ad.damage = 0;
 				if(tsd)
 					ad.damage >>= 1;
-				break;
 #endif
+				break;
 			default: {
 				if(sstatus->matk_max > sstatus->matk_min) {
 					MATK_ADD(sstatus->matk_min + rnd()%(sstatus->matk_max - sstatus->matk_min));
@@ -6108,18 +6116,30 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		if(!(nk&NK_NO_ELEFIX))
 			ad.damage = battle_attr_fix(src, target, ad.damage, s_ele, tstatus->def_ele, tstatus->ele_lv);
 
-		if(skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS) {
-			//Apply the physical part of the skill's damage. [Skotlex]
-			struct Damage wd = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
+		//Apply the physical part of the skill's damage. [Skotlex]
+		switch(skill_id) {
+			case CR_GRANDCROSS:
+			case NPC_GRANDDARKNESS:
+				{
+					struct Damage wd = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
 
-			ad.damage = battle_attr_fix(src, target, wd.damage + ad.damage, s_ele, tstatus->def_ele, tstatus->ele_lv) * (100 + 40 * skill_lv) / 100;
-			if(src == target) {
-				if(src->type == BL_PC)
-					ad.damage = ad.damage / 2;
-				else
-					ad.damage = 0;
-			}
+					ad.damage = battle_attr_fix(src, target, wd.damage + ad.damage, s_ele, tstatus->def_ele, tstatus->ele_lv) * (100 + 40 * skill_lv) / 100;
+					if(src == target) {
+						if(src->type == BL_PC)
+							ad.damage = ad.damage / 2;
+						else
+							ad.damage = 0;
+					}
+				}
+				break;
+			case SO_VARETYR_SPEAR: {
+					struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, mflag);
+
+					ad.damage += wd.damage;
+				}
+				break;
 		}
+
 #ifndef RENEWAL
 	ad.damage += battle_calc_cardfix(BF_MAGIC, src, target, nk, s_ele, 0, ad.damage, 0, ad.flag);
 #endif
@@ -6143,25 +6163,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			else if(map[target->m].flag.battleground)
 				ad.damage = battle_calc_bg_damage(src, target, ad.damage, ad.div_, skill_id, skill_lv, ad.flag);
 			break;
-	}
-
-	switch(skill_id) { /* Post-calc modifiers */
-		case SO_VARETYR_SPEAR: { //Physical damage.
-				struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, mflag);
-
-				if(!flag.infdef && ad.damage > 1)
-					ad.damage += wd.damage;
-			}
-			break;
-#ifdef RENEWAL
-		case GN_FIRE_EXPANSION_ACID: {
-				struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, 0);
-
-				ad.damage = (int64)(7 * ((wd.damage / skill_lv + ad.damage / skill_lv) * tstatus->vit / 100));
-				damage_div_fix(ad.damage, ad.div_);
-			}
-			break;
-#endif
 	}
 
 	/* Skill damage adjustment */
