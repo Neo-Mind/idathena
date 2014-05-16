@@ -2140,8 +2140,8 @@ unsigned int status_weapon_atk(struct weapon_atk wa, struct status_data *status)
 #endif
 
 #ifndef RENEWAL
-	static inline unsigned short status_base_matk_min(const struct status_data* status) { return status->int_ + (status->int_ / 7) * (status->int_ / 7); }
-	static inline unsigned short status_base_matk_max(const struct status_data* status) { return status->int_ + (status->int_ / 5) * (status->int_ / 5); }
+	unsigned short status_base_matk_min(const struct status_data* status) { return status->int_ + (status->int_ / 7) * (status->int_ / 7); }
+	unsigned short status_base_matk_max(const struct status_data* status) { return status->int_ + (status->int_ / 5) * (status->int_ / 5); }
 #else
 	unsigned short status_base_matk(const struct status_data* status, int level) { return status->int_ + (status->int_ / 2) + (status->dex / 5) + (status->luk / 3) + (level / 4); }
 #endif

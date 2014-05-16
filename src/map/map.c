@@ -2587,8 +2587,8 @@ int map_random_dir(struct block_list *bl, int16 *x, int16 *y)
 		segment = (short)sqrt((float)(dist2 - segment * segment)); //The complement of the previously picked segment
 		yi = bl->y + segment * diry[j];
 	} while(
-		(map_getcell(bl->m,xi,yi,CELL_CHKNOPASS) || !path_search(NULL,bl->m,bl->x,bl->y,xi,yi,1,CELL_CHKNOREACH))
-		&& (++i) < 100);
+		(map_getcell(bl->m,xi,yi,CELL_CHKNOPASS) || !path_search(NULL,bl->m,bl->x,bl->y,xi,yi,1,CELL_CHKNOREACH)) &&
+		(++i) < 100);
 
 	if(i < 100) {
 		*x = xi;
