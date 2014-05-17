@@ -9026,7 +9026,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					pc_setmadogear(sd,0);
 				skill_area_temp[1] = 0;
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				i = map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),
+				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),
 				src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
 				status_set_sp(src,0,0);
 				skill_clear_unitgroup(src);
