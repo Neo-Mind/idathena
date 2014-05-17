@@ -9078,7 +9078,7 @@ void clif_charnameupdate (struct map_session_data *ssd)
 /// Taekwon Jump (TK_HIGHJUMP) effect (ZC_HIGHJUMP).
 /// 01ff <id>.L <x>.W <y>.W
 ///
-/// Visually moves(instant) a character to x,y. The char moves even
+/// Visually moves(instant) a character to x, y. The char moves even
 /// when the target cell isn't walkable. If the char is sitting it
 /// stays that way.
 void clif_slide(struct block_list *bl, int x, int y)

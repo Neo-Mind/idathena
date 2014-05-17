@@ -768,7 +768,7 @@ int unit_escape(struct block_list *bl, struct block_list *target, short dist)
 }
 
 /**
- * Instant warps a unit to x,y coordinate
+ * Instant warps a unit to x, y coordinate
  * @param bl: Object to instant warp
  * @param dst_x: X coordinate to warp to
  * @param dst_y: Y coordinate to warp to

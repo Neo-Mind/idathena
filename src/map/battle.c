@@ -737,7 +737,7 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 }
 
 /*==========================================
- * Check damage trough status.
+ * Check damage through status.
  * ATK may be MISS, BLOCKED FAIL, reduc, increase, end status...
  * After this we apply bg/gvg reduction
  *------------------------------------------*/
@@ -1153,7 +1153,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			uint8 dir = map_calc_dir(bl,src->x,src->y);
 
 			if( unit_movepos(bl,src->x - dx[dir],src->y - dy[dir],1,1) ) {
-				clif_slide(bl,src->x - dx[dir],src->y - dy[dir]);
+				clif_slide(bl,src->x,src->y);
+				clif_fixpos(bl); //The official server send these two packts
 				unit_setdir(bl,dir);
 			}
 			d->dmg_lv = ATK_DEF;

@@ -2969,8 +2969,9 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 					return 1;
 			}
 			if(sd->status.inventory[index].card[0] == CARD0_FORGE) { //Forged weapon
-				wd->star += (sd->status.inventory[index].card[1] >> 8);
-				if(wd->star >= 15) wd->star = 40; //3 Star Crumbs now give +40 dmg
+				wd->star += (sd->status.inventory[index].card[1]>>8);
+				if(wd->star >= 15)
+					wd->star = 40; //3 Star Crumbs now give +40 dmg
 				if(pc_famerank(MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]),MAPID_BLACKSMITH))
 					wd->star += 10;
 				if(!wa->ele) //Do not overwrite element from previous bonuses.
@@ -3315,7 +3316,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 	//----- FLEE CALCULATION -----
 	//Absolute modifiers from passive skills
 	if((skill = pc_checkskill(sd,TF_MISS)) > 0)
-		status->flee += skill * (sd->class_&JOBL_2 && (sd->class_&MAPID_BASEMASK) == MAPID_THIEF? 4 : 3);
+		status->flee += skill * (sd->class_&JOBL_2 && (sd->class_&MAPID_BASEMASK) == MAPID_THIEF ? 4 : 3);
 	if((skill = pc_checkskill(sd,MO_DODGE)) > 0)
 		status->flee += (skill * 3)>>1;
 
@@ -3891,20 +3892,13 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 	if (sc->data[SC_DANCING] ||
 #ifdef RENEWAL
 		sc->data[SC_MAXIMIZEPOWER] ||
-#endif
-#ifndef RENEWAL
+#else
 		(bl->type == BL_PC && (((TBL_PC*)bl)->class_&MAPID_UPPERMASK) == MAPID_MONK &&
 		(sc->data[SC_EXPLOSIONSPIRITS] || sc->data[SC_EXTREMITYFIST]) &&
 		(!sc->data[SC_SPIRIT] || sc->data[SC_SPIRIT]->val2 != SL_MONK)) ||
 #endif
 		sc->data[SC_VITALITYACTIVATION] || sc->data[SC_OBLIVIONCURSE])
 		regen->flag &= ~RGN_SP; //No natural SP regen
-
-#ifdef RENEWAL
-	if (bl->type == BL_PC && (((TBL_PC*)bl)->class_&MAPID_UPPERMASK) == MAPID_MONK &&
-		sc->data[SC_EXPLOSIONSPIRITS] && (!sc->data[SC_SPIRIT] || sc->data[SC_SPIRIT]->val2 != SL_MONK))
-		regen->rate.sp = regen->rate.sp / 2; //50% SP regen on fury state
-#endif
 
 	if (sc->data[SC_MAGNIFICAT])
 		regen->rate.sp += 1; //2x SP regen
@@ -8412,12 +8406,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val3 = 0;
 					val4 = 0;
 					max_stat = battle_config.max_parameter; //Cap to 99 (default)
-					stat = (psce->val3 >>16)&0xFF; stat = min(stat,max_stat - status->str); val3 |= cap_value(stat,0,0xFF) << 16;
-					stat = (psce->val3 >> 8)&0xFF; stat = min(stat,max_stat - status->agi); val3 |= cap_value(stat,0,0xFF) << 8;
-					stat = (psce->val3 >> 0)&0xFF; stat = min(stat,max_stat - status->vit); val3 |= cap_value(stat,0,0xFF);
-					stat = (psce->val4 >>16)&0xFF; stat = min(stat,max_stat - status->int_); val4 |= cap_value(stat,0,0xFF) << 16;
-					stat = (psce->val4 >> 8)&0xFF; stat = min(stat,max_stat - status->dex); val4 |= cap_value(stat,0,0xFF) << 8;
-					stat = (psce->val4 >> 0)&0xFF; stat = min(stat,max_stat - status->luk); val4 |= cap_value(stat,0,0xFF);
+					stat = (psce->val3>>16)&0xFF; stat = min(stat,max_stat - status->str); val3 |= cap_value(stat,0,0xFF)<<16;
+					stat = (psce->val3>>8)&0xFF; stat = min(stat,max_stat - status->agi); val3 |= cap_value(stat,0,0xFF)<<8;
+					stat = (psce->val3>>0)&0xFF; stat = min(stat,max_stat - status->vit); val3 |= cap_value(stat,0,0xFF);
+					stat = (psce->val4>>16)&0xFF; stat = min(stat,max_stat - status->int_); val4 |= cap_value(stat,0,0xFF)<<16;
+					stat = (psce->val4>>8)&0xFF; stat = min(stat,max_stat - status->dex); val4 |= cap_value(stat,0,0xFF)<<8;
+					stat = (psce->val4>>0)&0xFF; stat = min(stat,max_stat - status->luk); val4 |= cap_value(stat,0,0xFF);
 				}
 				break;
 			case SC_REJECTSWORD:
@@ -12214,36 +12208,28 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 	regen = status_get_regen_data(bl);
 	if (!regen)
 		return 0;
-
 	status = status_get_status_data(bl);
-
 	sc = status_get_sc(bl);
 	if (sc && !sc->count)
 		sc = NULL;
-
 	sd = BL_CAST(BL_PC,bl);
-
 	flag = regen->flag;
 	if (flag&RGN_HP && (status->hp >= status->max_hp || regen->state.block&1))
 		flag &= ~(RGN_HP|RGN_SHP);
 	if (flag&RGN_SP && (status->sp >= status->max_sp || regen->state.block&2))
 		flag &= ~(RGN_SP|RGN_SSP);
-
 	if (flag && (status_isdead(bl) || (sd && pc_ishiding(sd))))
 		flag = 0;
-
 	if (sd) {
 		if (sd->hp_loss.value || sd->sp_loss.value)
 			pc_bleeding(sd, natural_heal_diff_tick);
 		if (sd->hp_regen.value || sd->sp_regen.value)
 			pc_regen(sd, natural_heal_diff_tick);
 	}
-
-	if (flag&(RGN_SHP|RGN_SSP) && regen->ssregen &&
-		(vd = status_get_viewdata(bl)) && vd->dead_sit == 2)
-	{ //Apply sitting regen bonus.
+	//Apply sitting regen bonus.
+	if (flag&(RGN_SHP|RGN_SSP) && regen->ssregen && (vd = status_get_viewdata(bl)) && vd->dead_sit == 2) {
 		sregen = regen->ssregen;
-		if (flag&(RGN_SHP)) { //Sitting HP regen
+		if (flag&RGN_SHP) { //Sitting HP regen
 			val = natural_heal_diff_tick * sregen->rate.hp;
 			if (regen->state.overweight)
 				val >>= 1; //Half as fast when overweight.
@@ -12256,10 +12242,10 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 				}
 			}
 		}
-		if (flag&(RGN_SSP)) { //Sitting SP regen
+		if (flag&RGN_SSP) { //Sitting SP regen
 			val = natural_heal_diff_tick * sregen->rate.sp;
 			if (regen->state.overweight)
-				val>>=1; //Half as fast when overweight.
+				val >>= 1; //Half as fast when overweight.
 			sregen->tick.sp += val;
 			while (sregen->tick.sp >= (unsigned int)battle_config.natural_heal_skill_interval) {
 				sregen->tick.sp -= battle_config.natural_heal_skill_interval;
@@ -12270,21 +12256,16 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 			}
 		}
 	}
-
 	if (flag && regen->state.overweight)
 		flag = 0;
-
 	ud = unit_bl2ud(bl);
-
 	if (flag&(RGN_HP|RGN_SHP|RGN_SSP) && ud && ud->walktimer != INVALID_TIMER) {
 		flag &= ~(RGN_SHP|RGN_SSP);
 		if (!regen->state.walk)
 			flag &= ~RGN_HP;
 	}
-
 	if (!flag)
 		return 0;
-
 	if (flag&(RGN_HP|RGN_SP)) {
 		if (!vd)
 			vd = status_get_viewdata(bl);
@@ -12293,8 +12274,7 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 		if (regen->state.gc)
 			bonus++;
 	}
-
-	//Natural Hp regen
+	//Natural HP regen
 	if (flag&RGN_HP) {
 		rate = natural_heal_diff_tick * (regen->rate.hp + bonus);
 		if (ud && ud->walktimer != INVALID_TIMER)
@@ -12302,9 +12282,7 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 		//Homun HP regen fix (they should regen as if they were sitting (twice as fast)
 		if (bl->type == BL_HOM)
 			rate *= 2;
-
 		regen->tick.hp += rate;
-		
 		if (regen->tick.hp >= (unsigned int)battle_config.natural_healhp_interval) {
 			val = 0;
 			do {
@@ -12315,16 +12293,18 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 				flag &= ~RGN_SHP; //Full
 		}
 	}
-
 	//Natural SP regen
 	if (flag&RGN_SP) {
 		rate = natural_heal_diff_tick * (regen->rate.sp + bonus);
 		//Homun SP regen fix (they should regen as if they were sitting (twice as fast)
 		if (bl->type == BL_HOM)
 			rate *= 2;
-
+#ifdef RENEWAL
+		if (bl->type == BL_PC && (((TBL_PC*)bl)->class_&MAPID_UPPERMASK) == MAPID_MONK &&
+			sc && sc->data[SC_EXPLOSIONSPIRITS] && (!sc->data[SC_SPIRIT] || sc->data[SC_SPIRIT]->val2 != SL_MONK))
+			rate /= 2; //50% natural SP regen on Fury state
+#endif
 		regen->tick.sp += rate;
-		
 		if (regen->tick.sp >= (unsigned int)battle_config.natural_healsp_interval) {
 			val = 0;
 			do {
@@ -12332,19 +12312,15 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 				regen->tick.sp -= battle_config.natural_healsp_interval;
 			} while (regen->tick.sp >= (unsigned int)battle_config.natural_healsp_interval);
 			if (status_heal(bl, 0, val, 1) < val)
-				flag&=~RGN_SSP; //full.
+				flag &= ~RGN_SSP; //Full
 		}
 	}
-
 	if (!regen->sregen)
 		return flag;
-
 	//Skill regen
 	sregen = regen->sregen;
-
 	if (flag&RGN_SHP) { //Skill HP regen
 		sregen->tick.hp += natural_heal_diff_tick * sregen->rate.hp;
-		
 		while (sregen->tick.hp >= (unsigned int)battle_config.natural_heal_skill_interval) {
 			sregen->tick.hp -= battle_config.natural_heal_skill_interval;
 			if (status_heal(bl, sregen->hp, 0, 3) < sregen->hp)
@@ -12359,8 +12335,8 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 				val *= 2;
 				sd->state.doridori = 0;
 				if ((rate = pc_checkskill(sd,TK_SPTIME)))
-					sc_start(bl,bl,status_skill2sc(TK_SPTIME),
-						100,rate,skill_get_time(TK_SPTIME, rate));
+					sc_start(bl, bl, status_skill2sc(TK_SPTIME),
+						100, rate, skill_get_time(TK_SPTIME, rate));
 				if (
 					(sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR &&
 					rnd()%10000 < battle_config.sg_angel_skill_ratio

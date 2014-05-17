@@ -3070,7 +3070,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 					if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src,bl->x,bl->y,1,1)) {
 						clif_slide(src,bl->x,bl->y);
-						clif_fixpos(src); //Aegis send this packet too
+						clif_fixpos(src);
 					}
 					if (i < dmg.blewcount)
 						skill_addtimerskill(src, tick + 300 * ((flag&2) ? 1 : 2), bl->id, 0, 0, skill_id, skill_lv, BF_WEAPON, flag|4);
@@ -4105,6 +4105,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				//Teleport to target (if not on WoE grounds)
 				if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src,bl->x,bl->y,0,1))
 					clif_slide(src,bl->x,bl->y);
+					clif_fixpos(src);
+				}
 
 				//Cause damage and knockback if the path to target was a straight one
 				if (path) {
@@ -4207,7 +4209,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				//Ashura Strike still has slide effect in GVG
 				if ((mbl == src || (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground)) &&
 					unit_movepos(src,mbl->x + x,mbl->y + y,1,1)) {
-					clif_slide(src,mbl->x + x,mbl->y + y);
+					clif_slide(src,mbl->x,mbl->y);
 					clif_fixpos(src);
 					clif_spiritball(src);
 				}
@@ -4634,9 +4636,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			else
 				y = 0;
 			//Doesn't have slide effect in GVG
-			if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground &&
-				unit_movepos(src,bl->x + x,bl->y + y,1,1)) {
-				clif_slide(src,bl->x + x,bl->y + y);
+			if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src,bl->x + x,bl->y + y,1,1)) {
+				clif_slide(src,bl->x,bl->y);
 				clif_fixpos(src);
 				clif_spiritball(src);
 			}
@@ -4713,8 +4714,10 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				short x, y;
 
 				map_search_freecell(bl,0,&x,&y,1,1,0);
-				if (unit_movepos(src,x,y,0,0))
+				if (unit_movepos(src,x,y,0,0)) {
 					clif_slide(src,src->x,src->y);
+					clif_fixpos(src);
+				}
 			}
 			status_change_end(src,SC_HIDING,INVALID_TIMER);
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
@@ -4737,8 +4740,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				else
 					y = 0;
 				if (unit_movepos(src,bl->x + x,bl->y + y,1,1)) {
-					clif_slide(src,bl->x + x,bl->y + y);
-					clif_fixpos(src); //The official server send these two packts.
+					clif_slide(src,bl->x,bl->y);
+					clif_fixpos(src);
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 					if (rnd()%100 < 4 * skill_lv)
 						skill_castend_damage_id(src,bl,GC_CROSSIMPACT,skill_lv,tick,flag);
@@ -4941,7 +4944,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				uint8 dir = map_calc_dir(bl,src->x,src->y);
 
 				if (unit_movepos(src,bl->x + x[dir],bl->y + y[dir],1,1)) {
-					clif_slide(src,bl->x + x[dir],bl->y + y[dir]);
+					clif_slide(src,bl->x,bl->y);
 					clif_fixpos(src);
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 				}
@@ -5018,8 +5021,10 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case LG_PINPOINTATTACK:
-			if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src,bl->x,bl->y,1,1))
+			if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src,bl->x,bl->y,1,1)) {
 				clif_slide(src,bl->x,bl->y);
+				clif_fixpos(src);
+			}
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
 
@@ -5171,8 +5176,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				else
 					y = 0;
 				if (unit_movepos(src,bl->x + x,bl->y + y,1,1)) {
-					clif_slide(src,bl->x + x,bl->y + y);
-					clif_fixpos(src); //The official server send these two packts.
+					clif_slide(src,bl->x,bl->y);
+					clif_fixpos(src);
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 				}
 			}
@@ -6001,6 +6006,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if( battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
 				if( unit_movepos(src,bl->x,bl->y,1,1) ) {
 					clif_slide(src,bl->x,bl->y);
+					clif_fixpos(src);
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 				}
 			} else
@@ -7329,9 +7335,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				}
 
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				if( !map_count_oncell(src->m,x,y,BL_PC|BL_NPC|BL_MOB) && map_getcell(src->m,x,y,CELL_CHKREACH) ) {
-					clif_slide(src,x,y);
-					unit_movepos(src,x,y,1,0);
+				if( !map_count_oncell(src->m,x,y,BL_PC|BL_NPC|BL_MOB) &&
+					map_getcell(src->m,x,y,CELL_CHKREACH) && unit_movepos(src,x,y,1,0) ) {
+					clif_slide(src,src->x,src->y);
+					clif_fixpos(src);
 				}
 			}
 			break;
@@ -8244,9 +8251,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				if (unit_movepos(src,bl->x,bl->y,0,0)) {
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1); //Homun
 					clif_slide(src,bl->x,bl->y);
+					clif_fixpos(src);
 					if (unit_movepos(bl,x,y,0,0)) {
 						clif_skill_nodamage(bl,bl,skill_id,skill_lv,1); //Master
-						clif_slide(bl,x,y) ;
+						clif_slide(bl,x,y);
+						clif_fixpos(bl);
 					}
 					//@TODO: Make casted skill also change its target
 					map_foreachinrange(skill_changetarget,src,AREA_SIZE,BL_CHAR,bl,src);
@@ -9133,7 +9142,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						if( dstmd )
 							sp = dstmd->level * 2;
 						if( !dstmd && status_zap(bl,0,sp) )
-							status_heal(src,0,sp / 2,3); //What does flag 3 do? [Rytech]
+							status_heal(src,0,sp / 2,3);
 				}
 				//If the target was successfully inflected with the Unlucky status, give 1 of 3 random status's.
 				//Targets in the Unlucky status will be affected by one of the 3 random status's reguardless of resistance.
@@ -10081,11 +10090,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				if( unit_movepos(src,bl->x,bl->y,0,0) ) {
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 					clif_slide(src,bl->x,bl->y);
+					clif_fixpos(src);
 					sc_start(src,src,SC__CHAOS,25,skill_lv,skill_get_time(skill_id,skill_lv));
 					if( !is_boss(bl) && unit_movepos(bl,x,y,0,0) ) {
 						if( dstsd && pc_issit(dstsd) )
 							pc_setstand(dstsd);
 						clif_slide(bl,x,y);
+						clif_fixpos(bl);
 						sc_start(src,bl,SC__CHAOS,75,skill_lv,skill_get_time(skill_id,skill_lv));
 					}
 				}
@@ -10783,7 +10794,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 			else
 				y = 0;
 			if( unit_movepos(src,src->x + x,src->y + y,1,1) ) { //Display movement + animation.
-				clif_slide(src,src->x + x,src->y + y);
+				clif_slide(src,src->x,src->y);
 				clif_fixpos(src);
 				clif_spiritball(src);
 			}
@@ -11248,9 +11259,10 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case NJ_SHADOWJUMP:
-			if( !map_flag_gvg2(src->m) && !map[src->m].flag.battleground ) { //You don't move on GVG grounds.
-				unit_movepos(src,x,y,1,0);
+			if( !map_flag_gvg2(src->m) && !map[src->m].flag.battleground &&
+				unit_movepos(src,x,y,1,0) ) { //You don't move on GVG grounds.
 				clif_slide(src,x,y);
+				clif_fixpos(src);
 			}
 			status_change_end(src,SC_HIDING,INVALID_TIMER);
 			break;
@@ -11698,6 +11710,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 					clif_slide(src,x,y);
+					clif_fixpos(src);
 					if( skill_check_condition_castend(sd,skill_use,skill_use_lv) ) {
 						sd->skill_id_old = RL_FALLEN_ANGEL;
 						skill_castend_pos2(src,src->x,src->y,skill_use,skill_use_lv,tick,SD_LEVEL|SD_ANIMATION|SD_SPLASH);
@@ -17522,7 +17535,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 
 			case UNT_ANKLESNARE:
 			case UNT_ELECTRICSHOCKER:
-				if( group->val2 > 0 || group->val3 == SC_ESCAPE ) { //Used Trap don't returns back to item
+				if( group->val2 > 0 || group->val3 == SC_ESCAPE ) { //Used Trap doesn't return back to item
 					skill_delunit(unit);
 					break;
 				}
