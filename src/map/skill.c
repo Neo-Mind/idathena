@@ -5000,7 +5000,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case NC_MAGNETICFIELD:
-			if( !map[src->m].flag.pvp ) //Doesn't affect enemies in pvp mapflag
+			if (flag&1 && !map[src->m].flag.pvp) //Doesn't affect enemies in pvp mapflag
 				sc_start2(src,bl,SC_MAGNETICFIELD,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv));
 			break;
 
@@ -5014,7 +5014,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				//Destination area
 				skill_area_temp[4] = x;
 				skill_area_temp[5] = y;
-				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
+				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),
+				src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 				skill_addtimerskill(src,tick + 800,src->id,x,y,skill_id,skill_lv,0,flag); //To teleport Self
 				clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 			}
@@ -6258,8 +6259,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				return 1;
 			}
 			//@TODO: How much does base level affects? Dummy value of 1% per level difference used. [Skotlex]
-			clif_skill_nodamage(src,bl,skill_id == SM_SELFPROVOKE ? SM_PROVOKE : skill_id,skill_lv,
-				(i = sc_start(src,bl,type,skill_id == SM_SELFPROVOKE ? 100:( 50 + 3 * skill_lv + status_get_lv(src) - status_get_lv(bl)),skill_lv,skill_get_time(skill_id,skill_lv))));
+			clif_skill_nodamage(src,bl,(skill_id == SM_SELFPROVOKE ? SM_PROVOKE : skill_id),skill_lv,
+				(i = sc_start(src,bl,type,(skill_id == SM_SELFPROVOKE ? 100 : (50 + 3 * skill_lv + status_get_lv(src) - status_get_lv(bl))),
+					skill_lv,skill_get_time(skill_id,skill_lv))));
 			if (!i) {
 				if (sd)
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -6574,13 +6576,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case SL_KAIZEL:
 		case SL_KAUPE:
 			if (sd) {
-				if (!dstsd || !(
-					(sd->sc.data[SC_SPIRIT] && sd->sc.data[SC_SPIRIT]->val2 == SL_SOULLINKER) ||
+				if (!dstsd ||
+					!((sd->sc.data[SC_SPIRIT] && sd->sc.data[SC_SPIRIT]->val2 == SL_SOULLINKER) ||
 					(dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER ||
 					dstsd->status.char_id == sd->status.char_id ||
 					dstsd->status.char_id == sd->status.partner_id ||
-					dstsd->status.char_id == sd->status.child
-				)) {
+					dstsd->status.char_id == sd->status.child))
+				{
 					status_change_start(src,src,SC_STUN,10000,skill_lv,0,0,0,500,8);
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
@@ -9013,7 +9015,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 				skill_blown(src,bl,skill_get_blewcount(skill_id,skill_lv),dir,0x1);
 				clif_slide(src,src->x,src->y);
-				clif_fixpos(src); //Aegis sent this packet
+				clif_fixpos(src);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			}
 			break;
@@ -9040,15 +9042,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case NC_MAGNETICFIELD:
-			if( !map[src->m].flag.pvp ) { //Doesn't affect enemies in pvp mapflag
-				if( (i = sc_start2(src,bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv))) ) {
-					map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),splash_target(src),
-					src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
-					clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
-					if( sd )
-						pc_overheat(sd,1);
-				}
+			i = sc_start2(src,bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv));
+			if( i ) {
+				map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),splash_target(src),
+				src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
+				clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 				clif_skill_nodamage(src,src,skill_id,skill_lv,i);
+				if( sd )
+					pc_overheat(sd,1);
 			}
 			break;
 
