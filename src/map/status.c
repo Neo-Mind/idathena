@@ -1786,7 +1786,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 			break;
 		case AL_TELEPORT:
 		case ALL_ODINS_POWER:
-			//Should fail when used on top of Land Protector [Skotlex]
+			//Should fail when used on top of Land Protector. [Skotlex]
 			if (src && map_getcell(src->m, src->x, src->y, CELL_CHKLANDPROTECTOR) &&
 				!(status->mode&MD_BOSS) && (src->type != BL_PC || ((TBL_PC*)src)->skillitem != skill_id))
 				return 0;
@@ -1794,14 +1794,14 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 	}
 
 	if (sc && sc->count) {
-		if ((sc->data[SC_ASH] && rnd()%2)) {
+		if ((sc->data[SC_ASH] && rnd()%2)) { //Gain 50% of failing rate when casting skills.
 			if (src->type == BL_PC)
 				clif_skill_fail((TBL_PC*)src, skill_id, 0, 0);
 			return 0;
 		}
 
 		if (skill_id != RK_REFRESH && sc->opt1 > 0 && !(sc->opt1 == OPT1_CRYSTALIZE &&
-			src->type == BL_MOB) && sc->opt1 != OPT1_BURNING && skill_id != SR_GENTLETOUCH_CURE) { //Stuned/Frozen/etc
+			src->type == BL_MOB) && sc->opt1 != OPT1_BURNING && skill_id != SR_GENTLETOUCH_CURE) { //Stuned/Frozen/etc.
 			if (flag != 1) //Can't cast, casted stuff can't damage.
 				return 0;
 			if (!(skill_get_inf(skill_id)&INF_GROUND_SKILL))
@@ -1815,7 +1815,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		)
 			return 0;
 
-		if (sc->data[SC_WINKCHARM] && target && !flag) { //Prevents skill usage
+		if (sc->data[SC_WINKCHARM] && target && !flag) { //Prevents skill usage.
 			if (unit_bl2ud(src) && (unit_bl2ud(src))->walktimer == INVALID_TIMER)
 				unit_walktobl(src, map_id2bl(sc->data[SC_WINKCHARM]->val2), 3, 1);
 			clif_emotion(src, E_LV);
@@ -1834,7 +1834,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		}
 
 		if (sc->data[SC_DANCING] && flag != 2) {
-			//Lvl 5 Lesson or higher allow you use 3rd job skills while dancing.v
+			//Lvl 5 Lesson or higher allow you use 3rd job skills while dancing.
 			if (src->type == BL_PC && ((skill_id >= WA_SWING_DANCE && skill_id <= WM_UNLIMITED_HUMMING_VOICE) ||
 				skill_id == WM_FRIGG_SONG)) {
 				if (pc_checkskill((TBL_PC*)src, WM_LESSON) < 5)
@@ -1842,19 +1842,19 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 			} else if (sc->data[SC_LONGING]) { //Allow everything except dancing/re-dancing. [Skotlex]
 				if (skill_id == BD_ENCORE || (skill_get_inf2(skill_id)&(INF2_SONG_DANCE|INF2_ENSEMBLE_SKILL)))
 					return 0;
-			} else if (!(skill_get_inf3(skill_id)&INF3_USABLE_DANCE)) //Skills that can be used in dancing state
+			} else if (!(skill_get_inf3(skill_id)&INF3_USABLE_DANCE)) //Skills that can be used in dancing state.
 				return 0;
 			if ((sc->data[SC_DANCING]->val1&0xFFFF) == CG_HERMODE && skill_id == BD_ADAPTATION)
-				return 0; //Can't amp out of Wand of Hermode :/ [Skotlex]
+				return 0; //Can't amp out of Wand of Hermode. [Skotlex]
 		}
 
 		if (skill_id &&
 			(src->type != BL_PC || ((TBL_PC*)src)->skillitem != skill_id)) //Do not block item-casted skills.
 		{ //Skills blocked through status changes.
-			if (!flag && //Blocked only from using the skill (stuff like autospell may still go through
+			if (!flag && //Blocked only from using the skill (stuff like autospell may still go through.
 				(sc->cant.cast ||
-				(sc->data[SC_MARIONETTE] && skill_id != CG_MARIONETTE) || //Only skill you can use is marionette again to cancel it
-				(sc->data[SC_MARIONETTE2] && skill_id == CG_MARIONETTE) || //Cannot use marionette if you are being buffed by another
+				(sc->data[SC_MARIONETTE] && skill_id != CG_MARIONETTE) || //Only skill you can use is marionette again to cancel it.
+				(sc->data[SC_MARIONETTE2] && skill_id == CG_MARIONETTE) || //Cannot use marionette if you are being buffed by another.
 				(sc->data[SC_STASIS] && skill_block_check(src, SC_STASIS, skill_id)) ||
 				(sc->data[SC_KAGEHUMI] && skill_block_check(src, SC_KAGEHUMI, skill_id)))
 			)
@@ -1869,7 +1869,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		}
 
 		if (sc->data[SC_ALL_RIDING])
-			return 0; //New mounts can't attack nor use skills in the client. This check makes it cheat-safe [Ind]
+			return 0; //New mounts can't attack nor use skills in the client. This check makes it cheat-safe. [Ind]
 	}
 
 	if (sc) {
@@ -1902,7 +1902,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 	hide_flag = (flag ? OPTION_HIDE : (OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK));
 
  	//You cannot hide from ground skills.
-	if (skill_get_ele(skill_id, 1) == ELE_EARTH) //@TODO: Need Skill Lv here :/
+	if (skill_get_ele(skill_id, 1) == ELE_EARTH) //@TODO: Need Skill Lv here.
 		hide_flag &= ~OPTION_HIDE;
 	else {
 		switch (skill_id) {
@@ -1949,11 +1949,11 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		case BL_MER:
 		case BL_ELEM:
 			if (target->type == BL_HOM && skill_id && (battle_config.hom_setting&0x1) && (skill_get_inf(skill_id)&INF_SUPPORT_SKILL) && battle_get_master(target) != src)
-				return 0; //Can't use support skills on Homunculus (only Master/Self)
+				return 0; //Can't use support skills on Homunculus. (Only Master/Self)
 			if (target->type == BL_MER && (skill_id == PR_ASPERSIO || (skill_id >= SA_FLAMELAUNCHER && skill_id <= SA_SEISMICWEAPON)) && battle_get_master(target) != src)
-				return 0; //Can't use Weapon endow skills on Mercenary (only Master)
+				return 0; //Can't use Weapon endow skills on Mercenary. (Only Master)
 			if (skill_id == AM_POTIONPITCHER && (target->type == BL_MER || target->type == BL_ELEM))
-				return 0; //Can't use Potion Pitcher on Mercenaries
+				return 0; //Can't use Potion Pitcher on Mercenaries.
 			break;
 		default: //Check for chase-walk/hiding/cloaking opponents.
 			if (tsc && (tsc->option&hide_flag) && !(status->mode&(MD_BOSS|MD_DETECTOR)))
