@@ -4103,7 +4103,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				uint8 dir = map_calc_dir(bl,src->x,src->y);
 
 				//Teleport to target (if not on WoE grounds)
-				if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src,bl->x,bl->y,0,1))
+				if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src,bl->x,bl->y,0,1)) {
 					clif_slide(src,bl->x,bl->y);
 					clif_fixpos(src);
 				}

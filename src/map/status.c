@@ -12302,7 +12302,7 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 #ifdef RENEWAL
 		if (bl->type == BL_PC && (((TBL_PC*)bl)->class_&MAPID_UPPERMASK) == MAPID_MONK &&
 			sc && sc->data[SC_EXPLOSIONSPIRITS] && (!sc->data[SC_SPIRIT] || sc->data[SC_SPIRIT]->val2 != SL_MONK))
-			rate /= 2; //50% natural SP regen on Fury state
+			rate /= 2; //Tick doubled in Fury state
 #endif
 		regen->tick.sp += rate;
 		if (regen->tick.sp >= (unsigned int)battle_config.natural_healsp_interval) {
