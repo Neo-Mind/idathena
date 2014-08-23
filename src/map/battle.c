@@ -4401,7 +4401,7 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 		}
 
 		if(tsc->data[SC_NEUTRALBARRIER]) {
-			short i = 10 + 5 * sc->data[SC_NEUTRALBARRIER]->val1;
+			short i = 10 + 5 * tsc->data[SC_NEUTRALBARRIER]->val1;
 
 			def1 = (def1 * (100 + i)) / 100;
 		}
@@ -6095,7 +6095,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 #endif
 
 				if(tsc->data[SC_NEUTRALBARRIER]) {
-					short i = 10 + 5 * sc->data[SC_NEUTRALBARRIER]->val1;
+					short i = 10 + 5 * tsc->data[SC_NEUTRALBARRIER]->val1;
 
 					mdef = (mdef * (100 + i)) / 100;
 				}
