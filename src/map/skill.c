@@ -3556,7 +3556,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					case WL_TETRAVORTEX_WATER:
 					case WL_TETRAVORTEX_WIND:
 					case WL_TETRAVORTEX_GROUND:
-					//SR_FLASHCOMBO:
+					/* For SR_FLASHCOMBO */
 					case SR_DRAGONCOMBO:
 					case SR_FALLENEMPIRE:
 					case SR_TIGERCANNON:
@@ -3698,7 +3698,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					map_foreachinrange(skill_area_sub,target,skill_get_splash(skl->skill_id,skl->skill_lv),BL_CHAR,
 						src,skl->skill_id,skl->skill_lv,0,skl->flag|BCT_ENEMY|1,skill_castend_damage_id);
 					break;
-				//SR_FLASHCOMBO:
+				/* For SR_FLASHCOMBO */
 				case SR_DRAGONCOMBO:
 				case SR_FALLENEMPIRE:
 				case SR_TIGERCANNON:
@@ -3831,7 +3831,7 @@ int skill_cleartimerskill (struct block_list *src)
 				case WL_TETRAVORTEX_WATER:
 				case WL_TETRAVORTEX_WIND:
 				case WL_TETRAVORTEX_GROUND:
-				//SR_FLASHCOMBO:
+				/* For SR_FLASHCOMBO */
 				case SR_DRAGONCOMBO:
 				case SR_FALLENEMPIRE:
 				case SR_TIGERCANNON:

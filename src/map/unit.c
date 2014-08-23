@@ -585,12 +585,16 @@ int unit_walktobl(struct block_list *bl, struct block_list *tbl, int range, int 
 	ud->state.walk_easy = flag&1;
 	ud->target_to = tbl->id;
 	ud->chaserange = range; //Note that if flag&2, this SHOULD be attack-range
-	ud->state.attack_continue = flag&2 ? 1 : 0; //Chase to attack.
+	ud->state.attack_continue = (flag&2 ? 1 : 0); //Chase to attack.
 	unit_set_target(ud, 0);
 
 	sc = status_get_sc(bl);
-	if (sc && (sc->data[SC_CONFUSION] || sc->data[SC__CHAOS])) //Randomize the target position
-		map_random_dir(bl, &ud->to_x, &ud->to_y);
+	if (sc) {
+		if (sc->data[SC_CONFUSION] || sc->data[SC__CHAOS]) //Randomize the target position
+			map_random_dir(bl, &ud->to_x, &ud->to_y);
+		if (sc->data[SC_COMBO])
+			status_change_end(bl, SC_COMBO, INVALID_TIMER);
+	}
 
 	if (ud->walktimer != INVALID_TIMER) {
 		ud->state.change_walk_target = 1;
