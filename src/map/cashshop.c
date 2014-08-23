@@ -67,6 +67,7 @@ static int cashshop_parse_dbrow( char** str, const char* source, int line ){
 /*
  * Reads database from TXT format,
  * parses lines and sends them to parse_dbrow.
+ * TODO: Change to sv_readdb
  */
 static void cashshop_read_db_txt( void ){
 	const char* filename[] = { DBPATH"item_cash_db.txt", "item_cash_db2.txt" };
@@ -130,7 +131,7 @@ static void cashshop_read_db_txt( void ){
 
 		fclose(fp);
 
-		ShowStatus( "Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", count, filename[fi] );
+		ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", count, path);
 	}
 }
 

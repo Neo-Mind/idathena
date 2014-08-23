@@ -22,6 +22,8 @@ struct status_change_entry;
 #define MAX_SKILL_IMPROVISE_DB 50
 #define MAX_SKILL_LEVEL 100
 #define MAX_SKILL_CRIMSON_MARKER 3
+#define SKILL_NAME_LENGTH 31
+#define SKILL_DESC_LENGTH 31
 
 DBMap* skilldb_name2id;
 
@@ -86,7 +88,6 @@ enum e_skill_inf3 {
 	INF3_EFF_RESEARCHTRAP   = 0x0800, //Skill range affected by RA_RESEARCHTRAP
 	INF3_USABLE_MANHOLE     = 0x1000, //Skill that can be used even under Man Hole effect
 	INF3_USABLE_WARG        = 0x2000, //Skill that can be use while riding warg
-	INF3_DIS_MADO           = 0x4000, //Skill that can't be used while in mado
 };
 
 ///Walk intervals at which chase-skills are attempted to be triggered.
@@ -100,52 +101,54 @@ enum e_skill_display {
 	SD_PREAMBLE  = 0x8000, //skill_area_sub will transmit a 'magic' damage packet (-30000 dmg) for the first target selected
 };
 
-#define MAX_SKILL_ITEM_REQUIRE 10
-#define MAX_SKILL_STATUS_REQUIRE 3
-#define MAX_SKILL_EQUIP_REQUIRE 10
+#define MAX_SKILL_ITEM_REQUIRE 10 //Maximum required items
+#define MAX_SKILL_STATUS_REQUIRE 3 //Maximum required statuses
+#define MAX_SKILL_EQUIP_REQUIRE 10 //Maximum required equipped item
 
 struct skill_condition {
-	int hp,
-	    mhp,
-	    sp,
-	    hp_rate,
-	    sp_rate,
-	    ammo,
-	    ammo_qty,
-	    weapon,
-	    zeny,
-	    state,
-	    spiritball,
-	    itemid[MAX_SKILL_ITEM_REQUIRE],
-	    amount[MAX_SKILL_ITEM_REQUIRE];
-	short *eqItem;
-	enum sc_type *status;
-	uint8 status_count, eqItem_count;
+	int hp, //HP cost
+	    mhp, //Max HP to trigger
+	    sp, //SP cost
+	    hp_rate, //HP cost (%)
+	    sp_rate, //SP cost (%)
+	    ammo, //Ammo type
+	    ammo_qty, //Amount of ammo
+	    weapon, //Weapon type
+	    zeny, //Zeny cost
+	    state, //State/condition
+	    spiritball, //Spiritball cost
+	    itemid[MAX_SKILL_ITEM_REQUIRE], //Required item
+	    amount[MAX_SKILL_ITEM_REQUIRE]; //Amount of item
+	uint16 *eqItem; //List of equipped item
+	enum sc_type *status; //List of Status required (SC)
+	uint8 status_count, //Count of SC
+		eqItem_count; //Count of equipped item
 };
 
 struct s_skill_require {
-	int hp[MAX_SKILL_LEVEL],
-	    mhp[MAX_SKILL_LEVEL],
-	    sp[MAX_SKILL_LEVEL],
-	    hp_rate[MAX_SKILL_LEVEL],
-	    sp_rate[MAX_SKILL_LEVEL],
-	    zeny[MAX_SKILL_LEVEL],
-	    weapon,
-	    ammo,
-	    ammo_qty[MAX_SKILL_LEVEL],
-	    state,
-	    spiritball[MAX_SKILL_LEVEL],
-	    itemid[MAX_SKILL_ITEM_REQUIRE],
-	    amount[MAX_SKILL_ITEM_REQUIRE];
-	short *eqItem;
-	enum sc_type *status;
-	uint8 status_count, eqItem_count;
+	int hp[MAX_SKILL_LEVEL], //HP cost
+	    mhp[MAX_SKILL_LEVEL], //Max HP to trigger
+	    sp[MAX_SKILL_LEVEL], //SP cost
+	    hp_rate[MAX_SKILL_LEVEL], //HP cost (%)
+	    sp_rate[MAX_SKILL_LEVEL], //SP cost (%)
+	    zeny[MAX_SKILL_LEVEL], //Zeny cost
+	    weapon, //Weapon type
+	    ammo, //Ammo type
+	    ammo_qty[MAX_SKILL_LEVEL], //Amount of ammo
+	    state, //State/condition
+	    spiritball[MAX_SKILL_LEVEL], //Spiritball cost
+	    itemid[MAX_SKILL_ITEM_REQUIRE], //Required item
+	    amount[MAX_SKILL_ITEM_REQUIRE]; //Amount of item
+	uint16 *eqItem; //List of equipped item
+	enum sc_type *status; //List of Status required (SC)
+	uint8 status_count, //Count of SC
+		eqItem_count; //Count of equipped item
 };
 
-/// Database skills
+//Database skills
 struct s_skill_db {
-	char name[NAME_LENGTH];
-	char desc[40];
+	char name[SKILL_NAME_LENGTH];
+	char desc[SKILL_DESC_LENGTH];
 	int range[MAX_SKILL_LEVEL],hit,inf,element[MAX_SKILL_LEVEL],nk,splash[MAX_SKILL_LEVEL],max;
 	int num[MAX_SKILL_LEVEL];
 	int cast[MAX_SKILL_LEVEL],walkdelay[MAX_SKILL_LEVEL],delay[MAX_SKILL_LEVEL];
@@ -410,6 +413,8 @@ int skill_autospell(struct map_session_data *md,uint16 skill_id);
 int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv, bool heal);
 
 bool skill_check_cloaking(struct block_list *bl, struct status_change_entry *sce);
+bool skill_can_cloak(struct map_session_data *sd);
+int skill_check_cloaking_end(struct block_list *bl, va_list ap);
 
 ///Abnormal status
 int skill_enchant_elemental_end(struct block_list *bl, int type);
@@ -1218,6 +1223,10 @@ enum e_skill {
 	NPC_VENOMFOG,
 	NPC_MILLENNIUMSHIELD,
 	NPC_COMET,
+//TODO: What PACKETVER are these skills added? [Panikon]
+//After this addition all skills from NPC_WIDEWEB to NPC_LEX_AETERNA
+//will have their IDs changed
+#if PACKETVER >= 20140205
 	NPC_ICEMINE,
 	NPC_ICEEXPLO,
 	NPC_FLAMECROSS,
@@ -1230,6 +1239,7 @@ enum e_skill {
 	NPC_DEATHSUMMON,
 	NPC_HELLBURNING,
 	NPC_JACKFROST,
+#endif
 	NPC_WIDEWEB,
 	NPC_WIDESUCK,
 	NPC_STORMGUST2,
@@ -1644,6 +1654,7 @@ enum e_skill {
 	DC_FORTUNEKISS2,
 	ITEM_OPTION_SPLASH_ATTACK,
 	GM_FORCE_TRANSFER,
+	GM_WIDE_RESURRECTION,
 
 	GC_DARKCROW = 5001,
 	RA_UNLIMIT,
@@ -1659,10 +1670,7 @@ enum e_skill {
 	WL_TELEKINESIS_INTENSE,
 	LG_KINGS_GRACE,
 	ALL_FULL_THROTTLE,
-	SR_FLASHCOMBO_ATK_STEP1,
-	SR_FLASHCOMBO_ATK_STEP2,
-	SR_FLASHCOMBO_ATK_STEP3,
-	SR_FLASHCOMBO_ATK_STEP4,
+	NC_MAGMA_ERUPTION_DOTDAMAGE,
 
 	HLIF_HEAL = 8001,
 	HLIF_AVOID,
@@ -1892,7 +1900,7 @@ enum {
 	UNT_SEVERE_RAINSTORM,
 	UNT_FIREWALK,
 	UNT_ELECTRICWALK,
-	UNT_NETHERWORLD,
+	UNT_POEMOFNETHERWORLD,
 	UNT_PSYCHIC_WAVE,
 	UNT_CLOUD_KILL,
 	UNT_POISONSMOKE,
@@ -1933,19 +1941,17 @@ enum {
 	UNT_B_TRAP,
 	UNT_FIRE_RAIN,
 
-	/**
-	 * Guild Auras
-	 **/
+	//Guild Auras
 	UNT_GD_LEADERSHIP = 0xc1,
 	UNT_GD_GLORYWOUNDS = 0xc2,
 	UNT_GD_SOULCOLD = 0xc3,
 	UNT_GD_HAWKEYES = 0xc4,
 
-	UNT_MAX = 0x190
+	UNT_MAX
 };
 /**
  * Skill Unit Save
- **/
+ */
 void skill_usave_add(struct map_session_data * sd, uint16 skill_id, uint16 skill_lv);
 void skill_usave_trigger(struct map_session_data *sd);
 

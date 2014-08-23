@@ -177,7 +177,7 @@ static int storage_additem(struct map_session_data* sd, struct item* item_data, 
 		return 1;
 	}
 
-	if( (item_data->bound > 1) && !pc_can_give_bounded_items(sd) ) {
+	if( (item_data->bound > BOUND_ACCOUNT) && !pc_can_give_bounded_items(sd) ) {
 		clif_displaymessage(sd->fd, msg_txt(294));
 		return 1;
 	}
@@ -509,11 +509,11 @@ int guild_storage_additem(struct map_session_data* sd, struct guild_storage* sto
 
 	//Check if item is storable. [Skotlex]
 	if(!itemdb_canguildstore(item_data, pc_get_group_level(sd)) || item_data->expire_time) {
-		clif_displaymessage (sd->fd, msg_txt(264));
+		clif_displaymessage(sd->fd, msg_txt(264));
 		return 1;
 	}
 
-	if((item_data->bound == 1 || item_data->bound > 2) && !pc_can_give_bounded_items(sd)) {
+	if((item_data->bound == BOUND_ACCOUNT || item_data->bound > BOUND_GUILD) && !pc_can_give_bounded_items(sd)) {
 		clif_displaymessage(sd->fd, msg_txt(294));
 		return 1;
 	}

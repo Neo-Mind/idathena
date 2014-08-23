@@ -13,13 +13,13 @@ struct guild_castle;
 struct map_session_data;
 struct mob_data;
 
-//For quick linking to a guardian's info. [Skotlex]
+/**
+ * Guardian data
+ * For quick linking to a guardian's info. [Skotlex]
+ */
 struct guardian_data {
 	int number; //0-MAX_GUARDIANS-1 = Guardians. MAX_GUARDIANS = Emperium.
-	int guild_id;
-	int emblem_id;
-	int guardup_lv; //Level of GD_GUARDUP skill.
-	char guild_name[NAME_LENGTH];
+	struct guild *g;
 	struct guild_castle* castle;
 };
 
@@ -100,7 +100,7 @@ void guild_agit_end(void);
 
 void guild_agit2_start(void);
 void guild_agit2_end(void);
-/* guild flag cachin */
+/* Guild flag cachin */
 void guild_flag_add(struct npc_data *nd);
 void guild_flag_remove(struct npc_data *nd);
 void guild_flags_clear(void);

@@ -594,7 +594,7 @@ CREATE TABLE IF NOT EXISTS `pet` (
   `intimate` smallint(9) unsigned NOT NULL default '0',
   `hungry` smallint(9) unsigned NOT NULL default '0',
   `rename_flag` tinyint(4) unsigned NOT NULL default '0',
-  `incuvate` int(11) unsigned NOT NULL default '0',
+  `incubate` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`pet_id`)
 ) ENGINE=MyISAM;
 
@@ -690,6 +690,7 @@ INSERT INTO `sql_updates` (`timestamp`) VALUES (1383955424);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1384473995);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1384545461);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1384588175);
+INSERT INTO `sql_updates` (`timestamp`) VALUES (1384763034);
 
 --
 -- Table structure for table `sstatus`

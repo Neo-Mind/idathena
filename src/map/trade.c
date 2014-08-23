@@ -165,12 +165,11 @@ void trade_tradeack(struct map_session_data *sd, int type)
 }
 
 /**
- * Check here hacker for duplicate item in trade
- * normal client refuse to have 2 same types of item (except equipment) in same trade window
- * normal client authorize only no equiped item and only from inventory
- * This function could end player connection if too much hack is detected
- * @param sd : player to check
- * @return -1:zeny hack, 0:all fine, 1:item hack
+ * Checks if an impossible trade will occur
+ *  Normal clients refuse to have 2 items of the same type (except equipment) in the same trade window
+ *  Normal clients authorize only no equipped items and only items from inventory
+ * @retval 0 The trade can continue
+ * @retval 1 Hack attempt
  */
 int impossible_trade_check(struct map_session_data *sd)
 {
@@ -180,10 +179,8 @@ int impossible_trade_check(struct map_session_data *sd)
 
 	nullpo_retr(1, sd);
 
-	if (sd->deal.zeny > sd->status.zeny) {
-		pc_setglobalreg(sd,"ZENY_HACKER",1);
-		return -1;
-	}
+	if (sd->deal.zeny > sd->status.zeny)
+		return 1;
 
 	//Get inventory of player
 	memcpy(&inventory, &sd->status.inventory, sizeof(struct item) * MAX_INVENTORY);
@@ -220,7 +217,7 @@ int impossible_trade_check(struct map_session_data *sd)
 			} else
 				//Message about the ban
 				strcpy(message_to_gm, msg_txt(508)); //This player hasn't been banned (Ban option is disabled).
-			
+
 			intif_wis_message_to_gm(wisp_server_name, PC_PERM_RECEIVE_HACK_INFO, message_to_gm);
 			return 1;
 		}
@@ -373,7 +370,7 @@ void trade_tradeadditem(struct map_session_data *sd, short index, short amount)
 		return;
 	}
 
-	if( ((item->bound == 1 || item->bound > 2) || (item->bound == 2 && sd->status.guild_id != target_sd->status.guild_id)) && !pc_can_give_bounded_items(sd) ) { // Item Bound
+	if( ((item->bound == BOUND_ACCOUNT || item->bound > BOUND_GUILD) || (item->bound == BOUND_GUILD && sd->status.guild_id != target_sd->status.guild_id)) && !pc_can_give_bounded_items(sd) ) { // Item Bound
 		clif_displaymessage(sd->fd, msg_txt(293));
 		clif_tradeitemok(sd, index + 2, 1);
 		return;

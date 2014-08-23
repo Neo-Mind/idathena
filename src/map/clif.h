@@ -685,7 +685,7 @@ void clif_specialeffect_single(struct block_list* bl, int type, int fd);
 void clif_messagecolor(struct block_list* bl, unsigned long color, const char* msg); // Mob/Npc color talk [SnakeDrak]
 void clif_specialeffect_value(struct block_list* bl, int effect_id, int num, send_target target);
 
-void clif_GM_kickack(struct map_session_data *sd, int id);
+void clif_GM_kickack(struct map_session_data *sd, int result);
 void clif_GM_kick(struct map_session_data *sd,struct map_session_data *tsd);
 void clif_manner_message(struct map_session_data* sd, uint32 type);
 void clif_GM_silence(struct map_session_data* sd, struct map_session_data* tsd, uint8 type);
@@ -812,7 +812,7 @@ void clif_display_pinfo(struct map_session_data *sd, int type);
 
 /**
  * 3CeAM
- **/
+ */
 void clif_msgtable(int fd, int line);
 void clif_msgtable_num(int fd, int line, int num);
 

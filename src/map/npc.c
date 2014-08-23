@@ -123,14 +123,14 @@ int npc_isnear_sub(struct block_list* bl, va_list args) {
 	int skill_id = va_arg(args, int);
 
 	if( skill_id > 0 ) { //If skill_id > 0 that means is used for INF2_NO_NEARNPC [Cydh]
-		int16 idx = skill_get_index(skill_id);
+		uint16 idx = skill_get_index(skill_id);
 
-		if( idx >= 0 && skill_db[idx].unit_nonearnpc_type ) {
+		if( idx > 0 && skill_db[idx].unit_nonearnpc_type ) {
 			while( 1 ) {
-				if (skill_db[idx].unit_nonearnpc_type&1 && nd->subtype == WARP) break;
-				if (skill_db[idx].unit_nonearnpc_type&2 && nd->subtype == SHOP) break;
-				if (skill_db[idx].unit_nonearnpc_type&4 && nd->subtype == SCRIPT) break;
-				if (skill_db[idx].unit_nonearnpc_type&8 && nd->subtype == TOMB) break;
+				if( skill_db[idx].unit_nonearnpc_type&1 && nd->subtype == WARP ) break;
+				if( skill_db[idx].unit_nonearnpc_type&2 && nd->subtype == SHOP ) break;
+				if( skill_db[idx].unit_nonearnpc_type&4 && nd->subtype == SCRIPT ) break;
+				if( skill_db[idx].unit_nonearnpc_type&8 && nd->subtype == TOMB ) break;
 				return 0;
 			}
 		}
@@ -468,14 +468,17 @@ int npc_event_do_clock(int tid, unsigned int tick, int id, intptr_t data)
 	return c;
 }
 
-/*==========================================
- * OnInit Event execution (the start of the event and watch)
- *------------------------------------------*/
-void npc_event_do_oninit(void)
+/**
+ * OnInit event execution (the start of the event and watch)
+ * @param reload Is the server reloading?
+ */
+void npc_event_do_oninit(bool reload)
 {
 	ShowStatus("Event '"CL_WHITE"OnInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs."CL_CLL"\n", npc_event_doall("OnInit"));
 
-	add_timer_interval(gettick()+100,npc_event_do_clock,0,0,1000);
+	// This interval has already been added on startup
+	if( !reload )
+		add_timer_interval(gettick() + 100,npc_event_do_clock,0,0,1000);
 }
 
 /*==========================================
@@ -1233,7 +1236,7 @@ int npc_scriptcont(struct map_session_data* sd, int id, bool closing)
 
 	/**
 	 * WPE can get to this point with a progressbar; we deny it.
-	 **/
+	 */
 	if( sd->progressbar.npc_id && DIFF_TICK(sd->progressbar.timeout,gettick()) > 0 )
 		return 1;
 
@@ -1385,18 +1388,17 @@ static int npc_buylist_sub(struct map_session_data* sd, int n, unsigned short* i
 	int key_nameid = 0;
 	int key_amount = 0;
 
-	// discard old contents
+	// Discard old contents
 	script_cleararray_pc(sd, "@bought_nameid", (void*)0);
 	script_cleararray_pc(sd, "@bought_quantity", (void*)0);
 
-	// save list of bought items
-	for( i = 0; i < n; i++ )
-	{
+	// Save list of bought items
+	for( i = 0; i < n; i++ ) {
 		script_setarray_pc(sd, "@bought_nameid", i, (void*)(intptr_t)item_list[i*2+1], &key_nameid);
 		script_setarray_pc(sd, "@bought_quantity", i, (void*)(intptr_t)item_list[i*2], &key_amount);
 	}
 
-	// invoke event
+	// Invoke event
 	snprintf(npc_ev, ARRAYLENGTH(npc_ev), "%s::OnBuyItem", nd->exname);
 	npc_event(sd, npc_ev, 0);
 
@@ -3596,40 +3598,45 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 		map[m].flag.nobanking = state;
 	else if (!strcmpi(w3,"skill_damage")) {
 #ifdef ADJUST_SKILL_DAMAGE
-		char skill[NAME_LENGTH];
+		char skill[SKILL_NAME_LENGTH];
 		int pc = 0, mob = 0, boss = 0, other = 0, caster = 0;
 
 		memset(skill,0,sizeof(skill));
 		map[m].flag.skill_damage = state; //Set the mapflag
 
-		if (sscanf(w4,"%24[^,],%d,%d,%d,%d,%d[^\n]",skill,&caster,&pc,&mob,&boss,&other) >= 3) {
-			caster = (!caster) ? SDC_ALL : caster;
-			pc = cap_value(pc,-100,MAX_SKILL_DAMAGE_RATE);
-			mob = cap_value(mob,-100,MAX_SKILL_DAMAGE_RATE);
-			boss = cap_value(boss,-100,MAX_SKILL_DAMAGE_RATE);
-			other = cap_value(other,-100,MAX_SKILL_DAMAGE_RATE);
+		if (!state) {
+			memset(map[m].skill_damage,0,sizeof(map[m].skill_damage));
+			memset(&map[m].adjust.damage,0,sizeof(map[m].adjust.damage));
+		} else {
+			if (sscanf(w4,"%30[^,],%d,%d,%d,%d,%d[^\n]",skill,&caster,&pc,&mob,&boss,&other) >= 3) {
+				caster = (!caster) ? SDC_ALL : caster;
+				pc = cap_value(pc,-100,INT_MAX);
+				mob = cap_value(mob,-100,INT_MAX);
+				boss = cap_value(boss,-100,INT_MAX);
+				other = cap_value(other,-100,INT_MAX);
 
-			if (strcmp(skill,"all") == 0) {	//Adjust damages for all skills
-				map[m].adjust.damage.caster = caster;
-				map[m].adjust.damage.pc = pc;
-				map[m].adjust.damage.mob = mob;
-				map[m].adjust.damage.boss = boss;
-				map[m].adjust.damage.other = other;
-			} else if (skill_name2id(skill) <= 0)
-				ShowWarning("npc_parse_mapflag: skill_damage: Invalid skill name '%s'. Skipping in file '%s', line '%d'\n",skill,filepath,strline(buffer,start - buffer));
-			else { //Damages for specified skill
-				int i;
+				if (strcmp(skill,"all") == 0) {	//Adjust damages for all skills
+					map[m].adjust.damage.caster = caster;
+					map[m].adjust.damage.pc = pc;
+					map[m].adjust.damage.mob = mob;
+					map[m].adjust.damage.boss = boss;
+					map[m].adjust.damage.other = other;
+				} else if (skill_name2id(skill) <= 0)
+					ShowWarning("npc_parse_mapflag: skill_damage: Invalid skill name '%s'. Skipping (file '%s', line '%d')\n",skill,filepath,strline(buffer,start - buffer));
+				else { //Damages for specified skill
+					uint8 i;
 
-				ARR_FIND(0,MAX_MAP_SKILL_MODIFIER,i,map[m].skill_damage[i].skill_id <= 0);
-				if (i >= MAX_SKILL)
-					ShowWarning("npc_parse_mapflag: skill_damage: Skill damage for map '%s' is overflow.\n",map[m].name);
-				else {
-					map[m].skill_damage[i].skill_id = skill_name2id(skill);
-					map[m].skill_damage[i].caster = caster;
-					map[m].skill_damage[i].pc = pc;
-					map[m].skill_damage[i].mob = mob;
-					map[m].skill_damage[i].boss = boss;
-					map[m].skill_damage[i].other = other;
+					ARR_FIND(0,ARRAYLENGTH(map[m].skill_damage),i,map[m].skill_damage[i].skill_id <= 0);
+					if (i >= ARRAYLENGTH(map[m].skill_damage))
+						ShowWarning("npc_parse_mapflag: skill_damage: Skill damage for map '%s' is overflow.\n",map[m].name);
+					else {
+						map[m].skill_damage[i].skill_id = skill_name2id(skill);
+						map[m].skill_damage[i].caster = caster;
+						map[m].skill_damage[i].pc = pc;
+						map[m].skill_damage[i].mob = mob;
+						map[m].skill_damage[i].boss = boss;
+						map[m].skill_damage[i].other = other;
+					}
 				}
 			}
 		}
@@ -3902,18 +3909,38 @@ void npc_clear_pathlist(void) {
 	struct npc_path_data *npd = NULL;
 	DBIterator *path_list = db_iterator(npc_path_db);
 	
-	/* free all npc_path_data filepaths */
-	for( npd = dbi_first(path_list); dbi_exists(path_list); npd = dbi_next(path_list) ) {
+	/* Free all npc_path_data filepaths */
+	for( npd = dbi_first(path_list); dbi_exists(path_list); npd = dbi_next(path_list) )
 		if( npd->path )
 			aFree(npd->path);
-	}
-	
+
 	dbi_destroy(path_list);
+}
+
+/**
+ * Main npc file processing
+ * @param npc_min Minimum npc id - used to know how many NPCs were loaded
+ */
+void npc_process_files(int npc_min) {
+	struct npc_src_list *file; // Current file
+
+	ShowStatus("Loading NPCs...\r");
+	for( file = npc_src_files; file != NULL; file = file->next ) {
+		ShowStatus("Loading NPC file: %s"CL_CLL"\r", file->name);
+		npc_parsesrcfile(file->name, false);
+	}
+	ShowInfo("Done loading '"CL_WHITE"%d"CL_RESET"' NPCs:"CL_CLL"\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Warps\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Shops\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Scripts\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Spawn sets\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs Cached\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
+		npc_id - npc_min, npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
 }
 
 //Clear then reload npcs files
 int npc_reload(void) {
-	struct npc_src_list *nsl;
 	int16 m, i;
 	int npc_new_min = npc_id;
 	struct s_mapiterator* iter;
@@ -3925,7 +3952,6 @@ int npc_reload(void) {
 	npc_clear_pathlist();
 
 	db_clear(npc_path_db);
-
 	db_clear(npcname_db);
 	db_clear(ev_db);
 
@@ -3942,6 +3968,7 @@ int npc_reload(void) {
 				break;
 		}
 	}
+
 	mapit_free(iter);
 
 	if( battle_config.dynamic_mobs ) { //Dynamic check by [random]
@@ -3970,36 +3997,28 @@ int npc_reload(void) {
 	//Reset mapflags
 	map_flags_init();
 
-	//@TODO: The following code is copy-pasted from do_init_npc(); clean it up
-	//Reloading npcs now
-	for( nsl = npc_src_files; nsl; nsl = nsl->next ) {
-		ShowStatus("Loading NPC file: %s"CL_CLL"\r", nsl->name);
-		npc_parsesrcfile(nsl->name, false);
-	}
-	ShowInfo ("Done loading '"CL_WHITE"%d"CL_RESET"' NPCs:"CL_CLL"\n"
-		"\t-'"CL_WHITE"%d"CL_RESET"' Warps\n"
-		"\t-'"CL_WHITE"%d"CL_RESET"' Shops\n"
-		"\t-'"CL_WHITE"%d"CL_RESET"' Scripts\n"
-		"\t-'"CL_WHITE"%d"CL_RESET"' Spawn sets\n"
-		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs Cached\n"
-		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
-		npc_id - npc_new_min, npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
+	//Reprocess npc files
+	npc_process_files(npc_new_min);
 
 	//Re-read the NPC Script Events cache.
 	npc_read_event_script();
 
-	/* Refresh guild castle flags on both woe setups */
-	npc_event_doall("OnAgitInit");
-	npc_event_doall("OnAgitInit2");
-
-	//Execute the OnInit event for freshly loaded npcs. [Skotlex]
-	ShowStatus("Event '"CL_WHITE"OnInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n",npc_event_doall("OnInit"));
+	//Execute main initialisation events
+	//The correct initialisation order is:
+	//OnInit -> OnInterIfInit -> OnAgitInit -> OnAgitInit2
+	npc_event_do_oninit(true);
 
 	do_reload_instance();
 
 	//Execute rest of the startup events if connected to char-server. [Lance]
 	if( !CheckForCharServer() )
 		ShowStatus("Event '"CL_WHITE"OnInterIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnInterIfInit"));
+
+	//Refresh guild castle flags on both woe setups
+	//These events are only executed after receiving castle information from char-server
+	npc_event_doall("OnAgitInit");
+	npc_event_doall("OnAgitInit2");
+
 	return 0;
 }
 
@@ -4072,6 +4091,7 @@ static void npc_debug_warps_sub(struct npc_data* nd)
 static void npc_debug_warps(void)
 {
 	int16 m, i;
+
 	for (m = 0; m < map_num; m++)
 		for (i = 0; i < map[m].npc_num; i++)
 			npc_debug_warps_sub(map[m].npc[i]);
@@ -4082,7 +4102,6 @@ static void npc_debug_warps(void)
  *------------------------------------------*/
 void do_init_npc(void)
 {
-	struct npc_src_list *file;
 	int i;
 
 	//Stock view data for normal npcs.
@@ -4093,32 +4112,19 @@ void do_init_npc(void)
 	for( i = MAX_NPC_CLASS2_START; i < MAX_NPC_CLASS2_END; i++ )
 		npc_viewdb2[i - MAX_NPC_CLASS2_START].class_ = i;
 
-	ev_db = strdb_alloc((DBOptions)(DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA),2*NAME_LENGTH+2+1);
+	ev_db = strdb_alloc((DBOptions)(DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA),2 * NAME_LENGTH + 2 + 1);
 	npcname_db = strdb_alloc(DB_OPT_BASE,NAME_LENGTH);
 	npc_path_db = strdb_alloc(DB_OPT_BASE|DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA,80);
-	
-	timer_event_ers = ers_new(sizeof(struct timer_event_data),"clif.c::timer_event_ers",ERS_OPT_NONE);
-	
-	// process all npc files
-	ShowStatus("Loading NPCs...\r");
-	for( file = npc_src_files; file != NULL; file = file->next ) {
-		ShowStatus("Loading NPC file: %s"CL_CLL"\r", file->name);
-		npc_parsesrcfile(file->name,false);
-	}
-	ShowInfo ("Done loading '"CL_WHITE"%d"CL_RESET"' NPCs:"CL_CLL"\n"
-		"\t-'"CL_WHITE"%d"CL_RESET"' Warps\n"
-		"\t-'"CL_WHITE"%d"CL_RESET"' Shops\n"
-		"\t-'"CL_WHITE"%d"CL_RESET"' Scripts\n"
-		"\t-'"CL_WHITE"%d"CL_RESET"' Spawn sets\n"
-		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs Cached\n"
-		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
-		npc_id - START_NPC_NUM, npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
 
-	// set up the events cache
-	memset(script_event, 0, sizeof(script_event));
+	timer_event_ers = ers_new(sizeof(struct timer_event_data),"clif.c::timer_event_ers",ERS_OPT_NONE);
+
+	npc_process_files(START_NPC_NUM);
+
+	// Set up the events cache
+	memset(script_event,0,sizeof(script_event));
 	npc_read_event_script();
 
-	//Debug function to locate all endless loop warps.
+	// Debug function to locate all endless loop warps.
 	if (battle_config.warp_point_debug)
 		npc_debug_warps();
 
@@ -4132,7 +4138,7 @@ void do_init_npc(void)
 	fake_nd->class_ = -1;
 	fake_nd->speed = 200;
 	strcpy(fake_nd->name,"FAKE_NPC");
-	memcpy(fake_nd->exname, fake_nd->name, 9);
+	memcpy(fake_nd->exname,fake_nd->name,9);
 
 	npc_script++;
 	fake_nd->bl.type = BL_NPC;

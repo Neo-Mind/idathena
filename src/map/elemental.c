@@ -61,7 +61,7 @@ struct view_data * elemental_get_viewdata(int class_) {
 int elemental_create(struct map_session_data *sd, int class_, unsigned int lifetime) {
 	struct s_elemental ele;
 	struct s_elemental_db *db;
-	int i;
+	int i, summon_level, skill_level;
 
 	nullpo_retr(1,sd);
 
@@ -74,26 +74,26 @@ int elemental_create(struct map_session_data *sd, int class_, unsigned int lifet
 	ele.char_id = sd->status.char_id;
 	ele.class_ = class_;
 	ele.mode = EL_MODE_PASSIVE; //Initial mode
-	i = db->status.size + 1; //Summon level
+	summon_level = db->status.size + 1; //Summon level
 
 	//[(Caster’s Max HP / 3) + (Caster’s INT x 10) + (Caster’s Job Level x 20)] x [(Elemental Summon Level + 2) / 3]
-	ele.hp = ele.max_hp = (sd->battle_status.max_hp / 3 + sd->battle_status.int_ * 10 + sd->status.job_level * 20) * ((i + 2) / 3);
+	ele.hp = ele.max_hp = (sd->battle_status.max_hp / 3 + sd->battle_status.int_ * 10 + sd->status.job_level * 20) * ((summon_level + 2) / 3);
 	//Caster’s Max SP / 4
 	ele.sp = ele.max_sp = sd->battle_status.max_sp / 4;
 	//Caster’s [Max SP / (18 / Elemental Summon Skill Level) + (1 ~ 100)]
-	ele.atk = (sd->battle_status.max_sp / (18 / i) + rnd_value(1,100));
+	ele.atk = (sd->battle_status.max_sp / (18 / summon_level) + rnd_value(1,100));
 	//Caster’s [Max SP / (18 / Elemental Summon Skill Level)]
-	ele.atk2 = sd->battle_status.max_sp / (18 / i);
+	ele.atk2 = sd->battle_status.max_sp / (18 / summon_level);
 	//[Elemental Summon Skill Level x (Caster’s INT / 2 + Caster’s DEX / 4)]
-	ele.matk = i * (sd->battle_status.int_ / 2 + sd->battle_status.dex / 4);
+	ele.matk = summon_level * (sd->battle_status.int_ / 2 + sd->battle_status.dex / 4);
 	//150 + [Caster’s DEX / 10] + [Elemental Summon Skill Level x 3 ]
-	ele.amotion = 150 + sd->battle_status.dex / 10 + i * 3;
+	ele.amotion = 150 + sd->battle_status.dex / 10 + summon_level * 3;
 	//Caster’s DEF + (Caster’s Base Level / (5 – Elemental Summon Skill Level)
-	ele.def = sd->battle_status.def + sd->status.base_level / (5 - i);
+	ele.def = sd->battle_status.def + sd->status.base_level / (5 - summon_level);
 	//Caster’s MDEF + (Caster’s INT / (5 - Elemental Summon Skill Level)
-	ele.mdef = sd->battle_status.mdef + sd->battle_status.int_ / (5 - i);
+	ele.mdef = sd->battle_status.mdef + sd->battle_status.int_ / (5 - summon_level);
 	//Caster’s FLEE + (Caster’s Base Level / (5 – Elemental Summon Skill Level)
-	ele.flee = sd->battle_status.flee + sd->status.base_level / (5 - i);
+	ele.flee = sd->battle_status.flee + sd->status.base_level / (5 - summon_level);
 	//Caster’s HIT + (Caster’s Base Level)
 	ele.hit = sd->battle_status.hit + sd->status.base_level;
 
@@ -103,42 +103,42 @@ int elemental_create(struct map_session_data *sd, int class_, unsigned int lifet
 		case ELEMENTALID_AGNI_M:
 		case ELEMENTALID_AGNI_L:
 			//ATK + (Summon Agni Skill Level x 20) / HIT + (Summon Agni Skill Level x 10)
-			ele.atk += i * 20;
-			ele.atk2 += i * 20;
-			ele.hit += i * 10;
+			ele.atk += summon_level * 20;
+			ele.atk2 += summon_level * 20;
+			ele.hit += summon_level * 10;
 			break;
 		case ELEMENTALID_AQUA_S:
 		case ELEMENTALID_AQUA_M:
 		case ELEMENTALID_AQUA_L:
 			//MDEF + (Summon Aqua Skill Level x 10) / MATK + (Summon Aqua Skill Level x 20)
-			ele.mdef += i * 10;
-			ele.matk += i * 20;
+			ele.mdef += summon_level * 10;
+			ele.matk += summon_level * 20;
 			break;
 		case ELEMENTALID_VENTUS_S:
 		case ELEMENTALID_VENTUS_M:
 		case ELEMENTALID_VENTUS_L:
 			//FLEE + (Summon Ventus Skill Level x 20) / MATK + (Summon Ventus Skill Level x 10)
-			ele.flee += i * 20;
-			ele.matk += i * 10;
+			ele.flee += summon_level * 20;
+			ele.matk += summon_level * 10;
 			break;
 		case ELEMENTALID_TERA_S:
 		case ELEMENTALID_TERA_M:
 		case ELEMENTALID_TERA_L:
 			//DEF + (Summon Tera Skill Level x 25) / ATK + (Summon Tera Skill Level x 5)
-			ele.def += i * 25;
-			ele.atk += i * 5;
-			ele.atk2 += i * 5;
+			ele.def += summon_level * 25;
+			ele.atk += summon_level * 5;
+			ele.atk2 += summon_level * 5;
 			break;
 	}
 
-	if( (i = pc_checkskill(sd,SO_EL_SYMPATHY)) > 0 ) {
-		ele.max_hp += ele.max_hp * 5 * i / 100;
+	if( (skill_level = pc_checkskill(sd,SO_EL_SYMPATHY)) > 0 ) {
+		ele.max_hp += ele.max_hp * 5 * skill_level / 100;
 		ele.hp = ele.max_hp;
-		ele.max_sp += ele.max_sp * 5 * i / 100;
+		ele.max_sp += ele.max_sp * 5 * skill_level / 100;
 		ele.sp = ele.max_sp;
-		ele.atk += 25 * i;
-		ele.atk2 += 25 * i;
-		ele.matk += 25 * i;
+		ele.atk += 25 * skill_level;
+		ele.atk2 += 25 * skill_level;
+		ele.matk += 25 * skill_level;
 	}
 
 	ele.life_time = lifetime;
@@ -540,14 +540,18 @@ int elemental_change_mode(struct elemental_data *ed, int mode) {
 	elemental_unlocktarget(ed);
 
 	// Removes the effects of the previous mode.
-	if(ed->elemental.mode != mode ) elemental_clean_effect(ed);
+	if( ed->elemental.mode != mode )
+		elemental_clean_effect(ed);
 
 	ed->battle_status.mode = ed->elemental.mode = mode;
 
 	// Normalize elemental mode to elemental skill mode.
-	if( mode == EL_MODE_AGGRESSIVE ) mode = EL_SKILLMODE_AGGRESSIVE;	// Aggressive spirit mode -> Aggressive spirit skill.
-	else if( mode == EL_MODE_ASSIST ) mode = EL_SKILLMODE_ASSIST;		// Assist spirit mode -> Assist spirit skill.
-	else mode = EL_SKILLMODE_PASIVE;									// Passive spirit mode -> Passive spirit skill.
+	if( mode == EL_MODE_AGGRESSIVE )
+		mode = EL_SKILLMODE_AGGRESSIVE; // Aggressive spirit mode -> Aggressive spirit skill.
+	else if( mode == EL_MODE_ASSIST )
+		mode = EL_SKILLMODE_ASSIST; // Assist spirit mode -> Assist spirit skill.
+	else
+		mode = EL_SKILLMODE_PASIVE; // Passive spirit mode -> Passive spirit skill.
 
 	// Use a skill inmediately after every change mode.
 	if( mode != EL_SKILLMODE_AGGRESSIVE )
@@ -576,19 +580,20 @@ int elemental_unlocktarget(struct elemental_data *ed) {
 	return 0;
 }
 
-int elemental_skillnotok(uint16 skill_id, struct elemental_data *ed) {
-	int16 idx = skill_get_index(skill_id);
+bool elemental_skillnotok(uint16 skill_id, struct elemental_data *ed) {
+	uint16 idx = skill_get_index(skill_id);
+
 	nullpo_retr(1,ed);
 
 	if( !idx )
-		return 1; // Invalid skill id
+		return false; // Invalid skill id
 
 	return skill_isNotOk(skill_id,ed->master);
 }
 
-struct skill_condition elemental_skill_get_requirements(uint16 skill_id, uint16 skill_lv){
+struct skill_condition elemental_skill_get_requirements(uint16 skill_id, uint16 skill_lv) {
 	struct skill_condition req;
-	int16 idx = skill_get_index(skill_id);
+	uint16 idx = skill_get_index(skill_id);
 
 	memset(&req,0,sizeof(req));
 

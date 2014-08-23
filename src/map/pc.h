@@ -27,9 +27,8 @@
 #define DAMAGELOG_SIZE_PC 100 // Any idea for this value?
 #define MAX_PC_BONUS_SCRIPT 20
 
-//Update this max as necessary. 55 is the value needed for Super Baby currently
-//Raised to 84 since Expanded Super Novice needs it.
-#define MAX_SKILL_TREE 84
+//Update this max as necessary. 85 is the value needed for Expanded Super Novice
+#define MAX_SKILL_TREE 85
 //Total number of classes (for data storage)
 #define CLASS_COUNT (JOB_MAX - JOB_NOVICE_HIGH + JOB_MAX_BASIC)
 
@@ -146,6 +145,12 @@ enum npc_timeout_type {
 	NPCT_INPUT = 0,
 	NPCT_MENU  = 1,
 	NPCT_WAIT  = 2,
+};
+
+//Item Group heal rate struct
+struct s_pc_itemgrouphealrate {
+	uint16 group_id; //Item Group ID
+	short rate; //Rate
 };
 
 struct map_session_data {
@@ -324,7 +329,6 @@ struct map_session_data {
 	int ignore_mdef_by_class[CLASS_MAX];
 	int ignore_def_by_race[RC_MAX];
 	int ignore_def_by_class[CLASS_MAX];
-	int itemgrouphealrate[MAX_ITEMGROUP];
 	int magic_subrace[RC_MAX];
 	int magic_subclass[CLASS_MAX];
 	short sp_gain_race[RC_MAX];
@@ -535,13 +539,13 @@ struct map_session_data {
 	 * @info
 	 * - value is -1 (INVALID_TIMER constant) when not being used
 	 * - timer is cancelled upon closure of the current npc's instance
-	 **/
+	 */
 	int npc_idle_timer;
 	/**
 	 * Tick on the last recorded NPC iteration (next/menu/whatever)
 	 * @info
 	 * - It is updated on every NPC iteration as mentioned above
-	 **/
+	 */
 	unsigned int npc_idle_tick;
 	/* */
 	enum npc_timeout_type npc_idle_type;
@@ -555,7 +559,7 @@ struct map_session_data {
 
 	/**
 	 * Guarantees your friend request is legit (for bugreport:4629)
-	 **/
+	 */
 	int friend_req;
 
 	int shadowform_id;
@@ -601,6 +605,9 @@ struct map_session_data {
 		int tid;
 	} bonus_script[MAX_PC_BONUS_SCRIPT];
 
+	struct s_pc_itemgrouphealrate **itemgrouphealrate; //List of Item Group Heal rate bonus
+	uint8 itemgrouphealrate_count; //Number of rate bonuses
+
 	int storage_size; //Holds player storage size (VIP system).
 #ifdef VIP_ENABLE
 	struct vip_info vip;
@@ -608,7 +615,9 @@ struct map_session_data {
 #endif
 };
 
-struct eri *pc_sc_display_ers;
+struct eri *pc_sc_display_ers; //Player's SC display table
+struct eri *pc_itemgrouphealrate_ers; //Player's Item Group Heal Rate table
+
 /* Global expiration timer id */
 extern int pc_expiration_tid;
 
@@ -845,14 +854,14 @@ int pc_memo(struct map_session_data* sd,int pos);
 
 int pc_checkadditem(struct map_session_data*,int,int);
 int pc_inventoryblank(struct map_session_data*);
-int pc_search_inventory(struct map_session_data *sd,int item_id);
+short pc_search_inventory(struct map_session_data *sd, uint16 nameid);
 int pc_payzeny(struct map_session_data*,int,enum e_log_pick_type type,struct map_session_data*);
 char pc_additem(struct map_session_data *sd,struct item *item,int amount,e_log_pick_type log_type);
 int pc_getzeny(struct map_session_data*,int,enum e_log_pick_type,struct map_session_data*);
-int pc_delitem(struct map_session_data *sd,int n,int amount,int type, short reason, e_log_pick_type log_type);
+int pc_delitem(struct map_session_data *sd,int n,int amount,int type,short reason,e_log_pick_type log_type);
 
 //Bound items
-int pc_bound_chk(TBL_PC *sd,int type,int *idxlist);
+int pc_bound_chk(TBL_PC *sd,enum bound_type type,int *idxlist);
 
 // Special Shop System
 int pc_paycash(struct map_session_data *sd,int price,int points,e_log_pick_type type);
@@ -900,7 +909,7 @@ unsigned int pc_maxbaselv(struct map_session_data *sd);
 unsigned int pc_maxjoblv(struct map_session_data *sd);
 int pc_checkbaselevelup(struct map_session_data *sd);
 int pc_checkjoblevelup(struct map_session_data *sd);
-int pc_gainexp(struct map_session_data*,struct block_list*,unsigned int,unsigned int, bool);
+bool pc_gainexp(struct map_session_data *sd,struct block_list *src,unsigned int base_exp,unsigned int job_exp,bool quest);
 unsigned int pc_nextbaseexp(struct map_session_data *);
 unsigned int pc_thisbaseexp(struct map_session_data *);
 unsigned int pc_nextjobexp(struct map_session_data *);
@@ -986,7 +995,8 @@ void pc_bleeding(struct map_session_data *sd, unsigned int diff_tick);
 void pc_regen(struct map_session_data *sd, unsigned int diff_tick);
 
 void pc_setstand(struct map_session_data *sd);
-bool pc_candrop(struct map_session_data *sd,struct item *item);
+bool pc_can_attack(struct map_session_data *sd, int target_id);
+bool pc_candrop(struct map_session_data *sd, struct item *item);
 
 int pc_jobid2mapid(unsigned short b_class);	// Skotlex
 int pc_mapid2jobid(unsigned short class_, int sex);	// Skotlex
@@ -1085,6 +1095,10 @@ void pc_bonus_script_remove(struct map_session_data *sd, uint8 i);
 void pc_bonus_script_clear(struct map_session_data *sd, uint16 flag);
 
 void pc_cell_basilica(struct map_session_data *sd);
+
+void pc_itemgrouphealrate_clear(struct map_session_data *sd);
+short pc_get_itemgroup_bonus(struct map_session_data* sd, uint16 nameid);
+short pc_get_itemgroup_bonus_group(struct map_session_data* sd, uint16 group_id);
 
 #if defined(RENEWAL_DROP) || defined(RENEWAL_EXP)
 int pc_level_penalty_mod(struct map_session_data *sd, int mob_level, uint32 mob_class, int type);

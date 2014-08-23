@@ -301,10 +301,10 @@ uint32 date2version(int date) {
 	else return 30; //Default
 }
 
-/*************************************
-* Big-endian compatibility functions * 
-* From mapcache.c                    *
-*************************************/
+/**************************************
+ * Big-endian compatibility functions * 
+ * From mapcache.c                    *
+ **************************************/
 
 // Converts an int16 from current machine order to little-endian
 int16 MakeShortLE(int16 val)

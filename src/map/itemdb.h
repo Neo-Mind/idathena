@@ -27,7 +27,6 @@
 #define IG_FINDINGORE 6
 #define IG_POTION 37
 
-#define MAX_ITEMGROUP 400 //The max. item group count (increase this when needed). @TODO: Remove this limit and use dynamic size or DBMap if needed
 #define MAX_ITEMGROUP_RANDGROUP 4 //Max group for random item (increase this when needed). @TODO: Remove this limit and use dynamic size if needed
 
 #define CARD0_FORGE 0x00FF
@@ -294,10 +293,6 @@ enum cash_food_item_list {
 	ITEMID_VIT_DISH10_,
 };
 
-enum item_nouse_list {
-	NOUSE_SITTING = 0x01,
-};
-
 enum e_item_job {
 	ITEMJ_NORMAL      = 0x01,
 	ITEMJ_UPPER       = 0x02,
@@ -327,6 +322,55 @@ struct item_combo {
 	bool isRef; /* Whether this struct is a reference or the master */
 };
 
+//Struct of item group entry
+struct s_item_group_entry {
+	uint16 nameid, //Item ID
+		duration; //Duration if item as rental item (in minutes)
+	uint16 amount; //Amount of item will be obtained
+	bool isAnnounced, //Broadcast if player get this item
+		isNamed; //Named the item (if possible)
+	char bound; //Makes the item as bound item (according to bound type)
+};
+
+//Struct of random group
+struct s_item_group_random {
+	struct s_item_group_entry *data;
+	uint16 data_qty;
+};
+
+//Struct of item group that will be used for db
+struct s_item_group_db {
+	uint16 id;
+	struct s_item_group_entry *must;
+	uint16 must_qty;
+	struct s_item_group_random random[MAX_ITEMGROUP_RANDGROUP]; //TODO: Move this fixed array to dynamic size if needed.
+};
+
+//Item Trade restrictions
+enum ItemTradeRestrictions {
+	ITR_NONE            = 0x000, //No restrictions
+	ITR_NODROP          = 0x001, //Item can't be dropped
+	ITR_NOTRADE         = 0x002, //Item can't be traded (nor vended)
+	ITR_PARTNEROVERRIDE = 0x004, //Wedded partner can override ITR_NOTRADE restriction
+	ITR_NOSELLTONPC     = 0x008, //Item can't be sold to NPCs
+	ITR_NOCART          = 0x010, //Item can't be placed in the cart
+	ITR_NOSTORAGE       = 0x020, //Item can't be placed in the storage
+	ITR_NOGSTORAGE      = 0x040, //Item can't be placed in the guild storage
+	ITR_NOMAIL          = 0x080, //Item can't be attached to mail messages
+	ITR_NOAUCTION       = 0x100, //Item can't be auctioned
+
+	ITR_ALL             = 0x1FF  //Sum of all the above values
+};
+
+//Item No-use restrictions
+enum ItemNouseRestrictions {
+	INR_NONE    = 0x0, //No restrictions
+	INR_SITTING = 0x1, //Item can't be used while sitting
+
+	INR_ALL     = 0x1 //Sum of all the above values
+};
+
+//Main item data struct
 struct item_data {
 	uint16 nameid;
 	char name[ITEM_NAME_LENGTH],jname[ITEM_NAME_LENGTH];
@@ -354,7 +398,7 @@ struct item_data {
 
 	int delay;
 	/* Lupus: I rearranged order of these fields due to compatibility with ITEMINFO script command
-		some script commands should be revised as well... */
+		some script commands should be revised as well */
 	unsigned int class_base[3];	//Specifies if the base can wear this item (split in 3 indexes per type: 1-1, 2-1, 2-2)
 	unsigned class_upper : 6; //Specifies if the class-type can equip it (0x01: normal, 0x02: trans, 0x04: baby, 0x08:third, 0x10:trans-third, 0x20-third-baby)
 	struct {
@@ -367,23 +411,23 @@ struct item_data {
 	struct {
 		unsigned available : 1;
 		uint32 no_equip;
-		unsigned no_refine : 1;	// [celest]
-		unsigned delay_consume : 1;	// Signifies items that are not consumed immediately upon double-click [Skotlex]
-		unsigned trade_restriction : 9;	//Item restrictions mask [Skotlex]
+		unsigned no_refine : 1;	//[celest]
+		unsigned delay_consume : 1;	//Signifies items that are not consumed immediately upon double-click [Skotlex]
+		unsigned trade_restriction : 9;	//Item trade restrictions mask (@see enum ItemTradeRestrictions)
 		unsigned autoequip: 1;
 		unsigned buyingstore : 1;
-		unsigned dead_branch : 1; // As dead branch item. Logged at `branchlog` table and cannot be used at 'nobranch' mapflag [Cydh]
-		unsigned group : 1; // As item group container [Cydh]
+		unsigned dead_branch : 1; //As dead branch item. Logged at `branchlog` table and cannot be used at 'nobranch' mapflag [Cydh]
+		unsigned group : 1; //As item group container [Cydh]
 	} flag;
-	struct { // Item stacking limitation
+	struct { //Item stacking limitation
 		unsigned short amount;
 		unsigned int inventory: 1;
 		unsigned int cart: 1;
 		unsigned int storage: 1;
 		unsigned int guildstorage: 1;
 	} stack;
-	struct { // Used by item_nouse.txt
-		unsigned int flag;
+	struct {
+		unsigned int flag; //Item nouse restriction mask (@see enum ItemNouseRestrictions)
 		unsigned short override;
 	} item_usage;
 	short gm_lv_trade_override; //GM-level to override trade_restriction
@@ -391,31 +435,6 @@ struct item_data {
 	struct item_combo **combos;
 	unsigned char combos_count;
 };
-
-/* Struct of item group entry */
-struct s_item_group {
-	uint16 nameid, //Item id
-	duration; //Duration if item as rental item (in minute)
-	uint16 amount; //Amount of item will be obtained
-	bool isAnnounced, //Broadcast if player get this item
-	isNamed; //Named the item (if possible)
-	char bound; //Makes the item as bound item (according to bound type)
-};
-
-/* Struct of random group */
-struct s_item_group_random {
-	struct s_item_group *data;
-	uint16 data_qty;
-};
-
-/* Struct of item group that will be used for db */
-struct s_item_group_db {
-	struct s_item_group *must;
-	uint16 must_qty;
-	struct s_item_group_random random[MAX_ITEMGROUP_RANDGROUP]; //@TODO: Move this fixed array to dynamic size if needed
-};
-
-struct s_item_group_db itemgroup_db[MAX_ITEMGROUP];
 
 struct item_data* itemdb_searchname(const char *name);
 int itemdb_searchname_array(struct item_data** data, int size, const char *str);
@@ -450,7 +469,6 @@ struct item_data* itemdb_exists(int nameid);
 const char* itemdb_typename(enum item_types type);
 const char *itemdb_typename_ammo (enum e_item_ammo ammo);
 
-int itemdb_group_bonus(struct map_session_data* sd, int itemid);
 unsigned short itemdb_searchrandomid(uint16 group_id, uint8 sub_group);
 
 #define itemdb_value_buy(n) itemdb_search(n)->value_buy
@@ -477,11 +495,11 @@ bool itemdb_isrestricted(struct item* item, int gmlv, int gmlv2, int (*func)(str
 #define itemdb_canmail(item, gmlv) itemdb_isrestricted(item , gmlv, 0, itemdb_canmail_sub)
 #define itemdb_canauction(item, gmlv) itemdb_isrestricted(item , gmlv, 0, itemdb_canauction_sub)
 
-bool itemdb_isequip(int);
-bool itemdb_isequip2(struct item_data *);
+bool itemdb_isequip2(struct item_data *id);
+#define itemdb_isequip(nameid) itemdb_isequip2(itemdb_search(nameid))
 char itemdb_isidentified(int);
-bool itemdb_isstackable(uint16 nameid);
-bool itemdb_isstackable2(struct item_data *data);
+bool itemdb_isstackable2(struct item_data *id);
+#define itemdb_isstackable(nameid) itemdb_isstackable2(itemdb_search(nameid))
 uint64 itemdb_unique_id(struct map_session_data *sd);
 bool itemdb_isNoEquip(struct item_data *id, uint16 m);
 
@@ -489,6 +507,7 @@ char itemdb_pc_get_itemgroup(uint16 group_id, struct map_session_data *sd);
 uint16 itemdb_get_randgroupitem_count(uint16 group_id, uint8 sub_group, uint16 nameid);
 
 DBMap* itemdb_get_combodb();
+DBMap* itemdb_get_groupdb();
 
 void itemdb_reload(void);
 

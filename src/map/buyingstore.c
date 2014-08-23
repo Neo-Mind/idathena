@@ -155,7 +155,7 @@ bool buyingstore_create(struct map_session_data* sd, int zenylimit, unsigned cha
 
 		// Restrictions: Allowed, no character-bound items and at least one must be owned
 		if( !id->flag.buyingstore || !itemdb_cantrade_sub(id, pc_get_group_level(sd), pc_get_group_level(sd)) ||
-			(idx = pc_search_inventory(sd, nameid)) == -1 )
+			(idx = pc_search_inventory(sd, nameid)) == INDEX_NOT_FOUND )
 			break;
 
 		if( sd->status.inventory[idx].amount + amount > BUYINGSTORE_MAX_AMOUNT ) // Too many items of same kind

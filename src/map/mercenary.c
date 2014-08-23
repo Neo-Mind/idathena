@@ -44,7 +44,7 @@ struct s_mercenary_db mercenary_db[MAX_MERCENARY_CLASS]; // Mercenary Database
  * Search Mercenary by class
  * @param class_ Class ID of Mercenary
  * @return The index of mercenary on mercenary_db, or -1 if not found
- **/
+ */
 static int16 mercenary_search_index(int class_)
 {
 	int16 i;
@@ -56,7 +56,7 @@ static int16 mercenary_search_index(int class_)
  * Check if the Class ID is a Mercenary
  * @param class_ The Class ID
  * @return true if Class ID is a Mercenary, false otherwise
- **/
+ */
 bool mercenary_class(int class_)
 {
 	return (bool)(mercenary_search_index(class_) > -1);
@@ -66,7 +66,7 @@ bool mercenary_class(int class_)
  * Get View Data of Mercenary by Class ID
  * @param class_ The Class ID
  * @return View Data of Mercenary
- **/
+ */
 struct view_data *mercenary_get_viewdata(int class_)
 {
 	int i = mercenary_search_index(class_);
@@ -82,7 +82,7 @@ struct view_data *mercenary_get_viewdata(int class_)
  * @param class_ Mercenary Class
  * @param lifetime Contract duration
  * @return false if failed, true otherwise
- **/
+ */
 bool mercenary_create(struct map_session_data *sd, int class_, unsigned int lifetime)
 {
 	struct s_mercenary merc;
@@ -112,7 +112,7 @@ bool mercenary_create(struct map_session_data *sd, int class_, unsigned int life
  * Get current Mercenary lifetime
  * @param md The Mercenary
  * @return The Lifetime
- **/
+ */
 int mercenary_get_lifetime(struct mercenary_data *md)
 {
 	const struct TimerData *td;
@@ -127,7 +127,7 @@ int mercenary_get_lifetime(struct mercenary_data *md)
  * Get Guild type of Mercenary
  * @param md Mercenary
  * @return -1 if not found, 0 - ARCH_MERC_GUILD, 1 - SPEAR_MERC_GUILD, or 2 - SWORD_MERC_GUILD
- **/
+ */
 int mercenary_get_guild(struct mercenary_data *md)
 {
 	uint16 class_;
@@ -151,7 +151,7 @@ int mercenary_get_guild(struct mercenary_data *md)
  * Get Faith value of Mercenary
  * @param md Mercenary
  * @return the Faith value
- **/
+ */
 int mercenary_get_faith(struct mercenary_data *md)
 {
 	struct map_session_data *sd;
@@ -176,7 +176,7 @@ int mercenary_get_faith(struct mercenary_data *md)
  * Set faith value of Mercenary
  * @param md The Mercenary
  * @param value Faith Value
- **/
+ */
 void mercenary_set_faith(struct mercenary_data *md, int value)
 {
 	struct map_session_data *sd;
@@ -206,7 +206,7 @@ void mercenary_set_faith(struct mercenary_data *md, int value)
  * Get Mercenary's calls
  * @param md Mercenary
  * @return Number of calls
- **/
+ */
 int mercenary_get_calls(struct mercenary_data *md)
 {
 	struct map_session_data *sd;
@@ -231,7 +231,7 @@ int mercenary_get_calls(struct mercenary_data *md)
  * Set Mercenary's calls
  * @param md Mercenary
  * @param value
- **/
+ */
 void mercenary_set_calls(struct mercenary_data *md, int value)
 {
 	struct map_session_data *sd;
@@ -259,7 +259,7 @@ void mercenary_set_calls(struct mercenary_data *md, int value)
 /**
  * Save Mercenary data
  * @param md Mercenary
- **/
+ */
 void mercenary_save(struct mercenary_data *md)
 {
 	md->mercenary.hp = md->battle_status.hp;
@@ -271,7 +271,7 @@ void mercenary_save(struct mercenary_data *md)
 
 /**
  * Ends contract of Mercenary
- **/
+ */
 static int mercenary_end_contract(int tid, unsigned int tick, int id, intptr_t data)
 {
 	struct map_session_data *sd;
@@ -297,7 +297,7 @@ static int mercenary_end_contract(int tid, unsigned int tick, int id, intptr_t d
  * Delete Mercenary
  * @param md Mercenary
  * @param reply
- **/
+ */
 int mercenary_delete(struct mercenary_data *md, int reply)
 {
 	struct map_session_data *sd = md->master;
@@ -325,7 +325,7 @@ int mercenary_delete(struct mercenary_data *md, int reply)
 /**
  * Stop contract of Mercenary
  * @param md Mercenary
- **/
+ */
 void mercenary_stop_contract(struct mercenary_data *md)
 {
 	nullpo_retv(md);
@@ -337,7 +337,7 @@ void mercenary_stop_contract(struct mercenary_data *md)
 /**
  * Init contract of Mercenary
  * @param md Mercenary
- **/
+ */
 void mercenary_init_contract(struct mercenary_data *md)
 {
 	if( md->contract_timer == INVALID_TIMER )
@@ -418,7 +418,7 @@ bool mercenary_recv_data(struct s_mercenary *merc, bool flag)
  * @param md Mercenary
  * @param hp HP amount
  * @param sp SP amount
- **/
+ */
 void mercenary_heal(struct mercenary_data *md, int hp, int sp)
 {
 	if( hp )
@@ -430,7 +430,7 @@ void mercenary_heal(struct mercenary_data *md, int hp, int sp)
 /**
  * Delete Mercenary
  * @param md Mercenary
- **/
+ */
 bool mercenary_dead(struct mercenary_data *md)
 {
 	mercenary_delete(md, 1);
@@ -440,7 +440,7 @@ bool mercenary_dead(struct mercenary_data *md)
 /**
  * Gives bonus to Mercenary
  * @param md Mercenary
- **/
+ */
 void mercenary_killbonus(struct mercenary_data *md)
 {
 	const enum sc_type scs[] = { SC_MERC_FLEEUP, SC_MERC_ATKUP, SC_MERC_HPUP, SC_MERC_SPUP, SC_MERC_HITUP };
@@ -452,7 +452,7 @@ void mercenary_killbonus(struct mercenary_data *md)
 /**
  * Mercenary does kill
  * @param md Mercenary
- **/
+ */
 void mercenary_kills(struct mercenary_data *md)
 {
 	if( md->mercenary.kill_count <= (INT_MAX - 1) ) //Safe cap to INT_MAX
@@ -472,7 +472,7 @@ void mercenary_kills(struct mercenary_data *md)
  * @param md Mercenary
  * @param skill_id The skill
  * @return Skill Level or 0 if Mercenary doesn't have the skill
- **/
+ */
 int mercenary_checkskill(struct mercenary_data *md, uint16 skill_id)
 {
 	int i = skill_id - MC_SKILLBASE;
@@ -487,7 +487,7 @@ int mercenary_checkskill(struct mercenary_data *md, uint16 skill_id)
 
 /**
  * Read each line of Mercenary's database
- **/
+ */
 static bool mercenary_readdb_sub(char* str[], int columns, int current)
 {
 	int ele;
@@ -544,7 +544,7 @@ static bool mercenary_readdb_sub(char* str[], int columns, int current)
 
 /**
  * Load Mercenary's database
- **/
+ */
 void mercenary_readdb(void)
 {
 	memset(mercenary_db,0,sizeof(mercenary_db));
@@ -553,7 +553,7 @@ void mercenary_readdb(void)
 
 /**
  * Read each line of Mercenary's skill
- **/
+ */
 static bool mercenary_read_skilldb_sub(char* str[], int columns, int current)
 { // <merc id>,<skill id>,<skill level>
 	struct s_mercenary_db *db;
@@ -584,7 +584,7 @@ static bool mercenary_read_skilldb_sub(char* str[], int columns, int current)
 
 /**
  * Load Mercenary's skill database
- **/
+ */
 void mercenary_read_skilldb(void)
 {
 	sv_readdb(db_path, "mercenary_skill_db.txt", ',', 3, 3, -1, &mercenary_read_skilldb_sub);
@@ -592,7 +592,7 @@ void mercenary_read_skilldb(void)
 
 /**
  * Init Mercenary datas
- **/
+ */
 void do_init_mercenary(void)
 {
 	mercenary_readdb();
@@ -603,7 +603,7 @@ void do_init_mercenary(void)
 
 /**
  * Do Final Mercenary datas
- **/
+ */
 void do_final_mercenary(void) {
 	return;
 }

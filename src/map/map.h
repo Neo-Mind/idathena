@@ -423,7 +423,7 @@ enum _sp {
 	SP_IGNORE_DEF_CLASS,SP_IGNORE_DEF_CLASS_RATE,SP_IGNORE_MDEF_CLASS,SP_IGNORE_MDEF_CLASS_RATE, //2063-2066
 	SP_DEF_RATIO_ATK_CLASS,SP_ADDCLASS,SP_SUBCLASS,SP_MAGIC_ADDCLASS,SP_WEAPON_COMA_CLASS, //2067-2071
 	SP_MAGIC_SUBCLASS,SP_EXP_ADDCLASS,SP_ADD_CLASS_DROP_ITEM,SP_ADD_CLASS_DROP_ITEMGROUP, //2072-2075
-	SP_ADDMAXWEIGHT //2076
+	SP_ADDMAXWEIGHT, SP_ADD_ITEMGROUP_HEAL_RATE //2076-2077
 };
 
 enum _look {
@@ -638,7 +638,7 @@ struct map_data {
 	 * - since there are a thounsand mobs out there in a lot of maps checking on,
 	 * - every targetting for icewall on attack path would just be a waste, so,
 	 * - this counter allows icewall checking be only run when there is a actual ice wall on the map
-	 **/
+	 */
 	int icewall_num;
 	// Instance Variables
 	int instance_id;

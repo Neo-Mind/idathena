@@ -370,7 +370,7 @@ const char* geoip_getcountry(uint32 ipnum) {
 /**
  * Disables GeoIP
  * frees geoip.cache
- **/
+ */
 void geoip_final(bool shutdown) {
 	if( geoip.cache ) {
 		aFree(geoip.cache);
@@ -388,7 +388,7 @@ void geoip_final(bool shutdown) {
  * Reads GeoIP database and stores it into memory
  * geoip.cache should be freed after use!
  * http://dev.maxmind.com/geoip/legacy/geolite/
- **/
+ */
 void geoip_init(void) {
 	int i, fno;
 	char db_type = 1;

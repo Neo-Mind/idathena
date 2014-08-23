@@ -1506,7 +1506,7 @@ int check_char_name(char * name, char * esc_name)
 	/**
 	 * The client does not allow you to create names with less than 4 characters, however,
 	 * the use of WPE can bypass this, and this fixes the exploit.
-	 **/
+	 */
 	if( strlen( name ) < 4 )
 		return -2;
 	// Check content of character name
@@ -1735,7 +1735,7 @@ int delete_char_sql(int char_id)
 
 	/* Delete char's pet */
 	//Delete the hatched pet if you have one.
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d' AND `incuvate` = '0'", pet_db, char_id) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d' AND `incubate` = '0'", pet_db, char_id) )
 		Sql_ShowDebug(sql_handle);
 
 	//Delete all pets that are stored in eggs (inventory + cart)

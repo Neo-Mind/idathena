@@ -1199,7 +1199,7 @@ ACMD_FUNC(heal)
 ACMD_FUNC(item)
 {
 	char item_name[100];
-	int number = 0, flag = 0, bound = 0;
+	int number = 0, flag = 0, bound = BOUND_NONE;
 	struct item item_tmp;
 	struct item_data *item_data[10];
 	int get_count, i, j = 0;
@@ -1208,16 +1208,23 @@ ACMD_FUNC(item)
 	nullpo_retr(-1, sd);
 	memset(item_name, '\0', sizeof(item_name));
 
-	if (!strcmpi(command + 1,"itembound") && (!message || !*message || (
-		sscanf(message, "\"%99[^\"]\" %d %d", item_name, &number, &bound) < 2 &&
-		sscanf(message, "%99s %d %d", item_name, &number, &bound) < 2
-	))) {
-		clif_displaymessage(fd, msg_txt(295)); //Please enter an item name or ID (usage: @item <item name/ID> <quantity> <bound_type>).
-		return -1;
+	if (!strcmpi(command + 1,"itembound")) {
+		if (!message || !*message || (
+			sscanf(message, "\"%99[^\"]\" %d %d", item_name, &number, &bound) < 3 &&
+			sscanf(message, "%99s %d %d", item_name, &number, &bound) < 3))
+		{
+			clif_displaymessage(fd, msg_txt(295)); // Please enter an item name or ID (usage: @item <item name/ID> <quantity> <bound_type>).
+			clif_displaymessage(fd, msg_txt(298)); // Invalid bound type
+			return -1;
+		}
+		if (bound <= BOUND_NONE || bound >= BOUND_MAX) {
+			clif_displaymessage(fd, msg_txt(298)); // Invalid bound type
+			return -1;
+		}
 	} else if (!message || !*message || (
 		sscanf(message, "\"%99[^\"]\" %d", item_name, &number) < 1 &&
-		sscanf(message, "%99s %d", item_name, &number) < 1
-	)) {
+		sscanf(message, "%99s %d", item_name, &number) < 1))
+	{
 		clif_displaymessage(fd, msg_txt(983)); //Please enter an item name or ID (usage: @item <item name/ID> <quantity>).
 		return -1;
 	}
@@ -1232,24 +1239,19 @@ ACMD_FUNC(item)
 		j++;
 	}
 
-	if( bound < 0 || bound > 4 ) {
-		clif_displaymessage(fd, msg_txt(298)); //Invalid bound type
-		return -1;
-	}
-
 	if (number <= 0)
 		number = 1;
 	get_count = number;
 
 	for (j--; j >= 0; j--) { //Produce items in list
 		int16 item_id = item_data[j]->nameid;
+
 		//Check if it's stackable.
 		if (!itemdb_isstackable2(item_data[j]))
 			get_count = 1;
 
 		for (i = 0; i < number; i += get_count) {
-			//If not pet egg
-			if (!pet_create_egg(sd, item_id)) {
+			if (!pet_create_egg(sd, item_id)) { //If not pet egg
 				memset(&item_tmp, 0, sizeof(item_tmp));
 				item_tmp.nameid = item_id;
 				item_tmp.identify = 1;
@@ -1274,19 +1276,27 @@ ACMD_FUNC(item2)
 	struct item item_tmp;
 	struct item_data *item_data;
 	char item_name[100];
-	int item_id, number = 0, bound = 0;
+	int item_id, number = 0, bound = BOUND_NONE;
 	int identify = 0, refine = 0, attr = 0;
 	int c1 = 0, c2 = 0, c3 = 0, c4 = 0;
 
 	nullpo_retr(-1, sd);
-
 	memset(item_name, '\0', sizeof(item_name));
-	if (!strcmpi(command + 1,"itembound2") && (!message || !*message || (
-		sscanf(message, "\"%99[^\"]\" %d %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4, &bound) < 10 &&
-		sscanf(message, "%99s %d %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4, &bound) < 10 ))) {
-		clif_displaymessage(fd, msg_txt(296)); // Please enter all parameters (usage: @item2 <item name/ID> <quantity>
-		clif_displaymessage(fd, msg_txt(297)); //   <identify_flag> <refine> <attribute> <card1> <card2> <card3> <card4> <bound_type>).
-		return -1;
+
+	if (!strcmpi(command+1,"itembound2")) {
+		if (!message || !*message || (
+			sscanf(message, "\"%99[^\"]\" %d %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4, &bound) < 10 &&
+			sscanf(message, "%99s %d %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4, &bound) < 10 ))
+		{
+			clif_displaymessage(fd, msg_txt(296)); // Please enter all parameters (usage: @item2 <item name/ID> <quantity>
+			clif_displaymessage(fd, msg_txt(297)); //   <identify_flag> <refine> <attribute> <card1> <card2> <card3> <card4> <bound_type>).
+			clif_displaymessage(fd, msg_txt(298)); // Invalid bound type
+			return -1;
+		}
+		if (bound <= BOUND_NONE || bound >= BOUND_MAX) {
+			clif_displaymessage(fd, msg_txt(298)); // Invalid bound type
+			return -1;
+		}
 	} else if ( !message || !*message || (
 		sscanf(message, "\"%99[^\"]\" %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4) < 9 &&
 		sscanf(message, "%99s %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4) < 9) )
@@ -1298,11 +1308,6 @@ ACMD_FUNC(item2)
 
 	if (number <= 0)
 		number = 1;
-
-	if (bound < 0 || bound > 4) {
-		clif_displaymessage(fd, msg_txt(298)); // Invalid bound type
-		return -1;
-	}
 
 	item_id = 0;
 	if ((item_data = itemdb_searchname(item_name)) != NULL ||
@@ -1807,54 +1812,54 @@ ACMD_FUNC(hair_color)
 ACMD_FUNC(go)
 {
 	int i;
-	int town;
+	int town = INT_MAX; // Initialized to INT_MAX instead of -1 to avoid conflicts with those who map [-3:-1] to @memo locations.
 	char map_name[MAP_NAME_LENGTH];
-	int16 m;
  
 	const struct {
 		char map[MAP_NAME_LENGTH];
 		int x, y;
+		int min_match; // Minimum string length to match
 	} data[] = {
-		{ MAP_PRONTERA,    156, 191 }, //  0=Prontera
-		{ MAP_MORROC,      156,  93 }, //  1=Morroc
-		{ MAP_GEFFEN,      119,  59 }, //  2=Geffen
-		{ MAP_PAYON,       162, 233 }, //  3=Payon
-		{ MAP_ALBERTA,     192, 147 }, //  4=Alberta
+		{ MAP_PRONTERA,    156, 191, 3 }, //  0 = Prontera
+		{ MAP_MORROC,      156,  93, 4 }, //  1 = Morroc
+		{ MAP_GEFFEN,      119,  59, 3 }, //  2 = Geffen
+		{ MAP_PAYON,       162, 233, 3 }, //  3 = Payon
+		{ MAP_ALBERTA,     192, 147, 3 }, //  4 = Alberta
 #ifdef RENEWAL
-		{ MAP_IZLUDE,      128, 146 }, //  5=Izlude (Renewal)
+		{ MAP_IZLUDE,      128, 146, 3 }, //  5 = Izlude (Renewal)
 #else
-		{ MAP_IZLUDE,      128, 114 }, //  5=Izlude
+		{ MAP_IZLUDE,      128, 114, 3 }, //  5 = Izlude
 #endif
-		{ MAP_ALDEBARAN,   140, 131 }, //  6=Al de Baran
-		{ MAP_LUTIE,       147, 134 }, //  7=Lutie
-		{ MAP_COMODO,      209, 143 }, //  8=Comodo
-		{ MAP_YUNO,        157,  51 }, //  9=Yuno
-		{ MAP_AMATSU,      198,  84 }, // 10=Amatsu
-		{ MAP_GONRYUN,     160, 120 }, // 11=Gonryun
-		{ MAP_UMBALA,       89, 157 }, // 12=Umbala
-		{ MAP_NIFLHEIM,     21, 153 }, // 13=Niflheim
-		{ MAP_LOUYANG,     217,  40 }, // 14=Louyang
-		{ MAP_NOVICE,       53, 111 }, // 15=Training Grounds
-		{ MAP_JAIL,         23,  61 }, // 16=Prison
-		{ MAP_JAWAII,      249, 127 }, // 17=Jawaii
-		{ MAP_AYOTHAYA,    151, 117 }, // 18=Ayothaya
-		{ MAP_EINBROCH,     64, 200 }, // 19=Einbroch
-		{ MAP_LIGHTHALZEN, 158,  92 }, // 20=Lighthalzen
-		{ MAP_EINBECH,      70,  95 }, // 21=Einbech
-		{ MAP_HUGEL,        96, 145 }, // 22=Hugel
-		{ MAP_RACHEL,      130, 110 }, // 23=Rachel
-		{ MAP_VEINS,       216, 123 }, // 24=Veins
-		{ MAP_MOSCOVIA,    223, 184 }, // 25=Moscovia
-		{ MAP_MIDCAMP,     180, 240 }, // 26=Midgard Camp
-		{ MAP_MANUK,       282, 138 }, // 27=Manuk
-		{ MAP_SPLENDIDE,   201, 147 }, // 28=Splendide
-		{ MAP_BRASILIS,    182, 239 }, // 29=Brasilis
-		{ MAP_DICASTES,    198, 187 }, // 30=El Dicastes
-		{ MAP_MORA,         44, 151 }, // 31=Mora
-		{ MAP_DEWATA,      200, 180 }, // 32=Dewata
-		{ MAP_MALANGDO,    140, 114 }, // 33=Malangdo Island
-		{ MAP_MALAYA,      242, 211 }, // 34=Malaya Port
-		{ MAP_ECLAGE,      110,  39 }, // 35=Eclage
+		{ MAP_ALDEBARAN,   140, 131, 3 }, //  6 = Aldebaran
+		{ MAP_LUTIE,       147, 134, 3 }, //  7 = Lutie
+		{ MAP_COMODO,      209, 143, 3 }, //  8 = Comodo
+		{ MAP_YUNO,        157,  51, 3 }, //  9 = Juno
+		{ MAP_AMATSU,      198,  84, 3 }, // 10 = Amatsu
+		{ MAP_GONRYUN,     160, 120, 3 }, // 11 = Kunlun
+		{ MAP_UMBALA,       89, 157, 3 }, // 12 = Umbala
+		{ MAP_NIFLHEIM,     21, 153, 3 }, // 13 = Niflheim
+		{ MAP_LOUYANG,     217,  40, 3 }, // 14 = Luoyang
+		{ MAP_NOVICE,       53, 111, 3 }, // 15 = Training Grounds
+		{ MAP_JAIL,         23,  61, 3 }, // 16 = Prison
+		{ MAP_JAWAII,      249, 127, 3 }, // 17 = Jawaii
+		{ MAP_AYOTHAYA,    151, 117, 3 }, // 18 = Ayothaya
+		{ MAP_EINBROCH,     64, 200, 5 }, // 19 = Einbroch
+		{ MAP_LIGHTHALZEN, 158,  92, 3 }, // 20 = Lighthalzen
+		{ MAP_EINBECH,      70,  95, 5 }, // 21 = Einbech
+		{ MAP_HUGEL,        96, 145, 3 }, // 22 = Hugel
+		{ MAP_RACHEL,      130, 110, 3 }, // 23 = Rachel
+		{ MAP_VEINS,       216, 123, 3 }, // 24 = Veins
+		{ MAP_MOSCOVIA,    223, 184, 3 }, // 25 = Moscovia
+		{ MAP_MIDCAMP,     180, 240, 3 }, // 26 = Midgard Camp
+		{ MAP_MANUK,       282, 138, 3 }, // 27 = Manuk
+		{ MAP_SPLENDIDE,   197, 176, 3 }, // 28 = Splendide
+		{ MAP_BRASILIS,    182, 239, 3 }, // 29 = Brasilis
+		{ MAP_DICASTES,    198, 187, 3 }, // 30 = El Dicastes
+		{ MAP_MORA,         44, 151, 4 }, // 31 = Mora
+		{ MAP_DEWATA,      200, 180, 3 }, // 32 = Dewata
+		{ MAP_MALANGDO,    140, 114, 5 }, // 33 = Malangdo Island
+		{ MAP_MALAYA,      242, 211, 5 }, // 34 = Malaya Port
+		{ MAP_ECLAGE,      110,  39, 3 }, // 35 = Eclage
 	};
  
 	nullpo_retr(-1, sd);
@@ -1867,11 +1872,7 @@ ACMD_FUNC(go)
 	memset(map_name, '\0', sizeof(map_name));
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
  
-	// Get the number
-	town = atoi(message);
- 
-	if (!message || !*message || sscanf(message, "%11s", map_name) < 1 || town < 0 || town >= ARRAYLENGTH(data)) {
-		// No value matched so send the list of locations
+	if (!message || !*message || sscanf(message, "%11s", map_name) < 1) { // No value matched so send the list of locations
 		const char* text;
 
 		// Attempt to find the text help string
@@ -1879,104 +1880,52 @@ ACMD_FUNC(go)
 
 		clif_displaymessage(fd, msg_txt(38)); // Invalid location number, or name.
 
-		if (text) { // Send the text to the client
+		if (text) // Send the text to the client
 			clif_displaymessage(fd, text);
-		}
 
 		return -1;
 	}
 
-	// Get possible name of the city
-	map_name[MAP_NAME_LENGTH - 1] = '\0';
-	for (i = 0; map_name[i]; i++)
-		map_name[i] = TOLOWER(map_name[i]);
-	// Try to identify the map name
-	if (strncmp(map_name, "prontera", 3) == 0) {
-		town = 0;
-	} else if (strncmp(map_name, "morocc", 4) == 0 ||
-	           strncmp(map_name, "morroc", 4) == 0) {
-		town = 1;
-	} else if (strncmp(map_name, "geffen", 3) == 0) {
-		town = 2;
-	} else if (strncmp(map_name, "payon", 3) == 0) {
-		town = 3;
-	} else if (strncmp(map_name, "alberta", 3) == 0) {
-		town = 4;
-	} else if (strncmp(map_name, "izlude", 3) == 0) {
-		town = 5;
-	} else if (strncmp(map_name, "aldebaran", 3) == 0) {
-		town = 6;
-	} else if (strncmp(map_name, "lutie", 3) == 0 ||
-	           strcmp(map_name,  "christmas") == 0 ||
-	           strncmp(map_name, "xmas", 3) == 0 ||
-	           strncmp(map_name, "x-mas", 3) == 0) {
-		town = 7;
-	} else if (strncmp(map_name, "comodo", 3) == 0) {
-		town = 8;
-	} else if (strncmp(map_name, "juno", 3) == 0 ||
-	           strncmp(map_name, "yuno", 3) == 0) {
-		town = 9;
-	} else if (strncmp(map_name, "amatsu", 3) == 0) {
-		town = 10;
-	} else if (strncmp(map_name, "kunlun", 3) == 0 ||
-	           strncmp(map_name, "gonryun", 3) == 0) {
-		town = 11;
-	} else if (strncmp(map_name, "umbala", 3) == 0) {
-		town = 12;
-	} else if (strncmp(map_name, "niflheim", 3) == 0) {
-		town = 13;
-	} else if (strncmp(map_name, "louyang", 3) == 0) {
-		town = 14;
-	} else if (strncmp(map_name, "new_1-1", 3) == 0 ||
-	           strncmp(map_name, "startpoint", 3) == 0 ||
-	           strncmp(map_name, "beginning", 3) == 0) {
-		town = 15;
-	} else if (strncmp(map_name, "sec_pri", 3) == 0 ||
-	           strncmp(map_name, "prison", 3) == 0 ||
-	           strncmp(map_name, "jail", 3) == 0) {
-		town = 16;
-	} else if (strncmp(map_name, "jawaii", 3) == 0) {
-		town = 17;
-	} else if (strncmp(map_name, "ayothaya", 3) == 0) {
-		town = 18;
-	} else if (strncmp(map_name, "einbroch", 5) == 0) {
-		town = 19;
-	} else if (strncmp(map_name, "lighthalzen", 3) == 0) {
-		town = 20;
-	} else if (strncmp(map_name, "einbech", 5) == 0) {
-		town = 21;
-	} else if (strncmp(map_name, "hugel", 3) == 0) {
-		town = 22;
-	} else if (strncmp(map_name, "rachel", 3) == 0) {
-		town = 23;
-	} else if (strncmp(map_name, "veins", 3) == 0) {
-		town = 24;
-	} else if (strncmp(map_name, "moscovia", 3) == 0) {
-		town = 25;
-	} else if (strncmp(map_name, "mid_camp", 3) == 0) {
-		town = 26;
-	} else if (strncmp(map_name, "manuk", 3) == 0) {
-		town = 27;
-	} else if (strncmp(map_name, "splendide", 3) == 0) {
-		town = 28;
-	} else if (strncmp(map_name, "brasilis", 3) == 0) {
-		town = 29;
-	} else if (strncmp(map_name, "dicastes01", 3) == 0) {
-		town = 30;
-	} else if (strcmp(map_name,  "mora") == 0) {
-		town = 31;
-	} else if (strncmp(map_name, "dewata", 3) == 0) {
-		town = 32;
-	} else if (strncmp(map_name, "malangdo", 5) == 0) {
-		town = 33;
-	} else if (strncmp(map_name, "malaya", 5) == 0) {
-		town = 34;
-	} else if (strncmp(map_name, "eclage", 3) == 0) {
-		town = 35;
+	// Numeric entry
+	if (ISDIGIT(*message) || (message[0] == '-' && ISDIGIT(message[1])))
+		town = atoi(message);
+
+	if (town < 0 || town >= ARRAYLENGTH(data)) {
+		map_name[MAP_NAME_LENGTH - 1] = '\0';
+
+		// Match maps on the list
+		for (i = 0; i < ARRAYLENGTH(data); i++) {
+			if (strncmpi(map_name, data[i].map, data[i].min_match) == 0) {
+				town = i;
+				break;
+			}
+		}
+	}
+
+	if (town < 0 || town >= ARRAYLENGTH(data)) { // Alternate spellings
+		if (strncmpi(map_name, "morroc", 4) == 0) // Correct town name for 'morocc'
+			town = 1;
+		else if (strncmpi(map_name, "lutie", 3) == 0) // Correct town name for 'xmas'
+			town = 7;
+		else if (strncmpi(map_name, "juno", 3) == 0) // Correct town name for 'yuno'
+			town = 9;
+		else if (strncmpi(map_name, "kunlun", 3) == 0) // Original town name for 'gonryun'
+			town = 11;
+		else if (strncmpi(map_name, "luoyang", 3) == 0) // Original town name for 'louyang'
+			town = 14;
+		else if (strncmpi(map_name, "startpoint", 3) == 0 || // Easy to remember alternatives to 'new_1-1'
+			strncmpi(map_name, "beginning", 3) == 0)
+			town = 15;
+		else if (strncmpi(map_name, "prison", 3) == 0 || // Easy to remember alternatives to 'sec_pri'
+			strncmpi(map_name, "jail", 3) == 0)
+			town = 16;
+		else if (strncmpi(map_name, "rael", 3) == 0) // Original town name for 'rachel'
+			town = 23;
 	}
 
 	if (town >= 0 && town < ARRAYLENGTH(data)) {
-		m = map_mapname2mapid(data[town].map);
+		int16 m = map_mapname2mapid(data[town].map);
+
 		if (m >= 0 && map[m].flag.nowarpto && !pc_has_permission(sd, PC_PERM_WARP_ANYWHERE)) {
 			clif_displaymessage(fd, msg_txt(247));
 			return -1;
@@ -1991,7 +1940,7 @@ ACMD_FUNC(go)
 			clif_displaymessage(fd, msg_txt(1)); // Map not found.
 			return -1;
 		}
-	} else { // If you arrive here, you have an error in town variable when reading of names
+	} else {
 		clif_displaymessage(fd, msg_txt(38)); // Invalid location number or name.
 		return -1;
 	}
@@ -3891,7 +3840,7 @@ ACMD_FUNC(mapinfo)
 				if (map[m_id].skill_damage[j].skill_id) {
 					sprintf(atcmd_output,"     %d. %s : %d%%, %d%%, %d%%, %d%% | %d"
 						,j + 1
-						,skill_db[skill_get_index(map[m_id].skill_damage[j].skill_id)].name
+						,skill_get_name(map[m_id].skill_damage[j].skill_id)
 						,map[m_id].skill_damage[j].pc
 						,map[m_id].skill_damage[j].mob
 						,map[m_id].skill_damage[j].boss
@@ -4119,7 +4068,12 @@ ACMD_FUNC(mount_peco)
 		return -1;
 	}
 
-	if( (sd->class_&MAPID_THIRDMASK) == MAPID_RUNE_KNIGHT && pc_checkskill(sd,RK_DRAGONTRAINING) > 0 ) {
+	if( (sd->class_&MAPID_THIRDMASK) == MAPID_RUNE_KNIGHT ) {
+		if( !pc_checkskill(sd, RK_DRAGONTRAINING) ) {
+			sprintf(atcmd_output, msg_txt(213), skill_get_desc(RK_DRAGONTRAINING)); // You need %s to mount!
+			clif_displaymessage(fd, atcmd_output);
+			return -1;
+		}
 		if( !(sd->sc.option&OPTION_DRAGON) ) {
 			unsigned int option = OPTION_DRAGON1;
 
@@ -4132,49 +4086,61 @@ ACMD_FUNC(mount_peco)
 				           color == 5 ? OPTION_DRAGON5 :
 				                        OPTION_DRAGON1);
 			}
-			clif_displaymessage(sd->fd,msg_txt(1119)); // You have mounted your Dragon.
+			clif_displaymessage(fd, msg_txt(1119)); // You have mounted your Dragon.
 			pc_setoption(sd, sd->sc.option|option);
 		} else {
-			clif_displaymessage(sd->fd,msg_txt(1120)); // You have released your Dragon.
+			clif_displaymessage(fd, msg_txt(1120)); // You have released your Dragon.
 			pc_setoption(sd, sd->sc.option&~OPTION_DRAGON);
 		}
 		return 0;
 	}
-	if( (sd->class_&MAPID_THIRDMASK) == MAPID_RANGER && pc_checkskill(sd,RA_WUGRIDER) > 0 &&
-		(!pc_isfalcon(sd) || battle_config.warg_can_falcon) )
-	{
+	if( (sd->class_&MAPID_THIRDMASK) == MAPID_RANGER ) {
+		if( !pc_checkskill(sd, RA_WUGRIDER) ) {
+			sprintf(atcmd_output, msg_txt(213), skill_get_desc(RA_WUGRIDER)); // You need %s to mount!
+			clif_displaymessage(fd, atcmd_output);
+			return -1;
+		}
+		if( (pc_isfalcon(sd) && !battle_config.warg_can_falcon) ) {
+			clif_displaymessage(fd, msg_txt(216)); // Please remove your Falcon.
+			return -1;
+		}
 		if( !pc_isridingwug(sd) ) {
-			clif_displaymessage(sd->fd,msg_txt(1121)); // You have mounted your Warg.
+			clif_displaymessage(fd, msg_txt(1121)); // You have mounted your Warg.
 			pc_setoption(sd, sd->sc.option|OPTION_WUGRIDER);
 		} else {
-			clif_displaymessage(sd->fd,msg_txt(1122)); // You have released your Warg.
+			clif_displaymessage(fd, msg_txt(1122)); // You have released your Warg.
 			pc_setoption(sd, sd->sc.option&~OPTION_WUGRIDER);
 		}
 		return 0;
 	}
 	if( (sd->class_&MAPID_THIRDMASK) == MAPID_MECHANIC ) {
 		if( !pc_ismadogear(sd) ) {
-			clif_displaymessage(sd->fd,msg_txt(1123)); // You have mounted your Mado Gear.
+			clif_displaymessage(fd, msg_txt(1123)); // You have mounted your Mado Gear.
 			pc_setoption(sd, sd->sc.option|OPTION_MADOGEAR);
 		} else {
-			clif_displaymessage(sd->fd,msg_txt(1124)); // You have released your Mado Gear.
+			clif_displaymessage(fd, msg_txt(1124)); // You have released your Mado Gear.
 			pc_setoption(sd, sd->sc.option&~OPTION_MADOGEAR);
 		}
 		return 0;
 	}
-	if( !pc_isriding(sd) ) { // If actually no peco
-		if( !pc_checkskill(sd, KN_RIDING) ) {
-			clif_displaymessage(fd, msg_txt(213)); // You can not mount a Peco Peco with your current job.
-			return -1;
+	if( sd->class_&MAPID_SWORDMAN && sd->class_&JOBL_2 ) {
+		if( !pc_isriding(sd) ) { // If actually no peco
+			if( !pc_checkskill(sd, KN_RIDING) ) {
+				sprintf(atcmd_output, msg_txt(213), skill_get_desc(KN_RIDING)); // You need %s to mount!
+				clif_displaymessage(fd, atcmd_output);
+				return -1;
+			}
+			pc_setoption(sd, sd->sc.option|OPTION_RIDING);
+			clif_displaymessage(fd, msg_txt(102)); // You have mounted a Peco Peco.
+		} else { // Dismount
+			pc_setoption(sd, sd->sc.option&~OPTION_RIDING);
+			clif_displaymessage(fd, msg_txt(214)); // You have released your Peco Peco.
 		}
-		pc_setoption(sd, sd->sc.option|OPTION_RIDING);
-		clif_displaymessage(fd, msg_txt(102)); // You have mounted a Peco Peco.
-	} else {//Dismount
-		pc_setoption(sd, sd->sc.option&~OPTION_RIDING);
-		clif_displaymessage(fd, msg_txt(214)); // You have released your Peco Peco.
+		return 0;
 	}
 
-	return 0;
+	clif_displaymessage(fd, msg_txt(215)); // Your class can't mount!
+	return -1;
 }
 
 /*==========================================
@@ -4189,8 +4155,7 @@ ACMD_FUNC(guildspy)
 	memset(guild_name, '\0', sizeof(guild_name));
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
-	if (!enable_spy)
-	{
+	if (!enable_spy) {
 		clif_displaymessage(fd, msg_txt(1125)); // The mapserver has spy command support disabled.
 		return -1;
 	}
@@ -4230,8 +4195,7 @@ ACMD_FUNC(partyspy)
 	memset(party_name, '\0', sizeof(party_name));
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
-	if (!enable_spy)
-	{
+	if (!enable_spy) {
 		clif_displaymessage(fd, msg_txt(1125)); // The mapserver has spy command support disabled.
 		return -1;
 	}
@@ -5414,26 +5378,25 @@ ACMD_FUNC(skillid)
 
 	iter = db_iterator(skilldb_name2id);
 
-	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) ) {
-		int16 idx = skill_get_index(db_data2i(data));
+	for (data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key)) {
+		uint16 idx = skill_get_index(db_data2i(data));
 
 		if (strnicmp(key.str, message, skillen) == 0 || strnicmp(skill_db[idx].desc, message, skillen) == 0) {
 			sprintf(atcmd_output, msg_txt(1164), db_data2i(data), skill_db[idx].desc, key.str); // skill %d: %s (%s)
 			clif_displaymessage(fd, atcmd_output);
-		} else if ( found < MAX_SKILLID_PARTIAL_RESULTS && (stristr(key.str,message) || stristr(skill_db[idx].desc,message)) )
+		} else if (found < MAX_SKILLID_PARTIAL_RESULTS && (stristr(key.str,message) || stristr(skill_db[idx].desc,message)))
 			snprintf(partials[found++], MAX_SKILLID_PARTIAL_RESULTS_LEN, msg_txt(1164), db_data2i(data), skill_db[idx].desc, key.str);
 	}
 
 	dbi_destroy(iter);
 
-	if( found ) {
+	if (found) {
 		sprintf(atcmd_output, msg_txt(1398), found); // -- Displaying first %d partial matches
 		clif_displaymessage(fd, atcmd_output);
 	}
 
-	for(i = 0; i < found; i++) { /* partials */
+	for (i = 0; i < found; i++) /* Partials */
 		clif_displaymessage(fd, partials[i]);
-	}
 
 	return 0;
 }
@@ -6035,7 +5998,7 @@ ACMD_FUNC(autoloottype)
 
 /**
  * No longer available, keeping here just in case it's back someday. [Ind]
- **/
+ */
 /*==========================================
  * It is made to rain.
  *------------------------------------------*/
@@ -7779,6 +7742,8 @@ ACMD_FUNC(fakename)
 		if( sd->fakename[0] ) {
 			sd->fakename[0] = '\0';
 			clif_charnameack(0, &sd->bl);
+			if( sd->disguise )
+				clif_charnameack(sd->fd, &sd->bl);
 			clif_displaymessage(sd->fd, msg_txt(1307)); // Returned to real name.
 			return 0;
 		}
@@ -7794,6 +7759,8 @@ ACMD_FUNC(fakename)
 
 	safestrncpy(sd->fakename, message, sizeof(sd->fakename));
 	clif_charnameack(0, &sd->bl);
+	if( sd->disguise ) // Another packet should be sent so the client updates the name for sd
+		clif_charnameack(sd->fd, &sd->bl);
 	clif_displaymessage(sd->fd, msg_txt(1310)); // Fake name enabled.
 
 	return 0;
@@ -8171,28 +8138,28 @@ ACMD_FUNC(clone)
 		return 0;
 	}
 
-	if((pl_sd = map_nick2sd((char *)message)) == NULL && (pl_sd = map_charid2sd(atoi(message))) == NULL) {
-		clif_displaymessage(fd, msg_txt(3));	// Character not found.
+	if ((pl_sd = map_nick2sd((char *)message)) == NULL && (pl_sd = map_charid2sd(atoi(message))) == NULL) {
+		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return 0;
 	}
 
-	if(pc_get_group_level(pl_sd) > pc_get_group_level(sd)) {
-		clif_displaymessage(fd, msg_txt(126));	// Cannot clone a player of higher GM level than yourself.
+	if (pc_get_group_level(pl_sd) > pc_get_group_level(sd)) {
+		clif_displaymessage(fd, msg_txt(126)); // Cannot clone a player of higher GM level than yourself.
 		return 0;
 	}
 
-	if (strcmpi(command+1, "clone") == 0)
+	if (strcmpi(command + 1, "clone") == 0)
 		flag = 1;
-	else if (strcmpi(command+1, "slaveclone") == 0) {
+	else if (strcmpi(command + 1, "slaveclone") == 0) {
 		flag = 2;
 		if (pc_isdead(sd)) {
-			clif_displaymessage(fd, msg_txt(129+flag*2));
+			clif_displaymessage(fd, msg_txt(129 + flag * 2));
 			return 0;
 		}
 		master = sd->bl.id;
-		if (battle_config.atc_slave_clone_limit
-			&& mob_countslave(&sd->bl) >= battle_config.atc_slave_clone_limit) {
-			clif_displaymessage(fd, msg_txt(127));	// You've reached your slave clones limit.
+		if (battle_config.atc_slave_clone_limit &&
+			mob_countslave(&sd->bl) >= battle_config.atc_slave_clone_limit) {
+			clif_displaymessage(fd, msg_txt(127)); // You've reached your slave clones limit.
 			return 0;
 		}
 	}
@@ -8207,11 +8174,11 @@ ACMD_FUNC(clone)
 		y = sd->bl.y;
 	}
 
-	if((x = mob_clone_spawn(pl_sd, sd->bl.m, x, y, "", master, 0, flag?1:0, 0)) > 0) {
-		clif_displaymessage(fd, msg_txt(128+flag*2));	// Evil Clone spawned. Clone spawned. Slave clone spawned.
+	if ((x = mob_clone_spawn(pl_sd, sd->bl.m, x, y, "", master, 0, flag ? 1 : 0, 0)) > 0) {
+		clif_displaymessage(fd, msg_txt(128 + flag * 2)); // Evil Clone spawned. Clone spawned. Slave clone spawned.
 		return 0;
 	}
-	clif_displaymessage(fd, msg_txt(129+flag*2));	// Unable to spawn evil clone. Unable to spawn clone. Unable to spawn slave clone.
+	clif_displaymessage(fd, msg_txt(129 + flag * 2)); // Unable to spawn evil clone. Unable to spawn clone. Unable to spawn slave clone.
 	return 0;
 }
 
@@ -8221,7 +8188,7 @@ ACMD_FUNC(clone)
  *-------------------------------------*/
 ACMD_FUNC(noask)
 {
-	if(sd->state.noask) {
+	if (sd->state.noask) {
 		clif_displaymessage(fd, msg_txt(391)); // Autorejecting is deactivated.
 		sd->state.noask = 0;
 	} else {
@@ -8428,37 +8395,37 @@ ACMD_FUNC(itemlist)
 			if( (it->equip&EQP_HELM) == EQP_HELM )
 				strcat(equipstr, msg_txt(1347)); // Top/Mid/Lower Head,
 			if( (it->equip&EQP_COSTUME_HELM) == EQP_COSTUME_HEAD_LOW )
-				strcat(equipstr, "Lower Costume Head, ");
+				strcat(equipstr, msg_txt(517)); // Lower Costume Head,
 			if( (it->equip&EQP_COSTUME_HELM) == EQP_COSTUME_HEAD_TOP )
-				strcat(equipstr, "Top Costume Head, ");
+				strcat(equipstr, msg_txt(518)); // Top Costume Head,
 			if( (it->equip&EQP_COSTUME_HELM) == (EQP_COSTUME_HEAD_LOW|EQP_COSTUME_HEAD_TOP) )
-				strcat(equipstr, "Top/Lower Costume Head, ");
+				strcat(equipstr, msg_txt(519)); // Top/Lower Costume Head,
 			if( (it->equip&EQP_COSTUME_HELM) == EQP_COSTUME_HEAD_MID )
-				strcat(equipstr, "Mid Costume Head, ");
+				strcat(equipstr, msg_txt(520)); // Mid Costume Head,
 			if( (it->equip&EQP_COSTUME_HELM) == (EQP_COSTUME_HEAD_LOW|EQP_COSTUME_HEAD_MID) )
-				strcat(equipstr, "Mid/Lower Costume Head, ");
+				strcat(equipstr, msg_txt(521)); // Mid/Lower Costume Head,
 			if( (it->equip&EQP_COSTUME_HELM) == EQP_COSTUME_HELM )
-				strcat(equipstr, "Top/Mid/Lower Costume Head, ");
+				strcat(equipstr, msg_txt(522)); // Top/Mid/Lower Costume Head,
 			if( it->equip&EQP_COSTUME_GARMENT )
-				strcat(equipstr, "Costume Robe, ");
+				strcat(equipstr, msg_txt(523)); // Costume Robe,
 			//if( it->equip&EQP_COSTUME_FLOOR )
-				//strcat(equipstr, "Costume Floor, ");
+				//strcat(equipstr, msg_txt(524)); // Costume Floor,
 			if( it->equip&EQP_AMMO )
-				strcat(equipstr, "Ammo, ");
+				strcat(equipstr, msg_txt(525)); // Ammo,
 			if( it->equip&EQP_SHADOW_ARMOR )
-				strcat(equipstr, "Shadow Body, ");
+				strcat(equipstr, msg_txt(526)); // Shadow Body,
 			if( (it->equip&EQP_SHADOW_ARMS) == EQP_SHADOW_WEAPON )
-				strcat(equipstr, "Shadow Right Hand, ");
+				strcat(equipstr, msg_txt(527)); // Shadow Right Hand,
 			if( (it->equip&EQP_SHADOW_ARMS) == EQP_SHADOW_SHIELD )
-				strcat(equipstr, "Shadow Left Hand, ");
+				strcat(equipstr, msg_txt(528)); // Shadow Left Hand,
 			if( (it->equip&EQP_SHADOW_ARMS) == EQP_SHADOW_ARMS )
-				strcat(equipstr, "Shadow Both Hands, ");
+				strcat(equipstr, msg_txt(529)); // Shadow Both Hands,
 			if( it->equip&EQP_SHADOW_SHOES )
-				strcat(equipstr, "Shadow Shoes, ");
+				strcat(equipstr, msg_txt(530)); // Shadow Shoes,
 			if( it->equip&EQP_SHADOW_ACC_R )
-				strcat(equipstr, "Shadow Right Accessory, ");
+				strcat(equipstr, msg_txt(531)); // Shadow Right Accessory,
 			if( it->equip&EQP_SHADOW_ACC_L )
-				strcat(equipstr, "Shadow Left Accessory, ");
+				strcat(equipstr, msg_txt(532)); // Shadow Left Accessory,
 			// Remove final ', '
 			equipstr[strlen(equipstr) - 2] = '\0';
 			StringBuf_AppendStr(&buf, equipstr);
@@ -8605,8 +8572,8 @@ ACMD_FUNC(delitem)
 	total = amount;
 
 	// Delete items
-	while( amount && ( idx = pc_search_inventory(sd, nameid) ) != -1 ) {
-		int delamount = ( amount < sd->status.inventory[idx].amount ) ? amount : sd->status.inventory[idx].amount;
+	while( amount && (idx = pc_search_inventory(sd, nameid)) != INDEX_NOT_FOUND ) {
+		int delamount = (amount < sd->status.inventory[idx].amount) ? amount : sd->status.inventory[idx].amount;
 
 		if( sd->inventory_data[idx]->type == IT_PETEGG && sd->status.inventory[idx].card[0] == CARD0_PET ) // Delete pet
 			intif_delete_petdata(MakeDWord(sd->status.inventory[idx].card[1], sd->status.inventory[idx].card[2]));
@@ -9380,7 +9347,7 @@ ACMD_FUNC(fullstrip) {
 
 /**
  * Fills the reference of available commands in atcommand DBMap
- **/
+ */
 #define ACMD_DEF(x) { #x, atcommand_ ## x, NULL, NULL, 0 }
 #define ACMD_DEF2(x2, x) { x2, atcommand_ ## x, NULL, NULL, 0 }
 //Define with restriction
@@ -9390,7 +9357,7 @@ void atcommand_basecommands(void) {
 	/**
 	 * Command reference list, place the base of your commands here
 	 * @TODO: All restricted command are crashing case, please look into it
-	 **/
+	 */
 	AtCommandInfo atcommand_base[] = {
 #include "../custom/atcommand_def.inc"
 		ACMD_DEF2R("warp", mapmove, 1),

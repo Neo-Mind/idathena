@@ -286,7 +286,7 @@ int mapif_parse_itembound_retrieve(int fd)
 		SqlStmt_BindColumn(stmt, 9 + j, SQLDT_SHORT, &item.card[j], 0, NULL, NULL);
 
 	while( SQL_SUCCESS == SqlStmt_NextRow(stmt) ) {
-		if( item.bound == 2 ) {
+		if( item.bound == BOUND_GUILD ) {
 			memcpy(&items[i],&item,sizeof(struct item));
 			i++;
 		}
@@ -310,8 +310,8 @@ int mapif_parse_itembound_retrieve(int fd)
 			found = true;
 		StringBuf_Printf(&buf, " `id`=%d",items[j].id);
 
+		//Only the items that are also stored in `char` `equip`
 		if( items[j].bound && items[j].equip ) {
-			//Only the items that are also stored in `char` `equip`
 			if( (items[j].equip&EQP_HAND_R) ||
 				(items[j].equip&EQP_HAND_L) ||
 				(items[j].equip&EQP_HEAD_TOP) ||

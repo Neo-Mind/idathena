@@ -374,7 +374,8 @@ int guild_create(struct map_session_data *sd, const char *name)
 		clif_guild_created(sd,1);
 		return 0;
 	}
-	if( battle_config.guild_emperium_check && pc_search_inventory(sd,ITEMID_EMPERIUM) == -1 ) { // Item required
+
+	if( battle_config.guild_emperium_check && pc_search_inventory(sd,ITEMID_EMPERIUM) == INDEX_NOT_FOUND ) { // Item required
 		clif_guild_created(sd,3);
 		return 0;
 	}
@@ -522,7 +523,8 @@ int guild_recv_info(struct guild *sg)
 	for( i = bm = m = 0; i < g->max_member; i++ ) {
 		if( g->member[i].account_id > 0 ) {
 			sd = g->member[i].sd = guild_sd_check(g->guild_id,g->member[i].account_id,g->member[i].char_id);
-			if (sd) clif_charnameupdate(sd); // [LuzZza]
+			if( sd )
+				clif_charnameupdate(sd); // [LuzZza]
 			m++;
 		} else
 			g->member[i].sd = NULL;
@@ -535,9 +537,8 @@ int guild_recv_info(struct guild *sg)
 		if( sd == NULL )
 			continue;
 		sd->guild = g;
-		if( Channel_Config.ally_autojoin ) {
+		if( Channel_Config.ally_autojoin )
 			channel_gjoin(sd,3); // Make all member join guild_channel + allies channel
-		}
 		if( before.guild_lv != g->guild_lv || bm != m ||
 				before.max_member != g->max_member ) {
 			clif_guild_basicinfo(sd); // Submit basic information
@@ -598,11 +599,9 @@ int guild_invite(struct map_session_data *sd, struct map_session_data *tsd) {
 		return 0;
 	}
 
-	if( tsd->status.guild_id > 0 ||
-		tsd->guild_invite > 0 ||
-		((agit_flag || agit2_flag) && map[tsd->bl.m].flag.gvg_castle) )
-	{ //Can't invite people inside castles. [Skotlex]
-		clif_guild_inviteack(sd,0);
+	if( tsd->status.guild_id > 0 || tsd->guild_invite > 0 ||
+		((agit_flag || agit2_flag) && map[tsd->bl.m].flag.gvg_castle && !battle_config.guild_castle_invite) ) {
+		clif_guild_inviteack(sd,0); //Can't invite people inside castles. [Skotlex]
 		return 0;
 	}
 
@@ -766,9 +765,8 @@ int guild_leave(struct map_session_data* sd, int guild_id, int account_id, int c
 	if( g == NULL )
 		return 0;
 
-	if( sd->status.account_id != account_id ||
-		sd->status.char_id != char_id || sd->status.guild_id != guild_id ||
-		((agit_flag || agit2_flag) && map[sd->bl.m].flag.gvg_castle) )
+	if( sd->status.account_id != account_id || sd->status.char_id != char_id || sd->status.guild_id != guild_id ||
+		((agit_flag || agit2_flag) && map[sd->bl.m].flag.gvg_castle && !battle_config.guild_castle_expulsion) )
 		return 0;
 
 	intif_guild_leave(sd->status.guild_id,sd->status.account_id,sd->status.char_id,0,mes);
@@ -780,9 +778,9 @@ int guild_leave(struct map_session_data* sd, int guild_id, int account_id, int c
  *----------------------------------------*/
 int guild_expulsion(struct map_session_data* sd, int guild_id, int account_id, int char_id, const char* mes)
 {
-	struct map_session_data *tsd;
+	struct map_session_data *tsd = map_id2sd(account_id);
 	struct guild *g;
-	int i,ps;
+	int i, ps;
 
 	nullpo_ret(sd);
 
@@ -798,9 +796,8 @@ int guild_expulsion(struct map_session_data* sd, int guild_id, int account_id, i
 		return 0; //Expulsion permission
 
 	//Can't leave inside guild castles.
-	if( (tsd = map_id2sd(account_id)) &&
-		tsd->status.char_id == char_id &&
-		((agit_flag || agit2_flag) && map[tsd->bl.m].flag.gvg_castle) )
+	if( tsd && tsd->status.char_id == char_id && ((agit_flag || agit2_flag) &&
+		map[tsd->bl.m].flag.gvg_castle && !battle_config.guild_castle_expulsion) )
 		return 0;
 
 	//Find the member and perform expulsion
@@ -1131,10 +1128,10 @@ int guild_notice_changed(int guild_id,const char *mes1,const char *mes2)
 int guild_change_emblem(struct map_session_data *sd,int len,const char *data)
 {
 	struct guild *g;
+
 	nullpo_ret(sd);
 
-	if (battle_config.require_glory_guild &&
-		!((g = sd->guild) && guild_checkskill(g, GD_GLORYGUILD)>0)) {
+	if(battle_config.require_glory_guild && !((g = sd->guild) && guild_checkskill(g,GD_GLORYGUILD) > 0)) {
 		clif_skill_fail(sd,GD_GLORYGUILD,USESKILL_FAIL_LEVEL,0);
 		return 0;
 	}
@@ -1149,49 +1146,50 @@ int guild_emblem_changed(int len,int guild_id,int emblem_id,const char *data)
 {
 	int i;
 	struct map_session_data *sd;
-	struct guild *g=guild_search(guild_id);
+	struct guild *g = guild_search(guild_id);
 
-	if(g==NULL)
+	if(g == NULL)
 		return 0;
 
 	memcpy(g->emblem_data,data,len);
-	g->emblem_len=len;
-	g->emblem_id=emblem_id;
+	g->emblem_len = len;
+	g->emblem_id = emblem_id;
 
-	for(i=0;i<g->max_member;i++) {
-		if((sd=g->member[i].sd)!=NULL) {
-			sd->guild_emblem_id=emblem_id;
+	for(i = 0; i < g->max_member; i++) {
+		if((sd = g->member[i].sd) != NULL) {
+			sd->guild_emblem_id = emblem_id;
 			clif_guild_belonginfo(sd,g);
 			clif_guild_emblem(sd,g);
 			clif_guild_emblem_area(&sd->bl);
 		}
 	}
-	{ // update guardians (mobs)
+	{ // Update guardians (mobs)
 		DBIterator* iter = db_iterator(castle_db);
 		struct guild_castle* gc;
-		for( gc = (struct guild_castle*)dbi_first(iter) ; dbi_exists(iter); gc = (struct guild_castle*)dbi_next(iter) ) {
+
+		for( gc = (struct guild_castle*)dbi_first(iter); dbi_exists(iter); gc = (struct guild_castle*)dbi_next(iter) ) {
 			if( gc->guild_id != guild_id )
 				continue;
-			// update permanent guardians
+			// Update permanent guardians
 			for( i = 0; i < ARRAYLENGTH(gc->guardian); ++i ) {
 				TBL_MOB* md = (gc->guardian[i].id ? map_id2md(gc->guardian[i].id) : NULL);
+
 				if( md == NULL || md->guardian_data == NULL )
 					continue;
-				md->guardian_data->emblem_id = emblem_id;
 				clif_guild_emblem_area(&md->bl);
 			}
-			// update temporary guardians
+			// Update temporary guardians
 			for( i = 0; i < gc->temp_guardians_max; ++i ) {
 				TBL_MOB* md = (gc->temp_guardians[i] ? map_id2md(gc->temp_guardians[i]) : NULL);
+
 				if( md == NULL || md->guardian_data == NULL )
 					continue;
-				md->guardian_data->emblem_id = emblem_id;
 				clif_guild_emblem_area(&md->bl);
 			}
 		}
 		dbi_destroy(iter);
 	}
-	{ // update npcs (flags or other npcs that used flagemblem to attach to this guild)
+	{ // Update npcs (flags or other npcs that used flagemblem to attach to this guild)
 		for( i = 0; i < guild_flags_count; i++ ) {
 			if( guild_flags[i] && guild_flags[i]->u.scr.guild_id == guild_id ) {
 				clif_guild_emblem_area(&guild_flags[i]->bl);
@@ -1880,7 +1878,7 @@ int guild_break(struct map_session_data *sd,char *name)
 	//Guild bound item check - Removes the bound flag
 	j = pc_bound_chk(sd,2,idxlist);
 	for(i = 0; i < j; i++)
-		sd->status.inventory[idxlist[i]].bound = 0;
+		sd->status.inventory[idxlist[i]].bound = BOUND_NONE;
 #endif
 
 	intif_guild_break(g->guild_id);

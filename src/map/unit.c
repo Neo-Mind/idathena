@@ -247,6 +247,7 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 	bl = map_id2bl(id);
 	if(bl == NULL)
 		return 0;
+
 	sd = BL_CAST(BL_PC, bl);
 	md = BL_CAST(BL_MOB, bl);
 	mrd = BL_CAST(BL_MER, bl);
@@ -255,7 +256,8 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 	hd = BL_CAST(BL_HOM, bl);
 	ud = unit_bl2ud(bl);
 
-	if(ud == NULL) return 0;
+	if(ud == NULL)
+		return 0;
 
 	if(ud->walktimer != tid) {
 		ShowError("unit_walk_timer mismatch %d != %d\n",ud->walktimer,tid);
@@ -264,7 +266,8 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 
 	ud->walktimer = INVALID_TIMER;
 
-	if(bl->prev == NULL) return 0; //Stop moved because it is missing from the block_list
+	if(bl->prev == NULL)
+		return 0; //Stop moved because it is missing from the block_list
 
 	if(ud->walkpath.path_pos >= ud->walkpath.path_len)
 		return 0;
@@ -309,12 +312,14 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 				return 0;
 		} else
 			sd->areanpc_id = 0;
-
-		if(sd->md) unit_check_start_teleport_timer(&sd->md->bl);
-		if(sd->ed) unit_check_start_teleport_timer(&sd->ed->bl);
-		if(sd->hd) unit_check_start_teleport_timer(&sd->hd->bl);
-		if(sd->pd) unit_check_start_teleport_timer(&sd->pd->bl);
-
+		if(sd->md)
+			unit_check_start_teleport_timer(&sd->md->bl);
+		if(sd->ed)
+			unit_check_start_teleport_timer(&sd->ed->bl);
+		if(sd->hd)
+			unit_check_start_teleport_timer(&sd->hd->bl);
+		if(sd->pd)
+			unit_check_start_teleport_timer(&sd->pd->bl);
 		pc_cell_basilica(sd);
 	} else if(md) {
 		if(map_getcell(bl->m,x,y,CELL_CHKNPC)) {
@@ -335,10 +340,14 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 			//Resend walk packet for proper Self Destruction display.
 			clif_move(ud);
 		}
-	} else if(hd) unit_check_start_teleport_timer(&hd->bl);
-	else if(ed) unit_check_start_teleport_timer(&ed->bl);
-	else if(pd) unit_check_start_teleport_timer(&pd->bl);
-	else if(mrd) unit_check_start_teleport_timer(&mrd->bl);
+	} else if(hd)
+		unit_check_start_teleport_timer(&hd->bl);
+	else if(ed)
+		unit_check_start_teleport_timer(&ed->bl);
+	else if(pd)
+		unit_check_start_teleport_timer(&pd->bl);
+	else if(mrd)
+		unit_check_start_teleport_timer(&mrd->bl);
 
 	if(tid == INVALID_TIMER) //A directly invoked timer is from battle_stop_walking, therefore the rest is irrelevant.
 		return 0;
@@ -355,15 +364,13 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 		i = status_get_speed(bl);
 
 	if(i > 0) {
-		ud->walktimer = add_timer(tick+i,unit_walktoxy_timer,id,i);
+		ud->walktimer = add_timer(tick + i,unit_walktoxy_timer,id,i);
 		if(md && DIFF_TICK(tick,md->dmgtick) < 3000) //Not required not damaged recently
 			clif_move(ud);
-	} else if(ud->state.running) {
-		//Keep trying to run.
-		if ( !(unit_run(bl) || unit_wugdash(bl,sd)) )
+	} else if(ud->state.running) { //Keep trying to run.
+		if ( !(unit_run(bl,NULL,SC_RUN) || unit_run(bl,sd,SC_WUGDASH)) )
 			ud->state.running = 0;
-	} else if (ud->target_to) {
-		//Update target trajectory.
+	} else if (ud->target_to) { //Update target trajectory.
 		struct block_list *tbl = map_id2bl(ud->target_to);
 
 		if(!tbl || !status_check_visibility(bl, tbl)) { //Cancel chase.
@@ -455,7 +462,8 @@ int unit_walktoxy( struct block_list *bl, short x, short y, int flag)
 	
 	ud = unit_bl2ud(bl);
 	
-	if( ud == NULL) return 0;
+	if( ud == NULL)
+		return 0;
 
 	path_search(&wpd, bl->m, bl->x, bl->y, x, y, flag&1, CELL_CHKNOPASS); // Count walk path cells
 #ifdef OFFICIAL_WALKPATH
@@ -483,8 +491,12 @@ int unit_walktoxy( struct block_list *bl, short x, short y, int flag)
 	unit_set_target(ud, 0);
 	
 	sc = status_get_sc(bl);
-	if( sc && (sc->data[SC_CONFUSION] || sc->data[SC__CHAOS]) ) //Randomize the target position
-		map_random_dir(bl, &ud->to_x, &ud->to_y);
+	if( sc ) {
+		if( sc->data[SC_CONFUSION] || sc->data[SC__CHAOS] ) //Randomize the target position
+			map_random_dir(bl, &ud->to_x, &ud->to_y);
+		if( sc->data[SC_COMBO] )
+			status_change_end(bl, SC_COMBO, INVALID_TIMER);
+	}
 
 	if( ud->walktimer != INVALID_TIMER ) {
 		// When you come to the center of the grid because the change of destination while you're walking right now
@@ -607,149 +619,96 @@ int unit_walktobl(struct block_list *bl, struct block_list *tbl, int range, int 
 }
 
 /**
- * Set a unit to run, checking for obstacles
- * @param bl: Object that is running
- * @return 1: Success 0: Fail
+ * Called by unit_run when an object was hit
+ * @param sd Required only when using SC_WUGDASH
  */
-int unit_run(struct block_list *bl)
-{
-	struct status_change *sc = status_get_sc(bl);
+void unit_run_hit(struct block_list *bl, struct status_change *sc, struct map_session_data *sd, enum sc_type type) {
+	int lv = sc->data[type]->val1;
+
+	//If you can't run forward, you must be next to a wall, so bounce back. [Skotlex]
+	if (type == SC_RUN)
+		clif_status_change(bl, SI_BUMP, 1, 0, 0, 0, 0);
+
+	//Set running to 0 beforehand so status_change_end knows not to enable spurt [Kevin]
+	unit_bl2ud(bl)->state.running = 0;
+	status_change_end(bl, type, INVALID_TIMER);
+
+	if (type == SC_RUN) {
+		skill_blown(bl, bl, skill_get_blewcount(TK_RUN, lv), unit_getdir(bl), 0);
+		clif_fixpos(bl); //Why is a clif_slide (skill_blown) AND a fixpos needed? Ask Aegis.
+		clif_status_change(bl, SI_BUMP, 0, 0, 0, 0, 0);
+	} else if (sd) {
+		clif_fixpos(bl);
+		skill_castend_damage_id(bl, &sd->bl, RA_WUGDASH, lv, gettick(), SD_LEVEL);
+	}
+	return;
+}
+
+/**
+ * Makes character run, used for SC_RUN and SC_WUGDASH
+ * @param sd Required only when using SC_WUGDASH
+ * @retval true Finished running
+ * @retval false Hit an object/Couldn't run
+ */
+bool unit_run(struct block_list *bl, struct map_session_data *sd, enum sc_type type) {
+	struct status_change *sc;
 	short to_x, to_y, dir_x, dir_y;
-	int lv;
 	int i;
 
-	if (!(sc && sc->data[SC_RUN]))
-		return 0;
-	
-	if (!unit_can_move(bl)) {
-		status_change_end(bl, SC_RUN, INVALID_TIMER);
-		return 0;
+	nullpo_retr(false, bl);
+
+	sc = status_get_sc(bl);
+
+	if( !(sc && sc->data[type]) )
+		return false;
+
+	if( !unit_can_move(bl) ) {
+		status_change_end(bl, type, INVALID_TIMER);
+		return false;
 	}
-	
-	lv = sc->data[SC_RUN]->val1;
-	dir_x = dirx[sc->data[SC_RUN]->val2];
-	dir_y = diry[sc->data[SC_RUN]->val2];
+
+	dir_x = dirx[sc->data[type]->val2];
+	dir_y = diry[sc->data[type]->val2];
 
 	//Determine destination cell
 	to_x = bl->x;
 	to_y = bl->y;
-	for (i = 0; i < AREA_SIZE; i++) {
-		if (!map_getcell(bl->m, to_x + dir_x, to_y + dir_y, CELL_CHKPASS))
+
+	//Search for available path
+	for( i = 0; i < AREA_SIZE; i++ ) {
+		if( !map_getcell(bl->m, to_x + dir_x, to_y + dir_y, CELL_CHKPASS) )
 			break;
 
 		//If sprinting and there's a PC/Mob/NPC, block the path [Kevin]
-		if (sc->data[SC_RUN] && map_count_oncell(bl->m, to_x + dir_x, to_y + dir_y, BL_PC|BL_MOB|BL_NPC))
+		if( map_count_oncell(bl->m, to_x + dir_x, to_y + dir_y, BL_PC|BL_MOB|BL_NPC) )
 			break;
 
 		to_x += dir_x;
 		to_y += dir_y;
 	}
 
-	if ((to_x == bl->x && to_y == bl->y) || (to_x == (bl->x + 1) ||
-		to_y == (bl->y + 1)) || (to_x == (bl->x - 1) || to_y == (bl->y - 1))) {
-		//If you can't run forward, you must be next to a wall, so bounce back. [Skotlex]
-		clif_status_change(bl, SI_BUMP, 1, 0, 0, 0, 0);
-
-		//Set running to 0 beforehand so status_change_end knows not to enable spurt [Kevin]
-		unit_bl2ud(bl)->state.running = 0;
-		status_change_end(bl, SC_RUN, INVALID_TIMER);
-
-		skill_blown(bl, bl, skill_get_blewcount(TK_RUN, lv), unit_getdir(bl), 0);
-		clif_fixpos(bl); //Why is a clif_slide (skill_blown) AND a fixpos needed? Ask Aegis.
-		clif_status_change(bl, SI_BUMP, 0, 0, 0, 0, 0);
-		return 0;
+	//Can't run forward
+	if( (to_x == bl->x && to_y == bl->y) || (to_x == (bl->x + 1) || to_y == (bl->y + 1)) ||
+		(to_x == (bl->x - 1) || to_y == (bl->y - 1))) {
+		unit_run_hit(bl, sc, sd, type);
+		return false;
 	}
-	if (unit_walktoxy(bl, to_x, to_y, 1))
-		return 1;
+
+	if( unit_walktoxy(bl, to_x, to_y, 1) )
+		return true;
+
 	//There must be an obstacle nearby. Attempt walking one cell at a time.
 	do {
 		to_x -= dir_x;
 		to_y -= dir_y;
-	} while (--i > 0 && !unit_walktoxy(bl, to_x, to_y, 1));
-	if (i == 0) {
-		//Copy-paste from above
-		clif_status_change(bl, SI_BUMP, 1, 0, 0, 0, 0);
-
-		//Set running to 0 beforehand so status_change_end knows not to enable spurt [Kevin]
-		unit_bl2ud(bl)->state.running = 0;
-		status_change_end(bl, SC_RUN, INVALID_TIMER);
-
-		skill_blown(bl,bl,skill_get_blewcount(TK_RUN,lv),unit_getdir(bl),0);
-		clif_fixpos(bl);
-		clif_status_change(bl, SI_BUMP, 0, 0, 0, 0, 0);
-		return 0;
-	}
-	return 1;
-}
-
-/**
- * Char movement with wugdash
- * @author [Jobbie]
- * @param bl: Object that is dashing
- * @param sd: Player
- * @return 1: Success 0: Fail
- */
-int unit_wugdash(struct block_list *bl, struct map_session_data *sd) {
-	struct status_change *sc = status_get_sc(bl);
-	short to_x, to_y, dir_x, dir_y;
-	int lv;
-	int i;
-
-	if( !(sc && sc->data[SC_WUGDASH]) )
-		return 0;
-
-	nullpo_ret(sd); //FIXME do we really need that check since we rechecking afterward
-	nullpo_ret(bl);
-
-	if( !unit_can_move(bl) ) {
-		status_change_end(bl,SC_WUGDASH,INVALID_TIMER);
-		return 0;
-	}
-
-	lv = sc->data[SC_WUGDASH]->val1;
-	dir_x = dirx[sc->data[SC_WUGDASH]->val2];
-	dir_y = diry[sc->data[SC_WUGDASH]->val2];
-
-	to_x = bl->x;
-	to_y = bl->y;
-	for( i = 0; i < AREA_SIZE; i++ ) {
-		if( !map_getcell(bl->m,to_x+dir_x,to_y+dir_y,CELL_CHKPASS) )
-			break;
-
-		if( sc->data[SC_WUGDASH] && map_count_oncell(bl->m, to_x+dir_x, to_y+dir_y, BL_PC|BL_MOB|BL_NPC) )
-			break;
-
-		to_x += dir_x;
-		to_y += dir_y;
-	}
-
-	if( to_x == bl->x && to_y == bl->y ) {
-		unit_bl2ud(bl)->state.running = 0;
-		status_change_end(bl,SC_WUGDASH,INVALID_TIMER);
-
-		if( sd ) {
-			clif_fixpos(bl);
-			skill_castend_damage_id(bl, &sd->bl, RA_WUGDASH, lv, gettick(), SD_LEVEL);
-		}
-		return 0;
-	}
-	if( unit_walktoxy(bl, to_x, to_y, 1) )
-		return 1;
-	do {
-		to_x -= dir_x;
-		to_y -= dir_y;
 	} while( --i > 0 && !unit_walktoxy(bl, to_x, to_y, 1) );
-	if( i == 0 ) {
-		unit_bl2ud(bl)->state.running = 0;
-		status_change_end(bl,SC_WUGDASH,INVALID_TIMER);
 
-		if( sd ) {
-			clif_fixpos(bl);
-			skill_castend_damage_id(bl, &sd->bl, RA_WUGDASH, lv, gettick(), SD_LEVEL);
-		}
-		return 0;
+	if( i == 0 ) {
+		unit_run_hit(bl, sc, sd, type);
+		return false;
 	}
-	return 1;
+
+	return true;
 }
 
 /**
@@ -1273,7 +1232,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		(sd ? skill_check_condition_castbegin(sd,skill_id,skill_lv) : 0)) ) {
 		if( sc->data[SC_COMBO]->val2 )
 			target_id = sc->data[SC_COMBO]->val2;
-		else
+		else if( skill_get_inf(skill_id) != 1 ) //Only non-targetable skills should use auto target
 			target_id = ud->target;
 		if( (skill_get_inf(skill_id)&INF_SELF_SKILL) && (skill_get_nk(skill_id)&NK_NO_DAMAGE) ) //Exploit fix
 			target_id = src->id;
@@ -1687,7 +1646,7 @@ int unit_skilluse_pos2(struct block_list *src, short skill_x, short skill_y, uin
 		/**
 		 * "WHY IS IT HEREE": Pneuma cannot be cancelled past this point, the client displays the animation even,
 		 * if we cancel it from nodamage_id, so it has to be here for it to not display the animation.
-		 **/
+		 */
 		if(skill_id == AL_PNEUMA && map_getcell(src->m, skill_x, skill_y, CELL_CHKLANDPROTECTOR)) {
 			clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 			return 0;
@@ -1878,11 +1837,16 @@ int unit_attack(struct block_list *src,int target_id,int continuous)
 
 	if(src->type == BL_PC) {
 		TBL_PC* sd = (TBL_PC*)src;
+
 		if(target->type == BL_NPC) { //Monster npcs [Valaris]
 			npc_click(sd,(TBL_NPC*)target); //Submitted by leinsirk10 [Celest]
 			return 0;
 		}
 		if(pc_is90overweight(sd) || pc_isridingwug(sd)) { //Overweight or mounted on warg - stop attacking
+			unit_stop_attack(src);
+			return 0;
+		}
+		if(!pc_can_attack(sd,target_id)) {
 			unit_stop_attack(src);
 			return 0;
 		}
@@ -2106,7 +2070,7 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 #ifdef OFFICIAL_WALKPATH 
 		|| !path_search_long(NULL,src->m,src->x,src->y,target->x,target->y,CELL_CHKWALL)
 #endif
-	)
+		|| (sd && !pc_can_attack(sd,ud->target)) )
 		return 0; // Can't attack under these conditions
 
 	if( sd && &sd->sc && sd->sc.count && sd->sc.data[SC_HEAT_BARREL_AFTER] )
@@ -2715,6 +2679,7 @@ int unit_free(struct block_list *bl, clr_type clrtype)
 					sd->quest_log = NULL;
 					sd->num_quests = sd->avail_quests = 0;
 				}
+				pc_itemgrouphealrate_clear(sd);
 			}
 			break;
 		case BL_PET: {

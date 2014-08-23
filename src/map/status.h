@@ -14,7 +14,7 @@ struct status_change;
 /**
  * Max Refine available to your server
  * Changing this limit requires edits to refine_db.txt
- **/
+ */
 #ifdef RENEWAL
 	#define MAX_REFINE 20
 #else
@@ -348,13 +348,13 @@ typedef enum sc_type {
 	SC_FOOD_LUK_CASH,//308
 	/**
 	 * 3rd
-	 **/
+	 */
 	SC_FEAR,//309
 	SC_BURNING,//310
 	SC_FREEZING,//311
 	/**
 	 * Rune Knight
-	 **/
+	 */
 	SC_ENCHANTBLADE,//312
 	SC_DEATHBOUND,//313
 	SC_MILLENNIUMSHIELD,
@@ -369,7 +369,7 @@ typedef enum sc_type {
 	SC_ABUNDANCE,
 	/**
 	 * Arch Bishop
-	 **/
+	 */
 	SC_ADORAMUS,
 	SC_EPICLESIS,//325
 	SC_ORATIO,
@@ -381,7 +381,7 @@ typedef enum sc_type {
 	SC_SECRAMENT,
 	/**
 	 * Warlock
-	 **/
+	 */
 	SC_WHITEIMPRISON,
 	SC_MARSHOFABYSS,
 	SC_RECOGNIZEDSPELL,//335
@@ -395,7 +395,7 @@ typedef enum sc_type {
 	SC_FREEZE_SP,
 	/**
 	 * Ranger
-	 **/
+	 */
 	SC_FEARBREEZE,
 	SC_ELECTRICSHOCKER,//345
 	SC_WUGDASH,
@@ -403,7 +403,7 @@ typedef enum sc_type {
 	SC_CAMOUFLAGE,
 	/**
 	 * Mechanic
-	 **/
+	 */
 	SC_ACCELERATION,
 	SC_HOVERING,//350
 	SC_SHAPESHIFT,
@@ -418,7 +418,7 @@ typedef enum sc_type {
 	SC_OVERHEAT_LIMITPOINT,//360
 	/**
 	 * Guillotine Cross
-	 **/
+	 */
 	SC_VENOMIMPRESS,
 	SC_POISONINGWEAPON,
 	SC_WEAPONBLOCKING,
@@ -436,7 +436,7 @@ typedef enum sc_type {
 	SC_LEECHESEND,//375
 	/**
 	 * Royal Guard
-	 **/
+	 */
 	SC_REFLECTDAMAGE,
 	SC_FORCEOFVANGUARD,
 	SC_SHIELDSPELL_DEF,
@@ -450,7 +450,7 @@ typedef enum sc_type {
 	SC_INSPIRATION,
 	/**
 	 * Sorcerer
-	 **/
+	 */
 	SC_SPELLFIST,
 	SC_CRYSTALIZE,
 	SC_STRIKING,
@@ -459,7 +459,7 @@ typedef enum sc_type {
 	SC_PROPERTYWALK,
 	/**
 	 * Minstrel / Wanderer
-	 **/
+	 */
 	SC_SWINGDANCE,
 	SC_SYMPHONYOFLOVER,
 	SC_MOONLITSERENADE,//395
@@ -482,7 +482,7 @@ typedef enum sc_type {
 	SC_NETHERWORLD,
 	/**
 	 * Sura
-	 **/
+	 */
 	SC_CRESCENTELBOW,
 	SC_CURSEDCIRCLE_ATKER,
 	SC_CURSEDCIRCLE_TARGET,
@@ -493,7 +493,7 @@ typedef enum sc_type {
 	SC_GT_REVITALIZE,
 	/**
 	 * Genetic
-	 **/
+	 */
 	SC_GN_CARTBOOST,//421
 	SC_THORNSTRAP,
 	SC_BLOODSUCKER,
@@ -521,7 +521,7 @@ typedef enum sc_type {
 	SC_EXTRACT_SALAMINE_JUICE,
 	/**
 	 * Shadow Chaser
-	 **/
+	 */
 	SC__REPRODUCE,//446
 	SC__AUTOSHADOWSPELL,
 	SC__SHADOWFORM,
@@ -541,7 +541,7 @@ typedef enum sc_type {
 	
 	/**
 	 * Elemental Spirits
-	 **/
+	 */
 	SC_CIRCLE_OF_FIRE,
 	SC_CIRCLE_OF_FIRE_OPTION,
 	SC_FIRE_CLOAK,
@@ -614,7 +614,7 @@ typedef enum sc_type {
 /**
  * In official server there are only 7 maximum number of spell books that can be memorized
  * To increase the maximum value just add another status type before SC_MAXSPELLBOOK (ex. SC_SPELLBOOK7, SC_SPELLBOOK8 and so on)
- **/
+ */
 	SC_MAXSPELLBOOK,
 	/* Max HP & SP */
 	SC_INCMHP,
@@ -622,7 +622,7 @@ typedef enum sc_type {
 	SC_PARTYFLEE, // 529
 	/**
 	* Kagerou & Oboro [malufett]
-	**/
+	*/
 	SC_MEIKYOUSISUI, // 530
 	SC_JYUMONJIKIRI,
 	SC_KYOUGAKU,
@@ -705,6 +705,8 @@ typedef enum sc_type {
 	SC_QUEST_BUFF3,
 	SC_TEARGAS_SOB,
 	SC_CRIFOOD,
+	SC_CHASEWALK2,
+	SC_FALLENEMPIRE,
 	SC_MAX, //Automatically updated max, used in for's to check we are within bounds
 } sc_type;
 
@@ -892,13 +894,13 @@ enum si_type {
 	//SI_MAXSPPERCENT = 178,
 	//SI_DEFENCE = 179,
 	//SI_SLOWDOWN = 180,
-	SI_PRESERVE		= 181,
-	SI_INCSTR		= 182,
+	SI_PRESERVE			= 181,
+	SI_CHASEWALK2		= 182,
 	//SI_NOT_EXTREMITYFIST = 183,
 	SI_INTRAVISION		= 184,
 	//SI_MOVESLOW_POTION = 185,
 	SI_DOUBLECAST		= 186,
-	SI_GRAVITATION = 187,
+	SI_GRAVITATION	= 187,
 	SI_MAXOVERTHRUST	= 188,
 	SI_LONGING = 189,
 	SI_HERMODE = 190,
@@ -1519,6 +1521,9 @@ enum si_type {
 	SI_GET_MAILBOX = 814,
 	SI_JUMPINGCLAN = 815,
 	SI_JP_OTP = 816,
+	SI_MTF_RANGEATK2 = 818,
+	SI_MTF_ASPD2 = 819,
+	SI_MTF_MATK2 = 820,
 	SI_MAX,
 };
 
@@ -1555,12 +1560,13 @@ enum e_mode
 	MD_CHANGETARGET_MELEE	= 0x001000,
 	MD_CHANGETARGET_CHASE	= 0x002000,
 	MD_TARGETWEAK		= 0x004000,
-	MD_IGNOREMELEE		= 0x010000, //takes 1 HP damage from melee physical attacks
-	MD_IGNOREMAGIC		= 0x020000, //takes 1 HP damage from magic
-	MD_IGNORERANGED		= 0x040000, //takes 1 HP damage from ranged physical attacks
+	MD_RANDOMTARGET		= 0x008000,
+	MD_IGNOREMELEE		= 0x010000, //Takes 1 HP damage from melee physical attacks
+	MD_IGNOREMAGIC		= 0x020000, //Takes 1 HP damage from magic
+	MD_IGNORERANGED		= 0x040000, //Takes 1 HP damage from ranged physical attacks
 	MD_MVP			= 0x080000, //MVP - instant kill / coma-like skills don't work
-	MD_IGNOREMISC		= 0x100000, //takes 1 HP damage from "none" attack type
-	MD_KNOCKBACK_IMMUNE	= 0x200000, //can't be knocked back
+	MD_IGNOREMISC		= 0x100000, //Takes 1 HP damage from "none" attack type
+	MD_KNOCKBACK_IMMUNE	= 0x200000, //Can't be knocked back
 };
 #define MD_MASK 0x00FFFF
 #define ATR_MASK 0xFF0000
@@ -1889,7 +1895,7 @@ struct status_change {
 	short comet_x, comet_y; // Point where src casted Comet - required to calculate damage from this point
 /**
  * The Storm Gust counter was dropped in renewal
- **/
+ */
 #ifndef RENEWAL
 	unsigned char sg_counter; //Storm gust counter (previous hits from storm gust)
 #endif
@@ -1897,8 +1903,8 @@ struct status_change {
 	struct status_change_entry *data[SC_MAX];
 };
 
-// for looking up associated data
-sc_type status_skill2sc(int skill);
+//For looking up associated data
+sc_type status_skill2sc(uint16 skill_id);
 int status_sc2skill(sc_type sc);
 unsigned int status_sc2scb_flag(sc_type sc);
 int status_type2relevant_bl_types(int type);

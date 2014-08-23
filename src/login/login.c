@@ -1045,6 +1045,8 @@ int parse_fromchar(int fd) {
 						safestrncpy((char*)WFIFOP(fd,2), acc.userid, NAME_LENGTH);
 						if( u_group >= acc.group_id )
 							safestrncpy((char*)WFIFOP(fd,26), acc.pass, 33);
+						else
+							memset(WFIFOP(fd,26), '\0', 33);
 						safestrncpy((char*)WFIFOP(fd,59), acc.email, 40);
 						safestrncpy((char*)WFIFOP(fd,99), acc.last_ip, 16);
 						WFIFOL(fd,115) = acc.group_id;
@@ -1053,6 +1055,8 @@ int parse_fromchar(int fd) {
 						WFIFOL(fd,147) = acc.state;
 						if( u_group >= acc.group_id )
 							safestrncpy((char*)WFIFOP(fd,151), acc.pincode, 5);
+						else
+							memset(WFIFOP(fd,151), '\0', 5);
 						safestrncpy((char*)WFIFOP(fd,156), acc.birthdate, 11);
 						WFIFOL(fd,167) = map_fd;
 						WFIFOL(fd,171) = u_fd;
@@ -1247,14 +1251,15 @@ int mmo_auth(struct login_session_data* sd, bool isServer) {
 			int i;
 
 			if( !sd->has_client_hash ) {
-				ShowNotice("Client didn't send client hash (account: %s, pass: %s, ip: %s)\n", sd->userid, sd->passwd, acc.state, ip);
+				ShowNotice("Client didn't send client hash (account: %s, pass: %s, ip: %s)\n", sd->userid, sd->passwd, ip);
 				return 5;
 			}
 
 			for( i = 0; i < 16; i++ )
 				sprintf(&smd5[i * 2], "%02x", sd->client_hash[i]);
+			smd5[32] = '\0';
 
-			ShowNotice("Invalid client hash (account: %s, pass: %s, sent md5: %d, ip: %s)\n", sd->userid, sd->passwd, smd5, ip);
+			ShowNotice("Invalid client hash (account: %s, pass: %s, sent md5: %s, ip: %s)\n", sd->userid, sd->passwd, smd5, ip);
 			return 5;
 		}
 	}

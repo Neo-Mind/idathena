@@ -65,7 +65,7 @@ char default_codepage[32] = "";
 int map_server_port = 3306;
 char map_server_ip[32] = "127.0.0.1";
 char map_server_id[32] = "ragnarok";
-char map_server_pw[32] = "ragnarok";
+char map_server_pw[32] = "";
 char map_server_db[32] = "ragnarok";
 Sql* mmysql_handle;
 
@@ -310,12 +310,14 @@ int map_addblock(struct block_list* bl)
 	if( bl->type == BL_MOB ) {
 		bl->next = map[m].block_mob[pos];
 		bl->prev = &bl_head;
-		if( bl->next ) bl->next->prev = bl;
+		if( bl->next )
+			bl->next->prev = bl;
 		map[m].block_mob[pos] = bl;
 	} else {
 		bl->next = map[m].block[pos];
 		bl->prev = &bl_head;
-		if( bl->next ) bl->next->prev = bl;
+		if( bl->next )
+			bl->next->prev = bl;
 		map[m].block[pos] = bl;
 	}
 
@@ -1672,6 +1674,7 @@ int map_quit(struct map_session_data *sd) {
 		status_change_end(&sd->bl,SC_GLORYWOUNDS,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_SOULCOLD,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_HAWKEYES,INVALID_TIMER);
+		status_change_end(&sd->bl,SC_CHASEWALK2,INVALID_TIMER);
 		if (sd->sc.data[SC_ENDURE] && sd->sc.data[SC_ENDURE]->val4)
 			status_change_end(&sd->bl,SC_ENDURE,INVALID_TIMER); //No need to save infinite endure
 		status_change_end(&sd->bl,SC_WEIGHT50,INVALID_TIMER);
@@ -1888,7 +1891,7 @@ struct block_list * map_id2bl(int id) {
 
 /**
  * Same as map_id2bl except it only checks for its existence
- **/
+ */
 bool map_blid_exists( int id ) {
 	return (idb_exists(id_db,id));
 }
@@ -4094,7 +4097,7 @@ int do_init(int argc, char *argv[])
 	do_init_duel();
 	do_init_vending();
 
-	npc_event_do_oninit();	// Init npcs (OnInit)
+	npc_event_do_oninit(false);	// Init npcs (OnInit)
 
 	if (battle_config.pk_mode)
 		ShowNotice("Server is running on '"CL_WHITE"PK Mode"CL_RESET"'.\n");

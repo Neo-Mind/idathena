@@ -892,6 +892,7 @@ OnInit will execute every time the scripts loading is complete, including when
 they are reloaded with @reloadscript command. OnInterIfInit will execute when 
 the map server connects to a char server, OnInterIfInitOnce will only execute 
 once and will not execute if the map server reconnects to the char server later.
+Note that all those events will be executed upon scripts reloading.
 
 OnAgitStart:
 OnAgitEnd:
@@ -1038,9 +1039,9 @@ From here on, we will have the commands sorted as follow:
 2.- Information-retrieving commands.
 3.- Checking commands.
 4.- Player-related commands.
-5.- Mob / NPC -related commands.
+5.- Mob / NPC-related commands.
 6.- Other commands.
-7.- Instance commands.
+7.- Instance-related commands.
 8.- Quest Log commands.
 9.- Battleground commands.
 10.- Pet commands.
@@ -2803,14 +2804,24 @@ and return the info set by TYPE argument.
 It will return -1 if there is no such item.
 
 Valid types are:
-	0 - Buy Price; 1 - Sell Price; 2 - Item Type;
-	3 - maxchance (max drop chance of this item, e.g. 1 = 0.01%)
-		if = 0, then monsters don't drop it at all (rare or a quest item)
-		if = 10000, then this item is sold in NPC shops only
-	4 - sex; 5 - equip; 6 - weight; 7 - atk; 8 - def; 9 - range;
-	10 - slot; 11 - look; 12 - elv; 13 - wlv; 14 - view id (from 'db/item_avail.txt')
-	
-	If RENEWAL is defined, 15 - matk
+	0  - Buy Price
+	1  - Sell Price
+	2  - Type
+	3  - maxchance (max drop chance of this item, e.g. 1 = 0.01%)
+		 if = 0, then monsters don't drop it at all (rare or a quest item)
+		 if = 10000, then this item is sold in NPC shops only
+	4  - Gender
+	5  - Loc
+	6  - Weight
+	7  - ATK
+	8  - DEF
+	9  - Range
+	10 - Slot
+	11 - View
+	12 - eLV
+	13 - wLV
+	14 - SpriteID from 'db/item_avail.txt'
+	15 - matk if RENEWAL is defined
 
 See the sample in 'doc/sample/getiteminfo.txt'.
 
@@ -4102,13 +4113,13 @@ they will also have their skills reset upon 'changesex'.
 *getexp <base xp>,<job xp>;
 
 This command will give the invoking character a specified number of base and job 
-experience points. Can be used as a quest reward. Negative values won't work.
+experience points. Should be used as a quest reward. Negative values won't work.
+Is subject to EXP bonuses and to the `quest_exp_rate` config option.
 
     getexp 10000,5000;
 
-You can also use the "set" command with the constants defined in 'db/const.txt':
+You can also use the "set" command with the parameters defined in 'db/const.txt':
 
-    // These 2 combined has the same effect as the above command
     set BaseExp,BaseExp+10000;
     set JobExp,JobExp+5000;
 
@@ -4116,8 +4127,7 @@ You can also reduce the amount of experience points:
 
     set BaseExp,BaseExp-10000;
 
-Note that 'getexp' is now subject to the 'quest_exp_rate' config option, which
-adjusts the gained value. If you want to bypass this, use the 'set' method.
+When setting the parameters directly no bonuses or config options are applied.
 
 ---------------------------------------
 
@@ -4346,10 +4356,10 @@ in this manner cannot be dropped, sold, vended, auctioned, or mailed, and in
 some cases cannot be traded or stored.
 
 Valid bound types are:
- 1 - Account Bound
- 2 - Guild Bound
- 3 - Party Bound
- 4 - Character Bound
+ Bound_Account : Account Bound
+ Bound_Guild   : Guild Bound
+ Bound_Party   : Party Bound
+ Bound_Char    : Character Bound
 
 ---------------------------------------
 
@@ -4499,8 +4509,8 @@ If cart is not mounted, it will be failed.
 
 *cartdelitem2 <item id>,<amount>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>{,<account ID>};
 *cartdelitem2 "<item name>",<amount>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>{,<account ID>};
-*storageitem2 <item id>,<amount>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>{,<account ID>};
-*storageitem2 "<item name>",<amount>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>{,<account ID>};
+*storagedelitem2 <item id>,<amount>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>{,<account ID>};
+*storagedelitem2 "<item name>",<amount>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>{,<account ID>};
 
 Same like delitem2, but deletes item from cart or storage.
 If cart is not mounted, it will be failed.
@@ -5497,8 +5507,8 @@ Examples:
 ==================================
 ---------------------------------------
 
-*monster     "<map name>",<x>,<y>,"<name to show>",<mob id>,<amount>{,"<event label>",<size>,<ai>};
-*areamonster "<map name>",<x1>,<y1>,<x2>,<y2>,"<name to show>",<mob id>,<amount>{,"<event label>",<size>,<ai>};
+*monster     "<map name>",<x>,<y>,"<name to show>",<mob id>,<amount>{,"<event label>"{,<size>{,<ai>}}};
+*areamonster "<map name>",<x1>,<y1>,<x2>,<y2>,"<name to show>",<mob id>,<amount>{,"<event label>"{,<size>{,<ai>}}};
 
 This command will spawn a monster on the specified coordinates on the specified 
 map. If the script is invoked by a character, a special map name, "this", will 
@@ -5633,8 +5643,11 @@ command, simply use 1 for type. Any other number won't be recognized.
 *strmobinfo(<type>,<monster id>);
 
 This function will return information about a monster record in the database, as 
-per 'db/(pre-)re/mob_db.txt'. Type is the kind of information returned. Valid types are:
+per 'db/(pre-)re/mob_db.txt'. Type is the kind of information returned.
+It will return 0 if there is no such monster (or the type value is invalid),
+or an empty string if you requested the monster's name.
 
+Valid types are:
  1 - 'english name' field in the database, a string.
  2 - 'japanese name' field in the database, a string.
      All other returned values are numbers:
@@ -7350,7 +7363,7 @@ Example:
 
 ---------------------------------------
 
-*sprintf(<format>[,param[,param[,...]]])
+*sprintf(<format>{,param{,param{,...}}})
 
 C style sprintf. The resulting string is returned same as in PHP. All C format 
 specifiers are supported except %n. More info: sprintf @ www.cplusplus.com. 
@@ -7363,7 +7376,7 @@ Example:
 
 ---------------------------------------
 
-*sscanf(<string>,<format>[,param[,param[,...]]])
+*sscanf(<string>,<format>{,param{,param{,...}}})
 
 C style sscanf. All C format specifiers are supported. 
 More info: sscanf @ www.cplusplus.com. The number of params is only limited 

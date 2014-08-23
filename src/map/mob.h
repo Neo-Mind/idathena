@@ -44,6 +44,8 @@ extern const int mob_splendide[5];
 
 enum mob_mobid {
 	MOBID_PORING = 1002,
+	MOBID_RED_PLANT = 1078,
+	MOBID_BLACK_MUSHROOM = 1084,
 	MOBID_GOBLIN_1 = 1122,
 	MOBID_GOBLIN_2,
 	MOBID_GOBLIN_3,
@@ -224,11 +226,11 @@ struct mob_data {
 	/**
 	 * Did this monster summon something?
 	 * Used to flag summon deletions, saves a worth amount of memory
-	 **/
+	 */
 	bool can_summon;
 	/**
 	 * MvP Tombstone NPC ID
-	 **/
+	 */
 	int tomb_nid;
 };
 

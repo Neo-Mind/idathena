@@ -19,14 +19,19 @@
 #include <string.h>
 
 static struct item_data* itemdb_array[MAX_ITEMDB];
-static DBMap* itemdb_other;// int nameid -> struct item_data*
 
 struct item_data dummy_item; //This is the default dummy item used for non-existant items. [Skotlex]
 
-static DBMap *itemdb_combo;
+static DBMap* itemdb_other; //int nameid -> struct item_data*
+static DBMap* itemdb_combo;
+static DBMap* itemdb_group;
 
 DBMap* itemdb_get_combodb() {
 	return itemdb_combo;
+}
+
+DBMap* itemdb_get_groupdb() {
+	return itemdb_group;
 }
 
 /**
@@ -146,9 +151,11 @@ int itemdb_searchname_array(struct item_data** data, int size, const char *str)
  * @return nameid
  */
 unsigned short itemdb_searchrandomid(uint16 group_id, uint8 sub_group) {
+	struct s_item_group_db *group = (struct s_item_group_db *)idb_get(itemdb_group, group_id);
+
 	if (sub_group)
 		sub_group -= 1;
-	if (!group_id || group_id >= MAX_ITEMGROUP || !&itemgroup_db[group_id]) {
+	if (!group) {
 		ShowError("itemdb_searchrandomid: Invalid group id %d\n", group_id);
 		return UNKNOWN_ITEM_ID;
 	}
@@ -156,8 +163,8 @@ unsigned short itemdb_searchrandomid(uint16 group_id, uint8 sub_group) {
 		ShowError("itemdb_searchrandomid: Invalid sub_group %d\n", sub_group + 1);
 		return UNKNOWN_ITEM_ID;
 	}
-	if (&itemgroup_db[group_id].random[sub_group] && itemgroup_db[group_id].random[sub_group].data_qty)
-		return itemgroup_db[group_id].random[sub_group].data[rand()%itemgroup_db[group_id].random[sub_group].data_qty].nameid;
+	if (&group->random[sub_group] && group->random[sub_group].data_qty)
+		return group->random[sub_group].data[rand()%group->random[sub_group].data_qty].nameid;
 
 	ShowError("itemdb_searchrandomid: No item entries for group id %d and sub group %d\n", group_id, sub_group + 1);
 	return UNKNOWN_ITEM_ID;
@@ -173,10 +180,11 @@ unsigned short itemdb_searchrandomid(uint16 group_id, uint8 sub_group) {
  */
 uint16 itemdb_get_randgroupitem_count(uint16 group_id, uint8 sub_group, uint16 nameid) {
 	uint16 i, amt = 1;
+	struct s_item_group_db *group = (struct s_item_group_db *)idb_get(itemdb_group, group_id);
 
 	if (sub_group)
 		sub_group -= 1;
-	if (!group_id || group_id >= MAX_ITEMGROUP || !&itemgroup_db[group_id]) {
+	if (!group) {
 		ShowError("itemdb_get_randgroupitem_count: Invalid group id %d\n", group_id);
 		return amt;
 	}
@@ -184,11 +192,12 @@ uint16 itemdb_get_randgroupitem_count(uint16 group_id, uint8 sub_group, uint16 n
 		ShowError("itemdb_get_randgroupitem_count: Invalid sub_group id %d\n", group_id + 1);
 		return amt;
 	}
-	if (!(&itemgroup_db[group_id].random[sub_group]) || !itemgroup_db[group_id].random[sub_group].data_qty)
+	if (!(&group->random[sub_group]) || !group->random[sub_group].data_qty)
 		return amt;
-	ARR_FIND(0, itemgroup_db[group_id].random[sub_group].data_qty, i, itemgroup_db[group_id].random[sub_group].data[i].nameid == nameid);
-	if (i < itemgroup_db[group_id].random[sub_group].data_qty)
-		amt = itemgroup_db[group_id].random[sub_group].data[i].amount;
+	for (i = 0; i < group->random[sub_group].data_qty; i++) {
+		if (group->random[sub_group].data[i].nameid == nameid)
+			return group->random[sub_group].data[i].amount;
+	}
 	return amt;
 }
 
@@ -198,38 +207,38 @@ uint16 itemdb_get_randgroupitem_count(uint16 group_id, uint8 sub_group, uint16 n
  * @param group_id: The group ID of item that obtained by player
  * @param *group: struct s_item_group from itemgroup_db[group_id].random[idx] or itemgroup_db[group_id].must[sub_group][idx]
 */
-static void itemdb_pc_get_itemgroup_sub(struct map_session_data *sd, uint16 group_id, struct s_item_group *group) {
+static void itemdb_pc_get_itemgroup_sub(struct map_session_data *sd, struct s_item_group_entry *data) {
 	uint16 i;
 	struct item tmp;
 
-	nullpo_retv(group);
+	nullpo_retv(data);
 
 	memset(&tmp, 0, sizeof(tmp));
 
-	tmp.nameid = group->nameid;
-	tmp.amount = (itemdb_isstackable(group->nameid)) ? group->amount : 1;
-	tmp.bound = group->bound;
+	tmp.nameid = data->nameid;
+	tmp.amount = (itemdb_isstackable(data->nameid)) ? data->amount : 1;
+	tmp.bound = data->bound;
 	tmp.identify = 1;
-	tmp.expire_time = (group->duration) ? (unsigned int)(time(NULL) + group->duration * 60) : 0;
-	if (group->isNamed) {
-		tmp.card[0] = itemdb_isequip(group->nameid) ? CARD0_FORGE : CARD0_CREATE;
+	tmp.expire_time = (data->duration) ? (unsigned int)(time(NULL) + data->duration * 60) : 0;
+	if (data->isNamed) {
+		tmp.card[0] = itemdb_isequip(data->nameid) ? CARD0_FORGE : CARD0_CREATE;
 		tmp.card[1] = 0;
 		tmp.card[2] = GetWord(sd->status.char_id, 0);
 		tmp.card[3] = GetWord(sd->status.char_id, 1);
 	}
 	//Do loop for non-stackable item
-	for (i = 0; i < group->amount; i++) {
-		int flag;
+	for (i = 0; i < data->amount; i++) {
+		char flag;
 
-		if ((flag = pc_additem(sd,&tmp,tmp.amount,LOG_TYPE_SCRIPT)))
-			clif_additem(sd,0,0,flag);
-		else if (!flag && group->isAnnounced) {
+		if ((flag = pc_additem(sd, &tmp, tmp.amount, LOG_TYPE_SCRIPT)))
+			clif_additem(sd, 0, 0, flag);
+		else if (!flag && data->isAnnounced) { //TODO: Move this broadcast to proper behavior (it should on at different packet)
 			char output[CHAT_SIZE_MAX];
 
-			sprintf(output, msg_txt(717), sd->status.name, itemdb_jname(group->nameid), itemdb_jname(sd->itemid));
-			clif_broadcast(&sd->bl, output,strlen(output), 0, ALL_CLIENT);
+			sprintf(output, msg_txt(717), sd->status.name, itemdb_jname(data->nameid), itemdb_jname(sd->itemid));
+			clif_broadcast(&sd->bl, output, strlen(output), BC_DEFAULT, ALL_CLIENT);
 		}
-		if (itemdb_isstackable(group->nameid))
+		if (itemdb_isstackable(data->nameid))
 			break;
 	}
 }
@@ -242,52 +251,35 @@ static void itemdb_pc_get_itemgroup_sub(struct map_session_data *sd, uint16 grou
  */
 char itemdb_pc_get_itemgroup(uint16 group_id, struct map_session_data *sd) {
 	uint16 i = 0;
+	struct s_item_group_db *group;
 
 	nullpo_retr(1, sd);
 
-	if (group_id < 1 || group_id >= MAX_ITEMGROUP) {
+	if (!(group = (struct s_item_group_db *)idb_get(itemdb_group, group_id))) {
 		ShowError("itemdb_pc_get_itemgroup: Invalid group id '%d' specified.", group_id);
 		return 2;
 	}
 
-	//Get the 'must' item(s)
-	if (itemgroup_db[group_id].must_qty)
-		for (i = 0; i < itemgroup_db[group_id].must_qty; i++)
-			if (&itemgroup_db[group_id].must[i] && itemdb_exists(itemgroup_db[group_id].must[i].nameid))
-				itemdb_pc_get_itemgroup_sub(sd, group_id, &itemgroup_db[group_id].must[i]);
+	// Get the 'must' item(s)
+	if (group->must_qty) {
+		for (i = 0; i < group->must_qty; i++)
+			if (&group->must[i])
+				itemdb_pc_get_itemgroup_sub(sd, &group->must[i]);
+	}
 
-	//Get the 'random' item each random group
+	// Get the 'random' item each random group
 	for (i = 0; i < MAX_ITEMGROUP_RANDGROUP; i++) {
 		uint16 rand;
 
-		if (!(&itemgroup_db[group_id].random[i]) || !itemgroup_db[group_id].random[i].data_qty) //Skip empty random group
+		if (!(&group->random[i]) || !group->random[i].data_qty) //Skip empty random group
 			continue;
-		rand = rnd()%itemgroup_db[group_id].random[i].data_qty;
-		//Woops, why is the data empty? Every check should be done when load the item group! So this is bad day for the player :P
-		if (!&itemgroup_db[group_id].random[i].data[rand] || !itemgroup_db[group_id].random[i].data[rand].nameid)
+		rand = rnd()%group->random[i].data_qty;
+		if (!(&group->random[i].data[rand]) || !group->random[i].data[rand].nameid)
 			continue;
-		if (itemdb_exists(itemgroup_db[group_id].random[i].data[rand].nameid))
-			itemdb_pc_get_itemgroup_sub(sd, group_id, &itemgroup_db[group_id].random[i].data[rand]);
+		itemdb_pc_get_itemgroup_sub(sd,&group->random[i].data[rand]);
 	}
 
 	return 0;
-}
-
-/*==========================================
- * Calculates total item-group related bonuses for the given item
- *------------------------------------------*/
-int itemdb_group_bonus(struct map_session_data* sd, int itemid)
-{
-	int bonus = 0, i, j;
-
-	for (i = 0; i < MAX_ITEMGROUP; i++) {
-		if (!sd->itemgrouphealrate[i])
-			continue;
-		ARR_FIND(0, itemgroup_db[i].random[0].data_qty, j, itemgroup_db[i].random[0].data[j].nameid == itemid);
-		if (j < itemgroup_db[i].random[0].data_qty)
-			bonus += sd->itemgrouphealrate[i];
-	}
-	return bonus;
 }
 
 /// Searches for the item_data.
@@ -466,6 +458,7 @@ struct item_data* itemdb_load(int nameid)
 struct item_data* itemdb_search(int nameid)
 {
 	struct item_data* id;
+
 	if( nameid >= 0 && nameid < ARRAYLENGTH(itemdb_array) )
 		id = itemdb_array[nameid];
 	else
@@ -479,14 +472,15 @@ struct item_data* itemdb_search(int nameid)
 	return id;
 }
 
-/*==========================================
- * Returns if given item is a player-equippable piece.
- *------------------------------------------*/
-bool itemdb_isequip(int nameid)
+/** Checks if item is equip type or not
+ * @param id Item data
+ * @return True if item is equip, false otherwise
+ */
+bool itemdb_isequip2(struct item_data *id)
 {
-	int type = itemdb_type(nameid);
+	nullpo_retr(false,id);
 
-	switch (type) {
+	switch(id->type) {
 		case IT_WEAPON:
 		case IT_ARMOR:
 		case IT_AMMO:
@@ -497,51 +491,15 @@ bool itemdb_isequip(int nameid)
 	}
 }
 
-/*==========================================
- * Alternate version of itemdb_isequip
- *------------------------------------------*/
-bool itemdb_isequip2(struct item_data *data)
+/** Checks if item is stackable or not
+ * @param id Item data
+ * @return True if item is stackable, false otherwise
+ */
+bool itemdb_isstackable2(struct item_data *id)
 {
-	nullpo_retr(false,data);
+	nullpo_retr(false,id);
 
-	switch(data->type) {
-		case IT_WEAPON:
-		case IT_ARMOR:
-		case IT_AMMO:
-		case IT_SHADOWGEAR:
-			return true;
-		default:
-			return false;
-	}
-}
-
-/*==========================================
- * Returns if given item's type is stackable.
- *------------------------------------------*/
-bool itemdb_isstackable(uint16 nameid)
-{
-	uint8 type = itemdb_type(nameid);
-
-	switch(type) {
-		case IT_WEAPON:
-		case IT_ARMOR:
-		case IT_PETEGG:
-		case IT_PETARMOR:
-		case IT_SHADOWGEAR:
-			return false;
-		default:
-			return true;
-	}
-}
-
-/*==========================================
- * Alternate version of itemdb_isstackable
- *------------------------------------------*/
-bool itemdb_isstackable2(struct item_data *data)
-{
-	nullpo_retr(false,data);
-
-	switch(data->type) {
+	switch(id->type) {
 		case IT_WEAPON:
 		case IT_ARMOR:
 		case IT_PETEGG:
@@ -558,39 +516,39 @@ bool itemdb_isstackable2(struct item_data *data)
  * Trade Restriction functions [Skotlex]
  *------------------------------------------*/
 int itemdb_isdropable_sub(struct item_data *item, int gmlv, int unused) {
-	return (item && (!(item->flag.trade_restriction&1) || gmlv >= item->gm_lv_trade_override));
+	return (item && (!(item->flag.trade_restriction&ITR_NODROP) || gmlv >= item->gm_lv_trade_override));
 }
 
 int itemdb_cantrade_sub(struct item_data* item, int gmlv, int gmlv2) {
-	return (item && (!(item->flag.trade_restriction&2) || gmlv >= item->gm_lv_trade_override || gmlv2 >= item->gm_lv_trade_override));
+	return (item && (!(item->flag.trade_restriction&ITR_NOTRADE) || gmlv >= item->gm_lv_trade_override || gmlv2 >= item->gm_lv_trade_override));
 }
 
 int itemdb_canpartnertrade_sub(struct item_data* item, int gmlv, int gmlv2) {
-	return (item && (item->flag.trade_restriction&4 || gmlv >= item->gm_lv_trade_override || gmlv2 >= item->gm_lv_trade_override));
+	return (item && (item->flag.trade_restriction&ITR_PARTNEROVERRIDE || gmlv >= item->gm_lv_trade_override || gmlv2 >= item->gm_lv_trade_override));
 }
 
 int itemdb_cansell_sub(struct item_data* item, int gmlv, int unused) {
-	return (item && (!(item->flag.trade_restriction&8) || gmlv >= item->gm_lv_trade_override));
+	return (item && (!(item->flag.trade_restriction&ITR_NOSELLTONPC) || gmlv >= item->gm_lv_trade_override));
 }
 
 int itemdb_cancartstore_sub(struct item_data* item, int gmlv, int unused) {
-	return (item && (!(item->flag.trade_restriction&16) || gmlv >= item->gm_lv_trade_override));
+	return (item && (!(item->flag.trade_restriction&ITR_NOCART) || gmlv >= item->gm_lv_trade_override));
 }
 
 int itemdb_canstore_sub(struct item_data* item, int gmlv, int unused) {
-	return (item && (!(item->flag.trade_restriction&32) || gmlv >= item->gm_lv_trade_override));
+	return (item && (!(item->flag.trade_restriction&ITR_NOSTORAGE) || gmlv >= item->gm_lv_trade_override));
 }
 
 int itemdb_canguildstore_sub(struct item_data* item, int gmlv, int unused) {
-	return (item && (!(item->flag.trade_restriction&64) || gmlv >= item->gm_lv_trade_override));
+	return (item && (!(item->flag.trade_restriction&ITR_NOGSTORAGE) || gmlv >= item->gm_lv_trade_override));
 }
 
 int itemdb_canmail_sub(struct item_data* item, int gmlv, int unused) {
-	return (item && (!(item->flag.trade_restriction&128) || gmlv >= item->gm_lv_trade_override));
+	return (item && (!(item->flag.trade_restriction&ITR_NOMAIL) || gmlv >= item->gm_lv_trade_override));
 }
 
 int itemdb_canauction_sub(struct item_data* item, int gmlv, int unused) {
-	return (item && (!(item->flag.trade_restriction&256) || gmlv >= item->gm_lv_trade_override));
+	return (item && (!(item->flag.trade_restriction&ITR_NOAUCTION) || gmlv >= item->gm_lv_trade_override));
 }
 
 bool itemdb_isrestricted(struct item* item, int gmlv, int gmlv2, int (*func)(struct item_data*, int, int))
@@ -605,7 +563,8 @@ bool itemdb_isrestricted(struct item* item, int gmlv, int gmlv2, int (*func)(str
 		return true;
 
 	for(i = 0; i < item_data->slot; i++) {
-		if(!item->card[i]) continue;
+		if(!item->card[i])
+			continue;
 		if(!func(itemdb_search(item->card[i]), gmlv, gmlv2))
 			return false;
 	}
@@ -670,11 +629,14 @@ static void itemdb_read_itemgroup_sub(const char* filename)
 	}
 
 	while( fgets(line, sizeof(line), fp) ) {
-		uint16 nameid;
-		int j, group_id, prob = 1, amt = 1, rand_group = 1, announced = 0, dur = 0, named = 0, bound = 0;
-		char *str[3], *p;
+		int group_id = -1;
+		unsigned int j, prob = 1;
+		uint16 nameid, amt = 1, dur = 0;
+		uint8 rand_group = 1;
+		char *str[9], *p, announced = 0, named = 0, bound = BOUND_NONE;
+		struct s_item_group_random *random = NULL;
+		struct s_item_group_db *group = NULL;
 		bool found = false;
-		struct s_item_group_random *random;
 
 		ln++;
 		if( line[0] == '/' && line[1] == '/' )
@@ -688,14 +650,13 @@ static void itemdb_read_itemgroup_sub(const char* filename)
 			}
 		}
 		memset(str, 0, sizeof(str));
-		for( j = 0, p = line; j < 3 && p; j++ ) {
+		for( j = 0, p = line; j < 9 && p; j++ ) {
 			str[j] = p;
-			if( j == 2 )
-				sscanf(str[j], "%d,%d,%d,%d,%d,%d,%d", &prob, &amt, &rand_group, &announced, &dur, &named, &bound);
 			p = strchr(p, ',');
-			if( p ) *p++ = 0;
+			if( p )
+				*p++ = 0;
 		}
-		if( str[0] == NULL )
+		if( str[0] == NULL ) //Empty Group ID
 			continue;
 		if( j < 3 ) {
 			if( j > 1 ) //Or else it barks on blank lines...
@@ -709,19 +670,22 @@ static void itemdb_read_itemgroup_sub(const char* filename)
 			group_id = atoi(str[0]);
 		else //Try reads group id by const
 			script_get_constant(trim(str[0]), &group_id);
-		if( group_id < 1 || group_id >= MAX_ITEMGROUP ) {
-			ShowWarning("itemdb_read_itemgroup: Cannot save '%s' because invalid group id or group db is overflow in %s:%d\n", str[0], filename, ln);
+
+		if( group_id < 0 ) {
+			ShowWarning("itemdb_read_itemgroup: Invlaid Group ID '%s' (%s:%d)\n", str[0], filename, ln);
 			continue;
 		}
 
 		//Checking sub group
+		prob = atoi(str[2]);
+		if( str[4] != NULL )
+			rand_group = atoi(str[4]);
 		if( rand_group < 0 || rand_group > MAX_ITEMGROUP_RANDGROUP ) {
-			ShowWarning("itemdb_read_itemgroup: Invalid sub group %d for group '%s' in %s:%d\n", rand_group, str[0], filename, ln);
+			ShowWarning("itemdb_read_itemgroup: Invalid sub group '%d' for group '%s' in %s:%d\n", rand_group, str[0], filename, ln);
 			continue;
 		}
-
-		if( rand_group && prob < 1 ) {
-			ShowWarning("itemdb_read_itemgroup: Invalid probaility for group '%s' sub: %d in %s:%d\n", str[0], rand_group, filename, ln);
+		if( rand_group != 0 && prob < 1 ) {
+			ShowWarning("itemdb_read_itemgroup: Random item must has probability. Group '%s' in %s:%d\n", str[0], filename, ln);
 			continue;
 		}
 
@@ -738,29 +702,45 @@ static void itemdb_read_itemgroup_sub(const char* filename)
 			continue;
 		}
 
-		amt = cap_value(amt, 1, MAX_AMOUNT);
-		dur = cap_value(dur, 0, UINT16_MAX);
-		bound = cap_value(bound, 0, 4);
+		if( str[3] != NULL )
+			amt = cap_value(atoi(str[3]), 1, MAX_AMOUNT);
+		if( str[5] != NULL )
+			announced = atoi(str[5]);
+		if( str[6] != NULL )
+			dur = cap_value(atoi(str[6]), 0, UINT16_MAX);
+		if( str[7] != NULL )
+			named = atoi(str[7]);
+		if( str[8] != NULL )
+			bound = cap_value(atoi(str[8]), BOUND_NONE, BOUND_MAX - 1);
+
+		found = true;
+		if( !(group = (struct s_item_group_db *)idb_get(itemdb_group, group_id)) ) {
+			found = false;
+			CREATE(group, struct s_item_group_db, 1);
+			group->id = group_id;
+		}
 
 		//Must item (rand_group == 0), place it here
 		if( !rand_group ) {
-			uint16 idx = itemgroup_db[group_id].must_qty;
+			uint16 idx = group->must_qty;
 
 			if( !idx )
-				CREATE(itemgroup_db[group_id].must, struct s_item_group, 1);
+				CREATE(group->must, struct s_item_group_entry, 1);
 			else
-				RECREATE(itemgroup_db[group_id].must, struct s_item_group, idx + 1);
+				RECREATE(group->must, struct s_item_group_entry, idx + 1);
 
-			itemgroup_db[group_id].must[idx].nameid = nameid;
-			itemgroup_db[group_id].must[idx].amount = amt;
-			itemgroup_db[group_id].must[idx].isAnnounced = announced;
-			itemgroup_db[group_id].must[idx].duration = dur;
-			itemgroup_db[group_id].must[idx].isNamed = named;
-			itemgroup_db[group_id].must[idx].bound = bound;
-			itemgroup_db[group_id].must_qty++;
+			group->must[idx].nameid = nameid;
+			group->must[idx].amount = amt;
+			group->must[idx].isAnnounced = announced;
+			group->must[idx].duration = dur;
+			group->must[idx].isNamed = named;
+			group->must[idx].bound = bound;
+			group->must_qty++;
 
 			//If 'must' item isn't set as random item, skip the next process
 			if( !prob ) {
+				if( !found )
+					idb_put(itemdb_group, group->id, group);
 				entries++;
 				continue;
 			}
@@ -768,14 +748,15 @@ static void itemdb_read_itemgroup_sub(const char* filename)
 		} else
 			rand_group -= 1;
 
-		random = &itemgroup_db[group_id].random[rand_group];
+		random = &group->random[rand_group];
 
 		//Check, if the entry for this random group already created or not
 		if( !random->data_qty ) {
-			CREATE(random->data, struct s_item_group, prob);
+			CREATE(random->data, struct s_item_group_entry, prob);
 			random->data_qty = 0;
 		} else
-			RECREATE(random->data, struct s_item_group, random->data_qty + prob);
+			RECREATE(random->data, struct s_item_group_entry, random->data_qty + prob);
+
 		//Now put the entry to its rand_group
 		for( j = random->data_qty; j < random->data_qty + prob; j++ ) {
 			random->data[j].nameid = nameid;
@@ -786,6 +767,8 @@ static void itemdb_read_itemgroup_sub(const char* filename)
 			random->data[j].bound = bound;
 		}
 		random->data_qty += prob;
+		if( !found )
+			idb_put(itemdb_group, group->id, group);
 		entries++;
 	}
 	fclose(fp);
@@ -796,8 +779,8 @@ static void itemdb_read_itemgroup_sub(const char* filename)
 static void itemdb_read_itemgroup(void)
 {
 	char path[256];
+
 	snprintf(path, 255, "%s/"DBPATH"item_group_db.txt", db_path);
-	memset(&itemgroup_db, 0, sizeof(itemgroup_db));
 	itemdb_read_itemgroup_sub(path);
 	return;
 }
@@ -842,7 +825,7 @@ static bool itemdb_read_itemtrade(char* str[], int columns, int current)
 	flag = atoi(str[1]);
 	gmlv = atoi(str[2]);
 
-	if( flag < 0 || flag > 511 ) { //Check range
+	if( flag < 0 || flag > ITR_ALL ) { //Check range
 		ShowWarning("itemdb_read_itemtrade: Invalid trading mask %d for item id %d.\n", flag, nameid);
 		return false;
 	}
@@ -971,12 +954,13 @@ static bool itemdb_read_nouse(char* fields[], int columns, int current)
 
 /** Misc Item flags
  * <item_id>,<flag>
- * &1 - Log as dead branch
+ * &1 - As dead branch item
  * &2 - As item container
  */
 static bool itemdb_read_flag(char* fields[], int columns, int current) {
 	uint16 nameid = atoi(fields[0]);
-	uint8 flag = atoi(fields[1]);
+	uint8 flag;
+	bool set;
 	struct item_data *id;
 
 	if( !(id = itemdb_exists(nameid)) ) {
@@ -984,18 +968,21 @@ static bool itemdb_read_flag(char* fields[], int columns, int current) {
 		return true;
 	}
 
+	flag = abs(atoi(fields[1]));
+	set = atoi(fields[1]) > 0;
+
 	if( flag&1 )
-		id->flag.dead_branch = 1;
+		id->flag.dead_branch = (set ? 1 : 0);
 
 	if( flag&2 )
-		id->flag.group = 1;
+		id->flag.group = (set ? 1 : 0);
 
 	return true;
 }
 
 /**
  * @return: amount of retrieved entries.
- **/
+ */
 static int itemdb_combo_split_atoi(char *str, int *val) {
 	int i;
 
@@ -1017,7 +1004,7 @@ static int itemdb_combo_split_atoi(char *str, int *val) {
 }
 /**
  * <combo{:combo{:combo:{..}}}>,<{ script }>
- **/
+ */
 static void itemdb_read_combos() {
 	uint32 lines = 0, count = 0;
 	char line[1024];
@@ -1582,22 +1569,22 @@ static void destroy_item_data(struct item_data* self, bool free_self)
 		script_free_code(self->unequip_script);
 	if( self->combos_count ) {
 		int i;
+
 		for( i = 0; i < self->combos_count; i++ ) {
 			if( !self->combos[i]->isRef ) {
 				aFree(self->combos[i]->nameid);
-				script_free_code(self->combos[i]->script);
+				if( self->combos[i]->script )
+					script_free_code(self->combos[i]->script);
 			}
 			aFree(self->combos[i]);
 		}
 		aFree(self->combos);
 	}
 #if defined(DEBUG)
-	// Trash item
-	memset(self, 0xDD, sizeof(struct item_data));
+	memset(self, 0xDD, sizeof(struct item_data)); // Trash item
 #endif
-	// Free self
 	if( free_self )
-		aFree(self);
+		aFree(self); // Free self
 }
 
 /**
@@ -1610,6 +1597,25 @@ static int itemdb_final_sub(DBKey key, DBData *data, va_list ap)
 	if( id != &dummy_item )
 		destroy_item_data(id, true);
 
+	return 0;
+}
+
+static int itemdb_group_free(DBKey key, DBData *data, va_list ap) {
+	struct s_item_group_db *group = db_data2ptr(data);
+	uint8 j;
+
+	if( !group )
+		return 0;
+	if( group->must_qty )
+		aFree(group->must);
+	group->must_qty = 0;
+	for( j = 0; j < MAX_ITEMGROUP_RANDGROUP; j++ ) {
+		if( !group->random[j].data_qty || !(&group->random[j]) )
+			continue;
+		aFree(group->random[j].data);
+		group->random[j].data_qty = 0;
+	}
+	aFree(group);
 	return 0;
 }
 
@@ -1627,20 +1633,7 @@ void itemdb_reload(void)
 		if( itemdb_array[i] )
 			destroy_item_data(itemdb_array[i], true);
 
-	for( i = 0; i < MAX_ITEMGROUP; i++ ) {
-		uint8 j;
-
-		if( !(&itemgroup_db[i]) )
-			continue;
-		if( itemgroup_db[i].must_qty )
-			aFree(itemgroup_db[i].must);
-		for( j = 0; j < MAX_ITEMGROUP_RANDGROUP; j++ ) {
-			if( !(&itemgroup_db[i].random[j]) || !itemgroup_db[i].random[j].data_qty )
-				continue;
-			aFree(itemgroup_db[i].random[j].data);
-		}
-	}
-
+	itemdb_group->clear(itemdb_group, itemdb_group_free);
 	itemdb_other->clear(itemdb_other, itemdb_final_sub);
 	db_clear(itemdb_combo);
 	memset(itemdb_array, 0, sizeof(itemdb_array));
@@ -1710,20 +1703,7 @@ void do_final_itemdb(void)
 		if( itemdb_array[i] )
 			destroy_item_data(itemdb_array[i], true);
 
-	for( i = 0; i < MAX_ITEMGROUP; i++ ) {
-		uint8 j;
-
-		if( !(&itemgroup_db[i]) )
-			continue;
-		if( itemgroup_db[i].must_qty )
-			aFree(itemgroup_db[i].must);
-		for( j = 0; j < MAX_ITEMGROUP_RANDGROUP; j++ ) {
-			if( !(&itemgroup_db[i].random[j]) || !itemgroup_db[i].random[j].data_qty )
-				continue;
-			aFree(itemgroup_db[i].random[j].data);
-		}
-	}
-
+	itemdb_group->destroy(itemdb_group, itemdb_group_free);
 	itemdb_other->destroy(itemdb_other, itemdb_final_sub);
 	destroy_item_data(&dummy_item, false);
 	db_destroy(itemdb_combo);
@@ -1736,6 +1716,7 @@ void do_init_itemdb(void) {
 	memset(itemdb_array, 0, sizeof(itemdb_array));
 	itemdb_other = idb_alloc(DB_OPT_BASE);
 	itemdb_combo = idb_alloc(DB_OPT_BASE);
+	itemdb_group = idb_alloc(DB_OPT_BASE);
 	create_dummy_data(); //Dummy data item.
 	itemdb_read();
 }

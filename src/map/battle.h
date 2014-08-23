@@ -546,6 +546,8 @@ extern struct Battle_Config
 	int taekwon_mission_mobname;
 	int teleport_on_portal;
 	int cart_revo_knockback;
+	int guild_castle_invite;
+	int guild_castle_expulsion;
 } battle_config;
 
 void do_init_battle(void);
@@ -556,11 +558,7 @@ extern void battle_set_defaults(void);
 int battle_set_value(const char* w1, const char* w2);
 int battle_get_value(const char* w1);
 
-//
 struct block_list* battle_getenemyarea(struct block_list *src, int x, int y, int range, int type, int ignore_id);
-/**
- * Royal Guard
- **/
 int battle_damage_area(struct block_list *bl, va_list ap);
 
 #endif /* _BATTLE_H_ */

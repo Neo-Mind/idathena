@@ -168,7 +168,7 @@
 5008,0x85,    ,  0, 0,  -1,all,   0x003	//SO_ELEMENTAL_SHIELD
 5010,0xfe,    ,  0, 2,  -1,enemy, 0x000	//SC_ESCAPE
 
-8020,0xf5,    ,  0, 3,2300:2100:1900:1700:1500,enemy, 0x018	//MH_POISON_MIST
+8020,0xf5,    ,  3, 0,2300:2100:1900:1700:1500,enemy, 0x018	//MH_POISON_MIST
 8033,0x7e,    ,  0, 0,  -1,all, 0x003	//MH_STEINWAND
 8025,0x86,    ,  0, 2:2:3:3:4,1000,enemy, 0x018	//MH_XENO_SLASHER
 8041,0xf6,    ,  1:1:2:2:3, 0,2000,enemy, 0x01A	//MH_LAVA_SLIDE
@@ -181,9 +181,9 @@
 8212,0x97,    ,  0, 1,1000,enemy, 0x006	//MA_FREEZINGTRAP
 
 8403,0xed,    , -1, 0,  20,enemy, 0x018 //EL_FIRE_MANTLE
-8406,0xee,    ,  0, 1,1000,friend,0x018	//EL_WATER_BARRIER
-8409,0xef,    ,  0, 1,1000,friend,0x018	//EL_ZEPHYR
-8412,0xf0,    ,  0, 1,1000,friend,0x018	//EL_POWER_OF_GAIA
+8406,0xee,    ,  1, 0,1000,friend,0x2018	//EL_WATER_BARRIER
+8409,0xef,    ,  0, 1,1000,friend,0x2018	//EL_ZEPHYR
+8412,0xf0,    ,  0, 1,1000,friend,0x2018	//EL_POWER_OF_GAIA
 
 10006,0xc1,   ,  2, 0,  -1,sameguild, 0x040	//GD_LEADERSHIP
 10007,0xc2,   ,  2, 0,  -1,sameguild, 0x040	//GD_GLORYWOUNDS

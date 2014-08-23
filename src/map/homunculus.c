@@ -562,10 +562,10 @@ int hom_gainexp(struct homun_data *hd,int exp)
 // Return the new value
 int hom_increase_intimacy(struct homun_data * hd, unsigned int value)
 {
-	if (battle_config.homunculus_friendly_rate != 100)
+	if(battle_config.homunculus_friendly_rate != 100)
 		value = (value * battle_config.homunculus_friendly_rate) / 100;
 
-	if (hd->homunculus.intimacy + value <= 100000)
+	if(hd->homunculus.intimacy + value <= 100000)
 		hd->homunculus.intimacy += value;
 	else
 		hd->homunculus.intimacy = 100000;
@@ -575,7 +575,7 @@ int hom_increase_intimacy(struct homun_data * hd, unsigned int value)
 // Return 0 if decrease fails or intimacy became 0 else the new value
 int hom_decrease_intimacy(struct homun_data * hd, unsigned int value)
 {
-	if (hd->homunculus.intimacy >= value)
+	if(hd->homunculus.intimacy >= value)
 		hd->homunculus.intimacy -= value;
 	else
 		hd->homunculus.intimacy = 0;
@@ -589,7 +589,7 @@ void hom_heal(struct homun_data *hd) {
 
 void hom_save(struct homun_data *hd)
 {
-	// copy data that must be saved in homunculus struct ( hp / sp )
+	//Copy data that must be saved in homunculus struct (hp / sp)
 	TBL_PC * sd = hd->master;
 	//Do not check for max_hp/max_sp caps as current could be higher to max due
 	//to status changes/skills (they will be capped as needed upon stat
@@ -602,7 +602,8 @@ void hom_save(struct homun_data *hd)
 int hom_menu(struct map_session_data *sd,int menunum)
 {
 	nullpo_ret(sd);
-	if (sd->hd == NULL)
+
+	if(sd->hd == NULL)
 		return 1;
 
 	switch(menunum) {
@@ -630,22 +631,24 @@ int hom_food(struct map_session_data *sd, struct homun_data *hd)
 
 	foodID = hd->homunculusDB->foodID;
 	i = pc_search_inventory(sd,foodID);
-	if(i < 0) {
+
+	if(i == INDEX_NOT_FOUND) {
 		clif_hom_food(sd,foodID,0);
 		return 1;
 	}
+
 	pc_delitem(sd,i,1,0,0,LOG_TYPE_CONSUME);
 
-	if ( hd->homunculus.hunger >= 91 ) {
+	if(hd->homunculus.hunger >= 91) {
 		hom_decrease_intimacy(hd, 50);
 		emotion = E_WAH;
-	} else if ( hd->homunculus.hunger >= 76 ) {
+	} else if(hd->homunculus.hunger >= 76) {
 		hom_decrease_intimacy(hd, 5);
 		emotion = E_SWT2;
-	} else if ( hd->homunculus.hunger >= 26 ) {
+	} else if(hd->homunculus.hunger >= 26) {
 		hom_increase_intimacy(hd, 75);
 		emotion = E_HO;
-	} else if ( hd->homunculus.hunger >= 11 ) {
+	} else if(hd->homunculus.hunger >= 11) {
 		hom_increase_intimacy(hd, 100);
 		emotion = E_HO;
 	} else {
@@ -662,7 +665,7 @@ int hom_food(struct map_session_data *sd, struct homun_data *hd)
 	clif_send_homdata(sd,SP_INTIMATE,hd->homunculus.intimacy / 100);
 	clif_hom_food(sd,foodID,1);
 
-	// Too much food :/
+	//Too much food :/
 	if(hd->homunculus.intimacy == 0)
 		return hom_delete(sd->hd, E_OMG);
 

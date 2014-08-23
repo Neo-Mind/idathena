@@ -157,6 +157,8 @@ enum item_types {
 	IT_MAX
 };
 
+#define INDEX_NOT_FOUND (-1) //Used as invalid/failure value in various functions that return an index
+
 //Questlog states
 enum quest_state {
 	Q_INACTIVE, //Inactive quest (the user can toggle between active and inactive quests)
@@ -295,7 +297,7 @@ struct s_pet {
 	short hungry;//pet hungry
 	char name[NAME_LENGTH];
 	char rename_flag;
-	char incuvate;
+	char incubate;
 };
 
 struct s_homunculus {	//[orn]
@@ -799,6 +801,16 @@ enum e_char_server_type {
 	CST_OVER18      = 2,
 	CST_PAYING      = 3,
 	CST_P2P         = 4,
+};
+
+// Item Bound Type
+enum bound_type {
+	BOUND_NONE = 0, // No bound
+	BOUND_ACCOUNT, // 1- Account Bound
+	BOUND_GUILD, // 2 - Guild Bound
+	BOUND_PARTY, // 3 - Party Bound
+	BOUND_CHAR, // 4 - Character Bound
+	BOUND_MAX
 };
 
 // Sanity checks
