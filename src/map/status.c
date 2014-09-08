@@ -717,7 +717,7 @@ void initChangeTables(void) {
 	add_sc( SC_CHAOSPANIC        , SC__CHAOS );
 	add_sc( SC_BLOODYLUST        , SC_BERSERK );
 	set_sc( SC_MAELSTROM         , SC__MAELSTROM      , SI_BLANK           , SCB_NONE );
-	add_sc( SC_FEINTBOMB         , SC__FEINT );
+	add_sc( SC_FEINTBOMB         , SC__FEINTBOMB );
 
 	add_sc( SR_DRAGONCOMBO           , SC_STUN            );
 	add_sc( SR_EARTHSHAKER           , SC_STUN            );
@@ -2005,7 +2005,7 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 					if( tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS) &&
 						(tsd->special_state.perfect_hiding || (status->mode&MD_DETECTOR)) )
 						return 0;
-					if( tsc->data[SC__FEINT] )
+					if( tsc->data[SC__FEINTBOMB] )
 						return 0;
 				}
 				break;
@@ -2539,13 +2539,11 @@ static int status_get_hpbonus(struct block_list *bl, enum e_status_bonus type) {
 		//Only for BL_PC
 		if (bl->type == BL_PC) {
 			struct map_session_data *sd = map_id2sd(bl->id);
-			int i;
+			uint8 i;
 
 			bonus += sd->bonus.hp;
 			if ((i = pc_checkskill(sd,CR_TRUST)) > 0)
 				bonus += i * 200;
-			if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->status.char_id, MAPID_TAEKWON))
-				bonus *= 3; // Triple max HP for top ranking Taekwons over level 90.
 			if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && sd->status.base_level >= 99)
 				bonus += 2000; // Supernovice lvl99 hp bonus.
 		}
@@ -2575,7 +2573,7 @@ static int status_get_hpbonus(struct block_list *bl, enum e_status_bonus type) {
 			bonus += sd->hprate;
 			bonus -= 100; //Default hprate is 100, so it should be add 0%
 			//+200% for top ranking Taekwons over level 90.
-			if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->status.char_id,MAPID_TAEKWON))
+			if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= battle_config.taekwon_ranker_min_lv && pc_famerank(sd->status.char_id,MAPID_TAEKWON))
 				bonus += 200;
 		}
 
@@ -2651,7 +2649,7 @@ static int status_get_spbonus(struct block_list *bl, enum e_status_bonus type) {
 		//Only for BL_PC
 		if (bl->type == BL_PC) {
 			struct map_session_data *sd = map_id2sd(bl->id);
-			int i;
+			uint8 i;
 
 			bonus += sd->bonus.sp;
 			if ((i = pc_checkskill(sd,SL_KAINA)) > 0)
@@ -2675,7 +2673,7 @@ static int status_get_spbonus(struct block_list *bl, enum e_status_bonus type) {
 		//Only for BL_PC
 		if (bl->type == BL_PC) {
 			struct map_session_data *sd = map_id2sd(bl->id);
-			int i;
+			uint8 i;
 
 			bonus += sd->sprate;
 			bonus -= 100; //Default sprate is 100, so it should be add 0%
@@ -2686,7 +2684,7 @@ static int status_get_spbonus(struct block_list *bl, enum e_status_bonus type) {
 				bonus += 2 * i;
 
 			//+200% for top ranking Taekwons over level 90.
-			if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->status.char_id, MAPID_TAEKWON))
+			if ((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= battle_config.taekwon_ranker_min_lv && pc_famerank(sd->status.char_id, MAPID_TAEKWON))
 				bonus += 200;
 		}
 
@@ -2920,15 +2918,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 			continue;
 		if(i == EQI_AMMO)
 			continue;
-		if(i == EQI_HAND_R && sd->equip_index[EQI_HAND_L] == index)
-			continue;
-		if(i == EQI_HEAD_MID && sd->equip_index[EQI_HEAD_LOW] == index)
-			continue;
-		if(i == EQI_HEAD_TOP && (sd->equip_index[EQI_HEAD_MID] == index || sd->equip_index[EQI_HEAD_LOW] == index))
-			continue;
-		if(i == EQI_COSTUME_MID && sd->equip_index[EQI_COSTUME_LOW] == index)
-			continue;
-		if(i == EQI_COSTUME_TOP && (sd->equip_index[EQI_COSTUME_MID] == index || sd->equip_index[EQI_COSTUME_LOW] == index))
+		if(pc_is_same_equip_index((enum equip_index)i, sd->equip_index, index))
 			continue;
 		if(!sd->inventory_data[index])
 			continue;
@@ -3027,6 +3017,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 	/* We've got combos to process and check */
 	if(sd->combos.count) {
 		DBMap *combo_db = itemdb_get_combodb();
+
 		for(i = 0; i < sd->combos.count; i++) {
 			uint8 j = 0;
 			bool no_run = false;
@@ -3067,11 +3058,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 			continue;
 		if(i == EQI_AMMO)
 			continue;
-		if(i == EQI_HAND_R && sd->equip_index[EQI_HAND_L] == index)
-			continue;
-		if(i == EQI_HEAD_MID && sd->equip_index[EQI_HEAD_LOW] == index)
-			continue;
-		if(i == EQI_HEAD_TOP && (sd->equip_index[EQI_HEAD_MID] == index || sd->equip_index[EQI_HEAD_LOW] == index))
+		if(pc_is_same_equip_index((enum equip_index)i, sd->equip_index, index))
 			continue;
 
 		if(sd->inventory_data[index]) {
@@ -4240,7 +4227,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		if( status->luk == b_status->luk )
 			status->flee2 = status_calc_flee2(bl, sc, b_status->flee2);
 		else
-			status->flee2 = status_calc_flee2(bl, sc, b_status->flee2 +(status->luk - b_status->luk));
+			status->flee2 = status_calc_flee2(bl, sc, b_status->flee2 + (status->luk - b_status->luk));
 	}
 
 	if( flag&SCB_ATK_ELE ) {
@@ -6160,13 +6147,13 @@ static unsigned char status_calc_element(struct block_list *bl, struct status_ch
 	return (unsigned char)cap_value(element,0,UCHAR_MAX);
 }
 
-/*==========================================
-* Changes a player's element level based on status changes
-* @param bl: Object to change aspd (PC|HOM|MERC|MOB|ELEM)
-* @param sc: Object's status change information
-* @param lv: Object's current element level
-* @return new element level
-*------------------------------------------*/
+/**
+ * Changes a player's element level based on status changes
+ * @param bl: Object to change aspd (PC|HOM|MERC|MOB|ELEM)
+ * @param sc: Object's status change information
+ * @param lv: Object's current element level
+ * @return new element level
+ */
 static unsigned char status_calc_element_lv(struct block_list *bl, struct status_change *sc, int lv)
 {
 	if(!sc || !sc->count)
@@ -6188,13 +6175,13 @@ static unsigned char status_calc_element_lv(struct block_list *bl, struct status
 	return (unsigned char)cap_value(lv,1,4);
 }
 
-/*==========================================
-* Changes a player's attack element based on status changes
-* @param bl: Object to change aspd (PC|HOM|MERC|MOB|ELEM)
-* @param sc: Object's status change information
-* @param element: Object's current attack element
-* @return new attack element
-*------------------------------------------*/
+/**
+ * Changes a player's attack element based on status changes
+ * @param bl: Object to change aspd (PC|HOM|MERC|MOB|ELEM)
+ * @param sc: Object's status change information
+ * @param element: Object's current attack element
+ * @return new attack element
+ */
 unsigned char status_calc_attack_element(struct block_list *bl, struct status_change *sc, int element)
 {
 	if(!sc || !sc->count)
@@ -9664,7 +9651,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_CLOAKINGEXCEED:
 		case SC_CHASEWALK:
 		case SC_CAMOUFLAGE:
-		case SC__FEINT:
+		case SC__FEINTBOMB:
 		case SC_VOICEOFSIREN:
 		case SC_ALL_RIDING:
 		case SC_HEAT_BARREL_AFTER:
@@ -9836,7 +9823,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			sc->option |= OPTION_CHASEWALK|OPTION_CLOAK;
 			opt_flag = 2;
 			break;
-		case SC__FEINT:
+		case SC__FEINTBOMB:
 			sc->option |= OPTION_INVISIBLE;
 			opt_flag |= 0x4;
 			break;
@@ -10537,7 +10524,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 					s_sd->shadowform_id = 0;
 			}
 			break;
-		case SC__FEINT:
+		case SC__FEINTBOMB:
 			if (sd && pc_ishiding(sd)) {
 				status_change_end(bl,SC_HIDING,INVALID_TIMER);
 				status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
@@ -10750,7 +10737,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			sc->option &= ~(OPTION_CHASEWALK|OPTION_CLOAK);
 			opt_flag |= 2;
 			break;
-		case SC__FEINT:
+		case SC__FEINTBOMB:
 			sc->option &= ~OPTION_INVISIBLE;
 			opt_flag |= 0x4;
 			break;
@@ -11905,8 +11892,7 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 		case SC_RUWACH: /* Reveal hidden target and deal little dammages if enemy */
 			if( tsc ) {
 				if( tsc->data[SC_HIDING] || tsc->data[SC_CLOAKING] ||
-					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_CLOAKINGEXCEED] ||
-					tsc->data[SC__INVISIBILITY] ) //Invisibility should hit only
+					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_CLOAKINGEXCEED] )
 				{
 					status_change_end(bl, SC_HIDING, INVALID_TIMER);
 					status_change_end(bl, SC_CLOAKING, INVALID_TIMER);

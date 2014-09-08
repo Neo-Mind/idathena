@@ -72,11 +72,14 @@ void pet_set_intimate(struct pet_data *pd, int value)
 		status_calc_pc(sd,SCO_NONE);
 }
 
-int pet_create_egg(struct map_session_data *sd, int item_id)
+int pet_create_egg(struct map_session_data *sd, unsigned short item_id)
 {
 	int pet_id = search_petDB_index(item_id, PET_EGG);
-	if (pet_id < 0) return 0; //No pet egg here.
-	if (!pc_inventoryblank(sd)) return 0; // Inventory full
+
+	if (pet_id < 0)
+		return 0; //No pet egg here.
+	if (!pc_inventoryblank(sd))
+		return 0; //Inventory full
 	sd->catch_target_class = pet_db[pet_id].class_;
 	intif_create_pet(sd->status.account_id, sd->status.char_id,
 		(short)pet_db[pet_id].class_,
@@ -288,7 +291,7 @@ static int pet_performance(struct map_session_data *sd, struct pet_data *pd)
 static int pet_return_egg(struct map_session_data *sd, struct pet_data *pd)
 {
 	struct item tmp_item;
-	int flag;
+	unsigned char flag = 0;
 
 	pet_lootitem_drop(pd,sd);
 	memset(&tmp_item,0,sizeof(tmp_item));
@@ -554,7 +557,8 @@ bool pet_get_egg(int account_id, short pet_class, int pet_id)
 {
 	struct map_session_data *sd;
 	struct item tmp_item;
-	int i = 0, ret = 0;
+	int i = 0;
+	unsigned char ret = 0;
 
 	if(pet_id == 0 || pet_class == 0)
 		return false;
@@ -679,15 +683,17 @@ int pet_change_name_ack(struct map_session_data *sd, char* name, int flag)
 int pet_equipitem(struct map_session_data *sd,int index)
 {
 	struct pet_data *pd;
-	int nameid;
+	unsigned short nameid;
 
 	nullpo_retr(1, sd);
+
 	pd = sd->pd;
-	if (!pd)  return 1;
+	if (!pd)
+		return 1;
 
 	nameid = sd->status.inventory[index].nameid;
 
-	if(pd->petDB->AcceID == 0 || nameid != pd->petDB->AcceID || pd->pet.equip != 0) {
+	if (pd->petDB->AcceID == 0 || nameid != pd->petDB->AcceID || pd->pet.equip != 0) {
 		clif_equipitemack(sd,0,0,0);
 		return 1;
 	}
@@ -696,18 +702,17 @@ int pet_equipitem(struct map_session_data *sd,int index)
 	pd->pet.equip = nameid;
 	status_set_viewdata(&pd->bl, pd->pet.class_); //Updates view_data.
 	clif_pet_equip_area(pd);
-	if (battle_config.pet_equip_required)
-	{ 	//Skotlex: start support timers if need
+	if (battle_config.pet_equip_required) { //Skotlex: start support timers if need
 		unsigned int tick = gettick();
-		if (pd->s_skill && pd->s_skill->timer == INVALID_TIMER)
-		{
+
+		if (pd->s_skill && pd->s_skill->timer == INVALID_TIMER) {
 			if (pd->s_skill->id)
-				pd->s_skill->timer=add_timer(tick+pd->s_skill->delay*1000, pet_skill_support_timer, sd->bl.id, 0);
+				pd->s_skill->timer=add_timer(tick+pd->s_skill->delay * 1000, pet_skill_support_timer, sd->bl.id, 0);
 			else
-				pd->s_skill->timer=add_timer(tick+pd->s_skill->delay*1000, pet_heal_timer, sd->bl.id, 0);
+				pd->s_skill->timer=add_timer(tick+pd->s_skill->delay * 1000, pet_heal_timer, sd->bl.id, 0);
 		}
 		if (pd->bonus && pd->bonus->timer == INVALID_TIMER)
-			pd->bonus->timer=add_timer(tick+pd->bonus->delay*1000, pet_skill_bonus_timer, sd->bl.id, 0);
+			pd->bonus->timer=add_timer(tick+pd->bonus->delay * 1000, pet_skill_bonus_timer, sd->bl.id, 0);
 	}
 
 	return 0;
@@ -716,9 +721,10 @@ int pet_equipitem(struct map_session_data *sd,int index)
 static int pet_unequipitem(struct map_session_data *sd, struct pet_data *pd)
 {
 	struct item tmp_item;
-	int nameid,flag;
+	unsigned short nameid;
+	unsigned char flag = 0;
 
-	if(pd->pet.equip == 0)
+	if (pd->pet.equip == 0)
 		return 1;
 
 	nameid = pd->pet.equip;
@@ -728,23 +734,23 @@ static int pet_unequipitem(struct map_session_data *sd, struct pet_data *pd)
 	memset(&tmp_item,0,sizeof(tmp_item));
 	tmp_item.nameid = nameid;
 	tmp_item.identify = 1;
-	if((flag = pc_additem(sd,&tmp_item,1,LOG_TYPE_OTHER))) {
+	if ((flag = pc_additem(sd,&tmp_item,1,LOG_TYPE_OTHER))) {
 		clif_additem(sd,0,0,flag);
 		map_addflooritem(&tmp_item,1,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 	}
-	if( battle_config.pet_equip_required ) { // Skotlex: halt support timers if needed
-		if( pd->state.skillbonus ) {
+	if (battle_config.pet_equip_required) { //Skotlex: halt support timers if needed
+		if (pd->state.skillbonus) {
 			pd->state.skillbonus = 0;
 			status_calc_pc(sd,SCO_NONE);
 		}
-		if( pd->s_skill && pd->s_skill->timer != INVALID_TIMER ) {
-			if( pd->s_skill->id )
+		if (pd->s_skill && pd->s_skill->timer != INVALID_TIMER) {
+			if (pd->s_skill->id)
 				delete_timer(pd->s_skill->timer, pet_skill_support_timer);
 			else
 				delete_timer(pd->s_skill->timer, pet_heal_timer);
 			pd->s_skill->timer = INVALID_TIMER;
 		}
-		if( pd->bonus && pd->bonus->timer != INVALID_TIMER ) {
+		if (pd->bonus && pd->bonus->timer != INVALID_TIMER) {
 			delete_timer(pd->bonus->timer, pet_skill_bonus_timer);
 			pd->bonus->timer = INVALID_TIMER;
 		}
@@ -1012,10 +1018,11 @@ static int pet_delay_item_drop(int tid, unsigned int tick, int id, intptr_t data
 
 int pet_lootitem_drop(struct pet_data *pd,struct map_session_data *sd)
 {
-	int i,flag=0;
+	int i;
 	struct item_drop_list *dlist;
 	struct item_drop *ditem;
 	struct item *it;
+
 	if(!pd || !pd->loot || !pd->loot->count)
 		return 0;
 	dlist = ers_alloc(item_drop_list_ers, struct item_drop_list);
@@ -1027,9 +1034,11 @@ int pet_lootitem_drop(struct pet_data *pd,struct map_session_data *sd)
 	dlist->third_charid = 0;
 	dlist->item = NULL;
 
-	for(i=0;i<pd->loot->count;i++) {
+	for(i = 0; i < pd->loot->count; i++) {
 		it = &pd->loot->item[i];
-		if(sd){
+		if(sd) {
+			unsigned char flag = 0;
+
 			if((flag = pc_additem(sd,it,it->amount,LOG_TYPE_PICKDROP_PLAYER))){
 				clif_additem(sd,0,0,flag);
 				ditem = ers_alloc(item_drop_ers, struct item_drop);
@@ -1037,8 +1046,7 @@ int pet_lootitem_drop(struct pet_data *pd,struct map_session_data *sd)
 				ditem->next = dlist->item;
 				dlist->item = ditem;
 			}
-		}
-		else {
+		} else {
 			ditem = ers_alloc(item_drop_ers, struct item_drop);
 			memcpy(&ditem->item_data, it, sizeof(struct item));
 			ditem->next = dlist->item;
@@ -1219,9 +1227,10 @@ int pet_skill_support_timer(int tid, unsigned int tick, int id, intptr_t data)
  *------------------------------------------*/
 void read_petdb()
 {
-	char* filename[] = {"pet_db.txt","pet_db2.txt"};
+	char* filename[] = { "pet_db.txt","pet_db2.txt" };
 	FILE *fp;
-	int nameid,i,j,k;
+	unsigned short nameid;
+	int i, j, k;
 
 	// Remove any previous scripts in case reloaddb was invoked.
 	for( j = 0; j < MAX_PET_DB; j++ ) {
@@ -1304,7 +1313,7 @@ void read_petdb()
 				continue;
 
 			if( !mobdb_checkid(nameid) ) {
-				ShowWarning("pet_db reading: Invalid mob-class %d, pet not read.\n", nameid);
+				ShowWarning("pet_db reading: Invalid mob-class %hu, pet not read.\n", nameid);
 				continue;
 			}
 

@@ -540,7 +540,6 @@ extern struct Battle_Config
 	int warg_can_falcon;
 	int path_blown_halt;
 	int rental_mount_speed_boost;
-	int atcommand_enable_npc;
 	int crimson_marker_type;
 	int warp_suggestions_enabled;
 	int taekwon_mission_mobname;
@@ -548,6 +547,20 @@ extern struct Battle_Config
 	int cart_revo_knockback;
 	int guild_castle_invite;
 	int guild_castle_expulsion;
+	int transcendent_status_points;
+	int taekwon_ranker_min_lv;
+	int revive_onwarp;
+
+	// Fame points
+	int fame_taekwon_mission;
+	int fame_refine_lv1;
+	int fame_refine_lv2;
+	int fame_refine_lv3;
+	int fame_forge;
+	int fame_pharmacy_3;
+	int fame_pharmacy_5;
+	int fame_pharmacy_7;
+	int fame_pharmacy_10;
 } battle_config;
 
 void do_init_battle(void);

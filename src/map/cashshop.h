@@ -43,7 +43,7 @@ enum CASHSHOP_BUY_RESULT {
 };
 
 struct cash_item_data {
-	uint32 nameid;
+	unsigned short nameid;
 	uint32 price;
 };
 

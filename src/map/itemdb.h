@@ -8,8 +8,8 @@
 #include "../common/mmo.h" //ITEM_NAME_LENGTH
 #include "map.h"
 
-//32k array entries in array (the rest goes to the db)
-#define MAX_ITEMDB 0x8000
+//65,535 entries in array (the rest goes to the db)
+#define MAX_ITEMDB 0x10000
 
 //Use apple for unknown items.
 #define UNKNOWN_ITEM_ID 512
@@ -31,7 +31,7 @@
 
 #define CARD0_FORGE 0x00FF
 #define CARD0_CREATE 0x00FE
-#define CARD0_PET ((short)0xFF00)
+#define CARD0_PET 0x0100
 
 //Marks if the card0 given is "special" (non-item id used to mark pets/created items. [Skotlex]
 #define itemdb_isspecial(i) (i == CARD0_FORGE || i == CARD0_CREATE || i == CARD0_PET)
@@ -324,7 +324,7 @@ struct item_combo {
 
 //Struct of item group entry
 struct s_item_group_entry {
-	uint16 nameid, //Item ID
+	unsigned short nameid, //Item ID
 		duration; //Duration if item as rental item (in minutes)
 	uint16 amount; //Amount of item will be obtained
 	bool isAnnounced, //Broadcast if player get this item
@@ -372,7 +372,7 @@ enum ItemNouseRestrictions {
 
 //Main item data struct
 struct item_data {
-	uint16 nameid;
+	unsigned short nameid;
 	char name[ITEM_NAME_LENGTH],jname[ITEM_NAME_LENGTH];
 
 	//Do not add stuff between value_buy and view_id (see how getiteminfo works)
@@ -438,9 +438,9 @@ struct item_data {
 
 struct item_data* itemdb_searchname(const char *name);
 int itemdb_searchname_array(struct item_data** data, int size, const char *str);
-struct item_data* itemdb_load(int nameid);
-struct item_data* itemdb_search(int nameid);
-struct item_data* itemdb_exists(int nameid);
+struct item_data* itemdb_load(unsigned short nameid);
+struct item_data* itemdb_search(unsigned short nameid);
+struct item_data* itemdb_exists(unsigned short nameid);
 #define itemdb_name(n) itemdb_search(n)->name
 #define itemdb_jname(n) itemdb_search(n)->jname
 #define itemdb_type(n) itemdb_search(n)->type
@@ -497,14 +497,14 @@ bool itemdb_isrestricted(struct item* item, int gmlv, int gmlv2, int (*func)(str
 
 bool itemdb_isequip2(struct item_data *id);
 #define itemdb_isequip(nameid) itemdb_isequip2(itemdb_search(nameid))
-char itemdb_isidentified(int);
+char itemdb_isidentified(unsigned short nameid);
 bool itemdb_isstackable2(struct item_data *id);
 #define itemdb_isstackable(nameid) itemdb_isstackable2(itemdb_search(nameid))
 uint64 itemdb_unique_id(struct map_session_data *sd);
 bool itemdb_isNoEquip(struct item_data *id, uint16 m);
 
 char itemdb_pc_get_itemgroup(uint16 group_id, struct map_session_data *sd);
-uint16 itemdb_get_randgroupitem_count(uint16 group_id, uint8 sub_group, uint16 nameid);
+uint16 itemdb_get_randgroupitem_count(uint16 group_id, uint8 sub_group, unsigned short nameid);
 
 DBMap* itemdb_get_combodb();
 DBMap* itemdb_get_groupdb();

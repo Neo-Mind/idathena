@@ -1754,7 +1754,7 @@ static int mob_ai_hard(int tid, unsigned int tick, int id, intptr_t data)
 /*==========================================
  * Initializes the delay drop structure for mob-dropped items.
  *------------------------------------------*/
-static struct item_drop* mob_setdropitem(int nameid, int qty)
+static struct item_drop* mob_setdropitem(unsigned short nameid, int qty)
 {
 	struct item_drop *drop = ers_alloc(item_drop_ers, struct item_drop);
 	memset(&drop->item_data, 0, sizeof(struct item));
@@ -2450,7 +2450,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	}
 
 	if(mvp_sd && md->db->mexp > 0 && !md->special_state.ai) {
-		int log_mvp[2] = {0};
+		unsigned int log_mvp[2] = { 0 };
 		unsigned int mexp;
 		struct item item;
 		double exp;
@@ -2555,7 +2555,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				(battle_config.taekwon_mission_mobname == 2 && mob_is_samename(md, sd->mission_mobid)))
 			{ //TK_MISSION [Skotlex]
 				if(++sd->mission_count >= 100 && (temp = mob_get_random_id(0, 0xE, sd->status.base_level))) {
-					pc_addfame(sd, 1);
+					pc_addfame(sd, battle_config.fame_taekwon_mission);
 					sd->mission_mobid = temp;
 					pc_setglobalreg(sd, "TK_MISSION_ID", temp);
 					sd->mission_count = 0;
@@ -3616,9 +3616,8 @@ static unsigned int mob_drop_adjust(int baserate, int rate_adjust, unsigned shor
 		//Equation: Droprate(x,y) = x * (5 - log(x)) ^ (ln(y) / ln(5))
 		//x is the normal Droprate, y is the Modificator.
 		rate = rate * pow((5.0 - log10(rate)), (log(rate_adjust/100.) / log(5.0))) + 0.5;
-	else
-		//Classical linear rate adjustment.
-		rate = rate * rate_adjust/100;
+	else //Classical linear rate adjustment.
+		rate = rate * rate_adjust / 100;
 
 	return (unsigned int)cap_value(rate,rate_min,rate_max);
 }
@@ -3630,16 +3629,16 @@ static unsigned int mob_drop_adjust(int baserate, int rate_adjust, unsigned shor
  * @param mob_id ID of the monster
  * @param rate_adjust pointer to store ratio if found
  */
-static void item_dropratio_adjust(int nameid, int mob_id, int *rate_adjust)
+static void item_dropratio_adjust(unsigned short nameid, int mob_id, int *rate_adjust)
 {
 	if( item_drop_ratio_db[nameid] ) {
-		if( item_drop_ratio_db[nameid]->mob_id[0] ) { // only for listed mobs
+		if( item_drop_ratio_db[nameid]->mob_id[0] ) { //Only for listed mobs
 			int i;
+
 			ARR_FIND(0, MAX_ITEMRATIO_MOBS, i, item_drop_ratio_db[nameid]->mob_id[i] == mob_id);
-			if(i < MAX_ITEMRATIO_MOBS) // found
+			if( i < MAX_ITEMRATIO_MOBS ) //Found
 				*rate_adjust = item_drop_ratio_db[nameid]->drop_ratio;
-		}
-		else // for all mobs
+		} else //For all mobs
 			*rate_adjust = item_drop_ratio_db[nameid]->drop_ratio;
 	}
 }
@@ -4507,13 +4506,13 @@ static bool mob_readdb_race2(char* fields[], int columns, int current)
  */
 static bool mob_readdb_itemratio(char* str[], int columns, int current)
 {
-	int nameid, ratio, i;
+	unsigned short nameid;
+	int ratio, i;
 
 	nameid = atoi(str[0]);
 
-	if( itemdb_exists(nameid) == NULL )
-	{
-		ShowWarning("itemdb_read_itemratio: Invalid item id %d.\n", nameid);
+	if( itemdb_exists(nameid) == NULL ) {
+		ShowWarning("itemdb_read_itemratio: Invalid item id %hu.\n", nameid);
 		return false;
 	}
 

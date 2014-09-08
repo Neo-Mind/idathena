@@ -74,6 +74,7 @@
 #define MAX_GUILDLEVEL 50 //Max Guild level
 #define MAX_GUARDIANS 8 //Local max per castle. [Skotlex]
 #define MAX_QUEST_OBJECTIVES 3 //Max quest objectives for a quest
+#define MAX_PC_BONUS_SCRIPT 20
 
 //For produce
 #define MIN_ATTRIBUTE 0
@@ -176,13 +177,13 @@ struct quest {
 
 struct item {
 	int id;
-	short nameid;
+	unsigned short nameid;
 	short amount;
 	unsigned int equip; //Location(s) where item is equipped (using enum equip_pos for bitmasking)
 	char identify;
 	char refine;
 	char attribute;
-	short card[MAX_SLOTS];
+	unsigned short card[MAX_SLOTS];
 	unsigned int expire_time;
 	char favorite, bound;
 	uint64 unique_id;
@@ -589,7 +590,7 @@ struct fame_list {
  * It is used to request changes via intif_guild_change_basicinfo in map-server and to
  * signalize changes made in char-server via mapif_parse_GuildMemberInfoChange
  */
-enum guild_basic_info {
+enum e_guild_info {
 	GBI_EXP = 1,		// Guild Experience (EXP)
 	GBI_GUILDLV,		// Guild level
 	GBI_SKILLPOINT,		// Guild skillpoints
@@ -598,7 +599,7 @@ enum guild_basic_info {
 	GBI_SKILLLV,		// Guild skill_lv
 };
 
-enum { //Change Member Infos
+enum e_guild_member_info { //Change Member Infos
 	GMI_POSITION	= 0,
 	GMI_EXP,
 	GMI_HAIR,
@@ -631,7 +632,7 @@ enum e_guild_skill {
 };
 
 //These mark the ID of the jobs, as expected by the client. [Skotlex]
-enum {
+enum e_job {
 	JOB_NOVICE,
 	JOB_SWORDMAN,
 	JOB_MAGE,
@@ -816,6 +817,13 @@ enum bound_type {
 // Sanity checks
 #if MAX_ZENY > INT_MAX
 	#error MAX_ZENY is too big
+#endif
+
+#if (MIN_CHARS + MAX_CHAR_VIP + MAX_CHAR_BILLING) > MAX_CHARS
+	#error "Config of MAX_CHARS is invalid"
+#endif
+#if MIN_STORAGE > MAX_STORAGE
+	#error "Config of MIN_STORAGE is invalid"
 #endif
 
 #endif /* _MMO_H_ */

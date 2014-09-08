@@ -87,7 +87,7 @@ struct s_skill_changematerial_db skill_changematerial_db[MAX_SKILL_PRODUCE_DB];
 
 //Warlock
 struct s_skill_spellbook_db {
-	int nameid;
+	unsigned short nameid;
 	uint16 skill_id;
 	int point;
 };
@@ -6971,7 +6971,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case TF_PICKSTONE:
 			if(sd) {
-				int eflag;
+				unsigned char eflag;
 				struct item item_tmp;
 				struct block_list tbl;
 
@@ -12665,8 +12665,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 			break;
 
 		case UNT_BLOODYLUST:
-			//Only player type that'll receive the status
-			if( sg->src_id == bl->id || bl->type != BL_PC )
+			if( sg->src_id == bl->id )
 				break; //Doesn't affect the caster
 			if( !sce )
 				sc_start4(ss,bl,type,100,skill_lv,0,SC__BLOODYLUST,0,sg->limit);
@@ -14345,7 +14344,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 				status_change_end(&sd->bl,SC_COMBO,INVALID_TIMER);
 				return false;
 			}
-			if( sc->data[SC_COMBO]->val1 != skill_id && !(sd && sd->status.base_level >= 90 && pc_famerank(sd->status.char_id, MAPID_TAEKWON)) ) { //Cancel combo wait.
+			if( sc->data[SC_COMBO]->val1 != skill_id && !(sd && sd->status.base_level >= battle_config.taekwon_ranker_min_lv && pc_famerank(sd->status.char_id, MAPID_TAEKWON)) ) { //Cancel combo wait.
 				unit_cancel_combo(&sd->bl);
 				return false;
 			}
@@ -16173,13 +16172,13 @@ void skill_weaponrefine (struct map_session_data *sd, int idx)
 				{ //Fame point system [DracoRPG]
 					switch (ditem->wlv) {
 						case 1:
-							pc_addfame(sd,1); //Success to refine to +10 a lv1 weapon you forged = +1 fame point
+							pc_addfame(sd,battle_config.fame_refine_lv1); //Success to refine to +10 a lv1 weapon you forged = +1 fame point
 							break;
 						case 2:
-							pc_addfame(sd,25); //Success to refine to +10 a lv2 weapon you forged = +25 fame point
+							pc_addfame(sd,battle_config.fame_refine_lv2); //Success to refine to +10 a lv2 weapon you forged = +25 fame point
 							break;
 						case 3:
-							pc_addfame(sd,1000); //Success to refine to +10 a lv3 weapon you forged = +1000 fame point
+							pc_addfame(sd,battle_config.fame_refine_lv3); //Success to refine to +10 a lv3 weapon you forged = +1000 fame point
 							break;
 					}
 				}
@@ -18016,13 +18015,13 @@ int skill_unit_move_unit_group (struct skill_unit_group *group, int16 m, int16 d
 /*==========================================
  *
  *------------------------------------------*/
-int skill_can_produce_mix (struct map_session_data *sd, int nameid, int trigger, int qty)
+int skill_can_produce_mix(struct map_session_data *sd, unsigned short nameid, int trigger, int qty)
 {
 	int i, j;
 
 	nullpo_ret(sd);
 
-	if (nameid <= 0)
+	if (!nameid)
 		return 0;
 
 	for (i = 0; i < MAX_SKILL_PRODUCE_DB; i++) {
@@ -18079,10 +18078,10 @@ int skill_can_produce_mix (struct map_session_data *sd, int nameid, int trigger,
 /*==========================================
  *
  *------------------------------------------*/
-int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid, int slot1, int slot2, int slot3, int qty)
+int skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned short nameid, int slot1, int slot2, int slot3, int qty)
 {
 	int slot[3];
-	int i,sc,ele,idx,equip,wlv,make_per = 0,flag = 0,skill_lv = 0;
+	int i, sc, ele, idx, equip, wlv, make_per = 0, flag = 0, skill_lv = 0;
 	int num = -1; //Exclude the recipe
 	struct status_data *status;
 	struct item_data* data;
@@ -18506,7 +18505,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 			clif_produceeffect(sd,0,nameid);
 			clif_misceffect(&sd->bl,3);
 			if(itemdb_wlv(nameid) >= 3 && ((ele? 1 : 0) + sc) >= 3) //Fame point system [DracoRPG]
-				pc_addfame(sd,10); //Success to forge a lv3 weapon with 3 additional ingredients = +10 fame point
+				pc_addfame(sd,battle_config.fame_forge); //Success to forge a lv3 weapon with 3 additional ingredients = +10 fame point
 		} else {
 			int fame = 0;
 
@@ -18528,16 +18527,16 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 					//Add fame as needed.
 					switch(++sd->potion_success_counter) {
 						case 3:
-							fame += 1; //Success to prepare 3 Condensed Potions in a row
+							fame += battle_config.fame_pharmacy_3; //Success to prepare 3 Condensed Potions in a row
 							break;
 						case 5:
-							fame += 3; //Success to prepare 5 Condensed Potions in a row
+							fame += battle_config.fame_pharmacy_5; //Success to prepare 5 Condensed Potions in a row
 							break;
 						case 7:
-							fame += 10; //Success to prepare 7 Condensed Potions in a row
+							fame += battle_config.fame_pharmacy_7; //Success to prepare 7 Condensed Potions in a row
 							break;
 						case 10:
-							fame += 50; //Success to prepare 10 Condensed Potions in a row
+							fame += battle_config.fame_pharmacy_10; //Success to prepare 10 Condensed Potions in a row
 							sd->potion_success_counter = 0;
 							break;
 					}
@@ -18652,7 +18651,7 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 					tmp_item.nameid = compensation[i];
 					tmp_item.amount = qty;
 					tmp_item.identify = 1;
-					if(pc_additem(sd,&tmp_item,tmp_item.amount,LOG_TYPE_PRODUCE)) {
+					if((flag = pc_additem(sd,&tmp_item,tmp_item.amount,LOG_TYPE_PRODUCE))) {
 						clif_additem(sd,0,0,flag);
 						map_addflooritem(&tmp_item,tmp_item.amount,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 					}
@@ -18675,14 +18674,14 @@ int skill_produce_mix (struct map_session_data *sd, uint16 skill_id, int nameid,
 	return 0;
 }
 
-int skill_arrow_create(struct map_session_data *sd, int nameid)
+int skill_arrow_create(struct map_session_data *sd, unsigned short nameid)
 {
-	int i,j,flag,index = -1;
+	int i, j, index = -1;
 	struct item tmp_item;
 
 	nullpo_ret(sd);
 
-	if(nameid <= 0)
+	if(!nameid)
 		return 1;
 
 	for(i = 0; i < MAX_SKILL_ARROW_DB; i++)
@@ -18696,6 +18695,8 @@ int skill_arrow_create(struct map_session_data *sd, int nameid)
 
 	pc_delitem(sd,j,1,0,0,LOG_TYPE_PRODUCE);
 	for(i = 0; i < MAX_ARROW_RESOURCE; i++) {
+		unsigned char flag = 0;
+
 		memset(&tmp_item,0,sizeof(tmp_item));
 		tmp_item.identify = 1;
 		tmp_item.nameid = skill_arrow_db[index].cre_id[i];
@@ -18716,7 +18717,7 @@ int skill_arrow_create(struct map_session_data *sd, int nameid)
 
 	return 0;
 }
-int skill_poisoningweapon(struct map_session_data *sd, int nameid) {
+int skill_poisoningweapon(struct map_session_data *sd, unsigned short nameid) {
 	sc_type type;
 	int chance, i;
 	char output[128];
@@ -18724,7 +18725,7 @@ int skill_poisoningweapon(struct map_session_data *sd, int nameid) {
 
 	nullpo_ret(sd);
 
-	if( nameid <= 0 || (i = pc_search_inventory(sd,nameid)) == INDEX_NOT_FOUND || pc_delitem(sd,i,1,0,0,LOG_TYPE_CONSUME) ) {
+	if( !nameid || (i = pc_search_inventory(sd,nameid)) == INDEX_NOT_FOUND || pc_delitem(sd,i,1,0,0,LOG_TYPE_CONSUME) ) {
 		clif_skill_fail(sd,GC_POISONINGWEAPON,USESKILL_FAIL_LEVEL,0);
 		return 0;
 	}
@@ -18779,14 +18780,14 @@ static void skill_toggle_magicpower(struct block_list *bl, uint16 skill_id)
 	}
 }
 
-int skill_magicdecoy(struct map_session_data *sd, int nameid) {
+int skill_magicdecoy(struct map_session_data *sd, unsigned short nameid) {
 	int x, y, i, class_, skill;
 	struct mob_data *md;
 
 	nullpo_ret(sd);
 
 	skill = sd->menuskill_val;
-	if( nameid <= 0 || !itemdb_is_element(nameid) || (i = pc_search_inventory(sd,nameid)) == INDEX_NOT_FOUND ||
+	if( !nameid || !itemdb_is_element(nameid) || (i = pc_search_inventory(sd,nameid)) == INDEX_NOT_FOUND ||
 		!skill || pc_delitem(sd,i,1,0,0,LOG_TYPE_CONSUME) ) {
 		clif_skill_fail(sd,NC_MAGICDECOY,USESKILL_FAIL_LEVEL,0);
 		return 0;
@@ -18835,7 +18836,7 @@ int skill_magicdecoy(struct map_session_data *sd, int nameid) {
 }
 
 //Warlock spell books. [LimitLine]
-int skill_spellbook(struct map_session_data *sd, int nameid) {
+int skill_spellbook(struct map_session_data *sd, unsigned short nameid) {
 	int i, max_preserve, skill_id, point;
 	struct status_change *sc;
 
@@ -18926,7 +18927,8 @@ int skill_elementalanalysis(struct map_session_data* sd, int n, uint16 skill_lv,
 		return 1;
 
 	for( i = 0; i < n; i++ ) {
-		int nameid, add_amount, del_amount, idx, product;
+		unsigned short nameid;
+		int add_amount, del_amount, idx, product;
 		struct item tmp_item;
 
 		idx = item_list[i * 2 + 0] - 2;
@@ -18972,7 +18974,7 @@ int skill_elementalanalysis(struct map_session_data* sd, int n, uint16 skill_lv,
 		tmp_item.amount = add_amount;
 		tmp_item.identify = 1;
 		if( tmp_item.amount ) {
-			int flag = pc_additem(sd,&tmp_item,tmp_item.amount,LOG_TYPE_CONSUME);
+			unsigned char flag = pc_additem(sd,&tmp_item,tmp_item.amount,LOG_TYPE_CONSUME);
  
 			if( flag ) {
 				clif_additem(sd,0,0,flag);
@@ -18986,8 +18988,9 @@ int skill_elementalanalysis(struct map_session_data* sd, int n, uint16 skill_lv,
 }
 
 int skill_changematerial(struct map_session_data *sd, int n, unsigned short *item_list) {
-	int i, j, k, c, p = 0, nameid, amount;
-	
+	int i, j, k, c, p = 0, amount;
+	unsigned short nameid;
+
 	nullpo_ret(sd);
 	nullpo_ret(item_list);
 
@@ -20253,7 +20256,7 @@ static bool skill_parse_row_spellbookdb(char* split[], int columns, int current)
 {
 	uint16 skill_id = atoi(split[0]);
 	int points = atoi(split[1]);
-	int nameid = atoi(split[2]);
+	unsigned short nameid = atoi(split[2]);
 
 	if( !skill_get_index(skill_id) || !skill_get_max(skill_id) )
 		ShowError("spellbook_db: Invalid skill ID %d\n", skill_id);

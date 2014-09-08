@@ -29,8 +29,7 @@ static int auction_count(int char_id, bool buy)
 	struct auction_data *auction;
 	DBIterator *iter = db_iterator(auction_db_);
 
-	for( auction = dbi_first(iter); dbi_exists(iter); auction = dbi_next(iter) )
-	{
+	for( auction = dbi_first(iter); dbi_exists(iter); auction = dbi_next(iter) ) {
 		if( (buy && auction->buyer_id == char_id) || (!buy && auction->seller_id == char_id) )
 			i++;
 	}
@@ -49,10 +48,10 @@ void auction_save(struct auction_data *auction)
 		return;
 
 	StringBuf_Init(&buf);
-	StringBuf_Printf(&buf, "UPDATE `%s` SET `seller_id` = '%d', `seller_name` = ?, `buyer_id` = '%d', `buyer_name` = ?, `price` = '%d', `buynow` = '%d', `hours` = '%d', `timestamp` = '%lu', `nameid` = '%d', `item_name` = ?, `type` = '%d', `refine` = '%d', `attribute` = '%d'",
+	StringBuf_Printf(&buf, "UPDATE `%s` SET `seller_id` = '%d', `seller_name` = ?, `buyer_id` = '%d', `buyer_name` = ?, `price` = '%d', `buynow` = '%d', `hours` = '%d', `timestamp` = '%lu', `nameid` = '%hu', `item_name` = ?, `type` = '%d', `refine` = '%d', `attribute` = '%d'",
 		auction_db, auction->seller_id, auction->buyer_id, auction->price, auction->buynow, auction->hours, (unsigned long)auction->timestamp, auction->item.nameid, auction->type, auction->item.refine, auction->item.attribute);
 	for( j = 0; j < MAX_SLOTS; j++ )
-		StringBuf_Printf(&buf, ", `card%d` = '%d'", j, auction->item.card[j]);
+		StringBuf_Printf(&buf, ", `card%d` = '%hu'", j, auction->item.card[j]);
 	StringBuf_Printf(&buf, " WHERE `auction_id` = '%d'", auction->auction_id);
 
 	stmt = SqlStmt_Malloc(sql_handle);
@@ -84,10 +83,10 @@ unsigned int auction_create(struct auction_data *auction)
 	StringBuf_Printf(&buf, "INSERT INTO `%s` (`seller_id`,`seller_name`,`buyer_id`,`buyer_name`,`price`,`buynow`,`hours`,`timestamp`,`nameid`,`item_name`,`type`,`refine`,`attribute`,`unique_id`", auction_db);
 	for( j = 0; j < MAX_SLOTS; j++ )
 		StringBuf_Printf(&buf, ",`card%d`", j);
-	StringBuf_Printf(&buf, ") VALUES ('%d',?,'%d',?,'%d','%d','%d','%lu','%d',?,'%d','%d','%d','%"PRIu64"'",
+	StringBuf_Printf(&buf, ") VALUES ('%d',?,'%d',?,'%d','%d','%d','%lu','%hu',?,'%d','%d','%d','%"PRIu64"'",
 		auction->seller_id, auction->buyer_id, auction->price, auction->buynow, auction->hours, (unsigned long)auction->timestamp, auction->item.nameid, auction->type, auction->item.refine, auction->item.attribute, auction->item.unique_id);
 	for( j = 0; j < MAX_SLOTS; j++ )
-		StringBuf_Printf(&buf, ",'%d'", auction->item.card[j]);
+		StringBuf_Printf(&buf, ",'%hu'", auction->item.card[j]);
 	StringBuf_AppendStr(&buf, ")");
 
 	stmt = SqlStmt_Malloc(sql_handle);

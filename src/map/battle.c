@@ -2383,7 +2383,7 @@ static int battle_calc_equip_attack(struct block_list *src, int skill_id)
 		struct status_data *status = status_get_status_data(src);
 		struct map_session_data *sd = BL_CAST(BL_PC, src);
 
-		if(sd) //Add arrow atk if using an applicable skill
+		if(sd) //Add arrow ATK if using an applicable skill
 			eatk += (is_skill_using_arrow(src, skill_id) ? sd->bonus.arrow_atk : 0);
 
 		return eatk + status->eatk;
@@ -8187,7 +8187,6 @@ static const struct _battle_data {
 	{ "warg_can_falcon",                    &battle_config.warg_can_falcon,                 0,      0,      1,              },
 	{ "path_blown_halt",                    &battle_config.path_blown_halt,                 1,      0,      1,              },
 	{ "rental_mount_speed_boost",           &battle_config.rental_mount_speed_boost,        25,     0,      100,            },
-	{ "atcommand_enable_npc",               &battle_config.atcommand_enable_npc,            0,      0,      100,            },
 	{ "crimson_marker_type",                &battle_config.crimson_marker_type,             1,      0,      1,              },
 	{ "feature.warp_suggestions",           &battle_config.warp_suggestions_enabled,        0,      0,      1,              },
 	{ "taekwon_mission_mobname",            &battle_config.taekwon_mission_mobname,         0,      0,      2,              },
@@ -8195,6 +8194,19 @@ static const struct _battle_data {
 	{ "cart_revo_knockback",                &battle_config.cart_revo_knockback,             1,      0,      1,              },
 	{ "guild_castle_invite",                &battle_config.guild_castle_invite,             0,      0,      1,              },
 	{ "guild_castle_expulsion",             &battle_config.guild_castle_expulsion,          0,      0,      1,              },
+	{ "transcendent_status_points",         &battle_config.transcendent_status_points,     52,      1,      INT_MAX,        },
+	{ "taekwon_ranker_min_lv",              &battle_config.taekwon_ranker_min_lv,          90,      1,      MAX_LEVEL,      },
+	{ "revive_onwarp",                      &battle_config.revive_onwarp,                   1,      0,      1,              },
+	{ "fame_taekwon_mission",               &battle_config.fame_taekwon_mission,            1,      0,      INT_MAX,        },
+	{ "fame_refine_lv1",                    &battle_config.fame_refine_lv1,                 1,      0,      INT_MAX,        },
+	{ "fame_refine_lv1",                    &battle_config.fame_refine_lv1,                 1,      0,      INT_MAX,        },
+	{ "fame_refine_lv2",                    &battle_config.fame_refine_lv2,                 25,     0,      INT_MAX,        },
+	{ "fame_refine_lv3",                    &battle_config.fame_refine_lv3,                 1000,   0,      INT_MAX,        },
+	{ "fame_forge",                         &battle_config.fame_forge,                      10,     0,      INT_MAX,        },
+	{ "fame_pharmacy_3",                    &battle_config.fame_pharmacy_3,                 1,      0,      INT_MAX,        },
+	{ "fame_pharmacy_5",                    &battle_config.fame_pharmacy_5,                 3,      0,      INT_MAX,        },
+	{ "fame_pharmacy_7",                    &battle_config.fame_pharmacy_7,                 10,     0,      INT_MAX,        },
+	{ "fame_pharmacy_10",                   &battle_config.fame_pharmacy_10,                50,     0,      INT_MAX,        },
 };
 #ifndef STATS_OPT_OUT
 /**

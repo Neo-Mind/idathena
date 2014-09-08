@@ -792,8 +792,7 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 	StringBuf_Printf(&buf, " FROM `%s` WHERE `%s`='%d'", tablename, selectoption, id);
 
 	stmt = SqlStmt_Malloc(sql_handle);
-	if( SQL_ERROR == SqlStmt_PrepareStr(stmt, StringBuf_Value(&buf))
-	||  SQL_ERROR == SqlStmt_Execute(stmt) )
+	if( SQL_ERROR == SqlStmt_PrepareStr(stmt, StringBuf_Value(&buf)) || SQL_ERROR == SqlStmt_Execute(stmt) )
 	{
 		SqlStmt_ShowDebug(stmt);
 		SqlStmt_Free(stmt);
@@ -801,17 +800,17 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 		return 1;
 	}
 
-	SqlStmt_BindColumn(stmt, 0, SQLDT_INT,       &item.id,          0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 1, SQLDT_SHORT,     &item.nameid,      0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 2, SQLDT_SHORT,     &item.amount,      0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 3, SQLDT_UINT,      &item.equip,       0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 4, SQLDT_CHAR,      &item.identify,    0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 5, SQLDT_CHAR,      &item.refine,      0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 6, SQLDT_CHAR,      &item.attribute,   0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 7, SQLDT_UINT,      &item.expire_time, 0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 8, SQLDT_UINT,      &item.bound,       0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 0, SQLDT_INT,          &item.id,          0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 1, SQLDT_USHORT,       &item.nameid,      0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 2, SQLDT_SHORT,        &item.amount,      0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 3, SQLDT_UINT,         &item.equip,       0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 4, SQLDT_CHAR,         &item.identify,    0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 5, SQLDT_CHAR,         &item.refine,      0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 6, SQLDT_CHAR,         &item.attribute,   0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 7, SQLDT_UINT,         &item.expire_time, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 8, SQLDT_UINT,         &item.bound,       0, NULL, NULL);
 	for( j = 0; j < MAX_SLOTS; ++j )
-		SqlStmt_BindColumn(stmt, 9+j, SQLDT_SHORT, &item.card[j], 0, NULL, NULL);
+		SqlStmt_BindColumn(stmt, 9+j, SQLDT_USHORT, &item.card[j],     0, NULL, NULL);
 
 	// Bit array indicating which inventory items have already been matched
 	flag = (bool*) aCalloc(max, sizeof(bool));
@@ -845,7 +844,7 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 					StringBuf_Printf(&buf, "UPDATE `%s` SET `amount`='%d', `equip`='%d', `identify`='%d', `refine`='%d',`attribute`='%d', `expire_time`='%u', `bound`='%d'",
 						tablename, items[i].amount, items[i].equip, items[i].identify, items[i].refine, items[i].attribute, items[i].expire_time, items[i].bound);
 					for( j = 0; j < MAX_SLOTS; ++j )
-						StringBuf_Printf(&buf, ", `card%d`=%d", j, items[i].card[j]);
+						StringBuf_Printf(&buf, ", `card%d`=%hu", j, items[i].card[j]);
 					StringBuf_Printf(&buf, " WHERE `id`='%d' LIMIT 1", item.id);
 
 					if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) ) {
@@ -877,7 +876,7 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 	// Insert non-matched items into the db as new items
 	for( i = 0; i < max; ++i ) {
 		// Skip empty and already matched entries
-		if( items[i].nameid == 0 || flag[i] )
+		if( !(items[i].nameid) || flag[i] )
 			continue;
 
 		if( found )
@@ -885,10 +884,10 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 		else
 			found = true;
 
-		StringBuf_Printf(&buf, "('%d', '%d', '%d', '%d', '%d', '%d', '%d', '%u', '%d', '%"PRIu64"'",
+		StringBuf_Printf(&buf, "('%d', '%hu', '%d', '%d', '%d', '%d', '%d', '%u', '%d', '%"PRIu64"'",
 			id, items[i].nameid, items[i].amount, items[i].equip, items[i].identify, items[i].refine, items[i].attribute, items[i].expire_time, items[i].bound, items[i].unique_id);
 		for( j = 0; j < MAX_SLOTS; ++j )
-			StringBuf_Printf(&buf, ", '%d'", items[i].card[j]);
+			StringBuf_Printf(&buf, ", '%hu'", items[i].card[j]);
 		StringBuf_AppendStr(&buf, ")");
 	}
 
@@ -902,7 +901,7 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 
 	return errors;
 }
-/* pretty much a copy of memitemdata_to_sql except it handles inventory_db exclusively,
+/* Pretty much a copy of memitemdata_to_sql except it handles inventory_db exclusively,
  * - this is required because inventory db is the only one with the 'favorite' column. */
 int inventory_to_sql(const struct item items[], int max, int id) {
 	StringBuf buf;
@@ -927,30 +926,28 @@ int inventory_to_sql(const struct item items[], int max, int id) {
 	StringBuf_Printf(&buf, " FROM `%s` WHERE `char_id`='%d'", inventory_db, id);
 
 	stmt = SqlStmt_Malloc(sql_handle);
-	if( SQL_ERROR == SqlStmt_PrepareStr(stmt, StringBuf_Value(&buf))
-	   ||  SQL_ERROR == SqlStmt_Execute(stmt) )
-	{
+	if( SQL_ERROR == SqlStmt_PrepareStr(stmt, StringBuf_Value(&buf)) || SQL_ERROR == SqlStmt_Execute(stmt) ) {
 		SqlStmt_ShowDebug(stmt);
 		SqlStmt_Free(stmt);
 		StringBuf_Destroy(&buf);
 		return 1;
 	}
 
-	SqlStmt_BindColumn(stmt, 0, SQLDT_INT,       &item.id,          0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 1, SQLDT_SHORT,     &item.nameid,      0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 2, SQLDT_SHORT,     &item.amount,      0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 3, SQLDT_UINT,      &item.equip,       0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 4, SQLDT_CHAR,      &item.identify,    0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 5, SQLDT_CHAR,      &item.refine,      0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 6, SQLDT_CHAR,      &item.attribute,   0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 7, SQLDT_UINT,      &item.expire_time, 0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 8, SQLDT_CHAR,      &item.favorite,    0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 9, SQLDT_CHAR,      &item.bound,       0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 0, SQLDT_INT,           &item.id,          0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 1, SQLDT_USHORT,        &item.nameid,      0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 2, SQLDT_SHORT,         &item.amount,      0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 3, SQLDT_UINT,          &item.equip,       0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 4, SQLDT_CHAR,          &item.identify,    0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 5, SQLDT_CHAR,          &item.refine,      0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 6, SQLDT_CHAR,          &item.attribute,   0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 7, SQLDT_UINT,          &item.expire_time, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 8, SQLDT_CHAR,          &item.favorite,    0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 9, SQLDT_CHAR,          &item.bound,       0, NULL, NULL);
 	for( j = 0; j < MAX_SLOTS; ++j )
-		SqlStmt_BindColumn(stmt, 10+j, SQLDT_SHORT, &item.card[j], 0, NULL, NULL);
+		SqlStmt_BindColumn(stmt, 10+j, SQLDT_USHORT, &item.card[j],     0, NULL, NULL);
 
 	// Bit array indicating which inventory items have already been matched
-	flag = (bool*) aCalloc(max, sizeof(bool));
+	flag = (bool*)aCalloc(max, sizeof(bool));
 
 	while( SQL_SUCCESS == SqlStmt_NextRow(stmt) ) {
 		found = false;
@@ -982,7 +979,7 @@ int inventory_to_sql(const struct item items[], int max, int id) {
 					StringBuf_Printf(&buf, "UPDATE `%s` SET `amount`='%d', `equip`='%d', `identify`='%d', `refine`='%d',`attribute`='%d', `expire_time`='%u', `favorite`='%d', `bound`='%d'",
 									 inventory_db, items[i].amount, items[i].equip, items[i].identify, items[i].refine, items[i].attribute, items[i].expire_time, items[i].favorite, items[i].bound);
 					for( j = 0; j < MAX_SLOTS; ++j )
-						StringBuf_Printf(&buf, ", `card%d`=%d", j, items[i].card[j]);
+						StringBuf_Printf(&buf, ", `card%d`=%hu", j, items[i].card[j]);
 					StringBuf_Printf(&buf, " WHERE `id`='%d' LIMIT 1", item.id);
 
 					if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) ) {
@@ -1022,10 +1019,10 @@ int inventory_to_sql(const struct item items[], int max, int id) {
 		else
 			found = true;
 
-		StringBuf_Printf(&buf, "('%d', '%d', '%d', '%d', '%d', '%d', '%d', '%u', '%d', '%d', '%"PRIu64"'",
-						 id, items[i].nameid, items[i].amount, items[i].equip, items[i].identify, items[i].refine, items[i].attribute, items[i].expire_time, items[i].favorite, items[i].bound, items[i].unique_id);
+		StringBuf_Printf(&buf, "('%d', '%hu', '%d', '%d', '%d', '%d', '%d', '%u', '%d', '%d', '%"PRIu64"'",
+			id, items[i].nameid, items[i].amount, items[i].equip, items[i].identify, items[i].refine, items[i].attribute, items[i].expire_time, items[i].favorite, items[i].bound, items[i].unique_id);
 		for( j = 0; j < MAX_SLOTS; ++j )
-			StringBuf_Printf(&buf, ", '%d'", items[i].card[j]);
+			StringBuf_Printf(&buf, ", '%hu'", items[i].card[j]);
 		StringBuf_AppendStr(&buf, ")");
 	}
 
@@ -1299,20 +1296,20 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 	if( SQL_ERROR == SqlStmt_PrepareStr(stmt, StringBuf_Value(&buf))
 	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_INT, &char_id, 0)
 	||	SQL_ERROR == SqlStmt_Execute(stmt)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0, SQLDT_INT,       &tmp_item.id, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 1, SQLDT_SHORT,     &tmp_item.nameid, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 2, SQLDT_SHORT,     &tmp_item.amount, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 3, SQLDT_UINT,      &tmp_item.equip, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 4, SQLDT_CHAR,      &tmp_item.identify, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 5, SQLDT_CHAR,      &tmp_item.refine, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 6, SQLDT_CHAR,      &tmp_item.attribute, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 7, SQLDT_UINT,      &tmp_item.expire_time, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 8, SQLDT_CHAR,      &tmp_item.favorite, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 9, SQLDT_CHAR,      &tmp_item.bound, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt,10, SQLDT_ULONGLONG, &tmp_item.unique_id, 0, NULL, NULL) )
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0, SQLDT_INT,           &tmp_item.id,          0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 1, SQLDT_USHORT,        &tmp_item.nameid,      0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 2, SQLDT_SHORT,         &tmp_item.amount,      0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 3, SQLDT_UINT,          &tmp_item.equip,       0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 4, SQLDT_CHAR,          &tmp_item.identify,    0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 5, SQLDT_CHAR,          &tmp_item.refine,      0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 6, SQLDT_CHAR,          &tmp_item.attribute,   0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 7, SQLDT_UINT,          &tmp_item.expire_time, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 8, SQLDT_CHAR,          &tmp_item.favorite,    0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 9, SQLDT_CHAR,          &tmp_item.bound,       0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt,10, SQLDT_ULONGLONG,     &tmp_item.unique_id,   0, NULL, NULL) )
 		SqlStmt_ShowDebug(stmt);
 	for( i = 0; i < MAX_SLOTS; ++i )
-		if( SQL_ERROR == SqlStmt_BindColumn(stmt, 11+i, SQLDT_SHORT, &tmp_item.card[i], 0, NULL, NULL) )
+		if( SQL_ERROR == SqlStmt_BindColumn(stmt, 11+i, SQLDT_USHORT, &tmp_item.card[i],     0, NULL, NULL) )
 			SqlStmt_ShowDebug(stmt);
 
 	for( i = 0; i < MAX_INVENTORY && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
@@ -1331,19 +1328,19 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 	if( SQL_ERROR == SqlStmt_PrepareStr(stmt, StringBuf_Value(&buf))
 	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_INT, &char_id, 0)
 	||	SQL_ERROR == SqlStmt_Execute(stmt)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0, SQLDT_INT,         &tmp_item.id, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 1, SQLDT_SHORT,       &tmp_item.nameid, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 2, SQLDT_SHORT,       &tmp_item.amount, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 3, SQLDT_UINT,        &tmp_item.equip, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 4, SQLDT_CHAR,        &tmp_item.identify, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 5, SQLDT_CHAR,        &tmp_item.refine, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 6, SQLDT_CHAR,        &tmp_item.attribute, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 7, SQLDT_UINT,        &tmp_item.expire_time, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 8, SQLDT_CHAR,        &tmp_item.bound, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 9, SQLDT_ULONGLONG,   &tmp_item.unique_id, 0, NULL, NULL) )
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0, SQLDT_INT,           &tmp_item.id,          0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 1, SQLDT_USHORT,        &tmp_item.nameid,      0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 2, SQLDT_SHORT,         &tmp_item.amount,      0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 3, SQLDT_UINT,          &tmp_item.equip,       0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 4, SQLDT_CHAR,          &tmp_item.identify,    0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 5, SQLDT_CHAR,          &tmp_item.refine,      0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 6, SQLDT_CHAR,          &tmp_item.attribute,   0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 7, SQLDT_UINT,          &tmp_item.expire_time, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 8, SQLDT_CHAR,          &tmp_item.bound,       0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 9, SQLDT_ULONGLONG,     &tmp_item.unique_id,   0, NULL, NULL) )
 		SqlStmt_ShowDebug(stmt);
 	for( i = 0; i < MAX_SLOTS; ++i )
-		if( SQL_ERROR == SqlStmt_BindColumn(stmt, 10+i, SQLDT_SHORT, &tmp_item.card[i], 0, NULL, NULL) )
+		if( SQL_ERROR == SqlStmt_BindColumn(stmt, 10+i, SQLDT_USHORT, &tmp_item.card[i],     0, NULL, NULL) )
 			SqlStmt_ShowDebug(stmt);
 
 	for( i = 0; i < MAX_CART && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
@@ -1634,7 +1631,7 @@ int make_new_char_sql(struct char_session_data* sd, char* name_, int str, int ag
 
 	//Give the char the default items
 	for(k = 0; k <= MAX_STARTITEM && start_items[k].nameid != 0; k ++) {
-		if(SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')",
+		if(SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%hu', '%d', '%d', '%d')",
 			inventory_db, char_id, start_items[k].nameid, start_items[k].amount, start_items[k].pos, 1))
 			Sql_ShowDebug(sql_handle);
 	}
@@ -1652,7 +1649,7 @@ int divorce_char_sql(int partner_id1, int partner_id2)
 
 	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `partner_id`='0' WHERE `char_id`='%d' OR `char_id`='%d' LIMIT 2", char_db, partner_id1, partner_id2) )
 		Sql_ShowDebug(sql_handle);
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE (`nameid`='%d' OR `nameid`='%d') AND (`char_id`='%d' OR `char_id`='%d') LIMIT 2", inventory_db, WEDDING_RING_M, WEDDING_RING_F, partner_id1, partner_id2) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE (`nameid`='%hu' OR `nameid`='%hu') AND (`char_id`='%d' OR `char_id`='%d') LIMIT 2", inventory_db, WEDDING_RING_M, WEDDING_RING_F, partner_id1, partner_id2) )
 		Sql_ShowDebug(sql_handle);
 
 	WBUFW(buf,0) = 0x2b12;
@@ -1739,9 +1736,9 @@ int delete_char_sql(int char_id)
 		Sql_ShowDebug(sql_handle);
 
 	//Delete all pets that are stored in eggs (inventory + cart)
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` USING `%s` JOIN `%s` ON `pet_id` = `card1`|`card2`<<16 WHERE `%s`.char_id = '%d' AND card0 = -256", pet_db, pet_db, inventory_db, inventory_db, char_id) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` USING `%s` JOIN `%s` ON `pet_id` = `card1`|`card2`<<16 WHERE `%s`.char_id = '%d' AND card0 = 256", pet_db, pet_db, inventory_db, inventory_db, char_id) )
 		Sql_ShowDebug(sql_handle);
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` USING `%s` JOIN `%s` ON `pet_id` = `card1`|`card2`<<16 WHERE `%s`.char_id = '%d' AND card0 = -256", pet_db, pet_db, cart_db, cart_db, char_id) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` USING `%s` JOIN `%s` ON `pet_id` = `card1`|`card2`<<16 WHERE `%s`.char_id = '%d' AND card0 = 256", pet_db, pet_db, cart_db, cart_db, char_id) )
 		Sql_ShowDebug(sql_handle);
 
 	/* Remove homunculus */
@@ -4647,7 +4644,7 @@ int parse_char(int fd)
 			case 0x28d:
 				FIFOSD_CHECK(34);
 				{
-					int i, aid = RFIFOL(fd,2),cid = RFIFOL(fd,6);
+					int i, aid = RFIFOL(fd,2), cid = RFIFOL(fd,6);
 					char name[NAME_LENGTH];
 					char esc_name[NAME_LENGTH * 2 + 1];
 					safestrncpy(name,(char*)RFIFOP(fd,10),NAME_LENGTH);
@@ -5168,8 +5165,8 @@ void moveCharSlot( int fd, struct char_session_data* sd, unsigned short from, un
 		return;
 	}
 
-	// We dont even have a character on the chosen slot?
-	if( sd->found_char[from] <= 0 ) {
+	// We don't even have a character on the chosen slot?
+	if( sd->found_char[from] <= 0 || to >= sd->char_slots ) {
 		moveCharSlotReply( fd, sd, from, 1 );
 		return;
 	}
@@ -5189,7 +5186,7 @@ void moveCharSlot( int fd, struct char_session_data* sd, unsigned short from, un
 				return;
 			}
 		} else {
-			// Admin doesnt allow us to
+			// Admin doesn't allow us to
 			moveCharSlotReply( fd, sd, from, 1 );
 			return;
 		}
@@ -5247,7 +5244,7 @@ void bonus_script_get(int fd) {
 			WFIFOHEAD(fd,10 + 50 * sizeof(struct bonus_script_data));
 			WFIFOW(fd,0) = 0x2b2f;
 			WFIFOL(fd,4) = cid;
-			for( count = 0; count < 20 && SQL_SUCCESS == Sql_NextRow(sql_handle); ++count ) {
+			for( count = 0; count < MAX_PC_BONUS_SCRIPT && SQL_SUCCESS == Sql_NextRow(sql_handle); ++count ) {
 				Sql_GetData(sql_handle, 0, &data, NULL); memcpy(bsdata.script,data,strlen(data) + 1);
 				Sql_GetData(sql_handle, 1, &data, NULL); bsdata.tick = atoi(data);
 				Sql_GetData(sql_handle, 2, &data, NULL); bsdata.flag = atoi(data);
@@ -5255,7 +5252,7 @@ void bonus_script_get(int fd) {
 				Sql_GetData(sql_handle, 4, &data, NULL); bsdata.icon = atoi(data);
 				memcpy(WFIFOP(fd,10 + count * sizeof(struct bonus_script_data)), &bsdata, sizeof(struct bonus_script_data));
 			}
-			if( count >= 20 )
+			if( count >= MAX_PC_BONUS_SCRIPT )
 				ShowWarning("Too many bonus_script for %d, some of them were not loaded.\n", cid);
 			if( count > 0 ) {
 				WFIFOW(fd,2) = 10 + count * sizeof(struct bonus_script_data);

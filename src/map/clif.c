@@ -71,7 +71,7 @@ int packet_db_ack[MAX_PACKET_VER + 1][MAX_ACK_FUNC + 1];
  * @return item type.
  *	For IT_PETEGG will be displayed as IT_WEAPON. If Shadow Weapon of IT_SHADOWGEAR as IT_WEAPON and else as IT_ARMOR
  */
-static inline int itemtype(int nameid) {
+static inline int itemtype(unsigned short nameid) {
 	//Use itemdb_search, so non-existance item will use dummy data and won't crash the server. bugreport:8468
 	struct item_data* id = itemdb_search(nameid);
 	int type = id->type;
@@ -2336,7 +2336,7 @@ static void clif_addcards(unsigned char* buf, struct item* item)
 /// 029a <index>.W <amount>.W <name id>.W <identified>.B <damaged>.B <refine>.B <card1>.W <card2>.W <card3>.W <card4>.W <equip location>.W <item type>.B <result>.B <expire time>.L (ZC_ITEM_PICKUP_ACK2)
 /// 02d4 <index>.W <amount>.W <name id>.W <identified>.B <damaged>.B <refine>.B <card1>.W <card2>.W <card3>.W <card4>.W <equip location>.W <item type>.B <result>.B <expire time>.L <bindOnEquipType>.W (ZC_ITEM_PICKUP_ACK3)
 /// 0990 <index>.W <amount>.W <name id>.W <identified>.B <damaged>.B <refine>.B <card1>.W <card2>.W <card3>.W <card4>.W <equip location>.L <item type>.B <result>.B <expire time>.L <bindOnEquipType>.W (ZC_ITEM_PICKUP_ACK_V5)
-void clif_additem(struct map_session_data *sd, int n, int amount, int fail)
+void clif_additem(struct map_session_data *sd, int n, int amount, unsigned char fail)
 {
 	int fd, header, offs = 0;
 #if PACKETVER < 20061218
@@ -2370,7 +2370,7 @@ void clif_additem(struct map_session_data *sd, int n, int amount, int fail)
 #if PACKETVER < 20120925
 		WFIFOW(fd,offs + 19) = 0;
 #else
-		WFIFOL(fd,offs+19) = 0;
+		WFIFOL(fd,offs + 19) = 0;
 		offs += 2;
 #endif
 		WFIFOB(fd,offs + 21) = 0;
@@ -6034,7 +6034,7 @@ void clif_refine(int fd, int fail, int index, int val)
 ///     1 = "weapon upgraded: %s" MsgStringTable[912] in rgb(0,205,205)
 ///     2 = "cannot upgrade %s until you level up the upgrade weapon skill" MsgStringTable[913] in rgb(255,200,200)
 ///     3 = "you lack the item %s to upgrade the weapon" MsgStringTable[914] in rgb(255,200,200)
-void clif_upgrademessage(int fd, int result, int item_id)
+void clif_upgrademessage(int fd, int result, unsigned short item_id)
 {
 	WFIFOHEAD(fd,packet_len(0x223));
 	WFIFOW(fd,0) = 0x223;
@@ -6232,9 +6232,9 @@ void clif_item_identified(struct map_session_data *sd,int idx,int flag)
 /// 01fc <packet len>.W { <index>.W <name id>.W <refine>.B <card1>.W <card2>.W <card3>.W <card4>.W }*
 void clif_item_repair_list(struct map_session_data *sd, struct map_session_data *dstsd, int lv)
 {
-	int i,c;
+	int i, c;
 	int fd;
-	int nameid;
+	unsigned short nameid;
 
 	nullpo_retv(sd);
 	nullpo_retv(dstsd);
@@ -7278,21 +7278,21 @@ void clif_movetoattack(struct map_session_data *sd,struct block_list *bl)
 ///     1 = failure
 ///     2 = success (alchemist)
 ///     3 = failure (alchemist)
-void clif_produceeffect(struct map_session_data* sd,int flag,int nameid)
+void clif_produceeffect(struct map_session_data* sd, int flag, unsigned short nameid)
 {
-	int view,fd;
+	int view, fd;
 
 	nullpo_retv(sd);
 
 	fd = sd->fd;
 	clif_solved_charname(fd, sd->status.char_id, sd->status.name);
 	WFIFOHEAD(fd,packet_len(0x18f));
-	WFIFOW(fd, 0)=0x18f;
-	WFIFOW(fd, 2)=flag;
+	WFIFOW(fd,0) = 0x18f;
+	WFIFOW(fd,2) = flag;
 	if((view = itemdb_viewid(nameid)) > 0)
-		WFIFOW(fd, 4)=view;
+		WFIFOW(fd,4) = view;
 	else
-		WFIFOW(fd, 4)=nameid;
+		WFIFOW(fd,4) = nameid;
 	WFIFOSET(fd,packet_len(0x18f));
 }
 
@@ -7623,19 +7623,19 @@ void clif_mvp_effect(struct map_session_data *sd)
 
 /// MVP item reward message (ZC_MVP_GETTING_ITEM).
 /// 010a <name id>.W
-void clif_mvp_item(struct map_session_data *sd,int nameid)
+void clif_mvp_item(struct map_session_data *sd, unsigned short nameid)
 {
-	int view,fd;
+	int view, fd;
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x10a));
-	WFIFOW(fd,0)=0x10a;
+	WFIFOW(fd,0) = 0x10a;
 	if((view = itemdb_viewid(nameid)) > 0)
-		WFIFOW(fd,2)=view;
+		WFIFOW(fd,2) = view;
 	else
-		WFIFOW(fd,2)=nameid;
+		WFIFOW(fd,2) = nameid;
 	WFIFOSET(fd,packet_len(0x10a));
 }
 
@@ -11290,16 +11290,12 @@ void clif_parse_StopAttack(int fd,struct map_session_data *sd)
 void clif_parse_PutItemToCart(int fd,struct map_session_data *sd)
 {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
-	short flag = 0;
 
 	if (pc_istrading(sd))
 		return;
 	if (!pc_iscarton(sd))
 		return;
-	if ((flag = pc_putitemtocart(sd,RFIFOW(fd,info->pos[0]) - 2,RFIFOL(fd,info->pos[1])))) {
-		clif_dropitem(sd,RFIFOW(fd,info->pos[0]) - 2,0);
-		clif_cart_additem_ack(sd,(flag == 1) ? ADDITEM_TO_CART_FAIL_WEIGHT : ADDITEM_TO_CART_FAIL_COUNT);
-	}
+	pc_putitemtocart(sd,RFIFOW(fd,info->pos[0]) - 2,RFIFOL(fd,info->pos[1]));
 }
 
 
@@ -11308,6 +11304,7 @@ void clif_parse_PutItemToCart(int fd,struct map_session_data *sd)
 void clif_parse_GetItemFromCart(int fd,struct map_session_data *sd)
 {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
+
 	if (!pc_iscarton(sd))
 		return;
 	pc_getitemfromcart(sd,RFIFOW(fd,info->pos[0]) - 2,RFIFOL(fd,info->pos[1]));
@@ -11336,6 +11333,7 @@ void clif_parse_RemoveOption(int fd,struct map_session_data *sd)
 void clif_parse_ChangeCart(int fd,struct map_session_data *sd)
 { //@TODO: State tracking?
 	int type;
+
 	nullpo_retv(sd);
 
 	if( pc_checkskill(sd, MC_CHANGECART) < 1 )
@@ -11738,7 +11736,7 @@ void clif_parse_UseSkillMap(int fd, struct map_session_data* sd)
 
 /// Request to set a memo on current map (CZ_REMEMBER_WARPPOINT).
 /// 011d
-void clif_parse_RequestMemo(int fd,struct map_session_data *sd)
+void clif_parse_RequestMemo(int fd, struct map_session_data *sd)
 {
 	if (!pc_isdead(sd))
 		pc_memo(sd,-1);
@@ -11747,15 +11745,15 @@ void clif_parse_RequestMemo(int fd,struct map_session_data *sd)
 
 /// Answer to pharmacy item selection dialog (CZ_REQMAKINGITEM).
 /// 018e <name id>.W { <material id>.W }*3
-void clif_parse_ProduceMix(int fd,struct map_session_data *sd)
+void clif_parse_ProduceMix(int fd, struct map_session_data *sd)
 {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
-	int nameid = RFIFOW(fd,info->pos[0]);
+	unsigned short nameid = RFIFOW(fd,info->pos[0]);
 	int slot1  = RFIFOW(fd,info->pos[1]);
 	int slot2  = RFIFOW(fd,info->pos[2]);
 	int slot3  = RFIFOW(fd,info->pos[3]);
 
-	switch( sd->menuskill_id ) {
+	switch (sd->menuskill_id) {
 		case -1:
 		case AM_PHARMACY:
 		case RK_RUNEMASTERY:
@@ -11785,20 +11783,22 @@ void clif_parse_ProduceMix(int fd,struct map_session_data *sd)
 ///     4 = GN_MIX_COOKING
 ///     5 = GN_MAKEBOMB
 ///     6 = GN_S_PHARMACY
-void clif_parse_Cooking(int fd,struct map_session_data *sd) {
+void clif_parse_Cooking(int fd, struct map_session_data *sd) {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
 	int type = RFIFOW(fd,info->pos[0]);
-	int nameid = RFIFOW(fd,info->pos[1]);
-	int amount = sd->menuskill_val2?sd->menuskill_val2:1;
+	unsigned short nameid = RFIFOW(fd,info->pos[1]);
+	int amount = (sd->menuskill_val2 ? sd->menuskill_val2 : 1);
+
 	if( type == 6 && sd->menuskill_id != GN_MIX_COOKING && sd->menuskill_id != GN_S_PHARMACY )
 		return;
-	
+
 	if (pc_istrading(sd)) {
 		//Make it fail to avoid shop exploits where you sell something different than you see.
 		clif_skill_fail(sd,sd->ud.skill_id,USESKILL_FAIL_LEVEL,0);
 		clif_menuskill_clear(sd);
 		return;
 	}
+
 	if( skill_can_produce_mix(sd,nameid,sd->menuskill_val, amount) )
 		skill_produce_mix(sd,(type>1?sd->menuskill_id:0),nameid,0,0,0,amount);
 	clif_menuskill_clear(sd);
@@ -11918,7 +11918,7 @@ void clif_parse_NpcStringInput(int fd, struct map_session_data* sd)
 
 /// NPC dialog 'close' click (CZ_CLOSE_DIALOG).
 /// 0146 <npc id>.L
-void clif_parse_NpcCloseClicked(int fd,struct map_session_data *sd)
+void clif_parse_NpcCloseClicked(int fd, struct map_session_data *sd)
 {
 	if (!sd->npc_id) //Avoid parsing anything when the script was done with. [Skotlex]
 		return;
@@ -11930,13 +11930,13 @@ void clif_parse_NpcCloseClicked(int fd,struct map_session_data *sd)
 /// 0178 <index>.W
 /// index:
 ///     -1 = cancel
-void clif_parse_ItemIdentify(int fd,struct map_session_data *sd)
+void clif_parse_ItemIdentify(int fd, struct map_session_data *sd)
 {
 	short idx = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
 
 	if (sd->menuskill_id != MC_IDENTIFY)
 		return;
-	if( idx == -1 ) {// cancel pressed
+	if (idx == -1) { //Cancel pressed
 		clif_menuskill_clear(sd);
 		return;
 	}
@@ -11947,15 +11947,17 @@ void clif_parse_ItemIdentify(int fd,struct map_session_data *sd)
 
 /// Answer to arrow crafting item selection dialog (CZ_REQ_MAKINGARROW).
 /// 01ae <name id>.W
-void clif_parse_SelectArrow(int fd,struct map_session_data *sd)
+void clif_parse_SelectArrow(int fd, struct map_session_data *sd)
 {
-	int nameid = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
+	unsigned short nameid = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
+
 	if (pc_istrading(sd)) {
-	//Make it fail to avoid shop exploits where you sell something different than you see.
+		//Make it fail to avoid shop exploits where you sell something different than you see.
 		clif_skill_fail(sd,sd->ud.skill_id,USESKILL_FAIL_LEVEL,0);
 		clif_menuskill_clear(sd);
 		return;
 	}
+
 	switch( sd->menuskill_id ) {
 		case AC_MAKINGARROW:
 			skill_arrow_create(sd,nameid);
@@ -15348,14 +15350,14 @@ void clif_cashshop_ack(struct map_session_data* sd, int error)
 	WFIFOSET(fd, packet_len(0x289));
 }
 
-void clif_cashshop_result(struct map_session_data *sd, uint16 item_id, uint16 result) {
-	WFIFOHEAD(sd->fd, 16);
-	WFIFOW(sd->fd, 0) = 0x849;
-	WFIFOL(sd->fd, 2) = item_id;
-	WFIFOW(sd->fd, 6) = result;
-	WFIFOL(sd->fd, 8) = sd->cashPoints;
-	WFIFOL(sd->fd, 12) = sd->kafraPoints;
-	WFIFOSET(sd->fd, 16);
+void clif_cashshop_result(struct map_session_data *sd, unsigned short item_id, uint16 result) {
+	WFIFOHEAD(sd->fd,16);
+	WFIFOW(sd->fd,0) = 0x849;
+	WFIFOL(sd->fd,2) = item_id;
+	WFIFOW(sd->fd,6) = result;
+	WFIFOL(sd->fd,8) = sd->cashPoints;
+	WFIFOL(sd->fd,12) = sd->kafraPoints;
+	WFIFOSET(sd->fd,16);
 }
 
 /// Request to buy item(s) from cash shop (CZ_PC_BUY_CASH_POINT_ITEM).
@@ -15381,7 +15383,7 @@ void clif_parse_cashshop_buy(int fd, struct map_session_data *sd)
 		return;
 	} else {
 #if PACKETVER < 20101116
-		short nameid = RFIFOW(fd,info->pos[0]);
+		unsigned short nameid = RFIFOW(fd,info->pos[0]);
 		short amount = RFIFOW(fd,info->pos[1]);
 		int points = RFIFOL(fd,info->pos[2]);
 
@@ -15926,7 +15928,7 @@ void clif_mercenary_message(struct map_session_data* sd, int message)
 
 /// Notification about the remaining time of a rental item (ZC_CASH_TIME_COUNTER).
 /// 0298 <name id>.W <seconds>.L
-void clif_rental_time(int fd, int nameid, int seconds)
+void clif_rental_time(int fd, unsigned short nameid, int seconds)
 { // '<ItemName>' item will disappear in <seconds/60> minutes.
 	WFIFOHEAD(fd,packet_len(0x298));
 	WFIFOW(fd,0) = 0x298;
@@ -15938,7 +15940,7 @@ void clif_rental_time(int fd, int nameid, int seconds)
 
 /// Deletes a rental item from client's inventory (ZC_CASH_ITEM_DELETE).
 /// 0299 <index>.W <name id>.W
-void clif_rental_expired(int fd, int index, int nameid)
+void clif_rental_expired(int fd, int index, unsigned short nameid)
 { // '<ItemName>' item has been deleted from the Inventory
 	WFIFOHEAD(fd,packet_len(0x299));
 	WFIFOW(fd,0) = 0x299;
@@ -15969,6 +15971,7 @@ void clif_bg_hp(struct map_session_data *sd)
 {
 	unsigned char buf[34];
 	const int cmd = 0x2e0;
+
 	nullpo_retv(sd);
 
 	WBUFW(buf,0) = cmd;
@@ -17374,7 +17377,9 @@ void clif_ranklist(struct map_session_data *sd, int16 rankingType) {
 void clif_parse_ranklist(int fd,struct map_session_data *sd) {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd, 0)];
 	int16 rankingtype = RFIFOW(fd, info->pos[0]); //Type
-	if(rankingtype != 3) clif_ranklist(sd, rankingtype); //pk_list unsuported atm
+
+	if(rankingtype != 3)
+		clif_ranklist(sd, rankingtype); //pk_list unsuported atm
 }
 
 // 097e <RankingType>.W <point>.L <TotalPoint>.L (ZC_UPDATE_RANKING_POINT)
@@ -17387,6 +17392,7 @@ void clif_update_rankingpoint(struct map_session_data *sd, int rankingtype, int 
 	}
 #else
 	int fd = sd->fd;
+
 	WFIFOHEAD(fd, 14);
 	WFIFOW(fd, 0) = 0x97e;
 	WFIFOW(fd, 2) = rankingtype;

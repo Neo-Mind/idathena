@@ -668,7 +668,7 @@ typedef enum sc_type {
 	SC_ILLUSIONDOPING,
 	SC_FLASHCOMBO,
 	SC__CHAOS,
-	SC__FEINT,
+	SC__FEINTBOMB,
 
 	//Vellum Weapon reductions
 	SC_DEFSET,
