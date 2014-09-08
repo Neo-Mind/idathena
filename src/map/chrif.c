@@ -1785,11 +1785,11 @@ int chrif_save_bsdata(struct map_session_data *sd) {
 	WFIFOHEAD(char_fd,10 + MAX_PC_BONUS_SCRIPT * sizeof(struct bonus_script_data));
 	WFIFOW(char_fd,0) = 0x2b2e;
 	WFIFOL(char_fd,4) = sd->status.char_id;
-	i = BONUS_FLAG_REM_ON_LOGOUT; //Remove bonus with this flag
+	i = BSF_REM_ON_LOGOUT; //Remove bonus with this flag
 	if (battle_config.debuff_on_logout&1) //Remove negative buffs
-		i |= BONUS_FLAG_REM_DEBUFF;
+		i |= BSF_REM_DEBUFF;
 	if (battle_config.debuff_on_logout&2) //Remove positive buffs
-		i |= BONUS_FLAG_REM_BUFF;
+		i |= BSF_REM_BUFF;
 	//Clear data that won't be stored
 	pc_bonus_script_clear(sd,i);
 	for (i = 0; i < MAX_PC_BONUS_SCRIPT; i++) {
@@ -1804,8 +1804,7 @@ int chrif_save_bsdata(struct map_session_data *sd) {
 		bs.type = sd->bonus_script[i].type;
 		bs.icon = sd->bonus_script[i].icon;
 		memcpy(WFIFOP(char_fd,10 + count * sizeof(struct bonus_script_data)),&bs,sizeof(struct bonus_script_data));
-		delete_timer(sd->bonus_script[i].tid,pc_bonus_script_timer);
-		pc_bonus_script_remove(sd,i);
+		pc_bonus_script_remove(&sd->bonus_script[i]);
 		count++;
 	}
 	if (count == 0)

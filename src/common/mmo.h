@@ -74,7 +74,7 @@
 #define MAX_GUILDLEVEL 50 //Max Guild level
 #define MAX_GUARDIANS 8 //Local max per castle. [Skotlex]
 #define MAX_QUEST_OBJECTIVES 3 //Max quest objectives for a quest
-#define MAX_PC_BONUS_SCRIPT 20
+#define MAX_PC_BONUS_SCRIPT 20 //Max bonus script
 
 //For produce
 #define MIN_ATTRIBUTE 0

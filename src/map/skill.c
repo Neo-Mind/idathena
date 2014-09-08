@@ -7258,9 +7258,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					}
 					if( status_isimmune(bl) )
 						break;
-					//Remove bonus_script when dispelled
+					//Remove bonus_script by Dispell
 					if( dstsd )
-						pc_bonus_script_clear(dstsd,BONUS_FLAG_REM_ON_DISPELL);
+						pc_bonus_script_clear(dstsd,BSF_REM_ON_DISPELL);
 					if( !tsc || !tsc->count )
 						break;
 					for( i = 0; i < SC_MAX; i++ ) {
@@ -8549,6 +8549,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					if( type > SC_NONE )
 						clif_skill_nodamage(bl,bl,skill_id,skill_lv,
 							sc_start4(src,bl,type,100,skill_lv,i,0,1,skill_get_time(skill_id,skill_lv)));
+					status_change_clear_buffs(bl,8); //For bonus_script
 				}
 			} else if( sd ) {
 				if( tsc && tsc->count ) {
@@ -8756,9 +8757,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					}
 					if( status_isimmune(bl) )
 						break;
-					//Remove bonus_script when cleared
+					//Remove bonus_script by Clearance
 					if( dstsd )
-						pc_bonus_script_clear(dstsd,BONUS_FLAG_REM_ON_CLEARANCE);
+						pc_bonus_script_clear(dstsd,BSF_REM_ON_CLEARANCE);
 					if( !tsc || !tsc->count )
 						break;
 					for( i = 0; i < SC_MAX; i++ ) {
@@ -10330,6 +10331,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					}
 					if( status_isimmune(bl) )
 						break;
+					//Remove bonus_script by Banishing Buster
+					if( dstsd )
+						pc_bonus_script_clear(dstsd,BSF_REM_ON_BANISHING_BUSTER);
 					if( !tsc || !tsc->count )
 						break;
 					for( i = 0; i < SC_MAX && n > 0; i++ ) {

@@ -1460,7 +1460,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 				|| (dist = distance_bl(&md->bl, abl)) >= MAX_MINCHASE //Attacker longer than visual area
 				|| battle_check_target(&md->bl, abl, BCT_ENEMY) <= 0 //Attacker is not enemy of mob
 				|| (battle_config.mob_ai&0x2 && !status_check_skilluse(&md->bl, abl, 0, 0)) //Cannot normal attack back to Attacker
-				|| (!battle_check_range(&md->bl, abl, md->status.rhw.range) //Not on Melee Range and ...
+				|| (!battle_check_range(&md->bl, abl, md->status.rhw.range) //Not on Melee Range and,
 				&& ( //Reach check
 					(!can_move && DIFF_TICK(tick, md->ud.canmove_tick) > 0 && (battle_config.mob_ai&0x2 || (md->sc.data[SC_SPIDERWEB] && md->sc.data[SC_SPIDERWEB]->val1)
 					|| md->sc.data[SC_BITE] || md->sc.data[SC_VACUUM_EXTREME] || md->sc.data[SC_THORNSTRAP]
@@ -1478,7 +1478,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 					return true;
 				}
 			} else if(!(battle_config.mob_ai&0x2) && !status_check_skilluse(&md->bl, abl, 0, 0)) {
-				//Can't attack back, but didn't invoke a rude attacked skill...
+				//Can't attack back, but didn't invoke a rude attacked skill
 			} else { //Attackable
 				if(!tbl || dist < md->status.rhw.range || !check_distance_bl(&md->bl, tbl, dist)
 					|| battle_gettarget(tbl) != md->bl.id)

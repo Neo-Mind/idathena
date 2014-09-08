@@ -2264,6 +2264,10 @@ void script_hardcoded_constants(void)
 	/* Status option compounds */
 	script_set_constant("Option_Dragon", OPTION_DRAGON, false);
 	script_set_constant("Option_Costume", OPTION_COSTUME, false);
+
+	/* bonus_script commands */
+	script_set_constant("BSF_REM_BUFF", BSF_REM_BUFF, false);
+	script_set_constant("BSF_REM_DEBUFF", BSF_REM_DEBUFF, false);
 }
 
 /*==========================================
@@ -18218,13 +18222,15 @@ BUILDIN_FUNC(montransform) {
 	return SCRIPT_CMD_SUCCESS;
 }
 
-/** [Cydh]
+/**
+ * Attach script to player for certain duration
  * bonus_script "<script code>",<duration>{,<flag>{,<type>{,<status_icon>{,<char_id>}}}};
  * @param "script code"
  * @param duration
  * @param flag
  * @param icon
  * @param char_id
+ * @author [Cydh]
  * @return val: 1 - success, 0 - failed
  */
 BUILDIN_FUNC(bonus_script) {
@@ -18286,6 +18292,32 @@ BUILDIN_FUNC(bonus_script) {
 		clif_status_change(&sd->bl,sd->bonus_script[i].icon,1,dur,1,0,0);
 
 	status_calc_pc(sd,SCO_NONE);
+	return SCRIPT_CMD_SUCCESS;
+}
+
+/**
+ * Removes all bonus script from player
+ * bonus_script_clear {<flag>,{<char_id>}};
+ * @param flag 0 - Except permanent bonus, 1 - With permanent bonus
+ * @param char_id Clear script from this character
+ * @author [Cydh]
+ */
+BUILDIN_FUNC(bonus_script_clear) {
+	TBL_PC* sd;
+	bool flag = 0;
+
+	if (script_hasdata(st,2))
+		flag = script_getnum(st,2);
+
+	if (script_hasdata(st,3))
+		sd = map_charid2sd(script_getnum(st,3));
+	else
+		sd = script_rid2sd(st);
+
+	if (sd == NULL)
+		return 1;
+
+	pc_bonus_script_clear_all(sd,flag); /// Don't remove permanent script
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -18371,6 +18403,7 @@ BUILDIN_FUNC(vip_time) {
 }
 
 /** Allows player to use atcommand while talking with NPC
+ * enable_command;
  * @author [Cydh], [Kichi]
  */
 BUILDIN_FUNC(enable_command) {
@@ -18383,6 +18416,7 @@ BUILDIN_FUNC(enable_command) {
 }
 
 /** Prevents player to use atcommand while talking with NPC
+ * disable_command;
  * @author [Cydh], [Kichi]
  */
 BUILDIN_FUNC(disable_command) {
@@ -19021,6 +19055,7 @@ struct script_function buildin_func[] = {
 	//Monster Transform [malufett]
 	BUILDIN_DEF2(montransform,"transform","vii????"),
 	BUILDIN_DEF(bonus_script,"si????"),
+	BUILDIN_DEF(bonus_script_clear,"??"),
 	BUILDIN_DEF(vip_status,"i?"),
 	BUILDIN_DEF(vip_time,"i?"),
 	BUILDIN_DEF(getgroupitem,"i"),
