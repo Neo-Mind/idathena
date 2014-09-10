@@ -693,6 +693,7 @@ INSERT INTO `sql_updates` (`timestamp`) VALUES (1384588175);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1384763034);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1387844126);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1388854043);
+INSERT INTO `sql_updates` (`timestamp`) VALUES (1389028967);
 
 --
 -- Table structure for table `sstatus`
@@ -777,6 +778,9 @@ CREATE TABLE IF NOT EXISTS `vendings` (
   `y` smallint(5) unsigned NOT NULL,
   `title` varchar(80) NOT NULL,
   `autotrade` tinyint(4) NOT NULL,
+  `body_direction` char(1) NOT NULL default '4',
+  `head_direction` char(1) NOT NULL default '0',
+  `sit` char(1) NOT NULL default '1',
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM default CHARSET=latin1;
 
@@ -807,5 +811,8 @@ CREATE TABLE IF NOT EXISTS `buyingstores` (
   `title` varchar(80) NOT NULL,
   `limit` int(10) unsigned NOT NULL,
   `autotrade` tinyint(4) NOT NULL,
+  `body_direction` char(1) NOT NULL default '4',
+  `head_direction` char(1) NOT NULL default '0',
+  `sit` char(1) NOT NULL default '1',
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM default CHARSET=latin1;

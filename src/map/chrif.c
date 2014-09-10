@@ -1105,6 +1105,8 @@ int chrif_disconnectplayer(int fd) {
 		if (sd->state.autotrade) {
 			if (sd->state.vending)
 				vending_closevending(sd);
+			else if (sd->state.buyingstore)
+				buyingstore_close(sd);
 			map_quit(sd); //Remove it.
 		}
 		//Else we don't remove it because the char should have a timer to remove the player because it force-quit before,
@@ -1351,17 +1353,6 @@ int chrif_load_scdata(int fd) {
 
 	pc_scdata_received(sd);
 #endif
-
-	if (sd->state.autotrade) {
-		buyingstore_reopen(sd);
-		vending_reopen(sd);
-
-		if (!sd->vender_id && !sd->buyer_id) {
-			sd->state.autotrade = 0;
-			map_quit(sd);
-		}
-	}
-
 	return 0;
 }
 

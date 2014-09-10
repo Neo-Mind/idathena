@@ -541,7 +541,9 @@ extern struct Battle_Config
 	//Autotrade persistency
 	int feature_autotrade;
 	int feature_autotrade_direction;
+	int feature_autotrade_head_direction;
 	int feature_autotrade_sit;
+	int feature_autotrade_open_delay;
 
 	//Fame points
 	int fame_taekwon_mission;
@@ -569,6 +571,7 @@ extern struct Battle_Config
 	int taekwon_ranker_min_lv;
 	int revive_onwarp;
 	int mail_delay;
+	int autotrade_monsterignore;
 } battle_config;
 
 void do_init_battle(void);

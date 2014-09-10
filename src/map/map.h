@@ -243,7 +243,7 @@ enum bl_type {
 //For common mapforeach calls. Since pets cannot be affected, they aren't included here yet.
 #define BL_CHAR (BL_PC|BL_MOB|BL_HOM|BL_MER|BL_ELEM)
 
-enum npc_subtype { WARP, SHOP, SCRIPT, CASHSHOP, ITEMSHOP, POINTSHOP, TOMB };
+enum npc_subtype { WARP,SHOP,SCRIPT,CASHSHOP,ITEMSHOP,POINTSHOP,TOMB };
 
 enum e_race {
 	RC_NONE_ = -1,   //Don't give us bonus
@@ -281,6 +281,7 @@ enum e_race2 {
 	RC2_MAX
 };
 
+//Element list
 enum e_elemen {
 	ELE_NONE = -1,   //Nothing
 	ELE_NEUTRAL = 0, //Neutral
@@ -296,6 +297,8 @@ enum e_elemen {
 	ELE_ALL,
 	ELE_MAX          //Auto upd enum for array len
 };
+
+#define MAX_ELE_LEVEL 4 //Maximum Element level
 
 enum mob_ai {
 	AI_NONE = 0,
@@ -811,14 +814,15 @@ bool map_iwall_set(int16 m, int16 x, int16 y, int size, int8 dir, bool shootable
 void map_iwall_get(struct map_session_data *sd);
 void map_iwall_remove(const char *wall_name);
 
-int map_addmobtolist(unsigned short m, struct spawn_data *spawn);	// [Wizputer]
+int map_addmobtolist(unsigned short m, struct spawn_data *spawn); // [Wizputer]
 void map_spawnmobs(int16 m); // [Wizputer]
 void map_removemobs(int16 m); // [Wizputer]
-void do_reconnect_map(void); //Invoked on map-char reconnection [Skotlex]
+void do_reconnect_map(void); // Invoked on map-char reconnection [Skotlex]
 void map_addmap2db(struct map_data *m);
 void map_removemapdb(struct map_data *m);
 
 #define CHK_ELEMENT(ele) ((ele) > ELE_NONE && (ele) < ELE_MAX) // Check valid Element
+#define CHK_ELEMENT_LEVEL(lv) ((lv) >= 1 && (lv) <= MAX_ELE_LEVEL) // Check valid element level
 #define CHK_RACE(race) ((race) > RC_NONE_ && (race) < RC_MAX) // Check valid Race
 #define CHK_RACE2(race2) ((race2) >= RC2_NONE && (race2) < RC2_MAX) // Check valid Race2
 #define CHK_CLASS(class_) ((class_) > CLASS_NONE && (class_) < CLASS_MAX) // Check valid Class

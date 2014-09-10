@@ -1152,6 +1152,7 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	sd->npc_timer_id = INVALID_TIMER;
 	sd->pvp_timer = INVALID_TIMER;
 	sd->expiration_tid = INVALID_TIMER;
+	sd->autotrade_tid = INVALID_TIMER;
 
 #ifdef SECURE_NPCTIMEOUT
 	// Initialize to defaults/expected
@@ -1467,8 +1468,12 @@ void pc_reg_received(struct map_session_data *sd)
 		clif_changeoption(&sd->bl); 
 	}
 
-	if (sd->state.autotrade)
+	pc_check_expiration(sd);
+
+	if (sd->state.autotrade) {
 		clif_parse_LoadEndAck(sd->fd, sd);
+		sd->autotrade_tid = add_timer(gettick() + battle_config.feature_autotrade_open_delay, pc_autotrade_timer, sd->bl.id, 0);
+	}
 }
 
 static int pc_calc_skillpoint(struct map_session_data* sd)
@@ -6163,32 +6168,36 @@ int pc_checkjoblevelup(struct map_session_data *sd)
 static void pc_calcexp(struct map_session_data *sd, unsigned int *base_exp, unsigned int *job_exp, struct block_list *src)
 {
 	int bonus = 0, vip_bonus_base = 0, vip_bonus_job = 0;
-	struct status_data *status = status_get_status_data(src);
+	struct status_data *status = NULL;
 
-	if (sd->expaddrace[status->race])
-		bonus += sd->expaddrace[status->race];
+	if (src) {
+		status = status_get_status_data(src);
 
-	if (sd->expaddrace[RC_ALL])
-		bonus += sd->expaddrace[RC_ALL];
+		if (sd->expaddrace[status->race])
+			bonus += sd->expaddrace[status->race];
 
-	if (sd->expaddclass[status->class_])
-		bonus += sd->expaddclass[status->class_];
+		if (sd->expaddrace[RC_ALL])
+			bonus += sd->expaddrace[RC_ALL];
 
-	if (sd->expaddclass[CLASS_ALL])
-		bonus += sd->expaddclass[CLASS_ALL];
+		if (sd->expaddclass[status->class_])
+			bonus += sd->expaddclass[status->class_];
 
-	if (battle_config.pk_mode && (int)(status_get_lv(src) - sd->status.base_level) >= 20)
-		bonus += 15; //pk_mode additional exp if monster > 20 levels [Valaris]
+		if (sd->expaddclass[CLASS_ALL])
+			bonus += sd->expaddclass[CLASS_ALL];
+
+		if (battle_config.pk_mode && (int)(status_get_lv(src) - sd->status.base_level) >= 20)
+			bonus += 15; //pk_mode additional exp if monster > 20 levels [Valaris]
 
 #ifdef VIP_ENABLE
-	//EXP bonus for VIP player
-	if (src && src->type == BL_MOB && pc_isvip(sd)) {
-		vip_bonus_base = battle_config.vip_base_exp_increase;
-		vip_bonus_job = battle_config.vip_job_exp_increase;
-	}
+		//EXP bonus for VIP player
+		if (src->type == BL_MOB && pc_isvip(sd)) {
+			vip_bonus_base = battle_config.vip_base_exp_increase;
+			vip_bonus_job = battle_config.vip_job_exp_increase;
+		}
 #endif
+	}
 
-	if (sd->sc.data[SC_EXPBOOST]) {
+	if (&sd->sc && sd->sc.data[SC_EXPBOOST]) {
 		bonus += sd->sc.data[SC_EXPBOOST]->val1;
 		if (battle_config.vip_bm_increase && pc_isvip(sd)) //Increase Battle Manual EXP rate for VIP.
 			bonus += (sd->sc.data[SC_EXPBOOST]->val1 / battle_config.vip_bm_increase);
@@ -6196,7 +6205,7 @@ static void pc_calcexp(struct map_session_data *sd, unsigned int *base_exp, unsi
 
 	*base_exp = (unsigned int)cap_value(*base_exp + (double)*base_exp * (bonus + vip_bonus_base) / 100., 1, UINT_MAX);
 
-	if (sd->sc.data[SC_JEXPBOOST])
+	if (&sd->sc && sd->sc.data[SC_JEXPBOOST])
 		bonus += sd->sc.data[SC_JEXPBOOST]->val1;
 
 	*job_exp = (unsigned int)cap_value(*job_exp + (double)*job_exp * (bonus + vip_bonus_job) / 100., 1, UINT_MAX);
@@ -6226,8 +6235,7 @@ bool pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned in
 	if (sd->status.guild_id > 0)
 		base_exp -= guild_payexp(sd,base_exp);
 
-	if (src)
-		pc_calcexp(sd, &base_exp, &job_exp, src);
+	pc_calcexp(sd, &base_exp, &job_exp, src); //Give (J)EXPBOOST for quests even if src is NULL
 
 	nextb = pc_nextbaseexp(sd);
 	nextj = pc_nextjobexp(sd);
@@ -9842,10 +9850,16 @@ void pc_setstand(struct map_session_data *sd) {
 	nullpo_retv(sd);
 
 	status_change_end(&sd->bl, SC_TENSIONRELAX, INVALID_TIMER);
+
+	if (&sd->sc && (sd->sc.data[SC_SITDOWN_FORCE] || sd->sc.data[SC_BANANA_BOMB_SITDOWN]))
+		return;
+
 	clif_status_load(&sd->bl, SI_SIT, 0);
 	clif_standing(&sd->bl); //Inform area PC is standing
-	//Reset sitting tick.
+
+	//Reset skill-related recovery (only when sit) tick
 	sd->ssregen.tick.hp = sd->ssregen.tick.sp = 0;
+
 	sd->state.dead_sit = sd->vd.dead_sit = 0;
 }
 
@@ -10433,7 +10447,7 @@ void pc_readdb(void)
 	int i, j, k;
 	unsigned int entries = 0;
 	FILE *fp;
-	char line[24000], *p;
+	char line[24000];
 
 	// Reset
 	memset(job_info, 0, sizeof(job_info)); // job_info table
@@ -10461,7 +10475,7 @@ void pc_readdb(void)
 #endif
 
 	// Reset then read attr_fix.txt
-	for( i = 0; i < 4; i++ )
+	for( i = 0; i < MAX_ELE_LEVEL; i++ )
 		for( j = 0; j < ELE_ALL; j++ )
 			for( k = 0; k < ELE_ALL; k++ )
 				attr_fix_table[i][j][k] = 100;
@@ -10473,29 +10487,23 @@ void pc_readdb(void)
 		return;
 	}
 	while( fgets(line, sizeof(line), fp) ) {
-		char *split[10];
-		int lv, n;
+		int lv;
 
 		if( line[0] == '/' && line[1] == '/' )
 			continue;
-		for( j = 0, p = line; j < 3 && p; j++ ) {
-			split[j] = p;
-			p = strchr(p, ',');
-			if( p )
-				*p++ = 0;
-		}
-		if( j < 2 )
+
+		lv = atoi(line);
+		if( !CHK_ELEMENT_LEVEL(lv) )
 			continue;
 
-		lv = atoi(split[0]);
-		n = atoi(split[1]);
+		for( i = 0; i < ELE_ALL; ) {
+			char *p;
 
-		for( i = 0; i < n && i < ELE_ALL; ) {
 			if( !fgets(line, sizeof(line), fp) )
 				break;
 			if( line[0] == '/' && line[1] == '/' )
 				continue;
-			for( j = 0, p = line; j < n && j < ELE_ALL && p; j++ ) {
+			for( j = 0, p = line; j < ELE_ALL && p; j++ ) {
 				while( *p > 0 && *p == 32 ) //Skipping newline and space (32 = ' ')
 					p++;
 				attr_fix_table[lv - 1][i][j] = atoi(p);
@@ -10735,6 +10743,13 @@ void pc_damage_log_clear(struct map_session_data *sd, int id) {
 
 /* Status change data arrived from char-server */
 void pc_scdata_received(struct map_session_data *sd) {
+	return; //Nothing todo yet
+}
+
+/** Check expiration time and rental items
+ * @param sd
+ */
+void pc_check_expiration(struct map_session_data *sd) {
 	pc_inventory_rentals(sd);
 
 	if( sd->expiration_time != 0 ) { //Don't display if it's unlimited or unknow value
@@ -10760,6 +10775,25 @@ int pc_expiration_timer(int tid, unsigned int tick, int id, intptr_t data) {
 		clif_authfail_fd(sd->fd,10);
 
 	map_quit(sd);
+
+	return 0;
+}
+
+int pc_autotrade_timer(int tid, unsigned int tick, int id, intptr_t data) {
+	struct map_session_data *sd = map_id2sd(id);
+
+	if( !sd )
+		return 0;
+
+	sd->autotrade_tid = INVALID_TIMER;
+
+	buyingstore_reopen(sd);
+	vending_reopen(sd);
+
+	if( sd && !sd->vender_id && !sd->buyer_id ) {
+		sd->state.autotrade = 0;
+		map_quit(sd);
+	}
 
 	return 0;
 }
@@ -11121,6 +11155,7 @@ void do_init_pc(void) {
 	add_timer_func_list(pc_talisman_timer, "pc_talisman_timer");
 	add_timer_func_list(pc_global_expiration_timer, "pc_global_expiration_timer");
 	add_timer_func_list(pc_expiration_timer, "pc_expiration_timer");
+	add_timer_func_list(pc_autotrade_timer, "pc_autotrade_timer");
 
 	add_timer(gettick() + autosave_interval, pc_autosave, 0, 0);
 

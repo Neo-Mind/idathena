@@ -617,6 +617,7 @@ struct map_session_data {
 #endif
 
 	short last_addeditem_index; //Index of latest item added
+	int autotrade_tid;
 };
 
 struct eri *pc_sc_display_ers; //Player's SC display table
@@ -1116,10 +1117,11 @@ int pc_level_penalty_mod(struct map_session_data *sd, int mob_level, uint32 mob_
 
 void pc_rental_expire(struct map_session_data *sd, int i);
 void pc_scdata_received(struct map_session_data *sd);
-
+void pc_check_expiration(struct map_session_data *sd);
 int pc_expiration_timer(int tid, unsigned int tick, int id, intptr_t data);
 int pc_global_expiration_timer(int tid, unsigned tick, int id, intptr_t data);
 void pc_expire_check(struct map_session_data *sd);
+int pc_autotrade_timer(int tid, unsigned int tick, int id, intptr_t data);
 
 enum e_BANKING_DEPOSIT_ACK pc_bank_deposit(struct map_session_data *sd, int money);
 enum e_BANKING_WITHDRAW_ACK pc_bank_withdraw(struct map_session_data *sd, int money);

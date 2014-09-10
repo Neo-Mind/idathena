@@ -4631,6 +4631,7 @@ IT_CASH	18
 false	0
 true	1
 
+Bound_None	0
 Bound_Account	1
 Bound_Guild	2
 Bound_Party	3

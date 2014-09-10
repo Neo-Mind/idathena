@@ -3687,9 +3687,9 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 							struct map_session_data *tsd = ((TBL_PC*)target);
 
 							if (tsd && !pc_issit(tsd)) {
-								skill_sit(tsd,1);
-								pc_setsit(tsd);
 								clif_sitting(target);
+								pc_setsit(tsd);
+								skill_sit(tsd,1);
 							}
 						}
 					}
@@ -8401,7 +8401,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case ALL_BUYING_STORE:
 			if( sd ) //Players only, skill allows 5 buying slots
-				clif_skill_nodamage(src,bl,skill_id,skill_lv,buyingstore_setup(sd,MAX_BUYINGSTORE_SLOTS));
+				clif_skill_nodamage(src,bl,skill_id,skill_lv,buyingstore_setup(sd,MAX_BUYINGSTORE_SLOTS) ? 0 : 1);
 			break;
 
 		case RK_ENCHANTBLADE:
@@ -16323,18 +16323,17 @@ int skill_sit(struct map_session_data *sd, int type)
 		pc_stop_walking(sd,1|4);
 		pc_stop_attack(sd);
 		clif_status_load(&sd->bl, SI_SIT, 1);
-	} else
-		clif_status_load(&sd->bl, SI_SIT, 0);
+	}
 
 	if(!flag)
 		return 0;
 
 	if(type) {
-		if (map_foreachinrange(skill_sit_count,&sd->bl, range, BL_PC, flag) > 1)
-			map_foreachinrange(skill_sit_in,&sd->bl, range, BL_PC, flag);
+		if (map_foreachinrange(skill_sit_count, &sd->bl, range, BL_PC, flag) > 1)
+			map_foreachinrange(skill_sit_in, &sd->bl, range, BL_PC, flag);
 	} else {
-		if (map_foreachinrange(skill_sit_count,&sd->bl, range, BL_PC, flag) < 2)
-			map_foreachinrange(skill_sit_out,&sd->bl, range, BL_PC, flag);
+		if (map_foreachinrange(skill_sit_count, &sd->bl, range, BL_PC, flag) < 2)
+			map_foreachinrange(skill_sit_out, &sd->bl, range, BL_PC, flag);
 	}
 	return 0;
 }

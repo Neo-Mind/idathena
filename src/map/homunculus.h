@@ -109,14 +109,14 @@ enum homun_type {
 
 //Homunculus battle_config setting
 enum homun_setting {
-	HOMSET_NO_SUPPORT_SKILL				= 0x01, //Cannot be targetted by support skills, except for their master
-	HOMSET_NO_INSTANT_LAND_SKILL		= 0x02, //Unit/land skill doesn't applied immediately
-	HOMSET_FIRST_TARGET					= 0x04, //Mobs will always go after them instead of players until attacked
-	HOMSET_COPY_SPEED					= 0x08, //Copy their master's speed on spawn/map-change
-	HOMSET_DISPLAY_LUK					= 0x10, //They display luk/3+1 instead of their actual critical in the stat window, by default they don't crit
-	HOMSET_SAME_MATK					= 0x20, //Their Min-Matk is always the same as their max
-	HOMSET_RESET_REUSESKILL_VAPORIZED	= 0x40, //Skill re-use delay is reset when they are vaporized.
-	HOMSET_RESET_REUSESKILL_TELEPORTED	= 0x80, //Skill re-use delay is reset when they are warped (by skill or item) with player.
+	HOMSET_NO_SUPPORT_SKILL            = 0x01, //Cannot be targetted by support skills, except for their master
+	HOMSET_NO_INSTANT_LAND_SKILL       = 0x02, //Unit/land skill doesn't applied immediately
+	HOMSET_FIRST_TARGET                = 0x04, //Mobs will always go after them instead of players until attacked
+	HOMSET_COPY_SPEED                  = 0x08, //Copy their master's speed on spawn/map-change
+	HOMSET_DISPLAY_LUK                 = 0x10, //They display luk/3+1 instead of their actual critical in the stat window, by default they don't crit
+	HOMSET_SAME_MATK                   = 0x20, //Their Min-Matk is always the same as their max
+	HOMSET_RESET_REUSESKILL_VAPORIZED  = 0x40, //Skill re-use delay is reset when they are vaporized.
+	HOMSET_RESET_REUSESKILL_TELEPORTED = 0x80, //Skill re-use delay is reset when they are warped (by skill or item) with player.
 };
 
 //Check Homunculus Class ID

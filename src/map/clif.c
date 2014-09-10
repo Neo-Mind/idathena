@@ -8543,8 +8543,15 @@ void clif_GM_kick(struct map_session_data *sd,struct map_session_data *tsd)
 
 	if( fd > 0 )
 		clif_authfail_fd(fd, 15);
-	else
+	else { //Close vending/buyingstore
+		if( tsd ) {
+			if( tsd->state.vending )
+				vending_closevending(tsd);
+			else if( tsd->state.buyingstore )
+				buyingstore_close(tsd);
+		}
 		map_quit(tsd);
+	}
 
 	if( sd )
 		clif_GM_kickack(sd, 1);
@@ -9868,8 +9875,9 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 		//Set the initial idle time
 		sd->idletime = last_tick;
 
-		//Login Event
-		npc_script_event(sd,NPCE_LOGIN);
+		if(!sd->state.autotrade) //Don't trigger NPC event or opening vending/buyingstore will be failed
+			npc_script_event(sd,NPCE_LOGIN); //Login Event
+
 	} else {
 		//For some reason the client "loses" these on warp/map-change.
 		clif_updatestatus(sd,SP_STR);
@@ -9968,7 +9976,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 		clif_showvendingboard(&sd->bl,sd->message,0);
 	}
 
-	if(map[sd->bl.m].flag.loadevent) //Lance
+	//Don't trigger NPC event or opening vending/buyingstore will be failed
+	if(!sd->state.autotrade && map[sd->bl.m].flag.loadevent) //Lance
 		npc_script_event(sd,NPCE_LOADMAP);
 
 	if(pc_checkskill(sd,SG_DEVIL) && !pc_nextjobexp(sd))
@@ -10547,8 +10556,8 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 
 			sd->idletime = last_tick;
 			skill_sit(sd,1);
-			pc_setsit(sd);
 			clif_sitting(&sd->bl);
+			pc_setsit(sd);
 			break;
 		case 0x03: // Standup
 			if( !pc_issit(sd) ) { // Bugged client? Just refresh them.
@@ -10559,7 +10568,6 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 			sd->idletime = last_tick;
 			pc_setstand(sd);
 			skill_sit(sd,0);
-			clif_standing(&sd->bl);
 			break;
 	}
 }

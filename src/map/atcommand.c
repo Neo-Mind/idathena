@@ -3096,10 +3096,9 @@ ACMD_FUNC(kickall)
 
 	iter = mapit_getallusers();
 	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) ) {
-		if (pc_get_group_level(sd) >= pc_get_group_level(pl_sd)) { // you can kick only lower or same gm level
+		if (pc_get_group_level(sd) >= pc_get_group_level(pl_sd)) // You can kick only lower or same gm level
 			if (sd->status.account_id != pl_sd->status.account_id)
 				clif_GM_kick(NULL, pl_sd);
-		}
 	}
 	mapit_free(iter);
 
@@ -5649,6 +5648,8 @@ ACMD_FUNC(autotrade)
 	}
 
 	sd->state.autotrade = 1;
+	if( battle_config.autotrade_monsterignore )
+		sd->state.monster_ignore = 1;
 
 	if( sd->state.vending ) {
 		if( Sql_Query(mmysql_handle, "UPDATE `%s` SET `autotrade` = 1 WHERE `id` = %d;", vendings_db, sd->vender_id) != SQL_SUCCESS )
@@ -6810,9 +6811,9 @@ ACMD_FUNC(mail)
  *------------------------------------------*/
 ACMD_FUNC(mobinfo)
 {
-	unsigned char msize[3][7] = {"Small", "Medium", "Large"};
-	unsigned char mrace[12][11] = {"Formless", "Undead", "Beast", "Plant", "Insect", "Fish", "Demon", "Demi-Human", "Angel", "Dragon", "Boss", "Non-Boss"};
-	unsigned char melement[10][8] = {"Neutral", "Water", "Earth", "Fire", "Wind", "Poison", "Holy", "Dark", "Ghost", "Undead"};
+	unsigned char msize[SZ_ALL][7] = { "Small","Medium","Large" };
+	unsigned char mrace[RC_ALL][11] = { "Formless","Undead","Beast","Plant","Insect","Fish","Demon","Demi-Human","Angel","Dragon" };
+	unsigned char melement[ELE_ALL][8] = { "Neutral","Water","Earth","Fire","Wind","Poison","Holy","Dark","Ghost","Undead" };
 	char atcmd_output2[CHAT_SIZE_MAX];
 	struct item_data *item_data;
 	struct mob_db *mob, *mob_array[MAX_SEARCH];

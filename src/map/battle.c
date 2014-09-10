@@ -305,12 +305,16 @@ int battle_delay_damage(unsigned int tick, int amotion, struct block_list *src, 
 
 	return 0;
 }
+
+/**
+ * Get attribute ratio
+ * @param atk_elem Attack element enum e_element
+ * @param def_type Defense element enum e_element
+ * @param def_lv Element level 1 ~ MAX_ELE_LEVEL
+ */
 int battle_attr_ratio(int atk_elem, int def_type, int def_lv)
 {
-	if( !CHK_ELEMENT(atk_elem) )
-		return 100;
-
-	if( !CHK_ELEMENT(def_type) || def_lv < 1 || def_lv > 4 )
+	if( !CHK_ELEMENT(atk_elem) || !CHK_ELEMENT(def_type) || !CHK_ELEMENT_LEVEL(def_lv) )
 		return 100;
 
 	return attr_fix_table[def_lv - 1][atk_elem][def_type];
@@ -335,7 +339,7 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 	if( !CHK_ELEMENT(atk_elem) )
 		atk_elem = rnd()%ELE_ALL;
 
-	if( !CHK_ELEMENT(def_type) || def_lv < 1 || def_lv > 4 ) {
+	if( !CHK_ELEMENT(def_type) || !CHK_ELEMENT_LEVEL(def_lv) ) {
 		ShowError("battle_attr_fix: unknown attr type: atk=%d def_type=%d def_lv=%d\n",atk_elem,def_type,def_lv);
 		return damage;
 	}
@@ -8160,8 +8164,10 @@ static const struct _battle_data {
 	{ "update_enemy_position",              &battle_config.update_enemy_position,           0,      0,      1,              },
 	{ "devotion_rdamage",                   &battle_config.devotion_rdamage,                0,      0,    100,              },
 	{ "feature.autotrade",                  &battle_config.feature_autotrade,               1,      0,      1,              },
-	{ "feature.autotrade_direction",        &battle_config.feature_autotrade_direction,     4,      0,      7,              },
-	{ "feature.autotrade_sit",              &battle_config.feature_autotrade_sit,           1,      0,      1,              },
+	{ "feature.autotrade_direction",        &battle_config.feature_autotrade_direction,     4,      -1,     7,              },
+	{ "feature.autotrade_head_direction",   &battle_config.feature_autotrade_head_direction,0,      -1,     2,              },
+	{ "feature.autotrade_sit",              &battle_config.feature_autotrade_sit,           1,      -1,     1,              },
+	{ "feature.autotrade_open_delay",       &battle_config.feature_autotrade_open_delay,    5000,   1000,   INT_MAX,        },
 	{ "disp_serverbank_msg",                &battle_config.disp_serverbank_msg,             0,      0,      1,              },
 	{ "warg_can_falcon",                    &battle_config.warg_can_falcon,                 0,      0,      1,              },
 	{ "path_blown_halt",                    &battle_config.path_blown_halt,                 1,      0,      1,              },
@@ -8187,6 +8193,7 @@ static const struct _battle_data {
 	{ "fame_pharmacy_7",                    &battle_config.fame_pharmacy_7,                 10,     0,      INT_MAX,        },
 	{ "fame_pharmacy_10",                   &battle_config.fame_pharmacy_10,                50,     0,      INT_MAX,        },
 	{ "mail_delay",                         &battle_config.mail_delay,                      1000,   1000,   INT_MAX,        },
+	{ "at_monsterignore",                   &battle_config.autotrade_monsterignore,         0,      0,      1,              },
 };
 #ifndef STATS_OPT_OUT
 /**

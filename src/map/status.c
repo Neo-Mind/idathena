@@ -3783,16 +3783,19 @@ void status_calc_regen(struct block_list *bl, struct status_data *status, struct
 
 	if( sd ) {
 		struct regen_data_sub *sregen;
+
 		if( (skill = pc_checkskill(sd, HP_MEDITATIO)) > 0 ) {
 			val = regen->sp * (100 + 3 * skill) / 100;
 			regen->sp = cap_value(val, 1, SHRT_MAX);
 		}
+
 		//Only players have skill/sitting skill regen for now.
 		sregen = regen->sregen;
 
 		val = 0;
 		if( (skill = pc_checkskill(sd, SM_RECOVERY)) > 0 )
 			val += skill * 5 + skill * status->max_hp / 500;
+
 		sregen->hp = cap_value(val, 0, SHRT_MAX);
 
 		val = 0;
@@ -7851,7 +7854,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_MARIONETTE:
 			case SC_MARIONETTE2:
 			case SC_NOCHAT:
-			case SC_CHANGE: //Otherwise your HP/SP would get refilled while still within effect of the last invocation.
 			case SC_ABUNDANCE:
 			case SC_FEAR:
 			case SC_TOXIN:
@@ -8328,8 +8330,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_TENSIONRELAX:
 				if( sd ) {
 					skill_sit(sd,1);
-					pc_setsit(sd);
 					clif_sitting(&sd->bl);
+					pc_setsit(sd);
 				}
 				val2 = 12; //SP cost
 				tick_time = 10000; //[GodLesZ] tick time
@@ -9089,8 +9091,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_BANANA_BOMB_SITDOWN:
 				if( sd && !pc_issit(sd) ) {
 					skill_sit(sd,1);
-					pc_setsit(sd);
 					clif_sitting(bl);
+					pc_setsit(sd);
 				}
 				break;
 			case SC_REFLECTDAMAGE:
@@ -9934,9 +9936,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			}
 			sce->val2 = 5 * status->max_hp / 100;
 			break;
-		case SC_CHANGE:
-			status_percent_heal(bl,100,100);
-			break;
 		case SC_RUN: {
 				struct unit_data *ud = unit_bl2ud(bl);
 
@@ -10567,12 +10566,6 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_SATURDAYNIGHTFEVER:
 			sc_start(bl,bl,SC_SITDOWN_FORCE,100,sce->val1,skill_get_time2(WM_SATURDAY_NIGHT_FEVER,sce->val1));
 			break;
-		case SC_SITDOWN_FORCE:
-			if (sd && pc_issit(sd)) {
-				pc_setstand(sd);
-				clif_standing(bl);
-			}
-			break;
 		case SC_CURSEDCIRCLE_TARGET: {
 				struct block_list *src = map_id2bl(sce->val2);
 				struct status_change *sc = status_get_sc(src);
@@ -10598,11 +10591,11 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_TEARGAS:
 			status_change_end(bl,SC_TEARGAS_SOB,INVALID_TIMER);
 			break;
+		case SC_SITDOWN_FORCE:
 		case SC_BANANA_BOMB_SITDOWN:
 			if (sd && pc_issit(sd)) {
 				pc_setstand(sd);
 				skill_sit(sd,0);
-				clif_standing(bl);
 			}
 			break;
 		case SC_VACUUM_EXTREME:
@@ -11763,8 +11756,8 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				status_charge(bl,0,sce->val2); //Reduce 8 SP every 10 seconds.
 				if( sd && !pc_issit(sd) ) { //Force to sit every 10 seconds.
 					skill_sit(sd,1);
-					pc_setsit(sd);
 					clif_sitting(bl);
+					pc_setsit(sd);
 				}
 				sc_timer_next(10000 + tick,status_change_timer,bl->id,data);
 				return 0;
