@@ -1355,6 +1355,11 @@ int chrif_load_scdata(int fd) {
 	if (sd->state.autotrade) {
 		buyingstore_reopen(sd);
 		vending_reopen(sd);
+
+		if (!sd->vender_id && !sd->buyer_id) {
+			sd->state.autotrade = 0;
+			map_quit(sd);
+		}
 	}
 
 	return 0;
@@ -1845,7 +1850,7 @@ int chrif_load_bsdata(int fd) {
 		memcpy(sd->bonus_script[i].script_str,bs->script,strlen(bs->script));
 		sd->bonus_script[i].script = script;
 		sd->bonus_script[i].tick = gettick() + bs->tick;
-		sd->bonus_script[i].flag = (uint16)bs->flag;
+		sd->bonus_script[i].flag = (uint8)bs->flag;
 		sd->bonus_script[i].type = (uint8)bs->type;
 		sd->bonus_script[i].icon = bs->icon;
 		if (bs->icon != SI_BLANK) //Gives status icon if exist

@@ -1431,11 +1431,13 @@ int npc_cashshop_buy(struct map_session_data *sd, unsigned short nameid, int amo
 	if( (item = itemdb_exists(nameid)) == NULL )
 		return 5; // Invalid Item
 
-	ARR_FIND(0, nd->u.shop.count, i, nd->u.shop.shop_item[i].nameid == nameid);
+	ARR_FIND(0, nd->u.shop.count, i, nd->u.shop.shop_item[i].nameid == nameid || itemdb_viewid(nd->u.shop.shop_item[i].nameid) == nameid);
 	if( i == nd->u.shop.count )
 		return 5;
 	if( nd->u.shop.shop_item[i].value <= 0 )
 		return 5;
+
+	nameid = nd->u.shop.shop_item[i].nameid; //item_avail replacement
 
 	if(!itemdb_isstackable(nameid) && amount > 1) {
 		ShowWarning("Player %s (%d:%d) sent a hexed packet trying to buy %d of nonstackable item %hu!\n",
@@ -1669,7 +1671,7 @@ static int npc_selllist_sub(struct map_session_data* sd, int n, unsigned short* 
 {
 	char npc_ev[EVENT_NAME_LENGTH];
 	char card_slot[NAME_LENGTH];
-	int i, j, idx;
+	int i, j;
 	int key_nameid = 0;
 	int key_amount = 0;
 	int key_refine = 0;
@@ -1677,39 +1679,39 @@ static int npc_selllist_sub(struct map_session_data* sd, int n, unsigned short* 
 	int key_identify = 0;
 	int key_card[MAX_SLOTS];
 
-	// discard old contents
+	// Discard old contents
 	script_cleararray_pc(sd, "@sold_nameid", (void*)0);
 	script_cleararray_pc(sd, "@sold_quantity", (void*)0);
 	script_cleararray_pc(sd, "@sold_refine", (void*)0);
 	script_cleararray_pc(sd, "@sold_attribute", (void*)0);
 	script_cleararray_pc(sd, "@sold_identify", (void*)0);
 
-	for( j = 0; j < MAX_SLOTS; j++ ) { // clear each of the card slot entries
+	for( j = 0; j < MAX_SLOTS; j++ ) { // Clear each of the card slot entries
 		key_card[j] = 0;
 		snprintf(card_slot, sizeof(card_slot), "@sold_card%d", j + 1);
 		script_cleararray_pc(sd, card_slot, (void*)0);
 	}
 	
-	// save list of to be sold items
+	// Save list of to be sold items
 	for( i = 0; i < n; i++ ) {
-		idx = item_list[i*2]-2;
+		int idx = item_list[i * 2] - 2;
 
 		script_setarray_pc(sd, "@sold_nameid", i, (void*)(intptr_t)sd->status.inventory[idx].nameid, &key_nameid);
-		script_setarray_pc(sd, "@sold_quantity", i, (void*)(intptr_t)item_list[i*2+1], &key_amount);
+		script_setarray_pc(sd, "@sold_quantity", i, (void*)(intptr_t)item_list[i * 2 + 1], &key_amount);
 
-		if( itemdb_isequip(sd->status.inventory[idx].nameid) ) { // process equipment based information into the arrays
+		if( itemdb_isequip(sd->status.inventory[idx].nameid) ) { // Process equipment based information into the arrays
 			script_setarray_pc(sd, "@sold_refine", i, (void*)(intptr_t)sd->status.inventory[idx].refine, &key_refine);
 			script_setarray_pc(sd, "@sold_attribute", i, (void*)(intptr_t)sd->status.inventory[idx].attribute, &key_attribute);
 			script_setarray_pc(sd, "@sold_identify", i, (void*)(intptr_t)sd->status.inventory[idx].identify, &key_identify);
 		
-			for( j = 0; j < MAX_SLOTS; j++ ) { // store each of the cards from the equipment in the array
+			for( j = 0; j < MAX_SLOTS; j++ ) { // Store each of the cards from the equipment in the array
 				snprintf(card_slot, sizeof(card_slot), "@sold_card%d", j + 1);
 				script_setarray_pc(sd, card_slot, i, (void*)(intptr_t)sd->status.inventory[idx].card[j], &key_card[j]);
 			}
 		}
 	}
 
-	// invoke event
+	// Invoke event
 	snprintf(npc_ev, ARRAYLENGTH(npc_ev), "%s::OnSellItem", nd->exname);
 	npc_event(sd, npc_ev, 0);
 	return 0;
@@ -3713,7 +3715,7 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 	len = ftell(fp);
 	buffer = (char*)aMalloc(len + 1);
 	fseek(fp, 0, SEEK_SET);
-	len = fread(buffer, sizeof(char), len, fp);
+	len = fread(buffer, 1, len, fp);
 	buffer[len] = '\0';
 
 	if( ferror(fp) ) {

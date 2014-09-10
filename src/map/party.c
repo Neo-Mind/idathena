@@ -251,13 +251,14 @@ int party_recv_info(struct party* sp, int char_id)
 	int removed_count = 0;
 	int added[MAX_PARTY]; // Member_id in new data
 	int added_count = 0;
-	int i;
 	int member_id;
 	
 	nullpo_ret(sp);
 
 	p = (struct party_data*)idb_get(party_db, sp->party_id);
 	if( p != NULL ) { // Diff members
+		int i;
+
 		for( member_id = 0; member_id < MAX_PARTY; ++member_id ) {
 			member = &p->party.member[member_id];
 			if( member->char_id == 0 )
@@ -517,8 +518,6 @@ int party_removemember(struct map_session_data* sd, int account_id, char* name)
 
 int party_removemember2(struct map_session_data *sd,int char_id,int party_id)
 {
-	struct party_data *p;
-
 	if( sd ) {
 		if( !sd->status.party_id )
 			return -3;
@@ -526,10 +525,12 @@ int party_removemember2(struct map_session_data *sd,int char_id,int party_id)
 		return 1;
 	} else {
 		int i;
-		if( !(p = party_search(party_id)) )
+		struct party_data *p = party_search(party_id);
+
+		if( !p )
 			return -2;
 
-		ARR_FIND(0,MAX_PARTY,i,p->party.member[i].char_id == char_id );
+		ARR_FIND(0,MAX_PARTY,i,p->party.member[i].char_id == char_id);
 		if( i >= MAX_PARTY )
 			return -1;
 

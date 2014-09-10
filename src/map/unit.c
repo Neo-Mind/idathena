@@ -51,6 +51,7 @@ const short diry[8] = { 1,1,0,-1,-1,-1,0,1 }; //Lookup to know where will move t
 //Early declaration
 static int unit_attack_timer(int tid, unsigned int tick, int id, intptr_t data);
 static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data);
+int unit_unattackable(struct block_list *bl);
 
 /**
  * Get the unit_data related to the bl
@@ -60,7 +61,8 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
  */
 struct unit_data* unit_bl2ud(struct block_list *bl)
 {
-	if( bl == NULL ) return NULL;
+	if( bl == NULL )
+		return NULL;
 	switch( bl->type ) {
 		case BL_PC: return &((struct map_session_data*)bl)->ud;
 		case BL_MOB: return &((struct mob_data*)bl)->ud;
@@ -197,8 +199,19 @@ int unit_teleport_timer(int tid, unsigned int tick, int id, intptr_t data) {
  * @return 0
  */
 int unit_check_start_teleport_timer(struct block_list *sbl) {
-	TBL_PC *msd = unit_get_master(sbl);
+	TBL_PC *msd = NULL;
 	int max_dist = 0;
+
+	switch(sbl->type) {
+		case BL_HOM:	
+		case BL_ELEM:	
+		case BL_PET:	
+		case BL_MER:	
+			msd = unit_get_master(sbl);
+			break;
+		default:
+			return 0;
+	}
 
 	switch(sbl->type) {
 		case BL_HOM: max_dist = AREA_SIZE; break;
@@ -207,10 +220,11 @@ int unit_check_start_teleport_timer(struct block_list *sbl) {
 		case BL_MER : max_dist = MAX_MER_DISTANCE; break;
 	}
 	//If there is a master and it's a valid type
-	if(msd && (msd->bl.type&BL_PC) && max_dist){ //@TODO: The bl.type is an hotfix please dig it to remove it
+	if(msd && max_dist) {
 		int *msd_tid = unit_get_masterteleport_timer(sbl);
 
-		if(msd_tid == NULL) return 0;
+		if(msd_tid == NULL)
+			return 0;
 		if(!check_distance_bl(&msd->bl, sbl, max_dist)) {
 			if(*msd_tid == INVALID_TIMER || *msd_tid == 0)
 				*msd_tid = add_timer(gettick() + 3000,unit_teleport_timer,sbl->id,max_dist);
@@ -237,25 +251,23 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 	uint8 dir;
 	struct block_list *bl;
 	struct unit_data *ud;
-	TBL_PC *sd;
-	TBL_MOB *md;
-	TBL_MER *mrd;
-	TBL_ELEM *ed;
-	TBL_PET *pd;
-	TBL_HOM *hd;
+	TBL_PC *sd = NULL;
+	TBL_MOB *md = NULL;
 
 	bl = map_id2bl(id);
 	if(bl == NULL)
 		return 0;
 
-	sd = BL_CAST(BL_PC, bl);
-	md = BL_CAST(BL_MOB, bl);
-	mrd = BL_CAST(BL_MER, bl);
-	ed = BL_CAST(BL_ELEM, bl);
-	pd = BL_CAST(BL_PET, bl);
-	hd = BL_CAST(BL_HOM, bl);
-	ud = unit_bl2ud(bl);
+	switch(bl->type) { //Avoid useless cast, we can only be 1 type
+		case BL_PC:
+			sd = BL_CAST(BL_PC,bl);
+			break;
+		case BL_MOB:
+			md = BL_CAST(BL_MOB,bl);
+			break;
+	}
 
+	ud = unit_bl2ud(bl);
 	if(ud == NULL)
 		return 0;
 
@@ -303,51 +315,60 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 	map_foreachinmovearea(clif_insight, bl, AREA_SIZE, -dx, -dy, sd?BL_ALL:BL_PC, bl);
 	ud->walktimer = INVALID_TIMER;
 
-	if(sd) {
-		if(sd->touching_id)
-			npc_touchnext_areanpc(sd,false);
-		if(map_getcell(bl->m,x,y,CELL_CHKNPC)) {
-			npc_touch_areanpc(sd,bl->m,x,y);
-			if (bl->prev == NULL) //Script could have warped char, abort remaining of the function.
-				return 0;
-		} else
-			sd->areanpc_id = 0;
-		if(sd->md)
-			unit_check_start_teleport_timer(&sd->md->bl);
-		if(sd->ed)
-			unit_check_start_teleport_timer(&sd->ed->bl);
-		if(sd->hd)
-			unit_check_start_teleport_timer(&sd->hd->bl);
-		if(sd->pd)
-			unit_check_start_teleport_timer(&sd->pd->bl);
-		pc_cell_basilica(sd);
-	} else if(md) {
-		if(map_getcell(bl->m,x,y,CELL_CHKNPC)) {
-			if( npc_touch_areanpc2(md) ) return 0; // Warped
-		} else
-			md->areanpc_id = 0;
-		if(md->min_chase > md->db->range3) md->min_chase--;
-		//Walk skills are triggered regardless of target due to the idle-walk mob state.
-		//But avoid triggering on stop-walk calls.
-		if(tid != INVALID_TIMER &&
-			!(ud->walk_count%WALK_SKILL_INTERVAL) &&
-			mobskill_use(md, tick, -1))
-		{
-			if (!(ud->skill_id == NPC_SELFDESTRUCTION && ud->skilltimer != INVALID_TIMER)) { //Skill used, abort walking
-				clif_fixpos(bl); //Fix position as walk has been cancelled.
-				return 0;
+	switch(bl->type) {
+		case BL_PC:
+			if(sd->touching_id)
+				npc_touchnext_areanpc(sd,false);
+			if(map_getcell(bl->m,x,y,CELL_CHKNPC)) {
+				npc_touch_areanpc(sd,bl->m,x,y);
+				if(bl->prev == NULL) //Script could have warped char, abort remaining of the function.
+					return 0;
+			} else
+				sd->areanpc_id = 0;
+
+			/* WIP disable [Lighta], currently unsupported.
+			 * This was meant to start the timer if the player move but not his slave.
+			if(sd->md)
+				unit_check_start_teleport_timer(&sd->md->bl);
+			if(sd->ed)
+				unit_check_start_teleport_timer(&sd->ed->bl);
+			if(sd->hd)
+				unit_check_start_teleport_timer(&sd->hd->bl);
+			if(sd->pd)
+				unit_check_start_teleport_timer(&sd->pd->bl);
+			*/
+
+			pc_cell_basilica(sd);
+			break;
+		case BL_MOB:
+			if(map_getcell(bl->m,x,y,CELL_CHKNPC)) {
+				if(npc_touch_areanpc2(md))
+					return 0; //Warped
+			} else
+				md->areanpc_id = 0;
+			if(md->min_chase > md->db->range3)
+				md->min_chase--;
+			//Walk skills are triggered regardless of target due to the idle-walk mob state.
+			//But avoid triggering on stop-walk calls.
+			if(tid != INVALID_TIMER &&
+				!(ud->walk_count%WALK_SKILL_INTERVAL) &&
+				mobskill_use(md, tick, -1))
+			{
+				if(!(ud->skill_id == NPC_SELFDESTRUCTION && ud->skilltimer != INVALID_TIMER)) { //Skill used, abort walking
+					clif_fixpos(bl); //Fix position as walk has been cancelled.
+					return 0;
+				}
+				//Resend walk packet for proper Self Destruction display.
+				clif_move(ud);
 			}
-			//Resend walk packet for proper Self Destruction display.
-			clif_move(ud);
-		}
-	} else if(hd)
-		unit_check_start_teleport_timer(&hd->bl);
-	else if(ed)
-		unit_check_start_teleport_timer(&ed->bl);
-	else if(pd)
-		unit_check_start_teleport_timer(&pd->bl);
-	else if(mrd)
-		unit_check_start_teleport_timer(&mrd->bl);
+			break;
+		case BL_HOM: 
+		case BL_ELEM:
+		case BL_PET:
+		case BL_MER:
+			unit_check_start_teleport_timer(bl);
+			break;
+	}
 
 	if(tid == INVALID_TIMER) //A directly invoked timer is from battle_stop_walking, therefore the rest is irrelevant.
 		return 0;
@@ -452,7 +473,7 @@ int unit_delay_walktobl_timer(int tid, unsigned int tick, int id, intptr_t data)
  *  &4: Delay walking for can_move
  * @return 1: Success 0: Fail or unit_walktoxy_sub()
  */
-int unit_walktoxy( struct block_list *bl, short x, short y, int flag)
+int unit_walktoxy(struct block_list *bl, short x, short y, int flag)
 {
 	struct unit_data* ud = NULL;
 	struct status_change* sc = NULL;
@@ -475,11 +496,14 @@ int unit_walktoxy( struct block_list *bl, short x, short y, int flag)
 	if( (battle_config.max_walk_path < wpd.path_len) && (bl->type != BL_NPC) )
 		return 0;
 
-	if( flag&4 && DIFF_TICK(ud->canmove_tick, gettick()) > 0 &&
-		DIFF_TICK(ud->canmove_tick, gettick()) < 2000 )
-	{ // Delay walking command. [Skotlex]
-		add_timer(ud->canmove_tick+1, unit_delay_walktoxy_timer, bl->id, (x<<16)|(y&0xFFFF));
-		return 1;
+	if( flag&4 ) {
+		unit_unattackable(bl);
+		unit_stop_attack(bl);
+		// Delay walking command. [Skotlex]
+		if( DIFF_TICK(ud->canmove_tick, gettick()) > 0 && DIFF_TICK(ud->canmove_tick, gettick()) < 2000 ) {
+			add_timer(ud->canmove_tick + 1, unit_delay_walktoxy_timer, bl->id, (x<<16)|(y&0xFFFF));
+			return 1;
+		}
 	}
 
 	if( !(flag&2) && (!(status_get_mode(bl)&MD_CANMOVE) || !unit_can_move(bl)) )
@@ -1809,6 +1833,7 @@ int unit_unattackable(struct block_list *bl)
 
 	if(ud) {
 		ud->state.attack_continue = 0;
+		ud->target_to = 0;
 		unit_set_target(ud, 0);
 	}
 

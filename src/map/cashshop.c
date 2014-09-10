@@ -228,7 +228,9 @@ bool cashshop_buylist( struct map_session_data* sd, uint32 kafrapoints, int n, u
 			return false;
 		}
 
-		ARR_FIND( 0, cash_shop_items[tab].count, j, nameid == cash_shop_items[tab].item[j]->nameid );
+		ARR_FIND( 0, cash_shop_items[tab].count, j, nameid == cash_shop_items[tab].item[j]->nameid || nameid == itemdb_viewid(cash_shop_items[tab].item[j]->nameid) );
+
+		nameid = *( item_list + i * 5 ) = cash_shop_items[tab].item[j]->nameid; //item_avail replacement
 
 		if( j == cash_shop_items[tab].count || !itemdb_exists( nameid ) ){
 			clif_cashshop_result( sd, nameid, CASHSHOP_RESULT_ERROR_UNKNOWN_ITEM );

@@ -282,7 +282,8 @@ enum e_race2 {
 };
 
 enum e_elemen {
-	ELE_NEUTRAL = 0, //Nothing
+	ELE_NONE = -1,   //Nothing
+	ELE_NEUTRAL = 0, //Neutral
 	ELE_WATER,       //Water
 	ELE_EARTH,       //Ground
 	ELE_FIRE,        //Fire
@@ -418,7 +419,7 @@ enum _sp {
 	SP_EMATK,SP_SP_GAIN_RACE_ATTACK,SP_HP_GAIN_RACE_ATTACK,SP_SKILL_USE_SP_RATE, // 2046-2049
 	SP_SKILL_COOLDOWN,SP_SKILL_FIXEDCAST,SP_SKILL_VARIABLECAST,SP_FIXCASTRATE,SP_VARCASTRATE, // 2050-2054
 	SP_SKILL_USE_SP,SP_MAGIC_ATK_ELE,SP_ADD_FIXEDCAST,SP_ADD_VARIABLECAST, // 2055-2058
-	SP_DEF_SET,SP_MDEF_SET,SP_MAGIC_SUBRACE,SP_HP_VANISH_RATE, // 2059-2062
+	SP_SET_DEF_RACE,SP_SET_MDEF_RACE,SP_MAGIC_SUBRACE,SP_HP_VANISH_RATE, // 2059-2062
 
 	SP_IGNORE_DEF_CLASS,SP_IGNORE_DEF_CLASS_RATE,SP_IGNORE_MDEF_CLASS,SP_IGNORE_MDEF_CLASS_RATE, //2063-2066
 	SP_DEF_RATIO_ATK_CLASS,SP_ADDCLASS,SP_SUBCLASS,SP_MAGIC_ADDCLASS,SP_WEAPON_COMA_CLASS, //2067-2071
@@ -756,6 +757,7 @@ struct block_list * map_id2bl(int id);
 bool map_blid_exists( int id );
 
 #define map_id2index(id) map[(id)].index
+const char* map_mapid2mapname(int m);
 int16 map_mapindex2mapid(unsigned short mapindex);
 int16 map_mapname2mapid(const char* name);
 int map_mapname2ipport(unsigned short name, uint32* ip, uint16* port);
@@ -815,6 +817,11 @@ void map_removemobs(int16 m); // [Wizputer]
 void do_reconnect_map(void); //Invoked on map-char reconnection [Skotlex]
 void map_addmap2db(struct map_data *m);
 void map_removemapdb(struct map_data *m);
+
+#define CHK_ELEMENT(ele) ((ele) > ELE_NONE && (ele) < ELE_MAX) // Check valid Element
+#define CHK_RACE(race) ((race) > RC_NONE_ && (race) < RC_MAX) // Check valid Race
+#define CHK_RACE2(race2) ((race2) >= RC2_NONE && (race2) < RC2_MAX) // Check valid Race2
+#define CHK_CLASS(class_) ((class_) > CLASS_NONE && (class_) < CLASS_MAX) // Check valid Class
 
 void map_add_questinfo(int m, struct questinfo *qi);
 bool map_remove_questinfo(int m, struct npc_data *nd);

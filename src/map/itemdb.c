@@ -18,20 +18,28 @@
 #include <stdlib.h>
 #include <string.h>
 
-static struct item_data* itemdb_array[MAX_ITEMDB];
+static DBMap *itemdb; //Item DB
+static DBMap *itemdb_combo; //Item Combo DB
+static DBMap *itemdb_group; //Item Group DB
 
-struct item_data dummy_item; //This is the default dummy item used for non-existant items. [Skotlex]
+struct item_data *dummy_item; //This is the default dummy item used for non-existant items. [Skotlex]
 
-static DBMap* itemdb_other; //unsigned short nameid -> struct item_data*
-static DBMap* itemdb_combo;
-static DBMap* itemdb_group;
-
-DBMap* itemdb_get_combodb() {
-	return itemdb_combo;
+/**
+ * Check if combo exists
+ * @param combo_id
+ * @return NULL if not exist, or struct item_combo*
+ */
+struct item_combo *itemdb_combo_exists(unsigned short combo_id) {
+	return (struct item_combo *)uidb_get(itemdb_combo, combo_id);
 }
 
-DBMap* itemdb_get_groupdb() {
-	return itemdb_group;
+/**
+ * Check if item group exists
+ * @param group_id
+ * @return NULL if not exist, or s_item_group_db *
+ */
+struct s_item_group_db *itemdb_group_exists(unsigned short group_id) {
+	return (struct s_item_group_db *)uidb_get(itemdb_group, group_id);
 }
 
 /**
@@ -44,49 +52,31 @@ static int itemdb_searchname_sub(DBKey key, DBData *data, va_list ap)
 	struct item_data *item = db_data2ptr(data), **dst, **dst2;
 	char *str;
 
-	str = va_arg(ap,char *);
-	dst = va_arg(ap,struct item_data **);
-	dst2 = va_arg(ap,struct item_data **);
-	if( item == &dummy_item ) return 0;
+	str = va_arg(ap, char *);
+	dst = va_arg(ap, struct item_data **);
+	dst2 = va_arg(ap, struct item_data **);
 
 	//Absolute priority to Aegis code name.
-	if( *dst != NULL ) return 0;
-	if( strcmpi(item->name,str) == 0 )
+	if (strcmpi(item->name, str) == 0)
 		*dst = item;
 
 	//Second priority to Client displayed name.
-	if( *dst2 != NULL ) return 0;
-	if( strcmpi(item->jname,str) == 0 )
+	if (strcmpi(item->jname, str) == 0)
 		*dst2 = item;
 	return 0;
 }
 
-/*==========================================
+/**
  * Return item data from item name. (lookup)
- *------------------------------------------*/
+ * @param str Item Name
+ * @return item data
+ */
 struct item_data* itemdb_searchname(const char *str)
 {
-	struct item_data* item;
-	struct item_data* item2 = NULL;
-	int i;
+	struct item_data *item = NULL, *item2 = NULL;
 
-	for( i = 0; i < ARRAYLENGTH(itemdb_array); ++i ) {
-		item = itemdb_array[i];
-		if( item == NULL )
-			continue;
-
-		//Absolute priority to Aegis code name.
-		if( strcasecmp(item->name,str) == 0 )
-			return item;
-
-		//Second priority to Client displayed name.
-		if( strcasecmp(item->jname,str) == 0 )
-			item2 = item;
-	}
-
-	item = NULL;
-	itemdb_other->foreach(itemdb_other,itemdb_searchname_sub,str,&item,&item2);
-	return item ? item : item2;
+	itemdb->foreach(itemdb, itemdb_searchname_sub, str, &item, &item2);
+	return (item ? item : item2);
 }
 
 /**
@@ -95,51 +85,30 @@ struct item_data* itemdb_searchname(const char *str)
 static int itemdb_searchname_array_sub(DBKey key, DBData data, va_list ap)
 {
 	struct item_data *item = (struct item_data *)db_data2ptr(&data);
-	char *str;
+	char *str = va_arg(ap, char *);
 
-	str = va_arg(ap,char *);
-	if(item == &dummy_item)
-		return 1; //Invalid item.
-	if(stristr(item->jname,str))
+	if (stristr(item->jname, str))
 		return 0;
-	if(stristr(item->name,str))
+	if (stristr(item->name, str))
 		return 0;
-	return strcmpi(item->jname,str);
+	return strcmpi(item->jname, str);
 }
 
-/*==========================================
+/**
  * Founds up to N matches. Returns number of matches [Skotlex]
- *------------------------------------------*/
+ * @param *data
+ * @param size
+ * @param str
+ * @return Number of matches item
+ */
 int itemdb_searchname_array(struct item_data** data, int size, const char *str)
 {
-	struct item_data* item;
-	int i;
-	int count = 0;
+	DBData *db_data[MAX_SEARCH];
+	int i, count = 0, db_count;
 
-	//Search in the array
-	for( i = 0; i < ARRAYLENGTH(itemdb_array); ++i ) {
-		item = itemdb_array[i];
-		if( item == NULL )
-			continue;
-
-		if( stristr(item->jname,str) || stristr(item->name,str) ) {
-			if( count < size )
-				data[count] = item;
-			++count;
-		}
-	}
-
-	//Search in the db
-	if( count < size ) {
-		DBData *db_data[MAX_SEARCH];
-		int db_count = 0;
-
-		size -= count;
-		db_count = itemdb_other->getall(itemdb_other, (DBData**)&db_data, size, itemdb_searchname_array_sub, str);
-		for( i = 0; i < db_count; i++ )
-			data[count++] = (struct item_data *)db_data2ptr(db_data[i]);
-		count += db_count;
-	}
+	db_count = itemdb->getall(itemdb, (DBData**)&db_data, size, itemdb_searchname_array_sub, str);
+	for (i = 0; i < db_count && count < size; i++)
+		data[count++] = db_data2ptr(db_data[i]);
 	return count;
 }
 
@@ -151,7 +120,7 @@ int itemdb_searchname_array(struct item_data** data, int size, const char *str)
  * @return nameid
  */
 unsigned short itemdb_searchrandomid(uint16 group_id, uint8 sub_group) {
-	struct s_item_group_db *group = (struct s_item_group_db *)idb_get(itemdb_group, group_id);
+	struct s_item_group_db *group = (struct s_item_group_db *)uidb_get(itemdb_group, group_id);
 
 	if (sub_group)
 		sub_group -= 1;
@@ -180,7 +149,7 @@ unsigned short itemdb_searchrandomid(uint16 group_id, uint8 sub_group) {
  */
 uint16 itemdb_get_randgroupitem_count(uint16 group_id, uint8 sub_group, unsigned short nameid) {
 	uint16 i, amt = 1;
-	struct s_item_group_db *group = (struct s_item_group_db *)idb_get(itemdb_group, group_id);
+	struct s_item_group_db *group = (struct s_item_group_db *)uidb_get(itemdb_group, group_id);
 
 	if (sub_group)
 		sub_group -= 1;
@@ -255,7 +224,7 @@ char itemdb_pc_get_itemgroup(uint16 group_id, struct map_session_data *sd) {
 
 	nullpo_retr(1, sd);
 
-	if (!(group = (struct s_item_group_db *)idb_get(itemdb_group, group_id))) {
+	if (!(group = (struct s_item_group_db *)uidb_get(itemdb_group, group_id))) {
 		ShowError("itemdb_pc_get_itemgroup: Invalid group id '%d' specified.", group_id);
 		return 2;
 	}
@@ -282,18 +251,12 @@ char itemdb_pc_get_itemgroup(uint16 group_id, struct map_session_data *sd) {
 	return 0;
 }
 
-/// Searches for the item_data.
-/// Returns the item_data or NULL if it does not exist.
-struct item_data* itemdb_exists(unsigned short nameid)
-{
-	struct item_data* item;
-
-	if (nameid >= 0 && nameid < ARRAYLENGTH(itemdb_array))
-		return itemdb_array[nameid];
-	item = (struct item_data*)idb_get(itemdb_other,nameid);
-	if (item == &dummy_item)
-		return NULL; //Dummy data, doesn't exist
-	return item;
+/** Searches for the item_data. Use this to check if item exists or not.
+ * @param nameid
+ * @return *item_data if item is exist, or NULL if not
+ */
+struct item_data* itemdb_exists(unsigned short nameid) {
+	return ((struct item_data*)uidb_get(itemdb,nameid));
 }
 
 /// Returns human readable name for given item type.
@@ -407,67 +370,50 @@ static void itemdb_jobid2mapid(unsigned int *bclass, unsigned int jobmask)
 		bclass[1] |= 1<<MAPID_GUNSLINGER;
 }
 
-static void create_dummy_data(void)
-{
-	memset(&dummy_item, 0, sizeof(struct item_data));
-	dummy_item.nameid = 500;
-	dummy_item.weight = 1;
-	dummy_item.value_sell = 1;
-	dummy_item.type = IT_ETC; //Etc item
-	safestrncpy(dummy_item.name, "UNKNOWN_ITEM", sizeof(dummy_item.name));
-	safestrncpy(dummy_item.jname, "UNKNOWN_ITEM", sizeof(dummy_item.jname));
-	dummy_item.view_id = UNKNOWN_ITEM_ID;
+/**
+ * Create dummy item data
+ */
+static void itemdb_create_dummy(void) {
+	CREATE(dummy_item, struct item_data, 1);
+
+	memset(dummy_item, 0, sizeof(struct item_data));
+	dummy_item->nameid = 500;
+	dummy_item->weight = 1;
+	dummy_item->value_sell = 1;
+	dummy_item->type = IT_ETC; //Etc item
+	safestrncpy(dummy_item->name, "UNKNOWN_ITEM", sizeof(dummy_item->name));
+	safestrncpy(dummy_item->jname, "Unknown Item", sizeof(dummy_item->jname));
+	dummy_item->view_id = UNKNOWN_ITEM_ID;
 }
 
-static struct item_data* create_item_data(unsigned short nameid)
-{
+/**
+ * Create new item data
+ * @param nameid
+ */
+static struct item_data *itemdb_create_item(unsigned short nameid) {
 	struct item_data *id;
 
 	CREATE(id, struct item_data, 1);
+	memset(id, 0, sizeof(struct item_data));
 	id->nameid = nameid;
-	id->weight = 1;
-	id->type = IT_ETC;
+	id->type = IT_ETC; //Etc item
+	uidb_put(itemdb, nameid, id);
 	return id;
 }
 
-/*==========================================
- * Loads (and creates if not found) an item from the db.
- *------------------------------------------*/
-struct item_data* itemdb_load(unsigned short nameid)
-{
-	struct item_data *id;
-
-	if( nameid >= 0 && nameid < ARRAYLENGTH(itemdb_array) ) {
-		id = itemdb_array[nameid];
-		if( id == NULL || id == &dummy_item )
-			id = itemdb_array[nameid] = create_item_data(nameid);
-		return id;
-	}
-
-	id = (struct item_data*)idb_get(itemdb_other, nameid);
-	if( id == NULL || id == &dummy_item ) {
-		id = create_item_data(nameid);
-		idb_put(itemdb_other, nameid, id);
-	}
-	return id;
-}
-
-/*==========================================
+/**
  * Loads an item from the db. If not found, it will return the dummy item.
- *------------------------------------------*/
-struct item_data* itemdb_search(unsigned short nameid)
-{
-	struct item_data* id;
+ * @param nameid
+ * @return *item_data or *dummy_item if item not found
+ */
+struct item_data* itemdb_search(unsigned short nameid) {
+	struct item_data* id = NULL;
 
-	if( nameid >= 0 && nameid < ARRAYLENGTH(itemdb_array) )
-		id = itemdb_array[nameid];
-	else
-		id = (struct item_data*)idb_get(itemdb_other, nameid);
-
-	if( id == NULL ) {
+	if (nameid == dummy_item->nameid)
+		id = dummy_item;
+	else if (!(id = (struct item_data*)uidb_get(itemdb, nameid))) {
 		ShowWarning("itemdb_search: Item ID %hu does not exists in the item_db. Using dummy data.\n", nameid);
-		id = &dummy_item;
-		dummy_item.nameid = nameid;
+		id = dummy_item;
 	}
 	return id;
 }
@@ -480,7 +426,7 @@ bool itemdb_isequip2(struct item_data *id)
 {
 	nullpo_retr(false,id);
 
-	switch(id->type) {
+	switch (id->type) {
 		case IT_WEAPON:
 		case IT_ARMOR:
 		case IT_AMMO:
@@ -499,7 +445,7 @@ bool itemdb_isstackable2(struct item_data *id)
 {
 	nullpo_retr(false,id);
 
-	switch(id->type) {
+	switch (id->type) {
 		case IT_WEAPON:
 		case IT_ARMOR:
 		case IT_PETEGG:
@@ -515,43 +461,43 @@ bool itemdb_isstackable2(struct item_data *id)
 /*==========================================
  * Trade Restriction functions [Skotlex]
  *------------------------------------------*/
-int itemdb_isdropable_sub(struct item_data *item, int gmlv, int unused) {
+bool itemdb_isdropable_sub(struct item_data *item, int gmlv, int unused) {
 	return (item && (!(item->flag.trade_restriction&ITR_NODROP) || gmlv >= item->gm_lv_trade_override));
 }
 
-int itemdb_cantrade_sub(struct item_data* item, int gmlv, int gmlv2) {
+bool itemdb_cantrade_sub(struct item_data* item, int gmlv, int gmlv2) {
 	return (item && (!(item->flag.trade_restriction&ITR_NOTRADE) || gmlv >= item->gm_lv_trade_override || gmlv2 >= item->gm_lv_trade_override));
 }
 
-int itemdb_canpartnertrade_sub(struct item_data* item, int gmlv, int gmlv2) {
+bool itemdb_canpartnertrade_sub(struct item_data* item, int gmlv, int gmlv2) {
 	return (item && (item->flag.trade_restriction&ITR_PARTNEROVERRIDE || gmlv >= item->gm_lv_trade_override || gmlv2 >= item->gm_lv_trade_override));
 }
 
-int itemdb_cansell_sub(struct item_data* item, int gmlv, int unused) {
+bool itemdb_cansell_sub(struct item_data* item, int gmlv, int unused) {
 	return (item && (!(item->flag.trade_restriction&ITR_NOSELLTONPC) || gmlv >= item->gm_lv_trade_override));
 }
 
-int itemdb_cancartstore_sub(struct item_data* item, int gmlv, int unused) {
+bool itemdb_cancartstore_sub(struct item_data* item, int gmlv, int unused) {
 	return (item && (!(item->flag.trade_restriction&ITR_NOCART) || gmlv >= item->gm_lv_trade_override));
 }
 
-int itemdb_canstore_sub(struct item_data* item, int gmlv, int unused) {
+bool itemdb_canstore_sub(struct item_data* item, int gmlv, int unused) {
 	return (item && (!(item->flag.trade_restriction&ITR_NOSTORAGE) || gmlv >= item->gm_lv_trade_override));
 }
 
-int itemdb_canguildstore_sub(struct item_data* item, int gmlv, int unused) {
+bool itemdb_canguildstore_sub(struct item_data* item, int gmlv, int unused) {
 	return (item && (!(item->flag.trade_restriction&ITR_NOGSTORAGE) || gmlv >= item->gm_lv_trade_override));
 }
 
-int itemdb_canmail_sub(struct item_data* item, int gmlv, int unused) {
+bool itemdb_canmail_sub(struct item_data* item, int gmlv, int unused) {
 	return (item && (!(item->flag.trade_restriction&ITR_NOMAIL) || gmlv >= item->gm_lv_trade_override));
 }
 
-int itemdb_canauction_sub(struct item_data* item, int gmlv, int unused) {
+bool itemdb_canauction_sub(struct item_data* item, int gmlv, int unused) {
 	return (item && (!(item->flag.trade_restriction&ITR_NOAUCTION) || gmlv >= item->gm_lv_trade_override));
 }
 
-bool itemdb_isrestricted(struct item* item, int gmlv, int gmlv2, int (*func)(struct item_data*, int, int))
+bool itemdb_isrestricted(struct item* item, int gmlv, int gmlv2, bool (*func)(struct item_data*, int, int))
 {
 	struct item_data* item_data = itemdb_search(item->nameid);
 	int i;
@@ -632,12 +578,11 @@ static void itemdb_read_itemgroup_sub(const char* filename)
 	while( fgets(line, sizeof(line), fp) ) {
 		int group_id = -1;
 		unsigned int j, prob = 1;
-		unsigned short nameid;
-		uint16 amt = 1, dur = 0;
 		uint8 rand_group = 1;
-		char *str[9], *p, announced = 0, named = 0, bound = BOUND_NONE;
+		char *str[9], *p;
 		struct s_item_group_random *random = NULL;
 		struct s_item_group_db *group = NULL;
+		struct s_item_group_entry entry;
 		bool found = false;
 
 		ln++;
@@ -666,6 +611,10 @@ static void itemdb_read_itemgroup_sub(const char* filename)
 			continue;
 		}
 
+		memset(&entry, 0, sizeof(entry));
+		entry.amount = 1;
+		entry.bound = BOUND_NONE;
+
 		//Checking group_id
 		trim(str[0]);
 		if( ISDIGIT(str[0][0]) )
@@ -693,11 +642,16 @@ static void itemdb_read_itemgroup_sub(const char* filename)
 
 		//Checking item
 		trim(str[1]);
-		if( ISDIGIT(str[1][0]) && itemdb_exists((nameid = atoi(str[1]))) )
-			found = true;
-		else if( itemdb_searchname(str[1]) ) {
-			found = true;
-			nameid = itemdb_searchname(str[1])->nameid;
+		if( ISDIGIT(str[1][0]) ) {
+			if( itemdb_exists((entry.nameid = atoi(str[1]))) )
+				found = true;
+		} else {
+			struct item_data *id = itemdb_searchname(str[1]);
+
+			if( id ) {
+				entry.nameid = id->nameid;
+				found = true;
+			}
 		}
 		if( !found ) {
 			ShowWarning("itemdb_read_itemgroup: Non-existant item '%s' in %s:%d\n", str[1], filename, ln);
@@ -705,21 +659,20 @@ static void itemdb_read_itemgroup_sub(const char* filename)
 		}
 
 		if( str[3] != NULL )
-			amt = cap_value(atoi(str[3]), 1, MAX_AMOUNT);
+			entry.amount = cap_value(atoi(str[3]), 1, MAX_AMOUNT);
 		if( str[5] != NULL )
-			announced = atoi(str[5]);
+			entry.isAnnounced = atoi(str[5]);
 		if( str[6] != NULL )
-			dur = cap_value(atoi(str[6]), 0, UINT16_MAX);
+			entry.duration = cap_value(atoi(str[6]), 0, UINT16_MAX);
 		if( str[7] != NULL )
-			named = atoi(str[7]);
+			entry.isNamed = atoi(str[7]);
 		if( str[8] != NULL )
-			bound = cap_value(atoi(str[8]), BOUND_NONE, BOUND_MAX - 1);
+			entry.bound = cap_value(atoi(str[8]), BOUND_NONE, BOUND_MAX - 1);
 
-		found = true;
-		if( !(group = (struct s_item_group_db *)idb_get(itemdb_group, group_id)) ) {
-			found = false;
+		if( !(group = (struct s_item_group_db *)uidb_get(itemdb_group, group_id)) ) {
 			CREATE(group, struct s_item_group_db, 1);
 			group->id = group_id;
+			uidb_put(itemdb_group, group->id, group);
 		}
 
 		//Must item (rand_group == 0), place it here
@@ -731,18 +684,11 @@ static void itemdb_read_itemgroup_sub(const char* filename)
 			else
 				RECREATE(group->must, struct s_item_group_entry, idx + 1);
 
-			group->must[idx].nameid = nameid;
-			group->must[idx].amount = amt;
-			group->must[idx].isAnnounced = announced;
-			group->must[idx].duration = dur;
-			group->must[idx].isNamed = named;
-			group->must[idx].bound = bound;
+			group->must[idx] = entry;
 			group->must_qty++;
 
 			//If 'must' item isn't set as random item, skip the next process
 			if( !prob ) {
-				if( !found )
-					idb_put(itemdb_group, group->id, group);
 				entries++;
 				continue;
 			}
@@ -759,18 +705,11 @@ static void itemdb_read_itemgroup_sub(const char* filename)
 		} else
 			RECREATE(random->data, struct s_item_group_entry, random->data_qty + prob);
 
-		//Now put the entry to its rand_group
-		for( j = random->data_qty; j < random->data_qty + prob; j++ ) {
-			random->data[j].nameid = nameid;
-			random->data[j].amount = amt;
-			random->data[j].isAnnounced = announced;
-			random->data[j].duration = dur;
-			random->data[j].isNamed = named;
-			random->data[j].bound = bound;
-		}
+		//Put the entry to its rand_group
+		for( j = random->data_qty; j < random->data_qty + prob; j++ )
+			random->data[j] = entry;
+
 		random->data_qty += prob;
-		if( !found )
-			idb_put(itemdb_group, group->id, group);
 		entries++;
 	}
 	fclose(fp);
@@ -828,7 +767,7 @@ static bool itemdb_read_itemtrade(char* str[], int columns, int current)
 	flag = atoi(str[1]);
 	gmlv = atoi(str[2]);
 
-	if( flag < 0 || flag > ITR_ALL ) { //Check range
+	if( flag > ITR_ALL ) { //Check range
 		ShowWarning("itemdb_read_itemtrade: Invalid trading mask %d for item id %hu.\n", flag, nameid);
 		return false;
 	}
@@ -1133,7 +1072,7 @@ static void itemdb_read_combos() {
 				/* We flag this way to ensure we don't double-dealloc same data */
 				it->combos[index]->isRef = true;
 			}
-			idb_put(itemdb_combo,id->combos[idx]->id,id->combos[idx]);
+			uidb_put(itemdb_combo,id->combos[idx]->id,id->combos[idx]);
 		}
 		count++;
 	}
@@ -1208,18 +1147,17 @@ static bool itemdb_parse_dbrow(char** str, const char* source, int line, int scr
 	unsigned short nameid;
 	struct item_data* id;
 
-	nameid = atoi(str[0]);
-
-	if (nameid <= 0) {
-		ShowWarning("itemdb_parse_dbrow: Invalid id %hu in line %d of \"%s\", skipping.\n", nameid, line, source);
-		return false;
-	} else if (nameid >= MAX_ITEMDB) {
-		ShowWarning("itemdb_parse_dbrow: Invalid id %hu in line %d of \"%s\", beyond MAX_ITEMDB, skipping.\n", nameid, line, source);
+	if (atoi(str[0]) <= 0 || atoi(str[0]) >= MAX_ITEMID || atoi(str[0]) == dummy_item->nameid) {
+		ShowWarning("itemdb_parse_dbrow: Invalid id %d in line %d of \"%s\", skipping.\n", atoi(str[0]), line, source);
 		return false;
 	}
 
+	nameid = atoi(str[0]);
+
 	//ID,Name,Jname,Type,Price,Sell,Weight,ATK,DEF,Range,Slot,Job,Job Upper,Gender,Loc,wLV,eLV,refineable,View
-	id = itemdb_load(nameid);
+	if (!(id = itemdb_exists(nameid)))
+		id = itemdb_create_item(nameid);
+
 	safestrncpy(id->name, str[1], sizeof(id->name));
 	safestrncpy(id->jname, str[2], sizeof(id->jname));
 
@@ -1261,7 +1199,7 @@ static bool itemdb_parse_dbrow(char** str, const char* source, int line, int scr
 
 	id->weight = atoi(str[6]);
 #ifdef RENEWAL
-	itemdb_re_split_atoi(str[7],&id->atk,&id->matk);
+	itemdb_re_split_atoi(str[7], &id->atk, &id->matk);
 #else
 	id->atk = atoi(str[7]);
 #endif
@@ -1274,7 +1212,7 @@ static bool itemdb_parse_dbrow(char** str, const char* source, int line, int scr
 		id->slot = MAX_SLOTS;
 	}
 
-	itemdb_jobid2mapid(id->class_base, (unsigned int)strtoul(str[11],NULL,0));
+	itemdb_jobid2mapid(id->class_base, (unsigned int)strtoul(str[11], NULL, 0));
 	id->class_upper = atoi(str[12]);
 	id->sex	= atoi(str[13]);
 	id->equip = atoi(str[14]);
@@ -1284,7 +1222,7 @@ static bool itemdb_parse_dbrow(char** str, const char* source, int line, int scr
 		id->type = IT_ETC;
 	}
 
-	if (id->type != IT_SHADOWGEAR && id->equip&EQP_SHADOW_GEAR) {
+	if (id->type != IT_SHADOWGEAR && (id->equip&EQP_SHADOW_GEAR)) {
 		ShowWarning("Item %hu (%s) have invalid equipment slot! Making it an etc item.\n", nameid, id->jname);
 		id->type = IT_ETC;
 	}
@@ -1322,6 +1260,11 @@ static bool itemdb_parse_dbrow(char** str, const char* source, int line, int scr
 	if (*str[21])
 		id->unequip_script = parse_script(str[21], source, line, scriptopt);
 
+	if (!id->nameid) {
+		id->nameid = nameid;
+		uidb_put(itemdb, nameid, id);
+	}
+
 	return true;
 }
 
@@ -1333,14 +1276,14 @@ static int itemdb_readdb(void)
 {
 	const char* filename[] = {
 		DBPATH"item_db.txt",
-		"item_db2.txt" };
-	bool duplicate[MAX_ITEMDB];
+		"item_db2.txt"
+	};
+	bool duplicate[MAX_ITEMID];
 	int fi;
 
 	for (fi = 0; fi < ARRAYLENGTH(filename); ++fi) {
 		uint32 lines = 0, count = 0;
 		char line[1024];
-
 		char path[256];
 		FILE* fp;
 
@@ -1357,7 +1300,8 @@ static int itemdb_readdb(void)
 		while (fgets(line, sizeof(line), fp)) {
 			struct item_data* itd;
 			char *str[32], *p;
-			int i, nameid, id = 0;
+			int i, nameid;
+
 			lines++;
 			if (line[0] == '/' && line[1] == '/')
 				continue;
@@ -1435,16 +1379,21 @@ static int itemdb_readdb(void)
 			}
 
 			nameid = atoi(str[0]);
-			itd = itemdb_load(nameid);
-			id = itd->nameid;
+			if (!(itd = itemdb_exists(nameid)))
+				CREATE(itd, struct item_data, 1);
+
+			if (!itd->nameid) {
+				itd->nameid = nameid;
+				uidb_put(itemdb, nameid, itd);
+			}
 
 			if (!itemdb_parse_dbrow(str, path, lines, 0))
 				continue;
 
-			if (duplicate[id])
-				ShowWarning("itemdb_readdb: %s: duplicate entry of ID #%d (%s/%s)\n", path, id, itemdb_name(id), itemdb_jname(id));
+			if (duplicate[nameid])
+				ShowWarning("itemdb_readdb: %s: duplicate entry of ID #%d (%s/%s)\n", path, nameid, itemdb_name(nameid), itemdb_jname(nameid));
 			else
-				duplicate[id] = true;
+				duplicate[nameid] = true;
 
 			count++;
 		}
@@ -1562,7 +1511,7 @@ static void itemdb_read(void) {
 /**
  * Destroys the item_data.
  */
-static void destroy_item_data(struct item_data* self, bool free_self)
+static void destroy_item_data(struct item_data* self)
 {
 	if( self == NULL )
 		return;
@@ -1589,8 +1538,7 @@ static void destroy_item_data(struct item_data* self, bool free_self)
 #if defined(DEBUG)
 	memset(self, 0xDD, sizeof(struct item_data)); // Trash item
 #endif
-	if( free_self )
-		aFree(self); // Free self
+	aFree(self); // Free self
 }
 
 /**
@@ -1600,8 +1548,7 @@ static int itemdb_final_sub(DBKey key, DBData *data, va_list ap)
 {
 	struct item_data *id = db_data2ptr(data);
 
-	if( id != &dummy_item )
-		destroy_item_data(id, true);
+	destroy_item_data(id);
 
 	return 0;
 }
@@ -1634,15 +1581,9 @@ void itemdb_reload(void)
 	struct map_session_data* sd;
 	int i, d, k;
 
-	//Clear the previous itemdb data
-	for( i = 0; i < ARRAYLENGTH(itemdb_array); ++i )
-		if( itemdb_array[i] )
-			destroy_item_data(itemdb_array[i], true);
-
 	itemdb_group->clear(itemdb_group, itemdb_group_free);
-	itemdb_other->clear(itemdb_other, itemdb_final_sub);
+	itemdb->clear(itemdb, itemdb_final_sub);
 	db_clear(itemdb_combo);
-	memset(itemdb_array, 0, sizeof(itemdb_array));
 
 	//Read new data
 	itemdb_read();
@@ -1701,28 +1642,20 @@ void itemdb_reload(void)
 /**
  * Finalizing Item DB
  */
-void do_final_itemdb(void)
-{
-	int i;
-
-	for( i = 0; i < ARRAYLENGTH(itemdb_array); ++i )
-		if( itemdb_array[i] )
-			destroy_item_data(itemdb_array[i], true);
-
-	itemdb_group->destroy(itemdb_group, itemdb_group_free);
-	itemdb_other->destroy(itemdb_other, itemdb_final_sub);
-	destroy_item_data(&dummy_item, false);
+void do_final_itemdb(void) {
 	db_destroy(itemdb_combo);
+	itemdb_group->destroy(itemdb_group, itemdb_group_free);
+	itemdb->destroy(itemdb, itemdb_final_sub);
+	destroy_item_data(dummy_item);
 }
 
 /**
  * Initializing Item DB
  */
 void do_init_itemdb(void) {
-	memset(itemdb_array, 0, sizeof(itemdb_array));
-	itemdb_other = idb_alloc(DB_OPT_BASE);
-	itemdb_combo = idb_alloc(DB_OPT_BASE);
-	itemdb_group = idb_alloc(DB_OPT_BASE);
-	create_dummy_data(); //Dummy data item.
+	itemdb = uidb_alloc(DB_OPT_BASE);
+	itemdb_combo = uidb_alloc(DB_OPT_BASE);
+	itemdb_group = uidb_alloc(DB_OPT_BASE);
+	itemdb_create_dummy(); //Dummy data item.
 	itemdb_read();
 }

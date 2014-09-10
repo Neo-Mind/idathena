@@ -18,7 +18,7 @@
 //=     F_CashPartyCall Optimized by Trancid.
 //= 1.1 Updated Dungeon Teleport Scroll. [L0ne_W0lf]
 //=     Added Town Teleport Scroll Function
-//=     Added Siege Teleport Scroll Function
+//=     Added Seige Teleport Scroll Function
 //= 1.2 Updated the dungeon teleport scroll menu. [L0ne_w0lf]
 //= 1.3 Implemented Aozi Giant Flywing Fix. (bugreport:4242) [L0ne_w0lf]
 //= 1.4 Simplified Giant Flywing function using warpparty. [L0ne_w0lf]
@@ -26,6 +26,7 @@
 //= 1.6 Updated Teleport functions and added Curious_Snowball. [Euphy]
 //= 1.7 Added Dungeon Teleport Scroll II maps. [Euphy]
 //= 1.8 Added VIP function. [Euphy]
+//= 1.9 Added checkdragon() in F_CashReset. [Capuche]
 //============================================================ 
 
 // Kafra Card
@@ -62,7 +63,7 @@ function	script	F_CashPartyCall	{
 // - Reset players skills. Weight must be 0, options must be off.
 // - No arguments.
 function	script	F_CashReset	{
-	if (Class != Job_Novice && Weight == 0 && !checkriding() && !checkfalcon() && !checkcart() && !ismounting()) {
+	if (Class != Job_Novice && Weight == 0 && !checkriding() && !checkfalcon() && !checkcart() && !ismounting() && !checkdragon()) {
 		resetskill;
 		sc_end SC_ALL;
 		if (countitem(12213)) delitem 12213,1;

@@ -590,7 +590,7 @@ static void script_reportdata(struct script_data* data)
 /// Reports on the console information about the current built-in function.
 static void script_reportfunc(struct script_state* st)
 {
-	int i, params, id;
+	int params, id;
 	struct script_data* data;
 
 	if( !script_hasdata(st,0) ) //No stack
@@ -607,8 +607,9 @@ static void script_reportfunc(struct script_state* st)
 	params = script_lastdata(st) - 1;
 
 	if( params > 0 ) {
-		ShowDebug("Function: %s (%d parameter%s):\n", get_str(id), params, (params == 1) ? "" : "s");
+		int i;
 
+		ShowDebug("Function: %s (%d parameter%s):\n", get_str(id), params, (params == 1) ? "" : "s");
 		for( i = 2; i <= script_lastdata(st); i++ )
 			script_reportdata(script_getdata(st,i));
 	} else
@@ -704,55 +705,51 @@ static int search_str(const char* p)
 /// If an identical string is already present, returns its id instead.
 int add_str(const char* p)
 {
-	int i, h;
+	int h;
 	int len;
 
 	h = calc_hash(p);
 
-	if( str_hash[h] == 0 )
-	{// empty bucket, add new node here
+	if( str_hash[h] == 0 ) // Empty bucket, add new node here
 		str_hash[h] = str_num;
-	}
-	else
-	{// scan for end of list, or occurence of identical string
-		for( i = str_hash[h]; ; i = str_data[i].next )
-		{
+	else { // Scan for end of list, or occurence of identical string
+		int i;
+
+		for( i = str_hash[h]; ; i = str_data[i].next ) {
 			if( strcasecmp(get_str(i),p) == 0 )
-				return i; // string already in list
+				return i; // String already in list
 			if( str_data[i].next == 0 )
-				break; // reached the end
+				break; // Reached the end
 		}
 
-		// append node to end of list
+		// Append node to end of list
 		str_data[i].next = str_num;
 	}
 
-	// grow list if neccessary
-	if( str_num >= str_data_size )
-	{
+	// Grow list if neccessary
+	if( str_num >= str_data_size ) {
 		str_data_size += 128;
 		RECREATE(str_data,struct str_data_struct,str_data_size);
 		memset(str_data + (str_data_size - 128), '\0', 128);
 	}
 
-	len=(int)strlen(p);
+	len = (int)strlen(p);
 
-	// grow string buffer if neccessary
-	while( str_pos+len+1 >= str_size )
-	{
+	// Grow string buffer if neccessary
+	while( str_pos + len + 1 >= str_size ) {
 		str_size += 256;
 		RECREATE(str_buf,char,str_size);
 		memset(str_buf + (str_size - 256), '\0', 256);
 	}
 
-	safestrncpy(str_buf+str_pos, p, len+1);
+	safestrncpy(str_buf + str_pos, p, len + 1);
 	str_data[str_num].type = C_NOP;
 	str_data[str_num].str = str_pos;
 	str_data[str_num].next = 0;
 	str_data[str_num].func = NULL;
 	str_data[str_num].backpatch = -1;
 	str_data[str_num].label = -1;
-	str_pos += len+1;
+	str_pos += len + 1;
 
 	return str_num++;
 }
@@ -843,24 +840,25 @@ static void add_scriptl(int l)
  *------------------------------------------*/
 void set_label(int l,int pos, const char* script_pos)
 {
-	int i,next;
+	int i;
 
-	if(str_data[l].type==C_INT || str_data[l].type==C_PARAM || str_data[l].type==C_FUNC)
-	{	//Prevent overwriting constants values, parameters and built-in functions [Skotlex]
+	//Prevent overwriting constants values, parameters and built-in functions [Skotlex]
+	if(str_data[l].type == C_INT || str_data[l].type == C_PARAM || str_data[l].type == C_FUNC) {
 		disp_error_message("set_label: invalid label name",script_pos);
 		return;
 	}
-	if(str_data[l].label!=-1){
+	if(str_data[l].label != -1) {
 		disp_error_message("set_label: dup label ",script_pos);
 		return;
 	}
-	str_data[l].type=(str_data[l].type == C_USERFUNC ? C_USERFUNC_POS : C_POS);
-	str_data[l].label=pos;
-	for(i=str_data[l].backpatch;i>=0 && i!=0x00ffffff;){
-		next=GETVALUE(script_buf,i);
-		script_buf[i-1]=(str_data[l].type == C_USERFUNC ? C_USERFUNC_POS : C_POS);
+	str_data[l].type = (str_data[l].type == C_USERFUNC ? C_USERFUNC_POS : C_POS);
+	str_data[l].label = pos;
+	for(i = str_data[l].backpatch; i >= 0 && i != 0x00ffffff;) {
+		int next = GETVALUE(script_buf,i);
+
+		script_buf[i - 1] = (str_data[l].type == C_USERFUNC ? C_USERFUNC_POS : C_POS);
 		SETVALUE(script_buf,i,pos);
-		i=next;
+		i = next;
 	}
 }
 
@@ -1072,137 +1070,167 @@ static void parse_nextline(bool first, const char* p)
 /// @param p script position where the function should run from
 /// @return NULL if not a variable assignment, the new position otherwise
 const char* parse_variable(const char* p) {
-	int i, j, word;
+	int word;
 	c_op type = C_NOP;
 	const char *p2 = NULL;
 	const char *var = p;
 			
-	// skip the variable where applicable
+	// Skip the variable where applicable
 	p = skip_word(p);
 	p = skip_space(p);
 
-	if( p == NULL ) {// end of the line or invalid buffer
+	if( p == NULL ) // End of the line or invalid buffer
 		return NULL;
-	}
 
-	if( *p == '[' ) {// array variable so process the array as appropriate
+	if( *p == '[' ) { // Array variable so process the array as appropriate
+		int i, j;
+
 		for( p2 = p, i = 0, j = 1; p; ++ i ) {
-			if( *p ++ == ']' && --(j) == 0 ) break;
-			if( *p == '[' ) ++ j;
+			if( *p++ == ']' && --(j) == 0 )
+				break;
+			if( *p == '[' )
+				++j;
 		}
 
-		if( !(p = skip_space(p)) ) {// end of line or invalid characters remaining
+		if( !(p = skip_space(p)) ) // End of line or invalid characters remaining
 			disp_error_message("Missing right expression or closing bracket for variable.", p);
-		}
 	}
 
 	if( type == C_NOP &&
-	!( ( p[0] == '=' && p[1] != '=' && (type = C_EQ) ) // =
-	|| ( p[0] == '+' && p[1] == '=' && (type = C_ADD) ) // +=
-	|| ( p[0] == '-' && p[1] == '=' && (type = C_SUB) ) // -=
-	|| ( p[0] == '^' && p[1] == '=' && (type = C_XOR) ) // ^=
-	|| ( p[0] == '|' && p[1] == '=' && (type = C_OR ) ) // |=
-	|| ( p[0] == '&' && p[1] == '=' && (type = C_AND) ) // &=
-	|| ( p[0] == '*' && p[1] == '=' && (type = C_MUL) ) // *=
-	|| ( p[0] == '/' && p[1] == '=' && (type = C_DIV) ) // /=
-	|| ( p[0] == '%' && p[1] == '=' && (type = C_MOD) ) // %=
-	|| ( p[0] == '~' && p[1] == '=' && (type = C_NOT) ) // ~=
-	|| ( p[0] == '+' && p[1] == '+' && (type = C_ADD_PP) ) // ++
-	|| ( p[0] == '-' && p[1] == '-' && (type = C_SUB_PP) ) // --
-	|| ( p[0] == '<' && p[1] == '<' && p[2] == '=' && (type = C_L_SHIFT) ) // <<=
-	|| ( p[0] == '>' && p[1] == '>' && p[2] == '=' && (type = C_R_SHIFT) ) // >>=
+	!( (p[0] == '=' && p[1] != '=' && (type = C_EQ)) // =
+	|| (p[0] == '+' && p[1] == '=' && (type = C_ADD)) // +=
+	|| (p[0] == '-' && p[1] == '=' && (type = C_SUB)) // -=
+	|| (p[0] == '^' && p[1] == '=' && (type = C_XOR)) // ^=
+	|| (p[0] == '|' && p[1] == '=' && (type = C_OR )) // |=
+	|| (p[0] == '&' && p[1] == '=' && (type = C_AND)) // &=
+	|| (p[0] == '*' && p[1] == '=' && (type = C_MUL)) // *=
+	|| (p[0] == '/' && p[1] == '=' && (type = C_DIV)) // /=
+	|| (p[0] == '%' && p[1] == '=' && (type = C_MOD)) // %=
+	|| (p[0] == '~' && p[1] == '=' && (type = C_NOT)) // ~=
+	|| (p[0] == '+' && p[1] == '+' && (type = C_ADD_PP)) // ++
+	|| (p[0] == '-' && p[1] == '-' && (type = C_SUB_PP)) // --
+	|| (p[0] == '<' && p[1] == '<' && p[2] == '=' && (type = C_L_SHIFT)) // <<=
+	|| (p[0] == '>' && p[1] == '>' && p[2] == '=' && (type = C_R_SHIFT)) // >>=
 	) )
-	{// failed to find a matching operator combination so invalid
-		return NULL;
-	}
+		return NULL; // Failed to find a matching operator combination so invalid
 
 	switch( type ) {
-		case C_EQ: {// incremental modifier
-			p = skip_space( &p[1] );
-		}
-		break;
+		case C_EQ: // Incremental modifier
+			p = skip_space(&p[1]);
+			break;
 
 		case C_L_SHIFT:
-		case C_R_SHIFT: {// left or right shift modifier
-			p = skip_space( &p[3] );
-		}
-		break;
+		case C_R_SHIFT: // Left or right shift modifier
+			p = skip_space(&p[3]);
+			break;
 
-		default: {// normal incremental command
-			p = skip_space( &p[2] );
-		}
+		default: // Normal incremental command
+			p = skip_space(&p[2]);
+			break;
 	}
 
-	if( p == NULL ) {// end of line or invalid buffer
+	if( p == NULL ) // End of line or invalid buffer
 		return NULL;
-	}
-	
-	// push the set function onto the stack
+
+	// Push the set function onto the stack
 	add_scriptl(buildin_set_ref);
 	add_scriptc(C_ARG);
 
-	// always append parenthesis to avoid errors
+	// Always append parenthesis to avoid errors
 	syntax.curly[syntax.curly_count].type = TYPE_ARGLIST;
 	syntax.curly[syntax.curly_count].count = 0;
 	syntax.curly[syntax.curly_count].flag = ARGLIST_PAREN;
 
-	// increment the total curly count for the position in the script
-	++ syntax.curly_count;
+	// Increment the total curly count for the position in the script
+	++syntax.curly_count;
 	
-	// parse the variable currently being modified
+	// Parse the variable currently being modified
 	word = add_word(var);
 
+	// Cannot assign a variable which exists as a function or label
 	if( str_data[word].type == C_FUNC || str_data[word].type == C_USERFUNC || str_data[word].type == C_USERFUNC_POS )
-	{// cannot assign a variable which exists as a function or label
 		disp_error_message("Cannot modify a variable which has the same name as a function or label.", p);
-	}
 
-	if( p2 ) {// process the variable index
+	if( p2 ) { // Process the variable index
 		const char* p3 = NULL;
 
-		// push the getelementofarray method into the stack
+		// Push the getelementofarray method into the stack
 		add_scriptl(buildin_getelementofarray_ref);
 		add_scriptc(C_ARG);
 		add_scriptl(word);
 			
-		// process the sub-expression for this assignment
+		// Process the sub-expression for this assignment
 		p3 = parse_subexpr(p2 + 1, 1);
 		p3 = skip_space(p3);
 
-		if( *p3 != ']' ) {// closing parenthesis is required for this script
+		if( *p3 != ']' ) // Closing parenthesis is required for this script
 			disp_error_message("Missing closing ']' parenthesis for the variable assignment.", p3);
-		}
 
-		// push the closing function stack operator onto the stack
+		// Push the closing function stack operator onto the stack
 		add_scriptc(C_FUNC);
 		p3 ++;
-	} else {// simply push the variable or value onto the stack
+	} else // Simply push the variable or value onto the stack
 		add_scriptl(word);
-	}
-	
+
 	if( type != C_EQ )
 		add_scriptc(C_REF);
 	
-	if( type == C_ADD_PP || type == C_SUB_PP ) {// incremental operator for the method
+	if( type == C_ADD_PP || type == C_SUB_PP ) { // Incremental operator for the method
 		add_scripti(1);
 		add_scriptc(type == C_ADD_PP ? C_ADD : C_SUB);
-	} else {// process the value as an expression
+	} else { // Process the value as an expression
 		p = parse_subexpr(p, -1);
 
 		if( type != C_EQ )
-		{// push the type of modifier onto the stack
-			add_scriptc(type);
-		}
+			add_scriptc(type); // Push the type of modifier onto the stack
 	}
 
-	// decrement the curly count for the position within the script
-	-- syntax.curly_count;
+	// Decrement the curly count for the position within the script
+	--syntax.curly_count;
 	
-	// close the script by appending the function operator
+	// Close the script by appending the function operator
 	add_scriptc(C_FUNC);
 		
-	// push the buffer from the method
+	// Push the buffer from the method
 	return p;
+}
+
+/**
+ * Checks whether the gives string is a number literal
+ *
+ * Mainly necessary to differentiate between number literals and NPC name
+ * constants, since several of those start with a digit.
+ *
+ * All this does is to check if the string begins with an optional + or - sign,
+ * followed by a hexadecimal or decimal number literal literal and is NOT
+ * followed by a underscore or letter.
+ *
+ * @author : Hercules.ws
+ * @param p Pointer to the string to check
+ * @return Whether the string is a number literal
+ */
+bool is_number(const char *p) {
+	const char *np;
+
+	if (!p)
+		return false;
+	if (*p == '-' || *p == '+')
+		p++;
+	np = p;
+	if (*p == '0' && p[1] == 'x') {
+		p += 2;
+		np = p;
+		// Hexadecimal
+		while (ISXDIGIT(*np))
+			np++;
+	} else {
+		// Decimal
+		while (ISDIGIT(*np))
+			np++;
+	}
+	if (p != np && *np != '_' && !ISALPHA(*np)) // At least one digit, and next isn't a letter or _
+		return true;
+	return false;
 }
 
 /*==========================================
@@ -1232,8 +1260,9 @@ const char* parse_simpleexpr(const char *p)
 		if(*p != ')')
 			disp_error_message("parse_simpleexpr: unmatched ')'",p);
 		++p;
-	} else if(ISDIGIT(*p) || ((*p == '-' || *p == '+') && ISDIGIT(p[1]))){
+	} else if(is_number(p)) {
 		char *np;
+
 		while(*p == '0' && ISDIGIT(p[1])) p++;
 		i = strtoll(p,&np,0);
 		if(i < INT_MIN) {
@@ -1316,61 +1345,60 @@ const char* parse_simpleexpr(const char *p)
  *------------------------------------------*/
 const char* parse_subexpr(const char* p,int limit)
 {
-	int op,opl,len;
-	const char* tmpp;
+	int op, opl, len;
 
-	p=skip_space(p);
+	p = skip_space(p);
+	if( *p == '-' ) {
+		const char* tmpp = skip_space(p + 1);
 
-	if( *p == '-' ){
-		 tmpp = skip_space(p+1);
-		if( *tmpp == ';' || *tmpp == ',' ){
+		if( *tmpp == ';' || *tmpp == ',' ) {
 			add_scriptl(LABEL_NEXTLINE);
 			p++;
 			return p;
 		}
 	}
 
-	if((op=C_NEG,*p=='-') || (op=C_LNOT,*p=='!') || (op=C_NOT,*p=='~')){
-		p=parse_subexpr(p+1,10);
+	if( (op = C_NEG, *p == '-') || (op = C_LNOT, *p == '!') || (op = C_NOT, *p == '~') ) {
+		p = parse_subexpr(p + 1, 10);
 		add_scriptc(op);
 	} else
-		p=parse_simpleexpr(p);
-	p=skip_space(p);
+		p = parse_simpleexpr(p);
+	p = skip_space(p);
 	while((
-			(op=C_OP3,opl=0,len=1,*p=='?') ||
-			(op=C_ADD,opl=8,len=1,*p=='+') ||
-			(op=C_SUB,opl=8,len=1,*p=='-') ||
-			(op=C_MUL,opl=9,len=1,*p=='*') ||
-			(op=C_DIV,opl=9,len=1,*p=='/') ||
-			(op=C_MOD,opl=9,len=1,*p=='%') ||
-			(op=C_LAND,opl=2,len=2,*p=='&' && p[1]=='&') ||
-			(op=C_AND,opl=6,len=1,*p=='&') ||
-			(op=C_LOR,opl=1,len=2,*p=='|' && p[1]=='|') ||
-			(op=C_OR,opl=5,len=1,*p=='|') ||
-			(op=C_XOR,opl=4,len=1,*p=='^') ||
-			(op=C_EQ,opl=3,len=2,*p=='=' && p[1]=='=') ||
-			(op=C_NE,opl=3,len=2,*p=='!' && p[1]=='=') ||
-			(op=C_R_SHIFT,opl=7,len=2,*p=='>' && p[1]=='>') ||
-			(op=C_GE,opl=3,len=2,*p=='>' && p[1]=='=') ||
-			(op=C_GT,opl=3,len=1,*p=='>') ||
-			(op=C_L_SHIFT,opl=7,len=2,*p=='<' && p[1]=='<') ||
-			(op=C_LE,opl=3,len=2,*p=='<' && p[1]=='=') ||
-			(op=C_LT,opl=3,len=1,*p=='<')) && opl>limit){
-		p+=len;
-		if(op == C_OP3) {
-			p=parse_subexpr(p,-1);
-			p=skip_space(p);
-			if( *(p++) != ':')
-				disp_error_message("parse_subexpr: expected ':'", p-1);
-			p=parse_subexpr(p,-1);
-		} else {
-			p=parse_subexpr(p,opl);
-		}
+			(op = C_OP3, opl = 0, len = 1, *p == '?') ||
+			(op = C_ADD, opl = 8, len = 1, *p == '+') ||
+			(op = C_SUB, opl = 8, len = 1, *p == '-') ||
+			(op = C_MUL, opl = 9, len = 1, *p == '*') ||
+			(op = C_DIV, opl = 9, len = 1, *p == '/') ||
+			(op = C_MOD, opl = 9, len = 1, *p == '%') ||
+			(op = C_LAND, opl = 2, len = 2, *p == '&' && p[1] == '&') ||
+			(op = C_AND, opl = 6, len = 1, *p == '&') ||
+			(op = C_LOR, opl = 1, len = 2, *p == '|' && p[1] == '|') ||
+			(op = C_OR, opl = 5, len = 1, *p == '|') ||
+			(op = C_XOR, opl = 4, len = 1, *p == '^') ||
+			(op = C_EQ, opl = 3, len = 2, *p == '=' && p[1] == '=') ||
+			(op = C_NE, opl = 3, len = 2, *p == '!' && p[1] == '=') ||
+			(op = C_R_SHIFT, opl = 7, len = 2, *p == '>' && p[1] == '>') ||
+			(op = C_GE, opl = 3, len = 2, *p == '>' && p[1] == '=') ||
+			(op = C_GT, opl = 3, len = 1, *p == '>') ||
+			(op = C_L_SHIFT, opl = 7, len = 2, *p == '<' && p[1] == '<') ||
+			(op = C_LE, opl = 3, len = 2, *p == '<' && p[1] == '=') ||
+			(op = C_LT, opl = 3, len = 1, *p == '<')) && opl > limit) {
+		p += len;
+		if( op == C_OP3 ) {
+			p = parse_subexpr(p, -1);
+			p = skip_space(p);
+			if( *(p++) != ':' )
+				disp_error_message("parse_subexpr: expected ':'", p - 1);
+			p = parse_subexpr(p, -1);
+		} else
+			p = parse_subexpr(p, opl);
+
 		add_scriptc(op);
-		p=skip_space(p);
+		p = skip_space(p);
 	}
 
-	return p;  /* return first untreated operator */
+	return p; /* Return first untreated operator */
 }
 
 /*==========================================
@@ -1508,425 +1536,427 @@ const char* parse_syntax(const char* p)
 	const char *p2 = skip_word(p);
 
 	switch(*p) {
-	case 'B':
-	case 'b':
-		if(p2 - p == 5 && !strncasecmp(p,"break",5)) {
-			// Processing break
-			char label[256];
-			int pos = syntax.curly_count - 1;
-			while(pos >= 0) {
-				if(syntax.curly[pos].type == TYPE_DO) {
-					sprintf(label,"goto __DO%x_FIN;",syntax.curly[pos].index);
-					break;
-				} else if(syntax.curly[pos].type == TYPE_FOR) {
-					sprintf(label,"goto __FR%x_FIN;",syntax.curly[pos].index);
-					break;
-				} else if(syntax.curly[pos].type == TYPE_WHILE) {
-					sprintf(label,"goto __WL%x_FIN;",syntax.curly[pos].index);
-					break;
-				} else if(syntax.curly[pos].type == TYPE_SWITCH) {
-					sprintf(label,"goto __SW%x_FIN;",syntax.curly[pos].index);
-					break;
-				}
-				pos--;
-			}
-			if(pos < 0) {
-				disp_error_message("parse_syntax: unexpected 'break'",p);
-			} else {
-				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
-				parse_line(label);
-				syntax.curly_count--;
-			}
-			p = skip_space(p2);
-			if(*p != ';')
-				disp_error_message("parse_syntax: expected ';'",p);
-			// Closing decision if, for , while
-			p = parse_syntax_close(p + 1);
-			return p;
-		}
-		break;
-	case 'c':
-	case 'C':
-		if(p2 - p == 4 && !strncasecmp(p,"case",4)) {
-			// Processing case
-			int pos = syntax.curly_count-1;
-			if(pos < 0 || syntax.curly[pos].type != TYPE_SWITCH) {
-				disp_error_message("parse_syntax: unexpected 'case' ",p);
-				return p+1;
-			} else {
+		case 'B':
+		case 'b':
+			if(p2 - p == 5 && !strncasecmp(p,"break",5)) {
+				// Processing break
 				char label[256];
-				int  l,v;
-				char *np;
-				if(syntax.curly[pos].count != 1) {
-					// Jump for FALLTHRU
-					sprintf(label,"goto __SW%x_%xJ;",syntax.curly[pos].index,syntax.curly[pos].count);
+				int pos = syntax.curly_count - 1;
+				while(pos >= 0) {
+					if(syntax.curly[pos].type == TYPE_DO) {
+						sprintf(label,"goto __DO%x_FIN;",syntax.curly[pos].index);
+						break;
+					} else if(syntax.curly[pos].type == TYPE_FOR) {
+						sprintf(label,"goto __FR%x_FIN;",syntax.curly[pos].index);
+						break;
+					} else if(syntax.curly[pos].type == TYPE_WHILE) {
+						sprintf(label,"goto __WL%x_FIN;",syntax.curly[pos].index);
+						break;
+					} else if(syntax.curly[pos].type == TYPE_SWITCH) {
+						sprintf(label,"goto __SW%x_FIN;",syntax.curly[pos].index);
+						break;
+					}
+					pos--;
+				}
+				if(pos < 0) {
+					disp_error_message("parse_syntax: unexpected 'break'",p);
+				} else {
+					syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+					parse_line(label);
+					syntax.curly_count--;
+				}
+				p = skip_space(p2);
+				if(*p != ';')
+					disp_error_message("parse_syntax: expected ';'",p);
+				// Closing decision if, for , while
+				p = parse_syntax_close(p + 1);
+				return p;
+			}
+			break;
+		case 'c':
+		case 'C':
+			if(p2 - p == 4 && !strncasecmp(p,"case",4)) {
+				// Processing case
+				int pos = syntax.curly_count-1;
+				if(pos < 0 || syntax.curly[pos].type != TYPE_SWITCH) {
+					disp_error_message("parse_syntax: unexpected 'case' ",p);
+					return p+1;
+				} else {
+					char label[256];
+					int  l,v;
+					char *np;
+					if(syntax.curly[pos].count != 1) {
+						// Jump for FALLTHRU
+						sprintf(label,"goto __SW%x_%xJ;",syntax.curly[pos].index,syntax.curly[pos].count);
+						syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+						parse_line(label);
+						syntax.curly_count--;
+
+						// You are here labeled
+						sprintf(label,"__SW%x_%x",syntax.curly[pos].index,syntax.curly[pos].count);
+						l=add_str(label);
+						set_label(l,script_pos, p);
+					}
+					// Decision statement switch
+					p = skip_space(p2);
+					if(p == p2) {
+						disp_error_message("parse_syntax: expected a space ' '",p);
+					}
+					// check whether case label is integer or not
+					if(is_number(p)) {
+						//Numeric value
+						v = (int)strtol(p,&np,0);
+						if((*p == '-' || *p == '+') && ISDIGIT(p[1])) // pre-skip because '-' can not skip_word
+							p++;
+						p = skip_word(p);
+						if(np != p)
+							disp_error_message("parse_syntax: 'case' label is not an integer",np);
+					} else {
+						//Check for constants
+						p2 = skip_word(p);
+						v = (int)(size_t)(p2-p); // length of word at p2
+						memcpy(label,p,v);
+						label[v]='\0';
+						if( !script_get_constant(label, &v) )
+							disp_error_message("parse_syntax: 'case' label is not an integer",p);
+						p = skip_word(p);
+					}
+					p = skip_space(p);
+					if(*p != ':')
+						disp_error_message("parse_syntax: expect ':'",p);
+					sprintf(label,"if(%d != $@__SW%x_VAL) goto __SW%x_%x;",
+						v,syntax.curly[pos].index,syntax.curly[pos].index,syntax.curly[pos].count+1);
+					syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+					// Bad I do not parse twice
+					p2 = parse_line(label);
+					parse_line(p2);
+					syntax.curly_count--;
+					if(syntax.curly[pos].count != 1) {
+						// Label after the completion of FALLTHRU
+						sprintf(label,"__SW%x_%xJ",syntax.curly[pos].index,syntax.curly[pos].count);
+						l=add_str(label);
+						set_label(l,script_pos,p);
+					}
+					// check duplication of case label [Rayce]
+					if(linkdb_search(&syntax.curly[pos].case_label, (void*)__64BPRTSIZE(v)) != NULL)
+						disp_error_message("parse_syntax: dup 'case'",p);
+					linkdb_insert(&syntax.curly[pos].case_label, (void*)__64BPRTSIZE(v), (void*)1);
+
+					sprintf(label,"set $@__SW%x_VAL,0;",syntax.curly[pos].index);
+					syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+				
+					parse_line(label);
+					syntax.curly_count--;
+					syntax.curly[pos].count++;
+				}
+				return p + 1;
+			} else if(p2 - p == 8 && !strncasecmp(p,"continue",8)) {
+				// Processing continue
+				char label[256];
+				int pos = syntax.curly_count - 1;
+				while(pos >= 0) {
+					if(syntax.curly[pos].type == TYPE_DO) {
+						sprintf(label,"goto __DO%x_NXT;",syntax.curly[pos].index);
+						syntax.curly[pos].flag = 1; // Flag put the link for continue
+						break;
+					} else if(syntax.curly[pos].type == TYPE_FOR) {
+						sprintf(label,"goto __FR%x_NXT;",syntax.curly[pos].index);
+						break;
+					} else if(syntax.curly[pos].type == TYPE_WHILE) {
+						sprintf(label,"goto __WL%x_NXT;",syntax.curly[pos].index);
+						break;
+					}
+					pos--;
+				}
+				if(pos < 0) {
+					disp_error_message("parse_syntax: unexpected 'continue'",p);
+				} else {
+					syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+					parse_line(label);
+					syntax.curly_count--;
+				}
+				p = skip_space(p2);
+				if(*p != ';')
+					disp_error_message("parse_syntax: expected ';'",p);
+				// Closing decision if, for , while
+				p = parse_syntax_close(p + 1);
+				return p;
+			}
+			break;
+		case 'd':
+		case 'D':
+			if(p2 - p == 7 && !strncasecmp(p,"default",7)) {
+				// Switch - default processing
+				int pos = syntax.curly_count-1;
+				if(pos < 0 || syntax.curly[pos].type != TYPE_SWITCH) {
+					disp_error_message("parse_syntax: unexpected 'default'",p);
+				} else if(syntax.curly[pos].flag) {
+					disp_error_message("parse_syntax: dup 'default'",p);
+				} else {
+					char label[256];
+					int l;
+					// Put the label location
+					p = skip_space(p2);
+					if(*p != ':') {
+						disp_error_message("parse_syntax: expected ':'",p);
+					}
+					sprintf(label,"__SW%x_%x",syntax.curly[pos].index,syntax.curly[pos].count);
+					l=add_str(label);
+					set_label(l,script_pos,p);
+
+					// Skip to the next link w/o condition
+					sprintf(label,"goto __SW%x_%x;",syntax.curly[pos].index,syntax.curly[pos].count+1);
 					syntax.curly[syntax.curly_count++].type = TYPE_NULL;
 					parse_line(label);
 					syntax.curly_count--;
 
-					// You are here labeled
-					sprintf(label,"__SW%x_%x",syntax.curly[pos].index,syntax.curly[pos].count);
-					l=add_str(label);
-					set_label(l,script_pos, p);
-				}
-				// Decision statement switch
-				p = skip_space(p2);
-				if(p == p2) {
-					disp_error_message("parse_syntax: expected a space ' '",p);
-				}
-				// check whether case label is integer or not
-				v = strtol(p,&np,0);
-				if(np == p) { //Check for constants
-					p2 = skip_word(p);
-					v = p2-p; // length of word at p2
-					memcpy(label,p,v);
-					label[v]='\0';
-					if( !script_get_constant(label, &v) )
-						disp_error_message("parse_syntax: 'case' label is not an integer",p);
-					p = skip_word(p);
-				} else { //Numeric value
-					if((*p == '-' || *p == '+') && ISDIGIT(p[1]))	// pre-skip because '-' can not skip_word
-						p++;
-					p = skip_word(p);
-					if(np != p)
-						disp_error_message("parse_syntax: 'case' label is not an integer",np);
-				}
-				p = skip_space(p);
-				if(*p != ':')
-					disp_error_message("parse_syntax: expect ':'",p);
-				sprintf(label,"if(%d != $@__SW%x_VAL) goto __SW%x_%x;",
-					v,syntax.curly[pos].index,syntax.curly[pos].index,syntax.curly[pos].count+1);
-				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
-				// Bad I do not parse twice
-				p2 = parse_line(label);
-				parse_line(p2);
-				syntax.curly_count--;
-				if(syntax.curly[pos].count != 1) {
-					// Label after the completion of FALLTHRU
-					sprintf(label,"__SW%x_%xJ",syntax.curly[pos].index,syntax.curly[pos].count);
+					// The default label
+					sprintf(label,"__SW%x_DEF",syntax.curly[pos].index);
 					l=add_str(label);
 					set_label(l,script_pos,p);
-				}
-				// check duplication of case label [Rayce]
-				if(linkdb_search(&syntax.curly[pos].case_label, (void*)__64BPRTSIZE(v)) != NULL)
-					disp_error_message("parse_syntax: dup 'case'",p);
-				linkdb_insert(&syntax.curly[pos].case_label, (void*)__64BPRTSIZE(v), (void*)1);
 
-				sprintf(label,"set $@__SW%x_VAL,0;",syntax.curly[pos].index);
-				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
-			
-				parse_line(label);
-				syntax.curly_count--;
-				syntax.curly[pos].count++;
-			}
-			return p + 1;
-		} else if(p2 - p == 8 && !strncasecmp(p,"continue",8)) {
-			// Processing continue
-			char label[256];
-			int pos = syntax.curly_count - 1;
-			while(pos >= 0) {
-				if(syntax.curly[pos].type == TYPE_DO) {
-					sprintf(label,"goto __DO%x_NXT;",syntax.curly[pos].index);
-					syntax.curly[pos].flag = 1; // Flag put the link for continue
-					break;
-				} else if(syntax.curly[pos].type == TYPE_FOR) {
-					sprintf(label,"goto __FR%x_NXT;",syntax.curly[pos].index);
-					break;
-				} else if(syntax.curly[pos].type == TYPE_WHILE) {
-					sprintf(label,"goto __WL%x_NXT;",syntax.curly[pos].index);
-					break;
+					syntax.curly[syntax.curly_count - 1].flag = 1;
+					syntax.curly[pos].count++;
 				}
-				pos--;
-			}
-			if(pos < 0) {
-				disp_error_message("parse_syntax: unexpected 'continue'",p);
-			} else {
-				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
-				parse_line(label);
-				syntax.curly_count--;
-			}
-			p = skip_space(p2);
-			if(*p != ';')
-				disp_error_message("parse_syntax: expected ';'",p);
-			// Closing decision if, for , while
-			p = parse_syntax_close(p + 1);
-			return p;
-		}
-		break;
-	case 'd':
-	case 'D':
-		if(p2 - p == 7 && !strncasecmp(p,"default",7)) {
-			// Switch - default processing
-			int pos = syntax.curly_count-1;
-			if(pos < 0 || syntax.curly[pos].type != TYPE_SWITCH) {
-				disp_error_message("parse_syntax: unexpected 'default'",p);
-			} else if(syntax.curly[pos].flag) {
-				disp_error_message("parse_syntax: dup 'default'",p);
-			} else {
-				char label[256];
+				return p + 1;
+			} else if(p2 - p == 2 && !strncasecmp(p,"do",2)) {
 				int l;
-				// Put the label location
-				p = skip_space(p2);
-				if(*p != ':') {
-					disp_error_message("parse_syntax: expected ':'",p);
-				}
-				sprintf(label,"__SW%x_%x",syntax.curly[pos].index,syntax.curly[pos].count);
+				char label[256];
+				p=skip_space(p2);
+
+				syntax.curly[syntax.curly_count].type  = TYPE_DO;
+				syntax.curly[syntax.curly_count].count = 1;
+				syntax.curly[syntax.curly_count].index = syntax.index++;
+				syntax.curly[syntax.curly_count].flag  = 0;
+				// Label of the (do) form here
+				sprintf(label,"__DO%x_BGN",syntax.curly[syntax.curly_count].index);
+				l=add_str(label);
+				set_label(l,script_pos,p);
+				syntax.curly_count++;
+				return p;
+			}
+			break;
+		case 'f':
+		case 'F':
+			if(p2 - p == 3 && !strncasecmp(p,"for",3)) {
+				int l;
+				char label[256];
+				int  pos = syntax.curly_count;
+				syntax.curly[syntax.curly_count].type  = TYPE_FOR;
+				syntax.curly[syntax.curly_count].count = 1;
+				syntax.curly[syntax.curly_count].index = syntax.index++;
+				syntax.curly[syntax.curly_count].flag  = 0;
+				syntax.curly_count++;
+
+				p=skip_space(p2);
+
+				if(*p != '(')
+					disp_error_message("parse_syntax: expected '('",p);
+				p++;
+
+				// Execute the initialization statement
+				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+				p=parse_line(p);
+				syntax.curly_count--;
+
+				// Form the start of label decision
+				sprintf(label,"__FR%x_J",syntax.curly[pos].index);
 				l=add_str(label);
 				set_label(l,script_pos,p);
 
-				// Skip to the next link w/o condition
-				sprintf(label,"goto __SW%x_%x;",syntax.curly[pos].index,syntax.curly[pos].count+1);
+				p=skip_space(p);
+				if(*p == ';') {
+					// For (; Because the pattern of always true ;)
+					;
+				} else {
+					// Skip to the end point if the condition is false
+					sprintf(label,"__FR%x_FIN",syntax.curly[pos].index);
+					add_scriptl(add_str("jump_zero"));
+					add_scriptc(C_ARG);
+					p=parse_expr(p);
+					p=skip_space(p);
+					add_scriptl(add_str(label));
+					add_scriptc(C_FUNC);
+				}
+				if(*p != ';')
+					disp_error_message("parse_syntax: expected ';'",p);
+				p++;
+				
+				// Skip to the beginning of the loop
+				sprintf(label,"goto __FR%x_BGN;",syntax.curly[pos].index);
 				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
 				parse_line(label);
 				syntax.curly_count--;
 
-				// The default label
-				sprintf(label,"__SW%x_DEF",syntax.curly[pos].index);
+				// Labels to form the next loop
+				sprintf(label,"__FR%x_NXT",syntax.curly[pos].index);
 				l=add_str(label);
 				set_label(l,script_pos,p);
+				
+				// Process the next time you enter the loop
+				// A ')' last for; flag to be treated as'
+				parse_syntax_for_flag = 1;
+				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+				p=parse_line(p);
+				syntax.curly_count--;
+				parse_syntax_for_flag = 0;
 
-				syntax.curly[syntax.curly_count - 1].flag = 1;
-				syntax.curly[pos].count++;
+				// Skip to the determination process conditions
+				sprintf(label,"goto __FR%x_J;",syntax.curly[pos].index);
+				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
+				parse_line(label);
+				syntax.curly_count--;
+
+				// Loop start labeling
+				sprintf(label,"__FR%x_BGN",syntax.curly[pos].index);
+				l=add_str(label);
+				set_label(l,script_pos,p);
+				return p;
 			}
-			return p + 1;
-		} else if(p2 - p == 2 && !strncasecmp(p,"do",2)) {
-			int l;
-			char label[256];
-			p=skip_space(p2);
+			else if( p2 - p == 8 && strncasecmp(p,"function",8) == 0 )
+			{// internal script function
+				const char *func_name;
 
-			syntax.curly[syntax.curly_count].type  = TYPE_DO;
-			syntax.curly[syntax.curly_count].count = 1;
-			syntax.curly[syntax.curly_count].index = syntax.index++;
-			syntax.curly[syntax.curly_count].flag  = 0;
-			// Label of the (do) form here
-			sprintf(label,"__DO%x_BGN",syntax.curly[syntax.curly_count].index);
-			l=add_str(label);
-			set_label(l,script_pos,p);
-			syntax.curly_count++;
-			return p;
-		}
-		break;
-	case 'f':
-	case 'F':
-		if(p2 - p == 3 && !strncasecmp(p,"for",3)) {
-			int l;
-			char label[256];
-			int  pos = syntax.curly_count;
-			syntax.curly[syntax.curly_count].type  = TYPE_FOR;
-			syntax.curly[syntax.curly_count].count = 1;
-			syntax.curly[syntax.curly_count].index = syntax.index++;
-			syntax.curly[syntax.curly_count].flag  = 0;
-			syntax.curly_count++;
+				func_name = skip_space(p2);
+				p = skip_word(func_name);
+				if( p == func_name )
+					disp_error_message("parse_syntax:function: function name is missing or invalid", p);
+				p2 = skip_space(p);
+				if( *p2 == ';' )
+				{// function <name> ;
+					// function declaration - just register the name
+					int l;
+					l = add_word(func_name);
+					if( str_data[l].type == C_NOP )// register only, if the name was not used by something else
+						str_data[l].type = C_USERFUNC;
+					else if( str_data[l].type == C_USERFUNC )
+						;  // already registered
+					else
+						disp_error_message("parse_syntax:function: function name is invalid", func_name);
 
-			p=skip_space(p2);
+					// Close condition of if, for, while
+					p = parse_syntax_close(p2 + 1);
+					return p;
+				}
+				else if(*p2 == '{')
+				{// function <name> <line/block of code>
+					char label[256];
+					int l;
 
-			if(*p != '(')
-				disp_error_message("parse_syntax: expected '('",p);
-			p++;
+					syntax.curly[syntax.curly_count].type  = TYPE_USERFUNC;
+					syntax.curly[syntax.curly_count].count = 1;
+					syntax.curly[syntax.curly_count].index = syntax.index++;
+					syntax.curly[syntax.curly_count].flag  = 0;
+					++syntax.curly_count;
 
-			// Execute the initialization statement
-			syntax.curly[syntax.curly_count++].type = TYPE_NULL;
-			p=parse_line(p);
-			syntax.curly_count--;
+					// Jump over the function code
+					sprintf(label, "goto __FN%x_FIN;", syntax.curly[syntax.curly_count-1].index);
+					syntax.curly[syntax.curly_count].type = TYPE_NULL;
+					++syntax.curly_count;
+					parse_line(label);
+					--syntax.curly_count;
 
-			// Form the start of label decision
-			sprintf(label,"__FR%x_J",syntax.curly[pos].index);
-			l=add_str(label);
-			set_label(l,script_pos,p);
+					// Set the position of the function (label)
+					l=add_word(func_name);
+					if( str_data[l].type == C_NOP || str_data[l].type == C_USERFUNC )// register only, if the name was not used by something else
+					{
+						str_data[l].type = C_USERFUNC;
+						set_label(l, script_pos, p);
+						if( parse_options&SCRIPT_USE_LABEL_DB )
+							strdb_iput(scriptlabel_db, get_str(l), script_pos);
+					}
+					else
+						disp_error_message("parse_syntax:function: function name is invalid", func_name);
 
-			p=skip_space(p);
-			if(*p == ';') {
-				// For (; Because the pattern of always true ;)
-				;
-			} else {
-				// Skip to the end point if the condition is false
-				sprintf(label,"__FR%x_FIN",syntax.curly[pos].index);
+					return skip_space(p);
+				}
+				else
+				{
+					disp_error_message("expect ';' or '{' at function syntax",p);
+				}
+			}
+			break;
+		case 'i':
+		case 'I':
+			if(p2 - p == 2 && !strncasecmp(p,"if",2)) {
+				// If process
+				char label[256];
+				p=skip_space(p2);
+				if(*p != '(') { //Prevent if this {} non-c syntax. from Rayce (jA)
+					disp_error_message("need '('",p);
+				}
+				syntax.curly[syntax.curly_count].type  = TYPE_IF;
+				syntax.curly[syntax.curly_count].count = 1;
+				syntax.curly[syntax.curly_count].index = syntax.index++;
+				syntax.curly[syntax.curly_count].flag  = 0;
+				sprintf(label,"__IF%x_%x",syntax.curly[syntax.curly_count].index,syntax.curly[syntax.curly_count].count);
+				syntax.curly_count++;
 				add_scriptl(add_str("jump_zero"));
 				add_scriptc(C_ARG);
 				p=parse_expr(p);
 				p=skip_space(p);
 				add_scriptl(add_str(label));
 				add_scriptc(C_FUNC);
-			}
-			if(*p != ';')
-				disp_error_message("parse_syntax: expected ';'",p);
-			p++;
-			
-			// Skip to the beginning of the loop
-			sprintf(label,"goto __FR%x_BGN;",syntax.curly[pos].index);
-			syntax.curly[syntax.curly_count++].type = TYPE_NULL;
-			parse_line(label);
-			syntax.curly_count--;
-
-			// Labels to form the next loop
-			sprintf(label,"__FR%x_NXT",syntax.curly[pos].index);
-			l=add_str(label);
-			set_label(l,script_pos,p);
-			
-			// Process the next time you enter the loop
-			// A ')' last for; flag to be treated as'
-			parse_syntax_for_flag = 1;
-			syntax.curly[syntax.curly_count++].type = TYPE_NULL;
-			p=parse_line(p);
-			syntax.curly_count--;
-			parse_syntax_for_flag = 0;
-
-			// Skip to the determination process conditions
-			sprintf(label,"goto __FR%x_J;",syntax.curly[pos].index);
-			syntax.curly[syntax.curly_count++].type = TYPE_NULL;
-			parse_line(label);
-			syntax.curly_count--;
-
-			// Loop start labeling
-			sprintf(label,"__FR%x_BGN",syntax.curly[pos].index);
-			l=add_str(label);
-			set_label(l,script_pos,p);
-			return p;
-		}
-		else if( p2 - p == 8 && strncasecmp(p,"function",8) == 0 )
-		{// internal script function
-			const char *func_name;
-
-			func_name = skip_space(p2);
-			p = skip_word(func_name);
-			if( p == func_name )
-				disp_error_message("parse_syntax:function: function name is missing or invalid", p);
-			p2 = skip_space(p);
-			if( *p2 == ';' )
-			{// function <name> ;
-				// function declaration - just register the name
-				int l;
-				l = add_word(func_name);
-				if( str_data[l].type == C_NOP )// register only, if the name was not used by something else
-					str_data[l].type = C_USERFUNC;
-				else if( str_data[l].type == C_USERFUNC )
-					;  // already registered
-				else
-					disp_error_message("parse_syntax:function: function name is invalid", func_name);
-
-				// Close condition of if, for, while
-				p = parse_syntax_close(p2 + 1);
 				return p;
 			}
-			else if(*p2 == '{')
-			{// function <name> <line/block of code>
+			break;
+		case 's':
+		case 'S':
+			if(p2 - p == 6 && !strncasecmp(p,"switch",6)) {
+				// Processing of switch ()
 				char label[256];
-				int l;
-
-				syntax.curly[syntax.curly_count].type  = TYPE_USERFUNC;
+				p=skip_space(p2);
+				if(*p != '(') {
+					disp_error_message("need '('",p);
+				}
+				syntax.curly[syntax.curly_count].type  = TYPE_SWITCH;
 				syntax.curly[syntax.curly_count].count = 1;
 				syntax.curly[syntax.curly_count].index = syntax.index++;
 				syntax.curly[syntax.curly_count].flag  = 0;
-				++syntax.curly_count;
-
-				// Jump over the function code
-				sprintf(label, "goto __FN%x_FIN;", syntax.curly[syntax.curly_count-1].index);
-				syntax.curly[syntax.curly_count].type = TYPE_NULL;
-				++syntax.curly_count;
-				parse_line(label);
-				--syntax.curly_count;
-
-				// Set the position of the function (label)
-				l=add_word(func_name);
-				if( str_data[l].type == C_NOP || str_data[l].type == C_USERFUNC )// register only, if the name was not used by something else
-				{
-					str_data[l].type = C_USERFUNC;
-					set_label(l, script_pos, p);
-					if( parse_options&SCRIPT_USE_LABEL_DB )
-						strdb_iput(scriptlabel_db, get_str(l), script_pos);
+				sprintf(label,"$@__SW%x_VAL",syntax.curly[syntax.curly_count].index);
+				syntax.curly_count++;
+				add_scriptl(add_str("set"));
+				add_scriptc(C_ARG);
+				add_scriptl(add_str(label));
+				p=parse_expr(p);
+				p=skip_space(p);
+				if(*p != '{') {
+					disp_error_message("parse_syntax: expected '{'",p);
 				}
-				else
-					disp_error_message("parse_syntax:function: function name is invalid", func_name);
+				add_scriptc(C_FUNC);
+				return p + 1;
+			}
+			break;
+		case 'w':
+		case 'W':
+			if(p2 - p == 5 && !strncasecmp(p,"while",5)) {
+				int l;
+				char label[256];
+				p=skip_space(p2);
+				if(*p != '(') {
+					disp_error_message("need '('",p);
+				}
+				syntax.curly[syntax.curly_count].type  = TYPE_WHILE;
+				syntax.curly[syntax.curly_count].count = 1;
+				syntax.curly[syntax.curly_count].index = syntax.index++;
+				syntax.curly[syntax.curly_count].flag  = 0;
+				// Form the start of label decision
+				sprintf(label,"__WL%x_NXT",syntax.curly[syntax.curly_count].index);
+				l=add_str(label);
+				set_label(l,script_pos,p);
 
-				return skip_space(p);
+				// Skip to the end point if the condition is false
+				sprintf(label,"__WL%x_FIN",syntax.curly[syntax.curly_count].index);
+				syntax.curly_count++;
+				add_scriptl(add_str("jump_zero"));
+				add_scriptc(C_ARG);
+				p=parse_expr(p);
+				p=skip_space(p);
+				add_scriptl(add_str(label));
+				add_scriptc(C_FUNC);
+				return p;
 			}
-			else
-			{
-				disp_error_message("expect ';' or '{' at function syntax",p);
-			}
-		}
-		break;
-	case 'i':
-	case 'I':
-		if(p2 - p == 2 && !strncasecmp(p,"if",2)) {
-			// If process
-			char label[256];
-			p=skip_space(p2);
-			if(*p != '(') { //Prevent if this {} non-c syntax. from Rayce (jA)
-				disp_error_message("need '('",p);
-			}
-			syntax.curly[syntax.curly_count].type  = TYPE_IF;
-			syntax.curly[syntax.curly_count].count = 1;
-			syntax.curly[syntax.curly_count].index = syntax.index++;
-			syntax.curly[syntax.curly_count].flag  = 0;
-			sprintf(label,"__IF%x_%x",syntax.curly[syntax.curly_count].index,syntax.curly[syntax.curly_count].count);
-			syntax.curly_count++;
-			add_scriptl(add_str("jump_zero"));
-			add_scriptc(C_ARG);
-			p=parse_expr(p);
-			p=skip_space(p);
-			add_scriptl(add_str(label));
-			add_scriptc(C_FUNC);
-			return p;
-		}
-		break;
-	case 's':
-	case 'S':
-		if(p2 - p == 6 && !strncasecmp(p,"switch",6)) {
-			// Processing of switch ()
-			char label[256];
-			p=skip_space(p2);
-			if(*p != '(') {
-				disp_error_message("need '('",p);
-			}
-			syntax.curly[syntax.curly_count].type  = TYPE_SWITCH;
-			syntax.curly[syntax.curly_count].count = 1;
-			syntax.curly[syntax.curly_count].index = syntax.index++;
-			syntax.curly[syntax.curly_count].flag  = 0;
-			sprintf(label,"$@__SW%x_VAL",syntax.curly[syntax.curly_count].index);
-			syntax.curly_count++;
-			add_scriptl(add_str("set"));
-			add_scriptc(C_ARG);
-			add_scriptl(add_str(label));
-			p=parse_expr(p);
-			p=skip_space(p);
-			if(*p != '{') {
-				disp_error_message("parse_syntax: expected '{'",p);
-			}
-			add_scriptc(C_FUNC);
-			return p + 1;
-		}
-		break;
-	case 'w':
-	case 'W':
-		if(p2 - p == 5 && !strncasecmp(p,"while",5)) {
-			int l;
-			char label[256];
-			p=skip_space(p2);
-			if(*p != '(') {
-				disp_error_message("need '('",p);
-			}
-			syntax.curly[syntax.curly_count].type  = TYPE_WHILE;
-			syntax.curly[syntax.curly_count].count = 1;
-			syntax.curly[syntax.curly_count].index = syntax.index++;
-			syntax.curly[syntax.curly_count].flag  = 0;
-			// Form the start of label decision
-			sprintf(label,"__WL%x_NXT",syntax.curly[syntax.curly_count].index);
-			l=add_str(label);
-			set_label(l,script_pos,p);
-
-			// Skip to the end point if the condition is false
-			sprintf(label,"__WL%x_FIN",syntax.curly[syntax.curly_count].index);
-			syntax.curly_count++;
-			add_scriptl(add_str("jump_zero"));
-			add_scriptc(C_ARG);
-			p=parse_expr(p);
-			p=skip_space(p);
-			add_scriptl(add_str(label));
-			add_scriptc(C_FUNC);
-			return p;
-		}
-		break;
+			break;
 	}
 	return NULL;
 }
@@ -2125,8 +2155,8 @@ const char* parse_syntax_close_sub(const char* p,int* flag)
  *------------------------------------------*/
 static void add_buildin_func(void)
 {
-	int i,n;
-	const char* p;
+	int i;
+
 	for( i = 0; buildin_func[i].func; i++ ) {
 		// arg must follow the pattern: (v|s|i|r|l)*\?*\*?
 		// 'v' - value (either string or int or reference)
@@ -2136,7 +2166,8 @@ static void add_buildin_func(void)
 		// 'l' - label
 		// '?' - one optional parameter
 		// '*' - unknown number of optional parameters
-		p = buildin_func[i].arg;
+		const char* p = buildin_func[i].arg;
+
 		while( *p == 'v' || *p == 's' || *p == 'i' || *p == 'r' || *p == 'l' ) ++p;
 		while( *p == '?' ) ++p;
 		if( *p == '*' ) ++p;
@@ -2145,7 +2176,8 @@ static void add_buildin_func(void)
 		} else if( *skip_word(buildin_func[i].name) != 0 ){
 			ShowWarning("add_buildin_func: ignoring function with invalid name \"%s\" (must be a word).\n", buildin_func[i].name);
 		} else {
-			n = add_str(buildin_func[i].name);
+			int n = add_str(buildin_func[i].name);
+
 			str_data[n].type = C_FUNC;
 			str_data[n].val = i;
 			str_data[n].func = buildin_func[i].func;
@@ -2192,8 +2224,9 @@ void script_set_constant(const char* name, int value, bool isparameter)
 static void read_constdb(void)
 {
 	FILE *fp;
-	char line[1024],name[1024],val[1024];
+	char line[1024], name[1024], val[1024];
 	int type;
+	int entries = 0, skipped = 0, linenum = 0;
 
 	sprintf(line, "%s/const.txt", db_path);
 	fp = fopen(line, "r");
@@ -2202,15 +2235,25 @@ static void read_constdb(void)
 		return ;
 	}
 	while(fgets(line, sizeof(line), fp)) {
-		if(line[0] == '/' && line[1] == '/')
+		linenum++;
+		if(line[0] == '\0' || line[0] == '\n' || line[0] == '\r') //Ignore empty line
+			continue;
+		if(line[0] == '/' && line[1] == '/') //Ignore commented line
 			continue;
 		type = 0;
-		if(sscanf(line,"%[A-Za-z0-9_],%[-0-9xXA-Fa-f],%d",name,val,&type) >= 2 ||
-		   sscanf(line,"%[A-Za-z0-9_] %[-0-9xXA-Fa-f] %d",name,val,&type) >= 2) {
+		if(sscanf(line,"%1023[A-Za-z0-9/_],%1023[A-Za-z0-9/_-],%d", name, val, &type) >= 2 ||
+			sscanf(line,"%1023[A-Za-z0-9/_] %1023[A-Za-z0-9/_-] %d", name, val, &type) >= 2) {
+			entries++;
 			script_set_constant(name, (int)strtol(val, NULL, 0), (bool)type);
+		} else {
+			skipped++;
+			ShowWarning("Skipping line '"CL_WHITE"%d"CL_RESET"', invalid constant definition\n", linenum);
 		}
 	}
 	fclose(fp);
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s/const.txt"CL_RESET"'.\n", entries, db_path);
+	if(skipped)
+		ShowWarning("Skipped '"CL_WHITE"%d"CL_RESET"', entries\n", skipped);
 }
 
 /**
@@ -2350,7 +2393,7 @@ void script_warning(const char* src, const char* file, int start_line, const cha
  *------------------------------------------*/
 struct script_code* parse_script(const char *src,const char *file,int line,int options)
 {
-	const char *p,*tmpp;
+	const char *p, *tmpp;
 	int i;
 	struct script_code* code = NULL;
 	static int first = 1;
@@ -2469,11 +2512,13 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 	//Default unknown references to variables
 	for( i = LABEL_START; i < str_num; i++ ) {
 		if( str_data[i].type == C_NOP ) {
-			int j,next;
+			int j;
+
 			str_data[i].type = C_NAME;
 			str_data[i].label = i;
 			for( j = str_data[i].backpatch; j >= 0 && j != 0x00ffffff; ) {
-				next = GETVALUE(script_buf,j);
+				int next = GETVALUE(script_buf,j);
+
 				SETVALUE(script_buf,j,i);
 				j = next;
 			}
@@ -2834,18 +2879,17 @@ const char* conv_str(struct script_state* st, struct script_data* data)
 /// Converts the data to an int
 int conv_num(struct script_state* st, struct script_data* data)
 {
-	char* p;
-	long num;
-
 	get_val(st, data);
 	if( data_isint(data) ) {
-		// nothing to convert
+		// Nothing to convert
 	} else if( data_isstring(data) ) { // string -> int
-		// the result does not overflow or underflow, it is capped instead
+		// The result does not overflow or underflow, it is capped instead
 		// ex: 999999999999 is capped to INT_MAX (2147483647)
-		p = data->u.str;
+		char* p = data->u.str;
+		long num;
+
 		errno = 0;
-		num = strtol(data->u.str, NULL, 10);// change radix to 0 to support octal numbers "o377" and hex numbers "0xFF"
+		num = strtol(data->u.str, NULL, 10); // Change radix to 0 to support octal numbers "o377" and hex numbers "0xFF"
 		if( errno == ERANGE
 #if LONG_MAX > INT_MAX
 			|| num < INT_MIN || num > INT_MAX
@@ -3354,73 +3398,60 @@ void op_1(struct script_state* st, int op)
 /// @param func Built-in function for which the arguments are intended.
 static void script_check_buildin_argtype(struct script_state* st, int func)
 {
-	char type;
 	int idx, invalid = 0;
-	script_function* sf = &buildin_func[str_data[func].val];
 
-	for( idx = 2; script_hasdata(st, idx); idx++ )
-	{
+	for( idx = 2; script_hasdata(st, idx); idx++ ) {
 		struct script_data* data = script_getdata(st, idx);
-
-		type = sf->arg[idx-2];
+		script_function* sf = &buildin_func[str_data[func].val];
+		char type = sf->arg[idx - 2];
 
 		if( type == '?' || type == '*' )
-		{// optional argument or unknown number of optional parameters ( no types are after this )
-			break;
-		}
-		else if( type == 0 )
-		{// more arguments than necessary ( should not happen, as it is checked before )
-			ShowWarning("Found more arguments than necessary. unexpected arg type %s\n",script_op2name(data->type));
+			break; // Optional argument or unknown number of optional parameters (no types are after this)
+		else if( type == 0 ) { // More arguments than necessary (should not happen, as it is checked before)
+			ShowWarning("Found more arguments than necessary. unexpected arg type %s\n", script_op2name(data->type));
 			invalid++;
 			break;
-		}
-		else
-		{
+		} else {
 			const char* name = NULL;
 
+			// Get name for variables to determine the type they refer to
 			if( data_isreference(data) )
-			{// get name for variables to determine the type they refer to
 				name = reference_getname(data);
-			}
 
-			switch( type )
-			{
+			switch( type ) {
 				case 'v':
-					if( !data_isstring(data) && !data_isint(data) && !data_isreference(data) )
-					{// variant
-						ShowWarning("Unexpected type for argument %d. Expected string, number or variable.\n", idx-1);
+					if( !data_isstring(data) && !data_isint(data) && !data_isreference(data) ) { // Variant
+						ShowWarning("Unexpected type for argument %d. Expected string, number or variable.\n", idx - 1);
 						script_reportdata(data);
 						invalid++;
 					}
 					break;
 				case 's':
-					if( !data_isstring(data) && !( data_isreference(data) && is_string_variable(name) ) )
-					{// string
-						ShowWarning("Unexpected type for argument %d. Expected string.\n", idx-1);
+					if( !data_isstring(data) && !(data_isreference(data) && is_string_variable(name)) ) { // String
+						ShowWarning("Unexpected type for argument %d. Expected string.\n", idx - 1);
 						script_reportdata(data);
 						invalid++;
 					}
 					break;
 				case 'i':
-					if( !data_isint(data) && !( data_isreference(data) && ( reference_toparam(data) || reference_toconstant(data) || !is_string_variable(name) ) ) )
-					{// int ( params and constants are always int )
-						ShowWarning("Unexpected type for argument %d. Expected number.\n", idx-1);
+					if( !data_isint(data) && !(data_isreference(data) &&
+						(reference_toparam(data) || reference_toconstant(data) || !is_string_variable(name))) ) {
+						// Int (params and constants are always int)
+						ShowWarning("Unexpected type for argument %d. Expected number.\n", idx - 1);
 						script_reportdata(data);
 						invalid++;
 					}
 					break;
 				case 'r':
-					if( !data_isreference(data) )
-					{// variables
-						ShowWarning("Unexpected type for argument %d. Expected variable, got %s.\n", idx-1,script_op2name(data->type));
+					if( !data_isreference(data) ) { // Variables
+						ShowWarning("Unexpected type for argument %d. Expected variable, got %s.\n", idx - 1, script_op2name(data->type));
 						script_reportdata(data);
 						invalid++;
 					}
 					break;
 				case 'l':
-					if( !data_islabel(data) && !data_isfunclabel(data) )
-					{// label
-						ShowWarning("Unexpected type for argument %d. Expected label, got %s\n", idx-1,script_op2name(data->type));
+					if( !data_islabel(data) && !data_isfunclabel(data) ) { // Label
+						ShowWarning("Unexpected type for argument %d. Expected label, got %s\n", idx - 1, script_op2name(data->type));
 						script_reportdata(data);
 						invalid++;
 					}
@@ -3429,8 +3460,7 @@ static void script_check_buildin_argtype(struct script_state* st, int func)
 		}
 	}
 
-	if(invalid)
-	{
+	if( invalid ) {
 		ShowDebug("Function: %s\n", get_str(func));
 		script_reportsrc(st);
 	}
@@ -3604,6 +3634,7 @@ static void script_detach_state(struct script_state* st, bool dequeue_event)
 	if(st->rid && (sd = map_id2sd(st->rid))!=NULL) {
 		sd->st = st->bk_st;
 		sd->npc_id = st->bk_npcid;
+		sd->state.disable_atcommand_on_npc = 0;
 		if(st->bk_st) {
 			//Remove tag for removal.
 			st->bk_st = NULL;
@@ -3647,7 +3678,7 @@ static void script_attach_state(struct script_state* st)
 		sd->st = st;
 		sd->npc_id = st->oid;
 		sd->npc_item_flag = st->npc_item_flag; // Load default.
-		sd->state.disable_atcommand_on_npc = !pc_has_permission(sd, PC_PERM_ENABLE_COMMAND);
+		sd->state.disable_atcommand_on_npc = (!pc_has_permission(sd, PC_PERM_ENABLE_COMMAND));
 #ifdef SECURE_NPCTIMEOUT
 		if( sd->npc_idle_timer == INVALID_TIMER )
 			sd->npc_idle_timer = add_timer(gettick() + (SECURE_NPCTIMEOUT_INTERVAL*1000),npc_rr_secure_timeout_timer,sd->bl.id,0);
@@ -3677,6 +3708,7 @@ void run_script_main(struct script_state *st)
 
 	while (st->state == RUN) {
 		enum c_op c = get_com(st->script->script_buf,&st->pos);
+
 		switch (c) {
 			case C_EOL:
 				if (stack->defsp > stack->sp)
@@ -3799,26 +3831,24 @@ void run_script_main(struct script_state *st)
 				intif_saveregistry(sd,1);
 		}
 		script_free_state(st);
-		st = NULL;
 	}
 }
 
 int script_config_read(char *cfgName)
 {
-	int i;
 	char line[1024],w1[1024],w2[1024];
-	FILE *fp;
+	FILE *fp = fopen(cfgName,"r");
 
-
-	fp = fopen(cfgName,"r");
 	if (fp == NULL) {
 		ShowError("File not found: %s\n",cfgName);
 		return 1;
 	}
 	while (fgets(line,sizeof(line),fp)) {
+		int i;
+
 		if (line[0] == '/' && line[1] == '/')
 			continue;
-		i = sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
+		i = sscanf(line,"%1023[^:]: %1023[^\r\n]",w1,w2);
 		if (i != 2)
 			continue;
 
@@ -3837,7 +3867,7 @@ int script_config_read(char *cfgName)
 		else if (strcmpi(w1,"import") == 0)
 			script_config_read(w2);
 		else
-			ShowWarning("Unknown setting '%s' in file %s\n", w1, cfgName);
+			ShowWarning("Unknown setting '%s' in file %s\n",w1,cfgName);
 	}
 	fclose(fp);
 
@@ -4678,6 +4708,7 @@ BUILDIN_FUNC(prompt)
 		if( StringBuf_Length(&buf) >= 2047 ) {
 			struct npc_data * nd = map_id2nd(st->oid);
 			char* menu;
+
 			CREATE(menu, char, 2048);
 			safestrncpy(menu, StringBuf_Value(&buf), 2047);
 			ShowWarning("NPC Menu too long! (source:%s / length:%d)\n",nd?nd->name:"Unknown",StringBuf_Length(&buf));
@@ -4695,7 +4726,7 @@ BUILDIN_FUNC(prompt)
 		sd->state.menu_or_input = 0;
 		pc_setreg(sd, add_str("@menu"), 0xff);
 		script_pushint(st, 0xff);
-		st->state = END;
+		st->state = RUN;
 	} else { // Return selected option
 		int menu = 0;
 
@@ -6228,11 +6259,13 @@ BUILDIN_FUNC(checkweight2) {
  *------------------------------------------*/
 BUILDIN_FUNC(getitem)
 {
-	int nameid, amount, get_count, i;
+	int amount, get_count, i;
+	unsigned short nameid;
 	struct item it;
 	TBL_PC *sd;
 	struct script_data *data;
 	unsigned char flag = 0;
+	const char* command = script_getfuncname(st);
 
 	data = script_getdata(st,2);
 	get_val(st,data);
@@ -6247,12 +6280,7 @@ BUILDIN_FUNC(getitem)
 		nameid = item_data->nameid;
 	} else if( data_isint(data) ) { //<Item id>
 		nameid = conv_num(st,data);
-		//Violet Box, Blue Box, etc - random item pick
-		if( nameid < 0 ) {
-			nameid = -nameid;
-			flag = 1;
-		}
-		if( nameid <= 0 || !itemdb_exists(nameid) ) {
+		if( !itemdb_exists(nameid) ) {
 			ShowError("buildin_getitem: Nonexistant item %d requested.\n",nameid);
 			return 1; //No item created.
 		}
@@ -6267,12 +6295,9 @@ BUILDIN_FUNC(getitem)
 
 	memset(&it,0,sizeof(it));
 	it.nameid = nameid;
-	if( !flag )
-		it.identify = 1;
-	else
-		it.identify = itemdb_isidentified(nameid);
+	it.identify = 1;
 
-	if( !strcmp(script_getfuncname(st),"getitembound") ) {
+	if( !strcmp(command,"getitembound") ) {
 		char bound = script_getnum(st,4);
 
 		if( bound > BOUND_NONE && bound < BOUND_MAX ) {
@@ -6317,16 +6342,19 @@ BUILDIN_FUNC(getitem)
  *------------------------------------------*/
 BUILDIN_FUNC(getitem2)
 {
-	int nameid, amount, get_count, i;
-	int iden, ref, attr, c1, c2, c3, c4;
+	int amount, get_count, i;
+	unsigned short nameid;
+	int iden, ref, attr;
+	unsigned short c1, c2, c3, c4;
 	char bound = BOUND_NONE;
-	struct item_data *item_data;
+	struct item_data *item_data = NULL;
 	struct item item_tmp;
 	unsigned char flag = 0;
 	TBL_PC *sd;
 	struct script_data *data;
+	const char* command = script_getfuncname(st);
 
-	if( !strcmp(script_getfuncname(st),"getitembound2") ) {
+	if( !strcmp(command,"getitembound2") ) {
 		bound = script_getnum(st,11);
 		if( bound > BOUND_NONE && bound < BOUND_MAX ) {
 			if( script_hasdata(st,12) )
@@ -6349,34 +6377,31 @@ BUILDIN_FUNC(getitem2)
 	get_val(st,data);
 	if( data_isstring(data) ) {
 		const char *name = conv_str(st,data);
-		struct item_data *item_data = itemdb_searchname(name);
 
-		if( item_data )
-			nameid = item_data->nameid;
-		else
-			nameid = UNKNOWN_ITEM_ID;
-	} else
+		if( (item_data = itemdb_searchname(name)) == NULL ) {
+			ShowError("buildin_getitem2: Nonexistant item %s requested (by conv_str).\n", name);
+			return 1; //No item created.
+		}
+		nameid = item_data->nameid;
+	} else {
 		nameid = conv_num(st,data);
+		if( (item_data = itemdb_exists(nameid)) == NULL ) {
+			ShowError("buildin_getitem2: Nonexistant item %d requested (by conv_num).\n", nameid);
+			return 1; //No item created.
+		}
+	}
 
 	amount = script_getnum(st,3);
 	iden = script_getnum(st,4);
 	ref = script_getnum(st,5);
 	attr = script_getnum(st,6);
-	c1 = (short)script_getnum(st,7);
-	c2 = (short)script_getnum(st,8);
-	c3 = (short)script_getnum(st,9);
-	c4 = (short)script_getnum(st,10);
+	c1 = (unsigned short)script_getnum(st,7);
+	c2 = (unsigned short)script_getnum(st,8);
+	c3 = (unsigned short)script_getnum(st,9);
+	c4 = (unsigned short)script_getnum(st,10);
 
-	if( nameid < 0 ) { //Invalide nameid
-		nameid = -nameid;
-		flag = 1;
-	}
-
-	if( nameid > 0 ) {
+	if( item_data ) {
 		memset(&item_tmp,0,sizeof(item_tmp));
-		item_data = itemdb_exists(nameid);
-		if( item_data == NULL )
-			return -1;
 		if( item_data->type == IT_WEAPON || item_data->type == IT_ARMOR || item_data->type == IT_SHADOWGEAR ) {
 			if( ref > MAX_REFINE )
 				ref = MAX_REFINE;
@@ -6389,16 +6414,13 @@ BUILDIN_FUNC(getitem2)
 		}
 
 		item_tmp.nameid = nameid;
-		if( !flag )
-			item_tmp.identify = iden;
-		else if( item_data->type == IT_WEAPON || item_data->type == IT_ARMOR || item_data->type == IT_SHADOWGEAR )
-			item_tmp.identify = 0;
+		item_tmp.identify = iden;
 		item_tmp.refine = ref;
 		item_tmp.attribute = attr;
-		item_tmp.card[0] = (short)c1;
-		item_tmp.card[1] = (short)c2;
-		item_tmp.card[2] = (short)c3;
-		item_tmp.card[3] = (short)c4;
+		item_tmp.card[0] = c1;
+		item_tmp.card[1] = c2;
+		item_tmp.card[2] = c3;
+		item_tmp.card[3] = c4;
 		item_tmp.bound = bound;
 
 		//Check if it's stackable.
@@ -7193,11 +7215,10 @@ BUILDIN_FUNC(getpartyname)
 
 	party_id = script_getnum(st,2);
 
-	if( ( p = party_search(party_id) ) != NULL ) {
+	if( (p = party_search(party_id)) != NULL )
 		script_pushstrcopy(st,p->party.name);
-	} else {
+	else
 		script_pushconststr(st,"null");
-	}
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -12213,7 +12234,7 @@ BUILDIN_FUNC(getiteminfo)
 	n	= script_getnum(st,3);
 	i_data = itemdb_exists(item_id);
 
-	if (i_data && n >= 0 && n <= 14) {
+	if (i_data && n <= 14) {
 		item_arr = (int*)&i_data->value_buy;
 		script_pushint(st,item_arr[n]);
 	} else
@@ -18235,7 +18256,7 @@ BUILDIN_FUNC(montransform) {
  */
 BUILDIN_FUNC(bonus_script) {
 	uint8 i, type = 0;
-	uint16 flag = 0;
+	uint8 flag = 0;
 	int16 icon = SI_BLANK;
 	uint32 dur;
 	TBL_PC* sd;
@@ -18429,7 +18450,7 @@ BUILDIN_FUNC(disable_command) {
 }
 
 /** Get the information of the members of a guild by type.
- * getguildmember  <guild_id>{,<type>};
+ * getguildmember <guild_id>{,<type>};
  * @param guild_id: ID of guild
  * @param type: Type of option (optional)
  */
@@ -18462,6 +18483,7 @@ BUILDIN_FUNC(getguildmember) {
 }
 
 /** Adds spirit ball to player for 'duration' in milisecond
+ * addspiritball <count>,<duration>{,<char_id>};
  * @param count How many spirit ball will be added
  * @param duration How long spiritball is active until it disappears
  * @param char_id Target player (Optional)
@@ -18475,7 +18497,7 @@ BUILDIN_FUNC(addspiritball) {
 	if (!count)
 		return 0;
 	if (script_hasdata(st,4)) {
-		if (script_isstring(st,4))
+		if (!script_isstring(st,4))
 			sd = map_charid2sd(script_getnum(st,4));
 		else
 			sd = map_nick2sd(script_getstr(st,4));
@@ -18489,6 +18511,7 @@ BUILDIN_FUNC(addspiritball) {
 }
 
 /** Deletes the spirit ball(s) from player
+ * delspiritball <count>{,<char_id>};
  * @param count How many spirit ball will be deleted
  * @param char_id Target player (Optional)
  * @author [Cydh]
@@ -18500,7 +18523,7 @@ BUILDIN_FUNC(delspiritball) {
 	if (!count)
 		count = 1;
 	if (script_hasdata(st,3)) {
-		if (script_isstring(st,3))
+		if (!script_isstring(st,3))
 			sd = map_charid2sd(script_getnum(st,3));
 		else
 			sd = map_nick2sd(script_getstr(st,3));
@@ -18513,6 +18536,7 @@ BUILDIN_FUNC(delspiritball) {
 }
 
 /** Counts the spirit ball that player has
+ * countspiritball {,<char_id>};
  * @param char_id Target player (Optional)
  * @author [Cydh]
  */
@@ -18520,7 +18544,7 @@ BUILDIN_FUNC(countspiritball) {
 	struct map_session_data *sd;
 
 	if (script_hasdata(st,2)) {
-		if (script_isstring(st,2))
+		if (!script_isstring(st,2))
 			sd = map_charid2sd(script_getnum(st,2));
 		else
 			sd = map_nick2sd(script_getstr(st,2));

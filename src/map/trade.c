@@ -238,7 +238,6 @@ int trade_check(struct map_session_data *sd, struct map_session_data *tsd)
 	struct item inventory2[MAX_INVENTORY];
 	struct item_data *data;
 	int trade_i, i, n;
-	short amount;
 
 	//Check zenys value against hackers (Zeny was already checked on time of adding, but you never know when you lost some zeny since then.
 	if (sd->deal.zeny > sd->status.zeny || (tsd->status.zeny > MAX_ZENY - sd->deal.zeny))
@@ -252,7 +251,8 @@ int trade_check(struct map_session_data *sd, struct map_session_data *tsd)
 
 	//Check free slot in both inventory
 	for (trade_i = 0; trade_i < 10; trade_i++) {
-		amount = sd->deal.item[trade_i].amount;
+		short amount = sd->deal.item[trade_i].amount;
+
 		if (amount) {
 			n = sd->deal.item[trade_i].index;
 			if (amount > inventory[n].amount)

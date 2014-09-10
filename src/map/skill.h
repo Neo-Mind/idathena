@@ -88,6 +88,8 @@ enum e_skill_inf3 {
 	INF3_EFF_RESEARCHTRAP   = 0x0800, //Skill range affected by RA_RESEARCHTRAP
 	INF3_USABLE_MANHOLE     = 0x1000, //Skill that can be used even under Man Hole effect
 	INF3_USABLE_WARG        = 0x2000, //Skill that can be use while riding warg
+	INF3_SC_GLOOMYDAY_SK    = 0x4000, //Skill that affected by SC_GLOOMYDAY_SK
+	INF3_SC_DANCEWITHWUG    = 0x8000, //Skill that affected by SC_DANCEWITHWUG
 };
 
 ///Walk intervals at which chase-skills are attempted to be triggered.
@@ -366,7 +368,7 @@ int skill_blown(struct block_list* src, struct block_list* target, int count, in
 int skill_break_equip(struct block_list *src, struct block_list *bl, unsigned short where, int rate, int flag);
 int skill_strip_equip(struct block_list *src, struct block_list *bl, unsigned short where, int rate, int lv, int time);
 ///Skills unit
-struct skill_unit_group* skill_id2group(int group_id);
+struct skill_unit_group *skill_id2group(int group_id);
 struct skill_unit_group *skill_unitsetting(struct block_list* src, uint16 skill_id, uint16 skill_lv, short x, short y, int flag);
 struct skill_unit *skill_initunit (struct skill_unit_group *group, int idx, int x, int y, int val1, int val2);
 int skill_delunit(struct skill_unit *unit);
@@ -375,8 +377,8 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 #define skill_delunitgroup(group) skill_delunitgroup_(group,__FILE__,__LINE__,__func__)
 int skill_clear_unitgroup(struct block_list *src);
 int skill_clear_group(struct block_list *bl, int flag);
-void ext_skill_unit_onplace(struct skill_unit *src, struct block_list *bl, unsigned int tick);
-int skill_unit_ondamaged(struct skill_unit *src,struct block_list *bl,int64 damage,unsigned int tick);
+void ext_skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, unsigned int tick);
+int skill_unit_ondamaged(struct skill_unit *unit, struct block_list *bl, int64 damage, unsigned int tick);
 
 int skill_castfix(struct block_list *bl, uint16 skill_id, uint16 skill_lv);
 int skill_castfix_sc(struct block_list *bl, double time);

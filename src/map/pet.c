@@ -816,32 +816,35 @@ static int pet_randomwalk(struct pet_data *pd,unsigned int tick)
 	Assert((pd->master == 0) || (pd->master->pd == pd));
 
 	if(DIFF_TICK(pd->next_walktime,tick) < 0 && unit_can_move(&pd->bl)) {
-		const int retrycount=20;
-		int i,x,y,c,d=12-pd->move_fail_count;
-		if(d<5) d=5;
-		for(i=0;i<retrycount;i++){
-			int r=rnd();
-			x=pd->bl.x+r%(d*2+1)-d;
-			y=pd->bl.y+r/(d*2+1)%(d*2+1)-d;
-			if(map_getcell(pd->bl.m,x,y,CELL_CHKPASS) && unit_walktoxy(&pd->bl,x,y,0)){
-				pd->move_fail_count=0;
+		const int retrycount = 20;
+		int i, c, d = 12-pd->move_fail_count;
+
+		if(d < 5)
+			d = 5;
+		for(i = 0; i < retrycount; i++) {
+			int r = rnd(), x, y;
+
+			x = pd->bl.x+r%(d*2+1)-d;
+			y = pd->bl.y+r/(d*2+1)%(d*2+1)-d;
+			if(map_getcell(pd->bl.m,x,y,CELL_CHKPASS) && unit_walktoxy(&pd->bl,x,y,0)) {
+				pd->move_fail_count = 0;
 				break;
 			}
-			if(i+1>=retrycount){
+			if(i+1 >= retrycount) {
 				pd->move_fail_count++;
-				if(pd->move_fail_count>1000){
-					ShowWarning("PET can't move. hold position %d, class = %d\n",pd->bl.id,pd->pet.class_);
-					pd->move_fail_count=0;
+				if(pd->move_fail_count > 1000) {
+					ShowWarning("Pet can't move. hold position %d, class = %d\n",pd->bl.id,pd->pet.class_);
+					pd->move_fail_count = 0;
 					pd->ud.canmove_tick = tick + 60000;
 					return 0;
 				}
 			}
 		}
-		for(i=c=0;i<pd->ud.walkpath.path_len;i++){
+		for(i = c = 0; i < pd->ud.walkpath.path_len; i++) {
 			if(pd->ud.walkpath.path[i]&1)
-				c+=pd->status.speed*14/10;
+				c += pd->status.speed*14/10;
 			else
-				c+=pd->status.speed;
+				c += pd->status.speed;
 		}
 		pd->next_walktime = tick+rnd()%3000+3000+c;
 
@@ -1021,7 +1024,6 @@ int pet_lootitem_drop(struct pet_data *pd,struct map_session_data *sd)
 	int i;
 	struct item_drop_list *dlist;
 	struct item_drop *ditem;
-	struct item *it;
 
 	if(!pd || !pd->loot || !pd->loot->count)
 		return 0;
@@ -1035,7 +1037,8 @@ int pet_lootitem_drop(struct pet_data *pd,struct map_session_data *sd)
 	dlist->item = NULL;
 
 	for(i = 0; i < pd->loot->count; i++) {
-		it = &pd->loot->item[i];
+		struct item *it = &pd->loot->item[i];
+
 		if(sd) {
 			unsigned char flag = 0;
 

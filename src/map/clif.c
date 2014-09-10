@@ -713,7 +713,7 @@ void clif_dropflooritem(struct flooritem_data* fitem)
 
 	nullpo_retv(fitem);
 
-	if (fitem->item_data.nameid <= 0)
+	if (!(fitem->item_data.nameid))
 		return;
 
 	WBUFW(buf,offset + 0) = header;
@@ -1583,7 +1583,7 @@ void clif_hominfo(struct map_session_data *sd, struct homun_data *hd, int flag)
 	WBUFW(buf,35) = cap_value(status->rhw.atk2 + status->batk, 0, INT16_MAX);
 	WBUFW(buf,37) = min(status->matk_max, INT16_MAX); // FIXME: Capping to INT16 here is too late
 	WBUFW(buf,39) = status->hit;
-	if (battle_config.hom_setting&0x10)
+	if (battle_config.hom_setting&HOMSET_DISPLAY_LUK)
 		WBUFW(buf,41) = status->luk / 3 + 1; // Crit is a +1 decimal value! Just display purpose.[Vicious]
 	else
 		WBUFW(buf,41) = status->cri / 10;
@@ -1865,22 +1865,11 @@ void clif_changemap(struct map_session_data *sd, short m, int x, int y)
 {
 	int fd;
 	nullpo_retv(sd);
-	fd = sd->fd;
 
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x91));
 	WFIFOW(fd,0) = 0x91;
-	if (map[m].instance_id) { //Instance map check to send client source map name so we don't crash player
-		struct instance_data *im = &instance_data[map[m].instance_id];
-		int i;
-		if (!im) //This shouldn't happen but if it does give them the map we intended to give
-			mapindex_getmapname_ext(map[m].name, (char*)WFIFOP(fd,2));
-		for (i = 0; i < MAX_MAP_PER_INSTANCE; i++) //Loop to find the src map we want
-			if (im->map[i].m == m) {
-				mapindex_getmapname_ext(map[im->map[i].src_m].name, (char*)WFIFOP(fd,2));
-				break;
-			}
-	} else
-		mapindex_getmapname_ext(map[m].name, (char*)WFIFOP(fd,2));
+	mapindex_getmapname_ext(map_mapid2mapname(m), (char*)WFIFOP(fd,2));
 	WFIFOW(fd,18) = x;
 	WFIFOW(fd,20) = y;
 	WFIFOSET(fd,packet_len(0x91));
@@ -1893,8 +1882,8 @@ void clif_changemapserver(struct map_session_data* sd, unsigned short map_index,
 {
 	int fd;
 	nullpo_retv(sd);
-	fd = sd->fd;
 
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x92));
 	WFIFOW(fd,0) = 0x92;
 	mapindex_getmapname_ext(mapindex_id2name(map_index), (char*)WFIFOP(fd,2));
@@ -3940,13 +3929,13 @@ void clif_joinchatok(struct map_session_data *sd,struct chat_data* cd)
 /// 00dc <users>.W <name>.24B
 void clif_addchat(struct chat_data* cd,struct map_session_data *sd)
 {
-	unsigned char buf[32];
+	unsigned char buf[29];
 
 	nullpo_retv(sd);
 	nullpo_retv(cd);
 
-	WBUFW(buf, 0) = 0xdc;
-	WBUFW(buf, 2) = cd->users;
+	WBUFW(buf,0) = 0xdc;
+	WBUFW(buf,2) = cd->users;
 	memcpy(WBUFP(buf, 4),sd->status.name,NAME_LENGTH);
 	clif_send(buf,packet_len(0xdc),&sd->bl,CHAT_WOS);
 }
@@ -4429,28 +4418,27 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 //Aegis data specifies that: 4 endure against single hit sources, 9 against multi-hit.
 static inline int clif_calc_delay(int type, int div, int damage, int delay)
 {
-	return (delay == 0 && damage > 0) ? (div > 1 ? 9 : 4) : type;
+	return (delay == 0 && damage > 0) ? (div > 1 ? DMG_MULTI_HIT_ENDURE : DMG_ENDURE) : (enum e_damage_type)type;
 }
 
 /*==========================================
  * Estimates walk delay based on the damage criteria. [Skotlex]
  *------------------------------------------*/
-static int clif_calc_walkdelay(struct block_list *bl,int delay, int type, int damage, int div_)
+static int clif_calc_walkdelay(struct block_list *bl, int delay, char type, int64 damage, int div_)
 {
-	if (type == 4 || type == 9 || damage <=0)
+	if (type == DMG_ENDURE || type == DMG_MULTI_HIT_ENDURE || damage <= 0)
 		return 0;
 
 	if (bl->type == BL_PC) {
 		if (battle_config.pc_walk_delay_rate != 100)
-			delay = delay*battle_config.pc_walk_delay_rate/100;
-	} else
-		if (battle_config.walk_delay_rate != 100)
-			delay = delay*battle_config.walk_delay_rate/100;
+			delay = delay * battle_config.pc_walk_delay_rate / 100;
+	} else if (battle_config.walk_delay_rate != 100)
+		delay = delay * battle_config.walk_delay_rate / 100;
 
 	if (div_ > 1) //Multi-hit skills mean higher delays.
 		delay += battle_config.multihit_delay*(div_-1);
 
-	return delay>0?delay:1; //Return 1 to specify there should be no noticeable delay, but you should stop walking.
+	return (delay > 0) ? delay : 1; //Return 1 to specify there should be no noticeable delay, but you should stop walking.
 }
 
 
@@ -4471,7 +4459,7 @@ static int clif_calc_walkdelay(struct block_list *bl,int delay, int type, int da
 ///     10 = critical hit
 ///     11 = lucky dodge
 ///     12 = (touch skill?)
-int clif_damage(struct block_list* src, struct block_list* dst, unsigned int tick, int sdelay, int ddelay, int64 in_damage, int div, int type, int64 in_damage2)
+int clif_damage(struct block_list* src, struct block_list* dst, unsigned int tick, int sdelay, int ddelay, int64 in_damage, int div, enum e_damage_type type, int64 in_damage2)
 {
 	unsigned char buf[33];
 	struct status_change *sc;
@@ -4557,7 +4545,7 @@ int clif_damage(struct block_list* src, struct block_list* dst, unsigned int tic
  *------------------------------------------*/
 void clif_takeitem(struct block_list* src, struct block_list* dst)
 {
-	//clif_damage(src,dst,0,0,0,0,0,1,0);
+	//clif_damage(src,dst,0,0,0,0,0,DMG_PICKUP_ITEM,0);
 	unsigned char buf[32];
 
 	nullpo_retv(src);
@@ -4622,7 +4610,7 @@ void clif_changemapcell(int fd, int16 m, int x, int y, int type, enum send_targe
 	WBUFW(buf,2) = x;
 	WBUFW(buf,4) = y;
 	WBUFW(buf,6) = type;
-	mapindex_getmapname_ext(map[m].name,(char*)WBUFP(buf,8));
+	mapindex_getmapname_ext(map_mapid2mapname(m),(char*)WBUFP(buf,8));
 
 	if( fd ) {
 		WFIFOHEAD(fd,packet_len(0x192));
@@ -6920,7 +6908,7 @@ void clif_party_member_info(struct party_data *p, struct map_session_data *sd)
 	WBUFB(buf,14) = (p->party.member[i].online) ? 0 : 1;
 	memcpy(WBUFP(buf,15), p->party.name, NAME_LENGTH);
 	memcpy(WBUFP(buf,39), sd->status.name, NAME_LENGTH);
-	mapindex_getmapname_ext(map[sd->bl.m].name, (char*)WBUFP(buf,63));
+	mapindex_getmapname_ext(map_mapid2mapname(sd->bl.m), (char*)WBUFP(buf,63));
 	WBUFB(buf,79) = (p->party.item&1) ? 1 : 0;
 	WBUFB(buf,80) = (p->party.item&2) ? 1 : 0;
 	clif_send(buf,packet_len(0x1e9),&sd->bl,PARTY);
@@ -7648,10 +7636,10 @@ void clif_mvp_exp(struct map_session_data *sd, unsigned int exp)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x10b));
-	WFIFOW(fd,0)=0x10b;
-	WFIFOL(fd,2)=cap_value(exp,0,INT32_MAX);
+	WFIFOW(fd,0) = 0x10b;
+	WFIFOL(fd,2) = min(exp,UINT32_MAX);
 	WFIFOSET(fd,packet_len(0x10b));
 }
 
@@ -9800,9 +9788,9 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 		clif_hominfo(sd,sd->hd,1);
 		clif_hominfo(sd,sd->hd,0); //For some reason, at least older clients want this sent twice
 		clif_homskillinfoblock(sd);
-		if(battle_config.hom_setting&0x8)
+		if(battle_config.hom_setting&HOMSET_COPY_SPEED)
 			status_calc_bl(&sd->hd->bl,SCB_SPEED); //Homunc mimic their master's speed on each map change
-		if(!(battle_config.hom_setting&0x2))
+		if(!(battle_config.hom_setting&HOMSET_NO_INSTANT_LAND_SKILL))
 			skill_unit_move(&sd->hd->bl,gettick(),1); //Apply land skills immediately
 	}
 
@@ -14775,7 +14763,7 @@ void clif_parse_Mail_setattach(int fd, struct map_session_data *sd)
 		return;
 
 	flag = mail_setitem(sd, idx, amount);
-	clif_Mail_setattachment(fd, idx, flag);
+	clif_Mail_setattachment(fd, idx, !flag);
 }
 
 
@@ -14800,54 +14788,18 @@ void clif_parse_Mail_winopen(int fd, struct map_session_data *sd)
 /// 0248 <packet len>.W <recipient>.24B <title>.40B <body len>.B <body>.?B
 void clif_parse_Mail_send(int fd, struct map_session_data *sd)
 {
-	struct mail_message msg;
-	int body_len;
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
 
 	if( !chrif_isconnected() )
 		return;
-	if( sd->state.trading )
-		return;
+
 	if( RFIFOW(fd,info->pos[0]) < 69 ) {
 		ShowWarning("Invalid Msg Len from account %d.\n", sd->status.account_id);
 		return;
 	}
-	if( DIFF_TICK(sd->cansendmail_tick, gettick()) > 0 ) {
-		clif_displaymessage(sd->fd, msg_txt(675)); //"Cannot send mails too fast!!."
-		clif_Mail_send(fd, true); //Fail
-		return;
-	}
 
-	body_len = RFIFOB(fd,info->pos[3]);
-
-	if( body_len > MAIL_BODY_LENGTH )
-		body_len = MAIL_BODY_LENGTH;
-	if( !mail_setattachment(sd, &msg) ) { //Invalid Append condition
-		clif_Mail_send(sd->fd, true); //Fail
-		mail_removeitem(sd, 0);
-		mail_removezeny(sd, 0);
-		return;
-	}
-
-	msg.id = 0; //ID will be assigned by charserver
-	msg.send_id = sd->status.char_id;
-	msg.dest_id = 0; //Will attempt to resolve name
-	safestrncpy(msg.send_name, sd->status.name, NAME_LENGTH);
-	safestrncpy(msg.dest_name, (char*)RFIFOP(fd,info->pos[1]), NAME_LENGTH);
-	safestrncpy(msg.title, (char*)RFIFOP(fd,info->pos[2]), MAIL_TITLE_LENGTH);
-
-	if( msg.title[0] == '\0' )
-		return; //Message has no length and somehow client verification was skipped.
-	if( body_len )
-		safestrncpy(msg.body, (char*)RFIFOP(fd,info->pos[4]), body_len + 1);
-	else
-		memset(msg.body, 0x00, MAIL_BODY_LENGTH);
-
-	msg.timestamp = time(NULL);
-	if( !intif_Mail_send(sd->status.account_id, &msg) )
-		mail_deliveryfail(sd, &msg);
-
-	sd->cansendmail_tick = gettick() + 1000; //1 Second flood Protection
+	mail_send(sd, (char*)RFIFOP(fd,info->pos[1]), (char*)RFIFOP(fd,info->pos[2]),
+		(char*)RFIFOP(fd,info->pos[4]), RFIFOB(fd,info->pos[3]));
 }
 
 
@@ -15247,7 +15199,9 @@ void clif_parse_CashShopReqTab(int fd, struct map_session_data *sd) {
 	WFIFOW(fd, 8) = cash_shop_items[tab].count;
 
 	for( j = 0; j < cash_shop_items[tab].count; j++ ) {
-		WFIFOW(fd, 10 + (6 * j)) = cash_shop_items[tab].item[j]->nameid;
+		struct item_data *id = itemdb_search(cash_shop_items[tab].item[j]->nameid);
+
+		WFIFOW(fd, 10 + (6 * j)) = (id->view_id) ? id->view_id : cash_shop_items[tab].item[j]->nameid;
 		WFIFOL(fd, 12 + (6 * j)) = cash_shop_items[tab].item[j]->price;
 	}
 
@@ -15269,7 +15223,9 @@ void clif_cashshop_list(int fd) {
 		WFIFOW(fd, 6) = tab;
 
 		for( i = 0, offset = 8; i < cash_shop_items[tab].count; i++, offset += 6 ) {
-			WFIFOW(fd, offset) = cash_shop_items[tab].item[i]->nameid;
+			struct item_data *id = itemdb_search(cash_shop_items[tab].item[i]->nameid);
+
+			WFIFOW(fd, offset) = (id->view_id) ? id->view_id : cash_shop_items[tab].item[i]->nameid;
 			WFIFOL(fd, offset + 2) = cash_shop_items[tab].item[i]->price;
 		}
 
@@ -15778,13 +15734,13 @@ void clif_mercenary_updatestatus(struct map_session_data *sd, int type)
 			}
 			break;
 		case SP_MATK1:
-			WFIFOL(fd,4) = cap_value(status->matk_max, 0, INT16_MAX);
+			WFIFOL(fd,4) = min(status->matk_max, UINT16_MAX);
 			break;
 		case SP_HIT:
 			WFIFOL(fd,4) = status->hit;
 			break;
 		case SP_CRITICAL:
-			WFIFOL(fd,4) = status->cri/10;
+			WFIFOL(fd,4) = status->cri / 10;
 			break;
 		case SP_DEF1:
 			WFIFOL(fd,4) = status->def;
@@ -15844,10 +15800,10 @@ void clif_mercenary_info(struct map_session_data *sd)
 
 	// Mercenary shows ATK as a random value between ATK ~ ATK2
 	atk = rnd()%(status->rhw.atk2 - status->rhw.atk + 1) + status->rhw.atk;
-	WFIFOW(fd,6) = cap_value(atk, 0, INT16_MAX);
-	WFIFOW(fd,8) = cap_value(status->matk_max, 0, INT16_MAX);
+	WFIFOW(fd,6) = min(atk, UINT16_MAX);
+	WFIFOW(fd,8) = min(status->matk_max, UINT16_MAX);
 	WFIFOW(fd,10) = status->hit;
-	WFIFOW(fd,12) = status->cri/10;
+	WFIFOW(fd,12) = status->cri / 10;
 	WFIFOW(fd,14) = status->def;
 	WFIFOW(fd,16) = status->mdef;
 	WFIFOW(fd,18) = status->flee;
@@ -15872,25 +15828,27 @@ void clif_mercenary_info(struct map_session_data *sd)
 void clif_mercenary_skillblock(struct map_session_data *sd)
 {
 	struct mercenary_data *md;
-	int fd, i, len = 4, id, j;
+	int fd, i, len = 4;
 
 	if( sd == NULL || (md = sd->md) == NULL )
 		return;
 	
 	fd = sd->fd;
-	WFIFOHEAD(fd,4+37*MAX_MERCSKILL);
+	WFIFOHEAD(fd,4 + 37 * MAX_MERCSKILL);
 	WFIFOW(fd,0) = 0x29d;
 	for( i = 0; i < MAX_MERCSKILL; i++ ) {
+		int id, j;
+
 		if( (id = md->db->skill[i].id) == 0 )
 			continue;
 		j = id - MC_SKILLBASE;
 		WFIFOW(fd,len) = id;
-		WFIFOL(fd,len+2) = skill_get_inf(id);
-		WFIFOW(fd,len+6) = md->db->skill[j].lv;
-		WFIFOW(fd,len+8) = skill_get_sp(id, md->db->skill[j].lv);
-		WFIFOW(fd,len+10) = skill_get_range2(&md->bl, id, md->db->skill[j].lv);
-		safestrncpy((char*)WFIFOP(fd,len+12), skill_get_name(id), NAME_LENGTH);
-		WFIFOB(fd,len+36) = 0; // Skillable for Mercenary?
+		WFIFOL(fd,len + 2) = skill_get_inf(id);
+		WFIFOW(fd,len + 6) = md->db->skill[j].lv;
+		WFIFOW(fd,len + 8) = skill_get_sp(id, md->db->skill[j].lv);
+		WFIFOW(fd,len + 10) = skill_get_range2(&md->bl, id, md->db->skill[j].lv);
+		safestrncpy((char*)WFIFOP(fd,len + 12), skill_get_name(id), NAME_LENGTH);
+		WFIFOB(fd,len + 36) = 0; // Skillable for Mercenary?
 		len += 37;
 	}
 
@@ -16163,7 +16121,7 @@ void clif_instance_create(struct map_session_data *sd, const char *name, int num
 		return;
 
 	WBUFW(buf,0) = 0x2cb;
-	safestrncpy(WBUFP(buf,2),name,62);
+	memcpy(WBUFP(buf,2),name,62);
 	WBUFW(buf,63) = num;
 	if(flag) //A timer has changed or been added
 		clif_send(buf,packet_len(0x2cb),&sd->bl,PARTY);
@@ -16184,9 +16142,9 @@ void clif_instance_changewait(struct map_session_data *sd, int num, int flag)
 
 	WBUFW(buf,0) = 0x2cc;
 	WBUFW(buf,2) = num;
-	if(flag) // A timer has changed or been added
+	if(flag) //A timer has changed or been added
 		clif_send(buf,packet_len(0x2cc),&sd->bl,PARTY);
-	else	// No notification
+	else //No notification
 		clif_send(buf,packet_len(0x2cc),&sd->bl,SELF);
 #endif
 
@@ -16202,12 +16160,12 @@ void clif_instance_status(struct map_session_data *sd, const char *name, unsigne
 		return;
 
 	WBUFW(buf,0) = 0x2cd;
-	safestrncpy( WBUFP(buf,2), name, 62 );
+	memcpy(WBUFP(buf,2),name,62);
 	WBUFL(buf,63) = limit1;
 	WBUFL(buf,67) = limit2;
-	if(flag) // A timer has changed or been added
+	if(flag) //A timer has changed or been added
 		clif_send(buf,packet_len(0x2cd),&sd->bl,PARTY);
-	else	// No notification
+	else //No notification
 		clif_send(buf,packet_len(0x2cd),&sd->bl,SELF);
 #endif
 
@@ -16225,9 +16183,9 @@ void clif_instance_changestatus(struct map_session_data *sd, int type, unsigned 
 	WBUFW(buf,0) = 0x2ce;
 	WBUFL(buf,2) = type;
 	WBUFL(buf,6) = limit;
-	if(flag) // A timer has changed or been added
+	if(flag) //A timer has changed or been added
 		clif_send(buf,packet_len(0x2ce),&sd->bl,PARTY);
-	else	// No notification
+	else //No notification
 		clif_send(buf,packet_len(0x2ce),&sd->bl,SELF);
 #endif
 

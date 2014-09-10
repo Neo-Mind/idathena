@@ -3094,7 +3094,7 @@ int mapif_parse_req_alter_acc(int fd) {
 
 		RFIFOSKIP(fd,44);
 		Sql_EscapeStringLen(sql_handle, esc_name, name, strnlen(name, NAME_LENGTH));
-		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `account_id`,`name`,`char_id`,`unban_time` FROM `%s` WHERE `name` = '%s'", char_db, esc_name) )
+		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `account_id` FROM `%s` WHERE `name` = '%s'", char_db, esc_name) )
 			Sql_ShowDebug(sql_handle);
 		else if( Sql_NumRows(sql_handle) == 0 ) {
 			result = 1; //1-player not found
@@ -3102,58 +3102,56 @@ int mapif_parse_req_alter_acc(int fd) {
 			Sql_ShowDebug(sql_handle);
 			result = 1;
 		} else {
-			char name[NAME_LENGTH];
-			int account_id;
+			int t_aid; //Target account id
 			char* data;
 
-			Sql_GetData(sql_handle, 0, &data, NULL); account_id = atoi(data);
-			Sql_GetData(sql_handle, 1, &data, NULL); safestrncpy(name, data, sizeof(name));
+			Sql_GetData(sql_handle, 0, &data, NULL); t_aid = atoi(data);
 			Sql_FreeResult(sql_handle);
 
 			if( !loginif_isconnected() ) //6-7 operation doesn't send to login
 				result = 3; //3-login-server offline
 			//FIXME: need to move this check to login server [ultramage]
-			//	if( acc != -1 && isGM(acc) < isGM(account_id) )
+			//	if( acc != -1 && isGM(acc) < isGM(t_aid) )
 			//		result = 2; // 2-gm level too low
 			else {
 				switch( operation ) {
 					case 1: //Block
 						WFIFOHEAD(login_fd,10);
 						WFIFOW(login_fd,0) = 0x2724;
-						WFIFOL(login_fd,2) = account_id;
+						WFIFOL(login_fd,2) = t_aid;
 						WFIFOL(login_fd,6) = 5; //New account status
 						WFIFOSET(login_fd,10);
 						break;
 					case 2: //Ban
 						WFIFOHEAD(login_fd,10);
 						WFIFOW(login_fd, 0) = 0x2725;
-						WFIFOL(login_fd, 2) = account_id;
+						WFIFOL(login_fd, 2) = t_aid;
 						WFIFOL(login_fd, 6) = timediff;
 						WFIFOSET(login_fd,10);
 						break;
 					case 3: //Unblock
 						WFIFOHEAD(login_fd,10);
 						WFIFOW(login_fd,0) = 0x2724;
-						WFIFOL(login_fd,2) = account_id;
+						WFIFOL(login_fd,2) = t_aid;
 						WFIFOL(login_fd,6) = 0; //New account status
 						WFIFOSET(login_fd,10);
 						break;
 					case 4: //Unban
 						WFIFOHEAD(login_fd,6);
 						WFIFOW(login_fd,0) = 0x272a;
-						WFIFOL(login_fd,2) = account_id;
+						WFIFOL(login_fd,2) = t_aid;
 						WFIFOSET(login_fd,6);
 						break;
 					case 5: //Changesex
 						answer = false;
 						WFIFOHEAD(login_fd,6);
 						WFIFOW(login_fd,0) = 0x2727;
-						WFIFOL(login_fd,2) = account_id;
+						WFIFOL(login_fd,2) = t_aid;
 						WFIFOSET(login_fd,6);
 						break;
 					case 6:
 						answer = (val1&4); //vip_req val1 = type, &1 login send return, &2 upd timestamp &4 map send answer
-						loginif_reqvipdata(account_id, val1, timediff, fd);
+						loginif_reqvipdata(t_aid, val1, timediff, fd);
 						break;
 					case 7:
 						answer = (val1&1); //val&1 request answer, val1&2 save data
@@ -3345,15 +3343,13 @@ int parse_frommap(int fd)
 					return 0;
 				{
 					//TODO: When data mismatches memory, update guild/party online/offline states.
-					int aid, cid;
-					struct online_char_data* character;
-
 					server[id].users = RFIFOW(fd,4);
 					online_char_db->foreach(online_char_db,char_db_setoffline,id); //Set all chars from this server as 'unknown'
 					for( i = 0; i < server[id].users; i++ ) {
-						aid = RFIFOL(fd,6 + i * 8);
-						cid = RFIFOL(fd,6 + i * 8 + 4);
-						character = idb_ensure(online_char_db, aid, create_online_char_data);
+						int aid = RFIFOL(fd,6 + i * 8);
+						int cid = RFIFOL(fd,6 + i * 8 + 4);
+						struct online_char_data* character = idb_ensure(online_char_db, aid, create_online_char_data);
+
 						if( character->server > -1 && character->server != id ) {
 							ShowNotice("Set map user: Character (%d:%d) marked on map server %d, but map server %d claims to have (%d:%d) online!\n",
 								character->account_id, character->char_id, character->server, id, aid, cid);
@@ -4205,7 +4201,6 @@ int parse_char(int fd)
 {
 	int i;
 	char email[40];
-	unsigned short cmd;
 	int map_fd;
 	struct char_session_data* sd;
 	uint32 ipl = session[fd]->client_addr;
@@ -4230,6 +4225,8 @@ int parse_char(int fd)
 	}
 
 	while( RFIFOREST(fd) >= 2 ) {
+		unsigned short cmd;
+
 		//For use in packets that depend on an sd being present [Skotlex]
 		#define FIFOSD_CHECK(rest) { if(RFIFOREST(fd) < rest) return 0; if (sd == NULL || !sd->auth) { RFIFOSKIP(fd,rest); return 0; } }
 
@@ -4802,6 +4799,7 @@ int parse_char(int fd)
 				else {
 					char* l_user = (char*)RFIFOP(fd,2);
 					char* l_pass = (char*)RFIFOP(fd,26);
+
 					l_user[23] = '\0';
 					l_pass[23] = '\0';
 					ARR_FIND( 0,ARRAYLENGTH(server),i,server[i].fd <= 0 );
@@ -5132,12 +5130,14 @@ void pincode_notifyLoginPinError(int account_id) {
 }
 
 void pincode_decrypt(uint32 userSeed, char* pin) {
-	int i, pos;
+	int i;
 	char tab[10] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 	char *buf;
-	uint32 multiplier = 0x3498, baseSeed = 0x881234;
 
 	for( i = 1; i < 10; i++ ) {
+		int pos;
+		uint32 multiplier = 0x3498, baseSeed = 0x881234;
+
 		userSeed = baseSeed + userSeed * multiplier;
 		pos = userSeed%(i + 1);
 		if( i != pos ) {
@@ -5586,14 +5586,15 @@ int char_config_read(const char* cfgName)
 			if (start_zeny < 0)
 				start_zeny = 0;
 		} else if (strcmpi(w1, "start_items") == 0) {
-			int i = 0, n = 0;
+			int i = 0;
 			char *lineitem, **fields;
 			int fields_length = 3 + 1;
 
 			fields = (char**)aMalloc(fields_length*sizeof(char*));
 			lineitem = strtok(w2, ":");
 			while (lineitem != NULL) {
-				n = sv_split(lineitem, strlen(lineitem), 0, ',', fields, fields_length, SV_NOESCAPE_NOTERMINATE);
+				int n = sv_split(lineitem, strlen(lineitem), 0, ',', fields, fields_length, SV_NOESCAPE_NOTERMINATE);
+
 				if (n + 1 < fields_length) {
 					ShowDebug("start_items: not enough arguments for %s! Skipping...\n", lineitem);
 					lineitem = strtok(NULL, ":"); //Next itemline

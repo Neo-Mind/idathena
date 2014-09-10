@@ -1,6 +1,14 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#ifndef _WIN32
+#include <unistd.h>
+#endif
+
 #include "../common/cbasetypes.h"
 #include "../common/grfio.h"
 #include "../common/malloc.h"
@@ -9,14 +17,6 @@
 #include "../common/utils.h"
 
 #include "../config/renewal.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#ifndef _WIN32
-#include <unistd.h>
-#endif
 
 #define NO_WATER 1000000
 
@@ -50,10 +50,6 @@ struct map_info {
 	int32 len;
 };
 
-/**************************************
- * Big-endian compatibility functions *
- * Moved to utils.h                   *
- **************************************/
 
 // Reads a map from GRF's GAT and RSW files
 int read_map(char *name, struct map_data *m)

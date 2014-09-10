@@ -304,11 +304,11 @@ void log_mvpdrop(struct map_session_data* sd, int monster_id, int* log_mvp)
 		time_t curtime;
 		FILE* logfp;
 
-		if( ( logfp = fopen(log_config.log_mvpdrop,"a") ) == NULL )
+		if( (logfp = fopen(log_config.log_mvpdrop,"a")) == NULL )
 			return;
 		time(&curtime);
 		strftime(timestring, sizeof(timestring), "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-		fprintf(logfp,"%s - %s[%d:%d]\t%d\t%hu,%d\n", timestring, sd->status.name, sd->status.account_id, sd->status.char_id, monster_id, log_mvp[0], log_mvp[1]);
+		fprintf(logfp,"%s - %s[%d:%d]\t%d\t%hu,%u\n", timestring, sd->status.name, sd->status.account_id, sd->status.char_id, monster_id, log_mvp[0], log_mvp[1]);
 		fclose(logfp);
 	}
 }

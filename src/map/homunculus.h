@@ -4,8 +4,8 @@
 #ifndef _HOMUNCULUS_H_
 #define _HOMUNCULUS_H_
 
-#include "status.h" // struct status_data, struct status_change
-#include "unit.h" // struct unit_data
+#include "status.h" //struct status_data, struct status_change
+#include "unit.h" //struct unit_data
 
 struct h_stats {
 	unsigned int HP, SP;
@@ -73,24 +73,25 @@ struct homun_skill_tree_entry {
 		short id;
 		unsigned char lv;
 	} need[MAX_HOM_SKILL_REQUIRE];
-}; // Celest
+}; //Celest
 
 #define HOM_EVO 0x100 //256
 #define HOM_S 0x200 //512
 #define HOM_REG 0x1000 //4096
 
-enum {
-	// Normal Homunculus
+//Houmunculus ID
+enum homun_mapid {
+	//Normal Homunculus
 	MAPID_LIF = HOM_REG|0x0,
 	MAPID_AMISTR,
 	MAPID_FILIR,
 	MAPID_VANILMIRTH,
-	// Evolved Homunulus
+	//Evolved Homunulus
 	MAPID_LIF_E = HOM_REG|HOM_EVO|0x0,
 	MAPID_AMISTR_E,
 	MAPID_FILIR_E,
 	MAPID_VANILMIRTH_E,
-	// Homunculus S
+	//Homunculus S
 	MAPID_EIRA = HOM_S|0x0,
 	MAPID_BAYERI,
 	MAPID_SERA,
@@ -98,18 +99,32 @@ enum {
 	MAPID_ELANOR,
 };
 
+//Homunculus type
 enum homun_type {
-	HT_REG = 0x1, // Regular Homunculus
-	HT_EVO = 0x2, // Evolved Homunculus
-	HT_S = 0x4, // Homunculus S
-	HT_INVALID = -1, // Invalid Homunculus
+	HT_REG = 0x1, //Regular Homunculus
+	HT_EVO = 0x2, //Evolved Homunculus
+	HT_S = 0x4, //Homunculus S
+	HT_INVALID = -1, //Invalid Homunculus
 };
 
+//Homunculus battle_config setting
+enum homun_setting {
+	HOMSET_NO_SUPPORT_SKILL				= 0x01, //Cannot be targetted by support skills, except for their master
+	HOMSET_NO_INSTANT_LAND_SKILL		= 0x02, //Unit/land skill doesn't applied immediately
+	HOMSET_FIRST_TARGET					= 0x04, //Mobs will always go after them instead of players until attacked
+	HOMSET_COPY_SPEED					= 0x08, //Copy their master's speed on spawn/map-change
+	HOMSET_DISPLAY_LUK					= 0x10, //They display luk/3+1 instead of their actual critical in the stat window, by default they don't crit
+	HOMSET_SAME_MATK					= 0x20, //Their Min-Matk is always the same as their max
+	HOMSET_RESET_REUSESKILL_VAPORIZED	= 0x40, //Skill re-use delay is reset when they are vaporized.
+	HOMSET_RESET_REUSESKILL_TELEPORTED	= 0x80, //Skill re-use delay is reset when they are warped (by skill or item) with player.
+};
+
+//Check Homunculus Class ID
 #define homdb_checkid(id) (id >=  HM_CLASS_BASE && id <= HM_CLASS_MAX)
 
-// merc_is_hom_alive(struct homun_data *)
+//merc_is_hom_alive(struct homun_data *)
 #define hom_is_active(x) (x && x->homunculus.vaporize == HOM_ST_ACTIVE && x->battle_status.hp > 0)
-int hom_recv_data(int account_id, struct s_homunculus *sh, int flag); //albator
+int hom_recv_data(int account_id, struct s_homunculus *sh, int flag); //Albator
 struct view_data* hom_get_viewdata(int class_);
 int hom_class2mapid(int hom_class);
 enum homun_type hom_class2type(int class_);
@@ -127,7 +142,7 @@ int hom_vaporize(struct map_session_data *sd, int flag);
 int hom_ressurect(struct map_session_data *sd, unsigned char per, short x, short y);
 void hom_revive(struct homun_data *hd, unsigned int hp, unsigned int sp);
 void hom_reset_stats(struct homun_data *hd);
-int hom_shuffle(struct homun_data *hd); // [Zephyrus]
+int hom_shuffle(struct homun_data *hd); //[Zephyrus]
 void hom_save(struct homun_data *hd);
 int hom_call(struct map_session_data *sd);
 int hom_create_request(struct map_session_data *sd, int class_);

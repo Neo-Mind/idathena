@@ -344,6 +344,11 @@ bool pc_group_can_use_command(int group_id, const char *command, AtCommandType t
 	}
 	return false;
 }
+
+/**
+ * Load permission for player based on group id
+ * @param sd Player
+ */
 void pc_group_pc_load(struct map_session_data * sd) {
 	GroupSettings *group = NULL;
 	if ((group = id2group(sd->group_id)) == NULL) {
@@ -358,6 +363,7 @@ void pc_group_pc_load(struct map_session_data * sd) {
 	sd->group_pos = group->group_pos;
 	sd->group_level = group->level;
 }
+
 /**
  * Checks if player group has a permission
  * @param group_id ID of the group
