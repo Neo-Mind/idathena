@@ -61,7 +61,7 @@ static int atkmods[3][MAX_WEAPON_TYPE];	/// ATK weapon modification for size (si
 static struct eri *sc_data_ers; /// For sc_data entries
 static struct status_data dummy_status;
 
-int current_equip_item_index; /// Contains inventory index of an equipped item. To pass it into the EQUP_SCRIPT [Lupus]
+short current_equip_item_index; /// Contains inventory index of an equipped item. To pass it into the EQUP_SCRIPT [Lupus]
 int current_equip_card_id; /// To prevent card-stacking (from jA) [Skotlex]
 // We need it for new cards 15 Feb 2005, to check if the combo cards are insrerted into the CURRENT weapon only to avoid cards exploits
 
@@ -2751,7 +2751,8 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 	const struct status_change *sc = &sd->sc;
 	struct s_skill b_skill[MAX_SKILL]; //Previous skill tree
 	int b_weight, b_max_weight, b_cart_weight_max, //Previous weight
-	i, index, skill, refinedef = 0;
+	i, skill, refinedef = 0;
+	short index = -1;
 
 	if (++calculating > 10) //Too many recursive calls!
 		return -1;
@@ -5050,7 +5051,7 @@ static unsigned short status_calc_watk(struct block_list *bl, struct status_chan
 			watk += sc->data[SC_NIBELUNGEN]->val2;
 		else {
 			TBL_PC *sd = (TBL_PC*)bl;
-			int index = sd->equip_index[(sd->state.lr_flag ? EQI_HAND_L : EQI_HAND_R)];
+			short index = sd->equip_index[(sd->state.lr_flag ? EQI_HAND_L : EQI_HAND_R)];
 
 			if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->wlv == 4)
 				watk += sc->data[SC_NIBELUNGEN]->val2;
@@ -7307,7 +7308,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		//Strip skills, need to divest something or it fails.
 		case SC_STRIPWEAPON:
 			if(sd && !(flag&4)) { //apply sc anyway if loading saved sc_data
-				int i;
+				short i;
 
 				opt_flag = 0; //Reuse to check success condition.
 				if(sd->bonus.unstripable_equip&EQP_WEAPON)
@@ -7328,7 +7329,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			if(val2 == 1)
 				val2 = 0; //GX effect. Do not take shield off..
 			else if(sd && !(flag&4)) {
-				int i;
+				short i;
 
 				if(sd->bonus.unstripable_equip&EQP_SHIELD)
 					return 0;
@@ -7342,7 +7343,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 		case SC_STRIPARMOR:
 			if(sd && !(flag&4)) {
-				int i;
+				short i;
 
 				if(sd->bonus.unstripable_equip&EQP_ARMOR)
 					return 0;
@@ -7356,7 +7357,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 		case SC_STRIPHELM:
 			if(sd && !(flag&4)) {
-				int i;
+				short i;
 
 				if(sd->bonus.unstripable_equip&EQP_HELM)
 					return 0;
@@ -7430,7 +7431,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 		case SC__STRIPACCESSORY:
 			if(sd) {
-				int i = -1;
+				short i = -1;
 
 				if(!(sd->bonus.unstripable_equip&EQP_ACC_L)) {
 					i = sd->equip_index[EQI_ACC_L];

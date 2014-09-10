@@ -2170,7 +2170,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
  - flag is a BCT_ flag to indicate which type of adjustment should be used
    (BCT_ENEMY/BCT_PARTY/BCT_SELF) are the valid values.
 --------------------------------------------------------------------------*/
-int skill_break_equip (struct block_list *src, struct block_list *bl, unsigned short where, int rate, int flag)
+int skill_break_equip(struct block_list *src, struct block_list *bl, unsigned short where, int rate, int flag)
 {
 	const int where_list[4]     = { EQP_HELM,EQP_WEAPON,EQP_SHIELD,EQP_ARMOR };
 	const enum sc_type scatk[4] = { SC_STRIPHELM,SC_STRIPWEAPON,SC_STRIPSHIELD,SC_STRIPARMOR };
@@ -2223,7 +2223,7 @@ int skill_break_equip (struct block_list *src, struct block_list *bl, unsigned s
 		return 0;
 	if (sd) {
 		for (i = 0; i < EQI_MAX; i++) {
-			int j = sd->equip_index[i];
+			short j = sd->equip_index[i];
 
 			if (j < 0 || sd->status.inventory[j].attribute == 1 || !sd->inventory_data[j])
 				continue;
@@ -3122,11 +3122,15 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			if (!rmdamage) {
 				clif_damage(d_bl, d_bl, gettick(), 0, 0, damage, 0, DMG_NORMAL, 0);
 				status_fix_damage(NULL, d_bl, damage, 0);
-			} else { //Reflected magics are done directly on the target not on paladin
+			} else {
+				bool isDevotRdamage = false;
+				if (battle_config.devotion_rdamage && battle_config.devotion_rdamage > rnd()%100)
+					isDevotRdamage = true;
+				//If !isDevotRdamage, reflected magics are done directly on the target not on paladin
 				//This check is only for magical skill.
 				//For BF_WEAPON skills types track var rdamage and function battle_calc_return_damage
-				clif_damage(bl, bl, gettick(), 0, 0, damage, 0, DMG_NORMAL, 0);
-				status_fix_damage(bl, bl, damage, 0);
+				clif_damage(bl, (!isDevotRdamage) ? bl : d_bl, gettick(), 0, 0, damage, 0, DMG_NORMAL, 0);
+				status_fix_damage(bl, (!isDevotRdamage) ? bl : d_bl, damage, 0);
 			}
 		} else {
 			status_change_end(bl, SC_DEVOTION, INVALID_TIMER);
@@ -6017,7 +6021,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case TK_JUMPKICK:
-			/* Check if the target is an enemy; if not,skill should fail so the character doesn't unit_movepos (exploitable) */
+			/* Check if the target is an enemy. If not, skill should fail so the character doesn't unit_movepos (exploitable) */
 			if( battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
 				if( unit_movepos(src,bl->x,bl->y,1,1) ) {
 					clif_slide(src,bl->x,bl->y);
@@ -8192,8 +8196,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 							continue;
 						if (map_getcell(src->m,src->x+dx[j],src->y+dy[j],CELL_CHKNOREACH))
 							dx[j] = dy[j] = 0;
-						pc_setpos(dstsd,map_id2index(src->m),src->x+dx[j],src->y+dy[j],CLR_RESPAWN);
-						called++;
+						if (!pc_setpos(dstsd,map_id2index(src->m),src->x+dx[j],src->y+dy[j],CLR_RESPAWN))
+							called++;
 					}
 				}
 				if (sd)
@@ -9914,12 +9918,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case GN_SLINGITEM:
 			if( sd ) {
-				short ammo_id;
+				short idx = sd->equip_index[EQI_AMMO], ammo_id;
 
-				i = sd->equip_index[EQI_AMMO];
-				if( i <= 0 )
+				if( idx < 0 )
 					break; //No ammo.
-				ammo_id = sd->inventory_data[i]->nameid;
+				ammo_id = sd->inventory_data[idx]->nameid;
 				if( ammo_id <= 0 )
 					break;
 				sd->itemid = ammo_id;
@@ -9932,7 +9935,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					} else //Otherwise, it fails, shows animation and removes items.
 						clif_skill_fail(sd,GN_SLINGITEM_RANGEMELEEATK,USESKILL_FAIL,0);
 				} else if( itemdb_is_GNthrowable(ammo_id) ) {
-					struct script_code *script = sd->inventory_data[i]->script;
+					struct script_code *script = sd->inventory_data[idx]->script;
 
 					if( !script )
 						break;
@@ -15080,10 +15083,12 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 	}
 
 	if( require.ammo ) { //Skill requires stuff equipped in the ammo slot.
-		if( (i = sd->equip_index[EQI_AMMO]) < 0 || !sd->inventory_data[i] ) {
+		short idx = sd->equip_index[EQI_AMMO];
+
+		if( idx < 0 || !sd->inventory_data[idx] ) {
 			clif_arrow_fail(sd,0);
 			return false;
-		} else if( sd->status.inventory[i].amount < require.ammo_qty ) {
+		} else if( sd->status.inventory[idx].amount < require.ammo_qty ) {
 			char e_msg[100];
 
 			if( require.ammo&((1<<AMMO_BULLET)|(1<<AMMO_GRENADE)|(1<<AMMO_SHELL)) ) {
@@ -15096,11 +15101,11 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 			sprintf(e_msg,msg_txt(381), //Skill Failed. [%s] requires %dx %s.
 				skill_get_desc(skill_id),
 				require.ammo_qty,
-				itemdb_jname(sd->status.inventory[i].nameid));
+				itemdb_jname(sd->status.inventory[idx].nameid));
 			clif_colormes(sd,color_table[COLOR_RED],e_msg);
 			return false;
 		}
-		if( !(require.ammo&(1<<sd->inventory_data[i]->look)) ) { //Ammo type check. Send the "wrong weapon type" message
+		if( !(require.ammo&(1<<sd->inventory_data[idx]->look)) ) { //Ammo type check. Send the "wrong weapon type" message
 			//Which is the closest we have to wrong ammo type. [Skotlex]
 			clif_arrow_fail(sd,0); //Haplo suggested we just send the equip-arrows message instead. [Skotlex]
 			//clif_skill_fail(sd,skill_id,USESKILL_FAIL_THIS_WEAPON,0);

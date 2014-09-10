@@ -1446,7 +1446,6 @@ int64 battle_addmastery(struct map_session_data *sd, struct block_list *target, 
 		target->type == BL_MOB && //This bonus doesn't work against players.
 		(battle_check_undead(status->race,status->def_ele) || status->race == RC_DEMON))
 		damage += (skill * (int)(3 + (sd->status.base_level + 1) * 0.05)); //Submitted by orn
-		//damage += (skill * 3);
 
 	if((skill = pc_checkskill(sd,RA_RANGERMAIN)) > 0 && (status->race == RC_BRUTE || status->race == RC_PLANT || status->race == RC_FISH))
 		damage += (skill * 5);
@@ -2581,7 +2580,7 @@ static struct Damage battle_calc_element_damage(struct Damage wd, struct block_l
  *	Initial refactoring by Baalberith
  *	Refined and optimized by helvetica
  */
-static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv)
+static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv)
 {
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 	struct status_change *sc = status_get_sc(src);
@@ -2591,7 +2590,7 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 	if(sd && battle_skill_stacks_masteries_vvs(skill_id) && skill_id != MO_INVESTIGATE &&
 		skill_id != MO_EXTREMITYFIST && skill_id != CR_GRANDCROSS)
 	{ //Add mastery damage
-		int skill = 0;
+		uint16 skill;
 
 		wd.damage = battle_addmastery(sd, target, wd.damage, 0);
 #ifdef RENEWAL
@@ -2657,6 +2656,22 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 #ifdef RENEWAL
 			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 3 * skill);
 #endif
+		}
+
+		if((skill = pc_checkskill(sd,TK_RUN)) > 0) {
+			switch(skill_id) {
+				case TK_DOWNKICK:
+				case TK_STORMKICK:
+				case TK_TURNKICK:
+				case TK_COUNTER:
+					if(sd->weapontype1 == W_FIST && sd->weapontype2 == W_FIST) {
+						ATK_ADD(wd.damage, wd.damage2, 10 * skill);
+#ifdef RENEWAL
+						ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 10 * skill);
+#endif
+					}
+					break;
+			}
 		}
 	}
 
@@ -3331,24 +3346,12 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 				skillratio += 80000 / i - 100;
 			break;
 		case TK_DOWNKICK:
-			skillratio += 60 + 20 * skill_lv;
-			if(sd && sd->weapontype1 == W_FIST && sd->weapontype2 == W_FIST)
-				skillratio += 10 * pc_checkskill(sd,TK_RUN); //Running bonus
-			break;
 		case TK_STORMKICK:
 			skillratio += 60 + 20 * skill_lv;
-			if(sd && sd->weapontype1 == W_FIST && sd->weapontype2 == W_FIST)
-				skillratio += 10 * pc_checkskill(sd,TK_RUN);
 			break;
 		case TK_TURNKICK:
-			skillratio += 90 + 30 * skill_lv;
-			if(sd && sd->weapontype1 == W_FIST && sd->weapontype2 == W_FIST)
-				skillratio += 10 * pc_checkskill(sd,TK_RUN);
-			break;
 		case TK_COUNTER:
 			skillratio += 90 + 30 * skill_lv;
-			if(sd && sd->weapontype1 == W_FIST && sd->weapontype2 == W_FIST)
-				skillratio += 10 * pc_checkskill(sd,TK_RUN);
 			break;
 		case TK_JUMPKICK:
 			skillratio += -70 + 10 * skill_lv;
@@ -3366,8 +3369,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 			break;
 		case GS_BULLSEYE:
 			//Only works well against brute/demihumans non bosses.
-			if((tstatus->race == RC_BRUTE || tstatus->race == RC_DEMIHUMAN)
-				&& !(tstatus->mode&MD_BOSS))
+			if((tstatus->race == RC_BRUTE || tstatus->race == RC_DEMIHUMAN) && !(tstatus->mode&MD_BOSS))
 				skillratio += 400;
 			break;
 		case GS_TRACKING:
@@ -3644,7 +3646,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 		case LG_SHIELDSPELL:
 			if(sd && skill_lv == 1) {
 				//[(Caster's Base Level x 4) + (Shield DEF x 10) + (Caster's VIT x 2)] %
-				int index = sd->equip_index[EQI_HAND_L];
+				short index = sd->equip_index[EQI_HAND_L];
 
 				skillratio += -100 + status_get_lv(src) * 4 + status_get_vit(src) * 2;
 				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR)
@@ -3960,7 +3962,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 			break;
 		case RL_SLUGSHOT: {
 				uint16 w = 50;
-				uint16 idx = 0;
+				short idx = -1;
 
 				if(sd && (idx = sd->equip_index[EQI_AMMO]) >= 0 && sd->inventory_data[idx])
 					w = sd->inventory_data[idx]->weight / 10;
@@ -4964,13 +4966,13 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 	return wd;
 }
 
-/*
+/**
  * Check if we should reflect the damage and calculate it if so
  * @param attack_type : BL_WEAPON, BL_MAGIC or BL_MISC
  * @param wd : weapon damage
  * @param src : bl who did the attack
  * @param target : target of the attack
- * @parem skill_id : id of casted skill, 0 = basic atk
+ * @param skill_id : id of casted skill, 0 = basic atk
  * @param skill_lv : lvl of skill casted
  */
 void battle_do_reflect(int attack_type, struct Damage *wd, struct block_list* src, struct block_list* target, uint16 skill_id, uint16 skill_lv)
@@ -5210,7 +5212,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		case TK_STORMKICK:
 		case TK_TURNKICK:
 		case TK_COUNTER:
-		case TK_JUMPKICK:				
 			if(sd && pc_checkskill(sd,TK_RUN)) {
 				uint8 i;
 				uint16 skill = pc_checkskill(sd,TK_RUN);
@@ -6205,6 +6206,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 #endif
 
 	//Skill reflect gets calculated after all attack modifier
+	//NOTE: Magic skill has own handler at skill_attack
 	//battle_do_reflect(BF_MAGIC, &ad, src, target, skill_id, skill_lv); //WIP [lighta]
 
 	return ad;
@@ -6779,9 +6781,11 @@ void battle_drain(TBL_PC *sd, struct block_list *tbl, int64 rdamage, int64 ldama
 	int64 *damage;
 	int thp = 0, tsp = 0, rhp = 0, rsp = 0, hp = 0, sp = 0, i;
 
+	if (!CHK_RACE(race) && !CHK_CLASS(class_))
+		return;
+
 	for (i = 0; i < 4; i++) {
-		//First two iterations: Right hand
-		if (i < 2) {
+		if (i < 2) { //First two iterations: Right hand
 			wd = &sd->right_weapon;
 			damage = &rdamage;
 		} else {
@@ -6944,7 +6948,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	if (sd) {
 		sd->state.arrow_atk = (sd->status.weapon == W_BOW || (sd->status.weapon >= W_REVOLVER && sd->status.weapon <= W_GRENADE));
 		if (sd->state.arrow_atk) {
-			int index = sd->equip_index[EQI_AMMO];
+			short index = sd->equip_index[EQI_AMMO];
 
 			if (index < 0) {
 				clif_arrow_fail(sd,0);

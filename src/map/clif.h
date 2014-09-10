@@ -702,7 +702,7 @@ void clif_messagecolor(struct block_list* bl, unsigned long color, const char* m
 void clif_specialeffect_value(struct block_list* bl, int effect_id, int num, send_target target);
 
 void clif_GM_kickack(struct map_session_data *sd, int result);
-void clif_GM_kick(struct map_session_data *sd,struct map_session_data *tsd);
+void clif_GM_kick(struct map_session_data *sd, struct map_session_data *tsd);
 void clif_manner_message(struct map_session_data* sd, uint32 type);
 void clif_GM_silence(struct map_session_data* sd, struct map_session_data* tsd, uint8 type);
 

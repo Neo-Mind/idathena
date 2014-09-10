@@ -2132,7 +2132,7 @@ ACMD_FUNC(refine)
 
 	count = 0;
 	for (j = 0; j < EQI_MAX; j++) {
-		int i;
+		short i;
 
 		if ((i = sd->equip_index[j]) < 0)
 			continue;
@@ -5655,7 +5655,7 @@ ACMD_FUNC(autotrade)
 		if( Sql_Query(mmysql_handle, "UPDATE `%s` SET `autotrade` = 1 WHERE `id` = %d;", vendings_db, sd->vender_id) != SQL_SUCCESS )
 			Sql_ShowDebug(mmysql_handle);
 	} else if( sd->state.buyingstore ) {
-		if( Sql_Query(mmysql_handle, "UPDATE `%s` SET `autotrade` = 1 WHERE `id` = %d;", buyingstore_db, sd->buyer_id) != SQL_SUCCESS )
+		if( Sql_Query(mmysql_handle, "UPDATE `%s` SET `autotrade` = 1 WHERE `id` = %d;", buyingstores_db, sd->buyer_id) != SQL_SUCCESS )
 			Sql_ShowDebug(mmysql_handle);
 	}
 
@@ -9395,7 +9395,7 @@ ACMD_FUNC(cloneequip) {
 		int8 i;
 
 		for (i = 0; i < EQI_MAX; i++) {
-			int8 idx;
+			short idx;
 			char flag = 0;
 			struct item tmp_item;
 
@@ -9899,16 +9899,16 @@ static void atcommand_get_suggestions(struct map_session_data* sd, const char *n
 		// Merge full match and prefix match results
 		if (prefix_count < MAX_SUGGESTIONS) {
 			memmove(&suggestions[prefix_count], full_match, sizeof(char*) * (MAX_SUGGESTIONS-prefix_count));
-			prefix_count = min(prefix_count+full_count, MAX_SUGGESTIONS);
+			prefix_count = min(prefix_count + full_count, MAX_SUGGESTIONS);
 		}
 
 		// Build the suggestion string
 		strcpy(buffer, msg_txt(205));
-		strcat(buffer,"\n");
+		strcat(buffer, "\n");
 		
 		for(i=0; i < prefix_count; ++i) {
-			strcat(buffer,suggestions[i]);
-			strcat(buffer," ");
+			strcat(buffer, suggestions[i]);
+			strcat(buffer, " ");
 		}
 
 		clif_displaymessage(sd->fd, buffer);

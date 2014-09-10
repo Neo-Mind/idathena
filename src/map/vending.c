@@ -54,14 +54,6 @@ static uint16 autotrader_count, autotrader_loaded_count; //Autotrader count
 static void do_final_vending_autotrade(void);
 
 /**
- * Lookup to get the vending_db outside module
- * @return the vending_db
- */
-DBMap* vending_getdb() {
-	return vending_db;
-}
-
-/**
  * Create an unique vending shop id.
  * @return the next vending_id
  */
@@ -83,7 +75,7 @@ void vending_closevending(struct map_session_data* sd)
 			Sql_ShowDebug(mmysql_handle);
 
 		sd->state.vending = 0;
-
+		sd->vender_id = 0;
 		clif_closevendingboard(&sd->bl, 0);
 		idb_remove(vending_db, sd->status.char_id);
 	}
@@ -301,7 +293,7 @@ char vending_openvending(struct map_session_data* sd, const char* message, const
 	int vending_skill_lvl;
 	char message_sql[MESSAGE_SIZE * 2];
 
-	nullpo_ret(sd);
+	nullpo_retr(1, sd);
 
 	if( pc_isdead(sd) || !sd->state.prevend || pc_istrading(sd) )
 		return 1; //Can't open vendings lying dead || didn't use via the skill (wpe/hack) || can't have 2 shops at once
@@ -391,6 +383,8 @@ char vending_openvending(struct map_session_data* sd, const char* message, const
 bool vending_search(struct map_session_data* sd, unsigned short nameid) {
 	int i;
 
+	nullpo_retr(false, sd);
+
 	if( !sd->state.vending ) //Not vending
 		return false;
 
@@ -411,6 +405,8 @@ bool vending_searchall(struct map_session_data* sd, const struct s_search_store_
 	int i, c, slot;
 	unsigned int idx, cidx;
 	struct item* it;
+
+	nullpo_retr(false, sd);
 
 	if( !sd->state.vending ) //Not vending
 		return true;
@@ -457,8 +453,10 @@ bool vending_searchall(struct map_session_data* sd, const struct s_search_store_
  * @param sd Player as autotrader
  */
 void vending_reopen(struct map_session_data* sd) {
+	nullpo_retv(sd);
+
 	//Ready to open vending for this char
-	if( sd && autotrader_count > 0 && autotraders ) {
+	if( autotrader_count > 0 && autotraders ) {
 		uint16 i;
 		uint8 *data, *p, fail = 0;
 		uint16 j, count;
@@ -509,8 +507,11 @@ void vending_reopen(struct map_session_data* sd) {
 			pc_setdir(sd, autotraders[i]->dir, autotraders[i]->head_dir);
 			clif_changed_dir(&sd->bl, AREA_WOS);
 
-			if( autotraders[i]->sit )
+			if( autotraders[i]->sit ) {
+				skill_sit(sd,1);
+				clif_sitting(&sd->bl);
 				pc_setsit(sd);
+			}
 
 			//Immediate save
 			chrif_save(sd, 3);
@@ -641,7 +642,7 @@ void do_init_vending_autotrade(void) {
 				Sql_FreeResult(mmysql_handle);
 			}
 
-			ShowStatus("Done loading '"CL_WHITE"%d"CL_RESET"' autotraders with '"CL_WHITE"%d"CL_RESET"' items.\n", autotrader_count, items);
+			ShowStatus("Done loading '"CL_WHITE"%d"CL_RESET"' vending autotraders with '"CL_WHITE"%d"CL_RESET"' items.\n", autotrader_count, items);
 		}
 	}
 

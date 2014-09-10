@@ -3259,7 +3259,7 @@ void clif_changelook(struct block_list *bl,int type,int val)
 			case LOOK_SHOES:
 #if PACKETVER > 3
 				if(sd) {
-					int n;
+					short n;
 
 					if((n = sd->equip_index[2]) >= 0 && sd->inventory_data[n]) {
 						if(sd->inventory_data[n]->view_id > 0)
@@ -3270,7 +3270,7 @@ void clif_changelook(struct block_list *bl,int type,int val)
 						val = 0;
 				}
 #endif
-				//Shoes? No packet uses this....
+				//Shoes? No packet uses this
 				break;
 			case LOOK_BODY:
 			case LOOK_FLOOR:
@@ -8537,14 +8537,14 @@ void clif_GM_kickack(struct map_session_data *sd, int result)
 }
 
 
-void clif_GM_kick(struct map_session_data *sd,struct map_session_data *tsd)
+void clif_GM_kick(struct map_session_data *sd, struct map_session_data *tsd)
 {
 	int fd = tsd->fd;
 
 	if( fd > 0 )
-		clif_authfail_fd(fd, 15);
-	else { //Close vending/buyingstore
-		if( tsd ) {
+		clif_authfail_fd(fd, 15); //Forced to dc by gm
+	else {
+		if( sd ) { //Only gm should kick autotraders
 			if( tsd->state.vending )
 				vending_closevending(tsd);
 			else if( tsd->state.buyingstore )

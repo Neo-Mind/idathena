@@ -70,7 +70,7 @@ char map_server_db[32] = "ragnarok";
 Sql* mmysql_handle;
 
 int db_use_sqldbs = 0;
-char buyingstore_db[32] = "buyingstores";
+char buyingstores_db[32] = "buyingstores";
 char buyingstore_items_db[32] = "buyingstore_items";
 char item_db_db[32] = "item_db";
 char item_db2_db[32] = "item_db2";
@@ -1761,6 +1761,9 @@ int map_quit(struct map_session_data *sd) {
 
 	if (sd->state.vending)
 		idb_remove(vending_db,sd->status.char_id);
+
+	if (sd->state.buyingstore)
+		idb_remove(buyingstore_db,sd->status.char_id);
 
 	pc_damage_log_clear(sd,0);
 	party_booking_delete(sd); //Party Booking [Spiria]
@@ -3636,8 +3639,8 @@ int inter_config_read(char *cfgName)
 		if( sscanf(line, "%1023[^:]: %1023[^\r\n]", w1, w2) < 2 )
 			continue;
 
-		if( strcmpi(w1, "buyingstore_db") == 0 )
-			strcpy(buyingstore_db, w2);
+		if( strcmpi(w1, "buyingstores_db") == 0 )
+			strcpy(buyingstores_db, w2);
 		else if( strcmpi(w1, "buyingstore_items_db") == 0 )
 			strcpy(buyingstore_items_db, w2);
 		else if( strcmpi(w1, "item_db_db") == 0 )
@@ -3662,7 +3665,7 @@ int inter_config_read(char *cfgName)
 			strcpy(item_cash_db_db, w2);
 		else if( strcmpi(w1, "item_cash_db2_db") == 0 )
 			strcpy(item_cash_db2_db, w2);
-		else if( strcmpi(w1, "vending_db") == 0 )
+		else if( strcmpi(w1, "vendings_db") == 0 )
 			strcpy(vendings_db, w2);
 		else if( strcmpi(w1, "vending_items_db") == 0 )
 			strcpy(vending_items_db, w2);
@@ -3916,6 +3919,7 @@ void do_final(void)
 	do_final_cashshop();
 	do_final_channel(); // Should be called after final guild
 	do_final_vending();
+	do_final_buyingstore();
 	do_final_maps();
 
 	map_db->destroy(map_db, map_db_final);
@@ -4122,6 +4126,7 @@ int do_init(int argc, char *argv[])
 	do_init_battleground();
 	do_init_duel();
 	do_init_vending();
+	do_init_buyingstore();
 
 	npc_event_do_oninit(false);	// Init npcs (OnInit)
 

@@ -16,7 +16,6 @@ struct s_vending {
 };
 
 DBMap* vending_db; //Db holder the vender : charid -> map_session_data
-DBMap* vending_getdb();
 
 void vending_reopen(struct map_session_data* sd);
 void vending_closevending(struct map_session_data* sd);

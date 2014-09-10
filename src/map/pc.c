@@ -859,7 +859,7 @@ bool pc_isequipped(struct map_session_data *sd, unsigned short nameid)
 	uint8 i;
 
 	for( i = 0; i < EQI_MAX; i++ ) {
-		int8 index = sd->equip_index[i];
+		short index = sd->equip_index[i];
 		uint8 j;
 
 		if( index < 0 )
@@ -4475,7 +4475,6 @@ bool pc_isUseitem(struct map_session_data *sd, int n)
 
 	if( (item->item_usage.flag&INR_SITTING) && (pc_issit(sd) == 1) && (pc_get_group_level(sd) < item->item_usage.override) ) {
 		clif_msgtable(sd->fd,ITEM_NOUSE_SITTING);
-		//clif_colormes(sd,color_table[COLOR_WHITE],msg_txt(1477));
 		return false; // You cannot use this item while sitting.
 	}
 
@@ -5116,7 +5115,10 @@ char pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int 
 		return 1;
 	}
 
-	if( battle_config.revive_onwarp && pc_isdead(sd) ) { //Revive dead people before warping them
+	if( sd->state.autotrade && (sd->vender_id || sd->buyer_id) ) // Player with autotrade just causes clif glitch! @FIXME
+		return 1;
+
+	if( battle_config.revive_onwarp && pc_isdead(sd) ) { // Revive dead people before warping them
 		pc_setstand(sd);
 		pc_setrestartvalue(sd,1);
 	}
@@ -5468,7 +5470,7 @@ bool pc_checkequip2(struct map_session_data *sd, unsigned short nameid, int min,
 
 	for(i = min; i < max; i++) {
 		if(equip_pos[i]) {
-			int idx = sd->equip_index[i];
+			short idx = sd->equip_index[i];
 
 			if(sd->status.inventory[idx].nameid == nameid)
 				return 1;
@@ -6118,7 +6120,7 @@ void pc_baselevelchanged(struct map_session_data *sd) {
 
 	for( i = 0; i < EQI_MAX; i++ ) {
 		if( sd->equip_index[i] >= 0 ) {
-			if( sd->inventory_data[ sd->equip_index[i] ]->elvmax && sd->status.base_level > (unsigned int)sd->inventory_data[ sd->equip_index[i] ]->elvmax )
+			if( sd->inventory_data[sd->equip_index[i]]->elvmax && sd->status.base_level > (unsigned int)sd->inventory_data[sd->equip_index[i]]->elvmax )
 				pc_unequipitem(sd, sd->equip_index[i], 3);
 		}
 	}
@@ -8051,6 +8053,8 @@ bool pc_jobchange(struct map_session_data *sd,int job, char upper)
 		elemental_delete(sd->ed, 0);
 	if (sd->state.vending)
 		vending_closevending(sd);
+	if (sd->state.buyingstore)
+		buyingstore_close(sd);
 
 	map_foreachinmap(jobchange_killclone, sd->bl.m, BL_MOB, sd->bl.id);
 
@@ -8876,9 +8880,8 @@ static int pc_checkcombo(struct map_session_data *sd, struct item_data *data) {
 			bool found = false;
 
 			for( k = 0; k < EQI_MAX; k++ ) {
-				int8 index;
+				short index = sd->equip_index[k];
 
-				index = sd->equip_index[k];
 				if( index < 0 )
 					continue;
 				if( pc_is_same_equip_index((enum equip_index)k,sd->equip_index,index) )
@@ -9018,9 +9021,9 @@ int pc_load_combo(struct map_session_data *sd) {
 
 	for( i = 0; i < EQI_MAX; i++ ) {
 		struct item_data *id = NULL;
-		int idx = sd->equip_index[i];
+		short idx = sd->equip_index[i];
 
-		if( sd->equip_index[i] < 0 || !(id = sd->inventory_data[idx] ) )
+		if( idx < 0 || !(id = sd->inventory_data[idx]) )
 			continue;
 		if( id->combos_count )
 			ret += pc_checkcombo(sd,id);
@@ -9098,11 +9101,12 @@ bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
 	}
 	//Update skill-block range database when weapon range changes. [Skotlex]
 	if( (pos&EQP_HAND_R) && battle_config.use_weapon_skill_range&BL_PC ) {
-		i = sd->equip_index[EQI_HAND_R];
-		if( i < 0 || !sd->inventory_data[i] ) //No data, or no weapon equipped
+		short idx = sd->equip_index[EQI_HAND_R];
+
+		if( idx < 0 || !sd->inventory_data[idx] ) //No data, or no weapon equipped
 			flag = 1;
 		else
-			flag = id->range != sd->inventory_data[i]->range;
+			flag = (id->range != sd->inventory_data[idx]->range);
 	}
 	for( i = 0; i < EQI_MAX; i++ ) {
 		if( pos&equip_pos[i] ) {
@@ -9867,20 +9871,21 @@ void pc_setstand(struct map_session_data *sd) {
  * Mechanic (MADO GEAR)
  */
 void pc_overheat(struct map_session_data *sd, int val) {
-	int heat = val, skill,
-		limit[] = { 10, 20, 28, 46, 66 };
+	int heat = val,
+		limit[] = { 10,20,28,46,66 };
+	uint16 skill_lv;
 
 	if( !pc_ismadogear(sd) || sd->sc.data[SC_OVERHEAT] )
 		return; // Already burning
 
-	skill = cap_value(pc_checkskill(sd,NC_MAINFRAME),0,4);
+	skill_lv = min(pc_checkskill(sd,NC_MAINFRAME),4);
 	if( sd->sc.data[SC_OVERHEAT_LIMITPOINT] ) {
 		heat += sd->sc.data[SC_OVERHEAT_LIMITPOINT]->val1;
 		status_change_end(&sd->bl,SC_OVERHEAT_LIMITPOINT,INVALID_TIMER);
 	}
 
 	heat = max(0,heat); // Avoid negative HEAT
-	if( heat >= limit[skill] )
+	if( heat >= limit[skill_lv] )
 		sc_start(&sd->bl,&sd->bl,SC_OVERHEAT,100,0,1000);
 	else
 		sc_start(&sd->bl,&sd->bl,SC_OVERHEAT_LIMITPOINT,100,heat,30000);
@@ -11109,7 +11114,7 @@ short pc_get_itemgroup_bonus_group(struct map_session_data* sd, uint16 group_id)
  * @param index Known index item in inventory from sd->equip_index[] to compare with specified EQI in *equip_index
  * @return True if item in same inventory index, False if doesn't
  */
-bool pc_is_same_equip_index(enum equip_index eqi, int *equip_index, int8 index) {
+bool pc_is_same_equip_index(enum equip_index eqi, short *equip_index, short index) {
 	if (index < 0 || index >= MAX_INVENTORY)
 		return true;
 

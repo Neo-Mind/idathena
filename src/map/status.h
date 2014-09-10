@@ -1535,11 +1535,11 @@ enum e_joint_break
 	BREAK_KNEE	= 0x04, // MoveSpeed reduced by 30%, ASPD reduced by 10%
 	BREAK_SHOULDER	= 0x08, // DEF reduced by 50%
 	BREAK_WAIST	= 0x10, // DEF reduced by 25%, ATK reduced by 25%
-	BREAK_NECK	= 0x20, // current attack does 2x damage, inflicts 'bleeding' for 30 seconds
+	BREAK_NECK	= 0x20, // Current attack does 2x damage, inflicts 'bleeding' for 30 seconds
 	BREAK_FLAGS	= BREAK_ANKLE | BREAK_WRIST | BREAK_KNEE | BREAK_SHOULDER | BREAK_WAIST | BREAK_NECK,
 };
 
-extern int current_equip_item_index;
+extern short current_equip_item_index;
 extern int current_equip_card_id;
 
 //Mode definitions to clear up code reading. [Skotlex]

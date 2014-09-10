@@ -22,6 +22,8 @@ struct s_buyingstore
 	unsigned char slots;
 };
 
+DBMap *buyingstore_db; //Db holder the buyer : charid -> map_session_data
+
 char buyingstore_setup(struct map_session_data* sd, unsigned char slots);
 char buyingstore_create(struct map_session_data* sd, int zenylimit, unsigned char result, const char* storename, const uint8* itemlist, unsigned int count);
 void buyingstore_close(struct map_session_data* sd);
@@ -30,7 +32,10 @@ void buyingstore_trade(struct map_session_data* sd, int account_id, unsigned int
 bool buyingstore_search(struct map_session_data* sd, unsigned short nameid);
 bool buyingstore_searchall(struct map_session_data* sd, const struct s_search_store_search* s);
 
-void do_init_buyingstore_autotrade( void );
-void buyingstore_reopen( struct map_session_data* sd );
+void do_final_buyingstore(void);
+void do_init_buyingstore(void);
+
+void do_init_buyingstore_autotrade(void);
+void buyingstore_reopen(struct map_session_data* sd);
 
 #endif  // _BUYINGSTORE_H_

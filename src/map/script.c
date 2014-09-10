@@ -307,7 +307,7 @@ const char* parse_syntax_close_sub(const char* p,int* flag);
 const char* parse_syntax(const char* p);
 static int parse_syntax_for_flag = 0;
 
-extern int current_equip_item_index; //for New CARDS Scripts. It contains Inventory Index of the EQUIP_SCRIPT caller item. [Lupus]
+extern short current_equip_item_index; //For New CARDS Scripts. It contains Inventory Index of the EQUIP_SCRIPT caller item. [Lupus]
 int potion_flag = 0; //For use on Alchemist improved potions/Potion Pitcher. [Skotlex]
 int potion_hp = 0, potion_per_hp = 0, potion_sp = 0, potion_per_sp = 0;
 int potion_target = 0;
@@ -13675,7 +13675,7 @@ BUILDIN_FUNC(isday)
 BUILDIN_FUNC(isequippedcnt)
 {
 	TBL_PC *sd;
-	int i, j, k, id = 1;
+	int i, id = 1;
 	int ret = 0;
 
 	sd = script_rid2sd(st);
@@ -13683,12 +13683,14 @@ BUILDIN_FUNC(isequippedcnt)
 		return 1;
 
 	for (i = 0; id != 0; i++) {
+		short j;
+
 		FETCH(i + 2, id) else id = 0;
 		if (id <= 0)
 			continue;
 
 		for (j = 0; j < EQI_MAX; j++) {
-			int index = sd->equip_index[j];
+			short index = sd->equip_index[j];
 
 			if (index < 0)
 				continue;
@@ -13703,6 +13705,8 @@ BUILDIN_FUNC(isequippedcnt)
 				if (sd->inventory_data[index]->nameid == id)
 					ret += sd->status.inventory[index].amount;
 			} else { //Count cards.
+				short k;
+
 				if (itemdb_isspecial(sd->status.inventory[index].card[0]))
 					continue; //No cards
 				for (k = 0; k < sd->inventory_data[index]->slot; k++) {
@@ -13726,8 +13730,7 @@ BUILDIN_FUNC(isequippedcnt)
 BUILDIN_FUNC(isequipped)
 {
 	TBL_PC *sd;
-	int i, j, k, id = 1;
-	int index, flag;
+	int i, id = 1;
 	int ret = -1;
 	//Original hash to reverse it when full check fails.
 	unsigned int setitem_hash = 0, setitem_hash2 = 0;
@@ -13741,12 +13744,16 @@ BUILDIN_FUNC(isequipped)
 	setitem_hash2 = sd->bonus.setitem_hash2;
 
 	for (i = 0; id != 0; i++) {
+		int flag = 0;
+		short j;
+
 		FETCH(i + 2, id) else id = 0;
 		if (id <= 0)
 			continue;
 		flag = 0;
 		for (j = 0; j < EQI_MAX; j++) {
-			index = sd->equip_index[j];
+			short index = sd->equip_index[j];
+
 			if (index < 0)
 				continue;
 
@@ -13762,6 +13769,8 @@ BUILDIN_FUNC(isequipped)
 				flag = 1;
 				break;
 			} else { //Cards
+				short k;
+
 				if (sd->inventory_data[index]->slot == 0 ||
 					itemdb_isspecial(sd->status.inventory[index].card[0]))
 					continue;
