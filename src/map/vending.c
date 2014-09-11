@@ -378,7 +378,7 @@ char vending_openvending(struct map_session_data* sd, const char* message, const
  * Checks if an item is being sold in given player's vending.
  * @param sd : vender session (player)
  * @param nameid : item id
- * @return 0 : not selling it, 1 : yes
+ * @return false : not selling it, true : yes
  */
 bool vending_search(struct map_session_data* sd, unsigned short nameid) {
 	int i;

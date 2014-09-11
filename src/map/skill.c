@@ -1590,8 +1590,6 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 		case RL_B_TRAP:
 			if( sd && sd->skill_id_old == RL_FLICKER && tsc && tsc->data[SC_B_TRAP] )
 				status_change_end(bl,SC_B_TRAP,INVALID_TIMER);
-			else
-				sc_start(src,bl,SC_B_TRAP,100,skill_lv,max(status_get_str(bl) * 150,5000)); //Custom
 			break;
 		case RL_HAMMER_OF_GOD:
 			sc_start(src,bl,SC_STUN,100,skill_lv,skill_get_time2(skill_id,skill_lv));
@@ -3863,14 +3861,14 @@ static int skill_active_reverberation(struct block_list *bl, va_list ap) {
 	return 0;
 }
 
-static int skill_reveal_trap (struct block_list *bl, va_list ap)
+static int skill_reveal_trap(struct block_list *bl, va_list ap)
 {
 	TBL_SKILL *su = (TBL_SKILL*)bl;
 
-	if (su->alive && su->group && skill_get_inf2(su->group->skill_id)&INF2_TRAP) { //Reveal trap.
+	if (su->alive && su->group && (skill_get_inf2(su->group->skill_id)&INF2_TRAP)) { //Reveal trap.
 		//Change look is not good enough, the client ignores it as an actual trap still. [Skotlex]
 		//clif_changetraplook(bl, su->group->unit_id);
-		clif_skill_setunit(su);
+		clif_getareachar_skillunit(&su->bl, su, AREA, 0);
 		return 1;
 	}
 	return 0;
@@ -4317,8 +4315,18 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				if (sd && skill_id == RL_FLICKER) { //Skills that triggered by RL_FLICKER
 					sd->flicker = true;
 					if (tsc) {
-						if (tsc->data[SC_B_TRAP])
+						if (tsc->data[SC_B_TRAP]) {
+							struct unit_data *ud = unit_bl2ud(src);
+							int i;
+
+							if (!ud)
+								break;
+							for (i = 0; i < MAX_SKILLUNITGROUP && ud->skillunit[i]; i++) {
+								if (ud->skillunit[i]->skill_id == RL_B_TRAP)
+									skill_delunit(ud->skillunit[i]->unit);
+							}
 							skill_attack(skill_get_type(RL_B_TRAP),src,src,bl,RL_B_TRAP,pc_checkskill(sd,RL_B_TRAP),tick,sflag);
+						}
 						if (tsc->data[SC_H_MINE])
 							skill_castend_damage_id(src,bl,RL_H_MINE,pc_checkskill(sd,RL_H_MINE),tick,sflag);
 					}
@@ -7798,8 +7806,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 						case UNT_FREEZINGTRAP:
 						case UNT_CLAYMORETRAP:
 						case UNT_TALKIEBOX:
-							if(su->group->unit_id == UNT_BLASTMINE && su->group->val3 == RL_B_TRAP)
-								break;
 							su->group->unit_id = UNT_USED_TRAPS;
 							clif_changetraplook(bl,UNT_USED_TRAPS);
 							su->group->limit = DIFF_TICK(tick + 1500,su->group->tick);
@@ -11718,7 +11724,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case RL_B_TRAP:
 			if( sd )
 				sd->skill_id_old = skill_id;
-			skill_unitsetting(src,HT_BLASTMINE,skill_lv,x,y,2);
+			skill_unitsetting(src,skill_id,skill_lv,x,y,0);
 			flag |= 1;
 			break;
 
@@ -11919,7 +11925,7 @@ static int skill_dance_overlap_sub(struct block_list* bl, va_list ap)
 		return 0;
 	if (!target->group || !(target->group->state.song_dance&0x1))
 		return 0;
-	if (!(target->val2 & src->val2 & ~UF_ENSEMBLE)) //They don't match (song + dance) is valid.
+	if (!(target->val2&src->val2&~UF_ENSEMBLE)) //They don't match (song + dance) is valid.
 		return 0;
 
 	if (flag) //Set dissonance
@@ -11927,7 +11933,7 @@ static int skill_dance_overlap_sub(struct block_list* bl, va_list ap)
 	else //Remove dissonance
 		target->val2 &= ~UF_ENSEMBLE;
 
-	clif_skill_setunit(target); //Update look of affected cell.
+	clif_getareachar_skillunit(&target->bl, target, AREA, 0); //Update look of affected cell.
 
 	return 1;
 }
@@ -12143,12 +12149,6 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		case HT_FREEZINGTRAP:
 		case MA_FREEZINGTRAP:
 		case HT_BLASTMINE:
-			if( skill_id == HT_BLASTMINE && (flag&2) ) {
-				val3 = RL_B_TRAP;
-				limit = skill_get_time(val3,skill_lv);
-				range = skill_get_unit_range(val3,skill_lv);
-				interval = skill_get_unit_interval(val3);
-			}
 		case RA_ELECTRICSHOCKER:
 		case RA_CLUSTERBOMB:
 		case RA_MAGENTATRAP:
@@ -12157,10 +12157,9 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 		case RA_VERDURETRAP:
 		case RA_FIRINGTRAP:
 		case RA_ICEBOUNDTRAP:
-		//case RL_B_TRAP:
+		case RL_B_TRAP:
 			{
-				struct skill_condition req = skill_get_requirement(sd,
-					(skill_id == HT_BLASTMINE && (flag&2)) ? val3 : skill_id,skill_lv);
+				struct skill_condition req = skill_get_requirement(sd,skill_id,skill_lv);
 
 				ARR_FIND(0,MAX_SKILL_ITEM_REQUIRE,i,req.itemid[i] && (req.itemid[i] == ITEMID_TRAP || req.itemid[i] == ITEMID_TRAP_ALLOY));
 				if( req.itemid[i] )
@@ -12474,7 +12473,6 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, uint16 skill
 			case RA_VERDURETRAP:
 			case RA_FIRINGTRAP:
 			case RA_ICEBOUNDTRAP:
-			//case RL_B_TRAP:
 				val1 = 3500;
 				break;
 			case GS_DESPERADO:
@@ -12864,8 +12862,6 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			case UNT_ELECTRICWALK:
 			case UNT_FIREWALK:
 			case UNT_VACUUM_EXTREME:
-				if(sg->unit_id == UNT_BLASTMINE && sg->val3 == RL_B_TRAP)
-					break;
 				return 0;
 		}
 	}
@@ -13116,7 +13112,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			if (sg->unit_id == UNT_FIRINGTRAP || sg->unit_id == UNT_ICEBOUNDTRAP || sg->unit_id == UNT_CLAYMORETRAP)
 				map_foreachinrange(skill_trap_splash,&unit->bl,skill_get_splash(skill_id,skill_lv),sg->bl_flag|BL_SKILL|~BCT_SELF,&unit->bl,tick);
 			else
-				map_foreachinrange(skill_trap_splash,&unit->bl,skill_get_splash((sg->unit_id == UNT_BLASTMINE && sg->val3 == RL_B_TRAP) ? sg->val3 : skill_id,skill_lv),sg->bl_flag,&unit->bl,tick);
+				map_foreachinrange(skill_trap_splash,&unit->bl,skill_get_splash(skill_id,skill_lv),sg->bl_flag,&unit->bl,tick);
 			if (sg->unit_id != UNT_FIREPILLAR_ACTIVE)
 				clif_changetraplook(&unit->bl,(sg->unit_id == UNT_LANDMINE ? UNT_FIREPILLAR_ACTIVE : UNT_USED_TRAPS));
 			sg->unit_id = UNT_USED_TRAPS; //Changed ID so it does not invoke a for each in area again.
@@ -13429,11 +13425,8 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			switch (sg->val2) {
 				case 1:
 				default:
-					if (skill_id != RL_FIRE_RAIN) {
-						sc_start4(ss,bl,SC_BURNING,4 + 4 * skill_lv,skill_lv,1000,ss->id,0,skill_get_time2(skill_id,skill_lv));
-						skill_attack(skill_get_type(skill_id),ss,&unit->bl,bl,skill_id,skill_lv + 10 * sg->val2,tick,0);
-					} else
-						skill_attack(skill_get_type(skill_id),ss,&unit->bl,bl,skill_id,skill_lv,tick,0);
+					sc_start4(ss,bl,SC_BURNING,4 + 4 * skill_lv,skill_lv,1000,ss->id,0,skill_get_time2(skill_id,skill_lv));
+					skill_attack(skill_get_type(skill_id),ss,&unit->bl,bl,skill_id,skill_lv + 10 * sg->val2,tick,0);
 					break;
 			}
 			break;
@@ -13603,20 +13596,13 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			status_change_start(ss,bl,SC_BLIND,(10 + 10 * skill_lv) * 100,skill_lv,skill_id,0,0,skill_get_time2(skill_id,skill_lv),2|8);
 			break;
 
-		//Currently use UNT_BLASTMINE as replacement
-		//Until the information about RL_B_TRAP unit id is provided
-		//case UNT_B_TRAP:
-			//sc_start(ss,bl,SC_B_TRAP,100,skill_lv,max(status_get_str(bl) * 150,5000)); //Custom
-			//clif_changetraplook(&unit->bl,UNT_USED_TRAPS);
-			//sg->unit_id = UNT_USED_TRAPS;
-			//sg->limit = DIFF_TICK(tick,sg->tick) + 1500;
-			//break;
+		case UNT_B_TRAP:
+			sc_start2(ss,bl,SC_B_TRAP,100,skill_lv,sg->src_id,max(status_get_str(bl) * 150,5000)); //Custom
+			break;
 
-		//Currently use UNT_DEMONIC_FIRE as replacement
-		//Until the information about RL_FIRE_RAIN unit id is provided
-		//case UNT_FIRE_RAIN:
-			//skill_attack(skill_get_type(skill_id),ss,&unit->bl,bl,skill_id,skill_lv,tick,SD_LEVEL|SD_ANIMATION|SD_SPLASH);
-			//break;
+		case UNT_FIRE_RAIN:
+			skill_attack(skill_get_type(skill_id),ss,&unit->bl,bl,skill_id,skill_lv,tick,SD_LEVEL|SD_ANIMATION|SD_SPLASH);
+			break;
 	}
 
 	if (bl->type == BL_MOB && ss != bl)
@@ -13883,7 +13869,6 @@ int skill_unit_ondamaged(struct skill_unit *unit, struct block_list *bl, int64 d
 		case UNT_WALLOFTHORN:
 		case UNT_REVERBERATION:
 		case UNT_POEMOFNETHERWORLD:
-		//case UNT_B_TRAP:
 			unit->val1 -= (int)cap_value(damage,INT_MIN,INT_MAX);
 			break;
 		default:
@@ -16585,8 +16570,6 @@ int skill_detonator(struct block_list *bl, va_list ap)
 	unit_id = unit->group->unit_id;
 	switch( unit_id ) { //List of Hunter and Ranger Traps that can be detonate.
 		case UNT_BLASTMINE:
-			if( unit->group->val3 == RL_B_TRAP )
-				break;
 		case UNT_SANDMAN:
 		case UNT_CLAYMORETRAP:
 		case UNT_TALKIEBOX:
@@ -16720,8 +16703,6 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 					if (unit->group->skill_id != GN_CRAZYWEED_ATK)
 						break;
 				case UNT_BLASTMINE:
-					if (unit->group->unit_id == UNT_BLASTMINE && unit->group->val3 == RL_B_TRAP)
-						break;
 				case UNT_LANDPROTECTOR:	case UNT_ICEWALL:	case UNT_FIREWALL:
 				case UNT_WARMER:	case UNT_CLOUD_KILL:	case UNT_VACUUM_EXTREME:
 				case UNT_SPIDERWEB:	case UNT_FOGWALL:	case UNT_DELUGE:
@@ -16868,8 +16849,6 @@ static int skill_trap_splash(struct block_list *bl, va_list ap)
 					case UNT_FREEZINGTRAP:
 					case UNT_FIRINGTRAP:
 					case UNT_ICEBOUNDTRAP:
-						if( su->group->unit_id == UNT_BLASTMINE && su->group->val3 == RL_B_TRAP )
-							return 0;
 						clif_changetraplook(bl, UNT_USED_TRAPS);
 						su->group->limit = DIFF_TICK(gettick(),su->group->tick) + 1500;
 						su->group->unit_id = UNT_USED_TRAPS;
@@ -16877,10 +16856,7 @@ static int skill_trap_splash(struct block_list *bl, va_list ap)
 				}
 			}
 		default:
-			if( sg->unit_id == UNT_BLASTMINE && sg->val3 == RL_B_TRAP )
-				skill_additional_effect(ss,bl,sg->val3,sg->skill_lv,BF_MISC,ATK_DEF,tick);
-			else
-				skill_attack(skill_get_type(sg->skill_id),ss,src,bl,sg->skill_id,sg->skill_lv,tick,0);
+			skill_attack(skill_get_type(sg->skill_id),ss,src,bl,sg->skill_id,sg->skill_lv,tick,0);
 			break;
 	}
 	return 1;
@@ -17080,7 +17056,7 @@ bool skill_check_shadowform(struct block_list *bl, int64 damage, int hit)
 /*==========================================
  *
  *------------------------------------------*/
-struct skill_unit *skill_initunit (struct skill_unit_group *group, int idx, int x, int y, int val1, int val2)
+struct skill_unit *skill_initunit(struct skill_unit_group *group, int idx, int x, int y, int val1, int val2)
 {
 	struct skill_unit *unit;
 	struct status_change *tsc = status_get_sc(map_id2bl(group->src_id));
@@ -17130,7 +17106,7 @@ struct skill_unit *skill_initunit (struct skill_unit_group *group, int idx, int 
 			break;
 	}
 
-	clif_skill_setunit(unit);
+	clif_getareachar_skillunit(&unit->bl,unit,AREA,0);
 
 	return unit;
 }
@@ -17550,21 +17526,6 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 		//Skill unit expired (inlined from skill_unit_onlimit())
 		switch( group->unit_id ) {
 			case UNT_BLASTMINE:
-				if( group->val3 == RL_B_TRAP ) {
-					struct block_list* src = map_id2bl(group->src_id);
-
-					if( unit->val1 > 0 && src && src->type == BL_PC &&
-						(group->item_id == ITEMID_TRAP || group->item_id == ITEMID_TRAP_ALLOY) ) { 
-						struct item item_tmp; //Revert unit back into a trap
-
-						memset(&item_tmp,0,sizeof(item_tmp));
-						item_tmp.nameid = group->item_id;
-						item_tmp.identify = 1;
-						map_addflooritem(&item_tmp,1,bl->m,bl->x,bl->y,0,0,0,4);
-					}
-					skill_delunit(unit);
-					break;
-				}
 #ifdef RENEWAL
 			case UNT_CLAYMORETRAP:
 #endif
@@ -17602,7 +17563,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 			case UNT_VERDURETRAP:
 			case UNT_FIRINGTRAP:
 			case UNT_ICEBOUNDTRAP:
-			//case UNT_B_TRAP:
+			case UNT_B_TRAP:
 				{
 					struct block_list* src = map_id2bl(group->src_id);
 
@@ -17707,7 +17668,6 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 			case UNT_FREEZINGTRAP:
 			case UNT_TALKIEBOX:
 			case UNT_ANKLESNARE:
-			//case UNT_B_TRAP:
 				if( unit->val1 <= 0 ) {
 					if( group->unit_id == UNT_ANKLESNARE && group->val2 > 0 )
 						skill_delunit(unit);
@@ -17999,7 +17959,7 @@ int skill_unit_move_unit_group (struct skill_unit_group *group, int16 m, int16 d
 		if (!(m_flag[i]&0x2)) { //We only moved the cell in 0-1
 			if (group->state.song_dance&0x1) //Check for dissonance effect.
 				skill_dance_overlap(unit1, 1);
-			clif_skill_setunit(unit1);
+			clif_getareachar_skillunit(&unit1->bl,unit1,AREA,0);
 			map_foreachincell(skill_unit_effect,unit1->bl.m,unit1->bl.x,unit1->bl.y,group->bl_flag,&unit1->bl,tick,1);
 		}
 	}
@@ -19058,8 +19018,6 @@ static int skill_destroy_trap( struct block_list *bl, va_list ap ) {
 			case UNT_FLASHER:
 			case UNT_FREEZINGTRAP:
 			case UNT_CLUSTERBOMB:
-				if( sg->unit_id == UNT_BLASTMINE && sg->val3 == RL_B_TRAP )
-					return 0;
 				map_foreachinrange(skill_trap_splash, &su->bl, skill_get_splash(sg->skill_id, sg->skill_lv), sg->bl_flag, &su->bl,tick);
 				break;
 		}

@@ -1784,7 +1784,7 @@ packet_ver: 31
 
 //2012-06-18aRagexeRE
 packet_ver: 32
-0x0983,29
+0x0983,29 //ZC_MSG_STATE_CHANGE3
 0x0861,41,bookingregreq,2:4:6 //Actually 12-05-03
 
 //2012-07-02aRagexeRE (Unstable)
@@ -1846,8 +1846,9 @@ packet_ver: 34
 //Shuffle End
 
 //New Packets
-0x0447,2,booking_playcancel,0
+0x0447,2,booking_playcancel,0 //CZ_BLOCKING_PLAY_CANCEL
 0x084b,19 //fallitem4
+0x08ff,24 //ZC_EFST_SET_ENTER
 0x090f,-1 //notify_newentry7
 0x0914,-1 //notify_moveentry
 0x0915,-1 //notify_standentry
@@ -1855,6 +1856,7 @@ packet_ver: 34
 0x0979,50 //ackworldinfo
 0x097b,16,ZC_PERSONAL_INFOMATION,2:4:8:12:16:17:21:25
 //0x0981,12,ZC_PERSONAL_INFOMATION_CHN,2:4:6:8:12:13:15:17:10
+0x0984,28 //ZC_EFST_SET_ENTER2
 0x0990,31 //additem
 0x0991,-1 //inv itemlist normal
 0x0992,-1 //inv itemlist equip
@@ -1863,11 +1865,11 @@ packet_ver: 34
 0x0995,-1 //store itemlist normal
 0x0996,-1 //store itemlist equip
 0x0997,-1 //ZC_EQUIPWIN_MICROSCOPE_V5
-0x0998,8,equipitem,2:4
+0x0998,8,equipitem,2:4 //CZ_REQ_WEAR_EQUIP_V5
 0x0999,11 //cz_wear_equipv5
 0x099a,9 //take_off_equipv5
 0x099b,8  //maptypeproperty2
-0x099f,24
+0x099f,22
 //New Packets End
 
 //2013-05-15aRagexe (Yommy)
@@ -2202,6 +2204,8 @@ packet_ver: 44
 0x09B7,4,ZC_ACK_OPEN_BANKING,2
 0x09B8,6,bankclose,2
 0x09B9,4,ZC_ACK_CLOSE_BANKING,2
+//2013-07-31cRagexe
+0x09CA,23 //ZC_SKILL_ENTRY5
 
 //2013-08-07Ragexe
 packet_ver: 45

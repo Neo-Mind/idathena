@@ -2300,10 +2300,11 @@ static int map_instancemap_leave(struct block_list *bl, va_list ap)
  *------------------------------------------*/
 static int map_instancemap_clean(struct block_list *bl, va_list ap)
 {
-	nullpo_retr(0, bl);
+	nullpo_retr(0,bl);
+
 	switch(bl->type) {
 		case BL_PC:
-			map_quit((struct map_session_data *) bl);
+			map_quit((struct map_session_data *)bl);
 			break;
 		case BL_NPC:
 			npc_unload((struct npc_data *)bl,true);
@@ -2318,7 +2319,7 @@ static int map_instancemap_clean(struct block_list *bl, va_list ap)
 			map_clearflooritem(bl);
 			break;
 		case BL_SKILL:
-			skill_delunit((struct skill_unit *) bl);
+			skill_delunit((struct skill_unit *)bl);
 			break;
 	}
 

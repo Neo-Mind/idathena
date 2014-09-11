@@ -7137,7 +7137,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		TBL_SKILL *su = ((TBL_SKILL*)target);
 
 		if (su->group) {
-			if (su->group->skill_id == HT_BLASTMINE && su->group->val3 != RL_B_TRAP)
+			if (su->group->skill_id == HT_BLASTMINE)
 				skill_blown(src,target,3,-1,0);
 			if (su->group->skill_id == GN_WALLOFTHORN)
 				if (--su->val2 <= 0)

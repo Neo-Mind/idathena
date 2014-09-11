@@ -7394,9 +7394,11 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	}
 
 	//Remove autotrade to prevent autotrading from save point
-	if( sd->state.autotrade && (map[sd->bl.m].flag.pvp || map[sd->bl.m].flag.gvg) ) {
+	if( sd->state.autotrade && map_flag_vs(sd->bl.m) ) {
 		if( sd->state.vending )
 			vending_closevending(sd);
+		if( sd->state.buyingstore )
+			buyingstore_close(sd);
 		map_quit(sd);
 	}
 

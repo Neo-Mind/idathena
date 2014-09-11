@@ -3193,7 +3193,7 @@ ACMD_FUNC(lostskill)
 		clif_displaymessage(fd, msg_txt(197)); // This skill number doesn't exist or isn't a quest skill.
 		return -1;
 	}
-	if (pc_checkskill(sd, skill_id) == 0) {
+	if (!pc_checkskill(sd, skill_id)) {
 		clif_displaymessage(fd, msg_txt(201)); // You don't have this quest skill.
 		return -1;
 	}
