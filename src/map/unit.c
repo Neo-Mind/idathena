@@ -220,6 +220,7 @@ int unit_check_start_teleport_timer(struct block_list *sbl) {
 		case BL_PET : max_dist = AREA_SIZE; break;
 		case BL_MER : max_dist = MAX_MER_DISTANCE; break;
 	}
+
 	//If there is a master and it's a valid type
 	if(msd && max_dist) {
 		int *msd_tid = unit_get_masterteleport_timer(sbl);
@@ -326,19 +327,6 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 					return 0;
 			} else
 				sd->areanpc_id = 0;
-
-			/* WIP disable [Lighta], currently unsupported.
-			 * This was meant to start the timer if the player move but not his slave.
-			if(sd->md)
-				unit_check_start_teleport_timer(&sd->md->bl);
-			if(sd->ed)
-				unit_check_start_teleport_timer(&sd->ed->bl);
-			if(sd->hd)
-				unit_check_start_teleport_timer(&sd->hd->bl);
-			if(sd->pd)
-				unit_check_start_teleport_timer(&sd->pd->bl);
-			*/
-
 			pc_cell_basilica(sd);
 			break;
 		case BL_MOB:
@@ -362,12 +350,6 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 				//Resend walk packet for proper Self Destruction display.
 				clif_move(ud);
 			}
-			break;
-		case BL_HOM: 
-		case BL_ELEM:
-		case BL_PET:
-		case BL_MER:
-			unit_check_start_teleport_timer(bl);
 			break;
 	}
 
@@ -479,13 +461,17 @@ int unit_walktoxy(struct block_list *bl, short x, short y, unsigned char flag)
 	struct unit_data* ud = NULL;
 	struct status_change* sc = NULL;
 	struct walkpath_data wpd;
+	TBL_PC *sd = NULL;
 
 	nullpo_ret(bl);
-	
+
 	ud = unit_bl2ud(bl);
-	
-	if( ud == NULL)
+
+	if( ud == NULL )
 		return 0;
+
+	if( bl->type == BL_PC )
+		sd = BL_CAST(BL_PC, bl);
 
 	path_search(&wpd, bl->m, bl->x, bl->y, x, y, flag&1, CELL_CHKNOPASS); // Count walk path cells
 #ifdef OFFICIAL_WALKPATH
@@ -517,7 +503,7 @@ int unit_walktoxy(struct block_list *bl, short x, short y, unsigned char flag)
 	
 	sc = status_get_sc(bl);
 	if( sc ) {
-		if( sc->data[SC_CONFUSION] || sc->data[SC__CHAOS] ) //Randomize the target position
+		if( sc->data[SC_CONFUSION] || sc->data[SC__CHAOS] ) // Randomize the target position
 			map_random_dir(bl, &ud->to_x, &ud->to_y);
 		if( sc->data[SC_COMBO] )
 			status_change_end(bl, SC_COMBO, INVALID_TIMER);
@@ -534,6 +520,16 @@ int unit_walktoxy(struct block_list *bl, short x, short y, unsigned char flag)
 		delete_timer(ud->attacktimer, unit_attack_timer);
 		ud->attacktimer = INVALID_TIMER;
 	}
+
+	// Start timer to recall summon
+	if( sd && sd->md )
+		unit_check_start_teleport_timer(&sd->md->bl);
+	if( sd && sd->ed )
+		unit_check_start_teleport_timer(&sd->ed->bl);
+	if( sd && sd->hd )
+		unit_check_start_teleport_timer(&sd->hd->bl);
+	if( sd && sd->pd )
+		unit_check_start_teleport_timer(&sd->pd->bl);
 
 	return unit_walktoxy_sub(bl);
 }
@@ -1549,31 +1545,28 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	//In official this is triggered even if no cast time.
 	clif_skillcasting(src, src->id, target_id, 0, 0, skill_id, skill_get_ele(skill_id, skill_lv), casttime);
 
-	if( casttime >= 0 || combo ) {
-		if( sd && target->type == BL_MOB ) {
-			TBL_MOB *md = ((TBL_MOB*)target);
+	if( sd && target->type == BL_MOB ) {
+		TBL_MOB *md = ((TBL_MOB*)target);
 
-			mobskill_event(md, src, tick, -1); //Cast targetted skill event.
-			if( (tstatus->mode&(MD_CASTSENSOR_IDLE|MD_CASTSENSOR_CHASE)) &&
-				battle_check_target(target, src, BCT_ENEMY) > 0 ) {
-				switch( md->state.skillstate ) {
-					case MSS_RUSH:
-					case MSS_FOLLOW:
-						if( !(tstatus->mode&MD_CASTSENSOR_CHASE) )
-							break;
-						md->target_id = src->id;
-						md->state.aggressive = (tstatus->mode&MD_ANGRY) ? 1 : 0;
-						md->min_chase = md->db->range3;
+		mobskill_event(md, src, tick, -1); //Cast targetted skill event.
+		if( (tstatus->mode&(MD_CASTSENSOR_IDLE|MD_CASTSENSOR_CHASE)) && battle_check_target(target, src, BCT_ENEMY) > 0 ) {
+			switch( md->state.skillstate ) {
+				case MSS_RUSH:
+				case MSS_FOLLOW:
+					if( !(tstatus->mode&MD_CASTSENSOR_CHASE) )
 						break;
-					case MSS_IDLE:
-					case MSS_WALK:
-						if( !(tstatus->mode&MD_CASTSENSOR_IDLE) )
-							break;
-						md->target_id = src->id;
-						md->state.aggressive = (tstatus->mode&MD_ANGRY) ? 1 : 0;
-						md->min_chase = md->db->range3;
+					md->target_id = src->id;
+					md->state.aggressive = (tstatus->mode&MD_ANGRY) ? 1 : 0;
+					md->min_chase = md->db->range3;
+					break;
+				case MSS_IDLE:
+				case MSS_WALK:
+					if( !(tstatus->mode&MD_CASTSENSOR_IDLE) )
 						break;
-				}
+					md->target_id = src->id;
+					md->state.aggressive = (tstatus->mode&MD_ANGRY) ? 1 : 0;
+					md->min_chase = md->db->range3;
+					break;
 			}
 		}
 	}
@@ -1762,8 +1755,10 @@ int unit_skilluse_pos2(struct block_list *src, short skill_x, short skill_y, uin
 	}
 
 	unit_stop_walking(src,1);
+
 	//In official this is triggered even if no cast time.
 	clif_skillcasting(src, src->id, 0, skill_x, skill_y, skill_id, skill_get_ele(skill_id, skill_lv), casttime);
+
 	if(casttime > 0) {
 		ud->skilltimer = add_timer( tick + casttime, skill_castend_pos, src->id, 0 );
 		if(sd && (pc_checkskill(sd, SA_FREECAST) > 0 || skill_id == LG_EXEEDBREAK))

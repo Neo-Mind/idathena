@@ -1267,7 +1267,7 @@ void read_petdb()
 		lines = entries = 0;
 		while( fgets(line, sizeof(line), fp) && j < MAX_PET_DB ) {
 			char *str[22], *p;
-			unsigned k;
+			unsigned char k;
 
 			lines++;
 

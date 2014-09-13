@@ -60,12 +60,19 @@ typedef struct AliasInfo AliasInfo;
 
 int atcmd_binding_count = 0;
 
+//Atcommand restriction usage
+enum e_atcmd_restict {
+	ATCMD_NOCONSOLE    = 0x1, //Cannot be used via console (is_atcommand type 2)
+	ATCMD_NOSCRIPT     = 0x2, //Cannot be used via script command 'atcommand' or 'useatcmd' (is_atcommand type 0 and 3)
+	ATCMD_NOAUTOTRADE  = 0x4, //Like ATCMD_NOSCRIPT, but if the player is autotrader. Example: atcommand "@kick "+strcharinfo(0);
+};
+
 struct AtCommandInfo {
 	char command[ATCOMMAND_LENGTH];
 	AtCommandFunc func;
-	char* at_groups; /* Quick @commands "can-use" lookup */
-	char* char_groups; /* Quick @charcommands "can-use" lookup */
-	int restriction; //Prevent : 1 console, 2 script...
+	char* at_groups; //Quick @commands "can-use" lookup
+	char* char_groups; //Quick @charcommands "can-use" lookup
+	uint8 restriction; //Restrictions see enum e_restict
 };
 
 struct AliasInfo {
@@ -9021,7 +9028,7 @@ ACMD_FUNC(join) {
 static inline void atcmd_channel_help(struct map_session_data *sd, const char *command) {
 	int fd = sd->fd;
 	bool can_delete = pc_has_permission(sd, PC_PERM_CHANNEL_ADMIN);
-	bool can_create = (can_delete || Channel_Config.user_chenable);
+	bool can_create = (can_delete || channel_config.user_chenable);
 	clif_displaymessage(fd, msg_txt(1414)); // ---- Available options:
 
 	//Option create
@@ -9114,7 +9121,7 @@ ACMD_FUNC(channel) {
 		return 0;
 	}
 
-	if( strcmpi(key,"create") == 0 && ( Channel_Config.user_chenable || pc_has_permission(sd, PC_PERM_CHANNEL_ADMIN) ) ) {
+	if( strcmpi(key,"create") == 0 && ( channel_config.user_chenable || pc_has_permission(sd, PC_PERM_CHANNEL_ADMIN) ) ) {
 		if( sub3[0] != '\0' ) {
 			clif_displaymessage(fd, msg_txt(1408)); // Channel password may not contain spaces.
 			return -1;
@@ -9162,8 +9169,8 @@ ACMD_FUNC(fontcolor)
 	} else {
 		unsigned char k;
 
-		ARR_FIND(0, Channel_Config.colors_count,k, (strcmpi(message, Channel_Config.colors_name[k]) == 0));
-		if( k == Channel_Config.colors_count ) {
+		ARR_FIND(0, channel_config.colors_count,k, (strcmpi(message, channel_config.colors_name[k]) == 0));
+		if( k == channel_config.colors_count ) {
 			sprintf(atcmd_output, msg_txt(1411), message); // Unknown color '%s'.
 			clif_displaymessage(fd, atcmd_output);
 			return -1;
@@ -9531,11 +9538,11 @@ ACMD_FUNC(clonestat) {
 void atcommand_basecommands(void) {
 	/**
 	 * Command reference list, place the base of your commands here
-	 * @TODO: All restricted command are crashing case, please look into it
+	 * @TODO: List all commands that causing crash
 	 */
 	AtCommandInfo atcommand_base[] = {
 #include "../custom/atcommand_def.inc"
-		ACMD_DEF2R("warp", mapmove, 1),
+		ACMD_DEF2R("warp", mapmove, ATCMD_NOCONSOLE),
 		ACMD_DEF(where),
 		ACMD_DEF(jumpto),
 		ACMD_DEF(jump),
@@ -9553,7 +9560,7 @@ void atcommand_basecommands(void) {
 		ACMD_DEF(guildstorage),
 		ACMD_DEF(option),
 		ACMD_DEF(hide), //+ /hide
-		ACMD_DEFR(jobchange, 1),
+		ACMD_DEFR(jobchange, ATCMD_NOCONSOLE),
 		ACMD_DEF(kill),
 		ACMD_DEF(alive),
 		ACMD_DEF(kami),
@@ -9569,7 +9576,7 @@ void atcommand_basecommands(void) {
 		ACMD_DEF(clearstorage),
 		ACMD_DEF(cleargstorage),
 		ACMD_DEF(clearcart),
-		ACMD_DEF2R("blvl", baselevelup, 1),
+		ACMD_DEF2R("blvl", baselevelup, ATCMD_NOCONSOLE),
 		ACMD_DEF2("jlvl", joblevelup),
 		ACMD_DEF(help),
 		ACMD_DEF(pvpoff),
@@ -9577,7 +9584,7 @@ void atcommand_basecommands(void) {
 		ACMD_DEF(gvgoff),
 		ACMD_DEF(gvgon),
 		ACMD_DEF(model),
-		ACMD_DEFR(go, 1),
+		ACMD_DEFR(go, ATCMD_NOCONSOLE),
 		ACMD_DEF(monster),
 		ACMD_DEF2("monstersmall", monster),
 		ACMD_DEF2("monsterbig", monster),
@@ -9610,7 +9617,7 @@ void atcommand_basecommands(void) {
 		ACMD_DEF(doommap),
 		ACMD_DEF(raise),
 		ACMD_DEF(raisemap),
-		ACMD_DEF(kick), // + right click menu for GM "(name) force to quit"
+		ACMD_DEFR(kick, ATCMD_NOAUTOTRADE), // + right click menu for GM "(name) force to quit"
 		ACMD_DEF(kickall),
 		ACMD_DEF(allskill),
 		ACMD_DEF(questskill),
@@ -9626,11 +9633,11 @@ void atcommand_basecommands(void) {
 		ACMD_DEF(broadcast), // + /b and /nb
 		ACMD_DEF(localbroadcast), // + /lb and /nlb
 		ACMD_DEF(recallall),
-		ACMD_DEFR(reload,2),
+		ACMD_DEFR(reload, ATCMD_NOSCRIPT),
 		ACMD_DEF2("reloaditemdb", reload),
 		ACMD_DEF2("reloadmobdb", reload),
 		ACMD_DEF2("reloadskilldb", reload),
-		ACMD_DEF2R("reloadscript", reload,2),
+		ACMD_DEF2R("reloadscript", reload, ATCMD_NOSCRIPT),
 		ACMD_DEF2("reloadatcommand", reload),
 		ACMD_DEF2("reloadbattleconf", reload),
 		ACMD_DEF2("reloadstatusdb", reload),
@@ -9919,12 +9926,15 @@ static void atcommand_get_suggestions(struct map_session_data* sd, const char *n
 	dbi_destroy(alias_iter);
 }
 
-/*
- *  Executes an at-command
- * \param type :
+/**
+ * Executes an at-command
+ * @param fd
+ * @param sd
+ * @param message
+ * @param type
  *  0 : script call (atcommand)
  *  1 : normal player @atcommand
- *  2 : console
+ *  2 : console (admin:@atcommand)
  *  3 : script call (useatcmd)
  */
 bool is_atcommand(const int fd, struct map_session_data* sd, const char* message, int type)
@@ -10003,7 +10013,7 @@ bool is_atcommand(const int fd, struct map_session_data* sd, const char* message
 				if ( x >= 1 || y >= 1 ) { /* We have command */
 					info = get_atcommandinfo_byname(atcommand_checkalias(command + 1));
 					if ( !info || info->char_groups[sd->group_pos] == 0 ) /* if we can't use or doesn't exist: don't even display the command failed message */
-							return false;
+						return false;
 				} else
 					return false; /* Display as normal message */
 			}
@@ -10068,16 +10078,19 @@ bool is_atcommand(const int fd, struct map_session_data* sd, const char* message
 
 	//Check restriction
 	if ( info->restriction ) {
-		if ( info->restriction&1 && type == 2 ) //Console prevent
+		if ( info->restriction&ATCMD_NOCONSOLE && type == 2 ) //Console prevent
 			return true;
-		if ( info->restriction&2 && (type == 0 || type == 3) ) //Scripts prevent
+		if ( info->restriction&ATCMD_NOSCRIPT && (type == 0 || type == 3) ) //Scripts prevent
+			return true;
+		if ( info->restriction&ATCMD_NOAUTOTRADE && (type == 0 || type == 3)
+			&& ((*atcmd_msg == atcommand_symbol && sd && sd->state.autotrade) || (ssd && ssd->state.autotrade)) )
 			return true;
 	}
 
 	//type == 1 : player invoked
 	if ( type == 1 ) {
 		if ( (*command == atcommand_symbol && info->at_groups[sd->group_pos] == 0) ||
-		    (*command == charcommand_symbol && info->char_groups[sd->group_pos] == 0) ) {
+			(*command == charcommand_symbol && info->char_groups[sd->group_pos] == 0) ) {
 			return false;
 		}
 		if ( pc_isdead(sd) && pc_has_permission(sd,PC_PERM_DISABLE_CMD_DEAD) ) {
@@ -10088,7 +10101,7 @@ bool is_atcommand(const int fd, struct map_session_data* sd, const char* message
 
 	//Check if target is valid only if confirmed that player can use command.
 	if ( *message == charcommand_symbol &&
-	    (ssd = map_nick2sd(charname)) == NULL && (ssd = map_nick2sd(charname2)) == NULL ) {
+		(ssd = map_nick2sd(charname)) == NULL && (ssd = map_nick2sd(charname2)) == NULL ) {
 		sprintf(output, msg_txt(1389), command); // %s failed. Player not found.
 		clif_displaymessage(fd, output);
 		return true;

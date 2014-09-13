@@ -572,6 +572,7 @@ extern struct Battle_Config
 	int revive_onwarp;
 	int mail_delay;
 	int autotrade_monsterignore;
+	int spawn_direction;
 } battle_config;
 
 void do_init_battle(void);

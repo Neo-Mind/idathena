@@ -114,7 +114,14 @@ char char_name_letters[1024] = ""; // List of letters/symbols allowed (or not) i
 
 int char_del_level = 0; // From which level u can delete character [Lupus]
 int char_del_delay = 86400;
-int char_del_option = 2; // Character deletion type, email = 1, birthdate = 2 (default)
+// Character deletion type, email = 1, birthdate = 2
+int char_del_option =
+#if PACKETVER >= 20100803
+	2
+#else
+	1
+#endif
+	;
 int char_del_aegis = 1; // Verify if char is in guild/party or char and reacts as Aegis does (doesn't allow deletion), see char_delete2_req for more information
 
 int log_char = 1;	// loggin char or not [devil]

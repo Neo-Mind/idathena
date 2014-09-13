@@ -127,10 +127,10 @@ int npc_isnear_sub(struct block_list* bl, va_list args) {
 
 		if( idx > 0 && skill_db[idx].unit_nonearnpc_type ) {
 			while( 1 ) {
-				if( skill_db[idx].unit_nonearnpc_type&1 && nd->subtype == WARP ) break;
-				if( skill_db[idx].unit_nonearnpc_type&2 && nd->subtype == SHOP ) break;
-				if( skill_db[idx].unit_nonearnpc_type&4 && nd->subtype == SCRIPT ) break;
-				if( skill_db[idx].unit_nonearnpc_type&8 && nd->subtype == TOMB ) break;
+				if( skill_db[idx].unit_nonearnpc_type&1 && nd->subtype == NPCTYPE_WARP ) break;
+				if( skill_db[idx].unit_nonearnpc_type&2 && nd->subtype == NPCTYPE_SHOP ) break;
+				if( skill_db[idx].unit_nonearnpc_type&4 && nd->subtype == NPCTYPE_SCRIPT ) break;
+				if( skill_db[idx].unit_nonearnpc_type&8 && nd->subtype == NPCTYPE_TOMB ) break;
 				return 0;
 			}
 		}
@@ -908,11 +908,11 @@ int npc_touch_areanpc(struct map_session_data* sd, int16 m, int16 x, int16 y)
 		}
 
 		switch( map[m].npc[i]->subtype ) {
-			case WARP:
+			case NPCTYPE_WARP:
 				xs = map[m].npc[i]->u.warp.xs;
 				ys = map[m].npc[i]->u.warp.ys;
 				break;
-			case SCRIPT:
+			case NPCTYPE_SCRIPT:
 				xs = map[m].npc[i]->u.scr.xs;
 				ys = map[m].npc[i]->u.scr.ys;
 				break;
@@ -929,14 +929,14 @@ int npc_touch_areanpc(struct map_session_data* sd, int16 m, int16 x, int16 y)
 		return 1;
 	}
 	switch( map[m].npc[i]->subtype ) {
-		case WARP:
+		case NPCTYPE_WARP:
 			if( pc_ishiding(sd) || (sd->sc.count && sd->sc.data[SC_CAMOUFLAGE]) || pc_isdead(sd) )
 				break; //Hidden or dead chars cannot use warps
 			pc_setpos(sd,map[m].npc[i]->u.warp.mapindex,map[m].npc[i]->u.warp.x,map[m].npc[i]->u.warp.y,CLR_OUTSIGHT);
 			break;
-		case SCRIPT:
+		case NPCTYPE_SCRIPT:
 			for( j = i; j < map[m].npc_num; j++ ) {
-				if( map[m].npc[j]->subtype != WARP )
+				if( map[m].npc[j]->subtype != NPCTYPE_WARP )
 					continue;
 
 				if( (sd->bl.x >= (map[m].npc[j]->bl.x - map[m].npc[j]->u.warp.xs) && sd->bl.x <= (map[m].npc[j]->bl.x + map[m].npc[j]->u.warp.xs)) &&
@@ -982,13 +982,13 @@ int npc_touch_areanpc2(struct mob_data *md)
 			continue;
 
 		switch( map[m].npc[i]->subtype ) {
-			case WARP:
+			case NPCTYPE_WARP:
 				if( !( battle_config.mob_warp&1 ) )
 					continue;
 				xs = map[m].npc[i]->u.warp.xs;
 				ys = map[m].npc[i]->u.warp.ys;
 				break;
-			case SCRIPT:
+			case NPCTYPE_SCRIPT:
 				xs = map[m].npc[i]->u.scr.xs;
 				ys = map[m].npc[i]->u.scr.ys;
 				break;
@@ -999,14 +999,14 @@ int npc_touch_areanpc2(struct mob_data *md)
 		if( x >= map[m].npc[i]->bl.x-xs && x <= map[m].npc[i]->bl.x+xs && y >= map[m].npc[i]->bl.y-ys && y <= map[m].npc[i]->bl.y+ys )
 		{ //In the npc touch area
 			switch( map[m].npc[i]->subtype ) {
-				case WARP:
+				case NPCTYPE_WARP:
 					xs = map_mapindex2mapid(map[m].npc[i]->u.warp.mapindex);
 					if( m < 0 )
 						break; //Cannot Warp between map servers
 					if( unit_warp(&md->bl, xs, map[m].npc[i]->u.warp.x, map[m].npc[i]->u.warp.y, CLR_OUTSIGHT) == 0 )
 						return 1; //Warped
 					break;
-				case SCRIPT:
+				case NPCTYPE_SCRIPT:
 					if( map[m].npc[i]->bl.id == md->areanpc_id )
 						break; //Already touch this NPC
 					snprintf(eventname, ARRAYLENGTH(eventname), "%s::OnTouchNPC", map[m].npc[i]->exname);
@@ -1058,13 +1058,13 @@ int npc_check_areanpc(int flag, int16 m, int16 x, int16 y, int16 range)
 			continue;
 
 		switch( map[m].npc[i]->subtype ) {
-			case WARP:
+			case NPCTYPE_WARP:
 				if( !(flag&1) )
 					continue;
 				xs = map[m].npc[i]->u.warp.xs;
 				ys = map[m].npc[i]->u.warp.ys;
 				break;
-			case SCRIPT:
+			case NPCTYPE_SCRIPT:
 				if( !(flag&2) )
 					continue;
 				xs = map[m].npc[i]->u.scr.xs;
@@ -1189,18 +1189,18 @@ int npc_click(struct map_session_data* sd, struct npc_data* nd)
 		return 1;
 
 	switch(nd->subtype) {
-		case SHOP:
-		case ITEMSHOP:
-		case POINTSHOP:
+		case NPCTYPE_SHOP:
+		case NPCTYPE_ITEMSHOP:
+		case NPCTYPE_POINTSHOP:
 			clif_npcbuysell(sd,nd->bl.id);
 			break;
-		case CASHSHOP:
+		case NPCTYPE_CASHSHOP:
 			clif_cashshop_show(sd,nd);
 			break;
-		case SCRIPT:
+		case NPCTYPE_SCRIPT:
 			run_script(nd->u.scr.script,0,sd->bl.id,nd->bl.id);
 			break;
-		case TOMB:
+		case NPCTYPE_TOMB:
 			run_tomb(sd,nd);
 			break;
 	}
@@ -1260,7 +1260,7 @@ int npc_buysellsel(struct map_session_data* sd, int id, int type)
 	if ((nd = npc_checknear(sd,map_id2bl(id))) == NULL)
 		return 1;
 
-	if (nd->subtype != SHOP && nd->subtype != ITEMSHOP && nd->subtype != POINTSHOP) {
+	if (nd->subtype != NPCTYPE_SHOP && nd->subtype != NPCTYPE_ITEMSHOP && nd->subtype != NPCTYPE_POINTSHOP) {
 		ShowError("no such shop npc : %d\n",id);
 		if (sd->npc_id == id)
 			sd->npc_id = 0;
@@ -1273,7 +1273,7 @@ int npc_buysellsel(struct map_session_data* sd, int id, int type)
 	if (nd->class_ < 0 && !sd->state.callshop) // Not called through a script and is not a visible NPC so an invalid call
 		return 1;
 
-	if (nd->subtype == ITEMSHOP) {
+	if (nd->subtype == NPCTYPE_ITEMSHOP) {
 		char output[CHAT_SIZE_MAX];
 		struct item_data *id = itemdb_exists(nd->u.shop.itemshop_nameid);
 
@@ -1283,7 +1283,7 @@ int npc_buysellsel(struct map_session_data* sd, int id, int type)
 			sprintf(output,msg_txt(714),id->jname,id->nameid); // Item Shop List: %s (ID: %hu)
 			clif_broadcast(&sd->bl,output,strlen(output) + 1,0x10,SELF);
 		}
-	} else if (nd->subtype == POINTSHOP) {
+	} else if (nd->subtype == NPCTYPE_POINTSHOP) {
 		char output[CHAT_SIZE_MAX];
 
 		memset(output,'\0',sizeof(output));
@@ -1312,7 +1312,7 @@ int npc_cashshop_buylist(struct map_session_data *sd, int points, int count, uns
 	unsigned short nameid;
 	struct npc_data *nd = (struct npc_data *)map_id2bl(sd->npc_shopid);
 
-	if( !nd || nd->subtype != CASHSHOP )
+	if( !nd || nd->subtype != NPCTYPE_CASHSHOP )
 		return 1;
 
 	if( sd->state.trading )
@@ -1422,7 +1422,7 @@ int npc_cashshop_buy(struct map_session_data *sd, unsigned short nameid, int amo
 	if( points < 0 )
 		return 6;
 
-	if( !nd || nd->subtype != CASHSHOP )
+	if( !nd || nd->subtype != NPCTYPE_CASHSHOP )
 		return 1;
 
 	if( sd->state.trading )
@@ -1503,7 +1503,7 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 	nd = npc_checknear(sd,map_id2bl(sd->npc_shopid));
 	if( nd == NULL )
 		return 3;
-	if( nd->subtype != SHOP && nd->subtype != ITEMSHOP && nd->subtype != POINTSHOP )
+	if( nd->subtype != NPCTYPE_SHOP && nd->subtype != NPCTYPE_ITEMSHOP && nd->subtype != NPCTYPE_POINTSHOP )
 		return 3;
 
 	z = 0;
@@ -1562,11 +1562,11 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 		return npc_buylist_sub(sd,n,item_list,nd->master_nd);
 
 	switch(nd->subtype) {
-		case SHOP:
+		case NPCTYPE_SHOP:
 			if (z > (double)sd->status.zeny)
 				return 1; // Not enough Zeny
 			break;
-		case ITEMSHOP:
+		case NPCTYPE_ITEMSHOP:
 			for (k = 0; k < MAX_INVENTORY; k++) {
 				if (sd->status.inventory[k].nameid == nd->u.shop.itemshop_nameid)
 					count += sd->status.inventory[k].amount;
@@ -1579,7 +1579,7 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 				return 1;
 			}
 			break;
-		case POINTSHOP:
+		case NPCTYPE_POINTSHOP:
 			switch(nd->u.shop.pointshop_str[0]) {
 				case '#':
 					if (nd->u.shop.pointshop_str[1] == '#')
@@ -1606,13 +1606,13 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 		return 3; // Not enough space to store items
 
 	switch( nd->subtype ) {
-		case SHOP:
+		case NPCTYPE_SHOP:
 			pc_payzeny(sd, (int)z, LOG_TYPE_NPC, NULL);
 			break;
-		case ITEMSHOP:
+		case NPCTYPE_ITEMSHOP:
 			pc_delitem(sd, pc_search_inventory(sd, nd->u.shop.itemshop_nameid), (int)z, 0, 0, LOG_TYPE_NPC);
 			break;
-		case POINTSHOP:
+		case NPCTYPE_POINTSHOP:
 			switch(nd->u.shop.pointshop_str[0]) {
 				case '#':
 					if (nd->u.shop.pointshop_str[1] == '#')
@@ -1657,7 +1657,7 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 		}
 	}
 
-	if( nd->subtype == POINTSHOP ) {
+	if( nd->subtype == NPCTYPE_POINTSHOP ) {
 		sprintf(output,msg_txt(716),nd->u.shop.pointshop_str,count - (int)z); // Your '%s' now: %d
 		clif_disp_onlyself(sd,output,strlen(output) + 1);
 	}
@@ -1732,7 +1732,7 @@ int npc_selllist(struct map_session_data* sd, int n, unsigned short* item_list)
 	nullpo_retr(1, item_list);
 
 	if( (nd = npc_checknear(sd, map_id2bl(sd->npc_shopid))) == NULL ||
-		(nd->subtype != SHOP && nd->subtype != ITEMSHOP && nd->subtype != POINTSHOP) )
+		(nd->subtype != NPCTYPE_SHOP && nd->subtype != NPCTYPE_ITEMSHOP && nd->subtype != NPCTYPE_POINTSHOP) )
 		return 1;
 
 	z = 0;
@@ -1809,6 +1809,8 @@ int npc_remove_map(struct npc_data* nd)
 	if(nd->bl.prev == NULL || nd->bl.m < 0)
 		return 1; //Not assigned to a map.
   	m = nd->bl.m;
+	if(nd->subtype == NPCTYPE_SCRIPT)
+		skill_clear_unitgroup(&nd->bl);
 	clif_clearunit_area(&nd->bl,CLR_RESPAWN);
 	npc_unsetcells(nd);
 	map_delblock(&nd->bl);
@@ -1888,9 +1890,9 @@ int npc_unload(struct npc_data* nd, bool single) {
 		map_remove_questinfo(nd->bl.m, nd);
 
 	//src check for duplicate shops [Orcao]
-	if( (nd->subtype == SHOP || nd->subtype == CASHSHOP || nd->subtype == ITEMSHOP || nd->subtype == POINTSHOP) && nd->src_id == 0 )
+	if( (nd->subtype == NPCTYPE_SHOP || nd->subtype == NPCTYPE_CASHSHOP || nd->subtype == NPCTYPE_ITEMSHOP || nd->subtype == NPCTYPE_POINTSHOP) && nd->src_id == 0 )
 		aFree(nd->u.shop.shop_item);
-	else if( nd->subtype == SCRIPT ) {
+	else if( nd->subtype == NPCTYPE_SCRIPT ) {
 		struct s_mapiterator* iter;
 		struct block_list* bl;
 
@@ -2199,7 +2201,7 @@ struct npc_data* npc_add_warp(char* name, short from_mapid, short from_x, short 
 	nd->u.warp.xs = xs;
 	nd->u.warp.ys = xs;
 	nd->bl.type = BL_NPC;
-	nd->subtype = WARP;
+	nd->subtype = NPCTYPE_WARP;
 	npc_setcells(nd);
 	if( map_addblock(&nd->bl) )
 		return NULL;
@@ -2276,7 +2278,7 @@ static const char* npc_parse_warp(char* w1, char* w2, char* w3, char* w4, const 
 	nd->u.warp.ys = ys;
 	npc_warp++;
 	nd->bl.type = BL_NPC;
-	nd->subtype = WARP;
+	nd->subtype = NPCTYPE_WARP;
 	npc_setcells(nd);
 	if( map_addblock(&nd->bl) ) //Couldn't add on map
 		return strchr(start,'\n');
@@ -2333,19 +2335,19 @@ static const char* npc_parse_shop(char* w1, char* w2, char* w3, char* w4, const 
 	}
 
 	if( !strcasecmp(w2,"cashshop") )
-		type = CASHSHOP;
+		type = NPCTYPE_CASHSHOP;
 	else if( !strcasecmp(w2,"itemshop") )
-		type = ITEMSHOP;
+		type = NPCTYPE_ITEMSHOP;
 	else if( !strcasecmp(w2,"pointshop") )
-		type = POINTSHOP;
+		type = NPCTYPE_POINTSHOP;
 	else
-		type = SHOP;
+		type = NPCTYPE_SHOP;
 
 	p = strchr(w4,',');
 	memset(point_str,'\0',sizeof(point_str));
 
 	switch( type ) {
-		case ITEMSHOP: {
+		case NPCTYPE_ITEMSHOP: {
 				if( sscanf(p,",%hu:%d,",&nameid,&is_discount) < 1 ) {
 					ShowError("npc_parse_shop: Invalid item cost definition in file '%s', line '%d'. Ignoring the rest of the line...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer, start - buffer), w1, w2, w3, w4);
 					return strchr(start,'\n'); //Skip and continue
@@ -2357,7 +2359,7 @@ static const char* npc_parse_shop(char* w1, char* w2, char* w3, char* w4, const 
 				p = strchr(p + 1,',');
 			}
 			break;
-		case POINTSHOP: {
+		case NPCTYPE_POINTSHOP: {
 				if( sscanf(p, ",%32[^,:]:%d,",point_str,&is_discount) < 1 ) {
 					ShowError("npc_parse_shop: Invalid item cost definition in file '%s', line '%d'. Ignoring the rest of the line...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer, start - buffer), w1, w2, w3, w4);
 					return strchr(start,'\n'); //Skip and continue
@@ -2405,15 +2407,15 @@ static const char* npc_parse_shop(char* w1, char* w2, char* w3, char* w4, const 
 		}
 
 		if( value < 0 ) {
-			if( type == SHOP ) value = id->value_buy;
+			if( type == NPCTYPE_SHOP ) value = id->value_buy;
 			else value = 0; //Cashshop doesn't have a "buy price" in the item_db
 		}
 
-		if( (type == SHOP || type == ITEMSHOP || type == POINTSHOP) && value == 0 ) { //NPC selling items for free!
+		if( (type == NPCTYPE_SHOP || type == NPCTYPE_ITEMSHOP || type == NPCTYPE_POINTSHOP) && value == 0 ) { //NPC selling items for free!
 			ShowWarning("npc_parse_shop: Item %s [%hu] is being sold for FREE in file '%s', line '%d'.\n",
 				id->name, nameid, filepath, strline(buffer, start - buffer));
 		}
-		if( type == SHOP && value * 0.75 < id->value_sell * 1.24 ) { //Exploit possible: you can buy and sell back with profit
+		if( type == NPCTYPE_SHOP && value * 0.75 < id->value_sell * 1.24 ) { //Exploit possible: you can buy and sell back with profit
 			ShowWarning("npc_parse_shop: Item %s [%hu] discounted buying price (%d->%d) is less than overcharged selling price (%d->%d) in file '%s', line '%d'.\n",
 				id->name, nameid, value, (int)(value * 0.75), id->value_sell, (int)(id->value_sell * 1.24), filepath, strline(buffer, start - buffer));
 		}
@@ -2438,10 +2440,10 @@ static const char* npc_parse_shop(char* w1, char* w2, char* w3, char* w4, const 
 		return strchr(start, '\n'); //Continue
 	}
 
-	if( type != SHOP ) {
-		if( type == ITEMSHOP )
+	if( type != NPCTYPE_SHOP ) {
+		if( type == NPCTYPE_ITEMSHOP )
 			nd->u.shop.itemshop_nameid = nameid; //Item shop currency
-		else if( type == POINTSHOP )
+		else if( type == NPCTYPE_POINTSHOP )
 			safestrncpy(nd->u.shop.pointshop_str, point_str, strlen(point_str) + 1); //Point shop currency
 		nd->u.shop.discount = is_discount;
 	}
@@ -2480,11 +2482,11 @@ static const char* npc_parse_shop(char* w1, char* w2, char* w3, char* w4, const 
  * @return bool 'true' is discountable, 'false' otherwise
  */
 bool npc_shop_discount(enum npc_subtype type, bool discount) {
-	if( type == SHOP || (type != SHOP && discount) )
+	if( type == NPCTYPE_SHOP || (type != NPCTYPE_SHOP && discount) )
 		return true;
 
-	if( (type == ITEMSHOP && battle_config.discount_item_point_shop&1) ||
-		(type == POINTSHOP && battle_config.discount_item_point_shop&2) )
+	if( (type == NPCTYPE_ITEMSHOP && battle_config.discount_item_point_shop&1) ||
+		(type == NPCTYPE_POINTSHOP && battle_config.discount_item_point_shop&2) )
 		return true;
 	return false;
 }
@@ -2662,7 +2664,7 @@ static const char* npc_parse_script(char* w1, char* w2, char* w3, char* w4, cons
 
 	++npc_script;
 	nd->bl.type = BL_NPC;
-	nd->subtype = SCRIPT;
+	nd->subtype = NPCTYPE_SCRIPT;
 
 	if( m >= 0 ) {
 		map_addnpc(m, nd);
@@ -2745,14 +2747,14 @@ const char* npc_parse_duplicate(char* w1, char* w2, char* w3, char* w4, const ch
 	type = dnd->subtype;
 
 	//Get placement
-	if( (type == SHOP || type == CASHSHOP || type == ITEMSHOP || type == POINTSHOP || type == SCRIPT) && strcmp(w1, "-") == 0 ) { //Floating shop/chashshop/itemshop/pointshop/script
+	if( (type == NPCTYPE_SHOP || type == NPCTYPE_CASHSHOP || type == NPCTYPE_ITEMSHOP || type == NPCTYPE_POINTSHOP || type == NPCTYPE_SCRIPT) && strcmp(w1, "-") == 0 ) { //Floating shop/chashshop/itemshop/pointshop/script
 		x = y = dir = 0;
 		m = -1;
 	} else {
 		char mapname[32];
 		int fields = sscanf(w1, "%31[^,],%d,%d,%d", mapname, &x, &y, &dir);
 
-		if( type == WARP && fields == 3 ) //<map name>,<x>,<y>
+		if( type == NPCTYPE_WARP && fields == 3 ) //<map name>,<x>,<y>
 			dir = 0;
 		else if( fields != 4 ) { //<map name>,<x>,<y>,<facing>
 			ShowError("npc_parse_duplicate: Invalid placement format for duplicate in file '%s', line '%d'. Skipping line...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer, start - buffer), w1, w2, w3, w4);
@@ -2766,9 +2768,9 @@ const char* npc_parse_duplicate(char* w1, char* w2, char* w3, char* w4, const ch
 		return end; //Try next
 	}
 
-	if( type == WARP && sscanf(w4, "%d,%d", &xs, &ys) == 2 ); //<spanx>,<spany>
-	else if( type == SCRIPT && sscanf(w4, "%*[^,],%d,%d", &xs, &ys) == 2); // <sprite id>,<triggerX>,<triggerY>
-	else if( type == WARP ) {
+	if( type == NPCTYPE_WARP && sscanf(w4, "%d,%d", &xs, &ys) == 2 ); //<spanx>,<spany>
+	else if( type == NPCTYPE_SCRIPT && sscanf(w4, "%*[^,],%d,%d", &xs, &ys) == 2); // <sprite id>,<triggerX>,<triggerY>
+	else if( type == NPCTYPE_WARP ) {
 		ShowError("npc_parse_duplicate: Invalid span format for duplicate warp in file '%s', line '%d'. Skipping line...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer,start-buffer), w1, w2, w3, w4);
 		return end; //Next line, try to continue
 	}
@@ -2787,7 +2789,7 @@ const char* npc_parse_duplicate(char* w1, char* w2, char* w3, char* w4, const ch
 	nd->bl.type = BL_NPC;
 	nd->subtype = (enum npc_subtype)type;
 	switch( type ) {
-		case SCRIPT:
+		case NPCTYPE_SCRIPT:
 			++npc_script;
 			nd->u.scr.xs = xs;
 			nd->u.scr.ys = ys;
@@ -2796,16 +2798,16 @@ const char* npc_parse_duplicate(char* w1, char* w2, char* w3, char* w4, const ch
 			nd->u.scr.label_list_num = dnd->u.scr.label_list_num;
 			break;
 
-		case SHOP:
-		case CASHSHOP:
-		case ITEMSHOP:
-		case POINTSHOP:
+		case NPCTYPE_SHOP:
+		case NPCTYPE_CASHSHOP:
+		case NPCTYPE_ITEMSHOP:
+		case NPCTYPE_POINTSHOP:
 			++npc_shop;
 			nd->u.shop.shop_item = dnd->u.shop.shop_item;
 			nd->u.shop.count = dnd->u.shop.count;
 			break;
 
-		case WARP:
+		case NPCTYPE_WARP:
 			++npc_warp;
 			if( !battle_config.warp_point_debug )
 				nd->class_ = WARP_CLASS;
@@ -2837,7 +2839,7 @@ const char* npc_parse_duplicate(char* w1, char* w2, char* w3, char* w4, const ch
 		map_addiddb(&nd->bl);
 	strdb_put(npcname_db, nd->exname, nd);
 
-	if( type != SCRIPT )
+	if( type != NPCTYPE_SCRIPT )
 		return end;
 
 	//-----------------------------------------
@@ -2870,7 +2872,7 @@ int npc_duplicate4instance(struct npc_data *snd, int16 m) {
 		return 1;
 	}
 
-	if( snd->subtype == WARP ) { //Adjust destination, if instanced
+	if( snd->subtype == NPCTYPE_WARP ) { //Adjust destination, if instanced
 		struct npc_data *wnd = NULL; //New NPC
 		struct instance_data *im = &instance_data[map[m].instance_id];
 		int dm = map_mapindex2mapid(snd->u.warp.mapindex), imap = 0, i;
@@ -2907,7 +2909,7 @@ int npc_duplicate4instance(struct npc_data *snd, int16 m) {
 		wnd->u.warp.xs = snd->u.warp.xs;
 		wnd->u.warp.ys = snd->u.warp.ys;
 		wnd->bl.type = BL_NPC;
-		wnd->subtype = WARP;
+		wnd->subtype = NPCTYPE_WARP;
 		npc_setcells(wnd);
 		if( map_addblock(&wnd->bl) )
 			return 1;
@@ -2956,11 +2958,11 @@ void npc_setcells(struct npc_data* nd)
 	int i,j;
 
 	switch(nd->subtype) {
-		case WARP:
+		case NPCTYPE_WARP:
 			xs = nd->u.warp.xs;
 			ys = nd->u.warp.ys;
 			break;
-		case SCRIPT:
+		case NPCTYPE_SCRIPT:
 			xs = nd->u.scr.xs;
 			ys = nd->u.scr.ys;
 			break;
@@ -2994,7 +2996,7 @@ void npc_unsetcells(struct npc_data* nd)
 	int16 m = nd->bl.m, x = nd->bl.x, y = nd->bl.y, xs, ys;
 	int i,j, x0, x1, y0, y1;
 
-	if (nd->subtype == WARP) {
+	if (nd->subtype == NPCTYPE_WARP) {
 		xs = nd->u.warp.xs;
 		ys = nd->u.warp.ys;
 	} else {
@@ -4069,7 +4071,7 @@ static void npc_debug_warps_sub(struct npc_data* nd)
 {
 	int16 m;
 
-	if (nd->bl.type != BL_NPC || nd->subtype != WARP || nd->bl.m < 0)
+	if (nd->bl.type != BL_NPC || nd->subtype != NPCTYPE_WARP || nd->bl.m < 0)
 		return;
 
 	m = map_mapindex2mapid(nd->u.warp.mapindex);
@@ -4146,7 +4148,7 @@ void do_init_npc(void)
 
 	npc_script++;
 	fake_nd->bl.type = BL_NPC;
-	fake_nd->subtype = SCRIPT;
+	fake_nd->subtype = NPCTYPE_SCRIPT;
 
 	strdb_put(npcname_db, fake_nd->exname, fake_nd);
 	fake_nd->u.scr.timerid = INVALID_TIMER;

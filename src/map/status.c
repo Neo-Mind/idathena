@@ -1198,7 +1198,6 @@ void initChangeTables(void) {
 	/* StatusChangeState (SCS_) NOCAST (skills) */
 	StatusChangeStateTable[SC_SILENCE]             |= SCS_NOCAST;
 	StatusChangeStateTable[SC_STEELBODY]           |= SCS_NOCAST;
-	StatusChangeStateTable[SC_BASILICA]            |= SCS_NOCAST;
 	StatusChangeStateTable[SC_BERSERK]             |= SCS_NOCAST;
 	StatusChangeStateTable[SC__BLOODYLUST]         |= SCS_NOCAST;
 	StatusChangeStateTable[SC_DEATHBOUND]          |= SCS_NOCAST;
@@ -1327,7 +1326,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 	}
 
 	if (target->type == BL_SKILL)
-		return skill_unit_ondamaged((struct skill_unit *)target, src, hp, gettick());
+		return skill_unit_ondamaged((struct skill_unit *)target, src, hp);
 
 	status = status_get_status_data(target);
 	if (!status || status == &dummy_status)
@@ -1861,6 +1860,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 		{ //Skills blocked through status changes.
 			if (!flag && //Blocked only from using the skill (stuff like autospell may still go through.
 				(sc->cant.cast ||
+				(sc->data[SC_BASILICA] && (sc->data[SC_BASILICA]->val4 != src->id || skill_id != HP_BASILICA)) || // Only Basilica's caster that can cast, and only Basilica to cancel it
 				(sc->data[SC_MARIONETTE] && skill_id != CG_MARIONETTE) || //Only skill you can use is marionette again to cancel it.
 				(sc->data[SC_MARIONETTE2] && skill_id == CG_MARIONETTE) || //Cannot use marionette if you are being buffed by another.
 				(sc->data[SC_STASIS] && skill_block_check(src, SC_STASIS, skill_id)) ||
@@ -6440,7 +6440,7 @@ int status_get_guild_id(struct block_list *bl) {
 				return ((TBL_MER*)bl)->master->status.guild_id;
 			break;
 		case BL_NPC:
-			if (((TBL_NPC*)bl)->subtype == SCRIPT)
+			if (((TBL_NPC*)bl)->subtype == NPCTYPE_SCRIPT)
 				return ((TBL_NPC*)bl)->u.scr.guild_id;
 			break;
 		case BL_SKILL:
@@ -6482,7 +6482,7 @@ int status_get_emblem_id(struct block_list *bl) {
 				return ((TBL_MER*)bl)->master->guild_emblem_id;
 			break;
 		case BL_NPC:
-			if (((TBL_NPC*)bl)->subtype == SCRIPT && ((TBL_NPC*)bl)->u.scr.guild_id > 0) {
+			if (((TBL_NPC*)bl)->subtype == NPCTYPE_SCRIPT && ((TBL_NPC*)bl)->u.scr.guild_id > 0) {
 				struct guild *g = guild_search(((TBL_NPC*)bl)->u.scr.guild_id);
 
 				if (g)
@@ -10430,7 +10430,8 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				struct skill_unit_group* group = skill_id2group(sce->val3);
 
 				sce->val3 = 0;
-				skill_delunitgroup(group);
+				if (group)
+					skill_delunitgroup(group);
 			}
 			break;
 		case SC_HERMODE:
@@ -10438,7 +10439,13 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				skill_clear_unitgroup(bl);
 			break;
 		case SC_BASILICA: //Clear the skill area. [Skotlex]
-			skill_clear_unitgroup(bl);
+			if (sce->val3 && sce->val4 == bl->id) {
+				struct skill_unit_group* group = skill_id2group(sce->val3);
+
+				sce->val3 = 0;
+				if (group)
+					skill_delunitgroup(group);
+			}
 			break;
 		case SC_TRICKDEAD:
 			if (vd)

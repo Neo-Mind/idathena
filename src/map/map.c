@@ -3868,7 +3868,7 @@ void do_final(void)
 	struct s_mapiterator* iter;
 
 	ShowStatus("Terminating...\n");
-	Channel_Config.closing = true;
+	channel_config.closing = true;
 
 	//Ladies and babies first.
 	iter = mapit_getallusers();
