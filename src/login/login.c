@@ -1762,7 +1762,7 @@ void login_set_defaults() {
 //-----------------------------------
 int login_config_read(const char* cfgName)
 {
-	char line[1024], w1[1024], w2[1024];
+	char line[1024], w1[32], w2[1024];
 	FILE* fp = fopen(cfgName, "r");
 
 	if(fp == NULL) {
@@ -1772,7 +1772,7 @@ int login_config_read(const char* cfgName)
 	while(fgets(line, sizeof(line), fp)) {
 		if(line[0] == '/' && line[1] == '/')
 			continue;
-		if(sscanf(line, "%1023[^:]: %1023[^\r\n]", w1, w2) < 2)
+		if(sscanf(line, "%31[^:]: %1023[^\r\n]", w1, w2) < 2)
 			continue;
 		if(!strcmpi(w1, "timestamp_format"))
 			safestrncpy(timestamp_format, w2, 20);

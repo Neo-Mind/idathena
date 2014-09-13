@@ -6806,13 +6806,14 @@ ACMD_FUNC(mail)
 }
 
 /*==========================================
- * Show Monster DB Info   v 1.0
+ * Show Monster DB Info v1.0
  * originally by [Lupus]
  *------------------------------------------*/
 ACMD_FUNC(mobinfo)
 {
 	unsigned char msize[SZ_ALL][7] = { "Small","Medium","Large" };
 	unsigned char mrace[RC_ALL][11] = { "Formless","Undead","Beast","Plant","Insect","Fish","Demon","Demi-Human","Angel","Dragon" };
+	unsigned char mclass[CLASS_ALL][9] = { "Normal","Boss","Guardian", };
 	unsigned char melement[ELE_ALL][8] = { "Neutral","Water","Earth","Fire","Wind","Poison","Holy","Dark","Ghost","Undead" };
 	char atcmd_output2[CHAT_SIZE_MAX];
 	struct item_data *item_data;
@@ -6883,10 +6884,10 @@ ACMD_FUNC(mobinfo)
 			mob->status.vit, mob->status.int_, mob->status.dex, mob->status.luk);
 		clif_displaymessage(fd, atcmd_output);
 		
-		sprintf(atcmd_output, msg_txt(1244), //  ATK:%d~%d  Range:%d~%d~%d  Size:%s  Race: %s  Element: %s (Lv:%d)
+		sprintf(atcmd_output, msg_txt(1244), //  ATK: %d~%d Range: %d~%d~%d Size: %s Race: %s Class: %s Element: %s (Lv:%d)
 			mob->status.rhw.atk, mob->status.rhw.atk2, mob->status.rhw.range,
 			mob->range2 , mob->range3, msize[mob->status.size],
-			mrace[mob->status.race], melement[mob->status.def_ele], mob->status.ele_lv);
+			mrace[mob->status.race], mclass[mob->status.class_], melement[mob->status.def_ele], mob->status.ele_lv);
 		clif_displaymessage(fd, atcmd_output);
 
 		// Drops

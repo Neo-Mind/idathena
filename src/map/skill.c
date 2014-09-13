@@ -106,6 +106,8 @@ struct s_skill_nounit_layout skill_nounit_layout[MAX_SKILL_UNIT_LAYOUT];
 int overbrand_nounit_pos;
 int overbrand_brandish_nounit_pos;
 
+static char dir_ka = -1; //Holds temporary direction to the target for SR_KNUCKLEARROW
+
 //Early declaration
 int skill_block_check(struct block_list *bl, enum sc_type type, uint16 skill_id);
 static int skill_check_unit_range(struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv);
@@ -2283,43 +2285,53 @@ int skill_strip_equip(struct block_list *src, struct block_list *bl, unsigned sh
 	return (where ? 1 : 0);
 }
 
-/*=========================================================================
- Used to knock back players, monsters, traps, etc
- - 'count' is the number of squares to knock back
- - 'direction' indicates the way OPPOSITE to the knockback direction (or -1 for default behavior)
- - if 'flag&0x1', position update packets must not be sent.
- - if 'flag&0x2', skill blown ignores players' special_state.no_knockback
- -------------------------------------------------------------------------*/
-int skill_blown(struct block_list* src, struct block_list* target, int count, int8 dir, int flag)
+/**
+ * Used to knock back players, monsters, traps, etc
+ * @param src Object that give knock back
+ * @param target Object that receive knock back
+ * @param count Number of knock back cell requested
+ * @param dir Direction indicates the way OPPOSITE to the knockback direction (or -1 for default behavior)
+ * @param flag
+		0x01 - position update packets must not be sent;
+		0x02 - ignores players' special_state.no_knockback;
+		These flags "return 'count' instead of 0 if target is cannot be knocked back":
+		0x04 - at WOE/BG map;
+		0x08 - if target is MD_KNOCKBACK_IMMUNE|MD_BOSS;
+		0x10 - if target has 'special_state.no_knockback';
+		0x20 - if target is in Basilica area;
+ * @return Number of knocked back cells done
+ */
+short skill_blown(struct block_list* src, struct block_list* target, char count, int8 dir, unsigned char flag)
 {
 	int dx = 0, dy = 0;
 
 	nullpo_ret(src);
+	nullpo_ret(target);
+
+	if( !count )
+		return count; //Actual knockback distance is 0
 
 	if( src != target && (map_flag_gvg(target->m) || map[target->m].flag.battleground) )
-		return 0; //No knocking back in WoE
-
-	if( count == 0 )
-		return 0; //Actual knockback distance is 0.
+		return ((flag&0x04) ? count : 0); //No knocking back in WoE
 
 	switch( target->type ) {
 		case BL_MOB: {
 				struct mob_data* md = BL_CAST(BL_MOB, target);
 
 				if( md->mob_id == MOBID_EMPERIUM )
-					return 0;
+					return count;
 				//Bosses can't be knocked-back
 				if( src != target && status_get_mode(target)&(MD_KNOCKBACK_IMMUNE|MD_BOSS) )
-					return 0;
+					return ((flag&0x08) ? count : 0);
 			}
 			break;
 		case BL_PC: {
 				struct map_session_data *sd = BL_CAST(BL_PC, target);
 
 				if( sd->sc.data[SC_BASILICA] && sd->sc.data[SC_BASILICA]->val4 == sd->bl.id && !is_boss(src))
-					return 0; //Basilica caster can't be knocked-back by normal monsters.
+					return ((flag&0x20) ? count : 0); //Basilica caster can't be knocked-back by normal monsters.
 				if( !(flag&0x2) && src != target && sd->special_state.no_knockback )
-					return 0;
+					return ((flag&0x10) ? count : 0);
 			}
 			break;
 		case BL_SKILL: {
@@ -2332,7 +2344,7 @@ int skill_blown(struct block_list* src, struct block_list* target, int count, in
 						case UNT_ELECTRICSHOCKER:
 						case UNT_REVERBERATION:
 						case UNT_POEMOFNETHERWORLD:
-							return 0; //Cannot be knocked back
+							return count; //Cannot be knocked back
 					}
 				}
 			}
@@ -3046,7 +3058,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	//Only knockback if it's still alive, otherwise a "ghost" is left behind. [Skotlex]
 	//Reflected spells do not bounce back (bl == dsrc since it only happens for direct skills)
 	if (dmg.blewcount > 0 && bl != dsrc && !status_isdead(bl)) {
-		int8 dir = -1; //Default
+		int8 dir = -1; //Default direction
 
 		switch (skill_id) { //Direction
 			case MC_CARTREVOLUTION:
@@ -3056,7 +3068,6 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			case MG_FIREWALL:
 			case PR_SANCTUARY:
 			case SC_TRIANGLESHOT:
-			case SR_KNUCKLEARROW:
 			case GN_WALLOFTHORN:
 			case EL_FIRE_MANTLE:
 				dir = unit_getdir(bl); //Backwards
@@ -3068,23 +3079,36 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			case WL_CRIMSONROCK:
 				dir = map_calc_dir(bl, skill_area_temp[4], skill_area_temp[5]);
 				break;
+			//Direction between target to actual attacker location instead of the unit location (bugreport:1709)
+			case AC_SHOWER:
+				if (dsrc != src)
+					dir = map_calc_dir(bl, src->x, src->y);
+				break;
 		}
 		//Blown-specific handling
 		switch (skill_id) {
 			case LG_OVERBRAND_BRANDISH:
-				if (skill_blown(dsrc, bl, dmg.blewcount, dir, 0) < dmg.blewcount)
+				//Give knockback damage bonus only hits the wall. (bugreport:9096)
+				if (skill_blown(dsrc, bl, dmg.blewcount, dir, 0x04|0x08|0x10|0x20) < dmg.blewcount)
 					skill_addtimerskill(src, tick + status_get_amotion(src), bl->id, 0, 0, LG_OVERBRAND_PLUSATK, skill_lv, BF_WEAPON, flag|SD_ANIMATION);
 				break;
 			case SR_KNUCKLEARROW:
 				if (!(flag&4)) {
-					short i = skill_blown(dsrc, bl, dmg.blewcount, dir, 0);
+					short x = bl->x, y = bl->y;
 
-					if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src,bl->x,bl->y,1,1)) {
+					//Ignore knockback damage bonus if in WOE (player cannot be knocked in WOE)
+					//Boss & Immune Knockback (mode or from bonus bNoKnockBack) target still remains the damage bonus
+					//(bugreport:9096)
+					if (skill_blown(dsrc, bl, dmg.blewcount, dir_ka, 0x04) < dmg.blewcount)
+						skill_addtimerskill(src, tick + 300 * ((flag&2) ? 1 : 2), bl->id, 0, 0, skill_id, skill_lv, BF_WEAPON, flag|4);
+
+					dir_ka = -1;
+
+					//Move attacker to the target position after knocked back
+					if ((bl->x != x || bl->y != y) && unit_movepos(src,bl->x,bl->y,1,1)) {
 						clif_slide(src,bl->x,bl->y);
 						clif_fixpos(src);
 					}
-					if (i < dmg.blewcount)
-						skill_addtimerskill(src, tick + 300 * ((flag&2) ? 1 : 2), bl->id, 0, 0, skill_id, skill_lv, BF_WEAPON, flag|4);
 				}
 				break;
 			case RL_R_TRIP:
@@ -3728,6 +3752,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 							break;
 						}
 					}
+				//Fall through
 				default:
 					skill_attack(skl->type,src,src,target,skl->skill_id,skl->skill_lv,tick,skl->flag);
 					break;
@@ -5062,6 +5087,14 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case SR_KNUCKLEARROW:
+			//Holds current direction of bl/target to src/attacker before the src is moved to bl location
+			dir_ka = map_calc_dir(bl, src->x, src->y);
+
+			//Has slide effect even in GVG
+			if (unit_movepos(src,bl->x,bl->y,1,1)) {
+				clif_slide(src,bl->x,bl->y);
+				clif_fixpos(src);
+			}
 			skill_addtimerskill(src,tick,bl->id,0,0,skill_id,skill_lv,BF_WEAPON,flag|SD_LEVEL|2);
 			break;
 
@@ -6020,7 +6053,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_SKILL|BL_CHAR,
 				src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 			clif_skill_nodamage (src,src,skill_id,skill_lv,1);
-			//Initiate 10% of your damage becomes fire element.
+			//Initiate 20% of your damage becomes fire element.
 			sc_start4(src,src,SC_WATK_ELEMENT,100,3,20,0,0,skill_get_time2(skill_id,skill_lv));
 			if( sd )
 				skill_blockpc_start(sd,skill_id,skill_get_time(skill_id,skill_lv));
@@ -9203,149 +9236,124 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case LG_SHIELDSPELL:
-			if( flag&1 )
-				sc_start(src,bl,SC_SILENCE,100,skill_lv,sd->bonus.shieldmdef * 30000);
-			 else if( sd ) {
-				int opt = 0, val = 0, splashrange = 0;
-				struct item_data *shield_data = sd->inventory_data[sd->equip_index[EQI_HAND_L]];
+			if( sd ) {
+				int opt = 0;
+				short index = sd->equip_index[EQI_HAND_L], shield_def = 0, shield_mdef = 0, shield_refine = 0;
+				struct item_data *shield_data = NULL;
 
-				//Skill will first check if a shield is equipped. If none is found on the caster the skill will fail.
-				if( !shield_data || shield_data->type != IT_ARMOR ) {
-					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+				if( index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR )
+					shield_data = sd->inventory_data[index];
+				if( !shield_data || shield_data->type != IT_ARMOR ) //Group with 'skill_unconditional' gets these as default
+					shield_def = shield_mdef = shield_refine = 10;
+				else {
+					shield_def = shield_data->def;
+					shield_mdef = sd->bonus.shieldmdef;
+					shield_refine = sd->status.inventory[sd->equip_index[EQI_HAND_L]].refine;
+				}
+				if( flag&1 ) {
+					sc_start(src,bl,SC_SILENCE,100,skill_lv,shield_mdef * 30000);
 					break;
 				}
-				//Generates a number between 1 - 3. The number generated will determine which effect will be triggered.
-				opt = rnd()%3 + 1;
+
+				opt = rnd()%3 + 1; //Generates a number between 1 - 3. The number generated will determine which effect will be triggered.
 				switch( skill_lv ) {
-					case 1: {
-							if( shield_data->def >= 0 && shield_data->def <=
+					case 1: { //DEF Based
+							int splashrange = 0;
+
 #ifdef RENEWAL
-								40
+							if( shield_def >= 0 && shield_def <= 40 )
 #else
-								4
+							if( shield_def >= 0 && shield_def <= 4 )
 #endif
-								)
 								splashrange = 1;
-							else if( shield_data->def >=
 #ifdef RENEWAL
-								41
+							else if( shield_def >= 41 && shield_def <= 80 )
 #else
-								5
-#endif							
-								&& shield_data->def <=
-#ifdef RENEWAL
-								80
-#else
-								9
+							else if( shield_def >= 5 && shield_def <= 9 )
 #endif
-								)
 								splashrange = 2;
 							else
 								splashrange = 3;
 							switch( opt ) {
-								case 1:
-									sc_start(src,bl,SC_SHIELDSPELL_DEF,100,opt,INVALID_TIMER); //Splash AoE ATK
+								case 1: //Splash AoE ATK
+									sc_start(src,bl,SC_SHIELDSPELL_DEF,100,opt,INVALID_TIMER);
 									clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 									map_foreachinrange(skill_area_sub,src,splashrange,BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 									status_change_end(bl,SC_SHIELDSPELL_DEF,INVALID_TIMER);
 									break;
-								case 2:
-									//% Damage Reflecting Increase.
-									val = shield_data->def
+								case 2: //% Damage Reflecting Increase
 #ifdef RENEWAL
-										/ 10;
+									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,shield_def / 10,shield_def * 1000);
 #else
-										;
-#endif
-#ifdef RENEWAL
-									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def * 1000);
-#else
-									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def * 1000 * 10);
+									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,shield_def,shield_def * 1000 * 10);
 #endif
 									break;
-								case 3:
-									//Equipment Attack Increase.
-									val = shield_data->def
+								case 3: //Equipment Attack Increase
 #ifdef RENEWAL
-										;
+									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,shield_def,shield_def * 3000);
 #else
-										* 10;
-#endif
-#ifdef RENEWAL
-									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def * 3000);
-#else
-									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,val,shield_data->def * 3000 * 10);
+									sc_start2(src,bl,SC_SHIELDSPELL_DEF,100,opt,shield_def * 10,shield_def * 3000 * 10);
 #endif
 									break;
 							}
 						}
 						break;
+					case 2: { //MDEF Based
+							int splashrange = 0;
 
-					case 2: {
-							if( !sd->bonus.shieldmdef )
+							if( shield_mdef )
 								break; //Nothing should happen if the shield has no MDEF, not even displaying a message
-							if( sd->bonus.shieldmdef >= 1 && sd->bonus.shieldmdef <= 3 )
+							if( shield_mdef >= 1 && shield_mdef <= 3 )
 								splashrange = 1;
-							else if( sd->bonus.shieldmdef >= 4 && sd->bonus.shieldmdef <= 5 )
+							else if( shield_mdef >= 4 && shield_mdef <= 5 )
 								splashrange = 2;
 							else
 								splashrange = 3;
 							switch( opt ) {
-								case 1:
-									sc_start(src,bl,SC_SHIELDSPELL_MDEF,100,opt,INVALID_TIMER); //Splash AoE MATK
+								case 1: //Splash AoE MATK
+									sc_start(src,bl,SC_SHIELDSPELL_MDEF,100,opt,INVALID_TIMER);
 									clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 									map_foreachinrange(skill_area_sub,src,splashrange,BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 									status_change_end(bl,SC_SHIELDSPELL_MDEF,INVALID_TIMER);
 									break;
-								case 2:
-									sc_start(src,bl,SC_SHIELDSPELL_MDEF,100,opt,sd->bonus.shieldmdef * 2000); //Splash AoE Lex Divina
+								case 2: //Splash AoE Lex Divina
+									sc_start(src,bl,SC_SHIELDSPELL_MDEF,100,opt,shield_mdef * 2000);
 									clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,6);
 									map_foreachinrange(skill_area_sub,src,splashrange,BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
 									break;
-								case 3:
-									if( sc_start(src,bl,SC_SHIELDSPELL_MDEF,100,opt,sd->bonus.shieldmdef * 30000) ) //Magnificat
+								case 3: //Casts Magnificat
+									if( sc_start(src,bl,SC_SHIELDSPELL_MDEF,100,opt,shield_mdef * 30000) )
 										clif_skill_nodamage(src,bl,PR_MAGNIFICAT,skill_lv,
-										sc_start(src,bl,SC_MAGNIFICAT,100,1,sd->bonus.shieldmdef * 30000));
+											sc_start(src,bl,SC_MAGNIFICAT,100,1,shield_mdef * 30000));
 									break;
 							}
 						}
 						break;
-
-					case 3: {
-							int val_def = 0;
-							struct item *shield = &sd->status.inventory[sd->equip_index[EQI_HAND_L]];
-
-							if( !shield->refine )
-								break; //Nothing should happen if the shield has no refine, not even displaying a message
-							switch( opt ) {
-								case 1:
-									//Allows you to break armor at a 100% rate when you do damage.
-									sc_start(src,bl,SC_SHIELDSPELL_REF,100,opt,shield->refine * 30000);
-									break;
-								case 2:
-									//Increases DEF and Status Effect resistance depending on Shield refine rate.
-									val = (shield->refine * 2) + (sstatus->luk / 10);
-									val_def = shield->refine
-#ifdef RENEWAL
-										* 10 * status_get_lv(src) / 100;
-#else
-										;
-#endif
-									sc_start4(src,bl,SC_SHIELDSPELL_REF,100,opt,val_def,val,0,shield->refine * 20000);
-									break;
-								case 3:
-									sc_start(src,bl,SC_SHIELDSPELL_REF,100,opt,INVALID_TIMER); //HP Recovery.
-									val = sstatus->max_hp * ((status_get_lv(src) / 10) + (shield->refine + 1)) / 100;
-									status_heal(bl,val,0,2);
-									status_change_end(bl,SC_SHIELDSPELL_REF,INVALID_TIMER);
+					case 3: //Refine Based
+						if( shield_refine )
+							break; //Nothing should happen if the shield has no refine, not even displaying a message
+						switch( opt ) {
+							case 1: //Allows you to break armor at a 100% rate when you do damage.
+								sc_start(src,bl,SC_SHIELDSPELL_REF,100,opt,shield_refine * 30000);
 								break;
-							}
+							case 2: //Increases DEF and Status Effect resistance depending on Shield refine rate.
+#ifdef RENEWAL
+								sc_start4(src,bl,SC_SHIELDSPELL_REF,100,opt,shield_refine * 10 * status_get_lv(src) / 100,(shield_refine * 2) + (sstatus->luk / 10),0,shield_refine * 20000);
+#else
+								sc_start4(src,bl,SC_SHIELDSPELL_REF,100,opt,shield_refine,(shield_refine * 2) + (sstatus->luk / 10),0,shield_refine * 20000);
+#endif
+								break;
+							case 3: //Recovers HP depending on Shield refine rate.
+								sc_start(src,bl,SC_SHIELDSPELL_REF,100,opt,INVALID_TIMER); //HP Recovery.
+								status_heal(bl,sstatus->max_hp * ((status_get_lv(src) / 10) + (shield_refine + 1)) / 100,0,2);
+								status_change_end(bl,SC_SHIELDSPELL_REF,INVALID_TIMER);
+								break;
 						}
 						break;
-					}
-					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				}
-				break;
+				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+			}
+			break;
 
 		case LG_PIETY:
 			if( flag&1 )
@@ -11764,7 +11772,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 						case 6: sx = x + i; break;
 						case 7: sy = y + i; sx = x + i; break;
 					}
-					skill_addtimerskill(src,gettick() + (140 * i),0,sx,sy,skill_id,skill_lv,dir,flag);
+					skill_addtimerskill(src,gettick() + (40 * i),0,sx,sy,skill_id,skill_lv,dir,flag);
 				}
 			}
 			break;
@@ -13969,10 +13977,10 @@ int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 /*==========================================
  * Checks and stores partners for ensemble skills [Skotlex]
  *------------------------------------------*/
-int skill_check_pc_partner (struct map_session_data *sd, uint16 skill_id, uint16 *skill_lv, int range, int cast_flag)
+int skill_check_pc_partner(struct map_session_data *sd, uint16 skill_id, uint16 *skill_lv, int range, int cast_flag)
 {
 	static int c = 0;
-	static int p_sd[2] = { 0, 0 };
+	static int p_sd[2] = { 0,0 };
 	int i;
 	bool is_chorus = (skill_get_inf2(skill_id)&INF2_CHORUS_SKILL);
 
@@ -14630,6 +14638,19 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 			else {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_SKILLINTERVAL,0);
 				return false;
+			}
+			break;
+		case LG_SHIELDSPELL: {
+				short index = sd->equip_index[EQI_HAND_L];
+				struct item_data *shield_data = NULL;
+
+				if( index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR )
+					shield_data = sd->inventory_data[index];
+				//Skill will first check if a shield is equipped. If none is found the skill will fail.
+				if( !shield_data || shield_data->type != IT_ARMOR ) {
+					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+					break;
+				}
 			}
 			break;
 		case LG_RAYOFGENESIS:

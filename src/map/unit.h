@@ -73,8 +73,8 @@ struct view_data {
 
 // PC, MOB, PET
 // Does walk action for unit
-int unit_walktoxy(struct block_list *bl, short x, short y, int easy);
-int unit_walktobl(struct block_list *bl, struct block_list *target, int range, int easy);
+int unit_walktoxy(struct block_list *bl, short x, short y, unsigned char flag);
+int unit_walktobl(struct block_list *bl, struct block_list *tbl, int range, unsigned char flag);
 void unit_run_hit(struct block_list *bl, struct status_change *sc, struct map_session_data *sd, enum sc_type type);
 bool unit_run(struct block_list *bl, struct map_session_data *sd, enum sc_type type);
 int unit_calc_pos(struct block_list *bl, int tx, int ty, uint8 dir);

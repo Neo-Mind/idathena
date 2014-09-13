@@ -3467,7 +3467,7 @@ void clif_arrow_fail(struct map_session_data *sd,int type)
 /// 01ad <packet len>.W { <name id>.W }*
 void clif_arrow_create_list(struct map_session_data *sd)
 {
-	int i, c, j;
+	int i, c;
 	int fd;
 
 	nullpo_retv(sd);
@@ -3477,6 +3477,8 @@ void clif_arrow_create_list(struct map_session_data *sd)
 	WFIFOW(fd,0) = 0x1ad;
 
 	for (i = 0, c = 0; i < MAX_SKILL_ARROW_DB; i++) {
+		short j;
+
 		if (skill_arrow_db[i].nameid > 0 && (j = pc_search_inventory(sd, skill_arrow_db[i].nameid)) != INDEX_NOT_FOUND &&
 			!sd->status.inventory[j].equip && sd->status.inventory[j].identify) {
 			if ((j = itemdb_viewid(skill_arrow_db[i].nameid)) > 0)
@@ -6208,7 +6210,6 @@ void clif_item_repair_list(struct map_session_data *sd, struct map_session_data 
 {
 	int i, c;
 	int fd;
-	unsigned short nameid;
 
 	nullpo_retv(sd);
 	nullpo_retv(dstsd);
@@ -6218,6 +6219,8 @@ void clif_item_repair_list(struct map_session_data *sd, struct map_session_data 
 	WFIFOHEAD(fd,MAX_INVENTORY * 13 + 4);
 	WFIFOW(fd,0) = 0x1fc;
 	for (i = c = 0; i < MAX_INVENTORY; i++) {
+		unsigned short nameid;
+
 		if ((nameid = dstsd->status.inventory[i].nameid) > 0 && dstsd->status.inventory[i].attribute != 0) { //&& skill_can_repair(sd,nameid)) {
 			WFIFOW(fd,c * 13 + 4) = i;
 			WFIFOW(fd,c * 13 + 6) = nameid;
@@ -6281,7 +6284,6 @@ void clif_item_refine_list(struct map_session_data *sd)
 	int i, c;
 	int fd;
 	uint16 skill_lv;
-	int wlv;
 	int refine_item[5];
 
 	nullpo_retv(sd);
@@ -6298,6 +6300,8 @@ void clif_item_refine_list(struct map_session_data *sd)
 	WFIFOHEAD(fd,MAX_INVENTORY * 13 + 4);
 	WFIFOW(fd,0) = 0x221;
 	for (i = c = 0; i < MAX_INVENTORY; i++) {
+		unsigned char wlv;
+
 		if (sd->status.inventory[i].nameid > 0 && sd->status.inventory[i].refine < skill_lv &&
 			sd->status.inventory[i].identify && (wlv = itemdb_wlv(sd->status.inventory[i].nameid)) >=1 &&
 			refine_item[wlv] != -1 && !(sd->status.inventory[i].equip&EQP_ARMS)) {
@@ -12796,10 +12800,11 @@ static bool clif_validate_emblem(const uint8* emblem, unsigned long emblem_len) 
 		return -1;
 
 	if( battle_config.emblem_transparency_limit != 100 ) {
-		int i, j, transcount = 1, tmp[3];
+		int i, transcount = 1, tmp[3];
 
 		for( i = offset; i < buf_len - 1; i++ ) {
-			j = i%3;
+			int j = i%3;
+
 			tmp[j] = RBUFL(buf,i);
 			if( j == 2 && (tmp[0] == 0xFFFF00FF) && (tmp[1] == 0xFFFF00) && (tmp[2] == 0xFF00FFFF) ) // If pixel is transparent
 				transcount++;
@@ -14830,7 +14835,6 @@ void clif_Auction_results(struct map_session_data *sd, short count, short pages,
 	int i, fd = sd->fd, len = sizeof(struct auction_data);
 	struct auction_data auction;
 	struct item_data *item;
-	int k;
 
 	WFIFOHEAD(fd,12 + (count * 83));
 	WFIFOW(fd,0) = 0x252;
@@ -14839,8 +14843,9 @@ void clif_Auction_results(struct map_session_data *sd, short count, short pages,
 	WFIFOL(fd,8) = count;
 
 	for( i = 0; i < count; i++ ) {
+		int k = 12 + (i * 83);
+
 		memcpy(&auction, RBUFP(buf,i * len), len);
-		k = 12 + (i * 83);
 
 		WFIFOL(fd,k) = auction.auction_id;
 		safestrncpy((char*)WFIFOP(fd,4 + k), auction.seller_name, NAME_LENGTH);
@@ -15590,7 +15595,6 @@ void clif_quest_add(struct map_session_data *sd, struct quest *qd)
 {
 	int fd = sd->fd;
 	int i;
-	struct mob_db *mob;
 	struct quest_db *qi = quest_db(qd->quest_id);
 
 	WFIFOHEAD(fd,packet_len(0x2b3));
@@ -15602,6 +15606,8 @@ void clif_quest_add(struct map_session_data *sd, struct quest *qd)
 	WFIFOW(fd,15) = qi->num_objectives;
 
 	for( i = 0; i < qi->num_objectives; i++ ) {
+		struct mob_db *mob;
+
 		WFIFOL(fd,i * 30 + 17) = qi->mob[i];
 		WFIFOW(fd,i * 30 + 21) = qd->count[i];
 		mob = mob_db(qi->mob[i]);
@@ -17267,7 +17273,6 @@ void clif_parse_client_version(int fd, struct map_session_data *sd) {
 /// Ranking list
 /// Ranking pointlist { <name>.24B <point>.L }*10
 void clif_sub_ranklist(unsigned char *buf, int idx, struct map_session_data* sd, int16 rankingtype) {
-	const char* name;
 	struct fame_list* list;
 	int skip = 0;
 
@@ -17284,6 +17289,8 @@ void clif_sub_ranklist(unsigned char *buf, int idx, struct map_session_data* sd,
 		//Packet size limits this list to 10 elements. [Skotlex]
 		for(i = 0; i < min(10, MAX_FAME_LIST); i++) {
 			if(list[i].id > 0) {
+				const char* name;
+
 				if(strcmp(list[i].name, "-") == 0 && (name = map_charid2nick(list[i].id)) != NULL)
 					strncpy((char *)(WBUFP(buf,idx + 24 * i)), name, NAME_LENGTH);
 				else

@@ -3474,7 +3474,7 @@ int parse_console(const char* buf) {
  *------------------------------------------*/
 int map_config_read(char *cfgName)
 {
-	char line[1024], w1[1024], w2[1024];
+	char line[1024], w1[32], w2[1024];
 	FILE *fp;
 
 	fp = fopen(cfgName,"r");
@@ -3490,7 +3490,7 @@ int map_config_read(char *cfgName)
 			continue;
 		if ((ptr = strstr(line, "//")) != NULL)
 			*ptr = '\n'; //Strip comments
-		if (sscanf(line, "%1023[^:]: %1023[^\t\r\n]", w1, w2) < 2)
+		if (sscanf(line, "%31[^:]: %1023[^\t\r\n]", w1, w2) < 2)
 			continue;
 
 		//Strip trailing spaces
@@ -3626,7 +3626,7 @@ void map_reloadnpc(bool clear)
 
 int inter_config_read(char *cfgName)
 {
-	char line[1024],w1[1024],w2[1024];
+	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
 
 	fp = fopen(cfgName, "r");

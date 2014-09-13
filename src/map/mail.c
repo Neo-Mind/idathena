@@ -68,7 +68,7 @@ bool mail_setitem(struct map_session_data *sd, short idx, unsigned short amount)
 		return false;
 
 	if( !idx ) { //Zeny Transfer
-		if( amount < 0 || !pc_can_give_items(sd) )
+		if( !pc_can_give_items(sd) )
 			return false;
 
 		if( amount > sd->status.zeny )
@@ -83,7 +83,7 @@ bool mail_setitem(struct map_session_data *sd, short idx, unsigned short amount)
 
 		if( idx < 0 || idx >= MAX_INVENTORY )
 			return false;
-		if( amount < 0 || amount > sd->status.inventory[idx].amount )
+		if( amount > sd->status.inventory[idx].amount )
 			return false;
 		if( !pc_can_give_items(sd) || sd->status.inventory[idx].expire_time ||
 			!itemdb_available(sd->status.inventory[idx].nameid) ||

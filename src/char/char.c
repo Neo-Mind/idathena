@@ -2679,6 +2679,7 @@ int parse_fromlogin(int fd) {
 				{
 					int aid = RFIFOL(fd,2);
 					struct online_char_data* character = (struct online_char_data*)idb_get(online_char_db, aid);
+
 					RFIFOSKIP(fd,6);
 					if( character != NULL ) { // Account is already marked as online!
 						if( character->server > -1 ) { // Kick it from the map server it is on.
@@ -2688,6 +2689,7 @@ int parse_fromlogin(int fd) {
 						} else { // Manual kick from char server.
 							struct char_session_data *tsd;
 							int i;
+
 							ARR_FIND( 0, fd_max, i, session[i] && (tsd = (struct char_session_data*)session[i]->session_data) && tsd->account_id == aid );
 							if( i < fd_max ) {
 								WFIFOHEAD(i,3);

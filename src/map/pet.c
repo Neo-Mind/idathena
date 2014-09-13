@@ -1003,11 +1003,12 @@ static int pet_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 
 static int pet_delay_item_drop(int tid, unsigned int tick, int id, intptr_t data)
 {
-	struct item_drop_list *list;
-	struct item_drop *ditem, *ditem_prev;
-	list=(struct item_drop_list *)data;
-	ditem = list->item;
+	struct item_drop_list *list = (struct item_drop_list *)data;
+	struct item_drop *ditem = list->item;
+
 	while (ditem) {
+		struct item_drop *ditem_prev;
+
 		map_addflooritem(&ditem->item_data,ditem->item_data.amount,
 			list->m,list->x,list->y,
 			list->first_charid,list->second_charid,list->third_charid,4);
@@ -1231,9 +1232,8 @@ int pet_skill_support_timer(int tid, unsigned int tick, int id, intptr_t data)
 void read_petdb()
 {
 	char* filename[] = { "pet_db.txt","pet_db2.txt" };
-	FILE *fp;
 	unsigned short nameid;
-	int i, j, k;
+	int i, j;
 
 	// Remove any previous scripts in case reloaddb was invoked.
 	for( j = 0; j < MAX_PET_DB; j++ ) {
@@ -1254,18 +1254,21 @@ void read_petdb()
 	for( i = 0; i < ARRAYLENGTH(filename); i++ ) {
 		char line[1024];
 		int lines, entries;
+		FILE *fp;
 
 		sprintf(line, "%s/%s", db_path, filename[i]);
 		fp = fopen(line,"r");
 		if( fp == NULL ) {
 			if( i == 0 )
-				ShowError("can't read %s\n",line);
+				ShowError("Can't read %s\n",line);
 			continue;
 		}
 
 		lines = entries = 0;
 		while( fgets(line, sizeof(line), fp) && j < MAX_PET_DB ) {
 			char *str[22], *p;
+			unsigned k;
+
 			lines++;
 
 			if( line[0] == '/' && line[1] == '/' )

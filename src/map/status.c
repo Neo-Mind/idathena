@@ -2634,6 +2634,8 @@ static int status_get_hpbonus(struct block_list *bl, enum e_status_bonus type) {
 			if(sc->data[SC_EQC])
 				bonus -= sc->data[SC_EQC]->val4;
 		}
+		// Max rate reduce is -100%
+		bonus = cap_value(bonus,-100,INT_MAX);
 	}
 
 	return min(bonus,INT_MAX);
@@ -2706,6 +2708,8 @@ static int status_get_spbonus(struct block_list *bl, enum e_status_bonus type) {
 			if(sc->data[SC_LIFE_FORCE_F])
 				bonus += sc->data[SC_LIFE_FORCE_F]->val1;
 		}
+		// Max rate reduce is -100%
+		bonus = cap_value(bonus,-100,INT_MAX);
 	}
 
 	return min(bonus,INT_MAX);

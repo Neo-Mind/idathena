@@ -3808,6 +3808,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 				else if(battle_calc_chorusbonus(sd,0) == 5)
 					skillratio += 1600;
 			}
+			RE_LVL_DMOD(100);
 			break;
 		case WM_SOUND_OF_DESTRUCTION:
 			skillratio += -100 + 1000 * skill_lv + (sd ? pc_checkskill(sd,WM_LESSON) * sstatus->int_ : 0);
@@ -4108,9 +4109,8 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 	//The following are applied on top of current damage and are stackable.
 	if(sc) {
 #ifdef RENEWAL
-		if(sc->data[SC_WATK_ELEMENT])
-			if(skill_id != ASC_METEORASSAULT)
-				ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sc->data[SC_WATK_ELEMENT]->val2);
+		if(sc->data[SC_WATK_ELEMENT] && skill_id != ASC_METEORASSAULT)
+			ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sc->data[SC_WATK_ELEMENT]->val2);
 		if(sc->data[SC_IMPOSITIO])
 			ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_IMPOSITIO]->val2);
 		if(sc->data[SC_VOLCANO])
