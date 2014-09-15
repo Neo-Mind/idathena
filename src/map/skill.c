@@ -13498,8 +13498,6 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 		case UNT_WALLOFTHORN: {
 				struct Damage wd = battle_calc_weapon_attack(ss,bl,skill_id,skill_lv,0);
 
-				if (unit->val2-- <= 0) //Max hit reached
-					break;
 				if (status_get_mode(bl)&MD_BOSS)
 					break; //This skill doesn't affect to Boss monsters. [iRO Wiki]
 				if (battle_check_target(ss,bl,BCT_ENEMY) <= 0)

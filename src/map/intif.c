@@ -355,12 +355,12 @@ int intif_wis_message_to_gm(char *wisp_name, int permission, char *mes)
 		return 0;
 
 	mes_len = strlen(mes) + 1; //+ null
-	WFIFOHEAD(inter_fd, mes_len + 32);
+	WFIFOHEAD(inter_fd,mes_len + 8 + NAME_LENGTH);
 	WFIFOW(inter_fd,0) = 0x3003;
 	WFIFOW(inter_fd,2) = mes_len + 32;
 	memcpy(WFIFOP(inter_fd,4), wisp_name, NAME_LENGTH);
-	WFIFOL(inter_fd,4+NAME_LENGTH) = permission;
-	memcpy(WFIFOP(inter_fd,8+NAME_LENGTH), mes, mes_len);
+	WFIFOL(inter_fd,4 + NAME_LENGTH) = permission;
+	memcpy(WFIFOP(inter_fd,8 + NAME_LENGTH), mes, mes_len);
 	WFIFOSET(inter_fd, WFIFOW(inter_fd,2));
 
 	if (battle_config.etc_log)
@@ -1337,12 +1337,12 @@ int mapif_parse_WisToGM(int fd)
 	char Wisp_name[NAME_LENGTH];
 	char *message;
 
-	mes_len =  RFIFOW(fd,2) - 32;
+	mes_len =  RFIFOW(fd,2) - 8 + NAME_LENGTH;
 	message = (char *)aMalloc(mes_len);
 
-	permission = RFIFOL(fd,28);
+	permission = RFIFOL(fd,4 + NAME_LENGTH);
 	safestrncpy(Wisp_name, (char*)RFIFOP(fd,4), NAME_LENGTH);
-	safestrncpy(message, (char*)RFIFOP(fd,32), mes_len);
+	safestrncpy(message, (char*)RFIFOP(fd,8 + NAME_LENGTH), mes_len);
 	//Information is sent to all online GM
 	map_foreachpc(mapif_parse_WisToGM_sub, permission, Wisp_name, message, mes_len);
 
@@ -2975,7 +2975,7 @@ void intif_itembound_req(int char_id,int aid,int guild_id) {
 }
 
 /**
- * Acknoledge the good deletion of the bound item
+ * Acknowledge the good deletion of the bound item
  * (unlock the guild storage)
  * @struct : 0x3856 <aid>.L <gid>.W
  * @param fd : Char-serv link
@@ -3055,10 +3055,6 @@ int intif_parse(int fd)
 		case 0x3840:	intif_parse_GuildCastleDataLoad(fd); break;
 		case 0x3843:	intif_parse_GuildMasterChanged(fd); break;
 
-		//Quest system
-		case 0x3860:	intif_parse_questlog(fd); break;
-		case 0x3861:	intif_parse_questsave(fd); break;
-
 		//Mail System
 		case 0x3848:	intif_parse_Mail_inboxreceived(fd); break;
 		case 0x3849:	intif_parse_Mail_new(fd); break;
@@ -3078,6 +3074,10 @@ int intif_parse(int fd)
 #ifdef BOUND_ITEMS
 		case 0x3856:	intif_parse_itembound_ack(fd); break;
 #endif
+
+		//Quest system
+		case 0x3860:	intif_parse_questlog(fd); break;
+		case 0x3861:	intif_parse_questsave(fd); break;
 
 		//Mercenary System
 		case 0x3870:	intif_parse_mercenary_received(fd); break;

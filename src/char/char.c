@@ -2382,6 +2382,7 @@ void loginif_on_ready(void)
 int loginif_parse_reqpincode(int fd, struct char_session_data *sd) {
 #if PACKETVER >=  20110309
 	if( pincode_enabled ) { // PIN code system enabled
+		ShowInfo("Asking to start pincode to AID: %d\n", sd->account_id);
 		if( sd->pincode[0] == '\0' ) { // No PIN code has been set yet
 			if( pincode_force )
 				pincode_sendstate(fd, sd, PINCODE_NEW);
@@ -5087,6 +5088,7 @@ void pincode_change(int fd, struct char_session_data* sd) {
 
 	pincode_notifyLoginPinUpdate(sd->account_id,newpin);
 	strncpy(sd->pincode,newpin,sizeof(newpin));
+	ShowInfo("Pincode changed for AID: %d\n",sd->account_id);
 
 	pincode_sendstate(fd,sd,PINCODE_PASSED);
 }
@@ -5124,11 +5126,14 @@ void pincode_sendstate(int fd, struct char_session_data* sd, uint16 state) {
 }
 
 void pincode_notifyLoginPinUpdate(int account_id, char* pin) {
-	WFIFOHEAD(login_fd,11);
+	int size = 8 + PINCODE_LENGTH + 1;
+
+	WFIFOHEAD(login_fd,size);
 	WFIFOW(login_fd,0) = 0x2738;
-	WFIFOL(login_fd,2) = account_id;
-	strncpy((char*)WFIFOP(login_fd,6),pin,PINCODE_LENGTH + 1);
-	WFIFOSET(login_fd,11);
+	WFIFOW(login_fd,2) = size;
+	WFIFOL(login_fd,4) = account_id;
+	strncpy((char*)WFIFOP(login_fd,8),pin,PINCODE_LENGTH + 1);
+	WFIFOSET(login_fd,size);
 }
 
 void pincode_notifyLoginPinError(int account_id) {

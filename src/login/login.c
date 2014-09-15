@@ -967,17 +967,17 @@ int parse_fromchar(int fd) {
 				break;
 
 			case 0x2738: //Change PIN Code for a account
-				if( RFIFOREST(fd) < 11 )
+				if( RFIFOREST(fd) < 8 + PINCODE_LENGTH + 1 )
 					return 0;
 				else {
 					struct mmo_account acc;
 
-					if( accounts->load_num(accounts, &acc, RFIFOL(fd,2) ) ) {
-						strncpy(acc.pincode, (char*)RFIFOP(fd,6), 5);
-						acc.pincode_change = time( NULL );
+					if( accounts->load_num(accounts, &acc, RFIFOL(fd,4) ) ) {
+						strncpy(acc.pincode, (char*)RFIFOP(fd,8), PINCODE_LENGTH + 1);
+						acc.pincode_change = time(NULL);
 						accounts->save(accounts, &acc);
 					}
-					RFIFOSKIP(fd,11);
+					RFIFOSKIP(fd,8 + PINCODE_LENGTH + 1);
 				}
 				break;
 
