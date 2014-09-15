@@ -367,20 +367,18 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 	}
 
 	if( target && target->type == BL_SKILL ) {
+		//Wall of Thorn damaged by Fire element type attacks (non unit)
 		if( atk_elem == ELE_FIRE && battle_getcurrentskill(target) == GN_WALLOFTHORN ) {
 			struct skill_unit *su = ((struct skill_unit*)target);
 			struct skill_unit_group *sg;
 			struct block_list *src;
 
-			if( !su || !su->alive || (sg = su->group) == NULL || sg->val3 == -1 ||
-				(src = map_id2bl(sg->src_id)) == NULL || status_isdead(src) )
+			if( !su || !su->alive || (sg = su->group) == NULL || (src = map_id2bl(sg->src_id)) == NULL || status_isdead(src) )
 				return 0;
 
-			if( sg->unit_id != UNT_FIREWALL ) {
-				skill_unitsetting(src,sg->skill_id,sg->skill_lv,sg->val3>>16,sg->val3&0xffff,1);
-				sg->val3 = -1;
-				sg->limit = DIFF_TICK(gettick(),sg->tick) + 300;
-			}
+			sg->limit = 0;
+			sg->unit_id = UNT_USED_TRAPS;
+			skill_unitsetting(src,sg->skill_id,sg->skill_lv,sg->val3>>16,sg->val3&0xffff,1);
 		}
 	}
 

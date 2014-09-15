@@ -12408,10 +12408,9 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 			range++;
 			break;
 		case GN_WALLOFTHORN:
-			//Turns to Firewall
-			if( flag&1 )
+			if( flag&1 ) //Turns to Firewall
 				limit = 3000;
-			val3 = (x<<16)|y;
+			val3 = (x<<16)|y; //Firewall coordinates
 			break;
 		case GN_FIRE_EXPANSION_SMOKE_POWDER:
 		case GN_FIRE_EXPANSION_TEAR_GAS:
@@ -12966,8 +12965,8 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 		struct skill_unit *su = (struct skill_unit *)bl;
 
 		if (su && su->group && su->group->unit_id == UNT_WALLOFTHORN) {
-			su->group->limit = sg->limit = 0;
-			su->group->unit_id = sg->unit_id = UNT_USED_TRAPS;
+			su->group->limit = 0;
+			su->group->unit_id = UNT_USED_TRAPS;
 			skill_unitsetting(map_id2bl(su->group->src_id),su->group->skill_id,su->group->skill_lv,su->group->val3>>16,su->group->val3&0xffff,1);
 			return skill_id;
 		}
@@ -17884,7 +17883,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 				}
 				break;
 			case UNT_WALLOFTHORN:
-				if( unit->val1 <= 0 || unit->val2 <= 0 || group->val3 < 0 ) {
+				if( unit->val1 <= 0 ) {
 					group->limit = DIFF_TICK(tick,group->tick);
 					group->unit_id = UNT_USED_TRAPS;
 				}
