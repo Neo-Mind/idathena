@@ -372,16 +372,12 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 			struct skill_unit_group *sg;
 			struct block_list *src;
 
-			if( !su || !su->alive || (sg = su->group) == NULL || !sg || sg->val3 == -1 ||
-			   (src = map_id2bl(sg->src_id)) == NULL || status_isdead(src) )
+			if( !su || !su->alive || (sg = su->group) == NULL || sg->val3 == -1 ||
+				(src = map_id2bl(sg->src_id)) == NULL || status_isdead(src) )
 				return 0;
 
 			if( sg->unit_id != UNT_FIREWALL ) {
-				int x, y;
-
-				x = sg->val3>>16;
-				y = sg->val3&0xffff;
-				skill_unitsetting(src,su->group->skill_id,su->group->skill_lv,x,y,1);
+				skill_unitsetting(src,sg->skill_id,sg->skill_lv,sg->val3>>16,sg->val3&0xffff,1);
 				sg->val3 = -1;
 				sg->limit = DIFF_TICK(gettick(),sg->tick) + 300;
 			}
@@ -7136,7 +7132,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	if (target->type == BL_SKILL && damage > 0) {
 		TBL_SKILL *su = ((TBL_SKILL*)target);
 
-		if (su->group) {
+		if (su && su->group) {
 			if (su->group->skill_id == HT_BLASTMINE)
 				skill_blown(src,target,3,-1,0);
 			if (su->group->skill_id == GN_WALLOFTHORN)

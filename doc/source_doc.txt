@@ -218,10 +218,10 @@ The following list describes each module and its purpose.
 
   Module         Description
   ------         -----------
-  account            persistence for account data
-  ipban              offers IP banishment
-  login              main module of login-serv
-  loginlog           records all operations into log for login-serv
+  account        persistence for account data
+  ipban          offers IP banishment
+  login          main module of login-serv
+  loginlog       records all operations into log for login-serv
 
   =============
   | Char-serv |

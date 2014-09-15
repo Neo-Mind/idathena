@@ -46,8 +46,8 @@ static const int packet_len_table[] = {
 	-1,-1, 7, 3,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3890  Homunculus [albator]
 };
 
-extern int char_fd; // inter server Fd used for char_fd
-#define inter_fd char_fd // alias
+extern int char_fd; //Inter server Fd used for char_fd
+#define inter_fd char_fd //Alias
 
 //-----------------------------------------------------------------
 // Send to inter server
@@ -235,7 +235,7 @@ int intif_broadcast(const char* mes, int len, int type)
  */
 int intif_broadcast2(const char* mes, int len, unsigned long fontColor, short fontType, short fontSize, short fontAlign, short fontY)
 {
-	// Send to the local players
+	//Send to the local players
 	clif_broadcast2(NULL, mes, len, fontColor, fontType, fontSize, fontAlign, fontY, ALL_CLIENT);
 
 	if (CheckForCharServer())
@@ -270,13 +270,13 @@ int intif_main_message(struct map_session_data* sd, const char* message)
 
 	nullpo_ret(sd);
 
-	// Format the message for main broadcasting
+	//Format the message for main broadcasting
 	snprintf(output, sizeof(output), msg_txt(386), sd->status.name, message);
 
-	// Send the message using the inter-server broadcast service
+	//Send the message using the inter-server broadcast service
 	intif_broadcast2(output, strlen(output) + 1, 0xFE000000, 0, 0, 0, 0);
 
-	// Log the chat message
+	//Log the chat message
 	log_chat(LOG_CHAT_MAINCHAT, 0, sd->status.char_id, sd->status.account_id, mapindex_id2name(sd->mapindex), sd->bl.x, sd->bl.y, NULL, message);
 
 	return 1;
@@ -298,7 +298,7 @@ int intif_wis_message(struct map_session_data *sd, char *nick, char *mes, int me
 	if (CheckForCharServer())
 		return 0;
 
-	if (other_mapserver_count < 1) { // Character not found.
+	if (other_mapserver_count < 1) { //Character not found.
 		clif_wis_end(sd->fd, 1);
 		return 0;
 	}
@@ -331,7 +331,7 @@ int intif_wis_replay(int id, int flag)
 	WFIFOHEAD(inter_fd,7);
 	WFIFOW(inter_fd,0) = 0x3002;
 	WFIFOL(inter_fd,2) = id;
-	WFIFOB(inter_fd,6) = flag; // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
+	WFIFOB(inter_fd,6) = flag; //flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
 	WFIFOSET(inter_fd,7);
 
 	if (battle_config.etc_log)
@@ -354,7 +354,7 @@ int intif_wis_message_to_gm(char *wisp_name, int permission, char *mes)
 	if (CheckForCharServer())
 		return 0;
 
-	mes_len = strlen(mes) + 1; // + null
+	mes_len = strlen(mes) + 1; //+ null
 	WFIFOHEAD(inter_fd, mes_len + 32);
 	WFIFOW(inter_fd,0) = 0x3003;
 	WFIFOW(inter_fd,2) = mes_len + 32;
@@ -381,7 +381,7 @@ int intif_regtostr(char* str, struct global_reg *reg, int qty)
 	int len = 0, i;
 
 	for (i = 0; i < qty; i++) {
-		len += sprintf(str+len, "%s", reg[i].str)+1; // We add 1 to consider the '\0' in place.
+		len += sprintf(str+len, "%s", reg[i].str)+1; //We add 1 to consider the '\0' in place.
 		len += sprintf(str+len, "%s", reg[i].value)+1;
 	}
 
@@ -404,22 +404,22 @@ int intif_saveregistry(struct map_session_data *sd, int type)
 		return -1;
 
 	switch (type) {
-		case 3: // Character reg
+		case 3: //Character reg
 			reg = sd->save_reg.global;
 			count = sd->save_reg.global_num;
 			sd->state.reg_dirty &= ~0x4;
 			break;
-		case 2: // Account reg
+		case 2: //Account reg
 			reg = sd->save_reg.account;
 			count = sd->save_reg.account_num;
 			sd->state.reg_dirty &= ~0x2;
 			break;
-		case 1: // Account2 reg
+		case 1: //Account2 reg
 			reg = sd->save_reg.account2;
 			count = sd->save_reg.account2_num;
 			sd->state.reg_dirty &= ~0x1;
 			break;
-		default: // Broken code?
+		default: //Broken code?
 			ShowError("intif_saveregistry: Invalid type %d\n", type);
 			return -1;
 	}
@@ -431,7 +431,7 @@ int intif_saveregistry(struct map_session_data *sd, int type)
 	WFIFOB(inter_fd,12) = type;
 	for( p = 13, i = 0; i < count; i++ ) {
 		if (reg[i].str[0] != '\0' && reg[i].value[0] != '\0') {
-			p += sprintf((char*)WFIFOP(inter_fd,p), "%s", reg[i].str) + 1; // We add 1 to consider the '\0' in place.
+			p += sprintf((char*)WFIFOP(inter_fd,p), "%s", reg[i].str) + 1; //We add 1 to consider the '\0' in place.
 			p += sprintf((char*)WFIFOP(inter_fd,p), "%s", reg[i].value) + 1;
 		}
 	}
@@ -1291,7 +1291,7 @@ int intif_parse_WisEnd(int fd)
 {
 	struct map_session_data* sd;
 
-	if (battle_config.etc_log) // flag: 0: Success to send wisper, 1: Target character is not loged in?, 2: Ignored by target
+	if (battle_config.etc_log) //flag: 0: Success to send wisper, 1: Target character is not loged in?, 2: Ignored by target
 		ShowInfo("intif_parse_wisend: player: %s, flag: %d\n", RFIFOP(fd,2), RFIFOB(fd,26));
 	sd = (struct map_session_data *)map_nick2sd((char *) RFIFOP(fd,2));
 	if (sd != NULL)
@@ -1357,7 +1357,7 @@ int mapif_parse_WisToGM(int fd)
  */
 int intif_parse_Registers(int fd)
 {
-	int j,p,len,max, flag;
+	int j, p, len, max, flag;
 	struct map_session_data *sd;
 	struct global_reg *reg;
 	int *qty;
@@ -1394,7 +1394,7 @@ int intif_parse_Registers(int fd)
 			max = ACCOUNT_REG2_NUM;
 			break;
 		default:
-			ShowError("intif_parse_Registers: Unrecognized type %d\n",	RFIFOB(fd,12));
+			ShowError("intif_parse_Registers: Unrecognized type %d\n", RFIFOB(fd,12));
 			return 0;
 	}
 

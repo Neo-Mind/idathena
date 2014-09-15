@@ -11656,6 +11656,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 				static const int dy[] = { 2, 2, 1, 0,-1,-2,-2,-2,-2,-2,-1, 0, 1, 2, 2, 2};
 				struct unit_data *ud = unit_bl2ud(src);
 
+				if( !ud )
+					break;
 				for( i = 0; i < 16; i++ ) {
 					x = ud->skillx + dx[i];
 					y = ud->skilly + dy[i];
@@ -12959,14 +12961,14 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 	}
 
 	//Wall of Thorn damaged by Fire element unit [Cydh]
-	//@TODO: This check doesn't matter the location, as long as one of units touched, this check will be executed.
+	//NOTE: This check doesn't matter the location, as long as one of units touched, this check will be executed.
 	if (bl->type == BL_SKILL && skill_get_ele(skill_id,skill_lv) == ELE_FIRE) {
 		struct skill_unit *su = (struct skill_unit *)bl;
 
 		if (su && su->group && su->group->unit_id == UNT_WALLOFTHORN) {
-			skill_unitsetting(map_id2bl(su->group->src_id),su->group->skill_id,su->group->skill_lv,su->group->val3>>16,su->group->val3&0xffff,1);
 			su->group->limit = sg->limit = 0;
 			su->group->unit_id = sg->unit_id = UNT_USED_TRAPS;
+			skill_unitsetting(map_id2bl(su->group->src_id),su->group->skill_id,su->group->skill_lv,su->group->val3>>16,su->group->val3&0xffff,1);
 			return skill_id;
 		}
 	}
@@ -12979,7 +12981,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 				int count = 0;
 				const int x = bl->x, y = bl->y;
 
-				if (skill_id == GN_WALLOFTHORN && battle_check_target(ss,bl,sg->target_flag) <= 0)
+				if (skill_id == GN_WALLOFTHORN && battle_check_target(ss,bl,BCT_ENEMY) <= 0)
 					break;
 
 				do //Take into account these hit more times than the timer interval can handle.
@@ -17888,12 +17890,6 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 					group->limit = DIFF_TICK(tick,group->tick);
 					group->unit_id = UNT_USED_TRAPS;
 				}
-				/*if( group->val3 < 0 ) { //Remove if attacked by fire element, turned to Fire Wall
-					skill_delunitgroup(group);
-					break;
-				}
-				if( unit->val1 <= 0 || unit->val2 <= 0 ) //Remove unit only if no HP or hit limit reached
-					skill_delunit(unit);*/
 				break;
 		}
 	}
