@@ -244,7 +244,8 @@ struct map_session_data {
 	int login_id1, login_id2;
 	unsigned short class_;	//This is the internal job ID used by the map server to simplify comparisons/queries/etc. [Skotlex]
 	int group_id, group_pos, group_level;
-	unsigned int permissions;/* Group permissions */
+	unsigned int permissions; //Group permissions
+	int count_rewarp; //Count how many time we being rewarped
 
 	uint32 packet_ver;  //5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 ... 18
 	struct mmo_charstatus status;

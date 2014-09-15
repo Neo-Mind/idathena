@@ -1027,7 +1027,7 @@ static bool pc_isItemClass (struct map_session_data *sd, struct item_data* item)
  * Checks if the player can equip the item at index n in inventory.
  * @param sd
  * @param n Item index in inventory
- * @return True - Can be equipped, False - failed
+ * @return True - Can be equipped, False - Failed
  */
 bool pc_isequip(struct map_session_data *sd, int n)
 {
@@ -1227,6 +1227,7 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	sd->num_quests = 0;
 	sd->avail_quests = 0;
 	sd->save_quest = false;
+	sd->count_rewarp = 0;
 
 	//Warp player
 	if ((i = pc_setpos(sd,sd->status.last_point.map, sd->status.last_point.x, sd->status.last_point.y, CLR_OUTSIGHT)) != 0) {
@@ -5209,14 +5210,23 @@ char pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int 
 	}
 
 	if( x < 0 || x >= map[m].xs || y < 0 || y >= map[m].ys ) {
-		ShowError("pc_setpos: attempt to place player %s (%d:%d) on invalid coordinates (%s-%d,%d)\n", sd->status.name, sd->status.account_id, sd->status.char_id, mapindex_id2name(mapindex),x,y);
+		ShowError("pc_setpos: attempt to place player '%s' (%d:%d) on invalid coordinates (%s-%d,%d)\n", sd->status.name, sd->status.account_id, sd->status.char_id, mapindex_id2name(mapindex), x, y);
 		x = y = 0; // Make it random
 	}
 
 	if( x == 0 && y == 0 ) { // Pick a random walkable cell
+		int c = 0;
+
 		do {
 			x = rnd()%(map[m].xs - 2) + 1;
 			y = rnd()%(map[m].ys - 2) + 1;
+			c++;
+
+			if( c > (map[m].xs * map[m].ys) * 3 ) { //Force out
+				ShowError("pc_setpos: couldn't found a valid coordinates for player '%s' (%d:%d) on (%s), preventing warp\n", sd->status.name, sd->status.account_id, sd->status.char_id, mapindex_id2name(mapindex));
+				return 0; //Preventing warp
+				//break; //Allow warp anyway
+			}
 		} while( map_getcell(m, x, y, CELL_CHKNOPASS) || (!battle_config.teleport_on_portal && npc_check_areanpc(1, m, x, y, 1)) );
 	}
 
@@ -5265,6 +5275,12 @@ char pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int 
 	}
 
 	pc_cell_basilica(sd);
+
+	//Check if we gonna be rewarped [lighta]
+	if( npc_check_areanpc(1, m, x, y, 1) )
+		sd->count_rewarp++;
+	else
+		sd->count_rewarp = 0;
 
 	/* Given autotrades have no clients you have to trigger this manually
 	 * Otherwise they get stuck in memory limbo bugreport:7495 */
@@ -9080,7 +9096,7 @@ bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
 	}
 	if( sd->sc.count && (sd->sc.data[SC_BERSERK] || sd->sc.data[SC_SATURDAYNIGHTFEVER] ||
 		sd->sc.data[SC_KYOUGAKU] || (sd->sc.data[SC_PYROCLASTIC] && sd->inventory_data[n]->type == IT_WEAPON)) ) {
-		clif_equipitemack(sd,n,0,0); //Fail
+		clif_equipitemack(sd,n,0,0);
 		return false;
 	}
 	if( pos == EQP_ACC ) { //Accesories should only go in one of the two,
@@ -9089,8 +9105,8 @@ bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
 			pos = (sd->equip_index[EQI_ACC_R] >= 0 ? EQP_ACC_L : EQP_ACC_R);
 	}
 	if( pos == EQP_ARMS && id->equip == EQP_HAND_R ) { //Dual wield capable weapon.
-		pos = (req_pos&EQP_ARMS);
-		if( pos == EQP_ARMS ) //User specified both slots, pick one for them.
+		pos = req_pos&EQP_ARMS;
+		if( pos == EQP_ARMS )
 			pos = (sd->equip_index[EQI_HAND_R] >= 0 ? EQP_HAND_L : EQP_HAND_R);
 	}
 	//Shadow System
@@ -10042,7 +10058,7 @@ void pc_del_talisman(struct map_session_data *sd, int count, int type)
  *------------------------------------------*/
 int pc_level_penalty_mod(struct map_session_data *sd, int mob_level, uint32 mob_class, int type)
 {
-	int diff, rate = 100, i;
+	int diff, rate = 100, i, tmp;
 
 	nullpo_ret(sd);
 
@@ -10051,9 +10067,11 @@ int pc_level_penalty_mod(struct map_session_data *sd, int mob_level, uint32 mob_
 	if(diff < 0)
 		diff = MAX_LEVEL + (~diff + 1);
 
-	for(i = 0; i < CLASS_ALL; i++) {
-		int tmp;
+	if((tmp = level_penalty[type][mob_class][diff]) > 0) //Use mob class directly
+		return tmp;
 
+	//WTF is that for? If penalty not found use the 1st one we found? [lighta]
+	for(i = 0; i < CLASS_ALL; i++) {
 		if((tmp = level_penalty[type][i][diff]) > 0) {
 			rate = tmp;
 			break;

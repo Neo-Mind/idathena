@@ -79,7 +79,8 @@ struct block_list;
 
 //Damage Calculation
 
-struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct block_list *target,uint16 skill_id,uint16 skill_lv,int count);
+struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct block_list *target,uint16 skill_id,uint16 skill_lv,int flag);
+struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv, int wflag);
 
 int64 battle_calc_return_damage(struct block_list *bl, struct block_list *src, int64 *, int flag, uint16 skill_id, bool status_reflect);
 
@@ -573,6 +574,7 @@ extern struct Battle_Config
 	int mail_delay;
 	int autotrade_monsterignore;
 	int spawn_direction;
+	int arrow_shower_knockback;
 } battle_config;
 
 void do_init_battle(void);

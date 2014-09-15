@@ -2330,7 +2330,7 @@ short skill_blown(struct block_list* src, struct block_list* target, char count,
 
 				if( sd->sc.data[SC_BASILICA] && sd->sc.data[SC_BASILICA]->val4 == sd->bl.id && !is_boss(src))
 					return ((flag&0x20) ? count : 0); //Basilica caster can't be knocked-back by normal monsters.
-				if( !(flag&0x2) && src != target && sd->special_state.no_knockback )
+				if( !(flag&0x02) && src != target && sd->special_state.no_knockback )
 					return ((flag&0x10) ? count : 0);
 			}
 			break;
@@ -2661,21 +2661,109 @@ static void skill_do_copy(struct block_list* src,struct block_list *bl, uint16 s
 	}
 }
 
-/*
- * =========================================================================
+/**
+* Knockback the target on skill_attack
+* @param src is the master behind the attack
+* @param dsrc is the actual originator of the damage, can be the same as src, or a BL_SKILL
+* @param target is the target to be attacked.
+* @param blewcount
+* @param skill_id
+* @param skill_lv
+* @param damage
+* @param tick
+* @param flag can hold a bunch of information:
+*/
+void skill_attack_blow(struct block_list *src, struct block_list *dsrc, struct block_list *target, uint8 blewcount, uint16 skill_id, uint16 skill_lv, int64 damage, unsigned int tick, int flag) {
+	int8 dir = -1; //Default direction
+
+	//Only knockback if it's still alive, otherwise a "ghost" is left behind. [Skotlex]
+	//Reflected spells do not bounce back (src == dsrc since it only happens for direct skills)
+	if (!blewcount || target == dsrc || status_isdead(target))
+		return;
+
+	//Skill spesific direction
+	switch (skill_id) {
+		case MC_CARTREVOLUTION:
+			if (battle_config.cart_revo_knockback)
+				dir = 6; //Official servers push target to the West
+			break;
+		case AC_SHOWER:
+			if (!battle_config.arrow_shower_knockback)
+				dir = map_calc_dir(target, src->x, src->y);
+			break;
+		case MG_FIREWALL:
+		case PR_SANCTUARY:
+		case SC_TRIANGLESHOT:
+		case EL_FIRE_MANTLE:
+			dir = unit_getdir(target); //Backwards
+			break;
+		//This ensures the storm randomly pushes instead of exactly a cell backwards per official mechanics.
+		case WZ_STORMGUST:
+			dir = rand()%8;
+			break;
+		case WL_CRIMSONROCK:
+			dir = map_calc_dir(target, skill_area_temp[4], skill_area_temp[5]);
+			break;
+	}
+
+	//Blown-specific handling
+	switch (skill_id) {
+		case LG_OVERBRAND_BRANDISH:
+			//Give knockback damage bonus only hits the wall. (bugreport:9096)
+			if (skill_blown(dsrc, target, blewcount, dir, 0x04|0x08|0x10|0x20) < blewcount)
+				skill_addtimerskill(src, tick + status_get_amotion(src), target->id, 0, 0, LG_OVERBRAND_PLUSATK, skill_lv, BF_WEAPON, flag|SD_ANIMATION);
+			break;
+		case SR_KNUCKLEARROW: {
+				short x = target->x, y = target->y;
+
+				//Ignore knockback damage bonus if in WOE (player cannot be knocked in WOE)
+				//Boss & Immune Knockback (mode or from bonus bNoKnockBack) target still remains the damage bonus
+				//(bugreport:9096)
+				if (skill_blown(dsrc, target, blewcount, dir_ka, 0x04) < blewcount)
+					skill_addtimerskill(src, tick + 300 * ((flag&2) ? 1 : 2), target->id, 0, 0, skill_id, skill_lv, BF_WEAPON, flag|4);
+
+				dir_ka = -1;
+
+				//Move attacker to the target position after knocked back
+				if ((target->x != x || target->y != y) && unit_movepos(src,target->x,target->y,1,1)) {
+					clif_slide(src, target->x, target->y);
+					clif_fixpos(src);
+				}
+			}
+			break;
+		case RL_R_TRIP:
+			if (skill_blown(dsrc, target, blewcount, dir, 0) < blewcount)
+				skill_addtimerskill(src, tick + status_get_amotion(src), target->id, 0, 0, RL_R_TRIP_PLUSATK, skill_lv, BF_WEAPON, flag|SD_ANIMATION);
+			break;
+		default:
+			skill_blown(dsrc, target, blewcount, dir, 0);
+			if (!blewcount && target->type == BL_SKILL && damage > 0) {
+				TBL_SKILL *su = (TBL_SKILL*)target;
+
+				if (su->group && su->group->skill_id == HT_BLASTMINE)
+					skill_blown(src, target, 3, -1, 0);
+			}
+			break;
+	}
+}
+
+/**
  * Does a skill attack with the given properties.
- * src is the master behind the attack (player/mob/pet)
- * dsrc is the actual originator of the damage, can be the same as src, or a BL_SKILL
- * bl is the target to be attacked.
- * flag can hold a bunch of information:
- * flag&0xFFF is passed to the underlying battle_calc_attack for processing
- *      (usually holds number of targets, or just 1 for simple splash attacks)
- * flag&0x1000 is used to tag that this is a splash-attack (so the damage
- *      packet shouldn't display a skill animation)
- * flag&0x2000 is used to signal that the skill_lv should be passed as -1 to the
- *      client (causes player characters to not scream skill name)
- *-------------------------------------------------------------------------*/
-int skill_attack (int attack_type, struct block_list* src, struct block_list *dsrc, struct block_list *bl, uint16 skill_id, uint16 skill_lv, unsigned int tick, int flag)
+ * @param src is the master behind the attack (player/mob/pet)
+ * @param dsrc is the actual originator of the damage, can be the same as src, or a BL_SKILL
+ * @param bl is the target to be attacked.
+ * @param flag can hold a bunch of information:
+ *        flag&1
+ *        flag&2 - Disable re-triggered by double casting
+ *        flag&4 - Skip to blow target (because already knocked back before skill_attack somewhere)
+ *
+ *        flag&0xFFF is passed to the underlying battle_calc_attack for processing
+ *             (usually holds number of targets, or just 1 for simple splash attacks)
+ *
+ *        Values from enum e_skill_display *
+ *        Values from enum e_battle_check_target
+ */
+int skill_attack(int attack_type, struct block_list* src, struct block_list *dsrc, struct block_list *bl, uint16 skill_id, uint16 skill_lv, unsigned int tick, int flag)
 {
 	struct Damage dmg;
 	struct status_data *sstatus, *tstatus;
@@ -3055,71 +3143,9 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 			skill_counter_additional_effect(src, bl, skill_id, skill_lv, dmg.flag, tick);
 	}
 
-	//Only knockback if it's still alive, otherwise a "ghost" is left behind. [Skotlex]
-	//Reflected spells do not bounce back (bl == dsrc since it only happens for direct skills)
-	if (dmg.blewcount > 0 && bl != dsrc && !status_isdead(bl)) {
-		int8 dir = -1; //Default direction
-
-		switch (skill_id) { //Direction
-			case MC_CARTREVOLUTION:
-				if (battle_config.cart_revo_knockback)
-					dir = 6; //Official servers push target to the West
-				break;
-			case MG_FIREWALL:
-			case PR_SANCTUARY:
-			case SC_TRIANGLESHOT:
-			case GN_WALLOFTHORN:
-			case EL_FIRE_MANTLE:
-				dir = unit_getdir(bl); //Backwards
-				break;
-			//This ensures the storm randomly pushes instead of exactly a cell backwards per official mechanics.
-			case WZ_STORMGUST:
-				dir = rnd()%8;
-				break;
-			case WL_CRIMSONROCK:
-				dir = map_calc_dir(bl, skill_area_temp[4], skill_area_temp[5]);
-				break;
-			//Direction between target to actual attacker location instead of the unit location (bugreport:1709)
-			case AC_SHOWER:
-				if (dsrc != src)
-					dir = map_calc_dir(bl, src->x, src->y);
-				break;
-		}
-		//Blown-specific handling
-		switch (skill_id) {
-			case LG_OVERBRAND_BRANDISH:
-				//Give knockback damage bonus only hits the wall. (bugreport:9096)
-				if (skill_blown(dsrc, bl, dmg.blewcount, dir, 0x04|0x08|0x10|0x20) < dmg.blewcount)
-					skill_addtimerskill(src, tick + status_get_amotion(src), bl->id, 0, 0, LG_OVERBRAND_PLUSATK, skill_lv, BF_WEAPON, flag|SD_ANIMATION);
-				break;
-			case SR_KNUCKLEARROW:
-				if (!(flag&4)) {
-					short x = bl->x, y = bl->y;
-
-					//Ignore knockback damage bonus if in WOE (player cannot be knocked in WOE)
-					//Boss & Immune Knockback (mode or from bonus bNoKnockBack) target still remains the damage bonus
-					//(bugreport:9096)
-					if (skill_blown(dsrc, bl, dmg.blewcount, dir_ka, 0x04) < dmg.blewcount)
-						skill_addtimerskill(src, tick + 300 * ((flag&2) ? 1 : 2), bl->id, 0, 0, skill_id, skill_lv, BF_WEAPON, flag|4);
-
-					dir_ka = -1;
-
-					//Move attacker to the target position after knocked back
-					if ((bl->x != x || bl->y != y) && unit_movepos(src,bl->x,bl->y,1,1)) {
-						clif_slide(src,bl->x,bl->y);
-						clif_fixpos(src);
-					}
-				}
-				break;
-			case RL_R_TRIP:
-				if (skill_blown(dsrc, bl, dmg.blewcount, dir, 0) < dmg.blewcount)
-					skill_addtimerskill(src, tick + status_get_amotion(src), bl->id, 0, 0, RL_R_TRIP_PLUSATK, skill_lv, BF_WEAPON, flag|SD_ANIMATION);
-				break;
-			default:
-				skill_blown(dsrc, bl, dmg.blewcount, dir, 0);
-				break;
-		}
-	}
+	//Blow!
+	if (!(flag&4))
+		skill_attack_blow(src, dsrc, bl, (uint8)dmg.blewcount, skill_id, skill_lv, damage, tick, flag);
 
 	//Delayed damage must be dealt after the knockback (it needs to know actual position of target)
 	if (dmg.amotion) {
@@ -3226,7 +3252,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
  * then call func with source,target,skill_id,skill_lv,tick,flag
  *------------------------------------------*/
 typedef int (*SkillFunc)(struct block_list *, struct block_list *, int, int, unsigned int, int);
-int skill_area_sub (struct block_list *bl, va_list ap)
+int skill_area_sub(struct block_list *bl, va_list ap)
 {
 	struct block_list *src;
 	uint16 skill_id,skill_lv;
@@ -3256,7 +3282,7 @@ int skill_area_sub (struct block_list *bl, va_list ap)
 	return 0;
 }
 
-static int skill_check_unit_range_sub (struct block_list *bl, va_list ap)
+static int skill_check_unit_range_sub(struct block_list *bl, va_list ap)
 {
 	struct skill_unit *unit;
 	uint16 skill_id,g_skill_id;
@@ -3540,7 +3566,7 @@ static int skill_check_condition_mercenary(struct block_list *bl, uint16 skill_i
 /*==========================================
  *
  *------------------------------------------*/
-int skill_area_sub_count (struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv, unsigned int tick, int flag)
+int skill_area_sub_count(struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv, unsigned int tick, int flag)
 {
 	return 1;
 }
@@ -11099,6 +11125,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			}
 			break;
 
+		//Skill Unit Setting
 		case MG_SAFETYWALL:
 		case MG_FIREWALL:
 		case MG_THUNDERSTORM:
@@ -11323,7 +11350,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			}
 			break;
 
-		// Slim Pitcher [Celest]
+		//Slim Pitcher [Celest]
 		case CR_SLIMPITCHER:
 			if( sd ) {
 				int i = 0, j = 0;
@@ -12379,6 +12406,7 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 			range++;
 			break;
 		case GN_WALLOFTHORN:
+			//Turns to Firewall
 			if( flag&1 )
 				limit = 3000;
 			val3 = (x<<16)|y;
@@ -12510,6 +12538,8 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 				val1 = 1 + skill_lv;
 				break;
 			case GN_WALLOFTHORN:
+				if( flag&1 ) //Turned become Firewall
+					break;
 				val1 = 2000 + 2000 * skill_lv; //Thorn Walls HP
 				val2 = 20; //Max hits
 				break;
@@ -12849,7 +12879,7 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 
 /**
  * Process skill unit each interval (sg->interval, see interval field of skill_unit_db.txt)
- * @param src Skill unit
+ * @param unit Skill unit
  * @param bl Valid 'target' above the unit, that has been check in skill_unit_timer_sub_onplace
  * @param tick
  */
@@ -12920,13 +12950,25 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 	}
 
 	if ((ts = skill_unitgrouptickset_search(bl,sg,tick))) {
-		//Not all have it, eg: Traps don't have it even though they can be hit by Heaven's Drive [Skotlex]
 		diff = DIFF_TICK(tick,ts->tick);
 		if (diff < 0)
-			return 0;
+			return 0; //Not all have it, eg: Traps don't have it even though they can be hit by Heaven's Drive [Skotlex]
 		ts->tick = tick + sg->interval;
 		if ((skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS) && !battle_config.gx_allhit)
 			ts->tick += sg->interval * (map_count_oncell(bl->m,bl->x,bl->y,BL_CHAR) - 1);
+	}
+
+	//Wall of Thorn damaged by Fire element unit [Cydh]
+	//@TODO: This check doesn't matter the location, as long as one of units touched, this check will be executed.
+	if (bl->type == BL_SKILL && skill_get_ele(skill_id,skill_lv) == ELE_FIRE) {
+		struct skill_unit *su = (struct skill_unit *)bl;
+
+		if (su && su->group && su->group->unit_id == UNT_WALLOFTHORN) {
+			skill_unitsetting(map_id2bl(su->group->src_id),su->group->skill_id,su->group->skill_lv,su->group->val3>>16,su->group->val3&0xffff,1);
+			su->group->limit = sg->limit = 0;
+			su->group->unit_id = sg->unit_id = UNT_USED_TRAPS;
+			return skill_id;
+		}
 	}
 
 	switch (sg->unit_id) {
@@ -12937,7 +12979,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 				int count = 0;
 				const int x = bl->x, y = bl->y;
 
-				if (skill_id == GN_WALLOFTHORN && battle_check_target(ss,bl,BCT_ENEMY) <= 0)
+				if (skill_id == GN_WALLOFTHORN && battle_check_target(ss,bl,sg->target_flag) <= 0)
 					break;
 
 				do //Take into account these hit more times than the timer interval can handle.
@@ -13451,15 +13493,19 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			}
 			break;
 
-		case UNT_WALLOFTHORN:
-			if (status_get_mode(bl)&MD_BOSS)
-				break; //This skill doesn't affect to Boss monsters. [iRO Wiki]
-			if (battle_check_target(ss,bl,BCT_ENEMY) <= 0) {
-				unit_stop_walking(bl,1);
+		case UNT_WALLOFTHORN: {
+				struct Damage wd = battle_calc_weapon_attack(ss,bl,skill_id,skill_lv,0);
+
+				if (unit->val2-- <= 0) //Max hit reached
+					break;
+				if (status_get_mode(bl)&MD_BOSS)
+					break; //This skill doesn't affect to Boss monsters. [iRO Wiki]
+				if (battle_check_target(ss,bl,BCT_ENEMY) <= 0)
+					unit_stop_walking(bl,1);
+				else
+					status_damage(ss,bl,wd.damage,0,clif_damage(bl,bl,tick,status_get_amotion(bl),status_get_dmotion(bl),wd.damage,1,DMG_ENDURE,0),0);
 				skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0x2);
-				clif_fixpos(bl);
-			} else
-				skill_attack(skill_get_type(skill_id),ss,&unit->bl,bl,skill_id,skill_lv,tick,0);
+			}
 			break;
 
 		case UNT_DEMONIC_FIRE:
@@ -13899,11 +13945,10 @@ static int skill_unit_effect (struct block_list* bl, va_list ap)
 /**
  * Check skill unit while receiving damage
  * @param unit Skill unit
- * @param bl Attacker
  * @param damage Received damage
  * @return Damage
  */
-int skill_unit_ondamaged(struct skill_unit *unit, struct block_list *bl, int64 damage)
+int skill_unit_ondamaged(struct skill_unit *unit, int64 damage)
 {
 	struct skill_unit_group *sg;
 
@@ -17430,7 +17475,7 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 {
 	struct block_list* src;
 	struct unit_data *ud;
-	int i, j;
+	short i, j;
 	
 	if( group == NULL ) {
 		ShowDebug("skill_delunitgroup: group is NULL (source=%s:%d, %s)! Please report this! (#3504)\n", file, line, func);
@@ -17471,23 +17516,19 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 		}
 	}
 
-	//End Gospel's status change on 'src'
-	//(needs to be done when the group is deleted by other means than skill deactivation)
-	if( group->unit_id == UNT_GOSPEL ) {
-		struct status_change *sc = status_get_sc(src);
-
-		if( sc && sc->data[SC_GOSPEL] ) {
-			sc->data[SC_GOSPEL]->val3 = 0; //Remove reference to this group. [Skotlex]
-			status_change_end(src, SC_GOSPEL, INVALID_TIMER);
-		}
+	//End SC from the master when the skill group is deleted
+	i = SC_NONE;
+	switch( group->unit_id ) {
+		case UNT_GOSPEL:     i = SC_GOSPEL;     break;
+		case UNT_BASILICA:   i = SC_BASILICA;   break;
 	}
 
-	if( group->unit_id == UNT_BASILICA ) {
+	if( i != SC_NONE ) {
 		struct status_change *sc = status_get_sc(src);
 
-		if( sc && sc->data[SC_BASILICA] ) {
-			sc->data[SC_BASILICA]->val3 = 0;
-			status_change_end(src, SC_BASILICA, INVALID_TIMER);
+		if( sc && sc->data[i] ) {
+			sc->data[i]->val3 = 0; //Remove reference to this group. [Skotlex]
+			status_change_end(src, (sc_type)i, INVALID_TIMER);
 		}
 	}
 
@@ -17843,10 +17884,16 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 				}
 				break;
 			case UNT_WALLOFTHORN:
-				if( unit->val1 <= 0 ) {
+				if( unit->val1 <= 0 || unit->val2 <= 0 || group->val3 < 0 ) {
 					group->limit = DIFF_TICK(tick,group->tick);
 					group->unit_id = UNT_USED_TRAPS;
 				}
+				/*if( group->val3 < 0 ) { //Remove if attacked by fire element, turned to Fire Wall
+					skill_delunitgroup(group);
+					break;
+				}
+				if( unit->val1 <= 0 || unit->val2 <= 0 ) //Remove unit only if no HP or hit limit reached
+					skill_delunit(unit);*/
 				break;
 		}
 	}
@@ -18028,10 +18075,14 @@ int skill_unit_move (struct block_list *bl, unsigned int tick, int flag)
 	return 0;
 }
 
-/*==========================================
- *
- *------------------------------------------*/
-int skill_unit_move_unit_group (struct skill_unit_group *group, int16 m, int16 dx, int16 dy)
+/**
+ * Moves skill unit group to map m with coordinates x & y (example when knocked back)
+ * @param group Skill Group
+ * @param m Map
+ * @param dx
+ * @param dy
+ */
+void skill_unit_move_unit_group(struct skill_unit_group *group, int16 m, int16 dx, int16 dy)
 {
 	int i, j;
 	unsigned int tick = gettick();
@@ -18040,16 +18091,16 @@ int skill_unit_move_unit_group (struct skill_unit_group *group, int16 m, int16 d
 	struct skill_unit *unit2;
 
 	if (group == NULL)
-		return 0;
+		return;
 
 	if (group->unit_count <= 0)
-		return 0;
+		return;
 
 	if (group->unit == NULL)
-		return 0;
+		return;
 
 	if (skill_get_unit_flag(group->skill_id)&UF_ENSEMBLE)
-		return 0; //Ensembles may not be moved around.
+		return; //Ensembles may not be moved around.
 
 	m_flag = (int *) aCalloc(group->unit_count, sizeof(int));
 	//   m_flag
@@ -18088,7 +18139,7 @@ int skill_unit_move_unit_group (struct skill_unit_group *group, int16 m, int16 d
 		switch(m_flag[i]) {
 			case 0:
 				//Cell moves independently, safely move it.
-				map_moveblock(&unit1->bl, unit1->bl.x+dx, unit1->bl.y+dy, tick);
+				map_moveblock(&unit1->bl,unit1->bl.x + dx,unit1->bl.y + dy,tick);
 				break;
 			case 1:
 				//Cell moves unto another cell, look for a replacement cell that won't collide
@@ -18098,7 +18149,7 @@ int skill_unit_move_unit_group (struct skill_unit_group *group, int16 m, int16 d
 						continue;
 					//Move to where this cell would had moved.
 					unit2 = &group->unit[j];
-					map_moveblock(&unit1->bl, unit2->bl.x+dx, unit2->bl.y+dy, tick);
+					map_moveblock(&unit1->bl,unit2->bl.x + dx,unit2->bl.y + dy,tick);
 					j++; //Skip this cell as we have used it.
 					break;
 				}
@@ -18109,15 +18160,13 @@ int skill_unit_move_unit_group (struct skill_unit_group *group, int16 m, int16 d
 		}
 		if (!(m_flag[i]&0x2)) { //We only moved the cell in 0-1
 			if (group->state.song_dance&0x1) //Check for dissonance effect.
-				skill_dance_overlap(unit1, 1);
+				skill_dance_overlap(unit1,1);
 			clif_getareachar_skillunit(&unit1->bl,unit1,AREA,0);
 			map_foreachincell(skill_unit_effect,unit1->bl.m,unit1->bl.x,unit1->bl.y,group->bl_flag,&unit1->bl,tick,1);
 		}
 	}
 
 	aFree(m_flag);
-
-	return 0;
 }
 
 /*==========================================
@@ -20511,25 +20560,25 @@ static bool skill_parse_row_abradb(char* split[], int columns, int current) {
  * Structure: ProductID,BaseRate,MakeAmount1,MakeAmountRate1...,MakeAmount5,MakeAmountRate5
  */
 static bool skill_parse_row_changematerialdb(char* split[], int columns, int current) {
-	uint16 skill_id = atoi(split[0]);
+	uint16 product_id = atoi(split[0]);
 	short j = atoi(split[1]);
 	int x, y;
 
 	for( x = 0; x < MAX_SKILL_PRODUCE_DB; x++ ) {
-		if( skill_produce_db[x].nameid == skill_id )
+		if( skill_produce_db[x].nameid == product_id )
 			if( skill_produce_db[x].req_skill == GN_CHANGEMATERIAL )
 				break;
 	}
 
 	if( x >= MAX_SKILL_PRODUCE_DB ) {
-		ShowError("changematerial_db: Not supported item ID(%d) for Change Material. \n", skill_id);
+		ShowError("changematerial_db: Not supported item ID(%d) for Change Material. \n", product_id);
 		return false;
 	}
 
 	if( current >= MAX_SKILL_PRODUCE_DB )
 		ShowError("skill_changematerial_db: Maximum amount of entries reached (%d), increase MAX_SKILL_PRODUCE_DB\n", MAX_SKILL_PRODUCE_DB);
 
-	skill_changematerial_db[current].itemid = skill_id;
+	skill_changematerial_db[current].itemid = product_id;
 	skill_changematerial_db[current].rate = j;
 
 	for( x = 2, y = 0; x + 1 < columns && split[x] && split[x + 1] && y < 5; x += 2, y++ ) {

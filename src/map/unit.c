@@ -660,7 +660,6 @@ void unit_run_hit(struct block_list *bl, struct status_change *sc, struct map_se
 
 	if (type == SC_RUN) {
 		skill_blown(bl, bl, skill_get_blewcount(TK_RUN, lv), unit_getdir(bl), 0);
-		clif_fixpos(bl); //Why is a clif_slide (skill_blown) AND a fixpos needed? Ask Aegis.
 		clif_status_change(bl, SI_BUMP, 0, 0, 0, 0, 0);
 	} else if (sd) {
 		clif_fixpos(bl);
@@ -819,6 +818,7 @@ int unit_movepos(struct block_list *bl, short dst_x, short dst_y, int easy, bool
 			if( flag ) {
 				unit_movepos(bl, sd->bl.x, sd->bl.y, 0, 0);
 				clif_slide(bl, bl->x, bl->y);
+				clif_fixpos(bl);
 			}
 		}
 	}
@@ -869,7 +869,7 @@ uint8 unit_getdir(struct block_list *bl)
  * @param dx: Destination cell X
  * @param dy: Destination cell Y
  * @param count: How many cells to push bl
- * @param flag: Whether or not to send position packet updates
+ * @param flag: &1 Whether or not to send position packet updates
  * @return count (can be modified due to map cell restrictions)
  */
 int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag)

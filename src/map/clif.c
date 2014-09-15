@@ -1898,7 +1898,7 @@ void clif_changemapserver(struct map_session_data* sd, unsigned short map_index,
 void clif_blown(struct block_list *bl)
 {
 	clif_slide(bl, bl->x, bl->y);
-	//clif_fixpos(bl); //Aegis packets says fixpos, but it's unsure whether slide works better or not.
+	clif_fixpos(bl);
 }
 
 
@@ -3525,43 +3525,44 @@ void clif_statusupack(struct map_session_data *sd,int type,int ok,int val)
 /// 00aa <index>.W <equip location>.W <view id>.W <result>.B (PACKETVER >= 20100629)
 /// 08d0 <index>.W <equip location>.W <view id>.W <result>.B (ZC_REQ_WEAR_EQUIP_ACK2)
 /// 0999 <index>.W <equip location>.L <view id>.W <result>.B (ZC_ACK_WEAR_EQUIP_V5)
-/// @ok: //inversed forv2 v5
+/// @ok: //Inversed for v2 v5
 ///     0 = failure
 ///     1 = success
 ///     2 = failure due to low level
 void clif_equipitemack(struct map_session_data *sd,int n,int pos,int ok)
 {
-	int fd,header,offs=0,success;
+	int fd, header, offs = 0, success;
 #if PACKETVER < 20110824
 	header = 0xaa;
-	success = (ok==1);
+	success = (ok == 1);
 #elif PACKETVER < 20120925
 	header = 0x8d0;
-	success = ok ? 0:1;
+	success = (ok ? 0 : 1);
 #else
 	header = 0x999;
-	success = ok ? 0:1;
+	success = (ok ? 0 : 1);
 #endif
+
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(header));
-	WFIFOW(fd,offs+0)=header;
-	WFIFOW(fd,offs+2)=n+2;
+	WFIFOW(fd,offs + 0) = header;
+	WFIFOW(fd,offs + 2) = n + 2;
 #if PACKETVER >= 20120925
-	WFIFOL(fd,offs+4)=pos;
-	offs+=2;
+	WFIFOL(fd,offs + 4) = pos;
+	offs += 2;
 #else
-	WFIFOW(fd,offs+4)=(int)pos;
+	WFIFOW(fd,offs + 4) = (int)pos;
 #endif
 #if PACKETVER < 20100629
-	WFIFOB(fd,offs+6)=success;
+	WFIFOB(fd,offs + 6) = success;
 #else
 	if (ok && sd->inventory_data[n]->equip&EQP_VISIBLE)
-		WFIFOW(fd,offs+6)=sd->inventory_data[n]->look;
+		WFIFOW(fd,offs + 6) = sd->inventory_data[n]->look;
 	else
-		WFIFOW(fd,offs+6)=0;
-	WFIFOB(fd,offs+8)=success;
+		WFIFOW(fd,offs + 6) = 0;
+	WFIFOB(fd,offs + 8) = success;
 #endif
 	WFIFOSET(fd,packet_len(header));
 }

@@ -342,7 +342,7 @@ int mob_get_random_id(int type, int flag, int lv)
 /*==========================================
  * Kill Steal Protection [Zephyrus]
  *------------------------------------------*/
-bool mob_ksprotected (struct block_list *src, struct block_list *target)
+bool mob_ksprotected(struct block_list *src, struct block_list *target)
 {
 	struct block_list *s_bl, *t_bl;
 	struct map_session_data
@@ -355,7 +355,7 @@ bool mob_ksprotected (struct block_list *src, struct block_list *target)
 		return false; // KS Protection Disabled
 
 	if( !(md = BL_CAST(BL_MOB,target)) )
-		return false; // Tarjet is not MOB
+		return false; // Target is not MOB
 
 	if( (s_bl = battle_get_master(src)) == NULL )
 		s_bl = src;

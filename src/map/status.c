@@ -1326,7 +1326,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 	}
 
 	if (target->type == BL_SKILL)
-		return skill_unit_ondamaged((struct skill_unit *)target, src, hp);
+		return skill_unit_ondamaged((struct skill_unit *)target, hp);
 
 	status = status_get_status_data(target);
 	if (!status || status == &dummy_status)
@@ -9494,7 +9494,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			default:
 				//Status change with no calc, no icon, and no skill associated?
-				if( calc_flag == SCB_NONE && StatusSkillChangeTable[type] == 0 && StatusIconChangeTable[type] == SI_BLANK ) {
+				if( calc_flag == SCB_NONE && StatusIconChangeTable[type] == SI_BLANK && StatusSkillChangeTable[type] == 0 ) {
+					if( type == SC_KSPROTECTED )
+						break; //Avoid the warning, because this status has no skill associated and all values already store in it.
 					ShowError("Unknown Status Change [%d]\n",type);
 					return 0;
 				}

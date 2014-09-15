@@ -932,6 +932,11 @@ int npc_touch_areanpc(struct map_session_data* sd, int16 m, int16 x, int16 y)
 		case NPCTYPE_WARP:
 			if( pc_ishiding(sd) || (sd->sc.count && sd->sc.data[SC_CAMOUFLAGE]) || pc_isdead(sd) )
 				break; //Hidden or dead chars cannot use warps
+			if( sd->count_rewarp > 10 ) {
+				ShowWarning("Prevent infinite warping loop for player (%d:%d), please fix script npc:'%s', path:'%s' \n",sd->status.account_id,sd->status.char_id,map[m].npc[i]->exname,map[m].npc[i]->path);
+				sd->count_rewarp = 0;
+				break;
+			}
 			pc_setpos(sd,map[m].npc[i]->u.warp.mapindex,map[m].npc[i]->u.warp.x,map[m].npc[i]->u.warp.y,CLR_OUTSIGHT);
 			break;
 		case NPCTYPE_SCRIPT:
@@ -1026,10 +1031,17 @@ int npc_touch_areanpc2(struct mob_data *md)
 	return 0;
 }
 
-//Checks if there are any NPC on-touch objects on the given range.
-//Flag determines the type of object to check for:
-//&1: NPC Warps
-//&2: NPCs with on-touch events.
+/**
+ * Checks if there are any NPC on-touch objects on the given range.
+ * @param flag : Flag determines the type of object to check for
+ *	&1: NPC Warps
+ *	&2: NPCs with on-touch events.
+ * @param m : mapindex
+ * @param x : x coord
+ * @param y : y coord
+ * @param range : range to check
+ * @return 0: no npc on target cells, x: npc_id
+ */
 int npc_check_areanpc(int flag, int16 m, int16 x, int16 y, int16 range)
 {
 	int i;
@@ -1966,24 +1978,29 @@ static void npc_clearsrcfile(void)
 	npc_src_files = NULL;
 }
 
-/// Adds a npc source file (or removes all)
-void npc_addsrcfile(const char* name)
+/**
+ * Adds a npc source file (or removes all)
+ * @param name : file to add
+ * @return 0 = Error, 1 = Success
+ */
+int npc_addsrcfile(const char* name)
 {
 	struct npc_src_list* file;
 	struct npc_src_list* file_prev = NULL;
 
-	if( strcmpi(name, "clear") == 0 )
-	{
+	if( strcmpi(name, "clear") == 0 ) {
 		npc_clearsrcfile();
-		return;
+		return 1;
 	}
 
-	// prevent multiple insert of source files
+	if( check_filepath(name) != 2 )
+		return 0; //This is not a file 
+
+	//Prevent multiple insert of source files
 	file = npc_src_files;
-	while( file != NULL )
-	{
+	while( file != NULL ) {
 		if( strcmp(name, file->name) == 0 )
-			return;// found the file, no need to insert it again
+			return 0; //Found the file, no need to insert it again
 		file_prev = file;
 		file = file->next;
 	}
@@ -1995,6 +2012,8 @@ void npc_addsrcfile(const char* name)
 		npc_src_files = file;
 	else
 		file_prev->next = file;
+
+	return 1;
 }
 
 /// Removes a npc source file (or all)
@@ -3695,9 +3714,13 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 	return strchr(start,'\n'); //Continue
 }
 
-//Read file and create npc/func/mapflag/monster... accordingly.
-//@runOnInit should we exec OnInit when it's done ?
-void npc_parsesrcfile(const char* filepath, bool runOnInit)
+/**
+ * Read file and create npc/func/mapflag/monster... accordingly.
+ * @param filepath : Relative path of file from map-serv bin
+ * @param runOnInit :  should we exec OnInit when it's done ?
+ * @return 0 : Error, 1 : Success
+ */
+int npc_parsesrcfile(const char* filepath, bool runOnInit)
 {
 	int16 m, x, y;
 	int lines = 0;
@@ -3706,11 +3729,16 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 	char* buffer;
 	const char* p;
 
+	if( check_filepath(filepath) != 2 ) { //This is not a file 
+		ShowDebug("npc_parsesrcfile: Path doesn't seem to be a file skipping it : '%s'.\n", filepath);
+		return 0;
+	} 
+
 	//Read whole file to buffer
 	fp = fopen(filepath, "rb");
 	if( fp == NULL ) {
 		ShowError("npc_parsesrcfile: File not found '%s'.\n", filepath);
-		return;
+		return 0;
 	}
 
 	fseek(fp, 0, SEEK_END);
@@ -3724,7 +3752,7 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 		ShowError("npc_parsesrcfile: Failed to read file '%s' - %s\n", filepath, strerror(errno));
 		aFree(buffer);
 		fclose(fp);
-		return;
+		return 0;
 	}
 
 	fclose(fp);
@@ -3737,7 +3765,7 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 		//More info at http://unicode.org/faq/utf_bom.html#bom5 and http://en.wikipedia.org/wiki/Byte_order_mark#UTF-8
 		ShowError("npc_parsesrcfile: Detected unsupported UTF-8 BOM in file '%s'. Stopping (please consider using another character set).\n", filepath);
 		aFree(buffer);
-		return;
+		return 0;
 	}
 
 	//Parse buffer
@@ -3840,7 +3868,7 @@ void npc_parsesrcfile(const char* filepath, bool runOnInit)
 
 	aFree(buffer);
 
-	return;
+	return 1;
 }
 
 int npc_script_event(struct map_session_data* sd, enum npce_event type)

@@ -382,7 +382,7 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 void skill_clear_unitgroup(struct block_list *src);
 int skill_clear_group(struct block_list *bl, int flag);
 void ext_skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, unsigned int tick);
-int skill_unit_ondamaged(struct skill_unit *unit, struct block_list *bl, int64 damage);
+int skill_unit_ondamaged(struct skill_unit *unit, int64 damage);
 
 int skill_castfix(struct block_list *bl, uint16 skill_id, uint16 skill_lv);
 int skill_castfix_sc(struct block_list *bl, double time);
@@ -402,9 +402,9 @@ int skill_disable_check(struct status_change *sc, uint16 skill_id);
 int skill_check_pc_partner(struct map_session_data *sd, uint16 skill_id, uint16 *skill_lv, int range, int cast_flag);
 //Added skill_check_unit_cell
 int skill_check_unit_cell(uint16 skill_id,int16 m,int16 x,int16 y,int unit_id);
-int skill_unit_out_all( struct block_list *bl,unsigned int tick,int range);
+int skill_unit_out_all(struct block_list *bl,unsigned int tick,int range);
 int skill_unit_move(struct block_list *bl,unsigned int tick,int flag);
-int skill_unit_move_unit_group( struct skill_unit_group *group, int16 m,int16 dx,int16 dy);
+void skill_unit_move_unit_group(struct skill_unit_group *group, int16 m,int16 dx,int16 dy);
 
 struct skill_unit_group *skill_check_dancing(struct block_list *src);
 
@@ -458,7 +458,7 @@ int skill_blockmerc_start(struct mercenary_data*, uint16 skill_id, int tick);
 	((id) >= CG_LONGINGFREEDOM && (id) <= CG_TAROTCARD)     || ((id) >= WA_SWING_DANCE && (id) <= WM_UNLIMITED_HUMMING_VOICE))
 
 //Skill action, (return dmg,heal)
-int skill_attack( int attack_type, struct block_list* src, struct block_list *dsrc,struct block_list *bl,uint16 skill_id,uint16 skill_lv,unsigned int tick,int flag );
+int skill_attack(int attack_type, struct block_list* src, struct block_list *dsrc, struct block_list *bl, uint16 skill_id, uint16 skill_lv, unsigned int tick, int flag);
 
 void skill_reload(void);
 
