@@ -13755,7 +13755,6 @@ static int skill_unit_onout(struct skill_unit *src, struct block_list *bl, unsig
 					}
 				}
 			}
-			break;
 		case UNT_WHISTLE:
 		case UNT_ASSASSINCROSS:
 		case UNT_POEMBRAGI:
