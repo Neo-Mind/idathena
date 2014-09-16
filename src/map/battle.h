@@ -575,6 +575,8 @@ extern struct Battle_Config
 	int autotrade_monsterignore;
 	int spawn_direction;
 	int arrow_shower_knockback;
+	int devotion_rdamage_skill_only;
+	int max_extended_aspd;
 } battle_config;
 
 void do_init_battle(void);

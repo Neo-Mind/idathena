@@ -7153,7 +7153,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		}
 	}
 
-	for( k = 0; k < 5; k++ ) {
+	for( k = 0; k < MAX_DEVOTION; k++ ) {
 		if( sd->devotion[k] ) {
 			struct map_session_data *devsd = map_id2sd(sd->devotion[k]);
 
@@ -11078,6 +11078,19 @@ short pc_maxparameter(struct map_session_data *sd, enum e_params param) {
 		((class_&JOBL_THIRD) ? ((class_&JOBL_UPPER) ? battle_config.max_third_trans_parameter : ((class_&JOBL_BABY) ? battle_config.max_baby_third_parameter : battle_config.max_third_parameter)) : 
 		((class_&JOBL_BABY) ? battle_config.max_baby_parameter :
 		((class_&JOBL_UPPER) ? battle_config.max_trans_parameter : battle_config.max_parameter)));
+}
+
+/**
+ * Get max ASPD for player based on Class
+ * @param sd Player
+ * @return ASPD
+ */
+short pc_maxaspd(struct map_session_data *sd) {
+	nullpo_ret(sd);
+
+	return ((sd->class_&JOBL_THIRD) ? battle_config.max_third_aspd :
+			(((sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO || (sd->class_&MAPID_UPPERMASK) == MAPID_REBELLION) ? battle_config.max_extended_aspd :
+			battle_config.max_aspd));
 }
 
 /**

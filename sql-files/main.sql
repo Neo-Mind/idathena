@@ -516,6 +516,7 @@ CREATE TABLE IF NOT EXISTS `mail` (
   `card2` smallint(5) unsigned NOT NULL default '0',
   `card3` smallint(5) unsigned NOT NULL default '0',
   `unique_id` bigint(20) unsigned NOT NULL default '0',
+  `bound` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
 ) ENGINE=MyISAM;
 
@@ -694,6 +695,7 @@ INSERT INTO `sql_updates` (`timestamp`) VALUES (1384763034);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1387844126);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1388854043);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1389028967);
+INSERT INTO `sql_updates` (`timestamp`) VALUES (1392832626);
 
 --
 -- Table structure for table `sstatus`

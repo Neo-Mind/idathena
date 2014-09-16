@@ -806,12 +806,15 @@ enum e_char_server_type {
 
 // Item Bound Type
 enum bound_type {
-	BOUND_NONE = 0, // No bound
-	BOUND_ACCOUNT, // 1- Account Bound
-	BOUND_GUILD, // 2 - Guild Bound
-	BOUND_PARTY, // 3 - Party Bound
-	BOUND_CHAR, // 4 - Character Bound
-	BOUND_MAX
+	BOUND_NONE = 0, //No bound
+	BOUND_ACCOUNT, //1 - Account Bound
+	BOUND_GUILD, //2 - Guild Bound
+	BOUND_PARTY, //3 - Party Bound
+	BOUND_CHAR, //4 - Character Bound
+	BOUND_MAX,
+
+	//BOUND_ONEQUIP = 1, //@TODO
+	BOUND_DISPYELLOW = 2, //Shows the item name in yellow color
 };
 
 // Sanity checks

@@ -21,10 +21,11 @@
 #include "log.h"
 #include "pc_groups.h"
 
-#define MAX_PC_BONUS 10
-#define MAX_PC_SKILL_REQUIRE 5
-#define MAX_PC_FEELHATE 3
-#define DAMAGELOG_SIZE_PC 100 // Any idea for this value?
+#define MAX_PC_BONUS 10 //Max bonus, usually used by item bonus
+#define MAX_PC_SKILL_REQUIRE 5 //Max skill tree requirement
+#define MAX_PC_FEELHATE 3 //Max feel hate info
+#define DAMAGELOG_SIZE_PC 100	//Damage log
+#define MAX_DEVOTION 5 //Max Devotion slots
 
 //Update this max as necessary. 85 is the value needed for Expanded Super Novice
 #define MAX_SKILL_TREE 85
@@ -448,7 +449,7 @@ struct map_session_data {
 	unsigned char mission_count; //Stores the bounty kill count for TK_MISSION
 	short mission_mobid; //Stores the target mob_id for TK_MISSION
 	int die_counter; //Total number of times you've died
-	int devotion[5]; //Stores the account IDs of chars devoted to.
+	int devotion[MAX_DEVOTION]; //Stores the account IDs of chars devoted to.
 	int reg_num; //Number of registries (type numeric)
 	int regstr_num; //Number of registries (type string)
 
@@ -754,7 +755,9 @@ enum e_params {
 	PARAM_LUK,
 	PARAM_MAX
 };
+
 short pc_maxparameter(struct map_session_data *sd, enum e_params param);
+short pc_maxaspd(struct map_session_data *sd);
 
 #define pc_iswug(sd)       ( (sd)->sc.option&OPTION_WUG )
 #define pc_isridingwug(sd) ( (sd)->sc.option&OPTION_WUGRIDER )

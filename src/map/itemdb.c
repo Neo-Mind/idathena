@@ -133,7 +133,7 @@ unsigned short itemdb_searchrandomid(uint16 group_id, uint8 sub_group) {
 		return UNKNOWN_ITEM_ID;
 	}
 	if (&group->random[sub_group] && group->random[sub_group].data_qty)
-		return group->random[sub_group].data[rand()%group->random[sub_group].data_qty].nameid;
+		return group->random[sub_group].data[rnd()%group->random[sub_group].data_qty].nameid;
 
 	ShowError("itemdb_searchrandomid: No item entries for group id %d and sub group %d\n", group_id, sub_group + 1);
 	return UNKNOWN_ITEM_ID;

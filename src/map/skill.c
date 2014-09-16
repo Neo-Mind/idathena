@@ -2699,7 +2699,7 @@ void skill_attack_blow(struct block_list *src, struct block_list *dsrc, struct b
 			break;
 		//This ensures the storm randomly pushes instead of exactly a cell backwards per official mechanics.
 		case WZ_STORMGUST:
-			dir = rand()%8;
+			dir = rnd()%8;
 			break;
 		case WL_CRIMSONROCK:
 			dir = map_calc_dir(target, skill_area_temp[4], skill_area_temp[5]);
@@ -3172,6 +3172,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 				status_fix_damage(NULL, d_bl, damage, 0);
 			} else {
 				bool isDevotRdamage = false;
+
 				if (battle_config.devotion_rdamage && battle_config.devotion_rdamage > rnd()%100)
 					isDevotRdamage = true;
 				//If !isDevotRdamage, reflected magics are done directly on the target not on paladin
@@ -6390,7 +6391,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					map_freeblock_unlock();
 					return 1;
 				}
-				count = (sd ? min(skill_lv,5) : 1);
+				count = (sd ? min(skill_lv,MAX_DEVOTION) : 1);
 				if (sd) { //Player Devoting Player
 					ARR_FIND(0,count,i,sd->devotion[i] == bl->id); //Check if target's already devoted
 					if (i == count) {
@@ -12659,8 +12660,8 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 					return 0;
 			}
 		}
-		if( (sc->option&OPTION_HIDE) && skill_id != WZ_HEAVENDRIVE && skill_id != WL_EARTHSTRAIN )
-			return 0; //Hidden characters are immune to AoE skills except to these. [Skotlex]
+		if( (sc->option&OPTION_HIDE) && !(skill_get_inf3(sg->skill_id)&INF3_HIT_HIDING) )
+			return 0; //Hidden characters are immuned, except to these skills. [Skotlex]
 	}
 
 	switch( sg->unit_id ) {
