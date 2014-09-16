@@ -577,6 +577,7 @@ extern struct Battle_Config
 	int arrow_shower_knockback;
 	int devotion_rdamage_skill_only;
 	int max_extended_aspd;
+	int knockback_left;
 } battle_config;
 
 void do_init_battle(void);

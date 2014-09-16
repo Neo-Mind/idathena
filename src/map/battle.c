@@ -861,18 +861,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			!(skill_get_nk(skill_id)&NK_NO_CARDFIX_ATK) && rnd()%100 < sce->val2 ) {
 			int delay;
 			struct block_list *d_bl = NULL;
-			struct status_change_entry *sce_d = NULL;
-			bool devoted = false;
+			struct status_change_entry *sce_d = sc->data[SC_DEVOTION];
 
-			//If player is target of devotion, show guard effect on the devotion caster rather than the target
-			if( (sce_d = sc->data[SC_DEVOTION]) && (d_bl = map_id2bl(sce_d->val1)) &&
-				((d_bl->type == BL_MER && ((TBL_MER*)d_bl)->master && ((TBL_MER*)d_bl)->master->bl.id == bl->id) ||
-				(d_bl->type == BL_PC && ((TBL_PC*)d_bl)->devotion[sce_d->val2] == bl->id)) )
-			{
-				devoted = true;
-				clif_skill_nodamage(d_bl,d_bl,CR_AUTOGUARD,sce->val1,1);
-			} else
-				clif_skill_nodamage(bl,bl,CR_AUTOGUARD,sce->val1,1);
 			//Different delay depending on skill level [celest]
 			if( sce->val1 <= 5 )
 				delay = 300;
@@ -880,7 +870,17 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 				delay = 200;
 			else
 				delay = 100;
-			unit_set_walkdelay((devoted ? d_bl : bl),gettick(),delay,1);
+			if( sce_d && (d_bl = map_id2bl(sce_d->val1)) &&
+				((d_bl->type == BL_MER && ((TBL_MER*)d_bl)->master && ((TBL_MER*)d_bl)->master->bl.id == bl->id) ||
+				(d_bl->type == BL_PC && ((TBL_PC*)d_bl)->devotion[sce_d->val2] == bl->id)) )
+			{
+				//If player is target of devotion, show guard effect on the devotion caster rather than the target
+				clif_skill_nodamage(d_bl,d_bl,CR_AUTOGUARD,sce->val1,1);
+				unit_set_walkdelay(d_bl,gettick(),delay,1);
+			} else {
+				clif_skill_nodamage(bl,bl,CR_AUTOGUARD,sce->val1,1);
+				unit_set_walkdelay(bl,gettick(),delay,1);
+			}
 			if( sc->data[SC_SHRINK] && rnd()%100 < 5 * sce->val1 )
 				skill_blown(bl,src,skill_get_blewcount(CR_SHRINK,1),-1,0);
 			d->dmg_lv = ATK_MISS;
@@ -1044,7 +1044,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			damage -= damage * 20 / 100;
 
 		if( sc->data[SC_FOGWALL] && skill_id != RK_DRAGONBREATH && skill_id != RK_DRAGONBREATH_WATER ) {
-			if( flag&BF_SKILL ) //25% reduction
+			if( flag&BF_SKILL && !(skill_get_inf(skill_id)&INF_GROUND_SKILL) && !(skill_get_nk(skill_id)&NK_SPLASH) ) //25% reduction
 				damage -= damage * 25 / 100;
 			else if( (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
 				damage >>= 2; //75% reduction
@@ -8211,6 +8211,7 @@ static const struct _battle_data {
 	{ "arrow_shower_knockback",             &battle_config.arrow_shower_knockback,          1,      0,      1,              },
 	{ "devotion_rdamage_skill_only",        &battle_config.devotion_rdamage_skill_only,     1,      0,      1,              },
 	{ "max_extended_aspd",                  &battle_config.max_extended_aspd,               193,    100,    199,            },
+	{ "knockback_left",                     &battle_config.knockback_left,                  1,      0,      1,              },
 };
 #ifndef STATS_OPT_OUT
 /**

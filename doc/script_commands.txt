@@ -557,7 +557,7 @@ constants such as server defines and status options:
 
     PACKETVER, MAX_LEVEL, MAX_STORAGE, MAX_INVENTORY, MAX_CART, MAX_ZENY, MAX_PARTY,
     MAX_GUILD, MAX_GUILDLEVEL, MAX_GUILD_STORAGE, MAX_BG_MEMBERS, MAX_CHAT_USERS,
-    VIP_SCRIPT, MIN_STORAGE
+    VIP_SCRIPT, MIN_STORAGE, MAX_REFINE
 
     Option_Nothing, Option_Sight, Option_Hide, Option_Cloak, Option_Falcon, Option_Riding,
     Option_Invisible, Option_Orcish, Option_Wedding, Option_Chasewalk, Option_Flying,

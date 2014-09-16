@@ -96,11 +96,11 @@ bonus bHealPower2,n;			Increase heal amount if you are healed by any skills by n
 bonus2 bAddEff,e,x;			Adds a x/100 chance to cause effect e to the target when attacking (e.g. x=100 makes 1% chance, x=10000 makes 100% chance, etc)
 					e:	Eff_Blind, Eff_Sleep, Eff_Poison, Eff_Freeze, Eff_Silence,
 						Eff_Stun, Eff_Curse, Eff_Confusion, Eff_Stone, Eff_Bleeding,
-						Eff_DPoison, Eff_Fear, Eff_Burning
+						Eff_DPoison, Eff_Fear, Eff_Burning, Eff_Crystalize, Eff_Deepsleep
 bonus2 bResEff,e,x;			Adds a x/100 tolerance to effect e (e.g. x=100 makes 1% tolerance, x=10000 makes 100% tolerance, etc)
 					e:	Eff_Blind, Eff_Sleep, Eff_Poison, Eff_Freeze, Eff_Silence,
 						Eff_Stun, Eff_Curse, Eff_Confusion, Eff_Stone, Eff_Bleeding,
-						Eff_DPoison, Eff_Fear, Eff_Burning
+						Eff_DPoison, Eff_Fear, Eff_Burning, Eff_Crystalize, Eff_Deepsleep
 bonus2 bCastrate,n,x;			Adjust casting time of skill n by x% (supports skill names)
 bonus2 bAddSize,n,x;			+x% physical damage against size n.
 					n:	Size_Small, Size_Medium, Size_Large, Size_All
@@ -355,7 +355,7 @@ bonus2 bWeaponComaEle,x,n;		Adds a n/100% chance to cause Coma when attacking a 
 bonus2 bAddEff2,e,n;			Adds a n/100% chance to cause status change e on self when attacking.
 					e:	Eff_Blind, Eff_Sleep, Eff_Poison, Eff_Freeze, Eff_Silence,
 						Eff_Stun, Eff_Curse, Eff_Confusion, Eff_Stone, Eff_Bleeding,
-						Eff_DPoison, Eff_Fear, Eff_Burning
+						Eff_DPoison, Eff_Fear, Eff_Burning, Eff_Crystalize, Eff_Deepsleep
 bonus bMagicDamageReturn,n;		Adds a n% chance to reflect targetted magic spells back to the enemy that caused it.
 bonus bPerfectHide,n;			Hidden/cloaked character is no longer detected by monsters with 'detector' mode (n is meaningless).
 bonus bNoKnockback,n;			Character is no longer knocked back by enemy skills with such effect (n is meaningless).

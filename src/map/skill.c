@@ -13531,8 +13531,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			skill_attack(skill_get_type(skill_id),ss,&unit->bl,bl,skill_id,skill_lv,tick,0);
 			break;
 
-		case UNT_WARMER:
-			if (bl->type == BL_PC && !battle_check_undead(tstatus->race,tstatus->def_ele) && tstatus->race != RC_DEMON) {
+		case UNT_WARMER: { //It has effect on everything, including monsters, undead property and demon
 				int hp = 0;
 				struct status_change *ssc = status_get_sc(ss);
 
@@ -13545,7 +13544,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 				if (tsc && tsc->data[SC_AKAITSUKI] && hp)
 					hp = ~hp + 1;
 				status_heal(bl,hp,0,0);
-				sc_start(ss,bl,SC_WARMER,100,skill_lv,sg->interval + 100);
+				sc_start(ss,bl,type,100,skill_lv,sg->interval + 100);
 			}
 			break;
 

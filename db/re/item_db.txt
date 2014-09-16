@@ -547,7 +547,7 @@
 1188,Veteran_Sword,Veteran Sword,5,10000,,2000,180,,1,1,0x00004082,63,2,34,4,80,1,3,{ if(getskilllv("SM_BASH")==10) { bonus2 bSkillAtk,"SM_BASH",50; } if(getskilllv("KN_BOWLINGBASH")==10) { bonus2 bSkillAtk,"KN_BOWLINGBASH",50; } bonus bStr,1; bonus bDex,1; },{},{}
 1189,Krasnaya,Krasnaya,5,20,,3800,200,,2,3,0x00004082,18,2,34,2,50,1,3,{ if(readparam(bStr)>=95) { bonus bBaseAtk,20; } },{},{}
 1190,Claymore_C,Claymore,5,0,,0,220,,1,0,0x00004080,63,2,34,3,1,0,3,{ bonus2 bAddSize,Size_All,40; },{},{}
-1191,Alca_Bringer,Alca Bringer,5,20,,3400,280,,2,0,0x00004082,63,2,34,3,100,1,3,{ bonus bAspd,(getrefine()/2); },{},{}
+1191,Alca_Bringer,Alca Bringer,5,20,,3400,280,,2,0,0x00000080,63,2,34,3,100,1,3,{ bonus bAspd,(getrefine()/2); },{},{}
 1192,P_Slayer1,Eden Slayer I,5,0,,0,162,,1,0,0x00004082,63,2,34,2,26,0,3,{},{},{}
 1193,P_Slayer2,Eden Slayer II,5,0,,0,185,,1,0,0x00004082,63,2,34,2,40,0,3,{},{},{}
 1194,F_Executioner_C,Executioner,5,2,,0,190,,1,0,0x00004082,63,2,34,4,0,0,3,{ bonus bAtkEle,Ele_Dark; },{},{}
@@ -2567,7 +2567,7 @@
 4507,Q_Scaraba_Card,Queen Scaraba Card,6,20,,10,,,,,,,,2,,,,,{ bonus2 bAddDamageClass,2085,30; bonus2 bAddDamageClass,2090,30; bonus2 bAddDamageClass,2144,30; bonus2 bAddDamageClass,2145,30; bonus2 bAddDamageClass,2083,30; bonus2 bAddDamageClass,2088,30; bonus2 bAddDamageClass,2084,30; bonus2 bAddDamageClass,2089,30; bonus2 bAddDamageClass,2087,30; bonus2 bAddDamageClass,2086,30; bonus2 bAddDamageClass,2091,30; bonus2 bAddMonsterDropItem,12806,30; },{},{}
 4508,Gold_Scaraba_Card,Gold Scaraba Card,6,20,,10,,,,,,,,136,,,,,{ bonus bBaseAtk,20; bonus bMaxHPrate,-1; },{},{}
 4509,Gold_Q_Scaraba_Card,Gold Queen Scaraba Card,6,20,,10,,,,,,,,769,,,,,{ bonus bInt,3; bonus2 bSubRace,RC_Insect,10; if(getrefine()>=9) { bonus2 bSubRace,RC_Insect,5; } },{},{}
-4510,Miming_Card,Miming Card,6,20,,10,,,,,,,,2,,,,,{ bonus3 bAutoSpell,"WM_LULLABY_DEEPSLEEP",1,30; },{},{}
+4510,Miming_Card,Miming Card,6,20,,10,,,,,,,,2,,,,,{ bonus3 bAddEff,Eff_Deepsleep,500,ATF_SHORT; },{},{}
 4511,Little_Fatum_Card,Little Fatum Card,6,20,,10,,,,,,,,2,,,,,{ bonus3 bAddEff,Eff_Silence,500,ATF_SKILL; },{},{}
 4512,Parus_Card,Parus Card,6,20,,10,,,,,,,,769,,,,,{ bonus bHealPower,3; if(BaseClass==Job_Acolyte){ bonus bHealPower,getrefine()/2; } },{},{}
 4513,Angra_Mantis_Card,Angra Mantis Card,6,20,,10,,,,,,,,769,,,,,{ bonus bCritAtkRate,2; if(BaseClass==Job_Thief){ bonus bCritAtkRate,getrefine()/2; } },{},{}
@@ -2579,7 +2579,7 @@
 4519,Butoijo_Card,Butoijo Card,6,20,,10,,,,,,,,2,,,,,{ bonus2 bAddRace,RC_Angel,20; },{},{}
 4520,Leak_Card,Leak Card,6,20,,10,,,,,,,,4,,,,,{ bonus bStr,3; bonus2 bAddEff,Eff_Confusion,5000; bonus3 bAddEff,Eff_Confusion,5000,ATF_SKILL; },{},{}
 4521,Sedora_Card,Sedora Card,6,20,,10,,,,,,,,2,,,,,{ bonus bCritAtkRate,15; },{},{}
-4522,Sropho_Card,Sropho Card,6,20,,10,,,,,,,,2,,,,,{ bonus3 bAutoSpell,"WL_FROSTMISTY",1,30; /* Fix me! Should cause Freezing status at 50 rate for 3000ms. */ },{},{}
+4522,Sropho_Card,Sropho Card,6,20,,10,,,,,,,,2,,,,,{ bonus3 bAddEff,Eff_Crystalize,500,ATF_SHORT; },{},{}
 4523,Pot_Dofle_Card,Pot Dofle Card,6,20,,10,,,,,,,,16,,,,,{ bonus bDefEle,Ele_Water; bonus2 bSubRace,RC_Fish,10; },{},{}
 4524,King_Dramoh_Card,King Dramoh Card,6,20,,10,,,,,,,,769,,,,,{ bonus bStr,2; if(BaseClass==Job_Swordman){ bonus bStr,2+(getrefine()/3); } },{},{}
 4525,Kraken_Card,Kraken Card,6,20,,10,,,,,,,,4,,,,,{ bonus bFlee,10; skill "TF_HIDING",1; skill "RG_RAID",1; bonus5 bAutoSpellOnSkill,"RG_RAID","NPC_WIDEBLEEDING",1,250,1; },{},{ sc_end SC_HIDING; }
@@ -9521,7 +9521,7 @@
 21001,Velum_Claymore,Vellum Claymore,5,20,,3500,260,,1,0,0x00004082,63,2,34,4,95,1,3,{ bonus2 bAddRace,RC_DemiHuman,80; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,30; if(getrefine()>=6) { bonus2 bAddRace,RC_DemiHuman,40; } if(getrefine()>=9) { autobonus2 "{ bonus bShortWeaponDamageReturn,20; bonus bMagicDamageReturn,20; }",6000,2000,BF_WEAPON,"{ specialeffect2 EF_REFLECTSHIELD; }"; } },{},{}
 21002,Velum_Katzbalger,Vellum Katzbalger,5,20,,2500,100,,1,0,0x00004082,63,2,34,4,95,1,3,{ bonus2 bHPVanishRate,10000,8; },{},{}
 21003,Muramasa_,Muramasa,5,20,,1000,155,,1,2,0x00004082,63,2,34,4,48,1,3,{},{},{}
-21004,Alca_Bringer_,Alca Bringer,5,20,,3400,280,,2,2,0x00004082,63,2,34,3,100,1,3,{},{},{}
+21004,Alca_Bringer_,Alca Bringer,5,20,,3400,280,,2,2,0x00000080,63,2,34,3,100,1,3,{},{},{}
 21005,Metal_Two_Hand_Sword,Metal Two Hand Sword,5,20,,0,95,,1,1,0x00004082,63,2,34,3,1,1,3,{ bonus bBaseAtk,(getrefine()*6); bonus bMatk,(getrefine()*2); set .@i,((BaseLevel/10)>12)?12:(BaseLevel/10); if(.@i>2) bonus bBaseAtk,((.@i-2)*5); },{},{}
 21009,Tanos_Greatsword,Tanos Greatsword,5,10,,1300,280:120,,,1,0x00004082,63,2,34,4,120,1,3,{ bonus bInt,6; bonus bVit,6; bonus bLuk,-6; bonus bAtkRate,5; bonus2 bHPLossRate,100,10000; },{},{}
 21010,Tw_Sword_Of_Evil_Slayer,Tw Sword Of Evil Slayer,5,10,,2000,,225,,1,0x00004080,63,2,34,3,100,1,3,{ bonus2 bAddRace,RC_Demon,10; bonus2 bAddRace,RC_Undead,10; if(getrefine()>=9){ bonus bAtkRate,5; } if(getrefine()>=12){ bonus bAtkRate,7; } },{},{}
