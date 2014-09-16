@@ -12803,7 +12803,7 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 				return 0;
 			if( !sce )
 				sc_start4(ss,bl,type,100,skill_lv,sg->val1,sg->val2,0,sg->limit);
-			else if( sce->val4 == 1 ) { //Readjust timers since the effect will not last long.
+			else if( battle_config.song_timer_reset && sce->val4 == 1 ) { //Readjust timers since the effect will not last long.
 				sce->val4 = 0; //Remove the mark that we stepped out
 				delete_timer(sce->timer,status_change_timer);
 				sce->timer = add_timer(tick + sg->limit,status_change_timer,bl->id,type); //Put duration back to 3min
@@ -13239,8 +13239,9 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 				if (md && md->mob_id == MOBID_EMPERIUM)
 					break;
 #endif
-				if (sg->src_id == bl->id && tsc && !(tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_BARDDANCER))
-					break; //Affects self only when soullinked
+				if (sg->src_id == bl->id && tsc && (!(tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_BARDDANCER) ||
+					(!battle_config.song_timer_reset && tsc->data[type] && tsc->data[type]->val4 == 1)))
+					break;
 				heal = skill_calc_heal(ss,bl,skill_id,skill_lv,true);
 				clif_skill_nodamage(&unit->bl,bl,AL_HEAL,heal,1);
 				if (tsc && tsc->data[SC_AKAITSUKI] && heal)
@@ -13703,7 +13704,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
  * @param bl Char
  * @param tick
  */
-static int skill_unit_onout (struct skill_unit *src, struct block_list *bl, unsigned int tick)
+static int skill_unit_onout(struct skill_unit *src, struct block_list *bl, unsigned int tick)
 {
 	struct skill_unit_group *sg;
 	struct status_change *sc;
@@ -13754,6 +13755,7 @@ static int skill_unit_onout (struct skill_unit *src, struct block_list *bl, unsi
 					}
 				}
 			}
+			break;
 		case UNT_WHISTLE:
 		case UNT_ASSASSINCROSS:
 		case UNT_POEMBRAGI:
@@ -13764,6 +13766,7 @@ static int skill_unit_onout (struct skill_unit *src, struct block_list *bl, unsi
 		case UNT_SERVICEFORYOU:
 			if( sg->src_id == bl->id && sc && !(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER) )
 				return -1;
+			break;
 	}
 
 	return sg->skill_id;
@@ -13857,11 +13860,13 @@ int skill_unit_onleft(uint16 skill_id, struct block_list *bl, unsigned int tick)
 		case DC_FORTUNEKISS:
 		case DC_SERVICEFORYOU:
 			if (sce) {
-				delete_timer(sce->timer, status_change_timer);
-				//NOTE: It'd be nice if we could get the skill_lv for a more accurate extra time, but alas...
-				//not possible on our current implementation.
-				sce->val4 = 1; //Store the fact that this is a "reduced" duration effect.
-				sce->timer = add_timer(tick + skill_get_time2(skill_id, 1), status_change_timer, bl->id, type);
+				if (battle_config.song_timer_reset || (!battle_config.song_timer_reset && sce->val4 != 1)) {
+					delete_timer(sce->timer, status_change_timer);
+					//NOTE: It'd be nice if we could get the skill_lv for a more accurate extra time, but still
+					//not possible on our current implementation.
+					sce->val4 = 1; //Store the fact that this is a "reduced" duration effect.
+					sce->timer = add_timer(tick + skill_get_time2(skill_id, 1), status_change_timer, bl->id, type);
+				}
 			}
 			break;
 		case PF_FOGWALL:
@@ -13896,7 +13901,7 @@ int skill_unit_onleft(uint16 skill_id, struct block_list *bl, unsigned int tick)
  * flag&4: Invoke a onleft call (the unit might be scheduled for deletion)
  * flag&8: Recursive
  *------------------------------------------*/
-static int skill_unit_effect (struct block_list* bl, va_list ap)
+static int skill_unit_effect(struct block_list* bl, va_list ap)
 {
 	struct skill_unit* unit = va_arg(ap,struct skill_unit*);
 	struct skill_unit_group* group = unit->group;

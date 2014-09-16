@@ -8212,6 +8212,7 @@ static const struct _battle_data {
 	{ "devotion_rdamage_skill_only",        &battle_config.devotion_rdamage_skill_only,     1,      0,      1,              },
 	{ "max_extended_aspd",                  &battle_config.max_extended_aspd,               193,    100,    199,            },
 	{ "knockback_left",                     &battle_config.knockback_left,                  1,      0,      1,              },
+	{ "song_timer_reset",                   &battle_config.song_timer_reset,                0,      0,      1,              },
 };
 #ifndef STATS_OPT_OUT
 /**

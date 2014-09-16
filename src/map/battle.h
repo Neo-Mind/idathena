@@ -578,6 +578,7 @@ extern struct Battle_Config
 	int devotion_rdamage_skill_only;
 	int max_extended_aspd;
 	int knockback_left;
+	int song_timer_reset;
 } battle_config;
 
 void do_init_battle(void);
