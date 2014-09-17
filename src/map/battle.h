@@ -561,7 +561,6 @@ extern struct Battle_Config
 	int warg_can_falcon;
 	int path_blown_halt;
 	int rental_mount_speed_boost;
-	int crimson_marker_type;
 	int warp_suggestions_enabled;
 	int taekwon_mission_mobname;
 	int teleport_on_portal;

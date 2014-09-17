@@ -10005,10 +10005,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_FULL_THROTTLE:
 			status_percent_heal(bl,100,0);
 			break;
-		case SC_C_MARKER: //Send mini-map, don't wait for first timer triggered
+		case SC_C_MARKER:
 			if(src->type == BL_PC && (sd = map_id2sd(src->id)))
-				if(!battle_config.crimson_marker_type)
-					clif_crimson_marker(sd,bl,0);
+				clif_crimson_marker(sd,bl,0); //Send mini-map, don't wait for first timer triggered
 			break;
 	}
 
@@ -10697,10 +10696,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 					break;
 				ARR_FIND(0,MAX_SKILL_CRIMSON_MARKER,i,sd->c_marker.target[i] == bl->id);
 				if (i < MAX_SKILL_CRIMSON_MARKER) { //Remove mark data from caster
-					if (battle_config.crimson_marker_type)
-						clif_crimson_marker2(sd,bl->id,2,bl->x,bl->y,i,0xFF0000);
-					else
-						clif_crimson_marker(sd,bl,1);
+					clif_crimson_marker(sd,bl,1);
 					sd->c_marker.target[i] = 0;
 				}
 			}
@@ -11869,12 +11865,8 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				if( !sd || !&sd->c_marker || !sd->c_marker.target )
 					break;
 				ARR_FIND(0,MAX_SKILL_CRIMSON_MARKER,i,sd->c_marker.target[i] == bl->id);
-				if( i < MAX_SKILL_CRIMSON_MARKER ) {
-					if( battle_config.crimson_marker_type )
-						clif_crimson_marker2(sd,bl->id,1,bl->x,bl->y,i,0xFF0000);
-					else
-						clif_crimson_marker(sd,bl,0);
-				}
+				if( i < MAX_SKILL_CRIMSON_MARKER )
+					clif_crimson_marker(sd,bl,0); //Update target position
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}

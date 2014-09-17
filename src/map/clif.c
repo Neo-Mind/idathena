@@ -1864,6 +1864,7 @@ void clif_quitsave(int fd,struct map_session_data *sd) {
 void clif_changemap(struct map_session_data *sd, short m, int x, int y)
 {
 	int fd;
+
 	nullpo_retv(sd);
 
 	fd = sd->fd;
@@ -1881,6 +1882,7 @@ void clif_changemap(struct map_session_data *sd, short m, int x, int y)
 void clif_changemapserver(struct map_session_data* sd, unsigned short map_index, int x, int y, uint32 ip, uint16 port)
 {
 	int fd;
+
 	nullpo_retv(sd);
 
 	fd = sd->fd;
@@ -1909,6 +1911,7 @@ void clif_blown(struct block_list *bl)
 void clif_fixpos(struct block_list *bl)
 {
 	unsigned char buf[10];
+
 	nullpo_retv(bl);
 
 	WBUFW(buf,0) = 0x88;
@@ -3526,10 +3529,15 @@ void clif_statusupack(struct map_session_data *sd,int type,int ok,int val)
 /// 00aa <index>.W <equip location>.W <view id>.W <result>.B (PACKETVER >= 20100629)
 /// 08d0 <index>.W <equip location>.W <view id>.W <result>.B (ZC_REQ_WEAR_EQUIP_ACK2)
 /// 0999 <index>.W <equip location>.L <view id>.W <result>.B (ZC_ACK_WEAR_EQUIP_V5)
-/// @ok: //Inversed for v2 v5
+/// 0xaa Result Table:
 ///     0 = failure
 ///     1 = success
 ///     2 = failure due to low level
+/// --------------------------------
+/// 0x999 Result Table:
+///     0 = success
+///     1 = fail_forbid
+///     2 = failure
 void clif_equipitemack(struct map_session_data *sd,int n,int pos,int ok)
 {
 	int fd, header, offs = 0, success;
@@ -3541,7 +3549,7 @@ void clif_equipitemack(struct map_session_data *sd,int n,int pos,int ok)
 	success = (ok ? 0 : 1);
 #else
 	header = 0x999;
-	success = (ok ? 0 : 1);
+	success = (ok == 0) ? 2 : (ok == 1) ? 0 : 1;
 #endif
 
 	nullpo_retv(sd);
@@ -4449,20 +4457,21 @@ static int clif_calc_walkdelay(struct block_list *bl, int delay, char type, int6
 /// Sends a 'damage' packet (src performs action on dst)
 /// 008a <src ID>.L <dst ID>.L <server tick>.L <src speed>.L <dst speed>.L <damage>.W <div>.W <type>.B <damage2>.W (ZC_NOTIFY_ACT)
 /// 02e1 <src ID>.L <dst ID>.L <server tick>.L <src speed>.L <dst speed>.L <damage>.L <div>.W <type>.B <damage2>.L (ZC_NOTIFY_ACT2)
-/// type:
-///     0 = damage [ damage: total damage, div: amount of hits, damage2: assassin dual-wield damage ]
-///     1 = pick up item
-///     2 = sit down
-///     3 = stand up
-///     4 = damage (endure)
-///     5 = (splash?)
-///     6 = (skill?)
-///     7 = (repeat damage?)
-///     8 = multi-hit damage
-///     9 = multi-hit damage (endure)
-///     10 = critical hit
-///     11 = lucky dodge
-///     12 = (touch skill?)
+/// 08c8 <src ID>.L <dst ID>.L <server tick>.L <src speed>.L <dst speed>.L <damage>.L <IsSPDamage>.B <div>.W <type>.B <damage2>.L (ZC_NOTIFY_ACT3)
+/// Types:
+///     0 = ATTACK - damage [ damage: total damage, div: amount of hits, damage2: assassin dual-wield damage ]
+///     1 = ITEMPICKUP - pick up item
+///     2 = SIT - sit down
+///     3 = STAND - stand up
+///     4 = ATTACK_NOMOTION - damage (endure)
+///     5 = SPLASH - (splash?)
+///     6 = SKILL - (skill?)
+///     7 = ATTACK_REPEAT - (repeat damage?)
+///     8 = ATTACK_MULTIPLE - multi-hit damage
+///     9 = ATTACK_MULTIPLE_NOMOTION - multi-hit damage (endure)
+///     10 = ATTACK_CRITICAL - critical hit
+///     11 = ATTACK_LUCKY - lucky dodge
+///     12 = TOUCHSKILL - (touch skill?)
 int clif_damage(struct block_list* src, struct block_list* dst, unsigned int tick, int sdelay, int ddelay, int64 in_damage, int div, enum e_damage_type type, int64 in_damage2)
 {
 	unsigned char buf[33];
@@ -4482,11 +4491,11 @@ int clif_damage(struct block_list* src, struct block_list* dst, unsigned int tic
 
 	type = clif_calc_delay(type,div,damage + damage2,ddelay);
 	sc = status_get_sc(dst);
-	if(sc && sc->count) {
-		if(sc->data[SC_HALLUCINATION]) {
-			if(damage) damage = damage * (sc->data[SC_HALLUCINATION]->val2) + rnd()%100;
-			if(damage2) damage2 = damage2 * (sc->data[SC_HALLUCINATION]->val2) + rnd()%100;
-		}
+	if(sc && sc->count && sc->data[SC_HALLUCINATION]) {
+		if(damage)
+			damage = damage * (sc->data[SC_HALLUCINATION]->val2) + rnd()%100;
+		if(damage2)
+			damage2 = damage2 * (sc->data[SC_HALLUCINATION]->val2) + rnd()%100;
 	}
 
 	WBUFW(buf,0) = cmd;
@@ -4528,11 +4537,15 @@ int clif_damage(struct block_list* src, struct block_list* dst, unsigned int tic
 		if(disguised(dst))
 			WBUFL(buf,6) = dst->id;
 #if PACKETVER < 20071113
-		if(damage > 0) WBUFW(buf,22) = -1;
-		if(damage2 > 0) WBUFW(buf,27) = -1;
+		if(damage > 0)
+			WBUFW(buf,22) = -1;
+		if(damage2 > 0)
+			WBUFW(buf,27) = -1;
 #else
-		if(damage > 0) WBUFL(buf,22) = -1;
-		if(damage2 > 0) WBUFL(buf,29) = -1;
+		if(damage > 0)
+			WBUFL(buf,22) = -1;
+		if(damage2 > 0)
+			WBUFL(buf,29) = -1;
 #endif
 		clif_send(buf,packet_len(cmd),src,SELF);
 	}
@@ -5204,6 +5217,11 @@ void clif_skill_fail(struct map_session_data *sd,uint16 skill_id,enum useskill_f
 
 /// Skill cooldown display icon (ZC_SKILL_POSTDELAY).
 /// 043d <skill ID>.W <tick>.L
+/// NOTE: This is now often used to start cooldown times for renewal skills.
+/// Because of this and its effect on the display of skill icons in the shortcut bar,
+/// the ZC_SKILL_POSTDELAY_LIST and ZC_SKILL_POSTDELAY_LIST2 will need to be supported
+/// soon to tell the client which skills are currently in cooldown when a player logs on
+/// and display them in the shortcut bar. [Rytech]
 void clif_skill_cooldown(struct map_session_data *sd, uint16 skill_id, unsigned int tick)
 {
 #if PACKETVER >= 20081112
@@ -7158,6 +7176,8 @@ void clif_party_xy(struct map_session_data *sd)
  *------------------------------------------*/
 void clif_party_xy_single(int fd, struct map_session_data *sd)
 {
+	nullpo_retv(sd);
+
 	WFIFOHEAD(fd,packet_len(0x107));
 	WFIFOW(fd,0) = 0x107;
 	WFIFOL(fd,2) = sd->status.account_id;
@@ -7252,11 +7272,15 @@ void clif_movetoattack(struct map_session_data *sd,struct block_list *bl)
 /// Notifies the client about the result of an item produce request (ZC_ACK_REQMAKINGITEM).
 /// 018f <result>.W <name id>.W
 /// result:
-///     0 = success
-///     1 = failure
-///     2 = success (alchemist)
-///     3 = failure (alchemist)
-void clif_produceeffect(struct map_session_data* sd, int flag, unsigned short nameid)
+///     0 = Success (Blacksmith)
+///     1 = Failure (Blacksmith)
+///     2 = Success (Alchemist)
+///     3 = Failure (Alchemist)
+///     4 = Success (Rune Knight)
+///     5 = Failure (Rune Knight)
+///     6 = Success (Genetic)
+///     7 = Failure (Genetic)	
+void clif_produceeffect(struct map_session_data* sd, int result, unsigned short nameid)
 {
 	int view, fd;
 
@@ -7266,7 +7290,7 @@ void clif_produceeffect(struct map_session_data* sd, int flag, unsigned short na
 	clif_solved_charname(fd, sd->status.char_id, sd->status.name);
 	WFIFOHEAD(fd,packet_len(0x18f));
 	WFIFOW(fd,0) = 0x18f;
-	WFIFOW(fd,2) = flag;
+	WFIFOW(fd,2) = result;
 	if((view = itemdb_viewid(nameid)) > 0)
 		WFIFOW(fd,4) = view;
 	else
@@ -9068,7 +9092,7 @@ void clif_charnameupdate (struct map_session_data *ssd)
 /// Taekwon Jump (TK_HIGHJUMP) effect (ZC_HIGHJUMP).
 /// 01ff <id>.L <x>.W <y>.W
 ///
-/// Visually moves(instant) a character to x, y. The char moves even
+/// Visually moves(instant) a character to x,y. The char moves even
 /// when the target cell isn't walkable. If the char is sitting it
 /// stays that way.
 void clif_slide(struct block_list *bl, int x, int y)
@@ -17603,8 +17627,9 @@ void clif_crimson_marker(struct map_session_data *sd, struct block_list *bl, uin
 	unsigned char buf[16];
 
 	nullpo_retv(sd);
+	nullpo_retv(bl);
 
-	WBUFW(buf,0) = 0x107;
+	WBUFW(buf,0) = 0x9c1;
 	WBUFL(buf,2) = bl->id;
 	WBUFW(buf,6) = (flag ? -1 : bl->x);
 	WBUFW(buf,8) = (flag ? -1 : bl->y);
@@ -17614,7 +17639,7 @@ void clif_crimson_marker(struct map_session_data *sd, struct block_list *bl, uin
 	else
 		clif_crimson_marker_single(sd->fd,bl,0);
 	if( sd->status.party_id )
-		clif_send(buf,packet_len(0x107),&sd->bl,PARTY_SAMEMAP_WOS);
+		clif_send(buf,packet_len(0x9c1),&sd->bl,PARTY_SAMEMAP_WOS);
 }
 
 /** Mark a target in mini-map and send it to SELF
@@ -17623,48 +17648,14 @@ void clif_crimson_marker(struct map_session_data *sd, struct block_list *bl, uin
  *	1: Remove
  */
 void clif_crimson_marker_single(int fd, struct block_list *bl, uint8 flag) {
-	WFIFOHEAD(fd,packet_len(0x107));
-	WFIFOW(fd,0) = 0x107;
+	nullpo_retv(bl);
+
+	WFIFOHEAD(fd,packet_len(0x9c1));
+	WFIFOW(fd,0) = 0x9c1;
 	WFIFOL(fd,2) = bl->id;
 	WFIFOW(fd,6) = (flag ? -1 : bl->x);
 	WFIFOW(fd,8) = (flag ? -1 : bl->y);
-	WFIFOSET(fd,packet_len(0x107));
-}
-
-/** This is another version of clif_crimson_marker
- * Mark a target in mini-map and send it to party members
- */
-void clif_crimson_marker2(struct map_session_data *sd, int target_id, int type, int x, int y, int id, int color) {
-	unsigned char buf[32];
-
-	nullpo_retv(sd);
-
-	WBUFW(buf,0) = 0x144;
-	WBUFL(buf,2) = target_id;
-	WBUFL(buf,6) = type;
-	WBUFL(buf,10) = x;
-	WBUFL(buf,14) = y;
-	WBUFB(buf,18) = id;
-	WBUFL(buf,19) = color;
-
-	clif_crimson_marker2_single(sd->fd,target_id,type,x,y,id,color);
-	if( sd->status.party_id )
-		clif_send(buf,packet_len(0x144),&sd->bl,PARTY_SAMEMAP_WOS);
-}
-
-/** This is another version of clif_crimson_marker_single
- * Mark a target in mini-map and send it to SELF
- */
-void clif_crimson_marker2_single(int fd, int target_id, int type, int x, int y, int id, int color) {
-	WFIFOHEAD(fd,packet_len(0x144));
-	WFIFOW(fd,0) = 0x144;
-	WFIFOL(fd,2) = target_id;
-	WFIFOL(fd,6) = type;
-	WFIFOL(fd,10) = x;
-	WFIFOL(fd,14) = y;
-	WFIFOB(fd,18) = id;
-	WFIFOL(fd,19) = color;
-	WFIFOSET(fd,packet_len(0x144));
+	WFIFOSET(fd,packet_len(0x9c1));
 }
 
 #ifdef DUMP_UNKNOWN_PACKET
@@ -18043,7 +18034,7 @@ void packetdb_readdb(void)
 #if PACKETVER < 20130000
 	    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 #else
-		0,  0,  0,  0,  0,  0,  0,  0,  0, 16,  0, 19,  0,  0,  0,  0,
+		0,  0,  0,  0,  2,  0,  4,  0, -1, 16,  2, 19,  0,  0,  0,  0,
 #endif
 	    0,  0,  0,  0,  0,  0, -1, -1, -1, -1,  0,  0,  0,  0,  0,  0,
 	    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -18054,10 +18045,10 @@ void packetdb_readdb(void)
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 	//#0x08C0
-		0,  0,  0,  0,  0,  0,  0, 20,  0,  0,  0,  0,  0,  0,  0, 10,
+		0,  0,  0,  0,  0,  0,  0, 20,  0,  2,  0,  0,  0,  0,  0, 10,
 		9,  7, 10,  0,  0,  0,  6,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 24,
 	//#0x0900
 		0,  0,  0,  0,  0,  0,  0,  0,  5,  0,  0,  0,  0,  0,  0, -1,
 		0,  0,  0,  0, -1, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -18067,14 +18058,14 @@ void packetdb_readdb(void)
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-		0,  0,  0,  0,  0,  0,  0, 14,  0,  0,  0,  0,  0,  0,  0,  0,
+		0,  0,  0,  0,  0,  0,  0, 14,  6, 50,  0, 16,  4,288, 12,  0,
 	//#0x0980
-		0,  0,  0, 29,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-		31, 0,  0,  0,  0,  0,  0, -1,  8, 11,  9,  8,  0,  0,  0, 22,
+		0,  0,  0, 29, 28,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+	   31,  0,  0,  0,  0,  0,  0, -1,  8, 11,  9,  8,  0,  0,  0, 22,
 		0,  0,  0,  0,  0,  0, 12, 10, 16, 10, 16,  6,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  6,  4,  6,  4,  0,  0,  0,  0,  0,  0,
 	//#0x09C0
-		0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 23,  0,  0,  0,102,  0,
+		0, 10,  0,  0,  0,  0,  0,  0,  0,  0, 23,  0,  0,  0,102,  0,
 		0,  0,  0,  0,  2,  0, -1,  0,  2,  0,  0,  0,  0,  0,  0,  7,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,

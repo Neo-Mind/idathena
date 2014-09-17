@@ -1086,7 +1086,7 @@ int mapif_parse_WisToGM(int fd)
 	unsigned char buf[2048]; // 0x3003/0x3803 <packet_len>.w <wispname>.24B <permission>.L <message>.?B
 
 	memcpy(WBUFP(buf,0), RFIFOP(fd,0), RFIFOW(fd,2));
-	WBUFW(buf, 0) = 0x3803;
+	WBUFW(buf,0) = 0x3803;
 	mapif_sendall(buf, RFIFOW(fd,2));
 
 	return 0;
@@ -1095,34 +1095,34 @@ int mapif_parse_WisToGM(int fd)
 // Save account_reg into sql (type=2)
 int mapif_parse_Registry(int fd)
 {
-	int j,p,len, max;
-	struct accreg *reg=accreg_pt;
+	int j, p, len, max;
+	struct accreg *reg = accreg_pt;
 
 	memset(accreg_pt,0,sizeof(struct accreg));
-	switch (RFIFOB(fd, 12)) {
-	case 3: //Character registry
-		max = GLOBAL_REG_NUM;
-	break;
-	case 2: //Account Registry
-		max = ACCOUNT_REG_NUM;
-	break;
-	case 1: //Account2 registry, must be sent over to login server.
-		return save_accreg2(RFIFOP(fd,4), RFIFOW(fd,2)-4);
-	default:
-		return 1;
+	switch (RFIFOB(fd,12)) {
+		case 3: //Character registry
+			max = GLOBAL_REG_NUM;
+			break;
+		case 2: //Account Registry
+			max = ACCOUNT_REG_NUM;
+			break;
+		case 1: //Account2 registry, must be sent over to login server.
+			return save_accreg2(RFIFOP(fd,4),RFIFOW(fd,2) - 4);
+		default:
+			return 1;
 	}
-	for(j=0,p=13;j<max && p<RFIFOW(fd,2);j++){
-		sscanf((char*)RFIFOP(fd,p), "%31c%n",reg->reg[j].str,&len);
-		reg->reg[j].str[len]='\0';
-		p +=len+1; //+1 to skip the '\0' between strings.
-		sscanf((char*)RFIFOP(fd,p), "%255c%n",reg->reg[j].value,&len);
-		reg->reg[j].value[len]='\0';
-		p +=len+1;
+	for (j = 0, p = 13; j < max && p < RFIFOW(fd,2); j++) {
+		sscanf((char*)RFIFOP(fd,p),"%31c%n",reg->reg[j].str,&len);
+		reg->reg[j].str[len] = '\0';
+		p += len + 1; //+1 to skip the '\0' between strings.
+		sscanf((char*)RFIFOP(fd,p),"%255c%n",reg->reg[j].value,&len);
+		reg->reg[j].value[len] = '\0';
+		p += len + 1;
 	}
-	reg->reg_num=j;
+	reg->reg_num = j;
 
-	inter_accreg_tosql(RFIFOL(fd,4),RFIFOL(fd,8),reg, RFIFOB(fd,12));
-	mapif_account_reg(fd,RFIFOP(fd,0));	// Send updated accounts to other map servers.
+	inter_accreg_tosql(RFIFOL(fd,4),RFIFOL(fd,8),reg,RFIFOB(fd,12));
+	mapif_account_reg(fd,RFIFOP(fd,0));	//Send updated accounts to other map servers.
 	return 0;
 }
 
@@ -1130,11 +1130,14 @@ int mapif_parse_Registry(int fd)
 int mapif_parse_RegistryRequest(int fd)
 {
 	//Load Char Registry
-	if (RFIFOB(fd,12)) mapif_account_reg_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6),3);
+	if (RFIFOB(fd,12))
+		mapif_account_reg_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6),3);
 	//Load Account Registry
-	if (RFIFOB(fd,11)) mapif_account_reg_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6),2);
+	if (RFIFOB(fd,11))
+		mapif_account_reg_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6),2);
 	//Ask Login Server for Account2 values.
-	if (RFIFOB(fd,10)) request_accreg2(RFIFOL(fd,2),RFIFOL(fd,6));
+	if (RFIFOB(fd,10))
+		request_accreg2(RFIFOL(fd,2),RFIFOL(fd,6));
 	return 1;
 }
 

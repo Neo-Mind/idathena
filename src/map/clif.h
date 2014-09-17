@@ -538,7 +538,7 @@ void clif_skill_teleportmessage(struct map_session_data *sd, int type);
 void clif_skill_produce_mix_list(struct map_session_data *sd, int skill_id, int trigger);
 void clif_cooking_list(struct map_session_data *sd, int trigger, uint16 skill_id, int qty, int list_type);
 
-void clif_produceeffect(struct map_session_data* sd, int flag, unsigned short nameid);
+void clif_produceeffect(struct map_session_data* sd, int result, unsigned short nameid);
 
 void clif_getareachar_skillunit(struct block_list *bl, struct skill_unit *unit, enum send_target target, uint8 flag);
 void clif_skill_delunit(struct skill_unit *unit);
@@ -881,7 +881,5 @@ void clif_parse_BankClose(int fd, struct map_session_data *sd);
 
 void clif_crimson_marker(struct map_session_data *sd, struct block_list *bl, uint8 flag);
 void clif_crimson_marker_single(int fd, struct block_list *bl, uint8 flag);
-void clif_crimson_marker2(struct map_session_data *sd, int target_id, int type, int x, int y, int id, int color);
-void clif_crimson_marker2_single(int fd, int target_id, int type, int x, int y, int id, int color);
 
 #endif /* _CLIF_H_ */

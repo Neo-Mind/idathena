@@ -5650,7 +5650,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						skillratio += 40 * skill_lv;
 						break;
 					case HW_NAPALMVULCAN:
-						skillratio += -30 + 10 * skill_lv;
+						skillratio += 25;
 						break;
 					case SL_STIN:
 						//Target size must be small (0) for full damage.
@@ -8182,7 +8182,6 @@ static const struct _battle_data {
 	{ "warg_can_falcon",                    &battle_config.warg_can_falcon,                 0,      0,      1,              },
 	{ "path_blown_halt",                    &battle_config.path_blown_halt,                 1,      0,      1,              },
 	{ "rental_mount_speed_boost",           &battle_config.rental_mount_speed_boost,        25,     0,      100,            },
-	{ "crimson_marker_type",                &battle_config.crimson_marker_type,             1,      0,      1,              },
 	{ "feature.warp_suggestions",           &battle_config.warp_suggestions_enabled,        0,      0,      1,              },
 	{ "taekwon_mission_mobname",            &battle_config.taekwon_mission_mobname,         0,      0,      2,              },
 	{ "teleport_on_portal",                 &battle_config.teleport_on_portal,              0,      0,      1,              },

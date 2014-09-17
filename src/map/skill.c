@@ -7410,8 +7410,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			break;
 
 		case TF_BACKSLIDING: //This is the correct implementation as per packet logging information. [Skotlex]
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			skill_blown(src,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
+			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			break;
 
 		case TK_HIGHJUMP: {
@@ -9099,9 +9099,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			{
 				int dir = (skill_id == NC_F_SIDESLIDE) ? (unit_getdir(src) + 4)%8 : unit_getdir(src);
 
-				skill_blown(src,bl,skill_get_blewcount(skill_id,skill_lv),dir,0x1);
-				clif_slide(src,src->x,src->y);
-				clif_fixpos(src);
+				skill_blown(src,bl,skill_get_blewcount(skill_id,skill_lv),dir,0);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			}
 			break;
@@ -12828,7 +12826,6 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 
 				if( i > 0 && !(status_get_mode(bl)&MD_BOSS) ) { //Knock-back any enemy except Boss
 					skill_blown(ss,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
-					clif_fixpos(bl);
 					break;
 				}
 				if( !sce && i <= 0 )
@@ -13368,7 +13365,6 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 
 				if (i > 0 && !(status_get_mode(bl)&MD_BOSS)) { //Knock-back any enemy except Boss
 					skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
-					clif_fixpos(bl);
 					break;
 				}
 				if (i <= 0 && (!tsc || !tsc->data[SC_BASILICA]))
@@ -18707,6 +18703,7 @@ int skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sho
 				case AM_TWILIGHT2:
 				case AM_TWILIGHT3:
 				case ASC_CDP:
+				case GC_CREATENEWPOISON:
 					clif_produceeffect(sd,2,nameid);
 					clif_misceffect(&sd->bl,5);
 					break;
@@ -18717,8 +18714,7 @@ int skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sho
 					clif_misceffect(&sd->bl,3);
 					break;
 				case RK_RUNEMASTERY:
-				case GC_CREATENEWPOISON:
-					clif_produceeffect(sd,2,nameid);
+					clif_produceeffect(sd,4,nameid);
 					clif_misceffect(&sd->bl,5);
 					break;
 				default: //Those that don't require a skill?
@@ -18748,6 +18744,8 @@ int skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sho
 					break;
 				}
 			if(k) {
+				clif_produceeffect(sd,6,nameid);
+				clif_misceffect(&sd->bl,5);
 				clif_msg_skill(sd,skill_id,ITEM_PRODUCE_SUCCESS);
 				return 1;
 			}
@@ -18756,8 +18754,11 @@ int skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sho
 				clif_additem(sd,0,0,flag);
 				map_addflooritem(&tmp_item,tmp_item.amount,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 			}
-			if(skill_id == GN_MIX_COOKING || skill_id == GN_MAKEBOMB || skill_id ==  GN_S_PHARMACY)
+			if(skill_id == GN_MIX_COOKING || skill_id == GN_MAKEBOMB || skill_id ==  GN_S_PHARMACY) {
+				clif_produceeffect(sd,6,nameid);
+				clif_misceffect(&sd->bl,5);
 				clif_msg_skill(sd,skill_id,ITEM_PRODUCE_SUCCESS);
+			}
 			return 1;
 		}
 	}
@@ -18777,6 +18778,7 @@ int skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sho
 			case AM_TWILIGHT1:
 			case AM_TWILIGHT2:
 			case AM_TWILIGHT3:
+			case GC_CREATENEWPOISON:
 				clif_produceeffect(sd,3,nameid);
 				clif_misceffect(&sd->bl,6);
 				sd->potion_success_counter = 0; //Fame point system [DracoRPG]
@@ -18788,8 +18790,7 @@ int skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sho
 				clif_misceffect(&sd->bl,2);
 				break;
 			case RK_RUNEMASTERY:
-			case GC_CREATENEWPOISON:
-				clif_produceeffect(sd,3,nameid);
+				clif_produceeffect(sd,5,nameid);
 				clif_misceffect(&sd->bl,6);
 				break;
 			case GN_MIX_COOKING: {
@@ -18809,12 +18810,16 @@ int skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sho
 						clif_additem(sd,0,0,flag);
 						map_addflooritem(&tmp_item,tmp_item.amount,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 					}
+					clif_produceeffect(sd,7,nameid);
+					clif_misceffect(&sd->bl,6);
 					clif_msg_skill(sd,skill_id,ITEM_PRODUCE_FAIL);
 				}
 				break;
 			case GN_MAKEBOMB:
 			case GN_S_PHARMACY:
 			case GN_CHANGEMATERIAL:
+				clif_produceeffect(sd,7,nameid);
+				clif_misceffect(&sd->bl,6);
 				clif_msg_skill(sd,skill_id,ITEM_PRODUCE_FAIL);
 				break;
 			default:
@@ -18823,6 +18828,7 @@ int skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sho
 					if(sd->cook_mastery > 0)
 						pc_setglobalreg(sd, "COOK_MASTERY", sd->cook_mastery - (1 << ((skill_produce_db[idx].itemlv - 11) / 2)) - (((1 << ((skill_produce_db[idx].itemlv - 11) / 2)) >> 1) * 3));
 				}
+				break;
 		}
 	}
 	return 0;

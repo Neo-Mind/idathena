@@ -1869,7 +1869,7 @@ packet_ver: 34
 0x0999,11 //cz_wear_equipv5
 0x099a,9 //take_off_equipv5
 0x099b,8  //maptypeproperty2
-0x099f,22
+0x099f,22 //ZC_SKILL_ENTRY4
 //New Packets End
 
 //2013-05-15aRagexe (Yommy)
@@ -2271,14 +2271,15 @@ packet_ver: 46
 0x0361,5,hommenu,2:4
 0x08A4,36,storagepassword,2:4:20
 //New Packets
-0x09D4,2,dull,0 //npcshopclosed
+0x097E,12 //ZC_UPDATE_RANKING_POINT
+0x09B4,6,dull,0 //Cash Shop - Special Tab
+0x09C1,10 //ZC_C_MARKERINFO
 0x09CE,102,itemmonster,2
+0x09D4,2,dull,0 //npcshopclosed
 //NPC Market
-0x09D8,2,dull,0 //npcmarketclosed
 0x09D6,-1,dull,0 //npcmarketpurchase
+0x09D8,2,dull,0 //npcmarketclosed
 0x09DF,7
-//Cash Shop - Special Tab
-0x09B4,6,dull,0
 
 //Add new packets here
 //packet_ver: 47

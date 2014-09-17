@@ -5601,27 +5601,21 @@ ACMD_FUNC(divorce)
 
 /*==========================================
  * @changelook by [Celest]
+ * Recoded by [Rytech]
  *------------------------------------------*/
 ACMD_FUNC(changelook)
 {
-	int i, j = 0, k = 0;
-	int pos[7] = { LOOK_HEAD_TOP,LOOK_HEAD_MID,LOOK_HEAD_BOTTOM,LOOK_WEAPON,LOOK_SHIELD,LOOK_SHOES,LOOK_ROBE };
+	int type = 0, value = 0; //p = Position, v = Value
+	int pos[6] = { LOOK_HEAD_TOP,LOOK_HEAD_MID,LOOK_HEAD_BOTTOM,LOOK_WEAPON,LOOK_SHIELD,LOOK_ROBE };
 
-	if((i = sscanf(message, "%d %d", &j, &k)) < 1) {
+	if( sscanf(message, "%d %d", &type, &value) != 2 || type < 1 || type > 6 || value < 0) {
 		clif_displaymessage(fd, msg_txt(1177)); // Usage: @changelook {<position>} <view id>
+		clif_displaymessage(fd, msg_txt(533));  // Position must be a number between 1 - 6 and view id must be 0 or higher.
 		clif_displaymessage(fd, msg_txt(1178)); // Position: 1-Top 2-Middle 3-Bottom 4-Weapon 5-Shield 6-Shoes 7-Robe
 		return -1;
-	} else if ( i == 2 ) {
-		if (j < 1 || j > 7)
-			j = 1;
-		j = pos[j - 1];
-	} else if( i == 1 ) {	// position not defined, use HEAD_TOP as default
-		k = j;	// swap
-		j = LOOK_HEAD_TOP;
 	}
-
-	clif_changelook(&sd->bl,j,k);
-
+	//If the check passes, display the requested result on the character.
+	clif_changelook(&sd->bl, pos[type - 1], value);
 	return 0;
 }
 
