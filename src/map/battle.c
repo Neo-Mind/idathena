@@ -265,13 +265,18 @@ int battle_delay_damage(unsigned int tick, int amotion, struct block_list *src, 
 {
 	struct delay_damage *dat;
 	struct status_change *sc;
+	struct block_list *d_tbl = NULL;
 
 	nullpo_ret(src);
 	nullpo_ret(target);
 
 	sc = status_get_sc(target);
 
-	if( sc && sc->data[SC_DEVOTION] && damage > 0 && skill_id != PA_PRESSURE && skill_id != CR_REFLECTSHIELD )
+	if( sc && sc->data[SC_DEVOTION] && sc->data[SC_DEVOTION]->val1 )
+		d_tbl = map_id2bl(sc->data[SC_DEVOTION]->val1);
+
+	if( d_tbl && check_distance_bl(target, d_tbl, sc->data[SC_DEVOTION]->val3) &&
+		damage > 0 && skill_id != PA_PRESSURE && skill_id != CR_REFLECTSHIELD )
 		damage = 0;
 
 	if( !battle_config.delay_battle_damage || amotion <= 1 ) {
@@ -293,7 +298,7 @@ int battle_delay_damage(unsigned int tick, int amotion, struct block_list *src, 
 	dat->damage = damage;
 	dat->dmg_lv = dmg_lv;
 	dat->delay = ddelay;
-	dat->distance = distance_bl(src, target) + 10; //Attack should connect regardless unless you teleported.
+	dat->distance = distance_bl(src, target) + (battle_config.snap_dodge ? 10 : battle_config.area_size);
 	dat->additional_effects = additional_effects;
 	dat->src_type = src->type;
 	if( src->type != BL_PC && amotion > 1000 )
@@ -6487,7 +6492,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		case GN_HELLS_PLANT_ATK: {
 				short totalmdef = tstatus->mdef + tstatus->mdef2;
 
-				md.damage = (skill_lv * status_get_lv(src) * 10) + (sstatus->int_ * 7 / 2) * (18 + (sd ? sd->status.job_level : 0) / 4) * (5 / (10 - (sd ? pc_checkskill(sd,AM_CANNIBALIZE) : 0)));
+				md.damage = (skill_lv * status_get_lv(target) * 10) + (sstatus->int_ * 7 / 2) * (18 + (sd ? sd->status.job_level : 0) / 4) * (5 / (10 - (sd ? pc_checkskill(sd,AM_CANNIBALIZE) : 0)));
 				md.damage -= totalmdef;
 			}
 			break;

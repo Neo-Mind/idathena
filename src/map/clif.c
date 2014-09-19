@@ -3514,12 +3514,12 @@ void clif_statusupack(struct map_session_data *sd,int type,int ok,int val)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0xbc));
-	WFIFOW(fd,0)=0xbc;
-	WFIFOW(fd,2)=type;
-	WFIFOB(fd,4)=ok;
-	WFIFOB(fd,5)=cap_value(val,0,UINT8_MAX);
+	WFIFOW(fd,0) = 0xbc;
+	WFIFOW(fd,2) = type;
+	WFIFOB(fd,4) = ok;
+	WFIFOB(fd,5) = cap_value(val,0,UINT8_MAX);
 	WFIFOSET(fd,packet_len(0xbc));
 }
 
@@ -7822,23 +7822,23 @@ void clif_guild_basicinfo(struct map_session_data *sd) {
 		return;
 
 	WFIFOHEAD(fd,packet_len(0x1b6));
-	WFIFOW(fd, 0)=0x1b6;//0x150;
-	WFIFOL(fd, 2)=g->guild_id;
-	WFIFOL(fd, 6)=g->guild_lv;
-	WFIFOL(fd,10)=g->connect_member;
-	WFIFOL(fd,14)=g->max_member;
-	WFIFOL(fd,18)=g->average_lv;
-	WFIFOL(fd,22)=(uint32)cap_value(g->exp,0,INT32_MAX);
-	WFIFOL(fd,26)=g->next_exp;
-	WFIFOL(fd,30)=0;	// Tax Points
-	WFIFOL(fd,34)=0;	// Honor: (left) Vulgar [-100,100] Famed (right)
-	WFIFOL(fd,38)=0;	// Virtue: (down) Wicked [-100,100] Righteous (up)
-	WFIFOL(fd,42)=g->emblem_id;
+	WFIFOW(fd, 0) = 0x1b6; //0x150;
+	WFIFOL(fd, 2) = g->guild_id;
+	WFIFOL(fd, 6) = g->guild_lv;
+	WFIFOL(fd,10) = g->connect_member;
+	WFIFOL(fd,14) = g->max_member;
+	WFIFOL(fd,18) = g->average_lv;
+	WFIFOL(fd,22) = (uint32)cap_value(g->exp,0,INT32_MAX);
+	WFIFOL(fd,26) = g->next_exp;
+	WFIFOL(fd,30) = 0; // Tax Points
+	WFIFOL(fd,34) = 0; // Honor: (left) Vulgar [-100,100] Famed (right)
+	WFIFOL(fd,38) = 0; // Virtue: (down) Wicked [-100,100] Righteous (up)
+	WFIFOL(fd,42) = g->emblem_id;
 	memcpy(WFIFOP(fd,46),g->name, NAME_LENGTH);
 	memcpy(WFIFOP(fd,70),g->master, NAME_LENGTH);
 
 	safestrncpy((char*)WFIFOP(fd,94),msg_txt(300+guild_checkcastles(g)),16); // "'N' castles"
-	WFIFOL(fd,110) = 0;  // zeny
+	WFIFOL(fd,110) = 0; // Zeny
 
 	WFIFOSET(fd,packet_len(0x1b6));
 }
@@ -7852,22 +7852,24 @@ void clif_guild_allianceinfo(struct map_session_data *sd)
 	struct guild *g;
 
 	nullpo_retv(sd);
+
 	if( (g = sd->guild) == NULL )
 		return;
 
 	fd = sd->fd;
-	WFIFOHEAD(fd, MAX_GUILDALLIANCE * 32 + 4);
-	WFIFOW(fd, 0)=0x14c;
-	for(i=c=0;i<MAX_GUILDALLIANCE;i++) {
-		struct guild_alliance *a=&g->alliance[i];
-		if(a->guild_id>0){
-			WFIFOL(fd,c*32+4)=a->opposition;
-			WFIFOL(fd,c*32+8)=a->guild_id;
-			memcpy(WFIFOP(fd,c*32+12),a->name,NAME_LENGTH);
+	WFIFOHEAD(fd,MAX_GUILDALLIANCE * 32 + 4);
+	WFIFOW(fd,0) = 0x14c;
+	for( i = c = 0; i < MAX_GUILDALLIANCE; i++ ) {
+		struct guild_alliance *a = &g->alliance[i];
+
+		if( a->guild_id > 0 ) {
+			WFIFOL(fd,c * 32 + 4) = a->opposition;
+			WFIFOL(fd,c * 32 + 8) = a->guild_id;
+			memcpy(WFIFOP(fd,c * 32 + 12),a->name,NAME_LENGTH);
 			c++;
 		}
 	}
-	WFIFOW(fd, 2)=c*32+4;
+	WFIFOW(fd,2) = c * 32 + 4;
 	WFIFOSET(fd,WFIFOW(fd,2));
 }
 
@@ -7884,6 +7886,7 @@ void clif_guild_memberlist(struct map_session_data *sd)
 	int fd;
 	int i,c;
 	struct guild *g;
+
 	nullpo_retv(sd);
 
 	if( (fd = sd->fd) == 0 )
@@ -7891,27 +7894,28 @@ void clif_guild_memberlist(struct map_session_data *sd)
 	if( (g = sd->guild) == NULL )
 		return;
 
-	WFIFOHEAD(fd, g->max_member * 104 + 4);
-	WFIFOW(fd, 0)=0x154;
-	for(i=0,c=0;i<g->max_member;i++) {
-		struct guild_member *m=&g->member[i];
-		if(m->account_id==0)
+	WFIFOHEAD(fd,g->max_member * 104 + 4);
+	WFIFOW(fd,0) = 0x154;
+	for( i = 0, c = 0; i < g->max_member; i++ ) {
+		struct guild_member *m = &g->member[i];
+
+		if( m->account_id == 0 )
 			continue;
-		WFIFOL(fd,c*104+ 4)=m->account_id;
-		WFIFOL(fd,c*104+ 8)=m->char_id;
-		WFIFOW(fd,c*104+12)=m->hair;
-		WFIFOW(fd,c*104+14)=m->hair_color;
-		WFIFOW(fd,c*104+16)=m->gender;
-		WFIFOW(fd,c*104+18)=m->class_;
-		WFIFOW(fd,c*104+20)=m->lv;
-		WFIFOL(fd,c*104+22)=(int)cap_value(m->exp,0,INT32_MAX);
-		WFIFOL(fd,c*104+26)=m->online;
-		WFIFOL(fd,c*104+30)=m->position;
-		memset(WFIFOP(fd,c*104+34),0,50);	//[Ind] - This is displayed in the 'note' column but being you can't edit it it's sent empty.
-		memcpy(WFIFOP(fd,c*104+84),m->name,NAME_LENGTH);
+		WFIFOL(fd,c * 104 + 4) = m->account_id;
+		WFIFOL(fd,c * 104 + 8) = m->char_id;
+		WFIFOW(fd,c * 104 + 12) = m->hair;
+		WFIFOW(fd,c * 104 + 14) = m->hair_color;
+		WFIFOW(fd,c * 104 + 16) = m->gender;
+		WFIFOW(fd,c * 104 + 18) = m->class_;
+		WFIFOW(fd,c * 104 + 20) = m->lv;
+		WFIFOL(fd,c * 104 + 22) = (int)cap_value(m->exp,0,INT32_MAX);
+		WFIFOL(fd,c * 104 + 26) = m->online;
+		WFIFOL(fd,c * 104 + 30) = m->position;
+		memset(WFIFOP(fd,c * 104 + 34),0,50); //[Ind] - This is displayed in the 'note' column but being you can't edit it it's sent empty.
+		memcpy(WFIFOP(fd,c * 104 + 84),m->name,NAME_LENGTH);
 		c++;
 	}
-	WFIFOW(fd, 2)=c*104+4;
+	WFIFOW(fd,2) = c * 104 + 4;
 	WFIFOSET(fd,WFIFOW(fd,2));
 }
 
@@ -7924,17 +7928,18 @@ void clif_guild_positionnamelist(struct map_session_data *sd)
 	struct guild *g;
 
 	nullpo_retv(sd);
+
 	if( (g = sd->guild) == NULL )
 		return;
 
 	fd = sd->fd;
-	WFIFOHEAD(fd, MAX_GUILDPOSITION * 28 + 4);
-	WFIFOW(fd, 0)=0x166;
-	for(i=0;i<MAX_GUILDPOSITION;i++) {
-		WFIFOL(fd,i*28+4)=i;
-		memcpy(WFIFOP(fd,i*28+8),g->position[i].name,NAME_LENGTH);
+	WFIFOHEAD(fd,MAX_GUILDPOSITION * 28 + 4);
+	WFIFOW(fd,0) = 0x166;
+	for( i = 0; i < MAX_GUILDPOSITION; i++ ) {
+		WFIFOL(fd,i * 28 + 4) = i;
+		memcpy(WFIFOP(fd,i * 28 + 8),g->position[i].name,NAME_LENGTH);
 	}
-	WFIFOW(fd,2)=i*28+4;
+	WFIFOW(fd,2) = i * 28 + 4;
 	WFIFOSET(fd,WFIFOW(fd,2));
 }
 
@@ -7952,20 +7957,22 @@ void clif_guild_positioninfolist(struct map_session_data *sd)
 	struct guild *g;
 
 	nullpo_retv(sd);
+
 	if( (g = sd->guild) == NULL )
 		return;
 
 	fd = sd->fd;
-	WFIFOHEAD(fd, MAX_GUILDPOSITION * 16 + 4);
-	WFIFOW(fd, 0)=0x160;
-	for(i=0;i<MAX_GUILDPOSITION;i++) {
-		struct guild_position *p=&g->position[i];
-		WFIFOL(fd,i*16+ 4)=i;
-		WFIFOL(fd,i*16+ 8)=p->mode;
-		WFIFOL(fd,i*16+12)=i;
-		WFIFOL(fd,i*16+16)=p->exp_mode;
+	WFIFOHEAD(fd,MAX_GUILDPOSITION * 16 + 4);
+	WFIFOW(fd,0) = 0x160;
+	for( i = 0; i < MAX_GUILDPOSITION; i++ ) {
+		struct guild_position *p = &g->position[i];
+
+		WFIFOL(fd,i * 16 + 4) = i;
+		WFIFOL(fd,i * 16 + 8) = p->mode;
+		WFIFOL(fd,i * 16 + 12) = i;
+		WFIFOL(fd,i * 16 + 16) = p->exp_mode;
 	}
-	WFIFOW(fd, 2)=i*16+4;
+	WFIFOW(fd,2) = i * 16 + 4;
 	WFIFOSET(fd,WFIFOW(fd,2));
 }
 
@@ -7987,16 +7994,16 @@ void clif_guild_positionchanged(struct guild *g,int idx)
 
 	nullpo_retv(g);
 
-	WBUFW(buf, 0)=0x174;
-	WBUFW(buf, 2)=44;  // packet len
-	// GUILD_REG_POSITION_INFO{
-	WBUFL(buf, 4)=idx;
-	WBUFL(buf, 8)=g->position[idx].mode;
-	WBUFL(buf,12)=idx;
-	WBUFL(buf,16)=g->position[idx].exp_mode;
+	WBUFW(buf, 0) = 0x174;
+	WBUFW(buf, 2) = 44;  // Packet len
+	// GUILD_REG_POSITION_INFO {
+	WBUFL(buf, 4) = idx;
+	WBUFL(buf, 8) = g->position[idx].mode;
+	WBUFL(buf,12) = idx;
+	WBUFL(buf,16) = g->position[idx].exp_mode;
 	memcpy(WBUFP(buf,20),g->position[idx].name,NAME_LENGTH);
 	// }*
-	if( (sd=guild_getavailablesd(g))!=NULL )
+	if( (sd = guild_getavailablesd(g)) != NULL )
 		clif_send(buf,WBUFW(buf,2),&sd->bl,GUILD);
 }
 
@@ -8013,14 +8020,14 @@ void clif_guild_memberpositionchanged(struct guild *g,int idx)
 
 	nullpo_retv(g);
 
-	WBUFW(buf, 0)=0x156;
-	WBUFW(buf, 2)=16;  // packet len
-	// MEMBER_POSITION_INFO{
-	WBUFL(buf, 4)=g->member[idx].account_id;
-	WBUFL(buf, 8)=g->member[idx].char_id;
-	WBUFL(buf,12)=g->member[idx].position;
+	WBUFW(buf, 0) = 0x156;
+	WBUFW(buf, 2) = 16;  // Packet len
+	// MEMBER_POSITION_INFO {
+	WBUFL(buf, 4) = g->member[idx].account_id;
+	WBUFL(buf, 8) = g->member[idx].char_id;
+	WBUFL(buf,12) = g->member[idx].position;
 	// }*
-	if( (sd=guild_getavailablesd(g))!=NULL )
+	if( (sd = guild_getavailablesd(g)) != NULL )
 		clif_send(buf,WBUFW(buf,2),&sd->bl,GUILD);
 }
 
@@ -8037,11 +8044,11 @@ void clif_guild_emblem(struct map_session_data *sd,struct guild *g)
 	if( g->emblem_len <= 0 )
 		return;
 
-	WFIFOHEAD(fd,g->emblem_len+12);
-	WFIFOW(fd,0)=0x152;
-	WFIFOW(fd,2)=g->emblem_len+12;
-	WFIFOL(fd,4)=g->guild_id;
-	WFIFOL(fd,8)=g->emblem_id;
+	WFIFOHEAD(fd,g->emblem_len + 12);
+	WFIFOW(fd,0) = 0x152;
+	WFIFOW(fd,2) = g->emblem_len + 12;
+	WFIFOL(fd,4) = g->guild_id;
+	WFIFOL(fd,8) = g->emblem_id;
 	memcpy(WFIFOP(fd,12),g->emblem_data,g->emblem_len);
 	WFIFOSET(fd,WFIFOW(fd,2));
 }

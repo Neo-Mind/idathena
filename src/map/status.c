@@ -2735,7 +2735,7 @@ static unsigned int status_calc_maxhpsp_pc(struct map_session_data* sd, bool isH
 		max *= (1 + status_get_spbonus(&sd->bl, STATUS_BONUS_RATE) * 0.01);
 	}
 
-	return cap_value((unsigned int)max, 1, UINT_MAX);
+	return (unsigned int)cap_value(max, 1, UINT_MAX);
 }
 
 //Calculates player data from scratch without counting SC adjustments.

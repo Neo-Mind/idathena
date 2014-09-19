@@ -2359,7 +2359,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 
 			//Increase drop rate if user has SC_ITEMBOOST
 			if(sd && sd->sc.data[SC_ITEMBOOST]) //Now rig the drop rate to never be over 90% unless it is originally > 90%.
-				drop_rate = max(drop_rate, cap_value((int)(0.5 + drop_rate * (sd->sc.data[SC_ITEMBOOST]->val1) / 100.), 0, 9000));
+				drop_rate = max(drop_rate, (int)cap_value(0.5 + drop_rate * sd->sc.data[SC_ITEMBOOST]->val1 / 100., 0, 9000));
 			//Increase item drop rate for VIP.
 			if (battle_config.vip_drop_increase && (sd && pc_isvip(sd))) {
 				drop_rate += (int)(0.5 + (drop_rate * battle_config.vip_drop_increase) / 10000.);
@@ -3800,7 +3800,8 @@ static bool mob_parse_dbrow(char** str)
 			maxhp = maxhp * (double)battle_config.monster_hp_rate / 100.;
 
 	status->max_hp = (unsigned int)cap_value(maxhp, 1, UINT_MAX);
-	if(status->max_sp < 1) status->max_sp = 1;
+	if(status->max_sp < 1)
+		status->max_sp = 1;
 
 	//Since mobs always respawn with full life.
 	status->hp = status->max_hp;

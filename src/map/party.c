@@ -985,11 +985,11 @@ int party_exp_share(struct party_data* p, struct block_list* src, unsigned int b
 		double bonus = 100 + battle_config.party_even_share_bonus * (c - 1);
 
 		if (base_exp)
-			base_exp = (unsigned int) cap_value(base_exp * bonus / 100, 0, UINT_MAX);
+			base_exp = (unsigned int)cap_value(base_exp * bonus / 100, 0, UINT_MAX);
 		if (job_exp)
-			job_exp = (unsigned int) cap_value(job_exp * bonus / 100, 0, UINT_MAX);
+			job_exp = (unsigned int)cap_value(job_exp * bonus / 100, 0, UINT_MAX);
 		if (zeny)
-			zeny = (unsigned int) cap_value(zeny * bonus / 100, INT_MIN, INT_MAX);
+			zeny = (unsigned int)cap_value(zeny * bonus / 100, INT_MIN, INT_MAX);
 	}
 
 #ifdef RENEWAL_EXP

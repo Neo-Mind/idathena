@@ -577,8 +577,9 @@ extern struct Battle_Config
 	int devotion_rdamage_skill_only;
 	int max_extended_aspd;
 	int knockback_left;
-	int song_timer_reset;
+	int song_timer_reset; //[csnv]
 	int cursed_circle_in_gvg;
+	int snap_dodge; //Enable or disable dodging damage snapping away [csnv]
 } battle_config;
 
 void do_init_battle(void);
