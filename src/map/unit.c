@@ -393,7 +393,7 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 				unit_attack(bl, tbl->id, ud->state.attack_continue);
 			}
 		} else { //Update chase-path
-			unit_walktobl(bl, tbl, ud->chaserange, ud->state.walk_easy|(ud->state.attack_continue ? 2 : 0));
+			unit_walktobl(bl, tbl, ud->chaserange, ud->state.walk_easy|(ud->state.attack_continue ? 1 : 0));
 			return 0;
 		}
 	} else { //Stopped walking. Update to_x and to_y to current location [Skotlex]

@@ -578,6 +578,7 @@ extern struct Battle_Config
 	int max_extended_aspd;
 	int knockback_left;
 	int song_timer_reset;
+	int cursed_circle_in_gvg;
 } battle_config;
 
 void do_init_battle(void);

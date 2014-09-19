@@ -5435,9 +5435,6 @@ BUILDIN_FUNC(input)
 	return SCRIPT_CMD_SUCCESS;
 }
 
-// declare the copyarray method here for future reference
-BUILDIN_FUNC(copyarray);
-
 /// Sets the value of a variable.
 /// The value is converted to the type of the variable.
 ///
@@ -5453,8 +5450,7 @@ BUILDIN_FUNC(set)
 
 	data = script_getdata(st,2);
 	//datavalue = script_getdata(st,3);
-	if( !data_isreference(data) )
-	{
+	if( !data_isreference(data) ) {
 		ShowError("script:set: not a variable\n");
 		script_reportdata(script_getdata(st,2));
 		st->state = END;
@@ -5465,39 +5461,35 @@ BUILDIN_FUNC(set)
 	name = reference_getname(data);
 	prefix = *name;
 
-	if( not_server_variable(prefix) )
-	{
+	if( not_server_variable(prefix) ) {
 		sd = script_rid2sd(st);
-		if( sd == NULL )
-		{
+		if( sd == NULL ) {
 			ShowError("script:set: no player attached for player variable '%s'\n", name);
 			return 0;
 		}
 	}
 
 #if 0
-	if( data_isreference(datavalue) )
-	{// the value being referenced is a variable
+	if( data_isreference(datavalue) ) { // The value being referenced is a variable
 		const char* namevalue = reference_getname(datavalue);
 
-		if( !not_array_variable(*namevalue) )
-		{// array variable being copied into another array variable
-			if( sd == NULL && not_server_variable(*namevalue) && !(sd = script_rid2sd(st)) )
-			{// player must be attached in order to copy a player variable
+		// Array variable being copied into another array variable
+		if( !not_array_variable(*namevalue) ) {
+			// Player must be attached in order to copy a player variable
+			if( sd == NULL && not_server_variable(*namevalue) && !(sd = script_rid2sd(st)) ) {
 				ShowError("script:set: no player attached for player variable '%s'\n", namevalue);
 				return 0;
 			}
 
-			if( is_string_variable(namevalue) != is_string_variable(name) )
-			{// non-matching array value types
+			if( is_string_variable(namevalue) != is_string_variable(name) ) { // Non-matching array value types
 				ShowWarning("script:set: two array variables do not match in type.\n");
 				return 0;
 			}
 
-			// push the maximum number of array values to the stack
+			// Push the maximum number of array values to the stack
 			push_val(st->stack, C_INT, SCRIPT_MAX_ARRAYSIZE);
 
-			// call the copy array method directly
+			// Call the copy array method directly
 			return buildin_copyarray(st);
 		}
 	}
@@ -5508,7 +5500,7 @@ BUILDIN_FUNC(set)
 	else
 		set_reg(st,sd,num,name,(void*)__64BPRTSIZE(script_getnum(st,3)),script_getref(st,2));
 
-	// return a copy of the variable reference
+	// Return a copy of the variable reference
 	script_pushcopy(st,2);
 
 	return SCRIPT_CMD_SUCCESS;
@@ -5523,21 +5515,18 @@ static int32 getarraysize(struct script_state* st, int32 id, int32 idx, int isst
 {
 	int32 ret = idx;
 
-	if( isstring )
-	{
-		for( ; idx < SCRIPT_MAX_ARRAYSIZE; ++idx )
-		{
+	if( isstring ) {
+		for( ; idx < SCRIPT_MAX_ARRAYSIZE; ++idx ) {
 			char* str = (char*)get_val2(st, reference_uid(id, idx), ref);
+
 			if( str && *str )
 				ret = idx + 1;
 			script_removetop(st, -1, 0);
 		}
-	}
-	else
-	{
-		for( ; idx < SCRIPT_MAX_ARRAYSIZE; ++idx )
-		{
+	} else {
+		for( ; idx < SCRIPT_MAX_ARRAYSIZE; ++idx ) {
 			int32 num = (int32)__64BPRTSIZE(get_val2(st, reference_uid(id, idx), ref));
+
 			if( num )
 				ret = idx + 1;
 			script_removetop(st, -1, 0);
@@ -5561,43 +5550,37 @@ BUILDIN_FUNC(setarray)
 	TBL_PC* sd = NULL;
 
 	data = script_getdata(st, 2);
-	if( !data_isreference(data) )
-	{
+	if( !data_isreference(data) ) {
 		ShowError("script:setarray: not a variable\n");
 		script_reportdata(data);
 		st->state = END;
-		return 1;// not a variable
+		return 1; // Not a variable
 	}
 
 	id = reference_getid(data);
 	start = reference_getindex(data);
 	name = reference_getname(data);
-	if( not_array_variable(*name) )
-	{
+	if( not_array_variable(*name) ) {
 		ShowError("script:setarray: illegal scope\n");
 		script_reportdata(data);
 		st->state = END;
-		return 1;// not supported
+		return 1; // Not supported
 	}
 
-	if( not_server_variable(*name) )
-	{
+	if( not_server_variable(*name) ) {
 		sd = script_rid2sd(st);
 		if( sd == NULL )
-			return 0;// no player attached
+			return 0; // No player attached
 	}
 
 	end = start + script_lastdata(st) - 2;
 	if( end > SCRIPT_MAX_ARRAYSIZE )
 		end = SCRIPT_MAX_ARRAYSIZE;
 
-	if( is_string_variable(name) )
-	{// string array
+	if( is_string_variable(name) ) { // String array
 		for( i = 3; start < end; ++start, ++i )
 			set_reg(st, sd, reference_uid(id, start), name, (void*)script_getstr(st,i), reference_getref(data));
-	}
-	else
-	{// int array
+	} else { // Int array
 		for( i = 3; start < end; ++start, ++i )
 			set_reg(st, sd, reference_uid(id, start), name, (void*)__64BPRTSIZE(script_getnum(st,i)), reference_getref(data));
 	}
@@ -5619,30 +5602,27 @@ BUILDIN_FUNC(cleararray)
 	TBL_PC* sd = NULL;
 
 	data = script_getdata(st, 2);
-	if( !data_isreference(data) )
-	{
+	if( !data_isreference(data) ) {
 		ShowError("script:cleararray: not a variable\n");
 		script_reportdata(data);
 		st->state = END;
-		return 1;// not a variable
+		return 1; // Not a variable
 	}
 
 	id = reference_getid(data);
 	start = reference_getindex(data);
 	name = reference_getname(data);
-	if( not_array_variable(*name) )
-	{
+	if( not_array_variable(*name) ) {
 		ShowError("script:cleararray: illegal scope\n");
 		script_reportdata(data);
 		st->state = END;
-		return 1;// not supported
+		return 1; // Not supported
 	}
 
-	if( not_server_variable(*name) )
-	{
+	if( not_server_variable(*name) ) {
 		sd = script_rid2sd(st);
 		if( sd == NULL )
-			return 0;// no player attached
+			return 0; // No player attached
 	}
 
 	if( is_string_variable(name) )
@@ -5680,13 +5660,12 @@ BUILDIN_FUNC(copyarray)
 
 	data1 = script_getdata(st, 2);
 	data2 = script_getdata(st, 3);
-	if( !data_isreference(data1) || !data_isreference(data2) )
-	{
+	if( !data_isreference(data1) || !data_isreference(data2) ) {
 		ShowError("script:copyarray: not a variable\n");
 		script_reportdata(data1);
 		script_reportdata(data2);
 		st->state = END;
-		return 1;// not a variable
+		return 1; // Not a variable
 	}
 
 	id1 = reference_getid(data1);
@@ -5695,58 +5674,48 @@ BUILDIN_FUNC(copyarray)
 	idx2 = reference_getindex(data2);
 	name1 = reference_getname(data1);
 	name2 = reference_getname(data2);
-	if( not_array_variable(*name1) || not_array_variable(*name2) )
-	{
+	if( not_array_variable(*name1) || not_array_variable(*name2) ) {
 		ShowError("script:copyarray: illegal scope\n");
 		script_reportdata(data1);
 		script_reportdata(data2);
 		st->state = END;
-		return 1;// not supported
+		return 1; // Not supported
 	}
 
-	if( is_string_variable(name1) != is_string_variable(name2) )
-	{
+	if( is_string_variable(name1) != is_string_variable(name2) ) {
 		ShowError("script:copyarray: type mismatch\n");
 		script_reportdata(data1);
 		script_reportdata(data2);
 		st->state = END;
-		return 1;// data type mismatch
+		return 1; // Data type mismatch
 	}
 
-	if( not_server_variable(*name1) || not_server_variable(*name2) )
-	{
+	if( not_server_variable(*name1) || not_server_variable(*name2) ) {
 		sd = script_rid2sd(st);
 		if( sd == NULL )
-			return 0;// no player attached
+			return 0; // No player attached
 	}
 
 	count = script_getnum(st, 4);
 	if( count > SCRIPT_MAX_ARRAYSIZE - idx1 )
 		count = SCRIPT_MAX_ARRAYSIZE - idx1;
 	if( count <= 0 || (id1 == id2 && idx1 == idx2) )
-		return 0;// nothing to copy
+		return 0; // Nothing to copy
 
-	if( id1 == id2 && idx1 > idx2 )
-	{// destination might be overlapping the source - copy in reverse order
-		for( i = count - 1; i >= 0; --i )
-		{
+	if( id1 == id2 && idx1 > idx2 ) { // Destination might be overlapping the source - copy in reverse order
+		for( i = count - 1; i >= 0; --i ) {
 			v = get_val2(st, reference_uid(id2, idx2 + i), reference_getref(data2));
 			set_reg(st, sd, reference_uid(id1, idx1 + i), name1, v, reference_getref(data1));
 			script_removetop(st, -1, 0);
 		}
-	}
-	else
-	{// normal copy
-		for( i = 0; i < count; ++i )
-		{
-			if( idx2 + i < SCRIPT_MAX_ARRAYSIZE )
-			{
+	} else { // Normal copy
+		for( i = 0; i < count; ++i ) {
+			if( idx2 + i < SCRIPT_MAX_ARRAYSIZE ) {
 				v = get_val2(st, reference_uid(id2, idx2 + i), reference_getref(data2));
 				set_reg(st, sd, reference_uid(id1, idx1 + i), name1, v, reference_getref(data1));
 				script_removetop(st, -1, 0);
-			}
-			else// out of range - assume ""/0
-				set_reg(st, sd, reference_uid(id1, idx1 + i), name1, (is_string_variable(name1)?(void*)"":(void*)0), reference_getref(data1));
+			} else // Out of range - assume ""/0
+				set_reg(st, sd, reference_uid(id1, idx1 + i), name1, (is_string_variable(name1) ? (void*)"" : (void*)0), reference_getref(data1));
 		}
 	}
 	return SCRIPT_CMD_SUCCESS;
@@ -5763,23 +5732,21 @@ BUILDIN_FUNC(getarraysize)
 	const char* name;
 
 	data = script_getdata(st, 2);
-	if( !data_isreference(data) )
-	{
+	if( !data_isreference(data) ) {
 		ShowError("script:getarraysize: not a variable\n");
 		script_reportdata(data);
 		script_pushnil(st);
 		st->state = END;
-		return 1;// not a variable
+		return 1; // Not a variable
 	}
 
 	name = reference_getname(data);
-	if( not_array_variable(*name) )
-	{
+	if( not_array_variable(*name) ) {
 		ShowError("script:getarraysize: illegal scope\n");
 		script_reportdata(data);
 		script_pushnil(st);
 		st->state = END;
-		return 1;// not supported
+		return 1; // Not supported
 	}
 
 	script_pushint(st, getarraysize(st, reference_getid(data), reference_getindex(data), is_string_variable(name), reference_getref(data)));
@@ -5801,62 +5768,56 @@ BUILDIN_FUNC(deletearray)
 	TBL_PC *sd = NULL;
 
 	data = script_getdata(st, 2);
-	if( !data_isreference(data) )
-	{
+	if( !data_isreference(data) ) {
 		ShowError("script:deletearray: not a variable\n");
 		script_reportdata(data);
 		st->state = END;
-		return 1;// not a variable
+		return 1; // Not a variable
 	}
 
 	id = reference_getid(data);
 	start = reference_getindex(data);
 	name = reference_getname(data);
-	if( not_array_variable(*name) )
-	{
+	if( not_array_variable(*name) ) {
 		ShowError("script:deletearray: illegal scope\n");
 		script_reportdata(data);
 		st->state = END;
-		return 1;// not supported
+		return 1; // Not supported
 	}
 
-	if( not_server_variable(*name) )
-	{
+	if( not_server_variable(*name) ) {
 		sd = script_rid2sd(st);
 		if( sd == NULL )
-			return 0;// no player attached
+			return 0; // No player attached
 	}
 
 	end = SCRIPT_MAX_ARRAYSIZE;
 
 	if( start >= end )
-		return 0;// nothing to free
+		return 0; // Nothing to free
 
-	if( script_hasdata(st,3) )
-	{
+	if( script_hasdata(st,3) ) {
 		int count = script_getnum(st, 3);
+
 		if( count > end - start )
 			count = end - start;
 		if( count <= 0 )
 			return 0;// nothing to free
 
-		// move rest of the elements backward
-		for( ; start + count < end; ++start )
-		{
+		// Move rest of the elements backward
+		for( ; start + count < end; ++start ) {
 			void* v = get_val2(st, reference_uid(id, start + count), reference_getref(data));
+
 			set_reg(st, sd, reference_uid(id, start), name, v, reference_getref(data));
 			script_removetop(st, -1, 0);
 		}
 	}
 
-	// clear the rest of the array
-	if( is_string_variable(name) )
-	{
+	// Clear the rest of the array
+	if( is_string_variable(name) ) {
 		for( ; start < end; ++start )
 			set_reg(st, sd, reference_uid(id, start), name, (void *)"", reference_getref(data));
-	}
-	else
-	{
+	} else {
 		for( ; start < end; ++start )
 			set_reg(st, sd, reference_uid(id, start), name, (void*)0, reference_getref(data));
 	}
@@ -5875,34 +5836,31 @@ BUILDIN_FUNC(getelementofarray)
 	int i;
 
 	data = script_getdata(st, 2);
-	if( !data_isreference(data) )
-	{
+	if( !data_isreference(data) ) {
 		ShowError("script:getelementofarray: not a variable\n");
 		script_reportdata(data);
 		script_pushnil(st);
 		st->state = END;
-		return 1;// not a variable
+		return 1; // Not a variable
 	}
 
 	id = reference_getid(data);
 	name = reference_getname(data);
-	if( not_array_variable(*name) )
-	{
+	if( not_array_variable(*name) ) {
 		ShowError("script:getelementofarray: illegal scope\n");
 		script_reportdata(data);
 		script_pushnil(st);
 		st->state = END;
-		return 1;// not supported
+		return 1; // Not supported
 	}
 
 	i = script_getnum(st, 3);
-	if( i < 0 || i >= SCRIPT_MAX_ARRAYSIZE )
-	{
+	if( i < 0 || i >= SCRIPT_MAX_ARRAYSIZE ) {
 		ShowWarning("script:getelementofarray: index out of range (%d)\n", i);
 		script_reportdata(data);
 		script_pushnil(st);
 		st->state = END;
-		return 1;// out of range
+		return 1; // Uut of range
 	}
 
 	push_val2(st->stack, C_NAME, reference_uid(id, i), reference_getref(data));
@@ -5921,8 +5879,8 @@ BUILDIN_FUNC(setlook)
 	int type,val;
 	TBL_PC* sd;
 
-	type=script_getnum(st,2);
-	val=script_getnum(st,3);
+	type = script_getnum(st,2);
+	val = script_getnum(st,3);
 
 	sd = script_rid2sd(st);
 	if( sd == NULL )
@@ -5938,8 +5896,8 @@ BUILDIN_FUNC(changelook)
 	int type,val;
 	TBL_PC* sd;
 
-	type=script_getnum(st,2);
-	val=script_getnum(st,3);
+	type = script_getnum(st,2);
+	val = script_getnum(st,3);
 
 	sd = script_rid2sd(st);
 	if( sd == NULL )

@@ -3143,9 +3143,8 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 	sd->left_weapon.atkmods[1] = atkmods[1][sd->weapontype2];
 	sd->left_weapon.atkmods[2] = atkmods[2][sd->weapontype2];
 
+	//When Riding with spear, damage modifier to mid-class becomes same as versus large size.
 	if((pc_isriding(sd) || pc_isridingdragon(sd)) && (sd->status.weapon == W_1HSPEAR || sd->status.weapon == W_2HSPEAR)) {
-		//When Riding with spear, damage modifier to mid-class becomes
-		//same as versus large size.
 		sd->right_weapon.atkmods[1] = sd->right_weapon.atkmods[2];
 		sd->left_weapon.atkmods[1] = sd->left_weapon.atkmods[2];
 	}
@@ -5676,8 +5675,8 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 					val = max( val, 50 );
 				if( sc->data[SC_MARSHOFABYSS] )
 					val = max( val, sc->data[SC_MARSHOFABYSS]->val3 );
-				if( sc->data[SC_CAMOUFLAGE] )
-					val = max( val, (sc->data[SC_CAMOUFLAGE]->val1 < 3 ? 0 : 25 * (5 - sc->data[SC_CAMOUFLAGE]->val1)) );
+				if( sc->data[SC_CAMOUFLAGE] && sc->data[SC_CAMOUFLAGE]->val1 > 2 )
+					val = max( val, 25 * (5 - sc->data[SC_CAMOUFLAGE]->val1) );
 				if( sc->data[SC_STEALTHFIELD_MASTER] )
 					val = max( val, 20 );
 				if( sc->data[SC__LAZINESS] )
@@ -8337,7 +8336,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 						for( i = 0; i < MAX_DEVOTION; i++ ) { //See if there are devoted characters, and pass the status to them [Skotlex]
 							if( sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])) )
-								status_change_start(src,&tsd->bl,type,10000,val1,5 + val1 * 5,val3,val4,tick,1);
+								status_change_start(src,&tsd->bl,type,10000,val1,val2,val3,val4,tick,1);
 						}
 					}
 				}
@@ -8445,16 +8444,18 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					struct status_change *d_sc;
 
 					if( (d_bl = map_id2bl(val1)) && (d_sc = status_get_sc(d_bl)) && d_sc->count ) { //Inherits Status From Source
-						const enum sc_type types[] = { SC_AUTOGUARD,SC_DEFENDER,SC_REFLECTSHIELD,SC_ENDURE };
-						int i = (map_flag_gvg(bl->m) || map[bl->m].flag.battleground) ? 2 : 3;
+						const enum sc_type types[] = { SC_AUTOGUARD,SC_REFLECTSHIELD,SC_ENDURE };
+						int i = (map_flag_gvg(bl->m) || map[bl->m].flag.battleground) ? 1 : 2;
 
 						while( i >= 0 ) {
 							enum sc_type type2 = types[i];
 
 							if( d_sc->data[type2] )
-								status_change_start(d_bl,bl,type2,10000,d_sc->data[type2]->val1,0,0,(type2 == SC_REFLECTSHIELD ? 1 : 0),skill_get_time(status_sc2skill(type2),d_sc->data[type2]->val1),(type2 == SC_DEFENDER) ? 1 : 1|16);
+								status_change_start(d_bl,bl,type2,10000,d_sc->data[type2]->val1,0,0,(type2 == SC_REFLECTSHIELD ? 1 : 0),skill_get_time(status_sc2skill(type2),d_sc->data[type2]->val1),1|16);
 							i--;
 						}
+						if( sc->data[SC_DEFENDER] )
+							status_change_end(bl,SC_DEFENDER,INVALID_TIMER);
 					}
 				}
 				break;
@@ -11484,7 +11485,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_CAMOUFLAGE:
 			if( !status_charge(bl,0,7 - sce->val1) )
 				break;
-			if( --sce->val4 >= 0 )
+			if( --(sce->val4) >= 0 )
 				sce->val3++; //Value from duration
 			sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 			return 0;

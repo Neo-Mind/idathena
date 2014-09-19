@@ -4550,9 +4550,9 @@ int clif_damage(struct block_list* src, struct block_list* dst, unsigned int tic
 		clif_send(buf,packet_len(cmd),src,SELF);
 	}
 
-	if(src == dst) {
+	if(src == dst)
 		unit_setdir(src,unit_getdir(src));
-	}
+
 	//Return adjusted can't walk delay for further processing.
 	return clif_calc_walkdelay(dst,ddelay,type,damage + damage2,div);
 }
@@ -5255,10 +5255,8 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,unsigned int
 
 	type = clif_calc_delay(type,div,damage,ddelay);
 	sc = status_get_sc(dst);
-	if(sc && sc->count) {
-		if(sc->data[SC_HALLUCINATION] && damage)
-			damage = damage * (sc->data[SC_HALLUCINATION]->val2) + rnd()%100;
-	}
+	if(sc && sc->count && sc->data[SC_HALLUCINATION] && damage)
+		damage = damage * (sc->data[SC_HALLUCINATION]->val2) + rnd()%100;
 
 #if PACKETVER < 3
 	WBUFW(buf,0) = 0x114;
@@ -18061,7 +18059,7 @@ void packetdb_readdb(void)
 		0,  0,  0,  0,  0,  0,  0, 14,  6, 50,  0, 16,  4,288, 12,  0,
 	//#0x0980
 		0,  0,  0, 29, 28,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-	   31,  0,  0,  0,  0,  0,  0, -1,  8, 11,  9,  8,  0,  0,  0, 22,
+		31, 0,  0,  0,  0,  0,  0, -1,  8, 11,  9,  8,  0,  0,  0, 22,
 		0,  0,  0,  0,  0,  0, 12, 10, 16, 10, 16,  6,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  6,  4,  6,  4,  0,  0,  0,  0,  0,  0,
 	//#0x09C0

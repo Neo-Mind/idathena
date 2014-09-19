@@ -8266,6 +8266,7 @@ void pc_setoption(struct map_session_data *sd,int type)
 		status_change_end(&sd->bl,SC_CARTBOOST,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_MELTDOWN,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_MAXOVERTHRUST,INVALID_TIMER);
+		status_change_end(&sd->bl,SC_LOUD,INVALID_TIMER);
 		pc_bonus_script_clear(sd,BSF_REM_ON_MADOGEAR);
 	} else if (!(type&OPTION_MADOGEAR) && (p_type&OPTION_MADOGEAR)) {
 		status_calc_pc(sd,SCO_NONE);
@@ -8274,6 +8275,9 @@ void pc_setoption(struct map_session_data *sd,int type)
 		status_change_end(&sd->bl,SC_ACCELERATION,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_OVERHEAT_LIMITPOINT,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_OVERHEAT,INVALID_TIMER);
+		status_change_end(&sd->bl,SC_MAGNETICFIELD,INVALID_TIMER);
+		status_change_end(&sd->bl,SC_NEUTRALBARRIER_MASTER,INVALID_TIMER);
+		status_change_end(&sd->bl,SC_STEALTHFIELD_MASTER,INVALID_TIMER);
 		pc_bonus_script_clear(sd,BSF_REM_ON_MADOGEAR);
 	}
 
