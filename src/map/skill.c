@@ -1375,12 +1375,10 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			sc_start(src,bl,SC_FREEZING,50 + 10 * skill_lv,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
 		case NC_PILEBUNKER:
-			if( rnd()%100 < 25 + 15 * skill_lv ) { //Status's Deactivated By Pile Bunker
-				status_change_end(bl,SC_KYRIE,INVALID_TIMER);
+			if( rnd()%100 < 25 + 15 * skill_lv ) {
 				status_change_end(bl,SC_ASSUMPTIO,INVALID_TIMER);
 				status_change_end(bl,SC_STEELBODY,INVALID_TIMER);
 				status_change_end(bl,SC_AUTOGUARD,INVALID_TIMER);
-				status_change_end(bl,SC_MILLENNIUMSHIELD,INVALID_TIMER);
 				status_change_end(bl,SC_GT_CHANGE,INVALID_TIMER);
 				status_change_end(bl,SC_GT_REVITALIZE,INVALID_TIMER);
 				status_change_end(bl,SC_REFLECTSHIELD,INVALID_TIMER);
@@ -10950,9 +10948,11 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 			}
 		}
 		if( sd ) {
-			if( ud->skill_id != AL_WARP && !skill_check_condition_castend(sd,ud->skill_id,ud->skill_lv) )
+			if( ud->skill_id != AL_WARP && !skill_check_condition_castend(sd,ud->skill_id,ud->skill_lv) ) {
+				if( ud->skill_id == SA_LANDPROTECTOR )
+					clif_skill_poseffect(&sd->bl,ud->skill_id,ud->skill_lv,sd->bl.x,sd->bl.y,tick);
 				break;
-			else
+			} else
 				skill_consume_requirement(sd,ud->skill_id,ud->skill_lv,1);
 		}
 		if( (src->type == BL_MER || src->type == BL_HOM) &&
