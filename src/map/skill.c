@@ -3891,11 +3891,13 @@ int skill_cleartimerskill (struct block_list *src)
 }
 static int skill_active_reverberation(struct block_list *bl, va_list ap) {
 	struct skill_unit *su = (TBL_SKILL*)bl;
-	struct skill_unit_group *sg = su->group;
+	struct skill_unit_group *sg = NULL;
+
+	nullpo_ret(su);
 
 	if (bl->type != BL_SKILL)
 		return 0;
-	if (su->alive && sg && sg->skill_id == WM_REVERBERATION) {
+	if (su->alive && (sg = su->group) && sg->skill_id == WM_REVERBERATION) {
 		map_foreachinrange(skill_trap_splash, bl, skill_get_splash(sg->skill_id, sg->skill_lv), sg->bl_flag, bl, gettick());
 		su->limit = DIFF_TICK(gettick(), sg->tick);
 		sg->unit_id = UNT_USED_TRAPS;
@@ -5030,9 +5032,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				}
 			} else {
 				struct skill_unit *su = BL_CAST(BL_SKILL,bl);
-				struct skill_unit_group *sg = su->group;
+				struct skill_unit_group *sg = NULL;
 
-				if (su && sg && (skill_get_inf2(sg->skill_id)&INF2_TRAP) &&
+				if (su && (sg = su->group) && (skill_get_inf2(sg->skill_id)&INF2_TRAP) &&
 					(sg->item_id == ITEMID_TRAP || sg->item_id == ITEMID_TRAP_ALLOY)) {
 					if (!(sg->unit_id == UNT_USED_TRAPS || (sg->unit_id == UNT_ANKLESNARE && sg->val2 != 0))) {
 						struct item item_tmp;
@@ -7790,19 +7792,18 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case HT_REMOVETRAP:
 			{
 				struct skill_unit* su = BL_CAST(BL_SKILL,bl);
-				struct skill_unit_group* sg = su->group;
+				struct skill_unit_group* sg = NULL;
 
 				//Mercenaries can remove any trap
 				//Players can only remove their own traps or traps on vs maps.
-				if (su && sg && (src->type == BL_MER || sg->src_id == src->id || map_flag_vs(bl->m)) &&
+				if (su && (sg = su->group) && (src->type == BL_MER || sg->src_id == src->id || map_flag_vs(bl->m)) &&
 					(skill_get_inf2(sg->skill_id)&INF2_TRAP) &&
 					(sg->item_id == ITEMID_TRAP || sg->item_id == ITEMID_TRAP_ALLOY)) {
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+					//Prevent picking up expired traps
 					if (sd && !(sg->unit_id == UNT_USED_TRAPS || (sg->unit_id == UNT_ANKLESNARE && sg->val2 != 0))) {
-						//Prevent picking up expired traps
 						if (battle_config.skill_removetrap_type) {
-							//Get back all items used to deploy the trap
-							for (i = 0; i < 10; i++) {
+							for (i = 0; i < 10; i++) { //Get back all items used to deploy the trap
 								if (skill_get_itemid(sg->skill_id,i + 1) > 0) {
 									int flag;
 									struct item item_tmp;
@@ -11951,8 +11952,10 @@ static int skill_dance_overlap_sub(struct block_list* bl, va_list ap)
 
 	if (src == target)
 		return 0;
+
 	if (!target->group || !(target->group->state.song_dance&0x1))
 		return 0;
+
 	if (!(target->val2&src->val2&~UF_ENSEMBLE)) //They don't match (song + dance) is valid.
 		return 0;
 
@@ -16901,12 +16904,16 @@ int skill_changetarget(struct block_list *bl, va_list ap)
 static int skill_trap_splash(struct block_list *bl, va_list ap)
 {
 	struct block_list *src = va_arg(ap,struct block_list *);
-	struct skill_unit *unit = (struct skill_unit *)src;
+	struct skill_unit *unit = NULL;
 	int tick = va_arg(ap,int);
 	struct skill_unit_group *sg;
 	struct block_list *ss; //Skill src bl
 
-	if( !unit->alive || bl->prev == NULL )
+	nullpo_ret(src);
+
+	unit = (struct skill_unit *)src;
+
+	if( !unit || !unit->alive || bl->prev == NULL )
 		return 0;
 
 	nullpo_ret(sg = unit->group);
@@ -16970,7 +16977,7 @@ static int skill_trap_splash(struct block_list *bl, va_list ap)
 			if( bl->type == BL_SKILL ) {
 				struct skill_unit *su = (struct skill_unit *)bl;
 
-				if( su->group->unit_id == UNT_USED_TRAPS )
+				if( su && su->group->unit_id == UNT_USED_TRAPS )
 					break;
 			}
 		case UNT_CLUSTERBOMB:
@@ -16982,6 +16989,9 @@ static int skill_trap_splash(struct block_list *bl, va_list ap)
 				break;
 			if( bl->type == BL_SKILL ) {
 				struct skill_unit *su = (struct skill_unit *)bl;
+
+				if( !su )
+					return 0;
 
 				switch( su->group->unit_id ) {
 					case UNT_CLAYMORETRAP:
@@ -17010,6 +17020,8 @@ int skill_maelstrom_suction(struct block_list *bl, va_list ap)
 {
 	uint16 skill_id, skill_lv;
 	struct skill_unit *unit;
+
+	nullpo_ret(bl);
 
 	skill_id = va_arg(ap,int);
 	skill_lv = va_arg(ap,int);
@@ -17674,13 +17686,15 @@ struct skill_unit_group_tickset *skill_unitgrouptickset_search(struct block_list
 int skill_unit_timer_sub_onplace(struct block_list* bl, va_list ap)
 {
 	struct skill_unit* unit = va_arg(ap,struct skill_unit *);
-	struct skill_unit_group* group = unit->group;
+	struct skill_unit_group* group = NULL;
 	unsigned int tick = va_arg(ap,unsigned int);
+
+	nullpo_ret(unit);
 
 	if( !unit->alive || bl->prev == NULL )
 		return 0;
 
-	nullpo_ret(group);
+	nullpo_ret(group = unit->group);
 
 	if( !(skill_get_inf2(group->skill_id)&(INF2_TRAP)) && !(skill_get_inf3(group->skill_id)&(INF3_NOLP)) &&
 		map_getcell(bl->m,bl->x,bl->y,CELL_CHKLANDPROTECTOR) )
@@ -17700,15 +17714,17 @@ int skill_unit_timer_sub_onplace(struct block_list* bl, va_list ap)
 static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 {
 	struct skill_unit* unit = (struct skill_unit*)db_data2ptr(data);
-	struct skill_unit_group* group = unit->group;
+	struct skill_unit_group* group = NULL;
 	unsigned int tick = va_arg(ap,unsigned int);
 	bool dissonance;
 	struct block_list* bl = &unit->bl;
 
+	nullpo_ret(unit);
+
 	if( !unit->alive )
 		return 0;
 
-	nullpo_ret(group);
+	nullpo_ret(group = unit->group);
 
 	//Check for expiration
 	if( !group->state.guildaura && (DIFF_TICK(tick,group->tick) >= group->limit || DIFF_TICK(tick,group->tick) >= unit->limit) ) {
@@ -17938,20 +17954,21 @@ static int skill_unit_temp[20]; //Temporary storage for tracking skill unit skil
 int skill_unit_move_sub(struct block_list* bl, va_list ap)
 {
 	struct skill_unit* unit = (struct skill_unit *)bl;
-	struct skill_unit_group* group = unit->group;
+	struct skill_unit_group* group = NULL;
 
 	struct block_list* target = va_arg(ap,struct block_list*);
 	unsigned int tick = va_arg(ap,unsigned int);
 	int flag = va_arg(ap,int);
-
 	bool dissonance;
 	uint16 skill_id;
 	int i;
 
-	nullpo_ret(group);
+	nullpo_ret(unit);
 
 	if( !unit->alive || target->prev == NULL )
 		return 0;
+
+	nullpo_ret(group = unit->group);
 
 	if( flag&1 && ( unit->group->skill_id == PF_SPIDERWEB || unit->group->skill_id == GN_THORNS_TRAP ) )
 		return 0; //Fiberlock is never supposed to trigger on skill_unit_move. [Inkfish]
@@ -19195,15 +19212,16 @@ int skill_changematerial(struct map_session_data *sd, int n, unsigned short *ite
 /**
  * For Royal Guard's LG_TRAMPLE
  */
-static int skill_destroy_trap( struct block_list *bl, va_list ap ) {
+static int skill_destroy_trap(struct block_list *bl, va_list ap) {
 	struct skill_unit *su = (struct skill_unit *)bl;
-	struct skill_unit_group *sg = su->group;
+	struct skill_unit_group *sg = NULL;
 	unsigned int tick;
 
 	nullpo_ret(su);
+
 	tick = va_arg(ap, unsigned int);
 
-	if( su->alive && sg && skill_get_inf2(sg->skill_id)&INF2_TRAP ) {
+	if( su->alive && (sg = su->group) && skill_get_inf2(sg->skill_id)&INF2_TRAP ) {
 		switch( sg->unit_id ) {
 			case UNT_CLAYMORETRAP:
 			case UNT_FIRINGTRAP:

@@ -44,14 +44,14 @@ int battle_getcurrentskill(struct block_list *bl) {	//Returns the current/last s
 	struct unit_data *ud;
 
 	if( bl->type == BL_SKILL ) {
-		struct skill_unit * su = (struct skill_unit*)bl;
+		struct skill_unit *su = (struct skill_unit*)bl;
 
-		return su->group ? su->group->skill_id : 0;
+		return (su && su->group ? su->group->skill_id : 0);
 	}
 
 	ud = unit_bl2ud(bl);
 
-	return ud ? ud->skill_id : 0;
+	return (ud ? ud->skill_id : 0);
 }
 
 /*==========================================
@@ -1980,7 +1980,7 @@ static bool target_has_infinite_defense(struct block_list *target, int skill_id)
 	if(target->type == BL_SKILL) {
 		TBL_SKILL *su = ((TBL_SKILL*)target);
 
-		if(su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
+		if(su && su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
 			return true;
 	}
 	return (tstatus->mode&MD_PLANT && skill_id != RA_CLUSTERBOMB
@@ -7367,6 +7367,7 @@ int battle_check_undead(int race,int element)
 struct block_list* battle_get_master(struct block_list *src)
 {
 	struct block_list *prev; //Used for infinite loop check (master of yourself?)
+
 	do {
 		prev = src;
 		switch (src->type) {
@@ -7579,9 +7580,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 		case BL_SKILL: {
 				struct skill_unit *su = (struct skill_unit *)src;
 
-				if( !su->group )
-					return 0;
-				if( su->group->src_id == target->id ) {
+				if( su && su->group && su->group->src_id == target->id ) {
 					int inf2 = skill_get_inf2(su->group->skill_id);
 
 					if( inf2&INF2_NO_TARGET_SELF )
