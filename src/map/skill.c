@@ -16910,7 +16910,6 @@ static int skill_trap_splash(struct block_list *bl, va_list ap)
 	struct block_list *ss; //Skill src bl
 
 	nullpo_ret(src);
-	nullpo_ret(bl);
 
 	unit = (struct skill_unit *)src;
 
@@ -17690,7 +17689,6 @@ int skill_unit_timer_sub_onplace(struct block_list* bl, va_list ap)
 	struct skill_unit_group* group = NULL;
 	unsigned int tick = va_arg(ap,unsigned int);
 
-	nullpo_ret(bl);
 	nullpo_ret(unit);
 
 	if( !unit->alive || bl->prev == NULL )
@@ -17955,7 +17953,7 @@ static int skill_unit_temp[20]; //Temporary storage for tracking skill unit skil
  *------------------------------------------*/
 int skill_unit_move_sub(struct block_list* bl, va_list ap)
 {
-	struct skill_unit* unit = NULL;
+	struct skill_unit* unit = (struct skill_unit *)bl;
 	struct skill_unit_group* group = NULL;
 
 	struct block_list* target = va_arg(ap,struct block_list*);
@@ -17964,10 +17962,6 @@ int skill_unit_move_sub(struct block_list* bl, va_list ap)
 	bool dissonance;
 	uint16 skill_id;
 	int i;
-
-	nullpo_ret(bl);
-
-	unit = (struct skill_unit *)bl;
 
 	nullpo_ret(unit);
 	nullpo_ret(target);
@@ -19220,13 +19214,9 @@ int skill_changematerial(struct map_session_data *sd, int n, unsigned short *ite
  * For Royal Guard's LG_TRAMPLE
  */
 static int skill_destroy_trap(struct block_list *bl, va_list ap) {
-	struct skill_unit *su = NULL;
+	struct skill_unit *su = (struct skill_unit *)bl;
 	struct skill_unit_group *sg = NULL;
 	unsigned int tick;
-
-	nullpo_ret(bl);
-
-	su = (struct skill_unit *)bl;
 
 	nullpo_ret(su);
 

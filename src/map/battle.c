@@ -40,10 +40,8 @@ int attr_fix_table[4][ELE_MAX][ELE_MAX];
 struct Battle_Config battle_config;
 static struct eri *delay_damage_ers; //For battle delay damage structures.
 
-int battle_getcurrentskill(struct block_list *bl) {	//Returns the current/last skill in use by this bl.
+int battle_getcurrentskill(struct block_list *bl) { //Returns the current/last skill in use by this bl.
 	struct unit_data *ud;
-
-	nullpo_ret(bl);
 
 	if( bl->type == BL_SKILL ) {
 		struct skill_unit *su = (struct skill_unit*)bl;
@@ -1977,11 +1975,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
  */
 static bool target_has_infinite_defense(struct block_list *target, int skill_id)
 {
-	struct status_data *tstatus = NULL;
-
-	nullpo_ret(target);
-
-	tstatus = status_get_status_data(target);
+	struct status_data *tstatus = status_get_status_data(target);
 
 	if(target->type == BL_SKILL) {
 		TBL_SKILL *su = ((TBL_SKILL*)target);
@@ -7373,8 +7367,6 @@ int battle_check_undead(int race,int element)
 struct block_list* battle_get_master(struct block_list *src)
 {
 	struct block_list *prev; //Used for infinite loop check (master of yourself?)
-
-	nullpo_ret(src);
 
 	do {
 		prev = src;
