@@ -7253,7 +7253,7 @@ ACMD_FUNC(hominfo)
 	clif_displaymessage(fd, atcmd_output);
 
 	snprintf(atcmd_output, sizeof(atcmd_output), msg_txt(1263), // ATK: %d - MATK: %d~%d
-		status->rhw.atk2 +status->batk, status->matk_min, status->matk_max);
+		status->rhw.atk2 + status->batk, status->matk_min, status->matk_max);
 	clif_displaymessage(fd, atcmd_output);
 
 	snprintf(atcmd_output, sizeof(atcmd_output), msg_txt(1264), // Hungry: %d - Intimacy: %u

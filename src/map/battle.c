@@ -4032,13 +4032,13 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
  *	Initial refactoring by Baalberith
  *	Refined and optimized by helvetica
  */
-static int battle_calc_skill_constant_addition(struct Damage wd,struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv)
+static int64 battle_calc_skill_constant_addition(struct Damage wd,struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv)
 {
 	struct map_session_data *sd = BL_CAST(BL_PC,src);
 	struct map_session_data *tsd = BL_CAST(BL_PC,target);
 	struct status_data *sstatus = status_get_status_data(src);
 	struct status_data *tstatus = status_get_status_data(target);
-	int atk = 0;
+	int64 atk = 0;
 
 	//Constant/misc additions from skills
 	switch(skill_id) {
@@ -4046,10 +4046,11 @@ static int battle_calc_skill_constant_addition(struct Damage wd,struct block_lis
 			atk = 250 + 150 * skill_lv;
 			break;
 		case GS_MAGICALBULLET:
-			if(sstatus->matk_max > sstatus->matk_min) {
-				atk = sstatus->matk_min + rnd()%(sstatus->matk_max - sstatus->matk_min);
-			} else
-				atk = sstatus->matk_min;
+#ifndef RENEWAL
+			atk = status_get_matk(src,2);
+#else
+			atk = battle_calc_magic_attack(src,target,skill_id,skill_lv,wd.miscflag).damage;
+#endif
 			break;
 		case NJ_SYURIKEN:
 			atk = 4 * skill_lv;
@@ -4571,11 +4572,10 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd,struct block_list
 		if(!skill_id) {
 			if(sc->data[SC_ENCHANTBLADE]) {
 				//[((Skill Lv x 20) + 100) x (casterBaseLevel / 150)] + casterInt
-				struct Damage matk = battle_calc_magic_attack(src, target, skill_id, skill_lv, 0);
 				int64 i = (sc->data[SC_ENCHANTBLADE]->val1 * 20 + 100) * status_get_lv(src) / 150 + status_get_int(src);
 				short totalmdef = tstatus->mdef + tstatus->mdef2;
 
-				i = i - totalmdef + matk.damage;
+				i = i - totalmdef + status_get_matk(src, 2);
 				if(i)
 					ATK_ADD(wd.damage, wd.damage2, i);
 			}
@@ -5098,7 +5098,8 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 	if(!is_attack_hitting(wd, src, target, skill_id, skill_lv, true))
 		wd.dmg_lv = ATK_FLEE;
 	else if(!target_has_infinite_defense(target, skill_id)) { //No need for math against plants
-		int ratio, const_val, i = 0;
+		int ratio, i = 0;
+		int64 const_val = 0;
 
 		wd = battle_calc_skill_base_damage(wd, src, target, skill_id, skill_lv); //Base skill damage
 
@@ -5112,14 +5113,8 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			wd.equipAtk2 += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.equipAtk2, 3, wd.flag);
 		}
 
-		if(skill_id == HW_MAGICCRASHER) { //Add weapon attack for MATK onto Magic Crasher
-			struct status_data *sstatus = status_get_status_data(src);
-
-			if(sstatus->matk_max > sstatus->matk_min) {
-				ATK_ADD(wd.weaponAtk, wd.weaponAtk2, sstatus->matk_min + rnd()%(sstatus->matk_max - sstatus->matk_min));
-			} else
-				ATK_ADD(wd.weaponAtk, wd.weaponAtk2, sstatus->matk_min);
-		}
+		if(skill_id == HW_MAGICCRASHER) //Add weapon attack for MATK into Magic Crasher
+			ATK_ADD(wd.weaponAtk, wd.weaponAtk2, status_get_matk(src, 2));
 
 		//Final attack bonuses that aren't affected by cards
 		wd = battle_attack_sc_bonus(wd, src, target, skill_id);
@@ -5560,11 +5555,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					ad.damage = tstatus->hp;
 				else {
 #ifdef RENEWAL
-					if(sstatus->matk_max > sstatus->matk_min) {
-						MATK_ADD(sstatus->matk_min + rnd()%(sstatus->matk_max - sstatus->matk_min));
-					} else
-						MATK_ADD(sstatus->matk_min);
-					MATK_RATE(skill_lv);
+					MATK_ADD(status_get_matk(src, 2));
 #else
 					ad.damage = status_get_lv(src) + sstatus->int_ + skill_lv * 10;
 #endif
@@ -5593,10 +5584,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 #endif
 				break;
 			default: {
-				if(sstatus->matk_max > sstatus->matk_min) {
-					MATK_ADD(sstatus->matk_min + rnd()%(sstatus->matk_max - sstatus->matk_min));
-				} else
-					MATK_ADD(sstatus->matk_min);
+				MATK_ADD(status_get_matk(src, 2));
 
 				//Divide MATK in case of multiple targets skill
 				if(nk&NK_SPLASHSPLIT) {

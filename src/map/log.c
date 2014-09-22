@@ -508,7 +508,7 @@ int log_config_read(const char* cfgName)
 	if( count++ == 0 )
 		log_set_defaults();
 
-	if( ( fp = fopen(cfgName, "r") ) == NULL ) {
+	if( (fp = fopen(cfgName, "r")) == NULL ) {
 		ShowError("Log configuration file not found at: %s\n", cfgName);
 		return 1;
 	}
@@ -522,7 +522,7 @@ int log_config_read(const char* cfgName)
 				log_config.enable_logs = (e_log_pick_type)config_switch(w2);
 			else if( strcmpi(w1, "sql_logs") == 0 )
 				log_config.sql_logs = (bool)config_switch(w2);
-//start of common filter settings
+			//start of common filter settings
 			else if( strcmpi(w1, "rare_items_log") == 0 )
 				log_config.rare_items_log = atoi(w2);
 			else if( strcmpi(w1, "refine_items_log") == 0 )

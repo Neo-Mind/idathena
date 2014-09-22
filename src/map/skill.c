@@ -447,32 +447,9 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 		case PR_SANCTUARY:
 		case NPC_EVILLAND:
 			break;
-		default: {
-				struct status_data *status = status_get_status_data(src);
-				int min, max, wMatk = 0, variance = 0;
-
-				min = max = status_base_matk(status, status_get_lv(src));
-				if( status->rhw.matk ) {
-					wMatk += status->rhw.matk;
-					variance += status->rhw.matk * status->rhw.wlv / 10;
-				}
-				if( status->lhw.matk ) {
-					wMatk += status->lhw.matk;
-					variance += status->lhw.matk * status->lhw.wlv / 10;
-				}
-				min += wMatk - variance;
-				max += wMatk + variance;
-				if( sc && sc->data[SC_RECOGNIZEDSPELL] )
-					min = max;
-				if( sd && sd->right_weapon.overrefine > 0 ) {
-					min++;
-					max += sd->right_weapon.overrefine - 1;
-				}
-				if( max > min )
-					hp += min + rnd()%(max - min);
-				else
-					hp += min;
-			}
+		default:
+			hp += status_get_matk(src, 3);
+			break;
 	}
 #endif
 
@@ -1188,9 +1165,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 		case NPC_MENTALBREAKER:
 			//Based on observations by Tharis, Mental Breaker should do SP damage
 			//Equal to MATK * Skill Level.
-			rate = sstatus->matk_min;
-			if( rate < sstatus->matk_max )
-				rate += rnd()%(sstatus->matk_max - sstatus->matk_min);
+			rate = status_get_matk(src, 2);
 			rate *= skill_lv;
 			status_zap(bl,0,rate);
 			break;
