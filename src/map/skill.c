@@ -508,20 +508,17 @@ static char skill_isCopyable(struct map_session_data *sd, uint16 skill_id) {
 		}
 	}
 
-	if( &sd->sc ) {
-		if( pc_checkskill(sd, RG_PLAGIARISM) ) {
-			//Plagiarism only able to copy skill while SC_PRESERVE is not active and skill is copyable by Plagiarism
-			if( (skill_db[idx].copyable.option&1) && sd->sc.data[SC_PRESERVE] && sd->sc.data[SC__REPRODUCE] )
-				return 0;
-
-			if( (skill_db[idx].copyable.option&1) && !sd->sc.data[SC_PRESERVE] )
-				return 1;
-		}
-
-		//Reproduce can copy skill if SC__REPRODUCE is active and the skill is copyable by Reproduce
-		if( (skill_db[idx].copyable.option&2) && pc_checkskill(sd, SC_REPRODUCE) && sd->sc.data[SC__REPRODUCE] )
-			return 2;
+	//Plagiarism only able to copy skill while SC_PRESERVE is not active and skill is copyable by Plagiarism
+	if( pc_checkskill(sd, RG_PLAGIARISM) ) {
+		if( (skill_db[idx].copyable.option&1) && sd->sc.data[SC_PRESERVE] && sd->sc.data[SC__REPRODUCE] )
+			return 0;
+		if( (skill_db[idx].copyable.option&1) && !sd->sc.data[SC_PRESERVE] )
+			return 1;
 	}
+
+	//Reproduce can copy skill if SC__REPRODUCE is active and the skill is copyable by Reproduce
+	if( (skill_db[idx].copyable.option&2) && pc_checkskill(sd, SC_REPRODUCE) && sd->sc.data[SC__REPRODUCE] )
+		return 2;
 
 	return 0;
 }
@@ -585,7 +582,7 @@ bool skill_isNotOk(uint16 skill_id, struct map_session_data *sd)
 			return true;
 	}
 
-	if (&sd->sc && sd->sc.data[SC_ALL_RIDING])
+	if (sd->sc.data[SC_ALL_RIDING])
 		return true; //You can't use skills while in the new mounts (The client doesn't let you, this is to make cheat-safe)
 
 	switch (skill_id) {
@@ -3730,9 +3727,9 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 							struct map_session_data *tsd = ((TBL_PC*)target);
 
 							if (tsd && !pc_issit(tsd)) {
+								skill_sit(tsd,1);
 								clif_sitting(target);
 								pc_setsit(tsd);
-								skill_sit(tsd,1);
 							}
 						}
 					}
@@ -16481,7 +16478,7 @@ int skill_frostjoke_scream(struct block_list *bl, va_list ap)
 	if(bl->type == BL_PC) {
 		struct map_session_data *sd = (struct map_session_data *)bl;
 
-		if(sd && sd->sc.option&(OPTION_INVISIBLE|OPTION_MADOGEAR))
+		if(sd && (sd->sc.option&(OPTION_INVISIBLE|OPTION_MADOGEAR)))
 			return 0; //Frost Joke/Scream cannot target invisible or MADO Gear characters [Ind]
 	}
 	//It has been reported that Scream/Joke works the same regardless of woe-setting. [Skotlex]

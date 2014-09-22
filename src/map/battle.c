@@ -1735,16 +1735,17 @@ static int64 battle_calc_base_damage(struct status_data *status, struct weapon_a
  *	Initial refactoring by Baalberith
  *	Refined and optimized by helvetica
  */
-void battle_consume_ammo(TBL_PC*sd, int skill, int lv)
+void battle_consume_ammo(TBL_PC*sd, uint16 skill_id, uint16 skill_lv)
 {
 	int qty = 1;
 
 	if(!battle_config.arrow_decrement)
 		return;
-	
-	if(skill) {
-		qty = skill_get_ammo_qty(skill, lv);
-		if (!qty) qty = 1;
+
+	if(skill_id) {
+		qty = skill_get_ammo_qty(skill_id,skill_lv);
+		if(!qty)
+			qty = 1;
 	}
 
 	if(sd->equip_index[EQI_AMMO] >= 0) //Qty check should have been done in skill_check_condition

@@ -1479,11 +1479,9 @@ void clif_weather(int16 m)
 int clif_spawn(struct block_list *bl)
 {
 	unsigned char buf[128];
-	struct view_data *vd;
-	struct status_change *sc = status_get_sc(bl);
+	struct view_data *vd = status_get_viewdata(bl);
 	int len;
 
-	vd = status_get_viewdata(bl);
 	if (!vd || vd->class_ == INVISIBLE_CLASS)
 		return 0;
 
@@ -1522,10 +1520,8 @@ int clif_spawn(struct block_list *bl)
 						clif_talisman(sd,i);
 				}
 				for (i = 0; i < sd->sc_display_count; i++) {
-					if (sc && (sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE|OPTION_CHASEWALK)))
-						clif_status_change2(&sd->bl,sd->bl.id,AREA,SI_BLANK,0,0,0);
-					else
-						clif_status_change2(&sd->bl,sd->bl.id,AREA,StatusIconChangeTable[sd->sc_display[i]->type],sd->sc_display[i]->val1,sd->sc_display[i]->val2,sd->sc_display[i]->val3);
+					clif_efst_status_change(&sd->bl,sd->bl.id,AREA,StatusIconChangeTable[sd->sc_display[i]->type],
+						sd->sc_display[i]->val1,sd->sc_display[i]->val2,sd->sc_display[i]->val3);
 				}
 				if (sd->status.robe)
 					clif_refreshlook(bl,bl->id,LOOK_ROBE,sd->status.robe,AREA);
@@ -4318,10 +4314,11 @@ static void clif_getareachar_pc(struct map_session_data* sd,struct map_session_d
 			clif_talisman_single(sd->fd, dstsd, i);
 	}
 	for( i = 0; i < dstsd->sc_display_count; i++ ) {
-		if (dstsd->sc.option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE|OPTION_CHASEWALK))
-			clif_status_change2(&sd->bl, dstsd->bl.id, SELF, SI_BLANK, 0, 0, 0);
+		if( (dstsd->sc.option&OPTION_INVISIBLE) ||
+			(dstsd->sc.option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) && !sd->special_state.intravision && !sd->sc.data[SC_INTRAVISION]) )
+			clif_efst_status_change(&sd->bl, dstsd->bl.id, SELF, SI_BLANK, 0, 0, 0);
 		else
-			clif_status_change2(&sd->bl, dstsd->bl.id, SELF, StatusIconChangeTable[dstsd->sc_display[i]->type], dstsd->sc_display[i]->val1, dstsd->sc_display[i]->val2, dstsd->sc_display[i]->val3);
+			clif_efst_status_change(&sd->bl, dstsd->bl.id, SELF, StatusIconChangeTable[dstsd->sc_display[i]->type], dstsd->sc_display[i]->val1, dstsd->sc_display[i]->val2, dstsd->sc_display[i]->val3);
 	}
 	if( (sd->status.party_id && dstsd->status.party_id == sd->status.party_id) || //Party-mate, or hpdisp setting.
 		(sd->bg_id && sd->bg_id == dstsd->bg_id) || //BattleGround
@@ -5649,9 +5646,7 @@ void clif_cooking_list(struct map_session_data *sd, int trigger, uint16 skill_id
 /// Notifies clients of a status change.
 /// 0196 <index>.W <id>.L <state>.B (ZC_MSG_STATE_CHANGE) [used for ending status changes and starting them on non-pc units (when needed)]
 /// 043f <index>.W <id>.L <state>.B <remain msec>.L { <val>.L }*3 (ZC_MSG_STATE_CHANGE2) [used exclusively for starting statuses on pcs]
-/// 08ff <id>.L <index>.W <remain msec>.L { <val>.L }*3  (ZC_EFST_SET_ENTER) (PACKETVER >= 20111108)
 /// 0983 <index>.W <id>.L <state>.B <total msec>.L <remain msec>.L { <val>.L }*3 (ZC_MSG_STATE_CHANGE3) (PACKETVER >= 20120618)
-/// 0984 <id>.L <index>.W <total msec>.L <remain msec>.L { <val>.L }*3 (ZC_EFST_SET_ENTER2) (PACKETVER >= 20120618)
 void clif_status_change(struct block_list *bl,int type,int flag,int tick,int val1,int val2,int val3)
 {
 	unsigned char buf[32];
@@ -5677,7 +5672,8 @@ void clif_status_change(struct block_list *bl,int type,int flag,int tick,int val
 		WBUFW(buf,0) = 0x43f;
 	else
 #endif
-	WBUFW(buf,0) = 0x196; //For non-pc unit
+		WBUFW(buf,0) = 0x196; //For non-pc unit
+
 	WBUFW(buf,2) = type;
 	WBUFL(buf,4) = bl->id;
 	WBUFB(buf,8) = flag;
@@ -5707,7 +5703,10 @@ void clif_status_change(struct block_list *bl,int type,int flag,int tick,int val
 }
 
 
-void clif_status_change2(struct block_list *bl, int tid, enum send_target target, int type, int val1, int val2, int val3) {
+/// Notifies clients while player entering the screen with a active EFST status.
+/// 08ff <id>.L <index>.W <remain msec>.L { <val>.L }*3  (ZC_EFST_SET_ENTER) (PACKETVER >= 20111108)
+/// 0984 <id>.L <index>.W <total msec>.L <remain msec>.L { <val>.L }*3 (ZC_EFST_SET_ENTER2) (PACKETVER >= 20120618)
+void clif_efst_status_change(struct block_list *bl, int tid, enum send_target target, int type, int val1, int val2, int val3) {
 	unsigned char buf[32];
 
 	if (type == SI_BLANK) //It shows nothing on the client
@@ -5715,15 +5714,26 @@ void clif_status_change2(struct block_list *bl, int tid, enum send_target target
 
 	nullpo_retv(bl);
 
-	WBUFW(buf,0) = 0x43f;
-	WBUFW(buf,2) = type;
-	WBUFL(buf,4) = tid;
-	WBUFB(buf,8) = 1;
-	WBUFL(buf,9) = 9999;
-	WBUFL(buf,13) = val1;
-	WBUFL(buf,17) = val2;
-	WBUFL(buf,21) = val3;
-	clif_send(buf,packet_len(0x43f),bl,target);
+#if PACKETVER >= 20120618
+	WBUFW(buf,0) = 0x984;
+#elif PACKETVER >= 20111108
+	WBUFW(buf,0) = 0x8ff;
+#endif
+	WBUFL(buf,2) = tid;
+	WBUFW(buf,6) = type;
+#if PACKETVER >= 20120618
+	WBUFL(buf,8) = 9999;
+	WBUFL(buf,12) = 9999;
+	WBUFL(buf,16) = val1;
+	WBUFL(buf,20) = val2;
+	WBUFL(buf,24) = val3;
+#elif PACKETVER >= 20111108
+	WBUFL(buf,8) = 9999;
+	WBUFL(buf,12) = val1;
+	WBUFL(buf,16) = val2;
+	WBUFL(buf,20) = val3;
+#endif
+	clif_send(buf,packet_len(WBUFW(buf,0)),bl,target);
 }
 
 

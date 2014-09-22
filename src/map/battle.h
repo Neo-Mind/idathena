@@ -111,9 +111,9 @@ int battle_getcurrentskill(struct block_list *bl);
 
 int battle_check_undead(int race,int element);
 int battle_check_target(struct block_list *src, struct block_list *target,int flag);
-bool battle_check_range(struct block_list *src,struct block_list *bl,int range);
+bool battle_check_range(struct block_list *src, struct block_list *bl, int range);
 
-void battle_consume_ammo(struct map_session_data *sd, int skill, int lv);
+void battle_consume_ammo(struct map_session_data *sd, uint16 skill_id, uint16 skill_lv);
 
 int battle_calc_chorusbonus(struct map_session_data *sd, uint8 flag);
 

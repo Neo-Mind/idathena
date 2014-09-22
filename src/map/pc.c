@@ -493,7 +493,7 @@ void pc_rental_expire(struct map_session_data *sd, int i)
 	/* Soon to be dropped, we got plans to integrate it with item db */
 	switch( nameid ) {
 		case ITEMID_REINS_OF_MOUNT:
-			if( &sd->sc && sd->sc.data[SC_ALL_RIDING] )
+			if( sd->sc.data[SC_ALL_RIDING] )
 				status_change_end(&sd->bl, SC_ALL_RIDING, INVALID_TIMER);
 			break;
 		case ITEMID_LOVE_ANGEL:
@@ -4664,7 +4664,7 @@ int pc_useitem(struct map_session_data *sd, int n)
 
 	/* Items with delayed consume are not meant to work while in mounts except reins of mount(12622) */
 	if( id->flag.delay_consume ) {
-		if( &sd->sc && sd->sc.data[SC_ALL_RIDING] && nameid != ITEMID_REINS_OF_MOUNT )
+		if( sd->sc.data[SC_ALL_RIDING] && nameid != ITEMID_REINS_OF_MOUNT )
 			return 0;
 		else if( pc_issit(sd) )
 			return 0;
@@ -6215,7 +6215,7 @@ static void pc_calcexp(struct map_session_data *sd, unsigned int *base_exp, unsi
 #endif
 	}
 
-	if (&sd->sc && sd->sc.data[SC_EXPBOOST]) {
+	if (sd->sc.data[SC_EXPBOOST]) {
 		bonus += sd->sc.data[SC_EXPBOOST]->val1;
 		if (battle_config.vip_bm_increase && pc_isvip(sd)) //Increase Battle Manual EXP rate for VIP.
 			bonus += (sd->sc.data[SC_EXPBOOST]->val1 / battle_config.vip_bm_increase);
@@ -6223,7 +6223,7 @@ static void pc_calcexp(struct map_session_data *sd, unsigned int *base_exp, unsi
 
 	*base_exp = (unsigned int)cap_value(*base_exp + (double)*base_exp * (bonus + vip_bonus_base) / 100., 1, UINT_MAX);
 
-	if (&sd->sc && sd->sc.data[SC_JEXPBOOST])
+	if (sd->sc.data[SC_JEXPBOOST])
 		bonus += sd->sc.data[SC_JEXPBOOST]->val1;
 
 	*job_exp = (unsigned int)cap_value(*job_exp + (double)*job_exp * (bonus + vip_bonus_job) / 100., 1, UINT_MAX);
@@ -8331,7 +8331,7 @@ bool pc_setcart(struct map_session_data *sd,int type) {
 				clif_cartlist(sd);
 			clif_updatestatus(sd,SP_CARTINFO);
 			sc_start(&sd->bl,&sd->bl,SC_PUSH_CART,100,type,0);
-			clif_status_change2(&sd->bl,sd->bl.id,AREA,SI_ON_PUSH_CART,type,0,0);
+			clif_efst_status_change(&sd->bl,sd->bl.id,AREA,SI_ON_PUSH_CART,type,0,0);
 			if( sd->sc.data[SC_PUSH_CART] ) /* Forcefully update */
 				sd->sc.data[SC_PUSH_CART]->val1 = type;
 			break;
@@ -8367,7 +8367,7 @@ void pc_setfalcon(TBL_PC* sd, int flag)
  *------------------------------------------*/
 void pc_setriding(TBL_PC* sd, int flag)
 {
-	if( &sd->sc && sd->sc.data[SC_ALL_RIDING] )
+	if( sd->sc.data[SC_ALL_RIDING] )
 		return;
 	if( flag ) {
 		if( pc_checkskill(sd,KN_RIDING) > 0 ) //Add peco
@@ -8400,9 +8400,6 @@ void pc_setmadogear(struct map_session_data *sd, int flag)
 bool pc_can_attack(struct map_session_data *sd, int target_id)
 {
 	nullpo_retr(false, sd);
-
-	if( !(&sd->sc) )
-		return true;
 
 	if( sd->sc.data[SC_BASILICA] ||
 		sd->sc.data[SC__SHADOWFORM] ||
@@ -9293,25 +9290,22 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		clif_unequipitemack(sd,n,0,0);
 		return false;
 	}
-	if( &sd->sc ) {
-		if( sd->sc.data[SC_CONCENTRATION] && !(flag&4) )
-			status_change_end(&sd->bl,SC_CONCENTRATION,INVALID_TIMER);
-		if( sd->inventory_data[n]->type == IT_WEAPON ) {
-			if( sd->sc.data[SC_FEARBREEZE] )
-				status_change_end(&sd->bl,SC_FEARBREEZE,INVALID_TIMER);
-			if( sd->sc.data[SC_EXEEDBREAK] )
-				status_change_end(&sd->bl,SC_EXEEDBREAK,INVALID_TIMER);
-		}
-		if( sd->inventory_data[n]->type == IT_ARMOR &&
-			sd->inventory_data[n]->nameid == ITEMID_HOVERING_BOOSTER ) {
-			if( sd->sc.data[SC_HOVERING] )
-				status_change_end(&sd->bl,SC_HOVERING,INVALID_TIMER);
-		}
-		if( sd->sc.data[SC_HEAT_BARREL] )
-			status_change_end(&sd->bl,SC_HEAT_BARREL,INVALID_TIMER);
-		if( sd->sc.data[SC_P_ALTER] && (sd->inventory_data[n]->type == IT_WEAPON || sd->inventory_data[n]->type == IT_AMMO) )
-			status_change_end(&sd->bl,SC_P_ALTER,INVALID_TIMER);
+	if( sd->sc.data[SC_CONCENTRATION] && !(flag&4) )
+		status_change_end(&sd->bl,SC_CONCENTRATION,INVALID_TIMER);
+	if( sd->inventory_data[n]->type == IT_WEAPON ) {
+		if( sd->sc.data[SC_FEARBREEZE] )
+			status_change_end(&sd->bl,SC_FEARBREEZE,INVALID_TIMER);
+		if( sd->sc.data[SC_EXEEDBREAK] )
+			status_change_end(&sd->bl,SC_EXEEDBREAK,INVALID_TIMER);
 	}
+	if( sd->inventory_data[n]->type == IT_ARMOR && sd->inventory_data[n]->nameid == ITEMID_HOVERING_BOOSTER ) {
+		if( sd->sc.data[SC_HOVERING] )
+			status_change_end(&sd->bl,SC_HOVERING,INVALID_TIMER);
+	}
+	if( sd->sc.data[SC_HEAT_BARREL] )
+		status_change_end(&sd->bl,SC_HEAT_BARREL,INVALID_TIMER);
+	if( sd->sc.data[SC_P_ALTER] && (sd->inventory_data[n]->type == IT_WEAPON || sd->inventory_data[n]->type == IT_AMMO) )
+		status_change_end(&sd->bl,SC_P_ALTER,INVALID_TIMER);
 	if( battle_config.battle_log )
 		ShowInfo("Unequip %d %x:%x\n",n,pc_equippoint(sd,n),sd->status.inventory[n].equip);
 	if( !sd->status.inventory[n].equip ) { //Nothing to unequip
@@ -9880,7 +9874,7 @@ void pc_setstand(struct map_session_data *sd) {
 
 	status_change_end(&sd->bl, SC_TENSIONRELAX, INVALID_TIMER);
 
-	if (&sd->sc && (sd->sc.data[SC_SITDOWN_FORCE] || sd->sc.data[SC_BANANA_BOMB_SITDOWN]))
+	if (sd->sc.data[SC_SITDOWN_FORCE] || sd->sc.data[SC_BANANA_BOMB_SITDOWN])
 		return;
 
 	clif_status_load(&sd->bl, SI_SIT, 0);
@@ -11047,9 +11041,9 @@ void pc_cell_basilica(struct map_session_data *sd) {
 	nullpo_retv(sd);
 
 	if (!map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKBASILICA)) {
-		if (&sd->sc && sd->sc.data[SC_BASILICA])
+		if (sd->sc.data[SC_BASILICA])
 			status_change_end(&sd->bl,SC_BASILICA,INVALID_TIMER);
-	} else if (!(&sd->sc) || !sd->sc.data[SC_BASILICA])
+	} else if (!sd->sc.data[SC_BASILICA])
 		sc_start(&sd->bl,&sd->bl,SC_BASILICA,100,0,INVALID_TIMER);
 }
 

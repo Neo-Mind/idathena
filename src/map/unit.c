@@ -2112,7 +2112,7 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 		|| (sd && !pc_can_attack(sd,ud->target)) )
 		return 0; // Can't attack under these conditions
 
-	if( sd && &sd->sc && sd->sc.count && sd->sc.data[SC_HEAT_BARREL_AFTER] )
+	if( sd && sd->sc.count && sd->sc.data[SC_HEAT_BARREL_AFTER] )
 		return 0;
 
 	if( src->m != target->m ) {
