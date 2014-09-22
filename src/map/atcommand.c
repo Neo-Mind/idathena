@@ -5424,7 +5424,7 @@ ACMD_FUNC(useskill)
 		return -1;
 	}
 
-	if (!strcmp(target,"self")) pl_sd = sd; //quick keyword
+	if (!strcmp(target,"self")) pl_sd = sd; // Quick keyword
 	else if ((pl_sd = map_nick2sd(target)) == NULL) {
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;

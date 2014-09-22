@@ -8865,6 +8865,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 		case AB_OFFERTORIUM:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
+			if( !tsc || !tsc->count )
+				break;
 			for( i = 0; i < SC_MAX; i++) {
 				if( !tsc->data[i] )
 					continue;
@@ -8898,7 +8900,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				if( sd )
 					skill_blockpc_start(sd,skill_id,4000);
 
-				if( !(tsc && tsc->data[type]) ) {
+				if( tsc && !tsc->data[type] ) {
 					i = sc_start2(src,bl,type,rate,skill_lv,src->id,(src == bl) ? 5000 : (bl->type == BL_PC) ?
 						skill_get_time(skill_id,skill_lv) : skill_get_time2(skill_id,skill_lv));
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,i);
@@ -8922,7 +8924,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				if( bl->id == skill_area_temp[1] )
 					break; //Already work on this target
 
-				if( tsc && tsc->data[SC_STONE] )
+				if( tsc->data[SC_STONE] )
 					status_change_end(bl,SC_STONE,INVALID_TIMER);
 				else
 					status_change_start(src,bl,SC_STONE,10000,skill_lv,0,0,1000,skill_get_time(skill_id,skill_lv),2);
@@ -9364,35 +9366,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			status_change_clear_buffs(bl,7);
 			clif_skill_nodamage(bl,src,skill_id,skill_lv,
 				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
-			break;
-
-		case LG_KINGS_GRACE:
-			if( flag&1 ) {
-				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
-				for( i = 0; i < SC_MAX; i++) {
-					if( !tsc->data[i] )
-						continue;
-					switch( i ) {
-						case SC_POISON:		case SC_BLIND:
-						case SC_FREEZE:		case SC_STONE:
-						case SC_STUN:		case SC_SLEEP:
-						case SC_BLEEDING:	case SC_CURSE:
-						case SC_CONFUSION:	case SC__CHAOS:
-						case SC_HALLUCINATION:	case SC_SILENCE:
-						case SC_BURNING:	case SC_CRYSTALIZE:
-						case SC_FREEZING:	case SC_DEEPSLEEP:
-						case SC_FEAR:		case SC_MANDRAGORA:
-							status_change_end(bl,(sc_type)i,INVALID_TIMER);
-							break;
-					}
-				}
-			} else {
-				skill_area_temp[2] = 0;
-				if( !map_flag_vs(src->m) && !map_flag_gvg(src->m) )
-					flag |= BCT_GUILD;
-				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),BL_PC,src,skill_id,skill_lv,tick,flag|SD_PREAMBLE|BCT_PARTY|BCT_SELF|1,skill_castend_nodamage_id);
-				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-			}
 			break;
 
 		case SR_CURSEDCIRCLE:
@@ -11194,6 +11167,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case MH_XENO_SLASHER:
 		case NC_MAGMA_ERUPTION:
 		case SO_ELEMENTAL_SHIELD:
+		case LG_KINGS_GRACE:
 			flag |= 1; //Set flag to 1 to prevent deleting ammo (it will be deleted on group-delete).
 		case GS_GROUNDDRIFT: //Ammo should be deleted right away.
 			skill_unitsetting(src,skill_id,skill_lv,x,y,0);
@@ -12789,18 +12763,6 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 				sc_start4(ss,bl,type,100,skill_lv,0,BCT_ENEMY,sg->group_id,sg->limit);
 			break;
 
-		case UNT_BASILICA: {
-				int i = battle_check_target(bl,bl,BCT_ENEMY);
-
-				if( i > 0 && !(status_get_mode(bl)&MD_BOSS) ) { //Knock-back any enemy except Boss
-					skill_blown(ss,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
-					break;
-				}
-				if( !sce && i <= 0 )
-					sc_start4(ss,bl,type,100,0,0,sg->group_id,ss->id,sg->limit);
-			}
-			break;
-
 		//Officially, icewall has no problems existing on occupied cells [ultramage]
 		//case UNT_ICEWALL: //Destroy the cell. [Skotlex]
 			//unit->val1 = 0;
@@ -12823,14 +12785,24 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 			break;
 
 		case UNT_FIRE_EXPANSION_TEAR_GAS:
-			if( !sce )
-				if( sc_start4(ss,bl,type,100,skill_lv,0,ss->id,0,sg->limit) )
-					sc_start(ss,bl,SC_TEARGAS_SOB,100,skill_lv,sg->limit);
+			if( !sce && sc_start4(ss,bl,type,100,skill_lv,0,ss->id,0,sg->limit) )
+				sc_start(ss,bl,SC_TEARGAS_SOB,100,skill_lv,sg->limit);
 			break;
 
 		case UNT_VOLCANIC_ASH:
 			if( !sce )
 				sc_start(ss,bl,SC_ASH,100,skill_lv,skill_get_time(MH_VOLCANIC_ASH,skill_lv));
+			break;
+
+		case UNT_KINGS_GRACE:
+			if( !sce ) {
+				int state = 0;
+
+				if( !map_flag_vs(ss->m) && !map_flag_gvg2(ss->m) )
+					state |= BCT_GUILD;
+				if( battle_check_target(&unit->bl,bl,BCT_SELF|BCT_PARTY|state) > 0 )
+					sc_start4(ss,bl,type,100,skill_lv,0,ss->id,0,sg->limit);
+			}
 			break;
 
 		case UNT_GD_LEADERSHIP:

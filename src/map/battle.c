@@ -847,7 +847,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			status_change_end(bl,SC_SAFETYWALL,INVALID_TIMER);
 		}
 
-		if( (sc->data[SC_PNEUMA] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG) || sc->data[SC__MANHOLE] ) {
+		if( (sc->data[SC_PNEUMA] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG) ||
+			sc->data[SC__MANHOLE] || sc->data[SC_KINGS_GRACE] ) {
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}

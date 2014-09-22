@@ -1181,6 +1181,7 @@ void initChangeTables(void) {
 	StatusChangeStateTable[SC_MEIKYOUSISUI]        |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_KAGEHUMI]            |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_PARALYSIS]           |= SCS_NOMOVE;
+	StatusChangeStateTable[SC_KINGS_GRACE]         |= SCS_NOMOVE;
 
 	/* StatusChangeState (SCS_) NOPICKUPITEMS */
 	StatusChangeStateTable[SC_HIDING]              |= SCS_NOPICKITEM;
@@ -2141,11 +2142,11 @@ unsigned int status_weapon_atk(struct weapon_atk wa, struct status_data *status)
 
 #ifndef RENEWAL
 	unsigned short status_base_matk_min(const struct status_data* status) { return status->int_ + (status->int_ / 7) * (status->int_ / 7); }
+#else
+	unsigned short status_base_matk(const struct status_data* status, int level) { return status->int_ + (status->int_ / 2) + (status->dex / 5) + (status->luk / 3) + (level / 4); }
 #endif
 
 static inline unsigned short status_base_matk_max(const struct status_data* status) { return status->int_ + (status->int_ / 5) * (status->int_ / 5); }
-
-unsigned short status_base_matk(const struct status_data* status, int level) { return status->int_ + (status->int_ / 2) + (status->dex / 5) + (status->luk / 3) + (level / 4); }
 
 /**
  * Gets a random matk value depending on min matk and max matk
@@ -7405,9 +7406,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				if(val3)
 					mode |= val3; //Add mode
 				if(mode == bstatus->mode) { //No change.
-					if(sc->data[type]) { //Abort previous status
+					if(sc->data[type]) //Abort previous status
 						return status_change_end(bl,type,INVALID_TIMER);
-					}
 					return 0;
 				}
 			}
@@ -7587,20 +7587,15 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			if(sc->option&(OPTION_RIDING|OPTION_DRAGON|OPTION_WUG|OPTION_MADOGEAR))
 				return 0;
 			if(sc->data[type]) { // Already mounted, just dismount.
-				status_change_end(bl,SC_ALL_RIDING,INVALID_TIMER);
+				status_change_end(bl,type,INVALID_TIMER);
 				return 0;
 			}
 			break;
 		case SC_C_MARKER:
 			if(src == bl)
 				return 0;
-			else {
-				struct status_change *tsc = status_get_sc(bl);
-
-				//Failed if the target is already marked and the new marker that isn't same marker
-				if(tsc && tsc->data[type] && tsc->data[type]->val2 != src->id)
-					return 0;
-			}
+			if(sc->data[type] && sc->data[type]->val2 != src->id)
+				return 0; //Failed if the target is already marked and the new marker that isn't same marker
 			break;
 		case SC_MADNESSCANCEL:
 			if(sc->data[SC_HEAT_BARREL] || sc->data[SC_P_ALTER])
@@ -7612,6 +7607,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 		case SC_P_ALTER:
 			if(sc->data[SC_MADNESSCANCEL] || sc->data[SC_HEAT_BARREL])
+				return 0;
+			break;
+		case SC_KINGS_GRACE:
+			if(sc->data[SC_DEVOTION])
 				return 0;
 			break;
 	}
@@ -7923,6 +7922,26 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			status_change_end(bl,SC_FREEZING,INVALID_TIMER);
 			status_change_end(bl,SC_FREEZE,INVALID_TIMER);
 			status_change_end(bl,SC_STONE,INVALID_TIMER);
+			break;
+		case SC_KINGS_GRACE:
+			status_change_end(bl,SC_POISON,INVALID_TIMER);
+			status_change_end(bl,SC_BLIND,INVALID_TIMER);
+			status_change_end(bl,SC_FREEZE,INVALID_TIMER);
+			status_change_end(bl,SC_STONE,INVALID_TIMER);
+			status_change_end(bl,SC_STUN,INVALID_TIMER);
+			status_change_end(bl,SC_SLEEP,INVALID_TIMER);
+			status_change_end(bl,SC_BLEEDING,INVALID_TIMER);
+			status_change_end(bl,SC_CURSE,INVALID_TIMER);
+			status_change_end(bl,SC_CONFUSION,INVALID_TIMER);
+			status_change_end(bl,SC__CHAOS,INVALID_TIMER);
+			status_change_end(bl,SC_HALLUCINATION,INVALID_TIMER);
+			status_change_end(bl,SC_SILENCE,INVALID_TIMER);
+			status_change_end(bl,SC_BURNING,INVALID_TIMER);
+			status_change_end(bl,SC_CRYSTALIZE,INVALID_TIMER);
+			status_change_end(bl,SC_FREEZING,INVALID_TIMER);
+			status_change_end(bl,SC_DEEPSLEEP,INVALID_TIMER);
+			status_change_end(bl,SC_FEAR,INVALID_TIMER);
+			status_change_end(bl,SC_MANDRAGORA,INVALID_TIMER);
 			break;
 	}
 

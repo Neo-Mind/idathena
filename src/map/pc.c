@@ -4607,7 +4607,8 @@ bool pc_isUseitem(struct map_session_data *sd, int n)
 		sd->sc.data[SC_DEEPSLEEP] ||
 		sd->sc.data[SC_KAGEHUMI] ||
 		(sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOITEM) ||
-		sd->sc.data[SC_HEAT_BARREL_AFTER]) )
+		sd->sc.data[SC_HEAT_BARREL_AFTER] ||
+		sd->sc.data[SC_KINGS_GRACE]) )
 		return false;
 
 	if( !pc_isItemClass(sd,item) )

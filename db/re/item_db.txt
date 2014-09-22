@@ -9718,7 +9718,7 @@
 22757,Collection_Of_Scrolls_Magical_Transformation,Collection Of Scrolls Magical Transformation,18,10,,200,,,,0,0xFFFFFFFF,63,2,,,,,,{ getitem 22755,1; getitem 22754,1; },{},{}
 22758,Collection_Of_Scrolls_Shooting_Transformation,Collection Of Scrolls Shooting Transformation,18,10,,200,,,,0,0xFFFFFFFF,63,2,,,,,,{ getitem 22753,1; getitem 22752,1; },{},{}
 22759,Collection_Of_Scrolls_Attack_Speed_Transformation,Collection Of Scrolls Attack Speed Transformation,18,10,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ getitem 22751,1; getitem 22750,1; },{},{}
-22760,Argiope_Transportin,Argiope_Transportin,2,10,,0,,,,0,0xFFFFFFFF,63,2,,,,,,{ /* No Info * /},{},{}
+22760,Argiope_Transportin,Argiope_Transportin,2,10,,0,,,,0,0xFFFFFFFF,63,2,,,,,,{ /* No Info */ },{},{}
 22761,Luciola_Vespa_Transportin,Luciola_Vespa_Transportin,2,10,,0,,,,0,0xFFFFFFFF,63,2,,,,,,{ /* No Info */ },{},{}
 22762,Centipede_Transportin,Centipede_Transportin,2,10,,0,,,,0,0xFFFFFFFF,63,2,,,,,,{ /* No Info */ },{},{}
 22764,Pet_Exchange_Ticket_Box_,Pet Exchange Ticket Box,18,10,,10,,,,,,,,,,,,,{ /* TODO: Confirm the allowed pet_id and chance */ getitem callfunc("F_Rand",6116,6117,6118,6129,6130,6130,6132,6133,6134,6135,6136,6137,6138,6139,6140,6141,6142,6143),1; },{},{}
