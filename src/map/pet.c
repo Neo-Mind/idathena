@@ -979,20 +979,17 @@ static int pet_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 	struct pet_data* pd;
 	struct flooritem_data *fitem = (struct flooritem_data *)bl;
 	struct block_list **target;
-	int sd_charid =0;
+	int sd_charid = 0;
 
-	pd=va_arg(ap,struct pet_data *);
-	target=va_arg(ap,struct block_list**);
+	pd = va_arg(ap,struct pet_data *);
+	target = va_arg(ap,struct block_list**);
 
 	sd_charid = fitem->first_get_charid;
 
 	if(sd_charid && sd_charid != pd->master->status.char_id)
 		return 0;
 
-	if(unit_can_reach_bl(&pd->bl,bl, pd->db->range2, 1, NULL, NULL) &&
-		((*target) == NULL || //New target closer than previous one.
-		!check_distance_bl(&pd->bl, *target, distance_bl(&pd->bl, bl))))
-	{
+	if(unit_can_reach_bl(&pd->bl,bl, pd->db->range2, 1, NULL, NULL) && (*target) == NULL) {
 		(*target) = bl;
 		pd->target_id = bl->id;
 		return 1;

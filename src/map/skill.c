@@ -3727,9 +3727,9 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 							struct map_session_data *tsd = ((TBL_PC*)target);
 
 							if (tsd && !pc_issit(tsd)) {
-								skill_sit(tsd,1);
 								clif_sitting(target);
 								pc_setsit(tsd);
+								skill_sit(tsd,1);
 							}
 						}
 					}
@@ -16436,11 +16436,8 @@ int skill_sit(struct map_session_data *sd, int type)
 		range = skill_get_splash(TK_SPTIME, lv);
 	}
 
-	if(type) {
-		pc_stop_walking(sd,1|4);
-		pc_stop_attack(sd);
+	if(type)
 		clif_status_load(&sd->bl, SI_SIT, 1);
-	}
 
 	if(!flag)
 		return 0;

@@ -27,16 +27,6 @@ struct status_change_entry;
 
 DBMap* skilldb_name2id;
 
-//Constants to identify the skill's inf value:
-enum e_skill_inf {
-	INF_ATTACK_SKILL  = 0x01,
-	INF_GROUND_SKILL  = 0x02,
-	INF_SELF_SKILL    = 0x04, //Skills casted on self where target is automatically chosen
-	//0x08 not assigned
-	INF_SUPPORT_SKILL = 0x10,
-	INF_TARGET_TRAP   = 0x20,
-};
-
 //Constants to identify a skill's nk value (damage properties)
 //The NK value applies only to non INF_GROUND_SKILL skills
 //when determining skill castend function to invoke.
@@ -49,6 +39,16 @@ enum e_skill_nk {
 	NK_IGNORE_DEF     = 0x20,
 	NK_IGNORE_FLEE    = 0x40,
 	NK_NO_CARDFIX_DEF = 0x80,
+};
+
+//Constants to identify the skill's inf value:
+enum e_skill_inf {
+	INF_ATTACK_SKILL  = 0x01,
+	INF_GROUND_SKILL  = 0x02,
+	INF_SELF_SKILL    = 0x04, //Skills casted on self where target is automatically chosen
+	//0x08 not assigned
+	INF_SUPPORT_SKILL = 0x10,
+	INF_TARGET_TRAP   = 0x20,
 };
 
 //A skill with 3 would be no damage + splash: area of effect.

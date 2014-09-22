@@ -3428,7 +3428,6 @@ void clif_arrowequip(struct map_session_data *sd,int val)
 
 	nullpo_retv(sd);
 
-	pc_stop_attack(sd); // [Valaris]
 #if PACKETVER >= 20121128
 	clif_status_change(&sd->bl,SI_CLIENT_ONLY_EQUIP_ARROW,1,INVALID_TIMER,0,0,0);
 #endif
@@ -10587,9 +10586,9 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 				break;
 
 			sd->idletime = last_tick;
-			skill_sit(sd,1);
 			clif_sitting(&sd->bl);
 			pc_setsit(sd);
+			skill_sit(sd,1);
 			break;
 		case 0x03: // Standup
 			if( !pc_issit(sd) ) { // Bugged client? Just refresh them.
