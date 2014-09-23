@@ -7103,11 +7103,11 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	if (sc && sc->count) {
 		uint16 skill_id;
 
-		if(sc->data[SC_CRUSHSTRIKE]) {
-			if(sd) { //ATK [{Weapon Level * (Weapon Upgrade Level + 6) * 100} + (Weapon ATK) + (Weapon Weight)]%
+		if (sc->data[SC_CRUSHSTRIKE]) {
+			if (sd) {
 				short index = sd->equip_index[EQI_HAND_R];
 
-				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON) {
+				if (index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON) {
 					skill_id = sc->data[SC_CRUSHSTRIKE]->val3;
 					ATK_RATE(wd.damage,wd.damage2,sd->inventory_data[index]->weight / 10 + sstatus->rhw.atk +
 						100 * sd->inventory_data[index]->wlv * (sd->status.inventory[index].refine + 6));

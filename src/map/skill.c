@@ -10676,6 +10676,11 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 		}
 #endif
 		if( sd ) {
+			if( ud->skill_id == CR_DEVOTION &&
+				!check_distance_bl(src,target,skill_get_range2(src,ud->skill_id,ud->skill_lv)) ) {
+				clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
+				break;
+			}
 			if( !skill_check_condition_castend(sd,ud->skill_id,ud->skill_lv) )
 				break;
 			else
