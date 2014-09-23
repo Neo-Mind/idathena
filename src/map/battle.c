@@ -3108,7 +3108,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 		if(sc->data[SC_CONCENTRATION])
 			skillratio += sc->data[SC_CONCENTRATION]->val2;
 #endif
-		if(sc->data[SC_CRUSHSTRIKE] && (!skill_id || skill_id == KN_AUTOCOUNTER)) {
+		if(sc->data[SC_CRUSHSTRIKE] && skill_id == KN_AUTOCOUNTER) {
 			if(sd) { //ATK [{Weapon Level * (Weapon Upgrade Level + 6) * 100} + (Weapon ATK) + (Weapon Weight)]%
 				short index = sd->equip_index[EQI_HAND_R];
 
@@ -3118,10 +3118,6 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 			}
 			status_change_end(src,SC_CRUSHSTRIKE,INVALID_TIMER);
 			skill_break_equip(src,src,EQP_WEAPON,2000,BCT_SELF);
-		}
-		if(sc->data[SC_EXEEDBREAK] && !skill_id) {
-			skillratio += -100 + sc->data[SC_EXEEDBREAK]->val2;
-			status_change_end(src,SC_EXEEDBREAK,INVALID_TIMER);
 		}
 		if(sc->data[SC_P_ALTER])
 			skillratio += sc->data[SC_P_ALTER]->val2;
@@ -4846,8 +4842,7 @@ struct Damage battle_calc_weapon_final_atk_modifiers(struct Damage wd, struct bl
 	}
 
 	if(sc) {
-		//SC_FUSION hp penalty [Komurka]
-		if(sc->data[SC_FUSION]) {
+		if(sc->data[SC_FUSION]) { //SC_FUSION hp penalty [Komurka]
 			int hp = sstatus->max_hp;
 
 			if(sd && tsd) {
@@ -5273,9 +5268,9 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			ATK_ADD(wd.damage, wd.damage2, ((wd.div_ < 1) ? 1 : wd.div_) * sd->spiritball * 3);
 #endif
 		if(skill_id == CR_SHIELDBOOMERANG || skill_id == PA_SHIELDCHAIN) {
-			//Refine bonus applies after cards and elements.
 			short index = sd->equip_index[EQI_HAND_L];
 
+			//Refine bonus applies after cards and elements.
 			if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR)
 				ATK_ADD(wd.damage, wd.damage2, 10 * sd->status.inventory[index].refine);
 		}
@@ -7027,8 +7022,8 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		int duration = skill_get_time2(MO_BLADESTOP,skill_lv);
 
 		status_change_end(target,SC_BLADESTOP_WAIT,INVALID_TIMER);
+		//Target locked.
 		if (sc_start4(src,src,SC_BLADESTOP,100,sd ? pc_checkskill(sd,MO_BLADESTOP) : 0,0,0,target->id,duration)) {
-			//Target locked.
 			clif_damage(src,target,tick,sstatus->amotion,1,0,1,DMG_NORMAL,0); //Display MISS.
 			clif_bladestop(target,src->id,1);
 			sc_start4(src,target,SC_BLADESTOP,100,skill_lv,0,0,src->id,duration);
@@ -7055,7 +7050,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			uint16 skill_lv = sc->data[SC_SACRIFICE]->val1;
 			damage_lv ret_val;
 
-			if (--sc->data[SC_SACRIFICE]->val2 <= 0)
+			if (--(sc->data[SC_SACRIFICE]->val2) <= 0)
 				status_change_end(src,SC_SACRIFICE,INVALID_TIMER);
 
 			/**
@@ -7106,6 +7101,21 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	wd = battle_calc_attack(BF_WEAPON,src,target,0,0,flag);
 
 	if (sc && sc->count) {
+		uint16 skill_id;
+
+		if(sc->data[SC_CRUSHSTRIKE]) {
+			if(sd) { //ATK [{Weapon Level * (Weapon Upgrade Level + 6) * 100} + (Weapon ATK) + (Weapon Weight)]%
+				short index = sd->equip_index[EQI_HAND_R];
+
+				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON) {
+					skill_id = sc->data[SC_CRUSHSTRIKE]->val3;
+					ATK_RATE(wd.damage,wd.damage2,sd->inventory_data[index]->weight / 10 + sstatus->rhw.atk +
+						100 * sd->inventory_data[index]->wlv * (sd->status.inventory[index].refine + 6));
+				}
+			}
+			status_change_end(src,SC_CRUSHSTRIKE,INVALID_TIMER);
+			skill_break_equip(src,src,EQP_WEAPON,2000,BCT_SELF);
+		}
 		if (sd && battle_config.arrow_decrement && sc->data[SC_FEARBREEZE] && sc->data[SC_FEARBREEZE]->val4 > 0) {
 			short idx = sd->equip_index[EQI_AMMO];
 
@@ -7113,6 +7123,11 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 				pc_delitem(sd,idx,sc->data[SC_FEARBREEZE]->val4,0,1,LOG_TYPE_CONSUME);
 				sc->data[SC_FEARBREEZE]->val4 = 0;
 			}
+		}
+		if (sc->data[SC_EXEEDBREAK]) {
+			skill_id = sc->data[SC_EXEEDBREAK]->val3;
+			ATK_RATE(wd.damage,wd.damage2,sc->data[SC_EXEEDBREAK]->val2);
+			status_change_end(src,SC_EXEEDBREAK,INVALID_TIMER);
 		}
 		if (sc->data[SC_SPELLFIST]) {
 			if (--(sc->data[SC_SPELLFIST]->val2) >= 0) {

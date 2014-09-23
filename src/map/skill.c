@@ -6130,7 +6130,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case GC_VENOMIMPRESS:
 		case SC_INVISIBILITY:
 		case SC_DEADLYINFECT:
-		case LG_EXEEDBREAK:
 		case LG_PRESTIGE:
 		case SR_CRESCENTELBOW:
 		case SR_LIGHTNINGWALK:
@@ -6142,7 +6141,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		case RK_GIANTGROWTH:
 		case RK_VITALITYACTIVATION:
 		case RK_ABUNDANCE:
-		case RK_CRUSHSTRIKE:
 		case ALL_ODINS_POWER:
 		case RL_E_CHAIN:
 		case RL_P_ALTER:
@@ -8513,6 +8511,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				clif_millenniumshield(bl,shieldnumber);
 				clif_skill_nodamage(src,bl,skill_id,1,1);
 			}
+			break;
+
+		case RK_CRUSHSTRIKE:
+		case LG_EXEEDBREAK:
+			clif_skill_nodamage(src,bl,skill_id,skill_lv,
+				sc_start4(src,bl,type,100,skill_lv,0,skill_id,0,skill_get_time(skill_id,skill_lv)));
 			break;
 
 		case RK_FIGHTINGSPIRIT:
