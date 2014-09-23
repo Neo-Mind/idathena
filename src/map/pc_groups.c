@@ -39,7 +39,7 @@ static DBMap* pc_group_db; // id -> GroupSettings
 static DBMap* pc_groupname_db; // name -> GroupSettings
 
 /**
- * @retval NULL if not found
+ * @return NULL if not found
  * @private
  */
 static inline GroupSettings* id2group(int group_id)
@@ -48,7 +48,7 @@ static inline GroupSettings* id2group(int group_id)
 }
 
 /**
- * @retval NULL if not found
+ * @return NULL if not found
  * @private
  */
 static inline GroupSettings* name2group(const char* group_name)

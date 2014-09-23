@@ -2238,8 +2238,8 @@ static void status_get_matk_sub(struct block_list *bl, int flag, unsigned short 
  *  1 - Get MATK w/o SC bonuses
  *  2 - Get modified MATK
  *  3 - Get MATK w/o eATK & SC bonuses
- * @retval 0 failure
- * @retval MATK success
+ * @return 0 failure
+ * @return MATK success
  *
  * Shouldn't change _any_ value! [Panikon]
  */
@@ -6789,9 +6789,12 @@ void status_change_init(struct block_list *bl)
 	memset(sc,0,sizeof (struct status_change));
 }
 
-//Applies SC defense to a given status change.
-//Returns the adjusted duration based on flag values.
-//the flag values are the same as in status_change_start.
+/**
+ * Applies SC defense to a given status change.
+ *
+ * @see status_change_start for the expected parameters.
+ * @return the adjusted duration based on flag values.
+ */
 int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_type type, int rate, int tick, int flag)
 {
 	//Resistance rate: 10000 = 100%
@@ -7061,8 +7064,8 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 	if (tick_def == -1)
 		tick_def = sc_def;
 
-	//Natural resistance
-	if (!(flag&8)) {
+	//Rate reduction
+	if (!(flag&SCFLAG_FIXEDRATE)) {
 		rate -= rate * sc_def / 10000;
 		rate -= sc_def2;
 
@@ -7096,8 +7099,8 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 	if (tick < 1)
 		return 1;
 
-	//Rate reduction
-	if (flag&2)
+	//Tick reduction
+	if (flag&SCFLAG_FIXEDTICK)
 		return tick;
 
 	tick -= tick * tick_def / 10000;
@@ -7186,18 +7189,23 @@ void status_display_remove(struct map_session_data *sd, enum sc_type type) {
 	}
 }
 
-/*==========================================
+/**
  * Starts a status change.
- * 'type' = type, 'val1~4' depend on the type.
- * 'rate' = base success rate. 10000 = 100%
- * 'tick' is base duration
- * 'flag':
- *  &1: Cannot be avoided (it has to start)
- *  &2: Tick should not be reduced (by vit, luk, lv, etc)
- *  &4: sc_data loaded, no value has to be altered.
- *  &8: Rate should not be reduced
- * &16: Don't send it's status icon
- *------------------------------------------*/
+ *
+ * @param src  Status change source bl.
+ * @param bl   Status change target bl.
+ * @param type Status change type.
+ * @param rate Base success rate. 1 means 0.01%, 10000 means 100%.
+ * @param val1 Additional value (meaning depends on type).
+ * @param val2 Additional value (meaning depends on type).
+ * @param val3 Additional value (meaning depends on type).
+ * @param val4 Additional value (meaning depends on type).
+ * @param tick Base duration (milliseconds).
+ * @param flag Special flags (@see enum scstart_flag).
+ *
+ * @return 0 if no status change happened.
+ * @return 1 if the status change was successfully applied.
+ */
 int status_change_start(struct block_list* src,struct block_list* bl,enum sc_type type,int rate,int val1,int val2,int val3,int val4,int tick,int flag)
 {
 	struct map_session_data *sd = NULL;
@@ -7279,7 +7287,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	sd = BL_CAST(BL_PC,bl);
 
 	//Adjust tick according to status resistances
-	if( !(flag&(1|4)) ) {
+	if( !(flag&(SCFLAG_NOAVOID|SCFLAG_LOADED)) ) {
 		tick = status_get_sc_def(src,bl,type,rate,tick,flag);
 		if( !tick )
 			return 0;
@@ -7306,7 +7314,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			if(sc->data[SC_POWER_OF_GAIA])
 				return 0;
 		case SC_FREEZE:
-			if(undead_flag && !(flag&1))
+			if(undead_flag && !(flag&SCFLAG_NOAVOID))
 				return 0; //Undead are immune to Freeze/Stone
 		case SC_DEEPSLEEP:
 		case SC_SLEEP:
@@ -7414,7 +7422,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 		//Strip skills, need to divest something or it fails.
 		case SC_STRIPWEAPON:
-			if(sd && !(flag&4)) { //apply sc anyway if loading saved sc_data
+			if(sd && !(flag&SCFLAG_LOADED)) { //apply sc anyway if loading saved sc_data
 				short i;
 
 				opt_flag = 0; //Reuse to check success condition.
@@ -7435,7 +7443,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_STRIPSHIELD:
 			if(val2 == 1)
 				val2 = 0; //GX effect. Do not take shield off..
-			else if(sd && !(flag&4)) {
+			else if(sd && !(flag&SCFLAG_LOADED)) {
 				short i;
 
 				if(sd->bonus.unstripable_equip&EQP_SHIELD)
@@ -7449,7 +7457,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				return 1; //Minimal duration: Only strip without causing the SC
 			break;
 		case SC_STRIPARMOR:
-			if(sd && !(flag&4)) {
+			if(sd && !(flag&SCFLAG_LOADED)) {
 				short i;
 
 				if(sd->bonus.unstripable_equip&EQP_ARMOR)
@@ -7463,7 +7471,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				return 1; //Minimal duration: Only strip without causing the SC
 			break;
 		case SC_STRIPHELM:
-			if(sd && !(flag&4)) {
+			if(sd && !(flag&SCFLAG_LOADED)) {
 				short i;
 
 				if(sd->bonus.unstripable_equip&EQP_HELM)
@@ -7616,7 +7624,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	}
 
 	//Check for Boss resistances
-	if(status->mode&MD_BOSS && !(flag&1)) {
+	if(status->mode&MD_BOSS && !(flag&SCFLAG_NOAVOID)) {
 		 if(type >= SC_COMMON_MIN && type <= SC_COMMON_MAX)
 			 return 0;
 		 switch(type) {
@@ -7663,7 +7671,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 	//Check for mvp resistance
 	//ATM only those who OS
-	if( (status->mode&MD_MVP) && !(flag&1) ) {
+	if( (status->mode&MD_MVP) && !(flag&SCFLAG_NOAVOID) ) {
 		switch( type ) {
 			case SC_COMA:
 			//Continue list
@@ -8061,7 +8069,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 	vd = status_get_viewdata(bl);
 	calc_flag = StatusChangeFlagTable[type];
-	if( !(flag&4) ) { //&4 - Do not parse val settings when loading SCs
+	if( !(flag&SCFLAG_LOADED) ) { //Do not parse val settings when loading SCs
 		switch( type ) {
 			case SC_DECREASEAGI:
 			case SC_INCREASEAGI:
@@ -8073,7 +8081,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_ENDURE:
 				val2 = 7; //Hit-count [Celest]
-				if( !(flag&1) && (bl->type&(BL_PC|BL_MER)) && !map_flag_gvg(bl->m) && !map[bl->m].flag.battleground && !val4 ) {
+				if( !(flag&SCFLAG_NOAVOID) && (bl->type&(BL_PC|BL_MER)) && !map_flag_gvg(bl->m) && !map[bl->m].flag.battleground && !val4 ) {
 					struct map_session_data *tsd;
 
 					if( sd ) {
@@ -8081,10 +8089,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 						for( i = 0; i < MAX_DEVOTION; i++ ) {
 							if( sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])) )
-								status_change_start(src,&tsd->bl,type,10000,val1,val2,val3,val4,tick,1|16);
+								status_change_start(src,&tsd->bl,type,10000,val1,val2,val3,val4,tick,SCFLAG_NOAVOID|SCFLAG_NOICON);
 						}
 					} else if( bl->type == BL_MER && ((TBL_MER*)bl)->devotion_flag && (tsd = ((TBL_MER*)bl)->master) )
-						status_change_start(src,&tsd->bl,type,10000,val1,val2,val3,val4,tick,1);
+						status_change_start(src,&tsd->bl,type,10000,val1,val2,val3,val4,tick,SCFLAG_NOAVOID);
 				} //val4 signals infinite endure (if val4 == 2 it is infinite endure from Berserk)
 				if( val4 )
 					tick = -1;
@@ -8166,7 +8174,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_REFLECTSHIELD:
 				val2 = 10 + val1 * 3; //% Dmg reflected
 				//val4 used to mark if reflect shield is an inheritance bonus from Devotion
-				if( !(flag&1) && (bl->type&(BL_PC|BL_MER)) ) {
+				if( !(flag&SCFLAG_NOAVOID) && (bl->type&(BL_PC|BL_MER)) ) {
 					struct map_session_data *tsd;
 
 					if( sd ) {
@@ -8174,10 +8182,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 						for( i = 0; i < MAX_DEVOTION; i++ ) {
 							if( sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])) )
-								status_change_start(src,&tsd->bl,type,10000,val1,val2,0,1,tick,1|16);
+								status_change_start(src,&tsd->bl,type,10000,val1,val2,0,1,tick,SCFLAG_NOAVOID|SCFLAG_NOICON);
 						}
 					} else if( bl->type == BL_MER && ((TBL_MER*)bl)->devotion_flag && (tsd = ((TBL_MER*)bl)->master) )
-						status_change_start(src,&tsd->bl,type,10000,val1,val2,0,1,tick,1);
+						status_change_start(src,&tsd->bl,type,10000,val1,val2,0,1,tick,SCFLAG_NOAVOID);
 				}
 				break;
 			case SC_STRIPWEAPON:
@@ -8418,7 +8426,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick = -1;
 				break;
 			case SC_AUTOGUARD:
-				if( !(flag&1) ) {
+				if( !(flag&SCFLAG_NOAVOID) ) {
 					struct map_session_data *tsd;
 					int i;
 
@@ -8432,15 +8440,15 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 						if( sd ) {
 							for( i = 0; i < MAX_DEVOTION; i++ ) {
 								if( sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])) )
-									status_change_start(src,&tsd->bl,type,10000,val1,val2,0,0,tick,1|16);
+									status_change_start(src,&tsd->bl,type,10000,val1,val2,0,0,tick,SCFLAG_NOAVOID|SCFLAG_NOICON);
 							}
 						} else if( bl->type == BL_MER && ((TBL_MER*)bl)->devotion_flag && (tsd = ((TBL_MER*)bl)->master) )
-							status_change_start(src,&tsd->bl,type,10000,val1,val2,0,0,tick,1);
+							status_change_start(src,&tsd->bl,type,10000,val1,val2,0,0,tick,SCFLAG_NOAVOID);
 					}
 				}
 				break;
 			case SC_DEFENDER:
-				if( !(flag&1) ) {
+				if( !(flag&SCFLAG_NOAVOID) ) {
 					val2 = 5 + 15 * val1; //Damage reduction
 					val3 = 0; //Unused, previously speed adjustment
 					val4 = 250 - 50 * val1; //Aspd adjustment
@@ -8451,7 +8459,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 						for( i = 0; i < MAX_DEVOTION; i++ ) { //See if there are devoted characters, and pass the status to them [Skotlex]
 							if( sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])) )
-								status_change_start(src,&tsd->bl,type,10000,val1,val2,val3,val4,tick,1);
+								status_change_start(src,&tsd->bl,type,10000,val1,val2,val3,val4,tick,SCFLAG_NOAVOID);
 						}
 					}
 				}
@@ -8566,7 +8574,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 							enum sc_type type2 = types[i];
 
 							if( d_sc->data[type2] )
-								status_change_start(d_bl,bl,type2,10000,d_sc->data[type2]->val1,0,0,(type2 == SC_REFLECTSHIELD ? 1 : 0),skill_get_time(status_sc2skill(type2),d_sc->data[type2]->val1),1|16);
+								status_change_start(d_bl,bl,type2,10000,d_sc->data[type2]->val1,0,0,(type2 == SC_REFLECTSHIELD ? 1 : 0),skill_get_time(status_sc2skill(type2),d_sc->data[type2]->val1),SCFLAG_NOAVOID|SCFLAG_NOICON);
 							i--;
 						}
 						if( sc->data[SC_DEFENDER] )
@@ -8973,7 +8981,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = tick / tick_time;
 				break;
 			case SC_PYREXIA:
-				status_change_start(src,bl,SC_BLIND,10000,val1,0,0,0,30000,11); //Blind status that last for 30 seconds
+				status_change_start(src,bl,SC_BLIND,10000,val1,0,0,0,30000,SCFLAG_NOAVOID|SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE); //Blind status that last for 30 seconds
 				tick_time = 3000; //[GodLesZ] tick time
 				val4 = tick / tick_time;
 				break;
@@ -9659,7 +9667,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		}
 	}
 
-	/* Values that must be set regardless of flag&4 e.g. val_flag */ 
+	/* Values that must be set regardless of SCFLAG_LOADED e.g. val_flag */ 
 	switch (type) {
 		case SC_EXPBOOST:
 		case SC_JEXPBOOST:
@@ -10023,7 +10031,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		calc_flag &= ~SCB_DYE;
 	}
 
-	if(!(flag&16) && !(flag&4 && StatusDisplayType[type]))
+	if(!(flag&SCFLAG_NOICON) && !(flag&SCFLAG_LOADED && StatusDisplayType[type]))
 		clif_status_change(bl,StatusIconChangeTable[type],1,tick,(val_flag&1) ? val1 : 1,(val_flag&2) ? val2 : 0,(val_flag&4) ? val3 : 0);
 
 	//Used as temporary storage for scs with interval ticks, so that the actual duration is sent to the client first.
@@ -12349,7 +12357,7 @@ int status_change_spread(struct block_list *src, struct block_list *bl) {
 			data.val2 = sc->data[i]->val2;
 			data.val3 = sc->data[i]->val3;
 			data.val4 = sc->data[i]->val4;
-			status_change_start(src,bl,(sc_type)i,10000,data.val1,data.val2,data.val3,data.val4,data.tick,1|2|8);
+			status_change_start(src,bl,(sc_type)i,10000,data.val1,data.val2,data.val3,data.val4,data.tick,SCFLAG_NOAVOID|SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE);
 			flag = 1;
 		}
 	}

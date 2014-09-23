@@ -419,7 +419,8 @@ bool mob_ksprotected(struct block_list *src, struct block_list *target)
 		return true;
 	} while(0);
 
-	status_change_start(src, target, SC_KSPROTECTED, 10000, sd->bl.id, sd->state.noks, sd->status.party_id, sd->status.guild_id, battle_config.ksprotection, 0);
+	status_change_start(src, target, SC_KSPROTECTED, 10000, sd->bl.id, sd->state.noks,
+		sd->status.party_id, sd->status.guild_id, battle_config.ksprotection, SCFLAG_NONE);
 
 	return false;
 }
@@ -571,7 +572,7 @@ int mob_once_spawn_area(struct map_session_data* sd, int16 m, int16 x0, int16 y0
 /**
  * Sets a guardian's guild data and liberates castle if couldn't retrieve guild data
  * @param data (int)guild_id
- * @retval Always 0
+ * @return Always 0
  * @author Skotlex
  */
 static int mob_spawn_guardian_sub(int tid, unsigned int tick, int id, intptr_t data)

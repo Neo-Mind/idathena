@@ -168,8 +168,8 @@ void trade_tradeack(struct map_session_data *sd, int type)
  * Checks if an impossible trade will occur
  *  Normal clients refuse to have 2 items of the same type (except equipment) in the same trade window
  *  Normal clients authorize only no equipped items and only items from inventory
- * @retval 0 The trade can continue
- * @retval 1 Hack attempt
+ * @return 0 The trade can continue
+ * @return 1 Hack attempt
  */
 int impossible_trade_check(struct map_session_data *sd)
 {

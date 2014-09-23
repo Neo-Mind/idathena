@@ -9972,11 +9972,7 @@ BUILDIN_FUNC(hideonnpc)
  * sc_start  <effect_id>,<duration>,<val1>{,<rate>,<flag>,{<unit_id>}};
  * sc_start2 <effect_id>,<duration>,<val1>,<val2>{,<rate,<flag>,{<unit_id>}};
  * sc_start4 <effect_id>,<duration>,<val1>,<val2>,<val3>,<val4>{,<rate,<flag>,{<unit_id>}};
- * <flag>
- * 	&1: Cannot be avoided (it has to start)
- * 	&2: Tick should not be reduced (by vit, luk, lv, etc)
- * 	&4: sc_data loaded, no value has to be altered.
- * 	&8: rate should not be reduced
+ * <flag>: @see enum scstart_flag
  */
 BUILDIN_FUNC(sc_start)
 {
@@ -9998,28 +9994,27 @@ BUILDIN_FUNC(sc_start)
 	tick = script_getnum(st,3);
 	val1 = script_getnum(st,4);
 
-	//If from NPC we make default flag 1 to be unavoidable
+	//If from NPC we make default flag SCFLAG_NOAVOID to be unavoidable
 	if(nd && nd->bl.id == fake_nd->bl.id)
-		flag = script_hasdata(st,5+start_type)?script_getnum(st,5+start_type):2;
+		flag = script_hasdata(st,5 + start_type) ? script_getnum(st,5 + start_type) : SCFLAG_FIXEDTICK;
 	else
-		flag = script_hasdata(st,5+start_type)?script_getnum(st,5+start_type):1;
+		flag = script_hasdata(st,5 + start_type) ? script_getnum(st,5 + start_type) : SCFLAG_NOAVOID;
 
-	rate = script_hasdata(st,4+start_type)?min(script_getnum(st,4+start_type),10000):10000;
+	rate = script_hasdata(st,4 + start_type) ? min(script_getnum(st,4 + start_type),10000) : 10000;
 
-	if(script_hasdata(st,(6+start_type)))
-		bl = map_id2bl(script_getnum(st,(6+start_type)));
+	if(script_hasdata(st,(6 + start_type)))
+		bl = map_id2bl(script_getnum(st,(6 + start_type)));
 	else
 		bl = map_id2bl(st->rid);
 
+	//When there isn't a duration specified, try to get it from the skill_db
 	if(tick == 0 && val1 > 0 && type > SC_NONE && type < SC_MAX && status_sc2skill(type) != 0)
-	{ // When there isn't a duration specified, try to get it from the skill_db
 		tick = skill_get_time(status_sc2skill(type), val1);
-	}
 
 	if(potion_flag == 1 && potion_target) { //skill.c set the flags before running the script, this is a potion-pitched effect.
 		bl = map_id2bl(potion_target);
-		tick /= 2; // Thrown potions only last half.
-		val4 = 1; // Mark that this was a thrown sc_effect
+		tick /= 2; //Thrown potions only last half.
+		val4 = 1; //Mark that this was a thrown sc_effect
 	}
 
 	if(!bl)
@@ -10112,7 +10107,7 @@ BUILDIN_FUNC(getscrate)
 		bl = map_id2bl(st->rid);
 
 	if( bl )
-		rate = status_get_sc_def(NULL,bl,(sc_type)type,10000,10000,0);
+		rate = status_get_sc_def(NULL,bl,(sc_type)type,10000,10000,SCFLAG_NONE);
 
 	script_pushint(st,rate);
 	return SCRIPT_CMD_SUCCESS;
@@ -16212,7 +16207,7 @@ BUILDIN_FUNC(mercenary_sc_start)
 	tick = script_getnum(st,3);
 	val1 = script_getnum(st,4);
 
-	status_change_start(NULL,&sd->md->bl,type,10000,val1,0,0,0,tick,2);
+	status_change_start(NULL,&sd->md->bl,type,10000,val1,0,0,0,tick,SCFLAG_FIXEDTICK);
 	return SCRIPT_CMD_SUCCESS;
 }
 

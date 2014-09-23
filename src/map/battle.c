@@ -910,7 +910,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 					else
 						sce->val3 = 1000; //Next shield
 				}
-				status_change_start(src,bl,SC_STUN,10000,0,0,0,0,1000,2);
+				status_change_start(src,bl,SC_STUN,10000,0,0,0,0,1000,SCFLAG_FIXEDTICK);
 			}
 			return 0;
 		}

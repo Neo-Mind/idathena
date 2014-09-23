@@ -3915,8 +3915,7 @@ ACMD_FUNC(mapinfo)
 		else if (map[m_id].save.x == -1 || map[m_id].save.y == -1 ) {
 			sprintf(atcmd_output, msg_txt(1069), mapindex_id2name(map[m_id].save.map)); // No Save, Save Point: %s,Random
 			clif_displaymessage(fd, atcmd_output);
-		}
-		else {
+		} else {
 			sprintf(atcmd_output, msg_txt(1070), // No Save, Save Point: %s,%d,%d
 				mapindex_id2name(map[m_id].save.map),map[m_id].save.x,map[m_id].save.y);
 			clif_displaymessage(fd, atcmd_output);
@@ -5657,7 +5656,8 @@ ACMD_FUNC(autotrade)
 	if( battle_config.at_timeout ) {
 		int timeout = atoi(message);
 
-		status_change_start(NULL, &sd->bl, SC_AUTOTRADE, 10000, 0, 0, 0, 0, ((timeout > 0) ? min(timeout,battle_config.at_timeout) : battle_config.at_timeout) * 60000, 0);
+		status_change_start(NULL, &sd->bl, SC_AUTOTRADE, 10000, 0, 0, 0, 0,
+			((timeout > 0) ? min(timeout,battle_config.at_timeout) : battle_config.at_timeout) * 60000, SCFLAG_NONE);
 	}
 
 	channel_pcquit(sd, 0xF); // Leave all channels.

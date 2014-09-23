@@ -671,8 +671,8 @@ void unit_run_hit(struct block_list *bl, struct status_change *sc, struct map_se
 /**
  * Makes character run, used for SC_RUN and SC_WUGDASH
  * @param sd Required only when using SC_WUGDASH
- * @retval true Finished running
- * @retval false Hit an object/Couldn't run
+ * @return true Finished running
+ * @return false Hit an object/Couldn't run
  */
 bool unit_run(struct block_list *bl, struct map_session_data *sd, enum sc_type type) {
 	struct status_change *sc;

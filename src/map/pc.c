@@ -4176,7 +4176,7 @@ int pc_getcash( struct map_session_data *sd, int cash, int points, e_log_pick_ty
  * @param sd      Character to search on.
  * @param nameid  The item ID to search.
  * @return the inventory index of the first instance of the requested item.
- * @retval INDEX_NOT_FOUND if the item wasn't found.
+ * @return INDEX_NOT_FOUND if the item wasn't found.
  */
 short pc_search_inventory(struct map_session_data *sd, unsigned short nameid)
 {
@@ -6236,7 +6236,7 @@ static void pc_calcexp(struct map_session_data *sd, unsigned int *base_exp, unsi
  * Gives a determined EXP amount to sd and calculates remaining EXP for next level
  * @param src if is NULL no bonuses are taken into account
  * @param is_quest Used to let client know that the EXP was from a quest (clif->displayexp) PACKETVER >= 20091027
- * @retval true success
+ * @return true success
  */
 bool pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned int base_exp, unsigned int job_exp, bool quest)
 {
@@ -6491,8 +6491,8 @@ int pc_maxparameterincrease(struct map_session_data* sd, int type)
  * @param sd       The target character.
  * @param type     The stat to change (see enum _sp)
  * @param increase The stat increase (strictly positive) amount.
- * @retval true  if the stat was increased by any amount.
- * @retval false if there were no changes.
+ * @return true  if the stat was increased by any amount.
+ * @return false if there were no changes.
  */
 bool pc_statusup(struct map_session_data* sd, int type, int increase)
 {
@@ -6551,7 +6551,7 @@ bool pc_statusup(struct map_session_data* sd, int type, int increase)
  * @param type The stat to change (see enum _sp)
  * @param val  The stat increase (or decrease) amount.
  * @return the stat increase amount.
- * @retval 0 if no changes were made.
+ * @return 0 if no changes were made.
  */
 int pc_statusup2(struct map_session_data* sd, int type, int val)
 {
@@ -8396,7 +8396,7 @@ void pc_setmadogear(struct map_session_data *sd, int flag)
  *  "src MAY be null to indicate we shouldn't check it, this is a ground-based skill attack."
  *  Even ground-based attacks should be blocked by these statuses
  * Called from unit_attack and unit_attack_timer_sub
- * @retval true Can attack
+ * @return true Can attack
  */
 bool pc_can_attack(struct map_session_data *sd, int target_id)
 {
