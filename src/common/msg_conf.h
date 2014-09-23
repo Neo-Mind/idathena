@@ -24,9 +24,9 @@ enum lang_types {
 #define LANG_ENABLE 0x00
 
 //read msg in table
-const char* _msg_txt(int msg_number,int size, char ** msg_table);
+const char* _msg_txt(int msg_number, int size, char ** msg_table);
 //store msg from txtfile into msg_table
-int _msg_config_read(const char* cfgName,int size, char ** msg_table);
+int _msg_config_read(const char* cfgName, uint16 size, char ** msg_table);
 //clear msg_table
 void _do_final_msg(int size, char ** msg_table);
 //Lookups

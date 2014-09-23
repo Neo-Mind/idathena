@@ -10264,7 +10264,7 @@ BUILDIN_FUNC(morphembryo)
 		int m_class = hom_class2mapid(sd->hd->homunculus.class_);
 
 		if( m_class != HT_INVALID && m_class&HOM_EVO && sd->hd->homunculus.level >= 99 ) {
-			char i;
+			char i = 0;
 
 			memset(&item_tmp, 0, sizeof(item_tmp));
 			item_tmp.nameid = ITEMID_STRANGE_EMBRYO;
@@ -12264,11 +12264,13 @@ BUILDIN_FUNC(setiteminfo)
 	value	= script_getnum(st,4);
 	i_data = itemdb_exists(item_id);
 
-	if (i_data && n >= 0 && n <= 14) {
-		int *item_arr = (int*)&i_data->value_buy;
+	if (i_data) {
+		if (n >= 0 && n <= 14) {
+			int *item_arr = (int*)&i_data->value_buy;
 
-		item_arr[n] = value;
-		script_pushint(st,value);
+			item_arr[n] = value;
+			script_pushint(st,value);
+		}
 	} else
 		script_pushint(st,-1);
 	return SCRIPT_CMD_SUCCESS;

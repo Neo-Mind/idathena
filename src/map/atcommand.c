@@ -683,7 +683,7 @@ ACMD_FUNC(who)
 					break;
 				}
 			}
-			clif_displaymessage(fd, StringBuf_Value(&buf));
+			clif_colormes(sd, color_table[COLOR_DEFAULT], StringBuf_Value(&buf));
 			StringBuf_Clear(&buf);
 			count++;
 		}

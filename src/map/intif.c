@@ -2118,10 +2118,8 @@ int intif_parse_Mail_inboxreceived(int fd)
 
 	sd = map_charid2sd(RFIFOL(fd,4));
 
-	if (sd == NULL) {
-		ShowError("intif_parse_Mail_inboxreceived: char not found %d\n", RFIFOL(fd,4));
+	if (sd == NULL) //User is not online anymore and its ok (quest log also does this)
 		return 0;
-	}
 
 	if (RFIFOW(fd,2) - 9 != sizeof(struct mail_data)) {
 		ShowError("intif_parse_Mail_inboxreceived: data size error %d %d\n", RFIFOW(fd,2) - 9, sizeof(struct mail_data));

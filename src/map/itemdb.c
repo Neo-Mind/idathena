@@ -578,7 +578,7 @@ static void itemdb_read_itemgroup_sub(const char* filename)
 	while( fgets(line, sizeof(line), fp) ) {
 		int group_id = -1;
 		unsigned int j, prob = 1;
-		uint8 rand_group = 1;
+		int8 rand_group = 1;
 		char *str[9], *p;
 		struct s_item_group_random *random = NULL;
 		struct s_item_group_db *group = NULL;
@@ -635,7 +635,7 @@ static void itemdb_read_itemgroup_sub(const char* filename)
 			ShowWarning("itemdb_read_itemgroup: Invalid sub group '%d' for group '%s' in %s:%d\n", rand_group, str[0], filename, ln);
 			continue;
 		}
-		if( rand_group != 0 && prob < 1 ) {
+		if( rand_group != 0 && !prob ) {
 			ShowWarning("itemdb_read_itemgroup: Random item must has probability. Group '%s' in %s:%d\n", str[0], filename, ln);
 			continue;
 		}

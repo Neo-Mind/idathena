@@ -2373,7 +2373,7 @@ void loginif_on_ready(void)
 	send_accounts_tologin(INVALID_TIMER, gettick(), 0, 0);
 
 	// If no map-server already connected, display a message...
-	ARR_FIND(0, ARRAYLENGTH(server), i, server[i].fd > 0 && server[i].map[0]);
+	ARR_FIND(0, ARRAYLENGTH(server), i, server[i].fd > 0 && server[i].map);
 	if( i == ARRAYLENGTH(server) )
 		ShowStatus("Awaiting maps from map-server.\n");
 }
@@ -4340,7 +4340,7 @@ int parse_char(int fd)
 					int slot = RFIFOB(fd,2);
 
 					RFIFOSKIP(fd,3);
-					ARR_FIND(0, ARRAYLENGTH(server), server_id, server[server_id].fd > 0 && server[server_id].map[0]);
+					ARR_FIND(0, ARRAYLENGTH(server), server_id, server[server_id].fd > 0 && server[server_id].map);
 					/* Not available, tell it to wait (client wont close; char select will respawn).
 					 * Magic response found by Ind thanks to Yommy <3 */
 					if( server_id == ARRAYLENGTH(server) ) {
@@ -4413,7 +4413,7 @@ int parse_char(int fd)
 						unsigned short j;
 
 						//First check that there's actually a map server online.
-						ARR_FIND( 0,ARRAYLENGTH(server),j,server[j].fd >= 0 && server[j].map[0] );
+						ARR_FIND(0,ARRAYLENGTH(server),j,server[j].fd >= 0 && server[j].map);
 						if( j == ARRAYLENGTH(server) ) {
 							ShowInfo("Connection Closed. No map servers available.\n");
 							WFIFOHEAD(fd,3);
@@ -4563,7 +4563,7 @@ int parse_char(int fd)
 
 					ShowInfo(CL_RED"Request Char Deletion: "CL_GREEN"%d (%d)"CL_RESET"\n",sd->account_id,cid);
 					memcpy(email,RFIFOP(fd,6),40);
-					RFIFOSKIP(fd,( cmd == 0x68) ? 46 : 56);
+					RFIFOSKIP(fd,(cmd == 0x68) ? 46 : 56);
 
 					//Check if e-mail is correct
 					if( (strcmpi(email,sd->email) && //Email does not matches and

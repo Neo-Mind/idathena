@@ -1179,7 +1179,7 @@ int mmo_auth(struct login_session_data* sd, bool isServer) {
 
 	}
 
-	//Client Version check
+	// Client Version check
 	if( login_config.check_client_version && sd->version != login_config.client_version_to_connect )
 		return 5;
 
@@ -1187,20 +1187,25 @@ int mmo_auth(struct login_session_data* sd, bool isServer) {
 
 	// Account creation with _M/_F
 	if( login_config.new_account_flag ) {
-		if( len > 2 && strnlen(sd->passwd, NAME_LENGTH) > 0 && // valid user and password lengths
-			sd->passwdenc == 0 && // unencoded password
+		if( len > 2 && strnlen(sd->passwd, NAME_LENGTH) > 0 && // Valid user and password lengths
+			sd->passwdenc == 0 && // Unencoded password
 			sd->userid[len-2] == '_' && memchr("FfMm", sd->userid[len-1], 4) ) // _M/_F suffix
 		{
 			int result;
 
-			// remove the _M/_F suffix
+			// Remove the _M/_F suffix
 			len -= 2;
 			sd->userid[len] = '\0';
 
 			result = mmo_auth_new(sd->userid, sd->passwd, TOUPPER(sd->userid[len+1]), ip);
 			if( result != -1 )
-				return result;// Failed to make account. [Skotlex].
+				return result; // Failed to make account. [Skotlex].
 		}
+	}
+
+	if( len <= 0 ) { // A empty password is fine, a userid is not.
+		ShowNotice("Empty userid (received pass: '%s', ip: %s)\n", sd->passwd, ip);
+		return 0; // 0 = Unregistered ID
 	}
 
 	if( !accounts->load_str(accounts, &acc, sd->userid) ) {

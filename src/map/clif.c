@@ -3179,8 +3179,8 @@ void clif_changelook(struct block_list *bl,int type,int val)
 	sd = BL_CAST(BL_PC, bl);
 	sc = status_get_sc(bl);
 	vd = status_get_viewdata(bl);
-	//nullpo_ret(vd);
-	if(vd) //temp hack to let Warp Portal change appearance
+
+	if(vd) { //Temp hack to let Warp Portal change appearance
 		switch(type) {
 			case LOOK_WEAPON:
 				if(sd) {
@@ -3199,13 +3199,6 @@ void clif_changelook(struct block_list *bl,int type,int val)
 			case LOOK_BASE:
 				if(!sd)
 					break;
-
-				//We shouldn't update LOOK_BASE if the player is disguised
-				//if we do so the client will think that the player class
-				//is really a mob and issues like 7725 will happen in every
-				//SC_ that alters class_ in any way [Panikon]
-				if(sd->disguise)
-					return;
 
 				if(sd->sc.option&OPTION_COSTUME)
 					vd->weapon = vd->shield = 0;
@@ -3284,9 +3277,10 @@ void clif_changelook(struct block_list *bl,int type,int val)
 #endif
 			break;
 		}
+	}
 
 	//Prevent leaking the presence of GM-hidden objects
-	if(sc && (sc->option&OPTION_INVISIBLE))
+	if(sc && (sc->option&OPTION_INVISIBLE) && !disguised(bl))
 		target = SELF;
 
 #if PACKETVER < 4
@@ -3299,6 +3293,8 @@ void clif_changelook(struct block_list *bl,int type,int val)
 	WBUFW(buf,0) = 0x1d7;
 	WBUFL(buf,2) = bl->id;
 	if(type == LOOK_WEAPON || type == LOOK_SHIELD) {
+		nullpo_retv(vd);
+
 		WBUFB(buf,6) = LOOK_WEAPON;
 		WBUFW(buf,7) = vd->weapon;
 		WBUFW(buf,9) = vd->shield;
@@ -3306,7 +3302,12 @@ void clif_changelook(struct block_list *bl,int type,int val)
 		WBUFB(buf,6) = type;
 		WBUFL(buf,7) = val;
 	}
-	clif_send(buf,packet_len(0x1d7),bl,target);
+	if(disguised(bl)) {
+		clif_send(buf,packet_len(0x1d7),bl,AREA_WOS);
+		WBUFL(buf,2) = -bl->id;
+		clif_send(buf,packet_len(0x1d7),bl,SELF);
+	} else
+		clif_send(buf,packet_len(0x1d7),bl,target);
 #endif
 }
 
@@ -5248,10 +5249,14 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,unsigned int
 	nullpo_ret(dst);
 
 	damage = (int)cap_value(in_damage,INT_MIN,INT_MAX);
-
 	type = clif_calc_delay(type,div,damage,ddelay);
-	sc = status_get_sc(dst);
-	if(sc && sc->count && sc->data[SC_HALLUCINATION] && damage)
+
+#if PACKETVER >= 20131223
+	if(type == 6)
+		type = 8; //bugreport:8263
+#endif
+
+	if((sc = status_get_sc(dst)) && sc->count && sc->data[SC_HALLUCINATION] && damage)
 		damage = damage * (sc->data[SC_HALLUCINATION]->val2) + rnd()%100;
 
 #if PACKETVER < 3
@@ -5923,9 +5928,9 @@ void clif_maptypeproperty2(struct block_list *bl, enum send_target t) {
 	unsigned char buf[8];
 	unsigned int NotifyProperty =
 		((map[bl->m].flag.pvp ? 1 : 0)<<0)| //PARTY - Show attack cursor on non-party members (PvP)
-		((map_flag_gvg(bl->m) ? 1 : 0)<<1)| //GUILD - Show attack cursor on non-guild members (GvG)
-		((map_flag_gvg2(bl->m) ? 1 : 0)<<2)| //SIEGE - Show emblem over characters heads when in GvG (WoE castle)
-		((map[bl->m].flag.nomineeffect || !map_flag_gvg2(bl->m) ? 0 : 1)<<3)| //USE_SIMPLE_EFFECT - Automatically enable /mineffect
+		(((map[bl->m].flag.battleground || map_flag_gvg(bl->m)) ? 1 : 0)<<1)| //GUILD - Show attack cursor on non-guild members (GvG)
+		(((map[bl->m].flag.battleground || map_flag_gvg2(bl->m)) ? 1 : 0)<<2)| //SIEGE - Show emblem over characters heads when in GvG (WoE castle)
+		(((map[bl->m].flag.nomineeffect || !map_flag_gvg2(bl->m)) ? 0 : 1)<<3)| //USE_SIMPLE_EFFECT - Automatically enable /mineffect
 		((map[bl->m].flag.nolockon ? 1 : 0)<<4)| //DISABLE_LOCKON - Unknown (By the name it might disable cursor lock-on)
 		((map[bl->m].flag.pvp ? 1 : 0)<<5)| //COUNT_PK - Show the PvP counter
 		((map[bl->m].flag.partylock ? 1 : 0)<<6)| //NO_PARTY_FORMATION - Prevents party creation/modification (Might be used for instance dungeons)
@@ -12447,6 +12452,18 @@ void clif_parse_PartyChangeLeader(int fd, struct map_session_data* sd)
 }
 
 
+void clif_PartyLeaderChanged(struct map_session_data *sd, int prev_leader_aid, int new_leader_aid)
+{
+	int fd = sd->fd;
+
+	WFIFOHEAD(fd,packet_len(0x7fc));
+	WFIFOW(fd,0) = 0x7fc;
+	WFIFOL(fd,2) = prev_leader_aid;
+	WFIFOL(fd,6) = new_leader_aid;
+	WFIFOSET(fd,packet_len(0x7fc));
+}
+
+
 /// Party Booking in KRO [Spiria]
 ///
 
@@ -18034,7 +18051,7 @@ void packetdb_readdb(void)
 	    6,  2, -1,  4,  4,  4,  4,  8,  8,268,  6,  8,  6, 54, 30, 54,
 #endif
 	    0, 15,  8,  6, -1,  8,  8, 32, -1,  5,  0,  0,  0,  0,  0,  0,
-	    0,  0,  0,  0,  0,  0, 14, -1, -1, -1,  8, 25,  0,  0, 26,  0,
+	    0,  0,  0,  0,  0,  0, 14, -1, -1, -1,  8, 25, 10,  0, 26,  0,
 	//#0x0800
 #if PACKETVER < 20091229
 	   -1, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 14, 20,
@@ -18465,7 +18482,7 @@ void packetdb_readdb(void)
  *
  *------------------------------------------*/
 void do_init_clif(void) {
-	const char* colors[COLOR_MAX] = { "0xFF0000", "0xFFFFFF", "0xFFFF00" };
+	const char* colors[COLOR_MAX] = { "0x00FF00", "0xFF0000", "0xFFFFFF", "0xFFFF00" };
 	int i;
 
 	//Setup Color Table (saves unnecessary load of strtoul on every call)

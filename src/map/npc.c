@@ -1876,23 +1876,24 @@ int npc_unload(struct npc_data* nd, bool single) {
 
 	npc_remove_map(nd);
 	map_deliddb(&nd->bl);
+
 	if( single )
 		strdb_remove(npcname_db, nd->exname);
 
-	if (nd->chat_id) // remove npc chatroom object and kick users
+	if( nd->chat_id ) //Remove npc chatroom object and kick users
 		chat_deletenpcchat(nd);
 
 #ifdef PCRE_SUPPORT
-	npc_chat_finalize(nd); // deallocate npc PCRE data structures
+	npc_chat_finalize(nd); //Deallocate npc PCRE data structures
 #endif
 
 	if( single && nd->path ) {
 		struct npc_path_data* npd = NULL;
-		if( nd->path && nd->path != npc_last_ref ) {
+
+		if( nd->path && nd->path != npc_last_ref )
 			npd = strdb_get(npc_path_db, nd->path);
-		}
-		
-		if( npd && --npd->references == 0 ) {
+
+		if( npd && --(npd->references) == 0 ) {
 			strdb_remove(npc_path_db, nd->path); /* Remove from db */
 			aFree(nd->path); /* Remove now that no other instances exist */
 		}
@@ -1914,6 +1915,7 @@ int npc_unload(struct npc_data* nd, bool single) {
 		iter = mapit_geteachpc();
 		for( bl = (struct block_list*)mapit_first(iter); mapit_exists(iter); bl = (struct block_list*)mapit_next(iter) ) {
 			struct map_session_data *sd = ((TBL_PC*)bl);
+
 			if( sd && sd->npc_timer_id != INVALID_TIMER ) {
 				const struct TimerData *td = get_timer(sd->npc_timer_id);
 
@@ -1928,21 +1930,21 @@ int npc_unload(struct npc_data* nd, bool single) {
 		}
 		mapit_free(iter);
 
-		if (nd->u.scr.timerid != INVALID_TIMER) {
-			const struct TimerData *td = NULL;
-			td = get_timer(nd->u.scr.timerid);
-			if (td && td->data)
+		if( nd->u.scr.timerid != INVALID_TIMER ) {
+			const struct TimerData *td = get_timer(nd->u.scr.timerid);
+
+			if( td && td->data )
 				ers_free(timer_event_ers, (void*)td->data);
 			delete_timer(nd->u.scr.timerid, npc_timerevent);
 		}
-		if (nd->u.scr.timer_event)
+		if( nd->u.scr.timer_event )
 			aFree(nd->u.scr.timer_event);
-		if (nd->src_id == 0) {
-			if(nd->u.scr.script) {
+		if( nd->src_id == 0 ) {
+			if( nd->u.scr.script ) {
 				script_free_code(nd->u.scr.script);
 				nd->u.scr.script = NULL;
 			}
-			if (nd->u.scr.label_list) {
+			if( nd->u.scr.label_list ) {
 				aFree(nd->u.scr.label_list);
 				nd->u.scr.label_list = NULL;
 				nd->u.scr.label_list_num = 0;

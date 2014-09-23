@@ -791,6 +791,7 @@ void clif_party_show_picker(struct map_session_data * sd, struct item * item_dat
 void clif_progressbar(struct map_session_data * sd, unsigned long color, unsigned int second);
 void clif_progressbar_abort(struct map_session_data * sd);
 
+void clif_PartyLeaderChanged(struct map_session_data *sd, int prev_leader_aid, int new_leader_aid);
 void clif_PartyBookingRegisterAck(struct map_session_data *sd, int flag);
 void clif_PartyBookingDeleteAck(struct map_session_data* sd, int flag);
 void clif_PartyBookingSearchAck(int fd, struct party_booking_ad_info** results, int count, bool more_result);
@@ -855,6 +856,7 @@ void clif_monster_hp_bar(struct mob_data* md, int fd);
 
 // Color Table
 enum clif_colors {
+	COLOR_DEFAULT,
 	COLOR_RED,
 	COLOR_WHITE,
 	COLOR_YELLOW,

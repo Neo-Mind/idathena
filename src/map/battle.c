@@ -232,10 +232,10 @@ int battle_delay_damage_sub(int tid, unsigned int tick, int id, intptr_t data) {
 
 		src = map_id2bl(dat->src_id);
 
-		if( src && target->m == src->m &&
+		if( src &&
 			(target->type != BL_PC || ((TBL_PC*)target)->invincible_timer == INVALID_TIMER) &&
-			check_distance_bl(src, target, dat->distance) ) //Check to see if you haven't teleported. [Skotlex]
-		{
+			(battle_config.damage_warped_out || (target->m == src->m && check_distance_bl(src, target, dat->distance))) )
+		{ //Check to see if you haven't teleported. [Skotlex]
 			map_freeblock_lock();
 			status_fix_damage(src, target, dat->damage, dat->delay);
 			if( dat->attack_type && !status_isdead(target) && dat->additional_effects )
@@ -244,9 +244,7 @@ int battle_delay_damage_sub(int tid, unsigned int tick, int id, intptr_t data) {
 				skill_counter_additional_effect(src,target,dat->skill_id,dat->skill_lv,dat->attack_type,tick);
 			map_freeblock_unlock();
 		} else if( !src && dat->skill_id == CR_REFLECTSHIELD ) {
-			/**
-			 * It was monster reflected damage, and the monster died, we pass the damage to the character as expected
-			 */
+			//It was monster reflected damage, and the monster died, we pass the damage to the character as expected
 			map_freeblock_lock();
 			status_fix_damage(target, target, dat->damage, dat->delay);
 			map_freeblock_unlock();
@@ -8219,6 +8217,8 @@ static const struct _battle_data {
 	{ "knockback_left",                     &battle_config.knockback_left,                  1,      0,      1,              },
 	{ "song_timer_reset",                   &battle_config.song_timer_reset,                0,      0,      1,              },
 	{ "cursed_circle_in_gvg",               &battle_config.cursed_circle_in_gvg,            1,      0,      1,              },
+	{ "snap_dodge",                         &battle_config.snap_dodge,                      0,      0,      1,              },
+	{ "damage_warped_out",                  &battle_config.damage_warped_out,               1,      0,      1,              },
 };
 #ifndef STATS_OPT_OUT
 /**

@@ -278,7 +278,7 @@ void log_zeny(struct map_session_data* sd, e_log_pick_type type, struct map_sess
 
 
 /// logs MVP monster rewards
-void log_mvpdrop(struct map_session_data* sd, int monster_id, int* log_mvp)
+void log_mvpdrop(struct map_session_data* sd, int monster_id, unsigned int* log_mvp)
 {
 	nullpo_retv(sd);
 

@@ -10,7 +10,7 @@
  * Return the message string of the specified number by [Yor]
  * (read in table msg_table, with specified lenght table in size)
  */
-const char* _msg_txt(int msg_number,int size, char ** msg_table)
+const char* _msg_txt(int msg_number, int size, char ** msg_table)
 {
     if (msg_number >= 0 && msg_number < size &&
 	    msg_table[msg_number] != NULL && msg_table[msg_number][0] != '\0')
@@ -23,7 +23,7 @@ const char* _msg_txt(int msg_number,int size, char ** msg_table)
 /*
  * Read txt file and store them into msg_table
  */
-int _msg_config_read(const char* cfgName,int size, char ** msg_table)
+int _msg_config_read(const char* cfgName, uint16 size, char ** msg_table)
 {
 	uint16 msg_number, msg_count = 0, line_num = 0;
 	char line[1024], w1[8], w2[512];

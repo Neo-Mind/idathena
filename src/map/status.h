@@ -1849,7 +1849,7 @@ struct status_data {
 	//defType is RENEWAL dependent and defined in src/map/config/data/const.h
 	defType def, mdef;
 
-	unsigned char
+	char
 		def_ele, ele_lv,
 		size,
 		race, //See enum e_race
