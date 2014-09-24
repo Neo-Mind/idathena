@@ -1239,7 +1239,7 @@ ACMD_FUNC(item)
 	itemlist = strtok(item_name, ":");
 	while (itemlist != NULL && j < 10) {
 		if ((item_data[j] = itemdb_searchname(itemlist)) == NULL &&
-		    (item_data[j] = itemdb_exists(atoi(itemlist))) == NULL){
+		    (item_data[j] = itemdb_exists(atoi(itemlist))) == NULL) {
 			clif_displaymessage(fd, msg_txt(19)); //Invalid item ID or name.
 			return -1;
 		}
@@ -2207,9 +2207,9 @@ ACMD_FUNC(produce)
 		clif_displaymessage(fd, msg_txt(170)); //This item is not an equipment.
 		return -1;
 	}
-	
+
 	item_id = item_data->nameid;
-	
+
 	if (itemdb_isequip2(item_data)) {
 		char flag = 0;
 
@@ -8579,8 +8579,8 @@ ACMD_FUNC(delitem)
 	while( amount && (idx = pc_search_inventory(sd, nameid)) != INDEX_NOT_FOUND ) {
 		int delamount = (amount < sd->status.inventory[idx].amount) ? amount : sd->status.inventory[idx].amount;
 
-		if( sd->inventory_data[idx]->type == IT_PETEGG && sd->status.inventory[idx].card[0] == CARD0_PET ) // Delete pet
-			intif_delete_petdata(MakeDWord(sd->status.inventory[idx].card[1], sd->status.inventory[idx].card[2]));
+		if( sd->inventory_data[idx]->type == IT_PETEGG && sd->status.inventory[idx].card[0] == CARD0_PET && CheckForCharServer() )
+			intif_delete_petdata(MakeDWord(sd->status.inventory[idx].card[1], sd->status.inventory[idx].card[2])); // Delete pet
 		pc_delitem(sd, idx, delamount, 0, 0, LOG_TYPE_COMMAND);
 
 		amount-= delamount;

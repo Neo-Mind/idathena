@@ -6778,8 +6778,8 @@ static void buildin_delitem_delete(struct map_session_data* sd, int idx, int* am
 	delamount = (amount[0] < itm->amount) ? amount[0] : itm->amount;
 
 	if( delete_items ) {
-		if( itemdb_type(itm->nameid) == IT_PETEGG && itm->card[0] == CARD0_PET ) //Delete associated pet
-			intif_delete_petdata(MakeDWord(itm->card[1],itm->card[2]));
+		if( itemdb_type(itm->nameid) == IT_PETEGG && itm->card[0] == CARD0_PET && CheckForCharServer() )
+			intif_delete_petdata(MakeDWord(itm->card[1],itm->card[2])); //Delete associated pet
 		switch( loc ) {
 			case 1:
 				pc_cart_delitem(sd,idx,delamount,0,LOG_TYPE_SCRIPT);
@@ -6814,10 +6814,8 @@ static bool buildin_delitem_search(struct map_session_data* sd, struct item* it,
 
 	//When searching for nameid only, prefer additionally
 	if( !exact_match ) {
-		//Non-refined items
-		it->refine = 0;
-		//Card-less items
-		memset(it->card, 0, sizeof(it->card));
+		it->refine = 0; //Non-refined items
+		memset(it->card, 0, sizeof(it->card)); //Card-less items
 	}
 
 	switch( loc ) {
@@ -6883,8 +6881,9 @@ static bool buildin_delitem_search(struct map_session_data* sd, struct item* it,
 				if( itemdb_type(itm->nameid) == IT_PETEGG && itm->card[0] == CARD0_PET && CheckForCharServer() )
 					continue;
 
-				if( exact_match )
-					if( itm->refine != it->refine || itm->identify != it->identify || itm->attribute != it->attribute || memcmp(itm->card, it->card, sizeof(itm->card)) )
+				if( exact_match &&
+					itm->refine != it->refine || itm->identify != it->identify || itm->attribute != it->attribute ||
+					memcmp(itm->card, it->card, sizeof(itm->card)) )
 						continue; //Not matching attributes
 
 				//Count/delete item

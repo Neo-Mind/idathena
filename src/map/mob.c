@@ -3820,13 +3820,11 @@ static bool mob_parse_dbrow(char** str)
 
 		//Calculate and store Max available drop chance of the MVP item
 		if (db->mvpitem[i].p) {
-			struct item_data *id;
+			struct item_data *id = itemdb_search(db->mvpitem[i].nameid);
 
-			id = itemdb_search(db->mvpitem[i].nameid);
-			if (id->maxchance == -1 || (id->maxchance < db->mvpitem[i].p / 10 + 1) ) {
-				//Item has bigger drop chance or sold in shops
+			//Item has bigger drop chance or sold in shops
+			if (id->maxchance == -1 || (id->maxchance < db->mvpitem[i].p / 10 + 1) )
 				id->maxchance = db->mvpitem[i].p / 10 + 1; //Reduce MVP drop info to not spoil common drop rate
-			}
 		}
 	}
 

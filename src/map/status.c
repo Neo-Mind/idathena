@@ -2629,10 +2629,9 @@ int status_calc_pet_(struct pet_data *pd, enum e_status_calc_opt opt)
 		pd->status.class_ = CLASS_NORMAL;
 		pd->status.speed = pd->petDB->speed;
 
-		if (battle_config.pet_attack_support || battle_config.pet_damage_support) {
-			//Attack support requires the pet to be able to attack
+		//Attack support requires the pet to be able to attack
+		if (battle_config.pet_attack_support || battle_config.pet_damage_support)
 			pd->status.mode |= MD_CANATTACK;
-		}
 	}
 
 	if (battle_config.pet_lv_rate && pd->master) {

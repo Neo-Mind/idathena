@@ -234,7 +234,7 @@ int battle_delay_damage_sub(int tid, unsigned int tick, int id, intptr_t data) {
 
 		if( src &&
 			(target->type != BL_PC || ((TBL_PC*)target)->invincible_timer == INVALID_TIMER) &&
-			(battle_config.damage_warped_out || (target->m == src->m && check_distance_bl(src, target, dat->distance))) )
+			(dat->skill_id == MO_EXTREMITYFIST || (target->m == src->m && check_distance_bl(src, target, dat->distance))) )
 		{ //Check to see if you haven't teleported. [Skotlex]
 			map_freeblock_lock();
 			status_fix_damage(src, target, dat->damage, dat->delay);
@@ -1571,7 +1571,7 @@ int64 battle_addmastery(struct map_session_data *sd, struct block_list *target, 
 }
 
 #ifdef RENEWAL
-static int battle_calc_sizefix(int64 damage, struct map_session_data *sd, unsigned char t_size, unsigned char weapon_type, short flag)
+static int battle_calc_sizefix(int64 damage, struct map_session_data *sd, short t_size, unsigned char weapon_type, short flag)
 {
 	if (sd) {
 		//SizeFix only for players
@@ -8233,7 +8233,6 @@ static const struct _battle_data {
 	{ "song_timer_reset",                   &battle_config.song_timer_reset,                0,      0,      1,              },
 	{ "cursed_circle_in_gvg",               &battle_config.cursed_circle_in_gvg,            1,      0,      1,              },
 	{ "snap_dodge",                         &battle_config.snap_dodge,                      0,      0,      1,              },
-	{ "damage_warped_out",                  &battle_config.damage_warped_out,               1,      0,      1,              },
 };
 #ifndef STATS_OPT_OUT
 /**

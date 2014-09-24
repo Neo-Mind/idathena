@@ -580,7 +580,6 @@ extern struct Battle_Config
 	int song_timer_reset; //[csnv]
 	int cursed_circle_in_gvg;
 	int snap_dodge; //Enable or disable dodging damage snapping away [csnv]
-	int damage_warped_out;
 } battle_config;
 
 void do_init_battle(void);
