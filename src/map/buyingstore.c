@@ -658,7 +658,7 @@ void do_init_buyingstore_autotrade(void) {
 				// Initialize player
 				CREATE(at->sd, struct map_session_data, 1);
 				pc_setnewpc(at->sd, at->account_id, at->char_id, 0, gettick(), at->sex, 0);
-				at->sd->state.autotrade = 1;
+				at->sd->state.autotrade = 2;
 				at->sd->state.monster_ignore = (battle_config.autotrade_monsterignore);
 				chrif_authreq(at->sd, true);
 				i++;

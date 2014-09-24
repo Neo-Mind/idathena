@@ -2773,7 +2773,7 @@ ACMD_FUNC(recall) {
 		return -1;
 	}
 
-	if ( pc_get_group_level(sd) < pc_get_group_level(pl_sd) ) {
+	if (pc_get_group_level(sd) < pc_get_group_level(pl_sd)) {
 		clif_displaymessage(fd, msg_txt(81)); // Your GM level doesn't authorize you to do this action on this player.
 		return -1;
 	}
@@ -2788,9 +2788,8 @@ ACMD_FUNC(recall) {
 		return -1;
 	}
 
-	if (pl_sd->bl.m == sd->bl.m && pl_sd->bl.x == sd->bl.x && pl_sd->bl.y == sd->bl.y) {
+	if (pl_sd->bl.m == sd->bl.m && pl_sd->bl.x == sd->bl.x && pl_sd->bl.y == sd->bl.y)
 		return -1;
-	}
 
 	pc_setpos(pl_sd, sd->mapindex, sd->bl.x, sd->bl.y, CLR_RESPAWN);
 	sprintf(atcmd_output, msg_txt(46), pl_sd->status.name); // %s recalled!
@@ -5641,7 +5640,11 @@ ACMD_FUNC(autotrade)
 		return -1;
 	}
 
-	sd->state.autotrade = 1;
+	if( battle_config.feature_autotrade )
+		sd->state.autotrade = 2;
+	else
+		sd->state.autotrade = 1;
+
 	if( battle_config.autotrade_monsterignore )
 		sd->state.monster_ignore = 1;
 

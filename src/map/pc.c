@@ -658,7 +658,7 @@ void pc_makesavestatus(struct map_session_data *sd)
 		sd->status.last_point.y = sd->bl.y;
 	}
 
-	if(map[sd->bl.m].flag.nosave) {
+	if(map[sd->bl.m].flag.nosave && sd->state.autotrade == 1) {
 		struct map_data *m = &map[sd->bl.m];
 
 		if(m->save.map)
@@ -5117,7 +5117,7 @@ char pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int 
 		return 1;
 	}
 
-	if( sd->state.autotrade && (sd->vender_id || sd->buyer_id) ) // Player with autotrade just causes clif glitch! @FIXME
+	if( !battle_config.feature_autotrade_move && sd->state.autotrade && (sd->vender_id || sd->buyer_id) )
 		return 1;
 
 	if( battle_config.revive_onwarp && pc_isdead(sd) ) { // Revive dead people before warping them
@@ -5285,8 +5285,9 @@ char pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int 
 
 	/* Given autotrades have no clients you have to trigger this manually
 	 * Otherwise they get stuck in memory limbo bugreport:7495 */
-	if( sd->state.autotrade )
+	if( battle_config.feature_autotrade_move && sd->state.autotrade && (sd->vender_id || sd->buyer_id) )
 		clif_parse_LoadEndAck(0, sd);
+
 	return 0;
 }
 

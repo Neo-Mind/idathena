@@ -545,6 +545,7 @@ extern struct Battle_Config
 	int feature_autotrade_head_direction;
 	int feature_autotrade_sit;
 	int feature_autotrade_open_delay;
+	int feature_autotrade_move;
 
 	//Fame points
 	int fame_taekwon_mission;

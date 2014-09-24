@@ -72,60 +72,7 @@ int _msg_config_read(const char* cfgName, int size, char ** msg_table)
  */
 void _do_final_msg(int size, char ** msg_table){
     int i;
+
     for (i = 0; i < size; i++)
-	aFree(msg_table[i]);
-}
-
-/*
- * lookup a langtype string into his associate langtype number
- * return -1 if not found
- */
-int msg_langstr2langtype(char * langtype){
-	int lang=-1;
-	if (!strncmpi(langtype, "eng",2)) lang = 0;
-	else if (!strncmpi(langtype, "rus",2)) lang = 1;
-	else if (!strncmpi(langtype, "spn",2)) lang = 2;
-	else if (!strncmpi(langtype, "grm",2)) lang = 3;
-	else if (!strncmpi(langtype, "chn",2)) lang = 4;
-	else if (!strncmpi(langtype, "mal",2)) lang = 5;
-	else if (!strncmpi(langtype, "idn",2)) lang = 6;
-	else if (!strncmpi(langtype, "frn",2)) lang = 7;
-
-	return lang;
-}
-
-/*
- * lookup a langtype into his associate lang string
- * return ?? if not found
- */
-const char* msg_langtype2langstr(int langtype){
-	switch(langtype){
-		case 0: return "English (ENG)";
-		case 1: return "Russian (RUS)";
-		case 2: return "Spanish (SPN)";
-		case 3: return "German (GRM)";
-		case 4: return "Chinese (CHN)";
-		case 5: return "Malasian (MAL)";
-		case 6: return "Indonesian (IDN)";
-		case 7: return "French (FRN)";
-		default: return "??";
-	}
-}
-
-/*
- * verify that the choosen langtype is enable
- * return
- *  1 : langage enable
- * -1 : false range
- * -2 : disable
- */
-int msg_checklangtype(int lang, bool display){
-	uint16 test= (1<<(lang-1));
-	if(!lang) return 1; //default english
-	else if(lang < 0 || test > LANG_MAX) return -1; //false range
-	else if (LANG_ENABLE&test) return 1;
-	else if(display) {
-		ShowDebug("Unsupported langtype '%d'.\n",lang);
-	}
-	return -2;
+		aFree(msg_table[i]);
 }

@@ -10769,7 +10769,7 @@ void clif_parse_WisMessage(int fd, struct map_session_data* sd)
 	}
 
 	// If player is autotrading
-	if( dstsd->state.autotrade == 1 ) {
+	if( dstsd->state.autotrade ) {
 		char output[256];
 
 		safesnprintf(output, sizeof(output), "%s is in autotrade mode and cannot receive whispered messages.", dstsd->status.name);
