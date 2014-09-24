@@ -23,9 +23,10 @@ const char* _msg_txt(int msg_number, int size, char ** msg_table)
 /*
  * Read txt file and store them into msg_table
  */
-int _msg_config_read(const char* cfgName, uint16 size, char ** msg_table)
+int _msg_config_read(const char* cfgName, int size, char ** msg_table)
 {
-	uint16 msg_number, msg_count = 0, line_num = 0;
+	int msg_number;
+	uint16 msg_count = 0, line_num = 0;
 	char line[1024], w1[8], w2[512];
 	FILE *fp;
 	static int called = 1;

@@ -12255,8 +12255,8 @@ BUILDIN_FUNC(getiteminfo)
  *------------------------------------------*/
 BUILDIN_FUNC(setiteminfo)
 {
-	unsigned short item_id, n;
-	int value;
+	unsigned short item_id;
+	int n, value;
 	struct item_data *i_data;
 
 	item_id	= script_getnum(st,2);
