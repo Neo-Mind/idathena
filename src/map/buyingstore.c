@@ -509,8 +509,9 @@ bool buyingstore_searchall(struct map_session_data* sd, const struct s_search_st
 		if( s->max_price && s->max_price < (unsigned int)it->price ) // Too high price
 			continue;
 
-		if( s->card_count ) // Ignore cards, as there cannot be any
+		if( s->card_count ) { // Ignore cards, as there cannot be any
 			;
+		}
 
 		// Result set full
 		if( !searchstore_result(s->search_sd, sd->buyer_id, sd->status.account_id, sd->message,

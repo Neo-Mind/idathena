@@ -5399,13 +5399,11 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	int skill_damage;
 #endif
 	short s_ele = 0;
-
 	TBL_PC *sd;
 	TBL_PC *tsd;
 	struct status_change *sc, *tsc;
 	struct Damage ad;
-	struct status_data *sstatus = status_get_status_data(src);
-	struct status_data *tstatus = status_get_status_data(target);
+	struct status_data *sstatus, *tstatus;
 	struct {
 		unsigned imdef : 1;
 		unsigned infdef : 1;
@@ -5418,6 +5416,9 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		nullpo_info(NLP_MARK);
 		return ad;
 	}
+
+	sstatus = status_get_status_data(src);
+	tstatus = status_get_status_data(target);
 
 	//Initial Values
 	ad.damage = 1;
@@ -6235,8 +6236,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 
 	struct map_session_data *sd, *tsd;
 	struct Damage md; //DO NOT CONFUSE with md of mob_data!
-	struct status_data *sstatus = status_get_status_data(src);
-	struct status_data *tstatus = status_get_status_data(target);
+	struct status_data *sstatus, *tstatus;
 
 	memset(&md,0,sizeof(md));
 
@@ -6244,6 +6244,9 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		nullpo_info(NLP_MARK);
 		return md;
 	}
+
+	sstatus = status_get_status_data(src);
+	tstatus = status_get_status_data(target);
 
 	//Some initial values
 	md.amotion = (skill_get_inf(skill_id)&INF_GROUND_SKILL ? 0 : sstatus->amotion);

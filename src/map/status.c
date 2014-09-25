@@ -6767,7 +6767,7 @@ void status_set_viewdata(struct block_list *bl, int class_)
 
 /// Returns the status_change data of bl or NULL if it doesn't exist.
 struct status_change *status_get_sc(struct block_list *bl) {
-	if (bl)
+	if (bl) {
 		switch (bl->type) {
 			case BL_PC:  return &((TBL_PC*)bl)->sc;
 			case BL_MOB: return &((TBL_MOB*)bl)->sc;
@@ -6776,6 +6776,7 @@ struct status_change *status_get_sc(struct block_list *bl) {
 			case BL_MER: return &((TBL_MER*)bl)->sc;
 			case BL_ELEM: return &((TBL_ELEM*)bl)->sc;
 		}
+	}
 	return NULL;
 }
 

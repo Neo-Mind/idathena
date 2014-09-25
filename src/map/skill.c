@@ -18009,7 +18009,7 @@ int skill_unit_move_sub(struct block_list* bl, va_list ap)
  * units to figure out when they have left a group.
  * flag&4: Force a onleft event (triggered when the bl is killed, for example)
  *------------------------------------------*/
-int skill_unit_move (struct block_list *bl, unsigned int tick, int flag)
+int skill_unit_move(struct block_list *bl, unsigned int tick, int flag)
 {
 	nullpo_ret(bl);
 

@@ -5456,7 +5456,7 @@ ACMD_FUNC(useskill)
  *------------------------------------------*/
 ACMD_FUNC(displayskill)
 {
-	struct status_data * status;
+	struct status_data *status;
 	unsigned int tick;
 	uint16 skill_id;
 	uint16 skill_lv = 1;

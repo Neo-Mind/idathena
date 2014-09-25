@@ -6882,8 +6882,8 @@ static bool buildin_delitem_search(struct map_session_data* sd, struct item* it,
 					continue;
 
 				if( exact_match &&
-					itm->refine != it->refine || itm->identify != it->identify || itm->attribute != it->attribute ||
-					memcmp(itm->card, it->card, sizeof(itm->card)) )
+					(itm->refine != it->refine || itm->identify != it->identify || itm->attribute != it->attribute ||
+					memcmp(itm->card, it->card, sizeof(itm->card))) )
 						continue; //Not matching attributes
 
 				//Count/delete item

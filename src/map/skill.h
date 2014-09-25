@@ -402,10 +402,10 @@ int skill_disable_check(struct status_change *sc, uint16 skill_id);
 
 int skill_check_pc_partner(struct map_session_data *sd, uint16 skill_id, uint16 *skill_lv, int range, int cast_flag);
 //Added skill_check_unit_cell
-int skill_check_unit_cell(uint16 skill_id,int16 m,int16 x,int16 y,int unit_id);
-int skill_unit_out_all(struct block_list *bl,unsigned int tick,int range);
-int skill_unit_move(struct block_list *bl,unsigned int tick,int flag);
-void skill_unit_move_unit_group(struct skill_unit_group *group, int16 m,int16 dx,int16 dy);
+int skill_check_unit_cell(uint16 skill_id, int16 m, int16 x, int16 y, int unit_id);
+int skill_unit_out_all(struct block_list *bl, unsigned int tick, int range);
+int skill_unit_move(struct block_list *bl, unsigned int tick, int flag);
+void skill_unit_move_unit_group(struct skill_unit_group *group, int16 m, int16 dx, int16 dy);
 
 struct skill_unit_group *skill_check_dancing(struct block_list *src);
 
