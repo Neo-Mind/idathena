@@ -71,8 +71,8 @@ int _msg_config_read(const char* cfgName, int size, char ** msg_table)
  * Destroy msg_table (freeup mem)
  */
 void _do_final_msg(int size, char ** msg_table){
-    int i;
+	int i;
 
-    for (i = 0; i < size; i++)
+	for (i = 0; i < size; i++)
 		aFree(msg_table[i]);
 }

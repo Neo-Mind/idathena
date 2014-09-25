@@ -7424,10 +7424,14 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 	int16 m; //Map
 	int state = 0; //Initial state none
 	int strip_enemy = 1; //Flag which marks whether to remove the BCT_ENEMY status if it's also friend/ally.
-	struct block_list *s_bl = src, *t_bl = target;
+	struct block_list *s_bl = NULL;
+	struct block_list *t_bl = NULL;
 
 	nullpo_ret(src);
 	nullpo_ret(target);
+
+	s_bl = src;
+	t_bl = target;
 
 	m = target->m;
 
