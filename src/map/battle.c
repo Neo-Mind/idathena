@@ -5047,9 +5047,8 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 {
 	struct map_session_data *sd, *tsd;
 	struct Damage wd;
-	struct status_change *sc = status_get_sc(src);
-	struct status_change *tsc = status_get_sc(target);
-	struct status_data *tstatus = status_get_status_data(target);
+	struct status_change *sc, *tsc;
+	struct status_data *tstatus;
 	int right_element, left_element;
 
 	memset(&wd, 0, sizeof(wd));
@@ -5058,6 +5057,10 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		nullpo_info(NLP_MARK);
 		return wd;
 	}
+
+	sc = status_get_sc(src);
+	tsc = status_get_sc(target);
+	tstatus = status_get_status_data(target);
 
 	wd = initialize_weapon_data(src, target, skill_id, skill_lv, wflag);
 
