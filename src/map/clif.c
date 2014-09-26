@@ -3477,14 +3477,14 @@ void clif_arrow_create_list(struct map_session_data *sd)
 	WFIFOW(fd,0) = 0x1ad;
 
 	for (i = 0, c = 0; i < MAX_SKILL_ARROW_DB; i++) {
-		short j;
+		short j, nameid = skill_arrow_db[i].nameid;
 
-		if (skill_arrow_db[i].nameid > 0 && (j = pc_search_inventory(sd, skill_arrow_db[i].nameid)) != INDEX_NOT_FOUND &&
+		if (nameid > 0 && itemdb_exists(nameid) && (j = pc_search_inventory(sd, nameid)) != INDEX_NOT_FOUND &&
 			!sd->status.inventory[j].equip && sd->status.inventory[j].identify) {
-			if ((j = itemdb_viewid(skill_arrow_db[i].nameid)) > 0)
+			if ((j = itemdb_viewid(nameid)) > 0)
 				WFIFOW(fd,c * 2 + 4) = j;
 			else
-				WFIFOW(fd,c * 2 + 4) = skill_arrow_db[i].nameid;
+				WFIFOW(fd,c * 2 + 4) = nameid;
 			c++;
 		}
 	}
@@ -5536,18 +5536,18 @@ void clif_skill_estimation(struct map_session_data *sd,struct block_list *dst)
 	WBUFW(buf,4) = status_get_lv(dst);
 	WBUFW(buf,6) = status->size;
 	WBUFL(buf,8) = status->hp;
-	WBUFW(buf,12) = (battle_config.estimation_type&1 ? status->def : 0)
-		+(battle_config.estimation_type&2 ? status->def2 : 0);
+	WBUFW(buf,12) = (battle_config.estimation_type&1 ? status->def : 0) +
+		(battle_config.estimation_type&2 ? status->def2 : 0);
 	WBUFW(buf,14) = status->race;
-	WBUFW(buf,16) = (battle_config.estimation_type&1 ? status->mdef : 0)
-		+(battle_config.estimation_type&2 ? status->mdef2 : 0);
+	WBUFW(buf,16) = (battle_config.estimation_type&1 ? status->mdef : 0) +
+		(battle_config.estimation_type&2 ? status->mdef2 : 0);
 	WBUFW(buf,18)= status->def_ele;
 	for( i = 0; i < 9; i++ )
 		WBUFB(buf,20 + i) = (unsigned char)battle_attr_ratio(i + 1,status->def_ele,status->ele_lv);
 		//The following caps negative attributes to 0 since the client displays them as 255-fix. [Skotlex]
 		//WBUFB(buf,20 + i) = (unsigned char)((fix = battle_attr_ratio(i + 1,status->def_ele,status->ele_lv)) < 0 ? 0 : fix);
 
-	clif_send(buf,packet_len(0x18c),&sd->bl,sd->status.party_id>0?PARTY_SAMEMAP:SELF);
+	clif_send(buf,packet_len(0x18c),&sd->bl,sd->status.party_id > 0 ? PARTY_SAMEMAP : SELF);
 }
 
 
@@ -5557,7 +5557,8 @@ void clif_skill_estimation(struct map_session_data *sd,struct block_list *dst)
 ///     unused by the client
 void clif_skill_produce_mix_list(struct map_session_data *sd, int skill_id , int trigger)
 {
-	int i,c,view,fd;
+	int i, c, view, fd;
+
 	nullpo_retv(sd);
 
 	if( sd->menuskill_id == skill_id )
@@ -5571,8 +5572,7 @@ void clif_skill_produce_mix_list(struct map_session_data *sd, int skill_id , int
 
 	for( i = 0, c = 0; i < MAX_SKILL_PRODUCE_DB; i++ ) {
 		if( skill_can_produce_mix(sd,skill_produce_db[i].nameid,trigger,1) &&
-			((skill_id > 0 && skill_produce_db[i].req_skill == skill_id) || skill_id < 0)
-			) {
+			(!skill_id || (skill_id && skill_produce_db[i].req_skill == skill_id)) ) {
 			if( (view = itemdb_viewid(skill_produce_db[i].nameid)) > 0 )
 				WFIFOW(fd,c * 8 + 4) = view;
 			else
@@ -7319,9 +7319,9 @@ void clif_catch_process(struct map_session_data *sd)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x19e));
-	WFIFOW(fd,0)=0x19e;
+	WFIFOW(fd,0) = 0x19e;
 	WFIFOSET(fd,packet_len(0x19e));
 }
 
@@ -7336,10 +7336,10 @@ void clif_pet_roulette(struct map_session_data *sd,int data)
 
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0x1a0));
-	WFIFOW(fd,0)=0x1a0;
-	WFIFOB(fd,2)=data;
+	WFIFOW(fd,0) = 0x1a0;
+	WFIFOB(fd,2) = data;
 	WFIFOSET(fd,packet_len(0x1a0));
 }
 
@@ -11800,8 +11800,8 @@ void clif_parse_ProduceMix(int fd, struct map_session_data *sd)
 		clif_menuskill_clear(sd);
 		return;
 	}
-	if( skill_can_produce_mix(sd,nameid,sd->menuskill_val, 1) )
-		skill_produce_mix(sd,0,nameid,slot1,slot2,slot3, 1);
+	if (skill_can_produce_mix(sd,nameid,sd->menuskill_val,1))
+		skill_produce_mix(sd,0,nameid,slot1,slot2,slot3,1);
 	clif_menuskill_clear(sd);
 }
 
@@ -11821,7 +11821,7 @@ void clif_parse_Cooking(int fd, struct map_session_data *sd) {
 	unsigned short nameid = RFIFOW(fd,info->pos[1]);
 	int amount = (sd->menuskill_val2 ? sd->menuskill_val2 : 1);
 
-	if( type == 6 && sd->menuskill_id != GN_MIX_COOKING && sd->menuskill_id != GN_S_PHARMACY )
+	if (type == 6 && sd->menuskill_id != GN_MIX_COOKING && sd->menuskill_id != GN_S_PHARMACY)
 		return;
 
 	if (pc_istrading(sd)) {
@@ -11831,8 +11831,8 @@ void clif_parse_Cooking(int fd, struct map_session_data *sd) {
 		return;
 	}
 
-	if( skill_can_produce_mix(sd,nameid,sd->menuskill_val, amount) )
-		skill_produce_mix(sd,(type>1?sd->menuskill_id:0),nameid,0,0,0,amount);
+	if (skill_can_produce_mix(sd,nameid,sd->menuskill_val,amount))
+		skill_produce_mix(sd,(type > 1 ? sd->menuskill_id : 0),nameid,0,0,0,amount);
 	clif_menuskill_clear(sd);
 }
 
@@ -11972,7 +11972,7 @@ void clif_parse_ItemIdentify(int fd, struct map_session_data *sd)
 		clif_menuskill_clear(sd);
 		return;
 	}
-	skill_identify(sd,idx-2);
+	skill_identify(sd,idx - 2);
 	clif_menuskill_clear(sd);
 }
 
@@ -11990,12 +11990,12 @@ void clif_parse_SelectArrow(int fd, struct map_session_data *sd)
 		return;
 	}
 
-	switch( sd->menuskill_id ) {
+	switch (sd->menuskill_id) {
 		case AC_MAKINGARROW:
 			skill_arrow_create(sd,nameid);
  			break;
  		case SA_CREATECON:
-			skill_produce_mix(sd,SA_CREATECON,nameid,0,0,0, 1);
+			skill_produce_mix(sd,SA_CREATECON,nameid,0,0,0,1);
  			break;
  		case WL_READING_SB:
 			skill_spellbook(sd,nameid);
@@ -16349,7 +16349,7 @@ void clif_parse_LessEffect(int fd, struct map_session_data* sd)
 /// S 07e4 <length>.w <option>.l <val>.l {<index>.w <amount>.w).4b*
 void clif_parse_ItemListWindowSelected(int fd, struct map_session_data* sd) {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
-	int n = (RFIFOW(fd,info->pos[0])-12) / 4;
+	int n = (RFIFOW(fd,info->pos[0]) - 12) / 4;
 	int type = RFIFOL(fd,info->pos[1]);
 	int flag = RFIFOL(fd,info->pos[2]); // Button clicked: 0 = Cancel, 1 = OK
 	unsigned short* item_list = (unsigned short*)RFIFOP(fd,info->pos[3]);
@@ -16357,7 +16357,7 @@ void clif_parse_ItemListWindowSelected(int fd, struct map_session_data* sd) {
 	if( sd->state.trading || sd->npc_shopid )
 		return;
 	
-	if( flag == 0 || n == 0) {
+	if( flag == 0 || n == 0 ) {
 		clif_menuskill_clear(sd);
 		return; // Canceled by player.
 	}
@@ -17007,7 +17007,7 @@ int clif_spellbook_list(struct map_session_data *sd)
 	WFIFOW(fd,0) = 0x1ad;
 
 	for( i = 0, c = 0; i < MAX_INVENTORY; i ++ ) {
-		if( itemdb_is_spellbook(sd->status.inventory[i].nameid) ) {
+		if( itemdb_is_spellbook2(sd->status.inventory[i].nameid) ) {
 			WFIFOW(fd, c * 2 + 4) = sd->status.inventory[i].nameid;
 			c++;
 		}
