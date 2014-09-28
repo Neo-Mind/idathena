@@ -7552,11 +7552,11 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 		//All else not specified is an invalid target.
 		default:
 			return 0;
-	} //End switch actual target
+	}
 
 	switch( t_bl->type ) { //Checks on target master
 		case BL_PC: {
-				struct map_session_data *sd;
+				struct map_session_data *sd = NULL;
 
 				if( t_bl == s_bl )
 					break;
@@ -7581,7 +7581,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 					return 0; //Disable guardians/emperium owned by Guilds on non-woe times.
 			}
 			break;
-	} //End switch master target
+	}
 
 	switch( src->type ) { //Checks on actual src type
 		case BL_PET:
@@ -7607,7 +7607,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			if( t_bl->type == BL_MOB && ((TBL_MOB*)t_bl)->mob_id == MOBID_EMPERIUM && flag&BCT_ENEMY )
 				return 0; //Mercenary may not attack Emperium
 			break;
-	} //End switch actual src
+	}
 
 	switch( s_bl->type ) { //Checks on source master
 		case BL_PC: {
@@ -7639,10 +7639,8 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 					return 0; //Disable guardians/emperium owned by Guilds on non-woe times.
 
 				if( !md->special_state.ai ) { //Normal mobs
-					if(
-						( target->type == BL_MOB && t_bl->type == BL_PC && ( ((TBL_MOB*)target)->special_state.ai != AI_ZANZOU && ((TBL_MOB*)target)->special_state.ai != AI_ATTACK ) ) ||
-						( t_bl->type == BL_MOB && !((TBL_MOB*)t_bl)->special_state.ai )
-					  )
+					if( (target->type == BL_MOB && t_bl->type == BL_PC && (((TBL_MOB*)target)->special_state.ai != AI_ZANZOU && ((TBL_MOB*)target)->special_state.ai != AI_ATTACK)) ||
+						(t_bl->type == BL_MOB && !((TBL_MOB*)t_bl)->special_state.ai) )
 						state |= BCT_PARTY; //Normal mobs with no ai are friends.
 					else
 						state |= BCT_ENEMY; //However, all else are enemies.
@@ -7656,7 +7654,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			if( t_bl->type != s_bl->type )
 				state |= BCT_ENEMY;
 			break;
-	} //End switch on src master
+	}
 
 	if( (flag&BCT_ALL) == BCT_ALL ) { //All actually stands for all attackable chars
 		if( target->type&BL_CHAR )
@@ -7664,6 +7662,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 		else
 			return -1;
 	}
+
 	if( flag == BCT_NOONE ) //Why would someone use this? no clue.
 		return -1;
 
@@ -7681,6 +7680,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			sbg_id = bg_team_get_id(s_bl);
 			tbg_id = bg_team_get_id(t_bl);
 		}
+
 		if( (flag&(BCT_PARTY|BCT_ENEMY)) ) {
 			int s_party = status_get_party_id(s_bl);
 			int s_guild = status_get_guild_id(s_bl);
@@ -7692,6 +7692,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			else
 				state |= BCT_ENEMY;
 		}
+
 		if( (flag&(BCT_GUILD|BCT_ENEMY)) ) {
 			int s_guild = status_get_guild_id(s_bl);
 			int t_guild = status_get_guild_id(t_bl);
@@ -7703,37 +7704,41 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			else
 				state |= BCT_ENEMY;
 		}
+
 		if( state&BCT_ENEMY && map[m].flag.battleground && sbg_id && sbg_id == tbg_id )
 			state &= ~BCT_ENEMY;
 
 		if( state&BCT_ENEMY && battle_config.pk_mode && !map_flag_gvg(m) && s_bl->type == BL_PC && t_bl->type == BL_PC ) {
-			//Prevent novice engagement on pk_mode (feature by Valaris)
 			TBL_PC *sd = (TBL_PC*)s_bl, *sd2 = (TBL_PC*)t_bl;
-			if (
-				(sd->class_&MAPID_UPPERMASK) == MAPID_NOVICE ||
+
+			//Prevent novice engagement on pk_mode (feature by Valaris)
+			if( (sd->class_&MAPID_UPPERMASK) == MAPID_NOVICE ||
 				(sd2->class_&MAPID_UPPERMASK) == MAPID_NOVICE ||
 				(int)sd->status.base_level < battle_config.pk_min_level ||
 			  	(int)sd2->status.base_level < battle_config.pk_min_level ||
-				(battle_config.pk_level_range && abs((int)sd->status.base_level - (int)sd2->status.base_level) > battle_config.pk_level_range)
-			)
+				(battle_config.pk_level_range && abs((int)sd->status.base_level - (int)sd2->status.base_level) > battle_config.pk_level_range) )
 				state &= ~BCT_ENEMY;
 		}
-	} //End map_flag_vs check rivality
-	else { //Non pvp/gvg, check party/guild settings.
+	} else { //Non pvp/gvg, check party/guild settings.
 		if( flag&BCT_PARTY || state&BCT_ENEMY ) {
 			int s_party = status_get_party_id(s_bl);
 
-			if(s_party && s_party == status_get_party_id(t_bl))
+			if( s_party && s_party == status_get_party_id(t_bl) )
 				state |= BCT_PARTY;
+			else
+				state |= BCT_ENEMY;
 		}
+
 		if( flag&BCT_GUILD || state&BCT_ENEMY ) {
 			int s_guild = status_get_guild_id(s_bl);
 			int t_guild = status_get_guild_id(t_bl);
 
-			if(s_guild && t_guild && (s_guild == t_guild || (!(flag&BCT_SAMEGUILD) && guild_isallied(s_guild, t_guild))))
+			if( s_guild && t_guild && (s_guild == t_guild || (!(flag&BCT_SAMEGUILD) && guild_isallied(s_guild, t_guild))) )
 				state |= BCT_GUILD;
+			else
+				state |= BCT_ENEMY;
 		}
-	} //End non pvp/gvg check rivality
+	}
 
 	if( !state ) //If not an enemy, nor a guild, nor party, nor yourself, it's neutral.
 		state = BCT_NEUTRAL;
