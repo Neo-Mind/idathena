@@ -396,24 +396,25 @@ extern struct Battle_Config
 	int hide_woe_damage;
 	int display_version;
 
-	int display_hallucination;	//[Skotlex]
-	int use_statpoint_table;	//[Skotlex]
+	int display_hallucination; //[Skotlex]
+	int use_statpoint_table; //[Skotlex]
 
 	int ignore_items_gender; //[Lupus]
 
 	int berserk_cancels_buffs; //[Aru]
-	int debuff_on_logout; //Removes a few "official" negative Scs on logout. [Skotlex]
-	int mob_ai; //Configures various mob_ai settings to make them smarter or dumber(official). [Skotlex]
-	int hom_setting; //Configures various homunc settings which make them behave unlike normal characters.. [Skotlex]
+	int debuff_on_logout; //Removes a few "official" negative Scs on logout [Skotlex]
+	int mob_ai; //Configures various mob_ai settings to make them smarter or dumber (Official) [Skotlex]
+	int mob_chase_refresh; //How often a monster should refresh its chase [Playtester]
+	int hom_setting; //Configures various homunc settings which make them behave unlike normal characters [Skotlex]
 	int dynamic_mobs; //Dynamic Mobs [Wizputer] - battle_athena flag implemented by [random]
 	int mob_remove_damaged; //Dynamic Mobs - Remove mobs even if damaged [Wizputer]
 	int mob_remove_delay; //Dynamic Mobs - delay before removing mobs from a map [Skotlex]
-	int mob_active_time; //Duration through which mobs execute their Hard AI after players leave their area of sight.
+	int mob_active_time; //Duration through which mobs execute their Hard AI after players leave their area of sight
 	int boss_active_time;
 
 	int show_hp_sp_drain, show_hp_sp_gain;	//[Skotlex]
 
-	int mob_npc_event_type; //Determines on who the npc_event is executed. [Skotlex]
+	int mob_npc_event_type; //Determines on who the npc_event is executed [Skotlex]
 
 	int character_size; //if riders have size=2, and baby class riders size=1 [Lupus]
 	int mob_max_skilllvl; //Max possible skill level [Lupus]
