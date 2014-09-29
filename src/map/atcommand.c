@@ -6881,7 +6881,7 @@ ACMD_FUNC(mobinfo)
 			mob->status.def, mob->status.mdef,mob->status.str, mob->status.agi,
 			mob->status.vit, mob->status.int_, mob->status.dex, mob->status.luk);
 		clif_displaymessage(fd, atcmd_output);
-		
+
 		sprintf(atcmd_output, msg_txt(1244), //  ATK: %d~%d Range: %d~%d~%d Size: %s Race: %s Class: %s Element: %s (Lv:%d)
 			mob->status.rhw.atk, mob->status.rhw.atk2, mob->status.rhw.range,
 			mob->range2 , mob->range3, msize[mob->status.size],
@@ -7128,7 +7128,7 @@ ACMD_FUNC(makehomun)
 	int homunid;
 	nullpo_retr(-1, sd);
 
-	if ( sd->status.hom_id ) {
+	if (sd->status.hom_id) {
 		clif_displaymessage(fd, msg_txt(450));
 		return -1;
 	}
@@ -7139,7 +7139,7 @@ ACMD_FUNC(makehomun)
 	}
 
 	homunid = atoi(message);
-	if( homunid < HM_CLASS_BASE || homunid > HM_CLASS_BASE + MAX_HOMUNCULUS_CLASS - 1 ) {
+	if (homunid < HM_CLASS_BASE || homunid > HM_CLASS_BASE + MAX_HOMUNCULUS_CLASS - 1) {
 		clif_displaymessage(fd, msg_txt(1257)); // Invalid Homunculus ID.
 		return -1;
 	}

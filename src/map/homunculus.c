@@ -944,11 +944,12 @@ int hom_create_request(struct map_session_data *sd, int class_)
 	nullpo_retr(1, sd);
 
 	i = hom_search(class_,HOMUNCULUS_CLASS);
-	if(i < 0) return 0;
+	if(i < 0)
+		return 0;
 
 	memset(&homun, 0, sizeof(struct s_homunculus));
 	//Initial data
-	safestrncpy(homun.name, homunculus_db[i].name, NAME_LENGTH-1);
+	safestrncpy(homun.name, homunculus_db[i].name, NAME_LENGTH - 1);
 	homun.class_ = class_;
 	homun.level = 1;
 	homun.hunger = 32; //32%

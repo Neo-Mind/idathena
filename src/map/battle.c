@@ -1592,7 +1592,7 @@ static int battle_calc_status_attack(struct status_data *status, short hand)
 		return 2 * status->batk;
 }
 
-static int battle_calc_base_weapon_attack(struct block_list *src, struct status_data *tstatus, struct weapon_atk *wa, struct map_session_data *sd)
+static int battle_calc_base_weapon_attack(struct block_list *src, struct status_data *tstatus, struct weapon_atk *wa, struct map_session_data *sd, uint16 skill_id)
 {
 	struct status_data *status = status_get_status_data(src);
 	uint8 type = (wa == &status->lhw) ? EQI_HAND_L : EQI_HAND_R;
@@ -1607,7 +1607,7 @@ static int battle_calc_base_weapon_attack(struct block_list *src, struct status_
 
 		atkmin = max(0, atkmin - variance);
 		atkmax = min(UINT16_MAX, atkmax + variance);
-		if (sc && sc->data[SC_MAXIMIZEPOWER])
+		if ((sc && sc->data[SC_MAXIMIZEPOWER]) || skill_id == SR_TIGERCANNON)
 			damage = atkmax;
 		else
 			damage = rnd_value(atkmin, atkmax);
@@ -1640,7 +1640,7 @@ static int battle_calc_base_weapon_attack(struct block_list *src, struct status_
  *	Initial refactoring by Baalberith
  *	Refined and optimized by helvetica
  */
-static int64 battle_calc_base_damage(struct status_data *status, struct weapon_atk *wa, struct status_change *sc, unsigned short t_size, struct map_session_data *sd, int flag)
+static int64 battle_calc_base_damage(struct status_data *status, struct weapon_atk *wa, struct status_change *sc, unsigned short t_size, struct map_session_data *sd, uint16 skill_id, int flag)
 {
 	unsigned int atkmin = 0, atkmax = 0;
 	short type = 0;
@@ -1677,7 +1677,7 @@ static int64 battle_calc_base_damage(struct status_data *status, struct weapon_a
 		}
 	}
 
-	if(sc && sc->data[SC_MAXIMIZEPOWER])
+	if((sc && sc->data[SC_MAXIMIZEPOWER]) || skill_id == SR_TIGERCANNON)
 		atkmin = atkmax;
 
 	//Weapon Damage calculation
@@ -2562,11 +2562,11 @@ static struct Damage battle_calc_element_damage(struct Damage wd, struct block_l
 			wd.damage2 = battle_attr_fix(src, target, wd.damage2, left_element, tstatus->def_ele, tstatus->ele_lv);
 		if(sc && sc->data[SC_WATK_ELEMENT]) {
 			//Descriptions indicate this means adding a percent of a normal attack in another element. [Skotlex]
-			int64 damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, (is_skill_using_arrow(src, skill_id) ? 2 : 0)) * sc->data[SC_WATK_ELEMENT]->val2 / 100;
+			int64 damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, (is_skill_using_arrow(src, skill_id) ? 2 : 0)) * sc->data[SC_WATK_ELEMENT]->val2 / 100;
 
 			wd.damage += battle_attr_fix(src, target, damage, sc->data[SC_WATK_ELEMENT]->val1, tstatus->def_ele, tstatus->ele_lv);
 			if(is_attack_left_handed(src, skill_id)) {
-				damage = battle_calc_base_damage(sstatus, &sstatus->lhw, sc, tstatus->size, sd, (is_skill_using_arrow(src, skill_id) ? 2 : 0)) * sc->data[SC_WATK_ELEMENT]->val2 / 100;
+				damage = battle_calc_base_damage(sstatus, &sstatus->lhw, sc, tstatus->size, sd, skill_id, (is_skill_using_arrow(src, skill_id) ? 2 : 0)) * sc->data[SC_WATK_ELEMENT]->val2 / 100;
 				wd.damage2 += battle_attr_fix(src, target, damage, sc->data[SC_WATK_ELEMENT]->val1, tstatus->def_ele, tstatus->ele_lv);
 			}
 		}
@@ -2710,7 +2710,7 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
  *	Initial refactoring by Baalberith
  *	Refined and optimized by helvetica
  */
-struct Damage battle_calc_damage_parts(struct Damage wd, struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv)
+struct Damage battle_calc_damage_parts(struct Damage wd, struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv)
 {
 	struct status_data *sstatus = status_get_status_data(src);
 	struct status_data *tstatus = status_get_status_data(target);
@@ -2730,10 +2730,10 @@ struct Damage battle_calc_damage_parts(struct Damage wd, struct block_list *src,
 		wd.statusAtk2 = battle_attr_fix(src, target, wd.statusAtk, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 	}
 
-	wd.weaponAtk += battle_calc_base_weapon_attack(src, tstatus, &sstatus->rhw, sd);
+	wd.weaponAtk += battle_calc_base_weapon_attack(src, tstatus, &sstatus->rhw, sd, skill_id);
 	wd.weaponAtk = battle_attr_fix(src, target, wd.weaponAtk, right_element, tstatus->def_ele, tstatus->ele_lv);
 
-	wd.weaponAtk2 += battle_calc_base_weapon_attack(src, tstatus, &sstatus->lhw, sd);
+	wd.weaponAtk2 += battle_calc_base_weapon_attack(src, tstatus, &sstatus->lhw, sd, skill_id);
 	wd.weaponAtk2 = battle_attr_fix(src, target, wd.weaponAtk2, left_element, tstatus->def_ele, tstatus->ele_lv);
 
 	wd.equipAtk += battle_calc_equip_attack(src, skill_id);
@@ -2786,13 +2786,13 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 			if(sd) {
 				short index = sd->equip_index[EQI_HAND_R];
 
+				wd = battle_calc_damage_parts(wd, src, target, skill_id, skill_lv);
 				//Weight from spear is treated as equipment ATK on official [helvetica]
 				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
 					wd.equipAtk += sd->inventory_data[index]->weight / 20;
-				wd = battle_calc_damage_parts(wd, src, target, skill_id, skill_lv);
 				wd.masteryAtk = 0; //Weapon mastery is ignored for spiral
 			} else //Monsters have no weight and use ATK instead
-				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, 0);
+				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, 0);
 			switch(tstatus->size) { //Size-fix. Is this modified by weapon perfection?
 				case SZ_SMALL: //Small: 125%
 					RE_ALLATK_RATE(wd, 125);
@@ -2817,7 +2817,7 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 
 				ATK_ADDRATE(wd.damage, wd.damage2, 50 * skill_lv); //Skill modifier applies to weight only.
 			} else //Monsters have no weight and use ATK instead
-				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, 0);
+				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, 0);
 			i = sstatus->str / 10;
 			i *= i;
 			ATK_ADD(wd.damage, wd.damage2, i); //Add STR bonus.
@@ -2918,9 +2918,9 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 					i = (is_attack_critical(wd, src, target, skill_id, skill_lv, false) ? 1 : 0)|
 						(!skill_id && sc && sc->data[SC_CHANGE] ? 4 : 0);
 
-					wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, i);
+					wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, i);
 					if(is_attack_left_handed(src, skill_id))
-						wd.damage2 = battle_calc_base_damage(sstatus, &sstatus->lhw, sc, tstatus->size, sd, i);
+						wd.damage2 = battle_calc_base_damage(sstatus, &sstatus->lhw, sc, tstatus->size, sd, skill_id, i);
 				}
 #else
 				i = (is_attack_critical(wd, src, target, skill_id, skill_lv, false) ? 1 : 0)|
@@ -2941,9 +2941,9 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 							i |= 16; //For ex. shuriken must not be influenced by DEX
 							break;
 					}
-				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, i);
+				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, i);
 				if(is_attack_left_handed(src, skill_id))
-					wd.damage2 = battle_calc_base_damage(sstatus, &sstatus->lhw, sc, tstatus->size, sd, i);
+					wd.damage2 = battle_calc_base_damage(sstatus, &sstatus->lhw, sc, tstatus->size, sd, skill_id, i);
 #endif
 				if(nk&NK_SPLASHSPLIT) { //Divide ATK among targets
 					if(wd.miscflag > 0) {
@@ -4795,7 +4795,7 @@ struct Damage battle_calc_attack_gvg_bg(struct Damage wd, struct block_list *src
  *	Initial refactoring by Baalberith
  *	Refined and optimized by helvetica
  */
-struct Damage battle_calc_weapon_final_atk_modifiers(struct Damage wd, struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv)
+struct Damage battle_calc_weapon_final_atk_modifiers(struct Damage wd, struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv)
 {
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 	struct map_session_data *tsd = BL_CAST(BL_PC, target);
@@ -4830,7 +4830,7 @@ struct Damage battle_calc_weapon_final_atk_modifiers(struct Damage wd, struct bl
 
 		if(ratio > 5000)
 			ratio = 5000; //Maximum of 5000% ATK
-		rdamage = battle_calc_base_damage(tstatus,&tstatus->rhw,tsc,sstatus->size,tsd,0);
+		rdamage = battle_calc_base_damage(tstatus,&tstatus->rhw,tsc,sstatus->size,tsd,skill_id,0);
 		rdamage = rdamage * ratio / 100 + wd.damage * (10 + tsc->data[SC_CRESCENTELBOW]->val1 * 20 / 10) / 10;
 		skill_blown(target,src,skill_get_blewcount(SR_CRESCENTELBOW_AUTOSPELL,tsc->data[SC_CRESCENTELBOW]->val1),unit_getdir(src),0);
 		clif_skill_damage(target,src,gettick(),status_get_amotion(src),0,rdamage,

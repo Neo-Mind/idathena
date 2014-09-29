@@ -143,6 +143,7 @@ int bg_team_leave(struct map_session_data *sd, int flag)
 int bg_member_respawn(struct map_session_data *sd)
 { // Respawn after killed
 	struct battleground_data *bg;
+
 	if( sd == NULL || !pc_isdead(sd) || !sd->bg_id || (bg = bg_team_search(sd->bg_id)) == NULL )
 		return 0;
 	if( bg->mapindex == 0 )
@@ -156,8 +157,8 @@ int bg_member_respawn(struct map_session_data *sd)
 int bg_create(unsigned short mapindex, short rx, short ry, const char *ev, const char *dev)
 {
 	struct battleground_data *bg;
-	bg_team_counter++;
 
+	bg_team_counter++;
 	CREATE(bg, struct battleground_data, 1);
 	bg->bg_id = bg_team_counter;
 	bg->count = 0;
@@ -176,6 +177,7 @@ int bg_create(unsigned short mapindex, short rx, short ry, const char *ev, const
 int bg_team_get_id(struct block_list *bl)
 {
 	nullpo_ret(bl);
+
 	switch( bl->type ) {
 		case BL_PC:
 			return ((TBL_PC*)bl)->bg_id;
@@ -186,6 +188,7 @@ int bg_team_get_id(struct block_list *bl)
 		case BL_MOB: {
 				struct map_session_data *msd;
 				struct mob_data *md = (TBL_MOB*)bl;
+
 				if( md->special_state.ai && (msd = map_id2sd(md->master_id)) != NULL )
 					return msd->bg_id;
 				return md->bg_id;
@@ -210,6 +213,7 @@ int bg_send_message(struct map_session_data *sd, const char *mes, int len)
 	struct battleground_data *bg;
 
 	nullpo_ret(sd);
+
 	if( sd->bg_id == 0 || (bg = bg_team_search(sd->bg_id)) == NULL )
 		return 0;
 	clif_bg_message(bg, sd->bl.id, sd->status.name, mes, len);
@@ -224,13 +228,13 @@ int bg_send_xy_timer_sub(DBKey key, DBData *data, va_list ap)
 	struct battleground_data *bg = db_data2ptr(data);
 	struct map_session_data *sd;
 	int i;
+
 	nullpo_ret(bg);
-	for( i = 0; i < MAX_BG_MEMBERS; i++ )
-	{
+
+	for( i = 0; i < MAX_BG_MEMBERS; i++ ) {
 		if( (sd = bg->members[i].sd) == NULL )
 			continue;
-		if( sd->bl.x != bg->members[i].x || sd->bl.y != bg->members[i].y )
-		{ // xy update
+		if( sd->bl.x != bg->members[i].x || sd->bl.y != bg->members[i].y ) { // xy update
 			bg->members[i].x = sd->bl.x;
 			bg->members[i].y = sd->bl.y;
 			clif_bg_xy(sd);

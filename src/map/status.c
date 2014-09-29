@@ -6451,7 +6451,7 @@ defType status_get_def(struct block_list *bl) {
 
 unsigned short status_get_speed(struct block_list *bl)
 {
-	if(bl->type == BL_NPC) //Only BL with speed data but no status_data [Skotlex]
+	if (bl->type == BL_NPC) //Only BL with speed data but no status_data [Skotlex]
 		return ((struct npc_data *)bl)->speed;
 	return status_get_status_data(bl)->speed;
 }
