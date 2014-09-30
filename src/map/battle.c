@@ -7722,7 +7722,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 		if( (flag&(BCT_PARTY|BCT_ENEMY)) ) {
 			int s_party = status_get_party_id(s_bl);
 
-			if( s_party == status_get_party_id(t_bl) )
+			if( s_party && s_party == status_get_party_id(t_bl) )
 				state |= BCT_PARTY;
 			else
 				state |= BCT_ENEMY;
