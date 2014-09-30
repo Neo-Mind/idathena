@@ -10324,7 +10324,7 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data* sd)
 		sd->cantalk_tick = gettick() + battle_config.min_chat_delay;
 	}
 
-	if( (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE ) {
+	if( sd->class_&JOBL_SUPER_NOVICE ) {
 		unsigned int next = pc_nextbaseexp(sd);
 
 		if( next == 0 )
@@ -13649,10 +13649,9 @@ void clif_parse_PMIgnoreAll(int fd, struct map_session_data *sd)
 		} else {
 			if (sd->ignore[0].name[0] != '\0') { //Wipe the ignore list.
 				memset(sd->ignore, 0, sizeof(sd->ignore));
-				flag = 0; // success
-			} else {
-				flag = 1; // fail
-			}
+				flag = 0; //Success
+			} else
+				flag = 1; //Fail
 		}
 	}
 
@@ -13666,14 +13665,13 @@ void clif_PMIgnoreList(struct map_session_data* sd)
 {
 	int i, fd = sd->fd;
 
-	WFIFOHEAD(fd,4+ARRAYLENGTH(sd->ignore)*NAME_LENGTH);
+	WFIFOHEAD(fd,4 + ARRAYLENGTH(sd->ignore) * NAME_LENGTH);
 	WFIFOW(fd,0) = 0xd4;
 
-	for( i = 0; i < ARRAYLENGTH(sd->ignore) && sd->ignore[i].name[0]; i++ ) {
-		memcpy(WFIFOP(fd,4+i*NAME_LENGTH), sd->ignore[i].name, NAME_LENGTH);
-	}
+	for (i = 0; i < ARRAYLENGTH(sd->ignore) && sd->ignore[i].name[0]; i++)
+		memcpy(WFIFOP(fd,4 + i * NAME_LENGTH), sd->ignore[i].name, NAME_LENGTH);
 
-	WFIFOW(fd,2) = 4+i*NAME_LENGTH;
+	WFIFOW(fd,2) = 4 + i * NAME_LENGTH;
 	WFIFOSET(fd,WFIFOW(fd,2));
 }
 
@@ -13690,7 +13688,8 @@ void clif_parse_PMIgnoreList(int fd,struct map_session_data *sd)
 /// 01e7
 void clif_parse_NoviceDoriDori(int fd, struct map_session_data *sd)
 {
-	if (sd->state.doridori) return;
+	if (sd->state.doridori)
+		return;
 
 	switch (sd->class_&MAPID_UPPERMASK) {
 		case MAPID_SOUL_LINKER:
@@ -13699,6 +13698,9 @@ void clif_parse_NoviceDoriDori(int fd, struct map_session_data *sd)
 			if (!sd->state.rest)
 				break;
 		case MAPID_SUPER_NOVICE:
+		case MAPID_SUPER_BABY:
+		case MAPID_SUPER_NOVICE_E:
+		case MAPID_SUPER_BABY_E:
 			sd->state.doridori = 1;
 			break;
 	}
@@ -13719,13 +13721,13 @@ void clif_parse_NoviceExplosionSpirits(int fd, struct map_session_data *sd)
 	/* Game client is currently broken on this (not sure the packetver range) */
 	/* It sends the request when the criteria doesn't match (and of course we let it fail) */
 	/* So restoring the old parse_globalmes method. */
-	if( ( sd->class_&MAPID_UPPERMASK ) == MAPID_SUPER_NOVICE ) {
+	if( sd->class_&JOBL_SUPER_NOVICE ) {
 		unsigned int next = pc_nextbaseexp(sd);
 
 		if( next == 0 )
 			next = pc_thisbaseexp(sd);
 		if( next ) {
-			int percent = (int)(((float)sd->status.base_exp / (float)next) * 1000. );
+			int percent = (int)(((float)sd->status.base_exp / (float)next) * 1000.);
 
 			if( percent && ( percent%100 ) == 0 ) { //10.0%, 20.0%, ..., 90.0%
 				sc_start(&sd->bl, &sd->bl, status_skill2sc(MO_EXPLOSIONSPIRITS), 100, 17, skill_get_time(MO_EXPLOSIONSPIRITS, 5)); //Lv17-> +50 critical (noted by Poki) [Skotlex]

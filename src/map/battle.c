@@ -1314,9 +1314,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 
 				if( src->type == BL_PC && ((TBL_PC*)src)->bonus.arrow_ele )
 					element = ((TBL_PC*)src)->bonus.arrow_ele;
-				else if( (sstatus = status_get_status_data(src)) ) {
+				else if( (sstatus = status_get_status_data(src)) )
 					element = sstatus->rhw.ele;
-				}
 			} else if( element == -2 ) //Use enchantment's element
 				element = status_get_attack_sc_element(src,status_get_sc(src));
 			else if( element == -3 ) //Use random element
@@ -1380,7 +1379,7 @@ bool battle_can_hit_gvg_target(struct block_list *src, struct block_list *bl, ui
 		if( mob_id == MOBID_EMPERIUM && flag&BF_SKILL && !(skill_get_inf3(skill_id)&INF3_HIT_EMP) ) //Skill immunity.
 			return false;
 		if( src->type != BL_MOB ) {
-			struct guild *g = src->type == BL_PC ? ((TBL_PC *)src)->guild : guild_search(status_get_guild_id(src));
+			struct guild *g = (src->type == BL_PC ? ((TBL_PC *)src)->guild : guild_search(status_get_guild_id(src)));
 
 			if( mob_id == MOBID_EMPERIUM && (!g || guild_checkskill(g,GD_APPROVAL) <= 0) )
 				return false;

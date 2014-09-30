@@ -218,26 +218,30 @@ int party_recv_noinfo(int party_id, int char_id)
 static void party_check_state(struct party_data *p)
 {
 	int i;
+
 	memset(&p->state, 0, sizeof(p->state));
 	for (i = 0; i < MAX_PARTY; i ++) {
-		if (!p->party.member[i].online) continue;
+		if (!p->party.member[i].online)
+			continue;
 		//Those not online shouldn't aport to skill usage and all that.
 		switch (p->party.member[i].class_) {
 			case JOB_MONK:
 			case JOB_BABY_MONK:
 			case JOB_CHAMPION:
 				p->state.monk = 1;
-			break;
+				break;
 			case JOB_STAR_GLADIATOR:
 				p->state.sg = 1;
-			break;
+				break;
 			case JOB_SUPER_NOVICE:
 			case JOB_SUPER_BABY:
+			case JOB_SUPER_NOVICE_E:
+			case JOB_SUPER_BABY_E:
 				p->state.snovice = 1;
-			break;
+				break;
 			case JOB_TAEKWON:
 				p->state.tk = 1;
-			break;
+				break;
 		}
 	}
 }

@@ -1428,12 +1428,12 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 	if(md->attacked_id && mode&MD_CANATTACK) {
 		if(md->attacked_id == md->target_id) { //Rude attacked check
 			if(!battle_check_range(&md->bl, tbl, md->status.rhw.range)
-			   &&  ( //Can't attack back and can't reach back
+			   && ( //Can't attack back and can't reach back
 					(!can_move && DIFF_TICK(tick, md->ud.canmove_tick) > 0 && (battle_config.mob_ai&0x2 || (md->sc.data[SC_SPIDERWEB] && md->sc.data[SC_SPIDERWEB]->val1)
 					|| md->sc.data[SC_BITE] || md->sc.data[SC_VACUUM_EXTREME] || md->sc.data[SC_THORNSTRAP]
 					|| md->sc.data[SC__MANHOLE])) //Not yet confirmed if boss will teleport once it can't reach target
 					|| !mob_can_reach(md, tbl, md->min_chase, MSS_RUSH)
-				   )
+				  )
 			&& md->state.attacked_count++ >= RUDE_ATTACKED_COUNT
 			&& !mobskill_use(md, tick, MSC_RUDEATTACKED) //If can't rude Attack
 			&& can_move && unit_escape(&md->bl, tbl, rnd()%10 + 1)) //Attempt escape

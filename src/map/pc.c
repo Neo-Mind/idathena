@@ -926,7 +926,7 @@ bool pc_can_Adopt(struct map_session_data *p1_sd, struct map_session_data *p2_sd
 	}
 
 	if( !((b_sd->status.class_ >= JOB_NOVICE && b_sd->status.class_ <= JOB_THIEF) ||
-		b_sd->status.class_ == JOB_SUPER_NOVICE) )
+		b_sd->status.class_ == JOB_SUPER_NOVICE || b_sd->status.class_ == JOB_SUPER_NOVICE_E) )
 		return false;
 
 	return true;
@@ -1067,19 +1067,19 @@ bool pc_isequip(struct map_session_data *sd, int n)
 			return false;
 		if(item->equip && sd->sc.data[SC_KYOUGAKU])
 			return false;
+		//Spirit of Super Novice equip bonuses. [Skotlex]
 		if(sd->sc.data[SC_SPIRIT] && sd->sc.data[SC_SPIRIT]->val2 == SL_SUPERNOVICE) {
-			//Spirit of Super Novice equip bonuses. [Skotlex]
-			if(sd->status.base_level > 90 && item->equip & EQP_HELM)
+			if(sd->status.base_level > 90 && item->equip&EQP_HELM)
 				return true; //Can equip all helms
-			if(sd->status.base_level > 96 && item->equip & EQP_ARMS && item->type == IT_WEAPON && item->wlv == 4)
+			if(sd->status.base_level > 96 && item->equip&EQP_ARMS && item->type == IT_WEAPON && item->wlv == 4)
 				switch(item->look) { //In weapons, the look determines type of weapon.
-					case W_DAGGER: //All daggers
-					case W_1HSWORD: //All 1H swords
-					case W_1HAXE: //All 1H Axes
-					case W_2HAXE: //All 2H Axes
-					case W_MACE: //All 1H Maces
-					case W_STAFF: //All 1H Staves
-					case W_2HSTAFF: //All 2H Staves
+					case W_DAGGER: //All level 4 - Daggers
+					case W_1HSWORD: //All level 4 - 1H Swords
+					case W_1HAXE: //All level 4 - 1H Axes
+					case W_2HAXE: //All level 4 - 2H Axes
+					case W_MACE: //All level 4 - 1H Maces
+					case W_STAFF: //All level 4 - 1H Staves
+					case W_2HSTAFF: //All level 4 - 2H Staves
 						return true;
 				}
 		}
@@ -1789,16 +1789,15 @@ int pc_calc_skilltree_normalize_job(struct map_session_data *sd)
 
 	novice_skills = job_info[pc_class2idx(JOB_NOVICE)].max_level[1] - 1;
 
-	// limit 1st class and above to novice job levels
-	if(skill_point < novice_skills) {
+	// Limit 1st class and above to novice job levels
+	if (skill_point < novice_skills)
 		c = MAPID_NOVICE;
-	}
-	// limit 2nd class and above to first class job levels (super novices are exempt)
-	else if ((sd->class_&JOBL_2) && (sd->class_&MAPID_UPPERMASK) != MAPID_SUPER_NOVICE) {
-		// regenerate change_level_2nd
+	// Limit 2nd class and above to first class job levels (super novices are exempt)
+	else if ((sd->class_&JOBL_2) && !(sd->class_&JOBL_SUPER_NOVICE)) {
+		// Regenerate change_level_2nd
 		if (!sd->change_level_2nd) {
 			if (sd->class_&JOBL_THIRD) {
-				// if neither 2nd nor 3rd jobchange levels are known, we have to assume a default for 2nd
+				// If neither 2nd nor 3rd jobchange levels are known, we have to assume a default for 2nd
 				if (!sd->change_level_3rd)
 					sd->change_level_2nd = job_info[pc_class2idx(pc_mapid2jobid(sd->class_&MAPID_UPPERMASK, sd->status.sex))].max_level[1];
 				else
@@ -1816,12 +1815,11 @@ int pc_calc_skilltree_normalize_job(struct map_session_data *sd)
 			pc_setglobalreg (sd, "jobchange_level", sd->change_level_2nd);
 		}
 
-		if (skill_point < novice_skills + (sd->change_level_2nd - 1)) {
+		if (skill_point < novice_skills + (sd->change_level_2nd - 1))
 			c &= MAPID_BASEMASK;
-		}
-		// limit 3rd class to 2nd class/trans job levels
-		else if(sd->class_&JOBL_THIRD) {
-			// regenerate change_level_3rd
+		// Limit 3rd class to 2nd class/trans job levels
+		else if (sd->class_&JOBL_THIRD) {
+			// Regenerate change_level_3rd
 			if (!sd->change_level_3rd) {
 					sd->change_level_3rd = 1 + skill_point + sd->status.skill_point
 						- (sd->status.job_level - 1)
@@ -1835,7 +1833,7 @@ int pc_calc_skilltree_normalize_job(struct map_session_data *sd)
 		}
 	}
 
-	// restore non-limiting flags
+	// Restore non-limiting flags
 	c |= sd->class_&(JOBL_UPPER|JOBL_BABY);
 
 	return c;
@@ -6110,7 +6108,7 @@ int pc_checkbaselevelup(struct map_session_data *sd) {
 	status_calc_pc(sd,SCO_FORCE);
 	status_percent_heal(&sd->bl,100,100);
 
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE) {
+	if (sd->class_&JOBL_SUPER_NOVICE) {
 		sc_start(&sd->bl,&sd->bl,status_skill2sc(PR_KYRIE),100,1,skill_get_time(PR_KYRIE,1));
 		sc_start(&sd->bl,&sd->bl,status_skill2sc(PR_IMPOSITIO),100,1,skill_get_time(PR_IMPOSITIO,1));
 		sc_start(&sd->bl,&sd->bl,status_skill2sc(PR_MAGNIFICAT),100,1,skill_get_time(PR_MAGNIFICAT,1));
@@ -7136,7 +7134,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 
 	//Activate Steel body if a super novice dies at 99+% exp [celest]
 	//Super Novices have no kill or die functions attached when saved by their angel
-	if( (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && !sd->state.snovice_dead_flag ) {
+	if( (sd->class_&JOBL_SUPER_NOVICE) && !sd->state.snovice_dead_flag ) {
 		unsigned int next = pc_nextbaseexp(sd);
 
 		if( next == 0 )
@@ -7967,7 +7965,7 @@ bool pc_jobchange(struct map_session_data *sd,int job, char upper)
 		return false; //Nothing to change.
 
 	//Changing from 1st to 2nd job
-	if ((b_class&JOBL_2) && !(sd->class_&JOBL_2) && (b_class&MAPID_UPPERMASK) != MAPID_SUPER_NOVICE) {
+	if ((b_class&JOBL_2) && !(sd->class_&JOBL_2) && !(b_class&JOBL_SUPER_NOVICE)) {
 		sd->change_level_2nd = sd->status.job_level;
 		pc_setglobalreg (sd,"jobchange_level",sd->change_level_2nd);
 	} else if ((b_class&JOBL_THIRD) && !(sd->class_&JOBL_THIRD)) { //Changing from 2nd to 3rd job
@@ -8602,7 +8600,7 @@ bool pc_setregistry(struct map_session_data *sd,const char *reg,int val,int type
 	switch( type ) {
 		case 3: //Char reg
 			if( !strcmp(reg,"PC_DIE_COUNTER") && sd->die_counter != val ) {
-				i = (!sd->die_counter && (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE);
+				i = (!sd->die_counter && (sd->class_&JOBL_SUPER_NOVICE));
 				sd->die_counter = val;
 				if( i )
 					status_calc_pc(sd,SCO_NONE); //Lost the bonus.
