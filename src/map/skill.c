@@ -10256,8 +10256,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				int qty[5] = { 3,3,4,4,5 };
 				struct mob_data *sum_md;
 				int i, c = 0;
-
 				int maxcount = qty[skill_lv - 1];
+
 				i = map_foreachinmap(skill_check_condition_mob_master_sub,hd->bl.m,BL_MOB,hd->bl.id,summons[skill_lv - 1],skill_id,&c);
 				if( c >= maxcount ) {
 					map_freeblock_unlock();

@@ -5121,7 +5121,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			if(wd.flag&BF_LONG) //Long damage rate addition doesn't use weapon + equip attack
 				ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.long_attack_atk_rate);
 			//Custom fix for "a hole" in renewal attack calculation [exneval]
-			ATK_ADDRATE(wd.damage, wd.damage2, 6);
+			ATK_ADDRATE(wd.damage, wd.damage2, 5);
 		}
 #else
 		//Final attack bonuses that aren't affected by cards
@@ -6356,10 +6356,17 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				//Damage = 7 * ((atk + matk) / skill level) * (target vit / 100)
 				//Skill is a "forced neutral" type skill, it benefits from weapon element but final damage
 				//is considered "neutral" for purposes of resistances
-				struct Damage atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,0);
-				struct Damage matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,0);
+				//Modified def formula
+				short totaldef, totalmdef;
+				struct Damage atk, matk;
 
+				atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,0);
+				matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,0);
 				md.damage = (int64)(7 * ((atk.damage / skill_lv + matk.damage / skill_lv) * tstatus->vit / 100));
+				//Modified def reduction, final damage = base damage - (edef + sdef + emdef + smdef)
+				totaldef = tstatus->def2 + (short)status_get_def(target);
+				totalmdef = tstatus->mdef + tstatus->mdef2;
+				md.damage -= totaldef + totalmdef;
 			}
 #else
 			if(tstatus->vit + sstatus->int_) //Crash fix
@@ -6390,7 +6397,6 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				//Final damage = base damage + ((mirror image count + 1) / 5 * base damage) - (edef + sdef)
 				struct Damage atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,0);
 				struct status_change *sc = status_get_sc(src);
-				//Modified def formula
 				short totaldef;
 
 				md.damage = sstatus->hp + (atk.damage * sstatus->hp * skill_lv) / sstatus->max_hp;
@@ -6424,18 +6430,14 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				//Official Renewal formula [helvetica]
 				//Damage = ((atk + matk) * (3 + (.5 * skill level))) - (edef + sdef + emdef + smdef)
 				//Atk part takes weapon element, matk part is non-elemental
-				//Modified def formula
 				short totaldef, totalmdef;
 				struct Damage atk, matk;
 
 				atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,0);
 				nk |= NK_NO_ELEFIX; //Atk part takes on weapon element, matk part is non-elemental
 				matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,0);
-
 				//(Atk + Matk) * (3 + (.5 * skill level))
 				md.damage = ((30 + (5 * skill_lv)) * (atk.damage + matk.damage)) / 10;
-
-				//Modified def reduction, final damage = base damage - (edef + sdef + emdef + smdef)
 				totaldef = tstatus->def2 + (short)status_get_def(target);
 				totalmdef = tstatus->mdef + tstatus->mdef2;
 				md.damage -= totaldef + totalmdef;
