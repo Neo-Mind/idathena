@@ -343,7 +343,7 @@ struct s_item_group_db {
 	unsigned short id, //Item Group ID
 		must_qty; //Number of must item at this group
 	struct s_item_group_entry *must; //Must item entry
-	struct s_item_group_random random[MAX_ITEMGROUP_RANDGROUP]; //TODO: Move this fixed array to dynamic size if needed.
+	struct s_item_group_random random[MAX_ITEMGROUP_RANDGROUP]; //@TODO: Move this fixed array to dynamic size if needed.
 };
 
 //Item Trade restrictions

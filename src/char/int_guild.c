@@ -369,7 +369,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 	Sql_GetData(sql_handle, 12, &data, &len); g->emblem_id = atoi(data);
 	Sql_GetData(sql_handle, 13, &data, &len);
 	// convert emblem data from hexadecimal to binary
-	//TODO: why not store it in the db as binary directly? [ultramage]
+	//@TODO: why not store it in the db as binary directly? [ultramage]
 	for( i = 0, p = g->emblem_data; i < g->emblem_len; ++i, ++p )
 	{
 		if( *data >= '0' && *data <= '9' )

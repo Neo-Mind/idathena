@@ -1004,7 +1004,7 @@ bool sv_readdb(const char* directory, const char* filename, char delim, int minc
 		if( (match = strstr(line, "//")) != NULL ) // strip comments
 			match[0] = 0;
 
-		//trim(line); //TODO: strip trailing whitespace
+		//trim(line); //@TODO: strip trailing whitespace
 		//trim2(line,1); //removing trailing actually break mob_skill_db
 		if( line[0] == '\0' || line[0] == '\n' || line[0] == '\r')
 			continue;

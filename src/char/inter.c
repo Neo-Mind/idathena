@@ -1178,7 +1178,7 @@ int mapif_parse_NameChangeRequest(int fd)
 			return 0;
 		}
 	}
-	//TODO: type holds the type of object to rename.
+	//@TODO: type holds the type of object to rename.
 	//If it were a player, it needs to have the guild information and db information
 	//updated here, because changing it on the map won't make it be saved [Skotlex]
 

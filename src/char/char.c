@@ -1705,7 +1705,7 @@ int delete_char_sql(int char_id)
 	Sql_FreeResult(sql_handle);
 
 	//Check for config char del condition [Lupus]
-	//TODO: Move this out to packet processing (0x68/0x1fb).
+	//@TODO: Move this out to packet processing (0x68/0x1fb).
 	if( ( char_del_level > 0 && base_level >= char_del_level )
 	 || ( char_del_level < 0 && base_level <= -char_del_level )
 	) {
@@ -3352,7 +3352,7 @@ int parse_frommap(int fd)
 				if( RFIFOREST(fd) < 6 || RFIFOREST(fd) < RFIFOW(fd,2) )
 					return 0;
 				{
-					//TODO: When data mismatches memory, update guild/party online/offline states.
+					//@TODO: When data mismatches memory, update guild/party online/offline states.
 					server[id].users = RFIFOW(fd,4);
 					online_char_db->foreach(online_char_db,char_db_setoffline,id); //Set all chars from this server as 'unknown'
 					for( i = 0; i < server[id].users; i++ ) {
@@ -4260,8 +4260,8 @@ int parse_char(int fd)
 
 					if( sd ) {
 						//Received again auth packet for already authentified account?? Discard it.
-						//TODO: Perhaps log this as a hack attempt?
-						//TODO: and perhaps send back a reply?
+						//@TODO: Perhaps log this as a hack attempt?
+						//@TODO: and perhaps send back a reply?
 						break;
 					}
 
@@ -5187,7 +5187,7 @@ void moveCharSlot( int fd, struct char_session_data* sd, unsigned short from, un
 
 	if( sd->found_char[to] > 0 ) {
 		// We want to move to a used position
-		if( char_movetoused ) { // TODO: check if the target is in deletion process
+		if( char_movetoused ) { // @TODO: check if the target is in deletion process
 			// Admin is friendly and uses triangle exchange
 			if(	   SQL_ERROR == Sql_QueryStr(sql_handle, "START TRANSACTION")
 				|| SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `char_num`='%d' WHERE `char_id` = '%d'", char_db, to, sd->found_char[from] )

@@ -5986,7 +5986,7 @@ BUILDIN_FUNC(countitem)
 		loc = 2;
 		size = MAX_STORAGE;
 		items = sd->status.storage.items;
-	} //TODO: 3 - Guild Storage
+	} //@TODO: 3 - Guild Storage
 	else {
 		size = MAX_INVENTORY;
 		items = sd->status.inventory;
@@ -6921,7 +6921,7 @@ BUILDIN_FUNC(delitem)
 		loc = 1;
 	else if( !strncmp(command, "storage", 7) )
 		loc = 2;
-	//TODO: 3 - Guild Storage
+	//@TODO: 3 - Guild Storage
 
 	if( script_hasdata(st,4) ) {
 		int account_id = script_getnum(st,4);
@@ -6999,7 +6999,7 @@ BUILDIN_FUNC(delitem2)
 		loc = 1;
 	else if( !strncmp(command, "storage", 7) )
 		loc = 2;
-	//TODO: 3 - Guild Storage
+	//@TODO: 3 - Guild Storage
 
 	if( script_hasdata(st,11) ) {
 		int account_id = script_getnum(st,11);

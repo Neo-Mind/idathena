@@ -201,7 +201,7 @@ static void itemdb_pc_get_itemgroup_sub(struct map_session_data *sd, struct s_it
 
 		if ((flag = pc_additem(sd, &tmp, tmp.amount, LOG_TYPE_SCRIPT)))
 			clif_additem(sd, 0, 0, flag);
-		else if (!flag && data->isAnnounced) { //TODO: Move this broadcast to proper behavior (it should on at different packet)
+		else if (!flag && data->isAnnounced) { //@TODO: Move this broadcast to proper behavior (it should on at different packet)
 			char output[CHAT_SIZE_MAX];
 
 			sprintf(output, msg_txt(717), sd->status.name, itemdb_jname(data->nameid), itemdb_jname(sd->itemid));
