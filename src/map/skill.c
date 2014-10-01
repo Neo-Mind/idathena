@@ -3775,7 +3775,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 						int x = src->x, y = src->y;
 						struct s_skill_nounit_layout *layout = skill_get_nounit_layout(skl->skill_id,skl->skill_lv,src,x,y,dir);
 
-						for( i = 0; i < layout->count; i++ )
+						for (i = 0; i < layout->count; i++)
 							map_foreachincell(skill_area_sub,src->m,x+layout->dx[i],y+layout->dy[i],BL_CHAR,src,skl->skill_id,skl->skill_lv,tick,skl->flag|BCT_ENEMY|SD_ANIMATION|1,skill_castend_damage_id);
 					}
 					break;
@@ -11227,17 +11227,13 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 					//Creates a random Cell in the Splash Area
 					tmpx = x - area + rnd()%(area * 2 + 1);
 					tmpy = y - area + rnd()%(area * 2 + 1);
-
 					if( i == 0 && path_search_long(NULL,src->m,src->x,src->y,tmpx,tmpy,CELL_CHKWALL) )
 						clif_skill_poseffect(src,skill_id,skill_lv,tmpx,tmpy,tick);
-
 					if( i > 0 )
 						skill_addtimerskill(src,tick + i * 1000,0,tmpx,tmpy,skill_id,skill_lv,(x1<<16)|y1,0);
-
 					x1 = tmpx;
 					y1 = tmpy;
 				}
-
 				skill_addtimerskill(src,tick + i * 1000,0,tmpx,tmpy,skill_id,skill_lv,-1,0);
 			}
 			break;
@@ -11491,7 +11487,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 						case 2: sx = x - i; break;
 						case 6: sx = x + i; break;
 					}
-					skill_addtimerskill(src,gettick() + (140 * i),0,sx,sy,skill_id,skill_lv,dir,flag&2);
+					skill_addtimerskill(src,tick + 140 * i,0,sx,sy,skill_id,skill_lv,dir,flag&2);
 				}
 			}
 			break;
@@ -11568,7 +11564,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 				for( i = 0; i < layout->count; i++ )
 					map_foreachincell(skill_area_sub,src->m,sx+layout->dx[i],sy+layout->dy[i],BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_ANIMATION|1,skill_castend_damage_id);
-				skill_addtimerskill(src,gettick() + status_get_amotion(src),0,x,y,LG_OVERBRAND_BRANDISH,skill_lv,dir,flag);
+				skill_addtimerskill(src,tick + status_get_amotion(src),0,x,y,LG_OVERBRAND_BRANDISH,skill_lv,dir,flag);
 			}
 			break;
 
@@ -11614,13 +11610,13 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case GN_CRAZYWEED: {
-				int area = skill_get_splash(GN_CRAZYWEED_ATK,skill_lv);
+				int area = skill_get_splash(skill_id,skill_lv);
 
 				for( i = 0; i < 3 + (skill_lv / 2); i++ ) {
-					int x1 = x - area + rnd()%(area * 2 + 1);
-					int y1 = y - area + rnd()%(area * 2 + 1);
+					int tmp_x = x - area + rnd()%(area * 2 + 1);
+					int tmp_y = y - area + rnd()%(area * 2 + 1);
 
-					skill_addtimerskill(src,tick + i * 150,0,x1,y1,GN_CRAZYWEED_ATK,skill_lv,-1,0);
+					skill_addtimerskill(src,tick + 150 * i,0,tmp_x,tmp_y,GN_CRAZYWEED_ATK,skill_lv,-1,0);
 				}
 			}
 			break;
@@ -11746,7 +11742,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 						case 6: sx = x + i; break;
 						case 7: sy = y + i; sx = x + i; break;
 					}
-					skill_addtimerskill(src,gettick() + (40 * i),0,sx,sy,skill_id,skill_lv,dir,flag);
+					skill_addtimerskill(src,tick + 40 * i,0,sx,sy,skill_id,skill_lv,dir,flag);
 				}
 			}
 			break;
@@ -13031,13 +13027,6 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 					if (rnd()%100 < unit->val1)
 						skill_attack(BF_WEAPON,ss,&unit->bl,bl,skill_id,skill_lv,tick,0);
 					break;
-				case GN_CRAZYWEED_ATK:
-					if (bl->type == BL_SKILL) {
-						struct skill_unit *su = (struct skill_unit *)bl;
-
-						if (su && !(skill_get_inf2(su->group->skill_id)&INF2_TRAP))
-							break;
-					}
 				default:
 					skill_attack(skill_get_type(skill_id),ss,&unit->bl,bl,skill_id,skill_lv,tick,0);
 			}
@@ -13573,8 +13562,8 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 		case UNT_BANDING: {
 				int rate = 0;
 
-				if (battle_check_target(ss,bl,BCT_ENEMY) > 0 && !(status_get_mode(bl)&MD_BOSS) &&
-					!(tsc && tsc->data[SC_BANDING_DEFENCE])) {
+				if (battle_check_target(ss,bl,BCT_ENEMY) > 0 &&
+					!(status_get_mode(bl)&MD_BOSS) && tsc && !tsc->data[SC_BANDING_DEFENCE]) {
 					rate = status_get_lv(ss) / 5 + 5 * skill_lv - tstatus->agi / 10;
 					sc_start(ss,bl,SC_BANDING_DEFENCE,rate,90,skill_get_time2(skill_id,skill_lv));
 				}
@@ -16741,6 +16730,7 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 			break;
 		case HW_GANBANTEIN:
 		case LG_EARTHDRIVE:
+		case GN_CRAZYWEED_ATK:
 			skill_delunit(unit); //Officially songs/dances are removed
 			return 1;
 		case SA_VOLCANO:
@@ -16781,26 +16771,6 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 				//Basilica can't be placed on top of itself to avoid map-cell stacking problems. [Skotlex]
 				(*alive) = 0;
 				return 1;
-			}
-			break;
-		case GN_CRAZYWEED_ATK:
-			switch (unit->group->unit_id) {
-				case UNT_THORNS_TRAP:
-				case UNT_WALLOFTHORN:
-				case UNT_MANHOLE:
-				case UNT_DIMENSIONDOOR:
-				case UNT_CHAOSPANIC:
-				case UNT_MAELSTROM:
-				case UNT_BLOODYLUST:
-				case UNT_FIREPILLAR_ACTIVE:
-				case UNT_VOLCANO:
-				case UNT_DELUGE:
-				case UNT_VIOLENTGALE:
-				case UNT_LANDPROTECTOR:
-				case UNT_SAFETYWALL:
-				case UNT_PNEUMA:
-					skill_delunit(unit);
-					return 1;
 			}
 			break;
 		case RL_FIRE_RAIN:
@@ -19430,7 +19400,7 @@ int skill_split_str (char *str, char **val, int num)
 }
 
 /**
- * Split the string with ':' as separator and put each value for a skilllv
+ * Split the string with ':' as separator and put each value for a skill_lv
  * if no more value found put the latest to fill the array
  * @param str : string to split
  * @param val : array of MAX_SKILL_LEVEL to put value into

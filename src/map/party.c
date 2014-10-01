@@ -1036,16 +1036,18 @@ int party_share_loot(struct party_data* p, struct map_session_data* sd, struct i
 	int i;
 
 	if (p && (p->party.item&2) && (first_charid || !(battle_config.party_share_type&1))) {
-		//Iem distribution to party members.
+		//Item distribution to party members.
 		if (battle_config.party_share_type&2) { //Round Robin
 			TBL_PC* psd;
+
 			i = p->itemc;
 			do {
 				i++;
 				if (i >= MAX_PARTY)
-					i = 0;	// reset counter to 1st person in party so it'll stop when it reaches "itemc"
+					i = 0; //Reset counter to 1st person in party so it'll stop when it reaches "itemc"
 
-				if( (psd = p->data[i].sd) == NULL || sd->bl.m != psd->bl.m || pc_isdead(psd) || (battle_config.idle_no_share && pc_isidle(psd)) )
+				if ((psd = p->data[i].sd) == NULL || sd->bl.m != psd->bl.m ||
+					pc_isdead(psd) || (battle_config.idle_no_share && pc_isidle(psd)))
 					continue;
 				
 				if (pc_additem(psd,item_data,item_data->amount,LOG_TYPE_PICKDROP_PLAYER))
@@ -1059,9 +1061,11 @@ int party_share_loot(struct party_data* p, struct map_session_data* sd, struct i
 		} else { //Random pick
 			TBL_PC* psd[MAX_PARTY];
 			int count = 0;
+
 			//Collect pick candidates
 			for (i = 0; i < MAX_PARTY; i++) {
-				if( (psd[count] = p->data[i].sd) == NULL || psd[count]->bl.m != sd->bl.m || pc_isdead(psd[count]) || (battle_config.idle_no_share && pc_isidle(psd[count])) )
+				if ((psd[count] = p->data[i].sd) == NULL || psd[count]->bl.m != sd->bl.m ||
+					pc_isdead(psd[count]) || (battle_config.idle_no_share && pc_isidle(psd[count])))
 					continue;
 
 				count++;
@@ -1085,7 +1089,7 @@ int party_share_loot(struct party_data* p, struct map_session_data* sd, struct i
 			return i;
 	}
 
-	if( p && battle_config.party_show_share_picker && battle_config.show_picker_item_type&(1<<itemdb_type(item_data->nameid)) )
+	if (p && battle_config.party_show_share_picker && battle_config.show_picker_item_type&(1<<itemdb_type(item_data->nameid)))
 		clif_party_show_picker(target, item_data);
 
 	return 0;
@@ -1114,37 +1118,18 @@ int party_sub_count(struct block_list *bl, va_list ap)
 	return 1;
 }
 
-// Speial check for Royal Guard's Banding skill and other skills that work together with it.
-// NOTE: This system is currently not in use and will be disabled until all required skills
-// are updated to support its function. [Rytech]
-/*int party_sub_count_banding(struct block_list *bl, va_list ap)
-{
-	struct map_session_data *sd = (TBL_PC *)bl;
-
-	if ( sd->state.autotrade )
-		return 0;
-
-	if ( battle_config.idle_no_share && pc_isidle(sd) )
-		return 0;
-
-	if ( (sd->class_&MAPID_THIRDMASK) != MAPID_ROYAL_GUARD )
-		return 0;
-
-	return 1;
-}*/
-
 // Speial check for Minstrel's and Wanderer's chorus skills.
 int party_sub_count_chorus(struct block_list *bl, va_list ap)
 {
 	struct map_session_data *sd = (TBL_PC *)bl;
 
-	if ( sd->state.autotrade )
+	if (sd->state.autotrade)
 		return 0;
 
-	if ( battle_config.idle_no_share && pc_isidle(sd) )
+	if (battle_config.idle_no_share && pc_isidle(sd))
 		return 0;
 
-	if ( (sd->class_&MAPID_THIRDMASK) != MAPID_MINSTRELWANDERER )
+	if ((sd->class_&MAPID_THIRDMASK) != MAPID_MINSTRELWANDERER)
 		return 0;
 
 	return 1;
@@ -1162,7 +1147,7 @@ int party_foreachsamemap(int (*func)(struct block_list*,va_list),struct map_sess
 
 	nullpo_ret(sd);
 
-	if((p = party_search(sd->status.party_id)) == NULL)
+	if ((p = party_search(sd->status.party_id)) == NULL)
 		return 0;
 
 	x0 = sd->bl.x - range;
@@ -1170,14 +1155,14 @@ int party_foreachsamemap(int (*func)(struct block_list*,va_list),struct map_sess
 	x1 = sd->bl.x + range;
 	y1 = sd->bl.y + range;
 
-	for(i = 0; i < MAX_PARTY; i++) {
+	for (i = 0; i < MAX_PARTY; i++) {
 		struct map_session_data *psd = p->data[i].sd;
 
-		if(!psd)
+		if (!psd)
 			continue;
-		if(psd->bl.m != sd->bl.m || !psd->bl.prev)
+		if (psd->bl.m != sd->bl.m || !psd->bl.prev)
 			continue;
-		if(range && (psd->bl.x < x0 || psd->bl.y < y0 ||
+		if (range && (psd->bl.x < x0 || psd->bl.y < y0 ||
 			psd->bl.x > x1 || psd->bl.y > y1))
 			continue;
 		list[blockcount++] =& psd->bl;
@@ -1185,7 +1170,7 @@ int party_foreachsamemap(int (*func)(struct block_list*,va_list),struct map_sess
 
 	map_freeblock_lock();
 
-	for(i = 0; i < blockcount; i++) {
+	for (i = 0; i < blockcount; i++) {
 		va_list ap;
 		va_start(ap, range);
 		total += func(list[i], ap);
@@ -1204,6 +1189,7 @@ int party_foreachsamemap(int (*func)(struct block_list*,va_list),struct map_sess
 static struct party_booking_ad_info* create_party_booking_data(void)
 {
 	struct party_booking_ad_info *pb_ad;
+
 	CREATE(pb_ad, struct party_booking_ad_info, 1);
 	pb_ad->index = party_booking_nextid++;
 	return pb_ad;
@@ -1216,10 +1202,10 @@ void party_booking_register(struct map_session_data *sd, short level, short mapi
 
 	pb_ad = (struct party_booking_ad_info*)idb_get(party_booking_db, sd->status.char_id);
 
-	if( pb_ad == NULL ) {
+	if (pb_ad == NULL) {
 		pb_ad = create_party_booking_data();
 		idb_put(party_booking_db, sd->status.char_id, pb_ad);
-	} else { // Already registered
+	} else { //Already registered
 		clif_PartyBookingRegisterAck(sd, 2);
 		return;
 	}
@@ -1229,13 +1215,13 @@ void party_booking_register(struct map_session_data *sd, short level, short mapi
 	pb_ad->p_detail.level = level;
 	pb_ad->p_detail.mapid = mapid;
 
-	for(i = 0; i < PARTY_BOOKING_JOBS; i++)
-		if(job[i] != 0xFF)
+	for (i = 0; i < PARTY_BOOKING_JOBS; i++)
+		if (job[i] != 0xFF)
 			pb_ad->p_detail.job[i] = job[i];
 		else pb_ad->p_detail.job[i] = -1;
 
 	clif_PartyBookingRegisterAck(sd, 0);
-	clif_PartyBookingInsertNotify(sd, pb_ad); // Notice
+	clif_PartyBookingInsertNotify(sd, pb_ad); //Notice
 }
 
 void party_booking_update(struct map_session_data *sd, short* job)
@@ -1245,13 +1231,13 @@ void party_booking_update(struct map_session_data *sd, short* job)
 
 	pb_ad = (struct party_booking_ad_info*)idb_get(party_booking_db, sd->status.char_id);
 	
-	if( pb_ad == NULL )
+	if (pb_ad == NULL)
 		return;
 	
-	pb_ad->starttime = (int)time(NULL); // Update time.
+	pb_ad->starttime = (int)time(NULL); //Update time.
 
-	for(i = 0; i < PARTY_BOOKING_JOBS; i++)
-		if(job[i] != 0xFF)
+	for (i = 0; i < PARTY_BOOKING_JOBS; i++)
+		if (job[i] != 0xFF)
 			pb_ad->p_detail.job[i] = job[i];
 		else pb_ad->p_detail.job[i] = -1;
 
@@ -1268,8 +1254,8 @@ void party_booking_search(struct map_session_data *sd, short level, short mapid,
 
 	memset(result_list, 0, sizeof(result_list));
 
-	for( pb_ad = dbi_first(iter); dbi_exists(iter); pb_ad = dbi_next(iter) ) {
-		if (pb_ad->index < lastindex || (level && (pb_ad->p_detail.level < level-15 || pb_ad->p_detail.level > level)))
+	for (pb_ad = dbi_first(iter); dbi_exists(iter); pb_ad = dbi_next(iter)) {
+		if (pb_ad->index < lastindex || (level && (pb_ad->p_detail.level < level - 15 || pb_ad->p_detail.level > level)))
 			continue;
 		if (count >= PARTY_BOOKING_RESULTS) {
 			more_result = true;
@@ -1285,9 +1271,8 @@ void party_booking_search(struct map_session_data *sd, short level, short mapid,
 			if (pb_ad->p_detail.mapid == mapid)
 				result_list[count] = pb_ad;
 		}
-		if( result_list[count] ) {
+		if (result_list[count])
 			count++;
-		}
 	}
 	dbi_destroy(iter);
 	clif_PartyBookingSearchAck(sd->fd, result_list, count, more_result);
@@ -1297,7 +1282,7 @@ bool party_booking_delete(struct map_session_data *sd)
 {
 	struct party_booking_ad_info* pb_ad;
 
-	if((pb_ad = (struct party_booking_ad_info*)idb_get(party_booking_db, sd->status.char_id)) != NULL) {
+	if ((pb_ad = (struct party_booking_ad_info*)idb_get(party_booking_db, sd->status.char_id)) != NULL) {
 		clif_PartyBookingDeleteNotify(sd, pb_ad->index);
 		idb_remove(party_booking_db,sd->status.char_id);
 	}

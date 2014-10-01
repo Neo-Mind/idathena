@@ -7510,7 +7510,6 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 						case MS_MAGNUM:
 						case RA_DETONATOR:
 						case RA_SENSITIVEKEEN:
-						case GN_CRAZYWEED_ATK:
 						case RK_STORMBLAST:
 						case SR_RAMPAGEBLASTER:
 						case NC_COLDSLOWER:
@@ -7561,7 +7560,6 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 
 				if( t_bl == s_bl )
 					break;
-
 				sd = BL_CAST(BL_PC, t_bl);
 				if( sd->state.monster_ignore && flag&BCT_ENEMY )
 					return 0; //Global immunity only to Attacks

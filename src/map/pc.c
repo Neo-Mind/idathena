@@ -283,8 +283,9 @@ static int pc_check_banding(struct block_list *bl, va_list ap) {
 	nullpo_ret(bl);
 	nullpo_ret(tsd = (struct map_session_data*)bl);
 	nullpo_ret(src = va_arg(ap,struct block_list *));
+
 	c = va_arg(ap,int *);
-	b_sd = va_arg(ap, int *);
+	b_sd = va_arg(ap,int *);
 
 	if( pc_isdead(tsd) )
 		return 0;
@@ -300,8 +301,8 @@ static int pc_check_banding(struct block_list *bl, va_list ap) {
 }
 
 int pc_banding(struct map_session_data *sd, uint16 skill_lv) {
-	int c;
-	int b_sd[MAX_PARTY]; // In case of a full Royal Guard party.
+	int c,
+		b_sd[MAX_PARTY]; // In case of a full Royal Guard party
 	int i, j, hp, extra_hp = 0, tmp_qty = 0;
 	int range = skill_get_splash(LG_BANDING,skill_lv);
 
@@ -309,10 +310,11 @@ int pc_banding(struct map_session_data *sd, uint16 skill_lv) {
 
 	c = 0;
 	memset(b_sd, 0, sizeof(b_sd));
+
 	i = party_foreachsamemap(pc_check_banding,sd,range,&sd->bl,&c,&b_sd);
 
 	if( c < 1 ) { // Just recalc status no need to recalc hp
-		// No more Royal Guards in Banding found.
+		// No more Royal Guards in Banding found
 		struct status_change *sc;
 
 		if( (sc = status_get_sc(&sd->bl)) != NULL  && sc->data[SC_BANDING] ) {
@@ -326,7 +328,7 @@ int pc_banding(struct map_session_data *sd, uint16 skill_lv) {
 	hp = status_get_hp(&sd->bl);
 	i++;
 
-	// Get total HP of all Royal Guards in party.
+	// Get total HP of all Royal Guards in party
 	for( j = 0; j < i; j++ ) {
 		struct map_session_data *bsd = map_id2sd(b_sd[j]);
 
@@ -334,10 +336,10 @@ int pc_banding(struct map_session_data *sd, uint16 skill_lv) {
 			hp += status_get_hp(&bsd->bl);
 	}
 
-	// Set average HP.
+	// Set average HP
 	hp = hp / i;
 
-	// If a Royal Guard have full HP, give more HP to others that haven't full HP.
+	// If a Royal Guard have full HP, give more HP to others that haven't full HP
 	for( j = 0; j < i; j++ ) {
 		int tmp_hp = 0;
 		struct map_session_data *bsd = map_id2sd(b_sd[j]);
@@ -357,10 +359,10 @@ int pc_banding(struct map_session_data *sd, uint16 skill_lv) {
 		if( bsd != NULL ) {
 			struct status_change *sc;
 
-			status_set_hp(&bsd->bl,hp,0); // Set hp
+			status_set_hp(&bsd->bl,hp,0); // Set HP
 			if( (sc = status_get_sc(&bsd->bl)) != NULL && sc->data[SC_BANDING] ) {
-				sc->data[SC_BANDING]->val2 = c; // Set the counter.
-				status_calc_bl(&bsd->bl,status_sc2scb_flag(SC_BANDING)); // Set atk and def.
+				sc->data[SC_BANDING]->val2 = c; // Set the counter
+				status_calc_bl(&bsd->bl,status_sc2scb_flag(SC_BANDING)); // Set ATK and DEF
 			}
 		}
 	}

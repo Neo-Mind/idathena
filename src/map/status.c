@@ -5565,7 +5565,6 @@ static short status_calc_def2(struct block_list *bl, struct status_change *sc, i
 	if(sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 1)
 		def2 += (5 + sc->data[SC_BANDING]->val1) * sc->data[SC_BANDING]->val2;
 #endif
-
 	if(sc->data[SC_ANGELUS])
 #ifdef RENEWAL //In renewal only the VIT stat bonus is boosted by angelus
 		def2 += status_get_vit(bl) / 2 * sc->data[SC_ANGELUS]->val2 / 100;
