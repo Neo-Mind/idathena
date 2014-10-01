@@ -7491,7 +7491,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 		case BL_SKILL: {
 				TBL_SKILL *su = ((TBL_SKILL*)target);
 
-				if( !su->group )
+				if( !su || !su->group )
 					return 0;
 				if( skill_get_inf2(su->group->skill_id)&INF2_TRAP ) { //Only a few skills can target traps
 					switch( battle_getcurrentskill(src) ) {
@@ -7563,7 +7563,6 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 					break;
 
 				sd = BL_CAST(BL_PC, t_bl);
-
 				if( sd->state.monster_ignore && flag&BCT_ENEMY )
 					return 0; //Global immunity only to Attacks
 				if( sd->status.karma && s_bl->type == BL_PC && ((TBL_PC*)s_bl)->status.karma )
@@ -7710,14 +7709,15 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			state &= ~BCT_ENEMY;
 
 		if( state&BCT_ENEMY && battle_config.pk_mode && !map_flag_gvg(m) && s_bl->type == BL_PC && t_bl->type == BL_PC ) {
-			TBL_PC *sd = (TBL_PC*)s_bl, *sd2 = (TBL_PC*)t_bl;
+			TBL_PC *sd = (TBL_PC*)s_bl, *tsd = (TBL_PC*)t_bl;
 
 			//Prevent novice engagement on pk_mode (feature by Valaris)
 			if( (sd->class_&MAPID_UPPERMASK) == MAPID_NOVICE ||
-				(sd2->class_&MAPID_UPPERMASK) == MAPID_NOVICE ||
+				(tsd->class_&MAPID_UPPERMASK) == MAPID_NOVICE ||
 				(int)sd->status.base_level < battle_config.pk_min_level ||
-			  	(int)sd2->status.base_level < battle_config.pk_min_level ||
-				(battle_config.pk_level_range && abs((int)sd->status.base_level - (int)sd2->status.base_level) > battle_config.pk_level_range) )
+			  	(int)tsd->status.base_level < battle_config.pk_min_level ||
+				(battle_config.pk_level_range &&
+				abs((int)sd->status.base_level - (int)tsd->status.base_level) > battle_config.pk_level_range) )
 				state &= ~BCT_ENEMY;
 		}
 	} else { //Non pvp/gvg, check party/guild settings.
@@ -7726,8 +7726,6 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 
 			if( s_party && s_party == status_get_party_id(t_bl) )
 				state |= BCT_PARTY;
-			else
-				state |= BCT_ENEMY;
 		}
 
 		if( (flag&(BCT_GUILD|BCT_ENEMY)) ) {
@@ -7736,8 +7734,6 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 
 			if( s_guild && t_guild && (s_guild == t_guild || (!(flag&BCT_SAMEGUILD) && guild_isallied(s_guild, t_guild))) )
 				state |= BCT_GUILD;
-			else
-				state |= BCT_ENEMY;
 		}
 	}
 

@@ -658,7 +658,7 @@ void pc_makesavestatus(struct map_session_data *sd)
 		sd->status.last_point.y = sd->bl.y;
 	}
 
-	if(map[sd->bl.m].flag.nosave && sd->state.autotrade == 1) {
+	if(map[sd->bl.m].flag.nosave && sd->state.autotrade != 2) {
 		struct map_data *m = &map[sd->bl.m];
 
 		if(m->save.map)
