@@ -11221,20 +11221,20 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 		case WZ_METEOR: {
 				int area = skill_get_splash(skill_id,skill_lv);
-				short tmpx = 0, tmpy = 0, x1 = 0, y1 = 0;
+				short tmp_x = 0, tmp_y = 0, x1 = 0, y1 = 0;
 
 				for( i = 0; i < 2 + (skill_lv>>1); i++ ) {
 					//Creates a random Cell in the Splash Area
-					tmpx = x - area + rnd()%(area * 2 + 1);
-					tmpy = y - area + rnd()%(area * 2 + 1);
-					if( i == 0 && path_search_long(NULL,src->m,src->x,src->y,tmpx,tmpy,CELL_CHKWALL) )
-						clif_skill_poseffect(src,skill_id,skill_lv,tmpx,tmpy,tick);
+					tmp_x = x - area + rnd()%(area * 2 + 1);
+					tmp_y = y - area + rnd()%(area * 2 + 1);
+					if( i == 0 && path_search_long(NULL,src->m,src->x,src->y,tmp_x,tmp_y,CELL_CHKWALL) )
+						clif_skill_poseffect(src,skill_id,skill_lv,tmp_x,tmp_y,tick);
 					if( i > 0 )
-						skill_addtimerskill(src,tick + i * 1000,0,tmpx,tmpy,skill_id,skill_lv,(x1<<16)|y1,0);
-					x1 = tmpx;
-					y1 = tmpy;
+						skill_addtimerskill(src,tick + i * 1000,0,tmp_x,tmp_y,skill_id,skill_lv,(x1<<16)|y1,0);
+					x1 = tmp_x;
+					y1 = tmp_y;
 				}
-				skill_addtimerskill(src,tick + i * 1000,0,tmpx,tmpy,skill_id,skill_lv,-1,0);
+				skill_addtimerskill(src,tick + i * 1000,0,tmp_x,tmp_y,skill_id,skill_lv,-1,0);
 			}
 			break;
 

@@ -770,6 +770,7 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range, int state
 
 	nullpo_ret(md);
 	nullpo_ret(bl);
+
 	switch (state) {
 		case MSS_RUSH:
 		case MSS_FOLLOW:
@@ -1150,7 +1151,8 @@ static int mob_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 		(*target) = bl;
 		md->target_id = bl->id;
 		md->min_chase = md->db->range3;
-	}
+	} else
+		mob_stop_walking(md,1); //Stop walking immediately if item is no longer on the ground
 	return 0;
 }
 
@@ -1495,8 +1497,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 	//Scan area for targets and items to loot, avoid trying to loot if the mob is full and can't consume the items
 	if(!tbl && (mode&MD_LOOTER) && md->lootitem && DIFF_TICK(tick, md->ud.canact_tick) > 0 &&
 		(md->lootitem_count < LOOTITEM_SIZE || battle_config.monster_loot_type != 1))
-		if(!map_foreachinrange(mob_ai_sub_hard_lootsearch, &md->bl, view_range, BL_ITEM, md, &tbl))
-			mob_stop_walking(md, 1); //Stop walking immediately if item is no longer on the ground
+		map_foreachinrange(mob_ai_sub_hard_lootsearch, &md->bl, view_range, BL_ITEM, md, &tbl);
 
 	if((!tbl && (mode&MD_AGGRESSIVE)) || md->state.skillstate == MSS_FOLLOW) {
 		map_foreachinrange(mob_ai_sub_hard_activesearch, &md->bl, view_range, DEFAULT_ENEMY_TYPE(md), md, &tbl, mode);
