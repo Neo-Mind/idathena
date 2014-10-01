@@ -14702,12 +14702,12 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 			break;
 		case LG_RAYOFGENESIS:
 		case LG_HESPERUSLIT:
-			if( !sc || !sc->data[SC_BANDING] ) {
+			if( sc && sc->data[SC_INSPIRATION] )
+				return true; //Don't check for partner.
+			if( !(sc && sc->data[SC_BANDING]) ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL,0);
 				return false;
 			}
-			if( sc->data[SC_INSPIRATION] )
-				return true; //Don't check for partner.
 			if( sc->data[SC_BANDING] &&
 				sc->data[SC_BANDING]->val2 < (skill_id == LG_RAYOFGENESIS ? 2 : 3) )
 				return false; //Just fails, no msg here.
