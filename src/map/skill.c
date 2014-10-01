@@ -11617,7 +11617,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 					int tmp_x = x - area + rnd()%(area * 2 + 1);
 					int tmp_y = y - area + rnd()%(area * 2 + 1);
 
-					skill_addtimerskill(src,tick + 150 * i,0,tmp_x,tmp_y,GN_CRAZYWEED_ATK,skill_lv,-1,0);
+					skill_addtimerskill(src,tick + 250 * i,0,tmp_x,tmp_y,GN_CRAZYWEED_ATK,skill_lv,-1,0);
 				}
 			}
 			break;
