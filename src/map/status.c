@@ -10745,7 +10745,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			}
 			break;
 		case SC_VACUUM_EXTREME:
-			if (!map_flag_gvg2(bl->m) && sce->val2 && sc->cant.move > 0)
+			if (sce->val2 && sc->cant.move > 0)
 				sc->cant.move--;
 			break;
 		//case SC_KYOUGAKU:
@@ -11650,7 +11650,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		case SC_VACUUM_EXTREME:
 			if( --(sce->val4) >= 0 ) {
-				if( !map_flag_gvg2(bl->m) && !unit_is_walking(bl) && !sce->val2 ) {
+				if( !unit_is_walking(bl) && !sce->val2 ) {
 					sc->cant.move++;
 					sce->val2 = 1;
 				}

@@ -1083,11 +1083,12 @@ int unit_skilluse_id(struct block_list *src, int target_id, uint16 skill_id, uin
  */
 int unit_is_walking(struct block_list *bl)
 {
-	struct unit_data *ud = unit_bl2ud(bl);
+	struct unit_data *ud;
 
 	nullpo_ret(bl);
 
-	if(!ud) return 0;
+	if (!(ud = unit_bl2ud(bl)))
+		return 0;
 	return (ud->walktimer != INVALID_TIMER);
 }
 

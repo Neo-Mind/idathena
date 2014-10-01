@@ -2103,7 +2103,7 @@ static bool is_attack_critical(struct Damage wd, struct block_list *src, struct 
 
 		switch(skill_id) {
 			case 0:
-				if(sc && !sc->data[SC_AUTOCOUNTER])
+				if(!(sc && sc->data[SC_AUTOCOUNTER]))
 					break;
 				clif_specialeffect(src, 131, AREA);
 				status_change_end(src, SC_AUTOCOUNTER, INVALID_TIMER);
@@ -3701,14 +3701,16 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 			RE_LVL_DMOD(100);
 			break;
 		case LG_HESPERUSLIT:
-			skillratio += -100 + 120 * skill_lv;
-			if(sc && sc->data[SC_BANDING])
-				skillratio += 200 * sc->data[SC_BANDING]->val2;
-			RE_LVL_DMOD(100);
-			if(sc && sc->data[SC_INSPIRATION])
-				skillratio += 600;
-			if(sc && sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 5)
-				skillratio = skillratio * 150 / 100;
+			if(sc) {
+				if(sc->data[SC_INSPIRATION])
+					skillratio += 1100;
+				if(sc->data[SC_BANDING]) {
+					skillratio += -100 + 120 * skill_lv + 200 * sc->data[SC_BANDING]->val2;
+					if(sc->data[SC_BANDING]->val2 > 5)
+						skillratio = skillratio * 150 / 100;
+				}
+				RE_LVL_DMOD(100);
+			}
 			break;
 		case SR_DRAGONCOMBO:
 			skillratio += 40 * skill_lv;
@@ -5789,8 +5791,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 							party_foreachsamemap(skill_check_condition_char_sub, sd, 3, &sd->bl, &c, &p_sd, skill_id);
 							c = (c > 1 ? rnd()%c : 0);
 
+							//MATK [{( Skill Level x 400 ) x ( Caster's Base Level / 120 )} + 2500 ] %
 							if((psd = map_id2sd(p_sd[c])) && pc_checkskill(psd, WL_COMET) > 0) {
-								//MATK [{( Skill Level x 400 ) x ( Caster's Base Level / 120 )} + 2500 ] %
 								skillratio = skill_lv * 400;
 								RE_LVL_DMOD(120);
 								skillratio += 2500;
@@ -5822,16 +5824,18 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						RE_LVL_DMOD(100);
 						break;
 					case LG_RAYOFGENESIS:
-						skillratio += -100 + 300 * skill_lv;
-						if(sc && sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 1)
-							skillratio += 200 * sc->data[SC_BANDING]->val2;
-						skillratio = skillratio * (sd ? sd->status.job_level / 25 : 1);
+						if(sc) {
+							if(sc->data[SC_INSPIRATION])
+								skillratio += 1400;
+							if(sc->data[SC_BANDING])
+								skillratio += -100 + 300 * skill_lv + 200 * sc->data[SC_BANDING]->val2;
+							skillratio = skillratio * (sd ? sd->status.job_level / 25 : 1);
+						}
 						break;
-					case LG_SHIELDSPELL:
-						//[(Caster's Base Level x 4) + (Shield MDEF x 100) + (Caster's INT x 2)] %
-						if(sd && skill_lv == 2) {
+					case LG_SHIELDSPELL: //[(Caster's Base Level x 4) + (Shield MDEF x 100) + (Caster's INT x 2)] %
+						if(sd && skill_lv == 2)
 							skillratio += -100 + status_get_lv(src) * 4 + sd->bonus.shieldmdef * 100 + status_get_int(src) * 2;
-						} else
+						else
 							skillratio = 0;
 						break;
 					case WM_METALICSOUND:
@@ -6783,7 +6787,7 @@ int64 battle_calc_return_damage(struct block_list* bl, struct block_list *src, i
 #endif
 	}
 
-	if( sc && !sc->data[SC_DEATHBOUND] && sc->data[SC_KYOMU] ) //Nullify reflecting ability
+	if( sc && sc->data[SC_KYOMU] && !sc->data[SC_DEATHBOUND] ) //Nullify reflecting ability
 		rdamage = 0;
 
 	return rdamage;
