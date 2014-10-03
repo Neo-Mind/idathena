@@ -7446,14 +7446,13 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 
 	m = target->m;
 
-	//t_bl/s_bl hold the 'master' of the attack, while src/target are the actual
-	//Objects involved.
-	if( (t_bl = battle_get_master(target)) == NULL )
-		t_bl = target;
-
+	//s_bl/t_bl hold the 'master' of the attack, while src/target are the actual objects involved.
 	if( (s_bl = battle_get_master(src)) == NULL )
 		s_bl = src;
-		
+
+	if( (t_bl = battle_get_master(target)) == NULL )
+		t_bl = target;
+	
 	if( s_bl->type == BL_PC ) {
 		switch( t_bl->type ) {
 			case BL_MOB: //Source => PC, Target => MOB
@@ -7595,7 +7594,9 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 		case BL_SKILL: {
 				struct skill_unit *su = (struct skill_unit *)src;
 
-				if( su && su->group && su->group->src_id == target->id ) {
+				if( !su || !su->group )
+					return 0;
+				if( su->group->src_id == target->id ) {
 					int inf2 = skill_get_inf2(su->group->skill_id);
 
 					if( inf2&INF2_NO_TARGET_SELF )
@@ -7725,9 +7726,8 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 	} else { //Non pvp/gvg, check party/guild settings.
 		if( (flag&BCT_PARTY) || (state&BCT_ENEMY) ) {
 			int s_party = status_get_party_id(s_bl);
-			int t_party = status_get_party_id(t_bl);
 
-			if( s_party && t_party && s_party == t_party )
+			if( s_party && s_party == status_get_party_id(t_bl) )
 				state |= BCT_PARTY;
 		}
 
