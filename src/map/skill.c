@@ -5890,9 +5890,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 					const enum sc_type scs[] = { SC_QUAGMIRE,SC_PROVOKE,SC_ROKISWEIL,SC_GRAVITATION,SC_SUITON,SC_STRIPWEAPON,SC_STRIPSHIELD,SC_STRIPARMOR,SC_STRIPHELM,SC_BLADESTOP };
 	
 					for (i = SC_COMMON_MIN; i <= SC_COMMON_MAX; i++)
-						if (tsc->data[i]) status_change_end(bl,(sc_type)i,INVALID_TIMER);
+						if (tsc->data[i])
+							status_change_end(bl,(sc_type)i,INVALID_TIMER);
 					for (i = 0; i < ARRAYLENGTH(scs); i++)
-						if (tsc->data[scs[i]]) status_change_end(bl,scs[i],INVALID_TIMER);
+						if (tsc->data[scs[i]])
+							status_change_end(bl,scs[i],INVALID_TIMER);
 				}
 			}
 			break;
@@ -13724,7 +13726,7 @@ int skill_unit_onleft(uint16 skill_id, struct block_list *bl, unsigned int tick)
 		sc = NULL;
 
 	type = status_skill2sc(skill_id);
-	sce = (sc && type != -1) ? sc->data[type] : NULL;
+	sce = (sc && type != SC_NONE) ? sc->data[type] : NULL;
 
 	switch (skill_id) {
 		case WZ_QUAGMIRE:
@@ -17324,14 +17326,15 @@ struct skill_unit_group* skill_initunitgroup(struct block_list* src, int count, 
 	struct skill_unit_group* group;
 	int i;
 
-	if(!(skill_id && skill_lv)) return 0;
+	if(!(skill_id && skill_lv))
+		return 0;
 
 	nullpo_retr(NULL, src);
 	nullpo_retr(NULL, ud);
 
 	//Find a free spot to store the new unit group
 	//@TODO: Make this flexible maybe by changing this fixed array?
-	ARR_FIND( 0, MAX_SKILLUNITGROUP, i, ud->skillunit[i] == NULL );
+	ARR_FIND(0, MAX_SKILLUNITGROUP, i, ud->skillunit[i] == NULL);
 	if(i == MAX_SKILLUNITGROUP) {
 		//Array is full, make room by discarding oldest group
 		int j = 0;

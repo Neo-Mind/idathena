@@ -7723,14 +7723,15 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 				state &= ~BCT_ENEMY;
 		}
 	} else { //Non pvp/gvg, check party/guild settings.
-		if( (flag&(BCT_PARTY|BCT_ENEMY)) ) {
+		if( (flag&BCT_PARTY) || (state&BCT_ENEMY) ) {
 			int s_party = status_get_party_id(s_bl);
+			int t_party = status_get_party_id(t_bl);
 
-			if( s_party && s_party == status_get_party_id(t_bl) )
+			if( s_party && t_party && s_party == t_party )
 				state |= BCT_PARTY;
 		}
 
-		if( (flag&(BCT_GUILD|BCT_ENEMY)) ) {
+		if( (flag&BCT_GUILD) || (state&BCT_ENEMY) ) {
 			int s_guild = status_get_guild_id(s_bl);
 			int t_guild = status_get_guild_id(t_bl);
 
