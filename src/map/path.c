@@ -190,7 +190,7 @@ static void heap_push_node(struct node_heap *heap, struct path_node *node)
 {
 #ifndef __clang_analyzer__ // @TODO: Figure out why clang's static analyzer doesn't like this
 	BHEAP_ENSURE(*heap, 1, 256);
-	BHEAP_PUSH(*heap, node, NODE_MINTOPCMP, swap_ptr);
+	BHEAP_PUSH2(*heap, node, NODE_MINTOPCMP, swap_ptr);
 #endif // __clang_analyzer__
 }
 
@@ -203,8 +203,7 @@ static int heap_update_node(struct node_heap *heap, struct path_node *node)
 		ShowError("heap_update_node: node not found\n");
 		return 1;
 	}
-	BHEAP_POPINDEX(*heap, i, NODE_MINTOPCMP, swap_ptr);
-	BHEAP_PUSH(*heap, node, NODE_MINTOPCMP, swap_ptr);
+	BHEAP_UPDATE(*heap, i, NODE_MINTOPCMP, swap_ptr);
 	return 0;
 }
 
@@ -254,7 +253,7 @@ static int add_path(struct node_heap *heap, struct path_node *tp, int16 x, int16
  *------------------------------------------*/
 bool path_search(struct walkpath_data *wpd, int16 m, int16 x0, int16 y0, int16 x1, int16 y1, int flag, cell_chk cell)
 {
-	register int i, j, x, y, dx = 0, dy = 0;
+	register int i, x, y, dx = 0, dy = 0;
 	struct map_data *md;
 	struct walkpath_data s_wpd;
 
@@ -263,6 +262,7 @@ bool path_search(struct walkpath_data *wpd, int16 m, int16 x0, int16 y0, int16 x
 
 	if (!map[m].cell)
 		return false;
+
 	md = &map[m];
 
 #ifdef CELL_NOSTACK
@@ -288,8 +288,7 @@ bool path_search(struct walkpath_data *wpd, int16 m, int16 x0, int16 y0, int16 x
 		x = x0; // Current position = starting cell
 		y = y0;
 		i = 0;
-		while( i < ARRAYLENGTH(wpd->path) )
-		{
+		while( i < ARRAYLENGTH(wpd->path) ) {
 			wpd->path[i] = walk_choices[-dy + 1][dx + 1];
 			i++;
 
@@ -305,16 +304,14 @@ bool path_search(struct walkpath_data *wpd, int16 m, int16 x0, int16 y0, int16 x
 				break; // obstacle = failure
 		}
 
-		if( x == x1 && y == y1 )
-		{ // easy path successful.
+		if( x == x1 && y == y1 ) { // easy path successful.
 			wpd->path_len = i;
 			wpd->path_pos = 0;
 			return true;
 		}
 
 		return false; // easy path unsuccessful
-	}
-	else { // !(flag&1)
+	} else { // !(flag&1)
 		// A* (A-star) pathfinding
 		// We always use A* for finding walkpaths because it is what game client uses.
 		// Easy pathfinding cuts corners of non-walkable cells, but client always walks around it.
@@ -329,6 +326,8 @@ bool path_search(struct walkpath_data *wpd, int16 m, int16 x0, int16 y0, int16 x
 		int xs = md->xs - 1;
 		int ys = md->ys - 1;
 		int len = 0;
+		int j;
+
 		memset(tp, 0, sizeof(tp));
 
 		// Start node
@@ -341,8 +340,8 @@ bool path_search(struct walkpath_data *wpd, int16 m, int16 x0, int16 y0, int16 x
 		tp[i].flag   = SET_OPEN;
 
 		heap_push_node(&open_set, &tp[i]); // Put start node to 'open' set
-		for(;;)
-		{
+
+		for(;;) {
 			int e = 0; // error flag
 
 			// Saves allowed directions for the current cell. Diagonal directions
@@ -361,7 +360,7 @@ bool path_search(struct walkpath_data *wpd, int16 m, int16 x0, int16 y0, int16 x
 			}
 
 			current = BHEAP_PEEK(open_set); // Look for the lowest f_cost node in the 'open' set
-			BHEAP_POP(open_set, NODE_MINTOPCMP, swap_ptr); // Remove it from 'open' set
+			BHEAP_POP2(open_set, NODE_MINTOPCMP, swap_ptr); // Remove it from 'open' set
 
 			x      = current->x;
 			y      = current->y;
@@ -381,24 +380,22 @@ bool path_search(struct walkpath_data *wpd, int16 m, int16 x0, int16 y0, int16 x
 
 #define chk_dir(d) ((allowed_dirs & (d)) == (d))
 			// Process neighbors of current node
-			// @TODO: Processing order affects chosen path if there is more than one path with same cost.
-			// In few cases path found by server will be different than path found by game client.
-			if (chk_dir(DIR_SOUTH))
-				e += add_path(&open_set, tp, x, y-1, g_cost + MOVE_COST, current, heuristic(x, y-1, x1, y1)); // (x, y-1) 4
-			if (chk_dir(DIR_SOUTH|DIR_WEST) && !map_getcellp(md, x-1, y-1, cell))
-				e += add_path(&open_set, tp, x-1, y-1, g_cost + MOVE_DIAGONAL_COST, current, heuristic(x-1, y-1, x1, y1)); // (x-1, y-1) 3
-			if (chk_dir(DIR_WEST))
-				e += add_path(&open_set, tp, x-1, y, g_cost + MOVE_COST, current, heuristic(x-1, y, x1, y1)); // (x-1, y) 2
-			if (chk_dir(DIR_NORTH|DIR_WEST) && !map_getcellp(md, x-1, y+1, cell))
-				e += add_path(&open_set, tp, x-1, y+1, g_cost + MOVE_DIAGONAL_COST, current, heuristic(x-1, y+1, x1, y1)); // (x-1, y+1) 1
-			if (chk_dir(DIR_NORTH))
-				e += add_path(&open_set, tp, x, y+1, g_cost + MOVE_COST, current, heuristic(x, y+1, x1, y1)); // (x, y+1) 0
-			if (chk_dir(DIR_NORTH|DIR_EAST) && !map_getcellp(md, x+1, y+1, cell))
-				e += add_path(&open_set, tp, x+1, y+1, g_cost + MOVE_DIAGONAL_COST, current, heuristic(x+1, y+1, x1, y1)); // (x+1, y+1) 7
-			if (chk_dir(DIR_EAST))
-				e += add_path(&open_set, tp, x+1, y, g_cost + MOVE_COST, current, heuristic(x+1, y, x1, y1)); // (x+1, y) 6
 			if (chk_dir(DIR_SOUTH|DIR_EAST) && !map_getcellp(md, x+1, y-1, cell))
 				e += add_path(&open_set, tp, x+1, y-1, g_cost + MOVE_DIAGONAL_COST, current, heuristic(x+1, y-1, x1, y1)); // (x+1, y-1) 5
+			if (chk_dir(DIR_EAST))
+				e += add_path(&open_set, tp, x+1, y, g_cost + MOVE_COST, current, heuristic(x+1, y, x1, y1)); // (x+1, y) 6
+			if (chk_dir(DIR_NORTH|DIR_EAST) && !map_getcellp(md, x+1, y+1, cell))
+				e += add_path(&open_set, tp, x+1, y+1, g_cost + MOVE_DIAGONAL_COST, current, heuristic(x+1, y+1, x1, y1)); // (x+1, y+1) 7
+			if (chk_dir(DIR_NORTH))
+				e += add_path(&open_set, tp, x, y+1, g_cost + MOVE_COST, current, heuristic(x, y+1, x1, y1)); // (x, y+1) 0
+			if (chk_dir(DIR_NORTH|DIR_WEST) && !map_getcellp(md, x-1, y+1, cell))
+				e += add_path(&open_set, tp, x-1, y+1, g_cost + MOVE_DIAGONAL_COST, current, heuristic(x-1, y+1, x1, y1)); // (x-1, y+1) 1
+			if (chk_dir(DIR_WEST))
+				e += add_path(&open_set, tp, x-1, y, g_cost + MOVE_COST, current, heuristic(x-1, y, x1, y1)); // (x-1, y) 2
+			if (chk_dir(DIR_SOUTH|DIR_WEST) && !map_getcellp(md, x-1, y-1, cell))
+				e += add_path(&open_set, tp, x-1, y-1, g_cost + MOVE_DIAGONAL_COST, current, heuristic(x-1, y-1, x1, y1)); // (x-1, y-1) 3
+			if (chk_dir(DIR_SOUTH))
+				e += add_path(&open_set, tp, x, y-1, g_cost + MOVE_COST, current, heuristic(x, y-1, x1, y1)); // (x, y-1) 4
 #undef chk_dir
 			if (e) {
 				BHEAP_CLEAR(open_set);
@@ -407,18 +404,19 @@ bool path_search(struct walkpath_data *wpd, int16 m, int16 x0, int16 y0, int16 x
 		}
 
 		for (it = current; it->parent != NULL; it = it->parent, len++);
-		if (len > sizeof(wpd->path)) {
+		if (len > sizeof(wpd->path))
 			return false;
-		}
 
 		// Recreate path
 		wpd->path_len = len;
 		wpd->path_pos = 0;
+
 		for (it = current, j = len-1; j >= 0; it = it->parent, j--) {
 			dx = it->x - it->parent->x;
 			dy = it->y - it->parent->y;
 			wpd->path[j] = walk_choices[-dy + 1][dx + 1];
 		}
+
 		return true;
 	} // A* end
 
