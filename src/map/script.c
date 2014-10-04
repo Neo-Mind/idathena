@@ -2309,9 +2309,27 @@ void script_hardcoded_constants(void)
 	script_set_constant("Option_Dragon", OPTION_DRAGON, false);
 	script_set_constant("Option_Costume", OPTION_COSTUME, false);
 
-	/* bonus_script commands */
+	/* Bonus script flags */
+	script_set_constant("BSF_REM_ON_DEAD", BSF_REM_ON_DEAD, false);
+	script_set_constant("BSF_REM_ON_DISPELL", BSF_REM_ON_DISPELL, false);
+	script_set_constant("BSF_REM_ON_CLEARANCE", BSF_REM_ON_CLEARANCE, false);
+	script_set_constant("BSF_REM_ON_LOGOUT", BSF_REM_ON_LOGOUT, false);
+	script_set_constant("BSF_REM_ON_BANISHING_BUSTER", BSF_REM_ON_BANISHING_BUSTER, false);
+	script_set_constant("BSF_REM_ON_REFRESH", BSF_REM_ON_REFRESH, false);
+	script_set_constant("BSF_REM_ON_LUXANIMA", BSF_REM_ON_LUXANIMA, false);
+	script_set_constant("BSF_REM_ON_MADOGEAR", BSF_REM_ON_MADOGEAR, false);
+	script_set_constant("BSF_REM_ON_DAMAGED", BSF_REM_ON_DAMAGED, false);
+	script_set_constant("BSF_PERMANENT", BSF_PERMANENT, false);
 	script_set_constant("BSF_REM_BUFF", BSF_REM_BUFF, false);
 	script_set_constant("BSF_REM_DEBUFF", BSF_REM_DEBUFF, false);
+
+	/* Status change flags */
+	script_set_constant("SCFLAG_NONE", SCFLAG_NONE, false);
+	script_set_constant("SCFLAG_NOAVOID", SCFLAG_NOAVOID, false);
+	script_set_constant("SCFLAG_FIXEDTICK", SCFLAG_FIXEDTICK, false);
+	script_set_constant("SCFLAG_LOADED", SCFLAG_LOADED, false);
+	script_set_constant("SCFLAG_FIXEDRATE", SCFLAG_FIXEDRATE, false);
+	script_set_constant("SCFLAG_NOICON", SCFLAG_NOICON, false);
 }
 
 /*==========================================
@@ -7422,7 +7440,29 @@ BUILDIN_FUNC(strnpcinfo)
 }
 
 // Aegis->Athena slot position conversion table
-static unsigned int equip[] = { EQP_HEAD_TOP,EQP_ARMOR,EQP_HAND_L,EQP_HAND_R,EQP_GARMENT,EQP_SHOES,EQP_ACC_L,EQP_ACC_R,EQP_HEAD_MID,EQP_HEAD_LOW,EQP_COSTUME_HEAD_TOP,EQP_COSTUME_HEAD_MID,EQP_COSTUME_HEAD_LOW,EQP_COSTUME_GARMENT,EQP_AMMO,EQP_SHADOW_ARMOR,EQP_SHADOW_WEAPON,EQP_SHADOW_SHIELD,EQP_SHADOW_SHOES,EQP_SHADOW_ACC_R,EQP_SHADOW_ACC_L };
+static unsigned int equip[] = {
+	EQP_HEAD_TOP,
+	EQP_ARMOR,
+	EQP_HAND_L,
+	EQP_HAND_R,
+	EQP_GARMENT,
+	EQP_SHOES,
+	EQP_ACC_L,
+	EQP_ACC_R,
+	EQP_HEAD_MID,
+	EQP_HEAD_LOW,
+	EQP_COSTUME_HEAD_TOP,
+	EQP_COSTUME_HEAD_MID,
+	EQP_COSTUME_HEAD_LOW,
+	EQP_COSTUME_GARMENT,
+	EQP_AMMO,
+	EQP_SHADOW_ARMOR,
+	EQP_SHADOW_WEAPON,
+	EQP_SHADOW_SHIELD,
+	EQP_SHADOW_SHOES,
+	EQP_SHADOW_ACC_R,
+	EQP_SHADOW_ACC_L
+};
 
 /*==========================================
  * GetEquipID(Pos);     Pos: 1-14
@@ -9742,22 +9782,15 @@ BUILDIN_FUNC(getusers)
 
 	flag = script_getnum(st,2);
 
-	switch(flag&0x07)
-	{
+	switch (flag&0x07) {
 		case 0:
-			if(flag&0x8)
-			{// npc
+			if (flag&0x8) // NPC
 				bl = map_id2bl(st->oid);
-			}
-			else if((sd = script_rid2sd(st))!=NULL)
-			{// pc
+			else if ((sd = script_rid2sd(st)) != NULL) // PC
 				bl = &sd->bl;
-			}
 
-			if(bl)
-			{
+			if (bl)
 				val = map[bl->m].users;
-			}
 			break;
 		case 1:
 			val = map_getusers();
@@ -9778,27 +9811,27 @@ BUILDIN_FUNC(getusers)
 BUILDIN_FUNC(getusersname)
 {
 	TBL_PC *sd, *pl_sd;
-	int /*disp_num=1,*/ group_level = 0;
+	int /*disp_num = 1,*/ group_level = 0;
 	struct s_mapiterator* iter;
 
 	sd = script_rid2sd(st);
-	if (!sd) return 0;
+	if (!sd)
+		return 0;
 
 	group_level = pc_get_group_level(sd);
 	iter = mapit_getallusers();
-	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
-	{
+	for (pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter)) {
 		if (pc_has_permission(pl_sd, PC_PERM_HIDE_SESSION) && pc_get_group_level(pl_sd) > group_level)
-			continue; // skip hidden sessions
+			continue; // Skip hidden sessions
 
 		/* Temporary fix for bugreport:1023.
 		 * Do not uncomment unless you want thousands of 'next' buttons.
-		if((disp_num++)%10==0)
+		if ((disp_num++)%10 == 0)
 			clif_scriptnext(sd,st->oid);*/
 		clif_scriptmes(sd,st->oid,pl_sd->status.name);
 	}
+
 	mapit_free(iter);
-	
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -9840,8 +9873,9 @@ BUILDIN_FUNC(getmapusers)
 {
 	const char *str;
 	int16 m;
-	str=script_getstr(st,2);
-	if( (m=map_mapname2mapid(str))< 0){
+
+	str = script_getstr(st,2);
+	if ((m = map_mapname2mapid(str)) < 0) {
 		script_pushint(st,-1);
 		return 0;
 	}
@@ -9853,7 +9887,8 @@ BUILDIN_FUNC(getmapusers)
  *------------------------------------------*/
 static int buildin_getareausers_sub(struct block_list *bl,va_list ap)
 {
-	int *users=va_arg(ap,int *);
+	int *users = va_arg(ap,int *);
+
 	(*users)++;
 	return 0;
 }
@@ -9861,18 +9896,18 @@ static int buildin_getareausers_sub(struct block_list *bl,va_list ap)
 BUILDIN_FUNC(getareausers)
 {
 	const char *str;
-	int16 m,x0,y0,x1,y1,users=0; //doubt we can have more then 32k users on
-	str=script_getstr(st,2);
-	x0=script_getnum(st,3);
-	y0=script_getnum(st,4);
-	x1=script_getnum(st,5);
-	y1=script_getnum(st,6);
-	if( (m=map_mapname2mapid(str))< 0){
+	int16 m, x0, y0, x1, y1, users = 0; // Doubt we can have more then 32k users on
+
+	str = script_getstr(st,2);
+	x0 = script_getnum(st,3);
+	y0 = script_getnum(st,4);
+	x1 = script_getnum(st,5);
+	y1 = script_getnum(st,6);
+	if ((m = map_mapname2mapid(str)) < 0) {
 		script_pushint(st,-1);
 		return 0;
 	}
-	map_foreachinarea(buildin_getareausers_sub,
-		m,x0,y0,x1,y1,BL_PC,&users);
+	map_foreachinarea(buildin_getareausers_sub,m,x0,y0,x1,y1,BL_PC,&users);
 	script_pushint(st,users);
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -9881,47 +9916,45 @@ BUILDIN_FUNC(getareausers)
  *------------------------------------------*/
 static int buildin_getareadropitem_sub(struct block_list *bl,va_list ap)
 {
-	int item=va_arg(ap,int);
-	int *amount=va_arg(ap,int *);
-	struct flooritem_data *drop=(struct flooritem_data *)bl;
+	int nameid = va_arg(ap,int);
+	int *amount = va_arg(ap,int *);
+	struct flooritem_data *drop = (struct flooritem_data *)bl;
 
-	if(drop->item_data.nameid==item)
-		(*amount)+=drop->item_data.amount;
-
+	if (drop->item.nameid == nameid)
+		(*amount) += drop->item.amount;
 	return 0;
 }
 
 BUILDIN_FUNC(getareadropitem)
 {
 	const char *str;
-	int16 m,x0,y0,x1,y1;
-	int item,amount=0;
+	int16 m, x0, y0, x1, y1;
+	int nameid, amount = 0;
 	struct script_data *data;
 
-	str=script_getstr(st,2);
-	x0=script_getnum(st,3);
-	y0=script_getnum(st,4);
-	x1=script_getnum(st,5);
-	y1=script_getnum(st,6);
+	str = script_getstr(st,2);
+	x0 = script_getnum(st,3);
+	y0 = script_getnum(st,4);
+	x1 = script_getnum(st,5);
+	y1 = script_getnum(st,6);
 
-	data=script_getdata(st,7);
+	data = script_getdata(st,7);
 	get_val(st,data);
-	if( data_isstring(data) ) {
+	if (data_isstring(data)) {
 		const char *name = conv_str(st,data);
 		struct item_data *item_data = itemdb_searchname(name);
 
-		item = UNKNOWN_ITEM_ID;
-		if( item_data )
-			item = item_data->nameid;
+		nameid = UNKNOWN_ITEM_ID;
+		if (item_data)
+			nameid = item_data->nameid;
 	} else
-		item = conv_num(st,data);
+		nameid = conv_num(st,data);
 
-	if( (m = map_mapname2mapid(str))< 0) {
+	if ((m = map_mapname2mapid(str)) < 0) {
 		script_pushint(st,-1);
 		return 0;
 	}
-	map_foreachinarea(buildin_getareadropitem_sub,
-		m,x0,y0,x1,y1,BL_ITEM,item,&amount);
+	map_foreachinarea(buildin_getareadropitem_sub,m,x0,y0,x1,y1,BL_ITEM,nameid,&amount);
 	script_pushint(st,amount);
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -9930,8 +9963,8 @@ BUILDIN_FUNC(getareadropitem)
  *------------------------------------------*/
 BUILDIN_FUNC(enablenpc)
 {
-	const char *str;
-	str=script_getstr(st,2);
+	const char *str = script_getstr(st,2);
+
 	npc_enable(str,1);
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -9940,8 +9973,8 @@ BUILDIN_FUNC(enablenpc)
  *------------------------------------------*/
 BUILDIN_FUNC(disablenpc)
 {
-	const char *str;
-	str=script_getstr(st,2);
+	const char *str = script_getstr(st,2);
+
 	npc_enable(str,0);
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -9950,8 +9983,8 @@ BUILDIN_FUNC(disablenpc)
  *------------------------------------------*/
 BUILDIN_FUNC(hideoffnpc)
 {
-	const char *str;
-	str=script_getstr(st,2);
+	const char *str = script_getstr(st,2);
+
 	npc_enable(str,2);
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -9960,8 +9993,8 @@ BUILDIN_FUNC(hideoffnpc)
  *------------------------------------------*/
 BUILDIN_FUNC(hideonnpc)
 {
-	const char *str;
-	str=script_getstr(st,2);
+	const char *str = script_getstr(st,2);
+
 	npc_enable(str,4);
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -9978,7 +10011,7 @@ BUILDIN_FUNC(sc_start)
 	TBL_NPC * nd = map_id2nd(st->oid);
 	struct block_list* bl;
 	enum sc_type type;
-	int tick, val1, val2, val3, val4=0, rate, flag;
+	int tick, val1, val2, val3, val4 = 0, rate, flag;
 	char start_type;
 	const char* command = script_getfuncname(st);
 

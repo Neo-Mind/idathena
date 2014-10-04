@@ -34,8 +34,8 @@ enum refine_type {
 // Get refine chance
 int status_get_refine_chance(enum refine_type wlv, int refine);
 
-// Flags to be used with status->change_start
-// NOTE: When updating this enum, also update the documentation in doc/script_commands.txt and the constants in db/const.txt
+// Flags to be used with status_change_start and status_get_sc_def
+// NOTE: When updating this enum, also update the documentation in doc/script_commands.txt and the constants
 enum scstart_flag {
 	SCFLAG_NONE      = 0x00, // No special behavior.
 	SCFLAG_NOAVOID   = 0x01, // Cannot be avoided (it has to start).
@@ -2028,13 +2028,13 @@ struct status_change *status_get_sc(struct block_list *bl);
 int status_isdead(struct block_list *bl);
 int status_isimmune(struct block_list *bl);
 
-int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_type type, int rate, int tick, int flag);
+int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_type type, int rate, int tick, unsigned char flag);
 //Short version, receives rate in 1->100 range, and does not uses a flag setting.
 #define sc_start(src, bl, type, rate, val1, tick) status_change_start(src,bl,type,100*(rate),val1,0,0,0,tick,SCFLAG_NONE)
 #define sc_start2(src, bl, type, rate, val1, val2, tick) status_change_start(src,bl,type,100*(rate),val1,val2,0,0,tick,SCFLAG_NONE)
 #define sc_start4(src, bl, type, rate, val1, val2, val3, val4, tick) status_change_start(src,bl,type,100*(rate),val1,val2,val3,val4,tick,SCFLAG_NONE)
 
-int status_change_start(struct block_list* src,struct block_list* bl,enum sc_type type,int rate,int val1,int val2,int val3,int val4,int tick,int flag);
+int status_change_start(struct block_list* src,struct block_list* bl,enum sc_type type,int rate,int val1,int val2,int val3,int val4,int tick,unsigned char flag);
 int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const char* file, int line);
 #define status_change_end(bl,type,tid) status_change_end_(bl,type,tid,__FILE__,__LINE__)
 int kaahi_heal_timer(int tid, unsigned int tick, int id, intptr_t data);

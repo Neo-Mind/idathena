@@ -46,6 +46,7 @@ enum e_packet_ack {
 	ZC_PERSONAL_INFOMATION,
 	ZC_PERSONAL_INFOMATION_CHN,
 	ZC_CLEAR_DIALOG,
+	ZC_C_MARKERINFO,
 	//Add other here
 	MAX_ACK_FUNC //Auto upd len
 };
@@ -882,6 +883,6 @@ void clif_parse_BankOpen(int fd, struct map_session_data *sd);
 void clif_parse_BankClose(int fd, struct map_session_data *sd);
 
 void clif_crimson_marker(struct map_session_data *sd, struct block_list *bl, uint8 flag);
-void clif_crimson_marker_single(int fd, struct block_list *bl, uint8 flag);
+void clif_crimson_marker_single(struct map_session_data *sd, struct block_list *bl, uint8 flag);
 
 #endif /* _CLIF_H_ */

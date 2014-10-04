@@ -18,10 +18,10 @@ struct status_change_entry;
 #define MAX_PRODUCE_RESOURCE 12 //Max Produce requirements
 #define MAX_SKILL_ARROW_DB 150 //Max Arrow Creation DB
 #define MAX_ARROW_RESULT 5 //Max Arrow results/created
-#define MAX_SKILL_ABRA_DB 350 //Max Skill list of Abracadabra DB
-#define MAX_SKILL_IMPROVISE_DB 50 //Max Skill for Improvise
+#define MAX_SKILL_ABRA_DB 160 //Max Skill list of Abracadabra DB
+#define MAX_SKILL_IMPROVISE_DB 30 //Max Skill for Improvise
 #define MAX_SKILL_LEVEL 100 //Max Skill Level
-#define MAX_SKILL_CRIMSON_MARKER 3 //Max Crimson Marker targets
+#define MAX_SKILL_CRIMSON_MARKER 3 //Max Crimson Marker targets (RL_C_MARKER)
 #define SKILL_NAME_LENGTH 31 //Max Skill Name length
 #define SKILL_DESC_LENGTH 31 //Max Skill Desc length
 
@@ -99,7 +99,7 @@ enum e_skill_inf3 {
 //Flags passed to skill_attack/skill_area_sub
 enum e_skill_display {
 	SD_LEVEL     = 0x1000, //skill_attack will send -1 instead of skill level (affects display of some skills)
-	SD_ANIMATION = 0x2000, //skill_attack will use '5' instead of the skill's 'type' (this makes skills show an animation)
+	SD_ANIMATION = 0x2000, //skill_attack will use '5' instead of the skill's 'type' (this makes skills show an animation). Also being used in skill_attack for splash skill (NK_SPLASH) to check status_check_skilluse
 	SD_SPLASH    = 0x4000, //skill_area_sub will count targets in skill_area_temp[2]
 	SD_PREAMBLE  = 0x8000, //skill_area_sub will transmit a 'magic' damage packet (-30000 dmg) for the first target selected
 };
@@ -297,9 +297,6 @@ struct s_skill_abra_db {
 	int per[MAX_SKILL_LEVEL]; //Probability summoned
 };
 extern struct s_skill_abra_db skill_abra_db[MAX_SKILL_ABRA_DB];
-
-extern int enchant_eff[5];
-extern int deluge_eff[5];
 
 void do_init_skill(void);
 void do_final_skill(void);
@@ -1979,10 +1976,10 @@ struct s_skill_spellbook_db {
 		point;
 };
 extern struct s_skill_spellbook_db skill_spellbook_db[MAX_SKILL_SPELLBOOK_DB];
-int skill_spellbook(struct map_session_data *sd, unsigned short nameid);
+void skill_spellbook(struct map_session_data *sd, unsigned short nameid);
 int skill_block_check(struct block_list *bl, enum sc_type type, uint16 skill_id);
 
-#define MAX_SKILL_MAGICMUSHROOM_DB 23
+#define MAX_SKILL_MAGICMUSHROOM_DB 25
 struct s_skill_magicmushroom_db {
 	uint16 skill_id;
 };

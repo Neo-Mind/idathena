@@ -4263,7 +4263,7 @@ char pc_additem(struct map_session_data *sd,struct item *item,int amount,e_log_p
 	}
 
 	if( !itemdb_isstackable2(id) && !item->unique_id )
-		sd->status.inventory[i].unique_id = itemdb_unique_id(sd);
+		sd->status.inventory[i].unique_id = pc_generate_unique_id(sd);
 
 	log_pick_pc(sd, log_type, amount, &sd->status.inventory[i]);
 
@@ -4424,7 +4424,7 @@ bool pc_takeitem(struct map_session_data *sd, struct flooritem_data *fitem)
 	}
 
 	//This function takes care of giving the item to whoever should have it, considering party-share options.
-	if((flag = party_share_loot(p,sd,&fitem->item_data, fitem->first_get_charid))) {
+	if((flag = party_share_loot(p,sd,&fitem->item, fitem->first_get_charid))) {
 		clif_additem(sd,0,0,flag);
 		return true;
 	}
@@ -9482,48 +9482,62 @@ void pc_checkitem(struct map_session_data *sd) {
  * Checks for unavailable items and removes them.
  *------------------------------------------*/
 void pc_check_available_item(struct map_session_data *sd) {
-	int i;
-	unsigned short nameid;
+	int i, it;
 	char output[256];
 
 	nullpo_retv(sd);
 
 	if( battle_config.item_check&1 ) { //Check for invalid(ated) items in inventory.
 		for( i = 0; i < MAX_INVENTORY; i++ ) {
-			nameid = sd->status.inventory[i].nameid;
+			it = sd->status.inventory[i].nameid;
 
-			if( nameid && !itemdb_available(nameid) ) {
-				sprintf(output,msg_txt(709),nameid); //Item %hu has been removed from your inventory.
+			if( !it )
+				continue;
+			if( !itemdb_available(it) ) {
+				sprintf(output,msg_txt(709),it); //Item %hu has been removed from your inventory.
 				clif_displaymessage(sd->fd,output);
-				ShowWarning("Removed invalid/disabled item id %d from inventory (amount=%d, char_id=%d).\n",nameid,sd->status.inventory[i].amount,sd->status.char_id);
+				ShowWarning("Removed invalid/disabled item id %hu from inventory (amount=%d, char_id=%d).\n",it,sd->status.inventory[i].amount,sd->status.char_id);
 				pc_delitem(sd,i,sd->status.inventory[i].amount,0,0,LOG_TYPE_OTHER);
+				continue;
 			}
+			if( !sd->status.inventory[i].unique_id && !itemdb_isstackable(it) )
+				sd->status.inventory[i].unique_id = pc_generate_unique_id(sd);
 		}
 	}
 
 	if( battle_config.item_check&2 ) { //Check for invalid(ated) items in cart.
 		for( i = 0; i < MAX_CART; i++ ) {
-			nameid = sd->status.cart[i].nameid;
+			it = sd->status.cart[i].nameid;
 
-			if( nameid && !itemdb_available(nameid) ) {
-				sprintf(output,msg_txt(710),nameid); //Item %hu has been removed from your cart.
+			if( !it )
+				continue;
+			if( !itemdb_available(it) ) {
+				sprintf(output,msg_txt(710),it); //Item %hu has been removed from your cart.
 				clif_displaymessage(sd->fd,output);
-				ShowWarning("Removed invalid/disabled item id %d from cart (amount=%d, char_id=%d).\n",nameid,sd->status.cart[i].amount,sd->status.char_id);
+				ShowWarning("Removed invalid/disabled item id %hu from cart (amount=%d, char_id=%d).\n",it,sd->status.cart[i].amount,sd->status.char_id);
 				pc_cart_delitem(sd,i,sd->status.cart[i].amount,0,LOG_TYPE_OTHER);
+				continue;
 			}
+			if( !sd->status.cart[i].unique_id && !itemdb_isstackable(it) )
+				sd->status.cart[i].unique_id = pc_generate_unique_id(sd);
 		}
 	}
 
 	if( battle_config.item_check&4 ) { //Check for invalid(ated) items in storage.
 		for( i = 0; i < sd->storage_size; i++ ) {
-			nameid = sd->status.storage.items[i].nameid;
+			it = sd->status.storage.items[i].nameid;
 
-			if( nameid && !itemdb_available(nameid) ) {
-				sprintf(output,msg_txt(711),nameid); //Item %hu has been removed from your storage.
+			if( !it )
+				continue;
+			if( !itemdb_available(it) ) {
+				sprintf(output,msg_txt(711),it); //Item %hu has been removed from your storage.
 				clif_displaymessage(sd->fd,output);
-				ShowWarning("Removed invalid/disabled item id %d from storage (amount=%d, char_id=%d).\n",nameid,sd->status.storage.items[i].amount,sd->status.char_id);
+				ShowWarning("Removed invalid/disabled item id %hu from storage (amount=%d, char_id=%d).\n",it,sd->status.storage.items[i].amount,sd->status.char_id);
 				storage_delitem(sd,i,sd->status.storage.items[i].amount);
+				continue;
 			}
+			if( !sd->status.storage.items[i].unique_id && !itemdb_isstackable(it) )
+				sd->status.storage.items[i].unique_id = pc_generate_unique_id(sd);
  		}
 	}
 }
@@ -10921,22 +10935,21 @@ void pc_show_version(struct map_session_data *sd) {
 }
 
 /**
- * Clear Cirmson Marker data from caster
+ * Clear Crimson Marker data from caster
  * @param sd: Player
  */
 void pc_crimson_marker_clear(struct map_session_data *sd) {
 	uint8 i;
 
-	if( !sd || !(&sd->c_marker) || !sd->c_marker.target )
+	if( !sd )
 		return;
 	for( i = 0; i < MAX_SKILL_CRIMSON_MARKER; i++ ) {
-		struct block_list *bl = map_id2bl(sd->c_marker.target[i]);
+		struct block_list *bl = map_id2bl(sd->c_marker[i]);
 
-		if( bl && sd->c_marker.target[i] )
+		if( sd->c_marker[i] && bl )
 			status_change_end(bl,SC_C_MARKER,INVALID_TIMER);
-		sd->c_marker.target[i] = 0;
+		sd->c_marker[i] = 0;
 	}
-	sd->c_marker.count = 0;
 }
 
 /** [Cydh]
@@ -11165,6 +11178,15 @@ bool pc_is_same_equip_index(enum equip_index eqi, short *equip_index, short inde
 		return true; //Headgear with Top & Mid or Low location
 
 	return false;
+}
+
+/**
+ * Generate Unique item ID for player
+ * @param sd : Player
+ * @return A generated Unique item ID
+ */
+uint64 pc_generate_unique_id(struct map_session_data *sd) {
+	return ((uint64)sd->status.char_id<<32)|sd->status.uniqueitem_counter++;
 }
 
 /*==========================================

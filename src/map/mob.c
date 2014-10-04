@@ -1554,15 +1554,15 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 
 		fitem = (struct flooritem_data *)tbl;
 		//Logs items, taken by (L)ooter Mobs [Lupus]
-		log_pick_mob(md, LOG_TYPE_LOOT, fitem->item_data.amount, &fitem->item_data);
+		log_pick_mob(md, LOG_TYPE_LOOT, fitem->item.amount, &fitem->item);
 
 		if(md->lootitem_count < LOOTITEM_SIZE) {
-			memcpy (&md->lootitem[md->lootitem_count++], &fitem->item_data, sizeof(md->lootitem[0]));
+			memcpy (&md->lootitem[md->lootitem_count++], &fitem->item, sizeof(md->lootitem[0]));
 		} else { //Destroy first looted item
 			if(md->lootitem[0].card[0] == CARD0_PET)
 				intif_delete_petdata(MakeDWord(md->lootitem[0].card[1],md->lootitem[0].card[2]));
 			memmove(&md->lootitem[0], &md->lootitem[1], (LOOTITEM_SIZE - 1) * sizeof(md->lootitem[0]));
-			memcpy(&md->lootitem[LOOTITEM_SIZE - 1], &fitem->item_data, sizeof(md->lootitem[0]));
+			memcpy(&md->lootitem[LOOTITEM_SIZE - 1], &fitem->item, sizeof(md->lootitem[0]));
 		}
 		if(pcdb_checkid(md->vd->class_)) { //Give them walk act/delay to properly mimic players. [Skotlex]
 			clif_takeitem(&md->bl, tbl);
@@ -1738,12 +1738,10 @@ static int mob_ai_lazy(int tid, unsigned int tick, int id, intptr_t data)
  *------------------------------------------*/
 static int mob_ai_hard(int tid, unsigned int tick, int id, intptr_t data)
 {
-
 	if (battle_config.mob_ai&0x20)
 		map_foreachmob(mob_ai_sub_lazy,tick);
 	else
 		map_foreachpc(mob_ai_sub_foreachclient,tick);
-
 	return 0;
 }
 
@@ -1753,6 +1751,7 @@ static int mob_ai_hard(int tid, unsigned int tick, int id, intptr_t data)
 static struct item_drop* mob_setdropitem(unsigned short nameid, int qty)
 {
 	struct item_drop *drop = ers_alloc(item_drop_ers, struct item_drop);
+
 	memset(&drop->item_data, 0, sizeof(struct item));
 	drop->item_data.nameid = nameid;
 	drop->item_data.amount = qty;
@@ -1767,6 +1766,7 @@ static struct item_drop* mob_setdropitem(unsigned short nameid, int qty)
 static struct item_drop* mob_setlootitem(struct item* item)
 {
 	struct item_drop *drop = ers_alloc(item_drop_ers, struct item_drop);
+
 	memcpy(&drop->item_data, item, sizeof(struct item));
 	drop->next = NULL;
 	return drop;

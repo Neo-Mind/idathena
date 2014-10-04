@@ -1364,6 +1364,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	}
 
 	tstatus = status_get_status_data(target);
+
 	//Record the status of the previous skill)
 	if( sd ) {
 		if( (skill_get_inf2(skill_id)&INF2_ENSEMBLE_SKILL) && skill_check_pc_partner(sd, skill_id, &skill_lv, 1, 0) < 1 ) {
@@ -1411,7 +1412,21 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 					}
 				}
 				break;
+			case RL_C_MARKER: {
+					uint8 i = 0;
+
+					ARR_FIND(0, MAX_SKILL_CRIMSON_MARKER, i, sd->c_marker[i] == target_id);
+					if( i == MAX_SKILL_CRIMSON_MARKER ) {
+						ARR_FIND(0, MAX_SKILL_CRIMSON_MARKER, i, sd->c_marker[i] == 0);
+						if( i == MAX_SKILL_CRIMSON_MARKER ) { //No free slots, skill Fail
+							clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
+							return 0;
+						}
+					}
+				}
+				break;
 		}
+
 		/* Temporarily disabled, awaiting for confirmation */
 #if 0
 		if( sd->skillitem != skill_id && !skill_check_condition_castbegin(sd, skill_id, skill_lv) )

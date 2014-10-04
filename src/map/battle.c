@@ -353,15 +353,15 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 		switch( atk_elem ) {
 			case ELE_FIRE:
 				if( sc->data[SC_VOLCANO] )
-					ratio += enchant_eff[sc->data[SC_VOLCANO]->val1 - 1];
+					ratio += sc->data[SC_VOLCANO]->val3;
 				break;
 			case ELE_WIND:
 				if( sc->data[SC_VIOLENTGALE] )
-					ratio += enchant_eff[sc->data[SC_VIOLENTGALE]->val1 - 1];
+					ratio += sc->data[SC_VIOLENTGALE]->val3;
 				break;
 			case ELE_WATER:
 				if( sc->data[SC_DELUGE] )
-					ratio += enchant_eff[sc->data[SC_DELUGE]->val1 - 1];
+					ratio += sc->data[SC_DELUGE]->val3;
 				break;
 			case ELE_GHOST:
 				if( sc->data[SC_TELEKINESIS_INTENSE] )
@@ -2309,10 +2309,14 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 				hitrate += 3 * skill_lv;
 				break;
 			case RL_SLUGSHOT: {
-					uint8 range = distance_bl(src,target);
+					int8 dist = distance_bl(src,target);
 
-					if(range > 3)
-						hitrate -= (11 - skill_lv) * (range - 3);
+					if(dist > 3) {
+						//Reduce n hitrate for each cell after initial 3 cells. Different each level
+						//-10:-9:-8:-7:-6
+						dist -= 3;
+						hitrate -= ((11 - skill_lv) * dist);
+					}
 				}
 				break;
 		} //+1 hit per level of Double Attack on a successful double attack (making sure other multi attack skills do not trigger this) [helvetica]
@@ -2487,7 +2491,7 @@ static int battle_get_weapon_element(struct Damage wd, struct block_list *src, s
 				element = ELE_HOLY;
 			break;
 		case RL_H_MINE:
-			if(sd && sd->skill_id_old == RL_FLICKER)
+			if(sd && sd->flicker)
 				element = ELE_FIRE; //Force RL_H_MINE deals fire damage if activated by RL_FLICKER
 			break;
 	}
@@ -4001,7 +4005,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 			break;
 		case RL_H_MINE:
 			skillratio += 100 + (200 * skill_lv);
-			if(sd && sd->skill_id_old == RL_FLICKER) //Explode bonus damage
+			if(sd && sd->flicker) //Explode bonus damage
 				skillratio += 800 + (skill_lv - 1) * 300;
 			break;
 		case RL_HAMMER_OF_GOD:
@@ -7448,11 +7452,11 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 
 	//s_bl/t_bl hold the 'master' of the attack, while src/target are the actual objects involved.
 	if( (s_bl = battle_get_master(src)) == NULL )
-		s_bl = src;
+ 		s_bl = src;
 
 	if( (t_bl = battle_get_master(target)) == NULL )
 		t_bl = target;
-	
+
 	if( s_bl->type == BL_PC ) {
 		switch( t_bl->type ) {
 			case BL_MOB: //Source => PC, Target => MOB

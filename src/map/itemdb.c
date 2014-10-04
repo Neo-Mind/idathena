@@ -1456,13 +1456,6 @@ static int itemdb_read_sqldb(void) {
 	return 0;
 }
 
-/** Unique item ID function
- * Only one operation by once
- */
-uint64 itemdb_unique_id(struct map_session_data *sd) {
-	return ((uint64)sd->status.char_id<<32)|sd->status.uniqueitem_counter++;
-}
-
 /** Check if the item is restricted by item_noequip.txt
  * @param id Item that will be checked
  * @param m Map ID
@@ -1493,7 +1486,7 @@ bool itemdb_is_spellbook2(unsigned short nameid) {
 	if (!nameid || !itemdb_exists(nameid))
 		return false;
 	ARR_FIND(0, MAX_SKILL_SPELLBOOK_DB, i, skill_spellbook_db[i].nameid == nameid);
-	if (i >= MAX_SKILL_SPELLBOOK_DB)
+	if (i == MAX_SKILL_SPELLBOOK_DB)
 		return false;
 	return true;
 }
