@@ -3534,26 +3534,26 @@ static int skill_check_condition_mercenary(struct block_list *bl, uint16 skill_i
  *------------------------------------------*/
 int skill_area_sub_count(struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv, unsigned int tick, int flag)
 {
-	struct status_change *tsc = status_get_sc(target);
+	switch (skill_id) {
+		case RL_QD_SHOT: {
+				if (src->type == BL_PC && BL_CAST(BL_PC,src)) {
+					struct unit_data *ud = unit_bl2ud(src);
 
-	switch( skill_id ) {
-		case RL_QD_SHOT:
-			if( src->type == BL_PC && BL_CAST(BL_PC,src) ) {
-				struct unit_data *ud = unit_bl2ud(src);
-
-				//Only counts marked target with SC_C_MARKER by caster
-				if( !tsc || !tsc->data[SC_C_MARKER] || tsc->data[SC_C_MARKER]->val2 != src->id )
-					return 0;
-				if( ud && ud->target == target->id )
-					return 1;
+					if (ud && ud->target == target->id)
+						return 1;
+				}
 			}
-			break;
 		case RL_D_TAIL:
 		case RL_HAMMER_OF_GOD:
-			if( src->type != BL_PC )
+			if (src->type != BL_PC)
 				return 0;
-			if( !tsc || !tsc->data[SC_C_MARKER] || tsc->data[SC_C_MARKER]->val2 != src->id )
-				return 0;
+			{
+				struct status_change *tsc = status_get_sc(target);
+
+				//Only counts marked target with SC_C_MARKER by caster
+				if (!tsc || !tsc->data[SC_C_MARKER] || tsc->data[SC_C_MARKER]->val2 != src->id)
+					return 0;
+			}
 			break;
 	}
 	return 1;

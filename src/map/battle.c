@@ -7452,7 +7452,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 
 	//s_bl/t_bl hold the 'master' of the attack, while src/target are the actual objects involved.
 	if( (s_bl = battle_get_master(src)) == NULL )
- 		s_bl = src;
+		s_bl = src;
 
 	if( (t_bl = battle_get_master(target)) == NULL )
 		t_bl = target;
