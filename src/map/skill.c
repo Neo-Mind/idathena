@@ -7576,8 +7576,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				struct unit_data *ud = unit_bl2ud(bl);
 
 				if (clif_skill_nodamage(src,bl,skill_id,skill_lv,
-						sc_start(src,bl,type,100,skill_lv,skill_time))
-				&& ud) { //Disable attacking/acting/moving for skill's duration.
+					sc_start(src,bl,type,100,skill_lv,skill_time)) && ud)
+				{ //Disable attacking/acting/moving for skill's duration.
 					ud->attackabletime =
 					ud->canact_tick =
 					ud->canmove_tick = tick + skill_time;
@@ -11574,8 +11574,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			}
 			skill_clear_unitgroup(src); //To remove previous skills - cannot used combined
 			if( (sg = skill_unitsetting(src,skill_id,skill_lv,src->x,src->y,0)) != NULL ) {
-				sc_start2(src,src,(skill_id == NC_NEUTRALBARRIER ? SC_NEUTRALBARRIER_MASTER : SC_STEALTHFIELD_MASTER),100,
-					skill_lv,sg->group_id,skill_get_time(skill_id,skill_lv));
+				status_change_start(src,src,(skill_id == NC_NEUTRALBARRIER ? SC_NEUTRALBARRIER_MASTER : SC_STEALTHFIELD_MASTER),
+					10000,skill_lv,sg->group_id,0,0,skill_get_time(skill_id,skill_lv),SCFLAG_NOICON);
 				if( sd )
 					pc_overheat(sd,1);
 			}
@@ -13465,7 +13465,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			if (ss == bl)
 				break; //Don't work on Self
 		case UNT_NEUTRALBARRIER:
-			sc_start(ss,bl,type,100,skill_lv,sg->interval + 100);
+			status_change_start(ss,bl,type,10000,skill_lv,0,0,0,sg->interval + 100,SCFLAG_NOICON);
 			break;
 
 		case UNT_DIMENSIONDOOR:
@@ -13569,7 +13569,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 				if (tsc && tsc->data[SC_AKAITSUKI] && hp)
 					hp = ~hp + 1;
 				status_heal(bl,hp,0,0);
-				sc_start(ss,bl,type,100,skill_lv,sg->interval + 100);
+				status_change_start(ss,bl,type,10000,skill_lv,0,0,0,sg->interval + 100,SCFLAG_NOICON);
 			}
 			break;
 
