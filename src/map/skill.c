@@ -5443,7 +5443,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 /*==========================================
  *
  *------------------------------------------*/
-int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, uint16 skill_id, uint16 skill_lv, unsigned int tick, int flag)
+int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uint16 skill_id, uint16 skill_lv, unsigned int tick, int flag)
 {
 	struct map_session_data *sd, *dstsd;
 	struct mob_data *md, *dstmd;
@@ -5753,8 +5753,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				if(status_revive(bl,per,sper)) {
 					clif_skill_nodamage(src,bl,ALL_RESURRECTION,skill_lv,1); //Both Redemptio and Res show this skill-animation.
 					if(sd && dstsd && battle_config.resurrection_exp > 0) {
-						int exp = 0,jexp = 0;
-						int lv = dstsd->status.base_level - sd->status.base_level,jlv = dstsd->status.job_level - sd->status.job_level;
+						int exp = 0, jexp = 0;
+						int lv = dstsd->status.base_level - sd->status.base_level, jlv = dstsd->status.job_level - sd->status.job_level;
 
 						if(lv > 0 && pc_nextbaseexp(dstsd)) {
 							exp = (int)((double)dstsd->status.base_exp * (double)lv * (double)battle_config.resurrection_exp / 1000000.);
@@ -13044,6 +13044,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 					break;
 				default:
 					skill_attack(skill_get_type(skill_id),ss,&unit->bl,bl,skill_id,skill_lv,tick,0);
+					break;
 			}
 			break;
 

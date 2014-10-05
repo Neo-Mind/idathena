@@ -1054,12 +1054,12 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 				struct status_change *d_sc = status_get_sc(d_bl);
 
 				if( d_sc && d_sc->data[SC_DEFENDER] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG )
-					damage = damage * (100 - d_sc->data[SC_DEFENDER]->val2) / 100;
+					damage -= damage * d_sc->data[SC_DEFENDER]->val2 / 100;
 			}
 		}
 
 		if( sc->data[SC_DEFENDER] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG )
-			damage = damage * (100 - sc->data[SC_DEFENDER]->val2) / 100;
+			damage -= damage * sc->data[SC_DEFENDER]->val2 / 100;
 
 		if( sc->data[SC_ADJUSTMENT] && (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
 			damage -= damage * 20 / 100;
@@ -5136,11 +5136,9 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 
 		ratio = battle_calc_attack_skill_ratio(wd, src, target, skill_id, skill_lv); //Skill level ratio
 		ATK_RATE(wd.damage, wd.damage2, ratio);
-		RE_ALLATK_RATE(wd, ratio);
 
 		const_val = battle_calc_skill_constant_addition(wd, src, target, skill_id, skill_lv); //Other skill bonuses
 		ATK_ADD(wd.damage, wd.damage2, const_val);
-		RE_ALLATK_ADD(wd, const_val);
 
 		if(sd) {
 			uint16 skill;
@@ -5498,7 +5496,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	if(target->type == BL_SKILL) {
 		TBL_SKILL *su = ((TBL_SKILL*)target);
 
-		if(su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
+		if(su && su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
 			flag.infdef = 1;
 	}
 
@@ -6599,7 +6597,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	} else if(target->type == BL_SKILL) {
 		TBL_SKILL *su = ((TBL_SKILL*)target);
 
-		if(su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
+		if(su && su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
 			md.damage = 1;
 	}
 
