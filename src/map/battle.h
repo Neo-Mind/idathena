@@ -404,7 +404,6 @@ extern struct Battle_Config
 	int berserk_cancels_buffs; //[Aru]
 	int debuff_on_logout; //Removes a few "official" negative Scs on logout [Skotlex]
 	int mob_ai; //Configures various mob_ai settings to make them smarter or dumber (Official) [Skotlex]
-	int mob_chase_refresh; //How often a monster should refresh its chase [Playtester]
 	int hom_setting; //Configures various homunc settings which make them behave unlike normal characters [Skotlex]
 	int dynamic_mobs; //Dynamic Mobs [Wizputer] - battle_athena flag implemented by [random]
 	int mob_remove_damaged; //Dynamic Mobs - Remove mobs even if damaged [Wizputer]
@@ -582,6 +581,7 @@ extern struct Battle_Config
 	int song_timer_reset; //[csnv]
 	int cursed_circle_in_gvg;
 	int snap_dodge; //Enable or disable dodging damage snapping away [csnv]
+	int mob_chase_refresh; //How often a monster should refresh its chase [Playtester]
 } battle_config;
 
 void do_init_battle(void);

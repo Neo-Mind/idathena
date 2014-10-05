@@ -10539,7 +10539,8 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 		sd->sc.data[SC_DEEPSLEEP]) )
 		return;
 
-	pc_stop_walking(sd, 1);
+	if( action_type != 0x00 && action_type != 0x07 )
+		pc_stop_walking(sd, 1);
 	pc_stop_attack(sd);
 
 	if( target_id < 0 && -target_id == sd->bl.id ) // For disguises [Valaris]
