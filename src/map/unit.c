@@ -397,7 +397,7 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 					ud->target = ud->target_to;
 					ud->target_to = 0;
 					unit_stop_walking(bl, 1);
-					ud->attacktimer=add_timer(tick + i, unit_attack_timer, bl->id, 0);
+					ud->attacktimer = add_timer(tick + i, unit_attack_timer, bl->id, 0);
 					return 0;
 				} else {
 					//Execute non-ground skill
@@ -1826,7 +1826,7 @@ int unit_skilluse_pos2(struct block_list *src, short skill_x, short skill_y, uin
 
 		//Convert coordinates to target_to so we can use it as target later
 		ud->stepaction = true;
-		ud->target_to = (skill_x + skill_y*md->xs);
+		ud->target_to = (skill_x + skill_y * md->xs);
 		ud->chaserange = range;
 		ud->stepskill_id = skill_id;
 		ud->stepskill_lv = skill_lv;

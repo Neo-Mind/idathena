@@ -1662,13 +1662,14 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				continue; //One or more trigger conditions were not fulfilled
 
 			skill = (sd->autospell[i].id > 0) ? sd->autospell[i].id : -sd->autospell[i].id;
-
 			sd->state.autocast = 1;
+
 			if( skill_isNotOk(skill,sd) )
 				continue;
-			sd->state.autocast = 0;
 
-			skill_lv = sd->autospell[i].lv ? sd->autospell[i].lv : 1;
+			sd->state.autocast = 0;
+			skill_lv = (sd->autospell[i].lv) ? sd->autospell[i].lv : 1;
+
 			if( skill_lv < 0 )
 				skill_lv = 1 + rnd()%(-skill_lv);
 
@@ -1684,17 +1685,14 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 
 				if( !(BL_PC&battle_config.skill_reiteration) &&
 					skill_get_unit_flag(skill)&UF_NOREITERATION &&
-					skill_check_unit_range(src,tbl->x,tbl->y,skill,skill_lv)
-				  )
+					skill_check_unit_range(src,tbl->x,tbl->y,skill,skill_lv) )
 					continue;
 				if( BL_PC&battle_config.skill_nofootset &&
 					skill_get_unit_flag(skill)&UF_NOFOOTSET &&
-					skill_check_unit_range2(src,tbl->x,tbl->y,skill,skill_lv,false)
-				  )
+					skill_check_unit_range2(src,tbl->x,tbl->y,skill,skill_lv,false) )
 					continue;
 				if( BL_PC&battle_config.land_skill_limit &&
-					(maxcount = skill_get_maxcount(skill,skill_lv)) > 0
-				  ) {
+					(maxcount = skill_get_maxcount(skill,skill_lv)) > 0 ) {
 					int v;
 
 					for( v = 0; v < MAX_SKILLUNITGROUP && sd->ud.skillunit[v] && maxcount; v++ ) {
@@ -1718,6 +1716,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			sd->state.autocast = 1;
 			skill_consume_requirement(sd,skill,skill_lv,1);
 			skill_toggle_magicpower(src,skill);
+
 			switch( type ) {
 				case CAST_GROUND:
 					skill_castend_pos2(src,tbl->x,tbl->y,skill,skill_lv,tick,0);
@@ -1729,10 +1728,10 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 					skill_castend_damage_id(src,tbl,skill,skill_lv,tick,0);
 					break;
 			}
+
 			sd->state.autocast = 0;
-			//Set canact delay. [Skotlex]
 			ud = unit_bl2ud(src);
-			if( ud ) {
+			if( ud ) { //Set canact delay. [Skotlex]
 				rate = skill_delayfix(src,skill,skill_lv);
 				if( DIFF_TICK(ud->canact_tick,tick + rate) < 0 ){
 					ud->canact_tick = tick + rate;
@@ -3658,7 +3657,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case WL_CHAINLIGHTNING_ATK: {
 						//Hit a Lightning on the current Target
 						skill_attack(BF_MAGIC,src,src,target,skl->skill_id,skl->skill_lv,tick,(9 - skl->type));
-						skill_toggle_magicpower(src,skl->skill_id); //Only the first hit will be amplify
+						skill_toggle_magicpower(src,skl->skill_id);
 
 						if (skl->type < (4 + skl->skill_lv - 1) && skl->x < 3) { //Remaining Chains Hit
 							struct block_list *nbl = NULL; //Next Target of Chain
@@ -3679,7 +3678,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case WL_TETRAVORTEX_WIND:
 				case WL_TETRAVORTEX_GROUND:
 					skill_attack(BF_MAGIC,src,src,target,skl->skill_id,skl->skill_lv,tick,skl->flag|SD_ANIMATION);
-					skill_toggle_magicpower(src,skl->skill_id); //Only the first hit will be amplify
+					skill_toggle_magicpower(src,skl->skill_id);
 					if (skl->type >= 3) { //Final Hit
 						if (!status_isdead(target)) { //Final Status Effect
 							int effects[4] = { SC_BURNING,SC_FREEZING,SC_BLEEDING,SC_STUN },
@@ -4899,7 +4898,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					if (!skill_check_condition_castbegin(sd,skill_id,skill_lv))
 						break;
 
-					//SC_MAGICPOWER needs to switch states before any damage is actually dealt.
+					skill_consume_requirement(sd,skill_id,skill_lv,1);
 					skill_toggle_magicpower(src,skill_id);
 
 					switch (skill_get_casttype(skill_id)) {
@@ -6711,7 +6710,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			if (tsce) {
 				i = status_change_end(bl,type,INVALID_TIMER);
 				if (i)
-					clif_skill_nodamage(src,bl,skill_id,(skill_id == LG_FORCEOFVANGUARD || skill_id == RA_CAMOUFLAGE) ? skill_lv : -1,i);
+					clif_skill_nodamage(src,bl,skill_id,(skill_id == LG_FORCEOFVANGUARD ||
+						skill_id == RA_CAMOUFLAGE || skill_id == SC_REPRODUCE) ? skill_lv : -1,i);
 				else if (sd)
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				map_freeblock_unlock();
@@ -6721,7 +6721,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			if (i) {
 				if (skill_id == SC_REPRODUCE)
 					clif_specialeffect(bl,808,AREA);
-				clif_skill_nodamage(src,bl,skill_id,(skill_id == LG_FORCEOFVANGUARD || skill_id == RA_CAMOUFLAGE) ? skill_lv : -1,i);
+				clif_skill_nodamage(src,bl,skill_id,(skill_id == LG_FORCEOFVANGUARD ||
+					skill_id == RA_CAMOUFLAGE || skill_id == SC_REPRODUCE) ? skill_lv : -1,i);
 			} else if (sd)
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
@@ -6738,9 +6739,9 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			skill_addtimerskill(src,tick + 2000,bl->id,src->x,src->y,skill_id,skill_lv,0,flag);
 
+			//Custom hack to make the mob display the skill, because these skills don't show the skill use text themselves
+			//NOTE: mobs don't have the sprite animation that is used when performing this skill (will cause glitches)
 			if (md) {
-				//Custom hack to make the mob display the skill, because these skills don't show the skill use text themselves
-				//NOTE: mobs don't have the sprite animation that is used when performing this skill (will cause glitches)
 				char temp[70];
 
 				snprintf(temp,sizeof(temp),"%s : %s !!",md->name,skill_db[skill_get_index(skill_id)].desc);
@@ -6792,15 +6793,14 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				int brate = 0;
 
 				if (tstatus->mode&MD_BOSS) {
-					if (sd) clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+					if (sd)
+						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
 				if (status_isimmune(bl) || !tsc)
 					break;
-					
 				if (sd && sd->sc.data[SC_PETROLOGY_OPTION])
 					brate = sd->sc.data[SC_PETROLOGY_OPTION]->val3;
-
 				if (tsc->data[SC_STONE]) {
 					status_change_end(bl,SC_STONE,INVALID_TIMER);
 					if (sd)
@@ -10760,12 +10760,16 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 		if( ud->walktimer != INVALID_TIMER && ud->skill_id != TK_RUN && ud->skill_id != RA_WUGDASH )
 			unit_stop_walking(src,1);
 
+		//Tests show wings don't overwrite the delay but skill scrolls do. [Inkfish]
 		if( !sd || sd->skillitem != ud->skill_id || skill_get_delay(ud->skill_id,ud->skill_lv) )
-			ud->canact_tick = tick + skill_delayfix(src,ud->skill_id,ud->skill_lv); //Tests show wings don't overwrite the delay but skill scrolls do. [Inkfish]
+			ud->canact_tick = tick + skill_delayfix(src,ud->skill_id,ud->skill_lv);
+
 		if( sd && (inf = skill_get_cooldown(sd,ud->skill_id,ud->skill_lv)) > 0 )
 			skill_blockpc_start(sd,ud->skill_id,inf);
+
 		if( battle_config.display_status_timers && sd )
 			clif_status_change(src,SI_ACTIONDELAY,1,skill_delayfix(src,ud->skill_id,ud->skill_lv),0,0,0);
+
 		if( sd ) {
 			switch( ud->skill_id ) {
 				case GS_DESPERADO:
@@ -10784,6 +10788,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 					break;
 			}
 		}
+
 		if( skill_get_state(ud->skill_id) != ST_MOVE_ENABLE )
 			unit_set_walkdelay(src,tick,battle_config.default_walk_delay + skill_get_walkdelay(ud->skill_id,ud->skill_lv),1);
 
@@ -10792,8 +10797,6 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 				src->type,src->id,ud->skill_id,ud->skill_lv,target->id);
 
 		map_freeblock_lock();
-
-		//SC_MAGICPOWER needs to switch states before any damage is actually dealt
 		skill_toggle_magicpower(src,ud->skill_id);
 
 		//Only normal attack and auto cast skills benefit from its bonuses
@@ -10806,6 +10809,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 			skill_castend_damage_id(src,target,ud->skill_id,ud->skill_lv,tick,flag);
 
 		sc = status_get_sc(src);
+
 		if( sc && sc->count ) {
 			if( sc->data[SC_SPIRIT] &&
 				sc->data[SC_SPIRIT]->val2 == SL_WIZARD &&
@@ -11079,7 +11083,6 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 	}
 
-	//SC_MAGICPOWER needs to switch states before any damage is actually dealt
 	skill_toggle_magicpower(src,skill_id);
 
 	switch(skill_id) {
@@ -14351,9 +14354,8 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 	inf3 = skill_get_inf3(skill_id);
 
 	//Check the skills that can be used while mounted on a warg
-	if( pc_isridingwug(sd) )
-		if( !(inf3&INF3_USABLE_WARG) )
-			return false; //In official there is no message.
+	if( pc_isridingwug(sd) && !(inf3&INF3_USABLE_WARG) )
+		return false; //In official there is no message.
 
 	//Check the skills that can be used while mounted on a mado
 	if( pc_ismadogear(sd) ) {
@@ -14733,7 +14735,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		//bugreport:7647 mistress card DOES remove requirements for gemstones from Adoramus and Comet -helvetica
 		case AB_ADORAMUS:
 		case WL_COMET:
-			if( skill_check_pc_partner(sd,skill_id,&skill_lv,1,0) <= 0 && require.itemid[0] && sd->special_state.no_gemstone == 0 &&
+			if( skill_check_pc_partner(sd,skill_id,&skill_lv,1,0) <= 0 && require.itemid[0] && !sd->special_state.no_gemstone &&
 				((i = pc_search_inventory(sd,require.itemid[0])) == INDEX_NOT_FOUND || sd->status.inventory[i].amount < require.amount[0]) ) {
 				//clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_ITEM,require.amount[0],require.itemid[0]);
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -19015,10 +19017,11 @@ static void skill_toggle_magicpower(struct block_list *bl, uint16 skill_id)
 {
 	struct status_change *sc = status_get_sc(bl);
 
-	//non-offensive and non-magic skills do not affect the status
+	//Non-offensive and non-magic skills do not affect the status
 	if (skill_get_nk(skill_id)&NK_NO_DAMAGE || !(skill_get_type(skill_id)&BF_MAGIC))
 		return;
 
+	//SC_MAGICPOWER needs to switch states before any damage is actually dealt
 	if (sc && sc->count && sc->data[SC_MAGICPOWER]) {
 		if (sc->data[SC_MAGICPOWER]->val4) {
 			status_change_end(bl, SC_MAGICPOWER, INVALID_TIMER);
@@ -19138,9 +19141,6 @@ void skill_spellbook(struct map_session_data *sd, unsigned short nameid) {
 		sc_start2(&sd->bl, &sd->bl, SC_FREEZE_SP, 100, 0, point, INVALID_TIMER);
 		sc_start4(&sd->bl, &sd->bl, SC_MAXSPELLBOOK, 100, skill_id, pc_checkskill(sd, skill_id), point, 0, INVALID_TIMER);
 	}
-
-	//Reading Spell Book SP cost same as the sealed spell.
-	status_zap(&sd->bl, 0, skill_get_sp(skill_id, pc_checkskill(sd, skill_id)));
 }
 
 int skill_select_menu(struct map_session_data *sd,uint16 skill_id) {
