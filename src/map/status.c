@@ -11995,7 +11995,6 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_C_MARKER:
 			if( --(sce->val4) >= 0 ) {
 				struct map_session_data *sd = map_id2sd(sce->val2);
-				uint8 i = 0;
 
 				if( !sd || sd->bl.m != bl->m ) //End status if caster isn't in same map
 					break;
