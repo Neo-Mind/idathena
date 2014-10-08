@@ -2793,22 +2793,21 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				wd = battle_calc_damage_parts(wd, src, target, skill_id, skill_lv);
 				//Weight from spear is treated as equipment ATK on official [helvetica]
 				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
-					wd.equipAtk += sd->inventory_data[index]->weight * 5 / 100; //50% of weight
-				wd.masteryAtk = 0; //Weapon mastery is ignored for spiral
+					ATK_ADD(wd.equipAtk, wd.equipAtk2, sd->inventory_data[index]->weight * 5 / 100); //50% of weight
+				wd.masteryAtk = wd.masteryAtk2 = 0; //Weapon mastery is ignored for spiral
 			} else //Monsters have no weight and use ATK instead
 				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, 0);
 			switch(tstatus->size) { //Size-fix. Is this modified by weapon perfection?
-				case SZ_SMALL: //Small: 125%
-					RE_ALLATK_RATE(wd, 125);
+				case SZ_SMALL:
+					RE_ALLATK_RATE(wd, 125); //Small: 125%
 					break;
-				//case SZ_MEDIUM: //Medium: 100%
-				case SZ_BIG: //Large: 75%
-					RE_ALLATK_RATE(wd, 75);
+				case SZ_BIG:
+					RE_ALLATK_RATE(wd, 75); //Large: 75%
 					break;
 			}
 #else
 		case NJ_ISSEN:
-			wd.damage = (40 * sstatus->str) + (sstatus->hp * 8 * skill_lv / 100);
+			wd.damage = 40 * sstatus->str + sstatus->hp * 8 * skill_lv / 100;
 			wd.damage2 = 0;
 			break;
 		case LK_SPIRALPIERCE:
@@ -2829,7 +2828,6 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				case SZ_SMALL: //Small: 125%
 					ATK_RATE(wd.damage, wd.damage2, 125);
 					break;
-				//case SZ_MEDIUM: //Medium: 100%
 				case SZ_BIG: //Large: 75%
 					ATK_RATE(wd.damage, wd.damage2, 75);
 					break;
@@ -2839,27 +2837,28 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 		case CR_SHIELDBOOMERANG:
 		case PA_SHIELDCHAIN:
 			wd.damage = sstatus->batk;
-			if(sd) {
-				short index = sd->equip_index[EQI_HAND_L];
-
-				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR)
-					ATK_ADD(wd.damage, wd.damage2, sd->inventory_data[index]->weight / 10);
-			} else
-				ATK_ADD(wd.damage, wd.damage2, sstatus->rhw.atk2); //Else use Atk2
+			wd.damage2 = 0;
 #ifdef RENEWAL
 			wd.weaponAtk = wd.damage;
 			wd.weaponAtk2 = wd.damage2;
 #endif
+			if(sd) {
+				short index = sd->equip_index[EQI_HAND_L];
+
+				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR) {
+					ATK_ADD(wd.damage, wd.damage2, sd->inventory_data[index]->weight / 10);
+#ifdef RENEWAL
+					ATK_ADD(wd.weaponAtk, wd.weaponAtk2, sd->inventory_data[index]->weight / 10);
+#endif
+				}
+			} else
+				ATK_ADD(wd.damage, wd.damage2, sstatus->rhw.atk2); //Else use Atk2
 			break;
 		case RK_DRAGONBREATH:
 		case RK_DRAGONBREATH_WATER:
 			{
 				int damagevalue = 0;
 
-				wd.damage = wd.damage2 = 0;
-#ifdef RENEWAL
-				wd.weaponAtk = wd.weaponAtk2 = 0;
-#endif
 				damagevalue = ((sstatus->hp / 50) + (status_get_max_sp(src) / 4)) * skill_lv;
 				if(status_get_lv(src) > 100)
 					damagevalue = damagevalue * status_get_lv(src) / 150;
@@ -2875,10 +2874,6 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 		case NC_SELFDESTRUCTION: {
 				int damagevalue = 0;
 
-				wd.damage = wd.damage2 = 0;
-#ifdef RENEWAL
-				wd.weaponAtk = wd.weaponAtk2 = 0;
-#endif
 				damagevalue = (skill_lv + 1) * ((sd ? pc_checkskill(sd,NC_MAINFRAME) : 0) + 8) * (status_get_sp(src) + sstatus->vit);
 				if(status_get_lv(src) > 100)
 					damagevalue = damagevalue * status_get_lv(src) / 100;
@@ -2889,26 +2884,18 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 #endif
 			}
 			break;
-		case KO_HAPPOKUNAI: {
+		case KO_HAPPOKUNAI:
+			if(sd) {
 				int damagevalue = 0;
+				short index = sd->equip_index[EQI_AMMO];
 
-				wd.damage = wd.damage2 = 0;
-#ifdef RENEWAL
-				wd.weaponAtk = wd.weaponAtk2 = 0;
-#endif
-				if(sd) {
-					short index = sd->equip_index[EQI_AMMO];
-
-					damagevalue = (3 * (sstatus->batk + sstatus->rhw.atk + ((index >= 0 && sd->inventory_data[index]) ? sd->inventory_data[index]->atk : 0))) * (skill_lv + 5) / 5;
-					ATK_ADD(wd.damage, wd.damage2, damagevalue);
-				} else {
-					damagevalue = 5000;
-					ATK_ADD(wd.damage, wd.damage2, damagevalue);
-				}
+				damagevalue = (3 * (sstatus->batk + sstatus->rhw.atk + ((index >= 0 && sd->inventory_data[index]) ? sd->inventory_data[index]->atk : 0))) * (skill_lv + 5) / 5;
+				ATK_ADD(wd.damage, wd.damage2, damagevalue);
 #ifdef RENEWAL
 				ATK_ADD(wd.weaponAtk, wd.weaponAtk2, damagevalue);
 #endif
-			}
+			} else
+				ATK_ADD(wd.damage, wd.damage2, 5000);
 			break;
 		case HFLI_SBR44: //[orn]
 			if(src->type == BL_HOM)
