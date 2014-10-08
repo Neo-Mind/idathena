@@ -2889,7 +2889,7 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				int damagevalue = 0;
 				short index = sd->equip_index[EQI_AMMO];
 
-				damagevalue = (3 * (sstatus->batk + sstatus->rhw.atk + ((index >= 0 && sd->inventory_data[index]) ? sd->inventory_data[index]->atk : 0))) * (skill_lv + 5) / 5;
+				damagevalue = 3 * (sstatus->batk + sstatus->rhw.atk + ((index >= 0 && sd->inventory_data[index]) ? sd->inventory_data[index]->atk : 0)) * (skill_lv + 5) / 5;
 				ATK_ADD(wd.damage, wd.damage2, damagevalue);
 #ifdef RENEWAL
 				ATK_ADD(wd.weaponAtk, wd.weaponAtk2, damagevalue);
