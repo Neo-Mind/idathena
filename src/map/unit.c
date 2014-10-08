@@ -1957,9 +1957,11 @@ int unit_set_target(struct unit_data* ud, int target_id)
  */
 int unit_stop_attack(struct block_list *bl)
 {
-	struct unit_data *ud = unit_bl2ud(bl);
+	struct unit_data *ud;
 
 	nullpo_ret(bl);
+
+	ud = unit_bl2ud(bl);
 
 	if(!ud || ud->attacktimer == INVALID_TIMER)
 		return 0;
@@ -1977,9 +1979,11 @@ int unit_stop_attack(struct block_list *bl)
  */
 int unit_stop_stepaction(struct block_list *bl)
 {
-	struct unit_data *ud = unit_bl2ud(bl);
+	struct unit_data *ud;
 
 	nullpo_ret(bl);
+
+	ud = unit_bl2ud(bl);
 
 	if(!ud)
 		return 0;
