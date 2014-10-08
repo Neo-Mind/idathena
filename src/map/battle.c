@@ -2554,6 +2554,7 @@ static struct Damage battle_calc_element_damage(struct Damage wd, struct block_l
 					//Additional 50 * lv neutral damage
 					wd.damage += battle_attr_fix(src, target, 50 * skill_lv, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 					break;
+				case NC_ARMSCANNON:
 				case GN_CARTCANNON:
 				case KO_HAPPOKUNAI:
 					//Forced to ammo's element
@@ -2792,7 +2793,7 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				wd = battle_calc_damage_parts(wd, src, target, skill_id, skill_lv);
 				//Weight from spear is treated as equipment ATK on official [helvetica]
 				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
-					wd.equipAtk += sd->inventory_data[index]->weight / 20;
+					wd.equipAtk += sd->inventory_data[index]->weight * 5 / 100; //50% of weight
 				wd.masteryAtk = 0; //Weapon mastery is ignored for spiral
 			} else //Monsters have no weight and use ATK instead
 				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, 0);
@@ -3599,14 +3600,12 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 				case SZ_BIG: skillratio += 200 + 300 * skill_lv; break; //Large
 			}
 			RE_LVL_DMOD(120);
-			//NOTE: There are some other factors that affect damage, but not sure how exactly. Will recheck one day. [Rytech]
 			break;
 		case NC_AXEBOOMERANG:
 			skillratio += 150 + 50 * skill_lv;
 			if(sd) {
 				short index = sd->equip_index[EQI_HAND_R];
 
-				//Weight is divided by 10 since 10 weight in coding make 1 whole actual weight. [Rytech]
 				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
 					skillratio += sd->inventory_data[index]->weight / 10;
 			}
@@ -3774,10 +3773,10 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 				//ATK [(Skill Level x 150) + (1000 x Target's current weight / Maximum weight) + (Target's Base Level x 5) x (Caster's Base Level / 150)] %
 				skillratio += -100 + 150 * skill_lv + status_get_lv(target) * 5;
 				if(tsd && tsd->weight)
-					skillratio += 100 * (tsd->weight / tsd->max_weight);
+					skillratio += 100 * tsd->weight / tsd->max_weight;
 				RE_LVL_DMOD(150);
 			} else { //ATK [(Skill Level x 100 + 500) x Caster Base Level / 100] %
-				skillratio += 400 + (100 * skill_lv);
+				skillratio += 400 + 100 * skill_lv;
 				RE_LVL_DMOD(100);
 			}
 			break;
@@ -4058,7 +4057,7 @@ static int64 battle_calc_skill_constant_addition(struct Damage wd,struct block_l
 #ifdef RENEWAL
 		case HT_FREEZINGTRAP:
 			if(sd)
-				atk = (40 * pc_checkskill(sd,RA_RESEARCHTRAP));
+				atk = 40 * pc_checkskill(sd,RA_RESEARCHTRAP);
 			break;
 #endif
 		case RA_WUGDASH:
@@ -4068,7 +4067,7 @@ static int64 battle_calc_skill_constant_addition(struct Damage wd,struct block_l
 		case RA_WUGSTRIKE:
 		case RA_WUGBITE:
 			if(sd)
-				atk = (30 * pc_checkskill(sd,RA_TOOTHOFWUG));
+				atk = 30 * pc_checkskill(sd,RA_TOOTHOFWUG);
 			break;
 		case GC_COUNTERSLASH:
 			atk = sstatus->agi * 2 + (sd ? sd->status.job_level * 4 : 0);
@@ -4084,17 +4083,17 @@ static int64 battle_calc_skill_constant_addition(struct Damage wd,struct block_l
 			}
 			break;
 		case SR_FALLENEMPIRE:
-			atk = (((tstatus->size + 1) * 2 + skill_lv - 1) * sstatus->str);
+			atk = ((tstatus->size + 1) * 2 + skill_lv - 1) * sstatus->str;
 			if(tsd && tsd->weight)
-				atk += ((tsd->weight / 10) * sstatus->dex / 120);
-			else
-				atk += (status_get_lv(target) * 50); //Mobs
+				atk += tsd->weight / 10 * sstatus->dex / 120;
+			else //Mobs
+				atk += status_get_lv(target) * 50;
 			break;
 		case SR_TIGERCANNON:
 			if(wd.miscflag&4)
-				atk = (skill_lv * 500 + status_get_lv(target) * 40);
+				atk = skill_lv * 500 + status_get_lv(target) * 40;
 			else
-				atk = (skill_lv * 240 + status_get_lv(target) * 40);
+				atk = skill_lv * 240 + status_get_lv(target) * 40;
 			break;
 	}
 	return atk;
@@ -4161,7 +4160,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 			ATK_ADDRATE(wd.damage, wd.damage2, 2 * sc->data[SC_TRUESIGHT]->val1);
 #endif
 		if(sc->data[SC_SPIRIT]) {
-			//Sonic Blow +25% dmg on GVG / +100% dmg on non GVG
+			//Sonic Blow +25% dmg on GVG, +100% dmg on non GVG
 			if(skill_id == AS_SONICBLOW && sc->data[SC_SPIRIT]->val2 == SL_ASSASIN) {
 				ATK_ADDRATE(wd.damage, wd.damage2, map_flag_gvg(src->m) ? 25 : 100);
 #ifdef RENEWAL
@@ -5352,6 +5351,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 				}
 			}
 			break;
+		case NC_ARMSCANNON:
 		case GN_CARTCANNON:
 			//Forced to ammo's element
 			wd.damage = battle_attr_fix(src, target, wd.damage, (sd && sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
