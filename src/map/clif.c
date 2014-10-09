@@ -7612,10 +7612,10 @@ void clif_bladestop(struct block_list *src, int dst_id, int active)
 
 	nullpo_retv(src);
 
-	WBUFW(buf,0)=0x1d1;
-	WBUFL(buf,2)=src->id;
-	WBUFL(buf,6)=dst_id;
-	WBUFL(buf,10)=active;
+	WBUFW(buf,0) = 0x1d1;
+	WBUFL(buf,2) = src->id;
+	WBUFL(buf,6) = dst_id;
+	WBUFL(buf,10) = active;
 
 	clif_send(buf,packet_len(0x1d1),src,AREA);
 }

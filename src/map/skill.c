@@ -13118,7 +13118,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
 			sg->unit_id = UNT_USED_TRAPS;
 			clif_changetraplook(&unit->bl,UNT_USED_TRAPS);
-			sg->limit = DIFF_TICK(tick,sg->tick) + 1500; //Get removed after 1.5 secs once activated
+			sg->limit = DIFF_TICK(tick,sg->tick) + 1500; //Gets removed after 1.5 secs once activated
 			break;
 
 		case UNT_ANKLESNARE:

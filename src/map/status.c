@@ -9789,6 +9789,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_MAGNETICFIELD:
 		case SC_KAGEHUMI:
 			unit_stop_walking(bl,1);
+			if (type == SC_CURSEDCIRCLE_ATKER)
+				unit_stop_attack(bl);
 			break;
 		case SC_ANKLE:
 		case SC_SPIDERWEB:
@@ -12194,7 +12196,7 @@ void status_change_clear_buffs(struct block_list* bl, int type)
 			case SC_QUEST_BUFF3:
 				continue;
 
-			//Debuffs that can be removed.
+			//Debuffs that can be removed
 			case SC_DEEPSLEEP:
 			case SC_BURNING:
 			case SC_FREEZING:
