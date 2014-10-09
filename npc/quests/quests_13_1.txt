@@ -5948,7 +5948,7 @@ mid_camp,165,245,0	script	Ryosen#ep131_rhea01	748,{
 			mes "I heard you can get this thing from a monster named, 'Cornus' found in the fields.";
 			next;
 			mes "[Ryosen]";
-			mes "Or... do you have any ^0000ffMystic Horns^000000 with you? Of course, I'm not saying that I want it for free. If you'd give me 5 ^0000ff5 Mystic Horns^000000, I'd give you my Rune-Midgart's Strawberry Cake.";
+			mes "Or... do you have any ^0000ffMystic Horns^000000 with you? Of course, I'm not saying that I want it for free. If you'd give me ^0000ff5 Mystic Horns^000000, I'd give you my Rune-Midgart's Strawberry Cake.";
 			next;
 			switch(select("I haven't seen such a thing.:Oh, ok, I'll give you!")) {
 			case 1:
