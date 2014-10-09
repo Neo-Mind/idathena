@@ -478,7 +478,7 @@ int mob_once_spawn(struct map_session_data* sd, int16 m, int16 x, int16 y, const
 	}
 
 	if (m < 0 || amount <= 0)
-		return 0; // invalid input
+		return 0; //Invalid input
 
 	lv = (sd) ? sd->status.base_level : 255;
 
@@ -503,7 +503,7 @@ int mob_once_spawn(struct map_session_data* sd, int16 m, int16 x, int16 y, const
 				else if (gc->guild_id) //Guild not yet available, retry in 5.
 					add_timer(gettick() + 5000, mob_spawn_guardian_sub, md->bl.id, gc->guild_id);
 			}
-		} //End addition [Valaris]
+		}
 
 		mob_spawn(md);
 

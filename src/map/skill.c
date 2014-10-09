@@ -5816,7 +5816,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				if (!skill_get_index(abra_skill_id))
 					break;
 
-				clif_skill_nodamage (src,bl,skill_id,skill_lv,1);
+				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 
 				if (sd) { //Player-casted
 					sd->state.abra_flag = 1;
@@ -5884,7 +5884,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case SA_SUMMONMONSTER:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			if (sd)
-				mob_once_spawn(sd,src->m,src->x,src->y," --ja--",-1,1,"",SZ_SMALL,AI_NONE);
+				mob_once_spawn(sd,src->m,src->x,src->y,"--ja--",-1,1,"",SZ_SMALL,AI_NONE);
 			break;
 		case SA_LEVELUP:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -5903,15 +5903,14 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case SA_CLASSCHANGE:
 		case SA_MONOCELL:
 			if (dstmd) {
-				int class_;
+				int mob_id = (skill_id == SA_MONOCELL ? MOBID_PORING : mob_get_random_id(4,1,0));
 
 				if (sd && dstmd->status.mode&MD_BOSS) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
-				class_ = (skill_id == SA_MONOCELL ? MOBID_PORING : mob_get_random_id(4,1,0));
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				mob_class_change(dstmd,class_);
+				mob_class_change(dstmd,mob_id);
 				if (tsc && dstmd->status.mode&MD_BOSS) {
 					const enum sc_type scs[] = { SC_QUAGMIRE,SC_PROVOKE,SC_ROKISWEIL,SC_GRAVITATION,SC_SUITON,SC_STRIPWEAPON,SC_STRIPSHIELD,SC_STRIPARMOR,SC_STRIPHELM,SC_BLADESTOP };
 	
@@ -9660,7 +9659,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				}
 
 				improv_skill_lv = 4 + skill_lv;
-				clif_skill_nodamage (src,bl,skill_id,skill_lv,1);
+				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 
 				if( sd ) {
 					sd->state.abra_flag = 2;
@@ -10804,13 +10803,13 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 				sc->data[SC_SPIRIT]->val2 == SL_WIZARD &&
 				sc->data[SC_SPIRIT]->val3 == ud->skill_id &&
 				ud->skill_id != WZ_WATERBALL )
-				sc->data[SC_SPIRIT]->val3 = 0; //Clear bounced spell check.
+				sc->data[SC_SPIRIT]->val3 = 0; //Clear bounced spell check
 
 			if( sc->data[SC_DANCING] && skill_get_inf2(ud->skill_id)&INF2_SONG_DANCE && sd )
 				skill_blockpc_start(sd,BD_ADAPTATION,3000);
 		}
 
-		//They just set the data so leave it as it is.[Inkfish]
+		//They just set the data so leave it as it is [Inkfish]
 		if( sd && ud->skill_id != SA_ABRACADABRA && ud->skill_id != WM_RANDOMIZESPELL )
 			sd->skillitem = sd->skillitemlv = 0;
 
@@ -12056,6 +12055,7 @@ static bool skill_dance_switch(struct skill_unit* unit, int flag)
 
 	return true;
 }
+
 /**
  * Upon Ice Wall cast it checks all nearby mobs to find any who may be blocked by the IW
  */
@@ -12065,13 +12065,14 @@ static int skill_icewall_block(struct block_list *bl,va_list ap) {
 
 	nullpo_ret(bl);
 	nullpo_ret(md);
-	if( !md->target_id || ( target = map_id2bl(md->target_id) ) == NULL )
+
+	if( !md->target_id || (target = map_id2bl(md->target_id)) == NULL )
 		return 0;
 
 	if( path_search_long(NULL,bl->m,bl->x,bl->y,target->x,target->y,CELL_CHKICEWALL) )
 		return 0;
 
-	if( !check_distance_bl(bl, target, status_get_range(bl) ) ) {
+	if( !check_distance_bl(bl,target,status_get_range(bl)) ) {
 		mob_unlocktarget(md,gettick());
 		mob_stop_walking(md,1);
 	}
@@ -14310,27 +14311,23 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 	if( !sc->count )
 		sc = NULL;
 
-	if( sd->skillitem == skill_id ) {
-		if( sd->state.abra_flag ) //Hocus-Pocus was used. [Inkfish]
-			sd->state.abra_flag = 0;
-		else { //When a target was selected, consume items that were skipped in pc_use_item [Skotlex]
-			if( (i = sd->itemindex) == -1 ||
-				sd->status.inventory[i].nameid != sd->itemid ||
-				sd->inventory_data[i] == NULL ||
-				!sd->inventory_data[i]->flag.delay_consume ||
-				sd->status.inventory[i].amount < 1
-				)
-			{	//Something went wrong, item exploit?
-				sd->itemid = sd->itemindex = -1;
-				return false;
-			}
-			//Consume
+	//When a target was selected, consume items that were skipped in pc_use_item [Skotlex]
+	if( sd->skillitem == skill_id && !sd->state.abra_flag ) {
+		if( (i = sd->itemindex) == -1 ||
+			sd->status.inventory[i].nameid != sd->itemid ||
+			sd->inventory_data[i] == NULL ||
+			!sd->inventory_data[i]->flag.delay_consume ||
+			sd->status.inventory[i].amount < 1 )
+		{ //Something went wrong, item exploit?
 			sd->itemid = sd->itemindex = -1;
-			if( skill_id == WZ_EARTHSPIKE && sc && sc->data[SC_EARTHSCROLL] && rnd()%100 > sc->data[SC_EARTHSCROLL]->val2 ) //[marquis007]
-				; //Do not consume item.
-			else if( sd->status.inventory[i].expire_time == 0 )
-				pc_delitem(sd,i,1,0,0,LOG_TYPE_CONSUME); //Rental usable items are not consumed until expiration
+			return false;
 		}
+		//Consume
+		sd->itemid = sd->itemindex = -1;
+		if( skill_id == WZ_EARTHSPIKE && sc && sc->data[SC_EARTHSCROLL] && rnd()%100 > sc->data[SC_EARTHSCROLL]->val2 ) //[marquis007]
+			; //Do not consume item.
+		else if( sd->status.inventory[i].expire_time == 0 )
+			pc_delitem(sd,i,1,0,0,LOG_TYPE_CONSUME); //Rental usable items are not consumed until expiration
 		return true;
 	}
 
@@ -15152,12 +15149,8 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 				return false;
 			break;
 	}
-	/* Temporarily disabled, awaiting for confirmation */
-#if 0
-	if( sd->state.abra_flag ) //Casting finished (Hocus-Pocus)
-#else
-	if( sd->skillitem == skill_id ) //Casting finished (Item skill or Hocus-Pocus) 
-#endif
+
+	if( sd->skillitem == skill_id && !sd->state.abra_flag ) //Casting finished (Item skill) 
 		return true;
 
 	if( pc_is90overweight(sd) ) {
@@ -15299,6 +15292,9 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 		}
 	}
 
+	if( sd->state.abra_flag ) //Hocus-Pocus was used [Inkfish]
+		sd->state.abra_flag = 0;
+
 	return true;
 }
 
@@ -15416,23 +15412,21 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 
 	if( !sd )
 		return req;
-	/* Temporarily disabled, awaiting for confirmation */
-#if 0
-	if( sd->state.abra_flag )
-#else
-	if( sd->skillitem == skill_id )
-#endif
-		return req; //Hocus-Pocus don't have requirements.
+
+	if( sd->skillitem == skill_id && !sd->state.abra_flag )
+		return req;
 
 	sc = &sd->sc;
 
 	if( !sc->count )
 		sc = NULL;
-	//Checks if disabling skill - in which case no SP requirements are necessary
-	if( sc && skill_disable_check(sc,skill_id) )
+
+	if( sc && skill_disable_check(sc,skill_id) ) //Checks if disabling skill - in which case no SP requirements are necessary
 		return req;
+
 	if( !idx ) //Invalid skill id
   		return req;
+
 	if( skill_lv < 1 || skill_lv > MAX_SKILL_LEVEL )
 		return req;
 
@@ -15592,7 +15586,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 							if( skill_id != SA_ABRACADABRA )
 								req.itemid[i] = req.amount[i] = 0;
 							else if( --req.amount[i] < 1 )
-								req.amount[i] = 1; //Hocus Pocus always use at least 1 gem
+								req.amount[i] = 1;
 						}
 					}
 				}
@@ -15947,16 +15941,16 @@ int skill_delayfix(struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 	sd = BL_CAST(BL_PC, bl);
 
 	if (skill_id == SA_ABRACADABRA || skill_id == WM_RANDOMIZESPELL)
-		return 0; //Will use picked skill's delay.
+		return 0; //Will use picked skill's delay
 
 	if (bl->type&battle_config.no_skill_delay)
 		return battle_config.min_skill_delay_limit;
 
 	if (time < 0)
-		time = -time + status_get_amotion(bl);	//If set to < 0, add to attack motion.
+		time = -time + status_get_amotion(bl); //If set to < 0, add to attack motion
 
 	//Delay reductions
-	switch (skill_id) {	//Monk combo skills have their delay reduced by agi/dex.
+	switch (skill_id) {	//Monk combo skills have their delay reduced by agi/dex
 		case MO_TRIPLEATTACK:
 		case MO_CHAINCOMBO:
 		case MO_COMBOFINISH:
@@ -15976,7 +15970,7 @@ int skill_delayfix(struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 
 				if (scale > 0)
 					time = time * scale / battle_config.castrate_dex_scale;
-				else //To be capped later to minimum.
+				else //To be capped later to minimum
 					time = 0;
 			}
 			if (battle_config.delay_dependon_agi && !(delaynodex&1)) { //If skill delay is allowed to be reduced by agi
@@ -15984,7 +15978,7 @@ int skill_delayfix(struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 
 				if (scale > 0)
 					time = time * scale / battle_config.castrate_dex_scale;
-				else //To be capped later to minimum.
+				else
 					time = 0;
 			}
 			break;
@@ -16008,7 +16002,7 @@ int skill_delayfix(struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 			if (sc->data[SC_POEMBRAGI])
 				time -= time * sc->data[SC_POEMBRAGI]->val3 / 100;
 			if (sc->data[SC_WIND_INSIGNIA] && sc->data[SC_WIND_INSIGNIA]->val1 == 3 && (skill_get_ele(skill_id, skill_lv) == ELE_WIND))
-				time /= 2; //After Delay of Wind element spells reduced by 50%.
+				time /= 2; //After Delay of Wind element spells reduced by 50%
 		}
 	}
 

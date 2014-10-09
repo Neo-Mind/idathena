@@ -6282,6 +6282,7 @@ void clif_item_repaireffect(struct map_session_data *sd,int idx,int flag)
 	int fd;
 
 	nullpo_retv(sd);
+
 	fd = sd->fd;
 
 	WFIFOHEAD(fd,packet_len(0x1fe));
@@ -6360,6 +6361,7 @@ void clif_item_skill(struct map_session_data *sd,uint16 skill_id,uint16 skill_lv
 	nullpo_retv(sd);
 
 	fd = sd->fd;
+
 	WFIFOHEAD(fd,packet_len(0x147));
 	WFIFOW(fd,0) = 0x147;
 	WFIFOW(fd,2) = skill_id;
@@ -6385,6 +6387,7 @@ void clif_cart_additem(struct map_session_data *sd,int n,int amount,int fail)
 	nullpo_retv(sd);
 
 	fd = sd->fd;
+
 	if(n < 0 || n >= MAX_CART || sd->status.cart[n].nameid <= 0)
 		return;
 
@@ -6439,6 +6442,7 @@ void clif_cart_additem_ack(struct map_session_data *sd, uint8 flag)
 
 	fd = sd->fd;
 	buf = WFIFOP(fd,0);
+
 	WBUFW(buf,0) = 0x12c;
 	WBUFB(buf,2) = flag;
 	clif_send(buf,packet_len(0x12c),&sd->bl,SELF);
@@ -6452,6 +6456,7 @@ void clif_bank_open(struct map_session_data *sd) {
 	nullpo_retv(sd);
 
 	fd = sd->fd;
+
 	WFIFOHEAD(fd,4);
 	WFIFOW(fd,0) = 0x9b7;
 	WFIFOW(fd,2) = 0;
@@ -6494,6 +6499,7 @@ void clif_bank_close(struct map_session_data *sd) {
 	nullpo_retv(sd);
 
 	fd = sd->fd;    
+
 	WFIFOHEAD(fd,4);
 	WFIFOW(fd,0) = 0x9b9;
 	WFIFOW(fd,2) = 0;

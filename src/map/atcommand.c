@@ -6460,7 +6460,7 @@ ACMD_FUNC(summon)
 	int mob_id = 0;
 	int duration = 0;
 	struct mob_data *md;
-	unsigned int tick=gettick();
+	unsigned int tick = gettick();
 
 	nullpo_retr(-1, sd);
 
