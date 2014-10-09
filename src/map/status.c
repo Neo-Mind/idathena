@@ -1291,14 +1291,14 @@ int status_set_sp(struct block_list *bl, unsigned int sp, int flag)
 int status_charge(struct block_list* bl, int64 hp, int64 sp)
 {
 	if (!(bl->type&BL_CONSUME))
-		return (int)(hp + sp); //Assume all was charged so there are no 'not enough' fails.
+		return (int)(hp + sp); //Assume all was charged so there are no 'not enough' fails
 	return status_damage(NULL, bl, hp, sp, 0, 3);
 }
 
-//Inflicts damage on the target with the according walkdelay.
-//If flag&1, damage is passive and does not triggers cancelling status changes.
-//If flag&2, fail if target does not has enough to substract.
-//If flag&4, if killed, mob must not give exp/loot.
+//Inflicts damage on the target with the according walkdelay
+//If flag&1, damage is passive and does not triggers cancelling status changes
+//If flag&2, fail if target does not has enough to substract
+//If flag&4, if killed, mob must not give exp/loot
 //flag will be set to &8 when damaging sp of a dead character
 int status_damage(struct block_list *src, struct block_list *target, int64 in_hp, int64 in_sp, int walkdelay, int flag)
 {
@@ -1313,9 +1313,9 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 	sp = (int)cap_value(in_sp, INT_MIN, INT_MAX);
 
 	if (sp && !(target->type&BL_CONSUME))
-		sp = 0; //Not a valid SP target.
+		sp = 0; //Not a valid SP target
 
-	if (hp < 0) { //Assume absorbed damage.
+	if (hp < 0) { //Assume absorbed damage
 		status_heal(target, -hp, 0, 1);
 		hp = 0;
 	}
@@ -1377,8 +1377,8 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 			status_change_end(target, SC_CAMOUFLAGE, INVALID_TIMER);
 			status_change_end(target, SC_DEEPSLEEP, INVALID_TIMER);
 			if ((sce = sc->data[SC_ENDURE]) && !sce->val4) {
-				//Endure count is only reduced by non-players on non-gvg maps.
-				//val4 signals infinite endure. [Skotlex]
+				//Endure count is only reduced by non-players on non-gvg maps
+				//val4 signals infinite endure [Skotlex]
 				if (src && src->type != BL_PC && !map_flag_gvg2(target->m) && !map[target->m].flag.battleground && --(sce->val2) < 0)
 					status_change_end(target, SC_ENDURE, INVALID_TIMER);
 			}
@@ -1432,7 +1432,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 	if (src && target->type == BL_PC && ((TBL_PC*)target)->disguise)
 		unit_stop_walking(target, 1);
 
-	if (status->hp || (flag&8)) { //Still lives or has been dead before this damage.
+	if (status->hp || (flag&8)) { //Still lives or has been dead before this damage
 		if (walkdelay)
 			unit_set_walkdelay(target, gettick(), walkdelay, 0);
 		return (int)(hp + sp); 
@@ -1440,22 +1440,22 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 
 	status->hp = 0;
 	//NOTE: These dead functions should return: [Skotlex]
-	//0: Death cancelled, auto-revived.
+	//0: Death cancelled, auto-revived
 	//Non-zero: Standard death. Clear status, cancel move/attack, etc
-	//&2: Also remove object from map.
-	//&4: Also delete object from memory.
+	//&2: Also remove object from map
+	//&4: Also delete object from memory
 	switch (target->type) {
 		case BL_PC:  flag = pc_dead((TBL_PC*)target,src); break;
 		case BL_MOB: flag = mob_dead((TBL_MOB*)target, src, (flag&4 ? 3 : 0)); break;
 		case BL_HOM: flag = hom_dead((TBL_HOM*)target); break;
 		case BL_MER: flag = mercenary_dead((TBL_MER*)target); break;
 		case BL_ELEM: flag = elemental_dead((TBL_ELEM*)target); break;
-		default:	//Unhandled case, do nothing to object.
+		default: //Unhandled case, do nothing to object
 			flag = 0;
 			break;
 	}
 
-	if (!flag) //Death cancelled.
+	if (!flag) //Death cancelled
 		return (int)(hp + sp);
 
 	//Normal death
@@ -1463,7 +1463,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 		battle_config.clear_unit_ondeath&target->type)
 		skill_clear_unitgroup(target);
 
-	if (target->type&BL_REGEN) { //Reset regen ticks.
+	if (target->type&BL_REGEN) { //Reset regen ticks
 		struct regen_data *regen = status_get_regen_data(target);
 
 		if (regen) {
@@ -1491,7 +1491,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 		return (int)(hp + sp);
 	}
 
-	//Ensure the monster has not already rebirthed before doing so.
+	//Ensure the monster has not already rebirthed before doing so
 	if (target->type == BL_MOB && sc && sc->data[SC_REBIRTH] && !((TBL_MOB*) target)->state.rebirth) {
 		status_revive(target,sc->data[SC_REBIRTH]->val2,0);
 		status_change_clear(target,0);
@@ -1501,7 +1501,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 
 	status_change_clear(target,0);
 
-	if (flag&4) //Delete from memory. (also invokes map removal code)
+	if (flag&4) //Delete from memory (also invokes map removal code)
 		unit_free(target,CLR_DEAD);
 	else if (flag&2) //Remove from map
 		unit_remove_map(target,CLR_DEAD);
@@ -1531,9 +1531,9 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 	return (int)(hp + sp);
 }
 
-//Heals a character.
+//Heals a character
 //If flag&1, this is forced healing (otherwise, stuff like Berserk can block it)
-//If flag&2, when the player is healed, show the HP/SP heal effect.
+//If flag&2, when the player is healed, show the HP/SP heal effect
 int status_heal(struct block_list *bl, int64 in_hp, int64 in_sp, int flag)
 {
 	struct status_data *status;
@@ -7636,6 +7636,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_DECREASEAGI:
 			case SC_PROVOKE:
 			case SC_COMA:
+			case SC_ELEMENTALCHANGE:
+			case SC_STOP:
 			case SC_GRAVITATION:
 			case SC_SUITON:
 			case SC_RICHMANKIM:
@@ -7663,12 +7665,14 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_BITE:
 			case SC_ELECTRICSHOCKER:
 			case SC_MAGNETICFIELD:
+			case SC_WHITEIMPRISON:
 			case SC__ENERVATION:
 			case SC__GROOMY:
 			case SC__IGNORANCE:
 			case SC__LAZINESS:
 			case SC__UNLUCKY:
 			case SC__WEAKNESS:
+			case SC_CURSEDCIRCLE_TARGET:
 				return 0;
 		}
 	}
@@ -8370,7 +8374,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_BLEEDING:
 				tick_time = 10000; //[GodLesZ] tick time
 				val4 = tick / tick_time;
-				if( !val4 )
+				if( val4 < 1 )
 					val4 = 1;
 				break;
 			case SC_S_LIFEPOTION:
@@ -8387,7 +8391,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val4 = 1;
 				break;
 			case SC_BOSSMAPINFO:
-				if( sd != NULL ) {
+				if( sd ) {
 					struct mob_data *boss_md = map_getmob_boss(bl->m); //Search for Boss on this Map
 
 					if( boss_md == NULL || boss_md->bl.prev == NULL ) { //No MVP on this map - MVP is dead
@@ -9189,10 +9193,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = tick / tick_time;
 				break;
 			case SC_GLOOMYDAY:
-				val2 = 20 + 5 * val1; //Flee reduction.
-				val3 = 15 + 5 * val1; //ASPD reduction.
+				val2 = 20 + 5 * val1; //Flee reduction
+				val3 = 15 + 5 * val1; //ASPD reduction
 				if( sd && rnd()%100 < val1 ) { //(Skill Lv) %
-					val4 = 1; //Reduce walk speed by half.
+					val4 = 1; //Reduce walk speed by half
 					if( pc_isriding(sd) )
 						pc_setriding(sd,0);
 					if( pc_isridingdragon(sd) )
@@ -9200,7 +9204,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				} 
 				break;
 			case SC_GLOOMYDAY_SK: 
-				//Random number between [15 ~ (Voice Lesson Skill Level x 5) + (Skill Level x 10)] %.
+				//Random number between [15 ~ (Voice Lesson Skill Level x 5) + (Skill Level x 10)] %
 				val2 = rnd_value(15,(sd ? pc_checkskill(sd,WM_LESSON) * 5 : 0) + val1 * 10);
 				break;
 			case SC_SONGOFMANA:
@@ -9799,6 +9803,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					else
 						unit_stop_walking(bl,1);
 				}
+				if (type == SC_CURSEDCIRCLE_TARGET)
+					unit_stop_attack(bl);
 			}
 			break;
 		case SC_WEIGHT90:
@@ -11610,7 +11616,8 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		case SC_ELECTRICSHOCKER:
 			if( --(sce->val4) >= 0 ) {
-				status_charge(bl,0,5 * sce->val1 * status->max_sp / 100);
+				if( !status_charge(bl,0,5 * sce->val1 * status->max_sp / 100) )
+					status_zap(bl,0,status->sp);
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}
