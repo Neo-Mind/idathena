@@ -4338,7 +4338,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					sflag |= SD_LEVEL; //-1 will be used in packets instead of the skill level
 				if (skill_area_temp[1] != bl->id && !(skill_get_inf2(skill_id)&INF2_NPC_SKILL))
 					sflag |= SD_ANIMATION; //Original target gets no animation (as well as all NPC skills)
-				if ((skill_id == LG_MOONSLASHER || skill_id == SR_WINDMILL) && tsc && tsc->data[SC_HOVERING])
+				if (tsc && tsc->data[SC_HOVERING] && (skill_id == LG_MOONSLASHER || skill_id == SR_WINDMILL))
 					break;
 
 				heal = (int)skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,sflag);
@@ -9914,8 +9914,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					chance = 10; //Minimal chance is 10%.
 				if( bl->type == BL_MOB )
 					break;
-				if( rnd()%100 < chance ) {
-					//Coded to both inflect the status and drain the target's SP only when successful. [Rytech]
+				if( rnd()%100 < chance ) { //Coded to both inflect status and drain target's SP only when successful. [Rytech]
 					sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 					status_zap(bl,0,status_get_max_sp(bl) * (25 + 5 * skill_lv) / 100);
 				}
@@ -11235,8 +11234,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case MH_STEINWAND:
 		case MH_XENO_SLASHER:
 		case NC_MAGMA_ERUPTION:
-		case SO_ELEMENTAL_SHIELD:
 		case LG_KINGS_GRACE:
+		case SO_ELEMENTAL_SHIELD:
 		case RL_B_TRAP:
 			flag |= 1; //Set flag to 1 to prevent deleting ammo (it will be deleted on group-delete).
 		case GS_GROUNDDRIFT: //Ammo should be deleted right away.
@@ -12571,12 +12570,10 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 		if( unit_flag&UF_RANGEDSINGLEUNIT && i == (layout->count / 2) )
 			val2 |= UF_RANGEDSINGLEUNIT; //Center
 
-		if( sd )
-			if( sc && sc->data[SC__MAELSTROM] ) //Does not recover SP from monster skills
-				map_foreachincell(skill_maelstrom_suction,src->m,ux,uy,BL_SKILL,skill_id,skill_lv);
+		if( sd && sc && sc->data[SC__MAELSTROM] ) //Does not recover SP from monster skills
+			map_foreachincell(skill_maelstrom_suction,src->m,ux,uy,BL_SKILL,skill_id,skill_lv);
 
-		//Check active cell to failing or remove current unit
-		if( range <= 0 )
+		if( range <= 0 ) //Check active cell to failing or remove current unit
 			map_foreachincell(skill_cell_overlap,src->m,ux,uy,BL_SKILL,skill_id,&alive,src);
 
 		if( !alive )
@@ -13754,7 +13751,7 @@ static int skill_unit_onout(struct skill_unit *src, struct block_list *bl, unsig
 				status_change_end(bl, type, INVALID_TIMER);
 			break;
 
-		case UNT_HERMODE: //Clear Hermode if the owner moved.
+		case UNT_HERMODE: //Clear Hermode if the owner moved
 			if( sce && sce->val3 == BCT_SELF && sce->val4 == sg->group_id )
 				status_change_end(bl, type, INVALID_TIMER);
 			break;
@@ -13825,7 +13822,7 @@ int skill_unit_onleft(uint16 skill_id, struct block_list *bl, unsigned int tick)
 		case BD_ROKISWEIL:
 		case BD_INTOABYSS:
 		case BD_SIEGFRIED:
-			if(sc && sc->data[SC_DANCING] && (sc->data[SC_DANCING]->val1&0xFFFF) == skill_id) {
+			if (sc && sc->data[SC_DANCING] && (sc->data[SC_DANCING]->val1&0xFFFF) == skill_id) {
 				//Check if you just stepped out of your ensemble skill to cancel dancing. [Skotlex]
 				//We don't check for SC_LONGING because someone could always have knocked you back and out of the song/dance.
 				//FIXME: This code is not perfect, it doesn't checks for the real ensemble's owner,
@@ -13847,6 +13844,7 @@ int skill_unit_onleft(uint16 skill_id, struct block_list *bl, unsigned int tick)
 		case SC_BLOODYLUST:
 		case GN_FIRE_EXPANSION_SMOKE_POWDER:
 		case GN_FIRE_EXPANSION_TEAR_GAS:
+		case LG_KINGS_GRACE:
 		case SO_ELEMENTAL_SHIELD:
 			if (sce)
 				status_change_end(bl, type, INVALID_TIMER);
@@ -13904,7 +13902,7 @@ int skill_unit_onleft(uint16 skill_id, struct block_list *bl, unsigned int tick)
 		case GD_GLORYWOUNDS:
 		case GD_SOULCOLD:
 		case GD_HAWKEYES:
-			if( !(sce && sce->val4) )
+			if (!(sce && sce->val4))
 				status_change_end(bl, type, INVALID_TIMER);
 			break;
 	}
@@ -15917,7 +15915,7 @@ int skill_vfcastfix(struct block_list *bl, double time, uint16 skill_id, uint16 
 			fixcast_r = max(fixcast_r, sc->data[SC_HEAT_BARREL]->val2);
 		//Fixed cast non percentage bonuses
 		if( sc->data[SC_MANDRAGORA] )
-			fixed += sc->data[SC_MANDRAGORA]->val1 * 1000 / 2;
+			fixed += sc->data[SC_MANDRAGORA]->val1 * 500;
 		if( sc->data[SC_GUST_OPTION] || sc->data[SC_BLAST_OPTION] || sc->data[SC_WILD_STORM_OPTION] )
 			fixed -= 1000;
 		if( sc->data[SC_IZAYOI] )

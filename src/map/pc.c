@@ -9300,8 +9300,8 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		if( sd->sc.data[SC_EXEEDBREAK] )
 			status_change_end(&sd->bl,SC_EXEEDBREAK,INVALID_TIMER);
 	}
-	if( sd->inventory_data[n]->type == IT_ARMOR && sd->inventory_data[n]->nameid == ITEMID_HOVERING_BOOSTER &&
-		sd->sc.data[SC_HOVERING] )
+	if( sd->inventory_data[n]->type == IT_ARMOR &&
+		sd->inventory_data[n]->nameid == ITEMID_HOVERING_BOOSTER && sd->sc.data[SC_HOVERING] )
 		status_change_end(&sd->bl,SC_HOVERING,INVALID_TIMER);
 	if( sd->sc.data[SC_HEAT_BARREL] )
 		status_change_end(&sd->bl,SC_HEAT_BARREL,INVALID_TIMER);

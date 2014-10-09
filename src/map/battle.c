@@ -2817,18 +2817,17 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 
 				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
 					wd.damage = sd->inventory_data[index]->weight * 8 / 100; //80% of weight
-
-				ATK_ADDRATE(wd.damage, wd.damage2, 50 * skill_lv); //Skill modifier applies to weight only.
-			} else //Monsters have no weight and use ATK instead
+				ATK_ADDRATE(wd.damage, wd.damage2, 50 * skill_lv); //Skill modifier applies to weight only
+			} else
 				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, 0);
 			i = sstatus->str / 10;
 			i *= i;
-			ATK_ADD(wd.damage, wd.damage2, i); //Add STR bonus.
-			switch(tstatus->size) { //Size-fix. Is this modified by weapon perfection?
-				case SZ_SMALL: //Small: 125%
+			ATK_ADD(wd.damage, wd.damage2, i); //Add STR bonus
+			switch(tstatus->size) {
+				case SZ_SMALL:
 					ATK_RATE(wd.damage, wd.damage2, 125);
 					break;
-				case SZ_BIG: //Large: 75%
+				case SZ_BIG:
 					ATK_RATE(wd.damage, wd.damage2, 75);
 					break;
 			}
