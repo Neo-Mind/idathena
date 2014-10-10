@@ -392,7 +392,7 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 				if( tsc->data[SC_SPIDERWEB] ) {
 					tsc->data[SC_SPIDERWEB]->val1 = 0; //Free to move now
 					if( tsc->data[SC_SPIDERWEB]->val2-- > 0 )
-						ratio += 200; //Double damage
+						ratio += 100; //Double damage
 					if( tsc->data[SC_SPIDERWEB]->val2 == 0 ) {
 						struct skill_unit_group* group = skill_id2group(tsc->data[SC_SPIDERWEB]->val3);
 
@@ -409,7 +409,7 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 				if( tsc->data[SC_CRYSTALIZE] )
 					status_change_end(target, SC_CRYSTALIZE, INVALID_TIMER);
 				if( tsc->data[SC_EARTH_INSIGNIA] )
-					ratio += 150;
+					ratio += 50;
 				break;
 			case ELE_HOLY:
 				if( tsc->data[SC_ORATIO] )
@@ -421,17 +421,17 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 				break;
 			case ELE_WIND:
 				if( tsc->data[SC_CRYSTALIZE] )
-					ratio += 150;
+					ratio += 50;
 				if( tsc->data[SC_WATER_INSIGNIA] )
-					ratio += 150;
+					ratio += 50;
 				break;
 			case ELE_WATER:
 				if( tsc->data[SC_FIRE_INSIGNIA] )
-					ratio += 150;
+					ratio += 50;
 				break;
 			case ELE_EARTH:
 				if( tsc->data[SC_WIND_INSIGNIA] )
-					ratio += 150;
+					ratio += 50;
 				if( tsc->data[SC_MAGNETICFIELD] )
 					status_change_end(target, SC_MAGNETICFIELD, INVALID_TIMER); //Freed if received earth damage
 				break;
