@@ -13117,9 +13117,9 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 
 		case UNT_ANKLESNARE:
 		case UNT_MANHOLE:
-			if (sg->unit_id == UNT_ANKLESNARE && sg->val3 == SC_ESCAPE && map_flag_vs(ss->m) && bl->id == sg->src_id)
+			if (sg->unit_id == UNT_ANKLESNARE && sg->val3 == SC_ESCAPE && map_flag_vs(ss->m) && bl->id == ss->id)
 				break;
-			if (sg->val2 == 0 && (sg->unit_id == UNT_ANKLESNARE || bl->id != sg->src_id)) {
+			if (sg->val2 == 0 && (sg->unit_id == UNT_ANKLESNARE || bl->id != ss->id)) {
 				int sec = skill_get_time2(skill_id,skill_lv);
 
 				if (status_change_start(ss,bl,type,10000,skill_lv,sg->group_id,0,0,sec,SCFLAG_FIXEDRATE)) {

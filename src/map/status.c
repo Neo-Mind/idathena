@@ -9070,7 +9070,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = tick / tick_time;
 				break;
 			case SC_WUGDASH:
-				val4 = gettick(); //Store time at which you started running.
+				val4 = gettick(); //Store time at which you started running
 				tick = -1;
 				break;
 			case SC__REPRODUCE:
@@ -10068,13 +10068,15 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			delete_timer(sce->timer,status_change_timer);
 		sc_isnew = false;
 	} else { //New sc
-		++(sc->count);
+		++sc->count;
 		sce = sc->data[type] = ers_alloc(sc_data_ers,struct status_change_entry);
 	}
+
 	sce->val1 = val1;
 	sce->val2 = val2;
 	sce->val3 = val3;
 	sce->val4 = val4;
+
 	if(tick >= 0)
 		sce->timer = add_timer(gettick() + tick,status_change_timer,bl->id,type);
 	else
@@ -11690,9 +11692,11 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				struct block_list *src = map_id2bl(sce->val2);
 				struct skill_unit_group* group = skill_id2group(sce->val3);
 
+				if( !src || (src && (status_isdead(src) || src->m != bl->m)) )
+					break;
 				map_freeblock_lock();
 				if( group )
-					skill_attack(skill_get_type(GN_THORNS_TRAP),src,src,bl,group->skill_id,sce->val1,tick,SD_LEVEL|SD_ANIMATION);
+					skill_attack(skill_get_type(GN_THORNS_TRAP),src,src,bl,group->skill_id,group->skill_lv,tick,SD_LEVEL|SD_ANIMATION);
 				if( sc->data[type] ) {
 					sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				}
