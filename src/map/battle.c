@@ -393,11 +393,19 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 					tsc->data[SC_SPIDERWEB]->val1 = 0; //Free to move now
 					if( tsc->data[SC_SPIDERWEB]->val2-- > 0 )
 						ratio += 200; //Double damage
-					if( tsc->data[SC_SPIDERWEB]->val2 == 0 )
-						status_change_end(target, SC_SPIDERWEB, INVALID_TIMER);
+					if( tsc->data[SC_SPIDERWEB]->val2 == 0 ) {
+						struct skill_unit_group* group = skill_id2group(tsc->data[SC_SPIDERWEB]->val3);
+
+						if( group )
+							skill_delunitgroup(group);
+					}
 				}
-				if( tsc->data[SC_THORNSTRAP] )
-					status_change_end(target, SC_THORNSTRAP, INVALID_TIMER);
+				if( tsc->data[SC_THORNSTRAP] ) {
+					struct skill_unit_group* group = skill_id2group(tsc->data[SC_THORNSTRAP]->val3);
+
+					if( group )
+						skill_delunitgroup(group);
+				}
 				if( tsc->data[SC_CRYSTALIZE] )
 					status_change_end(target, SC_CRYSTALIZE, INVALID_TIMER);
 				if( tsc->data[SC_EARTH_INSIGNIA] )

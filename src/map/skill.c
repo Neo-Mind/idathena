@@ -1709,8 +1709,8 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				continue;
 
 			if( skill == AS_SONICBLOW )
-				pc_stop_attack(sd); //Special case, Sonic Blow autospell should stop the player attacking.
-			else if( skill == PF_SPIDERWEB ) //Special case, due to its nature of coding.
+				pc_stop_attack(sd); //Special case, Sonic Blow autospell should stop the player attacking
+			else if( skill == PF_SPIDERWEB ) //Special case, due to its nature of coding
 				type = CAST_GROUND;
 
 			sd->state.autocast = 1;
@@ -11156,7 +11156,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case WE_CALLPARTNER:
 		case WE_CALLPARENT:
 		case WE_CALLBABY:
-		case AC_SHOWER:	//Ground-placed skill implementation.
+		case AC_SHOWER:	//Ground-placed skill implementation
 		case MA_SHOWER:
 		case SA_LANDPROTECTOR:
 		case BD_LULLABY:
@@ -13485,7 +13485,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 
 		case UNT_THORNS_TRAP:
 			if (sg->val2 == 0) {
-				sc_start4(ss,bl,type,100,skill_lv,skill_id,ss->id,0,skill_get_time(skill_id,skill_lv));
+				sc_start4(ss,bl,type,100,skill_lv,ss->id,sg->group_id,0,skill_get_time(skill_id,skill_lv));
 				sg->val2 = bl->id;
 			}
 			break;

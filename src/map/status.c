@@ -11687,10 +11687,12 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		case SC_THORNSTRAP:
 			if( --(sce->val4) >= 0 ) {
-				struct block_list *src = map_id2bl(sce->val3);
+				struct block_list *src = map_id2bl(sce->val2);
+				struct skill_unit_group* group = skill_id2group(sce->val3);
 
 				map_freeblock_lock();
-				skill_attack(skill_get_type(GN_THORNS_TRAP),src,src,bl,sce->val2,sce->val1,tick,SD_LEVEL|SD_ANIMATION);
+				if( group )
+					skill_attack(skill_get_type(GN_THORNS_TRAP),src,src,bl,group->skill_id,sce->val1,tick,SD_LEVEL|SD_ANIMATION);
 				if( sc->data[type] ) {
 					sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				}
