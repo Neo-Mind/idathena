@@ -2437,11 +2437,11 @@ int unit_skillcastcancel(struct block_list *bl, uint8 type)
 	nullpo_ret(bl);
 
 	if (!ud || ud->skilltimer == INVALID_TIMER)
-		return 0; //Nothing to cancel.
+		return 0; //Nothing to cancel
 
 	sd = BL_CAST(BL_PC, bl);
 
-	if (type&2) { //See if it can be cancelled.
+	if (type&2) { //See if it can be cancelled
 		if (!ud->state.skillcastcancel)
 			return 0;
 

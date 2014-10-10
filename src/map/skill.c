@@ -4636,7 +4636,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		case NPC_SMOKING:
 		case GS_FLING:
 		case NJ_ZENYNAGE:
-		case GN_THORNS_TRAP:
 		case GN_HELLS_PLANT_ATK:
 		case RL_B_TRAP:
 			skill_attack(BF_MISC,src,src,bl,skill_id,skill_lv,tick,flag);
@@ -5511,7 +5510,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 	tstatus = status_get_status_data(bl);
 	sstatus = status_get_status_data(src);
 
-	//Check for undead skills that convert a no-damage skill into a damage one. [Skotlex]
+	//Check for undead skills that convert a no-damage skill into a damage one [Skotlex]
 	switch(skill_id) {
 		case HLIF_HEAL:	//[orn]
 			if(bl->type != BL_HOM) {
@@ -5525,10 +5524,10 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case AL_INCAGI:
 		case ALL_RESURRECTION:
 		case PR_ASPERSIO:
-			//Apparently only player casted skills can be offensive like this.
+			//Apparently only player casted skills can be offensive like this
 			if(sd && battle_check_undead(tstatus->race,tstatus->def_ele) && skill_id != AL_INCAGI) {
 				if(battle_check_target(src,bl,BCT_ENEMY) < 1) {
-					//Offensive heal does not works on non-enemies. [Skotlex]
+					//Offensive heal does not works on non-enemies [Skotlex]
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					return 0;
 				}
@@ -6317,13 +6316,10 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			}
 			break;
 
-		case AC_CONCENTRATION: {
-				clif_skill_nodamage(src,bl,skill_id,skill_lv,
-					sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
-				map_foreachinrange( status_change_timer_sub,src,
-					skill_get_splash(skill_id,skill_lv),BL_CHAR,
-					src,NULL,type,tick);
-			}
+		case AC_CONCENTRATION:
+			clif_skill_nodamage(src,bl,skill_id,skill_lv,
+				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
+			map_foreachinrange(status_change_timer_sub,src,skill_get_splash(skill_id,skill_lv),BL_CHAR,src,NULL,type,tick);
 			break;
 
 		case SM_PROVOKE:
@@ -9885,12 +9881,12 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 				if( sc && sc->bs_counter < skill_get_maxcount(skill_id,skill_lv) ) {
 					if( tsc && tsc->data[type] ) {
-						(sc->bs_counter)--;
+						sc->bs_counter--;
 						status_change_end(src,type,INVALID_TIMER); //The first one cancels and the last one will take effect resetting the timer
 					}
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 					sc_start2(src,bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv));
-					(sc->bs_counter)++;
+					sc->bs_counter++;
 				} else if( sd ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
@@ -11524,7 +11520,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case AB_EPICLESIS:
-			if( (sg = skill_unitsetting(src,skill_id,skill_lv,x,y,0)) ) {
+			if( (sg = skill_unitsetting(src,skill_id,skill_lv,x,y,0)) && !map_flag_vs(src->m) ) {
 				i = sg->unit->range;
 				map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,BL_CHAR,src,ALL_RESURRECTION,1,tick,flag|BCT_NOENEMY|1,skill_castend_nodamage_id);
 			}
@@ -12676,33 +12672,31 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 
 	switch( sg->unit_id ) {
 		case UNT_SPIDERWEB:
-			if( sc ) {
-				//If you are fiberlocked and can't move, it will only increase your fireweakness level [Inkfish]
-				if( sc->data[SC_SPIDERWEB] && sc->data[SC_SPIDERWEB]->val1 > 0 ) {
-					sc->data[SC_SPIDERWEB]->val2++;
-					break;
-				} else if( battle_check_target(&sg->unit->bl,bl,sg->target_flag) > 0 ) {
-					int sec = skill_get_time2(skill_id,skill_lv);
+			//If you are fiberlocked and can't move, it will only increase your fireweakness level [Inkfish]
+			if( sc && sc->data[SC_SPIDERWEB] && sc->data[SC_SPIDERWEB]->val1 > 0 ) {
+				sc->data[SC_SPIDERWEB]->val2++;
+				break;
+			} else if( battle_check_target(&sg->unit->bl,bl,sg->target_flag) > 0 ) {
+				int sec = skill_get_time2(skill_id,skill_lv);
 
-					if( status_change_start(ss,bl,type,10000,skill_lv,1,sg->group_id,0,sec,SCFLAG_FIXEDRATE) ) {
-						const struct TimerData* td = (sc->data[type] ? get_timer(sc->data[type]->timer) : NULL);
-						int knockback_immune = (sd ? !sd->special_state.no_knockback : !(status->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS)));
+				if( status_change_start(ss,bl,type,10000,skill_lv,1,sg->group_id,0,sec,SCFLAG_FIXEDRATE) ) {
+					const struct TimerData* td = (sc && sc->data[type] ? get_timer(sc->data[type]->timer) : NULL);
+					int knockback_immune = (sd ? !sd->special_state.no_knockback : !(status->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS)));
 
-						if( td )
-							sec = DIFF_TICK(td->tick,tick);
-						if( knockback_immune ) {
-							if( !battle_config.skill_trap_type && map_flag_gvg2(bl->m) )
-								;
-							else {
-								map_moveblock(bl,unit->bl.x,unit->bl.y,tick);
-								clif_fixpos(bl);
-							}
+					if( td )
+						sec = DIFF_TICK(td->tick,tick);
+					if( knockback_immune ) {
+						if( !battle_config.skill_trap_type && map_flag_gvg2(bl->m) )
+							;
+						else {
+							map_moveblock(bl,unit->bl.x,unit->bl.y,tick);
+							clif_fixpos(bl);
 						}
-						sg->val2 = bl->id;
-					} else
-						sec = 3000; //Couldn't trap it?
-					sg->limit = DIFF_TICK(tick,sg->tick) + sec;
-				}
+					}
+					sg->val2 = bl->id;
+				} else
+					sec = 3000; //Couldn't trap it?
+				sg->limit = DIFF_TICK(tick,sg->tick) + sec;
 			}
 			break;
 
@@ -12719,8 +12713,7 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 
 		case UNT_CHAOSPANIC:
 			if( !sce )
-				sc_start4(ss,bl,type,35 + 15 * skill_lv,skill_lv,
-					sg->group_id,0,0,skill_get_time2(skill_id,skill_lv));
+				sc_start4(ss,bl,type,35 + 15 * skill_lv,skill_lv,sg->group_id,0,0,skill_get_time2(skill_id,skill_lv));
 			break;
 
 		case UNT_BLOODYLUST:
@@ -13126,11 +13119,11 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 		case UNT_MANHOLE:
 			if (sg->unit_id == UNT_ANKLESNARE && sg->val3 == SC_ESCAPE && map_flag_vs(ss->m) && bl->id == sg->src_id)
 				break;
-			if (sg->val2 == 0 && tsc && (sg->unit_id == UNT_ANKLESNARE || bl->id != sg->src_id)) {
+			if (sg->val2 == 0 && (sg->unit_id == UNT_ANKLESNARE || bl->id != sg->src_id)) {
 				int sec = skill_get_time2(skill_id,skill_lv);
 
 				if (status_change_start(ss,bl,type,10000,skill_lv,sg->group_id,0,0,sec,SCFLAG_FIXEDRATE)) {
-					const struct TimerData* td = (tsc->data[type] ? get_timer(tsc->data[type]->timer) : NULL);
+					const struct TimerData* td = (tsc && tsc->data[type] ? get_timer(tsc->data[type]->timer) : NULL);
 					int range = skill_get_unit_range(skill_id,skill_lv);
 					int knockback_immune = (tsd ? !tsd->special_state.no_knockback : !(tstatus->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS)));
 
@@ -13149,7 +13142,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 					}
 					sg->val2 = bl->id;
 				} else
-					sec = 3000; //Couldn't trap it?
+					sec = 3000;
 				if (sg->unit_id == UNT_ANKLESNARE) {
 					clif_skillunit_update(&unit->bl);
 					/**
@@ -13424,27 +13417,26 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 
 		case UNT_EPICLESIS:
 			if (bl->type == BL_PC && !battle_check_undead(tstatus->race,tstatus->def_ele) && tstatus->race != RC_DEMON) {
-				int hp, sp;
+				if (++sg->val2%3 == 0) { //Recovers players every 3 seconds
+					int hp, sp;
 
-				switch (skill_lv) {
-					case 1: case 2: hp = 3; sp = 2; break;
-					case 3: case 4: hp = 4; sp = 3; break;
-					case 5: default: hp = 5; sp = 4; break;
+					switch (skill_lv) {
+						case 1: case 2: hp = 3; sp = 2; break;
+						case 3: case 4: hp = 4; sp = 3; break;
+						case 5: default: hp = 5; sp = 4; break;
+					}
+					hp = tstatus->max_hp * hp / 100;
+					sp = tstatus->max_sp * sp / 100;
+					if (tsc && tsc->data[SC_AKAITSUKI] && hp)
+						hp = ~hp + 1;
+					status_heal(bl,hp,sp,1);
+					if (tstatus->hp < tstatus->max_hp)
+						clif_skill_nodamage(&unit->bl,bl,AL_HEAL,hp,1);
+					if (tstatus->sp < tstatus->max_sp)
+						clif_skill_nodamage(&unit->bl,bl,MG_SRECOVERY,sp,1);
+					sc_start(ss,bl,type,100,skill_lv,(sg->interval * 3) + 100);
 				}
-				hp = tstatus->max_hp * hp / 100;
-				sp = tstatus->max_sp * sp / 100;
-				if (tsc && tsc->data[SC_AKAITSUKI] && hp)
-					hp = ~hp + 1;
-				status_heal(bl,hp,sp,1);
-				if (tstatus->hp < tstatus->max_hp)
-					clif_skill_nodamage(&unit->bl,bl,AL_HEAL,hp,1);
-				if (tstatus->sp < tstatus->max_sp)
-					clif_skill_nodamage(&unit->bl,bl,MG_SRECOVERY,sp,1);
-				sc_start(ss,bl,type,100,skill_lv,sg->interval + 100);
-				sg->val2++;
-				//Reveal hidden players every 5 seconds.
-				if (sg->val2 >= 5) {
-					sg->val2 = 0;
+				if (sg->val2%5 == 0) { //Un-hides players every 5 seconds
 					status_change_end(bl,SC_HIDING,INVALID_TIMER);
 					status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
 					status_change_end(bl,SC_CHASEWALK,INVALID_TIMER);
@@ -13452,9 +13444,6 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 					status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER);
 				}
 			}
-			/* Enable this if kRO fix the current skill. Currently no damage on undead and demon monster. [Jobbie]
-			else if( battle_check_target(ss,bl,BCT_ENEMY) > 0 && battle_check_undead(tstatus->race,tstatus->def_ele) )
-				skill_castend_damage_id(&unit->bl,bl,skill_id,skill_lv,0,0); */
 			break;
 
 		case UNT_STEALTHFIELD:
@@ -13495,24 +13484,9 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			break;
 
 		case UNT_THORNS_TRAP:
-			if (tsc) {
-				if (!sg->val2) {
-					int sec = skill_get_time2(skill_id,skill_lv);
-
-					if (sc_start(ss,bl,type,100,skill_lv,sec)) {
-						const struct TimerData* td = (tsc->data[type] ? get_timer(tsc->data[type]->timer) : NULL);
-
-						if (td)
-							sec = DIFF_TICK(td->tick,tick);
-						//In official server it doesn't behave like this. [malufett]
-						//map_moveblock(bl,unit->bl.x,unit->bl.y,tick);
-						clif_fixpos(bl);
-						sg->val2 = bl->id;
-					} else
-						sec = 3000;	//Couldn't trap it?
-					sg->limit = DIFF_TICK(tick,sg->tick) + sec;
-				} else if (tsc->data[SC_THORNSTRAP] && bl->id == sg->val2)
-					skill_attack(skill_get_type(GN_THORNS_TRAP),ss,ss,bl,skill_id,skill_lv,tick,SD_LEVEL|SD_ANIMATION);
+			if (sg->val2 == 0) {
+				sc_start4(ss,bl,type,100,skill_lv,skill_id,ss->id,0,skill_get_time(skill_id,skill_lv));
+				sg->val2 = bl->id;
 			}
 			break;
 
@@ -13520,7 +13494,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 				struct Damage wd = battle_calc_weapon_attack(ss,bl,skill_id,skill_lv,0);
 
 				if (status_get_mode(bl)&MD_BOSS)
-					break; //This skill doesn't affect to Boss monsters. [iRO Wiki]
+					break; //This skill doesn't affect Boss monsters [iRO Wiki]
 				if (battle_check_target(ss,bl,BCT_ENEMY) <= 0)
 					unit_stop_walking(bl,1);
 				else
@@ -13834,10 +13808,10 @@ int skill_unit_onleft(uint16 skill_id, struct block_list *bl, unsigned int tick)
 		case AL_PNEUMA:
 		case SA_VOLCANO:
 		case SA_DELUGE:
-		case SA_VIOLENTGALE:
-		case CG_HERMODE:
-		case HW_GRAVITATION:
 		case NJ_SUITON:
+		case SA_VIOLENTGALE:
+		case HW_GRAVITATION:
+		case CG_HERMODE:
 		case SC_MAELSTROM:
 		case SC_BLOODYLUST:
 		case GN_FIRE_EXPANSION_SMOKE_POWDER:
@@ -15256,7 +15230,7 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 			return false;
 		}
 		if( !(require.ammo&(1<<sd->inventory_data[idx]->look)) ) { //Ammo type check. Send the "wrong weapon type" message
-			//Which is the closest we have to wrong ammo type. [Skotlex]
+			//Which is the closest we have to wrong ammo type [Skotlex]
 			clif_arrow_fail(sd,0); //Haplo suggested we just send the equip-arrows message instead. [Skotlex]
 			//clif_skill_fail(sd,skill_id,USESKILL_FAIL_THIS_WEAPON,0);
 			return false;
@@ -15271,15 +15245,13 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 		index[i] = pc_search_inventory(sd,require.itemid[i]);
 		if( index[i] == INDEX_NOT_FOUND || sd->status.inventory[index[i]].amount < require.amount[i] ) {
 			if( require.itemid[i] == ITEMID_HOLY_WATER )
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_HOLYWATER,0); //Holy water is required.
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_HOLYWATER,0); //Holy water is required
 			else if( require.itemid[i] == ITEMID_RED_GEMSTONE )
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_REDJAMSTONE,0); //Red gemstone is required.
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_REDJAMSTONE,0); //Red gemstone is required
 			else if( require.itemid[i] == ITEMID_BLUE_GEMSTONE )
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_BLUEJAMSTONE,0); //Blue gemstone is required.
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_BLUEJAMSTONE,0); //Blue gemstone is required
 			else if( require.itemid[i] == ITEMID_PAINT_BRUSH )
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_PAINTBRUSH,0); //Paint brush is required.
-			else if( require.itemid[i] == ITEMID_ANCILLA )
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_ANCILLA,0); //Ancilla is required.
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_PAINTBRUSH,0); //Paint brush is required
 			else {
 				char output[CHAT_SIZE_MAX];
 
@@ -17344,6 +17316,7 @@ int skill_delunit(struct skill_unit* unit)
 	switch( group->skill_id ) {
 		case HT_ANKLESNARE:
 		case PF_SPIDERWEB:
+		case GN_THORNS_TRAP:
 			{
 				struct block_list* target = map_id2bl(group->val2);
 				enum sc_type type = status_skill2sc(group->skill_id);
@@ -17383,6 +17356,7 @@ int skill_delunit(struct skill_unit* unit)
 	map_delblock(&unit->bl); //Don't free yet
 	map_deliddb(&unit->bl);
 	idb_remove(skillunit_db,unit->bl.id);
+
 	if( --group->alive_count == 0 )
 		skill_delunitgroup(group);
 
@@ -18010,7 +17984,7 @@ int skill_unit_move_sub(struct block_list* bl, va_list ap)
 	nullpo_ret(group = unit->group);
 
 	if( flag&1 && (unit->group->skill_id == PF_SPIDERWEB || unit->group->skill_id == GN_THORNS_TRAP) )
-		return 0; //Fiberlock is never supposed to trigger on skill_unit_move. [Inkfish]
+		return 0; //Fiberlock is never supposed to trigger on skill_unit_move [Inkfish]
 
 	dissonance = skill_dance_switch(unit, 0);
 

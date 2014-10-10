@@ -7213,7 +7213,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	struct status_change_entry* sce;
 	struct status_data *status;
 	struct view_data *vd;
-	int opt_flag, calc_flag, undead_flag, val_flag = 0, tick_time = 0;
+	int opt_flag, calc_flag, undead_flag, val_flag = 0,
+		tick_time = 0; //[GodLesZ] tick time
 	bool sc_isnew = true;
 
 	nullpo_ret(bl);
@@ -8306,7 +8307,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				if( val1 == CG_MOONLIT )
 					clif_status_change(bl,SI_MOONLIT,1,tick,0,0,0);
 				val1 |= (val3<<16);
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				val3 = tick / tick_time; //Tick duration
 				break;
 			case SC_LONGING:
@@ -8358,7 +8359,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				}
 			case SC_POISON:
 				//Fall through
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				val3 = tick / tick_time; //Damage iterations
 				if( val3 < 1 )
 					val3 = 1;
@@ -8372,7 +8373,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				clif_emotion(bl,E_WHAT);
 				break;
 			case SC_BLEEDING:
-				tick_time = 10000; //[GodLesZ] tick time
+				tick_time = 10000;
 				val4 = tick / tick_time;
 				if( val4 < 1 )
 					val4 = 1;
@@ -8386,7 +8387,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				//val4 = total of heals
 				if( val2 < 1 )
 					val2 = 1;
-				tick_time = val2 * 1000; //[GodLesZ] tick time
+				tick_time = val2 * 1000;
 				if( (val4 = tick / tick_time) < 1 )
 					val4 = 1;
 				break;
@@ -8399,13 +8400,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 						return 0; //No need to start SC
 					}
 					val1 = boss_md->bl.id;
-					tick_time = 1000; //[GodLesZ] tick time
+					tick_time = 1000;
 					if( (val4 = tick / tick_time) < 1 )
 						val4 = 1;
 				}
 				break;
 			case SC_HIDING:
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				val2 = tick / tick_time;
 				val3 = 0; //Unused, previously speed adjustment
 				val4 = val1 + 3; //Seconds before SP substraction happen
@@ -8433,11 +8434,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				else
 					val4 |= battle_config.monster_cloak_check_type&7;
 				break;
-			case SC_SIGHT: /* Splash status */
+			case SC_SIGHT: //Splash status
 			case SC_RUWACH:
 			case SC_SIGHTBLASTER:
 				val3 = skill_get_splash(val2,val1); //val2 should bring the skill-id
-				tick_time = 250; //[GodLesZ] tick time
+				tick_time = 250;
 				val2 = tick / tick_time;
 				break;
 			case SC_AUTOGUARD:
@@ -8486,7 +8487,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					skill_sit(sd,1);
 				}
 				val2 = 12; //SP cost
-				tick_time = 10000; //[GodLesZ] tick time
+				tick_time = 10000;
 				val3 = tick / tick_time;
 				tick = -1;
 				break;
@@ -8510,13 +8511,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				if( !val4 )
 					val4 = skill_get_time2(status_sc2skill(type),val1);
 				if( !val4 ) //val4 holds damage interval
-					val4 = 10000; //[GodLesZ] tick time
+					val4 = 10000;
 				tick_time = val4;
 				val3 = tick / tick_time; //val3 holds skill duration
 				break;
 			case SC_GOSPEL:
 				if( val4 == BCT_SELF ) { //Self effect
-					tick_time = 10000; //[GodLesZ] tick time
+					tick_time = 10000;
 					val2 = tick / tick_time;
 					status_change_clear_buffs(bl,3); //Remove buffs/debuffs
 				}
@@ -8783,7 +8784,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val3 = 12 * val1; //Mdef2 reduction
 				break;
 			case SC_SKA:
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				val2 = tick / tick_time;
 				val3 = rnd()%100; //Def changes randomly every second
 				break;
@@ -8932,7 +8933,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = tick / tick_time;
 				break;
 			case SC_BURNING:
-				tick_time = 3000; //[GodLesZ] tick time
+				tick_time = 3000;
 				val4 = tick / tick_time;
 				break;
 			case SC_DEATHBOUND:
@@ -8957,7 +8958,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					;
 				break;
 			case SC_ABUNDANCE:
-				tick_time = 10000; //[GodLesZ] tick time
+				tick_time = 10000;
 				val4 = tick / tick_time;
 				break;
 			case SC_GIANTGROWTH:
@@ -8984,28 +8985,28 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_WEAPONBLOCKING:
 				val2 = 10 + 2 * val1; //Chance
-				tick_time = 5000; //[GodLesZ] tick time
+				tick_time = 5000;
 				val4 = tick / tick_time;
 				break;
 			case SC_TOXIN:
-				tick_time = 10000; //[GodLesZ] tick time
+				tick_time = 10000;
 				val4 = tick / tick_time;
 				break;
 			case SC_MAGICMUSHROOM:
-				tick_time = 4000; //[GodLesZ] tick time
+				tick_time = 4000;
 				val4 = tick / tick_time;
 				break;
 			case SC_PYREXIA:
 				status_change_start(src,bl,SC_BLIND,10000,val1,0,0,0,30000,SCFLAG_NOAVOID|SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE); //Blind status that last for 30 seconds
-				tick_time = 3000; //[GodLesZ] tick time
+				tick_time = 3000;
 				val4 = tick / tick_time;
 				break;
 			case SC_LEECHESEND:
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				val4 = tick / tick_time;
 				break;
 			case SC_OBLIVIONCURSE:
-				tick_time = 3000; //[GodLesZ] tick time
+				tick_time = 3000;
 				val4 = tick / tick_time;
 				break;
 			case SC_CLOAKINGEXCEED:
@@ -9015,7 +9016,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val4 |= battle_config.pc_cloak_check_type&7;
 				else
 					val4 |= battle_config.monster_cloak_check_type&7;
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				break;
 			case SC_HALLUCINATIONWALK:
 				val2 = 50 * val1; //Evasion rate of physical attacks. Flee
@@ -9030,7 +9031,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_FREEZE_SP:
 				//val2 = SP drain per 10 seconds
-				tick_time = 10000; //[GodLesZ] tick time
+				tick_time = 10000;
 				break;
 			case SC_SPHERE_1:
 			case SC_SPHERE_2:
@@ -9039,7 +9040,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_SPHERE_5:
 				if( !sd )
 					return 0; //Should only work on players.
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				val4 = tick / tick_time;
 				if( val4 < 1 )
 					val4 = 1;
@@ -9053,19 +9054,19 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				}
 				break;
 			case SC_STEALTHFIELD_MASTER:
-				tick_time = 2000 + 1000 * val1; //[GodLesZ] tick time
+				tick_time = 2000 + 1000 * val1;
 				val4 = tick / tick_time;
 				break;
 			case SC_ELECTRICSHOCKER:
 			case SC_CRYSTALIZE:
 			case SC_MEIKYOUSISUI:
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				val4 = tick / tick_time;
 				if( val4 < 1 )
 					val4 = 1;
 				break;
 			case SC_CAMOUFLAGE:
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				val4 = tick / tick_time;
 				break;
 			case SC_WUGDASH:
@@ -9073,7 +9074,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick = -1;
 				break;
 			case SC__REPRODUCE:
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				val4 = tick / tick_time;
 				tick = -1;
 				break;
@@ -9082,14 +9083,14 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 					if( s_sd )
 						s_sd->shadowform_id = bl->id;
-					tick_time = 1000; //[GodLesZ] tick time
+					tick_time = 1000;
 					val4 = tick / tick_time;
 				}
 				break;
 			case SC__INVISIBILITY:
 				val2 = 20 * val1; //Critical Amount Increase
 				val3 = 50 - 10 * val1; //ASPD Reduction
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				val4 = tick / tick_time;
 				tick = -1;
 				break;
@@ -9151,15 +9152,20 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_STRIKING:
 				val3 = 6 - val1; //SP cost = 6 - level (lvl 1: 5 ... lvl 5: 1)
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				val4 = tick / tick_time;
 				break;
+			case SC_THORNSTRAP:
+				tick_time = 1000;
+				val4 = tick / tick_time;
+				tick = -1;
+				break;
 			case SC_BLOODSUCKER:
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				val4 = tick / tick_time;
 				break;
 			case SC_VACUUM_EXTREME:
-				tick_time = 100; //[GodLesZ] tick time
+				tick_time = 100;
 				val4 = val3 = tick / tick_time;
 				break;
 			case SC_SWINGDANCE:
@@ -9179,17 +9185,17 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = 5 + 5 * val1;
 				break;
 			case SC_VOICEOFSIREN:
-				tick_time = 2000; //[GodLesZ] tick time
+				tick_time = 2000;
 				val4 = tick / tick_time;
 				break;
 			case SC_DEEPSLEEP:
-				tick_time = 2000; //[GodLesZ] tick time
+				tick_time = 2000;
 				val4 = tick / tick_time;
 				break;
 			case SC_SIRCLEOFNATURE:
 				val2 = 40 * val1; //HP recovery
 				val3 = 4 * val1; //SP drain
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				val4 = tick / tick_time;
 				break;
 			case SC_GLOOMYDAY:
@@ -9209,7 +9215,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_SONGOFMANA:
 				val3 = 10 + min(5 * val2,35); //SP regen
-				tick_time = 5000; //[GodLesZ] tick time
+				tick_time = 5000;
 				val4 = tick / tick_time;
 				break;
 			case SC_DANCEWITHWUG:
@@ -9217,7 +9223,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = 20 + min(10 * val2,70); //Fixed Cast Time Reduction
 				break;
 			case SC_SATURDAYNIGHTFEVER:
-				tick_time = 3000; //[GodLesZ] tick time
+				tick_time = 3000;
 				val3 = tick / tick_time;
 				break;
 			case SC_LERADSDEW:
@@ -9252,13 +9258,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_REFLECTDAMAGE:
 				val2 = 15 + 5 * val1; //Reflect Amount
 				val3 = 25 + 5 * val1; //Number of Reflects
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				val4 = tick / tick_time;
 				break;
 			case SC_FORCEOFVANGUARD:
 				val2 = 8 + 12 * val1; //Chance Of Getting A Rage Counter
 				val3 = 5 + 2 * val1; //Max Number of Rage Counter's Possible
-				tick_time = 10000; //[GodLesZ] tick time
+				tick_time = 10000;
 				val4 = tick / tick_time;
 				tick = -1;
 				break;
@@ -9284,10 +9290,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 #endif
 				break;
 			case SC_BANDING:
-				tick_time = 5000; //[GodLesZ] tick time
+				tick_time = 5000;
 				break;
 			case SC_MAGNETICFIELD:
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				val3 = tick / tick_time;
 				break;
 			case SC_INSPIRATION:
@@ -9295,7 +9301,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val2 = sd->status.job_level;
 					val3 = sd->status.base_level / 10 + val2 / 5; //All stat bonus
 				}
-				tick_time = 5000; //[GodLesZ] tick time
+				tick_time = 5000;
 				val4 = tick / tick_time;
 				break;
 			case SC_CRESCENTELBOW:
@@ -9305,11 +9311,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_LIGHTNINGWALK: //[(Job Level / 2) + (40 + 5 * Skill Level)] %
 				val2 = (sd ? sd->status.job_level / 2 : 0) + 40 + 5 * val1; //Chance
 				val3 = ((val1 > 0 && val1 < 3) ? 3 : (val1 > 2 && val1 < 5) ? 2 : 1); //SP drain
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				val4 = tick / tick_time;
 				break;
 			case SC_RAISINGDRAGON:
-				tick_time = 5000; //[GodLesZ] tick time
+				tick_time = 5000;
 				val3 = tick / tick_time;
 				break;
 			case SC_GT_ENERGYGAIN:
@@ -9454,7 +9460,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_STOMACHACHE:
 				val2 = 8; //SP consume
-				tick_time = 10000; //[GodLesZ] tick time
+				tick_time = 10000;
 				val4 = tick / tick_time;
 				break;
 			case SC_KYOUGAKU:
@@ -9506,7 +9512,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_ANGRIFFS_MODUS:
 				val2 = 50 + 20 * val1; //Atk bonus
 				val3 = 40 + 20 * val1; //Flee reduction.
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				val4 = tick / tick_time; //Hp/Sp reduction timer
 				break;
 			case SC_GOLDENE_FERSE:
@@ -9550,7 +9556,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_CBC:
 				val3 = 10; //Drain sp % dmg
 				tick = max(tick,5000); //Min 5s (test)
-				tick_time = 1000; //[GodLesZ] tick time
+				tick_time = 1000;
 				val4 = tick / tick_time; //Dmg each sec
 				break;
 			case SC_EQC:
@@ -9778,7 +9784,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_TINDER_BREAKER:
 		case SC_TINDER_BREAKER2:
 		case SC_BITE:
-		case SC_THORNSTRAP:
 		case SC__MANHOLE:
 		case SC_CRYSTALIZE:
 		case SC_CURSEDCIRCLE_ATKER:
@@ -11143,13 +11148,13 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_MAXIMIZEPOWER:
 		case SC_CLOAKING:
 			if( !status_charge(bl,0,1) )
-				break; //Not enough SP to continue.
+				break; //Not enough SP to continue
 			sc_timer_next(sce->val2 + tick,status_change_timer,bl->id,data);
 			return 0;
 
 		case SC_CHASEWALK:
 			if( !status_charge(bl,0,sce->val4) )
-				break; //Not enough SP to continue.
+				break; //Not enough SP to continue
 			if( !sc->data[SC_CHASEWALK2] ) {
 				sc_start(bl,bl,SC_CHASEWALK2,100,1<<(sce->val1 - 1),
 				(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_ROGUE ? 10 : 1) * //SL bonus -> x10 duration
@@ -11160,7 +11165,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		case SC_SKA:
 			if( --(sce->val2) >= 0 ) {
-				sce->val3 = rnd()%100; //Random defense.
+				sce->val3 = rnd()%100; //Random defense
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}
@@ -11169,7 +11174,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_HIDING:
 			if( --(sce->val2) >= 0 ) {
 				if( sce->val2%sce->val4 == 0 && !status_charge(bl,0,1) )
-					break; //Fail if it's time to substract SP and there isn't.
+					break; //Fail if it's time to substract SP and there isn't
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}
@@ -11184,7 +11189,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				map_foreachinrange(status_change_timer_sub,bl,sce->val3,BL_CHAR,bl,sce,type,tick);
 			if( --(sce->val2) >= 0 ) {
 				sc_timer_next(250 + tick,status_change_timer,bl->id,data);
-				sce->val4 += 250; //Use for Shadow Form 2 seconds checking.
+				sce->val4 += 250; //Use for Shadow Form 2 seconds checking
 				return 0;
 			}
 			break;
@@ -11519,11 +11524,11 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			break;
 
 		case SC_TOXIN:
-			if( --(sce->val4) >= 0 ) { //Damage is every 10 seconds including 3% sp drain.
+			if( --(sce->val4) >= 0 ) { //Damage is every 10 seconds including 3% sp drain
 				map_freeblock_lock();
 				clif_damage(bl,bl,tick,status_get_amotion(bl),1,1,0,DMG_NORMAL,0);
 				status_damage(NULL,bl,0,status->max_sp * 3 / 100,0,0);
-				unit_skillcastcancel(bl,2); //Cancel dmg only if cancelable
+				unit_skillcastcancel(bl,2);
 				if( sc->data[type] ) {
 					sc_timer_next(10000 + tick,status_change_timer,bl->id,data);
 				}
@@ -11535,7 +11540,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_OBLIVIONCURSE:
 			if( --(sce->val4) >= 0 ) {
 				clif_emotion(bl,E_WHAT);
-				sc_timer_next(3000 + tick,status_change_timer,bl->id,data );
+				sc_timer_next(3000 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}
 			break;
@@ -11570,7 +11575,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_BURNING:
 			if( --(sce->val4) >= 0 ) {
 				struct block_list *src = map_id2bl(sce->val3);
-				int damage = 1000 + 3 * status_get_max_hp(bl) / 100; //Deals fixed (1000 + 3%*MaxHP)
+				int damage = 1000 + 3 * status_get_max_hp(bl) / 100; //Deals fixed (1000 + 3% * MaxHP)
 
 				map_freeblock_lock();
 				clif_damage(bl,bl,tick,0,0,damage,1,DMG_MULTI_HIT_ENDURE,0); //Damage is like endure effect with no walk delay
@@ -11609,7 +11614,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			if( !status_charge(bl,0,sce->val2) ) {
 				int i;
 
-				for( i = SC_SPELLBOOK1; i <= SC_MAXSPELLBOOK; i++ ) //Also remove stored spell as well.
+				for( i = SC_SPELLBOOK1; i <= SC_MAXSPELLBOOK; i++ ) //Also remove stored spell as well
 					status_change_end(bl,(sc_type)i,INVALID_TIMER);
 				break;
 			}
@@ -11676,6 +11681,20 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 					sce->val2 = 1;
 				}
 				sc_timer_next(100 + tick,status_change_timer,bl->id,data);
+				return 0;
+			}
+			break;
+
+		case SC_THORNSTRAP:
+			if( --(sce->val4) >= 0 ) {
+				struct block_list *src = map_id2bl(sce->val3);
+
+				map_freeblock_lock();
+				skill_attack(skill_get_type(GN_THORNS_TRAP),src,src,bl,sce->val2,sce->val1,tick,SD_LEVEL|SD_ANIMATION);
+				if( sc->data[type] ) {
+					sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
+				}
+				map_freeblock_unlock();
 				return 0;
 			}
 			break;
@@ -12035,8 +12054,9 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 	tsc = status_get_sc(bl);
 
 	switch( type ) {
-		case SC_SIGHT: /* Reveal hidden enemy on 3*3 range */
-			if( tsc && tsc->data[SC__SHADOWFORM] && (sce && sce->val4 > 0 && sce->val4%2000 == 0) && //For every 2 seconds do the checking
+		case SC_SIGHT: //Un-hides targets on 7*7 range
+			if( tsc && tsc->data[SC__SHADOWFORM] &&
+				(sce && sce->val4 > 0 && sce->val4%2000 == 0) && //For every 2 seconds do the checking
 				rnd()%100 < 100 - tsc->data[SC__SHADOWFORM]->val1 * 10 ) //[100 - (Skill Level x 10)] %
 				status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
 		case SC_CONCENTRATE:
@@ -12045,7 +12065,7 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 			status_change_end(bl, SC_CLOAKINGEXCEED, INVALID_TIMER);
 			status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
 			break;
-		case SC_RUWACH: /* Reveal hidden target and deal little dammages if enemy */
+		case SC_RUWACH: //Un-hides targets on 5*5 range and deals little damages
 			if( tsc ) {
 				if( tsc->data[SC_HIDING] || tsc->data[SC_CLOAKING] ||
 					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_CLOAKINGEXCEED] )
@@ -12057,8 +12077,9 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 					if( battle_check_target(src, bl, BCT_ENEMY) > 0 )
 						skill_attack(BF_MAGIC, src, src, bl, AL_RUWACH, 1, tick, 0);
 				}
-				if( tsc->data[SC__SHADOWFORM] && (sce && sce->val4 > 0 && sce->val4%2000 == 0) && //For every 2 seconds do the checking
-					rnd()%100 < 100 - tsc->data[SC__SHADOWFORM]->val1 * 10 ) //[100 - (Skill Level x 10)] %
+				if( tsc->data[SC__SHADOWFORM] &&
+					(sce && sce->val4 > 0 && sce->val4%2000 == 0) &&
+					rnd()%100 < 100 - tsc->data[SC__SHADOWFORM]->val1 * 10 )
 					status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
 			}
 			break;
@@ -12067,7 +12088,13 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 				status_check_skilluse(src, bl, WZ_SIGHTBLASTER, 2) ) {
 				if( sce && !(bl->type&BL_SKILL) && //The hit is not counted if it's against a trap
 					skill_attack(BF_MAGIC, src, src, bl, WZ_SIGHTBLASTER, sce->val1, tick, 0) )
-					sce->val2 = 0; //This signals it to end.
+					sce->val2 = 0; //This signals it to end
+			}
+			break;
+		case SC_CURSEDCIRCLE_TARGET:
+			if( tsc && tsc->data[SC_CURSEDCIRCLE_TARGET] && tsc->data[SC_CURSEDCIRCLE_TARGET]->val2 == src->id ) {
+				clif_bladestop(bl, tsc->data[SC_CURSEDCIRCLE_TARGET]->val2, 0);
+				status_change_end(bl, type, INVALID_TIMER);
 			}
 			break;
 		case SC_TINDER_BREAKER:
@@ -12080,12 +12107,6 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 					tsc->data[type2]->val2 = 0;
 					status_change_end(bl, type2, INVALID_TIMER);
 				}
-			}
-			break;
-		case SC_CURSEDCIRCLE_TARGET:
-			if( tsc && tsc->data[SC_CURSEDCIRCLE_TARGET] && tsc->data[SC_CURSEDCIRCLE_TARGET]->val2 == src->id ) {
-				clif_bladestop(bl, tsc->data[SC_CURSEDCIRCLE_TARGET]->val2, 0);
-				status_change_end(bl, type, INVALID_TIMER);
 			}
 			break;
 		}
