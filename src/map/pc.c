@@ -1957,16 +1957,16 @@ static void pc_bonus_autospell(struct s_autospell *spell, int max, short id, sho
 	spell[i].id = id;
 	spell[i].lv = lv;
 	spell[i].rate = rate;
-	//Auto-update flag value.
+	//Auto-update flag value
 	if( !(flag&BF_RANGEMASK) )
-		flag |= BF_SHORT|BF_LONG; //No range defined? Use both.
+		flag |= BF_SHORT|BF_LONG; //No range defined? Use both
 	if( !(flag&BF_WEAPONMASK) )
-		flag |= BF_WEAPON; //No attack type defined? Use weapon.
+		flag |= BF_WEAPON; //No attack type defined? Use weapon
 	if( !(flag&BF_SKILLMASK) ) {
 		if( flag&(BF_MAGIC|BF_MISC) )
 			flag |= BF_SKILL; //These two would never trigger without BF_SKILL
 		if( flag&BF_WEAPON )
-			flag |= BF_NORMAL; //By default autospells should only trigger on normal weapon attacks.
+			flag |= BF_NORMAL; //By default autospells should only trigger on normal weapon attacks
 	}
 	spell[i].flag|= flag;
 	spell[i].card_id = card_id;
@@ -1978,9 +1978,8 @@ static void pc_bonus_autospell_onskill(struct s_autospell *spell, int max, short
 
 	if( !rate )
 		return;
-	for( i = 0; i < max && spell[i].id; i++ ) {
+	for( i = 0; i < max && spell[i].id; i++ )
 		; //Each autospell works independently
-	}
 	if( i == max ) {
 		ShowWarning("pc_bonus_autospell_onskill: Reached max (%d) number of autospells per character!\n", max);
 		return;
@@ -1996,20 +1995,20 @@ static void pc_bonus_addeff(struct s_addeffect* effect, int max, enum sc_type id
 {
 	uint16 i;
 
-	if (!(flag&(ATF_SHORT|ATF_LONG)))
+	if( !(flag&(ATF_SHORT|ATF_LONG)) )
 		flag |= ATF_SHORT|ATF_LONG; //Default range: both
-	if (!(flag&(ATF_TARGET|ATF_SELF)))
-		flag |= ATF_TARGET; //Default target: enemy.
-	if (!(flag&(ATF_WEAPON|ATF_MAGIC|ATF_MISC)))
-		flag |= ATF_WEAPON; //Default type: weapon.
-	for (i = 0; i < max && effect[i].flag; i++) {
-		if (effect[i].id == id && effect[i].flag == flag) {
+	if( !(flag&(ATF_TARGET|ATF_SELF)) )
+		flag |= ATF_TARGET; //Default target: enemy
+	if( !(flag&(ATF_WEAPON|ATF_MAGIC|ATF_MISC)) )
+		flag |= ATF_WEAPON; //Default type: weapon
+	for( i = 0; i < max && effect[i].flag; i++ ) {
+		if( effect[i].id == id && effect[i].flag == flag ) {
 			effect[i].rate += rate;
 			effect[i].arrow_rate += arrow_rate;
 			return;
 		}
 	}
-	if (i == max) {
+	if( i == max ) {
 		ShowWarning("pc_bonus_addeff: Reached max (%d) number of add effects per character!\n", max);
 		return;
 	}

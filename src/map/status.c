@@ -8246,7 +8246,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					int8 enchant_eff[] = { 10,14,17,19,20 }; //Enchant addition
 					uint8 i = max((val1 - 1)%5, 0);
 
-					val2 = val1 * 10; //Watk increase
+					val2 = val1 * 10; //Atk increase
 #ifndef RENEWAL
 					if( status->def_ele != ELE_FIRE )
 						val2 = 0;
