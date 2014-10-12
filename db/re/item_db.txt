@@ -8877,7 +8877,7 @@
 18119,Tanos_Bow,Tanos Bow,5,10,,1300,180:110,,,1,0x000A0808,63,2,34,4,120,1,11,{ bonus bInt,6; bonus bVit,6; bonus bLuk,-6; bonus bAtkRate,5; bonus2 bHPLossRate,100,10000; },{},{}
 18120,Bow_Of_Evil_Slayer,Bow Of Evil Slayer,5,10,,1350,,115,,1,0x00020008,63,2,34,,100,1,11,{ bonus2 bAddRace,RC_Demon,10; bonus2 bAddRace,RC_Undead,10; if(getrefine()>=9){ bonus bAtkRate,5; } if(getrefine()>=12){ bonus bAtkRate,7; } },{},{}
 18122,Giant_Bow,Giant Bow,5,20,,3000,195,,5,1,0x00000800,63,2,34,4,130,1,11,{ bonus bLongAtkRate,40; bonus bAspdRate,-15; bonus bHit,50; },{},{}
-18123,Bow_of_Storms,Bow of Storms,5,20,,1500,160,,5,1,0x00000800,63,2,34,4,130,1,11,{ bonus bLongAtkRate,30; bonus2 bSkillCooldown,"RA_ARROWSTORM",-20; bonus2 bSkillUseSP,"RA_ARROWSTORM",15; },{},{}
+18123,Bow_of_Storms,Bow of Storms,5,20,,1500,160,,5,1,0x00080800,63,2,34,4,130,1,11,{ bonus bLongAtkRate,30; bonus2 bSkillCooldown,"RA_ARROWSTORM",-20; bonus2 bSkillUseSP,"RA_ARROWSTORM",15; },{},{}
 18124,Half_BF_Bow1,Half BF Bow1,5,20,,0,100,,5,0,0x000A0848,63,2,34,3,80,1,11,{ bonus bDex,2; bonus2 bAddRace,RC_DemiHuman,30; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus bUnbreakableWeapon,0; },{},{}
 //18125,Arcus_Daemonicus,Arcus Daemonicus,5
 18126,Blue_Bow,Blue Bow,5,10,,1200,150,,5,1,0x00000800,56,2,2,3,100,1,11,{ bonus bAgi,5; bonus bDex,5; },{},{}

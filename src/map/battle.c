@@ -440,7 +440,7 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 					ratio += tsc->data[SC_ANTI_M_BLAST]->val2;
 				break;
 		}
-	} //End tsc check
+	}
 
 	if( ratio < 100 )
 		damage = damage - (damage * (100 - ratio) / 100);

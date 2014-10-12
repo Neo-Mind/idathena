@@ -12417,25 +12417,26 @@ BUILDIN_FUNC(petloot)
  *------------------------------------------*/
 BUILDIN_FUNC(getinventorylist)
 {
-	TBL_PC *sd=script_rid2sd(st);
+	TBL_PC *sd = script_rid2sd(st);
 	char card_var[NAME_LENGTH];
-	
-	int i,j=0,k;
-	if(!sd) return 0;
-	for(i=0;i<MAX_INVENTORY;i++) {
-		if(sd->status.inventory[i].nameid > 0 && sd->status.inventory[i].amount > 0) {
-			pc_setreg(sd,reference_uid(add_str("@inventorylist_id"), j),sd->status.inventory[i].nameid);
-			pc_setreg(sd,reference_uid(add_str("@inventorylist_amount"), j),sd->status.inventory[i].amount);
-			pc_setreg(sd,reference_uid(add_str("@inventorylist_equip"), j),sd->status.inventory[i].equip);
-			pc_setreg(sd,reference_uid(add_str("@inventorylist_refine"), j),sd->status.inventory[i].refine);
-			pc_setreg(sd,reference_uid(add_str("@inventorylist_identify"), j),sd->status.inventory[i].identify);
-			pc_setreg(sd,reference_uid(add_str("@inventorylist_attribute"), j),sd->status.inventory[i].attribute);
+	int i, j = 0, k;
+
+	if (!sd)
+		return 0;
+	for (i = 0; i < MAX_INVENTORY; i++) {
+		if (sd->status.inventory[i].nameid > 0 && sd->status.inventory[i].amount > 0) {
+			pc_setreg(sd,reference_uid(add_str("@inventorylist_id"),j),sd->status.inventory[i].nameid);
+			pc_setreg(sd,reference_uid(add_str("@inventorylist_amount"),j),sd->status.inventory[i].amount);
+			pc_setreg(sd,reference_uid(add_str("@inventorylist_equip"),j),sd->status.inventory[i].equip);
+			pc_setreg(sd,reference_uid(add_str("@inventorylist_refine"),j),sd->status.inventory[i].refine);
+			pc_setreg(sd,reference_uid(add_str("@inventorylist_identify"),j),sd->status.inventory[i].identify);
+			pc_setreg(sd,reference_uid(add_str("@inventorylist_attribute"),j),sd->status.inventory[i].attribute);
 			for (k = 0; k < MAX_SLOTS; k++) {
-				sprintf(card_var, "@inventorylist_card%d",k+1);
-				pc_setreg(sd,reference_uid(add_str(card_var), j),sd->status.inventory[i].card[k]);
+				sprintf(card_var,"@inventorylist_card%d",k + 1);
+				pc_setreg(sd,reference_uid(add_str(card_var),j),sd->status.inventory[i].card[k]);
 			}
-			pc_setreg(sd,reference_uid(add_str("@inventorylist_expire"), j),sd->status.inventory[i].expire_time);
-			pc_setreg(sd,reference_uid(add_str("@inventorylist_bound"), j),sd->status.inventory[i].bound);
+			pc_setreg(sd,reference_uid(add_str("@inventorylist_expire"),j),sd->status.inventory[i].expire_time);
+			pc_setreg(sd,reference_uid(add_str("@inventorylist_bound"),j),sd->status.inventory[i].bound);
 			j++;
 		}
 	}
@@ -12445,14 +12446,17 @@ BUILDIN_FUNC(getinventorylist)
 
 BUILDIN_FUNC(getskilllist)
 {
-	TBL_PC *sd=script_rid2sd(st);
-	int i,j=0;
-	if(!sd) return 0;
-	for(i=0;i<MAX_SKILL;i++) {
-		if(sd->status.skill[i].id > 0 && sd->status.skill[i].lv > 0) {
-			pc_setreg(sd,reference_uid(add_str("@skilllist_id"), j),sd->status.skill[i].id);
-			pc_setreg(sd,reference_uid(add_str("@skilllist_lv"), j),sd->status.skill[i].lv);
-			pc_setreg(sd,reference_uid(add_str("@skilllist_flag"), j),sd->status.skill[i].flag);
+	TBL_PC *sd = script_rid2sd(st);
+	int i, j = 0;
+
+	if (!sd)
+		return 0;
+
+	for (i = 0; i < MAX_SKILL; i++) {
+		if (sd->status.skill[i].id > 0 && sd->status.skill[i].lv > 0) {
+			pc_setreg(sd,reference_uid(add_str("@skilllist_id"),j),sd->status.skill[i].id);
+			pc_setreg(sd,reference_uid(add_str("@skilllist_lv"),j),sd->status.skill[i].lv);
+			pc_setreg(sd,reference_uid(add_str("@skilllist_flag"),j),sd->status.skill[i].flag);
 			j++;
 		}
 	}
@@ -12462,14 +12466,15 @@ BUILDIN_FUNC(getskilllist)
 
 BUILDIN_FUNC(clearitem)
 {
-	TBL_PC *sd=script_rid2sd(st);
+	TBL_PC *sd = script_rid2sd(st);
 	int i;
-	if(sd == NULL) return 0;
-	for (i=0; i<MAX_INVENTORY; i++) {
-		if (sd->status.inventory[i].amount) {
-			pc_delitem(sd, i, sd->status.inventory[i].amount, 0, 0, LOG_TYPE_SCRIPT);
-		}
-	}
+
+	if (sd == NULL)
+		return 0;
+
+	for (i = 0; i < MAX_INVENTORY; i++)
+		if (sd->status.inventory[i].amount)
+			pc_delitem(sd,i,sd->status.inventory[i].amount,0,0,LOG_TYPE_SCRIPT);
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -12480,12 +12485,14 @@ BUILDIN_FUNC(disguise)
 {
 	int id;
 	TBL_PC* sd = script_rid2sd(st);
-	if (sd == NULL) return 0;
+
+	if (sd == NULL)
+		return 0;
 
 	id = script_getnum(st,2);
 
 	if (mobdb_checkid(id) || npcdb_checkid(id)) {
-		pc_disguise(sd, id);
+		pc_disguise(sd,id);
 		script_pushint(st,id);
 	} else
 		script_pushint(st,0);
@@ -12498,7 +12505,9 @@ BUILDIN_FUNC(disguise)
 BUILDIN_FUNC(undisguise)
 {
 	TBL_PC* sd = script_rid2sd(st);
-	if (sd == NULL) return 0;
+
+	if (sd == NULL)
+		return 0;
 
 	if (sd->disguise) {
 		pc_disguise(sd,0);
@@ -12517,7 +12526,8 @@ BUILDIN_FUNC(classchange)
 	int _class,type;
 	struct block_list *bl = map_id2bl(st->oid);
 
-	if (bl == NULL) return 0;
+	if (bl == NULL)
+		return 0;
 
 	_class = script_getnum(st,2);
 	type = script_getnum(st,3);

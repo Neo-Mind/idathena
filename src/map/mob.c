@@ -943,7 +943,7 @@ int mob_spawn(struct mob_data *md)
 
 	md->state.aggressive = md->status.mode&MD_ANGRY ? 1 : 0;
 	md->state.skillstate = MSS_IDLE;
-	md->next_walktime = tick + rnd()%5000 + 1000;
+	md->next_walktime = tick + rnd()%1000 + MIN_RANDOMWALKTIME;
 	md->last_linktime = tick;
 	md->dmgtick = tick - 5000;
 	md->last_pcneartime = 0;
@@ -1284,13 +1284,16 @@ int mob_unlocktarget(struct mob_data *md, unsigned int tick)
 			if((md->target_id || !(++md->ud.walk_count%IDLE_SKILL_INTERVAL)) && mobskill_use(md,tick,-1)) //Idle skill
 				break;
 			if(!md->master_id && DIFF_TICK(md->next_walktime, tick) <= 0 && !mob_randomwalk(md,tick)) //Random walk
-				md->next_walktime = tick + rnd()%3000; //Delay next random walk when this one failed
+				md->next_walktime = tick + rnd()%1000; //Delay next random walk when this one failed
 			break;
 		default:
 			mob_stop_attack(md);
 			mob_stop_walking(md,1); //Immediately stop chasing
 			md->state.skillstate = MSS_IDLE;
-			md->next_walktime = tick + rnd()%3000 + 3000;
+			if(battle_config.mob_ai&0x8) //Walk instantly after dropping target
+				md->next_walktime = tick + rnd()%1000;
+			else
+				md->next_walktime = tick + rnd()%1000 + MIN_RANDOMWALKTIME;
 			break;
 	}
 	if(md->target_id) {
@@ -1317,7 +1320,10 @@ int mob_randomwalk(struct mob_data *md,unsigned int tick)
 		return 0;
 
 	d = 12 - md->move_fail_count;
-	if(d < 5) d = 5;
+	if(d < 5)
+		d = 5;
+	if(d > 7)
+		d = 7;
 	for(i = 0; i < retrycount; i++) { //Search of a movable place
 		int r = rnd();
 		int x = r%(d * 2 + 1) - d;
@@ -1326,7 +1332,7 @@ int mob_randomwalk(struct mob_data *md,unsigned int tick)
 		x += md->bl.x;
 		y += md->bl.y;
 
-		if((map_getcell(md->bl.m,x,y,CELL_CHKPASS)) && unit_walktoxy(&md->bl,x,y,1))
+		if((x != md->bl.x || y != md->bl.y) && (map_getcell(md->bl.m,x,y,CELL_CHKPASS)) && unit_walktoxy(&md->bl,x,y,1))
 			break;
 	}
 	if(i == retrycount) {
@@ -1347,7 +1353,7 @@ int mob_randomwalk(struct mob_data *md,unsigned int tick)
 	}
 	md->state.skillstate = MSS_WALK;
 	md->move_fail_count = 0;
-	md->next_walktime = tick + rnd()%3000 + 3000 + c;
+	md->next_walktime = tick + rnd()%1000 + MIN_RANDOMWALKTIME + c;
 	return 1;
 }
 
@@ -1421,7 +1427,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 				return true; //Chasing this target
 			if(md->ud.walktimer != INVALID_TIMER && md->ud.walkpath.path_pos <= battle_config.mob_chase_refresh)
 				return true; //Walk at least "mob_chase_refresh" cells before dropping the target
-			mob_unlocktarget(md, tick - (battle_config.mob_ai&0x8 ? 3000 : 0)); //Immediately do random walk
+			mob_unlocktarget(md, tick); //Unlock target
 			tbl = NULL;
 		}
 	}
@@ -2647,14 +2653,13 @@ void mob_revive(struct mob_data *md, unsigned int hp)
 
 	md->state.skillstate = MSS_IDLE;
 	md->last_thinktime = tick;
-	md->next_walktime = tick + rnd()%50 + 5000;
+	md->next_walktime = tick + rnd()%1000 + MIN_RANDOMWALKTIME;
 	md->last_linktime = tick;
 	md->last_pcneartime = 0;
 	memset(md->dmglog, 0, sizeof(md->dmglog)); //Reset the damage done on the rebirthed monster, otherwise will grant full exp + damage done. [Valaris]
 	md->tdmg = 0;
-	if (!md->bl.prev)
-		if (map_addblock(&md->bl))
-			return;
+	if (!md->bl.prev && map_addblock(&md->bl))
+		return;
 	clif_spawn(&md->bl);
 	skill_unit_move(&md->bl,tick,1);
 	mobskill_use(md, tick, MSC_SPAWN);
@@ -4240,8 +4245,8 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 	if (strcmp(str[1],"clear") == 0) {
 		if (mob_id < 0)
 			return false;
-		memset(mob_db_data[mob_id]->skill,0,sizeof(struct mob_skill));
-		mob_db_data[mob_id]->maxskill=0;
+		memset(mob_db_data[mob_id]->skill, 0, sizeof(struct mob_skill));
+		mob_db_data[mob_id]->maxskill = 0;
 		return true;
 	}
 
@@ -4260,7 +4265,7 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 	}
 
 	//State
-	ARR_FIND( 0, ARRAYLENGTH(state), j, strcmp(str[2],state[j].str) == 0 );
+	ARR_FIND(0, ARRAYLENGTH(state), j, strcmp(str[2],state[j].str) == 0);
 	if( j < ARRAYLENGTH(state) )
 		ms->state = state[j].id;
 	else {
@@ -4270,7 +4275,7 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 
 	//Skill ID
 	j = atoi(str[3]);
-	if (j <= 0 || j > MAX_SKILL_DB) { //Fixed Lupus
+	if (!skill_get_index(j)) {
 		if (mob_id < 0)
 			ShowError("mob_parse_row_mobskilldb: Invalid Skill ID (%d) for all mobs\n", j);
 		else
@@ -4280,8 +4285,8 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 	ms->skill_id = j;
 
 	//Skill lvl
-	j = atoi(str[4]) <= 0 ? 1 : atoi(str[4]);
-	ms->skill_lv = j > battle_config.mob_max_skilllvl ? battle_config.mob_max_skilllvl : j; //We strip max skill level
+	j = (atoi(str[4]) <= 0 ? 1 : atoi(str[4]));
+	ms->skill_lv = (j > battle_config.mob_max_skilllvl ? battle_config.mob_max_skilllvl : j); //We strip max skill level
 
 	//Apply battle_config modifiers to rate (permillage) and delay [Skotlex]
 	tmp = atoi(str[5]);
@@ -4316,13 +4321,13 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 		if (ms->target > MST_AROUND) {
 			ShowWarning("mob_parse_row_mobskilldb: Wrong mob skill target for ground skill %d (%s) for %s.\n",
 				ms->skill_id, skill_get_name(ms->skill_id),
-				mob_id < 0 ? "all mobs" : mob_db_data[mob_id]->sprite);
+				(mob_id < 0 ? "all mobs" : mob_db_data[mob_id]->sprite));
 			ms->target = MST_TARGET;
 		}
 	} else if (ms->target > MST_MASTER) {
 		ShowWarning("mob_parse_row_mobskilldb: Wrong mob skill target 'around' for non-ground skill %d (%s) for %s.\n",
 			ms->skill_id, skill_get_name(ms->skill_id),
-			mob_id < 0 ? "all mobs" : mob_db_data[mob_id]->sprite);
+			(mob_id < 0 ? "all mobs" : mob_db_data[mob_id]->sprite));
 		ms->target = MST_TARGET;
 	}
 

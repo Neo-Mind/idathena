@@ -1627,11 +1627,11 @@ int status_percent_change(struct block_list *src,struct block_list *target,signe
 	if (hp_rate > 99)
 		hp = status->hp;
 	else if (hp_rate > 0)
-		hp = status->hp > 10000 ? hp_rate * (status->hp / 100) : ((int64)hp_rate * status->hp) / 100;
+		hp = status->hp > 10000 ? hp_rate * status->hp / 100 : (int64)hp_rate * status->hp / 100;
 	else if (hp_rate < -99)
 		hp = status->max_hp;
 	else if (hp_rate < 0)
-		hp = status->max_hp > 10000 ? (-hp_rate) * (status->max_hp / 100) : ((int64)-hp_rate * status->max_hp) / 100;
+		hp = status->max_hp > 10000 ? (-hp_rate) * status->max_hp / 100 : (int64)(-hp_rate) * status->max_hp / 100;
 	if (hp_rate && !hp)
 		hp = 1;
 
@@ -2073,7 +2073,7 @@ static unsigned short status_base_atk(const struct block_list *bl, const struct 
 	if (!(bl->type&battle_config.enable_baseatk))
 		return 0;
 
-	if (bl->type == BL_PC)
+	if (bl->type == BL_PC) {
 		switch(((TBL_PC*)bl)->status.weapon) {
 			case W_BOW:
 			case W_MUSICAL:
@@ -2084,7 +2084,10 @@ static unsigned short status_base_atk(const struct block_list *bl, const struct 
 			case W_SHOTGUN:
 			case W_GRENADE:
 				flag = 1;
+				break;
 		}
+	}
+
 	if (flag) {
 #ifdef RENEWAL
 		rstr =
@@ -2103,13 +2106,13 @@ static unsigned short status_base_atk(const struct block_list *bl, const struct 
 	//[Skotlex]
 #ifdef RENEWAL
 	if (bl->type == BL_HOM)
-		str = (int)((float)(rstr + dex + status->luk) / 3 + (float)((TBL_HOM*)bl)->homunculus.level / 10);
+		str = (int)(floor((float)(rstr + dex + status->luk) / 3) + floor((float)((TBL_HOM*)bl)->homunculus.level / 10));
 #endif
 	dstr = (int)((float)str / 10);
 	str += dstr * dstr;
 	if (bl->type == BL_PC)
 #ifdef RENEWAL
-		str = (int)floor(rstr + (float)dex / 5 + (float)status->luk / 3 + (float)((TBL_PC*)bl)->status.base_level / 4);
+		str = (int)(rstr + floor((float)dex / 5) + floor((float)status->luk / 3) + floor((float)((TBL_PC*)bl)->status.base_level / 4));
 	else if (bl->type == BL_MOB)
 		str = rstr + ((TBL_MOB*)bl)->level;
 #else
@@ -8837,7 +8840,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					tick /= 2;
 				break;
 			case SC_ARMOR:
-				//NPC_DEFENDER:
 				val2 = 80; //Damage reduction
 				//Attack requirements to be blocked:
 				val3 = BF_LONG; //Range
@@ -10770,10 +10772,6 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			if (sce->val2 && sc->cant.move > 0)
 				sc->cant.move--;
 			break;
-		//case SC_KYOUGAKU:
-			//@FIXME: This will cause client crashed right after the duration end. Why? [exneval]
-			//clif_status_load(bl,SI_ACTIVE_MONSTER_TRANSFORM,0);
-			//break;
 		case SC_INTRAVISION:
 			calc_flag = SCB_ALL; /* Required for overlapping */
 			break;

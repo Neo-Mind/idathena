@@ -102,7 +102,7 @@ int unit_walktoxy_sub(struct block_list *bl)
 		//Trim the last part of the path to account for range,
 		//but always move at least one cell when requested to move.
 		for( i = ud->chaserange * 10; i > 0 && ud->walkpath.path_len > 1; ) {
-		   ud->walkpath.path_len--;
+			ud->walkpath.path_len--;
 			dir = ud->walkpath.path[ud->walkpath.path_len];
 			if( dir&1 )
 				i -= MOVE_DIAGONAL_COST;
@@ -582,26 +582,20 @@ int unit_walktoxy(struct block_list *bl, short x, short y, unsigned char flag)
 	ud->state.walk_easy = flag&1;
 	ud->to_x = x;
 	ud->to_y = y;
-	unit_set_target(ud, 0);
-	
-	sc = status_get_sc(bl);
-	if( sc ) {
-		if( sc->data[SC_CONFUSION] || sc->data[SC__CHAOS] ) // Randomize the target position
-			map_random_dir(bl, &ud->to_x, &ud->to_y);
+	unit_stop_attack(bl); // Sets target to 0
+
+	if( (sc = status_get_sc(bl)) ) {
+		if( sc->data[SC_CONFUSION] || sc->data[SC__CHAOS] )
+			map_random_dir(bl, &ud->to_x, &ud->to_y); // Randomize the target position
 		if( sc->data[SC_COMBO] )
 			status_change_end(bl, SC_COMBO, INVALID_TIMER);
 	}
 
+	// When you come to the center of the grid because the change of destination while you're walking right now
+	// Call a function from a timer unit_walktoxy_sub
 	if( ud->walktimer != INVALID_TIMER ) {
-		// When you come to the center of the grid because the change of destination while you're walking right now
-		// Call a function from a timer unit_walktoxy_sub
 		ud->state.change_walk_target = 1;
 		return 1;
-	}
-
-	if( ud->attacktimer != INVALID_TIMER ) {
-		delete_timer(ud->attacktimer, unit_attack_timer);
-		ud->attacktimer = INVALID_TIMER;
 	}
 
 	// Start timer to recall summon
@@ -674,7 +668,8 @@ int unit_walktobl(struct block_list *bl, struct block_list *tbl, int range, unsi
 	nullpo_ret(tbl);
 
 	ud = unit_bl2ud(bl);
-	if (ud == NULL) return 0;
+	if (ud == NULL)
+		return 0;
 
 	if (!(status_get_mode(bl)&MD_CANMOVE))
 		return 0;
@@ -689,11 +684,10 @@ int unit_walktobl(struct block_list *bl, struct block_list *tbl, int range, unsi
 	ud->state.walk_easy = flag&1;
 	ud->target_to = tbl->id;
 	ud->chaserange = range; //Note that if flag&2, this SHOULD be attack-range
-	ud->state.attack_continue = (flag&2 ? 1 : 0); //Chase to attack.
-	unit_set_target(ud, 0);
+	ud->state.attack_continue = (flag&2 ? 1 : 0); //Chase to attack
+	unit_stop_attack(bl); //Sets target to 0
 
-	sc = status_get_sc(bl);
-	if (sc) {
+	if ((sc = status_get_sc(bl))) {
 		if (sc->data[SC_CONFUSION] || sc->data[SC__CHAOS]) //Randomize the target position
 			map_random_dir(bl, &ud->to_x, &ud->to_y);
 		if (sc->data[SC_COMBO])
@@ -706,18 +700,13 @@ int unit_walktobl(struct block_list *bl, struct block_list *tbl, int range, unsi
 		return 1;
 	}
 
-	if (DIFF_TICK(ud->canmove_tick, gettick()) > 0) { //Can't move, wait a bit before invoking the movement.
+	if (DIFF_TICK(ud->canmove_tick, gettick()) > 0) { //Can't move, wait a bit before invoking the movement
 		add_timer(ud->canmove_tick + 1, unit_walktobl_sub, bl->id, ud->target);
 		return 1;
 	}
 
 	if (!unit_can_move(bl))
 		return 0;
-
-	if (ud->attacktimer != INVALID_TIMER) {
-		delete_timer(ud->attacktimer, unit_attack_timer);
-		ud->attacktimer = INVALID_TIMER;
-	}
 
 	if (unit_walktoxy_sub(bl)) {
 		set_mobstate(bl, flag&2);
@@ -1953,40 +1942,35 @@ int unit_set_target(struct unit_data* ud, int target_id)
 /**
  * Stop a unit's attacks
  * @param bl: Object to stop
- * @return 0
  */
-int unit_stop_attack(struct block_list *bl)
+void unit_stop_attack(struct block_list *bl)
 {
 	struct unit_data *ud;
 
-	nullpo_ret(bl);
+	nullpo_retv(bl);
+	nullpo_retv(ud = unit_bl2ud(bl));
 
-	ud = unit_bl2ud(bl);
+	//Clear target
+	unit_set_target(ud, 0);
 
-	if(!ud || ud->attacktimer == INVALID_TIMER)
-		return 0;
+	if(ud->attacktimer == INVALID_TIMER)
+		return;
 
+	//Clear timer
 	delete_timer(ud->attacktimer, unit_attack_timer);
 	ud->attacktimer = INVALID_TIMER;
-	unit_set_target(ud, 0);
-	return 0;
 }
 
 /**
  * Stop a unit's step action
  * @param bl: Object to stop
- * @return 0
  */
-int unit_stop_stepaction(struct block_list *bl)
+void unit_stop_stepaction(struct block_list *bl)
 {
 	struct unit_data *ud;
 
-	nullpo_ret(bl);
-
-	ud = unit_bl2ud(bl);
-
-	if(!ud)
-		return 0;
+	nullpo_retv(bl);
+	nullpo_retv(ud = unit_bl2ud(bl));
 
 	//Clear remembered step action
 	ud->stepaction = false;
@@ -1995,13 +1979,11 @@ int unit_stop_stepaction(struct block_list *bl)
 	ud->stepskill_lv = 0;
 
 	if(ud->steptimer == INVALID_TIMER)
-		return 0;
+		return;
 
 	//Clear timer
 	delete_timer(ud->steptimer, unit_step_timer);
 	ud->steptimer = INVALID_TIMER;
-
-	return 0;
 }
 
 /**
@@ -2020,7 +2002,7 @@ int unit_unattackable(struct block_list *bl)
 	}
 
 	if(bl->type == BL_MOB)
-		mob_unlocktarget((struct mob_data*)bl, gettick()) ;
+		mob_unlocktarget((struct mob_data*)bl, gettick());
 	else if(bl->type == BL_PET)
 		pet_unlocktarget((struct pet_data*)bl);
 	return 0;
@@ -2495,7 +2477,7 @@ void unit_dataset(struct block_list *bl)
 
 	nullpo_retv(ud = unit_bl2ud(bl));
 
-	memset(ud, 0, sizeof( struct unit_data));
+	memset(ud, 0, sizeof(struct unit_data));
 	ud->bl             = bl;
 	ud->walktimer      = INVALID_TIMER;
 	ud->skilltimer     = INVALID_TIMER;
@@ -2565,14 +2547,15 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 
 	map_freeblock_lock();
 
-	unit_set_target(ud,0);
-
 	if (ud->walktimer != INVALID_TIMER)
 		unit_stop_walking(bl,0);
-	if (ud->attacktimer != INVALID_TIMER)
-		unit_stop_attack(bl);
+
 	if (ud->skilltimer != INVALID_TIMER)
 		unit_skillcastcancel(bl,0);
+
+	if (ud->target || ud->attacktimer != INVALID_TIMER)
+		unit_stop_attack(bl); //Clear target even if there is no timer
+
 	if (ud->stepaction || ud->steptimer != INVALID_TIMER)
 		unit_stop_stepaction(bl); //Clear stepaction even if there is no timer
 

@@ -14634,7 +14634,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 			break;
 		case NJ_ISSEN:
 #ifdef RENEWAL
-			if( status->hp < (status->hp / 100) )
+			if( status->hp < status->hp / 100 )
 #else
 			if( status->hp < 2 )
 #endif
