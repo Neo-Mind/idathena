@@ -1310,7 +1310,7 @@ REPLACE INTO `item_db_re` VALUES (2164,'Sombre_Shield','Bull Son Shield',4,20,NU
 REPLACE INTO `item_db_re` VALUES (2165,'Sol_Shield','Sol Shield',4,20,NULL,1300,NULL,50,NULL,1,0xFFFFFFFF,63,2,32,NULL,'65',1,3,NULL,NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (2166,'Exorcism_Bible_','Devil\'s Bible Drive',4,20,NULL,600,NULL,80,NULL,1,0x00008100,63,2,32,NULL,'50',1,5,'bonus bInt,1;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (2167,'Poison_Shield','Poison Shield',4,20,NULL,1300,NULL,50,NULL,1,0xFFFFFFFF,63,2,32,NULL,'65',1,3,NULL,NULL,NULL);
-REPLACE INTO `item_db_re` VALUES (2168,'Immuned_Shield','Immune Shield',4,20,NULL,700,NULL,55,NULL,1,0xFFFFFFFF,63,2,32,NULL,'1',1,1,'if (getrefine()>5) bonus2 bSubEle,Ele_Neutral,((getrefine()>12)?12:getrefine())-5;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (2168,'Immuned_Shield','Immune Shield',4,20,NULL,700,NULL,55,NULL,1,0xFFFFFFFF,63,2,32,NULL,'1',1,1,'if (getrefine()>5) bonus2 bSubEle,Ele_Neutral,((getrefine()>12)?12:getrefine())-5; if (getrefine()>6) bonus2 bSubEle,Ele_Neutral,5; if (getrefine()>8) { bonus2 bSubEle,Ele_Earth,5; bonus2 bSubEle,Ele_Water,5; bonus2 bSubEle,Ele_Wind,5; bonus2 bSubEle,Ele_Fire,5; bonus2 bSubEle,Ele_Neutral,5; }',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (2169,'Kalasak','Kalasag',4,20,NULL,400,NULL,40,NULL,0,0xFFFFFFFF,63,2,32,NULL,'1',1,1,'bonus2 bSubClass,Class_Boss,getrefine()/3;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (2170,'Bayani_Kalasak','Bayani Kalasag',4,20,NULL,400,NULL,40,NULL,1,0xFFFFFFFF,63,2,32,NULL,'1',1,1,'bonus2 bSubClass,Class_Boss,getrefine()/3;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (2171,'Fox_Armguard','Fox Wrist Guard',4,40000,NULL,200,NULL,45,NULL,1,0x22000000,63,2,32,NULL,'100',1,1,'bonus bFlee,5;',NULL,NULL);
@@ -3303,7 +3303,7 @@ REPLACE INTO `item_db_re` VALUES (5359,'J_Captain_Hat','Ship Captain Hat',4,20,N
 REPLACE INTO `item_db_re` VALUES (5360,'Whikebain_Ears','Hyuke\'s Black Cat Ears',4,20,NULL,200,NULL,2,NULL,0,0xFFFFFFFF,63,2,256,NULL,'45',1,368,'bonus bFlee,10; bonus bCritical,3; bonus bCritAtkRate,10; bonus bDefRate,-50; bonus bDef2Rate,-50;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (5361,'Gang_Scarf','Gangster Scarf',4,20,NULL,100,NULL,0,NULL,0,0xFFFFFFFF,63,2,1,NULL,'0',0,369,'bonus bBaseAtk,5; if(BaseJob==Job_Rogue) skill "RG_GANGSTER",1;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (5362,'Ninja_Scroll','Ninja Scroll',4,20,NULL,200,NULL,0,NULL,0,0xFFFFFFFF,63,2,1,NULL,'0',0,370,'bonus bMatkRate,1;',NULL,NULL);
-REPLACE INTO `item_db_re` VALUES (5363,'Helm_Of_Abyss','Helm Of Abyss',4,20,NULL,1000,NULL,2,NULL,1,0x000654E2,63,2,256,NULL,'70',1,371,'bonus2 bSubRace,RC_DemiHuman,-10; bonus2 bSubClass,Class_Boss,10;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (5363,'Helm_Of_Abyss','Helm Of Abyss',4,20,NULL,1000,NULL,2,NULL,1,0x000654E2,63,2,256,NULL,'70',1,371,'bonus2 bSubRace,RC_DemiHuman,-5; bonus2 bSubClass,Class_Boss,10;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (5364,'Dark_Snake_Lord_Hat','Evil Snake Lord Hat',4,20,NULL,500,NULL,2,NULL,1,0xFFFFFFFF,63,2,256,NULL,'60',1,372,'bonus bStr,1; bonus bInt,1; bonus bAgi,2; bonus2 bAddMonsterDropItem,12582,30;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (5365,'Fried_Egg','Magnolia Hat',4,20,NULL,100,NULL,3,NULL,1,0xFFFFFFFF,63,2,256,NULL,'1',0,373,'bonus2 bResEff,Eff_Stun,500; skill "HT_FLASHER",1;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (5366,'Hat_0f_King','Love Dad Bandana',4,20,NULL,200,NULL,3,NULL,0,0xFFFFFFFF,63,2,256,NULL,'0',1,374,'bonus bAllStats,5;',NULL,NULL);

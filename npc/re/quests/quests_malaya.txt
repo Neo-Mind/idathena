@@ -9124,3 +9124,32 @@ OnDisable:
 	end;
 }
 ma_fild01,170,228,4	duplicate(Beat Catching Boy#pin10)	Beat Catching Boy#pin11	577
+
+ma_fild01,1,1,0	script	dhong_ang_buto	-1,{
+OnInit:
+	enablenpc "dhong_ang_buto";
+	donpcevent "dhong_ang_buto::OnEnable";
+	end;
+
+OnEnable:
+	monster "ma_fild01",0,0,"Tikbalang",2313,20,"dhong_ang_buto::OnMyMobDead";
+	initnpctimer;
+	end;
+
+OnDisable:
+	stopnpctimer;
+	killmonster "ma_fild01","dhong_ang_buto::OnMyMobDead";
+	disablenpc "dhong_ang_buto";
+	end;
+
+OnTimer600000:
+	killmonster "ma_fild01","dhong_ang_buto::OnMyMobDead";
+	stopnpctimer;
+	donpcevent "dhong_ang_buto::OnEnable";
+	end;
+
+OnMyMobDead:
+	if (mobcount("ma_fild01","dhong_ang_buto::OnMyMobDead") < 20 && checkquest(7406) == 1)
+		getitem 6507,1; //Evil_Bone
+	end;
+}
