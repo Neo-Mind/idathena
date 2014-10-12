@@ -395,24 +395,23 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 			pc_cell_basilica(sd);
 			break;
 		case BL_MOB:
-			if(map_getcell(bl->m,x,y,CELL_CHKNPC)) {
-				if(npc_touch_areanpc2(md))
-					return 0; //Warped
-			} else
+			if(map_getcell(bl->m,x,y,CELL_CHKNPC) && npc_touch_areanpc2(md))
+				return 0; //Warped
+			else
 				md->areanpc_id = 0;
 			if(md->min_chase > md->db->range3)
 				md->min_chase--;
-			//Walk skills are triggered regardless of target due to the idle-walk mob state.
+			//Walk skills are triggered regardless of target due to the idle-walk mob state
 			//But avoid triggering on stop-walk calls.
-			if(tid != INVALID_TIMER &&
-				!(ud->walk_count%WALK_SKILL_INTERVAL) &&
-				mobskill_use(md, tick, -1))
-			{
-				if(!(ud->skill_id == NPC_SELFDESTRUCTION && ud->skilltimer != INVALID_TIMER)) { //Skill used, abort walking
-					clif_fixpos(bl); //Fix position as walk has been cancelled.
+			if(tid != INVALID_TIMER && !(ud->walk_count%WALK_SKILL_INTERVAL) &&
+				map[bl->m].users > 0 && mobskill_use(md, tick, -1)) {
+				if(!(ud->skill_id == NPC_SELFDESTRUCTION && ud->skilltimer != INVALID_TIMER) &&
+					md->state.skillstate != MSS_WALK) //Walk skills are supposed to be used while walking)
+				{ //Skill used, abort walking
+					clif_fixpos(bl); //Fix position as walk has been cancelled
 					return 0;
 				}
-				//Resend walk packet for proper Self Destruction display.
+				//Resend walk packet for proper Self Destruction display
 				clif_move(ud);
 			}
 			break;

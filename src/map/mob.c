@@ -42,28 +42,30 @@
 #include <string.h>
 #include <math.h>
 
-#define ACTIVE_AI_RANGE 2	//Distance added on top of 'AREA_SIZE' at which mobs enter active AI mode.
+#define ACTIVE_AI_RANGE 2 //Distance added on top of 'AREA_SIZE' at which mobs enter active AI mode.
 
-#define IDLE_SKILL_INTERVAL 10	//Active idle skills should be triggered every 1 second (1000/MIN_MOBTHINKTIME)
+#define IDLE_SKILL_INTERVAL 10 //Active idle skills should be triggered every 1 second (1000/MIN_MOBTHINKTIME)
 
-#define MOB_LAZYSKILLPERC 0	// Probability for mobs far from players from doing their IDLE skill. (rate of 1000 minute)
+// Probability for mobs far from players from doing their IDLE skill. (rate of 1000 minute)
+// in Aegis, this is 100% for mobs that have been activated by players and none otherwise.
+#define MOB_LAZYSKILLPERC(md) (md->state.spotted?1000:0)
 // Move probability for mobs away from players (rate of 1000 minute)
 // in Aegis, this is 100% for mobs that have been activated by players and none otherwise.
 #define MOB_LAZYMOVEPERC(md) (md->state.spotted?1000:0)
 #define MOB_MAX_DELAY (24*3600*1000)
-#define MAX_MINCHASE 30	//Max minimum chase value to use for mobs.
-#define RUDE_ATTACKED_COUNT 2	//After how many rude-attacks should the skill be used?
+#define MAX_MINCHASE 30 //Max minimum chase value to use for mobs.
+#define RUDE_ATTACKED_COUNT 2 //After how many rude-attacks should the skill be used?
 #define MAX_MOB_CHAT 50 //Max Skill's messages
 
 //Dynamic mob database, allows saving of memory when there's big gaps in the mob_db [Skotlex]
-struct mob_db *mob_db_data[MAX_MOB_DB+1];
-struct mob_db *mob_dummy = NULL;	//Dummy mob to be returned when a non-existant one is requested.
+struct mob_db *mob_db_data[MAX_MOB_DB + 1];
+struct mob_db *mob_dummy = NULL; //Dummy mob to be returned when a non-existant one is requested.
 
 struct mob_db *mob_db(int index) { if (index < 0 || index > MAX_MOB_DB || mob_db_data[index] == NULL) return mob_dummy; return mob_db_data[index]; }
 
 //Dynamic mob chat database
-struct mob_chat *mob_chat_db[MAX_MOB_CHAT+1];
-struct mob_chat *mob_chat(short id) { if(id<=0 || id>MAX_MOB_CHAT || mob_chat_db[id]==NULL) return (struct mob_chat*)NULL; return mob_chat_db[id]; }
+struct mob_chat *mob_chat_db[MAX_MOB_CHAT + 1];
+struct mob_chat *mob_chat(short id) { if(id <= 0 || id > MAX_MOB_CHAT || mob_chat_db[id] == NULL) return (struct mob_chat*)NULL; return mob_chat_db[id]; }
 
 //Dynamic item drop ratio database for per-item drop ratio modifiers overriding global drop ratios.
 #define MAX_ITEMRATIO_MOBS 10
@@ -1332,7 +1334,7 @@ int mob_randomwalk(struct mob_data *md,unsigned int tick)
 		x += md->bl.x;
 		y += md->bl.y;
 
-		if((x != md->bl.x || y != md->bl.y) && (map_getcell(md->bl.m,x,y,CELL_CHKPASS)) && unit_walktoxy(&md->bl,x,y,1))
+		if((x != md->bl.x || y != md->bl.y) && (map_getcell(md->bl.m,x,y,CELL_CHKPASS)) && unit_walktoxy(&md->bl,x,y,0))
 			break;
 	}
 	if(i == retrycount) {
@@ -1505,9 +1507,9 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 		(md->lootitem_count < LOOTITEM_SIZE || battle_config.monster_loot_type != 1))
 		map_foreachinrange(mob_ai_sub_hard_lootsearch, &md->bl, view_range, BL_ITEM, md, &tbl);
 
-	if((!tbl && (mode&MD_AGGRESSIVE)) || md->state.skillstate == MSS_FOLLOW) {
+	if((!tbl && (mode&MD_AGGRESSIVE)) || md->state.skillstate == MSS_FOLLOW)
 		map_foreachinrange(mob_ai_sub_hard_activesearch, &md->bl, view_range, DEFAULT_ENEMY_TYPE(md), md, &tbl, mode);
-	} else if((mode&MD_CHANGECHASE) && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW ||
+	else if((mode&MD_CHANGECHASE) && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW ||
 		(md->sc.count && md->sc.data[SC__CHAOS]))) {
 		int search_size = (view_range < md->status.rhw.range ? view_range : md->status.rhw.range);
 
@@ -1659,10 +1661,9 @@ static int mob_ai_sub_hard_timer(struct block_list *bl,va_list ap)
  *------------------------------------------*/
 static int mob_ai_sub_foreachclient(struct map_session_data *sd,va_list ap)
 {
-	unsigned int tick;
-	tick=va_arg(ap,unsigned int);
-	map_foreachinrange(mob_ai_sub_hard_timer,&sd->bl, AREA_SIZE+ACTIVE_AI_RANGE, BL_MOB,tick);
+	unsigned int tick = va_arg(ap, unsigned int);
 
+	map_foreachinrange(mob_ai_sub_hard_timer, &sd->bl, AREA_SIZE + ACTIVE_AI_RANGE, BL_MOB, tick);
 	return 0;
 }
 
@@ -1678,54 +1679,45 @@ static int mob_ai_sub_lazy(struct mob_data *md, va_list args)
 	if(md->bl.prev == NULL)
 		return 0;
 
-	tick = va_arg(args,unsigned int);
+	tick = va_arg(args, unsigned int);
 
-	if (battle_config.mob_ai&0x20 && map[md->bl.m].users>0)
+	if(battle_config.mob_ai&0x20 && map[md->bl.m].users > 0)
 		return (int)mob_ai_sub_hard(md, tick);
 
-	if (md->bl.prev==NULL || md->status.hp == 0)
+	if(md->bl.prev == NULL || md->status.hp == 0)
 		return 1;
 
-	if(battle_config.mob_active_time &&
-		md->last_pcneartime &&
- 		!(md->status.mode&MD_BOSS) &&
-		DIFF_TICK(tick,md->last_thinktime) > MIN_MOBTHINKTIME)
-	{
-		if (DIFF_TICK(tick,md->last_pcneartime) < battle_config.mob_active_time)
+	if(battle_config.mob_active_time && md->last_pcneartime && !(md->status.mode&MD_BOSS) &&
+		DIFF_TICK(tick, md->last_thinktime) > MIN_MOBTHINKTIME) {
+		if(DIFF_TICK(tick, md->last_pcneartime) < battle_config.mob_active_time)
 			return (int)mob_ai_sub_hard(md, tick);
 		md->last_pcneartime = 0;
 	}
 
-	if(battle_config.boss_active_time &&
-		md->last_pcneartime &&
-		(md->status.mode&MD_BOSS) &&
-		DIFF_TICK(tick,md->last_thinktime) > MIN_MOBTHINKTIME)
-	{
-		if (DIFF_TICK(tick,md->last_pcneartime) < battle_config.boss_active_time)
+	if(battle_config.boss_active_time && md->last_pcneartime && (md->status.mode&MD_BOSS) &&
+		DIFF_TICK(tick, md->last_thinktime) > MIN_MOBTHINKTIME) {
+		if(DIFF_TICK(tick, md->last_pcneartime) < battle_config.boss_active_time)
 			return (int)mob_ai_sub_hard(md, tick);
 		md->last_pcneartime = 0;
 	}
 
-	if(DIFF_TICK(tick,md->last_thinktime)< 10*MIN_MOBTHINKTIME)
+	if(DIFF_TICK(tick, md->last_thinktime) < 10 * MIN_MOBTHINKTIME)
 		return 0;
 
-	md->last_thinktime=tick;
+	md->last_thinktime = tick;
 
-	if (md->master_id) {
-		mob_ai_sub_hard_slavemob (md,tick);
+	if(md->master_id) {
+		mob_ai_sub_hard_slavemob(md, tick);
 		return 0;
 	}
 
-	if( DIFF_TICK(md->next_walktime,tick) < 0 && (status_get_mode(&md->bl)&MD_CANMOVE) && unit_can_move(&md->bl) ) {
-		if( map[md->bl.m].users > 0 ) {
-			if( rnd()%1000 < MOB_LAZYMOVEPERC(md) )
-				mob_randomwalk(md, tick);
-			else if( rnd()%1000 < MOB_LAZYSKILLPERC ) //Chance to do a mob's idle skill.
-				mobskill_use(md, tick, -1);
-		} else {
-			if( rnd()%1000 < MOB_LAZYMOVEPERC(md) )
-				mob_randomwalk(md, tick);
-		}
+	if(DIFF_TICK(md->next_walktime, tick) < 0 && (status_get_mode(&md->bl)&MD_CANMOVE) &&
+		unit_can_move(&md->bl) && rnd()%1000 < MOB_LAZYMOVEPERC(md))
+		mob_randomwalk(md, tick);
+	else if(md->ud.walktimer == INVALID_TIMER) { //Because it is not unset when the mob finishes walking
+		md->state.skillstate = MSS_IDLE;
+		if(rnd()%1000 < MOB_LAZYSKILLPERC(md)) //Chance to do a mob's idle skill
+			mobskill_use(md, tick, -1);
 	}
 	return 0;
 }
@@ -3739,6 +3731,7 @@ static bool mob_parse_dbrow(char** str)
 		if (db->range3 < db->range2)
 			db->range3 = db->range2;
 	}
+	db->range3 += 2; //Tests showed that chase range is effectively 2 cells larger than expected [Playtester]
 
 	status->size = atoi(str[22]);
 	status->race = atoi(str[23]);
