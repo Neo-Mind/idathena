@@ -2981,6 +2981,35 @@ ma_fild01,238,257,2	script	Guard Dog Vantai	972,{
 	close;
 }
 
+ma_fild01,1,1,0	script	dhong_ang_buto	-1,{
+OnInit:
+	enablenpc "dhong_ang_buto";
+	donpcevent "dhong_ang_buto::OnEnable";
+	end;
+
+OnEnable:
+	monster "ma_fild01",0,0,"Tikbalang",2313,20,"dhong_ang_buto::OnMyMobDead";
+	initnpctimer;
+	end;
+
+OnDisable:
+	stopnpctimer;
+	killmonster "ma_fild01","dhong_ang_buto::OnMyMobDead";
+	disablenpc "dhong_ang_buto";
+	end;
+
+OnTimer600000:
+	killmonster "ma_fild01","dhong_ang_buto::OnMyMobDead";
+	stopnpctimer;
+	donpcevent "dhong_ang_buto::OnEnable";
+	end;
+
+OnMyMobDead:
+	if (mobcount("ma_fild01","dhong_ang_buto::OnMyMobDead") < 20 && checkquest(7406) == 1)
+		getitem 6507,1; //Evil_Bone
+	end;
+}
+
 ma_fild01,200,190,3	script	Maries#malaya	579,{
 	if (MaxWeight - Weight < 1000 || checkweight(1201,1) == 0) {
 		mes "- Cannot proceed with the quest. You are carrying too many items. -";
@@ -5682,7 +5711,7 @@ malaya,283,265,4	script	Village Chief#bako2	580,{
 		mes "[Village Chief]";
 		mes "^0000FFLost Belongings^000000";
 		mes "are said to be carried by";
-		mes "^FF0000Tiucknuc^000000 that roams Baryo Mahiwaga.";
+		mes "^FF0000Tiyanak^000000 that roams Baryo Mahiwaga.";
 		next;
 		switch(select("Do it yourself.:I'm on my way.")) {
 		case 1:
@@ -5693,7 +5722,7 @@ malaya,283,265,4	script	Village Chief#bako2	580,{
 		case 2:
 			mes "[Village Chief]";
 			mes "Let's start then. First,";
-			mes "retrieve two ^FF0000Lost Belongings^000000 from Tiucknuc";
+			mes "retrieve two ^FF0000Lost Belongings^000000 from Tiyanak";
 			mes "and take them to ^0000FFMissing Person's Father^000000";
 			mes "for me.";
 			set malaya_bakona2,1;
@@ -5702,26 +5731,26 @@ malaya,283,265,4	script	Village Chief#bako2	580,{
 		}
 	} else if (malaya_bakona2 == 1) {
 		mes "[Village Chief]";
-		mes "From Tiucknuc that roams Baryo Mahiwaga Field,";
+		mes "From Tiyanak that roams Baryo Mahiwaga Field,";
 		mes "retrieve two ^FF0000Lost Belongings^000000";
 		mes "and deliver them to ^0000FFMissing Person's Father^000000";
 		mes "for me.";
 		close;
 	} else if (malaya_bakona2 == 2) {
 		mes "[Village Chief]";
-		mes "Retrieve Seven ^FF0000Lost Belongings^000000 from Tiucknuc";
+		mes "Retrieve seven ^FF0000Lost Belongings^000000 from Tiyanak";
 		mes "and deliver them to ^0000FFMissing Person's Friend^000000";
 		mes "for me.";
 		close;
 	} else if (malaya_bakona2 == 3) {
 		mes "[Village Chief]";
-		mes "Retrieve three ^FF0000Lost Belongings^000000 from Tiucknuc";
+		mes "Retrieve three ^FF0000Lost Belongings^000000 from Tiyanak";
 		mes "and deliver them to ^0000FFMissing Person's Son^000000";
 		mes "for me.";
 		close;
 	} else if (malaya_bakona2 == 4) {
 		mes "[Village Chief]";
-		mes "Retrieve five ^FF0000Lost Belongings^000000 from Tiucknuc";
+		mes "Retrieve five ^FF0000Lost Belongings^000000 from Tiyanak";
 		mes "and deliver them to ^0000FFMissing Person's Mother^000000";
 		mes "for me.";
 		close;
@@ -5899,7 +5928,7 @@ malaya,269,267,5	script	Missing Person's Father	582,{
 		next;
 		mes "The man is unable to continue as he tries to hold back his tears.";
 		mes "Let's continue to find the lost belongings of the missing people.";
-		mes "Let's retrieve them from Tiucknuc that roams Baryo Mahiwaga Field,";
+		mes "Let's retrieve them from Tiyanak that roams Baryo Mahiwaga Field,";
 		mes "seven ^FF0000Lost Belongings^000000";
 		mes "and deliver them to ^0000FFMissing Person's Friend^000000.";
 		delitem 6520,2; //Lost_Belongings
@@ -5913,7 +5942,7 @@ malaya,269,267,5	script	Missing Person's Father	582,{
 		next;
 		mes "The man is unable to continue as he tries to hold back his tears.";
 		mes "Let's continue to find the lost belongings of the missing people.";
-		mes "Retrieve seven ^FF0000Lost Belongings^000000 from Tiucknuc";
+		mes "Retrieve seven ^FF0000Lost Belongings^000000 from Tiyanak";
 		mes "and deliver them to ^0000FFMissing Person's Friend^000000.";
 		close;
 	} else {
@@ -5973,7 +6002,7 @@ L_Quest:
 	next;
 	mes "Leaving behind the crying boy,";
 	mes "let's continue to find the lost belongings of the missing people.";
-	mes "Retrieve three ^FF0000Lost Belongings^000000 from Tiucknuc";
+	mes "Retrieve three ^FF0000Lost Belongings^000000 from Tiyanak";
 	mes "and deliver them to ^0000FFMissing Person's Son^000000.";
 	return;
 }
@@ -6019,7 +6048,7 @@ L_Quest:
 	next;
 	mes "Man crying in agony.";
 	mes "Let's continue to find the lost belongings of the missing people.";
-	mes "Retrieve five ^FF0000Lost Belongings^000000 from Tiucknuc";
+	mes "Retrieve five ^FF0000Lost Belongings^000000 from Tiyanak";
 	mes "and deliver them to ^0000FFMissing Person's Mother^000000.";
 	return;
 }
@@ -6504,6 +6533,35 @@ OnTouch:
 		mes "It's going to be so much fun!";
 		close;
 	}
+	end;
+}
+
+ma_fild01,1,1,0	script	malaya_bakonawa	-1,{
+OnInit:
+	enablenpc "malaya_bakonawa";
+	donpcevent "malaya_bakonawa::OnEnable";
+	end;
+
+OnEnable:
+	monster "ma_fild01",0,0,"Tiyanak",2314,20,"malaya_bakonawa::OnMyMobDead";
+	initnpctimer;
+	end;
+
+OnDisable:
+	stopnpctimer;
+	killmonster "ma_fild01","malaya_bakonawa::OnMyMobDead";
+	disablenpc "malaya_bakonawa";
+	end;
+
+OnTimer600000:
+	killmonster "ma_fild01","malaya_bakonawa::OnMyMobDead";
+	stopnpctimer;
+	donpcevent "malaya_bakonawa::OnEnable";
+	end;
+
+OnMyMobDead:
+	if (mobcount("ma_fild01","malaya_bakonawa::OnMyMobDead") < 20 && malaya_bakona > 0 && malaya_bakona < 5 )
+		getitem 6520,1; //Lost_Belongings
 	end;
 }
 
@@ -9124,32 +9182,3 @@ OnDisable:
 	end;
 }
 ma_fild01,170,228,4	duplicate(Beat Catching Boy#pin10)	Beat Catching Boy#pin11	577
-
-ma_fild01,1,1,0	script	dhong_ang_buto	-1,{
-OnInit:
-	enablenpc "dhong_ang_buto";
-	donpcevent "dhong_ang_buto::OnEnable";
-	end;
-
-OnEnable:
-	monster "ma_fild01",0,0,"Tikbalang",2313,20,"dhong_ang_buto::OnMyMobDead";
-	initnpctimer;
-	end;
-
-OnDisable:
-	stopnpctimer;
-	killmonster "ma_fild01","dhong_ang_buto::OnMyMobDead";
-	disablenpc "dhong_ang_buto";
-	end;
-
-OnTimer600000:
-	killmonster "ma_fild01","dhong_ang_buto::OnMyMobDead";
-	stopnpctimer;
-	donpcevent "dhong_ang_buto::OnEnable";
-	end;
-
-OnMyMobDead:
-	if (mobcount("ma_fild01","dhong_ang_buto::OnMyMobDead") < 20 && checkquest(7406) == 1)
-		getitem 6507,1; //Evil_Bone
-	end;
-}
