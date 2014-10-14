@@ -2291,7 +2291,7 @@ short skill_blown(struct block_list* src, struct block_list* target, char count,
 				struct map_session_data *sd = BL_CAST(BL_PC, target);
 
 				if( sd->sc.data[SC_BASILICA] && sd->sc.data[SC_BASILICA]->val4 == sd->bl.id && !is_boss(src))
-					return ((flag&0x20) ? count : 0); //Basilica caster can't be knocked-back by normal monsters.
+					return ((flag&0x20) ? count : 0); //Basilica caster can't be knocked-back by normal monsters
 				if( !(flag&0x02) && src != target && sd->special_state.no_knockback )
 					return ((flag&0x10) ? count : 0);
 			}
@@ -12413,6 +12413,7 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 		case GN_WALLOFTHORN:
 			if( flag&1 ) //Turned become Firewall
 				limit = 3000;
+			val2 = 16; //Max deal hits
 			val3 = (x<<16)|y; //Firewall coordinates
 			break;
 		case GN_FIRE_EXPANSION_SMOKE_POWDER:
@@ -12893,7 +12894,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 	struct skill_unit_group_tickset *ts;
 	enum sc_type type;
 	uint16 skill_id, skill_lv;
-	int diff = 0;
+	int diff = 0, knockback_immune;
 
 	nullpo_ret(unit);
 	nullpo_ret(bl);
@@ -12912,6 +12913,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 	tsc = status_get_sc(bl);
 	tstatus = status_get_status_data(bl);
 	type = status_skill2sc(skill_id);
+	knockback_immune = (tsd ? !tsd->special_state.no_knockback : !(tstatus->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS)));
 
 	if (sc && sc->data[SC_VOICEOFSIREN] && sc->data[SC_VOICEOFSIREN]->val2 == bl->id &&
 		(skill_get_inf2(skill_id)&INF2_TRAP))
@@ -13125,7 +13127,6 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 				if (status_change_start(ss,bl,type,10000,skill_lv,sg->group_id,0,0,sec,SCFLAG_FIXEDRATE)) {
 					const struct TimerData* td = (tsc && tsc->data[type] ? get_timer(tsc->data[type]->timer) : NULL);
 					int range = skill_get_unit_range(skill_id,skill_lv);
-					int knockback_immune = (tsd ? !tsd->special_state.no_knockback : !(tstatus->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS)));
 
 					if (td)
 						sec = DIFF_TICK(td->tick,tick);
@@ -13162,8 +13163,6 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			if (bl->id == ss->id)
 				break;
 			if (status_change_start(ss,bl,type,10000,skill_lv,sg->group_id,0,0,skill_get_time2(skill_id,skill_lv),SCFLAG_FIXEDRATE)) {
-				int knockback_immune = (tsd ? !tsd->special_state.no_knockback : !(tstatus->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS)));
-
 				if (knockback_immune) {
 					if (!battle_config.skill_trap_type && map_flag_gvg2(bl->m))
 						;
@@ -13493,13 +13492,16 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 		case UNT_WALLOFTHORN: {
 				struct Damage wd = battle_calc_weapon_attack(ss,bl,skill_id,skill_lv,0);
 
-				if (status_get_mode(bl)&MD_BOSS)
-					break; //This skill doesn't affect Boss monsters [iRO Wiki]
-				if (battle_check_target(ss,bl,BCT_ENEMY) <= 0)
-					unit_stop_walking(bl,1);
-				else
-					status_damage(ss,bl,wd.damage,0,clif_damage(bl,bl,tick,status_get_amotion(bl),status_get_dmotion(bl),wd.damage,1,DMG_ENDURE,0),0);
-				skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0x2);
+				if (knockback_immune) {
+					if (!battle_config.skill_trap_type && map_flag_gvg2(bl->m))
+						;
+					else {
+						if (battle_check_target(ss,bl,BCT_ENEMY) > 0)
+							status_damage(ss,bl,wd.damage,0,clif_damage(bl,bl,tick,status_get_amotion(bl),status_get_dmotion(bl),wd.damage,1,DMG_ENDURE,0),0);
+						skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
+						sg->val2--;
+					}
+				}
 			}
 			break;
 
@@ -17909,7 +17911,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 				}
 				break;
 			case UNT_WALLOFTHORN:
-				if( unit->val1 <= 0 )
+				if( unit->val1 <= 0 || group->val2 <= 0 )
 					skill_delunit(unit);
 				break;
 		}
