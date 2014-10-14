@@ -3443,12 +3443,12 @@ void clif_arrowequip(struct map_session_data *sd,int val)
 /// Ammunition action message (ZC_ACTION_FAILURE).
 /// 013b <type>.W
 /// type:
-///     0 = MsgStringTable[242]="Please equip the proper ammunition first."
-///     1 = MsgStringTable[243]="You can't Attack or use Skills because your Weight Limit has been exceeded."
-///     2 = MsgStringTable[244]="You can't use Skills because Weight Limit has been exceeded."
-///     3 = assassin, baby_assassin, assassin_cross => MsgStringTable[1040]="You have equipped throwing daggers."
-///         gunslinger => MsgStringTable[1175]="Bullets have been equipped."
-///         NOT ninja => MsgStringTable[245]="Ammunition has been equipped."
+///     0 = MsgStringTable[242] = "Please equip the proper ammunition first."
+///     1 = MsgStringTable[243] = "You can't Attack or use Skills because your Weight Limit has been exceeded."
+///     2 = MsgStringTable[244] = "You can't use Skills because Weight Limit has been exceeded."
+///     3 = assassin, baby_assassin, assassin_cross => MsgStringTable[1040] = "You have equipped throwing daggers."
+///         gunslinger => MsgStringTable[1175] = "Bullets have been equipped."
+///         NOT ninja => MsgStringTable[245] = "Ammunition has been equipped."
 void clif_arrow_fail(struct map_session_data *sd,int type)
 {
 	int fd;

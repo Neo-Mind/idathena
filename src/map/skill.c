@@ -15040,7 +15040,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 
 				//Officially, some Mechanic skills failure message displays this rather than just "Skill has failed."
 				//clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_EQUIPMENT,reqeqit);
-				sprintf(output,"Please equip with a %s.",itemdb_jname(reqeqit));
+				sprintf(output,"Please equipped with a %s.",itemdb_jname(reqeqit));
 				clif_colormes(sd,color_table[COLOR_RED],output);
 				return false;
 			}

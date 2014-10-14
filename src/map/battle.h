@@ -312,21 +312,22 @@ extern struct Battle_Config
 		item_rate_use_boss, item_rate_treasure, item_rate_adddrop;
 
 	int logarithmic_drops;
-	int item_drop_common_min,item_drop_common_max;	//Added by TyrNemesis^
+	int item_drop_common_min,item_drop_common_max; //Added by TyrNemesis^
 	int item_drop_card_min,item_drop_card_max;
 	int item_drop_equip_min,item_drop_equip_max;
-	int item_drop_mvp_min,item_drop_mvp_max;	//End Addition
-	int item_drop_heal_min,item_drop_heal_max;	//Added by Valatris
-	int item_drop_use_min,item_drop_use_max;	//End
-	int item_drop_treasure_min,item_drop_treasure_max; //by [Skotlex]
+	int item_drop_mvp_min,item_drop_mvp_max; //End Addition
+	int item_drop_mvp_mode; //rAthena addition [Playtester]
+	int item_drop_heal_min,item_drop_heal_max; //Added by Valatris
+	int item_drop_use_min,item_drop_use_max; //End
+	int item_drop_treasure_min,item_drop_treasure_max; //[Skotlex]
 	int item_drop_adddrop_min,item_drop_adddrop_max; //[Skotlex]
 
 	int prevent_logout;	//Added by RoVeRT
 
-	int alchemist_summon_reward;	//[Valaris]
+	int alchemist_summon_reward; //[Valaris]
 	int drops_by_luk;
 	int drops_by_luk2;
-	int equip_natural_break_rate;	//Base Natural break rate for attacks.
+	int equip_natural_break_rate; //Base Natural break rate for attacks.
 	int equip_self_break_rate; //Natural & Penalty skills break rate
 	int equip_skill_break_rate; //Offensive skills break rate
 	int multi_level_up;
@@ -334,7 +335,7 @@ extern struct Battle_Config
 	int pk_mode;
 	int pk_level_range;
 
-	int manner_system; //end additions [Valaris]
+	int manner_system; //End additions [Valaris]
 	int show_mob_info;
 
 	int gx_allhit;

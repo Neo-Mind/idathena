@@ -2108,7 +2108,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			continue; //Skip empty entries
 		if(tsd->bl.m != m)
 			continue; //Skip players not on this map
-		count++; //Only logged into same map chars are counted for the total.
+		count++; //Only logged into same map chars are counted for the total
 		if(pc_isdead(tsd))
 			continue; //Skip dead players
 		if(md->dmglog[i].flag == MDLF_HOMUN && !hom_is_active(tsd->hd))
@@ -2136,7 +2136,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	homkillonly = (bool)((dmgbltypes&BL_HOM) && !(dmgbltypes&~BL_HOM));
 
 	if(!battle_config.exp_calc_type && count > 1) { //Apply first-attacker 200% exp share bonus
-		//@TODO: Determine if this should go before calculating the MVP player instead of after.
+		//@TODO: Determine if this should go before calculating the MVP player instead of after
 		if (UINT_MAX - md->dmglog[0].dmg > md->tdmg) {
 			md->tdmg += md->dmglog[0].dmg;
 			md->dmglog[0].dmg <<= 1;
@@ -2148,10 +2148,10 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 
 	if(!(type&2) && //No exp
 		(!map[m].flag.pvp || battle_config.pvp_exp) && //Pvp no exp rule [MouseJstr]
-		(!md->master_id || !md->special_state.ai) && //Only player-summoned mobs do not give exp. [Skotlex]
+		(!md->master_id || !md->special_state.ai) && //Only player-summoned mobs do not give exp [Skotlex]
 		(!map[m].flag.nobaseexp || !map[m].flag.nojobexp) //Gives Exp
 	) { //Experience calculation.
-		int bonus = 100; //Bonus on top of your share (common to all attackers).
+		int bonus = 100; //Bonus on top of your share (common to all attackers)
 		int pnum = 0;
 
 		if(md->sc.data[SC_RICHMANKIM])
@@ -2177,10 +2177,10 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			if(!tmpsd[i]) continue;
 
 			if(!battle_config.exp_calc_type && md->tdmg)
-				//jAthena's exp formula based on total damage.
+				//jAthena's exp formula based on total damage
 				per = (double)md->dmglog[i].dmg / (double)md->tdmg;
 			else {
-				//eAthena's exp formula based on max hp.
+				//eAthena's exp formula based on max hp
 				per = (double)md->dmglog[i].dmg / (double)status->max_hp;
 				if (per > 2)
 					per = 2; //Prevents unlimited exp gain
@@ -2225,7 +2225,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				base_exp = (unsigned int)cap_value(exp, 1, UINT_MAX);
 			}
 
-			//Homun earned job-exp is always lost.
+			//Homun earned job-exp is always lost
 			if(map[m].flag.nojobexp || !md->db->job_exp || md->dmglog[i].flag == MDLF_HOMUN)
 				job_exp = 0;
 			else {
@@ -2239,7 +2239,8 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			if((temp = tmpsd[i]->status.party_id) > 0) {
 				int j;
 
-				for(j = 0; j < pnum && pt[j].id != temp; j++); //Locate party.
+				for(j = 0; j < pnum && pt[j].id != temp; j++)
+					; //Locate party
 
 				if(j == pnum) { //Possibly add party.
 					pt[pnum].p = party_search(temp);
@@ -2266,7 +2267,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 					flag = 0;
 				}
 			}
-			if(base_exp && md->dmglog[i].flag == MDLF_HOMUN) //tmpsd[i] is null if it has no homunc.
+			if(base_exp && md->dmglog[i].flag == MDLF_HOMUN) //tmpsd[i] is null if it has no homunc
 				hom_gainexp(tmpsd[i]->hd, base_exp);
 			if(flag) {
 				if(base_exp || job_exp) {
@@ -2293,12 +2294,12 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		for(i = 0; i < pnum; i++) //Party share.
 			party_exp_share(pt[i].p, &md->bl, pt[i].base_exp,pt[i].job_exp,pt[i].zeny);
 
-	} //End EXP giving.
+	}
 
 	if(!(type&1) && !map[m].flag.nomobloot && !md->state.rebirth && (
 		!md->special_state.ai || //Non special mob
 		battle_config.alchemist_summon_reward == 2 || //All summoned give drops
-		(md->special_state.ai == AI_SPHERE && battle_config.alchemist_summon_reward == 1) //Marine Sphere Drops items.
+		(md->special_state.ai == AI_SPHERE && battle_config.alchemist_summon_reward == 1) //Marine Sphere Drops items
 		))
 	{ //Item Drop
 		struct item_drop_list *dlist = ers_alloc(item_drop_list_ers, struct item_drop_list);
@@ -2352,7 +2353,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				drop_rate = (int)(drop_rate * 1.25); //pk_mode increase drops if 20 level difference [Valaris]
 
 			//Increase drop rate if user has SC_ITEMBOOST
-			if(sd && sd->sc.data[SC_ITEMBOOST]) //Now rig the drop rate to never be over 90% unless it is originally > 90%.
+			if(sd && sd->sc.data[SC_ITEMBOOST]) //Now rig the drop rate to never be over 90% unless it is originally > 90%
 				drop_rate = max(drop_rate, (int)cap_value(0.5 + drop_rate * sd->sc.data[SC_ITEMBOOST]->val1 / 100., 0, 9000));
 			//Increase item drop rate for VIP.
 			if (battle_config.vip_drop_increase && (sd && pc_isvip(sd))) {
@@ -2478,25 +2479,35 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		log_mvp[1] = mexp;
 
 		if(!(map[m].flag.nomvploot || type&1)) {
-			/* Pose them randomly in the list -- so on 100% drop servers it wont always drop the same item */
+			//Order might be random depending on item_drop_mvp_mode config setting
 			int mdrop_id[MAX_MVP_DROP];
 			int mdrop_p[MAX_MVP_DROP];
 
 			memset(mdrop_id, 0, MAX_MVP_DROP * sizeof(int));
 			memset(mdrop_p, 0, MAX_MVP_DROP * sizeof(int));
-			//Make random order
-			for(i = 0; i < MAX_MVP_DROP; i++) {
-				while(1) {
-					uint8 va = rnd()%MAX_MVP_DROP;
 
-					if(mdrop_id[va] == 0) {
-						if(md->db->mvpitem[i].nameid > 0) {
-							mdrop_id[va] = md->db->mvpitem[i].nameid;
-							mdrop_p[va] = md->db->mvpitem[i].p;
-						} else
-							mdrop_id[va] = -1;
-						break;
+			if(battle_config.item_drop_mvp_mode == 1) { //Random order
+				for(i = 0; i < MAX_MVP_DROP; i++) {
+					while(1) {
+						uint8 va = rnd()%MAX_MVP_DROP;
+
+						if(mdrop_id[va] == 0) {
+							if(md->db->mvpitem[i].nameid > 0) {
+								mdrop_id[va] = md->db->mvpitem[i].nameid;
+								mdrop_p[va] = md->db->mvpitem[i].p;
+							} else
+								mdrop_id[va] = -1;
+							break;
+						}
 					}
+				}
+			} else { //Normal order
+				for(i = 0; i < MAX_MVP_DROP; i++) {
+					if(md->db->mvpitem[i].nameid > 0) {
+						mdrop_id[i] = md->db->mvpitem[i].nameid;
+						mdrop_p[i] = md->db->mvpitem[i].p;
+					} else
+						mdrop_id[i] = -1;
 				}
 			}
 
@@ -2531,13 +2542,15 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				}
 				//Logs items, MVP prizes [Lupus]
 				log_pick_mob(md, LOG_TYPE_MVP, -1, &item);
-				break;
+				//If item_drop_mvp_mode is not 2, then only one item should be granted
+				if(battle_config.item_drop_mvp_mode != 2)
+					break;
 			}
 		}
 		log_mvpdrop(mvp_sd, md->mob_id, log_mvp);
 	}
 
-	//Emperium destroyed by script. Discard mvp character. [Skotlex]
+	//Emperium destroyed by script. Discard mvp character [Skotlex]
 	if(type&2 && !sd && md->mob_id == MOBID_EMPERIUM && md->guardian_data)
 		mvp_sd = NULL;
 
@@ -2609,7 +2622,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 
 	if(!rebirth) {
 
-		if(pcdb_checkid(md->vd->class_)) { //Player mobs are not removed automatically by the client.
+		if(pcdb_checkid(md->vd->class_)) { //Player mobs are not removed automatically by the client
 			/* First we set them dead, then we delay the outsight effect */
 			clif_clearunit_area(&md->bl, CLR_DEAD);
 			clif_clearunit_delayed(&md->bl, CLR_OUTSIGHT, tick + 3000);
@@ -2622,16 +2635,16 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 
 	}
 
-	if(!md->spawn) //Tell status_damage to remove it from memory.
-		return 5; //NOTE: Actually, it's 4. Oh well.
+	if(!md->spawn) //Tell status_damage to remove it from memory
+		return 5; //NOTE: Actually, it's 4. Oh well
 
 	//MvP tomb [GreenBox]
 	if(battle_config.mvp_tomb_enabled && md->spawn->state.boss && map[md->bl.m].flag.notomb != 1)
 		mvptomb_create(md, mvp_sd ? mvp_sd->status.name : NULL, time(NULL));
 
 	if(!rebirth)
-		mob_setdelayspawn(md); //Set respawning.
-	return 3; //Remove from map.
+		mob_setdelayspawn(md); //Set respawning
+	return 3; //Remove from map
 }
 
 /**
