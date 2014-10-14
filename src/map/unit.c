@@ -816,6 +816,7 @@ bool unit_run(struct block_list *bl, struct map_session_data *sd, enum sc_type t
 int unit_escape(struct block_list *bl, struct block_list *target, short dist)
 {
 	uint8 dir = map_calc_dir(target, bl->x, bl->y);
+
 	while( dist > 0 && map_getcell(bl->m, bl->x + dist * dirx[dir], bl->y + dist * diry[dir], CELL_CHKNOREACH) )
 		dist--;
 	return (dist > 0 && unit_walktoxy(bl, bl->x + dist * dirx[dir], bl->y + dist * diry[dir], 0));
@@ -1224,19 +1225,18 @@ int unit_can_move(struct block_list *bl) {
  */
 int unit_resume_running(int tid, unsigned int tick, int id, intptr_t data)
 {
-
 	struct unit_data *ud = (struct unit_data *)data;
 	TBL_PC *sd = map_id2sd(id);
 
 	if (sd && pc_isridingwug(sd))
 		clif_skill_nodamage(ud->bl,ud->bl,RA_WUGDASH,ud->skill_lv,
-			sc_start4(ud->bl,ud->bl,status_skill2sc(RA_WUGDASH),100,ud->skill_lv,unit_getdir(ud->bl),0,0,1));
+			sc_start4(ud->bl,ud->bl,status_skill2sc(RA_WUGDASH),100,ud->skill_lv,unit_getdir(ud->bl),0,0,0));
 	else
 		clif_skill_nodamage(ud->bl,ud->bl,TK_RUN,ud->skill_lv,
 			sc_start4(ud->bl,ud->bl,status_skill2sc(TK_RUN),100,ud->skill_lv,unit_getdir(ud->bl),0,0,0));
 
-	if (sd) clif_walkok(sd);
-
+	if (sd)
+		clif_walkok(sd);
 	return 0;
 
 }

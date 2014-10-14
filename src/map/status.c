@@ -664,7 +664,7 @@ void initChangeTables(void) {
 
 	set_sc( RA_FEARBREEZE        , SC_FEARBREEZE      , SI_FEARBREEZE      , SCB_NONE );
 	set_sc( RA_ELECTRICSHOCKER   , SC_ELECTRICSHOCKER , SI_ELECTRICSHOCKER , SCB_NONE );
-	set_sc( RA_WUGDASH           , SC_WUGDASH         , SI_WUGDASH         , SCB_SPEED );
+	set_sc( RA_WUGDASH           , SC_WUGDASH         , SI_WUGDASH         , SCB_SPEED|SCB_DSPD );
 	set_sc( RA_WUGBITE           , SC_BITE            , SI_WUGBITE         , SCB_NONE );
 	set_sc( RA_CAMOUFLAGE        , SC_CAMOUFLAGE      , SI_CAMOUFLAGE      , SCB_SPEED );
 	add_sc( RA_MAGENTATRAP       , SC_ELEMENTALCHANGE );
@@ -6168,9 +6168,8 @@ static short status_calc_aspd_rate(struct block_list *bl, struct status_change *
  */
 static unsigned short status_calc_dmotion(struct block_list *bl, struct status_change *sc, int dmotion)
 {
-	//It has been confirmed on official servers that MvP mobs have no dmotion even without endure
 	if(bl->type == BL_MOB && (((TBL_MOB*)bl)->status.mode&MD_BOSS))
-		return 0;
+		return 0; //It has been confirmed on official servers that mvp mobs have no dmotion even without endure
 	if(!sc || !sc->count || map_flag_gvg2(bl->m) || map[bl->m].flag.battleground)
 		return (unsigned short)cap_value(dmotion,0,USHRT_MAX);
 	if(sc->data[SC_ENDURE])
@@ -9072,7 +9071,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = tick / tick_time;
 				break;
 			case SC_WUGDASH:
-				val4 = gettick(); //Store time at which you started running
+				val4 = gettick();
 				tick = -1;
 				break;
 			case SC__REPRODUCE:
@@ -10401,7 +10400,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				bool begin_spurt = true;
 
 				if (ud) {
-					if(!ud->state.running)
+					if (!ud->state.running)
 						begin_spurt = false;
 					ud->state.running = 0;
 					if (ud->walktimer != INVALID_TIMER)
@@ -10409,8 +10408,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				}
 				if (begin_spurt && sce->val1 >= 7 &&
 					DIFF_TICK(gettick(),sce->val4) <= 1000 &&
-					(!sd || (sd->weapontype1 == 0 && sd->weapontype2 == 0))
-				)
+					(!sd || (sd->weapontype1 == 0 && sd->weapontype2 == 0)))
 					sc_start(bl,bl,SC_SPURT,100,sce->val1,skill_get_time2(status_sc2skill(type),sce->val1));
 			}
 			break;

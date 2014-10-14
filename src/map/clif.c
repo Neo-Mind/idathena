@@ -10199,7 +10199,7 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd)
 		return;
 	}
 
-	if (sd->sc.opt1 && ( sd->sc.opt1 == OPT1_STONEWAIT || sd->sc.opt1 == OPT1_BURNING ))
+	if (sd->sc.opt1 && (sd->sc.opt1 == OPT1_STONEWAIT || sd->sc.opt1 == OPT1_BURNING))
 		; //You CAN walk on this OPT1 value.
 	else if( sd->progressbar.npc_id )
 		clif_progressbar_abort(sd);
