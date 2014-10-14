@@ -1228,7 +1228,10 @@ int pet_skill_support_timer(int tid, unsigned int tick, int id, intptr_t data)
  *------------------------------------------*/
 void read_petdb()
 {
-	char* filename[] = { "pet_db.txt","pet_db2.txt" };
+	char* filename[] = {
+		DBPATH"pet_db.txt",
+		"pet_db2.txt"
+	};
 	unsigned short nameid;
 	int i, j;
 

@@ -95,11 +95,12 @@ void duel_showinfo(const unsigned int did, struct map_session_data* sd)
  */
 int duel_create(struct map_session_data* sd, const unsigned int maxpl)
 {
-	int i=1;
+	int i = 1;
 	char output[256];
 
 	while(duel_list[i].members_count > 0 && i < MAX_DUEL) i++;
-	if(i == MAX_DUEL) return 0;
+	if(i == MAX_DUEL)
+		return 0;
 
 	duel_count++;
 	sd->duel_group = i;
@@ -111,7 +112,7 @@ int duel_create(struct map_session_data* sd, const unsigned int maxpl)
 	clif_disp_onlyself(sd, output, strlen(output));
 
 	clif_map_property(sd, MAPPROPERTY_FREEPVPZONE);
-	clif_maptypeproperty2(&sd->bl,SELF);
+	clif_maptypeproperty2(&sd->bl, SELF);
 	//clif_misceffect2(&sd->bl, 159);
 	return i;
 }
@@ -174,7 +175,7 @@ void duel_leave(const unsigned int did, struct map_session_data* sd)
 	sd->duel_group = 0;
 	duel_savetime(sd);
 	clif_map_property(sd, MAPPROPERTY_NOTHING);
-	clif_maptypeproperty2(&sd->bl,SELF);
+	clif_maptypeproperty2(&sd->bl, SELF);
 }
 
 /*
@@ -196,7 +197,7 @@ void duel_accept(const unsigned int did, struct map_session_data* sd)
 	clif_disp_message(&sd->bl, output, strlen(output), DUEL_WOS);
 
 	clif_map_property(sd, MAPPROPERTY_FREEPVPZONE);
-	clif_maptypeproperty2(&sd->bl,SELF);
+	clif_maptypeproperty2(&sd->bl, SELF);
 	//clif_misceffect2(&sd->bl, 159);
 }
 

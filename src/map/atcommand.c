@@ -1696,7 +1696,7 @@ ACMD_FUNC(gvgon)
 	
 	map[sd->bl.m].flag.gvg = 1;
 	clif_map_property_mapall(sd->bl.m, MAPPROPERTY_AGITZONE);
-	clif_maptypeproperty2(&sd->bl,ALL_SAMEMAP);
+	clif_maptypeproperty2(&sd->bl, ALL_SAMEMAP);
 	clif_displaymessage(fd, msg_txt(34)); // GvG: On.
 
 	return 0;

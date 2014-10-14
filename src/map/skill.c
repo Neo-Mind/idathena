@@ -2151,7 +2151,7 @@ int skill_break_equip(struct block_list *src, struct block_list *bl, unsigned sh
 			rate -= rate * sd->bonus.unbreakable / 100;
 		if (where&EQP_WEAPON) {
 			switch (sd->status.weapon) {
-				case W_FIST: //Bare fists should not break :P
+				case W_FIST: //Bare fists should not break
 				case W_1HAXE:
 				case W_2HAXE:
 				case W_MACE: //Axes and Maces can't be broken [DracoRPG]
@@ -2177,11 +2177,11 @@ int skill_break_equip(struct block_list *src, struct block_list *bl, unsigned sh
 				where &= ~where_list[i];
 			else if (rnd()%10000 >= rate)
 				where &= ~where_list[i];
-			else if (!sd && !(status_get_mode(bl)&MD_BOSS)) //Cause Strip effect.
+			else if (!sd && !(status_get_mode(bl)&MD_BOSS)) //Cause Strip effect
 				sc_start(src,bl,scatk[i],100,0,skill_get_time(status_sc2skill(scatk[i]),1));
 		}
 	}
-	if (!where) //Nothing to break.
+	if (!where) //Nothing to break
 		return 0;
 	if (sd) {
 		for (i = 0; i < EQI_MAX; i++) {
@@ -2218,7 +2218,7 @@ int skill_break_equip(struct block_list *src, struct block_list *bl, unsigned sh
 		clif_equiplist(sd);
 	}
 
-	return where; //Return list of pieces broken.
+	return where; //Return list of pieces broken
 }
 
 int skill_strip_equip(struct block_list *src, struct block_list *bl, unsigned short where, int rate, int lv, int time)

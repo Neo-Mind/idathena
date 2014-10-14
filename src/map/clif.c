@@ -8057,10 +8057,12 @@ void clif_guild_memberpositionchanged(struct guild *g,int idx)
 void clif_guild_emblem(struct map_session_data *sd,struct guild *g)
 {
 	int fd;
+
 	nullpo_retv(sd);
 	nullpo_retv(g);
 
 	fd = sd->fd;
+
 	if( g->emblem_len <= 0 )
 		return;
 
@@ -9801,7 +9803,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 		clif_map_property(sd,MAPPROPERTY_FREEPVPZONE);
 
 	if(map[sd->bl.m].flag.gvg_dungeon)
-		clif_map_property(sd,MAPPROPERTY_FREEPVPZONE); //@TODO: Figure out the real packet to send here.
+		clif_map_property(sd,MAPPROPERTY_FREEPVPZONE); //@TODO: Figure out the real packet to send here
 
 	if(map_flag_gvg2(sd->bl.m))
 		clif_map_property(sd,MAPPROPERTY_AGITZONE);
@@ -16136,7 +16138,9 @@ void clif_bg_updatescore(int16 m)
 void clif_bg_updatescore_single(struct map_session_data *sd)
 {
 	int fd;
+
 	nullpo_retv(sd);
+
 	fd = sd->fd;
 
 	WFIFOHEAD(fd,packet_len(0x2de));
@@ -16152,11 +16156,12 @@ void clif_bg_updatescore_single(struct map_session_data *sd)
 void clif_sendbgemblem_area(struct map_session_data *sd)
 {
 	unsigned char buf[33];
+
 	nullpo_retv(sd);
 
 	WBUFW(buf, 0) = 0x2dd;
 	WBUFL(buf,2) = sd->bl.id;
-	safestrncpy((char*)WBUFP(buf,6),sd->status.name,NAME_LENGTH); //Name don't show in screen.
+	safestrncpy((char*)WBUFP(buf,6),sd->status.name,NAME_LENGTH); //Name don't show in screen
 	WBUFW(buf,30) = sd->bg_id;
 	clif_send(buf,packet_len(0x2dd),&sd->bl,AREA);
 }
@@ -16164,6 +16169,7 @@ void clif_sendbgemblem_area(struct map_session_data *sd)
 void clif_sendbgemblem_single(int fd, struct map_session_data *sd)
 {
 	nullpo_retv(sd);
+
 	WFIFOHEAD(fd,32);
 	WFIFOW(fd,0) = 0x2dd;
 	WFIFOL(fd,2) = sd->bl.id;

@@ -795,7 +795,7 @@ int guild_expulsion(struct map_session_data* sd, int guild_id, int account_id, i
 	if( (ps = guild_getposition(g,sd)) < 0 || !(g->position[ps].mode&0x0010) )
 		return 0; //Expulsion permission
 
-	//Can't leave inside guild castles.
+	//Can't leave inside guild castles
 	if( tsd && tsd->status.char_id == char_id && ((agit_flag || agit2_flag) &&
 		map[tsd->bl.m].flag.gvg_castle && !battle_config.guild_castle_expulsion) )
 		return 0;
@@ -1167,22 +1167,22 @@ int guild_emblem_changed(int len,int guild_id,int emblem_id,const char *data)
 		DBIterator* iter = db_iterator(castle_db);
 		struct guild_castle* gc;
 
-		for( gc = (struct guild_castle*)dbi_first(iter); dbi_exists(iter); gc = (struct guild_castle*)dbi_next(iter) ) {
-			if( gc->guild_id != guild_id )
+		for(gc = (struct guild_castle*)dbi_first(iter); dbi_exists(iter); gc = (struct guild_castle*)dbi_next(iter)) {
+			if(gc->guild_id != guild_id)
 				continue;
 			// Update permanent guardians
-			for( i = 0; i < ARRAYLENGTH(gc->guardian); ++i ) {
+			for(i = 0; i < ARRAYLENGTH(gc->guardian); ++i) {
 				TBL_MOB* md = (gc->guardian[i].id ? map_id2md(gc->guardian[i].id) : NULL);
 
-				if( md == NULL || md->guardian_data == NULL )
+				if(md == NULL || md->guardian_data == NULL)
 					continue;
 				clif_guild_emblem_area(&md->bl);
 			}
 			// Update temporary guardians
-			for( i = 0; i < gc->temp_guardians_max; ++i ) {
+			for(i = 0; i < gc->temp_guardians_max; ++i) {
 				TBL_MOB* md = (gc->temp_guardians[i] ? map_id2md(gc->temp_guardians[i]) : NULL);
 
-				if( md == NULL || md->guardian_data == NULL )
+				if(md == NULL || md->guardian_data == NULL)
 					continue;
 				clif_guild_emblem_area(&md->bl);
 			}
@@ -1190,11 +1190,9 @@ int guild_emblem_changed(int len,int guild_id,int emblem_id,const char *data)
 		dbi_destroy(iter);
 	}
 	{ // Update npcs (flags or other npcs that used flagemblem to attach to this guild)
-		for( i = 0; i < guild_flags_count; i++ ) {
-			if( guild_flags[i] && guild_flags[i]->u.scr.guild_id == guild_id ) {
+		for(i = 0; i < guild_flags_count; i++)
+			if(guild_flags[i] && guild_flags[i]->u.scr.guild_id == guild_id)
 				clif_guild_emblem_area(&guild_flags[i]->bl);
-			}
-		}
 	}
 	return 0;
 }

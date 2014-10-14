@@ -11052,7 +11052,7 @@ static int script_mapflag_pvp_sub(struct block_list *bl,va_list ap) {
 		sd->pvp_lost = 0;
 	}
 	clif_map_property(sd, MAPPROPERTY_FREEPVPZONE);
-	clif_maptypeproperty2(&sd->bl,SELF);
+	clif_maptypeproperty2(&sd->bl, SELF);
 	return 0;
 }
 
@@ -11088,7 +11088,7 @@ BUILDIN_FUNC(setmapflag)
 					clif_map_property_mapall(m, MAPPROPERTY_AGITZONE);
 					bl.type = BL_NUL;
 					bl.m = m;
-					clif_maptypeproperty2(&bl,ALL_SAMEMAP);
+					clif_maptypeproperty2(&bl, ALL_SAMEMAP);
 				}
 				break;
 			case MF_GVG_NOPARTY:		map[m].flag.gvg_noparty = 1; break;
@@ -11190,7 +11190,7 @@ BUILDIN_FUNC(removemapflag)
 					bl.m = m;
 					map[m].flag.pvp = 0;
 					clif_map_property_mapall(m, MAPPROPERTY_NOTHING);
-					clif_maptypeproperty2(&bl,ALL_SAMEMAP);
+					clif_maptypeproperty2(&bl, ALL_SAMEMAP);
 				}
 				break;
 			case MF_PVP_NOPARTY:		map[m].flag.pvp_noparty = 0; break;
@@ -11202,7 +11202,7 @@ BUILDIN_FUNC(removemapflag)
 					bl.m = m;
 					map[m].flag.gvg = 0;
 					clif_map_property_mapall(m, MAPPROPERTY_NOTHING);
-					clif_maptypeproperty2(&bl,ALL_SAMEMAP);
+					clif_maptypeproperty2(&bl, ALL_SAMEMAP);
 				}
 				break;
 			case MF_GVG_NOPARTY:		map[m].flag.gvg_noparty = 0; break;
@@ -11289,7 +11289,7 @@ BUILDIN_FUNC(pvpon)
 	clif_map_property_mapall(m, MAPPROPERTY_FREEPVPZONE);
 	bl.type = BL_NUL;
 	bl.m = m;
-	clif_maptypeproperty2(&bl,ALL_SAMEMAP);
+	clif_maptypeproperty2(&bl, ALL_SAMEMAP);
 
 	if(battle_config.pk_mode) // Disable ranking functions if pk_mode is on [Valaris]
 		return 0;
@@ -11313,6 +11313,7 @@ BUILDIN_FUNC(pvpon)
 static int buildin_pvpoff_sub(struct block_list *bl,va_list ap)
 {
 	TBL_PC* sd = (TBL_PC*)bl;
+
 	clif_pvpset(sd, 0, 0, 2);
 	if (sd->pvp_timer != INVALID_TIMER) {
 		delete_timer(sd->pvp_timer, pc_calc_pvprank_timer);
@@ -11330,7 +11331,7 @@ BUILDIN_FUNC(pvpoff)
 	str = script_getstr(st, 2);
 	m = map_mapname2mapid(str);
 	if(m < 0 || !map[m].flag.pvp)
-		return 0; //fixed Lupus
+		return 0; // Fixed Lupus
 
 	map[m].flag.pvp = 0;
 	clif_map_property_mapall(m, MAPPROPERTY_NOTHING);
@@ -11338,7 +11339,7 @@ BUILDIN_FUNC(pvpoff)
 	bl.m = m;
 	clif_maptypeproperty2(&bl, ALL_SAMEMAP);
 
-	if(battle_config.pk_mode) // disable ranking options if pk_mode is on [Valaris]
+	if(battle_config.pk_mode) // Disable ranking options if pk_mode is on [Valaris]
 		return 0;
 	
 	map_foreachinmap(buildin_pvpoff_sub, m, BL_PC);
@@ -11470,7 +11471,8 @@ BUILDIN_FUNC(maprespawnguildid)
 
 BUILDIN_FUNC(agitstart)
 {
-	if(agit_flag == 1) return SCRIPT_CMD_SUCCESS; // Agit already Start.
+	if(agit_flag == 1)
+		return SCRIPT_CMD_SUCCESS; // Agit already Start
 	agit_flag = 1;
 	guild_agit_start();
 	return SCRIPT_CMD_SUCCESS;
@@ -11478,7 +11480,8 @@ BUILDIN_FUNC(agitstart)
 
 BUILDIN_FUNC(agitend)
 {
-	if(agit_flag == 0) return SCRIPT_CMD_SUCCESS; // Agit already End.
+	if(agit_flag == 0)
+		return SCRIPT_CMD_SUCCESS; // Agit already End
 	agit_flag = 0;
 	guild_agit_end();
 	return SCRIPT_CMD_SUCCESS;
@@ -11486,7 +11489,8 @@ BUILDIN_FUNC(agitend)
 
 BUILDIN_FUNC(agitstart2)
 {
-	if(agit2_flag == 1) return SCRIPT_CMD_SUCCESS; // Agit2 already Start.
+	if(agit2_flag == 1)
+		return SCRIPT_CMD_SUCCESS; // Agit2 already Start
 	agit2_flag = 1;
 	guild_agit2_start();
 	return SCRIPT_CMD_SUCCESS;
@@ -11494,7 +11498,8 @@ BUILDIN_FUNC(agitstart2)
 
 BUILDIN_FUNC(agitend2)
 {
-	if(agit2_flag == 0) return SCRIPT_CMD_SUCCESS; // Agit2 already End.
+	if(agit2_flag == 0)
+		return SCRIPT_CMD_SUCCESS; // Agit2 already End.
 	agit2_flag = 0;
 	guild_agit2_end();
 	return SCRIPT_CMD_SUCCESS;
@@ -11526,21 +11531,23 @@ BUILDIN_FUNC(flagemblem)
 	TBL_NPC* nd;
 	int g_id = script_getnum(st,2);
 
-	if(g_id < 0) return 0;
+	if(g_id < 0)
+		return 0;
 
 	nd = (TBL_NPC*)map_id2nd(st->oid);
-	if( nd == NULL ) {
+	if(nd == NULL)
 		ShowError("script:flagemblem: npc %d not found\n", st->oid);
-	} else if( nd->subtype != NPCTYPE_SCRIPT ) {
+	else if(nd->subtype != NPCTYPE_SCRIPT)
 		ShowError("script:flagemblem: unexpected subtype %d for npc %d '%s'\n", nd->subtype, st->oid, nd->exname);
-	} else {
-		bool changed = ( nd->u.scr.guild_id != g_id )?true:false;
+	else {
+		bool changed = ( nd->u.scr.guild_id != g_id ) ? true : false;
+
 		nd->u.scr.guild_id = g_id;
 		clif_guild_emblem_area(&nd->bl);
-		/* guild flag caching */
-		if( g_id ) /* adding a id */
+		/* Guild flag caching */
+		if(g_id) /* Adding a id */
 			guild_flag_add(nd);
-		else if( changed ) /* removing a flag */
+		else if(changed) /* Removing a flag */
 			guild_flag_remove(nd);
 	}
 	return SCRIPT_CMD_SUCCESS;
