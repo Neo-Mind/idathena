@@ -10578,7 +10578,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 	else
 		target = map_id2bl(ud->skilltarget);
 
-	//Use a do so that you can break out of it when the skill fails.
+	//Use a do so that you can break out of it when the skill fails
 	do {
 		if( !target || target->prev == NULL )
 			break;
@@ -10607,7 +10607,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 				}
 			case AM_RESURRECTHOMUN:
 			case PF_SPIDERWEB:
-				//Find a random spot to place the skill. [Skotlex]
+				//Find a random spot to place the skill [Skotlex]
 				inf2 = skill_get_splash(ud->skill_id,ud->skill_lv);
 				ud->skillx = target->x + inf2;
 				ud->skilly = target->y + inf2;
@@ -10644,18 +10644,18 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 
 		if( ud->skill_id == PR_LEXDIVINA || ud->skill_id == MER_LEXDIVINA ) {
 			sc = status_get_sc(target);
-			//If it's not an enemy, and not silenced, you can't use the skill on them. [Skotlex]
+			//If it's not an enemy, and not silenced, you can't use the skill on them [Skotlex]
 			if( battle_check_target(src,target,BCT_ENEMY) <= 0 && (!sc || !sc->data[SC_SILENCE]) ) {
 				clif_skill_nodamage (src,target,ud->skill_id,ud->skill_lv,0);
 				break;
 			}
-		} else { //Check target validity.
+		} else { //Check target validity
 			inf = skill_get_inf(ud->skill_id);
 			inf2 = skill_get_inf2(ud->skill_id);
 
 			//Combo skills
-			if( (inf&INF_ATTACK_SKILL) || ((inf&INF_SELF_SKILL) && (inf2&INF2_NO_TARGET_SELF)) ) //Casted through combo.
-				inf = BCT_ENEMY; //Offensive skill.
+			if( (inf&INF_ATTACK_SKILL) || ((inf&INF_SELF_SKILL) && (inf2&INF2_NO_TARGET_SELF)) ) //Casted through combo
+				inf = BCT_ENEMY; //Offensive skill
 			else if( inf2&INF2_NO_ENEMY )
 				inf = BCT_NOENEMY;
 			else
@@ -10677,10 +10677,10 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 					break;
 			} else if( ud->skill_id == RK_PHANTOMTHRUST && target->type != BL_MOB ) {
 				if( !map_flag_vs(src->m) && battle_check_target(src,target,BCT_PARTY) <= 0 )
-					break; //You can use Phantom Thurst on party members in normal maps too. [pakpil]
+					break; //You can use Phantom Thurst on party members in normal maps too [pakpil]
 			} else if( ud->skill_id == AB_CLEARANCE && target->type != BL_MOB ) {
 				if( !map_flag_vs(src->m) && battle_check_target(src,target,BCT_PARTY) <= 0 )
-					break; //You can use Clearance on party members in normal maps too. [pakpil]
+					break; //You can use Clearance on party members in normal maps too [pakpil]
 			}
 
 			//Fogwall makes all offensive-type targetted skills fail at 75%, and
@@ -10691,7 +10691,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 			}
 		}
 
-		//Avoid doing double checks for instant-cast skills.
+		//Avoid doing double checks for instant-cast skills
 		if( tid != INVALID_TIMER && !status_check_skilluse(src,target,ud->skill_id,1) )
 			break;
 
@@ -10706,7 +10706,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 		{
 			if( sd ) {
 				clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
-				if( battle_config.skill_out_range_consume ) //Consume items anyway. [Skotlex]
+				if( battle_config.skill_out_range_consume ) //Consume items anyway [Skotlex]
 					skill_consume_requirement(sd,ud->skill_id,ud->skill_lv,3);
 			}
 			break;
@@ -10715,7 +10715,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 		if( !path_search_long(NULL,src->m,src->x,src->y,target->x,target->y,CELL_CHKWALL) ) {
 			if( sd ) {
 				clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
-				skill_consume_requirement(sd,ud->skill_id,ud->skill_lv,3); //Consume items anyway.
+				skill_consume_requirement(sd,ud->skill_id,ud->skill_lv,3); //Consume items anyway
 			}
 			break;
 		}
@@ -10744,7 +10744,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 		if( ud->walktimer != INVALID_TIMER && ud->skill_id != TK_RUN && ud->skill_id != RA_WUGDASH )
 			unit_stop_walking(src,1);
 
-		//Tests show wings don't overwrite the delay but skill scrolls do. [Inkfish]
+		//Tests show wings don't overwrite the delay but skill scrolls do [Inkfish]
 		if( !sd || sd->skillitem != ud->skill_id || skill_get_delay(ud->skill_id,ud->skill_lv) )
 			ud->canact_tick = tick + skill_delayfix(src,ud->skill_id,ud->skill_lv);
 
@@ -10820,7 +10820,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 		return 1;
 	} while( 0 );
 
-	//When Asura Strike fails. (Except when it fails from Wall of Fog)
+	//When Asura Strike fails (Except when it fails from Wall of Fog)
 	if( ud->skill_id == MO_EXTREMITYFIST && sd && !(sc && sc->data[SC_FOGWALL]) ) {
 		skill_consume_requirement(sd,ud->skill_id,ud->skill_lv,1); //Consume SP/spheres
 		status_set_sp(src,0,0);
@@ -10832,7 +10832,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 			sc_start(src,src,SC_EXTREMITYFIST2,100,ud->skill_lv,skill_get_time(ud->skill_id,ud->skill_lv));
 #endif
 		}
-		if( target && target->m == src->m ) { //Move character to target anyway.
+		if( target && target->m == src->m ) { //Move character to target anyway
 			short x, y;
 			short dir = map_calc_dir(src,target->x,target->y);
 
@@ -10849,7 +10849,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 				y = 3;
 			else
 				y = 0;
-			if( unit_movepos(src,src->x + x,src->y + y,1,1) ) { //Display movement + animation.
+			if( unit_movepos(src,src->x + x,src->y + y,1,1) ) { //Display movement + animation
 				clif_slide(src,src->x,src->y);
 				clif_fixpos(src);
 				clif_spiritball(src);

@@ -7468,7 +7468,8 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 		case BL_PC: {
 				struct status_change* sc = status_get_sc(src);
 
-				if( ((TBL_PC*)target)->invincible_timer != INVALID_TIMER || pc_isinvisible((TBL_PC*)target) )
+				if( (((TBL_PC*)target)->invincible_timer != INVALID_TIMER || pc_isinvisible((TBL_PC*)target)) && 
+					!(flag&BCT_NOENEMY) )
 					return -1; //Cannot be targeted yet
 				if( sc && sc->count && sc->data[SC_VOICEOFSIREN] && sc->data[SC_VOICEOFSIREN]->val2 == target->id )
 					return -1;

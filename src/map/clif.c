@@ -10059,9 +10059,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 			sd->ud.dir = 0; //Enforce north-facing (not visually, virtually)
 	}
 
-	//Trigger skill effects if you appear standing on them
 	if(!battle_config.pc_invincible_time)
-		skill_unit_move(&sd->bl,gettick(),1);
+		skill_unit_move(&sd->bl,gettick(),1); //Trigger skill effects if you appear standing on them
 
 	//NPC Quest / Event Icon Check [Kisuka]
 #if PACKETVER >= 20090218
