@@ -14036,7 +14036,7 @@ int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 				if( (tsd->class_&MAPID_THIRDMASK) == MAPID_WARLOCK )
 					p_sd[(*c)++] = tsd->bl.id;
 				return 1;
-			default: { //Warning: Assuming Ensemble Dance/Songs for code speed. [Skotlex]
+			default: { //Warning: Assuming Ensemble Dance/Songs for code speed [Skotlex]
 					uint16 skill_lv;
 
 					if( pc_issit(tsd) || !unit_can_move(&tsd->bl) )
@@ -14474,7 +14474,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		case TK_DOWNKICK:
 		case TK_COUNTER:
 			if( (sd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER )
-				return false; //Anti-Soul Linker check in case you job-changed with Stances active.
+				return false; //Anti-Soul Linker check in case you job-changed with Stances active
 			if( !(sc && sc->data[SC_COMBO]) || sc->data[SC_COMBO]->val1 == TK_JUMPKICK )
 				return false; //Combo needs to be ready
 			if( sc->data[SC_COMBO]->val3 ) { //Kick chain
@@ -14484,11 +14484,11 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 				status_change_end(&sd->bl,SC_COMBO,INVALID_TIMER);
 				return false;
 			}
-			if( sc->data[SC_COMBO]->val1 != skill_id && !pc_is_taekwon_ranker(sd) ) { //Cancel combo wait.
+			if( sc->data[SC_COMBO]->val1 != skill_id && !pc_is_taekwon_ranker(sd) ) { //Cancel combo wait
 				unit_cancel_combo(&sd->bl);
 				return false;
 			}
-			break; //Combo ready.
+			break; //Combo ready
 		case BD_ADAPTATION: {
 				int time;
 
@@ -17520,7 +17520,7 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 		struct status_change* sc = status_get_sc(src);
 
 		if( sc && sc->data[SC_DANCING] ) {
-			sc->data[SC_DANCING]->val2 = 0 ; //This prevents status_change_end attempting to redelete the group. [Skotlex]
+			sc->data[SC_DANCING]->val2 = 0 ; //This prevents status_change_end attempting to redelete the group [Skotlex]
 			status_change_end(src, SC_DANCING, INVALID_TIMER);
 		}
 	}

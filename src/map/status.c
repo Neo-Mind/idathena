@@ -1770,9 +1770,9 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 	if (src && src->type != BL_PC && status_isdead(src))
 		return false;
 
-	if (!skill_id) { //Normal attack checks.
+	if (!skill_id) { //Normal attack checks
 		if (!(status->mode&MD_CANATTACK))
-			return false; //This mode is only needed for melee attacking.
+			return false; //This mode is only needed for melee attacking
 		//Dead state is not checked for skills as some skills can be used
 		//on dead characters, said checks are left to skill.c [Skotlex]
 		if (target && status_isdead(target))
@@ -1783,7 +1783,7 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 
 	switch (skill_id) {
 		case PA_PRESSURE:
-			if (flag && target) //Gloria Avoids pretty much everything.
+			if (flag && target) //Gloria Avoids pretty much everything
 				if (tsc && (tsc->option&OPTION_HIDE))
 					return false;
 			break;
@@ -1793,7 +1793,7 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 			break;
 		case AL_TELEPORT:
 		case ALL_ODINS_POWER:
-			//Should fail when used on top of Land Protector. [Skotlex]
+			//Should fail when used on top of Land Protector [Skotlex]
 			if (src && map_getcell(src->m, src->x, src->y, CELL_CHKLANDPROTECTOR) &&
 				!(status->mode&MD_BOSS) && (src->type != BL_PC || ((TBL_PC*)src)->skillitem != skill_id))
 				return false;
@@ -1802,19 +1802,19 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 
 	if (sc && sc->count) {
 		if (sc->data[SC_ALL_RIDING])
-			return false; //New mounts can't attack nor use skills in the client. This check makes it cheat-safe. [Ind]
+			return false; //New mounts can't attack nor use skills in the client. This check makes it cheat-safe [Ind]
 
-		if (sc->data[SC_ASH] && rnd()%2 && src->type == BL_PC) { //Gain 50% of failing rate when casting skills.
+		if (sc->data[SC_ASH] && rnd()%2 && src->type == BL_PC) { //Gain 50% of failing rate when casting skills
 			clif_skill_fail((TBL_PC*)src, skill_id, 0, 0);
 			return false;
 		}
 
 		if (skill_id != RK_REFRESH && sc->opt1 && !(sc->opt1 == OPT1_CRYSTALIZE &&
-			src->type == BL_MOB) && sc->opt1 != OPT1_BURNING && skill_id != SR_GENTLETOUCH_CURE) { //Stuned/Frozen/etc.
+			src->type == BL_MOB) && sc->opt1 != OPT1_BURNING && skill_id != SR_GENTLETOUCH_CURE) { //Stuned/Frozen/etc
 			if (flag != 1)
-				return false; //Can't cast, casted stuff can't damage.
+				return false; //Can't cast, casted stuff can't damage
 			if (!(skill_get_inf(skill_id)&INF_GROUND_SKILL))
-				return false; //Targetted spells can't come off.
+				return false; //Targetted spells can't come off
 		}
 
 		if ((sc->data[SC_TRICKDEAD] && skill_id != NV_TRICKDEAD) ||
@@ -1823,7 +1823,7 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 			(sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF && flag != 2))
 			return false;
 
-		if (sc->data[SC_WINKCHARM] && target && !flag) { //Prevents skill usage.
+		if (sc->data[SC_WINKCHARM] && target && !flag) { //Prevents skill usage
 			if (unit_bl2ud(src) && (unit_bl2ud(src))->walktimer == INVALID_TIMER)
 				unit_walktobl(src, map_id2bl(sc->data[SC_WINKCHARM]->val2), 3, 1);
 			clif_emotion(src, E_LV);
@@ -1842,33 +1842,32 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 		}
 
 		if (sc->data[SC_DANCING] && flag != 2) {
-			//Lvl 5 Lesson or higher allow you use 3rd job skills while dancing.
+			//Lvl 5 Lesson or higher allow you use 3rd job skills while dancing
 			if (src->type == BL_PC && ((skill_id >= WA_SWING_DANCE && skill_id <= WM_UNLIMITED_HUMMING_VOICE) ||
 				skill_id == WM_FRIGG_SONG)) {
 				if (pc_checkskill((TBL_PC*)src, WM_LESSON) < 5)
 					return false;
-			} else if (sc->data[SC_LONGING]) { //Allow everything except dancing/re-dancing. [Skotlex]
+			} else if (sc->data[SC_LONGING]) { //Allow everything except dancing/re-dancing [Skotlex]
 				if (skill_id == BD_ENCORE || (skill_get_inf2(skill_id)&(INF2_SONG_DANCE|INF2_ENSEMBLE_SKILL)))
 					return false;
-			} else if (!(skill_get_inf3(skill_id)&INF3_USABLE_DANCE)) //Skills that can be used in dancing state.
+			} else if (!(skill_get_inf3(skill_id)&INF3_USABLE_DANCE)) //Skills that can be used in dancing state
 				return false;
 			if ((sc->data[SC_DANCING]->val1&0xFFFF) == CG_HERMODE && skill_id == BD_ADAPTATION)
-				return false; //Can't amp out of Wand of Hermode. [Skotlex]
+				return false; //Can't amp out of Wand of Hermode [Skotlex]
 		}
 
 		if (skill_id &&
-			(src->type != BL_PC || ((TBL_PC*)src)->skillitem != skill_id)) //Do not block item-casted skills.
-		{ //Skills blocked through status changes.
-			if (!flag && //Blocked only from using the skill (stuff like autospell may still go through.
+			(src->type != BL_PC || ((TBL_PC*)src)->skillitem != skill_id)) //Do not block item-casted skills
+		{ //Skills blocked through status changes
+			if (!flag && //Blocked only from using the skill (stuff like autospell may still go through
 				(sc->cant.cast ||
 				(sc->data[SC_BASILICA] && (sc->data[SC_BASILICA]->val4 != src->id || skill_id != HP_BASILICA)) || // Only Basilica's caster that can cast, and only Basilica to cancel it
-				(sc->data[SC_MARIONETTE] && skill_id != CG_MARIONETTE) || //Only skill you can use is marionette again to cancel it.
-				(sc->data[SC_MARIONETTE2] && skill_id == CG_MARIONETTE) || //Cannot use marionette if you are being buffed by another.
+				(sc->data[SC_MARIONETTE] && skill_id != CG_MARIONETTE) || //Only skill you can use is marionette again to cancel it
+				(sc->data[SC_MARIONETTE2] && skill_id == CG_MARIONETTE) || //Cannot use marionette if you are being buffed by another
 				(sc->data[SC_STASIS] && skill_block_check(src, SC_STASIS, skill_id)) ||
 				(sc->data[SC_KAGEHUMI] && skill_block_check(src, SC_KAGEHUMI, skill_id))))
 				return false;
-
-			//Skill blocking.
+			//Skill blocking
 			if ((sc->data[SC_VOLCANO] && skill_id == WZ_ICEWALL) ||
 				(sc->data[SC_ROKISWEIL] && skill_id != BD_ADAPTATION) ||
 				(sc->data[SC_HERMODE] && (skill_get_inf(skill_id)&INF_SUPPORT_SKILL)) ||
@@ -1879,17 +1878,16 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 		if (sc->option) {
 			if ((sc->option&OPTION_HIDE) && src->type == BL_PC && (!skill_id || !(skill_get_inf3(skill_id)&INF3_USABLE_HIDING)))
 				return false;
-
 			if ((sc->option&OPTION_CHASEWALK) && skill_id != ST_CHASEWALK)
 				return false;
 		}
 	}
 
-	if (target == NULL || target == src) //No further checking needed.
+	if (target == NULL || target == src) //No further checking needed
 		return true;
 
 	if (tsc && tsc->count) {
-		/* Attacks in invincible are capped to 1 damage and handled in batte.c. Allow spell break and eske for sealed shrine GDB when in INVINCIBLE state. */
+		//Attacks in invincible are capped to 1 damage and handled in batte.c. Allow spell break and eske for sealed shrine GDB when in INVINCIBLE state
 		if (tsc->data[SC_INVINCIBLE] && !tsc->data[SC_INVINCIBLEOFF] && skill_id && !(skill_id&(SA_SPELLBREAKER|SL_SKE)))
 			return false;
 		if (!skill_id && tsc->data[SC_TRICKDEAD])
@@ -1898,17 +1896,17 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 			return false;
 		if (skill_id == PR_LEXAETERNA && (tsc->data[SC_FREEZE] || (tsc->data[SC_STONE] && tsc->opt1 == OPT1_STONE)))
 			return false;
-		//Skill that can be used to target while under Man Hole effect.
+		//Skill that can be used to target while under Man Hole effect
 		if (tsc->data[SC__MANHOLE] && !(skill_get_inf3(skill_id)&INF3_USABLE_MANHOLE))
 			return false;
 	}
 
-	//If targetting, cloak + hide protect you, otherwise only hiding does.
+	//If targetting, cloak + hide protect you, otherwise only hiding does
 	hide_flag = (flag ? OPTION_HIDE : (OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK));
 
  	//Skill that can hit hidden target
 	if (skill_get_inf3(skill_id)&INF3_HIT_HIDING)
-		hide_flag &= ~OPTION_HIDE; //It works when already casted and target suddenly hides.
+		hide_flag &= ~OPTION_HIDE; //It works when already casted and target suddenly hides
 	else {
 		switch (skill_id) {
 			case LG_OVERBRAND:
@@ -1939,8 +1937,8 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 				}
 			}
 			break;
-		case BL_ITEM: //Allow targetting of items to pick'em up (or in the case of mobs, to loot them).
-			//@TODO: Would be nice if this could be used to judge whether the player can or not pick up the item it targets. [Skotlex]
+		case BL_ITEM: //Allow targetting of items to pick'em up (or in the case of mobs, to loot them)
+			//@TODO: Would be nice if this could be used to judge whether the player can or not pick up the item it targets [Skotlex]
 			if (status->mode&MD_LOOTER)
 				return true;
 			return false;
@@ -1948,13 +1946,13 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 		case BL_MER:
 		case BL_ELEM:
 			if (target->type == BL_HOM && skill_id && (battle_config.hom_setting&HOMSET_NO_SUPPORT_SKILL) && (skill_get_inf(skill_id)&INF_SUPPORT_SKILL) && battle_get_master(target) != src)
-				return false; //Can't use support skills on Homunculus. (Only Master/Self)
+				return false; //Can't use support skills on Homunculus (Only Master/Self)
 			if (target->type == BL_MER && (skill_id == PR_ASPERSIO || (skill_id >= SA_FLAMELAUNCHER && skill_id <= SA_SEISMICWEAPON)) && battle_get_master(target) != src)
-				return false; //Can't use Weapon endow skills on Mercenary. (Only Master)
+				return false; //Can't use Weapon endow skills on Mercenary (Only Master)
 			if (skill_id == AM_POTIONPITCHER && (target->type == BL_MER || target->type == BL_ELEM))
-				return false; //Can't use Potion Pitcher on Mercenaries.
+				return false; //Can't use Potion Pitcher on Mercenaries
 			break;
-		default: //Check for chase-walk/hiding/cloaking opponents.
+		default: //Check for chase-walk/hiding/cloaking opponents
 			if (tsc && (tsc->option&hide_flag) && !(status->mode&(MD_BOSS|MD_DETECTOR)))
 				return false;
 			break;
@@ -10489,7 +10487,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				if (sce->val4 && sce->val4 != BCT_SELF && (dsd = map_id2sd(sce->val4))) { //End status on partner as well
 					dsc = dsd->sc.data[SC_DANCING];
 					if (dsc) {
-						//This will prevent recursive loops.
+						//This will prevent recursive loops
 						dsc->val2 = dsc->val4 = 0;
 						status_change_end(&dsd->bl,SC_DANCING,INVALID_TIMER);
 					}

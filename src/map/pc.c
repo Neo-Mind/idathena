@@ -987,7 +987,7 @@ bool pc_adoption(struct map_session_data *p1_sd, struct map_session_data *p2_sd,
     [Haru] for third-classes extension
     [Cydh] finishing :D
  *------------------------------------------*/
-static bool pc_isItemClass (struct map_session_data *sd, struct item_data* item) {
+static bool pc_isItemClass(struct map_session_data *sd, struct item_data* item) {
 	while( 1 ) {
 		//Normal classes (no upper, no baby, no third)
 		if( item->class_upper&ITEMJ_NORMAL && !(sd->class_&(JOBL_UPPER|JOBL_THIRD|JOBL_BABY)) )
@@ -4468,19 +4468,19 @@ bool pc_isUseitem(struct map_session_data *sd, int n)
 	if( map[sd->bl.m].flag.noitemconsumption ) //Consumable but mapflag prevent it
 		return false;
 
-	//Prevent mass item usage. [Skotlex]
+	//Prevent mass item usage [Skotlex]
 	if( DIFF_TICK(sd->canuseitem_tick,gettick()) > 0 ||
 		(itemdb_iscashfood(nameid) && DIFF_TICK(sd->canusecashfood_tick,gettick()) > 0) )
 		return false;
 
 	if( (item->item_usage.flag&INR_SITTING) && (pc_issit(sd) == 1) && (pc_get_group_level(sd) < item->item_usage.override) ) {
-		clif_msgtable(sd->fd,ITEM_NOUSE_SITTING);
-		return false; // You cannot use this item while sitting.
+		clif_msgtable(sd->fd,ITEM_NOUSE_SITTING); // You cannot use this item while sitting.
+		return false;
 	}
 
 	if( sd->state.storage_flag && item->type != IT_CASH ) {
-		clif_colormes(sd,color_table[COLOR_RED],msg_txt(388));
-		return false; // You cannot use this item while storage is open.
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(388)); // You cannot use this item while storage is open.
+		return false;
 	}
 
 	if( item->flag.dead_branch && (map[sd->bl.m].flag.nobranch || map_flag_gvg2(sd->bl.m)) )
@@ -4513,7 +4513,8 @@ bool pc_isUseitem(struct map_session_data *sd, int n)
 				clif_displaymessage(sd->fd, msg_txt(663));
 				return false;
 			}
-			if( nameid != 601 && nameid != 12212 && map[sd->bl.m].flag.noreturn )
+			if( nameid != ITEMID_WING_OF_FLY &&
+				nameid != ITEMID_GIANT_FLY_WING && map[sd->bl.m].flag.noreturn )
 				return false;
 			break;
 		case ITEMID_BUBBLE_GUM:
@@ -4559,9 +4560,9 @@ bool pc_isUseitem(struct map_session_data *sd, int n)
 		return false; //Mercenary Scrolls
 
 	if( itemdb_is_rune(nameid) && (sd->class_&MAPID_THIRDMASK) != MAPID_RUNE_KNIGHT )
-		return false; //Only Rune Knights may use runes
+		return false; //Only Rune Knight may use runes
 	else if( itemdb_is_poison(nameid) && (sd->class_&MAPID_THIRDMASK) != MAPID_GUILLOTINE_CROSS )
-		return false; //Only GCross may use poisons
+		return false; //Only Guillotine Cross may use poisons
 
 	if( item->flag.group ) {
 		if( pc_is90overweight(sd) ) {
@@ -4650,7 +4651,7 @@ int pc_useitem(struct map_session_data *sd, int n)
 	item = sd->status.inventory[n];
 	id = sd->inventory_data[n];
 
-	if( !(item.nameid) || item.amount <= 0 )
+	if( !item.nameid || item.amount <= 0 )
 		return 0;
 
 	if( !pc_isUseitem(sd,n) )
@@ -9322,7 +9323,7 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		pc_calcweapontype(sd);
 		clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
 		if( !battle_config.dancing_weaponswitch_fix )
-			status_change_end(&sd->bl,SC_DANCING,INVALID_TIMER); //Unequipping => stop dancing.
+			status_change_end(&sd->bl,SC_DANCING,INVALID_TIMER); //Unequipping => stop dancing
 	}
 	if( sd->status.inventory[n].equip&EQP_HAND_L ) {
 		sd->status.shield = sd->weapontype2 = 0;
