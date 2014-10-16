@@ -175,7 +175,7 @@ struct mob_db {
 	int maxskill;
 	struct mob_skill skill[MAX_MOBSKILL];
 	struct spawn_info spawn[10];
-	int effect;
+	int effect_id;
 };
 
 struct mob_data {
