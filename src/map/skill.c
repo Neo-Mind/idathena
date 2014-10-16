@@ -6544,7 +6544,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case WZ_SIGHTRASHER:
-			//Passive side of the attack.
+			//Passive side of the attack
 			status_change_end(src,SC_SIGHT,INVALID_TIMER);
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_CHAR|BL_SKILL,
@@ -12413,7 +12413,6 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 		case GN_WALLOFTHORN:
 			if( flag&1 ) //Turned become Firewall
 				limit = 3000;
-			val2 = 16; //Max deal hits
 			val3 = (x<<16)|y; //Firewall coordinates
 			break;
 		case GN_FIRE_EXPANSION_SMOKE_POWDER:
@@ -12477,7 +12476,7 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 		int ux = x + layout->dx[i];
 		int uy = y + layout->dy[i];
 		int val1 = skill_lv;
-		int val2 = 0;
+		int val2 = 0, val3 = 0;
 		int alive = 1;
 
 		if( ux <= 0 || uy <= 0 || ux >= map[src->m].xs || uy >= map[src->m].ys )
@@ -12548,6 +12547,7 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 					break;
 				val1 = 2000 + 2000 * skill_lv; //Thorn Walls HP
 				val2 = 20; //Max hits
+				val3 = 16; //Max deal hits
 				break;
 			case RL_B_TRAP:
 				val2 = 0;
@@ -12570,7 +12570,7 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 		if( !alive )
 			continue;
 
-		nullpo_retr(NULL,(unit = skill_initunit(group,i,ux,uy,val1,val2)));
+		nullpo_retr(NULL,(unit = skill_initunit(group,i,ux,uy,val1,val2,val3)));
 		unit->limit = limit;
 		unit->range = range;
 
@@ -12961,7 +12961,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 	}
 
 	//Wall of Thorn damaged by Fire element unit [Cydh]
-	//NOTE: This check doesn't matter the location, as long as one of units touched, this check will be executed.
+	//NOTE: This check doesn't matter the location, as long as one of units touched, this check will be executed
 	if (bl->type == BL_SKILL && skill_get_ele(skill_id,skill_lv) == ELE_FIRE) {
 		struct skill_unit *su = (struct skill_unit *)bl;
 
@@ -13499,7 +13499,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 						if (battle_check_target(ss,bl,BCT_ENEMY) > 0)
 							status_damage(ss,bl,wd.damage,0,clif_damage(bl,bl,tick,status_get_amotion(bl),status_get_dmotion(bl),wd.damage,1,DMG_ENDURE,0),0);
 						skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
-						sg->val2--;
+						unit->val3--;
 					}
 				}
 			}
@@ -15100,8 +15100,8 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 
 	if( pc_has_permission(sd, PC_PERM_SKILL_UNCONDITIONAL) && sd->skillitem != skill_id ) {
 		//GMs don't override the skillItem check, otherwise they can use items without them being consumed! [Skotlex]
-		sd->state.arrow_atk = (skill_get_ammotype(skill_id) ? 1 : 0); //Need to do arrow state check.
-		sd->spiritball_old = sd->spiritball; //Need to do Spiritball check.
+		sd->state.arrow_atk = (skill_get_ammotype(skill_id) ? 1 : 0); //Need to do arrow state check
+		sd->spiritball_old = sd->spiritball; //Need to do Spiritball check
 		return true;
 	}
 
@@ -15150,7 +15150,7 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 				if( battle_config.land_skill_limit && maxcount > 0 && (battle_config.land_skill_limit&BL_PC) ) {
 					i = map_foreachinmap(skill_check_condition_mob_master_sub,sd->bl.m,BL_MOB,sd->bl.id,mob_id,skill_id,&c);
 					if( c >= maxcount || (skill_id == AM_CANNIBALIZE && c != i && (battle_config.summon_flora&2)) )
-					{ //Fails when exceed max limit. There are other plant types already out.
+					{ //Fails when exceed max limit. There are other plant types already out
 						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 						return false;
 					}
@@ -15208,7 +15208,7 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 		return false;
 	}
 
-	if( require.ammo ) { //Skill requires stuff equipped in the ammo slot.
+	if( require.ammo ) { //Skill requires stuff equipped in the ammo slot
 		short idx = sd->equip_index[EQI_AMMO];
 
 		if( idx < 0 || !sd->inventory_data[idx] ) {
@@ -15233,7 +15233,7 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 		}
 		if( !(require.ammo&(1<<sd->inventory_data[idx]->look)) ) { //Ammo type check. Send the "wrong weapon type" message
 			//Which is the closest we have to wrong ammo type [Skotlex]
-			clif_arrow_fail(sd,0); //Haplo suggested we just send the equip-arrows message instead. [Skotlex]
+			clif_arrow_fail(sd,0); //Haplo suggested we just send the equip-arrows message instead [Skotlex]
 			//clif_skill_fail(sd,skill_id,USESKILL_FAIL_THIS_WEAPON,0);
 			return false;
 		}
@@ -15268,6 +15268,18 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 
 	if( sd->state.abra_flag ) //Hocus-Pocus was used [Inkfish]
 		sd->state.abra_flag = 0;
+
+	//Check the status required
+	if( require.status_count ) {
+		switch( skill_id ) {
+			case WZ_SIGHTRASHER:
+				if( !skill_check_condition_sc_required(sd,skill_id,&require) )
+					return false;
+				break;
+			default:
+				break;
+		}
+	}
 
 	return true;
 }
@@ -17236,7 +17248,7 @@ bool skill_check_shadowform(struct block_list *bl, int64 damage, int hit)
  * @param val1
  * @param val2
  */
-struct skill_unit *skill_initunit(struct skill_unit_group *group, int idx, int x, int y, int val1, int val2)
+struct skill_unit *skill_initunit(struct skill_unit_group *group, int idx, int x, int y, int val1, int val2, int val3)
 {
 	struct skill_unit *unit;
 	struct status_change *tsc = status_get_sc(map_id2bl(group->src_id));
@@ -17260,6 +17272,7 @@ struct skill_unit *skill_initunit(struct skill_unit_group *group, int idx, int x
 	unit->alive = 1;
 	unit->val1 = val1;
 	unit->val2 = val2;
+	unit->val3 = val3;
 
 	//Stores new skill unit
 	idb_put(skillunit_db, unit->bl.id, unit);
@@ -17911,7 +17924,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 				}
 				break;
 			case UNT_WALLOFTHORN:
-				if( unit->val1 <= 0 || group->val2 <= 0 )
+				if( unit->val1 <= 0 || unit->val3 <= 0 )
 					skill_delunit(unit);
 				break;
 		}
