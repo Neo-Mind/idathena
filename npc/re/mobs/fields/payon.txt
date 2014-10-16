@@ -71,7 +71,7 @@ pay_fild04,0,0,0,0	monster	Mastering	1090,1,3600000,1800000,1
 pay_fild04,0,0,0,0	monster	Deviling	1582,1,7200000,3600000,1
 pay_fild04,346,335,5,5	monster	Shining Plant	1083,1,1800000,900000,1
 pay_fild04,254,193,10,10	monster	Green Plant	1080,5,360000,180000,1
-pay_fild04,0,0,0,0	monster	Elusive Poporing	2073,2,300000,0,0
+pay_fild04,0,0,0,0	monster	Elusive Poporing	2703,2,300000,0,0
 
 //==================================================
 // pay_fild05 - Disabled on Renewal

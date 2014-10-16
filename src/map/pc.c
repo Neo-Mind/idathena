@@ -1149,7 +1149,7 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 		pc_setdead(sd);
 	sd->state.connect_new = 1;
 
-	sd->followtimer = INVALID_TIMER; // [MouseJstr]
+	sd->followtimer = INVALID_TIMER; //[MouseJstr]
 	sd->invincible_timer = INVALID_TIMER;
 	sd->npc_timer_id = INVALID_TIMER;
 	sd->pvp_timer = INVALID_TIMER;
@@ -1157,7 +1157,7 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	sd->autotrade_tid = INVALID_TIMER;
 
 #ifdef SECURE_NPCTIMEOUT
-	// Initialize to defaults/expected
+	//Initialize to defaults/expected
 	sd->npc_idle_timer = INVALID_TIMER;
 	sd->npc_idle_tick = tick;
 	sd->npc_idle_type = NPCT_INPUT;

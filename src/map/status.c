@@ -10190,8 +10190,7 @@ int status_change_clear(struct block_list* bl,int type)
 	for(i = 0; i < SC_MAX; i++) {
 		if(!sc->data[i])
 			continue;
-
-		if(type == 0)
+		if(type == 0) {
 			switch(i) { //Type 0: PC killed -> Place here statuses that do not dispel on death.
 				case SC_ELEMENTALCHANGE: //Only when its Holy or Dark that it doesn't dispell on death
 					if(sc->data[i]->val2 != ELE_HOLY && sc->data[i]->val2 != ELE_DARK)
@@ -10256,6 +10255,7 @@ int status_change_clear(struct block_list* bl,int type)
 				case SC_QUEST_BUFF3:
 					continue;
 			}
+		}
 
 		//Config if the monster transform status should end on death. [Rytech]
 		if(type == 0 && battle_config.transform_end_on_death == 0)
@@ -10269,7 +10269,7 @@ int status_change_clear(struct block_list* bl,int type)
 					continue;
 			}
 
-		if(type == 3)
+		if(type == 3) {
 			switch(i) { //@TODO: This list may be incomplete
 				case SC_WEIGHT50:
 				case SC_WEIGHT90:
@@ -10283,6 +10283,7 @@ int status_change_clear(struct block_list* bl,int type)
 				case SC_DECORATION_OF_MUSIC:
 					continue;
 			}
+		}
 
 		status_change_end(bl,(sc_type)i,INVALID_TIMER);
 
@@ -11039,7 +11040,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		calc_flag &= ~SCB_DYE;
 	}
 
-	//On Aegis, when turning off a status change, first goes the sc packet, then the option packet.
+	//On Aegis, when turning off a status change, first goes the sc packet, then the option packet
 	clif_status_change(bl,StatusIconChangeTable[type],0,0,0,0,0);
 
 	if (opt_flag&8) //bugreport:681
@@ -11058,11 +11059,11 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 	if (calc_flag)
 		status_calc_bl(bl,calc_flag);
 
-	if (opt_flag&4) //Out of hiding, invoke on place.
+	if (opt_flag&4) //Out of hiding, invoke on place
 		skill_unit_move(bl,gettick(),1);
 
 	if ((opt_flag&2) && sd && map_getcell(bl->m,bl->x,bl->y,CELL_CHKNPC))
-		npc_touch_areanpc(sd,bl->m,bl->x,bl->y); //Trigger on-touch event.
+		npc_touch_areanpc(sd,bl->m,bl->x,bl->y); //Trigger on-touch event
 
 	ers_free(sc_data_ers,sce);
 	return 1;

@@ -3012,7 +3012,7 @@ int mob_getfriendhprate_sub(struct block_list *bl,va_list ap)
 	if ((*fr) != NULL) //A friend was already found.
 		return 0;
 	
-	if (battle_check_target(&md->bl,bl,BCT_ENEMY)>0)
+	if (battle_check_target(&md->bl,bl,BCT_ENEMY) > 0)
 		return 0;
 	
 	rate = get_percentage(status_get_hp(bl), status_get_max_hp(bl));
