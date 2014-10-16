@@ -4773,7 +4773,7 @@ ACMD_FUNC(disguiseall)
 	if ((mob_id = mobdb_searchname(message)) == 0) // Check name first (to avoid possible name beginning by a number)
 		mob_id = atoi(message);
 
-	if (!mobdb_checkid(mob_id) && !npcdb_checkid(mob_id)) { //if mob or npc...
+	if (!mobdb_checkid(mob_id) && !npcdb_checkid(mob_id)) { //if mob or npc.
 		clif_displaymessage(fd, msg_txt(123)); // Monster/NPC name/id not found.
 		return -1;
 	}

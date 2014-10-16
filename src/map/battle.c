@@ -745,7 +745,7 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 
 /*==========================================
  * Check damage through status.
- * ATK may be MISS, BLOCKED FAIL, reduc, increase, end status...
+ * ATK may be MISS, BLOCKED FAIL, reduc, increase, end status.
  * After this we apply bg/gvg reduction
  *------------------------------------------*/
 int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damage *d,int64 damage,uint16 skill_id,uint16 skill_lv)
@@ -949,13 +949,13 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 
 		if( (sce = sc->data[SC_KAUPE]) && rnd()%100 < sce->val2 ) {
-			//Kaupe blocks damage (skill or otherwise) from players, mobs, homuns, mercenaries.
+			//Kaupe blocks damage (skill or otherwise) from players, mobs, homuns, mercenaries
 			clif_specialeffect(bl,462,AREA);
 #ifndef RENEWAL
-			//Shouldn't end until Breaker's non-weapon part connects.
+			//Shouldn't end until Breaker's non-weapon part connects
 			if( skill_id != ASC_BREAKER || !flag&BF_WEAPON )
 #endif
-				//We make it work like Safety Wall, even though it only blocks 1 time.
+				//We make it work like Safety Wall, even though it only blocks 1 time
 				if( --(sce->val3) <= 0 )
 					status_change_end(bl,SC_KAUPE,INVALID_TIMER);
 			return 0;
@@ -967,7 +967,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 #endif
 
 		if( (sce = sc->data[SC_PRESTIGE]) && flag&BF_MAGIC && rnd()%100 < sce->val2 ) {
-			clif_specialeffect(bl,462,AREA); //Still need confirm it.
+			clif_specialeffect(bl,462,AREA); //Still need confirm it
 			return 0;
 		}
 
@@ -980,7 +980,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 				clif_specialeffect(bl,462,AREA);
 				skill_blown(src,bl,sce->val3,-1,0);
 			}
-			//Both need to be consumed if they are active.
+			//Both need to be consumed if they are active
 			if( sce && --(sce->val2) <= 0 )
 				status_change_end(bl,SC_UTSUSEMI,INVALID_TIMER);
 			if( (sce = sc->data[SC_BUNSINJYUTSU]) && --(sce->val2) <= 0 )
@@ -992,7 +992,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			if( src->type != BL_MER || !skill_id )
 				damage <<= 1; //Lex Aeterna only doubles damage of regular attacks from mercenaries
 #ifndef RENEWAL
-			if( skill_id != ASC_BREAKER || !flag&BF_WEAPON ) //Shouldn't end until Breaker's non-weapon part connects.
+			if( skill_id != ASC_BREAKER || !flag&BF_WEAPON ) //Shouldn't end until Breaker's non-weapon part connects
 #endif
 				status_change_end(bl,SC_AETERNA,INVALID_TIMER);
 		}
@@ -1018,7 +1018,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			struct map_session_data *tsd = BL_CAST(BL_PC,src);
 
 			if( sc->data[SC_DEEPSLEEP] ) {
-				damage += damage / 2; //1.5 times more damage while in Deep Sleep.
+				damage += damage / 2; //1.5 times more damage while in Deep Sleep
 				status_change_end(bl,SC_DEEPSLEEP,INVALID_TIMER);
 			}
 			if( tsd && sd && sc->data[SC_CRYSTALIZE] && flag&BF_WEAPON ) {

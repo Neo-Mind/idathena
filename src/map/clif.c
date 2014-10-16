@@ -1529,11 +1529,14 @@ int clif_spawn(struct block_list *bl)
 			break;
 		case BL_MOB: {
 				TBL_MOB *md = ((TBL_MOB*)bl);
+				int effect;
 
 				if (md->special_state.size == SZ_BIG) //Tiny/Big mobs [Valaris]
 					clif_specialeffect(&md->bl,423,AREA);
 				else if (md->special_state.size == SZ_MEDIUM)
 					clif_specialeffect(&md->bl,421,AREA);
+				if ((effect = mob_db(md->mob_id)->effect) > 0)
+					clif_specialeffect(&md->bl,effect,AREA);
 			}
 			break;
 		case BL_NPC: {
@@ -4394,11 +4397,14 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 			break;
 		case BL_MOB: {
 				TBL_MOB* md = (TBL_MOB*)bl;
+				int effect;
 
 				if (md->special_state.size == SZ_BIG) //Tiny/big mobs [Valaris]
 					clif_specialeffect_single(bl,423,sd->fd);
 				else if (md->special_state.size == SZ_MEDIUM)
 					clif_specialeffect_single(bl,421,sd->fd);
+				if ((effect = mob_db(md->mob_id)->effect) > 0)
+					clif_specialeffect_single(bl,effect,sd->fd);
 #if PACKETVER >= 20120404
 #ifndef VISIBLE_MONSTER_HP
 				if (!(md->status.mode&MD_BOSS))

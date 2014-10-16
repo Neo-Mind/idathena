@@ -941,7 +941,7 @@ static int itemdb_combo_split_atoi(char *str, int *val) {
 			*str++ = 0;
 	}
 
-	if (i == 0) //No data found.
+	if (i == 0) //No data found
 		return 0;
 
 	return i;

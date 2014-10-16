@@ -14925,7 +14925,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 			break;
 	}
 
-	/* Check state required */
+	//Check state required
 	switch( require.state ) {
 		case ST_HIDDEN:
 			if( !pc_ishiding(sd) ) {
@@ -15017,7 +15017,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 			break;
 	}
 
-	/* Check the status required */
+	//Check the status required
 	if( require.status_count ) {
 		switch( skill_id ) {
 			//Being checked later in skill_check_condition_castend()
@@ -18098,7 +18098,7 @@ int skill_unit_move(struct block_list *bl, unsigned int tick, int flag)
 
 	map_foreachincell(skill_unit_move_sub,bl->m,bl->x,bl->y,BL_SKILL,bl,tick,flag);
 
-	if( (flag&2) && (flag&1) ) { //Onplace, check any skill units you have left.
+	if( (flag&2) && (flag&1) ) { //Onplace, check any skill units you have left
 		int i;
 
 		for( i = 0; i < ARRAYLENGTH(skill_unit_temp); i++ )
@@ -18134,7 +18134,7 @@ void skill_unit_move_unit_group(struct skill_unit_group *group, int16 m, int16 d
 		return;
 
 	if (skill_get_unit_flag(group->skill_id)&UF_ENSEMBLE)
-		return; //Ensembles may not be moved around.
+		return; //Ensembles may not be moved around
 
 	m_flag = (int *) aCalloc(group->unit_count, sizeof(int));
 	//   m_flag
@@ -18165,14 +18165,14 @@ void skill_unit_move_unit_group(struct skill_unit_group *group, int16 m, int16 d
 		if (!unit1->alive)
 			continue;
 		if (!(m_flag[i]&0x2)) {
-			if (group->state.song_dance&0x1) //Cancel dissonance effect.
+			if (group->state.song_dance&0x1) //Cancel dissonance effect
 				skill_dance_overlap(unit1, 0);
 			map_foreachincell(skill_unit_effect,unit1->bl.m,unit1->bl.x,unit1->bl.y,group->bl_flag,&unit1->bl,tick,4);
 		}
 		//Move Cell using "smart" criteria (avoid useless moving around)
 		switch(m_flag[i]) {
 			case 0:
-				//Cell moves independently, safely move it.
+				//Cell moves independently, safely move it
 				map_moveblock(&unit1->bl,unit1->bl.x + dx,unit1->bl.y + dy,tick);
 				break;
 			case 1:
@@ -18181,19 +18181,19 @@ void skill_unit_move_unit_group(struct skill_unit_group *group, int16 m, int16 d
 				for(; j < group->unit_count; j++) {
 					if(m_flag[j] != 2 || !group->unit[j].alive)
 						continue;
-					//Move to where this cell would had moved.
+					//Move to where this cell would had moved
 					unit2 = &group->unit[j];
 					map_moveblock(&unit1->bl,unit2->bl.x + dx,unit2->bl.y + dy,tick);
-					j++; //Skip this cell as we have used it.
+					j++; //Skip this cell as we have used it
 					break;
 				}
 				break;
 			case 2:
 			case 3:
-				break; //Don't move the cell as a cell will end on this tile anyway.
+				break; //Don't move the cell as a cell will end on this tile anyway
 		}
 		if (!(m_flag[i]&0x2)) { //We only moved the cell in 0-1
-			if (group->state.song_dance&0x1) //Check for dissonance effect.
+			if (group->state.song_dance&0x1) //Check for dissonance effect
 				skill_dance_overlap(unit1,1);
 			clif_getareachar_skillunit(&unit1->bl,unit1,AREA,0);
 			map_foreachincell(skill_unit_effect,unit1->bl.m,unit1->bl.x,unit1->bl.y,group->bl_flag,&unit1->bl,tick,1);

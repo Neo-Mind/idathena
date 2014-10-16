@@ -4035,8 +4035,7 @@ static bool mob_readdb_mobavail(char* str[], int columns, int current)
 		mob_db_data[mob_id]->vd.head_bottom = atoi(str[9]);
 		mob_db_data[mob_id]->option = atoi(str[10])&~(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE);
 		mob_db_data[mob_id]->vd.cloth_color = atoi(str[11]); //Monster player dye option - Valaris
-	}
-	else if(columns == 3)
+	} else if(columns == 3)
 		mob_db_data[mob_id]->vd.head_bottom = atoi(str[2]); //Mob equipment [Valaris]
 	else if(columns != 2)
 		return false;
@@ -4081,7 +4080,8 @@ static int mob_read_randommonster(void)
 			for(j = 0, p = line; j < 3 && p; j++) {
 				str[j] = p;
 				p = strchr(p,',');
-				if(p) *p++ = 0;
+				if(p)
+					*p++ = 0;
 			}
 
 			if(str[0] == NULL || str[2] == NULL)
@@ -4101,7 +4101,7 @@ static int mob_read_randommonster(void)
 			}
 			entries++;
 		}
-		if(i && !summon[i].qty) { //At least have the default here.
+		if(i && !summon[i].qty) { //At least have the default here
 			summon[i].mob_id[0] = mob_db_data[0]->summonper[i];
 			summon[i].qty = 1;
 		}
@@ -4132,21 +4132,20 @@ static bool mob_parse_row_chatdb(char* fields[], int columns, int current)
 
 	ms = mob_chat_db[msg_id];
 	//MSG ID
-	ms->msg_id=msg_id;
+	ms->msg_id = msg_id;
 	//Color
-	ms->color=strtoul(fields[1],NULL,0);
+	ms->color = strtoul(fields[1],NULL,0);
 	//Message
 	msg = fields[2];
 	len = strlen(msg);
 
-	while( len && ( msg[len-1]=='\r' || msg[len-1]=='\n' ) ) { // find EOL to strip
+	while (len && (msg[len - 1] == '\r' || msg[len - 1] == '\n')) // Find EOL to strip
 		len--;
-	}
 
-	if(len>(CHAT_SIZE_MAX-1)) {
+	if (len > (CHAT_SIZE_MAX - 1)) {
 		ShowError("mob_chat: readdb: Message too long! Line %d, id: %d\n", current, msg_id);
 		return false;
-	} else if( !len ) {
+	} else if (!len) {
 		ShowWarning("mob_parse_row_chatdb: Empty message for id %d.\n", msg_id);
 		return false;
 	}
@@ -4311,7 +4310,8 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 	if (ms->delay < 0 || ms->delay > MOB_MAX_DELAY) //Time overflow?
 		ms->delay = MOB_MAX_DELAY;
 	ms->cancel = atoi(str[8]);
-	if (strcmp(str[8],"yes") == 0) ms->cancel = 1;
+	if (strcmp(str[8],"yes") == 0)
+		ms->cancel = 1;
 
 	//Target
 	ARR_FIND( 0, ARRAYLENGTH(target), j, strcmp(str[9],target[j].str) == 0 );
@@ -4383,7 +4383,7 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 	else
 		ms->msg_id = 0;
 
-	if (mob_id < 0) { //Set this skill to ALL mobs. [Skotlex]
+	if (mob_id < 0) { //Set this skill to ALL mobs [Skotlex]
 		mob_id *= -1;
 		for (i = 1; i < MAX_MOB_DB; i++) {
 			if (mob_db_data[i] == NULL)
@@ -4391,7 +4391,7 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 			if (mob_db_data[i]->status.mode&MD_BOSS) {
 				if (!(mob_id&2)) //Skill not for bosses
 					continue;
-			} else if (!(mob_id&1)) //Skill not for normal enemies.
+			} else if (!(mob_id&1)) //Skill not for normal enemies
 				continue;
 
 			ARR_FIND( 0, MAX_MOBSKILL, j, mob_db_data[i]->skill[j].skill_id == 0 );
@@ -4416,22 +4416,18 @@ static void mob_readskilldb(void) {
 		"mob_skill_db2.txt" };
 	int fi;
 
-	if( battle_config.mob_skill_rate == 0 )
-	{
+	if( battle_config.mob_skill_rate == 0 ) {
 		ShowStatus("Mob skill use disabled. Not reading mob skills.\n");
 		return;
 	}
 
-	for( fi = 0; fi < ARRAYLENGTH(filename); ++fi )
-	{
-		if(fi > 0)
-		{
+	for( fi = 0; fi < ARRAYLENGTH(filename); ++fi ) {
+		if( fi > 0 ) {
 			char path[256];
+
 			sprintf(path, "%s/%s", db_path, filename[fi]);
-			if(!exists(path))
-			{
+			if( !exists(path) )
 				continue;
-			}
 		}
 
 		sv_readdb(db_path, filename[fi], ',', 19, 19, -1, &mob_parse_row_mobskilldb);
@@ -4509,7 +4505,7 @@ static bool mob_readdb_race2(char* fields[], int columns, int current)
 		return false;
 	}
 
-	for (i = 1; i<columns; i++) {
+	for (i = 1; i < columns; i++) {
 		int mobid = atoi(fields[i]);
 
 		if (mob_db(mobid) == mob_dummy) {
@@ -4544,7 +4540,7 @@ static bool mob_readdb_itemratio(char* str[], int columns, int current)
 
 	item_ratio->drop_ratio = ratio;
 	memset(item_ratio->mob_id, 0, sizeof(item_ratio->mob_id));
-	for (i = 0; i < columns-2; i++)
+	for (i = 0; i < columns - 2; i++)
 		item_ratio->mob_id[i] = atoi(str[i + 2]);
 
 	if (!item_ratio->nameid)
@@ -4561,12 +4557,26 @@ static int mob_item_drop_ratio_free(DBKey key, DBData *data, va_list ap) {
 	return 0;
 }
 
+static bool mob_readdb_effect(char* str[], int columns, int current)
+{
+	int mob_id = atoi(str[0]),
+		effect = atoi(str[1]);
+
+	if (mob_db(mob_id) == mob_dummy) {
+		ShowWarning("mob_readdb_effect: Unknown mob id %d.\n", mob_id);
+		return false;
+	}
+
+	mob_db_data[mob_id]->effect = effect;
+	return true;
+}
+
 /**
  * read all mob-related databases
  */
 static void mob_load(void)
 {
-	sv_readdb(db_path, "mob_item_ratio.txt", ',', 2, 2+MAX_ITEMRATIO_MOBS, -1, &mob_readdb_itemratio); // must be read before mobdb
+	sv_readdb(db_path, "mob_item_ratio.txt", ',', 2, 2 + MAX_ITEMRATIO_MOBS, -1, &mob_readdb_itemratio); //Must be read before mobdb
 	sv_readdb(db_path, "mob_chat_db.txt", '#', 3, 3, MAX_MOB_CHAT, &mob_parse_row_chatdb);
 	if (db_use_sqldbs) {
 		mob_read_sqldb();
@@ -4578,6 +4588,7 @@ static void mob_load(void)
 	sv_readdb(db_path, "mob_avail.txt", ',', 2, 12, -1, &mob_readdb_mobavail);
 	mob_read_randommonster();
 	sv_readdb(db_path, DBPATH"mob_race2_db.txt", ',', 2, 20, -1, &mob_readdb_race2);
+	sv_readdb(db_path, DBPATH"mob_effect.txt",   ',', 2, 2, -1, &mob_readdb_effect);
 }
 
 void mob_reload(void) {
