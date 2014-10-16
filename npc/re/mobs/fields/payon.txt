@@ -36,6 +36,7 @@ pay_fild01,64,113,0,0	monster	Black Mushroom	1084,1,180000,90000,1
 pay_fild01,64,190,0,0	monster	Black Mushroom	1084,1,180000,90000,1
 pay_fild01,70,246,0,0	monster	Black Mushroom	1084,1,180000,90000,1
 pay_fild01,0,0,0,0	monster	Green Plant	1080,5,180000,90000,1
+pay_fild01,0,0,0,0	monster	Willow Ringleader	2615,2,300000,0,0
 
 //==================================================
 // pay_fild02 - Payon Forest 
@@ -45,6 +46,7 @@ pay_fild02,0,0,0,0	monster	Wormtail	1024,30,5000,0,0
 pay_fild02,0,0,0,0	monster	Spore	1014,30,5000,0,0
 pay_fild02,105,256,10,10	monster	Green Plant	1080,4,360000,180000,1
 pay_fild02,105,256,10,10	monster	Red Mushroom	1085,4,360000,180000,1
+pay_fild02,0,0,0,0	monster	Boa Ringleader	2653,2,300000,0,0
 
 //==================================================
 // pay_fild03 - Payon Forest
@@ -69,6 +71,7 @@ pay_fild04,0,0,0,0	monster	Mastering	1090,1,3600000,1800000,1
 pay_fild04,0,0,0,0	monster	Deviling	1582,1,7200000,3600000,1
 pay_fild04,346,335,5,5	monster	Shining Plant	1083,1,1800000,900000,1
 pay_fild04,254,193,10,10	monster	Green Plant	1080,5,360000,180000,1
+pay_fild04,0,0,0,0	monster	Elusive Poporing	2073,2,300000,0,0
 
 //==================================================
 // pay_fild05 - Disabled on Renewal
@@ -83,6 +86,7 @@ pay_fild06,0,0,0,0	monster	Spore	1014,30,5000,0,0
 pay_fild06,211,191,2,10	monster	Red Mushroom	1085,8,180000,90000,1
 pay_fild06,268,155,20,20	monster	Green Plant	1080,10,360000,180000,1
 pay_fild06,268,155,20,20	monster	Shining Plant	1083,1,1800000,900000,1
+pay_fild06,0,0,0,0	monster	Wormtail Ringleader	2610,2,300000,0,0
 
 //==================================================
 // pay_fild07 - Payon Forest
@@ -101,6 +105,7 @@ pay_fild08,0,0,0,0	monster	Wormtail	1024,30,5000,0,0
 pay_fild08,0,0,0,0	monster	Boa	1025,30,5000,0,0
 pay_fild08,0,0,0,0	monster	Green Plant	1080,10,60000,30000,1
 pay_fild08,143,156,40,40	monster	Shining Plant	1083,1,3600000,1800000,1
+pay_fild08,0,0,0,0	monster	Swift Spore	2646,2,300000,0,0
 
 //==================================================
 // pay_fild09 - Payon Forest

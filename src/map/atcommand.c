@@ -7639,7 +7639,7 @@ ACMD_FUNC(size)
 	nullpo_retr(-1, sd);
 
 	size = cap_value(atoi(message),SZ_SMALL,SZ_BIG);
-	
+
 	if(sd->state.size) {
 		sd->state.size = SZ_SMALL;
 		pc_setpos(sd, sd->mapindex, sd->bl.x, sd->bl.y, CLR_TELEPORT);

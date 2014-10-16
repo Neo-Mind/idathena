@@ -26,6 +26,7 @@ tur_dun02,0,0,0,0	monster	Solider	1316,40,5000,0,0
 tur_dun02,0,0,0,0	monster	Permeter	1314,40,5000,0,0
 tur_dun02,0,0,0,0	monster	Freezer	1319,20,5000,0,0
 tur_dun02,0,0,0,0	monster	Pest	1256,15,5000,0,0
+tur_dun02,0,0,0,0	monster	Solid Solider	2647,2,300000,0,0
 
 //==================================================
 // tur_dun03 - Good Turtles Village

@@ -40,6 +40,7 @@ abbey02,0,0,0,0	monster	Ragged Zombie	1865,70,5000,0,0
 abbey02,0,0,0,0	monster	Flame Skull	1869,21,5000,0,0
 abbey02,0,0,0,0	monster	Necromancer	1870,7,5000,0,0
 abbey02,236,78,21,18	boss_monster	Fallen Bishop	1871,1,7200000,600000,1
+abbey02,0,0,0,0	monster	Swift Zombie Slaughter	2603,2,300000,0,0
 
 //==================================================
 // abbey03 - Cursed Monastery

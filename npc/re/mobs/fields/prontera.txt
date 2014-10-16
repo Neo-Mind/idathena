@@ -22,6 +22,7 @@ prt_fild00,0,0,0,0	monster	Ambernite	1094,50,5000,0,0
 prt_fild00,0,0,0,0	monster	Savage Babe	1167,20,5000,0,0
 prt_fild00,227,212,0,0	monster	Shining Plant	1083,1,1800000,900000,1
 prt_fild00,285,138,10,10	monster	Green Plant	1080,5,360000,180000,1
+prt_fild00,0,0,0,0	monster	Roda Frog Ringleader	2678,2,300000,0,0
 
 //==================================================
 // prt_fild01 - Prontera Field 
@@ -41,6 +42,7 @@ prt_fild02,0,0,0,0	monster	Poporing	1031,30,5000,0,0
 prt_fild02,0,0,0,0	monster	Eclipse	1093,1,1800000,1200000,0
 prt_fild02,339,309,3,3	monster	Shining Plant	1083,1,1800000,900000,1
 prt_fild02,0,0,0,0	monster	Shining Plant	1083,2,1800000,900000,1
+prt_fild02,0,0,0,0	monster	Elusive Stainer	2645,2,300000,0,0
 
 //==================================================
 // prt_fild03 - Prontera Field 
@@ -54,6 +56,7 @@ prt_fild03,296,58,15,15	monster	Blue Plant	1079,2,900000,450000,1
 prt_fild03,307,75,5,5	monster	Green Plant	1080,5,360000,180000,1
 prt_fild03,147,219,5,5	monster	Green Plant	1080,5,360000,180000,1
 prt_fild03,148,107,5,5	monster	Green Plant	1080,5,360000,180000,1
+prt_fild03,0,0,0,0	monster	Swift Yoyo	2608,2,300000,0,0
 
 //==================================================
 // prt_fild04 - Prontera Field 
@@ -87,6 +90,7 @@ prt_fild07,0,0,0,0	monster	Rocker	1052,150,5000,0,0
 prt_fild07,0,0,0,0	monster	Savage Babe	1167,50,5000,0,0
 prt_fild07,0,0,0,0	monster	Vocal	1088,1,1800000,1200000,0
 prt_fild07,225,110,5,5	monster	Black Mushroom	1084,3,360000,180000,1
+prt_fild07,0,0,0,0	monster	Elusive Rocker	2680,2,300000,0,0
 
 //==================================================
 // prt_fild08 - Prontera Field 

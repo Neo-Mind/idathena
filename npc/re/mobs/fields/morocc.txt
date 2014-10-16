@@ -60,6 +60,7 @@ moc_fild03,216,69,5,5	monster	Green Plant	1080,2,180000,90000,1
 moc_fild03,261,161,5,5	monster	Green Plant	1080,2,180000,90000,1
 moc_fild03,213,201,5,5	monster	Green Plant	1080,2,180000,90000,1
 moc_fild03,200,263,5,5	monster	Green Plant	1080,2,180000,90000,1
+moc_fild03,0,0,0,0	monster	Swift Wolf	2613,2,300000,0,0
 
 //==================================================
 // moc_fild04 - Disabled on Episode 12.1
@@ -111,6 +112,7 @@ moc_fild12,0,0,0,0	monster	Peco Peco Egg	1047,35,5000,0,0
 moc_fild12,0,0,0,0	monster	Drops	1113,30,5000,0,0
 moc_fild12,0,0,0,0	monster	Condor	1009,30,5000,0,0
 moc_fild12,181,336,40,20	monster	Yellow Plant	1081,10,180000,90000,1
+moc_fild12,0,0,0,0	monster	Furious Picky	2712,2,300000,0,0
 
 //==================================================
 // moc_fild13 - Sograt Desert 
@@ -142,6 +144,7 @@ moc_fild13,109,168,0,0	monster	Yellow Plant	1081,1,180000,90000,1
 moc_fild13,101,185,5,5	monster	Yellow Plant	1081,3,180000,90000,1
 moc_fild13,106,258,5,5	monster	Yellow Plant	1081,3,180000,90000,1
 moc_fild13,161,273,5,5	monster	Yellow Plant	1081,3,180000,90000,1
+moc_fild13,0,0,0,0	monster	Solid Steel Chonchon	2642,2,300000,0,0
 
 //==================================================
 // moc_fild14 - Disabled on Episode 12.1
@@ -157,6 +160,7 @@ moc_fild13,161,273,5,5	monster	Yellow Plant	1081,3,180000,90000,1
 moc_fild16,0,0,0,0	monster	Sandman	1165,130,5000,0,0
 moc_fild16,0,0,0,0	monster	Hode	1127,30,5000,0,0
 moc_fild16,0,0,0,0	monster	Frilldora	1119,10,5000,0,0
+moc_fild16,0,0,0,0	monster	Furious Sandman	2674,2,300000,0,0
 
 //==================================================
 // moc_fild17 - Sograt Desert 
@@ -188,6 +192,7 @@ moc_fild18,135,119,0,0	monster	Yellow Plant	1081,1,180000,90000,1
 moc_fild18,230,144,0,0	monster	Yellow Plant	1081,1,180000,90000,1
 moc_fild18,325,207,0,0	monster	Yellow Plant	1081,1,180000,90000,1
 moc_fild18,325,272,0,0	monster	Yellow Plant	1081,1,180000,90000,1
+moc_fild18,0,0,0,0	monster	Elusive Scorpion	2670,2,300000,0,0
 
 //==================================================
 // moc_fild19 - Quest Map

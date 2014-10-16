@@ -87,6 +87,7 @@ mjolnir_03,128,319,0,0	monster	Green Plant	1080,1,180000,90000,1
 mjolnir_03,77,271,0,0	monster	Green Plant	1080,1,180000,90000,1
 mjolnir_03,66,219,0,0	monster	Green Plant	1080,1,180000,90000,1
 mjolnir_03,91,161,0,0	monster	Green Plant	1080,1,180000,90000,1
+mjolnir_03,0,0,0,0	monster	Side Winder Ringleader	2663,2,300000,0,0
 
 //==================================================
 // mjolnir_04 - Mt.Mjolnir
@@ -142,6 +143,7 @@ mjolnir_06,45,345,0,0	monster	Red Mushroom	1085,1,180000,90000,1
 mjolnir_06,73,339,0,0	monster	Red Mushroom	1085,1,180000,90000,1
 mjolnir_06,69,225,0,0	monster	Red Mushroom	1085,1,180000,90000,1
 mjolnir_06,55,276,0,0	monster	Red Mushroom	1085,1,180000,90000,1
+mjolnir_06,0,0,0,0	monster	Solid Poison Spore	2705,2,300000,0,0
 
 //==================================================
 // mjolnir_07 - Mt.Mjolnir
@@ -159,6 +161,7 @@ mjolnir_07,181,173,0,0	monster	Green Plant	1080,1,180000,90000,1
 mjolnir_07,140,179,0,0	monster	Green Plant	1080,1,180000,90000,1
 mjolnir_07,97,210,0,0	monster	Green Plant	1080,1,180000,90000,1
 mjolnir_07,249,214,0,0	monster	Blue Plant	1079,2,360000,180000,1
+mjolnir_07,0,0,0,0	monster	Savage Ringleader	2673,2,300000,0,0
 
 //==================================================
 // mjolnir_08 - Mt.Mjolnir 
@@ -191,6 +194,7 @@ mjolnir_09,89,141,0,0	monster	Red Mushroom	1085,1,180000,90000,1
 mjolnir_09,120,126,0,0	monster	Red Mushroom	1085,1,180000,90000,1
 mjolnir_09,139,84,0,0	monster	Red Mushroom	1085,1,180000,90000,1
 mjolnir_09,125,82,0,0	monster	Red Mushroom	1085,1,180000,90000,1
+mjolnir_09,0,0,0,0	monster	Swift Savage Babe	2671,2,300000,0,0
 
 //==================================================
 // mjolnir_10 - Mt.Mjolnir

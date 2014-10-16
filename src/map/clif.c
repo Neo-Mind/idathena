@@ -6090,7 +6090,7 @@ void clif_wis_end(int fd, int result)
 	if (!sd)
 		return;
 
-#if PACKETVER >= 20131223
+#if PACKETVER >= 20130807
 	WFIFOHEAD(fd,packet_len(0x9df));
 	WFIFOW(fd,0) = 0x9df;
 	WFIFOB(fd,2) = (char)result;

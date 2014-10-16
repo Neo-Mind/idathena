@@ -327,15 +327,14 @@ int pet_data_init(struct map_session_data *sd, struct s_pet *pet)
 		sd->status.pet_id = 0;
 		return 1;
 	}
-	if (sd->status.pet_id != pet->pet_id) {
-		if (sd->status.pet_id) {
-			//Wrong pet?? Set incubate to no and send it back for saving.
+	if(sd->status.pet_id != pet->pet_id) {
+		if(sd->status.pet_id) { //Wrong pet?? Set incubate to no and send it back for saving
 			pet->incubate = 1;
 			intif_save_petdata(sd->status.account_id,pet);
 			sd->status.pet_id = 0;
 			return 1;
 		}
-		//The pet_id value was lost? odd... restore it.
+		//The pet_id value was lost? odd... restore it
 		sd->status.pet_id = pet->pet_id;
 	}
 
@@ -351,15 +350,15 @@ int pet_data_init(struct map_session_data *sd, struct s_pet *pet)
 	pd->master = sd;
 	pd->petDB = &pet_db[i];
 	pd->db = mob_db(pet->class_);
-	memcpy(&pd->pet, pet, sizeof(struct s_pet));
-	status_set_viewdata(&pd->bl, pet->class_);
+	memcpy(&pd->pet,pet,sizeof(struct s_pet));
+	status_set_viewdata(&pd->bl,pet->class_);
 	unit_dataset(&pd->bl);
 	pd->ud.dir = sd->ud.dir;
 
 	pd->bl.m = sd->bl.m;
 	pd->bl.x = sd->bl.x;
 	pd->bl.y = sd->bl.y;
-	unit_calc_pos(&pd->bl, sd->bl.x, sd->bl.y, sd->ud.dir);
+	unit_calc_pos(&pd->bl,sd->bl.x,sd->bl.y,sd->ud.dir);
 	pd->bl.x = pd->ud.to_x;
 	pd->bl.y = pd->ud.to_y;
 
@@ -369,22 +368,22 @@ int pet_data_init(struct map_session_data *sd, struct s_pet *pet)
 	pd->last_thinktime = gettick();
 	pd->state.skillbonus = 0;
 
-	if( battle_config.pet_status_support )
+	if(battle_config.pet_status_support)
 		run_script(pet_db[i].pet_script,0,sd->bl.id,0);
 
-	if( pd->petDB ) {
-		if( pd->petDB->equip_script )
+	if(pd->petDB) {
+		if(pd->petDB->equip_script)
 			status_calc_pc(sd,SCO_NONE);
 
-		if( battle_config.pet_hungry_delay_rate != 100 )
+		if(battle_config.pet_hungry_delay_rate != 100)
 			interval = pd->petDB->hungry_delay * battle_config.pet_hungry_delay_rate / 100;
 		else
 			interval = pd->petDB->hungry_delay;
 	}
 
-	if( interval <= 0 )
+	if(interval <= 0)
 		interval = 1;
-	pd->pet_hungry_timer = add_timer(gettick() + interval, pet_hungry, sd->bl.id, 0);
+	pd->pet_hungry_timer = add_timer(gettick() + interval,pet_hungry,sd->bl.id,0);
 	pd->masterteleport_timer = INVALID_TIMER;
 	return 0;
 }
@@ -411,14 +410,14 @@ int pet_birth_process(struct map_session_data *sd, struct s_pet *pet)
 
 	intif_save_petdata(sd->status.account_id,pet);
 	if(save_settings&8)
-		chrif_save(sd,0); //Is it REALLY Needed to save the char for hatching a pet? [Skotlex]
+		chrif_save(sd, 0); //Is it REALLY Needed to save the char for hatching a pet? [Skotlex]
 
 	if(sd->bl.prev != NULL) {
 		if(map_addblock(&sd->pd->bl))
 			return 1;
 		clif_spawn(&sd->pd->bl);
-		clif_send_petdata(sd,sd->pd, 0,0);
-		clif_send_petdata(sd,sd->pd, 5,battle_config.pet_hair_style);
+		clif_send_petdata(sd, sd->pd, 0, 0);
+		clif_send_petdata(sd, sd->pd, 5, battle_config.pet_hair_style);
 		clif_pet_equip_area(sd->pd);
 		clif_send_petstatus(sd);
 	}

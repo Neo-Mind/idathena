@@ -28,6 +28,7 @@ in_sphinx2,0,0,0,0	monster	Requiem	1164,50,5000,0,0
 in_sphinx2,0,0,0,0	monster	Zerom	1178,50,5000,0,0
 in_sphinx2,0,0,0,0	monster	Matyr	1146,20,5000,0,0
 in_sphinx2,0,0,0,0	monster	Drainliar	1111,15,5000,0,0
+in_sphinx2,0,0,0,0	monster	Solid Requiem	2687,2,300000,0,0
 
 //==================================================
 // in_sphinx3 - Sphinx

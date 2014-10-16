@@ -11540,7 +11540,7 @@ BUILDIN_FUNC(flagemblem)
 	else if(nd->subtype != NPCTYPE_SCRIPT)
 		ShowError("script:flagemblem: unexpected subtype %d for npc %d '%s'\n", nd->subtype, st->oid, nd->exname);
 	else {
-		bool changed = ( nd->u.scr.guild_id != g_id ) ? true : false;
+		bool changed = (nd->u.scr.guild_id != g_id) ? true : false;
 
 		nd->u.scr.guild_id = g_id;
 		clif_guild_emblem_area(&nd->bl);

@@ -3282,12 +3282,14 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 		if(pd && pd->petDB && pd->petDB->equip_script && pd->pet.intimate >= battle_config.pet_equip_min_friendly)
 			run_script(pd->petDB->equip_script,0,sd->bl.id,0);
 		if(pd && pd->pet.intimate > 0 && (!battle_config.pet_equip_required || pd->pet.equip > 0) && pd->state.skillbonus == 1 && pd->bonus)
-			pc_bonus(sd,pd->bonus->type, pd->bonus->val);
+			pc_bonus(sd,pd->bonus->type,pd->bonus->val);
 	}
 
-	//Param_bonus now holds card bonuses.
-	if(status->rhw.range < 1) status->rhw.range = 1;
-	if(status->lhw.range < 1) status->lhw.range = 1;
+	//Param_bonus now holds card bonuses
+	if(status->rhw.range < 1)
+		status->rhw.range = 1;
+	if(status->lhw.range < 1)
+		status->lhw.range = 1;
 	if(status->rhw.range < status->lhw.range)
 		status->rhw.range = status->lhw.range;
 
@@ -12548,12 +12550,9 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 				val *= 2;
 				sd->state.doridori = 0;
 				if ((rate = pc_checkskill(sd,TK_SPTIME)))
-					sc_start(bl, bl, status_skill2sc(TK_SPTIME),
-						100, rate, skill_get_time(TK_SPTIME, rate));
-				if (
-					(sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR &&
-					rnd()%10000 < battle_config.sg_angel_skill_ratio
-				) { //Angel of the Sun/Moon/Star
+					sc_start(bl, bl, status_skill2sc(TK_SPTIME), 100, rate, skill_get_time(TK_SPTIME, rate));
+				if ((sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR &&
+					rnd()%10000 < battle_config.sg_angel_skill_ratio) { //Angel of the Sun/Moon/Star
 					clif_feel_hate_reset(sd);
 					pc_resethate(sd);
 					pc_resetfeel(sd);

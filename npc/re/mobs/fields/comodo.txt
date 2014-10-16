@@ -53,6 +53,7 @@ cmd_fild04,0,0,0,0	monster	Galapago	1391,30,5000,0,0
 cmd_fild04,0,0,0,0	monster	Shellfish	1074,20,5000,0,0
 cmd_fild04,0,0,0,0	monster	Crab	1073,20,5000,0,0
 cmd_fild04,0,0,0,0	monster	Aster	1266,10,5000,0,0
+cmd_fild04,0,0,0,0	monster	Sea Otter Ringleader	2668,2,300000,0,0
 
 //==================================================
 // cmd_fild05 - Disabled on Renewal
@@ -73,6 +74,7 @@ cmd_fild07,0,0,0,0	monster	Raggler	1254,100,5000,0,0
 cmd_fild07,0,0,0,0	monster	Aster	1266,30,5000,0,0
 cmd_fild07,0,0,0,0	monster	Shellfish	1074,30,5000,0,0
 cmd_fild07,0,0,0,0	monster	Crab	1073,30,5000,0,0
+cmd_fild07,0,0,0,0	monster	Elusive Raggler	2694,2,300000,0,0
 
 //==================================================
 // cmd_fild08 - Fortress Saint Darmain (East)

@@ -43,3 +43,4 @@ dic_dun03,0,0,0,0	monster	Gold Two-Horn Scaraba	2162,30,5000,0,0
 dic_dun03,0,0,0,0	monster	Gold Antler Scaraba	2163,40,5000,0,0
 dic_dun03,0,0,0,0	monster	Gold Rake Scaraba	2164,40,5000,0,0
 dic_dun03,0,0,0,0	boss_monster	Gold Queen Scaraba	2165,1,7200000,0,1
+dic_dun03,0,0,0,0	monster	Furious Rake Scaraba	2693,2,300000,0,0
