@@ -6075,7 +6075,7 @@ void clif_wis_message(int fd, const char* nick, const char* mes, int mes_len)
 	WFIFOW(fd,0) = 0x97;
 	WFIFOW(fd,2) = mes_len + NAME_LENGTH + 8;
 	safestrncpy((char*)WFIFOP(fd,4),nick,NAME_LENGTH);
-	WFIFOL(fd,28) = (ssd && pc_get_group_level(ssd) == 99) ? 1 : 0; //isAdmin; if nonzero,also displays text above char
+	WFIFOL(fd,28) = (ssd && pc_get_group_level(ssd) == 99) ? 1 : 0; //isAdmin; if nonzero, also displays text above char
 	safestrncpy((char*)WFIFOP(fd,32),mes,mes_len);
 	WFIFOSET(fd,WFIFOW(fd,2));
 #endif
@@ -6092,22 +6092,22 @@ void clif_wis_message(int fd, const char* nick, const char* mes, int mes_len)
 void clif_wis_end(int fd, int result)
 {
 	struct map_session_data *sd = (session_isValid(fd) ? session[fd]->session_data : NULL);
+#if PACKETVER >= 20131223
+	const int cmd = 0x9df;
+#else
+	const int cmd = 0x98;
+#endif
 
 	if (!sd)
 		return;
 
-#if PACKETVER >= 20130807
-	WFIFOHEAD(fd,packet_len(0x9df));
-	WFIFOW(fd,0) = 0x9df;
+	WFIFOHEAD(fd,packet_len(cmd));
+	WFIFOW(fd,0) = cmd;
 	WFIFOB(fd,2) = (char)result;
+#if PACKETVER >= 20131223
 	WFIFOL(fd,3) = 0;
-	WFIFOSET(fd,packet_len(0x9df));
-#else
-	WFIFOHEAD(fd,packet_len(0x98));
-	WFIFOW(fd,0) = 0x98;
-	WFIFOB(fd,2) = (char)result;
-	WFIFOSET(fd,packet_len(0x98));
 #endif
+	WFIFOSET(fd,packet_len(cmd));
 }
 
 
