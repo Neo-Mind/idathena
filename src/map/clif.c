@@ -876,7 +876,7 @@ static int clif_setlevel(struct block_list* bl) {
 	switch( bl->type ) {
 		case BL_NPC:
 		case BL_PET:
-			// npcs and pets do not have level
+			//Npcs and pets do not have level
 			return 0;
 	}
 	return lv;
