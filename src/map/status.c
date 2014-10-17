@@ -9646,8 +9646,14 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			default:
 				//Status change with no calc, no icon, and no skill associated?
 				if( calc_flag == SCB_NONE && StatusIconChangeTable[type] == SI_BLANK && StatusSkillChangeTable[type] == 0 ) {
-					if( type == SC_KSPROTECTED )
-						break; //Avoid the warning, because this status has no skill associated and all values already store in it.
+					switch( type ) {
+						case SC_KSPROTECTED:
+						case SC_XMAS:
+						case SC_SUMMER:
+						case SC_HANBOK:
+						case SC_OKTOBERFEST:
+							break; //Avoid the warning, because this status has no skill associated and all values already store in it
+					}
 					ShowError("Unknown Status Change [%d]\n",type);
 					return 0;
 				}
