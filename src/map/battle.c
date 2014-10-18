@@ -1200,11 +1200,6 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			return 0;
 		}
 
-		//Probably not the most correct place, but it'll do here
-		//(since battle_drain is strictly for players currently)
-		if( (sce = sc->data[SC_BLOODLUST]) && flag&BF_WEAPON && damage > 0 && rnd()%100 < sce->val3 )
-			status_heal(src,damage * sce->val4 / 100,0,3);
-
 		if( sd && (sce = sc->data[SC_FORCEOFVANGUARD]) && flag&BF_WEAPON && rnd()%100 < sce->val2 )
 			pc_addspiritball(sd,skill_get_time(LG_FORCEOFVANGUARD,sce->val1),sce->val3);
 
@@ -1230,20 +1225,22 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			status_change_spread(bl,src); //Deadly infect attacked side
 	}
 
-	//SC effects from caster's side.
+	//SC effects from caster's side
 	sc = status_get_sc(src);
 
 	if( sc && sc->count ) {
 		if( sc->data[SC_INVINCIBLE] && !sc->data[SC_INVINCIBLEOFF] )
 			damage += damage * 75 / 100;
 
+		if( (sce = sc->data[SC_BLOODLUST]) && flag&BF_WEAPON && damage > 0 && rnd()%100 < sce->val3 )
+			status_heal(src,damage * sce->val4 / 100,0,3);
+
 		//[Epoque]
 		if( bl->type == BL_MOB ) {
 			int i;
 
 			if( ((sce = sc->data[SC_MANU_ATK]) && flag&BF_WEAPON) ||
-				((sce = sc->data[SC_MANU_MATK]) && flag&BF_MAGIC) )
-			{
+				((sce = sc->data[SC_MANU_MATK]) && flag&BF_MAGIC) ) {
 				for( i = 0; ARRAYLENGTH(mob_manuk) > i; i++ ) {
 					if( ((TBL_MOB*)bl)->mob_id == mob_manuk[i] ) {
 						damage += damage * sce->val1 / 100;
@@ -1253,8 +1250,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			}
 
 			if( ((sce = sc->data[SC_SPL_ATK]) && flag&BF_WEAPON) ||
-				((sce = sc->data[SC_SPL_MATK]) && flag&BF_MAGIC) )
-			{
+				((sce = sc->data[SC_SPL_MATK]) && flag&BF_MAGIC) ) {
 				for( i = 0; ARRAYLENGTH(mob_splendide) > i; i++ ) {
 					if( ((TBL_MOB*)bl)->mob_id == mob_splendide[i] ) {
 						damage += damage * sce->val1 / 100;
@@ -1277,7 +1273,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( sc->data[SC_STYLE_CHANGE] && sc->data[SC_STYLE_CHANGE]->val1 == MH_MD_FIGHTING ) {
 			TBL_HOM *hd = BL_CAST(BL_HOM,src); //When attacking
 
-			if( hd && (rnd()%100 < 50) ) //According to WarpPortal, this is a flat 50% chance
+			if( hd && (rnd()%100 < 50) )
 				hom_addspiritball(hd,10);
 		}
 	}

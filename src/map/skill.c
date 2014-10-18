@@ -7362,6 +7362,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 #endif
 							case SC_HIDING:				case SC_CLOAKING:		case SC_CHASEWALK:
 							case SC_CLOAKINGEXCEED:			case SC__INVISIBILITY:		case SC_CRIFOOD:
+							case SC_UTSUSEMI:
 								continue;
 							//bugreport:4888 these songs may only be dispelled if you're not in their song area anymore
 							case SC_WHISTLE:
@@ -8860,6 +8861,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 #endif
 							case SC_HIDING:			case SC_CLOAKING:		case SC_CHASEWALK:
 							case SC_CLOAKINGEXCEED:		case SC__INVISIBILITY:		case SC_CRIFOOD:
+							case SC_UTSUSEMI:
 								continue;
 							case SC_ASSUMPTIO:
 								if( bl->type == BL_MOB )
@@ -9208,8 +9210,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						int sp = 100 * skill_lv;
 
 						if( dstmd )
-							sp = dstmd->level * 2;
-						if( !dstmd && status_zap(bl,0,sp) )
+							sp = dstmd->level;
+						if( status_zap(bl,0,sp) )
 							status_heal(src,0,sp / 2,3);
 				}
 				//If the target was successfully inflected with the Unlucky status, give 1 of 3 random status's.
@@ -10384,6 +10386,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 #endif
 							case SC_HIDING:			case SC_CLOAKING:		case SC_CHASEWALK:
 							case SC_CLOAKINGEXCEED:		case SC__INVISIBILITY:		case SC_CRIFOOD:
+							case SC_UTSUSEMI:
 								continue;
 							case SC_ASSUMPTIO:
 								if( bl->type == BL_MOB )
@@ -12999,10 +13002,10 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 							if (bl->type == BL_PC)
 								status_zap(bl,0,15); //Sp damage to players
 							else if (status_charge(ss,0,2)) { //Costs 2 SP per hit to mobs
-								if (!skill_attack(BF_WEAPON,ss,&unit->bl,bl,skill_id,skill_lv,tick +
-									count * sg->interval,0))
+								if (!skill_attack(BF_WEAPON,ss,&unit->bl,bl,skill_id,skill_lv,
+									tick + count * sg->interval,0))
 									status_charge(ss,0,8); //Costs additional 8 SP if miss
-							} else { //Should end when out of sp.
+							} else { //Should end when out of sp
 								sg->limit = DIFF_TICK(tick,sg->tick);
 								break;
 							}
@@ -14284,7 +14287,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 
 	sc = &sd->sc;
 
-	if( !sc->count )
+	if( sc && !sc->count )
 		sc = NULL;
 
 	//When a target was selected, consume items that were skipped in pc_use_item [Skotlex]
@@ -15340,7 +15343,7 @@ void skill_consume_requirement(struct map_session_data *sd, uint16 skill_id, uin
 		struct status_change *sc = &sd->sc;
 		int n, i;
 
-		if( !sc->count )
+		if( sc && !sc->count )
 			sc = NULL;
 
 		for( i = 0; i < MAX_SKILL_ITEM_REQUIRE; ++i ) {
@@ -15404,7 +15407,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 
 	sc = &sd->sc;
 
-	if( !sc->count )
+	if( sc && !sc->count )
 		sc = NULL;
 
 	if( sc && skill_disable_check(sc,skill_id) ) //Checks if disabling skill - in which case no SP requirements are necessary
@@ -17079,7 +17082,7 @@ void skill_enchant_elemental_end(struct block_list *bl, int type)
 	nullpo_retv(bl);
 	nullpo_retv(sc = status_get_sc(bl));
 
-	if (!sc->count)
+	if (!sc || !sc->count)
 		return;
 
 	for (i = 0; i < ARRAYLENGTH(scs); i++)

@@ -764,9 +764,8 @@ int party_recv_movemap(int party_id,int account_id,int char_id, unsigned short m
 	if( p == NULL )
 		return 0;
 
-	ARR_FIND( 0, MAX_PARTY, i, p->party.member[i].account_id == account_id && p->party.member[i].char_id == char_id );
-	if( i == MAX_PARTY )
-	{
+	ARR_FIND(0,MAX_PARTY,i,p->party.member[i].account_id == account_id && p->party.member[i].char_id == char_id);
+	if( i == MAX_PARTY ) {
 		ShowError("party_recv_movemap: char %d/%d not found in party %s (id:%d)",account_id,char_id,p->party.name,party_id);
 		return 0;
 	}
@@ -776,7 +775,7 @@ int party_recv_movemap(int party_id,int account_id,int char_id, unsigned short m
 	m->online = online;
 	m->lv = lv;
 	//Check if they still exist on this map server
-	p->data[i].sd = party_sd_check(party_id, account_id, char_id);
+	p->data[i].sd = party_sd_check(party_id,account_id,char_id);
 	
 	clif_party_info(p,NULL);
 	return 0;
@@ -795,8 +794,8 @@ void party_send_movemap(struct map_session_data *sd)
 	if( !p )
 		return;
 
+	//Note that this works because this function is invoked before connect_new is cleared
 	if( sd->state.connect_new ) {
-		//Note that this works because this function is invoked before connect_new is cleared.
 		clif_party_option(p,sd,0x100);
 		clif_party_info(p,sd);
 		clif_party_member_info(p,sd);
@@ -828,31 +827,32 @@ int party_send_logout(struct map_session_data *sd)
 	struct party_data *p;
 	int i;
 
-	if(!sd->status.party_id)
+	if( !sd->status.party_id )
 		return 0;
 	
 	intif_party_changemap(sd,0);
-	p=party_search(sd->status.party_id);
-	if(!p) return 0;
+	p = party_search(sd->status.party_id);
+	if( !p )
+		return 0;
 
-	ARR_FIND( 0, MAX_PARTY, i, p->data[i].sd == sd );
+	ARR_FIND(0, MAX_PARTY, i, p->data[i].sd == sd);
 	if( i < MAX_PARTY )
-		memset(&p->data[i], 0, sizeof(p->data[0]));
+		memset(&p->data[i],0,sizeof(p->data[0]));
 	else
-		ShowError("party_send_logout: Failed to locate member %d:%d in party %d!\n", sd->status.account_id, sd->status.char_id, p->party.party_id);
+		ShowError("party_send_logout: Failed to locate member %d:%d in party %d!\n",sd->status.account_id,sd->status.char_id,p->party.party_id);
 	
 	return 1;
 }
 
 int party_send_message(struct map_session_data *sd,const char *mes,int len)
 {
-	if(sd->status.party_id==0)
+	if( sd->status.party_id == 0 )
 		return 0;
 	intif_party_message(sd->status.party_id,sd->status.account_id,mes,len);
 	party_recv_message(sd->status.party_id,sd->status.account_id,mes,len);
 
-	// Chat logging type 'P' / Party Chat
-	log_chat(LOG_CHAT_PARTY, sd->status.party_id, sd->status.char_id, sd->status.account_id, mapindex_id2name(sd->mapindex), sd->bl.x, sd->bl.y, NULL, mes);
+	//Chat logging type 'P' / Party Chat
+	log_chat(LOG_CHAT_PARTY,sd->status.party_id,sd->status.char_id,sd->status.account_id,mapindex_id2name(sd->mapindex),sd->bl.x,sd->bl.y,NULL,mes);
 
 	return 0;
 }
@@ -860,7 +860,8 @@ int party_send_message(struct map_session_data *sd,const char *mes,int len)
 int party_recv_message(int party_id,int account_id,const char *mes,int len)
 {
 	struct party_data *p;
-	if( (p=party_search(party_id))==NULL)
+
+	if( (p = party_search(party_id)) == NULL )
 		return 0;
 	clif_party_message(p,account_id,mes,len);
 	return 0;
@@ -872,14 +873,16 @@ int party_skill_check(struct map_session_data *sd, int party_id, uint16 skill_id
 	struct map_session_data *p_sd;
 	int i;
 
-	if(!party_id || (p=party_search(party_id))==NULL)
+	if( !party_id || (p = party_search(party_id)) == NULL )
 		return 0;
-	switch(skill_id) {
-		case TK_COUNTER: //Increase Triple Attack rate of Monks.
-			if (!p->state.monk) return 0;
+	switch( skill_id ) {
+		case TK_COUNTER: //Increase Triple Attack rate of Monks
+			if( !p->state.monk )
+				return 0;
 			break;
 		case MO_COMBOFINISH: //Increase Counter rate of Star Gladiators
-			if (!p->state.sg) return 0;
+			if( !p->state.sg )
+				return 0;
 			break;
 		case AM_TWILIGHT2: //Twilight Pharmacy, requires Super Novice
 			return p->state.snovice;
@@ -889,27 +892,25 @@ int party_skill_check(struct map_session_data *sd, int party_id, uint16 skill_id
 			return 0; //Unknown case?
 	}
 	
-	for(i=0;i<MAX_PARTY;i++){
-		if ((p_sd = p->data[i].sd) == NULL)
+	for( i = 0; i < MAX_PARTY; i++ ) {
+		if( (p_sd = p->data[i].sd) == NULL )
 			continue;
-		if (sd->bl.m != p_sd->bl.m)
+		if( sd->bl.m != p_sd->bl.m )
 			continue;
-		switch(skill_id) {
-			case TK_COUNTER: //Increase Triple Attack rate of Monks.
-				if((p_sd->class_&MAPID_UPPERMASK) == MAPID_MONK
-					&& pc_checkskill(p_sd,MO_TRIPLEATTACK)) {
+		switch( skill_id ) {
+			case TK_COUNTER: //Increase Triple Attack rate of Monks
+				if( (p_sd->class_&MAPID_UPPERMASK) == MAPID_MONK && pc_checkskill(p_sd,MO_TRIPLEATTACK) ) {
 					sc_start4(&p_sd->bl,&p_sd->bl,SC_SKILLRATE_UP,100,MO_TRIPLEATTACK,
-						50+50*skill_lv, //+100/150/200% rate
-						0,0,skill_get_time(SG_FRIEND, 1));
+						50 + 50 * skill_lv, //+100/150/200% rate
+						0,0,skill_get_time(SG_FRIEND,1));
 				}
 				break;
 			case MO_COMBOFINISH: //Increase Counter rate of Star Gladiators
-				if((p_sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR
-					&& sd->sc.data[SC_READYCOUNTER]
-					&& pc_checkskill(p_sd,SG_FRIEND)) {
+				if( (p_sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR && sd->sc.data[SC_READYCOUNTER] &&
+					pc_checkskill(p_sd,SG_FRIEND) ) {
 					sc_start4(&p_sd->bl,&p_sd->bl,SC_SKILLRATE_UP,100,TK_COUNTER,
-						50+50*pc_checkskill(p_sd,SG_FRIEND), //+100/150/200% rate
-						0,0,skill_get_time(SG_FRIEND, 1));
+						50 + 50 * pc_checkskill(p_sd,SG_FRIEND), //+100/150/200% rate
+						0,0,skill_get_time(SG_FRIEND,1));
 				}
 				break;
 		}

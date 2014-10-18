@@ -4110,7 +4110,7 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 void status_calc_state(struct block_list *bl, struct status_change *sc, enum scs_flag flag, bool start) {
 
 	/* No sc at all, we can zero without any extra weight over our conciousness */
-	if( !sc->count ) {
+	if( !sc || !sc->count ) {
 		memset(&sc->cant, 0, sizeof (sc->cant));
 		return;
 	}
@@ -4180,7 +4180,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 	if( !b_status || !status )
 		return;
 
-	if( (!(bl->type&BL_REGEN)) && (!sc || !sc->count) ) { //No difference.
+	if( (!(bl->type&BL_REGEN)) && (!sc || !sc->count) ) { //No difference
 		status_cpy(status, b_status);
 		return;
 	}
@@ -8847,7 +8847,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_ENCHANTARMS:
 				//End previous enchants
 				skill_enchant_elemental_end(bl,type);
-				//Make sure the received element is valid.
+				//Make sure the received element is valid
 				if( val2 >= ELE_ALL )
 					val2 = val2%ELE_ALL;
 				else if( val2 < 0 )

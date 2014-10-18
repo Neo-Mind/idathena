@@ -9104,10 +9104,10 @@ bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
 	}
 	if( pos == EQP_ACC ) { //Accesories should only go in one of the two,
 		pos = req_pos&EQP_ACC;
-		if( pos == EQP_ACC ) //User specified both slots.
+		if( pos == EQP_ACC ) //User specified both slots
 			pos = (sd->equip_index[EQI_ACC_R] >= 0 ? EQP_ACC_L : EQP_ACC_R);
 	}
-	if( pos == EQP_ARMS && id->equip == EQP_HAND_R ) { //Dual wield capable weapon.
+	if( pos == EQP_ARMS && id->equip == EQP_HAND_R ) { //Dual wield capable weapon
 		pos = req_pos&EQP_ARMS;
 		if( pos == EQP_ARMS )
 			pos = (sd->equip_index[EQI_HAND_R] >= 0 ? EQP_HAND_L : EQP_HAND_R);
@@ -9367,11 +9367,10 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 
 	clif_unequipitemack(sd,n,sd->status.inventory[n].equip,1);
 
-	if( (sd->status.inventory[n].equip&EQP_ARMS) &&
-		sd->weapontype1 == 0 && sd->weapontype2 == 0 && (!sd->sc.data[SC_SEVENWIND] || sd->sc.data[SC_ASPERSIO]) ) //Check for seven wind (but not level seven!)
+	if( sd->inventory_data[n]->type == IT_WEAPON && sd->weapontype1 == 0 && sd->weapontype2 == 0 &&
+		!sd->sc.data[SC_SEVENWIND] ) //Endow status from Seven Wind still remain even while changing weapons
 		skill_enchant_elemental_end(&sd->bl,SC_NONE);
-	if( sd->status.inventory[n].equip&EQP_ARMOR ) {
-		//On Armor Change
+	if( sd->status.inventory[n].equip&EQP_ARMOR ) { //On Armor Change
 		status_change_end(&sd->bl,SC_BENEDICTIO,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_ARMOR_RESIST,INVALID_TIMER);
 	}
