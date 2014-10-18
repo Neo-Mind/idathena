@@ -9198,24 +9198,25 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				int joblvbonus = 0;
 
 				joblvbonus = (sd ? sd->status.job_level : 0);
-				//First we set the success chance based on the caster's build which increases the chance.
+				//First we set the success chance based on the caster's build which increases the chance
 				rate = 10 * skill_lv + rnd_value(sstatus->dex / 12,sstatus->dex / 4) + joblvbonus + status_get_lv(src) / 10 -
-				//Then we reduce the success chance based on the target's build.
+				//Then we reduce the success chance based on the target's build
 				rnd_value(tstatus->agi / 6,tstatus->agi / 3) - tstatus->luk / 10 - (dstsd ? (dstsd->max_weight / 10 - dstsd->weight / 10) / 100 : 0) - status_get_lv(bl) / 10;
-				//Finally we set the minimum success chance cap based on the caster's skill level and DEX.
+				//Finally we set the minimum success chance cap based on the caster's skill level and DEX
 				rate = cap_value(rate,skill_lv + sstatus->dex / 20,100);
 				clif_skill_nodamage(src,bl,skill_id,0,sc_start(src,bl,type,rate,skill_lv,skill_get_time(skill_id,skill_lv)));
-				//If the target was successfully inflected with the Ignorance status, drain some of the targets SP.
+				//If the target was successfully inflected with the Ignorance status, drain some of the targets SP
 				if( tsc->data[SC__IGNORANCE] && skill_id == SC_IGNORANCE ) {
 						int sp = 100 * skill_lv;
 
 						if( dstmd )
 							sp = dstmd->level;
-						if( status_zap(bl,0,sp) )
-							status_heal(src,0,sp / 2,3);
+						if( !dstmd )
+							status_zap(bl,0,sp);
+						status_heal(src,0,sp / 2,3);
 				}
-				//If the target was successfully inflected with the Unlucky status, give 1 of 3 random status's.
-				//Targets in the Unlucky status will be affected by one of the 3 random status's reguardless of resistance.
+				//If the target was successfully inflected with the Unlucky status, give 1 of 3 random status's
+				//Targets in the Unlucky status will be affected by one of the 3 random status's reguardless of resistance
 				if( tsc->data[SC__UNLUCKY] && skill_id == SC_UNLUCKY )
 					switch( rnd()%3 ) {
 						case 0:
