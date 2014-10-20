@@ -4677,7 +4677,9 @@ static void clif_graffiti(struct block_list *bl, struct skill_unit *unit, enum s
 	unsigned char buf[128];
 
 	nullpo_retv(bl);
-	nullpo_retv(unit);
+
+	if( !unit || !unit->group )
+		return;
 
 	WBUFW(buf, 0) = 0x1c9;
 	WBUFL(buf, 2) = unit->bl.id;
@@ -4703,7 +4705,9 @@ void clif_getareachar_skillunit(struct block_list *bl, struct skill_unit *unit, 
 	unsigned char buf[128];
 
 	nullpo_retv(bl);
-	nullpo_retv(unit);
+
+	if( !unit || !unit->group )
+		return;
 
 	if( bl->type == BL_PC )
 		fd = ((TBL_PC*)bl)->fd;
@@ -4802,14 +4806,15 @@ void clif_getareachar_skillunit(struct block_list *bl, struct skill_unit *unit, 
  *------------------------------------------*/
 static void clif_clearchar_skillunit(struct skill_unit *unit, int fd)
 {
-	nullpo_retv(unit);
+	if( !unit || !unit->group )
+		return;
 
 	WFIFOHEAD(fd,packet_len(0x120));
 	WFIFOW(fd,0) = 0x120;
 	WFIFOL(fd,2) = unit->bl.id;
 	WFIFOSET(fd,packet_len(0x120));
 
-	if( unit->group && unit->group->skill_id == WZ_ICEWALL )
+	if( unit->group->skill_id == WZ_ICEWALL )
 		clif_changemapcell(fd,unit->bl.m,unit->bl.x,unit->bl.y,unit->val2,SELF);
 }
 
@@ -4820,7 +4825,8 @@ void clif_skill_delunit(struct skill_unit *unit)
 {
 	unsigned char buf[16];
 
-	nullpo_retv(unit);
+	if( !unit )
+		return;
 
 	WBUFW(buf,0) = 0x120;
 	WBUFL(buf,2) = unit->bl.id;
@@ -5258,8 +5264,8 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,unsigned int
 	type = clif_calc_delay(type,div,damage,ddelay);
 
 #if PACKETVER >= 20131223
-	if(type == 6)
-		type = 8; //bugreport:8263
+	if(type == DMG_SKILL)
+		type = DMG_MULTI_HIT; //bugreport:8263
 #endif
 
 	if((sc = status_get_sc(dst)) && sc->count && sc->data[SC_HALLUCINATION] && damage)

@@ -1409,8 +1409,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 
 	if (sc && hp && status->hp) {
 		if (sc->data[SC_AUTOBERSERK] &&
-			(!sc->data[SC_PROVOKE] || !sc->data[SC_PROVOKE]->val2) &&
-			status->hp < status->max_hp>>2)
+			(!sc->data[SC_PROVOKE] || !sc->data[SC_PROVOKE]->val2) && status->hp < status->max_hp>>2)
 			sc_start4(src, target, SC_PROVOKE, 100, 10, 1, 0, 0, 0);
 		if (sc->data[SC_BERSERK] && status->hp <= 100)
 			status_change_end(target, SC_BERSERK, INVALID_TIMER);
@@ -4522,7 +4521,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 				status->dmotion = cap_value(dmotion, 400, 800);
 				if( battle_config.pc_damage_delay_rate != 100 )
 					status->dmotion = status->dmotion * battle_config.pc_damage_delay_rate / 100;
-				//It's safe to ignore b_status->dmotion since no bonus affects it.
+				//It's safe to ignore b_status->dmotion since no bonus affects it
 				status->dmotion = status_calc_dmotion(bl, sc, status->dmotion);
 			}
 		} else if( bl->type&BL_HOM ) {
