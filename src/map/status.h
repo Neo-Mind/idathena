@@ -1917,10 +1917,10 @@ struct status_change_entry {
 
 //Status change
 struct status_change {
-	unsigned int option;// effect state (bitfield)
-	unsigned int opt3;// skill state (bitfield)
-	unsigned short opt1;// body state
-	unsigned short opt2;// health state (bitfield)
+	unsigned int option; //Effect state (bitfield)
+	unsigned int opt3; //Skill state (bitfield)
+	unsigned short opt1; //Body state
+	unsigned short opt2; //Health state (bitfield)
 	unsigned char count;
 	//@TODO: See if it is possible to implement the following SC's without requiring extra parameters while the SC is inactive.
 	unsigned char jb_flag; //Joint Beat type flag
@@ -1930,12 +1930,11 @@ struct status_change {
 		unsigned char drop;
 		unsigned char cast;
 		unsigned char chat;
-	} cant;/* status change state flags */
+	} cant; //Status change state flags
 	//int sg_id; //ID of the previous Storm gust that hit you
-	short comet_x, comet_y; // Point where src casted Comet - required to calculate damage from this point
-/**
- * The Storm Gust counter was dropped in renewal
- */
+	short comet_x, comet_y; //Point where src casted Comet - required to calculate damage from this point
+
+//The Storm Gust counter was dropped in renewal
 #ifndef RENEWAL
 	unsigned char sg_counter; //Storm gust counter (previous hits from storm gust)
 #endif

@@ -1829,17 +1829,14 @@ int skill_onskillusage(struct map_session_data *sd, struct block_list *bl, uint1
 
 			if( !(BL_PC&battle_config.skill_reiteration) &&
 				skill_get_unit_flag(skill)&UF_NOREITERATION &&
-				skill_check_unit_range(&sd->bl,tbl->x,tbl->y,skill,skill_lv)
-			  )
+				skill_check_unit_range(&sd->bl,tbl->x,tbl->y,skill,skill_lv) )
 				continue;
 			if( BL_PC&battle_config.skill_nofootset &&
 				skill_get_unit_flag(skill)&UF_NOFOOTSET &&
-				skill_check_unit_range2(&sd->bl,tbl->x,tbl->y,skill,skill_lv,false)
-			  )
+				skill_check_unit_range2(&sd->bl,tbl->x,tbl->y,skill,skill_lv,false) )
 				continue;
 			if( BL_PC&battle_config.land_skill_limit &&
-				(maxcount = skill_get_maxcount(skill,skill_lv)) > 0
-			  ) {
+				(maxcount = skill_get_maxcount(skill,skill_lv)) > 0 ) {
 				int v;
 
 				for( v = 0; v < MAX_SKILLUNITGROUP && sd->ud.skillunit[v] && maxcount; v++ ) {
@@ -2054,17 +2051,14 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 
 				if(!(BL_PC&battle_config.skill_reiteration) &&
 					skill_get_unit_flag(skill_id)&UF_NOREITERATION &&
-					skill_check_unit_range(bl,tbl->x,tbl->y,skill_id,skill_lv)
-				  )
+					skill_check_unit_range(bl,tbl->x,tbl->y,skill_id,skill_lv))
 					continue;
 				if(BL_PC&battle_config.skill_nofootset &&
 					skill_get_unit_flag(skill_id)&UF_NOFOOTSET &&
-					skill_check_unit_range2(bl,tbl->x,tbl->y,skill_id,skill_lv,false)
-				  )
+					skill_check_unit_range2(bl,tbl->x,tbl->y,skill_id,skill_lv,false))
 					continue;
 				if(BL_PC&battle_config.land_skill_limit &&
-					(maxcount = skill_get_maxcount(skill_id,skill_lv)) > 0
-				  ) {
+					(maxcount = skill_get_maxcount(skill_id,skill_lv)) > 0) {
 					int v;
 
 					for(v = 0; v < MAX_SKILLUNITGROUP && dstsd->ud.skillunit[v] && maxcount; v++) {
@@ -3312,9 +3306,9 @@ static int skill_check_unit_range_sub(struct block_list *bl, va_list ap)
 	return 1;
 }
 
-static int skill_check_unit_range (struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv)
+static int skill_check_unit_range(struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv)
 {
-	//Non players do not check for the skill's splash-trigger area.
+	//Non players do not check for the skill's splash-trigger area
 	int range = (bl->type == BL_PC ? skill_get_unit_range(skill_id,skill_lv) : 0);
 	int layout_type = skill_get_unit_layout_type(skill_id,skill_lv);
 
@@ -3327,7 +3321,7 @@ static int skill_check_unit_range (struct block_list *bl, int x, int y, uint16 s
 	return map_foreachinarea(skill_check_unit_range_sub,bl->m,x - range,y - range,x + range,y + range,BL_SKILL,skill_id);
 }
 
-static int skill_check_unit_range2_sub (struct block_list *bl, va_list ap)
+static int skill_check_unit_range2_sub(struct block_list *bl, va_list ap)
 {
 	uint16 skill_id;
 
@@ -3356,7 +3350,7 @@ static int skill_check_unit_range2_sub (struct block_list *bl, va_list ap)
  * @param isNearNPC 'true' means, check the range between target and nearer NPC by using npc_isnear and range calculation [Cydh]
  * @return 0: No object (BL_CHAR or BL_PC) within the range. If 'isNearNPC' the target oject is BL_NPC
  */
-static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv, bool isNearNPC)
+static int skill_check_unit_range2(struct block_list *bl, int x, int y, uint16 skill_id, uint16 skill_lv, bool isNearNPC)
 {
 	int range = 0, type;
 
@@ -3364,7 +3358,7 @@ static int skill_check_unit_range2 (struct block_list *bl, int x, int y, uint16 
 	if (isNearNPC)
 		range = skill_get_splash(skill_id,skill_lv);
 
-	//While checking INF2_NO_NEARNPC and the range from splash is 0, get the range from skill_unit range and layout. [Cydh]
+	//While checking INF2_NO_NEARNPC and the range from splash is 0, get the range from skill_unit range and layout [Cydh]
 	if (!isNearNPC || !range) {
 		switch (skill_id) {
 			case WZ_ICEWALL:
@@ -10886,23 +10880,20 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 			break;
 		if( !(src->type&battle_config.skill_reiteration) &&
 			skill_get_unit_flag(ud->skill_id)&UF_NOREITERATION &&
-			skill_check_unit_range(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv)
-		) {
+			skill_check_unit_range(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv) ) {
 			if( sd )
 				clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
 		}
 		if( src->type&battle_config.skill_nofootset &&
 			skill_get_unit_flag(ud->skill_id)&UF_NOFOOTSET &&
-			skill_check_unit_range2(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv,false)
-		) {
+			skill_check_unit_range2(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv,false) ) {
 			if( sd )
 				clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
 		}
 		if( src->type&battle_config.land_skill_limit &&
-			(maxcount = skill_get_maxcount(ud->skill_id,ud->skill_lv)) > 0
-		) {
+			(maxcount = skill_get_maxcount(ud->skill_id,ud->skill_lv)) > 0 ) {
 			int i;
 
 			for( i = 0; i < MAX_SKILLUNITGROUP && ud->skillunit[i] && maxcount; i++ ) {
@@ -10915,17 +10906,20 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 				break;
 			}
 		}
-		if( tid != INVALID_TIMER ) { //Avoid double checks on instant cast skills. [Skotlex]
+		if( tid != INVALID_TIMER ) { //Avoid double checks on instant cast skills [Skotlex]
 			if( !status_check_skilluse(src,NULL,ud->skill_id,1) )
 				break;
 			if( battle_config.skill_add_range &&
 				!check_distance_blxy(src,ud->skillx,ud->skilly,skill_get_range2(src,ud->skill_id,ud->skill_lv) + battle_config.skill_add_range) ) {
-				if( sd && battle_config.skill_out_range_consume ) //Consume items anyway.
+				if( sd && battle_config.skill_out_range_consume ) //Consume items anyway
 					skill_consume_requirement(sd,ud->skill_id,ud->skill_lv,3);
 				break;
 			}
 		}
 		if( sd ) {
+			if( ud->skill_id == WZ_ICEWALL && map_getcell(sd->bl.m,ud->skillx,ud->skilly,CELL_CHKICEWALL) &&
+				ud->skillx == sd->icewall_x && ud->skilly == sd->icewall_y )
+				break; //Can only cast in another cell not in the previous cell it was casted
 			if( ud->skill_id != AL_WARP && !skill_check_condition_castend(sd,ud->skill_id,ud->skill_lv) ) {
 				if( ud->skill_id == SA_LANDPROTECTOR )
 					clif_skill_poseffect(&sd->bl,ud->skill_id,ud->skill_lv,sd->bl.x,sd->bl.y,tick);
@@ -11099,7 +11093,6 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case MG_FIREWALL:
 		case MG_THUNDERSTORM:
 		case AL_PNEUMA:
-		case WZ_ICEWALL:
 		case WZ_FIREPILLAR:
 		case WZ_QUAGMIRE:
 		case WZ_VERMILION:
@@ -11199,9 +11192,18 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case LG_KINGS_GRACE:
 		case SO_ELEMENTAL_SHIELD:
 		case RL_B_TRAP:
-			flag |= 1; //Set flag to 1 to prevent deleting ammo (it will be deleted on group-delete).
-		case GS_GROUNDDRIFT: //Ammo should be deleted right away.
+			flag |= 1; //Set flag to 1 to prevent deleting ammo (it will be deleted on group-delete)
+		case GS_GROUNDDRIFT: //Ammo should be deleted right away
 			skill_unitsetting(src,skill_id,skill_lv,x,y,0);
+			break;
+
+		case WZ_ICEWALL:
+			skill_unitsetting(src,skill_id,skill_lv,x,y,0);
+			if( sd ) {
+				sd->icewall_x = x;
+				sd->icewall_y = y;
+			}
+			flag |= 1;
 			break;
 
 		case RG_GRAFFITI: //Graffiti [Valaris]
@@ -11214,7 +11216,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			if( sc && sc->data[SC_BASILICA] ) { //Cancel Basilica and return so requirement isn't consumed again
 				status_change_end(src,SC_BASILICA,INVALID_TIMER);
 				return 0;
-			} else { //Create Basilica. Start SC on caster. Unit timer start SC on others.
+			} else { //Create Basilica. Start SC on caster. Unit timer start SC on others
 				if( sd && map_getcell(src->m,x,y,CELL_CHKLANDPROTECTOR) ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL,0);
 					return 0;
@@ -12064,7 +12066,7 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 
 	sd = BL_CAST(BL_PC,src);
 	status = status_get_status_data(src);
-	sc = status_get_sc(src); //For traps, firewall and fogwall - celest
+	sc = status_get_sc(src);
 
 	switch( skill_id ) {
 		case MH_STEINWAND:

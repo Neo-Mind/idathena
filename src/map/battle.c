@@ -4733,7 +4733,7 @@ struct Damage battle_calc_attack_gvg_bg(struct Damage wd, struct block_list *src
 	if( wd.damage + wd.damage2 ) { //There is a total damage value
 		if( src != target && //Don't reflect your own damage (Grand Cross)
 			(!skill_id || skill_id ||
-			(src->type == BL_SKILL && ( skill_id == SG_SUN_WARM || skill_id == SG_MOON_WARM || skill_id == SG_STAR_WARM ))) ) {
+			(src->type == BL_SKILL && (skill_id == SG_SUN_WARM || skill_id == SG_MOON_WARM || skill_id == SG_STAR_WARM))) ) {
 				int64 damage = wd.damage + wd.damage2, rdamage = 0;
 				struct map_session_data *tsd = BL_CAST(BL_PC, target);
 				struct status_data *sstatus = status_get_status_data(src);
@@ -7266,11 +7266,11 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 
 					if (!(BL_PC&battle_config.skill_reiteration) &&
 						skill_get_unit_flag(r_skill)&UF_NOREITERATION)
-							type = -1;
+						type = -1;
 
 					if (BL_PC&battle_config.skill_nofootset &&
 						skill_get_unit_flag(r_skill)&UF_NOFOOTSET)
-							type = -1;
+						type = -1;
 
 					if (BL_PC&battle_config.land_skill_limit &&
 						(maxcount = skill_get_maxcount(r_skill,r_lv)) > 0)

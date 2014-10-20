@@ -619,6 +619,8 @@ struct map_session_data {
 
 	short last_addeditem_index; //Index of latest item added
 	int autotrade_tid;
+
+	short icewall_x, icewall_y;
 };
 
 struct eri *pc_sc_display_ers; //Player's SC display table
