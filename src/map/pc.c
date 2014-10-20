@@ -9367,9 +9367,9 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 
 	clif_unequipitemack(sd,n,sd->status.inventory[n].equip,1);
 
-	if( sd->inventory_data[n]->type == IT_WEAPON && sd->weapontype1 == 0 && sd->weapontype2 == 0 &&
-		!sd->sc.data[SC_SEVENWIND] ) //Endow status from Seven Wind still remain even while changing weapons
-		skill_enchant_elemental_end(&sd->bl,SC_NONE);
+	if( sd->inventory_data[n]->type == IT_WEAPON && //On weapon change (right and left hand)
+		(!sd->sc.data[SC_SEVENWIND] || sd->sc.data[SC_ASPERSIO]) ) //Check for seven wind
+		skill_enchant_elemental_end(&sd->bl,SC_NONE); 
 	if( sd->status.inventory[n].equip&EQP_ARMOR ) { //On Armor Change
 		status_change_end(&sd->bl,SC_BENEDICTIO,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_ARMOR_RESIST,INVALID_TIMER);
