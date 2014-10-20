@@ -1255,8 +1255,8 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			}
 			break;
 		case TK_TURNKICK:
-		case MO_BALKYOUNG: //NOTE: attack_type is passed as BF_WEAPON for the actual target, BF_MISC for the splash-affected mobs.
-			if( attack_type&BF_MISC ) //70% base stun chance.
+		case MO_BALKYOUNG: //NOTE: attack_type is passed as BF_WEAPON for the actual target, BF_MISC for the splash-affected mobs
+			if( attack_type&BF_MISC ) //70% base stun chance
 				sc_start(src,bl,SC_STUN,70,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
 		case GS_BULLSEYE: //0.1% coma rate.
@@ -1293,7 +1293,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				int skill_req = (sd ? pc_checkskill(sd,KN_SPEARBOOMERANG) : 1);
 
 				if( !skill_req )
-					break; //Spear Boomerang auto cast chance only works if you have it.
+					break; //Spear Boomerang auto cast chance only works if you have it
 				skill_blown(src,bl,6,-1,0);
 				skill_castend_damage_id(src,bl,KN_SPEARBOOMERANG,skill_req,tick,0);
 			}
@@ -1308,7 +1308,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			sc_start(src,bl,SC_FREEZING,15,skill_lv,skill_get_time(skill_id,skill_lv));
 			break;
 		case AB_ADORAMUS:
-			if( !tsc->data[SC_DECREASEAGI] ) //Prevent duplicate agi-down effect.
+			if( !tsc->data[SC_DECREASEAGI] ) //Prevent duplicate agi-down effect
 				sc_start(src,bl,SC_ADORAMUS,skill_lv * 4 + (sd ? sd->status.job_level / 2 : 0),skill_lv,skill_get_time(skill_id,skill_lv));
 			break;
 		case WL_CRIMSONROCK:
@@ -1363,10 +1363,10 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			sc_start4(src,bl,SC_BURNING,20 + 10 * skill_lv,skill_lv,1000,src->id,0,skill_get_time2(skill_id,skill_lv));
 			break;
 		case NC_COLDSLOWER:
-			//Status chances are applied officially through a check.
-			//The skill first trys to give the frozen status to targets that are hit.
+			//Status chances are applied officially through a check
+			//The skill first trys to give the frozen status to targets that are hit
 			sc_start(src,bl,SC_FREEZE,10 * skill_lv,skill_lv,skill_get_time(skill_id,skill_lv));
-			//If it fails to give the frozen status, it will attempt to give the freezing status.
+			//If it fails to give the frozen status, it will attempt to give the freezing status
 			if ( !tsc->data[SC_FREEZE] )
 				sc_start(src,bl,SC_FREEZING,20 + 10 * skill_lv,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
@@ -1411,12 +1411,14 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			break;
 		case LG_MOONSLASHER:
 			rate = 32 + 8 * skill_lv;
-			if( rnd()%100 < rate && dstsd ) //Uses skill_addtimerskill to avoid damage and setsit packet overlaping. Officially clif_setsit is received about 500 ms after damage packet.
+			//Uses skill_addtimerskill to avoid damage and setsit packet overlaping
+			//Officially clif_setsit is received about 500 ms after damage packet
+			if( rnd()%100 < rate && dstsd )
 				skill_addtimerskill(src,tick + 500,bl->id,0,0,skill_id,skill_lv,BF_WEAPON,0);
 			else if( dstmd )
 				sc_start(src,bl,SC_STOP,100,skill_lv,1000 * rnd()%3);
 			break;
-		case LG_RAYOFGENESIS: //50% chance to cause Blind on Undead and Demon monsters.
+		case LG_RAYOFGENESIS: //50% chance to cause Blind on Undead and Demon monsters
 			if( battle_check_undead(tstatus->race,tstatus->def_ele) || tstatus->race == RC_DEMON )
 				sc_start(src,bl,SC_BLIND,50,skill_lv,skill_get_time(skill_id,skill_lv));
 			break;
@@ -1467,7 +1469,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			break;
 		case GN_SLINGITEM_RANGEMELEEATK:
 			if( sd ) {
-				switch( sd->itemid ) { //Starting SCs here instead of do it in skill_additional_effect to simplify the code.
+				switch( sd->itemid ) { //Starting SCs here instead of do it in skill_additional_effect to simplify the code
 					case ITEMID_COCONUT_BOMB:
 						sc_start(src,bl,SC_STUN,100,skill_lv,5000); //5 seconds until I get official
 						sc_start2(src,bl,SC_BLEEDING,100,skill_lv,src->id,10000);
@@ -13426,6 +13428,8 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			if ((status_get_mode(bl)&MD_BOSS) || src == bl ||
 				(map_flag_gvg2(src->m) && battle_check_target(&unit->bl,bl,BCT_PARTY) > 0))
 				break;
+			if (tsc && tsc->data[SC_NETHERWORLD_IMMUNE])
+				break; //Immune for 2 secs
 			if (!(tsc && tsc->data[type])) {
 				sc_start(src,bl,type,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 				group->limit = DIFF_TICK(tick,group->tick);
@@ -14754,7 +14758,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 
 				if( index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR )
 					shield_data = sd->inventory_data[index];
-				//Skill will first check if a shield is equipped. If none is found the skill will fail.
+				//Skill will first check if a shield is equipped. If none is found the skill will fail
 				if( !shield_data || shield_data->type != IT_ARMOR ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
@@ -14764,14 +14768,14 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		case LG_RAYOFGENESIS:
 		case LG_HESPERUSLIT:
 			if( sc && sc->data[SC_INSPIRATION] )
-				return true; //Don't check for partner.
+				return true; //Don't check for partner
 			if( !(sc && sc->data[SC_BANDING]) ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL,0);
 				return false;
 			}
 			if( sc->data[SC_BANDING] &&
 				sc->data[SC_BANDING]->val2 < (skill_id == LG_RAYOFGENESIS ? 2 : 3) )
-				return false; //Just fails, no msg here.
+				return false; //Just fails, no msg here
 			break;
 		case SR_FALLENEMPIRE:
 			if( !(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_DRAGONCOMBO) )
@@ -17786,7 +17790,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 
 			case UNT_REVERBERATION:
 			case UNT_POEMOFNETHERWORLD:
-				if( unit->val1 <= 0 ) { //If it was deactivated.
+				if( unit->val1 <= 0 ) { //If it was deactivated
 					skill_delunit(unit);
 					break;
 				}

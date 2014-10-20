@@ -738,6 +738,7 @@ void initChangeTables(void) {
 	set_sc( MI_ECHOSONG               , SC_ECHOSONG             , SI_ECHOSONG             , SCB_DEF );
 	set_sc( MI_HARMONIZE              , SC_HARMONIZE            , SI_HARMONIZE            , SCB_STR|SCB_AGI|SCB_VIT|SCB_INT|SCB_DEX|SCB_LUK );
 	set_sc_with_vfx( WM_POEMOFNETHERWORLD , SC_NETHERWORLD      , SI_NETHERWORLD          , SCB_NONE );
+	add_sc( WM_POEMOFNETHERWORLD      , SC_NETHERWORLD_IMMUNE );
 	set_sc_with_vfx( WM_VOICEOFSIREN      , SC_VOICEOFSIREN     , SI_VOICEOFSIREN         , SCB_NONE );
 	set_sc_with_vfx( WM_LULLABY_DEEPSLEEP , SC_DEEPSLEEP        , SI_DEEPSLEEP            , SCB_NONE );
 	set_sc( WM_SIRCLEOFNATURE         , SC_SIRCLEOFNATURE       , SI_SIRCLEOFNATURE       , SCB_NONE );
@@ -7994,7 +7995,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_BLIND:
 			case SC_BLEEDING:
 			case SC_DPOISON:
-			case SC_CLOSECONFINE2: //Can't be re-closed in.
+			case SC_CLOSECONFINE2: //Can't be re-closed in
 			case SC_TINDER_BREAKER2:
 			case SC_MARIONETTE:
 			case SC_MARIONETTE2:
@@ -10736,6 +10737,9 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 					--i;
 				}
 			}
+			break;
+		case SC_NETHERWORLD:
+			sc_start(bl,bl,SC_NETHERWORLD_IMMUNE,100,sce->val1,2000);
 			break;
 		case SC_SATURDAYNIGHTFEVER:
 			sc_start(bl,bl,SC_SITDOWN_FORCE,100,sce->val1,skill_get_time2(WM_SATURDAY_NIGHT_FEVER,sce->val1));

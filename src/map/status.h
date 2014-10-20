@@ -719,6 +719,7 @@ typedef enum sc_type {
 	SC_CRIFOOD,
 	SC_CHASEWALK2,
 	SC_FALLENEMPIRE,
+	SC_NETHERWORLD_IMMUNE,
 	SC_MAX, //Automatically updated max, used in for's to check we are within bounds
 } sc_type;
 

@@ -2611,7 +2611,7 @@
 4555,Scrat_Card,Scrat Card,6,20,,10,,,,,,,,769,,,,,{},{},{}
 4556,Fenrir_Card,Fenrir Card,6,10,,10,,,,,,,,769,,,,,{ bonus bMatk,50+getrefine()*5; bonus bFixedCast,-70; },{},{}
 4557,Weakened_Fenrir_Card,Weakened Fenrir Card,6,10,,10,,,,,,,,769,,,,,{ bonus bMatk,25; },{},{}
-4559,Evil_Morocc_Card,Evil Morocc Card,6,20,,100,,,,,,,,64,,,,,{ bonus bASPD,1; bonus bMaxSPrate,-10; },{},{}
+4559,Evil_Morocc_Card,Evil Morocc Card,6,20,,100,,,,,,,,64,,,,,{ bonus bAspd,1; bonus bMaxSPrate,-10; },{},{}
 4560,Clown_Alphoccio_Card,Clown Alphoccio Card,6,20,,10,,,,,,,,16,,,,,{ skill "BA_POEMBRAGI",10; bonus bFlee,(readparam(bVit)>=110)?40:20; },{},{}
 4561,Professor_Celia_Card,Professor Celia Card,6,20,,10,,,,,,,,16,,,,,{ bonus bMatkRate,(readparam(bDex)>=110)?14:7; bonus5 bAutoSpellWhenHit,"SA_LANDPROTECTOR",5,70,BF_MAGIC,0; },{},{}
 4562,Champion_Chen_Card,Champion Chen Card,6,20,,10,,,,,,,,16,,,,,{ bonus bAtkRate,(readparam(bAgi)>=110)?14:7; bonus5 bAutoSpellWhenHit,"MO_INVESTIGATE",5,70,BF_WEAPON,1; },{},{}
@@ -2662,7 +2662,16 @@
 4607,Faithful_Manager_Card,Faithful Manager Card,6,20,,10,,,,,,,,2,,,,,{ bonus bBaseAtk,5; bonus bMatk,5; if(getiteminfo(getequipid(EQI_HAND_R),11) == 15) { if(getrefine()>=10) { bonus bBaseAtk,20; bonus bMatk,20; } if(getrefine()>=14) { bonus bBaseAtk,20; bonus bMatk,20; } } },{},{}
 4608,White_Knight_Card,White Knight Card,6,20,,10,,,,,,,,2,,,,,{ bonus bBaseAtk,15; bonus2 bAddSize,Size_Medium,20; bonus2 bAddSize,Size_Large,20; },{},{}
 4609,Khalitzburg_Knight_Card,Khalitzburg Knight Card,6,20,,10,,,,,,,,32,,,,,{ bonus bDef,20; bonus2 bSubSize,Size_Medium,25; bonus2 bSubSize,Size_Large,25; },{},{}
-4610,Sarah_Card,Sarah Card,6,10,,10,,,,,0xFFFFFFFF,63,2,16,,,,,{},{},{}
+4610,Sarah_Card,Sarah Card,6,20,,10,,,,,0xFFFFFFFF,63,2,16,,,,,{},{},{}
+4625,Timeholder_Card,Timeholder Card,6,20,,10,,,,,,,,2,,,,,{ bonus bMatkRate,20; bonus bUseSPrate,10; },{},{}
+4626,Big_Ben_Card,Big Ben Card,6,20,,10,,,,,,,,2,,,,,{ bonus2 bMagicAddRace,RC_Formless,5; bonus2 bMagicAddRace,RC_Demon,5; },{},{}
+4627,Big_Bell_Card,Big Bell Card,6,20,,10,,,,,,,,2,,,,,{ bonus2 bAddRace,RC_Formless,10; bonus2 bAddRace,RC_Demon,10; },{},{}
+4628,Neo_Punk_Card,Neo Punk Card,6,20,,10,,,,,,,,32,,,,,{ bonus2 bSubRace,RC_Formless,25; bonus2 bSubRace,RC_Demon,25; },{},{}
+4629,Arc_Elder_Card,Arc Elder Card,6,20,,10,,,,,,,,4,,,,,{ bonus2 bSubEle,Ele_Neutral,15; bonus2 bMagicAtkEle,Ele_Earth,(getrefine()*3);  },{},{}
+4630,Time_Keeper_Card,Time Keeper Card,6,20,,10,,,,,,,,64,,,,,{ bonus3 bAutoSpell,"NPC_WIDECURSE",4,20; },{},{}
+4631,Owl_Viscount_Card,Owl Viscount Card,6,20,,10,,,,,,,,136,,,,,{ bonus bAspdRate,3; },{},{}
+4632,Owl_Marquees_Card,Owl Marquees Card,6,20,,10,,,,,,,,136,,,,,{ if(getskilllv("SA_VIOLENTGALE") == 5) { bonus5 bAutoSpell,"SA_VIOLENTGALE",5,20,BF_WEAPON,0; }else{ bonus5 bAutoSpell,"SA_VIOLENTGALE",1,20,BF_WEAPON,0; } },{},{}
+
 // Armor Enchant System
 //===================================================================
 4700,Strength1,STR+1,6,20,,10,,,,,,,,,,,,,{ bonus bStr,1; },{},{}

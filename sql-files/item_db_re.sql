@@ -2642,7 +2642,7 @@ REPLACE INTO `item_db_re` VALUES (4554,'Diego_Card','Diego Card',6,20,NULL,10,NU
 REPLACE INTO `item_db_re` VALUES (4555,'Scrat_Card','Scrat Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,769,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (4556,'Fenrir_Card','Fenrir Card',6,10,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,769,NULL,NULL,NULL,NULL,'bonus bMatk,50+getrefine()*5; bonus bFixedCast,-70;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (4557,'Weakened_Fenrir_Card','Weakened Fenrir Card',6,10,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,769,NULL,NULL,NULL,NULL,'bonus bMatk,25;',NULL,NULL);
-REPLACE INTO `item_db_re` VALUES (4559,'Evil_Morocc_Card','Evil Morocc Card',6,20,NULL,100,NULL,NULL,NULL,NULL,NULL,NULL,NULL,64,NULL,NULL,NULL,NULL,'bonus bASPD,1; bonus bMaxSPrate,-10;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (4559,'Evil_Morocc_Card','Evil Morocc Card',6,20,NULL,100,NULL,NULL,NULL,NULL,NULL,NULL,NULL,64,NULL,NULL,NULL,NULL,'bonus bAspd,1; bonus bMaxSPrate,-10;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (4560,'Clown_Alphoccio_Card','Clown Alphoccio Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,16,NULL,NULL,NULL,NULL,'skill "BA_POEMBRAGI",10; bonus bFlee,(readparam(bVit)>=110)?40:20;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (4561,'Professor_Celia_Card','Professor Celia Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,16,NULL,NULL,NULL,NULL,'bonus bMatkRate,(readparam(bDex)>=110)?14:7; bonus5 bAutoSpellWhenHit,"SA_LANDPROTECTOR",5,70,BF_MAGIC,0;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (4562,'Champion_Chen_Card','Champion Chen Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,16,NULL,NULL,NULL,NULL,'bonus bAtkRate,(readparam(bAgi)>=110)?14:7; bonus5 bAutoSpellWhenHit,"MO_INVESTIGATE",5,70,BF_WEAPON,1;',NULL,NULL);
@@ -2693,7 +2693,16 @@ REPLACE INTO `item_db_re` VALUES (4606,'Grudge_of_Royal_Knight_Card','Grudge of 
 REPLACE INTO `item_db_re` VALUES (4607,'Faithful_Manager_Card','Faithful Manager Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus bBaseAtk,5; bonus bMatk,5; if(getiteminfo(getequipid(EQI_HAND_R),11) == 15) { if(getrefine()>=10) { bonus bBaseAtk,20; bonus bMatk,20; } if(getrefine()>=14) { bonus bBaseAtk,20; bonus bMatk,20; } }',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (4608,'White_Knight_Card','White Knight Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus bBaseAtk,15; bonus2 bAddSize,Size_Medium,20; bonus2 bAddSize,Size_Large,20;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (4609,'Khalitzburg_Knight_Card','Khalitzburg Knight Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,32,NULL,NULL,NULL,NULL,'bonus bDef,20; bonus2 bSubSize,Size_Medium,25; bonus2 bSubSize,Size_Large,25;',NULL,NULL);
-REPLACE INTO `item_db_re` VALUES (4610,'Sarah_Card','Sarah Card',6,10,NULL,10,NULL,NULL,NULL,NULL,0xFFFFFFFF,63,2,16,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (4610,'Sarah_Card','Sarah Card',6,20,NULL,10,NULL,NULL,NULL,NULL,0xFFFFFFFF,63,2,16,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (4625,'Timeholder_Card','Timeholder Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus bMatkRate,20; bonus bUseSPrate,10;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (4626,'Big_Ben_Card','Big Ben Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus2 bMagicAddRace,RC_Formless,5; bonus2 bMagicAddRace,RC_Demon,5;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (4627,'Big_Bell_Card','Big Bell Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus2 bAddRace,RC_Formless,10; bonus2 bAddRace,RC_Demon,10;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (4628,'Neo_Punk_Card','Neo Punk Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,32,NULL,NULL,NULL,NULL,'bonus2 bSubRace,RC_Formless,25; bonus2 bSubRace,RC_Demon,25;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (4629,'Arc_Elder_Card','Arc Elder Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,4,NULL,NULL,NULL,NULL,'bonus2 bSubEle,Ele_Neutral,15; bonus2 bMagicAtkEle,Ele_Earth,(getrefine()*3);',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (4630,'Time_Keeper_Card','Time Keeper Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,64,NULL,NULL,NULL,NULL,'bonus3 bAutoSpell,"NPC_WIDECURSE",4,20;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (4631,'Owl_Viscount_Card','Owl Viscount Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,136,NULL,NULL,NULL,NULL,'bonus bAspdRate,3;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (4632,'Owl_Marquees_Card','Owl Marquees Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,136,NULL,NULL,NULL,NULL,'if(getskilllv("SA_VIOLENTGALE") == 5) { bonus5 bAutoSpell,"SA_VIOLENTGALE",5,20,BF_WEAPON,0; }else{ bonus5 bAutoSpell,"SA_VIOLENTGALE",1,20,BF_WEAPON,0; }',NULL,NULL);
+
 # Armor Enchant System
 #===================================================================
 REPLACE INTO `item_db_re` VALUES (4700,'Strength1','STR+1',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'bonus bStr,1;',NULL,NULL);

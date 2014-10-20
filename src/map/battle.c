@@ -7256,7 +7256,8 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	}
 	if (sd) {
 		if (sc && sc->data[SC__AUTOSHADOWSPELL] && wd.flag&BF_SHORT && rnd()%100 < sc->data[SC__AUTOSHADOWSPELL]->val3 &&
-			sd->status.skill[sc->data[SC__AUTOSHADOWSPELL]->val1].id != 0 && sd->status.skill[sc->data[SC__AUTOSHADOWSPELL]->val1].flag == SKILL_FLAG_PLAGIARIZED)
+			sd->status.skill[sc->data[SC__AUTOSHADOWSPELL]->val1].id != 0 &&
+			sd->status.skill[sc->data[SC__AUTOSHADOWSPELL]->val1].flag == SKILL_FLAG_PLAGIARIZED)
 		{
 			int r_skill = sd->status.skill[sc->data[SC__AUTOSHADOWSPELL]->val1].id,
 				r_lv = sc->data[SC__AUTOSHADOWSPELL]->val2, type;
@@ -7273,8 +7274,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 						type = -1;
 
 					if (BL_PC&battle_config.land_skill_limit &&
-						(maxcount = skill_get_maxcount(r_skill,r_lv)) > 0)
-					{
+						(maxcount = skill_get_maxcount(r_skill,r_lv)) > 0) {
 						int v;
 
 						for (v = 0; v < MAX_SKILLUNITGROUP && sd->ud.skillunit[v] && maxcount; v++) {
@@ -7323,9 +7323,9 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		if (damage > 0 && tsc->data[SC_POISONREACT] &&
 			(rnd()%100 < tsc->data[SC_POISONREACT]->val3 ||
 			sstatus->def_ele == ELE_POISON) &&
-			//check_distance_bl(src,target,tstatus->rhw.range + 1) && //Doesn't checks range! o.O;
-			status_check_skilluse(target,src,TF_POISON,0)
-		) {	//Poison React
+			//check_distance_bl(src,target,tstatus->rhw.range + 1) && //Doesn't checks range!
+			status_check_skilluse(target,src,TF_POISON,0))
+		{ //Poison React
 			struct status_change_entry *sce = tsc->data[SC_POISONREACT];
 
 			if (sstatus->def_ele == ELE_POISON) {
