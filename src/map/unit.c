@@ -363,23 +363,39 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 	dx = dirx[(int)dir];
 	dy = diry[(int)dir];
 
-	if(map_getcell(bl->m,x+dx,y+dy,CELL_CHKNOPASS))
+	//Monsters will walk into an icewall from the west and south if they already started walking
+	if(map_getcell(bl->m,x+dx,y+dy,CELL_CHKNOPASS)
+		&& (!battle_config.icewall_walk_block || !map_getcell(bl->m,x+dx,y+dy,CELL_CHKICEWALL) || dx < 0 || dy < 0))
 		return unit_walktoxy_sub(bl);
 
+	//Monsters can only leave icewalls to the west and south
+	//But if movement fails more than icewall_walk_block times, they can ignore this rule
+	if(md && md->walktoxy_fail_count < battle_config.icewall_walk_block &&
+		map_getcell(bl->m,x,y,CELL_CHKICEWALL) && (dx > 0 || dy > 0)) {
+		//Needs to be done here so that rudeattack skills are invoked
+		md->walktoxy_fail_count++;
+		clif_fixpos(bl);
+		mob_unlocktarget(md,tick);
+		//Use idle skill at this point
+		if(!(++ud->walk_count%WALK_SKILL_INTERVAL))
+			mobskill_use(md,tick,-1);
+		return 0;
+	}
+
 	//Refresh view for all those we lose sight
-	map_foreachinmovearea(clif_outsight, bl, AREA_SIZE, dx, dy, sd ? BL_ALL : BL_PC, bl);
+	map_foreachinmovearea(clif_outsight,bl,AREA_SIZE,dx,dy,(sd ? BL_ALL : BL_PC),bl);
 
 	x += dx;
 	y += dy;
-	map_moveblock(bl, x, y, tick);
-	ud->walk_count++; //Walked cell counter, to be used for walk-triggered skills. [Skotlex]
-	status_change_end(bl, SC_ROLLINGCUTTER, INVALID_TIMER); //If you move, you lose your counters. [malufett]
+	map_moveblock(bl,x,y,tick);
+	ud->walk_count++; //Walked cell counter, to be used for walk-triggered skills [Skotlex]
+	status_change_end(bl,SC_ROLLINGCUTTER,INVALID_TIMER); //If you move, you lose your counters [malufett]
 
 	if(bl->x != x || bl->y != y || ud->walktimer != INVALID_TIMER)
 		return 0; //map_moveblock has altered the object beyond what we expected (moved/warped it)
 
 	ud->walktimer = CLIF_WALK_TIMER; //Arbitrary non-INVALID_TIMER value to make the clif code send walking packets
-	map_foreachinmovearea(clif_insight, bl, AREA_SIZE, -dx, -dy, sd?BL_ALL:BL_PC, bl);
+	map_foreachinmovearea(clif_insight,bl,AREA_SIZE,-dx,-dy,(sd ? BL_ALL : BL_PC),bl);
 	ud->walktimer = INVALID_TIMER;
 
 	switch(bl->type) {
@@ -395,6 +411,8 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 			pc_cell_basilica(sd);
 			break;
 		case BL_MOB:
+			//Movement was successful, reset walktoxy_fail_count
+			md->walktoxy_fail_count = 0;
 			if(map_getcell(bl->m,x,y,CELL_CHKNPC) && npc_touch_areanpc2(md))
 				return 0; //Warped
 			else
@@ -404,7 +422,7 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 			//Walk skills are triggered regardless of target due to the idle-walk mob state
 			//But avoid triggering on stop-walk calls.
 			if(tid != INVALID_TIMER && !(ud->walk_count%WALK_SKILL_INTERVAL) &&
-				map[bl->m].users > 0 && mobskill_use(md, tick, -1)) {
+				map[bl->m].users > 0 && mobskill_use(md,tick,-1)) {
 				if(!(ud->skill_id == NPC_SELFDESTRUCTION && ud->skilltimer != INVALID_TIMER) &&
 					md->state.skillstate != MSS_WALK) //Walk skills are supposed to be used while walking
 				{ //Skill used, abort walking
@@ -424,7 +442,7 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 	if(ud->stepaction && ud->target_to) {
 		//Delete old stepaction even if not executed yet, the latest command is what counts
 		if(ud->steptimer != INVALID_TIMER) {
-			delete_timer(ud->steptimer, unit_step_timer);
+			delete_timer(ud->steptimer,unit_step_timer);
 			ud->steptimer = INVALID_TIMER;
 		}
 		//Delay stepactions by half a step (so they are executed at full step)
@@ -432,7 +450,7 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 			i = status_get_speed(bl) * 14 / 20;
 		else
 			i = status_get_speed(bl) / 2;
-		ud->steptimer = add_timer(tick + i, unit_step_timer, bl->id, 0);
+		ud->steptimer = add_timer(tick + i,unit_step_timer,bl->id,0);
 	}
 
 	if(ud->state.change_walk_target)
@@ -456,23 +474,23 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 	} else if(!ud->stepaction && ud->target_to) { //Update target trajectory
 		struct block_list *tbl = map_id2bl(ud->target_to);
 
-		if(!tbl || !status_check_visibility(bl, tbl)) { //Cancel chase
+		if(!tbl || !status_check_visibility(bl,tbl)) { //Cancel chase
 			ud->to_x = bl->x;
 			ud->to_y = bl->y;
-			if (tbl && bl->type == BL_MOB && mob_warpchase((TBL_MOB*)bl, tbl) )
+			if (tbl && bl->type == BL_MOB && mob_warpchase((TBL_MOB*)bl,tbl) )
 				return 0;
 			ud->target_to = 0;
 			return 0;
 		}
-		if(tbl->m == bl->m && check_distance_bl(bl, tbl, ud->chaserange)) { //Reached destination
+		if(tbl->m == bl->m && check_distance_bl(bl,tbl,ud->chaserange)) { //Reached destination
 			if(ud->state.attack_continue) { //Aegis uses one before every attack, we should
 				//Only need this one for syncing purposes [Skotlex]
 				ud->target_to = 0;
 				clif_fixpos(bl);
-				unit_attack(bl, tbl->id, ud->state.attack_continue);
+				unit_attack(bl,tbl->id,ud->state.attack_continue);
 			}
 		} else { //Update chase-path
-			unit_walktobl(bl, tbl, ud->chaserange, ud->state.walk_easy|(ud->state.attack_continue ? 1 : 0));
+			unit_walktobl(bl,tbl,ud->chaserange,ud->state.walk_easy|(ud->state.attack_continue ? 1 : 0));
 			return 0;
 		}
 	} else { //Stopped walking. Update to_x and to_y to current location [Skotlex]
@@ -981,7 +999,7 @@ int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag)
 			map_foreachinmovearea(clif_insight, bl, AREA_SIZE, -dx, -dy, bl->type == BL_PC ? BL_ALL : BL_PC, bl);
 
 			if(!(flag&1))
-				clif_blown(bl);
+				clif_blown(bl, bl);
 
 			if(sd) {
 				if(sd->touching_id)
@@ -2306,8 +2324,8 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 	sstatus = status_get_status_data(src);
 	range = sstatus->rhw.range;
 
-	if( unit_is_walking(target) )
-		range++; //Extra range when chasing
+	if( unit_is_walking(target) && (target->type == BL_PC || !map_getcell(target->m,target->x,target->y,CELL_CHKICEWALL)) )
+		range++; //Extra range when chasing (does not apply to mobs locked in an icewall)
 	//Player tries to attack but target is too far, notify client
 	if( sd && !check_distance_client_bl(src,target,range) ) {
 		clif_movetoattack(sd,target);

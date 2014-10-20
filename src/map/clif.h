@@ -429,7 +429,7 @@ void clif_walkok(struct map_session_data *sd); //Self
 void clif_move(struct unit_data *ud); //Area
 void clif_changemap(struct map_session_data *sd, short m, int x, int y); //Self
 void clif_changemapserver(struct map_session_data* sd, unsigned short map_index, int x, int y, uint32 ip, uint16 port); //Self
-void clif_blown(struct block_list *bl); //Area
+void clif_blown(struct block_list *src, struct block_list *bl); //Area
 void clif_slide(struct block_list *bl, int x, int y); //Area
 void clif_fixpos(struct block_list *bl); //Area
 void clif_npcbuysell(struct map_session_data* sd, int id); //Self

@@ -2686,10 +2686,8 @@ void skill_attack_blow(struct block_list *src, struct block_list *dsrc, struct b
 				dir_ka = -1;
 
 				//Move attacker to the target position after knocked back
-				if ((target->x != x || target->y != y) && unit_movepos(src,target->x,target->y,1,1)) {
-					clif_slide(src, target->x, target->y);
-					clif_fixpos(src);
-				}
+				if ((target->x != x || target->y != y) && unit_movepos(src,target->x,target->y,1,1))
+					clif_blown(src, target);
 			}
 			break;
 		case RL_R_TRIP:
@@ -4139,10 +4137,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				uint8 dir = map_calc_dir(bl,src->x,src->y);
 
 				//Teleport to target (if not on WoE grounds)
-				if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src,bl->x,bl->y,0,1)) {
-					clif_slide(src,bl->x,bl->y);
-					clif_fixpos(src);
-				}
+				if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src,bl->x,bl->y,0,1))
+					clif_blown(src,bl);
 
 				//Cause damage and knockback if the path to target was a straight one
 				if (path) {
@@ -4245,8 +4241,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				//Ashura Strike still has slide effect in GVG
 				if ((mbl == src || (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground)) &&
 					unit_movepos(src,mbl->x + x,mbl->y + y,1,1)) {
-					clif_slide(src,mbl->x,mbl->y);
-					clif_fixpos(src);
+					clif_blown(src,mbl);
 					clif_spiritball(src);
 				}
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
@@ -4660,8 +4655,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				y = 0;
 			//Doesn't have slide effect in GVG
 			if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src,bl->x + x,bl->y + y,1,1)) {
-				clif_slide(src,bl->x,bl->y);
-				clif_fixpos(src);
+				clif_blown(src,bl);
 				clif_spiritball(src);
 			}
 			skill_attack(BF_MISC,src,src,bl,skill_id,skill_lv,tick,flag);
@@ -4737,10 +4731,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				short x, y;
 
 				map_search_freecell(bl,0,&x,&y,1,1,0);
-				if (unit_movepos(src,x,y,0,0)) {
-					clif_slide(src,src->x,src->y);
-					clif_fixpos(src);
-				}
+				if (unit_movepos(src,x,y,0,0))
+					clif_blown(src,src);
 			}
 			status_change_end(src,SC_HIDING,INVALID_TIMER);
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
@@ -4763,8 +4755,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				else
 					y = 0;
 				if (unit_movepos(src,bl->x + x,bl->y + y,1,1)) {
-					clif_slide(src,bl->x,bl->y);
-					clif_fixpos(src);
+					clif_blown(src,bl);
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 					if (rnd()%100 < 4 * skill_lv)
 						skill_castend_damage_id(src,bl,GC_CROSSIMPACT,skill_lv,tick,flag);
@@ -4967,8 +4958,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				uint8 dir = map_calc_dir(bl,src->x,src->y);
 
 				if (unit_movepos(src,bl->x + x[dir],bl->y + y[dir],1,1)) {
-					clif_slide(src,bl->x,bl->y);
-					clif_fixpos(src);
+					clif_blown(src,bl);
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 				}
 				break;
@@ -5045,10 +5035,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			break;
 
 		case LG_PINPOINTATTACK:
-			if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src,bl->x,bl->y,1,1)) {
-				clif_slide(src,bl->x,bl->y);
-				clif_fixpos(src);
-			}
+			if (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground && unit_movepos(src,bl->x,bl->y,1,1))
+				clif_blown(src,bl);
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
 
@@ -5065,13 +5053,11 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 		case SR_KNUCKLEARROW:
 			//Holds current direction of bl/target to src/attacker before the src is moved to bl location
-			dir_ka = map_calc_dir(bl, src->x, src->y);
+			dir_ka = map_calc_dir(bl,src->x,src->y);
 
 			//Has slide effect even in GVG
-			if (unit_movepos(src,bl->x,bl->y,1,1)) {
-				clif_slide(src,bl->x,bl->y);
-				clif_fixpos(src);
-			}
+			if (unit_movepos(src,bl->x,bl->y,1,1))
+				clif_blown(src,bl);
 			skill_addtimerskill(src,tick,bl->id,0,0,skill_id,skill_lv,BF_WEAPON,flag|SD_LEVEL|2);
 			break;
 
@@ -5208,8 +5194,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				else
 					y = 0;
 				if (unit_movepos(src,bl->x + x,bl->y + y,1,1)) {
-					clif_slide(src,bl->x,bl->y);
-					clif_fixpos(src);
+					clif_blown(src,bl);
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 				}
 			}
@@ -5386,10 +5371,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				TBL_HOM *hd = BL_CAST(BL_HOM,src);
 
 				duration = max(skill_lv,(status_get_str(src) / 7 - status_get_str(bl) / 10)) * 1000; //Yommy formula
-				if (skill_id == MH_TINDER_BREAKER && unit_movepos(src,bl->x,bl->y,1,1)) {
-					clif_slide(src,bl->x,bl->y);
-					clif_fixpos(src);
-				}
+				if (skill_id == MH_TINDER_BREAKER && unit_movepos(src,bl->x,bl->y,1,1))
+					clif_blown(src,bl);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,
 					sc_start4(src,bl,status_skill2sc(skill_id),100,skill_lv,src->id,0,0,duration));
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
@@ -6077,11 +6060,10 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case TK_JUMPKICK:
-			/* Check if the target is an enemy. If not, skill should fail so the character doesn't unit_movepos (exploitable) */
+			//Check if the target is an enemy. If not, skill should fail so the character doesn't unit_movepos (exploitable)
 			if( battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
 				if( unit_movepos(src,bl->x,bl->y,1,1) ) {
-					clif_slide(src,bl->x,bl->y);
-					clif_fixpos(src);
+					clif_blown(src,bl);
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 				}
 			} else
@@ -7409,10 +7391,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				if( !map_count_oncell(src->m,x,y,BL_PC|BL_NPC|BL_MOB) &&
-					map_getcell(src->m,x,y,CELL_CHKREACH) && unit_movepos(src,x,y,1,0) ) {
-					clif_slide(src,src->x,src->y);
-					clif_fixpos(src);
-				}
+					map_getcell(src->m,x,y,CELL_CHKREACH) && unit_movepos(src,x,y,1,0) )
+					clif_blown(src,src);
 			}
 			break;
 
@@ -8306,18 +8286,14 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 		case HAMI_CASTLE: //[orn]
 			if (rnd()%100 < 20 * skill_lv && src != bl) {
-				int x = src->x, y = src->y;
-
 				if (hd)
 					skill_blockhomun_start(hd,skill_id,skill_get_time2(skill_id,skill_lv));
 				if (unit_movepos(src,bl->x,bl->y,0,0)) {
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1); //Homun
-					clif_slide(src,bl->x,bl->y);
-					clif_fixpos(src);
-					if (unit_movepos(bl,x,y,0,0)) {
+					clif_blown(src,bl);
+					if (unit_movepos(bl,src->x,src->y,0,0)) {
 						clif_skill_nodamage(bl,bl,skill_id,skill_lv,1); //Master
-						clif_slide(bl,x,y);
-						clif_fixpos(bl);
+						clif_blown(bl,src);
 					}
 					//@TODO: Make casted skill also change its target
 					map_foreachinrange(skill_changetarget,src,AREA_SIZE,BL_CHAR,bl,src);
@@ -10095,7 +10071,6 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case KO_GENWAKU:
 			if( !map_flag_gvg2(src->m) && (dstsd || dstmd) &&
 				!(tstatus->mode&MD_PLANT) && battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
-				int x = src->x, y = src->y;
 				int rate = max(5,(45 + (5 * skill_lv) - (status_get_int(bl) / 10)));
 
 				if( sd && rnd()%100 > rate ) {
@@ -10104,14 +10079,12 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				}
 				if( unit_movepos(src,bl->x,bl->y,0,0) ) {
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
-					clif_slide(src,bl->x,bl->y);
-					clif_fixpos(src);
+					clif_blown(src,bl);
 					sc_start(src,src,SC__CHAOS,25,skill_lv,skill_get_time(skill_id,skill_lv));
-					if( !is_boss(bl) && unit_movepos(bl,x,y,0,0) ) {
+					if( !is_boss(bl) && unit_movepos(bl,src->x,src->y,0,0) ) {
 						if( dstsd && pc_issit(dstsd) )
 							pc_setstand(dstsd);
-						clif_slide(bl,x,y);
-						clif_fixpos(bl);
+						clif_blown(bl,src);
 						sc_start(src,bl,SC__CHAOS,75,skill_lv,skill_get_time(skill_id,skill_lv));
 					}
 				}
@@ -10852,8 +10825,7 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 			else
 				y = 0;
 			if( unit_movepos(src,src->x + x,src->y + y,1,1) ) { //Display movement + animation
-				clif_slide(src,src->x,src->y);
-				clif_fixpos(src);
+				clif_blown(src,src);
 				clif_spiritball(src);
 			}
 			clif_skill_damage(src,target,tick,sd->battle_status.amotion,0,0,1,ud->skill_id,ud->skill_lv,DMG_SPLASH);
@@ -11316,9 +11288,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 		case NJ_SHADOWJUMP:
 			if( !map_flag_gvg2(src->m) && !map[src->m].flag.battleground &&
-				unit_movepos(src,x,y,1,0) ) { //You don't move on GVG grounds.
-				clif_slide(src,x,y);
-				clif_fixpos(src);
+				unit_movepos(src,x,y,1,0) ) { //You don't move on GVG grounds
+				clif_blown(src,src);
 			}
 			status_change_end(src,SC_HIDING,INVALID_TIMER);
 			break;
@@ -11759,8 +11730,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 					uint8 skill_use_lv = pc_checkskill(sd,skill_use_id);
 
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
-					clif_slide(src,x,y);
-					clif_fixpos(src);
+					clif_blown(src,src);
 					if( skill_use_lv && skill_check_condition_castend(sd,skill_use_id,skill_use_lv) ) {
 						sd->skill_id_old = RL_FALLEN_ANGEL;
 						skill_castend_pos2(src,src->x,src->y,skill_use_id,skill_use_lv,tick,SD_LEVEL|SD_ANIMATION|SD_SPLASH);
@@ -12052,30 +12022,6 @@ static bool skill_dance_switch(struct skill_unit* unit, int flag)
 	}
 
 	return true;
-}
-
-/**
- * Upon Ice Wall cast it checks all nearby mobs to find any who may be blocked by the IW
- */
-static int skill_icewall_block(struct block_list *bl,va_list ap) {
-	struct block_list *target = NULL;
-	struct mob_data *md = ((TBL_MOB*)bl);
-
-	nullpo_ret(bl);
-	nullpo_ret(md);
-
-	if( !md->target_id || (target = map_id2bl(md->target_id)) == NULL )
-		return 0;
-
-	if( path_search_long(NULL,bl->m,bl->x,bl->y,target->x,target->y,CELL_CHKICEWALL) )
-		return 0;
-
-	if( !check_distance_bl(bl,target,status_get_range(bl)) ) {
-		mob_unlocktarget(md,gettick());
-		mob_stop_walking(md,1);
-	}
-
-	return 0;
 }
 
 /**
@@ -12593,9 +12539,6 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 
 	//Success, unit created
 	switch( skill_id ) {
-		case WZ_ICEWALL:
-			map_foreachinrange(skill_icewall_block,src,AREA_SIZE,BL_MOB);
-			break;
 		case NJ_TATAMIGAESHI: //Store number of tiles
 			group->val1 = group->alive_count;
 			break;
@@ -13143,10 +13086,8 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 						if (group->unit_id != UNT_MANHOLE && !battle_config.skill_trap_type && map_flag_gvg2(bl->m))
 							;
 						else {
-							if (unit_movepos(bl,unit->bl.x,unit->bl.y,0,0)) {
-								clif_slide(bl,unit->bl.x,unit->bl.y);
-								clif_fixpos(bl);
-							}
+							if (unit_movepos(bl,unit->bl.x,unit->bl.y,0,0))
+								clif_blown(bl,&unit->bl);
 						}
 					}
 					group->val2 = bl->id;
@@ -13595,10 +13536,8 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 				if (bl->type != BL_PC && distance_xy(unit->bl.x,unit->bl.y,bl->x,bl->y) <= range) {
 					if (tsc && (!tsc->data[type] || (tsc->data[type] && tsc->data[type]->val4 < 1)))
 						break;
-					if (unit_movepos(bl,unit->bl.x,unit->bl.y,0,0)) { //Only snap if the target is inside the range
-						clif_slide(bl,unit->bl.x,unit->bl.y);
-						clif_fixpos(bl);
-					}
+					if (unit_movepos(bl,unit->bl.x,unit->bl.y,0,0)) //Only snap if the target is inside the range
+						clif_blown(bl,&unit->bl);
 				} else {
 					if (unit_is_walking(bl) && //Wait until target stop walking
 						(tsc && tsc->data[type] && tsc->data[type]->val4 >= tsc->data[type]->val3 - range))
@@ -17306,7 +17245,6 @@ struct skill_unit *skill_initunit(struct skill_unit_group *group, int idx, int x
 			map_setgatcell(unit->bl.m,unit->bl.x,unit->bl.y,5);
 			clif_changemapcell(0,unit->bl.m,unit->bl.x,unit->bl.y,5,AREA);
 			skill_unitsetmapcell(unit,WZ_ICEWALL,group->skill_lv,CELL_ICEWALL,true);
-			map[unit->bl.m].icewall_num++;
 			break;
 		case SA_LANDPROTECTOR:
 			skill_unitsetmapcell(unit,SA_LANDPROTECTOR,group->skill_lv,CELL_LANDPROTECTOR,true);
@@ -17362,7 +17300,6 @@ int skill_delunit(struct skill_unit* unit)
 			map_setgatcell(unit->bl.m,unit->bl.x,unit->bl.y,unit->val2);
 			clif_changemapcell(0,unit->bl.m,unit->bl.x,unit->bl.y,unit->val2,ALL_SAMEMAP); //hack to avoid clientside cell bug
 			skill_unitsetmapcell(unit,WZ_ICEWALL,group->skill_lv,CELL_ICEWALL,false);
-			map[unit->bl.m].icewall_num--;
 			//AS_CLOAKING in low levels requires a wall to be cast, thus it needs to be
 			//checked again when a wall disapears! issue:8182 [Panikon]
 			map_foreachinarea(skill_check_cloaking_end,unit->bl.m,

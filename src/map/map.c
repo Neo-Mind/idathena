@@ -2560,36 +2560,36 @@ uint8 map_calc_dir(struct block_list* src, int16 x, int16 y)
 	dx = x - src->x;
 	dy = y - src->y;
 
-	if(dx == 0 && dy == 0) {
-		//Both are standing on the same spot
-		//Aegis-style, makes knockback default to the left
-		//Athena-style, makes knockback default to behind 'src'
+	//Both are standing on the same spot
+	//Aegis-style, makes knockback default to the left
+	//Athena-style, makes knockback default to behind 'src'
+	if(dx == 0 && dy == 0)
 		dir = (battle_config.knockback_left ? 6 : unit_getdir(src));
-	} else if(dx >= 0 && dy >= 0) { //Upper-right
-		if(dx * 2 <= dy)
+	else if(dx >= 0 && dy >= 0) { //Upper-right
+		if(dx * 2 < dy || dx == 0)
 			dir = 0; //Up
-		else if(dx > dy * 2)
+		else if(dx > dy * 2 + 1 || dy == 0)
 			dir = 6; //Right
 		else
 			dir = 7; //Up-right
 	} else if(dx >= 0 && dy <= 0) { //Lower-right
-		if(dx * 2 <= -dy)
+		if(dx * 2 < -dy || dx == 0)
 			dir = 4; //Down
-		else if(dx > -dy * 2)
+		else if(dx > -dy * 2 + 1 || dy == 0)
 			dir = 6; //Right
 		else
 			dir = 5; //Down-right
 	} else if(dx <= 0 && dy <= 0) { //Lower-left
-		if(dx * 2 >= dy)
+		if(dx * 2 > dy || dx == 0)
 			dir = 4; //Down
-		else if(dx < dy * 2)
+		else if(dx < dy * 2 - 1 || dy == 0)
 			dir = 2; //Left
 		else
 			dir = 3; //Down-left
 	} else { //Upper-left
-		if(-dx * 2 <= dy)
+		if(-dx * 2 < dy || dx == 0)
 			dir = 0; //Up
-		else if(-dx > dy * 2)
+		else if(-dx > dy * 2 + 1 || dy == 0)
 			dir = 2; //Left
 		else
 			dir = 1; //Up-left

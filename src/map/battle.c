@@ -1191,8 +1191,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			uint8 dir = map_calc_dir(bl,src->x,src->y);
 
 			if( unit_movepos(bl,src->x - dx[dir],src->y - dy[dir],1,1) ) {
-				clif_slide(bl,src->x,src->y);
-				clif_fixpos(bl); //The official server send these two packts
+				clif_blown(bl,src);
 				unit_setdir(bl,dir);
 			}
 			d->dmg_lv = ATK_DEF;
@@ -8242,6 +8241,7 @@ static const struct _battle_data {
 	{ "cursed_circle_in_gvg",               &battle_config.cursed_circle_in_gvg,            1,      0,      1,              },
 	{ "snap_dodge",                         &battle_config.snap_dodge,                      0,      0,      1,              },
 	{ "monster_chase_refresh",              &battle_config.mob_chase_refresh,               1,      0,      30,             },
+	{ "icewall_walk_block",                 &battle_config.icewall_walk_block,              75,     0,      255,            },
 };
 #ifndef STATS_OPT_OUT
 /**

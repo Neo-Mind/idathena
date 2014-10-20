@@ -1016,14 +1016,14 @@ int mob_target(struct mob_data *md,struct block_list *bl,int dist)
 	nullpo_ret(md);
 	nullpo_ret(bl);
 
-	//Nothing will be carried out if there is no mind of changing TAGE by TAGE ending.
+	//Nothing will be carried out if there is no mind of changing TAGE by TAGE ending
 	if(md->target_id && !mob_can_changetarget(md,bl,status_get_mode(&md->bl)))
 		return 0;
 
 	if(!status_check_skilluse(&md->bl,bl,0,0))
 		return 0;
 
-	md->target_id = bl->id;	//Since there was no disturbance, it locks on to target.
+	md->target_id = bl->id;	//Since there was no disturbance, it locks on to target
 	if(md->state.provoke_flag && bl->id != md->state.provoke_flag)
 		md->state.provoke_flag = 0;
 	md->min_chase = dist + md->db->range3;
@@ -1047,7 +1047,7 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 	target = va_arg(ap,struct block_list**);
 	mode = va_arg(ap,int);
 
-	//If can't seek yet, not an enemy, or you can't attack it, skip.
+	//If can't seek yet, not an enemy, or you can't attack it, skip
 	if(md->bl.id == bl->id || (*target) == bl || !status_check_skilluse(&md->bl,bl,0,0))
 		return 0;
 
@@ -1061,26 +1061,15 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 		case BL_PC:
 			if(((TBL_PC*)bl)->state.gangsterparadise &&
 				!(status_get_mode(&md->bl)&MD_BOSS))
-				return 0; //Gangster paradise protection.
+				return 0; //Gangster paradise protection
 		default:
 			if((battle_config.hom_setting&HOMSET_FIRST_TARGET) &&
 				(*target) && (*target)->type == BL_HOM && bl->type != BL_HOM)
-				return 0; //For some reason Homun targets are never overriden.
+				return 0; //For some reason Homun targets are never overriden
 
 			dist = distance_bl(&md->bl,bl);
-			if(
-				((*target) == NULL || !check_distance_bl(&md->bl,*target,dist)) &&
-				battle_check_range(&md->bl,bl,md->db->range2)
-			) { //Pick closest target?
-
-				if(map[bl->m].icewall_num &&
-					!path_search_long(NULL,bl->m,md->bl.x,md->bl.y,bl->x,bl->y,CELL_CHKICEWALL)) {
-
-					if(!check_distance_bl(&md->bl, bl, status_get_range(&md->bl)))
-						return 0;
-
-				}
-				
+			if(((*target) == NULL || !check_distance_bl(&md->bl,*target,dist)) &&
+				battle_check_range(&md->bl,bl,md->db->range2)) { //Pick closest target?
 				(*target) = bl;
 				md->target_id = bl->id;
 				md->min_chase = dist + md->db->range3;
@@ -1283,7 +1272,7 @@ int mob_unlocktarget(struct mob_data *md, unsigned int tick)
 				break;
 			md->state.skillstate = MSS_IDLE; //Because it is not unset when the mob finishes walking
 		case MSS_IDLE:
-			if((md->target_id || !(++md->ud.walk_count%IDLE_SKILL_INTERVAL)) && mobskill_use(md,tick,-1)) //Idle skill
+			if(!(++md->ud.walk_count%IDLE_SKILL_INTERVAL) && mobskill_use(md,tick,-1)) //Idle skill
 				break;
 			if(!md->master_id && DIFF_TICK(md->next_walktime, tick) <= 0 && !mob_randomwalk(md,tick)) //Random walk
 				md->next_walktime = tick + rnd()%1000; //Delay next random walk when this one failed
@@ -1443,6 +1432,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 					|| md->sc.data[SC_BITE] || md->sc.data[SC_VACUUM_EXTREME] || md->sc.data[SC_THORNSTRAP]
 					|| md->sc.data[SC__MANHOLE])) //Not yet confirmed if boss will teleport once it can't reach target
 					|| !mob_can_reach(md, tbl, md->min_chase, MSS_RUSH)
+					|| md->walktoxy_fail_count > 0
 				  )
 			&& md->state.attacked_count++ >= RUDE_ATTACKED_COUNT
 			&& !mobskill_use(md, tick, MSC_RUDEATTACKED) //If can't rude Attack
@@ -1465,6 +1455,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 					|| md->sc.data[SC_BITE] || md->sc.data[SC_VACUUM_EXTREME] || md->sc.data[SC_THORNSTRAP]
 					|| md->sc.data[SC__MANHOLE])) //Not yet confirmed if boss will teleport once it can't reach target
 					|| !mob_can_reach(md, abl, dist+md->db->range3, MSS_RUSH)
+					|| md->walktoxy_fail_count > 0
 					)
 				))
 			{ //Rude attacked
@@ -1529,7 +1520,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 				return true; //We're moving or close enough don't unlock the target
 		}
 
-		//This handles triggering idle walk/skill
+		//This handles triggering idle/walk skill
 		mob_unlocktarget(md, tick);
 		return true;
 	}
@@ -1609,21 +1600,17 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 	}
 
 	//Out of range
-	//Can't chase. Immobile and trapped mobs should unlock target and use an idle skill on next interval
+	//Can't chase. Immobile and trapped mobs should unlock target and use an idle skill
 	if(!(mode&MD_CANMOVE) || (!can_move && DIFF_TICK(tick, md->ud.canmove_tick) > 0)) {
-		if(md->ud.target != tbl->id || md->ud.attacktimer == INVALID_TIMER) { //Only unlock target to use idle skill if no more attack left
-			md->ud.walk_count = (md->ud.walk_count + 1)%250;
-			if(!(md->ud.walk_count%IDLE_SKILL_INTERVAL))
-				mob_unlocktarget(md, tick);
-		}
+		if(md->ud.attacktimer == INVALID_TIMER) //Only unlock target if no more attack delay left
+			mob_unlocktarget(md, tick); //This handles triggering idle/walk skill
 		return true;
 	}
 
 	//Before a monster starts to chase a target, it will check if it has a ranged "attack" skill to use on it
 	if(md->ud.walktimer == INVALID_TIMER && (md->state.skillstate == MSS_BERSERK || md->state.skillstate == MSS_ANGRY)) {
-		//Only use skill if able to walk on next tick and not used a skill the last second
 		if(DIFF_TICK(md->ud.canmove_tick, tick) <= MIN_MOBTHINKTIME && DIFF_TICK(md->ud.canact_tick, tick) < -MIN_MOBTHINKTIME * IDLE_SKILL_INTERVAL)
-			mobskill_use(md, tick, -1);
+			mobskill_use(md, tick, -1); //Only use skill if able to walk on next tick and not used a skill the last second
 	}
 
 	//Current target tile is still within attack range

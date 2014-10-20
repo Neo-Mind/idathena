@@ -10967,10 +10967,12 @@ int pc_bonus_script_timer(int tid, unsigned int tick, int id, intptr_t data) {
 		ShowDebug("pc_bonus_script_timer: Null pointer id: %d data: %d\n",id,data);
 		return 0;
 	}
-	if (i > MAX_PC_BONUS_SCRIPT|| !(&sd->bonus_script[i]) || !sd->bonus_script[i].script) {
+	if (i >= MAX_PC_BONUS_SCRIPT|| !(&sd->bonus_script[i]) || !sd->bonus_script[i].script) {
 		ShowDebug("pc_bonus_script_timer: Invalid index %d\n",i);
 		return 0;
 	}
+	if (sd->bonus_script[i].icon != SI_BLANK)
+		clif_status_load(&sd->bl,sd->bonus_script[i].icon,0);
 	pc_bonus_script_remove(&sd->bonus_script[i]);
 	status_calc_pc(sd,SCO_NONE);
 	return 0;
@@ -11014,7 +11016,8 @@ void pc_bonus_script_clear(struct map_session_data *sd, uint16 flag) {
 				(flag&BSF_REM_DEBUFF && sd->bonus_script[i].type == 2)) //Remove bonus script based on debuff type
 			)))
 		{
-			clif_status_change(&sd->bl,sd->bonus_script[i].icon,0,0,0,0,0);
+			if (sd->bonus_script[i].icon != SI_BLANK)
+				clif_status_load(&sd->bl,sd->bonus_script[i].icon,0);
 			pc_bonus_script_remove(&sd->bonus_script[i]);
 			count++;
 		}
