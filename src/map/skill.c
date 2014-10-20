@@ -10215,7 +10215,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				status_heal(bl,heal,0,0);
 				clif_skill_nodamage(src,src,skill_id,skill_lv,clif_skill_nodamage(src,bl,AL_HEAL,heal,1));
 				status_change_start(src,src,type,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),SCFLAG_NOAVOID|SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE);
-				if( !is_boss(bl) )
+				if( battle_check_target(src,bl,BCT_ENEMY) > 0 && !is_boss(bl) )
 					status_change_start(src,bl,type,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),SCFLAG_NOAVOID|SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE);
 				skill_blockhomun_start(hd,skill_id,skill_get_cooldown(NULL,skill_id,skill_lv));
 			}
