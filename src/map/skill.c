@@ -2960,17 +2960,21 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 		case PA_GOSPEL: //Should look like Holy Cross [Skotlex]
 			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, CR_HOLYCROSS, -1, DMG_SPLASH);
 			break;
-		//Skills that need be passed as a normal attack for the client to display correctly.
+		//Skills that need be passed as a normal attack for the client to display correctly
 		case HVAN_EXPLOSION:
 		case NPC_SELFDESTRUCTION:
 			if (src->type == BL_PC)
 				dmg.blewcount = 10;
-			dmg.amotion = 0; //Disable delay or attack will do no damage since source is dead by the time it takes effect. [Skotlex]
+			dmg.amotion = 0; //Disable delay or attack will do no damage since source is dead by the time it takes effect [Skotlex]
 		//Fall through
 		case KN_AUTOCOUNTER:
 		case NPC_CRITICALSLASH:
 		case TF_DOUBLE:
 		case GS_CHAINACTION:
+		case WL_TETRAVORTEX_FIRE:
+		case WL_TETRAVORTEX_WATER:
+		case WL_TETRAVORTEX_WIND:
+		case WL_TETRAVORTEX_GROUND:
 			dmg.dmotion = clif_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, (enum e_damage_type)dmg.type, dmg.damage2);
 			break;
 		case AS_SPLASHER:
@@ -3572,7 +3576,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 		if (skl->target_id) {
 			target = map_id2bl(skl->target_id);
 			if ((skl->skill_id == RG_INTIMIDATE || skl->skill_id == SC_FATALMENACE) && (!target || target->prev == NULL || !check_distance_bl(src,target,AREA_SIZE)))
-				target = src; //Required since it has to warp.
+				target = src; //Required since it has to warp
 			if (target == NULL)
 				break; //Target offline?
 			if (target->prev == NULL)
@@ -3580,21 +3584,20 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 			if (src->m != target->m)
 				break; //Different Maps
 			if (status_isdead(src)) {
-				//Exceptions
-				switch(skl->skill_id) {
+				switch(skl->skill_id) { //Exceptions
 					case WL_CHAINLIGHTNING_ATK:
 					case WL_TETRAVORTEX_FIRE:
 					case WL_TETRAVORTEX_WATER:
 					case WL_TETRAVORTEX_WIND:
 					case WL_TETRAVORTEX_GROUND:
-					/* For SR_FLASHCOMBO */
+					//For SR_FLASHCOMBO
 					case SR_DRAGONCOMBO:
 					case SR_FALLENEMPIRE:
 					case SR_TIGERCANNON:
 					case SR_SKYNETBLOW:
 						break;
 					default:
-						continue; //Caster is Dead
+						continue; //Caster is dead
 				}
 			}
 			if (status_isdead(target) && skl->skill_id != RG_INTIMIDATE && skl->skill_id != WZ_WATERBALL)
@@ -3669,7 +3672,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case WL_TETRAVORTEX_WATER:
 				case WL_TETRAVORTEX_WIND:
 				case WL_TETRAVORTEX_GROUND:
-					skill_attack(BF_MAGIC,src,src,target,skl->skill_id,skl->skill_lv,tick,skl->flag|SD_ANIMATION);
+					skill_attack(BF_MAGIC,src,src,target,skl->skill_id,skl->skill_lv,tick,skl->flag);
 					skill_toggle_magicpower(src,skl->skill_id);
 					if (skl->type >= 3) { //Final Hit
 						if (!status_isdead(target)) { //Final Status Effect
@@ -3688,9 +3691,9 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 								i = applyeffects[rnd()%j];
 								status_change_start(src,target,i,10000,skl->skill_lv,
 									(i == SC_BURNING ? 1000 : (i == SC_BLEEDING ? src->id : 0)),
-									(i == SC_BURNING ? src->id : 0),
-									0,(i == SC_BURNING ? 15000 : (i == SC_FREEZING ? 40000 :
-										(i == SC_BLEEDING ? 120000 : 5000))),SCFLAG_NONE);
+									(i == SC_BURNING ? src->id : 0),0,
+									(i == SC_BURNING ? 15000 : (i == SC_FREEZING ? 40000 :
+									(i == SC_BLEEDING ? 120000 : 5000))),SCFLAG_NONE);
 							}
 						}
 					}
@@ -3866,7 +3869,7 @@ int skill_cleartimerskill (struct block_list *src)
 				case WL_TETRAVORTEX_WATER:
 				case WL_TETRAVORTEX_WIND:
 				case WL_TETRAVORTEX_GROUND:
-				/* For SR_FLASHCOMBO */
+				//For SR_FLASHCOMBO
 				case SR_DRAGONCOMBO:
 				case SR_FALLENEMPIRE:
 				case SR_TIGERCANNON:
@@ -4836,12 +4839,12 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				for (i = 0; i < j; i++) { //Loop should always be 4 for regular players, but unconditional_skill could be less
 					switch (sc->data[spheres[i]]->val1) {
 						case WLS_FIRE:  subskill = WL_TETRAVORTEX_FIRE; k |= 1; break;
-						case WLS_WIND:  subskill = WL_TETRAVORTEX_WIND; k |= 4; break;
 						case WLS_WATER: subskill = WL_TETRAVORTEX_WATER; k |= 2; break;
+						case WLS_WIND:  subskill = WL_TETRAVORTEX_WIND; k |= 4; break;
 						case WLS_STONE: subskill = WL_TETRAVORTEX_GROUND; k |= 8; break;
 					}
 					skill_addtimerskill(src,tick + i * 250,bl->id,k,0,subskill,skill_lv,i,flag);
-					clif_skill_nodamage(src,bl,subskill,skill_lv,1);
+					clif_skill_nodamage(src,bl,subskill,-2,1);
 					status_change_end(src,(sc_type)spheres[i],INVALID_TIMER);
 				}
 			}
@@ -4863,13 +4866,13 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					if (s == 0)
 						break;
 
-					i = spell[(s == 1 ? 0 : rnd()%s)]; //Random select of spell to be released.
+					i = spell[(s == 1 ? 0 : rnd()%s)]; //Random select of spell to be released
 					if (sc->data[i]) { //Now extract the data from the preserved spell
 						skill_id = sc->data[i]->val1;
 						skill_lv = sc->data[i]->val2;
 						point = sc->data[i]->val3;
 						status_change_end(src,(sc_type)i,INVALID_TIMER);
-					} else //Something went wrong :(
+					} else //Something went wrong
 						break;
 
 					if (sc->data[SC_FREEZE_SP]->val2 > point)
@@ -4877,7 +4880,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					else //Last spell to be released
 						status_change_end(src,SC_FREEZE_SP,INVALID_TIMER);
 
-					if (bl->type != BL_SKILL) /* Skill types will crash the client */
+					if (bl->type != BL_SKILL) //Skill types will crash the client
 						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 
 					if (!skill_check_condition_castbegin(sd,skill_id,skill_lv))
@@ -5319,7 +5322,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				struct status_change *tsc = status_get_sc(bl);
 				enum sc_type type = status_skill2sc(skill_id), type2;
 
-				type2 = type - 1;
+				type2 = (sc_type)(type - 1);
 				clif_skill_nodamage(src,battle_get_master(src),skill_id,skill_lv,1);
 				clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,DMG_SKILL);
 				if ((sc && sc->data[type2]) || (tsc && tsc->data[type]))
