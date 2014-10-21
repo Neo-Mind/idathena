@@ -5560,9 +5560,12 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			case GN_FIRE_EXPANSION_ACID:
 #ifdef RENEWAL
 				{
+					short totaldef;
 					struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, 0);
 
 					ad.damage = (int64)(7 * ((wd.damage / skill_lv + ad.damage / skill_lv) * tstatus->vit / 100));
+					totaldef = tstatus->def2 + (short)status_get_def(target);
+					ad.damage -= totaldef;
 				}
 #else
 				if(tstatus->vit + sstatus->int_)
