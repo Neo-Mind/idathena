@@ -5229,10 +5229,6 @@ void clif_skill_fail(struct map_session_data *sd,uint16 skill_id,enum useskill_f
 /// Skill cooldown display icon (ZC_SKILL_POSTDELAY).
 /// 043d <skill ID>.W <tick>.L
 /// NOTE: This is now often used to start cooldown times for renewal skills.
-/// Because of this and its effect on the display of skill icons in the shortcut bar,
-/// the ZC_SKILL_POSTDELAY_LIST and ZC_SKILL_POSTDELAY_LIST2 will need to be supported
-/// soon to tell the client which skills are currently in cooldown when a player logs on
-/// and display them in the shortcut bar. [Rytech]
 void clif_skill_cooldown(struct map_session_data *sd, uint16 skill_id, unsigned int tick)
 {
 #if PACKETVER >= 20081112
@@ -5246,6 +5242,25 @@ void clif_skill_cooldown(struct map_session_data *sd, uint16 skill_id, unsigned 
 	WFIFOW(fd,2) = skill_id;
 	WFIFOL(fd,4) = tick;
 	WFIFOSET(fd,packet_len(0x43d));
+#endif
+}
+
+/// List of skills that have cooldown (ZC_SKILL_POSTDELAY_LIST).
+/// 043e <len>.W <skill ID>.W <tick>.L
+/// NOTE: This will tell the client which skills are currently in cooldown when a player logs on
+/// and display them in the shortcut bar. [Rytech]
+void clif_skill_cooldown_list(struct map_session_data *sd, uint16 skill_id, unsigned int tick)
+{
+#if PACKETVER >= 20081112
+	unsigned char buf[8];
+
+	nullpo_retv(sd);
+
+	WBUFW(buf,0) = 0x43e;
+	WBUFW(buf,2) = packet_len(0x43e);
+	WBUFW(buf,4) = skill_id;
+	WBUFL(buf,6) = tick;
+	clif_send(buf,packet_len(0x43e),&sd->bl,SELF);
 #endif
 }
 
@@ -10874,7 +10889,7 @@ void clif_parse_TakeItem(int fd, struct map_session_data *sd)
 void clif_parse_DropItem(int fd, struct map_session_data *sd)
 {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
-	int item_index  = RFIFOW(fd,info->pos[0])-2;
+	int item_index  = RFIFOW(fd,info->pos[0]) - 2;
 	int item_amount = RFIFOW(fd,info->pos[1]);
 
 	for (;;) {
@@ -11050,6 +11065,7 @@ void clif_parse_NpcClicked(int fd,struct map_session_data *sd)
 void clif_parse_NpcBuySellSelected(int fd,struct map_session_data *sd)
 {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
+
 	if (sd->state.trading)
 		return;
 	npc_buysellsel(sd,RFIFOL(fd,info->pos[0]),RFIFOB(fd,info->pos[1]));
@@ -11079,7 +11095,7 @@ void clif_npc_buy_result(struct map_session_data* sd, unsigned char result)
 void clif_parse_NpcBuyListSend(int fd, struct map_session_data* sd)
 {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
-	int n = (RFIFOW(fd,info->pos[0])-4) /4;
+	int n = (RFIFOW(fd,info->pos[0]) - 4) / 4;
 	unsigned short* item_list = (unsigned short*)RFIFOP(fd,info->pos[1]);
 	int result;
 
@@ -11088,7 +11104,7 @@ void clif_parse_NpcBuyListSend(int fd, struct map_session_data* sd)
 	else
 		result = npc_buylist(sd,n,item_list);
 
-	sd->npc_shopid = 0; //Clear shop data.
+	sd->npc_shopid = 0; //Clear shop data
 
 	clif_npc_buy_result(sd, result);
 }
@@ -11118,7 +11134,7 @@ void clif_parse_NpcSellListSend(int fd,struct map_session_data *sd)
 	unsigned short *item_list;
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
 
-	n = (RFIFOW(fd,info->pos[0])-4) /4; // (pktlen-(cmd+len))/listsize
+	n = (RFIFOW(fd,info->pos[0]) - 4) / 4; //(pktlen - (cmd + len)) / listsize
 	item_list = (unsigned short*)RFIFOP(fd,info->pos[1]);
 
 	if (sd->state.trading || !sd->npc_shopid)
@@ -11126,7 +11142,7 @@ void clif_parse_NpcSellListSend(int fd,struct map_session_data *sd)
 	else
 		fail = npc_selllist(sd,n,item_list);
 
-	sd->npc_shopid = 0; //Clear shop data.
+	sd->npc_shopid = 0; //Clear shop data
 
 	clif_npc_sell_result(sd, fail);
 }
@@ -11140,7 +11156,7 @@ void clif_parse_NpcSellListSend(int fd,struct map_session_data *sd)
 void clif_parse_CreateChatRoom(int fd, struct map_session_data* sd)
 {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
-	int len = RFIFOW(fd,info->pos[0])-15;
+	int len = RFIFOW(fd,info->pos[0]) - 15;
 	int limit = RFIFOW(fd,info->pos[1]);
 	bool pub = (RFIFOB(fd,info->pos[2]) != 0);
 	const char* password = (char*)RFIFOP(fd,info->pos[3]); //not zero-terminated
@@ -11150,26 +11166,26 @@ void clif_parse_CreateChatRoom(int fd, struct map_session_data* sd)
 
 	if (sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOROOM)
 		return;
-	if(battle_config.basic_skill_check && pc_checkskill(sd,NV_BASIC) < 4) {
+	if (battle_config.basic_skill_check && pc_checkskill(sd,NV_BASIC) < 4) {
 		clif_skill_fail(sd,1,USESKILL_FAIL_LEVEL,3);
 		return;
 	}
-	if( npc_isnear(&sd->bl) ) {
-		// uncomment for more verbose message.
+	if (npc_isnear(&sd->bl)) {
+		//Uncomment for more verbose message
 		//char output[150];
-		//sprintf(output, msg_txt(662), battle_config.min_npc_vendchat_distance);
-		//clif_displaymessage(sd->fd, output);
+		//sprintf(output,msg_txt(662),battle_config.min_npc_vendchat_distance);
+		//clif_displaymessage(sd->fd,output);
 		clif_skill_fail(sd,1,USESKILL_FAIL_THERE_ARE_NPC_AROUND,0);
 		return;
 	}
 
-	if( len <= 0 )
-		return; // invalid input
+	if (len <= 0)
+		return; //Invalid input
 
-	safestrncpy(s_password, password, CHATROOM_PASS_SIZE);
-	safestrncpy(s_title, title, min(len+1,CHATROOM_TITLE_SIZE)); //NOTE: assumes that safestrncpy will not access the len+1'th byte
+	safestrncpy(s_password,password,CHATROOM_PASS_SIZE);
+	safestrncpy(s_title,title,min(len + 1,CHATROOM_TITLE_SIZE)); //NOTE: assumes that safestrncpy will not access the len+1'th byte
 
-	chat_createpcchat(sd, s_title, s_password, limit, pub);
+	chat_createpcchat(sd,s_title,s_password,limit,pub);
 }
 
 
@@ -11193,16 +11209,16 @@ void clif_parse_ChatAddMember(int fd, struct map_session_data* sd)
 void clif_parse_ChatRoomStatusChange(int fd, struct map_session_data* sd)
 {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
-	int len = RFIFOW(fd,info->pos[0])-15;
+	int len = RFIFOW(fd,info->pos[0]) - 15;
 	int limit = RFIFOW(fd,info->pos[1]);
 	bool pub = (RFIFOB(fd,info->pos[2]) != 0);
-	const char* password = (char*)RFIFOP(fd,info->pos[3]); // not zero-terminated
-	const char* title = (char*)RFIFOP(fd,info->pos[4]); // not zero-terminated
+	const char* password = (char*)RFIFOP(fd,info->pos[3]); //Not zero-terminated
+	const char* title = (char*)RFIFOP(fd,info->pos[4]); //Not zero-terminated
 	char s_password[CHATROOM_PASS_SIZE];
 	char s_title[CHATROOM_TITLE_SIZE];
 
 	if( len <= 0 )
-		return; // invalid input
+		return; //Invalid input
 
 	safestrncpy(s_password, password, CHATROOM_PASS_SIZE);
 	safestrncpy(s_title, title, min(len+1,CHATROOM_TITLE_SIZE)); //NOTE: assumes that safestrncpy will not access the len+1'th byte
@@ -17693,7 +17709,7 @@ void clif_crimson_marker(struct map_session_data *sd, struct block_list *bl, uin
 
 	cmd = packet_db_ack[sd->packet_ver][ZC_C_MARKERINFO];
 	if( !cmd )
-		cmd = 0x09c1; //Default
+		cmd = 0x9c1; //Default
 
 	info = &packet_db[sd->packet_ver][cmd];
 	if( !(len = info->len) )
@@ -17728,7 +17744,7 @@ void clif_crimson_marker_single(struct map_session_data *sd, struct block_list *
 
 	cmd = packet_db_ack[sd->packet_ver][ZC_C_MARKERINFO];
 	if( !cmd )
-		cmd = 0x09c1; //Default
+		cmd = 0x9c1; //Default
 
 	info = &packet_db[sd->packet_ver][cmd];
 	if( !(len = info->len) )
@@ -18024,7 +18040,7 @@ void packetdb_readdb(void)
 	    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 	    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 	    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-	    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  8,  0, 25,
+	    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  8,  4, 25,
 	//#0x0440
 	   10,  4, -1,  0,  0,  0, 14,  0,  0,  0,  6,  0,  0,  0,  0,  0,
 	    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,

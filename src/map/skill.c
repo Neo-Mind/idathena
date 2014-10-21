@@ -7854,7 +7854,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				sc_start4(src,bl,type,100,skill_lv,skill_id,src->id,skill_get_time(skill_id,skill_lv),1000));
 #ifndef RENEWAL
 			if (sd)
-				skill_blockpc_start (sd,skill_id,skill_get_time(skill_id,skill_lv) + 3000);
+				skill_blockpc_start(sd,skill_id,skill_get_time(skill_id,skill_lv) + 3000);
 #endif
 			break;
 
@@ -19306,6 +19306,7 @@ int skill_blockpc_end(int tid, unsigned int tick, int id, intptr_t data) {
 */
 int skill_blockpc_start(struct map_session_data *sd, uint16 skill_id, int tick) {
 	int i;
+
 	nullpo_retr(-1, sd);
 
 	if (!skill_id || tick < 1)
@@ -19326,7 +19327,7 @@ int skill_blockpc_start(struct map_session_data *sd, uint16 skill_id, int tick) 
 
 		if (battle_config.display_status_timers && tick > 0)
 			clif_skill_cooldown(sd, skill_id, tick);
-
+		clif_skill_cooldown_list(sd, skill_id, tick);
 		return 1;
 	} else {
 		ShowWarning("skill_blockpc_start: Too many skillcooldowns, increase MAX_SKILLCOOLDOWN.\n");
