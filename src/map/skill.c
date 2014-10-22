@@ -13447,18 +13447,15 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			}
 			break;
 
-		case UNT_WALLOFTHORN: {
-				struct Damage wd = battle_calc_weapon_attack(src,bl,skill_id,skill_lv,0);
-
-				if (knockback_immune) {
-					if (!battle_config.skill_trap_type && map_flag_gvg2(bl->m))
-						;
-					else {
-						if (battle_check_target(src,bl,BCT_ENEMY) > 0)
-							status_damage(src,bl,wd.damage,0,clif_damage(bl,bl,tick,status_get_amotion(bl),status_get_dmotion(bl),wd.damage,1,DMG_ENDURE,0),0);
-						skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
-						unit->val3--;
-					}
+		case UNT_WALLOFTHORN:
+			if (knockback_immune) {
+				if (!battle_config.skill_trap_type && map_flag_gvg2(bl->m))
+					;
+				else {
+					if (battle_check_target(src,bl,BCT_ENEMY) > 0)
+						skill_addtimerskill(src,tick + 100,bl->id,unit->bl.x,unit->bl.y,skill_id,skill_lv,skill_get_type(skill_id),4|SD_LEVEL);
+					skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
+					unit->val3--;
 				}
 			}
 			break;
@@ -15407,12 +15404,12 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 	if( i < ARRAYLENGTH(sd->skillusesprate) )
 		sp_skill_rate_bonus += sd->skillusesprate[i].val;
 
+	req.sp = cap_value(req.sp * sp_skill_rate_bonus / 100,0,SHRT_MAX);
+
 	ARR_FIND(0,ARRAYLENGTH(sd->skillusesp),i,sd->skillusesp[i].id == skill_id);
 
 	if( i < ARRAYLENGTH(sd->skillusesp) )
-		req.sp -= sd->skillusesp[i].val;
-
-	req.sp = cap_value(req.sp * sp_skill_rate_bonus / 100,0,SHRT_MAX);
+		req.sp += sd->skillusesp[i].val;
 
 	if( sc ) {
 		if( sc->data[SC_RECOGNIZEDSPELL] )
@@ -19327,7 +19324,6 @@ int skill_blockpc_start(struct map_session_data *sd, uint16 skill_id, int tick) 
 
 		if (battle_config.display_status_timers && tick > 0)
 			clif_skill_cooldown(sd, skill_id, tick);
-		clif_skill_cooldown_list(sd, skill_id, tick);
 		return 1;
 	} else {
 		ShowWarning("skill_blockpc_start: Too many skillcooldowns, increase MAX_SKILLCOOLDOWN.\n");

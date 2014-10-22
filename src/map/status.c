@@ -6439,7 +6439,7 @@ struct status_data *status_get_base_status(struct block_list *bl)
 defType status_get_def(struct block_list *bl) {
 	struct unit_data *ud;
 	struct status_data *status = status_get_status_data(bl);
-	int def = status ? status->def : 0;
+	int def = (status ? status->def : 0);
 
 	ud = unit_bl2ud(bl);
 	if (ud && ud->skilltimer != INVALID_TIMER)
