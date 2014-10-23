@@ -5091,13 +5091,20 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 					//Status ATK, weapon ATK, and equip ATK are directly reduced by eDEF
 					//sDEF only directly reduces status ATK [exneval]
 					defType def1 = status_get_def(target);
-					short def2 = tstatus->def2;
+					short def2 = tstatus->def2, vit_def;
 
 					def1 = status_calc_def(target, tsc, def1, false);
 					def2 = status_calc_def2(target, tsc, def2, false);
 
-					wd.statusAtk -= (def1 + def2);
-					wd.statusAtk2 -= (def1 + def2);
+					if(tsd)
+						vit_def = def2;
+					else {
+						vit_def = def1;
+						def1 = def2;
+					}
+
+					wd.statusAtk -= (def1 + vit_def);
+					wd.statusAtk2 -= (def1 + vit_def);
 					wd.weaponAtk -= def1;
 					wd.weaponAtk2 -= def1;
 					wd.equipAtk -= def1;
@@ -5113,8 +5120,10 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			}
 			wd.damage = wd.statusAtk + wd.weaponAtk + wd.equipAtk + wd.masteryAtk;
 			wd.damage2 = wd.statusAtk2 + wd.weaponAtk2 + wd.equipAtk2 + wd.masteryAtk2;
-			if(!skill_id)
-				ATK_ADDRATE(wd.damage, wd.damage2, 5); //Custom fix for "a hole" in renewal attack calculation [exneval]
+			if(!skill_id) { //Custom fix for "a hole" in renewal attack calculation [exneval]
+				ATK_ADDRATE(wd.damage, wd.damage2, 5);
+			} else
+				ATK_ADDRATE(wd.damage, wd.damage2, 1);
 		}
 #else
 		//Final attack bonuses that aren't affected by cards
