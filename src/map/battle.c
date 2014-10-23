@@ -5088,8 +5088,8 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			case CR_ACIDDEMONSTRATION:
 			case GN_FIRE_EXPANSION_ACID:
 				{
-					//Status ATK, weapon ATK, and equip ATK are directly reduce for eDEF
-					//sDEF directly reduces status ATK [exneval]
+					//Status ATK, weapon ATK, and equip ATK are directly reduced by eDEF
+					//sDEF only directly reduces status ATK [exneval]
 					defType def1 = status_get_def(target);
 					short def2 = tstatus->def2;
 
