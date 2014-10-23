@@ -6486,7 +6486,9 @@ int status_get_party_id(struct block_list *bl) {
 				return ((TBL_MER*)bl)->master->status.party_id;
 			break;
 		case BL_SKILL:
-			return ((TBL_SKILL*)bl)->group->party_id;
+			if (((TBL_SKILL*)bl)->group)
+				return ((TBL_SKILL*)bl)->group->party_id;
+			break;
 		case BL_ELEM:
 			if (((TBL_ELEM*)bl)->master)
 				return ((TBL_ELEM*)bl)->master->status.party_id;
@@ -9644,22 +9646,23 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val2 = val1 * 5; //Custom
 				break;
 			default:
-				//Status change with no calc, no icon, and no skill associated?
-				if( calc_flag == SCB_NONE && StatusIconChangeTable[type] == SI_BLANK && StatusSkillChangeTable[type] == 0 ) {
-					switch( type ) {
-						case SC_KSPROTECTED:
-						case SC_XMAS:
-						case SC_SUMMER:
-						case SC_HANBOK:
-						case SC_OKTOBERFEST:
-							break; //Avoid the warning, because this status has no skill associated and all values already store in it
-					}
-					ShowError("Unknown Status Change [%d]\n",type);
-					return 0;
+				switch( type ) {
+					case SC_KSPROTECTED:
+					case SC_XMAS:
+					case SC_SUMMER:
+					case SC_HANBOK:
+					case SC_OKTOBERFEST:
+						break; //Avoid the warning, because this status has no skill associated and all values already store in it
+					default:
+						if( calc_flag == SCB_NONE && StatusIconChangeTable[type] == SI_BLANK && StatusSkillChangeTable[type] == 0 ) {
+							ShowError("Unknown Status Change [%d]\n",type);
+							return 0; //Status change with no calc, no icon, and no skill associated?
+						}
+						break;
 				}
 				break;
 		}
-	} else { //Special considerations when loading SC data.
+	} else { //Special considerations when loading SC data
 		switch( type ) {
 			case SC_WEDDING:
 			case SC_XMAS:

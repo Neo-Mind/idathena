@@ -1733,7 +1733,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 
 			sd->state.autocast = 0;
 			ud = unit_bl2ud(src);
-			if( ud ) { //Set canact delay. [Skotlex]
+			if( ud ) { //Set can act delay [Skotlex]
 				rate = skill_delayfix(src,skill,skill_lv);
 				if( DIFF_TICK(ud->canact_tick,tick + rate) < 0 ){
 					ud->canact_tick = tick + rate;
@@ -2009,14 +2009,14 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 				if(sc && sc->data[SC_SPIRIT] &&
 					sc->data[SC_SPIRIT]->val2 == SL_WIZARD &&
 					sc->data[SC_SPIRIT]->val3 == WZ_WATERBALL)
-					sc->data[SC_SPIRIT]->val3 = 0; //Clear bounced spell check.
+					sc->data[SC_SPIRIT]->val3 = 0; //Clear bounced spell check
 			}
 		}
 		if(hp || sp) //Updated to force healing to allow healing through berserk
 			status_heal(src,hp,sp,battle_config.show_hp_sp_gain ? 3 : 1);
 	}
 
-	//Trigger counter-spells to retaliate against damage causing skills.
+	//Trigger counter-spells to retaliate against damage causing skills
 	if(dstsd && !status_isdead(bl) && dstsd->autospell2[0].id &&
 		!(skill_id && skill_get_nk(skill_id)&NK_NO_DAMAGE))
 	{

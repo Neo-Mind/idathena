@@ -281,7 +281,7 @@ static int clif_send_sub(struct block_list *bl, va_list ap) {
 	nullpo_ret(sd = (struct map_session_data *)bl);
 
 	fd = sd->fd;
-	if (!fd) //Don't send to disconnected clients.
+	if (!fd) //Don't send to disconnected clients
 		return 0;
 
 	buf = va_arg(ap,unsigned char*);
@@ -313,14 +313,14 @@ static int clif_send_sub(struct block_list *bl, va_list ap) {
 			}
 			break;
 #if PACKETVER > 20120418 && PACKETVER < 20130000
-		case AREA: /* 0x120 crashes the client when warping for this packetver range [Ind] */
+		case AREA: //x120 crashes the client when warping for this packetver range [Ind]
 			if (WBUFW(buf,0) == 0x120 && sd->state.warping)
 				return 0;
 			break;
 #endif
 	}
 
-	/* Unless visible, hold it here */
+	//Unless visible, hold it here
 	if (!battle_config.update_enemy_position && ally_only && !sd->special_state.intravision &&
 		!sd->sc.data[SC_INTRAVISION] && battle_check_target(src_bl, &sd->bl, BCT_ENEMY) > 0)
 		return 0;
