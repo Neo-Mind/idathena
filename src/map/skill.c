@@ -3510,10 +3510,9 @@ static int skill_check_condition_mercenary(struct block_list *bl, uint16 skill_i
 	}
 
 	//Consume items
-	for( i = 0; i < ARRAYLENGTH(itemid); i++ ) {
+	for( i = 0; i < ARRAYLENGTH(itemid); i++ )
 		if( index[i] != INDEX_NOT_FOUND )
 			pc_delitem(sd,index[i],amount[i],0,1,LOG_TYPE_CONSUME);
-	}
 
 	if( type&2 )
 		return 1;
@@ -16137,7 +16136,7 @@ void skill_brandishspear(struct block_list* src, struct block_list* bl, uint16 s
 /*==========================================
  * Weapon Repair [Celest/DracoRPG]
  *------------------------------------------*/
-void skill_repairweapon (struct map_session_data *sd, int idx) {
+void skill_repairweapon(struct map_session_data *sd, int idx) {
 	int material;
 	int materials[4] = { 1002,998,999,756 };
 	struct item *item;
@@ -16208,7 +16207,7 @@ void skill_identify (struct map_session_data *sd, int idx)
 /*==========================================
  * Weapon Refine [Celest]
  *------------------------------------------*/
-void skill_weaponrefine (struct map_session_data *sd, int idx)
+void skill_weaponrefine(struct map_session_data *sd, int idx)
 {
 	nullpo_retv(sd);
 
@@ -16244,7 +16243,7 @@ void skill_weaponrefine (struct map_session_data *sd, int idx)
 
 				log_pick_pc(sd,LOG_TYPE_OTHER,-1,item);
 				item->refine++;
-				log_pick_pc(sd,LOG_TYPE_OTHER, 1,item);
+				log_pick_pc(sd,LOG_TYPE_OTHER,1,item);
 				if (item->equip) {
 					ep = item->equip;
 					pc_unequipitem(sd,idx,3);

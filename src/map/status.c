@@ -81,10 +81,6 @@ static short status_calc_critical(struct block_list *bl, struct status_change *s
 static short status_calc_hit(struct block_list *bl, struct status_change *sc, int hit);
 static short status_calc_flee(struct block_list *bl, struct status_change *sc, int flee);
 static short status_calc_flee2(struct block_list *bl, struct status_change *sc, int flee2);
-static defType status_calc_def(struct block_list *bl, struct status_change *sc, int def);
-static short status_calc_def2(struct block_list *bl, struct status_change *sc, int def2);
-static defType status_calc_mdef(struct block_list *bl, struct status_change *sc, int mdef);
-static short status_calc_mdef2(struct block_list *bl, struct status_change *sc, int mdef2);
 static unsigned short status_calc_speed(struct block_list *bl, struct status_change *sc, int speed);
 #ifdef RENEWAL_ASPD
 static short status_calc_aspd(struct block_list *bl, struct status_change *sc, short flag);
@@ -409,11 +405,10 @@ void initChangeTables(void) {
 	set_sc( LK_BERSERK           , SC_BERSERK         , SI_BERSERK         , SCB_DEF|SCB_DEF2|SCB_MDEF|SCB_MDEF2|SCB_FLEE|SCB_SPEED|SCB_ASPD|SCB_MAXHP|SCB_REGEN );
 	set_sc( HP_ASSUMPTIO         , SC_ASSUMPTIO       ,
 #ifndef RENEWAL
-		SI_ASSUMPTIO
+		SI_ASSUMPTIO             , SCB_NONE );
 #else
-		SI_ASSUMPTIO2
+		SI_ASSUMPTIO2            , SCB_DEF|SCB_MDEF );
 #endif
-		, SCB_NONE );
 	add_sc( HP_BASILICA          , SC_BASILICA        );
 	set_sc( HW_MAGICPOWER        , SC_MAGICPOWER      , SI_MAGICPOWER      , SCB_MATK );
 	add_sc( PA_SACRIFICE         , SC_SACRIFICE       );
@@ -532,11 +527,10 @@ void initChangeTables(void) {
 	set_sc( CASH_INCAGI          , SC_INCREASEAGI     , SI_INCREASEAGI     , SCB_AGI|SCB_SPEED );
 	set_sc( CASH_ASSUMPTIO       , SC_ASSUMPTIO       ,
 #ifndef RENEWAL
-		SI_ASSUMPTIO
+		SI_ASSUMPTIO             , SCB_NONE );
 #else
-		SI_ASSUMPTIO2
+		SI_ASSUMPTIO2            , SCB_DEF|SCB_MDEF );
 #endif
-		, SCB_NONE );
 
 	set_sc( ALL_PARTYFLEE        , SC_INCFLEE         , SI_PARTYFLEE       , SCB_NONE );
 	set_sc( ALL_ODINS_POWER      , SC_ODINS_POWER     , SI_ODINS_POWER     , SCB_WATK|SCB_MATK|SCB_DEF|SCB_MDEF );
@@ -569,7 +563,7 @@ void initChangeTables(void) {
 	set_sc( MH_VOLCANIC_ASH       , SC_ASH             , SI_VOLCANIC_ASH       , SCB_DEF|SCB_DEF2|SCB_HIT|SCB_BATK|SCB_FLEE );
 	set_sc( MH_GRANITIC_ARMOR     , SC_GRANITIC_ARMOR  , SI_GRANITIC_ARMOR     , SCB_NONE );
 	set_sc( MH_MAGMA_FLOW         , SC_MAGMA_FLOW      , SI_MAGMA_FLOW         , SCB_NONE );
-	set_sc( MH_PYROCLASTIC        , SC_PYROCLASTIC     , SI_PYROCLASTIC        , SCB_BATK|SCB_WATK|SCB_ATK_ELE );
+	set_sc( MH_PYROCLASTIC        , SC_PYROCLASTIC     , SI_PYROCLASTIC        , SCB_WATK|SCB_ATK_ELE );
 	set_sc( MH_LAVA_SLIDE         , SC_BURNING         , SI_BURNT              , SCB_MDEF );
 	set_sc( MH_NEEDLE_OF_PARALYZE , SC_PARALYSIS       , SI_NEEDLE_OF_PARALYZE , SCB_DEF2 );
 	add_sc( MH_POISON_MIST        , SC_BLIND );
@@ -666,7 +660,7 @@ void initChangeTables(void) {
 	set_sc( RA_ELECTRICSHOCKER   , SC_ELECTRICSHOCKER , SI_ELECTRICSHOCKER , SCB_NONE );
 	set_sc( RA_WUGDASH           , SC_WUGDASH         , SI_WUGDASH         , SCB_SPEED|SCB_DSPD );
 	set_sc( RA_WUGBITE           , SC_BITE            , SI_WUGBITE         , SCB_NONE );
-	set_sc( RA_CAMOUFLAGE        , SC_CAMOUFLAGE      , SI_CAMOUFLAGE      , SCB_SPEED );
+	set_sc( RA_CAMOUFLAGE        , SC_CAMOUFLAGE      , SI_CAMOUFLAGE      , SCB_SPEED|SCB_DEF|SCB_DEF2 );
 	add_sc( RA_MAGENTATRAP       , SC_ELEMENTALCHANGE );
 	add_sc( RA_COBALTTRAP        , SC_ELEMENTALCHANGE );
 	add_sc( RA_MAIZETRAP         , SC_ELEMENTALCHANGE );
@@ -681,11 +675,11 @@ void initChangeTables(void) {
 	set_sc( NC_INFRAREDSCAN      , SC_INFRAREDSCAN    , SI_INFRAREDSCAN    , SCB_FLEE );
 	set_sc( NC_ANALYZE           , SC_ANALYZE         , SI_ANALYZE         , SCB_DEF|SCB_DEF2|SCB_MDEF|SCB_MDEF2 );
 	set_sc( NC_MAGNETICFIELD     , SC_MAGNETICFIELD   , SI_MAGNETICFIELD   , SCB_NONE );
-	set_sc( NC_NEUTRALBARRIER    , SC_NEUTRALBARRIER  , SI_NEUTRALBARRIER  , SCB_NONE );
+	set_sc( NC_NEUTRALBARRIER    , SC_NEUTRALBARRIER  , SI_NEUTRALBARRIER  , SCB_DEF|SCB_MDEF );
 	set_sc( NC_STEALTHFIELD      , SC_STEALTHFIELD    , SI_STEALTHFIELD    , SCB_NONE );
 
 	set_sc( LG_REFLECTDAMAGE     , SC_REFLECTDAMAGE   , SI_LG_REFLECTDAMAGE, SCB_NONE );
-	set_sc( LG_FORCEOFVANGUARD   , SC_FORCEOFVANGUARD , SI_FORCEOFVANGUARD , SCB_MAXHP );
+	set_sc( LG_FORCEOFVANGUARD   , SC_FORCEOFVANGUARD , SI_FORCEOFVANGUARD , SCB_MAXHP|SCB_DEF );
 	set_sc( LG_EXEEDBREAK        , SC_EXEEDBREAK      , SI_EXEEDBREAK      , SCB_NONE );
 	set_sc( LG_PRESTIGE          , SC_PRESTIGE        , SI_PRESTIGE        , SCB_DEF );
 	set_sc( LG_BANDING           , SC_BANDING         , SI_BANDING         ,
@@ -728,7 +722,7 @@ void initChangeTables(void) {
 	set_sc( SR_RAISINGDRAGON         , SC_RAISINGDRAGON      , SI_RAISINGDRAGON         , SCB_REGEN|SCB_MAXHP|SCB_MAXSP );
 	set_sc( SR_GENTLETOUCH_ENERGYGAIN, SC_GT_ENERGYGAIN      , SI_GENTLETOUCH_ENERGYGAIN, SCB_NONE );
 	set_sc( SR_GENTLETOUCH_CHANGE    , SC_GT_CHANGE          , SI_GENTLETOUCH_CHANGE    , SCB_ASPD|SCB_MDEF|SCB_MAXHP );
-	set_sc( SR_GENTLETOUCH_REVITALIZE, SC_GT_REVITALIZE      , SI_GENTLETOUCH_REVITALIZE, SCB_MAXHP|SCB_REGEN );
+	set_sc( SR_GENTLETOUCH_REVITALIZE, SC_GT_REVITALIZE      , SI_GENTLETOUCH_REVITALIZE, SCB_MAXHP|SCB_DEF2|SCB_REGEN );
 	set_sc( SR_FLASHCOMBO            , SC_FLASHCOMBO         , SI_FLASHCOMBO            , SCB_NONE );
 
 	set_sc( WA_SWING_DANCE            , SC_SWINGDANCE           , SI_SWINGDANCE           , SCB_SPEED|SCB_ASPD );
@@ -761,7 +755,7 @@ void initChangeTables(void) {
 	set_sc( SO_WARMER            , SC_WARMER          , SI_WARMER          , SCB_NONE );
 	set_sc( SO_VACUUM_EXTREME    , SC_VACUUM_EXTREME  , SI_VACUUM_EXTREME  , SCB_NONE );
 	set_sc( SO_ARRULLO           , SC_DEEPSLEEP       , SI_DEEPSLEEP       , SCB_NONE );
-	set_sc( SO_FIRE_INSIGNIA     , SC_FIRE_INSIGNIA   , SI_FIRE_INSIGNIA   , SCB_MATK|SCB_BATK|SCB_WATK|SCB_ATK_ELE|SCB_REGEN );
+	set_sc( SO_FIRE_INSIGNIA     , SC_FIRE_INSIGNIA   , SI_FIRE_INSIGNIA   , SCB_BATK|SCB_WATK|SCB_MATK|SCB_ATK_ELE|SCB_REGEN );
 	set_sc( SO_WATER_INSIGNIA    , SC_WATER_INSIGNIA  , SI_WATER_INSIGNIA  , SCB_BATK|SCB_WATK|SCB_ATK_ELE|SCB_REGEN );
 	set_sc( SO_WIND_INSIGNIA     , SC_WIND_INSIGNIA   , SI_WIND_INSIGNIA   , SCB_BATK|SCB_WATK|SCB_ATK_ELE|SCB_REGEN );
 	set_sc( SO_EARTH_INSIGNIA    , SC_EARTH_INSIGNIA  , SI_EARTH_INSIGNIA  , SCB_MDEF|SCB_DEF|SCB_MAXHP|SCB_MAXSP|SCB_BATK|SCB_WATK|SCB_ATK_ELE|SCB_REGEN );
@@ -2187,7 +2181,7 @@ static void status_get_matk_sub(struct block_list *bl, int flag, unsigned short 
 	 */
 	*matk_min = status_base_matk(status, status_get_lv(bl));
 
-	//Any +MATK you get from skills and cards, including cards in weapon, is added here.
+	//Any +MATK you get from skills and cards, including cards in weapon, is added here
 	if( sd && sd->bonus.ematk > 0 && flag != 3 )
 		*matk_min += sd->bonus.ematk;
 
@@ -2196,7 +2190,7 @@ static void status_get_matk_sub(struct block_list *bl, int flag, unsigned short 
 
 	*matk_max = *matk_min;
 
-	//This is the only portion in MATK that varies depending on the weapon level and refinement rate.
+	//This is the only portion in MATK that varies depending on the weapon level and refinement rate
 	if( (bl->type&BL_PC) && (status->rhw.matk + status->lhw.matk) > 0 ) {
 		int wMatk = status->rhw.matk + status->lhw.matk; //Left and right MATK stacks
 		int variance = wMatk * status->rhw.wlv / 10; //Only use right hand weapon level
@@ -4309,7 +4303,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 	}
 
 	if( flag&SCB_DEF ) {
-		status->def = status_calc_def(bl, sc, b_status->def);
+		status->def = status_calc_def(bl, sc, b_status->def, true);
 
 		if( bl->type&BL_HOM )
 			status->def += (status->vit / 5 - b_status->vit / 5);
@@ -4321,7 +4315,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 			&& status->agi == b_status->agi
 #endif
 			)
-			status->def2 = status_calc_def2(bl, sc, b_status->def2);
+			status->def2 = status_calc_def2(bl, sc, b_status->def2, true);
 		else
 			status->def2 = status_calc_def2(bl, sc, b_status->def2
 #ifdef RENEWAL
@@ -4329,11 +4323,11 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 #else
 			+ (status->vit - b_status->vit)
 #endif
-		);
+			, true);
 	}
 
 	if( flag&SCB_MDEF ) {
-		status->mdef = status_calc_mdef(bl, sc, b_status->mdef);
+		status->mdef = status_calc_mdef(bl, sc, b_status->mdef, true);
 
 		if( bl->type&BL_HOM )
 			status->mdef += (status->int_ / 5 - b_status->int_ / 5);
@@ -4345,7 +4339,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 			&& status->dex == b_status->dex
 #endif
 			)
-			status->mdef2 = status_calc_mdef2(bl, sc, b_status->mdef2);
+			status->mdef2 = status_calc_mdef2(bl, sc, b_status->mdef2, true);
 		else
 			status->mdef2 = status_calc_mdef2(bl, sc, b_status->mdef2 +(status->int_ - b_status->int_)
 #ifdef RENEWAL
@@ -4353,7 +4347,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 #else
 			+ ((status->vit - b_status->vit)>>1)
 #endif
-			);
+			, true);
 	}
 
 	if( flag&SCB_SPEED ) {
@@ -5083,8 +5077,6 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk += sc->data[SC_FULL_SWING_K]->val1;
 	if(sc->data[SC_ASH])
 		batk -= batk * sc->data[SC_ASH]->val4 / 100;
-	if(bl->type == BL_HOM && sc->data[SC_PYROCLASTIC])
-		batk += sc->data[SC_PYROCLASTIC]->val2;
 	if(sc->data[SC_ANGRIFFS_MODUS])
 		batk += sc->data[SC_ANGRIFFS_MODUS]->val2;
 	if(sc->data[SC_INCATKRATE])
@@ -5453,11 +5445,28 @@ static short status_calc_flee2(struct block_list *bl, struct status_change *sc, 
 	return (short)cap_value(flee2,10,SHRT_MAX);
 }
 
-static defType status_calc_def(struct block_list *bl, struct status_change *sc, int def)
+defType status_calc_def(struct block_list *bl, struct status_change *sc, int def, bool viewable)
 {
-	
 	if(!sc || !sc->count)
 		return (defType)cap_value(def,DEFTYPE_MIN,DEFTYPE_MAX);
+
+	if(!viewable) { //Some statuses that are hidden in the status window
+#ifdef RENEWAL
+		if(sc->data[SC_ASSUMPTIO])
+			def <<= 1; //only eDEF is doubled
+#endif
+		if(sc->data[SC_CAMOUFLAGE])
+			def -= def * 5 * sc->data[SC_CAMOUFLAGE]->val3 / 100;
+		if(sc->data[SC_NEUTRALBARRIER])
+			def += def * (10 + 5 * sc->data[SC_NEUTRALBARRIER]->val1) / 100;
+		if(sc->data[SC_FORCEOFVANGUARD])
+			def += def * 2 * sc->data[SC_FORCEOFVANGUARD]->val1 / 100;
+		if(sc->data[SC_OVERED_BOOST] && bl->type == BL_PC)
+			def -= def * sc->data[SC_OVERED_BOOST]->val4 / 100;
+		if(sc->data[SC_DEFSET])
+			return sc->data[SC_DEFSET]->val1;
+		return (defType)cap_value(def,DEFTYPE_MIN,DEFTYPE_MAX);
+	}
 
 	if(sc->data[SC_BERSERK])
 		return 0;
@@ -5471,8 +5480,6 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 	if(sc->data[SC_STEELBODY])
 		return 90;
 #endif
-	if(sc->data[SC_DEFSET])
-		return sc->data[SC_DEFSET]->val1;
 	if(sc->data[SC_UNLIMIT])
 		return 1;
 
@@ -5539,24 +5546,37 @@ static defType status_calc_def(struct block_list *bl, struct status_change *sc, 
 	if(sc->data[SC_OVERED_BOOST] && bl->type == BL_HOM)
 		def -= def * sc->data[SC_OVERED_BOOST]->val4 / 100;
 
-	return (defType)cap_value(def,DEFTYPE_MIN,DEFTYPE_MAX);;
+	return (defType)cap_value(def,DEFTYPE_MIN,DEFTYPE_MAX);
 }
 
-static short status_calc_def2(struct block_list *bl, struct status_change *sc, int def2)
+short status_calc_def2(struct block_list *bl, struct status_change *sc, int def2, bool viewable)
 {
-	if(!sc || !sc->count)
+	if(!sc || !sc->count) {
 #ifdef RENEWAL
 		return (short)cap_value(def2,SHRT_MIN,SHRT_MAX);
 #else
 		return (short)cap_value(def2,1,SHRT_MAX);
 #endif
+	}
+
+	if(!viewable) {
+		if(sc->data[SC_CAMOUFLAGE])
+			def2 -= def2 * 5 * sc->data[SC_CAMOUFLAGE]->val3 / 100;
+		if(sc->data[SC_GT_REVITALIZE] && sc->data[SC_GT_REVITALIZE]->val2)
+			def2 += sc->data[SC_GT_REVITALIZE]->val4;
+		if(sc->data[SC_DEFSET])
+			return sc->data[SC_DEFSET]->val1;
+#ifdef RENEWAL
+		return (short)cap_value(def2,SHRT_MIN,SHRT_MAX);
+#else
+		return (short)cap_value(def2,1,SHRT_MAX);
+#endif
+	}
 
 	if(sc->data[SC_BERSERK])
 		return 0;
 	if(sc->data[SC_ETERNALCHAOS])
 		return 0;
-	if(sc->data[SC_DEFSET])
-		return sc->data[SC_DEFSET]->val1;
 	if(sc->data[SC_UNLIMIT])
 		return 1;
 
@@ -5605,11 +5625,22 @@ static short status_calc_def2(struct block_list *bl, struct status_change *sc, i
 #endif
 }
 
-
-static defType status_calc_mdef(struct block_list *bl, struct status_change *sc, int mdef)
+defType status_calc_mdef(struct block_list *bl, struct status_change *sc, int mdef, bool viewable)
 {	
 	if(!sc || !sc->count)
 		return (defType)cap_value(mdef,DEFTYPE_MIN,DEFTYPE_MAX);
+
+	if(!viewable) {
+#ifdef RENEWAL
+		if(sc->data[SC_ASSUMPTIO])
+			mdef <<= 1; //Only eMDEF is doubled
+#endif
+		if(sc->data[SC_NEUTRALBARRIER])
+			mdef += mdef * (10 + 5 * sc->data[SC_NEUTRALBARRIER]->val1) / 100;
+		if(sc->data[SC_MDEFSET])
+			return sc->data[SC_MDEFSET]->val1;
+		return (defType)cap_value(mdef,DEFTYPE_MIN,DEFTYPE_MAX);
+	}
 
 	if(sc->data[SC_BERSERK])
 		return 0;
@@ -5619,8 +5650,6 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 	if(sc->data[SC_STEELBODY])
 		return 90;
 #endif
-	if(sc->data[SC_MDEFSET])
-		return sc->data[SC_MDEFSET]->val1;
 	if(sc->data[SC_UNLIMIT])
 		return 1;
 
@@ -5653,26 +5682,35 @@ static defType status_calc_mdef(struct block_list *bl, struct status_change *sc,
 	return (defType)cap_value(mdef,DEFTYPE_MIN,DEFTYPE_MAX);
 }
 
-static short status_calc_mdef2(struct block_list *bl, struct status_change *sc, int mdef2)
+short status_calc_mdef2(struct block_list *bl, struct status_change *sc, int mdef2, bool viewable)
 {
-	if(!sc || !sc->count)
+	if(!sc || !sc->count) {
 #ifdef RENEWAL
 		return (short)cap_value(mdef2,SHRT_MIN,SHRT_MAX);
 #else
 		return (short)cap_value(mdef2,1,SHRT_MAX);
 #endif
+	}
+
+	if(!viewable) {
+		if(sc->data[SC_MINDBREAKER])
+			mdef2 -= mdef2 * sc->data[SC_MINDBREAKER]->val3 / 100;
+		if(sc->data[SC_MDEFSET])
+			return sc->data[SC_MDEFSET]->val1;
+#ifdef RENEWAL
+		return (short)cap_value(mdef2,SHRT_MIN,SHRT_MAX);
+#else
+		return (short)cap_value(mdef2,1,SHRT_MAX);
+#endif
+	}
 
 	if(sc->data[SC_BERSERK])
 		return 0;
 	if(sc->data[SC_SKA])
 		return 90;
-	if(sc->data[SC_MDEFSET])
-		return sc->data[SC_MDEFSET]->val1;
 	if(sc->data[SC_UNLIMIT])
 		return 1;
 
-	if(sc->data[SC_MINDBREAKER])
-		mdef2 -= mdef2 * sc->data[SC_MINDBREAKER]->val3 / 100;
 	if(sc->data[SC_BURNING])
 		mdef2 -= mdef2 * 25 / 100;
 	if(sc->data[SC_ANALYZE])
@@ -6532,7 +6570,9 @@ int status_get_guild_id(struct block_list *bl) {
 				return ((TBL_NPC*)bl)->u.scr.guild_id;
 			break;
 		case BL_SKILL:
-			return ((TBL_SKILL*)bl)->group->guild_id;
+			if (((TBL_SKILL*)bl)->group)
+				return ((TBL_SKILL*)bl)->group->guild_id;
+			break;
 		case BL_ELEM:
 			if (((TBL_ELEM*)bl)->master)
 				return ((TBL_ELEM*)bl)->master->status.guild_id;
@@ -9478,12 +9518,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = tick / tick_time;
 				break;
 			case SC_ZANGETSU:
-				if( status_get_hp(bl) % 2 == 0 )
-					val2 = (status_get_lv(bl) / 3) + (20 * val1); //+Watk
+				if( status_get_hp(bl)%2 == 0 )
+					val2 = (status_get_lv(bl) / 3) + (20 * val1); //+Atk
 				else
-					val2 -= (status_get_lv(bl) / 3) + (30 * val1); //-Watk
+					val2 -= (status_get_lv(bl) / 3) + (30 * val1); //-Atk
 
-				if( status_get_sp(bl) % 2 == 0 )
+				if( status_get_sp(bl)%2 == 0 )
 					val3 = (status_get_lv(bl) / 3) + (20 * val1); //+Matk
 				else
 					val3 -= (status_get_lv(bl) / 3) + (30 * val1); //-Matk
@@ -9537,7 +9577,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = 3 * val1; //Activation chance
 				break;
 			case SC_PYROCLASTIC:
-				val2 += 10 * val1; //Atk bonus
+				val2 += 10 * val1; //Watk bonus
 				val3 = 2 * val1; //Chance To AutoCast Hammer Fall %
 				break;
 			case SC_PARALYSIS:

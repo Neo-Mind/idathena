@@ -2061,6 +2061,11 @@ int status_calc_mercenary_(struct mercenary_data *md, enum e_status_calc_opt opt
 int status_calc_elemental_(struct elemental_data *ed, enum e_status_calc_opt opt);
 int status_calc_npc_(struct npc_data *nd, enum e_status_calc_opt opt);
 
+defType status_calc_def(struct block_list *bl, struct status_change *sc, int def, bool viewable);
+short status_calc_def2(struct block_list *bl, struct status_change *sc, int def2, bool viewable);
+defType status_calc_mdef(struct block_list *bl, struct status_change *sc, int mdef, bool viewable);
+short status_calc_mdef2(struct block_list *bl, struct status_change *sc, int mdef2, bool viewable);
+
 void status_calc_misc(struct block_list *bl, struct status_data *status, int level);
 void status_calc_regen(struct block_list *bl, struct status_data *status, struct regen_data *regen);
 void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, struct status_change *sc);

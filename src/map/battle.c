@@ -2369,27 +2369,20 @@ static bool attack_ignores_def(struct Damage wd, struct block_list *src, struct 
 #endif
 	if(sc && sc->data[SC_FUSION])
 		return true;
-	else if(skill_id != CR_GRANDCROSS && skill_id != NPC_GRANDDARKNESS
-#ifdef RENEWAL
-		//Renewal: Soul Breaker no longer gains ignore DEF from weapon [helvetica]
-		&& skill_id != ASC_BREAKER
-#endif
-	) { //Ignore Defense?
+	else if(skill_id != CR_GRANDCROSS && skill_id != NPC_GRANDDARKNESS) { //Ignore Defense?
 		if(sd && (sd->right_weapon.ignore_def_ele&(1<<tstatus->def_ele) || sd->right_weapon.ignore_def_ele&(1<<ELE_ALL) ||
 			sd->right_weapon.ignore_def_race&(1<<tstatus->race) || sd->right_weapon.ignore_def_race&(1<<RC_ALL) ||
-			sd->right_weapon.ignore_def_class&(1<<tstatus->class_) || sd->right_weapon.ignore_def_class&(1<<CLASS_ALL))
-		)
+			sd->right_weapon.ignore_def_class&(1<<tstatus->class_) || sd->right_weapon.ignore_def_class&(1<<CLASS_ALL)))
 			if(weapon_position == EQI_HAND_R)
 				return true;
 
 		if(sd && (sd->left_weapon.ignore_def_ele&(1<<tstatus->def_ele) || sd->left_weapon.ignore_def_ele&(1<<ELE_ALL) ||
 			sd->left_weapon.ignore_def_race&(1<<tstatus->race) || sd->left_weapon.ignore_def_race&(1<<RC_ALL) ||
-			sd->left_weapon.ignore_def_class&(1<<tstatus->class_) || sd->left_weapon.ignore_def_class&(1<<CLASS_ALL))
-		) {
+			sd->left_weapon.ignore_def_class&(1<<tstatus->class_) || sd->left_weapon.ignore_def_class&(1<<CLASS_ALL)))
+		{
 			if(battle_config.left_cardfix_to_right && is_attack_right_handed(src, skill_id)) {
-				//Move effect to right hand. [Skotlex]
 				if(weapon_position == EQI_HAND_R)
-					return true;
+					return true; //Move effect to right hand [Skotlex]
 			} else if(weapon_position == EQI_HAND_L)
 				return true;
 		}
@@ -4366,6 +4359,9 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 	defType def1 = status_get_def(target); //eDEF
 	short def2 = tstatus->def2, vit_def; //sDEF
 
+	def1 = status_calc_def(target, tsc, def1, false);
+	def2 = status_calc_def2(target, tsc, def2, false);
+
 	if(sd) {
 		int i = sd->ignore_def_by_race[tstatus->race] + sd->ignore_def_by_race[RC_ALL], type;
 
@@ -4389,33 +4385,6 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 		i = min(i, 100);
 		def1 = (def1 * (100 - i)) / 100;
 		def2 = (def2 * (100 - i)) / 100;
-	}
-	if(tsc) {
-#ifdef RENEWAL
-		if(tsc->data[SC_ASSUMPTIO])
-			def1 <<= 1; //only eDEF is doubled
-#endif
-		if(tsc->data[SC_CAMOUFLAGE]) {
-			short i = 5 * tsc->data[SC_CAMOUFLAGE]->val3; //5% per second
-
-			i = min(i, 100);
-			def1 = (def1 * (100 - i)) / 100;
-			def2 = (def2 * (100 - i)) / 100;
-		}
-		if(tsc->data[SC_NEUTRALBARRIER]) {
-			short i = 10 + 5 * tsc->data[SC_NEUTRALBARRIER]->val1;
-
-			def1 = (def1 * (100 + i)) / 100;
-		}
-		if(tsc->data[SC_FORCEOFVANGUARD]) {
-			short i = 2 * tsc->data[SC_FORCEOFVANGUARD]->val1;
-
-			def1 = (def1 * (100 + i)) / 100;
-		}
-		if(tsc->data[SC_GT_REVITALIZE] && tsc->data[SC_GT_REVITALIZE]->val2)
-			def2 += tsc->data[SC_GT_REVITALIZE]->val4;
-		if(tsc->data[SC_OVERED_BOOST] && target->type == BL_PC)
-			def1 = (def1 * tsc->data[SC_OVERED_BOOST]->val4) / 100;
 	}
 	if(battle_config.vit_penalty_type && battle_config.vit_penalty_target&target->type) {
 		unsigned char target_count; //256 max targets should be a sane max
@@ -5115,13 +5084,36 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		//Final attack bonuses that aren't affected by cards
 		wd = battle_attack_sc_bonus(wd, src, target, skill_id);
 
+		switch(skill_id) {
+			case CR_ACIDDEMONSTRATION:
+			case GN_FIRE_EXPANSION_ACID:
+				{
+					//Status ATK, weapon ATK, and equip ATK are directly reduce for eDEF
+					//sDEF directly reduces status ATK [exneval]
+					defType def1 = status_get_def(target);
+					short def2 = tstatus->def2;
+
+					def1 = status_calc_def(target, tsc, def1, false);
+					def2 = status_calc_def2(target, tsc, def2, false);
+
+					wd.statusAtk -= (def1 + def2);
+					wd.statusAtk2 -= (def1 + def2);
+					wd.weaponAtk -= def1;
+					wd.weaponAtk2 -= def1;
+					wd.equipAtk -= def1;
+					wd.equipAtk2 -= def1;
+				}
+				break;
+		}
+
 		if(sd) { //Monsters, homuns and pets have their damage computed directly
+			if(wd.flag&BF_LONG) { //Long damage rate addition doesn't use weapon + equip attack
+				ATK_ADDRATE(wd.statusAtk, wd.statusAtk2, sd->bonus.long_attack_atk_rate);
+				ATK_ADDRATE(wd.masteryAtk, wd.masteryAtk2, sd->bonus.long_attack_atk_rate);
+			}
 			wd.damage = wd.statusAtk + wd.weaponAtk + wd.equipAtk + wd.masteryAtk;
 			wd.damage2 = wd.statusAtk2 + wd.weaponAtk2 + wd.equipAtk2 + wd.masteryAtk2;
-			if(wd.flag&BF_LONG) //Long damage rate addition doesn't use weapon + equip attack
-				ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.long_attack_atk_rate);
-			//Custom fix for "a hole" in renewal attack calculation [exneval]
-			ATK_ADDRATE(wd.damage, wd.damage2, 5);
+			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Custom fix for "a hole" in renewal attack calculation [exneval]
 		}
 #else
 		//Final attack bonuses that aren't affected by cards
@@ -5431,7 +5423,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	ad.flag = BF_MAGIC|BF_SKILL;
 	ad.dmg_lv = ATK_DEF;
 	nk = skill_get_nk(skill_id);
-	flag.imdef = (nk&NK_IGNORE_DEF ? 1 : 0);
+	flag.imdef = ((nk&NK_IGNORE_DEF && skill_id != GN_FIRE_EXPANSION_ACID) ? 1 : 0);
 
 	sd = BL_CAST(BL_PC, src);
 	tsd = BL_CAST(BL_PC, target);
@@ -5563,25 +5555,16 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			case AB_RENOVATIO:
 				ad.damage = status_get_lv(src) * 10 + sstatus->int_;
 				break;
+#ifndef RENEWAL
 			case GN_FIRE_EXPANSION_ACID:
-#ifdef RENEWAL
-				{
-					short totaldef;
-					struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, 0);
-
-					ad.damage = (int64)(7 * ((wd.damage / skill_lv + ad.damage / skill_lv) * tstatus->vit / 100));
-					totaldef = (short)status_get_def(target) + tstatus->def2;
-					ad.damage -= totaldef;
-				}
-#else
 				if(tstatus->vit + sstatus->int_)
 					ad.damage = (int64)(7 * tstatus->vit * sstatus->int_ * sstatus->int_ / (10 * (tstatus->vit + sstatus->int_)));
 				else
 					ad.damage = 0;
 				if(tsd)
 					ad.damage >>= 1;
-#endif
 				break;
+#endif
 			default: {
 				MATK_ADD(status_get_matk(src, 2));
 
@@ -6082,6 +6065,9 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			defType mdef = tstatus->mdef; //eMDEF
 			short mdef2 = tstatus->mdef2; //sMDEF
 
+			mdef = status_calc_mdef(target, tsc, mdef, false);
+			mdef2 = status_calc_mdef2(target, tsc, mdef2, false);
+
 			if(sd) {
 				i = sd->ignore_mdef_by_race[tstatus->race] + sd->ignore_mdef_by_race[RC_ALL];
 				i += sd->ignore_mdef_by_class[tstatus->class_] + sd->ignore_mdef_by_class[CLASS_ALL];
@@ -6093,26 +6079,22 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				}
 			}
 
-			if(tsc) {
-#ifdef RENEWAL
-				if(tsc->data[SC_ASSUMPTIO])
-					mdef <<= 1; //Only eMDEF is doubled
-#endif
-				if(tsc->data[SC_NEUTRALBARRIER]) {
-					short i = 10 + 5 * tsc->data[SC_NEUTRALBARRIER]->val1;
-
-					mdef = (mdef * (100 + i)) / 100;
-				}
-			}
-
 #ifdef RENEWAL
 			/**
 			 * RE MDEF Reduction
 			 * Damage = Magic Attack * (1000 + eMDEF) / (1000 + eMDEF) - sMDEF
 			 */
-			if (mdef < -99) //It stops at -99
+			if(mdef < -99) //It stops at -99
 				mdef = 99; //In aegis it set to 1 but in our case it may lead to exploitation so limit it to 99
-			ad.damage = ad.damage * (1000 + mdef) / (1000 + mdef * 10) - mdef2;
+			switch(skill_id) {
+				case CR_ACIDDEMONSTRATION:
+				case GN_FIRE_EXPANSION_ACID:
+					ad.damage -= (mdef + mdef2); //Directly reduced for eMDEF and sMDEF [exneval]
+					break;
+				default:
+					ad.damage = ad.damage * (1000 + mdef) / (1000 + mdef * 10) - mdef2;
+					break;
+			}
 #else
 			if(battle_config.magic_defense_type)
 				ad.damage = ad.damage - mdef * battle_config.magic_defense_type - mdef2;
@@ -6161,7 +6143,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		if(!(nk&NK_NO_ELEFIX))
 			ad.damage = battle_attr_fix(src, target, ad.damage, s_ele, tstatus->def_ele, tstatus->ele_lv);
 
-		//Apply the physical part of the skill's damage. [Skotlex]
+		//Apply the physical part of the skill's damage [Skotlex]
 		switch(skill_id) {
 			case CR_GRANDCROSS:
 			case NPC_GRANDDARKNESS:
@@ -6177,6 +6159,14 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					}
 				}
 				break;
+#ifdef RENEWAL
+			case GN_FIRE_EXPANSION_ACID: {
+					struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, 0);
+
+					ad.damage = (int64)(7 * ((wd.damage / skill_lv + ad.damage / skill_lv) * tstatus->vit / 100));
+				}
+				break;
+#endif
 			case SO_VARETYR_SPEAR: {
 					struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, mflag);
 
@@ -6314,11 +6304,11 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			{
 				uint16 skill;
 
-				//Blitz-beat Damage.
+				//Blitz-beat Damage
 				if(!sd || (skill = pc_checkskill(sd,HT_STEELCROW)) <= 0)
 					skill = 0;
 				md.damage = (sstatus->dex / 10 + sstatus->int_ / 2 + skill * 3 + 40) * 2;
-				if(mflag > 1) //Autocasted Blitz.
+				if(mflag > 1) //Autocasted Blitz
 					nk |= NK_SPLASHSPLIT;
 				if(skill_id == SN_FALCONASSAULT) {
 					//Div fix of Blitzbeat
@@ -6358,17 +6348,11 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				//Damage = 7 * ((atk + matk) / skill level) * (target vit / 100)
 				//Skill is a "forced neutral" type skill, it benefits from weapon element but final damage
 				//is considered "neutral" for purposes of resistances
-				//Modified def formula
-				short totaldef, totalmdef;
 				struct Damage atk, matk;
 
 				atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,0);
 				matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,0);
 				md.damage = (int64)(7 * ((atk.damage / skill_lv + matk.damage / skill_lv) * tstatus->vit / 100));
-				//Modified def reduction, final damage = base damage - (edef + sdef + emdef + smdef)
-				totaldef = (short)status_get_def(target) + tstatus->def2;
-				totalmdef = tstatus->mdef + tstatus->mdef2;
-				md.damage -= totaldef + totalmdef;
 			}
 #else
 			if(tstatus->vit + sstatus->int_) //Crash fix
@@ -6440,13 +6424,14 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,0);
 				//(Atk + Matk) * (3 + (.5 * skill level))
 				md.damage = ((30 + (5 * skill_lv)) * (atk.damage + matk.damage)) / 10;
+				//Modified def reduction, final damage = base damage - (edef + sdef + emdef + smdef)
 				totaldef = (short)status_get_def(target) + tstatus->def2;
 				totalmdef = tstatus->mdef + tstatus->mdef2;
 				md.damage -= totaldef + totalmdef;
 			}
 #else
-			md.damage = 500 + rnd()%500 + 5 * skill_lv * sstatus->int_;
-			nk |= NK_NO_ELEFIX|NK_IGNORE_FLEE; //These two are not properties of the weapon based part.
+			md.damage = rnd_value(500,1000) + 5 * skill_lv * sstatus->int_;
+			nk |= NK_NO_ELEFIX|NK_IGNORE_FLEE; //These two are not properties of the weapon based part
 #endif
 			break;
 		case HW_GRAVITATION:
@@ -6621,7 +6606,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 					md.damage = sd->status.zeny;
 				pc_payzeny(sd,(int)cap_value(md.damage,INT_MIN,INT_MAX),LOG_TYPE_STEAL,NULL);
 			}
-		break;
+			break;
 	}
 
 	//Skill damage adjustment
