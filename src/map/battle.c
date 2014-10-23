@@ -5113,7 +5113,8 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			}
 			wd.damage = wd.statusAtk + wd.weaponAtk + wd.equipAtk + wd.masteryAtk;
 			wd.damage2 = wd.statusAtk2 + wd.weaponAtk2 + wd.equipAtk2 + wd.masteryAtk2;
-			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Custom fix for "a hole" in renewal attack calculation [exneval]
+			if(!skill_id)
+				ATK_ADDRATE(wd.damage, wd.damage2, 5); //Custom fix for "a hole" in renewal attack calculation [exneval]
 		}
 #else
 		//Final attack bonuses that aren't affected by cards
