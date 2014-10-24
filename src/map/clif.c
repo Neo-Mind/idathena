@@ -4325,7 +4325,7 @@ static void clif_getareachar_pc(struct map_session_data* sd,struct map_session_d
 		else
 			clif_efst_status_change(&sd->bl, dstsd->bl.id, SELF, StatusIconChangeTable[dstsd->sc_display[i]->type], dstsd->sc_display[i]->val1, dstsd->sc_display[i]->val2, dstsd->sc_display[i]->val3);
 	}
-	if( (sd->status.party_id && dstsd->status.party_id == sd->status.party_id) || //Party-mate, or hpdisp setting.
+	if( (sd->status.party_id && dstsd->status.party_id == sd->status.party_id) || //Party-mate, or hp disp setting
 		(sd->bg_id && sd->bg_id == dstsd->bg_id) || //BattleGround
 		pc_has_permission(sd, PC_PERM_VIEW_HPMETER) )
 		clif_hpmeter_single(sd->fd, dstsd->bl.id, dstsd->battle_status.hp, dstsd->battle_status.max_hp);
@@ -5715,7 +5715,7 @@ void clif_status_change(struct block_list *bl,int type,int flag,int tick,int val
 		if (tick <= 0)
 			tick = 9999; //This is indeed what official servers do
 
-		WBUFL(buf,9) = tick; /* At this stage remain and total are the same value I believe */
+		WBUFL(buf,9) = tick; //At this stage remain and total are the same value I believe
 		WBUFL(buf,13) = tick;
 		WBUFL(buf,17) = val1;
 		WBUFL(buf,21) = val2;
@@ -5742,7 +5742,7 @@ void clif_status_change(struct block_list *bl,int type,int flag,int tick,int val
 void clif_efst_status_change(struct block_list *bl, int tid, enum send_target target, int type, int val1, int val2, int val3) {
 	unsigned char buf[32];
 
-	if (type == SI_BLANK) //It shows nothing on the client
+	if (type == SI_BLANK)
 		return;
 
 	nullpo_retv(bl);

@@ -1131,6 +1131,12 @@ void initChangeTables(void) {
 	StatusDisplayType[SC__SHADOWFORM]	  = true;
 	StatusDisplayType[SC__MANHOLE]		  = true;
 	StatusDisplayType[SC_JYUMONJIKIRI]	  = true;
+	StatusDisplayType[SC_MEIKYOUSISUI]	  = true;
+	StatusDisplayType[SC_KYOUGAKU]		  = true;
+	StatusDisplayType[SC_KYOMU]		  = true;
+	StatusDisplayType[SC_KAGEMUSYA]		  = true;
+	StatusDisplayType[SC_ZANGETSU]		  = true;
+	StatusDisplayType[SC_GENSOU]		  = true;
 	StatusDisplayType[SC_AKAITSUKI]		  = true;
 	StatusDisplayType[SC_MONSTER_TRANSFORM]	  = true;
 	StatusDisplayType[SC_DARKCROW]		  = true;
@@ -9903,9 +9909,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 						break;
 				}
 			}
-			break;
-		case SC_KYOUGAKU:
-			clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,tick,val1,0,0);
 			break;
 	}
 
