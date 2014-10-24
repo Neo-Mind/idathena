@@ -2144,7 +2144,7 @@ static inline unsigned short status_base_matk_max(const struct status_data* stat
 /**
  * Gets a random matk value depending on min matk and max matk
  */
-static inline unsigned short status_get_rand_matk(unsigned short matk_max, unsigned short matk_min) {
+unsigned short status_get_rand_matk(unsigned short matk_max, unsigned short matk_min) {
 	if( matk_max > matk_min )
 		return matk_min + rnd()%(matk_max - matk_min);
 	else
@@ -2156,16 +2156,19 @@ static inline unsigned short status_get_rand_matk(unsigned short matk_max, unsig
  * @param flag:
  *  0 - Get MATK
  *  1 - Get MATK w/o SC bonuses
- *  3 - Get MATK w/o EATK & SC bonuses
+ *  3 - Get MATK w/o EMATK & SC bonuses
+ *  4 - Get SMATK
+ *  5 - Get WMATK
+ *  6 - Get EMATK & SC bonuses
  */
-static void status_get_matk_sub(struct block_list *bl, int flag, unsigned short *matk_max, unsigned short *matk_min) {
+void status_get_matk_sub(struct block_list *bl, int flag, unsigned short *matk_max, unsigned short *matk_min) {
 	struct status_data *status;
 	struct status_change *sc;
 	struct map_session_data *sd;
 
 	nullpo_retv(bl);
 
-	if( flag != 0 && flag != 1 && flag != 3 ) {
+	if( flag != 0 && flag != 1 && flag != 3 && flag != 4 && flag != 5 && flag != 6 ) {
 		ShowError("status_get_matk_sub: Unknown flag %d!\n", flag);
 		return;
 	}
@@ -2179,28 +2182,31 @@ static void status_get_matk_sub(struct block_list *bl, int flag, unsigned short 
 	 * RE MATK Formula (from irowiki:http://irowiki.org/wiki/MATK)
 	 * MATK = (sMATK + wMATK + eMATK) * Multiplicative Modifiers
 	 */
-	*matk_min = status_base_matk(status, status_get_lv(bl));
+	if( flag != 5 && flag != 6 )
+		*matk_min = status_base_matk(status, status_get_lv(bl));
 
 	//Any +MATK you get from skills and cards, including cards in weapon, is added here
-	if( sd && sd->bonus.ematk > 0 && flag != 3 )
+	if( sd && sd->bonus.ematk > 0 && flag != 3 && flag != 4 && flag != 5 )
 		*matk_min += sd->bonus.ematk;
 
-	if( flag != 3 )
+	if( flag != 1 && flag != 3 && flag != 4 && flag != 5 )
 		*matk_min = status_calc_ematk(bl, sc, *matk_min);
 
 	*matk_max = *matk_min;
 
 	//This is the only portion in MATK that varies depending on the weapon level and refinement rate
-	if( (bl->type&BL_PC) && (status->rhw.matk + status->lhw.matk) > 0 ) {
-		int wMatk = status->rhw.matk + status->lhw.matk; //Left and right MATK stacks
-		int variance = wMatk * status->rhw.wlv / 10; //Only use right hand weapon level
+	if( flag != 4 && flag != 6 ) {
+		if( (bl->type&BL_PC) && (status->rhw.matk + status->lhw.matk) > 0 ) {
+			int wMatk = status->rhw.matk + status->lhw.matk; //Left and right MATK stacks
+			int variance = wMatk * status->rhw.wlv / 10; //Only use right hand weapon level
 
-		*matk_min += wMatk - variance;
-		*matk_max += wMatk + variance;
-	} else if( bl->type&BL_MOB ) {
-		*matk_min = *matk_max = status_get_int(bl) + status_get_lv(bl);
-		*matk_min += 70 * ((TBL_MOB*)bl)->status.rhw.atk2 / 100;
-		*matk_max += 130 * ((TBL_MOB*)bl)->status.rhw.atk2 / 100;
+			*matk_min += wMatk - variance;
+			*matk_max += wMatk + variance;
+		} else if( bl->type&BL_MOB ) {
+			*matk_min = *matk_max = status_get_int(bl) + status_get_lv(bl);
+			*matk_min += 70 * ((TBL_MOB*)bl)->status.rhw.atk2 / 100;
+			*matk_max += 130 * ((TBL_MOB*)bl)->status.rhw.atk2 / 100;
+		}
 	}
 #else
 	*matk_min = status_base_matk_min(status) + (sd ? sd->bonus.ematk : 0);
@@ -2228,9 +2234,10 @@ static void status_get_matk_sub(struct block_list *bl, int flag, unsigned short 
 /**
  * Get bl's matk value depending on flag
  * @param flag [malufett]
+ *  0 - Get MATK
  *  1 - Get MATK w/o SC bonuses
  *  2 - Get modified MATK
- *  3 - Get MATK w/o eATK & SC bonuses
+ *  3 - Get MATK w/o EMATK & SC bonuses
  * @return 0 failure
  * @return MATK success
  *

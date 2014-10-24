@@ -2082,6 +2082,8 @@ int status_change_spread( struct block_list *src, struct block_list *bl );
 	unsigned short status_base_matk(const struct status_data* status, int level);
 #endif
 
+unsigned short status_get_rand_matk(unsigned short matk_max, unsigned short matk_min);
+void status_get_matk_sub(struct block_list *bl, int flag, unsigned short *matk_max, unsigned short *matk_min);
 int status_get_matk(struct block_list *bl, int flag);
 
 int status_readdb(void);

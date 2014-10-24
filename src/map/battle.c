@@ -5120,10 +5120,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			}
 			wd.damage = wd.statusAtk + wd.weaponAtk + wd.equipAtk + wd.masteryAtk;
 			wd.damage2 = wd.statusAtk2 + wd.weaponAtk2 + wd.equipAtk2 + wd.masteryAtk2;
-			if(!skill_id) { //Custom fix for "a hole" in renewal attack calculation [exneval]
-				ATK_ADDRATE(wd.damage, wd.damage2, 5);
-			} else
-				ATK_ADDRATE(wd.damage, wd.damage2, 1);
+			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Custom fix for "a hole" in renewal attack calculation [exneval]
 		}
 #else
 		//Final attack bonuses that aren't affected by cards
@@ -5433,7 +5430,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	ad.flag = BF_MAGIC|BF_SKILL;
 	ad.dmg_lv = ATK_DEF;
 	nk = skill_get_nk(skill_id);
-	flag.imdef = ((nk&NK_IGNORE_DEF && skill_id != GN_FIRE_EXPANSION_ACID) ? 1 : 0);
+	flag.imdef = (nk&NK_IGNORE_DEF ? 1 : 0);
 
 	sd = BL_CAST(BL_PC, src);
 	tsd = BL_CAST(BL_PC, target);
@@ -5576,7 +5573,16 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				break;
 #endif
 			default: {
-				MATK_ADD(status_get_matk(src, 2));
+				switch(skill_id) {
+#ifdef RENEWAL
+					case CR_ACIDDEMONSTRATION:
+					case GN_FIRE_EXPANSION_ACID:
+						break; //MATK will be calc later
+#endif
+					default:
+						MATK_ADD(status_get_matk(src, 2));
+						break;
+				}
 
 				//Divide MATK in case of multiple targets skill
 				if(nk&NK_SPLASHSPLIT) {
@@ -5693,9 +5699,11 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						break;
 					case WZ_VERMILION: {
     						int interval = 0, per = interval, ratio = per;
+
     						while((per++) < skill_lv) {
      							ratio += interval;
-     							if(per%3 == 0) interval += 20;
+     							if(per%3 == 0)
+									interval += 20;
     						}
 							if(skill_lv > 9)
 								ratio -= 10;
@@ -6071,9 +6079,9 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				flag.imdef = 1;
 		}
 
-		if(!flag.imdef) {
+		if(!flag.imdef || skill_id != CR_ACIDDEMONSTRATION || skill_id != GN_FIRE_EXPANSION_ACID) {
 			defType mdef = tstatus->mdef; //eMDEF
-			short mdef2 = tstatus->mdef2; //sMDEF
+			short mdef2 = tstatus->mdef2, int_mdef; //sMDEF
 
 			mdef = status_calc_mdef(target, tsc, mdef, false);
 			mdef2 = status_calc_mdef2(target, tsc, mdef2, false);
@@ -6089,7 +6097,14 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				}
 			}
 
+			int_mdef = mdef2;
+
 #ifdef RENEWAL
+			if(!tsd) { //Renewal monsters have their mdef swapped
+				int_mdef = mdef;
+				mdef = mdef2;
+			}
+
 			/**
 			 * RE MDEF Reduction
 			 * Damage = Magic Attack * (1000 + eMDEF) / (1000 + eMDEF) - sMDEF
@@ -6099,17 +6114,38 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			switch(skill_id) {
 				case CR_ACIDDEMONSTRATION:
 				case GN_FIRE_EXPANSION_ACID:
-					ad.damage -= (mdef + mdef2); //Directly reduced for eMDEF and sMDEF [exneval]
+					{
+						int64 statusMatk, weaponMatk, equipMatk;
+						unsigned short matk_max, matk_min;
+
+						status_get_matk_sub(src, 4, &matk_max, &matk_min);
+						statusMatk = matk_max;
+						matk_max = matk_min = 0;
+						status_get_matk_sub(src, 5, &matk_max, &matk_min);
+						weaponMatk = status_get_rand_matk(matk_max, matk_min);
+						matk_max = matk_min = 0;
+						status_get_matk_sub(src, 6, &matk_max, &matk_min);
+						equipMatk = matk_max;
+
+						//Status MATK, weapon MATK, and equip mATK are directly reduced by eMDEF [exneval]
+						//sMDEF only directly reduces status MATK
+						statusMatk -= (mdef + int_mdef);
+						weaponMatk -= mdef;
+						equipMatk -= mdef;
+
+						ad.damage += statusMatk + weaponMatk + equipMatk;
+					}
 					break;
 				default:
-					ad.damage = ad.damage * (1000 + mdef) / (1000 + mdef * 10) - mdef2;
+					ad.damage = ad.damage * (1000 + mdef) / (1000 + mdef * 10) - int_mdef;
 					break;
 			}
+			MATK_ADDRATE(5); //Custom fix for "a hole" in renewal magic attack calculation [exneval]
 #else
 			if(battle_config.magic_defense_type)
-				ad.damage = ad.damage - mdef * battle_config.magic_defense_type - mdef2;
+				ad.damage = ad.damage - mdef * battle_config.magic_defense_type - int_mdef;
 			else
-				ad.damage = ad.damage * (100 - mdef) / 100 - mdef2;
+				ad.damage = ad.damage * (100 - mdef) / 100 - int_mdef;
 #endif
 		}
 
