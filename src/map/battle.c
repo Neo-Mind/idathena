@@ -6079,7 +6079,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				flag.imdef = 1;
 		}
 
-		if(!flag.imdef || skill_id != CR_ACIDDEMONSTRATION || skill_id != GN_FIRE_EXPANSION_ACID) {
+		if(!flag.imdef || skill_id == CR_ACIDDEMONSTRATION || skill_id == GN_FIRE_EXPANSION_ACID) {
 			defType mdef = tstatus->mdef; //eMDEF
 			short mdef2 = tstatus->mdef2, int_mdef; //sMDEF
 
