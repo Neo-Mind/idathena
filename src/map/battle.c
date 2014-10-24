@@ -6134,13 +6134,14 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						equipMatk -= mdef;
 
 						ad.damage += statusMatk + weaponMatk + equipMatk;
+						MATK_ADDRATE(5); //Custom fix for "a hole" in renewal magic attack calculation [exneval]
 					}
 					break;
 				default:
+					MATK_ADDRATE(5); //Adds before reduction
 					ad.damage = ad.damage * (1000 + mdef) / (1000 + mdef * 10) - int_mdef;
 					break;
 			}
-			MATK_ADDRATE(5); //Custom fix for "a hole" in renewal magic attack calculation [exneval]
 #else
 			if(battle_config.magic_defense_type)
 				ad.damage = ad.damage - mdef * battle_config.magic_defense_type - int_mdef;
