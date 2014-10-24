@@ -3148,13 +3148,15 @@ void pc_bonus2(struct map_session_data *sd, int type, int type2, int val)
 		case SP_HP_VANISH_RATE: // bonus2 bHPVanishRate,n,x;
 			if(sd->state.lr_flag != 2) {
 				sd->bonus.hp_vanish_rate += type2;
-				sd->bonus.hp_vanish_per += val;
+				sd->bonus.hp_vanish_per = max(sd->bonus.hp_vanish_per, val);
+				sd->bonus.hp_vanish_trigger = 0;
 			}
 			break;
 		case SP_SP_VANISH_RATE: // bonus2 bSPVanishRate,n,x;
 			if(sd->state.lr_flag != 2) {
 				sd->bonus.sp_vanish_rate += type2;
-				sd->bonus.sp_vanish_per += val;
+				sd->bonus.sp_vanish_per = max(sd->bonus.sp_vanish_per, val);
+				sd->bonus.sp_vanish_trigger = 0;
 			}
 			break;
 		case SP_GET_ZENY_NUM: // bonus2 bGetZenyNum,x,n;
@@ -3664,6 +3666,20 @@ void pc_bonus3(struct map_session_data *sd, int type, int type2, int type3, int 
 			PC_BONUS_CHK_ELEMENT(type2, SP_SUBELE);
 			if(sd->state.lr_flag != 2)
 				pc_bonus_subele(sd, (unsigned char)type2, type3, val);
+			break;
+		case SP_HP_VANISH_RATE: // bonus3 bHPVanishRate,n,x,t;
+			if(sd->state.lr_flag != 2) {
+				sd->bonus.hp_vanish_rate += type2;
+				sd->bonus.hp_vanish_per = max(sd->bonus.hp_vanish_per, type3);
+				sd->bonus.hp_vanish_trigger = val;
+			}
+			break;
+		case SP_SP_VANISH_RATE: // bonus3 bSPVanishRate,n,x,t;
+			if(sd->state.lr_flag != 2) {
+				sd->bonus.sp_vanish_rate += type2;
+				sd->bonus.sp_vanish_per = max(sd->bonus.sp_vanish_per, type3);
+				sd->bonus.sp_vanish_trigger = val;
+			}
 			break;
 		default:
 			ShowWarning("pc_bonus3: unknown type %d %d %d %d!\n",type,type2,type3,val);

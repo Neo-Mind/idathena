@@ -6682,6 +6682,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct block_list *target,uint16 skill_id,uint16 skill_lv,int flag)
 {
 	struct Damage d;
+	struct map_session_data *sd = BL_CAST(BL_PC,bl);
 
 	switch(attack_type) {
 		case BF_WEAPON: d = battle_calc_weapon_attack(bl,target,skill_id,skill_lv,flag); break;
@@ -6700,6 +6701,18 @@ struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct bl
 		d.dmotion = 0;
 	} else //Some skills like Weaponry Research will cause damage even if attack is dodged
 		d.dmg_lv = ATK_DEF;
+
+	if(sd && d.damage + d.damage2 > 1) {
+		if(sd->bonus.hp_vanish_rate && sd->bonus.hp_vanish_trigger && rnd()%10000 < sd->bonus.hp_vanish_rate &&
+			((d.flag&sd->bonus.hp_vanish_trigger&BF_WEAPONMASK) || (d.flag&sd->bonus.hp_vanish_trigger&BF_RANGEMASK) ||
+			(d.flag&sd->bonus.hp_vanish_trigger&BF_SKILLMASK)) &&
+			target->type == BL_PC && (map[sd->bl.m].flag.pvp || map[sd->bl.m].flag.gvg))
+			status_percent_damage(&sd->bl,target,-sd->bonus.hp_vanish_per,0,false);
+		if(sd->bonus.sp_vanish_rate && sd->bonus.sp_vanish_trigger && rnd()%10000 < sd->bonus.sp_vanish_rate &&
+			((d.flag&sd->bonus.sp_vanish_trigger&BF_WEAPONMASK) || (d.flag&sd->bonus.sp_vanish_trigger&BF_RANGEMASK) ||
+			(d.flag&sd->bonus.sp_vanish_trigger&BF_SKILLMASK)))
+			status_percent_damage(&sd->bl,target,0,-sd->bonus.sp_vanish_per,false);
+	}
 
 	return d;
 }
@@ -6901,11 +6914,11 @@ void battle_drain(TBL_PC *sd, struct block_list *tbl, int64 rdamage, int64 ldama
 		}
 	}
 
-	if (sd->bonus.sp_vanish_rate && rnd()%1000 < sd->bonus.sp_vanish_rate)
-		status_percent_damage(&sd->bl, tbl, 0, (unsigned char)sd->bonus.sp_vanish_per, false);
-	if (sd->bonus.hp_vanish_rate && rnd()%1000 < sd->bonus.hp_vanish_rate &&
+	if (sd->bonus.hp_vanish_rate && rnd()%1000 < sd->bonus.hp_vanish_rate && !sd->bonus.hp_vanish_trigger &&
 		tbl->type == BL_PC && (map[sd->bl.m].flag.pvp || map[sd->bl.m].flag.gvg))
 		status_percent_damage(&sd->bl, tbl, (unsigned char)sd->bonus.hp_vanish_per, 0, false);
+	if (sd->bonus.sp_vanish_rate && rnd()%1000 < sd->bonus.sp_vanish_rate && !sd->bonus.sp_vanish_trigger)
+		status_percent_damage(&sd->bl, tbl, 0, (unsigned char)sd->bonus.sp_vanish_per, false);
 
 	if (sd->hp_gain_race_attack[race])
 		thp += sd->hp_gain_race_attack[race];

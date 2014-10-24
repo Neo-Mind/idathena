@@ -667,7 +667,7 @@ void initChangeTables(void) {
 	add_sc( RA_VERDURETRAP       , SC_ELEMENTALCHANGE );
 	set_sc( RA_FIRINGTRAP        , SC_BURNING         , SI_BURNT           , SCB_MDEF );
 	set_sc_with_vfx( RA_ICEBOUNDTRAP , SC_FREEZING    , SI_FROSTMISTY      , SCB_SPEED|SCB_ASPD|SCB_DEF|SCB_DEF2 );
-	set_sc( RA_UNLIMIT           , SC_UNLIMIT         , SI_UNLIMIT         , SCB_DEF|SCB_DEF2|SCB_MDEF|SCB_MDEF2 );
+	set_sc( RA_UNLIMIT           , SC_UNLIMIT         , SI_UNLIMIT         , SCB_NONE );
 
 	set_sc( NC_ACCELERATION      , SC_ACCELERATION    , SI_ACCELERATION    , SCB_SPEED );
 	set_sc( NC_HOVERING          , SC_HOVERING        , SI_HOVERING        , SCB_SPEED );
@@ -981,6 +981,8 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_CURSED_SOIL] = SI_CURSED_SOIL;
 	StatusIconChangeTable[SC_UPHEAVAL] = SI_UPHEAVAL;
 	StatusIconChangeTable[SC_REBOUND] = SI_REBOUND;
+	StatusIconChangeTable[SC_DEFSET] = SI_SET_NUM_DEF;
+	StatusIconChangeTable[SC_MDEFSET] = SI_SET_NUM_MDEF;
 	StatusIconChangeTable[SC_MONSTER_TRANSFORM] = SI_MONSTER_TRANSFORM;
 	StatusIconChangeTable[SC_ALL_RIDING] = SI_ALL_RIDING;
 	StatusIconChangeTable[SC_PUSH_CART] = SI_ON_PUSH_CART;
@@ -1103,7 +1105,7 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_QUEST_BUFF3] |= SCB_BATK|SCB_MATK;
 	StatusChangeFlagTable[SC_CHASEWALK2] |= SCB_STR;
 
-	/* StatusDisplayType Table [Ind] */
+	//StatusDisplayType Table [Ind]
 	StatusDisplayType[SC_ALL_RIDING]	  = true;
 	StatusDisplayType[SC_PUSH_CART]		  = true;
 	StatusDisplayType[SC_SPHERE_1]		  = true;
@@ -1143,7 +1145,7 @@ void initChangeTables(void) {
 	StatusDisplayType[SC_STRANGELIGHTS]	  = true;
 	StatusDisplayType[SC_DECORATION_OF_MUSIC] = true;
 
-	/* StatusChangeState (SCS_) NOMOVE */
+	//StatusChangeState (SCS_) NOMOVE
 	StatusChangeStateTable[SC_ANKLE]               |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_SPIDERWEB]           |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_AUTOCOUNTER]         |= SCS_NOMOVE;
@@ -1177,7 +1179,7 @@ void initChangeTables(void) {
 	StatusChangeStateTable[SC_PARALYSIS]           |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_KINGS_GRACE]         |= SCS_NOMOVE;
 
-	/* StatusChangeState (SCS_) NOPICKUPITEMS */
+	//StatusChangeState (SCS_) NOPICKUPITEMS
 	StatusChangeStateTable[SC_HIDING]              |= SCS_NOPICKITEM;
 	StatusChangeStateTable[SC_CLOAKING]            |= SCS_NOPICKITEM;
 	StatusChangeStateTable[SC_TRICKDEAD]           |= SCS_NOPICKITEM;
@@ -1185,12 +1187,12 @@ void initChangeTables(void) {
 	StatusChangeStateTable[SC_CLOAKINGEXCEED]      |= SCS_NOPICKITEM;
 	StatusChangeStateTable[SC_NOCHAT]              |= SCS_NOPICKITEM|SCS_NOPICKITEMCOND;
 
-	/* StatusChangeState (SCS_) NODROPITEMS */
+	//StatusChangeState (SCS_) NODROPITEMS
 	StatusChangeStateTable[SC_AUTOCOUNTER]         |= SCS_NODROPITEM;
 	StatusChangeStateTable[SC_BLADESTOP]           |= SCS_NODROPITEM;
 	StatusChangeStateTable[SC_NOCHAT]              |= SCS_NODROPITEM|SCS_NODROPITEMCOND;
 
-	/* StatusChangeState (SCS_) NOCAST (skills) */
+	//StatusChangeState (SCS_) NOCAST (skills)
 	StatusChangeStateTable[SC_SILENCE]             |= SCS_NOCAST;
 	StatusChangeStateTable[SC_STEELBODY]           |= SCS_NOCAST;
 	StatusChangeStateTable[SC_BERSERK]             |= SCS_NOCAST;
@@ -1209,7 +1211,7 @@ void initChangeTables(void) {
 	StatusChangeStateTable[SC_KINGS_GRACE]         |= SCS_NOCAST;
 	StatusChangeStateTable[SC_HEAT_BARREL_AFTER]   |= SCS_NOCAST;
 
-	/* StatusChangeState (SCS_) NOCHAT (skills) */
+	//StatusChangeState (SCS_) NOCHAT (skills)
 	StatusChangeStateTable[SC_BERSERK]             |= SCS_NOCHAT;
 	StatusChangeStateTable[SC_SATURDAYNIGHTFEVER]  |= SCS_NOCHAT;
 	StatusChangeStateTable[SC_DEEPSLEEP]           |= SCS_NOCHAT;
@@ -1562,7 +1564,6 @@ int status_heal(struct block_list *bl, int64 in_hp, int64 in_sp, int flag)
 			else
 				hp = 0;
 		}
-
 		if ((unsigned int)hp > status->max_hp - status->hp)
 			hp = status->max_hp - status->hp;
 	}
@@ -1574,16 +1575,15 @@ int status_heal(struct block_list *bl, int64 in_hp, int64 in_sp, int flag)
 		sp = 0;
 	}
 
-	if (sp) {
+	if (sp)
 		if((unsigned int)sp > status->max_sp - status->sp)
 			sp = status->max_sp - status->sp;
-	}
 
 	if (!sp && !hp)
 		return 0;
 
-	status->hp+= hp;
-	status->sp+= sp;
+	status->hp += hp;
+	status->sp += sp;
 
 	if (hp && sc &&
 		sc->data[SC_AUTOBERSERK] &&
@@ -1630,7 +1630,7 @@ int status_percent_change(struct block_list *src,struct block_list *target,signe
 		hp = 1;
 
 	if (flag == 2 && hp >= status->hp)
-		hp = status->hp - 1; //Must not kill target.
+		hp = status->hp - 1; //Must not kill target
 
 	if (sp_rate > 99)
 		sp = status->sp;
@@ -5470,8 +5470,6 @@ defType status_calc_def(struct block_list *bl, struct status_change *sc, int def
 			def += def * 2 * sc->data[SC_FORCEOFVANGUARD]->val1 / 100;
 		if(sc->data[SC_OVERED_BOOST] && bl->type == BL_PC)
 			def -= def * sc->data[SC_OVERED_BOOST]->val4 / 100;
-		if(sc->data[SC_DEFSET])
-			return sc->data[SC_DEFSET]->val1;
 		return (defType)cap_value(def,DEFTYPE_MIN,DEFTYPE_MAX);
 	}
 
@@ -5487,8 +5485,8 @@ defType status_calc_def(struct block_list *bl, struct status_change *sc, int def
 	if(sc->data[SC_STEELBODY])
 		return 90;
 #endif
-	if(sc->data[SC_UNLIMIT])
-		return 1;
+	if(sc->data[SC_DEFSET])
+		return sc->data[SC_DEFSET]->val1;
 
 	if(sc->data[SC_ARMORCHANGE])
 		def += def * sc->data[SC_ARMORCHANGE]->val2 / 100;
@@ -5571,8 +5569,6 @@ short status_calc_def2(struct block_list *bl, struct status_change *sc, int def2
 			def2 -= def2 * 5 * sc->data[SC_CAMOUFLAGE]->val3 / 100;
 		if(sc->data[SC_GT_REVITALIZE] && sc->data[SC_GT_REVITALIZE]->val2)
 			def2 += sc->data[SC_GT_REVITALIZE]->val4;
-		if(sc->data[SC_DEFSET])
-			return sc->data[SC_DEFSET]->val1;
 #ifdef RENEWAL
 		return (short)cap_value(def2,SHRT_MIN,SHRT_MAX);
 #else
@@ -5584,8 +5580,8 @@ short status_calc_def2(struct block_list *bl, struct status_change *sc, int def2
 		return 0;
 	if(sc->data[SC_ETERNALCHAOS])
 		return 0;
-	if(sc->data[SC_UNLIMIT])
-		return 1;
+	if(sc->data[SC_DEFSET])
+		return sc->data[SC_DEFSET]->val1;
 
 	if(sc->data[SC_SUN_COMFORT])
 		def2 += sc->data[SC_SUN_COMFORT]->val2;
@@ -5644,8 +5640,6 @@ defType status_calc_mdef(struct block_list *bl, struct status_change *sc, int md
 #endif
 		if(sc->data[SC_NEUTRALBARRIER])
 			mdef += mdef * (10 + 5 * sc->data[SC_NEUTRALBARRIER]->val1) / 100;
-		if(sc->data[SC_MDEFSET])
-			return sc->data[SC_MDEFSET]->val1;
 		return (defType)cap_value(mdef,DEFTYPE_MIN,DEFTYPE_MAX);
 	}
 
@@ -5657,8 +5651,8 @@ defType status_calc_mdef(struct block_list *bl, struct status_change *sc, int md
 	if(sc->data[SC_STEELBODY])
 		return 90;
 #endif
-	if(sc->data[SC_UNLIMIT])
-		return 1;
+	if(sc->data[SC_MDEFSET])
+		return sc->data[SC_MDEFSET]->val1;
 
 	if(sc->data[SC_ARMORCHANGE])
 		mdef += mdef * sc->data[SC_ARMORCHANGE]->val3 / 100;
@@ -5702,8 +5696,6 @@ short status_calc_mdef2(struct block_list *bl, struct status_change *sc, int mde
 	if(!viewable) {
 		if(sc->data[SC_MINDBREAKER])
 			mdef2 -= mdef2 * sc->data[SC_MINDBREAKER]->val3 / 100;
-		if(sc->data[SC_MDEFSET])
-			return sc->data[SC_MDEFSET]->val1;
 #ifdef RENEWAL
 		return (short)cap_value(mdef2,SHRT_MIN,SHRT_MAX);
 #else
@@ -5715,8 +5707,8 @@ short status_calc_mdef2(struct block_list *bl, struct status_change *sc, int mde
 		return 0;
 	if(sc->data[SC_SKA])
 		return 90;
-	if(sc->data[SC_UNLIMIT])
-		return 1;
+	if(sc->data[SC_MDEFSET])
+		return sc->data[SC_MDEFSET]->val1;
 
 	if(sc->data[SC_BURNING])
 		mdef2 -= mdef2 * 25 / 100;
@@ -8144,10 +8136,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_READYTURN:
 			case SC_DODGE:
 			case SC_PUSH_CART:
+			case SC_STYLE_CHANGE:
 			case SC_MOONSTAR:
 			case SC_SUPER_STAR:
 			case SC_STRANGELIGHTS:
 			case SC_DECORATION_OF_MUSIC:
+			case SC_ALL_RIDING:
 				tick = -1;
 				break;
 
@@ -9516,7 +9510,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_KYOUGAKU:
 				val2 = rnd_value(val1 * 2,val1 * 3);
 				val1 = 1002;
-				clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,tick,val1,0,0);
 				break;
 			case SC_KAGEMUSYA:
 				val3 = val1 * 2;
@@ -9600,9 +9593,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				if( sc->data[SC_PARALYSIS] )
 					sc_start(src,bl,SC_ENDURE,100,val1,tick); //Start endure for same duration
 				break;
-			case SC_STYLE_CHANGE: //[Lighta] need real info
-				tick = -1;
-				break;
 			case SC_CBC:
 				val3 = 10; //Drain sp % dmg
 				tick = max(tick,5000); //Min 5s (test)
@@ -9653,6 +9643,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_UNLIMIT:
 				val2 = 50 * val1;
+				status_change_start(bl,bl,SC_DEFSET,10000,1,0,0,0,tick,SCFLAG_FIXEDTICK);
+				status_change_start(bl,bl,SC_MDEFSET,10000,1,0,0,0,tick,SCFLAG_FIXEDTICK);
 				break;
 			case SC_FLASHCOMBO:
 				val2 = 20 + 20 * val1;
@@ -9660,9 +9652,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_MONSTER_TRANSFORM:
 				if( !mobdb_checkid(val1) )
 					val1 = 1002; //Default poring
-				break;
-			case SC_ALL_RIDING:
-				tick = -1;
 				break;
 			case SC_C_MARKER:
 				tick_time = 1000;
@@ -9734,12 +9723,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_KYOUGAKU:
 				val1 = 1002;
-				clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,tick,val1,0,0);
 				break;
 		}
 	}
 
-	/* Values that must be set regardless of SCFLAG_LOADED e.g. val_flag */ 
+	//Values that must be set regardless of SCFLAG_LOADED e.g. val_flag
 	switch (type) {
 		case SC_EXPBOOST:
 		case SC_JEXPBOOST:
@@ -9800,7 +9788,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 	}
 
-	/* [Ind] */
+	//[Ind]
 	if (sd && StatusDisplayType[type]) {
 		int dval1 = 0, dval2 = 0, dval3 = 0;
 
@@ -9808,7 +9796,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_ALL_RIDING:
 				dval1 = 1;
 				break;
-			default: /* All others: just copy val1 */
+			default: //All others: just copy val1
 				dval1 = val1;
 				break;
 		}
@@ -9816,13 +9804,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	}
 
 	switch (type) {
-		/* Those that make you stop attacking/walking */
+		//Those that make you stop attacking/walking
 		case SC_FREEZE:
 		case SC_STUN:
 		case SC_SLEEP:
 		case SC_STONE:
 		case SC_DEEPSLEEP:
-			if (sd && pc_issit(sd)) //Avoid sprite sync problems.
+			if (sd && pc_issit(sd)) //Avoid sprite sync problems
 				pc_setstand(sd);
 		case SC_TRICKDEAD:
 			status_change_end(bl,SC_DANCING,INVALID_TIMER);
@@ -9891,7 +9879,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			if (battle_config.sc_castcancel&bl->type)
 				unit_skillcastcancel(bl,0);
 			break;
-		/* Show Buff Icons */
+		//Shows buff icon where status begin to start
 		case SC_ITEMSCRIPT:
 			if (sd) {
 				switch (val1) {
@@ -9916,9 +9904,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				}
 			}
 			break;
+		case SC_KYOUGAKU:
+			clif_status_change(bl,SI_ACTIVE_MONSTER_TRANSFORM,1,tick,val1,0,0);
+			break;
 	}
 
-	//Set option as needed.
+	//Set option as needed
 	opt_flag = 1;
 	switch (type) {
 		//OPT1

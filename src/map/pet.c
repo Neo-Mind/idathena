@@ -706,12 +706,12 @@ int pet_equipitem(struct map_session_data *sd,int index)
 
 		if (pd->s_skill && pd->s_skill->timer == INVALID_TIMER) {
 			if (pd->s_skill->id)
-				pd->s_skill->timer=add_timer(tick+pd->s_skill->delay * 1000, pet_skill_support_timer, sd->bl.id, 0);
+				pd->s_skill->timer = add_timer(tick + pd->s_skill->delay * 1000, pet_skill_support_timer, sd->bl.id, 0);
 			else
-				pd->s_skill->timer=add_timer(tick+pd->s_skill->delay * 1000, pet_heal_timer, sd->bl.id, 0);
+				pd->s_skill->timer = add_timer(tick + pd->s_skill->delay * 1000, pet_heal_timer, sd->bl.id, 0);
 		}
 		if (pd->bonus && pd->bonus->timer == INVALID_TIMER)
-			pd->bonus->timer=add_timer(tick+pd->bonus->delay * 1000, pet_skill_bonus_timer, sd->bl.id, 0);
+			pd->bonus->timer = add_timer(tick + pd->bonus->delay * 1000, pet_skill_bonus_timer, sd->bl.id, 0);
 	}
 
 	return 0;

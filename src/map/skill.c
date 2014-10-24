@@ -1259,7 +1259,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			if( attack_type&BF_MISC ) //70% base stun chance
 				sc_start(src,bl,SC_STUN,70,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
-		case GS_BULLSEYE: //0.1% coma rate.
+		case GS_BULLSEYE: //0.1% coma rate
 			if( tstatus->race == RC_BRUTE || tstatus->race == RC_DEMIHUMAN )
 				status_change_start(src,bl,SC_COMA,10,skill_lv,0,src->id,0,0,SCFLAG_NONE);
 			break;
@@ -1574,7 +1574,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 
 	if( attack_type&BF_WEAPON ) {
 		if( sd && sd->special_state.bonus_coma ) { //Coma, Breaking Equipment
-			rate  = sd->weapon_coma_ele[tstatus->def_ele] + sd->weapon_coma_ele[ELE_ALL];
+			rate = sd->weapon_coma_ele[tstatus->def_ele] + sd->weapon_coma_ele[ELE_ALL];
 			rate += sd->weapon_coma_race[tstatus->race] + sd->weapon_coma_race[RC_ALL];
 			rate += sd->weapon_coma_class[tstatus->class_] + sd->weapon_coma_class[CLASS_ALL];
 			if( rate )
@@ -1616,7 +1616,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				if( sd->def_set_race[tstatus->race].rate )
 					status_change_start(src,bl,SC_DEFSET,sd->def_set_race[tstatus->race].rate,sd->def_set_race[tstatus->race].value,
 						0,0,0,sd->def_set_race[tstatus->race].tick,SCFLAG_FIXEDTICK);
-				if( sd->def_set_race[tstatus->race].rate )
+				if( sd->mdef_set_race[tstatus->race].rate )
 					status_change_start(src,bl,SC_MDEFSET,sd->mdef_set_race[tstatus->race].rate,sd->mdef_set_race[tstatus->race].value,
 						0,0,0,sd->mdef_set_race[tstatus->race].tick,SCFLAG_FIXEDTICK);
 			}
@@ -3730,7 +3730,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					map_foreachinrange(skill_area_sub,target,skill_get_splash(skl->skill_id,skl->skill_lv),BL_CHAR,
 						src,skl->skill_id,skl->skill_lv,0,skl->flag|BCT_ENEMY|1,skill_castend_damage_id);
 					break;
-				/* For SR_FLASHCOMBO */
+				//For SR_FLASHCOMBO
 				case SR_DRAGONCOMBO:
 				case SR_FALLENEMPIRE:
 				case SR_TIGERCANNON:
@@ -3738,8 +3738,11 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					{
 						struct map_session_data *sd = (TBL_PC*)src;
 
-						if( sd && src->type == BL_PC )
+						if( sd && src->type == BL_PC ) {
+							if( distance_xy(src->x,src->y,target->x,target->y) >= 3 )
+								break;
 							skill_castend_damage_id(src,target,skl->skill_id,pc_checkskill(sd,skl->skill_id),tick,0);
+						}
 					}
 					break;
 				case SC_ESCAPE:
@@ -4496,18 +4499,14 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 		case TK_TURNKICK:
 		case MO_BALKYOUNG: //Active part of the attack. Skill-attack [Skotlex]
-			{
-				skill_area_temp[1] = bl->id; //NOTE: This is used in skill_castend_nodamage_id to avoid affecting the target.
-				if (skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag))
-					map_foreachinrange(skill_area_sub,bl,
-						skill_get_splash(skill_id,skill_lv),BL_CHAR,
-						src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,
-						skill_castend_nodamage_id);
-			}
+			skill_area_temp[1] = bl->id; //NOTE: This is used in skill_castend_nodamage_id to avoid affecting the target
+			if (skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag))
+				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),BL_CHAR,
+					src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
 			break;
-		case CH_PALMSTRIKE: //Palm Strike takes effect 1 sec after casting. [Skotlex]
-			//clif_skill_nodamage(src,bl,skill_id,skill_lv,0); //Can't make this one display the correct attack animation delay :/
-			clif_damage(src,bl,tick,status_get_amotion(src),0,-1,1,DMG_ENDURE,0); //Display an absorbed damage attack.
+		case CH_PALMSTRIKE: //Palm Strike takes effect 1 sec after casting [Skotlex]
+			//clif_skill_nodamage(src,bl,skill_id,skill_lv,0); //Can't make this one display the correct attack animation delay
+			clif_damage(src,bl,tick,status_get_amotion(src),0,-1,1,DMG_ENDURE,0); //Display an absorbed damage attack
 			skill_addtimerskill(src,tick + (1000 + status_get_amotion(src)),bl->id,0,0,skill_id,skill_lv,BF_WEAPON,flag);
 			break;
 
@@ -4797,7 +4796,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 				heal = heal * (5 + 5 * skill_lv) / 100;
 				if (bl->type == BL_SKILL)
-					heal = 0; //Don't absorb heal from Ice Walls or other skill units.
+					heal = 0; //Don't absorb heal from Ice Walls or other skill units
 				if (heal && rnd()%100 < rate) {
 					status_heal(src,heal,0,0);
 					clif_skill_nodamage(NULL,src,AL_HEAL,heal,1);
@@ -12359,6 +12358,8 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 			skill_clear_group(src,4);
 			break;
 		case SO_WARMER:
+			if( map_getcell(src->m,x,y,CELL_CHKLANDPROTECTOR) )
+				return NULL;
 			skill_clear_group(src,8);
 			break;
 		case SO_VACUUM_EXTREME:
@@ -12601,7 +12602,8 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 	type = status_skill2sc(skill_id);
 	sce = (sc && type != SC_NONE) ? sc->data[type] : NULL;
 
-	if( skill_get_type(skill_id) == BF_MAGIC && map_getcell(bl->m,bl->x,bl->y,CELL_CHKLANDPROTECTOR) && skill_id != SA_LANDPROTECTOR )
+	if( skill_get_type(skill_id) == BF_MAGIC &&
+		map_getcell(bl->m,bl->x,bl->y,CELL_CHKLANDPROTECTOR) && skill_id != SA_LANDPROTECTOR )
 		return 0; //AoE skills are ineffective [Skotlex]
 
 	if( skill_get_inf2(skill_id)&(INF2_SONG_DANCE|INF2_ENSEMBLE_SKILL) && map_getcell(bl->m,bl->x,bl->y,CELL_CHKBASILICA) )
@@ -13490,11 +13492,9 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 					hp = tstatus->max_hp * 3 * skill_lv / 100;
 				else
 					hp = tstatus->max_hp * skill_lv / 100;
-				if (tstatus->hp != tstatus->max_hp)
-					clif_skill_nodamage(&unit->bl,bl,AL_HEAL,hp,0);
 				if (tsc && tsc->data[SC_AKAITSUKI] && hp)
 					hp = ~hp + 1;
-				status_heal(bl,hp,0,0);
+				status_heal(bl,hp,0,1);
 				status_change_start(src,bl,type,10000,skill_lv,0,0,0,group->interval + 100,SCFLAG_NOICON);
 			}
 			break;
@@ -17674,7 +17674,7 @@ int skill_unit_timer_sub_onplace(struct block_list* bl, va_list ap)
 
 	if( !(skill_get_inf2(group->skill_id)&(INF2_TRAP)) && !(skill_get_inf3(group->skill_id)&(INF3_NOLP)) &&
 		map_getcell(bl->m,bl->x,bl->y,CELL_CHKLANDPROTECTOR) )
-		return 0; //AoE skills are ineffective except non-essamble dance skills, traps and barriers.
+		return 0; //AoE skills are ineffective except non-essamble dance skills, traps and barriers
 
 	if( battle_check_target(&unit->bl,bl,group->target_flag) <= 0 )
 		return 0;
