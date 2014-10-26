@@ -1819,8 +1819,11 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 
 		if ((sc->data[SC_TRICKDEAD] && skill_id != NV_TRICKDEAD) ||
 			(sc->data[SC_AUTOCOUNTER] && !flag && skill_id) ||
-			(sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF && skill_id != PA_GOSPEL) ||
-			(sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF && flag != 2))
+			(sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF && skill_id != PA_GOSPEL)
+#ifndef RENEWAL
+			|| (sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF && flag != 2)
+#endif
+			)
 			return false;
 
 		if (sc->data[SC_WINKCHARM] && target && !flag) { //Prevents skill usage
@@ -4116,13 +4119,13 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 
 void status_calc_state(struct block_list *bl, struct status_change *sc, enum scs_flag flag, bool start) {
 
-	/* No sc at all, we can zero without any extra weight over our conciousness */
+	//No sc at all, we can zero without any extra weight over our conciousness 
 	if( !sc || !sc->count ) {
 		memset(&sc->cant, 0, sizeof (sc->cant));
 		return;
 	}
 
-	/* Can move? */
+	//Can move?
 	if( flag&SCS_NOMOVE ) {
 		if( !(flag&SCS_NOMOVECOND) )
 			sc->cant.move += (start ? 1 : -1);
@@ -4136,7 +4139,7 @@ void status_calc_state(struct block_list *bl, struct status_change *sc, enum scs
 		sc->cant.move = max(sc->cant.move, 0); //Safe check
 	}
 
-	/* Can't use skills */
+	//Can't use skills
 	if( flag&SCS_NOCAST ) {
 		if( !(flag&SCS_NOCASTCOND) )
 			sc->cant.cast += (start ? 1 : -1);
@@ -4144,7 +4147,7 @@ void status_calc_state(struct block_list *bl, struct status_change *sc, enum scs
 			sc->cant.cast += (start ? 1 : -1);
 	}
 
-	/* Can't chat */
+	//Can't chat
 	if( flag&SCS_NOCHAT ) {
 		if( !(flag&SCS_NOCHATCOND) )
 			sc->cant.chat += (start ? 1 : -1);
@@ -4152,9 +4155,9 @@ void status_calc_state(struct block_list *bl, struct status_change *sc, enum scs
 			sc->cant.chat += (start ? 1 : -1);
 	}
 
-	/* Player-only states */
+	//Player-only states
 	if( bl->type == BL_PC ) {
-		/* Can pick items? */
+		//Can pick items?
 		if( flag&SCS_NOPICKITEM ) {
 			if( !(flag&SCS_NOPICKITEMCOND) )
 				sc->cant.pickup += (start ? 1 : -1);
@@ -4162,7 +4165,7 @@ void status_calc_state(struct block_list *bl, struct status_change *sc, enum scs
 				sc->cant.pickup += (start ? 1 : -1);
 		}
 
-		/* Can drop items? */
+		//Can drop items?
 		if( flag&SCS_NODROPITEM ) {
 			if( !(flag&SCS_NODROPITEMCOND) )
 				sc->cant.drop += (start ? 1 : -1);
@@ -7472,12 +7475,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				}
 			}
 			break;
-		//Strip skills, need to divest something or it fails.
+		//Strip skills, need to divest something or it fails
 		case SC_STRIPWEAPON:
-			if(sd && !(flag&SCFLAG_LOADED)) { //apply sc anyway if loading saved sc_data
+			if(sd && !(flag&SCFLAG_LOADED)) { //Apply sc anyway if loading saved sc_data
 				short i;
 
-				opt_flag = 0; //Reuse to check success condition.
+				opt_flag = 0; //Reuse to check success condition
 				if(sd->bonus.unstripable_equip&EQP_WEAPON)
 					return 0;
 
@@ -7494,7 +7497,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			break;
 		case SC_STRIPSHIELD:
 			if(val2 == 1)
-				val2 = 0; //GX effect. Do not take shield off..
+				val2 = 0; //GX effect. Do not take shield off
 			else if(sd && !(flag&SCFLAG_LOADED)) {
 				short i;
 
@@ -8489,7 +8492,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_RUWACH:
 			case SC_SIGHTBLASTER:
 				val3 = skill_get_splash(val2,val1); //val2 should bring the skill-id
-				tick_time = 250;
+				tick_time = 20;
 				val2 = tick / tick_time;
 				break;
 			case SC_AUTOGUARD:
@@ -9047,7 +9050,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = tick / tick_time;
 				break;
 			case SC_PYREXIA:
-				status_change_start(src,bl,SC_BLIND,10000,val1,0,0,0,30000,SCFLAG_NOAVOID|SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE); //Blind status that last for 30 seconds
+				status_change_start(src,bl,SC_BLIND,10000,val1,0,0,0,
+					30000,SCFLAG_NOAVOID|SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE); //Blind status that last for 30 seconds
 				tick_time = 3000;
 				val4 = tick / tick_time;
 				break;
@@ -9547,12 +9551,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					else if( per <= 75 )
 						lv = 4;
 
-					if( hp % 2 == 0 )
+					if( hp%2 == 0 )
 						status_heal(bl,hp * (val1 + (6 - lv) * 4) / 100,0,1);
 					else
 						status_zap(bl,hp * (val1 + (lv * 4)) / 100,0);
 
-					if( sp % 2 == 0 )
+					if( sp%2 == 0 )
 						status_heal(bl,0,sp * (val1 + (6 - lv) * 3) / 100,1);
 					else
 						status_zap(bl,0,sp * (val1 + (lv * 3)) / 100);
@@ -10087,7 +10091,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			opt_flag = 0;
 	}
 
-	//On Aegis, when turning on a status change, first goes the option packet, then the sc packet.
+	//On Aegis, when turning on a status change, first goes the option packet, then the sc packet
 	if(opt_flag) {
 		clif_changeoption(bl);
 		if(sd && (opt_flag&0x4)) {
@@ -10108,11 +10112,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	if(!(flag&SCFLAG_NOICON) && !(flag&SCFLAG_LOADED && StatusDisplayType[type]))
 		clif_status_change(bl,StatusIconChangeTable[type],1,tick,(val_flag&1) ? val1 : 1,(val_flag&2) ? val2 : 0,(val_flag&4) ? val3 : 0);
 
-	//Used as temporary storage for scs with interval ticks, so that the actual duration is sent to the client first.
+	//Used as temporary storage for scs with interval ticks, so that the actual duration is sent to the client first
 	if(tick_time)
 		tick = tick_time;
 
-	//Don't trust the previous sce assignment, in case the SC ended somewhere between there and here.
+	//Don't trust the previous sce assignment, in case the SC ended somewhere between there and here
 	if((sce = sc->data[type])) { //Reuse old sc
 		if(sce->timer != INVALID_TIMER)
 			delete_timer(sce->timer,status_change_timer);
@@ -11234,13 +11238,15 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_SIGHT:
 		case SC_RUWACH:
 		case SC_SIGHTBLASTER:
-			if( type == SC_SIGHTBLASTER )
+			if( type == SC_SIGHTBLASTER ) {
+				if( sce->val4%2 ) //Restore trap immunity
+					sce->val4--;
 				map_foreachinrange(status_change_timer_sub,bl,sce->val3,BL_CHAR|BL_SKILL,bl,sce,type,tick);
-			else
+			} else
 				map_foreachinrange(status_change_timer_sub,bl,sce->val3,BL_CHAR,bl,sce,type,tick);
 			if( --(sce->val2) >= 0 ) {
-				sc_timer_next(250 + tick,status_change_timer,bl->id,data);
-				sce->val4 += 250; //Use for Shadow Form 2 seconds checking
+				sc_timer_next(20 + tick,status_change_timer,bl->id,data);
+				sce->val4 += 20; //Use for Shadow Form 2 seconds checking
 				return 0;
 			}
 			break;
@@ -12139,11 +12145,15 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 			}
 			break;
 		case SC_SIGHTBLASTER:
-			if( battle_check_target(src, bl, BCT_ENEMY) > 0 &&
-				status_check_skilluse(src, bl, WZ_SIGHTBLASTER, 2) ) {
-				if( sce && !(bl->type&BL_SKILL) && //The hit is not counted if it's against a trap
-					skill_attack(BF_MAGIC, src, src, bl, WZ_SIGHTBLASTER, sce->val1, tick, 0) )
+			if( battle_check_target(src, bl, BCT_ENEMY) > 0 && status_check_skilluse(src, bl, WZ_SIGHTBLASTER, 2) ) {
+				struct skill_unit *su = (struct skill_unit *)bl;
+
+				//The hit is not counted if it's against a trap
+				if( sce && skill_attack(BF_MAGIC, src, src, bl, WZ_SIGHTBLASTER, sce->val1, tick, 0x1000) &&
+					(!su || !su->group || !(skill_get_inf2(su->group->skill_id)&INF2_TRAP)) )
 					sce->val2 = 0; //This signals it to end
+				else if( (bl->type&BL_SKILL) && sce->val4%2 == 0 )
+					sce->val4++;
 			}
 			break;
 		case SC_CURSEDCIRCLE_TARGET:

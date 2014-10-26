@@ -428,7 +428,7 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 		hp += hp * sc->data[SC_OFFERTORIUM]->val2 / 100;
 
 	if( tsc && tsc->count ) {
-		if( heal && tsc->data[SC_CRITICALWOUND] ) //Critical Wound has no effect on offensive heal. [Inkfish]
+		if( heal && tsc->data[SC_CRITICALWOUND] ) //Critical Wound has no effect on offensive heal [Inkfish]
 			hp -= hp * tsc->data[SC_CRITICALWOUND]->val2 / 100;
 		if( heal && tsc->data[SC_DEATHHURT] )
 			hp -= hp * 20 / 100;
@@ -1593,7 +1593,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			if( rate ) //Self weapon breaking
 				skill_break_equip(src,src,EQP_WEAPON,rate,BCT_SELF);
 		}
-		//Cart Termination / Tomahawk won't trigger breaking data. Why? No idea, go ask Gravity.
+		//Cart Termination / Tomahawk won't trigger breaking data. Why? No idea, go ask Gravity
 		if( battle_config.equip_skill_break_rate && skill_id != WS_CARTTERMINATION && skill_id != ITM_TOMAHAWK ) {
 			rate = 0;
 			if( sd )
@@ -2719,6 +2719,8 @@ void skill_attack_blow(struct block_list *src, struct block_list *dsrc, struct b
  *        flag&0xFFF is passed to the underlying battle_calc_attack for processing
  *             (usually holds number of targets, or just 1 for simple splash attacks)
  *
+ *        flag&0x1000 - Return 0 if damage was reflected
+ *
  *        Values from enum e_skill_display
  *        Values from enum e_battle_check_target
  */
@@ -2745,7 +2747,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 			return 0; //When caster is not the src of attack, this is a ground skill, and as such, do the relevant target checking [Skotlex]
 	} else if ((flag&SD_ANIMATION) && (skill_get_nk(skill_id)&NK_SPLASH)) {
 		//Note that splash attacks often only check versus the targetted mob,
-		//those around the splash area normally don't get checked for being hidden/cloaked/etc. [Skotlex]
+		//those around the splash area normally don't get checked for being hidden/cloaked/etc [Skotlex]
 		if (!status_check_skilluse(src, bl, skill_id, 2))
 			return 0;
 	}
@@ -3203,6 +3205,9 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 	}
 
 	map_freeblock_unlock();
+
+	if ((flag&0x1000) && rmdamage)
+		return 0; //Should return 0 when damage was reflected
 
 	return (int)cap_value(damage, INT_MIN, INT_MAX);
 }
@@ -3918,7 +3923,7 @@ static int skill_reveal_trap(struct block_list *bl, va_list ap)
  *
  *
  *------------------------------------------*/
-int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint16 skill_id, uint16 skill_lv, unsigned int tick, int flag)
+int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint16 skill_id, uint16 skill_lv, unsigned int tick, int flag)
 {
 	struct map_session_data *sd = NULL;
 	struct status_data *tstatus;
@@ -3944,6 +3949,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 	//GTB makes all targetted magic display miss with a single bolt
 	if (skill_id && skill_get_type(skill_id) == BF_MAGIC && status_isimmune(bl) == 100) {
 		sc_type sct = status_skill2sc(skill_id);
+
 		if(sct != SC_NONE)
 			status_change_end(bl,sct,INVALID_TIMER);
 		clif_skill_damage(src,bl,tick,status_get_amotion(src),status_get_dmotion(bl),0,1,
@@ -3961,6 +3967,16 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		tsc = NULL;
 
 	tstatus = status_get_status_data(bl);
+
+#ifdef RENEWAL
+	if (sc && sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF &&
+		battle_check_target(src,bl,BCT_NOENEMY) <= 0) {
+		clif_skill_nodamage(src,bl,skill_id,skill_lv,0);
+		if (sd)
+			skill_consume_requirement(sd,skill_id,skill_lv,2);
+		return 0; //Mark as success so its cooldown will apply
+	}
+#endif
 
 	map_freeblock_lock();
 
@@ -4115,7 +4131,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 		case MO_COMBOFINISH:
 			if (!(flag&1) && sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_MONK) {
-				//Becomes a splash attack when Soul Linked.
+				//Becomes a splash attack when Soul Linked
 				map_foreachinrange(skill_area_sub,bl,
 					skill_get_splash(skill_id,skill_lv),splash_target(src),
 					src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,
@@ -5457,8 +5473,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 	if(sd && sd->status.party_id && party_foreachsamemap(party_sub_count,sd,0) > 1)
 		partybonus = party_foreachsamemap(party_sub_count,sd,0);
 
+	//Skills that may be cast on dead targets
 	if(src != bl && status_isdead(bl)) {
-		//Skills that may be cast on dead targets
 		switch(skill_id) {
 			case NPC_WIDESOULDRAIN:
 			case PR_REDEMPTIO:
@@ -5479,14 +5495,25 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			case AB_RENOVATIO:
 			case AB_HIGHNESSHEAL:
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_TOTARGET,0);
-				return 0;
-			default:
-				break;
+				return 1;
 		}
 	}
 
-	tstatus = status_get_status_data(bl);
 	sstatus = status_get_status_data(src);
+	tstatus = status_get_status_data(bl);
+
+#ifdef RENEWAL
+	if(battle_check_target(src,bl,BCT_NOENEMY) <= 0) {
+		struct status_change* sc = status_get_sc(src);
+
+		if(sc && sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF) {
+			clif_skill_nodamage(src,bl,skill_id,skill_lv,0);
+			if(sd)
+				skill_consume_requirement(sd,skill_id,skill_lv,2);
+			return 0;
+		}
+	}
+#endif
 
 	//Check for undead skills that convert a no-damage skill into a damage one [Skotlex]
 	switch(skill_id) {
@@ -5504,8 +5531,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case PR_ASPERSIO:
 			//Apparently only player casted skills can be offensive like this
 			if(sd && battle_check_undead(tstatus->race,tstatus->def_ele) && skill_id != AL_INCAGI) {
-				if(battle_check_target(src,bl,BCT_ENEMY) < 1) {
-					//Offensive heal does not works on non-enemies [Skotlex]
+				if(battle_check_target(src,bl,BCT_ENEMY) <= 0) { //Offensive heal does not works on non-enemies [Skotlex]
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					return 0;
 				}
@@ -5635,7 +5661,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 	if(src != bl && type > -1 && (i = skill_get_ele(skill_id,skill_lv)) > ELE_NEUTRAL &&
 		skill_get_inf(skill_id) != INF_SUPPORT_SKILL &&
 		battle_attr_fix(NULL,NULL,100,i,tstatus->def_ele,tstatus->ele_lv) <= 0)
-		return 1; //Skills that cause an status should be blocked if the target element blocks its element.
+		return 1; //Skills that cause an status should be blocked if the target element blocks its element
 
 	map_freeblock_lock();
 
@@ -8098,7 +8124,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case SL_COLLECTOR:
 		case SL_NINJA:
 		case SL_GUNNER:
-			//NOTE: here, 'type' has the value of the associated MAPID, not of the SC_SPIRIT constant.
+			//NOTE: here, 'type' has the value of the associated MAPID, not of the SC_SPIRIT constant
 			if (sd && dstsd && !((dstsd->class_&MAPID_UPPERMASK) == type ||
 				(skill_id == SL_SUPERNOVICE && (dstsd->class_&JOBL_SUPER_NOVICE)) ||
 				(skill_id == SL_NINJA && (dstsd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) ||
@@ -8911,7 +8937,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 		case WL_SIENNAEXECRATE:
 			if( status_isimmune(bl) || !tsc )
-				break; //Doesn't send failure packet if it fails on defense.
+				break; //Doesn't send failure packet if it fails on defense
 
 			if( flag&1 ) {
 				if( bl->id == skill_area_temp[1] )
@@ -9891,18 +9917,18 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				short idx = sd->equip_index[EQI_AMMO], ammo_id;
 
 				if( idx < 0 )
-					break; //No ammo.
+					break; //No ammo
 				ammo_id = sd->inventory_data[idx]->nameid;
 				if( ammo_id <= 0 )
 					break;
 				sd->itemid = ammo_id;
 				if( itemdb_is_GNbomb(ammo_id) ) {
-					if( battle_check_target(src,bl,BCT_ENEMY ) > 0) { //Only attack if the target is an enemy.
+					if( battle_check_target(src,bl,BCT_ENEMY ) > 0) { //Only attack if the target is an enemy
 						if( ammo_id == ITEMID_PINEAPPLE_BOMB )
 							map_foreachincell(skill_area_sub,bl->m,bl->x,bl->y,BL_CHAR,src,GN_SLINGITEM_RANGEMELEEATK,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 						else
 							skill_attack(BF_WEAPON,src,src,bl,GN_SLINGITEM_RANGEMELEEATK,skill_lv,tick,flag);
-					} else //Otherwise, it fails, shows animation and removes items.
+					} else //Otherwise, it fails, shows animation and removes items
 						clif_skill_fail(sd,GN_SLINGITEM_RANGEMELEEATK,USESKILL_FAIL,0);
 				} else if( itemdb_is_GNthrowable(ammo_id) ) {
 					struct script_code *script = sd->inventory_data[idx]->script;
@@ -10421,7 +10447,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case RL_C_MARKER:
 			if( sd ) {
 				//If marked by someone else, failed
-				if( tsc->data[SC_C_MARKER] && tsc->data[SC_C_MARKER]->val2 != src->id ) {
+				if( tsc && tsc->data[SC_C_MARKER] && tsc->data[SC_C_MARKER]->val2 != src->id ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
@@ -10986,7 +11012,7 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 
 }
 
-/* Skill count without self */
+//Skill count without self
 static int skill_count_wos(struct block_list *bl,va_list ap) {
 	struct block_list* src = va_arg(ap, struct block_list*);
 
@@ -11022,14 +11048,14 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 	type = status_skill2sc(skill_id);
 	sce = (sc && type != SC_NONE) ? sc->data[type] : NULL;
 
-	switch (skill_id) { //Skill effect.
+	switch (skill_id) { //Skill effect
 		case WZ_METEOR:
 		case MO_BODYRELOCATION:
 		case CR_CULTIVATION:
 		case HW_GANBANTEIN:
 		case LG_EARTHDRIVE:
 		case SC_ESCAPE:
-			break; //Effect is displayed on respective switch case.
+			break; //Effect is displayed on respective switch case
 		default:
 			if( skill_get_inf(skill_id)&INF_SELF_SKILL )
 				clif_skill_nodamage(src,src,skill_id,skill_lv,1);
@@ -12233,10 +12259,11 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 			//val1: MaxSP percent increase
 			val1 = 15 + skill_lv + status->int_ / 10; //Bonus rate by Dancer's INT
 			//val2: SP cost reduction
-			val2 = 20 + 3 * skill_lv;
-			if( sd )
-				val2 += (pc_checkskill(sd,DC_DANCINGLESSON) + 1) / 2; //Bonus rate by DC_DANCINGLESSON
-			val2 += status->int_ / 10; //Bonus rate by Dancer's INT
+			val2 = 20 + 3 * skill_lv + status->int_ / 10; //Bonus rate by Dancer's INT
+			if( sd ) { //Bonus rate by DC_DANCINGLESSON
+				val1 += (pc_checkskill(sd,DC_DANCINGLESSON) + 1) / 2;
+				val2 += (pc_checkskill(sd,DC_DANCINGLESSON) + 1) / 2;
+			}
 			break;
 		case BA_ASSASSINCROSS:
 			val1 = 100 + 10 * skill_lv + status->agi; //ASPD increase
@@ -12576,7 +12603,7 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 	struct block_list *src; //Actual source that cast the skill unit
 	TBL_PC* sd;
 	struct status_data *status;
-	struct status_change *sc;
+	struct status_change *sc, *tsc;
 	struct status_change_entry *sce;
 	enum sc_type type;
 	uint16 skill_id, skill_lv;
@@ -12598,6 +12625,7 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 
 	sd = BL_CAST(BL_PC,bl);
 	sc = status_get_sc(bl);
+	tsc = status_get_sc(src);
 	status = status_get_status_data(bl);
 	type = status_skill2sc(skill_id);
 	sce = (sc && type != SC_NONE) ? sc->data[type] : NULL;
@@ -12626,6 +12654,12 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 		if( (sc->option&OPTION_HIDE) && !(skill_get_inf3(group->skill_id)&INF3_HIT_HIDING) )
 			return 0; //Hidden characters are immuned, except to these skills [Skotlex]
 	}
+
+#ifdef RENEWAL
+		if( tsc && tsc->data[SC_GRAVITATION] && tsc->data[SC_GRAVITATION]->val3 == BCT_SELF &&
+			battle_check_target(&group->unit->bl,bl,BCT_NOENEMY) <= 0 && group->unit_id != UNT_GRAVITATION )
+			return 0;
+#endif
 
 	switch( group->unit_id ) {
 		case UNT_SPIDERWEB:
@@ -12755,8 +12789,6 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 		case UNT_DONTFORGETME:
 		case UNT_FORTUNEKISS:
 		case UNT_SERVICEFORYOU:
-			if( !sc )
-				return 0;
 			if( group->src_id == bl->id && !(sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER) )
 				return 0;
 			if( !sce )
@@ -12874,9 +12906,15 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 	type = status_skill2sc(skill_id);
 	knockback_immune = (tsd ? !tsd->special_state.no_knockback : !(tstatus->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS)));
 
-	if (sc && sc->data[SC_VOICEOFSIREN] && sc->data[SC_VOICEOFSIREN]->val2 == bl->id &&
-		(skill_get_inf2(skill_id)&INF2_TRAP))
-		return 0;
+	if (sc) {
+		if (sc->data[SC_VOICEOFSIREN] && sc->data[SC_VOICEOFSIREN]->val2 == bl->id && (skill_get_inf2(skill_id)&INF2_TRAP))
+			return 0;
+#ifdef RENEWAL
+		if (sc && sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF &&
+			battle_check_target(&group->unit->bl,bl,BCT_NOENEMY) <= 0 && group->unit_id != UNT_GRAVITATION)
+			return 0;
+#endif
+	}
 
 	if (tsc && tsc->data[SC_HOVERING]) {
 		switch (group->unit_id) {
@@ -13218,9 +13256,9 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 				if (md && md->mob_id == MOBID_EMPERIUM)
 					break;
 #endif
-				if (group->src_id == bl->id &&
-					(!(tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_BARDDANCER) ||
-					(!battle_config.song_timer_reset && tsc && tsc->data[type] && tsc->data[type]->val4 == 1)))
+				if ((group->src_id == bl->id &&
+					!(tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_BARDDANCER)) ||
+					(!battle_config.song_timer_reset && tsc && tsc->data[type] && tsc->data[type]->val4 == 1))
 					break;
 				heal = skill_calc_heal(src,bl,skill_id,skill_lv,true);
 				clif_skill_nodamage(&unit->bl,bl,AL_HEAL,heal,1);
@@ -13807,8 +13845,8 @@ int skill_unit_onleft(uint16 skill_id, struct block_list *bl, unsigned int tick)
 				if (battle_config.song_timer_reset || (!battle_config.song_timer_reset && sce->val4 != 1)) {
 					delete_timer(sce->timer, status_change_timer);
 					//NOTE: It'd be nice if we could get the skill_lv for a more accurate extra time, but still
-					//not possible on our current implementation.
-					sce->val4 = 1; //Store the fact that this is a "reduced" duration effect.
+					//not possible on our current implementation
+					sce->val4 = 1; //Store the fact that this is a "reduced" duration effect
 					sce->timer = add_timer(tick + skill_get_time2(skill_id, 1), status_change_timer, bl->id, type);
 				}
 			}
@@ -17132,7 +17170,7 @@ bool skill_check_camouflage(struct block_list *bl, struct status_change_entry *s
 {
 	bool wall = true;
 
-	if( bl->type == BL_PC ) { //Check for walls.
+	if( bl->type == BL_PC ) { //Check for walls
 		static const int dx[] = { 0, 1, 0, -1, -1,  1, 1, -1};
 		static const int dy[] = {-1, 0, 1,  0, -1, -1, 1,  1};
 		int i;
@@ -17144,7 +17182,7 @@ bool skill_check_camouflage(struct block_list *bl, struct status_change_entry *s
 
 	if( sce ) {
 		if( !wall )
-			if( sce->val1 == 1 ) //End camouflage.
+			if( sce->val1 == 1 ) //End camouflage
 				status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
 		status_calc_bl(bl, SCB_SPEED);
 	}
@@ -17177,9 +17215,9 @@ bool skill_check_shadowform(struct block_list *bl, int64 damage, int hit)
 			return false;
 		}
 
-		if( src && (status_isdead(src) || !battle_check_target(bl, src, BCT_ENEMY)) ) {
-			/* FIXME: An official video didn't show this behavior [exneval]
-			status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER); */
+		if( src && (status_isdead(src) || battle_check_target(bl, src, BCT_ENEMY) <= 0) ) {
+			//FIXME: An official video didn't show this behavior [exneval]
+			//status_change_end(bl, SC__SHADOWFORM, INVALID_TIMER);
 			if( src->type == BL_PC )
 				((TBL_PC*)src)->shadowform_id = 0;
 			return false;

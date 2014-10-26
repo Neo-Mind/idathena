@@ -4890,6 +4890,9 @@ int clif_outsight(struct block_list *bl,va_list ap)
 	TBL_PC *sd, *tsd;
 	tbl = va_arg(ap,struct block_list*);
 
+	nullpo_ret(bl);
+	nullpo_ret(tbl);
+
 	if (bl == tbl)
 		return 0;
 
@@ -4928,8 +4931,10 @@ int clif_outsight(struct block_list *bl,va_list ap)
 				break;
 		}
 	}
-	if (sd && sd->fd) { //sd is watching tbl go out of view.
-		if (((vd = status_get_viewdata(tbl)) && vd->class_ != INVISIBLE_CLASS) &&
+	if (sd && sd->fd) { //sd is watching tbl go out of view
+		if (tbl->type == BL_SKILL) //Trap knocked out of sight
+			clif_clearchar_skillunit((struct skill_unit *)tbl,sd->fd);
+		else if (((vd = status_get_viewdata(tbl)) && vd->class_ != INVISIBLE_CLASS) &&
 			!(tbl->type == BL_NPC && (((TBL_NPC*)tbl)->sc.option&OPTION_INVISIBLE)))
 			clif_clearunit_single(tbl->id,CLR_OUTSIGHT,sd->fd);
 	}

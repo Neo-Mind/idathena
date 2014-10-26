@@ -791,7 +791,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 	}
 
 	if( skill_id == PA_PRESSURE )
-		return damage; //This skill bypass everything else.
+		return damage; //This skill bypass everything else
 
 	if( sc && sc->count ) {
 		//SC_* that reduce damage to 0.
@@ -6482,8 +6482,12 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 #endif
 			break;
 		case HW_GRAVITATION:
+#ifdef RENEWAL
+			md.damage = 500 + (skill_lv * 100);
+#else
 			md.damage = 200 + 200 * skill_lv;
-			md.dmotion = 0; //No flinch animation.
+#endif
+			md.dmotion = 0; //No flinch animation
 			break;
 		case NPC_EVILLAND:
 			md.damage = skill_calc_heal(src,target,skill_id,skill_lv,false);
@@ -7000,7 +7004,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	sc = status_get_sc(src);
 	tsc = status_get_sc(target);
 
-	if (sc && !sc->count) //Avoid sc checks when there's none to check for. [Skotlex]
+	if (sc && !sc->count) //Avoid sc checks when there's none to check for [Skotlex]
 		sc = NULL;
 
 	if (tsc && !tsc->count)
@@ -7059,8 +7063,8 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		if (dist <= 0 || (!map_check_dir(dir,t_dir) && dist <= tstatus->rhw.range + 1)) {
 			uint16 skill_lv = tsc->data[SC_AUTOCOUNTER]->val1;
 
-			clif_skillcastcancel(target); //Remove the casting bar. [Skotlex]
-			clif_damage(src,target,tick,sstatus->amotion,1,0,1,DMG_NORMAL,0); //Display MISS.
+			clif_skillcastcancel(target); //Remove the casting bar [Skotlex]
+			clif_damage(src,target,tick,sstatus->amotion,1,0,1,DMG_NORMAL,0); //Display MISS
 			status_change_end(target,SC_AUTOCOUNTER,INVALID_TIMER);
 			skill_attack(BF_WEAPON,target,target,src,KN_AUTOCOUNTER,skill_lv,tick,0);
 			return ATK_BLOCK;
@@ -7073,9 +7077,9 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		int duration = skill_get_time2(MO_BLADESTOP,skill_lv);
 
 		status_change_end(target,SC_BLADESTOP_WAIT,INVALID_TIMER);
-		//Target locked.
+		//Target locked
 		if (sc_start4(src,src,SC_BLADESTOP,100,sd ? pc_checkskill(sd,MO_BLADESTOP) : 0,0,0,target->id,duration)) {
-			clif_damage(src,target,tick,sstatus->amotion,1,0,1,DMG_NORMAL,0); //Display MISS.
+			clif_damage(src,target,tick,sstatus->amotion,1,0,1,DMG_NORMAL,0);
 			clif_bladestop(target,src->id,1);
 			sc_start4(src,target,SC_BLADESTOP,100,skill_lv,0,0,src->id,duration);
 			return ATK_BLOCK;
@@ -7537,7 +7541,8 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 
 				if( !su || !su->group )
 					return 0;
-				if( skill_get_inf2(su->group->skill_id)&INF2_TRAP ) { //Only a few skills can target traps
+				//Only a few skills can target traps
+				if( skill_get_inf2(su->group->skill_id)&INF2_TRAP && su->group->unit_id != UNT_USED_TRAPS ) {
 					switch( battle_getcurrentskill(src) ) {
 						case RK_DRAGONBREATH: //It can only hit traps in pvp/gvg maps
 						case RK_DRAGONBREATH_WATER:
@@ -7634,6 +7639,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			break;
 		case BL_SKILL: {
 				struct skill_unit *su = (struct skill_unit *)src;
+				struct status_change* tsc = status_get_sc(target);
 
 				if( !su || !su->group )
 					return 0;
@@ -7645,6 +7651,11 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 					if( inf2&INF2_TARGET_SELF )
 						return 1;
 				}
+				//Status changes that prevent traps from triggering
+				if( tsc && tsc->count && skill_get_inf2(su->group->skill_id)&INF2_TRAP )
+					if( tsc->data[SC_SIGHTBLASTER] &&
+						tsc->data[SC_SIGHTBLASTER]->val2 > 0 && tsc->data[SC_SIGHTBLASTER]->val4%2 == 0 )
+						return -1;
 			}
 			break;
 		case BL_MER:

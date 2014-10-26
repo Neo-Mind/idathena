@@ -981,6 +981,7 @@ int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag)
 			unit_stop_walking(bl, 0);
 
 		if(sd) {
+			unit_stop_stepaction(bl); //Stop stepaction when knocked back
 			sd->ud.to_x = nx;
 			sd->ud.to_y = ny;
 		}
@@ -1341,7 +1342,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	if( sc && !sc->count )
 		sc = NULL; //Unneeded
 
-	//Temp: Used to signal combo-skills right now.
+	//Temp: Used to signal combo-skills right now
 	if( sc && sc->data[SC_COMBO] && (sc->data[SC_COMBO]->val1 == skill_id ||
 		(sd ? skill_check_condition_castbegin(sd,skill_id,skill_lv) : 0)) ) {
 		if( sc->data[SC_COMBO]->val2 )
@@ -1356,7 +1357,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		((skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF) ||
 		(skill_id == RL_QD_SHOT && sc && sc->data[SC_QD_SHOT_READY])) )
 	{
-		target_id = ud->target; //Auto-select target. [Skotlex]
+		target_id = ud->target; //Auto-select target [Skotlex]
 		combo = 1;
 	}
 
@@ -1512,7 +1513,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 				break;
 		}
 
-		/* Temporarily disabled, awaiting for confirmation */
+		//Temporarily disabled, awaiting for confirmation
 #if 0
 		if( sd->skillitem != skill_id && !skill_check_condition_castbegin(sd, skill_id, skill_lv) )
 #else
@@ -1552,12 +1553,12 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	if( src->id != target_id && (!combo || ud->attacktimer == INVALID_TIMER) ) {
 		if( skill_get_state(ud->skill_id) == ST_MOVE_ENABLE &&
 			!unit_can_reach_bl(src, target, range + 1, 1, NULL, NULL) )
-			return 0; //Walk-path check failed.
+			return 0; //Walk-path check failed
 		else if( src->type == BL_MER && skill_id == MA_REMOVETRAP &&
 			!battle_check_range(battle_get_master(src), target, range + 1) )
 			return 0; //Aegis calc remove trap based on Master position, ignoring mercenary
 		else if( !battle_check_range(src, target, range + (skill_id == RG_CLOSECONFINE ? 0 : 2)) )
-			return 0; //Arrow-path check failed.
+			return 0; //Arrow-path check failed
 	}
 
 	if( !combo ) //Stop attack on non-combo skills [Skotlex]
@@ -1567,7 +1568,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 
 	ud->state.skillcastcancel = castcancel;
 
-	//Combo: Used to signal force cast now.
+	//Combo: Used to signal force cast now
 	combo = 0;
 
 	switch( skill_id ) {
@@ -1575,7 +1576,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 			if( battle_check_undead(tstatus->race, tstatus->def_ele) ) {
 				combo = 1;
 			} else if( !status_isdead(target) )
-				return 0; //Can't cast on non-dead characters.
+				return 0; //Can't cast on non-dead characters
 			break;
 		case MO_FINGEROFFENSIVE:
 			if( sd )
@@ -1670,7 +1671,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	if( src->type == BL_NPC ) //NPC-objects do not have cast time
 		casttime = 0;
 
-	if( sc ) { //Why the if else chain: These 3 status do not stack, so its efficient that way.
+	if( sc ) { //Why the if else chain: These 3 status do not stack, so its efficient that way
  		if( sc->data[SC_CLOAKING] && !(sc->data[SC_CLOAKING]->val4&4) && skill_id != AS_CLOAKING ) {
 			status_change_end(src, SC_CLOAKING, INVALID_TIMER);
 			if( !src->prev )
