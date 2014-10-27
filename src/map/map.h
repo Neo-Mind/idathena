@@ -470,7 +470,8 @@ typedef enum {
 	CELL_LANDPROTECTOR,
 	CELL_NOVENDING,
 	CELL_NOCHAT,
-	CELL_ICEWALL
+	CELL_ICEWALL,
+	CELL_NOICEWALL
 
 } cell_t;
 
@@ -493,28 +494,30 @@ typedef enum {
 	CELL_CHKLANDPROTECTOR, // Whether the cell has Land Protector
 	CELL_CHKNOVENDING,     // Whether the cell denies MC_VENDING skill
 	CELL_CHKNOCHAT,        // Whether the cell denies Player Chat Window
-	CELL_CHKICEWALL        // Whether the cell has Ice Wall
+	CELL_CHKICEWALL,       // Whether the cell has Ice Wall
+	CELL_CHKNOICEWALL      // Whether the cell isn't allowed to cast Ice Wall
 } cell_chk;
 
 struct mapcell
 {
-	// terrain flags
+	// Terrain flags
 	unsigned char
 		walkable : 1,
 		shootable : 1,
 		water : 1;
 
-	// dynamic flags
+	// Dynamic flags
 	unsigned char
 		npc : 1,
 		basilica : 1,
 		landprotector : 1,
 		novending : 1,
 		nochat : 1,
-		icewall : 1;
+		icewall : 1,
+		noicewall : 1;
 
 #ifdef CELL_NOSTACK
-	unsigned char cell_bl; //Holds amount of bls in this cell.
+	unsigned char cell_bl; // Holds amount of bls in this cell.
 #endif
 };
 

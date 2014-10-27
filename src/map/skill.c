@@ -6150,6 +6150,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case NPC_INVINCIBLE:
 		case NPC_INVINCIBLEOFF:
 		case RK_DEATHBOUND:
+		case RK_CRUSHSTRIKE:
 		case AB_RENOVATIO:
 		case AB_EXPIATIO:
 		case AB_DUPLELIGHT:
@@ -6161,6 +6162,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case GC_VENOMIMPRESS:
 		case SC_INVISIBILITY:
 		case SC_DEADLYINFECT:
+		case LG_EXEEDBREAK:
 		case LG_PRESTIGE:
 		case SR_CRESCENTELBOW:
 		case SR_LIGHTNINGWALK:
@@ -8525,12 +8527,6 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				clif_millenniumshield(bl,shieldnumber);
 				clif_skill_nodamage(src,bl,skill_id,1,1);
 			}
-			break;
-
-		case RK_CRUSHSTRIKE:
-		case LG_EXEEDBREAK:
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,
-				sc_start4(src,bl,type,100,skill_lv,0,skill_id,0,skill_get_time(skill_id,skill_lv)));
 			break;
 
 		case RK_FIGHTINGSPIRIT:
@@ -10946,9 +10942,6 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 			}
 		}
 		if( sd ) {
-			if( ud->skill_id == WZ_ICEWALL && map_getcell(sd->bl.m,ud->skillx,ud->skilly,CELL_CHKICEWALL) &&
-				ud->skillx == sd->icewall_x && ud->skilly == sd->icewall_y )
-				break; //Can only cast in another cell not in the previous cell it was casted
 			if( ud->skill_id != AL_WARP && !skill_check_condition_castend(sd,ud->skill_id,ud->skill_lv) ) {
 				if( ud->skill_id == SA_LANDPROTECTOR )
 					clif_skill_poseffect(&sd->bl,ud->skill_id,ud->skill_lv,sd->bl.x,sd->bl.y,tick);
@@ -11227,11 +11220,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case WZ_ICEWALL:
-			skill_unitsetting(src,skill_id,skill_lv,x,y,0);
-			if( sd ) {
-				sd->icewall_x = x;
-				sd->icewall_y = y;
-			}
+			if( skill_unitsetting(src,skill_id,skill_lv,x,y,0) )
+				map_setcell(src->m, x, y, CELL_NOICEWALL, true);
 			flag |= 1;
 			break;
 
@@ -17285,6 +17275,7 @@ struct skill_unit *skill_initunit(struct skill_unit_group *group, int idx, int x
 	//Perform oninit actions
 	switch (group->skill_id) {
 		case WZ_ICEWALL:
+			map_setcell(unit->bl.m,unit->bl.x,unit->bl.y,CELL_NOICEWALL,false);
 			map_setgatcell(unit->bl.m,unit->bl.x,unit->bl.y,5);
 			clif_changemapcell(0,unit->bl.m,unit->bl.x,unit->bl.y,5,AREA);
 			skill_unitsetmapcell(unit,WZ_ICEWALL,group->skill_lv,CELL_ICEWALL,true);

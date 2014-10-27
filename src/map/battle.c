@@ -3089,7 +3089,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 			skillratio += 100;
 #else
 			skillratio += 200;
-		if(sc && sc->data[SC_TRUESIGHT])
+		if(sc->data[SC_TRUESIGHT])
 			skillratio += 2 * sc->data[SC_TRUESIGHT]->val1;
 		if(sc->data[SC_CONCENTRATION])
 			skillratio += sc->data[SC_CONCENTRATION]->val2;
@@ -4112,7 +4112,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 		}
 	}
 
-	//The following are applied on top of current damage and are stackable.
+	//The following are applied on top of current damage and are stackable
 	if(sc) {
 #ifdef RENEWAL
 		if(sc->data[SC_WATK_ELEMENT] && skill_id != ASC_METEORASSAULT)
@@ -4148,7 +4148,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 #ifdef RENEWAL
 				ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, map_flag_gvg(src->m) ? 25 : 100);
 #endif
-			} else if(skill_id == CR_SHIELDBOOMERANG && (sc->data[SC_SPIRIT]->val2 == SL_CRUSADER)) {
+			} else if(skill_id == CR_SHIELDBOOMERANG && sc->data[SC_SPIRIT]->val2 == SL_CRUSADER) {
 				ATK_ADDRATE(wd.damage, wd.damage2, 100);
 #ifdef RENEWAL
 				ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, 100);
@@ -5063,7 +5063,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 	if(!is_attack_hitting(wd, src, target, skill_id, skill_lv, true))
 		wd.dmg_lv = ATK_FLEE;
 	else if(!target_has_infinite_defense(target, skill_id)) { //No need for math against plants
-		int ratio, i = 0;
+		int ratio = 0;
 		int64 const_val = 0;
 
 		wd = battle_calc_skill_base_damage(wd, src, target, skill_id, skill_lv); //Base skill damage
@@ -5123,7 +5123,6 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Custom fix for "a hole" in renewal attack calculation [exneval]
 		}
 #else
-		//Final attack bonuses that aren't affected by cards
 		wd = battle_attack_sc_bonus(wd, src, target, skill_id);
 #endif
 
@@ -5134,6 +5133,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		ATK_ADD(wd.damage, wd.damage2, const_val);
 
 		if(sd) {
+			int i;
 			uint16 skill;
 
 			switch(skill_id) {
@@ -5188,7 +5188,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 
 			wd = battle_calc_attack_post_defense(wd, src, target, skill_id, skill_lv);
 		}
-	} else if(wd.div_ < 0) //Since the attack missed.
+	} else if(wd.div_ < 0) //Since the attack missed
 		wd.div_ *= -1;
 
 #ifdef RENEWAL
@@ -5379,8 +5379,10 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 
 	wd = battle_calc_weapon_final_atk_modifiers(wd, src, target, skill_id, skill_lv);
 
-	//Skill reflect gets calculated after all attack modifier
-	battle_do_reflect(BF_WEAPON, &wd, src, target, skill_id, skill_lv); //WIP [lighta]
+	if(!skill_id && sc && (sc->data[SC_CRUSHSTRIKE] || sc->data[SC_EXEEDBREAK] || sc->data[SC_SPELLFIST]))
+		return wd; //Damage will be reflected later
+	else //Skill reflect gets calculated after all attack modifier
+		battle_do_reflect(BF_WEAPON, &wd, src, target, skill_id, skill_lv); //WIP [lighta]
 
 	return wd;
 }
@@ -6699,7 +6701,7 @@ struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct bl
 	}
 
 	if(d.damage + d.damage2 < 1) { //Miss/Absorbed
-		//Weapon attacks should go through to cause additional effects.
+		//Weapon attacks should go through to cause additional effects
 		if(d.dmg_lv == ATK_DEF /*&& attack_type&(BF_MAGIC|BF_MISC)*/) //Isn't it that additional effects don't apply if miss?
 			d.dmg_lv = ATK_MISS;
 		d.dmotion = 0;
@@ -7153,25 +7155,8 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	if (tsc && tsc->data[SC_KAAHI] && tsc->data[SC_KAAHI]->val4 == INVALID_TIMER && tstatus->hp < tstatus->max_hp) //Activate heal.
 		tsc->data[SC_KAAHI]->val4 = add_timer(tick + skill_get_time2(SL_KAAHI,tsc->data[SC_KAAHI]->val1),kaahi_heal_timer,target->id,SC_KAAHI);
 
-	wd = battle_calc_attack(BF_WEAPON,src,target,0,0,flag);
-
-	if (sc && sc->count) {
-		uint16 skill_id;
-
-		if (sc->data[SC_CRUSHSTRIKE]) {
-			if (sd) {
-				short index = sd->equip_index[EQI_HAND_R];
-
-				if (index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON) {
-					skill_id = sc->data[SC_CRUSHSTRIKE]->val3;
-					ATK_RATE(wd.damage,wd.damage2,sd->inventory_data[index]->weight / 10 + sstatus->rhw.atk +
-						100 * sd->inventory_data[index]->wlv * (sd->status.inventory[index].refine + 6));
-				}
-			}
-			status_change_end(src,SC_CRUSHSTRIKE,INVALID_TIMER);
-			skill_break_equip(src,src,EQP_WEAPON,2000,BCT_SELF);
-		}
-		if (sd && battle_config.arrow_decrement && sc->data[SC_FEARBREEZE] && sc->data[SC_FEARBREEZE]->val4 > 0) {
+	if (sd) {
+		if (battle_config.arrow_decrement && sc && sc->data[SC_FEARBREEZE] && sc->data[SC_FEARBREEZE]->val4 > 0) {
 			short idx = sd->equip_index[EQI_AMMO];
 
 			if (idx >= 0 && sd->status.inventory[idx].amount >= sc->data[SC_FEARBREEZE]->val4) {
@@ -7179,9 +7164,32 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 				sc->data[SC_FEARBREEZE]->val4 = 0;
 			}
 		}
+		if (sd->state.arrow_atk) //Consume arrow
+			battle_consume_ammo(sd,0,0);
+	}
+
+	wd = battle_calc_attack(BF_WEAPON,src,target,0,0,flag);
+
+	if (sc && sc->count) { //Do a basic physical attack that consume the status if missed
+		uint16 skill_id = 0;
+
+		if (sc->data[SC_CRUSHSTRIKE]) {
+			struct map_session_data *sd = BL_CAST(BL_PC,src);
+
+			if (sd) {
+				short index = sd->equip_index[EQI_HAND_R];
+
+				if (index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON)
+					ATK_RATE(wd.damage,wd.damage2,sd->inventory_data[index]->weight / 10 + sstatus->rhw.atk +
+						100 * sd->inventory_data[index]->wlv * (sd->status.inventory[index].refine + 6));
+			}
+			battle_do_reflect(BF_WEAPON,&wd,src,target,skill_id,0);
+			skill_break_equip(src,src,EQP_WEAPON,2000,BCT_SELF);
+			status_change_end(src,SC_CRUSHSTRIKE,INVALID_TIMER);
+		}
 		if (sc->data[SC_EXEEDBREAK]) {
-			skill_id = sc->data[SC_EXEEDBREAK]->val3;
 			ATK_RATE(wd.damage,wd.damage2,sc->data[SC_EXEEDBREAK]->val2);
+			battle_do_reflect(BF_WEAPON,&wd,src,target,skill_id,0);
 			status_change_end(src,SC_EXEEDBREAK,INVALID_TIMER);
 		}
 		if (sc->data[SC_SPELLFIST]) {
@@ -7190,14 +7198,12 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 
 				wd.damage = ad.damage;
 				if (wd.div_ > 1)
-					wd.damage *= 2; //Double the damage for multiple hits.
+					wd.damage *= 2; //Double the damage for multiple hits
+				battle_do_reflect(BF_WEAPON,&wd,src,target,skill_id,0);
 			} else
 				status_change_end(src,SC_SPELLFIST,INVALID_TIMER);
 		}
 	}
-
-	if (sd && sd->state.arrow_atk) //Consume arrow.
-		battle_consume_ammo(sd,0,0);
 
 	damage = wd.damage + wd.damage2;
 
@@ -7218,6 +7224,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 
 	if (sd && sd->bonus.splash_range > 0 && damage > 0)
 		skill_castend_damage_id(src,target,0,1,tick,0);
+
 	if (target->type == BL_SKILL && damage > 0) {
 		TBL_SKILL *su = ((TBL_SKILL*)target);
 
