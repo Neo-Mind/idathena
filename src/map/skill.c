@@ -950,8 +950,9 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 								rate += rate * sc->data[SC_SKILLRATE_UP]->val2 / 100;
 								status_change_end(src,SC_SKILLRATE_UP,INVALID_TIMER);
 							}
-							sc_start2(src,src,SC_COMBO,rate,TK_COUNTER,bl->id,
-								(2000 - 4 * sstatus->agi - 2 * sstatus->dex));
+							sc_start4(src,src,SC_COMBO,rate,TK_COUNTER,bl->id,2,0,
+								(2000 - 4 * sstatus->agi - 2 * sstatus->dex))
+							; //Stance triggered
 						}
 					}
 					if( sc && sc->data[SC_PYROCLASTIC] && ((rnd()%100) <= sc->data[SC_PYROCLASTIC]->val3) )
@@ -2405,7 +2406,9 @@ void skill_combo_toogle_inf(struct block_list* bl, uint16 skill_id, int inf) {
 }
 
 void skill_combo(struct block_list* src, struct block_list *dsrc, struct block_list *bl, uint16 skill_id, uint16 skill_lv, int tick) {
-	int duration = 0, delay = 0; //Used to signal if this skill can be combo'ed later on.
+	int duration = 0; //Set to duration the user can use a combo skill or 1 for aftercast delay of pre-skill
+	int nodelay = 0; //Set to 1 for no walk/attack delay, set to 2 for no walk delay
+	int target_id = bl->id; //Set to 0 if combo skill should not autotarget
 	struct status_change_entry *sce;
 	TBL_PC *sd = BL_CAST(BL_PC,src);
 	TBL_HOM *hd = BL_CAST(BL_HOM,src);
@@ -2463,9 +2466,11 @@ void skill_combo(struct block_list* src, struct block_list *dsrc, struct block_l
 			case AC_DOUBLE:
 				//AC_DOUBLE can start the combo with other monster types, but the
 				//monster that's going to be hit by HT_POWER should be RC_BRUTE or RC_INSECT [Panikon]
-				if (pc_checkskill(sd, HT_POWER) > 0)
+				if (pc_checkskill(sd, HT_POWER) > 0) {
 					duration = 2000;
-				delay = 1;
+					nodelay = 1; //Neither gives walk nor attack delay
+					target_id = 0; //Does not need to be used on previous target
+				}
 				break;
 			case SR_DRAGONCOMBO:
 				if (pc_checkskill(sd, SR_FALLENEMPIRE) > 0)
@@ -2484,13 +2489,13 @@ void skill_combo(struct block_list* src, struct block_list *dsrc, struct block_l
 			case MH_SILVERVEIN_RUSH:
 				if (hd->homunculus.spiritball > 0)
 					duration = 2000;
-				delay = 1;
+				nodelay = 1;
 				break;
 			case MH_EQC:
 			case MH_MIDNIGHT_FRENZY:
 				if (hd->homunculus.spiritball >= 2)
 					duration = 2000;
-				delay = 1;
+				nodelay = 1;
 				break;
 		}
 	}
@@ -2498,8 +2503,8 @@ void skill_combo(struct block_list* src, struct block_list *dsrc, struct block_l
 	if (duration) { //Possible to chain
 		if (sd && duration == 1)
 			duration = DIFF_TICK(sd->ud.canact_tick, tick); //Auto calculation duration
-		duration = max(1, duration);
-		sc_start4(src, src, SC_COMBO, 100, skill_id, (skill_id == AC_DOUBLE) ? 0 : bl->id, delay, 0, duration);
+		duration = max(status_get_amotion(src), duration); //Never less than aMotion
+		sc_start4(src, src, SC_COMBO, 100, skill_id, target_id, nodelay, 0, duration);
 		clif_combo_delay(src, duration);
 	}
 }
@@ -3743,8 +3748,8 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					{
 						struct map_session_data *sd = (TBL_PC*)src;
 
-						if( sd && src->type == BL_PC ) {
-							if( distance_xy(src->x,src->y,target->x,target->y) >= 3 )
+						if (sd && src->type == BL_PC) {
+							if (distance_xy(src->x,src->y,target->x,target->y) >= 3)
 								break;
 							skill_castend_damage_id(src,target,skl->skill_id,pc_checkskill(sd,skl->skill_id),tick,0);
 						}
@@ -4282,7 +4287,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
 
-		//Splash attack skills.
+		//Splash attack skills
 		case AS_GRIMTOOTH:
 		case MC_CARTREVOLUTION:
 		case NPC_SPLASHATTACK:
@@ -15593,13 +15598,12 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 					req.sp -= req.sp * 3 * kaina_lv / 100;
 			}
 			break;
-		case MO_TRIPLEATTACK:
 		case MO_CHAINCOMBO:
 		case MO_COMBOFINISH:
 		case CH_TIGERFIST:
 		case CH_CHAINCRUSH:
 			if( sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_MONK )
-				req.sp -= req.sp * 25 / 100; //FIXME: Need real data. This is a custom value.
+				req.sp = 2; //Monk Spirit makes monk/champion combo skills cost 2 SP regardless of original cost
 			break;
 		case MO_BODYRELOCATION:
 			if( sc && sc->data[SC_EXPLOSIONSPIRITS] )
@@ -15923,7 +15927,7 @@ int skill_delayfix(struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 		time = -time + status_get_amotion(bl); //If set to < 0, add to attack motion
 
 	//Delay reductions
-	switch (skill_id) {	//Monk combo skills have their delay reduced by agi/dex
+	switch (skill_id) {
 		case MO_TRIPLEATTACK:
 		case MO_CHAINCOMBO:
 		case MO_COMBOFINISH:
@@ -15931,7 +15935,11 @@ int skill_delayfix(struct block_list *bl, uint16 skill_id, uint16 skill_lv)
 		case CH_CHAINCRUSH:
 		case SR_DRAGONCOMBO:
 		case SR_FALLENEMPIRE:
-			time -= 4 * status_get_agi(bl) - 2 * status_get_dex(bl);
+			//Monk combo skills have their delay reduced by agi/dex
+			//If delay not specified, it will be 1000 - 4 * agi - 2 * dex
+			if (time == 0)
+				time = 1000;
+			time -= (4 * status_get_agi(bl) + 2 * status_get_dex(bl));
 			break;
 		case HP_BASILICA:
 			if (!(sc && sc->data[SC_BASILICA]))
