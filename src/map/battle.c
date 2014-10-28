@@ -2186,7 +2186,7 @@ static bool battle_skill_get_damage_properties(uint16 skill_id, int is_splash)
 {
 	int nk = skill_get_nk(skill_id);
 
-	if(!skill_id && is_splash) //If flag, this is splash damage from Baphomet Card and it always hits.
+	if(!skill_id && is_splash) //If flag, this is splash damage from Baphomet Card and it always hits
 		nk |= NK_NO_CARDFIX_ATK|NK_IGNORE_FLEE;
 	return nk;
 }
@@ -2475,9 +2475,6 @@ static int battle_get_weapon_element(struct Damage wd, struct block_list *src, s
 		element = rnd()%ELE_ALL;
 
 	switch(skill_id) {
-		case GS_GROUNDDRIFT:
-			element = wd.miscflag; //Element comes in flag.
-			break;
 		case LK_SPIRALPIERCE:
 			if(!sd)
 				element = ELE_NEUTRAL; //Forced neutral for monsters
@@ -2541,14 +2538,13 @@ static struct Damage battle_calc_element_damage(struct Damage wd, struct block_l
 			wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
 			switch(skill_id) {
 				case MC_CARTREVOLUTION:
+				case RA_CLUSTERBOMB:
+				case RA_FIRINGTRAP:
+				case RA_ICEBOUNDTRAP:
 				case SR_GATEOFHELL:
 				case KO_BAKURETSU:
 					//Forced to neutral element
 					wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
-					break;
-				case GS_GROUNDDRIFT:
-					//Additional 50 * lv neutral damage
-					wd.damage += battle_attr_fix(src, target, 50 * skill_lv, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 					break;
 				case NC_ARMSCANNON:
 				case GN_CARTCANNON:
@@ -4921,7 +4917,6 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 				wd.type = DMG_MULTI_HIT;
 				break;
 
-			case GS_GROUNDDRIFT:
 			case KN_SPEARSTAB:
 			case KN_BOWLINGBASH:
 			case MS_BOWLINGBASH:
@@ -5307,6 +5302,9 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		case MC_CARTREVOLUTION:
 		case MO_INVESTIGATE:
 		case CR_ACIDDEMONSTRATION:
+		case RA_CLUSTERBOMB:
+		case RA_FIRINGTRAP:
+		case RA_ICEBOUNDTRAP:
 		case SR_GATEOFHELL:
 		case GN_FIRE_EXPANSION_ACID:
 		case KO_BAKURETSU:
@@ -5370,6 +5368,9 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		case CR_ACIDDEMONSTRATION:
 		case GN_FIRE_EXPANSION_ACID:
 #endif
+		case RA_CLUSTERBOMB:
+		case RA_FIRINGTRAP:
+ 		case RA_ICEBOUNDTRAP:
 		case SO_VARETYR_SPEAR:
 			return wd; //These skills will do a GVG fix later
 		default:
@@ -6452,9 +6453,10 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		case GS_GROUNDDRIFT:
 			//Official formula [helvetica]
 			//Damage = 50 * skill level
-			//Fixed damage, ignores DEF and benefits from weapon +%ATK cards
+			//Fixed damage, ignores DEF, DEF cards and benefits from weapon +%ATK cards
+			md.blewcount = 0;
 			md.damage = 50 * skill_lv;
-			md.damage += battle_calc_cardfix(BF_WEAPON,src,target,nk,s_ele,0,md.damage,0,md.flag|NK_NO_CARDFIX_DEF);
+			md.damage += battle_calc_cardfix(BF_WEAPON,src,target,nk,s_ele,0,md.damage,0,md.flag);
 			break;
 		case HVAN_EXPLOSION: //[orn]
 			md.damage = sstatus->max_hp * (50 + 50 * skill_lv) / 100;
@@ -6508,6 +6510,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 					md.damage = 0;
 			} else
 				md.damage = md.damage * 200 / (skill_id == RA_CLUSTERBOMB ? 50 : 100);
+			nk |= NK_NO_ELEFIX|NK_IGNORE_FLEE|NK_NO_CARDFIX_DEF;
 			break;
 		case NC_MAGMA_ERUPTION:
 			md.damage = 1200 + 400 * skill_lv;
@@ -6619,7 +6622,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			case HT_CLAYMORETRAP:
 			case RA_CLUSTERBOMB:
 #ifdef RENEWAL
-				break;
+				break; //This trap will do full damage to plants
 #endif
 			default:
 				md.damage = 1;
@@ -6635,19 +6638,13 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	if(!(nk&NK_NO_ELEFIX))
 		md.damage = battle_attr_fix(src,target,md.damage,s_ele,tstatus->def_ele,tstatus->ele_lv);
 
-	md.damage = battle_calc_damage(src,target,&md,md.damage,skill_id,skill_lv);
-
-	if(map_flag_gvg2(target->m))
-		md.damage = battle_calc_gvg_damage(src,target,md.damage,skill_id,md.flag);
-	else if(map[target->m].flag.battleground)
-		md.damage = battle_calc_bg_damage(src,target,md.damage,skill_id,md.flag);
-
 	switch(skill_id) {
 		case RA_FIRINGTRAP:
  		case RA_ICEBOUNDTRAP:
 			if(md.damage == 1)
-				break;
-		case RA_CLUSTERBOMB: {
+				break; //Keep damage to 1 against plant damage
+		case RA_CLUSTERBOMB:
+			{
 				struct Damage wd = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
 
 				md.damage += wd.damage;
@@ -6661,6 +6658,12 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			}
 			break;
 	}
+
+	md.damage = battle_calc_damage(src,target,&md,md.damage,skill_id,skill_lv);
+	if(map_flag_gvg2(target->m))
+		md.damage = battle_calc_gvg_damage(src,target,md.damage,skill_id,md.flag);
+	else if(map[target->m].flag.battleground)
+		md.damage = battle_calc_bg_damage(src,target,md.damage,skill_id,md.flag);
 
 	//Skill damage adjustment
 #ifdef ADJUST_SKILL_DAMAGE
@@ -6935,13 +6938,15 @@ void battle_drain(TBL_PC *sd, struct block_list *tbl, int64 rdamage, int64 ldama
 	if (sd->sp_gain_race_attack[RC_ALL])
 		tsp += sd->sp_gain_race_attack[RC_ALL];
 
-	if (!thp && !tsp) return;
+	if (!thp && !tsp)
+		return;
 
-	status_heal(&sd->bl, thp, tsp, battle_config.show_hp_sp_drain ? 3 : 1);
+	status_heal(&sd->bl, thp, tsp, (battle_config.show_hp_sp_drain ? 3 : 1));
 
 	if (rhp || rsp)
 		status_zap(tbl, rhp, rsp);
 }
+
 /*===========================================
  * Deals the same damage to targets in area.
  *-------------------------------------------

@@ -583,7 +583,7 @@
 518,2,6,1,-1,0,0,10,1,no,0,0,0,weapon,5,0,	GS_DUST,Dust
 519,-9,6,1,-1,0,0,10,1,yes,0,0,0,weapon,0,0x100,	GS_FULLBUSTER,Full Buster
 520,-9,6,1,-1,0x2,1:1:1:2:2:2:3:3:3:4,10,1,no,0,0,0,weapon,0,0x100,	GS_SPREADATTACK,Spread Attack
-521,-9,6,2,-1,0x40,1,10,1,no,0,0,0,misc,3,0x100,	GS_GROUNDDRIFT,Ground Drift
+521,-9,6,2,-1,0xC0,1,10,1,no,0,0,0,misc,3,0x100,	GS_GROUNDDRIFT,Ground Drift
 522,0,0,0,0,0,0,10,1,no,0,0,0,weapon,0,0,	NJ_TOBIDOUGU,Shuriken Training
 523,9,6,1,-1,0x40,0,10,1,no,0,0,0,weapon,0,0,	NJ_SYURIKEN,Throw Shuriken
 524,9,8,1,-1,0x8,0,5,3,no,0,0,0,weapon,0,0,	NJ_KUNAI,Throw Kunai
@@ -840,7 +840,7 @@
 2236,9,8,1,-1,0,0,10,1,yes,0,0,0,weapon,0,0x80,	RA_AIMEDBOLT,Aimed Bolt
 2237,9,6,2,0,0x3,3,1,1,no,0,0,0,none,0,0x2000,	RA_DETONATOR,Detonator
 2238,3,6,2,0,0x3,2,5,1,no,0,0x80,3,misc,0,0x2000,	RA_ELECTRICSHOCKER,Electric Shocker
-2239,3,6,2,0,0x42,3,5,1,no,0,0x80,3,misc,0,0x2800,	RA_CLUSTERBOMB,Cluster Bomb
+2239,3,6,2,-1,0x2,3,5,1,no,0,0x80,3,misc,0,0x2800,	RA_CLUSTERBOMB,Cluster Bomb
 2240,0,6,4,0,0,0,1,1,no,0,0,0,none,0,0,	RA_WUGMASTERY,Warg Mastery
 2241,0,6,4,0,0,0,3,1,no,0,0,0,none,0,0x2000,	RA_WUGRIDER,Warg Rider
 2242,0,6,4,-1,0x42,1,1,0,no,0,0,0,weapon,0,0xA000,	RA_WUGDASH,Warg Dash
@@ -854,8 +854,8 @@
 2250,3,6,2,1,0x43,2,1,1,no,0,0x80,1,misc,0,0x2000,	RA_COBALTTRAP,Cobalt Trap
 2251,3,6,2,2,0x43,2,1,1,no,0,0x80,1,misc,0,0x2000,	RA_MAIZETRAP,Maize Trap
 2252,3,6,2,4,0x43,2,1,1,no,0,0x80,1,misc,0,0x2000,	RA_VERDURETRAP,Verdure Trap
-2253,3,6,2,3,0x42,2,5,1,no,0,0x80,2,misc,0,0x2800,	RA_FIRINGTRAP,Firing Trap
-2254,3,6,2,1,0x42,2,5,1,no,0,0x80,2,misc,0,0x2800,	RA_ICEBOUNDTRAP,Icebound Trap
+2253,3,6,2,-1,0x2,2,5,1,no,0,0x80,2,misc,0,0x2800,	RA_FIRINGTRAP,Firing Trap
+2254,3,6,2,-1,0x2,2,5,1,no,0,0x80,2,misc,0,0x2800,	RA_ICEBOUNDTRAP,Icebound Trap
 
 //****
 // NC Mechanic
@@ -1228,7 +1228,7 @@
 8207,-9,8,1,-1,0,0,10,2,no,0,0,0,weapon,0,0x80,	MA_DOUBLE,Double_Strafe
 8208,-9,6,2,-1,0x2,2,10,1,no,0,0,0,weapon,2,0x81,	MA_SHOWER,Arrow_Shower
 8209,3,6,2,0,0x1,0,5,1,no,0,0x80,0,misc,6:7:8:9:10,0,	MA_SKIDTRAP,Skid_Trap
-8210,3,6,2,2,0x40,0,5,1,no,0,0x80,0,misc,0,0,	MA_LANDMINE,Land_Mine
+8210,3,6,2,2,0x42,1,5,1,no,0,0x80,0,misc,0,0,	MA_LANDMINE,Land_Mine
 8211,3,6,2,0,0x3,2,5,1,no,0,0x80,0,misc,0,0,	MA_SANDMAN,Sandman
 8212,3,6,2,1,0x42,1,5,1,no,0,0x80,0,weapon,0,0,	MA_FREEZINGTRAP,Freezing_Trap
 8213,2,6,32,0,0x1,0,1,1,no,0,0,0,misc,0,0,	MA_REMOVETRAP,Remove_Trap
