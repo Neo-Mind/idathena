@@ -2461,7 +2461,7 @@ static int battle_get_weapon_element(struct Damage wd, struct block_list *src, s
 		if(is_skill_using_arrow(src, skill_id) && sd && sd->bonus.arrow_ele && weapon_position == EQI_HAND_R)
 			element = sd->bonus.arrow_ele;
 		//On official endows override all other elements [helvetica]
-		if(sd) { //Summoning 10 talisman will endow your weapon.
+		if(sd) { //Summoning 10 talisman will endow your weapon
 			ARR_FIND(1, 6, i, sd->talisman[i] >= 10);
 			if(i < 5)
 				element = i;
@@ -2557,7 +2557,7 @@ static struct Damage battle_calc_element_damage(struct Damage wd, struct block_l
 		if(is_attack_left_handed(src, skill_id) && wd.damage2 > 0)
 			wd.damage2 = battle_attr_fix(src, target, wd.damage2, left_element, tstatus->def_ele, tstatus->ele_lv);
 		if(sc && sc->data[SC_WATK_ELEMENT]) {
-			//Descriptions indicate this means adding a percent of a normal attack in another element. [Skotlex]
+			//Descriptions indicate this means adding a percent of a normal attack in another element [Skotlex]
 			int64 damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, (is_skill_using_arrow(src, skill_id) ? 2 : 0)) * sc->data[SC_WATK_ELEMENT]->val2 / 100;
 
 			wd.damage += battle_attr_fix(src, target, damage, sc->data[SC_WATK_ELEMENT]->val1, tstatus->def_ele, tstatus->ele_lv);
@@ -5194,7 +5194,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		wd = battle_calc_element_damage(wd, src, target, skill_id, skill_lv);
 
 	if(skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS)
-		return wd; //Enough, rest is not needed.
+		return wd; //Enough, rest is not needed
 
 #ifdef RENEWAL
 	if(is_attack_critical(wd, src, target, skill_id, skill_lv, false)) {
@@ -5210,7 +5210,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 #ifndef RENEWAL
 	if(skill_id == NJ_KUNAI) {
 		ATK_ADD(wd.damage, wd.damage2, 90);
-		nk |= NK_IGNORE_DEF;
+		wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 	}
 #endif
 
@@ -5252,11 +5252,11 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			ATK_ADD(wd.damage, wd.damage2, skill * 2);
 		if(skill_id == TF_POISON)
 			ATK_ADD(wd.damage, wd.damage2, 15 * skill_lv);
-		if(skill_id != CR_SHIELDBOOMERANG) //Only Shield Boomerang doesn't takes the Star Crumbs bonus.
+		if(skill_id != CR_SHIELDBOOMERANG) //Only Shield Boomerang doesn't takes the Star Crumbs bonus
 			ATK_ADD2(wd.damage, wd.damage2, wd.div_ * sd->right_weapon.star, wd.div_ * sd->left_weapon.star);
 		if(skill_id != MC_CARTREVOLUTION && pc_checkskill(sd, BS_HILTBINDING) > 0)
 			ATK_ADD(wd.damage, wd.damage2, 4);
-		if(skill_id == MO_FINGEROFFENSIVE) { //The finger offensive spheres on moment of attack do count. [Skotlex]
+		if(skill_id == MO_FINGEROFFENSIVE) { //The finger offensive spheres on moment of attack do count [Skotlex]
 			ATK_ADD(wd.damage, wd.damage2, ((wd.div_ < 1) ? 1 : wd.div_) * sd->spiritball_old * 3);
 		} else
 			ATK_ADD(wd.damage, wd.damage2, ((wd.div_ < 1) ? 1 : wd.div_) * sd->spiritball * 3);
@@ -5264,7 +5264,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		if(skill_id == CR_SHIELDBOOMERANG || skill_id == PA_SHIELDCHAIN) {
 			short index = sd->equip_index[EQI_HAND_L];
 
-			//Refine bonus applies after cards and elements.
+			//Refine bonus applies after cards and elements
 			if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR)
 				ATK_ADD(wd.damage, wd.damage2, 10 * sd->status.inventory[index].refine);
 		}
