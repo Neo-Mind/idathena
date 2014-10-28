@@ -5012,7 +5012,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 	struct Damage wd;
 	struct status_change *sc, *tsc;
 	struct status_data *tstatus;
-	int right_element, left_element;
+	int right_element, left_element, nk;
 
 	memset(&wd, 0, sizeof(wd));
 
@@ -5029,6 +5029,8 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 
 	right_element = battle_get_weapon_element(wd, src, target, skill_id, skill_lv, EQI_HAND_R, false);
 	left_element = battle_get_weapon_element(wd, src, target, skill_id, skill_lv, EQI_HAND_L, false);
+
+	nk = battle_skill_get_damage_properties(skill_id, wd.miscflag);
 
 	if(sc && !sc->count)
 		sc = NULL; //Skip checking as there are no status changes active.
@@ -5066,11 +5068,11 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 #ifdef RENEWAL
 		//In Renewal we only cardfix to the weapon and equip ATK
 		//Card Fix for attacker (sd), 2 is added to the "left" flag meaning "attacker cards only"
-		wd.weaponAtk += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.weaponAtk, 2, wd.flag);
-		wd.equipAtk += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.equipAtk, 2, wd.flag);
+		wd.weaponAtk += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.weaponAtk, 2, wd.flag);
+		wd.equipAtk += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.equipAtk, 2, wd.flag);
 		if(is_attack_left_handed(src, skill_id)) {
-			wd.weaponAtk2 += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.weaponAtk2, 3, wd.flag);
-			wd.equipAtk2 += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.equipAtk2, 3, wd.flag);
+			wd.weaponAtk2 += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.weaponAtk2, 3, wd.flag);
+			wd.equipAtk2 += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.equipAtk2, 3, wd.flag);
 		}
 
 		if(skill_id == HW_MAGICCRASHER) //Add weapon attack for MATK into Magic Crasher
@@ -5207,8 +5209,6 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 
 #ifndef RENEWAL
 	if(skill_id == NJ_KUNAI) {
-		short nk = battle_skill_get_damage_properties(skill_id, wd.miscflag);
-
 		ATK_ADD(wd.damage, wd.damage2, 90);
 		nk |= NK_IGNORE_DEF;
 	}
@@ -5270,9 +5270,9 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		}
 #ifndef RENEWAL
 		//Card Fix for attacker (sd), 2 is added to the "left" flag meaning "attacker cards only"
-		wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.damage, 2, wd.flag);
+		wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.damage, 2, wd.flag);
 		if(is_attack_left_handed(src, skill_id))
-			wd.damage2 += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.damage2, 3, wd.flag);
+			wd.damage2 += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.damage2, 3, wd.flag);
 #endif
 	}
 
@@ -5287,9 +5287,9 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			case SO_VARETYR_SPEAR:
 				break; //These skills will do a card fix later
 			default:
-				wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.damage, 0, wd.flag);
+				wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.damage, 0, wd.flag);
 				if(is_attack_left_handed(src, skill_id))
-					wd.damage2 += battle_calc_cardfix(BF_WEAPON, src, target, battle_skill_get_damage_properties(skill_id, wd.miscflag), right_element, left_element, wd.damage2, 1, wd.flag);
+					wd.damage2 += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.damage2, 1, wd.flag);
 				break;
 		}
 	}
@@ -5298,56 +5298,58 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 	//Forced to an element weapon skills [helvetica]
 	//Skills forced to an element and gain benefits from the weapon
 	//But final damage is considered "the element" and resistances are applied again
-	switch(skill_id) {
-		case MC_CARTREVOLUTION:
-		case MO_INVESTIGATE:
-		case CR_ACIDDEMONSTRATION:
-		case RA_CLUSTERBOMB:
-		case RA_FIRINGTRAP:
-		case RA_ICEBOUNDTRAP:
-		case SR_GATEOFHELL:
-		case GN_FIRE_EXPANSION_ACID:
-		case KO_BAKURETSU:
-			//Forced to neutral element
-			wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
-			break;
-		case CR_SHIELDBOOMERANG:
-		case LK_SPIRALPIERCE:
-		case ML_SPIRALPIERCE:
-		case PA_SHIELDCHAIN:
-		case PA_SACRIFICE:
-		case RK_DRAGONBREATH:
-		case RK_DRAGONBREATH_WATER:
-		case NC_SELFDESTRUCTION:
-		case KO_HAPPOKUNAI:
-			{
-				int64 tmp = wd.damage;
+	if(!(nk&NK_NO_ELEFIX)) {
+		switch(skill_id) {
+			case MC_CARTREVOLUTION:
+			case MO_INVESTIGATE:
+			case CR_ACIDDEMONSTRATION:
+			case RA_CLUSTERBOMB:
+			case RA_FIRINGTRAP:
+			case RA_ICEBOUNDTRAP:
+			case SR_GATEOFHELL:
+			case GN_FIRE_EXPANSION_ACID:
+			case KO_BAKURETSU:
+				//Forced to neutral element
+				wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+				break;
+			case CR_SHIELDBOOMERANG:
+			case LK_SPIRALPIERCE:
+			case ML_SPIRALPIERCE:
+			case PA_SHIELDCHAIN:
+			case PA_SACRIFICE:
+			case RK_DRAGONBREATH:
+			case RK_DRAGONBREATH_WATER:
+			case NC_SELFDESTRUCTION:
+			case KO_HAPPOKUNAI:
+				{
+					int64 tmp = wd.damage;
 
-				if(sd) {
-					if(skill_id == PA_SHIELDCHAIN) { //Forced to neutral element
-						wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
-						if(wd.damage > 0) {
-							wd.damage = battle_attr_fix(src, target, tmp, right_element, tstatus->def_ele, tstatus->ele_lv);
-							if(!wd.damage)
-								wd.damage = battle_attr_fix(src, target, tmp, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
-						}
-					} else if(skill_id == KO_HAPPOKUNAI) { //Forced to neutral element
-						wd.damage = battle_attr_fix(src, target, wd.damage, (sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
-						if(wd.damage > 0) {
-							wd.damage = battle_attr_fix(src, target, tmp, right_element, tstatus->def_ele, tstatus->ele_lv);
-							if(!wd.damage)
-								wd.damage = battle_attr_fix(src, target, tmp, (sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
-						}
-					} else //Forced to its element
-						wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
+					if(sd) {
+						if(skill_id == PA_SHIELDCHAIN) { //Forced to neutral element
+							wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+							if(wd.damage > 0) {
+								wd.damage = battle_attr_fix(src, target, tmp, right_element, tstatus->def_ele, tstatus->ele_lv);
+								if(!wd.damage)
+									wd.damage = battle_attr_fix(src, target, tmp, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+							}
+						} else if(skill_id == KO_HAPPOKUNAI) { //Forced to neutral element
+							wd.damage = battle_attr_fix(src, target, wd.damage, (sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+							if(wd.damage > 0) {
+								wd.damage = battle_attr_fix(src, target, tmp, right_element, tstatus->def_ele, tstatus->ele_lv);
+								if(!wd.damage)
+									wd.damage = battle_attr_fix(src, target, tmp, (sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+							}
+						} else //Forced to its element
+							wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
+					}
 				}
-			}
-			break;
-		case NC_ARMSCANNON:
-		case GN_CARTCANNON:
-			//Forced to ammo's element
-			wd.damage = battle_attr_fix(src, target, wd.damage, (sd && sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
-			break;
+				break;
+			case NC_ARMSCANNON:
+			case GN_CARTCANNON:
+				//Forced to ammo's element
+				wd.damage = battle_attr_fix(src, target, wd.damage, (sd && sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+				break;
+		}
 	}
 
 	//Perform multihit calculations
@@ -6456,7 +6458,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			//Fixed damage, ignores DEF, DEF cards and benefits from weapon +%ATK cards
 			md.blewcount = 0;
 			md.damage = 50 * skill_lv;
-			md.damage += battle_calc_cardfix(BF_WEAPON,src,target,nk,s_ele,0,md.damage,0,md.flag);
+			md.damage += battle_calc_cardfix(BF_WEAPON,src,target,nk,s_ele,0,md.damage,0,md.flag|NK_NO_CARDFIX_DEF);
 			break;
 		case HVAN_EXPLOSION: //[orn]
 			md.damage = sstatus->max_hp * (50 + 50 * skill_lv) / 100;
@@ -6642,7 +6644,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		case RA_FIRINGTRAP:
  		case RA_ICEBOUNDTRAP:
 			if(md.damage == 1)
-				break; //Keep damage to 1 against plant damage
+				break; //Keep damage to 1 against "plant"-type mobs
 		case RA_CLUSTERBOMB:
 			{
 				struct Damage wd = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
