@@ -2784,7 +2784,7 @@ void pc_bonus(struct map_session_data *sd, int type, int val)
 			if(sd->state.lr_flag != 2)
 				sd->bonus.unbreakable_equip |= EQP_SHOES;
 			break;
-		case SP_CLASSCHANGE: // [Valaris]
+		case SP_CLASSCHANGE: //[Valaris]
 			if(sd->state.lr_flag != 2)
 				sd->bonus.classchange = val;
 			break;

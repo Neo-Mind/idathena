@@ -5111,9 +5111,9 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		}
 
 		if(sd) { //Monsters, homuns and pets have their damage computed directly
-			if(wd.flag&BF_LONG) { //Long damage rate addition doesn't use weapon + equip attack
-				ATK_ADDRATE(wd.statusAtk, wd.statusAtk2, sd->bonus.long_attack_atk_rate);
-				ATK_ADDRATE(wd.masteryAtk, wd.masteryAtk2, sd->bonus.long_attack_atk_rate);
+			if(wd.flag&BF_LONG) { //Only weapon and equipment attack that benefit from % bonuses [exneval]
+				ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sd->bonus.long_attack_atk_rate);
+				ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, sd->bonus.long_attack_atk_rate);
 			}
 			wd.damage = wd.statusAtk + wd.weaponAtk + wd.equipAtk + wd.masteryAtk;
 			wd.damage2 = wd.statusAtk2 + wd.weaponAtk2 + wd.equipAtk2 + wd.masteryAtk2;
