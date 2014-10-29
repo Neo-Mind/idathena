@@ -2299,7 +2299,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 			case MC_CARTREVOLUTION:
 			case GN_CART_TORNADO:
 			case GN_CARTCANNON:
-				if(sd && pc_checkskill(sd,GN_REMODELING_CART))
+				if(sd && pc_checkskill(sd,GN_REMODELING_CART) > 0)
 					hitrate += pc_checkskill(sd,GN_REMODELING_CART) * 4;
 				break;
 			case GC_VENOMPRESSURE:
@@ -2626,10 +2626,10 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 		//General skill masteries
 		if(skill_id == TF_POISON) //Additional ATK from Envenom is treated as mastery type damage [helvetica]
 			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 15 * skill_lv);
-		if(skill_id != CR_SHIELDBOOMERANG)
-			ATK_ADD2(wd.masteryAtk, wd.masteryAtk2, wd.div_ * sd->right_weapon.star, wd.div_ * sd->left_weapon.star);
 		if(skill_id != MC_CARTREVOLUTION && pc_checkskill(sd, BS_HILTBINDING) > 0)
 			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 4);
+		if(skill_id != CR_SHIELDBOOMERANG)
+			ATK_ADD2(wd.masteryAtk, wd.masteryAtk2, wd.div_ * sd->right_weapon.star, wd.div_ * sd->left_weapon.star);
 		if(skill_id == MO_FINGEROFFENSIVE) {
 			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, ((wd.div_ < 1) ? 1 : wd.div_) * sd->spiritball_old * 3);
 		} else
@@ -2649,7 +2649,7 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 			else
 				ARR_FIND(0, MAX_PC_FEELHATE, i, t_class == sd->hate_mob[i]);
 
-			if(i < MAX_PC_FEELHATE && (skill = pc_checkskill(sd,sg_info[i].anger_id))) {
+			if(i < MAX_PC_FEELHATE && (skill = pc_checkskill(sd,sg_info[i].anger_id)) > 0) {
 				int skillratio = sd->status.base_level + sstatus->dex + sstatus->luk;
 
 				if(i == 2)
@@ -4141,14 +4141,10 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 			//Sonic Blow +25% dmg on GVG, +100% dmg on non GVG
 			if(skill_id == AS_SONICBLOW && sc->data[SC_SPIRIT]->val2 == SL_ASSASIN) {
 				ATK_ADDRATE(wd.damage, wd.damage2, map_flag_gvg(src->m) ? 25 : 100);
-#ifdef RENEWAL
-				ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, map_flag_gvg(src->m) ? 25 : 100);
-#endif
+				RE_ALLATK_ADDRATE(wd, map_flag_gvg(src->m) ? 25 : 100);
 			} else if(skill_id == CR_SHIELDBOOMERANG && sc->data[SC_SPIRIT]->val2 == SL_CRUSADER) {
 				ATK_ADDRATE(wd.damage, wd.damage2, 100);
-#ifdef RENEWAL
-				ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, 100);
-#endif
+				RE_ALLATK_ADDRATE(wd, 100);
 			}
 		}
 		if(sc->data[SC_EDP]) {
@@ -4542,15 +4538,11 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd,struct block_list
 				ATK_ADDRATE(wd.damage, wd.damage2, 200); //Triple Damage
 		}
 	}
-
 #ifndef RENEWAL
 	wd = battle_calc_attack_masteries(wd, src, target, skill_id, skill_lv);
-
 	//Refine bonus
-	if(sd && battle_skill_stacks_masteries_vvs(skill_id) &&
-		skill_id != MO_INVESTIGATE && skill_id != MO_EXTREMITYFIST) {
-		//Counts refine bonus multiple times
-		if(skill_id == MO_FINGEROFFENSIVE) {
+	if(sd && battle_skill_stacks_masteries_vvs(skill_id) && skill_id != MO_INVESTIGATE && skill_id != MO_EXTREMITYFIST) {
+		if(skill_id == MO_FINGEROFFENSIVE) { //Counts refine bonus multiple times
 			ATK_ADD2(wd.damage, wd.damage2, wd.div_ * sstatus->rhw.atk2, wd.div_ * sstatus->lhw.atk2);
 		} else
 			ATK_ADD2(wd.damage, wd.damage2, sstatus->rhw.atk2, sstatus->lhw.atk2);
@@ -5111,13 +5103,13 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		}
 
 		if(sd) { //Monsters, homuns and pets have their damage computed directly
-			if(wd.flag&BF_LONG) { //Only weapon and equipment attack that benefit from % bonuses [exneval]
+			if(wd.flag&BF_LONG) { //Only weapon and equip ATK that benefit from % bonuses [exneval]
 				ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sd->bonus.long_attack_atk_rate);
 				ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, sd->bonus.long_attack_atk_rate);
 			}
 			wd.damage = wd.statusAtk + wd.weaponAtk + wd.equipAtk + wd.masteryAtk;
 			wd.damage2 = wd.statusAtk2 + wd.weaponAtk2 + wd.equipAtk2 + wd.masteryAtk2;
-			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Custom fix for "a hole" in renewal attack calculation [exneval]
+			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Custom fix for "a hole" in renewal ATK calculation [exneval]
 		}
 #else
 		wd = battle_attack_sc_bonus(wd, src, target, skill_id);
@@ -5178,15 +5170,85 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 				RE_ALLATK_RATE(wd, i);
 			}
 		}
-
-		if(wd.damage + wd.damage2) { //Check if attack ignores DEF
-			if(!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L) || !attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_R))
-				wd = battle_calc_defense_reduction(wd, src, target, skill_id, skill_lv);
-
-			wd = battle_calc_attack_post_defense(wd, src, target, skill_id, skill_lv);
-		}
 	} else if(wd.div_ < 0) //Since the attack missed
 		wd.div_ *= -1;
+
+	//Damage disregard acurracy check
+	switch(skill_id) {
+#ifndef RENEWAL
+		case TF_POISON:
+			ATK_ADD(wd.damage, wd.damage2, 15 * skill_lv);
+			break;
+#endif
+		case TK_DOWNKICK:
+		case TK_STORMKICK:
+		case TK_TURNKICK:
+		case TK_COUNTER:
+			if(sd && pc_checkskill(sd,TK_RUN) > 0) {
+				uint8 i;
+				uint16 skill = pc_checkskill(sd,TK_RUN);
+
+				switch(skill) {
+					case 1: case 4: case 7: case 10: i = 1; break;
+					case 2: case 5: case 8: i = 2; break;
+					default: i = 0; break;
+				}
+				if(sd->weapontype1 == W_FIST && sd->weapontype2 == W_FIST)
+					ATK_ADD(wd.damage, wd.damage2, 10 * skill - i);
+			}
+			break;
+		case CR_SHIELDBOOMERANG:
+		case PA_SHIELDCHAIN:
+			if(sd) {
+				short index = sd->equip_index[EQI_HAND_L];
+
+				//Refine bonus applies after cards and elements
+				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR)
+					ATK_ADD(wd.damage, wd.damage2, 10 * sd->status.inventory[index].refine);
+			}
+			break;
+		case SR_GATEOFHELL: {
+				struct status_data *sstatus = status_get_status_data(src);
+
+				ATK_ADD(wd.damage, wd.damage2, sstatus->max_hp - status_get_hp(src));
+				if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE) {
+					ATK_ADD(wd.damage, wd.damage2, (sstatus->max_sp * (1 + skill_lv * 2 / 10)) + 40 * status_get_lv(src));
+				} else
+					ATK_ADD(wd.damage, wd.damage2, (sstatus->sp * (1 + skill_lv * 2 / 10)) + 10 * status_get_lv(src));
+			}
+			break;
+	}
+
+#ifndef RENEWAL
+	if(sd) {
+		if(pc_checkskill(sd, BS_WEAPONRESEARCH) > 0)
+			ATK_ADD(wd.damage, wd.damage2, pc_checkskill(sd, BS_WEAPONRESEARCH) * 2);
+		if(skill_id != MC_CARTREVOLUTION && pc_checkskill(sd, BS_HILTBINDING) > 0)
+			ATK_ADD(wd.damage, wd.damage2, 4);
+		if(skill_id != CR_SHIELDBOOMERANG) //Only Shield Boomerang doesn't takes the Star Crumbs bonus
+			ATK_ADD2(wd.damage, wd.damage2, wd.div_ * sd->right_weapon.star, wd.div_ * sd->left_weapon.star);
+		if(skill_id == MO_FINGEROFFENSIVE) { //The finger offensive spheres on moment of attack do count [Skotlex]
+			ATK_ADD(wd.damage, wd.damage2, ((wd.div_ < 1) ? 1 : wd.div_) * sd->spiritball_old * 3);
+		} else
+			ATK_ADD(wd.damage, wd.damage2, ((wd.div_ < 1) ? 1 : wd.div_) * sd->spiritball * 3);
+	}
+#endif
+
+	if(wd.damage + wd.damage2) { //Check if attack ignores DEF
+		if((!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ||
+			!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_R)) &&
+			!target_has_infinite_defense(target, skill_id))
+			wd = battle_calc_defense_reduction(wd, src, target, skill_id, skill_lv);
+		if(wd.dmg_lv != ATK_FLEE)
+			wd = battle_calc_attack_post_defense(wd, src, target, skill_id, skill_lv);
+	}
+
+#ifndef RENEWAL
+	if(skill_id == NJ_KUNAI) { //Damage disregard acurracy and defense check
+		ATK_ADD(wd.damage, wd.damage2, 90);
+		wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+	}
+#endif
 
 #ifdef RENEWAL
 	if(!sd) //Only monsters have a single ATK for element, in pre-renewal we also apply element to entire ATK on players [helvetica]
@@ -5208,73 +5270,12 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 #endif
 
 #ifndef RENEWAL
-	if(skill_id == NJ_KUNAI) {
-		ATK_ADD(wd.damage, wd.damage2, 90);
-		wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
-	}
-#endif
-
-	switch(skill_id) {
-		case TK_DOWNKICK:
-		case TK_STORMKICK:
-		case TK_TURNKICK:
-		case TK_COUNTER:
-			if(sd && pc_checkskill(sd,TK_RUN)) {
-				uint8 i;
-				uint16 skill = pc_checkskill(sd,TK_RUN);
-
-				switch(skill) {
-					case 1: case 4: case 7: case 10: i = 1; break;
-					case 2: case 5: case 8: i = 2; break;
-					default: i = 0; break;
-				}
-				if(sd->weapontype1 == W_FIST && sd->weapontype2 == W_FIST)
-					ATK_ADD(wd.damage, wd.damage2, 10 * skill - i);
-			}
-			break;
-		case SR_GATEOFHELL: {
-				struct status_data *sstatus = status_get_status_data(src);
-
-				ATK_ADD(wd.damage, wd.damage2, sstatus->max_hp - status_get_hp(src));
-				if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE) {
-					ATK_ADD(wd.damage, wd.damage2, (sstatus->max_sp * (1 + skill_lv * 2 / 10)) + 40 * status_get_lv(src));
-				} else
-					ATK_ADD(wd.damage, wd.damage2, (sstatus->sp * (1 + skill_lv * 2 / 10)) + 10 * status_get_lv(src));
-			}
-			break;
-	}
-
-	if(sd) {
-#ifndef RENEWAL
-		uint16 skill;
-
-		if((skill = pc_checkskill(sd, BS_WEAPONRESEARCH)) > 0)
-			ATK_ADD(wd.damage, wd.damage2, skill * 2);
-		if(skill_id == TF_POISON)
-			ATK_ADD(wd.damage, wd.damage2, 15 * skill_lv);
-		if(skill_id != CR_SHIELDBOOMERANG) //Only Shield Boomerang doesn't takes the Star Crumbs bonus
-			ATK_ADD2(wd.damage, wd.damage2, wd.div_ * sd->right_weapon.star, wd.div_ * sd->left_weapon.star);
-		if(skill_id != MC_CARTREVOLUTION && pc_checkskill(sd, BS_HILTBINDING) > 0)
-			ATK_ADD(wd.damage, wd.damage2, 4);
-		if(skill_id == MO_FINGEROFFENSIVE) { //The finger offensive spheres on moment of attack do count [Skotlex]
-			ATK_ADD(wd.damage, wd.damage2, ((wd.div_ < 1) ? 1 : wd.div_) * sd->spiritball_old * 3);
-		} else
-			ATK_ADD(wd.damage, wd.damage2, ((wd.div_ < 1) ? 1 : wd.div_) * sd->spiritball * 3);
-#endif
-		if(skill_id == CR_SHIELDBOOMERANG || skill_id == PA_SHIELDCHAIN) {
-			short index = sd->equip_index[EQI_HAND_L];
-
-			//Refine bonus applies after cards and elements
-			if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR)
-				ATK_ADD(wd.damage, wd.damage2, 10 * sd->status.inventory[index].refine);
-		}
-#ifndef RENEWAL
-		//Card Fix for attacker (sd), 2 is added to the "left" flag meaning "attacker cards only"
+	if(sd) { //Card Fix for attacker (sd), 2 is added to the "left" flag meaning "attacker cards only"
 		wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.damage, 2, wd.flag);
 		if(is_attack_left_handed(src, skill_id))
 			wd.damage2 += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.damage2, 3, wd.flag);
-#endif
 	}
+#endif
 
 	if(tsd) { //Card Fix for target (tsd), 2 is not added to the "left" flag meaning "target cards only"
 		switch(skill_id) {
@@ -5312,7 +5313,6 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 				//Forced to neutral element
 				wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 				break;
-			case CR_SHIELDBOOMERANG:
 			case LK_SPIRALPIERCE:
 			case ML_SPIRALPIERCE:
 			case PA_SHIELDCHAIN:
@@ -6357,7 +6357,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				uint16 skill;
 
 				//Blitz-beat Damage
-				if(!sd || (skill = pc_checkskill(sd,HT_STEELCROW)) <= 0)
+				if(!sd || !(skill = pc_checkskill(sd,HT_STEELCROW)))
 					skill = 0;
 				md.damage = (sstatus->dex / 10 + sstatus->int_ / 2 + skill * 3 + 40) * 2;
 				if(mflag > 1) //Autocasted Blitz

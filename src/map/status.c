@@ -9691,6 +9691,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				else
 					val2 = val1 * 5; //Custom
 				break;
+			case SC_DEFSET:
+			case SC_MDEFSET:
+				tick_time = tick;
+				tick = -1;
+				break;
 			default:
 				if( calc_flag == SCB_NONE && StatusIconChangeTable[type] == SI_BLANK && StatusSkillChangeTable[type] == 0 ) {
 					switch( type ) {
