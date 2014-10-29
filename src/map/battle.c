@@ -2403,10 +2403,10 @@ static bool battle_skill_stacks_masteries_vvs(uint16 skill_id)
 {
 	if(
 #ifndef RENEWAL
-		skill_id == PA_SHIELDCHAIN || skill_id == CR_SHIELDBOOMERANG ||
+		skill_id == CR_SHIELDBOOMERANG || skill_id == PA_SHIELDCHAIN ||
 #endif
-		skill_id == RK_DRAGONBREATH || skill_id == RK_DRAGONBREATH_WATER || skill_id == NC_SELFDESTRUCTION ||
-		skill_id == LG_SHIELDPRESS || skill_id == LG_EARTHDRIVE)
+		skill_id == RK_DRAGONBREATH || skill_id == RK_DRAGONBREATH_WATER ||
+		skill_id == NC_SELFDESTRUCTION || skill_id == LG_SHIELDPRESS || skill_id == LG_EARTHDRIVE)
 			return false;
 
 	return true;
@@ -4858,7 +4858,7 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 
 	wd.type = DMG_NORMAL; //Normal attack
 	wd.div_ = (skill_id ? skill_get_num(skill_id,skill_lv) : 1);
-	//Amotion should be 0 for ground skills.
+	//Amotion should be 0 for ground skills
 	wd.amotion = (skill_id && skill_get_inf(skill_id)&INF_GROUND_SKILL) ? 0 : sstatus->amotion;
 	//Counter attack DOES obey ASPD delay on official, uncomment if you want the old (bad) behavior [helvetica]
 	//if(skill_id == KN_AUTOCOUNTER)
@@ -5071,7 +5071,8 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			ATK_ADD(wd.weaponAtk, wd.weaponAtk2, status_get_matk(src, 2));
 
 		//Final attack bonuses that aren't affected by cards
-		wd = battle_attack_sc_bonus(wd, src, target, skill_id);
+		if(skill_id != CR_SHIELDBOOMERANG)
+			wd = battle_attack_sc_bonus(wd, src, target, skill_id);
 
 		switch(skill_id) {
 			case CR_ACIDDEMONSTRATION:
@@ -5112,7 +5113,8 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Custom fix for "a hole" in renewal ATK calculation [exneval]
 		}
 #else
-		wd = battle_attack_sc_bonus(wd, src, target, skill_id);
+		if(skill_id != CR_SHIELDBOOMERANG)
+			wd = battle_attack_sc_bonus(wd, src, target, skill_id);
 #endif
 
 		ratio = battle_calc_attack_skill_ratio(wd, src, target, skill_id, skill_lv); //Skill level ratio
@@ -6132,14 +6134,14 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						status_get_matk_sub(src, 6, &matk_max, &matk_min);
 						equipMatk = matk_max;
 
-						//Status MATK, weapon MATK, and equip mATK are directly reduced by eMDEF [exneval]
+						//Status MATK, weapon MATK, and equip MATK are directly reduced by eMDEF [exneval]
 						//sMDEF only directly reduces status MATK
 						statusMatk -= (mdef + int_mdef);
 						weaponMatk -= mdef;
 						equipMatk -= mdef;
 
 						ad.damage += statusMatk + weaponMatk + equipMatk;
-						MATK_ADDRATE(5); //Custom fix for "a hole" in renewal magic attack calculation [exneval]
+						MATK_ADDRATE(5); //Custom fix for "a hole" in renewal MATK calculation [exneval]
 					}
 					break;
 				default:
