@@ -583,7 +583,8 @@ extern struct Battle_Config
 	int cursed_circle_in_gvg;
 	int snap_dodge; //Enable or disable dodging damage snapping away [csnv]
 	int mob_chase_refresh; //How often a monster should refresh its chase [Playtester]
-	int icewall_walk_block; //How long a monster should stay trapped in icewall [Playtester]
+	int mob_icewall_walk_block; //How a normal monster should be trapped in icewall [Playtester]
+	int boss_icewall_walk_block; //How a boss monster should be trapped in icewall [Playtester]
 } battle_config;
 
 void do_init_battle(void);

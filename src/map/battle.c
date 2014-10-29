@@ -8317,7 +8317,8 @@ static const struct _battle_data {
 	{ "cursed_circle_in_gvg",               &battle_config.cursed_circle_in_gvg,            1,      0,      1,              },
 	{ "snap_dodge",                         &battle_config.snap_dodge,                      0,      0,      1,              },
 	{ "monster_chase_refresh",              &battle_config.mob_chase_refresh,               1,      0,      30,             },
-	{ "icewall_walk_block",                 &battle_config.icewall_walk_block,              75,     0,      255,            },
+	{ "mob_icewall_walk_block",             &battle_config.mob_icewall_walk_block,          75,     0,      255,            },
+	{ "boss_icewall_walk_block",            &battle_config.boss_icewall_walk_block,         0,      0,      255,            },
 };
 #ifndef STATS_OPT_OUT
 /**
