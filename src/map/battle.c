@@ -5211,16 +5211,6 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 				ATK_ADD(wd.damage, wd.damage2, 10 * skill - i); //Non-Miss Damage (Kick skills)
 			}
 			break;
-		case CR_SHIELDBOOMERANG:
-		case PA_SHIELDCHAIN:
-			if(sd) {
-				short index = sd->equip_index[EQI_HAND_L];
-
-				//Refine bonus applies after cards and elements
-				if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR)
-					ATK_ADD(wd.damage, wd.damage2, 10 * sd->status.inventory[index].refine);
-			}
-			break;
 	}
 
 #ifndef RENEWAL
@@ -5325,8 +5315,18 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		if(is_attack_left_handed(src, skill_id) && wd.damage2 > 0)
 			wd.damage2 = battle_attr_fix(src, target, wd.damage2, left_element, tstatus->def_ele, tstatus->ele_lv);
 	}
+#endif
+
+	if(sd && (skill_id == CR_SHIELDBOOMERANG || skill_id == PA_SHIELDCHAIN)) {
+		short index = sd->equip_index[EQI_HAND_L];
+
+		//Shield refine bonus applies after cards and elements
+		if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR)
+			ATK_ADD(wd.damage, wd.damage2, 10 * sd->status.inventory[index].refine);
+	}
 
 	//Perform multihit calculations
+#ifdef RENEWAL
 	DAMAGE_DIV_FIX_RENEWAL(wd, wd.div_);
 #endif
 	DAMAGE_DIV_FIX(wd.damage, wd.div_);
