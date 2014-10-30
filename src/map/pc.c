@@ -5450,7 +5450,7 @@ static void pc_checkallowskill(struct map_session_data *sd)
 			status_change_end(&sd->bl, scw_list[i], INVALID_TIMER);
 	}
 
-	//Spurt requires bare hands (feet, in fact xD)
+	//Spurt requires bare hands
 	if(sd->sc.data[SC_SPURT] && sd->status.weapon)
 		status_change_end(&sd->bl, SC_SPURT, INVALID_TIMER);
 

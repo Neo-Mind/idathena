@@ -1545,7 +1545,7 @@ int64 battle_addmastery(struct map_session_data *sd, struct block_list *target, 
 			break;
 		case W_FIST:
 			if((skill = pc_checkskill(sd,TK_RUN)) > 0)
-				damage += (skill * 10);
+				damage += (skill * 10); //+Atk (barehanded)
 			//No break, fallthrough to Knuckles
 		case W_KNUCKLE:
 			if((skill = pc_checkskill(sd,MO_IRONHAND)) > 0)
@@ -2639,6 +2639,13 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, ((wd.div_ < 1) ? 1 : wd.div_) * sd->spiritball * 3);
 #endif
 
+		if(skill_id == NJ_SYURIKEN && (skill = pc_checkskill(sd, NJ_TOBIDOUGU)) > 0) {
+			ATK_ADD(wd.damage, wd.damage2, 3 * skill);
+#ifdef RENEWAL
+			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 3 * skill);
+#endif
+		}
+
 		if(sc) { //Status change considered as masteries
 			uint8 i;
 
@@ -2670,29 +2677,6 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 #ifdef RENEWAL
 				ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 30 * min(10, sc->data[SC_CAMOUFLAGE]->val3));
 #endif
-			}
-		}
-
-		if(skill_id == NJ_SYURIKEN && (skill = pc_checkskill(sd, NJ_TOBIDOUGU)) > 0) {
-			ATK_ADD(wd.damage, wd.damage2, 3 * skill);
-#ifdef RENEWAL
-			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 3 * skill);
-#endif
-		}
-
-		if((skill = pc_checkskill(sd,TK_RUN)) > 0) {
-			switch(skill_id) {
-				case TK_DOWNKICK:
-				case TK_STORMKICK:
-				case TK_TURNKICK:
-				case TK_COUNTER:
-					if(sd->weapontype1 == W_FIST && sd->weapontype2 == W_FIST) {
-						ATK_ADD(wd.damage, wd.damage2, 10 * skill);
-#ifdef RENEWAL
-						ATK_ADD(wd.masteryAtk, wd.masteryAtk2, 10 * skill);
-#endif
-					}
-					break;
 			}
 		}
 	}
@@ -3354,19 +3338,18 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 			break;
 		case TK_DOWNKICK:
 		case TK_STORMKICK:
-			skillratio += 60 + 20 * skill_lv;
+			skillratio += 60 + 20 * skill_lv + 10 * pc_checkskill(sd,TK_RUN); //+Dmg (to Kick skills, %)
 			break;
 		case TK_TURNKICK:
 		case TK_COUNTER:
-			skillratio += 90 + 30 * skill_lv;
+			skillratio += 90 + 30 * skill_lv + 10 * pc_checkskill(sd,TK_RUN);
 			break;
 		case TK_JUMPKICK:
-			skillratio += -70 + 10 * skill_lv;
+			skillratio += -70 + 10 * skill_lv + 10 * pc_checkskill(sd,TK_RUN);
 			if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == skill_id)
 				skillratio += 10 * status_get_lv(src) / 3; //Tumble bonus
 			if(wd.miscflag) {
-				if(sd && sd->weapontype1 == W_FIST && sd->weapontype2 == W_FIST)
-					skillratio += 10 * pc_checkskill(sd,TK_RUN);
+				skillratio += 10 * status->get_lv(src) / 3; //Running bonus (@TODO: Check the real value?)
 				if(sc && sc->data[SC_SPURT]) //Spurt bonus
 					skillratio *= 2;
 			}
@@ -5190,6 +5173,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		case TK_STORMKICK:
 		case TK_TURNKICK:
 		case TK_COUNTER:
+		case TK_JUMPKICK:
 			if(sd && pc_checkskill(sd,TK_RUN) > 0) {
 				uint8 i;
 				uint16 skill = pc_checkskill(sd,TK_RUN);
@@ -5199,8 +5183,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 					case 2: case 5: case 8: i = 2; break;
 					default: i = 0; break;
 				}
-				if(sd->weapontype1 == W_FIST && sd->weapontype2 == W_FIST)
-					ATK_ADD(wd.damage, wd.damage2, 10 * skill - i);
+				ATK_ADD(wd.damage, wd.damage2, 10 * skill - i); //Non-Miss Damage (Kick skills)
 			}
 			break;
 		case CR_SHIELDBOOMERANG:

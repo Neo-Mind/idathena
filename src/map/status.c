@@ -10466,8 +10466,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 					if (ud->walktimer != INVALID_TIMER)
 						unit_stop_walking(bl,1);
 				}
-				if (begin_spurt && sce->val1 >= 7 &&
-					DIFF_TICK(gettick(),sce->val4) <= 1000 &&
+				if (begin_spurt && sce->val1 >= 7 && DIFF_TICK(gettick(),sce->val4) <= 1000 &&
 					(!sd || (sd->weapontype1 == 0 && sd->weapontype2 == 0)))
 					sc_start(bl,bl,SC_SPURT,100,sce->val1,skill_get_time2(status_sc2skill(type),sce->val1));
 			}
