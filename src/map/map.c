@@ -1664,8 +1664,7 @@ int map_quit(struct map_session_data *sd) {
 	if (sd->sc.count) { //Statuses that are removed on logout
 		status_change_end(&sd->bl,SC_TRICKDEAD,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_BOSSMAPINFO,INVALID_TIMER);
-		if (!battle_config.feature_autotrade)
-			status_change_end(&sd->bl,SC_AUTOTRADE,INVALID_TIMER);
+		status_change_end(&sd->bl,SC_AUTOTRADE,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_SPURT,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_READYSTORM,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_READYDOWN,INVALID_TIMER);

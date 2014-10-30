@@ -2896,11 +2896,11 @@ static unsigned int status_calc_maxhpsp_pc(struct map_session_data* sd, bool isH
 	if (isHP) { //Calculates MaxHP
 		max = job_info[idx].base_hp[level - 1] * (1 + (max(sd->battle_status.vit, 1) * 0.01)) * ((sd->class_&JOBL_UPPER) ? 1.25 : 1);
 		max += status_get_hpbonus(&sd->bl, STATUS_BONUS_FIX);
-		max *= (1 + status_get_hpbonus(&sd->bl, STATUS_BONUS_RATE) * 0.01);
+		max += (int64)(max * status_get_hpbonus(&sd->bl, STATUS_BONUS_RATE) / 100); //Aegis accuracy
 	} else { //Calculates MaxSP
 		max = job_info[idx].base_sp[level - 1] * (1 + (max(sd->battle_status.int_, 1) * 0.01)) * ((sd->class_&JOBL_UPPER) ? 1.25 : 1);
 		max += status_get_spbonus(&sd->bl, STATUS_BONUS_FIX);
-		max *= (1 + status_get_spbonus(&sd->bl, STATUS_BONUS_RATE) * 0.01);
+		max += (int64)(max * status_get_spbonus(&sd->bl, STATUS_BONUS_RATE) / 100);
 	}
 
 	return (unsigned int)cap_value(max, 1, UINT_MAX);
@@ -10773,7 +10773,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 					struct skill_unit_group *group = skill_id2group(sce->val4);
 
 					sce->val4 = 0;
-					if (group) /* Might have been cleared before status ended, e.g. land protector */
+					if (group) //Might have been cleared before status ended, e.g. land protector
 						skill_delunitgroup(group);
 				}
 			break;
