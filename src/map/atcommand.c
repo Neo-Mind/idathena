@@ -5660,7 +5660,7 @@ ACMD_FUNC(autotrade)
 		int timeout = atoi(message);
 
 		status_change_start(NULL, &sd->bl, SC_AUTOTRADE, 10000, 0, 0, 0, 0,
-			((timeout > 0) ? min(timeout,battle_config.at_timeout) : battle_config.at_timeout) * 60000, SCFLAG_NONE);
+			(timeout > 0 ? min(timeout,battle_config.at_timeout) : battle_config.at_timeout) * 60000, SCFLAG_NONE);
 	}
 
 	channel_pcquit(sd, 0xF); // Leave all channels.

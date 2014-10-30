@@ -9699,9 +9699,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			default:
 				if( calc_flag == SCB_NONE && StatusIconChangeTable[type] == SI_BLANK && StatusSkillChangeTable[type] == 0 ) {
 					switch( type ) {
-						case SC_KSPROTECTED:
 						case SC_XMAS:
 						case SC_SUMMER:
+						case SC_AUTOTRADE:
+						case SC_KSPROTECTED:
 						case SC_HANBOK:
 						case SC_OKTOBERFEST:
 							break; //Avoid the warning, because this status has no skill associated and all values already store in it
@@ -10641,7 +10642,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			sc_start4(bl,bl,SC_REGENERATION,100,10,0,0,(RGN_HP|RGN_SP),skill_get_time(LK_BERSERK,sce->val1));
 			break;
 		case SC_GOSPEL:
-			if (sce->val3) { //Clear the group.
+			if (sce->val3) { //Clear the group
 				struct skill_unit_group* group = skill_id2group(sce->val3);
 
 				sce->val3 = 0;
@@ -10653,7 +10654,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			if (sce->val3 == BCT_SELF)
 				skill_clear_unitgroup(bl);
 			break;
-		case SC_BASILICA: //Clear the skill area. [Skotlex]
+		case SC_BASILICA: //Clear the skill area [Skotlex]
 			if (sce->val3 && sce->val4 == bl->id) {
 				struct skill_unit_group* group = skill_id2group(sce->val3);
 
@@ -10668,40 +10669,42 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			break;
 		case SC_WARM:
 		case SC__MANHOLE:
-			if (sce->val4) { //Clear the group.
+			if (sce->val4) { //Clear the group
 				struct skill_unit_group* group = skill_id2group(sce->val4);
 
 				sce->val4 = 0;
-				if (group) /* Might have been cleared before status ended, e.g. land protector */
+				if (group) //Might have been cleared before status ended, e.g. land protector
 					skill_delunitgroup(group);
 			}
 			break;
 		case SC_KAAHI:
-			//Delete timer if it exists.
+			//Delete timer if it exists
 			if (sce->val4 != INVALID_TIMER)
 				delete_timer(sce->val4,kaahi_heal_timer);
 			break;
 		case SC_JAILED:
 			if (tid == INVALID_TIMER)
 				break;
-		  	//Natural expiration.
+		  	//Natural expiration
 			if (sd && sd->mapindex == sce->val2)
 				pc_setpos(sd,(unsigned short)sce->val3,(sce->val4&0xFFFF),sce->val4>>16,CLR_TELEPORT);
 			break; //Guess hes not in jail :P
 		case SC_CHANGE:
 			if (tid == INVALID_TIMER)
 		 		break;
-			//"Lose almost all their HP and SP" on natural expiration.
+			//"Lose almost all their HP and SP" on natural expiration
 			status_set_hp(bl,10,0);
 			status_set_sp(bl,10,0);
 			break;
 		case SC_AUTOTRADE:
 			if (tid == INVALID_TIMER)
 				break;
-			//NOTE: vending/buying is closed by unit_remove_map, no
-			//need to do it here.
+			if (sd->state.vending)
+				vending_closevending(sd);
+			else if (sd->state.buyingstore)
+				buyingstore_close(sd);
 			map_quit(sd);
-			//Because map_quit calls status_change_end with tid -1
+			//Because map_quit calls status_change_end with tid INVALID_TIMER
 			//From here it's not neccesary to continue
 			return 1;
 		case SC_STOP:

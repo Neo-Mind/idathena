@@ -20053,10 +20053,10 @@ int skill_block_check(struct block_list *bl, sc_type type , uint16 skill_id) {
 
 		case SC_STASIS:
 			inf = skill_get_inf2(skill_id);
-			//Song, Dance, Ensemble, Chorus, and all magic skills will not work in Stasis status. [Rytech]
+			//Song, Dance, Ensemble, Chorus, and all magic skills will not work in Stasis status [Rytech]
 			if( inf == INF2_SONG_DANCE || inf == INF2_ENSEMBLE_SKILL ||
 				inf == INF2_CHORUS_SKILL || skill_get_type(skill_id) == BF_MAGIC )
-				return 1; //Can't do it.
+				return 1; //Can't do it
 			break;
 
 		case SC_KAGEHUMI:

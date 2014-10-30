@@ -1661,10 +1661,11 @@ int map_quit(struct map_session_data *sd) {
 	//Unit_free handles clearing the player related data,
 	//map_quit handles extra specific data which is related to quitting normally
 	//(changing map-servers invokes unit_free but bypasses map_quit)
-	if (sd->sc.count) { //Status that are not saved
+	if (sd->sc.count) { //Statuses that are removed on logout
 		status_change_end(&sd->bl,SC_TRICKDEAD,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_BOSSMAPINFO,INVALID_TIMER);
-		status_change_end(&sd->bl,SC_AUTOTRADE,INVALID_TIMER);
+		if (!battle_config.feature_autotrade)
+			status_change_end(&sd->bl,SC_AUTOTRADE,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_SPURT,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_READYSTORM,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_READYDOWN,INVALID_TIMER);
@@ -1699,7 +1700,6 @@ int map_quit(struct map_session_data *sd) {
 				status_change_end(&sd->bl,SC_REGENERATION,INVALID_TIMER);
 			//@TODO: Probably there are way more NPC_type negative status that are removed
 			status_change_end(&sd->bl,SC_CHANGEUNDEAD,INVALID_TIMER);
-			//These statuses are removed on logout. [L0ne_W0lf]
 			status_change_end(&sd->bl,SC_SLOWCAST,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_CRITICALWOUND,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_HEAT_BARREL_AFTER,INVALID_TIMER);

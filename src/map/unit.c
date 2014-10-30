@@ -2605,9 +2605,9 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 	if (ud->stepaction || ud->steptimer != INVALID_TIMER)
 		unit_stop_stepaction(bl); //Clear stepaction even if there is no timer
 
-	//Do not reset can-act delay. [Skotlex]
+	//Do not reset can-act delay [Skotlex]
 	ud->attackabletime = ud->canmove_tick /*= ud->canact_tick*/ = gettick();
-	if (sc && sc->count) { //Map-change/warp dispells.
+	if (sc && sc->count) { //Map-change/warp dispells
 		status_change_end(bl,SC_BLADESTOP,INVALID_TIMER);
 		status_change_end(bl,SC_BASILICA,INVALID_TIMER);
 		status_change_end(bl,SC_ANKLE,INVALID_TIMER);
@@ -2656,7 +2656,7 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 					if(d_bl)
 						status_change_end(d_bl,SC__SHADOWFORM,INVALID_TIMER);
 				}
-				//Leave/reject all invitations.
+				//Leave/reject all invitations
 				if (sd->chatID)
 					chat_leavechat(sd,0);
 				if (sd->trade_partner)
@@ -2670,7 +2670,7 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 					else if (sd->state.storage_flag == 2)
 						storage_guild_storage_quit(sd,0);
 
-					sd->state.storage_flag = 0; //Force close it when being warped.
+					sd->state.storage_flag = 0; //Force close it when being warped
 				}
 
 				if (sd->party_invite > 0)
@@ -2683,7 +2683,7 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 					sd->menuskill_id = sd->menuskill_val = 0;
 				if (sd->touching_id)
 					npc_touchnext_areanpc(sd,true);
-				//Check if warping and not changing the map.
+				//Check if warping and not changing the map
 				if (sd->state.warping && !sd->state.changemap) {
 					status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
 					status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER);

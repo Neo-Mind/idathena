@@ -1704,8 +1704,8 @@ static int64 battle_calc_base_damage(struct status_data *status, struct weapon_a
 	else
 		damage += status->batk;
 
-	//Rodatazone says that Overrefine bonuses are part of baseatk
-	//Here we also apply the weapon_atk_rate bonus so it is correctly applied on left/right hands.
+	//Rodatazone says that Overrefine bonuses are part of base atk
+	//Here we also apply the weapon_atk_rate bonus so it is correctly applied on left/right hands
 	if(sd) {
 		if(type == EQI_HAND_L) {
 			if(sd->left_weapon.overrefine)
@@ -2534,8 +2534,6 @@ static struct Damage battle_calc_element_damage(struct Damage wd, struct block_l
 				(wd.flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON))
 				return wd;
 		if(wd.damage > 0) {
-			//Forced to its element
-			wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
 			switch(skill_id) {
 				case MC_CARTREVOLUTION:
 				case RA_CLUSTERBOMB:
@@ -2543,14 +2541,19 @@ static struct Damage battle_calc_element_damage(struct Damage wd, struct block_l
 				case RA_ICEBOUNDTRAP:
 				case SR_GATEOFHELL:
 				case KO_BAKURETSU:
-					//Forced to neutral element
 					wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 					break;
 				case NC_ARMSCANNON:
+					if(sd && sd->bonus.arrow_ele && sd->bonus.arrow_ele == sstatus->rhw.ele)
+						wd.damage = battle_attr_fix(src, target, wd.damage, sd->bonus.arrow_ele, tstatus->def_ele, tstatus->ele_lv);
+					wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+					break;
 				case GN_CARTCANNON:
 				case KO_HAPPOKUNAI:
-					//Forced to ammo's element
 					wd.damage = battle_attr_fix(src, target, wd.damage, (sd && sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+					break;
+				default:
+					wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
 					break;
 			}
 		}
@@ -2826,11 +2829,13 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 #endif
 			break;
 		case CR_SHIELDBOOMERANG:
+#ifndef RENEWAL
 		case PA_SHIELDCHAIN:
+#endif
 			wd.damage = sstatus->batk;
 			wd.damage2 = 0;
 #ifdef RENEWAL
-			wd.weaponAtk = wd.damage;
+			wd.weaponAtk = 2 * wd.damage;
 			wd.weaponAtk2 = wd.damage2;
 #endif
 			if(sd) {
@@ -2892,79 +2897,80 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 			if(src->type == BL_HOM)
 				wd.damage = ((TBL_HOM*)src)->homunculus.intimacy;
 			break;
-		default: {
+		default:
 #ifdef RENEWAL
-				if(sd)
-					wd = battle_calc_damage_parts(wd, src, target, skill_id, skill_lv);
-				else {
-					i = (is_attack_critical(wd, src, target, skill_id, skill_lv, false) ? 1 : 0)|
-						(!skill_id && sc && sc->data[SC_CHANGE] ? 4 : 0);
-
-					wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, i);
-					if(is_attack_left_handed(src, skill_id))
-						wd.damage2 = battle_calc_base_damage(sstatus, &sstatus->lhw, sc, tstatus->size, sd, skill_id, i);
-				}
-#else
+			if(sd)
+				wd = battle_calc_damage_parts(wd, src, target, skill_id, skill_lv);
+			else {
 				i = (is_attack_critical(wd, src, target, skill_id, skill_lv, false) ? 1 : 0)|
-					(is_skill_using_arrow(src, skill_id) ? 2 : 0)|
-					(skill_id == HW_MAGICCRASHER ? 4 : 0)|
-					(!skill_id && sc && sc->data[SC_CHANGE] ? 4 : 0)|
-					(skill_id == MO_EXTREMITYFIST ? 8 : 0)|
-					(sc && sc->data[SC_WEAPONPERFECTION] ? 8 : 0);
-				if(is_skill_using_arrow(src, skill_id) && sd)
-					switch(sd->status.weapon) {
-						case W_BOW:
-						case W_REVOLVER:
-						case W_GATLING:
-						case W_SHOTGUN:
-						case W_GRENADE:
-							break;
-						default:
-							i |= 16; //For ex. shuriken must not be influenced by DEX
-							break;
-					}
+					(!skill_id && sc && sc->data[SC_CHANGE] ? 4 : 0);
 				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, i);
 				if(is_attack_left_handed(src, skill_id))
 					wd.damage2 = battle_calc_base_damage(sstatus, &sstatus->lhw, sc, tstatus->size, sd, skill_id, i);
+			}
+#else
+			i = (is_attack_critical(wd, src, target, skill_id, skill_lv, false) ? 1 : 0)|
+				(is_skill_using_arrow(src, skill_id) ? 2 : 0)|
+				(skill_id == HW_MAGICCRASHER ? 4 : 0)|
+				(!skill_id && sc && sc->data[SC_CHANGE] ? 4 : 0)|
+				(skill_id == MO_EXTREMITYFIST ? 8 : 0)|
+				(sc && sc->data[SC_WEAPONPERFECTION] ? 8 : 0);
+			if(is_skill_using_arrow(src, skill_id) && sd) {
+				switch(sd->status.weapon) {
+					case W_BOW:
+					case W_REVOLVER:
+					case W_GATLING:
+					case W_SHOTGUN:
+					case W_GRENADE:
+						break;
+					default:
+						i |= 16; //For ex. shuriken must not be influenced by DEX
+						break;
+				}
+			}
+			wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, i);
+			if(is_attack_left_handed(src, skill_id))
+				wd.damage2 = battle_calc_base_damage(sstatus, &sstatus->lhw, sc, tstatus->size, sd, skill_id, i);
 #endif
-				if(nk&NK_SPLASHSPLIT) { //Divide ATK among targets
-					if(wd.miscflag > 0) {
-						wd.damage /= wd.miscflag;
+			if(nk&NK_SPLASHSPLIT) { //Divide ATK among targets
+				if(wd.miscflag > 0) {
+					wd.damage /= wd.miscflag;
 #ifdef RENEWAL
-						wd.statusAtk /= wd.miscflag;
-						wd.weaponAtk /= wd.miscflag;
-						wd.equipAtk /= wd.miscflag;
-						wd.masteryAtk /= wd.miscflag;
+					wd.statusAtk /= wd.miscflag;
+					wd.weaponAtk /= wd.miscflag;
+					wd.equipAtk /= wd.miscflag;
+					wd.masteryAtk /= wd.miscflag;
 #endif
-					} else
-						ShowError("0 enemies targeted by %d:%s, divide per 0 avoided!\n", skill_id, skill_get_name(skill_id));
-				}
-				//Add any bonuses that modify the base atk (pre-skills)
-				if(sd) {
-					int skill = 0;
+				} else
+					ShowError("0 enemies targeted by %d:%s, divide per 0 avoided!\n", skill_id, skill_get_name(skill_id));
+			}
+			if(sd) { //Add any bonuses that modify the base atk
+				int skill = 0;
 
-					if(sd->bonus.atk_rate) {
-						ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.atk_rate);
-						RE_ALLATK_ADDRATE(wd, sd->bonus.atk_rate);
-					}
-#ifndef RENEWAL
-					//Add +crit damage bonuses here in pre-renewal mode [helvetica]
-					if(sd->bonus.crit_atk_rate && is_attack_critical(wd, src, target, skill_id, skill_lv, false))
-						ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.crit_atk_rate);
+				if(sd->bonus.atk_rate) {
+					ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.atk_rate);
+#ifdef RENEWAL //In renewal only modify weapon ATK and equip ATK [exneval]
+					ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sd->bonus.atk_rate);
+					ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, sd->bonus.atk_rate);
 #endif
-					if(sc && sc->data[SC_MTF_CRIDAMAGE] && is_attack_critical(wd, src, target, skill_id, skill_lv, false)) {
-						ATK_ADDRATE(wd.damage, wd.damage2, 25);
-						RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.crit_atk_rate'
-					}
-					if(sd->status.party_id && (skill = pc_checkskill(sd, TK_POWER)) > 0) {
-						if((i = party_foreachsamemap(party_sub_count, sd, 0)) > 1) { //Exclude the player himself [Inkfish]
-							ATK_ADDRATE(wd.damage, wd.damage2, 2 * skill * i);
-							RE_ALLATK_ADDRATE(wd, 2 * skill * i);
-						}
+				}
+#ifndef RENEWAL
+				//Add +crit damage bonuses here in pre-renewal mode [helvetica]
+				if(sd->bonus.crit_atk_rate && is_attack_critical(wd, src, target, skill_id, skill_lv, false))
+					ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.crit_atk_rate);
+#endif
+				if(sc && sc->data[SC_MTF_CRIDAMAGE] && is_attack_critical(wd, src, target, skill_id, skill_lv, false)) {
+					ATK_ADDRATE(wd.damage, wd.damage2, 25);
+					RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.crit_atk_rate'
+				}
+				if(sd->status.party_id && (skill = pc_checkskill(sd, TK_POWER)) > 0) {
+					if((i = party_foreachsamemap(party_sub_count, sd, 0)) > 1) { //Exclude the player himself [Inkfish]
+						ATK_ADDRATE(wd.damage, wd.damage2, 2 * skill * i);
+						RE_ALLATK_ADDRATE(wd, 2 * skill * i);
 					}
 				}
-		}
-		break;
+			}
+			break;
 	} //End switch(skill_id)
 	return wd;
 }
@@ -5104,12 +5110,10 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		}
 
 		if(sd) { //Monsters, homuns and pets have their damage computed directly
-			if(wd.flag&BF_LONG) { //Only weapon and equip ATK that benefit from % bonuses [exneval]
-				ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sd->bonus.long_attack_atk_rate);
-				ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, sd->bonus.long_attack_atk_rate);
-			}
 			wd.damage = wd.statusAtk + wd.weaponAtk + wd.equipAtk + wd.masteryAtk;
 			wd.damage2 = wd.statusAtk2 + wd.weaponAtk2 + wd.equipAtk2 + wd.masteryAtk2;
+			if(wd.flag&BF_LONG) //Ranged damage % effects the entirety of the damage [exneval]
+				ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.long_attack_atk_rate);
 			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Custom fix for "a hole" in renewal ATK calculation [exneval]
 		}
 #else
@@ -5172,7 +5176,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 				RE_ALLATK_RATE(wd, i);
 			}
 		}
-	} else if(wd.div_ < 0) //Since the attack missed
+	} else if(wd.div_ < 0)
 		wd.div_ *= -1;
 
 	//Damage disregard acurracy check
@@ -5298,60 +5302,46 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 	}
 
 #ifdef RENEWAL
-	//Forced to an element weapon skills [helvetica]
-	//Skills forced to an element and gain benefits from the weapon
-	//But final damage is considered "the element" and resistances are applied again
+	//Renewal elemental attribute fix [helvetica]
+	//Skills gain benefits from the weapon element
+	//But final damage is considered to "the forced" and resistances are applied again
 	if(!(nk&NK_NO_ELEFIX)) {
-		switch(skill_id) {
-			case MC_CARTREVOLUTION:
-			case MO_INVESTIGATE:
-			case CR_ACIDDEMONSTRATION:
-			case RA_CLUSTERBOMB:
-			case RA_FIRINGTRAP:
-			case RA_ICEBOUNDTRAP:
-			case SR_GATEOFHELL:
-			case GN_FIRE_EXPANSION_ACID:
-			case KO_BAKURETSU:
+		if(wd.damage > 0) {
+			switch(skill_id) {
 				//Forced to neutral element
-				wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
-				break;
-			case LK_SPIRALPIERCE:
-			case ML_SPIRALPIERCE:
-			case PA_SHIELDCHAIN:
-			case PA_SACRIFICE:
-			case RK_DRAGONBREATH:
-			case RK_DRAGONBREATH_WATER:
-			case NC_SELFDESTRUCTION:
-			case KO_HAPPOKUNAI:
-				{
-					int64 tmp = wd.damage;
+				case MC_CARTREVOLUTION:
+				case MO_INVESTIGATE:
+				case PA_SHIELDCHAIN:
+				case CR_ACIDDEMONSTRATION:
+				case RA_CLUSTERBOMB:
+				case RA_FIRINGTRAP:
+				case RA_ICEBOUNDTRAP:
+				case SR_GATEOFHELL:
+				case GN_FIRE_EXPANSION_ACID:
+				case KO_BAKURETSU:
+					wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+					break;
+				case NC_ARMSCANNON: {
+						struct status_data *sstatus = status_get_status_data(src);
 
-					if(sd) {
-						if(skill_id == PA_SHIELDCHAIN) { //Forced to neutral element
-							wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
-							if(wd.damage > 0) {
-								wd.damage = battle_attr_fix(src, target, tmp, right_element, tstatus->def_ele, tstatus->ele_lv);
-								if(!wd.damage)
-									wd.damage = battle_attr_fix(src, target, tmp, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
-							}
-						} else if(skill_id == KO_HAPPOKUNAI) { //Forced to neutral element
-							wd.damage = battle_attr_fix(src, target, wd.damage, (sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
-							if(wd.damage > 0) {
-								wd.damage = battle_attr_fix(src, target, tmp, right_element, tstatus->def_ele, tstatus->ele_lv);
-								if(!wd.damage)
-									wd.damage = battle_attr_fix(src, target, tmp, (sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
-							}
-						} else //Forced to its element
-							wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
+						if(sd && sd->bonus.arrow_ele && sd->bonus.arrow_ele == sstatus->rhw.ele)
+							wd.damage = battle_attr_fix(src, target, wd.damage, sd->bonus.arrow_ele, tstatus->def_ele, tstatus->ele_lv);
+						wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 					}
-				}
-				break;
-			case NC_ARMSCANNON:
-			case GN_CARTCANNON:
+					break;
 				//Forced to ammo's element
-				wd.damage = battle_attr_fix(src, target, wd.damage, (sd && sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
-				break;
+				case GN_CARTCANNON:
+				case KO_HAPPOKUNAI:
+					wd.damage = battle_attr_fix(src, target, wd.damage, (sd && sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+					break;
+				//Forced to it's element
+				default:
+					wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
+					break;
+			}
 		}
+		if(is_attack_left_handed(src, skill_id) && wd.damage2 > 0)
+			wd.damage2 = battle_attr_fix(src, target, wd.damage2, left_element, tstatus->def_ele, tstatus->ele_lv);
 	}
 
 	//Perform multihit calculations
@@ -5447,7 +5437,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	//Initialize variables that will be used afterwards
 	s_ele = skill_get_ele(skill_id, skill_lv);
 
-	if(s_ele == -1) { //pl = -1 : the skill takes the weapon's element
+	if(s_ele == -1) { //Skill takes the weapon's element
 		s_ele = sstatus->rhw.ele;
 		if(sd) { //Summoning 10 talisman will endow your weapon
 			ARR_FIND(1, 6, i, sd->talisman[i] >= 10);
@@ -6194,8 +6184,17 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			}
 		}
 
-		if(!(nk&NK_NO_ELEFIX))
-			ad.damage = battle_attr_fix(src, target, ad.damage, s_ele, tstatus->def_ele, tstatus->ele_lv);
+		if(!(nk&NK_NO_ELEFIX) && ad.damage > 0) {
+			switch(skill_id) {
+				case CR_ACIDDEMONSTRATION:
+				case GN_FIRE_EXPANSION_ACID:
+					ad.damage = battle_attr_fix(src, target, ad.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+					break;
+				default:
+					ad.damage = battle_attr_fix(src, target, ad.damage, s_ele, tstatus->def_ele, tstatus->ele_lv);
+					break;
+			}
+		}
 
 		//Apply the physical part of the skill's damage [Skotlex]
 		switch(skill_id) {
@@ -6639,7 +6638,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			md.damage = 1;
 	}
 
-	if(!(nk&NK_NO_ELEFIX))
+	if(!(nk&NK_NO_ELEFIX) && md.damage > 0)
 		md.damage = battle_attr_fix(src,target,md.damage,s_ele,tstatus->def_ele,tstatus->ele_lv);
 
 	switch(skill_id) {

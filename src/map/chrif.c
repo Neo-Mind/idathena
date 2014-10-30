@@ -1106,10 +1106,10 @@ int chrif_disconnectplayer(int fd) {
 				vending_closevending(sd);
 			else if (sd->state.buyingstore)
 				buyingstore_close(sd);
-			map_quit(sd); //Remove it.
+			map_quit(sd); //Remove it
 		}
 		//Else we don't remove it because the char should have a timer to remove the player because it force-quit before,
-		//and we don't want them kicking their previous instance before the 10 secs penalty time passes. [Skotlex]
+		//and we don't want them kicking their previous instance before the 10 secs penalty time passes [Skotlex]
 		return 0;
 	}
 

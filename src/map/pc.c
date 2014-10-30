@@ -8080,7 +8080,7 @@ bool pc_jobchange(struct map_session_data *sd,int job, char upper)
 	if(sd->vd.cloth_color)
 		clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->vd.cloth_color);
 
-	//Update skill tree.
+	//Update skill tree
 	pc_calc_skilltree(sd);
 	clif_skillinfoblock(sd);
 
