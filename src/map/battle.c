@@ -5162,11 +5162,36 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 	} else if(wd.div_ < 0)
 		wd.div_ *= -1;
 
-	//Damage disregard acurracy check
-	switch(skill_id) {
+	switch(skill_id) { //Damage disregard acurracy check
+		case SR_GATEOFHELL: {
+				struct status_data *sstatus = status_get_status_data(src);
+
+				ATK_ADD(wd.damage, wd.damage2, sstatus->max_hp - status_get_hp(src));
+				if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE) {
+					ATK_ADD(wd.damage, wd.damage2, (sstatus->max_sp * (1 + skill_lv * 2 / 10)) + 40 * status_get_lv(src));
+				} else
+					ATK_ADD(wd.damage, wd.damage2, (sstatus->sp * (1 + skill_lv * 2 / 10)) + 10 * status_get_lv(src));
+			}
+			break;
+	}
+
+	if(wd.damage + wd.damage2) { //Check if attack ignores DEF
+		if((!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ||
+			!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_R)) &&
+			!target_has_infinite_defense(target, skill_id))
+			wd = battle_calc_defense_reduction(wd, src, target, skill_id, skill_lv);
+		if(wd.dmg_lv != ATK_FLEE)
+			wd = battle_calc_attack_post_defense(wd, src, target, skill_id, skill_lv);
+	}
+
+	switch(skill_id) { //Damage disregard acurracy and defense check
 #ifndef RENEWAL
 		case TF_POISON:
 			ATK_ADD(wd.damage, wd.damage2, 15 * skill_lv);
+			break;
+		case NJ_KUNAI:
+			ATK_ADD(wd.damage, wd.damage2, 90);
+			wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 			break;
 #endif
 		case TK_DOWNKICK:
@@ -5196,16 +5221,6 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 					ATK_ADD(wd.damage, wd.damage2, 10 * sd->status.inventory[index].refine);
 			}
 			break;
-		case SR_GATEOFHELL: {
-				struct status_data *sstatus = status_get_status_data(src);
-
-				ATK_ADD(wd.damage, wd.damage2, sstatus->max_hp - status_get_hp(src));
-				if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == SR_FALLENEMPIRE) {
-					ATK_ADD(wd.damage, wd.damage2, (sstatus->max_sp * (1 + skill_lv * 2 / 10)) + 40 * status_get_lv(src));
-				} else
-					ATK_ADD(wd.damage, wd.damage2, (sstatus->sp * (1 + skill_lv * 2 / 10)) + 10 * status_get_lv(src));
-			}
-			break;
 	}
 
 #ifndef RENEWAL
@@ -5220,22 +5235,6 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			ATK_ADD(wd.damage, wd.damage2, ((wd.div_ < 1) ? 1 : wd.div_) * sd->spiritball_old * 3);
 		} else
 			ATK_ADD(wd.damage, wd.damage2, ((wd.div_ < 1) ? 1 : wd.div_) * sd->spiritball * 3);
-	}
-#endif
-
-	if(wd.damage + wd.damage2) { //Check if attack ignores DEF
-		if((!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ||
-			!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_R)) &&
-			!target_has_infinite_defense(target, skill_id))
-			wd = battle_calc_defense_reduction(wd, src, target, skill_id, skill_lv);
-		if(wd.dmg_lv != ATK_FLEE)
-			wd = battle_calc_attack_post_defense(wd, src, target, skill_id, skill_lv);
-	}
-
-#ifndef RENEWAL
-	if(skill_id == NJ_KUNAI) { //Damage disregard acurracy and defense check
-		ATK_ADD(wd.damage, wd.damage2, 90);
-		wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 	}
 #endif
 
