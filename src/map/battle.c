@@ -3349,7 +3349,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 			if(sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == skill_id)
 				skillratio += 10 * status_get_lv(src) / 3; //Tumble bonus
 			if(wd.miscflag) {
-				skillratio += 10 * status->get_lv(src) / 3; //Running bonus (@TODO: Check the real value?)
+				skillratio += 10 * status_get_lv(src) / 3; //Running bonus (@TODO: Check the real value?)
 				if(sc && sc->data[SC_SPURT]) //Spurt bonus
 					skillratio *= 2;
 			}
