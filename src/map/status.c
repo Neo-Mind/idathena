@@ -2237,7 +2237,6 @@ void status_get_matk_sub(struct block_list *bl, int flag, unsigned short *matk_m
 		*matk_max += sd->right_weapon.overrefine - 1;
 	}
 #endif
-	return;
 }
 
 /**
@@ -2245,7 +2244,7 @@ void status_get_matk_sub(struct block_list *bl, int flag, unsigned short *matk_m
  * @param flag [malufett]
  *  0 - Get MATK
  *  1 - Get MATK w/o SC bonuses
- *  2 - Get modified MATK
+ *  2 - Get unmodified MATK
  *  3 - Get MATK w/o EMATK & SC bonuses
  * @return 0 failure
  * @return MATK success
@@ -2272,7 +2271,7 @@ int status_get_matk(struct block_list *bl, int flag) {
 
 	status_get_matk_sub(bl, flag, &matk_max, &matk_min);
 
-	//Get unmodified from sc MATK
+	//Get modified from sc MATK
 	return status_get_rand_matk(matk_max, matk_min);
 }
 
@@ -2297,8 +2296,6 @@ static void status_update_matk(struct block_list *bl) {
 	//Update MATK
 	status->matk_min = status_calc_matk(bl, sc, matk_min);
 	status->matk_max = status_calc_matk(bl, sc, matk_max);
-
-	return;
 }
 
 //Fills in the misc data that can be calculated from the other status info (except for level)
@@ -3594,7 +3591,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 	if(sc->data[SC_SPCOST_RATE])
 		sd->dsprate -= sc->data[SC_SPCOST_RATE]->val1;
 
-	//Underflow protections.
+	//Underflow protections
 	if(sd->dsprate < 0)
 		sd->dsprate = 0;
 	if(sd->castrate < 0)
@@ -4348,7 +4345,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		if( bl->type&BL_HOM )
 			status->mdef += (status->int_ / 5 - b_status->int_ / 5);
 	}
-		
+
 	if( flag&SCB_MDEF2 ) {
 		if( status->int_ == b_status->int_ && status->vit == b_status->vit
 #ifdef RENEWAL
@@ -4357,7 +4354,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 			)
 			status->mdef2 = status_calc_mdef2(bl, sc, b_status->mdef2, true);
 		else
-			status->mdef2 = status_calc_mdef2(bl, sc, b_status->mdef2 +(status->int_ - b_status->int_)
+			status->mdef2 = status_calc_mdef2(bl, sc, b_status->mdef2 + (status->int_ - b_status->int_)
 #ifdef RENEWAL
 			+ (int)(((float)status->dex / 5 - (float)b_status->dex / 5) + ((float)status->vit / 5 - (float)b_status->vit / 5))
 #else
@@ -5221,8 +5218,6 @@ static unsigned short status_calc_ematk(struct block_list *bl, struct status_cha
 		matk += sc->data[SC_MOONLITSERENADE]->val3;
 	if(sc->data[SC_IZAYOI])
 		matk += 25 * sc->data[SC_IZAYOI]->val1;
-	if(sc->data[SC_ZANGETSU])
-		matk += sc->data[SC_ZANGETSU]->val3;
 	if(sc->data[SC_QUEST_BUFF1])
 		matk += sc->data[SC_QUEST_BUFF1]->val1;
 	if(sc->data[SC_QUEST_BUFF2])
@@ -5236,47 +5231,47 @@ static unsigned short status_calc_ematk(struct block_list *bl, struct status_cha
 
 static unsigned short status_calc_matk(struct block_list *bl, struct status_change *sc, int matk)
 {
-	if (!sc || !sc->count)
+	if(!sc || !sc->count)
 		return (unsigned short)cap_value(matk,0,USHRT_MAX);
 
 #ifndef RENEWAL
 	//Take note fixed value first before % modifiers
-	if (sc->data[SC_MATKPOTION])
+	if(sc->data[SC_MATKPOTION])
 		matk += sc->data[SC_MATKPOTION]->val1;
-	if (sc->data[SC_MATKFOOD])
+	if(sc->data[SC_MATKFOOD])
 		matk += sc->data[SC_MATKFOOD]->val1;
-	if (sc->data[SC_MANA_PLUS])
+	if(sc->data[SC_MANA_PLUS])
 		matk += sc->data[SC_MANA_PLUS]->val1;
-	if (sc->data[SC_AQUAPLAY_OPTION])
+	if(sc->data[SC_AQUAPLAY_OPTION])
 		matk += sc->data[SC_AQUAPLAY_OPTION]->val2;
-	if (sc->data[SC_CHILLY_AIR_OPTION])
+	if(sc->data[SC_CHILLY_AIR_OPTION])
 		matk += sc->data[SC_CHILLY_AIR_OPTION]->val2;
-	if (sc->data[SC_COOLER_OPTION])
+	if(sc->data[SC_COOLER_OPTION])
 		matk += sc->data[SC_COOLER_OPTION]->val2;
-	if (sc->data[SC_FIRE_INSIGNIA] && sc->data[SC_FIRE_INSIGNIA]->val1 == 3)
+	if(sc->data[SC_FIRE_INSIGNIA] && sc->data[SC_FIRE_INSIGNIA]->val1 == 3)
 		matk += 50;
-	if (sc->data[SC_ODINS_POWER])
+	if(sc->data[SC_ODINS_POWER])
 		matk += 40 + 30 * sc->data[SC_ODINS_POWER]->val1;
-	if (sc->data[SC_MOONLITSERENADE])
+	if(sc->data[SC_MOONLITSERENADE])
 		matk += sc->data[SC_MOONLITSERENADE]->val3;
-	if (sc->data[SC_IZAYOI])
+	if(sc->data[SC_IZAYOI])
 		matk += 25 * sc->data[SC_IZAYOI]->val1;
-	if (sc->data[SC_ZANGETSU])
-		matk += sc->data[SC_ZANGETSU]->val3;
-	if (sc->data[SC_QUEST_BUFF1])
+	if(sc->data[SC_QUEST_BUFF1])
 		matk += sc->data[SC_QUEST_BUFF1]->val1;
-	if (sc->data[SC_QUEST_BUFF2])
+	if(sc->data[SC_QUEST_BUFF2])
 		matk += sc->data[SC_QUEST_BUFF2]->val1;
-	if (sc->data[SC_QUEST_BUFF3])
+	if(sc->data[SC_QUEST_BUFF3])
 		matk += sc->data[SC_QUEST_BUFF3]->val1;
 #endif
-	if (sc->data[SC_MAGICPOWER] && sc->data[SC_MAGICPOWER]->val4)
+	if(sc->data[SC_MAGICPOWER] && sc->data[SC_MAGICPOWER]->val4)
 		matk += matk * sc->data[SC_MAGICPOWER]->val3 / 100;
-	if (sc->data[SC_MINDBREAKER])
+	if(sc->data[SC_MINDBREAKER])
 		matk += matk * sc->data[SC_MINDBREAKER]->val2 / 100;
-	if (sc->data[SC_INCMATKRATE])
+	if(sc->data[SC_INCMATKRATE])
 		matk += matk * sc->data[SC_INCMATKRATE]->val1 / 100;
-	if (sc->data[SC_MTF_MATK])
+	if(sc->data[SC_ZANGETSU])
+		matk += sc->data[SC_ZANGETSU]->val3;
+	if(sc->data[SC_MTF_MATK])
 		matk += matk * 25 / 100;
 
 	return (unsigned short)cap_value(matk,0,USHRT_MAX);
@@ -5287,29 +5282,29 @@ static short status_calc_critical(struct block_list *bl, struct status_change *s
 	if(!sc || !sc->count)
 		return (short)cap_value(critical,10,SHRT_MAX);
 
-	if (sc->data[SC_INCCRI])
+	if(sc->data[SC_INCCRI])
 		critical += sc->data[SC_INCCRI]->val2;
-	if (sc->data[SC_CRIFOOD])
+	if(sc->data[SC_CRIFOOD])
 		critical += sc->data[SC_CRIFOOD]->val1;
-	if (sc->data[SC_EXPLOSIONSPIRITS])
+	if(sc->data[SC_EXPLOSIONSPIRITS])
 		critical += sc->data[SC_EXPLOSIONSPIRITS]->val2;
-	if (sc->data[SC_FORTUNE])
+	if(sc->data[SC_FORTUNE])
 		critical += sc->data[SC_FORTUNE]->val2;
-	if (sc->data[SC_TRUESIGHT])
+	if(sc->data[SC_TRUESIGHT])
 		critical += sc->data[SC_TRUESIGHT]->val2;
-	if (sc->data[SC_CLOAKING])
+	if(sc->data[SC_CLOAKING])
 		critical += critical;
-	if (sc->data[SC_STRIKING])
+	if(sc->data[SC_STRIKING])
 		critical += critical * sc->data[SC_STRIKING]->val1 / 100;
 #ifdef RENEWAL
-	if (sc->data[SC_SPEARQUICKEN])
+	if(sc->data[SC_SPEARQUICKEN])
 		critical += 3 * sc->data[SC_SPEARQUICKEN]->val1 * 10;
 #endif
-	if (sc->data[SC__INVISIBILITY])
+	if(sc->data[SC__INVISIBILITY])
 		critical += critical * sc->data[SC__INVISIBILITY]->val2 / 100;
-	if (sc->data[SC__UNLUCKY])
+	if(sc->data[SC__UNLUCKY])
 		critical -= sc->data[SC__UNLUCKY]->val2;
-	if (sc->data[SC_BEYONDOFWARCRY])
+	if(sc->data[SC_BEYONDOFWARCRY])
 		critical += sc->data[SC_BEYONDOFWARCRY]->val3;
 
 	return (short)cap_value(critical,10,SHRT_MAX);
@@ -7740,7 +7735,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		}
 	}
 
-	//Before overlapping fail, one must check for status cured.
+	//Before overlapping fail, one must check for status cured
 	switch (type) {
 		case SC_BLESSING:
 			//@TODO: Blessing and Agi up should do 1 damage against players on Undead Status, even on PvM,
@@ -8198,21 +8193,21 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_EDP: //[Celest]
 				val2 = val1 + 2; //Chance to Poison enemies
 #ifndef RENEWAL_EDP
-				val3 = 50 * (val1 + 1); //Damage increase (+50 +50*lv%)
+				val3 = 50 * (val1 + 1); //Damage increase (+50+50*lv%)
 #endif
 				if( sd ) //[Ind] - iROwiki says each level increases its duration by 3 seconds
 					tick += pc_checkskill(sd,GC_RESEARCHNEWPOISON) * 3000;
 				break;
 			case SC_POISONREACT:
 				val2 = (val1 + 1) / 2 + val1 / 10; //Number of counters [Skotlex]
-				val3 = 50; //+ 5 * val1; //Chance to counter [Skotlex]
+				val3 = 50; //+5*val1; //Chance to counter [Skotlex]
 				break;
 			case SC_MAGICROD:
 				val2 = val1 * 20; //SP gained
 				break;
 			case SC_KYRIE:
 				if( val4 ) { //Formula's for Praefatio
-					val2 = (status->max_hp * (val1 * 2 + 10) / 100) + val4 * 2; //%Max HP to absorb
+					val2 = (status->max_hp * (val1 * 2 + 10) / 100) + val4 * 2; //% Max HP to absorb
 					val3 = 6 + val1; //Hits
 				} else { //Formula's for Kyrie Eleison
 					val2 = status->max_hp * (val1 * 2 + 10) / 100;
@@ -8221,7 +8216,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_MAGICPOWER:
 				val2 = 1; //Lasts 1 invocation
-				val3 = 5 * val1; //Matkrate increase
+				val3 = 5 * val1; //% Matk increase
 				val4 = 0; //0 = Ready to be used, 1 = Activated and running
 				break;
 			case SC_SACRIFICE:
@@ -9861,18 +9856,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_SPIDERWEB:
 		case SC_ELECTRICSHOCKER:
 		case SC_CURSEDCIRCLE_TARGET:
-			{
-				int knockback_immune = (sd ? !sd->special_state.no_knockback : !(status->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS)));
-
-				if (knockback_immune) {
-					if (!battle_config.skill_trap_type && map_flag_gvg2(bl->m))
-						break;
-					else
-						unit_stop_walking(bl,1);
-				}
-				if (type == SC_CURSEDCIRCLE_TARGET)
-					unit_stop_attack(bl);
-			}
+			if (!unit_blown_immune(bl,0x3))
+				unit_stop_walking(bl,1);
+			if (type == SC_CURSEDCIRCLE_TARGET)
+				unit_stop_attack(bl);
 			break;
 		case SC_WEIGHT90:
 		case SC_HIDING:

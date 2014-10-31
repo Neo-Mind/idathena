@@ -5551,7 +5551,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					ad.damage >>= 1;
 				break;
 #endif
-			default: {
+			default:
 				switch(skill_id) {
 #ifdef RENEWAL
 					case CR_ACIDDEMONSTRATION:
@@ -5998,8 +5998,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				//Constant/misc additions from skills
 				if(skill_id == WZ_FIREPILLAR)
 					MATK_ADD(50);
-			}
-			break;
+				break;
 		}
 
 #ifdef RENEWAL
@@ -6141,7 +6140,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		if(ad.damage < 1)
 			ad.damage = 1;
 		else if(sc) { //Only applies when hit
-			//@TODO: There is another factor that contribute with the damage and need to be formulated. [malufett]
+			//@TODO: There is another factor that contribute with the damage and need to be formulated [malufett]
 			switch(skill_id) {
 				case MG_LIGHTNINGBOLT:
 				case MG_THUNDERSTORM:
@@ -7189,8 +7188,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 				struct Damage ad = battle_calc_attack(BF_MAGIC,src,target,sc->data[SC_SPELLFIST]->val3,sc->data[SC_SPELLFIST]->val4,flag|BF_SHORT);
 
 				wd.damage = ad.damage;
-				if (wd.div_ > 1)
-					wd.damage *= 2; //Double the damage for multiple hits
+				DAMAGE_DIV_FIX(wd.damage, wd.div_)
 				battle_do_reflect(BF_WEAPON,&wd,src,target,skill_id,0);
 			} else
 				status_change_end(src,SC_SPELLFIST,INVALID_TIMER);
@@ -8223,7 +8221,7 @@ static const struct _battle_data {
 	{ "homunculus_max_level",               &battle_config.hom_max_level,                   99,     0,      MAX_LEVEL,      },
 	{ "homunculus_S_max_level",             &battle_config.hom_S_max_level,                 150,    0,      MAX_LEVEL,      },
 	{ "mob_size_influence",                 &battle_config.mob_size_influence,              0,      0,      1,              },
-	{ "skill_trap_type",                    &battle_config.skill_trap_type,                 0,      0,      1,              },
+	{ "skill_trap_type",                    &battle_config.skill_trap_type,                 0,      0,      3,              },
 	{ "allow_consume_restricted_item",      &battle_config.allow_consume_restricted_item,   1,      0,      1,              },
 	{ "allow_equip_restricted_item",        &battle_config.allow_equip_restricted_item,     1,      0,      1,              },
 	{ "max_walk_path",                      &battle_config.max_walk_path,                  17,      1,      MAX_WALKPATH,   },

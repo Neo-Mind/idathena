@@ -2263,6 +2263,7 @@ int skill_strip_equip(struct block_list *src, struct block_list *bl, unsigned sh
 short skill_blown(struct block_list* src, struct block_list* target, char count, int8 dir, unsigned char flag)
 {
 	int dx = 0, dy = 0;
+	int reason = 0, checkflag = 0;
 
 	nullpo_ret(src);
 	nullpo_ret(target);
@@ -2270,44 +2271,23 @@ short skill_blown(struct block_list* src, struct block_list* target, char count,
 	if( !count )
 		return count; //Actual knockback distance is 0
 
-	if( src != target && (map_flag_gvg(target->m) || map[target->m].flag.battleground) )
-		return ((flag&0x04) ? count : 0); //No knocking back in WoE
+	//Create flag needed in unit_blown_immune
+	if( src != target )
+		checkflag |= 0x1; //Offensive
+	if( !(flag&0x02) )
+		checkflag |= 0x2; //Knockback type
+	if( is_boss(src) )
+		checkflag |= 0x4; //Boss attack
 
-	switch( target->type ) {
-		case BL_MOB: {
-				struct mob_data* md = BL_CAST(BL_MOB, target);
-
-				if( md->mob_id == MOBID_EMPERIUM )
-					return count;
-				//Bosses can't be knocked-back
-				if( src != target && status_get_mode(target)&(MD_KNOCKBACK_IMMUNE|MD_BOSS) )
-					return ((flag&0x08) ? count : 0);
-			}
-			break;
-		case BL_PC: {
-				struct map_session_data *sd = BL_CAST(BL_PC, target);
-
-				if( sd->sc.data[SC_BASILICA] && sd->sc.data[SC_BASILICA]->val4 == sd->bl.id && !is_boss(src))
-					return ((flag&0x20) ? count : 0); //Basilica caster can't be knocked-back by normal monsters
-				if( !(flag&0x02) && src != target && sd->special_state.no_knockback )
-					return ((flag&0x10) ? count : 0);
-			}
-			break;
-		case BL_SKILL: {
-				struct skill_unit* su = ((struct skill_unit *)target);
-
-				if( su && su->group ) {
-					switch( su->group->unit_id ) {
-						case UNT_ICEWALL:
-						case UNT_ANKLESNARE:
-						case UNT_ELECTRICSHOCKER:
-						case UNT_REVERBERATION:
-						case UNT_POEMOFNETHERWORLD:
-							return count; //Cannot be knocked back
-					}
-				}
-			}
-			break;
+	//Get reason and check for flags
+	reason = unit_blown_immune(target, checkflag);
+	switch( reason ) {
+		case 1: return ((flag&0x04) ? count : 0); //No knocking back in WoE / BG
+		case 2: return count; //Emperium can't be knocked back
+		case 3: return ((flag&0x08) ? count : 0); //Bosses or immune can't be knocked back
+		case 4: return ((flag&0x20) ? count : 0); //Basilica caster can't be knocked-back by normal monsters
+		case 5: return ((flag&0x10) ? count : 0); //Target has special_state.no_knockback (equip)
+		case 6: return count; //Trap cannot be knocked back
 	}
 
 	if( dir == -1 ) //<Optimized>: do the computation here instead of outside
@@ -12157,13 +12137,14 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 		case HT_ANKLESNARE:
 			if( flag&2 )
 				val3 = SC_ESCAPE;
+		case HT_SKIDTRAP:
+		case MA_SKIDTRAP:
+			//Save position of caster
+			val1 = ((src->x)<<16)|(src->y);
 		case HT_SHOCKWAVE:
-			val1 = skill_lv * 15 + 10;
 		case HT_SANDMAN:
 		case MA_SANDMAN:
 		case HT_CLAYMORETRAP:
-		case HT_SKIDTRAP:
-		case MA_SKIDTRAP:
 		case HT_LANDMINE:
 		case MA_LANDMINE:
 		case HT_FLASHER:
@@ -12670,17 +12651,12 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 
 				if( status_change_start(src,bl,type,10000,skill_lv,1,group->group_id,0,sec,SCFLAG_FIXEDRATE) ) {
 					const struct TimerData* td = (sc && sc->data[type] ? get_timer(sc->data[type]->timer) : NULL);
-					int knockback_immune = (sd ? !sd->special_state.no_knockback : !(status->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS)));
 
 					if( td )
 						sec = DIFF_TICK(td->tick,tick);
-					if( knockback_immune ) {
-						if( !battle_config.skill_trap_type && map_flag_gvg2(bl->m) )
-							;
-						else {
-							map_moveblock(bl,unit->bl.x,unit->bl.y,tick);
-							clif_fixpos(bl);
-						}
+					if( !unit_blown_immune(bl,0x3) ) {
+						map_moveblock(bl,unit->bl.x,unit->bl.y,tick);
+						clif_fixpos(bl);
 					}
 					group->val2 = bl->id;
 				} else
@@ -12880,7 +12856,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 	struct skill_unit_group_tickset *ts;
 	enum sc_type type;
 	uint16 skill_id, skill_lv;
-	int diff = 0, knockback_immune;
+	int diff = 0;
 
 	if (!unit || !unit->alive || !unit->group)
 		return 0;
@@ -12902,7 +12878,6 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 	tsc = status_get_sc(bl);
 	tstatus = status_get_status_data(bl);
 	type = status_skill2sc(skill_id);
-	knockback_immune = (tsd ? !tsd->special_state.no_knockback : !(tstatus->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS)));
 
 	if (sc) {
 		if (sc->data[SC_VOICEOFSIREN] && sc->data[SC_VOICEOFSIREN]->val2 == bl->id && (skill_get_inf2(skill_id)&INF2_TRAP))
@@ -13106,10 +13081,14 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			break;
 
 		case UNT_SKIDTRAP:
-			skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
+			//Knockback away from position of user during placement [Playtester]
+			skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),
+				(map_calc_dir_xy(group->val1>>16,group->val1&0xFFFF,bl->x,bl->y,6) + 4)%8,0);
 			group->unit_id = UNT_USED_TRAPS;
 			clif_changetraplook(&unit->bl,UNT_USED_TRAPS);
 			group->limit = DIFF_TICK(tick,group->tick) + 1500; //Gets removed after 1.5 secs once activated
+			//Target will be stopped for 3 seconds
+			sc_start(src,bl,SC_STOP,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
 
 		case UNT_ANKLESNARE:
@@ -13125,14 +13104,10 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 
 					if (td)
 						sec = DIFF_TICK(td->tick,tick);
-					if (knockback_immune ||
+					if (!unit_blown_immune(bl,0x3) ||
 						(group->unit_id == UNT_MANHOLE && distance_xy(unit->bl.x,unit->bl.y,bl->x,bl->y) <= range)) {
-						if (group->unit_id != UNT_MANHOLE && !battle_config.skill_trap_type && map_flag_gvg2(bl->m))
-							;
-						else {
-							if (unit_movepos(bl,unit->bl.x,unit->bl.y,0,0))
-								clif_blown(bl,&unit->bl);
-						}
+						if (unit_movepos(bl,unit->bl.x,unit->bl.y,0,0))
+							clif_blown(bl,&unit->bl);
 					}
 					group->val2 = bl->id;
 				} else
@@ -13156,13 +13131,9 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			if (bl->id == src->id)
 				break;
 			if (status_change_start(src,bl,type,10000,skill_lv,group->group_id,0,0,skill_get_time2(skill_id,skill_lv),SCFLAG_FIXEDRATE)) {
-				if (knockback_immune) {
-					if (!battle_config.skill_trap_type && map_flag_gvg2(bl->m))
-						;
-					else {
-						map_moveblock(bl,unit->bl.x,unit->bl.y,tick);
-						clif_fixpos(bl);
-					}
+				if (!unit_blown_immune(bl,0x3)) {
+					map_moveblock(bl,unit->bl.x,unit->bl.y,tick);
+					clif_fixpos(bl);
 				}
 			}
 			map_foreachinrange(skill_trap_splash,&unit->bl,skill_get_splash(skill_id,skill_lv),group->bl_flag,&unit->bl,tick);
@@ -13485,15 +13456,11 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			break;
 
 		case UNT_WALLOFTHORN:
-			if (knockback_immune) {
-				if (!battle_config.skill_trap_type && map_flag_gvg2(bl->m))
-					;
-				else {
-					if (battle_check_target(src,bl,BCT_ENEMY) > 0)
-						skill_addtimerskill(src,tick + 100,bl->id,unit->bl.x,unit->bl.y,skill_id,skill_lv,skill_get_type(skill_id),4|SD_LEVEL);
-					skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
-					unit->val3--;
-				}
+			if (!unit_blown_immune(bl,0x3)) {
+				if (battle_check_target(src,bl,BCT_ENEMY) > 0)
+					skill_addtimerskill(src,tick + 100,bl->id,unit->bl.x,unit->bl.y,skill_id,skill_lv,skill_get_type(skill_id),4|SD_LEVEL);
+				skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
+				unit->val3--;
 			}
 			break;
 
@@ -16962,15 +16929,10 @@ static int skill_trap_splash(struct block_list *bl, va_list ap)
 			if( status_change_start(ss,bl,SC_ELECTRICSHOCKER,10000,group->skill_lv,group->group_id,0,0,skill_get_time2(group->skill_id,group->skill_lv),SCFLAG_FIXEDRATE) ) {
 				TBL_PC* tsd = BL_CAST(BL_PC,bl);
 				struct status_data *tstatus = status_get_status_data(bl);
-				int knockback_immune = (tsd ? !tsd->special_state.no_knockback : !(tstatus->mode&(MD_KNOCKBACK_IMMUNE|MD_BOSS)));
 
-				if( knockback_immune ) {
-					if( !battle_config.skill_trap_type && map_flag_gvg2(bl->m) )
-						;
-					else {
-						map_moveblock(bl,unit->bl.x,unit->bl.y,tick);
-						clif_fixpos(bl);
-					}
+				if( !unit_blown_immune(bl,0x3) ) {
+					map_moveblock(bl,unit->bl.x,unit->bl.y,tick);
+					clif_fixpos(bl);
 				}
 				clif_skill_damage(src,bl,tick,0,0,-30000,1,group->skill_id,group->skill_lv,DMG_SPLASH);
 			}
@@ -19001,13 +18963,13 @@ static void skill_toggle_magicpower(struct block_list *bl, uint16 skill_id)
 
 	//SC_MAGICPOWER needs to switch states before any damage is actually dealt
 	if (sc && sc->count && sc->data[SC_MAGICPOWER]) {
-		if (sc->data[SC_MAGICPOWER]->val4) {
+		if (sc->data[SC_MAGICPOWER]->val4)
 			status_change_end(bl, SC_MAGICPOWER, INVALID_TIMER);
-		} else {
+		else {
 			sc->data[SC_MAGICPOWER]->val4 = 1;
 			status_calc_bl(bl, status_sc2scb_flag(SC_MAGICPOWER));
 #ifndef RENEWAL
-			if (bl->type == BL_PC) { //Update current display.
+			if (bl->type == BL_PC) { //Update current display
 				clif_updatestatus(((TBL_PC *)bl),SP_MATK1);
 				clif_updatestatus(((TBL_PC *)bl),SP_MATK2);
 			}

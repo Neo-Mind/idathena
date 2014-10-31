@@ -2553,49 +2553,59 @@ int map_check_dir(int s_dir,int t_dir)
 uint8 map_calc_dir(struct block_list* src, int16 x, int16 y)
 {
 	uint8 dir = 0;
-	int dx, dy;
 
 	nullpo_ret(src);
 
-	dx = x - src->x;
-	dy = y - src->y;
+	dir = map_calc_dir_xy(src->x, src->y, x, y, unit_getdir(src));
+	return dir;
+}
+
+/*==========================================
+ * Returns the direction of the given cell, relative to source cell
+ * Use this if you don't have a block list available to check against
+ *------------------------------------------*/
+uint8 map_calc_dir_xy(int16 srcx, int16 srcy, int16 x, int16 y, uint8 srcdir)
+{
+	uint8 dir = 0;
+	int dx, dy;
+
+	dx = x - srcx;
+	dy = y - srcy;
 
 	//Both are standing on the same spot
 	//Aegis-style, makes knockback default to the left
 	//Athena-style, makes knockback default to behind 'src'
 	if(dx == 0 && dy == 0)
-		dir = (battle_config.knockback_left ? 6 : unit_getdir(src));
+		dir = (battle_config.knockback_left ? 6 : srcdir);
 	else if(dx >= 0 && dy >= 0) { //Upper-right
-		if(dx * 2 < dy || dx == 0)
-			dir = 0; //Up
-		else if(dx > dy * 2 + 1 || dy == 0)
+		if(dx >= dy * 3)
 			dir = 6; //Right
+		else if(dx * 3 < dy)
+			dir = 0; //Up
 		else
 			dir = 7; //Up-right
 	} else if(dx >= 0 && dy <= 0) { //Lower-right
-		if(dx * 2 < -dy || dx == 0)
-			dir = 4; //Down
-		else if(dx > -dy * 2 + 1 || dy == 0)
+		if(dx >= -dy * 3)
 			dir = 6; //Right
+		else if(dx * 3 < -dy)
+			dir = 4; //Down
 		else
 			dir = 5; //Down-right
 	} else if(dx <= 0 && dy <= 0) { //Lower-left
-		if(dx * 2 > dy || dx == 0)
+		if(dx * 3 >= dy)
 			dir = 4; //Down
-		else if(dx < dy * 2 - 1 || dy == 0)
+		else if(dx < dy * 3)
 			dir = 2; //Left
 		else
 			dir = 3; //Down-left
 	} else { //Upper-left
-		if(-dx * 2 < dy || dx == 0)
+		if(-dx * 3 <= dy)
 			dir = 0; //Up
-		else if(-dx > dy * 2 + 1 || dy == 0)
+		else if(-dx > dy * 3)
 			dir = 2; //Left
 		else
 			dir = 1; //Up-left
-	
 	}
-
 	return dir;
 }
 

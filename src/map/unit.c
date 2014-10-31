@@ -87,8 +87,10 @@ int unit_walktoxy_sub(struct block_list *bl)
 	struct unit_data *ud = NULL;
 
 	nullpo_retr(1,bl);
+
 	ud = unit_bl2ud(bl);
-	if( ud == NULL ) return 0;
+	if( ud == NULL )
+		return 0;
 
 	if( !path_search(&wpd,bl->m,bl->x,bl->y,ud->to_x,ud->to_y,ud->state.walk_easy,CELL_CHKNOPASS) )
 		return 0;
@@ -97,15 +99,16 @@ int unit_walktoxy_sub(struct block_list *bl)
 
 	if( ud->target_to && ud->chaserange > 1 ) {
 		//Generally speaking, the walk path is already to an adjacent tile
-		//so we only need to shorten the path if the range is greater than 1.
+		//so we only need to shorten the path if the range is greater than 1
 		uint8 dir;
+
 		//Trim the last part of the path to account for range,
-		//but always move at least one cell when requested to move.
-		for( i = ud->chaserange * 10; i > 0 && ud->walkpath.path_len > 1; ) {
+		//but always move at least one cell when requested to move
+		for( i = (ud->chaserange * 10) - 10; i > 0 && ud->walkpath.path_len > 1; ) {
 			ud->walkpath.path_len--;
 			dir = ud->walkpath.path[ud->walkpath.path_len];
 			if( dir&1 )
-				i -= MOVE_DIAGONAL_COST;
+				i -= MOVE_COST * 20; //When chasing, units will target a diamond-shaped area in range [Playtester]
 			else
 				i -= MOVE_COST;
 			ud->to_x -= dirx[dir];
@@ -938,7 +941,8 @@ int unit_setdir(struct block_list *bl, unsigned char dir)
 	nullpo_ret(bl);
 
 	ud = unit_bl2ud(bl);
-	if (!ud) return 0;
+	if (!ud)
+		return 0;
 	ud->dir = dir;
 	if (bl->type == BL_PC)
 		((TBL_PC *)bl)->head_dir = 0;
@@ -958,7 +962,8 @@ uint8 unit_getdir(struct block_list *bl)
 	nullpo_ret(bl);
 
 	ud = unit_bl2ud(bl);
-	if (!ud) return 0;
+	if (!ud)
+		return 0;
 	return ud->dir;
 }
 
@@ -974,7 +979,7 @@ uint8 unit_getdir(struct block_list *bl)
  */
 int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag)
 {
-	if(count) {
+	if (count) {
 		struct map_session_data* sd;
 		struct skill_unit* su = NULL;
 		int nx, ny, result;
@@ -987,10 +992,10 @@ int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag)
 		nx = result>>16;
 		ny = result&0xffff;
 
-		if(!su)
+		if (!su)
 			unit_stop_walking(bl, 0);
 
-		if(sd) {
+		if (sd) {
 			unit_stop_stepaction(bl); //Stop stepaction when knocked back
 			sd->ud.to_x = nx;
 			sd->ud.to_y = ny;
@@ -999,23 +1004,23 @@ int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag)
 		dx = nx-bl->x;
 		dy = ny-bl->y;
 
-		if(dx || dy) {
+		if (dx || dy) {
 			map_foreachinmovearea(clif_outsight, bl, AREA_SIZE, dx, dy, bl->type == BL_PC ? BL_ALL : BL_PC, bl);
 
-			if(su)
+			if (su)
 				skill_unit_move_unit_group(su->group, bl->m, dx, dy);
 			else
 				map_moveblock(bl, nx, ny, gettick());
 
 			map_foreachinmovearea(clif_insight, bl, AREA_SIZE, -dx, -dy, bl->type == BL_PC ? BL_ALL : BL_PC, bl);
 
-			if(!(flag&1))
+			if (!(flag&1))
 				clif_blown(bl, bl);
 
-			if(sd) {
-				if(sd->touching_id)
+			if (sd) {
+				if (sd->touching_id)
 					npc_touchnext_areanpc(sd, false);
-				if(map_getcell(bl->m, bl->x, bl->y, CELL_CHKNPC)) {
+				if (map_getcell(bl->m, bl->x, bl->y, CELL_CHKNPC)) {
 					npc_touch_areanpc(sd, bl->m, bl->x, bl->y);
 				} else
 					sd->areanpc_id = 0;
@@ -1026,6 +1031,74 @@ int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag)
 	}
 
 	return count; //Return amount of knocked back cells
+}
+
+/**
+ * Checks if unit can be knocked back / stopped by skills.
+ * @param bl: Object to check
+ * @param flag
+ *  0x1 - Offensive (not set: self skill, e.g. Backslide)
+ *  0x2 - Knockback type (not set: Stop type, e.g. Ankle Snare)
+ *  0x4 - Boss attack
+ * @return reason for immunity
+ *  0 - Can be knocked back / stopped
+ *  1 - At WOE/BG map;
+ *  2 - Target is emperium
+ *  3 - Target is MD_KNOCKBACK_IMMUNE|MD_BOSS;
+ *  4 - Target is in Basilica area;
+ *  5 - Target has 'special_state.no_knockback';
+ *  6 - Target is trap that cannot be knocked back
+ */
+int unit_blown_immune(struct block_list* bl, int flag)
+{
+	if ((flag&0x1) && (map_flag_gvg(bl->m) || map[bl->m].flag.battleground) &&
+		!(battle_config.skill_trap_type&0x1))
+		return 1; //No knocking back in WoE / BG
+
+	switch (bl->type) {
+		case BL_MOB: {
+				struct mob_data* md = BL_CAST(BL_MOB, bl);
+
+				//Emperium can't be knocked back
+				if (md->mob_id == MOBID_EMPERIUM)
+					return 2;
+				//Bosses or immune can't be knocked back
+				if ((flag&0x1) && status_get_mode(bl)&(MD_KNOCKBACK_IMMUNE|MD_BOSS) &&
+					!(battle_config.skill_trap_type&0x2))
+					return 3;
+			}
+			break;
+		case BL_PC: {
+				struct map_session_data *sd = BL_CAST(BL_PC, bl);
+
+				//Basilica caster can't be knocked-back by normal monsters
+				if (sd->sc.data[SC_BASILICA] && sd->sc.data[SC_BASILICA]->val4 == sd->bl.id && !(flag&0x4))
+					return 4;
+				//Target has special_state.no_knockback (equip)
+				if ((flag&0x1) && (flag&0x2) && sd->special_state.no_knockback)
+					return 5;
+			}
+			break;
+		case BL_SKILL: {
+				struct skill_unit* su = (struct skill_unit *)bl;
+
+				//Trap cannot be knocked back
+				if (su && su->group) {
+					switch (su->group->unit_id) {
+						case UNT_ICEWALL:
+						case UNT_ANKLESNARE:
+						case UNT_ELECTRICSHOCKER:
+						case UNT_REVERBERATION:
+						case UNT_POEMOFNETHERWORLD:
+							return 6;
+					}
+				}
+			}
+			break;
+	}
+
+	//Object can be knocked back / stopped
+	return 0;
 }
 
 /**
