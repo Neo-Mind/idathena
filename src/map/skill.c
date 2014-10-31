@@ -8122,7 +8122,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				dstsd->die_counter = 0;
 				pc_setglobalreg(dstsd,"PC_DIE_COUNTER",0);
 				clif_specialeffect(bl,0x152,AREA);
-				//SC_SPIRIT invokes status_calc_pc for us.
+				//SC_SPIRIT invokes status_calc_pc for us
 			}
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,
 				sc_start4(src,bl,SC_SPIRIT,100,skill_lv,skill_id,0,0,skill_get_time(skill_id,skill_lv)));
