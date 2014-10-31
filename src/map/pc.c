@@ -1795,7 +1795,7 @@ int pc_calc_skilltree_normalize_job(struct map_session_data *sd)
 	if (skill_point < novice_skills)
 		c = MAPID_NOVICE;
 	// Limit 2nd class and above to first class job levels (super novices are exempt)
-	else if ((sd->class_&JOBL_2) && !(sd->class_&JOBL_SUPER_NOVICE)) {
+	else if ((sd->class_&JOBL_2) && (sd->class_&MAPID_UPPERMASK) != MAPID_SUPER_NOVICE) {
 		// Regenerate change_level_2nd
 		if (!sd->change_level_2nd) {
 			if (sd->class_&JOBL_THIRD) {
@@ -6125,14 +6125,14 @@ int pc_checkbaselevelup(struct map_session_data *sd) {
 	status_calc_pc(sd,SCO_FORCE);
 	status_percent_heal(&sd->bl,100,100);
 
-	if (sd->class_&JOBL_SUPER_NOVICE) {
+	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE) {
 		sc_start(&sd->bl,&sd->bl,status_skill2sc(PR_KYRIE),100,1,skill_get_time(PR_KYRIE,1));
 		sc_start(&sd->bl,&sd->bl,status_skill2sc(PR_IMPOSITIO),100,1,skill_get_time(PR_IMPOSITIO,1));
 		sc_start(&sd->bl,&sd->bl,status_skill2sc(PR_MAGNIFICAT),100,1,skill_get_time(PR_MAGNIFICAT,1));
 		sc_start(&sd->bl,&sd->bl,status_skill2sc(PR_GLORIA),100,1,skill_get_time(PR_GLORIA,1));
 		sc_start(&sd->bl,&sd->bl,status_skill2sc(PR_SUFFRAGIUM),100,1,skill_get_time(PR_SUFFRAGIUM,1));
 		if (sd->state.snovice_dead_flag)
-			sd->state.snovice_dead_flag = 0; //Reenable steelbody resurrection on dead.
+			sd->state.snovice_dead_flag = 0; //Re-enable steel body resurrection on dead
 	} else if ((sd->class_&MAPID_BASEMASK) == MAPID_TAEKWON) {
 		sc_start(&sd->bl,&sd->bl,status_skill2sc(AL_INCAGI),100,10,600000);
 		sc_start(&sd->bl,&sd->bl,status_skill2sc(AL_BLESSING),100,10,600000);
@@ -7151,7 +7151,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 
 	//Activate Steel body if a super novice dies at 99+% exp [celest]
 	//Super Novices have no kill or die functions attached when saved by their angel
-	if( (sd->class_&JOBL_SUPER_NOVICE) && !sd->state.snovice_dead_flag ) {
+	if( (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && !sd->state.snovice_dead_flag ) {
 		unsigned int next = pc_nextbaseexp(sd);
 
 		if( next == 0 )
@@ -7511,9 +7511,9 @@ int pc_readparam(struct map_session_data* sd,int type)
 		case SP_BASELEVEL:	val = sd->status.base_level; break;
 		case SP_JOBLEVEL:	val = sd->status.job_level; break;
 		case SP_CLASS:		val = sd->status.class_; break;
-		case SP_BASEJOB:	val = pc_mapid2jobid(sd->class_&MAPID_UPPERMASK, sd->status.sex); break; //Base job, extracting upper type.
+		case SP_BASEJOB:	val = pc_mapid2jobid(sd->class_&MAPID_UPPERMASK, sd->status.sex); break; //Base job, extracting upper type
 		case SP_UPPER:		val = sd->class_&JOBL_UPPER ? 1 : (sd->class_&JOBL_BABY ? 2 : 0); break;
-		case SP_BASECLASS:	val = pc_mapid2jobid(sd->class_&MAPID_BASEMASK, sd->status.sex); break; //Extract base class tree. [Skotlex]
+		case SP_BASECLASS:	val = pc_mapid2jobid(sd->class_&MAPID_BASEMASK, sd->status.sex); break; //Extract base class tree [Skotlex]
 		case SP_SEX:		val = sd->status.sex; break;
 		case SP_WEIGHT:		val = sd->weight; break;
 		case SP_MAXWEIGHT:	val = sd->max_weight; break;
@@ -7973,19 +7973,20 @@ bool pc_jobchange(struct map_session_data *sd,int job, char upper)
 	}
 
 	//This will automatically adjust bard/dancer classes to the correct gender
-	//That is, if you try to jobchange into dancer, it will turn you to bard.
+	//That is, if you try to jobchange into dancer, it will turn you to bard
 	job = pc_mapid2jobid(b_class, sd->status.sex);
 	if (job == -1)
 		return false;
 
 	if ((unsigned short)b_class == sd->class_)
-		return false; //Nothing to change.
+		return false; //Nothing to change
 
-	//Changing from 1st to 2nd job
-	if ((b_class&JOBL_2) && !(sd->class_&JOBL_2) && !(b_class&JOBL_SUPER_NOVICE)) {
+	if ((b_class&JOBL_2) && !(sd->class_&JOBL_2) && (b_class&MAPID_UPPERMASK) != MAPID_SUPER_NOVICE) {
+		//Changing from 1st to 2nd job
 		sd->change_level_2nd = sd->status.job_level;
 		pc_setglobalreg (sd,"jobchange_level",sd->change_level_2nd);
-	} else if ((b_class&JOBL_THIRD) && !(sd->class_&JOBL_THIRD)) { //Changing from 2nd to 3rd job
+	} else if ((b_class&JOBL_THIRD) && !(sd->class_&JOBL_THIRD) && (b_class&MAPID_THIRDMASK) != MAPID_SUPER_NOVICE_E) {
+		//Changing from 2nd to 3rd job
 		sd->change_level_3rd = sd->status.job_level;
 		pc_setglobalreg (sd,"jobchange_level_3rd",sd->change_level_3rd);
 	}
@@ -8617,10 +8618,10 @@ bool pc_setregistry(struct map_session_data *sd,const char *reg,int val,int type
 	switch( type ) {
 		case 3: //Char reg
 			if( !strcmp(reg,"PC_DIE_COUNTER") && sd->die_counter != val ) {
-				i = (!sd->die_counter && (sd->class_&JOBL_SUPER_NOVICE));
+				i = (!sd->die_counter && (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE);
 				sd->die_counter = val;
 				if( i )
-					status_calc_pc(sd,SCO_NONE); //Lost the bonus.
+					status_calc_pc(sd,SCO_NONE); //Lost the bonus
 			} else if( !strcmp(reg,"COOK_MASTERY") && sd->cook_mastery != val ) {
 				val = cap_value(val,0,1999);
 				sd->cook_mastery = val;

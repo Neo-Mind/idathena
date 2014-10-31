@@ -4624,10 +4624,10 @@ struct Damage battle_calc_attack_left_right_hands(struct Damage wd, struct block
 			if(wd.damage) {
 				if((sd->class_&MAPID_BASEMASK) == MAPID_THIEF) {
 					skill = pc_checkskill(sd,AS_RIGHT);
-					ATK_RATER(wd.damage, 50 + (skill * 10))
+					ATK_RATER(wd.damage, 50 + (skill * 10));
 				} else if((sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) {
 					skill = pc_checkskill(sd,KO_RIGHT);
-					ATK_RATER(wd.damage, 70 + (skill * 10))
+					ATK_RATER(wd.damage, 70 + (skill * 10));
 				}
 				if(wd.damage < 1)
 					wd.damage = 1;
@@ -4635,10 +4635,10 @@ struct Damage battle_calc_attack_left_right_hands(struct Damage wd, struct block
 			if(wd.damage2) {
 				if((sd->class_&MAPID_BASEMASK) == MAPID_THIEF) {
 					skill = pc_checkskill(sd,AS_LEFT);
-					ATK_RATEL(wd.damage2, 30 + (skill * 10))
+					ATK_RATEL(wd.damage2, 30 + (skill * 10));
 				} else if((sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) {
 					skill = pc_checkskill(sd,KO_LEFT);
-					ATK_RATEL(wd.damage2, 50 + (skill * 10))
+					ATK_RATEL(wd.damage2, 50 + (skill * 10));
 				}
 				if(wd.damage2 < 1)
 					wd.damage2 = 1;
@@ -4760,7 +4760,7 @@ struct Damage battle_calc_weapon_final_atk_modifiers(struct Damage wd, struct bl
 		((TBL_PC *)src)->status.weapon == W_2HSWORD)) &&
 		rnd()%100 < tsc->data[SC_REJECTSWORD]->val2)
 	{
-		ATK_RATER(wd.damage,50)
+		ATK_RATER(wd.damage,50);
 		status_fix_damage(target,src,wd.damage,clif_damage(target,src,gettick(),0,0,wd.damage,0,DMG_NORMAL,0));
 		clif_skill_nodamage(target,target,ST_REJECTSWORD,tsc->data[SC_REJECTSWORD]->val1,1);
 		if(--(tsc->data[SC_REJECTSWORD]->val3) <= 0)
@@ -7188,7 +7188,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 				struct Damage ad = battle_calc_attack(BF_MAGIC,src,target,sc->data[SC_SPELLFIST]->val3,sc->data[SC_SPELLFIST]->val4,flag|BF_SHORT);
 
 				wd.damage = ad.damage;
-				DAMAGE_DIV_FIX(wd.damage, wd.div_)
+				DAMAGE_DIV_FIX(wd.damage, wd.div_); //Double the damage for multiple hits
 				battle_do_reflect(BF_WEAPON,&wd,src,target,skill_id,0);
 			} else
 				status_change_end(src,SC_SPELLFIST,INVALID_TIMER);

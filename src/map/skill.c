@@ -409,7 +409,7 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 				hp += hp * skill * 2 / 100;
 			else if( src->type == BL_HOM && (skill = hom_checkskill(((TBL_HOM*)src), HLIF_BRAIN)) > 0 )
 				hp += hp * skill * 2 / 100;
-			if( sd && tsd && sd->status.partner_id == tsd->status.char_id && (sd->class_&JOBL_SUPER_NOVICE) && !sd->status.sex )
+			if( sd && tsd && sd->status.partner_id == tsd->status.char_id && (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && !sd->status.sex )
 				hp *= 2;
 			break;
 	}
@@ -8112,10 +8112,9 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case SL_NINJA:
 		case SL_GUNNER:
 			//NOTE: here, 'type' has the value of the associated MAPID, not of the SC_SPIRIT constant
-			if (sd && dstsd && !((dstsd->class_&MAPID_UPPERMASK) == type ||
-				(skill_id == SL_SUPERNOVICE && (dstsd->class_&JOBL_SUPER_NOVICE)) ||
-				(skill_id == SL_NINJA && (dstsd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) ||
-				(skill_id == SL_GUNNER && (dstsd->class_&MAPID_UPPERMASK) == MAPID_REBELLION))) {
+			if (sd && dstsd && ((dstsd->class_&MAPID_UPPERMASK) != type ||
+				(skill_id == SL_NINJA && (dstsd->class_&MAPID_UPPERMASK) != MAPID_KAGEROUOBORO) ||
+				(skill_id == SL_GUNNER && (dstsd->class_&MAPID_UPPERMASK) != MAPID_REBELLION))) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				break;
 			}
@@ -13084,11 +13083,11 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			//Knockback away from position of user during placement [Playtester]
 			skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),
 				(map_calc_dir_xy(group->val1>>16,group->val1&0xFFFF,bl->x,bl->y,6) + 4)%8,0);
+			//Target will be stopped for 3 seconds
+			sc_start(src,bl,SC_STOP,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 			group->unit_id = UNT_USED_TRAPS;
 			clif_changetraplook(&unit->bl,UNT_USED_TRAPS);
 			group->limit = DIFF_TICK(tick,group->tick) + 1500; //Gets removed after 1.5 secs once activated
-			//Target will be stopped for 3 seconds
-			sc_start(src,bl,SC_STOP,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
 
 		case UNT_ANKLESNARE:

@@ -61,7 +61,6 @@ void map_do_final_msg(void);
 #define JOBL_UPPER 0x1000 //4096
 #define JOBL_BABY 0x2000  //8192
 #define JOBL_THIRD 0x4000 //16384
-#define JOBL_SUPER_NOVICE 0x8000 //32768
 
 //For filtering and quick checking.
 #define MAPID_BASEMASK 0x00ff
@@ -70,7 +69,7 @@ void map_do_final_msg(void);
 
 //First Jobs
 //Note the oddity of the novice:
-//Super Novices are considered the 2-1 version of the novice! Novices are considered a first class type, too...
+//Super Novices are considered the 2-1 version of the novice! Novices are considered a first class type, too
 enum e_mapid {
 //Novice And 1-1 Jobs
 	MAPID_NOVICE = 0x0,
@@ -196,10 +195,10 @@ enum e_mapid {
 	MAPID_BABY_GENETIC,
 	MAPID_BABY_CHASER,
 //Super Novices
-	MAPID_SUPER_NOVICE = JOBL_SUPER_NOVICE|JOBL_2_1|0x0,
-	MAPID_SUPER_BABY = JOBL_SUPER_NOVICE|JOBL_BABY|JOBL_2_1|0x0,
-	MAPID_SUPER_NOVICE_E = JOBL_SUPER_NOVICE|JOBL_THIRD|JOBL_2_1|0x0,
-	MAPID_SUPER_BABY_E = JOBL_SUPER_NOVICE|JOBL_THIRD|JOBL_BABY|JOBL_2_1|0x0,
+	MAPID_SUPER_NOVICE = JOBL_2_1|0x0,
+	MAPID_SUPER_BABY = JOBL_BABY|JOBL_2_1|0x0,
+	MAPID_SUPER_NOVICE_E = JOBL_THIRD|JOBL_2_1|0x0,
+	MAPID_SUPER_BABY_E = JOBL_THIRD|JOBL_BABY|JOBL_2_1|0x0,
 };
 
 //Max size for inputs to Graffiti, Talkie Box and Vending text prompts
@@ -381,7 +380,7 @@ enum _sp {
 	SP_CARTINFO = 99, // 99
 
 	SP_BASEJOB = 119, // 100 + 19 - celest
-	SP_BASECLASS = 120, //Hmm.. why 100 + 19? I just use the next one... [Skotlex]
+	SP_BASECLASS = 120, //Hmm.. why 100 + 19? I just use the next one [Skotlex]
 	SP_KILLERRID = 121,
 	SP_KILLEDRID = 122,
 	SP_SITTING = 123,

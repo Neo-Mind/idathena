@@ -10365,7 +10365,7 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data* sd)
 		sd->cantalk_tick = gettick() + battle_config.min_chat_delay;
 	}
 
-	if( sd->class_&JOBL_SUPER_NOVICE ) {
+	if( (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE ) {
 		unsigned int next = pc_nextbaseexp(sd);
 
 		if( next == 0 )
@@ -13741,9 +13741,6 @@ void clif_parse_NoviceDoriDori(int fd, struct map_session_data *sd)
 			if (!sd->state.rest)
 				break;
 		case MAPID_SUPER_NOVICE:
-		case MAPID_SUPER_BABY:
-		case MAPID_SUPER_NOVICE_E:
-		case MAPID_SUPER_BABY_E:
 			sd->state.doridori = 1;
 			break;
 	}
@@ -13764,7 +13761,7 @@ void clif_parse_NoviceExplosionSpirits(int fd, struct map_session_data *sd)
 	/* Game client is currently broken on this (not sure the packetver range) */
 	/* It sends the request when the criteria doesn't match (and of course we let it fail) */
 	/* So restoring the old parse_globalmes method. */
-	if( sd->class_&JOBL_SUPER_NOVICE ) {
+	if( (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE ) {
 		unsigned int next = pc_nextbaseexp(sd);
 
 		if( next == 0 )
