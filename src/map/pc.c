@@ -4589,7 +4589,8 @@ bool pc_isUseitem(struct map_session_data *sd, int n)
 	else if( itemdb_is_poison(nameid) && (sd->class_&MAPID_THIRDMASK) != MAPID_GUILLOTINE_CROSS )
 		return false; //Only Guillotine Cross may use poisons
 
-	if( item->flag.group ) {
+	if( item->flag.group ||
+		item->type == IT_CASH ) { //Safe check type cash disappear when overweight [Napster]
 		if( pc_is90overweight(sd) ) {
 			clif_msgtable(sd->fd,ITEM_CANT_OBTAIN_WEIGHT);
 			return false;

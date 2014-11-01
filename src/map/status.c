@@ -8401,7 +8401,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_DPOISON: {
 					//Get 15% penalty of your life as long as it doesn't brings life below 25%
-					//But there's an condition that when your life below the penalty, it will kill player immediately
+					//But there's an condition that when your life below the penalty, it will kill you immediately
 					int diff = status->max_hp * 15 / 100;
 
 					if( status->hp < diff ) {

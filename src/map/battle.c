@@ -1158,8 +1158,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 
 #ifdef RENEWAL
-		//Renewal: Steel Body reduces all incoming damage to 1/10 [helvetica]
-		if( sc->data[SC_STEELBODY] )
+		if( sc->data[SC_STEELBODY] ) //Renewal: Steel Body reduces all incoming damage to 1/10 [helvetica]
 			damage = (damage > 10 ? damage / 10 : 1);
 
 		if( sc->data[SC_ARMORCHANGE] ) {
@@ -1186,7 +1185,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 				else
 				  	damage = -sce->val2;
 			}
-			if((--sce->val3) <= 0 || (sce->val2 <= 0) || skill_id == AL_HOLYLIGHT)
+			if( (--sce->val3) <= 0 || (sce->val2 <= 0) || skill_id == AL_HOLYLIGHT )
 				status_change_end(bl,SC_KYRIE,INVALID_TIMER);
 		}
 
