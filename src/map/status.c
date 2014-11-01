@@ -514,7 +514,13 @@ void initChangeTables(void) {
 	add_sc( NPC_MAGICMIRROR      , SC_MAGICMIRROR     );
 	set_sc( NPC_SLOWCAST         , SC_SLOWCAST        , SI_SLOWCAST        , SCB_NONE );
 	set_sc( NPC_CRITICALWOUND    , SC_CRITICALWOUND   , SI_CRITICALWOUND   , SCB_NONE );
-	set_sc( NPC_STONESKIN        , SC_ARMORCHANGE     , SI_BLANK           , SCB_DEF|SCB_MDEF );
+	set_sc( NPC_STONESKIN        , SC_ARMORCHANGE     , SI_BLANK           ,
+#ifndef RENEWAL
+		SCB_DEF|SCB_MDEF
+#else
+		SCB_NONE
+#endif
+		);
 	add_sc( NPC_ANTIMAGIC        , SC_ARMORCHANGE     );
 	add_sc( NPC_WIDECURSE        , SC_CURSE           );
 	add_sc( NPC_WIDESTUN         , SC_STUN            );
@@ -528,10 +534,11 @@ void initChangeTables(void) {
 	set_sc( CASH_INCAGI          , SC_INCREASEAGI     , SI_INCREASEAGI     , SCB_AGI|SCB_SPEED );
 	set_sc( CASH_ASSUMPTIO       , SC_ASSUMPTIO       ,
 #ifndef RENEWAL
-		SI_ASSUMPTIO             , SCB_NONE );
+		SI_ASSUMPTIO             , SCB_NONE
 #else
-		SI_ASSUMPTIO2            , SCB_DEF|SCB_MDEF );
+		SI_ASSUMPTIO2            , SCB_DEF|SCB_MDEF
 #endif
+		);
 
 	set_sc( ALL_PARTYFLEE        , SC_INCFLEE         , SI_PARTYFLEE       , SCB_NONE );
 	set_sc( ALL_ODINS_POWER      , SC_ODINS_POWER     , SI_ODINS_POWER     , SCB_WATK|SCB_MATK|SCB_DEF|SCB_MDEF );
@@ -5496,14 +5503,14 @@ defType status_calc_def(struct block_list *bl, struct status_change *sc, int def
 	if(sc->data[SC_DEFSET])
 		return sc->data[SC_DEFSET]->val1;
 
-	if(sc->data[SC_ARMORCHANGE])
-		def += def * sc->data[SC_ARMORCHANGE]->val2 / 100;
-	if(sc->data[SC_DRUMBATTLE])
-		def += sc->data[SC_DRUMBATTLE]->val3;
 #ifndef RENEWAL
+	if(sc->data[SC_ARMORCHANGE])
+		def += sc->data[SC_ARMORCHANGE]->val2;
 	if(sc->data[SC_DEFENCE]) //[orn]
 		def += sc->data[SC_DEFENCE]->val2;
 #endif
+	if(sc->data[SC_DRUMBATTLE])
+		def += sc->data[SC_DRUMBATTLE]->val3;
 	if(sc->data[SC_INCDEFRATE])
 		def += def * sc->data[SC_INCDEFRATE]->val1 / 100;
 	if(sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 2)
@@ -5662,8 +5669,10 @@ defType status_calc_mdef(struct block_list *bl, struct status_change *sc, int md
 	if(sc->data[SC_MDEFSET])
 		return sc->data[SC_MDEFSET]->val1;
 
+#ifndef RENEWAL
 	if(sc->data[SC_ARMORCHANGE])
-		mdef += mdef * sc->data[SC_ARMORCHANGE]->val3 / 100;
+		mdef += sc->data[SC_ARMORCHANGE]->val3;
+#endif
 	if(sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 3)
 		mdef += 50;	
 	if(sc->data[SC_ENDURE]) //It has been confirmed that eddga card grants 1 MDEF, not 0, not 10, but 1.
@@ -8913,11 +8922,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = 20 * val1; //Magic reflection/cast rate
 				break;
 			case SC_ARMORCHANGE:
-				if( val2 == NPC_ANTIMAGIC ) { //Boost % MDEF
+				if( val2 == NPC_ANTIMAGIC ) {
 					val2 = -20;
-					val3 = 20;
-				} else { //Boost % DEF
-					val2 = 20;
+					val3 = 20; //Boost % MDEF
+				} else {
+					val2 = 20; //Boost % DEF
 					val3 = -20;
 				}
 				//Level 6 ~ 10 use effect of level 1 ~ 5

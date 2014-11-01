@@ -1093,18 +1093,22 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( src->type == BL_MOB ) {
 			int i;
 
-			if( sc->data[SC_MANU_DEF] )
-				for( i = 0; ARRAYLENGTH(mob_manuk) > i; i++ )
+			if( sc->data[SC_MANU_DEF] ) {
+				for( i = 0; ARRAYLENGTH(mob_manuk) > i; i++ ) {
 					if( mob_manuk[i] == ((TBL_MOB*)src)->mob_id ) {
 						damage -= damage * sc->data[SC_MANU_DEF]->val1 / 100;
 						break;
 					}
-			if( sc->data[SC_SPL_DEF] )
-				for( i = 0; ARRAYLENGTH(mob_splendide) > i; i++ )
+				}
+			}
+			if( sc->data[SC_SPL_DEF] ) {
+				for( i = 0; ARRAYLENGTH(mob_splendide) > i; i++ ) {
 					if( mob_splendide[i] == ((TBL_MOB*)src)->mob_id ) {
 						damage -= damage * sc->data[SC_SPL_DEF]->val1 / 100;
 						break;
 					}
+				}
+			}
 		}
 
 		if( (sce = sc->data[SC_ARMOR]) && //NPC_DEFENDER
@@ -1122,7 +1126,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			struct status_data *status = status_get_status_data(bl);
 			int per = 100 * status->sp / status->max_sp - 1; //100% should be counted as the 80~99% interval
 
-			per /= 20; //Uses 20% SP intervals.
+			per /= 20; //Uses 20% SP intervals
 			//SP Cost: 1% + 0.5% per every 20% SP
 			if( !status_charge(bl,0,(10 + 5 * per) * status->max_sp / 1000) )
 				status_change_end(bl,SC_ENERGYCOAT,INVALID_TIMER);
@@ -1157,6 +1161,13 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		//Renewal: Steel Body reduces all incoming damage to 1/10 [helvetica]
 		if( sc->data[SC_STEELBODY] )
 			damage = (damage > 10 ? damage / 10 : 1);
+
+		if( sc->data[SC_ARMORCHANGE] ) {
+			if( flag&BF_WEAPON )
+				damage -= damage * sc->data[SC_ARMORCHANGE]->val2 / 100;
+			if( flag&BF_MAGIC )
+				damage -= damage * sc->data[SC_ARMORCHANGE]->val3 / 100;
+		}
 #endif
 
 		//Finally added to remove the status of immobile when Aimed Bolt is used [Jobbie]
