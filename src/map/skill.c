@@ -1818,7 +1818,7 @@ int skill_onskillusage(struct map_session_data *sd, struct block_list *bl, uint1
 		if( rnd()%1000 >= sd->autospell3[i].rate )
 			continue;
 
-		skill_lv = sd->autospell3[i].lv ? sd->autospell3[i].lv : 1;
+		skill_lv = (sd->autospell3[i].lv ? sd->autospell3[i].lv : 1);
 
 		if( skill < 0 ) {
 			tbl = &sd->bl;
@@ -2033,7 +2033,8 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 
 			skill_id = (dstsd->autospell2[i].id > 0) ? dstsd->autospell2[i].id : -dstsd->autospell2[i].id;
 			skill_lv = dstsd->autospell2[i].lv ? dstsd->autospell2[i].lv : 1;
-			if(skill_lv < 0) skill_lv = 1 + rnd()%(-skill_lv);
+			if(skill_lv < 0)
+				skill_lv = 1 + rnd()%(-skill_lv);
 
 			rate = dstsd->autospell2[i].rate;
 			if(attack_type&BF_LONG)
@@ -6825,7 +6826,6 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case TF_DETOXIFY:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			status_change_end(bl,SC_POISON,INVALID_TIMER);
-			status_change_end(bl,SC_DPOISON,INVALID_TIMER);
 			break;
 
 		case PR_STRECOVERY:
@@ -6905,7 +6905,6 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			}
 			if( dstmd && dstmd->mob_id == MOBID_EMPERIUM )
 				break; //Cannot be Used on Emperium
-
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			clif_skill_estimation(sd,bl);
 			if( skill_id == MER_ESTIMATION )
@@ -6962,20 +6961,16 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					clif_displaymessage(sd->fd,output); //"Duel: Can't use %s in duel."
 					break;
 				}
-
+				if( sd->hd && (battle_config.hom_setting&HOMSET_RESET_REUSESKILL_TELEPORTED) )
+					memset(sd->hd->blockskill,0,sizeof(hd->blockskill));
 				if( sd->state.autocast || ((sd->skillitem == AL_TELEPORT ||
-					battle_config.skip_teleport_lv1_menu) && skill_lv == 1) || skill_lv == 3 )
-				{
-					if( sd->hd && (battle_config.hom_setting&HOMSET_RESET_REUSESKILL_TELEPORTED) )
-						memset(sd->hd->blockskill,0,sizeof(hd->blockskill));
-
+					battle_config.skip_teleport_lv1_menu) && skill_lv == 1) || skill_lv == 3 ) {
 					if( skill_lv == 1 )
 						pc_randomwarp(sd,CLR_TELEPORT);
 					else
 						pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,CLR_TELEPORT);
 					break;
 				}
-
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				if( skill_lv == 1 && skill_id != ALL_ODINS_RECALL )
 					clif_skill_warppoint(sd,skill_id,skill_lv,(unsigned short)-1,0,0,0);
@@ -7433,7 +7428,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					if(sp < 1)
 						sp = 1;
 					status_heal(bl,0,sp,2);
-					status_percent_damage(bl,src,0,-20,false); //20% max SP damage.
+					status_percent_damage(bl,src,0,-20,false); //20% max SP damage
 				} else {
 					struct unit_data *ud = unit_bl2ud(bl);
 					int bl_skill_id = 0, bl_skill_lv = 0, hp = 0;
@@ -7442,7 +7437,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						break; //Nothing to cancel.
 					bl_skill_id = ud->skill_id;
 					bl_skill_lv = ud->skill_lv;
-					if(tstatus->mode & MD_BOSS) { //Only 10% success chance against bosses. [Skotlex]
+					if(tstatus->mode & MD_BOSS) { //Only 10% success chance against bosses [Skotlex]
 						if(rnd()%100 < 90) {
 							if(sd)
 								clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -7930,8 +7925,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			}
 			break;
 
-		//Slim Pitcher
-		case CR_SLIMPITCHER:
+		case CR_SLIMPITCHER: //Slim Pitcher
 			//Updated to block Slim Pitcher from working on barricades and guardian stones.
 			if (dstmd && (dstmd->mob_id == MOBID_EMPERIUM || (dstmd->mob_id >= MOBID_BARRICADE1 && dstmd->mob_id <= MOBID_GUARIDAN_STONE2)))
 				break;
@@ -7967,8 +7961,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				status_heal(bl,hp,sp,0);
 			}
 			break;
-		//Full Chemical Protection
-		case CR_FULLPROTECTION: {
+
+		case CR_FULLPROTECTION: { //Full Chemical Protection
 				unsigned int equip[] = { EQP_WEAPON,EQP_SHIELD,EQP_ARMOR,EQP_HEAD_TOP };
 				int i, s = 0, skilltime = skill_get_time(skill_id,skill_lv);
 
@@ -9403,7 +9397,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			if( flag&1 ) {
 				if( dstsd && dstsd->spiritball && (sd == dstsd || map_flag_vs(src->m)) &&
 					((dstsd->class_&MAPID_BASEMASK) != MAPID_GUNSLINGER || (dstsd->class_&MAPID_UPPERMASK) != MAPID_REBELLION) ) {
-					status_percent_heal(src,0,dstsd->spiritball); //1% sp per spiritball.
+					status_percent_heal(src,0,dstsd->spiritball); //1% sp per spiritball
 					pc_delspiritball(dstsd,dstsd->spiritball,0);
 				}
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,i ? 1 : 0);
@@ -18793,7 +18787,7 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 		clif_misceffect(&sd->bl,2);
 	} else {
 		switch( skill_id ) {
-			case ASC_CDP: //25% Damage yourself, and display same effect as failed potion.
+			case ASC_CDP: //25% Damage yourself, and display same effect as failed potion
 				status_percent_damage(NULL,&sd->bl,-25,0,true);
 			case AM_PHARMACY:
 			case AM_TWILIGHT1:

@@ -679,7 +679,7 @@ int party_optionchanged(int party_id,int account_id,int exp,int item,int flag)
 	if( (p = party_search(party_id)) == NULL )
 		return 0;
 
-	//Flag&1: Exp change denied. Flag&2: Item change denied.
+	//Flag&1: Exp change denied. Flag&2: Item change denied
 	if( !(flag&0x01) && p->party.exp != exp )
 		p->party.exp = exp;
 	if( !(flag&0x10) && p->party.item != item )
@@ -691,7 +691,7 @@ int party_optionchanged(int party_id,int account_id,int exp,int item,int flag)
 
 int party_changeleader(struct map_session_data *sd, struct map_session_data *tsd, struct party_data *p)
 {
-	int i, mi, tmi;
+	int mi, tmi;
 
 	if (!p) {
 		if (!sd || !sd->status.party_id)
@@ -715,7 +715,7 @@ int party_changeleader(struct map_session_data *sd, struct map_session_data *tsd
 			return 0; //Shouldn't happen
 
 		if (!p->party.member[mi].leader) {
-			//Need to be a party leader.
+			//Need to be a party leader
 			clif_displaymessage(sd->fd, msg_txt(282));
 			return 0;
 		}
@@ -728,23 +728,14 @@ int party_changeleader(struct map_session_data *sd, struct map_session_data *tsd
 		ARR_FIND(0,MAX_PARTY,tmi,p->data[tmi].sd ==  tsd);
 	}
 
-	//Change leadership.
+	//Change leadership
 	p->party.member[mi].leader = 0;
-
 	p->party.member[tmi].leader = 1;
-	if (p->data[tmi].sd && p->data[tmi].sd->fd)
-		clif_displaymessage(p->data[tmi].sd->fd, msg_txt(285));
 
-	//Update members.
-	for (i = 0; i < MAX_PARTY; i++) {
-		if (p->data[i].sd == NULL)
-			continue;
-		if (p->data[i].sd == p->data[tmi].sd)
-			continue;
-		clif_PartyLeaderChanged(p->data[i].sd,p->data[mi].sd->status.account_id,p->data[tmi].sd->status.account_id);
-	}
+	//Update members
+	clif_PartyLeaderChanged(p->data[mi].sd,p->data[mi].sd->status.account_id,p->data[tmi].sd->status.account_id);
 
-	//Update info.
+	//Update info
 	intif_party_leaderchange(p->party.party_id,p->party.member[tmi].account_id,p->party.member[tmi].char_id);
 	clif_party_info(p,NULL);
 	return 1;

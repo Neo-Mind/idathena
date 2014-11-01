@@ -2996,9 +2996,10 @@ int unit_free(struct block_list *bl, clr_type clrtype)
 				if( sd->combos.count ) {
 					aFree(sd->combos.bonus);
 					aFree(sd->combos.id);
+					aFree(sd->combos.pos);
 					sd->combos.count = 0;
 				}
-				/* [Ind] */
+				//[Ind]
 				if( sd->sc_display_count ) {
 					for( i = 0; i < sd->sc_display_count; i++ )
 						ers_free(pc_sc_display_ers, sd->sc_display[i]);

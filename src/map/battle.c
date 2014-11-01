@@ -4176,9 +4176,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 					ATK_RATE(wd.weaponAtk, wd.weaponAtk2, 100 + (sc->data[SC_EDP]->val1 * 80));
 					ATK_RATE(wd.equipAtk, wd.equipAtk2, 100 + (sc->data[SC_EDP]->val1 * 60));
 	#endif
-#endif
-
-#ifndef RENEWAL_EDP
+#else
 				default:
 					ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_EDP]->val3);
 	#ifdef RENEWAL

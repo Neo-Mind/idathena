@@ -62,6 +62,7 @@ static struct eri *sc_data_ers; /// For sc_data entries
 static struct status_data dummy_status;
 
 short current_equip_item_index; /// Contains inventory index of an equipped item. To pass it into the EQUP_SCRIPT [Lupus]
+unsigned int current_equip_combo_pos; /// For combo items we need to save the position of all involved items here
 int current_equip_card_id; /// To prevent card-stacking (from jA) [Skotlex]
 // We need it for new cards 15 Feb 2005, to check if the combo cards are insrerted into the CURRENT weapon only to avoid cards exploits
 
@@ -1581,9 +1582,8 @@ int status_heal(struct block_list *bl, int64 in_hp, int64 in_sp, int flag)
 		sp = 0;
 	}
 
-	if (sp)
-		if((unsigned int)sp > status->max_sp - status->sp)
-			sp = status->max_sp - status->sp;
+	if (sp && (unsigned int)sp > status->max_sp - status->sp)
+		sp = status->max_sp - status->sp;
 
 	if (!sp && !hp)
 		return 0;
@@ -1627,11 +1627,11 @@ int status_percent_change(struct block_list *src,struct block_list *target,signe
 	if (hp_rate > 99)
 		hp = status->hp;
 	else if (hp_rate > 0)
-		hp = status->hp > 10000 ? hp_rate * status->hp / 100 : (int64)hp_rate * status->hp / 100;
+		hp = (status->hp > 10000 ? hp_rate * status->hp / 100 : (int64)hp_rate * status->hp / 100);
 	else if (hp_rate < -99)
 		hp = status->max_hp;
 	else if (hp_rate < 0)
-		hp = status->max_hp > 10000 ? (-hp_rate) * status->max_hp / 100 : (int64)(-hp_rate) * status->max_hp / 100;
+		hp = (status->max_hp > 10000 ? (-hp_rate) * status->max_hp / 100 : (int64)(-hp_rate) * status->max_hp / 100);
 	if (hp_rate && !hp)
 		hp = 1;
 
@@ -3079,10 +3079,11 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 
 	npc_script_event(sd, NPCE_STATCALC);
 
-	//Parse equipment.
+	//Parse equipment
 	for(i = 0; i < EQI_MAX; i++) {
 		//We pass INDEX to current_equip_item_index - for EQUIP_SCRIPT (new cards solution) [Lupus]
 		current_equip_item_index = index = sd->equip_index[i];
+		current_equip_combo_pos = 0;
 		if(index < 0)
 			continue;
 		if(i == EQI_AMMO)
@@ -3183,16 +3184,18 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 		}
 	}
 
-	/* We've got combos to process and check */
+	//We've got combos to process and check
 	if(sd->combos.count) {
 		for(i = 0; i < sd->combos.count; i++) {
 			uint8 j = 0;
 			bool no_run = false;
 			struct item_combo *combo = NULL;
 
+			current_equip_item_index = -1;
+			current_equip_combo_pos = sd->combos.pos[i];
 			if(!sd->combos.bonus[i] || !(combo = itemdb_combo_exists(sd->combos.id[i])))
 				continue;
-			/* Check combo items */
+			//Check combo items
 			while(j < combo->count) {
 				struct item_data *id = itemdb_exists(combo->nameid[j]);
 
@@ -3221,6 +3224,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 	for(i = 0; i < EQI_MAX; i++) {
 		//We pass INDEX to current_equip_item_index - for EQUIP_SCRIPT (new cards solution) [Lupus]
 		current_equip_item_index = index = sd->equip_index[i];
+		current_equip_combo_pos = 0;
 		if(index < 0)
 			continue;
 		if(i == EQI_AMMO)
@@ -6859,6 +6863,11 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 	if (src == NULL)
 		return (tick ? tick : 1); //This should not happen in current implementation, but leave it anyway
 
+//Returns the 'bl's level, capped to 'cap'
+#define SCDEF_LVL_CAP(bl,cap) ((bl) ? (status_get_lv(bl) > (cap) ? (cap) : status_get_lv(bl)) : 0)
+//Returns the difference between the levels of 'bl' and 'src', both capped to 'maxlv', multiplied by 'factor'
+#define SCDEF_LVL_DIFF(bl,src,maxlv,factor) ((SCDEF_LVL_CAP((bl),(maxlv)) - SCDEF_LVL_CAP((src),(maxlv))) * (factor))
+
 	if (status_isimmune(bl)) {
 		switch (type) { //Status effects that are blocked by Golden Thief Bug card or Wand of Hermod
 			case SC_DECREASEAGI:	case SC_SILENCE:	case SC_COMA:
@@ -6886,8 +6895,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 		case SC_POISON:
 		case SC_DPOISON:
 			sc_def = status->vit * 100;
-			sc_def2 = status->luk * 10 + (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 10 -
-				(status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10;
+			sc_def2 = status->luk * 10 + SCDEF_LVL_DIFF(bl,src,99,10);
 			if (sd) { //For players: 60000 - 450 * vit - 100 * luk
 				tick_def = status->vit * 75;
 				tick_def2 = status->luk * 100;
@@ -6898,8 +6906,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			break;
 		case SC_STUN:
 			sc_def = status->vit * 100;
-			sc_def2 = status->luk * 10 + (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 10 -
-				(status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10;
+			sc_def2 = status->luk * 10 + SCDEF_LVL_DIFF(bl,src,99,10);
 			tick_def2 = status->luk * 10;
 			break;
 		case SC_SILENCE:
@@ -6916,8 +6923,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 #else
 				status->luk * 10
 #endif
-				+ (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 10 -
-				(status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10;
+				+ SCDEF_LVL_DIFF(bl,src,99,10);
 			tick_def2 = status->luk * 10;
 			break;
 		case SC_BLEEDING:
@@ -6928,8 +6934,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 				status->vit
 #endif
 				* 100;
-			sc_def2 = status->luk * 10 + (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 10 -
-				(status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10;
+			sc_def2 = status->luk * 10 + SCDEF_LVL_DIFF(bl,src,99,10);
 			tick_def2 = status->luk * 10;
 			break;
 		case SC_SLEEP:
@@ -6946,47 +6951,41 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 #else
 				status->luk * 10
 #endif
-				+ (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 10 -
-				(status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10;
+				+ SCDEF_LVL_DIFF(bl,src,99,10);
 			tick_def2 = status->luk * 10;
 			break;
 		case SC_STONE:
 			sc_def = status->mdef * 100;
-			sc_def2 = status->luk * 10 + (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 10 -
-				(status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10;
+			sc_def2 = status->luk * 10 + SCDEF_LVL_DIFF(bl,src,99,10);
 			tick_def = 0; //No duration reduction
 			break;
 		case SC_FREEZE:
 			sc_def = status->mdef * 100;
-			sc_def2 = status->luk * 10 + (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 10 -
-				(status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10;
+			sc_def2 = status->luk * 10 + SCDEF_LVL_DIFF(bl,src,99,10);
 			tick_def2 = status_src->luk * -10; //Caster can increase final duration with luk
 			break;
 		case SC_CURSE:
 			if (status->luk == 0)
 				return 0; //Special property: Immunity when luk is zero
 			sc_def = status->luk * 100;
-			sc_def2 = status->luk * 10 -
-				(status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10; //Curse only has a level penalty and no resistance
+			sc_def2 = status->luk * 10 - SCDEF_LVL_CAP(src,99) * 10; //Curse only has a level penalty and no resistance
 			tick_def = status->vit * 100;
 			tick_def2 = status->luk * 10;
 			break;
 		case SC_BLIND:
 			sc_def = (status->vit + status->int_) * 50;
-			sc_def2 = status->luk * 10 + (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 10 -
-				(status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10;
+			sc_def2 = status->luk * 10 + SCDEF_LVL_DIFF(bl,src,99,10);
 			tick_def2 = status->luk * 10;
 			break;
 		case SC_CONFUSION:
 			sc_def = (status->str + status->int_) * 50;
-			sc_def2 = (status_get_lv(src) > 99 ? 99 : status_get_lv(src)) * 10 -
-				(status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 10 - status->luk * 10; //Reversed sc_def2
+			sc_def2 = SCDEF_LVL_DIFF(src,bl,99,10) - status->luk * 10; //Reversed sc_def2
 			tick_def2 = status->luk * 10;
 			break;
 		case SC_DECREASEAGI:
 		case SC_ADORAMUS:
 			if (sd)
-				tick >>= 1; //Half duration for players.
+				tick >>= 1; //Half duration for players
 			sc_def = status->mdef * 100;
 			tick_def = 0; //No duration reduction
 			break;
@@ -6996,21 +6995,19 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			sc_def = status->agi * 50;
 			break;
 		case SC_DEEPSLEEP:
-			//sc_def = b_status->int_ * 50; Needs info
+			//sc_def = b_status->int_ * 50; //Needs more info
 			tick_def = 0; //Linear reduction instead
-			tick_def2 = b_status->int_ * 50 +
-				(status_get_lv(bl) > 150 ? 150 : status_get_lv(bl)) * 50; //kRO balance update lists this formula
+			tick_def2 = b_status->int_ * 50 + SCDEF_LVL_CAP(bl,150) * 50; //kRO balance update lists this formula
 			break;
 		case SC_NETHERWORLD:
-			tick_def2 = (status_get_lv(bl) > 150 ? 150 : status_get_lv(bl)) * 20 +
+			tick_def2 = SCDEF_LVL_CAP(bl,150) * 20 +
 				(sd ? (sd->status.job_level > 50 ? 50 : sd->status.job_level) * 100 : 0);
 			break;
 		case SC_MAGICMIRROR:
 		case SC_ARMORCHANGE:
-			if (sd) //Duration greatly reduced for players.
+			if (sd) //Duration greatly reduced for players
 				tick /= 15;
-			sc_def2 = (status_get_lv(bl) > 99 ? 99 : status_get_lv(bl)) * 20 +
-				status->vit * 25 + status->agi * 10; //Lineal Reduction of Rate
+			sc_def2 = SCDEF_LVL_CAP(bl,99) * 20 + status->vit * 25 + status->agi * 10; //Lineal Reduction of Rate
 			break;
 		case SC_MARSHOFABYSS: //5 second (Fixed) + 25 second - { (INT + LUK) / 20 second }
 			tick_def2 = (status->int_ + status->luk) * 50;
@@ -7022,7 +7019,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			if (tick == 5000) //100% on caster
 				break;
 			if (bl->type == BL_PC)
-				tick_def2 = (status_get_lv(bl) > 150 ? 150 : status_get_lv(bl)) * 20 + status->vit * 25 + status->agi * 10;
+				tick_def2 = SCDEF_LVL_CAP(bl,150) * 20 + status->vit * 25 + status->agi * 10;
 			else
 				tick_def2 = (status->vit + status->luk) * 50;
 			break;
@@ -7064,7 +7061,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 		case SC_B_TRAP:
 			tick_def2 = b_status->str * 50; //Custom values
 			break;
-		default: //Effect that cannot be reduced? Likely a buff.
+		default: //Effect that cannot be reduced? Likely a buff
 			if (!(rnd()%10000 < rate))
 				return 0;
 			return (tick ? tick : 1);
@@ -7100,14 +7097,14 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 
 	if (sc) {
 		if (sc->data[SC_SCRESIST])
-			sc_def += sc->data[SC_SCRESIST]->val1 * 100; //Status resist.
+			sc_def += sc->data[SC_SCRESIST]->val1 * 100; //Status resist
 		else if (sc->data[SC_SIEGFRIED])
-			sc_def += sc->data[SC_SIEGFRIED]->val3 * 100; //Status resistance.
+			sc_def += sc->data[SC_SIEGFRIED]->val3 * 100; //Status resistance
 		else if (sc->data[SC_SHIELDSPELL_REF] && sc->data[SC_SHIELDSPELL_REF]->val1 == 2)
 			sc_def += sc->data[SC_SHIELDSPELL_REF]->val3 * 100;
 	}
 
-	//When tick def not set, reduction is the same for both.
+	//When tick def not set, reduction is the same for both
 	if (tick_def == -1)
 		tick_def = sc_def;
 
@@ -7174,9 +7171,11 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 	}
 
 	return tick;
+#undef SCDEF_LVL_CAP
+#undef SCDEF_LVL_DIFF
 }
 
-/* [Ind] Fast-Checking sc-display array */
+//[Ind] Fast-Checking sc-display array
 void status_display_add(struct map_session_data *sd, enum sc_type type, int dval1, int dval2, int dval3) {
 	struct sc_display_entry *entry;
 	int i;
@@ -8076,7 +8075,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_ARMOR_RESIST:
 				break;
 			case SC_GOSPEL:
-				 //Must not override a casting gospel char.
+				 //Must not override a casting gospel char
 				if( sce->val4 == BCT_SELF )
 					return 0;
 				if( sce->val1 > val1 )
@@ -8391,23 +8390,25 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick = max(tick,1000); //Min time
 				calc_flag = 0; //Actual status changes take effect on petrified state
 				break;
-			case SC_DPOISON:
-				//Lose 10/15% of your life as long as it doesn't brings life below 25%
-				if( status->hp > status->max_hp>>2 ) {
-					int diff = status->max_hp * (bl->type == BL_PC ? 10 : 15) / 100;
+			case SC_DPOISON: {
+					//Get 15% penalty of your life as long as it doesn't brings life below 25%
+					//But there's an condition that when your life below the penalty, it will kill player immediately
+					int diff = status->max_hp * 15 / 100;
 
-					if( status->hp - diff < status->max_hp>>2 )
-						diff = status->hp - (status->max_hp>>2);
-					if( val2 && bl->type == BL_MOB ) {
-						struct block_list* src = map_id2bl(val2);
+					if( status->hp < diff ) {
+						status_percent_damage(NULL,bl,-15,0,true);
+						return 0;
+					} else if( status->hp > status->max_hp>>2 ) {
+						if( val2 && bl->type == BL_MOB ) {
+							struct block_list* src = map_id2bl(val2);
 
-						if( src )
-							mob_log_damage((TBL_MOB*)bl,src,diff);
+							if( src )
+								mob_log_damage((TBL_MOB*)bl,src,diff);
+						}
+						status_zap(bl,diff,0);
 					}
-					status_zap(bl,diff,0);
-				}
+				} //Fall through
 			case SC_POISON:
-				//Fall through
 				tick_time = 1000;
 				val3 = tick / tick_time; //Damage iterations
 				if( val3 < 1 )
@@ -8904,9 +8905,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = 20 * val1; //Heal effectiveness decrease
 				break;
 			case SC_MAGICMIRROR:
-				//Level 1 ~ 5 & 6 ~ 10 has different duration
 				//Level 6 ~ 10 use effect of level 1 ~ 5
 				val1 %= 5;
+				if( !val1 )
+					val1 = 5;
 			case SC_SLOWCAST:
 				val2 = 20 * val1; //Magic reflection/cast rate
 				break;
@@ -8918,9 +8920,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val2 = 20;
 					val3 = -20;
 				}
-				//Level 1 ~ 5 & 6 ~ 10 has different duration
 				//Level 6 ~ 10 use effect of level 1 ~ 5
 				val1 %= 5;
+				if( !val1 )
+					val1 = 5;
 				val2 *= val1; //20% per level
 				val3 *= val1;
 				break;
@@ -10849,7 +10852,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			clif_status_load(bl,SI_DECREASEAGI,0);
 			break;
 		case SC_MONSTER_TRANSFORM:
-			if (sce->val2)
+			if (sce->val2 != SC_NONE)
 				status_change_end(bl,(sc_type)sce->val2,INVALID_TIMER);
 			break;
 		case SC_ITEMSCRIPT:
@@ -11282,10 +11285,10 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 							mob_log_damage((TBL_MOB*)bl,src,sce->val4);
 					}
 					map_freeblock_lock();
-					if( status->hp >= max(status->max_hp>>2,sce->val4) ) //Stop damaging after 25% HP left.
+					if( status->hp >= max(status->max_hp>>2,sce->val4) ) //Stop damaging after 25% HP left
 						status_zap(bl,sce->val4,0);
-					if( sc->data[type] ) { //Check if the status still last ( can be dead since then ).
-						sc_timer_next(1000 + tick,status_change_timer,bl->id,data );
+					if( sc->data[type] ) { //Check if the status still last (can be dead since then)
+						sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 					}
 					map_freeblock_unlock();
 				}
@@ -12142,12 +12145,14 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 			if( battle_check_target(src, bl, BCT_ENEMY) > 0 && status_check_skilluse(src, bl, WZ_SIGHTBLASTER, 2) ) {
 				struct skill_unit *su = (struct skill_unit *)bl;
 
-				//The hit is not counted if it's against a trap
-				if( sce && skill_attack(BF_MAGIC, src, src, bl, WZ_SIGHTBLASTER, sce->val1, tick, 0x1000) &&
-					(!su || !su->group || !(skill_get_inf2(su->group->skill_id)&INF2_TRAP)) )
-					sce->val2 = 0; //This signals it to end
-				else if( (bl->type&BL_SKILL) && sce->val4%2 == 0 )
-					sce->val4++;
+				if( sce ) {
+					//The hit is not counted if it's against a trap
+					if( skill_attack(BF_MAGIC, src, src, bl, WZ_SIGHTBLASTER, sce->val1, tick, 0x1000) &&
+						(!su || !su->group || !(skill_get_inf2(su->group->skill_id)&INF2_TRAP)) )
+						sce->val2 = 0; //This signals it to end
+					else if( (bl->type&BL_SKILL) && sce->val4%2 == 0 )
+						sce->val4++;
+				}
 			}
 			break;
 		case SC_CURSEDCIRCLE_TARGET:

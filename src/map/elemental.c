@@ -224,6 +224,9 @@ int elemental_delete(struct elemental_data *ed, int reply) {
 	sd->ed = NULL;
 	sd->status.ele_id = 0;
 
+	if( !ed->bl.prev )
+		return unit_free(&ed->bl, 0);
+
 	return unit_remove_map(&ed->bl, 0);
 }
 

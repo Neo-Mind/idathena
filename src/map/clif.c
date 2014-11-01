@@ -12491,23 +12491,23 @@ void clif_parse_PartyMessage(int fd, struct map_session_data* sd)
 /// 07da <account id>.L
 void clif_parse_PartyChangeLeader(int fd, struct map_session_data* sd)
 {
-	party_changeleader(sd, map_id2sd(RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0])),NULL);
+	party_changeleader(sd, map_id2sd(RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0])), NULL);
 }
-
 
 void clif_PartyLeaderChanged(struct map_session_data *sd, int prev_leader_aid, int new_leader_aid)
 {
-	int fd = sd->fd;
+	unsigned char buf[10];
 
-	WFIFOHEAD(fd,packet_len(0x7fc));
-	WFIFOW(fd,0) = 0x7fc;
-	WFIFOL(fd,2) = prev_leader_aid;
-	WFIFOL(fd,6) = new_leader_aid;
-	WFIFOSET(fd,packet_len(0x7fc));
+	nullpo_retv(sd);
+
+	WBUFW(buf,0) = 0x7fc;
+	WBUFL(buf,2) = prev_leader_aid;
+	WBUFL(buf,6) = new_leader_aid;
+	clif_send(buf, packet_len(0x7fc), &sd->bl, PARTY);
 }
 
 
-/// Party Booking in KRO [Spiria]
+/// Party Booking in kRO [Spiria]
 ///
 
 /// Request to register a party booking advertisment (CZ_PARTY_BOOKING_REQ_REGISTER).
@@ -16216,7 +16216,9 @@ void clif_font(struct map_session_data *sd)
 {
 #if PACKETVER >= 20080102
 	unsigned char buf[8];
+
 	nullpo_retv(sd);
+
 	WBUFW(buf,0) = 0x2ef;
 	WBUFL(buf,2) = sd->bl.id;
 	WBUFW(buf,6) = sd->status.font;
@@ -17315,6 +17317,7 @@ void clif_favorite_item(struct map_session_data* sd, unsigned short index) {
 	WFIFOSET(fd,packet_len(0x908));
 }
 
+
 void clif_snap(struct block_list *bl, short x, short y) {
 	unsigned char buf[10];
 
@@ -17325,6 +17328,7 @@ void clif_snap(struct block_list *bl, short x, short y) {
 
 	clif_send(buf,packet_len(0x8d2),bl,AREA);
 }
+
 
 void clif_monster_hp_bar(struct mob_data* md, int fd) {
 #if PACKETVER >= 20120404
@@ -17337,10 +17341,12 @@ void clif_monster_hp_bar(struct mob_data* md, int fd) {
 #endif
 }
 
+
 /* [Ind] placeholder for unsupported incoming packets (avoids server disconnecting client) */
 void __attribute__ ((unused)) clif_parse_dull(int fd, struct map_session_data *sd) {
 	return;
 }
+
 
 void clif_partytickack(struct map_session_data* sd, bool flag) {
 	WFIFOHEAD(sd->fd, packet_len(0x2c9));
@@ -17348,6 +17354,7 @@ void clif_partytickack(struct map_session_data* sd, bool flag) {
 	WFIFOB(sd->fd,2) = flag;
 	WFIFOSET(sd->fd, packet_len(0x2c9)); 
 }
+
 
 /// Ack world info (ZC_ACK_BEFORE_WORLD_INFO)
 /// 0979 <world name>.24B <char name>.24B
@@ -17359,7 +17366,7 @@ void clif_ackworldinfo(struct map_session_data* sd) {
 
 	WFIFOHEAD(fd,packet_len(0x979));
 	WFIFOW(fd,0) = 0x979;
-	//AID -> world name ?
+	//AID -> World name?
 	safestrncpy((char*)WFIFOP(fd,2), "" /* World name */, 24);
 	safestrncpy((char*)WFIFOP(fd,26), sd->status.name, NAME_LENGTH);
 	WFIFOSET(fd,packet_len(0x979));
@@ -17368,9 +17375,12 @@ void clif_ackworldinfo(struct map_session_data* sd) {
 /// Req world info (CZ_REQ_BEFORE_WORLD_INFO)
 /// 0978 <AID>.L
 void clif_parse_reqworldinfo(int fd, struct map_session_data *sd) {
-	//uint32 aid = RFIFOL(fd,2); //should we trust client ?
-	if(sd) clif_ackworldinfo(sd);
+	//uint32 aid = RFIFOL(fd,2); //Should we trust client?
+
+	if(sd)
+		clif_ackworldinfo(sd);
 }
+
 
 /// Unknown usage (CZ_BLOCKING_PLAY_CANCEL)
 /// 0447
@@ -17379,12 +17389,14 @@ void clif_parse_blocking_playcancel(int fd, struct map_session_data *sd) {
 	;
 }
 
+
 /// Unknown usage (CZ_CLIENT_VERSION)
 /// 044A <version>.L
 void clif_parse_client_version(int fd, struct map_session_data *sd) {
 	//if(sd)
 	;
 }
+
 
 /// Ranking list
 /// Ranking pointlist { <name>.24B <point>.L }*10
@@ -17476,6 +17488,7 @@ void clif_update_rankingpoint(struct map_session_data *sd, int rankingtype, int 
 	WFIFOSET(fd, 12);
 #endif
 }
+
 
 /**
  * Transmit personal information to player. (rates)
@@ -17659,6 +17672,7 @@ void clif_display_pinfo(struct map_session_data *sd, int cmdtype) {
 }
 #endif
 
+
 void clif_parse_GMFullStrip(int fd, struct map_session_data *sd) {
 	char cmd[30];
 	int t_aid = RFIFOL(fd,2);
@@ -17666,6 +17680,7 @@ void clif_parse_GMFullStrip(int fd, struct map_session_data *sd) {
 	safesnprintf(cmd, sizeof(cmd), "%cfullstrip %d", atcommand_symbol, t_aid);
 	is_atcommand(fd, sd, cmd, 1);
 }
+
 
 /**
  * Close script when player is idle
@@ -17695,6 +17710,7 @@ void clif_scriptclear(struct map_session_data *sd, int npcid) {
 	WFIFOSET(fd,len);
 }
 
+
 /** Mark a target in mini-map and send it to party members
  * Flag:
  *	0: Add
@@ -17723,11 +17739,11 @@ void clif_crimson_marker(struct map_session_data *sd, struct block_list *bl, uin
 	WBUFW(buf,info->pos[2]) = (flag ? -1 : bl->y);
 
 	if( flag )
-		clif_crimson_marker_single(sd,bl,1);
+		clif_crimson_marker_single(sd, bl, 1);
 	else
-		clif_crimson_marker_single(sd,bl,0);
+		clif_crimson_marker_single(sd, bl, 0);
 	if( sd->status.party_id )
-		clif_send(buf,len,&sd->bl,PARTY_SAMEMAP_WOS);
+		clif_send(buf, len, &sd->bl, PARTY_SAMEMAP_WOS);
 }
 
 /** Mark a target in mini-map and send it to SELF
@@ -17756,8 +17772,33 @@ void clif_crimson_marker_single(struct map_session_data *sd, struct block_list *
 	WBUFL(buf,info->pos[0]) = bl->id;
 	WBUFW(buf,info->pos[1]) = (flag ? -1 : bl->x);
 	WBUFW(buf,info->pos[2]) = (flag ? -1 : bl->y);
-	clif_send(buf,len,&sd->bl,SELF);
+	clif_send(buf, len, &sd->bl, SELF);
 }
+
+
+void clif_ShowScript(struct block_list* bl, const char* message) {
+	char buf[256];
+	size_t len;
+
+	nullpo_retv(bl);
+
+	if(!message)
+		return;
+
+	len = strlen(message) + 1;
+
+	if( len > sizeof(buf) - 8 ) {
+		ShowWarning("clif_ShowScript: Truncating too long message '%s' (len=%d).\n", message, len);
+		len = sizeof(buf) - 8;
+	}
+
+	WBUFW(buf,0) = 0x8b3;
+	WBUFW(buf,2) = len + 8;
+	WBUFL(buf,4) = bl->id;
+	safestrncpy((char *)WBUFP(buf,8), message, len);
+	clif_send((unsigned char *)buf, WBUFW(buf,2), bl, ALL_CLIENT);
+}
+
 
 #ifdef DUMP_UNKNOWN_PACKET
 void DumpUnknow(int fd,TBL_PC *sd,int cmd,int packet_len) {
@@ -18144,7 +18185,7 @@ void packetdb_readdb(void)
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-		0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+		0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 	//#0x08C0
 		0,  0,  0,  0,  0,  0,  0, 20,  0,  2,  0,  0,  0,  0,  0, 10,
 		9,  7, 10,  0,  0,  0,  6,  0,  0,  0,  0,  0,  0,  0,  0,  0,

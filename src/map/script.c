@@ -308,6 +308,8 @@ const char* parse_syntax(const char* p);
 static int parse_syntax_for_flag = 0;
 
 extern short current_equip_item_index; //For New CARDS Scripts. It contains Inventory Index of the EQUIP_SCRIPT caller item. [Lupus]
+extern unsigned int current_equip_combo_pos;
+
 int potion_flag = 0; //For use on Alchemist improved potions/Potion Pitcher. [Skotlex]
 int potion_hp = 0, potion_per_hp = 0, potion_sp = 0, potion_per_sp = 0;
 int potion_target = 0;
@@ -3903,13 +3905,22 @@ static int db_script_free_code_sub(DBKey key, DBData *data, va_list ap)
 	return 0;
 }
 
-void script_run_autobonus(const char *autobonus, int id, int pos)
+void script_run_autobonus(const char *autobonus, struct map_session_data *sd, unsigned int pos)
 {
 	struct script_code *script = (struct script_code *)strdb_get(autobonus_db, autobonus);
 
 	if( script ) {
-		current_equip_item_index = pos;
-		run_script(script,0,id,0);
+		int j;
+
+		ARR_FIND(0, EQI_MAX, j, sd->equip_index[j] >= 0 && sd->status.inventory[sd->equip_index[j]].equip == pos);
+		if( j < EQI_MAX ) { //Single item autobonus
+			current_equip_item_index = sd->equip_index[j];
+			current_equip_combo_pos = 0;
+		} else { //Combo autobonus
+			current_equip_item_index = -1;
+			current_equip_combo_pos = pos;
+		}
+		run_script(script,0,sd->bl.id,0);
 	}
 }
 
@@ -8086,7 +8097,7 @@ BUILDIN_FUNC(bonus)
 
 BUILDIN_FUNC(autobonus)
 {
-	unsigned int dur;
+	unsigned int dur, pos;
 	short rate;
 	short atk_type = 0;
 	TBL_PC* sd;
@@ -8096,13 +8107,18 @@ BUILDIN_FUNC(autobonus)
 	if( sd == NULL )
 		return 0; // No player attached
 
-	if( sd->state.autobonus&sd->status.inventory[current_equip_item_index].equip )
+	if( current_equip_combo_pos )
+		pos = current_equip_combo_pos;
+	else
+		pos = sd->status.inventory[current_equip_item_index].equip;
+
+	if( (sd->state.autobonus&pos) == pos )
 		return 0;
 
 	rate = script_getnum(st,3);
 	dur = script_getnum(st,4);
 	bonus_script = script_getstr(st,2);
-	if( !rate || !dur || !bonus_script )
+	if( !rate || !dur || !pos || !bonus_script )
 		return 0;
 
 	if( script_hasdata(st,5) )
@@ -8111,7 +8127,7 @@ BUILDIN_FUNC(autobonus)
 		other_script = script_getstr(st,6);
 
 	if( pc_addautobonus(sd->autobonus,ARRAYLENGTH(sd->autobonus),
-		bonus_script,rate,dur,atk_type,other_script,sd->status.inventory[current_equip_item_index].equip,false) )
+		bonus_script,rate,dur,atk_type,other_script,pos,false) )
 	{
 		script_add_autobonus(bonus_script);
 		if( other_script )
@@ -8123,7 +8139,7 @@ BUILDIN_FUNC(autobonus)
 
 BUILDIN_FUNC(autobonus2)
 {
-	unsigned int dur;
+	unsigned int dur, pos;
 	short rate;
 	short atk_type = 0;
 	TBL_PC* sd;
@@ -8133,13 +8149,18 @@ BUILDIN_FUNC(autobonus2)
 	if( sd == NULL )
 		return 0; // No player attached
 
-	if( sd->state.autobonus&sd->status.inventory[current_equip_item_index].equip )
+	if( current_equip_combo_pos )
+		pos = current_equip_combo_pos;
+	else
+		pos = sd->status.inventory[current_equip_item_index].equip;
+
+	if( (sd->state.autobonus&pos) == pos )
 		return 0;
 
 	rate = script_getnum(st,3);
 	dur = script_getnum(st,4);
 	bonus_script = script_getstr(st,2);
-	if( !rate || !dur || !bonus_script )
+	if( !rate || !dur || !pos || !bonus_script )
 		return 0;
 
 	if( script_hasdata(st,5) )
@@ -8148,7 +8169,7 @@ BUILDIN_FUNC(autobonus2)
 		other_script = script_getstr(st,6);
 
 	if( pc_addautobonus(sd->autobonus2,ARRAYLENGTH(sd->autobonus2),
-		bonus_script,rate,dur,atk_type,other_script,sd->status.inventory[current_equip_item_index].equip,false) )
+		bonus_script,rate,dur,atk_type,other_script,pos,false) )
 	{
 		script_add_autobonus(bonus_script);
 		if( other_script )
@@ -8160,7 +8181,7 @@ BUILDIN_FUNC(autobonus2)
 
 BUILDIN_FUNC(autobonus3)
 {
-	unsigned int dur;
+	unsigned int dur, pos;
 	short rate,atk_type;
 	TBL_PC* sd;
 	const char *bonus_script, *other_script = NULL;
@@ -8170,7 +8191,12 @@ BUILDIN_FUNC(autobonus3)
 	if( sd == NULL )
 		return 0; // No player attached
 
-	if( sd->state.autobonus&sd->status.inventory[current_equip_item_index].equip )
+	if( current_equip_combo_pos )
+		pos = current_equip_combo_pos;
+	else
+		pos = sd->status.inventory[current_equip_item_index].equip;
+
+	if( (sd->state.autobonus&pos) == pos )
 		return 0;
 
 	rate = script_getnum(st,3);
@@ -8179,14 +8205,14 @@ BUILDIN_FUNC(autobonus3)
 	get_val(st,data); // Convert into value in case of a variable
 	atk_type = (data_isstring(data) ? skill_name2id(script_getstr(st,5)) : script_getnum(st,5));
 	bonus_script = script_getstr(st,2);
-	if( !rate || !dur || !atk_type || !bonus_script )
+	if( !rate || !dur || !pos || !atk_type || !bonus_script )
 		return 0;
 
 	if( script_hasdata(st,6) )
 		other_script = script_getstr(st,6);
 
 	if( pc_addautobonus(sd->autobonus3,ARRAYLENGTH(sd->autobonus3),
-		bonus_script,rate,dur,atk_type,other_script,sd->status.inventory[current_equip_item_index].equip,true) )
+		bonus_script,rate,dur,atk_type,other_script,pos,true) )
 	{
 		script_add_autobonus(bonus_script);
 		if( other_script )
@@ -18252,7 +18278,12 @@ BUILDIN_FUNC(montransform) {
 		mob_id = mobdb_checkid(script_getnum(st,2));
 
 	tick = script_getnum(st,3);
-	type = (sc_type)script_getnum(st,4);
+
+	if( script_hasdata(st,4) )
+		type = (sc_type)script_getnum(st,4);
+	else
+		type = SC_NONE;
+
 	val1 = val2 = val3 = val4 = 0;
 
 	if( mob_id == 0 ) {
@@ -18263,7 +18294,7 @@ BUILDIN_FUNC(montransform) {
 		return 0;
 	}
 
-	if( !(type > SC_NONE && type < SC_MAX) ) {
+	if( !(type >= SC_NONE && type < SC_MAX) ) {
 		ShowWarning("buildin_montransform: Unsupported status change id %d\n",type);
 		return 0;
 	}
@@ -18288,17 +18319,16 @@ BUILDIN_FUNC(montransform) {
 			clif_displaymessage(sd->fd,msg_txt(1493)); //Transforming into monster is not allowed in Guild Wars.
 			return 0;
 		}
-
 		if( sd->disguise ) {
 			clif_displaymessage(sd->fd,msg_txt(1491)); //Cannot transform into monster while in disguise.
 			return 0;
 		}
-
 		sprintf(msg,msg_txt(1490),monster->name); //Traaaansformation-!! %s form!!
-		clif_disp_overhead(&sd->bl,msg);
+		clif_ShowScript(&sd->bl,msg);
 		status_change_end(&sd->bl,SC_MONSTER_TRANSFORM,INVALID_TIMER); //Clear previous
 		sc_start2(NULL,&sd->bl,SC_MONSTER_TRANSFORM,100,mob_id,type,tick);
-		sc_start4(NULL,&sd->bl,type,100,val1,val2,val3,val4,tick);
+		if( script_hasdata(st,4) )
+			sc_start4(NULL,&sd->bl,type,100,val1,val2,val3,val4,tick);
 	}
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -19139,7 +19169,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(countbound,"?"),
 	BUILDIN_DEF(is_clientver,"ii?"),
 	//Monster Transform [malufett]
-	BUILDIN_DEF2(montransform,"transform","vii????"),
+	BUILDIN_DEF2(montransform,"transform","vi?????"),
 	BUILDIN_DEF(bonus_script,"si????"),
 	BUILDIN_DEF(bonus_script_clear,"??"),
 	BUILDIN_DEF(vip_status,"i?"),

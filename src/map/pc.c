@@ -1968,7 +1968,7 @@ static void pc_bonus_autospell(struct s_autospell *spell, int max, short id, sho
 		if( flag&BF_WEAPON )
 			flag |= BF_NORMAL; //By default autospells should only trigger on normal weapon attacks
 	}
-	spell[i].flag|= flag;
+	spell[i].flag |= flag;
 	spell[i].card_id = card_id;
 }
 
@@ -2107,7 +2107,7 @@ static void pc_bonus_item_drop(struct s_add_drop *drop, const short max, unsigne
 	drop[i].rate = rate;
 }
 
-bool pc_addautobonus(struct s_autobonus *bonus,char max,const char *script,short rate,unsigned int dur,short flag,const char *other_script,unsigned short pos,bool onskill)
+bool pc_addautobonus(struct s_autobonus *bonus,char max,const char *script,short rate,unsigned int dur,short flag,const char *other_script,unsigned int pos,bool onskill)
 {
 	int i;
 
@@ -2149,23 +2149,29 @@ void pc_delautobonus(struct map_session_data* sd, struct s_autobonus *autobonus,
 
 	for( i = 0; i < max; i++ ) {
 		if( autobonus[i].active != INVALID_TIMER ) {
-			if( restore && sd->state.autobonus&autobonus[i].pos ) {
+			if( restore && (sd->state.autobonus&autobonus[i].pos) == autobonus[i].pos ) {
 				if( autobonus[i].bonus_script ) {
 					int j;
+					unsigned int equip_pos = 0;
 
-					ARR_FIND(0, EQI_MAX, j, sd->equip_index[j] >= 0 && sd->status.inventory[sd->equip_index[j]].equip == autobonus[i].pos);
-					if( j < EQI_MAX )
-						script_run_autobonus(autobonus[i].bonus_script,sd->bl.id,sd->equip_index[j]);
+					//Create a list of all equipped positions to see if all items needed for the autobonus are still present [Playtester]
+					for( j = 0; j < EQI_MAX; j++ )
+						if( sd->equip_index[j] >= 0 )
+							equip_pos |= sd->status.inventory[sd->equip_index[j]].equip;
+					if( (equip_pos&autobonus[i].pos) == autobonus[i].pos )
+						script_run_autobonus(autobonus[i].bonus_script,sd,autobonus[i].pos);
 				}
 				continue;
-			} else { // Logout / Unequipped an item with an activated bonus
+			} else { //Logout / Unequipped an item with an activated bonus
 				delete_timer(autobonus[i].active,pc_endautobonus);
 				autobonus[i].active = INVALID_TIMER;
 			}
 		}
 
-		if( autobonus[i].bonus_script ) aFree(autobonus[i].bonus_script);
-		if( autobonus[i].other_script ) aFree(autobonus[i].other_script);
+		if( autobonus[i].bonus_script )
+			aFree(autobonus[i].bonus_script);
+		if( autobonus[i].other_script )
+			aFree(autobonus[i].other_script);
 		autobonus[i].bonus_script = autobonus[i].other_script = NULL;
 		autobonus[i].rate = autobonus[i].atk_type = autobonus[i].duration = autobonus[i].pos = 0;
 		autobonus[i].active = INVALID_TIMER;
@@ -2179,13 +2185,17 @@ void pc_exeautobonus(struct map_session_data *sd,struct s_autobonus *autobonus)
 
 	if( autobonus->other_script ) {
 		int j;
+		unsigned int equip_pos = 0;
 
-		ARR_FIND(0, EQI_MAX, j, sd->equip_index[j] >= 0 && sd->status.inventory[sd->equip_index[j]].equip == autobonus->pos);
-		if( j < EQI_MAX )
-			script_run_autobonus(autobonus->other_script,sd->bl.id,sd->equip_index[j]);
+		//Create a list of all equipped positions to see if all items needed for the autobonus are still present [Playtester]
+		for( j = 0; j < EQI_MAX; j++ )
+			if( sd->equip_index[j] >= 0 )
+				equip_pos |= sd->status.inventory[sd->equip_index[j]].equip;
+		if( (equip_pos&autobonus->pos) == autobonus->pos )
+			script_run_autobonus(autobonus->other_script,sd,autobonus->pos);
 	}
 
-	autobonus->active = add_timer(gettick()+autobonus->duration, pc_endautobonus, sd->bl.id, (intptr_t)autobonus);
+	autobonus->active = add_timer(gettick() + autobonus->duration,pc_endautobonus,sd->bl.id,(intptr_t)autobonus);
 	sd->state.autobonus |= autobonus->pos;
 	status_calc_pc(sd,SCO_NONE);
 }
@@ -7539,6 +7549,7 @@ int pc_readparam(struct map_session_data* sd,int type)
 		case SP_SITTING:	val = pc_issit(sd) ? 1 : 0; break;
 		case SP_CHARMOVE:	val = sd->status.character_moves; break;
 		case SP_CHARRENAME:	val = sd->status.rename; break;
+		case SP_CHARFONT:	val = sd->status.font; break;
 		case SP_CRITICAL:	val = sd->battle_status.cri / 10; break;
 		case SP_ASPD:		val = (2000 - sd->battle_status.amotion) / 10; break;
 		case SP_BASE_ATK:	val = sd->battle_status.batk; break;
@@ -7785,6 +7796,10 @@ bool pc_setparam(struct map_session_data *sd,int type,int val) {
 			return true;
 		case SP_CHARRENAME:
 			sd->status.rename = val;
+			return true;
+		case SP_CHARFONT:
+			sd->status.font = val;
+			clif_font(sd);
 			return true;
 		default:
 			ShowError("pc_setparam: Attempted to set unknown parameter '%d'.\n", type);
@@ -8895,13 +8910,14 @@ static int pc_checkcombo(struct map_session_data *sd, struct item_data *data) {
 		} *combo_idx;
 		int idx, j;
 		int nb_itemCombo;
+		unsigned int pos = 0;
 
-		/* Ensure this isn't a duplicate combo */
+		//Ensure this isn't a duplicate combo
 		if( sd->combos.bonus != NULL ) {
 			int x;
 
 			ARR_FIND(0, sd->combos.count, x, sd->combos.id[x] == data->combos[i]->id);
-			/* Found a match, skip this combo */
+			//Found a match, skip this combo
 			if( x < sd->combos.count )
 				continue;
 		}
@@ -8943,6 +8959,7 @@ static int pc_checkcombo(struct map_session_data *sd, struct item_data *data) {
 							continue;
 					}
 					combo_idx[j].idx = index;
+					pos |= sd->status.inventory[index].equip;
 					found = true;
 					break;
 				} else { //Cards
@@ -8973,32 +8990,37 @@ static int pc_checkcombo(struct map_session_data *sd, struct item_data *data) {
 							continue;
 						combo_idx[j].idx = index;
 						combo_idx[j].card[z] = id;
+						pos |= sd->status.inventory[index].equip;
 						found = true;
 						break;
 					}
 				}
 			}
 			if( !found )
-				break; /* We haven't found all the ids for this combo, so we can return */
+				break; //We haven't found all the ids for this combo, so we can return
 		}
 		aFree(combo_idx);
-		/* Means we broke out of the count loop w/o finding all ids, we can move to the next combo */
+		//Means we broke out of the count loop w/o finding all ids, we can move to the next combo
 		if( j < nb_itemCombo )
 			continue;
-		/* We got here, means all items in the combo are matching */
+		//We got here, means all items in the combo are matching
 		idx = sd->combos.count;
 		if( sd->combos.bonus == NULL ) {
 			CREATE(sd->combos.bonus, struct script_code*, 1);
 			CREATE(sd->combos.id, unsigned short, 1);
+			CREATE(sd->combos.pos, unsigned int, 1);
 			sd->combos.count = 1;
 		} else {
 			RECREATE(sd->combos.bonus, struct script_code*, ++sd->combos.count);
 			RECREATE(sd->combos.id, unsigned short, sd->combos.count);
+			RECREATE(sd->combos.pos, unsigned int, sd->combos.count);
 		}
-		/* We simply copy the pointer */
+		//We simply copy the pointer
 		sd->combos.bonus[idx] = data->combos[i]->script;
-		/* Save this combo's id */
+		//Save this combo's id
 		sd->combos.id[idx] = data->combos[i]->id;
+		//Save pos of combo
+		sd->combos.pos[idx] = pos;
 		success++;
 	}
 	return success;
@@ -9014,38 +9036,42 @@ static int pc_removecombo(struct map_session_data *sd, struct item_data *data) {
 	int i, retval = 0;
 
 	if( sd->combos.bonus == NULL )
-		return 0; /* Nothing to do here, player has no combos */
+		return 0; //Nothing to do here, player has no combos
 	for( i = 0; i < data->combos_count; i++ ) {
-		/* Check if this combo exists in this user */
+		//Check if this combo exists in this user
 		int x = 0, cursor = 0, j;
 
 		ARR_FIND(0, sd->combos.count, x, sd->combos.id[x] == data->combos[i]->id);
-		/* No match, skip this combo */
+		//No match, skip this combo
 		if( !(x < sd->combos.count) )
 			continue;
 		sd->combos.bonus[x] = NULL;
 		sd->combos.id[x] = 0;
+		sd->combos.pos[x] = 0;
 		retval++;
-		/* Check if combo requirements still fit */
+		//Check if combo requirements still fit
 		if( pc_checkcombo(sd, data) )
 			continue;
-		/* Move next value to empty slot */
+		//Move next value to empty slot
 		for( j = 0, cursor = 0; j < sd->combos.count; j++ ) {
 			if( sd->combos.bonus[j] == NULL )
 				continue;
 			if( cursor != j ) {
 				sd->combos.bonus[cursor] = sd->combos.bonus[j];
 				sd->combos.id[cursor] = sd->combos.id[j];
+				sd->combos.pos[cursor] = sd->combos.pos[j];
 			}
 			cursor++;
 		}
-		/* It's empty, we can clear all the memory */
+		//It's empty, we can clear all the memory
 		if( (sd->combos.count = cursor) == 0 ) {
 			aFree(sd->combos.bonus);
 			aFree(sd->combos.id);
+			aFree(sd->combos.pos);
 			sd->combos.bonus = NULL;
 			sd->combos.id = NULL;
-			return retval; /* We also can return at this point for we have no more combos to check */
+			sd->combos.pos = NULL;
+			return retval; //We also can return at this point for we have no more combos to check
 		}
 	}
 	return retval;

@@ -127,7 +127,7 @@ struct s_autobonus {
 	unsigned int duration;
 	char *bonus_script, *other_script;
 	int active;
-	unsigned short pos;
+	unsigned int pos;
 };
 
 struct skill_cooldown_entry {
@@ -219,7 +219,7 @@ struct map_session_data {
 		unsigned short autoloottype;
 		unsigned int autolooting : 1; //Performance-saver, autolooting state for @alootid
 		unsigned int autolootingtype : 1; //Performance-saver, autolooting state for @autoloottype
-		unsigned short autobonus; //Flag to indicate if an autobonus is activated. [Inkfish]
+		unsigned int autobonus; //Flag to indicate if an autobonus is activated. [Inkfish]
 		unsigned int gmaster_flag : 1;
 		unsigned int prevend : 1; //Used to flag wheather you've spent 40sp to open the vending or not.
 		unsigned int warping : 1; //States whether you're in the middle of a warp processing
@@ -567,8 +567,9 @@ struct map_session_data {
 #endif
 
 	struct s_combos {
-		struct script_code **bonus; /* The script */
-		unsigned short *id; /* Array of combo ids */
+		struct script_code **bonus; //The script
+		unsigned short *id; //Array of combo ids
+		unsigned int *pos; //Array of positions
 		unsigned char count;
 	} combos;
 
@@ -579,7 +580,7 @@ struct map_session_data {
 
 	int shadowform_id;
 
-	/* Channel System [Ind] */
+	//Channel System [Ind]
 	struct Channel **channels;
 	unsigned char channel_count;
 	struct Channel *gcbind;
@@ -587,7 +588,7 @@ struct map_session_data {
 	unsigned char fontcolor;
 	unsigned int channel_tick;
 
-	/* [Ind] */
+	//[Ind]
 	struct sc_display_entry **sc_display;
 	unsigned char sc_display_count;
 
@@ -597,7 +598,7 @@ struct map_session_data {
 	const char* delunit_prevfile;
 	int delunit_prevline;
 
-	/* Expiration_time timer id */
+	//Expiration_time timer id
 	int expiration_tid;
 	time_t expiration_time;
 
@@ -892,7 +893,7 @@ bool pc_adoption(struct map_session_data *p1_sd, struct map_session_data *p2_sd,
 
 void pc_updateweightstatus(struct map_session_data *sd);
 
-bool pc_addautobonus(struct s_autobonus *bonus,char max,const char *script,short rate,unsigned int dur,short atk_type,const char *o_script,unsigned short pos,bool onskill);
+bool pc_addautobonus(struct s_autobonus *bonus,char max,const char *script,short rate,unsigned int dur,short atk_type,const char *o_script,unsigned int pos,bool onskill);
 void pc_exeautobonus(struct map_session_data* sd,struct s_autobonus *bonus);
 int pc_endautobonus(int tid, unsigned int tick,int id,intptr_t data);
 void pc_delautobonus(struct map_session_data* sd,struct s_autobonus *bonus,char max,bool restore);
