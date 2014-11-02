@@ -826,9 +826,10 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 	nullpo_ret(src);
 	nullpo_ret(bl);
 
-	if( skill_id > 0 && !skill_lv ) return 0; //Don't forget auto attacks! - celest
+	if( skill_id > 0 && !skill_lv )
+		return 0; //Don't forget auto attacks! - celest
 
-	if( dmg_lv < ATK_BLOCK ) //Don't apply effect if miss.
+	if( dmg_lv < ATK_BLOCK ) //Don't apply effect if miss
 		return 0;
 
 	sd = BL_CAST(BL_PC,src);
@@ -846,7 +847,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 	if( !tsc )
 		return 0;
 
-	if( sd ) { //These statuses would be applied anyway even if the damage was blocked by some skills. [Inkfish]
+	if( sd ) { //These statuses would be applied anyway even if the damage was blocked by some skills [Inkfish]
 		if( skill_id != WS_CARTTERMINATION && skill_id != AM_DEMONSTRATION && skill_id != CR_REFLECTSHIELD &&
 			skill_id != MS_REFLECTSHIELD && skill_id != ASC_BREAKER ) { //Trigger status effects
 			enum sc_type type;
@@ -854,31 +855,26 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 
 			for( i = 0; i < ARRAYLENGTH(sd->addeff) && sd->addeff[i].flag; i++ ) {
 				rate = sd->addeff[i].rate;
-				if( attack_type&BF_LONG ) //Any ranged physical attack takes status arrows into account (Grimtooth) [DracoRPG]
-					rate += sd->addeff[i].arrow_rate;
+				if( (attack_type&(BF_LONG|BF_MAGIC)) == BF_LONG )
+					rate += sd->addeff[i].arrow_rate; //Any ranged physical attack takes status arrows into account (Grimtooth) [DracoRPG]
 				if( !rate )
 					continue;
-				if( (sd->addeff[i].flag&(ATF_WEAPON|ATF_MAGIC|ATF_MISC)) != (ATF_WEAPON|ATF_MAGIC|ATF_MISC) ) {
-					//Trigger has attack type consideration.
+				if( (sd->addeff[i].flag&(ATF_WEAPON|ATF_MAGIC|ATF_MISC)) != (ATF_WEAPON|ATF_MAGIC|ATF_MISC) ) { //Trigger has attack type consideration
 					if( (sd->addeff[i].flag&ATF_WEAPON && attack_type&BF_WEAPON) ||
 						(sd->addeff[i].flag&ATF_MAGIC && attack_type&BF_MAGIC) ||
 						(sd->addeff[i].flag&ATF_MISC && attack_type&BF_MISC) ) ;
 					else
 						continue;
 				}
-
-				if( (sd->addeff[i].flag&(ATF_LONG|ATF_SHORT)) != (ATF_LONG|ATF_SHORT) ) { //Trigger has range consideration.
+				if( (sd->addeff[i].flag&(ATF_LONG|ATF_SHORT)) != (ATF_LONG|ATF_SHORT) ) { //Trigger has range consideration
 					if( (sd->addeff[i].flag&ATF_LONG && !(attack_type&BF_LONG)) ||
 						(sd->addeff[i].flag&ATF_SHORT && !(attack_type&BF_SHORT)) )
-						continue; //Range Failed.
+						continue; //Range Failed
 				}
-
 				type =  sd->addeff[i].id;
 				skill = skill_get_time2(status_sc2skill(type),7);
-
 				if( sd->addeff[i].flag&ATF_TARGET )
 					status_change_start(src,bl,type,rate,7,0,(type == SC_BURNING) ? src->id : 0,0,skill,SCFLAG_NONE);
-
 				if( sd->addeff[i].flag&ATF_SELF )
 					status_change_start(src,src,type,rate,7,0,(type == SC_BURNING) ? src->id : 0,0,skill,SCFLAG_NONE);
 			}
@@ -893,7 +889,6 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 					continue;
 				type = sd->addeff3[i].id;
 				skill = skill_get_time2(status_sc2skill(type),7);
-
 				if( sd->addeff3[i].target&ATF_TARGET )
 					status_change_start(src,bl,type,sd->addeff3[i].rate,7,0,0,0,skill,SCFLAG_NONE);
 				if( sd->addeff3[i].target&ATF_SELF )
@@ -1676,7 +1671,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			if( skill_lv < 0 )
 				skill_lv = 1 + rnd()%(-skill_lv);
 
-			rate = (!sd->state.arrow_atk) ? sd->autospell[i].rate : sd->autospell[i].rate / 2;
+			rate = (!sd->state.arrow_atk ? sd->autospell[i].rate : sd->autospell[i].rate / 2);
 
 			if( rnd()%1000 >= rate )
 				continue;
@@ -1900,7 +1895,7 @@ static int skill_area_temp[8];
  * type of skills, so not every instance of skill_additional_effect needs a call
  * to this one.
  */
-int skill_counter_additional_effect (struct block_list* src, struct block_list *bl, uint16 skill_id, uint16 skill_lv, int attack_type, unsigned int tick)
+int skill_counter_additional_effect(struct block_list* src, struct block_list *bl, uint16 skill_id, uint16 skill_lv, int attack_type, unsigned int tick)
 {
 	int rate;
 	struct map_session_data *sd = NULL;
@@ -1917,7 +1912,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	sd = BL_CAST(BL_PC, src);
 	dstsd = BL_CAST(BL_PC, bl);
 
-	if(dstsd && attack_type&BF_WEAPON) { //Counter effects.
+	if(dstsd && attack_type&BF_WEAPON) { //Counter effects
 		enum sc_type type;
 		int i, time;
 
@@ -1925,19 +1920,16 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 			rate = dstsd->addeff2[i].rate;
 			if(attack_type&BF_LONG)
 				rate += dstsd->addeff2[i].arrow_rate;
-			if(!rate) continue;
-
-			if((dstsd->addeff2[i].flag&(ATF_LONG|ATF_SHORT)) != (ATF_LONG|ATF_SHORT)) { //Trigger has range consideration.
+			if(!rate)
+				continue;
+			if((dstsd->addeff2[i].flag&(ATF_LONG|ATF_SHORT)) != (ATF_LONG|ATF_SHORT)) //Trigger has range consideration
 				if((dstsd->addeff2[i].flag&ATF_LONG && !(attack_type&BF_LONG)) ||
 					(dstsd->addeff2[i].flag&ATF_SHORT && !(attack_type&BF_SHORT)))
-					continue; //Range Failed.
-			}
+					continue; //Range Failed
 			type = dstsd->addeff2[i].id;
 			time = skill_get_time2(status_sc2skill(type),7);
-
 			if(dstsd->addeff2[i].flag&ATF_TARGET)
 				status_change_start(src,src,type,rate,7,0,0,0,time,SCFLAG_NONE);
-
 			if(dstsd->addeff2[i].flag&ATF_SELF && !status_isdead(bl))
 				status_change_start(src,bl,type,rate,7,0,0,0,time,SCFLAG_NONE);
 		}
@@ -2037,7 +2029,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 				skill_lv = 1 + rnd()%(-skill_lv);
 
 			rate = dstsd->autospell2[i].rate;
-			if(attack_type&BF_LONG)
+			if((attack_type&(BF_LONG|BF_MAGIC)) == BF_LONG)
 				 rate >>= 1;
 
 			dstsd->state.autocast = 1;
@@ -8758,7 +8750,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				int splash = skill_get_splash(skill_id,skill_lv);
 
 				if( flag&1 || splash < 1 ) {
-					//As of the behavior in official server Clearance is just a super version of Dispell skill. [Jobbie]
+					//As of the behavior in official server Clearance is just a super version of Dispell skill [Jobbie]
 					if( bl->type != BL_MOB && battle_check_target(src,bl,BCT_PARTY) <= 0 )
 						break;
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);

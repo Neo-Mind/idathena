@@ -8915,9 +8915,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_MAGICMIRROR:
 				//Level 6 ~ 10 use effect of level 1 ~ 5
-				val1 %= 5;
-				if( !val1 )
-					val1 = 5;
+				val1 = 1 + ((val1 - 1)%5);
 			case SC_SLOWCAST:
 				val2 = 20 * val1; //Magic reflection/cast rate
 				break;
@@ -8930,9 +8928,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val3 = -20;
 				}
 				//Level 6 ~ 10 use effect of level 1 ~ 5
-				val1 %= 5;
-				if( !val1 )
-					val1 = 5;
+				val1 = 1 + ((val1 - 1)%5);
 				val2 *= val1; //20% per level
 				val3 *= val1;
 				break;
