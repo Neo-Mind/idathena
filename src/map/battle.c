@@ -4571,7 +4571,7 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd,struct block_list
  *	Initial refactoring by Baalberith
  *	Refined and optimized by helvetica
  */
-struct Damage battle_calc_attack_plant(struct Damage wd, struct block_list *src,struct block_list *target, uint16 skill_id, uint16 skill_lv)
+struct Damage battle_calc_attack_plant(struct Damage wd, struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv)
 {
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 	bool attack_hits = is_attack_hitting(wd, src, target, skill_id, skill_lv, false);
@@ -4579,19 +4579,17 @@ struct Damage battle_calc_attack_plant(struct Damage wd, struct block_list *src,
 	int div = (skill_id ? skill_get_num(skill_id, skill_lv) : 1);
 
 	//Plants receive 1 damage when hit
-	if(attack_hits || wd.damage > 0)
-		wd.damage = (div > 0 ? div : 0); //In some cases, right hand no need to have a weapon to deal a damage
+	if(attack_hits || wd.damage > 0) //In some cases, right hand no need to have a weapon to deal a damage
+		wd.damage = (div > 0 ? div : 0); //Damage that just look like multiple hits but are actually one won't do any damage to plants
 	if((attack_hits || wd.damage2 > 0) && is_attack_left_handed(src, skill_id)) {
 		wd.damage2 = 0; //No back hand damage on plant unless dual wielding
 		if(is_attack_right_handed(src, skill_id) && sd->status.weapon != W_KATAR)
 			wd.damage2 = 1; //Give a damage on left hand while dual wielding excluding katar weapon type [helvetica]	
 	}
 	if((attack_hits || wd.damage + wd.damage2 > 0) && mob_id == MOBID_EMPERIUM) {
-		if(target && map_flag_gvg2(target->m)) {
-			if(wd.damage > 0)
-				wd.damage = battle_calc_gvg_damage(src, target, wd.damage, skill_id, wd.flag);
-			else if(wd.damage2 > 0)
-				wd.damage2 = battle_calc_gvg_damage(src, target, wd.damage2, skill_id, wd.flag);
+		if(map_flag_gvg2(target->m)) {
+			wd.damage = battle_calc_gvg_damage(src, target, wd.damage, skill_id, wd.flag);
+			wd.damage2 = battle_calc_gvg_damage(src, target, wd.damage2, skill_id, wd.flag);
 		}
 	}
 

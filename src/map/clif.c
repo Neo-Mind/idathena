@@ -8876,7 +8876,7 @@ void clif_messagecolor(struct block_list* bl, unsigned long color, const char* m
 	WBUFW(buf,2) = msg_len + 12;
 	WBUFL(buf,4) = bl->id;
 	WBUFL(buf,8) = color;
-	memcpy(WBUFP(buf,12), msg, msg_len);
+	memcpy((char*)WBUFP(buf,12), msg, msg_len);
 
 	clif_send(buf, WBUFW(buf,2), bl, AREA_CHAT_WOC);
 }
