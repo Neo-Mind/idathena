@@ -1671,7 +1671,9 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			if( skill_lv < 0 )
 				skill_lv = 1 + rnd()%(-skill_lv);
 
-			rate = (!sd->state.arrow_atk ? sd->autospell[i].rate : sd->autospell[i].rate / 2);
+			rate = sd->autospell[i].rate;
+			if( (attack_type&(BF_LONG|BF_MAGIC)) == BF_LONG )
+				rate >>= 1;
 
 			if( rnd()%1000 >= rate )
 				continue;
@@ -2030,7 +2032,7 @@ int skill_counter_additional_effect(struct block_list* src, struct block_list *b
 
 			rate = dstsd->autospell2[i].rate;
 			if((attack_type&(BF_LONG|BF_MAGIC)) == BF_LONG)
-				 rate >>= 1;
+				rate >>= 1;
 
 			dstsd->state.autocast = 1;
 			if(skill_isNotOk(skill_id,dstsd))
@@ -14201,8 +14203,8 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 
 	if( pc_has_permission(sd,PC_PERM_SKILL_UNCONDITIONAL) && sd->skillitem != skill_id ) {
 		//GMs don't override the skillItem check, otherwise they can use items without them being consumed! [Skotlex]
-		sd->state.arrow_atk = (skill_get_ammotype(skill_id) ? 1 : 0); //Need to do arrow state check.
-		sd->spiritball_old = sd->spiritball; //Need to do Spiritball check.
+		sd->state.arrow_atk = (skill_get_ammotype(skill_id) ? 1 : 0); //Need to do arrow state check
+		sd->spiritball_old = sd->spiritball; //Need to do Spiritball check
 		return true;
 	}
 
@@ -14248,7 +14250,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		//Consume
 		sd->itemid = sd->itemindex = -1;
 		if( skill_id == WZ_EARTHSPIKE && sc && sc->data[SC_EARTHSCROLL] && rnd()%100 > sc->data[SC_EARTHSCROLL]->val2 ) //[marquis007]
-			; //Do not consume item.
+			; //Do not consume item
 		else if( sd->status.inventory[i].expire_time == 0 )
 			pc_delitem(sd,i,1,0,0,LOG_TYPE_CONSUME); //Rental usable items are not consumed until expiration
 		return true;
@@ -14285,7 +14287,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 
 	require = skill_get_requirement(sd,skill_id,skill_lv);
 
-	//Can only update state when weapon/arrow info is checked.
+	//Can only update state when weapon/arrow info is checked
 	sd->state.arrow_atk = (require.ammo ? 1 : 0);
 
 	inf2 = skill_get_inf2(skill_id);

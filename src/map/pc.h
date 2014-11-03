@@ -654,7 +654,7 @@ enum weapon_type {
 	W_HUUMA,	//22
 	W_2HSTAFF,	//23
 	MAX_WEAPON_TYPE,
-	// dual-wield constants
+	// Dual-wield constants
 	W_DOUBLE_DD, // 2 daggers
 	W_DOUBLE_SS, // 2 swords
 	W_DOUBLE_AA, // 2 axes

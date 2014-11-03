@@ -1389,7 +1389,7 @@ bool battle_can_hit_gvg_target(struct block_list *src, struct block_list *bl, ui
 	short mob_id = ((TBL_MOB*)bl)->mob_id;
 
 	if( md && md->guardian_data ) {
-		if( mob_id == MOBID_EMPERIUM && flag&BF_SKILL && !(skill_get_inf3(skill_id)&INF3_HIT_EMP) ) //Skill immunity.
+		if( mob_id == MOBID_EMPERIUM && flag&BF_SKILL && !(skill_get_inf3(skill_id)&INF3_HIT_EMP) ) //Skill immunity
 			return false;
 		if( src->type != BL_MOB ) {
 			struct guild *g = (src->type == BL_PC ? ((TBL_PC *)src)->guild : guild_search(status_get_guild_id(src)));
@@ -3013,7 +3013,7 @@ static struct Damage battle_calc_multi_attack(struct Damage wd, struct block_lis
 		if(5 * pc_checkskill(sd,GS_CHAINACTION) > dachance && sd->weapontype1 == W_REVOLVER)
 			dachance = 5 * pc_checkskill(sd,GS_CHAINACTION);
 
-		//This checks if the generated value is within fear breeze's success chance range for the level used as set by gendetect.
+		//This checks if the generated value is within fear breeze's success chance range for the level used as set by gendetect
 		if(sc && sc->data[SC_FEARBREEZE] && generate <= gendetect[sc->data[SC_FEARBREEZE]->val1 - 1] &&
 			sd->weapontype1 == W_BOW && (i = sd->equip_index[EQI_AMMO]) > 0 && sd->inventory_data[i] &&
 			sd->status.inventory[i].amount > 1)
@@ -3030,11 +3030,11 @@ static struct Damage battle_calc_multi_attack(struct Damage wd, struct block_lis
 				sc->data[SC_FEARBREEZE]->val4 = hitnumber - 1;
 		}
 		//If the generated value is higher then Fear Breeze's success chance range,
-		//but not higher then the player's double attack success chance, then allow a double attack to happen.
+		//but not higher then the player's double attack success chance, then allow a double attack to happen
 		else if(generate < dachance)
 			hitnumber = 2;
 
-		if(hitnumber > 1) { //Needed to allow critical attacks to hit when not hitting more then once.
+		if(hitnumber > 1) { //Needed to allow critical attacks to hit when not hitting more then once
 			wd.div_ = hitnumber;
 			wd.type = DMG_MULTI_HIT;
 			if(sc && sc->data[SC_E_CHAIN])
@@ -4575,35 +4575,32 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd,struct block_list
  */
 struct Damage battle_calc_attack_plant(struct Damage wd, struct block_list *src,struct block_list *target, uint16 skill_id, uint16 skill_lv)
 {
-	struct status_data *tstatus = status_get_status_data(target);
+	struct map_session_data *sd = BL_CAST(BL_PC, src);
 	bool attack_hits = is_attack_hitting(wd, src, target, skill_id, skill_lv, false);
-	int right_element = battle_get_weapon_element(wd, src, target, skill_id, skill_lv, EQI_HAND_R, false);
-	int left_element = battle_get_weapon_element(wd, src, target, skill_id, skill_lv, EQI_HAND_L, false);
 	short mob_id = ((TBL_MOB*)target)->mob_id;
 
 	//Plants receive 1 damage when hit
-	if(attack_hits || wd.damage > 0)
-		wd.damage = wd.div_; //In some cases, right hand no need to have a weapon to increase damage
-	if(is_attack_left_handed(src, skill_id) && (attack_hits || wd.damage2 > 0))
-		wd.damage2 = wd.div_;
-	//Force left hand to 1 damage while dual wielding [helvetica]
-	if(is_attack_right_handed(src, skill_id) && is_attack_left_handed(src, skill_id))
-		wd.damage2 = 1;
-	if(attack_hits && mob_id == MOBID_EMPERIUM) {
-		if(target && map_flag_gvg2(target->m) && !battle_can_hit_gvg_target(src, target, skill_id, (skill_id) ? BF_SKILL : 0))
-			wd.damage = wd.damage2 = 0;
-		if(wd.damage > 0) {
-			wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
-			wd.damage = battle_calc_gvg_damage(src, target, wd.damage, skill_id, wd.flag);
-		} else if(wd.damage2 > 0) {
-			wd.damage2 = battle_attr_fix(src, target, wd.damage2, left_element, tstatus->def_ele, tstatus->ele_lv);
-			wd.damage2 = battle_calc_gvg_damage(src, target, wd.damage2, skill_id, wd.flag);
+	if(attack_hits || wd.damage > 0) {
+		wd.damage = 1; //In some cases, right hand no need to have a weapon to deal a damage
+		if(wd.div_ > 0)
+			wd.damage /= wd.div_;
+	}
+	if((attack_hits || wd.damage2 > 0) && is_attack_left_handed(src, skill_id)) {
+		wd.damage2 = 0; //No back hand damage on plant unless dual wielding
+		if(is_attack_right_handed(src, skill_id) && sd->status.weapon != W_KATAR)
+			wd.damage2 = 1; //Give damage on left hand while dual wielding [helvetica]	
+	}
+	if((attack_hits || wd.damage + wd.damage2 > 0) && mob_id == MOBID_EMPERIUM) {
+		if(target && map_flag_gvg2(target->m)) {
+			if(wd.damage > 0)
+				wd.damage = battle_calc_gvg_damage(src, target, wd.damage, skill_id, wd.flag);
+			else if(wd.damage2 > 0)
+				wd.damage2 = battle_calc_gvg_damage(src, target, wd.damage2, skill_id, wd.flag);
 		}
-		return wd;
 	}
 
 	//if(!(battle_config.skill_min_damage&1))
-	//Do not return if you are supposed to deal greater damage to plants than 1. [Skotlex]
+	//Do not return if you are supposed to deal greater damage to plants than 1 [Skotlex]
 	return wd;
 }
 
@@ -4625,8 +4622,7 @@ struct Damage battle_calc_attack_left_right_hands(struct Damage wd, struct block
 		if(!is_attack_right_handed(src, skill_id) && is_attack_left_handed(src, skill_id)) {
 			wd.damage = wd.damage2;
 			wd.damage2 = 0;
-		} else if(sd->status.weapon == W_KATAR && !skill_id) {
-			//Katars (offhand damage only applies to normal attacks, tested on Aegis 10.2)
+		} else if(sd->status.weapon == W_KATAR && !skill_id) { //Katars (offhand damage only applies to normal attacks, tested on Aegis 10.2)
 			skill = pc_checkskill(sd, TF_DOUBLE);
 			wd.damage2 = wd.damage * (1 + (skill * 2)) / 100;
 		} else if(is_attack_right_handed(src, skill_id) && is_attack_left_handed(src, skill_id)) { //Dual-wield
@@ -6225,8 +6221,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 	DAMAGE_DIV_FIX(ad.damage, ad.div_);
 
-	if(flag.infdef && ad.damage)
-		ad.damage = (ad.damage > 0 ? 1 : -1);
+	if(flag.infdef && ad.damage > 0)
+		ad.damage = 1;
 
 	switch(skill_id) {
 #ifdef RENEWAL
