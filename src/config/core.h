@@ -37,8 +37,8 @@
 //#define BETA_THREAD_TEST
 
 /// Uncomment to enable the Cell Stack Limit mod.
-/// It's only config is the battle_config cell_stack_limit.
-/// Only chars affected are those defined in BL_CHAR (mobs and players currently)
+/// It's only config is the battle_config custom_cell_stack_limit.
+/// Only chars affected are those defined in BL_CHAR
 //#define CELL_NOSTACK
 
 /// By default, most server-sided range checks in Aegis are of square shapes, so a monster

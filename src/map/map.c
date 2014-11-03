@@ -482,8 +482,10 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 	
 /*==========================================
  * Counts specified number of objects on given cell.
+ * flag:
+ *  0x1 - only count standing units
  *------------------------------------------*/
-int map_count_oncell(int16 m, int16 x, int16 y, int type)
+int map_count_oncell(int16 m, int16 x, int16 y, int type, int flag)
 {
 	int bx,by;
 	struct block_list *bl;
@@ -495,19 +497,38 @@ int map_count_oncell(int16 m, int16 x, int16 y, int type)
 	bx = x / BLOCK_SIZE;
 	by = y / BLOCK_SIZE;
 
-	if (type&~BL_MOB)
-		for (bl = map[m].block[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next)
-			if (bl->x == x && bl->y == y && bl->type&type)
-				count++;
+	if (type&~BL_MOB) {
+		for (bl = map[m].block[bx + by * map[m].bxs]; bl != NULL; bl = bl->next) {
+			if (bl->x == x && bl->y == y && bl->type&type) {
+				if (flag&1) {
+					struct unit_data *ud = unit_bl2ud(bl);
+
+					if (!ud || ud->walktimer == INVALID_TIMER)
+						count++;
+				} else
+					count++;
+			}
+		}
+	}
 	
-	if (type&BL_MOB)
-		for (bl = map[m].block_mob[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next)
-			if (bl->x == x && bl->y == y)
-				count++;
+	if (type&BL_MOB) {
+		for (bl = map[m].block_mob[bx + by * map[m].bxs]; bl != NULL; bl = bl->next) {
+			if (bl->x == x && bl->y == y) {
+				if (flag&1) {
+					struct unit_data *ud = unit_bl2ud(bl);
+
+					if (!ud || ud->walktimer == INVALID_TIMER)
+						count++;
+				} else
+					count++;
+			}
+		}
+	}
 
 	return count;
 }
-/*
+
+/**
  * Looks for a skill unit on a given cell
  * flag&1: runs battle_check_target check based on unit->group->target_flag
  */
@@ -1316,19 +1337,19 @@ int map_searchrandfreecell(int16 m,int16 *x,int16 *y,int stack) {
 	int free_cell,i,j;
 	int free_cells[9][2];
 
-	for(free_cell=0,i=-1;i<=1;i++){
-		if(i+*y<0 || i+*y>=map[m].ys)
+	for(free_cell = 0, i = -1; i <= 1; i++) {
+		if(i + *y < 0 || i + *y >= map[m].ys)
 			continue;
-		for(j=-1;j<=1;j++){
-			if(j+*x<0 || j+*x>=map[m].xs)
+		for(j = -1; j <= 1; j++) {
+			if(j + *x < 0 || j + *x >= map[m].xs)
 				continue;
-			if(map_getcell(m,j+*x,i+*y,CELL_CHKNOPASS) && !map_getcell(m,j+*x,i+*y,CELL_CHKICEWALL))
+			if(map_getcell(m,j + *x,i + *y,CELL_CHKNOPASS) && !map_getcell(m,j + *x,i + *y,CELL_CHKICEWALL))
 				continue;
-			//Avoid item stacking to prevent against exploits. [Skotlex]
-			if(stack && map_count_oncell(m,j+*x,i+*y, BL_ITEM) > stack)
+			//Avoid item stacking to prevent against exploits [Skotlex]
+			if(stack && map_count_oncell(m,j + *x,i + *y,BL_ITEM,0) > stack)
 				continue;
-			free_cells[free_cell][0] = j+*x;
-			free_cells[free_cell++][1] = i+*y;
+			free_cells[free_cell][0] = j + *x;
+			free_cells[free_cell++][1] = i + *y;
 		}
 	}
 	if(free_cell == 0)
@@ -1377,8 +1398,7 @@ int map_search_freecell(struct block_list *src, int16 m, int16 *x,int16 *y, int1
 		by = src->y;
 		m = src->m;
 	}
-	if (!rx && !ry) {
-		//No range? Return the target cell then....
+	if (!rx && !ry) { //No range? Return the target cell then
 		*x = bx;
 		*y = by;
 		return map_getcell(m,*x,*y,CELL_CHKREACH);
@@ -1399,16 +1419,16 @@ int map_search_freecell(struct block_list *src, int16 m, int16 *x,int16 *y, int1
 		*y = (ry >= 0) ? (rnd()%ry2 - ry + by) : (rnd()%(map[m].ys - 2) + 1);
 
 		if (*x == bx && *y == by)
-			continue; //Avoid picking the same target tile.
+			continue; //Avoid picking the same target tile
 
 		if (map_getcell(m,*x,*y,CELL_CHKREACH)) {
 			if (flag&2 && !unit_can_reach_pos(src,*x,*y,1))
 				continue;
 			if (flag&4) {
 				if (spawn >= 100)
-					return 0; //Limit of retries reached.
+					return 0; //Limit of retries reached
 				if (spawn++ < battle_config.no_spawn_on_player &&
-					map_foreachinarea(map_count_sub,m,*x-AREA_SIZE,*y-AREA_SIZE,*x+AREA_SIZE,*y+AREA_SIZE,BL_PC))
+					map_foreachinarea(map_count_sub,m,*x - AREA_SIZE,*y - AREA_SIZE,*x + AREA_SIZE,*y + AREA_SIZE,BL_PC))
 				continue;
 			}
 			return 1;
@@ -1417,6 +1437,80 @@ int map_search_freecell(struct block_list *src, int16 m, int16 *x,int16 *y, int1
 	*x = bx;
 	*y = by;
 	return 0;
+}
+
+/**
+ * Locates the closest, walkable cell with no blocks of a certain type on it
+ * Returns true on success and sets x and y to cell found.
+ * Otherwise returns false and x and y are not changed.
+ * type: Types of block to count
+ * flag: 
+ *  0x1 - only count standing units
+ */
+bool map_closest_freecell(int16 m, int16 *x, int16 *y, int type, int flag)
+{
+	uint8 dir = 6;
+	int16 tx = *x;
+	int16 ty = *y;
+	int costrange = 10;
+
+	if(!map_count_oncell(m,tx,ty,type,flag))
+		return true; //Current cell is free
+
+	//Algorithm only works up to costrange of 34
+	while(costrange <= 34) {
+		short dx = dirx[dir];
+		short dy = diry[dir];
+
+		if(dir%2 == 0 && costrange%MOVE_COST == 0) { //Linear search
+			tx = *x + dx * (costrange / MOVE_COST);
+			ty = *y + dy * (costrange / MOVE_COST);
+			if(!map_count_oncell(m,tx,ty,type,flag) && map_getcell(m,tx,ty,CELL_CHKPASS)) {
+				*x = tx;
+				*y = ty;
+				return true;
+			}
+		} else if(dir%2 == 1 && costrange%MOVE_DIAGONAL_COST == 0) { //Full diagonal search
+			tx = *x + dx * (costrange / MOVE_DIAGONAL_COST);
+			ty = *y + dy * (costrange / MOVE_DIAGONAL_COST);
+			if(!map_count_oncell(m,tx,ty,type,flag) && map_getcell(m,tx,ty,CELL_CHKPASS)) {
+				*x = tx;
+				*y = ty;
+				return true;
+			}
+		} else if(dir%2 == 1 && costrange%MOVE_COST == 4) { //One cell diagonal, rest linear (@TODO: Find a better algorithm for this)
+			tx = *x + dx * ((dir%4 == 3) ? (costrange / MOVE_COST) : 1);
+			ty = *y + dy * ((dir%4 == 1) ? (costrange / MOVE_COST) : 1);
+			if(!map_count_oncell(m,tx,ty,type,flag) && map_getcell(m,tx,ty,CELL_CHKPASS)) {
+				*x = tx;
+				*y = ty;
+				return true;
+			}
+			tx = *x + dx * ((dir%4 == 1) ? (costrange / MOVE_COST) : 1);
+			ty = *y + dy * ((dir%4 == 3) ? (costrange / MOVE_COST) : 1);
+			if(!map_count_oncell(m,tx,ty,type,flag) && map_getcell(m,tx,ty,CELL_CHKPASS)) {
+				*x = tx;
+				*y = ty;
+				return true;
+			}
+		}
+
+		//Get next direction
+		if(dir == 5) { //Diagonal search complete, repeat with higher cost range
+			if(costrange == 14)
+				costrange += 6;
+			else if(costrange == 28 || costrange >= 38)
+				costrange += 2;
+			else
+				costrange += 4;
+			dir = 6;
+		} else if(dir == 4) //Linear search complete, switch to diagonal directions
+			dir = 7;
+		else
+			dir = (dir + 2)%8;
+	}
+
+	return false;
 }
 
 /**
@@ -2730,21 +2824,23 @@ int map_getcellp(struct map_data* m,int16 x,int16 y,cell_chk cellchk)
 		//Special checks
 		case CELL_CHKPASS:
 #ifdef CELL_NOSTACK
-			if (cell.cell_bl >= battle_config.cell_stack_limit) return 0;
+			if (cell.cell_bl >= battle_config.custom_cell_stack_limit)
+				return 0;
 #endif
 		case CELL_CHKREACH:
 			return (cell.walkable);
 
 		case CELL_CHKNOPASS:
 #ifdef CELL_NOSTACK
-			if (cell.cell_bl >= battle_config.cell_stack_limit) return 1;
+			if (cell.cell_bl >= battle_config.custom_cell_stack_limit)
+				return 1;
 #endif
 		case CELL_CHKNOREACH:
 			return (!cell.walkable);
 
 		case CELL_CHKSTACK:
 #ifdef CELL_NOSTACK
-			return (cell.cell_bl >= battle_config.cell_stack_limit);
+			return (cell.cell_bl >= battle_config.custom_cell_stack_limit);
 #else
 			return 0;
 #endif

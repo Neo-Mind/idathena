@@ -7389,7 +7389,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				}
 
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				if( !map_count_oncell(src->m,x,y,BL_PC|BL_NPC|BL_MOB) &&
+				if( !map_count_oncell(src->m,x,y,BL_PC|BL_NPC|BL_MOB,0) &&
 					map_getcell(src->m,x,y,CELL_CHKREACH) && unit_movepos(src,x,y,1,0) )
 					clif_blown(src,src);
 			}
@@ -11392,7 +11392,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		//Plant Cultivation [Celest]
 		case CR_CULTIVATION:
 			if( sd ) {
-				if( map_count_oncell(src->m,x,y,BL_CHAR) > 0 ) {
+				if( map_count_oncell(src->m,x,y,BL_CHAR,0) > 0 ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					return 1;
 				}
@@ -12914,7 +12914,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			return 0; //Not all have it, eg: Traps don't have it even though they can be hit by Heaven's Drive [Skotlex]
 		ts->tick = tick + group->interval;
 		if ((skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS) && !battle_config.gx_allhit)
-			ts->tick += group->interval * (map_count_oncell(bl->m,bl->x,bl->y,BL_CHAR) - 1);
+			ts->tick += group->interval * (map_count_oncell(bl->m,bl->x,bl->y,BL_CHAR,0) - 1);
 	}
 
 	//Wall of Thorn damaged by Fire element unit [Cydh]
@@ -17462,7 +17462,7 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 		return 0;
 	}
 
-	if( !status_isdead(src) && ((TBL_PC*)src)->state.warping && !((TBL_PC*)src)->state.changemap ) {
+	if( src->type == BL_PC && !status_isdead(src) && ((TBL_PC*)src)->state.warping && !((TBL_PC*)src)->state.changemap ) {
 		switch( group->skill_id ) {
 			case BA_DISSONANCE:
 			case BA_POEMBRAGI:
