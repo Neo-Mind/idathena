@@ -753,7 +753,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 	struct map_session_data *sd = NULL;
 	struct status_change *sc;
 	struct status_change_entry *sce;
-	int div_ = d->div_, flag = d->flag;
+	int div = d->div_, flag = d->flag;
 
 	nullpo_ret(bl);
 
@@ -1304,11 +1304,11 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 	}
 
-	if( battle_config.skill_min_damage && damage > 0 && damage < div_ ) {
+	if( battle_config.skill_min_damage && damage > 0 && damage < div ) {
 		if( (flag&BF_WEAPON && battle_config.skill_min_damage&1) ||
 			(flag&BF_MAGIC && battle_config.skill_min_damage&2) ||
 			(flag&BF_MISC && battle_config.skill_min_damage&4) )
-			damage = div_;
+			damage = div;
 	}
 
 	if( bl->type == BL_MOB && !status_isdead(bl) && src != bl ) {
@@ -4098,9 +4098,8 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 	if(sd) {
 		int type;
 
-		//KO Earth Charm effect +15% wATK
 		ARR_FIND(1, 6, type, sd->talisman[type] > 0);
-		if(type == 2) {
+		if(type == 2) { //KO Earth Charm effect +15% wATK
 			ATK_ADDRATE(wd.damage, wd.damage2, 15 * sd->talisman[type]);
 #ifdef RENEWAL
 			ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, 15 * sd->talisman[type]);
@@ -4108,8 +4107,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 		}
 	}
 
-	//The following are applied on top of current damage and are stackable
-	if(sc) {
+	if(sc) { //The following are applied on top of current damage and are stackable
 #ifdef RENEWAL
 		if(sc->data[SC_WATK_ELEMENT] && skill_id != ASC_METEORASSAULT)
 			ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sc->data[SC_WATK_ELEMENT]->val2);
@@ -4578,17 +4576,15 @@ struct Damage battle_calc_attack_plant(struct Damage wd, struct block_list *src,
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 	bool attack_hits = is_attack_hitting(wd, src, target, skill_id, skill_lv, false);
 	short mob_id = ((TBL_MOB*)target)->mob_id;
+	int div = (skill_id ? skill_get_num(skill_id, skill_lv) : 1);
 
 	//Plants receive 1 damage when hit
-	if(attack_hits || wd.damage > 0) {
-		wd.damage = 1; //In some cases, right hand no need to have a weapon to deal a damage
-		if(wd.div_ > 0)
-			wd.damage /= wd.div_;
-	}
+	if(attack_hits || wd.damage > 0)
+		wd.damage = (div > 0 ? div : 0); //In some cases, right hand no need to have a weapon to deal a damage
 	if((attack_hits || wd.damage2 > 0) && is_attack_left_handed(src, skill_id)) {
 		wd.damage2 = 0; //No back hand damage on plant unless dual wielding
 		if(is_attack_right_handed(src, skill_id) && sd->status.weapon != W_KATAR)
-			wd.damage2 = 1; //Give damage on left hand while dual wielding [helvetica]	
+			wd.damage2 = 1; //Give a damage on left hand while dual wielding excluding katar weapon type [helvetica]	
 	}
 	if((attack_hits || wd.damage + wd.damage2 > 0) && mob_id == MOBID_EMPERIUM) {
 		if(target && map_flag_gvg2(target->m)) {
@@ -5597,8 +5593,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					case MG_FIREBOLT:
 					case MG_COLDBOLT:
 					case MG_LIGHTNINGBOLT:
-						if(sc && sc->data[SC_SPELLFIST] && (mflag&(BF_SHORT|BF_MAGIC)) == BF_SHORT)  {
-							//val1 = used spellfist level, val4 = used bolt level. [Rytech]
+						if(sc && sc->data[SC_SPELLFIST] && (mflag&(BF_SHORT|BF_MAGIC)) == BF_SHORT) {
+							//val1 = used spellfist level, val4 = used bolt level [Rytech]
 							skillratio += -100 + (sc->data[SC_SPELLFIST]->val1 * 50) + (sc->data[SC_SPELLFIST]->val4 * 100);
 							ad.div_ = 1; //ad mods, to make it work similar to regular hits [Xazax]
 							ad.flag = BF_SHORT|BF_WEAPON;

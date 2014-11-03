@@ -4441,7 +4441,7 @@ static inline int clif_calc_delay(int type, int div, int damage, int delay)
 /*==========================================
  * Estimates walk delay based on the damage criteria. [Skotlex]
  *------------------------------------------*/
-static int clif_calc_walkdelay(struct block_list *bl, int delay, char type, int64 damage, int div_)
+static int clif_calc_walkdelay(struct block_list *bl, int delay, char type, int64 damage, int div)
 {
 	if (type == DMG_ENDURE || type == DMG_MULTI_HIT_ENDURE || damage <= 0)
 		return 0;
@@ -4452,8 +4452,8 @@ static int clif_calc_walkdelay(struct block_list *bl, int delay, char type, int6
 	} else if (battle_config.walk_delay_rate != 100)
 		delay = delay * battle_config.walk_delay_rate / 100;
 
-	if (div_ > 1) //Multi-hit skills mean higher delays.
-		delay += battle_config.multihit_delay*(div_-1);
+	if (div > 1) //Multi-hit skills mean higher delays
+		delay += battle_config.multihit_delay * (div - 1);
 
 	return (delay > 0) ? delay : 1; //Return 1 to specify there should be no noticeable delay, but you should stop walking.
 }
