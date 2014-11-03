@@ -4576,7 +4576,7 @@ struct Damage battle_calc_attack_plant(struct Damage wd, struct block_list *src,
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 	bool attack_hits = is_attack_hitting(wd, src, target, skill_id, skill_lv, false);
 	short mob_id = ((TBL_MOB*)target)->mob_id;
-	int div = (skill_id ? skill_get_num(skill_id, skill_lv) : 1);
+	int div = (skill_id ? skill_get_num(skill_id, skill_lv) : wd.div_);
 
 	//Plants receive 1 damage when hit
 	if(attack_hits || wd.damage > 0) //In some cases, right hand no need to have a weapon to deal a damage
@@ -4892,7 +4892,7 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 				wd.div_ = (wd.div_ > 0 ? tstatus->size + 1 : -(tstatus->size + 1));
 				break;
 
-			case TF_DOUBLE: //For NPC used skill.
+			case TF_DOUBLE: //For NPC used skill
 			case GS_CHAINACTION:
 				wd.type = DMG_MULTI_HIT;
 				break;
