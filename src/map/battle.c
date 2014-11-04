@@ -2939,25 +2939,13 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 				} else
 					ShowError("0 enemies targeted by %d:%s, divide per 0 avoided!\n", skill_id, skill_get_name(skill_id));
 			}
-			if(sd) { //Add any bonuses that modify the base atk
+			if(sd) { //Add any bonuses that modify the base damage
 				int skill = 0;
 
-				if(sd->bonus.atk_rate) {
-					ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.atk_rate);
-#ifdef RENEWAL //In renewal only modify weapon ATK and equip ATK [exneval]
-					ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sd->bonus.atk_rate);
-					ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, sd->bonus.atk_rate);
-#endif
-				}
-#ifndef RENEWAL
-				//Add +crit damage bonuses here in pre-renewal mode [helvetica]
+#ifndef RENEWAL //Add +crit damage bonuses here in pre-renewal mode [helvetica]
 				if(sd->bonus.crit_atk_rate && is_attack_critical(wd, src, target, skill_id, skill_lv, false))
 					ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.crit_atk_rate);
 #endif
-				if(sc && sc->data[SC_MTF_CRIDAMAGE] && is_attack_critical(wd, src, target, skill_id, skill_lv, false)) {
-					ATK_ADDRATE(wd.damage, wd.damage2, 25);
-					RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.crit_atk_rate'
-				}
 				if(sd->status.party_id && (skill = pc_checkskill(sd, TK_POWER)) > 0) {
 					if((i = party_foreachsamemap(party_sub_count, sd, 0)) > 1) { //Exclude the player himself [Inkfish]
 						ATK_ADDRATE(wd.damage, wd.damage2, 2 * skill * i);
@@ -4085,7 +4073,7 @@ static int64 battle_calc_skill_constant_addition(struct Damage wd,struct block_l
  *	Initial refactoring by Baalberith
  *	Refined and optimized by helvetica
  */
-struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, struct block_list *target, uint16 skill_id)
+struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv)
 {
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 	struct status_change *sc = status_get_sc(src);
@@ -4320,6 +4308,10 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 		if(sc->data[SC_MTF_RANGEATK] && (wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG) {
 			ATK_ADDRATE(wd.damage, wd.damage2, 25);
 			RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.long_attack_atk_rate'
+		}
+		if(sc->data[SC_MTF_CRIDAMAGE] && is_attack_critical(wd, src, target, skill_id, skill_lv, false)) {
+			ATK_ADDRATE(wd.damage, wd.damage2, 25);
+			RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.crit_atk_rate'
 		}
 	}
 
@@ -5046,7 +5038,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		wd = battle_calc_skill_base_damage(wd, src, target, skill_id, skill_lv); //Base skill damage
 
 #ifdef RENEWAL
-		//In Renewal we only cardfix to the weapon and equip ATK
+		//In renewal we only cardfix to the weapon and equip ATK
 		//Card Fix for attacker (sd), 2 is added to the "left" flag meaning "attacker cards only"
 		wd.weaponAtk += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.weaponAtk, 2, wd.flag);
 		wd.equipAtk += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.equipAtk, 2, wd.flag);
@@ -5058,9 +5050,14 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		if(skill_id == HW_MAGICCRASHER) //Add weapon attack for MATK into Magic Crasher
 			ATK_ADD(wd.weaponAtk, wd.weaponAtk2, status_get_matk(src, 2));
 
-		//Final attack bonuses that aren't affected by cards
-		if(skill_id != CR_SHIELDBOOMERANG)
-			wd = battle_attack_sc_bonus(wd, src, target, skill_id);
+		//Final attack bonuses
+		if(skill_id != PA_SACRIFICE || skill_id != CR_SHIELDBOOMERANG || skill_id != NC_SELFDESTRUCTION) {
+			wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
+			if(sd && sd->bonus.atk_rate) { //In renewal bonus attack rate only modify weapon and equip ATK [exneval]
+				ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sd->bonus.atk_rate);
+				ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, sd->bonus.atk_rate);
+			}
+		}
 
 		switch(skill_id) {
 			case CR_ACIDDEMONSTRATION:
@@ -5099,8 +5096,12 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Custom fix for "a hole" in renewal ATK calculation [exneval]
 		}
 #else
-		if(skill_id != CR_SHIELDBOOMERANG)
-			wd = battle_attack_sc_bonus(wd, src, target, skill_id);
+		if(skill_id != PA_SACRIFICE || skill_id != LK_SPIRALPIERCE || skill_id != ML_SPIRALPIERCE ||
+			skill_id != CR_SHIELDBOOMERANG || skill_id != PA_SHIELDCHAIN || skill_id != NC_SELFDESTRUCTION) {
+			wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
+			if(sd && sd->bonus.atk_rate)
+				ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.atk_rate);
+		}
 #endif
 
 		ratio = battle_calc_attack_skill_ratio(wd, src, target, skill_id, skill_lv); //Skill level ratio
