@@ -9230,8 +9230,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					sc_start(src,bl,SC_SILENCE,100,skill_lv,shield_mdef * 30000);
 					break;
 				}
-
-				opt = rnd()%3 + 1; //Generates a number between 1 - 3. The number generated will determine which effect will be triggered.
+				opt = rnd()%3 + 1; //Generates a number between 1 - 3. The number generated will determine which effect will be triggered
 				switch( skill_lv ) {
 					case 1: { //DEF Based
 							int splashrange = 0;
@@ -9277,7 +9276,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					case 2: { //MDEF Based
 							int splashrange = 0;
 
-							if( shield_mdef )
+							if( !shield_mdef )
 								break; //Nothing should happen if the shield has no MDEF, not even displaying a message
 							if( shield_mdef >= 1 && shield_mdef <= 3 )
 								splashrange = 1;
@@ -9306,7 +9305,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						}
 						break;
 					case 3: //Refine Based
-						if( shield_refine )
+						if( !shield_refine )
 							break; //Nothing should happen if the shield has no refine, not even displaying a message
 						switch( opt ) {
 							case 1: //Allows you to break armor at a 100% rate when you do damage

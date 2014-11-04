@@ -2393,7 +2393,7 @@ void pc_bonus(struct map_session_data *sd, int type, int val)
 #else
 				status->mdef = cap_value(bonus, CHAR_MIN, CHAR_MAX);
 #endif
-				if( sd->state.lr_flag == 3 ) //Shield, used for royal guard
+				if(sd->state.lr_flag == 3) //Shield, used for royal guard
 					sd->bonus.shieldmdef += bonus;
 			}
 			break;

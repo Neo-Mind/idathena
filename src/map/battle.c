@@ -1746,7 +1746,7 @@ static int64 battle_calc_base_damage(struct status_data *status, struct weapon_a
  *	Initial refactoring by Baalberith
  *	Refined and optimized by helvetica
  */
-void battle_consume_ammo(TBL_PC*sd, uint16 skill_id, uint16 skill_lv)
+void battle_consume_ammo(TBL_PC *sd, uint16 skill_id, uint16 skill_lv)
 {
 	int qty = 1;
 
@@ -6601,34 +6601,35 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			md.damage = md.damage * i / 100;
 	}
 
-	if(md.damage < 0)
-		md.damage = 0;
-	else if(md.damage && (tstatus->mode&MD_PLANT)) {
-		switch(skill_id) {
-#ifdef RENEWAL
-			case NJ_ISSEN: //Final Strike will MISS on "plant"-type mobs [helvetica]
-				md.damage = 0;
-				md.dmg_lv = ATK_FLEE;
-				break;
-#endif
-			case HT_LANDMINE:
-			case MA_LANDMINE:
-			case HT_BLASTMINE:
-			case HT_CLAYMORETRAP:
-			case RA_CLUSTERBOMB:
-#ifdef RENEWAL
-				break; //This trap will do full damage to plants
-#endif
-			default:
-				md.damage = 1;
-				break;
-		}
-	} else if(target->type == BL_SKILL) {
-		TBL_SKILL *su = ((TBL_SKILL*)target);
+	if(md.damage > 0) {
+		int div = skill_get_num(skill_id, skill_lv);
 
-		if(su && su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
-			md.damage = 1;
-	}
+		if(tstatus->mode&MD_PLANT) {
+			switch(skill_id) {
+#ifdef RENEWAL
+				case NJ_ISSEN: //Final Strike will MISS on "plant"-type mobs [helvetica]
+					md.damage = 0;
+					md.dmg_lv = ATK_FLEE;
+					break;
+				case HT_LANDMINE:
+				case MA_LANDMINE:
+				case HT_BLASTMINE:
+				case HT_CLAYMORETRAP:
+				case RA_CLUSTERBOMB:
+					break; //This trap will do full damage to plants
+#endif
+				default:
+					md.damage = (div > 0 ? div : 0);
+					break;
+			}
+		} else if(target->type == BL_SKILL) {
+			TBL_SKILL *su = ((TBL_SKILL*)target);
+
+			if(su && su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
+				md.damage = (div > 0 ? div : 0);
+		}
+	} else
+		md.damage = 0;
 
 	if(!(nk&NK_NO_ELEFIX) && md.damage > 0)
 		md.damage = battle_attr_fix(src,target,md.damage,s_ele,tstatus->def_ele,tstatus->ele_lv);
