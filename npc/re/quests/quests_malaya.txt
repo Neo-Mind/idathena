@@ -6560,7 +6560,7 @@ OnTimer600000:
 	end;
 
 OnMyMobDead:
-	if (mobcount("ma_fild01","malaya_bakonawa::OnMyMobDead") < 20 && malaya_bakona > 0 && malaya_bakona < 5 )
+	if (mobcount("ma_fild01","malaya_bakonawa::OnMyMobDead") < 20 && malaya_bakona2 > 0 && malaya_bakona2 < 5 )
 		getitem 6520,1; //Lost_Belongings
 	end;
 }

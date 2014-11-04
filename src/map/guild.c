@@ -558,6 +558,7 @@ int guild_recv_info(struct guild *sg)
 	// Occurrence of an event
 	if( guild_infoevent_db->remove(guild_infoevent_db,db_i2key(sg->guild_id),&data) ) {
 		struct eventlist *ev = db_data2ptr(&data), *ev2;
+
 		while( ev ) {
 			npc_event_do(ev->name);
 			ev2 = ev->next;

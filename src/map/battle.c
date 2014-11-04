@@ -3373,7 +3373,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 				skillratio += 20 * skill_lv;
 			break;
 		case GS_RAPIDSHOWER:
-			skillratio += 10 * skill_lv;
+			skillratio += 400 + 50 * skill_lv;
 			break;
 		case GS_DESPERADO:
 			skillratio += 50 * (skill_lv - 1);
@@ -4584,6 +4584,12 @@ struct Damage battle_calc_attack_plant(struct Damage wd, struct block_list *src,
 			wd.damage2 = battle_calc_gvg_damage(src, target, wd.damage2, skill_id, wd.flag);
 		}
 	}
+#ifndef RENEWAL
+	if(skill_id == NJ_ISSEN) {
+		wd.damage = 0;
+		wd.dmg_lv = ATK_FLEE;
+	}
+#endif
 
 	//if(!(battle_config.skill_min_damage&1))
 	//Do not return if you are supposed to deal greater damage to plants than 1 [Skotlex]
@@ -6216,8 +6222,11 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 	DAMAGE_DIV_FIX(ad.damage, ad.div_);
 
-	if(flag.infdef && ad.damage > 0)
-		ad.damage = 1;
+	if(flag.infdef && ad.damage > 0) {
+		int div = skill_get_num(skill_id, skill_lv);
+
+		ad.damage = (div > 0 ? div : 0);
+	}
 
 	switch(skill_id) {
 #ifdef RENEWAL
@@ -6596,10 +6605,12 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		md.damage = 0;
 	else if(md.damage && (tstatus->mode&MD_PLANT)) {
 		switch(skill_id) {
+#ifdef RENEWAL
 			case NJ_ISSEN: //Final Strike will MISS on "plant"-type mobs [helvetica]
 				md.damage = 0;
 				md.dmg_lv = ATK_FLEE;
 				break;
+#endif
 			case HT_LANDMINE:
 			case MA_LANDMINE:
 			case HT_BLASTMINE:

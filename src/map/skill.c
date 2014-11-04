@@ -9309,18 +9309,18 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						if( shield_refine )
 							break; //Nothing should happen if the shield has no refine, not even displaying a message
 						switch( opt ) {
-							case 1: //Allows you to break armor at a 100% rate when you do damage.
+							case 1: //Allows you to break armor at a 100% rate when you do damage
 								sc_start(src,bl,SC_SHIELDSPELL_REF,100,opt,shield_refine * 30000);
 								break;
-							case 2: //Increases DEF and Status Effect resistance depending on Shield refine rate.
+							case 2: //Increases DEF and Status Effect resistance depending on Shield refine rate
 #ifdef RENEWAL
 								sc_start4(src,bl,SC_SHIELDSPELL_REF,100,opt,shield_refine * 10 * status_get_lv(src) / 100,(shield_refine * 2) + (sstatus->luk / 10),0,shield_refine * 20000);
 #else
 								sc_start4(src,bl,SC_SHIELDSPELL_REF,100,opt,shield_refine,(shield_refine * 2) + (sstatus->luk / 10),0,shield_refine * 20000);
 #endif
 								break;
-							case 3: //Recovers HP depending on Shield refine rate.
-								sc_start(src,bl,SC_SHIELDSPELL_REF,100,opt,INVALID_TIMER); //HP Recovery.
+							case 3: //Recovers HP depending on Shield refine rate
+								sc_start(src,bl,SC_SHIELDSPELL_REF,100,opt,INVALID_TIMER); //HP Recovery
 								status_heal(bl,sstatus->max_hp * ((status_get_lv(src) / 10) + (shield_refine + 1)) / 100,0,2);
 								status_change_end(bl,SC_SHIELDSPELL_REF,INVALID_TIMER);
 								break;
