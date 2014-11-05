@@ -1304,13 +1304,6 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 	}
 
-	if( battle_config.skill_min_damage && damage > 0 && damage < div ) {
-		if( (flag&BF_WEAPON && battle_config.skill_min_damage&1) ||
-			(flag&BF_MAGIC && battle_config.skill_min_damage&2) ||
-			(flag&BF_MISC && battle_config.skill_min_damage&4) )
-			damage = div;
-	}
-
 	if( bl->type == BL_MOB && !status_isdead(bl) && src != bl ) {
 		if( damage > 0 )
 			mobskill_event((TBL_MOB*)bl,src,gettick(),flag);
@@ -1339,6 +1332,16 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 	}
 
 	damage = max(damage,1); //Min 1 damage
+
+	if( battle_config.skill_min_damage && damage > 0 ) {
+		if( (flag&BF_WEAPON && battle_config.skill_min_damage&1) ||
+			(flag&BF_MAGIC && battle_config.skill_min_damage&2) ||
+			(flag&BF_MISC && battle_config.skill_min_damage&4) ) {
+			int div_ = (skill_id ? skill_get_num(skill_id,skill_lv) : div);
+
+			damage = (div_ > 0 ? div_ : 0); //Damage that just look like multiple hits but are actually one won't do any damage to plants
+		}
+	}
 	return damage;
 }
 
@@ -4555,103 +4558,6 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd,struct block_list
 	return wd;
 }
 
-/*=================================================================================
- * "Plant"-type (mobs that only take 1 damage from all sources) damage calculation
- *---------------------------------------------------------------------------------
- * Credits:
- *	Original coder Skotlex
- *	Initial refactoring by Baalberith
- *	Refined and optimized by helvetica
- */
-struct Damage battle_calc_attack_plant(struct Damage wd, struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv)
-{
-	struct map_session_data *sd = BL_CAST(BL_PC, src);
-	bool attack_hits = is_attack_hitting(wd, src, target, skill_id, skill_lv, false);
-	short mob_id = ((TBL_MOB*)target)->mob_id;
-	int div = (skill_id ? skill_get_num(skill_id, skill_lv) : wd.div_);
-
-	//Plants receive 1 damage when hit
-	if(attack_hits || wd.damage > 0) //In some cases, right hand no need to have a weapon to deal a damage
-		wd.damage = (div > 0 ? div : 0); //Damage that just look like multiple hits but are actually one won't do any damage to plants
-	if((attack_hits || wd.damage2 > 0) && is_attack_left_handed(src, skill_id)) {
-		wd.damage2 = 0; //No back hand damage on plant unless dual wielding
-		if(is_attack_right_handed(src, skill_id) && sd->status.weapon != W_KATAR)
-			wd.damage2 = 1; //Give a damage on left hand while dual wielding, katar weapon type not included
-	}
-	if((attack_hits || wd.damage + wd.damage2 > 0) && mob_id == MOBID_EMPERIUM) {
-		if(map_flag_gvg2(target->m)) {
-			wd.damage = battle_calc_gvg_damage(src, target, wd.damage, skill_id, wd.flag);
-			wd.damage2 = battle_calc_gvg_damage(src, target, wd.damage2, skill_id, wd.flag);
-		}
-	}
-#ifndef RENEWAL
-	if(skill_id == NJ_ISSEN) {
-		wd.damage = 0;
-		wd.dmg_lv = ATK_FLEE;
-	}
-#endif
-
-	//if(!(battle_config.skill_min_damage&1))
-	//Do not return if you are supposed to deal greater damage to plants than 1 [Skotlex]
-	return wd;
-}
-
-/*========================================================================================
- * Perform left/right hand weapon damage calculation based on previously calculated damage
- *----------------------------------------------------------------------------------------
- * Credits:
- *	Original coder Skotlex
- *	Initial refactoring by Baalberith
- *	Refined and optimized by helvetica
- */
-struct Damage battle_calc_attack_left_right_hands(struct Damage wd, struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv)
-{
-	struct map_session_data *sd = BL_CAST(BL_PC, src);
-
-	if(sd) {
-		uint16 skill;
-
-		if(!is_attack_right_handed(src, skill_id) && is_attack_left_handed(src, skill_id)) {
-			wd.damage = wd.damage2;
-			wd.damage2 = 0;
-		} else if(sd->status.weapon == W_KATAR && !skill_id) { //Katars (offhand damage only applies to normal attacks, tested on Aegis 10.2)
-			skill = pc_checkskill(sd, TF_DOUBLE);
-			wd.damage2 = wd.damage * (1 + (skill * 2)) / 100;
-		} else if(is_attack_right_handed(src, skill_id) && is_attack_left_handed(src, skill_id)) { //Dual-wield
-			if(wd.damage) {
-				if((sd->class_&MAPID_BASEMASK) == MAPID_THIEF) {
-					skill = pc_checkskill(sd,AS_RIGHT);
-					ATK_RATER(wd.damage, 50 + (skill * 10));
-				} else if((sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) {
-					skill = pc_checkskill(sd,KO_RIGHT);
-					ATK_RATER(wd.damage, 70 + (skill * 10));
-				}
-				if(wd.damage < 1)
-					wd.damage = 1;
-			}
-			if(wd.damage2) {
-				if((sd->class_&MAPID_BASEMASK) == MAPID_THIEF) {
-					skill = pc_checkskill(sd,AS_LEFT);
-					ATK_RATEL(wd.damage2, 30 + (skill * 10));
-				} else if((sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) {
-					skill = pc_checkskill(sd,KO_LEFT);
-					ATK_RATEL(wd.damage2, 50 + (skill * 10));
-				}
-				if(wd.damage2 < 1)
-					wd.damage2 = 1;
-			}
-		}
-	}
-
-	if(!is_attack_right_handed(src, skill_id) && !is_attack_left_handed(src, skill_id) && wd.damage)
-		wd.damage = 0;
-
-	if(!is_attack_left_handed(src, skill_id) && wd.damage2)
-		wd.damage2 = 0;
-
-	return wd;
-}
-
 /**
  * Check if bl is devoted by someone
  * @param bl
@@ -4726,6 +4632,97 @@ struct Damage battle_calc_attack_gvg_bg(struct Damage wd, struct block_list *src
 			wd.damage -= wd.damage2;
 		}
 	}
+	return wd;
+}
+
+/*=================================================================================
+ * "Plant"-type (mobs that only take 1 damage from all sources) damage calculation
+ *---------------------------------------------------------------------------------
+ * Credits:
+ *	Original coder Skotlex
+ *	Initial refactoring by Baalberith
+ *	Refined and optimized by helvetica
+ */
+struct Damage battle_calc_attack_plant(struct Damage wd, struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv)
+{
+	struct map_session_data *sd = BL_CAST(BL_PC, src);
+	bool attack_hits = is_attack_hitting(wd, src, target, skill_id, skill_lv, false);
+	short mob_id = ((TBL_MOB*)target)->mob_id;
+
+	//Plants receive 1 damage when hit
+	if(attack_hits || wd.damage > 0) //In some cases, right hand no need to have a weapon to deal a damage
+		wd.damage = 1;
+	if((attack_hits || wd.damage2 > 0) && is_attack_left_handed(src, skill_id)) {
+		wd.damage2 = 0; //No back hand damage on plant unless dual wielding
+		if(is_attack_right_handed(src, skill_id) && sd->status.weapon != W_KATAR)
+			wd.damage2 = 1; //Give a damage on left hand while dual wielding, katar weapon type not included
+	}
+#ifndef RENEWAL
+	if(skill_id == NJ_ISSEN) {
+		wd.damage = wd.damage2 = 0;
+		wd.dmg_lv = ATK_FLEE;
+	}
+#endif
+	wd.damage = battle_calc_damage(src, target, &wd, wd.damage, skill_id, skill_lv);
+	if(map_flag_gvg2(target->m))
+		wd.damage = battle_calc_gvg_damage(src, target, wd.damage, skill_id, wd.flag);
+
+	return wd;
+}
+
+/*========================================================================================
+ * Perform left/right hand weapon damage calculation based on previously calculated damage
+ *----------------------------------------------------------------------------------------
+ * Credits:
+ *	Original coder Skotlex
+ *	Initial refactoring by Baalberith
+ *	Refined and optimized by helvetica
+ */
+struct Damage battle_calc_attack_left_right_hands(struct Damage wd, struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv)
+{
+	struct map_session_data *sd = BL_CAST(BL_PC, src);
+
+	if(sd) {
+		uint16 skill;
+
+		if(!is_attack_right_handed(src, skill_id) && is_attack_left_handed(src, skill_id)) {
+			wd.damage = wd.damage2;
+			wd.damage2 = 0;
+		} else if(sd->status.weapon == W_KATAR && !skill_id) { //Katars (offhand damage only applies to normal attacks, tested on Aegis 10.2)
+			skill = pc_checkskill(sd, TF_DOUBLE);
+			wd.damage2 = wd.damage * (1 + (skill * 2)) / 100;
+		} else if(is_attack_right_handed(src, skill_id) && is_attack_left_handed(src, skill_id)) { //Dual-wield
+			if(wd.damage) {
+				if((sd->class_&MAPID_BASEMASK) == MAPID_THIEF) {
+					skill = pc_checkskill(sd,AS_RIGHT);
+					ATK_RATER(wd.damage, 50 + (skill * 10));
+				} else if((sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) {
+					skill = pc_checkskill(sd,KO_RIGHT);
+					ATK_RATER(wd.damage, 70 + (skill * 10));
+				}
+				if(wd.damage < 1)
+					wd.damage = 1;
+			}
+			if(wd.damage2) {
+				if((sd->class_&MAPID_BASEMASK) == MAPID_THIEF) {
+					skill = pc_checkskill(sd,AS_LEFT);
+					ATK_RATEL(wd.damage2, 30 + (skill * 10));
+				} else if((sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) {
+					skill = pc_checkskill(sd,KO_LEFT);
+					ATK_RATEL(wd.damage2, 50 + (skill * 10));
+				}
+				if(wd.damage2 < 1)
+					wd.damage2 = 1;
+			}
+		}
+	}
+
+	if(!is_attack_right_handed(src, skill_id) && !is_attack_left_handed(src, skill_id) && wd.damage)
+		wd.damage = 0;
+
+	if(!is_attack_left_handed(src, skill_id) && wd.damage2)
+		wd.damage2 = 0;
+
 	return wd;
 }
 
@@ -6222,11 +6219,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 	DAMAGE_DIV_FIX(ad.damage, ad.div_);
 
-	if(flag.infdef && ad.damage > 0) {
-		int div = skill_get_num(skill_id, skill_lv);
-
-		ad.damage = (div > 0 ? div : 0);
-	}
+	if(flag.infdef && ad.damage > 0)
+		ad.damage = 1;
 
 	switch(skill_id) {
 #ifdef RENEWAL
@@ -6602,8 +6596,6 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	}
 
 	if(md.damage > 0) {
-		int div = skill_get_num(skill_id, skill_lv);
-
 		if(tstatus->mode&MD_PLANT) {
 			switch(skill_id) {
 #ifdef RENEWAL
@@ -6619,14 +6611,14 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 					break; //This trap will do full damage to plants
 #endif
 				default:
-					md.damage = (div > 0 ? div : 0);
+					md.damage = 1;
 					break;
 			}
 		} else if(target->type == BL_SKILL) {
 			TBL_SKILL *su = ((TBL_SKILL*)target);
 
 			if(su && su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
-				md.damage = (div > 0 ? div : 0);
+				md.damage = 1;
 		}
 	} else
 		md.damage = 0;
