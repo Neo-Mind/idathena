@@ -1331,17 +1331,17 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 	}
 
-	damage = max(damage,1); //Min 1 damage
-
 	if( battle_config.skill_min_damage && damage > 0 ) {
 		if( (flag&BF_WEAPON && battle_config.skill_min_damage&1) ||
 			(flag&BF_MAGIC && battle_config.skill_min_damage&2) ||
 			(flag&BF_MISC && battle_config.skill_min_damage&4) ) {
 			int div_ = (skill_id ? skill_get_num(skill_id,skill_lv) : div);
 
-			damage = (div_ > 0 ? div_ : 0); //Damage that just look like multiple hits but are actually one won't do any damage to plants
+			return (div_ > 0 ? div_ : 0); //Damage that just look like multiple hits but are actually one won't do any damage to plants
 		}
 	}
+
+	damage = max(damage,1); //Min 1 damage
 	return damage;
 }
 
