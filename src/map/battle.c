@@ -4558,83 +4558,6 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd,struct block_list
 	return wd;
 }
 
-/**
- * Check if bl is devoted by someone
- * @param bl
- * @return 'd_bl' if devoted or NULL if not devoted
- */
-struct block_list *battle_check_devotion(struct block_list *bl) {
-	struct block_list *d_bl = NULL;
-
-	if(battle_config.devotion_rdamage && battle_config.devotion_rdamage > rnd()%100) {
-		struct status_change *sc = status_get_sc(bl);
-
-		if(sc && sc->data[SC_DEVOTION])
-			d_bl = map_id2bl(sc->data[SC_DEVOTION]->val1);
-	}
-	return d_bl;
-}
-
-/*==========================================
- * BG/GvG attack modifiers
- *------------------------------------------
- * Credits:
- *	Original coder Skotlex
- *	Initial refactoring by Baalberith
- *	Refined and optimized by helvetica
- */
-struct Damage battle_calc_attack_gvg_bg(struct Damage wd, struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv)
-{
-	if( wd.damage + wd.damage2 ) { //There is a total damage value
-		if( src != target && //Don't reflect your own damage (Grand Cross)
-			(!skill_id || skill_id ||
-			(src->type == BL_SKILL && (skill_id == SG_SUN_WARM || skill_id == SG_MOON_WARM || skill_id == SG_STAR_WARM))) ) {
-				int64 damage = wd.damage + wd.damage2, rdamage = 0;
-				struct map_session_data *tsd = BL_CAST(BL_PC, target);
-				struct status_data *sstatus = status_get_status_data(src);
-				int tick = gettick(), rdelay = 0;
-
-				rdamage = battle_calc_return_damage(target, src, &damage, wd.flag, skill_id, false);
-				if( rdamage > 0 ) { //Item reflect gets calculated before any mapflag reducing is applicated
-					struct block_list *d_bl = battle_check_devotion(src);
-
-					rdelay = clif_damage(src, (!d_bl) ? src : d_bl, tick, wd.amotion, sstatus->dmotion, rdamage, 1, DMG_ENDURE, 0);
-					if( tsd )
-						battle_drain(tsd, src, rdamage, rdamage, sstatus->race, sstatus->class_);
-					//Use Reflect Shield to signal this kind of skill trigger. [Skotlex]
-					battle_delay_damage(tick, wd.amotion, target, (!d_bl) ? src : d_bl, 0, CR_REFLECTSHIELD, 0, rdamage, ATK_DEF, rdelay, true);
-					skill_additional_effect(target, (!d_bl) ? src : d_bl, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);
-				}
-		}
-		if( !wd.damage2 ) {
-			wd.damage = battle_calc_damage(src, target, &wd, wd.damage, skill_id, skill_lv);
-			if( map_flag_gvg2(target->m) )
-				wd.damage = battle_calc_gvg_damage(src, target, wd.damage, skill_id, wd.flag);
-			else if( map[target->m].flag.battleground )
-				wd.damage = battle_calc_bg_damage(src, target, wd.damage, skill_id, wd.flag);
-		} else if( !wd.damage ) {
-			wd.damage2 = battle_calc_damage(src, target, &wd, wd.damage2, skill_id, skill_lv);
-			if( map_flag_gvg2(target->m) )
-				wd.damage2 = battle_calc_gvg_damage(src, target, wd.damage2, skill_id, wd.flag);
-			else if( map[target->m].flag.battleground )
-				wd.damage2 = battle_calc_bg_damage(src, target, wd.damage2, skill_id, wd.flag);
-		} else {
-			int64 d1 = wd.damage + wd.damage2, d2 = wd.damage2;
-
-			wd.damage = battle_calc_damage(src, target, &wd, d1, skill_id, skill_lv);
-			if( map_flag_gvg2(target->m) )
-				wd.damage = battle_calc_gvg_damage(src, target, wd.damage, skill_id, wd.flag);
-			else if( map[target->m].flag.battleground )
-				wd.damage = battle_calc_bg_damage(src, target, wd.damage, skill_id, wd.flag);
-			wd.damage2 = d2 * 100 / d1 * wd.damage / 100;
-			if( wd.damage > 1 && wd.damage2 < 1 )
-				wd.damage2 = 1;
-			wd.damage -= wd.damage2;
-		}
-	}
-	return wd;
-}
-
 /*=================================================================================
  * "Plant"-type (mobs that only take 1 damage from all sources) damage calculation
  *---------------------------------------------------------------------------------
@@ -4723,6 +4646,83 @@ struct Damage battle_calc_attack_left_right_hands(struct Damage wd, struct block
 	if(!is_attack_left_handed(src, skill_id) && wd.damage2)
 		wd.damage2 = 0;
 
+	return wd;
+}
+
+/**
+ * Check if bl is devoted by someone
+ * @param bl
+ * @return 'd_bl' if devoted or NULL if not devoted
+ */
+struct block_list *battle_check_devotion(struct block_list *bl) {
+	struct block_list *d_bl = NULL;
+
+	if(battle_config.devotion_rdamage && battle_config.devotion_rdamage > rnd()%100) {
+		struct status_change *sc = status_get_sc(bl);
+
+		if(sc && sc->data[SC_DEVOTION])
+			d_bl = map_id2bl(sc->data[SC_DEVOTION]->val1);
+	}
+	return d_bl;
+}
+
+/*==========================================
+ * BG/GvG attack modifiers
+ *------------------------------------------
+ * Credits:
+ *	Original coder Skotlex
+ *	Initial refactoring by Baalberith
+ *	Refined and optimized by helvetica
+ */
+struct Damage battle_calc_attack_gvg_bg(struct Damage wd, struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv)
+{
+	if( wd.damage + wd.damage2 ) { //There is a total damage value
+		if( src != target && //Don't reflect your own damage (Grand Cross)
+			(!skill_id || skill_id ||
+			(src->type == BL_SKILL && (skill_id == SG_SUN_WARM || skill_id == SG_MOON_WARM || skill_id == SG_STAR_WARM))) ) {
+				int64 damage = wd.damage + wd.damage2, rdamage = 0;
+				struct map_session_data *tsd = BL_CAST(BL_PC, target);
+				struct status_data *sstatus = status_get_status_data(src);
+				int tick = gettick(), rdelay = 0;
+
+				rdamage = battle_calc_return_damage(target, src, &damage, wd.flag, skill_id, false);
+				if( rdamage > 0 ) { //Item reflect gets calculated before any mapflag reducing is applicated
+					struct block_list *d_bl = battle_check_devotion(src);
+
+					rdelay = clif_damage(src, (!d_bl) ? src : d_bl, tick, wd.amotion, sstatus->dmotion, rdamage, 1, DMG_ENDURE, 0);
+					if( tsd )
+						battle_drain(tsd, src, rdamage, rdamage, sstatus->race, sstatus->class_);
+					//Use Reflect Shield to signal this kind of skill trigger. [Skotlex]
+					battle_delay_damage(tick, wd.amotion, target, (!d_bl) ? src : d_bl, 0, CR_REFLECTSHIELD, 0, rdamage, ATK_DEF, rdelay, true);
+					skill_additional_effect(target, (!d_bl) ? src : d_bl, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);
+				}
+		}
+		if( !wd.damage2 ) {
+			wd.damage = battle_calc_damage(src, target, &wd, wd.damage, skill_id, skill_lv);
+			if( map_flag_gvg2(target->m) )
+				wd.damage = battle_calc_gvg_damage(src, target, wd.damage, skill_id, wd.flag);
+			else if( map[target->m].flag.battleground )
+				wd.damage = battle_calc_bg_damage(src, target, wd.damage, skill_id, wd.flag);
+		} else if( !wd.damage ) {
+			wd.damage2 = battle_calc_damage(src, target, &wd, wd.damage2, skill_id, skill_lv);
+			if( map_flag_gvg2(target->m) )
+				wd.damage2 = battle_calc_gvg_damage(src, target, wd.damage2, skill_id, wd.flag);
+			else if( map[target->m].flag.battleground )
+				wd.damage2 = battle_calc_bg_damage(src, target, wd.damage2, skill_id, wd.flag);
+		} else {
+			int64 d1 = wd.damage + wd.damage2, d2 = wd.damage2;
+
+			wd.damage = battle_calc_damage(src, target, &wd, d1, skill_id, skill_lv);
+			if( map_flag_gvg2(target->m) )
+				wd.damage = battle_calc_gvg_damage(src, target, wd.damage, skill_id, wd.flag);
+			else if( map[target->m].flag.battleground )
+				wd.damage = battle_calc_bg_damage(src, target, wd.damage, skill_id, wd.flag);
+			wd.damage2 = d2 * 100 / d1 * wd.damage / 100;
+			if( wd.damage > 1 && wd.damage2 < 1 )
+				wd.damage2 = 1;
+			wd.damage -= wd.damage2;
+		}
+	}
 	return wd;
 }
 
