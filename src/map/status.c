@@ -7009,14 +7009,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			tick_def2 = b_status->int_ * 50 + SCDEF_LVL_CAP(bl,150) * 50; //kRO balance update lists this formula
 			break;
 		case SC_NETHERWORLD:
-			tick_def2 = SCDEF_LVL_CAP(bl,150) * 20 +
-				(sd ? (sd->status.job_level > 50 ? 50 : sd->status.job_level) * 100 : 0);
-			break;
-		case SC_MAGICMIRROR:
-		case SC_ARMORCHANGE:
-			if (sd) //Duration greatly reduced for players
-				tick /= 15;
-			sc_def2 = SCDEF_LVL_CAP(bl,99) * 20 + status->vit * 25 + status->agi * 10; //Lineal Reduction of Rate
+			tick_def2 = SCDEF_LVL_CAP(bl,150) * 20 + (sd ? (sd->status.job_level > 50 ? 50 : sd->status.job_level) * 100 : 0);
 			break;
 		case SC_MARSHOFABYSS: //5 second (Fixed) + 25 second - { (INT + LUK) / 20 second }
 			tick_def2 = (status->int_ + status->luk) * 50;
@@ -10772,8 +10765,8 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				}
 			break;
 		case SC_CURSEDCIRCLE_ATKER:
-			if (sce->val2) //Used the default area size cause there is a chance the caster could knock back and can't clear the target.
-				map_foreachinrange(status_change_timer_sub,bl,battle_config.area_size,BL_CHAR,bl,sce,SC_CURSEDCIRCLE_TARGET,gettick());
+			if (sce->val2) //Used the default area size cause there is a chance the caster could knock back and can't clear the target
+				map_foreachinrange(status_change_timer_sub,bl,AREA_SIZE,BL_CHAR,bl,sce,SC_CURSEDCIRCLE_TARGET,gettick());
 			break;
 		case SC_RAISINGDRAGON:
 			if (sd && sce->val2 && !pc_isdead(sd)) {

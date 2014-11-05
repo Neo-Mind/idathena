@@ -78,10 +78,10 @@
 7056	// Payroll_Of_Kafra
 //11557
 //11558
-//6607
+6607	// Temporal_Crystal
 6608	// Coagulated_Spell
-//6609
-//6610
+6609	// Glast_Decayed_Nail
+6610	// Glast_Horrendous_Mouth
 //6611
 //6612
 //6613

@@ -187,3 +187,21 @@ gl_step,0,0,0,0	monster	Wind Ghost	1263,100,5000,0,0
 gl_step,0,0,0,0	monster	Raydric Archer	1276,10,5000,0,0
 gl_step,0,0,0,0	monster	Mimic	1191,5,5000,0,0
 gl_step,0,0,0,0	monster	Solid Wind Ghost	2614,2,300000,0,0
+
+//==================================================
+// gl_cas02_ - Nightmare Mode 2f
+//==================================================
+gl_cas02_,0,0,0,0	monster	Evil Druid (Nightmare)	2480,20,5000,0,0
+gl_cas02_,0,0,0,0	monster	Chimera (Nightmare)	2485,10,5000,0,0
+gl_cas02_,0,0,0,0	monster	Mimic (Nightmare)	2479,40,5000,0,0
+gl_cas02_,0,0,0,0	monster	Rideword (Nightmare)	2478,40,5000,0,0
+gl_cas02_,0,0,0,0	monster	Wanderer (Nightmare)	2477,120,5000,0,0
+gl_cas02_,0,0,0,0	monster	Baphomet (Nightmare)	2483,1,7200000,0,0
+
+
+//==================================================
+// gl_chyard_ - Nightmare Mode Churchyard
+//==================================================
+gl_chyard_,0,0,0,0	monster	Wraith Dead (Nightmare)	2481,200,5000,0,0
+gl_chyard_,0,0,0,0	monster	Evil Druid (Nightmare)	2480,5,60000,0,0
+gl_chyard_,0,0,0,0	monster	Mimic (Nightmare)	2479,5,60000,0,0
