@@ -5074,6 +5074,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 			status_change_end(bl,SC_MELODYOFSINK,INVALID_TIMER);
 			status_change_end(bl,SC_BEYONDOFWARCRY,INVALID_TIMER);
 			status_change_end(bl,SC_UNLIMITEDHUMMINGVOICE,INVALID_TIMER);
+			status_change_end(bl,SC_FRIGG_SONG,INVALID_TIMER);
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag|SD_ANIMATION);
 			break;
 
@@ -5120,7 +5121,8 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 				tsc->data[SC_VOICEOFSIREN] || tsc->data[SC_DEEPSLEEP] || tsc->data[SC_SIRCLEOFNATURE] || 
 				tsc->data[SC_GLOOMYDAY] || tsc->data[SC_GLOOMYDAY_SK] || tsc->data[SC_SONGOFMANA] || 
 				tsc->data[SC_DANCEWITHWUG] || tsc->data[SC_SATURDAYNIGHTFEVER] || tsc->data[SC_LERADSDEW] || 
-				tsc->data[SC_MELODYOFSINK] || tsc->data[SC_BEYONDOFWARCRY] || tsc->data[SC_UNLIMITEDHUMMINGVOICE]) && 
+				tsc->data[SC_MELODYOFSINK] || tsc->data[SC_BEYONDOFWARCRY] || tsc->data[SC_UNLIMITEDHUMMINGVOICE] ||
+				tsc->data[SC_FRIGG_SONG]) &&
 				rnd()%100 < 4 * skill_lv + 2 * (sd ? pc_checkskill(sd,WM_LESSON) : 1) + 10 * battle_calc_chorusbonus(sd,0))
 			{
 				skill_attack(BF_MISC,src,src,bl,skill_id,skill_lv,tick,flag);
@@ -5143,6 +5145,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 				status_change_end(bl,SC_MELODYOFSINK,INVALID_TIMER);
 				status_change_end(bl,SC_BEYONDOFWARCRY,INVALID_TIMER);
 				status_change_end(bl,SC_UNLIMITEDHUMMINGVOICE,INVALID_TIMER);
+				status_change_end(bl,SC_FRIGG_SONG,INVALID_TIMER);
 			}
 			break;
 
@@ -16813,10 +16816,10 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 				case UNT_GRAVITATION:	case UNT_MAGNUS:	case UNT_THORNS_TRAP:
 				case UNT_WALLOFTHORN:	case UNT_DEMONIC_FIRE:	case UNT_HELLS_PLANT:
 				case UNT_POISONSMOKE:	case UNT_VENOMDUST:	case UNT_MAELSTROM:
-				case UNT_MANHOLE:	case UNT_DIMENSIONDOOR:	case UNT_GRAFFITI:
-				case UNT_LANDMINE:	case UNT_SANDMAN:	case UNT_SHOCKWAVE:
-				case UNT_SKIDTRAP:	case UNT_ANKLESNARE:	case UNT_CLAYMORETRAP:
-				case UNT_TALKIEBOX:	case UNT_FREEZINGTRAP:	case UNT_VERDURETRAP:
+				case UNT_MANHOLE:	case UNT_DIMENSIONDOOR:	case UNT_LANDMINE:
+				case UNT_SANDMAN:	case UNT_SHOCKWAVE:	case UNT_SKIDTRAP:
+				case UNT_ANKLESNARE:	case UNT_CLAYMORETRAP:	case UNT_TALKIEBOX:
+				case UNT_FREEZINGTRAP:	case UNT_VERDURETRAP:	case UNT_CLUSTERBOMB:
 				case UNT_ICEBOUNDTRAP:	case UNT_FIRINGTRAP:	case UNT_ELECTRICSHOCKER:
 				case UNT_DISSONANCE:	case UNT_ROKISWEIL:	case UNT_ETERNALCHAOS:
 				case UNT_SUITON:	case UNT_KAEN:

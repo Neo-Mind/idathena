@@ -7663,7 +7663,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				return 0;
 			break;
 		case SC_KINGS_GRACE:
-			if(sc->data[SC_DEVOTION])
+			if(sc->data[SC_DEVOTION] || sc->data[SC_WHITEIMPRISON])
 				return 0;
 			break;
 		case SC_WEDDING:
