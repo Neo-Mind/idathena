@@ -2595,13 +2595,13 @@ int16 map_mapname2mapid(const char* name)
  *------------------------------------------*/
 int16 map_mapindex2mapid(unsigned short mapindex)
 {
-	struct map_data *md=NULL;
+	struct map_data *md = NULL;
 	
 	if (!mapindex)
 		return -1;
 	
 	md = (struct map_data*)uidb_get(map_db,(unsigned int)mapindex);
-	if(md==NULL || md->cell==NULL)
+	if (md == NULL || md->cell == NULL)
 		return -1;
 	return md->m;
 }
@@ -2614,10 +2614,10 @@ int map_mapname2ipport(unsigned short name, uint32* ip, uint16* port)
 	struct map_data_other_server *mdos;
 
 	mdos = (struct map_data_other_server*)uidb_get(map_db,(unsigned int)name);
-	if(mdos==NULL || mdos->cell) //If gat isn't null, this is a local map.
+	if (mdos == NULL || mdos->cell) //If gat isn't null, this is a local map
 		return -1;
-	*ip=mdos->ip;
-	*port=mdos->port;
+	*ip = mdos->ip;
+	*port = mdos->port;
 	return 0;
 }
 
@@ -2626,9 +2626,9 @@ int map_mapname2ipport(unsigned short name, uint32* ip, uint16* port)
  *------------------------------------------*/
 int map_check_dir(int s_dir,int t_dir)
 {
-	if(s_dir == t_dir)
+	if (s_dir == t_dir)
 		return 0;
-	switch(s_dir) {
+	switch (s_dir) {
 		case 0: if(t_dir == 7 || t_dir == 1 || t_dir == 0) return 0; break;
 		case 1: if(t_dir == 0 || t_dir == 2 || t_dir == 1) return 0; break;
 		case 2: if(t_dir == 1 || t_dir == 3 || t_dir == 2) return 0; break;

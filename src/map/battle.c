@@ -752,6 +752,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 {
 	struct map_session_data *sd = NULL;
 	struct status_change *sc;
+	struct status_data *status;
 	struct status_change_entry *sce;
 	int div = d->div_, flag = d->flag;
 
@@ -780,6 +781,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 	}
 
 	sc = status_get_sc(bl);
+	status = status_get_status_data(bl);
 
 	if( sc ) {
 		if( sc->data[SC_INVINCIBLE] && !sc->data[SC_INVINCIBLEOFF] )
@@ -1331,13 +1333,20 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 	}
 
-	if( battle_config.skill_min_damage && damage > 0 ) {
+	if( status->mode&MD_PLANT && battle_config.skill_min_damage && damage > 0 ) {
 		if( (flag&BF_WEAPON && battle_config.skill_min_damage&1) ||
 			(flag&BF_MAGIC && battle_config.skill_min_damage&2) ||
 			(flag&BF_MISC && battle_config.skill_min_damage&4) ) {
 			int div_ = (skill_id ? skill_get_num(skill_id,skill_lv) : div);
 
-			return (div_ > 0 ? div_ : 0); //Damage that just look like multiple hits but are actually one won't do any damage to plants
+			damage = (div_ > 0 ? div_ : 0);
+			//Damage that just look like multiple hits but are actually one will still do 1 damage to plants
+			if( !damage )
+				d->dmg_lv = ATK_FLEE;
+			else if( damage > 1 && d->miscflag&1 ) {
+				damage = 1;
+				d->dmg_lv = ATK_FLEE;
+			}
 		}
 	}
 
@@ -3289,9 +3298,8 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 			break;
 		case LK_JOINTBEAT:
 			i = -50 + 10 * skill_lv;
-			//Although not clear, it's being assumed that the 2x damage is only for the break neck ailment.
 			if(wd.miscflag&BREAK_NECK)
-				i *= 2;
+				i *= 2; //Although not clear, it's being assumed that the 2x damage is only for the break neck ailment
 			skillratio += i;
 			break;
 #ifdef RENEWAL
@@ -4577,18 +4585,20 @@ struct Damage battle_calc_attack_plant(struct Damage wd, struct block_list *src,
 		wd.damage = 1;
 	if((attack_hits || wd.damage2 > 0) && is_attack_left_handed(src, skill_id)) {
 		wd.damage2 = 0; //No back hand damage on plant unless dual wielding
-		if(is_attack_right_handed(src, skill_id) && sd->status.weapon != W_KATAR)
+		if(is_attack_right_handed(src, skill_id) && sd->status.weapon != W_KATAR) {
 			wd.damage2 = 1; //Give a damage on left hand while dual wielding, katar weapon type not included
+			wd.miscflag |= 1;
+		}
 	}
-#ifndef RENEWAL
-	if(skill_id == NJ_ISSEN) {
-		wd.damage = wd.damage2 = 0;
-		wd.dmg_lv = ATK_FLEE;
-	}
-#endif
 	wd.damage = battle_calc_damage(src, target, &wd, wd.damage, skill_id, skill_lv);
 	if(map_flag_gvg2(target->m))
 		wd.damage = battle_calc_gvg_damage(src, target, wd.damage, skill_id, wd.flag);
+#ifndef RENEWAL
+	if(skill_id == NJ_ISSEN) {
+		wd.damage = 1;
+		wd.dmg_lv = ATK_FLEE;
+	}
+#endif
 
 	return wd;
 }
@@ -6599,8 +6609,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		if(tstatus->mode&MD_PLANT) {
 			switch(skill_id) {
 #ifdef RENEWAL
-				case NJ_ISSEN: //Final Strike will MISS on "plant"-type mobs [helvetica]
-					md.damage = 0;
+				case NJ_ISSEN: //Final Strike will show "miss" on plants [helvetica]
+					md.damage = 1;
 					md.dmg_lv = ATK_FLEE;
 					break;
 				case HT_LANDMINE:
@@ -6734,7 +6744,7 @@ int64 battle_calc_return_damage(struct block_list* bl, struct block_list *src, i
 
 	sd = BL_CAST(BL_PC, bl);
 
-	if( (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT ) { //Bounces back part of the damage.
+	if( (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT ) { //Bounces back part of the damage
 		if( !status_reflect && sd && sd->bonus.short_weapon_damage_return ) {
 			rdamage += damage * sd->bonus.short_weapon_damage_return / 100;
 			rdamage = max(rdamage, 1);
@@ -6771,18 +6781,18 @@ int64 battle_calc_return_damage(struct block_list* bl, struct block_list *src, i
 				rdamage = max(rdamage, 1);
 #endif
 			}
-			if( sc->data[SC_DEATHBOUND] && skill_id != WS_CARTTERMINATION && !(src->type == BL_MOB && is_boss(src)) ) {
+			if( sc->data[SC_DEATHBOUND] && skill_id != WS_CARTTERMINATION && !is_boss(src) ) {
 				uint8 dir = map_calc_dir(bl, src->x, src->y), t_dir = unit_getdir(bl);
 
 				if( distance_bl(src, bl) <= 0 || !map_check_dir(dir, t_dir) ) {
 					int64 rd1 = 0;
 
-					rd1 = min(damage, status_get_max_hp(bl)) * sc->data[SC_DEATHBOUND]->val2 / 100; //Amplify damage.
-					damage = rd1 * 30 / 100; //Player receives 30% of the amplified damage.
+					rd1 = min(damage, status_get_max_hp(bl)) * sc->data[SC_DEATHBOUND]->val2 / 100; //Amplify damage
+					damage = rd1 * 30 / 100; //Player receives 30% of the amplified damage
 					clif_skill_damage(src, bl, gettick(), status_get_amotion(src), 0, -30000, 1, RK_DEATHBOUND, sc->data[SC_DEATHBOUND]->val1, DMG_SKILL);
 					skill_blown(bl, src, skill_get_blewcount(RK_DEATHBOUND, sc->data[SC_DEATHBOUND]->val1), unit_getdir(src), 0);
 					status_change_end(bl, SC_DEATHBOUND, INVALID_TIMER);
-					rdamage += rd1 * 70 / 100; //Target receives 70% of the amplified damage. [Rytech]
+					rdamage += rd1 * 70 / 100; //Target receives 70% of the amplified damage [Rytech]
 				}
 			}
 			if( sc->data[SC_REFLECTDAMAGE] && !(skill_get_inf2(skill_id)&INF2_TRAP) ) {
