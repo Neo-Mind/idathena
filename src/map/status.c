@@ -7031,7 +7031,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 		case SC_FREEZING:
 			tick_def2 = (status->vit + status->dex) * 50;
 			break;
-		case SC_OBLIVIONCURSE: //100% - (100 - 0.8 x INT)
+		case SC_OBLIVIONCURSE: //(100 - 0.8 x INT)%
 			sc_def = status->int_ * 80;
 		case SC_TOXIN:
 		case SC_PARALYSE:
@@ -7645,7 +7645,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_ALL_RIDING:
 			if(sc->option&(OPTION_RIDING|OPTION_DRAGON|OPTION_WUG|OPTION_MADOGEAR))
 				return 0;
-			if(sc->data[type]) { // Already mounted, just dismount.
+			if(sc->data[type]) { // Already mounted, just dismount
 				status_change_end(bl,type,INVALID_TIMER);
 				return 0;
 			}

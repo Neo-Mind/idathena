@@ -3498,19 +3498,22 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 		case RK_PHANTOMTHRUST:
 			//ATK = [{(Skill Level x 50) + (Spear Master Level x 10)} x Caster's Base Level / 150] %
 			skillratio += -100 + 50 * skill_lv + (sd ? pc_checkskill(sd,KN_SPEARMASTERY) * 10 : 0);
-			RE_LVL_DMOD(150); //Base level bonus.
+			RE_LVL_DMOD(150); //Base level bonus
 			break;
 		case GC_CROSSIMPACT:
 			skillratio += 900 + 100 * skill_lv;
 			RE_LVL_DMOD(120);
 			break;
-		case GC_PHANTOMMENACE:
-			skillratio += 200;
-			break;
 		case GC_COUNTERSLASH:
 			//ATK [{(Skill Level x 100) + 300} x Caster's Base Level / 120]% + ATK [(AGI x 2) + (Caster's Job Level x 4)]%
 			skillratio += 200 + (100 * skill_lv);
 			RE_LVL_DMOD(120);
+			break;
+		case GC_VENOMPRESSURE:
+			skillratio += 900;
+			break;
+		case GC_PHANTOMMENACE:
+			skillratio += 200;
 			break;
 		case GC_ROLLINGCUTTER:
 			skillratio += -50 + 50 * skill_lv;
