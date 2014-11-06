@@ -3207,15 +3207,15 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 		}
 
 		if (!flag)
-			continue; //Skill requisite failed to be fulfilled.
+			continue; //Skill requisite failed to be fulfilled
 
 		//Execute skill
 		skill_target = (md->db->status.mode&MD_RANDOMTARGET) ? MST_RANDOM : ms[i].target;
-		if (skill_get_casttype(ms[i].skill_id) == CAST_GROUND) { //Ground skill.
+		if (skill_get_casttype(ms[i].skill_id) == CAST_GROUND) { //Ground skill
 			short x, y;
 
 			switch (skill_target) {
-				case MST_RANDOM: //Pick a random enemy within skill range.
+				case MST_RANDOM: //Pick a random enemy within skill range
 					bl = battle_getenemy(&md->bl, DEFAULT_ENEMY_TYPE(md),
 						skill_get_range2(&md->bl, ms[i].skill_id, ms[i].skill_lv));
 					break;
@@ -3230,7 +3230,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					bl = &md->bl;
 					if (md->master_id)
 						bl = map_id2bl(md->master_id);
-					if (bl) //Otherwise, fall through.
+					if (bl) //Otherwise, fall through
 						break;
 				case MST_FRIEND:
 					bl = (fbl ? fbl : (fmd ? &fmd->bl : &md->bl));

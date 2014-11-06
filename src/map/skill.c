@@ -16916,9 +16916,6 @@ static int skill_trap_splash(struct block_list *bl, va_list ap)
 			if( bl->id == ss->id )
 				break;
 			if( status_change_start(ss,bl,SC_ELECTRICSHOCKER,10000,group->skill_lv,group->group_id,0,0,skill_get_time2(group->skill_id,group->skill_lv),SCFLAG_FIXEDRATE) ) {
-				TBL_PC* tsd = BL_CAST(BL_PC,bl);
-				struct status_data *tstatus = status_get_status_data(bl);
-
 				if( !unit_blown_immune(bl,0x3) ) {
 					map_moveblock(bl,unit->bl.x,unit->bl.y,tick);
 					clif_fixpos(bl);

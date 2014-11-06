@@ -1340,7 +1340,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			int div_ = (skill_id ? skill_get_num(skill_id,skill_lv) : div);
 
 			damage = (div_ > 0 ? div_ : 0);
-			//Damage that just look like multiple hits but are actually one will still do 1 damage to plants
+			//Damage that just look like multiple hits but are actually one will show "miss" but still do 1 damage to plants
 			if( !damage )
 				d->dmg_lv = ATK_FLEE;
 			else if( damage > 1 && d->miscflag&1 ) {
@@ -4581,7 +4581,6 @@ struct Damage battle_calc_attack_plant(struct Damage wd, struct block_list *src,
 {
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 	bool attack_hits = is_attack_hitting(wd, src, target, skill_id, skill_lv, false);
-	short mob_id = ((TBL_MOB*)target)->mob_id;
 
 	//Plants receive 1 damage when hit
 	if(attack_hits || wd.damage > 0) //In some cases, right hand no need to have a weapon to deal a damage

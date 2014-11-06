@@ -3171,10 +3171,12 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 				if(!calculating) //Abort, run_script retriggered this. [Skotlex]
 					return 1;
 			}
-		} else if(sd->inventory_data[index]->type == IT_SHADOWGEAR) { // Shadow System
-			run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
-			if(!calculating)
-				return 1;
+		} else if(sd->inventory_data[index]->type == IT_SHADOWGEAR) { //Shadow System
+			if(sd->inventory_data[index]->script && (pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) || !itemdb_isNoEquip(sd->inventory_data[index],sd->bl.m))) {
+				run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
+				if(!calculating)
+					return 1;
+			}
 		}
 	}
 

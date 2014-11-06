@@ -1126,7 +1126,7 @@ static void itemdb_re_split_atoi(char *str, int *atk, int *matk) {
 		*matk = 0;
 		return;
 	}
-	//We assume we have 2 values.
+	//We assume we have 2 values
 	*atk = val[0];
 	*matk = val[1];
 	return;
