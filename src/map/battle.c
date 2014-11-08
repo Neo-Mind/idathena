@@ -6714,8 +6714,7 @@ struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct bl
 	if(sd && d.damage + d.damage2 > 1) {
 		if(sd->bonus.hp_vanish_rate && sd->bonus.hp_vanish_trigger && rnd()%10000 < sd->bonus.hp_vanish_rate &&
 			((d.flag&sd->bonus.hp_vanish_trigger&BF_WEAPONMASK) || (d.flag&sd->bonus.hp_vanish_trigger&BF_RANGEMASK) ||
-			(d.flag&sd->bonus.hp_vanish_trigger&BF_SKILLMASK)) &&
-			target->type == BL_PC && (map[sd->bl.m].flag.pvp || map[sd->bl.m].flag.gvg))
+			(d.flag&sd->bonus.hp_vanish_trigger&BF_SKILLMASK)))
 			status_percent_damage(&sd->bl,target,-sd->bonus.hp_vanish_per,0,false);
 		if(sd->bonus.sp_vanish_rate && sd->bonus.sp_vanish_trigger && rnd()%10000 < sd->bonus.sp_vanish_rate &&
 			((d.flag&sd->bonus.sp_vanish_trigger&BF_WEAPONMASK) || (d.flag&sd->bonus.sp_vanish_trigger&BF_RANGEMASK) ||
@@ -6923,8 +6922,7 @@ void battle_drain(TBL_PC *sd, struct block_list *tbl, int64 rdamage, int64 ldama
 		}
 	}
 
-	if (sd->bonus.hp_vanish_rate && rnd()%1000 < sd->bonus.hp_vanish_rate && !sd->bonus.hp_vanish_trigger &&
-		tbl->type == BL_PC && (map[sd->bl.m].flag.pvp || map[sd->bl.m].flag.gvg))
+	if (sd->bonus.hp_vanish_rate && rnd()%1000 < sd->bonus.hp_vanish_rate && !sd->bonus.hp_vanish_trigger)
 		status_percent_damage(&sd->bl, tbl, (unsigned char)sd->bonus.hp_vanish_per, 0, false);
 	if (sd->bonus.sp_vanish_rate && rnd()%1000 < sd->bonus.sp_vanish_rate && !sd->bonus.sp_vanish_trigger)
 		status_percent_damage(&sd->bl, tbl, 0, (unsigned char)sd->bonus.sp_vanish_per, false);
