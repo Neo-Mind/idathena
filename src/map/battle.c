@@ -5073,7 +5073,8 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			ATK_ADD(wd.weaponAtk, wd.weaponAtk2, status_get_matk(src, 2));
 
 		//Final attack bonuses that aren't affected by cards
-		wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
+		if(skill_id != CR_SHIELDBOOMERANG)
+			wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
 
 		switch(skill_id) {
 			case CR_ACIDDEMONSTRATION:
