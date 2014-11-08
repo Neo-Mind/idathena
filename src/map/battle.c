@@ -2954,6 +2954,13 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 			if(sd) { //Add any bonuses that modify the base damage
 				int skill = 0;
 
+				if(sd->bonus.atk_rate) {
+					ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.atk_rate);
+#ifdef RENEWAL //In renewal bonus attack rate only modify weapon and equip ATK [exneval]
+					ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sd->bonus.atk_rate);
+					ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, sd->bonus.atk_rate);
+#endif
+				}
 #ifndef RENEWAL //Add +crit damage bonuses here in pre-renewal mode [helvetica]
 				if(sd->bonus.crit_atk_rate && is_attack_critical(wd, src, target, skill_id, skill_lv, false))
 					ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.crit_atk_rate);
@@ -5065,14 +5072,8 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		if(skill_id == HW_MAGICCRASHER) //Add weapon attack for MATK into Magic Crasher
 			ATK_ADD(wd.weaponAtk, wd.weaponAtk2, status_get_matk(src, 2));
 
-		//Final attack bonuses
-		if(skill_id != PA_SACRIFICE || skill_id != CR_SHIELDBOOMERANG || skill_id != NC_SELFDESTRUCTION) {
-			wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
-			if(sd && sd->bonus.atk_rate) { //In renewal bonus attack rate only modify weapon and equip ATK [exneval]
-				ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sd->bonus.atk_rate);
-				ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, sd->bonus.atk_rate);
-			}
-		}
+		//Final attack bonuses that aren't affected by cards
+		wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
 
 		switch(skill_id) {
 			case CR_ACIDDEMONSTRATION:
@@ -5111,12 +5112,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Custom fix for "a hole" in renewal ATK calculation [exneval]
 		}
 #else
-		if(skill_id != PA_SACRIFICE || skill_id != LK_SPIRALPIERCE || skill_id != ML_SPIRALPIERCE ||
-			skill_id != CR_SHIELDBOOMERANG || skill_id != PA_SHIELDCHAIN || skill_id != NC_SELFDESTRUCTION) {
-			wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
-			if(sd && sd->bonus.atk_rate)
-				ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.atk_rate);
-		}
+		wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
 #endif
 
 		ratio = battle_calc_attack_skill_ratio(wd, src, target, skill_id, skill_lv); //Skill level ratio
