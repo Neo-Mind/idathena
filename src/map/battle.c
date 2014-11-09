@@ -5318,14 +5318,17 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 				case KO_HAPPOKUNAI:
 					wd.damage = battle_attr_fix(src, target, wd.damage, (sd && sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 					break;
-				//Forced to it's element
-				default:
+				//Forced to its element
+				case LK_SPIRALPIERCE:
+				case ML_SPIRALPIERCE:
+				case PA_SACRIFICE:
+				case RK_DRAGONBREATH:
+				case RK_DRAGONBREATH_WATER:
+				case NC_SELFDESTRUCTION:
 					wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
 					break;
 			}
 		}
-		if(is_attack_left_handed(src, skill_id) && wd.damage2 > 0)
-			wd.damage2 = battle_attr_fix(src, target, wd.damage2, left_element, tstatus->def_ele, tstatus->ele_lv);
 	}
 #endif
 
