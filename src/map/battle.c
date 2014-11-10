@@ -5076,31 +5076,28 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		if(skill_id != CR_SHIELDBOOMERANG)
 			wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
 
-		switch(skill_id) {
-			case CR_ACIDDEMONSTRATION: {
-					//Status ATK, weapon ATK, and equip ATK are directly reduced by eDEF
-					//sDEF only directly reduces status ATK [exneval]
-					defType def1 = status_get_def(target);
-					short def2 = tstatus->def2, vit_def;
+		//Status ATK, weapon ATK, and equip ATK are directly reduced by eDEF
+		//sDEF only directly reduces status ATK [exneval]
+		if(skill_id == CR_ACIDDEMONSTRATION) {
+			defType def1 = status_get_def(target);
+			short def2 = tstatus->def2, vit_def;
 
-					def1 = status_calc_def(target, tsc, def1, false);
-					def2 = status_calc_def2(target, tsc, def2, false);
+			def1 = status_calc_def(target, tsc, def1, false);
+			def2 = status_calc_def2(target, tsc, def2, false);
 
-					if(tsd)
-						vit_def = def2;
-					else {
-						vit_def = def1;
-						def1 = def2;
-					}
+			if(tsd)
+				vit_def = def2;
+			else {
+				vit_def = def1;
+				def1 = def2;
+			}
 
-					wd.statusAtk -= (def1 + vit_def);
-					wd.statusAtk2 -= (def1 + vit_def);
-					wd.weaponAtk -= def1;
-					wd.weaponAtk2 -= def1;
-					wd.equipAtk -= def1;
-					wd.equipAtk2 -= def1;
-				}
-				break;
+			wd.statusAtk -= (def1 + vit_def);
+			wd.statusAtk2 -= (def1 + vit_def);
+			wd.weaponAtk -= def1;
+			wd.weaponAtk2 -= def1;
+			wd.equipAtk -= def1;
+			wd.equipAtk2 -= def1;
 		}
 
 		if(sd) { //Monsters, homuns and pets have their damage computed directly
