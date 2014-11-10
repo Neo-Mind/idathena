@@ -3270,8 +3270,9 @@ void clif_changelook(struct block_list *bl,int type,int val)
 #endif
 				//Shoes? No packet uses this
 				break;
-			case LOOK_BODY:
+			case LOOK_COSTUMEBODY:
 			case LOOK_FLOOR:
+			case LOOK_BODY2:
 				//Unknown purpose
 				break;
 			case LOOK_ROBE:

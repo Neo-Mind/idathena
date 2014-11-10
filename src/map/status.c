@@ -9925,7 +9925,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				opt_flag = 0;
 			sc->opt1 = OPT1_SLEEP;
 			break;
-		//Burning need this to be showed correctly. [pakpil]
+		//Burning need this to be showed correctly [pakpil]
 		case SC_BURNING:		sc->opt1 = OPT1_BURNING;	break;
 		case SC_WHITEIMPRISON:  sc->opt1 = OPT1_IMPRISON;	break;
 		case SC_CRYSTALIZE:		sc->opt1 = OPT1_CRYSTALIZE;	break;
@@ -11634,7 +11634,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				map_freeblock_lock();
 				clif_damage(bl,bl,tick,0,0,damage,1,DMG_MULTI_HIT_ENDURE,0); //Damage is like endure effect with no walk delay
 				status_damage(src,bl,damage,0,0,1);
-				if( sc->data[type] ) { //Target still lives. [LimitLine]
+				if( sc->data[type] ) { //Target still lives [LimitLine]
 					sc_timer_next(3000 + tick,status_change_timer,bl->id,data); //Deals damage every 3 seconds
 				}
 				map_freeblock_unlock();
@@ -12280,7 +12280,6 @@ void status_change_clear_buffs(struct block_list* bl, int type)
 			case SC_QUEST_BUFF2:
 			case SC_QUEST_BUFF3:
 				continue;
-
 			//Debuffs that can be removed
 			case SC_DEEPSLEEP:
 			case SC_BURNING:

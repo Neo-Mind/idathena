@@ -453,10 +453,11 @@ enum _look {
 	LOOK_CLOTHES_COLOR,  //Bodypalette
 	LOOK_SHIELD,         //Shield
 	LOOK_SHOES,          //Shoes
-	LOOK_BODY,           //Body - Purpose Unknown. Doesen't appear to do anything.
-	LOOK_RESET_COSTUMES, //Reset Costumes - Makes all headgear sprites on player vanish when activated.
+	LOOK_COSTUMEBODY,	 //Costume Body - Used to be Body and didn't do anything at the time of testing
+	LOOK_RESET_COSTUMES, //Reset Costumes - Makes all headgear sprites on player vanish when activated
 	LOOK_ROBE,           //Robe
-	LOOK_FLOOR
+	LOOK_FLOOR,          //Floor
+	LOOK_BODY2,          //2nd Body - Purpose unknown
 };
 
 // used by map_setcell()
