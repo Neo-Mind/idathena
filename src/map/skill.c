@@ -11533,7 +11533,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			skill_clear_unitgroup(src); //To remove previous skills - cannot used combined
 			if( (sg = skill_unitsetting(src,skill_id,skill_lv,src->x,src->y,0)) != NULL ) {
 				status_change_start(src,src,(skill_id == NC_NEUTRALBARRIER ? SC_NEUTRALBARRIER_MASTER : SC_STEALTHFIELD_MASTER),
-					10000,skill_lv,sg->group_id,0,0,skill_get_time(skill_id,skill_lv),SCFLAG_NOICON);
+					10000,skill_lv,sg->group_id,0,0,skill_get_time(skill_id,skill_lv),SCFLAG_NONE);
 				if( sd )
 					pc_overheat(sd,1);
 			}
@@ -13399,8 +13399,11 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			break;
 
 		case UNT_STEALTHFIELD:
-			if (src == bl)
-				break; //Don't work on Self
+			if (src == bl) //Doesn't affect the caster
+				break;
+			status_change_start(src,bl,type,10000,skill_lv,0,0,0,group->interval + 100,SCFLAG_NONE);
+			break;
+
 		case UNT_NEUTRALBARRIER:
 			status_change_start(src,bl,type,10000,skill_lv,0,0,0,group->interval + 100,SCFLAG_NOICON);
 			break;
@@ -13495,7 +13498,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 		case UNT_ZEPHYR:
 		case UNT_POWER_OF_GAIA:
 			if (src == bl)
-				break; //Doesn't affect the Elemental
+				break; //Doesn't affect the elemental
 			sc_start(src,bl,type,100,skill_lv,group->interval + 100);
 			break;
 

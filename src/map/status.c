@@ -1122,6 +1122,7 @@ void initChangeTables(void) {
 	StatusDisplayType[SC_SPHERE_4]		  = true;
 	StatusDisplayType[SC_SPHERE_5]		  = true;
 	StatusDisplayType[SC_CAMOUFLAGE]	  = true;
+	StatusDisplayType[SC_STEALTHFIELD]	  = true;
 	StatusDisplayType[SC_DUPLELIGHT]	  = true;
 	StatusDisplayType[SC_ORATIO]		  = true;
 	StatusDisplayType[SC_FREEZING]		  = true;
@@ -1940,9 +1941,9 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 					if (tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS) &&
 						((tsd && tsd->special_state.perfect_hiding) || (status->mode&MD_DETECTOR)))
 						return false;
-					if (tsc->data[SC_CAMOUFLAGE] && !((status->mode&MD_BOSS) || (status->mode&MD_DETECTOR)) && !skill_id)
-						return false;
-					if (tsc->data[SC_STEALTHFIELD] && !((status->mode&MD_BOSS) || (status->mode&MD_DETECTOR)))
+					if ((tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_STEALTHFIELD]) &&
+						!((status->mode&MD_BOSS) || (status->mode&MD_DETECTOR)) &&
+						(!skill_id || !(skill_get_inf(skill_id)&(INF_GROUND_SKILL|INF_SELF_SKILL))))
 						return false;
 				}
 			}
@@ -9071,8 +9072,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick_time = 1000;
 				break;
 			case SC_HALLUCINATIONWALK:
-				val2 = 50 * val1; //Evasion rate of physical attacks. Flee
-				val3 = 10 * val1; //Evasion rate of magical attacks.
+				val2 = 50 * val1; //Evasion rate of physical attacks (Flee)
+				val3 = 10 * val1; //Evasion rate of magical attacks
 				break;
 			case SC_MARSHOFABYSS:
 				if( sd ) //AGI and DEX Reduction
@@ -9091,7 +9092,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_SPHERE_4:
 			case SC_SPHERE_5:
 				if( !sd )
-					return 0; //Should only work on players.
+					return 0; //Should only work on players
 				tick_time = 1000;
 				val4 = tick / tick_time;
 				if( val4 < 1 )

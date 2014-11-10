@@ -4521,18 +4521,14 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd,struct block_list
 
 	//Post skill/vit reduction damage increases
 	if(sc) { //Status change skill damages
-		if(sc->data[SC_AURABLADE]
-#ifndef RENEWAL
-				&& skill_id != LK_SPIRALPIERCE && skill_id != ML_SPIRALPIERCE
-#endif
-		) {
-			int lv = sc->data[SC_AURABLADE]->val1;
-
 #ifdef RENEWAL
+		if(sc->data[SC_AURABLADE]) {
+			uint16 lv = sc->data[SC_AURABLADE]->val1;
+
 			lv *= ((skill_id == LK_SPIRALPIERCE || skill_id == ML_SPIRALPIERCE) ? wd.div_ : 1); //+100 per hit in lv 5
-#endif
 			ATK_ADD(wd.damage, wd.damage2, 20 * lv);
 		}
+#endif
 		if(!skill_id) {
 			if(sc->data[SC_ENCHANTBLADE]) {
 				//[((Skill Lv x 20) + 100) x (casterBaseLevel / 150)] + casterInt
@@ -5233,9 +5229,10 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		} else
 			ATK_ADD(wd.damage, wd.damage2, ((wd.div_ < 1) ? 1 : wd.div_) * sd->spiritball * 3);
 	}
-#endif
 
-#ifdef RENEWAL
+	if(sc && sc->data[SC_AURABLADE] && skill_id != LK_SPIRALPIERCE && skill_id != ML_SPIRALPIERCE)
+		ATK_ADD(wd.damage, wd.damage2, 20 * sc->data[SC_AURABLADE]->val1);
+#else
 	if(!sd) //Only monsters have a single ATK for element, in pre-renewal we also apply element to entire ATK on players [helvetica]
 #endif
 		wd = battle_calc_element_damage(wd, src, target, skill_id, skill_lv);
@@ -6138,9 +6135,9 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 #endif
 		}
 
+		//Adds atk2 to the damage, should be influenced by number of hits and skill-ratio, but not mdef reductions [Skotlex]
+		//Also divide the extra bonuses from atk2 based on the number in range [Kevin]
 		if(skill_id == NPC_EARTHQUAKE) {
-			//Adds atk2 to the damage, should be influenced by number of hits and skill-ratio, but not mdef reductions. [Skotlex]
-			//Also divide the extra bonuses from atk2 based on the number in range [Kevin]
 			if(mflag > 0)
 				ad.damage += sstatus->rhw.atk2 * skillratio / 100 / mflag;
 			else
