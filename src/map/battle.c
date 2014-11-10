@@ -5077,9 +5077,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
 
 		switch(skill_id) {
-			case CR_ACIDDEMONSTRATION:
-			case GN_FIRE_EXPANSION_ACID:
-				{
+			case CR_ACIDDEMONSTRATION: {
 					//Status ATK, weapon ATK, and equip ATK are directly reduced by eDEF
 					//sDEF only directly reduces status ATK [exneval]
 					defType def1 = status_get_def(target);
