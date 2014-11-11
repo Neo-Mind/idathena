@@ -8512,6 +8512,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				else
 					sc_start(src,bl,type,100,skill_area_temp[5] / 4,skill_get_time(skill_id,skill_lv));
 			} else if( sd ) {
+				skill_area_temp[5] = 0;
 				if( sd->status.party_id ) {
 					i = party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,skill_id,skill_lv,tick,BCT_PARTY,skill_area_sub_count);
 					skill_area_temp[5] = 7 * i; //Attack Bonus
@@ -8559,6 +8560,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					sc_start(src,bl,SC_ABUNDANCE,100,skill_lv,skill_get_time(skill_id,skill_lv));
 				status_change_clear_buffs(bl,8); //For bonus_script
 			} else if( sd ) {
+				skill_area_temp[5] = 0;
 				if( tsc && tsc->count ) {
 					if( tsc->data[SC_MILLENNIUMSHIELD] )
 						skill_area_temp[5] |= 0x10;
@@ -19081,25 +19083,24 @@ int skill_select_menu(struct map_session_data *sd,uint16 skill_id) {
 	int id, lv, prob, aslvl = 0;
 
 	nullpo_ret(sd);
-	
+
 	if (sd->sc.data[SC_STOP]) {
 		aslvl = sd->sc.data[SC_STOP]->val1;
 		status_change_end(&sd->bl,SC_STOP,INVALID_TIMER);
 	}
 
 	if( !(skill_get_inf3(sd->status.skill[skill_id].id)&INF3_AUTOSHADOWSPELL) ||
-		(id = sd->status.skill[skill_id].id) == 0 || sd->status.skill[skill_id].flag != SKILL_FLAG_PLAGIARIZED )
-	{
+		(id = sd->status.skill[skill_id].id) == 0 || sd->status.skill[skill_id].flag != SKILL_FLAG_PLAGIARIZED ) {
 		clif_skill_fail(sd,SC_AUTOSHADOWSPELL,USESKILL_FAIL_LEVEL,0);
 		return 0;
 	}
 
-	lv = (aslvl + 1) / 2; //The level the skill will be autocasted.
+	lv = (aslvl + 1) / 2; //The level the skill will be autocasted
 	lv = min(lv,sd->status.skill[skill_id].lv);
-	if( aslvl >= 10 ) //If level 10 or higher is casted, set to a fixed 15%.
+	if( aslvl >= 10 ) //If level 10 or higher is casted, set to a fixed 15%
 		prob = 15;
 	else
-		prob = 30 - 2 * aslvl; //If below level 10, follow this formula.
+		prob = 30 - 2 * aslvl; //If below level 10, follow this formula
 	sc_start4(&sd->bl,&sd->bl,SC__AUTOSHADOWSPELL,100,id,lv,prob,0,skill_get_time(SC_AUTOSHADOWSPELL,aslvl));
 	return 0;
 }
