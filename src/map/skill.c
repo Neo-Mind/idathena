@@ -7344,7 +7344,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 #endif
 							case SC_HIDING:				case SC_CLOAKING:		case SC_CHASEWALK:
 							case SC_CLOAKINGEXCEED:			case SC__INVISIBILITY:		case SC_CRIFOOD:
-							case SC_UTSUSEMI:
+							case SC_UTSUSEMI:			case SC_MTF_ASPD2:		case SC_MTF_RANGEATK2:
+							case SC_MTF_MATK2:			case SC_2011RWC_SCROLL:	case SC_JP_EVENT04:
 								continue;
 							//bugreport:4888 these songs may only be dispelled if you're not in their song area anymore
 							case SC_WHISTLE:
@@ -7363,13 +7364,13 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 									continue;
 								break;
 						}
-						//Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
+						//Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0
 						if( i == SC_BERSERK )
 							tsc->data[i]->val2 = 0;
 						status_change_end(bl,(sc_type)i,INVALID_TIMER);
 					}
 					break;
-				} //Affect all targets on splash area.
+				} //Affect all targets on splash area
 				map_foreachinrange(skill_area_sub,bl,splash,BL_CHAR,src,skill_id,skill_lv,tick,flag|1,skill_castend_damage_id);
 			}
 			break;
@@ -8829,20 +8830,20 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 #endif
 							case SC_HIDING:			case SC_CLOAKING:		case SC_CHASEWALK:
 							case SC_CLOAKINGEXCEED:		case SC__INVISIBILITY:		case SC_CRIFOOD:
-							case SC_UTSUSEMI:
+							case SC_UTSUSEMI:		case SC_MTF_ASPD2:		case SC_MTF_RANGEATK2:
+							case SC_MTF_MATK2:		case SC_2011RWC_SCROLL:	case SC_JP_EVENT04:
 								continue;
 							case SC_ASSUMPTIO:
 								if( bl->type == BL_MOB )
 									continue;
 								break;
 						}
-						//Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
 						if( i == SC_BERSERK )
 							tsc->data[i]->val2 = 0;
 						status_change_end(bl,(sc_type)i,INVALID_TIMER);
 					}
 					break;
-				} //Affect all targets on splash area.
+				}
 				map_foreachinrange(skill_area_sub,bl,splash,BL_CHAR,src,skill_id,skill_lv,tick,flag|1,skill_castend_damage_id);
 			}
 			break;
@@ -10351,20 +10352,20 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 #endif
 							case SC_HIDING:			case SC_CLOAKING:		case SC_CHASEWALK:
 							case SC_CLOAKINGEXCEED:		case SC__INVISIBILITY:		case SC_CRIFOOD:
-							case SC_UTSUSEMI:
+							case SC_UTSUSEMI:		case SC_MTF_ASPD2:		case SC_MTF_RANGEATK2:
+							case SC_MTF_MATK2:		case SC_2011RWC_SCROLL:	case SC_JP_EVENT04:
 								continue;
 							case SC_ASSUMPTIO:
 								if( bl->type == BL_MOB )
 									continue;
 								break;
 						}
-						//Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
 						if( i == SC_BERSERK )
 							tsc->data[i]->val2 = 0;
 						status_change_end(bl,(sc_type)i,INVALID_TIMER);
 						n--;
 					}
-				} else { //Affect all targets on splash area.
+				} else {
 					map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				}

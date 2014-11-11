@@ -137,6 +137,7 @@ enum item_itemid {
 	ITEMID_WOB_LOCAL,
 	ITEMID_SIEGE_TELEPORT_SCROLL = 14591,
 	ITEMID_JOB_MANUAL50,
+	ITEMID_SQUID_BBQ = 22621,
 };
 
 enum mercenary_scroll_item_list {

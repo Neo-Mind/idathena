@@ -2357,14 +2357,17 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 		if((skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
 			hitrate += hitrate * (2 * skill) / 100;
 #endif
-
 		if((sd->status.weapon == W_1HSWORD || sd->status.weapon == W_DAGGER) &&
 			(skill = pc_checkskill(sd,GN_TRAINING_SWORD)) > 0)
 			hitrate += 3 * skill;
 	}
 
-	if(sc && sc->data[SC_MTF_ASPD])
-		hitrate += 5;
+	if(sc) {
+		if(sc->data[SC_MTF_ASPD])
+			hitrate += 5;
+		if(sc->data[SC_MTF_ASPD2])
+			hitrate += 10;
+	}
 
 	hitrate = cap_value(hitrate,battle_config.min_hitrate,battle_config.max_hitrate);
 	return (rnd()%100 < hitrate);
@@ -4326,9 +4329,15 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 			ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_FLASHCOMBO]->val2);
 #endif
 		}
-		if(sc->data[SC_MTF_RANGEATK] && (wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG) {
-			ATK_ADDRATE(wd.damage, wd.damage2, 25);
-			RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.long_attack_atk_rate'
+		if((wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG) {
+			if(sc->data[SC_MTF_RANGEATK]) {
+				ATK_ADDRATE(wd.damage, wd.damage2, 25);
+				RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.long_attack_atk_rate'
+			}
+			if(sc->data[SC_MTF_RANGEATK2]) {
+				ATK_ADDRATE(wd.damage, wd.damage2, 30);
+				RE_ALLATK_ADDRATE(wd, 30);
+			}
 		}
 		if(sc->data[SC_MTF_CRIDAMAGE] && is_attack_critical(wd, src, target, skill_id, skill_lv, false)) {
 			ATK_ADDRATE(wd.damage, wd.damage2, 25);

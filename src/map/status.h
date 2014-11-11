@@ -720,6 +720,12 @@ typedef enum sc_type {
 	SC_CHASEWALK2,
 	SC_FALLENEMPIRE,
 	SC_NETHERWORLD_IMMUNE,
+	SC_MTF_ASPD2,
+	SC_MTF_RANGEATK2,
+	SC_MTF_MATK2,
+	SC_2011RWC_SCROLL,
+	SC_CUP_OF_BOZA,
+	SC_JP_EVENT04,
 	SC_MAX, //Automatically updated max, used in for's to check we are within bounds
 } sc_type;
 

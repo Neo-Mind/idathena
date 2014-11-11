@@ -10136,6 +10136,9 @@ BUILDIN_FUNC(sc_end)
 			case SC_MTF_MATK:
 			case SC_MTF_MLEATKED:
 			case SC_MTF_CRIDAMAGE:
+			case SC_MTF_ASPD2:
+			case SC_MTF_RANGEATK2:
+			case SC_MTF_MATK2:
 				return 0;
 			default:
 				break;

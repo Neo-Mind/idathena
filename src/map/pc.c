@@ -4579,6 +4579,10 @@ bool pc_isUseitem(struct map_session_data *sd, int n)
 			if( !map[sd->bl.m].flag.reset )
 				return false;
 			break;
+		case ITEMID_SQUID_BBQ:
+			if( sd->sc.data[SC_JP_EVENT04] )
+				return false;
+			break;
 	}
 
 	if( nameid >= ITEMID_BOW_MERCENARY_SCROLL1 && nameid <= ITEMID_SPEARMERCENARY_SCROLL10 && sd->md != NULL )
@@ -6221,19 +6225,14 @@ static void pc_calcexp(struct map_session_data *sd, unsigned int *base_exp, unsi
 
 		if (sd->expaddrace[status->race])
 			bonus += sd->expaddrace[status->race];
-
 		if (sd->expaddrace[RC_ALL])
 			bonus += sd->expaddrace[RC_ALL];
-
 		if (sd->expaddclass[status->class_])
 			bonus += sd->expaddclass[status->class_];
-
 		if (sd->expaddclass[CLASS_ALL])
 			bonus += sd->expaddclass[CLASS_ALL];
-
 		if (battle_config.pk_mode && (int)(status_get_lv(src) - sd->status.base_level) >= 20)
 			bonus += 15; //pk_mode additional exp if monster > 20 levels [Valaris]
-
 #ifdef VIP_ENABLE
 		//EXP bonus for VIP player
 		if (src->type == BL_MOB && pc_isvip(sd)) {
@@ -6241,11 +6240,13 @@ static void pc_calcexp(struct map_session_data *sd, unsigned int *base_exp, unsi
 			vip_bonus_job = battle_config.vip_job_exp_increase;
 		}
 #endif
+		if (sd->sc.data[SC_JP_EVENT04] && status->race == RC_FISH)
+			bonus += sd->sc.data[SC_JP_EVENT04]->val1;
 	}
 
 	if (sd->sc.data[SC_EXPBOOST]) {
 		bonus += sd->sc.data[SC_EXPBOOST]->val1;
-		if (battle_config.vip_bm_increase && pc_isvip(sd)) //Increase Battle Manual EXP rate for VIP.
+		if (battle_config.vip_bm_increase && pc_isvip(sd)) //Increase Battle Manual EXP rate for VIP
 			bonus += (sd->sc.data[SC_EXPBOOST]->val1 / battle_config.vip_bm_increase);
 	}
 
@@ -6291,7 +6292,6 @@ bool pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned in
 			nextbp = (float)base_exp / (float)nextb;
 		if (nextj > 0)
 			nextjp = (float)job_exp / (float)nextj;
-
 		if (battle_config.max_exp_gain_rate) {
 			if (nextbp > battle_config.max_exp_gain_rate / 1000.) {
 				//Note that this value should never be greater than the original

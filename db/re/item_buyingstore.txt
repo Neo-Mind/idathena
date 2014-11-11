@@ -82,9 +82,9 @@
 6608	// Coagulated_Spell
 6609	// Glast_Decayed_Nail
 6610	// Glast_Horrendous_Mouth
-//6611
-//6612
-//6613
+6611	// Colorful_Key
+6612	// Gold_Coin_Basket
+6613	// Colorful_Brooch
 7228	// Gold_Bullion
 7229	// Silver_Bullion
 7230	// White_Gold_Bullion

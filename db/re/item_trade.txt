@@ -2080,6 +2080,33 @@
 16505,475,100	// Steamed_Tongue_Box_10
 16506,475,100	// Steamed_Desert_Scorpions_Box_10
 
+// kRO 2012-05-16
+2022,475,100	// Staff_Of_Geffen
+2499,475,100	// Temporal_Boots
+2949,475,100	// Silversmith_Bracelet
+4875,475,100	// Bear's_Power
+4876,475,100	// Runaway_Magic
+4877,475,100	// Speed_Of_Light
+4878,475,100	// Muscle_Fool
+4879,475,100	// Hawkeye
+4880,475,100	// Lucky_Day
+6607,475,100	// Temporal_Crystal
+6608,475,100	// Coagulated_Spell
+6609,475,100	// Glast_Decayed_Nail
+6610,475,100	// Glast_Horrendous_Mouth
+6611,475,100	// Colorful_Key
+6612,475,100	// Gold_Coin_Basket
+6613,475,100	// Colorful_Brooch
+13440,475,100	// Ceremonial_Sword
+15066,475,100	// Engraved_Armor
+21007,475,100	// Heavy_Sword
+22000,475,100	// Temporal_Str_Boots
+22001,475,100	// Temporal_Int_Boots
+22002,475,100	// Temporal_Agi_Boots
+22003,475,100	// Temporal_Vit_Boots
+22004,475,100	// Temporal_Dex_Boots
+22005,475,100	// Temporal_Luk_Boots
+
 // kRO 2012-07-16
 7630,475,100	// Clean_Beach_Brush
 7631,475,100	// Trash_Debris
