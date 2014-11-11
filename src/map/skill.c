@@ -7345,7 +7345,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 							case SC_HIDING:				case SC_CLOAKING:		case SC_CHASEWALK:
 							case SC_CLOAKINGEXCEED:			case SC__INVISIBILITY:		case SC_CRIFOOD:
 							case SC_UTSUSEMI:			case SC_MTF_ASPD2:		case SC_MTF_RANGEATK2:
-							case SC_MTF_MATK2:			case SC_2011RWC_SCROLL:	case SC_JP_EVENT04:
+							case SC_MTF_MATK2:			case SC_2011RWC_SCROLL:		case SC_JP_EVENT04:
 								continue;
 							//bugreport:4888 these songs may only be dispelled if you're not in their song area anymore
 							case SC_WHISTLE:
@@ -8831,7 +8831,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 							case SC_HIDING:			case SC_CLOAKING:		case SC_CHASEWALK:
 							case SC_CLOAKINGEXCEED:		case SC__INVISIBILITY:		case SC_CRIFOOD:
 							case SC_UTSUSEMI:		case SC_MTF_ASPD2:		case SC_MTF_RANGEATK2:
-							case SC_MTF_MATK2:		case SC_2011RWC_SCROLL:	case SC_JP_EVENT04:
+							case SC_MTF_MATK2:		case SC_2011RWC_SCROLL:		case SC_JP_EVENT04:
 								continue;
 							case SC_ASSUMPTIO:
 								if( bl->type == BL_MOB )
@@ -10353,7 +10353,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 							case SC_HIDING:			case SC_CLOAKING:		case SC_CHASEWALK:
 							case SC_CLOAKINGEXCEED:		case SC__INVISIBILITY:		case SC_CRIFOOD:
 							case SC_UTSUSEMI:		case SC_MTF_ASPD2:		case SC_MTF_RANGEATK2:
-							case SC_MTF_MATK2:		case SC_2011RWC_SCROLL:	case SC_JP_EVENT04:
+							case SC_MTF_MATK2:		case SC_2011RWC_SCROLL:		case SC_JP_EVENT04:
 								continue;
 							case SC_ASSUMPTIO:
 								if( bl->type == BL_MOB )
