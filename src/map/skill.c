@@ -8519,7 +8519,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				} else
 					sc_start2(src,bl,type,100,7,pc_checkskill(sd,RK_RUNEMASTERY) * 4,skill_get_time(skill_id,skill_lv));
 			}
-			clif_skill_nodamage(src,bl,skill_id,1,1);
+			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			break;
 
 		case RK_LUXANIMA:
@@ -9120,11 +9120,11 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case SC_AUTOSHADOWSPELL:
 			if( sd ) {
 				if( (sd->reproduceskill_idx >= 0 && sd->status.skill[sd->reproduceskill_idx].id) ||
-					(sd->cloneskill_idx >= 0 && sd->status.skill[sd->cloneskill_idx].id) )
-				{
-					sc_start(src,src,SC_STOP,100,skill_lv,INVALID_TIMER); //The skill_lv is stored in val1 used in skill_select_menu to determine the used skill lvl [Xazax]
+					(sd->cloneskill_idx >= 0 && sd->status.skill[sd->cloneskill_idx].id) ) {
+					//The skill_lv is stored in val1 used in skill_select_menu to determine the used skill lvl [Xazax]
+					sc_start(src,src,SC_STOP,100,skill_lv,INVALID_TIMER);
 					clif_autoshadowspell_list(sd);
-					clif_skill_nodamage(src,bl,skill_id,1,1);
+					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				} else
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_IMITATION_SKILL_NONE,0);
 			}
@@ -9146,7 +9146,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER);
 					sc_start(src,bl,type,20 + 5 * skill_lv,skill_lv,skill_get_time(skill_id,skill_lv));
 				}
-					sc_start(src,bl,SC_BLIND,53 + 2 * skill_lv,skill_lv,skill_get_time2(skill_id,skill_lv));
+				sc_start(src,bl,SC_BLIND,53 + 2 * skill_lv,skill_lv,skill_get_time2(skill_id,skill_lv));
 			} else {
 				clif_skill_nodamage(src,bl,skill_id,0,1);
 				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),BL_CHAR,
@@ -9171,29 +9171,32 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				//Finally we set the minimum success chance cap based on the caster's skill level and DEX
 				rate = cap_value(rate,skill_lv + sstatus->dex / 20,100);
 				clif_skill_nodamage(src,bl,skill_id,0,sc_start(src,bl,type,rate,skill_lv,skill_get_time(skill_id,skill_lv)));
-				//If the target was successfully inflected with the Ignorance status, drain some of the targets SP
-				if( tsc->data[SC__IGNORANCE] && skill_id == SC_IGNORANCE ) {
-						int sp = 100 * skill_lv;
+				if( tsc ) {
+					//If the target was successfully inflected with the Ignorance status, drain some of the targets SP
+					if( tsc->data[SC__IGNORANCE] && skill_id == SC_IGNORANCE ) {
+							int sp = 100 * skill_lv;
 
-						if( dstmd )
-							sp = dstmd->level;
-						if( !dstmd )
-							status_zap(bl,0,sp);
-						status_heal(src,0,sp / 2,3);
-				}
-				//If the target was successfully inflected with the Unlucky status, give 1 of 3 random status's
-				//Targets in the Unlucky status will be affected by one of the 3 random status's reguardless of resistance
-				if( tsc->data[SC__UNLUCKY] && skill_id == SC_UNLUCKY )
-					switch( rnd()%3 ) {
-						case 0:
-							status_change_start(src,bl,SC_POISON,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE);
-							break;
-						case 1:
-							status_change_start(src,bl,SC_SILENCE,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE);
-							break;
-						case 2:
-							status_change_start(src,bl,SC_BLIND,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE);
+							if( dstmd )
+								sp = dstmd->level;
+							if( !dstmd )
+								status_zap(bl,0,sp);
+							status_heal(src,0,sp / 2,3);
 					}
+					//If the target was successfully inflected with the Unlucky status, give 1 of 3 random status's
+					//Targets in the Unlucky status will be affected by one of the 3 random status's reguardless of resistance
+					if( tsc->data[SC__UNLUCKY] && skill_id == SC_UNLUCKY ) {
+						switch( rnd()%3 ) {
+							case 0:
+								status_change_start(src,bl,SC_POISON,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE);
+								break;
+							case 1:
+								status_change_start(src,bl,SC_SILENCE,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE);
+								break;
+							case 2:
+								status_change_start(src,bl,SC_BLIND,10000,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv),SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE);
+						}
+					}
+				}
 			} else if( sd )
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			break;
