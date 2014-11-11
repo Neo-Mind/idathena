@@ -449,7 +449,7 @@ void pc_setrestartvalue(struct map_session_data *sd, char type) {
 	status = &sd->battle_status;
 
 	if (type&1) {	//Normal resurrection
-		status->hp = 1; //Otherwise, status_heal may fail if dead.
+		status->hp = 1; //Otherwise, status_heal may fail if dead
 		status_heal(&sd->bl, b_status->hp, 0, 1);
 		if( status->sp < b_status->sp )
 			status_set_sp(&sd->bl, b_status->sp, 1);

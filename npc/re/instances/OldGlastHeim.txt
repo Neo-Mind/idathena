@@ -1930,8 +1930,14 @@ OnTimer80000:
 		mes "Well, you are pretty ridiculous. Beginners shouldn't get the loot Amdarias drops.";
 		erasequest 12318;
 		erasequest 12319;
-		getitem 6607,rand(1,5); //Temporal_Crystal
-		getitem 6608,rand(1,5); //Coagulated_Spell
+		if (gh_instance == 1) {
+			getitem 6607,1; //Temporal_Crystal
+			getitem 6608,1; //Coagulated_Spell
+		} else {
+			getitem 6607,5; //Temporal_Crystal
+			getitem 6608,5; //Coagulated_Spell
+			gh_instance = 1;
+		}
 		next;
 		mes "[Hugin]";
 		mes "Varmunt, I have arbitrarily stopped time. And soon, the time gap will be gone.";

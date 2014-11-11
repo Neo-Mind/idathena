@@ -5498,7 +5498,6 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 	}
 #endif
 
-	//Check for undead skills that convert a no-damage skill into a damage one [Skotlex]
 	switch(skill_id) {
 		case HLIF_HEAL:	//[orn]
 			if(bl->type != BL_HOM) {
@@ -5512,6 +5511,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case AL_INCAGI:
 		case ALL_RESURRECTION:
 		case PR_ASPERSIO:
+			//Check for undead skills that convert a no-damage skill into a damage one [Skotlex]
 			//Apparently only player casted skills can be offensive like this
 			if(sd && battle_check_undead(tstatus->race,tstatus->def_ele) && skill_id != AL_INCAGI) {
 				if(battle_check_target(src,bl,BCT_ENEMY) <= 0) { //Offensive heal does not works on non-enemies [Skotlex]
@@ -7262,13 +7262,13 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				int splash = skill_get_splash(skill_id,skill_lv);
 
 				if( flag&1 || splash < 1 ) {
-					//Outside PvP it should only affect party members and no skill fail message.
+					//Outside PvP it should only affect party members and no skill fail message
 					if( sd && dstsd && !map_flag_vs(sd->bl.m) &&
 						(!sd->status.party_id || sd->status.party_id != dstsd->status.party_id) )
 						break;
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 					if( (dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) ||
-						//Rogue's spirit defends againt dispel.
+						//Rogue's spirit defends againt dispel
 						(tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_ROGUE) ||
 						//Mado Gear is immune to dispell according to bug report 49 [Ind]
 						(tsc && (tsc->option&OPTION_MADOGEAR)) ||
@@ -8201,7 +8201,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				uint8 j = 0, calls = 0, called = 0;
 				struct guild *g = (sd ? sd->guild : guild_search(status_get_guild_id(src)));
 
-				//I don't know if it actually summons in a circle, but oh well. ;P
+				//I don't know if it actually summons in a circle, but oh well ;P
 				if (!g)
 					break;
 				if (skill_id == GD_ITEMEMERGENCYCALL)
@@ -8230,9 +8230,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case SG_FEEL:
-			//AuronX reported you CAN memorize the same map as all three. [Skotlex]
-			if (sd) {
-				if(!sd->feel_map[skill_lv - 1].index)
+			if (sd) { //AuronX reported you CAN memorize the same map as all three [Skotlex]
+				if (!sd->feel_map[skill_lv - 1].index)
 					clif_feel_req(sd->fd,sd,skill_lv);
 				else
 					clif_feel_info(sd,skill_lv - 1,1);
@@ -8258,10 +8257,10 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case GS_CRACKER:
-			/* Per official standards, this skill works on players and mobs. */
-			if (sd && (dstsd || dstmd)) {
+			if (sd && (dstsd || dstmd)) { //Per official standards, this skill works on players and mobs
 				i = 65 - 5 * distance_bl(src,bl); //Base rate
-				if (i < 30) i = 30;
+				if (i < 30)
+					i = 30;
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				sc_start(src,bl,SC_STUN,i,skill_lv,skill_get_time2(skill_id,skill_lv));
 			}
@@ -8472,7 +8471,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				int heal = sstatus->hp / 5; //20% HP
 
 				if( status_charge(bl,heal,0) )
-					clif_skill_nodamage(src,bl,skill_id,skill_lv,sc_start2(src,bl,type,100,skill_lv,heal,skill_get_time(skill_id,skill_lv)));
+					clif_skill_nodamage(src,bl,skill_id,skill_lv,
+						sc_start2(src,bl,type,100,skill_lv,heal,skill_get_time(skill_id,skill_lv)));
 				else
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			}
@@ -8492,32 +8492,32 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				int8 generate = 0;
 				int16 shieldnumber = 0;
 
-				generate = rnd()%100 + 1; //Generates a random number between 1 - 100 which is then used to determine how many shields will generate.
-				if( generate >= 1 && generate <= 20 ) //20% chance for 4 shields.
+				generate = rnd()%100 + 1; //Generates a random number between 1 - 100 which is then used to determine how many shields will generate
+				if( generate >= 1 && generate <= 20 ) //20% chance for 4 shields
 					shieldnumber = 4;
-				else if( generate >= 21 && generate <= 50 ) //30% chance for 3 shields.
+				else if( generate >= 21 && generate <= 50 ) //30% chance for 3 shields
 					shieldnumber = 3;
-				else if( generate >= 51 && generate <= 100 ) //50% chance for 2 shields.
+				else if( generate >= 51 && generate <= 100 ) //50% chance for 2 shields
 					shieldnumber = 2;
 				sc_start4(src,bl,type,100,skill_lv,shieldnumber,1000,0,skill_get_time(skill_id,skill_lv));
 				clif_millenniumshield(bl,shieldnumber);
-				clif_skill_nodamage(src,bl,skill_id,1,1);
+				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			}
 			break;
 
 		case RK_FIGHTINGSPIRIT:
 			if( flag&1 ) {
 				if( src == bl )
-					sc_start2(src,bl,type,100,skill_area_temp[5],10 * (sd ? pc_checkskill(sd,RK_RUNEMASTERY) : 1),skill_get_time(skill_id,skill_lv));
+					sc_start2(src,bl,type,100,skill_area_temp[5],(sd ? pc_checkskill(sd,RK_RUNEMASTERY) : 1) * 4,skill_get_time(skill_id,skill_lv));
 				else
 					sc_start(src,bl,type,100,skill_area_temp[5] / 4,skill_get_time(skill_id,skill_lv));
 			} else if( sd ) {
 				if( sd->status.party_id ) {
 					i = party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,skill_id,skill_lv,tick,BCT_PARTY,skill_area_sub_count);
-					skill_area_temp[5] = 7 * i; //Attack
+					skill_area_temp[5] = 7 * i; //Attack Bonus
 					party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
 				} else
-					sc_start2(src,bl,type,100,7,5,skill_get_time(skill_id,skill_lv));
+					sc_start2(src,bl,type,100,7,pc_checkskill(sd,RK_RUNEMASTERY) * 4,skill_get_time(skill_id,skill_lv));
 			}
 			clif_skill_nodamage(src,bl,skill_id,1,1);
 			break;
@@ -8526,41 +8526,38 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			if( sd == NULL || !sd->status.party_id || flag&1 ) {
 				if( src == bl )
 					break;
-				while( skill_area_temp[5] >= 0x10 ) {
-					type = SC_NONE;
-					if( skill_area_temp[5]&0x10 ) {
-						i = (rnd()%100 < 50) ? 4 : ((rnd()%100 < 80) ? 3 : 2);
-						clif_millenniumshield(bl,i);
-						skill_area_temp[5] &= ~0x10;
-						type = SC_MILLENNIUMSHIELD;
-					} else if( skill_area_temp[5]&0x20 ) {
-						i = status_get_max_hp(bl) * 25 / 100;
-						status_change_clear_buffs(bl,4);
-						skill_area_temp[5] &= ~0x20;
-						status_heal(bl,i,0,1);
-						type = SC_REFRESH;
-					} else if( skill_area_temp[5]&0x40 ) {
-						skill_area_temp[5] &= ~0x40;
-						type = SC_GIANTGROWTH;
-					} else if( skill_area_temp[5]&0x80 ) {
-						if( dstsd ) {
-							i = sstatus->hp / 5;
-							if( status_charge(bl,i,0) )
-								type = SC_STONEHARDSKIN;
-							skill_area_temp[5] &= ~0x80;
-						}
-					} else if( skill_area_temp[5]&0x100 ) {
-						skill_area_temp[5] &= ~0x100;
-						type = SC_VITALITYACTIVATION;
-					} else if( skill_area_temp[5]&0x200 ) {
-						skill_area_temp[5] &= ~0x200;
-						type = SC_ABUNDANCE;
-					}
-					if( type > SC_NONE )
-						clif_skill_nodamage(bl,bl,skill_id,skill_lv,
-							sc_start4(src,bl,type,100,skill_lv,i,0,1,skill_get_time(skill_id,skill_lv)));
-					status_change_clear_buffs(bl,8); //For bonus_script
+				clif_skill_nodamage(bl,bl,skill_id,skill_lv,1);
+				if( skill_area_temp[5]&0x10 ) {
+					i = rnd()%100 + 1;
+					if( i >= 1 && i <= 20 )
+						i = 4;
+					else if( i >= 21 && i <= 50 )
+						i = 3;
+					else if( i >= 51 && i <= 100 )
+						i = 2;
+					sc_start4(src,bl,SC_MILLENNIUMSHIELD,100,skill_lv,i,1000,0,skill_get_time(skill_id,skill_lv));
+					clif_millenniumshield(bl,i);
 				}
+				if( skill_area_temp[5]&0x20 ) {
+					i = status_get_max_hp(bl) * 25 / 100;
+					sc_start(src,bl,SC_REFRESH,100,skill_lv,skill_get_time(skill_id,skill_lv));
+					status_heal(bl,i,0,1);
+					status_change_clear_buffs(bl,4);
+				}
+				if( skill_area_temp[5]&0x40 )
+					sc_start(src,bl,SC_GIANTGROWTH,100,skill_lv,skill_get_time(skill_id,skill_lv));
+				if( skill_area_temp[5]&0x80 ) {
+					if( dstsd ) {
+						i = sstatus->hp / 5;
+						if( status_charge(bl,i,0) )
+							sc_start2(src,bl,SC_STONEHARDSKIN,100,skill_lv,i,skill_get_time(skill_id,skill_lv));
+					}
+				}
+				if( skill_area_temp[5]&0x100 )
+					sc_start(src,bl,SC_VITALITYACTIVATION,100,skill_lv,skill_get_time(skill_id,skill_lv));
+				if( skill_area_temp[5]&0x200 )
+					sc_start(src,bl,SC_ABUNDANCE,100,skill_lv,skill_get_time(skill_id,skill_lv));
+				status_change_clear_buffs(bl,8); //For bonus_script
 			} else if( sd ) {
 				if( tsc && tsc->count ) {
 					if( tsc->data[SC_MILLENNIUMSHIELD] )
@@ -8587,7 +8584,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				skill_area_temp[2] = 0;
 				map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_PREAMBLE|SD_SPLASH|1,skill_castend_damage_id);
 				if( tsc && tsc->data[SC_ROLLINGCUTTER] ) {
-					//Every time the skill is casted the status change is reseted adding a counter.
+					//Every time the skill is casted the status change is reseted adding a counter
 					count += (short)tsc->data[SC_ROLLINGCUTTER]->val1;
 					if( count > 10 )
 						count = 10; //Max coounter

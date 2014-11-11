@@ -6107,11 +6107,10 @@ static short status_calc_fix_aspd(struct block_list *bl, struct status_change *s
 	if (sc->data[SC_OVERED_BOOST])
 		return cap_value(2000 - sc->data[SC_OVERED_BOOST]->val3 * 10, 0, 2000);
 
-	if ((sc->data[SC_GUST_OPTION] || sc->data[SC_BLAST_OPTION] ||
-		sc->data[SC_WILD_STORM_OPTION]))
+	if ((sc->data[SC_GUST_OPTION] || sc->data[SC_BLAST_OPTION] || sc->data[SC_WILD_STORM_OPTION]))
 		aspd -= 50; //+5 ASPD
-	if (sc->data[SC_FIGHTINGSPIRIT] && sc->data[SC_FIGHTINGSPIRIT]->val2)
-		aspd -= (bl->type == BL_PC ? pc_checkskill((TBL_PC *)bl, RK_RUNEMASTERY) : 10) / 10 * 40;
+	if (sc->data[SC_FIGHTINGSPIRIT])
+		aspd -= sc->data[SC_FIGHTINGSPIRIT]->val2;
 	if (sc->data[SC_MTF_ASPD])
 		aspd -= 10;
 	if (sc->data[SC_MTF_ASPD2])
@@ -12256,7 +12255,6 @@ void status_change_clear_buffs(struct block_list* bl, int type)
 	for( i = SC_COMMON_MAX + 1; i < SC_MAX; i++ ) {
 		if( !sc->data[i] )
 			continue;
-
 		switch( i ) {
 			//Stuff that cannot be removed
 			case SC_WEIGHT50:
@@ -12391,7 +12389,7 @@ void status_change_clear_buffs(struct block_list* bl, int type)
 				if( !(type&2) )
 					continue;
 				break;
-			//The rest are buffs that can be removed.
+			//The rest are buffs that can be removed
 			case SC_BERSERK:
 			case SC_SATURDAYNIGHTFEVER:
 				if( !(type&1) )
@@ -12413,7 +12411,7 @@ void status_change_clear_buffs(struct block_list* bl, int type)
 		if( type&2 ) i |= BSF_REM_DEBUFF;
 		if( type&4 ) i |= BSF_REM_ON_REFRESH;
 		if( type&8 ) i |= BSF_REM_ON_LUXANIMA;
-		pc_bonus_script_clear(BL_CAST(BL_PC,bl),i);
+		pc_bonus_script_clear(BL_CAST(BL_PC, bl), i);
 	}
 
 	//Cleaning all extras vars
