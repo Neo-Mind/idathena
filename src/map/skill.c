@@ -5629,12 +5629,12 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				return ret;
 			}
 			break;
-		case NPC_SMOKING: //Since it is a self skill, this one ends here rather than in damage_id. [Skotlex]
+		case NPC_SMOKING: //Since it is a self skill, this one ends here rather than in damage_id [Skotlex]
 			return skill_castend_damage_id(src,bl,skill_id,skill_lv,tick,flag);
 		default:
-			//Skill is actually ground placed.
-			if(src == bl && skill_get_unit_id(skill_id,0))
+			if(src == bl && skill_get_unit_id(skill_id,0)) //Skill is actually ground placed
 				return skill_castend_pos2(src,bl->x,bl->y,skill_id,skill_lv,tick,0);
+			break;
 	}
 
 	type = status_skill2sc(skill_id);
@@ -17302,10 +17302,10 @@ int skill_delunit(struct skill_unit* unit)
 			break;
 		case WZ_ICEWALL:
 			map_setgatcell(unit->bl.m,unit->bl.x,unit->bl.y,unit->val2);
-			clif_changemapcell(0,unit->bl.m,unit->bl.x,unit->bl.y,unit->val2,ALL_SAMEMAP); //hack to avoid clientside cell bug
+			clif_changemapcell(0,unit->bl.m,unit->bl.x,unit->bl.y,unit->val2,ALL_SAMEMAP); //Hack to avoid clientside cell bug
 			skill_unitsetmapcell(unit,WZ_ICEWALL,group->skill_lv,CELL_ICEWALL,false);
-			//AS_CLOAKING in low levels requires a wall to be cast, thus it needs to be
-			//checked again when a wall disapears! issue:8182 [Panikon]
+			//AS_CLOAKING in low levels requires a wall to be cast,
+			//thus it needs to be checked again when a wall disapears! issue:8182 [Panikon]
 			map_foreachinarea(skill_check_cloaking_end,unit->bl.m,
 				unit->bl.x - 1,unit->bl.y - 1,unit->bl.x + 1,unit->bl.x + 1,BL_PC); //Use 3x3 area to check for users near cell
 			break;

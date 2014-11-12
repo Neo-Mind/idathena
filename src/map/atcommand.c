@@ -1693,7 +1693,7 @@ ACMD_FUNC(gvgon)
 		clif_displaymessage(fd, msg_txt(163)); // GvG is already On.
 		return -1;
 	}
-	
+
 	map[sd->bl.m].flag.gvg = 1;
 	clif_map_property_mapall(sd->bl.m, MAPPROPERTY_AGITZONE);
 	clif_maptypeproperty2(&sd->bl, ALL_SAMEMAP);

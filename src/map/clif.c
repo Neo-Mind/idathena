@@ -366,7 +366,7 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 	sd = BL_CAST(BL_PC, bl);
 
 	switch (type) {
-		case ALL_CLIENT: //All player clients.
+		case ALL_CLIENT: //All player clients
 			iter = mapit_getallusers();
 			while ((tsd = (TBL_PC*)mapit_next(iter)) != NULL) {
 				if (packet_db[tsd->packet_ver][RBUFW(buf,0)].len) { //Packet must exist for the client version
@@ -392,7 +392,7 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 
 		case AREA:
 		case AREA_WOSC:
-			if (sd && bl->prev == NULL) //Otherwise source misses the packet.[Skotlex]
+			if (sd && bl->prev == NULL) //Otherwise source misses the packet [Skotlex]
 				clif_send(buf, len, bl, SELF);
 		case AREA_WOC:
 		case AREA_WOS:
@@ -461,12 +461,11 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 						WFIFOSET(fd,len);
 					}
 				}
-				if (!enable_spy) //Skip unnecessary parsing. [Skotlex]
+				if (!enable_spy) //Skip unnecessary parsing [Skotlex]
 					break;
 				iter = mapit_getallusers();
-				while ((tsd = (TBL_PC*)mapit_next(iter)) != NULL) {
+				while ((tsd = (TBL_PC*)mapit_next(iter)) != NULL) { //Packet must exist for the client version
 					if (tsd->partyspy == p->party.party_id && packet_db[tsd->packet_ver][RBUFW(buf,0)].len) {
-						//Packet must exist for the client version
 						WFIFOHEAD(tsd->fd,len);
 						memcpy(WFIFOP(tsd->fd,0), buf, len);
 						WFIFOSET(tsd->fd,len);
@@ -479,12 +478,13 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 		case DUEL:
 		case DUEL_WOS:
 			if (!sd || !sd->duel_group)
-				break; //Invalid usage.
+				break; //Invalid usage
 			iter = mapit_getallusers();
 			while ((tsd = (TBL_PC*)mapit_next(iter)) != NULL) {
 				if (type == DUEL_WOS && bl->id == tsd->bl.id)
 					continue;
-				if (sd->duel_group == tsd->duel_group && packet_db[tsd->packet_ver][RBUFW(buf,0)].len) { //Packet must exist for the client version
+				//Packet must exist for the client version
+				if (sd->duel_group == tsd->duel_group && packet_db[tsd->packet_ver][RBUFW(buf,0)].len) {
 					WFIFOHEAD(tsd->fd,len);
 					memcpy(WFIFOP(tsd->fd,0), buf, len);
 					WFIFOSET(tsd->fd,len);
@@ -493,8 +493,8 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 			mapit_free(iter);
 			break;
 
-		case SELF:
-			if (sd && (fd = sd->fd) && packet_db[sd->packet_ver][RBUFW(buf,0)].len) { //Packet must exist for the client version
+		case SELF: //Packet must exist for the client version
+			if (sd && (fd = sd->fd) && packet_db[sd->packet_ver][RBUFW(buf,0)].len) {
 				WFIFOHEAD(fd,len);
 				memcpy(WFIFOP(fd,0), buf, len);
 				WFIFOSET(fd,len);
@@ -536,11 +536,11 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 						}
 					}
 				}
-				if (!enable_spy) //Skip unnecessary parsing. [Skotlex]
+				if (!enable_spy) //Skip unnecessary parsing [Skotlex]
 					break;
 				iter = mapit_getallusers();
-				while ((tsd = (TBL_PC*)mapit_next(iter)) != NULL) {
-					if (tsd->guildspy == g->guild_id && packet_db[tsd->packet_ver][RBUFW(buf,0)].len) { //Packet must exist for the client version
+				while ((tsd = (TBL_PC*)mapit_next(iter)) != NULL) { //Packet must exist for the client version
+					if (tsd->guildspy == g->guild_id && packet_db[tsd->packet_ver][RBUFW(buf,0)].len) {
 						WFIFOHEAD(tsd->fd,len);
 						memcpy(WFIFOP(tsd->fd,0), buf, len);
 						WFIFOSET(tsd->fd,len);
@@ -5973,7 +5973,7 @@ void clif_maptypeproperty2(struct block_list *bl, enum send_target t) {
 		((map[bl->m].flag.noitemconsumption ? 1 : 0)<<8)| //DISABLE_COSTUMEITEM - Unknown - (Prevents wearing of costume items?)
 		((map[bl->m].flag.nousecart ? 0 : 1)<<9)| //USECART - Allow opening cart inventory (Well force it to always allow it)
 		((map[bl->m].flag.nosumstarmiracle ? 0 : 1)<<10); //SUNMOONSTAR_MIRACLE - Unknown - (Guessing it blocks Star Gladiator's Miracle from activating)
-		//(1<<11); //Unused bits. 1 - 10 is 0x1 length and 11 is 0x15 length. May be used for future settings.
+		//(1<<11); //Unused bits. 1 - 10 is 0x1 length and 11 is 0x15 length. May be used for future settings
 
 	WBUFW(buf,0) = 0x99b;
 	WBUFW(buf,2) = 0x28; //Type - What is it asking for? MAPPROPERTY? MAPTYPE? I don't know. Do we even need it? [Rytech]
@@ -13579,7 +13579,7 @@ void clif_account_name(struct map_session_data* sd, int account_id, const char* 
 /// 01df <account id>.L
 void clif_parse_GMReqAccountName(int fd, struct map_session_data *sd)
 {
-	if( sd->bl.type&BL_PC ) { // Only show for players
+	if( sd->bl.type&BL_PC ) { //Only show for players
 		char command[30];
 		int account_id = RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
 

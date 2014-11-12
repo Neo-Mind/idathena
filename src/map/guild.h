@@ -18,7 +18,7 @@ struct mob_data;
  * For quick linking to a guardian's info. [Skotlex]
  */
 struct guardian_data {
-	int number; //0-MAX_GUARDIANS-1 = Guardians. MAX_GUARDIANS = Emperium.
+	int number; // 0-MAX_GUARDIANS-1 = Guardians. MAX_GUARDIANS = Emperium
 	struct guild *g;
 	struct guild_castle* castle;
 };
@@ -28,7 +28,7 @@ int guild_skill_get_max(int id);
 int guild_checkskill(struct guild *g,int id);
 int guild_check_skill_require(struct guild *g,int id); // [Komurka]
 int guild_checkcastles(struct guild *g); // [MouseJstr]
-bool guild_isallied(int guild_id, int guild_id2); //Checks alliance based on guild Ids. [Skotlex]
+bool guild_isallied(int guild_id, int guild_id2); // Checks alliance based on guild Ids [Skotlex]
 
 void do_init_guild(void);
 struct guild *guild_search(int guild_id);
@@ -100,7 +100,7 @@ void guild_agit_end(void);
 
 void guild_agit2_start(void);
 void guild_agit2_end(void);
-/* Guild flag cachin */
+// Guild flag cachin
 void guild_flag_add(struct npc_data *nd);
 void guild_flag_remove(struct npc_data *nd);
 void guild_flags_clear(void);
