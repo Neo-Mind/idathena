@@ -5498,7 +5498,7 @@ void clif_skill_warppoint(struct map_session_data* sd, uint16 skill_id, uint16 s
 
 	sd->menuskill_id = skill_id;
 	if (skill_id == AL_WARP)
-		sd->menuskill_val = (sd->ud.skillx<<16)|sd->ud.skilly; //Store warp position here.
+		sd->menuskill_val = (sd->ud.skillx<<16)|sd->ud.skilly; //Store warp position here
 	else
 		sd->menuskill_val = skill_lv;
 }
@@ -14281,10 +14281,12 @@ void clif_parse_FeelSaveOk(int fd,struct map_session_data *sd)
 {
 	int i;
 	//int wich = RFIFOB(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
+
 	if (sd->menuskill_id != SG_FEEL)
 		return;
-	i = sd->menuskill_val-1;
-	if (i<0 || i >= MAX_PC_FEELHATE) return; //Bug?
+	i = sd->menuskill_val - 1;
+	if (i < 0 || i >= MAX_PC_FEELHATE)
+		return; //Bug?
 
 	sd->feel_map[i].index = map_id2index(sd->bl.m);
 	sd->feel_map[i].m = sd->bl.m;
@@ -17194,7 +17196,7 @@ int clif_skill_itemlistwindow(struct map_session_data *sd, uint16 skill_id, uint
 	int fd;
 	nullpo_ret(sd);
 
-	sd->menuskill_id = skill_id; //To prevent hacking.
+	sd->menuskill_id = skill_id; //To prevent hacking
 	sd->menuskill_val = skill_lv;
 	
 	if( skill_id == GN_CHANGEMATERIAL )

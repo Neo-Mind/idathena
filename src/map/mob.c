@@ -42,24 +42,24 @@
 #include <string.h>
 #include <math.h>
 
-#define ACTIVE_AI_RANGE 2 //Distance added on top of 'AREA_SIZE' at which mobs enter active AI mode.
+#define ACTIVE_AI_RANGE 2 //Distance added on top of 'AREA_SIZE' at which mobs enter active AI mode
 
 #define IDLE_SKILL_INTERVAL 10 //Active idle skills should be triggered every 1 second (1000/MIN_MOBTHINKTIME)
 
 // Probability for mobs far from players from doing their IDLE skill. (rate of 1000 minute)
-// in Aegis, this is 100% for mobs that have been activated by players and none otherwise.
-#define MOB_LAZYSKILLPERC(md) (md->state.spotted?1000:0)
+// in Aegis, this is 100% for mobs that have been activated by players and none otherwise
+#define MOB_LAZYSKILLPERC(md) (md->state.spotted ? 1000 : 0)
 // Move probability for mobs away from players (rate of 1000 minute)
-// in Aegis, this is 100% for mobs that have been activated by players and none otherwise.
-#define MOB_LAZYMOVEPERC(md) (md->state.spotted?1000:0)
+// in Aegis, this is 100% for mobs that have been activated by players and none otherwise
+#define MOB_LAZYMOVEPERC(md) (md->state.spotted ? 1000 : 0)
 #define MOB_MAX_DELAY (24*3600*1000)
-#define MAX_MINCHASE 30 //Max minimum chase value to use for mobs.
+#define MAX_MINCHASE 30 //Max minimum chase value to use for mobs
 #define RUDE_ATTACKED_COUNT 2 //After how many rude-attacks should the skill be used?
 #define MAX_MOB_CHAT 50 //Max Skill's messages
 
 //Dynamic mob database, allows saving of memory when there's big gaps in the mob_db [Skotlex]
 struct mob_db *mob_db_data[MAX_MOB_DB + 1];
-struct mob_db *mob_dummy = NULL; //Dummy mob to be returned when a non-existant one is requested.
+struct mob_db *mob_dummy = NULL; //Dummy mob to be returned when a non-existant one is requested
 
 struct mob_db *mob_db(int index) { if (index < 0 || index > MAX_MOB_DB || mob_db_data[index] == NULL) return mob_dummy; return mob_db_data[index]; }
 
@@ -67,7 +67,7 @@ struct mob_db *mob_db(int index) { if (index < 0 || index > MAX_MOB_DB || mob_db
 struct mob_chat *mob_chat_db[MAX_MOB_CHAT + 1];
 struct mob_chat *mob_chat(short id) { if(id <= 0 || id > MAX_MOB_CHAT || mob_chat_db[id] == NULL) return (struct mob_chat*)NULL; return mob_chat_db[id]; }
 
-//Dynamic item drop ratio database for per-item drop ratio modifiers overriding global drop ratios.
+//Dynamic item drop ratio database for per-item drop ratio modifiers overriding global drop ratios
 #define MAX_ITEMRATIO_MOBS 10
 struct s_mob_item_drop_ratio {
 	unsigned short nameid;
@@ -76,7 +76,7 @@ struct s_mob_item_drop_ratio {
 };
 static DBMap *mob_item_drop_ratio;
 
-static struct eri *item_drop_ers; //For loot drops delay structures.
+static struct eri *item_drop_ers; //For loot drops delay structures
 static struct eri *item_drop_list_ers;
 
 static struct {
@@ -105,7 +105,7 @@ int mobdb_searchname(const char *str)
 	for(i = 0; i <= MAX_MOB_DB; i++) {
 		struct mob_db *mob = mob_db(i);
 
-		if(mob == mob_dummy) //Skip dummy mobs.
+		if(mob == mob_dummy) //Skip dummy mobs
 			continue;
 		if(strcmpi(mob->name,str) == 0 || strcmpi(mob->jname,str) == 0 || strcmpi(mob->sprite,str) == 0)
 			return i;

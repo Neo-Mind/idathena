@@ -2496,7 +2496,7 @@ int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt)
 		if ((status = status_get_base_status(mbl))) {
 			if (battle_config.slaves_inherit_speed&(status->mode&MD_CANMOVE ? 1 : 2))
 				status->speed = status->speed;
-			if (status->speed < 2) /* Minimum for the unit to function properly */
+			if (status->speed < 2) //Minimum for the unit to function properly
 				status->speed = 2;
 		}
 	}
@@ -2588,16 +2588,19 @@ int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt)
 		}
 	}
 
-	if (flag&16 && mbl) { //Max HP setting from Summon Flora/marine Sphere
+	if (flag&16 && mbl) {
 		struct unit_data *ud = unit_bl2ud(mbl);
 		struct status_data *mstatus = status_get_status_data(mbl);
 
-		//Remove special AI when this is used by regular mobs.
+		//Remove special AI when this is used by regular mobs
 		if (mbl->type == BL_MOB && !((TBL_MOB*)mbl)->special_state.ai)
 			md->special_state.ai = AI_NONE;
 		if (ud) { //Different levels of HP according to skill level
-			if (!ud->skill_id) //FIXME: We lost the unit data for magic decoy in somewhere before this
+			//FIXME: We lost the unit data (skill_id and skill_lv) for magic decoy in somewhere before this
+			if (!ud->skill_id)
 				ud->skill_id = ((TBL_PC*)mbl)->menuskill_id;
+			if (!ud->skill_lv)
+				ud->skill_lv = ((TBL_PC*)mbl)->menuskill_val;
 			switch (ud->skill_id) {
 				case AM_SPHEREMINE:
 					status->max_hp = 2000 + 400 * ud->skill_lv;
@@ -2613,13 +2616,13 @@ int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt)
 					if (!mstatus)
 						break;
 					status->max_hp = mstatus->max_hp / 3 + ud->skill_lv * 1000 + status_get_lv(mbl) * 12;
-					status->rhw.atk = status->rhw.atk2 = (((ud->skill_lv > 3) ? 300 : 100) + 200 * ud->skill_lv);
+					status->rhw.atk = status->rhw.atk2 = ((ud->skill_lv > 3 ? 300 : 100) + 200 * ud->skill_lv);
 					break;
 				case NC_MAGICDECOY:
 					if (!mstatus)
 						break;
 					status->max_hp = mstatus->max_sp * 4 + ud->skill_lv * 1000 + status_get_lv(mbl) * 12;
-					status->matk_min = status->matk_max = ((TBL_PC*)mbl)->menuskill_val * 50 + 250;
+					status->matk_min = status->matk_max = ud->skill_lv * 50 + 250;
 					break;
 				case MH_SUMMON_LEGION: {
 						int homblvl = status_get_lv(mbl);

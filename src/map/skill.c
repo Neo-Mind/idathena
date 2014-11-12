@@ -10958,7 +10958,7 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 			status_change_end(src,SC_CAMOUFLAGE,INVALID_TIMER);
 		map_freeblock_lock();
 		skill_castend_pos2(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv,tick,0);
-		if( sd && sd->skillitem != AL_WARP ) //Warp-Portal thru items will clear data in skill_castend_map. [Inkfish]
+		if( sd && sd->skillitem != AL_WARP ) //Warp-Portal thru items will clear data in skill_castend_map [Inkfish]
 			sd->skillitem = sd->skillitemlv = 0;
 		if( ud->skilltimer == INVALID_TIMER ) {
 			if( md )
@@ -11800,11 +11800,11 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 /*==========================================
  *
  *------------------------------------------*/
-int skill_castend_map (struct map_session_data *sd, uint16 skill_id, const char *map)
+int skill_castend_map(struct map_session_data *sd, uint16 skill_id, const char *map)
 {
 	nullpo_ret(sd);
 
-//Simplify skill_failed code.
+//Simplify skill_failed code
 #define skill_failed(sd) { sd->menuskill_id = sd->menuskill_val = 0; }
 	if( skill_id != sd->menuskill_id )
 		return 0;
@@ -14106,7 +14106,7 @@ static int skill_check_condition_mob_master_sub(struct block_list *bl, va_list a
 		AI_LEGION : skill == NC_SILVERSNIPER ? AI_FAW : skill == NC_MAGICDECOY ? AI_FAW : AI_FLORA);
 
 	if( md->master_id != src_id || md->special_state.ai != ai )
-		return 0; //Non alchemist summoned mobs have nothing to do here.
+		return 0; //Non alchemist summoned mobs have nothing to do here
 
 	if( md->mob_id == mob_id )
 		(*c)++;
@@ -18575,7 +18575,7 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 				if( sd->menuskill_id ==	AM_PHARMACY &&
 					sd->menuskill_val > 10 && sd->menuskill_val <= 20 )
 				{ //Assume Cooking Dish
-					if( sd->menuskill_val >= 15 ) //Legendary Cooking Set.
+					if( sd->menuskill_val >= 15 ) //Legendary Cooking Set
 						make_per = 10000; //100% Success
 					else
 						make_per = 1200 * (sd->menuskill_val - 10)
@@ -18992,7 +18992,6 @@ int skill_magicdecoy(struct map_session_data *sd, unsigned short nameid) {
 	x = sd->sc.comet_x;
 	y = sd->sc.comet_y;
 	sd->sc.comet_x = sd->sc.comet_y = 0;
-	sd->menuskill_val = 0;
 
 	//Item picked decides the mob class
 	switch( nameid ) {
