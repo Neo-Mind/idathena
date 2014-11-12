@@ -1979,8 +1979,8 @@ int skill_counter_additional_effect(struct block_list* src, struct block_list *b
 	 	!(skill_get_inf(skill_id)&(INF_GROUND_SKILL|INF_SELF_SKILL)) &&
 		(rate = pc_checkskill(sd,HW_SOULDRAIN)) > 0)
 	{ //Soul Drain should only work on targetted spells [Skotlex]
-		if(pc_issit(sd)) //Character stuck in attacking animation while 'sitting' fix. [Skotlex]
-			pc_setstand(sd);
+		if(pc_issit(sd))
+			pc_setstand(sd); //Character stuck in attacking animation while 'sitting' fix [Skotlex]
 		if(skill_get_nk(skill_id)&NK_SPLASH && skill_area_temp[1] != bl->id)
 			;
 		else {
