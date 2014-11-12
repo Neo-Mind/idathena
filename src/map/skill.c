@@ -13144,7 +13144,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			skill_attack(skill_get_type(skill_id),src,&unit->bl,bl,skill_id,skill_lv,tick,0);
 			clif_changetraplook(&unit->bl,UNT_FIREPILLAR_ACTIVE);
 			group->unit_id = UNT_USED_TRAPS;
-			group->limit = 1500;
+			group->limit = DIFF_TICK(tick,group->tick) + 1500;
 			break;
 
 		case UNT_MAGENTATRAP:
