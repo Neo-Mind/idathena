@@ -1980,10 +1980,11 @@ int battle_calc_chorusbonus(struct map_session_data *sd, uint8 flag) {
 	members = party_foreachsamemap(party_sub_count_chorus, sd, 0);
 
 	if (members < 3)
-		return 0; // Bonus remains 0 unless 3 or more Minstrels/Wanderers are in the party.
+		return 0; // Bonus remains 0 unless 3 or more Minstrels/Wanderers are in the party
+
 	if (members > 7)
-		return 5; // Maximum effect possible from 7 or more Minstrels/Wanderers.
-	return (flag ? members : members - 2); // Effect bonus from additional Minstrels/Wanderers if not above the max possible.
+		return 5; // Maximum effect possible from 7 or more Minstrels/Wanderers
+	return (flag ? members : members - 2); // Effect bonus from additional Minstrels/Wanderers if not above the max possible
 }
 
 struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv,int mflag);
@@ -1997,7 +1998,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
  *	Initial refactoring by Baalberith
  *	Refined and optimized by helvetica
  */
-static bool target_has_infinite_defense(struct block_list *target, uint16 skill_id)
+static bool target_has_infinite_defense(struct block_list *target, uint16 skill_id, int flag)
 {
 	struct status_data *tstatus = status_get_status_data(target);
 
@@ -2007,9 +2008,15 @@ static bool target_has_infinite_defense(struct block_list *target, uint16 skill_
 		if(su && su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
 			return true;
 	}
+
+	if(tstatus->mode&MD_IGNOREMELEE && (flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON))
+		return true;
+
+	if(tstatus->mode&MD_IGNORERANGED && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG)
+		return true;
 	return (tstatus->mode&MD_PLANT && skill_id != RA_CLUSTERBOMB
 #ifdef RENEWAL
-		&& skill_id != HT_FREEZINGTRAP && skill_id != HT_CLAYMORETRAP
+		&& skill_id != HT_BLASTMINE && skill_id != HT_CLAYMORETRAP
 #endif
 	);
 }
@@ -4874,7 +4881,7 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 	wd.blewcount = skill_get_blewcount(skill_id,skill_lv);
 	wd.miscflag = wflag;
 	wd.flag = BF_WEAPON; //Initial Flag
-	//Baphomet card's splash damage is counted as a skill. [Inkfish]
+	//Baphomet card's splash damage is counted as a skill [Inkfish]
 	wd.flag |= (skill_id || wd.miscflag) ? BF_SKILL : BF_NORMAL;
 
 	wd.damage = wd.damage2 = 
@@ -5058,7 +5065,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 	//Check if we're landing a hit
 	if(!is_attack_hitting(wd, src, target, skill_id, skill_lv, true))
 		wd.dmg_lv = ATK_FLEE;
-	else if(!target_has_infinite_defense(target, skill_id)) { //No need for math against plants
+	else if(!target_has_infinite_defense(target, skill_id, wd.flag)) { //No need for math against plants
 		int ratio = 0;
 		int64 const_val = 0;
 
@@ -5190,7 +5197,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 	if(wd.damage + wd.damage2) { //Check if attack ignores DEF
 		if((!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ||
 			!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_R)) &&
-			!target_has_infinite_defense(target, skill_id))
+			!target_has_infinite_defense(target, skill_id, wd.flag))
 			wd = battle_calc_defense_reduction(wd, src, target, skill_id, skill_lv);
 		if(wd.dmg_lv != ATK_FLEE)
 			wd = battle_calc_attack_post_defense(wd, src, target, skill_id, skill_lv);
@@ -5348,7 +5355,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 	DAMAGE_DIV_FIX(wd.damage, wd.div_);
 
 	//Only do 1 dmg to plant, no need to calculate rest
-	if(target_has_infinite_defense(target, skill_id))
+	if(target_has_infinite_defense(target, skill_id, wd.flag))
 		return battle_calc_attack_plant(wd, src, target, skill_id, skill_lv);
 
 	wd = battle_calc_attack_left_right_hands(wd, src, target, skill_id, skill_lv);
@@ -6616,8 +6623,6 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 					md.damage = 1;
 					md.dmg_lv = ATK_FLEE;
 					break;
-				case HT_LANDMINE:
-				case MA_LANDMINE:
 				case HT_BLASTMINE:
 				case HT_CLAYMORETRAP:
 				case RA_CLUSTERBOMB:

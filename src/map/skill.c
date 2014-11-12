@@ -2692,17 +2692,17 @@ void skill_attack_blow(struct block_list *src, struct block_list *dsrc, struct b
  * @param dsrc is the actual originator of the damage, can be the same as src, or a BL_SKILL
  * @param bl is the target to be attacked.
  * @param flag can hold a bunch of information:
- *        flag&1
- *        flag&2 - Disable re-triggered by double casting
- *        flag&4 - Skip to blow target (because already knocked back before skill_attack somewhere)
+ *  flag&1
+ *  flag&2 - Disable re-triggered by double casting
+ *  flag&4 - Skip to blow target (because already knocked back before skill_attack somewhere)
  *
- *        flag&0xFFF is passed to the underlying battle_calc_attack for processing
- *             (usually holds number of targets, or just 1 for simple splash attacks)
+ *  flag&0xFFF is passed to the underlying battle_calc_attack for processing
+ *   (usually holds number of targets, or just 1 for simple splash attacks)
  *
- *        flag&0x1000 - Return 0 if damage was reflected
+ *  flag&0xF000 - Values from enum e_skill_display
+ *  flag&0x3F0000 - Values from enum e_battle_check_target
  *
- *        Values from enum e_skill_display
- *        Values from enum e_battle_check_target
+ *  flag&0x1000000 - Return 0 if damage was reflected
  */
 int skill_attack(int attack_type, struct block_list* src, struct block_list *dsrc, struct block_list *bl, uint16 skill_id, uint16 skill_lv, unsigned int tick, int flag)
 {
@@ -2772,7 +2772,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 		}
 	}
 
-	//Earthquake on multiple targets is not counted as a target skill. [Inkfish]
+	//Earthquake on multiple targets is not counted as a target skill [Inkfish]
 	if ((dmg.flag&BF_MAGIC) && (skill_id != NPC_EARTHQUAKE ||
 		(battle_config.eq_single_target_reflectable && (flag&0xFFF) == 1))) {
 		//Magic reflection, switch caster/target
@@ -2787,10 +2787,10 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 			tsd = BL_CAST(BL_PC, bl);
 			tsc = status_get_sc(bl);
 			if (tsc && !tsc->count)
-				tsc = NULL; //Don't need it.
-			/* bugreport:2564 flag&2 disables double casting trigger */
+				tsc = NULL; //Don't need it
+			//bugreport:2564 flag&2 disables double casting trigger
 			flag |= 2;
-			/* bugreport:7859 magical reflect'd zeroes blewcount */
+			//bugreport:7859 magical reflect'd zeroes blewcount
 			dmg.blewcount = 0;
 			//Spirit of Wizard blocks Kaite's reflection
 			if (type == 2 && tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_WIZARD) {
@@ -2804,12 +2804,12 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 					tsc->data[SC_SPIRIT]->val3 = skill_id;
 					tsc->data[SC_SPIRIT]->val4 = dsrc->id;
 				}
-			} else if (type != 2) /* Kaite bypasses */
+			} else if (type != 2) //Kaite bypasses
 				additional_effects = false;
 
 #if MAGIC_REFLECTION_TYPE
 	#ifndef RENEWAL
-			if (type != 2) { //In pre-renewal Kaite's reflection will do a full damage.
+			if (type != 2) { //In pre-renewal Kaite's reflection will do a full damage
 	#endif
 				//Official Magic Reflection Behavior : Reflected damage also affected by caster's gears
 				if (dmg.dmg_lv != ATK_MISS) { //Wiz SL cancelled and consumed fragment
@@ -2826,7 +2826,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 						struct status_data *status = status_get_status_data(bl);
 						int per = 100 * status->sp / status->max_sp - 1; //100% should be counted as the 80~99% interval
 
-						per /= 20; //Uses 20% SP intervals.
+						per /= 20; //Uses 20% SP intervals
 						//SP Cost: 1% + 0.5% per every 20% SP
 						if (!status_charge(bl, 0, (10 + 5 * per) * status->max_sp / 1000))
 							status_change_end(bl, SC_ENERGYCOAT, INVALID_TIMER);
@@ -2844,7 +2844,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 				int sp = skill_get_sp(skill_id, skill_lv);
 
 				dmg.damage = dmg.damage2 = 0;
-				dmg.dmg_lv = ATK_MISS; //This will prevent skill additional effect from taking effect. [Skotlex]
+				dmg.dmg_lv = ATK_MISS; //This will prevent skill additional effect from taking effect [Skotlex]
 				sp = sp * tsc->data[SC_MAGICROD]->val2 / 100;
 				if (skill_id == WZ_WATERBALL && skill_lv > 1)
 					sp = sp / ((skill_lv|1) * (skill_lv|1)); //Estimate SP cost of a single water-ball
@@ -2868,7 +2868,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 	if (damage && tsc && tsc->data[SC_GENSOU] && dmg.flag&BF_MAGIC) {
 		struct block_list *nbl = battle_getenemyarea(bl, bl->x, bl->y, 2, BL_CHAR, bl->id);
 
-		if (nbl) { //Only one target is chosen.
+		if (nbl) { //Only one target is chosen
 			damage = damage / 2; //Deflect half of the damage to a target nearby
 			clif_skill_damage(bl, nbl, tick, status_get_amotion(src), 0, status_fix_damage(bl, nbl, damage,0), dmg.div_, OB_OBOROGENSOU_TRANSITION_ATK, -1, DMG_SKILL);
 		}
@@ -3119,7 +3119,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 				if (battle_config.devotion_rdamage && battle_config.devotion_rdamage > rnd()%100)
 					isDevotRdamage = true;
 				//If !isDevotRdamage, reflected magics are done directly on the target not on paladin
-				//This check is only for magical skill.
+				//This check is only for magical skill
 				//For BF_WEAPON skills types track var rdamage and function battle_calc_return_damage
 				clif_damage(bl, (!isDevotRdamage) ? bl : d_bl, gettick(), 0, 0, damage, 0, DMG_NORMAL, 0);
 				status_fix_damage(bl, (!isDevotRdamage) ? bl : d_bl, damage, 0);
@@ -3186,7 +3186,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 
 	map_freeblock_unlock();
 
-	if ((flag&0x1000) && rmdamage)
+	if ((flag&0x1000000) && rmdamage)
 		return 0; //Should return 0 when damage was reflected
 
 	return (int)cap_value(damage, INT_MIN, INT_MAX);
@@ -13138,13 +13138,21 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 				status_change_start(src,bl,type,10000,skill_lv,group->group_id,0,0,skill_get_time2(skill_id,skill_lv),SCFLAG_NONE);
 			break;
 
+		case UNT_LANDMINE: //Land Mine only hits single target
+			if (tsc && tsc->data[SC__MANHOLE])
+				break;
+			skill_attack(skill_get_type(skill_id),src,&unit->bl,bl,skill_id,skill_lv,tick,0);
+			clif_changetraplook(&unit->bl,UNT_FIREPILLAR_ACTIVE);
+			sg->unit_id = UNT_USED_TRAPS;
+			sg->limit = 1500;
+			break;
+
 		case UNT_MAGENTATRAP:
 		case UNT_COBALTTRAP:
 		case UNT_MAIZETRAP:
 		case UNT_VERDURETRAP:
 			if (bl->type == BL_PC)
 				break; //It won't work on players
-		case UNT_LANDMINE:
 		case UNT_BLASTMINE:
 		case UNT_SHOCKWAVE:
 		case UNT_SANDMAN:
@@ -13156,7 +13164,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 				break;
 			map_foreachinrange(skill_trap_splash,&unit->bl,skill_get_splash(skill_id,skill_lv),group->bl_flag,&unit->bl,tick);
 			if (group->unit_id != UNT_FIREPILLAR_ACTIVE)
-				clif_changetraplook(&unit->bl,(group->unit_id == UNT_LANDMINE ? UNT_FIREPILLAR_ACTIVE : UNT_USED_TRAPS));
+				clif_changetraplook(&unit->bl,UNT_USED_TRAPS);
 			group->unit_id = UNT_USED_TRAPS;
 			group->limit = DIFF_TICK(tick,group->tick) + 1500;
 			break;
