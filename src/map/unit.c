@@ -1386,21 +1386,22 @@ int unit_set_walkdelay(struct block_list *bl, unsigned int tick, int delay, int 
 		return 0;
 
 	if (type) {
+		if (bl->type == BL_MOB && (((TBL_MOB*)bl)->status.mode&MD_BOSS))
+			return 0; //Bosses can ignore skill induced walkdelay (but not damage induced)
 		if (DIFF_TICK(ud->canmove_tick, tick + delay) > 0)
-			return 0;
+			return 0; //Make sure walk delay is not decreased
 	} else {
-		if (!unit_can_move(bl)) //Don't set walk delays when already trapped.
-			return 0;
-		if (DIFF_TICK(ud->canmove_tick, tick-delay) > 0) //Immune to being stopped for double the flinch time
-			return 0;
+		if (!unit_can_move(bl))
+			return 0; //Don't set walk delays when already trapped
+		if (DIFF_TICK(ud->canmove_tick, tick - delay) > 0)
+			return 0; //Immune to being stopped for double the flinch time
 	}
 	ud->canmove_tick = tick + delay;
-	if (ud->walktimer != INVALID_TIMER) { //Stop walking, if chasing, readjust timers.
-		if (delay == 1) //Minimal delay (walk-delay) disabled. Just stop walking.
+	if (ud->walktimer != INVALID_TIMER) { //Stop walking, if chasing, readjust timers
+		if (delay == 1) //Minimal delay (walk-delay) disabled. Just stop walking
 			unit_stop_walking(bl,4);
 		else {
-			//Resume running after can move again [Kevin]
-			if (ud->state.running)
+			if (ud->state.running) //Resume running after can move again [Kevin]
 				add_timer(ud->canmove_tick, unit_resume_running, bl->id, (intptr_t)ud);
 			else {
 				unit_stop_walking(bl,4);

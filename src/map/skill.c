@@ -41,7 +41,8 @@
 #include <time.h>
 #include <math.h>
 
-#define SKILLUNITTIMER_INTERVAL	100
+#define SKILLUNITTIMER_INTERVAL 100
+#define WATERBALL_INTERVAL 150
 
 //Ranges reserved for mapping skill ids to skilldb offsets
 #define HM_SKILLRANGEMIN 1101
@@ -3614,19 +3615,23 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case WZ_WATERBALL:
 					skill_toggle_magicpower(src,skl->skill_id); //Only the first hit will be amplify
 					//Official behaviour is to hit as long as there is a line of sight, regardless of distance
-					range = path_search_long(NULL,src->m,src->x,src->y,target->x,target->y,CELL_CHKNOREACH);
-					if (!status_isdead(target) && range) 
+					//Apply canact delay here to prevent hacks (unlimited waterball casting)
+					if (!status_isdead(target) && path_search_long(NULL,src->m,src->x,src->y,target->x,target->y,CELL_CHKNOREACH)) {
+						ud->canact_tick = tick + skill_delayfix(src,skl->skill_id,skl->skill_lv);
 						skill_attack(BF_MAGIC,src,src,target,skl->skill_id,skl->skill_lv,tick,skl->flag);
-					if (skl->type > 1 && !status_isdead(target) && !status_isdead(src) && range)
-						skill_addtimerskill(src,tick + 125,target->id,0,0,skl->skill_id,skl->skill_lv,skl->type - 1,skl->flag);
-					else {
+					}
+					//Timer will continue and walkdelay set until target is dead, even if there is currently no line of sight
+					if (skl->type > 1 && !status_isdead(target) && !status_isdead(src)) {
+						unit_set_walkdelay(src,tick,WATERBALL_INTERVAL,1);
+						skill_addtimerskill(src,tick + WATERBALL_INTERVAL,target->id,0,0,skl->skill_id,skl->skill_lv,skl->type - 1,skl->flag);
+					} else {
 						struct status_change *sc = status_get_sc(src);
 
 						if (sc) {
 							if (sc->data[SC_SPIRIT] &&
 								sc->data[SC_SPIRIT]->val2 == SL_WIZARD &&
 								sc->data[SC_SPIRIT]->val3 == skl->skill_id)
-								sc->data[SC_SPIRIT]->val3 = 0; //Clear bounced spell check.
+								sc->data[SC_SPIRIT]->val3 = 0; //Clear bounced spell check
 						}
 					}
 					break;
@@ -3638,7 +3643,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 						if (skl->type < (4 + skl->skill_lv - 1) && skl->x < 3) { //Remaining Chains Hit
 							struct block_list *nbl = NULL; //Next Target of Chain
 
-							//After 2 bounces, it will bounce to other targets in 7x7 range.
+							//After 2 bounces, it will bounce to other targets in 7x7 range
 							nbl = battle_getenemyarea(src,target->x,target->y,(skl->type > 2) ? 2 : 3,
 								BL_CHAR|BL_SKILL,target->id); //Search for a new Target around current one
 							if (nbl == NULL)
@@ -4570,7 +4575,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 						range = maxlv / 2;
 				}
 
-				for (y = src->y - range; y <= src->y + range; ++y)
+				for (y = src->y - range; y <= src->y + range; ++y) {
 					for (x = src->x - range; x <= src->x + range; ++x) {
 						if (!map_find_skill_unit_oncell(src,x,y,SA_LANDPROTECTOR,NULL,1)) {
 							//Non-players bypass the water requirement
@@ -4583,9 +4588,13 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 							}
 						}
 					}
+				}
+
+				if (count > 10000 / WATERBALL_INTERVAL + 1) //Waterball has a max duration of 10 seconds [Playtester]
+					count = 10000 / WATERBALL_INTERVAL + 1;
 
 				if (count > 1) //Queue the remaining count - 1 timerskill Waterballs
-					skill_addtimerskill(src,tick + 150,bl->id,0,0,skill_id,skill_lv,count - 1,flag);
+					skill_addtimerskill(src,tick + WATERBALL_INTERVAL,bl->id,0,0,skill_id,skill_lv,count - 1,flag);
 			}
 			skill_attack(BF_MAGIC,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;

@@ -5476,12 +5476,11 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 	switch(skill_id) {
 		case MG_FIREWALL:
-		case NJ_KAENSIN:
 		case EL_FIRE_MANTLE:
-			ad.dmotion = 0; //No flinch animation
 			if(tstatus->def_ele == ELE_FIRE || battle_check_undead(tstatus->race, tstatus->def_ele))
 				ad.blewcount = 0; //No knockback
-			break;
+			//Fall through
+		case NJ_KAENSIN:
 		case PR_SANCTUARY:
 			ad.dmotion = 0; //No flinch animation
 			break;
