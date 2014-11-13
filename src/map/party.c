@@ -1094,39 +1094,6 @@ int party_send_dot_remove(struct map_session_data *sd)
 	return 0;
 }
 
-// To use for Taekwon's "Fighting Chant"
-// int c = 0;
-// party_foreachsamemap(party_sub_count, sd, 0, &c);
-int party_sub_count(struct block_list *bl, va_list ap)
-{
-	struct map_session_data *sd = (TBL_PC *)bl;
-
-	if (sd->state.autotrade)
-		return 0;
-	
-	if (battle_config.idle_no_share && pc_isidle(sd))
-		return 0;
-
-	return 1;
-}
-
-// Speial check for Minstrel's and Wanderer's chorus skills.
-int party_sub_count_chorus(struct block_list *bl, va_list ap)
-{
-	struct map_session_data *sd = (TBL_PC *)bl;
-
-	if (sd->state.autotrade)
-		return 0;
-
-	if (battle_config.idle_no_share && pc_isidle(sd))
-		return 0;
-
-	if ((sd->class_&MAPID_THIRDMASK) != MAPID_MINSTRELWANDERER)
-		return 0;
-
-	return 1;
-}
-
 /// Executes 'func' for each party member on the same map and in range (0:whole map)
 int party_foreachsamemap(int (*func)(struct block_list*,va_list),struct map_session_data *sd,int range,...)
 {
@@ -1172,6 +1139,61 @@ int party_foreachsamemap(int (*func)(struct block_list*,va_list),struct map_sess
 	map_freeblock_unlock();
 
 	return total;
+}
+
+// To use for Taekwon's "Fighting Chant"
+// int c = 0;
+// party_foreachsamemap(party_sub_count, sd, 0, &c);
+int party_sub_count(struct block_list *bl, va_list ap)
+{
+	struct map_session_data *sd = (TBL_PC *)bl;
+
+	if (sd->state.autotrade)
+		return 0;
+	
+	if (battle_config.idle_no_share && pc_isidle(sd))
+		return 0;
+
+	return 1;
+}
+
+// Speial check for Minstrel's and Wanderer's chorus skills.
+int party_sub_count_chorus(struct block_list *bl, va_list ap)
+{
+	struct map_session_data *sd = (TBL_PC *)bl;
+
+	if (sd->state.autotrade)
+		return 0;
+
+	if (battle_config.idle_no_share && pc_isidle(sd))
+		return 0;
+
+	if ((sd->class_&MAPID_THIRDMASK) != MAPID_MINSTRELWANDERER)
+		return 0;
+
+	return 1;
+}
+
+/**
+ * Calculates Minstrel/Wanderer bonus for Chorus skills.
+ * @param sd Player who has Chorus skill active
+ * @param flag
+ * @return Bonus value based on party count
+ */
+int party_calc_chorusbonus(struct map_session_data *sd, uint8 flag) {
+	int members = 0;
+
+	if (!sd || !sd->status.party_id)
+		return 0;
+
+	members = party_foreachsamemap(party_sub_count_chorus, sd, 0);
+
+	if (members < 3 && (!flag || flag == 2 || flag == 3))
+		return 0; //Bonus remains 0 unless 3 or more Minstrels/Wanderers are in the party
+
+	if (members > 7 && flag != 3)
+		return (flag ? 7 : 5); //Maximum effect possible from 7 or more Minstrels/Wanderers
+	return (flag == 1 || flag == 2 ? members : members - 2); //Effect bonus from additional Minstrels/Wanderers if not above the max possible
 }
 
 /*==========================================

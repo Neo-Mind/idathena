@@ -1766,7 +1766,6 @@ int map_quit(struct map_session_data *sd) {
 		status_change_end(&sd->bl,SC_READYCOUNTER,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_MIRACLE,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_BERSERK,INVALID_TIMER);
-		status_change_end(&sd->bl,SC__BLOODYLUST,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_LEADERSHIP,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_GLORYWOUNDS,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_SOULCOLD,INVALID_TIMER);

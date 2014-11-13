@@ -1872,9 +1872,9 @@ static int battle_skill_damage_skill(struct block_list *src, struct block_list *
 	if(!battle_skill_damage_iscaster(damage->caster, src->type))
 		return 0;
 
-	if(((damage->map&1) && (!map[m].flag.pvp && !map_flag_gvg(m) && !map[m].flag.battleground && !map[m].flag.skill_damage && !map[m].flag.restricted)) ||
+	if(((damage->map&1) && (!map[m].flag.pvp && !map_flag_gvg2(m) && !map[m].flag.battleground && !map[m].flag.skill_damage && !map[m].flag.restricted)) ||
 		((damage->map&2) && map[m].flag.pvp) ||
-		((damage->map&4) && map_flag_gvg(m)) ||
+		((damage->map&4) && map_flag_gvg2(m)) ||
 		((damage->map&8) && map[m].flag.battleground) ||
 		((damage->map&16) && map[m].flag.skill_damage) ||
 		(map[m].flag.restricted && skill_db[idx].damage.map&(8 * map[m].zone)))
@@ -1964,28 +1964,6 @@ static int battle_skill_damage(struct block_list *src, struct block_list *target
 	return battle_skill_damage_skill(src, target, skill_id) + battle_skill_damage_map(src, target, skill_id);
 }
 #endif
-
-/**
- * Calculates Minstrel/Wanderer bonus for Chorus skills.
- * @param sd Player who has Chorus skill active
- * @param flag
- * @return Bonus value based on party count
- */
-int battle_calc_chorusbonus(struct map_session_data *sd, uint8 flag) {
-	int members = 0;
-
-	if (!sd || !sd->status.party_id)
-		return 0;
-
-	members = party_foreachsamemap(party_sub_count_chorus, sd, 0);
-
-	if (members < 3)
-		return 0; // Bonus remains 0 unless 3 or more Minstrels/Wanderers are in the party
-
-	if (members > 7)
-		return 5; // Maximum effect possible from 7 or more Minstrels/Wanderers
-	return (flag ? members : members - 2); // Effect bonus from additional Minstrels/Wanderers if not above the max possible
-}
 
 struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv,int mflag);
 struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv,int mflag);
@@ -3817,15 +3795,15 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 		case WM_GREAT_ECHO: {
 				skillratio += 300 + 200 * skill_lv;
 
-				if(battle_calc_chorusbonus(sd,0) == 1)
+				if(party_calc_chorusbonus(sd,0) == 1)
 					skillratio += 100;
-				else if(battle_calc_chorusbonus(sd,0) == 2)
+				else if(party_calc_chorusbonus(sd,0) == 2)
 					skillratio += 200;
-				else if(battle_calc_chorusbonus(sd,0) == 3)
+				else if(party_calc_chorusbonus(sd,0) == 3)
 					skillratio += 400;
-				else if(battle_calc_chorusbonus(sd,0) == 4)
+				else if(party_calc_chorusbonus(sd,0) == 4)
 					skillratio += 800;
-				else if(battle_calc_chorusbonus(sd,0) == 5)
+				else if(party_calc_chorusbonus(sd,0) == 5)
 					skillratio += 1600;
 			}
 			RE_LVL_DMOD(100);
@@ -4157,8 +4135,8 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 		if(sc->data[SC_SPIRIT]) {
 			//Sonic Blow +25% dmg on GVG, +100% dmg on non GVG
 			if(skill_id == AS_SONICBLOW && sc->data[SC_SPIRIT]->val2 == SL_ASSASIN) {
-				ATK_ADDRATE(wd.damage, wd.damage2, map_flag_gvg(src->m) ? 25 : 100);
-				RE_ALLATK_ADDRATE(wd, map_flag_gvg(src->m) ? 25 : 100);
+				ATK_ADDRATE(wd.damage, wd.damage2, map_flag_gvg2(src->m) ? 25 : 100);
+				RE_ALLATK_ADDRATE(wd, map_flag_gvg2(src->m) ? 25 : 100);
 			} else if(skill_id == CR_SHIELDBOOMERANG && sc->data[SC_SPIRIT]->val2 == SL_CRUSADER) {
 				ATK_ADDRATE(wd.damage, wd.damage2, 100);
 				RE_ALLATK_ADDRATE(wd, 100);
@@ -4289,14 +4267,14 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 				RE_ALLATK_ADDRATE(wd, sc->data[SC_GLOOMYDAY_SK]->val2);
 		}
 		if(sc->data[SC_DANCEWITHWUG]) {
-			ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_DANCEWITHWUG]->val1 * 2 * min(battle_calc_chorusbonus(sd,1),7));
-#ifdef RENEWAL
-			ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, sc->data[SC_DANCEWITHWUG]->val1 * 2 * min(battle_calc_chorusbonus(sd,1),7));
-#endif
 			if(inf3&INF3_SC_DANCEWITHWUG) {
-				ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_DANCEWITHWUG]->val1 * 10 * min(battle_calc_chorusbonus(sd,1),7));
-				RE_ALLATK_ADDRATE(wd, sc->data[SC_DANCEWITHWUG]->val1 * 10 * min(battle_calc_chorusbonus(sd,1),7));
+				ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_DANCEWITHWUG]->val1 * 10 * party_calc_chorusbonus(sd,1));
+				RE_ALLATK_ADDRATE(wd, sc->data[SC_DANCEWITHWUG]->val1 * 10 * party_calc_chorusbonus(sd,1));
 			}
+			ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_DANCEWITHWUG]->val1 * 2 * party_calc_chorusbonus(sd,1));
+#ifdef RENEWAL
+			ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, sc->data[SC_DANCEWITHWUG]->val1 * 2 * party_calc_chorusbonus(sd,1));
+#endif
 		}
 		if(sc->data[SC_SATURDAYNIGHTFEVER]) {
 			ATK_ADD(wd.damage, wd.damage2, 100 * sc->data[SC_SATURDAYNIGHTFEVER]->val1);
@@ -6524,7 +6502,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			break;
 		case WM_SOUND_OF_DESTRUCTION:
 			md.damage = 1000 * skill_lv + sstatus->int_ * (sd ? pc_checkskill(sd,WM_LESSON) : 1);
-			md.damage += md.damage * 10 * battle_calc_chorusbonus(sd,0) / 100;
+			md.damage += md.damage * 10 * party_calc_chorusbonus(sd,0) / 100;
 			break;
 		case GN_THORNS_TRAP:
 			md.damage = 100 + 200 * skill_lv + sstatus->int_;
@@ -7690,14 +7668,14 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 						state |= BCT_ENEMY; //Can kill anything
 						strip_enemy = 0;
 					} else if( sd->duel_group && !((!battle_config.duel_allow_pvp && map[m].flag.pvp) ||
-						(!battle_config.duel_allow_gvg && map_flag_gvg(m))) ) {
+						(!battle_config.duel_allow_gvg && map_flag_gvg2(m))) ) {
 						if( t_bl->type == BL_PC && (sd->duel_group == ((TBL_PC*)t_bl)->duel_group) )
 							return (BCT_ENEMY&flag) ? 1 : -1; //Duel targets can ONLY be your enemy, nothing else
 						else
 							return 0; //You can't target anything out of your duel
 					}
 				}
-				if( map_flag_gvg(m) && !sd->status.guild_id && t_bl->type == BL_MOB && ((TBL_MOB*)t_bl)->mob_id == MOBID_EMPERIUM )
+				if( map_flag_gvg2(m) && !sd->status.guild_id && t_bl->type == BL_MOB && ((TBL_MOB*)t_bl)->mob_id == MOBID_EMPERIUM )
 					return 0; //If you don't belong to a guild, can't target emperium
 				if( t_bl->type != BL_PC )
 					state |= BCT_ENEMY; //Natural enemy
@@ -7758,7 +7736,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			int s_guild = status_get_guild_id(s_bl);
 
 			if( s_party && s_party == status_get_party_id(t_bl) && !(map[m].flag.pvp && map[m].flag.pvp_noparty) &&
-				!(map_flag_gvg(m) && map[m].flag.gvg_noparty && !(s_guild && s_guild == status_get_guild_id(t_bl))) &&
+				!(map_flag_gvg2(m) && map[m].flag.gvg_noparty && !(s_guild && s_guild == status_get_guild_id(t_bl))) &&
 				(!map[m].flag.battleground || sbg_id == tbg_id) )
 				state |= BCT_PARTY;
 			else
@@ -7780,7 +7758,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 		if( state&BCT_ENEMY && map[m].flag.battleground && sbg_id && sbg_id == tbg_id )
 			state &= ~BCT_ENEMY;
 
-		if( state&BCT_ENEMY && battle_config.pk_mode && !map_flag_gvg(m) && s_bl->type == BL_PC && t_bl->type == BL_PC ) {
+		if( state&BCT_ENEMY && battle_config.pk_mode && !map_flag_gvg2(m) && s_bl->type == BL_PC && t_bl->type == BL_PC ) {
 			TBL_PC *sd = (TBL_PC*)s_bl, *tsd = (TBL_PC*)t_bl;
 
 			//Prevent novice engagement on pk_mode (feature by Valaris)

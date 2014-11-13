@@ -9344,7 +9344,7 @@ ACMD_FUNC(fullstrip) {
 		return -1;
 	}
 
-	if ((tsd = map_nick2sd((char *)message)) == NULL && (tsd=map_id2sd(atoi(message))) == NULL) {
+	if ((tsd = map_nick2sd((char *)message)) == NULL && (tsd = map_id2sd(atoi(message))) == NULL) {
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
 	}

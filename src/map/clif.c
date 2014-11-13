@@ -5963,7 +5963,7 @@ void clif_maptypeproperty2(struct block_list *bl, enum send_target t) {
 	unsigned char buf[8];
 	unsigned int NotifyProperty =
 		((map[bl->m].flag.pvp ? 1 : 0)<<0)| //PARTY - Show attack cursor on non-party members (PvP)
-		(((map[bl->m].flag.battleground || map_flag_gvg(bl->m)) ? 1 : 0)<<1)| //GUILD - Show attack cursor on non-guild members (GvG)
+		(((map[bl->m].flag.battleground || map_flag_gvg2(bl->m)) ? 1 : 0)<<1)| //GUILD - Show attack cursor on non-guild members (GvG)
 		(((map[bl->m].flag.battleground || map_flag_gvg2(bl->m)) ? 1 : 0)<<2)| //SIEGE - Show emblem over characters heads
 		(((map[bl->m].flag.nomineeffect || !map_flag_gvg2(bl->m)) ? 0 : 1)<<3)| //USE_SIMPLE_EFFECT - Automatically enable /mineffect
 		((map[bl->m].flag.nolockon ? 1 : 0)<<4)| //DISABLE_LOCKON - Unknown (By the name it might disable cursor lock-on)
@@ -9787,7 +9787,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 		guild_send_memberinfoshort(sd,1);
 
 	if(battle_config.pc_invincible_time > 0) {
-		if(map_flag_gvg(sd->bl.m))
+		if(map_flag_gvg2(sd->bl.m))
 			pc_setinvincibletimer(sd,battle_config.pc_invincible_time<<1);
 		else
 			pc_setinvincibletimer(sd,battle_config.pc_invincible_time);
@@ -9849,9 +9849,9 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 
 	//Pet
 	if(sd->pd) {
-		if(battle_config.pet_no_gvg && map_flag_gvg2(sd->bl.m)) { //Return the pet to egg. [Skotlex]
+		if(battle_config.pet_no_gvg && map_flag_gvg2(sd->bl.m)) { //Return the pet to egg [Skotlex]
 			clif_displaymessage(sd->fd,msg_txt(666));
-			pet_menu(sd,3); //Option 3 is return to egg.
+			pet_menu(sd,3); //Option 3 is return to egg
 		} else {
 			if(map_addblock(&sd->pd->bl))
 				return;
@@ -10630,16 +10630,16 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 			if( sd->sc.count && sd->sc.data[SC_DANCING] )
 				break;
 
-			if( sd->sc.cant.move ) // No sitting during these states either.
+			if( sd->sc.cant.move ) // No sitting during these states either
 				break;
 
 			sd->idletime = last_tick;
-			clif_sitting(&sd->bl);
 			pc_setsit(sd);
 			skill_sit(sd,1);
+			clif_sitting(&sd->bl);
 			break;
 		case 0x03: // Standup
-			if( !pc_issit(sd) ) { // Bugged client? Just refresh them.
+			if( !pc_issit(sd) ) { // Bugged client? Just refresh them
 				clif_standing(&sd->bl);
 				return;
 			}
@@ -11532,6 +11532,7 @@ static void clif_parse_UseSkillToId_mercenary(struct mercenary_data *md, struct 
 static void clif_parse_UseSkillToPos_mercenary(struct mercenary_data *md, struct map_session_data *sd, unsigned int tick, uint16 skill_id, uint16 skill_lv, short x, short y, int skillmoreinfo)
 {
 	int lv;
+
 	if( !md )
 		return;
 	if( skill_isNotOk_mercenary(skill_id, md) )
@@ -11585,12 +11586,12 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 		return;
 	}
 
-	//Whether skill fails or not is irrelevant, the char ain't idle. [Skotlex]
+	//Whether skill fails or not is irrelevant, the char ain't idle [Skotlex]
 	sd->idletime = last_tick;
 
 	if( sd->npc_id ) {
 #ifdef RENEWAL
-		clif_msg(sd, USAGE_FAIL); //@TODO: Look for the client date that has this message.
+		clif_msg(sd, USAGE_FAIL); //@TODO: Look for the client date that has this message
 		return;
 #else
 		if( !sd->npc_item_flag || !(tmp&INF_SELF_SKILL) )
@@ -11629,20 +11630,20 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 		return;
 
 	if( sd->sc.data[SC_BASILICA] && (skill_id != HP_BASILICA || sd->sc.data[SC_BASILICA]->val4 != sd->bl.id) )
-		return; //On basilica only caster can use Basilica again to stop it.
+		return; //On basilica only caster can use Basilica again to stop it
 
 	if( sd->menuskill_id ) {
 		if( sd->menuskill_id == SA_TAMINGMONSTER ) {
-			clif_menuskill_clear(sd); //Cancel pet capture.
+			clif_menuskill_clear(sd); //Cancel pet capture
 		} else if( sd->menuskill_id != SA_AUTOSPELL )
-			return; //Can't use skills while a menu is open.
+			return; //Can't use skills while a menu is open
 	}
 
 	if( sd->skillitem == skill_id ) {
 		if( skill_lv != sd->skillitemlv )
 			skill_lv = sd->skillitemlv;
 		if( !(tmp&INF_SELF_SKILL) )
-			pc_delinvincibletimer(sd); //Target skills through items cancel invincibility. [Inkfish]
+			pc_delinvincibletimer(sd); //Target skills through items cancel invincibility [Inkfish]
 		unit_skilluse_id(&sd->bl, target_id, skill_id, skill_lv);
 		return;
 	}
@@ -11686,7 +11687,7 @@ static void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, uin
 		return;
 	}
 
-	//Whether skill fails or not is irrelevant, the char ain't idle. [Skotlex]
+	//Whether skill fails or not is irrelevant, the char ain't idle [Skotlex]
 	sd->idletime = last_tick;
 
 	if( skill_isNotOk(skill_id, sd) )
@@ -11696,7 +11697,7 @@ static void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, uin
 			clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 			return;
 		}
-		//You can't use Graffiti/TalkieBox AND have a vending open, so this is safe.
+		//You can't use Graffiti/TalkieBox AND have a vending open, so this is safe
 		safestrncpy(sd->message, (char*)RFIFOP(fd,skillmoreinfo), MESSAGE_SIZE);
 	}
 

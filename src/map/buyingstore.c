@@ -576,9 +576,9 @@ void buyingstore_reopen(struct map_session_data* sd) {
 			clif_changed_dir(&sd->bl, AREA_WOS);
 
 			if( autotraders[i]->sit ) {
-				clif_sitting(&sd->bl);
 				pc_setsit(sd);
 				skill_sit(sd,1);
+				clif_sitting(&sd->bl);
 			}
 
 			// Immediate save

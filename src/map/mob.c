@@ -1188,30 +1188,28 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		status_kill(&md->bl);
 		return 1;
 	}
-	if(bl->prev == NULL)
-		return 0; //Master not on a map? Could be warping, do not process.
 
-	if(status_get_mode(&md->bl)&MD_CANMOVE) { //If the mob can move, follow around. [Check by Skotlex]
+	if(bl->prev == NULL)
+		return 0; //Master not on a map? Could be warping, do not process
+
+	if(status_get_mode(&md->bl)&MD_CANMOVE) { //If the mob can move, follow around [Check by Skotlex]
 		int old_dist;
 
-		//Distance with between slave and master is measured.
+		//Distance with between slave and master is measured
 		old_dist = md->master_dist;
 		md->master_dist = distance_bl(&md->bl, bl);
 
-		//Since the master was in near immediately before, teleport is carried out and it pursues.
-		if(bl->m != md->bl.m ||
-			(old_dist < 10 && md->master_dist > 18) ||
-			md->master_dist > MAX_MINCHASE
-		) {
+		//Since the master was in near immediately before, teleport is carried out and it pursues
+		if(bl->m != md->bl.m || (old_dist < 10 && md->master_dist > 18) || md->master_dist > MAX_MINCHASE) {
 			md->master_dist = 0;
 			unit_warp(&md->bl,bl->m,bl->x,bl->y,CLR_TELEPORT);
 			return 1;
 		}
 
-		if(md->target_id) //Slave is busy with a target.
+		if(md->target_id) //Slave is busy with a target
 			return 0;
 
-		//Approach master if within view range, chase back to Master's area also if standing on top of the master.
+		//Approach master if within view range, chase back to Master's area also if standing on top of the master
 		if((md->master_dist>MOB_SLAVEDISTANCE || md->master_dist == 0) &&
 			unit_can_move(&md->bl))
 		{
@@ -1222,13 +1220,13 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 				&& unit_walktoxy(&md->bl,x,y,0))
 				return 1;
 		}
-	} else if(bl->m != md->bl.m && map_flag_gvg(md->bl.m)) {
-		//Delete the summoned mob if it's in a gvg ground and the master is elsewhere. [Skotlex]
+	} else if(bl->m != md->bl.m && map_flag_gvg2(md->bl.m)) {
+		//Delete the summoned mob if it's in a gvg ground and the master is elsewhere [Skotlex]
 		status_kill(&md->bl);
 		return 1;
 	}
-	
-	//Avoid attempting to lock the master's target too often to avoid unnecessary overload. [Skotlex]
+
+	//Avoid attempting to lock the master's target too often to avoid unnecessary overload [Skotlex]
 	if(DIFF_TICK(md->last_linktime, tick) < MIN_MOBLINKTIME && !md->target_id) {
 		struct unit_data *ud = unit_bl2ud(bl);
 
@@ -1240,7 +1238,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 				tbl = map_id2bl(ud->target);
 			else if(ud->skilltarget) {
 				tbl = map_id2bl(ud->skilltarget);
-				//Required check as skilltarget is not always an enemy. [Skotlex]
+				//Required check as skilltarget is not always an enemy [Skotlex]
 				if(tbl && battle_check_target(&md->bl,tbl,BCT_ENEMY) <= 0)
 					tbl = NULL;
 			}

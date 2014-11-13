@@ -86,9 +86,10 @@ int party_send_xy_clear(struct party_data *p);
 int party_exp_share(struct party_data *p,struct block_list *src,unsigned int base_exp,unsigned int job_exp,int zeny);
 int party_share_loot(struct party_data* p, struct map_session_data* sd, struct item* item_data, int first_charid);
 int party_send_dot_remove(struct map_session_data *sd);
+int party_foreachsamemap(int (*func)(struct block_list *,va_list),struct map_session_data *sd,int range,...);
 int party_sub_count(struct block_list *bl, va_list ap);
 int party_sub_count_chorus(struct block_list *bl, va_list ap);
-int party_foreachsamemap(int (*func)(struct block_list *,va_list),struct map_session_data *sd,int range,...);
+int party_calc_chorusbonus(struct map_session_data *sd, uint8 flag);
 
 /*==========================================
  * Party Booking in KRO [Spiria]

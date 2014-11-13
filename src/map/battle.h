@@ -115,8 +115,6 @@ bool battle_check_range(struct block_list *src, struct block_list *bl, int range
 
 void battle_consume_ammo(struct map_session_data *sd, uint16 skill_id, uint16 skill_lv);
 
-int battle_calc_chorusbonus(struct map_session_data *sd, uint8 flag);
-
 //êSettings
 #define MIN_HAIR_STYLE battle_config.min_hair_style
 #define MAX_HAIR_STYLE battle_config.max_hair_style

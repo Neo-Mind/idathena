@@ -302,7 +302,7 @@ static int pc_check_banding(struct block_list *bl, va_list ap) {
 
 int pc_banding(struct map_session_data *sd, uint16 skill_lv) {
 	int c,
-		b_sd[MAX_PARTY]; // In case of a full Royal Guard party
+		b_sd[MAX_PARTY]; //In case of a full Royal Guard party
 	int i, j, hp, extra_hp = 0, tmp_qty = 0;
 	int range = skill_get_splash(LG_BANDING,skill_lv);
 
@@ -313,12 +313,12 @@ int pc_banding(struct map_session_data *sd, uint16 skill_lv) {
 
 	i = party_foreachsamemap(pc_check_banding,sd,range,&sd->bl,&c,&b_sd);
 
-	if( c < 1 ) { // Just recalc status no need to recalc hp
-		// No more Royal Guards in Banding found
+	if( c < 1 ) { //Just recalc status no need to recalc hp
+		//No more Royal Guards in Banding found
 		struct status_change *sc;
 
 		if( (sc = status_get_sc(&sd->bl)) != NULL  && sc->data[SC_BANDING] ) {
-			sc->data[SC_BANDING]->val2 = 0; // Reset the counter
+			sc->data[SC_BANDING]->val2 = 0; //Reset the counter
 			status_calc_bl(&sd->bl,status_sc2scb_flag(SC_BANDING));
 		}
 		return 0;
@@ -328,7 +328,7 @@ int pc_banding(struct map_session_data *sd, uint16 skill_lv) {
 	hp = status_get_hp(&sd->bl);
 	i++;
 
-	// Get total HP of all Royal Guards in party
+	//Get total HP of all Royal Guards in party
 	for( j = 0; j < i; j++ ) {
 		struct map_session_data *bsd = map_id2sd(b_sd[j]);
 
@@ -336,10 +336,10 @@ int pc_banding(struct map_session_data *sd, uint16 skill_lv) {
 			hp += status_get_hp(&bsd->bl);
 	}
 
-	// Set average HP
+	//Set average HP
 	hp = hp / i;
 
-	// If a Royal Guard have full HP, give more HP to others that haven't full HP
+	//If a Royal Guard have full HP, give more HP to others that haven't full HP
 	for( j = 0; j < i; j++ ) {
 		int tmp_hp = 0;
 		struct map_session_data *bsd = map_id2sd(b_sd[j]);
@@ -359,10 +359,10 @@ int pc_banding(struct map_session_data *sd, uint16 skill_lv) {
 		if( bsd != NULL ) {
 			struct status_change *sc;
 
-			status_set_hp(&bsd->bl,hp,0); // Set HP
+			status_set_hp(&bsd->bl,hp,0); //Set HP
 			if( (sc = status_get_sc(&bsd->bl)) != NULL && sc->data[SC_BANDING] ) {
-				sc->data[SC_BANDING]->val2 = c; // Set the counter
-				status_calc_bl(&bsd->bl,status_sc2scb_flag(SC_BANDING)); // Set ATK and DEF
+				sc->data[SC_BANDING]->val2 = c; //Set the counter
+				status_calc_bl(&bsd->bl,status_sc2scb_flag(SC_BANDING)); //Set ATK and DEF
 			}
 		}
 	}
@@ -9135,8 +9135,8 @@ bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
 	pos = pc_equippoint(sd,n); //With a few exceptions, item should go in all specified slots.
 	if( battle_config.battle_log )
 		ShowInfo("equip %hu(%d) %x:%x\n",sd->status.inventory[n].nameid,n,(id ? id->equip : 0),req_pos);
-	if( !pc_isequip(sd,n) || !(pos&req_pos) || sd->status.inventory[n].equip != 0 || sd->status.inventory[n].attribute == 1 ) { // [Valaris]
-		// FIXME: pc_isequip: equip level failure uses 2 instead of 0
+	if( !pc_isequip(sd,n) || !(pos&req_pos) || sd->status.inventory[n].equip != 0 || sd->status.inventory[n].attribute == 1 ) { //[Valaris]
+		//FIXME: pc_isequip: equip level failure uses 2 instead of 0
 		clif_equipitemack(sd,n,0,0); //Fail
 		return false;
 	}

@@ -1470,7 +1470,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 
 	if( sd ) {
 		//Target_id checking
-		if( skill_isNotOk(skill_id, sd) ) //[MouseJstr]
+		if( skill_isNotOk(skill_id,sd) ) //[MouseJstr]
 			return 0;
 		switch( skill_id ) { //Check for skills that auto-select target
 			case MO_CHAINCOMBO:
@@ -1544,8 +1544,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	}
 
 	if( src != target && status_isdead(target) ) {
-		//Skills that may be cast on dead targets
-		switch( skill_id ) {
+		switch( skill_id ) { //Skills that may be cast on dead targets
 			case NPC_WIDESOULDRAIN:
 			case PR_REDEMPTIO:
 			case ALL_RESURRECTION:
@@ -1558,12 +1557,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 
 	tstatus = status_get_status_data(target);
 
-	//Record the status of the previous skill)
-	if( sd ) {
-		if( (skill_get_inf2(skill_id)&INF2_ENSEMBLE_SKILL) && skill_check_pc_partner(sd, skill_id, &skill_lv, 1, 0) < 1 ) {
-			clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
-			return 0;
-		}
+	if( sd ) { //Record the status of the previous skill
 		switch( skill_id ) {
 			case SA_CASTCANCEL:
 				if( ud->skill_id != skill_id ) {
@@ -1572,7 +1566,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 				}
 				break;
 			case BD_ENCORE:
-				//Prevent using the dance skill if you no longer have the skill in your tree.
+				//Prevent using the dance skill if you no longer have the skill in your tree
 				if( !sd->skill_id_dance || pc_checkskill(sd, sd->skill_id_dance) <= 0 ) {
 					clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 					return 0;
@@ -2563,8 +2557,8 @@ int unit_skillcastcancel(struct block_list *bl, uint8 type)
 		if (!ud->state.skillcastcancel)
 			return 0;
 
-		if (sd && (sd->special_state.no_castcancel2 || ((sd->sc.data[SC_UNLIMITEDHUMMINGVOICE] ||
-			sd->special_state.no_castcancel) && !map_flag_gvg(bl->m) && !map[bl->m].flag.battleground))) //Fixed flags being read the wrong way around [blackhole89]
+		if (sd && (sd->special_state.no_castcancel2 || ((sd->sc.data[SC_UNLIMITEDHUMMINGVOICE] || sd->special_state.no_castcancel) &&
+			!map_flag_gvg2(bl->m) && !map[bl->m].flag.battleground))) //Fixed flags being read the wrong way around [blackhole89]
 			return 0;
 	}
 
