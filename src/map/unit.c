@@ -1912,15 +1912,7 @@ int unit_skilluse_pos2(struct block_list *src, short skill_x, short skill_y, uin
 		if(skill_isNotOk(skill_id, sd) || !skill_check_condition_castbegin(sd, skill_id, skill_lv))
 			return 0;
 		/**
-		 * "WHY IS IT HEREE": Pneuma cannot be cancelled past this point, the client displays the animation even,
-		 * if we cancel it from nodamage_id, so it has to be here for it to not display the animation.
-		 */
-		if(skill_id == AL_PNEUMA && map_getcell(src->m, skill_x, skill_y, CELL_CHKLANDPROTECTOR)) {
-			clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
-			return 0;
-		}
-		/**
-		 * "WHY IS IT HEREE": ice wall cannot be canceled past this point, the client displays the animation even,
+		 * "WHY IS IT HEREE": Ice Wall cannot be canceled past this point, the client displays the animation even,
 		 * if we cancel it from castend_pos, so it has to be here for it to not display the animation.
 		 **/
 		if(skill_id == WZ_ICEWALL && map_getcell(src->m, skill_x, skill_y, CELL_CHKNOICEWALL))

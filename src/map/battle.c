@@ -5622,9 +5622,9 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						break;
 					case WZ_FIREPILLAR:
 						if(skill_lv > 10)
-							skillratio += 100;
+							skillratio += 2300; //200% MATK each hit
 						else
-							skillratio -= 80;
+							skillratio += -60 + 20 * skill_lv; //20% MATK each hit
 						break;
 					case WZ_SIGHTRASHER:
 						skillratio += 20 * skill_lv;
@@ -5997,7 +5997,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 				//Constant/misc additions from skills
 				if(skill_id == WZ_FIREPILLAR)
-					MATK_ADD(50);
+					MATK_ADD(100 + 50 * skill_lv);
 				break;
 		}
 
@@ -6694,7 +6694,7 @@ struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct bl
 	} else //Some skills like Weaponry Research will cause damage even if attack is dodged
 		d.dmg_lv = ATK_DEF;
 
-	if(sd && d.damage + d.damage2 > 1) {
+	if(sd && target->type == BL_PC && d.damage + d.damage2 > 1) {
 		if(sd->bonus.hp_vanish_rate && sd->bonus.hp_vanish_trigger && rnd()%10000 < sd->bonus.hp_vanish_rate &&
 			((d.flag&sd->bonus.hp_vanish_trigger&BF_WEAPONMASK) || (d.flag&sd->bonus.hp_vanish_trigger&BF_RANGEMASK) ||
 			(d.flag&sd->bonus.hp_vanish_trigger&BF_SKILLMASK)))
@@ -6905,10 +6905,12 @@ void battle_drain(TBL_PC *sd, struct block_list *tbl, int64 rdamage, int64 ldama
 		}
 	}
 
-	if (sd->bonus.hp_vanish_rate && rnd()%1000 < sd->bonus.hp_vanish_rate && !sd->bonus.hp_vanish_trigger)
-		status_percent_damage(&sd->bl, tbl, (unsigned char)sd->bonus.hp_vanish_per, 0, false);
-	if (sd->bonus.sp_vanish_rate && rnd()%1000 < sd->bonus.sp_vanish_rate && !sd->bonus.sp_vanish_trigger)
-		status_percent_damage(&sd->bl, tbl, 0, (unsigned char)sd->bonus.sp_vanish_per, false);
+	if (tbl->type == BL_PC && rdamage + ldamage > 1) {
+		if (sd->bonus.hp_vanish_rate && rnd()%1000 < sd->bonus.hp_vanish_rate && !sd->bonus.hp_vanish_trigger)
+			status_percent_damage(&sd->bl, tbl, (unsigned char)sd->bonus.hp_vanish_per, 0, false);
+		if (sd->bonus.sp_vanish_rate && rnd()%1000 < sd->bonus.sp_vanish_rate && !sd->bonus.sp_vanish_trigger)
+			status_percent_damage(&sd->bl, tbl, 0, (unsigned char)sd->bonus.sp_vanish_per, false);
+	}
 
 	if (sd->hp_gain_race_attack[race])
 		thp += sd->hp_gain_race_attack[race];
@@ -8298,6 +8300,7 @@ static const struct _battle_data {
 	{ "monster_chase_refresh",              &battle_config.mob_chase_refresh,               1,      0,      30,             },
 	{ "mob_icewall_walk_block",             &battle_config.mob_icewall_walk_block,          75,     0,      255,            },
 	{ "boss_icewall_walk_block",            &battle_config.boss_icewall_walk_block,         0,      0,      255,            },
+	{ "stormgust_knockback",                &battle_config.stormgust_knockback,             1,      0,      1,              },
 };
 #ifndef STATS_OPT_OUT
 /**

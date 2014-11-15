@@ -1007,8 +1007,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 #endif
 
 		case WZ_STORMGUST:
-			//Storm Gust counter was dropped in renewal
-#ifdef RENEWAL
+#ifdef RENEWAL //Storm Gust counter was dropped in renewal
 			sc_start(src,bl,SC_FREEZE,65 - (5 * skill_lv),skill_lv,skill_get_time2(skill_id,skill_lv));
 #else
 			//On third hit, there is a 150% to freeze the target
@@ -1599,15 +1598,13 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			if( rate ) //Target armor breaking
 				skill_break_equip(src,bl,EQP_ARMOR,rate,BCT_ENEMY);
 		}
-		if( sd && !skill_id ) { //This effect does not work with skills
-			if( bl->type == BL_PC ) {
-				if( sd->def_set_race[tstatus->race].rate )
-					status_change_start(src,bl,SC_DEFSET,sd->def_set_race[tstatus->race].rate,sd->def_set_race[tstatus->race].value,
-						0,0,0,sd->def_set_race[tstatus->race].tick,SCFLAG_FIXEDTICK);
-				if( sd->mdef_set_race[tstatus->race].rate )
-					status_change_start(src,bl,SC_MDEFSET,sd->mdef_set_race[tstatus->race].rate,sd->mdef_set_race[tstatus->race].value,
-						0,0,0,sd->mdef_set_race[tstatus->race].tick,SCFLAG_FIXEDTICK);
-			}
+		if( sd && bl->type == BL_PC && !skill_id ) { //This effect does not work with skills
+			if( sd->def_set_race[tstatus->race].rate )
+				status_change_start(src,bl,SC_DEFSET,sd->def_set_race[tstatus->race].rate,sd->def_set_race[tstatus->race].value,
+					0,0,0,sd->def_set_race[tstatus->race].tick,SCFLAG_FIXEDTICK);
+			if( sd->mdef_set_race[tstatus->race].rate )
+				status_change_start(src,bl,SC_MDEFSET,sd->mdef_set_race[tstatus->race].rate,sd->mdef_set_race[tstatus->race].value,
+					0,0,0,sd->mdef_set_race[tstatus->race].tick,SCFLAG_FIXEDTICK);
 		}
 	}
 
@@ -2632,9 +2629,10 @@ void skill_attack_blow(struct block_list *src, struct block_list *dsrc, struct b
 		case EL_FIRE_MANTLE:
 			dir = unit_getdir(target); //Backwards
 			break;
-		//This ensures the storm randomly pushes instead of exactly a cell backwards per official mechanics.
+		//This ensures the storm randomly pushes instead of exactly a cell backwards per official mechanics
 		case WZ_STORMGUST:
-			dir = rnd()%8;
+			if (!battle_config.stormgust_knockback)
+				dir = rnd()%8;
 			break;
 		case WL_CRIMSONROCK:
 			dir = map_calc_dir(target, skill_area_temp[4], skill_area_temp[5]);
@@ -3243,9 +3241,12 @@ static int skill_check_unit_range_sub(struct block_list *bl, va_list ap)
 	g_skill_id = unit->group->skill_id;
 
 	switch (skill_id) {
+		case AL_PNEUMA: //Pneuma doesn't work even if just one cell overlaps with Land Protector
+			if (g_skill_id == SA_LANDPROTECTOR)
+				break;
+			//Fall through
 		case MH_STEINWAND:
 		case MG_SAFETYWALL:
-		case AL_PNEUMA:
 		case SC_MAELSTROM:
 		case SO_ELEMENTAL_SHIELD:
 			if (g_skill_id != MH_STEINWAND && g_skill_id != MG_SAFETYWALL &&
@@ -3767,7 +3768,8 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 
 						if (path_search_long(NULL,src->m,src->x,src->y,x,y,CELL_CHKWALL))
 							skill_unitsetting(src,skl->skill_id,skl->skill_lv,x,y,skl->flag);
-						if (path_search_long(NULL,src->m,src->x,src->y,skl->x,skl->y,CELL_CHKWALL))
+						if (path_search_long(NULL,src->m,src->x,src->y,skl->x,skl->y,CELL_CHKWALL) &&
+							!map_getcell(src->m,skl->x,skl->y,CELL_CHKLANDPROTECTOR))
 							clif_skill_poseffect(src,skl->skill_id,skl->skill_lv,skl->x,skl->y,tick);
 					} else if (path_search_long(NULL,src->m,src->x,src->y,skl->x,skl->y,CELL_CHKWALL))
 						skill_unitsetting(src,skl->skill_id,skl->skill_lv,skl->x,skl->y,skl->flag);
@@ -11265,7 +11267,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 					//Creates a random Cell in the Splash Area
 					tmp_x = x - area + rnd()%(area * 2 + 1);
 					tmp_y = y - area + rnd()%(area * 2 + 1);
-					if( i == 0 && path_search_long(NULL,src->m,src->x,src->y,tmp_x,tmp_y,CELL_CHKWALL) )
+					if( i == 0 && path_search_long(NULL,src->m,src->x,src->y,tmp_x,tmp_y,CELL_CHKWALL) &&
+						!map_getcell(src->m,tmp_x,tmp_y,CELL_CHKLANDPROTECTOR) )
 						clif_skill_poseffect(src,skill_id,skill_lv,tmp_x,tmp_y,tick);
 					if( i > 0 )
 						skill_addtimerskill(src,tick + i * 1000,0,tmp_x,tmp_y,skill_id,skill_lv,(x1<<16)|y1,0);
@@ -12530,8 +12533,8 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 		if( sd && sc && sc->data[SC__MAELSTROM] ) //Does not recover SP from monster skills
 			map_foreachincell(skill_maelstrom_suction,src->m,ux,uy,BL_SKILL,skill_id,skill_lv);
 
-		if( range <= 0 ) //Check active cell to failing or remove current unit
-			map_foreachincell(skill_cell_overlap,src->m,ux,uy,BL_SKILL,skill_id,&alive,src);
+		//Check active cell to failing or remove current unit
+		map_foreachincell(skill_cell_overlap,src->m,ux,uy,BL_SKILL,skill_id,&alive,src);
 
 		if( !alive )
 			continue;
@@ -12615,7 +12618,7 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 	sce = (sc && type != SC_NONE) ? sc->data[type] : NULL;
 
 	if( skill_get_type(skill_id) == BF_MAGIC &&
-		map_getcell(bl->m,bl->x,bl->y,CELL_CHKLANDPROTECTOR) && skill_id != SA_LANDPROTECTOR )
+		map_getcell(unit->bl.m,unit->bl.x,unit->bl.y,CELL_CHKLANDPROTECTOR) && skill_id != SA_LANDPROTECTOR )
 		return 0; //AoE skills are ineffective [Skotlex]
 
 	if( skill_get_inf2(skill_id)&(INF2_SONG_DANCE|INF2_ENSEMBLE_SKILL) && map_getcell(bl->m,bl->x,bl->y,CELL_CHKBASILICA) )
@@ -17689,7 +17692,7 @@ int skill_unit_timer_sub_onplace(struct block_list* bl, va_list ap)
 	group = unit->group;
 
 	if( !(skill_get_inf2(group->skill_id)&(INF2_TRAP)) && !(skill_get_inf3(group->skill_id)&(INF3_NOLP)) &&
-		map_getcell(bl->m,bl->x,bl->y,CELL_CHKLANDPROTECTOR) )
+		map_getcell(unit->bl.m,unit->bl.x,unit->bl.y,CELL_CHKLANDPROTECTOR) )
 		return 0; //AoE skills are ineffective except non-essamble dance skills, traps and barriers
 
 	if( battle_check_target(&unit->bl,bl,group->target_flag) <= 0 )
