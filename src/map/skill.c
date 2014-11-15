@@ -4600,7 +4600,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 			break;
 
 		case PR_BENEDICTIO:
-			//Should attack undead and demons. [Skotlex]
+			//Should attack undead and demons [Skotlex]
 			if (battle_check_undead(tstatus->race,tstatus->def_ele) || tstatus->race == RC_DEMON)
 				skill_attack(BF_MAGIC,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
@@ -11058,33 +11058,29 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case PR_BENEDICTIO:
 			skill_area_temp[1] = src->id;
 			i = skill_get_splash(skill_id,skill_lv);
-			map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,BL_PC,
-				src,skill_id,skill_lv,tick,flag|BCT_ALL|1,
-				skill_castend_nodamage_id);
-			map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,BL_CHAR,
-				src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,
-				skill_castend_damage_id);
+			map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,BL_PC,src,
+				skill_id,skill_lv,tick,flag|BCT_ALL|1,skill_castend_nodamage_id);
+			map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,BL_CHAR,src,
+				skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 			break;
 
 		case BS_HAMMERFALL:
 			i = skill_get_splash(skill_id,skill_lv);
-			map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,BL_CHAR,
-				src,skill_id,skill_lv,tick,flag|BCT_ENEMY|2,
-				skill_castend_nodamage_id);
+			map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,BL_CHAR,src,
+				skill_id,skill_lv,tick,flag|BCT_ENEMY|2,skill_castend_nodamage_id);
 			break;
 
 		case HT_DETECTING:
 			i = skill_get_splash(skill_id,skill_lv);
-			map_foreachinarea(status_change_timer_sub,src->m,x-i,y-i,x+i,y+i,BL_CHAR,
-				src,NULL,SC_SIGHT,tick);
+			map_foreachinarea(status_change_timer_sub,src->m,x-i,y-i,x+i,y+i,BL_CHAR,src,NULL,SC_SIGHT,tick);
 			if( battle_config.traps_setting&1 )
 				map_foreachinarea(skill_reveal_trap,src->m,x-i,y-i,x+i,y+i,BL_SKILL);
 			break;
 
 		case SR_RIDEINLIGHTNING:
 			i = skill_get_splash(skill_id,skill_lv);
-			map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,BL_CHAR,
-				src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
+			map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,BL_CHAR,src,
+				skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 			break;
 
 		case SA_VOLCANO:
@@ -11099,7 +11095,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 						skill_unitsetting(src,skill_id,skill_lv,x,y,0);
 						return 0; //Not to consume items
 					} else
-						sg->limit = 0; //Disable it.
+						sg->limit = 0; //Disable it
 				}
 				skill_unitsetting(src,skill_id,skill_lv,x,y,0);
 			}
@@ -13964,13 +13960,13 @@ int skill_unit_ondamaged(struct skill_unit *unit, int64 damage)
  * @param skill_id Skill ID
  * @param skill_lv Level of used skill
  */
-int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
+int skill_check_condition_char_sub(struct block_list *bl, va_list ap)
 {
 	int *c, skill_id;
 	struct block_list *src;
 	struct map_session_data *sd;
 	struct map_session_data *tsd;
-	int *p_sd; //Contains the list of characters found.
+	int *p_sd; //Contains the list of characters found
 
 	nullpo_ret(bl);
 	nullpo_ret(tsd = (struct map_session_data*)bl);
@@ -13982,7 +13978,7 @@ int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 	skill_id = va_arg(ap,int);
 
 	if( ((skill_id != PR_BENEDICTIO && *c >= 1) || *c >= 2) && !(skill_get_inf2(skill_id)&INF2_CHORUS_SKILL) )
-		return 0; //Partner found for ensembles, or the two companions for Benedictio. [Skotlex]
+		return 0; //Partner found for ensembles, or the two companions for Benedictio [Skotlex]
 
 	if( bl == src )
 		return 0;
@@ -14002,8 +13998,8 @@ int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 			case PR_BENEDICTIO: {
 				uint8 dir = map_calc_dir(&sd->bl,tsd->bl.x,tsd->bl.y);
 
-				dir = (unit_getdir(&sd->bl) + dir)%8; //This adjusts dir to account for the direction the sd is facing.
-				if( (tsd->class_&MAPID_BASEMASK) == MAPID_ACOLYTE && (dir == 2 || dir == 6) && //Must be standing to the left/right of Priest.
+				dir = (unit_getdir(&sd->bl) + dir)%8; //This adjusts dir to account for the direction the sd is facing
+				if( (tsd->class_&MAPID_BASEMASK) == MAPID_ACOLYTE && (dir == 2 || dir == 6) && //Must be standing to the left/right of Priest
 					sd->status.sp >= 10 )
 					p_sd[(*c)++] = tsd->bl.id;
 				return 1;
@@ -14038,7 +14034,6 @@ int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 				}
 				break;
 		}
-		
 	}
 	return 0;
 }

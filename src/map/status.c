@@ -2351,30 +2351,30 @@ void status_calc_misc(struct block_list *bl, struct status_data *status, int lev
 		status->flee = cap_value(stat, 1, SHRT_MAX);
 	}
 	if( bl->type == BL_MER ) {
-		//MAtk
+		//Matk
 		status->matk_min = status->matk_max = status_base_matk_max(status);
 		//Def2
 		stat = status->def2;
 		stat += status->vit + level / 10 + status->vit / 5;
 		status->def2 = cap_value(stat, 0, SHRT_MAX);
-		//MDef2
+		//Mdef2
 		stat = status->mdef2;
 		stat += level / 10 + status->int_ / 5;
 		status->mdef2 = cap_value(stat, 0, SHRT_MAX);
 	} else {
-		//MAtk
+		//Matk
 		status->matk_min = status->matk_max = (bl->type == BL_PC ? status_base_matk(status, level) : level + status->int_);
 		//Def2
 		stat = status->def2;
 		stat += (int)(((float)(level + status->vit) / 2) + (bl->type == BL_PC ? ((float)status->agi / 5) : 0)); //Base level + (every 2 vit = +1 def) + (every 5 agi = +1 def)
 		status->def2 = cap_value(stat, 0, SHRT_MAX);
-		//MDef2
+		//Mdef2
 		stat = status->mdef2;
 		stat += (int)(bl->type == BL_PC ? (status->int_ + ((float)level / 4) + ((float)status->dex / 5) + ((float)status->vit / 5)) : ((float)(level + status->int_) / 4)); //(Every 4 base level = +1 mdef) + (every 1 int = +1 mdef) + (every 5 dex = +1 mdef) + (every 5 vit = +1 mdef)
 		status->mdef2 = cap_value(stat, 0, SHRT_MAX);
 	}
 #else
-	//MAtk
+	//Matk
 	status->matk_min = status_base_matk_min(status);
 	status->matk_max = status_base_matk_max(status);
 	//Hit
@@ -2389,7 +2389,7 @@ void status_calc_misc(struct block_list *bl, struct status_data *status, int lev
 	stat = status->def2;
 	stat += status->vit;
 	status->def2 = cap_value(stat, 0, SHRT_MAX);
-	//MDef2
+	//Mdef2
 	stat = status->mdef2;
 	stat += status->int_ + (status->vit>>1);
 	status->mdef2 = cap_value(stat, 0, SHRT_MAX);
@@ -2758,7 +2758,7 @@ static int status_get_hpbonus(struct block_list *bl, enum e_status_bonus type) {
 
 			bonus += sd->hprate;
 			bonus -= 100; //Default hprate is 100, so it should be add 0%
-			//+200% for top ranking Taekwons over level 90.
+			//+200% for top ranking Taekwons over level 90
 			if (pc_is_taekwon_ranker(sd))
 				bonus += 200;
 		}
@@ -2869,7 +2869,7 @@ static int status_get_spbonus(struct block_list *bl, enum e_status_bonus type) {
 			if ((i = pc_checkskill(sd,HW_SOULDRAIN)) > 0)
 				bonus += 2 * i;
 
-			//+200% for top ranking Taekwons over level 90.
+			//+200% for top ranking Taekwons over level 90
 			if (pc_is_taekwon_ranker(sd))
 				bonus += 200;
 		}
@@ -9675,6 +9675,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = tick / tick_time;
 				tick = -1;
 				break;
+			case SC_REBOUND:
+				tick_time = 2000;
+				val4 = tick / tick_time;
+				break;
 			case SC_KINGS_GRACE:
 				val2 = 3 + val1;
 				tick_time = 1000;
@@ -10213,6 +10217,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			clif_bossmapinfo(sd->fd,map_id2boss(sce->val1),0); //First Message
 			break;
 		case SC_MERC_HPUP:
+		case SC_FULL_THROTTLE:
 			status_percent_heal(bl,100,0); //Recover Full HP
 			break;
 		case SC_MERC_SPUP:
@@ -10253,9 +10258,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_EQC:
 			sc_start2(src,bl,SC_STUN,100,val1,bl->id,(1000 * status_get_lv(src)) / 50 + 500 * val1);
 			status_change_end(bl,SC_TINDER_BREAKER2,INVALID_TIMER);
-			break;
-		case SC_FULL_THROTTLE:
-			status_percent_heal(bl,100,0);
 			break;
 		case SC_C_MARKER:
 			if(src->type == BL_PC && (sd = map_id2sd(src->id)))
@@ -11493,7 +11495,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				sd->status.manner++;
 				clif_changestatus(sd,SP_MANNER,sd->status.manner);
 				clif_updatestatus(sd,SP_MANNER);
-				if( sd->status.manner < 0 ) { //Every 60 seconds your manner goes up by 1 until it gets back to 0.
+				if( sd->status.manner < 0 ) { //Every 60 seconds your manner goes up by 1 until it gets back to 0
 					sc_timer_next(60000 + tick,status_change_timer,bl->id,data);
 					return 0;
 				}
@@ -12066,7 +12068,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_GLORYWOUNDS:
 		case SC_SOULCOLD:
 		case SC_HAWKEYES:
-			/* They only end by status_change_end */
+			//They only end by status_change_end
 			sc_timer_next(600000 + tick,status_change_timer,bl->id,data);
 			return 0;
 
@@ -12115,6 +12117,14 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			if( --(sce->val4) >= 0 ) {
 				status_percent_damage(bl,bl,0,sce->val2,false);
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
+				return 0;
+			}
+			break;
+
+		case SC_REBOUND:
+			if( --(sce->val4) >= 0 ) {
+				clif_emotion(bl,E_SWT);
+				sc_timer_next(2000 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}
 			break;

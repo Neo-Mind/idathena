@@ -6071,7 +6071,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					if(i > 100)
 						i = 100;
 					mdef -= mdef * i / 100;
-					//mdef2 -= mdef2* i / 100;
+					mdef2 -= mdef2 * i / 100;
 				}
 			}
 

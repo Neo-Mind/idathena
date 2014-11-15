@@ -2119,9 +2119,9 @@ bool pc_addautobonus(struct s_autobonus *bonus,char max,const char *script,short
 
 	if( !onskill ) {
 		if( !(flag&BF_RANGEMASK) )
-			flag |= BF_SHORT|BF_LONG; //No range defined? Use both.
+			flag |= BF_SHORT|BF_LONG; //No range defined? Use both
 		if( !(flag&BF_WEAPONMASK) )
-			flag |= BF_WEAPON; //No attack type defined? Use weapon.
+			flag |= BF_WEAPON; //No attack type defined? Use weapon
 		if( !(flag&BF_SKILLMASK) ) {
 			if( flag&(BF_MAGIC|BF_MISC) )
 				flag |= BF_SKILL; //These two would never trigger without BF_SKILL
@@ -2136,7 +2136,7 @@ bool pc_addautobonus(struct s_autobonus *bonus,char max,const char *script,short
 	bonus[i].atk_type = flag;
 	bonus[i].pos = pos;
 	bonus[i].bonus_script = aStrdup(script);
-	bonus[i].other_script = other_script ? aStrdup(other_script) : NULL;
+	bonus[i].other_script = (other_script ? aStrdup(other_script) : NULL);
 	return true;
 }
 
@@ -3087,10 +3087,10 @@ void pc_bonus2(struct map_session_data *sd, int type, int type2, int val)
 			}
 			sd->add_def[i].class_ = type2;
 			sd->add_def[i].rate += val;
-			if(!sd->add_def[i].rate) //Shift the rest of elements up.
+			if(!sd->add_def[i].rate) //Shift the rest of elements up
 				memmove(&sd->add_def[i], &sd->add_def[i + 1], sizeof(sd->add_def) - (i + 1) * sizeof(sd->add_def[0]));
 			break;
-		case SP_ADD_MDEF_MONSTER: // bonus2 bAddMDefMonster,mid,x;
+		case SP_ADD_MDEF_MONSTER: // bonus2 bAddMdefMonster,mid,x;
 			if(sd->state.lr_flag == 2)
 				break;
 			ARR_FIND(0, ARRAYLENGTH(sd->add_mdef), i, sd->add_mdef[i].rate == 0 || sd->add_mdef[i].class_ == type2);
@@ -3742,7 +3742,7 @@ void pc_bonus4(struct map_session_data *sd, int type, int type2, int type3, int 
 			sd->def_set_race[type2].tick = type4;
 			sd->def_set_race[type2].value = val;
 			break;
-		case SP_SET_MDEF_RACE: // bonus4 bSetMDefRace,r,n,t,y;
+		case SP_SET_MDEF_RACE: // bonus4 bSetMdefRace,r,n,t,y;
 			PC_BONUS_CHK_RACE(type2, SP_SET_MDEF_RACE);
 			if( sd->state.lr_flag == 2 )
 				break;
@@ -5308,7 +5308,7 @@ char pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int 
 	pc_cell_basilica(sd);
 
 	//Check if we gonna be rewarped [lighta]
-	if( npc_check_areanpc(1, m, x, y, 1) )
+	if( npc_check_areanpc(1, m, x, y, 0) )
 		sd->count_rewarp++;
 	else
 		sd->count_rewarp = 0;

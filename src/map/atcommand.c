@@ -8776,7 +8776,7 @@ ACMD_FUNC(accinfo) {
 	return 0;
 }
 
-/* [Ind] */
+// [Ind]
 ACMD_FUNC(set) {
 	char reg[32], val[128];
 	struct script_data* data;
@@ -8791,7 +8791,7 @@ ACMD_FUNC(set) {
 		return -1;
 	}
 
-	/* Disabled variable types (they require a proper script state to function, so allowing them would crash the server) */
+	// Disabled variable types (they require a proper script state to function, so allowing them would crash the server)
 	if( reg[0] == '.' ) {
 		clif_displaymessage(fd, msg_txt(1371)); // NPC variables may not be used with @set.
 		return -1;
@@ -8804,23 +8804,21 @@ ACMD_FUNC(set) {
 
 	if( (len = strlen(val)) > 1 ) {
 		if( val[0] == '"' && val[len-1] == '"') {
-			val[len-1] = '\0'; //Strip quotes.
-			memmove(val, val+1, len-1);
+			val[len - 1] = '\0'; // Strip quotes.
+			memmove(val, val + 1, len - 1);
 		}
 	}
 
-	if( toset >= 2 ) {/* we only set the var if there is an val, otherwise we only output the value */
+	if( toset >= 2 ) { // We only set the var if there is an val, otherwise we only output the value
 		if( is_str )
 			set_var(sd, reg, (void*) val);
 		else
 			set_var(sd, reg, (void*)__64BPRTSIZE((atoi(val))));
-
 	}
 
 	CREATE(data, struct script_data,1);
 
-	if( is_str ) {// string variable
-
+	if( is_str ) { // String variable
 		switch( reg[0] ) {
 			case '@':
 				data->u.str = pc_readregstr(sd, add_str(reg));
@@ -8846,9 +8844,7 @@ ACMD_FUNC(set) {
 			data->type = C_STR;
 			data->u.str = aStrdup(data->u.str);
 		}
-
 	} else { // Integer variable
-
 		data->type = C_INT;
 		switch( reg[0] ) {
 			case '@':
@@ -8859,15 +8855,14 @@ ACMD_FUNC(set) {
 				break;
 			case '#':
 				if( reg[1] == '#' )
-					data->u.num = pc_readaccountreg2(sd, reg);// global
+					data->u.num = pc_readaccountreg2(sd, reg); // Global
 				else
-					data->u.num = pc_readaccountreg(sd, reg);// local
+					data->u.num = pc_readaccountreg(sd, reg); // Local
 				break;
 			default:
 				data->u.num = pc_readglobalreg(sd, reg);
 				break;
 		}
-		
 	}
 
 	switch( data->type ) {

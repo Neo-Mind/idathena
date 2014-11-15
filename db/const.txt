@@ -611,7 +611,7 @@ bFixedCast	2057
 bVariableCast	2058
 
 bSetDefRace	2059
-bSetMDefRace	2060
+bSetMdefRace	2060
 bMagicSubRace	2061
 bHPVanishRate	2062
 

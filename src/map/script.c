@@ -953,21 +953,20 @@ int add_word(const char* p)
 /// Parses a function call.
 /// The argument list can have parenthesis or not.
 /// The number of arguments is checked.
-static
-const char* parse_callfunc(const char* p, int require_paren, int is_custom)
+static const char* parse_callfunc(const char* p, int require_paren, int is_custom)
 {
 	const char* p2;
-	const char* arg=NULL;
+	const char* arg = NULL;
 	int func;
 
 	func = add_word(p);
-	if( str_data[func].type == C_FUNC ){
-		// buildin function
+	if( str_data[func].type == C_FUNC ) {
+		// Buildin function
 		add_scriptl(func);
 		add_scriptc(C_ARG);
 		arg = buildin_func[str_data[func].val].arg;
-	} else if( str_data[func].type == C_USERFUNC || str_data[func].type == C_USERFUNC_POS ){
-		// script defined function
+	} else if( str_data[func].type == C_USERFUNC || str_data[func].type == C_USERFUNC_POS ) {
+		// Script defined function
 		add_scriptl(buildin_callsub_ref);
 		add_scriptc(C_ARG);
 		add_scriptl(func);
@@ -975,7 +974,7 @@ const char* parse_callfunc(const char* p, int require_paren, int is_custom)
 		if( *arg == 0 )
 			disp_error_message("parse_callfunc: callsub has no arguments, please review its definition",p);
 		if( *arg != '*' )
-			++arg; // count func as argument
+			++arg; // Count func as argument
 	} else {
 #ifdef SCRIPT_CALLFUNC_CHECK
 		const char* name = get_str(func);
@@ -987,10 +986,12 @@ const char* parse_callfunc(const char* p, int require_paren, int is_custom)
 			add_scriptl(buildin_callfunc_ref);
 			add_scriptc(C_ARG);
 			add_scriptc(C_STR);
-			while( *name ) add_scriptb(*name ++);
+			while( *name )
+				add_scriptb(*name++);
 			add_scriptb(0);
 			arg = buildin_func[str_data[buildin_callfunc_ref].val].arg;
-			if( *arg != '*' ) ++ arg;
+			if( *arg != '*' )
+				++arg;
 		}
 #endif
 	}
@@ -999,42 +1000,36 @@ const char* parse_callfunc(const char* p, int require_paren, int is_custom)
 	p = skip_space(p);
 	syntax.curly[syntax.curly_count].type = TYPE_ARGLIST;
 	syntax.curly[syntax.curly_count].count = 0;
-	if( *p == ';' )
-	{// <func name> ';'
+	if( *p == ';' ) { // <func name> ';'
 		syntax.curly[syntax.curly_count].flag = ARGLIST_NO_PAREN;
-	} else if( *p == '(' && *(p2=skip_space(p+1)) == ')' )
-	{// <func name> '(' ')'
+	} else if( *p == '(' && *(p2 = skip_space(p + 1)) == ')' ) { // <func name> '(' ')'
 		syntax.curly[syntax.curly_count].flag = ARGLIST_PAREN;
 		p = p2;
 	/*
-	} else if( 0 && require_paren && *p != '(' )
-	{// <func name>
+	} else if( 0 && require_paren && *p != '(' ) { // <func name>
 		syntax.curly[syntax.curly_count].flag = ARGLIST_NO_PAREN;
 	*/
-	} else
-	{// <func name> <arg list>
-		if( require_paren ){
+	} else { // <func name> <arg list>
+		if( require_paren ) {
 			if( *p != '(' )
 				disp_error_message("need '('",p);
-			++p; // skip '('
+			++p; // Skip '('
 			syntax.curly[syntax.curly_count].flag = ARGLIST_PAREN;
-		} else if( *p == '(' ){
+		} else if( *p == '(' )
 			syntax.curly[syntax.curly_count].flag = ARGLIST_UNDEFINED;
-		} else {
+		else
 			syntax.curly[syntax.curly_count].flag = ARGLIST_NO_PAREN;
-		}
 		++syntax.curly_count;
 		while( *arg ) {
-			p2=parse_subexpr(p,-1);
+			p2 = parse_subexpr(p,-1);
 			if( p == p2 )
-				break; // not an argument
+				break; // Not an argument
 			if( *arg != '*' )
-				++arg; // next argument
-
-			p=skip_space(p2);
+				++arg; // Next argument
+			p = skip_space(p2);
 			if( *arg == 0 || *p != ',' )
-				break; // no more arguments
-			++p; // skip comma
+				break; // No more arguments
+			++p; // Skip comma
 		}
 		--syntax.curly_count;
 	}
@@ -8123,12 +8118,11 @@ BUILDIN_FUNC(autobonus)
 
 	if( script_hasdata(st,5) )
 		atk_type = script_getnum(st,5);
+
 	if( script_hasdata(st,6) )
 		other_script = script_getstr(st,6);
 
-	if( pc_addautobonus(sd->autobonus,ARRAYLENGTH(sd->autobonus),
-		bonus_script,rate,dur,atk_type,other_script,pos,false) )
-	{
+	if( pc_addautobonus(sd->autobonus,ARRAYLENGTH(sd->autobonus),bonus_script,rate,dur,atk_type,other_script,pos,false) ) {
 		script_add_autobonus(bonus_script);
 		if( other_script )
 			script_add_autobonus(other_script);
@@ -8165,12 +8159,11 @@ BUILDIN_FUNC(autobonus2)
 
 	if( script_hasdata(st,5) )
 		atk_type = script_getnum(st,5);
+
 	if( script_hasdata(st,6) )
 		other_script = script_getstr(st,6);
 
-	if( pc_addautobonus(sd->autobonus2,ARRAYLENGTH(sd->autobonus2),
-		bonus_script,rate,dur,atk_type,other_script,pos,false) )
-	{
+	if( pc_addautobonus(sd->autobonus2,ARRAYLENGTH(sd->autobonus2),bonus_script,rate,dur,atk_type,other_script,pos,false) ) {
 		script_add_autobonus(bonus_script);
 		if( other_script )
 			script_add_autobonus(other_script);
@@ -8211,9 +8204,7 @@ BUILDIN_FUNC(autobonus3)
 	if( script_hasdata(st,6) )
 		other_script = script_getstr(st,6);
 
-	if( pc_addautobonus(sd->autobonus3,ARRAYLENGTH(sd->autobonus3),
-		bonus_script,rate,dur,atk_type,other_script,pos,true) )
-	{
+	if( pc_addautobonus(sd->autobonus3,ARRAYLENGTH(sd->autobonus3),bonus_script,rate,dur,atk_type,other_script,pos,true) ) {
 		script_add_autobonus(bonus_script);
 		if( other_script )
 			script_add_autobonus(other_script);

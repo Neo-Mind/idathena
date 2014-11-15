@@ -2011,7 +2011,7 @@
 4362,Harword_Card,Howard Alt-Eisen Card,6,20,,10,,,,,,,,2,,,,,{ bonus bAspdRate,-5; bonus bHit,30; },{},{}
 4363,B_Magaleta_Card,High Priest Card,6,20,,10,,,,,,,,16,,,,,{ bonus5 bAutoSpellWhenHit,"HP_ASSUMPTIO",1,50,BF_WEAPON|BF_MAGIC,0; },{},{}
 4364,Magaleta_Card,Margaretha Sorin Card,6,20,,10,,,,,,,,769,,,,,{ bonus bInt,1; bonus5 bAutoSpellWhenHit,"PR_LEXDIVINA",5,150,BF_MAGIC,1; },{},{}
-4365,B_Katrinn_Card,High Wizard Card,6,20,,10,,,,,,,,769,,,,,{ bonus bIgnoreMDefClass,Class_Normal; bonus bCastrate,100; bonus bSPrecovRate,-100; },{},{ heal 0,-2000; }
+4365,B_Katrinn_Card,High Wizard Card,6,20,,10,,,,,,,,769,,,,,{ bonus bIgnoreMdefClass,Class_Normal; bonus bCastrate,100; bonus bSPrecovRate,-100; },{},{ heal 0,-2000; }
 4366,Katrinn_Card,Kathryne Keyron Card,6,20,,10,,,,,,,,769,,,,,{ bonus bCastrate,getrefine()*-1; if(getrefine()>=9) { bonus bMatkRate,2; } },{},{}
 4367,B_Shecil_Card,Sniper Card,6,20,,10,,,,,,,,2,,,,,{ bonus2 bHPDrainRate,50,20; bonus bHPrecovRate,-10; },{},{}
 4368,Shecil_Card,Cecil Damon Card,6,20,,10,,,,,,,,2,,,,,{ bonus bAspdRate,5; bonus bHit,-30; },{},{}
@@ -2020,7 +2020,7 @@
 4371,Archdam_Card,Archdam Card,6,20,,10,,,,,,,,16,,,,,{ bonus bBaseAtk,10; bonus bCastrate,20; },{},{}
 4372,Bacsojin_Card,White Lady Card,6,20,,10,,,,,,,,769,,,,,{ bonus bHealPower,30; bonus bUseSPrate,15; },{},{}
 4373,Chung_E_Card,Green Maiden Card,6,20,,10,,,,,,,,4,,,,,{ bonus bLuk,getrefine()-5; bonus bCritical,getrefine(); },{},{}
-4374,Apocalips_H_Card,Vesper Card,6,20,,10,,,,,,,,769,,,,,{ bonus bDex,2; bonus2 bIgnoreMdefClass,Class_Boss,30; },{},{}
+4374,Apocalips_H_Card,Vesper Card,6,20,,10,,,,,,,,769,,,,,{ bonus bDex,2; bonus2 bIgnoreMdefClassRate,Class_Boss,30; },{},{}
 4375,Orc_Baby_Card,Orc Baby Card,6,20,,10,,,,,,,,4,,,,,{ if(getrefine()>=9) { bonus2 bSubEle,Ele_Neutral,15; bonus bFlee,15; } else { bonus2 bSubEle,Ele_Neutral,10; bonus bFlee,10; } },{},{}
 4376,Lady_Tanee_Card,Lady Tanee Card,6,20,,10,,,,,,,,64,,,,,{ bonus bMaxHPrate,-40; bonus bMaxSPrate,50; bonus2 bAddMonsterDropItem,513,200; bonus2 bAddItemHealRate,513,100; },{},{}
 4377,Green_Iguana_Card,Grove Card,6,20,,10,,,,,,,,136,,,,,{ bonus3 bAddMonsterDropItem,12063,RC_Formless,50; },{},{}
@@ -2399,7 +2399,7 @@
 5208,Rideword_Hat,Rideword Hat,4,20,,300,,2,,1,0xFFFFFFFE,7,2,256,,40,1,262,{ bonus2 bHPDrainRate,50,8; bonus2 bSPDrainRate,10,4; bonus2 bHPLossRate,10,5000; },{},{}
 5209,Yellow_Baseball_Cap,Love Dad Cap,4,20,,300,,2,,0,0xFFFFFFFF,7,2,256,,0,1,263,{},{},{}
 5210,Flying_Angel,Flapping Angel Wing,4,20,,300,,1,,0,0xFFFFFFFF,7,2,256,,10,1,264,{ bonus bCastrate,-3; bonus bAspdRate,3; bonus bInt,1; bonus bAgi,1; },{},{}
-5211,Dress_Hat,Dress Hat,4,0,,200,,2,,1,0xFFFFFFFF,7,2,256,,20,1,265,{ bonus bMdef,7; bonus bStr,1; bonus bInt,1; bonus2 bAddClass,Class_All,2; bonus bMAtkRate,2; bonus bHealPower,5; if(getrefine()>=7) { bonus2 bAddClass,Class_All,1; bonus bMatkRate,1; bonus bHealPower,1; } },{},{}
+5211,Dress_Hat,Dress Hat,4,0,,200,,2,,1,0xFFFFFFFF,7,2,256,,20,1,265,{ bonus bMdef,7; bonus bStr,1; bonus bInt,1; bonus2 bAddClass,Class_All,2; bonus bMatkRate,2; bonus bHealPower,5; if(getrefine()>=7) { bonus2 bAddClass,Class_All,1; bonus bMatkRate,1; bonus bHealPower,1; } },{},{}
 5212,Satellite_Hairband,Satellite Hairband,4,0,,1000,,3,,1,0xFFFFFFFF,7,2,256,,30,1,266,{ bonus bMaxHP,50; bonus bMaxSP,10; skill "AL_RUWACH",1; },{},{ sc_end SC_RUWACH; }
 5213,Black_Bunny_Band,Sheila Hairnet,4,0,,200,,2,,0,0xFFFFFFFF,7,2,256,,1,1,267,{ bonus bAgi,2; bonus bMdef,3; },{},{}
 5214,Moonlight_Flower_Hat,Moonlight Flower Hat,4,0,,200,,3,,0,0xFFFFFFFF,7,2,768,,1,1,268,{ bonus bDex,2; bonus3 bAutoSpell,"AL_INCAGI",1,50; },{},{}
@@ -2757,7 +2757,7 @@
 5566,Tiger_Arhat_Mask,Tiger Arhat Mask,4,0,,0,,1,,0,0xFFFFFFFF,7,2,513,,1,0,546,{ bonus2 bAddRace,RC_DemiHuman,2; },{},{}
 5567,Bright_Fury,Bright Fury,4,20,,300,,1,,1,0xFFFFFFFF,7,2,256,,1,1,548,{ bonus bStr,1; bonus2 bAddClass,Class_All,2; bonus bAspdRate,2; },{},{}
 5568,Rabbit_Bonnet,Rabbit Bonnet,4,20,,1000,,1,,1,0xFFFFFFFF,7,2,768,,0,1,549,{ bonus bInt,2; },{},{}
-5569,Gemini_Diadem,Gemini Diadem,4,20,,300,,4,,0,0xFFFFFFFF,7,2,256,,70,1,550,{ bonus bAgi,2; bonus bMatkRate,2; if(getrefine()>6) { bonus bMdef,7; bonus bMAtkRate,8; bonus2 bSubEle,Ele_Wind,5; } },{},{}
+5569,Gemini_Diadem,Gemini Diadem,4,20,,300,,4,,0,0xFFFFFFFF,7,2,256,,70,1,550,{ bonus bAgi,2; bonus bMatkRate,2; if(getrefine()>6) { bonus bMdef,7; bonus bMatkRate,8; bonus2 bSubEle,Ele_Wind,5; } },{},{}
 5570,Gemini_Crown,Gemini Crown,4,20,,300,,4,,0,0xFFFFFFFF,7,2,256,,70,1,551,{ bonus bAgi,2; bonus bBaseAtk,2; bonus bMdef,5; if(getrefine()>6) { bonus bDef,1; bonus bMatk,15; bonus bFlee,10; bonus2 bSubEle,Ele_Wind,5; } },{},{}
 //5571,Rasta_Wig,Rasta_Wig,4,20,,100,,1,,0,0xFFFFFFFF,7,2,256,,0,1,552,{ bonus bStr,1; },{},{}
 5572,Savage_Baby_Hat,Savage Babe Hat,4,20,,100,,1,,1,0xFFFFFFFF,7,2,256,,1,1,553,{ bonus bVit,2; },{},{}
