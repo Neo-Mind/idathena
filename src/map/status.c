@@ -9678,6 +9678,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_REBOUND:
 				tick_time = 2000;
 				val4 = tick / tick_time;
+				clif_emotion(bl,E_SWT);
 				break;
 			case SC_KINGS_GRACE:
 				val2 = 3 + val1;

@@ -897,28 +897,27 @@ const char* skip_space(const char* p)
 /// Skips a word.
 /// A word consists of undercores and/or alphanumeric characters,
 /// and valid variable prefixes/postfixes.
-static
-const char* skip_word(const char* p)
+static const char* skip_word(const char* p)
 {
-	// prefix
+	// Prefix
 	switch( *p ) {
-		case '@':// temporary char variable
+		case '@': // Temporary char variable
 			++p; break;
-		case '#':// account variable
+		case '#': // Account variable
 			p += ( p[1] == '#' ? 2 : 1 ); break;
-		case '\'':// instance variable
+		case '\'': // Instance variable
 			++p; break;
-		case '.':// npc variable
+		case '.': // Npc variable
 			p += ( p[1] == '@' ? 2 : 1 ); break;
-		case '$':// global variable
+		case '$': // Global variable
 			p += ( p[1] == '@' ? 2 : 1 ); break;
 	}
 
 	while( ISALNUM(*p) || *p == '_' )
 		++p;
 
-	// postfix
-	if( *p == '$' )// string
+	// Postfix
+	if( *p == '$' ) // String
 		p++;
 
 	return p;
@@ -927,8 +926,7 @@ const char* skip_word(const char* p)
 /// Adds a word to str_data.
 /// @see skip_word
 /// @see add_str
-static
-int add_word(const char* p)
+static int add_word(const char* p)
 {
 	char* word;
 	int len;
@@ -940,11 +938,11 @@ int add_word(const char* p)
 		disp_error_message("script:add_word: invalid word. A word consists of undercores and/or alphanumeric characters, and valid variable prefixes/postfixes.", p);
 
 	// Duplicate the word
-	word = (char*)aMalloc(len+1);
+	word = (char*)aMalloc(len + 1);
 	memcpy(word, p, len);
 	word[len] = 0;
-	
-	// add the word
+
+	// Add the word
 	i = add_str(word);
 	aFree(word);
 	return i;
