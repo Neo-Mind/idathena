@@ -5391,7 +5391,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 			}
 			break;
 
-		case 0: /* No skill - basic/normal attack */
+		case 0: //No skill - basic/normal attack
 			if (sd) {
 				if (flag&3) {
 					if (bl->id != skill_area_temp[1])
@@ -11799,6 +11799,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		if( sd->state.arrow_atk && !(flag&1) ) //Consume arrow if this is a ground skill
 			battle_consume_ammo(sd,skill_id,skill_lv);
 
+		skill_onskillusage(sd,NULL,skill_id,tick);
+
 		//Perform skill requirement consumption
 		skill_consume_requirement(sd,skill_id,skill_lv,2);
 	}
@@ -12246,9 +12248,14 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 			}
 			break;
 		case BA_ASSASSINCROSS:
-			val1 = 100 + 10 * skill_lv + status->agi; //ASPD increase
+#ifdef RENEWAL //ASPD increase
+			val1 = skill_lv + status->agi / 20;
+#else
+			val1 = 10 + skill_lv + status->agi / 10;
+#endif
 			if( sd )
-				val1 += 10 * ((pc_checkskill(sd,BA_MUSICALLESSON) + 1) / 2); //ASPD +1% per 2 lvl
+				val1 += (pc_checkskill(sd,BA_MUSICALLESSON) + 1) / 2; //ASPD +1% per 2 lvl
+			val1 *= 10; //ASPD works with 1000 as 100%
 			break;
 		case DC_FORTUNEKISS:
 			val1 = 10 + skill_lv + (status->luk / 10); //Critical increase

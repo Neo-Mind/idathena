@@ -6073,7 +6073,7 @@ static short status_calc_aspd(struct block_list *bl, struct status_change *sc, s
 	if(sc->data[SC_ASSNCROS] && !skills1) {
 		if(bl->type != BL_PC)
 			skills2 += sc->data[SC_ASSNCROS]->val2 / 10;
-		else
+		else {
 			switch(((TBL_PC*)bl)->status.weapon) {
 				case W_BOW:
 				case W_REVOLVER:
@@ -6086,6 +6086,7 @@ static short status_calc_aspd(struct block_list *bl, struct status_change *sc, s
 					skills2 += sc->data[SC_ASSNCROS]->val2 / 10;
 					break;
 			}
+		}
 	}
 
 	return (flag&1 ? (skills1 + pots) : skills2);
@@ -6166,11 +6167,10 @@ static short status_calc_aspd_rate(struct block_list *bl, struct status_change *
 			max < sc->data[SC_FLEET]->val2)
 			max = sc->data[SC_FLEET]->val2;
 		if(sc->data[SC_ASSNCROS] &&
-			max < sc->data[SC_ASSNCROS]->val2)
-		{
+			max < sc->data[SC_ASSNCROS]->val2) {
 			if(bl->type != BL_PC)
 				max = sc->data[SC_ASSNCROS]->val2;
-			else
+			else {
 				switch(((TBL_PC*)bl)->status.weapon) {
 					case W_BOW:
 					case W_REVOLVER:
@@ -6183,6 +6183,7 @@ static short status_calc_aspd_rate(struct block_list *bl, struct status_change *
 						max = sc->data[SC_ASSNCROS]->val2;
 						break;
 				}
+			}
 		}
 		aspd_rate -= max;
 		if(sc->data[SC_BERSERK])
