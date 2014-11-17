@@ -3227,8 +3227,9 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					bl = &md->bl;
 					if (md->master_id)
 						bl = map_id2bl(md->master_id);
-					if (bl) //Otherwise, fall through
+					if (bl)
 						break;
+					//Fall through
 				case MST_FRIEND:
 					bl = (fbl ? fbl : (fmd ? &fmd->bl : &md->bl));
 					break;
@@ -3272,8 +3273,9 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					bl = &md->bl;
 					if (md->master_id)
 						bl = map_id2bl(md->master_id);
-					if (bl) //Otherwise, fall through.
+					if (bl)
 						break;
+					//Fall through
 				case MST_FRIEND:
 					if (fbl) {
 						bl = fbl;
@@ -3281,7 +3283,8 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					} else if (fmd) {
 						bl = &fmd->bl;
 						break;
-					} //Else fall through
+					}
+					//Fall through
 				default:
 					bl = &md->bl;
 					break;

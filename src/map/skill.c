@@ -1515,8 +1515,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				TBL_HOM *hd = BL_CAST(BL_HOM,src);
 				int spiritball = (hd ? hd->homunculus.spiritball : 1);
 
-				sc_start4(src,bl,SC_FEAR,spiritball * (10 + 2 * skill_lv),skill_lv,src->id,
-					0,0,skill_get_time(skill_id,skill_lv));
+				sc_start(src,bl,SC_FEAR,spiritball * (10 + 2 * skill_lv),skill_lv,skill_get_time(skill_id,skill_lv));
 			}
 			break;
 		case MH_XENO_SLASHER:
@@ -2942,7 +2941,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 			if (src->type == BL_PC)
 				dmg.blewcount = 10;
 			dmg.amotion = 0; //Disable delay or attack will do no damage since source is dead by the time it takes effect [Skotlex]
-		//Fall through
+			//Fall through
 		case KN_AUTOCOUNTER:
 		case NPC_CRITICALSLASH:
 		case TF_DOUBLE:
@@ -3751,7 +3750,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 							break;
 						}
 					}
-				//Fall through
+					//Fall through
 				default:
 					skill_attack(skl->type,src,src,target,skl->skill_id,skl->skill_lv,tick,skl->flag);
 					break;
@@ -3777,7 +3776,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 
 						map_foreachinarea(skill_cell_overlap,src->m,skl->x-i,skl->y-i,skl->x+i,skl->y+i,BL_SKILL,skl->skill_id,&dummy,src);
 					}
-				//Fall through
+					//Fall through
 				case WL_EARTHSTRAIN:
 					skill_unitsetting(src,skl->skill_id,skl->skill_lv,skl->x,skl->y,(skl->type<<16)|skl->flag);
 					break;
@@ -8352,21 +8351,21 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case NPC_DRAGONFEAR:
-			if (flag&1) {
+			if( flag&1 ) {
 				const enum sc_type sc[] = { SC_STUN,SC_SILENCE,SC_CONFUSION,SC_BLEEDING };
 				int j;
 
 				j = i = rnd()%ARRAYLENGTH(sc);
-				while (!sc_start2(src,bl,sc[i],100,skill_lv,src->id,skill_get_time2(skill_id,i + 1))) {
+				while( !sc_start2(src,bl,sc[i],100,skill_lv,src->id,skill_get_time2(skill_id,i + 1)) ) {
 					i++;
-					if (i == ARRAYLENGTH(sc))
+					if( i == ARRAYLENGTH(sc) )
 						i = 0;
-					if (i == j)
+					if( i == j )
 						break;
 				}
+				break;
 			}
-			break;
-
+			//Fall through
 		case NPC_WIDEBLEEDING:
 		case NPC_WIDECONFUSE:
 		case NPC_WIDECURSE:
@@ -8393,14 +8392,13 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						break;
 					default:
 						sc_start2(src,bl,type,100,skill_lv,src->id,skill_get_time2(skill_id,skill_lv));
+						break;
 				}
 			} else {
 				skill_area_temp[2] = 0; //For SD_PREAMBLE
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				map_foreachinrange(skill_area_sub,bl,
-					skill_get_splash(skill_id,skill_lv),BL_CHAR,
-					src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_PREAMBLE|1,
-					skill_castend_nodamage_id);
+				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),BL_CHAR,src,
+					skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_PREAMBLE|1,skill_castend_nodamage_id);
 			}
 			break;
 
@@ -8410,10 +8408,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			else {
 				skill_area_temp[2] = 0; //For SD_PREAMBLE
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				map_foreachinrange(skill_area_sub,bl,
-					skill_get_splash(skill_id,skill_lv),BL_CHAR,
-					src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_PREAMBLE|1,
-					skill_castend_nodamage_id);
+				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),BL_CHAR,src,
+					skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_PREAMBLE|1,skill_castend_nodamage_id);
 			}
 			break;
 
@@ -8451,10 +8447,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			else {
 				skill_area_temp[2] = 0;
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				map_foreachinrange(skill_area_sub,src,
-					skill_get_splash(skill_id,skill_lv),BL_CHAR,
-					src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_PREAMBLE|1,
-					skill_castend_nodamage_id);
+				map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_CHAR,src,
+					skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_PREAMBLE|1,skill_castend_nodamage_id);
 			}
 			break;
 
@@ -8475,8 +8469,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 					map_foreachinarea(skill_cell_overlap,src->m,src->x-i,src->y-i,src->x+i,src->y+i,BL_SKILL,LG_EARTHDRIVE,&dummy,src);
 				}
-				map_foreachinrange(skill_area_sub,bl,i,BL_CHAR,
-					src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
+				map_foreachinrange(skill_area_sub,bl,i,BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 			break;
 
 		case RK_STONEHARDSKIN:

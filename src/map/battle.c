@@ -4171,8 +4171,8 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 					ATK_RATE(wd.weaponAtk, wd.weaponAtk2, 50);
 					ATK_RATE(wd.equipAtk, wd.equipAtk2, 50);
 	#endif
-				default:
 					//Fall through to apply EDP bonuses
+				default:
 					//Renewal EDP formula [helvetica]
 					//Weapon atk * (1 + (edp level * .8))
 					//Equip atk * (1 + (edp level * .6))

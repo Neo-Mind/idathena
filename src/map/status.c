@@ -307,7 +307,7 @@ void initChangeTables(void) {
 	add_sc( NPC_REBIRTH          , SC_REBIRTH         );
 	add_sc( RG_RAID              , SC_STUN            );
 #ifdef RENEWAL
-	add_sc( RG_RAID              , SC_RAID            );
+	set_sc( RG_RAID              , SC_RAID            , SI_RAID            , SCB_NONE );
 	add_sc( RG_BACKSTAP          , SC_STUN            );
 #endif
 	set_sc( RG_STRIPWEAPON       , SC_STRIPWEAPON     , SI_STRIPWEAPON     , SCB_WATK );
@@ -947,6 +947,7 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_SHIELDSPELL_MDEF] = SI_SHIELDSPELL_MDEF;
 	StatusIconChangeTable[SC_SHIELDSPELL_REF] = SI_SHIELDSPELL_REF;
 	StatusIconChangeTable[SC_GLOOMYDAY_SK] = SI_GLOOMYDAY;
+	StatusIconChangeTable[SC_SITDOWN_FORCE] = SI_SITDOWN_FORCE;
 	StatusIconChangeTable[SC_CURSEDCIRCLE_ATKER] = SI_CURSEDCIRCLE_ATKER;
 	StatusIconChangeTable[SC__BLOODYLUST] = SI_BLOODYLUST;
 	StatusIconChangeTable[SC_STOMACHACHE] = SI_STOMACHACHE;
@@ -1172,7 +1173,6 @@ void initChangeTables(void) {
 
 	//StatusChangeState (SCS_) NOMOVE
 	StatusChangeStateTable[SC_ANKLE]               |= SCS_NOMOVE;
-	StatusChangeStateTable[SC_SPIDERWEB]           |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_AUTOCOUNTER]         |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_TRICKDEAD]           |= SCS_NOMOVE;
 	StatusChangeStateTable[SC_BLADESTOP]           |= SCS_NOMOVE;
@@ -8462,7 +8462,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 						}
 						status_zap(bl,diff,0);
 					}
-				} //Fall through
+				}
+				//Fall through
 			case SC_POISON:
 				tick_time = 1000;
 				val3 = tick / tick_time; //Damage iterations
