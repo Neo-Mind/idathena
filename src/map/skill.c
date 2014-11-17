@@ -6069,11 +6069,11 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case SM_MAGNUM:
 		case MS_MAGNUM:
 			skill_area_temp[1] = 0;
-			//Initiate 20% of your damage becomes fire element
-			sc_start2(src,src,SC_WATK_ELEMENT,100,ELE_FIRE,20,skill_get_time2(skill_id,skill_lv));
 			map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_SKILL|BL_CHAR,
 				src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 			clif_skill_nodamage(src,src,skill_id,skill_lv,1);
+			//Initiate 20% of your damage becomes fire element
+			sc_start2(src,src,SC_WATK_ELEMENT,100,ELE_FIRE,20,skill_get_time2(skill_id,skill_lv));
 			if( sd )
 				skill_blockpc_start(sd,skill_id,skill_get_time(skill_id,skill_lv));
 			else if( bl->type == BL_MER )
