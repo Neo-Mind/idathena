@@ -950,13 +950,12 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 					struct status_change_entry *sce;
 
 					//Enchant Poison gives a chance to poison attacked enemies
-					if( (sce = sc->data[SC_ENCPOISON]) ) //Don't use sc_start since chance comes in 1/10000 rate.
+					if( (sce = sc->data[SC_ENCPOISON]) ) //Don't use sc_start since chance comes in 1/10000 rate
 						status_change_start(src,bl,SC_POISON,sce->val2,sce->val1,src->id,0,0,
 							skill_get_time2(AS_ENCHANTPOISON,sce->val1),SCFLAG_NONE);
 					//Enchant Deadly Poison gives a chance to deadly poison attacked enemies
 					if( (sce = sc->data[SC_EDP]) )
-						sc_start4(src,bl,SC_DPOISON,sce->val2,sce->val1,src->id,0,0,
-							skill_get_time2(ASC_EDP,sce->val1));
+						sc_start4(src,bl,SC_DPOISON,sce->val2,sce->val1,src->id,0,0,skill_get_time2(ASC_EDP,sce->val1));
 				}
 			}
 			break;
@@ -1201,7 +1200,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			}
 			break;
 		case ASC_METEORASSAULT:
-			//Any enemies hit by this skill will receive Stun, Darkness, or external bleeding status ailment with a 5%+5*skill_lv% chance.
+			//Any enemies hit by this skill will receive Stun, Darkness, or external bleeding status ailment with a 5%+5*skill_lv% chance
 			switch( rnd()%3 ) {
 				case 0:
 					sc_start(src,bl,SC_BLIND,(5 + skill_lv * 5),skill_lv,skill_get_time2(skill_id,1));
@@ -1962,8 +1961,7 @@ int skill_counter_additional_effect(struct block_list* src, struct block_list *b
 			break;
 	}
 
-	if(sd && (sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR &&
-		map[sd->bl.m].flag.nosumstarmiracle == 0) //SG_MIRACLE [Komurka]
+	if(sd && (sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR && map[sd->bl.m].flag.nosumstarmiracle == 0) //SG_MIRACLE [Komurka]
 		status_change_start(src,src,SC_MIRACLE,battle_config.sg_miracle_skill_ratio,1,0,0,0,battle_config.sg_miracle_skill_duration,SCFLAG_NONE);
 
 	if(sd && skill_id && attack_type&BF_MAGIC && status_isdead(bl) &&
@@ -4272,8 +4270,6 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 		case NPC_SPLASHATTACK:
 			flag |= SD_PREAMBLE; //A fake packet will be sent for the first target to be hit
 		case AS_SPLASHER:
-		case SM_MAGNUM:
-		case MS_MAGNUM:
 		case HT_BLITZBEAT:
 		case AC_SHOWER:
 		case MA_SHOWER:
@@ -4387,9 +4383,15 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 			}
 			break;
 
+		case SM_MAGNUM:
+		case MS_MAGNUM:
+			if (flag&1) //Damage depends on distance, so add it to flag if it is > 1
+				skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag|distance_bl(src,bl));
+			break;
+
 		case KN_BRANDISHSPEAR:
 		case ML_BRANDISH:
-			//Coded apart for it needs the flag passed to the damage calculation.
+			//Coded apart for it needs the flag passed to the damage calculation
 			if (skill_area_temp[1] != bl->id)
 				skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag|SD_ANIMATION);
 			else
@@ -5656,8 +5658,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 	tsce = (tsc && type != -1) ? tsc->data[type] : NULL;
 
 	if(src != bl && type > -1 && (i = skill_get_ele(skill_id,skill_lv)) > ELE_NEUTRAL &&
-		skill_get_inf(skill_id) != INF_SUPPORT_SKILL &&
-		battle_attr_fix(NULL,NULL,100,i,tstatus->def_ele,tstatus->ele_lv) <= 0)
+		skill_get_inf(skill_id) != INF_SUPPORT_SKILL && battle_attr_fix(NULL,NULL,100,i,tstatus->def_ele,tstatus->ele_lv) <= 0)
 		return 1; //Skills that cause an status should be blocked if the target element blocks its element
 
 	map_freeblock_lock();
@@ -6064,15 +6065,15 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			clif_skill_nodamage(bl,bl,skill_id,skill_lv,
 				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			break;
-		//Passive Magnum, should had been casted on yourself.
+		//Passive Magnum, should had been casted on yourself
 		case SM_MAGNUM:
 		case MS_MAGNUM:
 			skill_area_temp[1] = 0;
+			//Initiate 20% of your damage becomes fire element
+			sc_start2(src,src,SC_WATK_ELEMENT,100,ELE_FIRE,20,skill_get_time2(skill_id,skill_lv));
 			map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_SKILL|BL_CHAR,
 				src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
-			clif_skill_nodamage (src,src,skill_id,skill_lv,1);
-			//Initiate 20% of your damage becomes fire element.
-			sc_start4(src,src,SC_WATK_ELEMENT,100,3,20,0,0,skill_get_time2(skill_id,skill_lv));
+			clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 			if( sd )
 				skill_blockpc_start(sd,skill_id,skill_get_time(skill_id,skill_lv));
 			else if( bl->type == BL_MER )
@@ -6853,11 +6854,9 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				status_change_end(bl,SC_WHITEIMPRISON,INVALID_TIMER);
 				status_change_end(bl,SC_NETHERWORLD,INVALID_TIMER);
 			}
-			//Is this equation really right? It looks so, special.
+			//Is this equation really right? It looks so, special
 			if(battle_check_undead(tstatus->race,tstatus->def_ele)) {
-				status_change_start(src,bl,SC_BLIND,
-					100 * (100 - (tstatus->int_ / 2 + tstatus->vit / 3 + tstatus->luk / 10)),
-					1,0,0,0,
+				status_change_start(src,bl,SC_BLIND,100 * (100 - (tstatus->int_ / 2 + tstatus->vit / 3 + tstatus->luk / 10)),1,0,0,0,
 					skill_get_time2(skill_id,skill_lv) * (100 - (tstatus->int_ + tstatus->vit) / 2) / 100,SCFLAG_NONE);
 			}
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -10135,7 +10134,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 		case KG_KAGEHUMI:
 			if( flag&1 ) {
-				if( tsc && ((tsc->option&(OPTION_HIDE|OPTION_CLOAK)) ||
+				if( tsc && ((tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK)) ||
 					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC__SHADOWFORM] ||
 					tsc->data[SC_MARIONETTE] || tsc->data[SC_HARMONIZE]) )
 				{
@@ -10143,6 +10142,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 						status_change_end(bl,SC_HIDING,INVALID_TIMER);
 						status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
+						status_change_end(bl,SC_CHASEWALK,INVALID_TIMER);
 						status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER);
 						status_change_end(bl,SC_CAMOUFLAGE,INVALID_TIMER);
 						status_change_end(bl,SC__SHADOWFORM,INVALID_TIMER);
@@ -11551,8 +11551,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			}
 			skill_clear_unitgroup(src); //To remove previous skills - cannot used combined
 			if( (sg = skill_unitsetting(src,skill_id,skill_lv,src->x,src->y,0)) != NULL ) {
-				status_change_start(src,src,(skill_id == NC_NEUTRALBARRIER ? SC_NEUTRALBARRIER_MASTER : SC_STEALTHFIELD_MASTER),
-					10000,skill_lv,sg->group_id,0,0,skill_get_time(skill_id,skill_lv),SCFLAG_NONE);
+				sc_start2(src,src,(skill_id == NC_NEUTRALBARRIER ? SC_NEUTRALBARRIER_MASTER : SC_STEALTHFIELD_MASTER),100,
+					skill_lv,sg->group_id,skill_get_time(skill_id,skill_lv));
 				if( sd )
 					pc_overheat(sd,1);
 			}
@@ -13413,7 +13413,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 						clif_skill_nodamage(&unit->bl,bl,AL_HEAL,hp,1);
 					if (tstatus->sp < tstatus->max_sp)
 						clif_skill_nodamage(&unit->bl,bl,MG_SRECOVERY,sp,1);
-					sc_start(src,bl,type,100,skill_lv,(group->interval * 3) + 100);
+					sc_start(src,bl,type,100,skill_lv,group->interval * 3 + 100);
 				}
 				if (group->val2%5 == 0) { //Un-hides players every 5 seconds
 					status_change_end(bl,SC_HIDING,INVALID_TIMER);
@@ -13428,7 +13428,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 		case UNT_STEALTHFIELD:
 			if (src == bl)
 				break;
-			status_change_start(src,bl,type,10000,skill_lv,0,0,0,group->interval + 100,SCFLAG_NONE);
+			sc_start(src,bl,type,100,skill_lv,group->interval + 100);
 			break;
 
 		case UNT_NEUTRALBARRIER:
@@ -13772,15 +13772,14 @@ int skill_unit_onleft(uint16 skill_id, struct block_list *bl, unsigned int tick)
 		case BD_ROKISWEIL:
 		case BD_INTOABYSS:
 		case BD_SIEGFRIED:
-			if (sc && sc->data[SC_DANCING] && (sc->data[SC_DANCING]->val1&0xFFFF) == skill_id) {
-				//Check if you just stepped out of your ensemble skill to cancel dancing. [Skotlex]
-				//We don't check for SC_LONGING because someone could always have knocked you back and out of the song/dance.
-				//FIXME: This code is not perfect, it doesn't checks for the real ensemble's owner,
-				//it only checks if you are doing the same ensemble. So if there's two chars doing an ensemble
-				//which overlaps, by stepping outside of the other parther's ensemble will cause you to cancel
-				//your own. Let's pray that scenario is pretty unlikely and noone will complain too much about it.
+			//Check if you just stepped out of your ensemble skill to cancel dancing [Skotlex]
+			//We don't check for SC_LONGING because someone could always have knocked you back and out of the song/dance
+			//FIXME: This code is not perfect, it doesn't checks for the real ensemble's owner,
+			//it only checks if you are doing the same ensemble. So if there's two chars doing an ensemble
+			//which overlaps, by stepping outside of the other parther's ensemble will cause you to cancel
+			//your own. Let's pray that scenario is pretty unlikely and noone will complain too much about it
+			if (sc && sc->data[SC_DANCING] && (sc->data[SC_DANCING]->val1&0xFFFF) == skill_id)
 				status_change_end(bl, SC_DANCING, INVALID_TIMER);
-			}
 		case MH_STEINWAND:
 		case MG_SAFETYWALL:
 		case AL_PNEUMA:
@@ -13839,7 +13838,7 @@ int skill_unit_onleft(uint16 skill_id, struct block_list *bl, unsigned int tick)
 			if (sce) {
 				status_change_end(bl, type, INVALID_TIMER);
 				if ((sce = sc->data[SC_BLIND])) {
-					if (bl->type == BL_PC) //Players get blind ended inmediately, others have it still for 30 secs. [Skotlex]
+					if (bl->type == BL_PC) //Players get blind ended inmediately, others have it still for 30 secs [Skotlex]
 						status_change_end(bl, SC_BLIND, INVALID_TIMER);
 					else {
 						delete_timer(sce->timer, status_change_timer);
@@ -17161,9 +17160,8 @@ bool skill_check_camouflage(struct block_list *bl, struct status_change_entry *s
 	}
 
 	if( sce ) {
-		if( !wall )
-			if( sce->val1 == 1 ) //End camouflage
-				status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
+		if( !wall && sce->val1 == 1 ) //End camouflage
+			status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
 		status_calc_bl(bl, SCB_SPEED);
 	}
 
@@ -17474,8 +17472,9 @@ struct skill_unit_group* skill_initunitgroup(struct block_list* src, int count, 
  */
 int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int line, const char* func)
 {
-	struct block_list* src;
+	struct block_list *src;
 	struct unit_data *ud;
+	struct status_change *sc;
 	short i, j;
 	
 	if( group == NULL ) {
@@ -17508,9 +17507,9 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 		}
 	}
 
-	if( skill_get_unit_flag(group->skill_id)&(UF_DANCE|UF_SONG|UF_ENSEMBLE) ) {
-		struct status_change* sc = status_get_sc(src);
+	sc = status_get_sc(src);
 
+	if( skill_get_unit_flag(group->skill_id)&(UF_DANCE|UF_SONG|UF_ENSEMBLE) ) {
 		if( sc && sc->data[SC_DANCING] ) {
 			sc->data[SC_DANCING]->val2 = 0 ; //This prevents status_change_end attempting to redelete the group [Skotlex]
 			status_change_end(src, SC_DANCING, INVALID_TIMER);
@@ -17524,53 +17523,36 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 		case UNT_BASILICA:   i = SC_BASILICA;   break;
 	}
 
-	if( i != SC_NONE ) {
-		struct status_change *sc = status_get_sc(src);
-
-		if( sc && sc->data[i] ) {
-			sc->data[i]->val3 = 0; //Remove reference to this group. [Skotlex]
-			status_change_end(src, (sc_type)i, INVALID_TIMER);
-		}
+	if( i != SC_NONE && sc && sc->data[i] ) {
+		sc->data[i]->val3 = 0; //Remove reference to this group [Skotlex]
+		status_change_end(src, (sc_type)i, INVALID_TIMER);
 	}
 
 	switch( group->skill_id ) {
 		case SG_SUN_WARM:
 		case SG_MOON_WARM:
 		case SG_STAR_WARM:
-			{
-				struct status_change *sc = NULL;
-
-				if( (sc = status_get_sc(src)) != NULL && sc->data[SC_WARM] ) {
-					sc->data[SC_WARM]->val4 = 0;
-					status_change_end(src, SC_WARM, INVALID_TIMER);
-				}
+			if( sc && sc->data[SC_WARM] ) {
+				sc->data[SC_WARM]->val4 = 0;
+				status_change_end(src, SC_WARM, INVALID_TIMER);
 			}
 			break;
-		case NC_NEUTRALBARRIER: {
-				struct status_change *sc = NULL;
-
-				if( (sc = status_get_sc(src)) != NULL && sc->data[SC_NEUTRALBARRIER_MASTER] ) {
-					sc->data[SC_NEUTRALBARRIER_MASTER]->val2 = 0;
-					status_change_end(src, SC_NEUTRALBARRIER_MASTER, INVALID_TIMER);
-				}
+		case NC_NEUTRALBARRIER:
+			if( sc && sc->data[SC_NEUTRALBARRIER_MASTER] ) {
+				sc->data[SC_NEUTRALBARRIER_MASTER]->val2 = 0;
+				status_change_end(src, SC_NEUTRALBARRIER_MASTER, INVALID_TIMER);
 			}
 			break;
-		case NC_STEALTHFIELD: {
-				struct status_change *sc = NULL;
-
-				if( (sc = status_get_sc(src)) != NULL && sc->data[SC_STEALTHFIELD_MASTER] ) {
-					sc->data[SC_STEALTHFIELD_MASTER]->val2 = 0;
-					status_change_end(src, SC_STEALTHFIELD_MASTER, INVALID_TIMER);
-				}
+		case NC_STEALTHFIELD:
+			if( sc && sc->data[SC_STEALTHFIELD_MASTER] ) {
+				sc->data[SC_STEALTHFIELD_MASTER]->val2 = 0;
+				status_change_end(src, SC_STEALTHFIELD_MASTER, INVALID_TIMER);
 			}
 			break;
-		case LG_BANDING: {
-				struct status_change *sc = NULL;
-
-				if( (sc = status_get_sc(src)) != NULL && sc->data[SC_BANDING] ) {
-					sc->data[SC_BANDING]->val4 = 0;
-					status_change_end(src, SC_BANDING, INVALID_TIMER);
-				}
+		case LG_BANDING:
+			if( sc && sc->data[SC_BANDING] ) {
+				sc->data[SC_BANDING]->val4 = 0;
+				status_change_end(src, SC_BANDING, INVALID_TIMER);
 			}
 			break;
 	}
@@ -20075,7 +20057,6 @@ int skill_disable_check(struct status_change *sc, uint16 skill_id)
 			if( sc->data[status_skill2sc(skill_id)] )
 				return 1;
 			break;
-
 		//These 2 skills contain a master and are not correctly pulled using skill2sc
 		case NC_NEUTRALBARRIER:
 			if( sc->data[SC_NEUTRALBARRIER_MASTER] )

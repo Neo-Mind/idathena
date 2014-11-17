@@ -796,7 +796,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		return damage; //This skill bypass everything else
 
 	if( sc && sc->count ) {
-		//SC_* that reduce damage to 0.
+		//SC_* that reduce damage to 0
 		if( sc->data[SC_BASILICA] && !(status_get_mode(src)&MD_BOSS) ) {
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
@@ -2273,7 +2273,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 
 	if(skill_id) {
 		switch(skill_id) { //Hit skill modifiers
-			//It is proven that bonus is applied on final hitrate, not hit.
+			//It is proven that bonus is applied on final hitrate, not hit
 			case SM_BASH:
 			case MS_BASH:
 				hitrate += hitrate * 5 * skill_lv / 100;
@@ -2540,10 +2540,9 @@ static struct Damage battle_calc_element_damage(struct Damage wd, struct block_l
 		//Non-pc physical melee attacks (mob, pet, homun) are "non elemental", they deal 100% to all target elements
 		//However the "non elemental" attacks still get reduced by "Neutral resistance"
 		//Also non-pc units have only a defending element, but can inflict elemental attacks using skills [exneval]
-		if(battle_config.attack_attr_none&src->type)
-			if(((!skill_id && !right_element) || (skill_id && (element == -1 || !right_element))) &&
-				(wd.flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON))
-				return wd;
+		if(battle_config.attack_attr_none&src->type && ((!skill_id && !right_element) ||
+			(skill_id && (element == -1 || !right_element))) && (wd.flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON))
+			return wd;
 		if(wd.damage > 0) {
 			switch(skill_id) {
 				case MC_CARTREVOLUTION:
@@ -2570,8 +2569,8 @@ static struct Damage battle_calc_element_damage(struct Damage wd, struct block_l
 		}
 		if(is_attack_left_handed(src, skill_id) && wd.damage2 > 0)
 			wd.damage2 = battle_attr_fix(src, target, wd.damage2, left_element, tstatus->def_ele, tstatus->ele_lv);
-		if(sc && sc->data[SC_WATK_ELEMENT]) {
-			//Descriptions indicate this means adding a percent of a normal attack in another element [Skotlex]
+		//Descriptions indicate this means adding a percent of a normal attack in another element [Skotlex]
+		if(sc && sc->data[SC_WATK_ELEMENT] && (wd.damage || wd.damage2)) {
 			int64 damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, (is_skill_using_arrow(src, skill_id) ? 2 : 0)) * sc->data[SC_WATK_ELEMENT]->val2 / 100;
 
 			wd.damage += battle_attr_fix(src, target, damage, sc->data[SC_WATK_ELEMENT]->val1, tstatus->def_ele, tstatus->ele_lv);
@@ -2620,9 +2619,9 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 	struct status_data *sstatus = status_get_status_data(src);
 	int t_class = status_get_class(target);
 
-	if(sd && battle_skill_stacks_masteries_vvs(skill_id) && skill_id != MO_INVESTIGATE &&
-		skill_id != MO_EXTREMITYFIST && skill_id != CR_GRANDCROSS)
-	{ //Add mastery damage
+	//Add mastery damage
+	if(sd && battle_skill_stacks_masteries_vvs(skill_id) &&
+		skill_id != MO_INVESTIGATE && skill_id != MO_EXTREMITYFIST && skill_id != CR_GRANDCROSS) {
 		uint16 skill;
 
 		wd.damage = battle_addmastery(sd, target, wd.damage, 0);
@@ -3110,7 +3109,10 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 			break;
 		case SM_MAGNUM:
 		case MS_MAGNUM:
-			skillratio += 20 * skill_lv;
+			if(wd.miscflag == 1)
+				skillratio += 20 * skill_lv; //Inner 3x3 circle takes 100%+20%*level damage [Playtester]
+			else
+				skillratio += 10 * skill_lv; //Outer 5x5 circle takes 100%+10%*level damage [Playtester]
 			break;
 		case MC_MAMMONITE:
 			skillratio += 50 * skill_lv;
@@ -3415,8 +3417,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 		case NJ_KUNAI:
 			skillratio += 200;
 			break;
-		case KN_CHARGEATK: {
-				//+100% every 3 cells of distance but hard-limited to 500%.
+		case KN_CHARGEATK: { //+100% every 3 cells of distance but hard-limited to 500%
 				unsigned int k = wd.miscflag / 3;
 
 				if( k < 2 )
@@ -4106,8 +4107,6 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 
 	if(sc) { //The following are applied on top of current damage and are stackable
 #ifdef RENEWAL
-		if(sc->data[SC_WATK_ELEMENT] && skill_id != ASC_METEORASSAULT)
-			ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sc->data[SC_WATK_ELEMENT]->val2);
 		if(sc->data[SC_IMPOSITIO])
 			ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_IMPOSITIO]->val2);
 		if(sc->data[SC_VOLCANO])
@@ -5017,9 +5016,9 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 	nk = battle_skill_get_damage_properties(skill_id, wd.miscflag);
 
 	if(sc && !sc->count)
-		sc = NULL; //Skip checking as there are no status changes active.
+		sc = NULL; //Skip checking as there are no status changes active
 	if(tsc && !tsc->count)
-		tsc = NULL; //Skip checking as there are no status changes active.
+		tsc = NULL; //Skip checking as there are no status changes active
 
 	sd = BL_CAST(BL_PC, src);
 	tsd = BL_CAST(BL_PC, target);
@@ -5227,6 +5226,9 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 	if(sc && sc->data[SC_AURABLADE] && skill_id != LK_SPIRALPIERCE && skill_id != ML_SPIRALPIERCE)
 		ATK_ADD(wd.damage, wd.damage2, 20 * sc->data[SC_AURABLADE]->val1);
 #else
+	if(sc && sc->data[SC_WATK_ELEMENT])
+		ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_WATK_ELEMENT]->val2);
+
 	if(!sd) //Only monsters have a single ATK for element, in pre-renewal we also apply element to entire ATK on players [helvetica]
 #endif
 		wd = battle_calc_element_damage(wd, src, target, skill_id, skill_lv);
@@ -6182,7 +6184,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			case CR_GRANDCROSS:
 			case NPC_GRANDDARKNESS:
 				{
-					struct Damage wd = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
+					struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, mflag);
 
 					ad.damage = battle_attr_fix(src, target, wd.damage + ad.damage, s_ele, tstatus->def_ele, tstatus->ele_lv) * (100 + 40 * skill_lv) / 100;
 					if(src == target) {
@@ -6195,7 +6197,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				break;
 #ifdef RENEWAL
 			case GN_FIRE_EXPANSION_ACID: {
-					struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, 0);
+					struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, mflag);
 
 					ad.damage = (int64)(7 * ((wd.damage / skill_lv + ad.damage / skill_lv) * tstatus->vit / 100));
 				}
@@ -6384,8 +6386,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				//is considered "neutral" for purposes of resistances
 				struct Damage atk, matk;
 
-				atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,0);
-				matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,0);
+				atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
+				matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,mflag);
 				md.damage = (int64)(7 * ((atk.damage / skill_lv + matk.damage / skill_lv) * tstatus->vit / 100));
 			}
 #else
@@ -6415,7 +6417,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				//Official Renewal formula [helvetica]
 				//Base damage = currenthp + ((atk * currenthp * skill level) / maxhp)
 				//Final damage = base damage + ((mirror image count + 1) / 5 * base damage) - (edef + sdef)
-				struct Damage atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,0);
+				struct Damage atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
 				struct status_change *sc = status_get_sc(src);
 				short totaldef;
 
@@ -6454,9 +6456,9 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				short totaldef, totalmdef;
 				struct Damage atk, matk;
 
-				atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,0);
+				atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
 				nk |= NK_NO_ELEFIX; //Atk part takes on weapon element, matk part is non-elemental
-				matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,0);
+				matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,mflag);
 				//(Atk + Matk) * (3 + (.5 * skill level))
 				md.damage = ((30 + (5 * skill_lv)) * (atk.damage + matk.damage)) / 10;
 				//Modified def reduction, final damage = base damage - (edef + sdef + emdef + smdef)

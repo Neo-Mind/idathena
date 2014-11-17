@@ -10282,7 +10282,7 @@ void clif_disconnect_ack(struct map_session_data* sd, short result)
 ///     0 = quit
 void clif_parse_QuitGame(int fd, struct map_session_data *sd)
 {
-	/*	Rovert's prevent logout option fixed [Valaris]	*/
+	//Rovert's prevent logout option fixed [Valaris]
 	//int type = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
 	if( !sd->sc.data[SC_CLOAKING] && !sd->sc.data[SC_HIDING] && !sd->sc.data[SC_CHASEWALK] && !sd->sc.data[SC_CLOAKINGEXCEED] &&
 		(!battle_config.prevent_logout || DIFF_TICK(gettick(), sd->canlog_tick) > battle_config.prevent_logout) )
@@ -10687,12 +10687,11 @@ void clif_parse_Restart(int fd, struct map_session_data *sd)
 			pc_respawn(sd, CLR_OUTSIGHT);
 			break;
 		case 0x01:
-			/* Rovert's Prevent logout option - Fixed [Valaris] */
+			//Rovert's Prevent logout option - Fixed [Valaris]
 			if( !sd->sc.data[SC_CLOAKING] && !sd->sc.data[SC_HIDING] && !sd->sc.data[SC_CHASEWALK] && !sd->sc.data[SC_CLOAKINGEXCEED] &&
-				(!battle_config.prevent_logout || DIFF_TICK(gettick(), sd->canlog_tick) > battle_config.prevent_logout) )
-			{ //Send to char-server for character selection.
+				(!battle_config.prevent_logout || DIFF_TICK(gettick(), sd->canlog_tick) > battle_config.prevent_logout) ) {
 				pc_damage_log_clear(sd, 0);
-				chrif_charselectreq(sd, session[fd]->client_addr);
+				chrif_charselectreq(sd, session[fd]->client_addr); //Send to char-server for character selection
 			} else
 				clif_disconnect_ack(sd, 1);
 			break;

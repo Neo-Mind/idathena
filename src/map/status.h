@@ -1949,7 +1949,7 @@ struct status_change {
 	unsigned short opt1; //Body state
 	unsigned short opt2; //Health state (bitfield)
 	unsigned char count;
-	//@TODO: See if it is possible to implement the following SC's without requiring extra parameters while the SC is inactive.
+	//@TODO: See if it is possible to implement the following SC's without requiring extra parameters while the SC is inactive
 	unsigned char jb_flag; //Joint Beat type flag
 	struct {
 		unsigned char move;
@@ -1976,9 +1976,9 @@ unsigned int status_sc2scb_flag(sc_type sc);
 int status_type2relevant_bl_types(int type);
 
 int status_damage(struct block_list *src,struct block_list *target,int64 hp,int64 sp, int walkdelay, int flag);
-//Define for standard HP damage attacks.
+//Define for standard HP damage attacks
 #define status_fix_damage(src, target, hp, walkdelay) status_damage(src, target, hp, 0, walkdelay, 0)
-//Define for standard HP/SP damage triggers.
+//Define for standard HP/SP damage triggers
 #define status_zap(bl, hp, sp) status_damage(NULL, bl, hp, sp, 0, 1)
 //Define for standard HP/SP skill-related cost triggers (mobs require no HP/SP to use skills)
 int status_charge(struct block_list* bl, int64 hp, int64 sp);
@@ -2055,12 +2055,13 @@ int status_isdead(struct block_list *bl);
 int status_isimmune(struct block_list *bl);
 
 int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_type type, int rate, int tick, unsigned char flag);
-//Short version, receives rate in 1->100 range, and does not uses a flag setting.
-#define sc_start(src, bl, type, rate, val1, tick) status_change_start(src,bl,type,100*(rate),val1,0,0,0,tick,SCFLAG_NONE)
-#define sc_start2(src, bl, type, rate, val1, val2, tick) status_change_start(src,bl,type,100*(rate),val1,val2,0,0,tick,SCFLAG_NONE)
-#define sc_start4(src, bl, type, rate, val1, val2, val3, val4, tick) status_change_start(src,bl,type,100*(rate),val1,val2,val3,val4,tick,SCFLAG_NONE)
 
-int status_change_start(struct block_list* src,struct block_list* bl,enum sc_type type,int rate,int val1,int val2,int val3,int val4,int tick,unsigned char flag);
+//Short version, receives rate in 1->100 range, and does not uses a flag setting
+#define sc_start(src, bl, type, rate, val1, tick) status_change_start(src, bl, type, 100 * (rate), val1, 0, 0, 0, tick, SCFLAG_NONE)
+#define sc_start2(src, bl, type, rate, val1, val2, tick) status_change_start(src, bl, type, 100 * (rate), val1, val2, 0, 0, tick, SCFLAG_NONE)
+#define sc_start4(src, bl, type, rate, val1, val2, val3, val4, tick) status_change_start(src, bl, type, 100 * (rate), val1, val2, val3, val4, tick, SCFLAG_NONE)
+int status_change_start(struct block_list* src, struct block_list* bl, enum sc_type type, int rate, int val1, int val2, int val3, int val4, int tick, unsigned char flag);
+
 int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const char* file, int line);
 #define status_change_end(bl,type,tid) status_change_end_(bl,type,tid,__FILE__,__LINE__)
 int kaahi_heal_timer(int tid, unsigned int tick, int id, intptr_t data);

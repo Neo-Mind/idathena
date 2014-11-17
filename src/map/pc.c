@@ -5171,7 +5171,7 @@ char pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int 
 		int i;
 
 		sd->state.pmap = sd->bl.m;
-		if( sd->sc.count ) { // Cancel some map related stuff.
+		if( sd->sc.count ) { // Cancel some map related stuff
 			if( sd->sc.data[SC_JAILED] )
 				return 1; // You may not get out!
 			status_change_end(&sd->bl, SC_BOSSMAPINFO, INVALID_TIMER);
@@ -5181,9 +5181,7 @@ char pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int 
 			status_change_end(&sd->bl, SC_STAR_COMFORT, INVALID_TIMER);
 			status_change_end(&sd->bl, SC_MIRACLE, INVALID_TIMER);
 			status_change_end(&sd->bl, SC_NEUTRALBARRIER_MASTER, INVALID_TIMER);
-			status_change_end(&sd->bl, SC_NEUTRALBARRIER, INVALID_TIMER);
 			status_change_end(&sd->bl, SC_STEALTHFIELD_MASTER, INVALID_TIMER);
-			status_change_end(&sd->bl, SC_STEALTHFIELD, INVALID_TIMER);
 			if( sd->sc.data[SC_KNOWLEDGE] ) {
 				struct status_change_entry *sce = sd->sc.data[SC_KNOWLEDGE];
 

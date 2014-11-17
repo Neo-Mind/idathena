@@ -1714,8 +1714,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 			if( sc && sc->data[SC_BASILICA] )
 				casttime = -1; //No Casting time on basilica cancel
 			break;
-		case KN_CHARGEATK: {
-				//+0.5s every 3 cells of distance but hard-limited to 1.5s.
+		case KN_CHARGEATK: { //+0.5s every 3 cells of distance but hard-limited to 1.5s
 				unsigned int k = distance_bl(src, target) / 3;
 
 				if( k < 2 )
@@ -1941,7 +1940,7 @@ int unit_skilluse_pos2(struct block_list *src, short skill_x, short skill_y, uin
 		return 0;
 	}
 
-	/* Check range and obstacle */
+	//Check range and obstacle
 	bl.type = BL_NUL;
 	bl.m = src->m;
 	bl.x = skill_x;
@@ -2001,7 +2000,7 @@ int unit_skilluse_pos2(struct block_list *src, short skill_x, short skill_y, uin
 	ud->skilly       = skill_y;
 	ud->skilltarget  = 0;
 
-	if(sc) { //Why the if else chain: These 3 status do not stack, so its efficient that way.
+	if(sc) { //Why the if else chain: These 3 status do not stack, so its efficient that way
 		if(sc->data[SC_CLOAKING] && !(sc->data[SC_CLOAKING]->val4&4)) {
 			status_change_end(src, SC_CLOAKING, INVALID_TIMER);
 			if(!src->prev)
@@ -2015,7 +2014,7 @@ int unit_skilluse_pos2(struct block_list *src, short skill_x, short skill_y, uin
 
 	unit_stop_walking(src,1);
 
-	//In official this is triggered even if no cast time.
+	//In official this is triggered even if no cast time
 	clif_skillcasting(src, src->id, 0, skill_x, skill_y, skill_id, skill_get_ele(skill_id, skill_lv), casttime);
 
 	if(casttime > 0) {
@@ -2684,6 +2683,7 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 
 	//Do not reset can-act delay [Skotlex]
 	ud->attackabletime = ud->canmove_tick /*= ud->canact_tick*/ = gettick();
+
 	if (sc && sc->count) { //Map-change/warp dispells
 		status_change_end(bl,SC_BLADESTOP,INVALID_TIMER);
 		status_change_end(bl,SC_BASILICA,INVALID_TIMER);

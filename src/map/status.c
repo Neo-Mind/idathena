@@ -1397,12 +1397,10 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 			status_change_end(target, SC_CHASEWALK, INVALID_TIMER);
 			status_change_end(target, SC_CAMOUFLAGE, INVALID_TIMER);
 			status_change_end(target, SC_DEEPSLEEP, INVALID_TIMER);
-			if ((sce = sc->data[SC_ENDURE]) && !sce->val4) {
-				//Endure count is only reduced by non-players on non-gvg maps
-				//val4 signals infinite endure [Skotlex]
-				if (src && src->type != BL_PC && !map_flag_gvg2(target->m) && !map[target->m].flag.battleground && --(sce->val2) < 0)
-					status_change_end(target, SC_ENDURE, INVALID_TIMER);
-			}
+			//Endure count is only reduced by non-players on non-gvg maps
+			if ((sce = sc->data[SC_ENDURE]) && !sce->val4 && //val4 signals infinite endure [Skotlex]
+				src && src->type != BL_PC && !map_flag_gvg2(target->m) && !map[target->m].flag.battleground && --(sce->val2) < 0)
+				status_change_end(target, SC_ENDURE, INVALID_TIMER);
 			if ((sce = sc->data[SC_GRAVITATION]) && sce->val3 == BCT_SELF) {
 				struct skill_unit_group* sg = skill_id2group(sce->val4);
 
@@ -1429,8 +1427,7 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 	status->sp -= sp;
 
 	if (sc && hp && status->hp) {
-		if (sc->data[SC_AUTOBERSERK] &&
-			(!sc->data[SC_PROVOKE] || !sc->data[SC_PROVOKE]->val2) && status->hp < status->max_hp>>2)
+		if (sc->data[SC_AUTOBERSERK] && (!sc->data[SC_PROVOKE] || !sc->data[SC_PROVOKE]->val2) && status->hp < status->max_hp>>2)
 			sc_start4(src, target, SC_PROVOKE, 100, 10, 1, 0, 0, 0);
 		if (sc->data[SC_BERSERK] && status->hp <= 100)
 			status_change_end(target, SC_BERSERK, INVALID_TIMER);
@@ -2008,7 +2005,7 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 	if( tsc ) {
 		struct status_data *status = status_get_status_data(src);
 
-		switch( target->type ) { //Check for chase-walk/hiding/cloaking opponents.
+		switch( target->type ) { //Check for chase-walk/hiding/cloaking opponents
 			case BL_PC: {
 					struct map_session_data *tsd = (TBL_PC*)target;
 
@@ -9162,6 +9159,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick_time = 2000 + 1000 * val1;
 				val4 = tick / tick_time;
 				break;
+			case SC_STEALTHFIELD:
+				tick_time = tick;
+				tick = -1;
+				break;
 			case SC_ELECTRICSHOCKER:
 			case SC_CRYSTALIZE:
 			case SC_MEIKYOUSISUI:
@@ -9921,8 +9922,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_WEIGHT90:
 		case SC_HIDING:
 		case SC_CLOAKING:
-		case SC_CLOAKINGEXCEED:
 		case SC_CHASEWALK:
+		case SC_CLOAKINGEXCEED:
 		case SC_CAMOUFLAGE:
 		case SC__FEINTBOMB:
 		case SC_VOICEOFSIREN:
@@ -10797,7 +10798,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				struct skill_unit_group* group = skill_id2group(sce->val2);
 
 				sce->val2 = 0;
-				if (group) /* Might have been cleared before status ended, e.g. land protector */
+				if (group) //Might have been cleared before status ended, e.g. land protector
 					skill_delunitgroup(group);
 			}
 			break;
@@ -11145,6 +11146,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			//break;
 		default:
 			opt_flag = 0;
+			break;
 	}
 
 	if (!battle_config.update_enemy_position && invisible && !(sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE)))

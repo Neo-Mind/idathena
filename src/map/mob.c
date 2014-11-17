@@ -421,8 +421,7 @@ bool mob_ksprotected(struct block_list *src, struct block_list *target)
 		return true;
 	} while(0);
 
-	status_change_start(src, target, SC_KSPROTECTED, 10000, sd->bl.id, sd->state.noks,
-		sd->status.party_id, sd->status.guild_id, battle_config.ksprotection, SCFLAG_NONE);
+	sc_start4(src, target, SC_KSPROTECTED, 100, sd->bl.id, sd->state.noks, sd->status.party_id, sd->status.guild_id, battle_config.ksprotection);
 
 	return false;
 }
