@@ -812,8 +812,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 	struct status_change *sc, *tsc;
 
 	enum sc_type status;
-	int skill;
-	int rate;
+	int skill, rate;
 
 	nullpo_ret(src);
 	nullpo_ret(bl);
@@ -834,8 +833,8 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 	sstatus = status_get_status_data(src);
 	tstatus = status_get_status_data(bl);
 
-	//Skill additional effect is about adding effects to the target.
-	//So if the target can't be inflicted with statuses, this is pointless.
+	//Skill additional effect is about adding effects to the target
+	//So if the target can't be inflicted with statuses, this is pointless
 	if( !tsc )
 		return 0;
 
@@ -843,7 +842,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 		if( skill_id != WS_CARTTERMINATION && skill_id != AM_DEMONSTRATION && skill_id != CR_REFLECTSHIELD &&
 			skill_id != MS_REFLECTSHIELD && skill_id != ASC_BREAKER ) { //Trigger status effects
 			enum sc_type type;
-			int i;
+			int i, time, sc_flag;
 
 			for( i = 0; i < ARRAYLENGTH(sd->addeff) && sd->addeff[i].flag; i++ ) {
 				rate = sd->addeff[i].rate;
@@ -852,10 +851,9 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				if( !rate )
 					continue;
 				if( (sd->addeff[i].flag&(ATF_WEAPON|ATF_MAGIC|ATF_MISC)) != (ATF_WEAPON|ATF_MAGIC|ATF_MISC) ) { //Trigger has attack type consideration
-					if( (sd->addeff[i].flag&ATF_WEAPON && attack_type&BF_WEAPON) ||
-						(sd->addeff[i].flag&ATF_MAGIC && attack_type&BF_MAGIC) ||
-						(sd->addeff[i].flag&ATF_MISC && attack_type&BF_MISC) ) ;
-					else
+					if( (sd->addeff[i].flag&ATF_WEAPON && !(attack_type&BF_WEAPON)) ||
+						(sd->addeff[i].flag&ATF_MAGIC && !(attack_type&BF_MAGIC)) ||
+						(sd->addeff[i].flag&ATF_MISC && !(attack_type&BF_MISC)) )
 						continue;
 				}
 				if( (sd->addeff[i].flag&(ATF_LONG|ATF_SHORT)) != (ATF_LONG|ATF_SHORT) ) { //Trigger has range consideration
@@ -864,27 +862,37 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 						continue; //Range Failed
 				}
 				type =  sd->addeff[i].id;
-				skill = skill_get_time2(status_sc2skill(type),7);
+				time = skill_get_time2(status_sc2skill(type),7);
+				sc_flag = SCFLAG_NONE;
+				if( type == SC_CRYSTALIZE ) {
+					time = 3000;
+					sc_flag = SCFLAG_FIXEDTICK;
+				}
 				if( sd->addeff[i].flag&ATF_TARGET )
-					status_change_start(src,bl,type,rate,7,0,(type == SC_BURNING) ? src->id : 0,0,skill,SCFLAG_NONE);
+					status_change_start(src,bl,type,rate,7,0,(type == SC_BURNING) ? src->id : 0,0,time,sc_flag);
 				if( sd->addeff[i].flag&ATF_SELF )
-					status_change_start(src,src,type,rate,7,0,(type == SC_BURNING) ? src->id : 0,0,skill,SCFLAG_NONE);
+					status_change_start(src,src,type,rate,7,0,(type == SC_BURNING) ? src->id : 0,0,time,sc_flag);
 			}
 		}
 
 		if( skill_id ) { //Trigger status effects on skills
 			enum sc_type type;
-			int i;
+			int i, time, sc_flag;
 
 			for( i = 0; i < ARRAYLENGTH(sd->addeff3) && sd->addeff3[i].skill; i++ ) {
 				if( skill_id != sd->addeff3[i].skill || !sd->addeff3[i].rate )
 					continue;
 				type = sd->addeff3[i].id;
-				skill = skill_get_time2(status_sc2skill(type),7);
+				time = skill_get_time2(status_sc2skill(type),7);
+				sc_flag = SCFLAG_NONE;
+				if( type == SC_CRYSTALIZE ) {
+					time = 3000;
+					sc_flag = SCFLAG_FIXEDTICK;
+				}
 				if( sd->addeff3[i].target&ATF_TARGET )
-					status_change_start(src,bl,type,sd->addeff3[i].rate,7,0,0,0,skill,SCFLAG_NONE);
+					status_change_start(src,bl,type,sd->addeff3[i].rate,7,0,(type == SC_BURNING) ? src->id : 0,0,time,sc_flag);
 				if( sd->addeff3[i].target&ATF_SELF )
-					status_change_start(src,src,type,sd->addeff3[i].rate,7,0,0,0,skill,SCFLAG_NONE);
+					status_change_start(src,src,type,sd->addeff3[i].rate,7,0,(type == SC_BURNING) ? src->id : 0,0,time,sc_flag);
 			}
 		}
 	}
@@ -960,12 +968,10 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			}
 			break;
 
-		case SM_BASH:
-			if( sd && skill_lv > 5 && pc_checkskill(sd,SM_FATALBLOW) > 0 ) {
-				//BaseChance gets multiplied with BaseLevel/50.0; 500/50 simplifies to 10 [Playtester]
+		case SM_BASH: //BaseChance gets multiplied with BaseLevel/50.0; 500/50 simplifies to 10 [Playtester]
+			if( sd && skill_lv > 5 && pc_checkskill(sd,SM_FATALBLOW) > 0 )
 				status_change_start(src,bl,SC_STUN,(skill_lv - 5) * sd->status.base_level * 10,
 					skill_lv,0,0,0,skill_get_time2(SM_FATALBLOW,skill_lv),SCFLAG_NONE);
-			}
 			break;
 
 		case MER_CRASH:
@@ -1149,7 +1155,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			break;
 		case NPC_MENTALBREAKER:
 			//Based on observations by Tharis, Mental Breaker should do SP damage
-			//Equal to MATK * Skill Level.
+			//Equal to MATK * Skill Level
 			rate = status_get_matk(src, 2);
 			rate *= skill_lv;
 			status_zap(bl,0,rate);
@@ -1905,7 +1911,7 @@ int skill_counter_additional_effect(struct block_list* src, struct block_list *b
 
 	if(dstsd && attack_type&BF_WEAPON) { //Counter effects
 		enum sc_type type;
-		int i, time;
+		int i, time, sc_flag;
 
 		for(i = 0; i < ARRAYLENGTH(dstsd->addeff2) && dstsd->addeff2[i].flag; i++) {
 			rate = dstsd->addeff2[i].rate;
@@ -1913,16 +1919,22 @@ int skill_counter_additional_effect(struct block_list* src, struct block_list *b
 				rate += dstsd->addeff2[i].arrow_rate;
 			if(!rate)
 				continue;
-			if((dstsd->addeff2[i].flag&(ATF_LONG|ATF_SHORT)) != (ATF_LONG|ATF_SHORT)) //Trigger has range consideration
+			if((dstsd->addeff2[i].flag&(ATF_LONG|ATF_SHORT)) != (ATF_LONG|ATF_SHORT)) { //Trigger has range consideration
 				if((dstsd->addeff2[i].flag&ATF_LONG && !(attack_type&BF_LONG)) ||
 					(dstsd->addeff2[i].flag&ATF_SHORT && !(attack_type&BF_SHORT)))
 					continue; //Range Failed
+			}
 			type = dstsd->addeff2[i].id;
 			time = skill_get_time2(status_sc2skill(type),7);
+			sc_flag = SCFLAG_NONE;
+			if( type == SC_CRYSTALIZE ) {
+				time = 3000;
+				sc_flag = SCFLAG_FIXEDTICK;
+			}
 			if(dstsd->addeff2[i].flag&ATF_TARGET)
-				status_change_start(src,src,type,rate,7,0,0,0,time,SCFLAG_NONE);
+				status_change_start(src,src,type,rate,7,0,(type == SC_BURNING) ? src->id : 0,0,time,sc_flag);
 			if(dstsd->addeff2[i].flag&ATF_SELF && !status_isdead(bl))
-				status_change_start(src,bl,type,rate,7,0,0,0,time,SCFLAG_NONE);
+				status_change_start(src,bl,type,rate,7,0,(type == SC_BURNING) ? src->id : 0,0,time,sc_flag);
 		}
 	}
 

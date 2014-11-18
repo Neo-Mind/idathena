@@ -7050,7 +7050,7 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			break;
 		case SC_DEEPSLEEP:
 			//sc_def = b_status->int_ * 50; //Needs more info
-			tick_def = 0; //Linear reduction instead
+			//tick_def = 0; //Linear reduction instead
 			tick_def2 = b_status->int_ * 50 + SCDEF_LVL_CAP(bl,150) * 50; //kRO balance update lists this formula
 			break;
 		case SC_NETHERWORLD:
@@ -11877,7 +11877,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			break;
 
 		case SC_DEEPSLEEP:
-			if( --(sce->val4) >= 0 ) { //Recovers 3% of the player's MaxHP/MaxSP every 2 seconds.
+			if( --(sce->val4) >= 0 ) { //Recovers 3% of the player's MaxHP/MaxSP every 2 seconds
 				status_heal(bl,status->max_hp * 3 / 100,status->max_sp * 3 / 100,2);
 				sc_timer_next(2000 + tick,status_change_timer,bl->id,data);
 				return 0;
@@ -11918,7 +11918,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			break;
 
 		case SC_CRYSTALIZE:
-			if( --(sce->val4) >= 0 ) { //Drains 2% of HP and 1% of SP every seconds.
+			if( --(sce->val4) >= 0 ) { //Drains 2% of HP and 1% of SP every seconds
 				if( bl->type != BL_MOB ) //Doesn't work on mobs
 					status_charge(bl,status->max_hp * 2 / 100,status->max_sp / 100);
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
