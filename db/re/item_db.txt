@@ -6410,7 +6410,7 @@
 12605,Special_Box4,Special Box IV,11,100,,100,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
 12606,Special_Box5,Special Box V,11,100,,100,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
 12607,Lolli_Pop_Box,Delicious Lollipop Box,11,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
-12608,Splendid_Box2,Splendid Box2,11,20,,100,,,,,0xFFFFFFFF,63,2,,,,,,{},{},{}
+12608,Splendid_Box2,Splendid Box2,2,20,,100,,,,,0xFFFFFFFF,63,2,,,,,,{ getrandgroupitem(IG_Splendid_Box),1; },{},{}
 12612,Old_Coin_Pocket,Old Coin Bag,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getgroupitem(IG_Old_Coin_Pocket); },{},{}
 12613,High_Coin_Pocket,Improved Coin Bag,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getgroupitem(IG_High_Coin_Pocket); },{},{}
 12614,Mid_Coin_Pocket,Intermediate Coin Bag,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getgroupitem(IG_Mid_Coin_Pocket); },{},{}

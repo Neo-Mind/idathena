@@ -2454,9 +2454,8 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 		clif_fixpos(src);
 
 	if( DIFF_TICK(ud->attackabletime,tick) <= 0 ) {
-		if( battle_config.attack_direction_change && (src->type&battle_config.attack_direction_change) ) {
-			ud->dir = map_calc_dir(src, target->x,target->y );
-		}
+		if( battle_config.attack_direction_change && (src->type&battle_config.attack_direction_change) )
+			ud->dir = map_calc_dir(src,target->x,target->y);
 		if( ud->walktimer != INVALID_TIMER )
 			unit_stop_walking(src,1);
 		if( md ) {

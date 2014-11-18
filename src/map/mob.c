@@ -910,16 +910,16 @@ int mob_spawn(struct mob_data *md)
 		md->bl.x = md->spawn->x;
 		md->bl.y = md->spawn->y;
 
-		if( (md->bl.x == 0 && md->bl.y == 0) || md->spawn->xs || md->spawn->ys ) { //Monster can be spawned on an area.
-			if( !map_search_freecell(&md->bl,-1,&md->bl.x,&md->bl.y,md->spawn->xs,md->spawn->ys,battle_config.no_spawn_on_player ? 4 : 0) )
-			{ // Retry again later
+		if( (md->bl.x == 0 && md->bl.y == 0) || md->spawn->xs || md->spawn->ys ) { //Monster can be spawned on an area
+			if( !map_search_freecell(&md->bl,-1,&md->bl.x,&md->bl.y,md->spawn->xs,md->spawn->ys,battle_config.no_spawn_on_player ? 4 : 0) ) {
+				//Retry again later
 				if( md->spawn_timer != INVALID_TIMER )
 					delete_timer(md->spawn_timer,mob_delayspawn);
 				md->spawn_timer = add_timer(tick + 5000,mob_delayspawn,md->bl.id,0);
 				return 1;
 			}
-		} else if( battle_config.no_spawn_on_player > 99 && map_foreachinrange(mob_count_sub,&md->bl,AREA_SIZE,BL_PC) )
-		{ // Retry again later (players on sight)
+		} else if( battle_config.no_spawn_on_player > 99 && map_foreachinrange(mob_count_sub,&md->bl,AREA_SIZE,BL_PC) ) {
+			//Retry again later (players on sight)
 			if( md->spawn_timer != INVALID_TIMER )
 				delete_timer(md->spawn_timer,mob_delayspawn);
 			md->spawn_timer = add_timer(tick + 5000,mob_delayspawn,md->bl.id,0);
@@ -934,6 +934,7 @@ int mob_spawn(struct mob_data *md)
 	md->move_fail_count = 0;
 	md->ud.state.attack_continue = 0;
 	md->ud.target_to = 0;
+	md->ud.dir = 0;
 	if( md->spawn_timer != INVALID_TIMER ) {
 		delete_timer(md->spawn_timer,mob_delayspawn);
 		md->spawn_timer = INVALID_TIMER;
@@ -960,7 +961,7 @@ int mob_spawn(struct mob_data *md)
 	
 	md->lootitem_count = 0;
 
-	if( md->db->option ) //Added for carts, falcons and pecos for cloned monsters. [Valaris]
+	if( md->db->option ) //Added for carts, falcons and pecos for cloned monsters [Valaris]
 		md->sc.option = md->db->option;
 
 	//MvP tomb [GreenBox]
