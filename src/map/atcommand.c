@@ -2813,8 +2813,9 @@ ACMD_FUNC(char_block)
 		return -1;
 	}
 
-	chrif_req_login_operation(sd->status.account_id, atcmd_player_name, 1, 0, 0, 0); // Type: 1 - block
-	clif_displaymessage(fd, msg_txt(88)); // Character name sent to char-server to ask it.
+	chrif_req_login_operation(sd->status.account_id, atcmd_player_name, CHRIF_OP_LOGIN_BLOCK, 0, 0, 0); // Type: 1 - block
+	sprintf(atcmd_output, msg_txt(88), "login"); // Sending request to %s server...
+	clif_displaymessage(fd, atcmd_output);
 
 	return 0;
 }
@@ -2827,15 +2828,15 @@ ACMD_FUNC(char_block)
 ACMD_FUNC(char_ban)
 {
 	char * modif_p;
-	int32 timediff = 0; //Don't set this as uint as we may want to decrease banned time
-	int bantype = 0; //2 = account block, 6 = char specific
+	int32 timediff = 0; // Don't set this as uint as we may want to decrease banned time
+	int bantype = 0; // 2 = account block, 6 = char specific
 
 	nullpo_retr(-1, sd);
 
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
 
-	bantype = strcmpi(command + 1, "charban") ? 2 : 6; //! FIXME this breaking alias recognition
+	bantype = strcmpi(command + 1, "charban") ? CHRIF_OP_LOGIN_BAN : CHRIF_OP_BAN; // FIXME this breaking alias recognition
 	if (!message || !*message || sscanf(message, "%255s %23[^\n]", atcmd_output, atcmd_player_name) < 2) {
 		clif_displaymessage(fd, msg_txt(1022)); // Please enter ban time and a player name (usage: @ban <time> <char name>).
 		return -1;
@@ -2849,28 +2850,27 @@ ACMD_FUNC(char_ban)
 	if (timediff == 0) { // Allow negative ?
 		char output[256];
 
-		safesnprintf(output, sizeof(output), msg_txt(85), bantype == 6 ? "charban" : "ban", timediff); // Invalid time for %s command (time=%d)
+		safesnprintf(output, sizeof(output), msg_txt(85), bantype == CHRIF_OP_BAN ? "charban" : "ban", timediff); // Invalid time for %s command (time=%d)
 		clif_displaymessage(fd, output);
 		clif_displaymessage(fd, msg_txt(702)); // Time parameter format is +/-<value> to alter. y/a = Year, m = Month, d/j = Day, h = Hour, n/mn = Minute, s = Second.
 		return -1;
 	}
 
-	if (timediff < 0 && ((bantype == 2 && !pc_can_use_command(sd, "unban", COMMAND_ATCOMMAND)) ||
-		(bantype == 6 && !pc_can_use_command(sd, "charunban", COMMAND_ATCOMMAND)))
-		) {
+	if (timediff < 0 && ((bantype == CHRIF_OP_LOGIN_BAN && !pc_can_use_command(sd, "unban", COMMAND_ATCOMMAND)) ||
+		(bantype == CHRIF_OP_BAN && !pc_can_use_command(sd, "charunban", COMMAND_ATCOMMAND)))) {
 		clif_displaymessage(fd, msg_txt(1023)); // You are not allowed to alter the time of a ban.
 		return -1;
 	}
 
-	if (bantype == 2) 
-		chrif_req_login_operation(sd->status.account_id, atcmd_player_name, 2, timediff, 0, 0); // Type: 2 - ban
+	if (bantype == CHRIF_OP_LOGIN_BAN) 
+		chrif_req_login_operation(sd->status.account_id, atcmd_player_name, CHRIF_OP_LOGIN_BAN, timediff, 0, 0); // Type: 2 - ban
 	else
 		chrif_req_charban(sd->status.account_id, atcmd_player_name, timediff);
 
 	{
 		char output[256];
 
-		safesnprintf(output, sizeof(output), msg_txt(88), (bantype == 6 ? "char" : "login")); // Sending request to %s server...
+		safesnprintf(output, sizeof(output), msg_txt(88), (bantype == CHRIF_OP_BAN ? "char" : "login")); // Sending request to %s server...
 		clif_displaymessage(fd, output);
 	}
 
@@ -2892,8 +2892,9 @@ ACMD_FUNC(char_unblock)
 	}
 
 	// Send answer to login server via char-server
-	chrif_req_login_operation(sd->status.account_id, atcmd_player_name, 3, 0, 0, 0); // Type: 3 - unblock
-	clif_displaymessage(fd, msg_txt(88)); // Character name sent to char-server to ask it.
+	chrif_req_login_operation(sd->status.account_id, atcmd_player_name, CHRIF_OP_LOGIN_UNBLOCK, 0, 0, 0); // Type: 3 - unblock
+	sprintf(atcmd_output, msg_txt(88), "login"); // Sending request to %s server...
+	clif_displaymessage(fd, atcmd_output);
 
 	return 0;
 }
@@ -2907,19 +2908,22 @@ ACMD_FUNC(char_unban) {
 	nullpo_retr(-1, sd);
 
 	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-	unbantype = strcmpi(command + 1, "charunban") ? 4 : 7; //FIXME: this breaking alias recognition
+	unbantype = strcmpi(command + 1, "charunban") ? CHRIF_OP_LOGIN_UNBAN : CHRIF_OP_UNBAN; // FIXME: this breaking alias recognition
 
 	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {	
-		if (unbantype == 4) clif_displaymessage(fd, msg_txt(1025)); // Please enter a player name (usage: @unblock <char name>).
-		else clif_displaymessage(fd, msg_txt(435)); // Please enter a player name (usage: @unban <char name>).
+		if (unbantype == CHRIF_OP_LOGIN_UNBAN)
+			clif_displaymessage(fd, msg_txt(1025)); // Please enter a player name (usage: @unblock <char name>).
+		else
+			clif_displaymessage(fd, msg_txt(435)); // Please enter a player name (usage: @unban <char name>).
 		return -1;
 	} 
 
-	if (unbantype == 4) // Send answer to login server via char-server
-		chrif_req_login_operation(sd->status.account_id, atcmd_player_name, 4, 0, 0, 0); // Type: 4 - unban
+	if (unbantype == CHRIF_OP_LOGIN_UNBAN) // Send answer to login server via char-server
+		chrif_req_login_operation(sd->status.account_id, atcmd_player_name, CHRIF_OP_LOGIN_UNBAN, 0, 0, 0); // Type: 4 - unban
 	else // Directly unban via char-serv
-		chrif_req_charunban(sd->status.char_id);
-	clif_displaymessage(fd, msg_txt(88)); // Character name sent to char-server to ask it.
+		chrif_req_charunban(sd->status.account_id, atcmd_player_name);
+	sprintf(atcmd_output, msg_txt(88), unbantype == CHRIF_OP_UNBAN ? "char":"login"); // Sending request to %s server...
+	clif_displaymessage(fd, atcmd_output);
 
 	return 0;
 }
@@ -9302,7 +9306,7 @@ ACMD_FUNC(vip) {
 		}
 	}
 
-	chrif_req_login_operation(pl_sd->status.account_id, pl_sd->status.name, 6, vipdifftime, 7, 0);
+	chrif_req_login_operation(pl_sd->status.account_id, pl_sd->status.name, CHRIF_OP_LOGIN_VIP, vipdifftime, 7, 0);
 
 	return 0;
 }

@@ -1142,6 +1142,7 @@ void initChangeTables(void) {
 	StatusDisplayType[SC_ROLLINGCUTTER]	  = true;
 	StatusDisplayType[SC_BANDING]		  = true;
 	StatusDisplayType[SC_CRYSTALIZE]	  = true;
+	StatusDisplayType[SC_STRIKING]		  = true;
 	StatusDisplayType[SC_DEEPSLEEP]		  = true;
 	StatusDisplayType[SC_CURSEDCIRCLE_ATKER]  = true;
 	StatusDisplayType[SC_CURSEDCIRCLE_TARGET] = true;

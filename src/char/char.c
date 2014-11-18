@@ -3068,13 +3068,13 @@ int mapif_parse_reqcharban(int fd) {
 }
 
 int mapif_parse_reqcharunban(int fd) {
-	if( RFIFOREST(fd) < 6 )
+	if( RFIFOREST(fd) < 6 + NAME_LENGTH )
 		return 0;
 	else {
-		int cid = RFIFOL(fd,2);
+		const char* name = (char*)RFIFOP(fd,6);
 
-		RFIFOSKIP(fd,6);		
-		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `unban_time` = '0' WHERE `char_id` = '%d' LIMIT 1", char_db, cid) ) {
+		RFIFOSKIP(fd,6 + NAME_LENGTH);
+		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `unban_time` = '0' WHERE `name` = '%s' LIMIT 1", char_db, name) ) {
 			Sql_ShowDebug(sql_handle);
 			return -1;
 		}
@@ -3912,6 +3912,7 @@ int parse_frommap(int fd)
 			default: {
 				//inter-server packet
 				int r = inter_parse_frommap(fd);
+
 				if( r == 1 ) break; //Processed
 				if( r == 2 ) return 0; //Need more packet
 

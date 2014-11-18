@@ -168,13 +168,13 @@ int hom_vaporize(struct map_session_data *sd, int flag)
 		return 0;
 
 	if (status_isdead(&hd->bl))
-		return 0; //Can't vaporize a dead homun.
+		return 0; //Can't vaporize a dead homun
 
 	if (flag == HOM_ST_REST && get_percentage(hd->battle_status.hp, hd->battle_status.max_hp) < 80)
 		return 0;
 
-	hd->regen.state.block = 3; //Block regen while vaporized.
-	//Delete timers when vaporized.
+	hd->regen.state.block = 3; //Block regen while vaporized
+	//Delete timers when vaporized
 	hom_hungry_timer_delete(hd);
 	hd->homunculus.vaporize = (flag ? flag : HOM_ST_REST);
 	if(battle_config.hom_setting&HOMSET_RESET_REUSESKILL_VAPORIZED)
@@ -189,21 +189,22 @@ int hom_vaporize(struct map_session_data *sd, int flag)
 int hom_delete(struct homun_data *hd, int emote)
 {
 	struct map_session_data *sd;
-	nullpo_ret(hd);
-	sd = hd->master;
 
+	nullpo_ret(hd);
+
+	sd = hd->master;
 	if (!sd)
-		return unit_free(&hd->bl,CLR_DEAD);
+		return unit_free(&hd->bl, CLR_DEAD);
 
 	if (emote >= 0)
 		clif_emotion(&sd->bl, emote);
 
-	//This makes it be deleted right away.
+	//This makes it be deleted right away
 	hd->homunculus.intimacy = 0;
-	// Send homunculus_dead to client
+	//Send homunculus_dead to client
 	hd->homunculus.hp = 0;
 	clif_hominfo(sd, hd, 0);
-	return unit_remove_map(&hd->bl,CLR_OUTSIGHT);
+	return unit_remove_map(&hd->bl, CLR_OUTSIGHT);
 }
 
 int hom_calc_skilltree(struct homun_data *hd, int flag_evolve)
@@ -213,17 +214,18 @@ int hom_calc_skilltree(struct homun_data *hd, int flag_evolve)
 	int c = 0;
 
 	nullpo_ret(hd);
-	/* load previous homunculus form skills first. */
+
+	//Load previous homunculus form skills first
 	if( hd->homunculus.prev_class != 0 ) {
 		c = hd->homunculus.prev_class - HM_CLASS_BASE;
 
 		for( i = 0; i < MAX_SKILL_TREE && ( id = hskill_tree[c][i].id ) > 0; i++ ) {
-			if( hd->homunculus.hskill[ id - HM_SKILLBASE ].id )
-				continue; //Skill already known.
-			j = ( flag_evolve ) ? 10 : hd->homunculus.intimacy;
+			if( hd->homunculus.hskill[id - HM_SKILLBASE].id )
+				continue; //Skill already known
+			j = (flag_evolve) ? 10 : hd->homunculus.intimacy;
 			if( j < hskill_tree[c][i].intimacylv )
 				continue;
-			if(!battle_config.skillfree) {
+			if( !battle_config.skillfree ) {
 				for( j = 0; j < MAX_PC_SKILL_REQUIRE; j++ ) {
 					if( hskill_tree[c][i].need[j].id &&
 					   hom_checkskill(hd,hskill_tree[c][i].need[j].id) < hskill_tree[c][i].need[j].lv ) {
@@ -232,8 +234,8 @@ int hom_calc_skilltree(struct homun_data *hd, int flag_evolve)
 					}
 				}
 			}
-			if ( f )
-				hd->homunculus.hskill[id-HM_SKILLBASE].id = id;
+			if( f )
+				hd->homunculus.hskill[id - HM_SKILLBASE].id = id;
 		}
 
 		f = 1;
@@ -241,9 +243,9 @@ int hom_calc_skilltree(struct homun_data *hd, int flag_evolve)
 
 	c = hd->homunculus.class_ - HM_CLASS_BASE;
 
-	for( i = 0; i < MAX_SKILL_TREE && ( id = hskill_tree[c][i].id ) > 0; i++ ) {
-		if( hd->homunculus.hskill[ id - HM_SKILLBASE ].id )
-			continue; //Skill already known.
+	for( i = 0; i < MAX_SKILL_TREE && (id = hskill_tree[c][i].id) > 0; i++ ) {
+		if( hd->homunculus.hskill[id - HM_SKILLBASE].id )
+			continue; //Skill already known
 		if( !battle_config.skillfree ) {
 			for( j = 0; j < MAX_PC_SKILL_REQUIRE; j++ ) {
 				if( hskill_tree[c][i].need[j].id &&
@@ -253,8 +255,8 @@ int hom_calc_skilltree(struct homun_data *hd, int flag_evolve)
 				}
 			}
 		}
-		if ( f )
-			hd->homunculus.hskill[id-HM_SKILLBASE].id = id;
+		if( f )
+			hd->homunculus.hskill[id - HM_SKILLBASE].id = id;
 	}
 
 	if( hd->master )
@@ -265,17 +267,17 @@ int hom_calc_skilltree(struct homun_data *hd, int flag_evolve)
 int hom_checkskill(struct homun_data *hd,uint16 skill_id)
 {
 	int i = skill_id - HM_SKILLBASE;
-	if(!hd || !&hd->homunculus)
-		return 0;
 
+	if(!hd || !&hd->homunculus || i < 0)
+		return 0;
 	if(hd->homunculus.hskill[i].id == skill_id)
 		return (hd->homunculus.hskill[i].lv);
-
 	return 0;
 }
 
 int hom_skill_tree_get_max(int id, int b_class) {
 	int i, skill_id;
+
 	b_class -= HM_CLASS_BASE;
 	for(i = 0; (skill_id = hskill_tree[b_class][i].id) > 0; i++)
 		if(id == skill_id)
@@ -286,6 +288,7 @@ int hom_skill_tree_get_max(int id, int b_class) {
 void hom_skillup(struct homun_data *hd,uint16 skill_id)
 {
 	int i = 0 ;
+
 	nullpo_retv(hd);
 
 	if(hd->homunculus.vaporize)
@@ -301,7 +304,7 @@ void hom_skillup(struct homun_data *hd,uint16 skill_id)
 		hd->homunculus.hskill[i].lv++;
 		hd->homunculus.skillpts-- ;
 		status_calc_homunculus(hd, SCO_NONE);
-		if (hd->master) {
+		if(hd->master) {
 			clif_homskillup(hd->master, skill_id);
 			clif_hominfo(hd->master, hd, 0);
 			clif_homskillinfoblock(hd->master);
@@ -630,14 +633,14 @@ int hom_food(struct map_session_data *sd, struct homun_data *hd)
 		return 1 ;
 
 	foodID = hd->homunculusDB->foodID;
-	i = pc_search_inventory(sd,foodID);
+	i = pc_search_inventory(sd, foodID);
 
 	if(i == INDEX_NOT_FOUND) {
-		clif_hom_food(sd,foodID,0);
+		clif_hom_food(sd, foodID, 0);
 		return 1;
 	}
 
-	pc_delitem(sd,i,1,0,0,LOG_TYPE_CONSUME);
+	pc_delitem(sd, i, 1, 0, 0, LOG_TYPE_CONSUME);
 
 	if(hd->homunculus.hunger >= 91) {
 		hom_decrease_intimacy(hd, 50);
@@ -660,12 +663,12 @@ int hom_food(struct map_session_data *sd, struct homun_data *hd)
 	if(hd->homunculus.hunger > 100)
 		hd->homunculus.hunger = 100;
 
-	clif_emotion(&hd->bl,emotion);
-	clif_send_homdata(sd,SP_HUNGRY,hd->homunculus.hunger);
-	clif_send_homdata(sd,SP_INTIMATE,hd->homunculus.intimacy / 100);
-	clif_hom_food(sd,foodID,1);
+	clif_emotion(&hd->bl, emotion);
+	clif_send_homdata(sd, SP_HUNGRY, hd->homunculus.hunger);
+	clif_send_homdata(sd, SP_INTIMATE, hd->homunculus.intimacy / 100);
+	clif_hom_food(sd, foodID, 1);
 
-	//Too much food :/
+	//Too much food
 	if(hd->homunculus.intimacy == 0)
 		return hom_delete(sd->hd, E_OMG);
 
@@ -681,10 +684,10 @@ static int hom_hungry(int tid, unsigned int tick, int id, intptr_t data)
 	if(!sd)
 		return 1;
 
-	if(!sd->status.hom_id || !(hd=sd->hd))
+	if(!sd->status.hom_id || !(hd = sd->hd))
 		return 1;
 
-	if(hd->hungry_timer != tid){
+	if(hd->hungry_timer != tid) {
 		ShowError("hom_hungry_timer %d != %d\n",hd->hungry_timer,tid);
 		return 0;
 	}
@@ -692,30 +695,29 @@ static int hom_hungry(int tid, unsigned int tick, int id, intptr_t data)
 	hd->hungry_timer = INVALID_TIMER;
 
 	hd->homunculus.hunger-- ;
-	if(hd->homunculus.hunger <= 10) {
+	if(hd->homunculus.hunger <= 10)
 		clif_emotion(&hd->bl, E_AN);
-	} else if(hd->homunculus.hunger == 25) {
+	else if(hd->homunculus.hunger == 25)
 		clif_emotion(&hd->bl, E_HMM);
-	} else if(hd->homunculus.hunger == 75) {
+	else if(hd->homunculus.hunger == 75)
 		clif_emotion(&hd->bl, E_OK);
-	}
 
 	if(hd->homunculus.hunger < 0) {
 		hd->homunculus.hunger = 0;
-		// Delete the homunculus if intimacy <= 100
-		if ( !hom_decrease_intimacy(hd, 100) )
-			return hom_delete(hd, E_OMG);
-		clif_send_homdata(sd,SP_INTIMATE,hd->homunculus.intimacy / 100);
+		if(!hom_decrease_intimacy(hd, 100))
+			return hom_delete(hd, E_OMG); //Delete the homunculus if intimacy <= 100
+		clif_send_homdata(sd, SP_INTIMATE, hd->homunculus.intimacy / 100);
 	}
 
-	clif_send_homdata(sd,SP_HUNGRY,hd->homunculus.hunger);
-	hd->hungry_timer = add_timer(tick+hd->homunculusDB->hungryDelay,hom_hungry,sd->bl.id,0); //simple Fix albator
+	clif_send_homdata(sd, SP_HUNGRY, hd->homunculus.hunger);
+	hd->hungry_timer = add_timer(tick + hd->homunculusDB->hungryDelay,hom_hungry, sd->bl.id, 0); //Simple fix albator
 	return 0;
 }
 
 int hom_hungry_timer_delete(struct homun_data *hd)
 {
 	nullpo_ret(hd);
+
 	if(hd->hungry_timer != INVALID_TIMER) {
 		delete_timer(hd->hungry_timer,hom_hungry);
 		hd->hungry_timer = INVALID_TIMER;

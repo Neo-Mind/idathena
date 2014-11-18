@@ -1442,12 +1442,12 @@ void pc_reg_received(struct map_session_data *sd)
 	chrif_skillcooldown_request(sd->status.account_id, sd->status.char_id);
 	chrif_bsdata_request(sd->status.char_id);
 	if (battle_config.feature_banking)
-		chrif_req_login_operation(sd->status.account_id, sd->status.name, 7, 0, 1, 0); //Request Bank data
+		chrif_req_login_operation(sd->status.account_id, sd->status.name, CHRIF_OP_LOGIN_BANK, 0, 1, 0); //Request Bank data
 	sd->storage_size = MIN_STORAGE; //Default to min
 #ifdef VIP_ENABLE
 	sd->vip.time = 0;
 	sd->vip.enabled = 0;
-	chrif_req_login_operation(sd->status.account_id, sd->status.name, 6, 0, 1, 0); //Request VIP informations
+	chrif_req_login_operation(sd->status.account_id, sd->status.name, CHRIF_OP_LOGIN_VIP, 0, 1, 0); //Request VIP informations
 #endif
 	intif_Mail_requestinbox(sd->status.char_id, 0); //MAIL SYSTEM - Request Mail Inbox
 	intif_request_questlog(sd);
@@ -9858,7 +9858,7 @@ static int pc_autosave(int tid, unsigned int tick, int id, intptr_t data)
 		save_flag = 2;
 #ifdef VIP_ENABLE
 		if(pc_isvip(sd)) //Check if we're still vip
-			chrif_req_login_operation(sd->status.account_id,sd->status.name,6,0,1,0);
+			chrif_req_login_operation(sd->status.account_id,sd->status.name,CHRIF_OP_LOGIN_VIP,0,1,0);
 #endif
 		chrif_save(sd,0);
 		break;
