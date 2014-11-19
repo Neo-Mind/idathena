@@ -6183,7 +6183,7 @@
 12375,Acaraje,Akaraje,2,0,,80,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_STEAL; bonus_script "{ bonus bHit,5; bonus bAspdRate,10; }",120,0,0,SI_ACARAJE; },{},{}
 12376,Mysterious_Can2,Mysterious Can2,2,10,,100,,,,,0xFFFFFFFF,63,2,,,,,,{ percentheal 3,0; itemskill "PR_GLORIA",2; },{},{}
 12377,Mysterious_PET_Bottle2,Mysterious PET Bottle2,2,10,,100,,,,,0xFFFFFFFF,63,2,,,,,,{ percentheal 0,3; itemskill "PR_MAGNIFICAT",1; },{},{}
-12378,2009_Rice_Cake_Soup,Rice Cake Soup,2,10,,100,,,,,0xFFFFFFFF,63,2,,,,,,{ /* percentheal 50,50; */ },{},{}
+12378,2009_Rice_Cake_Soup,Rice Cake Soup,2,10,,100,,,,,0xFFFFFFFF,63,2,,,,,,{ percentheal 50,50; },{},{}
 12379,Pope's_Cookie,Pope Cookie,2,10,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ specialeffect2 EF_STEAL; bonus_script "{ bonus2 bAddClass,Class_All,3; bonus bMatkRate,3; bonus2 bSubEle,Ele_Neutral,3; bonus2 bSubEle,Ele_Fire,3; bonus2 bSubEle,Ele_Water,3; bonus2 bSubEle,Ele_Wind,3; bonus2 bSubEle,Ele_Earth,3; bonus2 bSubEle,Ele_Dark,3; bonus2 bSubEle,Ele_Holy,3; bonus2 bSubEle,Ele_Ghost,3; }",1200; },{},{}
 12380,Desert_Wolf_Babe_Scroll,Job Change Flute,2,10,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ mercenary_create 2034,1800000; },{},{}
 12381,ValkyrieA_Scroll,Ancient Languages Scroll,2,10,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ if(strcharinfo(3)=="job3_arch02") { mercenary_create 2037,1800000; } },{},{}

@@ -8358,19 +8358,19 @@ bool pc_setcart(struct map_session_data *sd,int type) {
 			status_change_end(&sd->bl,SC_PUSH_CART,INVALID_TIMER);
 			clif_clearcart(sd->fd);
 			break;
-		default: /* Everything else is an allowed ID so we can move on */
-			if( !sd->sc.data[SC_PUSH_CART] ) /* First time, so fill cart data */
+		default: //Everything else is an allowed ID so we can move on
+			if( !sd->sc.data[SC_PUSH_CART] ) //First time, so fill cart data
 				clif_cartlist(sd);
 			clif_updatestatus(sd,SP_CARTINFO);
 			sc_start(&sd->bl,&sd->bl,SC_PUSH_CART,100,type,0);
 			clif_efst_status_change(&sd->bl,sd->bl.id,AREA,SI_ON_PUSH_CART,type,0,0);
-			if( sd->sc.data[SC_PUSH_CART] ) /* Forcefully update */
+			if( sd->sc.data[SC_PUSH_CART] ) //Forcefully update
 				sd->sc.data[SC_PUSH_CART]->val1 = type;
 			break;
 	}
 
 	if( pc_checkskill(sd,MC_PUSHCART) < 10 )
-		status_calc_pc(sd,SCO_NONE); //Recalc speed penalty.
+		status_calc_pc(sd,SCO_NONE); //Recalc speed penalty
 #else
 	//Update option
 	option = sd->sc.option;

@@ -4511,7 +4511,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 				amotion = (200 - (200 - amotion / 10) * status->aspd_rate / 1000) * 10;
 #endif
 			amotion = status_calc_fix_aspd(bl, sc, amotion);
-			status->amotion = cap_value(amotion,pc_maxaspd(sd),2000);
+			status->amotion = cap_value(amotion, pc_maxaspd(sd), 2000);
 
 			status->adelay = 2 * status->amotion;
 		} else if( bl->type&BL_HOM ) {
@@ -7976,11 +7976,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			}
 			if (type != SC_SONGOFMANA) status_change_end(bl,SC_SONGOFMANA,INVALID_TIMER);
 			if (type != SC_DANCEWITHWUG) status_change_end(bl,SC_DANCEWITHWUG,INVALID_TIMER);
-			if (type != SC_SATURDAYNIGHTFEVER) {
-				if (sc->data[SC_SATURDAYNIGHTFEVER]) {
-					sc->data[SC_SATURDAYNIGHTFEVER]->val2 = 0;
-					status_change_end(bl,SC_SATURDAYNIGHTFEVER,INVALID_TIMER);
-				}
+			if (type != SC_SATURDAYNIGHTFEVER && sc->data[SC_SATURDAYNIGHTFEVER]) {
+				sc->data[SC_SATURDAYNIGHTFEVER]->val2 = 0;
+				status_change_end(bl,SC_SATURDAYNIGHTFEVER,INVALID_TIMER);
 			}
 			break;
 		case SC_REFLECTSHIELD:
@@ -8094,6 +8092,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_BLIND:
 			case SC_BLEEDING:
 			case SC_DPOISON:
+			case SC_BERSERK:
 			case SC_CLOSECONFINE2: //Can't be re-closed in
 			case SC_TINDER_BREAKER2:
 			case SC_MARIONETTE:
@@ -9882,13 +9881,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_SLEEP:
 		case SC_STONE:
 		case SC_DEEPSLEEP:
-			if (sd && pc_issit(sd)) //Avoid sprite sync problems
-				pc_setstand(sd);
+			if (sd && pc_issit(sd))
+				pc_setstand(sd); //Avoid sprite sync problems
 		case SC_TRICKDEAD:
 			status_change_end(bl,SC_DANCING,INVALID_TIMER);
-			//Cancel cast when get status [LuzZza]
 			if (battle_config.sc_castcancel&bl->type)
-				unit_skillcastcancel(bl,0);
+				unit_skillcastcancel(bl,0); //Cancel cast when get status [LuzZza]
 		case SC_WHITEIMPRISON:
 		case SC_FALLENEMPIRE:
 			unit_stop_attack(bl);
@@ -10044,6 +10042,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			opt_flag = 0;
 			break;
 		case SC_BERSERK:
+		case SC_SATURDAYNIGHTFEVER:
 			opt_flag = 0;
 			sc->opt3 |= OPT3_BERSERK;
 			break;
@@ -10691,7 +10690,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				sc->data[SC_ENDURE]->val4 = 0;
 				status_change_end(bl,SC_ENDURE,INVALID_TIMER);
 			}
-			sc_start4(bl,bl,SC_REGENERATION,100,10,0,0,(RGN_HP|RGN_SP),skill_get_time(LK_BERSERK,sce->val1));
+			sc_start4(bl,bl,SC_REGENERATION,100,10,0,0,(RGN_HP|RGN_SP),skill_get_time(status_sc2skill(type),sce->val1));
 			break;
 		case SC_GOSPEL:
 			if (sce->val3) { //Clear the group
@@ -11102,6 +11101,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			opt_flag = 0;
 			break;
 		case SC_BERSERK:
+		case SC_SATURDAYNIGHTFEVER:
 			opt_flag = 0;
 			sc->opt3 &= ~OPT3_BERSERK;
 			break;
@@ -11471,9 +11471,9 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 #endif
 						break;
 					case CG_MOONLIT:
-						//Moonlit's cost is 4sp*skill_lv [Skotlex]
+						//Moonlit's SP cost is 4*skill_lv [Skotlex]
 						sp = 4 * (sce->val1>>16);
-						//Upkeep is also every 10 secs.
+						//Upkeep is also every 10 secs
 					case DC_DONTFORGETME:
 						s = 10;
 						break;

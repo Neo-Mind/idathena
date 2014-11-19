@@ -2910,13 +2910,13 @@ ACMD_FUNC(char_unban) {
 	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
 	unbantype = strcmpi(command + 1, "charunban") ? CHRIF_OP_LOGIN_UNBAN : CHRIF_OP_UNBAN; // FIXME: this breaking alias recognition
 
-	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {	
+	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {
 		if (unbantype == CHRIF_OP_LOGIN_UNBAN)
 			clif_displaymessage(fd, msg_txt(1025)); // Please enter a player name (usage: @unblock <char name>).
 		else
 			clif_displaymessage(fd, msg_txt(435)); // Please enter a player name (usage: @unban <char name>).
 		return -1;
-	} 
+	}
 
 	if (unbantype == CHRIF_OP_LOGIN_UNBAN) // Send answer to login server via char-server
 		chrif_req_login_operation(sd->status.account_id, atcmd_player_name, CHRIF_OP_LOGIN_UNBAN, 0, 0, 0); // Type: 4 - unban
