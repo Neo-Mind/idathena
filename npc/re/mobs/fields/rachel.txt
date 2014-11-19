@@ -35,6 +35,7 @@ ra_fild03,0,0,0,0	monster	Roween	1782,30,5000,0,0
 ra_fild03,0,0,0,0	monster	Anacondaq	1030,20,5000,0,0
 ra_fild03,0,0,0,0	monster	Anopheles	1627,20,5000,0,0
 ra_fild03,0,0,0,0	boss_monster	Atroce	1785,1,10800000,600000,1
+ra_fild03,0,0,0,0	monster	Swift Hill Wind	2804,2,300000,0,0
 
 //==================================================
 // ra_fild04 - Audhumbla Grassland
@@ -44,6 +45,7 @@ ra_fild04,0,0,0,0	monster	Roween	1782,30,5000,0,0
 ra_fild04,0,0,0,0	monster	Desert Wolf	1106,20,5000,0,0
 ra_fild04,0,0,0,0	monster	Anopheles	1627,20,5000,0,0
 ra_fild04,0,0,0,0	boss_monster	Atroce	1785,1,18000000,600000,1
+ra_fild04,0,0,0,0	monster	Elusive Hill Wind	2803,2,300000,0,0
 
 //==================================================
 // ra_fild05 - Audhumbla Grassland
@@ -52,6 +54,7 @@ ra_fild05,0,0,0,0	monster	Kobold	1133,70,5000,0,0
 ra_fild05,0,0,0,0	monster	Kobold	1134,70,5000,0,0
 ra_fild05,0,0,0,0	monster	Kobold	1135,70,5000,0,0
 ra_fild05,0,0,0,0	monster	Anopheles	1627,10,5000,0,0
+ra_fild05,0,0,0,0	monster	Solid Kobold	2785,2,300000,0,0
 
 //==================================================
 // ra_fild06 - Portus Luna
@@ -62,6 +65,7 @@ ra_fild06,0,0,0,0	monster	Kobold	1134,40,5000,0,0
 ra_fild06,0,0,0,0	monster	Kobold	1135,40,5000,0,0
 ra_fild06,0,0,0,0	monster	Anopheles	1627,10,5000,0,0
 ra_fild06,0,0,0,0	monster	Kobold Leader	1296,1,1800000,1200000,0
+ra_fild06,0,0,0,0	monster	Swift Kobold Archer	2784,2,300000,0,0
 
 //==================================================
 // ra_fild07 - Disabled on Renewal

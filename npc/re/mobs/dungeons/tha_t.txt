@@ -72,6 +72,7 @@ tha_t05,0,0,0,0	monster	Plasma	1695,10,5000,0,0
 tha_t05,0,0,0,0	monster	Plasma	1697,10,5000,0,0
 tha_t05,0,0,0,0	monster	Plasma	1694,10,5000,0,0
 tha_t05,0,0,0,0	monster	Dolor of Thanatos	1707,2,5000,0,0
+tha_t05,0,0,0,0	monster	Owl Duke Ringleader	2721,2,300000,0,0
 
 //==================================================
 // tha_t06 - Thanatos Tower - Upper Level
@@ -156,3 +157,4 @@ tha_t12,0,0,0,0	monster	Mistress of Shelter	1701,5,5000,0,0
 tha_t12,0,0,0,0	monster	Lady Solace	1703,5,5000,0,0
 tha_t12,0,0,0,0	monster	Plasma	1693,5,5000,0,0
 tha_t12,0,0,0,0	monster	Odium of Thanatos	1709,4,5000,0,0
+tha_t12,0,0,0,0	monster	Dame of Sentinel Ringleader	2726,2,300000,0,0

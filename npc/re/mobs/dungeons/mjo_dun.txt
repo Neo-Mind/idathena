@@ -25,6 +25,7 @@ mjo_dun02,0,0,0,0	monster	Martin	1145,60,5000,0,0
 mjo_dun02,0,0,0,0	monster	Giearth	1121,35,5000,0,0
 mjo_dun02,0,0,0,0	monster	Drainliar	1111,20,5000,0,0
 mjo_dun02,0,0,0,0	monster	Skeleton Worker	1169,20,5000,0,0
+mjo_dun02,0,0,0,0	monster	Solid Martin	2760,2,300000,0,0
 
 //==================================================
 // mjo_dun03 - Mjolnir Dead Pit

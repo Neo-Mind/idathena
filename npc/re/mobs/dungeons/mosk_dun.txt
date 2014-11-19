@@ -29,6 +29,7 @@ mosk_dun02,0,0,0,0	monster	Les	1881,40,5000,0,0
 mosk_dun02,0,0,0,0	monster	Wood Goblin	1880,30,5000,0,0
 mosk_dun02,0,0,0,0	monster	Baba Yaga	1882,20,5000,0,0
 mosk_dun02,0,0,0,0	monster	Uzhas	1883,5,5000,0,0
+mosk_dun02,0,0,0,0	monster	Swift Les	2779,2,300000,0,0
 
 //==================================================
 // mosk_dun03 - Dremuci Forest

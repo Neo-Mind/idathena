@@ -29,6 +29,7 @@ gon_dun02,0,0,0,0	monster	Taoist Hermit	1412,20,5000,0,0
 gon_dun02,0,0,0,0	monster	Bloody Butterfly	1408,20,5000,0,0
 gon_dun02,0,0,0,0	monster	Baby Leopard	1415,6,5000,0,0
 gon_dun02,0,0,0,0	monster	Yellow Plant	1081,10,5000,0,0
+gon_dun02,0,0,0,0	monster	Solid Enchanted Peach Tree	2775,2,300000,0,0
 
 //==================================================
 // gon_dun03 - Arcadia

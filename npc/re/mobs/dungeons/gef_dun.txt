@@ -26,6 +26,7 @@ gef_dun00,0,0,0,0	monster	Shining Plant	1083,1,3000000,1500000,0
 gef_dun00,0,0,0,0	monster	Red Plant	1078,10,180000,90000,1
 gef_dun00,89,111,3,3	monster	Black Mushroom	1084,3,180000,90000,1
 gef_dun00,121,109,3,3	monster	Black Mushroom	1084,3,180000,90000,1
+gef_dun00,0,0,0,0	monster	Furious Hunter Fly	2797,2,300000,0,0
 
 //==================================================
 // gef_dun01 - Geffen Dungeon

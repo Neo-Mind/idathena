@@ -112,6 +112,7 @@ iz_dun04,42,129,0,0	monster	Hydra	1068,1,312000,150000,0
 iz_dun04,80,233,0,0	monster	Hydra	1068,1,318000,150000,0
 iz_dun04,69,243,0,0	monster	Hydra	1068,1,321000,150000,0
 iz_dun04,33,115,0,0	monster	Hydra	1068,1,321000,150000,0
+iz_dun04,0,0,0,0	monster	Furious Merman	2757,2,300000,0,0
 
 //==================================================
 // iz_dun05 - Undersea Tunnel F6

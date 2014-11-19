@@ -176,6 +176,7 @@ mjolnir_08,169,204,0,0	monster	Green Plant	1080,1,180000,90000,1
 mjolnir_08,207,232,0,0	monster	Green Plant	1080,1,180000,90000,1
 mjolnir_08,180,282,0,0	monster	Green Plant	1080,1,180000,90000,1
 mjolnir_08,149,328,0,0	monster	Green Plant	1080,1,180000,90000,1
+mjolnir_08,0,0,0,0	monster	Furious Beetle King	2787,2,300000,0,0
 
 //==================================================
 // mjolnir_09 - Mt.Mjolnir

@@ -2988,7 +2988,7 @@ OnInit:
 	end;
 
 OnEnable:
-	monster "ma_fild01",0,0,"Tikbalang",2313,20,"dhong_ang_buto::OnMyMobDead";
+	monster "ma_fild01",0,0,"Tikbalang",2313,30,"dhong_ang_buto::OnMyMobDead";
 	initnpctimer;
 	end;
 
@@ -3005,7 +3005,7 @@ OnTimer600000:
 	end;
 
 OnMyMobDead:
-	if (mobcount("ma_fild01","dhong_ang_buto::OnMyMobDead") < 20 && checkquest(7406) == 1)
+	if (mobcount("ma_fild01","dhong_ang_buto::OnMyMobDead") < 30 && checkquest(7406) == 1)
 		getitem 6507,1; //Evil_Bone
 	end;
 }
@@ -6543,7 +6543,7 @@ OnInit:
 	end;
 
 OnEnable:
-	monster "ma_fild01",0,0,"Tiyanak",2314,20,"malaya_bakonawa::OnMyMobDead";
+	monster "ma_fild01",0,0,"Tiyanak",2314,30,"malaya_bakonawa::OnMyMobDead";
 	initnpctimer;
 	end;
 
@@ -6560,7 +6560,7 @@ OnTimer600000:
 	end;
 
 OnMyMobDead:
-	if (mobcount("ma_fild01","malaya_bakonawa::OnMyMobDead") < 20 && malaya_bakona2 > 0 && malaya_bakona2 < 5 )
+	if (mobcount("ma_fild01","malaya_bakonawa::OnMyMobDead") < 30 && malaya_bakona2 > 0 && malaya_bakona2 < 5 )
 		getitem 6520,1; //Lost_Belongings
 	end;
 }

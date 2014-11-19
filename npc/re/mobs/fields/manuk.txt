@@ -19,6 +19,7 @@ man_fild01,0,0,0,0	monster	Nepenthes	1988,105,5000,0,0
 man_fild01,0,0,0,0	monster	Centipede Larva	1999,30,5000,0,0
 man_fild01,0,0,0,0	monster	Hillslion	1989,10,5000,0,0
 man_fild01,0,0,0,0	monster	Centipede	1987,2,5000,0,0
+man_fild01,0,0,0,0	monster	Solid Nepenthes	2735,2,300000,0,0
 
 //==================================================
 // man_fild02 - Manuk Field

@@ -22,8 +22,6 @@ void mail_clear(struct map_session_data *sd)
 	sd->mail.index = 0;
 	sd->mail.amount = 0;
 	sd->mail.zeny = 0;
-
-	return;
 }
 
 int mail_removeitem(struct map_session_data *sd, short flag)
@@ -40,6 +38,7 @@ int mail_removeitem(struct map_session_data *sd, short flag)
 	sd->mail.nameid = 0;
 	sd->mail.index = 0;
 	sd->mail.amount = 0;
+
 	return 1;
 }
 
@@ -48,7 +47,10 @@ int mail_removezeny(struct map_session_data *sd, short flag)
 	nullpo_ret(sd);
 
 	if( flag && sd->mail.zeny > 0 ) //Zeny send
-		pc_payzeny(sd,sd->mail.zeny, LOG_TYPE_MAIL, NULL);
+		pc_payzeny(sd, sd->mail.zeny, LOG_TYPE_MAIL, NULL);
+
+	if( sd->mail.zeny > 0 )
+		clif_updatestatus(sd, SP_ZENY);
 
 	sd->mail.zeny = 0;
 

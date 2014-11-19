@@ -85,6 +85,7 @@ gl_dun01,0,0,0,0	monster	Sting	1207,40,5000,0,0
 //==================================================
 gl_dun02,0,0,0,0	monster	Majoruros	1310,45,5000,0,0
 gl_dun02,0,0,0,0	monster	Gargoyle	1253,15,5000,0,0
+gl_dun02,0,0,0,0	monster	Furious Majoruros	2767,2,300000,0,0
 
 //==================================================
 // gl_in01 - Inside Glast Heim
@@ -95,6 +96,7 @@ gl_in01,0,0,0,0	monster	Dark Frame	1260,10,5000,0,0
 gl_in01,0,0,0,0	monster	Rideword	1195,8,5000,0,0
 gl_in01,0,0,0,0	monster	Wanderer	1208,1,5000,0,0
 gl_in01,0,0,0,0	monster	Alice	1275,1,5000,0,0
+gl_in01,0,0,0,0	monster	Marionette Ringleader	2761,2,300000,0,0
 
 //==================================================
 // gl_knt01 - Inside Glast Heim Chivalry
@@ -151,6 +153,7 @@ gl_prison1,0,0,0,0	monster	Phendark	1202,10,5000,0,0
 gl_prison1,0,0,0,0	monster	Hunter Fly	1035,10,5000,0,0
 gl_prison1,0,0,0,0	monster	Cramp	1209,5,5000,0,0
 gl_prison1,0,0,0,0	monster	Zealotus	1200,1,3600000,1800000,1
+gl_prison1,0,0,0,0	monster	Furious Injustice	2792,2,300000,0,0
 
 //==================================================
 // gl_sew01 - Glast Heim Culvert
@@ -197,7 +200,7 @@ gl_cas02_,0,0,0,0	monster	Mimic (Nightmare)	2479,40,5000,0,0
 gl_cas02_,0,0,0,0	monster	Rideword (Nightmare)	2478,40,5000,0,0
 gl_cas02_,0,0,0,0	monster	Wanderer (Nightmare)	2477,120,5000,0,0
 gl_cas02_,0,0,0,0	monster	Baphomet (Nightmare)	2483,1,7200000,0,0
-
+gl_cas02_,0,0,0,0	monster	Swift Wanderer (Nightmare)	2734,2,300000,0,0
 
 //==================================================
 // gl_chyard_ - Nightmare Mode Churchyard
@@ -205,3 +208,4 @@ gl_cas02_,0,0,0,0	monster	Baphomet (Nightmare)	2483,1,7200000,0,0
 gl_chyard_,0,0,0,0	monster	Wraith Dead (Nightmare)	2481,200,5000,0,0
 gl_chyard_,0,0,0,0	monster	Evil Druid (Nightmare)	2480,5,60000,0,0
 gl_chyard_,0,0,0,0	monster	Mimic (Nightmare)	2479,5,60000,0,0
+gl_chyard_,0,0,0,0	monster	Elusive Wraith Dead (Nightmare)	2733,2,300000,0,0

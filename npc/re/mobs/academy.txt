@@ -63,6 +63,7 @@ treasure_n1,55,155,9,9	monster	Spore	1014,2,60000,0,0
 treasure_n1,22,160,0,0	monster	Weak Skeleton	2405,3,8000,0,0
 treasure_n1,163,155,13,13	monster	Weak Skeleton	2405,5,8000,0,0
 treasure_n1,163,155,13,13	monster	Zombie	1015,1,8000,0,0
+treasure_n1,69,112,9,9	monster	Swift Spore	2646,2,300000,0,0
 
 //==================================================
 // treasure_n2 - Izlude Sunken Ship 2F
@@ -94,8 +95,10 @@ treasure_n2,100,85,13,13	monster	Weak Soldier Skeleton	2406,2,50000,0,0
 treasure_n2,100,160,13,13	monster	Weak Soldier Skeleton	2406,5,120000,0,0
 treasure_n2,100,160,13,13	monster	Weak Skeleton	2405,7,200000,0,0
 treasure_n2,100,160,13,13	monster	Dead Plankton	2404,4,60000,0,0
+treasure_n2,150,40,13,13	monster	Weak Skeleton Ringleader	2619,2,300000,0,0
 
 //==================================================
 // new_1-3 - Novice Training Grounds
 //==================================================
-new_1-3,0,0,0,0	monster	Little Poring	2398,30,50000,0,0
+new_1-3,0,0,0,0	monster	Baby Poring	2398,30,50000,0,0
+new_1-3,0,0,0,0	monster	Baby Poring Ringleader	2776,2,300000,0,0
