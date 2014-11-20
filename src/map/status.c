@@ -4585,9 +4585,9 @@ void status_calc_bl_(struct block_list* bl, enum scb_flag flag, enum e_status_ca
 
 	if( bl->type == BL_PC && ((TBL_PC*)bl)->delayed_damage != 0 ) {
 		if( opt&SCO_FORCE )
-			((TBL_PC*)bl)->state.hold_recalc = 0; /* Clear and move on */
+			((TBL_PC*)bl)->state.hold_recalc = 0; //Clear and move on
 		else {
-			((TBL_PC*)bl)->state.hold_recalc = 1; /* Flag and stop */
+			((TBL_PC*)bl)->state.hold_recalc = 1; //Flag and stop
 			return;
 		}
 	}
@@ -4768,8 +4768,12 @@ static unsigned short status_calc_str(struct block_list *bl, struct status_chang
 	if(!sc || !sc->count)
 		return (unsigned short)cap_value(str,0,USHRT_MAX);
 
-	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH && str < 50)
-		return 50;
+	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH) {
+		int str_cap = min(status_get_lv(bl) - 10,50);
+
+		if(str < str_cap)
+			return str_cap;
+	}
 	if(sc->data[SC_INCALLSTATUS])
 		str += sc->data[SC_INCALLSTATUS]->val1;
 	if(sc->data[SC_INCSTR])
@@ -4829,8 +4833,12 @@ static unsigned short status_calc_agi(struct block_list *bl, struct status_chang
 	if(!sc || !sc->count)
 		return (unsigned short)cap_value(agi,0,USHRT_MAX);
 
-	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH && agi < 50)
-		return 50;
+	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH) {
+		int agi_cap = min(status_get_lv(bl) - 10,50);
+
+		if(agi < agi_cap)
+			return agi_cap;
+	}
 	if(sc->data[SC_CONCENTRATE] && !sc->data[SC_QUAGMIRE])
 		agi += (agi - sc->data[SC_CONCENTRATE]->val3) * sc->data[SC_CONCENTRATE]->val2 / 100;
 	if(sc->data[SC_INCALLSTATUS])
@@ -4886,8 +4894,12 @@ static unsigned short status_calc_vit(struct block_list *bl, struct status_chang
 	if(!sc || !sc->count)
 		return (unsigned short)cap_value(vit,0,USHRT_MAX);
 
-	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH && vit < 50)
-		return 50;
+	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH) {
+		int vit_cap = min(status_get_lv(bl) - 10,50);
+
+		if(vit < vit_cap)
+			return vit_cap;
+	}
 	if(sc->data[SC_INCALLSTATUS])
 		vit += sc->data[SC_INCALLSTATUS]->val1;
 	if(sc->data[SC_INCVIT])
@@ -4939,8 +4951,12 @@ static unsigned short status_calc_int(struct block_list *bl, struct status_chang
 	if(!sc || !sc->count)
 		return (unsigned short)cap_value(int_,0,USHRT_MAX);
 
-	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH && int_ < 50)
-		return 50;
+	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH) {
+		int int_cap = min(status_get_lv(bl) - 10,50);
+
+		if(int_ < int_cap)
+			return int_cap;
+	}
 	if(sc->data[SC_INCALLSTATUS])
 		int_ += sc->data[SC_INCALLSTATUS]->val1;
 	if(sc->data[SC_INCINT])
@@ -5000,8 +5016,12 @@ static unsigned short status_calc_dex(struct block_list *bl, struct status_chang
 	if(!sc || !sc->count)
 		return (unsigned short)cap_value(dex,0,USHRT_MAX);
 
-	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH && dex < 50)
-		return 50;
+	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH) {
+		int dex_cap = min(status_get_lv(bl) - 10,50);
+
+		if(dex < dex_cap)
+			return dex_cap;
+	}
 	if(sc->data[SC_CONCENTRATE] && !sc->data[SC_QUAGMIRE])
 		dex += (dex - sc->data[SC_CONCENTRATE]->val4) * sc->data[SC_CONCENTRATE]->val2 / 100;
 	if(sc->data[SC_INCALLSTATUS])
@@ -5061,8 +5081,12 @@ static unsigned short status_calc_luk(struct block_list *bl, struct status_chang
 
 	if(sc->data[SC_CURSE])
 		return 0;
-	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH && luk < 50)
-		return 50;
+	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH) {
+		int luk_cap = min(status_get_lv(bl) - 10,50);
+
+		if(luk < luk_cap)
+			return luk_cap;
+	}
 	if(sc->data[SC_INCALLSTATUS])
 		luk += sc->data[SC_INCALLSTATUS]->val1;
 	if(sc->data[SC_INCLUK])

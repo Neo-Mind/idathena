@@ -8916,6 +8916,7 @@ void clif_refresh_storagewindow(struct map_session_data *sd) {
 void clif_refresh(struct map_session_data *sd)
 {
 	int i;
+
 	nullpo_retv(sd);
 
 	clif_changemap(sd, sd->bl.m, sd->bl.x, sd->bl.y);
@@ -9955,7 +9956,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 			npc_script_event(sd,NPCE_LOGIN); //Login Event
 
 	} else {
-		//For some reason the client "loses" these on warp/map-change.
+		//For some reason the client "loses" these on warp/map-change
 		clif_updatestatus(sd,SP_STR);
 		clif_updatestatus(sd,SP_AGI);
 		clif_updatestatus(sd,SP_VIT);
@@ -11447,10 +11448,9 @@ void clif_parse_StatusUp(int fd,struct map_session_data *sd)
 {
 	int increase_amount = RFIFOB(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]);
 
-	if( increase_amount < 0 ) {
-		ShowDebug("clif_parse_StatusUp: Negative 'increase' value sent by client! (fd: %d, value: %d)\n",
-			fd, increase_amount);
-	}
+	if( increase_amount < 0 )
+		ShowDebug("clif_parse_StatusUp: Negative 'increase' value sent by client! (fd: %d, value: %d)\n",fd,increase_amount);
+
 	pc_statusup(sd,RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]),increase_amount);
 }
 

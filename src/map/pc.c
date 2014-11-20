@@ -3813,23 +3813,23 @@ int pc_skill(TBL_PC* sd, int id, int level, int flag)
 	}
 
 	switch( flag ) {
-		case 0: //Set skill data overwriting whatever was there before.
+		case 0: //Set skill data overwriting whatever was there before
 			sd->status.skill[id].id   = id;
 			sd->status.skill[id].lv   = level;
 			sd->status.skill[id].flag = SKILL_FLAG_PERMANENT;
-			if( level == 0 ) { //Remove skill.
+			if( level == 0 ) { //Remove skill
 				sd->status.skill[id].id = 0;
 				clif_deleteskill(sd,id);
 			} else
 				clif_addskill(sd,id);
-			if( !skill_get_inf(id) ) //Only recalculate for passive skills.
+			if( !skill_get_inf(id) ) //Only recalculate for passive skills
 				status_calc_pc(sd, SCO_NONE);
 			break;
-		case 1: //Item bonus skill.
+		case 1: //Item bonus skill
 			if( sd->status.skill[id].id == id ) {
 				if( sd->status.skill[id].lv >= level )
 					return 0;
-				if( sd->status.skill[id].flag == SKILL_FLAG_PERMANENT ) //Non-granted skill, store it's level.
+				if( sd->status.skill[id].flag == SKILL_FLAG_PERMANENT ) //Non-granted skill, store it's level
 					sd->status.skill[id].flag = SKILL_FLAG_REPLACED_LV_0 + sd->status.skill[id].lv;
 			} else {
 				sd->status.skill[id].id   = id;
@@ -3837,13 +3837,13 @@ int pc_skill(TBL_PC* sd, int id, int level, int flag)
 			}
 			sd->status.skill[id].lv = level;
 			break;
-		case 2: //Add skill bonus on top of what you had.
+		case 2: //Add skill bonus on top of what you had
 			if( sd->status.skill[id].id == id ) {
 				if( sd->status.skill[id].flag == SKILL_FLAG_PERMANENT )
-					sd->status.skill[id].flag = SKILL_FLAG_REPLACED_LV_0 + sd->status.skill[id].lv; // Store previous level.
+					sd->status.skill[id].flag = SKILL_FLAG_REPLACED_LV_0 + sd->status.skill[id].lv; //Store previous level
 			} else {
 				sd->status.skill[id].id   = id;
-				sd->status.skill[id].flag = SKILL_FLAG_TEMPORARY; //Set that this is a bonus skill.
+				sd->status.skill[id].flag = SKILL_FLAG_TEMPORARY; //Set that this is a bonus skill
 			}
 			sd->status.skill[id].lv += level;
 			break;
@@ -3851,12 +3851,12 @@ int pc_skill(TBL_PC* sd, int id, int level, int flag)
 			sd->status.skill[id].id   = id;
 			sd->status.skill[id].lv   = level;
 			sd->status.skill[id].flag = SKILL_FLAG_PERM_GRANTED;
-			if( level == 0 ) { //Remove skill.
+			if( level == 0 ) { //Remove skill
 				sd->status.skill[id].id = 0;
 				clif_deleteskill(sd,id);
 			} else
 				clif_addskill(sd,id);
-			if( !skill_get_inf(id) ) //Only recalculate for passive skills.
+			if( !skill_get_inf(id) ) //Only recalculate for passive skills
 				status_calc_pc(sd, SCO_NONE);
 			break;
 		default: //Unknown flag?
@@ -6560,8 +6560,7 @@ bool pc_statusup(struct map_session_data* sd, int type, int increase)
 
 	//Update stat value
 	clif_statusupack(sd,type,1,final_value); //Required
-	if( final_value > 255 )
-		clif_updatestatus(sd,type); //Send after the 'ack' to override the truncated value
+	clif_updatestatus(sd,type);
 
 	return true;
 }
@@ -6591,7 +6590,6 @@ int pc_statusup2(struct map_session_data* sd, int type, int val)
 
 	need = pc_need_status_point(sd,type,1);
 	max = pc_maxparameter(sd,(enum e_params)(type - SP_STR)); //Set new value
-
 	val = pc_setstat(sd,type,cap_value(pc_getstat(sd,type) + val,1,max));
 
 	status_calc_pc(sd,SCO_NONE);
@@ -6602,8 +6600,7 @@ int pc_statusup2(struct map_session_data* sd, int type, int val)
 
 	//Update stat value
 	clif_statusupack(sd,type,1,val); //Required
-	if( val > 255 )
-		clif_updatestatus(sd,type); //Send after the 'ack' to override the truncated value
+	clif_updatestatus(sd,type);
 
 	return val;
 }
@@ -8042,20 +8039,20 @@ bool pc_jobchange(struct map_session_data *sd,int job, char upper)
 		clif_updatestatus(sd,SP_STATUSPOINT);
 	}
 
-	if ((b_class&MAPID_UPPERMASK) != (sd->class_&MAPID_UPPERMASK)) { //Things to remove when changing class tree.
+	if ((b_class&MAPID_UPPERMASK) != (sd->class_&MAPID_UPPERMASK)) { //Things to remove when changing class tree
 		const int class_ = pc_class2idx(sd->status.class_);
 		short id;
 
 		for (i = 0; i < MAX_SKILL_TREE && (id = skill_tree[class_][i].id) > 0; i++) {
 			enum sc_type sc = status_skill2sc(id);
 
-			//Remove status specific to your current tree skills.
+			//Remove status specific to your current tree skills
 			if (sc > SC_COMMON_MAX && sd->sc.data[sc])
 				status_change_end(&sd->bl,sc,INVALID_TIMER);
 		}
 	}
 
-	/* Going off star glad lineage, reset feel to not store no-longer-used vars in the database */
+	//Going off star glad lineage, reset feel to not store no-longer-used vars in the database
 	if ((sd->class_&MAPID_UPPERMASK) == MAPID_STAR_GLADIATOR && (b_class&MAPID_UPPERMASK) != MAPID_STAR_GLADIATOR)
 		pc_resetfeel(sd);
 
@@ -8268,11 +8265,11 @@ void pc_setoption(struct map_session_data *sd,int type)
 		clif_cartlist(sd);
 		clif_updatestatus(sd,SP_CARTINFO);
 		if (pc_checkskill(sd,MC_PUSHCART) < 10)
-			status_calc_pc(sd,SCO_NONE); //Apply speed penalty.
+			status_calc_pc(sd,SCO_NONE); //Apply speed penalty
 	} else if (!(type&OPTION_CART) && p_type&OPTION_CART) { //Cart Off
 		clif_clearcart(sd->fd);
 		if (pc_checkskill(sd,MC_PUSHCART) < 10)
-			status_calc_pc(sd,SCO_NONE); //Remove speed penalty.
+			status_calc_pc(sd,SCO_NONE); //Remove speed penalty
 	}
 #endif
 
@@ -9263,9 +9260,9 @@ bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
 		sd->status.robe = id ? id->look : 0;
 		clif_changelook(&sd->bl,LOOK_ROBE,sd->status.robe);
 	}
-	pc_checkallowskill(sd); //Check if status changes should be halted.
+	pc_checkallowskill(sd); //Check if status changes should be halted
 	iflag = sd->npc_item_flag;
-	/* Check for combos (MUST be before status_calc_pc) */
+	//Check for combos (MUST be before status_calc_pc)
 	if( id->combos_count )
 		pc_checkcombo(sd,id);
 	if( itemdb_isspecial(sd->status.inventory[n].card[0]) )
@@ -9421,7 +9418,7 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 	sd->status.inventory[n].equip = 0;
 	iflag = sd->npc_item_flag;
 
-	/* Check for combos (MUST be before status_calc_pc) */
+	//Check for combos (MUST be before status_calc_pc)
 	if( sd->inventory_data[n] ) {
 		if( sd->inventory_data[n]->combos_count ) {
 			if( pc_removecombo(sd,sd->inventory_data[n]) )
