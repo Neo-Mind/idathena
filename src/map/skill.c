@@ -2766,8 +2766,8 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 		if (pd->a_skill && pd->a_skill->div_ && pd->a_skill->id == skill_id) {
 			int element = skill_get_ele(skill_id, skill_lv);
 
-			/*if (skill_id == -1) Does it ever worked?
-				element = sstatus->rhw.ele;*/
+			//if (skill_id == -1) Does it ever worked?
+				//element = sstatus->rhw.ele;
 			if (element != ELE_NEUTRAL || !(battle_config.attack_attr_none&BL_PET))
 				dmg.damage = battle_attr_fix(src, bl, skill_lv, element, tstatus->def_ele, tstatus->ele_lv);
 			else
@@ -2934,8 +2934,11 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 			}
 			break;
 		case GS_FULLBUSTER:
-			if (sd) //Can't attack nor use items until skill's delay expires. [Skotlex]
+			if (sd) //Can't attack nor use items until skill's delay expires [Skotlex]
 				sd->ud.attackabletime = sd->canuseitem_tick = sd->ud.canact_tick;
+			break;
+		case GN_WALLOFTHORN:
+			type = flag;
 			break;
 	}
 
@@ -3059,7 +3062,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 			if (bl->type == BL_SKILL) {
 				TBL_SKILL *su = (TBL_SKILL*)bl;
 
-				if (su->group && (skill_get_inf2(su->group->skill_id)&INF2_TRAP)) //Show damage on trap targets
+				if (su && su->group && (skill_get_inf2(su->group->skill_id)&INF2_TRAP)) //Show damage on trap targets
 					clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, (flag&SD_LEVEL) ? -1 : skill_lv, DMG_SPLASH);
 			}
 			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, (flag&SD_LEVEL) ? -1 : skill_lv, type);
@@ -3819,7 +3822,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 /*==========================================
  *
  *------------------------------------------*/
-int skill_addtimerskill (struct block_list *src, unsigned int tick, int target, int x, int y, uint16 skill_id, uint16 skill_lv, int type, int flag)
+int skill_addtimerskill(struct block_list *src, unsigned int tick, int target, int x, int y, uint16 skill_id, uint16 skill_lv, int type, int flag)
 {
 	int i;
 	struct unit_data *ud;
@@ -3853,7 +3856,7 @@ int skill_addtimerskill (struct block_list *src, unsigned int tick, int target, 
 /*==========================================
  *
  *------------------------------------------*/
-int skill_cleartimerskill (struct block_list *src)
+int skill_cleartimerskill(struct block_list *src)
 {
 	int i;
 	struct unit_data *ud;
@@ -3883,6 +3886,7 @@ int skill_cleartimerskill (struct block_list *src)
 	}
 	return 1;
 }
+
 static int skill_active_reverberation(struct block_list *bl, va_list ap) {
 	struct skill_unit *su = (TBL_SKILL*)bl;
 	struct skill_unit_group *sg = NULL;
@@ -13038,7 +13042,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 				if (skill_id == GN_WALLOFTHORN && battle_check_target(src,bl,BCT_ENEMY) <= 0)
 					break;
 
-				do //Take into account these hit more times than the timer interval can handle.
+				do //Take into account these hit more times than the timer interval can handle
 					skill_attack(BF_MAGIC,src,&unit->bl,bl,skill_id,skill_lv,tick + count * group->interval,0);
 				while (--unit->val2 && x == bl->x && y == bl->y &&
 					++count < SKILLUNITTIMER_INTERVAL / group->interval && !status_isdead(bl));
@@ -13495,7 +13499,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 		case UNT_WALLOFTHORN:
 			if (!unit_blown_immune(bl,0x3)) {
 				if (battle_check_target(src,bl,BCT_ENEMY) > 0)
-					skill_addtimerskill(src,tick + 100,bl->id,unit->bl.x,unit->bl.y,skill_id,skill_lv,skill_get_type(skill_id),4|SD_LEVEL);
+					skill_attack(skill_get_type(skill_id),src,&unit->bl,bl,skill_id,skill_lv,tick,4);
 				skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
 				unit->val3--;
 			}
