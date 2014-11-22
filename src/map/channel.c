@@ -819,9 +819,10 @@ int channel_pcunbind(struct map_session_data *sd){
  *  0 : success
  *  -1 : fail
  */
-int channel_pcban(struct map_session_data *sd, char *chname, struct map_session_data *tsd, int flag){
+int channel_pcban(struct map_session_data *sd, char *chname, char *pname, int flag){
 	struct Channel *channel;
 	char output[128];
+	struct map_session_data *tsd = map_nick2sd(pname);
 
 	if( channel_chk(chname,NULL,1) ) {
 		clif_displaymessage(sd->fd, msg_txt(1405));// Channel name must start with '#'.
@@ -844,7 +845,7 @@ int channel_pcban(struct map_session_data *sd, char *chname, struct map_session_
 	if(flag != 2 && flag != 3){
 		char banned;
 		if(!tsd || pc_has_permission(tsd, PC_PERM_CHANNEL_ADMIN) ) {
-			sprintf(output, msg_txt(1464), tsd->status.name);// Ban failed for player '%s'.
+			sprintf(output, msg_txt(1464), pname);// Ban failed for player '%s'.
 			clif_displaymessage(sd->fd, output);
 			return -1;
 		}
@@ -873,6 +874,8 @@ int channel_pcban(struct map_session_data *sd, char *chname, struct map_session_
 	switch(flag){
 	case 0: {
 		struct chan_banentry *cbe;
+		if(!tsd)
+			return -1;
 		CREATE(cbe, struct chan_banentry, 1);
 		cbe->char_id = tsd->status.char_id;
 		strcpy(cbe->char_name,tsd->status.name);
@@ -882,6 +885,8 @@ int channel_pcban(struct map_session_data *sd, char *chname, struct map_session_
 		break;
 		}
 	case 1:
+		if(!tsd)
+			return -1;
 		idb_remove(channel->banned, tsd->status.char_id);
 		sprintf(output, msg_txt(1441),tsd->status.name,chname); // Player '%s' is unbanned from the '%s' channel.
 		break;

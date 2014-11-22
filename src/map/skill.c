@@ -9434,11 +9434,11 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case SR_GENTLETOUCH_CURE: {
-				int heal = 120 * skill_lv + (status_get_max_hp(bl) * skill_lv / 100);
+				int heal = 120 * skill_lv + status_get_max_hp(bl) * skill_lv / 100;
 
 				status_heal(bl,heal,0,1);
-				if( (tsc && tsc->opt1) && (rnd()%100 < ((skill_lv * 5) +
-					(status_get_dex(src) + status_get_lv(src)) / 4) - rnd_value(1,10)) ) {
+				if( tsc && tsc->opt1 && rnd()%100 < skill_lv * 5 +
+					(status_get_dex(src) + status_get_lv(src)) / 4 - rnd_value(1,10) ) {
 					status_change_end(bl,SC_STONE,INVALID_TIMER);
 					status_change_end(bl,SC_FREEZE,INVALID_TIMER);
 					status_change_end(bl,SC_STUN,INVALID_TIMER);
@@ -15339,8 +15339,9 @@ void skill_consume_requirement(struct map_session_data *sd, uint16 skill_id, uin
 			if( !require.itemid[i] )
 				continue;
 
-			if( itemid_isgemstone(require.itemid[i]) && skill_id != HW_GANBANTEIN && sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_WIZARD )
-				continue; //Gemstones are checked, but not substracted from inventory.
+			if( itemid_isgemstone(require.itemid[i]) && skill_id != HW_GANBANTEIN &&
+				sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_WIZARD )
+				continue; //Gemstones are checked, but not substracted from inventory
 
 			switch( skill_id ) {
 				case SA_SEISMICWEAPON:
