@@ -9936,7 +9936,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_NETHERWORLD:
 		case SC_MEIKYOUSISUI:
 		case SC_PARALYSIS:
-		case SC_MAGNETICFIELD:
 		case SC_KAGEHUMI:
 			unit_stop_walking(bl,1);
 			if (type == SC_CURSEDCIRCLE_ATKER)
@@ -9945,6 +9944,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_ANKLE:
 		case SC_SPIDERWEB:
 		case SC_ELECTRICSHOCKER:
+		case SC_MAGNETICFIELD:
 		case SC_CURSEDCIRCLE_TARGET:
 			if (!unit_blown_immune(bl,0x3))
 				unit_stop_walking(bl,1);
