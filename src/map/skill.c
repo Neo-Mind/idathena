@@ -18149,23 +18149,29 @@ void skill_unit_move_unit_group(struct skill_unit_group *group, int16 m, int16 d
 			continue;
 		if (!(m_flag[i]&0x2)) {
 			if (group->state.song_dance&0x1) //Cancel dissonance effect
-				skill_dance_overlap(unit1, 0);
+				skill_dance_overlap(unit1,0);
 			map_foreachincell(skill_unit_effect,unit1->bl.m,unit1->bl.x,unit1->bl.y,group->bl_flag,&unit1->bl,tick,4);
 		}
 		//Move Cell using "smart" criteria (avoid useless moving around)
-		switch(m_flag[i]) {
+		switch (m_flag[i]) {
 			case 0:
 				//Cell moves independently, safely move it
+				map_foreachinmovearea(clif_outsight,&unit1->bl,AREA_SIZE,dx,dy,BL_PC,&unit1->bl);
 				map_moveblock(&unit1->bl,unit1->bl.x + dx,unit1->bl.y + dy,tick);
 				break;
 			case 1:
 				//Cell moves unto another cell, look for a replacement cell that won't collide
 				//and has no cell moving into it (flag == 2)
-				for(; j < group->unit_count; j++) {
-					if(m_flag[j] != 2 || !group->unit[j].alive)
+				for (; j < group->unit_count; j++) {
+					int dx2, dy2;
+
+					if (m_flag[j] != 2 || !group->unit[j].alive)
 						continue;
 					//Move to where this cell would had moved
 					unit2 = &group->unit[j];
+					dx2 = unit2->bl.x + dx - unit1->bl.x;
+					dy2 = unit2->bl.y + dy - unit1->bl.y;
+					map_foreachinmovearea(clif_outsight,&unit1->bl,AREA_SIZE,dx2,dy2,BL_PC,&unit1->bl);
 					map_moveblock(&unit1->bl,unit2->bl.x + dx,unit2->bl.y + dy,tick);
 					j++; //Skip this cell as we have used it
 					break;

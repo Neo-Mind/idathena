@@ -7284,7 +7284,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		//Reduction only for skill_lv > 1
 		if (skill_lv > 1) {
 			if (i >= 50)
-				skill_lv -= 2;
+				skill_lv /= 2;
 			else if (i >= 15)
 				skill_lv--;
 		}
