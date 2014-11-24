@@ -5547,7 +5547,7 @@ REPLACE INTO `item_db` VALUES (13417,'Krieger_Onehand_Sword2','Glorious Rapier',
 REPLACE INTO `item_db` VALUES (13418,'Krieger_Onehand_Sword3','Glorious Holy Avenger',5,20,NULL,0,130,NULL,1,0,0x000444A2,7,2,2,4,80,1,2,'bonus bInt,getrefine()-5; bonus bMatkRate,10; bonus bUnbreakableWeapon,0; if(getrefine()>5) bonus bUseSPrate,-10; if(getrefine()>8) bonus4 bAutoSpellOnSkill,"PA_PRESSURE","PR_LEXAETERNA",1,1000; if(getrefine()>9) bonus bInt,5;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (13419,'Holy_Saber','Holy saber',5,20,NULL,0,160,NULL,1,0,0x000654E2,7,2,2,3,0,0,2,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (13420,'Honglyun\'s_Sword','Honglyun\'s Sword',5,20,NULL,1200,160,NULL,1,1,0x000654E2,7,2,2,4,70,1,2,'bonus bAtkEle,Ele_Fire; bonus bStr,2; bonus bInt,2;',NULL,NULL);
-REPLACE INTO `item_db` VALUES (13421,'Ruber','Ruber',5,20,NULL,1500,170,NULL,1,1,0x000444A2,2,2,2,3,50,1,2,'autobonus "{ bonus2 bSkillAtk,\\\"KN_BOWLINGBASH\\\",20; bonus2 bSkillAtk,\\\"SM_BASH\\\",20; }",5,15000,BF_WEAPON,"{ specialeffect2 EF_ENHANCE; }";',NULL,NULL);
+REPLACE INTO `item_db` VALUES (13421,'Ruber','Ruber',5,20,NULL,1500,170,NULL,1,1,0x000444A2,2,2,2,3,50,1,2,'autobonus "{ bonus2 bSkillAtk,\\\"KN_BOWLINGBASH\\\",20; bonus2 bSkillAtk,\\\"SM_BASH\\\",20; }",5,15000,BF_WEAPON|BF_SHORT,"{ specialeffect2 EF_ENHANCE; }";',NULL,NULL);
 REPLACE INTO `item_db` VALUES (13422,'Flamberge_C','Flamberge',5,0,NULL,0,185,NULL,1,0,0x00004080,7,2,2,3,1,0,2,'bonus bUnbreakableWeapon,0; bonus2 bAddSize,Size_All,40;',NULL,NULL);
 # More Cash Shop Items
 REPLACE INTO `item_db` VALUES (13500,'Insurance60_Package','Life Insurrance Box',18,20,NULL,10,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,'getitem 14500,10;',NULL,NULL);

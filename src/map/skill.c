@@ -1653,6 +1653,12 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 				continue; //One or more trigger conditions were not fulfilled
 
 			skill = (sd->autospell[i].id > 0) ? sd->autospell[i].id : -sd->autospell[i].id;
+			sd->state.autocast = 1;
+
+			if( skill_isNotOk(skill,sd) )
+				continue;
+
+			sd->state.autocast = 0;
 			skill_lv = (sd->autospell[i].lv) ? sd->autospell[i].lv : 1;
 
 			if( skill_lv < 0 )
@@ -1662,13 +1668,6 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 
 			if( (attack_type&(BF_LONG|BF_MAGIC)) == BF_LONG )
 				rate >>= 1;
-
-			sd->state.autocast = 1;
-
-			if( skill_isNotOk(skill,sd) )
-				continue;
-
-			sd->state.autocast = 0;
 
 			if( rnd()%1000 >= rate )
 				continue;
@@ -1726,6 +1725,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 
 			sd->state.autocast = 0;
 			ud = unit_bl2ud(src);
+
 			if( ud ) { //Set can act delay [Skotlex]
 				rate = skill_delayfix(src,skill,skill_lv);
 				if( DIFF_TICK(ud->canact_tick,tick + rate) < 0 ){
@@ -1797,18 +1797,6 @@ int skill_onskillusage(struct map_session_data *sd, struct block_list *bl, uint1
 			continue; //Autospell already being executed
 
 		skill = sd->autospell3[i].id;
-		skill_lv = (sd->autospell3[i].lv ? sd->autospell3[i].lv : 1);
-
-		if( skill >= 0 && bl == NULL )
-			continue; //No target
-
-		if( skill < 0 ) {
-			tbl = &sd->bl;
-			skill *= -1;
-			skill_lv = 1 + rnd()%(-skill_lv); //Random skill_lv
-		} else
-			tbl = bl;
-
 		sd->state.autocast = 1; //Set this to bypass sd->canskill_tick check
 
 		if( skill_isNotOk((skill > 0) ? skill : skill * -1, sd) )
@@ -1816,8 +1804,20 @@ int skill_onskillusage(struct map_session_data *sd, struct block_list *bl, uint1
 
 		sd->state.autocast = 0;
 
+		if( skill >= 0 && bl == NULL )
+			continue; //No target
+
 		if( rnd()%1000 >= sd->autospell3[i].rate )
 			continue;
+
+		skill_lv = (sd->autospell3[i].lv) ? sd->autospell3[i].lv : 1;
+
+		if( skill < 0 ) {
+			tbl = &sd->bl;
+			skill *= -1;
+			skill_lv = 1 + rnd()%(-skill_lv); //Random skill_lv
+		} else
+			tbl = bl;
 
 		if( (type = skill_get_casttype(skill)) == CAST_GROUND ) {
 			int maxcount = 0;
@@ -2026,6 +2026,12 @@ int skill_counter_additional_effect(struct block_list* src, struct block_list *b
 				continue; //One or more trigger conditions were not fulfilled
 
 			skill_id = (dstsd->autospell2[i].id > 0) ? dstsd->autospell2[i].id : -dstsd->autospell2[i].id;
+			dstsd->state.autocast = 1;
+
+			if(skill_isNotOk(skill_id,dstsd))
+				continue;
+
+			dstsd->state.autocast = 0;
 			skill_lv = (dstsd->autospell2[i].lv) ? dstsd->autospell2[i].lv : 1;
 
 			if(skill_lv < 0)
@@ -2035,13 +2041,6 @@ int skill_counter_additional_effect(struct block_list* src, struct block_list *b
 
 			if((attack_type&(BF_LONG|BF_MAGIC)) == BF_LONG)
 				rate >>= 1;
-
-			dstsd->state.autocast = 1;
-
-			if(skill_isNotOk(skill_id,dstsd))
-				continue;
-
-			dstsd->state.autocast = 0;
 
 			if(rnd()%1000 >= rate)
 				continue;
@@ -11853,7 +11852,6 @@ int skill_castend_map(struct map_session_data *sd, uint16 skill_id, const char *
 	}
 
 	pc_stop_attack(sd);
-	pc_stop_walking(sd,0);
 
 	if( battle_config.skill_log && battle_config.skill_log&BL_PC )
 		ShowInfo("PC %d skill castend skill = %d map = %s\n",sd->bl.id,skill_id,map);
