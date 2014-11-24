@@ -1948,7 +1948,10 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 					if (tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS) &&
 						((tsd && tsd->special_state.perfect_hiding) || (status->mode&MD_DETECTOR)))
 						return false;
-					if ((tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_STEALTHFIELD]) &&
+					if (tsc->data[SC_CAMOUFLAGE] &&
+						!((status->mode&MD_BOSS) || (status->mode&MD_DETECTOR)) && !skill_id)
+						return false;
+					if (tsc->data[SC_STEALTHFIELD] &&
 						!((status->mode&MD_BOSS) || (status->mode&MD_DETECTOR)) &&
 						(!skill_id || !(skill_get_inf(skill_id)&(INF_GROUND_SKILL|INF_SELF_SKILL))))
 						return false;
