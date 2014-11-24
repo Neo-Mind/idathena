@@ -3223,13 +3223,11 @@ int skill_area_sub(struct block_list *bl, va_list ap)
 	func = va_arg(ap,SkillFunc);
 
 	//Several splash skills need this initial dummy packet to display correctly
-	if(battle_check_target(src,bl,flag) > 0) {
-		if((flag&SD_PREAMBLE) && skill_area_temp[2] == 0)
+	if (battle_check_target(src,bl,flag) > 0) {
+		if ((flag&SD_PREAMBLE) && skill_area_temp[2] == 0)
 			clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,DMG_SKILL);
-
-		if(flag&(SD_SPLASH|SD_PREAMBLE))
+		if (flag&(SD_SPLASH|SD_PREAMBLE))
 			skill_area_temp[2]++;
-
 		return func(src,bl,skill_id,skill_lv,tick,flag);
 	}
 	return 0;
@@ -3238,12 +3236,12 @@ int skill_area_sub(struct block_list *bl, va_list ap)
 static int skill_check_unit_range_sub(struct block_list *bl, va_list ap)
 {
 	struct skill_unit *unit;
-	uint16 skill_id,g_skill_id;
-
-	unit = (struct skill_unit *)bl;
+	uint16 skill_id, g_skill_id;
 
 	if (bl->prev == NULL || bl->type != BL_SKILL)
 		return 0;
+
+	unit = (struct skill_unit *)bl;
 
 	if (!unit->alive)
 		return 0;
@@ -3255,12 +3253,12 @@ static int skill_check_unit_range_sub(struct block_list *bl, va_list ap)
 		case AL_PNEUMA: //Pneuma doesn't work even if just one cell overlaps with Land Protector
 			if (g_skill_id == SA_LANDPROTECTOR)
 				break;
-			//Fall through
-		case MH_STEINWAND:
+		//Fall through
 		case MG_SAFETYWALL:
+		case MH_STEINWAND:
 		case SC_MAELSTROM:
 		case SO_ELEMENTAL_SHIELD:
-			if (g_skill_id != MH_STEINWAND && g_skill_id != MG_SAFETYWALL &&
+			if (g_skill_id != MG_SAFETYWALL && g_skill_id != MH_STEINWAND &&
 				g_skill_id != AL_PNEUMA && g_skill_id != SC_MAELSTROM && g_skill_id != SO_ELEMENTAL_SHIELD)
 				return 0;
 			break;
@@ -3295,10 +3293,11 @@ static int skill_check_unit_range_sub(struct block_list *bl, va_list ap)
 		case GN_HELLS_PLANT:
 		case RL_B_TRAP:
 			//Non stackable on themselves and traps (including venom dust and poison mist which does not has the trap inf2 set)
-			if (skill_id != g_skill_id && !(skill_get_inf2(g_skill_id)&INF2_TRAP) && g_skill_id != AS_VENOMDUST && g_skill_id != MH_POISON_MIST)
+			if (skill_id != g_skill_id && !(skill_get_inf2(g_skill_id)&INF2_TRAP) &&
+				g_skill_id != AS_VENOMDUST && g_skill_id != MH_POISON_MIST)
 				return 0;
 			break;
-		default: //Avoid stacking with same kind of trap. [Skotlex]
+		default: //Avoid stacking with same kind of trap [Skotlex]
 			if (g_skill_id != skill_id)
 				return 0;
 			break;

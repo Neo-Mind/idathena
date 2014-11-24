@@ -7812,7 +7812,7 @@ bool battle_check_range(struct block_list *src, struct block_list *bl, int range
 		return false;
 
 #ifndef CIRCULAR_AREA
-	if( src->type == BL_PC ) { //Range for players' attacks and skills should always have a circular check. [Angezerus]
+	if( src->type == BL_PC ) { //Range for players' attacks and skills should always have a circular check [Angezerus]
 		if( !check_distance_client_bl(src, bl, range) )
 			return false;
 	} else
@@ -7821,10 +7821,10 @@ bool battle_check_range(struct block_list *src, struct block_list *bl, int range
 		return false;
 
 	if( (d = distance_bl(src, bl)) < 2 )
-		return true; //No need for path checking.
+		return true; //No need for path checking
 
 	if( d > AREA_SIZE )
-		return false; //Avoid targetting objects beyond your range of sight.
+		return false; //Avoid targetting objects beyond your range of sight
 
 	return path_search_long(NULL,src->m,src->x,src->y,bl->x,bl->y,CELL_CHKWALL);
 }

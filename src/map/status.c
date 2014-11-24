@@ -2146,15 +2146,17 @@ unsigned int status_weapon_atk(struct weapon_atk wa, struct status_data *status)
 {
 	int str, bonus;
 
-	if (wa.range > 1)
+	//Weapon Range 1 ~ 3 is a Melee type ATK
+	//Weapon Range > 3 is a Range type ATK
+	if (wa.range > 3)
 		str = status->dex; //Range ATK count DEX as bonus
 	else
 		str = status->str; //Melee ATK count STR as bonus
 
-	//wa.atk = Base Weapok ATK
+	//wa.atk : Base Weapon ATK
 	//Variance and Size Penalty will be calculated in battle.c
-	//bonus = STR/DEX Bonus
-	//wa.atk2 = Refinement Bonus
+	//bonus : STR/DEX Bonus
+	//wa.atk2 : Refinement Bonus
 	bonus = (int)((float)(wa.atk * str) / 200); //BaseWeaponATK * STR / 200
 	//Weapon ATK = (Base Weapon ATK + Variance + STR/DEX Bonus + Refinement Bonus) * Size Penalty
 	return wa.atk + bonus + wa.atk2;
