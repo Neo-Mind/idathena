@@ -4,8 +4,8 @@
 // Skill ID,Unit ID,Unit ID 2,Layout,Range,Interval,Target,Flag
 //
 // layout = -1:special, 0:1*1, 1:3*3, 2:5*5, up to 5:11*11
-// target = friend (party +guildmates +neutral players) / party / guild
-//          ally (party +guildmates) / all / sameguild (guild but no allies) / enemy
+// target = friend (party + guildmates + neutral players) / party / guild /
+//          ally (party + guildmates) / all / sameguild (guild but no allies) / enemy
 // flag 0x0001(UF_DEFNOTENEMY)		If 'defunit_not_enemy' is set, the target is changed to 'friend'
 //      0x0002(UF_NOREITERATION)	Spell cannot be stacked
 //      0x0004(UF_NOFOOTSET)		Spell cannot be cast near/on targets
@@ -119,7 +119,7 @@
 2254,0xd7,    ,  0, 1,1000,enemy, 0x002	//RA_ICEBOUNDTRAP
 
 2273,0xe2,    ,  2, 0, 500,all,   0x000	//NC_NEUTRALBARRIER
-2274,0xe3,    ,  2, 0, 500,friend,0x000	//NC_STEALTHFIELD
+2274,0xe3,    ,  2, 0, 500,ally,  0x000	//NC_STEALTHFIELD
 
 2299,0xcc,    ,  0, 1,1000,enemy, 0x006  //SC_MANHOLE
 2300,0xcd,    ,  0, 0,1000,all,   0x006  //SC_DIMENSIONDOOR

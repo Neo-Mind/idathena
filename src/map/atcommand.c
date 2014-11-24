@@ -4764,7 +4764,7 @@ ACMD_FUNC(disguise)
  *------------------------------------------*/
 ACMD_FUNC(disguiseall)
 {
-	int mob_id=0;
+	int mob_id = 0;
 	struct map_session_data *pl_sd;
 	struct s_mapiterator* iter;
 	nullpo_retr(-1, sd);

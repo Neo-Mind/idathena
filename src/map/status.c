@@ -1935,6 +1935,11 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 		}
 	}
 
+	if (tsc && tsc->data[SC_STEALTHFIELD] &&
+		!((status->mode&MD_BOSS) || (status->mode&MD_DETECTOR)) &&
+		(!skill_id || !(skill_get_inf(skill_id)&(INF_GROUND_SKILL|INF_SELF_SKILL))))
+		return false;
+
 	switch (target->type) {
 		case BL_PC: {
 				struct map_session_data *tsd = (TBL_PC*)target;
@@ -1950,10 +1955,6 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 						return false;
 					if (tsc->data[SC_CAMOUFLAGE] &&
 						!((status->mode&MD_BOSS) || (status->mode&MD_DETECTOR)) && !skill_id)
-						return false;
-					if (tsc->data[SC_STEALTHFIELD] &&
-						!((status->mode&MD_BOSS) || (status->mode&MD_DETECTOR)) &&
-						(!skill_id || !(skill_get_inf(skill_id)&(INF_GROUND_SKILL|INF_SELF_SKILL))))
 						return false;
 				}
 			}
@@ -7337,7 +7338,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	if( bl->type == BL_MOB ) {
 		struct mob_data *md = BL_CAST(BL_MOB,bl);
 
-		if( md && (md->mob_id == MOBID_EMPERIUM || mob_is_battleground(md)) && type != SC_SAFETYWALL && type != SC_PNEUMA )
+		if( md && (md->mob_id == MOBID_EMPERIUM || mob_is_battleground(md)) &&
+			type != SC_SAFETYWALL && type != SC_PNEUMA && type != SC_NEUTRALBARRIER && type != SC_STEALTHFIELD )
 			return 0; //Emperium/BG Monsters can't be afflicted by status changes
 		//if( md && mob_is_gvg(md) && status_sc2scb_flag(type)&SCB_MAXHP )
 			//return 0; //Prevent status addin hp to gvg mob (like bloodylust = hp * 3, and etc)

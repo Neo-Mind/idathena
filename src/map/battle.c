@@ -1397,12 +1397,12 @@ int64 battle_calc_bg_damage(struct block_list *src, struct block_list *bl, int64
 
 bool battle_can_hit_gvg_target(struct block_list *src, struct block_list *bl, uint16 skill_id, int flag)
 {
-	struct mob_data* md = BL_CAST(BL_MOB, bl);
-	short mob_id = ((TBL_MOB*)bl)->mob_id;
+	struct mob_data *md = BL_CAST(BL_MOB, bl);
+	short mob_id = ((TBL_MOB *)bl)->mob_id;
 
 	if( md && md->guardian_data ) {
-		if( mob_id == MOBID_EMPERIUM && flag&BF_SKILL && !(skill_get_inf3(skill_id)&INF3_HIT_EMP) ) //Skill immunity
-			return false;
+		if( mob_id == MOBID_EMPERIUM && flag&BF_SKILL && !(skill_get_inf3(skill_id)&INF3_HIT_EMP) )
+			return false; //Skill immunity
 		if( src->type != BL_MOB ) {
 			struct guild *g = (src->type == BL_PC ? ((TBL_PC *)src)->guild : guild_search(status_get_guild_id(src)));
 
@@ -1430,10 +1430,9 @@ int64 battle_calc_gvg_damage(struct block_list *src, struct block_list *bl, int6
 	if( skill_get_inf2(skill_id)&INF2_NO_BG_GVG_DMG )
 		return damage;
 
-	/* Uncomment if you want god-mode Emperiums at 100 defense [Kisuka]
-	if( md && md->guardian_data )
-		damage -= damage * (md->guardian_data->castle->defense / 100) * battle_config.castle_defense_rate / 100;
-	*/
+	//Uncomment if you want god-mode Emperiums at 100 defense [Kisuka]
+	//if( md && md->guardian_data )
+		//damage -= damage * md->guardian_data->castle->defense / 100 * battle_config.castle_defense_rate / 100;
 
 	if( flag&BF_SKILL ) { //Skills get a different reduction than non-skills [Skotlex]
 		if( flag&BF_WEAPON )

@@ -13445,14 +13445,14 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			}
 			break;
 
+		case UNT_NEUTRALBARRIER:
+			status_change_start(src,bl,type,10000,skill_lv,0,0,0,group->interval + 100,SCFLAG_NOICON);
+			break;
+
 		case UNT_STEALTHFIELD:
 			if (src == bl)
 				break;
 			sc_start(src,bl,type,100,skill_lv,group->interval + 100);
-			break;
-
-		case UNT_NEUTRALBARRIER:
-			status_change_start(src,bl,type,10000,skill_lv,0,0,0,group->interval + 100,SCFLAG_NOICON);
 			break;
 
 		case UNT_DIMENSIONDOOR:
