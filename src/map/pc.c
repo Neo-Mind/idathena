@@ -2739,7 +2739,7 @@ void pc_bonus(struct map_session_data *sd, int type, int val)
 			if(sd->state.lr_flag != 2)
 				sd->bonus.magic_damage_return += val;
 			break;
-		case SP_ALL_STATS: // [Valaris]
+		case SP_ALL_STATS: //[Valaris]
 			if(sd->state.lr_flag != 2) {
 				sd->param_bonus[SP_STR - SP_STR] += val;
 				sd->param_bonus[SP_AGI - SP_STR] += val;
@@ -2749,20 +2749,20 @@ void pc_bonus(struct map_session_data *sd, int type, int val)
 				sd->param_bonus[SP_LUK - SP_STR] += val;
 			}
 			break;
-		case SP_AGI_VIT: // [Valaris]
+		case SP_AGI_VIT: //[Valaris]
 			if(sd->state.lr_flag != 2) {
 				sd->param_bonus[SP_AGI - SP_STR] += val;
 				sd->param_bonus[SP_VIT - SP_STR] += val;
 			}
 			break;
-		case SP_AGI_DEX_STR: // [Valaris]
+		case SP_AGI_DEX_STR: //[Valaris]
 			if(sd->state.lr_flag != 2) {
 				sd->param_bonus[SP_AGI - SP_STR] += val;
 				sd->param_bonus[SP_DEX - SP_STR] += val;
 				sd->param_bonus[SP_STR - SP_STR] += val;
 			}
 			break;
-		case SP_PERFECT_HIDE: // [Valaris]
+		case SP_PERFECT_HIDE: //[Valaris]
 			if(sd->state.lr_flag != 2)
 				sd->special_state.perfect_hiding = 1;
 			break;

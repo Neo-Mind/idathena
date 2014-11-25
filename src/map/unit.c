@@ -304,7 +304,6 @@ int unit_step_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		if(!tbl || !status_check_visibility(bl,tbl))
 			return 0;
-
 		if(ud->stepskill_id == 0)
 			unit_attack(bl,tbl->id,ud->state.attack_continue + 2); //Execute normal attack
 		else
@@ -503,7 +502,7 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 		if(!tbl || !status_check_visibility(bl,tbl)) { //Cancel chase
 			ud->to_x = bl->x;
 			ud->to_y = bl->y;
-			if (tbl && bl->type == BL_MOB && mob_warpchase((TBL_MOB*)bl,tbl) )
+			if(tbl && bl->type == BL_MOB && mob_warpchase((TBL_MOB *)bl,tbl) )
 				return 0;
 			ud->target_to = 0;
 			return 0;
@@ -677,7 +676,7 @@ static inline void set_mobstate(struct block_list* bl, int flag)
 	struct mob_data* md = BL_CAST(BL_MOB,bl);
 
 	if( md && flag )
-		md->state.skillstate = md->state.aggressive ? MSS_FOLLOW : MSS_RUSH;
+		md->state.skillstate = (md->state.aggressive ? MSS_FOLLOW : MSS_RUSH);
 }
 
 /**
@@ -1809,7 +1808,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	if( sd && target->type == BL_MOB ) {
 		TBL_MOB *md = ((TBL_MOB*)target);
 
-		mobskill_event(md, src, tick, -1); //Cast targetted skill event.
+		mobskill_event(md, src, tick, -1); //Cast targetted skill event
 		if( (tstatus->mode&(MD_CASTSENSOR_IDLE|MD_CASTSENSOR_CHASE)) && battle_check_target(target, src, BCT_ENEMY) > 0 ) {
 			switch( md->state.skillstate ) {
 				case MSS_RUSH:
@@ -2419,7 +2418,7 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 
 	if( src->m != target->m ) {
 		if( src->type == BL_MOB && mob_warpchase((TBL_MOB*)src,target) )
-			return 1; // Follow up.
+			return 1; // Follow up
 		return 0;
 	}
 

@@ -774,7 +774,7 @@ int mob_spawn_bg(const char* mapname, short x, short y, const char* mobname, int
  * - MSS_RUSH: Chasing attacking player, path is complex
  * - MSS_FOLLOW: Initiative/support seek, path is complex
  *------------------------------------------*/
-int mob_can_reach(struct mob_data *md,struct block_list *bl,int range, int state)
+int mob_can_reach(struct mob_data *md, struct block_list *bl, int range, int state)
 {
 	int easy = 0;
 
@@ -805,16 +805,15 @@ int mob_linksearch(struct block_list *bl,va_list ap)
 	unsigned int tick;
 	
 	nullpo_ret(bl);
+
 	md = (struct mob_data *)bl;
 	mob_id = va_arg(ap, int);
 	target = va_arg(ap, struct block_list *);
 	tick = va_arg(ap, unsigned int);
 
-	if (md->mob_id == mob_id && DIFF_TICK(md->last_linktime, tick) < MIN_MOBLINKTIME
-		&& !md->target_id)
-	{
+	if( md->mob_id == mob_id && DIFF_TICK(md->last_linktime, tick) < MIN_MOBLINKTIME && !md->target_id ) {
 		md->last_linktime = tick;
-		if( mob_can_reach(md, target, md->db->range2, MSS_FOLLOW) ) { // Reachability judging
+		if( mob_can_reach(md, target, md->db->range2, MSS_FOLLOW) ) { //Reachability judging
 			md->target_id = target->id;
 			md->min_chase = md->db->range3;
 			return 1;
@@ -1052,6 +1051,7 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 	int dist;
 
 	nullpo_ret(bl);
+
 	md = va_arg(ap,struct mob_data *);
 	target = va_arg(ap,struct block_list**);
 	mode = va_arg(ap,int);
@@ -1068,12 +1068,10 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 
 	switch(bl->type) {
 		case BL_PC:
-			if(((TBL_PC*)bl)->state.gangsterparadise &&
-				!(status_get_mode(&md->bl)&MD_BOSS))
+			if(((TBL_PC*)bl)->state.gangsterparadise && !(status_get_mode(&md->bl)&MD_BOSS))
 				return 0; //Gangster paradise protection
 		default:
-			if((battle_config.hom_setting&HOMSET_FIRST_TARGET) &&
-				(*target) && (*target)->type == BL_HOM && bl->type != BL_HOM)
+			if((battle_config.hom_setting&HOMSET_FIRST_TARGET) && (*target) && (*target)->type == BL_HOM && bl->type != BL_HOM)
 				return 0; //For some reason Homun targets are never overriden
 
 			dist = distance_bl(&md->bl,bl);
@@ -1177,15 +1175,14 @@ static int mob_warpchase_sub(struct block_list *bl,va_list ap) {
 	min_distance = va_arg(ap, int*);
 
 	nd = (TBL_NPC*) bl;
-
 	if(nd->subtype != NPCTYPE_WARP)
 		return 0; //Not a warp
 
 	if(nd->u.warp.mapindex != map_id2index(target->m))
-		return 0; //Does not lead to the same map.
+		return 0; //Does not lead to the same map
 
 	cur_distance = distance_blxy(target,nd->u.warp.x,nd->u.warp.y);
-	if(cur_distance < *min_distance) { //Pick warp that leads closest to target.
+	if(cur_distance < *min_distance) { //Pick warp that leads closest to target
 		*target_nd = nd;
 		*min_distance = cur_distance;
 		return 1;
@@ -1368,19 +1365,18 @@ int mob_warpchase(struct mob_data *md, struct block_list *target)
 {
 	struct npc_data *warp = NULL;
 	int distance = AREA_SIZE;
+
 	if(!(target && battle_config.mob_ai&0x40 && battle_config.mob_warp&1))
-		return 0; //Can't warp chase.
+		return 0; //Can't warp chase
 
 	if(target->m == md->bl.m && check_distance_bl(&md->bl,target,AREA_SIZE))
-		return 0; //No need to do a warp chase.
+		return 0; //No need to do a warp chase
 
-	if(md->ud.walktimer != INVALID_TIMER &&
-		map_getcell(md->bl.m,md->ud.to_x,md->ud.to_y,CELL_CHKNPC))
-		return 1; //Already walking to a warp.
+	if(md->ud.walktimer != INVALID_TIMER && map_getcell(md->bl.m,md->ud.to_x,md->ud.to_y,CELL_CHKNPC))
+		return 1; //Already walking to a warp
 
-	//Search for warps within mob's viewing range.
-	map_foreachinrange(mob_warpchase_sub,&md->bl,
-		md->db->range2,BL_NPC,target,&warp,&distance);
+	//Search for warps within mob's viewing range
+	map_foreachinrange(mob_warpchase_sub,&md->bl,md->db->range2,BL_NPC,target,&warp,&distance);
 
 	if(warp && unit_walktobl(&md->bl,&warp->bl,1,1))
 		return 1;
@@ -1420,7 +1416,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 		view_range = md->db->range2;
 
 	mode = status_get_mode(&md->bl);
-	can_move = (mode&MD_CANMOVE)&&unit_can_move(&md->bl);
+	can_move = ((mode&MD_CANMOVE) && unit_can_move(&md->bl));
 
 	if(md->target_id) { //Check validity of current target [Skotlex]
 		tbl = map_id2bl(md->target_id);
@@ -1742,7 +1738,7 @@ static int mob_ai_lazy(int tid, unsigned int tick, int id, intptr_t data)
 }
 
 /*==========================================
- * Serious processing for mob in PC field of view   (interval timer function)
+ * Serious processing for mob in PC field of view (interval timer function)
  *------------------------------------------*/
 static int mob_ai_hard(int tid, unsigned int tick, int id, intptr_t data)
 {
@@ -2125,20 +2121,17 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			continue; //Skip homunc's share if inactive
 		if(md->dmglog[i].flag == MDLF_PET && (!tsd->status.pet_id || !tsd->pd))
 			continue; //Skip pet's share if inactive
-
 		if(md->dmglog[i].dmg > mvp_damage) {
 			third_sd = second_sd;
 			second_sd = mvp_sd;
 			mvp_sd = tsd;
 			mvp_damage = md->dmglog[i].dmg;
 		}
-
 		tmpsd[i] = tsd; //Record as valid damage-log entry
-
 		switch(md->dmglog[i].flag) {
-			case MDLF_NORMAL: dmgbltypes|= BL_PC;  break;
-			case MDLF_HOMUN:  dmgbltypes|= BL_HOM; break;
-			case MDLF_PET:    dmgbltypes|= BL_PET; break;
+			case MDLF_NORMAL: dmgbltypes |= BL_PC;  break;
+			case MDLF_HOMUN:  dmgbltypes |= BL_HOM; break;
+			case MDLF_PET:    dmgbltypes |= BL_PET; break;
 		}
 	}
 
@@ -2160,7 +2153,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		(!map[m].flag.pvp || battle_config.pvp_exp) && //Pvp no exp rule [MouseJstr]
 		(!md->master_id || !md->special_state.ai) && //Only player-summoned mobs do not give exp [Skotlex]
 		(!map[m].flag.nobaseexp || !map[m].flag.nojobexp) //Gives Exp
-	) { //Experience calculation.
+	) { //Experience calculation
 		int bonus = 100; //Bonus on top of your share (common to all attackers)
 		int pnum = 0;
 
@@ -2177,14 +2170,15 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				bonus += (i == 2 ? 20 : 10) * temp;
 		}
 		if(battle_config.mobs_level_up && md->level > md->db->lv) //[Valaris]
-			bonus += (md->level-md->db->lv) * battle_config.mobs_level_up_exp_rate;
+			bonus += (md->level - md->db->lv) * battle_config.mobs_level_up_exp_rate;
 
 		for(i = 0; i < DAMAGELOG_SIZE && md->dmglog[i].id; i++) {
 			int flag = 1, zeny = 0;
 			unsigned int base_exp, job_exp;
 			double per; //Your share of the mob's exp
 
-			if(!tmpsd[i]) continue;
+			if(!tmpsd[i])
+				continue;
 
 			if(!battle_config.exp_calc_type && md->tdmg)
 				//jAthena's exp formula based on total damage
@@ -2631,18 +2625,17 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	map_freeblock_unlock();
 
 	if(!rebirth) {
-
 		if(pcdb_checkid(md->vd->class_)) { //Player mobs are not removed automatically by the client
-			/* First we set them dead, then we delay the outsight effect */
+			//First we set them dead, then we delay the outsight effect
 			clif_clearunit_area(&md->bl, CLR_DEAD);
 			clif_clearunit_delayed(&md->bl, CLR_OUTSIGHT, tick + 3000);
-		} else
-			/**
-			 * We give the client some time to breath and this allows it to display anything it'd like with the dead corpose
-			 * For example, this delay allows it to display soul drain effect
-			 */
+		}
+		/**
+		 * We give the client some time to breath and this allows it to display anything it'd like with the dead corpose
+		 * For example, this delay allows it to display soul drain effect
+		 */
+		else
 			clif_clearunit_delayed(&md->bl, CLR_DEAD, tick + 250);
-
 	}
 
 	if(!md->spawn) //Tell status_damage to remove it from memory
@@ -2751,7 +2744,7 @@ int mob_class_change (struct mob_data *md, int mob_id)
 	if( md->bl.prev == NULL )
 		return 0;
 
-	//Disable class changing for some targets...
+	//Disable class changing for some targets
 	if( md->guardian_data )
 		return 0; //Guardians/Emperium
 
@@ -2759,13 +2752,13 @@ int mob_class_change (struct mob_data *md, int mob_id)
 		return 0; //Treasure Boxes
 
 	if( md->special_state.ai > AI_ATTACK )
-		return 0; //Marine Spheres and Floras.
+		return 0; //Marine Spheres and Floras
 
 	if( mob_is_clone(md->mob_id) )
 		return 0; //Clones
 
 	if( md->mob_id == mob_id )
-		return 0; //Nothing to change.
+		return 0; //Nothing to change
 
 	hp_rate = get_percentage(md->status.hp,md->status.max_hp);
 	md->mob_id = mob_id;
@@ -4376,14 +4369,14 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 	if (ms->skill_id == NPC_EMOTION && mob_id > 0 &&
 		ms->val[1] == mob_db(mob_id)->status.mode) {
 		ms->val[1] = 0;
-		ms->val[4] = 1; //Request to return mode to normal.
+		ms->val[4] = 1; //Request to return mode to normal
 	}
-	if (ms->skill_id == NPC_EMOTION_ON && mob_id > 0 && ms->val[1]) { //Adds a mode to the mob.
-		//Remove aggressive mode when the new mob type is passive.
+	if (ms->skill_id == NPC_EMOTION_ON && mob_id > 0 && ms->val[1]) { //Adds a mode to the mob
+		//Remove aggressive mode when the new mob type is passive
 		if (!(ms->val[1]&MD_AGGRESSIVE))
 			ms->val[3] |= MD_AGGRESSIVE;
-		ms->val[2] |= ms->val[1]; //Add the new mode.
-		ms->val[1] = 0; //Do not "set" it.
+		ms->val[2] |= ms->val[1]; //Add the new mode
+		ms->val[1] = 0; //Do not "set" it
 	}
 
 	if(*str[17])

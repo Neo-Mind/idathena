@@ -4132,10 +4132,8 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 		case MO_COMBOFINISH:
 			if (!(flag&1) && sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_MONK) {
 				//Becomes a splash attack when Soul Linked
-				map_foreachinrange(skill_area_sub,bl,
-					skill_get_splash(skill_id,skill_lv),splash_target(src),
-					src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,
-					skill_castend_damage_id);
+				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),src,
+					skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 			} else
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
@@ -4143,8 +4141,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 		case TK_STORMKICK: //Taekwon kicks [Dralnu]
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			skill_area_temp[1] = 0;
-			map_foreachinrange(skill_attack_area,src,
-				skill_get_splash(skill_id,skill_lv),splash_target(src),
+			map_foreachinrange(skill_attack_area,src,skill_get_splash(skill_id,skill_lv),splash_target(src),
 				BF_WEAPON,src,src,skill_id,skill_lv,tick,flag,BCT_ENEMY);
 			break;
 
@@ -4180,9 +4177,9 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 			//It won't shoot through walls since on castend there has to be a direct
 			//line of sight between caster and target.
 			skill_area_temp[1] = bl->id;
-			map_foreachinpath(skill_attack_area,src->m,src->x,src->y,bl->x,bl->y,
-				skill_get_splash(skill_id,skill_lv),skill_get_maxcount(skill_id,skill_lv),splash_target(src),
-				skill_get_type(skill_id),src,src,skill_id,skill_lv,tick,flag,BCT_ENEMY);
+			map_foreachinpath(skill_attack_area,src->m,src->x,src->y,bl->x,bl->y,skill_get_splash(skill_id,skill_lv),
+				skill_get_maxcount(skill_id,skill_lv),splash_target(src),skill_get_type(skill_id),src,src,
+					skill_id,skill_lv,tick,flag,BCT_ENEMY);
 			break;
 
 		case NPC_ACIDBREATH:
@@ -4191,9 +4188,9 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 		case NPC_ICEBREATH:
 		case NPC_THUNDERBREATH:
 			skill_area_temp[1] = bl->id;
-			map_foreachinpath(skill_attack_area,src->m,src->x,src->y,bl->x,bl->y,
-				skill_get_splash(skill_id,skill_lv),skill_get_maxcount(skill_id,skill_lv),splash_target(src),
-				skill_get_type(skill_id),src,src,skill_id,skill_lv,tick,flag,BCT_ENEMY);
+			map_foreachinpath(skill_attack_area,src->m,src->x,src->y,bl->x,bl->y,skill_get_splash(skill_id,skill_lv),
+				skill_get_maxcount(skill_id,skill_lv),splash_target(src),skill_get_type(skill_id),src,src,
+					skill_id,skill_lv,tick,flag,BCT_ENEMY);
 			break;
 
 		case MO_INVESTIGATE:
@@ -7668,12 +7665,12 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 		case NPC_EMOTION_ON:
 		case NPC_EMOTION:
-			//val[0] is the emotion to use.
+			//val[0] is the emotion to use
 			//NPC_EMOTION & NPC_EMOTION_ON can change a mob's mode 'permanently' [Skotlex]
 			//val[1] 'sets' the mode
 			//val[2] adds to the current mode
 			//val[3] removes from the current mode
-			//val[4] if set, asks to delete the previous mode change.
+			//val[4] if set, asks to delete the previous mode change
 			if (md && md->skill_idx >= 0 && tsc) {
 				clif_emotion(bl,md->db->skill[md->skill_idx].val[0]);
 				if (md->db->skill[md->skill_idx].val[4] && tsce)
@@ -11120,7 +11117,15 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		//Skill Unit Setting
-		case MG_SAFETYWALL:
+		case MG_SAFETYWALL: {
+				int dummy = 1;
+
+				if( map_foreachincell(skill_cell_overlap,src->m,x,y,BL_SKILL,skill_id,&dummy,src) ) {
+					skill_unitsetting(src,skill_id,skill_lv,x,y,0);
+					return 0; //Don't consume gems if cast on LP
+				}
+			}
+		//Fall through
 		case MG_FIREWALL:
 		case MG_THUNDERSTORM:
 		case AL_PNEUMA:
@@ -11412,7 +11417,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 				clif_skill_poseffect(src,skill_id,skill_lv,x,y,tick);
 				i = skill_get_splash(skill_id,skill_lv);
-				map_foreachinarea(skill_cell_overlap,src->m,x-i,y-i,x+i,y+i,BL_SKILL,HW_GANBANTEIN,&dummy,src);
+				map_foreachinarea(skill_cell_overlap,src->m,x-i,y-i,x+i,y+i,BL_SKILL,skill_id,&dummy,src);
 			} else {
 				if( sd )
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
@@ -16791,12 +16796,12 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 	if (unit == NULL || unit->group == NULL || (*alive) == 0)
 		return 0;
 
-	if (unit->group->state.guildaura) /* Guild auras are not cancelled! */
+	if (unit->group->state.guildaura) //Guild auras are not cancelled!
 		return 0;
 
 	switch (skill_id) {
 		case SA_LANDPROTECTOR:
-			//Check for offensive Land Protector to delete both. [Skotlex]
+			//Check for offensive Land Protector to delete both [Skotlex]
 			if (unit->group->skill_id == SA_LANDPROTECTOR) {
 				(*alive) = 0;
 				skill_delunit(unit);

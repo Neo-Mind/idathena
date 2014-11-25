@@ -1935,8 +1935,7 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 		}
 	}
 
-	if (tsc && tsc->data[SC_STEALTHFIELD] &&
-		!((status->mode&MD_BOSS) || (status->mode&MD_DETECTOR)) &&
+	if (tsc && tsc->data[SC_STEALTHFIELD] && !(status->mode&(MD_BOSS|MD_DETECTOR)) &&
 		(!skill_id || !(skill_get_inf(skill_id)&(INF_GROUND_SKILL|INF_SELF_SKILL))))
 		return false;
 
@@ -1944,17 +1943,14 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 		case BL_PC: {
 				struct map_session_data *tsd = (TBL_PC*)target;
 
-				if (tsd && pc_isinvisible(tsd))
+				if (tsd && (pc_isinvisible(tsd) || tsd->special_state.perfect_hiding))
 					return false;
 				if (tsc) {
-					if ((tsc->option&hide_flag) && !(status->mode&MD_BOSS) &&
-						((tsd && tsd->special_state.perfect_hiding) || !(status->mode&MD_DETECTOR)))
+					if ((tsc->option&hide_flag) && !(status->mode&(MD_BOSS|MD_DETECTOR)))
 						return false;
-					if (tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS) &&
-						((tsd && tsd->special_state.perfect_hiding) || (status->mode&MD_DETECTOR)))
+					if (tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS))
 						return false;
-					if (tsc->data[SC_CAMOUFLAGE] &&
-						!((status->mode&MD_BOSS) || (status->mode&MD_DETECTOR)) && !skill_id)
+					if (tsc->data[SC_CAMOUFLAGE] && !(status->mode&(MD_BOSS|MD_DETECTOR)) && !skill_id)
 						return false;
 				}
 			}
@@ -1974,7 +1970,7 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 			if (skill_id == AM_POTIONPITCHER && (target->type == BL_MER || target->type == BL_ELEM))
 				return false; //Can't use Potion Pitcher on Mercenaries
 			break;
-		default: //Check for chase-walk/hiding/cloaking opponents
+		default:
 			if (tsc && (tsc->option&hide_flag) && !(status->mode&(MD_BOSS|MD_DETECTOR)))
 				return false;
 			break;
@@ -2004,7 +2000,7 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 	if( src->m != target->m || !check_distance_bl(src, target, view_range) )
 		return 0;
 
-	if( src->type == BL_NPC ) /* NPCs don't care for the rest */
+	if( src->type == BL_NPC ) //NPCs don't care for the rest
 		return 1;
 
 	if( tsc ) {
@@ -2014,20 +2010,20 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 			case BL_PC: {
 					struct map_session_data *tsd = (TBL_PC*)target;
 
-					if( ((tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK)) ||
-						tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_STEALTHFIELD]) && !(status->mode&MD_BOSS) &&
-						((tsd && tsd->special_state.perfect_hiding) || !(status->mode&MD_DETECTOR)) )
+					if( tsd && tsd->special_state.perfect_hiding )
 						return 0;
-					if( tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS) &&
-						((tsd && tsd->special_state.perfect_hiding) || (status->mode&MD_DETECTOR)) )
+					if( ((tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK)) || tsc->data[SC_CAMOUFLAGE] ||
+						tsc->data[SC_STEALTHFIELD]) && !(status->mode&(MD_BOSS|MD_DETECTOR)) )
+						return 0;
+					if( tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS) )
 						return 0;
 					if( tsc->data[SC__FEINTBOMB] )
 						return 0;
 				}
 				break;
 			default:
-				if( ((tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK)) ||
-					tsc->data[SC_CAMOUFLAGE] || tsc->data[SC_STEALTHFIELD]) && !(status->mode&(MD_BOSS|MD_DETECTOR)) )
+				if( ((tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK)) || tsc->data[SC_CAMOUFLAGE] ||
+					tsc->data[SC_STEALTHFIELD]) && !(status->mode&(MD_BOSS|MD_DETECTOR)) )
 					return 0;
 				break;
 		}
