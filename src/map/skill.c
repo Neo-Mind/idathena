@@ -4980,6 +4980,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 				}
 				break;
 			}
+		//Fall through
 		case RA_WUGBITE:
 			if (path_search(NULL,src->m,src->x,src->y,bl->x,bl->y,1,CELL_CHKNOREACH))
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
@@ -5016,11 +5017,11 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 			break;
 
 		case NC_INFRAREDSCAN:
-			if (flag&1) { //@TODO: Need a confirmation if the other type of hidden status is included to be scanned. [Jobbie]
+			if (flag&1) { //@TODO: Need a confirmation if the other type of hidden status is included to be scanned [Jobbie]
 				sc_start(src,bl,SC_INFRAREDSCAN,10000,skill_lv,skill_get_time(skill_id,skill_lv));
 				status_change_end(bl,SC_HIDING,INVALID_TIMER);
 				status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
-				status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER); //Need confirm it.
+				status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER); //Need confirm it
 			} else {
 				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|SD_SPLASH|1,skill_castend_damage_id);
 				clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,DMG_SKILL);
