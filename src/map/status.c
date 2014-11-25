@@ -2157,7 +2157,7 @@ unsigned int status_weapon_atk(struct weapon_atk wa, struct status_data *status)
 	//Variance and Size Penalty will be calculated in battle.c
 	//bonus : STR/DEX Bonus
 	//wa.atk2 : Refinement Bonus
-	bonus = (int)((float)(wa.atk * str) / 200); //BaseWeaponATK * STR / 200
+	bonus = (int)((float)(wa.atk * str) / 200); //Base Weapon ATK * STR / 200
 	//Weapon ATK = (Base Weapon ATK + Variance + STR/DEX Bonus + Refinement Bonus) * Size Penalty
 	return wa.atk + bonus + wa.atk2;
 }

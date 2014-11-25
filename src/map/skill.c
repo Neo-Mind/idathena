@@ -2960,10 +2960,6 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 		case NPC_CRITICALSLASH:
 		case TF_DOUBLE:
 		case GS_CHAINACTION:
-		case WL_TETRAVORTEX_FIRE:
-		case WL_TETRAVORTEX_WATER:
-		case WL_TETRAVORTEX_WIND:
-		case WL_TETRAVORTEX_GROUND:
 			dmg.dmotion = clif_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, (enum e_damage_type)dmg.type, dmg.damage2);
 			break;
 		case AS_SPLASHER:
@@ -2984,6 +2980,14 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 			break;
 		case WL_CHAINLIGHTNING_ATK:
 			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, 1, WL_CHAINLIGHTNING, -2, DMG_SKILL);
+			break;
+		case WL_TETRAVORTEX_FIRE:
+			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, WL_TETRAVORTEX_WIND, -1, DMG_SPLASH);
+			break;
+		case WL_TETRAVORTEX_WATER:
+		case WL_TETRAVORTEX_WIND:
+		case WL_TETRAVORTEX_GROUND:
+			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, DMG_SPLASH);
 			break;
 		case SC_FEINTBOMB:
 			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, DMG_SPLASH);
@@ -3669,6 +3673,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case WL_TETRAVORTEX_WATER:
 				case WL_TETRAVORTEX_WIND:
 				case WL_TETRAVORTEX_GROUND:
+					clif_skill_nodamage(src,target,skl->skill_id,skl->skill_lv,1);
 					skill_attack(BF_MAGIC,src,src,target,skl->skill_id,skl->skill_lv,tick,skl->flag);
 					skill_toggle_magicpower(src,skl->skill_id);
 					if (skl->type >= 3) { //Final Hit
@@ -4861,7 +4866,6 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 						case WLS_STONE: subskill = WL_TETRAVORTEX_GROUND; k |= 8; break;
 					}
 					skill_addtimerskill(src,tick + i * 250,bl->id,k,0,subskill,skill_lv,i,flag);
-					clif_skill_nodamage(src,bl,subskill,-2,1);
 					status_change_end(src,(sc_type)spheres[i],INVALID_TIMER);
 				}
 			}
@@ -4873,7 +4877,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 
 				//Priority is to release Spell Book
 				if (sc && sc->data[SC_FREEZE_SP]) { //Check sealed spells
-					uint16 skill_id, skill_lv, point, s = 0;
+					uint16 r_skill_id, r_skill_lv, point, s = 0;
 					int spell[SC_MAXSPELLBOOK - SC_SPELLBOOK1 + 1];
 
 					for (i = SC_MAXSPELLBOOK; i >= SC_SPELLBOOK1; i--) //List all available spell to be released
@@ -4885,8 +4889,8 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 
 					i = spell[(s == 1 ? 0 : rnd()%s)]; //Random select of spell to be released
 					if (sc->data[i]) { //Now extract the data from the preserved spell
-						skill_id = sc->data[i]->val1;
-						skill_lv = sc->data[i]->val2;
+						r_skill_id = sc->data[i]->val1;
+						r_skill_lv = sc->data[i]->val2;
 						point = sc->data[i]->val3;
 						status_change_end(src,(sc_type)i,INVALID_TIMER);
 					} else //Something went wrong
@@ -4897,28 +4901,25 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 					else //Last spell to be released
 						status_change_end(src,SC_FREEZE_SP,INVALID_TIMER);
 
-					if (bl->type != BL_SKILL) //Skill types will crash the client
-						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-
-					if (!skill_check_condition_castbegin(sd,skill_id,skill_lv))
+					if (!skill_check_condition_castbegin(sd,r_skill_id,r_skill_lv))
 						break;
 
-					skill_consume_requirement(sd,skill_id,skill_lv,1);
-					skill_toggle_magicpower(src,skill_id);
+					skill_consume_requirement(sd,r_skill_id,r_skill_lv,1);
+					skill_toggle_magicpower(src,r_skill_id);
 
-					switch (skill_get_casttype(skill_id)) {
+					switch (skill_get_casttype(r_skill_id)) {
 						case CAST_GROUND:
-							skill_castend_pos2(src,bl->x,bl->y,skill_id,skill_lv,tick,0);
+							skill_castend_pos2(src,bl->x,bl->y,r_skill_id,r_skill_lv,tick,0);
 							break;
 						case CAST_NODAMAGE:
-							skill_castend_nodamage_id(src,bl,skill_id,skill_lv,tick,0);
+							skill_castend_nodamage_id(src,bl,r_skill_id,r_skill_lv,tick,0);
 							break;
 						case CAST_DAMAGE:
-							skill_castend_damage_id(src,bl,skill_id,skill_lv,tick,0);
+							skill_castend_damage_id(src,bl,r_skill_id,r_skill_lv,tick,0);
 							break;
 					}
-					sd->ud.canact_tick = tick + skill_delayfix(src,skill_id,skill_lv);
-					clif_status_change(src,SI_ACTIONDELAY,1,skill_delayfix(src,skill_id,skill_lv),0,0,0);
+					sd->ud.canact_tick = tick + skill_delayfix(src,r_skill_id,r_skill_lv);
+					clif_status_change(src,SI_ACTIONDELAY,1,skill_delayfix(src,r_skill_id,r_skill_lv),0,0,0);
 				} else { //Summon Balls
 					int j = 0, k;
 					int spheres[5] = { 0,0,0,0,0 },
