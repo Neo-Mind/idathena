@@ -7274,13 +7274,12 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	}
 
 	if (sc && sc->data[SC_AUTOSPELL] && rnd()%100 < sc->data[SC_AUTOSPELL]->val4) {
-		int sp = 0;
-		uint16 skill_id = sc->data[SC_AUTOSPELL]->val2;
-		uint16 skill_lv = sc->data[SC_AUTOSPELL]->val3;
-		int i = rnd()%100;
+		int sp = 0, i = rnd()%100;
+		uint16 skill_id = sc->data[SC_AUTOSPELL]->val2,
+			skill_lv = sc->data[SC_AUTOSPELL]->val3;
 
 		if (sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_SAGE)
-			i = 0; //Max chance, no skill_lv reduction. [Skotlex]
+			i = 0; //Max chance, no skill_lv reduction [Skotlex]
 		//Reduction only for skill_lv > 1
 		if (skill_lv > 1) {
 			if (i >= 50)
@@ -7289,7 +7288,6 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 				skill_lv--;
 		}
 		sp = skill_get_sp(skill_id,skill_lv) * 2 / 3;
-
 		if (status_charge(src,0,sp)) {
 			switch (skill_get_casttype(skill_id)) {
 				case CAST_GROUND:
@@ -7304,7 +7302,32 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			}
 		}
 	}
+
 	if (sd) {
+		if (sd->special_state.random_autospell &&
+			rnd()%100 < ((wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG ? 50 : 100)) {
+			int i = rnd()%5;
+			struct unit_data *ud;
+			static const int spellarray[5] = { MG_FIREBOLT,MG_COLDBOLT,MG_LIGHTNINGBOLT,WZ_EARTHSPIKE,MG_SOULSTRIKE };
+			uint16 skill_id = spellarray[i];
+			uint16 skill_lv = rnd_value(1,5);
+
+			sd->state.autocast = 1;
+			skill_consume_requirement(sd,skill_id,skill_lv,1);
+			skill_toggle_magicpower(src,skill_id);
+			skill_castend_damage_id(src,target,skill_id,skill_lv,tick,flag);
+			sd->state.autocast = 0;
+			ud = unit_bl2ud(src);
+			if (ud) {
+				int rate = skill_delayfix(src,skill,skill_lv);
+
+				if (DIFF_TICK(ud->canact_tick,tick + rate) < 0) {
+					ud->canact_tick = tick + rate;
+					if (battle_config.display_status_timers)
+						clif_status_change(src,SI_ACTIONDELAY,1,rate,0,0,0);
+				}
+			}
+		}
 		if (sc && sc->data[SC__AUTOSHADOWSPELL] && wd.flag&BF_SHORT && rnd()%100 < sc->data[SC__AUTOSHADOWSPELL]->val3 &&
 			sd->status.skill[sc->data[SC__AUTOSHADOWSPELL]->val1].id != 0 &&
 			sd->status.skill[sc->data[SC__AUTOSHADOWSPELL]->val1].flag == SKILL_FLAG_PLAGIARIZED)
@@ -7318,11 +7341,9 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 					if (!(BL_PC&battle_config.skill_reiteration) &&
 						skill_get_unit_flag(r_skill)&UF_NOREITERATION)
 						type = -1;
-
 					if (BL_PC&battle_config.skill_nofootset &&
 						skill_get_unit_flag(r_skill)&UF_NOFOOTSET)
 						type = -1;
-
 					if (BL_PC&battle_config.land_skill_limit &&
 						(maxcount = skill_get_maxcount(r_skill,r_lv)) > 0) {
 						int v;
@@ -7334,14 +7355,12 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 						if (maxcount == 0)
 							type = -1;
 					}
-
 					if (type != CAST_GROUND) {
 						clif_skill_fail(sd,r_skill,USESKILL_FAIL_LEVEL,0);
 						map_freeblock_unlock();
 						return wd.dmg_lv;
 					}
 				}
-
 				sd->state.autocast = 1;
 				skill_consume_requirement(sd,r_skill,r_lv,3);
 				switch (type) {
@@ -7356,11 +7375,9 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 						break;
 				}
 				sd->state.autocast = 0;
-
 				sd->ud.canact_tick = tick + skill_delayfix(src,r_skill,r_lv);
 				clif_status_change(src,SI_ACTIONDELAY,1,skill_delayfix(src,r_skill,r_lv),0,0,1);
 		}
-
 		if (wd.flag&BF_WEAPON && src != target && damage > 0) {
 			if (battle_config.left_cardfix_to_right)
 				battle_drain(sd,target,wd.damage,wd.damage,tstatus->race,tstatus->class_);

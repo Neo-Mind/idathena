@@ -287,7 +287,6 @@ int skill_attack_area(struct block_list *bl,va_list ap);
 struct skill_unit_group *skill_locate_element_field(struct block_list *bl); //[Skotlex]
 int skill_graffitiremover(struct block_list *bl, va_list ap); //[Valaris]
 int skill_greed(struct block_list *bl, va_list ap);
-static void skill_toggle_magicpower(struct block_list *bl, uint16 skill_id);
 static int skill_cell_overlap(struct block_list *bl, va_list ap);
 static int skill_trap_splash(struct block_list *bl, va_list ap);
 struct skill_unit_group_tickset *skill_unitgrouptickset_search(struct block_list *bl,struct skill_unit_group *sg,int tick);
@@ -1626,12 +1625,12 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 		else
 			skill = 0;
 
-		if( rnd()%100 < (sd->status.job_level / 2) && skill ) {
+		if( rnd()%100 < sd->status.job_level / 2 && skill ) {
 			skill_castend_damage_id(src,bl,skill,5,tick,0);
 
-			if( ud ) {
+			if( ud ) { //Set can act delay [Skotlex]
 				rate = skill_delayfix(src,skill,skill_lv);
-				if( DIFF_TICK(ud->canact_tick,tick + rate ) < 0) {
+				if( DIFF_TICK(ud->canact_tick,tick + rate) < 0 ) {
 					ud->canact_tick = tick + rate;
 					if( battle_config.display_status_timers )
 						clif_status_change(src,SI_ACTIONDELAY,1,rate,0,0,0);
@@ -1689,10 +1688,9 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 					(maxcount = skill_get_maxcount(skill,skill_lv)) > 0 ) {
 					int v;
 
-					for( v = 0; v < MAX_SKILLUNITGROUP && sd->ud.skillunit[v] && maxcount; v++ ) {
+					for( v = 0; v < MAX_SKILLUNITGROUP && sd->ud.skillunit[v] && maxcount; v++ )
 						if( sd->ud.skillunit[v]->skill_id == skill )
 							maxcount--;
-					}
 					if( maxcount == 0 )
 						continue;
 				}
@@ -1726,11 +1724,11 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			sd->state.autocast = 0;
 			ud = unit_bl2ud(src);
 
-			if( ud ) { //Set can act delay [Skotlex]
+			if( ud ) {
 				rate = skill_delayfix(src,skill,skill_lv);
-				if( DIFF_TICK(ud->canact_tick,tick + rate) < 0 ){
+				if( DIFF_TICK(ud->canact_tick,tick + rate) < 0 ) {
 					ud->canact_tick = tick + rate;
-					if( battle_config.display_status_timers && sd )
+					if( battle_config.display_status_timers )
 						clif_status_change(src,SI_ACTIONDELAY,1,rate,0,0,0);
 				}
 			}
@@ -2013,8 +2011,7 @@ int skill_counter_additional_effect(struct block_list* src, struct block_list *b
 
 	//Trigger counter-spells to retaliate against damage causing skills
 	if(dstsd && !status_isdead(bl) && dstsd->autospell2[0].id &&
-		!(skill_id && skill_get_nk(skill_id)&NK_NO_DAMAGE))
-	{
+		!(skill_id && skill_get_nk(skill_id)&NK_NO_DAMAGE)) {
 		struct block_list *tbl;
 		struct unit_data *ud;
 		int i, skill_id, skill_lv, rate, type;
@@ -2089,13 +2086,12 @@ int skill_counter_additional_effect(struct block_list* src, struct block_list *b
 					break;
 			}
 			dstsd->state.autocast = 0;
-			//Set canact delay. [Skotlex]
 			ud = unit_bl2ud(bl);
 			if(ud) {
 				rate = skill_delayfix(bl, skill_id, skill_lv);
 				if(DIFF_TICK(ud->canact_tick, tick + rate) < 0) {
 					ud->canact_tick = tick + rate;
-					if(battle_config.display_status_timers && dstsd)
+					if(battle_config.display_status_timers)
 						clif_status_change(bl,SI_ACTIONDELAY,1,rate,0,0,0);
 				}
 			}
@@ -7509,8 +7505,9 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			if(sd)
 				clif_autospell(sd,skill_lv);
 			else {
-				int maxlv = 1,spellid = 0;
+				int maxlv = 1, spellid = 0;
 				static const int spellarray[3] = { MG_COLDBOLT,MG_FIREBOLT,MG_LIGHTNINGBOLT };
+
 				if(skill_lv >= 10) {
 					spellid = MG_FROSTDIVER;
 					//if (tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SA_SAGE)
@@ -7525,6 +7522,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					maxlv = skill_lv - 4;
 				} else if(skill_lv >= 2) {
 					int i = rnd()%3;
+
 					spellid = spellarray[i];
 					maxlv = skill_lv - 1;
 				} else if(skill_lv > 0) {
@@ -7532,8 +7530,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					maxlv = 3;
 				}
 				if(spellid > 0)
-					sc_start4(src,src,SC_AUTOSPELL,100,skill_lv,spellid,maxlv,0,
-						skill_get_time(SA_AUTOSPELL,skill_lv));
+					sc_start4(src,src,SC_AUTOSPELL,100,skill_lv,spellid,maxlv,0,skill_get_time(SA_AUTOSPELL,skill_lv));
 			}
 			break;
 
@@ -8722,7 +8719,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						i += i / 100 * partybonus * 10 / 4;
 					if( status_isimmune(bl) )
 						i = 0;
-					if( (dstsd && pc_ismadogear(dstsd)) )
+					if( dstsd && pc_ismadogear(dstsd) )
 						break;
 					clif_skill_nodamage(src,bl,skill_id,i,1);
 					if( tsc->data[SC_AKAITSUKI] && i )
@@ -19010,7 +19007,7 @@ int skill_poisoningweapon(struct map_session_data *sd, unsigned short nameid) {
 	return 0;
 }
 
-static void skill_toggle_magicpower(struct block_list *bl, uint16 skill_id)
+void skill_toggle_magicpower(struct block_list *bl, uint16 skill_id)
 {
 	struct status_change *sc = status_get_sc(bl);
 

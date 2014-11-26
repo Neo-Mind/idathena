@@ -11724,13 +11724,13 @@ static void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, uin
 		return;
 
 	if( sd->sc.data[SC_BASILICA] && (skill_id != HP_BASILICA || sd->sc.data[SC_BASILICA]->val4 != sd->bl.id) )
-		return; //On basilica only caster can use Basilica again to stop it.
+		return; //On basilica only caster can use Basilica again to stop it
 
 	if( sd->menuskill_id ) {
 		if( sd->menuskill_id == SA_TAMINGMONSTER ) {
-			clif_menuskill_clear(sd); //Cancel pet capture.
+			clif_menuskill_clear(sd); //Cancel pet capture
 		} else if( sd->menuskill_id != SA_AUTOSPELL )
-			return; //Can't use skills while a menu is open.
+			return; //Can't use skills while a menu is open
 	}
 
 	pc_delinvincibletimer(sd);
@@ -17174,8 +17174,7 @@ int clif_autoshadowspell_list(struct map_session_data *sd) {
 	//AEGIS listed the specified skills that available for SC_AUTOSHADOWSPELL
 	for( i = 0, c = 0; i < MAX_SKILL; i++ ) {
 		if( sd->status.skill[i].flag == SKILL_FLAG_PLAGIARIZED && sd->status.skill[i].id > 0 &&
-			(skill_get_inf3(sd->status.skill[i].id)&INF3_AUTOSHADOWSPELL) )
-		{
+			(skill_get_inf3(sd->status.skill[i].id)&INF3_AUTOSHADOWSPELL) ) {
 			WFIFOW(fd,8 + c * 2) = sd->status.skill[i].id;
 			c++;
 		}

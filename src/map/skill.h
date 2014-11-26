@@ -2017,6 +2017,8 @@ int skill_get_elemental_type(uint16 skill_id, uint16 skill_lv);
 void skill_combo_toogle_inf(struct block_list* bl, uint16 skill_id, int inf);
 void skill_combo(struct block_list* src, struct block_list *dsrc, struct block_list *bl, uint16 skill_id, uint16 skill_lv, int tick);
 
+void skill_toggle_magicpower(struct block_list *bl, uint16 skill_id);
+
 //Skill Damage target
 #ifdef ADJUST_SKILL_DAMAGE
 enum e_skill_damage_caster {

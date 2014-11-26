@@ -8350,8 +8350,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val2 = 40;
 				break;
 			case SC_AUTOSPELL:
-				//Val1 Skill LV of Autospell
-				//Val2 Skill ID to cast
+				//Val1 Skill Lv of Autospell
+				//Val2 Skill Id to cast
 				//Val3 Max Lv to cast
 				val4 = 5 + val1 * 2; //Chance of casting
 				break;

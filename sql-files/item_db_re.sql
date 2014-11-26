@@ -9104,7 +9104,7 @@ REPLACE INTO `item_db_re` VALUES (18662,'Antler_Fedora','Antler Fedora',4,20,NUL
 REPLACE INTO `item_db_re` VALUES (18663,'Sunglasses_Bball_Hat','Sunglasses Baseball Hat',4,20,NULL,200,NULL,2,NULL,1,0xFFFFFFFE,63,2,256,NULL,'20',1,812,'bonus bInt,3;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (18664,'Blind_Glasses','Blind Glasses',4,20,NULL,400,NULL,3,NULL,0,0xFFFFFFFE,63,2,512,NULL,'20',1,813,NULL,NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (18665,'Orange_In_Mouth','Orange In Mouth',4,20,NULL,200,NULL,0,NULL,0,0xFFFFFFFE,63,2,1,NULL,'20',0,814,NULL,NULL,NULL);
-REPLACE INTO `item_db_re` VALUES (18666,'CD_In_Mouth','CD In Mouth',4,20,NULL,200,NULL,0,NULL,0,0xFFFFFFFE,63,2,1,NULL,'20',0,815,'autobonus "{ set $@skill_id,callfunc(\\\"F_Rand\\\",19,14,20,90,13); set $@skill_lv,rand(1,5); }",1000,100,BF_WEAPON; autobonus "{ bonus3 bAutoSpell,$@skill_id,$@skill_lv,1000; }",60,5000,BF_WEAPON;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (18666,'CD_In_Mouth','CD In Mouth',4,20,NULL,200,NULL,0,NULL,0,0xFFFFFFFE,63,2,1,NULL,'20',0,815,'autobonus "{ bonus bRandomAutoSpell,0; }",60,5000,BF_WEAPON,"{ specialeffect2 EF_ENHANCE; }";',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (18667,'Cat_Lace_Hairband','Cat Lace Hairband',4,20,NULL,500,NULL,2,NULL,0,0xFFFFFFFE,63,2,256,NULL,'60',0,816,'bonus bDex,3;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (18668,'Droopy_Turtle_Hat','Droopy Turtle Hat',4,20,NULL,300,NULL,1,NULL,1,0xFFFFFFFE,63,2,256,NULL,'1',1,694,'skill "AL_DECAGI",3;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (18669,'Cowhide_Hat','Cowhide Hat',4,20,NULL,200,NULL,3,NULL,1,0xFFFFFFFE,63,2,256,NULL,'1',1,819,'bonus bDex,2; bonus bMaxHPrate,1;',NULL,NULL);

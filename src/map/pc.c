@@ -2915,6 +2915,10 @@ void pc_bonus(struct map_session_data *sd, int type, int val)
 			if(sd->state.lr_flag != 2)
 				sd->max_weight += val;
 			break;
+		case SP_RANDOM_AUTOSPELL:
+			if(sd->state.lr_flag != 2)
+				sd->special_state.random_autospell = 1;
+			break;
 		default:
 			ShowWarning("pc_bonus: unknown type %d %d !\n", type, val);
 			break;
@@ -3602,7 +3606,7 @@ void pc_bonus3(struct map_session_data *sd, int type, int type2, int type3, int 
 			break;
 		case SP_AUTOSPELL: // bonus3 bAutoSpell,sk,y,n;
 			if(sd->state.lr_flag != 2) {
-				int target = skill_get_inf(type2); //Support or Self (non-auto-target) skills should pick self.
+				int target = skill_get_inf(type2); //Support or Self (non-auto-target) skills should pick self
 
 				target = (target&INF_SUPPORT_SKILL) || ((target&INF_SELF_SKILL) && !(skill_get_inf2(type2)&INF2_NO_TARGET_SELF));
 				pc_bonus_autospell(sd->autospell, ARRAYLENGTH(sd->autospell),
@@ -7518,7 +7522,7 @@ int pc_readparam(struct map_session_data* sd,int type)
 		case SP_JOBLEVEL:	val = sd->status.job_level; break;
 		case SP_CLASS:		val = sd->status.class_; break;
 		case SP_BASEJOB:	val = pc_mapid2jobid(sd->class_&MAPID_UPPERMASK, sd->status.sex); break; //Base job, extracting upper type
-		case SP_UPPER:		val = sd->class_&JOBL_UPPER ? 1 : (sd->class_&JOBL_BABY ? 2 : 0); break;
+		case SP_UPPER:		val = (sd->class_&JOBL_UPPER) ? 1 : (sd->class_&JOBL_BABY) ? 2 : 0; break;
 		case SP_BASECLASS:	val = pc_mapid2jobid(sd->class_&MAPID_BASEMASK, sd->status.sex); break; //Extract base class tree [Skotlex]
 		case SP_SEX:		val = sd->status.sex; break;
 		case SP_WEIGHT:		val = sd->weight; break;
@@ -7542,7 +7546,7 @@ int pc_readparam(struct map_session_data* sd,int type)
 		case SP_FAME:		val = sd->status.fame; break;
 		case SP_KILLERRID:	val = sd->killerrid; break;
 		case SP_KILLEDRID:	val = sd->killedrid; break;
-		case SP_SITTING:	val = pc_issit(sd) ? 1 : 0; break;
+		case SP_SITTING:	val = (pc_issit(sd) ? 1 : 0); break;
 		case SP_CHARMOVE:	val = sd->status.character_moves; break;
 		case SP_CHARRENAME:	val = sd->status.rename; break;
 		case SP_CHARFONT:	val = sd->status.font; break;
@@ -7596,22 +7600,22 @@ int pc_readparam(struct map_session_data* sd,int type)
 		case SP_DEF2_RATE:		val = sd->def2_rate; break;
 		case SP_MDEF_RATE:		val = sd->mdef_rate; break;
 		case SP_MDEF2_RATE:		val = sd->mdef2_rate; break;
-		case SP_RESTART_FULL_RECOVER:	val = sd->special_state.restart_full_recover ? 1 : 0; break;
-		case SP_NO_CASTCANCEL:		val = sd->special_state.no_castcancel ? 1 : 0; break;
-		case SP_NO_CASTCANCEL2:		val = sd->special_state.no_castcancel2 ? 1 : 0; break;
-		case SP_NO_SIZEFIX:		val = sd->special_state.no_sizefix ? 1 : 0; break;
+		case SP_RESTART_FULL_RECOVER:	val = (sd->special_state.restart_full_recover ? 1 : 0); break;
+		case SP_NO_CASTCANCEL:		val = (sd->special_state.no_castcancel ? 1 : 0); break;
+		case SP_NO_CASTCANCEL2:		val = (sd->special_state.no_castcancel2 ? 1 : 0); break;
+		case SP_NO_SIZEFIX:		val = (sd->special_state.no_sizefix ? 1 : 0); break;
 		case SP_NO_MAGIC_DAMAGE:	val = sd->special_state.no_magic_damage; break;
 		case SP_NO_WEAPON_DAMAGE:	val = sd->special_state.no_weapon_damage; break;
 		case SP_NO_MISC_DAMAGE:		val = sd->special_state.no_misc_damage; break;
-		case SP_NO_GEMSTONE:		val = sd->special_state.no_gemstone ? 1 : 0; break;
-		case SP_INTRAVISION:		val = sd->special_state.intravision ? 1 : 0; break;
-		case SP_NO_KNOCKBACK:		val = sd->special_state.no_knockback ? 1 : 0; break;
+		case SP_NO_GEMSTONE:		val = (sd->special_state.no_gemstone ? 1 : 0); break;
+		case SP_INTRAVISION:		val = (sd->special_state.intravision ? 1 : 0); break;
+		case SP_NO_KNOCKBACK:		val = (sd->special_state.no_knockback ? 1 : 0); break;
 		case SP_SPLASH_RANGE:		val = sd->bonus.splash_range; break;
 		case SP_SPLASH_ADD_RANGE:	val = sd->bonus.splash_add_range; break;
 		case SP_SHORT_WEAPON_DAMAGE_RETURN:	val = sd->bonus.short_weapon_damage_return; break;
 		case SP_LONG_WEAPON_DAMAGE_RETURN:	val = sd->bonus.long_weapon_damage_return; break;
 		case SP_MAGIC_DAMAGE_RETURN:	val = sd->bonus.magic_damage_return; break;
-		case SP_PERFECT_HIDE:		val = sd->special_state.perfect_hiding ? 1 : 0; break;
+		case SP_PERFECT_HIDE:		val = (sd->special_state.perfect_hiding ? 1 : 0); break;
 		case SP_UNBREAKABLE:		val = sd->bonus.unbreakable; break;
 		case SP_UNBREAKABLE_WEAPON:	val = (sd->bonus.unbreakable_equip&EQP_WEAPON) ? 1 : 0; break;
 		case SP_UNBREAKABLE_ARMOR:	val = (sd->bonus.unbreakable_equip&EQP_ARMOR) ? 1 : 0; break;
@@ -7647,6 +7651,7 @@ int pc_readparam(struct map_session_data* sd,int type)
 		case SP_VARCASTRATE:		val = sd->bonus.varcastrate; break;
 		case SP_ADD_VARIABLECAST:	val = sd->bonus.add_varcast; break;
 #endif
+		case SP_RANDOM_AUTOSPELL:	val = (sd->special_state.random_autospell ? 1 : 0); break;
 	}
 
 	return val;
