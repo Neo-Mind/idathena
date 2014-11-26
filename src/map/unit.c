@@ -1069,11 +1069,11 @@ int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag)
  *  0x4 - Boss attack
  * @return reason for immunity
  *  0 - Can be knocked back / stopped
- *  1 - At WOE/BG map;
+ *  1 - At WOE/BG map
  *  2 - Target is emperium
- *  3 - Target is MD_KNOCKBACK_IMMUNE|MD_BOSS;
- *  4 - Target has 'special_state.no_knockback';
- *  5 - Target is in Basilica area;
+ *  3 - Target is MD_KNOCKBACK_IMMUNE|MD_BOSS
+ *  4 - Target has 'special_state.no_knockback'
+ *  5 - Target is in Basilica area
  *  6 - Target is trap that can't be knocked back
  */
 int unit_blown_immune(struct block_list* bl, int flag)

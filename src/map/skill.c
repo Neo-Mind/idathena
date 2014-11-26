@@ -2245,14 +2245,14 @@ int skill_strip_equip(struct block_list *src, struct block_list *bl, unsigned sh
  * @param count Number of knock back cell requested
  * @param dir Direction indicates the way OPPOSITE to the knockback direction (or -1 for default behavior)
  * @param flag
-    0x01 - position update packets must not be sent;
-    0x02 - ignores players' special_state.no_knockback;
-    These flags "return 'count' instead of 0 if target is can't be knocked back":
-    0x04 - at WOE/BG map;
-    0x08 - if target is MD_KNOCKBACK_IMMUNE|MD_BOSS;
-    0x10 - if target has 'special_state.no_knockback';
-    0x20 - if target is in Basilica area;
-    0x40 - ignores knock back immune
+ *  0x01 - position update packets must not be sent
+ *  0x02 - ignores players' special_state.no_knockback
+ *  0x04 - ignores knock back immune
+ *  These flags "return 'count' instead of 0 if target is can't be knocked back"
+ *  0x08 - at WOE/BG map
+ *  0x10 - if target is MD_KNOCKBACK_IMMUNE|MD_BOSS
+ *  0x20 - if target has 'special_state.no_knockback'
+ *  0x40 - if target is in Basilica area
  * @return Number of knocked back cells done
  */
 short skill_blown(struct block_list* src, struct block_list* target, char count, int8 dir, unsigned char flag)
@@ -2273,17 +2273,17 @@ short skill_blown(struct block_list* src, struct block_list* target, char count,
 		checkflag |= 0x2; //Knockback type
 	if( is_boss(src) )
 		checkflag |= 0x4; //Boss attack
-	if( flag&0x40 )
+	if( flag&0x04 )
 		checkflag = 0; //Can be knocked back
 
 	//Get reason and check for flags
 	reason = unit_blown_immune(target, checkflag);
 	switch( reason ) {
-		case 1: return ((flag&0x04) ? count : 0); //No knocking back in WoE / BG
+		case 1: return ((flag&0x08) ? count : 0); //No knocking back in WoE / BG
 		case 2: return count; //Emperium can't be knocked back
-		case 3: return ((flag&0x08) ? count : 0); //Bosses or immune can't be knocked back
-		case 4: return ((flag&0x10) ? count : 0); //Target has special_state.no_knockback (equip)
-		case 5: return ((flag&0x20) ? count : 0); //Basilica caster can't be knocked back by normal monsters
+		case 3: return ((flag&0x10) ? count : 0); //Bosses or immune can't be knocked back
+		case 4: return ((flag&0x20) ? count : 0); //Target has special_state.no_knockback (equip)
+		case 5: return ((flag&0x40) ? count : 0); //Basilica caster can't be knocked back by normal monsters
 		case 6: return count; //Trap can't be knocked back
 	}
 
@@ -2650,7 +2650,7 @@ void skill_attack_blow(struct block_list *src, struct block_list *dsrc, struct b
 	switch (skill_id) {
 		case LG_OVERBRAND_BRANDISH:
 			//Give knockback damage bonus only hits the wall. (bugreport:9096)
-			if (skill_blown(dsrc, target, blewcount, dir, 0x04|0x08|0x10|0x20) < blewcount)
+			if (skill_blown(dsrc, target, blewcount, dir, 0x08|0x10|0x20|0x40) < blewcount)
 				skill_addtimerskill(src, tick + status_get_amotion(src), target->id, 0, 0, LG_OVERBRAND_PLUSATK, skill_lv, BF_WEAPON, flag|SD_ANIMATION);
 			break;
 		case SR_KNUCKLEARROW: {
@@ -2659,7 +2659,7 @@ void skill_attack_blow(struct block_list *src, struct block_list *dsrc, struct b
 				//Ignore knockback damage bonus if in WOE (player cannot be knocked in WOE)
 				//Boss & Immune Knockback (mode or from bonus bNoKnockBack) target still remains the damage bonus
 				//(bugreport:9096)
-				if (skill_blown(dsrc, target, blewcount, dir_ka, 0x04) < blewcount)
+				if (skill_blown(dsrc, target, blewcount, dir_ka, 0x08) < blewcount)
 					skill_addtimerskill(src, tick + 300 * ((flag&2) ? 1 : 2), target->id, 0, 0, skill_id, skill_lv, BF_WEAPON, flag|4);
 
 				dir_ka = -1;
@@ -13537,7 +13537,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 				break;
 			if (battle_check_target(src,bl,BCT_ENEMY) > 0)
 				skill_attack(skill_get_type(skill_id),src,&unit->bl,bl,skill_id,skill_lv,tick,4);
-			skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0x40);
+			skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0x04);
 			unit->val3--;
 			break;
 
