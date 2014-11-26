@@ -7319,7 +7319,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			sd->state.autocast = 0;
 			ud = unit_bl2ud(src);
 			if (ud) {
-				int rate = skill_delayfix(src,skill,skill_lv);
+				int rate = skill_delayfix(src,skill_id,skill_lv);
 
 				if (DIFF_TICK(ud->canact_tick,tick + rate) < 0) {
 					ud->canact_tick = tick + rate;
