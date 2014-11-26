@@ -11712,7 +11712,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case GN_FIRE_EXPANSION: {
-			//If player doesen't know Acid Demonstration or knows level 5 or lower, effect 5 will cast level 5 Acid Demo.
+			//If player doesen't know Acid Demonstration or knows level 5 or lower, effect 5 will cast level 5 Acid Demo
 			int i, aciddemocast = 5;
 			struct unit_data *ud = unit_bl2ud(src);
 
@@ -11743,7 +11743,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 							skill_unitsetting(src,GN_FIRE_EXPANSION_TEAR_GAS,1,x,y,0);
 							flag |= 1;
 							break;
-						case 5: //If player knows a level of Acid Demonstration greater then 5, that level will be casted.
+						case 5: //If player knows a level of Acid Demonstration greater then 5, that level will be casted
 							if( sd && pc_checkskill(sd,CR_ACIDDEMONSTRATION) > 5 )
 								aciddemocast = pc_checkskill(sd,CR_ACIDDEMONSTRATION);
 							map_foreachinarea(skill_area_sub,src->m,

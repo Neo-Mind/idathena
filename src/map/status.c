@@ -4774,6 +4774,8 @@ static unsigned short status_calc_str(struct block_list *bl, struct status_chang
 	if(!sc || !sc->count)
 		return (unsigned short)cap_value(str,0,USHRT_MAX);
 
+	if(sc->data[SC_FULL_THROTTLE])
+		str += str * 20 / 100;
 	if(sc->data[SC_INCALLSTATUS])
 		str += sc->data[SC_INCALLSTATUS]->val1;
 	if(sc->data[SC_INCSTR])
@@ -4802,30 +4804,28 @@ static unsigned short status_calc_str(struct block_list *bl, struct status_chang
 	}
 	if(sc->data[SC_CHASEWALK2])
 		str += sc->data[SC_CHASEWALK2]->val1;
-	if(sc->data[SC_MARIONETTE])
-		str -= ((sc->data[SC_MARIONETTE]->val3)>>16)&0xFF;
-	if(sc->data[SC_MARIONETTE2])
-		str += ((sc->data[SC_MARIONETTE2]->val3)>>16)&0xFF;
-	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH)
-		str += ((sc->data[SC_SPIRIT]->val3)>>16)&0xFF;
 	if(sc->data[SC_GIANTGROWTH])
 		str += 30;
-	if(sc->data[SC_HARMONIZE])
-		str -= sc->data[SC_HARMONIZE]->val2;
 	if(sc->data[SC_BEYONDOFWARCRY])
 		str += sc->data[SC_BEYONDOFWARCRY]->val3;
 	if(sc->data[SC_SAVAGE_STEAK])
 		str += sc->data[SC_SAVAGE_STEAK]->val1;
 	if(sc->data[SC_INSPIRATION])
 		str += sc->data[SC_INSPIRATION]->val3;
+	if(sc->data[SC_2011RWC_SCROLL])
+		str += sc->data[SC_2011RWC_SCROLL]->val1;
+	if(sc->data[SC_MARIONETTE2])
+		str += ((sc->data[SC_MARIONETTE2]->val3)>>16)&0xFF;
+	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH)
+		str += ((sc->data[SC_SPIRIT]->val3)>>16)&0xFF;
+	if(sc->data[SC_HARMONIZE])
+		str -= sc->data[SC_HARMONIZE]->val2;
 	if(sc->data[SC_STOMACHACHE])
 		str -= sc->data[SC_STOMACHACHE]->val1;
 	if(sc->data[SC_KYOUGAKU])
 		str -= sc->data[SC_KYOUGAKU]->val2;
-	if(sc->data[SC_FULL_THROTTLE])
-		str += str * 20 / 100;
-	if(sc->data[SC_2011RWC_SCROLL])
-		str += sc->data[SC_2011RWC_SCROLL]->val1;
+	if(sc->data[SC_MARIONETTE])
+		str -= ((sc->data[SC_MARIONETTE]->val3)>>16)&0xFF;
 
 	return (unsigned short)cap_value(str,0,USHRT_MAX);
 }
@@ -4835,6 +4835,8 @@ static unsigned short status_calc_agi(struct block_list *bl, struct status_chang
 	if(!sc || !sc->count)
 		return (unsigned short)cap_value(agi,0,USHRT_MAX);
 
+	if(sc->data[SC_FULL_THROTTLE])
+		agi += agi * 20 / 100;
 	if(sc->data[SC_CONCENTRATE] && !sc->data[SC_QUAGMIRE])
 		agi += (agi - sc->data[SC_CONCENTRATE]->val3) * sc->data[SC_CONCENTRATE]->val2 / 100;
 	if(sc->data[SC_INCALLSTATUS])
@@ -4853,36 +4855,34 @@ static unsigned short status_calc_agi(struct block_list *bl, struct status_chang
 		agi += sc->data[SC_INCREASEAGI]->val2;
 	if(sc->data[SC_INCREASING])
 		agi += 4; //Added based on skill updates [Reddozen]
+	if(sc->data[SC_DROCERA_HERB_STEAMED])
+		agi += sc->data[SC_DROCERA_HERB_STEAMED]->val1;
+	if(sc->data[SC_INSPIRATION])
+		agi += sc->data[SC_INSPIRATION]->val3;
+	if(sc->data[SC_2011RWC_SCROLL])
+		agi += sc->data[SC_2011RWC_SCROLL]->val1;
+	if(sc->data[SC_MARIONETTE2])
+		agi += ((sc->data[SC_MARIONETTE2]->val3)>>8)&0xFF;
+	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH)
+		agi += ((sc->data[SC_SPIRIT]->val3)>>8)&0xFF;
+	if(sc->data[SC_MARSHOFABYSS])
+		agi -= agi * sc->data[SC_MARSHOFABYSS]->val2 / 100;
+	if(sc->data[SC_HARMONIZE])
+		agi -= sc->data[SC_HARMONIZE]->val2;
 	if(sc->data[SC_DECREASEAGI])
 		agi -= sc->data[SC_DECREASEAGI]->val2;
 	if(sc->data[SC_QUAGMIRE])
 		agi -= sc->data[SC_QUAGMIRE]->val2;
 	if(sc->data[SC_SUITON] && sc->data[SC_SUITON]->val2)
 		agi -= sc->data[SC_SUITON]->val2;
-	if(sc->data[SC_MARIONETTE])
-		agi -= ((sc->data[SC_MARIONETTE]->val3)>>8)&0xFF;
-	if(sc->data[SC_MARIONETTE2])
-		agi += ((sc->data[SC_MARIONETTE2]->val3)>>8)&0xFF;
-	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH)
-		agi += ((sc->data[SC_SPIRIT]->val3)>>8)&0xFF;
 	if(sc->data[SC_ADORAMUS])
 		agi -= sc->data[SC_ADORAMUS]->val2;
-	if(sc->data[SC_MARSHOFABYSS])
-		agi -= agi * sc->data[SC_MARSHOFABYSS]->val2 / 100;
-	if(sc->data[SC_HARMONIZE])
-		agi -= sc->data[SC_HARMONIZE]->val2;
-	if(sc->data[SC_DROCERA_HERB_STEAMED])
-		agi += sc->data[SC_DROCERA_HERB_STEAMED]->val1;
-	if(sc->data[SC_INSPIRATION])
-		agi += sc->data[SC_INSPIRATION]->val3;
 	if(sc->data[SC_STOMACHACHE])
 		agi -= sc->data[SC_STOMACHACHE]->val1;
 	if(sc->data[SC_KYOUGAKU])
 		agi -= sc->data[SC_KYOUGAKU]->val2;
-	if(sc->data[SC_FULL_THROTTLE])
-		agi += agi * 20 / 100;
-	if(sc->data[SC_2011RWC_SCROLL])
-		agi += sc->data[SC_2011RWC_SCROLL]->val1;
+	if(sc->data[SC_MARIONETTE])
+		agi -= ((sc->data[SC_MARIONETTE]->val3)>>8)&0xFF;
 
 	return (unsigned short)cap_value(agi,0,USHRT_MAX);
 }
@@ -4892,6 +4892,8 @@ static unsigned short status_calc_vit(struct block_list *bl, struct status_chang
 	if(!sc || !sc->count)
 		return (unsigned short)cap_value(vit,0,USHRT_MAX);
 
+	if(sc->data[SC_FULL_THROTTLE])
+		vit += vit * 20 / 100;
 	if(sc->data[SC_INCALLSTATUS])
 		vit += sc->data[SC_INCALLSTATUS]->val1;
 	if(sc->data[SC_INCVIT])
@@ -4906,28 +4908,12 @@ static unsigned short status_calc_vit(struct block_list *bl, struct status_chang
 		vit += sc->data[SC_GLORYWOUNDS]->val1;
 	if(sc->data[SC_TRUESIGHT])
 		vit += 5;
-	if(sc->data[SC_MARIONETTE])
-		vit -= sc->data[SC_MARIONETTE]->val3&0xFF;
-	if(sc->data[SC_MARIONETTE2])
-		vit += sc->data[SC_MARIONETTE2]->val3&0xFF;
-	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH)
-		vit += sc->data[SC_SPIRIT]->val3&0xFF;
 	if(sc->data[SC_LAUDAAGNUS])
 		vit += 4 + sc->data[SC_LAUDAAGNUS]->val1;
-	if(sc->data[SC_HARMONIZE])
-		vit -= sc->data[SC_HARMONIZE]->val2;
 	if(sc->data[SC_MINOR_BBQ])
 		vit += sc->data[SC_MINOR_BBQ]->val1;
 	if(sc->data[SC_INSPIRATION])
 		vit += sc->data[SC_INSPIRATION]->val3;
-	if(sc->data[SC_STOMACHACHE])
-		vit -= sc->data[SC_STOMACHACHE]->val1;
-	if(sc->data[SC_KYOUGAKU])
-		vit -= sc->data[SC_KYOUGAKU]->val2;
-	if(sc->data[SC_STRIPARMOR] && bl->type != BL_PC)
-		vit -= vit * sc->data[SC_STRIPARMOR]->val2 / 100;
-	if(sc->data[SC_FULL_THROTTLE])
-		vit += vit * 20 / 100;
 #ifdef RENEWAL
 	if(sc->data[SC_DEFENCE])
 		vit += sc->data[SC_DEFENCE]->val2;
@@ -4936,6 +4922,20 @@ static unsigned short status_calc_vit(struct block_list *bl, struct status_chang
 		vit += sc->data[SC_2011RWC_SCROLL]->val1;
 	if(sc->data[SC_CUP_OF_BOZA])
 		vit += sc->data[SC_CUP_OF_BOZA]->val1;
+	if(sc->data[SC_MARIONETTE2])
+		vit += sc->data[SC_MARIONETTE2]->val3&0xFF;
+	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH)
+		vit += sc->data[SC_SPIRIT]->val3&0xFF;
+	if(sc->data[SC_STRIPARMOR] && bl->type != BL_PC)
+		vit -= vit * sc->data[SC_STRIPARMOR]->val2 / 100;
+	if(sc->data[SC_HARMONIZE])
+		vit -= sc->data[SC_HARMONIZE]->val2;
+	if(sc->data[SC_STOMACHACHE])
+		vit -= sc->data[SC_STOMACHACHE]->val1;
+	if(sc->data[SC_KYOUGAKU])
+		vit -= sc->data[SC_KYOUGAKU]->val2;
+	if(sc->data[SC_MARIONETTE])
+		vit -= sc->data[SC_MARIONETTE]->val3&0xFF;
 
 	return (unsigned short)cap_value(vit,0,USHRT_MAX);
 }
@@ -4945,6 +4945,8 @@ static unsigned short status_calc_int(struct block_list *bl, struct status_chang
 	if(!sc || !sc->count)
 		return (unsigned short)cap_value(int_,0,USHRT_MAX);
 
+	if(sc->data[SC_FULL_THROTTLE])
+		int_ += int_ * 20 / 100;
 	if(sc->data[SC_INCALLSTATUS])
 		int_ += sc->data[SC_INCALLSTATUS]->val1;
 	if(sc->data[SC_INCINT])
@@ -4967,36 +4969,34 @@ static unsigned short status_calc_int(struct block_list *bl, struct status_chang
 	}
 	if(sc->data[SC_NEN])
 		int_ += sc->data[SC_NEN]->val1;
-	if(sc->data[SC_MARIONETTE])
-		int_ -= ((sc->data[SC_MARIONETTE]->val4)>>16)&0xFF;
+	if(sc->data[SC_INSPIRATION])
+		int_ += sc->data[SC_INSPIRATION]->val3;
+	if(sc->data[SC_COCKTAIL_WARG_BLOOD])
+		int_ += sc->data[SC_COCKTAIL_WARG_BLOOD]->val1;
+	if(sc->data[SC_2011RWC_SCROLL])
+		int_ += sc->data[SC_2011RWC_SCROLL]->val1;
 	if(sc->data[SC_MARIONETTE2])
 		int_ += ((sc->data[SC_MARIONETTE2]->val4)>>16)&0xFF;
 	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH)
 		int_ += ((sc->data[SC_SPIRIT]->val4)>>16)&0xFF;
-	if(sc->data[SC_INSPIRATION])
-		int_ += sc->data[SC_INSPIRATION]->val3;
-	if(sc->data[SC_HARMONIZE])
-		int_ -= sc->data[SC_HARMONIZE]->val2;
-	if(sc->data[SC_MELODYOFSINK])
-		int_ -= sc->data[SC_MELODYOFSINK]->val3;
-	if(sc->data[SC_MANDRAGORA])
-		int_ -= 4 * sc->data[SC_MANDRAGORA]->val1;
-	if(sc->data[SC_COCKTAIL_WARG_BLOOD])
-		int_ += sc->data[SC_COCKTAIL_WARG_BLOOD]->val1;
-	if(sc->data[SC_STOMACHACHE])
-		int_ -= sc->data[SC_STOMACHACHE]->val1;
-	if(sc->data[SC_KYOUGAKU])
-		int_ -= sc->data[SC_KYOUGAKU]->val2;
 	if(bl->type != BL_PC) {
 		if(sc->data[SC_STRIPHELM])
 			int_ -= int_ * sc->data[SC_STRIPHELM]->val2 / 100;
 		if(sc->data[SC__STRIPACCESSORY])
 			int_ -= int_ * sc->data[SC__STRIPACCESSORY]->val2 / 100;
 	}
-	if(sc->data[SC_FULL_THROTTLE])
-		int_ += int_ * 20 / 100;
-	if(sc->data[SC_2011RWC_SCROLL])
-		int_ += sc->data[SC_2011RWC_SCROLL]->val1;
+	if(sc->data[SC_HARMONIZE])
+		int_ -= sc->data[SC_HARMONIZE]->val2;
+	if(sc->data[SC_MELODYOFSINK])
+		int_ -= sc->data[SC_MELODYOFSINK]->val3;
+	if(sc->data[SC_MANDRAGORA])
+		int_ -= 4 * sc->data[SC_MANDRAGORA]->val1;
+	if(sc->data[SC_STOMACHACHE])
+		int_ -= sc->data[SC_STOMACHACHE]->val1;
+	if(sc->data[SC_KYOUGAKU])
+		int_ -= sc->data[SC_KYOUGAKU]->val2;
+	if(sc->data[SC_MARIONETTE])
+		int_ -= ((sc->data[SC_MARIONETTE]->val4)>>16)&0xFF;
 
 	return (unsigned short)cap_value(int_,0,USHRT_MAX);
 }
@@ -5006,6 +5006,8 @@ static unsigned short status_calc_dex(struct block_list *bl, struct status_chang
 	if(!sc || !sc->count)
 		return (unsigned short)cap_value(dex,0,USHRT_MAX);
 
+	if(sc->data[SC_FULL_THROTTLE])
+		dex += dex * 20 / 100;
 	if(sc->data[SC_CONCENTRATE] && !sc->data[SC_QUAGMIRE])
 		dex += (dex - sc->data[SC_CONCENTRATE]->val4) * sc->data[SC_CONCENTRATE]->val2 / 100;
 	if(sc->data[SC_INCALLSTATUS])
@@ -5022,8 +5024,6 @@ static unsigned short status_calc_dex(struct block_list *bl, struct status_chang
 		dex += sc->data[SC_HAWKEYES]->val1;
 	if(sc->data[SC_TRUESIGHT])
 		dex += 5;
-	if(sc->data[SC_QUAGMIRE])
-		dex -= sc->data[SC_QUAGMIRE]->val2;
 	if(sc->data[SC_BLESSING]) {
 		if (sc->data[SC_BLESSING]->val2)
 			dex += sc->data[SC_BLESSING]->val2;
@@ -5032,8 +5032,12 @@ static unsigned short status_calc_dex(struct block_list *bl, struct status_chang
 	}
 	if(sc->data[SC_INCREASING])
 		dex += 4; //Added based on skill updates [Reddozen]
-	if(sc->data[SC_MARIONETTE])
-		dex -= ((sc->data[SC_MARIONETTE]->val4)>>8)&0xFF;
+	if(sc->data[SC_SIROMA_ICE_TEA])
+		dex += sc->data[SC_SIROMA_ICE_TEA]->val1;
+	if(sc->data[SC_INSPIRATION])
+		dex += sc->data[SC_INSPIRATION]->val3;
+	if(sc->data[SC_2011RWC_SCROLL])
+		dex += sc->data[SC_2011RWC_SCROLL]->val1;
 	if(sc->data[SC_MARIONETTE2])
 		dex += ((sc->data[SC_MARIONETTE2]->val4)>>8)&0xFF;
 	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH)
@@ -5042,20 +5046,16 @@ static unsigned short status_calc_dex(struct block_list *bl, struct status_chang
 		dex -= dex * sc->data[SC_MARSHOFABYSS]->val2 / 100;
 	if(sc->data[SC_HARMONIZE])
 		dex -= sc->data[SC_HARMONIZE]->val2;
-	if(sc->data[SC_SIROMA_ICE_TEA])
-		dex += sc->data[SC_SIROMA_ICE_TEA]->val1;
-	if(sc->data[SC_INSPIRATION])
-		dex += sc->data[SC_INSPIRATION]->val3;
+	if(sc->data[SC_QUAGMIRE])
+		dex -= sc->data[SC_QUAGMIRE]->val2;
 	if(sc->data[SC_STOMACHACHE])
 		dex -= sc->data[SC_STOMACHACHE]->val1;
 	if(sc->data[SC_KYOUGAKU])
 		dex -= sc->data[SC_KYOUGAKU]->val2;
 	if(sc->data[SC__STRIPACCESSORY] && bl->type != BL_PC)
 		dex -= dex * sc->data[SC__STRIPACCESSORY]->val2 / 100;
-	if(sc->data[SC_FULL_THROTTLE])
-		dex += dex * 20 / 100;
-	if(sc->data[SC_2011RWC_SCROLL])
-		dex += sc->data[SC_2011RWC_SCROLL]->val1;
+	if(sc->data[SC_MARIONETTE])
+		dex -= ((sc->data[SC_MARIONETTE]->val4)>>8)&0xFF;
 
 	return (unsigned short)cap_value(dex,0,USHRT_MAX);
 }
@@ -5068,6 +5068,8 @@ static unsigned short status_calc_luk(struct block_list *bl, struct status_chang
 	if(sc->data[SC_CURSE])
 		return 0;
 
+	if(sc->data[SC_FULL_THROTTLE])
+		luk += luk * 20 / 100;
 	if(sc->data[SC_INCALLSTATUS])
 		luk += sc->data[SC_INCALLSTATUS]->val1;
 	if(sc->data[SC_INCLUK])
@@ -5080,32 +5082,30 @@ static unsigned short status_calc_luk(struct block_list *bl, struct status_chang
 		luk += 5;
 	if(sc->data[SC_GLORIA])
 		luk += 30;
-	if(sc->data[SC_MARIONETTE])
-		luk -= sc->data[SC_MARIONETTE]->val4&0xFF;
-	if(sc->data[SC_MARIONETTE2])
-		luk += sc->data[SC_MARIONETTE2]->val4&0xFF;
-	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH)
-		luk += sc->data[SC_SPIRIT]->val4&0xFF;
-	if(sc->data[SC_HARMONIZE])
-		luk -= sc->data[SC_HARMONIZE]->val2;
 	if(sc->data[SC_PUTTI_TAILS_NOODLES])
 		luk += sc->data[SC_PUTTI_TAILS_NOODLES]->val1;
 	if(sc->data[SC_INSPIRATION])
 		luk += sc->data[SC_INSPIRATION]->val3;
-	if(sc->data[SC_STOMACHACHE])
-		luk -= sc->data[SC_STOMACHACHE]->val1;
-	if(sc->data[SC_KYOUGAKU])
-		luk -= sc->data[SC_KYOUGAKU]->val2;
 	if(sc->data[SC_LAUDARAMUS])
 		luk += 4 + sc->data[SC_LAUDARAMUS]->val1;
+	if(sc->data[SC_2011RWC_SCROLL])
+		luk += sc->data[SC_2011RWC_SCROLL]->val1;
+	if(sc->data[SC_MARIONETTE2])
+		luk += sc->data[SC_MARIONETTE2]->val4&0xFF;
+	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH)
+		luk += sc->data[SC_SPIRIT]->val4&0xFF;
 	if(sc->data[SC__STRIPACCESSORY] && bl->type != BL_PC)
 		luk -= luk * sc->data[SC__STRIPACCESSORY]->val2 / 100;
 	if(sc->data[SC_BANANA_BOMB])
 		luk -= luk * sc->data[SC_BANANA_BOMB]->val1 / 100;
-	if(sc->data[SC_FULL_THROTTLE])
-		luk += luk * 20 / 100;
-	if(sc->data[SC_2011RWC_SCROLL])
-		luk += sc->data[SC_2011RWC_SCROLL]->val1;
+	if(sc->data[SC_HARMONIZE])
+		luk -= sc->data[SC_HARMONIZE]->val2;
+	if(sc->data[SC_STOMACHACHE])
+		luk -= sc->data[SC_STOMACHACHE]->val1;
+	if(sc->data[SC_KYOUGAKU])
+		luk -= sc->data[SC_KYOUGAKU]->val2;
+	if(sc->data[SC_MARIONETTE])
+		luk -= sc->data[SC_MARIONETTE]->val4&0xFF;
 
 	return (unsigned short)cap_value(luk,0,USHRT_MAX);
 }
@@ -5889,6 +5889,8 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 					val = max( val, sc->data[SC_POWER_OF_GAIA]->val2 );
 				if( sc->data[SC_MELON_BOMB] )
 					val = max( val, sc->data[SC_MELON_BOMB]->val1 );
+				if( sc->data[SC_REBOUND] )
+					val = max( val, 25 );
 				if( sc->data[SC_B_TRAP] )
 					val = max( val, sc->data[SC_B_TRAP]->val2 );
 
@@ -5937,7 +5939,7 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 			if( sc->data[SC_WIND_STEP_OPTION] )
 				val = max( val, sc->data[SC_WIND_STEP_OPTION]->val2 );
 			if( sc->data[SC_FULL_THROTTLE] )
-				val = max( val, 30 );
+				val = max( val, 25 );
 			//FIXME: Official items use a single bonus for this [ultramage]
 			if( sc->data[SC_SPEEDUP0] ) //Temporary item-based speedup
 				val = max( val, 25 );
@@ -5957,8 +5959,6 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 			speed += speed * (50 - 5 * pc_checkskill(sd,MC_PUSHCART)) / 100;
 		if( sc->data[SC_PARALYSE] )
 			speed += speed * 50 / 100;
-		if( sc->data[SC_REBOUND] )
-			speed += max(speed, 100);
 		if( speed_rate != 100 )
 			speed = speed * speed_rate / 100;
 		if( sc->data[SC_STEELBODY] )
