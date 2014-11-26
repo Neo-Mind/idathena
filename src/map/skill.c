@@ -2245,13 +2245,14 @@ int skill_strip_equip(struct block_list *src, struct block_list *bl, unsigned sh
  * @param count Number of knock back cell requested
  * @param dir Direction indicates the way OPPOSITE to the knockback direction (or -1 for default behavior)
  * @param flag
-		0x01 - position update packets must not be sent;
-		0x02 - ignores players' special_state.no_knockback;
-		These flags "return 'count' instead of 0 if target is cannot be knocked back":
-		0x04 - at WOE/BG map;
-		0x08 - if target is MD_KNOCKBACK_IMMUNE|MD_BOSS;
-		0x10 - if target has 'special_state.no_knockback';
-		0x20 - if target is in Basilica area;
+    0x01 - position update packets must not be sent;
+    0x02 - ignores players' special_state.no_knockback;
+    These flags "return 'count' instead of 0 if target is can't be knocked back":
+    0x04 - at WOE/BG map;
+    0x08 - if target is MD_KNOCKBACK_IMMUNE|MD_BOSS;
+    0x10 - if target has 'special_state.no_knockback';
+    0x20 - if target is in Basilica area;
+    0x40 - ignores knock back immune
  * @return Number of knocked back cells done
  */
 short skill_blown(struct block_list* src, struct block_list* target, char count, int8 dir, unsigned char flag)
@@ -2272,6 +2273,8 @@ short skill_blown(struct block_list* src, struct block_list* target, char count,
 		checkflag |= 0x2; //Knockback type
 	if( is_boss(src) )
 		checkflag |= 0x4; //Boss attack
+	if( flag&0x40 )
+		checkflag = 0; //Can be knocked back
 
 	//Get reason and check for flags
 	reason = unit_blown_immune(target, checkflag);
@@ -2279,9 +2282,9 @@ short skill_blown(struct block_list* src, struct block_list* target, char count,
 		case 1: return ((flag&0x04) ? count : 0); //No knocking back in WoE / BG
 		case 2: return count; //Emperium can't be knocked back
 		case 3: return ((flag&0x08) ? count : 0); //Bosses or immune can't be knocked back
-		case 4: return ((flag&0x20) ? count : 0); //Basilica caster can't be knocked-back by normal monsters
-		case 5: return ((flag&0x10) ? count : 0); //Target has special_state.no_knockback (equip)
-		case 6: return count; //Trap cannot be knocked back
+		case 4: return ((flag&0x10) ? count : 0); //Target has special_state.no_knockback (equip)
+		case 5: return ((flag&0x20) ? count : 0); //Basilica caster can't be knocked back by normal monsters
+		case 6: return count; //Trap can't be knocked back
 	}
 
 	if( dir == -1 ) //<Optimized>: do the computation here instead of outside
@@ -7409,7 +7412,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			}
 			break;
 
-		case TF_BACKSLIDING: //This is the correct implementation as per packet logging information. [Skotlex]
+		case TF_BACKSLIDING: //This is the correct implementation as per packet logging information [Skotlex]
 			skill_blown(src,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			break;
@@ -13530,12 +13533,12 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			break;
 
 		case UNT_WALLOFTHORN:
-			if (!unit_blown_immune(bl,0x3)) {
-				if (battle_check_target(src,bl,BCT_ENEMY) > 0)
-					skill_attack(skill_get_type(skill_id),src,&unit->bl,bl,skill_id,skill_lv,tick,4);
-				skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
-				unit->val3--;
-			}
+			if (status_get_mode(bl)&MD_BOSS)
+				break;
+			if (battle_check_target(src,bl,BCT_ENEMY) > 0)
+				skill_attack(skill_get_type(skill_id),src,&unit->bl,bl,skill_id,skill_lv,tick,4);
+			skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0x40);
+			unit->val3--;
 			break;
 
 		case UNT_DEMONIC_FIRE:

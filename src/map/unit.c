@@ -1072,9 +1072,9 @@ int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag)
  *  1 - At WOE/BG map;
  *  2 - Target is emperium
  *  3 - Target is MD_KNOCKBACK_IMMUNE|MD_BOSS;
- *  4 - Target is in Basilica area;
- *  5 - Target has 'special_state.no_knockback';
- *  6 - Target is trap that cannot be knocked back
+ *  4 - Target has 'special_state.no_knockback';
+ *  5 - Target is in Basilica area;
+ *  6 - Target is trap that can't be knocked back
  */
 int unit_blown_immune(struct block_list* bl, int flag)
 {
@@ -1098,11 +1098,11 @@ int unit_blown_immune(struct block_list* bl, int flag)
 		case BL_PC: {
 				struct map_session_data *sd = BL_CAST(BL_PC, bl);
 
-				//Basilica caster can't be knocked-back by normal monsters
-				if (sd->sc.data[SC_BASILICA] && sd->sc.data[SC_BASILICA]->val4 == sd->bl.id && !(flag&0x4))
-					return 4;
 				//Target has special_state.no_knockback (equip)
 				if ((flag&0x1) && (flag&0x2) && sd->special_state.no_knockback)
+					return 4;
+				//Basilica caster can't be knocked back by normal monsters
+				if (sd->sc.data[SC_BASILICA] && sd->sc.data[SC_BASILICA]->val4 == sd->bl.id && !(flag&0x4))
 					return 5;
 			}
 			break;
