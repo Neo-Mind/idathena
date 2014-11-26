@@ -3227,9 +3227,9 @@ ACMD_FUNC(spiritball)
 	
 	max_spiritballs = min(ARRAYLENGTH(sd->spirit_timer), 0x7FFF);
 	
-	if( !message || !*message || (number = atoi(message)) < 0 || number > max_spiritballs )
-	{
+	if( !message || !*message || (number = atoi(message)) < 0 || number > max_spiritballs ) {
 		char msg[CHAT_SIZE_MAX];
+
 		safesnprintf(msg, sizeof(msg), msg_txt(1028), max_spiritballs); // Please enter a party name (usage: @party <party_name>).
 		clif_displaymessage(fd, msg);
 		return -1;

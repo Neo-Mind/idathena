@@ -6075,9 +6075,10 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 		case PR_KYRIE:
 		case MER_KYRIE:
-			clif_skill_nodamage(bl,bl,skill_id,skill_lv,
+			clif_skill_nodamage(bl,bl,skill_id,-1,
 				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			break;
+
 		//Passive Magnum, should had been casted on yourself
 		case SM_MAGNUM:
 		case MS_MAGNUM:
@@ -6108,7 +6109,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case AL_BLESSING:
 		case MER_INCAGI:
 		case MER_BLESSING:
-			if (dstsd != NULL && tsc->data[SC_CHANGEUNDEAD]) {
+			if( dstsd != NULL && tsc->data[SC_CHANGEUNDEAD] ) {
 				skill_attack(BF_MISC,src,src,bl,skill_id,skill_lv,tick,flag);
 				break;
 			}
@@ -6449,11 +6450,22 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case MO_ABSORBSPIRITS:
-			if (dstsd && dstsd->spiritball && (sd == dstsd || map_flag_vs(src->m) || (sd->duel_group && sd->duel_group == dstsd->duel_group)) &&
+			if (dstsd && (sd == dstsd || map_flag_vs(src->m) || (sd->duel_group && sd->duel_group == dstsd->duel_group)) &&
 				((dstsd->class_&MAPID_BASEMASK) != MAPID_GUNSLINGER || (dstsd->class_&MAPID_UPPERMASK) != MAPID_REBELLION)) {
 				//Split the if for readability, and included gunslingers in the check so that their coins cannot be removed [Reddozen]
-				i = dstsd->spiritball * 7;
-				pc_delspiritball(dstsd,dstsd->spiritball,0);
+				if (dstsd->spiritball) {
+					i = dstsd->spiritball * 7;
+					pc_delspiritball(dstsd,dstsd->spiritball,0);
+				} else {
+					uint8 j;
+
+					for (j = 1; j < 5; j++) {
+						if (dstsd->talisman[j]) {
+							i += dstsd->talisman[j] * 7;
+							pc_del_talisman(dstsd,dstsd->talisman[j],j);
+						}
+					}
+				}
 			} else if (dstmd && !(tstatus->mode&MD_BOSS) && rnd()%100 < 20) {
 				//Check if target is a monster and not a Boss, for the 20% chance to absorb 2 SP per monster's level [Reddozen]
 				i = 2 * dstmd->level;
@@ -8373,7 +8385,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				}
 				break;
 			}
-			//Fall through
+		//Fall through
 		case NPC_WIDEBLEEDING:
 		case NPC_WIDECONFUSE:
 		case NPC_WIDECURSE:
@@ -8657,12 +8669,14 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case GC_HALLUCINATIONWALK: {
 				int heal = status_get_max_hp(bl) * (18 - 2 * skill_lv) / 100;
 
-				if( status_get_hp(bl) < heal ) { //if you haven't enough HP skill fails.
-					if( sd ) clif_skill_fail(sd,skill_id,USESKILL_FAIL_HP_INSUFFICIENT,0);
+				if( status_get_hp(bl) < heal ) { //If you haven't enough HP skill fails
+					if( sd )
+						clif_skill_fail(sd,skill_id,USESKILL_FAIL_HP_INSUFFICIENT,0);
 					break;
 				}
 				if( !status_charge(bl,heal,0) ) {
-					if( sd ) clif_skill_fail(sd,skill_id,USESKILL_FAIL_HP_INSUFFICIENT,0);
+					if( sd )
+						clif_skill_fail(sd,skill_id,USESKILL_FAIL_HP_INSUFFICIENT,0);
 					break;
 				}
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
@@ -8681,20 +8695,22 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			if( sd )
 				i = (skill_id == AB_CLEMENTIA ? pc_checkskill(sd,AL_BLESSING) : pc_checkskill(sd,AL_INCAGI));
 			if( sd == NULL || !sd->status.party_id || flag&1 )
-				clif_skill_nodamage(bl,bl,skill_id,skill_lv,sc_start(src,bl,type,100,i + (sd ? (sd->status.job_level / 10) : 0),skill_get_time(skill_id,skill_lv)));
+				clif_skill_nodamage(bl,bl,skill_id,-1,sc_start(src,bl,type,100,i + (sd ? sd->status.job_level / 10 : 0),skill_get_time(skill_id,skill_lv)));
 			else if( sd ) {
 				if( !i )
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL,0);
 				else
-					party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
+					party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,
+						skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
 			}
 			break;
 
 		case AB_PRAEFATIO:
 			if( sd == NULL || !sd->status.party_id || flag&1 )
-				clif_skill_nodamage(bl,bl,skill_id,skill_lv,sc_start4(src,bl,type,100,skill_lv,0,0,partybonus,skill_get_time(skill_id,skill_lv)));
+				clif_skill_nodamage(bl,bl,skill_id,-1,sc_start4(src,bl,type,100,skill_lv,0,0,partybonus,skill_get_time(skill_id,skill_lv)));
 			else if( sd )
-				party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
+				party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,
+					skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
 			break;
 
 		case AB_CHEAL:
@@ -8703,24 +8719,27 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					!(tsc && (tsc->data[SC_BERSERK] || tsc->data[SC_SATURDAYNIGHTFEVER])) ) {
 					i = skill_calc_heal(src,bl,AL_HEAL,pc_checkskill(sd,AL_HEAL),true);
 					if( partybonus )
-						i += (i / 100) * (partybonus * 10) / 4;
-					if( (dstsd && pc_ismadogear(dstsd)) || status_isimmune(bl) )
-						i = 0; //Should heal by 0 or won't do anything?? in iRO it breaks the healing to members [malufett]
-					clif_skill_nodamage(bl,bl,skill_id,i,1);
+						i += i / 100 * partybonus * 10 / 4;
+					if( status_isimmune(bl) )
+						i = 0;
+					if( (dstsd && pc_ismadogear(dstsd)) )
+						break;
+					clif_skill_nodamage(src,bl,skill_id,i,1);
 					if( tsc->data[SC_AKAITSUKI] && i )
 						i = ~i + 1;
 					status_heal(bl,i,0,0);
 				}
 			} else if( sd )
-				party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
+				party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,
+					skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
 			break;
 
 		case AB_ORATIO:
 			if( flag&1 )
 				sc_start(src,bl,type,40 + 5 * skill_lv,skill_lv,skill_get_time(skill_id,skill_lv));
 			else {
-				map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_CHAR,
-					src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
+				map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_CHAR,src,
+					skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			}
 			break;
@@ -8729,7 +8748,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			if( sd == NULL || !sd->status.party_id || flag&1 ) {
 				if( tsc && (tsc->data[SC_FREEZE] || tsc->data[SC_STONE] || tsc->data[SC_BLIND] ||
 					tsc->data[SC_BURNING] || tsc->data[SC_FREEZING] || tsc->data[SC_CRYSTALIZE])) {
-					//Success Chance: (40 + 10 * Skill Level) %
+					//Success Chance: (40 + 10 * Skill Level)%
 					if( rnd()%100 > 40 + 10 * skill_lv )
 						break;
 					status_change_end(bl,SC_FREEZE,INVALID_TIMER);
@@ -8739,18 +8758,16 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					status_change_end(bl,SC_FREEZING,INVALID_TIMER);
 					status_change_end(bl,SC_CRYSTALIZE,INVALID_TIMER);
 				} else //Success rate only applies to the curing effect and not stat bonus. Bonus status only applies to non infected targets
-					clif_skill_nodamage(bl,bl,skill_id,skill_lv,
-						sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
+					clif_skill_nodamage(bl,bl,skill_id,-1,sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			} else if( sd )
-				party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),
-					src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
+				party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,
+					skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
 			break;
 
 		case AB_LAUDARAMUS:
 			if( sd == NULL || !sd->status.party_id || flag&1 ) {
 				if( tsc && (tsc->data[SC_SLEEP] || tsc->data[SC_STUN] ||
 					tsc->data[SC_MANDRAGORA] || tsc->data[SC_SILENCE] || tsc->data[SC_DEEPSLEEP]) ) {
-					//Success Chance: (40 + 10 * Skill Level) %
 					if( rnd()%100 > 40 + 10 * skill_lv )
 						break;
 					status_change_end(bl,SC_SLEEP,INVALID_TIMER);
@@ -8758,12 +8775,11 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					status_change_end(bl,SC_MANDRAGORA,INVALID_TIMER);
 					status_change_end(bl,SC_SILENCE,INVALID_TIMER);
 					status_change_end(bl,SC_DEEPSLEEP,INVALID_TIMER);
-				} else //Success rate only applies to the curing effect and not stat bonus. Bonus status only applies to non infected targets
-					clif_skill_nodamage(bl,bl,skill_id,skill_lv,
-						sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
+				} else
+					clif_skill_nodamage(bl,bl,skill_id,-1,sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			} else if( sd )
-				party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),
-					src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
+				party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,
+					skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
 			break;
 
 		case AB_CLEARANCE: {
@@ -8863,8 +8879,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case AB_SILENTIUM:
-			map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_CHAR,
-				src,PR_LEXDIVINA,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
+			map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_CHAR,src,
+				PR_LEXDIVINA,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			break;
 
@@ -9411,12 +9427,28 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 		case SR_ASSIMILATEPOWER:
 			if( flag&1 ) {
-				if( dstsd && dstsd->spiritball && (sd == dstsd || map_flag_vs(src->m)) &&
+				uint16 sp = 0;
+
+				if( dstsd && (sd == dstsd || map_flag_vs(src->m)) &&
 					((dstsd->class_&MAPID_BASEMASK) != MAPID_GUNSLINGER || (dstsd->class_&MAPID_UPPERMASK) != MAPID_REBELLION) ) {
-					status_percent_heal(src,0,dstsd->spiritball); //1% sp per spiritball
-					pc_delspiritball(dstsd,dstsd->spiritball,0);
+					if( dstsd->spiritball ) {
+						sp = dstsd->spiritball;
+						pc_delspiritball(dstsd,dstsd->spiritball,0);
+						status_percent_heal(src,0,sp); //1% SP per spiritball
+					} else {
+						uint8 j;
+
+						for( j = 1; j < 5; j++ ) {
+							if( dstsd->talisman[j] ) {
+								sp += dstsd->talisman[j];
+								pc_del_talisman(dstsd,dstsd->talisman[j],j);
+							}
+						}
+						if( sp )
+							status_percent_heal(src,0,sp);
+					}
 				}
-				clif_skill_nodamage(src,bl,skill_id,skill_lv,i ? 1 : 0);
+				clif_skill_nodamage(src,bl,skill_id,skill_lv,sp ? 1 : 0);
 			} else {
 				clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,DMG_SKILL);
 				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|BCT_SELF|SD_SPLASH|1,skill_castend_nodamage_id);
@@ -10035,7 +10067,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case KO_KAZEHU_SEIRAN:
 		case KO_DOHU_KOUKAI:
 			if( sd ) {
-				int i, type = skill_get_ele(skill_id,skill_lv);
+				uint8 i;
+				int type = skill_get_ele(skill_id,skill_lv);
 
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				ARR_FIND(1,6,i,sd->talisman[i] > 0 && type != i);
@@ -11125,7 +11158,6 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 					return 0; //Don't consume gems if cast on LP
 				}
 			}
-		//Fall through
 		case MG_FIREWALL:
 		case MG_THUNDERSTORM:
 		case AL_PNEUMA:
@@ -12219,7 +12251,7 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 						old_sg->limit > 0 )
 					{ //Use the previous limit (minus the elapsed time) [Skotlex]
 						limit = old_sg->limit - DIFF_TICK(gettick(),old_sg->tick);
-						if( limit < 0 ) //This can happen.
+						if( limit < 0 ) //This can happen
 							limit = skill_get_time(skill_id,skill_lv);
 					}
 					skill_clear_group(src,1);
@@ -12728,8 +12760,7 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 
 				if( bl->type == BL_PC && !working ) {
 					if( (!sd->chatID || battle_config.chat_warpportal) &&
-						sd->ud.to_x == unit->bl.x && sd->ud.to_y == unit->bl.y )
-					{
+						sd->ud.to_x == unit->bl.x && sd->ud.to_y == unit->bl.y ) {
 						int x = group->val2>>16;
 						int y = group->val2&0xffff;
 						int count = group->val1>>16;
@@ -12805,7 +12836,7 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 			else if( battle_config.song_timer_reset && sce->val4 == 1 ) { //Readjust timers since the effect will not last long
 				sce->val4 = 0; //Remove the mark that we stepped out
 				delete_timer(sce->timer,status_change_timer);
-				sce->timer = add_timer(tick + group->limit,status_change_timer,bl->id,type); //Put duration back to 3min
+				sce->timer = add_timer(tick + group->limit,status_change_timer,bl->id,type); //Put duration 1 back
 			}
 			break;
 
@@ -12850,7 +12881,7 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 
 		case UNT_VOLCANIC_ASH:
 			if( !sce )
-				sc_start(src,bl,SC_ASH,100,skill_lv,skill_get_time(MH_VOLCANIC_ASH,skill_lv));
+				sc_start(src,bl,SC_ASH,100,skill_lv,group->limit);
 			break;
 
 		case UNT_KINGS_GRACE:
@@ -13836,7 +13867,7 @@ int skill_unit_onleft(uint16 skill_id, struct block_list *bl, unsigned int tick)
 						sce = (sc && type != SC_NONE) ? sc->data[type] : NULL;
 						if (sce && !sce->val4) { //We don't want dissonance updating this anymore
 							delete_timer(sce->timer, status_change_timer);
-							sce->val4 = 1; //Store the fact that this is a "reduced" duration effect.
+							sce->val4 = 1; //Store the fact that this is a "reduced" duration effect
 							sce->timer = add_timer(tick + skill_get_time2(i, 1), status_change_timer, bl->id, type);
 						}
 					}
@@ -13856,7 +13887,7 @@ int skill_unit_onleft(uint16 skill_id, struct block_list *bl, unsigned int tick)
 					delete_timer(sce->timer, status_change_timer);
 					//NOTE: It'd be nice if we could get the skill_lv for a more accurate extra time, but still
 					//not possible on our current implementation
-					sce->val4 = 1; //Store the fact that this is a "reduced" duration effect
+					sce->val4 = 1;
 					sce->timer = add_timer(tick + skill_get_time2(skill_id, 1), status_change_timer, bl->id, type);
 				}
 			}
@@ -18005,18 +18036,18 @@ int skill_unit_move_sub(struct block_list* bl, va_list ap)
 		return 0;
 	}
 
-	//Target-type check.
+	//Target-type check
 	if( !(group->bl_flag&target->type && battle_check_target(&unit->bl,target,group->target_flag) > 0) ) {
 		if( group->src_id == target->id && group->state.song_dance&0x2 ) {
 			//Ensemble check to see if they went out/in of the area [Skotlex]
 			if( flag&1 ) {
-				if( flag&2 ) { //Clear this skill id.
+				if( flag&2 ) { //Clear this skill id
 					ARR_FIND( 0, ARRAYLENGTH(skill_unit_temp), i, skill_unit_temp[i] == skill_id );
 					if( i < ARRAYLENGTH(skill_unit_temp) )
 						skill_unit_temp[i] = 0;
 				}
 			} else {
-				if( flag&2 ) { //Store this skill id.
+				if( flag&2 ) { //Store this skill id
 					ARR_FIND( 0, ARRAYLENGTH(skill_unit_temp), i, skill_unit_temp[i] == 0 );
 					if( i < ARRAYLENGTH(skill_unit_temp) )
 						skill_unit_temp[i] = skill_id;
@@ -18024,20 +18055,17 @@ int skill_unit_move_sub(struct block_list* bl, va_list ap)
 						ShowError("skill_unit_move_sub: Reached limit of unit objects per cell!\n");
 				}
 			}
-
 			if( flag&4 )
 				skill_unit_onleft(skill_id,target,tick);
 		}
-
 		if( dissonance )
 			skill_dance_switch(unit, 1);
-
 		return 0;
 	} else {
 		if( flag&1 ) {
 			int result = skill_unit_onplace(unit,target,tick);
 
-			if( flag&2 && result ) { //Clear skill ids we have stored in onout.
+			if( flag&2 && result ) { //Clear skill ids we have stored in onout
 				ARR_FIND( 0, ARRAYLENGTH(skill_unit_temp), i, skill_unit_temp[i] == result );
 				if( i < ARRAYLENGTH(skill_unit_temp) )
 					skill_unit_temp[i] = 0;
@@ -18045,7 +18073,7 @@ int skill_unit_move_sub(struct block_list* bl, va_list ap)
 		} else {
 			int result = skill_unit_onout(unit,target,tick);
 
-			if( flag&2 && result ) { //Store this unit id.
+			if( flag&2 && result ) { //Store this unit id
 				ARR_FIND( 0, ARRAYLENGTH(skill_unit_temp), i, skill_unit_temp[i] == 0 );
 				if( i < ARRAYLENGTH(skill_unit_temp) )
 					skill_unit_temp[i] = skill_id;
@@ -18053,16 +18081,13 @@ int skill_unit_move_sub(struct block_list* bl, va_list ap)
 					ShowError("skill_unit_move_sub: Reached limit of unit objects per cell!\n");
 			}
 		}
-
 		//@TODO: Normally, this is dangerous since the unit and group could be freed
 		//inside the onout/onplace functions. Currently it is safe because we know song/dance
-		//cells do not get deleted within them. [Skotlex]
+		//cells do not get deleted within them [Skotlex]
 		if( dissonance )
 			skill_dance_switch(unit, 1);
-
 		if( flag&4 )
 			skill_unit_onleft(skill_id,target,tick);
-
 		return 1;
 	}
 }

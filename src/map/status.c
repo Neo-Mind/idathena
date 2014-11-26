@@ -8273,12 +8273,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = val1 * 20; //SP gained
 				break;
 			case SC_KYRIE:
-				if( val4 ) { //Formula's for Praefatio
-					val2 = (status->max_hp * (val1 * 2 + 10) / 100) + val4 * 2; //% Max HP to absorb
+				if( val4 ) { //Praefatio
+					val2 = status->max_hp * (val1 * 2 + 10) / 100 + val4 * 2; //% Max HP to absorb
 					val3 = 6 + val1; //Hits
-				} else { //Formula's for Kyrie Eleison
+				} else { //Kyrie Eleison
 					val2 = status->max_hp * (val1 * 2 + 10) / 100;
-					val3 = (val1 / 2 + 5);
+					val3 = val1 / 2 + 5;
 				}
 				break;
 			case SC_MAGICPOWER:

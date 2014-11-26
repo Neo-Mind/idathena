@@ -2964,7 +2964,7 @@ int unit_free(struct block_list *bl, clr_type clrtype)
 	nullpo_ret(ud);
 
 	map_freeblock_lock();
-	if( bl->prev )	//Players are supposed to logout with a "warp" effect.
+	if( bl->prev )	//Players are supposed to logout with a "warp" effect
 		unit_remove_map(bl, clrtype);
 
 	switch( bl->type ) {
@@ -2984,7 +2984,7 @@ int unit_free(struct block_list *bl, clr_type clrtype)
 					duel_reject(sd->duel_invite, sd);
 				channel_pcquit(sd, 0xF); //Leave all channel
 				skill_blockpc_clear(sd); //Clear all skill cooldown related
-				//Notify friends that this char logged out. [Skotlex]
+				//Notify friends that this char logged out [Skotlex]
 				map_foreachpc(clif_friendslist_toggle_sub, sd->status.account_id, sd->status.char_id, 0);
 				party_send_logout(sd);
 				guild_send_memberinfoshort(sd, 0);
@@ -2993,7 +2993,7 @@ int unit_free(struct block_list *bl, clr_type clrtype)
 				pc_delspiritball(sd, sd->spiritball, 1);
 				for( i = 1; i < 5; i++ )
 					pc_del_talisman(sd, sd->talisman[i], i);
-				if( sd->reg ) { //Double logout already freed pointer fix. [Skotlex]
+				if( sd->reg ) { //Double logout already freed pointer fix [Skotlex]
 					aFree(sd->reg);
 					sd->reg = NULL;
 					sd->reg_num = 0;

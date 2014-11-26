@@ -7219,7 +7219,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 
 	pc_close_npc(sd,2); //Close npc if we were using one
 
-	/* e.g. not killed through pc_damage */
+	//e.g. not killed through pc_damage
 	if( pc_issit(sd) )
 		clif_status_load(&sd->bl,SI_SIT,0);
 
@@ -9974,8 +9974,10 @@ bool pc_isautolooting(struct map_session_data *sd, unsigned short nameid)
 
 	if( !sd->state.autolooting && !sd->state.autolootingtype )
 		return false;
+
 	if( sd->state.autolooting )
 		ARR_FIND(0, AUTOLOOTITEM_SIZE, i, sd->state.autolootid[i] == nameid);
+
 	if( sd->state.autolootingtype && sd->state.autoloottype&(1<<itemdb_type(nameid)) )
 		j = true;
 
@@ -10012,7 +10014,6 @@ static int pc_talisman_timer(int tid, unsigned int tick, int id, intptr_t data)
 		return 1;
 
 	ARR_FIND(1, 5, type, sd->talisman[type] > 0);
-
 	if( sd->talisman[type] <= 0 ) {
 		ShowError("pc_talisman_timer: %d talisman's available. (aid=%d cid=%d tid=%d)\n", sd->talisman[type], sd->status.account_id, sd->status.char_id, tid);
 		sd->talisman[type] = 0;
@@ -10028,8 +10029,8 @@ static int pc_talisman_timer(int tid, unsigned int tick, int id, intptr_t data)
 	sd->talisman[type]--;
 	if( i != sd->talisman[type] )
 		memmove(sd->talisman_timer[type] + i, sd->talisman_timer[type] + i + 1, (sd->talisman[type] - i) * sizeof(int));
-	sd->talisman_timer[type][sd->talisman[type]] = INVALID_TIMER;
 
+	sd->talisman_timer[type][sd->talisman[type]] = INVALID_TIMER;
 	clif_talisman(sd, type);
 
 	return 0;
@@ -10043,12 +10044,13 @@ void pc_add_talisman(struct map_session_data *sd, int interval, int max, int typ
 
 	if( max > 10 )
 		max = 10;
+
 	if( sd->talisman[type] < 0 )
 		sd->talisman[type] = 0;
 
 	if( sd->talisman[type] && sd->talisman[type] >= max ) {
 		if( sd->talisman_timer[type][0] != INVALID_TIMER )
-			delete_timer(sd->talisman_timer[type][0],pc_talisman_timer);
+			delete_timer(sd->talisman_timer[type][0], pc_talisman_timer);
 		sd->talisman[type]--;
 		if( sd->talisman[type] != 0 )
 			memmove(sd->talisman_timer[type] + 0, sd->talisman_timer[type] + 1, (sd->talisman[type]) * sizeof(int));
@@ -10059,9 +10061,9 @@ void pc_add_talisman(struct map_session_data *sd, int interval, int max, int typ
 	ARR_FIND(0, sd->talisman[type], i, sd->talisman_timer[type][i] == INVALID_TIMER || DIFF_TICK(get_timer(tid)->tick, get_timer(sd->talisman_timer[type][i])->tick) < 0);
 	if( i != sd->talisman[type] )
 		memmove(sd->talisman_timer[type] + i + 1, sd->talisman_timer[type] + i, (sd->talisman[type] - i) * sizeof(int));
+
 	sd->talisman_timer[type][i] = tid;
 	sd->talisman[type]++;
-
 	clif_talisman(sd, type);
 }
 
@@ -10087,14 +10089,14 @@ void pc_del_talisman(struct map_session_data *sd, int count, int type)
 		count = 10;
 
 	for( i = 0; i < count; i++ ) {
-		if(sd->talisman_timer[type][i] != INVALID_TIMER) {
-			delete_timer(sd->talisman_timer[type][i],pc_talisman_timer);
+		if( sd->talisman_timer[type][i] != INVALID_TIMER ) {
+			delete_timer(sd->talisman_timer[type][i], pc_talisman_timer);
 			sd->talisman_timer[type][i] = INVALID_TIMER;
 		}
 	}
 
-	for(i = count; i < 10; i++) {
-		sd->talisman_timer[type][i-count] = sd->talisman_timer[type][i];
+	for( i = count; i < 10; i++ ) {
+		sd->talisman_timer[type][i - count] = sd->talisman_timer[type][i];
 		sd->talisman_timer[type][i] = INVALID_TIMER;
 	}
 

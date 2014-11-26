@@ -464,7 +464,7 @@ int hom_evolution(struct homun_data *hd)
 	if(!(battle_config.hom_setting&HOMSET_NO_INSTANT_LAND_SKILL))
 		skill_unit_move(&sd->hd->bl, gettick(), 1); //Apply land skills immediately
 	
-	return 1 ;
+	return 1;
 }
 
 /**
