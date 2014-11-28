@@ -2984,8 +2984,8 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 	sd->def_rate = sd->def2_rate = sd->mdef_rate = sd->mdef2_rate = 100;
 	sd->regen.state.block = 0;
 
-	//Zeroed arrays, order follows the order in pc.h.
-	//Add new arrays to the end of zeroed area in pc.h (see comments) and size here. [zzo]
+	//Zeroed arrays, order follows the order in pc.h
+	//Add new arrays to the end of zeroed area in pc.h (see comments) and size here [zzo]
 	memset(sd->param_bonus, 0, sizeof(sd->param_bonus)
 		+ sizeof(sd->param_equip)
 		+ sizeof(sd->subele)
@@ -3087,9 +3087,9 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 		+ sizeof(sd->def_set_race)
 		+ sizeof(sd->mdef_set_race)
 	);
-	
+
 	memset(&sd->bonus, 0, sizeof(sd->bonus));
-	
+
 	//Autobonus
 	pc_delautobonus(sd, sd->autobonus, ARRAYLENGTH(sd->autobonus), true);
 	pc_delautobonus(sd, sd->autobonus2, ARRAYLENGTH(sd->autobonus2), true);
@@ -3113,7 +3113,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 		if(!sd->inventory_data[index])
 			continue;
 		status->def += sd->inventory_data[index]->def;
-		//Items may be equipped, their effects however are nullified.
+		//Items may be equipped, their effects however are nullified
 		if((opt&SCO_FIRST) && sd->inventory_data[index]->equip_script && (pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) ||
 			!itemdb_isNoEquip(sd->inventory_data[index],sd->bl.m))) { //Execute equip-script on login
 			run_script(sd->inventory_data[index]->equip_script,0,sd->bl.id,0);
@@ -3146,7 +3146,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 			if(r && sd->weapontype1 != W_BOW) //Renewal magic attack refine bonus
 				wa->matk += refine_info[wlv].bonus[r - 1] / 100;
 #endif
-			if(r) //Overrefine bonus.
+			if(r) //Overrefine bonus
 				wd->overrefine = refine_info[wlv].randombonus_max[r - 1] / 100;
 			wa->range += sd->inventory_data[index]->range;
 			if(sd->inventory_data[index]->script && (pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) ||
@@ -3157,7 +3157,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 					sd->state.lr_flag = 0;
 				} else
 					run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
-				if(!calculating) //Abort, run_script retriggered this. [Skotlex]
+				if(!calculating) //Abort, run_script retriggered this [Skotlex]
 					return 1;
 			}
 			if(sd->status.inventory[index].card[0] == CARD0_FORGE) { //Forged weapon
@@ -3181,11 +3181,12 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 				run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
 				if(i == EQI_HAND_L) //Shield
 					sd->state.lr_flag = 0;
-				if(!calculating) //Abort, run_script retriggered this. [Skotlex]
+				if(!calculating) //Abort, run_script retriggered this [Skotlex]
 					return 1;
 			}
 		} else if(sd->inventory_data[index]->type == IT_SHADOWGEAR) { //Shadow System
-			if(sd->inventory_data[index]->script && (pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) || !itemdb_isNoEquip(sd->inventory_data[index],sd->bl.m))) {
+			if(sd->inventory_data[index]->script && (pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) ||
+				!itemdb_isNoEquip(sd->inventory_data[index],sd->bl.m))) {
 				run_script(sd->inventory_data[index]->script,0,sd->bl.id,0);
 				if(!calculating)
 					return 1;
@@ -3253,12 +3254,11 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 			continue;
 		if(pc_is_same_equip_index((enum equip_index)i, sd->equip_index, index))
 			continue;
-
 		if(sd->inventory_data[index]) {
 			int j;
 			struct item_data *data;
 
-			//Card script execution.
+			//Card script execution
 			if(itemdb_isspecial(sd->status.inventory[index].card[0]))
 				continue;
 			for(j = 0; j < MAX_SLOTS; j++) { //Uses MAX_SLOTS to support Soul Bound system [Inkfish]
@@ -3336,7 +3336,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 	sd->left_weapon.atkmods[1] = atkmods[1][sd->weapontype2];
 	sd->left_weapon.atkmods[2] = atkmods[2][sd->weapontype2];
 
-	//When Riding with spear, damage modifier to mid-class becomes same as versus large size.
+	//When Riding with spear, damage modifier to mid-class becomes same as versus large size
 	if((pc_isriding(sd) || pc_isridingdragon(sd)) && (sd->status.weapon == W_1HSPEAR || sd->status.weapon == W_2HSPEAR)) {
 		sd->right_weapon.atkmods[1] = sd->right_weapon.atkmods[2];
 		sd->left_weapon.atkmods[1] = sd->left_weapon.atkmods[2];
@@ -3372,13 +3372,13 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 	if(pc_checkskill(sd,BS_HILTBINDING) > 0)
 		status->str++;
 	if((skill = pc_checkskill(sd,SA_DRAGONOLOGY)) > 0)
-		status->int_ += (skill + 1) / 2; //+1 INT / 2 lv
+		status->int_ += (skill + 1) / 2; //+1 INT per 2 lv
 	if((skill = pc_checkskill(sd,AC_OWL)) > 0)
 		status->dex += skill;
 	if((skill = pc_checkskill(sd,RA_RESEARCHTRAP)) > 0)
 		status->int_ += skill;
 
-	//Bonuses from cards and equipment as well as base stat, remember to avoid overflows.
+	//Bonuses from cards and equipment as well as base stat, remember to avoid overflows
 	i = status->str + sd->status.str + sd->param_bonus[0] + sd->param_equip[0];
 	status->str = cap_value(i,0,USHRT_MAX);
 	i = status->agi + sd->status.agi + sd->param_bonus[1] + sd->param_equip[1];
@@ -3435,7 +3435,7 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 		if(!status->hp)
 			status->hp = 1;
 		status->sp = (int64)status->max_sp * battle_config.restart_sp_rate / 100;
-		if(!status->sp) /* The minimum for the respawn setting is SP: 1 */
+		if(!status->sp) //The minimum for the respawn setting is SP: 1
 			status->sp = 1;
 	}
 
@@ -4456,10 +4456,10 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 			unit_stop_walking(bl,1);
 	}
 
-//No status changes alter these yet.
-// if(flag&SCB_SIZE)
-// if(flag&SCB_RACE)
-// if(flag&SCB_RANGE)
+	//No status changes alter these yet
+	//if(flag&SCB_SIZE)
+	//if(flag&SCB_RACE)
+	//if(flag&SCB_RANGE)
 
 	if( flag&SCB_MAXHP ) {
 		if( bl->type&BL_PC ) {
@@ -8232,14 +8232,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					if( sd ) {
 						int i;
 
-						for( i = 0; i < MAX_DEVOTION; i++ ) {
+						for( i = 0; i < MAX_DEVOTION; i++ )
 							if( sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])) )
 								status_change_start(src,&tsd->bl,type,10000,val1,val2,val3,val4,tick,SCFLAG_NOAVOID|SCFLAG_NOICON);
-						}
 					} else if( bl->type == BL_MER && ((TBL_MER*)bl)->devotion_flag && (tsd = ((TBL_MER*)bl)->master) )
 						status_change_start(src,&tsd->bl,type,10000,val1,val2,val3,val4,tick,SCFLAG_NOAVOID);
-				} //val4 signals infinite endure, if val4 == 2 it is infinite endure from Berserk
-				if( val4 )
+				}
+				if( val4 ) //val4 signals infinite endure, if val4 == 2 it is infinite endure from Berserk
 					tick = -1;
 				break;
 			case SC_AUTOBERSERK:
@@ -8840,7 +8839,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_ADRENALINE2:
 			case SC_ADRENALINE:
-				val3 = (val2) ? 300 : 200; //Aspd increase
+				val3 = (val2 ? 300 : 200); //Aspd increase
+			//Fall through
 			case SC_WEAPONPERFECTION:
 				if( sd && pc_checkskill(sd,BS_HILTBINDING) > 0 )
 					tick += tick / 10;
@@ -9412,9 +9412,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val2 += 500;
 				break;
 			case SC_PRESTIGE:
-				//Chance to evade magic damage.
+				//Chance to evade magic damage
 				val2 = (status->int_ + status->luk) * val1 / 20 * status_get_lv(bl) / 200 + val1;
-				val1 = (15 * val1) + (sd ? 10 * pc_checkskill(sd,CR_DEFENDER) : 0); //Defense added
+				val1 = 15 * val1 + (sd ? 10 * pc_checkskill(sd,CR_DEFENDER) : 0); //DEF increase
 #ifdef RENEWAL
 				val1 = val1 * status_get_lv(bl) / 100;
 #else
@@ -10483,8 +10483,8 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		return 0;
 
 	if (tid == INVALID_TIMER) {
-		if (type == SC_ENDURE && sce->val4) //Do not end infinite endure.
-			return 0;
+		if (type == SC_ENDURE && sce->val4)
+			return 0; //Do not end infinite endure
 		if (sce->timer != INVALID_TIMER) //Could be a SC with infinite duration
 			delete_timer(sce->timer,status_change_timer);
 		if (sc->opt1)

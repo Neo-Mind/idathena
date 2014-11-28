@@ -982,7 +982,7 @@ static void itemdb_read_combos() {
 			continue; // Empty line
 
 		if (!strchr(p,',')) {
-			/* Is there even a single column? */
+			// Is there even a single column?
 			ShowError("itemdb_read_combos: Insufficient columns in line %d of \"%s\", skipping.\n", lines, path);
 			continue;
 		}
@@ -1001,7 +1001,7 @@ static void itemdb_read_combos() {
 			continue;
 		}
 
-		/* No ending key anywhere (missing \}\) */
+		// No ending key anywhere (missing \}\)
 		if (str[1][strlen(str[1]) - 1] != '}') {
 			ShowError("itemdb_read_combos(#2): Invalid format (Script column) in line %d of \"%s\", skipping.\n", lines, path);
 			continue;
@@ -1016,15 +1016,15 @@ static void itemdb_read_combos() {
 				continue;
 			}
 
-			/* Validate */
+			// Validate
 			for (v = 0; v < retcount; v++) {
-				if( !itemdb_exists(items[v]) ) {
+				if (!itemdb_exists(items[v])) {
 					ShowError("itemdb_read_combos: line %d of \"%s\" contains unknown item ID %d, skipping.\n", lines, path,items[v]);
 					break;
 				}
 			}
 
-			/* Failed at some item */
+			// Failed at some item
 			if (v < retcount)
 				continue;
 
@@ -1032,7 +1032,7 @@ static void itemdb_read_combos() {
 
 			idx = id->combos_count;
 
-			/* First entry, create */
+			// First entry, create
 			if (id->combos == NULL) {
 				CREATE(id->combos, struct item_combo*, 1);
 				id->combos_count = 1;
@@ -1041,16 +1041,16 @@ static void itemdb_read_combos() {
 
 			CREATE(id->combos[idx],struct item_combo,1);
 
-			id->combos[idx]->nameid = aMalloc( retcount * sizeof(unsigned short) );
+			id->combos[idx]->nameid = aMalloc(retcount * sizeof(unsigned short));
 			id->combos[idx]->count = retcount;
 			id->combos[idx]->script = parse_script(str[1], path, lines, 0);
 			id->combos[idx]->id = count;
 			id->combos[idx]->isRef = false;
-			/* Populate ->nameid field */
+			// Populate ->nameid field
 			for (v = 0; v < retcount; v++)
 				id->combos[idx]->nameid[v] = items[v];
 
-			/* Populate the children to refer to this combo */
+			// Populate the children to refer to this combo
 			for (v = 1; v < retcount; v++) {
 				struct item_data * it;
 				int index;
@@ -1067,9 +1067,9 @@ static void itemdb_read_combos() {
 
 				CREATE(it->combos[index],struct item_combo,1);
 
-				/* We copy previously alloc'd pointers and just set it to reference */
+				// We copy previously alloc'd pointers and just set it to reference
 				memcpy(it->combos[index],id->combos[idx],sizeof(struct item_combo));
-				/* We flag this way to ensure we don't double-dealloc same data */
+				// We flag this way to ensure we don't double-dealloc same data
 				it->combos[index]->isRef = true;
 			}
 			uidb_put(itemdb_combo,id->combos[idx]->id,id->combos[idx]);

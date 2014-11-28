@@ -3571,9 +3571,9 @@ void run_script(struct script_code *rootscript,int pos,int rid,int oid)
 	if( rootscript == NULL || pos < 0 )
 		return;
 
-	// @TODO: In jAthena, this function can take over the pending script in the player. [FlavioJS]
-	//      It is unclear how that can be triggered, so it needs the be traced/checked in more detail.
-	// NOTE At the time of this change, this function wasn't capable of taking over the script state because st->scriptroot was never set.
+	// @TODO: In jAthena, this function can take over the pending script in the player [FlavioJS]
+	// It is unclear how that can be triggered, so it needs the be traced/checked in more detail
+	// NOTE At the time of this change, this function wasn't capable of taking over the script state because st->scriptroot was never set
 	st = script_alloc_state(rootscript, pos, rid, oid);
 	run_script_main(st);
 }
@@ -3727,7 +3727,7 @@ void run_script_main(struct script_state *st)
 				if (stack->defsp > stack->sp)
 					ShowError("script:run_script_main: unexpected stack position (defsp=%d sp=%d). please report this!!!\n", stack->defsp, stack->sp);
 				else
-					pop_stack(st, stack->defsp, stack->sp); //Pop unused stack data. (unused return value)
+					pop_stack(st, stack->defsp, stack->sp); //Pop unused stack data (unused return value)
 				break;
 			case C_INT:
 				push_val(stack,C_INT,get_num(st->script->script_buf,&st->pos));
@@ -3755,17 +3755,14 @@ void run_script_main(struct script_state *st)
 					}
 				}
 				break;
-
 			case C_REF:
 				st->op2ref = 1;
 				break;
-
 			case C_NEG:
 			case C_NOT:
 			case C_LNOT:
 				op_1(st,c);
 				break;
-
 			case C_ADD:
 			case C_SUB:
 			case C_MUL:
@@ -3786,15 +3783,12 @@ void run_script_main(struct script_state *st)
 			case C_L_SHIFT:
 				op_2(st,c);
 				break;
-
 			case C_OP3:
 				op_3(st,c);
 				break;
-
 			case C_NOP:
 				st->state = END;
 				break;
-
 			default:
 				ShowError("unknown command : %d @ %d\n",c,st->pos);
 				st->state = END;
@@ -3811,16 +3805,15 @@ void run_script_main(struct script_state *st)
 		//Restore previous script
 		script_detach_state(st, false);
 		//Delay execution
-		sd = map_id2sd(st->rid); //Get sd since script might have attached someone while running. [Inkfish]
+		sd = map_id2sd(st->rid); //Get sd since script might have attached someone while running [Inkfish]
 		st->sleep.charid = (sd ? sd->status.char_id : 0);
-		st->sleep.timer = add_timer(gettick() + st->sleep.tick,
-			run_script_timer,st->sleep.charid,(intptr_t)st);
+		st->sleep.timer = add_timer(gettick() + st->sleep.tick, run_script_timer,st->sleep.charid,(intptr_t)st);
 		linkdb_insert(&sleep_db,(void*)__64BPRTSIZE(st->oid),st);
 	} else if (st->state != END && st->rid) {
-		//Resume later (st is already attached to player).
+		//Resume later (st is already attached to player)
 		if (st->bk_st) {
 			ShowWarning("Unable to restore stack! Double continuation!\n");
-			//Report BOTH scripts to see if that can help somehow.
+			//Report BOTH scripts to see if that can help somehow
 			ShowDebug("Previous script (lost):\n");
 			script_reportsrc(st->bk_st);
 			ShowDebug("Current script:\n");
@@ -3830,13 +3823,13 @@ void run_script_main(struct script_state *st)
 			st->bk_st = NULL;
 		}
 	} else {
-		//Dispose of script.
-		if ((sd = map_id2sd(st->rid)) != NULL) { //Restore previous stack and save char.
-			if(sd->state.using_fake_npc) {
+		//Dispose of script
+		if ((sd = map_id2sd(st->rid)) != NULL) { //Restore previous stack and save char
+			if (sd->state.using_fake_npc) {
 				clif_clearunit_single(sd->npc_id, CLR_OUTSIGHT, sd->fd);
 				sd->state.using_fake_npc = 0;
 			}
-			//Restore previous script if any.
+			//Restore previous script if any
 			script_detach_state(st, true);
 			if (sd->state.reg_dirty&2)
 				intif_saveregistry(sd,2);

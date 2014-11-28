@@ -14988,7 +14988,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 			break;
 		case ST_MOVE_ENABLE:
 			if( sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == skill_id )
-				sd->ud.canmove_tick = gettick(); //When using a combo, cancel the can't move delay to enable the skill. [Skotlex]
+				sd->ud.canmove_tick = gettick(); //When using a combo, cancel the can't move delay to enable the skill [Skotlex]
 			if( !unit_can_move(&sd->bl) ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return false;
