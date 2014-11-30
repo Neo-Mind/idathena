@@ -5155,10 +5155,10 @@ void clif_skillcasting(struct block_list* bl, int src_id, int dst_id, int dst_x,
 	WBUFW(buf,10) = dst_x;
 	WBUFW(buf,12) = dst_y;
 	WBUFW(buf,14) = skill_id;
-	WBUFL(buf,16) = property<0?0:property; //Avoid sending negatives as element [Skotlex]
+	WBUFL(buf,16) = (property < 0 ? 0 : property); //Avoid sending negatives as element [Skotlex]
 	WBUFL(buf,20) = casttime;
 #if PACKETVER >= 20091124
-	WBUFB(buf,24) = 0;  // isDisposable
+	WBUFB(buf,24) = 0; //isDisposable
 #endif
 
 	if (disguised(bl)) {

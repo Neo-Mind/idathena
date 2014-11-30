@@ -2447,7 +2447,7 @@ ACMD_FUNC(param)
 
 	ARR_FIND(0, ARRAYLENGTH(param), i, strcmpi(command + 1, param[i]) == 0);
 
-	if (i == ARRAYLENGTH(param) || i > MAX_STATUS_TYPE) { // Normally impossible...
+	if (i == ARRAYLENGTH(param) || i > MAX_STATUS_TYPE) { // Normally impossible.
 		clif_displaymessage(fd, msg_txt(1013)); // Please enter a valid value (usage: @str/@agi/@vit/@int/@dex/@luk <+/-adjustment>).
 		return -1;
 	}
@@ -5426,7 +5426,8 @@ ACMD_FUNC(useskill)
 		return -1;
 	}
 
-	if (!strcmp(target,"self")) pl_sd = sd; // Quick keyword
+	if (!strcmp(target,"self"))
+		pl_sd = sd; // Quick keyword
 	else if ((pl_sd = map_nick2sd(target)) == NULL) {
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;

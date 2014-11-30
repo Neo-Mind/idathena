@@ -2071,7 +2071,7 @@ int status_base_amotion_pc(struct map_session_data* sd, struct status_data* stat
 	//Raw delay adjustment from bAspd bonus
 	amotion += sd->bonus.aspd_add;
 
-	/* Angra manyu disregards aspd_base and similar */
+	//Angra manyu disregards aspd_base and similar
 	if( sd->equip_index[EQI_HAND_R] >= 0 && sd->status.inventory[sd->equip_index[EQI_HAND_R]].nameid == ITEMID_ANGRA_MANYU )
 		return 0;
 
@@ -5462,7 +5462,7 @@ static short status_calc_flee(struct block_list *bl, struct status_change *sc, i
 #endif
 	if(sc->data[SC_INCFLEERATE])
 		flee += flee * sc->data[SC_INCFLEERATE]->val1 / 100;
-	if(sc->data[SC_SPIDERWEB] && sc->data[SC_SPIDERWEB]->val1)
+	if(sc->data[SC_SPIDERWEB])
 		flee -= flee * 50 / 100;
 	if(sc->data[SC_BERSERK])
 		flee -= flee * 50 / 100;
@@ -8965,10 +8965,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_SWOO:
 				if( status->mode&MD_BOSS )
 					tick /= 5; //@TODO: Reduce skill's duration. But for how long?
-				break;
-			case SC_SPIDERWEB:
-				if( bl->type == BL_PC )
-					tick /= 2;
 				break;
 			case SC_ARMOR:
 				val2 = 80; //Damage reduction

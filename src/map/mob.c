@@ -4320,16 +4320,16 @@ static bool mob_parse_row_mobskilldb(char** str, int columns, int current)
 		ms->cancel = 1;
 
 	//Target
-	ARR_FIND( 0, ARRAYLENGTH(target), j, strcmp(str[9],target[j].str) == 0 );
-	if( j < ARRAYLENGTH(target) )
+	ARR_FIND(0, ARRAYLENGTH(target), j, strcmp(str[9],target[j].str) == 0);
+	if (j < ARRAYLENGTH(target))
 		ms->target = target[j].id;
 	else {
 		ShowWarning("mob_parse_row_mobskilldb: Unrecognized target %s for %d\n", str[9], mob_id);
 		ms->target = MST_TARGET;
 	}
 
-	//Check that the target condition is right for the skill type. [Skotlex]
-	if (skill_get_casttype(ms->skill_id) == CAST_GROUND) { //Ground skill.
+	//Check that the target condition is right for the skill type [Skotlex]
+	if (skill_get_casttype(ms->skill_id) == CAST_GROUND) { //Ground skill
 		if (ms->target > MST_AROUND) {
 			ShowWarning("mob_parse_row_mobskilldb: Wrong mob skill target for ground skill %d (%s) for %s.\n",
 				ms->skill_id, skill_get_name(ms->skill_id),

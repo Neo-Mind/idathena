@@ -295,7 +295,7 @@ int skill_unit_onleft(uint16 skill_id, struct block_list *bl,unsigned int tick);
 static int skill_unit_effect(struct block_list *bl,va_list ap);
 static int skill_bind_trap(struct block_list *bl, va_list ap);
 
-int skill_get_casttype (uint16 skill_id)
+int skill_get_casttype(uint16 skill_id)
 {
 	int inf = skill_get_inf(skill_id);
 
@@ -305,7 +305,7 @@ int skill_get_casttype (uint16 skill_id)
 		return CAST_NODAMAGE;
 	if (inf&INF_SELF_SKILL) {
 		if(skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF)
-			return CAST_DAMAGE; //Combo skill.
+			return CAST_DAMAGE; //Combo skill
 		return CAST_NODAMAGE;
 	}
 	if (skill_get_nk(skill_id)&NK_NO_DAMAGE)
@@ -2327,7 +2327,7 @@ static int skill_magic_reflect(struct block_list* src, struct block_list* bl, in
 		return 1;
 
 	if( sc->data[SC_KAITE] && (src->type == BL_PC || status_get_lv(src) <= 80) ) {
-		//Kaite only works against non-players if they are low-level.
+		//Kaite only works against non-players if they are low-level
 		clif_specialeffect(bl, 438, AREA);
 		if( --sc->data[SC_KAITE]->val2 <= 0 )
 			status_change_end(bl, SC_KAITE, INVALID_TIMER);
@@ -6699,7 +6699,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case ST_CHASEWALK:
 		case KO_YAMIKUMO:
 			if (tsce) {
-				clif_skill_nodamage(src,bl,skill_id,-1,status_change_end(bl,type,INVALID_TIMER)); //Hide skill-scream animation.
+				clif_skill_nodamage(src,bl,skill_id,-1,status_change_end(bl,type,INVALID_TIMER)); //Hide skill-scream animation
 				map_freeblock_unlock();
 				return 0;
 			} else if (tsc && (tsc->option&OPTION_MADOGEAR)) { //Mado Gear cannot hide
@@ -8318,14 +8318,16 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 		case HAMI_CASTLE: //[orn]
 			if (rnd()%100 < 20 * skill_lv && src != bl) {
+				int x = src->x, y = src->y;
+
 				if (hd)
 					skill_blockhomun_start(hd,skill_id,skill_get_time2(skill_id,skill_lv));
 				if (unit_movepos(src,bl->x,bl->y,0,0)) {
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1); //Homun
 					clif_blown(src,bl);
-					if (unit_movepos(bl,src->x,src->y,0,0)) {
+					if (unit_movepos(bl,x,y,0,0)) {
 						clif_skill_nodamage(bl,bl,skill_id,skill_lv,1); //Master
-						clif_blown(bl,src);
+						clif_blown(bl,bl);
 					}
 					//@TODO: Make casted skill also change its target
 					map_foreachinrange(skill_changetarget,src,AREA_SIZE,BL_CHAR,bl,src);
@@ -10126,9 +10128,9 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case KO_GENWAKU:
-			if( !map_flag_gvg2(src->m) && (dstsd || dstmd) &&
-				!(tstatus->mode&MD_PLANT) && battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
+			if( !map_flag_gvg2(src->m) && (dstsd || dstmd) && !(tstatus->mode&MD_PLANT) && battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
 				int rate = max(5,(45 + (5 * skill_lv) - (status_get_int(bl) / 10)));
+				int x = src->x, y = src->y;
 
 				if( rnd()%100 > rate ) {
 					if( sd )
@@ -10139,10 +10141,10 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 					clif_blown(src,bl);
 					sc_start(src,src,SC__CHAOS,25,skill_lv,skill_get_time(skill_id,skill_lv));
-					if( !is_boss(bl) && unit_movepos(bl,src->x,src->y,0,0) ) {
+					if( !is_boss(bl) && unit_movepos(bl,x,y,0,0) ) {
 						if( dstsd && pc_issit(dstsd) )
 							pc_setstand(dstsd);
-						clif_blown(bl,src);
+						clif_blown(bl,bl);
 						sc_start(src,bl,SC__CHAOS,75,skill_lv,skill_get_time(skill_id,skill_lv));
 					}
 				}
@@ -10963,10 +10965,9 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 			(maxcount = skill_get_maxcount(ud->skill_id,ud->skill_lv)) > 0 ) {
 			int i;
 
-			for( i = 0; i < MAX_SKILLUNITGROUP && ud->skillunit[i] && maxcount; i++ ) {
+			for( i = 0; i < MAX_SKILLUNITGROUP && ud->skillunit[i] && maxcount; i++ )
 				if(ud->skillunit[i]->skill_id == ud->skill_id)
 					maxcount--;
-			}
 			if( maxcount == 0 ) {
 				if( sd )
 					clif_skill_fail(sd,ud->skill_id,USESKILL_FAIL_LEVEL,0);
@@ -12709,26 +12710,28 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 
 	switch( group->unit_id ) {
 		case UNT_SPIDERWEB:
-			//If you are fiberlocked and can't move, it will only increase your fireweakness level [Inkfish]
-			if( sc && sc->data[SC_SPIDERWEB] && sc->data[SC_SPIDERWEB]->val1 > 0 ) {
-				sc->data[SC_SPIDERWEB]->val2++;
-				break;
-			} else if( battle_check_target(&group->unit->bl,bl,group->target_flag) > 0 ) {
-				int sec = skill_get_time2(skill_id,skill_lv);
+			if( battle_check_target(&group->unit->bl,bl,group->target_flag) > 0 ) {
+				const struct TimerData* td = (sc && sc->data[type] ? get_timer(sc->data[type]->timer) : NULL);
+				int time = (bl->type == BL_PC ? skill_get_time(skill_id,skill_lv) / 2 : skill_get_time(skill_id,skill_lv));
 
-				if( status_change_start(src,bl,type,10000,skill_lv,1,group->group_id,0,sec,SCFLAG_FIXEDRATE) ) {
-					const struct TimerData* td = (sc && sc->data[type] ? get_timer(sc->data[type]->timer) : NULL);
+				if( td ) {
+					int sec = DIFF_TICK(td->tick,tick);
 
-					if( td )
-						sec = DIFF_TICK(td->tick,tick);
+					time += sec;
+				}
+				if( sc && sc->data[SC_SPIDERWEB] ) {
+					uint8 val2 = sc->data[SC_SPIDERWEB]->val2;
+
+					val2++;
+					sc_start4(src,bl,type,100,skill_lv,val2,src->id,0,time);
+				} else if( sc_start4(src,bl,type,100,skill_lv,1,src->id,0,time) ) {
 					if( !unit_blown_immune(bl,0x3) ) {
 						map_moveblock(bl,unit->bl.x,unit->bl.y,tick);
 						clif_fixpos(bl);
 					}
 					group->val2 = bl->id;
-				} else
-					sec = 3000; //Couldn't trap it?
-				group->limit = DIFF_TICK(tick,group->tick) + sec;
+				}
+				group->limit = DIFF_TICK(tick,group->tick) + time;
 			}
 			break;
 
@@ -12974,11 +12977,9 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 		}
 	}
 
-	//These happen when a trap is splash-triggered by multiple targets on the same cell
 	if (group->interval == -1) {
 		switch (group->unit_id) {
-			case UNT_ANKLESNARE:
-			case UNT_FIREPILLAR_ACTIVE:
+			case UNT_ANKLESNARE: //This happen when a trap is splash-triggered by multiple targets on the same cell
 			case UNT_MANHOLE:
 				return 0;
 			default:
@@ -13176,7 +13177,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 							clif_blown(bl,&unit->bl);
 					}
 					group->val2 = bl->id;
-				} else
+				} else //Couldn't trap it?
 					sec = 3000;
 				if (group->unit_id == UNT_ANKLESNARE) {
 					clif_skillunit_update(&unit->bl);
@@ -13744,7 +13745,7 @@ static int skill_unit_onout(struct skill_unit *unit, struct block_list *bl, unsi
 	sce = (sc && type != SC_NONE) ? sc->data[type] : NULL;
 
 	if( bl->prev == NULL || (status_isdead(bl) &&
-		group->unit_id != UNT_ANKLESNARE && group->unit_id != UNT_SPIDERWEB) ) //Need to delete the trap if the source died.
+		group->unit_id != UNT_ANKLESNARE && group->unit_id != UNT_SPIDERWEB) ) //Need to delete the trap if the source died
 		return 0;
 
 	switch( group->unit_id ) {
@@ -15887,7 +15888,7 @@ int skill_vfcastfix(struct block_list *bl, double time, uint16 skill_id, uint16 
 	}
 
 	//NOTE: Magic Strings and Foresight are treated as separate factors in the calculation
-	//They are not added to the other modifiers. [iRO Wiki]
+	//They are not added to the other modifiers [iRO Wiki]
 	if( sc && sc->count && !(skill_get_castnodex(skill_id, skill_lv)&2) ) {
 		//All variable cast additive bonuses must come first
 		if( sc->data[SC_SLOWCAST] )
@@ -15909,14 +15910,14 @@ int skill_vfcastfix(struct block_list *bl, double time, uint16 skill_id, uint16 
 		if( sc->data[SC_IZAYOI] )
 			VARCAST_REDUCTION(50);
 		if( sc->data[SC_WATER_INSIGNIA] && sc->data[SC_WATER_INSIGNIA]->val1 == 3 && (skill_get_ele(skill_id, skill_lv) == ELE_WATER) )
-			VARCAST_REDUCTION(30); //Reduces 30% Variable Cast Time of Water spells.
+			VARCAST_REDUCTION(30); //Reduces 30% Variable Cast Time of Water spells
 		if( sc->data[SC_TELEKINESIS_INTENSE] )
 			VARCAST_REDUCTION(sc->data[SC_TELEKINESIS_INTENSE]->val2);
 		//Fixed cast reduction bonuses
 		if( sc->data[SC_SECRAMENT] )
 			fixcast_r = max(fixcast_r, sc->data[SC_SECRAMENT]->val2);
 		if( sd && (skill_lv = pc_checkskill(sd, WL_RADIUS)) && skill_id >= WL_WHITEIMPRISON && skill_id <= WL_FREEZE_SP  ) {
-			int reduce_fc_r = (status_get_int(bl) / 15) + (sd->status.base_level / 15) + (5 + skill_lv * 5);
+			int reduce_fc_r = status_get_int(bl) / 15 + sd->status.base_level / 15 + 5 + skill_lv * 5;
 
 			fixcast_r = max(fixcast_r, reduce_fc_r);
 		}
@@ -15933,7 +15934,7 @@ int skill_vfcastfix(struct block_list *bl, double time, uint16 skill_id, uint16 
 			fixed = 0;
 	}
 
-	/* Now compute overall factors */
+	//Now compute overall factors
 	if( varcast_r < 0 )
 		time = time * (1 - (float)varcast_r / 100);
 
@@ -16623,7 +16624,7 @@ int skill_clear_group(struct block_list *bl, int flag)
 	if (!(ud = unit_bl2ud(bl)))
 		return 0;
 
-	//All groups to be deleted are first stored on an array since the array elements shift around when you delete them. [Skotlex]
+	//All groups to be deleted are first stored on an array since the array elements shift around when you delete them [Skotlex]
 	for (i = 0; i < MAX_SKILLUNITGROUP && ud->skillunit[i]; i++) {
 		switch (ud->skillunit[i]->skill_id) {
 			case SA_DELUGE:
@@ -17367,10 +17368,9 @@ int skill_delunit(struct skill_unit* unit)
 	//Perform ondelete actions
 	switch( group->skill_id ) {
 		case HT_ANKLESNARE:
-		case PF_SPIDERWEB:
 		case GN_THORNS_TRAP:
 			{
-				struct block_list* target = map_id2bl(group->val2);
+				struct block_list *target = map_id2bl(group->val2);
 				enum sc_type type = status_skill2sc(group->skill_id);
 
 				if( target )
@@ -17460,7 +17460,7 @@ static int skill_get_new_group_id(void)
  */
 struct skill_unit_group* skill_initunitgroup(struct block_list* src, int count, uint16 skill_id, uint16 skill_lv, int unit_id, int limit, int interval)
 {
-	struct unit_data* ud = unit_bl2ud( src );
+	struct unit_data* ud = unit_bl2ud(src);
 	struct skill_unit_group* group;
 	int i;
 
@@ -17487,7 +17487,7 @@ struct skill_unit_group* skill_initunitgroup(struct block_list* src, int count, 
 			}
 		}
 		skill_delunitgroup(ud->skillunit[j]);
-		//Since elements must have shifted, we use the last slot.
+		//Since elements must have shifted, we use the last slot
 		i = MAX_SKILLUNITGROUP - 1;
 	}
 
@@ -17535,7 +17535,7 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 	struct unit_data *ud;
 	struct status_change *sc;
 	short i, j;
-	
+
 	if( group == NULL ) {
 		ShowDebug("skill_delunitgroup: group is NULL (source=%s:%d, %s)! Please report this! (#3504)\n", file, line, func);
 		return 0;

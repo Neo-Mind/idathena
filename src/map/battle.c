@@ -44,7 +44,7 @@ int battle_getcurrentskill(struct block_list *bl) { //Returns the current/last s
 	struct unit_data *ud;
 
 	if( bl->type == BL_SKILL ) {
-		struct skill_unit *su = (struct skill_unit*)bl;
+		struct skill_unit *su = (struct skill_unit *)bl;
 
 		return (su && su->group ? su->group->skill_id : 0);
 	}
@@ -373,7 +373,7 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 	if( target && target->type == BL_SKILL ) {
 		//Wall of Thorn damaged by Fire element type attacks (non unit)
 		if( atk_elem == ELE_FIRE && battle_getcurrentskill(target) == GN_WALLOFTHORN ) {
-			struct skill_unit *su = ((struct skill_unit*)target);
+			struct skill_unit *su = (struct skill_unit *)target;
 			struct skill_unit_group *sg;
 			struct block_list *src;
 
@@ -390,14 +390,16 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 		switch( atk_elem ) {
 			case ELE_FIRE:
 				if( tsc->data[SC_SPIDERWEB] ) {
-					tsc->data[SC_SPIDERWEB]->val1 = 0; //Free to move now
+					struct unit_data *ud = unit_bl2ud(map_id2bl(tsc->data[SC_SPIDERWEB]->val3));
+					uint8 i;
+
 					if( tsc->data[SC_SPIDERWEB]->val2-- > 0 )
 						ratio += 100; //Double damage
-					if( tsc->data[SC_SPIDERWEB]->val2 == 0 ) {
-						struct skill_unit_group* group = skill_id2group(tsc->data[SC_SPIDERWEB]->val3);
-
-						if( group )
-							skill_delunitgroup(group);
+					if( tsc->data[SC_SPIDERWEB]->val2 == 0 )
+						status_change_end(target, SC_SPIDERWEB, INVALID_TIMER);
+					if( ud ) {
+						ARR_FIND(0, MAX_SKILLUNITGROUP, i, ud->skillunit[i] && ud->skillunit[i]->skill_id == PF_SPIDERWEB);
+						skill_delunit(ud->skillunit[i]->unit);
 					}
 				}
 				if( tsc->data[SC_THORNSTRAP] ) {
@@ -2643,9 +2645,9 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 		if(skill_id != CR_SHIELDBOOMERANG)
 			ATK_ADD2(wd.masteryAtk, wd.masteryAtk2, wd.div_ * sd->right_weapon.star, wd.div_ * sd->left_weapon.star);
 		if(skill_id == MO_FINGEROFFENSIVE) {
-			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, ((wd.div_ < 1) ? 1 : wd.div_) * sd->spiritball_old * 3);
+			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, (wd.div_ < 1 ? 1 : wd.div_) * sd->spiritball_old * 3);
 		} else
-			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, ((wd.div_ < 1) ? 1 : wd.div_) * sd->spiritball * 3);
+			ATK_ADD(wd.masteryAtk, wd.masteryAtk2, (wd.div_ < 1 ? 1 : wd.div_) * sd->spiritball * 3);
 #endif
 
 		if(skill_id == NJ_SYURIKEN && (skill = pc_checkskill(sd, NJ_TOBIDOUGU)) > 0) {
@@ -2657,11 +2659,6 @@ static struct Damage battle_calc_attack_masteries(struct Damage wd, struct block
 
 		if(sc) { //Status change considered as masteries
 			uint8 i;
-
-#ifdef RENEWAL
-			if(sc->data[SC_NIBELUNGEN]) //With renewal, the level 4 weapon limitation has been removed
-				ATK_ADD(wd.masteryAtk, wd.masteryAtk2, sc->data[SC_NIBELUNGEN]->val2);
-#endif
 
 			if(sc->data[SC_MIRACLE])
 				i = 2; //Star anger
@@ -4514,10 +4511,14 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd,struct block_list
 	//Post skill/vit reduction damage increases
 	if(sc) { //Status change skill damages
 #ifdef RENEWAL
+		if(sc->data[SC_WATK_ELEMENT])
+			ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_WATK_ELEMENT]->val2);
+		if(sc->data[SC_NIBELUNGEN]) //With renewal, the level 4 weapon limitation has been removed
+			ATK_ADD(wd.damage, wd.damage2, sc->data[SC_NIBELUNGEN]->val2);
 		if(sc->data[SC_AURABLADE]) {
 			uint16 lv = sc->data[SC_AURABLADE]->val1;
 
-			lv *= ((skill_id == LK_SPIRALPIERCE || skill_id == ML_SPIRALPIERCE) ? wd.div_ : 1); //+100 per hit in lv 5
+			lv *= (skill_id == LK_SPIRALPIERCE || skill_id == ML_SPIRALPIERCE ? wd.div_ : 1); //+100 per hit in lv 5
 			ATK_ADD(wd.damage, wd.damage2, 20 * lv);
 		}
 #endif
@@ -5217,20 +5218,19 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		if(skill_id != CR_SHIELDBOOMERANG) //Only Shield Boomerang doesn't takes the Star Crumbs bonus
 			ATK_ADD2(wd.damage, wd.damage2, wd.div_ * sd->right_weapon.star, wd.div_ * sd->left_weapon.star);
 		if(skill_id == MO_FINGEROFFENSIVE) { //The finger offensive spheres on moment of attack do count [Skotlex]
-			ATK_ADD(wd.damage, wd.damage2, ((wd.div_ < 1) ? 1 : wd.div_) * sd->spiritball_old * 3);
+			ATK_ADD(wd.damage, wd.damage2, (wd.div_ < 1 ? 1 : wd.div_) * sd->spiritball_old * 3);
 		} else
-			ATK_ADD(wd.damage, wd.damage2, ((wd.div_ < 1) ? 1 : wd.div_) * sd->spiritball * 3);
+			ATK_ADD(wd.damage, wd.damage2, (wd.div_ < 1 ? 1 : wd.div_) * sd->spiritball * 3);
 	}
-
-	if(sc && sc->data[SC_AURABLADE] && skill_id != LK_SPIRALPIERCE && skill_id != ML_SPIRALPIERCE)
-		ATK_ADD(wd.damage, wd.damage2, 20 * sc->data[SC_AURABLADE]->val1);
 #else
-	if(sc && sc->data[SC_WATK_ELEMENT])
-		ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_WATK_ELEMENT]->val2);
-
 	if(!sd) //Only monsters have a single ATK for element, in pre-renewal we also apply element to entire ATK on players [helvetica]
 #endif
 		wd = battle_calc_element_damage(wd, src, target, skill_id, skill_lv);
+
+#ifndef RENEWAL
+	if(sc && sc->data[SC_AURABLADE] && wd.dmg_lv != ATK_FLEE && skill_id != LK_SPIRALPIERCE && skill_id != ML_SPIRALPIERCE)
+		ATK_ADD(wd.damage, wd.damage2, 20 * sc->data[SC_AURABLADE]->val1);
+#endif
 
 	if(skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS)
 		return wd; //Enough, rest is not needed
@@ -5516,7 +5516,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				break;
 			case ALL_RESURRECTION:
 			case PR_TURNUNDEAD:
-				//Undead check is on skill_castend_damageid code.
+				//Undead check is on skill_castend_damage_id code
 #ifdef RENEWAL
 				i = 10 * skill_lv + sstatus->luk + sstatus->int_ + status_get_lv(src) +
 					300 - 300 * tstatus->hp / tstatus->max_hp;
@@ -6420,9 +6420,9 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				struct status_change *sc = status_get_sc(src);
 				short totaldef;
 
-				md.damage = sstatus->hp + (atk.damage * sstatus->hp * skill_lv) / sstatus->max_hp;
+				md.damage = sstatus->hp + atk.damage * sstatus->hp * skill_lv / sstatus->max_hp;
+				//Mirror image bonus only occurs if active
 				if(sc && sc->data[SC_BUNSINJYUTSU] && (i = sc->data[SC_BUNSINJYUTSU]->val2) > 0) {
-					//Mirror image bonus only occurs if active
 					md.div_ = -(i + 2); //Mirror image count + 2
 					md.damage += (md.damage * (((i + 1) * 10) / 5)) / 10;
 				}
@@ -7216,7 +7216,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		skill_castend_damage_id(src,target,0,1,tick,0);
 
 	if (target->type == BL_SKILL && damage > 0) {
-		TBL_SKILL *su = ((TBL_SKILL*)target);
+		TBL_SKILL *su = (TBL_SKILL *)target;
 
 		if (su && su->group) {
 			if (su->group->skill_id == HT_BLASTMINE)

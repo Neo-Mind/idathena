@@ -124,9 +124,9 @@ int pet_attackskill(struct pet_data *pd, int target_id)
 		inf = skill_get_inf(pd->a_skill->id);
 		if (inf&INF_GROUND_SKILL)
 			unit_skilluse_pos(&pd->bl, bl->x, bl->y, pd->a_skill->id, pd->a_skill->lv);
-		else //Offensive self skill? Could be stuff like GX.
+		else //Offensive self skill? Could be stuff like GX
 			unit_skilluse_id(&pd->bl, (inf&INF_SELF_SKILL ? pd->bl.id : bl->id), pd->a_skill->id, pd->a_skill->lv);
-		return 1; //Skill invoked.
+		return 1; //Skill invoked
 	}
 	return 0;
 }

@@ -3952,7 +3952,7 @@ int cleanup_sub(struct block_list *bl, va_list ap)
 			map_clearflooritem(bl);
 			break;
 		case BL_SKILL:
-			skill_delunit((struct skill_unit *) bl);
+			skill_delunit((struct skill_unit *)bl);
 			break;
 	}
 

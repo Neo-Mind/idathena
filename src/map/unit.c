@@ -1484,8 +1484,8 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		combo = 1;
 	}
 
+	//Target_id checking
 	if( sd ) {
-		//Target_id checking
 		if( skill_isNotOk(skill_id,sd) ) //[MouseJstr]
 			return 0;
 		switch( skill_id ) { //Check for skills that auto-select target
@@ -1508,7 +1508,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		}
 		if( target )
 			target_id = target->id;
-	} else if( src->type == BL_HOM )
+	} else if( src->type == BL_HOM ) {
 		switch( skill_id ) { //Homun-auto-target skills
 			case HLIF_HEAL:
 			case HLIF_AVOID:
@@ -1522,7 +1522,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 			case MH_SONIC_CRAW:
 			case MH_TINDER_BREAKER:
 				{
-					int skill_id2 = ((skill_id == MH_SONIC_CRAW) ? MH_MIDNIGHT_FRENZY : MH_EQC);
+					int skill_id2 = (skill_id == MH_SONIC_CRAW ? MH_MIDNIGHT_FRENZY : MH_EQC);
 
 					if( sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == skill_id2 ) { //It's a combo
 						target_id = sc->data[SC_COMBO]->val2;
@@ -1532,6 +1532,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 				}
 				break;
 		}
+	}
 
 	if( !target ) //Choose default target
 		target = map_id2bl(target_id);
@@ -1800,9 +1801,9 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	}
 
 	if( !ud->state.running ) //Need TK_RUN or WUGDASH handler to be done before that, see bugreport:6026
-		unit_stop_walking(src, 1); //Eventhough this is not how official works but this will do the trick. bugreport:6829
+		unit_stop_walking(src, 1); //Eventhough this is not how official works but this will do the trick bugreport:6829
 
-	//In official this is triggered even if no cast time.
+	//In official this is triggered even if no cast time
 	clif_skillcasting(src, src->id, target_id, 0, 0, skill_id, skill_get_ele(skill_id, skill_lv), casttime);
 
 	if( sd && target->type == BL_MOB ) {
