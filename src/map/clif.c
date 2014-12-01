@@ -4748,7 +4748,7 @@ void clif_getareachar_skillunit(struct block_list *bl, struct skill_unit *unit, 
 			case HT_FLASHER:
 			case HT_FREEZINGTRAP:
 			case MA_FREEZINGTRAP:
-				unit_id = UNT_DUMMYSKILL; //Use invisible unit id for hunter's traps.
+				unit_id = UNT_DUMMYSKILL; //Use invisible unit id for hunter's traps
 				break;
 		}
 	}

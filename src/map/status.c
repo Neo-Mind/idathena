@@ -9291,7 +9291,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_THORNSTRAP:
 				tick_time = 1000;
 				val4 = tick / tick_time;
-				tick = -1;
 				break;
 			case SC_BLOODSUCKER:
 				tick_time = 1000;
@@ -9927,7 +9926,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_CRYSTALIZE:
 		case SC_CURSEDCIRCLE_ATKER:
 		case SC_FEAR:
-		case SC_NETHERWORLD:
 		case SC_MEIKYOUSISUI:
 		case SC_PARALYSIS:
 		case SC_KAGEHUMI:
@@ -9940,6 +9938,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 		case SC_ELECTRICSHOCKER:
 		case SC_MAGNETICFIELD:
 		case SC_CURSEDCIRCLE_TARGET:
+		case SC_NETHERWORLD:
 			if (!unit_blown_immune(bl,0x3))
 				unit_stop_walking(bl,1);
 			if (type == SC_CURSEDCIRCLE_TARGET)

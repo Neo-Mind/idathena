@@ -1984,7 +1984,7 @@ static bool target_has_infinite_defense(struct block_list *target, uint16 skill_
 	if(target->type == BL_SKILL) {
 		TBL_SKILL *su = ((TBL_SKILL*)target);
 
-		if(su && su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
+		if(su && su->group && su->group->skill_id == WM_REVERBERATION)
 			return true;
 	}
 
@@ -5471,7 +5471,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	if(target->type == BL_SKILL) {
 		TBL_SKILL *su = ((TBL_SKILL*)target);
 
-		if(su && su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
+		if(su && su->group && su->group->skill_id == WM_REVERBERATION)
 			flag.infdef = 1;
 	}
 
@@ -6613,7 +6613,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		} else if(target->type == BL_SKILL) {
 			TBL_SKILL *su = ((TBL_SKILL*)target);
 
-			if(su && su->group && (su->group->skill_id == WM_REVERBERATION || su->group->skill_id == WM_POEMOFNETHERWORLD))
+			if(su && su->group && su->group->skill_id == WM_REVERBERATION)
 				md.damage = 1;
 		}
 	} else
@@ -7555,9 +7555,8 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 
 				if( !su || !su->group )
 					return 0;
-				//Only a few skills can target traps
 				if( skill_get_inf2(su->group->skill_id)&INF2_TRAP && su->group->unit_id != UNT_USED_TRAPS ) {
-					switch( battle_getcurrentskill(src) ) {
+					switch( battle_getcurrentskill(src) ) { //Only a few skills can target traps
 						case RK_DRAGONBREATH: //It can only hit traps in pvp/gvg maps
 						case RK_DRAGONBREATH_WATER:
 							if( !map[m].flag.pvp && !map[m].flag.gvg )

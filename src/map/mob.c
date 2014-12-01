@@ -1558,7 +1558,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 			if(!can_move) //Stuck, wait before walking
 				return true;
 			md->state.skillstate = MSS_LOOT;
-			if(!unit_walktobl(&md->bl, tbl, 1, 0))
+			if(!unit_walktobl(&md->bl, tbl, 0, 1))
 				mob_unlocktarget(md, tick); //Can't loot
 			return true;
 		}

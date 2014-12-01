@@ -3296,8 +3296,8 @@ static int skill_check_unit_range_sub(struct block_list *bl, va_list ap)
 		case GN_HELLS_PLANT:
 		case RL_B_TRAP:
 			//Non stackable on themselves and traps (including venom dust and poison mist which does not has the trap inf2 set)
-			if (skill_id != g_skill_id && !(skill_get_inf2(g_skill_id)&INF2_TRAP) &&
-				g_skill_id != AS_VENOMDUST && g_skill_id != MH_POISON_MIST)
+			if (skill_id != g_skill_id && !(skill_get_inf2(g_skill_id)&INF2_TRAP) && g_skill_id != AS_VENOMDUST &&
+				g_skill_id != MH_POISON_MIST)
 				return 0;
 			break;
 		default: //Avoid stacking with same kind of trap [Skotlex]
@@ -3368,6 +3368,7 @@ static int skill_check_unit_range2(struct block_list *bl, int x, int y, uint16 s
 				range = 2;
 				break;
 			case SC_MANHOLE:
+			case WM_POEMOFNETHERWORLD:
 			case GN_HELLS_PLANT:
 				range = 0;
 				break;
@@ -3562,8 +3563,11 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 
 	nullpo_ret(src);
 	nullpo_ret(ud);
+
 	skl = ud->skilltimerskill[data];
+
 	nullpo_ret(skl);
+
 	ud->skilltimerskill[data] = NULL;
 
 	do {
@@ -3598,7 +3602,6 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 			}
 			if (status_isdead(target) && skl->skill_id != RG_INTIMIDATE && skl->skill_id != WZ_WATERBALL)
 				break;
-
 			switch (skl->skill_id) {
 				case KN_AUTOCOUNTER:
 					clif_skill_nodamage(src,target,skl->skill_id,skl->skill_lv,1);
@@ -3702,7 +3705,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case WM_REVERBERATION_MELEE:
 				case WM_REVERBERATION_MAGIC:
 					//Damage should split among targets
-					skill_castend_damage_id(src,target,skl->skill_id,skl->skill_lv,tick,skl->flag|SD_LEVEL);
+					skill_castend_damage_id(src,target,skl->skill_id,skl->skill_lv,tick,skl->flag);
 					break;
 				case SC_FATALMENACE:
 					if (src == target) //Casters Part
@@ -3833,6 +3836,7 @@ int skill_addtimerskill(struct block_list *src, unsigned int tick, int target, i
 
 	if (src->prev == NULL)
 		return 0;
+
 	ud = unit_bl2ud(src);
 
 	nullpo_retr(1, ud);
@@ -3909,8 +3913,8 @@ static int skill_reveal_trap(struct block_list *bl, va_list ap)
 {
 	TBL_SKILL *su = (TBL_SKILL*)bl;
 
-	if (su->alive && su->group && (skill_get_inf2(su->group->skill_id)&INF2_TRAP)) { //Reveal trap.
-		//Change look is not good enough, the client ignores it as an actual trap still. [Skotlex]
+	if (su->alive && su->group && (skill_get_inf2(su->group->skill_id)&INF2_TRAP)) { //Reveal trap
+		//Change look is not good enough, the client ignores it as an actual trap still [Skotlex]
 		//clif_changetraplook(bl, su->group->unit_id);
 		clif_getareachar_skillunit(&su->bl, su, AREA, 0);
 		return 1;
@@ -12005,15 +12009,15 @@ static int skill_dance_overlap_sub(struct block_list* bl, va_list ap)
 	if (!target->group || !(target->group->state.song_dance&0x1))
 		return 0;
 
-	if (!(target->val2&src->val2&~UF_ENSEMBLE)) //They don't match (song + dance) is valid.
+	if (!(target->val2&src->val2&~UF_ENSEMBLE)) //They don't match (song + dance) is valid
 		return 0;
 
 	if (flag) //Set dissonance
-		target->val2 |= UF_ENSEMBLE; //Add ensemble to signal this unit is overlapping.
+		target->val2 |= UF_ENSEMBLE; //Add ensemble to signal this unit is overlapping
 	else //Remove dissonance
 		target->val2 &= ~UF_ENSEMBLE;
 
-	clif_getareachar_skillunit(&target->bl, target, AREA, 0); //Update look of affected cell.
+	clif_getareachar_skillunit(&target->bl, target, AREA, 0); //Update look of affected cell
 
 	return 1;
 }
@@ -12161,15 +12165,15 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 			if( !(flag&1) )
 				limit = 2000;
 			else { //Previous implementation (not used anymore)
-				//Warp Portal morphing to active mode, extract relevant data from src. [Skotlex]
+				//Warp Portal morphing to active mode, extract relevant data from src [Skotlex]
 				if( src->type != BL_SKILL )
 					return NULL;
 				group = ((TBL_SKILL*)src)->group;
 				src = map_id2bl(group->src_id);
 				if( !src )
 					return NULL;
-				val2 = group->val2; //Copy the (x,y) position you warp to.
-				val3 = group->val3; //As well as the mapindex to warp to.
+				val2 = group->val2; //Copy the (x,y) position you warp to
+				val3 = group->val3; //As well as the mapindex to warp to
 			}
 			break;
 		case HP_BASILICA:
@@ -12192,9 +12196,8 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 		case GN_HELLS_PLANT:
 			if( skill_id == GN_HELLS_PLANT && map_getcell(src->m,x,y,CELL_CHKLANDPROTECTOR) )
 				return NULL;
-			//The target changes to "all" if used in a gvg map. [Skotlex]
-			if( map_flag_vs(src->m) && battle_config.vs_traps_bctall &&
-				(src->type&battle_config.vs_traps_bctall) )
+			//The target changes to "all" if used in a gvg map [Skotlex]
+			if( battle_config.vs_traps_bctall && map_flag_vs(src->m) && (src->type&battle_config.vs_traps_bctall) )
 				target = BCT_ALL;
 			break;
 		case HT_ANKLESNARE:
@@ -12233,7 +12236,7 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 					limit *= 4; //Longer trap times in WoE [celest]
 				if( skill_id != RL_B_TRAP &&
 					battle_config.vs_traps_bctall && map_flag_vs(src->m) && (src->type&battle_config.vs_traps_bctall) )
-						target = BCT_ALL;
+					target = BCT_ALL;
 			}
 			break;
 		case SA_VOLCANO:
@@ -12414,9 +12417,6 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 		case LG_BANDING:
 			limit = -1;
 			break;
-		case WM_REVERBERATION:
-			interval = limit;
-			val2 = 1;
 		case WM_SEVERE_RAINSTORM:
 		case WM_POEMOFNETHERWORLD:
 			if( skill_id == WM_POEMOFNETHERWORLD && map_flag_gvg2(src->m) )
@@ -12568,7 +12568,6 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 				val2 = 0;
 				break;
 			case WM_REVERBERATION:
-			case WM_POEMOFNETHERWORLD:
 				val1 = 1 + skill_lv;
 				break;
 			case GN_WALLOFTHORN:
@@ -13266,7 +13265,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			break;
 
 		case UNT_TALKIEBOX:
-			if (group->src_id == bl->id)
+			if (bl->id == src->id)
 				break;
 			if (group->val2 == 0) {
 				clif_talkiebox(&unit->bl,group->valstr);
@@ -13278,13 +13277,13 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			break;
 
 		case UNT_LULLABY:
-			if (src->id == bl->id)
+			if (bl->id == src->id)
 				break;
 			skill_additional_effect(src,bl,skill_id,skill_lv,BF_LONG|BF_SKILL|BF_MISC,ATK_DEF,tick);
 			break;
 
 		case UNT_UGLYDANCE:
-			if (src->id != bl->id)
+			if (bl->id != src->id)
 				skill_additional_effect(src,bl,skill_id,skill_lv,BF_LONG|BF_SKILL|BF_MISC,ATK_DEF,tick);
 			break;
 
@@ -13300,7 +13299,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 				if (md && md->mob_id == MOBID_EMPERIUM)
 					break;
 #endif
-				if ((group->src_id == bl->id &&
+				if ((bl->id == src->id &&
 					!(tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_BARDDANCER)) ||
 					(!battle_config.song_timer_reset && tsc && tsc->data[type] && tsc->data[type]->val4 == 1))
 					break;
@@ -13489,7 +13488,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			break;
 
 		case UNT_STEALTHFIELD:
-			if (src == bl)
+			if (bl->id == src->id)
 				break;
 			sc_start(src,bl,type,100,skill_lv,group->interval + 100);
 			break;
@@ -13514,12 +13513,11 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			break;
 
 		case UNT_POEMOFNETHERWORLD:
-			if ((status_get_mode(bl)&MD_BOSS) || src == bl ||
+			if ((status_get_mode(bl)&MD_BOSS) || bl->id == src->id ||
 				(map_flag_gvg2(src->m) && battle_check_target(&unit->bl,bl,BCT_PARTY) > 0))
 				break;
-			if (tsc && tsc->data[SC_NETHERWORLD_IMMUNE])
-				break; //Immune for 2 secs
-			if (!(tsc && tsc->data[type])) {
+			if (!(tsc && (tsc->data[type] ||
+				tsc->data[SC_NETHERWORLD_IMMUNE]))) { //Immune for 2 secs
 				sc_start(src,bl,type,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 				group->limit = DIFF_TICK(tick,group->tick);
 				group->unit_id = UNT_USED_TRAPS;
@@ -13527,8 +13525,12 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			break;
 
 		case UNT_THORNS_TRAP:
-			if (group->val2 == 0) {
-				sc_start4(src,bl,type,100,skill_lv,src->id,group->group_id,0,skill_get_time(skill_id,skill_lv));
+			if (bl->id == src->id)
+				break;
+			if (group->val2 == 0 && !(tsc && tsc->data[type])) {
+				int time = skill_get_time(skill_id,skill_lv) - DIFF_TICK(tick,group->tick);
+
+				sc_start4(src,bl,type,100,skill_lv,src->id,group->group_id,0,time);
 				group->val2 = bl->id;
 			}
 			break;
@@ -13555,7 +13557,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 		case UNT_HELLS_PLANT:
 			if (battle_check_target(&unit->bl,bl,BCT_ENEMY) > 0)
 				skill_attack(skill_get_type(GN_HELLS_PLANT_ATK),src,&unit->bl,bl,GN_HELLS_PLANT_ATK,skill_lv,tick,0);
-			if (src != bl) //The caster is the only one who can step on the Plants, without destroying them
+			if (bl->id != src->id) //The caster is the only one who can step on the Plants, without destroying them
 				skill_delunit(group->unit); //Deleting it directly to avoid extra hits
 			break;
 
@@ -13583,7 +13585,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 		case UNT_WATER_BARRIER:
 		case UNT_ZEPHYR:
 		case UNT_POWER_OF_GAIA:
-			if (src == bl)
+			if (bl->id == src->id)
 				break; //Doesn't affect the elemental
 			sc_start(src,bl,type,100,skill_lv,group->interval + 100);
 			break;
@@ -14002,7 +14004,6 @@ int skill_unit_ondamaged(struct skill_unit *unit, int64 damage)
 		case UNT_ICEWALL:
 		case UNT_WALLOFTHORN:
 		case UNT_REVERBERATION:
-		case UNT_POEMOFNETHERWORLD:
 			unit->val1 -= (int)cap_value(damage,INT_MIN,INT_MAX);
 			break;
 		default:
@@ -17848,14 +17849,12 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 				break;
 
 			case UNT_REVERBERATION:
-			case UNT_POEMOFNETHERWORLD:
 				if( unit->val1 <= 0 ) { //If it was deactivated
 					skill_delunit(unit);
 					break;
 				}
 				clif_changetraplook(bl,UNT_USED_TRAPS);
-				if( group->unit_id == UNT_REVERBERATION )
-					map_foreachinrange(skill_trap_splash,bl,skill_get_splash(group->skill_id,group->skill_lv),group->bl_flag,bl,tick);
+				map_foreachinrange(skill_trap_splash,bl,skill_get_splash(group->skill_id,group->skill_lv),group->bl_flag,bl,tick);
 				group->limit = DIFF_TICK(tick,group->tick) + 1000;
 				unit->limit = DIFF_TICK(tick,group->tick) + 1000;
 				group->unit_id = UNT_USED_TRAPS;
@@ -17878,7 +17877,7 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 						skill_delunit(unit);
 						break;
 					}
-					//This unit isn't removed while SC_BANDING is active.
+					//This unit isn't removed while SC_BANDING is active
 					group->limit = DIFF_TICK(tick + group->interval,group->tick);
 					unit->limit = DIFF_TICK(tick + group->interval,group->tick);
 				}
@@ -17931,11 +17930,9 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 				}
 				break;
 			case UNT_REVERBERATION:
-			case UNT_POEMOFNETHERWORLD:
 				if( unit->val1 <= 0 ) {
 					clif_changetraplook(bl,UNT_USED_TRAPS);
-					if( group->unit_id == UNT_REVERBERATION )
-						map_foreachinrange(skill_trap_splash,bl,skill_get_splash(group->skill_id,group->skill_lv),group->bl_flag,bl,tick);
+					map_foreachinrange(skill_trap_splash,bl,skill_get_splash(group->skill_id,group->skill_lv),group->bl_flag,bl,tick);
 					group->limit = DIFF_TICK(tick,group->tick) + 1000;
 					unit->limit = DIFF_TICK(tick,group->tick) + 1000;
 					group->unit_id = UNT_USED_TRAPS;
