@@ -3705,7 +3705,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case WM_REVERBERATION_MELEE:
 				case WM_REVERBERATION_MAGIC:
 					//Damage should split among targets
-					skill_castend_damage_id(src,target,skl->skill_id,skl->skill_lv,tick,skl->flag);
+					skill_castend_damage_id(src,target,skl->skill_id,skl->skill_lv,tick,skl->flag|SD_LEVEL);
 					break;
 				case SC_FATALMENACE:
 					if (src == target) //Casters Part
