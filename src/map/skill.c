@@ -7458,6 +7458,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				status_zap(src,0,sp);
 			}
 			break;
+
 		case SA_SPELLBREAKER: {
 				int sp;
 
@@ -7473,7 +7474,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					int bl_skill_id = 0, bl_skill_lv = 0, hp = 0;
 
 					if(!ud || ud->skilltimer == INVALID_TIMER)
-						break; //Nothing to cancel.
+						break; //Nothing to cancel
 					bl_skill_id = ud->skill_id;
 					bl_skill_lv = ud->skill_lv;
 					if(tstatus->mode & MD_BOSS) { //Only 10% success chance against bosses [Skotlex]
@@ -7482,7 +7483,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 								clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 							break;
 						}
-					} else if(!dstsd || map_flag_vs(bl->m)) //HP damage only on pvp-maps when against players.
+					} else if(!dstsd || map_flag_vs(bl->m)) //HP damage only on pvp-maps when against players
 						hp = tstatus->max_hp / 50; //Recover 2% HP [Skotlex]
 
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
@@ -7503,10 +7504,12 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				}
 			}
 			break;
+
 		case SA_MAGICROD:
 			clif_skill_nodamage(src,src,SA_MAGICROD,skill_lv,1);
 			sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 			break;
+
 		case SA_AUTOSPELL:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			if(sd)
@@ -11564,7 +11567,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case AB_EPICLESIS:
 			if( (sg = skill_unitsetting(src,skill_id,skill_lv,x,y,0)) && !map_flag_vs(src->m) ) {
 				i = sg->unit->range;
-				map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,BL_CHAR,src,ALL_RESURRECTION,1,tick,flag|BCT_NOENEMY|1,skill_castend_nodamage_id);
+				map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,BL_CHAR,src,
+					ALL_RESURRECTION,1,tick,flag|BCT_NOENEMY|1,skill_castend_nodamage_id);
 			}
 			break;
 
@@ -12994,13 +12998,25 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 	//NOTE: This check doesn't matter the location, as long as one of units touched, this check will be executed
 	if (bl->type == BL_SKILL && skill_get_ele(skill_id,skill_lv) == ELE_FIRE) {
 		struct skill_unit *su = (struct skill_unit *)bl;
+		struct skill_unit_group *sg = NULL;
 
-		if (su && su->group && su->group->unit_id == UNT_WALLOFTHORN) {
-			su->group->limit = 0;
-			su->group->unit_id = UNT_USED_TRAPS;
-			skill_unitsetting(map_id2bl(su->group->src_id),su->group->skill_id,su->group->skill_lv,su->group->val3>>16,su->group->val3&0xffff,1);
-			return skill_id;
+		if (su && (sg = su->group) && sg->unit_id == UNT_WALLOFTHORN) {
+			struct unit_data *ud = unit_bl2ud(map_id2bl(sg->src_id));
+			uint8 i;
+
+			if (ud) {
+				for (i = 0; i < MAX_SKILLUNITGROUP; i++) {
+					if (ud->skillunit[i] && ud->skillunit[i]->skill_id == GN_WALLOFTHORN) {
+						ud->skillunit[i]->unit->group->unit_id = UNT_USED_TRAPS;
+						ud->skillunit[i]->unit->group->limit = DIFF_TICK(tick,ud->skillunit[i]->unit->group->tick);
+						skill_unitsetting(map_id2bl(ud->skillunit[i]->unit->group->src_id),
+							ud->skillunit[i]->unit->group->skill_id,ud->skillunit[i]->unit->group->skill_lv,
+								ud->skillunit[i]->unit->group->val3>>16,ud->skillunit[i]->unit->group->val3&0xffff,1);
+					}
+				}
+			}
 		}
+		return skill_id;
 	}
 
 	switch (group->unit_id) {
@@ -13153,7 +13169,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 
 		case UNT_ANKLESNARE:
 		case UNT_MANHOLE:
-			if (group->unit_id == UNT_ANKLESNARE && group->val3 == SC_ESCAPE && map_flag_vs(src->m) && bl->id == src->id)
+			if (group->unit_id == UNT_ANKLESNARE && group->val3 == SC_ESCAPE && map_flag_vs(bl->m) && bl->id == src->id)
 				break;
 			if (group->val2 == 0 && (group->unit_id == UNT_ANKLESNARE || bl->id != src->id)) {
 				int sec = skill_get_time2(skill_id,skill_lv);
@@ -13532,7 +13548,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 		case UNT_WALLOFTHORN:
 			if (status_get_mode(bl)&MD_BOSS)
 				break;
-			if (battle_check_target(src,bl,BCT_ENEMY) > 0)
+			if (battle_check_target(src,bl,BCT_ENEMY) > 0 || map_flag_vs(bl->m))
 				skill_attack(skill_get_type(skill_id),src,&unit->bl,bl,skill_id,skill_lv,tick,4);
 			skill_blown(&unit->bl,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0x04);
 			unit->val3--;

@@ -370,19 +370,30 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 		}
 	}
 
-	if( target && target->type == BL_SKILL ) {
-		//Wall of Thorn damaged by Fire element type attacks (non unit)
-		if( atk_elem == ELE_FIRE && battle_getcurrentskill(target) == GN_WALLOFTHORN ) {
-			struct skill_unit *su = (struct skill_unit *)target;
-			struct skill_unit_group *sg;
-			struct block_list *src;
+	//Wall of Thorn damaged by Fire element type attacks (non unit)
+	if( target && target->type == BL_SKILL && atk_elem == ELE_FIRE && battle_getcurrentskill(target) == GN_WALLOFTHORN ) {
+		struct skill_unit *su = (struct skill_unit *)target;
+		struct skill_unit_group *sg = NULL;
+		struct block_list *src = NULL;
 
-			if( !su || !su->alive || (sg = su->group) == NULL || (src = map_id2bl(sg->src_id)) == NULL || status_isdead(src) )
-				return 0;
+		if( !su || !su->alive || (sg = su->group) == NULL || (src = map_id2bl(sg->src_id)) == NULL || status_isdead(src) )
+			return 0;
 
-			sg->limit = 0;
-			sg->unit_id = UNT_USED_TRAPS;
-			skill_unitsetting(src,sg->skill_id,sg->skill_lv,sg->val3>>16,sg->val3&0xffff,1);
+		{
+			struct unit_data *ud = unit_bl2ud(src);
+			uint8 i;
+
+			if( ud ) {
+				for( i = 0; i < MAX_SKILLUNITGROUP; i++ ) {
+					if( ud->skillunit[i] && ud->skillunit[i]->skill_id == GN_WALLOFTHORN ) {
+						ud->skillunit[i]->unit->group->unit_id = UNT_USED_TRAPS;
+						ud->skillunit[i]->unit->group->limit = 0;
+						skill_unitsetting(map_id2bl(ud->skillunit[i]->unit->group->src_id),
+							ud->skillunit[i]->unit->group->skill_id,ud->skillunit[i]->unit->group->skill_lv,
+								ud->skillunit[i]->unit->group->val3>>16,ud->skillunit[i]->unit->group->val3&0xffff,1);
+					}
+				}
+			}
 		}
 	}
 
