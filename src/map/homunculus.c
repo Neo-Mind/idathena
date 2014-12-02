@@ -56,8 +56,6 @@ static struct view_data hom_viewdb[MAX_HOMUNCULUS_CLASS];
  */
 static short hom_skill_get_index(int skill_id)
 {
-	short idx = 0;
-
 	if (!skill_get_index(skill_id))
 		return -1;
 	if ((skill_id -= HM_SKILLBASE) < 0 || skill_id >= MAX_HOMUNSKILL)
