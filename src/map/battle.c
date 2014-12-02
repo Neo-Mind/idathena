@@ -4639,34 +4639,26 @@ struct Damage battle_calc_attack_left_right_hands(struct Damage wd, struct block
 			wd.damage2 = 0;
 		} else if(sd->status.weapon == W_KATAR && !skill_id) { //Katars (offhand damage only applies to normal attacks, tested on Aegis 10.2)
 			skill = pc_checkskill(sd, TF_DOUBLE);
-			wd.damage2 = wd.damage * (1 + (skill * 2)) / 100;
+			wd.damage2 = wd.damage * (1 + skill * 2) / 100;
 		} else if(is_attack_right_handed(src, skill_id) && is_attack_left_handed(src, skill_id)) { //Dual-wield
 			if(wd.damage) {
 				if((sd->class_&MAPID_BASEMASK) == MAPID_THIEF) {
-					if((skill = pc_checkskill(sd,AS_RIGHT)) > 0) {
-						ATK_RATER(wd.damage, 50 + (skill * 10));
-					} else
-						ATK_RATER(wd.damage, 50);
+					skill = pc_checkskill(sd,AS_RIGHT);
+					ATK_RATER(wd.damage, 50 + skill * 10);
 				} else if((sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) {
-					if((skill = pc_checkskill(sd,KO_RIGHT)) > 0) {
-						ATK_RATER(wd.damage, 70 + (skill * 10));
-					} else
-						ATK_RATER(wd.damage, 70);
+					skill = pc_checkskill(sd,KO_RIGHT);
+					ATK_RATER(wd.damage, 70 + skill * 10);
 				}
 				if(wd.damage < 1)
 					wd.damage = 1;
 			}
 			if(wd.damage2) {
 				if((sd->class_&MAPID_BASEMASK) == MAPID_THIEF) {
-					if((skill = pc_checkskill(sd,AS_LEFT)) > 0) {
-						ATK_RATEL(wd.damage2, 30 + (skill * 10));
-					} else
-						ATK_RATEL(wd.damage2, 30);
+					skill = pc_checkskill(sd,AS_LEFT);
+					ATK_RATEL(wd.damage2, 30 + skill * 10);
 				} else if((sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) {
-					if((skill = pc_checkskill(sd,KO_LEFT)) > 0) {
-						ATK_RATEL(wd.damage2, 50 + (skill * 10));
-					} else
-						ATK_RATEL(wd.damage2, 50);
+					skill = pc_checkskill(sd,KO_LEFT);
+					ATK_RATEL(wd.damage2, 50 + skill * 10);
 				}
 				if(wd.damage2 < 1)
 					wd.damage2 = 1;
