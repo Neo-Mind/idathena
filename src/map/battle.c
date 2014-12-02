@@ -947,7 +947,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( sc->data[SC_TATAMIGAESHI] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG )
 			return 0;
 
-		if( sc->data[SC_NEUTRALBARRIER] && (skill_id == NPC_EARTHQUAKE || (flag&(BF_LONG|BF_MAGIC)) == BF_LONG) ) {
+		if( sc->data[SC_NEUTRALBARRIER] && (skill_id == NPC_EARTHQUAKE || (flag&(BF_LONG|BF_MAGIC)) == BF_LONG) &&
+			skill_id != KO_MUCHANAGE ) {
 			d->dmg_lv = ATK_MISS;
 			return 0;
 		}
@@ -976,7 +977,12 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 
 		if( ((sce = sc->data[SC_UTSUSEMI]) || sc->data[SC_BUNSINJYUTSU]) &&
-			flag&BF_WEAPON && !(skill_get_nk(skill_id)&NK_NO_CARDFIX_ATK) ) {
+			((flag&BF_WEAPON && !(skill_get_nk(skill_id)&NK_NO_CARDFIX_ATK))
+#ifdef RENEWAL
+			|| skill_id == NJ_ISSEN
+#endif
+			) )
+		{
 			skill_additional_effect(src,bl,skill_id,skill_lv,flag,ATK_BLOCK,gettick());
 			if( !status_isdead(src) )
 				skill_counter_additional_effect(src,bl,skill_id,skill_lv,flag,gettick());
@@ -1065,12 +1071,14 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			{
 				struct status_change *d_sc = status_get_sc(d_bl);
 
-				if( d_sc && d_sc->data[SC_DEFENDER] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG )
+				if( d_sc && d_sc->data[SC_DEFENDER] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG &&
+					skill_id != KO_MUCHANAGE )
 					damage -= damage * d_sc->data[SC_DEFENDER]->val2 / 100;
 			}
 		}
 
-		if( sc->data[SC_DEFENDER] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG )
+		if( sc->data[SC_DEFENDER] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG &&
+			skill_id != KO_MUCHANAGE )
 			damage -= damage * sc->data[SC_DEFENDER]->val2 / 100;
 
 		if( sc->data[SC_ADJUSTMENT] && (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
@@ -4635,22 +4643,30 @@ struct Damage battle_calc_attack_left_right_hands(struct Damage wd, struct block
 		} else if(is_attack_right_handed(src, skill_id) && is_attack_left_handed(src, skill_id)) { //Dual-wield
 			if(wd.damage) {
 				if((sd->class_&MAPID_BASEMASK) == MAPID_THIEF) {
-					skill = pc_checkskill(sd,AS_RIGHT);
-					ATK_RATER(wd.damage, 50 + (skill * 10));
+					if((skill = pc_checkskill(sd,AS_RIGHT)) > 0)
+						ATK_RATER(wd.damage, 50 + (skill * 10));
+					else
+						ATK_RATER(wd.damage, 50);
 				} else if((sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) {
-					skill = pc_checkskill(sd,KO_RIGHT);
-					ATK_RATER(wd.damage, 70 + (skill * 10));
+					if((skill = pc_checkskill(sd,KO_RIGHT)) > 0)
+						ATK_RATER(wd.damage, 70 + (skill * 10));
+					else
+						ATK_RATER(wd.damage, 70);
 				}
 				if(wd.damage < 1)
 					wd.damage = 1;
 			}
 			if(wd.damage2) {
 				if((sd->class_&MAPID_BASEMASK) == MAPID_THIEF) {
-					skill = pc_checkskill(sd,AS_LEFT);
-					ATK_RATEL(wd.damage2, 30 + (skill * 10));
+					if((skill = pc_checkskill(sd,AS_LEFT)) > 0)
+						ATK_RATEL(wd.damage2, 30 + (skill * 10));
+					else
+						ATK_RATEL(wd.damage2, 30);
 				} else if((sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) {
-					skill = pc_checkskill(sd,KO_LEFT);
-					ATK_RATEL(wd.damage2, 50 + (skill * 10));
+					if((skill = pc_checkskill(sd,KO_LEFT)) > 0)
+						ATK_RATEL(wd.damage2, 50 + (skill * 10));
+					else
+						ATK_RATEL(wd.damage2, 50);
 				}
 				if(wd.damage2 < 1)
 					wd.damage2 = 1;
@@ -6413,7 +6429,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				md.damage = skill_get_zeny(skill_id,skill_lv);
 				if(!md.damage)
 					md.damage = (skill_id == NJ_ZENYNAGE ? 2 : 10);
-				md.damage = (skill_id == NJ_ZENYNAGE ? rnd()%md.damage + md.damage : md.damage * rnd_value(50,100)) / (skill_id == NJ_ZENYNAGE ? 1 : 100);
+				md.damage = (skill_id == NJ_ZENYNAGE ? rnd()%md.damage + md.damage :
+					md.damage * rnd_value(50,100)) / (skill_id == NJ_ZENYNAGE ? 1 : 100);
 				if(sd && skill_id == KO_MUCHANAGE && !pc_checkskill(sd,NJ_TOBIDOUGU))
 					md.damage = md.damage / 2;
 				if(is_boss(target))

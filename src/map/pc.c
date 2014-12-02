@@ -706,7 +706,7 @@ int pc_equippoint(struct map_session_data *sd, int n)
 		return 0;
 
 	if(!itemdb_isequip2(sd->inventory_data[n]))
-		return 0; //Not equippable by players.
+		return 0; //Not equippable by players
 	
 	ep = sd->inventory_data[n]->equip;
 	if(sd->inventory_data[n]->look == W_DAGGER	||

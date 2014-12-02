@@ -12448,7 +12448,7 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 				if( i < 5 ) {
 					val1 = sd->talisman[i]; //No. of aura
 					val2 = i; //Aura type
-					limit += (6000 * val1) - 10000;
+					limit = 6000 * val1;
 					subunt = i - 1;
 					pc_del_talisman(sd,sd->talisman[i],i);
 				}
@@ -13648,42 +13648,42 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 					case UNT_ZENKAI_WATER:
 						switch (rnd()%2 + 1) {
 							case 1:
-								sc_start(src,bl,SC_FREEZE,25,skill_lv,skill_get_time2(skill_id,skill_lv));
+								sc_start(src,bl,SC_FREEZE,25,skill_lv,skill_get_time(skill_id,skill_lv));
 								break;
 							case 2:
-								sc_start(src,bl,SC_FREEZING,25,skill_lv,skill_get_time2(skill_id,skill_lv));
+								sc_start(src,bl,SC_FREEZING,25,skill_lv,skill_get_time(skill_id,skill_lv));
 								break;
 						}
 						break;
 					case UNT_ZENKAI_LAND:
 						switch (rnd()%2 + 1) {
 							case 1:
-								sc_start(src,bl,SC_STONE,25,skill_lv,skill_get_time2(skill_id,skill_lv));
+								sc_start(src,bl,SC_STONE,25,skill_lv,skill_get_time(skill_id,skill_lv));
 								break;
 							case 2:
-								sc_start(src,bl,SC_POISON,25,skill_lv,skill_get_time2(skill_id,skill_lv));
+								sc_start(src,bl,SC_POISON,25,skill_lv,skill_get_time(skill_id,skill_lv));
 								break;
 						}
 						break;
 					case UNT_ZENKAI_FIRE:
-						sc_start4(src,bl,SC_BURNING,25,skill_lv,1000,src->id,0,skill_get_time2(skill_id,skill_lv));
+						sc_start4(src,bl,SC_BURNING,25,skill_lv,1000,src->id,0,skill_get_time(skill_id,skill_lv));
 						break;
 					case UNT_ZENKAI_WIND:
 						switch (rnd()%3 + 1) {
 							case 1:
-								sc_start(src,bl,SC_SLEEP,25,skill_lv,skill_get_time2(skill_id,skill_lv));
+								sc_start(src,bl,SC_SLEEP,25,skill_lv,skill_get_time(skill_id,skill_lv));
 								break;
 							case 2:
-								sc_start(src,bl,SC_SILENCE,25,skill_lv,skill_get_time2(skill_id,skill_lv));
+								sc_start(src,bl,SC_SILENCE,25,skill_lv,skill_get_time(skill_id,skill_lv));
 								break;
 							case 3:
-								sc_start(src,bl,SC_DEEPSLEEP,25,skill_lv,skill_get_time2(skill_id,skill_lv));
+								sc_start(src,bl,SC_DEEPSLEEP,25,skill_lv,skill_get_time(skill_id,skill_lv));
 								break;
 						}
 						break;
 				}
 			} else
-				sc_start2(src,bl,type,100,group->val1,group->val2,skill_get_time2(skill_id,skill_lv));
+				sc_start2(src,bl,type,100,group->val1,group->val2,skill_get_time(skill_id,skill_lv));
 			break;
 
 		case UNT_LAVA_SLIDE:
