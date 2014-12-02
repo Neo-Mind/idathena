@@ -4643,14 +4643,14 @@ struct Damage battle_calc_attack_left_right_hands(struct Damage wd, struct block
 		} else if(is_attack_right_handed(src, skill_id) && is_attack_left_handed(src, skill_id)) { //Dual-wield
 			if(wd.damage) {
 				if((sd->class_&MAPID_BASEMASK) == MAPID_THIEF) {
-					if((skill = pc_checkskill(sd,AS_RIGHT)) > 0)
+					if((skill = pc_checkskill(sd,AS_RIGHT)) > 0) {
 						ATK_RATER(wd.damage, 50 + (skill * 10));
-					else
+					} else
 						ATK_RATER(wd.damage, 50);
 				} else if((sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) {
-					if((skill = pc_checkskill(sd,KO_RIGHT)) > 0)
+					if((skill = pc_checkskill(sd,KO_RIGHT)) > 0) {
 						ATK_RATER(wd.damage, 70 + (skill * 10));
-					else
+					} else
 						ATK_RATER(wd.damage, 70);
 				}
 				if(wd.damage < 1)
@@ -4658,14 +4658,14 @@ struct Damage battle_calc_attack_left_right_hands(struct Damage wd, struct block
 			}
 			if(wd.damage2) {
 				if((sd->class_&MAPID_BASEMASK) == MAPID_THIEF) {
-					if((skill = pc_checkskill(sd,AS_LEFT)) > 0)
+					if((skill = pc_checkskill(sd,AS_LEFT)) > 0) {
 						ATK_RATEL(wd.damage2, 30 + (skill * 10));
-					else
+					} else
 						ATK_RATEL(wd.damage2, 30);
 				} else if((sd->class_&MAPID_UPPERMASK) == MAPID_KAGEROUOBORO) {
-					if((skill = pc_checkskill(sd,KO_LEFT)) > 0)
+					if((skill = pc_checkskill(sd,KO_LEFT)) > 0) {
 						ATK_RATEL(wd.damage2, 50 + (skill * 10));
-					else
+					} else
 						ATK_RATEL(wd.damage2, 50);
 				}
 				if(wd.damage2 < 1)
