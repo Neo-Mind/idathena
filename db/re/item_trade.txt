@@ -2614,8 +2614,8 @@
 20179,475,100	// C_Monkey_Coat_Hat
 
 // kRO 2014-10-08
-675,475,100		// Silver_Coin
-671,475,100		// Gold_Coin
+675,475,100	// Silver_Coin
+671,475,100	// Gold_Coin
 6913,475,100	// Holy_Rosary
 6914,475,100	// Black_Horn
 6915,475,100	// Captured_Soul

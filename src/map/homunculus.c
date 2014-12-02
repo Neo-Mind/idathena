@@ -914,7 +914,7 @@ int hom_change_name(struct map_session_data *sd,char *name)
 		return 1;
 
 	for (i = 0; i < NAME_LENGTH && name[i]; i++)
-		if (!(name[i]&0xe0) || name[i]==0x7f)
+		if (!(name[i]&0xe0) || name[i] == 0x7f)
 			return 1;
 
 	return intif_rename_hom(sd, name);

@@ -4107,12 +4107,8 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 			ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_IMPOSITIO]->val2);
 		if(sc->data[SC_VOLCANO])
 			ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_VOLCANO]->val2);
-		if(sc->data[SC_DRUMBATTLE]) {
-			if(tstatus->size == SZ_SMALL) {
-				ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_DRUMBATTLE]->val2);
-			} else if(tstatus->size == SZ_MEDIUM)
-				ATK_ADD(wd.equipAtk, wd.equipAtk2, 10 * sc->data[SC_DRUMBATTLE]->val1);
-		}
+		if(sc->data[SC_DRUMBATTLE])
+			ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_DRUMBATTLE]->val2);
 		if(sc->data[SC_MADNESSCANCEL])
 			ATK_ADD(wd.equipAtk, wd.equipAtk2, 100);
 		if(sc->data[SC_GATLINGFEVER]) {
@@ -4501,7 +4497,7 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
  *	Initial refactoring by Baalberith
  *	Refined and optimized by helvetica
  */
-struct Damage battle_calc_attack_post_defense(struct Damage wd,struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv)
+struct Damage battle_calc_attack_post_defense(struct Damage wd, struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv)
 {
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 	struct status_change *sc = status_get_sc(src);
@@ -4513,8 +4509,6 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd,struct block_list
 #ifdef RENEWAL
 		if(sc->data[SC_WATK_ELEMENT])
 			ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_WATK_ELEMENT]->val2);
-		if(sc->data[SC_NIBELUNGEN]) //With renewal, the level 4 weapon limitation has been removed
-			ATK_ADD(wd.damage, wd.damage2, sc->data[SC_NIBELUNGEN]->val2);
 		if(sc->data[SC_AURABLADE]) {
 			uint16 lv = sc->data[SC_AURABLADE]->val1;
 
@@ -4522,6 +4516,22 @@ struct Damage battle_calc_attack_post_defense(struct Damage wd,struct block_list
 			ATK_ADD(wd.damage, wd.damage2, 20 * lv);
 		}
 #endif
+		if(sc->data[SC_NIBELUNGEN]) {
+			if(target->type != BL_PC) {
+				ATK_ADD(wd.damage, wd.damage2, sc->data[SC_NIBELUNGEN]->val2);
+			} else if(sd) {
+				short index = sd->equip_index[(sd->state.lr_flag ? EQI_HAND_L : EQI_HAND_R)];
+
+				//In renewal, the level 4 weapon limitation has been removed
+				//But still need to check whether have equipped a weapon or not (bare hand means no bonus damage)
+				if(index >= 0 && sd->inventory_data[index]
+#ifndef RENEWAL
+					&& sd->inventory_data[index]->wlv == 4
+#endif
+					)
+					ATK_ADD(wd.damage, wd.damage2, sc->data[SC_NIBELUNGEN]->val2);
+			}
+		}
 		if(!skill_id) {
 			if(sc->data[SC_ENCHANTBLADE]) {
 				//[((Skill Lv x 20) + 100) x (casterBaseLevel / 150)] + casterInt
