@@ -2530,9 +2530,97 @@
 
 // kRO 2014-05-28
 6885,475,100	// Piece_Of_Soul_Dragon
-20014,475,100	//C_Lincoln_Hat
-20015,475,100	//C_Lincoln_Beard
-20016,475,100	//C_Cool_dinner_hat
-20018,475,100	//C_Holo_ear
-20019,475,100	//C_Beret_Of_Artist
-20038,475,100	//C_Alphonse_Helmet
+20014,475,100	// C_Lincoln_Hat
+20015,475,100	// C_Lincoln_Beard
+20016,475,100	// C_Cool_dinner_hat
+20018,475,100	// C_Holo_ear
+20019,475,100	// C_Beret_Of_Artist
+20038,475,100	// C_Alphonse_Helmet
+
+// kRO 2014-06-04
+//22808,475,100	// Special_Gift_Box
+
+// kRO 2014-06-18
+22781,475,100	// PC_Bang_Normal_Box
+22782,475,100	// PC_Bang_Wooden_Box
+22783,475,100	// PC_Bang_Golden_Box
+22784,475,100	// PC_Bang_Platinum_Box
+
+// kRO 2014-06-25
+6904,475,100	// Piece_Of_Soul_Snake
+20110,475,100	// C_Coiledup_Snake
+22812,475,100	// Sealed_Dracula_Scroll
+22813,475,100	// Bearer's_Shadow_Box
+
+// kRO 2014-07-09
+22760,475,100	// Argiope_Transportin
+22761,475,100	// Luciola_Vespa_Transportin
+22762,475,100	// Centipede_Transportin
+
+// kRO 2014-07-16
+6397,475,100	// PR_Team_Ticket
+12811,475,100	// Event_Gift_Box_
+22802,475,100	// Safe_to_6_Equipment_Certificate
+
+// kRO 2014-07-23
+17501,475,100	// Support_Package_IV
+17502,475,100	// Support_Package_IV(10)
+22823,475,100	// Sealed_Sniper_Scroll
+
+// kRO 2014-07-30
+6907,475,100	// Piece_Of_Soul_Horse
+20139,475,100	// C_Horse_Hairpin
+20140,475,100	// C_Horse_Hairpin
+
+// kRO 2014-08-06
+6909,475,100	// Actinidia_Cat_Fruit
+17507,475,100	// Actinidia_Cat_Fruit_Box(4)
+17508,475,100	// Actinidia_Cat_Fruit_Box(10)
+17509,475,100	// Actinidia_Cat_Fruit_Box(40)
+20135,475,100	// C_12_Anniversary_Crown_Of_Saint
+20136,475,100	// C_12_Anniversary_Elf_Ears
+
+// kRO 2014-08-20
+17510,475,100	// Smelting_Ore_Box_VIII
+17511,475,100	// Smelting_Ore_Box_VIII(10)
+22828,475,100	// Sealed_Album_Scroll
+22829,475,100	// Sealed_Card_Album
+
+// kRO 2014-08-27
+6912,475,100	// Piece_Of_Soul_Sheep
+6674,475,100	// GM_Coin
+
+// kRO 2014-09-09
+6910,475,100	// (Limited)Purified_Oridecon
+6911,475,100	// (Limited)Purified_Eluminium
+17512,475,100	// (Limited)Purified_Eluminium_Box(30)
+17513,475,100	// (Limited)Purified_Oridecon_Box(30)
+
+// kRO 2014-09-17
+6699,475,100	// Faith_Silence
+6700,475,100	// White_Snake_Scale
+6701,475,100	// Treasure_Dwarf
+6702,475,100	// Sweat_Dwarf
+6703,475,100	// Warrior_Tears
+6704,475,100	// Warrior_Anger
+6705,475,100	// Warrior_Certificate
+6706,475,100	// Guardian_Flowers
+
+// kRO 2014-09-24
+6916,475,100	// Piece_Of_Soul_Monkey
+14758,475,100	// Safe_To_Smelting_Scroll
+17515,475,100	// Unlimited_Box_III
+17516,475,100	// Unlimited_Box_III(10)
+20179,475,100	// C_Monkey_Coat_Hat
+
+// kRO 2014-10-08
+675,475,100		// Silver_Coin
+671,475,100		// Gold_Coin
+6913,475,100	// Holy_Rosary
+6914,475,100	// Black_Horn
+6915,475,100	// Captured_Soul
+22837,475,100	// Integer_Time
+
+// kRO 2014-10-22
+14765,475,100	// Limited_Edition_JOB_Battle_Manual
+17520,475,100	// Limited_Edition_Manual_Box

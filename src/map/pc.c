@@ -2063,15 +2063,15 @@ static void pc_bonus_item_drop(struct s_add_drop *drop, const short max, unsigne
 		ShowWarning("pc_bonus_item_drop: Invalid item group %hu\n", group);
 		return;
 	}
-	//Apply config rate adjustment settings.
-	if( rate >= 0 ) { //Absolute drop.
+	//Apply config rate adjustment settings
+	if( rate >= 0 ) { //Absolute drop
 		if( battle_config.item_rate_adddrop != 100 )
 			rate = rate * battle_config.item_rate_adddrop / 100;
 		if( rate < battle_config.item_drop_adddrop_min )
 			rate = battle_config.item_drop_adddrop_min;
 		else if( rate > battle_config.item_drop_adddrop_max )
 			rate = battle_config.item_drop_adddrop_max;
-	} else { //Relative drop, max/min limits are applied at drop time.
+	} else { //Relative drop, max/min limits are applied at drop time
 		if( battle_config.item_rate_adddrop != 100 )
 			rate = rate * battle_config.item_rate_adddrop / 100;
 		if( rate > -1 )
@@ -2088,8 +2088,7 @@ static void pc_bonus_item_drop(struct s_add_drop *drop, const short max, unsigne
 		{
 			//Adjust the rate if it has same classification
 			if( (rate < 0 && drop[i].rate < 0) ||
-				(rate > 0 && drop[i].rate > 0) )
-			{
+				(rate > 0 && drop[i].rate > 0) ) {
 				drop[i].rate += rate;
 				return;
 			}

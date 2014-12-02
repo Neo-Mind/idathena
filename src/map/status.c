@@ -41,10 +41,11 @@
 
 #include <math.h>
 
-//Regen related flags.
+//Regen related flags
 enum e_regen {
-	RGN_HP  = 0x01,
-	RGN_SP  = 0x02,
+	RGN_NONE = 0x00,
+	RGN_HP = 0x01,
+	RGN_SP = 0x02,
 	RGN_SHP = 0x04,
 	RGN_SSP = 0x08,
 };
@@ -950,7 +951,6 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_SITDOWN_FORCE] = SI_SITDOWN_FORCE;
 	StatusIconChangeTable[SC_CURSEDCIRCLE_ATKER] = SI_CURSEDCIRCLE_ATKER;
 	StatusIconChangeTable[SC__BLOODYLUST] = SI_BLOODYLUST;
-	StatusIconChangeTable[SC_STOMACHACHE] = SI_STOMACHACHE;
 	StatusIconChangeTable[SC_MYSTERIOUS_POWDER] = SI_MYSTERIOUS_POWDER;
 	StatusIconChangeTable[SC_MELON_BOMB] = SI_MELON_BOMB;
 	StatusIconChangeTable[SC_BANANA_BOMB] = SI_BANANA_BOMB;
@@ -961,14 +961,15 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_SIROMA_ICE_TEA] = SI_SIROMA_ICE_TEA;
 	StatusIconChangeTable[SC_DROCERA_HERB_STEAMED] = SI_DROCERA_HERB_STEAMED;
 	StatusIconChangeTable[SC_PUTTI_TAILS_NOODLES] = SI_PUTTI_TAILS_NOODLES;
+	StatusIconChangeTable[SC_STOMACHACHE] = SI_STOMACHACHE;
+	StatusIconChangeTable[SC_EXTRACT_WHITE_POTION_Z] = SI_EXTRACT_WHITE_POTION_Z;
+	StatusIconChangeTable[SC_VITATA_500] = SI_VITATA_500;
+	StatusIconChangeTable[SC_EXTRACT_SALAMINE_JUICE] = SI_EXTRACT_SALAMINE_JUICE;
 	StatusIconChangeTable[SC_BOOST500] = SI_BOOST500;
 	StatusIconChangeTable[SC_FULL_SWING_K] = SI_FULL_SWING_K;
 	StatusIconChangeTable[SC_MANA_PLUS] = SI_MANA_PLUS;
 	StatusIconChangeTable[SC_MUSTLE_M] = SI_MUSTLE_M;
 	StatusIconChangeTable[SC_LIFE_FORCE_F] = SI_LIFE_FORCE_F;
-	StatusIconChangeTable[SC_EXTRACT_WHITE_POTION_Z] = SI_EXTRACT_WHITE_POTION_Z;
-	StatusIconChangeTable[SC_VITATA_500] = SI_VITATA_500;
-	StatusIconChangeTable[SC_EXTRACT_SALAMINE_JUICE] = SI_EXTRACT_SALAMINE_JUICE;
 	StatusIconChangeTable[SC_CIRCLE_OF_FIRE] = SI_CIRCLE_OF_FIRE;
 	StatusIconChangeTable[SC_FIRE_CLOAK] = SI_FIRE_CLOAK;
 	StatusIconChangeTable[SC_WATER_SCREEN] = SI_WATER_SCREEN;
@@ -1104,7 +1105,7 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_MUSTLE_M] |= SCB_MAXHP;
 	StatusChangeFlagTable[SC_LIFE_FORCE_F] |= SCB_MAXSP;
 	StatusChangeFlagTable[SC_EXTRACT_WHITE_POTION_Z] |= SCB_REGEN;
-	StatusChangeFlagTable[SC_VITATA_500] |= SCB_REGEN;
+	StatusChangeFlagTable[SC_VITATA_500] |= SCB_REGEN|SCB_MAXSP;
 	StatusChangeFlagTable[SC_EXTRACT_SALAMINE_JUICE] |= SCB_ASPD;
 	StatusChangeFlagTable[SC_REBOUND] |= SCB_SPEED|SCB_REGEN;
 	StatusChangeFlagTable[SC_DEFSET] |= SCB_DEF|SCB_DEF2;
@@ -1610,7 +1611,7 @@ int status_heal(struct block_list *bl, int64 in_hp, int64 in_sp, int flag)
 		sc->data[SC_AUTOBERSERK] &&
 		sc->data[SC_PROVOKE] &&
 		sc->data[SC_PROVOKE]->val2 == 1 &&
-		status->hp >= status->max_hp>>2) //End auto berserk.
+		status->hp >= status->max_hp>>2) //End auto berserk
 		status_change_end(bl, SC_PROVOKE, INVALID_TIMER);
 
 	//Send hp update to client
@@ -2883,9 +2884,11 @@ static int status_get_spbonus(struct block_list *bl, enum e_status_bonus type) {
 			if(sc->data[SC_MERC_SPUP])
 				bonus += sc->data[SC_MERC_SPUP]->val2;
 			if(sc->data[SC_RAISINGDRAGON])
-				bonus += (2 + sc->data[SC_RAISINGDRAGON]->val1);
+				bonus += 2 + sc->data[SC_RAISINGDRAGON]->val1;
 			if(sc->data[SC_LIFE_FORCE_F])
 				bonus += sc->data[SC_LIFE_FORCE_F]->val1;
+			if(sc->data[SC_VITATA_500])
+				bonus += sc->data[SC_VITATA_500]->val2;
 		}
 	}
 
@@ -4062,7 +4065,7 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		if (regen->sregen->sp)
 			regen->flag |= RGN_SSP;
 
-		regen->sregen->rate.hp = regen->sregen->rate.sp = 1;
+		regen->sregen->rate.hp = regen->sregen->rate.sp = 100;
 	}
 
 	if (regen->ssregen) {
@@ -4072,10 +4075,10 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		if (regen->ssregen->sp)
 			regen->flag |= RGN_SSP;
 
-		regen->ssregen->rate.hp = regen->ssregen->rate.sp = 1;
+		regen->ssregen->rate.hp = regen->ssregen->rate.sp = 100;
 	}
 
-	regen->rate.hp = regen->rate.sp = 1;
+	regen->rate.hp = regen->rate.sp = 100;
 
 	if (!sc || !sc->count)
 		return;
@@ -4088,7 +4091,7 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		sc->data[SC_MAGICMUSHROOM] ||
 		sc->data[SC_SATURDAYNIGHTFEVER] ||
 		sc->data[SC_REBOUND])
-		regen->flag = 0; //No natural HP and SP regen
+		regen->flag = RGN_NONE;
 
 	if (sc->data[SC_DANCING] ||
 #ifdef RENEWAL
@@ -4102,15 +4105,15 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		regen->flag &= ~RGN_SP; //No natural SP regen
 
 	if (sc->data[SC_MAGNIFICAT])
-		regen->rate.sp += 1; //2x SP regen
+		regen->rate.sp += 100; //2x SP regen
 
 	if (sc->data[SC_TENSIONRELAX]) {
 		if (sc->data[SC_WEIGHT50] || sc->data[SC_WEIGHT90])
 			regen->state.overweight = 0; //1x HP regen
 		else {
-			regen->rate.hp += 2; //3x natural HP regen
+			regen->rate.hp += 200; //3x natural HP regen
 			if (regen->sregen)
-				regen->sregen->rate.hp += 2; //3x HP Recovery skill regen
+				regen->sregen->rate.hp += 200; //3x HP Recovery skill regen
 		}
 	}
 
@@ -4118,8 +4121,8 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		const struct status_change_entry *sce = sc->data[SC_REGENERATION];
 
 		if (!sce->val4) {
-			regen->rate.hp += sce->val2;
-			regen->rate.sp += sce->val3;
+			regen->rate.hp += sce->val2 * 100;
+			regen->rate.sp += sce->val3 * 100;
 		} else
 			regen->flag &= ~sce->val4; //Remove regen as specified by val4
 	}
@@ -4136,10 +4139,10 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		regen->rate.hp *= 2;
 
 	if (sc->data[SC_EXTRACT_WHITE_POTION_Z])
-		regen->rate.hp += regen->rate.hp * sc->data[SC_EXTRACT_WHITE_POTION_Z]->val1 / 100;
+		regen->rate.hp += (unsigned short)(regen->rate.hp * sc->data[SC_EXTRACT_WHITE_POTION_Z]->val1 / 100.);
 
 	if (sc->data[SC_VITATA_500])
-		regen->rate.sp += regen->rate.sp * sc->data[SC_VITATA_500]->val1 / 100;
+		regen->rate.sp += (unsigned short)(regen->rate.sp * sc->data[SC_VITATA_500]->val1 / 100.);
 }
 
 void status_calc_state(struct block_list *bl, struct status_change *sc, enum scs_flag flag, bool start) {
@@ -12578,7 +12581,7 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 	struct view_data *vd = NULL;
 	struct regen_data_sub *sregen;
 	struct map_session_data *sd;
-	int val, rate, bonus = 0, flag;
+	int rate, bonus = 0, flag;
 
 	regen = status_get_regen_data(bl);
 	if (!regen)
@@ -12594,21 +12597,21 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 	if (flag&RGN_SP && (status->sp >= status->max_sp || regen->state.block&2))
 		flag &= ~(RGN_SP|RGN_SSP);
 	if (flag && (status_isdead(bl) || (sd && pc_ishiding(sd))))
-		flag = 0;
+		flag = RGN_NONE;
 	if (sd) {
 		if (sd->hp_loss.value || sd->sp_loss.value)
 			pc_bleeding(sd, natural_heal_diff_tick);
 		if (sd->hp_regen.value || sd->sp_regen.value)
 			pc_regen(sd, natural_heal_diff_tick);
 	}
-	//Apply sitting regen bonus.
+	//Apply sitting regen bonus
 	if (flag&(RGN_SHP|RGN_SSP) && regen->ssregen && (vd = status_get_viewdata(bl)) && vd->dead_sit == 2) {
 		sregen = regen->ssregen;
 		if (flag&RGN_SHP) { //Sitting HP regen
-			val = natural_heal_diff_tick * sregen->rate.hp;
+			rate = (int)(natural_heal_diff_tick * sregen->rate.hp / 100.);
 			if (regen->state.overweight)
-				val >>= 1; //Half as fast when overweight.
-			sregen->tick.hp += val;
+				rate >>= 1; //Half as fast when overweight
+			sregen->tick.hp += rate;
 			while (sregen->tick.hp >= (unsigned int)battle_config.natural_heal_skill_interval) {
 				sregen->tick.hp -= battle_config.natural_heal_skill_interval;
 				if (status_heal(bl, sregen->hp, 0, 3) < sregen->hp) { //Full
@@ -12618,13 +12621,13 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 			}
 		}
 		if (flag&RGN_SSP) { //Sitting SP regen
-			val = natural_heal_diff_tick * sregen->rate.sp;
+			rate = (int)(natural_heal_diff_tick * sregen->rate.sp / 100.);
 			if (regen->state.overweight)
-				val >>= 1; //Half as fast when overweight.
-			sregen->tick.sp += val;
+				rate >>= 1;
+			sregen->tick.sp += rate;
 			while (sregen->tick.sp >= (unsigned int)battle_config.natural_heal_skill_interval) {
 				sregen->tick.sp -= battle_config.natural_heal_skill_interval;
-				if (status_heal(bl, 0, sregen->sp, 3) < sregen->sp) { //Full
+				if (status_heal(bl, 0, sregen->sp, 3) < sregen->sp) {
 					flag &= ~(RGN_SP|RGN_SSP);
 					break;
 				}
@@ -12632,7 +12635,7 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 		}
 	}
 	if (flag && regen->state.overweight)
-		flag = 0;
+		flag = RGN_NONE;
 	ud = unit_bl2ud(bl);
 	if (flag&(RGN_HP|RGN_SHP|RGN_SSP) && ud && ud->walktimer != INVALID_TIMER) {
 		flag &= ~(RGN_SHP|RGN_SSP);
@@ -12645,13 +12648,13 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 		if (!vd)
 			vd = status_get_viewdata(bl);
 		if (vd && vd->dead_sit == 2)
-			bonus++;
+			bonus += 100;
 		if (regen->state.gc)
-			bonus++;
+			bonus += 100;
 	}
 	//Natural HP regen
 	if (flag&RGN_HP) {
-		rate = natural_heal_diff_tick * (regen->rate.hp + bonus);
+		rate = (int)(natural_heal_diff_tick * (regen->rate.hp / 100. + bonus / 100.));
 		if (ud && ud->walktimer != INVALID_TIMER)
 			rate /= 2;
 		//Homun HP regen fix (they should regen as if they were sitting (twice as fast)
@@ -12659,7 +12662,8 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 			rate *= 2;
 		regen->tick.hp += rate;
 		if (regen->tick.hp >= (unsigned int)battle_config.natural_healhp_interval) {
-			val = 0;
+			int val = 0;
+
 			do {
 				val += regen->hp;
 				regen->tick.hp -= battle_config.natural_healhp_interval;
@@ -12670,7 +12674,7 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 	}
 	//Natural SP regen
 	if (flag&RGN_SP) {
-		rate = natural_heal_diff_tick * (regen->rate.sp + bonus);
+		rate = (int)(natural_heal_diff_tick * (regen->rate.sp / 100. + bonus / 100.));
 		//Homun SP regen fix (they should regen as if they were sitting (twice as fast)
 		if (bl->type == BL_HOM)
 			rate *= 2;
@@ -12681,7 +12685,8 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 #endif
 		regen->tick.sp += rate;
 		if (regen->tick.sp >= (unsigned int)battle_config.natural_healsp_interval) {
-			val = 0;
+			int val = 0;
+
 			do {
 				val += regen->sp;
 				regen->tick.sp -= battle_config.natural_healsp_interval;
@@ -12695,7 +12700,7 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 	//Skill regen
 	sregen = regen->sregen;
 	if (flag&RGN_SHP) { //Skill HP regen
-		sregen->tick.hp += natural_heal_diff_tick * sregen->rate.hp;
+		sregen->tick.hp += (int)(natural_heal_diff_tick * sregen->rate.hp / 100.);
 		while (sregen->tick.hp >= (unsigned int)battle_config.natural_heal_skill_interval) {
 			sregen->tick.hp -= battle_config.natural_heal_skill_interval;
 			if (status_heal(bl, sregen->hp, 0, 3) < sregen->hp)
@@ -12703,9 +12708,10 @@ static int status_natural_heal(struct block_list* bl, va_list args)
 		}
 	}
 	if (flag&RGN_SSP) { //Skill SP regen
-		sregen->tick.sp += natural_heal_diff_tick * sregen->rate.sp;
+		sregen->tick.sp += (int)(natural_heal_diff_tick * sregen->rate.sp / 100.);
 		while (sregen->tick.sp >= (unsigned int)battle_config.natural_heal_skill_interval) {
-			val = sregen->sp;
+			int val = sregen->sp;
+
 			if (sd && sd->state.doridori) {
 				val *= 2;
 				sd->state.doridori = 0;
