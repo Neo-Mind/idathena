@@ -5742,7 +5742,7 @@ ACMD_FUNC(partyoption)
 		return -1;
 	}
 
-	ARR_FIND( 0, MAX_PARTY, mi, p->data[mi].sd == sd );
+	ARR_FIND(0, MAX_PARTY, mi, p->data[mi].sd == sd);
 	if (mi == MAX_PARTY)
 		return -1; //Shouldn't happen
 

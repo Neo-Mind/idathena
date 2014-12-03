@@ -384,8 +384,8 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 			uint8 i;
 
 			if( ud ) {
-				for( i = 0; i < MAX_SKILLUNITGROUP; i++ ) {
-					if( ud->skillunit[i] && ud->skillunit[i]->skill_id == GN_WALLOFTHORN ) {
+				for( i = 0; i < MAX_SKILLUNITGROUP && ud->skillunit[i]; i++ ) {
+					if( ud->skillunit[i]->skill_id == GN_WALLOFTHORN ) {
 						ud->skillunit[i]->unit->group->unit_id = UNT_USED_TRAPS;
 						ud->skillunit[i]->unit->group->limit = 0;
 						skill_unitsetting(map_id2bl(ud->skillunit[i]->unit->group->src_id),
@@ -410,7 +410,8 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 						status_change_end(target, SC_SPIDERWEB, INVALID_TIMER);
 					if( ud ) {
 						ARR_FIND(0, MAX_SKILLUNITGROUP, i, ud->skillunit[i] && ud->skillunit[i]->skill_id == PF_SPIDERWEB);
-						skill_delunit(ud->skillunit[i]->unit);
+						if( ud->skillunit[i] )
+							skill_delunit(ud->skillunit[i]->unit);
 					}
 				}
 				if( tsc->data[SC_THORNSTRAP] ) {

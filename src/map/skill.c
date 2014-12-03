@@ -13005,8 +13005,8 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			uint8 i;
 
 			if (ud) {
-				for (i = 0; i < MAX_SKILLUNITGROUP; i++) {
-					if (ud->skillunit[i] && ud->skillunit[i]->skill_id == GN_WALLOFTHORN) {
+				for (i = 0; i < MAX_SKILLUNITGROUP && ud->skillunit[i]; i++) {
+					if (ud->skillunit[i]->skill_id == GN_WALLOFTHORN) {
 						ud->skillunit[i]->unit->group->unit_id = UNT_USED_TRAPS;
 						ud->skillunit[i]->unit->group->limit = DIFF_TICK(tick,ud->skillunit[i]->unit->group->tick);
 						skill_unitsetting(map_id2bl(ud->skillunit[i]->unit->group->src_id),
