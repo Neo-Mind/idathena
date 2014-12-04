@@ -7847,11 +7847,11 @@ int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 		//A potion produced by an Alchemist in the Fame Top 10 gets +50% effect [DracoRPG]
 		if(potion_flag > 1)
 			bonus += bonus * (potion_flag - 1) * 50 / 100;
-		//All item bonuses.
+		//All item bonuses
 		bonus += sd->bonus.itemhealrate2;
 		//Item Group bonuses
 		bonus += bonus * pc_get_itemgroup_bonus(sd,itemid) / 100;
-		//Individual item bonuses.
+		//Individual item bonuses
 		for(i = 0; i < ARRAYLENGTH(sd->itemhealrate) && sd->itemhealrate[i].nameid; i++) {
 			if(sd->itemhealrate[i].nameid == itemid) {
 				bonus += bonus * sd->itemhealrate[i].rate / 100;
@@ -7864,6 +7864,9 @@ int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 		//Recovery Potion
 		if(sd->sc.data[SC_INCHEALRATE])
 			hp += (int)(hp * sd->sc.data[SC_INCHEALRATE]->val1 / 100.);
+		//2014 Halloween Event : Pumpkin Bonus
+		if(sd->sc.data[SC_MTF_PUMPKIN] && itemid == ITEMID_PUMPKIN)
+			hp += (int)(hp * sd->sc.data[SC_MTF_PUMPKIN]->val1 / 100.);
 	}
 	if(sp) {
 		bonus = 100 + (sd->battle_status.int_<<1)

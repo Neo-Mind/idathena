@@ -7387,6 +7387,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 							case SC_CLOAKINGEXCEED:			case SC__INVISIBILITY:		case SC_CRIFOOD:
 							case SC_UTSUSEMI:			case SC_MTF_ASPD2:		case SC_MTF_RANGEATK2:
 							case SC_MTF_MATK2:			case SC_2011RWC_SCROLL:		case SC_JP_EVENT04:
+							case SC_MTF_MHP:			case SC_MTF_MSP:		case SC_MTF_PUMPKIN:
+							case SC_MTF_HITFLEE:
 								continue;
 							//bugreport:4888 these songs may only be dispelled if you're not in their song area anymore
 							case SC_WHISTLE:
@@ -8865,6 +8867,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 							case SC_CLOAKINGEXCEED:		case SC__INVISIBILITY:		case SC_CRIFOOD:
 							case SC_UTSUSEMI:		case SC_MTF_ASPD2:		case SC_MTF_RANGEATK2:
 							case SC_MTF_MATK2:		case SC_2011RWC_SCROLL:		case SC_JP_EVENT04:
+							case SC_MTF_MHP:		case SC_MTF_MSP:		case SC_MTF_PUMPKIN:
+							case SC_MTF_HITFLEE:
 								continue;
 							case SC_ASSUMPTIO:
 								if( bl->type == BL_MOB )
@@ -10424,6 +10428,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 							case SC_CLOAKINGEXCEED:		case SC__INVISIBILITY:		case SC_CRIFOOD:
 							case SC_UTSUSEMI:		case SC_MTF_ASPD2:		case SC_MTF_RANGEATK2:
 							case SC_MTF_MATK2:		case SC_2011RWC_SCROLL:		case SC_JP_EVENT04:
+							case SC_MTF_MHP:		case SC_MTF_MSP:		case SC_MTF_PUMPKIN:
+							case SC_MTF_HITFLEE:
 								continue;
 							case SC_ASSUMPTIO:
 								if( bl->type == BL_MOB )
@@ -20325,7 +20331,7 @@ static bool skill_parse_row_requiredb(char* split[], int columns, int current)
 	else skill_db[idx].require.state = ST_NONE; //Unknown or no state
 
 	//Status requirements
-	//FIXME: Default entry should be -1/SC_ALL in skill_require_db.txt but it's 0/SC_STONE.
+	//FIXME: Default entry should be -1/SC_ALL in skill_require_db.txt but it's 0/SC_STONE
 	trim(split[11]);
 	if( split[11][0] != '\0' || atoi(split[11]) ) {
 		int require[MAX_SKILL_STATUS_REQUIRE];

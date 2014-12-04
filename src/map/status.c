@@ -1010,6 +1010,9 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_2011RWC_SCROLL] = SI_2011RWC_SCROLL;
 	StatusIconChangeTable[SC_CUP_OF_BOZA] = SI_CUP_OF_BOZA;
 	StatusIconChangeTable[SC_JP_EVENT04] = SI_JP_EVENT04;
+	StatusIconChangeTable[SC_MTF_HITFLEE] = SI_MTF_HITFLEE;
+	StatusIconChangeTable[SC_MTF_MHP] = SI_MTF_MHP;
+	StatusIconChangeTable[SC_MTF_MSP] = SI_MTF_MSP;
 
 	if( !battle_config.display_hallucination ) //Disable Hallucination
 		StatusIconChangeTable[SC_HALLUCINATION] = SI_BLANK;
@@ -1118,6 +1121,9 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_MTF_MATK2] |= SCB_MATK;
 	StatusChangeFlagTable[SC_2011RWC_SCROLL] |= SCB_BATK|SCB_MATK|SCB_STR|SCB_AGI|SCB_VIT|SCB_INT|SCB_DEX|SCB_LUK;
 	StatusChangeFlagTable[SC_CUP_OF_BOZA] |= SCB_VIT;
+	StatusChangeFlagTable[SC_MTF_HITFLEE] |= SCB_HIT|SCB_FLEE;
+	StatusChangeFlagTable[SC_MTF_MHP] |= SCB_MAXHP;
+	StatusChangeFlagTable[SC_MTF_MSP] |= SCB_MAXSP;
 
 	//StatusDisplayType Table [Ind]
 	StatusDisplayType[SC_ALL_RIDING]	  = true;
@@ -2738,9 +2744,11 @@ static int status_get_hpbonus(struct block_list *bl, enum e_status_bonus type) {
 			if(sc->data[SC_LERADSDEW])
 				bonus += sc->data[SC_LERADSDEW]->val3;
 			if(sc->data[SC_INSPIRATION])
-				bonus += (600 * sc->data[SC_INSPIRATION]->val1);
+				bonus += 600 * sc->data[SC_INSPIRATION]->val1;
 			if(sc->data[SC_SOLID_SKIN_OPTION])
 				bonus += 2000;
+			if(sc->data[SC_MTF_MHP])
+				bonus += sc->data[SC_MTF_MHP]->val1;
 			if(sc->data[SC_MARIONETTE])
 				bonus -= 1000;
 		}
@@ -2774,13 +2782,13 @@ static int status_get_hpbonus(struct block_list *bl, enum e_status_bonus type) {
 			if(sc->data[SC_EPICLESIS])
 				bonus += sc->data[SC_EPICLESIS]->val2;
 			if(sc->data[SC_FORCEOFVANGUARD])
-				bonus += (3 * sc->data[SC_FORCEOFVANGUARD]->val1);
+				bonus += 3 * sc->data[SC_FORCEOFVANGUARD]->val1;
 			if(sc->data[SC_INSPIRATION])
-				bonus += (5 * sc->data[SC_INSPIRATION]->val1);
+				bonus += 5 * sc->data[SC_INSPIRATION]->val1;
 			if(sc->data[SC_RAISINGDRAGON])
-				bonus += (2 + sc->data[SC_RAISINGDRAGON]->val1);
+				bonus += 2 + sc->data[SC_RAISINGDRAGON]->val1;
 			if(sc->data[SC_GT_REVITALIZE])
-				bonus += (2 * sc->data[SC_GT_REVITALIZE]->val1);
+				bonus += 2 * sc->data[SC_GT_REVITALIZE]->val1;
 			if(sc->data[SC_MUSTLE_M])
 				bonus += sc->data[SC_MUSTLE_M]->val1;
 			if(sc->data[SC_PETROLOGY_OPTION])
@@ -2792,7 +2800,7 @@ static int status_get_hpbonus(struct block_list *bl, enum e_status_bonus type) {
 			if(sc->data[SC_UPHEAVAL_OPTION])
 				bonus += sc->data[SC_UPHEAVAL_OPTION]->val3;
 			if(sc->data[SC_ANGRIFFS_MODUS])
-				bonus += (5 * sc->data[SC_ANGRIFFS_MODUS]->val1);
+				bonus += 5 * sc->data[SC_ANGRIFFS_MODUS]->val1;
 			if(sc->data[SC_FRIGG_SONG])
 				bonus += sc->data[SC_FRIGG_SONG]->val2;
 
@@ -2804,7 +2812,7 @@ static int status_get_hpbonus(struct block_list *bl, enum e_status_bonus type) {
 			if(sc->data[SC_MYSTERIOUS_POWDER])
 				bonus -= sc->data[SC_MYSTERIOUS_POWDER]->val1;
 			if(sc->data[SC_GT_CHANGE]) // Max HP decrease: [Skill Level x 4] %
-				bonus -= (4 * sc->data[SC_GT_CHANGE]->val1);
+				bonus -= 4 * sc->data[SC_GT_CHANGE]->val1;
 			if(sc->data[SC_BEYONDOFWARCRY])
 				bonus -= sc->data[SC_BEYONDOFWARCRY]->val4;
 			if(sc->data[SC_EQC])
@@ -2844,9 +2852,11 @@ static int status_get_spbonus(struct block_list *bl, enum e_status_bonus type) {
 		//Bonus by SC
 		if (sc) {
 			if(sc->data[SC_INCMSP])
-				bonus += (sc->data[SC_INCMSP]->val1);
+				bonus += sc->data[SC_INCMSP]->val1;
 			if(sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 3)
 				bonus += 50;
+			if(sc->data[SC_MTF_MSP])
+				bonus += sc->data[SC_MTF_MSP]->val1;
 		}
 	} else if (type == STATUS_BONUS_RATE) {
 		struct status_change *sc = status_get_sc(bl);
@@ -5360,6 +5370,8 @@ static short status_calc_hit(struct block_list *bl, struct status_change *sc, in
 	if(!sc || !sc->count)
 		return (short)cap_value(hit,1,SHRT_MAX);
 
+	if(sc->data[SC_INCHITRATE])
+		hit += hit * sc->data[SC_INCHITRATE]->val1 / 100;
 	if(sc->data[SC_INCHIT])
 		hit += sc->data[SC_INCHIT]->val1;
 	if(sc->data[SC_HITFOOD])
@@ -5370,16 +5382,14 @@ static short status_calc_hit(struct block_list *bl, struct status_change *sc, in
 		hit += sc->data[SC_HUMMING]->val2;
 	if(sc->data[SC_CONCENTRATION])
 		hit += sc->data[SC_CONCENTRATION]->val3;
-	if(sc->data[SC_INSPIRATION])
-		hit += 5 * sc->data[SC_INSPIRATION]->val1 + sc->data[SC_INSPIRATION]->val2 / 2;
-	if(sc->data[SC_ADJUSTMENT])
-		hit -= 30;
 	if(sc->data[SC_INCREASING])
 		hit += 20; //RockmanEXE: Changed based on updated [Reddozen]
+	if(sc->data[SC_INSPIRATION])
+		hit += 5 * sc->data[SC_INSPIRATION]->val1 + sc->data[SC_INSPIRATION]->val2 / 2;
 	if(sc->data[SC_MERC_HITUP])
 		hit += sc->data[SC_MERC_HITUP]->val2;
-	if(sc->data[SC_INCHITRATE])
-		hit += hit * sc->data[SC_INCHITRATE]->val1 / 100;
+	if(sc->data[SC_MTF_HITFLEE])
+		hit += sc->data[SC_MTF_HITFLEE]->val1;
 	if(sc->data[SC_BLIND])
 		hit -= hit * 25 / 100;
 	if(sc->data[SC__GROOMY])
@@ -5390,6 +5400,8 @@ static short status_calc_hit(struct block_list *bl, struct status_change *sc, in
 		hit -= hit * 50 / 100;
 	if(sc->data[SC_ASH])
 		hit -= hit * sc->data[SC_ASH]->val2 / 100;
+	if(sc->data[SC_ADJUSTMENT])
+		hit -= 30;
 	if(sc->data[SC_ILLUSIONDOPING])
 		hit -= 50;
 
@@ -5412,48 +5424,54 @@ static short status_calc_flee(struct block_list *bl, struct status_change *sc, i
 	if(sc->data[SC_TINDER_BREAKER] || sc->data[SC_TINDER_BREAKER2])
 		return 1;
 
+	if(sc->data[SC_INCFLEERATE])
+		flee += flee * sc->data[SC_INCFLEERATE]->val1 / 100;
+	if(sc->data[SC_WIND_STEP_OPTION])
+		flee += flee * sc->data[SC_WIND_STEP_OPTION]->val2 / 100;
+	if(sc->data[SC_GOLDENE_FERSE])
+		flee += flee * sc->data[SC_GOLDENE_FERSE]->val2 / 100;
 	if(sc->data[SC_INCFLEE])
 		flee += sc->data[SC_INCFLEE]->val1;
 	if(sc->data[SC_FLEEFOOD])
 		flee += sc->data[SC_FLEEFOOD]->val1;
-	if(sc->data[SC_WHISTLE])
-		flee += sc->data[SC_WHISTLE]->val2;
-	if(sc->data[SC_WINDWALK])
-		flee += sc->data[SC_WINDWALK]->val2;
-	if(sc->data[SC_VIOLENTGALE])
-		flee += sc->data[SC_VIOLENTGALE]->val2;
-	if(sc->data[SC_MOON_COMFORT]) //SG skill [Komurka]
-		flee += sc->data[SC_MOON_COMFORT]->val2;
-	if(sc->data[SC_CLOSECONFINE])
-		flee += 10;
-	if(sc->data[SC_ANGRIFFS_MODUS])
-		flee -= sc->data[SC_ANGRIFFS_MODUS]->val3;
-	if(sc->data[SC_ADJUSTMENT])
-		flee += 30;
-	if(sc->data[SC_SPEED])
-		flee += 10 + sc->data[SC_SPEED]->val1 * 10;
-	if(sc->data[SC_GATLINGFEVER])
-		flee -= sc->data[SC_GATLINGFEVER]->val4;
 	if(sc->data[SC_PARTYFLEE])
 		flee += sc->data[SC_PARTYFLEE]->val1 * 10;
-	if(sc->data[SC_MERC_FLEEUP])
-		flee += sc->data[SC_MERC_FLEEUP]->val2;
-	if(sc->data[SC_HALLUCINATIONWALK])
-		flee += sc->data[SC_HALLUCINATIONWALK]->val2;
-	if(sc->data[SC_WATER_BARRIER])
-		flee -= sc->data[SC_WATER_BARRIER]->val2;
 #ifdef RENEWAL
 	if(sc->data[SC_SPEARQUICKEN])
 		flee += 2 * sc->data[SC_SPEARQUICKEN]->val1;
 #endif
-	if(sc->data[SC_INCFLEERATE])
-		flee += flee * sc->data[SC_INCFLEERATE]->val1 / 100;
+	if(sc->data[SC_CLOSECONFINE])
+		flee += 10;
+	if(sc->data[SC_WHISTLE])
+		flee += sc->data[SC_WHISTLE]->val2;
+	if(sc->data[SC_VIOLENTGALE])
+		flee += sc->data[SC_VIOLENTGALE]->val2;
+	if(sc->data[SC_WINDWALK])
+		flee += sc->data[SC_WINDWALK]->val2;
+	if(sc->data[SC_MOON_COMFORT]) //SG skill [Komurka]
+		flee += sc->data[SC_MOON_COMFORT]->val2;
+	if(sc->data[SC_ADJUSTMENT])
+		flee += 30;
+	if(sc->data[SC_SPEED])
+		flee += 10 + sc->data[SC_SPEED]->val1 * 10;
+	if(sc->data[SC_MERC_FLEEUP])
+		flee += sc->data[SC_MERC_FLEEUP]->val2;
+	if(sc->data[SC_HALLUCINATIONWALK])
+		flee += sc->data[SC_HALLUCINATIONWALK]->val2;
+	if(sc->data[SC_SMOKEPOWDER])
+		flee += flee * 20 / 100;
+	if(sc->data[SC_ZEPHYR])
+		flee += sc->data[SC_ZEPHYR]->val2;
+	if(sc->data[SC_MTF_HITFLEE])
+		flee += sc->data[SC_MTF_HITFLEE]->val2;
 	if(sc->data[SC_SPIDERWEB])
 		flee -= flee * 50 / 100;
 	if(sc->data[SC_BERSERK])
 		flee -= flee * 50 / 100;
 	if(sc->data[SC_BLIND])
 		flee -= flee * 25 / 100;
+	if(sc->data[SC_GATLINGFEVER])
+		flee -= sc->data[SC_GATLINGFEVER]->val4;
 	if(sc->data[SC_FEAR])
 		flee -= flee * 20 / 100;
 	if(sc->data[SC_PARALYSE])
@@ -5466,18 +5484,14 @@ static short status_calc_flee(struct block_list *bl, struct status_change *sc, i
 		flee -= flee * sc->data[SC_GLOOMYDAY]->val2 / 100;
 	if(sc->data[SC_SATURDAYNIGHTFEVER])
 		flee -= flee * (40 + 10 * sc->data[SC_SATURDAYNIGHTFEVER]->val1) / 100;
-	if(sc->data[SC_SMOKEPOWDER])
-		flee += flee * 20 / 100;
 	if(sc->data[SC_TEARGAS])
 		flee -= flee * 50 / 100;
-	if(sc->data[SC_WIND_STEP_OPTION])
-		flee += flee * sc->data[SC_WIND_STEP_OPTION]->val2 / 100;
-	if(sc->data[SC_ZEPHYR])
-		flee += sc->data[SC_ZEPHYR]->val2;
+	if(sc->data[SC_WATER_BARRIER])
+		flee -= sc->data[SC_WATER_BARRIER]->val2;
 	if(sc->data[SC_ASH])
 		flee -= flee * sc->data[SC_ASH]->val4 / 100;
-	if(sc->data[SC_GOLDENE_FERSE])
-		flee += flee * sc->data[SC_GOLDENE_FERSE]->val2 / 100;
+	if(sc->data[SC_ANGRIFFS_MODUS])
+		flee -= sc->data[SC_ANGRIFFS_MODUS]->val3;
 	if(sc->data[SC_C_MARKER])
 		flee -= 10;
 	if(sc->data[SC_HEAT_BARREL])
@@ -9769,6 +9783,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 						case SC_KSPROTECTED:
 						case SC_HANBOK:
 						case SC_OKTOBERFEST:
+						case SC_MTF_PUMPKIN:
 							break; //Avoid the warning, because this status has no skill associated and all values already store in it
 						default:
 							ShowError("Unknown Status Change [%d]\n",type);
@@ -10376,7 +10391,7 @@ int status_change_clear(struct block_list* bl,int type)
 			}
 		}
 
-		//Config if the monster transform status should end on death. [Rytech]
+		//Config if the monster transform status should end on death [Rytech]
 		if(type == 0 && battle_config.transform_end_on_death == 0)
 			switch(i) {
 				case SC_MONSTER_TRANSFORM:
@@ -10388,6 +10403,10 @@ int status_change_clear(struct block_list* bl,int type)
 				case SC_MTF_ASPD2:
 				case SC_MTF_RANGEATK2:
 				case SC_MTF_MATK2:
+				case SC_MTF_MHP:
+				case SC_MTF_MSP:
+				case SC_MTF_PUMPKIN:
+				case SC_MTF_HITFLEE:
 					continue;
 			}
 
@@ -12366,6 +12385,10 @@ void status_change_clear_buffs(struct block_list* bl, int type)
 			case SC_MTF_MATK2:
 			case SC_2011RWC_SCROLL:
 			case SC_JP_EVENT04:
+			case SC_MTF_MHP:
+			case SC_MTF_MSP:
+			case SC_MTF_PUMPKIN:
+			case SC_MTF_HITFLEE:
 				continue;
 			//Debuffs that can be removed
 			case SC_DEEPSLEEP:

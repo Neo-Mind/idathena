@@ -10091,6 +10091,10 @@ BUILDIN_FUNC(sc_end)
 			case SC_MTF_ASPD2:
 			case SC_MTF_RANGEATK2:
 			case SC_MTF_MATK2:
+			case SC_MTF_MHP:
+			case SC_MTF_MSP:
+			case SC_MTF_PUMPKIN:
+			case SC_MTF_HITFLEE:
 				return 0;
 			default:
 				break;
@@ -11371,16 +11375,17 @@ BUILDIN_FUNC(emotion)
 {
 	int type;
 	int player = 0;
-	
+
 	type = script_getnum(st,2);
 	if(type < 0 || type > 100)
 		return 0;
 
 	if(script_hasdata(st,3))
 		player = script_getnum(st,3);
-	
+
 	if(player) {
 		TBL_PC *sd = NULL;
+
 		if(script_hasdata(st,4))
 			sd = map_nick2sd(script_getstr(st,4));
 		else
@@ -11390,6 +11395,7 @@ BUILDIN_FUNC(emotion)
 	} else
 		if(script_hasdata(st,4)) {
 			TBL_NPC *nd = npc_name2id(script_getstr(st,4));
+
 			if(nd)
 				clif_emotion(&nd->bl,type);
 		} else
@@ -18299,7 +18305,7 @@ BUILDIN_FUNC(montransform) {
 		clif_ShowScript(&sd->bl,msg);
 		status_change_end(&sd->bl,SC_MONSTER_TRANSFORM,INVALID_TIMER); //Clear previous
 		sc_start2(NULL,&sd->bl,SC_MONSTER_TRANSFORM,100,mob_id,type,tick);
-		if( script_hasdata(st,4) )
+		if( type != SC_NONE )
 			sc_start4(NULL,&sd->bl,type,100,val1,val2,val3,val4,tick);
 	}
 	return SCRIPT_CMD_SUCCESS;

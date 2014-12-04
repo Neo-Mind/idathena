@@ -37,20 +37,20 @@ int status_get_refine_chance(enum refine_type wlv, int refine);
 // Flags to be used with status_change_start and status_get_sc_def
 // NOTE: When updating this enum, also update the documentation in doc/script_commands.txt and the constants
 enum scstart_flag {
-	SCFLAG_NONE      = 0x00, // No special behavior.
-	SCFLAG_NOAVOID   = 0x01, // Cannot be avoided (it has to start).
-	SCFLAG_FIXEDTICK = 0x02, // Tick should not be reduced (by vit, luk, lv, etc).
-	SCFLAG_LOADED    = 0x04, // sc_data was loaded, no value has to be altered.
-	SCFLAG_FIXEDRATE = 0x08, // rate should not be reduced (not evaluated in status_change_start, but in some calls to other functions).
-	SCFLAG_NOICON    = 0x10, // Status icon (SI) should not be sent.
+	SCFLAG_NONE      = 0x00, // No special behavior
+	SCFLAG_NOAVOID   = 0x01, // Cannot be avoided (it has to start)
+	SCFLAG_FIXEDTICK = 0x02, // Tick should not be reduced (by vit, luk, lv, etc)
+	SCFLAG_LOADED    = 0x04, // sc_data was loaded, no value has to be altered
+	SCFLAG_FIXEDRATE = 0x08, // Rate should not be reduced (not evaluated in status_change_start, but in some calls to other functions)
+	SCFLAG_NOICON    = 0x10, // Status icon (SI) should not be sent
 	SCFLAG_ALL = SCFLAG_NONE|SCFLAG_NOAVOID|SCFLAG_FIXEDTICK|SCFLAG_LOADED|SCFLAG_FIXEDRATE|SCFLAG_NOICON
 };
 
-// Status changes listing. These code are for use by the server.
+// Status changes listing. These code are for use by the server
 typedef enum sc_type {
 	SC_NONE = -1,
 
-	//First we enumerate common status ailments which are often used around.
+	//First we enumerate common status ailments which are often used around
 	SC_STONE = 0,
 	SC_COMMON_MIN = 0, //Begin
 	SC_FREEZE,
@@ -65,7 +65,7 @@ typedef enum sc_type {
 	SC_DPOISON, //10
 	SC_COMMON_MAX = 10, //End
 
-	//Next up, we continue on 20, to leave enough room for additional "common" ailments in the future.
+	//Next up, we continue on 20, to leave enough room for additional "common" ailments in the future
 	SC_PROVOKE = 20,
 	SC_ENDURE,
 	SC_TWOHANDQUICKEN,
@@ -96,7 +96,7 @@ typedef enum sc_type {
 	SC_TRICKDEAD,
 	SC_LOUD,
 	SC_ENERGYCOAT,
-	SC_BROKENARMOR, //50 - NOTE: These two aren't used anywhere, and they have an icon...
+	SC_BROKENARMOR, //50 - NOTE: These two aren't used anywhere, and they have an icon
 	SC_BROKENWEAPON,
 	SC_HALLUCINATION,
 	SC_WEIGHT50,
@@ -726,6 +726,12 @@ typedef enum sc_type {
 	SC_2011RWC_SCROLL,
 	SC_CUP_OF_BOZA,
 	SC_JP_EVENT04,
+
+	// 2014 Halloween Event
+	SC_MTF_MHP,
+	SC_MTF_MSP,
+	SC_MTF_PUMPKIN,
+	SC_MTF_HITFLEE,
 	SC_MAX, //Automatically updated max, used in for's to check we are within bounds
 } sc_type;
 

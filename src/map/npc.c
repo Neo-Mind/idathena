@@ -65,7 +65,7 @@ int npc_get_new_npc_id(void) {
 			if( npc_id < START_NPC_NUM )
 				npc_id = START_NPC_NUM;
 			if( !map_blid_exists(npc_id) )
-				return npc_id++;// available
+				return npc_id++; //Available
 		}
 		//Full loop, nothing available
 		ShowFatalError("npc_get_new_npc_id: All ids are taken. Exiting...");
@@ -81,7 +81,7 @@ struct event_data {
 	int pos;
 };
 
-static struct eri *timer_event_ers; //For the npc timer data. [Skotlex]
+static struct eri *timer_event_ers; //For the npc timer data [Skotlex]
 
 /* Hello */
 static char *npc_last_path;
@@ -94,21 +94,19 @@ struct npc_path_data {
 struct npc_path_data *npc_last_npd;
 static DBMap *npc_path_db;
 
-//For holding the view data of npc classes. [Skotlex]
+//For holding the view data of npc classes [Skotlex]
 static struct view_data npc_viewdb[MAX_NPC_CLASS];
-static struct view_data npc_viewdb2[MAX_NPC_CLASS2_END-MAX_NPC_CLASS2_START];
+static struct view_data npc_viewdb2[MAX_NPC_CLASS2_END - MAX_NPC_CLASS2_START];
 
-static struct script_event_s { //Holds pointers to the commonly executed scripts for speedup. [Skotlex]
+static struct script_event_s { //Holds pointers to the commonly executed scripts for speedup [Skotlex]
 	struct event_data *event[UCHAR_MAX];
 	const char *event_name[UCHAR_MAX];
 	uint8 event_count;
 } script_event[NPCE_MAX];
 
-struct view_data* npc_get_viewdata(int class_) { //Returns the viewdata for normal npc classes.
+struct view_data* npc_get_viewdata(int class_) { //Returns the viewdata for normal npc classes
 	if( class_ == INVISIBLE_CLASS )
 		return &npc_viewdb[0];
-	if( npcdb_checkid(class_) || class_ == WARP_CLASS )
-		return &npc_viewdb[class_];
 	if( npcdb_checkid(class_) || class_ == WARP_CLASS ) {
 		if( class_ > MAX_NPC_CLASS2_START ) {
 			return &npc_viewdb2[class_ - MAX_NPC_CLASS2_START];
@@ -4142,9 +4140,9 @@ void do_init_npc(void)
 {
 	int i;
 
-	//Stock view data for normal npcs.
+	//Stock view data for normal npcs
 	memset(&npc_viewdb, 0, sizeof(npc_viewdb));
-	npc_viewdb[0].class_ = INVISIBLE_CLASS; //Invisible class is stored here.
+	npc_viewdb[0].class_ = INVISIBLE_CLASS; //Invisible class is stored here
 	for( i = 1; i < MAX_NPC_CLASS; i++ )
 		npc_viewdb[i].class_ = i;
 	for( i = MAX_NPC_CLASS2_START; i < MAX_NPC_CLASS2_END; i++ )

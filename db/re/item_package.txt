@@ -3103,7 +3103,7 @@ IG_Yong_Kwang_Scroll,Drosera_Hairpin,25,1,1,1,0,0
 IG_Yong_Kwang_Scroll,Sinsuncho_Hat,25,1,1,1,0,0
 IG_Yong_Kwang_Scroll,Detale_Card,1,1,1,1,0,0
 
-// 2013 iRO Events - incomplete
+// 2013 iRO Events (Needs more info)
 IG_Solo_Christmas_Gift,C_Cat_Santa_Hat,1,1,1
 IG_Solo_Christmas_Gift,Old_Blue_Box,1,1,1
 IG_Solo_Christmas_Gift,Oh_Holy_Night,1,1,1
@@ -3112,6 +3112,7 @@ IG_Solo_Christmas_Gift,Solo_Cookie,1,5,1
 IG_Solo_Christmas_Gift,Buche_De_Noel,1,5,1
 IG_Solo_Christmas_Gift,Event_Cake,1,5,1
 IG_Solo_Christmas_Gift,Vivid_Notation,1,5,1
+IG_Solo_Christmas_Gift,Fire_Cracker_Xmas,1,5,1
 IG_HALLOWEEN_G_BOX,Immortal_Heart,1,30,1
 IG_HALLOWEEN_G_BOX,Starsand_Of_Witch,1,30,1
 IG_HALLOWEEN_G_BOX,Empty_Bottle,1,30,1
@@ -3127,6 +3128,28 @@ IG_HALLOWEEN_G_BOX,Seed_Of_Yggdrasil,1,5,1
 IG_HALLOWEEN_G_BOX,Old_Blue_Box,1,1,1
 IG_HALLOWEEN_G_BOX,Old_Card_Album,1,1,1
 IG_HALLOWEEN_G_BOX,Old_Violet_Box,1,1,1
+
+// 2014 kRO Halloween Events
+IG_Something_Candy_Holder,Honey,1,3,1
+IG_Something_Candy_Holder,Candy,1,7,1
+IG_Something_Candy_Holder,Well_Baked_Cookie,1,2,1
+IG_Something_Candy_Holder,Piece_Of_Cake,1,1,1
+IG_Something_Candy_Holder,Bread,1,3,1
+IG_Something_Candy_Holder,Pumpkin_Cake,1,1,1
+IG_Something_Candy_Holder,Pumpkin_Pie,1,3,1
+IG_Something_Candy_Holder,Meat,1,5,1
+IG_Something_Candy_Holder,HALLOWEEN_G_BOX,1,1,1
+IG_Something_Candy_Holder,Trans_Candy_Red,1,3,1
+IG_Something_Candy_Holder,Trans_Candy_Blue,1,3,1
+IG_Something_Candy_Holder,Trans_Candy_Yellow,1,3,1
+IG_Something_Candy_Holder,Trans_Candy_Green,1,3,1
+IG_Something_Candy_Holder,Old_Blue_Box,1,1,1
+IG_Something_Candy_Holder,Yggdrasilberry,1,1,1
+IG_Something_Candy_Holder,Old_Card_Album,1,1,1
+IG_Something_Candy_Holder,Old_Violet_Box,1,1,1
+IG_Something_Candy_Holder,DARK_INVITATION,1,1,1
+IG_Something_Candy_Holder,C_There's..Something..,1,1,1
+IG_Something_Candy_Holder,Witch_Shoes,1,1,1
 
 IG_Sg_Weapon_Supply_Box,Velum_Arbalest,3,1,1
 IG_Sg_Weapon_Supply_Box,Velum_Arc_Wand,8,1,1
