@@ -522,7 +522,7 @@ bool skill_isNotOk(uint16 skill_id, struct map_session_data *sd)
 		return false; //Can do any damn thing they want
 
 	if (skill_id == AL_TELEPORT && sd->skillitem == skill_id && sd->skillitemlv > 2)
-		return false; //Teleport lv 3 bypasses this check.[Inkfish]
+		return false; //Teleport lv 3 bypasses this check [Inkfish]
 
 	if (map[m].flag.noskill)
 		return true;
@@ -6166,6 +6166,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case NPC_INVINCIBLEOFF:
 		case RK_DEATHBOUND:
 		case RK_CRUSHSTRIKE:
+		case RA_FEARBREEZE:
 		case AB_RENOVATIO:
 		case AB_EXPIATIO:
 		case AB_DUPLELIGHT:
@@ -6202,7 +6203,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			skill_addtimerskill(src,tick + 100,bl->id,0,0,skill_id,skill_lv,BF_WEAPON,flag);
 			break;
 
-		case SO_STRIKING: 
+		case SO_STRIKING:
 			if( src == bl || battle_check_target(src,bl,BCT_PARTY) > 0 ) {
 				int bonus = 0;
 
@@ -6440,12 +6441,24 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case MO_KITRANSLATION:
-			if (dstsd && ((dstsd->class_&MAPID_BASEMASK) != MAPID_GUNSLINGER || (dstsd->class_&MAPID_UPPERMASK) != MAPID_REBELLION))
-				pc_addspiritball(dstsd,skill_get_time(skill_id,skill_lv),5);
+			if (dstsd && dstsd->spiritball < 5 &&
+				(dstsd->class_&MAPID_BASEMASK) != MAPID_GUNSLINGER && (dstsd->class_&MAPID_UPPERMASK) != MAPID_REBELLION) {
+				//Require will define how many spiritballs will be transferred
+				struct skill_condition require = skill_get_requirement(sd,skill_id,skill_lv);
+
+				pc_delspiritball(sd,require.spiritball,0);
+				for (i = 0; i < require.spiritball; i++)
+					pc_addspiritball(dstsd,skill_get_time(skill_id,skill_lv),5);
+			} else {
+				if (sd)
+					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+				map_freeblock_unlock();
+				return 0;
+			}
 			break;
 
 		case TK_TURNKICK:
-		case MO_BALKYOUNG: //Passive part of the attack. Splash knock-back+stun. [Skotlex]
+		case MO_BALKYOUNG: //Passive part of the attack. Splash knock-back + stun [Skotlex]
 			if (skill_area_temp[1] != bl->id) {
 				skill_blown(src,bl,skill_get_blewcount(skill_id,skill_lv),-1,0);
 				skill_additional_effect(src,bl,skill_id,skill_lv,BF_MISC,ATK_DEF,tick); //Use Misc rather than weapon to signal passive pushback
@@ -9042,11 +9055,6 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			}
 			break;
 
-		case RA_FEARBREEZE:
-			clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,DMG_SKILL);
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
-			break;
-
 		case RA_WUGMASTERY:
 			if( sd ) {
 				if( !pc_iswug(sd) && !pc_isridingwug(sd) )
@@ -10828,14 +10836,13 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 		map_freeblock_lock();
 		skill_toggle_magicpower(src,ud->skill_id);
 
-		//Only normal attack and auto cast skills benefit from its bonuses
-		if( !(skill_get_inf3(ud->skill_id)&INF3_NOENDCAMOUFLAGE) )
-			status_change_end(src,SC_CAMOUFLAGE,INVALID_TIMER);
-
 		if( skill_get_casttype(ud->skill_id) == CAST_NODAMAGE )
 			skill_castend_nodamage_id(src,target,ud->skill_id,ud->skill_lv,tick,flag);
 		else
 			skill_castend_damage_id(src,target,ud->skill_id,ud->skill_lv,tick,flag);
+
+		if( ud->skill_id != RA_CAMOUFLAGE )
+			status_change_end(src,SC_CAMOUFLAGE,INVALID_TIMER);
 
 		sc = status_get_sc(src);
 
@@ -10845,7 +10852,6 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 				sc->data[SC_SPIRIT]->val3 == ud->skill_id &&
 				ud->skill_id != WZ_WATERBALL )
 				sc->data[SC_SPIRIT]->val3 = 0; //Clear bounced spell check
-
 			if( sc->data[SC_DANCING] && skill_get_inf2(ud->skill_id)&INF2_SONG_DANCE && sd )
 				skill_blockpc_start(sd,BD_ADAPTATION,3000);
 		}
@@ -11026,11 +11032,9 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 //			}
 //		}
 		unit_set_walkdelay(src,tick,battle_config.default_walk_delay+skill_get_walkdelay(ud->skill_id,ud->skill_lv),1);
-		//Only normal attack and auto cast skills benefit from its bonuses
-		if( !(skill_get_inf3(ud->skill_id)&INF3_NOENDCAMOUFLAGE) )
-			status_change_end(src,SC_CAMOUFLAGE,INVALID_TIMER);
 		map_freeblock_lock();
 		skill_castend_pos2(src,ud->skillx,ud->skilly,ud->skill_id,ud->skill_lv,tick,0);
+		status_change_end(src,SC_CAMOUFLAGE,INVALID_TIMER);
 		if( sd && sd->skillitem != AL_WARP ) //Warp-Portal thru items will clear data in skill_castend_map [Inkfish]
 			sd->skillitem = sd->skillitemlv = 0;
 		if( ud->skilltimer == INVALID_TIMER ) {
@@ -11543,8 +11547,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		case WM_GREAT_ECHO:
 		case WM_SOUND_OF_DESTRUCTION:
 			i = skill_get_splash(skill_id,skill_lv);
-			map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,splash_target(src),
-				src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
+			map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,splash_target(src),src,
+				skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 			break;
 
 		case WM_SEVERE_RAINSTORM:
@@ -11556,8 +11560,8 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 		case SO_ARRULLO:
 			i = skill_get_splash(skill_id,skill_lv);
-			map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,splash_target(src),
-				src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
+			map_foreachinarea(skill_area_sub,src->m,x-i,y-i,x+i,y+i,splash_target(src),src,
+				skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
 			break;
 
 		case GC_POISONSMOKE:
@@ -15361,6 +15365,9 @@ void skill_consume_requirement(struct map_session_data *sd, uint16 skill_id, uin
 				if( sd->skill_id_old == RL_FALLEN_ANGEL )
 					require.sp = 0; //Don't consume SP if triggered by Fallen Angel
 				break;
+			case MO_KITRANSLATION:
+				require.spiritball = 0; //Spiritual Bestowment only uses spirit sphere when giving it to someone
+			//Fall through
 			default:
 				if( sd->state.autocast )
 					require.sp = 0;
@@ -15782,7 +15789,7 @@ int skill_castfix(struct block_list *bl, uint16 skill_id, uint16 skill_lv) {
 		}
 
 		//NOTE: Magic Strings and Foresight are treated as separate factors in the calculation
-		//They are not added to the other modifiers. [iRO Wiki]
+		//They are not added to the other modifiers [iRO Wiki]
 		if( sc && sc->count && !(skill_get_castnodex(skill_id, skill_lv)&2) ) {
 			if( sc->data[SC_MEMORIZE] ) {
 				reduce_ct_r += 50;
@@ -15821,7 +15828,7 @@ int skill_castfix_sc(struct block_list *bl, double time)
 	if( time < 0 )
 		return 0;
 
-	if( bl->type == BL_MOB ) //Mobs cast-time is fixed nothing to alter.
+	if( bl->type == BL_MOB ) //Mobs cast-time is fixed nothing to alter
 		return (int)time;
 
 	if( sc && sc->count ) {
@@ -15868,7 +15875,7 @@ int skill_vfcastfix(struct block_list *bl, double time, uint16 skill_id, uint16 
 	} else if( fixed < 0 ) //No fixed cast time
 		fixed = 0;
 
-	//Increases/Decreases fixed/variable cast time of a skill by item/card bonuses.
+	//Increases/Decreases fixed/variable cast time of a skill by item/card bonuses
 	if( sd && !(skill_get_castnodex(skill_id, skill_lv)&4) ) {
 		if( sd->bonus.varcastrate != 0 ) //bonus bVariableCastrate
 			reduce_ct_r += sd->bonus.varcastrate;
@@ -15904,8 +15911,6 @@ int skill_vfcastfix(struct block_list *bl, double time, uint16 skill_id, uint16 
 		}
 	}
 
-	//NOTE: Magic Strings and Foresight are treated as separate factors in the calculation
-	//They are not added to the other modifiers [iRO Wiki]
 	if( sc && sc->count && !(skill_get_castnodex(skill_id, skill_lv)&2) ) {
 		//All variable cast additive bonuses must come first
 		if( sc->data[SC_SLOWCAST] )
@@ -19011,7 +19016,7 @@ int skill_poisoningweapon(struct map_session_data *sd, unsigned short nameid) {
 			return 0;
 	}
 
-	//Status must be forced to end so that a new poison will be applied if a player decides to change poisons. [Rytech]
+	//Status must be forced to end so that a new poison will be applied if a player decides to change poisons [Rytech]
 	status_change_end(&sd->bl,SC_POISONINGWEAPON,INVALID_TIMER);
 	chance = 2 + 2 * sd->menuskill_val; //2 + 2 * skill_lv
 	//In Aegis it store the level of GC_RESEARCHNEWPOISON in val1

@@ -3231,7 +3231,7 @@ void pc_bonus2(struct map_session_data *sd, int type, int type2, int val)
 				break;
 			ARR_FIND(0, ARRAYLENGTH(sd->skillatk), i, sd->skillatk[i].id == 0 || sd->skillatk[i].id == type2);
 			if(i == ARRAYLENGTH(sd->skillatk)) { //Better mention this so the array length can be updated. [Skotlex]
-				ShowError("pc_bonus2: SP_SKILL_ATK: Reached max (%d) number of skills per character, bonus skill %d (+%d%%) lost.\n", ARRAYLENGTH(sd->skillatk), type2, val);
+				ShowError("pc_bonus2: SP_SKILL_ATK: Reached max (%d) number of skills per character, bonus skill %d (%d) lost.\n", ARRAYLENGTH(sd->skillatk), type2, val);
 				break;
 			}
 			if(sd->skillatk[i].id == type2)
@@ -3246,7 +3246,7 @@ void pc_bonus2(struct map_session_data *sd, int type, int type2, int val)
 				break;
 			ARR_FIND(0, ARRAYLENGTH(sd->skillheal), i, sd->skillheal[i].id == 0 || sd->skillheal[i].id == type2);
 			if(i == ARRAYLENGTH(sd->skillheal)) { //Better mention this so the array length can be updated. [Skotlex]
-				ShowError("pc_bonus2: SP_SKILL_HEAL: Reached max (%d) number of skills per character, bonus skill %d (+%d%%) lost.\n", ARRAYLENGTH(sd->skillheal), type2, val);
+				ShowError("pc_bonus2: SP_SKILL_HEAL: Reached max (%d) number of skills per character, bonus skill %d (%d) lost.\n", ARRAYLENGTH(sd->skillheal), type2, val);
 				break;
 			}
 			if(sd->skillheal[i].id == type2)
@@ -3261,7 +3261,7 @@ void pc_bonus2(struct map_session_data *sd, int type, int type2, int val)
 				break;
 			ARR_FIND(0, ARRAYLENGTH(sd->skillheal2), i, sd->skillheal2[i].id == 0 || sd->skillheal2[i].id == type2);
 			if(i == ARRAYLENGTH(sd->skillheal2)) { //Better mention this so the array length can be updated. [Skotlex]
-				ShowError("pc_bonus2: SP_SKILL_HEAL2: Reached max (%d) number of skills per character, bonus skill %d (+%d%%) lost.\n", ARRAYLENGTH(sd->skillheal2), type2, val);
+				ShowError("pc_bonus2: SP_SKILL_HEAL2: Reached max (%d) number of skills per character, bonus skill %d (%d) lost.\n", ARRAYLENGTH(sd->skillheal2), type2, val);
 				break;
 			}
 			if (sd->skillheal2[i].id == type2)
@@ -3276,7 +3276,7 @@ void pc_bonus2(struct map_session_data *sd, int type, int type2, int val)
 				break;
 			ARR_FIND(0, ARRAYLENGTH(sd->skillblown), i, sd->skillblown[i].id == 0 || sd->skillblown[i].id == type2);
 			if(i == ARRAYLENGTH(sd->skillblown)) { //Better mention this so the array length can be updated. [Skotlex]
-				ShowError("pc_bonus2: SP_ADD_SKILL_BLOW: Reached max (%d) number of skills per character, bonus skill %d (+%d%%) lost.\n", ARRAYLENGTH(sd->skillblown), type2, val);
+				ShowError("pc_bonus2: SP_ADD_SKILL_BLOW: Reached max (%d) number of skills per character, bonus skill %d (%d) lost.\n", ARRAYLENGTH(sd->skillblown), type2, val);
 				break;
 			}
 			if(sd->skillblown[i].id == type2)
@@ -3294,7 +3294,7 @@ void pc_bonus2(struct map_session_data *sd, int type, int type2, int val)
 				break;
 			ARR_FIND(0, ARRAYLENGTH(sd->skillcast), i, sd->skillcast[i].id == 0 || sd->skillcast[i].id == type2);
 			if(i == ARRAYLENGTH(sd->skillcast)) { //Better mention this so the array length can be updated. [Skotlex]
-				ShowError("run_script: %s: Reached max (%d) number of skills per character, bonus skill %d (+%d%%) lost.\n",
+				ShowError("run_script: %s: Reached max (%d) number of skills per character, bonus skill %d (%d) lost.\n",
 #ifndef RENEWAL_CAST
 				"SP_VARCASTRATE",
 #else
@@ -3316,7 +3316,7 @@ void pc_bonus2(struct map_session_data *sd, int type, int type2, int val)
 				break;
 			ARR_FIND(0, ARRAYLENGTH(sd->skillcast), i, sd->skillcast[i].id == 0 || sd->skillcast[i].id == type2);
 			if(i == ARRAYLENGTH(sd->skillcast)) {
-				ShowError("run_script: SP_VARCASTRATE: Reached max (%d) number of skills per character, bonus skill %d (+%d%%) lost.\n", ARRAYLENGTH(sd->skillcast), type2, val);
+				ShowError("run_script: SP_VARCASTRATE: Reached max (%d) number of skills per character, bonus skill %d (%d) lost.\n", ARRAYLENGTH(sd->skillcast), type2, val);
 				break;
 			}
 			if(sd->skillcast[i].id == type2)
@@ -3332,7 +3332,7 @@ void pc_bonus2(struct map_session_data *sd, int type, int type2, int val)
 				break;
 			ARR_FIND(0, ARRAYLENGTH(sd->skillfixcastrate), i, sd->skillfixcastrate[i].id == 0 || sd->skillfixcastrate[i].id == type2);
 			if(i == ARRAYLENGTH(sd->skillfixcastrate)) {
-				ShowError("run_script: SP_FIXCASTRATE: Reached max (%d) number of skills per character, bonus skill %d (+%d%%) lost.\n", ARRAYLENGTH(sd->skillfixcastrate), type2, val);
+				ShowError("run_script: SP_FIXCASTRATE: Reached max (%d) number of skills per character, bonus skill %d (%d) lost.\n", ARRAYLENGTH(sd->skillfixcastrate), type2, val);
 				break;
 			}
 			if(sd->skillfixcastrate[i].id == type2)
@@ -3493,7 +3493,7 @@ void pc_bonus2(struct map_session_data *sd, int type, int type2, int val)
 				break;
 			ARR_FIND(0, ARRAYLENGTH(sd->skillusesprate), i, sd->skillusesprate[i].id == 0 || sd->skillusesprate[i].id == type2);
 			if(i == ARRAYLENGTH(sd->skillusesprate)) {
-				ShowError("pc_bonus2: SP_SKILL_USE_SP_RATE: Reached max (%d) number of skills per character, bonus skill %d (+%d%%) lost.\n", ARRAYLENGTH(sd->skillusesprate), type2, val);
+				ShowError("pc_bonus2: SP_SKILL_USE_SP_RATE: Reached max (%d) number of skills per character, bonus skill %d (%d) lost.\n", ARRAYLENGTH(sd->skillusesprate), type2, val);
 				break;
 			}
 			if(sd->skillusesprate[i].id == type2)
@@ -3508,7 +3508,7 @@ void pc_bonus2(struct map_session_data *sd, int type, int type2, int val)
 				break;
 			ARR_FIND(0, ARRAYLENGTH(sd->cooldown), i, sd->cooldown[i].id == 0 || sd->cooldown[i].id == type2);
 			if(i == ARRAYLENGTH(sd->cooldown)) {
-				ShowError("pc_bonus2: SP_SKILL_COOLDOWN: Reached max (%d) number of skills per character, bonus skill %d (+%d%%) lost.\n", ARRAYLENGTH(sd->cooldown), type2, val);
+				ShowError("pc_bonus2: SP_SKILL_COOLDOWN: Reached max (%d) number of skills per character, bonus skill %d (%d) lost.\n", ARRAYLENGTH(sd->cooldown), type2, val);
 				break;
 			}
 			if(sd->cooldown[i].id == type2)
@@ -3523,7 +3523,7 @@ void pc_bonus2(struct map_session_data *sd, int type, int type2, int val)
 				break;
 			ARR_FIND(0, ARRAYLENGTH(sd->skillfixcast), i, sd->skillfixcast[i].id == 0 || sd->skillfixcast[i].id == type2);
 			if(i == ARRAYLENGTH(sd->skillfixcast)) {
-				ShowError("pc_bonus2: SP_SKILL_FIXEDCAST: Reached max (%d) number of skills per character, bonus skill %d (+%d%%) lost.\n", ARRAYLENGTH(sd->skillfixcast), type2, val);
+				ShowError("pc_bonus2: SP_SKILL_FIXEDCAST: Reached max (%d) number of skills per character, bonus skill %d (%d) lost.\n", ARRAYLENGTH(sd->skillfixcast), type2, val);
 				break;
 			}
 			if(sd->skillfixcast[i].id == type2)
@@ -3538,7 +3538,7 @@ void pc_bonus2(struct map_session_data *sd, int type, int type2, int val)
 				break;
 			ARR_FIND(0, ARRAYLENGTH(sd->skillvarcast), i, sd->skillvarcast[i].id == 0 || sd->skillvarcast[i].id == type2);
 			if(i == ARRAYLENGTH(sd->skillvarcast)) {
-				ShowError("pc_bonus2: SP_SKILL_VARIABLECAST: Reached max (%d) number of skills per character, bonus skill %d (+%d%%) lost.\n", ARRAYLENGTH(sd->skillvarcast), type2, val);
+				ShowError("pc_bonus2: SP_SKILL_VARIABLECAST: Reached max (%d) number of skills per character, bonus skill %d (%d) lost.\n", ARRAYLENGTH(sd->skillvarcast), type2, val);
 				break;
 			}
 			if(sd->skillvarcast[i].id == type2)
@@ -3553,7 +3553,7 @@ void pc_bonus2(struct map_session_data *sd, int type, int type2, int val)
 				break;
 			ARR_FIND(0, ARRAYLENGTH(sd->skillusesp), i, sd->skillusesp[i].id == 0 || sd->skillusesp[i].id == type2);
 			if(i == ARRAYLENGTH(sd->skillusesp)) {
-				ShowError("pc_bonus2: SP_SKILL_USE_SP: Reached max (%d) number of skills per character, bonus skill %d (+%d%%) lost.\n", ARRAYLENGTH(sd->skillusesp), type2, val);
+				ShowError("pc_bonus2: SP_SKILL_USE_SP: Reached max (%d) number of skills per character, bonus skill %d (%d) lost.\n", ARRAYLENGTH(sd->skillusesp), type2, val);
 				break;
 			}
 			if(sd->skillusesp[i].id == type2)
@@ -5178,13 +5178,12 @@ char pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int 
 			if( sd->sc.data[SC_JAILED] )
 				return 1; // You may not get out!
 			status_change_end(&sd->bl, SC_BOSSMAPINFO, INVALID_TIMER);
+			status_change_end(&sd->bl, SC_CLOAKING, INVALID_TIMER);
 			status_change_end(&sd->bl, SC_WARM, INVALID_TIMER);
 			status_change_end(&sd->bl, SC_SUN_COMFORT, INVALID_TIMER);
 			status_change_end(&sd->bl, SC_MOON_COMFORT, INVALID_TIMER);
 			status_change_end(&sd->bl, SC_STAR_COMFORT, INVALID_TIMER);
 			status_change_end(&sd->bl, SC_MIRACLE, INVALID_TIMER);
-			status_change_end(&sd->bl, SC_NEUTRALBARRIER_MASTER, INVALID_TIMER);
-			status_change_end(&sd->bl, SC_STEALTHFIELD_MASTER, INVALID_TIMER);
 			if( sd->sc.data[SC_KNOWLEDGE] ) {
 				struct status_change_entry *sce = sd->sc.data[SC_KNOWLEDGE];
 
@@ -5192,9 +5191,10 @@ char pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int 
 					delete_timer(sce->timer, status_change_timer);
 				sce->timer = add_timer(gettick() + skill_get_time(SG_KNOWLEDGE, sce->val1), status_change_timer, sd->bl.id, SC_KNOWLEDGE);
 			}
-			status_change_end(&sd->bl, SC_PROPERTYWALK, INVALID_TIMER);
-			status_change_end(&sd->bl, SC_CLOAKING, INVALID_TIMER);
 			status_change_end(&sd->bl, SC_CLOAKINGEXCEED, INVALID_TIMER);
+			status_change_end(&sd->bl, SC_NEUTRALBARRIER_MASTER, INVALID_TIMER);
+			status_change_end(&sd->bl, SC_STEALTHFIELD_MASTER, INVALID_TIMER);
+			status_change_end(&sd->bl, SC_PROPERTYWALK, INVALID_TIMER);
 		}
 		for( i = 0; i < EQI_MAX; i++ )
 			if( sd->equip_index[i] >= 0 )

@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Ziu, Heris (translation)
 //===== Current Version: ===================================== 
-//= 1.2
+//= 1.3
 //===== Compatible With: ===================================== 
 //= rAthena SVN
 //===== Description: ========================================= 
@@ -15,28 +15,68 @@
 //= 1.1 Bug fixes; removed redundant OnInstanceInit scripts.
 //= 1.2 Add NPC Hugin's follower [exneval]
 //=     NPC that give access to Glast Heim Nightmare Mode.
+//= 1.3 Add some NPCs placeholder. [exneval]
 //============================================================ 
 
 glast_01,204,273,6	script	Hugin#ghinstance	755,{
-	mes "^ff0000This isn't considered a normal progression dungeon. Please note this point.^000000";
+	if (BaseLevel < 130) {
+		mes "[Hugin]";
+		mes "Why don't you come back after becoming stronger?";
+		mes "Maybe, level 130.";
+		close;
+	}
+	mes "[Hugin]";
+	mes "A long time ago, this castle did not like this.";
 	next;
 	mes "[Hugin]";
-	mes "Huh? You feel like you have seen me in different places? I see. What can I say?";
+	mes "Ah I'm sorry. I'm muttering in front of a stranger.";
+	next;
+	mes "[Hugin]";
+	mes "My name is Hugin. I'm studying the dimensional gap between time and space.";
+	next;
+	select("There's something like that here?");
+	mes "[Hugin]";
+	mes "Have you ever wondered about history of Glast Heim?";
+	next;
+	mes "[Hugin]";
+	mes "There was a King named Shumiche who was known as a tyrant in the history of the Rune-Midgarts Kingdom.";
+	next;
+	mes "[Hugin]";
+	mes "Time will reveal the true answers if we look in the right places.";
+	next;
+	if (select("I don't care about history","That is interesting. Find anything?") == 1) {
+		mes "[Hugin]";
+		mes "Really? Hmm, please come back later when you are interested then.";
+		close;
+	}
+	mes "[Hugin]";
+	mes "Actually, dimensional time travel is possible but I'm so afraid to go there.";
+	next;
+	mes "[Hugin]";
+	mes "Yes! It might be possible for you.";
+	next;
+	mes "[Hugin]";
+	mes "Do you want to time travel?";
+	next;
+	if (select("No, thanks.","Yes, of course I do!") == 1) {
+		mes "[Hugin]";
+		mes "Really? But, jumping gigawatts this is such a great opportunity.";
+		close;
+	}
+	mes "[Hugin]";
+	mes "I knew that you would understand what I said. Well, please tell what you gonna do.";
+	setquest 12318;
 	next;
 	set .@ghins_time, checkquest(12317,PLAYTIME);
 	if (.@ghins_time == -1) {
-
 		set .@party_id,getcharid(1);
 		set .@p_name$,getpartyname(.@party_id);
 		set .@md_name$,"Old Glast Heim";
-
 		if (!instance_check_party(.@party_id,2)) {
-			//custom
 			mes "[Hugin]";
-			mes "Where are your party members?";
+			mes "Why don't you make a party with more than 1 person and talk to me again?";
 			close;
 		}
-
 		if (getcharid(0) == getpartyleader(.@party_id,2))
 			set .@menu$, "Create the time gap.:Enter the Old Glast Heim.:Cancel.";
 		else
@@ -67,7 +107,6 @@ glast_01,204,273,6	script	Hugin#ghinstance	755,{
 			case 0:
 				mapannounce "glast_01",strcharinfo(0)+", member of the party "+.@p_name$+" entered the instance "+.@md_name$+".",bc_map,"0x00ff99";
 				setquest 12317;
-				setquest 12318;
 				//warp "1@gl_k",150,20;
 				close;
 			}
@@ -1990,39 +2029,200 @@ OnEnable:
 	end;
 }
 
+glast_01,210,273,5	script	Hugin's buttler	69,{
+	mes "[Hugin's buttler]";
+	mes "Bring Time Crystal items for various Temporal boots items. Pick something you want.";
+	next;
+	switch(select("Cancel", "Buy Temporal Boots (Need 1 Time Crystal)", "Upgrade Temporal Boots (Need 5 Time Crystals)")) {
+	case 1:
+		mes "[Hugin's buttler]";
+		mes "Come back whenever you want.";
+		close;
+		break;
+	case 2:
+		if (countitem(6607) > 0) {
+			mes "^FF0000Currently this NPC is not finish being scripted, please wait the updates^000000.";
+			close;
+		}
+		mes "[Hugin's buttler]";
+		mes "You need more Time Crystals. Come back when you get some more Time Crystals during your travel through Old Glast Heim.";
+		close;
+		break;
+	case 3:
+		if (isequipped(2499)) {
+			mes "^FF0000Currently this NPC is not finish being scripted, please wait the updates^000000.";
+			close;
+		}
+		mes "[Hugin's buttler]";
+		mes "You are not wearing the Temporal Boots. Talk to me once you're wearing them.";
+		close;
+		break;
+	}
+}
+
+glast_01,212,273,4	script	Hugin's magic master	66,{
+	mes "[Hugin's magic master]";
+	mes "So you came to enchant the Temporal Boots. Be aware that Boots with sockets cannot be enchanted, and this upgrade is only possible for the boots you are wearing.";
+	next;
+	if (select("How does the enchanting work?", "Give effect to my Temporal Boots") == 1) {
+		mes "[Hugin's magic master]";
+		mes "You can keep obtain ^0000FFCoagulated Spell^000000 through your travel times.";
+		next;
+		mes "[Hugin's magic master]";
+		mes "I can enchant your Temporal Boots items depands on the amount of that item. ^0000FFNot normal type boots^000000. Only possible for those 6 expanded version boots.";
+		next;
+		mes "[Hugin's magic master]";
+		mes "But, once you put a socket into the item, you cannot enchant it. Make sure to remember that.";
+		next;
+		mes "[Hugin's magic master]";
+		mes "I don't give out effect randomly. You can pick which effect you want for the item.";
+		next;
+		mes "[Hugin's magic master]";
+		mes "Of course it is for 4th slot only. You can have small effect at the start, and then the effect gets stronger.";
+		next;
+		mes "[Hugin's magic master]";
+		mes "To get to the final option upgrade, it will require way more Coagulated Spell items. Don't forget that.";
+		next;
+		mes "[Hugin's magic master]";
+		mes "Once the 4th slot completes the best option, you get to have a random bonus effect to the 3rd slot. With.. certain payment~";
+		next;
+		mes "[Hugin's magic master]";
+		mes "Also, you don't lose the item even if the enchant fails, we also guarantee keeping card and refine rate. But we can't initialize enchanting.";
+		next;
+		mes "[Hugin's magic master]";
+		mes "Phew...";
+		mes "Anyways, that's all for basic enchant information. Now you should see for yourself.";
+		close;
+	}
+	if (isequipped(22000) || isequipped(22001) || isequipped(22002) || isequipped(22003) || isequipped(22004) || isequipped(22005)) {
+		mes "^FF0000Currently this NPC is not finish being scripted, please wait the updates^000000.";
+		close;
+	}
+	mes "[Hugin's magic master]";
+	mes "This is not the right item for this enchant.";
+	mes "Remember, only those 6 types of Temporal Boots are available for enchanting.";
+	close;
+}
+
+glast_01,210,270,8	script	Hugin's craftsman	726,{
+	mes "[Hugin's craftsman]";
+	mes "That magic craftsman always says that enchanting Temporal Boots is the best. But, I think quite different.";
+	next;
+	mes "[Hugin's craftsman]";
+	mes "I think putting a slot into the item would be the best. Even with some risk of failing.";
+	next;
+	mes "[Hugin's craftsman]";
+	mes "Bring me ^0000FF5 Time Crystals^000000, and I will try to put a slot into your advanced Temporal Boots. But, it's possible to ^FF0000fail and break the item^000000. Is that ok?";
+	next;
+	if (select("Cancel", "Take the risk and try to add a slot") == 1) {
+		mes "[Hugin's craftsman]";
+		mes "Ok, come back anytime you want.";
+		close;
+	}
+	if (isequipped(22000) || isequipped(22001) || isequipped(22002) || isequipped(22003) || isequipped(22004) || isequipped(22005)) {
+		mes "^FF0000Currently this NPC is not finish being scripted, please wait the updates^000000.";
+		close;
+	}
+	mes "[Hugin's craftsman]";
+	mes "This is not it! We need ^0000FFAdvanced Temporal Boots^000000 items! The item ^0000FFwith a stat effect and without a slot^000000!";
+	close;
+}
+
+glast_01,44,363,4	script	Guide, Jungberg#n_gh	468,{
+	mes "[Guide, Jungberg]";
+	mes "I am a man walking the way of the Sword. But I'm not exactly the same as the likes of you, Rune-Midgarts knight.";
+	next;
+	mes "[Guide, Jungberg]";
+	mes "Since you don't walk the way of the Sword, you wouldn't understand our spirit. I can manage by myself. Follow your own path.";
+	close;
+}
+
 // Glast Heim Nightmare Mode :: nightmare_gh
 //============================================================
-glast_01,195,273,4	script	Hugin's follower	123,{
+glast_01,195,273,4	script	Hugin's follower#n_gh	123,{
 	mes "[Hugin's follower]";
-	mes "I can send you just two places. How is it? Do you want to try?";
+	mes "I can't move between time and dimension like a master Hugin but I can pretend to move.";
+	next;
+	mes "[Hugin's follower]";
+	mes "What about this Glast Heim is born with powerful dark force?";
+	next;
+	if (select("I don't care", "That is interesting, please tell me more") == 1) {
+		mes "[Hugin's follower]";
+		mes "Well~ If you are not interested in it, never mind.";
+		close;
+	}
+	mes "[Hugin's follower]";
+	mes "As learning ability from Hugin, I just find out the path to Old Glast Heim of more powerful dark force.";
+	next;
+	mes "[Hugin's follower]";
+	mes "How is it? Do you want to explore there?";
+	next;
+	if (select("No, I want to stop it", "I really want to do that!") == 1) {
+		mes "[Hugin's follower]";
+		mes "Well~ If you are not interested in it, never mind.";
+		close;
+	}
+	mes "[Hugin's follower]";
+	mes "Sure that is not free~ I have to get something little bit. Hoho...";
+	next;
+	mes "[Hugin's follower]";
+	mes "I can send you just two place. How is it? Do you want to try?";
 	next;
 	switch(select("Cancel", "Monastery Cemetery (Lv100~130) - 5000z", "Corridor of 2nd floor (Over Lv140) - 10000z")) {
 	case 1:
 		mes "[Hugin's follower]";
-		mes "Just talk to me when you ready to try these places, ok?";
+		mes "Alright, please come back whenever you change mind. I think you will have lots of thing to talk with me...";
 		close;
 		break;
 	case 2:
-		if(Zeny < 5000) {
+		if (Zeny < 5000) {
 			mes "[Hugin's follower]";
 			mes "Please make sure you already have all of the money.";
 			close;
 			break;
 		}
 		Zeny -= 5000;
-		warp "gl_chyard_",147,15;
+		warp "gl_chyard_",148,144;
 		end;
 		break;
 	case 3:
-		if(Zeny < 10000) {
+		if (Zeny < 10000) {
 			mes "[Hugin's follower]";
 			mes "Please make sure you already have all of the money.";
 			close;
 			break;
 		}
 		Zeny -= 10000;
-		warp "gl_cas02_",104,25;
+		warp "gl_cas02_",104,31;
 		end;
 		break;
 	}
+}
+
+gl_chyard_,148,149,4	script	Hugin's follower#n_gh1	123,{
+	mes "[Hugin's follower]";
+	mes "You want to break?";
+	mes "Ok, let's get out of here.?";
+	next;
+	if (select("Ah, wrong click... I mean I was not talk to you", "Please let me out from here") == 1) {
+		mes "[Hugin's follower]";
+		mes "Alright just tell me whenever you want to leave.";
+		close;
+	}
+	warp "glast_01",210,269;
+	end;
+}
+
+gl_cas02_,104,36,4	script	Hugin's follower#n_gh2	123,{
+	mes "[Hugin's follower]";
+	mes "You want to break?";
+	mes "Ok, let's get out of here.?";
+	next;
+	if (select("Ah, wrong click... I mean I was not talk to you", "Please let me out from here") == 1) {
+		mes "[Hugin's follower]";
+		mes "Alright just tell me whenever you want to leave.";
+		close;
+	}
+	warp "glast_01",210,269;
+	end;
 }

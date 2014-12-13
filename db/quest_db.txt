@@ -1221,11 +1221,11 @@
 7426,0,0,0,0,0,0,0,"A rumor about the King 4"
 7427,0,0,0,0,0,0,0,"At times like this, face it straight on!"
 7428,0,0,0,0,0,0,0,"Yai of the wild"
-7429,0,0,0,0,0,0,0,"Wild recent trend!"
+7429,82800,0,0,0,0,0,0,"Wild recent trend!"
 7430,0,0,0,0,0,0,0,"Deliveryman that runs through space"
-7431,0,0,0,0,0,0,0,"A mailman never rests!"
+7431,82800,0,0,0,0,0,0,"A mailman never rests!"
 7432,0,0,0,0,0,0,0,"The troublemakers in the land of blooming flowers"
-7433,0,0,0,0,0,0,0,"Need constant guidance"
+7433,82800,0,0,0,0,0,0,"Need constant guidance"
 
 // Twins and Scholar of Magics
 7434,0,0,0,0,0,0,0,"Kardui's big brother"
@@ -1622,7 +1622,7 @@
 9256,0,0,0,0,0,0,0,"Examining a messed up table"
 9257,0,0,0,0,0,0,0,"Examining a foreign object"
 9258,0,0,0,0,0,0,0,"Field examination results"
-9259,0,0,0,0,0,0,0,"Confirming Cruyan's statements"
+9259,0,2363,5,2364,30,0,0,"Confirming Cruyan's statements"
 9260,0,0,0,0,0,0,0,"Survey investigation notes"
 9262,0,0,0,0,0,0,0,"Mystery Robbery Incident 16"
 
@@ -2016,7 +2016,7 @@
 11308,0,0,0,0,0,0,0,"Nurse at Port Malaya-25"
 11309,0,2327,1,0,0,0,0,"Nurse at Port Malaya-26"
 
-11310,0,0,0,0,0,0,0,"Eclage's Entrance"
+11310,60,0,0,0,0,0,0,"Eclage's Entrance"
 11311,0,0,0,0,0,0,0,"Eclage's Entrance"
 11312,0,0,0,0,0,0,0,"Goliath"
 11313,0,0,0,0,0,0,0,"Goliath"
@@ -2342,9 +2342,9 @@
 12301,0,0,0,0,0,0,0,"Two remaining friends"
 
 // Old Glast Heim
-12317,82800,0,0,0,0,0,0,"Fake Keyblade"
-12318,0,2475,1,0,0,0,0,"Upper Cats: annoying guy"
-12319,0,2476,1,0,0,0,0,"Upper Cats: annoying guy"
+12317,82800,0,0,0,0,0,0,"Trace of Time Travel"
+12318,0,2475,1,0,0,0,0,"Root of Corruption Hunt"
+12319,0,2476,1,0,0,0,0,"Amdarais Hunt"
 
 13000,0,0,0,0,0,0,0,"RWC2011Card Gathering"
 13001,82800,0,0,0,0,0,0,"RWC2011Card Gathering - Hold"

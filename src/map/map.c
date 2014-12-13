@@ -1801,12 +1801,14 @@ int map_quit(struct map_session_data *sd) {
 		}
 		if (battle_config.debuff_on_logout&2) { //Remove positive buffs
 			status_change_end(&sd->bl,SC_SIGHTBLASTER,INVALID_TIMER);
-			status_change_end(&sd->bl,SC_MAXIMIZEPOWER,INVALID_TIMER);
-			status_change_end(&sd->bl,SC_MAXOVERTHRUST,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_STEELBODY,INVALID_TIMER);
-			status_change_end(&sd->bl,SC_PRESERVE,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_KAAHI,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_SPIRIT,INVALID_TIMER);
+			status_change_end(&sd->bl,SC_WINDWALK,INVALID_TIMER);
+			status_change_end(&sd->bl,SC_CARTBOOST,INVALID_TIMER);
+			status_change_end(&sd->bl,SC_MELTDOWN,INVALID_TIMER);
+			status_change_end(&sd->bl,SC_MAXOVERTHRUST,INVALID_TIMER);
+			status_change_end(&sd->bl,SC_PRESERVE,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_HEAT_BARREL,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_P_ALTER,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_E_CHAIN,INVALID_TIMER);

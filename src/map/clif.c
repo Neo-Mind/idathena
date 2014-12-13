@@ -17338,7 +17338,12 @@ void clif_snap(struct block_list *bl, short x, short y) {
 	WBUFW(buf,6) = x;
 	WBUFW(buf,8) = y;
 
-	clif_send(buf,packet_len(0x8d2),bl,AREA);
+	if( disguised(bl) ) {
+		clif_send(buf,packet_len(0x8d2),bl,AREA_WOS);
+		WBUFL(buf,2) = -bl->id;
+		clif_send(buf,packet_len(0x8d2),bl,SELF);
+	} else
+		clif_send(buf,packet_len(0x8d2),bl,AREA);
 }
 
 

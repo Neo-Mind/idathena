@@ -75,7 +75,7 @@ enum e_skill_inf2 {
 //Skill info type 3
 enum e_skill_inf3 {
 	INF3_NOLP               = 0x00001, //Skill that can ignores Land Protector
-	INF3_NOENDCAMOUFLAGE    = 0x00002, //Skill that doesn't end camouflage
+	INF3_HIT_HIDING         = 0x00002, //Skill that having an affect to hiding target
 	INF3_USABLE_HIDING      = 0x00004, //Skill that can be use in hiding
 	INF3_USABLE_DANCE       = 0x00008, //Skill that can be use while in dancing state
 	INF3_HIT_EMP            = 0x00010, //Skill that could hit emperium
@@ -90,7 +90,6 @@ enum e_skill_inf3 {
 	INF3_USABLE_WARG        = 0x02000, //Skill that can be use while riding warg
 	INF3_SC_GLOOMYDAY_SK    = 0x04000, //Skill that affected by SC_GLOOMYDAY_SK
 	INF3_SC_DANCEWITHWUG    = 0x08000, //Skill that affected by SC_DANCEWITHWUG
-	INF3_HIT_HIDING         = 0x10000, //Skill that having an affect to hiding target
 };
 
 //Walk intervals at which chase-skills are attempted to be triggered.

@@ -3,18 +3,19 @@
 //===== By: ================================================== 
 //= Euphy
 //===== Current Version: ===================================== 
-//= 1.0
+//= 1.1
 //===== Compatible With: ===================================== 
 //= rAthena SVN
 //===== Description: ========================================= 
 //= Eclage Town Script
 //===== Additional Comments: ================================= 
 //= 1.0 Nearly complete iRO town NPCs. [Euphy]
+//= 1.1 Fix some NPCs direction. [exneval]
 //============================================================ 
 
 // Generic Eclage NPCs - Set 1
 //============================================================
-ecl_fild01,92,316,4	script	Tourist#ep14_2f2	545,{
+ecl_fild01,92,316,6	script	Tourist#ep14_2f2	545,{
 	mes "[Tourist]";
 	mes "I can't believe I have to wait this long......";
 	mes "When is it going to be my turn?";
@@ -22,7 +23,7 @@ ecl_fild01,92,316,4	script	Tourist#ep14_2f2	545,{
 	close;
 }
 
-ecl_fild01,106,312,4	script	Tourist#ep14_2f3	525,{
+ecl_fild01,106,312,6	script	Tourist#ep14_2f3	525,{
 	mes "[Tourist]";
 	mes "I'm actually done with my documentation, but I'm just sticking around to appreciate all of these flowers.";
 	emotion e_lv2;
@@ -30,10 +31,12 @@ ecl_fild01,106,312,4	script	Tourist#ep14_2f3	525,{
 	mes "[Tourist]";
 	mes "I'm just getting through the night with my sleeping bag!";
 	mes "It's alright as long as you can withstand the security guard's annoyance with you.";
+	emotion e_swt,0,"Security Guard#ep14_2";
+	emotion e_swt,0,"Security Guard#ep14_2_2";
 	close;
 }
 
-ecl_fild01,108,320,6	script	Tourist#ep14_2f4	941,{
+ecl_fild01,108,320,8	script	Tourist#ep14_2f4	941,{
 	mes "[Tourist]";
 	mes "I wonder how beautiful of a city Eclage would be.";
 	mes "It just makes my heart beat thinking about it.";
@@ -41,7 +44,7 @@ ecl_fild01,108,320,6	script	Tourist#ep14_2f4	941,{
 	close;
 }
 
-ecl_fild01,105,320,2	script	Tourist#ep14_2f5	436,{
+ecl_fild01,105,320,1	script	Tourist#ep14_2f5	436,{
 	mes "[Tourist]";
 	mes "No, I'm not a visitor. I'm an Eclage citizen!";
 	emotion e_an;
@@ -52,17 +55,17 @@ ecl_fild01,105,320,2	script	Tourist#ep14_2f5	436,{
 	close;
 }
 
-ecl_fild01,103,319,4	script	Tourist#ep14_2f6	900,{
+ecl_fild01,103,319,6	script	Tourist#ep14_2f6	900,{
 	mes "[Tourist]";
 	mes "I hear their acorns are delicious without a hint of bitterness.";
 	next;
 	mes "[Tourist]";
 	mes "You could probably make the world's best acorn jello.";
-	emotion e_omg;
+	emotion e_no1;
 	close;
 }
 
-ecl_fild01,110,316,2	script	Tourist#ep14_2f7	896,{
+ecl_fild01,110,316,4	script	Tourist#ep14_2f7	896,{
 	mes "[Tourist]";
 	mes "It's important to keep your belongings light when traveling.";
 	next;
@@ -71,17 +74,17 @@ ecl_fild01,110,316,2	script	Tourist#ep14_2f7	896,{
 	next;
 	mes "[Tourist]";
 	mes "Perhaps you could consider it as the weight of life?";
-	emotion e_awsm,0;
+	emotion e_awsm;
 	close;
 }
 
-ecl_fild01,92,318,4	script	Tourist#ep14_2f8	517,{
+ecl_fild01,92,318,6	script	Tourist#ep14_2f8	517,{
 	mes "[Tourist]";
 	mes "Cool cool.";
 	close;
 }
 
-ecl_fild01,93,318,2	script	Tourist#ep14_2f9	107,{
+ecl_fild01,93,318,5	script	Tourist#ep14_2f9	107,{
 	mes "[Tourist]";
 	mes "Snorrrreee....Erhem....";
 	next;
@@ -92,7 +95,7 @@ ecl_fild01,93,318,2	script	Tourist#ep14_2f9	107,{
 	close;
 }
 
-ecl_fild01,94,313,4	script	Tourist#ep14_2f10	715,{
+ecl_fild01,94,313,6	script	Tourist#ep14_2f10	715,{
 	mes "[Tourist]";
 	mes "Oh! Are you also from Midgard?";
 	next;
@@ -102,7 +105,7 @@ ecl_fild01,94,313,4	script	Tourist#ep14_2f10	715,{
 	close;
 }
 
-ecl_fild01,101,320,4	script	Tourist#ep14_2f11	522,{
+ecl_fild01,101,320,6	script	Tourist#ep14_2f11	522,{
 	mes "[Tourist]";
 	mes "Ow.... My legs...";
 	mes "You're saying I have to wait after all this traveling through Bifrost?!";
@@ -110,7 +113,7 @@ ecl_fild01,101,320,4	script	Tourist#ep14_2f11	522,{
 	close;
 }
 
-ecl_fild01,88,315,4	script	Tourist#ep14_2f12	957,{
+ecl_fild01,88,315,6	script	Tourist#ep14_2f12	957,{
 	mes "[Tourist]";
 	mes "Ahh...";
 	mes "Why are there so many people...?";
@@ -208,6 +211,17 @@ eclage,200,272,4	script	Masione#eclbig	437,{
 	next;
 	mes "[Masione]";
 	mes "I'm a fragile, sensitive being!";
+	close;
+}
+
+eclage,288,286,4	script	Eclage Guard Manuel	447,{
+	mes "[Manuel]";
+	mes "It has became easier to reach to a demon.";
+	mes "By the way, I did not know it was this close...";
+	next;
+	mes "[Manuel]";
+	mes "The risk is, on the other hand, an opportunity.";
+	mes "I wish the war with the giants would just end.";
 	close;
 }
 

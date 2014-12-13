@@ -1135,7 +1135,7 @@ niflheim,194,189,3	script	Loru#14hal	4_LOLI_RURI,{
 
 //= Devi
 //==============================================================================
-niflheim,191,188,5	script	Devi#14hal	4_DEVIRUCHI,5,5,{
+niflheim,191,188,5	script	Devi#14hal	4_DEVIRUCHI,{
 	if (!checkweight("Orcish_Axe", 3)) {
 		mes "[Devi]";
 		mes "Why do you carry so much? If you have something awesome, give it to me.";

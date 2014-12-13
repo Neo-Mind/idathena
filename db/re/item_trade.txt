@@ -1888,6 +1888,13 @@
 6391,475,100	// Splendid Supply Kit
 6392,475,100	// Bradium_Box
 
+// Episode 14.2
+2916,475,100	// Fairy_Wing
+6552,507,100	// Mail_Package
+6553,507,100	// Leaf_Made_Wood
+6554,507,100	// Seed_Box
+6555,507,100	// Birthday_Candle
+
 // Dewata
 6401,507,100	// Palm Oil
 6402,499,100	// Palm Oil Fruit
