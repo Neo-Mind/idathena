@@ -5461,8 +5461,7 @@ static void pc_checkallowskill(struct map_session_data *sd)
 	for(i = 0; i < ARRAYLENGTH(scw_list); i++) { //Skills requiring specific weapon types
 		if(scw_list[i] == SC_DANCING && !battle_config.dancing_weaponswitch_fix)
 			continue;
-		if(sd->sc.data[scw_list[i]] &&
-			!pc_check_weapontype(sd,skill_get_weapontype(status_sc2skill(scw_list[i]))))
+		if(sd->sc.data[scw_list[i]] && !pc_check_weapontype(sd,skill_get_weapontype(status_sc2skill(scw_list[i]))))
 			status_change_end(&sd->bl, scw_list[i], INVALID_TIMER);
 	}
 
@@ -5536,7 +5535,7 @@ bool pc_checkequip2(struct map_session_data *sd, unsigned short nameid, int min,
 int pc_jobid2mapid(unsigned short b_class)
 {
 	switch(b_class) {
-	//Novice And 1-1 Jobs
+		//Novice And 1-1 Jobs
 		case JOB_NOVICE:                return MAPID_NOVICE;
 		case JOB_SWORDMAN:              return MAPID_SWORDMAN;
 		case JOB_MAGE:                  return MAPID_MAGE;
@@ -5553,7 +5552,7 @@ int pc_jobid2mapid(unsigned short b_class)
 		case JOB_HANBOK:                return MAPID_HANBOK;
 		case JOB_GANGSI:                return MAPID_GANGSI;
 		case JOB_OKTOBERFEST:           return MAPID_OKTOBERFEST;
-	//2-1 Jobs
+		//2-1 Jobs
 		case JOB_SUPER_NOVICE:          return MAPID_SUPER_NOVICE;
 		case JOB_KNIGHT:                return MAPID_KNIGHT;
 		case JOB_WIZARD:                return MAPID_WIZARD;
@@ -5566,7 +5565,7 @@ int pc_jobid2mapid(unsigned short b_class)
 		case JOB_KAGEROU:
 		case JOB_OBORO:                 return MAPID_KAGEROUOBORO;
 		case JOB_DEATH_KNIGHT:          return MAPID_DEATH_KNIGHT;
-	//2-2 Jobs
+		//2-2 Jobs
 		case JOB_CRUSADER:              return MAPID_CRUSADER;
 		case JOB_SAGE:                  return MAPID_SAGE;
 		case JOB_BARD:
@@ -5576,7 +5575,7 @@ int pc_jobid2mapid(unsigned short b_class)
 		case JOB_ROGUE:                 return MAPID_ROGUE;
 		case JOB_SOUL_LINKER:           return MAPID_SOUL_LINKER;
 		case JOB_DARK_COLLECTOR:        return MAPID_DARK_COLLECTOR;
-	//Trans Novice And Trans 1-1 Jobs
+		//Trans Novice And Trans 1-1 Jobs
 		case JOB_NOVICE_HIGH:           return MAPID_NOVICE_HIGH;
 		case JOB_SWORDMAN_HIGH:         return MAPID_SWORDMAN_HIGH;
 		case JOB_MAGE_HIGH:             return MAPID_MAGE_HIGH;
@@ -5584,14 +5583,14 @@ int pc_jobid2mapid(unsigned short b_class)
 		case JOB_ACOLYTE_HIGH:          return MAPID_ACOLYTE_HIGH;
 		case JOB_MERCHANT_HIGH:         return MAPID_MERCHANT_HIGH;
 		case JOB_THIEF_HIGH:            return MAPID_THIEF_HIGH;
-	//Trans 2-1 Jobs
+		//Trans 2-1 Jobs
 		case JOB_LORD_KNIGHT:           return MAPID_LORD_KNIGHT;
 		case JOB_HIGH_WIZARD:           return MAPID_HIGH_WIZARD;
 		case JOB_SNIPER:                return MAPID_SNIPER;
 		case JOB_HIGH_PRIEST:           return MAPID_HIGH_PRIEST;
 		case JOB_WHITESMITH:            return MAPID_WHITESMITH;
 		case JOB_ASSASSIN_CROSS:        return MAPID_ASSASSIN_CROSS;
-	//Trans 2-2 Jobs
+		//Trans 2-2 Jobs
 		case JOB_PALADIN:               return MAPID_PALADIN;
 		case JOB_PROFESSOR:             return MAPID_PROFESSOR;
 		case JOB_CLOWN:
@@ -5599,7 +5598,7 @@ int pc_jobid2mapid(unsigned short b_class)
 		case JOB_CHAMPION:              return MAPID_CHAMPION;
 		case JOB_CREATOR:               return MAPID_CREATOR;
 		case JOB_STALKER:               return MAPID_STALKER;
-	//Baby Novice And Baby 1-1 Jobs
+		//Baby Novice And Baby 1-1 Jobs
 		case JOB_BABY:                  return MAPID_BABY;
 		case JOB_BABY_SWORDMAN:         return MAPID_BABY_SWORDMAN;
 		case JOB_BABY_MAGE:             return MAPID_BABY_MAGE;
@@ -5607,7 +5606,7 @@ int pc_jobid2mapid(unsigned short b_class)
 		case JOB_BABY_ACOLYTE:          return MAPID_BABY_ACOLYTE;
 		case JOB_BABY_MERCHANT:         return MAPID_BABY_MERCHANT;
 		case JOB_BABY_THIEF:            return MAPID_BABY_THIEF;
-	//Baby 2-1 Jobs
+		//Baby 2-1 Jobs
 		case JOB_SUPER_BABY:            return MAPID_SUPER_BABY;
 		case JOB_BABY_KNIGHT:           return MAPID_BABY_KNIGHT;
 		case JOB_BABY_WIZARD:           return MAPID_BABY_WIZARD;
@@ -5615,7 +5614,7 @@ int pc_jobid2mapid(unsigned short b_class)
 		case JOB_BABY_PRIEST:           return MAPID_BABY_PRIEST;
 		case JOB_BABY_BLACKSMITH:       return MAPID_BABY_BLACKSMITH;
 		case JOB_BABY_ASSASSIN:         return MAPID_BABY_ASSASSIN;
-	//Baby 2-2 Jobs
+		//Baby 2-2 Jobs
 		case JOB_BABY_CRUSADER:         return MAPID_BABY_CRUSADER;
 		case JOB_BABY_SAGE:             return MAPID_BABY_SAGE;
 		case JOB_BABY_BARD:
@@ -5623,7 +5622,7 @@ int pc_jobid2mapid(unsigned short b_class)
 		case JOB_BABY_MONK:             return MAPID_BABY_MONK;
 		case JOB_BABY_ALCHEMIST:        return MAPID_BABY_ALCHEMIST;
 		case JOB_BABY_ROGUE:            return MAPID_BABY_ROGUE;
-	//3-1 Jobs
+		//3-1 Jobs
 		case JOB_SUPER_NOVICE_E:        return MAPID_SUPER_NOVICE_E;
 		case JOB_RUNE_KNIGHT:           return MAPID_RUNE_KNIGHT;
 		case JOB_WARLOCK:               return MAPID_WARLOCK;
@@ -5631,7 +5630,7 @@ int pc_jobid2mapid(unsigned short b_class)
 		case JOB_ARCH_BISHOP:           return MAPID_ARCH_BISHOP;
 		case JOB_MECHANIC:              return MAPID_MECHANIC;
 		case JOB_GUILLOTINE_CROSS:      return MAPID_GUILLOTINE_CROSS;
-	//3-2 Jobs
+		//3-2 Jobs
 		case JOB_ROYAL_GUARD:           return MAPID_ROYAL_GUARD;
 		case JOB_SORCERER:              return MAPID_SORCERER;
 		case JOB_MINSTREL:
@@ -5639,14 +5638,14 @@ int pc_jobid2mapid(unsigned short b_class)
 		case JOB_SURA:                  return MAPID_SURA;
 		case JOB_GENETIC:               return MAPID_GENETIC;
 		case JOB_SHADOW_CHASER:         return MAPID_SHADOW_CHASER;
-	//Trans 3-1 Jobs
+		//Trans 3-1 Jobs
 		case JOB_RUNE_KNIGHT_T:         return MAPID_RUNE_KNIGHT_T;
 		case JOB_WARLOCK_T:             return MAPID_WARLOCK_T;
 		case JOB_RANGER_T:              return MAPID_RANGER_T;
 		case JOB_ARCH_BISHOP_T:         return MAPID_ARCH_BISHOP_T;
 		case JOB_MECHANIC_T:            return MAPID_MECHANIC_T;
 		case JOB_GUILLOTINE_CROSS_T:    return MAPID_GUILLOTINE_CROSS_T;
-	//Trans 3-2 Jobs
+		//Trans 3-2 Jobs
 		case JOB_ROYAL_GUARD_T:         return MAPID_ROYAL_GUARD_T;
 		case JOB_SORCERER_T:            return MAPID_SORCERER_T;
 		case JOB_MINSTREL_T:
@@ -5654,7 +5653,7 @@ int pc_jobid2mapid(unsigned short b_class)
 		case JOB_SURA_T:                return MAPID_SURA_T;
 		case JOB_GENETIC_T:             return MAPID_GENETIC_T;
 		case JOB_SHADOW_CHASER_T:       return MAPID_SHADOW_CHASER_T;
-	//Baby 3-1 Jobs
+		//Baby 3-1 Jobs
 		case JOB_SUPER_BABY_E:          return MAPID_SUPER_BABY_E;
 		case JOB_BABY_RUNE:             return MAPID_BABY_RUNE;
 		case JOB_BABY_WARLOCK:          return MAPID_BABY_WARLOCK;
@@ -5662,7 +5661,7 @@ int pc_jobid2mapid(unsigned short b_class)
 		case JOB_BABY_BISHOP:           return MAPID_BABY_BISHOP;
 		case JOB_BABY_MECHANIC:         return MAPID_BABY_MECHANIC;
 		case JOB_BABY_CROSS:            return MAPID_BABY_CROSS;
-	//Baby 3-2 Jobs
+		//Baby 3-2 Jobs
 		case JOB_BABY_GUARD:            return MAPID_BABY_GUARD;
 		case JOB_BABY_SORCERER:         return MAPID_BABY_SORCERER;
 		case JOB_BABY_MINSTREL:
@@ -5679,7 +5678,7 @@ int pc_jobid2mapid(unsigned short b_class)
 int pc_mapid2jobid(unsigned short class_, int sex)
 {
 	switch(class_) {
-	//Novice And 1-1 Jobs
+		//Novice And 1-1 Jobs
 		case MAPID_NOVICE:                return JOB_NOVICE;
 		case MAPID_SWORDMAN:              return JOB_SWORDMAN;
 		case MAPID_MAGE:                  return JOB_MAGE;
@@ -5696,7 +5695,7 @@ int pc_mapid2jobid(unsigned short class_, int sex)
 		case MAPID_HANBOK:                return JOB_HANBOK;
 		case MAPID_GANGSI:                return JOB_GANGSI;
 		case MAPID_OKTOBERFEST:           return JOB_OKTOBERFEST;
-	//2-1 Jobs
+		//2-1 Jobs
 		case MAPID_SUPER_NOVICE:          return JOB_SUPER_NOVICE;
 		case MAPID_KNIGHT:                return JOB_KNIGHT;
 		case MAPID_WIZARD:                return JOB_WIZARD;
@@ -5708,7 +5707,7 @@ int pc_mapid2jobid(unsigned short class_, int sex)
 		case MAPID_REBELLION:             return JOB_REBELLION;
 		case MAPID_KAGEROUOBORO:          return sex ? JOB_KAGEROU : JOB_OBORO;
 		case MAPID_DEATH_KNIGHT:          return JOB_DEATH_KNIGHT;
-	//2-2 Jobs
+		//2-2 Jobs
 		case MAPID_CRUSADER:              return JOB_CRUSADER;
 		case MAPID_SAGE:                  return JOB_SAGE;
 		case MAPID_BARDDANCER:            return sex ? JOB_BARD : JOB_DANCER;
@@ -5717,7 +5716,7 @@ int pc_mapid2jobid(unsigned short class_, int sex)
 		case MAPID_ROGUE:                 return JOB_ROGUE;
 		case MAPID_SOUL_LINKER:           return JOB_SOUL_LINKER;
 		case MAPID_DARK_COLLECTOR:        return JOB_DARK_COLLECTOR;
-	//Trans Novice And Trans 2-1 Jobs
+		//Trans Novice And Trans 2-1 Jobs
 		case MAPID_NOVICE_HIGH:           return JOB_NOVICE_HIGH;
 		case MAPID_SWORDMAN_HIGH:         return JOB_SWORDMAN_HIGH;
 		case MAPID_MAGE_HIGH:             return JOB_MAGE_HIGH;
@@ -5725,21 +5724,21 @@ int pc_mapid2jobid(unsigned short class_, int sex)
 		case MAPID_ACOLYTE_HIGH:          return JOB_ACOLYTE_HIGH;
 		case MAPID_MERCHANT_HIGH:         return JOB_MERCHANT_HIGH;
 		case MAPID_THIEF_HIGH:            return JOB_THIEF_HIGH;
-	//Trans 2-1 Jobs
+		//Trans 2-1 Jobs
 		case MAPID_LORD_KNIGHT:           return JOB_LORD_KNIGHT;
 		case MAPID_HIGH_WIZARD:           return JOB_HIGH_WIZARD;
 		case MAPID_SNIPER:                return JOB_SNIPER;
 		case MAPID_HIGH_PRIEST:           return JOB_HIGH_PRIEST;
 		case MAPID_WHITESMITH:            return JOB_WHITESMITH;
 		case MAPID_ASSASSIN_CROSS:        return JOB_ASSASSIN_CROSS;
-	//Trans 2-2 Jobs
+		//Trans 2-2 Jobs
 		case MAPID_PALADIN:               return JOB_PALADIN;
 		case MAPID_PROFESSOR:             return JOB_PROFESSOR;
 		case MAPID_CLOWNGYPSY:            return sex ? JOB_CLOWN : JOB_GYPSY;
 		case MAPID_CHAMPION:              return JOB_CHAMPION;
 		case MAPID_CREATOR:               return JOB_CREATOR;
 		case MAPID_STALKER:               return JOB_STALKER;
-	//Baby Novice And Baby 1-1 Jobs
+		//Baby Novice And Baby 1-1 Jobs
 		case MAPID_BABY:                  return JOB_BABY;
 		case MAPID_BABY_SWORDMAN:         return JOB_BABY_SWORDMAN;
 		case MAPID_BABY_MAGE:             return JOB_BABY_MAGE;
@@ -5747,7 +5746,7 @@ int pc_mapid2jobid(unsigned short class_, int sex)
 		case MAPID_BABY_ACOLYTE:          return JOB_BABY_ACOLYTE;
 		case MAPID_BABY_MERCHANT:         return JOB_BABY_MERCHANT;
 		case MAPID_BABY_THIEF:            return JOB_BABY_THIEF;
-	//Baby 2-1 Jobs
+		//Baby 2-1 Jobs
 		case MAPID_SUPER_BABY:            return JOB_SUPER_BABY;
 		case MAPID_BABY_KNIGHT:           return JOB_BABY_KNIGHT;
 		case MAPID_BABY_WIZARD:           return JOB_BABY_WIZARD;
@@ -5755,14 +5754,14 @@ int pc_mapid2jobid(unsigned short class_, int sex)
 		case MAPID_BABY_PRIEST:           return JOB_BABY_PRIEST;
 		case MAPID_BABY_BLACKSMITH:       return JOB_BABY_BLACKSMITH;
 		case MAPID_BABY_ASSASSIN:         return JOB_BABY_ASSASSIN;
-	//Baby 2-2 Jobs
+		//Baby 2-2 Jobs
 		case MAPID_BABY_CRUSADER:         return JOB_BABY_CRUSADER;
 		case MAPID_BABY_SAGE:             return JOB_BABY_SAGE;
 		case MAPID_BABY_BARDDANCER:       return sex ? JOB_BABY_BARD : JOB_BABY_DANCER;
 		case MAPID_BABY_MONK:             return JOB_BABY_MONK;
 		case MAPID_BABY_ALCHEMIST:        return JOB_BABY_ALCHEMIST;
 		case MAPID_BABY_ROGUE:            return JOB_BABY_ROGUE;
-	//3-1 Jobs
+		//3-1 Jobs
 		case MAPID_SUPER_NOVICE_E:        return JOB_SUPER_NOVICE_E;
 		case MAPID_RUNE_KNIGHT:           return JOB_RUNE_KNIGHT;
 		case MAPID_WARLOCK:               return JOB_WARLOCK;
@@ -5770,28 +5769,28 @@ int pc_mapid2jobid(unsigned short class_, int sex)
 		case MAPID_ARCH_BISHOP:           return JOB_ARCH_BISHOP;
 		case MAPID_MECHANIC:              return JOB_MECHANIC;
 		case MAPID_GUILLOTINE_CROSS:      return JOB_GUILLOTINE_CROSS;
-	//3-2 Jobs
+		//3-2 Jobs
 		case MAPID_ROYAL_GUARD:           return JOB_ROYAL_GUARD;
 		case MAPID_SORCERER:              return JOB_SORCERER;
 		case MAPID_MINSTRELWANDERER:      return sex ? JOB_MINSTREL : JOB_WANDERER;
 		case MAPID_SURA:                  return JOB_SURA;
 		case MAPID_GENETIC:               return JOB_GENETIC;
 		case MAPID_SHADOW_CHASER:         return JOB_SHADOW_CHASER;
-	//Trans 3-1 Jobs
+		//Trans 3-1 Jobs
 		case MAPID_RUNE_KNIGHT_T:         return JOB_RUNE_KNIGHT_T;
 		case MAPID_WARLOCK_T:             return JOB_WARLOCK_T;
 		case MAPID_RANGER_T:              return JOB_RANGER_T;
 		case MAPID_ARCH_BISHOP_T:         return JOB_ARCH_BISHOP_T;
 		case MAPID_MECHANIC_T:            return JOB_MECHANIC_T;
 		case MAPID_GUILLOTINE_CROSS_T:    return JOB_GUILLOTINE_CROSS_T;
-	//Trans 3-2 Jobs
+		//Trans 3-2 Jobs
 		case MAPID_ROYAL_GUARD_T:         return JOB_ROYAL_GUARD_T;
 		case MAPID_SORCERER_T:            return JOB_SORCERER_T;
 		case MAPID_MINSTRELWANDERER_T:    return sex ? JOB_MINSTREL_T : JOB_WANDERER_T;
 		case MAPID_SURA_T:                return JOB_SURA_T;
 		case MAPID_GENETIC_T:             return JOB_GENETIC_T;
 		case MAPID_SHADOW_CHASER_T:       return JOB_SHADOW_CHASER_T;
-	//Baby 3-1 Jobs
+		//Baby 3-1 Jobs
 		case MAPID_SUPER_BABY_E:          return JOB_SUPER_BABY_E;
 		case MAPID_BABY_RUNE:             return JOB_BABY_RUNE;
 		case MAPID_BABY_WARLOCK:          return JOB_BABY_WARLOCK;
@@ -5799,7 +5798,7 @@ int pc_mapid2jobid(unsigned short class_, int sex)
 		case MAPID_BABY_BISHOP:           return JOB_BABY_BISHOP;
 		case MAPID_BABY_MECHANIC:         return JOB_BABY_MECHANIC;
 		case MAPID_BABY_CROSS:            return JOB_BABY_CROSS;
-	//Baby 3-2 Jobs
+		//Baby 3-2 Jobs
 		case MAPID_BABY_GUARD:            return JOB_BABY_GUARD;
 		case MAPID_BABY_SORCERER:         return JOB_BABY_SORCERER;
 		case MAPID_BABY_MINSTRELWANDERER: return sex ? JOB_BABY_MINSTREL : JOB_BABY_WANDERER;
@@ -9331,33 +9330,22 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		clif_unequipitemack(sd,0,0,0);
 		return false;
 	}
-	//If player is berserk then cannot unequip
-	if( !(flag&2) && sd->sc.count && (sd->sc.data[SC_BERSERK] || sd->sc.data[SC_SATURDAYNIGHTFEVER] ||
-		sd->sc.data[SC_KYOUGAKU] || (sd->sc.data[SC_PYROCLASTIC] && sd->inventory_data[n]->type == IT_WEAPON)) ) {
+	if( !sd->status.inventory[n].equip ) {
 		clif_unequipitemack(sd,n,0,0);
-		return false;
+		return false; //Nothing to unequip
 	}
-	if( sd->sc.data[SC_CONCENTRATION] && !(flag&4) )
-		status_change_end(&sd->bl,SC_CONCENTRATION,INVALID_TIMER);
-	if( sd->inventory_data[n]->type == IT_WEAPON ) {
-		if( sd->sc.data[SC_FEARBREEZE] )
-			status_change_end(&sd->bl,SC_FEARBREEZE,INVALID_TIMER);
-		if( sd->sc.data[SC_EXEEDBREAK] )
-			status_change_end(&sd->bl,SC_EXEEDBREAK,INVALID_TIMER);
+	if( !(flag&2) && sd->sc.count &&
+		(sd->sc.data[SC_BERSERK] ||
+		sd->sc.data[SC_SATURDAYNIGHTFEVER] ||
+		sd->sc.data[SC_KYOUGAKU] ||
+		(sd->sc.data[SC_PYROCLASTIC] &&
+		(sd->status.inventory[n].equip&EQP_ARMS) && sd->inventory_data[n]->type == IT_WEAPON)) )
+	{
+		clif_unequipitemack(sd,n,0,0);
+		return false; //Cannot unequip
 	}
-	if( sd->inventory_data[n]->type == IT_ARMOR &&
-		sd->inventory_data[n]->nameid == ITEMID_HOVERING_BOOSTER && sd->sc.data[SC_HOVERING] )
-		status_change_end(&sd->bl,SC_HOVERING,INVALID_TIMER);
-	if( sd->sc.data[SC_HEAT_BARREL] )
-		status_change_end(&sd->bl,SC_HEAT_BARREL,INVALID_TIMER);
-	if( sd->sc.data[SC_P_ALTER] && (sd->inventory_data[n]->type == IT_WEAPON || sd->inventory_data[n]->type == IT_AMMO) )
-		status_change_end(&sd->bl,SC_P_ALTER,INVALID_TIMER);
 	if( battle_config.battle_log )
 		ShowInfo("Unequip %d %x:%x\n",n,pc_equippoint(sd,n),sd->status.inventory[n].equip);
-	if( !sd->status.inventory[n].equip ) { //Nothing to unequip
-		clif_unequipitemack(sd,n,0,0);
-		return false;
-	}
 	for( i = 0; i < EQI_MAX; i++ )
 		if( sd->status.inventory[n].equip&equip_pos[i] )
 			sd->equip_index[i] = -1;
@@ -9367,7 +9355,7 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		pc_calcweapontype(sd);
 		clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
 		if( !battle_config.dancing_weaponswitch_fix )
-			status_change_end(&sd->bl,SC_DANCING,INVALID_TIMER); //Unequipping => stop dancing
+			status_change_end(&sd->bl,SC_DANCING,INVALID_TIMER); //When unequipping, stop dancing [Skotlex]
 	}
 	if( sd->status.inventory[n].equip&EQP_HAND_L ) {
 		sd->status.shield = sd->weapontype2 = 0;
@@ -9411,15 +9399,27 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 
 	clif_unequipitemack(sd,n,sd->status.inventory[n].equip,1);
 
-	if( sd->inventory_data[n]->type == IT_WEAPON && //On weapon change (right and left hand)
-		(!sd->sc.data[SC_SEVENWIND] || sd->sc.data[SC_ASPERSIO]) ) //Check for seven wind
-		skill_enchant_elemental_end(&sd->bl,SC_NONE); 
-	if( sd->status.inventory[n].equip&EQP_ARMOR ) { //On Armor Change
-		status_change_end(&sd->bl,SC_BENEDICTIO,INVALID_TIMER);
-		status_change_end(&sd->bl,SC_ARMOR_RESIST,INVALID_TIMER);
+	//On equipment change
+	if( !(flag&4) )
+		status_change_end(&sd->bl,SC_CONCENTRATION,INVALID_TIMER);
+	status_change_end(&sd->bl,SC_HEAT_BARREL,INVALID_TIMER);
+	//On weapon change (right and left hand)
+	if( (sd->status.inventory[n].equip&EQP_ARMS) && sd->inventory_data[n]->type == IT_WEAPON ) {
+		if( (!sd->sc.data[SC_SEVENWIND] || sd->sc.data[SC_ASPERSIO]) ) //Check for seven wind
+			skill_enchant_elemental_end(&sd->bl,SC_NONE);
+		status_change_end(&sd->bl,SC_FEARBREEZE,INVALID_TIMER);
+		status_change_end(&sd->bl,SC_EXEEDBREAK,INVALID_TIMER);
+		status_change_end(&sd->bl,SC_P_ALTER,INVALID_TIMER);
 	}
+	//On armor change
+	if( sd->status.inventory[n].equip&EQP_ARMOR )
+		status_change_end(&sd->bl,SC_ARMOR_RESIST,INVALID_TIMER);
+	//On ammo change
+	if( sd->inventory_data[n]->type == IT_AMMO )
+		status_change_end(&sd->bl,SC_P_ALTER,INVALID_TIMER);
+	//Check for activated autobonus [Inkfish]
 	if( sd->state.autobonus&sd->status.inventory[n].equip )
-		sd->state.autobonus &= ~sd->status.inventory[n].equip; //Check for activated autobonus [Inkfish]
+		sd->state.autobonus &= ~sd->status.inventory[n].equip;
 
 	sd->status.inventory[n].equip = 0;
 	iflag = sd->npc_item_flag;
@@ -9438,24 +9438,16 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 
 				if( !sd->status.inventory[n].card[i] )
 					continue;
-				if( (data = itemdb_exists(sd->status.inventory[n].card[i])) != NULL ) {
-					if( data->combos_count ) {
-						if( pc_removecombo(sd,data) )
-							status_cacl = true;
-					}
-				}
+				if( (data = itemdb_exists(sd->status.inventory[n].card[i])) != NULL &&
+					data->combos_count && pc_removecombo(sd,data) )
+					status_cacl = true;
 			}
 		}
 	}
-
 	if( (flag&1) || status_cacl ) {
 		pc_checkallowskill(sd);
 		status_calc_pc(sd,SCO_NONE);
 	}
-
-	if( sd->sc.data[SC_SIGNUMCRUCIS] && !battle_check_undead(sd->battle_status.race,sd->battle_status.def_ele) )
-		status_change_end(&sd->bl,SC_SIGNUMCRUCIS,INVALID_TIMER);
-
 	//OnUnEquip script [Skotlex]
 	if( sd->inventory_data[n] ) {
 		if( sd->inventory_data[n]->unequip_script )
@@ -9468,11 +9460,8 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 
 				if( !sd->status.inventory[n].card[i] )
 					continue;
-
-				if( (data = itemdb_exists(sd->status.inventory[n].card[i])) != NULL ) {
-					if( data->unequip_script )
-						run_script(data->unequip_script,0,sd->bl.id,fake_nd->bl.id);
-				}
+				if( (data = itemdb_exists(sd->status.inventory[n].card[i])) != NULL && data->unequip_script )
+					run_script(data->unequip_script,0,sd->bl.id,fake_nd->bl.id);
 			}
 		}
 	}

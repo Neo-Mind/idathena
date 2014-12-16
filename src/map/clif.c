@@ -3593,7 +3593,8 @@ void clif_equipitemack(struct map_session_data *sd,int n,int pos,int ok)
 ///     1 = success
 void clif_unequipitemack(struct map_session_data *sd,int n,int pos,int ok)
 {
-	int fd,header,offs=0;
+	int fd, header, offs = 0;
+
 #if PACKETVER >= 20130000
 	header = 0x99a;
 	ok = ok ? 0:1;
@@ -3603,19 +3604,20 @@ void clif_unequipitemack(struct map_session_data *sd,int n,int pos,int ok)
 #else
 	header = 0xac;
 #endif
+
 	nullpo_retv(sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(header));
-	WFIFOW(fd,offs+0)=header;
-	WFIFOW(fd,offs+2)=n+2;
+	WFIFOW(fd,offs + 0) = header;
+	WFIFOW(fd,offs + 2) = n + 2;
 #if PACKETVER >= 20130000
-	WFIFOL(fd,offs+4)=pos;
-	offs +=2;
+	WFIFOL(fd,offs + 4) = pos;
+	offs += 2;
 #else
-	WFIFOW(fd,offs+4)=pos;
+	WFIFOW(fd,offs + 4) = pos;
 #endif
-	WFIFOB(fd,offs+6)=ok;
+	WFIFOB(fd,offs + 6) = ok;
 	WFIFOSET(fd,packet_len(header));
 }
 
@@ -10997,7 +10999,7 @@ void clif_parse_EquipItem(int fd,struct map_session_data *sd)
 	index = RFIFOW(fd,info->pos[0]) - 2;
 
 	if (index < 0 || index >= MAX_INVENTORY)
-		return; //Out of bounds check.
+		return; //Out of bounds check
 
 	if (sd->npc_id && !sd->npc_item_flag)
 		return;
@@ -11019,7 +11021,7 @@ void clif_parse_EquipItem(int fd,struct map_session_data *sd)
 		return;
 	}
 
-	//Client doesn't send the position for ammo.
+	//Client doesn't send the position for ammo
 	if (sd->inventory_data[index]->type == IT_AMMO)
 		pc_equipitem(sd,index,EQP_AMMO);
 	else {
@@ -11040,6 +11042,7 @@ void clif_parse_EquipItem(int fd,struct map_session_data *sd)
 void clif_parse_UnequipItem(int fd,struct map_session_data *sd)
 {
 	int index;
+	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
 
 	if (pc_isdead(sd)) {
 		clif_clearunit_area(&sd->bl,CLR_DEAD);
@@ -11053,7 +11056,7 @@ void clif_parse_UnequipItem(int fd,struct map_session_data *sd)
 	else if (pc_cant_act2(sd))
 		return;
 
-	index = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]) - 2;
+	index = RFIFOW(fd,info->pos[0]) - 2;
 
 	pc_unequipitem(sd,index,1);
 }

@@ -7438,8 +7438,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			if(sc->opt1 || sc->data[SC_FREEZING])
 				return 0;
 			break;
-		case SC_SIGNUMCRUCIS:
-			//Only affects demons and undead element (but not players)
+		case SC_SIGNUMCRUCIS: //Only affects demons and undead element (but not players)
 			if((!undead_flag && status->race != RC_DEMON) || bl->type == BL_PC)
 				return 0;
 			break;
@@ -8242,9 +8241,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					tick = -1;
 				break;
 			case SC_AUTOBERSERK:
-				if( status->hp < status->max_hp>>2 &&
-					(!sc->data[SC_PROVOKE] || sc->data[SC_PROVOKE]->val2 == 0) )
-						sc_start4(src,bl,SC_PROVOKE,100,10,1,0,0,60000);
+				if( status->hp < status->max_hp>>2 && (!sc->data[SC_PROVOKE] || sc->data[SC_PROVOKE]->val2 == 0) )
+					sc_start4(src,bl,SC_PROVOKE,100,10,1,0,0,60000);
 				tick = -1;
 				break;
 			case SC_SIGNUMCRUCIS:

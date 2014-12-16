@@ -925,6 +925,36 @@ OnEnable:
 
 // Sector 2 Mobs
 //============================================================
+1@gl_k,0,0,0	script	#ghmemorialmob02	-1,{
+OnInstanceInit:
+OnDisable:
+	disablenpc instance_npcname("#ghmemorialmob02");
+	end;
+OnEnable:
+	enablenpc instance_npcname("#ghmemorialmob02");
+	donpcevent instance_npcname("#ghinstancewarp3")+"::OnEnable";
+	donpcevent instance_npcname("#ghinstancewarp4")+"::OnEnable";
+	set .@map$, instance_mapname("1@gl_k");
+	set .@label$, instance_npcname("#ghmemorialmob02")+"::OnMyMobDead";
+	mapannounce .@map$,"A portal has opened to the east.",bc_map,"0xFFFF00";
+	areamonster .@map$,241,113,291,19,"Suffering Chamberlain",2466,12,.@label$;
+	areamonster .@map$,241,113,291,19,"Decayed Monk",2464,12,.@label$;
+	areamonster .@map$,227,217,291,135,"Suffering Chamberlain",2466,12,.@label$;
+	areamonster .@map$,227,217,291,135,"Decayed Monk",2464,12,.@label$;
+	end;
+OnMyMobDead:
+	set .@map$, instance_mapname("1@gl_k");
+	set .@label$, instance_npcname("#ghmemorialmob02")+"::OnMyMobDead";
+	set .@mob_dead_num, 48 - mobcount(.@map$,.@label$);
+	if (.@mob_dead_num > 28) {
+		mapannounce .@map$,"Seems like Himelmez drains the dead's souls. They must be destroyed.",bc_map,"0xFFFFFF";
+		killmonster .@map$,.@label$;
+		donpcevent instance_npcname("Hollgrehenn Destroyer")+"::OnEnable";
+		donpcevent instance_npcname("#ghmemorialmob02")+"::OnDisable";
+	}
+	end;
+}
+
 1@gl_k,291,145,3	script	Hollgrehenn Destroyer	726,{
 	if (getcharid(0) == getpartyleader(getcharid(1),2)) {
 		mes "[Hollgrehenn Destroyer]";
@@ -972,36 +1002,6 @@ OnDisable:
 	end;
 OnEnable:
 	hideoffnpc instance_npcname("Hollgrehenn Destroyer");
-	end;
-}
-
-1@gl_k,0,0,0	script	#ghmemorialmob02	-1,{
-OnInstanceInit:
-OnDisable:
-	disablenpc instance_npcname("#ghmemorialmob02");
-	end;
-OnEnable:
-	enablenpc instance_npcname("#ghmemorialmob02");
-	donpcevent instance_npcname("#ghinstancewarp3")+"::OnEnable";
-	donpcevent instance_npcname("#ghinstancewarp4")+"::OnEnable";
-	set .@map$, instance_mapname("1@gl_k");
-	set .@label$, instance_npcname("#ghmemorialmob02")+"::OnMyMobDead";
-	mapannounce .@map$,"A portal has opened to the east.",bc_map,"0xFFFF00";
-	areamonster .@map$,241,113,291,19,"Suffering Chamberlain",2466,12,.@label$;
-	areamonster .@map$,241,113,291,19,"Decayed Monk",2464,12,.@label$;
-	areamonster .@map$,227,217,291,135,"Suffering Chamberlain",2466,12,.@label$;
-	areamonster .@map$,227,217,291,135,"Decayed Monk",2464,12,.@label$;
-	end;
-OnMyMobDead:
-	set .@map$, instance_mapname("1@gl_k");
-	set .@label$, instance_npcname("#ghmemorialmob02")+"::OnMyMobDead";
-	set .@mob_dead_num, 48 - mobcount(.@map$,.@label$);
-	if (.@mob_dead_num > 28) {
-		mapannounce .@map$,"Seems like Himelmez drains the dead's souls. They must be destroyed.",bc_map,"0xFFFFFF";
-		killmonster .@map$,.@label$;
-		donpcevent instance_npcname("Hollgrehenn Destroyer")+"::OnEnable";
-		donpcevent instance_npcname("#ghmemorialmob02")+"::OnDisable";
-	}
 	end;
 }
 

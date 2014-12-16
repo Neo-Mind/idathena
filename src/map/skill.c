@@ -5804,8 +5804,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			if (flag&1)
 				sc_start(src,bl,type,23 + skill_lv * 4 + status_get_lv(src) - status_get_lv(bl),skill_lv,skill_get_time(skill_id,skill_lv));
 			else {
-				map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_CHAR,
-					src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
+				map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_CHAR,src,
+					skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			}
 			break;
