@@ -9354,8 +9354,8 @@ ACMD_FUNC(fullstrip) {
 	}
 
 	for (i = 0; i < EQI_MAX; i++)
-		if (tsd->equip_index[ i ] >= 0)
-			pc_unequipitem(tsd , tsd->equip_index[i] , 2);
+		if (tsd->equip_index[i] >= 0)
+			pc_unequipitem(tsd ,tsd->equip_index[i], 2);
 
 	return 0;
 }

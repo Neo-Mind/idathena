@@ -567,33 +567,27 @@ OnTimer92000:
 	monster .@map$,145,99,"Abysmal Knight",2470,1,.@label$;
 	monster .@map$,154,99,"Abysmal Knight",2470,1,.@label$;
 
-	for(set .@i,1; .@i<=22; set .@i,.@i+1)
-		hideoffnpc instance_npcname(".#ghinstance"+.@i);
+	for (set .@i,1; .@i<=12; set .@i,.@i+1)
+		hideoffnpc instance_npcname("talk#ghinstance"+.@i);
 
-	donpcevent instance_npcname(".#ghinstance22")+"::OnTalkK";
-	donpcevent instance_npcname(".#ghinstance21")+"::OnTalkK";
-	donpcevent instance_npcname(".#ghinstance18")+"::OnTalkK";
-	donpcevent instance_npcname(".#ghinstance17")+"::OnTalkK";
-	donpcevent instance_npcname(".#ghinstance14")+"::OnTalkK";
-	donpcevent instance_npcname(".#ghinstance13")+"::OnTalkK";
-	donpcevent instance_npcname(".#ghinstance10")+"::OnTalkK";
-	donpcevent instance_npcname(".#ghinstance9")+"::OnTalkK";
-	donpcevent instance_npcname(".#ghinstance6")+"::OnTalkK";
-	donpcevent instance_npcname(".#ghinstance5")+"::OnTalkK";
-	donpcevent instance_npcname(".#ghinstance2")+"::OnTalkK";
-	donpcevent instance_npcname(".#ghinstance1")+"::OnTalkK";
+	donpcevent instance_npcname("talk#ghinstance12")+"::OnTalkK";
+	donpcevent instance_npcname("talk#ghinstance11")+"::OnTalkK";
+	donpcevent instance_npcname("talk#ghinstance10")+"::OnTalkK";
+	donpcevent instance_npcname("talk#ghinstance9")+"::OnTalkK";
+	donpcevent instance_npcname("talk#ghinstance8")+"::OnTalkK";
+	donpcevent instance_npcname("talk#ghinstance7")+"::OnTalkK";
+	donpcevent instance_npcname("talk#ghinstance6")+"::OnTalkK";
+	donpcevent instance_npcname("talk#ghinstance5")+"::OnTalkK";
+	donpcevent instance_npcname("talk#ghinstance4")+"::OnTalkK";
+	donpcevent instance_npcname("talk#ghinstance3")+"::OnTalkK";
+	donpcevent instance_npcname("talk#ghinstance2")+"::OnTalkK";
+	donpcevent instance_npcname("talk#ghinstance1")+"::OnTalkK";
 	end;
 OnTimer94000:
 	donpcevent instance_npcname("Heinrich#ghinstance2")+"::OnTalk8";
 
-	for (set .@i,1; .@i<=20; set .@i,.@i+4) {
-		hideonnpc instance_npcname(".#ghinstance"+.@i);
-		hideonnpc instance_npcname(".#ghinstance"+(.@i+1));
-		disablenpc instance_npcname(".#ghinstance"+(.@i+2));
-		disablenpc instance_npcname(".#ghinstance"+(.@i+3));
-	}
-	hideonnpc instance_npcname(".#ghinstance21");
-	hideonnpc instance_npcname(".#ghinstance22");
+	for (set .@i,1; .@i<=12; set .@i,.@i+1)
+		disablenpc instance_npcname("talk#ghinstance"+.@i);
 
 	set .@map$, instance_mapname("1@gl_k");
 	set .@label$, instance_npcname("#talkinstance1")+"::OnMyMobDead"; 
@@ -626,108 +620,100 @@ OnTimer109000:
 	mapannounce instance_mapname("1@gl_k"),"Sir. Heinrich: Go back to the darkness!",bc_map,"0xFFFF00",FW_NORMAL,16;
 	end;
 OnTimer109500:
+	enablenpc instance_npcname(".#ghinstance22");
+	enablenpc instance_npcname(".#ghinstance21");
 	donpcevent instance_npcname(".#ghinstance22")+"::OnEffect1";
 	donpcevent instance_npcname(".#ghinstance21")+"::OnEffect1";
 	end;
 OnTimer110000:
 	enablenpc instance_npcname(".#ghinstance20");
 	enablenpc instance_npcname(".#ghinstance19");
+	enablenpc instance_npcname(".#ghinstance18");
+	enablenpc instance_npcname(".#ghinstance17");
 	donpcevent instance_npcname(".#ghinstance20")+"::OnEffect1";
 	donpcevent instance_npcname(".#ghinstance19")+"::OnEffect1";
-	end;
-OnTimer110500:
 	donpcevent instance_npcname(".#ghinstance18")+"::OnEffect1";
 	donpcevent instance_npcname(".#ghinstance17")+"::OnEffect1";
 	end;
-OnTimer111000:
+OnTimer110500:
 	enablenpc instance_npcname(".#ghinstance16");
 	enablenpc instance_npcname(".#ghinstance15");
+	enablenpc instance_npcname(".#ghinstance14");
+	enablenpc instance_npcname(".#ghinstance13");
 	donpcevent instance_npcname(".#ghinstance16")+"::OnEffect1";
 	donpcevent instance_npcname(".#ghinstance15")+"::OnEffect1";
-	end;
-OnTimer111500:
 	donpcevent instance_npcname(".#ghinstance14")+"::OnEffect1";
 	donpcevent instance_npcname(".#ghinstance13")+"::OnEffect1";
 	end;
-OnTimer112000:
+OnTimer111000:
 	enablenpc instance_npcname(".#ghinstance12");
 	enablenpc instance_npcname(".#ghinstance11");
+	enablenpc instance_npcname(".#ghinstance10");
+	enablenpc instance_npcname(".#ghinstance9");
 	donpcevent instance_npcname(".#ghinstance12")+"::OnEffect1";
 	donpcevent instance_npcname(".#ghinstance11")+"::OnEffect1";
-	end;
-OnTimer112500:
 	donpcevent instance_npcname(".#ghinstance10")+"::OnEffect1";
 	donpcevent instance_npcname(".#ghinstance9")+"::OnEffect1";
 	end;
-OnTimer113000:
+OnTimer111500:
 	enablenpc instance_npcname(".#ghinstance8");
 	enablenpc instance_npcname(".#ghinstance7");
+	enablenpc instance_npcname(".#ghinstance6");
+	enablenpc instance_npcname(".#ghinstance5");
 	donpcevent instance_npcname(".#ghinstance8")+"::OnEffect1";
 	donpcevent instance_npcname(".#ghinstance7")+"::OnEffect1";
-	end;
-OnTimer113500:
 	donpcevent instance_npcname(".#ghinstance6")+"::OnEffect1";
 	donpcevent instance_npcname(".#ghinstance5")+"::OnEffect1";
 	end;
-OnTimer114000:
+OnTimer112000:
 	enablenpc instance_npcname(".#ghinstance4");
 	enablenpc instance_npcname(".#ghinstance3");
+	enablenpc instance_npcname(".#ghinstance2");
+	enablenpc instance_npcname(".#ghinstance1");
 	donpcevent instance_npcname(".#ghinstance4")+"::OnEffect1";
 	donpcevent instance_npcname(".#ghinstance3")+"::OnEffect1";
-	end;
-OnTimer114250: //Custom time
-	disablenpc instance_npcname(".#ghinstance3");
-	disablenpc instance_npcname(".#ghinstance4");
-	disablenpc instance_npcname(".#ghinstance7");
-	disablenpc instance_npcname(".#ghinstance8");
-	disablenpc instance_npcname(".#ghinstance11");
-	disablenpc instance_npcname(".#ghinstance12");
-	disablenpc instance_npcname(".#ghinstance15");
-	disablenpc instance_npcname(".#ghinstance16");
-	disablenpc instance_npcname(".#ghinstance19");
-	disablenpc instance_npcname(".#ghinstance20");
-	end;
-OnTimer114500:
-	donpcevent instance_npcname("Heinrich#ghinstance3")+"::OnEnable";
-	donpcevent instance_npcname("Heinrich#ghinstance2")+"::OnDisable";
 	donpcevent instance_npcname(".#ghinstance2")+"::OnEffect1";
 	donpcevent instance_npcname(".#ghinstance1")+"::OnEffect1";
+	donpcevent instance_npcname("Heinrich#ghinstance3")+"::OnEnable";
+	donpcevent instance_npcname("Heinrich#ghinstance2")+"::OnDisable";
 	killmonster instance_mapname("1@gl_k"),instance_npcname("#talkinstance1")+"::OnMyMobDead";
+	for (set .@i,1; .@i<=22; set .@i,.@i+1)
+		disablenpc instance_npcname(".#ghinstance"+.@i);
 	end;
-OnTimer115000:
+OnTimer112500:
 	donpcevent instance_npcname("Heinrich#ghinstance3")+"::OnTalk1";
 	end;
-OnTimer118000:
+OnTimer115500:
 	donpcevent instance_npcname("Varmundt#ghinstance2")+"::OnTalk5";
 	end;
-OnTimer121000:
+OnTimer118500:
 	donpcevent instance_npcname("Varmundt#ghinstance2")+"::OnTalk6";
 	end;
-OnTimer124000:
+OnTimer121500:
 	donpcevent instance_npcname("Heinrich#ghinstance3")+"::OnTalk2";
 	end;
-OnTimer127000:
+OnTimer124500:
 	donpcevent instance_npcname("Heinrich#ghinstance3")+"::OnTalk3";
 	end;
-OnTimer130000:
+OnTimer127500:
 	donpcevent instance_npcname("Heinrich#ghinstance3")+"::OnTalk4";
 	end;
-OnTimer133000:
+OnTimer130500:
 	donpcevent instance_npcname("Heinrich#ghinstance3")+"::OnTalk5";
 	end;
-OnTimer137000:
+OnTimer134500:
 	donpcevent instance_npcname("Heinrich#ghinstance3")+"::OnTalk6";
 	end;
-OnTimer141000:
+OnTimer138500:
 	donpcevent instance_npcname("Heinrich#ghinstance3")+"::OnTalk7";
 	end;
-OnTimer146000:
+OnTimer143500:
 	donpcevent instance_npcname("Heinrich#ghinstance3")+"::OnTalk8";
 	end;
-OnTimer150000:
+OnTimer147500:
 	donpcevent instance_npcname("Heinrich#ghinstance3")+"::OnDisable";
 	end;
-OnTimer151000:
+OnTimer148500:
 	donpcevent instance_npcname("Varmundt#ghinstance2")+"::OnDisable";
 	stopnpctimer;
 	donpcevent instance_npcname("#ghinstancewarp1")+"::OnEnable";
@@ -740,7 +726,7 @@ OnMyMobDead:
 	end;
 }
 
-1@gl_k,145,54,6	script	.#ghinstance1	2471,{
+1@gl_k,145,54,6	script	talk#ghinstance1	2471,{
 	end;
 OnInstanceInit:
 OnDisable:
@@ -748,63 +734,71 @@ OnDisable:
 	end;
 OnEnable:
 	hideoffnpc instance_npcname(strnpcinfo(0));
-	end;
-OnEffect1:
-	specialeffect EF_GRANDCROSS;
-	specialeffect EF_LEXAETERNA;
 	end;
 OnTalkK:
 	switch(atoi(replacestr(strnpcinfo(2),"ghinstance",""))) {
 		case 1: npctalk "Water... Someone give me water...",1; break;
 		case 2: npctalk "Kkkrrrruughgh...",1; break;
-		case 5: npctalk "Sir. Heinrich. Save me...",1; break;
-		case 6: npctalk "I miss my sister...",1; break;
-		case 9: npctalk "Don't leave me alone, help me.",1; break;
-		case 10: npctalk "Aaarrrrrhhhh",1; break;
-		case 13: npctalk "I am so thirsty.",1; break;
-		case 14: npctalk "Oh...No...I can't die yet...",1; break;
-		case 17: npctalk "I feel sick to my stomach urrgg",1; break;
-		case 18: npctalk "Can someone...",1; break;
-		case 21: npctalk "Arrgg... My body",1; break;
-		case 22: npctalk "My throat is burning!",1; break;
+		case 3: npctalk "Sir. Heinrich. Save me...",1; break;
+		case 4: npctalk "I miss my sister...",1; break;
+		case 5: npctalk "Don't leave me alone, help me.",1; break;
+		case 6: npctalk "Aaarrrrrhhhh",1; break;
+		case 7: npctalk "I am so thirsty.",1; break;
+		case 8: npctalk "Oh...No...I can't die yet...",1; break;
+		case 9: npctalk "I feel sick to my stomach urrgg",1; break;
+		case 10: npctalk "Can someone...",1; break;
+		case 11: npctalk "Arrgg... My body",1; break;
+		case 12: npctalk "My throat is burning!",1; break;
 	}
 	end;
 }
-1@gl_k,154,54,3	duplicate(.#ghinstance1)	.#ghinstance2	2471
-1@gl_k,145,64,6	duplicate(.#ghinstance1)	.#ghinstance5	2471
-1@gl_k,154,64,3	duplicate(.#ghinstance1)	.#ghinstance6	2471
-1@gl_k,145,74,6	duplicate(.#ghinstance1)	.#ghinstance9	2471
-1@gl_k,154,74,3	duplicate(.#ghinstance1)	.#ghinstance10	2471
-1@gl_k,145,84,6	duplicate(.#ghinstance1)	.#ghinstance13	2471
-1@gl_k,154,84,3	duplicate(.#ghinstance1)	.#ghinstance14	2471
-1@gl_k,145,94,6	duplicate(.#ghinstance1)	.#ghinstance17	2471
-1@gl_k,154,94,3	duplicate(.#ghinstance1)	.#ghinstance18	2471
-1@gl_k,145,104,6	duplicate(.#ghinstance1)	.#ghinstance21	2471
-1@gl_k,154,104,3	duplicate(.#ghinstance1)	.#ghinstance22	2471
+1@gl_k,154,54,3	duplicate(talk#ghinstance1)	talk#ghinstance2	2471
+1@gl_k,145,64,6	duplicate(talk#ghinstance1)	talk#ghinstance3	2471
+1@gl_k,154,64,3	duplicate(talk#ghinstance1)	talk#ghinstance4	2471
+1@gl_k,145,74,6	duplicate(talk#ghinstance1)	talk#ghinstance5	2471
+1@gl_k,154,74,3	duplicate(talk#ghinstance1)	talk#ghinstance6	2471
+1@gl_k,145,84,6	duplicate(talk#ghinstance1)	talk#ghinstance7	2471
+1@gl_k,154,84,3	duplicate(talk#ghinstance1)	talk#ghinstance8	2471
+1@gl_k,145,94,6	duplicate(talk#ghinstance1)	talk#ghinstance9	2471
+1@gl_k,154,94,3	duplicate(talk#ghinstance1)	talk#ghinstance10	2471
+1@gl_k,145,104,6	duplicate(talk#ghinstance1)	talk#ghinstance11	2471
+1@gl_k,154,104,3	duplicate(talk#ghinstance1)	talk#ghinstance12	2471
 
-1@gl_k,145,59,6	script	.#ghinstance3	111,{
+1@gl_k,145,54,6	script	.#ghinstance1	111,{
 	end;
 OnInstanceInit:
 OnDisable:
-	hideonnpc instance_npcname(strnpcinfo(0));
+	disablenpc instance_npcname(strnpcinfo(0));
 	end;
 OnEnable:
-	hideoffnpc instance_npcname(strnpcinfo(0));
+	enablenpc instance_npcname(strnpcinfo(0));
 	end;
 OnEffect1:
 	specialeffect EF_GRANDCROSS;
 	specialeffect EF_LEXAETERNA;
 	end;
 }
-1@gl_k,154,59,3	duplicate(.#ghinstance3)	.#ghinstance4	111
-1@gl_k,145,69,6	duplicate(.#ghinstance3)	.#ghinstance7	111
-1@gl_k,154,69,3	duplicate(.#ghinstance3)	.#ghinstance8	111
-1@gl_k,145,79,6	duplicate(.#ghinstance3)	.#ghinstance11	111
-1@gl_k,154,79,3	duplicate(.#ghinstance3)	.#ghinstance12	111
-1@gl_k,145,89,6	duplicate(.#ghinstance3)	.#ghinstance15	111
-1@gl_k,154,89,3	duplicate(.#ghinstance3)	.#ghinstance16	111
-1@gl_k,145,99,6	duplicate(.#ghinstance3)	.#ghinstance19	111
-1@gl_k,154,99,3	duplicate(.#ghinstance3)	.#ghinstance20	111
+1@gl_k,154,54,3	duplicate(.#ghinstance1)	.#ghinstance2	111
+1@gl_k,145,59,6	duplicate(.#ghinstance1)	.#ghinstance3	111
+1@gl_k,154,59,3	duplicate(.#ghinstance1)	.#ghinstance4	111
+1@gl_k,145,64,6	duplicate(.#ghinstance1)	.#ghinstance5	111
+1@gl_k,154,64,3	duplicate(.#ghinstance1)	.#ghinstance6	111
+1@gl_k,145,69,6	duplicate(.#ghinstance1)	.#ghinstance7	111
+1@gl_k,154,69,3	duplicate(.#ghinstance1)	.#ghinstance8	111
+1@gl_k,145,74,6	duplicate(.#ghinstance1)	.#ghinstance9	111
+1@gl_k,154,74,3	duplicate(.#ghinstance1)	.#ghinstance10	111
+1@gl_k,145,79,6	duplicate(.#ghinstance1)	.#ghinstance11	111
+1@gl_k,154,79,3	duplicate(.#ghinstance1)	.#ghinstance12	111
+1@gl_k,145,84,6	duplicate(.#ghinstance1)	.#ghinstance13	111
+1@gl_k,154,84,3	duplicate(.#ghinstance1)	.#ghinstance14	111
+1@gl_k,145,89,6	duplicate(.#ghinstance1)	.#ghinstance15	111
+1@gl_k,154,89,3	duplicate(.#ghinstance1)	.#ghinstance16	111
+1@gl_k,145,94,6	duplicate(.#ghinstance1)	.#ghinstance17	111
+1@gl_k,154,94,3	duplicate(.#ghinstance1)	.#ghinstance18	111
+1@gl_k,145,99,6	duplicate(.#ghinstance1)	.#ghinstance19	111
+1@gl_k,154,99,3	duplicate(.#ghinstance1)	.#ghinstance20	111
+1@gl_k,145,104,6	duplicate(.#ghinstance1)	.#ghinstance21	111
+1@gl_k,154,104,3	duplicate(.#ghinstance1)	.#ghinstance22	111
 
 1@gl_k,96,80,0	script	#ghinstancewarp1	45,1,2,{
 	end;

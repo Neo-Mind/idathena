@@ -4239,9 +4239,11 @@ eclage,222,131,4	script	Wandering Merchant#14_2	807,{
 			close;
 		}
 L_Again:
-		if (Zeny < 10000) { //Custom text
+		if (Zeny < 10000) {
 			mes "[Wandering Merchant]";
-			mes "Where's the money, you little brat~!";
+			mes "You don't have enough zeny to participate in the lottery~";
+			mes "Just 10,000zeny~";
+			mes "All you need is 10,000zeny~";
 			close;
 		}
 		progressbar "ffff00",4;
