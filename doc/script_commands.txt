@@ -3759,10 +3759,11 @@ be seen by anyone else.
 
 ---------------------------------------
 
-*dispbottom "<message>";
+*dispbottom "<message>"{,<color>};
 
-This command will send the given message into the invoking character's chat 
-window.
+This command will send the given message with color into the invoking character's chat 
+window. The color format is in RGB (0xRRGGBB). The color is
+by default green
 
 ---------------------------------------
 
@@ -5858,12 +5859,13 @@ It is an approximation of official server script language's 'cmdothernpc'.
 
 ---------------------------------------
 
-*npctalk "<message>";
+*npctalk "<message>"{,<flag>};
 
 This command will display a message to the surrounding area as if the NPC object 
 running it was a player talking - that is, above their head and in the chat 
-window. The display name of the NPC will get appended in front of the message to 
-complete the effect.
+window. If 'flag' is 1, means there's no display name of the NPC will be displayed.
+By default, 'flag' is 0 so the display name of the NPC will get appended in front
+of the message to complete the effect.
 
     // This will make everyone in the area see the NPC greet the character
     // who just invoked it.

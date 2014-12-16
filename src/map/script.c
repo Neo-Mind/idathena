@@ -12984,17 +12984,26 @@ BUILDIN_FUNC(atcommand)
   return atcommand_sub(st,0);
 }
 
-/*==========================================
- * Displays a message for the player only (like system messages like "you got an apple" )
- *------------------------------------------*/
+/** Displays a message for the player only (like system messages like "you got an apple" )
+ * dispbottom("<message>"{,<color>})
+ * @param message 
+ * @param color Hex color default (Green)
+ * @author [Lupus]
+ */
 BUILDIN_FUNC(dispbottom)
 {
 	TBL_PC *sd = script_rid2sd(st);
-	const char *message;
+	int color = 0;
+	const char *message = script_getstr(st,2);
 
-	message = script_getstr(st,2);
-	if( sd )
-		clif_disp_onlyself(sd,message,(int)strlen(message));
+	if( script_hasdata(st,3) )
+		color = script_getnum(st,3);
+	if( sd ) {
+		if( script_hasdata(st,3) )
+			clif_messagecolor2(sd,color,message); //[Napster]
+		else
+			clif_disp_onlyself(sd,message,(int)strlen(message));
+	}
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -13345,16 +13354,22 @@ BUILDIN_FUNC(message)
  *------------------------------------------*/
 BUILDIN_FUNC(npctalk)
 {
-	const char* str;
+	const char* str = script_getstr(st,2);
+	uint8 flag = 0;
 	struct npc_data* nd = (struct npc_data *)map_id2bl(st->oid);
 
-	str = script_getstr(st,2);
+	if( script_hasdata(st,3) )
+		flag = script_getnum(st,3);
+
 	if( nd ) {
 		char name[NAME_LENGTH], message[256];
 
 		safestrncpy(name,nd->name,sizeof(name));
 		strtok(name,"#"); //Discard extra name identifier if present
-		safesnprintf(message,sizeof(message),"%s : %s",name,str);
+		if( !flag )
+			safesnprintf(message,sizeof(message),"%s : %s",name,str);
+		else
+			safesnprintf(message,sizeof(message),"%s",str);
 		clif_disp_overhead(&nd->bl,message);
 	}
 	return SCRIPT_CMD_SUCCESS;
@@ -18925,7 +18940,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF2(atcommand,"charcommand","s"), // [MouseJstr]
 	BUILDIN_DEF(movenpc,"sii?"), // [MouseJstr]
 	BUILDIN_DEF(message,"ss"), // [MouseJstr]
-	BUILDIN_DEF(npctalk,"s"), // [Valaris]
+	BUILDIN_DEF(npctalk,"s?"), // [Valaris]
 	BUILDIN_DEF(mobcount,"ss"),
 	BUILDIN_DEF(getlook,"i"),
 	BUILDIN_DEF(getsavepoint,"i"),
@@ -18954,7 +18969,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(deletepset,"i"), // Delete a pattern set [MouseJstr]
 #endif
 	BUILDIN_DEF(preg_match,"ss?"),
-	BUILDIN_DEF(dispbottom,"s"), //added from jA [Lupus]
+	BUILDIN_DEF(dispbottom,"s?"), //added from jA [Lupus]
 	BUILDIN_DEF(recovery,"i???"),
 	BUILDIN_DEF(getpetinfo,"i"),
 	BUILDIN_DEF(gethominfo,"i"),

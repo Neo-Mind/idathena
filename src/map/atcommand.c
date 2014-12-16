@@ -6307,11 +6307,11 @@ ACMD_FUNC(npctalk)
 {
 	char name[NAME_LENGTH],mes[100],temp[100];
 	struct npc_data *nd;
-	bool ifcolor=(*(command + 8) != 'c' && *(command + 8) != 'C')?0:1;
-	unsigned long color=0;
+	bool ifcolor = (*(command + 8) != 'c' && *(command + 8) != 'C') ? 0 : 1;
+	unsigned long color = 0;
 
 	if (sd->sc.cant.chat)
-		return -1; //no "chatting" while muted.
+		return -1; // No "chatting" while muted
 
 	if (!ifcolor) {
 		if (!message || !*message || sscanf(message, "%23[^,], %99[^\n]", name, mes) < 2) {
@@ -6329,11 +6329,11 @@ ACMD_FUNC(npctalk)
 		clif_displaymessage(fd, msg_txt(111)); // This NPC doesn't exist
 		return -1;
 	}
-	
-	strtok(name, "#"); // discard extra name identifier if present
+
+	strtok(name, "#"); // Discard extra name identifier if present
 	snprintf(temp, sizeof(temp), "%s : %s", name, mes);
-	
-	if (ifcolor) clif_messagecolor(&nd->bl,color,temp);
+
+	if (ifcolor) clif_messagecolor(&nd->bl, color, temp);
 	else clif_disp_overhead(&nd->bl, temp);
 
 	return 0;

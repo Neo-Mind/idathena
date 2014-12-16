@@ -3316,12 +3316,13 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 			struct mob_chat *mc = mob_chat(ms[i].msg_id);
 			char temp[CHAT_SIZE_MAX];
  			char name[NAME_LENGTH];
+
  			snprintf(name, sizeof name, "%s", md->name);
  			strtok(name, "#"); //Discard extra name identifier if present [Daegaladh]
  			snprintf(temp, sizeof temp, "%s : %s", name, mc->msg);
 			clif_messagecolor(&md->bl, mc->color, temp);
 		}
-		if (!(battle_config.mob_ai&0x200)) { //Pass on delay to same skill.
+		if (!(battle_config.mob_ai&0x200)) { //Pass on delay to same skill
 			for (j = 0; j < md->db->maxskill; j++)
 				if (md->db->skill[j].skill_id == ms[i].skill_id)
 					md->skilldelay[j] = tick;

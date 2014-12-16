@@ -4239,7 +4239,7 @@ eclage,222,131,4	script	Wandering Merchant#14_2	807,{
 			close;
 		}
 L_Again:
-		if (Zeny < 10000) { //Custom Text
+		if (Zeny < 10000) { //Custom text
 			mes "[Wandering Merchant]";
 			mes "Where's the money, you little brat~!";
 			close;
@@ -6050,7 +6050,7 @@ ecl_in03,245,93,2	script	Chief of Staff#tl01	435,{
 		mes "and your side started a war in order to protect the tree...";
 		next;
 		mes "["+strcharinfo(0)+"]";
-		mes "But what I know is a little bit different from that.";
+		mes "...but what I know is a little bit different from that.";
 		mes "Apparently, the cause of the war seems to be the damage given to Yggdrasil Tree caused by Sapha's excessive mining, but...";
 		next;
 		mes "[Shenime]";
@@ -6576,7 +6576,7 @@ ecl_fild01,205,86,4	script	Eclage Messenger Roy#tl	461,{
 				case 2:
 					mes "[Roy]";
 					mes "What? You're saying no after making me talk all this time?";
-					mes "....well, things happen.";
+					mes "....Well, things happen.";
 					mes "But you'll come back. So I'm not worried.";
 					next;
 					mes "[Roy]";
@@ -6972,7 +6972,7 @@ ecl_in03,244,57,4	script	Resting Laphine#tl01	440,{
 	close;
 }
 
-eclage,274,294,4	script	Conversing Laphine	436,{	//Laphines in a conversation#tl02
+eclage,274,294,4	script	Conversing Laphine	436,{ //Laphines in a conversation#tl02
 	mes "A female Laphine and a male Laphine are talking about something.";
 	mes "But they stopped talking as soon as they saw me.";
 	mes "I think I've interrupted the conversation.";

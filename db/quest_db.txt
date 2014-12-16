@@ -2342,9 +2342,13 @@
 12301,0,0,0,0,0,0,0,"Two remaining friends"
 
 // Old Glast Heim
+12316,0,0,0,0,0,0,0,"Meeting Hugin"
 12317,82800,0,0,0,0,0,0,"Trace of Time Travel"
-12318,0,2475,1,0,0,0,0,"Root of Corruption Hunt"
+12318,0,2475,1,0,0,0,0,"Corrupted Soul Hunt"
 12319,0,2476,1,0,0,0,0,"Amdarais Hunt"
+12320,0,0,0,0,0,0,0,"Time Traveler"
+12321,0,0,0,0,0,0,0,"Time Conqueror"
+12322,0,0,0,0,0,0,0,"Space Distortion"
 
 13000,0,0,0,0,0,0,0,"RWC2011Card Gathering"
 13001,82800,0,0,0,0,0,0,"RWC2011Card Gathering - Hold"
