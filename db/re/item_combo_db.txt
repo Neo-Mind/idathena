@@ -58,7 +58,9 @@
 1733:1755,{ bonus bLongAtkRate,25; bonus3 bAutoSpell,"NJ_HUUJIN",5,100; if(readparam(bInt)>39) bonus3 bAutoSpell,"NJ_HUUJIN",5,200; }
 1734:1753,{ bonus bLongAtkRate,50; }
 1741:2748,{ bonus bBaseAtk,25; bonus3 bAddEff,Eff_Curse,200,ATF_WEAPON|ATF_LONG|ATF_TARGET; }
+1745:18541,{ if(getequiprefinerycnt(EQI_HAND_R) > 9) bonus2 bVariableCastRate,"SN_SHARPSHOOTING",-50; }
 1746:1773,{ bonus bLongAtkRate,50; }
+1764:18541,{ bonus bCritAtkRate,5; if(getequiprefinerycnt(EQI_HEAD_TOP) > 6) bonus bCritAtkRate,5; }
 1775:18114,{ bonus bLongAtkRate,40; }
 1776:18114,{ bonus bLongAtkRate,70; }
 1990:2989,{ bonus2 bSkillAtk,"CG_ARROWVULCAN",200; }
