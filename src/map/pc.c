@@ -9119,7 +9119,7 @@ int pc_load_combo(struct map_session_data *sd) {
  *------------------------------------------*/
 bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
 {
-	int i, pos, flag = 0, iflag;
+	int i = 0, pos = 0, flag = 0, iflag = 0;
 	struct item_data *id;
 
 	nullpo_retr(false,sd);
@@ -9134,7 +9134,7 @@ bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
 	}
 	if (!(id = sd->inventory_data[n]))
 		return false;
-	pos = pc_equippoint(sd,n); //With a few exceptions, item should go in all specified slots.
+	pos = pc_equippoint(sd,n); //With a few exceptions, item should go in all specified slots
 	if( battle_config.battle_log )
 		ShowInfo("equip %hu(%d) %x:%x\n",sd->status.inventory[n].nameid,n,(id ? id->equip : 0),req_pos);
 	if( !pc_isequip(sd,n) || !(pos&req_pos) || sd->status.inventory[n].equip != 0 || sd->status.inventory[n].attribute == 1 ) { //[Valaris]
@@ -9322,7 +9322,7 @@ bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
  * return: false - fail; true - success
  *------------------------------------------*/
 bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
-	int i, iflag;
+	int i = 0, iflag = 0;
 	bool status_cacl = false;
 
 	nullpo_retr(false,sd);
@@ -9358,10 +9358,9 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		clif_unequipitemack(sd,n,0,0);
 		return false;
 	}
-	for( i = 0; i < EQI_MAX; i++ ) {
+	for( i = 0; i < EQI_MAX; i++ )
 		if( sd->status.inventory[n].equip&equip_pos[i] )
 			sd->equip_index[i] = -1;
-	}
 	if( sd->status.inventory[n].equip&EQP_HAND_R ) {
 		sd->weapontype1 = 0;
 		sd->status.weapon = sd->weapontype2;
