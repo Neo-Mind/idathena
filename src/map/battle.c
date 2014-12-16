@@ -410,7 +410,7 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 						status_change_end(target, SC_SPIDERWEB, INVALID_TIMER);
 					if( ud ) {
 						ARR_FIND(0, MAX_SKILLUNITGROUP, i, ud->skillunit[i] && ud->skillunit[i]->skill_id == PF_SPIDERWEB);
-						if( ud->skillunit[i] )
+						if( i < MAX_SKILLUNITGROUP && ud->skillunit[i] )
 							skill_delunit(ud->skillunit[i]->unit);
 					}
 				}
