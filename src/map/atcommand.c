@@ -1219,12 +1219,12 @@ ACMD_FUNC(item)
 
 	parent_cmd = atcommand_checkalias(command + 1);
 
-	if (!strcmpi(parent_cmd, "itembound")) {
+	if (strcmpi(parent_cmd, "itembound") == 0) {
 		if (!message || !*message || (
 			sscanf(message, "\"%99[^\"]\" %d %d", item_name, &number, &bound) < 3 &&
 			sscanf(message, "%99s %d %d", item_name, &number, &bound) < 3))
 		{
-			clif_displaymessage(fd, msg_txt(295)); // Please enter an item name or ID (usage: @item <item name/ID> <quantity> <bound_type>).
+			clif_displaymessage(fd, msg_txt(295)); // Please enter an item name or ID (usage: @itembound <item name/ID> <quantity> <bound_type>).
 			clif_displaymessage(fd, msg_txt(298)); // Invalid bound type
 			return -1;
 		}
@@ -1297,12 +1297,12 @@ ACMD_FUNC(item2)
 
 	parent_cmd = atcommand_checkalias(command + 1);
 
-	if (!strcmpi(parent_cmd, "itembound2")) {
+	if (strcmpi(parent_cmd, "itembound2") == 0) {
 		if (!message || !*message || (
 			sscanf(message, "\"%99[^\"]\" %d %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4, &bound) < 10 &&
 			sscanf(message, "%99s %d %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4, &bound) < 10))
 		{
-			clif_displaymessage(fd, msg_txt(296)); // Please enter all parameters (usage: @item2 <item name/ID> <quantity>
+			clif_displaymessage(fd, msg_txt(296)); // Please enter all parameters (usage: @itembound2 <item name/ID> <quantity>
 			clif_displaymessage(fd, msg_txt(297)); //   <identify_flag> <refine> <attribute> <card1> <card2> <card3> <card4> <bound_type>).
 			clif_displaymessage(fd, msg_txt(298)); // Invalid bound type
 			return -1;

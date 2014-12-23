@@ -12196,10 +12196,6 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 			if( battle_config.vs_traps_bctall && map_flag_vs(src->m) && (src->type&battle_config.vs_traps_bctall) )
 				target = BCT_ALL;
 			break;
-		case HW_GRAVITATION:
-			if( sc && sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF )
-				link_group_id = sc->data[SC_GRAVITATION]->val4;
-			break;
 		case HT_ANKLESNARE:
 			if( flag&2 )
 				val3 = SC_ESCAPE;
@@ -12358,6 +12354,10 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 		case WE_CALLBABY:
 			if( sd )
 				val1 = sd->status.child;
+			break;
+		case HW_GRAVITATION:
+			if( sc && sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF )
+				link_group_id = sc->data[SC_GRAVITATION]->val4;
 			break;
 		case NJ_KAENSIN:
 			skill_clear_group(src,1); //Delete previous Kaensins/Suitons
