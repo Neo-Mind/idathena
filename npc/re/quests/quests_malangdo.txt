@@ -10693,58 +10693,58 @@ mal_in01,15,16,3	script	Fallen Angel#mal	403,{
 
 // Item Functions
 //============================================================
-function	script	F_Cat_Hard_Biscuit	{	//11536
+function	script	F_Cat_Hard_Biscuit	{ //11536
 	switch (rand(1,4)) {
 	case 1:
 		heal -100,0;
 		break;
 	case 2:
-		unittalk getcharid(3),"Huuph...! Yucky..! Wa, Water...!!";
+		unittalk getcharid(3),"Huuph...! Yucky..! Wa, Water...!!",1;
 		sc_start SC_Stun,3000,0,5000,0;
 		break;
 	case 3:
-		unittalk getcharid(3),"Yeeyuck...!! This is rotten!!";
+		unittalk getcharid(3),"Yeeyuck...!! This is rotten!!",1;
 		sc_start SC_POISON,50000,0;
 		break;
 	case 4:
 		specialeffect2 EF_HIT4;
-		unittalk getcharid(3),"Arrrrrgggg...!! Bu, Bu, Bugggggg!!!!!";
+		unittalk getcharid(3),"Arrrrrgggg...!! Bu, Bu, Bugggggg!!!!!",1;
 		getitem 11537,1; //Rice_Weevil_Bug
 		break;
 	}
 	return;
 }
 
-function	script	F_Rice_Weevil_Bug	{	//11537
+function	script	F_Rice_Weevil_Bug	{ //11537
 	switch (rand(1,6)) {
 	case 1:
 		specialeffect2 EF_POISONHIT;
-		unittalk getcharid(3),"Errrgg!!! This is so... bitter....!!";
+		unittalk getcharid(3),"Errrgg!!! This is so... bitter....!!",1;
 		heal 0,-50;
 		break;
 	case 2:
 		specialeffect2 EF_HEAL;
-		unittalk getcharid(3),"....well, at least this is good for my health.";
+		unittalk getcharid(3),"....well, at least this is good for my health.",1;
 		percentheal 15,0;
 		break;
 	case 3:
 		specialeffect2 EF_POISONHIT;
-		unittalk getcharid(3),"Phewphew!! Argh.... Is this poisoned or what?!";
+		unittalk getcharid(3),"Phewphew!! Argh.... Is this poisoned or what?!",1;
 		heal 0,-100;
 		break;
 	case 4:
 		specialeffect2 EF_POISONHIT;
-		unittalk getcharid(3),"Whasdfhwkljhrtklwert....!!";
+		unittalk getcharid(3),"Whasdfhwkljhrtklwert....!!",1;
 		heal 0,-200;
 		break;
 	case 5:
 		specialeffect2 EF_HEAL;
-		unittalk getcharid(3),"It's ok, no one saw me yet...";
+		unittalk getcharid(3),"It's ok, no one saw me yet...",1;
 		percentheal 10,0;
 		break;
 	case 6:
 		specialeffect2 EF_HEAL;
-		unittalk getcharid(3),"I really need something to eat... ?? Sorry, little buggy.";
+		unittalk getcharid(3),"I really need something to eat... ?? Sorry, little buggy.",1;
 		percentheal 5,0;
 		break;
 	}

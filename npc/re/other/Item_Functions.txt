@@ -1,0 +1,28 @@
+//===== rAthena Script ======================================= 
+//= RE Item Functions
+//===== By: ================================================== 
+//= exneval
+//===== Current Version: ===================================== 
+//= 1.0
+//===== Compatible With: ===================================== 
+//= rAthena SVN
+//===== Description: ========================================= 
+//= Used for renewal items.
+//===== Additional Comments: ================================= 
+//= 1.0 First version. [exneval]
+//============================================================ 
+
+function	script	F_H_P_H_D	{ //18810
+	unittalk getcharid(3),"Human can show up, or get out of here Goast!!",1;
+	return;
+}
+
+function	script	F_H_P_H_L	{ //18810
+	unittalk getcharid(3),"Trick or Treat!!",1;
+	return;
+}
+
+function	script	F_W_K_T_D_H	{ //18856
+	unittalk getcharid(3),"fee-faw-fum-!!! I totally feel like a tiger!!!",1;
+	return;
+}

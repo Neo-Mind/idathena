@@ -6976,9 +6976,12 @@ This command will make a <GID> stop attacking and moving.
 
 ---------------------------------------
 
-*unittalk <GID>,"<text>";
+*unittalk <GID>,"<text>"{,<flag>};
 
 This command will make a <GID> say a message.
+If 'flag' is 1, means there's no display name be displayed and the message won't
+show in players chat dialog box. By default, 'flag' is 0 so the display name get
+appended in front of the message and the message will show in chat dialog box.
 
 ---------------------------------------
 

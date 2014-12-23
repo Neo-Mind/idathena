@@ -1013,6 +1013,7 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_MTF_HITFLEE] = SI_MTF_HITFLEE;
 	StatusIconChangeTable[SC_MTF_MHP] = SI_MTF_MHP;
 	StatusIconChangeTable[SC_MTF_MSP] = SI_MTF_MSP;
+	StatusIconChangeTable[SC_MTF_PUMPKIN] = SI_MTF_PUMPKIN;
 
 	if( !battle_config.display_hallucination ) //Disable Hallucination
 		StatusIconChangeTable[SC_HALLUCINATION] = SI_BLANK;
@@ -9581,7 +9582,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_KYOUGAKU:
 				val2 = rnd_value(val1 * 2,val1 * 3);
-				val1 = 1002;
+				val1 = MOBID_PORING;
 				break;
 			case SC_KAGEMUSYA:
 				val3 = val1 * 2;
@@ -9728,7 +9729,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_MONSTER_TRANSFORM:
 				if( !mobdb_checkid(val1) )
-					val1 = 1002; //Default poring
+					val1 = MOBID_PORING;
 				break;
 			case SC_C_MARKER:
 				tick_time = 1000;
@@ -9806,7 +9807,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				}
 				break;
 			case SC_KYOUGAKU:
-				val1 = 1002;
+				val1 = MOBID_PORING;
 				break;
 		}
 	}
@@ -10938,6 +10939,12 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_MONSTER_TRANSFORM:
 			if (sce->val2 != SC_NONE)
 				status_change_end(bl,(sc_type)sce->val2,INVALID_TIMER);
+			else {
+				if (sce->val1 == MOBID_DULLAHAN)
+					clif_ShowScript(bl,"Apple's yummy!");
+				if (sce->val1 == MOBID_LOLI_RURI)
+					clif_ShowScript(bl,"I will be with you for ever!!");
+			}
 			break;
 		case SC_ITEMSCRIPT:
 			if (sd) {
