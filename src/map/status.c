@@ -1835,11 +1835,7 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 
 		if ((sc->data[SC_TRICKDEAD] && skill_id != NV_TRICKDEAD) ||
 			(sc->data[SC_AUTOCOUNTER] && !flag && skill_id) ||
-			(sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF && skill_id != PA_GOSPEL)
-#ifndef RENEWAL
-			|| (sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF && flag != 2)
-#endif
-			)
+			(sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF && skill_id != PA_GOSPEL))
 			return false;
 
 		if (sc->data[SC_WINKCHARM] && target && !flag) { //Prevents skill usage
@@ -9405,12 +9401,10 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val2 += 500;
 				break;
 			case SC_PRESTIGE:
-				//Chance to evade magic damage
-				val2 = (status->int_ + status->luk) * val1 / 20 * status_get_lv(bl) / 200 + val1;
+				val2 = (status->int_ + status->luk) * val1 / 20 * status_get_lv(bl) / 200 + val1; //Chance to evade magic damage
 				val1 = 15 * val1 + (sd ? 10 * pc_checkskill(sd,CR_DEFENDER) : 0); //DEF increase
-#ifdef RENEWAL
 				val1 = val1 * status_get_lv(bl) / 100;
-#else
+#ifndef RENEWAL
 				val1 = val1 / 10;
 #endif
 				break;
@@ -9422,16 +9416,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val3 = tick / tick_time;
 				break;
 			case SC_INSPIRATION:
-				if( sd ) {
-					val2 = sd->status.job_level;
-					val3 = sd->status.base_level / 10 + val2 / 5; //All stat bonus
-				}
+				val2 = (sd ? sd->status.job_level : 0);
+				val3 = status_get_lv(bl) / 10 + val2 / 5; //All stat bonus
 				tick_time = 5000;
 				val4 = tick / tick_time;
 				break;
 			case SC_CRESCENTELBOW:
-				if( sd )
-					val2 = (sd->status.job_level / 2) + (50 + 5 * val1);
+				val2 = (sd ? sd->status.job_level / 2 : 0) + (50 + 5 * val1);
 				break;
 			case SC_LIGHTNINGWALK: //[(Job Level / 2) + (40 + 5 * Skill Level)] %
 				val2 = (sd ? sd->status.job_level / 2 : 0) + 40 + 5 * val1; //Chance

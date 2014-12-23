@@ -1092,6 +1092,11 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 
 		case PA_PRESSURE:
 			status_percent_damage(src,bl,0,15 + 5 * skill_lv,false);
+		//Fall through
+		case HW_GRAVITATION:
+			//Pressure and Gravitation can trigger physical autospells
+			attack_type |= BF_NORMAL;
+			attack_type |= BF_WEAPON;
 			break;
 
 		case RG_RAID:
@@ -2711,7 +2716,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 {
 	struct Damage dmg;
 	struct status_data *sstatus, *tstatus;
-	struct status_change *tsc;
+	struct status_change *sc, *tsc;
 	struct map_session_data *sd, *tsd;
 	int64 damage;
 	int type;
@@ -2746,13 +2751,18 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 
 	sstatus = status_get_status_data(src);
 	tstatus = status_get_status_data(bl);
+	sc = status_get_sc(src);
 	tsc = status_get_sc(bl);
 
 	if (tsc && !tsc->count)
-		tsc = NULL; //Don't need it.
+		tsc = NULL; //Don't need it
 
-	//Trick Dead protects you from damage, but not from buffs and the like, hence it's placed here.
+	//Trick Dead protects you from damage, but not from buffs and the like, hence it's placed here
 	if (tsc && tsc->data[SC_TRICKDEAD])
+		return 0;
+
+	//When Gravitational Field is active, damage can only be dealt by Gravitational Field and Autospells
+	if (sc && sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF && skill_id != HW_GRAVITATION && !sd->state.autocast)
 		return 0;
 
 	dmg = battle_calc_attack(attack_type, src, bl, skill_id, skill_lv, flag&0xFFF);
@@ -3089,7 +3099,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 	shadow_flag = skill_check_shadowform(bl, damage, dmg.div_);
 
 	if (!dmg.amotion) { //Instant damage
-		if ((!tsc || (!tsc->data[SC_DEVOTION] && skill_id != CR_REFLECTSHIELD)) && !shadow_flag)
+		if ((!tsc || (!tsc->data[SC_DEVOTION] && skill_id != CR_REFLECTSHIELD) || skill_id == HW_GRAVITATION) && !shadow_flag)
 			status_fix_damage(src, bl, damage, dmg.dmotion); //Deal damage before knockback to allow stuff like firewall + storm gust combo
 		if (!status_isdead(bl) && additional_effects)
 			skill_additional_effect(src, bl, skill_id, skill_lv, dmg.flag, dmg.dmg_lv, tick);
@@ -3111,7 +3121,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 			battle_delay_damage(tick, dmg.amotion, src, bl, dmg.flag, skill_id, skill_lv, damage, dmg.dmg_lv, dmg.dmotion, additional_effects);
 	}
 
-	if (tsc && tsc->data[SC_DEVOTION] && skill_id != PA_PRESSURE) {
+	if (tsc && tsc->data[SC_DEVOTION] && skill_id != PA_PRESSURE && skill_id != HW_GRAVITATION) {
 		struct status_change_entry *sce = tsc->data[SC_DEVOTION];
 		struct block_list *d_bl = map_id2bl(sce->val1);
 
@@ -3971,19 +3981,9 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 
 	tstatus = status_get_status_data(bl);
 
-#ifdef RENEWAL
-	if (sc && sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF &&
-		battle_check_target(src,bl,BCT_NOENEMY) <= 0) {
-		clif_skill_nodamage(src,bl,skill_id,skill_lv,0);
-		if (sd)
-			skill_consume_requirement(sd,skill_id,skill_lv,2);
-		return 0; //Mark as success so its cooldown will apply
-	}
-#endif
-
 	map_freeblock_lock();
 
-	switch(skill_id) {
+	switch (skill_id) {
 		case MER_CRASH:
 		case SM_BASH:
 		case MS_BASH:
@@ -5515,19 +5515,6 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 	sstatus = status_get_status_data(src);
 	tstatus = status_get_status_data(bl);
-
-#ifdef RENEWAL
-	if(battle_check_target(src,bl,BCT_NOENEMY) <= 0) {
-		struct status_change* sc = status_get_sc(src);
-
-		if(sc && sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF) {
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,0);
-			if(sd)
-				skill_consume_requirement(sd,skill_id,skill_lv,2);
-			return 0;
-		}
-	}
-#endif
 
 	switch(skill_id) {
 		case HLIF_HEAL:	//[orn]
@@ -12122,6 +12109,7 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 {
 	struct skill_unit_group *group;
 	int i, limit, val1 = 0, val2 = 0, val3 = 0;
+	int link_group_id = 0;
 	int target, interval, range, unit_flag, req_item = 0;
 	struct s_skill_unit_layout *layout;
 	struct map_session_data *sd;
@@ -12185,7 +12173,7 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 			}
 			break;
 		case HP_BASILICA:
-			val1 = src->id; //Store caster id.
+			val1 = src->id; //Store caster id
 			break;
 		case PR_SANCTUARY:
 		case NPC_EVILLAND:
@@ -12207,6 +12195,10 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 			//The target changes to "all" if used in a gvg map [Skotlex]
 			if( battle_config.vs_traps_bctall && map_flag_vs(src->m) && (src->type&battle_config.vs_traps_bctall) )
 				target = BCT_ALL;
+			break;
+		case HW_GRAVITATION:
+			if( sc && sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF )
+				link_group_id = sc->data[SC_GRAVITATION]->val4;
 			break;
 		case HT_ANKLESNARE:
 			if( flag&2 )
@@ -12475,6 +12467,7 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 	group->val1 = val1;
 	group->val2 = val2;
 	group->val3 = val3;
+	group->link_group_id = link_group_id;
 	group->target_flag = target;
 	group->bl_flag = skill_get_unit_bl_target(skill_id);
 	group->state.ammo_consume = (sd && sd->state.arrow_atk && skill_id != GS_GROUNDDRIFT); //Store if this skill needs to consume ammo.
@@ -12657,7 +12650,7 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 	struct block_list *src; //Actual source that cast the skill unit
 	TBL_PC* sd;
 	struct status_data *status;
-	struct status_change *sc, *tsc;
+	struct status_change *sc;
 	struct status_change_entry *sce;
 	enum sc_type type;
 	uint16 skill_id, skill_lv;
@@ -12679,7 +12672,6 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 
 	sd = BL_CAST(BL_PC,bl);
 	sc = status_get_sc(bl);
-	tsc = status_get_sc(src);
 	status = status_get_status_data(bl);
 	type = status_skill2sc(skill_id);
 	sce = (sc && type != SC_NONE) ? sc->data[type] : NULL;
@@ -12708,12 +12700,6 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 		if( (sc->option&OPTION_HIDE) && !(skill_get_inf3(group->skill_id)&INF3_HIT_HIDING) )
 			return 0; //Hidden characters are immuned, except to these skills [Skotlex]
 	}
-
-#ifdef RENEWAL
-		if( tsc && tsc->data[SC_GRAVITATION] && tsc->data[SC_GRAVITATION]->val3 == BCT_SELF &&
-			battle_check_target(&group->unit->bl,bl,BCT_NOENEMY) <= 0 && group->unit_id != UNT_GRAVITATION )
-			return 0;
-#endif
 
 	switch( group->unit_id ) {
 		case UNT_SPIDERWEB:
@@ -12955,15 +12941,8 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 	tstatus = status_get_status_data(bl);
 	type = status_skill2sc(skill_id);
 
-	if (sc) {
-		if (sc->data[SC_VOICEOFSIREN] && sc->data[SC_VOICEOFSIREN]->val2 == bl->id && (skill_get_inf2(skill_id)&INF2_TRAP))
-			return 0;
-#ifdef RENEWAL
-		if (sc && sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF &&
-			battle_check_target(&group->unit->bl,bl,BCT_NOENEMY) <= 0 && group->unit_id != UNT_GRAVITATION)
-			return 0;
-#endif
-	}
+	if (sc && sc->data[SC_VOICEOFSIREN] && sc->data[SC_VOICEOFSIREN]->val2 == bl->id && (skill_get_inf2(skill_id)&INF2_TRAP))
+		return 0;
 
 	if (tsc && tsc->data[SC_HOVERING]) {
 		switch (group->unit_id) {
@@ -16908,6 +16887,7 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 			break;
 		case WZ_ICEWALL:
 		case HP_BASILICA:
+		case HW_GRAVITATION:
 			//These can't be placed on top of themselves (duration can't be refreshed)
 			if (unit->group->skill_id == skill_id) {
 				(*alive) = 0;
@@ -17513,26 +17493,27 @@ struct skill_unit_group* skill_initunitgroup(struct block_list* src, int count, 
 		i = MAX_SKILLUNITGROUP - 1;
 	}
 
-	group             = ers_alloc(skill_unit_ers, struct skill_unit_group);
-	group->src_id     = src->id;
-	group->party_id   = status_get_party_id(src);
-	group->guild_id   = status_get_guild_id(src);
-	group->bg_id      = bg_team_get_id(src);
-	group->group_id   = skill_get_new_group_id();
-	group->unit       = (struct skill_unit *)aCalloc(count,sizeof(struct skill_unit));
-	group->unit_count = count;
-	group->alive_count = 0;
-	group->val1       = 0;
-	group->val2       = 0;
-	group->val3       = 0;
-	group->skill_id   = skill_id;
-	group->skill_lv   = skill_lv;
-	group->unit_id    = unit_id;
-	group->map        = src->m;
-	group->limit      = limit;
-	group->interval   = interval;
-	group->tick       = gettick();
-	group->valstr     = NULL;
+	group                = ers_alloc(skill_unit_ers, struct skill_unit_group);
+	group->src_id        = src->id;
+	group->party_id      = status_get_party_id(src);
+	group->guild_id      = status_get_guild_id(src);
+	group->bg_id         = bg_team_get_id(src);
+	group->group_id      = skill_get_new_group_id();
+	group->link_group_id = 0;
+	group->unit          = (struct skill_unit *)aCalloc(count,sizeof(struct skill_unit));
+	group->unit_count    = count;
+	group->alive_count   = 0;
+	group->val1          = 0;
+	group->val2          = 0;
+	group->val3          = 0;
+	group->skill_id      = skill_id;
+	group->skill_lv      = skill_lv;
+	group->unit_id       = unit_id;
+	group->map           = src->m;
+	group->limit         = limit;
+	group->interval      = interval;
+	group->tick          = gettick();
+	group->valstr        = NULL;
 
 	ud->skillunit[i] = group;
 
@@ -17557,6 +17538,7 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 	struct unit_data *ud;
 	struct status_change *sc;
 	short i, j;
+	int link_group_id;
 
 	if( group == NULL ) {
 		ShowDebug("skill_delunitgroup: group is NULL (source=%s:%d, %s)! Please report this! (#3504)\n", file, line, func);
@@ -17659,6 +17641,8 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 	group->unit = NULL;
 	group->group_id = 0;
 	group->unit_count = 0;
+	link_group_id = group->link_group_id;
+	group->link_group_id = 0;
 
 	//Locate this group, swap with the last entry and delete it
 	ARR_FIND(0, MAX_SKILLUNITGROUP, i, ud->skillunit[i] == group);
@@ -17670,6 +17654,13 @@ int skill_delunitgroup_(struct skill_unit_group *group, const char* file, int li
 		ers_free(skill_unit_ers, group);
 	} else
 		ShowError("skill_delunitgroup: Group not found! (src_id: %d skill_id: %d)\n", group->src_id, group->skill_id);
+
+	if( link_group_id ) {
+		struct skill_unit_group* group = skill_id2group(link_group_id);
+
+		if( group )
+			skill_delunitgroup(group);
+	}
 
 	return 1;
 }

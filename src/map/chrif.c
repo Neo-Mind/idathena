@@ -1718,7 +1718,8 @@ int send_users_tochar(void) {
  *------------------------------------------*/
 static int check_connect_char_server(int tid, unsigned int tick, int id, intptr_t data) {
 	static int displayed = 0;
-	if ( char_fd <= 0 || session[char_fd] == NULL ) {
+
+	if (char_fd <= 0 || session[char_fd] == NULL) {
 		if (!displayed) {
 			ShowStatus("Attempting to connect to Char Server. Please wait.\n");
 			displayed = 1;
@@ -1743,7 +1744,7 @@ static int check_connect_char_server(int tid, unsigned int tick, int id, intptr_
 			srvinfo = 1;
 		}
 	}
-	if ( chrif_isconnected() )
+	if (chrif_isconnected())
 		displayed = 0;
 	return 0;
 }

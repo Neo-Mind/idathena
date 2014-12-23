@@ -3230,7 +3230,7 @@ void pc_bonus2(struct map_session_data *sd, int type, int type2, int val)
 			if(sd->state.lr_flag == 2)
 				break;
 			ARR_FIND(0, ARRAYLENGTH(sd->skillatk), i, sd->skillatk[i].id == 0 || sd->skillatk[i].id == type2);
-			if(i == ARRAYLENGTH(sd->skillatk)) { //Better mention this so the array length can be updated. [Skotlex]
+			if(i == ARRAYLENGTH(sd->skillatk)) { //Better mention this so the array length can be updated [Skotlex]
 				ShowError("pc_bonus2: SP_SKILL_ATK: Reached max (%d) number of skills per character, bonus skill %d (%d) lost.\n", ARRAYLENGTH(sd->skillatk), type2, val);
 				break;
 			}
@@ -6377,7 +6377,6 @@ unsigned int pc_thisbaseexp(struct map_session_data *sd) {
 	return job_info[pc_class2idx(sd->status.class_)].exp_table[0][sd->status.base_level - 2];
 }
 
-
 /*==========================================
  * Job level exp lookup
  * Return:
@@ -6979,6 +6978,7 @@ int pc_resetskill(struct map_session_data* sd, int flag)
 int pc_resetfeel(struct map_session_data* sd)
 {
 	int i;
+
 	nullpo_ret(sd);
 
 	for( i = 0; i < MAX_PC_FEELHATE; i++ ) {
@@ -6993,6 +6993,7 @@ int pc_resetfeel(struct map_session_data* sd)
 int pc_resethate(struct map_session_data* sd)
 {
 	int i;
+	
 	nullpo_ret(sd);
 
 	for( i = 0; i < 3; i++ ) {
@@ -7005,6 +7006,7 @@ int pc_resethate(struct map_session_data* sd)
 int pc_skillatk_bonus(struct map_session_data *sd, uint16 skill_id)
 {
 	int i, bonus = 0;
+
 	nullpo_ret(sd);
 
 	ARR_FIND(0, ARRAYLENGTH(sd->skillatk), i, sd->skillatk[i].id == skill_id);
@@ -8436,18 +8438,19 @@ bool pc_can_attack(struct map_session_data *sd, int target_id)
 {
 	nullpo_retr(false, sd);
 
-	if( sd->sc.data[SC_BASILICA] ||
+	if( sd->sc.data[SC_TRICKDEAD] ||
+		sd->sc.data[SC_BLADESTOP] ||
+		sd->sc.data[SC_BASILICA] ||
+		(sd->sc.data[SC_GRAVITATION] && sd->sc.data[SC_GRAVITATION]->val3 == BCT_SELF) ||
+		sd->sc.data[SC_CRYSTALIZE] ||
 		sd->sc.data[SC__SHADOWFORM] ||
 		sd->sc.data[SC__MANHOLE] ||
 		sd->sc.data[SC_CURSEDCIRCLE_ATKER] ||
 		sd->sc.data[SC_CURSEDCIRCLE_TARGET] ||
-		sd->sc.data[SC_CRYSTALIZE] ||
-		sd->sc.data[SC_ALL_RIDING] || //The client doesn't let you, this is to make cheat-safe
-		sd->sc.data[SC_TRICKDEAD] ||
+		sd->sc.data[SC_FALLENEMPIRE] ||
 		(sd->sc.data[SC_VOICEOFSIREN] && sd->sc.data[SC_VOICEOFSIREN]->val2 == target_id) ||
-		sd->sc.data[SC_BLADESTOP] ||
 		sd->sc.data[SC_DEEPSLEEP] ||
-		sd->sc.data[SC_FALLENEMPIRE] )
+		sd->sc.data[SC_ALL_RIDING] ) //The client doesn't let you, this is to make cheat-safe
 			return false;
 
 	return true;
@@ -10136,7 +10139,7 @@ int pc_split_str(char *str, char **val, int num)
 	for(i = 0; i < num && str; i++) {
 		val[i] = str;
 		str = strchr(str,',');
-		if(str && i < num - 1) //Do not remove a trailing comma.
+		if(str && i < num - 1) //Do not remove a trailing comma
 			*str++ = 0;
 	}
 	return i;
@@ -10331,7 +10334,7 @@ static bool pc_readdb_job2(char* fields[], int columns, int current)
 static bool pc_readdb_job_exp(char* fields[], int columns, int current)
 {
 	int idx, i, type;
-	int job_id,job_count,jobs[CLASS_COUNT];
+	int job_id, job_count, jobs[CLASS_COUNT];
 	unsigned int ui, maxlvl;
 
 	maxlvl = atoi(fields[0]);

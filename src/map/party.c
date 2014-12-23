@@ -312,7 +312,7 @@ int party_recv_info(struct party* sp, int char_id)
 		sd = p->data[member_id].sd;
 		if( sd == NULL )
 			continue; // Not online
-		clif_charnameupdate(sd); // Update other people's display. [Skotlex]
+		clif_charnameupdate(sd); // Update other people's display [Skotlex]
 		clif_party_member_info(p,sd);
 		clif_party_option(p,sd,0x100);
 		clif_party_info(p,NULL);

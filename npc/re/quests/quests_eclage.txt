@@ -2701,7 +2701,7 @@ OnTouch:
 		close2;
 		setquest 9225;
 		set ep14_2_robber,1;
-		if (!checkweight("Orcish_Axe", 3)) {
+		if (MaxWeight / Weight < 3) {
 			percentheal -75,0;
 		} else {
 			percentheal -50,0;

@@ -90,6 +90,7 @@ static config_t atcommand_config;
 
 static char atcmd_output[CHAT_SIZE_MAX];
 static char atcmd_player_name[NAME_LENGTH];
+const char *parent_cmd;
 
 static AtCommandInfo* get_atcommandinfo_byname(const char *name); //@help
 static const char* atcommand_checkalias(const char *aliasname); //@help
@@ -1036,7 +1037,7 @@ ACMD_FUNC(jobchange)
 			}
 
 			// High Jobs, Babys and Third
-			for( i = JOB_NOVICE_HIGH; i < JOB_MAX && !found; i++ ) {
+			for (i = JOB_NOVICE_HIGH; i < JOB_MAX && !found; i++) {
 				if (strncmpi(message, job_name(i), 16) == 0) {
 					job = i;
 					found = true;
@@ -1052,10 +1053,10 @@ ACMD_FUNC(jobchange)
 		}
 	}
 
-	if (job == JOB_KNIGHT2 || job == JOB_CRUSADER2 || job == JOB_WEDDING || job == JOB_XMAS || job == JOB_SUMMER || job == JOB_HANBOK || job == JOB_OKTOBERFEST
-		|| job == JOB_LORD_KNIGHT2 || job == JOB_PALADIN2 || job == JOB_BABY_KNIGHT2 || job == JOB_BABY_CRUSADER2 || job == JOB_STAR_GLADIATOR2
-		|| (job >= JOB_RUNE_KNIGHT2 && job <= JOB_MECHANIC_T2) || (job >= JOB_BABY_RUNE2 && job <= JOB_BABY_MECHANIC2)
-	) { // Deny direct transformation into dummy jobs
+	if (job == JOB_KNIGHT2 || job == JOB_CRUSADER2 || job == JOB_WEDDING || job == JOB_XMAS || job == JOB_SUMMER || job == JOB_HANBOK || job == JOB_OKTOBERFEST ||
+		job == JOB_LORD_KNIGHT2 || job == JOB_PALADIN2 || job == JOB_BABY_KNIGHT2 || job == JOB_BABY_CRUSADER2 || job == JOB_STAR_GLADIATOR2 ||
+		(job >= JOB_RUNE_KNIGHT2 && job <= JOB_MECHANIC_T2) || (job >= JOB_BABY_RUNE2 && job <= JOB_BABY_MECHANIC2))
+	{ // Deny direct transformation into dummy jobs
 		clif_displaymessage(fd, msg_txt(923)); //"You can not change to this job by command."
 		return 0;
 	}
@@ -1216,7 +1217,9 @@ ACMD_FUNC(item)
 	nullpo_retr(-1, sd);
 	memset(item_name, '\0', sizeof(item_name));
 
-	if (!strcmpi(command + 1,"itembound")) {
+	parent_cmd = atcommand_checkalias(command + 1);
+
+	if (!strcmpi(parent_cmd, "itembound")) {
 		if (!message || !*message || (
 			sscanf(message, "\"%99[^\"]\" %d %d", item_name, &number, &bound) < 3 &&
 			sscanf(message, "%99s %d %d", item_name, &number, &bound) < 3))
@@ -1292,10 +1295,12 @@ ACMD_FUNC(item2)
 	nullpo_retr(-1, sd);
 	memset(item_name, '\0', sizeof(item_name));
 
-	if (!strcmpi(command + 1,"itembound2")) {
+	parent_cmd = atcommand_checkalias(command + 1);
+
+	if (!strcmpi(parent_cmd, "itembound2")) {
 		if (!message || !*message || (
 			sscanf(message, "\"%99[^\"]\" %d %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4, &bound) < 10 &&
-			sscanf(message, "%99s %d %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4, &bound) < 10 ))
+			sscanf(message, "%99s %d %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4, &bound) < 10))
 		{
 			clif_displaymessage(fd, msg_txt(296)); // Please enter all parameters (usage: @item2 <item name/ID> <quantity>
 			clif_displaymessage(fd, msg_txt(297)); //   <identify_flag> <refine> <attribute> <card1> <card2> <card3> <card4> <bound_type>).
@@ -1306,9 +1311,9 @@ ACMD_FUNC(item2)
 			clif_displaymessage(fd, msg_txt(298)); // Invalid bound type
 			return -1;
 		}
-	} else if ( !message || !*message || (
+	} else if (!message || !*message || (
 		sscanf(message, "\"%99[^\"]\" %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4) < 9 &&
-		sscanf(message, "%99s %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4) < 9) )
+		sscanf(message, "%99s %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4) < 9))
 	{
 		clif_displaymessage(fd, msg_txt(984)); // Please enter all parameters (usage: @item2 <item name/ID> <quantity>
 		clif_displaymessage(fd, msg_txt(985)); //   <identify_flag> <refine> <attribute> <card1> <card2> <card3> <card4>).
@@ -2016,9 +2021,11 @@ ACMD_FUNC(monster)
 	if (battle_config.atc_spawn_quantity_limit && number > battle_config.atc_spawn_quantity_limit)
 		number = battle_config.atc_spawn_quantity_limit;
 
-	if (strcmp(command+1, "monstersmall") == 0)
+	parent_cmd = atcommand_checkalias(command + 1);
+
+	if (strcmp(parent_cmd, "monstersmall") == 0)
 		size = SZ_MEDIUM; // This is just gorgeous [mkbu95]
-	else if (strcmp(command+1, "monsterbig") == 0)
+	else if (strcmp(parent_cmd, "monsterbig") == 0)
 		size = SZ_BIG;
 	else
 		size = SZ_SMALL;
@@ -2089,8 +2096,10 @@ ACMD_FUNC(killmonster)
 		if ((map_id = map_mapname2mapid(map_name)) < 0)
 			map_id = sd->bl.m;
 	}
-	
-	drop_flag = strcmp(command+1, "killmonster2");
+
+	parent_cmd = atcommand_checkalias(command + 1);
+
+	drop_flag = strcmp(parent_cmd, "killmonster2");
 
 	map_foreachinmap(atkillmonster_sub, map_id, BL_MOB, -drop_flag);
 
@@ -2799,7 +2808,7 @@ ACMD_FUNC(recall) {
 }
 
 /*==========================================
- * charblock command (usage: charblock <player_name>)
+ * charblock command (usage: block <player_name>)
  * This command do a definitiv ban on a player
  *------------------------------------------*/
 ACMD_FUNC(char_block)
@@ -2809,11 +2818,12 @@ ACMD_FUNC(char_block)
 	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
 
 	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {
-		clif_displaymessage(fd, msg_txt(1021)); // Please enter a player name (usage: @block <char name>).
+		sprintf(atcmd_output, msg_txt(1021), command); // Please enter a player name (usage: %s <char name>).
+		clif_displaymessage(fd, atcmd_output);
 		return -1;
 	}
 
-	chrif_req_login_operation(sd->status.account_id, atcmd_player_name, CHRIF_OP_LOGIN_BLOCK, 0, 0, 0); // Type: 1 - block
+	chrif_req_login_operation(sd->status.account_id, atcmd_player_name, CHRIF_OP_LOGIN_BLOCK, 0, 0, 0);
 	sprintf(atcmd_output, msg_txt(88), "login"); // Sending request to %s server...
 	clif_displaymessage(fd, atcmd_output);
 
@@ -2827,18 +2837,27 @@ ACMD_FUNC(char_block)
  *------------------------------------------*/
 ACMD_FUNC(char_ban)
 {
-	char * modif_p;
+	char *modif_p, output[CHAT_SIZE_MAX];
 	int32 timediff = 0; // Don't set this as uint as we may want to decrease banned time
-	int bantype = 0; // 2 = account block, 6 = char specific
+	int bantype = 0;
 
 	nullpo_retr(-1, sd);
 
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
 
-	bantype = strcmpi(command + 1, "charban") ? CHRIF_OP_LOGIN_BAN : CHRIF_OP_BAN; // FIXME this breaking alias recognition
+	parent_cmd = atcommand_checkalias(command + 1);
+
+	if (strcmpi(parent_cmd, "charban") == 0)
+		bantype = CHRIF_OP_BAN;
+	else if (strcmpi(parent_cmd, "ban") == 0)
+		bantype = CHRIF_OP_LOGIN_BAN;
+	else
+		return -1;
+
 	if (!message || !*message || sscanf(message, "%255s %23[^\n]", atcmd_output, atcmd_player_name) < 2) {
-		clif_displaymessage(fd, msg_txt(1022)); // Please enter ban time and a player name (usage: @ban <time> <char name>).
+		sprintf(output, msg_txt(1022), command); // Please enter ban time and a player name (usage: %s <time> <char name>).
+		clif_displaymessage(fd, output);
 		return -1;
 	}
 
@@ -2850,35 +2869,31 @@ ACMD_FUNC(char_ban)
 	if (timediff == 0) { // Allow negative ?
 		char output[256];
 
-		safesnprintf(output, sizeof(output), msg_txt(85), bantype == CHRIF_OP_BAN ? "charban" : "ban", timediff); // Invalid time for %s command (time=%d)
+		safesnprintf(output, sizeof(output), msg_txt(85), command, timediff); // Invalid time for %s command (time=%d)
 		clif_displaymessage(fd, output);
 		clif_displaymessage(fd, msg_txt(702)); // Time parameter format is +/-<value> to alter. y/a = Year, m = Month, d/j = Day, h = Hour, n/mn = Minute, s = Second.
 		return -1;
 	}
 
-	if (timediff < 0 && ((bantype == CHRIF_OP_LOGIN_BAN && !pc_can_use_command(sd, "unban", COMMAND_ATCOMMAND)) ||
-		(bantype == CHRIF_OP_BAN && !pc_can_use_command(sd, "charunban", COMMAND_ATCOMMAND)))) {
+	if (timediff < 0 && ((bantype == CHRIF_OP_BAN && !pc_can_use_command(sd, "charunban", COMMAND_ATCOMMAND)) ||
+		(bantype == CHRIF_OP_LOGIN_BAN && !pc_can_use_command(sd, "unban", COMMAND_ATCOMMAND)))) {
 		clif_displaymessage(fd, msg_txt(1023)); // You are not allowed to alter the time of a ban.
 		return -1;
 	}
 
-	if (bantype == CHRIF_OP_LOGIN_BAN) 
-		chrif_req_login_operation(sd->status.account_id, atcmd_player_name, CHRIF_OP_LOGIN_BAN, timediff, 0, 0); // Type: 2 - ban
-	else
+	if (bantype == CHRIF_OP_BAN)
 		chrif_req_charban(sd->status.account_id, atcmd_player_name, timediff);
+	else
+		chrif_req_login_operation(sd->status.account_id, atcmd_player_name, bantype, timediff, 0, 0);
 
-	{
-		char output[256];
-
-		safesnprintf(output, sizeof(output), msg_txt(88), (bantype == CHRIF_OP_BAN ? "char" : "login")); // Sending request to %s server...
-		clif_displaymessage(fd, output);
-	}
+	safesnprintf(output, sizeof(output), msg_txt(88), (bantype == CHRIF_OP_BAN ? "char" : "login")); // Sending request to %s server...
+	clif_displaymessage(fd, output);
 
 	return 0;
 }
 
 /*==========================================
- * charunblock command (usage: charunblock <player_name>)
+ * charunblock command (usage: unblock <player_name>)
  *------------------------------------------*/
 ACMD_FUNC(char_unblock)
 {
@@ -2887,12 +2902,13 @@ ACMD_FUNC(char_unblock)
 	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
 
 	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {
-		clif_displaymessage(fd, msg_txt(1024)); // Please enter a player name (usage: @unblock <char name>).
+		sprintf(atcmd_output, msg_txt(1021), command); // Please enter a player name (usage: %s <char name>).
+		clif_displaymessage(fd, atcmd_output);
 		return -1;
 	}
 
 	// Send answer to login server via char-server
-	chrif_req_login_operation(sd->status.account_id, atcmd_player_name, CHRIF_OP_LOGIN_UNBLOCK, 0, 0, 0); // Type: 3 - unblock
+	chrif_req_login_operation(sd->status.account_id, atcmd_player_name, CHRIF_OP_LOGIN_UNBLOCK, 0, 0, 0);
 	sprintf(atcmd_output, msg_txt(88), "login"); // Sending request to %s server...
 	clif_displaymessage(fd, atcmd_output);
 
@@ -2908,21 +2924,28 @@ ACMD_FUNC(char_unban) {
 	nullpo_retr(-1, sd);
 
 	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-	unbantype = strcmpi(command + 1, "charunban") ? CHRIF_OP_LOGIN_UNBAN : CHRIF_OP_UNBAN; // FIXME: this breaking alias recognition
+
+	parent_cmd = atcommand_checkalias(command + 1);
+
+	if (strcmpi(parent_cmd, "charunban") == 0)
+		unbantype = CHRIF_OP_UNBAN;
+	else if (strcmpi(parent_cmd, "unban") == 0)
+		unbantype = CHRIF_OP_LOGIN_UNBAN;
+	else
+		return -1;
 
 	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {
-		if (unbantype == CHRIF_OP_LOGIN_UNBAN)
-			clif_displaymessage(fd, msg_txt(1025)); // Please enter a player name (usage: @unblock <char name>).
-		else
-			clif_displaymessage(fd, msg_txt(435)); // Please enter a player name (usage: @unban <char name>).
+		sprintf(atcmd_output, msg_txt(435), command); // Please enter a player name (usage: %s <char name>).
+		clif_displaymessage(fd, atcmd_output);
 		return -1;
 	}
 
-	if (unbantype == CHRIF_OP_LOGIN_UNBAN) // Send answer to login server via char-server
-		chrif_req_login_operation(sd->status.account_id, atcmd_player_name, CHRIF_OP_LOGIN_UNBAN, 0, 0, 0); // Type: 4 - unban
-	else // Directly unban via char-serv
+	if (unbantype == CHRIF_OP_UNBAN)
 		chrif_req_charunban(sd->status.account_id, atcmd_player_name);
-	sprintf(atcmd_output, msg_txt(88), unbantype == CHRIF_OP_UNBAN ? "char":"login"); // Sending request to %s server...
+	else
+		chrif_req_login_operation(sd->status.account_id, atcmd_player_name, unbantype, 0, 0, 0);
+
+	sprintf(atcmd_output, msg_txt(88), (unbantype == CHRIF_OP_UNBAN ? "char" : "login")); // Sending request to %s server...
 	clif_displaymessage(fd, atcmd_output);
 
 	return 0;
@@ -8102,7 +8125,9 @@ ACMD_FUNC(cash)
 		return -1;
 	}
 
-	if( !strcmpi(command + 1,"cash") ) {
+	parent_cmd = atcommand_checkalias(command + 1);
+
+	if( !strcmpi(parent_cmd, "cash") ) {
 		if( value > 0 ) {
 			if( (ret = pc_getcash(sd, value, 0, LOG_TYPE_COMMAND)) >= 0 ) {
 				// If this option is set, the message is already sent by pc function
@@ -8166,9 +8191,11 @@ ACMD_FUNC(clone)
 		return 0;
 	}
 
-	if (strcmpi(command + 1, "clone") == 0)
+	parent_cmd = atcommand_checkalias(command + 1);
+
+	if (strcmpi(parent_cmd, "clone") == 0)
 		flag = 1;
-	else if (strcmpi(command + 1, "slaveclone") == 0) {
+	else if (strcmpi(parent_cmd, "slaveclone") == 0) {
 		flag = 2;
 		if (pc_isdead(sd)) {
 			clif_displaymessage(fd, msg_txt(129 + flag * 2));
@@ -8340,15 +8367,17 @@ ACMD_FUNC(itemlist)
 
 	nullpo_retr(-1, sd);
 
-	if( strcmp(command + 1, "storagelist") == 0 ) {
+	parent_cmd = atcommand_checkalias(command + 1);
+
+	if( strcmp(parent_cmd, "storagelist") == 0 ) {
 		location = "Storage";
 		items = sd->status.storage.items;
 		size = sd->storage_size;
-	} else if( strcmp(command + 1, "cartlist") == 0 ) {
+	} else if( strcmp(parent_cmd, "cartlist") == 0 ) {
 		location = "Cart";
 		items = sd->status.cart;
 		size = MAX_CART;
-	} else if( strcmp(command + 1, "itemlist") == 0 ) {
+	} else if( strcmp(parent_cmd, "itemlist") == 0 ) {
 		location = "Inventory";
 		items = sd->status.inventory;
 		size = MAX_INVENTORY;
@@ -8893,8 +8922,12 @@ ACMD_FUNC(set) {
 
 ACMD_FUNC(addperm) {
 	int perm_size = ARRAYLENGTH(pc_g_permission_name);
-	bool add = (strcmpi(command+1, "addperm") == 0) ? true : false;
+	bool add;
 	int i;
+
+	parent_cmd = atcommand_checkalias(command + 1);
+
+	add = (strcmpi(parent_cmd, "addperm") == 0 ? true : false);
 
 	if( !message || !*message ) {
 		sprintf(atcmd_output,  msg_txt(1378),command); // Usage: %s <permission_name>
@@ -9431,7 +9464,7 @@ ACMD_FUNC(cloneequip) {
 		}
 	}
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
-	sprintf(atcmd_output, msg_txt(724), "status"); // Clone '%s' is done.
+	sprintf(atcmd_output, msg_txt(724), "equip"); // Clone '%s' is done.
 	clif_displaymessage(fd, atcmd_output);
 
 	return 0;
@@ -9655,10 +9688,10 @@ void atcommand_basecommands(void) {
 		ACMD_DEF2("allstats", stat_all),
 		ACMD_DEF2("block", char_block),
 		ACMD_DEF2("ban", char_ban),
-		ACMD_DEF2("charban", char_ban), /* Char-specific ban time */
+		ACMD_DEF2("charban", char_ban), //Char-specific ban time
 		ACMD_DEF2("unblock", char_unblock),
 		ACMD_DEF2("unban", char_unban),
-		ACMD_DEF2("charunban", char_unban), /* Char-specific ban time */
+		ACMD_DEF2("charunban", char_unban), //Char-specific ban time
 		ACMD_DEF2("mount", mount_peco),
 		ACMD_DEF(guildspy),
 		ACMD_DEF(partyspy),

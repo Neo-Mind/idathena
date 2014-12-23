@@ -806,7 +806,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			return 0;
 	}
 
-	if( skill_id == PA_PRESSURE )
+	if( skill_id == PA_PRESSURE || skill_id == HW_GRAVITATION )
 		return damage; //This skill bypass everything else
 
 	if( sc && sc->count ) {
@@ -817,7 +817,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 
 		//Gravitation and Pressure do damage without removing the effect
-		if( sc->data[SC_WHITEIMPRISON] && skill_id != HW_GRAVITATION ) {
+		if( sc->data[SC_WHITEIMPRISON] ) {
 			if( skill_id == MG_NAPALMBEAT ||
 				skill_id == MG_SOULSTRIKE ||
 				skill_id == WL_SOULEXPANSION ||
@@ -3839,11 +3839,8 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 					skillratio += sd->cart_weight / 10 / (150 - strbonus) + pc_checkskill(sd,GN_REMODELING_CART) * 50;
 			}
 			break;
-		case GN_CARTCANNON:
-			//ATK [{( Cart Remodeling Skill Level x 50 ) x ( INT / 40 )} + ( Cart Cannon Skill Level x 60 )] %
-			skillratio += -100 + (60 * skill_lv);
-			if(sd)
-				skillratio += pc_checkskill(sd,GN_REMODELING_CART) * 50 * sstatus->int_ / 40;
+		case GN_CARTCANNON: //ATK [{( Cart Remodeling Skill Level x 50 ) x ( INT / 40 )} + ( Cart Cannon Skill Level x 60 )] %
+			skillratio += -100 + 60 * skill_lv + (sd ? pc_checkskill(sd,GN_REMODELING_CART) : 1) * 50 * sstatus->int_ / 40;
 			break;
 		case GN_SPORE_EXPLOSION:
 			skillratio += 100 + sstatus->int_ + 100 * skill_lv;
@@ -5091,12 +5088,9 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		if(skill_id == HW_MAGICCRASHER) //Add weapon attack for MATK into Magic Crasher
 			ATK_ADD(wd.weaponAtk, wd.weaponAtk2, status_get_matk(src, 2));
 
-		//Final attack bonuses that aren't affected by cards
-		if(skill_id != CR_SHIELDBOOMERANG)
+		if(skill_id != CR_SHIELDBOOMERANG) //Final attack bonuses that aren't affected by cards
 			wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
 
-		//Status ATK, weapon ATK, and equip ATK are directly reduced by eDEF
-		//sDEF only directly reduces status ATK [exneval]
 		if(skill_id == CR_ACIDDEMONSTRATION) {
 			defType def1 = status_get_def(target);
 			short def2 = tstatus->def2, vit_def;
@@ -5111,6 +5105,8 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 				def1 = def2;
 			}
 
+			//Status ATK, weapon ATK, and equip ATK are directly reduced by eDEF
+			//sDEF only directly reduces status ATK [exneval]
 			wd.statusAtk -= (def1 + vit_def);
 			wd.statusAtk2 -= (def1 + vit_def);
 			wd.weaponAtk -= def1;
@@ -5124,7 +5120,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			wd.damage2 = wd.statusAtk2 + wd.weaponAtk2 + wd.equipAtk2 + wd.masteryAtk2;
 			if(wd.flag&BF_LONG) //Ranged damage % effects the entirety of the damage [exneval]
 				ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.long_attack_atk_rate);
-			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Custom fix for "a hole" in renewal ATK calculation [exneval]
+			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Temp. fix for "a hole" in renewal ATK calculation [exneval]
 		}
 #else
 		wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
@@ -6143,7 +6139,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						equipMatk -= mdef;
 
 						ad.damage += statusMatk + weaponMatk + equipMatk;
-						MATK_ADDRATE(5); //Custom fix for "a hole" in renewal MATK calculation [exneval]
+						MATK_ADDRATE(5); //Temp. fix for "a hole" in renewal MATK calculation [exneval]
 					}
 					break;
 				default:
@@ -6503,7 +6499,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			break;
 		case HW_GRAVITATION:
 #ifdef RENEWAL
-			md.damage = 500 + (skill_lv * 100);
+			md.damage = 500 + 100 * skill_lv;
 #else
 			md.damage = 200 + 200 * skill_lv;
 #endif

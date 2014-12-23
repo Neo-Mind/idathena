@@ -105,23 +105,21 @@ static int instance_subscription_timer(int tid, unsigned int tick, int id, intpt
 	ret = instance_addmap(instance_id);
 
 	// If no maps are created, tell party to wait
-	if(ret == 0 && ( p = party_search( instance_data[instance_id].party_id ) ) != NULL)
-		clif_instance_changewait( party_getavailablesd( p ), 0xffff, 1 );
+	if(ret == 0 && (p = party_search(instance_data[instance_id].party_id)) != NULL)
+		clif_instance_changewait(party_getavailablesd(p), 0xffff, 1);
 
 	instance_wait.count--;
-	memmove(&instance_wait.id[0],&instance_wait.id[1],sizeof(instance_wait.id[0])*instance_wait.count);
+	memmove(&instance_wait.id[0], &instance_wait.id[1], sizeof(instance_wait.id[0]) * instance_wait.count);
 	memset(&instance_wait.id[instance_wait.count], 0, sizeof(instance_wait.id[0]));
 
 	for(i = 0; i < instance_wait.count; i++) {
-		if(	instance_data[instance_wait.id[i]].state == INSTANCE_IDLE &&
-			( p = party_search( instance_data[instance_wait.id[i]].party_id ) ) != NULL
-		) {
-			clif_instance_changewait( party_getavailablesd( p ), i + 1, 1 );
-		}
+		if(instance_data[instance_wait.id[i]].state == INSTANCE_IDLE &&
+			(p = party_search(instance_data[instance_wait.id[i]].party_id)) != NULL)
+			clif_instance_changewait(party_getavailablesd(p), i + 1, 1);
 	}
 
 	if(instance_wait.count)
-		instance_wait.timer = add_timer(gettick()+INSTANCE_INTERVAL, instance_subscription_timer, 0, 0);
+		instance_wait.timer = add_timer(gettick() + INSTANCE_INTERVAL, instance_subscription_timer, 0, 0);
 	else
 		instance_wait.timer = -1;
 
@@ -147,11 +145,11 @@ static int instance_startkeeptimer(struct instance_data *im, short instance_id)
 
 	// Add timer
 	im->keep_limit = (unsigned int)time(NULL) + db->limit;
-	im->keep_timer = add_timer(gettick()+db->limit*1000, instance_delete_timer, instance_id, 0);
+	im->keep_timer = add_timer(gettick() + db->limit * 1000, instance_delete_timer, instance_id, 0);
 
 	// Notify party of the added instance timer
-	if( ( p = party_search( im->party_id ) ) != NULL )
-		clif_instance_status( party_getavailablesd( p ), db->name, im->keep_limit, im->idle_limit, 1 );
+	if((p = party_search(im->party_id)) != NULL)
+		clif_instance_status(party_getavailablesd(p), db->name, im->keep_limit, im->idle_limit, 1);
 
 	return 0;
 }
@@ -172,15 +170,12 @@ static int instance_startidletimer(struct instance_data *im, short instance_id)
 		return 1;
 
 	// Add the timer
-	im->idle_limit = (unsigned int)time(NULL) + INSTANCE_LIMIT/1000;
+	im->idle_limit = (unsigned int)time(NULL) + INSTANCE_LIMIT / 1000;
 	im->idle_timer = add_timer(gettick()+INSTANCE_LIMIT, instance_delete_timer, instance_id, 0);
 
 	// Notify party of added instance timer
-	if( ( p = party_search( im->party_id ) ) != NULL &&
-		( db = instance_searchtype_db( im->type ) ) != NULL
-		){
-		clif_instance_status( party_getavailablesd( p ), db->name, im->keep_limit, im->idle_limit, 1 );
-	}
+	if((p = party_search(im->party_id)) != NULL && (db = instance_searchtype_db(im->type)) != NULL)
+		clif_instance_status(party_getavailablesd(p), db->name, im->keep_limit, im->idle_limit, 1);
 
 	return 0;
 }
@@ -204,8 +199,8 @@ static int instance_stopidletimer(struct instance_data *im)
 	im->idle_timer = -1;
 
 	// Notify the party
-	if( ( p = party_search( im->party_id ) ) != NULL )
-		clif_instance_changestatus( party_getavailablesd( p ), 0, im->idle_limit, 1 );
+	if((p = party_search(im->party_id)) != NULL)
+		clif_instance_changestatus(party_getavailablesd(p), 0, im->idle_limit, 1);
 
 	return 0;
 }
@@ -425,10 +420,11 @@ int instance_destroy(short instance_id)
 				memmove(&instance_wait.id[i], &instance_wait.id[i + 1], sizeof(instance_wait.id[0]) * (instance_wait.count - i));
 				memset(&instance_wait.id[instance_wait.count], 0, sizeof(instance_wait.id[0]));
 
-				for(i = 0; i < instance_wait.count; i++)
-					if(instance_data[instance_wait.id[i]].state == INSTANCE_IDLE)
-						if((p = party_search(instance_data[instance_wait.id[i]].party_id)) != NULL)
-							clif_instance_changewait(party_getavailablesd(p), i + 1, 1);
+				for(i = 0; i < instance_wait.count; i++) {
+					if(instance_data[instance_wait.id[i]].state == INSTANCE_IDLE &&
+						(p = party_search(instance_data[instance_wait.id[i]].party_id)) != NULL)
+						clif_instance_changewait(party_getavailablesd(p), i + 1, 1);
+				}
 
 				if(instance_wait.count)
 					instance_wait.timer = add_timer(gettick() + INSTANCE_INTERVAL, instance_subscription_timer, 0, 0);
@@ -469,7 +465,7 @@ int instance_destroy(short instance_id)
 			clif_instance_changewait(party_getavailablesd(p), 0xffff, 1);
 	}
 
-	if( im->vars ) {
+	if(im->vars) {
 		db_destroy(im->vars);
 		im->vars = NULL;
 	}
@@ -570,7 +566,7 @@ int instance_reqinfo(struct map_session_data *sd, short instance_id)
 
 		for(i = 0; i < instance_wait.count; i++) {
 			if(instance_wait.id[i] == instance_id) {
-				clif_instance_create(sd, db->name, i+1, 0);
+				clif_instance_create(sd, db->name, i + 1, 0);
 				break;
 			}
 		}

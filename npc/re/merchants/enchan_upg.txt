@@ -22,7 +22,7 @@ prt_in,28,73,3	script	Devil Enchant Master#prq	63,{
 		mes "You are carrying too many items, please reduce it and come back again!";
 		close;
 	}
-	if (MaxWeight - Weight < 10000) {
+	if (MaxWeight - Weight < 1000) {
 		mes "You are over the weight limit, please reduce it and come back again!";
 		close;
 	}
