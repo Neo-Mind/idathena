@@ -6101,6 +6101,7 @@ int pc_stop_following (struct map_session_data *sd)
 int pc_follow(struct map_session_data *sd,int target_id)
 {
 	struct block_list *bl = map_id2bl(target_id);
+
 	if (bl == NULL /*|| bl->type != BL_PC*/)
 		return 1;
 	if (sd->followtimer != INVALID_TIMER)
@@ -6117,22 +6118,20 @@ int pc_checkbaselevelup(struct map_session_data *sd) {
 
 	if (!next || sd->status.base_exp < next)
 		return 0;
-	
+
 	do {
 		sd->status.base_exp -= next;
-		//Kyoki pointed out that the max overcarry exp is the exp needed for the previous level -1. [Skotlex]
-		if(!battle_config.multi_level_up && sd->status.base_exp > next - 1)
+		//Kyoki pointed out that the max overcarry exp is the exp needed for the previous level -1 [Skotlex]
+		if (!battle_config.multi_level_up && sd->status.base_exp > next - 1)
 			sd->status.base_exp = next - 1;
-
 		next = pc_gets_status_point(sd->status.base_level);
-		sd->status.base_level ++;
+		sd->status.base_level++;
 		sd->status.status_point += next;
-
 	} while ((next = pc_nextbaseexp(sd)) > 0 && sd->status.base_exp >= next);
 
-	if (battle_config.pet_lv_rate && sd->pd) //<Skotlex> update pet's level
+	if (battle_config.pet_lv_rate && sd->pd) //Update pet's level [Skotlex]
 		status_calc_pet(sd->pd,SCO_NONE);
-	
+
 	clif_updatestatus(sd,SP_STATUSPOINT);
 	clif_updatestatus(sd,SP_BASELEVEL);
 	clif_updatestatus(sd,SP_BASEEXP);
@@ -6157,7 +6156,7 @@ int pc_checkbaselevelup(struct map_session_data *sd) {
 
 	if (sd->status.party_id)
 		party_send_levelup(sd);
-	
+
 	pc_baselevelchanged(sd);
 	return 1;
 }
@@ -6166,12 +6165,10 @@ void pc_baselevelchanged(struct map_session_data *sd) {
 #ifdef RENEWAL
 	int i;
 
-	for( i = 0; i < EQI_MAX; i++ ) {
-		if( sd->equip_index[i] >= 0 ) {
-			if( sd->inventory_data[sd->equip_index[i]]->elvmax && sd->status.base_level > (unsigned int)sd->inventory_data[sd->equip_index[i]]->elvmax )
+	for (i = 0; i < EQI_MAX; i++)
+		if (sd->equip_index[i] >= 0)
+			if (sd->inventory_data[sd->equip_index[i]]->elvmax && sd->status.base_level > (unsigned int)sd->inventory_data[sd->equip_index[i]]->elvmax)
 				pc_unequipitem(sd, sd->equip_index[i], 3);
-		}
-	}
 #endif
 
 }
@@ -6187,14 +6184,12 @@ int pc_checkjoblevelup(struct map_session_data *sd)
 
 	do {
 		sd->status.job_exp -= next;
-		//Kyoki pointed out that the max overcarry exp is the exp needed for the previous level -1. [Skotlex]
-		if(!battle_config.multi_level_up && sd->status.job_exp > next - 1)
+		//Kyoki pointed out that the max overcarry exp is the exp needed for the previous level -1 [Skotlex]
+		if (!battle_config.multi_level_up && sd->status.job_exp > next - 1)
 			sd->status.job_exp = next - 1;
-
 		sd->status.job_level ++;
 		sd->status.skill_point ++;
-
-	} while((next = pc_nextjobexp(sd)) > 0 && sd->status.job_exp >= next);
+	} while ((next = pc_nextjobexp(sd)) > 0 && sd->status.job_exp >= next);
 
 	clif_updatestatus(sd,SP_JOBLEVEL);
 	clif_updatestatus(sd,SP_JOBEXP);
@@ -6202,7 +6197,7 @@ int pc_checkjoblevelup(struct map_session_data *sd)
 	clif_updatestatus(sd,SP_SKILLPOINT);
 	status_calc_pc(sd,SCO_FORCE);
 	clif_misceffect(&sd->bl,1);
-	if(pc_checkskill(sd,SG_DEVIL) && !pc_nextjobexp(sd))
+	if (pc_checkskill(sd,SG_DEVIL) && !pc_nextjobexp(sd))
 		clif_status_change(&sd->bl,SI_DEVIL,1,0,0,0,1); //Permanent blind effect from SG_DEVIL
 
 	npc_script_event(sd,NPCE_JOBLVUP);

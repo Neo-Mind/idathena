@@ -97,7 +97,7 @@
 2183:15068,{ bonus2 bSubEle,Ele_Neutral,5; }
 2183:15068:18776:20710:22015,{ bonus bMaxHP,900; bonus bMaxSP,100; bonus3 bAutoSpellWhenHit,"HP_ASSUMPTIO",1,30; }
 2183:22015,{ bonus bAllStats,2; }
-2189:20725,{ if(getequiprefinerycnt(EQI_HAND_L) > 6) bonus2 bSubEle,Ele_All,2*getequiprefinerycnt(EQI_HAND_L); }
+2189:20725,{ if(getequiprefinerycnt(EQI_HAND_L) > 6) bonus2 bSubEle,Ele_All,2*getequiprefinerycnt(EQI_HAND_L); set @bonus_refine,getequiprefinerycnt(EQI_GARMENT); autobonus "{ bonus2 bHPLossRate,30,1000; bonus bMatk,5*@bonus_refine/3; }",3+(3*@bonus_refine),10000,BF_MAGIC,"{ specialeffect2 EF_POTION_BERSERK; transform 1930,10000; }"; }
 2241:5136,{ bonus bMaxHP,700; bonus bMaxSP,50; bonus4 bAutoSpellWhenHit,"AL_INCAGI",10,30,1; }
 2268:18573,{ set .@r,getequiprefinerycnt(EQI_HEAD_TOP); if(.@r > 6) { bonus bMaxHPrate,((.@r-5)/2)*2; bonus bHit,(.@r-5)/2; } }
 2269:5781,{ bonus bInt,1; bonus bMaxSP,30; }

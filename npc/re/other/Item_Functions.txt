@@ -12,6 +12,11 @@
 //= 1.0 First version. [exneval]
 //============================================================ 
 
+function	script	F_B_D_A	{ //18691
+	unittalk getcharid(3),"Oy my goooodness!! How could my profile be so cute!!!",1;
+	return;
+}
+
 function	script	F_H_P_H_D	{ //18810
 	unittalk getcharid(3),"Human can show up, or get out of here Goast!!",1;
 	return;

@@ -5706,17 +5706,15 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					break;
 				}
 				skill_area_temp[0] = 0;
-				party_foreachsamemap(skill_area_sub,
-					sd,skill_get_splash(skill_id,skill_lv),
-					src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,
-					skill_castend_nodamage_id);
+				party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,
+					skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
 				if(skill_area_temp[0] == 0) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 					break;
 				}
-				skill_area_temp[0] = 5 - skill_area_temp[0]; //The actual penalty.
+				skill_area_temp[0] = 5 - skill_area_temp[0]; //The actual penalty
 				if(skill_area_temp[0] > 0 && !map[src->m].flag.noexppenalty) { //Apply penalty
-					sd->status.base_exp -= min(sd->status.base_exp,pc_nextbaseexp(sd) * skill_area_temp[0] * 2 / 1000); //0.2% penalty per each.
+					sd->status.base_exp -= min(sd->status.base_exp,pc_nextbaseexp(sd) * skill_area_temp[0] * 2 / 1000); //0.2% penalty per each
 					sd->status.job_exp -= min(sd->status.job_exp,pc_nextjobexp(sd) * skill_area_temp[0] * 2 / 1000);
 					clif_updatestatus(sd,SP_BASEEXP);
 					clif_updatestatus(sd,SP_JOBEXP);
@@ -5725,9 +5723,9 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				status_set_sp(src,0,0);
 				break;
 			} else if(status_isdead(bl) && flag&1) { //Revive
-				skill_area_temp[0]++; //Count it in, then fall-through to the Resurrection code.
+				skill_area_temp[0]++; //Count it in, then fall-through to the Resurrection code
 				skill_lv = 3; //Resurrection level 3 is used
-			} else //Invalid target, skip resurrection.
+			} else //Invalid target, skip resurrection
 				break;
 
 		case ALL_RESURRECTION:
@@ -9383,7 +9381,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 		case LG_INSPIRATION:
 			if( sd && !map[sd->bl.m].flag.noexppenalty && sd->status.base_level != MAX_LEVEL ) {
-				sd->status.base_exp -= min(sd->status.base_exp,pc_nextbaseexp(sd) * 1 / 100); //1% penalty.
+				sd->status.base_exp -= min(sd->status.base_exp,pc_nextbaseexp(sd) * 1 / 100); //1% penalty
 				sd->status.job_exp -= min(sd->status.job_exp,pc_nextjobexp(sd) * 1 / 100);
 				clif_updatestatus(sd,SP_BASEEXP);
 				clif_updatestatus(sd,SP_JOBEXP);
@@ -14580,7 +14578,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 
 				if( ((exp = pc_nextbaseexp(sd)) > 0 && get_percentage(sd->status.base_exp,exp) < 1) ||
 					((exp = pc_nextjobexp(sd)) > 0 && get_percentage(sd->status.job_exp,exp) < 1) ) {
-					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0); //Not enough exp.
+					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0); //Not enough exp
 					return false;
 				}
 			}
