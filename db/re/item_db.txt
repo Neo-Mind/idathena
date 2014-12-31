@@ -2851,7 +2851,7 @@
 4871,SP75,SP+75,6,20,,10,,,,,,,,,,,,,{ bonus bMaxSP,75; },{},{}
 4872,DelayafterAttack2Lv,DelayafterAttack2Lv,6,10,,,,,,,,,,,,,,,{ bonus bAspdRate,6; bonus bDelayrate,-6; },{},{}
 4873,DelayafterAttack3Lv,DelayafterAttack3Lv,6,10,,,,,,,,,,,,,,,{ bonus bAspdRate,8; bonus bDelayrate,-8; },{},{}
-4875,Bear's_Power,Bear's Power,6,10,,,,,,,,,,,,,,,{ autobonus2 "{ bonus bStr,200; bonus2 bHPLossRate,500,1000; }",50,5000,BF_WEAPON; },{},{}
+4875,Bear's_Power,Bear's Power,6,10,,,,,,,,,,,,,,,{ autobonus2 "{ bonus bStr,200; bonus2 bHPLossRate,500,1000; }",50,5000,BF_WEAPON,"{ specialeffect2 EF_POTION_BERSERK; transform 1060,5000; }"; },{},{}
 4876,Runaway_Magic,Runaway Magic,6,10,,,,,,,,,,,,,,,{ autobonus "{ bonus bInt,200; bonus2 bSPLossRate,200,1000; }",50,10000,BF_MAGIC; },{},{}
 4877,Speed_Of_Light,Speed Of Light,6,10,,,,,,,,,,,,,,,{ autobonus "{ bonus bAspdRate,100; bonus bFlee2,100; bonus2 bHPLossRate,400,1000; bonus2 bSPLossRate,40,1000; }",50,5000,BF_WEAPON; },{},{}
 4878,Muscle_Fool,Muscle Fool,6,10,,,,,,,,,,,,,,,{ autobonus2 "{ bonus bDef,1000; bonus2 bAddClass,Class_All,-50; bonus bMatkRate,-50; }",50,5000,BF_WEAPON; },{},{}

@@ -4250,7 +4250,7 @@ L_Again:
 		specialeffect2 EF_ENHANCE;
 		if (rand(1,3) == 1) {
 			getitem 645,1; //Center_Potion
-			set Zeny,Zeny - 10000;
+			set Zeny,Zeny-10000;
 			mes "[Wandering Merchant]";
 			mes "Ohhhh~~ Unfortunately~ you got 1 ^008000Concentration Potion^000000~~";
 			next;
@@ -4273,7 +4273,7 @@ L_Again:
 			goto L_Again;
 		} else {
 			getitem 645,2; //Center_Potion
-			set Zeny,Zeny - 10000;
+			set Zeny,Zeny-10000;
 			mes "[Wandering Merchant]";
 			mes "Ohhhh~~ Unfortunately~ you got 2 ^008000Concentration Potion^000000~~";
 			next;
