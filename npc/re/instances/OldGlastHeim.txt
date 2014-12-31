@@ -832,6 +832,9 @@ OnTouch:
 		case 10: warp .@map2$,174,101; break;
 		case 11: warp .@map2$,150,110; break;
 		case 12: warp .@map2$,150,179; break;
+		case 13: warp .@map2$,150,160; break;
+		case 14: warp .@map1$,150,281; break;
+		case 15: warp .@map1$,48,168; break;
 	}
 	end;
 }
@@ -846,6 +849,9 @@ OnTouch:
 2@gl_k,154,101,0	duplicate(#ghinstancewarp1)	#ghinstancewarp10	45,2,2
 2@gl_k,165,101,0	duplicate(#ghinstancewarp1)	#ghinstancewarp11	45,2,2
 2@gl_k,150,163,0	duplicate(#ghinstancewarp1)	#ghinstancewarp12	45,2,2
+2@gl_k,150,167,0	duplicate(#ghinstancewarp1)	#ghinstancewarp13	45,2,2
+2@gl_k,150,32,0	duplicate(#ghinstancewarp1)	#ghinstancewarp14	45,2,2
+1@gl_k,69,168,0	duplicate(#ghinstancewarp1)	#ghinstancewarp15	45,2,2
 
 // Sector 1 Mobs
 //============================================================
@@ -1121,18 +1127,36 @@ OnDisable:
 OnEnable:
 	enablenpc instance_npcname("#ghmemorialmob04");
 	monster instance_mapname("1@gl_k"),150,258,"Corrupted Soul",2475,1,instance_npcname("#ghmemorialmob04")+"::OnMyMobDead";
+	donpcevent instance_npcname("Corrupted Soul#gh")+"::OnEnable";
+	donpcevent instance_npcname("Corrupted Soul#gh")+"::OnTalkK";
 	end;
 OnMyMobDead:
 	set .@map$,instance_mapname("1@gl_k");
 	if (mobcount(.@map$,instance_npcname("#ghmemorialmob04")+"::OnMyMobDead") < 1) {
 		mapannounce .@map$,"Opening 2nd floor entrance towards 12 O'clock direction.",bc_map,"0xFFFF00";
 		donpcevent instance_npcname("#ghinstancewarp7")+"::OnEnable";
+		donpcevent instance_npcname("#ghinstancewarp14")+"::OnEnable";
 		donpcevent instance_npcname("Varmundt#ghinstance3")+"::OnTalk2";
 		donpcevent instance_npcname("#effectGH01")+"::OnEnable";
 		donpcevent instance_npcname("Heinrich#ghinstance5")+"::OnEnable";
 		donpcevent instance_npcname("Varmundt#ghinstance4")+"::OnEnable";
+		donpcevent instance_npcname("Corrupted Soul#gh")+"::OnDisable";
 		donpcevent instance_npcname("#ghmemorialmob04")+"::OnDisable";
 	}
+	end;
+}
+
+1@gl_k,150,258,0	script	Corrupted Soul#gh	2475,{
+	end;
+OnInstanceInit:
+OnDisable:
+	disablenpc instance_npcname(strnpcinfo(0));
+	end;
+OnEnable:
+	enablenpc instance_npcname(strnpcinfo(0));
+	end;
+OnTalkK:
+	npctalk "Grrrrrrhh~~~",1;
 	end;
 }
 
@@ -1689,6 +1713,7 @@ OnMyMobDead:
 	if (mobcount(.@map$,instance_npcname("#ghmemorialmob09")+"::OnMyMobDead") < 1) {
 		mapannounce .@map$,"A new portal has appeared at the end of the central corridor.",bc_map,"0xFFFF00";
 		donpcevent instance_npcname("#ghinstancewarp12")+"::OnEnable";
+		donpcevent instance_npcname("#ghinstancewarp13")+"::OnEnable";
 		donpcevent instance_npcname("#controlGH6")+"::OnEnable";
 		donpcevent instance_npcname("#ghmemorialmob08")+"::OnDisable";
 		donpcevent instance_npcname("#ghmemorialmob09")+"::OnDisable";
@@ -1709,6 +1734,7 @@ OnEnable:
 OnMyMobDead:
 	if (mobcount(instance_mapname("2@gl_k"),instance_npcname("#ghmemorialmob10")+"::OnMyMobDead") < 1) {
 		donpcevent instance_npcname("Hugin#ghinstance1")+"::OnEnable";
+		donpcevent instance_npcname("#ghinstancewarp15")+"::OnEnable";
 
 		for (set .@i,1; .@i<=8; set .@i,.@i+1)
 			enablenpc instance_npcname("Strange crack#"+.@i);
@@ -2068,13 +2094,8 @@ OnEnable:
 		mes "The crack looks suspicious, but nothing more to check.";
 		close;
 	}
-	warp "1@gl_k",149,198;
-	end;
-}
-
-1@gl_k,69,168,0	script	#exit	45,2,2,{
-OnTouch:
-	warp "1@gl_k",48,168;
+	set .@map$,instance_mapname("1@gl_k");
+	warp .@map$,149,198;
 	end;
 }
 
@@ -2144,7 +2165,7 @@ OnEnable:
 	for (set .@i,1; .@i<=.@random; set .@i,.@i+1)
 		makeitem 722,1,"this",147,138;
 	if (.@random_ == 4)
-		makeitem2 2949,1,"this",141,138,0,0,0,0,0,0,0;
+		makeitem2 2949,1,"this",147,138,0,0,0,0,0,0,0;
 	makeitem 6608,1,"this",147,138;
 	makeitem 6612,1,"this",147,138;
 	makeitem 6613,1,"this",147,138;
@@ -2167,7 +2188,7 @@ OnEnable:
 	makeitem 6608,1,"this",153,138;
 	makeitem 7230,1,"this",153,138;
 	if (.@random_ == 4)
-		makeitem2 13086,1,"this",159,138,0,0,0,0,0,0,0;
+		makeitem2 13086,1,"this",153,138,0,0,0,0,0,0,0;
 OnInstanceInit:
 OnDisable:
 	disablenpc instance_npcname("Strange crack#5");
@@ -2216,7 +2237,10 @@ OnEnable:
 1@gl_k,171,136,0	script	Strange crack#8	111,{
 	specialeffect EF_SPELLBREAKER;
 	specialeffect EF_BASH;
-	makeitem 6608,1,"this",165,138;
+	set .@random,rand(1,4);
+	for (set .@i,1; .@i<=.@random; set .@i,.@i+1)
+		makeitem 718,1,"this",171,138;
+	makeitem 6608,1,"this",171,138;
 OnInstanceInit:
 OnDisable:
 	disablenpc instance_npcname("Strange crack#8");
