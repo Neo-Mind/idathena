@@ -4119,222 +4119,223 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 	}
 
 	if(sc) { //The following are applied on top of current damage and are stackable
+		if(skill_id != CR_SHIELDBOOMERANG) {
 #ifdef RENEWAL
-		if(sc->data[SC_IMPOSITIO])
-			ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_IMPOSITIO]->val2);
-		if(sc->data[SC_VOLCANO])
-			ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_VOLCANO]->val2);
-		if(sc->data[SC_DRUMBATTLE])
-			ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_DRUMBATTLE]->val2);
-		if(sc->data[SC_MADNESSCANCEL])
-			ATK_ADD(wd.equipAtk, wd.equipAtk2, 100);
-		if(sc->data[SC_GATLINGFEVER]) {
-			if(tstatus->size == SZ_SMALL) {
-				ATK_ADD(wd.equipAtk, wd.equipAtk2, 10 * sc->data[SC_GATLINGFEVER]->val1);
-			} else if(tstatus->size == SZ_MEDIUM) {
-				ATK_ADD(wd.equipAtk, wd.equipAtk2, 5 * sc->data[SC_GATLINGFEVER]->val1);
-			} else if(tstatus->size == SZ_BIG)
-				ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_GATLINGFEVER]->val1);
-		}
+			if(sc->data[SC_IMPOSITIO])
+				ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_IMPOSITIO]->val2);
+			if(sc->data[SC_VOLCANO])
+				ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_VOLCANO]->val2);
+			if(sc->data[SC_DRUMBATTLE])
+				ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_DRUMBATTLE]->val2);
+			if(sc->data[SC_MADNESSCANCEL])
+				ATK_ADD(wd.equipAtk, wd.equipAtk2, 100);
+			if(sc->data[SC_GATLINGFEVER]) {
+				if(tstatus->size == SZ_SMALL) {
+					ATK_ADD(wd.equipAtk, wd.equipAtk2, 10 * sc->data[SC_GATLINGFEVER]->val1);
+				} else if(tstatus->size == SZ_MEDIUM) {
+					ATK_ADD(wd.equipAtk, wd.equipAtk2, 5 * sc->data[SC_GATLINGFEVER]->val1);
+				} else if(tstatus->size == SZ_BIG)
+					ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_GATLINGFEVER]->val1);
+			}
 #else
-		if(sc->data[SC_TRUESIGHT])
-			ATK_ADDRATE(wd.damage, wd.damage2, 2 * sc->data[SC_TRUESIGHT]->val1);
+			if(sc->data[SC_TRUESIGHT])
+				ATK_ADDRATE(wd.damage, wd.damage2, 2 * sc->data[SC_TRUESIGHT]->val1);
 #endif
-		if(sc->data[SC_SPIRIT]) {
 			//Sonic Blow +25% dmg on GVG, +100% dmg on non GVG
-			if(skill_id == AS_SONICBLOW && sc->data[SC_SPIRIT]->val2 == SL_ASSASIN) {
+			if(skill_id == AS_SONICBLOW && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_ASSASIN) {
 				ATK_ADDRATE(wd.damage, wd.damage2, map_flag_gvg2(src->m) ? 25 : 100);
 				RE_ALLATK_ADDRATE(wd, map_flag_gvg2(src->m) ? 25 : 100);
-			} else if(skill_id == CR_SHIELDBOOMERANG && sc->data[SC_SPIRIT]->val2 == SL_CRUSADER) {
-				ATK_ADDRATE(wd.damage, wd.damage2, 100);
-				RE_ALLATK_ADDRATE(wd, 100);
 			}
-		}
-		if(sc->data[SC_EDP]) {
-			switch(skill_id) {
-				//Pre-Renewal only: Soul Breaker and Meteor Assault ignores EDP 
-				//Renewal only: Grimtooth and Venom Knife ignore EDP
-				//Both: Venom Splasher ignores EDP [helvetica]
+			if(sc->data[SC_EDP]) {
+				switch(skill_id) {
+					//Pre-Renewal only: Soul Breaker and Meteor Assault ignores EDP 
+					//Renewal only: Grimtooth and Venom Knife ignore EDP
+					//Both: Venom Splasher ignores EDP [helvetica]
 #ifndef RENEWAL_EDP
-				case ASC_BREAKER:
-				case ASC_METEORASSAULT:
+					case ASC_BREAKER:
+					case ASC_METEORASSAULT:
 #else
-				case AS_GRIMTOOTH:
-				case AS_VENOMKNIFE:
+					case AS_GRIMTOOTH:
+					case AS_VENOMKNIFE:
 #endif
-				case AS_SPLASHER:
-					break; //Skills above have no effect with edp
+					case AS_SPLASHER:
+						break; //Skills above have no effect with edp
 #ifdef RENEWAL_EDP
-				//Renewal EDP: damage gets a half modifier on top of EDP bonus for skills [helvetica]
-				//* Sonic Blow
-				//* Soul Breaker
-				//* Counter Slash
-				//* Cross Impact
-				case AS_SONICBLOW:
-				case ASC_BREAKER:
-				case GC_COUNTERSLASH:
-				case GC_CROSSIMPACT:
-					//Only modifier is halved but still benefit with the damage bonus
-					ATK_RATE(wd.damage, wd.damage2, 50);
+					//Renewal EDP: damage gets a half modifier on top of EDP bonus for skills [helvetica]
+					//* Sonic Blow
+					//* Soul Breaker
+					//* Counter Slash
+					//* Cross Impact
+					case AS_SONICBLOW:
+					case ASC_BREAKER:
+					case GC_COUNTERSLASH:
+					case GC_CROSSIMPACT:
+						//Only modifier is halved but still benefit with the damage bonus
+						ATK_RATE(wd.damage, wd.damage2, 50);
 	#ifdef RENEWAL
-					ATK_RATE(wd.weaponAtk, wd.weaponAtk2, 50);
-					ATK_RATE(wd.equipAtk, wd.equipAtk2, 50);
+						ATK_RATE(wd.weaponAtk, wd.weaponAtk2, 50);
+						ATK_RATE(wd.equipAtk, wd.equipAtk2, 50);
 	#endif
 					//Fall through to apply EDP bonuses
-				default:
-					//Renewal EDP formula [helvetica]
-					//Weapon atk * (1 + (edp level * .8))
-					//Equip atk * (1 + (edp level * .6))
-					ATK_RATE(wd.damage, wd.damage2, 100 + (sc->data[SC_EDP]->val1 * 80));
+					default:
+						//Renewal EDP formula [helvetica]
+						//Weapon atk * (1 + (edp level * .8))
+						//Equip atk * (1 + (edp level * .6))
+						ATK_RATE(wd.damage, wd.damage2, 100 + (sc->data[SC_EDP]->val1 * 80));
 	#ifdef RENEWAL
-					ATK_RATE(wd.weaponAtk, wd.weaponAtk2, 100 + (sc->data[SC_EDP]->val1 * 80));
-					ATK_RATE(wd.equipAtk, wd.equipAtk2, 100 + (sc->data[SC_EDP]->val1 * 60));
+						ATK_RATE(wd.weaponAtk, wd.weaponAtk2, 100 + (sc->data[SC_EDP]->val1 * 80));
+						ATK_RATE(wd.equipAtk, wd.equipAtk2, 100 + (sc->data[SC_EDP]->val1 * 60));
 	#endif
 #else
-				default:
-					ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_EDP]->val3);
+					default:
+						ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_EDP]->val3);
 	#ifdef RENEWAL
-					ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sc->data[SC_EDP]->val3);
+						ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sc->data[SC_EDP]->val3);
 	#endif
 #endif
-					break;
+						break;
+				}
 			}
-		}
-		if(sc->data[SC_FIGHTINGSPIRIT]) {
-			ATK_ADD(wd.damage, wd.damage2, sc->data[SC_FIGHTINGSPIRIT]->val1);
+			if(sc->data[SC_FIGHTINGSPIRIT]) {
+				ATK_ADD(wd.damage, wd.damage2, sc->data[SC_FIGHTINGSPIRIT]->val1);
 #ifdef RENEWAL
-			ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_FIGHTINGSPIRIT]->val1);
+				ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_FIGHTINGSPIRIT]->val1);
 #endif
-		}
-		if(sc->data[SC_SHIELDSPELL_DEF] && sc->data[SC_SHIELDSPELL_DEF]->val1 == 3) {
-			ATK_ADD(wd.damage, wd.damage2, sc->data[SC_SHIELDSPELL_DEF]->val2);
+			}
+			if(sc->data[SC_SHIELDSPELL_DEF] && sc->data[SC_SHIELDSPELL_DEF]->val1 == 3) {
+				ATK_ADD(wd.damage, wd.damage2, sc->data[SC_SHIELDSPELL_DEF]->val2);
 #ifdef RENEWAL
-			ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_SHIELDSPELL_DEF]->val2);
+				ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_SHIELDSPELL_DEF]->val2);
 #endif
-		}
-		if(sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 1) {
-			ATK_ADD(wd.damage, wd.damage2, (10 + 10 * sc->data[SC_BANDING]->val1) * sc->data[SC_BANDING]->val2);
+			}
+			if(sc->data[SC_BANDING] && sc->data[SC_BANDING]->val2 > 1) {
+				ATK_ADD(wd.damage, wd.damage2, (10 + 10 * sc->data[SC_BANDING]->val1) * sc->data[SC_BANDING]->val2);
 #ifdef RENEWAL
-			ATK_ADD(wd.equipAtk, wd.equipAtk2, (10 + 10 * sc->data[SC_BANDING]->val1) * sc->data[SC_BANDING]->val2);
+				ATK_ADD(wd.equipAtk, wd.equipAtk2, (10 + 10 * sc->data[SC_BANDING]->val1) * sc->data[SC_BANDING]->val2);
 #endif
-		}
-		if(sc->data[SC_INSPIRATION]) {
-			ATK_ADD(wd.damage, wd.damage2, 40 * sc->data[SC_INSPIRATION]->val1 + 3 * sc->data[SC_INSPIRATION]->val2);
+			}
+			if(sc->data[SC_INSPIRATION]) {
+				ATK_ADD(wd.damage, wd.damage2, 40 * sc->data[SC_INSPIRATION]->val1 + 3 * sc->data[SC_INSPIRATION]->val2);
 #ifdef RENEWAL
-			ATK_ADD(wd.equipAtk, wd.equipAtk2, 40 * sc->data[SC_INSPIRATION]->val1 + 3 * sc->data[SC_INSPIRATION]->val2);
+				ATK_ADD(wd.equipAtk, wd.equipAtk2, 40 * sc->data[SC_INSPIRATION]->val1 + 3 * sc->data[SC_INSPIRATION]->val2);
 #endif
-		}
-		if(sc->data[SC_GT_CHANGE] && sc->data[SC_GT_CHANGE]->val2) {
-			struct block_list *bl = map_id2bl(sc->data[SC_GT_CHANGE]->val2);
+			}
+			if(sc->data[SC_GT_CHANGE] && sc->data[SC_GT_CHANGE]->val2) {
+				struct block_list *bl = map_id2bl(sc->data[SC_GT_CHANGE]->val2);
 
-			if(bl) {
-				ATK_ADD(wd.damage, wd.damage2, (status_get_dex(bl) / 4 + status_get_str(bl) / 2) * sc->data[SC_GT_CHANGE]->val1 / 5);
+				if(bl) {
+					ATK_ADD(wd.damage, wd.damage2, (status_get_dex(bl) / 4 + status_get_str(bl) / 2) * sc->data[SC_GT_CHANGE]->val1 / 5);
 #ifdef RENEWAL
-				ATK_ADD(wd.equipAtk, wd.equipAtk2, (status_get_dex(bl) / 4 + status_get_str(bl) / 2) * sc->data[SC_GT_CHANGE]->val1 / 5);
+					ATK_ADD(wd.equipAtk, wd.equipAtk2, (status_get_dex(bl) / 4 + status_get_str(bl) / 2) * sc->data[SC_GT_CHANGE]->val1 / 5);
+#endif
+				}
+			}
+			if(sc->data[SC_WATER_BARRIER]) {
+				ATK_ADD(wd.damage, wd.damage2, -sc->data[SC_WATER_BARRIER]->val2);
+#ifdef RENEWAL
+				ATK_ADD(wd.equipAtk, wd.equipAtk2, -sc->data[SC_WATER_BARRIER]->val2);
 #endif
 			}
-		}
-		if(sc->data[SC_WATER_BARRIER]) {
-			ATK_ADD(wd.damage, wd.damage2, -sc->data[SC_WATER_BARRIER]->val2);
+			if(sc->data[SC_PYROTECHNIC_OPTION]) {
+				ATK_ADD(wd.damage, wd.damage2, sc->data[SC_PYROTECHNIC_OPTION]->val2);
 #ifdef RENEWAL
-			ATK_ADD(wd.equipAtk, wd.equipAtk2, -sc->data[SC_WATER_BARRIER]->val2);
+				ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_PYROTECHNIC_OPTION]->val2);
 #endif
-		}
-		if(sc->data[SC_PYROTECHNIC_OPTION]) {
-			ATK_ADD(wd.damage, wd.damage2, sc->data[SC_PYROTECHNIC_OPTION]->val2);
+			}
+			if(sc->data[SC_HEATER_OPTION]) {
+				ATK_ADD(wd.damage, wd.damage2, sc->data[SC_HEATER_OPTION]->val2);
 #ifdef RENEWAL
-			ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_PYROTECHNIC_OPTION]->val2);
+				ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_HEATER_OPTION]->val2);
 #endif
-		}
-		if(sc->data[SC_HEATER_OPTION]) {
-			ATK_ADD(wd.damage, wd.damage2, sc->data[SC_HEATER_OPTION]->val2);
+			}
+			if(sc->data[SC_TROPIC_OPTION]) {
+				ATK_ADD(wd.damage, wd.damage2, sc->data[SC_TROPIC_OPTION]->val2);
 #ifdef RENEWAL
-			ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_HEATER_OPTION]->val2);
+				ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_TROPIC_OPTION]->val2);
 #endif
-		}
-		if(sc->data[SC_TROPIC_OPTION]) {
-			ATK_ADD(wd.damage, wd.damage2, sc->data[SC_TROPIC_OPTION]->val2);
+			}
+			if(sc->data[SC_GN_CARTBOOST]) {
+				ATK_ADD(wd.damage, wd.damage2, 10 * sc->data[SC_GN_CARTBOOST]->val1);
 #ifdef RENEWAL
-			ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_TROPIC_OPTION]->val2);
+				ATK_ADD(wd.equipAtk, wd.equipAtk2, 10 * sc->data[SC_GN_CARTBOOST]->val1);
 #endif
-		}
-		if(sc->data[SC_GN_CARTBOOST]) {
-			ATK_ADD(wd.damage, wd.damage2, 10 * sc->data[SC_GN_CARTBOOST]->val1);
+			}
+			if(sc->data[SC_RUSHWINDMILL]) {
+				ATK_ADD(wd.damage, wd.damage2, sc->data[SC_RUSHWINDMILL]->val3);
 #ifdef RENEWAL
-			ATK_ADD(wd.equipAtk, wd.equipAtk2, 10 * sc->data[SC_GN_CARTBOOST]->val1);
+				ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_RUSHWINDMILL]->val3);
 #endif
-		}
-		if(sc->data[SC_RUSHWINDMILL]) {
-			ATK_ADD(wd.damage, wd.damage2, sc->data[SC_RUSHWINDMILL]->val3);
+			}
+			if(sc->data[SC_DANCEWITHWUG]) {
+				if(inf3&INF3_SC_DANCEWITHWUG) {
+					ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_DANCEWITHWUG]->val1 * 10 * party_calc_chorusbonus(sd,1));
+					RE_ALLATK_ADDRATE(wd, sc->data[SC_DANCEWITHWUG]->val1 * 10 * party_calc_chorusbonus(sd,1));
+				}
+				ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_DANCEWITHWUG]->val1 * 2 * party_calc_chorusbonus(sd,1));
 #ifdef RENEWAL
-			ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_RUSHWINDMILL]->val3);
+				ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, sc->data[SC_DANCEWITHWUG]->val1 * 2 * party_calc_chorusbonus(sd,1));
 #endif
+			}
+			if(sc->data[SC_SATURDAYNIGHTFEVER]) {
+				ATK_ADD(wd.damage, wd.damage2, 100 * sc->data[SC_SATURDAYNIGHTFEVER]->val1);
+#ifdef RENEWAL
+				ATK_ADD(wd.equipAtk, wd.equipAtk2, 100 * sc->data[SC_SATURDAYNIGHTFEVER]->val1);
+#endif
+			}
+			if(sc->data[SC_ZENKAI] && sstatus->rhw.ele == sc->data[SC_ZENKAI]->val2) {
+				ATK_ADD(wd.damage, wd.damage2, 200);
+#ifdef RENEWAL
+				ATK_ADD(wd.equipAtk, wd.equipAtk2, 200);
+#endif
+			}
+			if(sc->data[SC_STYLE_CHANGE]) {
+				TBL_HOM *hd = BL_CAST(BL_HOM, src);
+
+				if(hd) {
+					ATK_ADD(wd.damage, wd.damage2, hd->homunculus.spiritball * 3);
+					RE_ALLATK_ADD(wd, hd->homunculus.spiritball * 3);
+				}
+			}
+			if(sc->data[SC_UNLIMIT] && (wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG) {
+				switch(skill_id) {
+					case RA_WUGDASH:
+					case RA_WUGSTRIKE:
+					case RA_WUGBITE:
+						break;
+					default:
+						ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_UNLIMIT]->val2);
+						RE_ALLATK_ADDRATE(wd, sc->data[SC_UNLIMIT]->val2);
+						break;
+				}
+			}
+			if(sc->data[SC_FLASHCOMBO]) {
+				ATK_ADD(wd.damage, wd.damage2, sc->data[SC_FLASHCOMBO]->val2);
+#ifdef RENEWAL
+				ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_FLASHCOMBO]->val2);
+#endif
+			}
+			if((wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG) {
+				if(sc->data[SC_MTF_RANGEATK]) {
+					ATK_ADDRATE(wd.damage, wd.damage2, 25);
+					RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.long_attack_atk_rate'
+				}
+				if(sc->data[SC_MTF_RANGEATK2]) {
+					ATK_ADDRATE(wd.damage, wd.damage2, 30);
+					RE_ALLATK_ADDRATE(wd, 30);
+				}
+			}
+			if(sc->data[SC_MTF_CRIDAMAGE] && is_attack_critical(wd, src, target, skill_id, skill_lv, false)) {
+				ATK_ADDRATE(wd.damage, wd.damage2, 25);
+				RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.crit_atk_rate'
+			}
+		}
+		if(skill_id == CR_SHIELDBOOMERANG && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_CRUSADER) {
+			ATK_ADDRATE(wd.damage, wd.damage2, 100);
+			RE_ALLATK_ADDRATE(wd, 100);
 		}
 		if(sc->data[SC_GLOOMYDAY_SK] && (inf3&INF3_SC_GLOOMYDAY_SK)) {
-				ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_GLOOMYDAY_SK]->val2);
-				RE_ALLATK_ADDRATE(wd, sc->data[SC_GLOOMYDAY_SK]->val2);
-		}
-		if(sc->data[SC_DANCEWITHWUG]) {
-			if(inf3&INF3_SC_DANCEWITHWUG) {
-				ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_DANCEWITHWUG]->val1 * 10 * party_calc_chorusbonus(sd,1));
-				RE_ALLATK_ADDRATE(wd, sc->data[SC_DANCEWITHWUG]->val1 * 10 * party_calc_chorusbonus(sd,1));
-			}
-			ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_DANCEWITHWUG]->val1 * 2 * party_calc_chorusbonus(sd,1));
-#ifdef RENEWAL
-			ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, sc->data[SC_DANCEWITHWUG]->val1 * 2 * party_calc_chorusbonus(sd,1));
-#endif
-		}
-		if(sc->data[SC_SATURDAYNIGHTFEVER]) {
-			ATK_ADD(wd.damage, wd.damage2, 100 * sc->data[SC_SATURDAYNIGHTFEVER]->val1);
-#ifdef RENEWAL
-			ATK_ADD(wd.equipAtk, wd.equipAtk2, 100 * sc->data[SC_SATURDAYNIGHTFEVER]->val1);
-#endif
-		}
-		if(sc->data[SC_ZENKAI] && sstatus->rhw.ele == sc->data[SC_ZENKAI]->val2) {
-			ATK_ADD(wd.damage, wd.damage2, 200);
-#ifdef RENEWAL
-			ATK_ADD(wd.equipAtk, wd.equipAtk2, 200);
-#endif
-		}
-		if(sc->data[SC_STYLE_CHANGE]) {
-			TBL_HOM *hd = BL_CAST(BL_HOM, src);
-
-			if(hd) {
-				ATK_ADD(wd.damage, wd.damage2, hd->homunculus.spiritball * 3);
-				RE_ALLATK_ADD(wd, hd->homunculus.spiritball * 3);
-			}
-		}
-		if(sc->data[SC_UNLIMIT] && (wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG) {
-			switch(skill_id) {
-				case RA_WUGDASH:
-				case RA_WUGSTRIKE:
-				case RA_WUGBITE:
-					break;
-				default:
-					ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_UNLIMIT]->val2);
-					RE_ALLATK_ADDRATE(wd, sc->data[SC_UNLIMIT]->val2);
-					break;
-			}
-		}
-		if(sc->data[SC_FLASHCOMBO]) {
-			ATK_ADD(wd.damage, wd.damage2, sc->data[SC_FLASHCOMBO]->val2);
-#ifdef RENEWAL
-			ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_FLASHCOMBO]->val2);
-#endif
-		}
-		if((wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG) {
-			if(sc->data[SC_MTF_RANGEATK]) {
-				ATK_ADDRATE(wd.damage, wd.damage2, 25);
-				RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.long_attack_atk_rate'
-			}
-			if(sc->data[SC_MTF_RANGEATK2]) {
-				ATK_ADDRATE(wd.damage, wd.damage2, 30);
-				RE_ALLATK_ADDRATE(wd, 30);
-			}
-		}
-		if(sc->data[SC_MTF_CRIDAMAGE] && is_attack_critical(wd, src, target, skill_id, skill_lv, false)) {
-			ATK_ADDRATE(wd.damage, wd.damage2, 25);
-			RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.crit_atk_rate'
+			ATK_ADDRATE(wd.damage, wd.damage2, sc->data[SC_GLOOMYDAY_SK]->val2);
+			RE_ALLATK_ADDRATE(wd, sc->data[SC_GLOOMYDAY_SK]->val2);
 		}
 	}
 
@@ -5088,8 +5089,8 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		if(skill_id == HW_MAGICCRASHER) //Add weapon attack for MATK into Magic Crasher
 			ATK_ADD(wd.weaponAtk, wd.weaponAtk2, status_get_matk(src, 2));
 
-		if(skill_id != CR_SHIELDBOOMERANG) //Final attack bonuses that aren't affected by cards
-			wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
+		//Final attack bonuses that aren't affected by cards
+		wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
 
 		if(skill_id == CR_ACIDDEMONSTRATION) {
 			defType def1 = status_get_def(target);

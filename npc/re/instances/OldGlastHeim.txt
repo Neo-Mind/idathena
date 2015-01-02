@@ -1146,7 +1146,7 @@ OnMyMobDead:
 	end;
 }
 
-1@gl_k,150,258,0	script	Corrupted Soul#gh	2475,{
+1@gl_k,150,258,0	script	Corrupted Soul#gh	2337,{
 	end;
 OnInstanceInit:
 OnDisable:

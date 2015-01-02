@@ -672,10 +672,11 @@ int party_setoption(struct party_data *party, int option, int flag)
 	return 1;
 }
 
-int party_optionchanged(int party_id,int account_id,int exp,int item,int flag)
+int party_optionchanged(int party_id, int account_id, int exp, int item, int flag)
 {
 	struct party_data *p;
 	struct map_session_data *sd = map_id2sd(account_id);
+
 	if( (p = party_search(party_id)) == NULL )
 		return 0;
 
@@ -745,7 +746,7 @@ int party_changeleader(struct map_session_data *sd, struct map_session_data *tsd
 /// - changes maps
 /// - logs in or out
 /// - gains a level (disabled)
-int party_recv_movemap(int party_id,int account_id,int char_id, unsigned short map,int online,int lv)
+int party_recv_movemap(int party_id, int account_id, int char_id, unsigned short map, int online, int lv)
 {
 	struct party_member* m;
 	struct party_data* p;

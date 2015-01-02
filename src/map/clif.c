@@ -7009,9 +7009,11 @@ void clif_party_info(struct party_data* p, struct map_session_data *sd)
 	for(i = 0, c = 0; i < MAX_PARTY; i++) {
 		struct party_member* m = &p->party.member[i];
 
-		if(!m->account_id) continue;
+		if(!m->account_id)
+			continue;
 
-		if(party_sd == NULL) party_sd = p->data[i].sd;
+		if(party_sd == NULL)
+			party_sd = p->data[i].sd;
 
 		WBUFL(buf,28+c*46) = m->account_id;
 		memcpy(WBUFP(buf,28+c*46+4), m->name, NAME_LENGTH);
@@ -7022,11 +7024,10 @@ void clif_party_info(struct party_data* p, struct map_session_data *sd)
 	}
 	WBUFW(buf,2) = 28+c*46;
 
-	if(sd) { // send only to self
+	if(sd) //Send only to self
 		clif_send(buf, WBUFW(buf,2), &sd->bl, SELF);
-	} else if (party_sd) { // send to whole party
+	else if (party_sd) //Send to whole party
 		clif_send(buf, WBUFW(buf,2), &party_sd->bl, PARTY);
-	}
 }
 
 
@@ -7140,20 +7141,22 @@ void clif_party_option(struct party_data *p,struct map_session_data *sd,int flag
 
 	nullpo_retv(p);
 
-	if(!sd && flag==0) {
+	if( !sd && flag == 0 ) {
 		int i;
+
 		ARR_FIND(0,MAX_PARTY,i,p->data[i].sd);
-		if(i < MAX_PARTY)
+		if( i < MAX_PARTY )
 			sd = p->data[i].sd;
 	}
-	if(!sd) return;
-	WBUFW(buf,0)=cmd;
-	WBUFL(buf,2)=((flag&0x01)?2:p->party.exp);
+	if( !sd )
+		return;
+	WBUFW(buf,0) = cmd;
+	WBUFL(buf,2) = (flag&0x01) ? 2 : p->party.exp;
 #if PACKETVER >= 20090603
-	WBUFB(buf,6)=(p->party.item&1)?1:0;
-	WBUFB(buf,7)=(p->party.item&2)?1:0;
+	WBUFB(buf,6) = (p->party.item&1) ? 1 : 0;
+	WBUFB(buf,7) = (p->party.item&2) ? 1 : 0;
 #endif
-	if(flag==0)
+	if( flag == 0 )
 		clif_send(buf,packet_len(cmd),&sd->bl,PARTY);
 	else
 		clif_send(buf,packet_len(cmd),&sd->bl,SELF);
@@ -7172,20 +7175,22 @@ void clif_party_withdraw(struct party_data* p, struct map_session_data* sd, int 
 
 	nullpo_retv(p);
 
-	if(!sd && (flag&0xf0)==0) {
+	if( !sd && (flag&0xf0) == 0 ) {
 		int i;
+
 		ARR_FIND(0,MAX_PARTY,i,p->data[i].sd);
-		if(i < MAX_PARTY)
+		if( i < MAX_PARTY )
 			sd = p->data[i].sd;
 	}
 
-	if(!sd) return;
+	if( !sd )
+		return;
 
-	WBUFW(buf,0)=0x105;
-	WBUFL(buf,2)=account_id;
+	WBUFW(buf,0) = 0x105;
+	WBUFL(buf,2) = account_id;
 	memcpy(WBUFP(buf,6),name,NAME_LENGTH);
-	WBUFB(buf,30)=flag&0x0f;
-	if((flag&0xf0)==0)
+	WBUFB(buf,30) = flag&0x0f;
+	if( (flag&0xf0) == 0 )
 		clif_send(buf,packet_len(0x105),&sd->bl,PARTY);
 	else
 		clif_send(buf,packet_len(0x105),&sd->bl,SELF);
@@ -7202,20 +7207,20 @@ void clif_party_message(struct party_data* p, int account_id, const char* mes, i
 	nullpo_retv(p);
 
 	ARR_FIND(0,MAX_PARTY,i,p->data[i].sd);
-	if(i < MAX_PARTY) {
+	if( i < MAX_PARTY ) {
 		unsigned char buf[1024];
 
-		if(len > sizeof(buf)-8) {
-			ShowWarning("clif_party_message: Truncated message '%s' (len=%d, max=%d, party_id=%d).\n", mes, len, sizeof(buf)-8, p->party.party_id);
-			len = sizeof(buf)-8;
+		if( len > sizeof(buf) - 8 ) {
+			ShowWarning("clif_party_message: Truncated message '%s' (len=%d, max=%d, party_id=%d).\n",mes,len,sizeof(buf) - 8,p->party.party_id);
+			len = sizeof(buf) - 8;
 		}
 
 		sd = p->data[i].sd;
-		WBUFW(buf,0)=0x109;
-		WBUFW(buf,2)=len+8;
-		WBUFL(buf,4)=account_id;
+		WBUFW(buf,0) = 0x109;
+		WBUFW(buf,2) = len + 8;
+		WBUFL(buf,4) = account_id;
 		safestrncpy((char *)WBUFP(buf,8), mes, len);
-		clif_send(buf,len+8,&sd->bl,PARTY);
+		clif_send(buf,len + 8,&sd->bl,PARTY);
 	}
 }
 
