@@ -1797,7 +1797,7 @@ OnTalk1:
 	end;
 }
 
-2@gl_k,158,252,3	script	Himelmez#ghinstance4	650,4,4,{
+2@gl_k,158,252,3	script	Himelmez#ghinstance4	650,{
 	cutin "gl_himel2",2;
 	mes "[Himelmez]";
 	mes "That is amazing ~ you made it all the way here. May I say thank you?";

@@ -1008,7 +1008,6 @@ void initChangeTables(void) {
 	StatusIconChangeTable[SC_MTF_RANGEATK2] = SI_MTF_RANGEATK2;
 	StatusIconChangeTable[SC_MTF_MATK2] = SI_MTF_MATK2;
 	StatusIconChangeTable[SC_2011RWC_SCROLL] = SI_2011RWC_SCROLL;
-	StatusIconChangeTable[SC_CUP_OF_BOZA] = SI_CUP_OF_BOZA;
 	StatusIconChangeTable[SC_JP_EVENT04] = SI_JP_EVENT04;
 	StatusIconChangeTable[SC_MTF_HITFLEE] = SI_MTF_HITFLEE;
 	StatusIconChangeTable[SC_MTF_MHP] = SI_MTF_MHP;
@@ -1121,7 +1120,6 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_MTF_ASPD2] |= SCB_ASPD|SCB_HIT;
 	StatusChangeFlagTable[SC_MTF_MATK2] |= SCB_MATK;
 	StatusChangeFlagTable[SC_2011RWC_SCROLL] |= SCB_BATK|SCB_MATK|SCB_STR|SCB_AGI|SCB_VIT|SCB_INT|SCB_DEX|SCB_LUK;
-	StatusChangeFlagTable[SC_CUP_OF_BOZA] |= SCB_VIT;
 	StatusChangeFlagTable[SC_MTF_HITFLEE] |= SCB_HIT|SCB_FLEE;
 	StatusChangeFlagTable[SC_MTF_MHP] |= SCB_MAXHP;
 	StatusChangeFlagTable[SC_MTF_MSP] |= SCB_MAXSP;
@@ -3725,8 +3723,6 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 			sd->magic_addele[ELE_WIND] += 25;
 		if(sc->data[SC_EARTH_INSIGNIA] && sc->data[SC_EARTH_INSIGNIA]->val1 == 3)
 			sd->magic_addele[ELE_EARTH] += 25;
-		if(sc->data[SC_CUP_OF_BOZA])
-			sd->subele[ELE_FIRE] += 5;
 	}
 	status_cpy(&sd->battle_status,status);
 
@@ -4924,8 +4920,6 @@ static unsigned short status_calc_vit(struct block_list *bl, struct status_chang
 #endif
 	if(sc->data[SC_2011RWC_SCROLL])
 		vit += sc->data[SC_2011RWC_SCROLL]->val1;
-	if(sc->data[SC_CUP_OF_BOZA])
-		vit += sc->data[SC_CUP_OF_BOZA]->val1;
 	if(sc->data[SC_MARIONETTE2])
 		vit += sc->data[SC_MARIONETTE2]->val3&0xFF;
 	if(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_HIGH)

@@ -4181,10 +4181,10 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 						//Renewal EDP formula [helvetica]
 						//Weapon atk * (1 + (edp level * .8))
 						//Equip atk * (1 + (edp level * .6))
-						ATK_RATE(wd.damage, wd.damage2, 100 + (sc->data[SC_EDP]->val1 * 80));
+						ATK_RATE(wd.damage, wd.damage2, 100 + sc->data[SC_EDP]->val1 * 80);
 	#ifdef RENEWAL
-						ATK_RATE(wd.weaponAtk, wd.weaponAtk2, 100 + (sc->data[SC_EDP]->val1 * 80));
-						ATK_RATE(wd.equipAtk, wd.equipAtk2, 100 + (sc->data[SC_EDP]->val1 * 60));
+						ATK_RATE(wd.weaponAtk, wd.weaponAtk2, 100 + sc->data[SC_EDP]->val1 * 80);
+						ATK_RATE(wd.equipAtk, wd.equipAtk2, 100 + sc->data[SC_EDP]->val1 * 60);
 	#endif
 #else
 					default:
