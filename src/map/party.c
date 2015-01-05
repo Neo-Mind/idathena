@@ -313,15 +313,17 @@ int party_recv_info(struct party* sp, int char_id)
 		if( sd == NULL )
 			continue; // Not online
 		clif_charnameupdate(sd); // Update other people's display [Skotlex]
-		clif_party_member_info(p,sd);
-		clif_party_option(p,sd,0x100);
-		clif_party_info(p,NULL);
+		clif_party_member_info(p, sd);
+		// Only send this on party creation, otherwise it will be sent by party_send_movemap [Lemongrass]
+		if( sd->party_creating )
+			clif_party_option(p, sd, 0x100);
+		clif_party_info(p, NULL);
 		if( p->instance_id != 0 )
-			instance_reqinfo(sd,p->instance_id);
+			instance_reqinfo(sd, p->instance_id);
 	}
 	if( char_id != 0 ) { // Requester
 		sd = map_charid2sd(char_id);
-		if( sd && sd->status.party_id == sp->party_id && party_getmemberid(p,sd) == -1 )
+		if( sd && sd->status.party_id == sp->party_id && party_getmemberid(p, sd) == -1 )
 			sd->status.party_id = 0; // Was not in the party
 	}
 	return 0;

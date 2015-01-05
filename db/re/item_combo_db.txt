@@ -433,4 +433,8 @@
 24212:24213,{ bonus2 bExpAddRace,RC_All,((getequiprefinerycnt(EQI_SHADOW_SHOES)+getequiprefinerycnt(EQI_SHADOW_SHIELD))>=15?10:5); }
 24214:24215,{ bonus2 bExpAddRace,RC_All,((getequiprefinerycnt(EQI_SHADOW_SHOES)+getequiprefinerycnt(EQI_SHADOW_SHIELD))>=15?4:2); }
 24217:24218,{ if(getequiprefinerycnt(EQI_SHADOW_ACC_R)+getequiprefinerycnt(EQI_SHADOW_ACC_L)>=15) bonus bAspd,1; }
+//24223:Enhanced_Force_Shadow_Earring:Enhanced_Force_Shadow_Pendant,{ set .@i,getequiprefinerycnt(EQI_SHADOW_WEAPON)+getequiprefinerycnt(EQI_SHADOW_ACC_R)+getequiprefinerycnt(EQI_SHADOW_ACC_L); if(.@i)>=25 { bonus2 bAddClass,Class_All,2; } else if(.@i)>=20 { bonus2 bAddClass,Class_All,1; } bonus bonus2 bAddClass,Class_All,1; }
+24224:24225:24226,{ set .@i,getequiprefinerycnt(EQI_SHADOW_WEAPON)+getequiprefinerycnt(EQI_SHADOW_ACC_R)+getequiprefinerycnt(EQI_SHADOW_ACC_L); if(.@i)>=25 { bonus2 bAddClass,Class_All,2; } else if(.@i)>=20 { bonus2 bAddClass,Class_All,1; } bonus bBaseAtk,10; }
+//24227:Enhanced_Soul_Earring:Enhanced_Soul_Pendant,{ set .@i,getequiprefinerycnt(EQI_SHADOW_WEAPON)+getequiprefinerycnt(EQI_SHADOW_ACC_R)+getequiprefinerycnt(EQI_SHADOW_ACC_L); if(.@i)>=25 { bonus bMatkRate,2; } else if(.@i)>=20 { bonus bMatkRate,1; } bonus bMatkRate,1; }
+24228:24229:24230,{ set .@i,getequiprefinerycnt(EQI_SHADOW_WEAPON)+getequiprefinerycnt(EQI_SHADOW_ACC_R)+getequiprefinerycnt(EQI_SHADOW_ACC_L); if(.@i)>=25 { bonus bMatkRate,2; } else if(.@i)>=20 { bonus bMatkRate,1; } bonus bMatk,10; }
 28326:28327,{ bonus bInt,8; bonus bStr,8; }
