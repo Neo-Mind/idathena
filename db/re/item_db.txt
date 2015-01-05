@@ -8135,9 +8135,9 @@
 14665,Jung_Bi_Scroll,Jung Bi Scroll,18,20,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ getgroupitem(IG_Jung_Bi_Scroll); },{},{}
 14666,Je_Un_Scroll,Je Un Scroll,18,20,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ getgroupitem(IG_Je_Un_Scroll); },{},{}
 14667,Yong_Kwang_Scroll,Yong Kwang Scroll,18,20,,0,,,,,0xFFFFFFFF,63,2,,,,,,{ getgroupitem(IG_Yong_Kwang_Scroll); },{},{}
-14672,Steel_Fighter_Scroll_Lv20,Steel Fighter Scroll (Lv20),0,20,,10,,,,,0xFFFFFFFF,,,,,,,,{},{},{}
-14673,Steel_Fighter_Scroll_Lv25,Steel Fighter Scroll (Lv25),0,20,,10,,,,,0xFFFFFFFF,,,,,,,,{},{},{}
-14674,Cup_Of_Boza,Cup Of Boza,2,20,,10,,,,,,,,,,,,,{ bonus_script "{ bonus bVit,10; bonus2 bSubEle,Ele_Fire,5; }",120,0,0,SI_CUP_OF_BOZA; },{},{}
+14672,Steel_Fighter_Scroll_Lv20,Steel Fighter Scroll (Lv20),0,20,,10,,,,0,0xFFFFFFFF,63,2,,,,,,{},{},{}
+14673,Steel_Fighter_Scroll_Lv25,Steel Fighter Scroll (Lv25),0,20,,10,,,,0,0xFFFFFFFF,63,2,,,,,,{},{},{}
+14674,Cup_Of_Boza,Cup Of Boza,2,20,,10,,,,0,0xFFFFFFFF,63,2,,,,,,{ bonus_script "{ bonus bVit,10; bonus2 bSubEle,Ele_Fire,5; }",120,0,0,SI_CUP_OF_BOZA; },{},{}
 14675,Shadow_Box_II,Shadow Box II,18,10,,10,,,,0,0xFFFFFFFF,63,2,,,,,,{},{},{}
 14679,Article_Sealed_Storm_Scroll,Article Sealed Storm Scroll,18,10,,10,,,,0,0xFFFFFFFF,63,2,,,,,,{},{},{}
 14681,Costume_Enchantment_Stone_Box_II,Costume Enchantment Stone Box II,18,10,,10,,,,0,0xFFFFFFFF,63,2,,,,,,{},{},{}
