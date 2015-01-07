@@ -6240,23 +6240,24 @@ BUILDIN_FUNC(getitem)
 	struct script_data *data;
 	unsigned char flag = 0;
 	const char* command = script_getfuncname(st);
+	struct item_data *id = NULL;
 
 	data = script_getdata(st,2);
 	get_val(st,data);
 	if( data_isstring(data) ) { // "<Item name>"
 		const char *name = conv_str(st,data);
-		struct item_data *item_data = itemdb_searchname(name);
 
-		if( item_data == NULL ) {
+		id = itemdb_searchname(name);
+		if( id == NULL ) {
 			ShowError("buildin_getitem: Nonexistant item %s requested.\n",name);
-			return 1; //No item created.
+			return 1; //No item created
 		}
-		nameid = item_data->nameid;
+		nameid = id->nameid;
 	} else if( data_isint(data) ) { //<Item id>
 		nameid = conv_num(st,data);
-		if( !itemdb_exists(nameid) ) {
+		if( !(id = itemdb_exists(nameid)) ) {
 			ShowError("buildin_getitem: Nonexistant item %d requested.\n",nameid);
-			return 1; //No item created.
+			return 1; //No item created
 		}
 	} else {
 		ShowError("buildin_getitem: invalid data type for argument #1 (%d).",data->type);
@@ -6292,8 +6293,8 @@ BUILDIN_FUNC(getitem)
 	if( sd == NULL ) //No target
 		return 0;
 
-	//Check if it's stackable.
-	if( !itemdb_isstackable(nameid) )
+	//Check if it's stackable
+	if( !itemdb_isstackable2(id) )
 		get_count = 1;
 	else
 		get_count = amount;
@@ -6362,14 +6363,14 @@ BUILDIN_FUNC(getitem2)
 
 		if( (item_data = itemdb_searchname(name)) == NULL ) {
 			ShowError("buildin_getitem2: Nonexistant item %s requested (by conv_str).\n", name);
-			return 1; //No item created.
+			return 1; //No item created
 		}
 		nameid = item_data->nameid;
 	} else {
 		nameid = conv_num(st,data);
 		if( (item_data = itemdb_exists(nameid)) == NULL ) {
 			ShowError("buildin_getitem2: Nonexistant item %d requested (by conv_num).\n", nameid);
-			return 1; //No item created.
+			return 1; //No item created
 		}
 	}
 
@@ -6407,8 +6408,8 @@ BUILDIN_FUNC(getitem2)
 		item_tmp.card[3] = c4;
 		item_tmp.bound = bound;
 
-		//Check if it's stackable.
-		if( !itemdb_isstackable(nameid) )
+		//Check if it's stackable
+		if( !itemdb_isstackable2(item_data) )
 			get_count = 1;
 		else
 			get_count = amount;
@@ -18433,7 +18434,7 @@ BUILDIN_FUNC(bonus_script_clear) {
 	if (sd == NULL)
 		return 1;
 
-	pc_bonus_script_clear_all(sd,flag); /// Don't remove permanent script
+	pc_bonus_script_clear_all(sd,flag); //Don't remove permanent script
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -18459,10 +18460,10 @@ BUILDIN_FUNC(vip_status) {
 		return 0;
 
 	switch( type ) {
-		case 1: //Get VIP status.
+		case 1: //Get VIP status
 			script_pushint(st,pc_isvip(sd));
 			break;
-		case 2: //Get VIP expire date.
+		case 2: //Get VIP expire date
 			if( pc_isvip(sd) ) {
 				time_t viptime = sd->vip.time;
 				strftime(vip_str,24,"%Y-%m-%d %H:%M",localtime(&viptime));
@@ -18471,7 +18472,7 @@ BUILDIN_FUNC(vip_status) {
 			} else
 				script_pushint(st, 0);
 			break;
-		case 3: //Get remaining time.
+		case 3: //Get remaining time
 			if( pc_isvip(sd) ) {
 				time_t viptime_remain = sd->vip.time - now;
 				int year = 0, month = 0, day = 0, hour = 0, min = 0, sec = 0;
@@ -18498,7 +18499,7 @@ BUILDIN_FUNC(vip_status) {
 BUILDIN_FUNC(vip_time) {
 #ifdef VIP_ENABLE //Would be a pain for scripting npc otherwise
 	TBL_PC *sd;
-	int viptime = script_getnum(st,2) * 60; //Convert since it's given in minutes.
+	int viptime = script_getnum(st,2) * 60; //Convert since it's given in minutes
 
 	if (script_hasdata(st,3))
 		sd = map_nick2sd(script_getstr(st,3));
@@ -18509,7 +18510,7 @@ BUILDIN_FUNC(vip_time) {
 		return 0;
 
 	if (pc_get_group_level(sd) > 5) {
-		clif_displaymessage(sd->fd, msg_txt(437)); // GM's cannot become a VIP.
+		clif_displaymessage(sd->fd,msg_txt(437)); //GM's cannot become a VIP
 		return 0;
 	}
 
@@ -18575,7 +18576,7 @@ BUILDIN_FUNC(getguildmember) {
 			}
 		}
 	}
-	mapreg_setreg(add_str("$@guildmembercount"), j);
+	mapreg_setreg(add_str("$@guildmembercount"),j);
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -18650,6 +18651,94 @@ BUILDIN_FUNC(countspiritball) {
 	if (!sd)
 		return 1;
 	script_pushint(st,sd->spiritball);
+	return SCRIPT_CMD_SUCCESS;
+}
+
+/** Merges separated stackable items because of guid
+ * mergeitem {<item_id>};
+ * mergeitem {"<item name>"};
+ * @param item Item ID/Name for merging specific item (Optional)
+ * @author [Cydh]
+ */
+BUILDIN_FUNC(mergeitem) {
+	struct map_session_data *sd = script_rid2sd(st);
+	struct item *items = NULL;
+	uint16 i, count = 0;
+	int nameid = 0;
+
+	if (!sd)
+		return 0;
+
+	if (script_hasdata(st,2)) {
+		struct script_data *data = script_getdata(st,2);
+		struct item_data *id;
+
+		get_val(st,data);
+		if (data_isstring(data)) { //"<item name>"
+			const char *name = conv_str(st,data);
+
+			if (!(id = itemdb_searchname(name))) {
+				ShowError("buildin_mergeitem: Nonexistant item %s requested.\n",name);
+				script_pushint(st,count);
+				return SCRIPT_CMD_FAILURE;
+			}
+			nameid = id->nameid;
+		} else if (data_isint(data)) { //<item id>
+			nameid = conv_num(st,data);
+			if (!(id = itemdb_exists(nameid))) {
+				ShowError("buildin_mergeitem: Nonexistant item %d requested.\n",nameid);
+				script_pushint(st, count);
+				return SCRIPT_CMD_FAILURE;
+			}
+		}
+	}
+
+	for (i = 0; i < MAX_INVENTORY; i++) {
+		struct item *it = &sd->status.inventory[i];
+
+		if (!it || !it->unique_id || it->expire_time || !itemdb_isstackable(it->nameid))
+			continue;
+		if ((!nameid || (nameid == it->nameid))) {
+			uint8 k;
+
+			if (!count) {
+				CREATE(items,struct item,1);
+				memcpy(&items[count++],it,sizeof(struct item));
+				pc_delitem(sd,i,it->amount,0,0,LOG_TYPE_NPC);
+				continue;
+			}
+			for (k = 0; k < count; k++) { //Find Match
+				if (&items[k] && items[k].nameid == it->nameid && items[k].bound == it->bound &&
+					memcmp(items[k].card,it->card,sizeof(it->card)) == 0) {
+					items[k].amount += it->amount;
+					pc_delitem(sd,i,it->amount,0,0,LOG_TYPE_NPC);
+					break;
+				}
+			}
+			if (k >= count) { //New entry
+				RECREATE(items,struct item,count + 1);
+				memcpy(&items[count++],it,sizeof(struct item));
+				pc_delitem(sd,i,it->amount,0,0,LOG_TYPE_NPC);
+			}
+		}
+	}
+
+	if (!items) //Nothing todo here
+		return 0;
+
+	//Retrieve the items
+	for (i = 0; i < count; i++) {
+		uint8 flag = 0;
+
+		if (!&items[i])
+			continue;
+		items[i].id = 0;
+		items[i].unique_id = 0;
+		if ((flag = pc_additem(sd,&items[i],items[i].amount,LOG_TYPE_NPC)))
+			clif_additem(sd,i,items[i].amount,flag);
+	}
+	aFree(items);
+	script_pushint(st,count);
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -19185,6 +19274,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(addspiritball,"ii?"),
 	BUILDIN_DEF(delspiritball,"i?"),
 	BUILDIN_DEF(countspiritball,"?"),
+	BUILDIN_DEF(mergeitem,"?"),
 
 #include "../custom/script_def.inc"
 

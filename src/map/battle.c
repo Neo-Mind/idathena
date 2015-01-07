@@ -8323,6 +8323,7 @@ static const struct _battle_data {
 	{ "mob_icewall_walk_block",             &battle_config.mob_icewall_walk_block,          75,     0,      255,            },
 	{ "boss_icewall_walk_block",            &battle_config.boss_icewall_walk_block,         0,      0,      255,            },
 	{ "stormgust_knockback",                &battle_config.stormgust_knockback,             1,      0,      1,              },
+	{ "default_fixed_castrate",             &battle_config.default_fixed_castrate,          20,     0,      100,            },
 };
 #ifndef STATS_OPT_OUT
 /**

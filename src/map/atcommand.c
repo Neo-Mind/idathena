@@ -1243,7 +1243,7 @@ ACMD_FUNC(item)
 	while (itemlist != NULL && j < 10) {
 		if ((item_data[j] = itemdb_searchname(itemlist)) == NULL &&
 		    (item_data[j] = itemdb_exists(atoi(itemlist))) == NULL) {
-			clif_displaymessage(fd, msg_txt(19)); //Invalid item ID or name.
+			clif_displaymessage(fd, msg_txt(19)); //Invalid item ID or name
 			return -1;
 		}
 		itemlist = strtok(NULL, ":"); //Next itemline
@@ -1257,17 +1257,15 @@ ACMD_FUNC(item)
 	for (j--; j >= 0; j--) { //Produce items in list
 		unsigned short item_id = item_data[j]->nameid;
 
-		//Check if it's stackable.
+		//Check if it's stackable
 		if (!itemdb_isstackable2(item_data[j]))
 			get_count = 1;
-
 		for (i = 0; i < number; i += get_count) {
 			if (!pet_create_egg(sd, item_id)) { //If not pet egg
 				memset(&item_tmp, 0, sizeof(item_tmp));
 				item_tmp.nameid = item_id;
 				item_tmp.identify = 1;
 				item_tmp.bound = bound;
-
 				if ((flag = pc_additem(sd, &item_tmp, get_count, LOG_TYPE_COMMAND)))
 					clif_additem(sd, 0, 0, flag);
 			}

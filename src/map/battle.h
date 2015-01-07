@@ -586,6 +586,7 @@ extern struct Battle_Config
 	int mob_icewall_walk_block; //How a normal monster should be trapped in icewall [Playtester]
 	int boss_icewall_walk_block; //How a boss monster should be trapped in icewall [Playtester]
 	int stormgust_knockback;
+	int default_fixed_castrate;
 } battle_config;
 
 void do_init_battle(void);

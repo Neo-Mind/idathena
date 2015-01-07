@@ -15857,13 +15857,13 @@ int skill_vfcastfix(struct block_list *bl, double time, uint16 skill_id, uint16 
 	if( time < 0 )
 		return 0;
 
-	if( bl->type == BL_MOB ) //Mobs casttime is fixed nothing to alter. 
+	if( bl->type == BL_MOB ) //Mobs casttime is fixed nothing to alter
 		return (int)time;
 
 	if( fixed == 0 ) {
-		fixed = (int)time * 20 / 100; //Fixed time
-		time = time * 80 / 100; //Variable time
-	} else if( fixed < 0 ) //No fixed cast time
+		fixed = (int)time * battle_config.default_fixed_castrate / 100; //Fixed time
+		time = time * (100 - battle_config.default_fixed_castrate) / 100; //Variable time
+	} else if( fixed < 0 || !battle_config.default_fixed_castrate ) //No fixed cast time
 		fixed = 0;
 
 	//Increases/Decreases fixed/variable cast time of a skill by item/card bonuses
@@ -15871,7 +15871,7 @@ int skill_vfcastfix(struct block_list *bl, double time, uint16 skill_id, uint16 
 		if( sd->bonus.varcastrate != 0 ) //bonus bVariableCastrate
 			reduce_ct_r += sd->bonus.varcastrate;
 		if( sd->bonus.fixcastrate != 0 ) //bonus bFixedCastrate
-			fixcast_r = sd->bonus.fixcastrate; //Just speculation
+			fixcast_r -= sd->bonus.fixcastrate; //Just speculation
 		if( sd->bonus.add_varcast != 0 ) //bonus bVariableCast
 			time += sd->bonus.add_varcast;
 		if( sd->bonus.add_fixcast != 0 ) //bonus bFixedCast

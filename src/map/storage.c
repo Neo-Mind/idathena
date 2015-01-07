@@ -141,7 +141,11 @@ int compare_item(struct item *a, struct item *b)
 		a->refine == b->refine &&
 		a->attribute == b->attribute &&
 		a->expire_time == b->expire_time &&
-		a->bound == b->bound )
+		a->bound == b->bound
+#ifdef ENABLE_ITEM_GUID
+		&& a->unique_id == b->unique_id
+#endif
+		)
 	{
 		int i;
 
