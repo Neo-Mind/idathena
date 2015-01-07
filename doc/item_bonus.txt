@@ -442,5 +442,4 @@ bonus bAddMaxWeight,n;			MaxWeight + n (in units of 0.1)
 bonus3 bHPVanishRate,n,x,t;		Same as bonus2 but works only if trigger t activates (see BF_* flags) when attacking.
 bonus3 bSPVanishRate,n,x,t;		Same as bonus2 but works only if trigger t activates (see BF_* flags) when attacking.
 
-bonus bRandomAutoSpell,n;		Auto spell casting on attack of random spell (MG_FIREBOLT, MG_COLDBOLT, MG_LIGHTNINGBOLT, WZ_EARTHSPIKE, MG_SOULSTRIKE)
-					at random level 1~5 (n is meaningless).
+bonus bRandomAutoSpell,n;		While using skill NPC_MAGICALATTACK auto casting 5 random type of bolt skills. (n is meaningless)

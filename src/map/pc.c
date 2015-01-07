@@ -2196,7 +2196,7 @@ void pc_exeautobonus(struct map_session_data *sd,struct s_autobonus *autobonus)
 
 	autobonus->active = add_timer(gettick() + autobonus->duration,pc_endautobonus,sd->bl.id,(intptr_t)autobonus);
 	sd->state.autobonus |= autobonus->pos;
-	status_calc_pc(sd,SCO_NONE);
+	status_calc_pc(sd,SCO_FORCE);
 }
 
 int pc_endautobonus(int tid, unsigned int tick, int id, intptr_t data)
@@ -2209,7 +2209,7 @@ int pc_endautobonus(int tid, unsigned int tick, int id, intptr_t data)
 
 	autobonus->active = INVALID_TIMER;
 	sd->state.autobonus &= ~autobonus->pos;
-	status_calc_pc(sd,SCO_NONE);
+	status_calc_pc(sd,SCO_FORCE);
 	return 0;
 }
 
@@ -6671,7 +6671,7 @@ int pc_allskillup(struct map_session_data *sd)
 	}
 
 	if (pc_has_permission(sd,PC_PERM_ALL_SKILL)) {
-		//Get ALL skills except npc/guild ones. [Skotlex]
+		//Get ALL skills except npc/guild ones [Skotlex]
 		//And except SG_DEVIL [Komurka] and MO_TRIPLEATTACK and RG_SNATCHER [ultramage]
 		for (i = 0; i < MAX_SKILL; i++) {
 			switch (i) {
@@ -6681,7 +6681,7 @@ int pc_allskillup(struct map_session_data *sd)
 					continue;
 				default:
 					if (!(skill_get_inf2(i)&(INF2_NPC_SKILL|INF2_GUILD_SKILL)))
-						if ((sd->status.skill[i].lv = skill_get_max(i))) //Nonexistant skills should return a max of 0 anyway.
+						if ((sd->status.skill[i].lv = skill_get_max(i))) //Nonexistant skills should return a max of 0 anyway
 							sd->status.skill[i].id = i;
 			}
 		}
@@ -6696,15 +6696,15 @@ int pc_allskillup(struct map_session_data *sd)
 				(inf2&(INF2_WEDDING_SKILL|INF2_SPIRIT_SKILL)) ||
 				id == SG_DEVIL
 			)
-				continue; //Cannot be learned normally.
+				continue; //Cannot be learned normally
 
 			sd->status.skill[id].id = id;
 			sd->status.skill[id].lv = skill_tree_get_max(id,sd->status.class_); //Celest
 		}
 	}
 	status_calc_pc(sd,SCO_NONE);
-	//Required because if you could level up all skills previously,
-	//the update will not be sent as only the lv variable changes.
+	//Required because if you could level up all skills previously
+	//the update will not be sent as only the lv variable changes
 	clif_skillinfoblock(sd);
 	return 0;
 }

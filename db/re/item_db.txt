@@ -2859,7 +2859,7 @@
 4877,Speed_Of_Light,Speed Of Light,6,10,,,,,,,,,,,,,,,{ autobonus "{ bonus bAspdRate,100; bonus bFlee2,100; bonus2 bHPLossRate,400,1000; bonus2 bSPLossRate,40,1000; }",50,5000,BF_WEAPON; },{},{}
 4878,Muscle_Fool,Muscle Fool,6,10,,,,,,,,,,,,,,,{ autobonus2 "{ bonus bDef,1000; bonus2 bAddClass,Class_All,-50; bonus bMatkRate,-50; }",50,5000,BF_WEAPON; },{},{}
 4879,Hawkeye,Hawkeye,6,10,,,,,,,,,,,,,,,{ autobonus "{ bonus bDex,200; bonus2 bSPLossRate,50,1000; }",50,5000,BF_WEAPON; },{},{}
-4880,Lucky_Day,Lucky Day,6,10,,,,,,,,,,,,,,,{ autobonus "{ bonus bLuk,200; bonus2 bAddMonsterDropItem,7444,50; }",50,5000,BF_WEAPON|BF_MAGIC; autobonus2 "{ bonus bLuk,200; bonus2 bAddMonsterDropItem,7444,50; }",50,5000,BF_WEAPON|BF_MAGIC; },{},{}
+4880,Lucky_Day,Lucky Day,6,10,,,,,,,,,,,,,,,{ autobonus "{ bonus bLuk,200; bonus2 bAddMonsterDropItem,7444,50; }",50,5000,BF_NORMAL|BF_SKILL; autobonus2 "{ bonus bLuk,200; bonus2 bAddMonsterDropItem,7444,50; }",50,5000,BF_NORMAL|BF_SKILL; },{},{}
 4881,DelayafterAttack4Lv,DelayafterAttack4Lv,6,10,,,,,,,,,,,,,,,{ bonus bAspdRate,10; bonus bDelayrate,-10; },{},{}
 4882,ATK_+_1%,ATK + 1%,6,10,,0,,,,,,,,,,,,,{ bonus2 bAddClass,Class_All,1; },{},{}
 4883,MATK_+_1%,MATK + 1%,6,10,,0,,,,,,,,,,,,,{ bonus bMatkRate,1; },{},{}
@@ -9125,7 +9125,7 @@
 18663,Sunglasses_Bball_Hat,Sunglasses Baseball Hat,4,20,,200,,2,,1,0xFFFFFFFE,63,2,256,,20,1,812,{ bonus bInt,3; },{},{}
 18664,Blind_Glasses,Blind Glasses,4,20,,400,,3,,0,0xFFFFFFFE,63,2,512,,20,1,813,{},{},{}
 18665,Orange_In_Mouth,Orange In Mouth,4,20,,200,,0,,0,0xFFFFFFFE,63,2,1,,20,0,814,{},{},{}
-18666,CD_In_Mouth,CD In Mouth,4,20,,200,,0,,0,0xFFFFFFFE,63,2,1,,20,0,815,{ autobonus "{ bonus bRandomAutoSpell,0; }",60,5000,BF_WEAPON,"{ specialeffect2 EF_ENHANCE; }"; },{},{}
+18666,CD_In_Mouth,CD In Mouth,4,20,,200,,0,,0,0xFFFFFFFE,63,2,1,,20,0,815,{ bonus bRandomAutoSpell,0; autobonus "{ bonus4 bAutoSpell,\"NPC_MAGICALATTACK\",5,1000,3; }",60,5000,BF_WEAPON,"{ specialeffect2 EF_ENHANCE; }"; },{},{}
 18667,Cat_Lace_Hairband,Cat Lace Hairband,4,20,,500,,2,,0,0xFFFFFFFE,63,2,256,,60,0,816,{ bonus bDex,3; },{},{}
 18668,Droopy_Turtle_Hat,Droopy Turtle Hat,4,20,,300,,1,,1,0xFFFFFFFE,63,2,256,,1,1,694,{ skill "AL_DECAGI",3; },{},{}
 18669,Cowhide_Hat,Cowhide Hat,4,20,,200,,3,,1,0xFFFFFFFE,63,2,256,,1,1,819,{ bonus bDex,2; bonus bMaxHPrate,1; },{},{}

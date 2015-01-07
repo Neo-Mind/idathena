@@ -1561,7 +1561,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			break;
 	} //End of switch skill_id
 
-	//Pass heritage to Master for status causing effects. [Skotlex]
+	//Pass heritage to Master for status causing effects [Skotlex]
 	if( md && battle_config.summons_trigger_autospells && md->master_id && md->special_state.ai ) {
 		sd = map_id2sd(md->master_id);
 		src = (sd ? &sd->bl : src);
@@ -4565,15 +4565,29 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 			break;
 
 		case NPC_MAGICALATTACK:
-			skill_attack(BF_MAGIC,src,src,bl,skill_id,skill_lv,tick,flag);
-			sc_start(src,src,status_skill2sc(skill_id),100,skill_lv,skill_get_time(skill_id,skill_lv));
+			if (sd && sd->special_state.random_autospell) {
+				int ran = rnd()%5;
+				int sid = 0;
+
+				switch (ran) {
+					case 0: sid = MG_COLDBOLT; break;
+					case 1: sid = MG_FIREBOLT; break;
+					case 2: sid = MG_LIGHTNINGBOLT; break;
+					case 3: sid = WZ_EARTHSPIKE; break;
+					case 4: sid = MG_SOULSTRIKE; break;
+				}
+				skill_attack(BF_MAGIC,src,src,bl,sid,skill_lv,tick,flag);
+			} else {
+				skill_attack(BF_MAGIC,src,src,bl,skill_id,skill_lv,tick,flag);
+				sc_start(src,src,status_skill2sc(skill_id),100,skill_lv,skill_get_time(skill_id,skill_lv));
+			}
 			break;
 
 		case HVAN_CAPRICE: { //[blackhole89]
 				int ran = rnd()%4;
 				int sid = 0;
 
-				switch(ran) {
+				switch (ran) {
 					case 0: sid = MG_COLDBOLT; break;
 					case 1: sid = MG_FIREBOLT; break;
 					case 2: sid = MG_LIGHTNINGBOLT; break;
@@ -16536,7 +16550,7 @@ int skill_frostjoke_scream(struct block_list *bl, va_list ap)
 		if(sd && (sd->sc.option&(OPTION_INVISIBLE|OPTION_MADOGEAR)))
 			return 0; //Frost Joke/Scream cannot target invisible or MADO Gear characters [Ind]
 	}
-	//It has been reported that Scream/Joke works the same regardless of woe-setting. [Skotlex]
+	//It has been reported that Scream/Joke works the same regardless of woe-setting [Skotlex]
 	if(battle_check_target(src,bl,BCT_ENEMY) > 0)
 		skill_additional_effect(src,bl,skill_id,skill_lv,BF_MISC,ATK_DEF,tick);
 	else if(battle_check_target(src,bl,BCT_PARTY) > 0 && rnd()%100 < 10)

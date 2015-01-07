@@ -4728,7 +4728,7 @@ struct Damage battle_calc_attack_gvg_bg(struct Damage wd, struct block_list *src
 					rdelay = clif_damage(src, (!d_bl) ? src : d_bl, tick, wd.amotion, sstatus->dmotion, rdamage, 1, DMG_ENDURE, 0);
 					if( tsd )
 						battle_drain(tsd, src, rdamage, rdamage, sstatus->race, sstatus->class_);
-					//Use Reflect Shield to signal this kind of skill trigger. [Skotlex]
+					//Use Reflect Shield to signal this kind of skill trigger [Skotlex]
 					battle_delay_damage(tick, wd.amotion, target, (!d_bl) ? src : d_bl, 0, CR_REFLECTSHIELD, 0, rdamage, ATK_DEF, rdelay, true);
 					skill_additional_effect(target, (!d_bl) ? src : d_bl, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);
 				}
@@ -7332,30 +7332,6 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	}
 
 	if (sd) {
-		if (sd->special_state.random_autospell &&
-			rnd()%100 < ((wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG ? 50 : 100)) {
-			int i = rnd()%5;
-			struct unit_data *ud;
-			static const int spellarray[5] = { MG_FIREBOLT,MG_COLDBOLT,MG_LIGHTNINGBOLT,WZ_EARTHSPIKE,MG_SOULSTRIKE };
-			uint16 skill_id = spellarray[i];
-			uint16 skill_lv = rnd_value(1,5);
-
-			sd->state.autocast = 1;
-			skill_consume_requirement(sd,skill_id,skill_lv,1);
-			skill_toggle_magicpower(src,skill_id);
-			skill_castend_damage_id(src,target,skill_id,skill_lv,tick,flag);
-			sd->state.autocast = 0;
-			ud = unit_bl2ud(src);
-			if (ud) {
-				int rate = skill_delayfix(src,skill_id,skill_lv);
-
-				if (DIFF_TICK(ud->canact_tick,tick + rate) < 0) {
-					ud->canact_tick = tick + rate;
-					if (battle_config.display_status_timers)
-						clif_status_change(src,SI_ACTIONDELAY,1,rate,0,0,0);
-				}
-			}
-		}
 		if (sc && sc->data[SC__AUTOSHADOWSPELL] && wd.flag&BF_SHORT && rnd()%100 < sc->data[SC__AUTOSHADOWSPELL]->val3 &&
 			sd->status.skill[sc->data[SC__AUTOSHADOWSPELL]->val1].id != 0 &&
 			sd->status.skill[sc->data[SC__AUTOSHADOWSPELL]->val1].flag == SKILL_FLAG_PLAGIARIZED)

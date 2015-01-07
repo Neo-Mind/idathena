@@ -3015,7 +3015,7 @@ int mob_getfriendhprate_sub(struct block_list *bl,va_list ap)
 	if ((*fr) != NULL) //A friend was already found.
 		return 0;
 	
-	if (battle_check_target(&md->bl,bl,BCT_ENEMY) > 0)
+	if (battle_check_target(&md->bl, bl, BCT_ENEMY) > 0)
 		return 0;
 	
 	rate = get_percentage(status_get_hp(bl), status_get_max_hp(bl));
@@ -3026,15 +3026,15 @@ int mob_getfriendhprate_sub(struct block_list *bl,va_list ap)
 }
 static struct block_list *mob_getfriendhprate(struct mob_data *md,int min_rate,int max_rate)
 {
-	struct block_list *fr=NULL;
+	struct block_list *fr = NULL;
 	int type = BL_MOB;
 	
 	nullpo_retr(NULL, md);
 
-	if (md->special_state.ai) //Summoned creatures. [Skotlex]
+	if (md->special_state.ai) //Summoned creatures [Skotlex]
 		type = BL_PC;
 	
-	map_foreachinrange(mob_getfriendhprate_sub, &md->bl, 8, type,md,min_rate,max_rate,&fr);
+	map_foreachinrange(mob_getfriendhprate_sub, &md->bl, 8, type, md, min_rate, max_rate, &fr);
 	return fr;
 }
 /*==========================================

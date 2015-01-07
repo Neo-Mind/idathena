@@ -210,8 +210,8 @@ WL_SUMMON_ATK_WATER,2	// Dummy skill for Summon Water Ball
 WL_SUMMON_ATK_GROUND,2	// Dummy skill for Summon Stone
 
 // Ranger
-RA_ARROWSTORM,2,44,64	// Arrow Storm
-RA_AIMEDBOLT,2,44,64	// Aimed Bolt
+RA_ARROWSTORM,2	// Arrow Storm
+RA_AIMEDBOLT,2	// Aimed Bolt
 RA_CLUSTERBOMB,2	// Cluster Bomb
 RA_FIRINGTRAP,2	// Firing Trap
 RA_ICEBOUNDTRAP,2	// Icebound Trap
