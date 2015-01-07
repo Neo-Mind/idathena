@@ -13319,7 +13319,23 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 				if (tsc && tsc->data[SC_AKAITSUKI] && heal)
 					heal = ~heal + 1;
 				status_heal(bl,heal,0,0);
+				if (!battle_config.song_timer_reset)
+					sc_start4(src,bl,type,100,skill_lv,group->val1,group->val2,0,group->limit);
 			}
+			break;
+
+		case UNT_POEMBRAGI:
+		case UNT_WHISTLE:
+		case UNT_ASSASSINCROSS:
+		case UNT_HUMMING:
+		case UNT_DONTFORGETME:
+		case UNT_FORTUNEKISS:
+		case UNT_SERVICEFORYOU:
+			if (battle_config.song_timer_reset ||
+				(!battle_config.song_timer_reset && tsc && tsc->data[type] && tsc->data[type]->val4 == 1) ||
+				(bl->id == src->id && !(tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_BARDDANCER)))
+				break;
+			sc_start4(src,bl,type,100,skill_lv,group->val1,group->val2,0,group->limit);
 			break;
 
 		case UNT_TATAMIGAESHI:
@@ -13897,7 +13913,8 @@ int skill_unit_onleft(uint16 skill_id, struct block_list *bl, unsigned int tick)
 		case DC_FORTUNEKISS:
 		case DC_SERVICEFORYOU:
 			if (sce) {
-				if (battle_config.song_timer_reset || (!battle_config.song_timer_reset && sce->val4 != 1)) {
+				if (battle_config.song_timer_reset || //Athena-style
+					(!battle_config.song_timer_reset && sce->val4 != 1)) {
 					delete_timer(sce->timer, status_change_timer);
 					//NOTE: It'd be nice if we could get the skill_lv for a more accurate extra time, but still
 					//not possible on our current implementation

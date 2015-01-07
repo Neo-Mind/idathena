@@ -1225,11 +1225,11 @@ ACMD_FUNC(item)
 			sscanf(message, "%99s %d %d", item_name, &number, &bound) < 3))
 		{
 			clif_displaymessage(fd, msg_txt(295)); // Please enter an item name or ID (usage: @itembound <item name/ID> <quantity> <bound_type>).
-			clif_displaymessage(fd, msg_txt(298)); // Invalid bound type
+			clif_displaymessage(fd, msg_txt(298)); // Invalid bound type.
 			return -1;
 		}
 		if (bound <= BOUND_NONE || bound >= BOUND_MAX) {
-			clif_displaymessage(fd, msg_txt(298)); // Invalid bound type
+			clif_displaymessage(fd, msg_txt(298)); // Invalid bound type.
 			return -1;
 		}
 	} else if (!message || !*message || (
@@ -1243,7 +1243,7 @@ ACMD_FUNC(item)
 	while (itemlist != NULL && j < 10) {
 		if ((item_data[j] = itemdb_searchname(itemlist)) == NULL &&
 		    (item_data[j] = itemdb_exists(atoi(itemlist))) == NULL) {
-			clif_displaymessage(fd, msg_txt(19)); //Invalid item ID or name
+			clif_displaymessage(fd, msg_txt(19)); //Invalid item ID or name.
 			return -1;
 		}
 		itemlist = strtok(NULL, ":"); //Next itemline

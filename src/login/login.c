@@ -1686,7 +1686,7 @@ int parse_login(int fd)
 					if( runflag == LOGINSERVER_ST_RUNNING &&
 						result == -1 &&
 						sd->sex == 'S' &&
-						sd->account_id >= 0 && sd->account_id < ARRAYLENGTH(server) &&
+						sd->account_id < ARRAYLENGTH(server) &&
 						!session_isValid(server[sd->account_id].fd) )
 					{
 						ShowStatus("Connection of the char-server '%s' accepted.\n", server_name);

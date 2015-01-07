@@ -11172,7 +11172,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 	}
 
 	if (!battle_config.update_enemy_position && invisible && !(sc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_INVISIBLE)))
-		clif_fixpos(bl);
+		clif_blown(bl,bl);
 
 	if (calc_flag&SCB_DYE) { //Restore DYE color
 		if (vd && !vd->cloth_color && sce->val4)
