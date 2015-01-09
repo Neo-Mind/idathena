@@ -1937,16 +1937,19 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 
 	switch (target->type) {
 		case BL_PC: {
-				struct map_session_data *tsd = (TBL_PC*)target;
+				struct map_session_data *tsd = (TBL_PC *)target;
 
-				if (tsd && (pc_isinvisible(tsd) || tsd->special_state.perfect_hiding))
+				if (pc_isinvisible(tsd))
 					return false;
 				if (tsc) {
-					if ((tsc->option&hide_flag) && !(status->mode&(MD_BOSS|MD_DETECTOR)))
+					if ((tsc->option&hide_flag) && !(status->mode&MD_BOSS) &&
+						(tsd->special_state.perfect_hiding || !(status->mode&MD_DETECTOR)))
 						return false;
 					if (tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS))
 						return false;
 					if (tsc->data[SC_CAMOUFLAGE] && !(status->mode&(MD_BOSS|MD_DETECTOR)) && !skill_id)
+						return false;
+					if (tsc->data[SC__FEINTBOMB])
 						return false;
 				}
 			}
@@ -2004,12 +2007,11 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 
 		switch( target->type ) { //Check for chase-walk/hiding/cloaking opponents
 			case BL_PC: {
-					struct map_session_data *tsd = (TBL_PC*)target;
+					struct map_session_data *tsd = (TBL_PC *)target;
 
-					if( tsd && tsd->special_state.perfect_hiding )
-						return 0;
 					if( ((tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK)) || tsc->data[SC_CAMOUFLAGE] ||
-						tsc->data[SC_STEALTHFIELD]) && !(status->mode&(MD_BOSS|MD_DETECTOR)) )
+						tsc->data[SC_STEALTHFIELD]) && !(status->mode&MD_BOSS) &&
+						((tsd && tsd->special_state.perfect_hiding) || !(status->mode&MD_DETECTOR)) )
 						return 0;
 					if( tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS) )
 						return 0;
