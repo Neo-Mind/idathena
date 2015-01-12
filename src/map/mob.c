@@ -3809,115 +3809,50 @@ static bool mob_parse_dbrow(char** str)
 	if (db->mexp > 0) { //Mvp
 		if (battle_config.mvp_hp_rate != 100)
 			maxhp = maxhp * (double)battle_config.mvp_hp_rate / 100.;
-	} else //Normal mob
-		if (battle_config.monster_hp_rate != 100)
-			maxhp = maxhp * (double)battle_config.monster_hp_rate / 100.;
+	} else if (battle_config.monster_hp_rate != 100) //Normal mob
+		maxhp = maxhp * (double)battle_config.monster_hp_rate / 100.;
 
 	status->max_hp = (unsigned int)cap_value(maxhp, 1, UINT_MAX);
-	if(status->max_sp < 1)
+	if (status->max_sp < 1)
 		status->max_sp = 1;
 
-	//Since mobs always respawn with full life.
+	//Since mobs always respawn with full life
 	status->hp = status->max_hp;
 	status->sp = status->max_sp;
 
-	// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
+	//MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
 	for (i = 0; i < MAX_MVP_DROP; i++) {
-		int rate_adjust = battle_config.item_rate_mvp;
-
 		db->mvpitem[i].nameid = atoi(str[31 + i * 2]);
-		if (!db->mvpitem[i].nameid) {
-			db->mvpitem[i].p = 0; //No item.
-			continue;
+		if (db->mvpitem[i].nameid) {
+			if (itemdb_search(db->mvpitem[i].nameid)) {
+				db->mvpitem[i].p = atoi(str[32 + i * 2]);
+				continue;
+			} else
+				ShowWarning("Monster \"%s\"(id: %d) is dropping an unknown item \"%s\"(MVP-Drop %d)\n", db->name, mob_id, str[31 + i * 2], (i / 2) + 1);
 		}
-		item_dropratio_adjust(db->mvpitem[i].nameid, mob_id, &rate_adjust);
-		db->mvpitem[i].p = mob_drop_adjust(atoi(str[32 + i * 2]), rate_adjust, battle_config.item_drop_mvp_min, battle_config.item_drop_mvp_max);
-
-		//Calculate and store Max available drop chance of the MVP item
-		if (db->mvpitem[i].p) {
-			struct item_data *id = itemdb_search(db->mvpitem[i].nameid);
-
-			//Item has bigger drop chance or sold in shops
-			if (id->maxchance == -1 || (id->maxchance < db->mvpitem[i].p / 10 + 1) )
-				id->maxchance = db->mvpitem[i].p / 10 + 1; //Reduce MVP drop info to not spoil common drop rate
-		}
+		//Delete the item
+		db->mvpitem[i].nameid = 0;
+		db->mvpitem[i].p = 0;
 	}
 
 	for (i = 0; i < MAX_MOB_DROP; i++) {
-		int rate = 0, rate_adjust, type;
-		unsigned short ratemin, ratemax;
-		struct item_data *id;
 		int k = 31 + MAX_MVP_DROP * 2 + i * 2;
 
 		db->dropitem[i].nameid = atoi(str[k]);
-		if (!db->dropitem[i].nameid) {
-			db->dropitem[i].p = 0; //No drop.
-			continue;
-		}
-		id = itemdb_search(db->dropitem[i].nameid);
-		type = id->type;
-		rate = atoi(str[k + 1]);
-		if (battle_config.drop_rateincrease)
-			if (rate < 5000)
-				rate++;
-		if ((mob_id >= MOBID_TREAS01 && mob_id <= MOBID_TREAS40) || (mob_id >= MOBID_TREAS41 && mob_id <= MOBID_TREAS49)) { //Treasure box drop rates [Skotlex]
-			rate_adjust = battle_config.item_rate_treasure;
-			ratemin = battle_config.item_drop_treasure_min;
-			ratemax = battle_config.item_drop_treasure_max;
-		} else
-			switch (type) { //Added suport to restrict normal drops of MVP's [Reddozen]
-				case IT_HEALING:
-					rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_heal_boss : battle_config.item_rate_heal;
-					ratemin = battle_config.item_drop_heal_min;
-					ratemax = battle_config.item_drop_heal_max;
-					break;
-				case IT_USABLE:
-				case IT_CASH:
-					rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_use_boss : battle_config.item_rate_use;
-					ratemin = battle_config.item_drop_use_min;
-					ratemax = battle_config.item_drop_use_max;
-					break;
-				case IT_WEAPON:
-				case IT_ARMOR:
-				case IT_PETARMOR:
-					rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_equip_boss : battle_config.item_rate_equip;
-					ratemin = battle_config.item_drop_equip_min;
-					ratemax = battle_config.item_drop_equip_max;
-					break;
-				case IT_CARD:
-					rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_card_boss : battle_config.item_rate_card;
-					ratemin = battle_config.item_drop_card_min;
-					ratemax = battle_config.item_drop_card_max;
-					break;
-				default:
-					rate_adjust = (status->mode&MD_BOSS) ? battle_config.item_rate_common_boss : battle_config.item_rate_common;
-					ratemin = battle_config.item_drop_common_min;
-					ratemax = battle_config.item_drop_common_max;
-					break;
-			}
-		item_dropratio_adjust(id->nameid, mob_id, &rate_adjust);
-		db->dropitem[i].p = mob_drop_adjust(rate, rate_adjust, ratemin, ratemax);
-
-		//Calculate and store Max available drop chance of the item
-		if (db->dropitem[i].p && (mob_id < MOBID_TREAS01 || mob_id > MOBID_TREAS40) && (mob_id < MOBID_TREAS41 || mob_id > MOBID_TREAS49)) { //Skip treasure chests.
-			if (id->maxchance == -1 || (id->maxchance < db->dropitem[i].p) ) {
-				id->maxchance = db->dropitem[i].p; //Item has bigger drop chance or sold in shops
-			}
-			for (k = 0; k < MAX_SEARCH; k++) {
-				if (id->mob[k].chance <= db->dropitem[i].p)
-					break;
-			}
-			if (k == MAX_SEARCH)
+		if (db->dropitem[i].nameid) {
+			if (itemdb_search(db->dropitem[i].nameid)) {
+				db->dropitem[i].p = atoi(str[k + 1]);
 				continue;
-
-			if (id->mob[k].id != mob_id)
-				memmove(&id->mob[k + 1], &id->mob[k], (MAX_SEARCH - k - 1) * sizeof(id->mob[0]));
-			id->mob[k].chance = db->dropitem[i].p;
-			id->mob[k].id = mob_id;
+			} else
+				ShowWarning("Monster \"%s\"(id: %d) is dropping an unknown item \"%s\"(Drop %d)\n", db->name, mob_id, str[k], (i / 2) + 1);
 		}
+
+		//Delete the item
+		db->dropitem[i].nameid = 0;
+		db->dropitem[i].p = 0;
 	}
 
-	//Finally insert monster's data into the database.
+	//Finally insert monster's data into the database
 	if (mob_db_data[mob_id] == NULL)
 		mob_db_data[mob_id] = (struct mob_db*)aCalloc(1, sizeof(struct mob_db));
 	else //Copy over spawn data
@@ -4542,20 +4477,31 @@ static bool mob_readdb_itemratio(char* str[], int columns, int current)
 
 	ratio = atoi(str[1]);
 
-	if (!(item_ratio = (struct s_mob_item_drop_ratio *)idb_get(mob_item_drop_ratio,nameid)))
+	if (!(item_ratio = (struct s_mob_item_drop_ratio *)idb_get(mob_item_drop_ratio, nameid)))
 		CREATE(item_ratio, struct s_mob_item_drop_ratio, 1);
 
 	item_ratio->drop_ratio = ratio;
 	memset(item_ratio->mob_id, 0, sizeof(item_ratio->mob_id));
-	for (i = 0; i < columns - 2; i++)
-		item_ratio->mob_id[i] = atoi(str[i + 2]);
+	for (i = 0; i < columns - 2; i++) {
+		uint16 mob_id = atoi(str[i + 2]);
 
-	if (!item_ratio->nameid)
+		if (mob_db(mob_id) == mob_dummy)
+			ShowError("itemdb_read_itemratio: Invalid monster with ID %hu (Item:%hu Col:%d).\n", mob_id, nameid, columns);
+		else
+			item_ratio->mob_id[i] = atoi(str[i + 2]);
+	}
+
+	if (!item_ratio->nameid) {
+		item_ratio->nameid = nameid;
 		idb_put(mob_item_drop_ratio, nameid, item_ratio);
+	}
 
 	return true;
 }
 
+/**
+ * Free drop ratio data
+ **/
 static int mob_item_drop_ratio_free(DBKey key, DBData *data, va_list ap) {
 	struct s_mob_item_drop_ratio *item_ratio = db_data2ptr(data);
 
@@ -4579,12 +4525,156 @@ static bool mob_readdb_effect(char* str[], int columns, int current)
 }
 
 /**
- * read all mob-related databases
+ * Adjust drop ratio for each monster
+ **/
+static void mob_drop_ratio_adjust(void){
+	unsigned short i;
+
+	for (i = 0; i <= MAX_MOB_DB; i++) {
+		struct mob_db *mob;
+		struct item_data *id;
+		unsigned short nameid;
+		int j, rate, rate_adjust = 0, mob_id;
+
+		mob = mob_db(i);
+
+		if (mob == mob_dummy)
+			continue; //Skip dummy mobs
+
+		mob_id = i;
+
+		for (j = 0; j < MAX_MVP_DROP; j++) {
+			nameid = mob->mvpitem[j].nameid;
+			rate = mob->mvpitem[j].p;
+
+			if (nameid == 0 || rate == 0)
+				continue;
+
+			rate_adjust = battle_config.item_rate_mvp;
+
+			//Adjust the rate if there is an entry in mob_item_ratio
+			item_dropratio_adjust(nameid, mob_id, &rate_adjust);
+
+			//Adjust rate with given algorithms
+			rate = mob_drop_adjust(rate, rate_adjust, battle_config.item_drop_mvp_min, battle_config.item_drop_mvp_max);
+
+			if (rate) { //Calculate and store Max available drop chance of the MVP item
+				id = itemdb_search(nameid);
+
+				if (!id) { //Item is not known anymore(should never happen)
+					ShowWarning("Monster \"%s\"(id:%d) is dropping an unknown item(id: %d)\n", mob->name, mob_id, nameid);
+					mob->mvpitem[j].nameid = 0;
+					mob->mvpitem[j].p = 0;
+					continue;
+				}
+
+				if (id->maxchance == -1 || (id->maxchance < rate / 10 + 1)) //Item has bigger drop chance or sold in shops
+					id->maxchance = rate / 10 + 1; //Reduce MVP drop info to not spoil common drop rate
+			}
+
+			mob->mvpitem[j].p = rate;
+		}
+
+		for (j = 0; j < MAX_MOB_DROP; j++) {
+			unsigned short ratemin, ratemax;
+			bool is_treasurechest;
+
+			nameid = mob->dropitem[j].nameid;
+			rate = mob->dropitem[j].p;
+
+			if (nameid == 0 || rate == 0)
+				continue;
+
+			id = itemdb_search(nameid);
+
+			if (!id) { //Item is not known anymore(should never happen)
+				ShowWarning("Monster \"%s\"(id:%d) is dropping an unknown item(id: %d)\n", mob->name, mob_id, nameid);
+				mob->dropitem[j].nameid = 0;
+				mob->dropitem[j].p = 0;
+				continue;
+			}
+
+			if (battle_config.drop_rateincrease && rate < 5000)
+				rate++;
+
+			//Treasure box drop rates [Skotlex]
+			if ((mob_id >= MOBID_TREAS01 && mob_id <= MOBID_TREAS40) || (mob_id >= MOBID_TREAS41 && mob_id <= MOBID_TREAS49)) {
+				is_treasurechest = true;
+
+				rate_adjust = battle_config.item_rate_treasure;
+				ratemin = battle_config.item_drop_treasure_min;
+				ratemax = battle_config.item_drop_treasure_max;
+			} else {
+				is_treasurechest = false;
+
+				//Added suport to restrict normal drops of MVP's [Reddozen]
+				switch (id->type) {
+					case IT_HEALING:
+						rate_adjust = (mob->status.mode&MD_BOSS) ? battle_config.item_rate_heal_boss : battle_config.item_rate_heal;
+						ratemin = battle_config.item_drop_heal_min;
+						ratemax = battle_config.item_drop_heal_max;
+						break;
+					case IT_USABLE:
+					case IT_CASH:
+						rate_adjust = (mob->status.mode&MD_BOSS) ? battle_config.item_rate_use_boss : battle_config.item_rate_use;
+						ratemin = battle_config.item_drop_use_min;
+						ratemax = battle_config.item_drop_use_max;
+						break;
+					case IT_WEAPON:
+					case IT_ARMOR:
+					case IT_PETARMOR:
+						rate_adjust = (mob->status.mode&MD_BOSS) ? battle_config.item_rate_equip_boss : battle_config.item_rate_equip;
+						ratemin = battle_config.item_drop_equip_min;
+						ratemax = battle_config.item_drop_equip_max;
+						break;
+					case IT_CARD:
+						rate_adjust = (mob->status.mode&MD_BOSS) ? battle_config.item_rate_card_boss : battle_config.item_rate_card;
+						ratemin = battle_config.item_drop_card_min;
+						ratemax = battle_config.item_drop_card_max;
+						break;
+					default:
+						rate_adjust = (mob->status.mode&MD_BOSS) ? battle_config.item_rate_common_boss : battle_config.item_rate_common;
+						ratemin = battle_config.item_drop_common_min;
+						ratemax = battle_config.item_drop_common_max;
+						break;
+				}
+			}
+
+			item_dropratio_adjust(nameid, mob_id, &rate_adjust);
+			rate = mob_drop_adjust(rate, rate_adjust, ratemin, ratemax);
+
+			if (rate && !is_treasurechest) { //Calculate and store Max available drop chance of the item but skip treasure chests
+				unsigned short k;
+
+				if (id->maxchance == -1 || (id->maxchance < rate))
+					id->maxchance = rate; //Item has bigger drop chance or sold in shops
+
+				for (k = 0; k < MAX_SEARCH; k++)
+					if (id->mob[k].chance <= rate)
+						break;
+
+				if (k != MAX_SEARCH) {
+					if (id->mob[k].id != mob_id)
+						memmove(&id->mob[k + 1], &id->mob[k], (MAX_SEARCH - k - 1) * sizeof(id->mob[0]));
+
+					id->mob[k].chance = rate;
+					id->mob[k].id = mob_id;
+				}
+			}
+
+			mob->dropitem[j].p = rate;
+		}
+	}
+
+	//Now that we are done we can delete the stored item ratios
+	mob_item_drop_ratio->clear(mob_item_drop_ratio, mob_item_drop_ratio_free);
+}
+
+/**
+ * Read all mob-related databases
  */
 static void mob_load(void)
 {
-	sv_readdb(db_path, "mob_item_ratio.txt", ',', 2, 2 + MAX_ITEMRATIO_MOBS, -1, &mob_readdb_itemratio); //Must be read before mobdb
-	sv_readdb(db_path, "mob_chat_db.txt", '#', 3, 3, MAX_MOB_CHAT, &mob_parse_row_chatdb);
 	if (db_use_sqldbs) {
 		mob_read_sqldb();
 		mob_read_sqlskilldb();
@@ -4593,9 +4683,12 @@ static void mob_load(void)
 		mob_readskilldb();
 	}
 	sv_readdb(db_path, "mob_avail.txt", ',', 2, 12, -1, &mob_readdb_mobavail);
-	mob_read_randommonster();
 	sv_readdb(db_path, DBPATH"mob_race2_db.txt", ',', 2, 20, -1, &mob_readdb_race2);
+	sv_readdb(db_path, "mob_item_ratio.txt", ',', 2, 2 + MAX_ITEMRATIO_MOBS, -1, &mob_readdb_itemratio);
+	sv_readdb(db_path, "mob_chat_db.txt", '#', 3, 3, MAX_MOB_CHAT, &mob_parse_row_chatdb);
 	sv_readdb(db_path, DBPATH"mob_effect.txt",   ',', 2, 2, -1, &mob_readdb_effect);
+	mob_drop_ratio_adjust();
+	mob_read_randommonster();
 }
 
 void mob_reload(void) {

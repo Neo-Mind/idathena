@@ -1843,20 +1843,20 @@ static int battle_blewcount_bonus(struct map_session_data *sd, uint16 skill_id)
 
 	if(!sd->skillblown[0].id)
 		return 0;
-	//Apply the bonus blewcount. [Skotlex]
-	for(i = 0; i < ARRAYLENGTH(sd->skillblown) && sd->skillblown[i].id; i++) {
+
+	//Apply the bonus blewcount [Skotlex]
+	for(i = 0; i < ARRAYLENGTH(sd->skillblown) && sd->skillblown[i].id; i++)
 		if(sd->skillblown[i].id == skill_id)
 			return sd->skillblown[i].val;
-	}
+
 	return 0;
 }
 
+#ifdef ADJUST_SKILL_DAMAGE
 /** Damage calculation for adjusting skill damage
  * @param caster Applied caster type for damage skill
  * @param type BL_Type of attacker
- * @author [Lilith] for the first release of this, [Cydh]
  */
-#ifdef ADJUST_SKILL_DAMAGE
 static bool battle_skill_damage_iscaster(uint8 caster, enum bl_type src_type)
 {
 	if(caster == 0)
@@ -1883,6 +1883,7 @@ static int battle_skill_damage_skill(struct block_list *src, struct block_list *
 {
 	uint16 idx = skill_get_index(skill_id), m = src->m;
 	struct s_skill_damage *damage = NULL;
+	struct map_data *mapd = &map[m];
 
 	if(!idx || !skill_db[idx].damage.map)
 		return 0;
@@ -1893,12 +1894,12 @@ static int battle_skill_damage_skill(struct block_list *src, struct block_list *
 	if(!battle_skill_damage_iscaster(damage->caster, src->type))
 		return 0;
 
-	if(((damage->map&1) && (!map[m].flag.pvp && !map_flag_gvg2(m) && !map[m].flag.battleground && !map[m].flag.skill_damage && !map[m].flag.restricted)) ||
-		((damage->map&2) && map[m].flag.pvp) ||
-		((damage->map&4) && map_flag_gvg2(m)) ||
-		((damage->map&8) && map[m].flag.battleground) ||
-		((damage->map&16) && map[m].flag.skill_damage) ||
-		(map[m].flag.restricted && skill_db[idx].damage.map&(8 * map[m].zone)))
+	if((damage->map&1 && (!mapd->flag.pvp && !map_flag_gvg(m) && !mapd->flag.battleground && !mapd->flag.skill_damage && !mapd->flag.restricted)) ||
+		(damage->map&2 && mapd->flag.pvp) ||
+		(damage->map&4 && map_flag_gvg(m)) ||
+		(damage->map&8 && mapd->flag.battleground) ||
+		(damage->map&16 && mapd->flag.skill_damage) ||
+		(mapd->flag.restricted && damage->map&(8 * mapd->zone)))
 	{
 		switch(target->type) {
 			case BL_PC:
@@ -1925,46 +1926,49 @@ static int battle_skill_damage_skill(struct block_list *src, struct block_list *
 static int battle_skill_damage_map(struct block_list *src, struct block_list *target, uint16 skill_id)
 {
 	int rate = 0;
-	uint16 m = src->m;
-	uint8 i;
+	uint8 i = 0;
+	struct map_data *mapd = &map[src->m];
 
-	if(!map[m].flag.skill_damage)
+	if(!mapd || !mapd->flag.skill_damage)
 		return 0;
 
-	// Damage rate for all skills at this map
-	if(battle_skill_damage_iscaster(map[m].adjust.damage.caster, src->type)) {
+	//Damage rate for all skills at this map
+	if(battle_skill_damage_iscaster(mapd->adjust.damage.caster, src->type)) {
 		switch(target->type) {
 			case BL_PC:
-				rate = map[m].adjust.damage.pc;
+				rate = mapd->adjust.damage.pc;
 				break;
 			case BL_MOB:
 				if(is_boss(target))
-					rate = map[m].adjust.damage.boss;
+					rate = mapd->adjust.damage.boss;
 				else
-					rate = map[m].adjust.damage.mob;
+					rate = mapd->adjust.damage.mob;
 				break;
 			default:
-				rate = map[m].adjust.damage.other;
+				rate = mapd->adjust.damage.other;
 				break;
 		}
 	}
 
-	// Damage rate for specified skill at this map
-	ARR_FIND(0, ARRAYLENGTH(map[m].skill_damage), i, map[m].skill_damage[i].skill_id == skill_id);
-	if(i < ARRAYLENGTH(map[m].skill_damage)) {
-		if(battle_skill_damage_iscaster(map[m].skill_damage[i].caster, src->type)) {
+	if(!mapd->skill_damage.count)
+		return rate;
+
+	//Damage rate for specified skill at this map
+	for(i = 0; i < mapd->skill_damage.count; i++) {
+		if(mapd->skill_damage.entries[i]->skill_id == skill_id &&
+			battle_skill_damage_iscaster(mapd->skill_damage.entries[i]->caster, src->type)) {
 			switch(target->type) {
 				case BL_PC:
-					rate += map[m].skill_damage[i].pc;
+					rate += mapd->skill_damage.entries[i]->pc;
 					break;
 				case BL_MOB:
 					if(is_boss(target))
-						rate += map[m].skill_damage[i].boss;
+						rate += mapd->skill_damage.entries[i]->boss;
 					else
-						rate += map[m].skill_damage[i].mob;
+						rate += mapd->skill_damage.entries[i]->mob;
 					break;
 				default:
-					rate += map[m].skill_damage[i].other;
+					rate += mapd->skill_damage.entries[i]->other;
 					break;
 			}
 		}
@@ -1980,6 +1984,8 @@ static int battle_skill_damage_map(struct block_list *src, struct block_list *ta
  */
 static int battle_skill_damage(struct block_list *src, struct block_list *target, uint16 skill_id)
 {
+	nullpo_ret(src);
+
 	if(!target)
 		return 0;
 	return battle_skill_damage_skill(src, target, skill_id) + battle_skill_damage_map(src, target, skill_id);
@@ -4779,7 +4785,7 @@ struct Damage battle_calc_weapon_final_atk_modifiers(struct Damage wd, struct bl
 	struct status_data *sstatus = status_get_status_data(src);
 	struct status_data *tstatus = status_get_status_data(target);
 #ifdef ADJUST_SKILL_DAMAGE
-	int skill_damage;
+	int skill_damage = 0;
 #endif
 
 	//Reject Sword bugreport:4493 by Daegaladh
@@ -5404,7 +5410,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 {
 	int i, nk;
 #ifdef ADJUST_SKILL_DAMAGE
-	int skill_damage;
+	int skill_damage = 0;
 #endif
 	short s_ele = 0;
 	TBL_PC *sd;
@@ -6285,7 +6291,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *target,uint16 skill_id,uint16 skill_lv,int mflag)
 {
 #ifdef ADJUST_SKILL_DAMAGE
-	int skill_damage;
+	int skill_damage = 0;
 #endif
 	short i, nk;
 	short s_ele;
