@@ -9750,7 +9750,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case ALL_GUARDIAN_RECALL:
 		case ECLAGE_RECALL:
 			if( sd ) {
-				short x = 0, y = 0; //Destiny position.
+				short x = 0, y = 0; //Destiny position
 				unsigned short mapindex = 0;
 
 				switch( skill_id ) {
