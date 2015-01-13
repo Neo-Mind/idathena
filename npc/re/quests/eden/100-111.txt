@@ -954,9 +954,9 @@ S_Quest:
 		getitem 6549,1;// Courtesy_Ticket
 		para_100lv02 += 1;
 		if (JobLevel < 6)
-			getexp 550000,getarg(1);
-		else
 			getexp 550000,getarg(2);
+		else
+			getexp 550000,getarg(3);
 	}
 	else {
 		next;

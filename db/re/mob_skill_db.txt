@@ -7976,7 +7976,8 @@
 
 // Old Glast Heim Memorial
 2464,Zombie (Memorial)@AL_HEAL,idle,28,10,10000,0,5000,yes,self,always,0,,,,,,26,
-2464,Zombie (Memorial)@NPC_UNDEADATTACK,chase,347,10,8000,1000,5000,yes,target,always,0,,,,,,,
+2464,Zombie (Memorial)@NPC_BLOODDRAIN,attack,199,1,500,0,5000,yes,target,always,0,,,,,,47,
+2464,Zombie (Memorial)@NPC_UNDEADATTACK,chase,347,10,8000,1000,5000,yes,target,always,0,,,,,,26,
 2465,Wraith (Memorial)@NPC_ENERGYDRAIN,attack,200,1,500,0,5000,yes,target,always,0,,,,,,,
 2466,Ghoul (Memorial)@AL_HEAL,idle,28,10,10000,0,5000,yes,self,always,0,,,,,,26,
 2466,Ghoul (Memorial)@NPC_UNDEADATTACK,chase,347,10,8000,1000,5000,yes,target,always,0,,,,,,,

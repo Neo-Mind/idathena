@@ -8003,7 +8003,8 @@ REPLACE INTO `mob_skill_db_re` VALUES (2411,'Lv 150@AL_HEAL','idle',28,10,10000,
 
 # Old Glast Heim Memorial
 REPLACE INTO `mob_skill_db_re` VALUES (2464,'Zombie (Memorial)@AL_HEAL','idle',28,10,10000,0,5000,'yes','self','always','0',NULL,NULL,NULL,NULL,NULL,'26',NULL);
-REPLACE INTO `mob_skill_db_re` VALUES (2464,'Zombie (Memorial)@NPC_UNDEADATTACK','chase',347,10,8000,1000,5000,'yes','target','always','0',NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+REPLACE INTO `mob_skill_db_re` VALUES (2464,'Zombie (Memorial)@NPC_BLOODDRAIN','attack',199,1,500,0,5000,'yes','target','always','0',NULL,NULL,NULL,NULL,NULL,'47',NULL);
+REPLACE INTO `mob_skill_db_re` VALUES (2464,'Zombie (Memorial)@NPC_UNDEADATTACK','chase',347,10,8000,1000,5000,'yes','target','always','0',NULL,NULL,NULL,NULL,NULL,'26',NULL);
 REPLACE INTO `mob_skill_db_re` VALUES (2465,'Wraith (Memorial)@NPC_ENERGYDRAIN','attack',200,1,500,0,5000,'yes','target','always','0',NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `mob_skill_db_re` VALUES (2466,'Ghoul (Memorial)@AL_HEAL','idle',28,10,10000,0,5000,'yes','self','always','0',NULL,NULL,NULL,NULL,NULL,'26',NULL);
 REPLACE INTO `mob_skill_db_re` VALUES (2466,'Ghoul (Memorial)@NPC_UNDEADATTACK','chase',347,10,8000,1000,5000,'yes','target','always','0',NULL,NULL,NULL,NULL,NULL,NULL,NULL);

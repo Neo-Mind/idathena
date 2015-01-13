@@ -123,12 +123,12 @@ moc_para01,27,35,5	script	Secretary Lime Evenor	952,{
 				mes "Hmm, your handwriting is not clear. I can't read. it";
 				next;
 				mes "[Lime Evenor]";
-				mes "^3131FF"+strcharinfo(0)+"^000000, tell me what you want to register. for";
+				mes "^3131FF"+strcharinfo(0)+"^000000, tell me what you want to register for.";
 				mes "Which map should we go to?";
 				input .@input$;
 				next;
 				mes "[Lime Evenor]";
-				mes "^3131FFMission Map: "+.@inputstr$+"^000000";
+				mes "^3131FFMission Map: "+.@input$+"^000000";
 				mes "hum, I will note that.";
 				next;
 				mes "[Lime Evenor]";
