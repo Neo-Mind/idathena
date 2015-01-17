@@ -2407,7 +2407,7 @@ void clif_additem(struct map_session_data *sd, int n, int amount, unsigned char 
 #endif
 #if PACKETVER >= 20071002
 		//Yellow color only for non-stackable item
-		WFIFOW(fd,offs + 27) = (sd->status.inventory[n].bound && !itemdb_isstackable(sd->status.inventory[n].nameid) ? BOUND_DISPYELLOW : 0);
+		WFIFOW(fd,offs + 27) = (sd->status.inventory[n].bound && !itemdb_isstackable(sd->status.inventory[n].nameid) ? BOUND_DISPYELLOW : sd->inventory_data[n]->flag.bindOnEquip ? BOUND_ONEQUIP : 0);
 #endif
 	}
 
@@ -2477,7 +2477,7 @@ void clif_item_sub_v5(unsigned char *buf, int n, int idx, struct item *it, struc
 		WBUFB(buf,n + 13) = it->refine; //Refine lvl
 		clif_addcards(WBUFP(buf,n + 14), it); //EQUIPSLOTINFO 8B
 		WBUFL(buf,n + 22) = it->expire_time;
-		WBUFW(buf,n + 26) = (it->bound) ? BOUND_DISPYELLOW : 0; //BindOnEquipType
+		WBUFW(buf,n + 26) = (it->bound) ? BOUND_DISPYELLOW : id->flag.bindOnEquip ? BOUND_ONEQUIP : 0; //BindOnEquipType
 		WBUFW(buf,n + 28) = (id->equip&EQP_VISIBLE) ? id->look : 0;
 		//V5_ITEM_flag
 		WBUFB(buf,n + 30) = it->identify; //0x1 IsIdentified
@@ -2502,29 +2502,29 @@ void clif_item_sub(unsigned char *buf, int n, int idx, struct item *it, struct i
 #if PACKETVER >= 20120925
 	clif_item_sub_v5(buf, n, idx, it, id, equip);
 #else
-	WBUFW(buf, n) = idx; //Index
-	WBUFW(buf, n + 2) = (id->view_id > 0) ? id->view_id : it->nameid; //Item id
-	WBUFB(buf, n + 4) = itemtype(id->nameid);
-	WBUFB(buf, n + 5) = it->identify;
+	WBUFW(buf,n) = idx; //Index
+	WBUFW(buf,n + 2) = (id->view_id > 0) ? id->view_id : it->nameid; //Item id
+	WBUFB(buf,n + 4) = itemtype(id->nameid);
+	WBUFB(buf,n + 5) = it->identify;
 	if( equip >= 0 ) { //Equippable item 28.B
-		WBUFW(buf, n + 6) = equip;
-		WBUFW(buf, n + 8) = it->equip;
-		WBUFB(buf, n + 10) = it->attribute;
-		WBUFB(buf, n + 11) = it->refine;
-		clif_addcards(WBUFP(buf, n + 12), it); //8B
+		WBUFW(buf,n + 6) = equip;
+		WBUFW(buf,n + 8) = it->equip;
+		WBUFB(buf,n + 10) = it->attribute;
+		WBUFB(buf,n + 11) = it->refine;
+		clif_addcards(WBUFP(buf,n + 12), it); //8B
 #if PACKETVER >= 20071002
-		WBUFL(buf, n + 20) = it->expire_time;
-		WBUFW(buf, n + 24) = (it->bound) ? BOUND_DISPYELLOW : 0;
+		WBUFL(buf,n + 20) = it->expire_time;
+		WBUFW(buf,n + 24) = (it->bound) ? BOUND_DISPYELLOW : id->flag.bindOnEquip ? BOUND_ONEQUIP : 0;
 #endif
 #if PACKETVER >= 20100629
-		WBUFW(buf, n + 26) = (id->equip&EQP_VISIBLE) ? id->look : 0;
+		WBUFW(buf,n + 26) = (id->equip&EQP_VISIBLE) ? id->look : 0;
 #endif
 	} else { //Stackable item. 22.B
-		WBUFW(buf, n + 6) = it->amount;
-		WBUFW(buf, n + 8) = (equip == -2 && id->equip == EQP_AMMO) ? id->equip : 0;
-		clif_addcards(WBUFP(buf, n + 10), it); //8B
+		WBUFW(buf,n + 6) = it->amount;
+		WBUFW(buf,n + 8) = (equip == -2 && id->equip == EQP_AMMO) ? id->equip : 0;
+		clif_addcards(WBUFP(buf,n + 10), it); //8B
 #if PACKETVER >= 20071002
-		WBUFL(buf, n + 18) = it->expire_time;
+		WBUFL(buf,n + 18) = it->expire_time;
 #endif
 	}
 #endif
@@ -17827,6 +17827,27 @@ void clif_crimson_marker_single(struct map_session_data *sd, struct block_list *
 }
 
 
+/**
+ * 02d3 <index>.W (ZC_NOTIFY_BIND_ON_EQUIP)
+ **/
+void clif_notify_bindOnEquip(struct map_session_data *sd, int n) {
+	struct s_packet_db *info = NULL;
+	int cmd = 0;
+
+	nullpo_retv(sd);
+
+	cmd = packet_db_ack[sd->packet_ver][ZC_NOTIFY_BIND_ON_EQUIP];
+	info = &packet_db[sd->packet_ver][cmd];
+	if( !cmd || !info->len )
+		return;
+
+	WFIFOHEAD(sd->fd,info->len);
+	WFIFOW(sd->fd,0) = cmd;
+	WFIFOW(sd->fd,info->pos[0]) = n + 2;
+	WFIFOSET(sd->fd,info->len);
+}
+
+
 void clif_ShowScript(struct block_list* bl, const char* message) {
 	char buf[256];
 	size_t len;
@@ -18497,6 +18518,7 @@ void packetdb_readdb(void)
 		{"ZC_PERSONAL_INFOMATION_CHN",ZC_PERSONAL_INFOMATION_CHN},
 		{"ZC_CLEAR_DIALOG",ZC_CLEAR_DIALOG},
 		{"ZC_C_MARKERINFO",ZC_C_MARKERINFO},
+		{"ZC_NOTIFY_BIND_ON_EQUIP",ZC_NOTIFY_BIND_ON_EQUIP},
 	};
 	// Initialize packet_db[SERVER] from hardcoded packet_len_table[] values
 	memset(packet_db,0,sizeof(packet_db));

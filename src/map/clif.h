@@ -47,6 +47,7 @@ enum e_packet_ack {
 	ZC_PERSONAL_INFOMATION_CHN,
 	ZC_CLEAR_DIALOG,
 	ZC_C_MARKERINFO,
+	ZC_NOTIFY_BIND_ON_EQUIP,
 	//Add other here
 	MAX_ACK_FUNC //Auto upd len
 };
@@ -888,5 +889,6 @@ void clif_crimson_marker(struct map_session_data *sd, struct block_list *bl, uin
 void clif_crimson_marker_single(struct map_session_data *sd, struct block_list *bl, uint8 flag);
 
 void clif_ShowScript(struct block_list* bl, const char* message);
+void clif_notify_bindOnEquip(struct map_session_data *sd, int n);
 
 #endif /* _CLIF_H_ */

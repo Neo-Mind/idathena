@@ -334,7 +334,7 @@ int pet_data_init(struct map_session_data *sd, struct s_pet *pet)
 			sd->status.pet_id = 0;
 			return 1;
 		}
-		//The pet_id value was lost? odd... restore it
+		//The pet_id value was lost? Odd, restore it
 		sd->status.pet_id = pet->pet_id;
 	}
 
@@ -372,7 +372,7 @@ int pet_data_init(struct map_session_data *sd, struct s_pet *pet)
 		run_script(pet_db[i].pet_script,0,sd->bl.id,0);
 
 	if(pd->petDB) {
-		if(pd->petDB->equip_script)
+		if(pd->petDB->pet_loyal_script)
 			status_calc_pc(sd,SCO_NONE);
 
 		if(battle_config.pet_hungry_delay_rate != 100)
@@ -713,7 +713,6 @@ int pet_equipitem(struct map_session_data *sd,int index)
 		if (pd->bonus && pd->bonus->timer == INVALID_TIMER)
 			pd->bonus->timer = add_timer(tick + pd->bonus->delay * 1000, pet_skill_bonus_timer, sd->bl.id, 0);
 	}
-
 	return 0;
 }
 
@@ -1116,26 +1115,24 @@ int pet_recovery_timer(int tid, unsigned int tick, int id, intptr_t data)
 	struct map_session_data *sd=map_id2sd(id);
 	struct pet_data *pd;
 
-	if(sd==NULL || sd->pd == NULL || sd->pd->recovery == NULL)
+	if(sd == NULL || sd->pd == NULL || sd->pd->recovery == NULL)
 		return 1;
 
-	pd=sd->pd;
+	pd = sd->pd;
 
 	if(pd->recovery->timer != tid) {
 		ShowError("pet_recovery_timer %d != %d\n",pd->recovery->timer,tid);
 		return 0;
 	}
 
-	if(sd->sc.data[pd->recovery->type])
-	{	//Display a heal animation?
-		//Detoxify is chosen for now.
+	if(sd->sc.data[pd->recovery->type]) { //Display a heal animation?
+		//Detoxify is chosen for now
 		clif_skill_nodamage(&pd->bl,&sd->bl,TF_DETOXIFY,1,1);
 		status_change_end(&sd->bl, pd->recovery->type, INVALID_TIMER);
 		clif_emotion(&pd->bl, E_OK);
 	}
 
 	pd->recovery->timer = INVALID_TIMER;
-
 	return 0;
 }
 
@@ -1146,10 +1143,10 @@ int pet_heal_timer(int tid, unsigned int tick, int id, intptr_t data)
 	struct pet_data *pd;
 	unsigned int rate = 100;
 
-	if(sd==NULL || sd->pd == NULL || sd->pd->s_skill == NULL)
+	if(sd == NULL || sd->pd == NULL || sd->pd->s_skill == NULL)
 		return 1;
 
-	pd=sd->pd;
+	pd = sd->pd;
 
 	if(pd->s_skill->timer != tid) {
 		ShowError("pet_heal_timer %d != %d\n",pd->s_skill->timer,tid);
@@ -1161,16 +1158,16 @@ int pet_heal_timer(int tid, unsigned int tick, int id, intptr_t data)
 	if(pc_isdead(sd) ||
 		(rate = get_percentage(status->sp, status->max_sp)) > pd->s_skill->sp ||
 		(rate = get_percentage(status->hp, status->max_hp)) > pd->s_skill->hp ||
-		(rate = (pd->ud.skilltimer != INVALID_TIMER)) //Another skill is in effect
-	) {  //Wait (how long? 1 sec for every 10% of remaining)
-		pd->s_skill->timer=add_timer(gettick()+(rate>10?rate:10)*100,pet_heal_timer,sd->bl.id,0);
+		(rate = (pd->ud.skilltimer != INVALID_TIMER))) //Another skill is in effect
+	{ //Wait (how long? 1 sec for every 10% of remaining)
+		pd->s_skill->timer = add_timer(gettick() + (rate > 10 ? rate : 10) * 100,pet_heal_timer,sd->bl.id,0);
 		return 0;
 	}
 	pet_stop_attack(pd);
 	pet_stop_walking(pd,1);
 	clif_skill_nodamage(&pd->bl,&sd->bl,AL_HEAL,pd->s_skill->lv,1);
 	status_heal(&sd->bl, pd->s_skill->lv,0, 0);
-	pd->s_skill->timer=add_timer(tick+pd->s_skill->delay*1000,pet_heal_timer,sd->bl.id,0);
+	pd->s_skill->timer = add_timer(tick + pd->s_skill->delay * 1000,pet_heal_timer,sd->bl.id,0);
 	return 0;
 }
 
@@ -1183,10 +1180,11 @@ int pet_skill_support_timer(int tid, unsigned int tick, int id, intptr_t data)
 	struct pet_data *pd;
 	struct status_data *status;
 	short rate = 100;
-	if(sd==NULL || sd->pd == NULL || sd->pd->s_skill == NULL)
+
+	if(sd == NULL || sd->pd == NULL || sd->pd->s_skill == NULL)
 		return 1;
 
-	pd=sd->pd;
+	pd = sd->pd;
 
 	if(pd->s_skill->timer != tid) {
 		ShowError("pet_skill_support_timer %d != %d\n",pd->s_skill->timer,tid);
@@ -1195,28 +1193,27 @@ int pet_skill_support_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 	status = status_get_status_data(&sd->bl);
 
-	if (DIFF_TICK(pd->ud.canact_tick, tick) > 0)
-	{	//Wait until the pet can act again.
-		pd->s_skill->timer=add_timer(pd->ud.canact_tick,pet_skill_support_timer,sd->bl.id,0);
+	if (DIFF_TICK(pd->ud.canact_tick, tick) > 0) { //Wait until the pet can act again
+		pd->s_skill->timer = add_timer(pd->ud.canact_tick,pet_skill_support_timer,sd->bl.id,0);
 		return 0;
 	}
 
 	if(pc_isdead(sd) ||
 		(rate = get_percentage(status->sp, status->max_sp)) > pd->s_skill->sp ||
 		(rate = get_percentage(status->hp, status->max_hp)) > pd->s_skill->hp ||
-		(rate = (pd->ud.skilltimer != INVALID_TIMER)) //Another skill is in effect
-	) {  //Wait (how long? 1 sec for every 10% of remaining)
-		pd->s_skill->timer=add_timer(tick+(rate>10?rate:10)*100,pet_skill_support_timer,sd->bl.id,0);
+		(rate = (pd->ud.skilltimer != INVALID_TIMER))) //Another skill is in effect
+	{ //Wait (how long? 1 sec for every 10% of remaining)
+		pd->s_skill->timer = add_timer(tick + (rate > 10 ? rate : 10) * 100,pet_skill_support_timer,sd->bl.id,0);
 		return 0;
 	}
 
 	pet_stop_attack(pd);
 	pet_stop_walking(pd,1);
-	pd->s_skill->timer=add_timer(tick+pd->s_skill->delay*1000,pet_skill_support_timer,sd->bl.id,0);
-	if (skill_get_inf(pd->s_skill->id) & INF_GROUND_SKILL)
-		unit_skilluse_pos(&pd->bl, sd->bl.x, sd->bl.y, pd->s_skill->id, pd->s_skill->lv);
+	pd->s_skill->timer = add_timer(tick + pd->s_skill->delay * 1000,pet_skill_support_timer,sd->bl.id,0);
+	if (skill_get_inf(pd->s_skill->id)&INF_GROUND_SKILL)
+		unit_skilluse_pos(&pd->bl,sd->bl.x,sd->bl.y,pd->s_skill->id,pd->s_skill->lv);
 	else
-		unit_skilluse_id(&pd->bl, sd->bl.id, pd->s_skill->id, pd->s_skill->lv);
+		unit_skilluse_id(&pd->bl,sd->bl.id,pd->s_skill->id,pd->s_skill->lv);
 	return 0;
 }
 
@@ -1240,9 +1237,9 @@ void read_petdb()
 			script_free_code(pet_db[j].pet_script);
 			pet_db[j].pet_script = NULL;
 		}
-		if( pet_db[j].equip_script ) {
-			script_free_code(pet_db[j].equip_script);
-			pet_db[j].pet_script = NULL;
+		if( pet_db[j].pet_loyal_script ) {
+			script_free_code(pet_db[j].pet_loyal_script);
+			pet_db[j].pet_loyal_script = NULL;
 		}
 	}
 
@@ -1345,12 +1342,12 @@ void read_petdb()
 			pet_db[j].defence_attack_rate = atoi(str[18]);
 			pet_db[j].change_target_rate = atoi(str[19]);
 			pet_db[j].pet_script = NULL;
-			pet_db[j].equip_script = NULL;
+			pet_db[j].pet_loyal_script = NULL;
 
 			if( *str[20] )
 				pet_db[j].pet_script = parse_script(str[20], filename[i], lines, 0);
 			if( *str[21] )
-				pet_db[j].equip_script = parse_script(str[21], filename[i], lines, 0);
+				pet_db[j].pet_loyal_script = parse_script(str[21], filename[i], lines, 0);
 
 			j++;
 			entries++;
@@ -1392,9 +1389,9 @@ void do_final_pet(void)
 			script_free_code(pet_db[i].pet_script);
 			pet_db[i].pet_script = NULL;
 		}
-		if( pet_db[i].equip_script ) {
-			script_free_code(pet_db[i].equip_script);
-			pet_db[i].equip_script = NULL;
+		if( pet_db[i].pet_loyal_script ) {
+			script_free_code(pet_db[i].pet_loyal_script);
+			pet_db[i].pet_loyal_script = NULL;
 		}
 	}
 	ers_destroy(item_drop_ers);

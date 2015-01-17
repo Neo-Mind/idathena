@@ -2003,7 +2003,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
  *	Initial refactoring by Baalberith
  *	Refined and optimized by helvetica
  */
-static bool target_has_infinite_defense(struct block_list *target, uint16 skill_id, int flag)
+bool target_has_infinite_defense(struct block_list *target, uint16 skill_id, int flag)
 {
 	struct status_data *tstatus = status_get_status_data(target);
 
@@ -8330,6 +8330,8 @@ static const struct _battle_data {
 	{ "boss_icewall_walk_block",            &battle_config.boss_icewall_walk_block,         0,      0,      255,            },
 	{ "stormgust_knockback",                &battle_config.stormgust_knockback,             1,      0,      1,              },
 	{ "default_fixed_castrate",             &battle_config.default_fixed_castrate,          20,     0,      100,            },
+	{ "default_bind_on_equip",              &battle_config.default_bind_on_equip,    BOUND_CHAR, BOUND_NONE, BOUND_MAX - 1, },
+	{ "pet_ignore_infinite_def",            &battle_config.pet_ignore_infinite_def,         0,      0,      1,              },
 };
 #ifndef STATS_OPT_OUT
 /**

@@ -115,6 +115,8 @@ bool battle_check_range(struct block_list *src, struct block_list *bl, int range
 
 void battle_consume_ammo(struct map_session_data *sd, uint16 skill_id, uint16 skill_lv);
 
+bool target_has_infinite_defense(struct block_list *target, uint16 skill_id, int flag);
+
 //êSettings
 #define MIN_HAIR_STYLE battle_config.min_hair_style
 #define MAX_HAIR_STYLE battle_config.max_hair_style
@@ -587,6 +589,8 @@ extern struct Battle_Config
 	int boss_icewall_walk_block; //How a boss monster should be trapped in icewall [Playtester]
 	int stormgust_knockback;
 	int default_fixed_castrate;
+	int default_bind_on_equip;
+	int pet_ignore_infinite_def; //Makes fixed damage of petskillattack2 ignores infinite defense
 } battle_config;
 
 void do_init_battle(void);

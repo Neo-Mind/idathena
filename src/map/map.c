@@ -1780,6 +1780,8 @@ int map_quit(struct map_session_data *sd) {
 		status_change_end(&sd->bl,SC_WEIGHT50,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_WEIGHT90,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_SATURDAYNIGHTFEVER,INVALID_TIMER);
+		status_change_end(&sd->bl,SC_CBC,INVALID_TIMER);
+		status_change_end(&sd->bl,SC_EQC,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_KYOUGAKU,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_C_MARKER,INVALID_TIMER);
 		if (battle_config.debuff_on_logout&1) { //Remove negative buffs

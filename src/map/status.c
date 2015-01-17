@@ -2643,9 +2643,9 @@ int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt)
 }
 
 //Skotlex: Calculates the stats of the given pet.
-int status_calc_pet_(struct pet_data *pd, enum e_status_calc_opt opt)
+void status_calc_pet_(struct pet_data *pd, enum e_status_calc_opt opt)
 {
-	nullpo_ret(pd);
+	nullpo_retv(pd);
 
 	if (opt&SCO_FIRST) {
 		memcpy(&pd->status,&pd->db->status,sizeof(struct status_data));
@@ -2700,12 +2700,8 @@ int status_calc_pet_(struct pet_data *pd, enum e_status_calc_opt opt)
 			pd->pet.level = pd->db->lv;
 	}
 
-	//Support rate modifier (1000 = 100%)
-	pd->rate_fix = 1000 * (pd->pet.intimate - battle_config.pet_support_min_friendly) / (1000 - battle_config.pet_support_min_friendly) + 500;
-	if (battle_config.pet_support_rate != 100)
-		pd->rate_fix = pd->rate_fix * battle_config.pet_support_rate / 100;
-
-	return 1;
+	pd->rate_fix = min(1000 * (pd->pet.intimate - battle_config.pet_support_min_friendly) / (1000 - battle_config.pet_support_min_friendly) + 500, USHRT_MAX);
+	pd->rate_fix = min(apply_rate(pd->rate_fix, battle_config.pet_support_rate), USHRT_MAX);
 }
 
 /** [Cydh]
@@ -3314,8 +3310,8 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 	if(sd->pd) { //Pet Bonus
 		struct pet_data *pd = sd->pd;
 
-		if(pd && pd->petDB && pd->petDB->equip_script && pd->pet.intimate >= battle_config.pet_equip_min_friendly)
-			run_script(pd->petDB->equip_script,0,sd->bl.id,0);
+		if(pd && pd->petDB && pd->petDB->pet_loyal_script && pd->pet.intimate >= battle_config.pet_equip_min_friendly)
+			run_script(pd->petDB->pet_loyal_script,0,sd->bl.id,0);
 		if(pd && pd->pet.intimate > 0 && (!battle_config.pet_equip_required || pd->pet.equip > 0) && pd->state.skillbonus == 1 && pd->bonus)
 			pc_bonus(sd,pd->bonus->type,pd->bonus->val);
 	}
@@ -8035,6 +8031,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			status_change_end(bl,SC_FREEZE,INVALID_TIMER);
 			status_change_end(bl,SC_STONE,INVALID_TIMER);
 			break;
+		case SC_FREEZING:
+			status_change_end(bl,SC_BURNING,INVALID_TIMER);
+			break;
 		case SC_KINGS_GRACE:
 			status_change_end(bl,SC_POISON,INVALID_TIMER);
 			status_change_end(bl,SC_BLIND,INVALID_TIMER);
@@ -8062,6 +8061,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			status_change_end(bl,SC_FOOD_INT_CASH,INVALID_TIMER);
 			status_change_end(bl,SC_FOOD_DEX_CASH,INVALID_TIMER);
 			status_change_end(bl,SC_FOOD_LUK_CASH,INVALID_TIMER);
+			break;
+		case SC_EQC:
+			status_change_end(bl,SC_TINDER_BREAKER2,INVALID_TIMER);
 			break;
 	}
 
@@ -9672,6 +9674,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = 5 * val1; //Def % reduc
 				val3 = 5 * val1; //Atk % reduc
 				val4 = 2 * val1; //HP % drain
+				sc_start2(src,bl,SC_STUN,100,val1,bl->id,(1000 * status_get_lv(src)) / 50 + 500 * val1);
 				break;
 			case SC_ASH:
 				val2 = 50; //Hit % reduc
@@ -10269,10 +10272,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				status_heal(bl,status->max_hp,0,1);
 		case SC_RAISINGDRAGON:
 			sce->val2 = status->max_hp / 100; //Officially tested its 1% HP drain [Jobbie]
-			break;
-		case SC_EQC:
-			sc_start2(src,bl,SC_STUN,100,val1,bl->id,(1000 * status_get_lv(src)) / 50 + 500 * val1);
-			status_change_end(bl,SC_TINDER_BREAKER2,INVALID_TIMER);
 			break;
 		case SC_C_MARKER:
 			if(src->type == BL_PC && (sd = map_id2sd(src->id)))
