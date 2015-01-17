@@ -16368,7 +16368,7 @@ ecl_in03,41,90,3	script	Mayor Jun Kardui#tl01	624,{
 		mes "Do you think I, who inherited the will of Yggdrasil, don't know anything?";
 		mes "I don't blame you since it is ignorance.";
 		next;
-		mes "[";
+		mes "[Kardui]";
 		mes "The war of Jotunheim will soon be over.";
 		mes "And it will happen not by constraint, but as a result of mutual agreement.";
 		next;
@@ -16379,7 +16379,7 @@ ecl_in03,41,90,3	script	Mayor Jun Kardui#tl01	624,{
 		next;
 		select("Then why do you make war and disregard the truth?");
 		cutin "kardui02",1;
-		mes "[";
+		mes "[Kardui]";
 		mes "Hmm...";
 		mes "I'll tell you when we get closer to each other.";
 		mes "I'm not obligated to talk about this important subject with a person I just met.";
@@ -17634,7 +17634,7 @@ eclage,112,40,3	script	Eclage Guard Leo#tl	461,{
 					mes "No, it's not that I don't like him. I'm rather concerned...or having trouble trusting him...something like that.";
 					mes "Since he didn't do anything wrong, I don't have any reason to hate him, but..";
 					next;
-					mes "[";
+					mes "[Leo]";
 					mes "there was a precedent";
 					mes "and it's a pretty rare case...so I'm just concerned in many ways.";
 					mes "It should not bother a foreigner like you. ";
