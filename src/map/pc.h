@@ -188,8 +188,8 @@ struct map_session_data {
 		unsigned int snovice_dead_flag : 1; //Explosion spirits on death: 0 off, 1 used.
 		unsigned int abra_flag : 2; //Abracadabra bugfix by Aru
 		unsigned int autocast : 1; //Autospell flag [Inkfish]
-		unsigned int autotrade : 2;	//By Fantik
-		unsigned int reg_dirty : 4; //By Skotlex (marks whether registry variables have been saved or not yet)
+		unsigned int autotrade : 3;	//&4 Requested by vending autotrade; &16 Requested by buyingstore autotrade [Fantik]
+		unsigned int reg_dirty : 4; //Marks whether registry variables have been saved or not yet [Skotlex]
 		unsigned int showdelay :1;
 		unsigned int showexp :1;
 		unsigned int showzeny :1;

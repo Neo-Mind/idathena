@@ -10873,8 +10873,10 @@ int pc_autotrade_timer(int tid, unsigned int tick, int id, intptr_t data) {
 
 	sd->autotrade_tid = INVALID_TIMER;
 
-	buyingstore_reopen(sd);
-	vending_reopen(sd);
+	if( sd->state.autotrade&4 )
+		vending_reopen(sd);
+	if( sd->state.autotrade&16 )
+		buyingstore_reopen(sd);
 
 	if( !sd->vender_id && !sd->buyer_id ) {
 		sd->state.autotrade = 0;

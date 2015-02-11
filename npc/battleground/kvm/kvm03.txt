@@ -11,8 +11,8 @@
 //= Kreiger Von Midgard Battleground for levels 60 to 80
 //= - Winning Team: 2 points
 //= - Losing Team: 1 point
-//===== Changelogs: ==========================================
-//= 1.0 First Version. [L0ne_W0lf]
+//===== Additional Comments: =================================
+//= 1.0 First Version.
 //= 1.1 Updated using official Aegis files. [L0ne_W0lf]
 //= 1.2 Upated some announces and dialogs from iRO.
 //=     Changed how the scoreboard works slightly.
