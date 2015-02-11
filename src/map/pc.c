@@ -1029,52 +1029,50 @@ static bool pc_isItemClass(struct map_session_data *sd, struct item_data* item) 
  * Checks if the player can equip the item at index n in inventory.
  * @param sd
  * @param n Item index in inventory
- * @return True - Can be equipped, False - Failed
+ * @return ITEM_EQUIP_ACK_OK(0) if can be equipped, or ITEM_EQUIP_ACK_FAIL(1)/ITEM_EQUIP_ACK_FAILLEVEL(2) if can't
  */
-bool pc_isequip(struct map_session_data *sd, int n)
+uint8 pc_isequip(struct map_session_data *sd, int n)
 {
 	struct item_data *item;
 
-	nullpo_retr(false, sd);
+	nullpo_retr(ITEM_EQUIP_ACK_FAIL, sd);
 
 	item = sd->inventory_data[n];
 
 	if(pc_has_permission(sd, PC_PERM_USE_ALL_EQUIPMENT))
-		return true;
+		return ITEM_EQUIP_ACK_OK;
 
 	if(item == NULL)
-		return false;
+		return ITEM_EQUIP_ACK_FAIL;
 
 	if(item->elv && sd->status.base_level < (unsigned int)item->elv)
-		return false;
+		return ITEM_EQUIP_ACK_FAILLEVEL;
 
-#ifdef RENEWAL
 	if(item->elvmax && sd->status.base_level > (unsigned int)item->elvmax)
-		return false;
-#endif
+		return ITEM_EQUIP_ACK_FAILLEVEL;
 
 	if(item->sex != 2 && sd->status.sex != item->sex)
-		return false;
+		return ITEM_EQUIP_ACK_FAIL;
 
 	if(sd->sc.count) { // Also works with left-hand weapons [DracoRPG]
 		if((item->equip&EQP_ARMS) && item->type == IT_WEAPON && sd->sc.data[SC_STRIPWEAPON])
-			return false;
+			return ITEM_EQUIP_ACK_FAIL;
 		if((item->equip&EQP_SHIELD) && item->type == IT_ARMOR && sd->sc.data[SC_STRIPSHIELD])
-			return false;
+			return ITEM_EQUIP_ACK_FAIL;
 		if((item->equip&EQP_ARMOR) && sd->sc.data[SC_STRIPARMOR])
-			return false;
+			return ITEM_EQUIP_ACK_FAIL;
 		if((item->equip&EQP_HEAD_TOP) && sd->sc.data[SC_STRIPHELM])
-			return false;
+			return ITEM_EQUIP_ACK_FAIL;
 		if((item->equip&EQP_ACC) && sd->sc.data[SC__STRIPACCESSORY])
-			return false;
+			return ITEM_EQUIP_ACK_FAIL;
 		if(item->equip && sd->sc.data[SC_KYOUGAKU])
-			return false;
-		//Spirit of Super Novice equip bonuses. [Skotlex]
+			return ITEM_EQUIP_ACK_FAIL;
+		//Spirit of Super Novice equip bonuses [Skotlex]
 		if(sd->sc.data[SC_SPIRIT] && sd->sc.data[SC_SPIRIT]->val2 == SL_SUPERNOVICE) {
 			if(sd->status.base_level > 90 && item->equip&EQP_HELM)
-				return true; //Can equip all helms
+				return ITEM_EQUIP_ACK_OK; //Can equip all helms
 			if(sd->status.base_level > 96 && item->equip&EQP_ARMS && item->type == IT_WEAPON && item->wlv == 4)
-				switch(item->look) { //In weapons, the look determines type of weapon.
+				switch(item->look) { //In weapons, the look determines type of weapon
 					case W_DAGGER: //All level 4 - Daggers
 					case W_1HSWORD: //All level 4 - 1H Swords
 					case W_1HAXE: //All level 4 - 1H Axes
@@ -1082,23 +1080,23 @@ bool pc_isequip(struct map_session_data *sd, int n)
 					case W_MACE: //All level 4 - 1H Maces
 					case W_STAFF: //All level 4 - 1H Staves
 					case W_2HSTAFF: //All level 4 - 2H Staves
-						return true;
+						return ITEM_EQUIP_ACK_OK;
 				}
 		}
 	}
 
 	//Fail to equip if item is restricted
 	if(!battle_config.allow_equip_restricted_item && itemdb_isNoEquip(item,sd->bl.m))
-		return false;
+		return ITEM_EQUIP_ACK_FAIL;
 
 	//Not equipable by class. [Skotlex]
 	if(!(1<<(sd->class_&MAPID_BASEMASK)&item->class_base[(sd->class_&JOBL_2_1) ? 1 : ((sd->class_&JOBL_2_2) ? 2 : 0)]))
-		return false;
+		return ITEM_EQUIP_ACK_FAIL;
 
 	if(!pc_isItemClass(sd,item))
-		return false;
+		return ITEM_EQUIP_ACK_FAIL;
 
-	return true;
+	return ITEM_EQUIP_ACK_OK;
 }
 
 /*==========================================
@@ -4310,7 +4308,7 @@ char pc_additem(struct map_session_data *sd,struct item *item,int amount,e_log_p
 	if( id->flag.autoequip )
 		pc_equipitem(sd, i, id->equip);
 
-	/* Rental item check */
+	//Rental item check
 	if( item->expire_time ) {
 		if( time(NULL) > item->expire_time )
 			pc_rental_expire(sd, i);
@@ -4625,10 +4623,8 @@ bool pc_isUseitem(struct map_session_data *sd, int n)
 	if( item->elv && sd->status.base_level < (unsigned int)item->elv )
 		return false;
 
-#ifdef RENEWAL
 	if( item->elvmax && sd->status.base_level > (unsigned int)item->elvmax )
 		return false;
-#endif
 
 	//Not equipable by class. [Skotlex]
 	if( !((1<<(sd->class_&MAPID_BASEMASK))&(item->class_base[sd->class_&JOBL_2_1 ? 1 : (sd->class_&JOBL_2_2 ? 2 : 0)])) )
@@ -5212,7 +5208,7 @@ char pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int 
 		}
 		for( i = 0; i < EQI_MAX; i++ )
 			if( sd->equip_index[i] >= 0 )
-				if( !pc_isequip(sd, sd->equip_index[i]) )
+				if( pc_isequip(sd, sd->equip_index[i]) )
 					pc_unequipitem(sd, sd->equip_index[i], 2);
 		if( battle_config.clear_unit_onwarp&BL_PC )
 			skill_clear_unitgroup(&sd->bl);
@@ -6176,15 +6172,12 @@ int pc_checkbaselevelup(struct map_session_data *sd) {
 }
 
 void pc_baselevelchanged(struct map_session_data *sd) {
-#ifdef RENEWAL
-	int i;
+	uint8 i;
 
 	for (i = 0; i < EQI_MAX; i++)
 		if (sd->equip_index[i] >= 0)
 			if (sd->inventory_data[sd->equip_index[i]]->elvmax && sd->status.base_level > (unsigned int)sd->inventory_data[sd->equip_index[i]]->elvmax)
 				pc_unequipitem(sd, sd->equip_index[i], 3);
-#endif
-
 }
 
 int pc_checkjoblevelup(struct map_session_data *sd)
@@ -6797,11 +6790,10 @@ int pc_resetlvl(struct map_session_data* sd,int type)
 	clif_updatestatus(sd, SP_UDEX);
 	clif_updatestatus(sd, SP_ULUK); //End Addition
 
-	for (i = 0; i < EQI_MAX; i++) { //Unequip items that can't be equipped by base 1 [Valaris]
+	for (i = 0; i < EQI_MAX; i++) //Unequip items that can't be equipped by base 1 [Valaris]
 		if (sd->equip_index[i] >= 0)
-			if (!pc_isequip(sd, sd->equip_index[i]))
+			if (pc_isequip(sd, sd->equip_index[i]))
 				pc_unequipitem(sd, sd->equip_index[i], 2);
-	}
 
 	if ((type == 1 || type == 2 || type == 3) && sd->status.party_id)
 		party_send_levelup(sd);
@@ -8093,11 +8085,10 @@ bool pc_jobchange(struct map_session_data *sd,int job, char upper)
 	clif_updatestatus(sd,SP_JOBEXP);
 	clif_updatestatus(sd,SP_NEXTJOBEXP);
 
-	for (i = 0; i < EQI_MAX; i++) {
+	for (i = 0; i < EQI_MAX; i++)
 		if (sd->equip_index[i] >= 0)
-			if (!pc_isequip(sd,sd->equip_index[i]))
+			if (pc_isequip(sd,sd->equip_index[i]))
 				pc_unequipitem(sd,sd->equip_index[i],2); //Unequip invalid item for class
-	}
 
 	//Change look, if disguised, you need to undisguise
 	//to correctly calculate new job sprite without
@@ -9132,15 +9123,16 @@ bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
 {
 	int i = 0, pos = 0, flag = 0, iflag = 0;
 	struct item_data *id;
+	uint8 res = ITEM_EQUIP_ACK_OK;
 
 	nullpo_retr(false,sd);
 
 	if( n < 0 || n >= MAX_INVENTORY ) {
-		clif_equipitemack(sd,0,0,0);
+		clif_equipitemack(sd,0,0,ITEM_EQUIP_ACK_FAIL);
 		return false;
 	}
 	if( DIFF_TICK(sd->canequip_tick,gettick()) > 0 ) {
-		clif_equipitemack(sd,n,0,0);
+		clif_equipitemack(sd,n,0,ITEM_EQUIP_ACK_FAIL);
 		return false;
 	}
 	if (!(id = sd->inventory_data[n]))
@@ -9148,14 +9140,17 @@ bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
 	pos = pc_equippoint(sd,n); //With a few exceptions, item should go in all specified slots
 	if( battle_config.battle_log )
 		ShowInfo("equip %hu(%d) %x:%x\n",sd->status.inventory[n].nameid,n,(id ? id->equip : 0),req_pos);
-	if( !pc_isequip(sd,n) || !(pos&req_pos) || sd->status.inventory[n].equip != 0 || sd->status.inventory[n].attribute == 1 ) { //[Valaris]
-		//FIXME: pc_isequip: equip level failure uses 2 instead of 0
-		clif_equipitemack(sd,n,0,0); //Fail
+	if( (res = pc_isequip(sd,n)) ) {
+		clif_equipitemack(sd,n,0,res);
+		return false;
+	}
+	if( !(pos&req_pos) || sd->status.inventory[n].equip != 0 || sd->status.inventory[n].attribute == 1 ) { //[Valaris]
+		clif_equipitemack(sd,n,0,ITEM_EQUIP_ACK_FAIL);
 		return false;
 	}
 	if( sd->sc.count && (sd->sc.data[SC_BERSERK] || sd->sc.data[SC_SATURDAYNIGHTFEVER] ||
 		sd->sc.data[SC_KYOUGAKU] || (sd->sc.data[SC_PYROCLASTIC] && sd->inventory_data[n]->type == IT_WEAPON)) ) {
-		clif_equipitemack(sd,n,0,0);
+		clif_equipitemack(sd,n,0,ITEM_EQUIP_ACK_FAIL);
 		return false;
 	}
 	if( id->flag.bindOnEquip && !sd->status.inventory[n].bound ) {
@@ -9204,7 +9199,7 @@ bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
 		clif_arrowequip(sd,n);
 		clif_arrow_fail(sd,3);
 	} else
-		clif_equipitemack(sd,n,pos,1);
+		clif_equipitemack(sd,n,pos,ITEM_EQUIP_ACK_OK);
 	sd->status.inventory[n].equip = pos;
 	if( pos&(EQP_HAND_R|EQP_SHADOW_WEAPON) ) {
 		if( id )

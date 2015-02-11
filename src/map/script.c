@@ -15131,18 +15131,18 @@ BUILDIN_FUNC(query_sql) {
 	if( st->state != RERUNLINE ) {
 		queryThread_add(st,false);
 
-		st->state = RERUNLINE; /* Will continue when the query is finished running. */
+		st->state = RERUNLINE; //Will continue when the query is finished running
 	} else
 		st->state = RUN;
-		
+
 	return 0;
 #else
-	return buildin_query_sql_sub(st,mmysql_handle);
+	return buildin_query_sql_sub(st,qsmysql_handle);
 #endif
 }
 
 BUILDIN_FUNC(query_logsql) {
-	if( !log_config.sql_logs ) {// logmysql_handle == NULL
+	if( !log_config.sql_logs ) { //logmysql_handle == NULL
 		ShowWarning("buildin_query_logsql: SQL logs are disabled, query '%s' will not be executed.\n",script_getstr(st,2));
 		script_pushint(st,-1);
 		return 1;
@@ -15150,18 +15150,18 @@ BUILDIN_FUNC(query_logsql) {
 #ifdef BETA_THREAD_TEST
 	if( st->state != RERUNLINE ) {
 		queryThread_add(st,true);
-		
-		st->state = RERUNLINE;/* will continue when the query is finished running. */
+
+		st->state = RERUNLINE; //Will continue when the query is finished running
 	} else
 		st->state = RUN;
-	
+
 	return 0;
 #else
 	return buildin_query_sql_sub(st,logmysql_handle);
 #endif
 }
 
-//Allows escaping of a given string.
+//Allows escaping of a given string
 BUILDIN_FUNC(escape_sql)
 {
 	const char *str;

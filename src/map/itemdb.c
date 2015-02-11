@@ -1119,7 +1119,6 @@ static char itemdb_gendercheck(struct item_data *id)
 	return (battle_config.ignore_items_gender) ? 2 : id->sex;
 }
 
-#ifdef RENEWAL
 /**
  * [RRInd]
  * For backwards compatibility, in Renewal mode, MATK from weapons comes from the atk slot
@@ -1149,7 +1148,6 @@ static void itemdb_re_split_atoi(char *str, int *atk, int *matk) {
 	*matk = val[1];
 	return;
 }
-#endif
 
 /**
  * Processes one itemdb entry
@@ -1246,11 +1244,7 @@ static bool itemdb_parse_dbrow(char** str, const char* source, int line, int scr
 	}
 
 	id->wlv = cap_value(atoi(str[15]), REFINE_TYPE_ARMOR, REFINE_TYPE_MAX);
-#ifdef RENEWAL
 	itemdb_re_split_atoi(str[16],&id->elv,&id->elvmax);
-#else
-	id->elv = atoi(str[16]);
-#endif
 	id->flag.no_refine = atoi(str[17]) ? 0 : 1; //FIXME: verify this
 	id->look = atoi(str[18]);
 
