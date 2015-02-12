@@ -845,8 +845,11 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 
 			for( i = 0; i < ARRAYLENGTH(sd->addeff) && sd->addeff[i].flag; i++ ) {
 				rate = sd->addeff[i].rate;
-				if( (attack_type&(BF_LONG|BF_MAGIC)) == BF_LONG )
-					rate += sd->addeff[i].arrow_rate; //Any ranged physical attack takes status arrows into account (Grimtooth) [DracoRPG]
+				if( sd->addeff[i].arrow_rate > 0 &&
+					((attack_type&(BF_LONG|BF_MAGIC)) == BF_LONG || //Ranged physical attack will take status arrows (Grimtooth) [DracoRPG]
+					((attack_type&(BF_SHORT|BF_MAGIC)) == BF_SHORT &&
+					(skill_id == AB_DUPLELIGHT_MELEE || skill_id == AB_DUPLELIGHT_MAGIC))) ) //Copied Duple Light also take status arrows
+					rate += sd->addeff[i].arrow_rate;
 				if( !rate )
 					continue;
 				if( (sd->addeff[i].flag&(ATF_WEAPON|ATF_MAGIC|ATF_MISC)) != (ATF_WEAPON|ATF_MAGIC|ATF_MISC) ) { //Trigger has attack type consideration
@@ -5639,8 +5642,6 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 				if(sd == NULL || !sd->ed)
 					break;
-				if((p = party_search(sd->status.party_id)) == NULL)
-					break;
 				range = skill_get_splash(skill_id,skill_lv);
 				x0 = sd->bl.x - range;
 				y0 = sd->bl.y - range;
@@ -5649,18 +5650,20 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				elemental_delete(sd->ed,0);
 				if(!skill_check_unit_range(src,src->x,src->y,skill_id,skill_lv))
 					ret = skill_castend_pos2(src,src->x,src->y,skill_id,skill_lv,tick,flag);
-				for(i = 0; i < MAX_PARTY; i++) {
-					struct map_session_data *psd = p->data[i].sd;
+				if((p = party_search(sd->status.party_id))) {
+					for(i = 0; i < MAX_PARTY; i++) {
+						struct map_session_data *psd = p->data[i].sd;
 
-					if(!psd)
-						continue;
-					if(psd->bl.m != sd->bl.m || !psd->bl.prev)
-						continue;
-					if(range && (psd->bl.x < x0 || psd->bl.y < y0 ||
-						psd->bl.x > x1 || psd->bl.y > y1))
-						continue;
-					if(!skill_check_unit_range(bl,psd->bl.x,psd->bl.y,skill_id,skill_lv))
-						ret |= skill_castend_pos2(bl,psd->bl.x,psd->bl.y,skill_id,skill_lv,tick,flag);
+						if(!psd)
+							continue;
+						if(psd->bl.m != sd->bl.m || !psd->bl.prev)
+							continue;
+						if(range && (psd->bl.x < x0 || psd->bl.y < y0 ||
+							psd->bl.x > x1 || psd->bl.y > y1))
+							continue;
+						if(!skill_check_unit_range(bl,psd->bl.x,psd->bl.y,skill_id,skill_lv))
+							ret |= skill_castend_pos2(bl,psd->bl.x,psd->bl.y,skill_id,skill_lv,tick,flag);
+					}
 				}
 				return ret;
 			}

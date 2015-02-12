@@ -830,8 +830,10 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			}
 		}
 
-		if( sc->data[SC_ZEPHYR] && ((((flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT ||
-			(flag&(BF_LONG|BF_MAGIC)) == BF_LONG) && skill_id) || (flag&BF_MAGIC &&
+		//Block all ranged attacks, all short-ranged skills, and targeted magic skills
+		//Normal melee attacks and ground magic skills can still hit the player inside Zephyr
+		if( sc->data[SC_ZEPHYR] && (((flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT && skill_id) ||
+			(flag&(BF_LONG|BF_MAGIC)) == BF_LONG || (flag&BF_MAGIC &&
 			!(skill_get_inf(skill_id)&(INF_GROUND_SKILL|INF_SELF_SKILL)))) )
 		{
 			d->dmg_lv = ATK_BLOCK;
@@ -875,7 +877,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			return 0;
 		}
 
-		if( sc->data[SC_ELEMENTAL_SHIELD] && flag&BF_MAGIC ) {
+		if( sc->data[SC_ELEMENTAL_SHIELD] && flag&BF_MAGIC ) { //In kRO, only block magic skills
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}
