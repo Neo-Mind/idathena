@@ -11703,14 +11703,14 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_RENOVATIO:
 			if( --(sce->val4) >= 0 ) {
 				struct block_list *src = map_id2bl(sce->val2);
-				struct status_data *sstatus = status_get_status_data(src);
 				int heal = status->max_hp * 3 / 100;
-				int damage = status_get_lv(src) * 10 + sstatus->int_;
 
 				map_freeblock_lock();
-				if( battle_check_undead(status->race,status->def_ele) )
-					status_damage(src,bl,damage,0,clif_damage(bl,bl,tick,status->amotion,status->dmotion + 200,damage,1,DMG_NORMAL,0),0);
-				else {
+				if( battle_check_undead(status->race,status->def_ele) ) {
+					if( !src || (src && (status_isdead(src) || src->m != bl->m)) )
+						break;
+					skill_attack(BF_MAGIC,src,src,bl,status_sc2skill(type),sce->val1,tick,SD_LEVEL|SD_ANIMATION);
+				} else {
 					if( sc && sc->data[SC_AKAITSUKI] && heal )
 						heal = ~heal + 1;
 					status_heal(bl,heal,0,3);
@@ -11845,7 +11845,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 					break;
 				map_freeblock_lock();
 				if( group )
-					skill_attack(skill_get_type(GN_THORNS_TRAP),src,src,bl,group->skill_id,group->skill_lv,tick,SD_LEVEL|SD_ANIMATION);
+					skill_attack(BF_MISC,src,src,bl,group->skill_id,group->skill_lv,tick,SD_LEVEL|SD_ANIMATION);
 				if( sc->data[type] ) {
 					sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				}
