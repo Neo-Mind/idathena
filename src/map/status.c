@@ -1664,8 +1664,7 @@ int status_percent_change(struct block_list *src,struct block_list *target,signe
 	if (sp_rate && !sp)
 		sp = 1;
 
-	//Ugly check in case damage dealt is too much for the received args of
-	//status_heal/status_damage. [Skotlex]
+	//Ugly check in case damage dealt is too much for the received args of status_heal/status_damage [Skotlex]
 	if (hp > INT_MAX) {
 	  	hp -= INT_MAX;
 		if (flag)
@@ -11703,12 +11702,23 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		case SC_RENOVATIO:
 			if( --(sce->val4) >= 0 ) {
+				struct block_list *src = map_id2bl(sce->val2);
+				struct status_data *sstatus = status_get_status_data(src);
 				int heal = status->max_hp * 3 / 100;
+				int damage = status_get_lv(src) * 10 + sstatus->int_;
 
-				if( sc && sc->data[SC_AKAITSUKI] && heal )
-					heal = ~heal + 1;
-				status_heal(bl,heal,0,3);
-				sc_timer_next(5000 + tick,status_change_timer,bl->id,data);
+				map_freeblock_lock();
+				if( battle_check_undead(status->race,status->def_ele) )
+					status_damage(src,bl,damage,0,clif_damage(bl,bl,tick,status->amotion,status->dmotion + 200,damage,1,DMG_NORMAL,0),0);
+				else {
+					if( sc && sc->data[SC_AKAITSUKI] && heal )
+						heal = ~heal + 1;
+					status_heal(bl,heal,0,3);
+				}
+				if( sc->data[type] ) {
+					sc_timer_next(5000 + tick,status_change_timer,bl->id,data);
+				}
+				map_freeblock_unlock();
 				return 0;
 			}
 			break;

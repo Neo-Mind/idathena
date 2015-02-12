@@ -4562,7 +4562,6 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 		case NJ_HYOUSENSOU:
 		case NJ_HUUJIN:
 		case AB_ADORAMUS:
-		case AB_RENOVATIO:
 		case AB_HIGHNESSHEAL:
 		case AB_DUPLELIGHT_MAGIC:
 		case WM_METALICSOUND:
@@ -5545,7 +5544,6 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				break;
 			}
  		case AL_HEAL:
-		case AB_RENOVATIO:
 		case AB_HIGHNESSHEAL:
 		case AL_INCAGI:
 		case ALL_RESURRECTION:
@@ -6173,7 +6171,6 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case RK_DEATHBOUND:
 		case RK_CRUSHSTRIKE:
 		case RA_FEARBREEZE:
-		case AB_RENOVATIO:
 		case AB_EXPIATIO:
 		case AB_DUPLELIGHT:
 		case AB_SECRAMENT:
@@ -8807,6 +8804,15 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			} else if( sd )
 				party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,
 					skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
+			break;
+
+		case AB_RENOVATIO:
+			if(sd && battle_check_undead(tstatus->race,tstatus->def_ele) && battle_check_target(src,bl,BCT_ENEMY) <= 0) {
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+				break;
+			}
+			clif_skill_nodamage(src,bl,skill_id,skill_lv,
+				sc_start2(src,bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv)));
 			break;
 
 		case AB_CLEARANCE: {
