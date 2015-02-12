@@ -10843,8 +10843,18 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				}
 			break;
 		case SC_CURSEDCIRCLE_ATKER:
-			if (sce->val2) //Used the default area size cause there is a chance the caster could knock back and can't clear the target
-				map_foreachinrange(status_change_timer_sub,bl,AREA_SIZE,BL_CHAR,bl,sce,SC_CURSEDCIRCLE_TARGET,gettick());
+			if (sce->val2) //Used area size because there is a chance the caster could knock back and can't clear the target
+				map_foreachinrange(status_change_timer_sub,bl,AREA_SIZE + 3,BL_CHAR,bl,sce,SC_CURSEDCIRCLE_TARGET,gettick());
+			break;
+		case SC_CURSEDCIRCLE_TARGET: {
+				struct block_list *src = map_id2bl(sce->val2);
+				struct status_change *sc = status_get_sc(src);
+
+				if (sc && sc->data[SC_CURSEDCIRCLE_ATKER] && --(sc->data[SC_CURSEDCIRCLE_ATKER]->val2) == 0) {
+					clif_bladestop(bl,src->id,0);
+					status_change_end(src,SC_CURSEDCIRCLE_ATKER,INVALID_TIMER);
+				}
+			}
 			break;
 		case SC_RAISINGDRAGON:
 			if (sd && sce->val2 && !pc_isdead(sd)) {
@@ -10867,16 +10877,6 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			clif_status_load(bl,SI_BERSERK,0);
 			sc_start(bl,bl,SC_SITDOWN_FORCE,100,sce->val1,3000);
 			sc_start4(bl,bl,SC_REGENERATION,100,10,0,0,(RGN_HP|RGN_SP),skill_get_time(status_sc2skill(type),sce->val1));
-			break;
-		case SC_CURSEDCIRCLE_TARGET: {
-				struct block_list *src = map_id2bl(sce->val2);
-				struct status_change *sc = status_get_sc(src);
-
-				if (sc && sc->data[SC_CURSEDCIRCLE_ATKER] && --(sc->data[SC_CURSEDCIRCLE_ATKER]->val2) == 0) {
-					status_change_end(src,SC_CURSEDCIRCLE_ATKER,INVALID_TIMER);
-					clif_bladestop(bl,sce->val2,0);
-				}
-			}
 			break;
 		case SC_BLOODSUCKER:
 			if (sce->val2) {
