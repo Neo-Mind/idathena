@@ -8616,17 +8616,17 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				skill_area_temp[5] = 0;
 				if( tsc && tsc->count ) {
 					if( tsc->data[SC_MILLENNIUMSHIELD] )
-						skill_area_temp[5] |= 0x10;
-					if( tsc->data[SC_REFRESH] )
-						skill_area_temp[5] |= 0x20;
-					if( tsc->data[SC_GIANTGROWTH] )
-						skill_area_temp[5] |= 0x40;
-					if( tsc->data[SC_STONEHARDSKIN] )
-						skill_area_temp[5] |= 0x80;
-					if( tsc->data[SC_VITALITYACTIVATION] )
-						skill_area_temp[5] |= 0x100;
-					if( tsc->data[SC_ABUNDANCE] )
-						skill_area_temp[5] |= 0x200;
+						skill_area_temp[5] = 0x10;
+					else if( tsc->data[SC_REFRESH] )
+						skill_area_temp[5] = 0x20;
+					else if( tsc->data[SC_GIANTGROWTH] )
+						skill_area_temp[5] = 0x40;
+					else if( tsc->data[SC_STONEHARDSKIN] )
+						skill_area_temp[5] = 0x80;
+					else if( tsc->data[SC_VITALITYACTIVATION] )
+						skill_area_temp[5] = 0x100;
+					else if( tsc->data[SC_ABUNDANCE] )
+						skill_area_temp[5] = 0x200;
 				}
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
