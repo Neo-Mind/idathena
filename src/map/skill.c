@@ -4372,13 +4372,12 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 					case LG_EARTHDRIVE:
 						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 						break;
+					case GN_CARTCANNON:
+						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+					//Fall through
 					case NC_ARMSCANNON:
 					case LG_MOONSLASHER:
 					case MH_XENO_SLASHER:
-						clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,DMG_SKILL);
-						break;
-					case GN_CARTCANNON:
-						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 						clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,DMG_SKILL);
 						break;
 					case NPC_EARTHQUAKE: //FIXME: Isn't EarthQuake a ground skill after all?
