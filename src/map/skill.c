@@ -1097,9 +1097,8 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			status_percent_damage(src,bl,0,15 + 5 * skill_lv,false);
 		//Fall through
 		case HW_GRAVITATION:
-			//Pressure and Gravitation can trigger physical autospells
-			attack_type |= BF_NORMAL;
-			attack_type |= BF_WEAPON;
+			//Pressure and Gravitation can trigger autospells
+			attack_type |= BF_WEAPON|BF_LONG|BF_NORMAL;
 			break;
 
 		case RG_RAID:
@@ -1466,6 +1465,10 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 		case SO_VARETYR_SPEAR:
 			sc_start(src,bl,SC_STUN,5 * skill_lv,skill_lv,skill_get_time(skill_id,skill_lv));
 			break;
+		case GN_THORNS_TRAP:
+		case GN_BLOOD_SUCKER:
+			attack_type |= BF_WEAPON|BF_LONG|BF_NORMAL;
+			break;
 		case GN_SLINGITEM_RANGEMELEEATK:
 			if( sd ) {
 				switch( sd->itemid ) { //Starting SCs here instead of do it in skill_additional_effect to simplify the code
@@ -1478,7 +1481,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 						break;
 					case ITEMID_BANANA_BOMB:
 						sc_start(src,bl,SC_BANANA_BOMB,100,skill_lv,60000); //Reduces LUK
-						sc_start(src,bl,SC_BANANA_BOMB_SITDOWN,sd->status.job_level + sstatus->dex / 6 + tstatus->agi / 4 - tstatus->luk / 5 - status_get_lv(bl) + status_get_lv(src),skill_lv,3000); //Sitdown for 3 seconds.
+						sc_start(src,bl,SC_BANANA_BOMB_SITDOWN,sd->status.job_level + sstatus->dex / 6 + tstatus->agi / 4 - tstatus->luk / 5 - status_get_lv(bl) + status_get_lv(src),skill_lv,3000); //Sitdown for 3 seconds
 						break;
 				}
 				sd->itemid = -1;
@@ -3114,8 +3117,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 			skill_counter_additional_effect(src, bl, skill_id, skill_lv, dmg.flag, tick);
 	}
 
-	//Blow!
-	if (!(flag&4))
+	if (!(flag&4)) //Blow!
 		skill_attack_blow(src, dsrc, bl, (uint8)dmg.blewcount, skill_id, skill_lv, damage, tick, flag);
 
 	if (dmg.amotion) { //Delayed damage must be dealt after the knockback (it needs to know actual position of target)
@@ -3172,9 +3174,8 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 	if (skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS)
 		dmg.flag |= BF_WEAPON;
 
-	if (sd && src != bl && damage > 0 && (dmg.flag&BF_WEAPON ||
-		(dmg.flag&BF_MISC && (skill_id == RA_CLUSTERBOMB || skill_id == RA_FIRINGTRAP || skill_id == RA_ICEBOUNDTRAP))))
-	{
+	if (sd && src != bl && damage > 0 && (dmg.flag&BF_WEAPON || (dmg.flag&BF_MISC &&
+		(skill_id == RA_CLUSTERBOMB || skill_id == RA_FIRINGTRAP || skill_id == RA_ICEBOUNDTRAP)))) {
 		if (battle_config.left_cardfix_to_right)
 			battle_drain(sd, bl, dmg.damage, dmg.damage, tstatus->race, tstatus->class_);
 		else
@@ -4369,12 +4370,15 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 				switch (skill_id) {
 					case NJ_BAKUENRYU:
 					case LG_EARTHDRIVE:
-					case GN_CARTCANNON:
 						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 						break;
 					case NC_ARMSCANNON:
 					case LG_MOONSLASHER:
 					case MH_XENO_SLASHER:
+						clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,DMG_SKILL);
+						break;
+					case GN_CARTCANNON:
+						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 						clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,DMG_SKILL);
 						break;
 					case NPC_EARTHQUAKE: //FIXME: Isn't EarthQuake a ground skill after all?

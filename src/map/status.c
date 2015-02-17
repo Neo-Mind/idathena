@@ -205,7 +205,7 @@ void initChangeTables(void) {
 	memset(StatusChangeStateTable, 0, sizeof(StatusChangeStateTable));
 	memset(StatusDisplayType, 0, sizeof(StatusDisplayType));
 
-	//First we define the skill for common ailments. These are used in skill_additional_effect through sc cards. [Skotlex]
+	//First we define the skill for common ailments. These are used in skill_additional_effect through sc cards [Skotlex]
 	set_sc( NPC_PETRIFYATTACK , SC_STONE     , SI_BLANK    , SCB_DEF_ELE|SCB_DEF|SCB_MDEF );
 	set_sc( NPC_WIDEFREEZE    , SC_FREEZE    , SI_BLANK    , SCB_DEF_ELE|SCB_DEF|SCB_MDEF );
 	set_sc( NPC_STUNATTACK    , SC_STUN      , SI_BLANK    , SCB_NONE );
@@ -1136,6 +1136,7 @@ void initChangeTables(void) {
 	StatusDisplayType[SC_STEALTHFIELD]	  = true;
 	StatusDisplayType[SC_DUPLELIGHT]	  = true;
 	StatusDisplayType[SC_ORATIO]		  = true;
+	StatusDisplayType[SC_BURNING]		  = true;
 	StatusDisplayType[SC_FREEZING]		  = true;
 	StatusDisplayType[SC_VENOMIMPRESS]	  = true;
 	StatusDisplayType[SC_HALLUCINATIONWALK]	  = true;
@@ -9699,6 +9700,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = 3 + val1;
 				tick_time = 1000;
 				val4 = tick / tick_time;
+				if( sd )
+					sd->state.monster_ignore = 1;
 				break;
 			case SC_TELEKINESIS_INTENSE:
 				val2 = 10 * val1;
@@ -10964,6 +10967,10 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				}
 			}
 			break;
+		case SC_KINGS_GRACE:
+			if (sd)
+				sd->state.monster_ignore = 0;
+			break;
 		case SC_HEAT_BARREL:
 			if (sd)
 				sc_start(bl,bl,SC_HEAT_BARREL_AFTER,100,sce->val1,skill_get_time2(RL_HEAT_BARREL,sce->val1));
@@ -11711,7 +11718,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 						break;
 					skill_attack(BF_MAGIC,src,src,bl,status_sc2skill(type),sce->val1,tick,SD_LEVEL|SD_ANIMATION);
 				} else {
-					if( sc && sc->data[SC_AKAITSUKI] && heal )
+					if( sc->data[SC_AKAITSUKI] && heal )
 						heal = ~heal + 1;
 					status_heal(bl,heal,0,3);
 				}
@@ -11857,18 +11864,17 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_BLOODSUCKER:
 			if( --(sce->val4) >= 0 ) {
 				struct block_list *src = map_id2bl(sce->val2);
-				int damage;
+				int heal;
 
 				if( !src || (src && (status_isdead(src) || src->m != bl->m || distance_bl(src,bl) >= 12)) )
 					break;
 				map_freeblock_lock();
-				damage = 200 + 100 * sce->val1 + status_get_int(src);
-				status_damage(src,bl,damage,0,clif_damage(bl,bl,tick,status->amotion,status->dmotion + 200,damage,1,DMG_NORMAL,0),0);
-				unit_skillcastcancel(bl,1);
+				heal = 200 + 100 * sce->val1 + status_get_int(src);
+				skill_attack(BF_MISC,src,src,bl,status_sc2skill(type),sce->val1,tick,SD_LEVEL|SD_ANIMATION);
 				if( sc->data[type] ) {
 					sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
 				}
-				status_heal(src,damage * (5 + 5 * sce->val1) / 100,0,0); //5 + 5% per level
+				status_heal(src,heal * (5 + 5 * sce->val1) / 100,0,0); //5 + 5% per level
 				map_freeblock_unlock();
 				return 0;
 			}
@@ -12236,7 +12242,7 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 					status_change_end(bl, SC_CAMOUFLAGE, INVALID_TIMER);
 					status_change_end(bl, SC_CLOAKINGEXCEED, INVALID_TIMER);
 					if( battle_check_target(src, bl, BCT_ENEMY) > 0 )
-						skill_attack(BF_MAGIC, src, src, bl, AL_RUWACH, 1, tick, 0);
+						skill_attack(BF_MAGIC, src, src, bl, status_sc2skill(type), 1, tick, 0);
 				}
 				if( tsc->data[SC__SHADOWFORM] &&
 					(sce && sce->val4 > 0 && sce->val4%2000 == 0) &&
@@ -12250,7 +12256,7 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 
 				if( sce ) {
 					//The hit is not counted if it's against a trap
-					if( skill_attack(BF_MAGIC, src, src, bl, WZ_SIGHTBLASTER, sce->val1, tick, 0x1000) &&
+					if( skill_attack(BF_MAGIC, src, src, bl, status_sc2skill(type), sce->val1, tick, 0x1000) &&
 						(!su || !su->group || !(skill_get_inf2(su->group->skill_id)&INF2_TRAP)) )
 						sce->val2 = 0; //This signals it to end
 					else if( (bl->type&BL_SKILL) && sce->val4%2 == 0 )

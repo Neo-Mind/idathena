@@ -289,7 +289,7 @@ int quest_update_status(TBL_PC *sd, int quest_id, enum quest_state status) {
 		return 0;
 	}
 
-	// The quest is complete, so it needs to be moved to the completed quests block at the end of the array.
+	// The quest is complete, so it needs to be moved to the completed quests block at the end of the array
 	if( i < (--sd->avail_quests) ) {
 		struct quest tmp_quest;
 

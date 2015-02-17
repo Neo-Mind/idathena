@@ -2534,7 +2534,7 @@ int parse_fromlogin(int fd) {
 					sd->isvip = RFIFOB(fd,76);
 					sd->chars_vip = RFIFOB(fd,77);
 					sd->chars_billing = RFIFOB(fd,78);
-					// Continued from char_auth_ok...
+					// Continued from char_auth_ok
 					if( (max_connect_user == 0 && sd->group_id != gm_allow_group) ||
 						(max_connect_user > 0 && count_users() >= max_connect_user && sd->group_id != gm_allow_group) ) {
 						// Refuse connection (over populated)

@@ -871,8 +871,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			status_change_end(bl,SC_SAFETYWALL,INVALID_TIMER);
 		}
 
-		if( (sc->data[SC_PNEUMA] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG) ||
-			sc->data[SC__MANHOLE] || sc->data[SC_KINGS_GRACE] ) {
+		if( (sc->data[SC_PNEUMA] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG) || sc->data[SC__MANHOLE] ) {
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}
@@ -4482,6 +4481,9 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 			case GS_MAGICALBULLET:
 				wd.damage -= (def1 + vit_def); //Total defense reduction
 				break;
+			case GN_CARTCANNON:
+				wd.damage -= def1;
+				break;
 			default:
 				wd.damage = wd.damage * (4000 + def1) / (4000 + 10 * def1) - vit_def;
 				break;
@@ -4493,6 +4495,9 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 			case HW_MAGICCRASHER:
 			case GS_MAGICALBULLET:
 				wd.damage2 -= (def1 + vit_def);
+				break;
+			case GN_CARTCANNON:
+				wd.damage2 -= def1;
 				break;
 			default:
 				wd.damage2 = wd.damage2 * (4000 + def1) / (4000 + 10 * def1) - vit_def;
@@ -6543,6 +6548,9 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		case GN_THORNS_TRAP:
 			md.damage = 100 + 200 * skill_lv + sstatus->int_;
 			break;
+		case GN_BLOOD_SUCKER:
+			md.damage = 200 + 100 * skill_lv + sstatus->int_;
+			break;
 		case GN_HELLS_PLANT_ATK: //Gets MDEF reduction because it's marked as magic type
 			md.damage = skill_lv * status_get_lv(target) * 10 + sstatus->int_ * 7 / 2 * (18 + (sd ? sd->status.job_level : 0) / 4) * 5 / (10 - (sd ? pc_checkskill(sd,AM_CANNIBALIZE) : 0));
 			md.damage = md.damage * (1000 + tstatus->mdef) / (1000 + tstatus->mdef * 10) - tstatus->mdef2;
@@ -7002,7 +7010,7 @@ int battle_damage_area(struct block_list *bl, va_list ap) {
 			skill_additional_effect(src, bl, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);
 		map_freeblock_unlock();
 	}
-	
+
 	return 0;
 }
 /*==========================================
@@ -7636,7 +7644,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 					break;
 				sd = BL_CAST(BL_PC, t_bl);
 				if( sd->state.monster_ignore && flag&BCT_ENEMY )
-					return 0; //Global immunity only to Attacks
+					return 0; //Global immunity only to attacks
 				if( sd->status.karma && s_bl->type == BL_PC && ((TBL_PC*)s_bl)->status.karma )
 					state |= BCT_ENEMY; //Characters with bad karma may fight amongst them
 				if( sd->state.killable ) {

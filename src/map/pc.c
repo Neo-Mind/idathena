@@ -8438,7 +8438,8 @@ bool pc_can_attack(struct map_session_data *sd, int target_id)
 {
 	nullpo_retr(false, sd);
 
-	if( sd->sc.data[SC_TRICKDEAD] ||
+	if( sd->sc.count &&
+		(sd->sc.data[SC_TRICKDEAD] ||
 		sd->sc.data[SC_BLADESTOP] ||
 		sd->sc.data[SC_BASILICA] ||
 		(sd->sc.data[SC_GRAVITATION] && sd->sc.data[SC_GRAVITATION]->val3 == BCT_SELF) ||
@@ -8450,8 +8451,9 @@ bool pc_can_attack(struct map_session_data *sd, int target_id)
 		sd->sc.data[SC_FALLENEMPIRE] ||
 		(sd->sc.data[SC_VOICEOFSIREN] && sd->sc.data[SC_VOICEOFSIREN]->val2 == target_id) ||
 		sd->sc.data[SC_DEEPSLEEP] ||
-		sd->sc.data[SC_ALL_RIDING] ) //The client doesn't let you, this is to make cheat-safe
-			return false;
+		sd->sc.data[SC_ALL_RIDING] || //The client doesn't let you, this is to make cheat-safe
+		sd->sc.data[SC_KINGS_GRACE]) )
+		return false;
 
 	return true;
 }
