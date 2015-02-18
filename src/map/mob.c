@@ -2048,7 +2048,7 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 
 #if PACKETVER >= 20120404
 #ifndef VISIBLE_MONSTER_HP
-	if (!(md->status.mode&MD_BOSS))
+	if (!(md->spawn && md->spawn->state.boss))
 #endif
 	{
 		int i;
@@ -2818,12 +2818,12 @@ void mob_heal(struct mob_data *md,unsigned int heal)
 
 #if PACKETVER >= 20120404
 #ifndef VISIBLE_MONSTER_HP
-	if (!(md->status.mode&MD_BOSS))
+	if (!(md->spawn && md->spawn->state.boss))
 #endif
 	{
 		int i;
 
-		for (i = 0; i < DAMAGELOG_SIZE; i++) { //Must show hp bar to all char who already hit the mob.
+		for (i = 0; i < DAMAGELOG_SIZE; i++) { //Must show hp bar to all char who already hit the mob
 			if (md->dmglog[i].id) {
 				struct map_session_data *sd = map_charid2sd(md->dmglog[i].id);
 

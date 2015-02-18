@@ -24,6 +24,7 @@
 #include "channel.h"
 #include "skill.h"
 #include "log.h"
+#include "trade.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,7 +47,6 @@ struct eventlist {
 #define GUILD_PAYEXP_LIST 8192 //The maximum number of cache
 
 //Guild EXP cache
-
 struct guild_expcache {
 	int guild_id, account_id, char_id;
 	uint64 exp;
@@ -429,12 +429,28 @@ int guild_npc_request_info(int guild_id,const char *event)
 
 		ev = (struct eventlist *)aCalloc(sizeof(struct eventlist),1);
 		memcpy(ev->name,event,strlen(event));
-		//The one in the db (if present) becomes the next event from this.
+		// The one in the db (if present) becomes the next event from this.
 		if( guild_infoevent_db->put(guild_infoevent_db, db_i2key(guild_id), db_ptr2data(ev), &prev) )
 			ev->next = db_data2ptr(&prev);
 	}
 
 	return guild_request_info(guild_id);
+}
+
+/**
+ * Close trade window if party member is kicked when trade a party bound item
+ * @param sd
+ **/
+static void guild_trade_bound_cancel(struct map_session_data *sd)
+{
+#ifdef BOUND_ITEMS
+	nullpo_retv(sd);
+
+	if( sd->state.isBoundTrading&(1<<BOUND_GUILD) )
+		trade_tradecancel(sd);
+#else
+	;
+#endif
 }
 
 // Confirmation of the character belongs to guild
@@ -770,6 +786,7 @@ int guild_leave(struct map_session_data* sd, int guild_id, int account_id, int c
 		((agit_flag || agit2_flag) && map[sd->bl.m].flag.gvg_castle && !battle_config.guild_castle_expulsion) )
 		return 0;
 
+	guild_trade_bound_cancel(sd);
 	intif_guild_leave(sd->status.guild_id,sd->status.account_id,sd->status.char_id,0,mes);
 	return 0;
 }
@@ -803,12 +820,24 @@ int guild_expulsion(struct map_session_data* sd, int guild_id, int account_id, i
 
 	//Find the member and perform expulsion
 	i = guild_getindex(g,account_id,char_id);
-	if( i != -1 && strcmp(g->member[i].name,g->master) != 0 ) //Can't expel the GL!
+	if( i != -1 && strcmp(g->member[i].name,g->master) != 0 ) { //Can't expel the GL!
+		if( tsd )
+			guild_trade_bound_cancel(tsd);
 		intif_guild_leave(g->guild_id,account_id,char_id,1,mes);
+	}
 
 	return 0;
 }
 
+/**
+ * A confirmation from inter-serv that player is kicked successfully
+ * @param guild_Id
+ * @param account_id
+ * @param char_id
+ * @param flag
+ * @param name
+ * @param mes
+ **/
 int guild_member_withdraw(int guild_id, int account_id, int char_id, int flag, const char* name, const char* mes)
 {
 	int i;
@@ -844,8 +873,8 @@ int guild_member_withdraw(int guild_id, int account_id, int char_id, int flag, c
 	//Update char, if online
 	if( sd != NULL && sd->status.guild_id == guild_id ) {
 		//Do stuff that needs the guild_id first, BEFORE we wipe it
-		if( sd->state.storage_flag == 2 ) //Close the guild storage.
-			storage_guild_storageclose(sd);
+		if( sd->state.storage_flag == 2 ) //Close the guild storage
+			gstorage_storageclose(sd);
 		guild_send_dot_remove(sd);
 		channel_pcquit(sd,3); //Leave guild and ally channel
 		sd->status.guild_id = 0;
@@ -862,7 +891,13 @@ int guild_member_withdraw(int guild_id, int account_id, int char_id, int flag, c
 }
 
 #ifdef BOUND_ITEMS
-void guild_retrieveitembound(int char_id,int aid,int guild_id)
+/**
+ * Retrieve guild bound items from kicked member
+ * @param char_id
+ * @param account_id
+ * @param guild_id
+ **/
+void guild_retrieveitembound(uint32 char_id, uint32 account_id, int guild_id)
 {
 	TBL_PC *sd = map_charid2sd(char_id);
 
@@ -872,33 +907,35 @@ void guild_retrieveitembound(int char_id,int aid,int guild_id)
 
 		j = pc_bound_chk(sd,BOUND_GUILD,idxlist);
 		if( j ) {
-			struct guild_storage* stor = guild2storage(sd->status.guild_id);
+			struct guild_storage* stor = gstorage_guild2storage(sd->status.guild_id);
 			int i;
 
-			for( i = 0; i < j; i++ ) { //Loop the matching items, guild_storage_additem takes care of opening storage
+			if( stor && stor->opened ) { //Close the storage first if someone open it
+				struct map_session_data *tsd = map_charid2sd(stor->opened);
+
+				if( tsd )
+					gstorage_storageclose(tsd);
+			}
+			for( i = 0; i < j; i++ ) { //Loop the matching items, gstorage_additem takes care of opening storage
 				if( stor )
-					guild_storage_additem(sd,stor,&sd->status.inventory[idxlist[i]],sd->status.inventory[idxlist[i]].amount);
+					gstorage_additem(sd,stor,&sd->status.inventory[idxlist[i]],sd->status.inventory[idxlist[i]].amount);
 				pc_delitem(sd,idxlist[i],sd->status.inventory[idxlist[i]].amount,0,4,LOG_TYPE_GSTORAGE);
 			}
-			storage_guild_storageclose(sd); //Close and save the storage
+			gstorage_storageclose(sd); //Close and save the storage
 		}
 	} else { //Character is offline, ask char server to do the job
-		struct guild_storage* stor = guild2storage2(guild_id);
+		struct guild_storage* stor = gstorage_get_storage(guild_id);
 		struct guild *g = guild_search(guild_id);
 
 		nullpo_retv(g);
 
-		if( stor && stor->storage_status == 1 ) { //Someone is in guild storage, close them
-			int i;
+		if( stor && stor->opened ) { //Someone is in guild storage, close them
+			struct map_session_data *tsd = map_charid2sd(stor->opened);
 
-			for( i = 0; i < g->max_member; i++ ) {
-				TBL_PC *pl_sd = g->member[i].sd;
-
-				if( pl_sd && pl_sd->state.storage_flag == 2 )
-					storage_guild_storageclose(pl_sd);
-			}
+			if( tsd )
+				gstorage_storageclose(tsd);
 		}
-		intif_itembound_req(char_id,aid,guild_id);
+		intif_itembound_guild_retrieve(char_id,account_id,guild_id);
 	}
 }
 #endif
@@ -1719,7 +1756,7 @@ int guild_broken(int guild_id,int flag)
 
 		if( sd != NULL ) {
 			if( sd->state.storage_flag == 2 )
-				storage_guild_storage_quit(sd,1);
+				gstorage_storage_quit(sd,1);
 			sd->status.guild_id = 0;
 			sd->guild = NULL;
 			sd->state.gmaster_flag = 0;
@@ -1734,7 +1771,7 @@ int guild_broken(int guild_id,int flag)
 
 	guild_db->foreach(guild_db,guild_broken_sub,guild_id);
 	castle_db->foreach(castle_db,castle_guild_broken_sub,guild_id);
-	guild_storage_delete(guild_id);
+	gstorage_delete(guild_id);
 	if( channel_config.ally_enable ) {
 		channel_delete(g->channel);
 	}
@@ -1742,7 +1779,10 @@ int guild_broken(int guild_id,int flag)
 	return 0;
 }
 
-//Changes the Guild Master to the specified player. [Skotlex]
+/** Changes the Guild Master to the specified player. [Skotlex]
+ * @param guild_id
+ * @param sd New guild master
+ **/
 int guild_gm_change(int guild_id, struct map_session_data *sd)
 {
 	struct guild *g;
@@ -1763,7 +1803,11 @@ int guild_gm_change(int guild_id, struct map_session_data *sd)
 	return 1;
 }
 
-//Notification from Char server that a guild's master has changed. [Skotlex]
+/** Notification from Char server that a guild's master has changed. [Skotlex]
+ * @param guild_id
+ * @param account_id
+ * @param char_id
+ **/
 int guild_gm_changed(int guild_id, int account_id, int char_id)
 {
 	struct guild *g;
@@ -1815,9 +1859,10 @@ int guild_gm_changed(int guild_id, int account_id, int char_id)
 	return 1;
 }
 
-/*====================================================
- * Guild disbanded
- *---------------------------------------------------*/
+/** Disband a guild
+ * @param sd Player who breaks the guild
+ * @param name Guild name
+ **/
 int guild_break(struct map_session_data *sd,char *name)
 {
 	struct guild *g;
@@ -1830,54 +1875,54 @@ int guild_break(struct map_session_data *sd,char *name)
 
 	nullpo_ret(sd);
 
-	if((g = sd->guild) == NULL)
+	if ((g = sd->guild) == NULL)
 		return 0;
 
-	if(strcmp(g->name,name) != 0)
+	if (strcmp(g->name,name) != 0)
 		return 0;
 
-	if(!sd->state.gmaster_flag)
+	if (!sd->state.gmaster_flag)
 		return 0;
 
-	for(i = 0; i < g->max_member; i++) {
-		if(g->member[i].account_id > 0 && (
+	for (i = 0; i < g->max_member; i++) {
+		if (g->member[i].account_id > 0 && (
 			g->member[i].account_id != sd->status.account_id ||
 			g->member[i].char_id != sd->status.char_id))
 			break;
 	}
 
-	if(i < g->max_member) {
+	if (i < g->max_member) {
 		clif_guild_broken(sd,2);
 		return 0;
 	}
 
 	//Regardless of char server allowing it, we clear the guild master's auras
-	if((ud = unit_bl2ud(&sd->bl))) {
+	if ((ud = unit_bl2ud(&sd->bl))) {
 		int count = 0;
 		struct skill_unit_group *group[4];
 
-		for(i = 0; i < MAX_SKILLUNITGROUP && ud->skillunit[i]; i++) {
-			switch(ud->skillunit[i]->skill_id) {
+		for (i = 0; i < MAX_SKILLUNITGROUP && ud->skillunit[i]; i++) {
+			switch (ud->skillunit[i]->skill_id) {
 				case GD_LEADERSHIP:
 				case GD_GLORYWOUNDS:
 				case GD_SOULCOLD:
 				case GD_HAWKEYES:
-					if(count == 4)
+					if (count == 4)
 						ShowWarning("guild_break:'%s' got more than 4 guild aura instances! (%d)\n",sd->status.name,ud->skillunit[i]->skill_id);
 					else
 						group[count++] = ud->skillunit[i];
 					break;
 			}
 		}
-		for(i = 0; i < count; i++)
+		for (i = 0; i < count; i++)
 			skill_delunitgroup(group[i]);
 	}
 
 #ifdef BOUND_ITEMS
 	//Guild bound item check - Removes the bound flag
 	j = pc_bound_chk(sd,BOUND_GUILD,idxlist);
-	for(i = 0; i < j; i++)
-		sd->status.inventory[idxlist[i]].bound = BOUND_NONE;
+	for (i = 0; i < j; i++)
+		pc_delitem(sd,idxlist[i],sd->status.inventory[idxlist[i]].amount,0,1,LOG_TYPE_BOUND_REMOVAL);
 #endif
 
 	intif_guild_break(g->guild_id);
@@ -1887,7 +1932,7 @@ int guild_break(struct map_session_data *sd,char *name)
 /**
  * Creates a list of guild castle IDs to be requested
  * from char-server.
- */
+ **/
 void guild_castle_map_init(void)
 {
 	int num = db_size(castle_db);
@@ -1916,7 +1961,7 @@ void guild_castle_map_init(void)
  * @param castle_id Castle ID
  * @param index Type of data to change
  * @param value New value
- */
+ **/
 int guild_castledatasave(int castle_id, int index, int value)
 {
 	struct guild_castle *gc = guild_castle_search(castle_id);
@@ -1992,7 +2037,10 @@ void guild_castle_reconnect_sub(void *key, void *data, va_list ap)
  * Saves pending guild castle data changes when char-server is
  * disconnected.
  * On reconnect pushes all changes to char-server for saving.
- */
+ * @param castle_id
+ * @param index
+ * @param value
+ **/
 void guild_castle_reconnect(int castle_id, int index, int value)
 {
 	static struct linkdb_node *gc_save_pending = NULL;
@@ -2008,42 +2056,47 @@ void guild_castle_reconnect(int castle_id, int index, int value)
 	}
 }
 
-// Load castle data then invoke OnAgitInit* on last
+/** Load castle data then invoke OnAgitInit* on last
+ * @param len
+ * @param gc Guild Castle data
+ **/
 int guild_castledataloadack(int len, struct guild_castle *gc)
 {
 	int i;
-	int n = (len-4) / sizeof(struct guild_castle);
+	int n = (len - 4) / sizeof(struct guild_castle);
 	int ev;
+
 	nullpo_ret(gc);
 
 	//Last owned castle in the list invokes ::OnAgitInit
 	for( i = n-1; i >= 0 && !(gc[i].guild_id); --i );
 	ev = i; // offset of castle or -1
 
-	if( ev < 0 ) { //No castles owned, invoke OnAgitInit as it is.
+	if( ev < 0 ) { //No castles owned, invoke OnAgitInit as it is
 		npc_event_doall("OnAgitInit");
 		npc_event_doall("OnAgitInit2");
-	}
-	else // load received castles into memory, one by one
+	} else { //Load received castles into memory, one by one
 		for( i = 0; i < n; i++, gc++ ) {
 			struct guild_castle *c = guild_castle_search(gc->castle_id);
-			if (!c) {
+
+			if( !c ) {
 				ShowError("guild_castledataloadack: castle id=%d not found.\n", gc->castle_id);
 				continue;
 			}
 
-			// update map-server castle data with new info
+			//Update map-server castle data with new info
 			memcpy(&c->guild_id, &gc->guild_id, sizeof(struct guild_castle) - offsetof(struct guild_castle, guild_id));
 
 			if( c->guild_id ) {
 				if( i != ev )
 					guild_request_info(c->guild_id);
-				else { // last owned one
+				else { //Last owned one
 					guild_npc_request_info(c->guild_id, "::OnAgitInit");
 					guild_npc_request_info(c->guild_id, "::OnAgitInit2");
 				}
 			}
 		}
+	}
 	ShowStatus("Received '"CL_WHITE"%d"CL_RESET"' guild castles from char-server.\n", n);
 	return 0;
 }
@@ -2155,7 +2208,7 @@ void guild_flag_remove(struct npc_data *nd) {
 
 /**
  * @see DBApply
- */
+ **/
 static int eventlist_db_final(DBKey key, DBData *data, va_list ap) {
 	struct eventlist *next = NULL;
 	struct eventlist *current = db_data2ptr(data);
@@ -2169,7 +2222,7 @@ static int eventlist_db_final(DBKey key, DBData *data, va_list ap) {
 
 /**
  * @see DBApply
- */
+ **/
 static int guild_expcache_db_final(DBKey key, DBData *data, va_list ap) {
 	ers_free(expcache_ers, db_data2ptr(data));
 	return 0;
@@ -2177,7 +2230,7 @@ static int guild_expcache_db_final(DBKey key, DBData *data, va_list ap) {
 
 /**
  * @see DBApply
- */
+ **/
 static int guild_castle_db_final(DBKey key, DBData *data, va_list ap) {
 	struct guild_castle* gc = db_data2ptr(data);
 	if( gc->temp_guardians )
@@ -2186,7 +2239,7 @@ static int guild_castle_db_final(DBKey key, DBData *data, va_list ap) {
 	return 0;
 }
 
-/* called when scripts are reloaded/unloaded */
+/* Called when scripts are reloaded/unloaded */
 void guild_flags_clear(void) {
 	int i;
 	for( i = 0; i < guild_flags_count; i++ ) {
@@ -2233,5 +2286,5 @@ void do_final_guild(void) {
 	guild_infoevent_db->destroy(guild_infoevent_db,eventlist_db_final);
 	ers_destroy(expcache_ers);
 
-	aFree(guild_flags); /* Never empty; Created on boot */
+	aFree(guild_flags); //Never empty; Created on boot
 }

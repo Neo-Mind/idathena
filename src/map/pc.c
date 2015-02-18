@@ -4430,8 +4430,7 @@ bool pc_takeitem(struct map_session_data *sd, struct flooritem_data *fitem)
 
 		if(DIFF_TICK(tick,fitem->first_get_tick) < 0) {
 			if(!(p && (p->party.item&1) &&
-				first_sd && first_sd->status.party_id == sd->status.party_id
-			))
+				first_sd && first_sd->status.party_id == sd->status.party_id))
 				return false;
 		} else if(fitem->second_get_charid > 0 && fitem->second_get_charid != sd->status.char_id) {
 			struct map_session_data *second_sd = map_charid2sd(fitem->second_get_charid);
@@ -4439,8 +4438,7 @@ bool pc_takeitem(struct map_session_data *sd, struct flooritem_data *fitem)
 			if(DIFF_TICK(tick, fitem->second_get_tick) < 0) {
 				if(!(p && (p->party.item&1) &&
 					((first_sd && first_sd->status.party_id == sd->status.party_id) ||
-					(second_sd && second_sd->status.party_id == sd->status.party_id))
-				))
+					(second_sd && second_sd->status.party_id == sd->status.party_id))))
 					return false;
 			} else if(fitem->third_get_charid > 0 && fitem->third_get_charid != sd->status.char_id) {
 				struct map_session_data *third_sd = map_charid2sd(fitem->third_get_charid);
@@ -4449,21 +4447,20 @@ bool pc_takeitem(struct map_session_data *sd, struct flooritem_data *fitem)
 					if(!(p && (p->party.item&1) &&
 						((first_sd && first_sd->status.party_id == sd->status.party_id) ||
 						(second_sd && second_sd->status.party_id == sd->status.party_id) ||
-						(third_sd && third_sd->status.party_id == sd->status.party_id))
-					))
+						(third_sd && third_sd->status.party_id == sd->status.party_id))))
 						return false;
 				}
 			}
 		}
 	}
 
-	//This function takes care of giving the item to whoever should have it, considering party-share options.
+	//This function takes care of giving the item to whoever should have it, considering party-share options
 	if((flag = party_share_loot(p,sd,&fitem->item, fitem->first_get_charid))) {
 		clif_additem(sd,0,0,flag);
 		return true;
 	}
 
-	//Display pickup animation.
+	//Display pickup animation
 	pc_stop_attack(sd);
 	clif_takeitem(&sd->bl,&fitem->bl);
 	map_clearflooritem(&fitem->bl);

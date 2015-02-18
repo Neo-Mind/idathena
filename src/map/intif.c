@@ -39,7 +39,7 @@ static const int packet_len_table[] = {
 	39,-1,15,15, 14,19, 7,-1,  0, 0, 0, 0,  0, 0,  0, 0, //0x3820
 	10,-1,15, 0, 79,19, 7,-1,  0,-1,-1,-1, 14,67,186,-1, //0x3830
 	-1, 0, 0,14,  0, 0, 0, 0, -1,74,-1,11, 11,-1,  0, 0, //0x3840
-	-1,-1, 7, 7,  7,11, 8, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3850  Auctions [Zephyrus] itembound [Akinari]
+	-1,-1, 7, 7,  7,11, 8,-1,  0, 0, 0, 0,  0, 0,  0, 0, //0x3850  Auctions [Zephyrus] itembound [Akinari]
 	-1, 7, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3860  Quests [Kevin] [Inkfish]
 	-1, 3, 3, 0,  0, 0, 0, 0,  0, 0, 0, 0, -1, 3,  3, 0, //0x3870  Mercenaries [Zephyrus] / Elemental [pakpil]
 	12,-1, 7, 3,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3880
@@ -1433,16 +1433,16 @@ int intif_parse_LoadGuildStorage(int fd)
 	sd = map_id2sd(RFIFOL(fd,4));
 	if (flag) { //If flag != 0, we attach a player and open the storage
 		if (sd == NULL) {
-			ShowError("intif_parse_LoadGuildStorage: user not found %d\n", RFIFOL(fd,4));
+			ShowError("intif_parse_LoadGuildStorage: user not found (AID: %d)\n", RFIFOL(fd,4));
 			return 0;
 		}
 	}
-	gstor = guild2storage(guild_id);
+	gstor = gstorage_guild2storage(guild_id);
 	if (!gstor) {
 		ShowWarning("intif_parse_LoadGuildStorage: error guild_id %d not exist\n", guild_id);
 		return 0;
 	}
-	if (gstor->storage_status == 1) { //Already open.. lets ignore this update
+	if (gstor->opened) { //Already open, lets ignore this update
 		ShowWarning("intif_parse_LoadGuildStorage: storage received for a client already open (User %d:%d)\n", (flag ? sd->status.account_id : 1), (flag ? sd->status.char_id : 1));
 		return 0;
 	}
@@ -1452,13 +1452,13 @@ int intif_parse_LoadGuildStorage(int fd)
 	}
 	if (RFIFOW(fd,2) - 13 != sizeof(struct guild_storage)) {
 		ShowError("intif_parse_LoadGuildStorage: data size error %d %d\n", RFIFOW(fd,2) - 13 , sizeof(struct guild_storage));
-		gstor->storage_status = 0;
+		gstor->opened = 0;
 		return 0;
 	}
 
 	memcpy(gstor,RFIFOP(fd,13),sizeof(struct guild_storage));
 	if (flag)
-		storage_guild_storageopen(sd);
+		gstorage_storageopen(sd);
 
 	return 1;
 }
@@ -1470,7 +1470,7 @@ int intif_parse_LoadGuildStorage(int fd)
  */
 int intif_parse_SaveGuildStorage(int fd)
 {
-	storage_guild_storagesaved(/*RFIFOL(fd,2), */RFIFOL(fd,6));
+	gstorage_storagesaved(/*RFIFOL(fd,2), */RFIFOL(fd,6));
 	return 1;
 }
 
@@ -2907,7 +2907,8 @@ int intif_parse_elemental_saved(int fd)
  * @param query : name or aid of player we want info
  * @return : 0 = Error, 1 = Msg sent
  */
-int intif_request_accinfo(int u_fd, int aid, int group_lv, char* query) {
+int intif_request_accinfo(int u_fd, int aid, int group_lv, char* query)
+{
 	if (CheckForCharServer())
 		return 0;
 
@@ -2926,7 +2927,8 @@ int intif_request_accinfo(int u_fd, int aid, int group_lv, char* query) {
  * Display a message from char-serv to a player
  * @param fd : Char-serv link
  */
-void intif_parse_MessageToFD(int fd) {
+void intif_parse_MessageToFD(int fd)
+{
 	int u_fd = RFIFOL(fd,4);	
 
 	if (session[u_fd] && session[u_fd]->session_data) { //Check if the player still online
@@ -2951,13 +2953,15 @@ void intif_parse_MessageToFD(int fd) {
 
 #ifdef BOUND_ITEMS
 /**
- * Request char-serv to delete some bound item, for non connected cid
+ * ZI 0x3056 <char_id>.L <account_id>.L <guild_id>.W
+ * Request inter-serv to delete some bound item, for non connected cid
  * @param char_id : Char to delete item ID
- * @param aid : Account to delete item ID
+ * @param account_id : Account to delete item ID
  * @param guild_id : Guild of char
- */
-void intif_itembound_req(int char_id,int aid,int guild_id) {
-	struct guild_storage *gstor = guild2storage2(guild_id);
+ **/
+void intif_itembound_guild_retrieve(uint32 char_id, uint32 account_id, int guild_id)
+{
+	struct guild_storage *gstor = gstorage_get_storage(guild_id);
 
 	if (CheckForCharServer())
 		return;
@@ -2965,11 +2969,12 @@ void intif_itembound_req(int char_id,int aid,int guild_id) {
 	WFIFOHEAD(inter_fd,12);
 	WFIFOW(inter_fd,0) = 0x3056;
 	WFIFOL(inter_fd,2) = char_id;
-	WFIFOL(inter_fd,6) = aid;
+	WFIFOL(inter_fd,6) = account_id;
 	WFIFOW(inter_fd,10) = guild_id;
 	WFIFOSET(inter_fd,12);
 	if (gstor)
-		gstor->lock = 1; //Lock for retrieval process
+		gstor->locked = true; //Lock for retrieval process
+	ShowInfo("Request guild bound item(s) retrieval for CID = "CL_WHITE"%d"CL_RESET", AID = %d, Guild ID = "CL_WHITE"%d"CL_RESET".\n", char_id, account_id, guild_id);
 }
 
 /**
@@ -2978,12 +2983,44 @@ void intif_itembound_req(int char_id,int aid,int guild_id) {
  * @struct : 0x3856 <aid>.L <gid>.W
  * @param fd : Char-serv link
  */
-void intif_parse_itembound_ack(int fd) {
+void intif_parse_itembound_ack(int fd)
+{
 	int guild_id = RFIFOW(fd,6);
-	struct guild_storage *gstor = guild2storage2(guild_id);
+	struct guild_storage *gstor = gstorage_get_storage(guild_id);
 
 	if (gstor)
-		gstor->lock = 0; //Unlock now that operation is completed
+		gstor->locked = false; //Unlock now that operation is completed
+}
+
+/**
+ * IZ 0x3857 <size>.W <count>.W <guild_id>.W { <item>.?B }.*MAX_INVENTORY
+ * Received the retrieved guild bound items from inter-server, store them to guild storage.
+ * @param fd
+ * @author [Cydh]
+ **/
+void intif_parse_itembound_store2gstorage(int fd)
+{
+	unsigned short i, failed = 0;
+	short count = RFIFOW(fd,4), guild_id = RFIFOW(fd,6);
+	struct guild_storage *gstor = gstorage_guild2storage(guild_id);
+
+	if (!gstor) {
+		ShowError("intif_parse_itembound_store2gstorage: Guild '%d' not found.\n", guild_id);
+		return;
+	}
+
+	//@TODO: Gives some actions for item(s) that cannot be stored because storage is full or reach the limit of stack amount
+	for (i = 0; i < count; i++) {
+		struct item *item = (struct item *)RFIFOP(fd, 8 + i * sizeof(struct item));
+
+		if (!item)
+			continue;
+		if (!gstorage_additem2(gstor, item, item->amount))
+			failed++;
+	}
+	ShowInfo("Retrieved '"CL_WHITE"%d"CL_RESET"' (failed: %d) guild bound item(s) for Guild ID = "CL_WHITE"%d"CL_RESET".\n", count, failed, guild_id);
+	gstor->locked = false;
+	gstor->opened = 0;
 }
 #endif
 
@@ -3071,6 +3108,7 @@ int intif_parse(int fd)
 		//Bound items
 #ifdef BOUND_ITEMS
 		case 0x3856:	intif_parse_itembound_ack(fd); break;
+		case 0x3857:	intif_parse_itembound_store2gstorage(fd); break;
 #endif
 
 		//Quest system

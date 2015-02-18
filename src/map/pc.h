@@ -229,6 +229,7 @@ struct map_session_data {
 		unsigned int hpmeter_visible : 1;
 		unsigned int banking : 1; //When 1, we using the banking system, when 0, closed
 		unsigned disable_atcommand_on_npc : 1; //Prevent to use atcommand while talking with NPC [Kichi]
+		uint8 isBoundTrading; //Player is currently add bound item to trade list [Cydh]
 	} state;
 	struct {
 		unsigned char no_weapon_damage, no_magic_damage, no_misc_damage;

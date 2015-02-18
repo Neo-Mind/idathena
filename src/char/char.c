@@ -160,6 +160,7 @@ struct char_session_data {
 	uint8 isvip;
 	time_t unban_time[MAX_CHARS];
 	int charblock_timer;
+	uint8 flag; // &1 - Retrieving guild bound items
 };
 
 struct startitem {
@@ -2161,16 +2162,36 @@ void disconnect_player(int account_id)
 	struct char_session_data* sd;
 
 	//Disconnect player if online on char-server
-	ARR_FIND( 0, fd_max, i, session[i] && (sd = (struct char_session_data*)session[i]->session_data) && sd->account_id == account_id );
-	if( i < fd_max )
+	ARR_FIND(0, fd_max, i, session[i] && (sd = (struct char_session_data*)session[i]->session_data) && sd->account_id == account_id);
+	if (i < fd_max)
 		set_eof(i);
+}
+
+/**
+ * Set 'flag' value of char_session_data
+ * @param account_id
+ * @param value
+ * @param set True: set the value by using '|= val', False: unset the value by using '&= ~val'
+ **/
+void set_session_flag_(int account_id, int val, bool set)
+{
+	int i;
+	struct char_session_data* sd;
+
+	ARR_FIND(0, fd_max, i, session[i] && (sd = (struct char_session_data*)session[i]->session_data) && sd->account_id == account_id);
+	if (i < fd_max) {
+		if (set)
+			sd->flag |= val;
+		else
+			sd->flag &= ~val;
+	}
 }
 
 static void char_auth_ok(int fd, struct char_session_data *sd)
 {
 	struct online_char_data* character;
 
-	if( (character = (struct online_char_data*)idb_get(online_char_db, sd->account_id)) != NULL ) {
+	if ((character = (struct online_char_data*)idb_get(online_char_db, sd->account_id)) != NULL) {
 		//Check if character is not online already. [Skotlex]
 		if (character->server > -1) { //Character already online. KICK KICK KICK
 			mapif_disconnectplayer(server[character->server].fd, character->account_id, character->char_id, 2);
@@ -4356,18 +4377,27 @@ int parse_char(int fd)
 					if( SQL_SUCCESS != Sql_Query(sql_handle,"SELECT `char_id` FROM `%s` WHERE `account_id`='%d' AND `char_num`='%d'",char_db,sd->account_id,slot)
 					|| SQL_SUCCESS != Sql_NextRow(sql_handle)
 					|| SQL_SUCCESS != Sql_GetData(sql_handle,0,&data,NULL) )
-					{ //Not found? May be forged packet.
+					{ //Not found? May be forged packet
 						Sql_ShowDebug(sql_handle);
 						Sql_FreeResult(sql_handle);
 						WFIFOHEAD(fd,3);
 						WFIFOW(fd,0) = 0x6c;
-						WFIFOB(fd,2) = 0; //rejected from server
+						WFIFOB(fd,2) = 0; //Rejected from server
 						WFIFOSET(fd,3);
 						break;
 					}
 
 					char_id = atoi(data);
 					Sql_FreeResult(sql_handle);
+
+					//Prevent select a char while retrieving guild bound items
+					if( sd->flag&1 ) {
+						WFIFOHEAD(fd,3);
+						WFIFOW(fd,0) = 0x6c;
+						WFIFOB(fd,2) = 0; //Rejected from server
+						WFIFOSET(fd,3);
+						break;
+					}
 
 					/* Client doesn't let it get to this point if you're banned, so its a forged packet */
 					if( sd->found_char[slot] == char_id && sd->unban_time[slot] > time(NULL) ) {

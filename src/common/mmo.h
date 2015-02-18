@@ -266,7 +266,7 @@ struct skill_cooldown_data {
   long tick;
 };
 
-//For saving status changes across sessions. [Skotlex]
+//For saving status changes across sessions [Skotlex]
 struct status_change_data {
 	unsigned short type; //SC_type
 	long val1, val2, val3, val4, tick; //Remaining duration.
@@ -277,13 +277,14 @@ struct storage_data {
 	struct item items[MAX_STORAGE];
 };
 
+//Guild storgae struct
 struct guild_storage {
-	int dirty;
-	int guild_id;
-	short storage_status;
-	short storage_amount;
-	struct item items[MAX_GUILD_STORAGE];
-	unsigned short lock;
+	bool dirty; //Dirty status, need to be saved
+	int guild_id; //Guild ID
+	short storage_amount; //Amount of item on storage
+	struct item items[MAX_GUILD_STORAGE]; //Item entries
+	bool locked; //If locked, can't use storage when item bound retrieval
+	uint32 opened; //Holds the char_id that open the storage
 };
 
 struct s_pet {

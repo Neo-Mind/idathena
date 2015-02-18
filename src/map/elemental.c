@@ -314,7 +314,7 @@ int elemental_clean_single_effect(struct elemental_data *ed, uint16 skill_id) {
 
 	if( type ) {
 		switch( type ) {
-			// Just remove status change.
+			// Just remove status change
 			case SC_PYROTECHNIC_OPTION:
 			case SC_HEATER_OPTION:
 			case SC_TROPIC_OPTION:

@@ -44,6 +44,9 @@ int mapif_send(int fd,unsigned char *buf,unsigned int len);
 void mapif_on_parse_accinfo(int account_id,int u_fd, int aid, int castergroup, int map_fd);
 
 void disconnect_player(int account_id);
+void set_session_flag_(int account_id, int val, bool set);
+#define set_session_flag(account_id, val)   ( set_session_flag_((account_id), (val), true)  )
+#define unset_session_flag(account_id, val) ( set_session_flag_((account_id), (val), false) )
 
 int char_married(int pl1,int pl2);
 int char_child(int parent_id, int child_id);

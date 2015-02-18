@@ -4428,7 +4428,7 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 				}
 #if PACKETVER >= 20120404
 #ifndef VISIBLE_MONSTER_HP
-				if (!(md->status.mode&MD_BOSS))
+				if (!(md->spawn && md->spawn->state.boss))
 #endif
 				{
 					int i;
@@ -8942,7 +8942,7 @@ void clif_refresh_storagewindow(struct map_session_data *sd) {
 	// Notify the client that the gstorage is open otherwise it will
 	// remain locked forever and nobody will be able to access it
 	if( sd->state.storage_flag == 2 ) {
-		struct guild_storage *gstor = guild2storage2(sd->status.guild_id);
+		struct guild_storage *gstor = gstorage_get_storage(sd->status.guild_id);
 
 		if( !gstor ) // Shouldn't happen. The information should already be at the map-server
 			intif_request_guild_storage(sd->status.account_id, sd->status.guild_id);
@@ -12201,7 +12201,7 @@ void clif_parse_MoveToKafra(int fd, struct map_session_data *sd)
 	if (sd->state.storage_flag == 1)
 		storage_storageadd(sd, item_index, item_amount);
 	else if (sd->state.storage_flag == 2)
-		storage_guild_storageadd(sd, item_index, item_amount);
+		gstorage_storageadd(sd, item_index, item_amount);
 }
 
 
@@ -12220,7 +12220,7 @@ void clif_parse_MoveFromKafra(int fd,struct map_session_data *sd)
 	if (sd->state.storage_flag == 1)
 		storage_storageget(sd, item_index, item_amount);
 	else if(sd->state.storage_flag == 2)
-		storage_guild_storageget(sd, item_index, item_amount);
+		gstorage_storageget(sd, item_index, item_amount);
 }
 
 
@@ -12241,7 +12241,7 @@ void clif_parse_MoveToKafraFromCart(int fd, struct map_session_data *sd)
 	if (sd->state.storage_flag == 1)
 		storage_storageaddfromcart(sd, idx, amount);
 	else if (sd->state.storage_flag == 2)
-		storage_guild_storageaddfromcart(sd, idx, amount);
+		gstorage_storageaddfromcart(sd, idx, amount);
 }
 
 
@@ -12261,7 +12261,7 @@ void clif_parse_MoveFromKafraToCart(int fd, struct map_session_data *sd)
 	if (sd->state.storage_flag == 1)
 		storage_storagegettocart(sd, idx, amount);
 	else if (sd->state.storage_flag == 2)
-		storage_guild_storagegettocart(sd, idx, amount);
+		gstorage_storagegettocart(sd, idx, amount);
 }
 
 
@@ -12272,7 +12272,7 @@ void clif_parse_CloseKafra(int fd, struct map_session_data *sd)
 	if( sd->state.storage_flag == 1 )
 		storage_storageclose(sd);
 	else if( sd->state.storage_flag == 2 )
-		storage_guild_storageclose(sd);
+		gstorage_storageclose(sd);
 }
 
 
