@@ -10462,8 +10462,8 @@ int status_change_clear(struct block_list* bl,int type)
 		status_change_end(bl,(sc_type)i,INVALID_TIMER);
 
 		if(type == 1 && sc->data[i]) {
-			//If for some reason status_change_end decides to still keep the status when quitting. [Skotlex]
-			(sc->count)--;
+			//If for some reason status_change_end decides to still keep the status when quitting [Skotlex]
+			sc->count--;
 			if(sc->data[i]->timer != INVALID_TIMER)
 				delete_timer(sc->data[i]->timer,status_change_timer);
 			ers_free(sc_data_ers,sc->data[i]);
@@ -10526,14 +10526,14 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				//delays status change ending so that a skill that sets opt1 fails to
 				//trigger when it also removed one
 				case SC_STONE:
-					sce->val3 = 0; //Petrify time counter.
+					sce->val3 = 0; //Petrify time counter
 				case SC_FREEZE:
 				case SC_STUN:
 				case SC_SLEEP:
 					if (sce->val1) {
 						//Removing the 'level' shouldn't affect anything in the code
 						//since these SC are not affected by it, and it lets us know
-						//if we have already delayed this attack or not.
+						//if we have already delayed this attack or not
 						sce->val1 = 0;
 						sce->timer = add_timer(gettick() + 10,status_change_timer,bl->id,type);
 						return 1;
@@ -10541,7 +10541,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			}
 	}
 
-	(sc->count)--;
+	sc->count--;
 
 	if (StatusChangeStateTable[type])
 		status_calc_state(bl,sc,(enum scs_flag)StatusChangeStateTable[type],false);

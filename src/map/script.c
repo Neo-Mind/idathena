@@ -17486,7 +17486,7 @@ BUILDIN_FUNC(setmounting) {
 	if( (sd = script_rid2sd(st)) == NULL )
 		return 0;
 	if( sd->sc.option && (sd->sc.option&(OPTION_WUGRIDER|OPTION_RIDING|OPTION_DRAGON|OPTION_MADOGEAR)) ) {
-		clif_msgtable(sd->fd,ITEM_NEED_REINS_OF_MOUNT);
+		clif_msg(sd,ITEM_NEED_REINS_OF_MOUNT);
 		script_pushint(st,0); //Can't mount with one of these
 	} else {
 		if( sd->sc.data[SC_ALL_RIDING] )

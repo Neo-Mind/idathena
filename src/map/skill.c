@@ -6469,7 +6469,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case MO_ABSORBSPIRITS:
-			if (dstsd && (sd == dstsd || map_flag_vs(src->m) || (sd->duel_group && sd->duel_group == dstsd->duel_group)) &&
+			if (sd && dstsd && (sd == dstsd || map_flag_vs(src->m) || (sd->duel_group && sd->duel_group == dstsd->duel_group)) &&
 				((dstsd->class_&MAPID_BASEMASK) != MAPID_GUNSLINGER || (dstsd->class_&MAPID_UPPERMASK) != MAPID_REBELLION)) {
 				//Split the if for readability, and included gunslingers in the check so that their coins cannot be removed [Reddozen]
 				if (dstsd->spiritball) {
@@ -18426,7 +18426,7 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 			for( i = 0; i < MAX_INVENTORY; i++ ) {
 				if( sd->status.inventory[i].nameid == nameid ) {
 					if( sd->status.inventory[i].amount >= data->stack.amount ) {
-						clif_msgtable(sd->fd,RUNE_CANT_CREATE);
+						clif_msg(sd,RUNE_CANT_CREATE);
 						return false;
 					} else { //The amount fits, say we got temp_qty 4 and 19 runes, we trim temp_qty to 1.
 						if( temp_qty + sd->status.inventory[i].amount >= data->stack.amount )

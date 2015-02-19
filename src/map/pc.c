@@ -1045,11 +1045,15 @@ uint8 pc_isequip(struct map_session_data *sd, int n)
 	if(item == NULL)
 		return ITEM_EQUIP_ACK_FAIL;
 
-	if(item->elv && sd->status.base_level < (unsigned int)item->elv)
+	if(item->elv && sd->status.base_level < (unsigned int)item->elv) {
+		clif_msg(sd,ITEM_CANT_EQUIP_NEED_LEVEL);
 		return ITEM_EQUIP_ACK_FAILLEVEL;
+	}
 
-	if(item->elvmax && sd->status.base_level > (unsigned int)item->elvmax)
+	if(item->elvmax && sd->status.base_level > (unsigned int)item->elvmax) {
+		clif_msg(sd,ITEM_CANT_EQUIP_NEED_LEVEL);
 		return ITEM_EQUIP_ACK_FAILLEVEL;
+	}
 
 	if(item->sex != 2 && sd->status.sex != item->sex)
 		return ITEM_EQUIP_ACK_FAIL;
@@ -4518,7 +4522,7 @@ bool pc_isUseitem(struct map_session_data *sd, int n)
 		return false;
 
 	if( (item->item_usage.flag&INR_SITTING) && (pc_issit(sd) == 1) && (pc_get_group_level(sd) < item->item_usage.override) ) {
-		clif_msgtable(sd->fd,ITEM_NOUSE_SITTING); // You cannot use this item while sitting.
+		clif_msg(sd,ITEM_NOUSE_SITTING); // You cannot use this item while sitting.
 		return false;
 	}
 
@@ -4615,7 +4619,7 @@ bool pc_isUseitem(struct map_session_data *sd, int n)
 	if( item->flag.group ||
 		item->type == IT_CASH ) { //Safe check type cash disappear when overweight [Napster]
 		if( pc_is90overweight(sd) ) {
-			clif_msgtable(sd->fd,ITEM_CANT_OBTAIN_WEIGHT);
+			clif_msg(sd,ITEM_CANT_OBTAIN_WEIGHT);
 			return false;
 		}
 		if( !pc_inventoryblank(sd) ) {
@@ -4629,11 +4633,15 @@ bool pc_isUseitem(struct map_session_data *sd, int n)
 		return false;
 
 	//Required level check
-	if( item->elv && sd->status.base_level < (unsigned int)item->elv )
+	if( item->elv && sd->status.base_level < (unsigned int)item->elv ) {
+		clif_msg(sd,ITEM_CANT_USE_NEED_LEVEL);
 		return false;
+	}
 
-	if( item->elvmax && sd->status.base_level > (unsigned int)item->elvmax )
+	if( item->elvmax && sd->status.base_level > (unsigned int)item->elvmax ) {
+		clif_msg(sd,ITEM_CANT_USE_NEED_LEVEL);
 		return false;
+	}
 
 	//Not equipable by class. [Skotlex]
 	if( !((1<<(sd->class_&MAPID_BASEMASK))&(item->class_base[sd->class_&JOBL_2_1 ? 1 : (sd->class_&JOBL_2_2 ? 2 : 0)])) )
@@ -4686,7 +4694,7 @@ int pc_useitem(struct map_session_data *sd, int n)
 
 	if( sd->npc_id ) { //This flag enables you to use items while in an NPC [Skotlex]
 #ifdef RENEWAL
-		clif_msg(sd, USAGE_FAIL); //@TODO look for the client date that has this message
+		clif_msg(sd,USAGE_FAIL); //@TODO look for the client date that has this message
 		return 0;
 #else
 		if( !sd->npc_item_flag )
