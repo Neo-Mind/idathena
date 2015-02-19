@@ -1063,11 +1063,11 @@ uint8 pc_isequip(struct map_session_data *sd, int n)
 			clif_msg(sd,ITEM_NEED_MADOGEAR); //Item can only be used when Mado Gear is mounted.
 			return ITEM_EQUIP_ACK_FAIL;
 		}
-		//NOTE: This behavior will make char failed to connect if there's ammo equipped. Figure this out!
-		/*if(!pc_iscarton(sd) && (sd->status.class_ == JOB_GENETIC_T || sd->status.class_ == JOB_GENETIC)) {
+		if((sd->state.active && !pc_iscarton(sd)) && //Check if sc data is already loaded
+			(sd->status.class_ == JOB_GENETIC_T || sd->status.class_ == JOB_GENETIC)) {
 			clif_msg(sd,ITEM_NEED_CART); //Only available when cart is mounted.
 			return ITEM_EQUIP_ACK_FAIL;
-		}*/
+		}
 	}
 
 	if(sd->sc.count) {
