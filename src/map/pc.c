@@ -1059,15 +1059,16 @@ uint8 pc_isequip(struct map_session_data *sd, int n)
 			clif_msg(sd,ITEM_NEED_MADOGEAR); //Item can only be used when Mado Gear is mounted.
 			return ITEM_EQUIP_ACK_FAIL;
 		}
-		if(!pc_iscarton(sd) && (sd->status.class_ == JOB_GENETIC_T || sd->status.class_ == JOB_GENETIC)) {
+		//NOTE: This behavior will make char failed to connect if there's ammo equipped. Figure this out!
+		/*if(!pc_iscarton(sd) && (sd->status.class_ == JOB_GENETIC_T || sd->status.class_ == JOB_GENETIC)) {
 			clif_msg(sd,ITEM_NEED_CART); //Only available when cart is mounted.
 			return ITEM_EQUIP_ACK_FAIL;
-		}
+		}*/
 	}
 
-	if(sd->sc.count) { // Also works with left-hand weapons [DracoRPG]
+	if(sd->sc.count) {
 		if((item->equip&EQP_ARMS) && item->type == IT_WEAPON && sd->sc.data[SC_STRIPWEAPON])
-			return ITEM_EQUIP_ACK_FAIL;
+			return ITEM_EQUIP_ACK_FAIL; //Also works with left-hand weapons [DracoRPG]
 		if((item->equip&EQP_SHIELD) && item->type == IT_ARMOR && sd->sc.data[SC_STRIPSHIELD])
 			return ITEM_EQUIP_ACK_FAIL;
 		if((item->equip&EQP_ARMOR) && sd->sc.data[SC_STRIPARMOR])
@@ -5214,9 +5215,8 @@ char pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int 
 			status_change_end(&sd->bl, SC_PROPERTYWALK, INVALID_TIMER);
 		}
 		for( i = 0; i < EQI_MAX; i++ )
-			if( sd->equip_index[i] >= 0 )
-				if( pc_isequip(sd, sd->equip_index[i]) )
-					pc_unequipitem(sd, sd->equip_index[i], 2);
+			if( sd->equip_index[i] >= 0 && pc_isequip(sd, sd->equip_index[i]) )
+				pc_unequipitem(sd, sd->equip_index[i], 2);
 		if( battle_config.clear_unit_onwarp&BL_PC )
 			skill_clear_unitgroup(&sd->bl);
 		party_send_dot_remove(sd); // Minimap dot fix [Kevin]
@@ -6182,9 +6182,9 @@ void pc_baselevelchanged(struct map_session_data *sd) {
 	uint8 i;
 
 	for (i = 0; i < EQI_MAX; i++)
-		if (sd->equip_index[i] >= 0)
-			if (sd->inventory_data[sd->equip_index[i]]->elvmax && sd->status.base_level > (unsigned int)sd->inventory_data[sd->equip_index[i]]->elvmax)
-				pc_unequipitem(sd, sd->equip_index[i], 3);
+		if (sd->equip_index[i] >= 0 &&
+			sd->inventory_data[sd->equip_index[i]]->elvmax && sd->status.base_level > (unsigned int)sd->inventory_data[sd->equip_index[i]]->elvmax)
+			pc_unequipitem(sd, sd->equip_index[i], 3);
 }
 
 int pc_checkjoblevelup(struct map_session_data *sd)
@@ -6798,9 +6798,8 @@ int pc_resetlvl(struct map_session_data* sd,int type)
 	clif_updatestatus(sd, SP_ULUK); //End Addition
 
 	for (i = 0; i < EQI_MAX; i++) //Unequip items that can't be equipped by base 1 [Valaris]
-		if (sd->equip_index[i] >= 0)
-			if (pc_isequip(sd, sd->equip_index[i]))
-				pc_unequipitem(sd, sd->equip_index[i], 2);
+		if (sd->equip_index[i] >= 0 && pc_isequip(sd, sd->equip_index[i]))
+			pc_unequipitem(sd, sd->equip_index[i], 2);
 
 	if ((type == 1 || type == 2 || type == 3) && sd->status.party_id)
 		party_send_levelup(sd);
@@ -8093,9 +8092,8 @@ bool pc_jobchange(struct map_session_data *sd,int job, char upper)
 	clif_updatestatus(sd,SP_NEXTJOBEXP);
 
 	for (i = 0; i < EQI_MAX; i++)
-		if (sd->equip_index[i] >= 0)
-			if (pc_isequip(sd,sd->equip_index[i]))
-				pc_unequipitem(sd,sd->equip_index[i],2); //Unequip invalid item for class
+		if (sd->equip_index[i] >= 0 && pc_isequip(sd,sd->equip_index[i]))
+			pc_unequipitem(sd,sd->equip_index[i],2); //Unequip invalid item for class
 
 	//Change look, if disguised, you need to undisguise
 	//to correctly calculate new job sprite without
@@ -8132,7 +8130,7 @@ bool pc_jobchange(struct map_session_data *sd,int job, char upper)
 		i &= ~OPTION_WUGRIDER;
 	if (i&OPTION_WUG && !pc_checkskill(sd,RA_WUGMASTERY))
 		i &= ~OPTION_WUG;
-	if (i&OPTION_MADOGEAR) //You do not need a skill for this.
+	if (i&OPTION_MADOGEAR) //You do not need a skill for this
 		i &= ~OPTION_MADOGEAR;
 #ifndef NEW_CARTS
 	if (i&OPTION_CART && !pc_checkskill(sd,MC_PUSHCART))
@@ -8383,7 +8381,7 @@ bool pc_setcart(struct map_session_data *sd,int type) {
 			if( !sd->sc.data[SC_PUSH_CART] ) //First time, so fill cart data
 				clif_cartlist(sd);
 			clif_updatestatus(sd,SP_CARTINFO);
-			sc_start(&sd->bl,&sd->bl,SC_PUSH_CART,100,type,0);
+			sc_start(&sd->bl,&sd->bl,SC_PUSH_CART,100,type,INVALID_TIMER);
 			clif_efst_status_change(&sd->bl,sd->bl.id,AREA,SI_ON_PUSH_CART,type,0,0);
 			if( sd->sc.data[SC_PUSH_CART] ) //Forcefully update
 				sd->sc.data[SC_PUSH_CART]->val1 = type;
@@ -9175,7 +9173,7 @@ bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
 		sd->status.inventory[n].bound = (char)battle_config.default_bind_on_equip;
 		clif_notify_bindOnEquip(sd,n);
 	}
-	if( pos == EQP_ACC ) { //Accesories should only go in one of the two,
+	if( pos == EQP_ACC ) { //Accesories should only go in one of the two
 		pos = req_pos&EQP_ACC;
 		if( pos == EQP_ACC ) //User specified both slots
 			pos = (sd->equip_index[EQI_ACC_R] >= 0 ? EQP_ACC_L : EQP_ACC_R);
@@ -9207,9 +9205,8 @@ bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
 	}
 	for( i = 0; i < EQI_MAX; i++ ) {
 		if( pos&equip_pos[i] ) {
-			if( sd->equip_index[i] >= 0 ) //Slot taken, remove item from there.
+			if( sd->equip_index[i] >= 0 ) //Slot taken, remove item from there
 				pc_unequipitem(sd,sd->equip_index[i],2);
-
 			sd->equip_index[i] = n;
 		}
 	}

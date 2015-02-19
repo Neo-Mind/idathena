@@ -1823,14 +1823,13 @@ int map_quit(struct map_session_data *sd) {
 	}
 
 	for (i = 0; i < EQI_MAX; i++)
-		if (sd->equip_index[i] >= 0)
-			if (pc_isequip(sd, sd->equip_index[i]))
-				pc_unequipitem(sd, sd->equip_index[i], 2);
+		if (sd->equip_index[i] >= 0 && pc_isequip(sd, sd->equip_index[i]))
+			pc_unequipitem(sd, sd->equip_index[i], 2);
 
 	if (sd->pd) //Return loot to owner
 		pet_lootitem_drop(sd->pd,sd);
 
-	if (sd->state.storage_flag == 1) //No need to double save storage on quit.
+	if (sd->state.storage_flag == 1) //No need to double save storage on quit
 		sd->state.storage_flag = 0;
 
 	if (map[sd->bl.m].instance_id)

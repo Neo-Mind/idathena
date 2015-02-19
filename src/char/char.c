@@ -3611,7 +3611,7 @@ int parse_frommap(int fd)
 							WFIFOW(fd,2) = 14 + count * sizeof(struct skill_cooldown_data);
 							WFIFOW(fd,12) = count;
 							WFIFOSET(fd,WFIFOW(fd,2));
-							//Clear the data once loaded.
+							//Clear the data once loaded
 							if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_id`='%d'", skillcooldown_db, aid, cid) )
 								Sql_ShowDebug(sql_handle);
 						}
@@ -3767,7 +3767,7 @@ int parse_frommap(int fd)
 				RFIFOSKIP(fd,2);
 				break;
 
-			case 0x2b1c: //Request to save status change data. [Skotlex]
+			case 0x2b1c: //Request to save status change data [Skotlex]
 				if( RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2) )
 					return 0;
 				{
@@ -5304,7 +5304,7 @@ void bonus_script_get(int fd) {
 				WFIFOW(fd,8) = count;
 				WFIFOSET(fd,WFIFOW(fd,2));
 
-				//Clear the data once loaded.
+				//Clear the data once loaded
 				if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", bonus_script_db, cid) )
 					Sql_ShowDebug(sql_handle);
 				ShowInfo("Loaded %d bonus_script for char_id: %d\n", count, cid);

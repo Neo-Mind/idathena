@@ -8987,12 +8987,11 @@ void clif_refresh(struct map_session_data *sd)
 	clif_updatestatus(sd, SP_INT);
 	clif_updatestatus(sd, SP_DEX);
 	clif_updatestatus(sd, SP_LUK);
-	if ( sd->spiritball )
+	if( sd->spiritball )
 		clif_spiritball_single(sd->fd, sd);
-	for( i = 1; i < 5; i++ ) {
+	for( i = 1; i < 5; i++ )
 		if( sd->talisman[i] > 0 )
 			clif_talisman_single(sd->fd, sd, i);
-	}
 	if( sd->vd.cloth_color )
 		clif_refreshlook(&sd->bl, sd->bl.id, LOOK_CLOTHES_COLOR, sd->vd.cloth_color, SELF);
 	if( hom_is_active(sd->hd) )
@@ -12256,7 +12255,7 @@ void clif_parse_MoveToKafraFromCart(int fd, struct map_session_data *sd)
 	int idx = RFIFOW(fd,info->pos[0]) - 2;
 	int amount = RFIFOL(fd,info->pos[1]);
 
-	if( sd->state.vending )
+	if (sd->state.vending)
 		return;
 	if (!pc_iscarton(sd))
 		return;

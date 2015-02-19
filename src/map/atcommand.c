@@ -5364,8 +5364,8 @@ ACMD_FUNC(clearcart)
 	int i;
 
 	nullpo_retr(-1, sd);
-	
-	if (pc_iscarton(sd) == 0) {
+
+	if (!pc_iscarton(sd)) {
 		clif_displaymessage(fd, msg_txt(1396)); // You do not have a cart to be cleaned.
 		return -1;
 	}

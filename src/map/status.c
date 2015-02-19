@@ -8235,7 +8235,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 	if( !(flag&SCFLAG_LOADED) ) { //Do not parse val settings when loading SCs
 		switch( type ) {
-			//Permanent effects
 			case SC_AETERNA:
 			case SC_MODECHANGE:
 			case SC_WEIGHT50:
@@ -8254,7 +8253,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_STRANGELIGHTS:
 			case SC_DECORATION_OF_MUSIC:
 			case SC_ALL_RIDING:
-				tick = -1;
+				tick = -1; //Permanent effects
 				break;
 
 			case SC_DECREASEAGI:
