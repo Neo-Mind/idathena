@@ -188,6 +188,7 @@ static int clif_parse (int fd);
  *------------------------------------------*/
 int clif_setip(const char* ip) {
 	char ip_str[16];
+
 	map_ip = host2ip(ip);
 	if (!map_ip) {
 		ShowWarning("Failed to Resolve Map Server Address! (%s)\n", ip);
@@ -203,6 +204,7 @@ void clif_setbindip(const char* ip) {
 	bind_ip = host2ip(ip);
 	if (bind_ip) {
 		char ip_str[16];
+
 		ShowInfo("Map Server Bind IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", ip, ip2str(bind_ip, ip_str));
 	} else
 		ShowWarning("Failed to Resolve Map Server Address! (%s)\n", ip);
@@ -1584,15 +1586,24 @@ void clif_hominfo(struct map_session_data *sd, struct homun_data *hd, int flag)
 	WBUFW(buf,29) = hd->homunculus.hunger;
 	WBUFW(buf,31) = (unsigned short) (hd->homunculus.intimacy / 100) ;
 	WBUFW(buf,33) = 0; // Equip id
+#ifdef RENEWAL
+	WBUFW(buf,35) = cap_value(status->rhw.atk2, 0, INT16_MAX);
+#else
 	WBUFW(buf,35) = cap_value(status->rhw.atk2 + status->batk, 0, INT16_MAX);
-	WBUFW(buf,37) = min(status->matk_max, INT16_MAX); // FIXME: Capping to INT16 here is too late
+#endif
+	WBUFW(buf,37) = cap_value(status->matk_max, 0, INT16_MAX);
 	WBUFW(buf,39) = status->hit;
 	if (battle_config.hom_setting&HOMSET_DISPLAY_LUK)
 		WBUFW(buf,41) = status->luk / 3 + 1; // Crit is a +1 decimal value! Just display purpose.[Vicious]
 	else
 		WBUFW(buf,41) = status->cri / 10;
+#ifdef RENEWAL
+	WBUFW(buf,43) = status->def + status->def2;
+	WBUFW(buf,45) = status->mdef + status->mdef2;
+#else
 	WBUFW(buf,43) = status->def + status->vit ;
 	WBUFW(buf,45) = status->mdef;
+#endif
 	WBUFW(buf,47) = status->flee;
 	WBUFW(buf,49) = (flag) ? 0 : status->amotion;
 	if (status->max_hp > INT16_MAX) {
@@ -11512,15 +11523,21 @@ static void clif_parse_UseSkillToId_homun(struct homun_data *hd, struct map_sess
 
 	if( !hd )
 		return;
-	if( skill_isNotOk_hom(skill_id, hd) )
+	if( skill_isNotOk_hom(skill_id, hd) ) {
+		clif_emotion(&hd->bl, E_DOTS);
 		return;
+	}
 	if( hd->bl.id != target_id && (skill_get_inf(skill_id)&INF_SELF_SKILL) )
 		target_id = hd->bl.id;
 	if( hd->ud.skilltimer != INVALID_TIMER ) {
 		if( skill_id != SA_CASTCANCEL && skill_id != SO_SPELLFIST )
 			return;
-	} else if( DIFF_TICK(tick, hd->ud.canact_tick) < 0 )
+	} else if( DIFF_TICK(tick, hd->ud.canact_tick) < 0 ) {
+		clif_emotion(&hd->bl, E_DOTS);
+		if( hd->master )
+			clif_skill_fail(hd->master, skill_id, USESKILL_FAIL_SKILLINTERVAL, 0);
 		return;
+	}
 	lv = hom_checkskill(hd, skill_id);
 	if( skill_lv > lv )
 		skill_lv = lv;
@@ -11534,13 +11551,19 @@ static void clif_parse_UseSkillToPos_homun(struct homun_data *hd, struct map_ses
 
 	if( !hd )
 		return;
-	if( skill_isNotOk_hom(skill_id, hd) )
+	if( skill_isNotOk_hom(skill_id, hd) ) {
+		clif_emotion(&hd->bl, E_DOTS);
 		return;
+	}
 	if( hd->ud.skilltimer != INVALID_TIMER ) {
 		if( skill_id != SA_CASTCANCEL && skill_id != SO_SPELLFIST )
 			return;
-	} else if( DIFF_TICK(tick, hd->ud.canact_tick) < 0 )
+	} else if( DIFF_TICK(tick, hd->ud.canact_tick) < 0 ) {
+		clif_emotion(&hd->bl, E_DOTS);
+		if( hd->master )
+			clif_skill_fail(hd->master, skill_id, USESKILL_FAIL_SKILLINTERVAL, 0);
 		return;
+	}
 	if( hd->sc.data[SC_BASILICA] )
 		return;
 	lv = hom_checkskill(hd, skill_id);
@@ -15951,7 +15974,7 @@ void clif_mercenary_info(struct map_session_data *sd)
 	int fd;
 	struct mercenary_data *md;
 	struct status_data *status;
-	int atk;
+	int atk, matk;
 
 	if( sd == NULL || (md = sd->md) == NULL )
 		return;
@@ -15965,12 +15988,22 @@ void clif_mercenary_info(struct map_session_data *sd)
 
 	// Mercenary shows ATK as a random value between ATK ~ ATK2
 	atk = rnd()%(status->rhw.atk2 - status->rhw.atk + 1) + status->rhw.atk;
-	WFIFOW(fd,6) = min(atk, UINT16_MAX);
-	WFIFOW(fd,8) = min(status->matk_max, UINT16_MAX);
+	WFIFOW(fd,6) = cap_value(atk, 0, INT16_MAX);
+#ifdef RENEWAL
+	matk = status_base_matk(&md->bl, status, status_get_lv(&md->bl));
+	WFIFOW(fd,8) = cap_value(matk, 0, INT16_MAX);
+#else
+	WFIFOW(fd,8) = cap_value(status->matk_max, 0, INT16_MAX);
+#endif
 	WFIFOW(fd,10) = status->hit;
 	WFIFOW(fd,12) = status->cri / 10;
+#ifdef RENEWAL
+	WFIFOW(fd,14) = status->def2;
+	WFIFOW(fd,16) = status->mdef2;
+#else
 	WFIFOW(fd,14) = status->def;
 	WFIFOW(fd,16) = status->mdef;
+#endif
 	WFIFOW(fd,18) = status->flee;
 	WFIFOW(fd,20) = status->amotion;
 	safestrncpy((char*)WFIFOP(fd,22), md->db->name, NAME_LENGTH);

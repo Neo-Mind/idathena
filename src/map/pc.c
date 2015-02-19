@@ -1054,6 +1054,17 @@ uint8 pc_isequip(struct map_session_data *sd, int n)
 	if(item->sex != 2 && sd->status.sex != item->sex)
 		return ITEM_EQUIP_ACK_FAIL;
 
+	if(item->equip&EQP_AMMO) {
+		if(!pc_ismadogear(sd) && (sd->status.class_ == JOB_MECHANIC_T || sd->status.class_ == JOB_MECHANIC)) {
+			clif_msg(sd,ITEM_NEED_MADOGEAR); //Item can only be used when Mado Gear is mounted.
+			return ITEM_EQUIP_ACK_FAIL;
+		}
+		if(!pc_iscarton(sd) && (sd->status.class_ == JOB_GENETIC_T || sd->status.class_ == JOB_GENETIC)) {
+			clif_msg(sd,ITEM_NEED_CART); //Only available when cart is mounted.
+			return ITEM_EQUIP_ACK_FAIL;
+		}
+	}
+
 	if(sd->sc.count) { // Also works with left-hand weapons [DracoRPG]
 		if((item->equip&EQP_ARMS) && item->type == IT_WEAPON && sd->sc.data[SC_STRIPWEAPON])
 			return ITEM_EQUIP_ACK_FAIL;
@@ -1089,7 +1100,7 @@ uint8 pc_isequip(struct map_session_data *sd, int n)
 	if(!battle_config.allow_equip_restricted_item && itemdb_isNoEquip(item,sd->bl.m))
 		return ITEM_EQUIP_ACK_FAIL;
 
-	//Not equipable by class. [Skotlex]
+	//Not equipable by class [Skotlex]
 	if(!(1<<(sd->class_&MAPID_BASEMASK)&item->class_base[(sd->class_&JOBL_2_1) ? 1 : ((sd->class_&JOBL_2_2) ? 2 : 0)]))
 		return ITEM_EQUIP_ACK_FAIL;
 
@@ -1907,7 +1918,7 @@ int pc_disguise(struct map_session_data *sd, int class_)
 	}
 	if (sd->bl.prev != NULL) {
 		clif_spawn(&sd->bl);
-		if (class_ == sd->status.class_ && pc_iscarton(sd)) { //It seems the cart info is lost on undisguise.
+		if (class_ == sd->status.class_ && pc_iscarton(sd)) { //It seems the cart info is lost on undisguise
 			clif_cartlist(sd);
 			clif_updatestatus(sd, SP_CARTINFO);
 		}
@@ -4672,10 +4683,9 @@ int pc_useitem(struct map_session_data *sd, int n)
 
 	nullpo_ret(sd);
 
-	//This flag enables you to use items while in an NPC. [Skotlex]
-	if( sd->npc_id ) {
+	if( sd->npc_id ) { //This flag enables you to use items while in an NPC [Skotlex]
 #ifdef RENEWAL
-		clif_msg(sd, USAGE_FAIL); //@TODO look for the client date that has this message.
+		clif_msg(sd, USAGE_FAIL); //@TODO look for the client date that has this message
 		return 0;
 #else
 		if( !sd->npc_item_flag )
@@ -8275,6 +8285,8 @@ void pc_setoption(struct map_session_data *sd,int type)
 		clif_clearcart(sd->fd);
 		if (pc_checkskill(sd,MC_PUSHCART) < 10)
 			status_calc_pc(sd,SCO_NONE); //Remove speed penalty
+		if (sd->equip_index[EQI_AMMO] > 0)
+			pc_unequipitem(sd,sd->equip_index[EQI_AMMO],2);
 	}
 #endif
 
@@ -8302,6 +8314,8 @@ void pc_setoption(struct map_session_data *sd,int type)
 		status_change_end(&sd->bl,SC_MAXOVERTHRUST,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_LOUD,INVALID_TIMER);
 		pc_bonus_script_clear(sd,BSF_REM_ON_MADOGEAR);
+		if (sd->equip_index[EQI_AMMO] > 0)
+			pc_unequipitem(sd,sd->equip_index[EQI_AMMO],2);
 	} else if (!(type&OPTION_MADOGEAR) && (p_type&OPTION_MADOGEAR)) {
 		status_calc_pc(sd,SCO_NONE);
 		status_change_end(&sd->bl,SC_SHAPESHIFT,INVALID_TIMER);
@@ -8313,6 +8327,8 @@ void pc_setoption(struct map_session_data *sd,int type)
 		status_change_end(&sd->bl,SC_NEUTRALBARRIER_MASTER,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_STEALTHFIELD_MASTER,INVALID_TIMER);
 		pc_bonus_script_clear(sd,BSF_REM_ON_MADOGEAR);
+		if (sd->equip_index[EQI_AMMO] > 0)
+			pc_unequipitem(sd,sd->equip_index[EQI_AMMO],2);
 	}
 
 	if (type&OPTION_FLYING && !(p_type&OPTION_FLYING))
@@ -8359,6 +8375,9 @@ bool pc_setcart(struct map_session_data *sd,int type) {
 				return true;
 			status_change_end(&sd->bl,SC_PUSH_CART,INVALID_TIMER);
 			clif_clearcart(sd->fd);
+			clif_updatestatus(sd,SP_CARTINFO);
+			if( sd->equip_index[EQI_AMMO] > 0 )
+				pc_unequipitem(sd,sd->equip_index[EQI_AMMO],2);
 			break;
 		default: //Everything else is an allowed ID so we can move on
 			if( !sd->sc.data[SC_PUSH_CART] ) //First time, so fill cart data

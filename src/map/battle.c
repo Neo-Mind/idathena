@@ -7051,7 +7051,10 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			short index = sd->equip_index[EQI_AMMO];
 
 			if (index < 0) {
-				clif_arrow_fail(sd,0);
+				if (sd->weapontype1 > W_KATAR || sd->weapontype1 < W_HUUMA)
+					clif_skill_fail(sd,0,USESKILL_FAIL_NEED_MORE_BULLET,0);
+				else
+					clif_arrow_fail(sd,0);
 				return ATK_NONE;
 			}
 			//Ammo check by Ishizu-chan
@@ -7068,13 +7071,13 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 					case W_GATLING:
 					case W_SHOTGUN:
 						if (sd->inventory_data[index]->look != A_BULLET) {
-							clif_arrow_fail(sd,0);
+							clif_skill_fail(sd,0,USESKILL_FAIL_NEED_MORE_BULLET,0);
 							return ATK_NONE;
 						}
 						break;
 					case W_GRENADE:
 						if (sd->inventory_data[index]->look != A_GRENADE) {
-							clif_arrow_fail(sd,0);
+							clif_skill_fail(sd,0,USESKILL_FAIL_NEED_MORE_BULLET,0);
 							return ATK_NONE;
 						}
 						break;

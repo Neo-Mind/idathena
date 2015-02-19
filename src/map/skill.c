@@ -10274,7 +10274,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				}
 				heal = 5 * status_get_lv(&hd->bl) +
 #ifdef RENEWAL
-					status_base_matk(&hd->battle_status,status_get_lv(&hd->bl))
+					status_base_matk(bl,&hd->battle_status,status_get_lv(&hd->bl))
 #else
 					status_base_matk_min(&hd->battle_status)
 #endif

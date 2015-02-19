@@ -1630,14 +1630,19 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 				}
 				break;
 		}
+	}
 
-		//Temporarily disabled, awaiting for confirmation
+	if( sd || src->type == BL_HOM ) {
+		if( !sd && (target = battle_get_master(src)) )
+			sd = map_id2sd(target->id);
+		if( sd ) { //Temporarily disabled, awaiting for confirmation
 #if 0
-		if( sd->skillitem != skill_id && !skill_check_condition_castbegin(sd, skill_id, skill_lv) )
+			if( sd->skillitem != skill_id && !skill_check_condition_castbegin(sd, skill_id, skill_lv) )
 #else
-		if( !skill_check_condition_castbegin(sd, skill_id, skill_lv) )
+			if( !skill_check_condition_castbegin(sd, skill_id, skill_lv) )
 #endif
-			return 0;
+				return 0;
+		}
 	}
 
 	if( src->type == BL_MOB )
