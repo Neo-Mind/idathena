@@ -270,6 +270,7 @@ GN_CRAZYWEED,2	// Crazy Weed
 GN_HELLS_PLANT,2	// Hell's Plant
 GN_CRAZYWEED_ATK,2	// Dummy skill for Crazy Weed
 GN_HELLS_PLANT_ATK,2	// Dummy skil for Hell's Plant
+GN_ILLUSIONDOPING,2	// Illusion Doping
 
 // Kagerou/Oboro
 KO_MUCHANAGE,3	// Overthrow

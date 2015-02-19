@@ -3044,9 +3044,12 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 		case EL_HURRICANE_ATK:
 		case EL_TYPOON_MIS:
 		case EL_TYPOON_MIS_ATK:
+		case NC_ARMSCANNON:
+		case GN_CARTCANNON:
 		case GN_CRAZYWEED_ATK:
 		case KO_BAKURETSU:
 		case NC_MAGMA_ERUPTION:
+		case GN_ILLUSIONDOPING:
 			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, DMG_SPLASH);
 			break;
 		case EL_STONE_RAIN:
@@ -4357,25 +4360,18 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 					sflag |= SD_ANIMATION; //Original target gets no animation (as well as all NPC skills)
 				if (tsc && tsc->data[SC_HOVERING] && (skill_id == LG_MOONSLASHER || skill_id == SR_WINDMILL))
 					break;
-
 				heal = (int)skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,sflag);
 				if (skill_id == NPC_VAMPIRE_GIFT && heal > 0) {
 					clif_skill_nodamage(NULL,src,AL_HEAL,heal,1);
 					status_heal(src,heal,0,0);
 				}
 			} else {
-				skill_area_temp[0] = 0;
-				skill_area_temp[1] = bl->id;
-				skill_area_temp[2] = 0;
 				switch (skill_id) {
 					case NJ_BAKUENRYU:
 					case LG_EARTHDRIVE:
-						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-						break;
 					case GN_CARTCANNON:
 						clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-					//Fall through
-					case NC_ARMSCANNON:
+						break;
 					case LG_MOONSLASHER:
 					case MH_XENO_SLASHER:
 						clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,DMG_SKILL);
@@ -4383,19 +4379,20 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 					case NPC_EARTHQUAKE: //FIXME: Isn't EarthQuake a ground skill after all?
 						skill_addtimerskill(src,tick + 250,src->id,0,0,skill_id,skill_lv,2,flag|BCT_ENEMY|SD_SPLASH|1);
 						break;
-					case WL_CRIMSONROCK:
-						skill_area_temp[4] = bl->x;
-						skill_area_temp[5] = bl->y;
-						break;
-					case NC_VULCANARM:
-						if (sd)
-							pc_overheat(sd,1);
-						break;
-					case WM_REVERBERATION_MELEE:
-					case WM_REVERBERATION_MAGIC:
-						skill_area_temp[1] = 0;
+					default:
 						break;
 				}
+				skill_area_temp[0] = 0;
+				skill_area_temp[1] = bl->id;
+				skill_area_temp[2] = 0;
+				if (skill_id == WL_CRIMSONROCK) {
+					skill_area_temp[4] = bl->x;
+					skill_area_temp[5] = bl->y;
+				}
+				if (skill_id == WM_REVERBERATION_MELEE || skill_id == WM_REVERBERATION_MAGIC)
+					skill_area_temp[1] = 0;
+				if (skill_id == NC_VULCANARM && sd)
+					pc_overheat(sd,1);
 				//If skill damage should be split among targets, count them
 				//SD_LEVEL -> Forced splash damage for Auto Blitz-Beat -> count targets
 				//Special case: Venom Splasher uses a different range for searching than for splashing
@@ -6613,11 +6610,11 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case HVAN_EXPLOSION: //[orn]
 		case NPC_SELFDESTRUCTION:
 			//Self Destruction hits everyone in range (allies+enemies)
-			//Except for Summoned Marine spheres on non-versus maps, where it's just enemy.
+			//Except for Summoned Marine spheres on non-versus maps, where it's just enemy
 			i = ((!md || md->special_state.ai == AI_SPHERE) && !map_flag_vs(src->m)) ?
 				BCT_ENEMY : BCT_ALL;
 			clif_skill_nodamage(src,src,skill_id,-1,1);
-			map_delblock(src); //Required to prevent chain-self-destructions hitting back.
+			map_delblock(src); //Required to prevent chain-self-destructions hitting back
 			map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),
 				src,skill_id,skill_lv,tick,flag|i,skill_castend_damage_id);
 			if (map_addblock(src))
