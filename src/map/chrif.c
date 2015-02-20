@@ -865,7 +865,7 @@ int chrif_changesex(struct map_session_data *sd) {
 	WFIFOW(char_fd,30) = CHRIF_OP_LOGIN_CHANGESEX;
 	WFIFOSET(char_fd,44);
 
-	clif_displaymessage(sd->fd, msg_txt(408)); //"Need disconnection to perform change-sex request..."
+	clif_displaymessage(sd->fd, msg_txt(408)); // "Need disconnection to perform change-sex request..."
 
 	if (sd->fd)
 		clif_authfail_fd(sd->fd, 15);
@@ -904,12 +904,12 @@ static void chrif_ack_login_req(int aid, const char* player_name, uint16 type, u
 		case CHRIF_OP_LOGIN_UNBLOCK:
 		case CHRIF_OP_LOGIN_UNBAN:
 		case CHRIF_OP_LOGIN_CHANGESEX:
-			snprintf(action, 25, "%s", msg_txt(427 + type)); //Block|Ban|Unblock|Unban|Change the sex of
+			snprintf(action, 25, "%s", msg_txt(427 + type)); // Block|Ban|Unblock|Unban|Change the sex of
 			break;
 		case CHRIF_OP_LOGIN_VIP:
 			if (!battle_config.disp_servervip_msg)
 				return;
-			snprintf(action, 25, "%s", msg_txt(436)); //VIP
+			snprintf(action, 25, "%s", msg_txt(436)); // VIP
 			break;
 		case CHRIF_OP_LOGIN_BANK:
 			if (!battle_config.disp_serverbank_msg)
@@ -922,7 +922,7 @@ static void chrif_ack_login_req(int aid, const char* player_name, uint16 type, u
 	}
 
 	switch (answer) {
-		case 0: sprintf(output, msg_txt(424), action, NAME_LENGTH, player_name); break; //Login-serv has been asked to %s the player '%.*s'.
+		case 0: sprintf(output, msg_txt(424), action, NAME_LENGTH, player_name); break; // Login-serv has been asked to %s the player '%.*s'.
 		case 1: sprintf(output, msg_txt(425), NAME_LENGTH, player_name); break;
 		case 2: sprintf(output, msg_txt(426), action, NAME_LENGTH, player_name); break;
 		case 3: sprintf(output, msg_txt(427), action, NAME_LENGTH, player_name); break;
@@ -1063,7 +1063,7 @@ int chrif_ban(int fd) {
 		else if( ret_status == 100 )
 			clif_displaymessage(sd->fd, msg_txt(421));
 		else
-			clif_displaymessage(sd->fd, msg_txt(420)); //"Your account has not more authorized."
+			clif_displaymessage(sd->fd, msg_txt(420)); // "Your account has not more authorized."
 	} else if( res == 1 || res == 2 ) {
 		time_t timestamp;
 		char tmpstr[256];
@@ -1071,7 +1071,7 @@ int chrif_ban(int fd) {
 
 		timestamp = (time_t)RFIFOL(fd,7); //Status or final date of a banishment
 		strftime(strtime, 24, "%d-%m-%Y %H:%M:%S", localtime(&timestamp));
-		safesnprintf(tmpstr, sizeof(tmpstr), msg_txt(423), res == 2 ? "char" : "account", strtime); //"Your %s has been banished until %s "
+		safesnprintf(tmpstr, sizeof(tmpstr), msg_txt(423), res == 2 ? "char" : "account", strtime); // "Your %s has been banished until %s "
 		clif_displaymessage(sd->fd, tmpstr);
 	}
 

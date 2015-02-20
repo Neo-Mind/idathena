@@ -11028,14 +11028,14 @@ void pc_bonus_script(struct map_session_data *sd) {
 		if ((entry = (struct s_bonus_script_entry *)node->data)) {
 			if (entry->tid == INVALID_TIMER) { //Only start timer for new bonus_script
 				if (entry->icon != SI_BLANK) //Gives status icon if exist
-					clif_status_change(&sd->bl, entry->icon, 1, entry->tick, 1, 0, 0);
+					clif_status_change(&sd->bl,entry->icon,1,entry->tick,1,0,0);
 				entry->tick += now;
-				entry->tid = add_timer(entry->tick, pc_bonus_script_timer, sd->bl.id, (intptr_t)entry);
+				entry->tid = add_timer(entry->tick,pc_bonus_script_timer,sd->bl.id,(intptr_t)entry);
 			}
 			if (entry->script)
-				run_script(entry->script, 0, sd->bl.id, 0);
+				run_script(entry->script,0,sd->bl.id,0);
 			else
-				ShowError("pc_bonus_script: The script has been removed somewhere. \"%s\"\n", StringBuf_Value(entry->script_buf));
+				ShowError("pc_bonus_script: The script has been removed somewhere. \"%s\"\n",StringBuf_Value(entry->script_buf));
 		}
 		node = next;
 	}
@@ -11059,18 +11059,18 @@ struct s_bonus_script_entry *pc_bonus_script_add(struct map_session_data *sd, co
 
 	if (!sd)
 		return NULL;
-	if (!(script = parse_script(script_str, "bonus_script", 0, SCRIPT_IGNORE_EXTERNAL_BRACKETS))) {
-		ShowError("pc_bonus_script_add: Failed to parse script '%s' (CID:%d).\n", script_str, sd->status.char_id);
+	if (!(script = parse_script(script_str,"bonus_script",0,SCRIPT_IGNORE_EXTERNAL_BRACKETS))) {
+		ShowError("pc_bonus_script_add: Failed to parse script '%s' (CID:%d).\n",script_str,sd->status.char_id);
 		return NULL;
 	}
 	if ((node = sd->bonus_script.head)) { //Duplication checks
 		while (node) {
 			entry = (struct s_bonus_script_entry *)node->data;
-			if (strcmpi(script_str, StringBuf_Value(entry->script_buf)) == 0) {
+			if (strcmpi(script_str,StringBuf_Value(entry->script_buf)) == 0) {
 				int newdur = gettick() + dur;
 
 				if (flag&BSF_FORCE_REPLACE && entry->tick < newdur) { //Change duration
-					settick_timer(entry->tid, newdur);
+					settick_timer(entry->tid,newdur);
 					script_free_code(script);
 					return NULL;
 				} else if (flag&BSF_FORCE_DUPLICATE) //Allow duplicate
@@ -11083,9 +11083,9 @@ struct s_bonus_script_entry *pc_bonus_script_add(struct map_session_data *sd, co
 			node = node->next;
 		}
 	}
-	CREATE(entry, struct s_bonus_script_entry, 1);
+	CREATE(entry,struct s_bonus_script_entry,1);
 	entry->script_buf = StringBuf_Malloc();
-	StringBuf_AppendStr(entry->script_buf, script_str);
+	StringBuf_AppendStr(entry->script_buf,script_str);
 	entry->tid = INVALID_TIMER;
 	entry->flag = flag;
 	entry->icon = icon;
@@ -11104,14 +11104,14 @@ struct s_bonus_script_entry *pc_bonus_script_add(struct map_session_data *sd, co
  **/
 void pc_bonus_script_free_entry(struct map_session_data *sd, struct s_bonus_script_entry *entry) {
 	if (entry->tid != INVALID_TIMER)
-		delete_timer(entry->tid, pc_bonus_script_timer);
+		delete_timer(entry->tid,pc_bonus_script_timer);
 	if (entry->script)
 		script_free_code(entry->script);
 	if (entry->script_buf)
 		StringBuf_Free(entry->script_buf);
 	if (sd) {
 		if (entry->icon != SI_BLANK)
-			clif_status_load(&sd->bl, entry->icon, 0);
+			clif_status_load(&sd->bl,entry->icon,0);
 		if (sd->bonus_script.count > 0)
 			sd->bonus_script.count--;
 	}
@@ -11125,7 +11125,7 @@ void pc_bonus_script_free_entry(struct map_session_data *sd, struct s_bonus_scri
 static void inline pc_bonus_script_check_final(struct map_session_data *sd) {
 	if (sd->bonus_script.count == 0) {
 		if (sd->bonus_script.head && sd->bonus_script.head->data)
-			pc_bonus_script_free_entry(sd, (struct s_bonus_script_entry *)sd->bonus_script.head->data);
+			pc_bonus_script_free_entry(sd,(struct s_bonus_script_entry *)sd->bonus_script.head->data);
 		linkdb_final(&sd->bonus_script.head);
 	}
 }
@@ -11144,17 +11144,17 @@ int pc_bonus_script_timer(int tid, unsigned int tick, int id, intptr_t data) {
 
 	sd = map_id2sd(id);
 	if (!sd) {
-		ShowError("pc_bonus_script_timer: Null pointer id: %d tid: %d\n", id, tid);
+		ShowError("pc_bonus_script_timer: Null pointer id: %d tid: %d\n",id,tid);
 		return 0;
 	}
 	if (tid == INVALID_TIMER)
 		return 0;
 	if (!sd->bonus_script.head || entry == NULL) {
-		ShowError("pc_bonus_script_timer: Invalid entry pointer 0x%08X!\n", entry);
+		ShowError("pc_bonus_script_timer: Invalid entry pointer 0x%08X!\n",entry);
 		return 0;
 	}
-	linkdb_erase(&sd->bonus_script.head, (void *)((intptr_t)entry));
-	pc_bonus_script_free_entry(sd, entry);
+	linkdb_erase(&sd->bonus_script.head,(void *)((intptr_t)entry));
+	pc_bonus_script_free_entry(sd,entry);
 	pc_bonus_script_check_final(sd);
 	status_calc_pc(sd,SCO_NONE);
 	return 0;
@@ -11179,12 +11179,12 @@ void pc_bonus_script_clear(struct map_session_data *sd, uint16 flag) {
 		if (entry &&
 				((flag == BSF_PERMANENT) ||                  //Remove all with permanent bonus
 				(!flag && !(entry->flag&BSF_PERMANENT)) ||   //Remove all WITHOUT permanent bonus
-				(flag&entry->flag) ||						 //Matched flag
+				(flag&entry->flag) ||                        //Matched flag
 				(flag&BSF_REM_BUFF   && entry->type == 1) || //Remove buff
 				(flag&BSF_REM_DEBUFF && entry->type == 2)))  //Remove debuff
 		{
-			linkdb_erase(&sd->bonus_script.head, (void *)((intptr_t)entry));
-			pc_bonus_script_free_entry(sd, entry);
+			linkdb_erase(&sd->bonus_script.head,(void *)((intptr_t)entry));
+			pc_bonus_script_free_entry(sd,entry);
 			count++;
 		}
 		node = next;
