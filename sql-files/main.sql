@@ -697,6 +697,7 @@ INSERT INTO `sql_updates` (`timestamp`) VALUES (1388854043);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1389028967);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1392832626);
 INSERT INTO `sql_updates` (`timestamp`) VALUES (1395789302);
+INSERT INTO `sql_updates` (`timestamp`) VALUES (1396893866);
 
 --
 -- Table structure for table `sstatus`
@@ -747,12 +748,12 @@ CREATE TABLE IF NOT EXISTS `interreg` (
 --
 
 CREATE TABLE IF NOT EXISTS `bonus_script` (
-	`char_id` int(11) NOT NULL,
-	`script` varchar(1024) NOT NULL,
-	`tick` int(11) NOT NULL default '0',
-	`flag` tinyint(3) unsigned NOT NULL default '0',
-	`type` tinyint(1) unsigned NOT NULL default '0',
-	`icon` smallint(4) NOT NULL default '-1'
+  `char_id` int(11) unsigned NOT NULL,
+  `script` text NOT NULL,
+  `tick` int(11) unsigned NOT NULL default '0',
+  `flag` smallint(5) unsigned NOT NULL default '0',
+  `type` tinyint(1) unsigned NOT NULL default '0',
+  `icon` smallint(3) NOT NULL default '-1'
 ) ENGINE=InnoDB default CHARSET=latin1;
 
 --

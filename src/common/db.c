@@ -2700,10 +2700,10 @@ void db_final(void)
 }
 
 // Link DB System - jAthena
-void linkdb_insert( struct linkdb_node** head, void *key, void* data)
+void linkdb_insert( struct linkdb_node** head, void *key, void *data)
 {
 	struct linkdb_node *node;
-	if( head == NULL ) return ;
+	if( head == NULL ) return;
 	node = (struct linkdb_node*)aMalloc( sizeof(struct linkdb_node) );
 	if( *head == NULL ) {
 		// first node
@@ -2721,21 +2721,34 @@ void linkdb_insert( struct linkdb_node** head, void *key, void* data)
 	node->data = data;
 }
 
-void linkdb_foreach( struct linkdb_node** head, LinkDBFunc func, ...  )
+int linkdb_vforeach( struct linkdb_node** head, LinkDBFunc func, va_list ap)
 {
 	struct linkdb_node *node;
-	if( head == NULL ) return;
+	int retCount = 0;
+	if( head == NULL )
+		return 0;
 	node = *head;
-	while ( node ) {
-		va_list args;
-		va_start(args, func);
-		func( node->key, node->data, args );
-		va_end(args);
+	while( node ) {
+		va_list argscopy;
+		va_copy(argscopy, ap);
+		retCount += func(node->key, node->data, argscopy);
+		va_end(argscopy);
 		node = node->next;
 	}
+	return retCount;
 }
 
-void* linkdb_search( struct linkdb_node** head, void *key)
+int linkdb_foreach( struct linkdb_node** head, LinkDBFunc func, ...  )
+{
+	va_list ap;
+	int retCount = 0;
+	va_start(ap, func);
+	retCount = linkdb_vforeach(head, func, ap);
+	va_end(ap);
+	return retCount;
+}
+
+void *linkdb_search( struct linkdb_node** head, void *key)
 {
 	int n = 0;
 	struct linkdb_node *node;
@@ -2745,8 +2758,8 @@ void* linkdb_search( struct linkdb_node** head, void *key)
 		if( node->key == key ) {
 			if( node->prev && n > 5 ) {
 				//Moving the head in order to improve processing efficiency
-				if(node->prev) node->prev->next = node->next;
-				if(node->next) node->next->prev = node->prev;
+				if( node->prev ) node->prev->next = node->next;
+				if( node->next ) node->next->prev = node->prev;
 				node->next = *head;
 				node->prev = (*head)->prev;
 				(*head)->prev = node;
@@ -2760,7 +2773,7 @@ void* linkdb_search( struct linkdb_node** head, void *key)
 	return NULL;
 }
 
-void* linkdb_erase( struct linkdb_node** head, void *key)
+void *linkdb_erase( struct linkdb_node** head, void *key)
 {
 	struct linkdb_node *node;
 	if( head == NULL ) return NULL;
@@ -2782,7 +2795,7 @@ void* linkdb_erase( struct linkdb_node** head, void *key)
 	return NULL;
 }
 
-void linkdb_replace( struct linkdb_node** head, void *key, void *data )
+void linkdb_replace( struct linkdb_node** head, void *key, void *data)
 {
 	int n = 0;
 	struct linkdb_node *node;

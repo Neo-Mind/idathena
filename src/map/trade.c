@@ -198,25 +198,25 @@ int impossible_trade_check(struct map_session_data *sd)
 			continue;
 		index = sd->deal.item[i].index;
 		if (inventory[index].amount < sd->deal.item[i].amount) { //If more than the player have -> hack
-			sprintf(message_to_gm, msg_txt(538), sd->status.name, sd->status.account_id); //Hack on trade: character '%s' (account: %d) try to trade more items that he has.
+			sprintf(message_to_gm, msg_txt(538), sd->status.name, sd->status.account_id); // Hack on trade: character '%s' (account: %d) try to trade more items that he has.
 			intif_wis_message_to_gm(wisp_server_name, PC_PERM_RECEIVE_HACK_INFO, message_to_gm);
-			sprintf(message_to_gm, msg_txt(539), inventory[index].amount, inventory[index].nameid, sd->deal.item[i].amount); //This player has %d of a kind of item (ID: %d), and try to trade %d of them.
+			sprintf(message_to_gm, msg_txt(539), inventory[index].amount, inventory[index].nameid, sd->deal.item[i].amount); // This player has %d of a kind of item (ID: %d), and try to trade %d of them.
 			intif_wis_message_to_gm(wisp_server_name, PC_PERM_RECEIVE_HACK_INFO, message_to_gm);
 			//If we block people
 			if (battle_config.ban_hack_trade < 0) {
 				chrif_req_login_operation(-1, sd->status.name, CHRIF_OP_LOGIN_BLOCK, 0, 0, 0); //Type: 1 - block
 				set_eof(sd->fd); //Forced to disconnect because of the hack
 				//Message about the ban
-				strcpy(message_to_gm, msg_txt(540)); //This player has been definitively blocked.
+				strcpy(message_to_gm, msg_txt(540)); // This player has been definitively blocked.
 			//If we ban people
 			} else if (battle_config.ban_hack_trade > 0) {
 				chrif_req_login_operation(-1, sd->status.name, CHRIF_OP_LOGIN_BAN, battle_config.ban_hack_trade * 60, 0, 0); //Type: 2 - ban (year, month, day, hour, minute, second)
 				set_eof(sd->fd); //Forced to disconnect because of the hack
 				//Nessage about the ban
-				sprintf(message_to_gm, msg_txt(507), battle_config.ban_hack_trade); //This player has been banned for %d minute(s).
+				sprintf(message_to_gm, msg_txt(507), battle_config.ban_hack_trade); // This player has been banned for %d minute(s).
 			} else
 				//Message about the ban
-				strcpy(message_to_gm, msg_txt(508)); //This player hasn't been banned (Ban option is disabled).
+				strcpy(message_to_gm, msg_txt(508)); // This player hasn't been banned (Ban option is disabled).
 
 			intif_wis_message_to_gm(wisp_server_name, PC_PERM_RECEIVE_HACK_INFO, message_to_gm);
 			return 1;

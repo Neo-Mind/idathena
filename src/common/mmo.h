@@ -7,6 +7,7 @@
 #include "../common/cbasetypes.h"
 #include "../common/db.h"
 #include <time.h>
+#include "../common/strlib.h"// StringBuf
 
 // server->client protocol version
 //        0 - pre-?
@@ -74,7 +75,7 @@
 #define MAX_GUILDLEVEL 50 //Max Guild level
 #define MAX_GUARDIANS 8 //Local max per castle. [Skotlex]
 #define MAX_QUEST_OBJECTIVES 3 //Max quest objectives for a quest
-#define MAX_PC_BONUS_SCRIPT 20 //Max bonus script
+#define MAX_PC_BONUS_SCRIPT 50 //Max bonus script can be fetched from `bonus_script` table on player load [Cydh]
 
 //For produce
 #define MIN_ATTRIBUTE 0
@@ -239,7 +240,7 @@ enum e_mmo_charstatus_opt {
 struct s_skill {
 	unsigned short id;
 	unsigned char lv;
-	unsigned char flag; // see enum e_skill_flag
+	unsigned char flag; //See enum e_skill_flag
 };
 
 struct global_reg {
@@ -254,11 +255,13 @@ struct accreg {
 	struct global_reg reg[MAX_REG_NUM];
 };
 
-#define MAX_BONUS_SCRIPT_LENGTH 1024
+#define MAX_BONUS_SCRIPT_LENGTH 512
 struct bonus_script_data {
-	char script[MAX_BONUS_SCRIPT_LENGTH];
-	long tick;
-	short type, flag, icon;
+	char script_str[MAX_BONUS_SCRIPT_LENGTH]; //Script string
+	uint32 tick; //Tick
+	uint16 flag; //Flags @see enum e_bonus_script_flags
+	int16 icon; //Icon SI
+	uint8 type; //0 - None, 1 - Buff, 2 - Debuff
 };
 
 struct skill_cooldown_data {

@@ -2397,7 +2397,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				char message[128];
 
 				sprintf(message, msg_txt(541), mvp_sd->status.name, md->name, it->jname, (float)drop_rate / 100);
-				//MSG: "'%s' won %s's %s (chance: %0.02f%%)"
+				// MSG: "'%s' won %s's %s (chance: %0.02f%%)"
 				intif_broadcast(message, strlen(message) + 1, BC_DEFAULT);
 			}
 			//Announce first, or else ditem will be freed. [Lance]
@@ -2546,7 +2546,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 
 					i_data = itemdb_exists(item.nameid);
 					sprintf (message, msg_txt(541), mvp_sd->status.name, md->name, i_data->jname, temp / 100.);
-					//MSG: "'%s' won %s's %s (chance: %0.02f%%)"
+					// MSG: "'%s' won %s's %s (chance: %0.02f%%)"
 					intif_broadcast(message, strlen(message) + 1, BC_DEFAULT);
 				}
 				if((temp = pc_additem(mvp_sd, &item, 1, LOG_TYPE_PICKDROP_PLAYER)) != 0) {

@@ -6537,10 +6537,10 @@ void clif_parse_BankOpen(int fd, struct map_session_data* sd) {
 	nullpo_retv(sd);
 
 	if(!battle_config.feature_banking) {
-		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1510)); //Banking is disabled
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1510)); // Banking is disabled
 		return;
 	} else if(map[sd->bl.m].flag.nobanking) {
-		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1512)); //Banking is disabled in this map
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1512)); // Banking is disabled in this map
 		return;
 	} else {
 		struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
@@ -6576,15 +6576,15 @@ void clif_bank_close(struct map_session_data *sd) {
  */
 void clif_parse_BankClose(int fd, struct map_session_data* sd) {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
-	int aid = RFIFOL(fd,info->pos[0]); //Unused should we check vs fd ?
+	int aid = RFIFOL(fd,info->pos[0]); //Unused should we check vs fd?
 
 	nullpo_retv(sd);
 
 	//Still allow to go trough to not stuck player if we have disable it while they was in
 	if(!battle_config.feature_banking)
-		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1510)); //Banking is disabled
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1510)); // Banking is disabled
 	if(map[sd->bl.m].flag.nobanking)
-		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1512)); //Banking is disabled in this map
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1512)); // Banking is disabled in this map
 	if(sd->status.account_id == aid) {
 		sd->state.banking = 0;
 		clif_bank_close(sd);
@@ -6625,10 +6625,10 @@ void clif_parse_BankCheck(int fd, struct map_session_data* sd) {
 	nullpo_retv(sd);
 
 	if(!battle_config.feature_banking) {
-		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1510)); //Banking is disabled
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1510)); // Banking is disabled
 		return;
 	} else if(map[sd->bl.m].flag.nobanking) {
-		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1512)); //Banking is disabled in this map
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1512)); // Banking is disabled in this map
 		return;
 	} else {
 		struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
@@ -6674,10 +6674,10 @@ void clif_parse_BankDeposit(int fd, struct map_session_data* sd) {
 	nullpo_retv(sd);
 
 	if(!battle_config.feature_banking) {
-		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1510)); //Banking is disabled
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1510)); // Banking is disabled
 		return;
 	} else if(map[sd->bl.m].flag.nobanking) {
-		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1512)); //Banking is disabled in this map
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1512)); // Banking is disabled in this map
 		return;
 	} else {
 		struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
@@ -6726,10 +6726,10 @@ void clif_parse_BankWithdraw(int fd, struct map_session_data* sd) {
 	nullpo_retv(sd);
 
 	if(!battle_config.feature_banking) {
-		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1496)); //Banking is disabled
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1496)); // Banking is disabled
 		return;
 	} else if(map[sd->bl.m].flag.nobanking) {
-		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1512)); //Banking is disabled in this map
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1512)); // Banking is disabled in this map
 		return;
 	} else {
 		struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
@@ -10113,12 +10113,12 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 	if(pc_checkskill(sd,SG_DEVIL) && !pc_nextjobexp(sd))
 		clif_status_load(&sd->bl,SI_DEVIL,1); //Blindness [Komurka]
 
-	if(sd->sc.opt2) //Client loses these on warp.
+	if(sd->sc.opt2) //Client loses these on warp
 		clif_changeoption(&sd->bl);
 
 	if(sd->sc.data[SC_MONSTER_TRANSFORM] && battle_config.mon_trans_disable_in_gvg && map_flag_gvg2(sd->bl.m)) {
 		status_change_end(&sd->bl,SC_MONSTER_TRANSFORM,INVALID_TIMER);
-		clif_displaymessage(sd->fd,msg_txt(1493)); //Transforming into monster is not allowed in Guild Wars.
+		clif_displaymessage(sd->fd,msg_txt(1493)); // Transforming into monster is not allowed in Guild Wars.
 	}
 
 	clif_weather_check(sd);
@@ -10431,19 +10431,19 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data* sd)
 			if( (battle_config.snovice_call_type || percent) && (percent%100) == 0 ) { //10.0%, 20.0%, ..., 90.0%
 				switch( sd->state.snovice_call_flag ) {
 					case 0:
-						if( strstr(message, msg_txt(1481)) ) //"Dear angel, can you hear my voice?"
+						if( strstr(message, msg_txt(1481)) ) // "Dear angel, can you hear my voice?"
 							sd->state.snovice_call_flag = 1;
 						break;
 					case 1: {
 							char buf[256];
 
 							snprintf(buf, 256, msg_txt(1482), sd->status.name);
-							if( strstr(message, buf) ) //"I am %s Super Novice~"
+							if( strstr(message, buf) ) // "I am %s Super Novice~"
 								sd->state.snovice_call_flag = 2;
 						}
 						break;
 					case 2:
-						if( strstr(message, msg_txt(1483)) ) //"Help me out~ Please~ T_T"
+						if( strstr(message, msg_txt(1483)) ) // "Help me out~ Please~ T_T"
 							sd->state.snovice_call_flag = 3;
 						break;
 					case 3:
@@ -13002,13 +13002,13 @@ void clif_parse_GuildChangeEmblem(int fd,struct map_session_data *sd) {
 	emb_val = clif_validate_emblem(emblem,emblem_len);
 	if( emb_val == -1 ) {
 		ShowWarning("clif_parse_GuildChangeEmblem: Rejected malformed guild emblem (size=%lu, accound_id=%d, char_id=%d, guild_id=%d).\n",emblem_len,sd->status.account_id,sd->status.char_id,sd->status.guild_id);
-		clif_colormes(sd,color_table[COLOR_RED],msg_txt(386)); //"The chosen emblem was detected invalid\n"
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(386)); // "The chosen emblem was detected invalid\n"
 		return;
 	} else if( emb_val == -2 ) {
 		char output[128];
 
 		safesnprintf(output,sizeof(output),msg_txt(387),battle_config.emblem_transparency_limit);
-		clif_colormes(sd,color_table[COLOR_RED],output); //"The chosen emblem was detected invalid as it contain too much transparency (limit=%d)\n"
+		clif_colormes(sd,color_table[COLOR_RED],output); // "The chosen emblem was detected invalid as it contain too much transparency (limit=%d)\n"
 		return;
 	}
 
@@ -13101,12 +13101,12 @@ void clif_parse_GuildReplyInvite(int fd,struct map_session_data *sd)
 void clif_parse_GuildLeave(int fd,struct map_session_data *sd)
 {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
-	if(map[sd->bl.m].flag.guildlock) { //Guild locked.
+	if(map[sd->bl.m].flag.guildlock) { //Guild locked
 		clif_displaymessage(fd, msg_txt(228));
 		return;
 	}
 	if( sd->bg_id ) {
-		clif_displaymessage(fd, msg_txt(670)); //"You can't leave battleground guilds."
+		clif_displaymessage(fd, msg_txt(670)); // "You can't leave battleground guilds."
 		return;
 	}
 
@@ -13994,7 +13994,7 @@ void clif_parse_FriendsListAdd(int fd, struct map_session_data *sd)
 	// Friend already exists
 	for (i = 0; i < MAX_FRIENDS && sd->status.friends[i].char_id != 0; i++) {
 		if (sd->status.friends[i].char_id == f_sd->status.char_id) {
-			clif_displaymessage(fd, msg_txt(671)); //"Friend already exists."
+			clif_displaymessage(fd, msg_txt(671)); // "Friend already exists."
 			return;
 		}
 	}
@@ -14091,7 +14091,7 @@ void clif_parse_FriendsListRemove(int fd, struct map_session_data *sd)
 		(sd->status.friends[i].char_id != char_id || sd->status.friends[i].account_id != account_id); i++);
 
 	if (i == MAX_FRIENDS) {
-		clif_displaymessage(fd, msg_txt(672)); //"Name not found in list."
+		clif_displaymessage(fd, msg_txt(672)); // "Name not found in list."
 		return;
 	}
 
@@ -14116,7 +14116,7 @@ void clif_parse_FriendsListRemove(int fd, struct map_session_data *sd)
 
 	} else { //friend not online -- ask char server to delete from his friendlist
 		if(chrif_removefriend(char_id,sd->status.char_id)) { // char-server offline, abort
-			clif_displaymessage(fd, msg_txt(673)); //"This action can't be performed at the moment. Please try again later."
+			clif_displaymessage(fd, msg_txt(673)); // "This action can't be performed at the moment. Please try again later."
 			return;
 		}
 	}
@@ -14129,7 +14129,7 @@ void clif_parse_FriendsListRemove(int fd, struct map_session_data *sd)
 		memcpy(&sd->status.friends[j-1], &sd->status.friends[j], sizeof(sd->status.friends[0]));
 
 	memset(&sd->status.friends[MAX_FRIENDS-1], 0, sizeof(sd->status.friends[MAX_FRIENDS-1]));
-	clif_displaymessage(fd, msg_txt(674)); //"Friend removed"
+	clif_displaymessage(fd, msg_txt(674)); // "Friend removed"
 
 	WFIFOHEAD(fd,packet_len(0x20a));
 	WFIFOW(fd,0) = 0x20a;
@@ -15349,7 +15349,7 @@ void clif_parse_Auction_buysell(int fd, struct map_session_data* sd)
 /// Cash/Point Shop
 void clif_cashshop_open(struct map_session_data* sd) {
 	if( map[sd->bl.m].flag.nocashshop ) {
-		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1511)); //Cash Shop is disabled in this map
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1511)); // Cash Shop is disabled in this map
 		return;
 	}
 	WFIFOHEAD(sd->fd, 10);
@@ -15517,7 +15517,7 @@ void clif_parse_cashshop_buy(int fd, struct map_session_data *sd)
 	info = &packet_db[sd->packet_ver][cmd];
 
 	if( map[sd->bl.m].flag.nocashshop ) {
-		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1511)); //Cash Shop is disabled in this map
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1511)); // Cash Shop is disabled in this map
 		return;
 	}
 	if( sd->state.trading || !sd->npc_shopid ) {

@@ -591,12 +591,12 @@ bool skill_isNotOk(uint16 skill_id, struct map_session_data *sd)
 		case MC_VENDING:
 		case ALL_BUYING_STORE:
 			if (map[sd->bl.m].flag.novending) {
-				clif_displaymessage(sd->fd, msg_txt(276)); //"You can't open a shop on this map"
+				clif_displaymessage(sd->fd, msg_txt(276)); // "You can't open a shop on this map"
 				clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 				return true;
 			}
 			if (map_getcell(sd->bl.m, sd->bl.x, sd->bl.y, CELL_CHKNOVENDING)) {
-				clif_displaymessage(sd->fd, msg_txt(204)); //"You can't open a shop on this cell."
+				clif_displaymessage(sd->fd, msg_txt(204)); // "You can't open a shop on this cell."
 				clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 				return true;
 			}
@@ -14911,7 +14911,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 						MOBID_EMPERIUM,MOBID_GUARIDAN_STONE1,MOBID_GUARIDAN_STONE2) ) {
 					char output[128];
 
-					sprintf(output,"%s",msg_txt(382)); //You're too close to a stone or emperium to do this skill
+					sprintf(output,"%s",msg_txt(382)); // You're too close to a stone or emperium to do this skill
 					clif_colormes(sd,color_table[COLOR_RED],output);
 					return false;
 				}
@@ -15302,7 +15302,7 @@ bool skill_check_condition_castend(struct map_session_data* sd, uint16 skill_id,
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_EQUIPMENT_KUNAI,0);
 				return false;
 			}
-			sprintf(e_msg,msg_txt(381), //Skill Failed. [%s] requires %dx %s.
+			sprintf(e_msg,msg_txt(381), // Skill Failed. [%s] requires %dx %s.
 				skill_get_desc(skill_id),
 				require.ammo_qty,
 				itemdb_jname(sd->status.inventory[idx].nameid));

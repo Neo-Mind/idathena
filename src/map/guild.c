@@ -1444,20 +1444,20 @@ int guild_reqalliance(struct map_session_data *sd,struct map_session_data *tsd)
 	struct guild *g[2];
 	int i;
 
-	if(agit_flag || agit2_flag)	{ // Disable alliance creation during woe [Valaris]
-		clif_displaymessage(sd->fd,msg_txt(676)); //"Alliances cannot be made during Guild Wars!"
+	if( agit_flag || agit2_flag ) { // Disable alliance creation during woe [Valaris]
+		clif_displaymessage(sd->fd,msg_txt(676)); // "Alliances cannot be made during Guild Wars!"
 		return 0;
-	} // end addition [Valaris]
+	} // End addition [Valaris]
 
 	nullpo_ret(sd);
 
-	if(tsd == NULL || tsd->status.guild_id <= 0)
+	if( tsd == NULL || tsd->status.guild_id <= 0 )
 		return 0;
 
-	g[0]=sd->guild;
-	g[1]=tsd->guild;
+	g[0] = sd->guild;
+	g[1] = tsd->guild;
 
-	if(g[0]==NULL || g[1]==NULL)
+	if( g[0] == NULL || g[1] == NULL )
 		return 0;
 
 	// Prevent creation alliance with same guilds [LuzZza]
@@ -1562,7 +1562,7 @@ int guild_delalliance(struct map_session_data *sd,int guild_id,int flag)
 	nullpo_ret(sd);
 
 	if(agit_flag || agit2_flag)	{	// Disable alliance breaking during woe [Valaris]
-		clif_displaymessage(sd->fd,msg_txt(677)); //"Alliances cannot be broken during Guild Wars!"
+		clif_displaymessage(sd->fd,msg_txt(677)); // "Alliances cannot be broken during Guild Wars!"
 		return 0;
 	}	// end addition [Valaris]
 
@@ -1836,12 +1836,12 @@ int guild_gm_changed(int guild_id, int account_id, int char_id)
 	strcpy(g->master, g->member[0].name);
 
 	if (g->member[pos].sd && g->member[pos].sd->fd) {
-		clif_displaymessage(g->member[pos].sd->fd, msg_txt(678)); //"You no longer are the Guild Master."
+		clif_displaymessage(g->member[pos].sd->fd, msg_txt(678)); // "You no longer are the Guild Master."
 		g->member[pos].sd->state.gmaster_flag = 0;
 	}
 
 	if (g->member[0].sd && g->member[0].sd->fd) {
-		clif_displaymessage(g->member[0].sd->fd, msg_txt(679)); //"You have become the Guild Master!"
+		clif_displaymessage(g->member[0].sd->fd, msg_txt(679)); // "You have become the Guild Master!"
 		g->member[0].sd->state.gmaster_flag = 1;
 		//Block his skills to prevent abuse.
 		if (battle_config.guild_skill_relog_delay)
@@ -2025,12 +2025,14 @@ int guild_castledatasave(int castle_id, int index, int value)
 	return 0;
 }
 
-void guild_castle_reconnect_sub(void *key, void *data, va_list ap)
+int guild_castle_reconnect_sub(void *key, void *data, va_list ap)
 {
 	int castle_id = GetWord((int)__64BPRTSIZE(key), 0);
 	int index = GetWord((int)__64BPRTSIZE(key), 1);
+
 	intif_guild_castle_datasave(castle_id, index, *(int *)data);
 	aFree(data);
+	return 1;
 }
 
 /**
@@ -2052,7 +2054,7 @@ void guild_castle_reconnect(int castle_id, int index, int value)
 		int *data;
 		CREATE(data, int, 1);
 		*data = value;
-		linkdb_replace(&gc_save_pending, (void*)__64BPRTSIZE((MakeDWord(castle_id, index))), data);
+		linkdb_replace(&gc_save_pending, (void *)__64BPRTSIZE((MakeDWord(castle_id, index))), data);
 	}
 }
 

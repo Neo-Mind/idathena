@@ -1045,13 +1045,9 @@ uint8 pc_isequip(struct map_session_data *sd, int n)
 	if(item == NULL)
 		return ITEM_EQUIP_ACK_FAIL;
 
-	if(item->elv && sd->status.base_level < (unsigned int)item->elv) {
-		clif_msg(sd,ITEM_CANT_EQUIP_NEED_LEVEL);
-		return ITEM_EQUIP_ACK_FAILLEVEL;
-	}
-
-	if(item->elvmax && sd->status.base_level > (unsigned int)item->elvmax) {
-		clif_msg(sd,ITEM_CANT_EQUIP_NEED_LEVEL);
+	if((item->elv && sd->status.base_level < (unsigned int)item->elv) ||
+		(item->elvmax && sd->status.base_level > (unsigned int)item->elvmax)) {
+		clif_msg(sd,ITEM_CANT_EQUIP_NEED_LEVEL); // You cannot equip this item with your current level.
 		return ITEM_EQUIP_ACK_FAILLEVEL;
 	}
 
@@ -1060,12 +1056,12 @@ uint8 pc_isequip(struct map_session_data *sd, int n)
 
 	if(item->equip&EQP_AMMO) {
 		if(!pc_ismadogear(sd) && (sd->status.class_ == JOB_MECHANIC_T || sd->status.class_ == JOB_MECHANIC)) {
-			clif_msg(sd,ITEM_NEED_MADOGEAR); //Item can only be used when Mado Gear is mounted.
+			clif_msg(sd,ITEM_NEED_MADOGEAR); // Item can only be used when Mado Gear is mounted.
 			return ITEM_EQUIP_ACK_FAIL;
 		}
 		if((sd->state.active && !pc_iscarton(sd)) && //Check if sc data is already loaded
 			(sd->status.class_ == JOB_GENETIC_T || sd->status.class_ == JOB_GENETIC)) {
-			clif_msg(sd,ITEM_NEED_CART); //Only available when cart is mounted.
+			clif_msg(sd,ITEM_NEED_CART); // Only available when cart is mounted.
 			return ITEM_EQUIP_ACK_FAIL;
 		}
 	}
@@ -1192,8 +1188,6 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 		sd->autobonus2[i].active = INVALID_TIMER;
 	for (i = 0; i < ARRAYLENGTH(sd->autobonus3); i++)
 		sd->autobonus3[i].active = INVALID_TIMER;
-	for (i = 0; i < ARRAYLENGTH(sd->bonus_script); i++)
-		sd->bonus_script[i].tid = INVALID_TIMER;
 
 	if (battle_config.item_auto_get)
 		sd->state.autoloot = 10000;
@@ -1314,6 +1308,9 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	sd->status.cashshop_sent = false;
 
 	sd->last_addeditem_index = -1;
+
+	sd->bonus_script.head = NULL;
+	sd->bonus_script.count = 0;
 
 	//Request all registries (auth is considered completed whence they arrive)
 	intif_request_registry(sd,7);
@@ -1466,14 +1463,14 @@ void pc_reg_received(struct map_session_data *sd)
 	intif_Mail_requestinbox(sd->status.char_id, 0); //MAIL SYSTEM - Request Mail Inbox
 	intif_request_questlog(sd);
 
-	if (sd->state.connect_new == 0 && sd->fd) { //Character already loaded map! Gotta trigger LoadEndAck manually.
+	if (sd->state.connect_new == 0 && sd->fd) { //Character already loaded map! Gotta trigger LoadEndAck manually
 		sd->state.connect_new = 1;
 		clif_parse_LoadEndAck(sd->fd, sd);
 	}
 
 	if (sd->sc.option&OPTION_INVISIBLE) {
 		sd->vd.class_ = INVISIBLE_CLASS;
-		clif_displaymessage(sd->fd, msg_txt(11)); //Invisible: On
+		clif_displaymessage(sd->fd, msg_txt(11)); // Invisible: On
 		//Decrement the number of pvp players on the map
 		map[sd->bl.m].users_pvp--;
 
@@ -4608,44 +4605,37 @@ bool pc_isUseitem(struct map_session_data *sd, int n)
 			break;
 	}
 
+	//Mercenary Scrolls
 	if( nameid >= ITEMID_BOW_MERCENARY_SCROLL1 && nameid <= ITEMID_SPEARMERCENARY_SCROLL10 && sd->md != NULL )
-		return false; //Mercenary Scrolls
+		return false;
 
 	if( itemdb_is_rune(nameid) && (sd->class_&MAPID_THIRDMASK) != MAPID_RUNE_KNIGHT )
 		return false; //Only Rune Knight may use runes
 	else if( itemdb_is_poison(nameid) && (sd->class_&MAPID_THIRDMASK) != MAPID_GUILLOTINE_CROSS )
 		return false; //Only Guillotine Cross may use poisons
 
-	if( item->flag.group ||
-		item->type == IT_CASH ) { //Safe check type cash disappear when overweight [Napster]
+	if( item->flag.group || item->type == IT_CASH ) { //Safe check type cash disappear when overweight [Napster]
 		if( pc_is90overweight(sd) ) {
 			clif_msg(sd,ITEM_CANT_OBTAIN_WEIGHT);
 			return false;
 		}
 		if( !pc_inventoryblank(sd) ) {
-			clif_colormes(sd,color_table[COLOR_RED],msg_txt(1477)); //Item cannot be open when inventory is full
+			clif_colormes(sd,color_table[COLOR_RED],msg_txt(1477)); // Item cannot be open when inventory is full.
 			return false;
 		}
 	}
 
-	//Gender check
-	if( item->sex != 2 && sd->status.sex != item->sex )
+	if( item->sex != 2 && sd->status.sex != item->sex ) //Gender check
 		return false;
 
-	//Required level check
-	if( item->elv && sd->status.base_level < (unsigned int)item->elv ) {
-		clif_msg(sd,ITEM_CANT_USE_NEED_LEVEL);
-		return false;
-	}
-
-	if( item->elvmax && sd->status.base_level > (unsigned int)item->elvmax ) {
-		clif_msg(sd,ITEM_CANT_USE_NEED_LEVEL);
+	if( (item->elv && sd->status.base_level < (unsigned int)item->elv) ||
+		(item->elvmax && sd->status.base_level > (unsigned int)item->elvmax) ) { //Required level check
+		clif_msg(sd,ITEM_CANT_USE_NEED_LEVEL); // You cannot use this item with your current level.
 		return false;
 	}
 
-	//Not equipable by class. [Skotlex]
 	if( !((1<<(sd->class_&MAPID_BASEMASK))&(item->class_base[sd->class_&JOBL_2_1 ? 1 : (sd->class_&JOBL_2_2 ? 2 : 0)])) )
-		return false;
+		return false; //Not equipable by class [Skotlex]
 
 	//Statuses that don't let the player use items
 	if( sd->sc.count &&
@@ -4744,10 +4734,10 @@ int pc_useitem(struct map_session_data *sd, int n)
 					char e_msg[100];
 
 					if( e_tick > 99 )
-						sprintf(e_msg,msg_txt(379), //Able to use %.1f min later.
+						sprintf(e_msg,msg_txt(379), // Able to use %.1f min later.
 							(double)e_tick / 60);
 					else
-						sprintf(e_msg,msg_txt(380), //Able to use %d sec later.
+						sprintf(e_msg,msg_txt(380), // Able to use %d sec later.
 							e_tick + 1);
 					clif_colormes(sd,color_table[COLOR_YELLOW],e_msg);
 					return 0; //Delay has not expired yet
@@ -9560,7 +9550,7 @@ void pc_check_available_item(struct map_session_data *sd) {
 			if( !it )
 				continue;
 			if( !itemdb_available(it) ) {
-				sprintf(output,msg_txt(709),it); //Item %hu has been removed from your inventory.
+				sprintf(output,msg_txt(709),it); // Item %hu has been removed from your inventory.
 				clif_displaymessage(sd->fd,output);
 				ShowWarning("Removed invalid/disabled item id %hu from inventory (amount=%d, char_id=%d).\n",it,sd->status.inventory[i].amount,sd->status.char_id);
 				pc_delitem(sd,i,sd->status.inventory[i].amount,0,0,LOG_TYPE_OTHER);
@@ -9578,7 +9568,7 @@ void pc_check_available_item(struct map_session_data *sd) {
 			if( !it )
 				continue;
 			if( !itemdb_available(it) ) {
-				sprintf(output,msg_txt(710),it); //Item %hu has been removed from your cart.
+				sprintf(output,msg_txt(710),it); // Item %hu has been removed from your cart.
 				clif_displaymessage(sd->fd,output);
 				ShowWarning("Removed invalid/disabled item id %hu from cart (amount=%d, char_id=%d).\n",it,sd->status.cart[i].amount,sd->status.char_id);
 				pc_cart_delitem(sd,i,sd->status.cart[i].amount,0,LOG_TYPE_OTHER);
@@ -9596,7 +9586,7 @@ void pc_check_available_item(struct map_session_data *sd) {
 			if( !it )
 				continue;
 			if( !itemdb_available(it) ) {
-				sprintf(output,msg_txt(711),it); //Item %hu has been removed from your storage.
+				sprintf(output,msg_txt(711),it); // Item %hu has been removed from your storage.
 				clif_displaymessage(sd->fd,output);
 				ShowWarning("Removed invalid/disabled item id %hu from storage (amount=%d, char_id=%d).\n",it,sd->status.storage.items[i].amount,sd->status.char_id);
 				storage_delitem(sd,i,sd->status.storage.items[i].amount);
@@ -9924,7 +9914,7 @@ int map_day_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 	night_flag = 0; //0 = day, 1 = night [Yor]
 	map_foreachpc(pc_daynight_timer_sub);
-	strcpy(tmp_soutput, (data == 0) ? msg_txt(502) : msg_txt(60)); //The day has arrived!
+	strcpy(tmp_soutput, (data == 0) ? msg_txt(502) : msg_txt(60)); // The day has arrived!
 	intif_broadcast(tmp_soutput, strlen(tmp_soutput) + 1, BC_DEFAULT);
 	return 0;
 }
@@ -9945,7 +9935,7 @@ int map_night_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 	night_flag = 1; // 0 = day, 1 = night [Yor]
 	map_foreachpc(pc_daynight_timer_sub);
-	strcpy(tmp_soutput, (data == 0) ? msg_txt(503) : msg_txt(59)); //The night has fallen
+	strcpy(tmp_soutput, (data == 0) ? msg_txt(503) : msg_txt(59)); // The night has fallen
 	intif_broadcast(tmp_soutput, strlen(tmp_soutput) + 1, BC_DEFAULT);
 	return 0;
 }
@@ -10926,16 +10916,14 @@ int pc_global_expiration_timer(int tid, unsigned int tick, int id, intptr_t data
   return 0;
 }
 
-void pc_expire_check(struct map_session_data *sd) {  
-	/* Ongoing timer */
-	if( sd->expiration_tid != INVALID_TIMER )
+void pc_expire_check(struct map_session_data *sd) {
+	if( sd->expiration_tid != INVALID_TIMER ) //Ongoing timer
 		return;
 
-	/* Not within the next 24h, enable the global check */
+	//Not within the next 24h, enable the global check
 	if( sd->expiration_time > (time(NULL) + ((60 * 60) * 24)) ) {
-
-		/* Global check not running, enable */
-		if( pc_expiration_tid == INVALID_TIMER ) /* Starts in 1h, repeats every hour */
+		//Global check not running, enable
+		if( pc_expiration_tid == INVALID_TIMER ) //Starts in 1h, repeats every hour
 			pc_expiration_tid = add_timer_interval(gettick() + ((1000 * 60) * 60), pc_global_expiration_timer, 0, 0, ((1000 * 60) * 60));
 
 		return;
@@ -10977,8 +10965,8 @@ enum e_BANKING_WITHDRAW_ACK pc_bank_withdraw(struct map_session_data *sd, int mo
 	else if ( money > sd->status.bank_vault )
 		return BWA_NO_MONEY;
 	else if ( limit_check > MAX_ZENY ) {
-		/* No official response for this scenario exists. */
-		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1509)); //You can't withdraw that much money
+		//No official response for this scenario exists
+		clif_colormes(sd,color_table[COLOR_RED],msg_txt(1509)); // You can't withdraw that much money.
 		return BWA_UNKNOWN_ERROR;
 	}
 	if( pc_getzeny(sd,money,LOG_TYPE_BANK,NULL) )
@@ -10998,9 +10986,9 @@ void pc_show_version(struct map_session_data *sd) {
 	char buf[CHAT_SIZE_MAX];
 
 	if( svn[0] != 0 )
-		sprintf(buf,msg_txt(1295),"SVN: r",svn); //idAthena Version %s%s
+		sprintf(buf,msg_txt(1295),"SVN: r",svn); // idAthena Version %s%s
 	else
-		sprintf(buf,msg_txt(1296)); //Cannot determine current version.
+		sprintf(buf,msg_txt(1296)); // Cannot determine current version.
 	clif_displaymessage(sd->fd,buf);
 }
 
@@ -11022,108 +11010,194 @@ void pc_crimson_marker_clear(struct map_session_data *sd) {
 	}
 }
 
-/** [Cydh]
+/**
+ * Run bonus_script on player
+ * @param sd
+ * @author [Cydh]
+ **/
+void pc_bonus_script(struct map_session_data *sd) {
+	int now = gettick();
+	struct linkdb_node *node = NULL, *next = NULL;
+
+	if (!sd || !(node = sd->bonus_script.head))
+		return;
+	while (node) {
+		struct s_bonus_script_entry *entry = NULL;
+
+		next = node->next;
+		if ((entry = (struct s_bonus_script_entry *)node->data)) {
+			if (entry->tid == INVALID_TIMER) { //Only start timer for new bonus_script
+				if (entry->icon != SI_BLANK) //Gives status icon if exist
+					clif_status_change(&sd->bl, entry->icon, 1, entry->tick, 1, 0, 0);
+				entry->tick += now;
+				entry->tid = add_timer(entry->tick, pc_bonus_script_timer, sd->bl.id, (intptr_t)entry);
+			}
+			if (entry->script)
+				run_script(entry->script, 0, sd->bl.id, 0);
+			else
+				ShowError("pc_bonus_script: The script has been removed somewhere. \"%s\"\n", StringBuf_Value(entry->script_buf));
+		}
+		node = next;
+	}
+}
+
+/**
+ * Add bonus_script to player
+ * @param sd Player
+ * @param script_str Script string
+ * @param dur Duration in ms
+ * @param icon SI
+ * @param flag Flags @see enum e_bonus_script_flags
+ * @param type 0 - None, 1 - Buff, 2 - Debuff
+ * @return New created entry pointer or NULL if failed or NULL if duplicate fail
+ * @author [Cydh]
+ **/
+struct s_bonus_script_entry *pc_bonus_script_add(struct map_session_data *sd, const char *script_str, uint32 dur, enum si_type icon, uint16 flag, uint8 type) {
+	struct script_code *script = NULL;
+	struct linkdb_node *node = NULL;
+	struct s_bonus_script_entry *entry = NULL;
+
+	if (!sd)
+		return NULL;
+	if (!(script = parse_script(script_str, "bonus_script", 0, SCRIPT_IGNORE_EXTERNAL_BRACKETS))) {
+		ShowError("pc_bonus_script_add: Failed to parse script '%s' (CID:%d).\n", script_str, sd->status.char_id);
+		return NULL;
+	}
+	if ((node = sd->bonus_script.head)) { //Duplication checks
+		while (node) {
+			entry = (struct s_bonus_script_entry *)node->data;
+			if (strcmpi(script_str, StringBuf_Value(entry->script_buf)) == 0) {
+				int newdur = gettick() + dur;
+
+				if (flag&BSF_FORCE_REPLACE && entry->tick < newdur) { //Change duration
+					settick_timer(entry->tid, newdur);
+					script_free_code(script);
+					return NULL;
+				} else if (flag&BSF_FORCE_DUPLICATE) //Allow duplicate
+					break;
+				else { //No duplicate bonus
+					script_free_code(script);
+					return NULL;
+				}
+			}
+			node = node->next;
+		}
+	}
+	CREATE(entry, struct s_bonus_script_entry, 1);
+	entry->script_buf = StringBuf_Malloc();
+	StringBuf_AppendStr(entry->script_buf, script_str);
+	entry->tid = INVALID_TIMER;
+	entry->flag = flag;
+	entry->icon = icon;
+	entry->tick = dur; //Use duration first, on run change to expire time
+	entry->type = type;
+	entry->script = script;
+	sd->bonus_script.count++;
+	return entry;
+}
+
+/**
+ * Remove bonus_script data from player
+ * @param sd: Target player
+ * @param list: Bonus script entry from player
+ * @author [Cydh]
+ **/
+void pc_bonus_script_free_entry(struct map_session_data *sd, struct s_bonus_script_entry *entry) {
+	if (entry->tid != INVALID_TIMER)
+		delete_timer(entry->tid, pc_bonus_script_timer);
+	if (entry->script)
+		script_free_code(entry->script);
+	if (entry->script_buf)
+		StringBuf_Free(entry->script_buf);
+	if (sd) {
+		if (entry->icon != SI_BLANK)
+			clif_status_load(&sd->bl, entry->icon, 0);
+		if (sd->bonus_script.count > 0)
+			sd->bonus_script.count--;
+	}
+	aFree(entry);
+}
+
+/**
+ * Do final process if no entry left
+ * @param sd
+ **/
+static void inline pc_bonus_script_check_final(struct map_session_data *sd) {
+	if (sd->bonus_script.count == 0) {
+		if (sd->bonus_script.head && sd->bonus_script.head->data)
+			pc_bonus_script_free_entry(sd, (struct s_bonus_script_entry *)sd->bonus_script.head->data);
+		linkdb_final(&sd->bonus_script.head);
+	}
+}
+
+/**
  * Timer for bonus_script
  * @param tid
  * @param tick
  * @param id
  * @param data
- */
+ * @author [Cydh]
+ **/
 int pc_bonus_script_timer(int tid, unsigned int tick, int id, intptr_t data) {
-	uint8 i = (uint8)data;
 	struct map_session_data *sd;
+	struct s_bonus_script_entry *entry = (struct s_bonus_script_entry *)data;
 
 	sd = map_id2sd(id);
 	if (!sd) {
-		ShowDebug("pc_bonus_script_timer: Null pointer id: %d data: %d\n",id,data);
+		ShowError("pc_bonus_script_timer: Null pointer id: %d tid: %d\n", id, tid);
 		return 0;
 	}
-	if (i >= MAX_PC_BONUS_SCRIPT|| !(&sd->bonus_script[i]) || !sd->bonus_script[i].script) {
-		ShowDebug("pc_bonus_script_timer: Invalid index %d\n",i);
+	if (tid == INVALID_TIMER)
+		return 0;
+	if (!sd->bonus_script.head || entry == NULL) {
+		ShowError("pc_bonus_script_timer: Invalid entry pointer 0x%08X!\n", entry);
 		return 0;
 	}
-	if (sd->bonus_script[i].icon != SI_BLANK)
-		clif_status_load(&sd->bl,sd->bonus_script[i].icon,0);
-	pc_bonus_script_remove(&sd->bonus_script[i]);
+	linkdb_erase(&sd->bonus_script.head, (void *)((intptr_t)entry));
+	pc_bonus_script_free_entry(sd, entry);
+	pc_bonus_script_check_final(sd);
 	status_calc_pc(sd,SCO_NONE);
 	return 0;
 }
 
-/** [Cydh]
- * Remove bonus_script data from player
- * @param sd: Target player
- * @param i: Bonus script index
- */
-void pc_bonus_script_remove(struct s_bonus_script *bscript) {
-	if (!bscript)
-		return;
-	if (bscript->script)
-		script_free_code(bscript->script);
-	bscript->script = NULL;
-	memset(bscript->script_str, '\0', sizeof(bscript->script_str));
-	bscript->tick = 0;
-	bscript->flag = 0;
-	bscript->icon = SI_BLANK;
-	if (bscript->tid != INVALID_TIMER)
-		delete_timer(bscript->tid,pc_bonus_script_timer);
-	bscript->tid = INVALID_TIMER;
-}
-
-/** [Cydh]
+/**
  * Check then clear all active timer(s) of bonus_script data from player based on reason
  * @param sd: Target player
  * @param flag: Reason to remove the bonus_script. e_bonus_script_flags or e_bonus_script_types
- */
+ * @author [Cydh]
+ **/
 void pc_bonus_script_clear(struct map_session_data *sd, uint16 flag) {
-	uint8 i, count = 0;
+	struct linkdb_node *node = NULL;
+	uint16 count = 0;
 
-	if (!sd)
+	if (!sd || !(node = sd->bonus_script.head))
 		return;
-	for (i = 0; i < MAX_PC_BONUS_SCRIPT; i++) {
-		if (&sd->bonus_script[i] && sd->bonus_script[i].script &&
-			(sd->bonus_script[i].flag&flag || //Remove bonus script based on e_bonus_script_flags
-			(sd->bonus_script[i].type && (
-				(flag&BSF_REM_BUFF && sd->bonus_script[i].type == 1) || //Remove bonus script based on buff type
-				(flag&BSF_REM_DEBUFF && sd->bonus_script[i].type == 2)) //Remove bonus script based on debuff type
-			)))
+	while (node) {
+		struct linkdb_node *next = node->next;
+		struct s_bonus_script_entry *entry = (struct s_bonus_script_entry *)node->data;
+
+		if (entry &&
+				((flag == BSF_PERMANENT) ||                  //Remove all with permanent bonus
+				(!flag && !(entry->flag&BSF_PERMANENT)) ||   //Remove all WITHOUT permanent bonus
+				(flag&entry->flag) ||						 //Matched flag
+				(flag&BSF_REM_BUFF   && entry->type == 1) || //Remove buff
+				(flag&BSF_REM_DEBUFF && entry->type == 2)))  //Remove debuff
 		{
-			if (sd->bonus_script[i].icon != SI_BLANK)
-				clif_status_load(&sd->bl,sd->bonus_script[i].icon,0);
-			pc_bonus_script_remove(&sd->bonus_script[i]);
+			linkdb_erase(&sd->bonus_script.head, (void *)((intptr_t)entry));
+			pc_bonus_script_free_entry(sd, entry);
 			count++;
 		}
+		node = next;
 	}
+	pc_bonus_script_check_final(sd);
 	if (count && !(flag&BSF_REM_ON_LOGOUT)) //Don't need to do this if log out
 		status_calc_pc(sd,SCO_NONE);
-}
-
-/**
- * Clear all bonus script from player
- * @param sd
- * @param permanent If true, will removes permanent bonus script.
- * @author [Cydh]
- */
-void pc_bonus_script_clear_all(struct map_session_data *sd, bool permanent) {
-	uint8 i, count = 0;
-
-	if (!sd)
-		return;
-	for (i = 0; i < MAX_PC_BONUS_SCRIPT; i++) {
-		if (!&sd->bonus_script[i] && !sd->bonus_script[i].script)
-			continue;
-		if (!permanent && sd->bonus_script[i].flag&BSF_PERMANENT)
-			continue;
-		clif_status_change(&sd->bl,sd->bonus_script[i].icon,0,0,0,0,0);
-		pc_bonus_script_remove(&sd->bonus_script[i]);
-		count++;
-	}
-	status_calc_pc(sd,SCO_NONE);
 }
 
 /** [Cydh]
  * Gives/removes SC_BASILICA when player steps in/out the cell with 'cell_basilica'
  * @param sd: Target player
- */
+ **/
 void pc_cell_basilica(struct map_session_data *sd) {
 	nullpo_retv(sd);
 
@@ -11140,7 +11214,7 @@ void pc_cell_basilica(struct map_session_data *sd) {
  * @param sex: sd->status.sex
  * @param flag: parameter will be checked
  * @return max_param
- */
+ **/
 short pc_maxparameter(struct map_session_data *sd, enum e_params param) {
 	int idx = -1, class_ = sd->class_;
 
@@ -11169,7 +11243,7 @@ short pc_maxparameter(struct map_session_data *sd, enum e_params param) {
  * Get max ASPD for player based on Class
  * @param sd Player
  * @return ASPD
- */
+ **/
 short pc_maxaspd(struct map_session_data *sd) {
 	nullpo_ret(sd);
 
@@ -11183,7 +11257,7 @@ short pc_maxaspd(struct map_session_data *sd) {
  * @param sd Player
  * @param nameid Item ID
  * @return Heal rate
- */
+ **/
 short pc_get_itemgroup_bonus(struct map_session_data* sd, unsigned short nameid) {
 	short bonus = 0;
 	uint8 i;
@@ -11213,7 +11287,7 @@ short pc_get_itemgroup_bonus(struct map_session_data* sd, unsigned short nameid)
  * @param sd Player
  * @param group_id Item Group ID
  * @return Heal rate
- */
+ **/
 short pc_get_itemgroup_bonus_group(struct map_session_data* sd, uint16 group_id) {
 	short bonus = 0;
 	uint8 i;
@@ -11234,7 +11308,7 @@ short pc_get_itemgroup_bonus_group(struct map_session_data* sd, uint16 group_id)
  * @param *equip_index Player's equip_index[]
  * @param index Known index item in inventory from sd->equip_index[] to compare with specified EQI in *equip_index
  * @return True if item in same inventory index, False if doesn't
- */
+ **/
 bool pc_is_same_equip_index(enum equip_index eqi, short *equip_index, short index) {
 	if (index < 0 || index >= MAX_INVENTORY)
 		return true;
@@ -11257,7 +11331,7 @@ bool pc_is_same_equip_index(enum equip_index eqi, short *equip_index, short inde
  * Generate Unique item ID for player
  * @param sd : Player
  * @return A generated Unique item ID
- */
+ **/
 uint64 pc_generate_unique_id(struct map_session_data *sd) {
 	nullpo_ret(sd);
 

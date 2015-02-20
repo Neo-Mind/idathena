@@ -1452,17 +1452,17 @@ void login_auth_failed(struct login_session_data* sd, int result)
 	int fd = sd->fd;
 	uint32 ip = session[fd]->client_addr;
 
-	if (login_config.log_login) {
-		if(result >= 0 && result <= 15)
+	if( login_config.log_login ) {
+		if( result >= 0 && result <= 15 )
 		    login_log(ip, sd->userid, result, msg_txt(result));
-		else if(result >= 99 && result <= 104)
-		    login_log(ip, sd->userid, result, msg_txt(result-83)); //-83 offset
+		else if( result >= 99 && result <= 104 )
+		    login_log(ip, sd->userid, result, msg_txt(result - 83)); // -83 offset.
 		else
-		    login_log(ip, sd->userid, result, msg_txt(22)); //unknow error
+		    login_log(ip, sd->userid, result, msg_txt(22)); // Unknown error.
 	}
 
 	if( result == 1 && login_config.dynamic_pass_failure_ban )
-		ipban_log(ip); // log failed password attempt
+		ipban_log(ip); // Log failed password attempt
 
 #if PACKETVER >= 20120000 /* not sure when this started */
 	WFIFOHEAD(fd,26);

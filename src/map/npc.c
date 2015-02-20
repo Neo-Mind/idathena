@@ -1584,7 +1584,7 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 			if (z > (double)count) {
 				struct item_data *id = itemdb_exists(nd->u.shop.itemshop_nameid);
 
-				sprintf(output,msg_txt(712),id->jname,id->nameid); //You do not have enough %s %d.
+				sprintf(output,msg_txt(712),id->jname,id->nameid); // You do not have enough %s %d.
 				clif_colormes(sd,color_table[COLOR_RED],output);
 				return 1;
 			}
@@ -1603,7 +1603,7 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 					break;
 			}
 			if (z > (double)count) {
-				sprintf(output,msg_txt(713),nd->u.shop.pointshop_str); //You do not have enough '%s'.
+				sprintf(output,msg_txt(713),nd->u.shop.pointshop_str); // You do not have enough '%s'.
 				clif_colormes(sd,color_table[COLOR_RED],output);
 				return 1;
 			}

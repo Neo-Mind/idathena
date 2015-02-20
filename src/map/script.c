@@ -1633,9 +1633,9 @@ const char* parse_syntax(const char* p)
 						set_label(l,script_pos,p);
 					}
 					// check duplication of case label [Rayce]
-					if(linkdb_search(&syntax.curly[pos].case_label, (void*)__64BPRTSIZE(v)) != NULL)
+					if(linkdb_search(&syntax.curly[pos].case_label, (void *)__64BPRTSIZE(v)) != NULL)
 						disp_error_message("parse_syntax: dup 'case'",p);
-					linkdb_insert(&syntax.curly[pos].case_label, (void*)__64BPRTSIZE(v), (void*)1);
+					linkdb_insert(&syntax.curly[pos].case_label, (void *)__64BPRTSIZE(v), (void *)1);
 
 					sprintf(label,"set $@__SW%x_VAL,0;",syntax.curly[pos].index);
 					syntax.curly[syntax.curly_count++].type = TYPE_NULL;
@@ -2315,8 +2315,8 @@ void script_hardcoded_constants(void)
 	script_set_constant("BSF_REM_ON_MADOGEAR", BSF_REM_ON_MADOGEAR, false);
 	script_set_constant("BSF_REM_ON_DAMAGED", BSF_REM_ON_DAMAGED, false);
 	script_set_constant("BSF_PERMANENT", BSF_PERMANENT, false);
-	script_set_constant("BSF_REM_BUFF", BSF_REM_BUFF, false);
-	script_set_constant("BSF_REM_DEBUFF", BSF_REM_DEBUFF, false);
+	script_set_constant("BSF_FORCE_REPLACE", BSF_FORCE_REPLACE, false);
+	script_set_constant("BSF_FORCE_DUPLICATE", BSF_FORCE_DUPLICATE, false);
 
 	/* Status change flags */
 	script_set_constant("SCFLAG_NONE", SCFLAG_NONE, false);
@@ -3581,7 +3581,7 @@ void run_script(struct script_code *rootscript,int pos,int rid,int oid)
 void script_stop_sleeptimers(int id)
 {
 	for( ;; ) {
-		struct script_state* st = (struct script_state*)linkdb_erase(&sleep_db,(void*)__64BPRTSIZE(id));
+		struct script_state* st = (struct script_state *)linkdb_erase(&sleep_db,(void *)__64BPRTSIZE(id));
 
 		if( st == NULL )
 			break; // no more sleep timers
@@ -3808,7 +3808,7 @@ void run_script_main(struct script_state *st)
 		sd = map_id2sd(st->rid); //Get sd since script might have attached someone while running [Inkfish]
 		st->sleep.charid = (sd ? sd->status.char_id : 0);
 		st->sleep.timer = add_timer(gettick() + st->sleep.tick, run_script_timer,st->sleep.charid,(intptr_t)st);
-		linkdb_insert(&sleep_db,(void*)__64BPRTSIZE(st->oid),st);
+		linkdb_insert(&sleep_db,(void *)__64BPRTSIZE(st->oid),st);
 	} else if (st->state != END && st->rid) {
 		//Resume later (st is already attached to player)
 		if (st->bk_st) {
@@ -13044,11 +13044,11 @@ int recovery_sub(struct map_session_data* sd, int revive)
 {
 	if( revive&(1|4) && pc_isdead(sd) ) {
 		status_revive(&sd->bl,100,100);
-		clif_displaymessage(sd->fd,msg_txt(16)); //You've been revived!
+		clif_displaymessage(sd->fd,msg_txt(16)); // You've been revived!
 		clif_specialeffect(&sd->bl,77,AREA);
 	} else if( revive&(1|2) && !pc_isdead(sd) ) {
 		status_percent_heal(&sd->bl,100,100);
-		clif_displaymessage(sd->fd,msg_txt(680)); //You have been recovered!
+		clif_displaymessage(sd->fd,msg_txt(680)); // You have been recovered!
 	}
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -18348,11 +18348,11 @@ BUILDIN_FUNC(montransform) {
 		struct mob_db *monster =  mob_db(mob_id);
 
 		if( battle_config.mon_trans_disable_in_gvg && map_flag_gvg2(sd->bl.m) ) {
-			clif_displaymessage(sd->fd,msg_txt(1493)); //Transforming into monster is not allowed in Guild Wars.
+			clif_displaymessage(sd->fd,msg_txt(1493)); // Transforming into monster is not allowed in Guild Wars.
 			return 0;
 		}
 		if( sd->disguise ) {
-			clif_displaymessage(sd->fd,msg_txt(1491)); //Cannot transform into monster while in disguise.
+			clif_displaymessage(sd->fd,msg_txt(1491)); // Cannot transform into monster while in disguise.
 			return 0;
 		}
 		status_change_end(&sd->bl,SC_MONSTER_TRANSFORM,INVALID_TIMER); //Clear previous
@@ -18360,7 +18360,7 @@ BUILDIN_FUNC(montransform) {
 		if( type != SC_NONE ) {
 			char msg[CHAT_SIZE_MAX];
 
-			sprintf(msg,msg_txt(1490),monster->name); //Traaaansformation-!! %s form!!
+			sprintf(msg,msg_txt(1490),monster->name); // Traaaansformation-!! %s form!!
 			clif_ShowScript(&sd->bl,msg);
 			sc_start4(NULL,&sd->bl,type,100,val1,val2,val3,val4,tick);
 		}
@@ -18377,24 +18377,26 @@ BUILDIN_FUNC(montransform) {
  * @param icon
  * @param char_id
  * @author [Cydh]
- * @return val: 1 - success, 0 - failed
- */
+ **/
 BUILDIN_FUNC(bonus_script) {
-	uint8 i, type = 0;
-	uint8 flag = 0;
+	uint16 flag = 0;
 	int16 icon = SI_BLANK;
 	uint32 dur;
+	uint8 type = 0;
 	TBL_PC* sd;
 	const char *script_str = NULL;
-	struct script_code *script = NULL;
+	struct s_bonus_script_entry *entry = NULL;
 
-	if( script_hasdata(st,7) )
-		sd = map_charid2sd(script_getnum(st,7));
-	else
+	if( script_hasdata(st,7) ) {
+		if( !(sd = map_charid2sd(script_getnum(st,7))) ) {
+			ShowError("buildin_bonus_script: Player CID=%d is not found.\n",script_getnum(st,7));
+			return 1;
+		}
+	} else
 		sd = script_rid2sd(st);
 
 	if( sd == NULL )
-		return 0;
+		return 1;
 
 	script_str = script_getstr(st,2);
 	dur = 1000 * abs(script_getnum(st,3));
@@ -18402,42 +18404,23 @@ BUILDIN_FUNC(bonus_script) {
 	FETCH(5,type);
 	FETCH(6,icon);
 
-	if( script_str[0] == '\0' || !dur ) {
-		//ShowWarning("buildin_bonus_script: Invalid script. Skipping...\n");
-		return 0;
-	}
-
-	//Skip duplicate entry
-	ARR_FIND(0,MAX_PC_BONUS_SCRIPT,i,&sd->bonus_script[i] && sd->bonus_script[i].script_str && strcmp(sd->bonus_script[i].script_str,script_str) == 0);
-	if( i < MAX_PC_BONUS_SCRIPT ) {
-		//ShowWarning("buildin_bonus_script: Duplicate entry with bonus '%d'. Skipping...\n",i);
+	if( script_str[0] == '\0' || !dur ) { //No Script string, No Duration!
+		ShowError("buildin_bonus_script: Invalid! Script: \"%s\". Duration: %d\n",script_str,dur);
 		return 1;
 	}
 
-	if( !(script = parse_script(script_str,"bonus_script",0,1)) ) {
-		ShowWarning("buildin_bonus_script: Failed to parse script '%s' (cid:%d). Skipping...\n",script_str,sd->status.char_id);
-		return 0;
-	}
-
-	//Find the empty slot
-	ARR_FIND(0,MAX_PC_BONUS_SCRIPT,i,!sd->bonus_script[i].script);
-	if( i >= MAX_PC_BONUS_SCRIPT ) {
-		ShowWarning("buildin_itemscript: Maximum script_bonus is reached (cid:%d max: %d). Skipping...\n",sd->status.char_id,MAX_PC_BONUS_SCRIPT);
+	if( strlen(script_str) >= MAX_BONUS_SCRIPT_LENGTH ) {
+		ShowError("buildin_bonus_script: Script string to long: \"%s\".\n",script_str);
 		return 1;
 	}
 
-	//Add the script data
-	memcpy(sd->bonus_script[i].script_str,script_str,strlen(script_str) + 1);
-	sd->bonus_script[i].script = script;
-	sd->bonus_script[i].tick = gettick() + dur;
-	sd->bonus_script[i].flag = flag;
-	sd->bonus_script[i].type = type;
-	sd->bonus_script[i].icon = icon;
+	if( icon <= SI_BLANK || icon >= SI_MAX )
+		icon = SI_BLANK;
 
-	if (sd->bonus_script[i].icon != SI_BLANK) //Gives status icon if exist
-		clif_status_change(&sd->bl,sd->bonus_script[i].icon,1,dur,1,0,0);
-
-	status_calc_pc(sd,SCO_NONE);
+	if( (entry = pc_bonus_script_add(sd,script_str,dur,(enum si_type)icon,flag,type)) ) {
+		linkdb_insert(&sd->bonus_script.head,(void *)((intptr_t)entry),entry);
+		status_calc_pc(sd,SCO_NONE);
+	}
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -18450,20 +18433,20 @@ BUILDIN_FUNC(bonus_script) {
  */
 BUILDIN_FUNC(bonus_script_clear) {
 	TBL_PC* sd;
-	bool flag = 0;
+	bool flag = false;
 
-	if (script_hasdata(st,2))
+	if( script_hasdata(st,2) )
 		flag = script_getnum(st,2);
 
-	if (script_hasdata(st,3))
+	if( script_hasdata(st,3) )
 		sd = map_charid2sd(script_getnum(st,3));
 	else
 		sd = script_rid2sd(st);
 
-	if (sd == NULL)
+	if( sd == NULL )
 		return 1;
 
-	pc_bonus_script_clear_all(sd,flag); //Don't remove permanent script
+	pc_bonus_script_clear(sd,(flag ? BSF_PERMANENT : BSF_REM_ALL));
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -18539,7 +18522,7 @@ BUILDIN_FUNC(vip_time) {
 		return 0;
 
 	if (pc_get_group_level(sd) > 5) {
-		clif_displaymessage(sd->fd,msg_txt(437)); //GM's cannot become a VIP
+		clif_displaymessage(sd->fd,msg_txt(437)); // GM's cannot become a VIP
 		return 0;
 	}
 

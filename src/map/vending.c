@@ -323,7 +323,7 @@ int8 vending_openvending(struct map_session_data* sd, const char* message, const
 	}
 
 	if( i != j )
-		clif_displaymessage(sd->fd, msg_txt(266)); //"Some of your items cannot be vended and were removed from the shop."
+		clif_displaymessage(sd->fd, msg_txt(266)); // "Some of your items cannot be vended and were removed from the shop."
 
 	if( i == 0 ) { //No valid item found
 		clif_skill_fail(sd, MC_VENDING, USESKILL_FAIL_LEVEL, 0); //Custom reply packet

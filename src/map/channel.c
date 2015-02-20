@@ -897,9 +897,9 @@ int channel_pcban(struct map_session_data *sd, char *chname, char *pname, int fl
 	case 3: {
 		DBIterator *iter = db_iterator(channel->banned);
 		struct chan_banentry *cbe;
-		sprintf(output, msg_txt(1443), channel->name);// ---- '#%s' Ban List:
+		sprintf(output, msg_txt(1443), channel->name); // ---- '#%s' Ban List:
 		clif_displaymessage(sd->fd, output);
-		for( cbe = dbi_first(iter); dbi_exists(iter); cbe = dbi_next(iter) ) { //for all users
+		for( cbe = dbi_first(iter); dbi_exists(iter); cbe = dbi_next(iter) ) { //For all users
 			sprintf(output, "%d: %s",cbe->char_id,cbe->char_name);
 			clif_displaymessage(sd->fd, output);
 		}
@@ -933,36 +933,36 @@ int channel_pcsetopt(struct map_session_data *sd, char *chname, const char *opti
 	};
 
 	if( channel_chk(chname,NULL,1) ) {
-		clif_displaymessage(sd->fd, msg_txt(1405));// Channel name must start with '#'.
+		clif_displaymessage(sd->fd, msg_txt(1405)); // Channel name must start with '#'.
 		return -1;
 	}
 
 	channel = channel_name2channel(chname,sd,0);
 	if( !channel ) {
-		sprintf(output, msg_txt(1407), chname);// Channel '%s' is not available.
+		sprintf(output, msg_txt(1407), chname); // Channel '%s' is not available.
 		clif_displaymessage(sd->fd, output);
 		return -1;
 	}
 
 	if( channel->owner != sd->status.char_id && !pc_has_permission(sd, PC_PERM_CHANNEL_ADMIN) ) {
-		sprintf(output, msg_txt(1412), chname);// You're not the owner of channel '%s'.
+		sprintf(output, msg_txt(1412), chname); // You're not the owner of channel '%s'.
 		clif_displaymessage(sd->fd, output);
 		return -1;
 	}
 
 	if( !option || option[0] == '\0' ) {
-		clif_displaymessage(sd->fd, msg_txt(1446));// You need to input an option.
+		clif_displaymessage(sd->fd, msg_txt(1446)); // You need to input an option.
 		return -1;
 	}
 
 	s = ARRAYLENGTH(opt_str);
 	ARR_FIND(1,s,k,( strncmpi(option,opt_str[k],3) == 0 )); //we only cmp 3 letter atm
 	if( k >= s ) {
-		sprintf(output, msg_txt(1447), option);// Unknown channel option '%s'.
+		sprintf(output, msg_txt(1447), option); // Unknown channel option '%s'.
 		clif_displaymessage(sd->fd, output);
-		clif_displaymessage(sd->fd, msg_txt(1414));// ---- Available options:
+		clif_displaymessage(sd->fd, msg_txt(1414)); // ---- Available options:
 		for( k = 1; k < s; k++ ) {
-			sprintf(output, msg_txt(1445), opt_str[k]);// - '%s'
+			sprintf(output, msg_txt(1445), opt_str[k]); // - '%s'
 			clif_displaymessage(sd->fd, output);
 		}
 		return -1;
@@ -970,7 +970,7 @@ int channel_pcsetopt(struct map_session_data *sd, char *chname, const char *opti
 
 	if( val[0] == '\0' ) {
 		if ( k == CHAN_OPT_MSG_DELAY ) {
-			sprintf(output, msg_txt(1466), opt_str[k]);// Input the number of seconds (0-10) for the '%s' option.
+			sprintf(output, msg_txt(1466), opt_str[k]); // Input the number of seconds (0-10) for the '%s' option.
 			clif_displaymessage(sd->fd, output);
 			return -1;
 		} else if( channel->opt & k ) {
@@ -979,7 +979,7 @@ int channel_pcsetopt(struct map_session_data *sd, char *chname, const char *opti
 			return -1;
 		} else {
 			channel->opt |= k;
-			sprintf(output, msg_txt(1450), opt_str[k],channel->name);// Option '%s' is enabled for channel '%s'.
+			sprintf(output, msg_txt(1450), opt_str[k],channel->name); // Option '%s' is enabled for channel '%s'.
 			clif_displaymessage(sd->fd, output);
 			return 0;
 		}
@@ -987,20 +987,20 @@ int channel_pcsetopt(struct map_session_data *sd, char *chname, const char *opti
 		int v = atoi(val);
 		if( k == CHAN_OPT_MSG_DELAY ) {
 			if( v < 0 || v > 10 ) {
-				sprintf(output, msg_txt(1451), v, opt_str[k]);// Value '%d' for option '%s' is out of range (limit 0-10).
+				sprintf(output, msg_txt(1451), v, opt_str[k]); // Value '%d' for option '%s' is out of range (limit 0-10).
 				clif_displaymessage(sd->fd, output);
 				return false;
 			}
 			if( v == 0 ) {
 				channel->opt &=~ k;
 				channel->msg_delay = 0;
-				sprintf(output, msg_txt(1453), opt_str[k],channel->name,v);// Option '%s' is disabled for channel '%s'.
+				sprintf(output, msg_txt(1453), opt_str[k],channel->name,v); // Option '%s' is disabled for channel '%s'.
 				clif_displaymessage(sd->fd, output);
 				return true;
 			} else {
 				channel->opt |= k;
 				channel->msg_delay = v;
-				sprintf(output, msg_txt(1452), opt_str[k],channel->name,v);// Option '%s' is enabled for channel '%s' at %d seconds.
+				sprintf(output, msg_txt(1452), opt_str[k],channel->name,v); // Option '%s' is enabled for channel '%s' at %d seconds.
 				clif_displaymessage(sd->fd, output);
 				return true;
 			}
@@ -1012,7 +1012,7 @@ int channel_pcsetopt(struct map_session_data *sd, char *chname, const char *opti
 					return false;
 				} else {
 					channel->opt |= k;
-					sprintf(output, msg_txt(1450), opt_str[k],channel->name);// Option '%s' is enabled for channel '%s'.
+					sprintf(output, msg_txt(1450), opt_str[k],channel->name); // Option '%s' is enabled for channel '%s'.
 					clif_displaymessage(sd->fd, output);
 				}
 			} else {
@@ -1022,7 +1022,7 @@ int channel_pcsetopt(struct map_session_data *sd, char *chname, const char *opti
 					return false;
 				} else {
 					channel->opt &=~ k;
-					sprintf(output, msg_txt(1453), opt_str[k],channel->name);// Option '%s' is disabled for channel '%s'.
+					sprintf(output, msg_txt(1453), opt_str[k],channel->name); // Option '%s' is disabled for channel '%s'.
 					clif_displaymessage(sd->fd, output);
 					return true;
 				}

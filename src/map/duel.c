@@ -75,13 +75,13 @@ void duel_showinfo(const unsigned int did, struct map_session_data* sd)
 	char output[256];
 
 	if(duel_list[did].max_players_limit > 0)
-		sprintf(output, msg_txt(370), //" -- Duels: %d/%d, Members: %d/%d, Max players: %d --"
+		sprintf(output, msg_txt(370), // " -- Duels: %d/%d, Members: %d/%d, Max players: %d --"
 			did, duel_count,
 			duel_list[did].members_count,
 			duel_list[did].members_count + duel_list[did].invites_count,
 			duel_list[did].max_players_limit);
 	else
-		sprintf(output, msg_txt(371), //" -- Duels: %d/%d, Members: %d/%d --"
+		sprintf(output, msg_txt(371), // " -- Duels: %d/%d, Members: %d/%d --"
 			did, duel_count,
 			duel_list[did].members_count,
 			duel_list[did].members_count + duel_list[did].invites_count);
