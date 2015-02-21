@@ -9999,7 +9999,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 			clif_status_load(&sd->bl,SI_NIGHT,1);
 		}
 
-		//Notify everyone that this char logged in [Skotlex].
+		//Notify everyone that this char logged in [Skotlex]
 		map_foreachpc(clif_friendslist_toggle_sub,sd->status.account_id,sd->status.char_id,1);
 
 		//Set the initial idle time
@@ -10038,7 +10038,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 			(map_flag_gvg2(sd->state.pmap) || map_flag_gvg2(sd->bl.m) || map[sd->state.pmap].flag.battleground || map[sd->bl.m].flag.battleground))
 			status_calc_bl(&sd->bl,SCB_FLEE); //Refresh flee penalty
 
-		if(night_flag && map[sd->bl.m].flag.nightenabled) { //Display night.
+		if(night_flag && map[sd->bl.m].flag.nightenabled) { //Display night
 			if(!sd->state.night) {
 				sd->state.night = 1;
 				clif_status_load(&sd->bl,SI_NIGHT,1);
@@ -10093,15 +10093,14 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 
 	clif_maptypeproperty2(&sd->bl,SELF);
 
-	/* Guild Aura Init */
-	if(sd->state.gmaster_flag) {
+	if(sd->state.gmaster_flag) { //Guild Aura Init
 		guild_guildaura_refresh(sd,GD_LEADERSHIP,guild_checkskill(sd->guild,GD_LEADERSHIP));
 		guild_guildaura_refresh(sd,GD_GLORYWOUNDS,guild_checkskill(sd->guild,GD_GLORYWOUNDS));
 		guild_guildaura_refresh(sd,GD_SOULCOLD,guild_checkskill(sd->guild,GD_SOULCOLD));
 		guild_guildaura_refresh(sd,GD_HAWKEYES,guild_checkskill(sd->guild,GD_HAWKEYES));
 	}
 
-	if(sd->state.vending) { /* Show we have a vending */
+	if(sd->state.vending) { //Show we have a vending
 		clif_openvending(sd,sd->bl.id,sd->vending);
 		clif_showvendingboard(&sd->bl,sd->message,0);
 	}
@@ -13706,7 +13705,7 @@ void clif_parse_PMIgnore(int fd, struct map_session_data* sd)
 
 	if( type == 0 ) { // Add name to ignore list (block)
 		if (strcmp(wisp_server_name, nick) == 0) {
-			clif_wisexin(sd, type, 1); // fail
+			clif_wisexin(sd, type, 1); // Fail
 			return;
 		}
 

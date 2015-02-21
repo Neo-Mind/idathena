@@ -462,7 +462,7 @@ int chrif_changemapserver(struct map_session_data* sd, uint32 ip, uint16 port) {
 int chrif_changemapserverack(int account_id, int login_id1, int login_id2, int char_id, short map_index, short x, short y, uint32 ip, uint16 port) {
 	struct auth_node *node;
 
-	if ( !( node = chrif_auth_check(account_id, char_id, ST_MAPCHANGE) ) )
+	if ( !(node = chrif_auth_check(account_id, char_id, ST_MAPCHANGE)) )
 		return -1;
 
 	if ( !login_id1 ) {

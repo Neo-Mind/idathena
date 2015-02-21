@@ -3268,7 +3268,7 @@ int parse_frommap(int fd)
 				memcpy(WFIFOP(fd,3), wisp_server_name, NAME_LENGTH);
 				WFIFOSET(fd,3 + NAME_LENGTH);
 
-				char_send_fame_list(fd); //Send fame list.
+				char_send_fame_list(fd); //Send fame list
 				{
 					int x;
 					if( j == 0 )
@@ -3305,7 +3305,7 @@ int parse_frommap(int fd)
 				RFIFOSKIP(fd,RFIFOW(fd,2));
 				break;
 
-			case 0x2afc: //Packet command is now used for sc_data request. [Skotlex]
+			case 0x2afc: //Packet command is now used for sc_data request [Skotlex]
 				if( RFIFOREST(fd) < 10 )
 					return 0;
 				{

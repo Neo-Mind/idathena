@@ -20,7 +20,7 @@ struct mmo_charstatus;
 
 #define MAX_MAP_SERVERS 30
 
-#define DEFAULT_AUTOSAVE_INTERVAL 300*1000
+#define DEFAULT_AUTOSAVE_INTERVAL 300 * 1000
 
 #define msg_config_read(cfgName) char_msg_config_read(cfgName)
 #define msg_txt(msg_number) char_msg_txt(msg_number)

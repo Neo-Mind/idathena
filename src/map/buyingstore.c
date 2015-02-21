@@ -3,17 +3,17 @@
 
 #include "../common/nullpo.h"
 #include "../common/cbasetypes.h"
-#include "../common/db.h"  // ARR_FIND
+#include "../common/db.h" // ARR_FIND
 #include "../common/malloc.h" // aMalloc, aFree
-#include "../common/showmsg.h"  // ShowWarning
-#include "../common/socket.h"  // RBUF*
-#include "../common/strlib.h"  // safestrncpy
-#include "atcommand.h"  // msg_txt
-#include "battle.h"  // battle_config.*
-#include "buyingstore.h"  // struct s_buyingstore
-#include "clif.h"  // clif_buyingstore_*
-#include "log.h"  // log_pick_pc, log_zeny
-#include "pc.h"  // struct map_session_data
+#include "../common/showmsg.h" // ShowWarning
+#include "../common/socket.h" // RBUF*
+#include "../common/strlib.h" // safestrncpy
+#include "atcommand.h" // msg_txt
+#include "battle.h" // battle_config.*
+#include "buyingstore.h" // struct s_buyingstore
+#include "clif.h" // clif_buyingstore_*
+#include "log.h" // log_pick_pc, log_zeny
+#include "pc.h" // struct map_session_data
 #include "chrif.h"
 
 #include <stdlib.h> // atoi

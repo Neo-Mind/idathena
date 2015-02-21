@@ -576,8 +576,8 @@ void initChangeTables(void) {
 	add_sc( MH_STYLE_CHANGE       , SC_STYLE_CHANGE );
 	set_sc( MH_TINDER_BREAKER     , SC_TINDER_BREAKER2 , SI_TINDER_BREAKER  , SCB_FLEE );
 	set_sc( MH_TINDER_BREAKER     , SC_TINDER_BREAKER  , SI_TINDER_BREAKER_POSTDELAY, SCB_FLEE );
-	set_sc( MH_CBC                , SC_CBC             , SI_CBC             , SCB_FLEE );
-	set_sc( MH_EQC                , SC_EQC             , SI_EQC             , SCB_BATK|SCB_DEF2|SCB_MAXHP );
+	set_sc( MH_CBC                , SC_CBC             , SI_CBC             , SCB_NONE );
+	set_sc( MH_EQC                , SC_EQC             , SI_EQC             , SCB_DEF2|SCB_MAXHP );
 
 	add_sc( MER_CRASH            , SC_STUN            );
 	set_sc( MER_PROVOKE          , SC_PROVOKE         , SI_PROVOKE         , SCB_DEF|SCB_DEF2|SCB_BATK|SCB_WATK );
@@ -5196,8 +5196,6 @@ static unsigned short status_calc_batk(struct block_list *bl, struct status_chan
 		batk += batk * sc->data[SC_FLEET]->val3 / 100;
 	if(sc->data[SC__ENERVATION])
 		batk -= batk * sc->data[SC__ENERVATION]->val2 / 100;
-	if(sc->data[SC_EQC])
-		batk -= batk * sc->data[SC_EQC]->val3 / 100;
 	if(sc->data[SC_ZANGETSU])
 		batk += sc->data[SC_ZANGETSU]->val2;
 	if(sc->data[SC_QUEST_BUFF1])
@@ -5452,7 +5450,7 @@ static short status_calc_flee(struct block_list *bl, struct status_change *sc, i
 	if(sc->data[SC_OVERED_BOOST]) //Should be final and unmodifiable by any means
 		return sc->data[SC_OVERED_BOOST]->val2;
 	if(sc->data[SC_TINDER_BREAKER] || sc->data[SC_TINDER_BREAKER2])
-		return 1;
+		return 0;
 
 	if(sc->data[SC_INCFLEERATE])
 		flee += flee * sc->data[SC_INCFLEERATE]->val1 / 100;
@@ -9665,7 +9663,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				break;
 			case SC_ANGRIFFS_MODUS:
 				val2 = 50 + 20 * val1; //Atk bonus
-				val3 = 40 + 20 * val1; //Flee reduction.
+				val3 = 40 + 20 * val1; //Flee reduction
 				tick_time = 1000;
 				val4 = tick / tick_time; //Hp/Sp reduction timer
 				break;
@@ -9705,10 +9703,13 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					sc_start(src,bl,SC_ENDURE,100,val1,tick); //Start endure for same duration
 				break;
 			case SC_CBC:
-				val3 = 10; //Drain sp % dmg
+				val3 = 10; //SP drain %
 				tick = max(tick,5000); //Min 5s (test)
-				tick_time = 1000;
-				val4 = tick / tick_time; //Dmg each sec
+				if( bl->type == BL_MOB )
+					tick_time = 2000; //HP dmg each 2 secs
+				else
+					tick_time = 3000; //SP drain each 3 secs
+				val4 = tick / tick_time;
 				break;
 			case SC_EQC:
 				val2 = 5 * val1; //Def % reduc
@@ -10419,7 +10420,7 @@ int status_change_clear(struct block_list* bl,int type)
 		}
 
 		//Config if the monster transform status should end on death [Rytech]
-		if(type == 0 && battle_config.transform_end_on_death == 0)
+		if(type == 0 && battle_config.transform_end_on_death == 0) {
 			switch(i) {
 				case SC_MONSTER_TRANSFORM:
 				case SC_MTF_ASPD:
@@ -10436,6 +10437,7 @@ int status_change_clear(struct block_list* bl,int type)
 				case SC_MTF_HITFLEE:
 					continue;
 			}
+		}
 
 		if(type == 3) {
 			switch(i) { //@TODO: This list may be incomplete
@@ -10455,8 +10457,8 @@ int status_change_clear(struct block_list* bl,int type)
 
 		status_change_end(bl,(sc_type)i,INVALID_TIMER);
 
+		//If for some reason status_change_end decides to still keep the status when quitting [Skotlex]
 		if(type == 1 && sc->data[i]) {
-			//If for some reason status_change_end decides to still keep the status when quitting [Skotlex]
 			sc->count--;
 			if(sc->data[i]->timer != INVALID_TIMER)
 				delete_timer(sc->data[i]->timer,status_change_timer);
@@ -10701,20 +10703,16 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				struct status_change *sc2 = (src ? status_get_sc(src) : NULL);
 				enum sc_type type2 = (type == SC_CLOSECONFINE2 ? SC_CLOSECONFINE : SC_TINDER_BREAKER);
 
-				//If status was already ended, do nothing.
-				if (src && sc2 && sc2->data[type2]) {
-					//Decrease count
-					if (type == SC_TINDER_BREAKER2 || (--(sc2->data[type2]->val1) <= 0)) //No more holds, free him up.
-						status_change_end(src,type2,INVALID_TIMER);
-				}
+				if (src && sc2 && sc2->data[type2]) //If status was already ended, do nothing
+					if (type == SC_TINDER_BREAKER2 || (--(sc2->data[type2]->val1) <= 0)) //Decrease count
+						status_change_end(src,type2,INVALID_TIMER); //No more holds, free him up
 			}
 		case SC_TINDER_BREAKER:
 		case SC_CLOSECONFINE:
-			if (sce->val2 > 0) {
-				//Caster has been unlocked, nearby chars need to be unlocked.
+			if (sce->val2 > 0) { //Caster has been unlocked, nearby chars need to be unlocked
 				int range = 1 +
 					skill_get_range2(bl,status_sc2skill(type),sce->val1) +
-					skill_get_range2(bl,TF_BACKSLIDING,1); //Since most people use this to escape the hold.
+					skill_get_range2(bl,TF_BACKSLIDING,1); //Since most people use this to escape the hold
 
 				map_foreachinarea(status_change_timer_sub,
 					bl->m,bl->x-range,bl->y-range,bl->x+range,bl->y+range,BL_CHAR,bl,sce,type,gettick());
@@ -12173,7 +12171,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			break;
 
 		case SC_ANGRIFFS_MODUS:
-			if( --(sce->val4) >= 0 ) { //Drain hp/sp
+			if( --(sce->val4) >= 0 ) {
 				if( !status_charge(bl,100,20) )
 					break;
 				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
@@ -12182,15 +12180,16 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 			break;
 
 		case SC_CBC:
-			if( --(sce->val4) >= 0 ) { //Drain hp/sp
-				int hp = 0;
+			if( --(sce->val4) >= 0 ) {
 				int sp = (status->max_sp * sce->val3) / 100;
+				int hp = (bl->type == BL_MOB ? sp * 10 : 0);
 
-				if( bl->type == BL_MOB )
-					hp = sp * 10;
 				if( !status_charge(bl,hp,sp) )
 					break;
-				sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
+				if( bl->type == BL_MOB )
+					sc_timer_next(2000 + tick,status_change_timer,bl->id,data);
+				else
+					sc_timer_next(3000 + tick,status_change_timer,bl->id,data);
 				return 0;
 			}
 			break;
@@ -12330,9 +12329,10 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
  * Clears buffs/debuffs on an object
  * @param bl: Object to clear [PC|MOB|HOM|MER|ELEM]
  * @param type: Type to remove
- *	&1: Clear Buffs
- *	$2: Clear Debuffs
- *	&4: Specific debuffs with a RK_REFRESH
+ *  &1: Clear Buffs
+ *  $2: Clear Debuffs
+ *  &4: Specific debuffs with a RK_REFRESH
+ *  &8: Specific debuffs with a RK_LUXANIMA
  */
 void status_change_clear_buffs(struct block_list* bl, int type)
 {

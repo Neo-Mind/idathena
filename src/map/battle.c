@@ -4303,6 +4303,12 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 					RE_ALLATK_ADD(wd, hd->homunculus.spiritball * 3);
 				}
 			}
+			if(sc->data[SC_EQC]) {
+				ATK_ADDRATE(wd.damage, wd.damage2, -sc->data[SC_EQC]->val3);
+#ifdef RENEWAL
+				ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, -sc->data[SC_EQC]->val3);
+#endif
+			}
 			if(sc->data[SC_UNLIMIT] && (wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG) {
 				switch(skill_id) {
 					case RA_WUGDASH:
@@ -6558,10 +6564,15 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		case RL_B_TRAP:
 			md.damage = ((200 + status_get_dex(src)) * skill_lv * 10) + sstatus->hp; //Custom values
 			break;
+		case MH_EQC: {
+				int max_damage = tstatus->max_hp;
+
+				md.damage = cap_value(sstatus->hp, 1, max_damage);
+			}
+			break;
 	}
 
-	//Divide ATK among targets
-	if(nk&NK_SPLASHSPLIT) {
+	if(nk&NK_SPLASHSPLIT) { //Divide ATK among targets
 		if(mflag > 0)
 			md.damage /= mflag;
 		else

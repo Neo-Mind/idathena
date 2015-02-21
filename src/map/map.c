@@ -1781,10 +1781,6 @@ int map_quit(struct map_session_data *sd) {
 		status_change_end(&sd->bl,SC_WEIGHT50,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_WEIGHT90,INVALID_TIMER);
 		status_change_end(&sd->bl,SC_SATURDAYNIGHTFEVER,INVALID_TIMER);
-		status_change_end(&sd->bl,SC_CBC,INVALID_TIMER);
-		status_change_end(&sd->bl,SC_EQC,INVALID_TIMER);
-		status_change_end(&sd->bl,SC_KYOUGAKU,INVALID_TIMER);
-		status_change_end(&sd->bl,SC_C_MARKER,INVALID_TIMER);
 		if (battle_config.debuff_on_logout&1) { //Remove negative buffs
 			status_change_end(&sd->bl,SC_ORCISH,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_STRIPWEAPON,INVALID_TIMER);
@@ -1801,13 +1797,18 @@ int map_quit(struct map_session_data *sd) {
 			status_change_end(&sd->bl,SC_CHANGEUNDEAD,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_SLOWCAST,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_CRITICALWOUND,INVALID_TIMER);
+			status_change_end(&sd->bl,SC_KYOUGAKU,INVALID_TIMER);
+			status_change_end(&sd->bl,SC_CBC,INVALID_TIMER);
+			status_change_end(&sd->bl,SC_EQC,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_HEAT_BARREL_AFTER,INVALID_TIMER);
-			status_change_end(&sd->bl,SC_H_MINE,INVALID_TIMER);
+			status_change_end(&sd->bl,SC_C_MARKER,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_ANTI_M_BLAST,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_B_TRAP,INVALID_TIMER);
+			status_change_end(&sd->bl,SC_H_MINE,INVALID_TIMER);
 		}
 		if (battle_config.debuff_on_logout&2) { //Remove positive buffs
 			status_change_end(&sd->bl,SC_SIGHTBLASTER,INVALID_TIMER);
+			status_change_end(&sd->bl,SC_MAGNIFICAT,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_STEELBODY,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_KAAHI,INVALID_TIMER);
 			status_change_end(&sd->bl,SC_SPIRIT,INVALID_TIMER);
@@ -3655,7 +3656,7 @@ int map_config_read(char *cfgName)
 			npc_delsrcfile(w2);
 		else if (strcmpi(w1, "autosave_time") == 0) {
 			autosave_interval = atoi(w2);
-			if (autosave_interval < 1) //Revert to default saving.
+			if (autosave_interval < 1) //Revert to default saving
 				autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
 			else
 				autosave_interval *= 1000; //Pass from sec to ms

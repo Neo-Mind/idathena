@@ -8890,8 +8890,7 @@ BUILDIN_FUNC(itemskill)
 	get_val(st,data); //Convert into value in case of a variable
 	id = (data_isstring(data) ? skill_name2id(script_getstr(st,2)) : script_getnum(st,2));
 	lv = script_getnum(st,3);
-	//Temporarily disabled, awaiting for confirmation
-#if 0
+#if 0 //Temporarily disabled, awaiting for confirmation
 	if( !script_hasdata(st,4) )
 		if( !skill_check_condition_castbegin(sd,id,lv) || !skill_check_condition_castend(sd,id,lv) )
 			return 0;

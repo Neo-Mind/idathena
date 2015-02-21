@@ -81,7 +81,7 @@ static int guild_save_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 	state = guild_db_->size(guild_db_);
 	if( state < 1 ) state = 1; //Calculate the time slot for the next save.
-	add_timer(tick  + autosave_interval/state, guild_save_timer, 0, 0);
+	add_timer(tick + autosave_interval / state, guild_save_timer, 0, 0);
 	return 0;
 }
 

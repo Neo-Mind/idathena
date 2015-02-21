@@ -670,34 +670,34 @@ bool skill_isNotOk_hom(uint16 skill_id, struct homun_data *hd)
 			if (hd->sc.data[SC_GOLDENE_FERSE])
 				return true;
 			break;
-		case MH_TINDER_BREAKER: //Must be in grappling mode
-			if ((hd->sc.data[SC_STYLE_CHANGE] && hd->sc.data[SC_STYLE_CHANGE]->val1 != MH_MD_GRAPPLING) ||
-				!hd->homunculus.spiritball)
-				return true;
-			break;
 		case MH_SONIC_CRAW: //Must be in fighting mode
-			if ((hd->sc.data[SC_STYLE_CHANGE] && hd->sc.data[SC_STYLE_CHANGE]->val1 != MH_MD_FIGHTING) ||
+			if (!(hd->sc.data[SC_STYLE_CHANGE] && hd->sc.data[SC_STYLE_CHANGE]->val1 == MH_MD_FIGHTING) ||
 				!hd->homunculus.spiritball)
 				return true;
 			break;
 		case MH_SILVERVEIN_RUSH:
-			if ((hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 != MH_SONIC_CRAW) ||
-				hd->homunculus.spiritball < 2)
+			if (!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_SONIC_CRAW) ||
+				!hd->homunculus.spiritball)
 				return true;
 			break;
 		case MH_MIDNIGHT_FRENZY:
-			if ((hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 != MH_SILVERVEIN_RUSH) ||
+			if (!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_SILVERVEIN_RUSH) ||
+				hd->homunculus.spiritball < 2)
+				return true;
+			break;
+		case MH_TINDER_BREAKER: //Must be in grappling mode
+			if (!(hd->sc.data[SC_STYLE_CHANGE] && hd->sc.data[SC_STYLE_CHANGE]->val1 == MH_MD_GRAPPLING) ||
 				!hd->homunculus.spiritball)
 				return true;
 			break;
 		case MH_CBC:
-			if ((hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 != MH_TINDER_BREAKER) ||
-				hd->homunculus.spiritball < 2)
+			if (!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_TINDER_BREAKER) ||
+				!hd->homunculus.spiritball)
 				return true;
 			break;
 		case MH_EQC:
-			if ((hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 != MH_CBC) ||
-				hd->homunculus.spiritball < 3)
+			if (!(hd->sc.data[SC_COMBO] && hd->sc.data[SC_COMBO]->val1 == MH_CBC) ||
+				hd->homunculus.spiritball < 2)
 				return true;
 			break;
 	}
@@ -2337,8 +2337,8 @@ static int skill_magic_reflect(struct block_list* src, struct block_list* bl, in
 	if( sc->data[SC_MAGICMIRROR] && rnd()%100 < sc->data[SC_MAGICMIRROR]->val2 )
 		return 1;
 
+	//Kaite only works against non-players if they are low-level
 	if( sc->data[SC_KAITE] && (src->type == BL_PC || status_get_lv(src) <= 80) ) {
-		//Kaite only works against non-players if they are low-level
 		clif_specialeffect(bl, 438, AREA);
 		if( --sc->data[SC_KAITE]->val2 <= 0 )
 			status_change_end(bl, SC_KAITE, INVALID_TIMER);
@@ -2412,7 +2412,7 @@ void skill_combo(struct block_list* src, struct block_list *dsrc, struct block_l
 			case TK_STORMKICK:
 			case TK_DOWNKICK:
 			case TK_COUNTER:
-				if (sd && pc_famerank(sd->status.char_id,MAPID_TAEKWON)) {//Extend combo time.
+				if (sd && pc_famerank(sd->status.char_id,MAPID_TAEKWON)) {//Extend combo time
 					sce->val1 = skill_id; //Update combo-skill
 					sce->val3 = skill_id;
 					if (sce->timer != INVALID_TIMER)
@@ -2423,8 +2423,9 @@ void skill_combo(struct block_list* src, struct block_list *dsrc, struct block_l
 				unit_cancel_combo(src); //Cancel combo wait
 				break;
 			default:
-				if (src == dsrc) //Ground skills are exceptions. [Inkfish]
+				if (src == dsrc) //Ground skills are exceptions [Inkfish]
 					status_change_end(src, SC_COMBO, INVALID_TIMER);
+				break;
 		}
 	}
 
@@ -2475,7 +2476,7 @@ void skill_combo(struct block_list* src, struct block_list *dsrc, struct block_l
 			case MH_CBC:
 			case MH_SONIC_CRAW:
 			case MH_SILVERVEIN_RUSH:
-				if (hd->homunculus.spiritball > 0)
+				if (hd->homunculus.spiritball)
 					duration = 2000;
 				nodelay = 1;
 				break;
@@ -5414,15 +5415,18 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 		case MH_CBC:
 		case MH_EQC:
 			{
-				int duration = 0;
+				struct map_session_data *sd = BL_CAST(BL_PC,battle_get_master(src));
 				TBL_HOM *hd = BL_CAST(BL_HOM,src);
+				int duration = 0;
 
+				if (sd && skill_id == MH_EQC && is_boss(bl))
+					clif_skill_fail(sd,skill_id,USESKILL_FAIL_TOTARGET,0);
 				duration = max(skill_lv,(status_get_str(src) / 7 - status_get_str(bl) / 10)) * 1000; //Yommy formula
 				if (skill_id == MH_TINDER_BREAKER && unit_movepos(src,bl->x,bl->y,1,1))
 					clif_blown(src,bl);
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,
 					sc_start4(src,bl,status_skill2sc(skill_id),100,skill_lv,src->id,0,0,duration));
-				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
+				skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag);
 				hom_delspiritball(hd,(skill_id == MH_EQC ? 2 : 1),0); //Only EQC consume 2 spiritballs
 			}
 			break;
@@ -5507,8 +5511,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 	if(sd && sd->status.party_id && party_foreachsamemap(party_sub_count,sd,0) > 1)
 		partybonus = party_foreachsamemap(party_sub_count,sd,0);
 
-	//Skills that may be cast on dead targets
-	if(src != bl && status_isdead(bl)) {
+	if(src != bl && status_isdead(bl)) { //Skills that may be cast on dead targets
 		switch(skill_id) {
 			case NPC_WIDESOULDRAIN:
 			case PR_REDEMPTIO:
@@ -5520,8 +5523,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		}
 	}
 
-	//Supportive skills that can't be cast in users with mado
-	if(sd && dstsd && pc_ismadogear(dstsd)) {
+	if(sd && dstsd && pc_ismadogear(dstsd)) { //Supportive skills that can't be cast in users with mado
 		switch(skill_id) {
 			case AL_HEAL:
 			case AL_INCAGI:
@@ -14556,9 +14558,8 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 			if( !(sc && sc->data[SC_COMBO]) || sc->data[SC_COMBO]->val1 == TK_JUMPKICK )
 				return false; //Combo needs to be ready
 			if( sc->data[SC_COMBO]->val3 ) { //Kick chain
-				//Do not repeat a kick.
 				if( sc->data[SC_COMBO]->val3 != skill_id )
-					break;
+					break; //Do not repeat a kick
 				status_change_end(&sd->bl,SC_COMBO,INVALID_TIMER);
 				return false;
 			}
@@ -15139,10 +15140,21 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		return false;
 	}
 
-	if( ((require.spiritball > 0 && sd->spiritball < require.spiritball) ||
-		(require.spiritball == -1 && sd->spiritball < 1)) && skill_id != LG_RAGEBURST ) {
-		clif_skill_fail(sd,skill_id,USESKILL_FAIL_SPIRITS,(require.spiritball == -1) ? 1 : require.spiritball);
-		return false;
+	switch( skill_id ) {
+		case LG_RAGEBURST:
+		case MH_SILVERVEIN_RUSH:
+		case MH_MIDNIGHT_FRENZY:
+		case MH_TINDER_BREAKER:
+		case MH_CBC:
+		case MH_EQC:
+			break;
+		default:
+			if( ((require.spiritball > 0 && sd->spiritball < require.spiritball) ||
+				(require.spiritball == -1 && sd->spiritball < 1)) ) {
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_SPIRITS,(require.spiritball == -1) ? 1 : require.spiritball);
+				return false;
+			}
+			break;
 	}
 
 	return true;
@@ -16879,8 +16891,7 @@ static int skill_cell_overlap(struct block_list *bl, va_list ap)
 
 	switch (skill_id) {
 		case SA_LANDPROTECTOR:
-			//Check for offensive Land Protector to delete both [Skotlex]
-			if (unit->group->skill_id == SA_LANDPROTECTOR) {
+			if (unit->group->skill_id == SA_LANDPROTECTOR) { //Check for offensive Land Protector to delete both [Skotlex]
 				(*alive) = 0;
 				skill_delunit(unit);
 				return 1;
