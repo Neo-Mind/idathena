@@ -3092,8 +3092,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 	int skillratio = 100;
 	int i;
 
-	//Skill damage modifiers that stack linearly
-	if(sc && skill_id != PA_SACRIFICE) {
+	if(sc && skill_id != PA_SACRIFICE) { //Skill damage modifiers that stack linearly
 		if(sc->data[SC_OVERTHRUST])
 			skillratio += sc->data[SC_OVERTHRUST]->val3;
 		if(sc->data[SC_MAXOVERTHRUST])

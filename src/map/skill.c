@@ -906,29 +906,25 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 	switch( skill_id ) {
 		case 0: { //Normal attacks (no skill used)
 				if( attack_type&BF_SKILL )
-					break; //If a normal attack is a skill, it's splash damage. [Inkfish]
+					break; //If a normal attack is a skill, it's splash damage [Inkfish]
 				if( sd ) {
-					//Automatic trigger of Blitz Beat
 					if( pc_isfalcon(sd) && sd->status.weapon == W_BOW && (skill = pc_checkskill(sd,HT_BLITZBEAT)) > 0 &&
-						rnd()%1000 <= sstatus->luk * 10 / 3 + 1 ) {
+						rnd()%1000 <= sstatus->luk * 10 / 3 + 1 ) { //Automatic trigger of Blitz Beat
 						rate = (sd->status.job_level + 9) / 10;
 						skill_castend_damage_id(src,bl,HT_BLITZBEAT,(skill < rate) ? skill : rate,tick,SD_LEVEL);
 					}
 					//Automatic trigger of Warg Strike [Jobbie]
-					if( pc_iswug(sd) && sd->status.weapon == W_BOW && (skill = pc_checkskill(sd,RA_WUGSTRIKE)) > 0 &&
-						rnd()%1000 <= sstatus->luk * 10 / 3 + 1 )
+					if( pc_iswug(sd) && (skill = pc_checkskill(sd,RA_WUGSTRIKE)) > 0 && rnd()%1000 <= sstatus->luk * 10 / 3 + 1 )
 						skill_castend_damage_id(src,bl,RA_WUGSTRIKE,skill,tick,0);
-					//Gank
 					if( dstmd && sd->status.weapon != W_BOW &&
 						(skill = pc_checkskill(sd,RG_SNATCHER)) > 0 &&
-						(skill * 15 + 55) + pc_checkskill(sd,TF_STEAL) * 10 > rnd()%1000 ) {
+						(skill * 15 + 55) + pc_checkskill(sd,TF_STEAL) * 10 > rnd()%1000 ) { //Gank
 						if( pc_steal_item(sd,bl,pc_checkskill(sd,TF_STEAL)) )
 							clif_skill_nodamage(src,bl,TF_STEAL,skill,1);
 						else
 							clif_skill_fail(sd,RG_SNATCHER,USESKILL_FAIL_LEVEL,0);
 					}
-					//Chance to trigger Taekwon kicks [Dralnu]
-					if( !(sc && sc->data[SC_COMBO]) ) {
+					if( !(sc && sc->data[SC_COMBO]) ) { //Chance to trigger Taekwon kicks [Dralnu]
 						if( sc->data[SC_READYSTORM] &&
 							sc_start4(src,src,SC_COMBO,15,TK_STORMKICK,bl->id,2,0,
 								(2000 - 4 * sstatus->agi - 2 * sstatus->dex)) )
@@ -963,8 +959,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 					if( (sce = sc->data[SC_ENCPOISON]) ) //Don't use sc_start since chance comes in 1/10000 rate
 						status_change_start(src,bl,SC_POISON,sce->val2,sce->val1,src->id,0,0,
 							skill_get_time2(AS_ENCHANTPOISON,sce->val1),SCFLAG_NONE);
-					//Enchant Deadly Poison gives a chance to deadly poison attacked enemies
-					if( (sce = sc->data[SC_EDP]) )
+					if( (sce = sc->data[SC_EDP]) ) //Enchant Deadly Poison gives a chance to deadly poison attacked enemies
 						sc_start4(src,bl,SC_DPOISON,sce->val2,sce->val1,src->id,0,0,skill_get_time2(ASC_EDP,sce->val1));
 				}
 			}
@@ -2163,6 +2158,7 @@ int skill_break_equip(struct block_list *src, struct block_list *bl, unsigned sh
 				case W_BOOK: //Rods and Books can't be broken [Skotlex]
 				case W_HUUMA:
 					where &= ~EQP_WEAPON;
+					break;
 			}
 		}
 	}
@@ -6655,10 +6651,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				clif_skill_nodamage(bl,bl,skill_id,skill_lv,
 					sc_start2(src,bl,type,100,skill_lv,(src == bl) ? 1 : 0,skill_get_time(skill_id,skill_lv)));
 			} else if (sd) {
-				party_foreachsamemap(skill_area_sub,
-					sd,skill_get_splash(skill_id,skill_lv),
-					src,skill_id,skill_lv,tick,flag|BCT_PARTY|1,
-					skill_castend_nodamage_id);
+				party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,
+					skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
 			}
 			break;
 
