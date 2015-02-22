@@ -5055,9 +5055,9 @@ int pc_steal_item(struct map_session_data *sd, struct block_list *bl, uint16 ski
 
 	if( md->master_id || md_status->mode&MD_BOSS || mob_is_treasure(md) ||
 		map[bl->m].flag.nomobloot || //Check noloot map flag [Lorky]
-		(battle_config.skill_steal_max_tries && //Reached limit of steal attempts. [Lupus]
-			md->state.steal_flag++ >= battle_config.skill_steal_max_tries)
-  	) { //Can't steal from
+		(battle_config.skill_steal_max_tries && //Reached limit of steal attempts [Lupus]
+		md->state.steal_flag++ >= battle_config.skill_steal_max_tries) )
+	{ //Can't steal from
 		md->state.steal_flag = UCHAR_MAX;
 		return 0;
 	}

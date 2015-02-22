@@ -806,7 +806,7 @@ int mob_can_reach(struct mob_data *md, struct block_list *bl, int range, int sta
 /*==========================================
  * Links nearby mobs (supportive mobs)
  *------------------------------------------*/
-int mob_linksearch(struct block_list *bl,va_list ap)
+int mob_linksearch(struct block_list *bl, va_list ap)
 {
 	struct mob_data *md;
 	int mob_id;
@@ -1028,7 +1028,7 @@ static int mob_can_changetarget(struct mob_data* md, struct block_list* target, 
 /*==========================================
  * Determination for an attack of a monster
  *------------------------------------------*/
-int mob_target(struct mob_data *md,struct block_list *bl,int dist)
+int mob_target(struct mob_data *md, struct block_list *bl, int dist)
 {
 	nullpo_ret(md);
 	nullpo_ret(bl);
@@ -1321,7 +1321,7 @@ int mob_unlocktarget(struct mob_data *md, unsigned int tick)
 /*==========================================
  * Random walk
  *------------------------------------------*/
-int mob_randomwalk(struct mob_data *md,unsigned int tick)
+int mob_randomwalk(struct mob_data *md, unsigned int tick)
 {
 	const int retrycount = 20;
 	int i, c, d;
@@ -2048,7 +2048,8 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 
 #if PACKETVER >= 20120404
 #ifndef VISIBLE_MONSTER_HP
-	if (!(md->spawn && md->spawn->state.boss))
+	if (!(md->spawn && md->spawn->state.boss) &&
+		!(mob_is_battleground(md) || mob_is_gvg(md) || mob_is_treasure(md) || mob_is_guardian(md->mob_id)))
 #endif
 	{
 		int i;
@@ -2719,29 +2720,27 @@ int mob_guardian_guildchange(struct mob_data *md)
 /*==========================================
  * Pick a random class for the mob
  *------------------------------------------*/
-int mob_random_class (int *value, size_t count)
+int mob_random_class(int *value, size_t count)
 {
 	nullpo_ret(value);
 
-	// no count specified, look into the array manually, but take only max 5 elements
+	//No count specified, look into the array manually, but take only max 5 elements
 	if (count < 1) {
 		count = 0;
-		while(count < 5 && mobdb_checkid(value[count])) count++;
-		if(count < 1)	// nothing found
+		while (count < 5 && mobdb_checkid(value[count]))
+			count++;
+		if (count < 1)	//Nothing found
 			return 0;
-	} else {
-		// check if at least the first value is valid
-		if(mobdb_checkid(value[0]) == 0)
-			return 0;
-	}
-	//Pick a random value, hoping it exists. [Skotlex]
+	} else if (mobdb_checkid(value[0]) == 0) //Check if at least the first value is valid
+		return 0;
+	//Pick a random value, hoping it exists [Skotlex]
 	return mobdb_checkid(value[rnd()%count]);
 }
 
 /*==========================================
  * Change mob base class
  *------------------------------------------*/
-int mob_class_change (struct mob_data *md, int mob_id)
+int mob_class_change(struct mob_data *md, int mob_id)
 {
 	unsigned int tick = gettick();
 	int i, c, hp_rate;
@@ -2809,14 +2808,15 @@ int mob_class_change (struct mob_data *md, int mob_id)
 /*==========================================
  * mob heal, update display hp info of mob for players
  *------------------------------------------*/
-void mob_heal(struct mob_data *md,unsigned int heal)
+void mob_heal(struct mob_data *md, unsigned int heal)
 {
 	if (battle_config.show_mob_info&3)
 		clif_charnameack(0,&md->bl);
 
 #if PACKETVER >= 20120404
 #ifndef VISIBLE_MONSTER_HP
-	if (!(md->spawn && md->spawn->state.boss))
+	if (!(md->spawn && md->spawn->state.boss) &&
+		!(mob_is_battleground(md) || mob_is_gvg(md) || mob_is_treasure(md) || mob_is_guardian(md->mob_id)))
 #endif
 	{
 		int i;
@@ -2892,7 +2892,7 @@ int mob_countslave(struct block_list *bl)
 /*==========================================
  * Summons amount slaves contained in the value[5] array using round-robin. [adapted by Skotlex]
  *------------------------------------------*/
-int mob_summonslave(struct mob_data *md2,int *value,int amount,uint16 skill_id)
+int mob_summonslave(struct mob_data *md2, int *value, int amount, uint16 skill_id)
 {
 	struct mob_data *md;
 	struct spawn_data data;

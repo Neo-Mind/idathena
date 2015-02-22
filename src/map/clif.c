@@ -4439,12 +4439,13 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 				}
 #if PACKETVER >= 20120404
 #ifndef VISIBLE_MONSTER_HP
-				if (!(md->spawn && md->spawn->state.boss))
+				if (!(md->spawn && md->spawn->state.boss) &&
+					!(mob_is_battleground(md) || mob_is_gvg(md) || mob_is_treasure(md) || mob_is_guardian(md->mob_id)))
 #endif
 				{
 					int i;
 
-					for (i = 0; i < DAMAGELOG_SIZE; i++) { //Must show hp bar to all char who already hit the mob.
+					for (i = 0; i < DAMAGELOG_SIZE; i++) { //Must show hp bar to all char who already hit the mob
 						if (md->dmglog[i].id == sd->status.char_id) {
 							clif_monster_hp_bar(md,sd->fd);
 							break;

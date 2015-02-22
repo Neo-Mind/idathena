@@ -12326,13 +12326,13 @@ int status_change_timer_sub(struct block_list* bl, va_list ap) {
 }
 
 /**
- * Clears buffs/debuffs on an object
+ * Clears buffs/debuffs or bonus_script on an object
  * @param bl: Object to clear [PC|MOB|HOM|MER|ELEM]
  * @param type: Type to remove
- *  &1: Clear Buffs
+ *  &1: Clear Buff
  *  $2: Clear Debuffs
- *  &4: Specific debuffs with a RK_REFRESH
- *  &8: Specific debuffs with a RK_LUXANIMA
+ *  &4: Clear specific debuffs with a RK_REFRESH
+ *  &8: Clear bonus_script with a RK_LUXANIMA
  */
 void status_change_clear_buffs(struct block_list* bl, int type)
 {
@@ -12502,8 +12502,7 @@ void status_change_clear_buffs(struct block_list* bl, int type)
 		status_change_end(bl, (sc_type)i, INVALID_TIMER);
 	}
 
-	//Removes bonus_script
-	if( bl->type == BL_PC ) {
+	if( bl->type == BL_PC ) { //Removes bonus_script
 		i = 0;
 		if( type&1 ) i |= BSF_REM_BUFF;
 		if( type&2 ) i |= BSF_REM_DEBUFF;
