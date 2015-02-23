@@ -5110,7 +5110,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		//Final attack bonuses that aren't affected by cards
 		wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
 
-		if(skill_id == CR_ACIDDEMONSTRATION) {
+		if(skill_id == CR_ACIDDEMONSTRATION || skill_id == GN_FIRE_EXPANSION_ACID) {
 			defType def1 = status_get_def(target);
 			short def2 = tstatus->def2, vit_def;
 
@@ -5124,14 +5124,19 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 				def1 = def2;
 			}
 
-			//Status ATK, weapon ATK, and equip ATK are directly reduced by eDEF
-			//sDEF only directly reduces status ATK [exneval]
-			wd.statusAtk -= (def1 + vit_def);
-			wd.statusAtk2 -= (def1 + vit_def);
-			wd.weaponAtk -= def1;
-			wd.weaponAtk2 -= def1;
-			wd.equipAtk -= def1;
-			wd.equipAtk2 -= def1;
+			if(skill_id == CR_ACIDDEMONSTRATION) {
+				//Status ATK, weapon ATK, and equip ATK are directly reduced by eDEF
+				//sDEF only directly reduces status ATK [exneval]
+				wd.statusAtk -= (def1 + vit_def);
+				wd.statusAtk2 -= (def1 + vit_def);
+				wd.weaponAtk -= def1;
+				wd.weaponAtk2 -= def1;
+				wd.equipAtk -= def1;
+				wd.equipAtk2 -= def1;
+			} else { //Fire Expansion Acid ignores eDEF reductions
+				wd.statusAtk -= vit_def;
+				wd.statusAtk2 -= vit_def;
+			}
 		}
 
 		if(sd) { //Monsters, homuns and pets have their damage computed directly
@@ -6556,17 +6561,35 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		case GN_BLOOD_SUCKER:
 			md.damage = 200 + 100 * skill_lv + sstatus->int_;
 			break;
-		case GN_HELLS_PLANT_ATK: //Gets MDEF reduction because it's marked as magic type
-			md.damage = skill_lv * status_get_lv(target) * 10 + sstatus->int_ * 7 / 2 * (18 + (sd ? sd->status.job_level : 0) / 4) * 5 / (10 - (sd ? pc_checkskill(sd,AM_CANNIBALIZE) : 0));
-			md.damage = md.damage * (1000 + tstatus->mdef) / (1000 + tstatus->mdef * 10) - tstatus->mdef2;
+		case GN_HELLS_PLANT_ATK: { //Gets MDEF reduction because it's marked as magic type
+				defType mdef = tstatus->mdef;
+				short mdef2 = tstatus->mdef2, int_mdef = mdef2;
+
+				md.damage = skill_lv * status_get_lv(target) * 10 + sstatus->int_ * 7 / 2 * (18 + (sd ? sd->status.job_level : 0) / 4) * 5 / (10 - (sd ? pc_checkskill(sd,AM_CANNIBALIZE) : 0));
+#ifdef RENEWAL
+				if(!tsd) {
+					int_mdef = mdef;
+					mdef = mdef2;
+				}
+				md.damage = md.damage * (1000 + mdef) / (1000 + mdef * 10) - int_mdef;
+#else
+				if(battle_config.magic_defense_type)
+					md.damage = md.damage - mdef * battle_config.magic_defense_type - int_mdef;
+				else
+					md.damage = md.damage * (100 - mdef) / 100 - int_mdef;
+#endif
+			}
 			break;
 		case RL_B_TRAP:
 			md.damage = ((200 + status_get_dex(src)) * skill_lv * 10) + sstatus->hp; //Custom values
 			break;
 		case MH_EQC: {
-				int max_damage = tstatus->max_hp;
+				int max_damage = tstatus->hp;
+				short totaldef = (short)status_get_def(target) + tstatus->def2;
 
-				md.damage = cap_value(sstatus->hp, 1, max_damage);
+				md.damage = sstatus->hp * 2; //Custom values
+				md.damage -= totaldef;
+				md.damage = cap_value(md.damage, 1, max_damage);
 			}
 			break;
 	}

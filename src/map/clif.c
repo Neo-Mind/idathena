@@ -4526,12 +4526,22 @@ int clif_damage(struct block_list* src, struct block_list* dst, unsigned int tic
 	damage2 = (int)cap_value(in_damage2,INT_MIN,INT_MAX);
 
 	type = clif_calc_delay(type,div,damage + damage2,ddelay);
-	sc = status_get_sc(dst);
-	if(sc && sc->count && sc->data[SC_HALLUCINATION]) {
-		if(damage)
-			damage = damage * (sc->data[SC_HALLUCINATION]->val2) + rnd()%100;
-		if(damage2)
-			damage2 = damage2 * (sc->data[SC_HALLUCINATION]->val2) + rnd()%100;
+	if((sc = status_get_sc(dst)) && sc->count) {
+		if(sc->data[SC_HALLUCINATION]) {
+			if(damage)
+				damage = damage * sc->data[SC_HALLUCINATION]->val2 + rnd()%100;
+			if(damage2)
+				damage2 = damage2 * sc->data[SC_HALLUCINATION]->val2 + rnd()%100;
+		} else if(sc->data[SC_PYREXIA]) {
+			if(damage != 100) { //Exclude damage from poison itself
+				if(!damage)
+					damage = rnd()%999 + 1;
+				damage = damage * 3 + rnd()%100;
+				if(!damage2)
+					damage2 = rnd()%999 + 1;
+				damage2 = damage2 * 3 + rnd()%100;
+			}
+		}
 	}
 
 	WBUFW(buf,0) = cmd;
@@ -5321,8 +5331,15 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,unsigned int
 		type = DMG_MULTI_HIT; //bugreport:8263
 #endif
 
-	if((sc = status_get_sc(dst)) && sc->count && sc->data[SC_HALLUCINATION] && damage)
-		damage = damage * (sc->data[SC_HALLUCINATION]->val2) + rnd()%100;
+	if((sc = status_get_sc(dst)) && sc->count) {
+		if(sc->data[SC_HALLUCINATION] && damage)
+			damage = damage * sc->data[SC_HALLUCINATION]->val2 + rnd()%100;
+		else if(sc->data[SC_PYREXIA]) {
+			if(!damage)
+				damage = rnd()%9999 + 1;
+			damage = damage * 3 + rnd()%100;
+		}
+	}
 
 #if PACKETVER < 3
 	WBUFW(buf,0) = 0x114;
@@ -11978,13 +11995,13 @@ void clif_parse_WeaponRefine(int fd, struct map_session_data *sd)
 	if (sd->menuskill_id != WS_WEAPONREFINE) //Packet exploit?
 		return;
 	if (pc_istrading(sd)) {
-		//Make it fail to avoid shop exploits where you sell something different than you see.
+		//Make it fail to avoid shop exploits where you sell something different than you see
 		clif_skill_fail(sd,sd->ud.skill_id,USESKILL_FAIL_LEVEL,0);
 		clif_menuskill_clear(sd);
 		return;
 	}
 	idx = RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
-	skill_weaponrefine(sd, idx-2);
+	skill_weaponrefine(sd, idx - 2);
 	clif_menuskill_clear(sd);
 }
 

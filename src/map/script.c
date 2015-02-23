@@ -17214,7 +17214,7 @@ static int buildin_mobuseskill_sub(struct block_list *bl,va_list ap)
 	if( !tbl )
 		return 0;
 
-	if( md->ud.skilltimer != INVALID_TIMER ) //Cancel the casting skill.
+	if( md->ud.skilltimer != INVALID_TIMER ) //Cancel the casting skill
 		unit_skillcastcancel(bl,0);
 
 	if( skill_get_casttype(skill_id) == CAST_GROUND )

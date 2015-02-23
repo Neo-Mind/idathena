@@ -1081,7 +1081,6 @@ void initChangeTables(void) {
 	StatusChangeFlagTable[SC_PARALYSE] |= SCB_FLEE|SCB_SPEED|SCB_ASPD;
 	StatusChangeFlagTable[SC_DEATHHURT] |= SCB_REGEN;
 	StatusChangeFlagTable[SC_VENOMBLEED] |= SCB_MAXHP;
-	StatusChangeFlagTable[SC_MAGICMUSHROOM] |= SCB_REGEN;
 	StatusChangeFlagTable[SC_PYREXIA] |= SCB_HIT|SCB_FLEE;
 	StatusChangeFlagTable[SC_OBLIVIONCURSE] |= SCB_REGEN;
 	StatusChangeFlagTable[SC_BANDING_DEFENCE] |= SCB_SPEED;
@@ -4119,7 +4118,6 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		sc->data[SC_BERSERK] ||
 		sc->data[SC_TRICKDEAD] ||
 		sc->data[SC_BLEEDING] ||
-		sc->data[SC_MAGICMUSHROOM] ||
 		sc->data[SC_SATURDAYNIGHTFEVER] ||
 		sc->data[SC_REBOUND])
 		regen->flag = RGN_NONE;
@@ -4132,7 +4130,7 @@ void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, str
 		(sc->data[SC_EXPLOSIONSPIRITS] || sc->data[SC_EXTREMITYFIST]) &&
 		(!sc->data[SC_SPIRIT] || sc->data[SC_SPIRIT]->val2 != SL_MONK)) ||
 #endif
-		sc->data[SC_VITALITYACTIVATION] || sc->data[SC_OBLIVIONCURSE])
+		sc->data[SC_VITALITYACTIVATION] || sc->data[SC_TOXIN] || sc->data[SC_OBLIVIONCURSE])
 		regen->flag &= ~RGN_SP; //No natural SP regen
 
 	if (sc->data[SC_MAGNIFICAT])
@@ -5418,7 +5416,7 @@ static short status_calc_hit(struct block_list *bl, struct status_change *sc, in
 		hit += sc->data[SC_MERC_HITUP]->val2;
 	if(sc->data[SC_MTF_HITFLEE])
 		hit += sc->data[SC_MTF_HITFLEE]->val1;
-	if(sc->data[SC_BLIND])
+	if(sc->data[SC_BLIND] || sc->data[SC_PYREXIA])
 		hit -= hit * 25 / 100;
 	if(sc->data[SC__GROOMY])
 		hit -= hit * sc->data[SC__GROOMY]->val2 / 100;
@@ -5496,7 +5494,7 @@ static short status_calc_flee(struct block_list *bl, struct status_change *sc, i
 		flee -= flee * 50 / 100;
 	if(sc->data[SC_BERSERK])
 		flee -= flee * 50 / 100;
-	if(sc->data[SC_BLIND])
+	if(sc->data[SC_BLIND] || sc->data[SC_PYREXIA])
 		flee -= flee * 25 / 100;
 	if(sc->data[SC_GATLINGFEVER])
 		flee -= sc->data[SC_GATLINGFEVER]->val4;
@@ -9156,10 +9154,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val4 = tick / tick_time;
 				break;
 			case SC_PYREXIA:
-				status_change_start(src,bl,SC_BLIND,10000,val1,0,0,0,
-					30000,SCFLAG_NOAVOID|SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE); //Blind status that last for 30 seconds
 				tick_time = 3000;
 				val4 = tick / tick_time;
+				status_change_start(src,bl,SC_BLIND,10000,val1,0,0,0,tick,SCFLAG_NOAVOID|SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE);
 				break;
 			case SC_LEECHESEND:
 				tick_time = 1000;
@@ -11452,11 +11449,10 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				int hp =  rnd()%600 + 200;
 				struct block_list* src = map_id2bl(sce->val2);
 
-				if( src && bl && bl->type == BL_MOB ) {
-					mob_log_damage((TBL_MOB*)bl,src,sd || hp < status->hp ? hp : status->hp - 1);
-				}
+				if( src && bl && bl->type == BL_MOB )
+					mob_log_damage((TBL_MOB*)bl,src,(sd || hp < status->hp ? hp : status->hp - 1));
 				map_freeblock_lock();
-				status_fix_damage(src,bl,sd || hp < status->hp ? hp : status->hp - 1,1);
+				status_fix_damage(src,bl,(sd || hp < status->hp ? hp : status->hp - 1),1);
 				if( sc->data[type] ) {
 					if( status->hp == 1 ) {
 						map_freeblock_unlock();
@@ -11635,8 +11631,8 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_PYREXIA:
 			if( --(sce->val4) >= 0 ) {
 				map_freeblock_lock();
-				clif_damage(bl,bl,tick,status_get_amotion(bl),status_get_dmotion(bl) + 500,100,0,DMG_NORMAL,0);
-				status_fix_damage(NULL,bl,100,0);
+				status_damage(NULL,bl,100,0,clif_damage(bl,bl,tick,status_get_amotion(bl),status_get_dmotion(bl) + 500,100,0,DMG_NORMAL,0),0);
+				unit_skillcastcancel(bl,2);
 				if( sc->data[type] ) {
 					sc_timer_next(5000 + tick,status_change_timer,bl->id,data);
 				}
@@ -11651,7 +11647,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 				map_freeblock_lock();
 				damage += status->vit * (sce->val1 - 3);
-				status_damage(bl,bl,damage,0,clif_damage(bl,bl,tick,status_get_amotion(bl),status_get_dmotion(bl) + 500,damage,1,DMG_NORMAL,0),1);
+				status_damage(NULL,bl,damage,0,clif_damage(bl,bl,tick,status_get_amotion(bl),status_get_dmotion(bl) + 500,damage,1,DMG_NORMAL,0),0);
 				unit_skillcastcancel(bl,2);
 				if( sc->data[type] ) {
 					sc_timer_next(1000 + tick,status_change_timer,bl->id,data);
@@ -11663,7 +11659,6 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 		case SC_MAGICMUSHROOM:
 			if( --(sce->val4) >= 0 ) {
-				bool flag = 0;
 				int damage = status->max_hp * 3 / 100;
 
 				if( status->hp <= damage )
@@ -11671,10 +11666,9 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				if( damage > 0 ) { //3% Damage each 4 seconds
 					map_freeblock_lock();
 					status_zap(bl,damage,0);
-					flag = !sc->data[type]; //Killed? Should not
 					map_freeblock_unlock();
 				}
-				if( !flag ) { //Random Skill Cast
+				if( sc->data[type] ) { //Random Skill Cast
 					if( sd && !pc_issit(sd) ) { //Can't cast if sit
 						int mushroom_skill_id = 0, checked = 0, checked_max = MAX_SKILL_MAGICMUSHROOM_DB * 3;
 
@@ -11711,8 +11705,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_TOXIN:
 			if( --(sce->val4) >= 0 ) { //Damage is every 10 seconds including 3% sp drain
 				map_freeblock_lock();
-				clif_damage(bl,bl,tick,status_get_amotion(bl),1,1,0,DMG_NORMAL,0);
-				status_damage(NULL,bl,0,status->max_sp * 3 / 100,0,0);
+				status_damage(NULL,bl,1,status->max_sp * 3 / 100,clif_damage(bl,bl,tick,status_get_amotion(bl),1,1,0,DMG_NORMAL,0),0);
 				unit_skillcastcancel(bl,2);
 				if( sc->data[type] ) {
 					sc_timer_next(10000 + tick,status_change_timer,bl->id,data);
@@ -11774,8 +11767,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				int damage = 1000 + 3 * status_get_max_hp(bl) / 100; //Deals fixed (1000 + 3% * MaxHP)
 
 				map_freeblock_lock();
-				clif_damage(bl,bl,tick,0,0,damage,1,DMG_MULTI_HIT_ENDURE,0); //Damage is like endure effect with no walk delay
-				status_damage(src,bl,damage,0,0,1);
+				status_damage(src,bl,damage,0,clif_damage(bl,bl,tick,0,0,damage,0,DMG_ENDURE,0),1); //Have no walk delay
 				if( sc->data[type] ) { //Target still lives [LimitLine]
 					sc_timer_next(3000 + tick,status_change_timer,bl->id,data); //Deals damage every 3 seconds
 				}
@@ -11924,8 +11916,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				int damage = sce->val2;
 
 				map_freeblock_lock();
-				clif_damage(bl,bl,tick,0,0,damage,1,DMG_MULTI_HIT_ENDURE,0);
-				status_damage(src,bl,damage,0,0,1);
+				status_damage(src,bl,damage,0,clif_damage(bl,bl,tick,0,0,damage,0,DMG_ENDURE,0),1);
 				if( sc->data[type] ) {
 					sc_timer_next(2000 + tick,status_change_timer,bl->id,data);
 				}
@@ -12622,7 +12613,7 @@ int status_change_spread(struct block_list *src, struct block_list *bl) {
 	return flag;
 }
 
-//Natural regen related stuff.
+//Natural regen related stuff
 static unsigned int natural_heal_prev_tick,natural_heal_diff_tick;
 static int status_natural_heal(struct block_list* bl, va_list args)
 {

@@ -2468,16 +2468,16 @@ void skill_combo(struct block_list* src, struct block_list *dsrc, struct block_l
 		}
 	} else { //Other
 		switch (skill_id) {
-			case MH_TINDER_BREAKER:
-			case MH_CBC:
 			case MH_SONIC_CRAW:
 			case MH_SILVERVEIN_RUSH:
+			case MH_TINDER_BREAKER:
+			case MH_CBC:
 				if (hd->homunculus.spiritball)
 					duration = 2000;
 				nodelay = 1;
 				break;
-			case MH_EQC:
 			case MH_MIDNIGHT_FRENZY:
+			case MH_EQC:
 				if (hd->homunculus.spiritball >= 2)
 					duration = 2000;
 				nodelay = 1;
@@ -6981,8 +6981,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			}
 			break;
 
-		//Weapon Refining [Celest]
-		case WS_WEAPONREFINE:
+		case WS_WEAPONREFINE: //Weapon Refining [Celest]
 			if( sd )
 				clif_item_refine_list(sd);
 			break;
@@ -16368,7 +16367,7 @@ void skill_weaponrefine(struct map_session_data *sd, int idx)
 			if (sd->class_&JOBL_THIRD)
 				per += 10;
 			else
-				per += (((signed int)sd->status.job_level) - 50) / 2; //Updated per the new kro descriptions. [Skotlex]
+				per += (((signed int)sd->status.job_level) - 50) / 2; //Updated per the new kro descriptions [Skotlex]
 			pc_delitem(sd,i,1,0,0,LOG_TYPE_OTHER);
 			if (per > rnd()%100) {
 				int ep = 0;

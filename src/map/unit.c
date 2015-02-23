@@ -1882,7 +1882,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 int unit_skilluse_pos(struct block_list *src, short skill_x, short skill_y, uint16 skill_id, uint16 skill_lv)
 {
 	return unit_skilluse_pos2(src, skill_x, skill_y, skill_id, skill_lv,
-		skill_castfix(src, skill_id, skill_lv),skill_get_castcancel(skill_id));
+		skill_castfix(src, skill_id, skill_lv), skill_get_castcancel(skill_id));
 }
 
 /**
@@ -2569,7 +2569,8 @@ int unit_skillcastcancel(struct block_list *bl, uint8 type)
 		if (!ud->state.skillcastcancel)
 			return 0;
 
-		if (sd && (sd->special_state.no_castcancel2 || ((sd->sc.data[SC_UNLIMITEDHUMMINGVOICE] || sd->special_state.no_castcancel) &&
+		if (sd && !sd->sc.data[SC_TOXIN] && (sd->special_state.no_castcancel2 ||
+			((sd->sc.data[SC_UNLIMITEDHUMMINGVOICE] || sd->special_state.no_castcancel) &&
 			!map_flag_gvg2(bl->m) && !map[bl->m].flag.battleground))) //Fixed flags being read the wrong way around [blackhole89]
 			return 0;
 	}
