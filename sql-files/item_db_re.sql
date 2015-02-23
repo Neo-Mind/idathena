@@ -1241,10 +1241,10 @@ REPLACE INTO `item_db_re` VALUES (2015,'Upg_Staff','Upg Staff',5,20,NULL,1000,'5
 REPLACE INTO `item_db_re` VALUES (2016,'Velum_Arc_Wand','Vellum Arc Wand',5,20,NULL,800,'110:220',NULL,1,0,0x00818314,63,2,34,4,'95',1,10,'bonus bUnbreakableWeapon,0; bonus2 bMagicAddRace,RC_DemiHuman,25; bonus2 bIgnoreMdefRaceRate,RC_DemiHuman,25; if(getrefine()>=6) { bonus2 bMagicAddRace,RC_DemiHuman,15; } if(getrefine()>=9) { bonus bVariableCastrate,-50; bonus bFixedCast,-200; }',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (2017,'Divine_Cross_','Divine Cross',5,20,NULL,1500,'120:210',NULL,1,0,0x00008100,63,2,34,4,'70',1,23,'bonus bUnbreakableWeapon,0; bonus bAtkEle,Ele_Holy; bonus bDex,4;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (2018,'Metal_Staff','Metal Staff',5,20,NULL,0,'50:70',NULL,1,1,0x00818315,63,2,34,3,'1',1,23,'bonus bUnbreakableWeapon,0; if(BaseJob==Job_Wizard) bonus bMatk,15; else if(BaseJob==Job_Sage) bonus bMatk,10; bonus bMatk,(getrefine()*5); set .@i,((BaseLevel/10)>12)?12:(BaseLevel/10); if(.@i>2) bonus bMatk,((.@i-2)*5);',NULL,NULL);
-REPLACE INTO `item_db_re` VALUES (2020,'Jormungand','Jormungand',5,20,NULL,3000,'200:280',NULL,NULL,0,0x810200,63,2,2,4,'1',NULL,10,'bonus bInt,20; bonus bUnbreakableWeapon,1;',NULL,NULL);
-REPLACE INTO `item_db_re` VALUES (2022,'Staff_Of_Geffen','Staff Of Geffen',5,20,NULL,1000,'100:300',NULL,NULL,1,0x00000200,63,2,2,1,'150',NULL,10,'bonus bInt,20;',NULL,NULL);
-REPLACE INTO `item_db_re` VALUES (2023,'Tanos_Two-handed_Stick','Tanos Two-handed Stick',5,10,NULL,1400,'120:250',NULL,NULL,1,0x810200,63,2,2,4,'120',1,23,'bonus bInt,6; bonus bVit,6; bonus bLuk,-6; bonus bHealPower,18; bonus2 bHPLossRate,100,10000;',NULL,NULL);
-REPLACE INTO `item_db_re` VALUES (2024,'Infinity_Two-handed_Stick','Infinity Two-handed Stick',5,10,NULL,500,'30:170',NULL,NULL,1,0x810200,63,2,2,4,'100',1,23,NULL,NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (2020,'Jormungand','Jormungand',5,20,NULL,3000,'200:280',NULL,NULL,0,0x810200,63,2,34,4,'1',NULL,10,'bonus bInt,20; bonus bUnbreakableWeapon,1;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (2022,'Staff_Of_Geffen','Staff Of Geffen',5,20,NULL,1000,'100:300',NULL,NULL,1,0x00000200,63,2,34,1,'150',NULL,10,'bonus bInt,20;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (2023,'Tanos_Two-handed_Stick','Tanos Two-handed Stick',5,10,NULL,1400,'120:250',NULL,NULL,1,0x810200,63,2,34,4,'120',1,23,'bonus bInt,6; bonus bVit,6; bonus bLuk,-6; bonus bHealPower,18; bonus2 bHPLossRate,100,10000;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (2024,'Infinity_Two-handed_Stick','Infinity Two-handed Stick',5,10,NULL,500,'30:170',NULL,NULL,1,0x810200,63,2,34,4,'100',1,23,NULL,NULL,NULL);
 # Shields
 #===================================================================
 REPLACE INTO `item_db_re` VALUES (2101,'Guard','Guard',4,500,NULL,300,NULL,20,NULL,0,0xFFFFFFFF,63,2,32,NULL,'0',1,1,NULL,NULL,NULL);

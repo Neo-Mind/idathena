@@ -1210,10 +1210,10 @@
 2016,Velum_Arc_Wand,Vellum Arc Wand,5,20,,800,110:220,,1,0,0x00818314,63,2,34,4,95,1,10,{ bonus bUnbreakableWeapon,0; bonus2 bMagicAddRace,RC_DemiHuman,25; bonus2 bIgnoreMdefRaceRate,RC_DemiHuman,25; if(getrefine()>=6) { bonus2 bMagicAddRace,RC_DemiHuman,15; } if(getrefine()>=9) { bonus bVariableCastrate,-50; bonus bFixedCast,-200; } },{},{}
 2017,Divine_Cross_,Divine Cross,5,20,,1500,120:210,,1,0,0x00008100,63,2,34,4,70,1,23,{ bonus bUnbreakableWeapon,0; bonus bAtkEle,Ele_Holy; bonus bDex,4; },{},{}
 2018,Metal_Staff,Metal Staff,5,20,,0,50:70,,1,1,0x00818315,63,2,34,3,1,1,23,{ bonus bUnbreakableWeapon,0; if(BaseJob==Job_Wizard) bonus bMatk,15; else if(BaseJob==Job_Sage) bonus bMatk,10; bonus bMatk,(getrefine()*5); set .@i,((BaseLevel/10)>12)?12:(BaseLevel/10); if(.@i>2) bonus bMatk,((.@i-2)*5); },{},{}
-2020,Jormungand,Jormungand,5,20,,3000,200:280,,,0,0x810200,63,2,2,4,1,,10,{ bonus bInt,20; bonus bUnbreakableWeapon,1; },{},{}
-2022,Staff_Of_Geffen,Staff Of Geffen,5,20,,1000,100:300,,,1,0x00000200,63,2,2,1,150,,10,{ bonus bInt,20; },{},{}
-2023,Tanos_Two-handed_Stick,Tanos Two-handed Stick,5,10,,1400,120:250,,,1,0x810200,63,2,2,4,120,1,23,{ bonus bInt,6; bonus bVit,6; bonus bLuk,-6; bonus bHealPower,18; bonus2 bHPLossRate,100,10000; },{},{}
-2024,Infinity_Two-handed_Stick,Infinity Two-handed Stick,5,10,,500,30:170,,,1,0x810200,63,2,2,4,100,1,23,{},{},{}
+2020,Jormungand,Jormungand,5,20,,3000,200:280,,,0,0x810200,63,2,34,4,1,,10,{ bonus bInt,20; bonus bUnbreakableWeapon,1; },{},{}
+2022,Staff_Of_Geffen,Staff Of Geffen,5,20,,1000,100:300,,,1,0x00000200,63,2,34,1,150,,10,{ bonus bInt,20; },{},{}
+2023,Tanos_Two-handed_Stick,Tanos Two-handed Stick,5,10,,1400,120:250,,,1,0x810200,63,2,34,4,120,1,23,{ bonus bInt,6; bonus bVit,6; bonus bLuk,-6; bonus bHealPower,18; bonus2 bHPLossRate,100,10000; },{},{}
+2024,Infinity_Two-handed_Stick,Infinity Two-handed Stick,5,10,,500,30:170,,,1,0x810200,63,2,34,4,100,1,23,{},{},{}
 // Shields
 //===================================================================
 2101,Guard,Guard,4,500,,300,,20,,0,0xFFFFFFFF,63,2,32,,0,1,1,{},{},{}

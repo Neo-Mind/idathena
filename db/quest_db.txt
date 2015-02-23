@@ -790,9 +790,9 @@
 5222,0,0,0,0,0,0,0,"Saving the energy crystals"
 5223,0,0,0,0,0,0,0,"Saving the energy crystals"
 5224,0,0,0,0,0,0,0,"Saving the energy crystals"
-5225,7200,0,0,0,0,0,0,"Saving energy crystal[Stand by]"
-5226,7200,0,0,0,0,0,0,"Saving energy crystal[Stand by]"
-5227,7200,0,0,0,0,0,0,"Saving energy crystal[Stand by]"
+5225,72000,0,0,0,0,0,0,"Saving energy crystal[Stand by]"
+5226,72000,0,0,0,0,0,0,"Saving energy crystal[Stand by]"
+5227,72000,0,0,0,0,0,0,"Saving energy crystal[Stand by]"
 
 6000,0,0,0,0,0,0,0,"Job Change to Taekwon"
 6001,0,0,0,0,0,0,0,"Job Change to Taekwon"
