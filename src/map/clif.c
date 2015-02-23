@@ -1693,7 +1693,8 @@ int clif_homskillinfoblock(struct map_session_data *sd)
 			WFIFOW(fd,len + 8) = skill_get_sp(id,hd->homunculus.hskill[j].lv);
 			WFIFOW(fd,len + 10) = skill_get_range2(&sd->hd->bl, id,hd->homunculus.hskill[j].lv);
 			safestrncpy((char*)WFIFOP(fd,len + 12), skill_get_name(id), NAME_LENGTH);
-			WFIFOB(fd,len + 36) = (hd->homunculus.hskill[j].lv < hom_skill_tree_get_max(id, hd->homunculus.class_)) ? 1 : 0;
+			WFIFOB(fd,len + 36) = (hd->homunculus.level < hom_skill_get_min_level(hd->homunculus.class_, id) ||
+				hd->homunculus.hskill[j].lv >= hom_skill_tree_get_max(id, hd->homunculus.class_)) ? 0 : 1;
 			len += 37;
 		}
 	}
@@ -1719,7 +1720,8 @@ void clif_homskillup(struct map_session_data *sd, uint16 skill_id)
 	WFIFOW(fd,4) = hd->homunculus.hskill[idx].lv;
 	WFIFOW(fd,6) = skill_get_sp(skill_id,hd->homunculus.hskill[idx].lv);
 	WFIFOW(fd,8) = skill_get_range2(&hd->bl, skill_id,hd->homunculus.hskill[idx].lv);
-	WFIFOB(fd,10) = (hd->homunculus.hskill[idx].lv < skill_get_max(hd->homunculus.hskill[idx].id)) ? 1 : 0;
+	WFIFOB(fd,10) = (hd->homunculus.level < hom_skill_get_min_level(hd->homunculus.class_, skill_id) ||
+		hd->homunculus.hskill[idx].lv >= hom_skill_tree_get_max(hd->homunculus.hskill[idx].id, hd->homunculus.class_)) ? 0 : 1;
 	WFIFOSET(fd,packet_len(0x239));
 }
 
@@ -4532,7 +4534,8 @@ int clif_damage(struct block_list* src, struct block_list* dst, unsigned int tic
 				damage = damage * sc->data[SC_HALLUCINATION]->val2 + rnd()%100;
 			if(damage2)
 				damage2 = damage2 * sc->data[SC_HALLUCINATION]->val2 + rnd()%100;
-		} else if(sc->data[SC_PYREXIA]) {
+		}
+		if(sc->data[SC_PYREXIA]) {
 			if(damage != 100) { //Exclude damage from poison itself
 				if(!damage)
 					damage = rnd()%999 + 1;
@@ -5334,7 +5337,7 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,unsigned int
 	if((sc = status_get_sc(dst)) && sc->count) {
 		if(sc->data[SC_HALLUCINATION] && damage)
 			damage = damage * sc->data[SC_HALLUCINATION]->val2 + rnd()%100;
-		else if(sc->data[SC_PYREXIA]) {
+		if(sc->data[SC_PYREXIA]) {
 			if(!damage)
 				damage = rnd()%9999 + 1;
 			damage = damage * 3 + rnd()%100;

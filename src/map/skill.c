@@ -655,8 +655,8 @@ bool skill_isNotOk_hom(uint16 skill_id, struct homun_data *hd)
 		return true;
 
 	switch (skill_id) {
-		case MH_LIGHT_OF_REGENE: //Must be cordial
-			if (hom_get_intimacy_grade(hd) != 4) {
+		case MH_LIGHT_OF_REGENE:
+			if (hom_get_intimacy_grade(hd) < HOMGRADE_LOYAL) {
 				if (hd->master)
 					clif_skill_fail(hd->master, skill_id, USESKILL_FAIL_RELATIONGRADE, 0);
 				return true;
@@ -1955,7 +1955,7 @@ int skill_counter_additional_effect(struct block_list* src, struct block_list *b
 			if(src->type == BL_HOM) {
 				TBL_HOM *hd = (TBL_HOM*)src;
 
-				hd->homunculus.intimacy = 200;
+				hd->homunculus.intimacy = (skill_id == HFLI_SBR44) ? 200 : 100; //hom_intimacy_grade2intimacy(HOMGRADE_HATE_WITH_PASSION)
 				if(hd->master)
 					clif_send_homdata(hd->master,SP_INTIMATE,hd->homunculus.intimacy / 100);
 			}
@@ -3477,7 +3477,7 @@ static int skill_check_condition_mercenary(struct block_list *bl, uint16 skill_i
 
 		switch( skill_id ) {
 			case HFLI_SBR44:
-				if( hd->homunculus.intimacy <= 200 )
+				if( hd->homunculus.intimacy <= 200 ) //hom_intimacy_grade2intimacy(HOMGRADE_HATE_WITH_PASSION)
 					return 0;
 				break;
 			case HVAN_EXPLOSION:
@@ -8243,22 +8243,22 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 		case GD_EMERGENCYCALL:
 		case GD_ITEMEMERGENCYCALL:
-			{
+			{ //I don't know if it actually summons in a circle, but oh well
 				int8 dx[9] = {-1, 1, 0, 0,-1, 1,-1, 1, 0};
 				int8 dy[9] = { 0, 0, 1,-1, 1,-1,-1, 1, 0};
 				uint8 j = 0, calls = 0, called = 0;
 				struct guild *g = (sd ? sd->guild : guild_search(status_get_guild_id(src)));
 
-				//I don't know if it actually summons in a circle, but oh well
 				if (!g)
 					break;
-				if (skill_id == GD_ITEMEMERGENCYCALL)
+				if (skill_id == GD_ITEMEMERGENCYCALL) {
 					switch (skill_lv) {
 						case 1: calls = 7; break;
 						case 2: calls = 12; break;
 						case 3: calls = 20; break;
 						default: calls = 0; break; 
 					}
+				}
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 				for (i = 0; i < g->max_member && (!calls || (calls && called < calls)); i++, j++) {
 					if (j > 8)
@@ -10234,7 +10234,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 		case MH_LIGHT_OF_REGENE:
 			if( hd && battle_get_master(src) ) {
-				hd->homunculus.intimacy = (751 + rnd()%99) * 100; //Random between 751 ~ 850
+				hd->homunculus.intimacy = hom_intimacy_grade2intimacy(HOMGRADE_CORDIAL); //Change to cordial
 				clif_send_homdata(hd->master,SP_INTIMATE,hd->homunculus.intimacy / 100); //Refresh intimacy info
 				sc_start(src,battle_get_master(src),type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 				skill_blockhomun_start(hd,skill_id,skill_get_cooldown(NULL,skill_id,skill_lv));

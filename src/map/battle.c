@@ -3663,8 +3663,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 			RE_LVL_DMOD(100);
 			break;
 		case LG_SHIELDSPELL:
-			if(sd && skill_lv == 1) {
-				//[(Caster's Base Level x 4) + (Shield DEF x 10) + (Caster's VIT x 2)] %
+			if(sd && skill_lv == 1) { //[(Caster's Base Level x 4) + (Shield DEF x 10) + (Caster's VIT x 2)] %
 				short index = sd->equip_index[EQI_HAND_L];
 
 				skillratio += -100 + status_get_lv(src) * 4 + status_get_vit(src) * 2;
@@ -3726,11 +3725,10 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 			RE_LVL_DMOD(100);
 			break;
 		case SR_EARTHSHAKER:
-			//[(Skill Level x 150) x (Caster's Base Level / 100) + (Caster's INT x 3)] %
 			if(tsc && (tsc->data[SC_HIDING] || tsc->data[SC_CLOAKING] ||
 				tsc->data[SC_CHASEWALK] || tsc->data[SC_CLOAKINGEXCEED] ||
 				tsc->data[SC__INVISIBILITY]))
-			{
+			{ //[(Skill Level x 150) x (Caster's Base Level / 100) + (Caster's INT x 3)] %
 				skillratio += -100 + 150 * skill_lv;
 				RE_LVL_DMOD(100);
 				skillratio += sstatus->int_ * 3;
@@ -3740,8 +3738,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 				skillratio += sstatus->int_ * 2;
 			}
 			break;
-		case SR_FALLENEMPIRE:
-			//ATK [(Skill Level x 150 + 100) x Caster's Base Level / 150] %
+		case SR_FALLENEMPIRE: //ATK [(Skill Level x 150 + 100) x Caster's Base Level / 150] %
 			skillratio += 150 * skill_lv;
 			RE_LVL_DMOD(150);
  			break;
@@ -8378,6 +8375,8 @@ static const struct _battle_data {
 	{ "default_fixed_castrate",             &battle_config.default_fixed_castrate,          20,     0,      100,            },
 	{ "default_bind_on_equip",              &battle_config.default_bind_on_equip,    BOUND_CHAR, BOUND_NONE, BOUND_MAX - 1, },
 	{ "pet_ignore_infinite_def",            &battle_config.pet_ignore_infinite_def,         0,      0,      1,              },
+	{ "homunculus_evo_intimacy_need",       &battle_config.homunculus_evo_intimacy_need,    91100,  0,      INT_MAX,        },
+	{ "homunculus_evo_intimacy_reset",      &battle_config.homunculus_evo_intimacy_reset,   1000,   0,      INT_MAX,        },
 };
 #ifndef STATS_OPT_OUT
 /**
