@@ -11983,7 +11983,7 @@ void clif_parse_RepairItem(int fd, struct map_session_data *sd)
 	skill_repairweapon(sd,RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]));
 	//nameid = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]);
 	//refine = RFIFOB(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[2]);
-	//for(i = 0; i<MAX_SLOTS; i++)
+	//for(i = 0; i < MAX_SLOTS; i++)
 	//	card[i] = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[3+i]);
 	clif_menuskill_clear(sd);
 }

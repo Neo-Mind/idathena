@@ -1098,8 +1098,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			damage -= damage * 20 / 100;
 
 		if( sc->data[SC_FOGWALL] && skill_id != RK_DRAGONBREATH && skill_id != RK_DRAGONBREATH_WATER ) {
-			if( flag&BF_SKILL && !(skill_get_inf(skill_id)&INF_GROUND_SKILL) && !(skill_get_nk(skill_id)&NK_SPLASH) ) //25% reduction
-				damage -= damage * 25 / 100;
+			if( flag&BF_SKILL && !(skill_get_inf(skill_id)&INF_GROUND_SKILL) && !(skill_get_nk(skill_id)&NK_SPLASH) )
+				damage -= damage * 25 / 100; //25% reduction
 			else if( (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
 				damage >>= 2; //75% reduction
 		}

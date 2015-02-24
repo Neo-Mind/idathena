@@ -9295,10 +9295,11 @@ bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
 	//Check for combos (MUST be before status_calc_pc)
 	if( id->combos_count )
 		pc_checkcombo(sd,id);
-	if( itemdb_isspecial(sd->status.inventory[n].card[0]) )
+	if( itemdb_isspecial(sd->status.inventory[n].card[0]) && itemdb_isspecial(sd->status.inventory[n].card[1]) &&
+		itemdb_isspecial(sd->status.inventory[n].card[2]) && itemdb_isspecial(sd->status.inventory[n].card[3]) )
 		; //No cards
 	else {
-		for( i = 0; i < id->slot; i++ ) {
+		for( i = 0; i < MAX_SLOTS; i++ ) {
 			struct item_data *data;
 
 			if( !sd->status.inventory[n].card[i] )
@@ -9311,15 +9312,15 @@ bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
 	status_calc_pc(sd,SCO_NONE);
 	if( flag ) //Update skill data
 		clif_skillinfoblock(sd);
-	//OnEquip script [Skotlex]
-	if( id ) {
+	if( id ) { //OnEquip script [Skotlex]
 		//Only run the script if item isn't restricted
 		if( id->equip_script && (pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) || !itemdb_isNoEquip(id,sd->bl.m)) )
 			run_script(id->equip_script,0,sd->bl.id,fake_nd->bl.id);
-		if( itemdb_isspecial(sd->status.inventory[n].card[0]) )
+		if( itemdb_isspecial(sd->status.inventory[n].card[0]) && itemdb_isspecial(sd->status.inventory[n].card[1]) &&
+			itemdb_isspecial(sd->status.inventory[n].card[2]) && itemdb_isspecial(sd->status.inventory[n].card[3]) )
 			; //No cards
 		else {
-			for( i = 0; i < id->slot; i++ ) {
+			for( i = 0; i < MAX_SLOTS; i++ ) {
 				struct item_data *data;
 
 				if( !sd->status.inventory[n].card[i] )
@@ -9448,22 +9449,21 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 	sd->status.inventory[n].equip = 0;
 	iflag = sd->npc_item_flag;
 
-	//Check for combos (MUST be before status_calc_pc)
-	if( sd->inventory_data[n] ) {
+	if( sd->inventory_data[n] ) { //Check for combos (MUST be before status_calc_pc)
 		if( sd->inventory_data[n]->combos_count ) {
 			if( pc_removecombo(sd,sd->inventory_data[n]) )
 				status_cacl = true;
 		}
-		if( itemdb_isspecial(sd->status.inventory[n].card[0]) )
+		if( itemdb_isspecial(sd->status.inventory[n].card[0]) && itemdb_isspecial(sd->status.inventory[n].card[1]) &&
+			itemdb_isspecial(sd->status.inventory[n].card[2]) && itemdb_isspecial(sd->status.inventory[n].card[3]) )
 			; //No cards
 		else {
-			for( i = 0; i < sd->inventory_data[n]->slot; i++ ) {
+			for( i = 0; i < MAX_SLOTS; i++ ) {
 				struct item_data *data;
 
 				if( !sd->status.inventory[n].card[i] )
 					continue;
-				if( (data = itemdb_exists(sd->status.inventory[n].card[i])) != NULL &&
-					data->combos_count && pc_removecombo(sd,data) )
+				if( (data = itemdb_exists(sd->status.inventory[n].card[i])) != NULL && data->combos_count && pc_removecombo(sd,data) )
 					status_cacl = true;
 			}
 		}
@@ -9472,14 +9472,14 @@ bool pc_unequipitem(struct map_session_data *sd,int n,int flag) {
 		pc_checkallowskill(sd);
 		status_calc_pc(sd,SCO_NONE);
 	}
-	//OnUnEquip script [Skotlex]
-	if( sd->inventory_data[n] ) {
+	if( sd->inventory_data[n] ) { //OnUnEquip script [Skotlex]
 		if( sd->inventory_data[n]->unequip_script )
 			run_script(sd->inventory_data[n]->unequip_script,0,sd->bl.id,fake_nd->bl.id);
-		if( itemdb_isspecial(sd->status.inventory[n].card[0]) )
+		if( itemdb_isspecial(sd->status.inventory[n].card[0]) && itemdb_isspecial(sd->status.inventory[n].card[1]) &&
+			itemdb_isspecial(sd->status.inventory[n].card[2]) && itemdb_isspecial(sd->status.inventory[n].card[3]) )
 			; //No cards
 		else {
-			for( i = 0; i < sd->inventory_data[n]->slot; i++ ) {
+			for( i = 0; i < MAX_SLOTS; i++ ) {
 				struct item_data *data;
 
 				if( !sd->status.inventory[n].card[i] )
@@ -10888,7 +10888,7 @@ int pc_autotrade_timer(int tid, unsigned int tick, int id, intptr_t data) {
 
 	if( sd->state.autotrade&4 )
 		vending_reopen(sd);
-	if( sd->state.autotrade&16 )
+	if( sd->state.autotrade&8 )
 		buyingstore_reopen(sd);
 
 	if( !sd->vender_id && !sd->buyer_id ) {

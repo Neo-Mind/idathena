@@ -13032,7 +13032,10 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 
 	switch (group->unit_id) {
 		//Units that deals simple attack
+		case UNT_DEMONSTRATION:
+		case UNT_DISSONANCE:
 		case UNT_GRAVITATION:
+		case UNT_TATAMIGAESHI:
 		case UNT_EARTHSTRAIN:
 		case UNT_FIREWALK:
 		case UNT_ELECTRICWALK:
@@ -13308,10 +13311,6 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 				skill_additional_effect(src,bl,skill_id,skill_lv,BF_LONG|BF_SKILL|BF_MISC,ATK_DEF,tick);
 			break;
 
-		case UNT_DISSONANCE:
-			skill_attack(BF_MISC,src,&unit->bl,bl,skill_id,skill_lv,tick,0);
-			break;
-
 		case UNT_APPLEIDUN: {
 				int heal;
 #ifdef RENEWAL
@@ -13348,13 +13347,8 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			sc_start4(src,bl,type,100,skill_lv,group->val1,group->val2,0,group->limit);
 			break;
 
-		case UNT_TATAMIGAESHI:
-		case UNT_DEMONSTRATION:
-			skill_attack(BF_WEAPON,src,&unit->bl,bl,skill_id,skill_lv,tick,0);
-			break;
-
 		case UNT_GOSPEL:
-			if (rnd()%100 > skill_lv * 10 || src == bl)
+			if (rnd()%100 > skill_lv * 10 || bl->id == src->id)
 				break;
 			if (battle_check_target(src,bl,BCT_PARTY) > 0) { //Support Effect only on party, not guild
 				int heal;
@@ -14935,8 +14929,8 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 			break;
 		case SO_FIREWALK:
 		case SO_ELECTRICWALK: //Can't be casted until you've walked all cells
-			if( sc && sc->data[SC_PROPERTYWALK] && sc->data[SC_PROPERTYWALK]->val3 <
-				skill_get_maxcount(sc->data[SC_PROPERTYWALK]->val1,sc->data[SC_PROPERTYWALK]->val2) ) {
+			if( sc && sc->data[SC_PROPERTYWALK] &&
+				sc->data[SC_PROPERTYWALK]->val3 < skill_get_maxcount(sc->data[SC_PROPERTYWALK]->val1,sc->data[SC_PROPERTYWALK]->val2) ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return false;
 			}
@@ -18017,12 +18011,12 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 		else
 			map_foreachinrange(skill_unit_timer_sub_onplace,bl,unit->range,group->bl_flag,bl,tick);
 
-		if( unit->range == -1 ) //Unit disabled, but it should not be deleted yet.
+		if( unit->range == -1 ) //Unit disabled, but it should not be deleted yet
 			group->unit_id = UNT_USED_TRAPS;
 		else if( group->unit_id == UNT_TATAMIGAESHI ) {
-			unit->range = -1; //Disable processed cell.
-			if( --group->val1 <= 0 ) { //number of live cells
-	  			//All tiles were processed, disable skill.
+			unit->range = -1; //Disable processed cell
+			if( --group->val1 <= 0 ) { //Number of live cells
+	  			//All tiles were processed, disable skill
 				group->target_flag = BCT_NOONE;
 				group->bl_flag = BL_NUL;
 			}
@@ -19794,10 +19788,10 @@ void skill_init_unit_layout (void)
 						memcpy(skill_unit_layout[pos].dy,dy3,sizeof(dy3));
 						skill_db[i].unit_layout_type[j] = pos;
 						skill_db[i].unit_layout_type[++j] = pos;
-						//Fill in the rest using lv 5.
+						//Fill in the rest using lv 5
 						for( ; j < MAX_SKILL_LEVEL; j++ )
 							skill_db[i].unit_layout_type[j] = pos;
-						//Skip, this way the check below will fail and continue to the next skill.
+						//Skip, this way the check below will fail and continue to the next skill
 						pos++;
 					}
 					break;

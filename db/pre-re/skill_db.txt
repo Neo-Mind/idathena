@@ -39,9 +39,8 @@
 //    0x2000 - Chorus skill
 //    0x4000 - Skill that ignores bg and gvg reduction
 //    0x8000 - Makes 'self'/'place' skill cannot be casted/placed when near NPC (see 'db/skill_nonearnpc_db.txt' for more options)
-// 13 Max amount of skill instances to place on the ground when
-//    player_land_skill_limit/monster_land_skill_limit is enabled. For skills
-//    that attack using a path, this is the path length to be used.
+// 13 Max amount of skill instances to place on the ground when player_land_skill_limit/monster_land_skill_limit is enabled.
+//    For skills that attack using a path, this is the path length to be used.
 // 14 Attack type (none, weapon, magic, misc)
 // 15 Amount of tiles skill knockbacks
 // 16 INF3 (skill information 3):

@@ -386,15 +386,13 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 	struct status_change *sc = NULL;
 	int moveblock = (x0 / BLOCK_SIZE != x1 / BLOCK_SIZE || y0 / BLOCK_SIZE != y1 / BLOCK_SIZE);
 
-	//Block not in map, just update coordinates, but do naught else
-	if (!bl->prev) {
+	if (!bl->prev) { //Block not in map, just update coordinates, but do naught else
 		bl->x = x1;
 		bl->y = y1;
 		return 0;
 	}
 
-	//@TODO: Perhaps some outs of bounds checking should be placed here?
-	if (bl->type&BL_CHAR) {
+	if (bl->type&BL_CHAR) { //@TODO: Perhaps some outs of bounds checking should be placed here?
 		sc = status_get_sc(bl);
 		skill_unit_move(bl, tick, 2);
 		status_change_end(bl, SC_CLOSECONFINE, INVALID_TIMER);
@@ -402,11 +400,16 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 		status_change_end(bl, SC_TINDER_BREAKER, INVALID_TIMER);
 		status_change_end(bl, SC_TINDER_BREAKER2, INVALID_TIMER);
 		//status_change_end(bl, SC_BLADESTOP, INVALID_TIMER); //Won't stop when you are knocked away, go figure
-		status_change_end(bl, SC_TATAMIGAESHI, INVALID_TIMER);
 		status_change_end(bl, SC_MAGICROD, INVALID_TIMER);
-		if (sc && sc->data[SC_PROPERTYWALK] &&
-			sc->data[SC_PROPERTYWALK]->val3 >= skill_get_maxcount(sc->data[SC_PROPERTYWALK]->val1, sc->data[SC_PROPERTYWALK]->val2) )
-			status_change_end(bl, SC_PROPERTYWALK, INVALID_TIMER);
+		if (sc) {
+#ifdef RENEWAL //3x3 AoE ranged damage protection
+			if (sc->data[SC_TATAMIGAESHI] && sc->data[SC_TATAMIGAESHI]->val2 >= 1)
+#endif
+				status_change_end(bl, SC_TATAMIGAESHI, INVALID_TIMER);
+			if (sc->data[SC_PROPERTYWALK] &&
+				sc->data[SC_PROPERTYWALK]->val3 >= skill_get_maxcount(sc->data[SC_PROPERTYWALK]->val1, sc->data[SC_PROPERTYWALK]->val2) )
+				status_change_end(bl, SC_PROPERTYWALK, INVALID_TIMER);
+		}
 	} else if (bl->type == BL_NPC)
 		npc_unsetcells((TBL_NPC*)bl);
 
@@ -441,18 +444,22 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 		}
 		if (sc && sc->count) {
 			if (sc->data[SC_DANCING])
-				skill_unit_move_unit_group(skill_id2group(sc->data[SC_DANCING]->val2), bl->m, x1-x0, y1-y0);
+				skill_unit_move_unit_group(skill_id2group(sc->data[SC_DANCING]->val2), bl->m, x1 - x0, y1 - y0);
 			else {
 				if (sc->data[SC_CLOAKING] && sc->data[SC_CLOAKING]->val1 < 3 && !skill_check_cloaking(bl, NULL))
 					status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
 				if (sc->data[SC_WARM])
-					skill_unit_move_unit_group(skill_id2group(sc->data[SC_WARM]->val4), bl->m, x1-x0, y1-y0);
+					skill_unit_move_unit_group(skill_id2group(sc->data[SC_WARM]->val4), bl->m, x1 - x0, y1 - y0);
+#ifdef RENEWAL
+				if (sc->data[SC_TATAMIGAESHI])
+					sc->data[SC_TATAMIGAESHI]->val2++;
+#endif
 				if (sc->data[SC_BANDING])
-					skill_unit_move_unit_group(skill_id2group(sc->data[SC_BANDING]->val4), bl->m, x1-x0, y1-y0);
+					skill_unit_move_unit_group(skill_id2group(sc->data[SC_BANDING]->val4), bl->m, x1 - x0, y1 - y0);
 				if (sc->data[SC_NEUTRALBARRIER_MASTER])
-					skill_unit_move_unit_group(skill_id2group(sc->data[SC_NEUTRALBARRIER_MASTER]->val2), bl->m, x1-x0, y1-y0);
+					skill_unit_move_unit_group(skill_id2group(sc->data[SC_NEUTRALBARRIER_MASTER]->val2), bl->m, x1 - x0, y1 - y0);
 				else if (sc->data[SC_STEALTHFIELD_MASTER])
-					skill_unit_move_unit_group(skill_id2group(sc->data[SC_STEALTHFIELD_MASTER]->val2), bl->m, x1-x0, y1-y0);
+					skill_unit_move_unit_group(skill_id2group(sc->data[SC_STEALTHFIELD_MASTER]->val2), bl->m, x1 - x0, y1 - y0);
 				if (sc->data[SC__SHADOWFORM]) { //Shadow Form Caster Moving
 					struct block_list *d_bl;
 
@@ -470,13 +477,13 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 			//Guild Aura Moving
 			if (bl->type == BL_PC && ((TBL_PC*)bl)->state.gmaster_flag) {
 				if (sc->data[SC_LEADERSHIP])
-					skill_unit_move_unit_group(skill_id2group(sc->data[SC_LEADERSHIP]->val4), bl->m, x1-x0, y1-y0);
+					skill_unit_move_unit_group(skill_id2group(sc->data[SC_LEADERSHIP]->val4), bl->m, x1 - x0, y1 - y0);
 				if (sc->data[SC_GLORYWOUNDS])
-					skill_unit_move_unit_group(skill_id2group(sc->data[SC_GLORYWOUNDS]->val4), bl->m, x1-x0, y1-y0);
+					skill_unit_move_unit_group(skill_id2group(sc->data[SC_GLORYWOUNDS]->val4), bl->m, x1 - x0, y1 - y0);
 				if (sc->data[SC_SOULCOLD])
-					skill_unit_move_unit_group(skill_id2group(sc->data[SC_SOULCOLD]->val4), bl->m, x1-x0, y1-y0);
+					skill_unit_move_unit_group(skill_id2group(sc->data[SC_SOULCOLD]->val4), bl->m, x1 - x0, y1 - y0);
 				if (sc->data[SC_HAWKEYES])
-					skill_unit_move_unit_group(skill_id2group(sc->data[SC_HAWKEYES]->val4), bl->m, x1-x0, y1-y0);
+					skill_unit_move_unit_group(skill_id2group(sc->data[SC_HAWKEYES]->val4), bl->m, x1 - x0, y1 - y0);
 			}
 		}
 	} else if (bl->type == BL_NPC)

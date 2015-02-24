@@ -2854,12 +2854,12 @@
 4871,SP75,SP+75,6,20,,10,,,,,,,,,,,,,{ bonus bMaxSP,75; },{},{}
 4872,DelayafterAttack2Lv,DelayafterAttack2Lv,6,10,,,,,,,,,,,,,,,{ bonus bAspdRate,6; bonus bDelayrate,-6; },{},{}
 4873,DelayafterAttack3Lv,DelayafterAttack3Lv,6,10,,,,,,,,,,,,,,,{ bonus bAspdRate,8; bonus bDelayrate,-8; },{},{}
-4875,Bear's_Power,Bear's Power,6,10,,,,,,,,,,,,,,,{ autobonus2 "{ bonus bStr,200; bonus2 bHPLossRate,500,1000; }",50,5000,BF_WEAPON,"{ specialeffect2 EF_POTION_BERSERK; transform 1060,5000; }"; },{},{}
-4876,Runaway_Magic,Runaway Magic,6,10,,,,,,,,,,,,,,,{ autobonus "{ bonus bInt,200; bonus2 bSPLossRate,200,1000; }",50,10000,BF_MAGIC; },{},{}
-4877,Speed_Of_Light,Speed Of Light,6,10,,,,,,,,,,,,,,,{ autobonus "{ bonus bAspdRate,100; bonus bFlee2,100; bonus2 bHPLossRate,400,1000; bonus2 bSPLossRate,40,1000; }",50,5000,BF_WEAPON; },{},{}
-4878,Muscle_Fool,Muscle Fool,6,10,,,,,,,,,,,,,,,{ autobonus2 "{ bonus bDef,1000; bonus2 bAddClass,Class_All,-50; bonus bMatkRate,-50; }",50,5000,BF_WEAPON; },{},{}
-4879,Hawkeye,Hawkeye,6,10,,,,,,,,,,,,,,,{ autobonus "{ bonus bDex,200; bonus2 bSPLossRate,50,1000; }",50,5000,BF_WEAPON; },{},{}
-4880,Lucky_Day,Lucky Day,6,10,,,,,,,,,,,,,,,{ autobonus "{ bonus bLuk,200; bonus2 bAddMonsterDropItem,7444,50; }",50,5000,BF_NORMAL|BF_SKILL; autobonus2 "{ bonus bLuk,200; bonus2 bAddMonsterDropItem,7444,50; }",50,5000,BF_NORMAL|BF_SKILL; },{},{}
+4875,Bear's_Power,Bear's Power,6,10,,,,,,,,,,,,,,,{ autobonus2 "{ bonus bStr,200; bonus2 bHPLossRate,500,1000; }",50,5000,BF_WEAPON,"{ specialeffect2 EF_POTION_BERSERK; transform 1060,5000; }"; },{},{ itemheal 0,-300; }
+4876,Runaway_Magic,Runaway Magic,6,10,,,,,,,,,,,,,,,{ autobonus "{ bonus bInt,200; bonus2 bSPLossRate,200,1000; }",50,10000,BF_MAGIC; },{},{ itemheal 0,-2000; }
+4877,Speed_Of_Light,Speed Of Light,6,10,,,,,,,,,,,,,,,{ autobonus "{ bonus bAspdRate,100; bonus bFlee2,100; bonus2 bHPLossRate,400,1000; bonus2 bSPLossRate,40,1000; }",50,5000,BF_WEAPON; },{},{ itemheal 0,-300; }
+4878,Muscle_Fool,Muscle Fool,6,10,,,,,,,,,,,,,,,{ autobonus2 "{ bonus bVit,200; bonus2 bAddClass,Class_All,-50; bonus bMatkRate,-50; }",50,5000,BF_WEAPON; },{},{ itemheal 0,-300; }
+4879,Hawkeye,Hawkeye,6,10,,,,,,,,,,,,,,,{ autobonus "{ bonus bDex,200; bonus2 bSPLossRate,50,1000; }",50,5000,BF_WEAPON; },{},{ itemheal 0,-300; }
+4880,Lucky_Day,Lucky Day,6,10,,,,,,,,,,,,,,,{ autobonus "{ bonus bLuk,200; bonus2 bAddMonsterDropItem,7444,50; }",50,5000,BF_NORMAL|BF_SKILL; autobonus2 "{ bonus bLuk,200; bonus2 bAddMonsterDropItem,7444,50; }",50,5000,BF_NORMAL|BF_SKILL; },{},{ itemheal 0,-300; }
 4881,DelayafterAttack4Lv,DelayafterAttack4Lv,6,10,,,,,,,,,,,,,,,{ bonus bAspdRate,10; bonus bDelayrate,-10; },{},{}
 4882,ATK_+_1%,ATK + 1%,6,10,,0,,,,,,,,,,,,,{ bonus2 bAddClass,Class_All,1; },{},{}
 4883,MATK_+_1%,MATK + 1%,6,10,,0,,,,,,,,,,,,,{ bonus bMatkRate,1; },{},{}
@@ -9062,7 +9062,7 @@
 18598,Mini_Tree_J,Mini Tree J,4,20,,50,,0,,1,0xFFFFFFFF,63,2,256,,0,0,727,{ bonus bMdef,20; },{},{}
 18599,Black_Devil_Mask,Black Devil Mask,4,20,,100,,0,,0,0xFFFFFFFF,63,2,512,,0,0,760,{ bonus bAllStats,2; },{},{}
 18600,Cat_Ear_Beret,Cat Ear Beret,4,20,,100,,5,,1,0xFFFFFFFF,63,2,256,,0,1,761,{ bonus2 bAddClass,Class_All,5; if(getrefine()>5 && getrefine()<=12) { bonus2 bAddRace,RC_DemiHuman,(getrefine()-5); bonus2 bSubRace,RC_DemiHuman,(getrefine()-5); } if(getrefine()>12) { bonus2 bAddRace,RC_DemiHuman,7; bonus2 bSubRace,RC_DemiHuman,7; } },{},{}
-18601,Red_Bread_Hat,Red Bread Hat,4,20,,300,,0,,1,0xFFFFFFFF,63,2,256,,0,1,762,{ bonus bMdef,5; },{},{}
+18601,Red_Bread_Hat,Red Bread Hat,4,20,,300,,0,,1,0xFFFFFFFF,63,2,256,,0,1,762,{ bonus bMatkRate,5; bonus bMdef,5; if(getrefine()>5 && getrefine()<=12) { bonus2 bMagicAddRace,RC_DemiHuman,(getrefine()-5); bonus2 bSubRace,RC_DemiHuman,(getrefine()-5); } if(getrefine()>12) { bonus2 bMagicAddRace,RC_DemiHuman,7; bonus2 bSubRace,RC_DemiHuman,7; } },{},{}
 18602,Watermelon_Bite,Watermelon Bite,4,20,,100,,4,,0,0xFFFFFFFF,63,2,1,,30,0,763,{ bonus bMdef,4; bonus2 bAddEle,Ele_Fire,4; },{},{}
 18603,Black_Devil_Mask_,Black Devil Mask,4,20,,100,,0,,1,0xFFFFFFFF,63,2,512,,0,0,760,{ bonus bAllStats,1; },{},{}
 18604,Falcon_Mask,Falcon Mask,4,20,,30,,0,,1,0xFFFFFFFF,63,2,513,,50,0,782,{},{},{}

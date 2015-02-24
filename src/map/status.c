@@ -8918,6 +8918,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val2 = 5 * val1; //Def reduction
 				val3 = 5 * val1; //Def2 reduction
 				break;
+#ifdef RENEWAL
+			case SC_TATAMIGAESHI:
+				val2 = 0;
+				break;
+#endif
 			case SC_PROVOKE:
 				//val2 signals autoprovoke
 				val3 = 2 + 3 * val1; //Atk increase
