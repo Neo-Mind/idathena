@@ -3940,10 +3940,12 @@ int status_calc_elemental_(struct elemental_data *ed, enum e_status_calc_opt opt
 }
 
 int status_calc_npc_(struct npc_data *nd, enum e_status_calc_opt opt) {
-	struct status_data *status = &nd->status;
+	struct status_data *status;
 
 	if (!nd)
 		return 0;
+
+	status = &nd->status;
 
 	if (opt&SCO_FIRST) {
 		status->hp = 1;
@@ -7681,7 +7683,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					i = sd->equip_index[EQI_ACC_L];
 					if(i >= 0 && sd->inventory_data[i] && sd->inventory_data[i]->type == IT_ARMOR)
 						pc_unequipitem(sd,i,3); //L-Accessory
-				} if(!(sd->bonus.unstripable_equip&EQP_ACC_R)) {
+				}
+				if(!(sd->bonus.unstripable_equip&EQP_ACC_R)) {
 					i = sd->equip_index[EQI_ACC_R];
 					if(i >= 0 && sd->inventory_data[i] && sd->inventory_data[i]->type == IT_ARMOR)
 						pc_unequipitem(sd,i,3); //R-Accessory
@@ -10207,10 +10210,12 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	if(opt_flag) {
 		clif_changeoption(bl);
 		if(sd && (opt_flag&0x4)) {
-			clif_changelook(bl,LOOK_BASE,vd->class_);
+			if(vd) {
+				clif_changelook(bl,LOOK_BASE,vd->class_);
+				clif_changelook(bl,LOOK_CLOTHES_COLOR,vd->cloth_color);
+			}
 			clif_changelook(bl,LOOK_WEAPON,0);
 			clif_changelook(bl,LOOK_SHIELD,0);
-			clif_changelook(bl,LOOK_CLOTHES_COLOR,vd->cloth_color);
 		}
 	}
 	if(calc_flag&SCB_DYE) { //Reset DYE color

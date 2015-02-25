@@ -1398,9 +1398,8 @@ ACMD_FUNC(baselevelup)
 {
 	int level = 0, i = 0, status_point = 0;
 	nullpo_retr(-1, sd);
-	level = atoi(message);
 
-	if (!message || !*message || !level) {
+	if (!message || !*message || !(level = atoi(message))) {
 		clif_displaymessage(fd, msg_txt(986)); // Please enter a level adjustment (usage: @lvup/@blevel/@baselvlup <number of levels>).
 		return -1;
 	}
@@ -1459,10 +1458,8 @@ ACMD_FUNC(joblevelup)
 {
 	int level = 0;
 	nullpo_retr(-1, sd);
-	
-	level = atoi(message);
 
-	if (!message || !*message || !level) {
+	if (!message || !*message || !(level = atoi(message))) {
 		clif_displaymessage(fd, msg_txt(987)); // Please enter a level adjustment (usage: @joblvup/@jlevel/@joblvlup <number of levels>).
 		return -1;
 	}
@@ -7042,7 +7039,7 @@ ACMD_FUNC(showmobs)
 		return -1;
 	}
 
-	if (mob_id == atoi(mob_name) && mob_db(mob_id)->jname)
+	if (mob_id == atoi(mob_name))
 		strcpy(mob_name, mob_db(mob_id)->jname); // --ja--
 	//strcpy(mob_name, mob_db(mob_id)->name); // --en--
 
@@ -7151,7 +7148,7 @@ ACMD_FUNC(hommutate)
 	m_class = hom_class2mapid(sd->hd->homunculus.class_);
 	m_id	= hom_class2mapid(homun_id);
 
-	if (m_class != HT_INVALID && m_id != HT_INVALID && m_class&HOM_EVO && m_id&HOM_S && sd->hd->homunculus.level >= 99)
+	if (m_class&HOM_EVO && m_id&HOM_S && sd->hd->homunculus.level >= 99)
 		hom_mutate(sd->hd, homun_id);
 	else
 		clif_emotion(&sd->hd->bl, E_SWT);
@@ -9009,9 +9006,11 @@ ACMD_FUNC(cart) {
 	sd->status.skill[MC_PUSHCART].lv = x ? 1 : 0; \
 	sd->status.skill[MC_PUSHCART].flag = x ? SKILL_FLAG_TEMPORARY : SKILL_FLAG_PERMANENT;
 
-	int val = atoi(message);
+	int val;
 	bool need_skill = pc_checkskill(sd, MC_PUSHCART) ? false : true;
 
+	if( message )
+		val = atoi(message);
 	if( !message || !*message || val < 0 || val > MAX_CARTS ) {
 		sprintf(atcmd_output, msg_txt(1390), command, MAX_CARTS); // Unknown Cart (usage: %s <0-%d>).
 		clif_displaymessage(fd, atcmd_output);

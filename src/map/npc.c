@@ -995,6 +995,11 @@ int npc_untouch_areanpc(struct map_session_data* sd, int16 m, int16 x, int16 y)
 		return 0;
 
 	nd = (struct npc_data *)map_id2bl(sd->areanpc_id);
+	if( !nd ) {
+		sd->areanpc_id = 0;
+		return 1;
+	}
+
 	npc_onuntouch_event(sd,nd);
 	sd->areanpc_id = 0;
 	return 0;
@@ -3273,7 +3278,7 @@ static const char* npc_parse_mob(char* w1, char* w2, char* w3, char* w4, const c
 		return strchr(start, '\n');
 	}
 
-	if( (mob.state.ai < AI_NONE || mob.state.ai >= AI_MAX) && ai != -1 ) {
+	if( mob.state.ai >= AI_MAX && ai != -1 ) {
 		ShowError("npc_parse_mob: Invalid ai %d for mob ID %d in file '%s', line '%d'.\n", mob.state.ai, mob_id, filepath, strline(buffer, start - buffer));
 		return strchr(start, '\n');
 	}

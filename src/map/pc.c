@@ -7163,6 +7163,8 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	int i = 0, k = 0;
 	unsigned int tick = gettick();
 
+	nullpo_retr(0,sd);
+
 	//Activate Steel body if a super novice dies at 99+% exp [celest]
 	//Super Novices have no kill or die functions attached when saved by their angel
 	if( (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && !sd->state.snovice_dead_flag ) {
