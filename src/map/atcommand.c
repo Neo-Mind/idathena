@@ -4796,7 +4796,7 @@ ACMD_FUNC(disguiseall)
 	if ((mob_id = mobdb_searchname(message)) == 0) // Check name first (to avoid possible name beginning by a number)
 		mob_id = atoi(message);
 
-	if (!mobdb_checkid(mob_id) && !npcdb_checkid(mob_id)) { //if mob or npc.
+	if (!mobdb_checkid(mob_id) && !npcdb_checkid(mob_id)) { //If mob or npc.
 		clif_displaymessage(fd, msg_txt(123)); // Monster/NPC name/id not found.
 		return -1;
 	}
@@ -8634,10 +8634,10 @@ ACMD_FUNC(delitem)
 	}
 
 	// Notify target
-	sprintf(atcmd_output, msg_txt(113), total-amount); // %d item(s) removed by a GM.
+	sprintf(atcmd_output, msg_txt(113), total - amount); // %d item(s) removed by a GM.
 	clif_displaymessage(sd->fd, atcmd_output);
 
-	// notify source
+	// Notify source
 	if( amount == total ) {
 		clif_displaymessage(fd, msg_txt(116)); // Character does not have the item.
 	} else if( amount ) {

@@ -152,13 +152,13 @@ int npc_ontouch_event(struct map_session_data *sd, struct npc_data *nd) {
 	char name[EVENT_NAME_LENGTH];
 
 	if( nd->touching_id )
-		return 0; // Attached a player already. Can't trigger on anyone else.
+		return 0; //Attached a player already. Can't trigger on anyone else.
 
 	if( pc_ishiding(sd) )
-		return 1; // Can't trigger 'OnTouch_'. try 'OnTouch' later.
+		return 1; //Can't trigger 'OnTouch_'. try 'OnTouch' later.
 
 	snprintf(name, ARRAYLENGTH(name), "%s::%s", nd->exname, script_config.ontouch_name);
-	return npc_event(sd,name,1);
+	return npc_event(sd, name, 1);
 }
 
 int npc_ontouch2_event(struct map_session_data *sd, struct npc_data *nd) {
@@ -168,7 +168,17 @@ int npc_ontouch2_event(struct map_session_data *sd, struct npc_data *nd) {
 		return 0;
 
 	snprintf(name, ARRAYLENGTH(name), "%s::%s", nd->exname, script_config.ontouch2_name);
-	return npc_event(sd,name,2);
+	return npc_event(sd, name, 2);
+}
+
+int npc_onuntouch_event(struct map_session_data *sd, struct npc_data *nd) {
+	char name[EVENT_NAME_LENGTH];
+
+	if( sd->areanpc_id != nd->bl.id )
+		return 0;
+
+	snprintf(name, ARRAYLENGTH(name), "%s::%s", nd->exname, script_config.onuntouch_name);
+	return npc_event(sd, name, 2);
 }
 
 /*==========================================
@@ -180,6 +190,7 @@ int npc_enable_sub(struct block_list *bl, va_list ap)
 
 	nullpo_ret(bl);
 	nullpo_ret(nd = va_arg(ap, struct npc_data *));
+
 	if( bl->type == BL_PC ) {
 		TBL_PC *sd = (TBL_PC*)bl;
 
@@ -971,6 +982,24 @@ int npc_touch_areanpc(struct map_session_data* sd, int16 m, int16 x, int16 y)
 	return 0;
 }
 
+/*==========================================
+ * Exec OnUnTouch for player if out range of area event
+ *------------------------------------------*/
+int npc_untouch_areanpc(struct map_session_data* sd, int16 m, int16 x, int16 y)
+{
+	struct npc_data *nd;
+
+	nullpo_retr(1,sd);
+
+	if( !sd->areanpc_id )
+		return 0;
+
+	nd = (struct npc_data *)map_id2bl(sd->areanpc_id);
+	npc_onuntouch_event(sd,nd);
+	sd->areanpc_id = 0;
+	return 0;
+}
+
 // OnTouch NPC or Warp for Mobs
 // Return 1 if Warped
 int npc_touch_areanpc2(struct mob_data *md)
@@ -1101,25 +1130,30 @@ int npc_check_areanpc(int flag, int16 m, int16 x, int16 y, int16 range)
 struct npc_data* npc_checknear(struct map_session_data* sd, struct block_list* bl)
 {
 	struct npc_data *nd;
+	int distance = AREA_SIZE + 1;
 
 	nullpo_retr(NULL, sd);
 
 	if( bl == NULL )
 		return NULL;
+
 	if( bl->type != BL_NPC )
 		return NULL;
 
-	nd = (TBL_NPC*)bl;
+	nd = (TBL_NPC *)bl;
 
-	if( sd->state.using_fake_npc && sd->npc_id == bl->id )
+	if( sd->npc_id == bl->id )
 		return nd;
 
-	if( nd->class_ < 0 ) //Class-less npc, enable click from anywhere.
+	if( nd->class_ < 0 ) //Class-less npc, enable click from anywhere
 		return nd;
+
+	if( distance > nd->area_size )
+		distance = nd->area_size;
 
 	if( bl->m != sd->bl.m ||
-		bl->x<sd->bl.x - AREA_SIZE - 1 || bl->x>sd->bl.x + AREA_SIZE + 1 ||
-		bl->y<sd->bl.y - AREA_SIZE - 1 || bl->y>sd->bl.y + AREA_SIZE + 1 )
+		bl->x < sd->bl.x - distance || bl->x > sd->bl.x + distance ||
+		bl->y < sd->bl.y - distance || bl->y > sd->bl.y + distance )
 		return NULL;
 
 	return nd;
@@ -2161,14 +2195,27 @@ int npc_parseview(const char* w4, const char* start, const char* buffer, const c
  */
 bool npc_viewisid(const char * viewid)
 {
-	if( atoi(viewid) != -1 ) {
-		// Loop through view, looking for non-numeric character.
-		while( *viewid )
+	if( atoi(viewid) != -1 )
+		while( *viewid ) //Loop through view, looking for non-numeric character
 			if( ISDIGIT(*viewid++) == 0 )
 				return false;
-	}
 
 	return true;
+}
+
+struct npc_data* npc_create_npc(int m, int x, int y)
+{
+	struct npc_data *nd;
+
+	CREATE(nd, struct npc_data, 1);
+	nd->bl.id = npc_get_new_npc_id();
+	nd->bl.prev = nd->bl.next = NULL;
+	nd->bl.m = m;
+	nd->bl.x = x;
+	nd->bl.y = y;
+	nd->area_size = AREA_SIZE + 1;
+
+	return nd;
 }
 
 /**
@@ -2189,13 +2236,8 @@ struct npc_data* npc_add_warp(char* name, short from_mapid, short from_x, short 
 	int i, flag = 0;
 	struct npc_data *nd;
 
-	CREATE(nd, struct npc_data, 1);
-	nd->bl.id = npc_get_new_npc_id();
+	nd = npc_create_npc(from_mapid, from_x, from_y);
 	map_addnpc(from_mapid, nd);
-	nd->bl.prev = nd->bl.next = NULL;
-	nd->bl.m = from_mapid;
-	nd->bl.x = from_x;
-	nd->bl.y = from_y;
 
 	safestrncpy(nd->exname, name, ARRAYLENGTH(nd->exname));
 	if( npc_name2id(nd->exname) != NULL )
@@ -2269,19 +2311,13 @@ static const char* npc_parse_warp(char* w1, char* w2, char* w3, char* w4, const 
 		return strchr(start,'\n'); //Skip and continue
 	}
 
-	if( m != -1 && ( x < 0 || x >= map[m].xs || y < 0 || y >= map[m].ys ) ) {
+	if( m != -1 && (x < 0 || x >= map[m].xs || y < 0 || y >= map[m].ys) ) {
 		ShowError("npc_parse_warp: out-of-bounds coordinates (\"%s\",%d,%d), map is %dx%d, in file '%s', line '%d'\n", map[m].name, x, y, map[m].xs, map[m].ys,filepath,strline(buffer,start-buffer));
 		return strchr(start,'\n'); //Try next
 	}
 
-	CREATE(nd, struct npc_data, 1);
-
-	nd->bl.id = npc_get_new_npc_id();
+	nd = npc_create_npc(m, x, y);
 	map_addnpc(m, nd);
-	nd->bl.prev = nd->bl.next = NULL;
-	nd->bl.m = m;
-	nd->bl.x = x;
-	nd->bl.y = y;
 	npc_parsename(nd, w3, start, buffer, filepath);
 
 	if( !battle_config.warp_point_debug )
@@ -2403,8 +2439,7 @@ static const char* npc_parse_shop(char* w1, char* w2, char* w3, char* w4, const 
 			break;
 	}
 
-	CREATE(nd, struct npc_data, 1);
-
+	nd = npc_create_npc(m, x, y);
 	nd->u.shop.count = 0;
 	while( p ) {
 		unsigned short nameid;
@@ -2466,11 +2501,6 @@ static const char* npc_parse_shop(char* w1, char* w2, char* w3, char* w4, const 
 			safestrncpy(nd->u.shop.pointshop_str, point_str, strlen(point_str) + 1); //Point shop currency
 		nd->u.shop.discount = is_discount;
 	}
-	nd->bl.prev = nd->bl.next = NULL;
-	nd->bl.m = m;
-	nd->bl.x = x;
-	nd->bl.y = y;
-	nd->bl.id = npc_get_new_npc_id();
 	npc_parsename(nd, w3, start, buffer, filepath);
 	nd->class_ = (m == -1 ? -1 : npc_parseview(w4, start, buffer, filepath));
 	nd->speed = 200;
@@ -2659,8 +2689,7 @@ static const char* npc_parse_script(char* w1, char* w2, char* w3, char* w4, cons
 		db_clear(label_db); //Not needed anymore, so clear the db
 	}
 
-	CREATE(nd, struct npc_data, 1);
-
+	nd = npc_create_npc(m, x, y);
 	if( sscanf(w4, "%*[^,],%d,%d", &xs, &ys) == 2 ) { //OnTouch area defined
 		nd->u.scr.xs = xs;
 		nd->u.scr.ys = ys;
@@ -2669,12 +2698,7 @@ static const char* npc_parse_script(char* w1, char* w2, char* w3, char* w4, cons
 		nd->u.scr.ys = -1;
 	}
 
-	nd->bl.prev = nd->bl.next = NULL;
-	nd->bl.m = m;
-	nd->bl.x = x;
-	nd->bl.y = y;
 	npc_parsename(nd, w3, start, buffer, filepath);
-	nd->bl.id = npc_get_new_npc_id();
 	nd->class_ = (m == -1 ? -1 : npc_parseview(w4, start, buffer, filepath));
 	nd->speed = 200;
 	nd->u.scr.script = script;
@@ -2794,14 +2818,8 @@ const char* npc_parse_duplicate(char* w1, char* w2, char* w3, char* w4, const ch
 		return end; //Next line, try to continue
 	}
 
-	CREATE(nd, struct npc_data, 1);
-
-	nd->bl.prev = nd->bl.next = NULL;
-	nd->bl.m = m;
-	nd->bl.x = x;
-	nd->bl.y = y;
+	nd = npc_create_npc(m, x, y);
 	npc_parsename(nd, w3, start, buffer, filepath);
-	nd->bl.id = npc_get_new_npc_id();
 	nd->class_ = (m == -1 ? -1 : npc_parseview(w4, start, buffer, filepath));
 	nd->speed = 200;
 	nd->src_id = src_id;
@@ -2911,13 +2929,8 @@ int npc_duplicate4instance(struct npc_data *snd, int16 m) {
 			return 1;
 		}
 
-		CREATE(wnd, struct npc_data, 1);
-		wnd->bl.id = npc_get_new_npc_id();
+		wnd = npc_create_npc(m, snd->bl.x, snd->bl.y);
 		map_addnpc(m, wnd);
-		wnd->bl.prev = wnd->bl.next = NULL;
-		wnd->bl.m = m;
-		wnd->bl.x = snd->bl.x;
-		wnd->bl.y = snd->bl.y;
 		safestrncpy(wnd->name, "", ARRAYLENGTH(wnd->name));
 		safestrncpy(wnd->exname, newname, ARRAYLENGTH(wnd->exname));
 		wnd->class_ = WARP_CLASS;

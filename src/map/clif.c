@@ -10151,9 +10151,9 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd) {
 	if(map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKNPC))
 		npc_touch_areanpc(sd,sd->bl.m,sd->bl.x,sd->bl.y);
 	else
-		sd->areanpc_id = 0;
+		npc_untouch_areanpc(sd,sd->bl.m,sd->bl.x,sd->bl.y);
 
-	/* It broke at some point (e.g. during a crash), so we make it visibly dead again. */
+	//It broke at some point (e.g. during a crash), so we make it visibly dead again
 	if(!sd->status.hp && !pc_isdead(sd) && status_isdead(&sd->bl))
 		pc_setdead(sd);
 

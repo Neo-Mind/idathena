@@ -553,10 +553,9 @@ int guild_recv_info(struct guild *sg)
 		if( sd == NULL )
 			continue;
 		sd->guild = g;
-		if( channel_config.ally_autojoin )
+		if( channel_config.ally_enable && channel_config.ally_autojoin )
 			channel_gjoin(sd,3); // Make all member join guild_channel + allies channel
-		if( before.guild_lv != g->guild_lv || bm != m ||
-				before.max_member != g->max_member ) {
+		if( before.guild_lv != g->guild_lv || bm != m || before.max_member != g->max_member ) {
 			clif_guild_basicinfo(sd); // Submit basic information
 			clif_guild_emblem(sd,g); // Submit emblem
 		}
@@ -1478,16 +1477,16 @@ int guild_reqalliance(struct map_session_data *sd,struct map_session_data *tsd)
 		return 0;
 	}
 
-	for (i = 0; i < MAX_GUILDALLIANCE; i++) { // Check if already allied
-		if(	g[0]->alliance[i].guild_id==tsd->status.guild_id &&
-			g[0]->alliance[i].opposition==0){
+	for( i = 0; i < MAX_GUILDALLIANCE; i++ ) { // Check if already allied
+		if(	g[0]->alliance[i].guild_id == tsd->status.guild_id &&
+			g[0]->alliance[i].opposition == 0) {
 			clif_guild_allianceack(sd,0);
 			return 0;
 		}
 	}
 
-	tsd->guild_alliance=sd->status.guild_id;
-	tsd->guild_alliance_account=sd->status.account_id;
+	tsd->guild_alliance = sd->status.guild_id;
+	tsd->guild_alliance_account = sd->status.account_id;
 
 	clif_guild_reqalliance(tsd,sd->status.account_id,g[0]->name);
 	return 0;
@@ -1631,8 +1630,8 @@ int guild_allianceack(int guild_id1,int guild_id2,int account_id1,int account_id
 	sd[0] = map_id2sd(account_id1);
 	sd[1] = map_id2sd(account_id2);
 
-	g[0]=guild_search(guild_id1);
-	g[1]=guild_search(guild_id2);
+	g[0] = guild_search(guild_id1);
+	g[1] = guild_search(guild_id2);
 
 	if (sd[0] != NULL && (flag&0x0f) == 0) {
 		sd[0]->guild_alliance = 0;
@@ -1651,16 +1650,17 @@ int guild_allianceack(int guild_id1,int guild_id2,int account_id1,int account_id
 			if (g[i] != NULL) {
 				ARR_FIND( 0, MAX_GUILDALLIANCE, j, g[i]->alliance[j].guild_id == 0 );
 				if (j < MAX_GUILDALLIANCE) {
-					g[i]->alliance[j].guild_id=guild_id[1-i];
+					g[i]->alliance[j].guild_id = guild_id[1-i];
 					memcpy(g[i]->alliance[j].name,guild_name[1-i],NAME_LENGTH);
-					g[i]->alliance[j].opposition=flag&1;
+					g[i]->alliance[j].opposition = flag&1;
 				}
 			}
 		}
 	} else { // Remove relationship
 		for (i = 0; i < 2 - (flag&1); i++) {
 			if (g[i] != NULL) {
-				for (j = 0; j < g[i]->max_member; j++) channel_pcquit(g[i]->member[j].sd,2); // Leave all alliance channel
+				for (j = 0; j < g[i]->max_member; j++)
+					channel_pcquit(g[i]->member[j].sd,2); // Leave all alliance channel
 				ARR_FIND( 0, MAX_GUILDALLIANCE, j, g[i]->alliance[j].guild_id == guild_id[1-i] && g[i]->alliance[j].opposition == (flag&1) );
 				if (j < MAX_GUILDALLIANCE)
 					g[i]->alliance[j].guild_id = 0;
@@ -1679,7 +1679,7 @@ int guild_allianceack(int guild_id1,int guild_id2,int account_id1,int account_id
 	}
 
 	for (i = 0; i < 2 - (flag & 1); i++) { // Retransmission of the relationship list to all members
-		if (g[i] != NULL)
+		if (g[i] != NULL) {
 			for (j = 0; j < g[i]->max_member; j++) {
 				struct map_session_data *sd = g[i]->member[j].sd;
 
@@ -1688,6 +1688,7 @@ int guild_allianceack(int guild_id1,int guild_id2,int account_id1,int account_id
 					channel_gjoin(sd,2); // Join ally channel
 				}
 			}
+		}
 	}
 
 	return 0;

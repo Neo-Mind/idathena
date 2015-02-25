@@ -330,6 +330,7 @@ int channel_pcquit(struct map_session_data *sd, int type){
 		channel_clean(map[sd->bl.m].channel,sd,0);
 	if(type&8 && sd->channel_count) { //Quit all chan
 		uint8 count = sd->channel_count;
+
 		for(i = count-1; i >= 0; i--) //Going backward to avoid shifting
 			channel_clean(sd->channels[i],sd,0);
 	}

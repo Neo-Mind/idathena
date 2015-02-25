@@ -473,6 +473,7 @@ struct item_data* itemdb_exists(unsigned short nameid);
 const char* itemdb_typename(enum item_types type);
 const char *itemdb_typename_ammo (enum e_item_ammo ammo);
 bool itemdb_is_spellbook2(unsigned short nameid);
+bool itemdb_is_item_usable(struct item_data *item);
 
 unsigned short itemdb_searchrandomid(uint16 group_id, uint8 sub_group);
 

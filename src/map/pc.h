@@ -966,7 +966,7 @@ bool pc_setcart(struct map_session_data *sd, int type);
 void pc_setfalcon(struct map_session_data *sd, int flag);
 void pc_setriding(struct map_session_data *sd, int flag);
 void pc_setmadogear(struct map_session_data *sd, int flag);
-void pc_changelook(struct map_session_data *, int, int);
+void pc_changelook(struct map_session_data *sd, int type, int val);
 void pc_equiplookall(struct map_session_data *sd);
 
 int pc_readparam(struct map_session_data*,int);

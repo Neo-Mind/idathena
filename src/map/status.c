@@ -11249,8 +11249,12 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 	if (opt_flag&4) //Out of hiding, invoke on place
 		skill_unit_move(bl,gettick(),1);
 
-	if ((opt_flag&2) && sd && map_getcell(bl->m,bl->x,bl->y,CELL_CHKNPC))
-		npc_touch_areanpc(sd,bl->m,bl->x,bl->y); //Trigger on-touch event
+	if ((opt_flag&2) && sd) {
+		if (map_getcell(bl->m,bl->x,bl->y,CELL_CHKNPC))
+			npc_touch_areanpc(sd,bl->m,bl->x,bl->y); //Trigger on-touch event
+		else
+			npc_untouch_areanpc(sd,bl->m,bl->x,bl->y);
+	}
 
 	ers_free(sc_data_ers,sce);
 	return 1;

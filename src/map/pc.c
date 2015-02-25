@@ -4500,8 +4500,7 @@ bool pc_isUseitem(struct map_session_data *sd, int n)
 	if( item == NULL )
 		return false;
 
-	//Not consumable item
-	if( item->type != IT_HEALING && item->type != IT_USABLE && item->type != IT_CASH )
+	if( !itemdb_is_item_usable(item) ) //Not consumable item
 		return false;
 
 	if( !item->script ) //If it has no script, you can't really consume it!
@@ -8187,7 +8186,7 @@ void pc_equiplookall(struct map_session_data *sd)
 /*==========================================
  * Tell client player sd has change look (hair,equip...)
  *------------------------------------------*/
-void pc_changelook(struct map_session_data *sd,int type,int val)
+void pc_changelook(struct map_session_data *sd, int type, int val)
 {
 	nullpo_retv(sd);
 
@@ -9543,7 +9542,7 @@ void pc_check_available_item(struct map_session_data *sd) {
 
 	nullpo_retv(sd);
 
-	if( battle_config.item_check&1 ) { //Check for invalid(ated) items in inventory.
+	if( battle_config.item_check&1 ) { //Check for invalid(ated) items in inventory
 		for( i = 0; i < MAX_INVENTORY; i++ ) {
 			it = sd->status.inventory[i].nameid;
 
@@ -9561,7 +9560,7 @@ void pc_check_available_item(struct map_session_data *sd) {
 		}
 	}
 
-	if( battle_config.item_check&2 ) { //Check for invalid(ated) items in cart.
+	if( battle_config.item_check&2 ) { //Check for invalid(ated) items in cart
 		for( i = 0; i < MAX_CART; i++ ) {
 			it = sd->status.cart[i].nameid;
 
@@ -9579,7 +9578,7 @@ void pc_check_available_item(struct map_session_data *sd) {
 		}
 	}
 
-	if( battle_config.item_check&4 ) { //Check for invalid(ated) items in storage.
+	if( battle_config.item_check&4 ) { //Check for invalid(ated) items in storage
 		for( i = 0; i < sd->storage_size; i++ ) {
 			it = sd->status.storage.items[i].nameid;
 

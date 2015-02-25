@@ -423,10 +423,10 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 				npc_touchnext_areanpc(sd,false);
 			if(map_getcell(bl->m,x,y,CELL_CHKNPC)) {
 				npc_touch_areanpc(sd,bl->m,x,y);
-				if(bl->prev == NULL) //Script could have warped char, abort remaining of the function.
+				if(bl->prev == NULL) //Script could have warped char, abort remaining of the function
 					return 0;
 			} else
-				sd->areanpc_id = 0;
+				npc_untouch_areanpc(sd,bl->m,x,y);
 			pc_cell_basilica(sd);
 			break;
 		case BL_MOB:
@@ -932,12 +932,12 @@ int unit_movepos(struct block_list *bl, short dst_x, short dst_y, int easy, bool
 			npc_touchnext_areanpc(sd, false);
 		if( map_getcell(bl->m, bl->x, bl->y, CELL_CHKNPC) ) {
 			npc_touch_areanpc(sd, bl->m, bl->x, bl->y);
-			if( bl->prev == NULL ) //Script could have warped char, abort remaining of the function.
+			if( bl->prev == NULL ) //Script could have warped char, abort remaining of the function
 				return 0;
 		} else
-			sd->areanpc_id = 0;
+			npc_untouch_areanpc(sd, bl->m, bl->x, bl->y);
 
-		if( sd->status.pet_id > 0 && sd->pd && sd->pd->pet.intimate > 0 ) { //Check if pet needs to be teleported. [Skotlex]
+		if( sd->status.pet_id > 0 && sd->pd && sd->pd->pet.intimate > 0 ) { //Check if pet needs to be teleported [Skotlex]
 			int flag = 0;
 			struct block_list* bl = &sd->pd->bl;
 
@@ -1047,10 +1047,10 @@ int unit_blown(struct block_list* bl, int dx, int dy, int count, int flag)
 			if (sd) {
 				if (sd->touching_id)
 					npc_touchnext_areanpc(sd, false);
-				if (map_getcell(bl->m, bl->x, bl->y, CELL_CHKNPC)) {
+				if (map_getcell(bl->m, bl->x, bl->y, CELL_CHKNPC))
 					npc_touch_areanpc(sd, bl->m, bl->x, bl->y);
-				} else
-					sd->areanpc_id = 0;
+				else
+					npc_untouch_areanpc(sd, bl->m, bl->x, bl->y);
 			}
 		}
 

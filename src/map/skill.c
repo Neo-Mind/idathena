@@ -18418,7 +18418,6 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 			temp_qty = 1 + rnd()%2;
 		else
 			temp_qty = 1;
-
 		if( data->stack.inventory ) {
 			for( i = 0; i < MAX_INVENTORY; i++ ) {
 				if( sd->status.inventory[i].nameid == nameid ) {
@@ -18498,7 +18497,7 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 			case AM_TWILIGHT2:
 			case AM_TWILIGHT3:
 				make_per = pc_checkskill(sd,AM_LEARNINGPOTION) * 50
-					+ pc_checkskill(sd,AM_PHARMACY) * 300 + sd->status.job_level * 20
+					+ pc_checkskill(sd,AM_PHARMACY) * 300 + ((sd->class_&JOBL_THIRD) ? 1400 : sd->status.job_level * 20)
 					+ (status->int_ / 2) * 10 + status->dex * 10 + status->luk * 10;
 				if( hom_is_active(sd->hd) ) { //Player got a homun
 					uint16 skill;
@@ -18542,14 +18541,13 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 			case SA_CREATECON: //Elemental Converter Creation
 				make_per = 100000; //should be 100% success rate
 				break;
-
 			case RK_RUNEMASTERY: {
 					int A = 100 * (51 + 2 * pc_checkskill(sd, skill_id));
 					int B = 100 * status->dex / 30 + 10 * (status->luk + sd->status.job_level);
 					int C = 100 * cap_value(sd->itemid,0,100); //itemid depend on makerune()
 					int D = 0;
 
-					switch( nameid ) { //rune rank it_diff 9 craftable rune
+					switch( nameid ) { //Rune rank it_diff 9 craftable rune
 						case ITEMID_BERKANA:
 						case ITEMID_LUX_ANIMA:
 							D = -2000;
@@ -18574,10 +18572,9 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 					make_per = A + B + C + D;
 				}
 				break;
-
 			case GC_CREATENEWPOISON:
 				make_per = 3000 + 500 * pc_checkskill(sd,GC_RESEARCHNEWPOISON)
-						+ status->dex / 3 * 10 + status->luk * 10 + sd->status.job_level * 10; //Success increase from DEX, LUK, and job level.
+					+ status->dex / 3 * 10 + status->luk * 10 + sd->status.job_level * 10; //Success increase from DEX, LUK, and job level
 				qty = rnd_value( (3 + pc_checkskill(sd,GC_RESEARCHNEWPOISON)) / 2, (8 + pc_checkskill(sd,GC_RESEARCHNEWPOISON)) / 2 );
 				break;
 			case GN_CHANGEMATERIAL:
@@ -18591,9 +18588,10 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 			case GN_S_PHARMACY: {
 					int difficulty = (620 - 20 * skill_lv); //(620 - 20 * Skill Level)
 
-					make_per = status->int_ + status->dex / 2 + status->luk + sd->status.job_level + (30 + rnd()%120) + //(Caster INT) + (Caster DEX / 2) + (Caster LUK) + (Caster Job Level) + Random number between (30 ~ 150) +
-						(sd->status.base_level - 100) + pc_checkskill(sd,AM_LEARNINGPOTION) + pc_checkskill(sd,CR_FULLPROTECTION) * (4 + rnd()%6); //(Caster Base Level - 100) + (Potion Research x 5) + (Full Chemical Protection Skill Level) x (Random number between 4 ~ 10)
-
+					//(Caster INT) + (Caster DEX / 2) + (Caster LUK) + (Caster Job Level) + Random number between (30 ~ 150) +
+					//(Caster Base Level - 100) + (Potion Research x 5) + (Full Chemical Protection Skill Level) x (Random number between 4 ~ 10)
+					make_per = status->int_ + status->dex / 2 + status->luk + sd->status.job_level + (30 + rnd()%120) +
+						(sd->status.base_level - 100) + pc_checkskill(sd,AM_LEARNINGPOTION) + pc_checkskill(sd,CR_FULLPROTECTION) * (4 + rnd()%6);
 					switch( nameid ) { //Difficulty factor
 						case ITEMID_HP_INCREASE_POTION_SMALL:
 						case ITEMID_SP_INCREASE_POTION_SMALL:
@@ -18620,7 +18618,6 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 							difficulty += 40;
 							break;
 					}
-
 					if( make_per >= 400 && make_per > difficulty )
 						qty = 10;
 					else if( make_per >= 300 && make_per > difficulty )
@@ -18636,12 +18633,11 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 				break;
 			case GN_MAKEBOMB:
 			case GN_MIX_COOKING:
-				{
+				{ //(Caster Job Level / 4) + (Caster LUK / 2) + (Caster DEX / 3)
 					int difficulty = 30 + rnd()%120; //Random number between (30 ~ 150)
 
-					make_per = sd->status.job_level / 4 + status->luk / 2 + status->dex / 3; //(Caster Job Level / 4) + (Caster LUK / 2) + (Caster DEX / 3)
+					make_per = sd->status.job_level / 4 + status->luk / 2 + status->dex / 3;
 					qty = ~(5 + rnd()%5) + 1;
-
 					switch( nameid ) { //Difficulty factor
 						case ITEMID_APPLE_BOMB:
 							difficulty += 5;
@@ -18663,7 +18659,6 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 							difficulty += 20;
 							break;
 					}
-
 					if( make_per >= 30 && make_per > difficulty )
 						qty = 10 + rnd()%2;
 					else if( make_per >= 10 && make_per > difficulty )
@@ -18671,10 +18666,9 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 					else if( make_per == 10 && make_per > difficulty )
 						qty = 8;
 					else if( (make_per >= 50 || make_per < 30) && make_per < difficulty )
-						; //Food/Bomb creation fails.
+						; //Food/Bomb creation fails
 					else if(make_per >= 30 && make_per < difficulty)
 						qty = 5;
-
 					if( qty < 0 || (skill_lv == 1 && make_per < difficulty) ) {
 						qty = ~qty + 1;
 						make_per = 0;
@@ -18684,9 +18678,7 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 				}
 				break;
 			default:
-				if( sd->menuskill_id ==	AM_PHARMACY &&
-					sd->menuskill_val > 10 && sd->menuskill_val <= 20 )
-				{ //Assume Cooking Dish
+				if( sd->menuskill_id ==	AM_PHARMACY && sd->menuskill_val > 10 && sd->menuskill_val <= 20 ) { //Assume Cooking Dish
 					if( sd->menuskill_val >= 15 ) //Legendary Cooking Set
 						make_per = 10000; //100% Success
 					else
@@ -18726,7 +18718,7 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 	if( make_per < 1 )
 		make_per = 1;
 
-	if( qty > 1 || rnd()%10000 < make_per ) { //Success, or crafting multiple items.
+	if( qty > 1 || rnd()%10000 < make_per ) { //Success, or crafting multiple items
 		struct item tmp_item;
 
 		memset(&tmp_item,0,sizeof(tmp_item));
@@ -18738,7 +18730,7 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 			tmp_item.card[1] = ((sc * 5)<<8) + ele;
 			tmp_item.card[2] = GetWord(sd->status.char_id,0); //CharId
 			tmp_item.card[3] = GetWord(sd->status.char_id,1);
-		} else { //Flag is only used on the end, so it can be used here. [Skotlex]
+		} else { //Flag is only used on the end, so it can be used here [Skotlex]
 			switch( skill_id ) {
 				case BS_DAGGER:
 				case BS_SWORD:
@@ -18787,7 +18779,7 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 			int fame = 0;
 
 			tmp_item.amount = 0;			
-			for( i = 0; i < qty; i++ ) { //Apply quantity modifiers.
+			for( i = 0; i < qty; i++ ) { //Apply quantity modifiers
 				if( (skill_id == GN_MIX_COOKING || skill_id == GN_MAKEBOMB || skill_id == GN_S_PHARMACY) && make_per > 1 ) {
 					tmp_item.amount = qty;
 					break;
@@ -18801,8 +18793,7 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 						skill_id != AM_TWILIGHT2 &&
 						skill_id != AM_TWILIGHT3 )
 						continue;
-					//Add fame as needed.
-					switch( ++sd->potion_success_counter ) {
+					switch( ++sd->potion_success_counter ) { //Add fame as needed
 						case 3:
 							fame += battle_config.fame_pharmacy_3; //Success to prepare 3 Condensed Potions in a row
 							break;
@@ -18820,12 +18811,9 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 				} else //Failure
 					sd->potion_success_counter = 0;
 			}
-
 			if( fame )
 				pc_addfame(sd,fame);
-
-			//Visual effects and the like.
-			switch( skill_id ) {
+			switch( skill_id ) { //Visual effects and the like
 				case AM_PHARMACY:
 				case AM_TWILIGHT1:
 				case AM_TWILIGHT2:
@@ -18846,7 +18834,7 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 					clif_misceffect(&sd->bl,5);
 					break;
 				default: //Those that don't require a skill?
-					if( skill_produce_db[idx].itemlv > 10 && skill_produce_db[idx].itemlv <= 20 ) { //Cooking items.
+					if( skill_produce_db[idx].itemlv > 10 && skill_produce_db[idx].itemlv <= 20 ) { //Cooking items
 						clif_specialeffect(&sd->bl,608,AREA);
 						if( sd->cook_mastery < 1999 )
 							pc_setglobalreg(sd,"COOK_MASTERY",sd->cook_mastery + (1<<((skill_produce_db[idx].itemlv - 11) / 2)) * 5);
@@ -18957,7 +18945,7 @@ bool skill_produce_mix(struct map_session_data *sd, uint16 skill_id, unsigned sh
 				clif_msg_skill(sd,skill_id,ITEM_PRODUCE_FAIL);
 				break;
 			default:
-				if( skill_produce_db[idx].itemlv > 10 && skill_produce_db[idx].itemlv <= 20 ) { //Cooking items.
+				if( skill_produce_db[idx].itemlv > 10 && skill_produce_db[idx].itemlv <= 20 ) { //Cooking items
 					clif_specialeffect(&sd->bl,609,AREA);
 					if( sd->cook_mastery > 0 )
 						pc_setglobalreg(sd,"COOK_MASTERY",sd->cook_mastery - (1<<((skill_produce_db[idx].itemlv - 11) / 2)) - (((1<<((skill_produce_db[idx].itemlv - 11) / 2))>>1) * 3));

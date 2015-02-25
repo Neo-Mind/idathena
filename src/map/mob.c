@@ -158,19 +158,14 @@ void mvptomb_create(struct mob_data *md, char *killer, time_t time)
 	if(md->tomb_nid)
 		mvptomb_destroy(md);
 
-	CREATE(nd, struct npc_data, 1);
-
-	nd->bl.id = md->tomb_nid = npc_get_new_npc_id();
-	
-    nd->ud.dir = md->ud.dir;
-	nd->bl.m = md->bl.m;
-	nd->bl.x = md->bl.x;
-	nd->bl.y = md->bl.y;
+	nd = npc_create_npc(md->bl.m, md->bl.x, md->bl.y);
+	md->tomb_nid = nd->bl.id;
+	nd->ud.dir = md->ud.dir;
 	nd->bl.type = BL_NPC;
-	
+
 	safestrncpy(nd->name, msg_txt(656), sizeof(nd->name));
 
-	nd->class_ = 565;
+	nd->class_ = TOMB_CLASS;
 	nd->speed = 200;
 	nd->subtype = NPCTYPE_TOMB;
 

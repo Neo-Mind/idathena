@@ -26,29 +26,30 @@ struct npc_item_list {
 
 struct npc_data {
 	struct block_list bl;
-	struct unit_data  ud; //Because they need to be able to move....
+	struct unit_data  ud; //Because they need to be able to move
 	struct view_data *vd;
-	struct status_change sc; //They can't have status changes, but.. they want the visual opt values.
+	struct status_change sc; //They can't have status changes, but they want the visual opt values
 	struct npc_data *master_nd;
 	short class_,speed,instance_id;
-	char name[NAME_LENGTH+1];// display name
-	char exname[NAME_LENGTH+1];// unique npc name
-	int chat_id,touching_id;
+	char name[NAME_LENGTH + 1]; //Display name
+	char exname[NAME_LENGTH + 1]; //Unique npc name
+	int chat_id, touching_id;
 	unsigned int next_walktime;
+	uint8 area_size;
 
 	unsigned size : 2;
-	
+
 	struct status_data status;
 	unsigned int level,stat_point;
 
-	void* chatdb; // pointer to a npc_parse struct (see npc_chat.c)
-	char* path;/* path dir */
+	void* chatdb; //Pointer to a npc_parse struct (see npc_chat.c)
+	char* path; //Path dir
 	enum npc_subtype subtype;
 	int src_id;
 	union {
 		struct {
 			struct script_code *script;
-			short xs,ys; // OnTouch area radius
+			short xs,ys; //OnTouch area radius
 			int guild_id;
 			int timer,timerid,timeramount,rid;
 			unsigned int timertick;
@@ -59,14 +60,14 @@ struct npc_data {
 		struct {
 			struct npc_item_list *shop_item;
 			uint16 count;
-			unsigned short itemshop_nameid; // Item Shop cost item ID
-			char pointshop_str[32]; // Point Shop cost variable name
+			unsigned short itemshop_nameid; //Item Shop cost item ID
+			char pointshop_str[32]; //Point Shop cost variable name
 			bool discount;
 		} shop;
 		struct {
-			short xs,ys; // OnTouch area radius
-			short x,y; // destination coords
-			unsigned short mapindex; // destination map
+			short xs,ys; //OnTouch area radius
+			short x,y; //Destination coords
+			unsigned short mapindex; //Destination map
 		} warp;
 		struct {
 			struct mob_data *md;
@@ -76,14 +77,13 @@ struct npc_data {
 	} u;
 };
 
-
-
 #define START_NPC_NUM 110000000
 
 enum actor_classes
 {
 	WARP_CLASS = 45,
 	HIDDEN_WARP_CLASS = 139,
+	TOMB_CLASS = 565,
 	WARP_DEBUG_CLASS = 722,
 	FLAG_CLASS = 722,
 	INVISIBLE_CLASS = 32767,
@@ -121,6 +121,7 @@ int npc_chat_sub(struct block_list* bl, va_list ap);
 int npc_event_dequeue(struct map_session_data* sd);
 int npc_event(struct map_session_data* sd, const char* eventname, int ontouch);
 int npc_touch_areanpc(struct map_session_data* sd, int16 m, int16 x, int16 y);
+int npc_untouch_areanpc(struct map_session_data* sd, int16 m, int16 x, int16 y);
 int npc_touch_areanpc2(struct mob_data *md); // [Skotlex]
 int npc_check_areanpc(int flag, int16 m, int16 x, int16 y, int16 range);
 int npc_touchnext_areanpc(struct map_session_data* sd,bool leavemap);
@@ -131,7 +132,8 @@ int npc_buysellsel(struct map_session_data* sd, int id, int type);
 int npc_buylist(struct map_session_data* sd,int n, unsigned short* item_list);
 int npc_selllist(struct map_session_data* sd, int n, unsigned short* item_list);
 void npc_parse_mob2(struct spawn_data* mob);
-bool npc_viewisid(const char * viewid);
+bool npc_viewisid(const char* viewid);
+struct npc_data* npc_create_npc(int m, int x, int y);
 struct npc_data* npc_add_warp(char* name, short from_mapid, short from_x, short from_y, short xs, short ys, unsigned short to_mapindex, short to_x, short to_y);
 int npc_globalmessage(const char* name,const char* mes);
 
@@ -188,6 +190,6 @@ int npc_rr_secure_timeout_timer(int tid, unsigned int tick, int id, intptr_t dat
 // @commands (script-based)
 int npc_do_atcmd_event(struct map_session_data* sd, const char* command, const char* message, const char* eventname);
 
-bool npc_unloadfile( const char* path );
+bool npc_unloadfile(const char* path);
 
 #endif /* _NPC_H_ */
