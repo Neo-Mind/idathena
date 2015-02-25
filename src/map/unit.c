@@ -522,7 +522,8 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 		ud->to_x = bl->x;
 		ud->to_y = bl->y;
 		//Walked on occupied cell, call unit_walktoxy again
-		if(map_count_oncell(bl->m,x,y,BL_CHAR|BL_NPC,1) > battle_config.official_cell_stack_limit) {
+		if(battle_config.official_cell_stack_limit &&
+			map_count_oncell(bl->m,x,y,BL_CHAR|BL_NPC,0x1) > battle_config.official_cell_stack_limit) {
 			if(ud->steptimer != INVALID_TIMER) { //Execute step timer on next step instead
 				delete_timer(ud->steptimer,unit_step_timer);
 				ud->steptimer = INVALID_TIMER;
@@ -833,7 +834,7 @@ bool unit_run(struct block_list *bl, struct map_session_data *sd, enum sc_type t
 			break;
 
 		//If sprinting and there's a PC/Mob/NPC, block the path [Kevin]
-		if( map_count_oncell(bl->m, to_x + dir_x, to_y + dir_y, BL_PC|BL_MOB|BL_NPC,0) )
+		if( map_count_oncell(bl->m, to_x + dir_x, to_y + dir_y, BL_PC|BL_MOB|BL_NPC,0x2) )
 			break;
 
 		to_x += dir_x;
