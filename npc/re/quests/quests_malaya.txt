@@ -2975,35 +2975,6 @@ ma_fild01,238,257,2	script	Guard Dog Vantai	972,{
 	close;
 }
 
-ma_fild01,1,1,0	script	dhong_ang_buto	-1,{
-OnInit:
-	enablenpc "dhong_ang_buto";
-	donpcevent "dhong_ang_buto::OnEnable";
-	end;
-
-OnEnable:
-	monster "ma_fild01",0,0,"Tikbalang",2313,30,"dhong_ang_buto::OnMyMobDead";
-	initnpctimer;
-	end;
-
-OnDisable:
-	stopnpctimer;
-	killmonster "ma_fild01","dhong_ang_buto::OnMyMobDead";
-	disablenpc "dhong_ang_buto";
-	end;
-
-OnTimer600000:
-	killmonster "ma_fild01","dhong_ang_buto::OnMyMobDead";
-	stopnpctimer;
-	donpcevent "dhong_ang_buto::OnEnable";
-	end;
-
-OnMyMobDead:
-	if (mobcount("ma_fild01","dhong_ang_buto::OnMyMobDead") < 30 && checkquest(7406) == 1)
-		getitem 6507,1; //Evil_Bone
-	end;
-}
-
 ma_fild01,200,190,3	script	Maries#malaya	579,{
 	if (MaxWeight - Weight < 1000 || checkweight(1201,1) == 0) {
 		mes "- Cannot proceed with the quest. You are carrying too many items. -";
@@ -6530,35 +6501,6 @@ OnTouch:
 	end;
 }
 
-ma_fild01,1,1,0	script	malaya_bakonawa	-1,{
-OnInit:
-	enablenpc "malaya_bakonawa";
-	donpcevent "malaya_bakonawa::OnEnable";
-	end;
-
-OnEnable:
-	monster "ma_fild01",0,0,"Tiyanak",2314,30,"malaya_bakonawa::OnMyMobDead";
-	initnpctimer;
-	end;
-
-OnDisable:
-	stopnpctimer;
-	killmonster "ma_fild01","malaya_bakonawa::OnMyMobDead";
-	disablenpc "malaya_bakonawa";
-	end;
-
-OnTimer600000:
-	killmonster "ma_fild01","malaya_bakonawa::OnMyMobDead";
-	stopnpctimer;
-	donpcevent "malaya_bakonawa::OnEnable";
-	end;
-
-OnMyMobDead:
-	if (mobcount("ma_fild01","malaya_bakonawa::OnMyMobDead") < 30 && malaya_bakona2 > 0 && malaya_bakona2 < 5 )
-		getitem 6520,1; //Lost_Belongings
-	end;
-}
-
 // Original name: "Bakonawa Introduction Quest Helper#bako1"
 sec_in02,10,16,5	script	Bakonawa Intro Helper	543,{
 	if (callfunc("F_GM_NPC",1854,0) < 1) {
@@ -9176,3 +9118,94 @@ OnDisable:
 	end;
 }
 ma_fild01,170,228,4	duplicate(Beat Catching Boy#pin10)	Beat Catching Boy#pin11	577
+
+ma_fild01,1,1,0	script	malaya_quest	-1,{
+OnInit:
+	enablenpc "malaya_quest";
+	donpcevent "malaya_quest::OnEnable";
+	end;
+
+OnEnable:
+	monster "ma_fild01",0,0,"Tikbalang",2313,30,"malaya_quest::OnMyMobDead";
+	initnpctimer;
+	end;
+
+OnDisable:
+	stopnpctimer;
+	killmonster "ma_fild01","malaya_quest::OnMyMobDead";
+	disablenpc "malaya_quest";
+	end;
+
+OnTimer600000:
+	killmonster "ma_fild01","malaya_quest::OnMyMobDead";
+	stopnpctimer;
+	donpcevent "malaya_quest::OnEnable";
+	end;
+
+OnMyMobDead:
+	if (mobcount("ma_fild01","malaya_quest::OnMyMobDead") < 30 && checkquest(7406) == 1)
+		getitem 6507,1; //Evil_Bone
+	end;
+}
+
+ma_fild01,1,1,0	script	malaya_quest2	-1,{
+OnInit:
+	enablenpc "malaya_quest2";
+	donpcevent "malaya_quest2::OnEnable";
+	end;
+
+OnEnable:
+	monster "ma_fild01",0,0,"Tiyanak",2314,30,"malaya_quest2::OnMyMobDead";
+	initnpctimer;
+	end;
+
+OnDisable:
+	stopnpctimer;
+	killmonster "ma_fild01","malaya_quest2::OnMyMobDead";
+	disablenpc "malaya_quest2";
+	end;
+
+OnTimer600000:
+	killmonster "ma_fild01","malaya_quest2::OnMyMobDead";
+	stopnpctimer;
+	donpcevent "malaya_quest2::OnEnable";
+	end;
+
+OnMyMobDead:
+	if (mobcount("ma_fild01","malaya_quest2::OnMyMobDead") < 30) {
+		if (malaya_bakona2 > 0 && malaya_bakona2 < 5)
+			getitem 6520,1; //Lost_Belongings
+		else if (checkquest(7406) == 1)
+			getitem 6507,1; //Evil_Bone
+	}
+	end;
+}
+
+ma_fild02,1,1,0	script	malaya_quest3	-1,{
+OnInit:
+	enablenpc "malaya_quest3";
+	donpcevent "malaya_quest3::OnEnable";
+	end;
+
+OnEnable:
+	monster "ma_fild02",0,0,"Bungisngis",2309,30,"malaya_quest3::OnMyMobDead";
+	initnpctimer;
+	end;
+
+OnDisable:
+	stopnpctimer;
+	killmonster "ma_fild02","malaya_quest3::OnMyMobDead";
+	disablenpc "malaya_quest3";
+	end;
+
+OnTimer600000:
+	killmonster "ma_fild02","malaya_quest3::OnMyMobDead";
+	stopnpctimer;
+	donpcevent "malaya_quest3::OnEnable";
+	end;
+
+OnMyMobDead:
+	if (mobcount("ma_fild02","malaya_quest3::OnMyMobDead") < 30 && checkquest(7406) == 1)
+		getitem 6507,1; //Evil_Bone
+	end;
+}

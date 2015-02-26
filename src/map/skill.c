@@ -4205,7 +4205,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 			break;
 
 		case RG_BACKSTAP: {
-				uint8 dir = map_calc_dir(src,bl->x,bl->y),t_dir = unit_getdir(bl);
+				uint8 dir = map_calc_dir(src,bl->x,bl->y), t_dir = unit_getdir(bl);
 
 				if ((!check_distance_bl(src,bl,0) && !map_check_dir(dir,t_dir)) || bl->type == BL_SKILL) {
 					status_change_end(src,SC_HIDING,INVALID_TIMER);
@@ -6970,8 +6970,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				} else {
 					struct skill_condition req = skill_get_requirement(sd,skill_id,skill_lv);
 
-					//Consume sp only if succeeded
-					status_zap(src,0,req.sp);
+					if( sd->skillitem != skill_id )
+						status_zap(src,0,req.sp); //Consume sp only if succeeded
 				}
 			}
 			break;
@@ -8264,7 +8264,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 							continue;
 						if (map_getcell(src->m,src->x+dx[j],src->y+dy[j],CELL_CHKNOREACH))
 							dx[j] = dy[j] = 0;
-						if (!pc_setpos(dstsd,map_id2index(src->m),src->x+dx[j],src->y+dy[j],CLR_RESPAWN))
+						if (!pc_setpos(dstsd,map_id2index(src->m),src->x + dx[j],src->y + dy[j],CLR_RESPAWN))
 							called++;
 					}
 				}
@@ -8487,7 +8487,6 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case RK_PHANTOMTHRUST:
-			unit_setdir(src,map_calc_dir(src,bl->x,bl->y));
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			skill_blown(src,bl,distance_bl(src,bl)-1,unit_getdir(src),0);
 			if( battle_check_target(src,bl,BCT_ENEMY) > 0 )
@@ -10865,6 +10864,9 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 		if( sd && ud->skill_id != SA_ABRACADABRA && ud->skill_id != WM_RANDOMIZESPELL )
 			sd->skillitem = sd->skillitemlv = 0;
 
+		if( src->id != target->id )
+			unit_setdir(src,map_calc_dir(src,target->x,target->y));
+
 		if( ud->skilltimer == INVALID_TIMER ) {
 			if( md )
 				md->skill_idx = -1;
@@ -10872,8 +10874,6 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 				ud->skill_id = 0;
 			ud->skill_lv = ud->skilltarget = 0;
 		}
-		if( src->id != target->id )
-			unit_setdir(src,map_calc_dir(src,target->x,target->y));
 		map_freeblock_unlock();
 		return 1;
 	} while( 0 );
@@ -11044,6 +11044,7 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 		status_change_end(src,SC_CAMOUFLAGE,INVALID_TIMER);
 		if( sd && sd->skillitem != AL_WARP ) //Warp-Portal thru items will clear data in skill_castend_map [Inkfish]
 			sd->skillitem = sd->skillitemlv = 0;
+		unit_setdir(src,map_calc_dir(src,ud->skillx,ud->skilly));
 		if( ud->skilltimer == INVALID_TIMER ) {
 			if( md )
 				md->skill_idx = -1;
@@ -11051,7 +11052,6 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 				ud->skill_id = 0;
 			ud->skill_lv = ud->skillx = ud->skilly = 0;
 		}
-		unit_setdir(src,map_calc_dir(src,ud->skillx,ud->skilly));
 		map_freeblock_unlock();
 		return 1;
 	} while( 0 );
@@ -14685,13 +14685,12 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 				return false;
 			}
+		//Fall through
 		case GD_EMERGENCYCALL:
 		case GD_ITEMEMERGENCYCALL:
-			//Other checks were already done in skill_isNotOk()
-			if( !sd->status.guild_id || !sd->state.gmaster_flag )
-				return false;
+			if( !sd->status.guild_id || !sd->state.gmaster_flag ) //Other checks were already done in skill_isNotOk()
+				return false; 
 			break;
-
 		case GS_GLITTERING:
 			if( sd->spiritball >= 10 ) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);

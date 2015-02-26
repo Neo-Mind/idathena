@@ -12448,7 +12448,7 @@ BUILDIN_FUNC(petloot)
 BUILDIN_FUNC(getinventorylist)
 {
 	TBL_PC *sd = script_rid2sd(st);
-	char card_var[26];
+	char card_var[NAME_LENGTH];
 	int i, j = 0, k;
 
 	if (!sd)
@@ -12481,7 +12481,7 @@ BUILDIN_FUNC(getinventorylist)
 BUILDIN_FUNC(getcartinventorylist)
 {
 	TBL_PC *sd = script_rid2sd(st);
-	char card_var[26];
+	char card_var[NAME_LENGTH + 2];
 	int i, j = 0, k;
 
 	if (!sd)
@@ -18139,15 +18139,15 @@ BUILDIN_FUNC(npcskill)
 
 	data = script_getdata(st,2);
 	get_val(st,data); //Convert into value in case of a variable
-	skill_id  = data_isstring(data) ? skill_name2id(script_getstr(st,2)) : script_getnum(st,2);
-	skill_level	= script_getnum(st,3);
-	stat_point	= script_getnum(st,4);
-	npc_level	= script_getnum(st,5);
+	skill_id = data_isstring(data) ? skill_name2id(script_getstr(st,2)) : script_getnum(st,2);
+	skill_level = script_getnum(st,3);
+	stat_point = script_getnum(st,4);
+	npc_level = script_getnum(st,5);
 
 	if( !(sd = script_rid2sd(st)) )
 		return 1;
 
-	nd			= (struct npc_data *)map_id2bl(sd->npc_id);
+	nd = (struct npc_data *)map_id2bl(sd->npc_id);
 
 	if( stat_point > battle_config.max_third_parameter ) {
 		ShowError("npcskill: stat point exceeded maximum of %d.\n",battle_config.max_third_parameter);
