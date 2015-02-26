@@ -862,11 +862,13 @@ int mapif_broadcast(unsigned char *mes, int len, unsigned long fontColor, short 
 int mapif_wis_message(struct WisData *wd)
 {
 	unsigned char buf[2048];
-	if (wd->len > 2047-56) wd->len = 2047-56; //Force it to fit to avoid crashes. [Skotlex]
 
-	WBUFW(buf, 0) = 0x3801;
-	WBUFW(buf, 2) = 56 +wd->len;
-	WBUFL(buf, 4) = wd->id;
+	if (wd->len >= sizeof(wd->msg) - 1) //Force it to fit to avoid crashes [Skotlex]
+		wd->len = sizeof(wd->msg) - 1;
+
+	WBUFW(buf,0) = 0x3801;
+	WBUFW(buf,2) = 56 + wd->len;
+	WBUFL(buf,4) = wd->id;
 	memcpy(WBUFP(buf, 8), wd->src, NAME_LENGTH);
 	memcpy(WBUFP(buf,32), wd->dst, NAME_LENGTH);
 	memcpy(WBUFP(buf,56), wd->msg, wd->len);

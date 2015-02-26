@@ -1039,11 +1039,11 @@ uint8 pc_isequip(struct map_session_data *sd, int n)
 
 	item = sd->inventory_data[n];
 
-	if(pc_has_permission(sd, PC_PERM_USE_ALL_EQUIPMENT))
-		return ITEM_EQUIP_ACK_OK;
-
 	if(item == NULL)
 		return ITEM_EQUIP_ACK_FAIL;
+
+	if(pc_has_permission(sd, PC_PERM_USE_ALL_EQUIPMENT))
+		return ITEM_EQUIP_ACK_OK;
 
 	if((item->elv && sd->status.base_level < (unsigned int)item->elv) ||
 		(item->elvmax && sd->status.base_level > (unsigned int)item->elvmax)) {
@@ -9154,7 +9154,7 @@ bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
 		return false;
 	pos = pc_equippoint(sd,n); //With a few exceptions, item should go in all specified slots
 	if( battle_config.battle_log )
-		ShowInfo("equip %hu(%d) %x:%x\n",sd->status.inventory[n].nameid,n,(id ? id->equip : 0),req_pos);
+		ShowInfo("equip %hu(%d) %x:%x\n",sd->status.inventory[n].nameid,n,id->equip,req_pos);
 	if( (res = pc_isequip(sd,n)) ) {
 		clif_equipitemack(sd,n,0,res);
 		return false;
@@ -9216,79 +9216,59 @@ bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
 		clif_equipitemack(sd,n,pos,ITEM_EQUIP_ACK_OK);
 	sd->status.inventory[n].equip = pos;
 	if( pos&(EQP_HAND_R|EQP_SHADOW_WEAPON) ) {
-		if( id )
-			sd->weapontype1 = id->look;
-		else
-			sd->weapontype1 = 0;
+		sd->weapontype1 = id->look;
 		pc_calcweapontype(sd);
 		clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
 	}
 	if( pos&(EQP_HAND_L|EQP_SHADOW_SHIELD) ) {
-		if( id ) {
-			if( id->type == IT_WEAPON ) {
-				sd->status.shield = 0;
-				sd->weapontype2 = id->look;
-			} else if( id->type == IT_ARMOR ) {
-				sd->status.shield = id->look;
-				sd->weapontype2 = 0;
-			}
-		} else
-			sd->status.shield = sd->weapontype2 = 0;
+		if( id->type == IT_WEAPON ) {
+			sd->status.shield = 0;
+			sd->weapontype2 = id->look;
+		} else if( id->type == IT_ARMOR ) {
+			sd->status.shield = id->look;
+			sd->weapontype2 = 0;
+		}
 		pc_calcweapontype(sd);
 		clif_changelook(&sd->bl,LOOK_SHIELD,sd->status.shield);
 	}
 	//Added check to prevent sending the same look on multiple slots ->
 	//Causes client to redraw item on top of itself. (suggested by Lupus)
 	if( pos&EQP_HEAD_LOW && pc_checkequip(sd,EQP_COSTUME_HEAD_LOW) == -1 ) {
-		if( id && !(pos&(EQP_HEAD_TOP|EQP_HEAD_MID)) )
+		if( !(pos&(EQP_HEAD_TOP|EQP_HEAD_MID)) )
 			sd->status.head_bottom = id->look;
-		else
-			sd->status.head_bottom = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_BOTTOM,sd->status.head_bottom);
 	}
 	if( pos&EQP_HEAD_TOP && pc_checkequip(sd,EQP_COSTUME_HEAD_TOP) == -1 ) {
-		if( id )
-			sd->status.head_top = id->look;
-		else
-			sd->status.head_top = 0;
+		sd->status.head_top = id->look;
 		clif_changelook(&sd->bl,LOOK_HEAD_TOP,sd->status.head_top);
 	}
 	if( pos&EQP_HEAD_MID && pc_checkequip(sd,EQP_COSTUME_HEAD_MID) == -1 ) {
-		if( id && !(pos&EQP_HEAD_TOP) )
+		if( !(pos&EQP_HEAD_TOP) )
 			sd->status.head_mid = id->look;
-		else
-			sd->status.head_mid = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
 	}
 	if( pos&EQP_COSTUME_HEAD_TOP ) {
-		if( id )
-			sd->status.head_top = id->look;
-		else
-			sd->status.head_top = 0;
+		sd->status.head_top = id->look;
 		clif_changelook(&sd->bl,LOOK_HEAD_TOP,sd->status.head_top);
 	}
 	if( pos&EQP_COSTUME_HEAD_MID ) {
-		if( id && !(pos&EQP_HEAD_TOP) )
+		if( !(pos&EQP_HEAD_TOP) )
 			sd->status.head_mid = id->look;
-		else
-			sd->status.head_mid = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
 	}
 	if( pos&EQP_COSTUME_HEAD_LOW ) {
-		if( id && !(pos&(EQP_HEAD_TOP|EQP_HEAD_MID)) )
+		if( !(pos&(EQP_HEAD_TOP|EQP_HEAD_MID)) )
 			sd->status.head_bottom = id->look;
-		else
-			sd->status.head_bottom = 0;
 		clif_changelook(&sd->bl,LOOK_HEAD_BOTTOM,sd->status.head_bottom);
 	}
 	if( pos&EQP_SHOES )
 		clif_changelook(&sd->bl,LOOK_SHOES,0);
 	if( pos & EQP_GARMENT && pc_checkequip(sd,EQP_COSTUME_GARMENT) == -1 ) {
-		sd->status.robe = id ? id->look : 0;
+		sd->status.robe = id->look;
 		clif_changelook(&sd->bl,LOOK_ROBE,sd->status.robe);
 	}
 	if( pos&EQP_COSTUME_GARMENT ) {
-		sd->status.robe = id ? id->look : 0;
+		sd->status.robe = id->look;
 		clif_changelook(&sd->bl,LOOK_ROBE,sd->status.robe);
 	}
 	pc_checkallowskill(sd); //Check if status changes should be halted
@@ -9313,23 +9293,21 @@ bool pc_equipitem(struct map_session_data *sd, short n, int req_pos)
 	status_calc_pc(sd,SCO_NONE);
 	if( flag ) //Update skill data
 		clif_skillinfoblock(sd);
-	if( id ) { //OnEquip script [Skotlex]
-		//Only run the script if item isn't restricted
-		if( id->equip_script && (pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) || !itemdb_isNoEquip(id,sd->bl.m)) )
-			run_script(id->equip_script,0,sd->bl.id,fake_nd->bl.id);
-		if( itemdb_isspecial(sd->status.inventory[n].card[0]) && itemdb_isspecial(sd->status.inventory[n].card[1]) &&
-			itemdb_isspecial(sd->status.inventory[n].card[2]) && itemdb_isspecial(sd->status.inventory[n].card[3]) )
-			; //No cards
-		else {
-			for( i = 0; i < MAX_SLOTS; i++ ) {
-				struct item_data *data;
+	//OnEquip script [Skotlex]
+	if( id->equip_script && (pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) || !itemdb_isNoEquip(id,sd->bl.m)) )
+		run_script(id->equip_script,0,sd->bl.id,fake_nd->bl.id); //Only run the script if item isn't restricted
+	if( itemdb_isspecial(sd->status.inventory[n].card[0]) && itemdb_isspecial(sd->status.inventory[n].card[1]) &&
+		itemdb_isspecial(sd->status.inventory[n].card[2]) && itemdb_isspecial(sd->status.inventory[n].card[3]) )
+		; //No cards
+	else {
+		for( i = 0; i < MAX_SLOTS; i++ ) {
+			struct item_data *data;
 
-				if( !sd->status.inventory[n].card[i] )
-					continue;
-				if( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
-					if( data->equip_script && (pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) || !itemdb_isNoEquip(data,sd->bl.m)) )
-						run_script(data->equip_script,0,sd->bl.id,fake_nd->bl.id);
-				}
+			if( !sd->status.inventory[n].card[i] )
+				continue;
+			if( ( data = itemdb_exists(sd->status.inventory[n].card[i]) ) != NULL ) {
+				if( data->equip_script && (pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) || !itemdb_isNoEquip(data,sd->bl.m)) )
+					run_script(data->equip_script,0,sd->bl.id,fake_nd->bl.id);
 			}
 		}
 	}

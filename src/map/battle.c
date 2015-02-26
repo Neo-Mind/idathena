@@ -7036,7 +7036,7 @@ int battle_damage_area(struct block_list *bl, va_list ap) {
 		else
 			status_fix_damage(src, bl, damage, 0);
 		clif_damage(bl, bl, tick, amotion, dmotion, damage, 1, DMG_ENDURE, 0);
-		if( !(src && src->type == BL_PC && ((TBL_PC*)src)->state.autocast) )
+		if( !(src->type == BL_PC && ((TBL_PC*)src)->state.autocast) )
 			skill_additional_effect(src, bl, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);
 		map_freeblock_unlock();
 	}
@@ -8114,6 +8114,7 @@ static const struct _battle_data {
 	{ "official_cell_stack_limit",          &battle_config.official_cell_stack_limit,       1,      1,      255,            },
 	{ "custom_cell_stack_limit",            &battle_config.custom_cell_stack_limit,         1,      1,      255,            },
 	{ "dancing_weaponswitch_fix",           &battle_config.dancing_weaponswitch_fix,        1,      0,      1,              },
+	{ "check_occupied_cells",               &battle_config.check_occupied_cells,            1,      0,      1,              },
 	
 	//eAthena additions
 	{ "item_logarithmic_drops",             &battle_config.logarithmic_drops,               0,      0,      1,              },

@@ -1740,12 +1740,12 @@ int status_fixed_revive(struct block_list *bl, unsigned int per_hp, unsigned int
 
 	if (hp > status->max_hp - status->hp)
 		hp = status->max_hp - status->hp;
-	else if (per_hp && !hp)
+	else if (!hp)
 		hp = 1;
 
 	if (sp > status->max_sp - status->sp)
 		sp = status->max_sp - status->sp;
-	else if (per_sp && !sp)
+	else if (!sp)
 		sp = 1;
 
 	status->hp += hp;
@@ -9340,14 +9340,14 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val3 = 5 * val1 + val2; //Movement Speed And ASPD Increase
 				break;
 			case SC_SYMPHONYOFLOVER:
-				val3 = 12 * val1 + val2 + sd->status.job_level / 4; //MDEF Increase In %
+				val3 = 12 * val1 + val2 + (sd ? sd->status.job_level / 4 : 0); //MDEF Increase In %
 				break;
 			case SC_MOONLITSERENADE:
 			case SC_RUSHWINDMILL:
-				val3 = 6 * val1 + val2 + sd->status.job_level / 5; //MATK/ATK Increase
+				val3 = 6 * val1 + val2 + (sd ? sd->status.job_level / 5 : 0); //MATK/ATK Increase
 				break;
 			case SC_ECHOSONG:
-				val3 = 6 * val1 + val2 + sd->status.job_level / 4; //DEF Increase In %
+				val3 = 6 * val1 + val2 + (sd ? sd->status.job_level / 4 : 0); //DEF Increase In %
 				break;
 			case SC_HARMONIZE:
 				val2 = 5 + 5 * val1;

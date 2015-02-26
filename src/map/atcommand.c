@@ -5414,8 +5414,10 @@ ACMD_FUNC(skillid)
 		if (strnicmp(key.str, message, skillen) == 0 || strnicmp(skill_db[idx].desc, message, skillen) == 0) {
 			sprintf(atcmd_output, msg_txt(1164), db_data2i(data), skill_db[idx].desc, key.str); // skill %d: %s (%s)
 			clif_displaymessage(fd, atcmd_output);
-		} else if (found < MAX_SKILLID_PARTIAL_RESULTS && (stristr(key.str,message) || stristr(skill_db[idx].desc,message)))
-			snprintf(partials[found++], MAX_SKILLID_PARTIAL_RESULTS_LEN, msg_txt(1164), db_data2i(data), skill_db[idx].desc, key.str);
+		} else if (found < MAX_SKILLID_PARTIAL_RESULTS && (stristr(key.str,message) || stristr(skill_db[idx].desc,message))) {
+			snprintf(partials[found], MAX_SKILLID_PARTIAL_RESULTS_LEN, msg_txt(1164), db_data2i(data), skill_db[idx].desc, key.str);
+			found++;
+		}
 	}
 
 	dbi_destroy(iter);

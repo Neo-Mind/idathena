@@ -419,7 +419,9 @@ void Sql_Free(Sql* self)
 	if( self ) {
 		Sql_FreeResult(self);
 		StringBuf_Destroy(&self->buf);
-		if( self->keepalive != INVALID_TIMER ) delete_timer(self->keepalive, Sql_P_KeepaliveTimer);
+		if( self->keepalive != INVALID_TIMER )
+			delete_timer(self->keepalive, Sql_P_KeepaliveTimer);
+		mysql_close(&self->handle);
 		aFree(self);
 	}
 }

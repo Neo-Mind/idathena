@@ -402,7 +402,7 @@ bool mercenary_recv_data(struct s_mercenary *merc, bool flag)
 		mercenary_set_calls(md, 1);
 	sd->status.mer_id = merc->mercenary_id;
 
-	if( md && md->bl.prev == NULL && sd->bl.prev != NULL ) {
+	if( md->bl.prev == NULL && sd->bl.prev != NULL ) {
 		if( map_addblock(&md->bl) )
 			return false;
 		clif_spawn(&md->bl);

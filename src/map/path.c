@@ -265,6 +265,12 @@ bool path_search(struct walkpath_data *wpd, int16 m, int16 x0, int16 y0, int16 x
 	if (x0 < 0 || x0 >= md->xs || y0 < 0 || y0 >= md->ys /*|| map_getcellp(md,x0,y0,cell)*/)
 		return false;
 
+	if (x0 == x1 && y0 == y1) {
+		wpd->path_len = 0;
+		wpd->path_pos = 0;
+		return true;
+	}
+
 	// Check destination cell
 	if (x1 < 0 || x1 >= md->xs || y1 < 0 || y1 >= md->ys || map_getcellp(md,x1,y1,cell))
 		return false;
@@ -287,16 +293,16 @@ bool path_search(struct walkpath_data *wpd, int16 m, int16 x0, int16 y0, int16 x
 			x += dx; // Advance current position
 			y += dy;
 
-			if( x == x1 ) dx = 0; // destination x reached, no longer move along x-axis
-			if( y == y1 ) dy = 0; // destination y reached, no longer move along y-axis
+			if( x == x1 ) dx = 0; // Destination x reached, no longer move along x-axis
+			if( y == y1 ) dy = 0; // Destination y reached, no longer move along y-axis
 
 			if( dx == 0 && dy == 0 )
-				break; // success
+				break; // Success
 			if( map_getcellp(md,x,y,cell) )
-				break; // obstacle = failure
+				break; // Obstacle = failure
 		}
 
-		if( x == x1 && y == y1 ) { // easy path successful.
+		if( x == x1 && y == y1 ) { // Easy path successful
 			wpd->path_len = i;
 			wpd->path_pos = 0;
 			return true;
@@ -305,14 +311,14 @@ bool path_search(struct walkpath_data *wpd, int16 m, int16 x0, int16 y0, int16 x
 		return false; // easy path unsuccessful
 	} else { // !(flag&1)
 		// A* (A-star) pathfinding
-		// We always use A* for finding walkpaths because it is what game client uses.
-		// Easy pathfinding cuts corners of non-walkable cells, but client always walks around it.
+		// We always use A* for finding walkpaths because it is what game client uses
+		// Easy pathfinding cuts corners of non-walkable cells, but client always walks around it
 
 		BHEAP_STRUCT_VAR(node_heap, open_set); // 'Open' set
 
 		// FIXME: This array is too small to ensure all paths shorter than MAX_WALKPATH
-		// can be found without node collision: calc_index(node1) = calc_index(node2).
-		// Figure out more proper size or another way to keep track of known nodes.
+		// can be found without node collision: calc_index(node1) = calc_index(node2)
+		// Figure out more proper size or another way to keep track of known nodes
 		struct path_node tp[MAX_WALKPATH * MAX_WALKPATH];
 		struct path_node *current, *it;
 		int xs = md->xs - 1;

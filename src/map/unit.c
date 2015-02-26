@@ -605,7 +605,8 @@ int unit_walktoxy(struct block_list *bl, short x, short y, unsigned char flag)
 	if( bl->type == BL_PC )
 		sd = BL_CAST(BL_PC, bl);
 
-	if( (flag&8) && !map_closest_freecell(bl->m, &x, &y, BL_CHAR|BL_NPC, 1) ) // This might change x and y
+	if( battle_config.check_occupied_cells &&
+		(flag&8) && !map_closest_freecell(bl->m, &x, &y, BL_CHAR|BL_NPC, 1) ) // This might change x and y
 		return 0;
 
 	if( !path_search(&wpd, bl->m, bl->x, bl->y, x, y, flag&1, CELL_CHKNOPASS) ) // Count walk path cells
@@ -1859,6 +1860,8 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	ud->skill_lv     = skill_lv;
 
 	if( casttime > 0 ) {
+		if( src->id != target->id ) //Self-targeted skills shouldn't show different direction
+			unit_setdir(src, map_calc_dir(src, target->x, target->y));
 		ud->skilltimer = add_timer(tick + casttime, skill_castend_id, src->id, 0);
 		if( sd && (pc_checkskill(sd, SA_FREECAST) > 0 || skill_id == LG_EXEEDBREAK) )
 			status_calc_bl(&sd->bl, SCB_SPEED);
@@ -2040,6 +2043,7 @@ int unit_skilluse_pos2(struct block_list *src, short skill_x, short skill_y, uin
 	clif_skillcasting(src, src->id, 0, skill_x, skill_y, skill_id, skill_get_ele(skill_id, skill_lv), casttime);
 
 	if(casttime > 0) {
+		unit_setdir(src, map_calc_dir(src, skill_x, skill_y));
 		ud->skilltimer = add_timer( tick + casttime, skill_castend_pos, src->id, 0 );
 		if(sd && (pc_checkskill(sd, SA_FREECAST) > 0 || skill_id == LG_EXEEDBREAK))
 			status_calc_bl(&sd->bl, SCB_SPEED);
@@ -2298,7 +2302,7 @@ bool unit_can_reach_bl(struct block_list *bl,struct block_list *tbl, int range, 
 	if( range > 0 && !check_distance_bl(bl, tbl, range) )
 		return false;
 
-	//It judges whether it can adjoin or not.
+	//It judges whether it can adjoin or not
 	dx = tbl->x - bl->x;
 	dy = tbl->y - bl->y;
 	dx = (dx > 0) ? 1 : ((dx < 0) ? - 1 : 0);
@@ -2307,9 +2311,9 @@ bool unit_can_reach_bl(struct block_list *bl,struct block_list *tbl, int range, 
 	if( map_getcell(tbl->m,tbl->x - dx,tbl->y - dy,CELL_CHKNOPASS) ) {
 		int i;
 
-		//Look for a suitable cell to place in.
+		//Look for a suitable cell to place in
 		for( i = 0; i < 8 && map_getcell(tbl->m,tbl->x - dirx[i],tbl->y - diry[i],CELL_CHKNOPASS); i++ );
-		if( i == 8 ) return false; //No valid cells.
+		if( i == 8 ) return false; //No valid cells
 		dx = dirx[i];
 		dy = diry[i];
 	}
@@ -2515,6 +2519,7 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 	}
 
 	if( ud->state.attack_continue ) {
+		unit_setdir(src,map_calc_dir(src,target->x,target->y));
 		if( src->type == BL_PC )
 			((TBL_PC*)src)->idletime = last_tick;
 		ud->attacktimer = add_timer(ud->attackabletime,unit_attack_timer,src->id,0);

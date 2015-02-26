@@ -3757,14 +3757,10 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				case SR_FALLENEMPIRE:
 				case SR_TIGERCANNON:
 				case SR_SKYNETBLOW:
-					{
-						struct map_session_data *sd = (TBL_PC*)src;
-
-						if (sd && src->type == BL_PC) {
-							if (distance_xy(src->x,src->y,target->x,target->y) >= 3)
-								break;
-							skill_castend_damage_id(src,target,skl->skill_id,pc_checkskill(sd,skl->skill_id),tick,0);
-						}
+					if (src->type == BL_PC) {
+						if (distance_xy(src->x,src->y,target->x,target->y) >= 3)
+							break;
+						skill_castend_damage_id(src,target,skl->skill_id,pc_checkskill(((TBL_PC *)src),skl->skill_id),tick,0);
 					}
 					break;
 				case SC_ESCAPE:
@@ -5778,7 +5774,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 								exp = 1;
 						}
 						if(jlv > 0 && pc_nextjobexp(dstsd)) {
-							jexp = (int)((double)dstsd->status.job_exp * (double)lv * (double)battle_config.resurrection_exp / 1000000.);
+							jexp = (int)((double)dstsd->status.job_exp * (double)jlv * (double)battle_config.resurrection_exp / 1000000.);
 							if (jexp < 1)
 								jexp = 1;
 						}
@@ -8743,7 +8739,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					if( dstsd && pc_ismadogear(dstsd) )
 						break;
 					clif_skill_nodamage(src,bl,skill_id,i,1);
-					if( tsc->data[SC_AKAITSUKI] && i )
+					if( tsc && tsc->data[SC_AKAITSUKI] && i )
 						i = ~i + 1;
 					status_heal(bl,i,0,0);
 				}
@@ -10876,6 +10872,8 @@ int skill_castend_id(int tid, unsigned int tick, int id, intptr_t data)
 				ud->skill_id = 0;
 			ud->skill_lv = ud->skilltarget = 0;
 		}
+		if( src->id != target->id )
+			unit_setdir(src,map_calc_dir(src,target->x,target->y));
 		map_freeblock_unlock();
 		return 1;
 	} while( 0 );
@@ -11053,6 +11051,7 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 				ud->skill_id = 0;
 			ud->skill_lv = ud->skillx = ud->skilly = 0;
 		}
+		unit_setdir(src,map_calc_dir(src,ud->skillx,ud->skilly));
 		map_freeblock_unlock();
 		return 1;
 	} while( 0 );
@@ -11301,7 +11300,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case HP_BASILICA:
-			if( sc && sc->data[SC_BASILICA] ) { //Cancel Basilica and return so requirement isn't consumed again
+			if( sce ) { //Cancel Basilica and return so requirement isn't consumed again
 				status_change_end(src,SC_BASILICA,INVALID_TIMER);
 				return 0;
 			} else { //Create Basilica. Start SC on caster. Unit timer start SC on others
@@ -11684,7 +11683,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 			break;
 
 		case LG_BANDING:
-			if( sc && sc->data[SC_BANDING] )
+			if( sce )
 				status_change_end(src,SC_BANDING,INVALID_TIMER);
 			else if( (sg = skill_unitsetting(src,skill_id,skill_lv,src->x,src->y,0)) != NULL ) {
 				sc_start4(src,src,SC_BANDING,100,skill_lv,0,0,sg->group_id,skill_get_time(skill_id,skill_lv));
@@ -11785,7 +11784,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 		case SO_FIREWALK:
 		case SO_ELECTRICWALK:
-			if( sc && sc->data[type] )
+			if( sce )
 				status_change_end(src,type,INVALID_TIMER);
 			clif_skill_nodamage(src,src,skill_id,skill_lv,
 				sc_start2(src,src,type,100,skill_id,skill_lv,skill_get_time(skill_id,skill_lv)));
@@ -12726,7 +12725,7 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 	switch( group->unit_id ) {
 		case UNT_SPIDERWEB:
 			if( battle_check_target(&group->unit->bl,bl,group->target_flag) > 0 ) {
-				const struct TimerData* td = (sc && sc->data[type] ? get_timer(sc->data[type]->timer) : NULL);
+				const struct TimerData* td = (sce ? get_timer(sce->timer) : NULL);
 				int time = (bl->type == BL_PC ? skill_get_time(skill_id,skill_lv) / 2 : skill_get_time(skill_id,skill_lv));
 
 				if( td ) {
@@ -16749,10 +16748,12 @@ int skill_graffitiremover(struct block_list *bl, va_list ap)
 	nullpo_ret(bl);
 	nullpo_ret(ap);
 
-	if (bl->type != BL_SKILL || (unit = (struct skill_unit *)bl) == NULL)
+	if (bl->type != BL_SKILL)
 		return 0;
 
-	if (unit->group && unit->group->unit_id == UNT_GRAFFITI)
+	unit = (struct skill_unit *)bl;
+
+	if (unit && unit->group && unit->group->unit_id == UNT_GRAFFITI)
 		skill_delunit(unit);
 
 	return 0;
@@ -16762,15 +16763,12 @@ int skill_graffitiremover(struct block_list *bl, va_list ap)
 int skill_greed(struct block_list *bl, va_list ap)
 {
 	struct block_list *src;
-	struct map_session_data *sd = NULL;
-	struct flooritem_data *fitem = NULL;
 
 	nullpo_ret(bl);
 	nullpo_ret(src = va_arg(ap,struct block_list *));
 
-	if (src->type == BL_PC && (sd = (struct map_session_data *)src) &&
-		bl->type == BL_ITEM && (fitem = (struct flooritem_data *)bl))
-		pc_takeitem(sd, fitem);
+	if (src->type == BL_PC && bl->type == BL_ITEM)
+		pc_takeitem(((TBL_PC *)src), ((TBL_ITEM *)bl));
 
 	return 0;
 }
@@ -16785,9 +16783,12 @@ int skill_detonator(struct block_list *bl, va_list ap)
 	nullpo_ret(bl);
 	nullpo_ret(src = va_arg(ap,struct block_list *));
 
-	if (bl->type != BL_SKILL || (unit = (struct skill_unit *)bl) == NULL || !unit->group)
+	if (bl->type != BL_SKILL)
 		return 0;
-	if (unit->group->src_id != src->id)
+
+	unit = (struct skill_unit *)bl;
+
+	if (!unit || !unit->group || unit->group->src_id != src->id)
 		return 0;
 
 	unit_id = unit->group->unit_id;
@@ -17999,8 +18000,8 @@ static int skill_unit_timer_sub(DBKey key, DBData *data, va_list ap)
 		}
 	}
 
-	//Don't continue if unit or even group is expired and has been deleted.
-	if( !group || !unit->alive )
+	//Don't continue if unit is expired and has been deleted
+	if( !unit->alive )
 		return 0;
 
 	dissonance = skill_dance_switch(unit,0);
@@ -20593,8 +20594,10 @@ static bool skill_parse_row_improvisedb(char* split[], int columns, int current)
 		ShowError("skill_parse_row_improvisedb: Chances have to be 1 or above! (%d/%s)\n", skill_id, skill_get_name(skill_id));
 		return false;
 	}
-	if( current >= MAX_SKILL_IMPROVISE_DB )
+	if( current >= MAX_SKILL_IMPROVISE_DB ) {
 		ShowError("skill_parse_row_improvisedb: Maximum amount of entries reached (%d), increase MAX_SKILL_IMPROVISE_DB\n", MAX_SKILL_IMPROVISE_DB);
+		return false;
+	}
 
 	skill_improvise_db[current].skill_id = skill_id;
 	skill_improvise_db[current].per = per;

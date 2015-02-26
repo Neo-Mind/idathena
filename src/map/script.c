@@ -12448,7 +12448,7 @@ BUILDIN_FUNC(petloot)
 BUILDIN_FUNC(getinventorylist)
 {
 	TBL_PC *sd = script_rid2sd(st);
-	char card_var[NAME_LENGTH];
+	char card_var[26];
 	int i, j = 0, k;
 
 	if (!sd)
@@ -12481,7 +12481,7 @@ BUILDIN_FUNC(getinventorylist)
 BUILDIN_FUNC(getcartinventorylist)
 {
 	TBL_PC *sd = script_rid2sd(st);
-	char card_var[NAME_LENGTH];
+	char card_var[26];
 	int i, j = 0, k;
 
 	if (!sd)
@@ -14824,8 +14824,7 @@ BUILDIN_FUNC(sscanf){
 		buf_p = reference_getname(data);
 		if(not_server_variable(*buf_p) && (sd = script_rid2sd(st)) == NULL) {
 			script_pushint(st, -1);
-			if(buf)
-				aFree(buf);
+			aFree(buf);
 			if(ref_str)
 				aFree(ref_str);
 			return 0;
@@ -18144,7 +18143,10 @@ BUILDIN_FUNC(npcskill)
 	skill_level	= script_getnum(st,3);
 	stat_point	= script_getnum(st,4);
 	npc_level	= script_getnum(st,5);
-	sd			= script_rid2sd(st);
+
+	if( !(sd = script_rid2sd(st)) )
+		return 1;
+
 	nd			= (struct npc_data *)map_id2bl(sd->npc_id);
 
 	if( stat_point > battle_config.max_third_parameter ) {
@@ -18157,7 +18159,7 @@ BUILDIN_FUNC(npcskill)
 		return 1;
 	}
 
-	if( sd == NULL || nd == NULL )
+	if( nd == NULL )
 		return 1;
 
 	nd->level = npc_level;

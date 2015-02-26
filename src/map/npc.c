@@ -3406,19 +3406,19 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 	}
 
 	if (w4 && !strcmpi(w4,"off"))
-		state = 0; //Disable mapflag rather than enable it. [Skotlex]
+		state = 0; //Disable mapflag rather than enable it [Skotlex]
 	
 	if (!strcmpi(w3,"nosave")) {
 		char savemap[32];
 		int savex, savey;
 
 		if (state == 0)
-			; //Map flag disabled.
+			; //Map flag disabled
 		else if (w4 && !strcmpi(w4,"SavePoint")) {
 			map[m].save.map = 0;
 			map[m].save.x = -1;
 			map[m].save.y = -1;
-		} else if (sscanf(w4,"%31[^,],%d,%d",savemap,&savex,&savey) == 3) {
+		} else if (w4 && sscanf(w4,"%31[^,],%d,%d",savemap,&savex,&savey) == 3) {
 			map[m].save.map = mapindex_name2id(savemap);
 			map[m].save.x = savex;
 			map[m].save.y = savey;
@@ -3588,7 +3588,7 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 		map[m].flag.nomvploot = state;
 	else if (!strcmpi(w3,"nocommand")) {
 		if (state) {
-			if (sscanf(w4,"%d",&state) == 1)
+			if (w4 && sscanf(w4,"%d",&state) == 1)
 				map[m].nocommand = state;
 			else //No level specified, block everyone.
 				map[m].nocommand = 100;
@@ -3678,9 +3678,9 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 		char *mod;
 		int skill_id;
 
-		strtok(w4,"\t"); /* Makes w4 contain only 4th param */
+		strtok(w4,"\t"); //Makes w4 contain only 4th param
 
-		if (!(mod = strtok(NULL,"\t"))) /* Makes mod contain only the 5th param */
+		if (!(mod = strtok(NULL,"\t"))) //Makes mod contain only the 5th param
 			ShowWarning("npc_parse_mapflag: Missing 5th param for 'adjust_unit_duration' flag! removing flag from %s in file '%s', line '%d'.\n",map[m].name,filepath,strline(buffer,start - buffer));
 		else if (!(skill_id = skill_name2id(w4)) || !skill_get_unit_id(skill_name2id(w4),0))
 			ShowWarning("npc_parse_mapflag: Unknown skill (%s) for 'adjust_unit_duration' flag! removing flag from %s in file '%s', line '%d'.\n",w4,map[m].name,filepath,strline(buffer,start - buffer));
