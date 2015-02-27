@@ -9580,10 +9580,10 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 		case WM_VOICEOFSIREN:
 			if( flag&1 ) {
-				tick = (status_get_lv(bl) > 150 ? 150 : status_get_lv(bl)) / 10 + (dstsd ? (dstsd->status.job_level > 50 ? 50 : dstsd->status.job_level) / 5 : 0);
+				tick = status_get_lv(bl) / 15 + (dstsd ? dstsd->status.job_level / 10 : 0);
 				sc_start2(src,bl,type,100,skill_lv,src->id,skill_get_time(skill_id,skill_lv) - (1000 * tick));
 			} else if( sd ) {
-				rate = 6 * skill_lv + 2 * pc_checkskill(sd,WM_LESSON) + (sd->status.job_level > 50 ? 50 : sd->status.job_level) / 2;
+				rate = 6 * skill_lv + 2 * pc_checkskill(sd,WM_LESSON) + sd->status.job_level / 4;
 				if( rnd()%100 < rate ) {
 					map_foreachinrange(skill_area_sub,src,skill_get_splash(skill_id,skill_lv),BL_CHAR|BL_SKILL,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_nodamage_id);
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
