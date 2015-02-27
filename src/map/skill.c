@@ -8478,8 +8478,9 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case RK_PHANTOMTHRUST:
+			unit_setdir(src,map_calc_dir(src,bl->x,bl->y));
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-			skill_blown(src,bl,distance_bl(src,bl)-1,unit_getdir(src),0);
+			skill_blown(src,bl,distance_bl(src,bl) - 1,unit_getdir(src),0);
 			if( battle_check_target(src,bl,BCT_ENEMY) > 0 )
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
