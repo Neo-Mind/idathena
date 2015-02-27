@@ -7888,8 +7888,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 		case AS_SPLASHER:
 			if (tstatus->mode&MD_BOSS
-			//Renewal dropped the 3/4 hp requirement
-#ifndef RENEWAL
+#ifndef RENEWAL //Dropped the 3/4 hp requirement
 				|| tstatus-> hp > tstatus->max_hp * 3 / 4
 #endif
 			) {

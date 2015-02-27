@@ -3062,7 +3062,7 @@ void pc_bonus2(struct map_session_data *sd, int type, int type2, int val)
 					}
 					sd->right_weapon.add_dmg[i].class_ = type2;
 					sd->right_weapon.add_dmg[i].rate += val;
-					if(!sd->right_weapon.add_dmg[i].rate) //Shift the rest of elements up.
+					if(!sd->right_weapon.add_dmg[i].rate) //Shift the rest of elements up
 						memmove(&sd->right_weapon.add_dmg[i], &sd->right_weapon.add_dmg[i + 1], sizeof(sd->right_weapon.add_dmg) - (i + 1) * sizeof(sd->right_weapon.add_dmg[0]));
 					break;
 				case 1: //Left hand
@@ -3073,7 +3073,7 @@ void pc_bonus2(struct map_session_data *sd, int type, int type2, int val)
 					}
 					sd->left_weapon.add_dmg[i].class_ = type2;
 					sd->left_weapon.add_dmg[i].rate += val;
-					if(!sd->left_weapon.add_dmg[i].rate) //Shift the rest of elements up.
+					if(!sd->left_weapon.add_dmg[i].rate) //Shift the rest of elements up
 						memmove(&sd->left_weapon.add_dmg[i], &sd->left_weapon.add_dmg[i + 1], sizeof(sd->left_weapon.add_dmg) - (i + 1) * sizeof(sd->left_weapon.add_dmg[0]));
 					break;
 			}

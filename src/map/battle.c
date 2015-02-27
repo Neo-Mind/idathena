@@ -618,30 +618,32 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 							cardfix_ = cardfix_ * (100 + sd->left_weapon.addclass[tstatus->class_] + sd->left_weapon.addclass[CLASS_ALL]) / 100;
 						}
 					} else {
-						int ele_fix = sd->right_weapon.addele[tstatus->def_ele] + sd->left_weapon.addele[tstatus->def_ele] +
-							sd->right_weapon.addele[ELE_ALL] + sd->left_weapon.addele[ELE_ALL];
-
-						for( i = 0; ARRAYLENGTH(sd->right_weapon.addele2) > i && sd->right_weapon.addele2[i].rate != 0; i++ ) {
-							if( sd->right_weapon.addele2[i].ele != tstatus->def_ele )
-								continue;
-							if( !(((sd->right_weapon.addele2[i].flag)&flag)&BF_WEAPONMASK &&
-								((sd->right_weapon.addele2[i].flag)&flag)&BF_RANGEMASK &&
-								((sd->right_weapon.addele2[i].flag)&flag)&BF_SKILLMASK) )
-								continue;
-							ele_fix += sd->right_weapon.addele2[i].rate;
-						}
-						for( i = 0; ARRAYLENGTH(sd->left_weapon.addele2) > i && sd->left_weapon.addele2[i].rate != 0; i++ ) {
-							if( sd->left_weapon.addele2[i].ele != tstatus->def_ele )
-								continue;
-							if( !(((sd->left_weapon.addele2[i].flag)&flag)&BF_WEAPONMASK &&
-								((sd->left_weapon.addele2[i].flag)&flag)&BF_RANGEMASK &&
-								((sd->left_weapon.addele2[i].flag)&flag)&BF_SKILLMASK) )
-								continue;
-							ele_fix += sd->left_weapon.addele2[i].rate;
-						}
 						cardfix = cardfix * (100 + sd->right_weapon.addrace[tstatus->race] + sd->left_weapon.addrace[tstatus->race] +
 							sd->right_weapon.addrace[RC_ALL] + sd->left_weapon.addrace[RC_ALL]) / 100;
-						cardfix = cardfix * (100 + ele_fix) / 100;
+						if( !(nk&NK_NO_ELEFIX) ) {
+							int ele_fix = sd->right_weapon.addele[tstatus->def_ele] + sd->left_weapon.addele[tstatus->def_ele] +
+								sd->right_weapon.addele[ELE_ALL] + sd->left_weapon.addele[ELE_ALL];
+
+							for( i = 0; ARRAYLENGTH(sd->right_weapon.addele2) > i && sd->right_weapon.addele2[i].rate != 0; i++ ) {
+								if( sd->right_weapon.addele2[i].ele != tstatus->def_ele )
+									continue;
+								if( !(((sd->right_weapon.addele2[i].flag)&flag)&BF_WEAPONMASK &&
+									((sd->right_weapon.addele2[i].flag)&flag)&BF_RANGEMASK &&
+									((sd->right_weapon.addele2[i].flag)&flag)&BF_SKILLMASK) )
+									continue;
+								ele_fix += sd->right_weapon.addele2[i].rate;
+							}
+							for( i = 0; ARRAYLENGTH(sd->left_weapon.addele2) > i && sd->left_weapon.addele2[i].rate != 0; i++ ) {
+								if( sd->left_weapon.addele2[i].ele != tstatus->def_ele )
+									continue;
+								if( !(((sd->left_weapon.addele2[i].flag)&flag)&BF_WEAPONMASK &&
+									((sd->left_weapon.addele2[i].flag)&flag)&BF_RANGEMASK &&
+									((sd->left_weapon.addele2[i].flag)&flag)&BF_SKILLMASK) )
+									continue;
+								ele_fix += sd->left_weapon.addele2[i].rate;
+							}
+							cardfix = cardfix * (100 + ele_fix) / 100;
+						}
 						cardfix = cardfix * (100 + sd->right_weapon.addsize[tstatus->size] + sd->left_weapon.addsize[tstatus->size] +
 							sd->right_weapon.addsize[SZ_ALL] + sd->left_weapon.addsize[SZ_ALL]) / 100;
 						cardfix = cardfix * (100 + sd->right_weapon.addrace2[t_race2] + sd->left_weapon.addrace2[t_race2]) / 100;
@@ -1210,7 +1212,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 				else
 				  	damage = -sce->val2;
 			}
-			if( (--sce->val3) <= 0 || (sce->val2 <= 0) || skill_id == AL_HOLYLIGHT )
+			if( --sce->val3 <= 0 || sce->val2 <= 0 || skill_id == AL_HOLYLIGHT )
 				status_change_end(bl,SC_KYRIE,INVALID_TIMER);
 		}
 
