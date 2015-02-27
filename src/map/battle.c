@@ -552,36 +552,14 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 			if( sd && !(nk&NK_NO_CARDFIX_ATK) && (left&2) ) { //Attacker cards should be checked
 				short cardfix_ = 1000;
 
-				if( sd->state.arrow_atk ) {
-					cardfix = cardfix * (100 + sd->right_weapon.addrace[tstatus->race] + sd->arrow_addrace[tstatus->race] +
-						sd->right_weapon.addrace[RC_ALL] + sd->arrow_addrace[RC_ALL]) / 100;
-					if( !(nk&NK_NO_ELEFIX) ) {
-						int ele_fix = sd->right_weapon.addele[tstatus->def_ele] + sd->arrow_addele[tstatus->def_ele] +
-							sd->right_weapon.addele[ELE_ALL] + sd->arrow_addele[ELE_ALL];
-
-						for( i = 0; ARRAYLENGTH(sd->right_weapon.addele2) > i && sd->right_weapon.addele2[i].rate != 0; i++ ) {
-							if( sd->right_weapon.addele2[i].ele != tstatus->def_ele )
-								continue;
-							if( !(((sd->right_weapon.addele2[i].flag)&flag)&BF_WEAPONMASK &&
-								((sd->right_weapon.addele2[i].flag)&flag)&BF_RANGEMASK &&
-								((sd->right_weapon.addele2[i].flag)&flag)&BF_SKILLMASK) )
-								continue;
-							ele_fix += sd->right_weapon.addele2[i].rate;
-						}
-						cardfix = cardfix * (100 + ele_fix) / 100;
-					}
-					cardfix = cardfix * (100 + sd->right_weapon.addsize[tstatus->size] + sd->arrow_addsize[tstatus->size] +
-						sd->right_weapon.addsize[SZ_ALL] + sd->arrow_addsize[SZ_ALL]) / 100;
-					cardfix = cardfix * (100 + sd->right_weapon.addrace2[t_race2]) / 100;
-					cardfix = cardfix * (100 + sd->right_weapon.addclass[tstatus->class_] + sd->arrow_addclass[tstatus->class_] +
-						sd->right_weapon.addclass[CLASS_ALL] + sd->arrow_addclass[CLASS_ALL]) / 100;
-				} else { //Melee attack
-					int skill = 0;
-
-					if( !battle_config.left_cardfix_to_right ) {
-						cardfix = cardfix * (100 + sd->right_weapon.addrace[tstatus->race] + sd->right_weapon.addrace[RC_ALL]) / 100;
+				//Add check here for Dragon Breath, because we want to apply the same behavior in pre-renewal [exneval]
+				if( skill_id != RK_DRAGONBREATH && skill_id != RK_DRAGONBREATH_WATER ) {
+					if( sd->state.arrow_atk ) {
+						cardfix = cardfix * (100 + sd->right_weapon.addrace[tstatus->race] + sd->arrow_addrace[tstatus->race] +
+							sd->right_weapon.addrace[RC_ALL] + sd->arrow_addrace[RC_ALL]) / 100;
 						if( !(nk&NK_NO_ELEFIX) ) {
-							int ele_fix = sd->right_weapon.addele[tstatus->def_ele] + sd->right_weapon.addele[ELE_ALL];
+							int ele_fix = sd->right_weapon.addele[tstatus->def_ele] + sd->arrow_addele[tstatus->def_ele] +
+								sd->right_weapon.addele[ELE_ALL] + sd->arrow_addele[ELE_ALL];
 
 							for( i = 0; ARRAYLENGTH(sd->right_weapon.addele2) > i && sd->right_weapon.addele2[i].rate != 0; i++ ) {
 								if( sd->right_weapon.addele2[i].ele != tstatus->def_ele )
@@ -594,14 +572,69 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 							}
 							cardfix = cardfix * (100 + ele_fix) / 100;
 						}
-						cardfix = cardfix * (100 + sd->right_weapon.addsize[tstatus->size] + sd->right_weapon.addsize[SZ_ALL]) / 100;
+						cardfix = cardfix * (100 + sd->right_weapon.addsize[tstatus->size] + sd->arrow_addsize[tstatus->size] +
+							sd->right_weapon.addsize[SZ_ALL] + sd->arrow_addsize[SZ_ALL]) / 100;
 						cardfix = cardfix * (100 + sd->right_weapon.addrace2[t_race2]) / 100;
-						cardfix = cardfix * (100 + sd->right_weapon.addclass[tstatus->class_] + sd->right_weapon.addclass[CLASS_ALL]) / 100;
-						if( left&1 ) {
-							cardfix_ = cardfix_ * (100 + sd->left_weapon.addrace[tstatus->race] + sd->left_weapon.addrace[RC_ALL]) / 100;
-							if( !(nk&NK_NO_ELEFIX) ) {
-								int ele_fix_lh = sd->left_weapon.addele[tstatus->def_ele] + sd->left_weapon.addele[ELE_ALL];
+						cardfix = cardfix * (100 + sd->right_weapon.addclass[tstatus->class_] + sd->arrow_addclass[tstatus->class_] +
+							sd->right_weapon.addclass[CLASS_ALL] + sd->arrow_addclass[CLASS_ALL]) / 100;
+					} else { //Melee attack
+						int skill = 0;
 
+						if( !battle_config.left_cardfix_to_right ) {
+							cardfix = cardfix * (100 + sd->right_weapon.addrace[tstatus->race] + sd->right_weapon.addrace[RC_ALL]) / 100;
+							if( !(nk&NK_NO_ELEFIX) ) {
+								int ele_fix = sd->right_weapon.addele[tstatus->def_ele] + sd->right_weapon.addele[ELE_ALL];
+
+								for( i = 0; ARRAYLENGTH(sd->right_weapon.addele2) > i && sd->right_weapon.addele2[i].rate != 0; i++ ) {
+									if( sd->right_weapon.addele2[i].ele != tstatus->def_ele )
+										continue;
+									if( !(((sd->right_weapon.addele2[i].flag)&flag)&BF_WEAPONMASK &&
+										((sd->right_weapon.addele2[i].flag)&flag)&BF_RANGEMASK &&
+										((sd->right_weapon.addele2[i].flag)&flag)&BF_SKILLMASK) )
+										continue;
+									ele_fix += sd->right_weapon.addele2[i].rate;
+								}
+								cardfix = cardfix * (100 + ele_fix) / 100;
+							}
+							cardfix = cardfix * (100 + sd->right_weapon.addsize[tstatus->size] + sd->right_weapon.addsize[SZ_ALL]) / 100;
+							cardfix = cardfix * (100 + sd->right_weapon.addrace2[t_race2]) / 100;
+							cardfix = cardfix * (100 + sd->right_weapon.addclass[tstatus->class_] + sd->right_weapon.addclass[CLASS_ALL]) / 100;
+							if( left&1 ) {
+								cardfix_ = cardfix_ * (100 + sd->left_weapon.addrace[tstatus->race] + sd->left_weapon.addrace[RC_ALL]) / 100;
+								if( !(nk&NK_NO_ELEFIX) ) {
+									int ele_fix_lh = sd->left_weapon.addele[tstatus->def_ele] + sd->left_weapon.addele[ELE_ALL];
+
+									for( i = 0; ARRAYLENGTH(sd->left_weapon.addele2) > i && sd->left_weapon.addele2[i].rate != 0; i++ ) {
+										if( sd->left_weapon.addele2[i].ele != tstatus->def_ele )
+											continue;
+										if( !(((sd->left_weapon.addele2[i].flag)&flag)&BF_WEAPONMASK &&
+											((sd->left_weapon.addele2[i].flag)&flag)&BF_RANGEMASK &&
+											((sd->left_weapon.addele2[i].flag)&flag)&BF_SKILLMASK) )
+											continue;
+										ele_fix_lh += sd->left_weapon.addele2[i].rate;
+									}
+									cardfix_ = cardfix_ * (100 + ele_fix_lh) / 100;
+								}
+								cardfix_ = cardfix_ * (100 + sd->left_weapon.addsize[tstatus->size] + sd->left_weapon.addsize[SZ_ALL]) / 100;
+								cardfix_ = cardfix_ * (100 + sd->left_weapon.addrace2[t_race2]) / 100;
+								cardfix_ = cardfix_ * (100 + sd->left_weapon.addclass[tstatus->class_] + sd->left_weapon.addclass[CLASS_ALL]) / 100;
+							}
+						} else {
+							cardfix = cardfix * (100 + sd->right_weapon.addrace[tstatus->race] + sd->left_weapon.addrace[tstatus->race] +
+								sd->right_weapon.addrace[RC_ALL] + sd->left_weapon.addrace[RC_ALL]) / 100;
+							if( !(nk&NK_NO_ELEFIX) ) {
+								int ele_fix = sd->right_weapon.addele[tstatus->def_ele] + sd->left_weapon.addele[tstatus->def_ele] +
+									sd->right_weapon.addele[ELE_ALL] + sd->left_weapon.addele[ELE_ALL];
+
+								for( i = 0; ARRAYLENGTH(sd->right_weapon.addele2) > i && sd->right_weapon.addele2[i].rate != 0; i++ ) {
+									if( sd->right_weapon.addele2[i].ele != tstatus->def_ele )
+										continue;
+									if( !(((sd->right_weapon.addele2[i].flag)&flag)&BF_WEAPONMASK &&
+										((sd->right_weapon.addele2[i].flag)&flag)&BF_RANGEMASK &&
+										((sd->right_weapon.addele2[i].flag)&flag)&BF_SKILLMASK) )
+										continue;
+									ele_fix += sd->right_weapon.addele2[i].rate;
+								}
 								for( i = 0; ARRAYLENGTH(sd->left_weapon.addele2) > i && sd->left_weapon.addele2[i].rate != 0; i++ ) {
 									if( sd->left_weapon.addele2[i].ele != tstatus->def_ele )
 										continue;
@@ -609,62 +642,32 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 										((sd->left_weapon.addele2[i].flag)&flag)&BF_RANGEMASK &&
 										((sd->left_weapon.addele2[i].flag)&flag)&BF_SKILLMASK) )
 										continue;
-									ele_fix_lh += sd->left_weapon.addele2[i].rate;
+									ele_fix += sd->left_weapon.addele2[i].rate;
 								}
-								cardfix_ = cardfix_ * (100 + ele_fix_lh) / 100;
+								cardfix = cardfix * (100 + ele_fix) / 100;
 							}
-							cardfix_ = cardfix_ * (100 + sd->left_weapon.addsize[tstatus->size] + sd->left_weapon.addsize[SZ_ALL]) / 100;
-							cardfix_ = cardfix_ * (100 + sd->left_weapon.addrace2[t_race2]) / 100;
-							cardfix_ = cardfix_ * (100 + sd->left_weapon.addclass[tstatus->class_] + sd->left_weapon.addclass[CLASS_ALL]) / 100;
+							cardfix = cardfix * (100 + sd->right_weapon.addsize[tstatus->size] + sd->left_weapon.addsize[tstatus->size] +
+								sd->right_weapon.addsize[SZ_ALL] + sd->left_weapon.addsize[SZ_ALL]) / 100;
+							cardfix = cardfix * (100 + sd->right_weapon.addrace2[t_race2] + sd->left_weapon.addrace2[t_race2]) / 100;
+							cardfix = cardfix * (100 + sd->right_weapon.addclass[tstatus->class_] + sd->left_weapon.addclass[tstatus->class_] +
+								sd->right_weapon.addclass[CLASS_ALL] + sd->left_weapon.addclass[CLASS_ALL]) / 100;
 						}
-					} else {
-						cardfix = cardfix * (100 + sd->right_weapon.addrace[tstatus->race] + sd->left_weapon.addrace[tstatus->race] +
-							sd->right_weapon.addrace[RC_ALL] + sd->left_weapon.addrace[RC_ALL]) / 100;
-						if( !(nk&NK_NO_ELEFIX) ) {
-							int ele_fix = sd->right_weapon.addele[tstatus->def_ele] + sd->left_weapon.addele[tstatus->def_ele] +
-								sd->right_weapon.addele[ELE_ALL] + sd->left_weapon.addele[ELE_ALL];
-
-							for( i = 0; ARRAYLENGTH(sd->right_weapon.addele2) > i && sd->right_weapon.addele2[i].rate != 0; i++ ) {
-								if( sd->right_weapon.addele2[i].ele != tstatus->def_ele )
-									continue;
-								if( !(((sd->right_weapon.addele2[i].flag)&flag)&BF_WEAPONMASK &&
-									((sd->right_weapon.addele2[i].flag)&flag)&BF_RANGEMASK &&
-									((sd->right_weapon.addele2[i].flag)&flag)&BF_SKILLMASK) )
-									continue;
-								ele_fix += sd->right_weapon.addele2[i].rate;
-							}
-							for( i = 0; ARRAYLENGTH(sd->left_weapon.addele2) > i && sd->left_weapon.addele2[i].rate != 0; i++ ) {
-								if( sd->left_weapon.addele2[i].ele != tstatus->def_ele )
-									continue;
-								if( !(((sd->left_weapon.addele2[i].flag)&flag)&BF_WEAPONMASK &&
-									((sd->left_weapon.addele2[i].flag)&flag)&BF_RANGEMASK &&
-									((sd->left_weapon.addele2[i].flag)&flag)&BF_SKILLMASK) )
-									continue;
-								ele_fix += sd->left_weapon.addele2[i].rate;
-							}
-							cardfix = cardfix * (100 + ele_fix) / 100;
-						}
-						cardfix = cardfix * (100 + sd->right_weapon.addsize[tstatus->size] + sd->left_weapon.addsize[tstatus->size] +
-							sd->right_weapon.addsize[SZ_ALL] + sd->left_weapon.addsize[SZ_ALL]) / 100;
-						cardfix = cardfix * (100 + sd->right_weapon.addrace2[t_race2] + sd->left_weapon.addrace2[t_race2]) / 100;
-						cardfix = cardfix * (100 + sd->right_weapon.addclass[tstatus->class_] + sd->left_weapon.addclass[tstatus->class_] +
-							sd->right_weapon.addclass[CLASS_ALL] + sd->left_weapon.addclass[CLASS_ALL]) / 100;
+						//Adv. Katar Mastery functions similar to a +%ATK card on official [helvetica]
+						if( sd->status.weapon == W_KATAR && (skill = pc_checkskill(sd,ASC_KATAR)) > 0 )
+							cardfix = cardfix * (100 + (10 + 2 * skill)) / 100;
 					}
-					//Adv. Katar Mastery functions similar to a +%ATK card on official [helvetica]
-					if( sd->status.weapon == W_KATAR && (skill = pc_checkskill(sd,ASC_KATAR)) > 0 )
-						cardfix = cardfix * (100 + (10 + 2 * skill)) / 100;
-				}
-				for( i = 0; i < ARRAYLENGTH(sd->right_weapon.add_dmg) && sd->right_weapon.add_dmg[i].rate; i++ ) {
-					if( sd->right_weapon.add_dmg[i].class_ == t_class ) {
-						cardfix = cardfix * (100 + sd->right_weapon.add_dmg[i].rate) / 100;
-						break;
-					}
-				}
-				if( left&1 ) {
-					for( i = 0; i < ARRAYLENGTH(sd->left_weapon.add_dmg) && sd->left_weapon.add_dmg[i].rate; i++ ) {
-						if( sd->left_weapon.add_dmg[i].class_ == t_class ) {
-							cardfix_ = cardfix_ * (100 + sd->left_weapon.add_dmg[i].rate) / 100;
+					for( i = 0; i < ARRAYLENGTH(sd->right_weapon.add_dmg) && sd->right_weapon.add_dmg[i].rate; i++ ) {
+						if( sd->right_weapon.add_dmg[i].class_ == t_class ) {
+							cardfix = cardfix * (100 + sd->right_weapon.add_dmg[i].rate) / 100;
 							break;
+						}
+					}
+					if( left&1 ) {
+						for( i = 0; i < ARRAYLENGTH(sd->left_weapon.add_dmg) && sd->left_weapon.add_dmg[i].rate; i++ ) {
+							if( sd->left_weapon.add_dmg[i].class_ == t_class ) {
+								cardfix_ = cardfix_ * (100 + sd->left_weapon.add_dmg[i].rate) / 100;
+								break;
+							}
 						}
 					}
 				}
