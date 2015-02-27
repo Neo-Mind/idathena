@@ -734,14 +734,15 @@ static int elemental_ai_sub_timer(struct elemental_data *ed, struct map_session_
 		return 0;
 	} else if( master_dist > MAX_ELEDISTANCE ) {	// Master too far, chase.
 		short x = sd->bl.x, y = sd->bl.y;
+
 		if( ed->target_id )
 			elemental_unlocktarget(ed);
 		if( ed->ud.walktimer != INVALID_TIMER && ed->ud.target == sd->bl.id )
 			return 0; //Already walking to him
 		if( DIFF_TICK(tick, ed->ud.canmove_tick) < 0 )
 			return 0; //Can't move yet.
-		if( map_search_freecell(&ed->bl, sd->bl.m, &x, &y, MIN_ELEDISTANCE, MIN_ELEDISTANCE, 1)
-		   && unit_walktoxy(&ed->bl, x, y, 0) )
+		if( map_search_freecell(&ed->bl, sd->bl.m, &x, &y, MIN_ELEDISTANCE, MIN_ELEDISTANCE, 1) &&
+			unit_walktoxy(&ed->bl, x, y, 0) )
 			return 0;
 	}
 

@@ -10027,12 +10027,12 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 				if( ele ) {
 					struct status_change *sc = status_get_sc(&ele->bl);
-
 					sc_type type2 = (sc_type)(type - 1);
+
+					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 					if( (sc && sc->data[type2]) || (tsc && tsc->data[type]) )
 						elemental_clean_single_effect(ele,skill_id);
 					else {
-						clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 						clif_skill_damage(src,(skill_id == EL_GUST || skill_id == EL_BLAST || skill_id == EL_WILD_STORM) ? src : bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,DMG_SKILL);
 						if( skill_id == EL_WIND_STEP ) //There aren't teleport, just push the master away.
 							skill_blown(src,bl,(rnd()%skill_get_blewcount(skill_id,skill_lv)) + 1,rnd()%8,0);
@@ -10057,13 +10057,12 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 				if( ele ) {
 					struct status_change *sc = status_get_sc(&ele->bl);
-
 					sc_type type2 = (sc_type)(type - 1);
+
 					clif_skill_nodamage(src,src,skill_id,skill_lv,1);
 					if( (sc && sc->data[type2]) || (tsc && tsc->data[type]) )
 						elemental_clean_single_effect(ele,skill_id);
-					else {
-						//This not heals at the end.
+					else { //This not heals at the end
 						clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,DMG_SKILL);
 						sc_start(src,src,type2,100,skill_lv,skill_get_time(skill_id,skill_lv));
 						sc_start(src,bl,type,100,src->id,skill_get_time(skill_id,skill_lv));

@@ -15993,7 +15993,10 @@ void clif_mercenary_info(struct map_session_data *sd)
 	int fd;
 	struct mercenary_data *md;
 	struct status_data *status;
-	int atk, matk;
+	int atk;
+#ifdef RENEWAL
+	int matk;
+#endif
 
 	if( sd == NULL || (md = sd->md) == NULL )
 		return;

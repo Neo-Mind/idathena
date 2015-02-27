@@ -772,7 +772,7 @@ void initChangeTables(void) {
 	set_sc( GN_MANDRAGORA                 , SC_MANDRAGORA  , SI_MANDRAGORA                 , SCB_INT );
 	set_sc_with_vfx( GN_ILLUSIONDOPING    , SC_ILLUSIONDOPING  , SI_ILLUSIONDOPING         , SCB_HIT );
 
-	//Elemental Spirit summoner's 'side' status changes.
+	//Elemental Spirit summoner's 'side' status changes
 	set_sc( EL_CIRCLE_OF_FIRE  , SC_CIRCLE_OF_FIRE_OPTION, SI_CIRCLE_OF_FIRE_OPTION, SCB_NONE );
 	set_sc( EL_FIRE_CLOAK      , SC_FIRE_CLOAK_OPTION    , SI_FIRE_CLOAK_OPTION    , SCB_ALL );
 	set_sc( EL_WATER_SCREEN    , SC_WATER_SCREEN_OPTION  , SI_WATER_SCREEN_OPTION  , SCB_NONE );

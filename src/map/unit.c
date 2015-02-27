@@ -1647,7 +1647,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		}
 	}
 
-	if( src->type == BL_MOB )
+	if( src->type == BL_MOB ) {
 		switch( skill_id ) {
 			case NPC_SUMMONSLAVE:
 			case NPC_SUMMONMONSTER:
@@ -1655,6 +1655,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 				if( ((TBL_MOB*)src)->master_id && ((TBL_MOB*)src)->special_state.ai )
 					return 0;
 		}
+	}
 
 	if( src->type == BL_NPC ) //NPC-objects can override cast distance
 		range = AREA_SIZE; //Maximum visible distance before NPC goes out of sight
