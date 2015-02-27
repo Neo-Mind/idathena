@@ -88,7 +88,7 @@ void battle_drain(struct map_session_data *sd, struct block_list *tbl, int64 rda
 
 int battle_attr_ratio(int atk_elem, int def_type, int def_lv);
 int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 damage,int atk_elem,int def_type, int def_lv);
-int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_list *target, int nk, int s_ele, int s_ele_, int64 damage, int left, int flag);
+int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_list *target, uint16 skill_id, int nk, int s_ele, int s_ele_, int64 damage, int left, int flag);
 
 //Final calculation Damage
 int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Damage *d,int64 damage,uint16 skill_id,uint16 skill_lv);

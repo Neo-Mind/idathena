@@ -467,7 +467,7 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 /*==========================================
  * Calculates card bonuses damage adjustments.
  *------------------------------------------*/
-int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_list *target, int nk, int s_ele, int s_ele_, int64 damage, int left, int flag) {
+int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_list *target, uint16 skill_id, int nk, int s_ele, int s_ele_, int64 damage, int left, int flag) {
 	struct map_session_data *sd, *tsd;
 	short cardfix = 1000, t_class, s_class, s_race2, t_race2;
 	struct status_data *sstatus, *tstatus;
@@ -715,7 +715,7 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 				}
 				if( flag&BF_SHORT )
 					cardfix = cardfix * (100 - tsd->bonus.near_attack_def_rate) / 100;
-				else //BF_LONG (there's no other choice)
+				else
 					cardfix = cardfix * (100 - tsd->bonus.long_attack_def_rate) / 100;
 				if( tsd->sc.data[SC_DEF_RATE] )
 					cardfix = cardfix * (100 - tsd->sc.data[SC_DEF_RATE]->val1) / 100;
@@ -746,7 +746,7 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 				cardfix = cardfix * (100 - tsd->bonus.misc_def_rate) / 100;
 				if( flag&BF_SHORT )
 					cardfix = cardfix * (100 - tsd->bonus.near_attack_def_rate) / 100;
-				else //BF_LONG (there's no other choice)
+				else if( skill_id != GN_FIRE_EXPANSION_ACID )
 					cardfix = cardfix * (100 - tsd->bonus.long_attack_def_rate) / 100;
 				if( cardfix != 10000 )
 					damage = damage * cardfix / 1000;
@@ -4328,7 +4328,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 				ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_FLASHCOMBO]->val2);
 #endif
 			}
-			if((wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG) {
+			if((wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG && skill_id != GN_FIRE_EXPANSION_ACID) {
 				if(sc->data[SC_MTF_RANGEATK]) {
 					ATK_ADDRATE(wd.damage, wd.damage2, 25);
 					RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.long_attack_atk_rate'
@@ -5099,52 +5099,52 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 #ifdef RENEWAL
 		//In renewal we only cardfix to the weapon and equip ATK
 		//Card Fix for attacker (sd), 2 is added to the "left" flag meaning "attacker cards only"
-		wd.weaponAtk += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.weaponAtk, 2, wd.flag);
-		wd.equipAtk += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.equipAtk, 2, wd.flag);
+		wd.weaponAtk += battle_calc_cardfix(BF_WEAPON, src, target, skill_id, nk, right_element, left_element, wd.weaponAtk, 2, wd.flag);
+		wd.equipAtk += battle_calc_cardfix(BF_WEAPON, src, target, skill_id, nk, right_element, left_element, wd.equipAtk, 2, wd.flag);
 		if(is_attack_left_handed(src, skill_id)) {
-			wd.weaponAtk2 += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.weaponAtk2, 3, wd.flag);
-			wd.equipAtk2 += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.equipAtk2, 3, wd.flag);
+			wd.weaponAtk2 += battle_calc_cardfix(BF_WEAPON, src, target, skill_id, nk, right_element, left_element, wd.weaponAtk2, 3, wd.flag);
+			wd.equipAtk2 += battle_calc_cardfix(BF_WEAPON, src, target, skill_id, nk, right_element, left_element, wd.equipAtk2, 3, wd.flag);
 		}
 
-		if(skill_id == HW_MAGICCRASHER) //Add weapon attack for MATK into Magic Crasher
-			ATK_ADD(wd.weaponAtk, wd.weaponAtk2, status_get_matk(src, 2));
+		switch(skill_id) {
+			case HW_MAGICCRASHER: //Add weapon attack for MATK into Magic Crasher
+				ATK_ADD(wd.weaponAtk, wd.weaponAtk2, status_get_matk(src, 2));
+				break;
+			case CR_ACIDDEMONSTRATION:
+			case GN_FIRE_EXPANSION_ACID:
+				{
+					defType def1 = status_get_def(target);
+					short def2 = tstatus->def2, vit_def;
+
+					def1 = status_calc_def(target, tsc, def1, false);
+					def2 = status_calc_def2(target, tsc, def2, false);
+
+					if(tsd)
+						vit_def = def2;
+					else {
+						vit_def = def1;
+						def1 = def2;
+					}
+
+					//Status ATK, weapon ATK, and equip ATK are directly reduced by eDEF
+					//sDEF only directly reduces status ATK [exneval]
+					wd.statusAtk -= (def1 + vit_def);
+					wd.statusAtk2 -= (def1 + vit_def);
+					wd.weaponAtk -= def1;
+					wd.weaponAtk2 -= def1;
+					wd.equipAtk -= def1;
+					wd.equipAtk2 -= def1;
+				}
+				break;
+		}
 
 		//Final attack bonuses that aren't affected by cards
 		wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
 
-		if(skill_id == CR_ACIDDEMONSTRATION || skill_id == GN_FIRE_EXPANSION_ACID) {
-			defType def1 = status_get_def(target);
-			short def2 = tstatus->def2, vit_def;
-
-			def1 = status_calc_def(target, tsc, def1, false);
-			def2 = status_calc_def2(target, tsc, def2, false);
-
-			if(tsd)
-				vit_def = def2;
-			else {
-				vit_def = def1;
-				def1 = def2;
-			}
-
-			if(skill_id == CR_ACIDDEMONSTRATION) {
-				//Status ATK, weapon ATK, and equip ATK are directly reduced by eDEF
-				//sDEF only directly reduces status ATK [exneval]
-				wd.statusAtk -= (def1 + vit_def);
-				wd.statusAtk2 -= (def1 + vit_def);
-				wd.weaponAtk -= def1;
-				wd.weaponAtk2 -= def1;
-				wd.equipAtk -= def1;
-				wd.equipAtk2 -= def1;
-			} else { //Fire Expansion Acid ignores eDEF reductions
-				wd.statusAtk -= vit_def;
-				wd.statusAtk2 -= vit_def;
-			}
-		}
-
 		if(sd) { //Monsters, homuns and pets have their damage computed directly
 			wd.damage = wd.statusAtk + wd.weaponAtk + wd.equipAtk + wd.masteryAtk;
 			wd.damage2 = wd.statusAtk2 + wd.weaponAtk2 + wd.equipAtk2 + wd.masteryAtk2;
-			if(wd.flag&BF_LONG) //Ranged damage % effects the entirety of the damage [exneval]
+			if(wd.flag&BF_LONG && skill_id != GN_FIRE_EXPANSION_ACID) //Affects the entirety of the damage [exneval]
 				ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.long_attack_atk_rate);
 			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Temp. fix for "a hole" in renewal ATK calculation [exneval]
 		}
@@ -5300,9 +5300,9 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 
 #ifndef RENEWAL
 	if(sd) { //Card Fix for attacker (sd), 2 is added to the "left" flag meaning "attacker cards only"
-		wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.damage, 2, wd.flag);
+		wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, skill_id, nk, right_element, left_element, wd.damage, 2, wd.flag);
 		if(is_attack_left_handed(src, skill_id))
-			wd.damage2 += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.damage2, 3, wd.flag);
+			wd.damage2 += battle_calc_cardfix(BF_WEAPON, src, target, skill_id, nk, right_element, left_element, wd.damage2, 3, wd.flag);
 	}
 #endif
 
@@ -5317,9 +5317,9 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			case SO_VARETYR_SPEAR:
 				break; //These skills will do a card fix later
 			default:
-				wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.damage, 0, wd.flag);
+				wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, skill_id, nk, right_element, left_element, wd.damage, 0, wd.flag);
 				if(is_attack_left_handed(src, skill_id))
-					wd.damage2 += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.damage2, 1, wd.flag);
+					wd.damage2 += battle_calc_cardfix(BF_WEAPON, src, target, skill_id, nk, right_element, left_element, wd.damage2, 1, wd.flag);
 				break;
 		}
 	}
@@ -5594,16 +5594,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			case AB_RENOVATIO:
 				ad.damage = status_get_lv(src) * 10 + sstatus->int_;
 				break;
-#ifndef RENEWAL
-			case GN_FIRE_EXPANSION_ACID:
-				if(tstatus->vit + sstatus->int_)
-					ad.damage = (int64)(7 * tstatus->vit * sstatus->int_ * sstatus->int_ / (10 * (tstatus->vit + sstatus->int_)));
-				else
-					ad.damage = 0;
-				if(tsd)
-					ad.damage >>= 1;
-				break;
-#endif
 			default:
 				switch(skill_id) {
 #ifdef RENEWAL
@@ -6055,14 +6045,15 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		}
 
 #ifdef RENEWAL
-	switch(skill_id) {
-		case ASC_BREAKER:
-		case CR_ACIDDEMONSTRATION:
-			break; //These skills will do a card fix later
-		default:
-			ad.damage += battle_calc_cardfix(BF_MAGIC, src, target, nk, s_ele, 0, ad.damage, 0, ad.flag);
-			break;
-	}
+		switch(skill_id) {
+			case ASC_BREAKER:
+			case CR_ACIDDEMONSTRATION:
+			case GN_FIRE_EXPANSION_ACID:
+				break; //These skills will do a card fix later
+			default:
+				ad.damage += battle_calc_cardfix(BF_MAGIC, src, target, skill_id, nk, s_ele, 0, ad.damage, 0, ad.flag);
+				break;
+		}
 #endif
 
 		if(sd) {
@@ -6237,14 +6228,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					}
 				}
 				break;
-#ifdef RENEWAL
-			case GN_FIRE_EXPANSION_ACID: {
-					struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, mflag);
-
-					ad.damage = (int64)(7 * ((wd.damage / skill_lv + ad.damage / skill_lv) * tstatus->vit / 100));
-				}
-				break;
-#endif
 			case SO_VARETYR_SPEAR: {
 					struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, mflag);
 
@@ -6254,7 +6237,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		}
 
 #ifndef RENEWAL
-	ad.damage += battle_calc_cardfix(BF_MAGIC, src, target, nk, s_ele, 0, ad.damage, 0, ad.flag);
+		ad.damage += battle_calc_cardfix(BF_MAGIC, src, target, skill_id, nk, s_ele, 0, ad.damage, 0, ad.flag);
 #endif
 	}
 
@@ -6267,6 +6250,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 #ifdef RENEWAL
 		case ASC_BREAKER:
 		case CR_ACIDDEMONSTRATION:
+		case GN_FIRE_EXPANSION_ACID:
 			return ad; //These skills will do a GVG fix later
 #endif
 		default:
@@ -6420,6 +6404,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			md.damage = 1 + rnd()%9999;
 			break;
 		case CR_ACIDDEMONSTRATION:
+		case GN_FIRE_EXPANSION_ACID:
 #ifdef RENEWAL
 			{
 				//Official Renewal formula [helvetica]
@@ -6485,7 +6470,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			//Fixed damage, ignores DEF, DEF cards and benefits from weapon +%ATK cards
 			md.blewcount = 0;
 			md.damage = 50 * skill_lv;
-			md.damage += battle_calc_cardfix(BF_WEAPON,src,target,nk,s_ele,0,md.damage,0,md.flag|NK_NO_CARDFIX_DEF);
+			md.damage += battle_calc_cardfix(BF_WEAPON,src,target,skill_id,nk,s_ele,0,md.damage,0,md.flag|NK_NO_CARDFIX_DEF);
 			break;
 		case HVAN_EXPLOSION: //[orn]
 			md.damage = sstatus->max_hp * (50 + 50 * skill_lv) / 100;
@@ -6642,7 +6627,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		}
 	}
 
-	md.damage += battle_calc_cardfix(BF_MISC,src,target,nk,s_ele,0,md.damage,0,md.flag);
+	md.damage += battle_calc_cardfix(BF_MISC,src,target,skill_id,nk,s_ele,0,md.damage,0,md.flag);
 
 	if(sd) {
 		uint16 skill;

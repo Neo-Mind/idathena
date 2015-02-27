@@ -1229,7 +1229,6 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			break;
 
 		case CR_ACIDDEMONSTRATION:
-		case GN_FIRE_EXPANSION_ACID:
 			skill_break_equip(src,bl,EQP_WEAPON|EQP_ARMOR,100 * skill_lv,BCT_ENEMY);
 			break;
 
@@ -1462,6 +1461,14 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 		case GN_THORNS_TRAP:
 		case GN_BLOOD_SUCKER:
 			attack_type |= BF_WEAPON|BF_LONG|BF_NORMAL;
+			break;
+		case GN_FIRE_EXPANSION_ACID: {
+				uint8 aciddemocast = 5;
+
+				if( sd && pc_checkskill(sd,CR_ACIDDEMONSTRATION) > 5 )
+					aciddemocast = pc_checkskill(sd,CR_ACIDDEMONSTRATION);
+				skill_break_equip(src,bl,EQP_WEAPON|EQP_ARMOR,100 * aciddemocast,BCT_ENEMY);
+			}
 			break;
 		case GN_SLINGITEM_RANGEMELEEATK:
 			if( sd ) {
@@ -5136,7 +5143,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 		case GN_DEMONIC_FIRE:
 		case GN_FIRE_EXPANSION_ACID:
 			if (flag&1)
-				skill_attack(BF_MAGIC,src,src,bl,skill_id,skill_lv,tick,flag);
+				skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
 
 		case WM_SOUND_OF_DESTRUCTION:
@@ -11722,7 +11729,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 
 		case GN_FIRE_EXPANSION: {
 			//If player doesen't know Acid Demonstration or knows level 5 or lower, effect 5 will cast level 5 Acid Demo
-			int i, aciddemocast = 5;
+			uint8 i, aciddemocast = 5;
 			struct unit_data *ud = unit_bl2ud(src);
 
 			if( !ud )
