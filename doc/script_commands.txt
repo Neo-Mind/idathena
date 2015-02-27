@@ -4963,7 +4963,9 @@ This command will destroy whatever is currently equipped in the invoking
 character's specified equipment slot. For a full list of possible equipment 
 slots see 'getequipid'.
 
-This command will return 1 if an item was deleted and 0 otherwise.
+It is always a good idea to check if the player actually has the item you want 
+before you use this command. If you try to delete in a position that the player 
+has no gear, script will be terminated with an error.
 
 ---------------------------------------
 

@@ -2060,11 +2060,6 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 		}
 	}
 #endif
-
-	if (md->special_state.ai == AI_SPHERE) { //LOne WOlf explained that ANYONE can trigger the marine countdown skill. [Skotlex]
-		md->state.alchemist = 1;
-		mobskill_use(md, gettick(), MSC_ALCHEMIST);
-	}
 }
 
 /*==========================================
@@ -2309,7 +2304,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	if(!(type&1) && !map[m].flag.nomobloot && !md->state.rebirth && (
 		!md->special_state.ai || //Non special mob
 		battle_config.alchemist_summon_reward == 2 || //All summoned give drops
-		(md->special_state.ai == AI_SPHERE && battle_config.alchemist_summon_reward == 1) //Marine Sphere Drops items
+		(md->special_state.ai == AI_SPHERE && battle_config.alchemist_summon_reward == 1) //Marine Sphere drops items
 		))
 	{ //Item Drop
 		struct item_drop_list *dlist = ers_alloc(item_drop_list_ers, struct item_drop_list);
@@ -3348,6 +3343,11 @@ int mobskill_event(struct mob_data *md, struct block_list *src, unsigned int tic
 	if (md->bl.prev == NULL || md->status.hp == 0)
 		return 0;
 
+	if (md->special_state.ai == AI_SPHERE) { //LOne WOlf explained that ANYONE can trigger the marine countdown skill [Skotlex]
+		md->state.alchemist = 1;
+		return mobskill_use(md, gettick(), MSC_ALCHEMIST);
+	}
+
 	target_id = md->target_id;
 	if (!target_id || battle_config.mob_changetarget_byskill)
 		md->target_id = src->id;
@@ -3358,13 +3358,13 @@ int mobskill_event(struct mob_data *md, struct block_list *src, unsigned int tic
 		res = mobskill_use(md, tick, flag);
 	else if (flag&BF_SHORT)
 		res = mobskill_use(md, tick, MSC_CLOSEDATTACKED);
-	else if (flag&BF_LONG && !(flag&BF_MAGIC)) //Long-attacked should not include magic.
+	else if (flag&BF_LONG && !(flag&BF_MAGIC)) //Long-attacked should not include magic
 		res = mobskill_use(md, tick, MSC_LONGRANGEATTACKED);
 
 	if (!res)
-	//Restore previous target only if skill condition failed to trigger. [Skotlex]
+	//Restore previous target only if skill condition failed to trigger [Skotlex]
 		md->target_id = target_id;
-	//Otherwise check if the target is an enemy, and unlock if needed.
+	//Otherwise check if the target is an enemy, and unlock if needed
 	else if (battle_check_target(&md->bl, src, BCT_ENEMY) <= 0)
 		md->target_id = target_id;
 

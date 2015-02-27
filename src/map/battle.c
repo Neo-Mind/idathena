@@ -2322,6 +2322,11 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 			case NPC_UNDEADATTACK:
 			case NPC_TELEKINESISATTACK:
 			case NPC_BLEEDING:
+			case NPC_FIREBREATH:
+			case NPC_ICEBREATH:
+			case NPC_THUNDERBREATH:
+			case NPC_ACIDBREATH:
+			case NPC_DARKNESSBREATH:
 				hitrate += hitrate * 20 / 100;
 				break;
 			case KN_PIERCE:
@@ -6174,15 +6179,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			else
 				ad.damage = ad.damage * (100 - mdef) / 100 - int_mdef;
 #endif
-		}
-
-		//Adds atk2 to the damage, should be influenced by number of hits and skill-ratio, but not mdef reductions [Skotlex]
-		//Also divide the extra bonuses from atk2 based on the number in range [Kevin]
-		if(skill_id == NPC_EARTHQUAKE) {
-			if(mflag > 0)
-				ad.damage += sstatus->rhw.atk2 * skillratio / 100 / mflag;
-			else
-				ShowError("Zero range by %d:%s, divide per 0 avoided!\n", skill_id, skill_get_name(skill_id));
 		}
 
 		if(ad.damage < 1)

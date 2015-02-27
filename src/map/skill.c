@@ -2791,11 +2791,9 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 		}
 	}
 
-	//Earthquake on multiple targets is not counted as a target skill [Inkfish]
-	if ((dmg.flag&BF_MAGIC) && (skill_id != NPC_EARTHQUAKE ||
+	if ((dmg.flag&BF_MAGIC) && (skill_id != NPC_EARTHQUAKE || //Earthquake on multiple targets is not counted as a target skill [Inkfish]
 		(battle_config.eq_single_target_reflectable && (flag&0xFFF) == 1))) {
-		//Magic reflection, switch caster/target
-		if ((dmg.damage || dmg.damage2) && (type = skill_magic_reflect(src, bl, src == dsrc))) {
+		if ((dmg.damage || dmg.damage2) && (type = skill_magic_reflect(src, bl, src == dsrc))) { //Magic reflection, switch caster/target
 			struct block_list *tbl = bl;
 
 			rmdamage = true;
@@ -2807,10 +2805,8 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 			tsc = status_get_sc(bl);
 			if (tsc && !tsc->count)
 				tsc = NULL; //Don't need it
-			//bugreport:2564 flag&2 disables double casting trigger
-			flag |= 2;
-			//bugreport:7859 magical reflect'd zeroes blewcount
-			dmg.blewcount = 0;
+			flag |= 2; //bugreport:2564 flag&2 disables double casting trigger
+			dmg.blewcount = 0; //bugreport:7859 magical reflect'd zeroes blewcount
 			//Spirit of Wizard blocks Kaite's reflection
 			if (type == 2 && tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_WIZARD) {
 				//Consume one Fragment per hit of the casted skill? [Skotlex]
@@ -3638,14 +3634,6 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 					map_foreachinarea(skill_frostjoke_scream,skl->map,skl->x-range,skl->y-range,
 						skl->x+range,skl->y+range,BL_CHAR,src,skl->skill_id,skl->skill_lv,tick);
 					break;
-				case NPC_EARTHQUAKE:
-					if (skl->type > 1)
-						skill_addtimerskill(src,tick + 250,src->id,0,0,skl->skill_id,skl->skill_lv,skl->type - 1,skl->flag);
-					skill_area_temp[0] = map_foreachinrange(skill_area_sub,src,skill_get_splash(skl->skill_id,skl->skill_lv),BL_CHAR,src,skl->skill_id,skl->skill_lv,tick,BCT_ENEMY,skill_area_sub_count);
-					skill_area_temp[1] = src->id;
-					skill_area_temp[2] = 0;
-					map_foreachinrange(skill_area_sub,src,skill_get_splash(skl->skill_id,skl->skill_lv),splash_target(src),src,skl->skill_id,skl->skill_lv,tick,skl->flag,skill_castend_damage_id);
-					break;
 				case WZ_WATERBALL:
 					skill_toggle_magicpower(src,skl->skill_id); //Only the first hit will be amplify
 					//Official behaviour is to hit as long as there is a line of sight, regardless of distance
@@ -4303,7 +4291,6 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 		case ASC_METEORASSAULT:
 		case GS_DESPERADO:
 		case GS_SPREADATTACK:
-		case NPC_EARTHQUAKE:
 		case NPC_PULSESTRIKE:
 		case NPC_HELLJUDGEMENT:
 		case NPC_VAMPIRE_GIFT:
@@ -4367,9 +4354,6 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 					case LG_MOONSLASHER:
 					case MH_XENO_SLASHER:
 						clif_skill_damage(src,bl,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,DMG_SKILL);
-						break;
-					case NPC_EARTHQUAKE: //FIXME: Isn't EarthQuake a ground skill after all?
-						skill_addtimerskill(src,tick + 250,src->id,0,0,skill_id,skill_lv,2,flag|BCT_ENEMY|SD_SPLASH|1);
 						break;
 					default:
 						break;
@@ -6570,7 +6554,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case SR_WINDMILL:
 		case GN_CART_TORNADO:
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-		case NPC_EARTHQUAKE:
+		//Fall through
 		case NPC_VAMPIRE_GIFT:
 		case NPC_HELLJUDGEMENT:
 		case NPC_PULSESTRIKE:
@@ -11242,6 +11226,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 #ifdef RENEWAL
 		case NJ_HUUMA:
 #endif
+		case NPC_EARTHQUAKE:
 		case NPC_EVILLAND:
 		case WL_COMET:
 		case RA_ELECTRICSHOCKER:
@@ -12481,6 +12466,9 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 				}
 			}
 			break;
+		case NPC_EARTHQUAKE:
+			clif_skill_damage(src,src,gettick(),status_get_amotion(src),0,-30000,1,skill_id,skill_lv,DMG_SKILL);
+			break;
 	}
 
 	//Init skill unit group
@@ -13162,6 +13150,11 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			if (!battle_check_undead(tstatus->race,tstatus->def_ele) && tstatus->race != RC_DEMON)
 				break;
 			skill_attack(BF_MAGIC,src,&unit->bl,bl,skill_id,skill_lv,tick,0);
+			break;
+
+		case UNT_EARTHQUAKE:
+			skill_attack(BF_MAGIC,src,&unit->bl,bl,skill_id,skill_lv,tick,
+				map_foreachinrange(skill_area_sub,&unit->bl,skill_get_splash(skill_id,skill_lv),BL_CHAR,&unit->bl,skill_id,skill_lv,tick,BCT_ENEMY,skill_area_sub_count));
 			break;
 
 		case UNT_FIREPILLAR_WAITING:

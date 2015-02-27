@@ -7899,27 +7899,24 @@ BUILDIN_FUNC(delequip)
 {
 	short i = -1;
 	int pos;
-	int8 ret;
 	TBL_PC *sd;
 
 	pos = script_getnum(st,2);
 	sd = script_rid2sd(st);
 	if(sd == NULL)
 		return 0;
-
 	if(pos > 0 && pos <= ARRAYLENGTH(equip))
 		i = pc_checkequip(sd,equip[pos - 1]);
 	if(i >= 0) {
 		pc_unequipitem(sd,i,3); //Recalculate bonus
-		ret = !(pc_delitem(sd,i,1,0,2,LOG_TYPE_SCRIPT));
-	} else {
-		ShowError("buildin_delequip: No item equipped at pos %d (CID=%d/AID=%d).\n",pos,sd->status.char_id,sd->status.account_id);
-		st->state = END;
-		return 1;
+		pc_delitem(sd,i,1,0,2,LOG_TYPE_SCRIPT);
+		return 0;
 	}
 
-  script_pushint(st,ret);
-  return SCRIPT_CMD_SUCCESS;
+	ShowError("buildin_delequip: No item equipped at pos %d (CID=%d/AID=%d).\n",pos,sd->status.char_id,sd->status.account_id);
+	st->state = END;
+	clif_scriptclose(sd,st->oid);
+	return 1;
 }
 
 /*==========================================
@@ -7935,7 +7932,6 @@ BUILDIN_FUNC(breakequip)
 	sd = script_rid2sd(st);
 	if(sd == NULL)
 		return 0;
-
 	if(pos > 0 && pos <= ARRAYLENGTH(equip))
 		i = pc_checkequip(sd,equip[pos - 1]);
 	if(i >= 0) {
@@ -8415,7 +8411,7 @@ BUILDIN_FUNC(end)
 		st->mes_active = 0;
 
 	if( sd )
-		clif_scriptclose(sd, st->oid); // If a menu/select/prompt is active, close it.
+		clif_scriptclose(sd, st->oid); // If a menu/select/prompt is active, close it
 
 	return SCRIPT_CMD_SUCCESS;
 }
