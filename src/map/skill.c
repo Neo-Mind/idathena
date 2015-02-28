@@ -484,17 +484,15 @@ static char skill_isCopyable(struct map_session_data *sd, uint16 skill_id) {
 		}
 	}
 
-	//Plagiarism only able to copy skill while SC_PRESERVE is not active and skill is copyable by Plagiarism
 	if( pc_checkskill(sd, RG_PLAGIARISM) ) {
-		if( (skill_db[idx].copyable.option&1) && sd->sc.data[SC_PRESERVE] && sd->sc.data[SC__REPRODUCE] )
-			return 0;
-		if( (skill_db[idx].copyable.option&1) && !sd->sc.data[SC_PRESERVE] )
-			return 1;
+		if( !sd->sc.data[SC_PRESERVE] ) {
+			if( (skill_db[idx].copyable.option&1) )
+				return 1; //Plagiarism only able to copy skill while SC_PRESERVE is not active and skill is copyable by Plagiarism
+		} else if( sd->sc.data[SC__REPRODUCE] ) {
+			if( (skill_db[idx].copyable.option&2) )
+				return 2; //Reproduce can copy skill if SC__REPRODUCE is active and the skill is copyable by Reproduce
+		}
 	}
-
-	//Reproduce can copy skill if SC__REPRODUCE is active and the skill is copyable by Reproduce
-	if( (skill_db[idx].copyable.option&2) && pc_checkskill(sd, SC_REPRODUCE) && sd->sc.data[SC__REPRODUCE] )
-		return 2;
 
 	return 0;
 }
@@ -2595,7 +2593,7 @@ static void skill_do_copy(struct block_list* src,struct block_list *bl, uint16 s
 						tsd->status.skill[tsd->reproduceskill_idx].flag = SKILL_FLAG_PERMANENT;
 						clif_deleteskill(tsd, tsd->status.skill[tsd->reproduceskill_idx].id);
 					}
-					//Level dependent and limitation.
+					//Level dependent and limitation
 					if( src->type == BL_PC ) //If player, max skill level is skill_get_max(skill_id)
 						lv = min(lv, skill_get_max(skill_id));
 					else //Monster might used skill level > allowed player max skill lv. Ex. Drake with Waterball lv. 10
