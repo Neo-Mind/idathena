@@ -1170,6 +1170,7 @@ IG_Lucky_Silvervine_Fruit_Box_II110	421
 IG_Lucky_Silvervine_Fruit_Box_III10	422
 IG_Lucky_Silvervine_Fruit_Box_III110	423
 IG_Something_Candy_Holder	424
+IG_Old_Ore_Box	425
 
 SC_ALL	-1
 SC_STONE	0

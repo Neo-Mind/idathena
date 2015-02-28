@@ -484,12 +484,11 @@ static char skill_isCopyable(struct map_session_data *sd, uint16 skill_id) {
 		}
 	}
 
-	if( pc_checkskill(sd, RG_PLAGIARISM) ) {
-		if( (skill_db[idx].copyable.option&1) && !sd->sc.data[SC_PRESERVE] )
-			return 1; //Plagiarism only able to copy skill while SC_PRESERVE is not active and skill is copyable by Plagiarism
-		if( (skill_db[idx].copyable.option&2) && sd->sc.data[SC__REPRODUCE] )
-			return 2; //Reproduce can copy skill if SC__REPRODUCE is active and the skill is copyable by Reproduce
-	}
+	if( (skill_db[idx].copyable.option&1) && pc_checkskill(sd, RG_PLAGIARISM) && !sd->sc.data[SC_PRESERVE] )
+		return 1; //Plagiarism only able to copy skill while SC_PRESERVE is not active and skill is copyable by Plagiarism
+
+	if( (skill_db[idx].copyable.option&2) && pc_checkskill(sd, SC_REPRODUCE) && sd->sc.data[SC__REPRODUCE] )
+		return 2; //Reproduce can copy skill if SC__REPRODUCE is active and the skill is copyable by Reproduce
 
 	return 0;
 }

@@ -2646,6 +2646,7 @@
 2024,475,100	// Infinity_Two-handed_Stick
 6905,475,100	// Broken_Magic_Stone
 6917,475,100	// Piece_Of_Soul_Chicken
+12831,475,100	// Potion_Box
 13126,475,100	// Infinity_Pistol
 13323,475,100	// Infinity_Shuriken
 15141,475,100	// Ancient_Armor_Of_The_Goddess
