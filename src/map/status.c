@@ -9747,8 +9747,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val2 = 3 + val1;
 				tick_time = 1000;
 				val4 = tick / tick_time;
-				if( sd )
-					sd->state.monster_ignore = 1;
 				break;
 			case SC_TELEKINESIS_INTENSE:
 				val2 = 10 * val1;
@@ -11012,10 +11010,6 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 						break;
 				}
 			}
-			break;
-		case SC_KINGS_GRACE:
-			if (sd)
-				sd->state.monster_ignore = 0;
 			break;
 		case SC_HEAT_BARREL:
 			if (sd)

@@ -873,7 +873,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			status_change_end(bl,SC_SAFETYWALL,INVALID_TIMER);
 		}
 
-		if( (sc->data[SC_PNEUMA] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG) || sc->data[SC__MANHOLE] ) {
+		if( (sc->data[SC_PNEUMA] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG) ||
+			sc->data[SC__MANHOLE] || (src->type == BL_PC && sc->data[SC_KINGS_GRACE]) ) {
 			d->dmg_lv = ATK_BLOCK;
 			return 0;
 		}
@@ -7574,7 +7575,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 
 	switch( target->type ) { //Checks on actual target
 		case BL_PC: {
-				struct status_change* sc = status_get_sc(src);
+				struct status_change *sc = status_get_sc(src);
 
 				if( (((TBL_PC*)target)->invincible_timer != INVALID_TIMER || pc_isinvisible((TBL_PC*)target)) && 
 					!(flag&BCT_NOENEMY) )
@@ -7665,11 +7666,13 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 	switch( t_bl->type ) { //Checks on target master
 		case BL_PC: {
 				struct map_session_data *sd = NULL;
+				struct status_change *sc = NULL;
 
 				if( t_bl == s_bl )
 					break;
 				sd = BL_CAST(BL_PC, t_bl);
-				if( sd->state.monster_ignore && flag&BCT_ENEMY )
+				sc = status_get_sc(t_bl);
+				if( (sd->state.monster_ignore || (sc->data[SC_KINGS_GRACE] && s_bl->type != BL_PC)) && flag&BCT_ENEMY )
 					return 0; //Global immunity only to attacks
 				if( sd->status.karma && s_bl->type == BL_PC && ((TBL_PC*)s_bl)->status.karma )
 					state |= BCT_ENEMY; //Characters with bad karma may fight amongst them
