@@ -175,6 +175,10 @@ int autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
 int start_zeny = 0;
 int guild_exp_rate = 100;
 
+char default_map[MAP_NAME_LENGTH];
+unsigned short default_map_x = 156;
+unsigned short default_map_y = 191;
+
 // Pincode system
 #define PINCODE_OK 0
 #define PINCODE_ASK 1
@@ -1259,15 +1263,15 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 	p->save_point.map = mapindex_name2id(save_map);
 
 	if( p->last_point.map == 0 ) {
-		p->last_point.map = mapindex_name2id(MAP_DEFAULT);
-		p->last_point.x = MAP_DEFAULT_X;
-		p->last_point.y = MAP_DEFAULT_Y;
+		p->last_point.map = mapindex_name2id(default_map);
+		p->last_point.x = default_map_x;
+		p->last_point.y = default_map_y;
 	}
 
 	if( p->save_point.map == 0 ) {
-		p->save_point.map = mapindex_name2id(MAP_DEFAULT);
-		p->save_point.x = MAP_DEFAULT_X;
-		p->save_point.y = MAP_DEFAULT_Y;
+		p->save_point.map = mapindex_name2id(default_map);
+		p->save_point.x = default_map_x;
+		p->save_point.y = default_map_y;
 	}
 
 	strcat(t_msg, " status");
@@ -2909,25 +2913,25 @@ int char_send_fame_list(int fd)
 
 	WBUFW(buf,0) = 0x2b1b;
 
-	for(i = 0; i < fame_list_size_smith && smith_fame_list[i].id; i++) {
+	for (i = 0; i < fame_list_size_smith && smith_fame_list[i].id; i++) {
 		memcpy(WBUFP(buf, len), &smith_fame_list[i], sizeof(struct fame_list));
 		len += sizeof(struct fame_list);
 	}
-	// add blacksmith's block length
+	//Add blacksmith's block length
 	WBUFW(buf, 6) = len;
 
-	for(i = 0; i < fame_list_size_chemist && chemist_fame_list[i].id; i++) {
+	for (i = 0; i < fame_list_size_chemist && chemist_fame_list[i].id; i++) {
 		memcpy(WBUFP(buf, len), &chemist_fame_list[i], sizeof(struct fame_list));
 		len += sizeof(struct fame_list);
 	}
-	// add alchemist's block length
+	//Add alchemist's block length
 	WBUFW(buf, 4) = len;
 
-	for(i = 0; i < fame_list_size_taekwon && taekwon_fame_list[i].id; i++) {
+	for (i = 0; i < fame_list_size_taekwon && taekwon_fame_list[i].id; i++) {
 		memcpy(WBUFP(buf, len), &taekwon_fame_list[i], sizeof(struct fame_list));
 		len += sizeof(struct fame_list);
 	}
-	// add total packet length
+	//Add total packet length
 	WBUFW(buf, 2) = len;
 
 	if (fd != -1)
@@ -2941,11 +2945,84 @@ int char_send_fame_list(int fd)
 void char_update_fame_list(int type, int index, int fame)
 {
 	unsigned char buf[8];
+
 	WBUFW(buf,0) = 0x2b22;
 	WBUFB(buf,2) = type;
 	WBUFB(buf,3) = index;
 	WBUFL(buf,4) = fame;
 	mapif_sendall(buf, 8);
+}
+
+/**
+ * Send some misc info to new map-server.
+ * - Server name for whisper name
+ * - Default map
+ * HZ 0x2afb <size>.W <status>.B <name>.24B <mapname>.11B <map_x>.W <map_y>.W
+ * @param fd
+ **/
+static void char_send_misc(int fd) {
+	uint16 offs = 5;
+	unsigned char buf[45];
+
+	memset(buf, '\0', sizeof(buf));
+	WBUFW(buf,0) = 0x2afb;
+	//0: Succes, 1: Failure
+	WBUFB(buf,4) = 0;
+	//Send name for wisp to player
+	memcpy(WBUFP(buf,5), wisp_server_name, NAME_LENGTH);
+	//Default map
+	memcpy(WBUFP(buf,(offs += NAME_LENGTH)), default_map, MAP_NAME_LENGTH); //29
+	WBUFW(buf,(offs += MAP_NAME_LENGTH)) = default_map_x; //41
+	WBUFW(buf,(offs += 2)) = default_map_y; //43
+	offs += 2;
+	//Length
+	WBUFW(buf,2) = offs;
+	mapif_send(fd, buf, offs);
+}
+
+/**
+ * Sends maps to all map-server
+ * HZ 0x2b04 <size>.W <ip>.L <port>.W { <map>.?B }.?B
+ * @param fd
+ * @param map_id
+ * @param count Number of map from new map-server has
+ **/
+static void char_send_maps(int fd, int map_id, int count, unsigned char *mapbuf) {
+	uint16 x;
+
+	if (count == 0) {
+		ShowWarning("Map-server %d has NO maps.\n", map_id);
+	} else {
+		unsigned char buf[16384];
+
+		//Transmitting maps information to the other map-servers
+		WBUFW(buf,0) = 0x2b04;
+		WBUFW(buf,2) = count * 4 + 10;
+		WBUFL(buf,4) = htonl(server[map_id].ip);
+		WBUFW(buf,8) = htons(server[map_id].port);
+		memcpy(WBUFP(buf,10), mapbuf, count * 4);
+		mapif_sendallwos(fd, buf, WBUFW(buf,2));
+	}
+
+	//Transmitting the maps of the other map-servers to the new map-server
+	for (x = 0; x < ARRAYLENGTH(server); x++) {
+		if (server[x].fd > 0 && x != map_id) {
+			uint16 i, j;
+
+			WFIFOHEAD(fd,10 + 4 * ARRAYLENGTH(server[x].map));
+			WFIFOW(fd,0) = 0x2b04;
+			WFIFOL(fd,4) = htonl(server[x].ip);
+			WFIFOW(fd,8) = htons(server[x].port);
+			j = 0;
+			for (i = 0; i < ARRAYLENGTH(server[x].map); i++)
+				if (server[x].map[i])
+					WFIFOW(fd,10 + (j++) * 4) = server[x].map[i];
+			if (j > 0) {
+				WFIFOW(fd,2) = j * 4 + 10;
+				WFIFOSET(fd,WFIFOW(fd,2));
+			}
+		}
+	}
 }
 
 //Loads a character's name and stores it in the buffer given (must be NAME_LENGTH in size)
@@ -2957,21 +3034,16 @@ int char_loadName(int char_id, char* name)
 
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `name` FROM `%s` WHERE `char_id`='%d'", char_db, char_id) )
 		Sql_ShowDebug(sql_handle);
-	else if( SQL_SUCCESS == Sql_NextRow(sql_handle) )
-	{
+	else if( SQL_SUCCESS == Sql_NextRow(sql_handle) ) {
 		Sql_GetData(sql_handle, 0, &data, &len);
 		safestrncpy(name, data, NAME_LENGTH);
 		return 1;
-	}
-	else
-	{
+	} else
 		safestrncpy(name, unknown_char_name, NAME_LENGTH);
-	}
 	return 0;
 }
 
 int search_mapserver(unsigned short map, uint32 ip, uint16 port);
-
 
 /// Initializes a server structure.
 void mapif_server_init(int id)
@@ -3223,6 +3295,7 @@ int parse_frommap(int fd)
 {
 	int i, j;
 	int id;
+	unsigned char *mapbuf;
 
 	ARR_FIND(0, ARRAYLENGTH(server), id, server[id].fd == fd);
 	if( id == ARRAYLENGTH(server) ) { //Not a map server
@@ -3240,7 +3313,8 @@ int parse_frommap(int fd)
 	while( RFIFOREST(fd) >= 2 ) {
 		switch( RFIFOW(fd,0) ) {
 			case 0x2736: //Ip address update
-				if( RFIFOREST(fd) < 6 ) return 0;
+				if( RFIFOREST(fd) < 6 )
+					return 0;
 				server[id].ip = ntohl(RFIFOL(fd,2));
 				ShowInfo("Updated IP address of map-server #%d to %d.%d.%d.%d.\n", id, CONVIP(server[id].ip));
 				RFIFOSKIP(fd,6);
@@ -3257,52 +3331,16 @@ int parse_frommap(int fd)
 					j++;
 				}
 
+				mapbuf = RFIFOP(fd,4);
+				RFIFOSKIP(fd,RFIFOW(fd,2));
+
 				ShowStatus("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d.\n",
 					id, j, CONVIP(server[id].ip), server[id].port);
 				ShowStatus("Map-server %d loading complete.\n", id);
 
-				//Send name for wisp to player
-				WFIFOHEAD(fd,3 + NAME_LENGTH);
-				WFIFOW(fd,0) = 0x2afb;
-				WFIFOB(fd,2) = 0;
-				memcpy(WFIFOP(fd,3), wisp_server_name, NAME_LENGTH);
-				WFIFOSET(fd,3 + NAME_LENGTH);
-
+				char_send_misc(fd);
 				char_send_fame_list(fd); //Send fame list
-				{
-					int x;
-					if( j == 0 )
-						ShowWarning("Map-server %d has NO maps.\n", id);
-					else {
-						unsigned char buf[16384];
-
-						//Transmitting maps information to the other map-servers
-						WBUFW(buf,0) = 0x2b04;
-						WBUFW(buf,2) = j * 4 + 10;
-						WBUFL(buf,4) = htonl(server[id].ip);
-						WBUFW(buf,8) = htons(server[id].port);
-						memcpy(WBUFP(buf,10), RFIFOP(fd,4), j * 4);
-						mapif_sendallwos(fd, buf, WBUFW(buf,2));
-					}
-					//Transmitting the maps of the other map-servers to the new map-server
-					for( x = 0; x < ARRAYLENGTH(server); x++ ) {
-						if( server[x].fd > 0 && x != id ) {
-							WFIFOHEAD(fd,10 + 4 * ARRAYLENGTH(server[x].map));
-							WFIFOW(fd,0) = 0x2b04;
-							WFIFOL(fd,4) = htonl(server[x].ip);
-							WFIFOW(fd,8) = htons(server[x].port);
-							j = 0;
-							for( i = 0; i < ARRAYLENGTH(server[x].map); i++ )
-								if( server[x].map[i] )
-									WFIFOW(fd,10 + (j++) * 4) = server[x].map[i];
-							if( j > 0 ) {
-								WFIFOW(fd,2) = j * 4 + 10;
-								WFIFOSET(fd,WFIFOW(fd,2));
-							}
-						}
-					}
-				}
-				RFIFOSKIP(fd,RFIFOW(fd,2));
+				char_send_maps(fd, id, j, mapbuf);
 				break;
 
 			case 0x2afc: //Packet command is now used for sc_data request [Skotlex]
@@ -5738,6 +5776,12 @@ int char_config_read(const char* cfgName)
 			char_moves_unlimited = config_switch(w2);
 		else if (strcmpi(w1, "char_maintenance_min_group_id") == 0)
 			char_maintenance_min_group_id = atoi(w2);
+		else if (strcmpi(w1, "default_map") == 0)
+			safestrncpy(default_map, w2, MAP_NAME_LENGTH);
+		else if (strcmpi(w1, "default_map_x") == 0)
+			default_map_x = atoi(w2);
+		else if (strcmpi(w1, "default_map_y") == 0)
+			default_map_y = atoi(w2);
 		else if (strcmpi(w1, "import") == 0)
 			char_config_read(w2);
 	}
@@ -5810,13 +5854,13 @@ void do_shutdown(void)
 	}
 }
 
-
 int do_init(int argc, char **argv)
 {
 	//Read map indexes
 	runflag = CHARSERVER_ST_STARTING;
 	mapindex_init();
 	start_point.map = mapindex_name2id("new_zone01");
+	safestrncpy(default_map, "prontera", MAP_NAME_LENGTH);
 
 	CHAR_CONF_NAME = "conf/char_athena.conf";
 	LAN_CONF_NAME = "conf/subnet_athena.conf";
@@ -5830,18 +5874,18 @@ int do_init(int argc, char **argv)
 	char_lan_config_read(LAN_CONF_NAME);
 	sql_config_read(SQL_CONF_NAME);
 
-	if (strcmp(userid, "s1")==0 && strcmp(passwd, "p1")==0) {
+	if (strcmp(userid, "s1") == 0 && strcmp(passwd, "p1") == 0) {
 		ShowWarning("Using the default user/password s1/p1 is NOT RECOMMENDED.\n");
 		ShowNotice("Please edit your 'login' table to create a proper inter-server user/password (gender 'S')\n");
 		ShowNotice("And then change the user/password to use in conf/char_athena.conf (or conf/import/char_conf.txt)\n");
 	}
 
-	inter_init_sql((argc > 2) ? argv[2] : inter_cfgName); // inter server configuration
+	inter_init_sql((argc > 2) ? argv[2] : inter_cfgName); //inter-server configuration
 
 	auth_db = idb_alloc(DB_OPT_RELEASE_DATA);
 	online_char_db = idb_alloc(DB_OPT_RELEASE_DATA);
 	mmo_char_sql_init();
-	char_read_fame_list(); //Read fame lists.
+	char_read_fame_list(); //Read fame lists
 
 	if ((naddr_ != 0) && (!login_ip || !char_ip)) {
 		char ip_str[16];
@@ -5896,6 +5940,9 @@ int do_init(int argc, char **argv)
 	}
 
 	Sql_HerculesUpdateCheck(sql_handle);
+
+	mapindex_check_mapdefault(default_map);
+	ShowInfo("Default map: '"CL_WHITE"%s %d,%d"CL_RESET"'\n", default_map, default_map_x, default_map_y);
 
 	ShowStatus("The char-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %d).\n\n", char_port);
 

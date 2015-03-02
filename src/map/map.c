@@ -165,6 +165,8 @@ char charhelp_txt[256] = "conf/charhelp.txt";
 
 char wisp_server_name[NAME_LENGTH] = "Server"; // can be modified in char-server configuration file
 
+struct s_map_default map_default;
+
 int console = 0;
 int enable_spy = 0; //To enable/disable @spy commands, which consume too much cpu time when sending packets. [Skotlex]
 int enable_grf = 0;	//To enable/disable reading maps from GRF files, bypassing mapcache [blackhole89]
@@ -3477,24 +3479,22 @@ int map_readallmaps (void)
 
 	for( i = 0; i < map_num; i++ ) {
 		size_t size;
+		unsigned short idx = 0;
 
 		//Show progress
 		if( enable_grf )
 			ShowStatus("Loading maps [%i/%i]: %s"CL_CLL"\r", i, map_num, map[i].name);
 
 		//Try to load the map
-		if( !
-			(enable_grf?
-				 map_readgat(&map[i])
-				:map_readfromcache(&map[i], map_cache_buffer, map_cache_decode_buffer))
-			) {
+		if( !(idx = mapindex_name2id(map[i].name)) ||
+			!(enable_grf ? map_readgat(&map[i]) : map_readfromcache(&map[i], map_cache_buffer, map_cache_decode_buffer)) ) {
 			map_delmapid(i);
 			maps_removed++;
 			i--;
 			continue;
 		}
 
-		map[i].index = mapindex_name2id(map[i].name);
+		map[i].index = idx;
 
 		if( uidb_get(map_db,(unsigned int)map_id2index(i)) != NULL ) {
 			ShowWarning("Map %s already loaded!"CL_CLL"\n", map[i].name);
@@ -3534,7 +3534,7 @@ int map_readallmaps (void)
 
 	//Finished map loading
 	ShowInfo("Successfully loaded '"CL_WHITE"%d"CL_RESET"' maps."CL_CLL"\n",map_num);
-	instance_start = map_num + 1; //Next Map Index will be instances
+	instance_start = map_num; //Next Map Index will be instances
 
 	if( maps_removed )
 		ShowNotice("Maps removed: '"CL_WHITE"%d"CL_RESET"'\n",maps_removed);
@@ -4259,12 +4259,17 @@ int do_init(int argc, char *argv[])
 	MSG_CONF_NAME = "conf/msg_conf/map_msg.conf";
 	GRF_PATH_FILENAME = "conf/grf-files.txt";
 
+	// Default map
+	safestrncpy(map_default.mapname, "prontera", MAP_NAME_LENGTH);
+	map_default.x = 156;
+	map_default.y = 191;
+
 	cli_get_options(argc,argv);
 
 	rnd_init();
 	map_config_read(MAP_CONF_NAME);
 
-	// loads npcs
+	// Loads npcs
 	map_reloadnpc(false);
 
 	chrif_checkdefaultlogin();

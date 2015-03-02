@@ -1159,6 +1159,7 @@ void initChangeTables(void) {
 	StatusDisplayType[SC_ZANGETSU]		  = true;
 	StatusDisplayType[SC_GENSOU]		  = true;
 	StatusDisplayType[SC_AKAITSUKI]		  = true;
+	StatusDisplayType[SC_GRANITIC_ARMOR]  = true;
 	StatusDisplayType[SC_MONSTER_TRANSFORM]	  = true;
 	StatusDisplayType[SC_DARKCROW]		  = true;
 	StatusDisplayType[SC_OFFERTORIUM]	  = true;

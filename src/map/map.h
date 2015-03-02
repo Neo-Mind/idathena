@@ -715,16 +715,23 @@ extern char charhelp_txt[];
 
 extern char wisp_server_name[];
 
-// users
+struct s_map_default {
+	char mapname[MAP_NAME_LENGTH];
+	unsigned short x;
+	unsigned short y;
+};
+extern struct s_map_default map_default;
+
+// Users
 void map_setusers(int);
 int map_getusers(void);
 int map_usercount(void);
 
-// blocklist lock
+// Blocklist lock
 int map_freeblock(struct block_list *bl);
 int map_freeblock_lock(void);
 int map_freeblock_unlock(void);
-// blocklist manipulation
+// Blocklist manipulation
 int map_addblock(struct block_list* bl);
 int map_delblock(struct block_list* bl);
 int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick);
@@ -737,7 +744,7 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_
 int map_foreachincell(int (*func)(struct block_list*,va_list), int16 m, int16 x, int16 y, int type, ...);
 int map_foreachinpath(int (*func)(struct block_list*,va_list), int16 m, int16 x0, int16 y0, int16 x1, int16 y1, int16 range, int length, int type, ...);
 int map_foreachinmap(int (*func)(struct block_list*,va_list), int16 m, int type, ...);
-// blocklist nb in one cell
+// Blocklist nb in one cell
 int map_count_oncell(int16 m,int16 x,int16 y,int type,int flag);
 struct skill_unit *map_find_skill_unit_oncell(struct block_list *,int16 x,int16 y,uint16 skill_id,struct skill_unit *,int flag);
 // search and creation
@@ -746,16 +753,16 @@ int map_search_freecell(struct block_list *src, int16 m, int16 *x, int16 *y, int
 bool map_closest_freecell(int16 m, int16 *x, int16 *y, int type, int flag);
 //
 int map_quit(struct map_session_data *);
-// npc
+// Npc
 bool map_addnpc(int16 m,struct npc_data *);
 
-// map item
+// Map item
 int map_clearflooritem_timer(int tid, unsigned int tick, int id, intptr_t data);
 int map_removemobs_timer(int tid, unsigned int tick, int id, intptr_t data);
 void map_clearflooritem(struct block_list* bl);
 int map_addflooritem(struct item *item,int amount,int16 m,int16 x,int16 y,int first_charid,int second_charid,int third_charid,int flags);
 
-// instances
+// Instances
 int map_addinstancemap(const char*,int);
 int map_delinstancemap(int);
 
