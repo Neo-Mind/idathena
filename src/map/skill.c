@@ -1151,8 +1151,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 		case NPC_MENTALBREAKER:
 			//Based on observations by Tharis, Mental Breaker should do SP damage
 			//Equal to MATK * Skill Level
-			rate = status_get_matk(src, 2);
-			rate *= skill_lv;
+			rate = status_get_matk(src, 2) * skill_lv;
 			status_zap(bl,0,rate);
 			break;
 		//Equipment breaking monster skills [Celest]
@@ -1304,12 +1303,15 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			sc_start4(src,bl,SC_BURNING,100,skill_lv,1000,src->id,0,skill_get_time2(skill_id,skill_lv));
 			break;
 		case WL_EARTHSTRAIN: {
-				int i;
+				int dur;
+				uint8 i;
 				const int pos[5] = { EQP_WEAPON,EQP_SHIELD,EQP_ARMOR,EQP_HELM,EQP_ACC };
 
+				rate = max(5,(5 + skill_lv) * skill_lv + (sstatus->dex - tstatus->dex) / 5);
+				dur = max(0,skill_get_time2(skill_id,skill_lv) + (sstatus->dex - tstatus->dex) * 500);
 				if( !tsc->data[SC_WHITEIMPRISON] )
 					for( i = 0; i < skill_lv; i++ )
-						skill_strip_equip(src,bl,pos[i],(5 + skill_lv) * skill_lv,skill_lv,skill_get_time2(skill_id,skill_lv));
+						skill_strip_equip(src,bl,pos[i],rate,skill_lv,dur);
 			}
 			break;
 		case WL_FROSTMISTY:
@@ -7121,7 +7123,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				if((i = skill_strip_equip(src,bl,location,i,skill_lv,d)) || (skill_id != ST_FULLSTRIP && skill_id != GC_WEAPONCRUSH))
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,i);
 
-				//Nothing stripped.
+				//Nothing stripped
 				if(sd && !i)
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			}
@@ -9815,13 +9817,12 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case SO_ARRULLO:
-			//[(15 + 5 * Skill Level) + ( Caster INT / 5 ) + ( Caster Job Level / 5 ) - ( Target INT / 6 ) - ( Target LUK / 10 )] %
+			//[(15 + 5 * Skill Level) + (Caster INT / 5) + (Caster Job Level / 5) - (Target INT / 6) - (Target LUK / 10)]%
 			rate = (15 + 5 * skill_lv) + status_get_int(src) / 5 + (sd ? sd->status.job_level / 5 : 0);
 			rate -= status_get_int(bl) / 6 - status_get_luk(bl) / 10;
-			rate *= 100;
 			tick = status_get_lv(bl) / 20 + status_get_base_status(bl)->int_ / 40;
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-			status_change_start(src,bl,type,rate,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv) - (1000 * tick),SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE);
+			status_change_start(src,bl,type,rate * 100,skill_lv,0,0,0,skill_get_time(skill_id,skill_lv) - (1000 * tick),SCFLAG_FIXEDTICK|SCFLAG_FIXEDRATE);
 			break;
 
 		case SO_SUMMON_AGNI:

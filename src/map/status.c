@@ -2011,7 +2011,7 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 
 					if( ((tsc->option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK)) || tsc->data[SC_CAMOUFLAGE] ||
 						tsc->data[SC_STEALTHFIELD]) && !(status->mode&MD_BOSS) &&
-						((tsd && tsd->special_state.perfect_hiding) || !(status->mode&MD_DETECTOR)) )
+						(tsd->special_state.perfect_hiding || !(status->mode&MD_DETECTOR)) )
 						return 0;
 					if( tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS) )
 						return 0;
