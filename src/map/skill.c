@@ -905,11 +905,10 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 					if( pc_isfalcon(sd) && sd->status.weapon == W_BOW && (skill = pc_checkskill(sd,HT_BLITZBEAT)) > 0 &&
 						rnd()%1000 <= sstatus->luk * 10 / 3 + 1 ) { //Automatic trigger of Blitz Beat
 						rate = (sd->status.job_level + 9) / 10;
-						skill_castend_damage_id(src,bl,HT_BLITZBEAT,(skill < rate) ? skill : rate,tick,SD_LEVEL);
+						skill_castend_damage_id(src,bl,HT_BLITZBEAT,((sd->class_&JOBL_THIRD) ? skill : min(skill,rate)),tick,SD_LEVEL);
 					}
-					//Automatic trigger of Warg Strike [Jobbie]
 					if( pc_iswug(sd) && (skill = pc_checkskill(sd,RA_WUGSTRIKE)) > 0 && rnd()%1000 <= sstatus->luk * 10 / 3 + 1 )
-						skill_castend_damage_id(src,bl,RA_WUGSTRIKE,skill,tick,0);
+						skill_castend_damage_id(src,bl,RA_WUGSTRIKE,skill,tick,0); //Automatic trigger of Warg Strike [Jobbie]
 					if( dstmd && sd->status.weapon != W_BOW &&
 						(skill = pc_checkskill(sd,RG_SNATCHER)) > 0 &&
 						(skill * 15 + 55) + pc_checkskill(sd,TF_STEAL) * 10 > rnd()%1000 ) { //Gank
@@ -1151,7 +1150,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 		case NPC_MENTALBREAKER:
 			//Based on observations by Tharis, Mental Breaker should do SP damage
 			//Equal to MATK * Skill Level
-			rate = status_get_matk(src, 2) * skill_lv;
+			rate = status_get_matk(src,2) * skill_lv;
 			status_zap(bl,0,rate);
 			break;
 		//Equipment breaking monster skills [Celest]
