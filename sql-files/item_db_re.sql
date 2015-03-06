@@ -5828,7 +5828,7 @@ REPLACE INTO `item_db_re` VALUES (11567,'Novice_Potion','Novice Potion',0,10,NUL
 REPLACE INTO `item_db_re` VALUES (11568,'Red_Slim_Potion','Red Slim Potion',0,10,NULL,20,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'itemheal rand(45,65),0;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (11569,'Orange_Potion','Orange Potion',0,10,NULL,100,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'itemheal rand(105,145),0;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (11570,'Red_Potion','Red Potion',0,10,NULL,70,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'itemheal rand(45,65),0;',NULL,NULL);
-REPLACE INTO `item_db_re` VALUES (11571,'Green_Potion','Green Potion',0,10,NULL,70,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'sc_end SC_Poison; sc_end SC_Silence; sc_end SC_Blind; sc_end SC_Confusion;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (11571,'Green_Potion','Green Potion',0,10,NULL,70,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'sc_end SC_Poison; sc_end SC_Silence; sc_end SC_Blind; sc_end SC_Confusion; sc_end SC__Chaos;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (11572,'Blue_Potion','Blue Potion',0,10,NULL,150,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'itemheal 0,rand(40,60);',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (11573,'White_Slim_Potion','White Slim Potion',0,10,NULL,50,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'itemheal rand(325,405),0;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (11574,'Yellow_Slim_Potion','Yellow Slim Potion',0,10,NULL,30,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'itemheal rand(175,235),0;',NULL,NULL);
@@ -5840,7 +5840,7 @@ REPLACE INTO `item_db_re` VALUES (11579,'Lucky_Candy','Lucky Candy',3,10,NULL,30
 REPLACE INTO `item_db_re` VALUES (11580,'Candy','Candy',0,10,NULL,30,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'itemheal rand(45,65),0;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (11581,'Piece_of_Cake','Piece of Cake',0,10,NULL,100,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'itemheal rand(270,330),0;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (11582,'Well-baked_Cookie','Well-baked Cookie',0,10,NULL,30,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'itemheal rand(160,200),0;',NULL,NULL);
-REPLACE INTO `item_db_re` VALUES (11583,'Chocolate_Drink','Chocolate Drink',0,10,NULL,150,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'itemheal rand(330,410),rand(45,65); sc_end SC_Poison; sc_end SC_Silence; sc_end SC_Blind; sc_end SC_Confusion; sc_end SC_Curse; sc_end SC_Hallucination;',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (11583,'Chocolate_Drink','Chocolate Drink',0,10,NULL,150,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'itemheal rand(330,410),rand(45,65); sc_end SC_Poison; sc_end SC_Silence; sc_end SC_Blind; sc_end SC_Confusion; sc_end SC__Chaos; sc_end SC_Curse; sc_end SC_Hallucination;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (11584,'White_Chocolate','White Chocolate',0,10,NULL,80,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'itemheal 50,50;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (11585,'Hand-made_Chocolate','Hand-made Chocolate',0,10,NULL,80,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'itemheal 50,50;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (11586,'Hand-made_Chocolate_','Hand-made White Chocolate',0,10,NULL,80,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'itemheal 50,50;',NULL,NULL);

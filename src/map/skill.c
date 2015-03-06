@@ -215,7 +215,7 @@ int skill_get_maxcount(uint16 skill_id, uint16 skill_lv)         { skill_get2(sk
 int skill_get_blewcount(uint16 skill_id, uint16 skill_lv)        { skill_get2(skill_db[skill_id].blewcount[skill_lv - 1], skill_id, skill_lv); }
 int skill_get_castnodex(uint16 skill_id, uint16 skill_lv)        { skill_get2(skill_db[skill_id].castnodex[skill_lv - 1], skill_id, skill_lv); }
 int skill_get_delaynodex(uint16 skill_id, uint16 skill_lv)       { skill_get2(skill_db[skill_id].delaynodex[skill_lv - 1], skill_id, skill_lv); }
-int skill_get_nocast (uint16 skill_id)                           { skill_get(skill_db[skill_id].nocast, skill_id); }
+int skill_get_nocast(uint16 skill_id)                            { skill_get(skill_db[skill_id].nocast, skill_id); }
 int skill_get_type(uint16 skill_id)                              { skill_get(skill_db[skill_id].skill_type, skill_id); }
 int skill_get_unit_id (uint16 skill_id, int flag)                { skill_get3(skill_db[skill_id].unit_id[flag], skill_id, flag); }
 int skill_get_unit_interval(uint16 skill_id)                     { skill_get(skill_db[skill_id].unit_interval, skill_id); }
@@ -543,11 +543,11 @@ bool skill_isNotOk(uint16 skill_id, struct map_session_data *sd)
 		return false;
 
 	//Check skill restrictions [Celest]
-	if ((!map_flag_vs(m) && skill_get_nocast (skill_id)&1) ||
-		(map[m].flag.pvp && skill_get_nocast (skill_id)&2) ||
-		(map_flag_gvg2(m) && skill_get_nocast (skill_id)&4) ||
-		(map[m].flag.battleground && skill_get_nocast (skill_id)&8) ||
-		(map[m].flag.restricted && map[m].zone && skill_get_nocast (skill_id)&(8 * map[m].zone))) {
+	if ((!map_flag_vs(m) && skill_get_nocast(skill_id)&1) ||
+		(map[m].flag.pvp && skill_get_nocast(skill_id)&2) ||
+		(map_flag_gvg2(m) && skill_get_nocast(skill_id)&4) ||
+		(map[m].flag.battleground && skill_get_nocast(skill_id)&8) ||
+		(map[m].flag.restricted && map[m].zone && skill_get_nocast(skill_id)&(8 * map[m].zone))) {
 			clif_msg(sd, SKILL_CANT_USE_AREA); //This skill cannot be used within this area
 			return true;
 	}
@@ -2316,9 +2316,9 @@ static int skill_magic_reflect(struct block_list* src, struct block_list* bl, in
 {
 	struct status_change *sc = status_get_sc(bl);
 	struct map_session_data* sd = BL_CAST(BL_PC, bl);
-	
-	if( sc && sc->data[SC_KYOMU] ) //Nullify reflecting ability
-		return 0;
+
+	if( sc && sc->data[SC_KYOMU] )
+		return 0; //Nullify reflecting ability
 
 	//Item-based reflection
 	if( sd && sd->bonus.magic_damage_return && type && rnd()%100 < sd->bonus.magic_damage_return )
@@ -6448,7 +6448,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case MO_ABSORBSPIRITS:
-			if (sd && dstsd && (sd == dstsd || map_flag_vs(src->m) || (sd->duel_group && sd->duel_group == dstsd->duel_group)) &&
+			if (dstsd && (sd == dstsd || map_flag_vs(src->m) || (sd && sd->duel_group && sd->duel_group == dstsd->duel_group)) &&
 				((dstsd->class_&MAPID_BASEMASK) != MAPID_GUNSLINGER || (dstsd->class_&MAPID_UPPERMASK) != MAPID_REBELLION)) {
 				//Split the if for readability, and included gunslingers in the check so that their coins cannot be removed [Reddozen]
 				if (dstsd->spiritball) {
@@ -9790,6 +9790,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				case ECL_SADAGUI:
 					status_change_end(bl,SC_STUN,INVALID_TIMER);
 					status_change_end(bl,SC_CONFUSION,INVALID_TIMER);
+					status_change_end(bl,SC__CHAOS,INVALID_TIMER);
 					status_change_end(bl,SC_HALLUCINATION,INVALID_TIMER);
 					status_change_end(bl,SC_FEAR,INVALID_TIMER);
 					break;

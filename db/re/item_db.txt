@@ -5797,7 +5797,7 @@
 11568,Red_Slim_Potion,Red Slim Potion,0,10,,20,,,,0,0xFFFFFFFF,63,2,,,,,,{ itemheal rand(45,65),0; },{},{}
 11569,Orange_Potion,Orange Potion,0,10,,100,,,,0,0xFFFFFFFF,63,2,,,,,,{ itemheal rand(105,145),0; },{},{}
 11570,Red_Potion,Red Potion,0,10,,70,,,,0,0xFFFFFFFF,63,2,,,,,,{ itemheal rand(45,65),0; },{},{}
-11571,Green_Potion,Green Potion,0,10,,70,,,,0,0xFFFFFFFF,63,2,,,,,,{ sc_end SC_Poison; sc_end SC_Silence; sc_end SC_Blind; sc_end SC_Confusion; },{},{}
+11571,Green_Potion,Green Potion,0,10,,70,,,,0,0xFFFFFFFF,63,2,,,,,,{ sc_end SC_Poison; sc_end SC_Silence; sc_end SC_Blind; sc_end SC_Confusion; sc_end SC__Chaos; },{},{}
 11572,Blue_Potion,Blue Potion,0,10,,150,,,,0,0xFFFFFFFF,63,2,,,,,,{ itemheal 0,rand(40,60); },{},{}
 11573,White_Slim_Potion,White Slim Potion,0,10,,50,,,,0,0xFFFFFFFF,63,2,,,,,,{ itemheal rand(325,405),0; },{},{}
 11574,Yellow_Slim_Potion,Yellow Slim Potion,0,10,,30,,,,0,0xFFFFFFFF,63,2,,,,,,{ itemheal rand(175,235),0; },{},{}
@@ -5809,7 +5809,7 @@
 11580,Candy,Candy,0,10,,30,,,,0,0xFFFFFFFF,63,2,,,,,,{ itemheal rand(45,65),0; },{},{}
 11581,Piece_of_Cake,Piece of Cake,0,10,,100,,,,0,0xFFFFFFFF,63,2,,,,,,{ itemheal rand(270,330),0; },{},{}
 11582,Well-baked_Cookie,Well-baked Cookie,0,10,,30,,,,0,0xFFFFFFFF,63,2,,,,,,{ itemheal rand(160,200),0; },{},{}
-11583,Chocolate_Drink,Chocolate Drink,0,10,,150,,,,0,0xFFFFFFFF,63,2,,,,,,{ itemheal rand(330,410),rand(45,65); sc_end SC_Poison; sc_end SC_Silence; sc_end SC_Blind; sc_end SC_Confusion; sc_end SC_Curse; sc_end SC_Hallucination; },{},{}
+11583,Chocolate_Drink,Chocolate Drink,0,10,,150,,,,0,0xFFFFFFFF,63,2,,,,,,{ itemheal rand(330,410),rand(45,65); sc_end SC_Poison; sc_end SC_Silence; sc_end SC_Blind; sc_end SC_Confusion; sc_end SC__Chaos; sc_end SC_Curse; sc_end SC_Hallucination; },{},{}
 11584,White_Chocolate,White Chocolate,0,10,,80,,,,0,0xFFFFFFFF,63,2,,,,,,{ itemheal 50,50; },{},{}
 11585,Hand-made_Chocolate,Hand-made Chocolate,0,10,,80,,,,0,0xFFFFFFFF,63,2,,,,,,{ itemheal 50,50; },{},{}
 11586,Hand-made_Chocolate_,Hand-made White Chocolate,0,10,,80,,,,0,0xFFFFFFFF,63,2,,,,,,{ itemheal 50,50; },{},{}
