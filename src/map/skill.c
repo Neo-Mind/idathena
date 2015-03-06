@@ -1182,7 +1182,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 			break;
 
 		case PF_FOGWALL:
-			if( src != bl && !tsc->data[SC_DELUGE] )
+			if( bl->id != src->id && !tsc->data[SC_DELUGE] )
 				sc_start(src,bl,SC_BLIND,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 			break;
 
@@ -2920,7 +2920,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 		case NPC_GRANDDARKNESS:
 			if (battle_config.gx_disptype)
 				dsrc = src;
-			if (src == bl)
+			if (bl->id == src->id)
 				type = DMG_ENDURE;
 			else
 				flag |= SD_ANIMATION;
@@ -3171,7 +3171,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 	if (skill_id == CR_GRANDCROSS || skill_id == NPC_GRANDDARKNESS)
 		dmg.flag |= BF_WEAPON;
 
-	if (sd && src != bl && damage > 0 && (dmg.flag&BF_WEAPON || (dmg.flag&BF_MISC &&
+	if (sd && bl->id != src->id && damage > 0 && (dmg.flag&BF_WEAPON || (dmg.flag&BF_MISC &&
 		(skill_id == RA_CLUSTERBOMB || skill_id == RA_FIRINGTRAP || skill_id == RA_ICEBOUNDTRAP)))) {
 		if (battle_config.left_cardfix_to_right)
 			battle_drain(sd, bl, dmg.damage, dmg.damage, tstatus->race, tstatus->class_);
@@ -4250,7 +4250,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 					y = 0;
 				skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 				//Ashura Strike still has slide effect in GVG
-				if ((mbl == src || (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground)) &&
+				if ((mbl->id == src->id || (!map_flag_gvg2(src->m) && !map[src->m].flag.battleground)) &&
 					unit_movepos(src,mbl->x + x,mbl->y + y,1,1)) {
 					clif_blown(src,mbl);
 					clif_spiritball(src);
@@ -4704,7 +4704,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 					break;
 			}
 		case HVAN_EXPLOSION:
-			if (src != bl)
+			if (bl->id != src->id)
 				skill_attack(BF_MISC,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
 
@@ -5488,7 +5488,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 	if(sd && sd->status.party_id && party_foreachsamemap(party_sub_count,sd,0) > 1)
 		partybonus = party_foreachsamemap(party_sub_count,sd,0);
 
-	if(src != bl && status_isdead(bl)) { //Skills that may be cast on dead targets
+	if(bl->id != src->id && status_isdead(bl)) { //Skills that may be cast on dead targets
 		switch(skill_id) {
 			case NPC_WIDESOULDRAIN:
 			case PR_REDEMPTIO:
@@ -5648,7 +5648,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case NPC_SMOKING: //Since it is a self skill, this one ends here rather than in damage_id [Skotlex]
 			return skill_castend_damage_id(src,bl,skill_id,skill_lv,tick,flag);
 		default:
-			if(src == bl && skill_get_unit_id(skill_id,0)) //Skill is actually ground placed
+			if(bl->id == src->id && skill_get_unit_id(skill_id,0)) //Skill is actually ground placed
 				return skill_castend_pos2(src,bl->x,bl->y,skill_id,skill_lv,tick,0);
 			break;
 	}
@@ -5657,7 +5657,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 	tsc = status_get_sc(bl);
 	tsce = (tsc && type != -1) ? tsc->data[type] : NULL;
 
-	if(src != bl && type > -1 && (i = skill_get_ele(skill_id,skill_lv)) > ELE_NEUTRAL &&
+	if(bl->id != src->id && type > -1 && (i = skill_get_ele(skill_id,skill_lv)) > ELE_NEUTRAL &&
 		skill_get_inf(skill_id) != INF_SUPPORT_SKILL && battle_attr_fix(NULL,NULL,100,i,tstatus->def_ele,tstatus->ele_lv) <= 0)
 		return 1; //Skills that cause an status should be blocked if the target element blocks its element
 
@@ -6186,7 +6186,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case SO_STRIKING:
-			if( src == bl || battle_check_target(src,bl,BCT_PARTY) > 0 ) {
+			if( bl->id == src->id || battle_check_target(src,bl,BCT_PARTY) > 0 ) {
 				int bonus = 0;
 
 				if( dstsd ) {
@@ -6630,7 +6630,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case BS_OVERTHRUST:
 			if (sd == NULL || !sd->status.party_id || (flag&1)) {
 				clif_skill_nodamage(bl,bl,skill_id,skill_lv,
-					sc_start2(src,bl,type,100,skill_lv,(src == bl) ? 1 : 0,skill_get_time(skill_id,skill_lv)));
+					sc_start2(src,bl,type,100,skill_lv,(bl->id == src->id ? 1 : 0),skill_get_time(skill_id,skill_lv)));
 			} else if (sd) {
 				party_foreachsamemap(skill_area_sub,sd,skill_get_splash(skill_id,skill_lv),src,
 					skill_id,skill_lv,tick,flag|BCT_PARTY|1,skill_castend_nodamage_id);
@@ -8314,7 +8314,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case HAMI_CASTLE: //[orn]
-			if (rnd()%100 < 20 * skill_lv && src != bl) {
+			if (rnd()%100 < 20 * skill_lv && bl->id != src->id) {
 				int x = src->x, y = src->y;
 
 				if (hd)
@@ -8532,7 +8532,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 		case RK_FIGHTINGSPIRIT:
 			if( flag&1 ) {
-				if( src == bl )
+				if( bl->id == src->id )
 					sc_start2(src,bl,type,100,skill_area_temp[5],(sd ? pc_checkskill(sd,RK_RUNEMASTERY) : 1) * 4,skill_get_time(skill_id,skill_lv));
 				else
 					sc_start(src,bl,type,100,skill_area_temp[5] / 4,skill_get_time(skill_id,skill_lv));
@@ -8550,7 +8550,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 		case RK_LUXANIMA:
 			if( sd == NULL || !sd->status.party_id || flag&1 ) {
-				if( src == bl )
+				if( bl->id == src->id )
 					break;
 				clif_skill_nodamage(bl,bl,skill_id,skill_lv,1);
 				if( skill_area_temp[5]&0x10 ) {
@@ -8918,10 +8918,10 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case WL_WHITEIMPRISON:
-			if( src == bl || battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
+			if( bl->id == src->id || battle_check_target(src,bl,BCT_ENEMY) > 0 ) {
 				int rate = ( sd ? sd->status.job_level / 4 : 0 );
 
-				if( src == bl )
+				if( bl->id == src->id )
 					rate = 100; //Success Chance: On self, 100%
 				else if( bl->type == BL_PC )
 					rate += 20 + 10 * skill_lv; //On Players, (20 + 10 * Skill Level) %
@@ -8932,7 +8932,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					skill_blockpc_start(sd,skill_id,4000);
 
 				if( !(tsc && tsc->data[type]) ) {
-					i = sc_start2(src,bl,type,rate,skill_lv,src->id,(src == bl) ? 5000 : (bl->type == BL_PC) ?
+					i = sc_start2(src,bl,type,rate,skill_lv,src->id,(bl->id == src->id) ? 5000 : (bl->type == BL_PC) ?
 						skill_get_time(skill_id,skill_lv) : skill_get_time2(skill_id,skill_lv));
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,i);
 					if( !i )
@@ -9170,7 +9170,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case SC_SHADOWFORM:
-			if( sd && dstsd && src != bl && !dstsd->shadowform_id ) {
+			if( sd && dstsd && bl->id != src->id && !dstsd->shadowform_id ) {
 				if( clif_skill_nodamage(src,bl,skill_id,skill_lv,
 					sc_start4(src,src,type,100,skill_lv,bl->id,4 + skill_lv,0,skill_get_time(skill_id,skill_lv))) )
 					dstsd->shadowform_id = src->id;
@@ -9523,7 +9523,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case MI_HARMONIZE:
-			if( src != bl )
+			if( bl->id != src->id )
 				clif_skill_nodamage(src,src,skill_id,skill_lv,sc_start(src,src,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 			break;
@@ -9553,7 +9553,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					(status_get_lv(src) > 150 ? 150 : status_get_lv(src)) / 15;
 				if( rate > 60 )
 					rate = 60;
-				if( src == bl )
+				if( bl->id == src->id )
 					break;
 				sc_start(src,bl,type,rate,skill_lv,skill_get_time(skill_id,skill_lv));
 			} else {
@@ -9628,7 +9628,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 		case WM_UNLIMITED_HUMMING_VOICE:
 			if( flag&1 ) {
-				if( src == bl )
+				if( bl->id == src->id )
 					break;
 				sc_start2(src,bl,type,100,skill_lv,party_calc_chorusbonus(sd,0),skill_get_time(skill_id,skill_lv));
 			} else if( sd ) {
@@ -11053,10 +11053,10 @@ int skill_castend_pos(int tid, unsigned int tick, int id, intptr_t data)
 }
 
 //Skill count without self
-static int skill_count_wos(struct block_list *bl,va_list ap) {
+static int skill_count_wos(struct block_list *bl, va_list ap) {
 	struct block_list* src = va_arg(ap, struct block_list*);
 
-	if( src->id != bl->id )
+	if( bl->id != src->id )
 		return 1;
 	return 0;
 }
@@ -12870,7 +12870,7 @@ static int skill_unit_onplace(struct skill_unit *unit, struct block_list *bl, un
 			//Knockback out of area if affected char isn't in Moonlit effect
 			if( sc && sc->data[SC_DANCING] && (sc->data[SC_DANCING]->val1&0xFFFF) == CG_MOONLIT )
 				break;
-			if( src == bl ) //Also needed to prevent infinite loop crash
+			if( bl->id == src->id ) //Also needed to prevent infinite loop crash
 				break;
 			skill_blown(src,bl,skill_get_blewcount(skill_id,skill_lv),unit_getdir(bl),0);
 			break;
@@ -13741,7 +13741,7 @@ static int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *
 			break;
 	}
 
-	if (bl->type == BL_MOB && src != bl)
+	if (bl->type == BL_MOB && bl->id != src->id)
 		mobskill_event((TBL_MOB*)bl,src,tick,MSC_SKILLUSED|(skill_id<<16));
 
 	return skill_id;
@@ -14067,7 +14067,7 @@ int skill_check_condition_char_sub(struct block_list *bl, va_list ap)
 	if( ((skill_id != PR_BENEDICTIO && *c >= 1) || *c >= 2) && !(skill_get_inf2(skill_id)&INF2_CHORUS_SKILL) )
 		return 0; //Partner found for ensembles, or the two companions for Benedictio [Skotlex]
 
-	if( bl == src )
+	if( bl->id == src->id )
 		return 0;
 
 	if( pc_isdead(tsd) )
@@ -16565,7 +16565,7 @@ int skill_frostjoke_scream(struct block_list *bl, va_list ap)
 		return 0;
 	tick = va_arg(ap,unsigned int);
 
-	if(src == bl || status_isdead(bl))
+	if(bl->id == src->id || status_isdead(bl))
 		return 0;
 	if(bl->type == BL_PC) {
 		struct map_session_data *sd = (struct map_session_data *)bl;

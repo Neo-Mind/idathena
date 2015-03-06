@@ -293,11 +293,11 @@ static int clif_send_sub(struct block_list *bl, va_list ap) {
 
 	switch (type) {
 		case AREA_WOS:
-			if (bl == src_bl)
+			if (bl->id == src_bl->id)
 				return 0;
 			break;
 		case AREA_WOC:
-			if (sd->chatID || bl == src_bl)
+			if (sd->chatID || bl->id == src_bl->id)
 				return 0;
 			break;
 		case AREA_WOSC: {

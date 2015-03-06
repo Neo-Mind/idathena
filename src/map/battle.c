@@ -926,7 +926,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			}
 		}
 
-		if( damage && (sce = sc->data[SC_MILLENNIUMSHIELD]) && sce->val2 > 0 ) {
+		if( damage > 0 && (sce = sc->data[SC_MILLENNIUMSHIELD]) && sce->val2 > 0 ) {
 			sce->val3 -= (int)cap_value(damage,INT_MIN,INT_MAX); //Absorb damage
 			d->dmg_lv = ATK_BLOCK;
 			if( sce->val3 <= 0 ) { //Shield down
@@ -1042,7 +1042,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 #endif
 
-		if( damage ) {
+		if( damage > 0 ) {
 			struct map_session_data *tsd = BL_CAST(BL_PC,src);
 
 			if( sc->data[SC_DEEPSLEEP] ) {
@@ -1172,7 +1172,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( (sce = sc->data[SC_MAGMA_FLOW]) && (rnd()%100 <= sce->val2) )
 			skill_castend_damage_id(bl,src,MH_MAGMA_FLOW,sce->val1,gettick(),0);
 
-		if( damage && (sce = sc->data[SC_STONEHARDSKIN]) && (flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON) ) {
+		if( damage > 0 && (sce = sc->data[SC_STONEHARDSKIN]) && (flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON) ) {
 			sce->val2 -= (int)cap_value(damage,INT_MIN,INT_MAX);
 			if( src->type == BL_MOB ) //Using explicit call instead break_equip for duration
 				sc_start(src,src,SC_STRIPWEAPON,30,0,skill_get_time2(RK_STONEHARDSKIN,sce->val1));
@@ -1201,7 +1201,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			status_change_end(bl,SC_ELECTRICSHOCKER,INVALID_TIMER);
 		}
 
-		if( damage ) {
+		if( damage > 0 ) {
 			if( (sce = sc->data[SC_KYRIE]) ) { //Finally Kyrie because it may, or not, reduce damage to 0
 				sce->val2 -= (int)cap_value(damage,INT_MIN,INT_MAX);
 				if( flag&BF_WEAPON ) {
@@ -1264,7 +1264,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( sc->data[SC_INVINCIBLE] && !sc->data[SC_INVINCIBLEOFF] )
 			damage += damage * 75 / 100;
 
-		if( damage && (sce = sc->data[SC_BLOODLUST]) && flag&BF_WEAPON && rnd()%100 < sce->val3 )
+		if( damage > 0 && (sce = sc->data[SC_BLOODLUST]) && flag&BF_WEAPON && rnd()%100 < sce->val3 )
 			status_heal(src,damage * sce->val4 / 100,0,3);
 
 		//[Epoque]
@@ -1295,7 +1295,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( sc->data[SC_SHIELDSPELL_REF] && sc->data[SC_SHIELDSPELL_REF]->val1 == 1 && flag&BF_WEAPON )
 			skill_break_equip(src,bl,EQP_ARMOR,10000,BCT_ENEMY);
 
-		if( damage ) {
+		if( damage > 0 ) {
 			if( sc->data[SC_POISONINGWEAPON] && skill_id != GC_VENOMPRESSURE && flag&BF_WEAPON && rnd()%100 < sc->data[SC_POISONINGWEAPON]->val3 )
 				sc_start(src,bl,(sc_type)sc->data[SC_POISONINGWEAPON]->val2,100,sc->data[SC_POISONINGWEAPON]->val1,skill_get_time2(GC_POISONINGWEAPON,1));
 
@@ -1312,7 +1312,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 	}
 
 	//PK damage rates
-	if( battle_config.pk_mode && sd && bl->type == BL_PC && damage && map[bl->m].flag.pvp ) {
+	if( damage > 0 && battle_config.pk_mode && sd && bl->type == BL_PC && map[bl->m].flag.pvp ) {
 		if( flag&BF_SKILL ) { //Skills get a different reduction than non-skills [Skotlex]
 			if( flag&BF_WEAPON )
 				damage = damage * battle_config.pk_weapon_damage_rate / 100;
@@ -1329,8 +1329,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		damage = max(damage,1); //Min 1 damage
 	}
 
-	if( bl->type == BL_MOB && !status_isdead(bl) && src != bl ) {
-		if( damage )
+	if( bl->type == BL_MOB && !status_isdead(bl) && bl->id != src->id ) {
+		if( damage > 0 )
 			mobskill_event((TBL_MOB*)bl,src,gettick(),flag);
 		if( skill_id )
 			mobskill_event((TBL_MOB*)bl,src,gettick(),MSC_SKILLUSED|(skill_id<<16));
@@ -5008,15 +5008,17 @@ void battle_do_reflect(int attack_type, struct Damage *wd, struct block_list* sr
 		if(rdamage > 0) {
 			struct block_list *d_bl = battle_check_devotion(src);
 
-			if(attack_type == BF_WEAPON && tsc->data[SC_REFLECTDAMAGE])
-				map_foreachinshootrange(battle_damage_area, target, skill_get_splash(LG_REFLECTDAMAGE, 1), BL_CHAR, tick, target, wd->amotion, sstatus->dmotion, rdamage, tstatus->race);
-			else if(attack_type == BF_WEAPON || attack_type == BF_MISC) {
-				rdelay = clif_damage(src, (!d_bl) ? src : d_bl, tick, wd->amotion, sstatus->dmotion, rdamage, 1, DMG_ENDURE, 0);
-				if(tsd)
-					battle_drain(tsd, src, rdamage, rdamage, sstatus->race, sstatus->class_);
-				//It appears that official servers give skill reflect damage a longer delay
-				battle_delay_damage(tick, wd->amotion, target, (!d_bl) ? src : d_bl, 0, CR_REFLECTSHIELD, 0, rdamage, ATK_DEF, rdelay ,true);
-				skill_additional_effect(target, (!d_bl) ? src : d_bl, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);
+			if(attack_type == BF_WEAPON || attack_type == BF_MISC) {
+				if(tsc->data[SC_REFLECTDAMAGE])
+					map_foreachinshootrange(battle_damage_area, target, skill_get_splash(LG_REFLECTDAMAGE, 1), BL_CHAR, tick, target, wd->amotion, sstatus->dmotion, rdamage, tstatus->race);
+				else {
+					rdelay = clif_damage(src, (!d_bl) ? src : d_bl, tick, wd->amotion, sstatus->dmotion, rdamage, 1, DMG_ENDURE, 0);
+					if(tsd)
+						battle_drain(tsd, src, rdamage, rdamage, sstatus->race, sstatus->class_);
+					//It appears that official servers give skill reflect damage a longer delay
+					battle_delay_damage(tick, wd->amotion, target, (!d_bl) ? src : d_bl, 0, CR_REFLECTSHIELD, 0, rdamage, ATK_DEF, rdelay ,true);
+					skill_additional_effect(target, (!d_bl) ? src : d_bl, CR_REFLECTSHIELD, 1, BF_WEAPON|BF_SHORT|BF_NORMAL, ATK_DEF, tick);
+				}
 			}
 		}
 	}
@@ -7008,7 +7010,7 @@ int battle_damage_area(struct block_list *bl, va_list ap) {
 
 	if( bl->type == BL_MOB && ((TBL_MOB*)bl)->mob_id == MOBID_EMPERIUM )
 		return 0;
-	if( bl != src && battle_check_target(src, bl, BCT_ENEMY) > 0 ) {
+	if( bl->id != src->id && battle_check_target(src, bl, BCT_ENEMY) > 0 ) {
 		map_freeblock_lock();
 		if( src->type == BL_PC )
 			battle_drain((TBL_PC*)src, bl, damage, damage, status_get_race(bl), status_get_class_(bl));
