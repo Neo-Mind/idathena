@@ -340,6 +340,9 @@
 18997:28326:28327,{ bonus bSpeed,25; bonus bBaseAtk,50; bonus bMatk,50; }
 19038:19039,{ set .@i,getequiprefinerycnt(EQI_HEAD_TOP)+getequiprefinerycnt(EQI_HEAD_MID); if((.@i==7)||(.@i==8)){ bonus bCritical,12; bonus bHit,12; } if(.@i>=9){ bonus bMaxHP,1200; bonus bMaxSP,120; } }
 20135:20136,{ bonus bAllStats,12; }
+20141:20248,{ bonus bVit,2; bonus bHit,5; }
+20141:20249,{ bonus bLuk,2; bonus bVariableCastrate,-3; }
+20141:20250,{ bonus bAgi,2; bonus bFlee,5; }
 20717:22000,{ bonus bMaxHPrate,15; bonus bMaxSPrate,5; }
 20717:22001,{ bonus bMaxHPrate,15; bonus bMaxSPrate,5; }
 20717:22002,{ bonus bMaxHPrate,15; bonus bMaxSPrate,5; }
