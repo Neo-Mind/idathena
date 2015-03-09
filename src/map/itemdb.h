@@ -17,13 +17,13 @@
 //Maximum number of item delays
 #define MAX_ITEMDELAYS 30
 
-//Designed for search functions, species max number of matches to display.
-#define MAX_SEARCH 5
+//Designed for search functions, species max number of matches to display
+#define MAX_SEARCH 10
 
 //Maximum amount of items a combo may require
 #define MAX_ITEMS_PER_COMBO 6
 
-//The only item group required by the code to be known. See const.txt for the full list.
+//The only item group required by the code to be known. See const.txt for the full list
 #define IG_FINDINGORE 6
 #define IG_POTION 37
 
@@ -407,10 +407,10 @@ struct item_data {
 	struct {
 		int chance;
 		int id;
-	} mob[MAX_SEARCH]; //Holds the mobs that have the highest drop rate for this item. [Skotlex]
-	struct script_code *script;	//Default script for everything.
-	struct script_code *equip_script; //Script executed once when equipping.
-	struct script_code *unequip_script; //Script executed once when unequipping.
+	} mob[MAX_SEARCH]; //Holds the mobs that have the highest drop rate for this item [Skotlex]
+	struct script_code *script;	//Default script for everything
+	struct script_code *equip_script; //Script executed once when equipping
+	struct script_code *unequip_script; //Script executed once when unequipping
 	struct {
 		unsigned available : 1;
 		uint32 no_equip;

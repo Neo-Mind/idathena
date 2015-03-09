@@ -747,7 +747,7 @@ int battle_calc_cardfix(int attack_type, struct block_list *src, struct block_li
 				cardfix = cardfix * (100 - tsd->bonus.misc_def_rate) / 100;
 				if( flag&BF_SHORT )
 					cardfix = cardfix * (100 - tsd->bonus.near_attack_def_rate) / 100;
-				else if( skill_id != GN_FIRE_EXPANSION_ACID )
+				else
 					cardfix = cardfix * (100 - tsd->bonus.long_attack_def_rate) / 100;
 				if( cardfix != 10000 )
 					damage = damage * cardfix / 1000;
@@ -4321,7 +4321,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 				ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_FLASHCOMBO]->val2);
 #endif
 			}
-			if((wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG && skill_id != GN_FIRE_EXPANSION_ACID) {
+			if((wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG) {
 				if(sc->data[SC_MTF_RANGEATK]) {
 					ATK_ADDRATE(wd.damage, wd.damage2, 25);
 					RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.long_attack_atk_rate'
@@ -5139,9 +5139,9 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		if(sd) { //Monsters, homuns and pets have their damage computed directly
 			wd.damage = wd.statusAtk + wd.weaponAtk + wd.equipAtk + wd.masteryAtk;
 			wd.damage2 = wd.statusAtk2 + wd.weaponAtk2 + wd.equipAtk2 + wd.masteryAtk2;
-			if(wd.flag&BF_LONG && skill_id != GN_FIRE_EXPANSION_ACID) //Affects the entirety of the damage [exneval]
-				ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.long_attack_atk_rate);
 			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Temp. fix for RE ATK calculation [exneval]
+			if(wd.flag&BF_LONG) //Affects the entirety of the damage [exneval]
+				ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.long_attack_atk_rate);
 		}
 #else
 		wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
