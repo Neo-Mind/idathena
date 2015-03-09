@@ -5140,7 +5140,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			wd.damage = wd.statusAtk + wd.weaponAtk + wd.equipAtk + wd.masteryAtk;
 			wd.damage2 = wd.statusAtk2 + wd.weaponAtk2 + wd.equipAtk2 + wd.masteryAtk2;
 			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Temp. fix for RE ATK calculation [exneval]
-			if(wd.flag&BF_LONG) //Affects the entirety of the damage [exneval]
+			if(wd.flag&BF_LONG) //Affects the entirety of the damage
 				ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.long_attack_atk_rate);
 		}
 #else
@@ -7185,22 +7185,28 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		}
 	}
 
-	if (tsc && tsc->data[SC_GT_ENERGYGAIN] && tsc->data[SC_GT_ENERGYGAIN]->val2) {
-		int spheremax = 0;
+	if (tsc) {
+		if (tsc->data[SC_GT_ENERGYGAIN] && tsc->data[SC_GT_ENERGYGAIN]->val2) {
+			int spheremax = 0;
 
-		if (tsc->data[SC_RAISINGDRAGON])
-			spheremax = 5 + tsc->data[SC_RAISINGDRAGON]->val1;
-		else
-			spheremax = 5;
-		if (tsd && rnd()%100 < tsc->data[SC_GT_ENERGYGAIN]->val3)
-			pc_addspiritball(tsd,skill_get_time2(SR_GENTLETOUCH_ENERGYGAIN,tsc->data[SC_GT_ENERGYGAIN]->val1),spheremax);
+			if (tsc->data[SC_RAISINGDRAGON])
+				spheremax = 5 + tsc->data[SC_RAISINGDRAGON]->val1;
+			else
+				spheremax = 5;
+			if (tsd && rnd()%100 < tsc->data[SC_GT_ENERGYGAIN]->val3)
+				pc_addspiritball(tsd,skill_get_time2(SR_GENTLETOUCH_ENERGYGAIN,tsc->data[SC_GT_ENERGYGAIN]->val1),spheremax);
+		}
+		if (tsc->data[SC_MTF_MLEATKED] && rnd()%100 < 20)
+			clif_skill_nodamage(target,target,SM_ENDURE,5,sc_start(target,target,SC_ENDURE,100,5,skill_get_time(SM_ENDURE,5)));
+		if (tsc->data[SC_KAAHI] && tstatus->hp < tstatus->max_hp && status_charge(target,0,tsc->data[SC_KAAHI]->val3)) {
+			int hp_heal = tstatus->max_hp - tstatus->hp;
+
+			if (hp_heal > tsc->data[SC_KAAHI]->val2)
+				hp_heal = tsc->data[SC_KAAHI]->val2;
+			if (hp_heal)
+				status_heal(target,hp_heal,0,2);
+		}
 	}
-
-	if (tsc && tsc->data[SC_MTF_MLEATKED] && rnd()%100 < 20)
-		clif_skill_nodamage(target,target,SM_ENDURE,5,sc_start(target,target,SC_ENDURE,100,5,skill_get_time(SM_ENDURE,5)));
-
-	if (tsc && tsc->data[SC_KAAHI] && tsc->data[SC_KAAHI]->val4 == INVALID_TIMER && tstatus->hp < tstatus->max_hp) //Activate heal.
-		tsc->data[SC_KAAHI]->val4 = add_timer(tick + skill_get_time2(SL_KAAHI,tsc->data[SC_KAAHI]->val1),kaahi_heal_timer,target->id,SC_KAAHI);
 
 	wd = battle_calc_attack(BF_WEAPON,src,target,0,0,flag);
 

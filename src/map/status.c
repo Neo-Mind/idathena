@@ -8188,14 +8188,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				if( sce->val1 > val1 )
 					return 1;
 				break;
-			case SC_KAAHI:
-				//Kaahi overwrites previous level regardless of existing level
-				//Delete timer if it exists
-				if( sce->val4 != INVALID_TIMER ) {
-					delete_timer(sce->val4,kaahi_heal_timer);
-					sce->val4 = INVALID_TIMER;
-				}
-				break;
 			case SC_JAILED:
 				//When a player is already jailed, do not edit the jail data
 				val2 = sce->val2;
@@ -8840,7 +8832,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_KAAHI:
 				val2 = 200 * val1; //HP heal
 				val3 = 5 * val1; //SP cost
-				val4 = INVALID_TIMER; //Kaahi Timer
 				break;
 			case SC_BLESSING:
 				if( (!undead_flag && status->race != RC_DEMON) || bl->type == BL_PC )
@@ -9843,9 +9834,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				clif_changelook(bl,LOOK_SHIELD,0);
 				clif_changelook(bl,LOOK_CLOTHES_COLOR,vd->cloth_color);
 				break;
-			case SC_KAAHI:
-				val4 = INVALID_TIMER;
-				break;
 			case SC_BANDING: {
 					struct skill_unit_group *sg;
 
@@ -10789,11 +10777,6 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 					skill_delunitgroup(group);
 			}
 			break;
-		case SC_KAAHI:
-			//Delete timer if it exists
-			if (sce->val4 != INVALID_TIMER)
-				delete_timer(sce->val4,kaahi_heal_timer);
-			break;
 		case SC_JAILED:
 			if (tid == INVALID_TIMER)
 				break;
@@ -11258,40 +11241,6 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 	}
 
 	ers_free(sc_data_ers,sce);
-	return 1;
-}
-
-int kaahi_heal_timer(int tid, unsigned int tick, int id, intptr_t data)
-{
-	struct block_list *bl;
-	struct status_change *sc;
-	struct status_change_entry *sce;
-	struct status_data *status;
-	int hp;
-
-	if(!((bl = map_id2bl(id))&&
-		(sc = status_get_sc(bl)) &&
-		(sce = sc->data[SC_KAAHI])))
-		return 0;
-
-	if(sce->val4 != tid) {
-		ShowError("kaahi_heal_timer: Timer mismatch: %d != %d\n", tid, sce->val4);
-		sce->val4 = INVALID_TIMER;
-		return 0;
-	}
-
-	status = status_get_status_data(bl);
-	if(!status_charge(bl, 0, sce->val3)) {
-		sce->val4 = INVALID_TIMER;
-		return 0;
-	}
-
-	hp = status->max_hp - status->hp;
-	if(hp > sce->val2)
-		hp = sce->val2;
-	if(hp)
-		status_heal(bl, hp, 0, 2);
-	sce->val4 = INVALID_TIMER;
 	return 1;
 }
 
@@ -12885,16 +12834,16 @@ int status_readdb(void)
 int do_init_status(void)
 {
 	add_timer_func_list(status_change_timer,"status_change_timer");
-	add_timer_func_list(kaahi_heal_timer,"kaahi_heal_timer");
 	add_timer_func_list(status_natural_heal_timer,"status_natural_heal_timer");
 	initChangeTables();
 	initDummyData();
 	status_readdb();
 	natural_heal_prev_tick = gettick();
 	sc_data_ers = ers_new(sizeof(struct status_change_entry),"status.c::sc_data_ers",ERS_OPT_NONE);
-	add_timer_interval(natural_heal_prev_tick + NATURAL_HEAL_INTERVAL, status_natural_heal_timer, 0, 0, NATURAL_HEAL_INTERVAL);
+	add_timer_interval(natural_heal_prev_tick + NATURAL_HEAL_INTERVAL,status_natural_heal_timer,0,0,NATURAL_HEAL_INTERVAL);
 	return 0;
 }
+
 void do_final_status(void)
 {
 	ers_destroy(sc_data_ers);
