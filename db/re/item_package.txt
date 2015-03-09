@@ -3148,7 +3148,7 @@ IG_Something_Candy_Holder,Yggdrasilberry,1,1,1
 IG_Something_Candy_Holder,Old_Card_Album,1,1,1
 IG_Something_Candy_Holder,Old_Violet_Box,1,1,1
 IG_Something_Candy_Holder,DARK_INVITATION,1,1,1
-IG_Something_Candy_Holder,C_There's..Something..,1,1,1
+IG_Something_Candy_Holder,C_There_Is_Something,1,1,1
 IG_Something_Candy_Holder,Witch_Shoes,1,1,1
 
 IG_Sg_Weapon_Supply_Box,Velum_Arbalest,3,1,1
@@ -3172,14 +3172,14 @@ IG_Sg_Weapon_Supply_Box,Siege_Arrow_Quiver_A,13,1,1
 IG_Sg_Weapon_Supply_Box,Siege_Arrow_Quiver_S,13,1,1
 
 //@TODO: Confirm the items & rates
-IG_Adventurer_Returns_Support_Box,16505,1
-IG_Adventurer_Returns_Support_Box,16506,1
-IG_Adventurer_Returns_Support_Box,16507,1
-IG_Adventurer_Returns_Support_Box,16508,1
-IG_Adventurer_Returns_Support_Box,16509,1
-IG_Adventurer_Returns_Support_Box,16510,1
-IG_Adventurer_Returns_Support_Box,16514,1
-IG_Adventurer_Returns_Support_Box,16515,1
+IG_Adventurer_Returns_Support_Box,Steamed_Tongue_Box_10,1
+IG_Adventurer_Returns_Support_Box,Steamed_Desert_Scorpions_Box_10,1
+IG_Adventurer_Returns_Support_Box,Dragon_Breath_Cocktail_Box_10,1
+IG_Adventurer_Returns_Support_Box,Hwergelmir's_Tonic_Box_10,1
+IG_Adventurer_Returns_Support_Box,Cooked_Nine_Tail_Box_10,1
+IG_Adventurer_Returns_Support_Box,Immortal_Stew_Box_10,1
+IG_Adventurer_Returns_Support_Box,Blessing_Scroll_Box_10,1
+IG_Adventurer_Returns_Support_Box,Increase_Agility_Scroll_Box_10,1
 
 //@TODO: Confirm the items & rates
 IG_Support_Package,Battle_Manual,1,2,1
@@ -3318,7 +3318,7 @@ IG_Support_Package_II,Bubble_Gum,1,2,1
 IG_Support_Package_II,Almighty,1,2,1
 IG_Support_Package_II,Mental_Potion,1,2,1
 //IG_Support_Package_II,,1,6,1 //6x Mysterious Water of Life
-IG_Support_Package_II,14717,1,1,1 //1x 2013_RWC_Scroll
+IG_Support_Package_II,2013_RWC_Scroll,1,1,1
 
 //@TODO: Confirm the items & rates
 IG_Support_Package_II10,Battle_Manual,1,20,1
@@ -3326,7 +3326,7 @@ IG_Support_Package_II10,Bubble_Gum,1,20,1
 IG_Support_Package_II10,Almighty,1,20,1
 IG_Support_Package_II10,Mental_Potion,1,20,1
 //IG_Support_Package_II10,,1,60,1 //60x Mysterious Water of Life
-IG_Support_Package_II10,14717,1,1,1 //1x 2013_RWC_Scroll
+IG_Support_Package_II10,2013_RWC_Scroll,1,1,1
 
 IG_Level_Up_Box100,Guarantee_Weapon_6Up,0,1,0
 IG_Level_Up_Box100,Level_Up_Box120,0,1,0

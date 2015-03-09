@@ -1128,7 +1128,7 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	sd->login_id2 = login_id2;
 	sd->group_id = group_id;
 	
-	/* Load user permissions */
+	//Load user permissions
 	pc_group_pc_load(sd);
 	
 	memcpy(&sd->status, st, sizeof(*st));

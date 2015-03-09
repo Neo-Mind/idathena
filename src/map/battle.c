@@ -5101,10 +5101,13 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			wd.equipAtk2 += battle_calc_cardfix(BF_WEAPON, src, target, skill_id, nk, right_element, left_element, wd.equipAtk2, 3, wd.flag);
 		}
 
+		if(skill_id == HW_MAGICCRASHER) //Add weapon attack for MATK into Magic Crasher
+			ATK_ADD(wd.weaponAtk, wd.weaponAtk2, status_get_matk(src, 2));
+
+		//Final attack bonuses that aren't affected by cards
+		wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
+
 		switch(skill_id) {
-			case HW_MAGICCRASHER: //Add weapon attack for MATK into Magic Crasher
-				ATK_ADD(wd.weaponAtk, wd.weaponAtk2, status_get_matk(src, 2));
-				break;
 			case CR_ACIDDEMONSTRATION:
 			case GN_FIRE_EXPANSION_ACID:
 				{
@@ -5123,8 +5126,8 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 
 					//Status ATK, weapon ATK, and equip ATK are directly reduced by eDEF
 					//sDEF only directly reduces status ATK [exneval]
-					wd.statusAtk -= (def1 + vit_def);
-					wd.statusAtk2 -= (def1 + vit_def);
+					wd.statusAtk -= (def1 + vit_def / 2);
+					wd.statusAtk2 -= (def1 + vit_def / 2);
 					wd.weaponAtk -= def1;
 					wd.weaponAtk2 -= def1;
 					wd.equipAtk -= def1;
@@ -5133,15 +5136,12 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 				break;
 		}
 
-		//Final attack bonuses that aren't affected by cards
-		wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
-
 		if(sd) { //Monsters, homuns and pets have their damage computed directly
 			wd.damage = wd.statusAtk + wd.weaponAtk + wd.equipAtk + wd.masteryAtk;
 			wd.damage2 = wd.statusAtk2 + wd.weaponAtk2 + wd.equipAtk2 + wd.masteryAtk2;
 			if(wd.flag&BF_LONG && skill_id != GN_FIRE_EXPANSION_ACID) //Affects the entirety of the damage [exneval]
 				ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.long_attack_atk_rate);
-			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Temp. fix for "a hole" in renewal ATK calculation [exneval]
+			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Temp. fix for RE ATK calculation [exneval]
 		}
 #else
 		wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);
@@ -6158,16 +6158,14 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 						//Status MATK, weapon MATK, and equip MATK are directly reduced by eMDEF [exneval]
 						//sMDEF only directly reduces status MATK
-						statusMatk -= (mdef + int_mdef);
+						statusMatk -= (mdef + int_mdef / 2);
 						weaponMatk -= mdef;
 						equipMatk -= mdef;
 
 						ad.damage += statusMatk + weaponMatk + equipMatk;
-						MATK_ADDRATE(5); //Temp. fix for "a hole" in renewal MATK calculation [exneval]
 					}
 					break;
 				default:
-					MATK_ADDRATE(5); //Adds before reduction
 					ad.damage = ad.damage * (1000 + mdef) / (1000 + mdef * 10) - int_mdef;
 					break;
 			}
@@ -6417,8 +6415,6 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			{
 				//Official Renewal formula [helvetica]
 				//Damage = 7 * ((atk + matk) / skill level) * (target vit / 100)
-				//Skill is a "forced neutral" type skill, it benefits from weapon element but final damage
-				//is considered "neutral" for purposes of resistances
 				struct Damage atk, matk;
 
 				atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);

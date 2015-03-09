@@ -614,7 +614,7 @@ static void itemdb_read_itemgroup_sub(const char* filename)
 		if( str[0] == NULL ) //Empty Group ID
 			continue;
 		if( j < 3 ) {
-			if( j > 1 ) //Or else it barks on blank lines...
+			if( j > 1 ) //Or else it barks on blank lines
 				ShowWarning("itemdb_read_itemgroup: Insufficient fields for entry at %s:%d\n", filename, ln);
 			continue;
 		}

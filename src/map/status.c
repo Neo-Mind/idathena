@@ -9605,13 +9605,14 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				val3 = 20; //% Increase summoner HP
 				break;
 			case SC_TEARGAS:
-				val2 = status->max_hp * 5 / 100; // Drain 5% HP
+				val2 = status->max_hp * 5 / 100; //Drain 5% HP
 				tick_time = 2000;
 				val4 = tick / tick_time;
 				break;
-			case SC_TEARGAS_SOB: //Cry emotion
+			case SC_TEARGAS_SOB:
 				tick_time = 3000;
 				val4 = tick / tick_time;
+				clif_emotion(bl,E_SOB); //Cry emotion
 				break;
 			case SC_MELON_BOMB:
 			case SC_BANANA_BOMB:
@@ -11776,7 +11777,8 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 				int damage = 1000 + 3 * status_get_max_hp(bl) / 100; //Deals fixed (1000 + 3% * MaxHP)
 
 				map_freeblock_lock();
-				status_damage(src,bl,damage,0,clif_damage(bl,bl,tick,0,0,damage,0,DMG_ENDURE,0),1); //Have no walk delay
+				status_damage(src,bl,damage,0,clif_damage(bl,bl,tick,status_get_amotion(bl),1,damage,0,DMG_NORMAL,0),0);
+				unit_skillcastcancel(bl,2);
 				if( sc->data[type] ) { //Target still lives [LimitLine]
 					sc_timer_next(3000 + tick,status_change_timer,bl->id,data); //Deals damage every 3 seconds
 				}

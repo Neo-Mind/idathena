@@ -3249,7 +3249,7 @@
 5316,Umbrella_Hat,Umbrella Hat,4,20,,100,,2,,0,0xFFFFFFFF,63,2,256,,50,1,338,{ bonus2 bSubEle,Ele_Water,3; },{},{}
 5317,Fisherman_Hat,Fisherman's Hat,4,20,,100,,2,,0,0xFFFFFFFF,63,2,256,,50,1,339,{ bonus3 bAutoSpell,"WZ_WATERBALL",3,50; },{},{}
 5318,Poring_Party_Hat,Poring Party Hat,4,20,,0,,2,,0,0xFFFFFFFF,63,2,256,,0,1,340,{ bonus bFlee,6; },{},{}
-5319,Arc_Angeling_Hat,Arc Angeling Hat,4,20,,200,,3,,1,0xFFFFFFFE,63,2,256,,0,1,341,{ bonus bHPrecovRate,150; bonus bMaxHP,80*getrefine(); },{},{}
+5319,Hellomother_Hat,Arc Angeling Hat,4,20,,200,,3,,1,0xFFFFFFFE,63,2,256,,0,1,341,{ bonus bHPrecovRate,150; bonus bMaxHP,80*getrefine(); },{},{}
 5320,Champion_Wreath,Champion Wreath,4,20,,500,,4,,0,0xFFFFFFFE,63,2,256,,0,1,261,{ bonus bAllStats,2; bonus4 bAutoSpellWhenHit,"AL_HEAL",1,50,0; },{},{}
 5321,Indonesian_Bandana,Bandana Merah Putih,4,20,,500,,2,,0,0xFFFFFFFF,63,2,256,,0,1,342,{ bonus2 bAddMonsterDropItem,518,300; },{},{}
 5322,Scarf,Kerchief,4,20,,100,,2,,0,0xFFFFFFFF,63,2,256,,24,1,343,{ bonus bMdef,2; bonus bFlee,5; },{},{}
@@ -9296,9 +9296,9 @@
 18900,Weisswurst,Weisswurst,4,20,,100,,1,,0,0xFFFFFFFF,63,2,1,,60,0,1022,{ bonus bMaxHP,50; },{},{}
 18901,Seppl_Hat,Seppl Hat,4,20,,500,,5,,1,0xFFFFFFFF,63,2,256,,60,0,1023,{ bonus bVit,3; bonus bHPrecovRate,10; },{},{}
 18902,Shovel_Hat,Shovel Hat,4,0,,500,,0,,0,0xFFFFFFFF,63,2,256,,50,0,1024,{ bonus bVit,3; bonus2 bAddMonsterDropItem,553,500; bonus2 bAddItemHealRate,553,700; },{},{}
-18908,Isabella_Red_Ear,Isabella Red Ear,4,20,,300,,8,,0,0xFFFFFFFF,63,2,256,,1,1,1030,{ bonus bStr,5; bonus bMaxHPrate,5; bonus2 bSubEle,Ele_Fire,10; if (getrefine() >= 9) bonus bAspd,getrefine()-8; },{},{}
+18908,Isabella_Red_Ear,Isabella Red Ear,4,20,,300,,8,,0,0xFFFFFFFF,63,2,256,,1,1,1030,{ bonus bStr,5; bonus bMaxHPrate,5; bonus2 bSubEle,Ele_Fire,10; if (getrefine()>=9) bonus bAspd,getrefine()-8; },{},{}
 18909,Isabella_Brown_Ear,Isabella Brown Ear,4,20,,300,,8,,0,0xFFFFFFFF,63,2,256,,1,1,1031,{ bonus bMaxHPrate,10; bonus2 bSubRace,RC_DemiHuman,5; bonus bMatk,getrefine()*2; },{},{}
-18910,Isabella_Blue_Ear,Isabella Blue Ear,4,20,,300,,8,,0,0xFFFFFFFF,63,2,256,,1,1,1032,{ bonus bMaxHPrate,10; bonus2 bSubRace,RC_DemiHuman,5; bonus2 bAddSize,Size_Medium,10; if(getrefine()>=12){ bonus bShortWeaponDamageReturn,5; } },{},{}
+18910,Isabella_Blue_Ear,Isabella Blue Ear,4,20,,300,,8,,0,0xFFFFFFFF,63,2,256,,1,1,1032,{ bonus2 bSubRace,RC_DemiHuman,5; bonus2 bAddSize,Size_Medium,10; if(getrefine()>=12){ bonus bShortWeaponDamageReturn,5; } },{},{}
 18917,LoveLove_Balloon,LoveLove Balloon,4,20,,200,,5,,0,0xFFFFFFFF,63,2,1,,1,0,1039,{ bonus bAllStats,1; bonus bUnbreakableHelm,0; },{},{}
 18918,Long_Octopus_Balloon,Long Octopus Balloon,4,20,,200,,5,,0,0xFFFFFFFF,63,2,1,,1,0,1040,{ bonus bVit,1; bonus bInt,1; bonus bMaxSP,30; bonus bUnbreakableHelm,0; },{},{}
 18929,Elephant_Model_Hat,Elephant Model Hat,4,20,,300,,10,,1,0xFFFFFFFF,63,2,256,,30,1,1065,{ bonus bDex,2+((getrefine()>=2 && getrefine()<=8)?1:((getrefine()>8)?(getrefine()/8):0)); bonus3 bAutoSpellWhenHit,"WZ_STORMGUST",5,50; },{},{}
