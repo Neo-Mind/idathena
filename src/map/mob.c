@@ -1461,7 +1461,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 				return true;
 			}
 		} else if((abl = map_id2bl(md->attacked_id)) && ((!tbl || mob_can_changetarget(md, abl, mode)) ||
-			(md->sc.count && md->sc.data[SC__CHAOS]))) {
+			(md->sc.count && md->sc.data[SC_CONFUSION] && md->sc.data[SC_CONFUSION]->val4))) {
 			int dist;
 
 			if(md->bl.m != abl->m || abl->prev == NULL
@@ -1521,7 +1521,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 	if((!tbl && (mode&MD_AGGRESSIVE)) || md->state.skillstate == MSS_FOLLOW)
 		map_foreachinrange(mob_ai_sub_hard_activesearch, &md->bl, view_range, DEFAULT_ENEMY_TYPE(md), md, &tbl, mode);
 	else if((mode&MD_CHANGECHASE) && (md->state.skillstate == MSS_RUSH || md->state.skillstate == MSS_FOLLOW ||
-		(md->sc.count && md->sc.data[SC__CHAOS]))) {
+		(md->sc.count && md->sc.data[SC_CONFUSION] && md->sc.data[SC_CONFUSION]->val4))) {
 		int search_size = (view_range < md->status.rhw.range ? view_range : md->status.rhw.range);
 
 		map_foreachinrange(mob_ai_sub_hard_changechase, &md->bl, search_size, DEFAULT_ENEMY_TYPE(md), md, &tbl);
@@ -3074,7 +3074,7 @@ int mob_getfriendstatus_sub(struct block_list *bl,va_list ap)
 		int j;
 
 		for( j = SC_COMMON_MIN; j <= SC_COMMON_MAX && !flag; j++ ) {
-			if( (flag = (md->sc.data[j] != NULL)) ) //Once an effect was found, break out. [Skotlex]
+			if( (flag = (md->sc.data[j] != NULL)) ) //Once an effect was found, break out [Skotlex]
 				break;
 		}
 	} else
@@ -3489,7 +3489,7 @@ int mob_clone_spawn(struct map_session_data *sd, int16 m, int16 x, int16 y, cons
 				ms[i].cond2 = 95;
 			}
 		} else if (inf&INF_SELF_SKILL) {
-			if (skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF) { //Auto-select target skill.
+			if (skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF) { //Auto-select target skill
 				ms[i].target = MST_TARGET;
 				ms[i].cond1 = MSC_ALWAYS;
 				if (skill_get_range(skill_id, ms[i].skill_lv) > 3)

@@ -885,9 +885,9 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 
 		if( (sce = sc->data[SC_WEAPONBLOCKING]) && (flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON) &&
 			rnd()%100 < sce->val2 ) {
-			clif_skill_nodamage(bl,src,GC_WEAPONBLOCKING,1,1);
+			clif_skill_nodamage(bl,src,GC_WEAPONBLOCKING,sce->val1,1);
+			sc_start2(src,bl,SC_COMBO,100,GC_WEAPONBLOCKING,src->id,skill_get_time2(GC_WEAPONBLOCKING,sce->val1));
 			d->dmg_lv = ATK_BLOCK;
-			sc_start2(src,bl,SC_COMBO,100,GC_WEAPONBLOCKING,src->id,2000);
 			return 0;
 		}
 
@@ -953,11 +953,11 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			return 0; //Attack blocked by Parrying
 		}
 
-		if( sc->data[SC_DODGE] && (!sc->opt1 || sc->opt1 == OPT1_BURNING) &&
+		if( (sce = sc->data[SC_DODGE]) && (!sc->opt1 || sc->opt1 == OPT1_BURNING) &&
 			(flag&BF_LONG || sc->data[SC_SPURT]) && rnd()%100 < 20 ) {
 			if( sd && pc_issit(sd) )
 				pc_setstand(sd); //Stand it to dodge
-			clif_skill_nodamage(bl,bl,TK_DODGE,1,1);
+			clif_skill_nodamage(bl,bl,TK_DODGE,sce->val1,1);
 			if( !sc->data[SC_COMBO] )
 				sc_start4(src,bl,SC_COMBO,100,TK_JUMPKICK,src->id,1,0,2000);
 			return 0;
@@ -2117,9 +2117,10 @@ static bool is_attack_critical(struct Damage wd, struct block_list *src, struct 
 	if(skill_id == NPC_CRITICALSLASH || skill_id == LG_PINPOINTATTACK) //Always critical skills
 		return true;
 
-	if(!(wd.type&DMG_MULTI_HIT) && sstatus->cri && (!skill_id ||
-		skill_id == KN_AUTOCOUNTER || skill_id == SN_SHARPSHOOTING ||
-		skill_id == MA_SHARPSHOOTING || skill_id == NJ_KIRIKAGE))
+	if(!(wd.type&DMG_MULTI_HIT) && sstatus->cri &&
+		(!skill_id || skill_id == KN_AUTOCOUNTER ||
+		skill_id == SN_SHARPSHOOTING || skill_id == MA_SHARPSHOOTING ||
+		skill_id == NJ_KIRIKAGE || skill_id == GC_COUNTERSLASH))
 	{
 		short cri = sstatus->cri;
 
@@ -3826,9 +3827,6 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 			}
 			RE_LVL_DMOD(100);
 			break;
-		case WM_SOUND_OF_DESTRUCTION:
-			skillratio += -100 + 1000 * skill_lv + (sd ? pc_checkskill(sd,WM_LESSON) * sstatus->int_ : 0);
-			break;
 		case GN_CART_TORNADO: {
 				//ATK [( Skill Level x 50 ) + ( Cart Weight / ( 150 - Caster's Base STR ))] + ( Cart Remodeling Skill Level x 50 )] %
 				int strbonus = status_get_base_status(src)->str; //Only using base STR
@@ -4350,14 +4348,14 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 }
 
 /*====================================
- * Calc defense damage reduction
+ * Get defense
  *------------------------------------
  * Credits:
  *	Original coder Skotlex
  *	Initial refactoring by Baalberith
  *	Refined and optimized by helvetica
  */
-struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list *src,struct block_list *target, uint16 skill_id, uint16 skill_lv)
+static short battle_get_defense(struct block_list *src, struct block_list *target, uint16 skill_id, uint8 flag)
 {
 	struct map_session_data *sd = BL_CAST(BL_PC, src);
 	struct map_session_data *tsd = BL_CAST(BL_PC, target);
@@ -4382,10 +4380,9 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 			def1 = (def1 * (100 - i)) / 100;
 			def2 = (def2 * (100 - i)) / 100;
 		}
-		//KO Earth Charm effect +5% eDEF
 		ARR_FIND(1, 6, type, sd->talisman[type] > 0);
 		if(type == 2) {
-			short i = 5 * sd->talisman[type];
+			short i = 5 * sd->talisman[type]; //KO Earth Charm effect +5% eDEF
 
 			def1 = (def1 * (100 + i)) / 100;
 		}
@@ -4412,15 +4409,15 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 				def2 -= (target_count - (battle_config.vit_penalty_count - 1)) * battle_config.vit_penalty_num;
 			}
 		}
-		if(skill_id == AM_ACIDTERROR) {
-#ifdef RENEWAL
-			def2 = 0; //Ignores only sDEF [FatalEror]
-#else
-			def1 = 0; //Ignores only eDEF [Skotlex]
-#endif
-		}
 		if(def2 < 1)
 			def2 = 1;
+		if(skill_id == AM_ACIDTERROR) {
+#ifndef RENEWAL
+			def1 = 0; //Ignores only eDEF [Skotlex]
+#else
+			def2 = 0; //Ignores only sDEF [FatalEror]
+#endif
+		}
 	}
 	//Vitality reduction
 	//[rodatazone: http://rodatazone.simgaming.net/mechanics/substats.php#def]
@@ -4462,6 +4459,27 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 		vit_def += def1 * battle_config.weapon_defense_type;
 		def1 = 0;
 	}
+	if(!flag)
+		return (short)def1;
+	else
+		return vit_def;
+
+	return 0;
+}
+
+/*====================================
+ * Calc defense damage reduction
+ *------------------------------------
+ * Credits:
+ *	Original coder Skotlex
+ *	Initial refactoring by Baalberith
+ *	Refined and optimized by helvetica
+ */
+struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list *src, struct block_list *target, uint16 skill_id, uint16 skill_lv)
+{
+	short def1 = battle_get_defense(src, target, skill_id, 0);
+	short vit_def = battle_get_defense(src, target, skill_id, 1);
+
 #ifdef RENEWAL
 	/**
 	 * RE DEF Reduction
@@ -5111,18 +5129,8 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			case CR_ACIDDEMONSTRATION:
 			case GN_FIRE_EXPANSION_ACID:
 				{
-					defType def1 = status_get_def(target);
-					short def2 = tstatus->def2, vit_def;
-
-					def1 = status_calc_def(target, tsc, def1, false);
-					def2 = status_calc_def2(target, tsc, def2, false);
-
-					if(tsd)
-						vit_def = def2;
-					else {
-						vit_def = def1;
-						def1 = def2;
-					}
+					short def1 = battle_get_defense(src, target, skill_id, 0);
+					short vit_def = battle_get_defense(src, target, skill_id, 1);
 
 					//Status ATK, weapon ATK, and equip ATK are directly reduced by eDEF
 					//sDEF only directly reduces status ATK [exneval]
@@ -6156,8 +6164,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						status_get_matk_sub(src, 6, &matk_max, &matk_min);
 						equipMatk = matk_max;
 
-						//Status MATK, weapon MATK, and equip MATK are directly reduced by eMDEF [exneval]
-						//sMDEF only directly reduces status MATK
+						//Status MATK, weapon MATK, and equip MATK are directly reduced by eMDEF
+						//sMDEF only directly reduces status MATK [exneval]
 						statusMatk -= (mdef + int_mdef / 2);
 						weaponMatk -= mdef;
 						equipMatk -= mdef;

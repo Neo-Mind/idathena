@@ -4347,7 +4347,7 @@ static void clif_getareachar_pc(struct map_session_data* sd,struct map_session_d
 	}
 	for( i = 0; i < dstsd->sc_display_count; i++ ) {
 		if( (dstsd->sc.option&OPTION_INVISIBLE) ||
-			(dstsd->sc.option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) && !sd->special_state.intravision && !sd->sc.data[SC_INTRAVISION]) )
+			(pc_ishiding(dstsd) && !sd->special_state.intravision && !sd->sc.data[SC_INTRAVISION]) )
 			clif_efst_status_change(&sd->bl, dstsd->bl.id, SELF, SI_BLANK, 0, 0, 0);
 		else
 			clif_efst_status_change(&sd->bl, dstsd->bl.id, SELF, StatusIconChangeTable[dstsd->sc_display[i]->type], dstsd->sc_display[i]->val1, dstsd->sc_display[i]->val2, dstsd->sc_display[i]->val3);
@@ -5414,7 +5414,7 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,unsigned int
 /// Ground skill attack effect and damage (ZC_NOTIFY_SKILL_POSITION).
 /// 0115 <skill id>.W <src id>.L <dst id>.L <tick>.L <src delay>.L <dst delay>.L <x>.W <y>.W <damage>.W <level>.W <div>.W <type>.B
 /*
-int clif_skill_damage2(struct block_list *src,struct block_list *dst,unsigned int tick,int sdelay,int ddelay,int damage,int div,uint16 skill_id,uint16 skill_lv,int type)
+int clif_skill_damage2(struct block_list *src,struct block_list *dst,unsigned int tick,int sdelay,int ddelay,int64 damage,int div,uint16 skill_id,uint16 skill_lv,int type)
 {
 	unsigned char buf[64];
 	struct status_change *sc;

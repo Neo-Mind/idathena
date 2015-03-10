@@ -641,7 +641,7 @@ int unit_walktoxy(struct block_list *bl, short x, short y, unsigned char flag)
 	unit_stop_attack(bl); // Sets target to 0
 
 	if( (sc = status_get_sc(bl)) ) {
-		if( sc->data[SC_CONFUSION] || sc->data[SC__CHAOS] )
+		if( sc->data[SC_CONFUSION] )
 			map_random_dir(bl, &ud->to_x, &ud->to_y); // Randomize the target position
 		if( sc->data[SC_COMBO] )
 			status_change_end(bl, SC_COMBO, INVALID_TIMER);
@@ -747,7 +747,7 @@ int unit_walktobl(struct block_list *bl, struct block_list *tbl, int range, unsi
 	unit_stop_attack(bl); //Sets target to 0
 
 	if ((sc = status_get_sc(bl))) {
-		if (sc->data[SC_CONFUSION] || sc->data[SC__CHAOS]) //Randomize the target position
+		if (sc->data[SC_CONFUSION]) //Randomize the target position
 			map_random_dir(bl, &ud->to_x, &ud->to_y);
 		if (sc->data[SC_COMBO])
 			status_change_end(bl, SC_COMBO, INVALID_TIMER);
@@ -1456,7 +1456,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	if( status_isdead(src) )
 		return 0; //Do not continue source is dead
 
-	sd = BL_CAST(BL_PC,src);
+	sd = BL_CAST(BL_PC, src);
 	ud = unit_bl2ud(src);
 
 	if( ud == NULL )
@@ -1469,7 +1469,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 
 	//Temp: Used to signal combo-skills right now
 	if( sc && sc->data[SC_COMBO] && (sc->data[SC_COMBO]->val1 == skill_id ||
-		(sd ? skill_check_condition_castbegin(sd,skill_id,skill_lv) : 0)) ) {
+		(sd ? skill_check_condition_castbegin(sd, skill_id, skill_lv) : 0)) ) {
 		if( sc->data[SC_COMBO]->val2 )
 			target_id = sc->data[SC_COMBO]->val2;
 		else if( target_id == src->id || ud->target > 0 )
@@ -1482,20 +1482,20 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 		((skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF) ||
 		(skill_id == RL_QD_SHOT && sc && sc->data[SC_QD_SHOT_READY])) )
 	{
+		if( skill_id == GC_WEAPONCRUSH && sd && !skill_check_condition_castbegin(sd, skill_id, skill_lv) )
+			return 0;
 		target_id = ud->target; //Auto-select target [Skotlex]
 		combo = 1;
 	}
 
 	//Target_id checking
 	if( sd ) {
-		if( skill_isNotOk(skill_id,sd) ) //[MouseJstr]
+		if( skill_isNotOk(skill_id, sd) ) //[MouseJstr]
 			return 0;
 		switch( skill_id ) { //Check for skills that auto-select target
 			case MO_CHAINCOMBO:
-				if( sc && sc->data[SC_BLADESTOP] ) {
-					if( (target = map_id2bl(sc->data[SC_BLADESTOP]->val4)) == NULL )
-						return 0;
-				}
+				if( sc && sc->data[SC_BLADESTOP] && (target = map_id2bl(sc->data[SC_BLADESTOP]->val4)) == NULL )
+					return 0;
 				break;
 			case WE_MALE:
 			case WE_FEMALE:
@@ -1503,7 +1503,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 					return 0;
 				target = (struct block_list*)map_charid2sd(sd->status.partner_id);
 				if( !target ) {
-					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+					clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 					return 0;
 				}
 				break;
@@ -1665,6 +1665,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, uint16 skill_id, ui
 	//New action request received, delete previous action request if not executed yet
 	if( ud->stepaction || ud->steptimer != INVALID_TIMER )
 		unit_stop_stepaction(src);
+
 	//Remember the skill request from the client while walking to the next cell
 	if( src->type == BL_PC && ud->walktimer != INVALID_TIMER && !battle_check_range(src, target, range - 1) ) {
 		ud->stepaction = true;
@@ -2423,27 +2424,27 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 		|| !path_search_long(NULL,src->m,src->x,src->y,target->x,target->y,CELL_CHKWALL)
 #endif
 		|| (sd && !pc_can_attack(sd,ud->target)) )
-		return 0; // Can't attack under these conditions
+		return 0; //Can't attack under these conditions
 
 	if( sd && sd->sc.count && sd->sc.data[SC_HEAT_BARREL_AFTER] )
 		return 0;
 
 	if( src->m != target->m ) {
 		if( src->type == BL_MOB && mob_warpchase((TBL_MOB*)src,target) )
-			return 1; // Follow up
+			return 1; //Follow up
 		return 0;
 	}
 
 	if( ud->skilltimer != INVALID_TIMER && sd && !pc_checkskill(sd,SA_FREECAST) )
-		return 0; // Can't attack while casting
+		return 0; //Can't attack while casting
 
 	if( !battle_config.sdelay_attack_enable && DIFF_TICK(ud->canact_tick,tick) > 0 &&
-		sd && !pc_checkskill(sd,SA_FREECAST) ) { // Attacking when under cast delay has restrictions:
-		if( tid == INVALID_TIMER ) { // Requested attack.
+		sd && !pc_checkskill(sd,SA_FREECAST) ) { //Attacking when under cast delay has restrictions:
+		if( tid == INVALID_TIMER ) { //Requested attack
 			if( sd )
 				clif_skill_fail(sd,1,USESKILL_FAIL_SKILLINTERVAL,0);
 			return 0;
-		} // Otherwise, we are in a combo-attack, delay this until your canact time is over. [Skotlex]
+		} //Otherwise, we are in a combo-attack, delay this until your canact time is over [Skotlex]
 		if( ud->state.attack_continue ) {
 			if( DIFF_TICK(ud->canact_tick, ud->attackabletime) > 0 )
 				ud->attackabletime = ud->canact_tick;

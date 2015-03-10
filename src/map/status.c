@@ -711,7 +711,7 @@ void initChangeTables(void) {
 	set_sc( SC_WEAKNESS          , SC__WEAKNESS       , SI_WEAKNESS        , SCB_MAXHP );
 	set_sc( SC_STRIPACCESSARY    , SC__STRIPACCESSORY , SI_STRIPACCESSARY  , SCB_INT|SCB_DEX|SCB_LUK );
 	set_sc_with_vfx( SC_MANHOLE  , SC__MANHOLE        , SI_MANHOLE         , SCB_NONE );
-	add_sc( SC_CHAOSPANIC        , SC__CHAOS );
+	add_sc( SC_CHAOSPANIC        , SC_CONFUSION );
 	set_sc( SC_BLOODYLUST        , SC_BERSERK         , SI_BERSERK         , SCB_DEF|SCB_DEF2|SCB_MDEF|SCB_MDEF2|SCB_FLEE|SCB_SPEED|SCB_ASPD|SCB_MAXHP|SCB_REGEN );
 	set_sc( SC_MAELSTROM         , SC__MAELSTROM      , SI_BLANK           , SCB_NONE );
 	add_sc( SC_FEINTBOMB         , SC__FEINTBOMB );
@@ -1137,6 +1137,7 @@ void initChangeTables(void) {
 	StatusDisplayType[SC_ORATIO]		  = true;
 	StatusDisplayType[SC_BURNING]		  = true;
 	StatusDisplayType[SC_FREEZING]		  = true;
+	StatusDisplayType[SC_WHITEIMPRISON]	  = true;
 	StatusDisplayType[SC_VENOMIMPRESS]	  = true;
 	StatusDisplayType[SC_HALLUCINATIONWALK]	  = true;
 	StatusDisplayType[SC_ROLLINGCUTTER]	  = true;
@@ -1392,7 +1393,6 @@ int status_damage(struct block_list *src, struct block_list *target, int64 in_hp
 			status_change_end(target, SC_SLEEP, INVALID_TIMER);
 			status_change_end(target, SC_WINKCHARM, INVALID_TIMER);
 			status_change_end(target, SC_CONFUSION, INVALID_TIMER);
-			status_change_end(target, SC__CHAOS, INVALID_TIMER);
 			status_change_end(target, SC_TRICKDEAD, INVALID_TIMER);
 			status_change_end(target, SC_HIDING, INVALID_TIMER);
 			status_change_end(target, SC_CLOAKING, INVALID_TIMER);
@@ -6933,7 +6933,7 @@ void status_change_init(struct block_list *bl)
  * @see status_change_start for the expected parameters.
  * @return the adjusted duration based on flag values.
  */
-int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_type type, int rate, int tick, unsigned char flag)
+int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_type type, int rate, int val1, int val2, int val3, int val4, int tick, unsigned char flag)
 {
 	//Resistance rate: 10000 = 100%
 	//Example:  50% (5000) -> sc_def = 5000 -> 25%;
@@ -7068,9 +7068,11 @@ int status_get_sc_def(struct block_list *src, struct block_list *bl, enum sc_typ
 			tick_def2 = status->luk * 10;
 			break;
 		case SC_CONFUSION:
-			sc_def = (status->str + status->int_) * 50;
-			sc_def2 = SCDEF_LVL_DIFF(src,bl,99,10) - status->luk * 10; //Reversed sc_def2
-			tick_def2 = status->luk * 10;
+			if (!val4) {
+				sc_def = (status->str + status->int_) * 50;
+				sc_def2 = SCDEF_LVL_DIFF(src,bl,99,10) - status->luk * 10; //Reversed sc_def2
+				tick_def2 = status->luk * 10;
+			}
 			break;
 		case SC_DECREASEAGI:
 		case SC_ADORAMUS:
@@ -7377,28 +7379,28 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_STUN:		case SC_SLEEP:		case SC_CURSE:
 			case SC_STONE:		case SC_POISON:		case SC_BLIND:
 			case SC_SILENCE:	case SC_BLEEDING:	case SC_CONFUSION:
-			case SC__CHAOS:		case SC_FREEZE:		case SC_DEEPSLEEP:
-			case SC_BURNING:	case SC_FREEZING:	case SC_CRYSTALIZE:
-			case SC_TOXIN:		case SC_PARALYSE:	case SC_VENOMBLEED:
-			case SC_MAGICMUSHROOM:	case SC_DEATHHURT:	case SC_PYREXIA:
-			case SC_OBLIVIONCURSE:	case SC_MARSHOFABYSS:	case SC_MANDRAGORA:
+			case SC_FREEZE:		case SC_DEEPSLEEP:	case SC_BURNING:
+			case SC_FREEZING:	case SC_CRYSTALIZE:	case SC_TOXIN:
+			case SC_PARALYSE:	case SC_VENOMBLEED:	case SC_MAGICMUSHROOM:
+			case SC_DEATHHURT:	case SC_PYREXIA:	case SC_OBLIVIONCURSE:
+			case SC_MARSHOFABYSS:	case SC_MANDRAGORA:
 				return 0;
 		}
 	}
 
 	if( sc->data[SC_INSPIRATION] ) {
 		switch( type ) {
-			case SC_POISON:			case SC_BLIND:		case SC_STUN:
-			case SC_SILENCE:		case SC_CONFUSION:	case SC__CHAOS:
-			case SC_STONE:			case SC_SLEEP:		case SC_BLEEDING:
-			case SC_CURSE:			case SC_BURNING:	case SC_FREEZE:
-			case SC_FREEZING:		case SC_CRYSTALIZE:	case SC_FEAR:
-			case SC_TOXIN:			case SC_PARALYSE:	case SC_VENOMBLEED:
-			case SC_MAGICMUSHROOM:		case SC_DEATHHURT:	case SC_PYREXIA:
-			case SC_OBLIVIONCURSE:		case SC_LEECHESEND:	case SC_DEEPSLEEP:
-			case SC_SATURDAYNIGHTFEVER:	case SC__BODYPAINT:	case SC__ENERVATION:
-			case SC__GROOMY:		case SC__IGNORANCE:	case SC__LAZINESS:
-			case SC__UNLUCKY:		case SC__WEAKNESS:
+			case SC_POISON:		case SC_BLIND:		case SC_STUN:
+			case SC_SILENCE:	case SC_CONFUSION:	case SC_STONE:
+			case SC_SLEEP:		case SC_BLEEDING:	case SC_CURSE:
+			case SC_BURNING:	case SC_FREEZE:		case SC_FREEZING:
+			case SC_CRYSTALIZE:	case SC_FEAR:		case SC_TOXIN:
+			case SC_PARALYSE:	case SC_VENOMBLEED:	case SC_MAGICMUSHROOM:
+			case SC_DEATHHURT:	case SC_PYREXIA:	case SC_OBLIVIONCURSE:
+			case SC_LEECHESEND:	case SC_DEEPSLEEP:	case SC_SATURDAYNIGHTFEVER:
+			case SC__BODYPAINT:	case SC__ENERVATION:	case SC__GROOMY:
+			case SC__IGNORANCE:	case SC__LAZINESS:	case SC__UNLUCKY:
+			case SC__WEAKNESS:
 				return 0;
 		}
 	}
@@ -7408,9 +7410,9 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_POISON:		case SC_BLIND:		case SC_FREEZE:
 			case SC_STONE:		case SC_STUN:		case SC_SLEEP:
 			case SC_BLEEDING:	case SC_CURSE:		case SC_CONFUSION:
-			case SC__CHAOS:		case SC_HALLUCINATION:	case SC_SILENCE:
-			case SC_BURNING:	case SC_CRYSTALIZE:	case SC_FREEZING:
-			case SC_DEEPSLEEP:	case SC_FEAR:		case SC_MANDRAGORA:
+			case SC_HALLUCINATION:	case SC_SILENCE:	case SC_BURNING:
+			case SC_CRYSTALIZE:	case SC_FREEZING:	case SC_DEEPSLEEP:
+			case SC_FEAR:		case SC_MANDRAGORA:
 				return 0;
 		}
 	}
@@ -7419,7 +7421,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 
 	//Adjust tick according to status resistances
 	if( !(flag&(SCFLAG_NOAVOID|SCFLAG_LOADED)) ) {
-		tick = status_get_sc_def(src,bl,type,rate,tick,flag);
+		tick = status_get_sc_def(src,bl,type,rate,val1,val2,val3,val4,tick,flag);
 		if( !tick )
 			return 0;
 	}
@@ -8085,7 +8087,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			status_change_end(bl,SC_BLEEDING,INVALID_TIMER);
 			status_change_end(bl,SC_CURSE,INVALID_TIMER);
 			status_change_end(bl,SC_CONFUSION,INVALID_TIMER);
-			status_change_end(bl,SC__CHAOS,INVALID_TIMER);
 			status_change_end(bl,SC_HALLUCINATION,INVALID_TIMER);
 			status_change_end(bl,SC_SILENCE,INVALID_TIMER);
 			status_change_end(bl,SC_BURNING,INVALID_TIMER);
@@ -8135,7 +8136,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			case SC_CURSE:
 			case SC_SILENCE:
 			case SC_CONFUSION:
-			case SC__CHAOS:
 			case SC_BLIND:
 			case SC_BLEEDING:
 			case SC_DPOISON:
@@ -8513,7 +8513,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 					val4 = (type == SC_DPOISON) ? 2 + status->max_hp / 100 : 2 + status->max_hp / 200;
 				break;
 			case SC_CONFUSION:
-				clif_emotion(bl,E_WHAT);
+				if( !val4 )
+					clif_emotion(bl,E_WHAT);
 				break;
 			case SC_BLEEDING:
 				tick_time = 10000;
@@ -9803,7 +9804,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 				tick = -1;
 				break;
 			default:
-				if( calc_flag == SCB_NONE && StatusIconChangeTable[type] == SI_BLANK && StatusSkillChangeTable[type] == 0 ) {
+				if( calc_flag == SCB_NONE && StatusIconChangeTable[type] == SI_BLANK && !StatusSkillChangeTable[type] ) {
 					switch( type ) {
 						case SC_XMAS:
 						case SC_SUMMER:
@@ -9811,7 +9812,7 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 						case SC_KSPROTECTED:
 						case SC_HANBOK:
 						case SC_OKTOBERFEST:
-						case SC_MTF_PUMPKIN:
+						case SC_DEATHBOUND_POSTDELAY:
 							break; //Avoid the warning, because this status has no skill associated and all values already store in it
 						default:
 							ShowError("Unknown Status Change [%d]\n",type);
@@ -9942,7 +9943,6 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			unit_stop_attack(bl);
 		case SC_STOP:
 		case SC_CONFUSION:
-		case SC__CHAOS:
 		case SC_CLOSECONFINE:
 		case SC_CLOSECONFINE2:
 		case SC_TINDER_BREAKER:
@@ -10022,32 +10022,63 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 	opt_flag = 1;
 	switch (type) {
 		//OPT1
-		case SC_STONE:  sc->opt1 = OPT1_STONEWAIT; break;
-		case SC_FREEZE: sc->opt1 = OPT1_FREEZE;    break;
-		case SC_STUN:   sc->opt1 = OPT1_STUN;      break;
+		case SC_STONE: 
+			sc->opt1 = OPT1_STONEWAIT;
+			break;
+		case SC_FREEZE:
+			sc->opt1 = OPT1_FREEZE;
+			break;
+		case SC_STUN:
+			sc->opt1 = OPT1_STUN;
+			break;
 		case SC_SLEEP:
 		case SC_DEEPSLEEP:
+			sc->opt1 = OPT1_SLEEP;
 			if (type == SC_DEEPSLEEP)
 				opt_flag = 0;
-			sc->opt1 = OPT1_SLEEP;
 			break;
 		//Burning need this to be showed correctly [pakpil]
-		case SC_BURNING:		sc->opt1 = OPT1_BURNING;	break;
-		case SC_WHITEIMPRISON:  sc->opt1 = OPT1_IMPRISON;	break;
-		case SC_CRYSTALIZE:		sc->opt1 = OPT1_CRYSTALIZE;	break;
+		case SC_BURNING:
+			sc->opt1 = OPT1_BURNING;
+			break;
+		case SC_WHITEIMPRISON:
+			sc->opt1 = OPT1_IMPRISON;
+			break;
+		case SC_CRYSTALIZE:
+			sc->opt1 = OPT1_CRYSTALIZE;
+			break;
 		//OPT2
-		case SC_POISON:       sc->opt2 |= OPT2_POISON;       break;
-		case SC_CURSE:        sc->opt2 |= OPT2_CURSE;        break;
-		case SC_SILENCE:      sc->opt2 |= OPT2_SILENCE;      break;
+		case SC_POISON:
+			sc->opt2 |= OPT2_POISON;
+			break;
+		case SC_CURSE:
+			sc->opt2 |= OPT2_CURSE;
+			break;
+		case SC_SILENCE:
+			sc->opt2 |= OPT2_SILENCE;
+			break;
+		case SC_CONFUSION:
+			if (!val4)
+				break;
+		//Fall through
 		case SC_SIGNUMCRUCIS:
-		case SC__CHAOS:
 			sc->opt2 |= OPT2_SIGNUMCRUCIS;
 			break;
-		case SC_BLIND:        sc->opt2 |= OPT2_BLIND;        break;
-		case SC_ANGELUS:      sc->opt2 |= OPT2_ANGELUS;      break;
-		case SC_BLEEDING:     sc->opt2 |= OPT2_BLEEDING;     break;
-		case SC_DPOISON:      sc->opt2 |= OPT2_DPOISON;      break;
-		case SC_FEAR:         sc->opt2 |= OPT2_FEAR;         break;
+		case SC_BLIND:
+			sc->opt2 |= OPT2_BLIND;
+			break;
+		case SC_ANGELUS:
+			sc->opt2 |= OPT2_ANGELUS;
+			break;
+		case SC_BLEEDING:
+			sc->opt2 |= OPT2_BLEEDING;
+			break;
+		case SC_DPOISON:
+			sc->opt2 |= OPT2_DPOISON;
+			break;
+		case SC_FEAR:
+			sc->opt2 |= OPT2_FEAR;
+			break;
 		//OPT3
 		case SC_TWOHANDQUICKEN:
 		case SC_ONEHAND:
@@ -10069,11 +10100,11 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			opt_flag = 0;
 			break;
 		case SC_INCATKRATE:
-			//Simulate Explosion Spirits effect for NPC_POWERUP [Skotlex]
-			if (bl->type != BL_MOB) {
+			if (bl->type != BL_MOB) { //Simulate Explosion Spirits effect for NPC_POWERUP [Skotlex]
 				opt_flag = 0;
 				break;
 			}
+		//Fall through
 		case SC_EXPLOSIONSPIRITS:
 			sc->opt3 |= OPT3_EXPLOSIONSPIRITS;
 			opt_flag = 0;
@@ -10824,7 +10855,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				struct block_list* src = map_id2bl(sce->val2);
 
 				if (tid == -1 || !src)
-					break; //Terminated by Damage
+					break; //Terminated by damage
 				status_fix_damage(src,bl,400 * sce->val1,clif_damage(bl,bl,gettick(),0,0,400 * sce->val1,0,DMG_NORMAL,0));
 			}
 			break;
@@ -11045,13 +11076,16 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_CURSE:
 		case SC_SILENCE:
 		case SC_BLIND:
-			sc->opt2 &= ~(1<<(type-SC_POISON));
+			sc->opt2 &= ~(1<<(type - SC_POISON));
 			break;
 		case SC_DPOISON:
 			sc->opt2 &= ~OPT2_DPOISON;
 			break;
+		case SC_CONFUSION:
+			if (!sce->val4)
+				break;
+		//Fall through
 		case SC_SIGNUMCRUCIS:
-		case SC__CHAOS:
 			sc->opt2 &= ~OPT2_SIGNUMCRUCIS;
 			break;
 		case SC_HIDING:
@@ -11128,11 +11162,12 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			sc->opt3 &= ~OPT3_ENERGYCOAT;
 			opt_flag = 0;
 			break;
-		case SC_INCATKRATE: //Simulated Explosion spirits effect.
-			if (bl->type != BL_MOB) {
+		case SC_INCATKRATE:
+			if (bl->type != BL_MOB) { //Simulated Explosion spirits effect
 				opt_flag = 0;
 				break;
 			}
+		//Fall through
 		case SC_EXPLOSIONSPIRITS:
 			sc->opt3 &= ~OPT3_EXPLOSIONSPIRITS;
 			opt_flag = 0;
@@ -12414,7 +12449,6 @@ void status_change_clear_buffs(struct block_list* bl, int type)
 			case SC_BLEEDING:
 			case SC_SILENCE:
 			case SC_CONFUSION:
-			case SC__CHAOS:
 			case SC_FREEZE:
 			case SC_HALLUCINATION:
 			case SC_QUAGMIRE:
@@ -12501,7 +12535,6 @@ int status_change_spread(struct block_list *src, struct block_list *bl) {
 			case SC_CURSE:
 			case SC_SILENCE:
 			case SC_CONFUSION:
-			case SC__CHAOS:
 			case SC_BLIND:
 			//case SC_NOCHAT:
 			case SC_HALLUCINATION:

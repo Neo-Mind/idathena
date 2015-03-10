@@ -10163,7 +10163,7 @@ BUILDIN_FUNC(getscrate)
 		bl = map_id2bl(st->rid);
 
 	if( bl )
-		rate = status_get_sc_def(NULL,bl,(sc_type)type,10000,10000,SCFLAG_NONE);
+		rate = status_get_sc_def(NULL,bl,(sc_type)type,10000,0,0,0,0,10000,SCFLAG_NONE);
 
 	script_pushint(st,rate);
 	return SCRIPT_CMD_SUCCESS;
