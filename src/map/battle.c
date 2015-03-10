@@ -3963,14 +3963,14 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 			skillratio += -100 + (100 * skill_lv + 3 * status_get_lv(src)) * status_get_lv(src) / 120;
 			break;
 		case RL_MASS_SPIRAL:
-			skillratio += -100 + (200 * skill_lv);
+			skillratio += -100 + 200 * skill_lv;
 			break;
 		case RL_FIREDANCE:
-			skillratio += -100 + (100 * skill_lv);
+			skillratio += -100 + 100 * skill_lv;
 			skillratio += (skillratio * status_get_lv(src)) / 300; //Custom values
 			break;
 		case RL_S_STORM:
-			skillratio += -100 + (200 * skill_lv); //Custom values
+			skillratio += -100 + 200 * skill_lv; //Custom values
 			break;
 		case RL_SLUGSHOT: {
 				uint16 w = 50;
@@ -3985,13 +3985,13 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 			skillratio += -100 + (2500 + 500 * skill_lv);
 			break;
 		case RL_R_TRIP:
-			skillratio += -100 + (150 * skill_lv); //Custom values
+			skillratio += -100 + 150 * skill_lv; //Custom values
 			break;
 		case RL_R_TRIP_PLUSATK:
 			skillratio += -100 + 100 * skill_lv + rnd_value(10,100); //Custom values
 			break;
 		case RL_H_MINE:
-			skillratio += 100 + (200 * skill_lv);
+			skillratio += 100 + 200 * skill_lv;
 			if(sd && sd->flicker) //Explode bonus damage
 				skillratio += 800 + (skill_lv - 1) * 300;
 			break;
@@ -4005,7 +4005,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 			skillratio += -100 + 2000 + (200 * (skill_lv - 1)) + status_get_dex(src); //Custom values
 			break;
 		case RL_AM_BLAST:
-			skillratio += -100 + (300 * skill_lv) + (status_get_dex(src) / 5); //Custom values
+			skillratio += -100 + 300 * skill_lv + status_get_dex(src) / 5; //Custom values
 			break;
 	}
 	return skillratio;
@@ -5140,13 +5140,13 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		}
 
 		if(sd) { //Monsters, homuns and pets have their damage computed directly
-			wd.damage = wd.statusAtk + wd.weaponAtk + wd.equipAtk + wd.masteryAtk;
-			wd.damage2 = wd.statusAtk2 + wd.weaponAtk2 + wd.equipAtk2 + wd.masteryAtk2;
-			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Temp. fix for RE ATK calculation [exneval]
-			ATK_ADD2(wd.damage, wd.damage2, //RE Pierce Defense: Every 2 eDEF gains 1 ATK
+			ATK_ADD2(wd.equipAtk, wd.equipAtk2, //RE Pierce Defense: Every 2 eDEF gains 1 equip ATK
 				(is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_R) ? (battle_get_defense(src, target, skill_id, 0) / 2) : 0),
 				(is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ? (battle_get_defense(src, target, skill_id, 0) / 2) : 0)
 			);
+			wd.damage = wd.statusAtk + wd.weaponAtk + wd.equipAtk + wd.masteryAtk;
+			wd.damage2 = wd.statusAtk2 + wd.weaponAtk2 + wd.equipAtk2 + wd.masteryAtk2;
+			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Temp. fix for RE ATK calculation [exneval]
 			if(wd.flag&BF_LONG) //Affects the entirety of the damage
 				ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.long_attack_atk_rate);
 		}

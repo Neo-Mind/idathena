@@ -326,7 +326,7 @@
 263,-1,8,0,-1,0,0,10,-3,no,0,0,0,weapon,0,0,	MO_TRIPLEATTACK,Raging Trifecta Blow
 264,18,6,2,0,0x1,0,1,1,no,0,0,0,none,0,0,	MO_BODYRELOCATION,Snap
 265,0,0,0,0,0,0,10,0,no,0,0,0,weapon,0,0,	MO_DODGE,Dodge
-266,2,6,1,-1,0x40,0,5,1,no,0,0,0,weapon,0,0,	MO_INVESTIGATE,Occult Impaction
+266,2,6,1,-1,0x60,0,5,1,no,0,0,0,weapon,0,0,	MO_INVESTIGATE,Occult Impaction
 267,9,8,1,-1,0,0,5,1:2:3:4:5,no,0,0,0,weapon,0,0,	MO_FINGEROFFENSIVE,Throw Spirit Sphere
 268,0,6,4,0,0x1,0,5,1,no,0,0,0,weapon,0,0,	MO_STEELBODY,Mental Strength
 269,0,6,4,0,0x1,0,5,1,no,0,0,0,weapon,0,0,	MO_BLADESTOP,Root
@@ -1078,7 +1078,7 @@
 // Rebellion
 //2551,0,0,0,0,0,0,10,0,no,0,0,0,none,0,0,	RL_GLITTERING_GREED,Flip The Coin Greed
 2552,0,6,4,0,0x1,0,1,1,no,0,0,0,none,0,0,	RL_RICHS_COIN,Rich's Coin
-2553,-9,6,1,-1,0,0,5,1,no,0,0,0,weapon,0,0,	RL_MASS_SPIRAL,Mass Spiral
+2553,-9,6,1,-1,0x20,0,5,1,no,0,0,0,weapon,0,0,	RL_MASS_SPIRAL,Mass Spiral
 2554,-9,6,1,0,0x3,2,5,1,no,0,0,0,none,0,0x2,	RL_BANISHING_BUSTER,Banishing Buster
 2555,3,6,2,0,0x1,0,5,1,no,0,0,1,misc,0,0,	RL_B_TRAP,Bind Trap
 2556,0,6,4,0,0x3,-1,1,1,no,0,0,0,none,0,0,	RL_FLICKER,Flicker
