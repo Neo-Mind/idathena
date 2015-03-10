@@ -4484,15 +4484,10 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 	/**
 	 * RE DEF Reduction
 	 * Damage = Attack * (4000 + eDEF) / (4000 + eDEF * 10) - sDEF
-	 * Pierce defence gains 1 atk per def/2
 	 */
 	if(def1 < -399) //It stops at -399
 		def1 = 399; //In aegis it set to 1 but in our case it may lead to exploitation so limit it to 399
-	ATK_ADD2(wd.damage, wd.damage2,
-		is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_R) ? (def1 / 2) : 0,
-		is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ? (def1 / 2) : 0
-	);
-	if(!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_R) && !is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_R)) {
+	if(!is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_R)) {
 		switch(skill_id) {
 			case NJ_KUNAI:
 			case HW_MAGICCRASHER:
@@ -4507,7 +4502,7 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 				break;
 		}
 	}
-	if(is_attack_left_handed(src, skill_id) && !attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L) && !is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L)) {
+	if(is_attack_left_handed(src, skill_id) && !is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L)) {
 		switch(skill_id) {
 			case NJ_KUNAI:
 			case HW_MAGICCRASHER:
@@ -4526,12 +4521,12 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 	if(def1 > 100)
 		def1 = 100;
 	ATK_RATE2(wd.damage, wd.damage2,
-		attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_R) ? 100 : (is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_R) ? is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_R) * (def1 + vit_def) : (100 - def1)),
-		attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ? 100 : (is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ? is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L) * (def1 + vit_def) : (100 - def1))
+		(is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_R) ? is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_R) * (def1 + vit_def) : (100 - def1)),
+		(is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ? is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L) * (def1 + vit_def) : (100 - def1))
 	);
 	ATK_ADD2(wd.damage, wd.damage2,
-		attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_R) || is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_R) ? 0 : -vit_def,
-		attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L) || is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ? 0 : -vit_def
+		(is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_R) ? 0 : -vit_def),
+		(is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ? 0 : -vit_def)
 	);
 #endif
 
@@ -5148,6 +5143,10 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			wd.damage = wd.statusAtk + wd.weaponAtk + wd.equipAtk + wd.masteryAtk;
 			wd.damage2 = wd.statusAtk2 + wd.weaponAtk2 + wd.equipAtk2 + wd.masteryAtk2;
 			ATK_ADDRATE(wd.damage, wd.damage2, 5); //Temp. fix for RE ATK calculation [exneval]
+			ATK_ADD2(wd.damage, wd.damage2, //RE Pierce Defense: Every 2 eDEF gains 1 ATK
+				(is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_R) ? (battle_get_defense(src, target, skill_id, 0) / 2) : 0),
+				(is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ? (battle_get_defense(src, target, skill_id, 0) / 2) : 0)
+			);
 			if(wd.flag&BF_LONG) //Affects the entirety of the damage
 				ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.long_attack_atk_rate);
 		}
@@ -5227,8 +5226,8 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 	}
 
 	if(wd.damage + wd.damage2) { //Check if attack ignores DEF
-		if((!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ||
-			!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_R)) &&
+		if((!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_R) ||
+			!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L)) &&
 			!target_has_infinite_defense(target, skill_id, wd.flag))
 			wd = battle_calc_defense_reduction(wd, src, target, skill_id, skill_lv);
 		if(wd.dmg_lv != ATK_FLEE)
