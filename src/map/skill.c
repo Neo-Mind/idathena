@@ -7660,7 +7660,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			if (md && md->skill_idx >= 0) {
 				int class_ = mob_random_class (md->db->skill[md->skill_idx].val,0);
 
-				if (skill_lv > 1) //Multiply the rest of mobs. [Skotlex]
+				if (skill_lv > 1) //Multiply the rest of mobs [Skotlex]
 					mob_summonslave(md,md->db->skill[md->skill_idx].val,skill_lv - 1,skill_id);
 				if (class_)
 					mob_class_change(md,class_);

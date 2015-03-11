@@ -3446,9 +3446,9 @@ REPLACE INTO `mob_skill_db_re` VALUES (1685,'Vesper@NPC_SUMMONSLAVE','idle',196,
 REPLACE INTO `mob_skill_db_re` VALUES (1685,'Vesper@WZ_METEOR','attack',83,10,500,10000,20000,'yes','target','always',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `mob_skill_db_re` VALUES (1686,'Orc Baby@NPC_EMOTION','attack',197,1,10000,0,5000,'no','self','slavele','0',28,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `mob_skill_db_re` VALUES (1686,'Orc Baby@NPC_EMOTION','idle',197,1,10000,0,5000,'no','self','slavele','0',28,NULL,NULL,NULL,NULL,NULL,NULL);
-REPLACE INTO `mob_skill_db_re` VALUES (1686,'Orc Baby@NPC_SUMMONSLAVE','attack',196,2,10000,0,6000000,'yes','self','slavele','0',1023,NULL,NULL,NULL,NULL,NULL,NULL);
-REPLACE INTO `mob_skill_db_re` VALUES (1686,'Orc Baby@NPC_SUMMONSLAVE','idle',196,2,10000,0,6000000,'yes','self','slavele','0',1023,NULL,NULL,NULL,NULL,NULL,NULL);
-REPLACE INTO `mob_skill_db_re` VALUES (1686,'Orc Baby@NPC_SUMMONSLAVE','chase',196,2,10000,0,6000000,'yes','self','slavele','0',1023,NULL,NULL,NULL,NULL,NULL,NULL);
+REPLACE INTO `mob_skill_db_re` VALUES (1686,'Orc Baby@NPC_SUMMONSLAVE','attack',196,2,10000,0,6000000,'yes','self','slavele','0',1023,1273,NULL,NULL,NULL,NULL,NULL);
+REPLACE INTO `mob_skill_db_re` VALUES (1686,'Orc Baby@NPC_SUMMONSLAVE','idle',196,2,10000,0,6000000,'yes','self','slavele','0',1023,1273,NULL,NULL,NULL,NULL,NULL);
+REPLACE INTO `mob_skill_db_re` VALUES (1686,'Orc Baby@NPC_SUMMONSLAVE','chase',196,2,10000,0,6000000,'yes','self','slavele','0',1023,1273,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `mob_skill_db_re` VALUES (1686,'Orc Baby@SM_BASH','attack',5,5,500,800,5000,'no','target','always',NULL,NULL,NULL,NULL,NULL,NULL,'6',NULL);
 REPLACE INTO `mob_skill_db_re` VALUES (1688,'Lady Tanee@AC_CHARGEARROW','attack',148,1,2000,0,5000,'yes','target','always',NULL,NULL,NULL,NULL,NULL,NULL,'6',NULL);
 REPLACE INTO `mob_skill_db_re` VALUES (1688,'Lady Tanee@AL_HEAL','attack',28,10,10000,0,5000,'yes','self','myhpltmaxrate','30',NULL,NULL,NULL,NULL,NULL,'2',NULL);
