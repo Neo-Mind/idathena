@@ -1382,7 +1382,7 @@ int skill_additional_effect(struct block_list* src, struct block_list *bl, uint1
 					sc_start2(src,bl,SC_BLEEDING,rate,skill_lv,src->id,skill_get_time(skill_id,skill_lv));
 					break;
 				case 2:
-					skill_break_equip(src,bl,EQP_HEAD_TOP,rate * 100,BCT_ENEMY);
+					skill_break_equip(src,bl,EQP_HELM,rate * 100,BCT_ENEMY);
 					break;
 				case 3:
 					skill_break_equip(src,bl,EQP_SHIELD,rate * 100,BCT_ENEMY);
