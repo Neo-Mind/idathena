@@ -34,6 +34,7 @@ tha_t02,0,0,0,0	monster	Rideword	1195,10,5000,0,0
 tha_t02,0,0,0,0	monster	Elder	1377,10,5000,0,0
 tha_t02,0,0,0,0	monster	Alice	1275,10,5000,0,0
 tha_t02,0,0,0,0	monster	Baroness of Retribution	1702,4,5000,0,0
+tha_t02,0,0,0,0	monster	Ancient Mimic Ringleader	2903,2,300000,0,0
 
 //==================================================
 // tha_t03 - Thanatos Tower - Lower Level
@@ -45,6 +46,7 @@ tha_t03,0,0,0,0	monster	Mimic	1191,10,5000,0,0
 tha_t03,0,0,0,0	monster	Ancient Mimic	1699,10,5000,0,0
 tha_t03,0,0,0,0	monster	Elder	1377,10,5000,0,0
 tha_t03,0,0,0,0	monster	Mistress of Shelter	1701,4,5000,0,0
+tha_t03,0,0,0,0	monster	Death Word Ringleader	2860,2,300000,0,0
 
 //==================================================
 // tha_t04 - Thanatos Tower - Lower Level
@@ -58,6 +60,7 @@ tha_t04,0,0,0,0	monster	Plasma	1694,20,5000,0,0
 tha_t04,0,0,0,0	monster	Owl Duke	1320,10,5000,0,0
 tha_t04,0,0,0,0	monster	Owl Baron	1295,10,5000,0,0
 tha_t04,0,0,0,0	monster	Dame of Sentinel	1700,4,5000,0,0
+tha_t04,0,0,0,0	monster	Solid Death Word	2859,2,300000,0,0
 
 //==================================================
 // tha_t05 - Thanatos Tower - Upper Level
@@ -87,6 +90,7 @@ tha_t06,0,0,0,0	monster	Plasma	1695,10,5000,0,0
 tha_t06,0,0,0,0	monster	Plasma	1697,10,5000,0,0
 tha_t06,0,0,0,0	monster	Plasma	1694,10,5000,0,0
 tha_t06,0,0,0,0	monster	Maero of Thanatos	1706,2,5000,0,0
+tha_t06,0,0,0,0	monster	Swift Death Word	2858,2,300000,0,0
 
 //==================================================
 // tha_t07 - Thanatos Tower - Upper Level 

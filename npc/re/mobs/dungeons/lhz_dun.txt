@@ -126,6 +126,7 @@ lhz_dun04,0,0,0,0	monster	Champion Chen	2231,1,3300000,3000000,1
 lhz_dun04,0,0,0,0	monster	Stalker Gertie	2232,1,3300000,3000000,1
 lhz_dun04,0,0,0,0	monster	Clown Alphoccio	2233,1,3300000,3000000,1
 lhz_dun04,0,0,0,0	monster	Gypsy Trentini	2234,1,3300000,3000000,1
+lhz_dun04,0,0,0,0	monster	Celia Ringleader	2875,2,300000,0,0
 
 lhz_dun04,0,0,0	script	mvp_lhz_dun04	-1,{
 OnTimer6000000: // delay1 = 6000000 ms (100 min)

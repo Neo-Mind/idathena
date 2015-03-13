@@ -22,6 +22,7 @@ ra_fild01,0,0,0,0	monster	Desert Wolf	1106,130,5000,0,0
 ra_fild01,0,0,0,0	monster	Roween	1782,30,5000,0,0
 ra_fild01,0,0,0,0	monster	Baby Desert Wolf	1107,20,5000,0,0
 ra_fild01,0,0,0,0	monster	Anopheles	1627,10,5000,0,0
+ra_fild01,0,0,0,0	monster	Baby Desert Wolf Ringleader	2855,2,300000,0,0
 
 //==================================================
 // ra_fild02 - Disabled on Renewal
@@ -79,6 +80,7 @@ ra_fild08,0,0,0,0	monster	Roween	1782,50,5000,0,0
 ra_fild08,0,0,0,0	monster	Hill Wind	1680,20,5000,0,0
 ra_fild08,0,0,0,0	monster	Baby Desert Wolf	1107,10,5000,0,0
 ra_fild08,0,0,0,0	monster	Anopheles	1627,10,5000,0,0
+ra_fild08,0,0,0,0	monster	Furious Anacondaq	2904,2,300000,0,0
 
 //==================================================
 // ra_fild09 - Disabled on Renewal

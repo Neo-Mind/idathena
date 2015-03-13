@@ -152,3 +152,4 @@ pay_dun04,0,0,0,0	monster	Red Plant	1078,10,180000,90000,1
 pay_dun04,107,206,5,5	monster	White Plant	1082,2,180000,90000,1
 pay_dun04,28,110,10,10	monster	White Plant	1082,2,180000,90000,1
 pay_dun04,190,207,5,5	monster	White Plant	1082,2,180000,90000,1
+pay_dun04,0,0,0,0	monster	Furious Dokebi	2851,2,300000,0,0

@@ -85,6 +85,7 @@ moc_fild07,0,0,0,0	monster	Picky	1050,15,5000,0,0
 moc_fild07,0,0,0,0	monster	Peco Peco Egg	1047,10,5000,0,0
 moc_fild07,0,0,0,0	monster	Picky	1049,10,5000,0,0
 moc_fild07,162,333,12,12	monster	Yellow Plant	1081,5,360000,180000,1
+moc_fild07,0,0,0,0	monster	Drops Ringleader	2845,2,300000,0,0
 
 //==================================================
 // moc_fild08 - Disabled on Episode 12.1
@@ -104,6 +105,7 @@ moc_fild07,162,333,12,12	monster	Yellow Plant	1081,5,360000,180000,1
 moc_fild11,0,0,0,0	monster	Baby Desert Wolf	1107,140,5000,0,0
 moc_fild11,0,0,0,0	monster	Condor	1009,30,5000,0,0
 moc_fild11,0,0,0,0	monster	Scorpion	1001,30,5000,0,0
+moc_fild11,0,0,0,0	monster	Furious Baby Desert Wolf	2856,2,300000,0,0
 
 //==================================================
 // moc_fild12 - Sograt Desert 

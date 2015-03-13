@@ -24,6 +24,7 @@ gef_fild00,95,128,0,0	monster	Blue Plant	1079,1,900000,450000,1
 gef_fild00,124,321,0,0	monster	Blue Plant	1079,1,900000,450000,1
 gef_fild00,54,212,5,5	monster	Green Plant	1080,3,360000,180000,1
 gef_fild00,54,186,5,5	monster	Green Plant	1080,3,360000,180000,1
+gef_fild00,0,0,0,0	monster	Elusive Chonchon	2872,2,300000,0,0
 
 //==================================================
 // gef_fild01 - Geffen Field
@@ -47,6 +48,7 @@ gef_fild02,215,209,2,1	monster	Blue Plant	1079,2,360000,180000,1
 gef_fild02,207,214,1,1	monster	Blue Plant	1079,1,360000,180000,1
 gef_fild02,220,214,1,1	monster	Blue Plant	1079,1,360000,180000,1
 gef_fild02,164,194,1,1	monster	Shining Plant	1083,1,1800000,900000,1
+gef_fild02,0,0,0,0	monster	Solid Coco	2869,2,300000,0,0
 
 //==================================================
 // gef_fild03 - Geffen Field
@@ -112,6 +114,7 @@ gef_fild05,124,207,0,0	monster	Red Plant	1078,1,180000,90000,1
 gef_fild05,187,249,0,0	monster	Red Plant	1078,1,180000,90000,1
 gef_fild05,187,265,0,0	monster	Red Plant	1078,1,180000,90000,1
 gef_fild05,130,293,0,0	monster	Red Plant	1078,1,180000,90000,1
+gef_fild05,0,0,0,0	monster	Swift Creamy	2863,2,300000,0,0
 
 //==================================================
 // gef_fild06 - Geffen Field
@@ -167,6 +170,7 @@ gef_fild09,258,24,0,0	monster	Red Mushroom	1085,1,180000,90000,1
 gef_fild09,325,36,0,0	monster	Red Mushroom	1085,1,180000,90000,1
 gef_fild09,344,51,0,0	monster	Red Mushroom	1085,1,180000,90000,1
 gef_fild09,277,201,5,5	monster	Blue Plant	1079,3,900000,450000,1
+gef_fild09,0,0,0,0	monster	Swift Coco	2868,2,300000,0,0
 
 //==================================================
 // gef_fild10 - Geffen Field

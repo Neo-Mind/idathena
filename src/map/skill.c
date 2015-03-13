@@ -10179,7 +10179,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case KG_KAGEHUMI:
 			if( flag&1 ) {
 				if( tsc && ((tsc->option&(OPTION_HIDE|OPTION_CLOAK)) || tsc->data[SC_CAMOUFLAGE] ||
-					tsc->data[SC_STEALTHFIELD] || tsc->data[SC__SHADOWFORM]) )
+					tsc->data[SC__SHADOWFORM]) )
 				{
 						sc_start(src,src,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
 						sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv));
@@ -10187,7 +10187,6 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						status_change_end(bl,SC_CLOAKING,INVALID_TIMER);
 						status_change_end(bl,SC_CLOAKINGEXCEED,INVALID_TIMER);
 						status_change_end(bl,SC_CAMOUFLAGE,INVALID_TIMER);
-						status_change_end(bl,SC_STEALTHFIELD,INVALID_TIMER);
 						status_change_end(bl,SC__SHADOWFORM,INVALID_TIMER);
 				}
 				if( skill_area_temp[2] == 1 ) {
