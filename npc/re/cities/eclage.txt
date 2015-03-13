@@ -1,5 +1,5 @@
 //===== rAthena Script ======================================= 
-//= General Eclage NPC.
+//= Eclage Town
 //===== By: ================================================== 
 //= Dastgir
 //===== Current Version: ===================================== 
@@ -7,7 +7,8 @@
 //===== Compatible With: ===================================== 
 //= rAthena SVN
 //===== Description: ========================================= 
-//= Eclage Town NPC
+//= [Official Conversion]
+//= Eclage Town Script
 //===== Additional Comments: ================================= 
 //= 1.0 Generic NPC place holders. [Euphy]
 //= 2.0 Converted from the official Aegis script. [Dastgir]

@@ -8,7 +8,7 @@
 //= rAthena SVN
 //===== Description: ========================================= 
 //= [Official Conversion]
-//= Izlude town NPCs.
+//= Izlude Town NPCs.
 //===== Additional Comments: ================================= 
 //= 1.0 First Version. Still missing many new NPCs and their dialogues. [Masao]
 //= 1.1 Updated to match the official script. [Euphy]
