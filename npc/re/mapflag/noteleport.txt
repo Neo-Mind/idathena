@@ -86,7 +86,7 @@ gl_cas02_	mapflag	noteleport
 1@def03	mapflag	noteleport
 1@def03	mapflag	monster_noteleport
 
-// Heroes' Trails - Part 1 =======
+// Heroes' Trails =======
 1@gef	mapflag	noteleport
 1@gef	mapflag	monster_noteleport
 1@face	mapflag	noteleport
@@ -96,3 +96,4 @@ gl_cas02_	mapflag	noteleport
 1@gef_in	mapflag	noteleport
 1@gef_in	mapflag	monster_noteleport
 dali	mapflag	noteleport
+dali02	mapflag	noteleport

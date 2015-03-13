@@ -2969,7 +2969,7 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 
 				if(sd->bonus.atk_rate) {
 					ATK_ADDRATE(wd.damage, wd.damage2, sd->bonus.atk_rate);
-#ifdef RENEWAL //In renewal bonus attack rate only modify weapon and equip ATK [exneval]
+#ifdef RENEWAL //Renewal: Attack bonus only modify weapon and equip ATK [exneval]
 					ATK_ADDRATE(wd.weaponAtk, wd.weaponAtk2, sd->bonus.atk_rate);
 					ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, sd->bonus.atk_rate);
 #endif
