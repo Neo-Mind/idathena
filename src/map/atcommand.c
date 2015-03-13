@@ -6664,7 +6664,7 @@ ACMD_FUNC(changesex)
 	nullpo_retr(-1, sd);
 
 	pc_resetskill(sd,4);
-	// to avoid any problem with equipment and invalid sex, equipment is unequiped.
+	// To avoid any problem with equipment and invalid sex, equipment is unequiped.
 	for( i = 0; i < EQI_MAX; i++ )
 		if( sd->equip_index[i] >= 0 )
 			pc_unequipitem(sd, sd->equip_index[i], 3);
