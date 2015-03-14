@@ -1947,7 +1947,8 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 						return false;
 					if (tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS))
 						return false;
-					if (tsc->data[SC_CAMOUFLAGE] && !(status->mode&(MD_BOSS|MD_DETECTOR)) && !skill_id)
+					if (tsc->data[SC_CAMOUFLAGE] && !(status->mode&(MD_BOSS|MD_DETECTOR)) &&
+						(!skill_id || !(skill_get_inf(skill_id)&(INF_GROUND_SKILL|INF_SELF_SKILL))))
 						return false;
 					if (tsc->data[SC__FEINTBOMB])
 						return false;
