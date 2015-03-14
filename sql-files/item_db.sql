@@ -1659,8 +1659,8 @@ REPLACE INTO `item_db` VALUES (2785,'Orleans_Glove_M','Orlean\'s Gloves',4,20,NU
 REPLACE INTO `item_db` VALUES (2786,'Spiritual_Ring_M','Spiritual Ring',4,20,NULL,100,NULL,0,NULL,0,0xFFFFFFFF,7,2,136,NULL,0,0,0,'bonus bInt,2; bonus bDex,1;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (2787,'Waterdrop_Brooch','Waterdrop Brooch',4,20,NULL,200,NULL,0,NULL,1,0xFFFFFFFE,2,2,136,NULL,75,0,0,'bonus2 bSubEle,Ele_Water,5; bonus bMaxHP,80; bonus bMdef,2;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (2788,'Bradium_Earing','Bradium Earring',4,20,NULL,200,NULL,0,NULL,1,0xFFFFFFFE,2,2,136,NULL,60,0,0,'bonus bMatkRate,2; bonus bInt,1; bonus bDex,1;',NULL,NULL);
-REPLACE INTO `item_db` VALUES (2789,'Bradium_Ring','Bradium Ring',4,20,NULL,200,NULL,0,NULL,1,0xFFFFFFFE,2,2,136,NULL,60,0,0,'bonus bBaseAtk,5; bonus bStr,1; bonus bVit,1;',NULL,NULL);
-REPLACE INTO `item_db` VALUES (2790,'Bradium_Brooch','Bradium Brooch',4,20,NULL,200,NULL,0,NULL,1,0xFFFFFFFE,2,2,136,NULL,60,0,0,'bonus bFlee,4; bonus bAspdRate,2; bonus bAgi,1;',NULL,NULL);
+REPLACE INTO `item_db` VALUES (2789,'Bradium_Ring','Bradium Ring',4,20,NULL,200,NULL,0,NULL,1,0xFFFFFFFE,2,2,136,NULL,60,0,0,'bonus2 bAddClass,Class_All,2; bonus bStr,1; bonus bVit,1;',NULL,NULL);
+REPLACE INTO `item_db` VALUES (2790,'Bradium_Brooch','Bradium Brooch',4,20,NULL,200,NULL,0,NULL,1,0xFFFFFFFE,2,2,136,NULL,60,0,0,'bonus bFlee,4; bonus bAgi,1; bonus bAspdRate,2;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (2791,'Just_Got_Fish','Fresh Fish',4,20,NULL,500,NULL,0,NULL,1,0xFFFFFFFF,7,2,136,NULL,1,0,0,'bonus bHit,3;',NULL,NULL);
 #REPLACE INTO `item_db` VALUES (2792,'Ring_Of_Flame_Lord_I','Ring of Flame Lord',4,0,NULL,0,NULL,0,NULL,0,0x00CFFF80,2,2,136,NULL,0,0,0,'bonus bStr,2; bonus bVit,1; bonus bBaseAtk,15; bonus2 bSubEle,Ele_Fire,10; bonus3 bAutoSpell,"CH_SOULCOLLECT",1,30; bonus3 bAutoSpell,"MO_EXPLOSIONSPIRITS",1,10; bonus3 bAutoSpell,"PA_PRESSURE",2,30; bonus3 bAutoSpell,"MG_FIREBALL",1,150; bonus3 bAutoSpell,"KN_BOWLINGBASH",5,20;',NULL,NULL);
 #REPLACE INTO `item_db` VALUES (2793,'Ring_Of_Resonance_I','Ring of Resonance',4,0,NULL,0,NULL,2,NULL,0,0x00CFFF80,2,2,136,NULL,0,0,0,'bonus bAgi,2; bonus bVit,1; bonus bMdef,2; bonus4 bAutoSpellWhenHit,"WZ_QUAGMIRE",1,50,0; bonus3 bAutoSpellWhenHit,"AS_SPLASHER",10,20; bonus3 bAutoSpellWhenHit,"AL_HEAL",10,30; bonus3 bAutoSpellWhenHit,"HP_ASSUMPTIO",3,20; bonus3 bAutoSpellWhenHit,"CG_TAROTCARD",5,20;',NULL,NULL);
@@ -2608,7 +2608,7 @@ REPLACE INTO `item_db` VALUES (5385,'Yoyo_Hat','Yoyo Hat',4,20,NULL,300,NULL,1,N
 REPLACE INTO `item_db` VALUES (5386,'Ayam_','Ayam',4,0,NULL,70,NULL,7,NULL,0,0xFFFFFFFF,7,2,256,NULL,1,0,228,'bonus bMdef,7; bonus bFlee,7; bonus2 bAddMonsterDropItem,12198,200;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (5387,'Neko_Mimi_Kafra','Neko Mimi Kafra',4,20,NULL,200,NULL,1,NULL,1,0xFFFFFFFF,7,2,256,NULL,30,1,392,'bonus bMdef,5;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (5388,'Snake_Head','Snake Head Hat',4,20,NULL,200,NULL,1,NULL,1,0xFFFFFFFF,7,2,256,NULL,30,1,393,'skill "TF_DOUBLE",5; bonus bDoubleRate,25;',NULL,NULL);
-REPLACE INTO `item_db` VALUES (5389,'Angel_Spirit','Angel Spirit',4,20,NULL,200,NULL,0,NULL,0,0xFFFFFFFF,7,2,512,NULL,30,0,394,'bonus bStr,2; bonus bHit,15;',NULL,NULL);
+REPLACE INTO `item_db` VALUES (5389,'Angel_Spirit','Angel Spirit',4,20,NULL,200,NULL,0,NULL,0,0xFFFFFFFF,7,2,512,NULL,30,0,394,'bonus bHit,15; bonus bStr,2;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (5390,'Santa_Hat_2','Frozen Twin Pompom',4,20,NULL,100,NULL,2,NULL,0,0xFFFFFFFF,7,2,256,NULL,0,1,395,'bonus2 bResEff,Eff_Freeze,3000;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (5391,'Toast_C','Toast',4,20,NULL,0,NULL,0,NULL,0,0xFFFFFFFF,7,2,1,NULL,0,0,188,'bonus bMaxHP,100; bonus2 bAddMonsterDropItem,617,10;',NULL,NULL);
 REPLACE INTO `item_db` VALUES (5392,'Louyang_Cap','Louyang NewYear Hat',4,20,NULL,300,NULL,3,NULL,1,0xFFFFFFFF,7,2,256,NULL,0,1,396,'bonus bLuk,2;',NULL,NULL);

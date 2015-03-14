@@ -1088,46 +1088,39 @@ int unit_blown_immune(struct block_list* bl, int flag)
 		case BL_MOB: {
 				struct mob_data* md = BL_CAST(BL_MOB, bl);
 
-				//Emperium can't be knocked back
 				if (md->mob_id == MOBID_EMPERIUM)
-					return 2;
-				//Bosses or immune can't be knocked back
+					return 2; //Emperium can't be knocked back
 				if ((flag&0x1) && status_get_mode(bl)&(MD_KNOCKBACK_IMMUNE|MD_BOSS) &&
 					!(battle_config.skill_trap_type&0x2))
-					return 3;
+					return 3; //Bosses or immune can't be knocked back
 			}
 			break;
 		case BL_PC: {
 				struct map_session_data *sd = BL_CAST(BL_PC, bl);
 
-				//Target has special_state.no_knockback (equip)
 				if ((flag&0x1) && (flag&0x2) && sd->special_state.no_knockback)
-					return 4;
-				//Basilica caster can't be knocked back by normal monsters
+					return 4; //Target has special_state.no_knockback (equip)
 				if (sd->sc.data[SC_BASILICA] && sd->sc.data[SC_BASILICA]->val4 == sd->bl.id && !(flag&0x4))
-					return 5;
+					return 5; //Basilica caster can't be knocked back by normal monsters
 			}
 			break;
 		case BL_SKILL: {
 				struct skill_unit* su = (struct skill_unit *)bl;
 
-				//Trap cannot be knocked back
 				if (su && su->group) {
 					switch (su->group->unit_id) {
 						case UNT_ICEWALL:
 						case UNT_ANKLESNARE:
-						case UNT_ELECTRICSHOCKER:
 						case UNT_REVERBERATION:
 						case UNT_POEMOFNETHERWORLD:
-							return 6;
+							return 6; //Trap cannot be knocked back
 					}
 				}
 			}
 			break;
 	}
 
-	//Object can be knocked back/stopped
-	return 0;
+	return 0; //Object can be knocked back/stopped
 }
 
 /**
