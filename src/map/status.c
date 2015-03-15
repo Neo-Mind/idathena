@@ -1792,7 +1792,7 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 		//on dead characters, said checks are left to skill.c [Skotlex]
 		if (target && status_isdead(target))
 			return false;
-		if (src && sc && sc->data[SC_CRYSTALIZE] && src->type != BL_MOB)
+		if (src && src->type != BL_MOB && sc && sc->data[SC_CRYSTALIZE])
 			return false;
 	}
 
@@ -1931,8 +1931,7 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 		}
 	}
 
-	if (tsc && tsc->data[SC_STEALTHFIELD] && !(status->mode&(MD_BOSS|MD_DETECTOR)) &&
-		(!skill_id || !(skill_get_inf(skill_id)&(INF_GROUND_SKILL|INF_SELF_SKILL))))
+	if (tsc && tsc->data[SC_STEALTHFIELD] && !(status->mode&(MD_BOSS|MD_DETECTOR)) && (!skill_id || !flag))
 		return false;
 
 	switch (target->type) {
@@ -1947,8 +1946,7 @@ bool status_check_skilluse(struct block_list *src, struct block_list *target, ui
 						return false;
 					if (tsc->data[SC_CLOAKINGEXCEED] && !(status->mode&MD_BOSS))
 						return false;
-					if (tsc->data[SC_CAMOUFLAGE] && !(status->mode&(MD_BOSS|MD_DETECTOR)) &&
-						(!skill_id || !(skill_get_inf(skill_id)&(INF_GROUND_SKILL|INF_SELF_SKILL))))
+					if (tsc->data[SC_CAMOUFLAGE] && !(status->mode&(MD_BOSS|MD_DETECTOR)) && (!skill_id || !flag))
 						return false;
 					if (tsc->data[SC__FEINTBOMB])
 						return false;
@@ -10302,7 +10300,8 @@ int status_change_start(struct block_list* src,struct block_list* bl,enum sc_typ
 			}
 			break;
 		case SC_BOSSMAPINFO:
-			clif_bossmapinfo(sd->fd,map_id2boss(sce->val1),0); //First Message
+			if(sd)
+				clif_bossmapinfo(sd->fd,map_id2boss(sce->val1),0); //First Message
 			break;
 		case SC_MERC_HPUP:
 		case SC_FULL_THROTTLE:
@@ -10701,7 +10700,8 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 							file,line);
 					}
 					sce->val2 = 0;
-					skill_delunitgroup(group);
+					if (group)
+						skill_delunitgroup(group);
 				}
 				if ((sce->val1&0xFFFF) == CG_MOONLIT)
 					clif_status_change(bl,SI_MOONLIT,0,0,0,0,0);
@@ -10826,14 +10826,17 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 		case SC_AUTOTRADE:
 			if (tid == INVALID_TIMER)
 				break;
-			if (sd->state.vending)
-				vending_closevending(sd);
-			else if (sd->state.buyingstore)
-				buyingstore_close(sd);
-			map_quit(sd);
-			//Because map_quit calls status_change_end with tid INVALID_TIMER
-			//From here it's not neccesary to continue
-			return 1;
+			if (sd) {
+				if (sd->state.vending)
+					vending_closevending(sd);
+				else if (sd->state.buyingstore)
+					buyingstore_close(sd);
+				map_quit(sd);
+				//Because map_quit calls status_change_end with tid INVALID_TIMER
+				//From here it's not neccesary to continue
+				return 1;
+			}
+			break;
 		case SC_STOP:
 			if (sce->val2) {
 				struct block_list* tbl = map_id2bl(sce->val2);
@@ -11300,7 +11303,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 	}
 	sc = status_get_sc(bl);
 	status = status_get_status_data(bl);
-	
+
 	if( !(sc && (sce = sc->data[type])) ) {
 		ShowDebug("status_change_timer: Null pointer id: %d data: %d bl-type: %d\n",id,data,bl->type);
 		return 0;
@@ -11310,6 +11313,8 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		ShowError("status_change_timer: Mismatch for type %d: %d != %d (bl id %d)\n",type,tid,sce->timer,bl->id);
 		return 0;
 	}
+
+	sce->timer = INVALID_TIMER;
 
 	sd = BL_CAST(BL_PC,bl);
 
@@ -11664,6 +11669,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 					map_freeblock_unlock();
 				}
 				if( sc->data[type] ) { //Random Skill Cast
+					map_freeblock_lock();
 					if( sd && !pc_issit(sd) ) { //Can't cast if sit
 						int mushroom_skill_id = 0, checked = 0, checked_max = MAX_SKILL_MAGICMUSHROOM_DB * 3;
 
@@ -11692,6 +11698,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 					}
 					clif_emotion(bl,E_HEH);
 					sc_timer_next(4000 + tick,status_change_timer,bl->id,data);
+					map_freeblock_unlock();
 				}
 				return 0;
 			}
@@ -12112,11 +12119,12 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		case SC_WATER_DROP:
 		case SC_WIND_CURTAIN:
 		case SC_STONE_SHIELD:
-			if( status_charge(bl,0,sce->val2) && (sce->val4 == -1 || (sce->val4 -= sce->val3) >= 0) )
+			if( status_charge(bl,0,sce->val2) && (sce->val4 == -1 || (sce->val4 -= sce->val3) >= 0) ) {
 				sc_timer_next(sce->val3 + tick,status_change_timer,bl->id,data);
-			else if( bl->type == BL_ELEM )
+				return 0;
+			} else if( bl->type == BL_ELEM )
 				elemental_change_mode(BL_CAST(BL_ELEM,bl),MAX_ELESKILLTREE);
-			return 0;
+			break;
 
 		case SC_STOMACHACHE:
 			if( --(sce->val4) >= 0 ) {
@@ -12329,6 +12337,8 @@ void status_change_clear_buffs(struct block_list* bl, int type)
 	if( !sc || !sc->count )
 		return;
 
+	map_freeblock_lock();
+
 	if( type&6 ) //Debuffs
 		for( i = SC_COMMON_MIN; i <= SC_COMMON_MAX; i++ )
 			status_change_end(bl, (sc_type)i, INVALID_TIMER);
@@ -12505,7 +12515,7 @@ void status_change_clear_buffs(struct block_list* bl, int type)
 #endif
 	sc->bs_counter = 0;
 
-	return;
+	map_freeblock_unlock();
 }
 
 int status_change_spread(struct block_list *src, struct block_list *bl) {

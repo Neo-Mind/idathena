@@ -4105,6 +4105,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 		case NC_COLDSLOWER:
 			if (sd)
 				pc_overheat(sd,1);
+		//Fall through
 		case MO_TRIPLEATTACK:
 		case RK_WINDCUTTER:
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag|SD_ANIMATION);
@@ -4390,7 +4391,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 		case SM_MAGNUM:
 		case MS_MAGNUM:
 			if (flag&1) //Damage depends on distance, so add it to flag if it is > 1
-				skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag|distance_bl(src,bl));
+				skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,flag|SD_ANIMATION|distance_bl(src,bl));
 			break;
 
 		case KN_BRANDISHSPEAR:
@@ -16622,7 +16623,7 @@ int skill_attack_area(struct block_list *bl, va_list ap)
 		case NPC_ICEBREATH:
 		case NPC_THUNDERBREATH:
 			return skill_attack(atk_type,src,dsrc,bl,skill_id,skill_lv,tick,flag);
-		default: //Area-splash, disable skill animation.
+		default: //Area-splash, disable skill animation
 			return skill_attack(atk_type,src,dsrc,bl,skill_id,skill_lv,tick,flag|SD_ANIMATION);
 	}
 }
