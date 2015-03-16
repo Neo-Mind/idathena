@@ -626,7 +626,7 @@ static int mob_spawn_guardian_sub(int tid, unsigned int tick, int id, intptr_t d
 	}
 
 	if (guild_checkskill(g, GD_GUARDUP))
-		status_calc_mob(md, SCO_NONE); //Give bonuses.
+		status_calc_mob(md, SCO_NONE); //Give bonuses
 	return 0;
 }
 
@@ -2771,7 +2771,7 @@ int mob_class_change(struct mob_data *md, int mob_id)
 	status_set_viewdata(&md->bl,mob_id);
 	clif_mob_class_change(md,md->vd->class_);
 	status_calc_mob(md,SCO_FIRST);
-	md->ud.state.speed_changed = 1; //Speed change update.
+	md->ud.state.speed_changed = 1; //Speed change update
 
 	if( battle_config.monster_class_change_recover ) {
 		memset(md->dmglog,0,sizeof(md->dmglog));
@@ -3796,14 +3796,14 @@ static bool mob_parse_dbrow(char** str)
 	if (battle_config.monster_damage_delay_rate != 100)
 		status->dmotion = status->dmotion * battle_config.monster_damage_delay_rate / 100;
 
-	//Fill in remaining status data by using a dummy monster.
+	//Fill in remaining status data by using a dummy monster
 	data.bl.type = BL_MOB;
 	data.level = db->lv;
 	memcpy(&data.status, status, sizeof(struct status_data));
 	status_calc_misc(&data.bl, status, db->lv);
 
 	//MVP EXP Bonus: MEXP
-	//Some new MVP's MEXP multipled by high exp-rate cause overflow. [LuzZza]
+	//Some new MVP's MEXP multipled by high exp-rate cause overflow [LuzZza]
 	exp = (double)atoi(str[30]) * (double)battle_config.mvp_exp_rate / 100.;
 	db->mexp = (unsigned int)cap_value(exp, 0, UINT_MAX);
 

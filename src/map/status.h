@@ -1759,7 +1759,7 @@ enum scs_flag {
 	SCS_NOCHATCOND		= 0x00000200, /* Cond flag for notalk */
 };
 
-//Define flags for the status_calc_bl function. [Skotlex]
+//Define flags for the status_calc_bl function [Skotlex]
 enum scb_flag
 {
 	SCB_NONE	= 0x00000000,

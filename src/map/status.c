@@ -2289,7 +2289,6 @@ unsigned short status_get_rand_matk(unsigned short matk_max, unsigned short matk
 /**
  * Get bl's matk value depending on flag
  * @param flag [malufett]
- *  0 - Get MATK
  *  1 - Get MATK w/o SC bonuses
  *  2 - Get unmodified MATK
  *  3 - Get MATK w/o EMATK & SC bonuses
@@ -2395,13 +2394,22 @@ void status_calc_misc(struct block_list *bl, struct status_data *status, int lev
 		stat = status->flee;
 		stat += (int)(level + status->agi + (bl->type == BL_MER ? 0 : (bl->type == BL_PC ? ((float)status->luk / 5) : 0)) + 100);
 		status->flee = cap_value(stat, 1, SHRT_MAX);
-		//Base level + (every 2 vit = +1 def) + (every 5 agi = +1 def)
-		stat = status->def2;
-		stat += (int)(((float)(level + status->vit) / 2) + (bl->type == BL_PC ? ((float)status->agi / 5) : 0));
+		if( bl->type == BL_MER ) {
+			status->matk_min = status->matk_max = status_base_matk_min(status);
+			stat = (int)(status->vit + ((float)level / 10) + ((float)status->vit / 5));
+		} else {
+			//Base level + (every 2 vit = +1 def) + (every 5 agi = +1 def)
+			stat = status->def2;
+			stat += (int)(((float)(level + status->vit) / 2) + (bl->type == BL_PC ? ((float)status->agi / 5) : 0));
+		}
 		status->def2 = cap_value(stat, 0, SHRT_MAX);
-		//(Every 4 base level = +1 mdef) + (every 1 int = +1 mdef) + (every 5 dex = +1 mdef) + (every 5 vit = +1 mdef)
-		stat = status->mdef2;
-		stat += (int)(bl->type == BL_PC ? (status->int_ + ((float)level / 4) + ((float)(status->dex + status->vit) / 5)) : ((float)(level + status->int_) / 4));
+		if( bl->type == BL_MER )
+			stat = (int)(((float)level / 10) + ((float)status->int_ / 5));
+		else {
+			//(Every 4 base level = +1 mdef) + (every 1 int = +1 mdef) + (every 5 dex = +1 mdef) + (every 5 vit = +1 mdef)
+			stat = status->mdef2;
+			stat += (int)(bl->type == BL_PC ? (status->int_ + ((float)level / 4) + ((float)(status->dex + status->vit) / 5)) : ((float)(level + status->int_) / 4));
+		}
 		status->mdef2 = cap_value(stat, 0, SHRT_MAX);
 	}
 #else
@@ -2459,15 +2467,6 @@ void status_calc_misc(struct block_list *bl, struct status_data *status, int lev
 			case BL_PC:
 				//Players don't have a critical adjustment setting as of yet
 				break;
-			case BL_MER:
-#ifdef RENEWAL
-				status->matk_min = status->matk_max = status_base_matk_max(status);
-				stat = (int)(status->vit + ((float)level / 10) + ((float)status->vit / 5));
-				status->def2 = cap_value(stat, 0, SHRT_MAX);
-				stat = (int)(((float)level / 10) + ((float)status->int_ / 5));
-				status->mdef2 = cap_value(stat, 0, SHRT_MAX);
-#endif
-			//Fall through
 			default:
 				if( battle_config.critical_rate != 100 )
 					status->cri = cap_value(status->cri * battle_config.critical_rate / 100, 1, SHRT_MAX);
@@ -2521,8 +2520,9 @@ int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt)
 			memcpy(&md->status, &md->db->status, sizeof(struct status_data));
 		return 0;
 	}
+
 	if (!md->base_status)
-		md->base_status = (struct status_data*)aCalloc(1, sizeof(struct status_data));
+		md->base_status = (struct status_data *)aCalloc(1, sizeof(struct status_data));
 
 	status = md->base_status;
 	memcpy(status, &md->db->status, sizeof(struct status_data));
@@ -4262,7 +4262,9 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 	}
 
 	if( (!(bl->type&BL_REGEN)) && (!sc || !sc->count) ) { //No difference
+#ifndef RENEWAL
 		status_cpy(status, b_status);
+#endif
 		return;
 	}
 
@@ -4623,9 +4625,9 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 void status_calc_bl_(struct block_list* bl, enum scb_flag flag, enum e_status_calc_opt opt)
 {
 	struct status_data b_status; //Previous battle status
-	struct status_data* status; //Pointer to current battle status
+	struct status_data *status; //Pointer to current battle status
 
-	if( bl->type == BL_PC && ((TBL_PC*)bl)->delayed_damage != 0 ) {
+	if( bl->type == BL_PC && ((TBL_PC *)bl)->delayed_damage != 0 ) {
 		if( opt&SCO_FORCE )
 			((TBL_PC*)bl)->state.hold_recalc = 0; //Clear and move on
 		else {
@@ -10550,11 +10552,11 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			delete_timer(sce->timer,status_change_timer);
 		if (sc->opt1)
 			switch (type) {
-				//"Ugly workaround"  [Skotlex]
-				//delays status change ending so that a skill that sets opt1 fails to
-				//trigger when it also removed one
+				//"Ugly workaround" [Skotlex]
+				//Delays status change ending so that a skill that sets opt1 fails to trigger when it also removed one
 				case SC_STONE:
 					sce->val3 = 0; //Petrify time counter
+				//Fall through
 				case SC_FREEZE:
 				case SC_STUN:
 				case SC_SLEEP:
