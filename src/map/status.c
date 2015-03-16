@@ -2395,7 +2395,7 @@ void status_calc_misc(struct block_list *bl, struct status_data *status, int lev
 		stat += (int)(level + status->agi + (bl->type == BL_MER ? 0 : (bl->type == BL_PC ? ((float)status->luk / 5) : 0)) + 100);
 		status->flee = cap_value(stat, 1, SHRT_MAX);
 		if( bl->type == BL_MER ) {
-			status->matk_min = status->matk_max = status_base_matk_min(status);
+			status->matk_min = status->matk_max = status_base_matk_max(status);
 			stat = (int)(status->vit + ((float)level / 10) + ((float)status->vit / 5));
 		} else {
 			//Base level + (every 2 vit = +1 def) + (every 5 agi = +1 def)
