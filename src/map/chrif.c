@@ -1270,7 +1270,7 @@ int chrif_load_bankdata(int fd) {
 	return 1;
 }
 
-//Parses the sc_data of the player and sends it to the char-server for saving. [Skotlex]
+//Parses the sc_data of the player and sends it to the char-server for saving [Skotlex]
 int chrif_save_scdata(struct map_session_data *sd) {
 #ifdef ENABLE_SC_SAVING
 	int i, count = 0;
@@ -1356,7 +1356,7 @@ int chrif_skillcooldown_save(struct map_session_data *sd) {
 	return 0;
 }
 
-//Retrieve and load sc_data for a player. [Skotlex]
+//Retrieve and load sc_data for a player [Skotlex]
 int chrif_load_scdata(int fd) {
 #ifdef ENABLE_SC_SAVING
 	struct map_session_data *sd;
