@@ -2873,9 +2873,8 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 		case RK_DRAGONBREATH:
 		case RK_DRAGONBREATH_WATER:
 			{
-				int damagevalue = 0;
+				int damagevalue = (sstatus->hp / 50 + status_get_max_sp(src) / 4) * skill_lv;
 
-				damagevalue = ((sstatus->hp / 50) + (status_get_max_sp(src) / 4)) * skill_lv;
 				if(status_get_lv(src) > 100)
 					damagevalue = damagevalue * status_get_lv(src) / 150;
 				if(sd)
@@ -2888,9 +2887,9 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 			}
 			break;
 		case NC_SELFDESTRUCTION: {
-				int damagevalue = 0;
+				int damagevalue = (skill_lv + 1) * ((sd ? pc_checkskill(sd,NC_MAINFRAME) : 0) + 8) *
+					(status_get_sp(src) + sstatus->vit);
 
-				damagevalue = (skill_lv + 1) * ((sd ? pc_checkskill(sd,NC_MAINFRAME) : 0) + 8) * (status_get_sp(src) + sstatus->vit);
 				if(status_get_lv(src) > 100)
 					damagevalue = damagevalue * status_get_lv(src) / 100;
 				damagevalue = damagevalue + sstatus->hp;
@@ -2902,10 +2901,14 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 			break;
 		case KO_HAPPOKUNAI:
 			if(sd) {
-				int damagevalue = 0;
 				short index = sd->equip_index[EQI_AMMO];
+				int damagevalue = 3 * (
+#ifdef RENEWAL
+					2 *
+#endif
+					sstatus->batk + sstatus->rhw.atk + (index >= 0 && sd->inventory_data[index] ?
+						sd->inventory_data[index]->atk : 0)) * (skill_lv + 5) / 5;
 
-				damagevalue = 3 * (sstatus->batk + sstatus->rhw.atk + (index >= 0 && sd->inventory_data[index] ? sd->inventory_data[index]->atk : 0)) * (skill_lv + 5) / 5;
 				ATK_ADD(wd.damage, wd.damage2, damagevalue);
 #ifdef RENEWAL
 				ATK_ADD(wd.weaponAtk, wd.weaponAtk2, damagevalue);
@@ -5114,8 +5117,23 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			wd.equipAtk2 += battle_calc_cardfix(BF_WEAPON, src, target, skill_id, nk, right_element, left_element, wd.equipAtk2, 3, wd.flag);
 		}
 
-		if(skill_id == HW_MAGICCRASHER) //Add weapon attack for MATK into Magic Crasher
-			ATK_ADD(wd.weaponAtk, wd.weaponAtk2, status_get_matk(src, 2));
+		switch(skill_id) {
+			case HW_MAGICCRASHER: //Add weapon attack for MATK into Magic Crasher
+				ATK_ADD(wd.weaponAtk, wd.weaponAtk2, status_get_matk(src, 2));
+				break;
+			case PA_SHIELDCHAIN:
+				if(sd) {
+					short index = sd->equip_index[EQI_HAND_L];
+
+					if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR)
+						ATK_ADD(wd.weaponAtk, wd.weaponAtk2, sd->inventory_data[index]->weight / 10);
+				} else {
+					struct status_data *sstatus = status_get_status_data(src);
+
+					ATK_ADD(wd.weaponAtk, wd.weaponAtk2, sstatus->rhw.atk2);
+				}
+				break;
+		}
 
 		//Final attack bonuses that aren't affected by cards
 		wd = battle_attack_sc_bonus(wd, src, target, skill_id, skill_lv);

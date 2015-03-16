@@ -8467,6 +8467,10 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			break;
 
 		case RK_PHANTOMTHRUST:
+			if( sd && map_flag_gvg2(bl->m) ) {
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
+				break;
+			}
 			unit_setdir(src,map_calc_dir(src,bl->x,bl->y));
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			skill_blown(src,bl,distance_bl(src,bl) - 1,unit_getdir(src),0);
@@ -8486,14 +8490,13 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				map_foreachinrange(skill_area_sub,bl,i,BL_CHAR,src,skill_id,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 			break;
 
-		case RK_STONEHARDSKIN:
-			if( sd ) {
+		case RK_STONEHARDSKIN: {
 				int heal = sstatus->hp / 5; //20% HP
 
 				if( status_charge(bl,heal,0) )
 					clif_skill_nodamage(src,bl,skill_id,skill_lv,
 						sc_start2(src,bl,type,100,skill_lv,heal,skill_get_time(skill_id,skill_lv)));
-				else
+				else if( sd )
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 			}
 			break;

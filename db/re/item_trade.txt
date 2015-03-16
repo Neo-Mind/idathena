@@ -2102,9 +2102,9 @@
 12885,475,100	// Infinite_Awakening_Potion
 12886,475,100	// Infinite_Berserk_Potion
 12887,475,100	// C_Wing_Of_Fly
-17226,475,100	// Infinite_Concentration_Potion
-17227,475,100	// Infinite_Awakening_Potion
-17228,475,100	// Infinite_Berserk_Potion
+17226,475,100	// Infinite_Concentration_Potion_Box
+17227,475,100	// Infinite_Awakening_Potion_Box
+17228,475,100	// Infinite_Berserk_Potion_Box
 17229,475,100	// Infinite_Flywing_Box
 18760,475,100	// Remodel_Wizardry_Hat
 18761,475,100	// Remodel_Magician_Hat
@@ -2144,9 +2144,9 @@
 
 // kRO 2012-10-10
 6671,475,100	// Geffen_Coin_Magic_Tournament
-17263,475,100	// Infinite_Concentration_Potion_3rd_Box
-17264,475,100	// Infinite_Awakening_Potion_3rd_Box
-17265,475,100	// Infinite_Berserk_Potion_3rd_Box
+17263,475,100	// Infinite_Concentration_Potion_3Day_Box
+17264,475,100	// Infinite_Awakening_Potion_3Day_Box
+17265,475,100	// Infinite_Berserk_Potion_3Day_Box
 17266,475,100	// Limited_Battle_Manual_Package
 
 // kRO 2012-10-17
