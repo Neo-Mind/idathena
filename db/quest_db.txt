@@ -2576,6 +2576,9 @@
 14464,82800,0,0,0,0,0,0,"Party is going for a day"
 14465,82800,0,0,0,0,0,0,"They are still quiet"
 
+15002,72000,0,0,0,0,0,0,"Memorial dungeon: Sara's Memory"
+15003,0,0,0,0,0,0,0,"Adventurer leon"
+
 // 2013 Christmas Event
 15055,0,0,0,0,0,0,0,"Christmas : We are the great Single Union Army!"
 15056,0,0,0,0,0,0,0,"Christmas : Declare war against couples!"
