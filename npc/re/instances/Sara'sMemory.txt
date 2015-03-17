@@ -116,45 +116,65 @@ dali,130,107,5	script	Leon the Adventurer#Sara	945,{
 				}
 			}
 			if(checkquest(15003) == 2) {
-				mes "[Leon the Adventurer]";
-				mes "What did you see in there?!";
-				next;
-				mes "[Leon the Adventurer]";
-				mes "Hrumpf, Sara Irene?! She's one of";
-				mes "the 12 Valkyries. I didn't know her";
-				mes "story was that tragic....";
-				next;
-				mes "[Leon the Adventurer]";
-				mes "It seems that you caused a huge";
-				mes "misunderstanding between her and";
-				mes "her father.";
-				next;
-				mes "[Leon the Adventurer]";
-				mes "I would not blame yourself for what";
-				mes "occured. Or all the blood that was";
-				mes "spilled. It seems that the events";
-				mes "that day were fated to happen no";
-				mes "matter who was there.";
-				next;
-				mes "[Leon the Adventurer]";
-				mes "Please don't tell anyone about your";
-				mes "time traveling adventure. We can't";
-				mes "have anyone thinking you more";
-				mes "important then old Leon. Plus they";
-				mes "wouldn't believe such a story";
-				mes "anyways.";
-				next;
-				mes "[Leon the Adventurer]";
-				mes "I think that in about 20 hours";
-				mes "after you last entered the rift";
-				mes "will stable enough for you to";
-				mes "transverse it again.";
-				erasequest 15003;
 				if(!sarainstance) {
+					mes "[Leon the Adventurer]";
+					mes "What did you see in there?!";
+					next;
+					mes "[Leon the Adventurer]";
+					mes "Hrumpf, Sara Irene?! She's one of";
+					mes "the 12 Valkyries. I didn't know her";
+					mes "story was that tragic....";
+					next;
+					mes "[Leon the Adventurer]";
+					mes "It seems that you caused a huge";
+					mes "misunderstanding between her and";
+					mes "her father.";
+					next;
+					mes "[Leon the Adventurer]";
+					mes "I would not blame yourself for what";
+					mes "occured. Or all the blood that was";
+					mes "spilled. It seems that the events";
+					mes "that day were fated to happen no";
+					mes "matter who was there.";
+					next;
+					mes "[Leon the Adventurer]";
+					mes "Please don't tell anyone about your";
+					mes "time traveling adventure. We can't";
+					mes "have anyone thinking you more";
+					mes "important then old Leon. Plus they";
+					mes "wouldn't believe such a story";
+					mes "anyways.";
+					next;
+					mes "[Leon the Adventurer]";
+					mes "I think that in about 20 hours";
+					mes "after you last entered the rift";
+					mes "will stable enough for you to";
+					mes "transverse it again.";
 					set sarainstance,1;
 					getexp 770000,1036000;
-				} else
+				} else {
+					mes "[Leon the Adventurer]";
+					mes "What did you see in there?! Was";
+					mes "there anything new?";
+					next;
+					select("Nothing has changed from the last time.");
+					mes "[Leon the Adventurer]";
+					mes "I am sorry to hear that... If...";
+					next;
+					mes "[Leon the Adventurer]";
+					mes "If you want to try again. I think";
+					mes "that in about 20 hours after you";
+					mes "last entered the rift will be";
+					mes "stable enough for you to transverse";
+					mes "it again.";
+					next;
+					mes "[Leon the Adventurer]";
+					mes "You should rest up. Travelling";
+					mes "Through time would make even Leon";
+					mes "tired!";
 					getexp 550000,550000;
+				}
+				erasequest 15003;
 				close;
 			}
 		} else {
@@ -172,7 +192,7 @@ dali,130,107,5	script	Leon the Adventurer#Sara	945,{
 	} else { //Custom text
 		mes "[Leon the Adventurer]";
 		mes "How did you get in here?";
-		mes "Are you come from the legal way?";
+		mes "Are you sure, you weren't lost?";
 		close;
 	}
 }
@@ -180,23 +200,23 @@ dali,130,107,5	script	Leon the Adventurer#Sara	945,{
 dali,138,118,0	script	Dimensional Device#dimen	10007,{
 	if(checkquest(15003) == 1) {
 		set .@sara_time,checkquest(15002,PLAYTIME);
-		if (.@sara_time == 0 || .@sara_time == 1) {
+		if(.@sara_time == 0 || .@sara_time == 1) {
 			mes "[Leon the Adventurer]";
 			mes "I think that in about 20 hours";
 			mes "after you last entered the rift";
 			mes "will stable enough for you to";
 			mes "transverse it again.";
 			close;
-		} else if (.@sara_time == 2) {
+		} else if(.@sara_time == 2) {
 			erasequest 15002;
 			end;
-		} else if (.@sara_time == -1) {
+		} else if(.@sara_time == -1) {
 			set .@party_id,getcharid(1);
 			set .@ins_mas,getpartyleader(.@party_id,2);
 			set .@p_name$,getpartyname(.@party_id);
 			set .@p_reader$,strcharinfo(0);
 			set .@md_name$,"Sara's Memory";
-			if (!instance_check_party(.@party_id)) {
+			if(!instance_check_party(.@party_id)) {
 				mes "[Leon the Adventurer]";
 				mes "Before you enter you need to";
 				mes "organize a party! Don't know how?";
@@ -205,13 +225,13 @@ dali,138,118,0	script	Dimensional Device#dimen	10007,{
 				mes "party name.";
 				close;
 			}
-			if (getcharid(0) == .@ins_mas)
+			if(getcharid(0) == .@ins_mas)
 				set .@menu$,"Boot up the dimensional device.:Use the dimensional device.:Cancel";
 			else
 				set .@menu$,":Use the dimensional device:Cancel";
 			switch(select(.@menu$)) {
 				case 1:
-					switch (instance_create(.@md_name$)) {
+					switch(instance_create(.@md_name$)) {
 						case -3:
 							dispbottom "Memorial Dungeon, '" + .@md_name$ + "' is already in progress.",0xFFFFFF;
 							break;
@@ -426,10 +446,10 @@ dali,138,118,0	script	Dimensional Device#dimen	10007,{
 		mes "^ff0000do something!^000000";
 		donpcevent instance_npcname("?#saratalk1", instance_id())+"::OnChat5";
 		close2;
-		donpcevent instance_npcname("#sarawarp1", instance_id())+"::OnEnable";
 		donpcevent instance_npcname("Strange Old Man A#stalk", instance_id())+"::OnDisable";
 		donpcevent instance_npcname("Strange Old Man B#stalk", instance_id())+"::OnDisable";
 		donpcevent instance_npcname("Sara Irene#sarains1", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("#sarawarp1", instance_id())+"::OnEnable";
 		viewpoint 1,240,145,1,0x00FF00;
 		specialeffect EF_BASH;
 		end;
@@ -681,7 +701,7 @@ OnEnable:
 OnTouch:
 	set .@map$,instance_mapname("1@sara");
 	warp .@map$,89,175;
-	viewpoint 1,19,143,1,0x00FF00;
+	viewpoint 1,39,142,1,0x00FF00;
 	end;
 }
 
@@ -697,7 +717,6 @@ OnEnable:
 	enablenpc instance_npcname("#sarawarp7", instance_id());
 	end;
 OnTouch:
-	completequest 15002;
 	completequest 15003;
 	warp "dali",134,111;
 	end;
@@ -774,55 +793,53 @@ OnTouch:
 		mes "...";
 		npctalk "...";
 		next;
-		switch(select("Escape with Sara.")) {
-			case 1:
-				mes "[Sara Irene]";
-				mes "...";
-				npctalk "...";
-				next;
-				cutin "sara_elder_irine3.bmp",2;
-				mes "[Doyen Irene]";
-				mes "Guards! GUARDS! There is a murderer";
-				mes "here! Catch him!";
-				donpcevent instance_npcname("Doyen Irene#sarains1", instance_id())+"::OnChat2";
-				next;
-				mes "^ff0000The sound of many pairs of boots^000000";
-				mes "^ff0000can be heard running outside!^000000";
-				donpcevent instance_npcname("-#saratalk", instance_id())+"::OnChat5";
-				next;
-				cutin "sara_9sara3.bmp",2;
-				mes "[Sara Irene]";
-				mes "Mommy no!!!!!!!!!!!!!!!";
-				npctalk "Mommy no!!!!!!!!!!!!!!!";
-				next;
-				cutin "sara_9sara3.bmp",255;
-				mes "^ff0000Sara runs aways and the sound of the^000000";
-				mes "^ff0000guards is getting closer...^000000";
-				donpcevent instance_npcname("-#saratalk", instance_id())+"::OnChat6";
-				donpcevent instance_npcname("Sara Irene#sarains1", instance_id())+"::OnDisable";
-				donpcevent instance_npcname("Sara Irene#sarains4", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains5", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains6", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains7", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains8", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains9", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains10", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains11", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains12", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains13", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains14", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains15", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains16", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains17", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains18", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains19", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains20", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains21", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains22", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("Sara Irene#sarains23", instance_id())+"::OnEnable";
-				donpcevent instance_npcname("#controlsara", instance_id())+"::OnEnable";
-				close;
-		}
+		select("Escape with Sara.");
+		mes "[Sara Irene]";
+		mes "...";
+		npctalk "...";
+		next;
+		cutin "sara_elder_irine3.bmp",2;
+		mes "[Doyen Irene]";
+		mes "Guards! GUARDS! There is a murderer";
+		mes "here! Catch him!";
+		donpcevent instance_npcname("Doyen Irene#sarains1", instance_id())+"::OnChat2";
+		next;
+		mes "^ff0000The sound of many pairs of boots^000000";
+		mes "^ff0000can be heard running outside!^000000";
+		donpcevent instance_npcname("-#saratalk", instance_id())+"::OnChat5";
+		next;
+		cutin "sara_9sara3.bmp",2;
+		mes "[Sara Irene]";
+		mes "Mommy no!!!!!!!!!!!!!!!";
+		npctalk "Mommy no!!!!!!!!!!!!!!!";
+		next;
+		cutin "sara_9sara3.bmp",255;
+		mes "^ff0000Sara runs aways and the sound of the^000000";
+		mes "^ff0000guards is getting closer...^000000";
+		donpcevent instance_npcname("-#saratalk", instance_id())+"::OnChat6";
+		donpcevent instance_npcname("Sara Irene#sarains1", instance_id())+"::OnDisable";
+		donpcevent instance_npcname("Sara Irene#sarains4", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains5", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains6", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains7", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains8", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains9", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains10", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains11", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains12", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains13", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains14", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains15", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains16", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains17", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains18", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains19", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains20", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains21", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains22", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains23", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("#controlsara", instance_id())+"::OnEnable";
+		close;
 	}
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains1", instance_id())+"::OnDisable";
@@ -981,18 +998,12 @@ OnMyMobDead:
 	set .@map$,instance_mapname("1@sara");
 	set .@a_mob_num,mobcount(.@map$,instance_npcname("#controlsara", instance_id())+"::OnMyMobDead");
 	set .@mob_dead_num,.@callnum - .@a_mob_num;
-	if (.@mob_dead_num > 57) {
+	if(.@mob_dead_num > 57) {
 		viewpoint 1,209,250,1,0x00FF00;
 		instance_announce instance_id(), "<SYSTEM> Sara ran away again! You think she went in the 2 O'clock direction!",bc_map,"0xFFFF00";
-		donpcevent instance_npcname("#sarawarp2", instance_id())+"::OnEnable";
-		donpcevent instance_npcname("#controlsara1", instance_id())+"::OnEnable";
 		donpcevent instance_npcname("#controlsara", instance_id())+"::OnDisable";
-		disablenpc instance_npcname("Sara Irene#sarains4", instance_id());
-		disablenpc instance_npcname("Sara Irene#sarains5", instance_id());
-		disablenpc instance_npcname("Sara Irene#sarains6", instance_id());
-		disablenpc instance_npcname("Sara Irene#sarains7", instance_id());
-		disablenpc instance_npcname("Sara Irene#sarains8", instance_id());
-		disablenpc instance_npcname("Sara Irene#sarains9", instance_id());
+		donpcevent instance_npcname("#controlsara1", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("#sarawarp2", instance_id())+"::OnEnable";
 	}
 	end;
 }
@@ -1039,17 +1050,12 @@ OnMyMobDead:
 	set .@map$,instance_mapname("1@sara");
 	set .@b_mob_num,mobcount(.@map$,instance_npcname("#controlsara1", instance_id())+"::OnMyMobDead");
 	set .@mob_dead_num,.@callnum - .@b_mob_num;
-	if (.@mob_dead_num > 15) {
+	if(.@mob_dead_num > 15) {
 		viewpoint 1,226,190,1,0x00FF00;
 		instance_announce instance_id(), "<SYSTEM> Sara ran away yet again! You think she went in the 5 O'clock direction!",bc_map,"0xFFFF00";
-		donpcevent instance_npcname("#sarawarp3", instance_id())+"::OnEnable";
-		donpcevent instance_npcname("#controlsara2", instance_id())+"::OnEnable";
 		donpcevent instance_npcname("#controlsara1", instance_id())+"::OnDisable";
-		disablenpc instance_npcname("Sara Irene#sarains10", instance_id());
-		disablenpc instance_npcname("Sara Irene#sarains11", instance_id());
-		disablenpc instance_npcname("Sara Irene#sarains12", instance_id());
-		disablenpc instance_npcname("Sara Irene#sarains13", instance_id());
-		disablenpc instance_npcname("Sara Irene#sarains14", instance_id());
+		donpcevent instance_npcname("#controlsara2", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("#sarawarp3", instance_id())+"::OnEnable";
 	}
 	end;
 }
@@ -1128,16 +1134,12 @@ OnMyMobDead:
 	set .@map$,instance_mapname("1@sara");
 	set .@c_mob_num,mobcount(.@map$,instance_npcname("#controlsara2", instance_id())+"::OnMyMobDead");
 	set .@mob_dead_num,.@callnum - .@c_mob_num;
-	if (.@mob_dead_num > 44) {
+	if(.@mob_dead_num > 44) {
 		viewpoint 1,166,67,1,0x00FF00;
 		instance_announce instance_id(), "<SYSTEM> Sara ran away yet again! *sigh* You think she went in the 6 O'clock direction!",bc_map,"0xFFFF00";
-		donpcevent instance_npcname("#sarawarp4", instance_id())+"::OnEnable";
-		donpcevent instance_npcname("#controlsara3", instance_id())+"::OnEnable";
 		donpcevent instance_npcname("#controlsara2", instance_id())+"::OnDisable";
-		disablenpc instance_npcname("Sara Irene#sarains15", instance_id());
-		disablenpc instance_npcname("Sara Irene#sarains16", instance_id());
-		disablenpc instance_npcname("Sara Irene#sarains17", instance_id());
-		disablenpc instance_npcname("Sara Irene#sarains18", instance_id());
+		donpcevent instance_npcname("#controlsara3", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("#sarawarp4", instance_id())+"::OnEnable";
 	}
 	end;
 }
@@ -1215,17 +1217,16 @@ OnMyMobDead:
 	set .@map$,instance_mapname("1@sara");
 	set .@d_mob_num,mobcount(.@map$,instance_npcname("#controlsara3", instance_id())+"::OnMyMobDead");
 	set .@mob_dead_num,.@callnum - .@d_mob_num;
-	if (.@mob_dead_num > 42) {
+	if(.@mob_dead_num > 42) {
 		viewpoint 1,155,180,1,0x00FF00;
 		instance_announce instance_id(), "<SYSTEM> Sara ran away yet again! You think she went in the 12 O'clock direction!",bc_map,"0xFFFF00";
+		for (set .@i,4; .@i<=23; set .@i,.@i+1) {
+			donpcevent instance_npcname("Sara Irene#sarains" + .@i, instance_id())+"::OnEnable";
+			donpcevent instance_npcname("Sara Irene#sarains" + .@i, instance_id())+"::OnDisable";
+		}
+		donpcevent instance_npcname("#controlsara3", instance_id())+"::OnDisable";
 		donpcevent instance_npcname("#sarawarp5", instance_id())+"::OnEnable";
 		donpcevent instance_npcname("Sara Irene#sarains2", instance_id())+"::OnEnable";
-		donpcevent instance_npcname("#controlsara3", instance_id())+"::OnDisable";
-		disablenpc instance_npcname("Sara Irene#sarains19", instance_id());
-		disablenpc instance_npcname("Sara Irene#sarains20", instance_id());
-		disablenpc instance_npcname("Sara Irene#sarains21", instance_id());
-		disablenpc instance_npcname("Sara Irene#sarains22", instance_id());
-		disablenpc instance_npcname("Sara Irene#sarains23", instance_id());
 	}
 	end;
 }
@@ -1274,8 +1275,8 @@ OnMyMobDead:
 		npctalk "...okay.";
 		close2;
 		cutin "sara_9sara2.bmp",255;
-		donpcevent instance_npcname("#controlsara4", instance_id())+"::OnEnable";
 		donpcevent instance_npcname("Sara Irene#sarains2", instance_id())+"::OnDisable";
+		donpcevent instance_npcname("#controlsara4", instance_id())+"::OnEnable";
 		end;
 	}
 OnInstanceInit:
@@ -1347,10 +1348,10 @@ OnMyMobDead:
 	set .@map$,instance_mapname("1@sara");
 	set .@f_mob_num,mobcount(.@map$,instance_npcname("#controlsara4", instance_id())+"::OnMyMobDead");
 	set .@mob_dead_num,.@callnum - .@f_mob_num;
-	if (.@mob_dead_num > 7) {
+	if(.@mob_dead_num > 7) {
 		instance_announce instance_id(), "<SYSTEM> Doyen Irene draws his blade!",bc_map,"0xFFFF00";
-		donpcevent instance_npcname("#controlsara5", instance_id())+"::OnEnable";
 		donpcevent instance_npcname("#controlsara4", instance_id())+"::OnDisable";
+		donpcevent instance_npcname("#controlsara5", instance_id())+"::OnEnable";
 	}
 	end;
 }
@@ -1377,11 +1378,11 @@ OnMyMobDead:
 	set .@map$,instance_mapname("1@sara");
 	set .@g_mob_num,mobcount(.@map$,instance_npcname("#controlsara5", instance_id())+"::OnMyMobDead");
 	set .@mob_dead_num,.@callnum - .@g_mob_num;
-	if (.@mob_dead_num > 0) {
+	if(.@mob_dead_num > 0) {
 		instance_announce instance_id(), "<SYSTEM> Doyen Irene has fallen.",bc_map,"0xFFFF00";
-		donpcevent instance_npcname("Doyen Irene#sarains3", instance_id())+"::OnEnable";
-		donpcevent instance_npcname("?#saratalk2", instance_id())+"::OnEnable";
 		donpcevent instance_npcname("#controlsara5", instance_id())+"::OnDisable";
+		donpcevent instance_npcname("?#saratalk2", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Doyen Irene#sarains3", instance_id())+"::OnEnable";
 	}
 	end;
 }
@@ -1468,14 +1469,14 @@ OnMyMobDead:
 		npctalk "We must do our best to find her. Let's split up and search for her. Please help me find my daughter and explain everything to her.";
 		close2;
 		cutin "sara_elder_irine4.bmp",255;
-		viewpoint 1,39,142,1,0x00FF00;
-		donpcevent instance_npcname("#sarawarp6", instance_id())+"::OnEnable";
-		donpcevent instance_npcname("Sara Irene#sarains3", instance_id())+"::OnEnable";
-		donpcevent instance_npcname("?#saratalk2", instance_id())+"::OnEnable";
-		donpcevent instance_npcname("?????#saratalk4", instance_id())+"::OnEnable";
-		donpcevent instance_npcname("?#saratalk2", instance_id())+"::OnDisable";
+		viewpoint 1,88,188,1,0x00FF00;
 		instance_announce instance_id(), "<SYSTEM> We must find Sara. You seem remember her running in the 8 O'clock direction.",bc_map,"0xFFFF00";
 		donpcevent instance_npcname("Doyen Irene#sarains3", instance_id())+"::OnDisable";
+		donpcevent instance_npcname("?#saratalk2", instance_id())+"::OnDisable";
+		donpcevent instance_npcname("?#saratalk2", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("#sarawarp6", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("?????#saratalk4", instance_id())+"::OnEnable";
+		donpcevent instance_npcname("Sara Irene#sarains3", instance_id())+"::OnEnable";
 		end;
 	}
 OnInstanceInit:
@@ -1639,9 +1640,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains4", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains4", instance_id());
-	hideoffnpc instance_npcname("Sara Irene#sarains4", instance_id());
-	stopnpctimer;
+	donpcevent instance_npcname("Sara Irene#sarains4", instance_id())+"::OnEnable";
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains4", instance_id())+"::OnDisable";
@@ -1649,6 +1648,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains4", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains4", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains4", instance_id());
@@ -1664,9 +1664,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains5", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains5", instance_id());
-	hideoffnpc instance_npcname("Sara Irene#sarains5", instance_id());
-	stopnpctimer;
+	donpcevent instance_npcname("Sara Irene#sarains5", instance_id())+"::OnEnable";
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains5", instance_id())+"::OnDisable";
@@ -1674,6 +1672,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains5", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains5", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains5", instance_id());
@@ -1689,9 +1688,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains6", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains6", instance_id());
-	hideoffnpc instance_npcname("Sara Irene#sarains6", instance_id());
-	stopnpctimer;
+	donpcevent instance_npcname("Sara Irene#sarains6", instance_id())+"::OnEnable";
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains6", instance_id())+"::OnDisable";
@@ -1699,6 +1696,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains6", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains6", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains6", instance_id());
@@ -1714,9 +1712,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains7", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains7", instance_id());
-	hideoffnpc instance_npcname("Sara Irene#sarains7", instance_id());
-	stopnpctimer;
+	donpcevent instance_npcname("Sara Irene#sarains7", instance_id())+"::OnEnable";
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains7", instance_id())+"::OnDisable";
@@ -1724,6 +1720,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains7", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains7", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains7", instance_id());
@@ -1739,9 +1736,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains8", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains8", instance_id());
-	hideoffnpc instance_npcname("Sara Irene#sarains8", instance_id());
-	stopnpctimer;
+	donpcevent instance_npcname("Sara Irene#sarains8", instance_id())+"::OnEnable";
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains8", instance_id())+"::OnDisable";
@@ -1749,6 +1744,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains8", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains8", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains8", instance_id());
@@ -1764,9 +1760,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains9", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains9", instance_id());
-	hideoffnpc instance_npcname("Sara Irene#sarains9", instance_id());
-	stopnpctimer;
+	donpcevent instance_npcname("Sara Irene#sarains9", instance_id())+"::OnEnable";
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains9", instance_id())+"::OnDisable";
@@ -1774,6 +1768,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains9", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains9", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains9", instance_id());
@@ -1789,9 +1784,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains10", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains10", instance_id());
-	hideoffnpc instance_npcname("Sara Irene#sarains10", instance_id());
-	stopnpctimer;
+	donpcevent instance_npcname("Sara Irene#sarains10", instance_id())+"::OnEnable";
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains10", instance_id())+"::OnDisable";
@@ -1799,6 +1792,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains10", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains10", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains10", instance_id());
@@ -1814,9 +1808,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains11", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains11", instance_id());
-	hideoffnpc instance_npcname("Sara Irene#sarains11", instance_id());
-	stopnpctimer;
+	donpcevent instance_npcname("Sara Irene#sarains11", instance_id())+"::OnEnable";
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains11", instance_id())+"::OnDisable";
@@ -1824,6 +1816,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains11", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains11", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains11", instance_id());
@@ -1839,9 +1832,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains12", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains12", instance_id());
-	hideoffnpc instance_npcname("Sara Irene#sarains12", instance_id());
-	stopnpctimer;
+	donpcevent instance_npcname("Sara Irene#sarains12", instance_id())+"::OnEnable";
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains12", instance_id())+"::OnDisable";
@@ -1849,6 +1840,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains12", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains12", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains12", instance_id());
@@ -1864,9 +1856,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains13", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains13", instance_id());
-	hideoffnpc instance_npcname("Sara Irene#sarains13", instance_id());
-	stopnpctimer;
+	donpcevent instance_npcname("Sara Irene#sarains13", instance_id())+"::OnEnable";
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains13", instance_id())+"::OnDisable";
@@ -1874,6 +1864,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains13", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains13", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains13", instance_id());
@@ -1889,9 +1880,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains14", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains14", instance_id());
-	hideoffnpc instance_npcname("Sara Irene#sarains14", instance_id());
-	stopnpctimer;
+	donpcevent instance_npcname("Sara Irene#sarains14", instance_id())+"::OnEnable";
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains14", instance_id())+"::OnDisable";
@@ -1899,6 +1888,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains14", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains14", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains14", instance_id());
@@ -1914,9 +1904,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains15", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains15", instance_id());
 	donpcevent instance_npcname("Sara Irene#sarains15", instance_id())+"::OnEnable";
-	stopnpctimer;
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains15", instance_id())+"::OnDisable";
@@ -1924,6 +1912,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains15", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains15", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains15", instance_id());
@@ -1939,9 +1928,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains16", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains16", instance_id());
 	donpcevent instance_npcname("Sara Irene#sarains16", instance_id())+"::OnEnable";
-	stopnpctimer;
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains16", instance_id())+"::OnDisable";
@@ -1949,6 +1936,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains16", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains16", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains16", instance_id());
@@ -1964,9 +1952,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains17", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains17", instance_id());
 	donpcevent instance_npcname("Sara Irene#sarains17", instance_id())+"::OnEnable";
-	stopnpctimer;
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains17", instance_id())+"::OnDisable";
@@ -1974,6 +1960,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains17", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains17", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains17", instance_id());
@@ -1989,9 +1976,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains18", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains18", instance_id());
 	donpcevent instance_npcname("Sara Irene#sarains18", instance_id())+"::OnEnable";
-	stopnpctimer;
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains18", instance_id())+"::OnDisable";
@@ -1999,6 +1984,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains18", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains18", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains18", instance_id());
@@ -2014,9 +2000,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains19", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains19", instance_id());
-	hideoffnpc instance_npcname("Sara Irene#sarains19", instance_id());
-	stopnpctimer;
+	donpcevent instance_npcname("Sara Irene#sarains19", instance_id())+"::OnEnable";
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains19", instance_id())+"::OnDisable";
@@ -2024,6 +2008,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains19", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains19", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains19", instance_id());
@@ -2039,9 +2024,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains20", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains20", instance_id());
-	hideoffnpc instance_npcname("Sara Irene#sarains20", instance_id());
-	stopnpctimer;
+	donpcevent instance_npcname("Sara Irene#sarains20", instance_id())+"::OnEnable";
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains20", instance_id())+"::OnDisable";
@@ -2049,6 +2032,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains20", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains20", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains20", instance_id());
@@ -2064,9 +2048,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains21", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains21", instance_id());
-	hideoffnpc instance_npcname("Sara Irene#sarains21", instance_id());
-	stopnpctimer;
+	donpcevent instance_npcname("Sara Irene#sarains21", instance_id())+"::OnEnable";
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains21", instance_id())+"::OnDisable";
@@ -2074,6 +2056,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains21", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains21", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains21", instance_id());
@@ -2089,9 +2072,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains22", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains22", instance_id());
-	hideoffnpc instance_npcname("Sara Irene#sarains22", instance_id());
-	stopnpctimer;
+	donpcevent instance_npcname("Sara Irene#sarains22", instance_id())+"::OnEnable";
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains22", instance_id())+"::OnDisable";
@@ -2099,6 +2080,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains22", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains22", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains22", instance_id());
@@ -2114,9 +2096,7 @@ OnTouch:
 	donpcevent instance_npcname("Sara Irene#sarains23", instance_id())+"::OnDisable";
 	end;
 OnTimer60000:
-	enablenpc instance_npcname("Sara Irene#sarains23", instance_id());
-	hideoffnpc instance_npcname("Sara Irene#sarains23", instance_id());
-	stopnpctimer;
+	donpcevent instance_npcname("Sara Irene#sarains23", instance_id())+"::OnEnable";
 	end;
 OnInstanceInit:
 	donpcevent instance_npcname("Sara Irene#sarains23", instance_id())+"::OnDisable";
@@ -2124,6 +2104,7 @@ OnInstanceInit:
 OnEnable:
 	enablenpc instance_npcname("Sara Irene#sarains23", instance_id());
 	hideoffnpc instance_npcname("Sara Irene#sarains23", instance_id());
+	stopnpctimer;
 	end;
 OnDisable:
 	hideonnpc instance_npcname("Sara Irene#sarains23", instance_id());
