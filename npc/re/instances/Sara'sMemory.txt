@@ -231,8 +231,7 @@ dali,138,118,0	script	Dimensional Device#dimen	10007,{
 				case 2:
 					switch(instance_enter(.@md_name$)) {
 						case 3: //Custom text
-							mes "[Hugin]";
-							mes "Sorry, I won't let you enter the time gap. There's something wrong with the dimension right now.";
+							mes "^ff0000There's something wrong with dimensional boots up. It's failed.^000000";
 							close;
 						case 2:
 							mes "^ff0000The party leader did not boot up^000000";
