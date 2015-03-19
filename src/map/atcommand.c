@@ -942,19 +942,18 @@ ACMD_FUNC(option)
 	int param1 = 0, param2 = 0, param3 = 0;
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message || sscanf(message, "%d %d %d", &param1, &param2, &param3) < 1 || param1 < 0 || param2 < 0 || param3 < 0)
-	{ // failed to match the parameters so inform the user of the options
+	// Failed to match the parameters so inform the user of the options
+	if (!message || !*message || sscanf(message, "%d %d %d", &param1, &param2, &param3) < 1 || param1 < 0 || param2 < 0 || param3 < 0) {
 		const char* text;
 
-		// attempt to find the setting information for this command
-		text = atcommand_help_string( command );
+		// Attempt to find the setting information for this command
+		text = atcommand_help_string(command);
 
-		// notify the user of the requirement to enter an option
+		// Notify the user of the requirement to enter an option
 		clif_displaymessage(fd, msg_txt(921)); // Please enter at least one option.
 
-		if( text ) { // send the help text associated with this command
-			clif_displaymessage( fd, text );
-		}
+		if (text) // Send the help text associated with this command
+			clif_displaymessage(fd, text);
 
 		return -1;
 	}
@@ -2062,41 +2061,51 @@ ACMD_FUNC(monster)
 static int atkillmonster_sub(struct block_list *bl, va_list ap)
 {
 	struct mob_data *md;
+	struct block_list *src;
 	int flag;
-	
 	nullpo_ret(md = (struct mob_data *)bl);
-	flag = va_arg(ap, int);
 
-	if (md->guardian_data)
+	flag = va_arg(ap, int);
+	src = va_arg(ap, struct block_list *);
+
+	if (mob_is_gvg(md) || md->guardian_data)
 		return 0; //Do not touch WoE mobs!
-	
+
 	if (flag)
-		status_zap(bl,md->status.hp, 0);
+		status_zap(bl, md->status.hp, 0);
 	else
-		status_kill(bl);
+		status_percent_damage(src, bl, 100, 0, true);
 	return 1;
 }
 
 ACMD_FUNC(killmonster)
 {
-	int map_id, drop_flag;
+	int char_id, map_id, drop_flag;
+	struct block_list *src;
 	char map_name[MAP_NAME_LENGTH_EXT];
 	nullpo_retr(-1, sd);
 
 	memset(map_name, '\0', sizeof(map_name));
 
-	if (!message || !*message || sscanf(message, "%15s", map_name) < 1)
+	if (!message || !*message || sscanf(message, "%15s %d", map_name, &char_id) < 1)
 		map_id = sd->bl.m;
 	else {
 		if ((map_id = map_mapname2mapid(map_name)) < 0)
 			map_id = sd->bl.m;
 	}
 
+	if (char_id) {
+		TBL_PC *sd = map_charid2sd(char_id);
+
+		src = &sd->bl;
+	} else
+		src = NULL;
+
 	parent_cmd = atcommand_checkalias(command + 1);
 
 	drop_flag = strcmp(parent_cmd, "killmonster2");
 
-	map_foreachinmap(atkillmonster_sub, map_id, BL_MOB, -drop_flag);
+	map_foreachinmap(atkillmonster_sub, map_id, BL_MOB, -drop_flag, src);
 
 	clif_displaymessage(fd, msg_txt(165)); // All monsters killed!
 

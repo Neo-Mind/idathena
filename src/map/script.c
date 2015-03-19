@@ -9177,39 +9177,41 @@ BUILDIN_FUNC(areamonster)
 	mob_once_spawn_area(sd, m, x0, y0, x1, y1, str, class_, amount, event, size, ai);
 	return SCRIPT_CMD_SUCCESS;
 }
+
 /*==========================================
  * KillMonster subcheck, verify if mob to kill ain't got an even to handle, could be force kill by allflag
  *------------------------------------------*/
  static int buildin_killmonster_sub_strip(struct block_list *bl,va_list ap)
-{ //same fix but with killmonster instead - stripping events from mobs.
-	TBL_MOB* md = (TBL_MOB*)bl;
-	char *event=va_arg(ap,char *);
-	int allflag=va_arg(ap,int);
+{ //Same fix but with killmonster instead - stripping events from mobs
+	TBL_MOB* md = (TBL_MOB *)bl;
+	char *event = va_arg(ap, char *);
+	int allflag = va_arg(ap, int);
 
 	md->state.npc_killmonster = 1;
 	
-	if(!allflag) {
-		if(strcmp(event,md->npc_event)==0)
+	if (!allflag) {
+		if (strcmp(event,md->npc_event) == 0)
 			status_kill(bl);
 	} else {
-		if(!md->spawn)
+		if (!md->spawn)
 			status_kill(bl);
 	}
+
 	md->state.npc_killmonster = 0;
 	return 0;
 }
 
 static int buildin_killmonster_sub(struct block_list *bl,va_list ap)
 {
-	TBL_MOB* md = (TBL_MOB*)bl;
-	char *event=va_arg(ap,char *);
-	int allflag=va_arg(ap,int);
+	TBL_MOB* md = (TBL_MOB *)bl;
+	char *event = va_arg(ap, char *);
+	int allflag = va_arg(ap, int);
 
-	if(!allflag){
-		if(strcmp(event,md->npc_event)==0)
+	if (!allflag) {
+		if (strcmp(event,md->npc_event) == 0)
 			status_kill(bl);
-	}else{
-		if(!md->spawn)
+	} else {
+		if (!md->spawn)
 			status_kill(bl);
 	}
 	return 0;
@@ -9217,20 +9219,22 @@ static int buildin_killmonster_sub(struct block_list *bl,va_list ap)
 
 BUILDIN_FUNC(killmonster)
 {
-	const char *mapname,*event;
-	int16 m,allflag=0;
-	mapname=script_getstr(st,2);
-	event=script_getstr(st,3);
-	if( strcmp(event,"All")==0 )
+	const char *mapname, *event;
+	int16 m, allflag = 0;
+
+	mapname = script_getstr(st,2);
+	event = script_getstr(st,3);
+
+	if (strcmp(event, "All") == 0)
 		allflag = 1;
 	else
 		check_event(st, event);
 
-	if( (m=map_mapname2mapid(mapname))<0 )
+	if ((m = map_mapname2mapid(mapname)) < 0)
 		return 0;
 
-	if( script_hasdata(st,4) ) {
-		if ( script_getnum(st,4) == 1 ) {
+	if (script_hasdata(st,4)) {
+		if (script_getnum(st,4) == 1) {
 			map_foreachinmap(buildin_killmonster_sub, m, BL_MOB, event ,allflag);
 			return 0;
 		}
@@ -9243,13 +9247,13 @@ BUILDIN_FUNC(killmonster)
 }
 
 static int buildin_killmonsterall_sub_strip(struct block_list *bl,va_list ap)
-{ //Strips the event from the mob if it's killed the old method.
+{ //Strips the event from the mob if it's killed the old method
 	struct mob_data *md;
-	
+
 	md = BL_CAST(BL_MOB, bl);
 	if (md->npc_event[0])
 		md->npc_event[0] = 0;
-		
+
 	status_kill(bl);
 	return 0;
 }
@@ -9264,19 +9268,20 @@ BUILDIN_FUNC(killmonsterall)
 {
 	const char *mapname;
 	int16 m;
-	mapname=script_getstr(st,2);
 
-	if( (m = map_mapname2mapid(mapname))<0 )
+	mapname = script_getstr(st,2);
+
+	if ((m = map_mapname2mapid(mapname)) < 0)
 		return 0;
 
-	if( script_hasdata(st,3) ) {
-		if ( script_getnum(st,3) == 1 ) {
-			map_foreachinmap(buildin_killmonsterall_sub,m,BL_MOB);
+	if (script_hasdata(st,3)) {
+		if (script_getnum(st,3) == 1) {
+			map_foreachinmap(buildin_killmonsterall_sub, m, BL_MOB);
 			return 0;
 		}
 	}
 
-	map_foreachinmap(buildin_killmonsterall_sub_strip,m,BL_MOB);
+	map_foreachinmap(buildin_killmonsterall_sub_strip, m, BL_MOB);
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -11484,7 +11489,7 @@ BUILDIN_FUNC(maprespawnguildid)
 
 	//Catch ALL players (in case some are 'between maps' on execution time)
 	map_foreachpc(buildin_maprespawnguildid_sub_pc,m,g_id,flag);
-	if (flag&4) //Remove script mobs.
+	if (flag&4) //Remove script mobs
 		map_foreachinmap(buildin_maprespawnguildid_sub_mob,m,BL_MOB);
 	return SCRIPT_CMD_SUCCESS;
 }

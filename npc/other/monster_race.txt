@@ -3,9 +3,9 @@
 //===== By: ==================================================
 //= L0ne_W0lf
 //===== Current Version: =====================================
-//= 2.0
+//= 2.2
 //===== Compatible With: =====================================
-//= rAthena SVN r12752+
+//= rAthena SVN
 //===== Description: =========================================
 //= [Official Conversion]
 //= - Hugel Monster Races (Single and Double)
@@ -25,6 +25,7 @@
 //= 1.9 Updated RE/Pre-RE EXP. [Euphy]
 //= 2.0 Added GM management NPC. [Euphy]
 //= 2.1 Fixed prize in dual race and optimization. [Capuche]
+//= 2.2 Fixed Double Monster Race 'never ends' and win ordering. [exneval]
 //============================================================
 
 // Monster Race - Single Monster Race
@@ -1378,7 +1379,7 @@ p_track02,73,22,1	script	Ticket Helper#2	899,{
 			mes "two types of monster races. First, we have the Single Monster Race,";
 			mes "in which those that wagered on the 1st place monster are rewarded.";
 			next;
-			mes "[Eclar Ellbird]";
+			mes "[Ticket Helper]";
 			mes "Then, we have the Dual Monster";
 			mes "Race in which those that wagered on the 1st and 2nd place monsters";
 			mes "are equally rewarded. The house";
@@ -1578,7 +1579,8 @@ p_track02,67,45,5	script	Medal Distributor#medal	845,{
 	mes "Medals may be given to Wayne";
 	mes "in Hugel in exchange for items.";
 	next;
-	if (monster_race_2_1 == $@mon_race_2_1 && monster_race_2_2 == $@mon_race_2_2) {
+	if ((monster_race_2_1 == $@mon_race_2_1 && monster_race_2_2 == $@mon_race_2_2) || //The order they finish
+		(monster_race_2_1 == $@mon_race_2_2 && monster_race_2_2 == $@mon_race_2_1)) { //doesn't matter
 		mes "[Medal Distributor]";
 		mes "Congratulations! It's really";
 		mes "difficult to guess the winners";
@@ -1731,12 +1733,13 @@ OnInit:
 		disablenpc strnpcinfo(0);
 	end;
 }
-p_track02,30,38,0	duplicate(mob1#main)	#poring1	139,0,0
-p_track02,30,36,0	duplicate(mob1#main)	#lunatic1	139,0,0
-p_track02,30,34,0	duplicate(mob1#main)	#savagebebe1	139,0,0
-p_track02,30,32,0	duplicate(mob1#main)	#desertwolf1	139,0,0
-p_track02,30,30,0	duplicate(mob1#main)	#deviruchi1	139,0,0
-p_track02,30,28,0	duplicate(mob1#main)	#baphomet1	139,0,0
+
+p_track02,30,38,0	duplicate(mob1#main)	#poring1	-1,1,0
+p_track02,30,36,0	duplicate(mob1#main)	#lunatic1	-1,1,0
+p_track02,30,34,0	duplicate(mob1#main)	#savagebebe1	-1,1,0
+p_track02,30,32,0	duplicate(mob1#main)	#desertwolf1	-1,1,0
+p_track02,30,30,0	duplicate(mob1#main)	#deviruchi1	-1,1,0
+p_track02,30,28,0	duplicate(mob1#main)	#baphomet1	-1,1,0
 
 p_track02,19,48,0	script	TrapGlobal#race02	-1,{
 OnEnable:

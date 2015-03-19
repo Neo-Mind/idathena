@@ -609,10 +609,10 @@ static int mob_spawn_guardian_sub(int tid, unsigned int tick, int id, intptr_t d
 
 	if (g == NULL) { //Liberate castle, if the guild is not found this is an error! [Skotlex]
 		ShowError("mob_spawn_guardian_sub: Couldn't load guild %d!\n", (int)data);
-		//Not sure this is the best way, but otherwise we'd be invoking this for ALL guardians spawned later on.
+		//Not sure this is the best way, but otherwise we'd be invoking this for ALL guardians spawned later on
 		if (md->mob_id == MOBID_EMPERIUM && md->guardian_data) {
 			md->guardian_data->g = NULL;
-			if (md->guardian_data->castle->guild_id) { //Free castle up.
+			if (md->guardian_data->castle->guild_id) { //Free castle up
 				ShowNotice("Clearing ownership of castle %d (%s)\n", md->guardian_data->castle->castle_id, md->guardian_data->castle->castle_name);
 				guild_castledatasave(md->guardian_data->castle->castle_id, 1, 0);
 			}
@@ -620,7 +620,7 @@ static int mob_spawn_guardian_sub(int tid, unsigned int tick, int id, intptr_t d
 			if (md->guardian_data && md->guardian_data->number >= 0 && md->guardian_data->number < MAX_GUARDIANS &&
 				md->guardian_data->castle->guardian[md->guardian_data->number].visible)
 			guild_castledatasave(md->guardian_data->castle->castle_id, 10 + md->guardian_data->number, 0);
-			unit_free(&md->bl, CLR_OUTSIGHT); //Remove guardian.
+			unit_free(&md->bl, CLR_OUTSIGHT); //Remove guardian
 		}
 		return 0;
 	}

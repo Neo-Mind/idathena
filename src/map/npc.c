@@ -152,10 +152,10 @@ int npc_ontouch_event(struct map_session_data *sd, struct npc_data *nd) {
 	char name[EVENT_NAME_LENGTH];
 
 	if( nd->touching_id )
-		return 0; //Attached a player already. Can't trigger on anyone else.
+		return 0; //Attached a player already. Can't trigger on anyone else
 
 	if( pc_ishiding(sd) )
-		return 1; //Can't trigger 'OnTouch_'. try 'OnTouch' later.
+		return 1; //Can't trigger 'OnTouch_'. try 'OnTouch' later
 
 	snprintf(name, ARRAYLENGTH(name), "%s::%s", nd->exname, script_config.ontouch_name);
 	return npc_event(sd, name, 1);
@@ -817,22 +817,20 @@ int npc_event(struct map_session_data* sd, const char* eventname, int ontouch)
 
 	nullpo_ret(sd);
 
-	if( ev == NULL || (nd = ev->nd) == NULL )
-	{
+	if( ev == NULL || (nd = ev->nd) == NULL ) {
 		if( !ontouch )
 			ShowError("npc_event: event not found [%s]\n", eventname);
 		return ontouch;
 	}
 
-	switch(ontouch)
-	{
-	case 1:
-		nd->touching_id = sd->bl.id;
-		sd->touching_id = nd->bl.id;
-		break;
-	case 2:
-		sd->areanpc_id = nd->bl.id;
-		break;
+	switch( ontouch ) {
+		case 1:
+			nd->touching_id = sd->bl.id;
+			sd->touching_id = nd->bl.id;
+			break;
+		case 2:
+			sd->areanpc_id = nd->bl.id;
+			break;
 	}
 
 	return npc_event_sub(sd,ev,eventname);
@@ -1033,8 +1031,8 @@ int npc_touch_areanpc2(struct mob_data *md)
 				continue; //Keep Searching
 		}
 
-		if( x >= map[m].npc[i]->bl.x-xs && x <= map[m].npc[i]->bl.x+xs && y >= map[m].npc[i]->bl.y-ys && y <= map[m].npc[i]->bl.y+ys )
-		{ //In the npc touch area
+		//In the npc touch area
+		if( x >= map[m].npc[i]->bl.x-xs && x <= map[m].npc[i]->bl.x+xs && y >= map[m].npc[i]->bl.y-ys && y <= map[m].npc[i]->bl.y+ys ) {
 			switch( map[m].npc[i]->subtype ) {
 				case NPCTYPE_WARP:
 					xs = map_mapindex2mapid(map[m].npc[i]->u.warp.mapindex);
@@ -1052,10 +1050,10 @@ int npc_touch_areanpc2(struct mob_data *md)
 					md->areanpc_id = map[m].npc[i]->bl.id;
 					id = md->bl.id; //Stores Unique ID
 					run_script(ev->nd->u.scr.script, ev->pos, md->bl.id, ev->nd->bl.id);
-					if( map_id2md(id) == NULL ) return 1; //Not Warped, but killed
+					if( map_id2md(id) == NULL )
+						return 1; //Not Warped, but killed
 					break;
 			}
-
 			return 0;
 		}
 	}

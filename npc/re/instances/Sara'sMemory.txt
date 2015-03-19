@@ -14,7 +14,7 @@
 //============================================================ 
 
 dali,130,107,5	script	Leon the Adventurer#Sara	945,{
-	if(ep13_start > 99) { //Check if this is really the quest prerequisite
+	if(ep13_ryu > 99 || ep13_start > 99) { //Check if this is really the quest prerequisite
 		if(BaseLevel > 99) {
 			if(checkquest(15003) == -1) {
 				if(!sarainstance) {
