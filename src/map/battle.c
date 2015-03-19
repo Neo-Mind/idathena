@@ -6245,7 +6245,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		ad.damage = max(ad.damage,1);
 
 		if(!(nk&NK_NO_ELEFIX)
-#ifdef RENEWAL //Keep Ghostring reduction against neutral element
+#ifdef RENEWAL //Keep neutral reduction from ghost element armor
 			|| skill_id == NPC_EARTHQUAKE
 #endif
 			)
@@ -7593,11 +7593,11 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 	if( s_bl->type == BL_PC ) {
 		switch( t_bl->type ) {
 			case BL_MOB: //Source => PC, Target => MOB
-				if( pc_has_permission((TBL_PC*)s_bl, PC_PERM_DISABLE_PVM) )
+				if( pc_has_permission((TBL_PC *)s_bl, PC_PERM_DISABLE_PVM) )
 					return 0;
 				break;
 			case BL_PC:
-				if( pc_has_permission((TBL_PC*)s_bl, PC_PERM_DISABLE_PVP) )
+				if( pc_has_permission((TBL_PC *)s_bl, PC_PERM_DISABLE_PVP) )
 					return 0;
 				break;
 			default: //Anything else goes
@@ -7609,7 +7609,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 		case BL_PC: {
 				struct status_change *sc = status_get_sc(src);
 
-				if( (((TBL_PC*)target)->invincible_timer != INVALID_TIMER || pc_isinvisible((TBL_PC*)target)) && 
+				if( (((TBL_PC *)target)->invincible_timer != INVALID_TIMER || pc_isinvisible((TBL_PC *)target)) && 
 					!(flag&BCT_NOENEMY) )
 					return -1; //Cannot be targeted yet
 				if( sc && sc->count && sc->data[SC_VOICEOFSIREN] && sc->data[SC_VOICEOFSIREN]->val2 == target->id )
@@ -7617,7 +7617,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			}
 			break;
 		case BL_MOB: {
-				struct mob_data *md = ((TBL_MOB*)target);
+				struct mob_data *md = ((TBL_MOB *)target);
 
 				if( ((md->special_state.ai == AI_SPHERE || //Marine Spheres
 					(md->special_state.ai == AI_FLORA && battle_config.summon_flora&1)) && s_bl->type == BL_PC && src->type != BL_MOB) || //Floras
@@ -7706,7 +7706,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 				sc = status_get_sc(t_bl);
 				if( (sd->state.monster_ignore || (sc->data[SC_KINGS_GRACE] && s_bl->type != BL_PC)) && flag&BCT_ENEMY )
 					return 0; //Global immunity only to attacks
-				if( sd->status.karma && s_bl->type == BL_PC && ((TBL_PC*)s_bl)->status.karma )
+				if( sd->status.karma && s_bl->type == BL_PC && ((TBL_PC *)s_bl)->status.karma )
 					state |= BCT_ENEMY; //Characters with bad karma may fight amongst them
 				if( sd->state.killable ) {
 					state |= BCT_ENEMY; //Everything can kill it
@@ -7728,7 +7728,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 		case BL_PET:
 			if( t_bl->type != BL_MOB && flag&BCT_ENEMY )
 				return 0; //Pet may not attack non-mobs
-			if( t_bl->type == BL_MOB && ((TBL_MOB*)t_bl)->guardian_data && flag&BCT_ENEMY )
+			if( t_bl->type == BL_MOB && ((TBL_MOB *)t_bl)->guardian_data && flag&BCT_ENEMY )
 				return 0; //Pet may not attack Guardians/Emperium
 			break;
 		case BL_SKILL: {
@@ -7753,7 +7753,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			}
 			break;
 		case BL_MER:
-			if( t_bl->type == BL_MOB && ((TBL_MOB*)t_bl)->mob_id == MOBID_EMPERIUM && flag&BCT_ENEMY )
+			if( t_bl->type == BL_MOB && ((TBL_MOB *)t_bl)->mob_id == MOBID_EMPERIUM && flag&BCT_ENEMY )
 				return 0; //Mercenary may not attack Emperium
 			break;
 	}
@@ -7768,13 +7768,13 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 						strip_enemy = 0;
 					} else if( sd->duel_group && !((!battle_config.duel_allow_pvp && map[m].flag.pvp) ||
 						(!battle_config.duel_allow_gvg && map_flag_gvg2(m))) ) {
-						if( t_bl->type == BL_PC && (sd->duel_group == ((TBL_PC*)t_bl)->duel_group) )
-							return (BCT_ENEMY&flag) ? 1 : -1; //Duel targets can ONLY be your enemy, nothing else
-						else
-							return 0; //You can't target anything out of your duel
+						if( t_bl->type == BL_PC && (sd->duel_group == ((TBL_PC *)t_bl)->duel_group) )
+							return (flag&BCT_ENEMY) ? 1 : -1; //Duel targets can ONLY be your enemy, nothing else
+						else if( src->type != BL_SKILL || (flag&BCT_ENEMY) )
+							return 0;
 					}
 				}
-				if( map_flag_gvg2(m) && !sd->status.guild_id && t_bl->type == BL_MOB && ((TBL_MOB*)t_bl)->mob_id == MOBID_EMPERIUM )
+				if( map_flag_gvg2(m) && !sd->status.guild_id && t_bl->type == BL_MOB && ((TBL_MOB *)t_bl)->mob_id == MOBID_EMPERIUM )
 					return 0; //If you don't belong to a guild, can't target emperium
 				if( t_bl->type != BL_PC )
 					state |= BCT_ENEMY; //Natural enemy
@@ -7788,13 +7788,13 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 					return 0; //Disable guardians/emperium owned by Guilds on non-woe times
 
 				if( !md->special_state.ai ) { //Normal mobs
-					if( (target->type == BL_MOB && t_bl->type == BL_PC && (((TBL_MOB*)target)->special_state.ai != AI_ZANZOU && ((TBL_MOB*)target)->special_state.ai != AI_ATTACK)) ||
-						(t_bl->type == BL_MOB && !((TBL_MOB*)t_bl)->special_state.ai) )
+					if( (target->type == BL_MOB && t_bl->type == BL_PC && (((TBL_MOB *)target)->special_state.ai != AI_ZANZOU && ((TBL_MOB *)target)->special_state.ai != AI_ATTACK)) ||
+						(t_bl->type == BL_MOB && !((TBL_MOB *)t_bl)->special_state.ai) )
 						state |= BCT_PARTY; //Normal mobs with no ai are friends
 					else
 						state |= BCT_ENEMY; //However, all else are enemies
 				} else {
-					if( t_bl->type == BL_MOB && !((TBL_MOB*)t_bl)->special_state.ai )
+					if( t_bl->type == BL_MOB && !((TBL_MOB *)t_bl)->special_state.ai )
 						state |= BCT_ENEMY; //Natural enemy for AI mobs are normal mobs
 				}
 			}
@@ -7858,7 +7858,7 @@ int battle_check_target(struct block_list *src, struct block_list *target, int f
 			state &= ~BCT_ENEMY;
 
 		if( state&BCT_ENEMY && battle_config.pk_mode && !map_flag_gvg2(m) && s_bl->type == BL_PC && t_bl->type == BL_PC ) {
-			TBL_PC *sd = (TBL_PC*)s_bl, *tsd = (TBL_PC*)t_bl;
+			TBL_PC *sd = (TBL_PC *)s_bl, *tsd = (TBL_PC *)t_bl;
 
 			//Prevent novice engagement on pk_mode (feature by Valaris)
 			if( (sd->class_&MAPID_UPPERMASK) == MAPID_NOVICE ||

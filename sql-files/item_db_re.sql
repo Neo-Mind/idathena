@@ -8809,7 +8809,7 @@ REPLACE INTO `item_db_re` VALUES (17228,'Infinite_Berserk_Potion_Box','Infinite 
 REPLACE INTO `item_db_re` VALUES (17229,'Infinite_Flywing_Box','Infinite Flywing Box',18,10,NULL,10,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'rentitem 12887,604800;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (17230,'Valerian_Egg','Valerian Egg',18,10,NULL,10,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,'1',NULL,NULL,'/* TODO: Confirm the rates */ getitem callfunc("F_Rand",12259,2793,4145,12246),1;',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (17231,'Refinement_Ore_Box','Refinement Ore Box',2,10,NULL,10,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'getitem 7619,1; getitem 7620,1;',NULL,NULL);
-REPLACE INTO `item_db_re` VALUES (17232,'Refinement_box(7)','Refinement box(7)',2,10,NULL,10,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'/*Refine cerficates box*/',NULL,NULL);
+REPLACE INTO `item_db_re` VALUES (17232,'Refinement_Box(7)','Refinement Box(7)',2,10,NULL,10,NULL,NULL,NULL,0,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'/* Refine Cerficates Box */',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (17233,'Scroll_Of_Death','Scroll Of Death',2,20,NULL,10,NULL,NULL,NULL,NULL,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'getgroupitem(IG_Scroll_Of_Death);',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (17234,'Scroll_Of_Life','Scroll Of Life',2,20,NULL,10,NULL,NULL,NULL,NULL,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'getgroupitem(IG_Scroll_Of_Life);',NULL,NULL);
 REPLACE INTO `item_db_re` VALUES (17235,'Scroll_Of_Magic','Scroll Of Magic',2,20,NULL,10,NULL,NULL,NULL,NULL,0xFFFFFFFF,63,2,NULL,NULL,NULL,NULL,NULL,'getgroupitem(IG_Scroll_Of_Magic);',NULL,NULL);

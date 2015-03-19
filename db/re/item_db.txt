@@ -8778,7 +8778,7 @@
 17229,Infinite_Flywing_Box,Infinite Flywing Box,18,10,,10,,,,0,0xFFFFFFFF,63,2,,,,,,{ rentitem 12887,604800; },{},{}
 17230,Valerian_Egg,Valerian Egg,18,10,,10,,,,0,0xFFFFFFFF,63,2,,,1,,,{ /* TODO: Confirm the rates */ getitem callfunc("F_Rand",12259,2793,4145,12246),1; },{},{}
 17231,Refinement_Ore_Box,Refinement Ore Box,2,10,,10,,,,0,0xFFFFFFFF,63,2,,,,,,{ getitem 7619,1; getitem 7620,1; },{},{}
-17232,Refinement_box(7),Refinement box(7),2,10,,10,,,,0,0xFFFFFFFF,63,2,,,,,,{ /*Refine cerficates box*/ },{},{}
+17232,Refinement_Box(7),Refinement Box(7),2,10,,10,,,,0,0xFFFFFFFF,63,2,,,,,,{ /* Refine Cerficates Box */ },{},{}
 17233,Scroll_Of_Death,Scroll Of Death,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getgroupitem(IG_Scroll_Of_Death); },{},{}
 17234,Scroll_Of_Life,Scroll Of Life,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getgroupitem(IG_Scroll_Of_Life); },{},{}
 17235,Scroll_Of_Magic,Scroll Of Magic,2,20,,10,,,,,0xFFFFFFFF,63,2,,,,,,{ getgroupitem(IG_Scroll_Of_Magic); },{},{}
