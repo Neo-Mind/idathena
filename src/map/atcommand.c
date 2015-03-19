@@ -2068,7 +2068,7 @@ static int atkillmonster_sub(struct block_list *bl, va_list ap)
 	flag = va_arg(ap, int);
 	src = va_arg(ap, struct block_list *);
 
-	if (mob_is_gvg(md) || md->guardian_data)
+	if (md->guardian_data)
 		return 0; //Do not touch WoE mobs!
 
 	if (flag)

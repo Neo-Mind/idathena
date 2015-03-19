@@ -2095,6 +2095,9 @@
 15045,475,100	// Armor_Of_Valor
 18578,475,100	// Helm_Of_Valor
 
+15033,475,100	// Tutorial_Mattle
+15034,475,100	// Tutorial_Mattle_
+
 // kRO 2012-07-16
 7630,475,100	// Clean_Beach_Brush
 7631,475,100	// Trash_Debris

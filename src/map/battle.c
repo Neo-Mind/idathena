@@ -954,7 +954,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 
 		if( (sce = sc->data[SC_DODGE]) && (!sc->opt1 || sc->opt1 == OPT1_BURNING) &&
-			(flag&BF_LONG || sc->data[SC_SPURT]) && rnd()%100 < 20 ) {
+			((flag&BF_LONG) || sc->data[SC_SPURT]) && rnd()%100 < 20 ) {
 			if( sd && pc_issit(sd) )
 				pc_setstand(sd); //Stand it to dodge
 			clif_skill_nodamage(bl,bl,TK_DODGE,sce->val1,1);
@@ -969,8 +969,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( sc->data[SC_TATAMIGAESHI] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG )
 			return 0;
 
-		if( sc->data[SC_NEUTRALBARRIER] && (skill_id == NPC_EARTHQUAKE ||
-			((flag&(BF_LONG|BF_MAGIC)) == BF_LONG && skill_id != KO_MUCHANAGE)) ) {
+		if( sc->data[SC_NEUTRALBARRIER] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG &&
+			skill_id != NJ_ZENYNAGE && skill_id != KO_MUCHANAGE ) {
 			d->dmg_lv = ATK_MISS;
 			return 0;
 		}
@@ -1090,13 +1090,19 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 				struct status_change *d_sc = status_get_sc(d_bl);
 
 				if( d_sc && d_sc->data[SC_DEFENDER] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG &&
-					skill_id != KO_MUCHANAGE )
+#ifndef RENEWAL
+					skill_id != ASC_BREAKER && skill_id != CR_ACIDDEMONSTRATION &&
+#endif
+					skill_id != NJ_ZENYNAGE && skill_id != KO_MUCHANAGE )
 					damage -= damage * d_sc->data[SC_DEFENDER]->val2 / 100;
 			}
 		}
 
 		if( sc->data[SC_DEFENDER] && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG &&
-			skill_id != KO_MUCHANAGE )
+#ifndef RENEWAL
+			skill_id != ASC_BREAKER && skill_id != CR_ACIDDEMONSTRATION &&
+#endif
+			skill_id != NJ_ZENYNAGE && skill_id != KO_MUCHANAGE )
 			damage -= damage * sc->data[SC_DEFENDER]->val2 / 100;
 
 		if( sc->data[SC_ADJUSTMENT] && (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) )
@@ -1166,7 +1172,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		if( sc->data[SC_PAIN_KILLER] )
 			damage -= damage * sc->data[SC_PAIN_KILLER]->val3 / 100;
 
-		if( sc->data[SC_DARKCROW] && (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT )
+		if( sc->data[SC_DARKCROW] && (flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON) )
 			damage += damage * sc->data[SC_DARKCROW]->val2 / 100;
 
 		if( (sce = sc->data[SC_MAGMA_FLOW]) && (rnd()%100 <= sce->val2) )
@@ -2013,10 +2019,8 @@ bool target_has_infinite_defense(struct block_list *target, uint16 skill_id, int
 		if(su && su->group && su->group->skill_id == WM_REVERBERATION)
 			return true;
 	}
-
 	if(tstatus->mode&MD_IGNOREMELEE && (flag&(BF_SHORT|BF_WEAPON)) == (BF_SHORT|BF_WEAPON))
 		return true;
-
 	if(tstatus->mode&MD_IGNORERANGED && (flag&(BF_LONG|BF_MAGIC)) == BF_LONG)
 		return true;
 	return (tstatus->mode&MD_PLANT && skill_id != RA_CLUSTERBOMB
@@ -2285,8 +2289,8 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 
 	hitrate += sstatus->hit - flee;
 
-	//Fogwall's hit penalty is only for normal ranged attacks.
-	if(!skill_id && (wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG && tsc && tsc->data[SC_FOGWALL])
+	//Fogwall's hit penalty is only for normal ranged attacks
+	if(!skill_id && (wd.flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) && tsc && tsc->data[SC_FOGWALL])
 		hitrate -= 50;
 
 	if(sd && is_skill_using_arrow(src,skill_id))
@@ -2320,6 +2324,7 @@ static bool is_attack_hitting(struct Damage wd, struct block_list *src, struct b
 			case NPC_UNDEADATTACK:
 			case NPC_TELEKINESISATTACK:
 			case NPC_BLEEDING:
+			case NPC_EARTHQUAKE:
 			case NPC_FIREBREATH:
 			case NPC_ICEBREATH:
 			case NPC_THUNDERBREATH:
@@ -2566,8 +2571,7 @@ static struct Damage battle_calc_element_damage(struct Damage wd, struct block_l
 	int right_element = battle_get_weapon_element(wd, src, target, skill_id, skill_lv, EQI_HAND_R, true);
 	int nk = battle_skill_get_damage_properties(skill_id, wd.miscflag);
 
-	//Elemental attribute fix
-	if(!(nk&NK_NO_ELEFIX)) {
+	if(!(nk&NK_NO_ELEFIX)) { //Elemental attribute fix
 		//Non-pc physical melee attacks (mob, pet, homun) are "non elemental", they deal 100% to all target elements
 		//However the "non elemental" attacks still get reduced by "Neutral resistance"
 		//Also non-pc units have only a defending element, but can inflict elemental attacks using skills [exneval]
@@ -2594,7 +2598,10 @@ static struct Damage battle_calc_element_damage(struct Damage wd, struct block_l
 					wd.damage = battle_attr_fix(src, target, wd.damage, (sd && sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 					break;
 				default:
-					wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
+#ifndef RENEWAL //This skill will do a attribute fix later
+					if(skill_id != NPC_EARTHQUAKE)
+#endif
+						wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
 					break;
 			}
 		}
@@ -3250,6 +3257,9 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 		case NPC_HELLJUDGEMENT:
 		case NPC_PULSESTRIKE:
 			skillratio += 100 * (skill_lv - 1);
+			break;
+		case NPC_EARTHQUAKE:
+			skillratio += 100 + 100 * skill_lv + 100 * skill_lv / 2;
 			break;
 		case RG_BACKSTAP:
 			if(sd && sd->status.weapon == W_BOW && battle_config.backstab_bow_penalty)
@@ -4304,7 +4314,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 				ATK_ADDRATE(wd.equipAtk, wd.equipAtk2, -sc->data[SC_EQC]->val3);
 #endif
 			}
-			if(sc->data[SC_UNLIMIT] && (wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG) {
+			if(sc->data[SC_UNLIMIT] && (wd.flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON)) {
 				switch(skill_id) {
 					case RA_WUGDASH:
 					case RA_WUGSTRIKE:
@@ -4322,7 +4332,7 @@ struct Damage battle_attack_sc_bonus(struct Damage wd, struct block_list *src, s
 				ATK_ADD(wd.equipAtk, wd.equipAtk2, sc->data[SC_FLASHCOMBO]->val2);
 #endif
 			}
-			if((wd.flag&(BF_LONG|BF_MAGIC)) == BF_LONG) {
+			if((wd.flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON)) {
 				if(sc->data[SC_MTF_RANGEATK]) {
 					ATK_ADDRATE(wd.damage, wd.damage2, 25);
 					RE_ALLATK_ADDRATE(wd, 25); //Temporary it should be 'bonus.long_attack_atk_rate'
@@ -5346,6 +5356,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			case CR_ACIDDEMONSTRATION:
 			case GN_FIRE_EXPANSION_ACID:
 #endif
+			case NPC_EARTHQUAKE:
 			case SO_VARETYR_SPEAR:
 				break; //These skills will do a card fix later
 			default:
@@ -5360,7 +5371,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 	//Renewal elemental attribute fix [helvetica]
 	//Skills gain benefits from the weapon element
 	//But final damage is considered to "the forced" and resistances are applied again
-	if(!(nk&NK_NO_ELEFIX)) {
+	if(sd && !(nk&NK_NO_ELEFIX)) {
 		if(wd.damage > 0) {
 			switch(skill_id) {
 				//Forced to neutral element
@@ -5379,7 +5390,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 				case NC_ARMSCANNON: {
 						struct status_data *sstatus = status_get_status_data(src);
 
-						if(sd && sd->bonus.arrow_ele && sd->bonus.arrow_ele == sstatus->rhw.ele)
+						if(sd->bonus.arrow_ele && sd->bonus.arrow_ele == sstatus->rhw.ele)
 							wd.damage = battle_attr_fix(src, target, wd.damage, sd->bonus.arrow_ele, tstatus->def_ele, tstatus->ele_lv);
 						wd.damage = battle_attr_fix(src, target, wd.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 					}
@@ -5387,7 +5398,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 				//Forced to ammo's element
 				case GN_CARTCANNON:
 				case KO_HAPPOKUNAI:
-					wd.damage = battle_attr_fix(src, target, wd.damage, (sd && sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
+					wd.damage = battle_attr_fix(src, target, wd.damage, (sd->bonus.arrow_ele ? sd->bonus.arrow_ele : ELE_NEUTRAL), tstatus->def_ele, tstatus->ele_lv);
 					break;
 				//Forced to its element
 				case LK_SPIRALPIERCE:
@@ -5430,6 +5441,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		case CR_ACIDDEMONSTRATION:
 		case GN_FIRE_EXPANSION_ACID:
 #endif
+		case NPC_EARTHQUAKE:
 		case RA_CLUSTERBOMB:
 		case RA_FIRINGTRAP:
  		case RA_ICEBOUNDTRAP:
@@ -5623,6 +5635,12 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			case PF_SOULBURN:
 				ad.damage = tstatus->sp * 2;
 				break;
+			case NPC_EARTHQUAKE: {
+					struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, mflag);
+
+					ad.damage = wd.damage;
+				}
+				break;
 			case AB_RENOVATIO:
 				ad.damage = status_get_lv(src) * 10 + sstatus->int_;
 				break;
@@ -5667,7 +5685,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					case MG_FIREBOLT:
 					case MG_COLDBOLT:
 					case MG_LIGHTNINGBOLT:
-						if(sc && sc->data[SC_SPELLFIST] && (mflag&(BF_SHORT|BF_MAGIC)) == BF_SHORT) {
+						if(sc && sc->data[SC_SPELLFIST] && mflag&BF_SHORT) {
 							//val1 = used spellfist level, val4 = used bolt level [Rytech]
 							skillratio += -100 + (sc->data[SC_SPELLFIST]->val1 * 50) + (sc->data[SC_SPELLFIST]->val4 * 100);
 							ad.div_ = 1; //ad mods, to make it work similar to regular hits [Xazax]
@@ -5742,9 +5760,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					case NJ_KAMAITACHI:
 					case NPC_ENERGYDRAIN:
 						skillratio += 100 * skill_lv;
-						break;
-					case NPC_EARTHQUAKE:
-						skillratio += 100 + 100 * skill_lv + 100 * skill_lv / 2;
 						break;
 #ifdef RENEWAL
 					case WZ_HEAVENDRIVE:
@@ -6202,10 +6217,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 #endif
 		}
 
-		if(ad.damage < 1)
-			ad.damage = 1;
-		else if(sc) { //Only applies when hit
-			//@TODO: There is another factor that contribute with the damage and need to be formulated [malufett]
+		if(sc && ad.damage > 0) { //@TODO: There is another factor that contribute with the damage and need to be formulated [malufett]
 			switch(skill_id) {
 				case MG_LIGHTNINGBOLT:
 				case MG_THUNDERSTORM:
@@ -6230,7 +6242,14 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			}
 		}
 
-		if(!(nk&NK_NO_ELEFIX) && ad.damage > 0) {
+		ad.damage = max(ad.damage,1);
+
+		if(!(nk&NK_NO_ELEFIX)
+#ifdef RENEWAL //Keep Ghostring reduction against neutral element
+			|| skill_id == NPC_EARTHQUAKE
+#endif
+			)
+		{
 			switch(skill_id) {
 				case CR_ACIDDEMONSTRATION:
 				case GN_FIRE_EXPANSION_ACID:
@@ -6242,8 +6261,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			}
 		}
 
-		//Apply the physical part of the skill's damage [Skotlex]
-		switch(skill_id) {
+		switch(skill_id) { //Apply the physical part of the skill's damage [Skotlex]
 			case CR_GRANDCROSS:
 			case NPC_GRANDDARKNESS:
 				{
@@ -6510,7 +6528,6 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			{
 				//Official Renewal formula [helvetica]
 				//Damage = ((atk + matk) * (3 + (.5 * skill level))) - (edef + sdef + emdef + smdef)
-				//Atk part takes weapon element, matk part is non-elemental
 				short totaldef, totalmdef;
 				struct Damage atk, matk;
 
@@ -6697,6 +6714,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
  		case RA_ICEBOUNDTRAP:
 			if(md.damage == 1)
 				break; //Keep damage to 1 against "plant"-type mobs
+		//Fall through
 		case RA_CLUSTERBOMB:
 			{
 				struct Damage wd = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
