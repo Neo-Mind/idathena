@@ -701,7 +701,8 @@ OnEnable:
 OnTouch:
 	set .@map$,instance_mapname("1@sara");
 	warp .@map$,89,175;
-	viewpoint 1,39,142,1,0x00FF00;
+	if(getcharid(0) == getpartyleader(getcharid(1),2))
+		viewpoint 1,39,142,1,0x00FF00;
 	end;
 }
 
