@@ -50,23 +50,27 @@
 	#define DEFTYPE_MAX CHAR_MAX
 #endif
 
-/* pointer size fix which fixes several gcc warnings */
+/* Pointer size fix which fixes several gcc warnings */
 #ifdef __64BIT__
 	#define __64BPRTSIZE(y) (intptr)y
 #else
 	#define __64BPRTSIZE(y) y
 #endif
 
-/* ATCMD_FUNC(mobinfo) HIT and FLEE calculations */
+/* ATCMD_FUNC(mobinfo) */
 #ifdef RENEWAL
-	#define MOB_FLEE(mob) ( mob->lv + mob->status.agi + 100 )
-	#define MOB_HIT(mob)  ( mob->lv + mob->status.dex + 150 )
+	#define MOB_FLEE(mob) ( (mob)->lv + (mob)->status.agi + 100 )
+	#define MOB_HIT(mob)  ( (mob)->lv + (mob)->status.dex + 150 )
+	#define MOB_ATK1(mob) ( (mob)->lv + (mob)->status.str + (mob)->status.rhw.atk * 8 / 10 )
+	#define MOB_ATK2(mob) ( (mob)->lv + (mob)->status.str + (mob)->status.rhw.atk * 12 / 10 )
+	#define MOB_MATK1(mob)( (mob)->lv + (mob)->status.int_ + (mob)->status.rhw.atk2 * 7 / 10 )
+	#define MOB_MATK2(mob)( (mob)->lv + (mob)->status.int_ + (mob)->status.rhw.atk2 * 13 / 10 )
 #else
-	#define MOB_FLEE(mob) ( mob->lv + mob->status.agi )
-	#define MOB_HIT(mob)  ( mob->lv + mob->status.dex )
+	#define MOB_FLEE(mob) ( (mob)->lv + (mob)->status.agi )
+	#define MOB_HIT(mob)  ( (mob)->lv + (mob)->status.dex )
 #endif
 
-/* Renewal's dmg level modifier, used as a macro for a easy way to turn off. */
+/* Renewal's dmg level modifier, used as a macro for a easy way to turn off */
 #ifdef RENEWAL_LVDMG
 	#define RE_LVL_DMOD(val) \
 		if( status_get_lv(src) > 100 && val > 0 ) \

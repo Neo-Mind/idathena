@@ -6912,16 +6912,21 @@ ACMD_FUNC(mobinfo)
 			sprintf(atcmd_output, msg_txt(1241), mob->name, mob->jname, mob->sprite, mob->vd.class_); // Monster: '%s'/'%s'/'%s' (%d)
 		clif_displaymessage(fd, atcmd_output);
 
-		sprintf(atcmd_output, msg_txt(1242), mob->lv, mob->status.max_hp, base_exp, job_exp, MOB_HIT(mob), MOB_FLEE(mob)); //  Lv:%d  HP:%d  Base EXP:%u  Job EXP:%u  HIT:%d  FLEE:%d
+		sprintf(atcmd_output, msg_txt(1242), mob->lv, mob->status.max_hp, base_exp, job_exp, MOB_HIT(mob), MOB_FLEE(mob)); // Lv:%d  HP:%d  Base EXP:%u  Job EXP:%u  HIT:%d  FLEE:%d
 		clif_displaymessage(fd, atcmd_output);
 
-		sprintf(atcmd_output, msg_txt(1243), //  DEF:%d  MDEF:%d  STR:%d  AGI:%d  VIT:%d  INT:%d  DEX:%d  LUK:%d
+		sprintf(atcmd_output, msg_txt(1243), // DEF:%d  MDEF:%d  STR:%d  AGI:%d  VIT:%d  INT:%d  DEX:%d  LUK:%d
 			mob->status.def, mob->status.mdef,mob->status.str, mob->status.agi,
 			mob->status.vit, mob->status.int_, mob->status.dex, mob->status.luk);
 		clif_displaymessage(fd, atcmd_output);
 
-		sprintf(atcmd_output, msg_txt(1244), //  ATK: %d~%d Range: %d~%d~%d Size: %s Race: %s Class: %s Element: %s (Lv:%d)
+#ifdef RENEWAL
+		sprintf(atcmd_output, msg_txt(534), // ATK:%d~%d MATK:%d~%d Range:%d~%d~%d Size:%s Race:%s Class:%s Element:%s (Lv:%d)
+			MOB_ATK1(mob), MOB_ATK2(mob), MOB_MATK1(mob), MOB_MATK2(mob), mob->status.rhw.range,
+#else
+		sprintf(atcmd_output, msg_txt(1244), // ATK:%d~%d Range:%d~%d~%d Size:%s Race:%s Class:%s Element:%s (Lv:%d)
 			mob->status.rhw.atk, mob->status.rhw.atk2, mob->status.rhw.range,
+#endif
 			mob->range2 , mob->range3, msize[mob->status.size],
 			mrace[mob->status.race], mclass[mob->status.class_], melement[mob->status.def_ele], mob->status.ele_lv);
 		clif_displaymessage(fd, atcmd_output);

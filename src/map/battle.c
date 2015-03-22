@@ -1622,50 +1622,58 @@ int64 battle_addmastery(struct map_session_data *sd, struct block_list *target, 
 }
 
 #ifdef RENEWAL
-static int battle_calc_sizefix(int64 damage, struct map_session_data *sd, short t_size, unsigned char weapon_type, short flag)
+static int battle_calc_sizefix(int64 damage, struct map_session_data *sd, short t_size, unsigned char weapon_type, bool flag)
 {
-	if (sd) {
-		//SizeFix only for players
-		if (!(sd->special_state.no_sizefix) && !flag)
-			damage = damage * (weapon_type == EQI_HAND_L ?
-			sd->left_weapon.atkmods[t_size] :
-			sd->right_weapon.atkmods[t_size]) / 100;
-	}
+	if (sd && !sd->special_state.no_sizefix && !flag) //Size fix only for player
+		damage = damage * (weapon_type == EQI_HAND_L ? sd->left_weapon.atkmods[t_size] : sd->right_weapon.atkmods[t_size]) / 100;
 	return (int)cap_value(damage,INT_MIN,INT_MAX);
 }
 
 static int battle_calc_status_attack(struct status_data *status, short hand)
 {
-	//Left-hand penalty on sATK is always 50% [Baalberith]
 	if (hand == EQI_HAND_L)
-		return status->batk;
+		return status->batk; //Left-hand penalty on sATK is always 50% [Baalberith]
 	else
 		return 2 * status->batk;
 }
 
-static int battle_calc_base_weapon_attack(struct block_list *src, struct status_data *tstatus, struct weapon_atk *wa, struct map_session_data *sd, uint16 skill_id)
+static int battle_calc_base_weapon_attack(struct block_list *src, struct status_data *tstatus, struct weapon_atk *watk, struct map_session_data *sd, uint16 skill_id)
 {
 	struct status_data *status = status_get_status_data(src);
-	uint8 type = (wa == &status->lhw) ? EQI_HAND_L : EQI_HAND_R;
+	struct status_change *sc = status_get_sc(src);
+	uint8 type = (watk == &status->lhw) ? EQI_HAND_L : EQI_HAND_R;
 	uint16 atkmin = (type == EQI_HAND_L) ? status->watk2 : status->watk;
 	uint16 atkmax = atkmin;
-	int64 damage = atkmin;
-	uint16 weapon_perfection = 0;
-	struct status_change *sc = status_get_sc(src);
+	int64 damage;
+	bool weapon_perfection = false;
+	short index, refine;
 
-	if (sd->equip_index[type] >= 0 && sd->inventory_data[sd->equip_index[type]]) {
-		int variance = (int)(5 * (float)(wa->atk * sd->inventory_data[sd->equip_index[type]]->wlv) / 100);
+	if ((index = sd->equip_index[type]) >= 0 && sd->inventory_data[index]) {
+		float variance = 5.0f * watk->atk * sd->inventory_data[index]->wlv / 100.0f;
 
-		atkmin = max(0, atkmin - variance);
-		atkmax = min(UINT16_MAX, atkmax + variance);
-		if ((sc && sc->data[SC_MAXIMIZEPOWER]) || skill_id == SR_TIGERCANNON)
-			damage = atkmax;
-		else
-			damage = rnd_value(atkmin, atkmax);
+		atkmin = max(0, atkmin - (int)variance);
+		atkmax = min(UINT16_MAX, atkmax + (int)variance);
 	}
 
+	if (!(sc && sc->data[SC_MAXIMIZEPOWER]) || (skill_id && skill_id != SR_TIGERCANNON)) {
+		if (atkmax > atkmin)
+			atkmax = atkmin + rnd()%(atkmax - atkmin + 1);
+		else
+			atkmax = atkmin;
+	}
+
+	if ((index = sd->equip_index[EQI_HAND_R]) >= 0 && sd->inventory_data[index] &&
+		(refine = sd->status.inventory[index].refine) < 16 && refine) {
+		int r = refine_info[sd->inventory_data[index]->wlv].randombonus_max[refine + (4 - sd->inventory_data[index]->wlv)] / 100;
+
+		if (r)
+			atkmax += (rnd()%100)%r + 1;
+	}
+
+	damage = atkmax;
+
 	if (sc && sc->data[SC_WEAPONPERFECTION])
-		weapon_perfection = 1;
+		weapon_perfection = true;
 
 	damage = battle_calc_sizefix(damage, sd, tstatus->size, type, weapon_perfection);
 
@@ -1691,7 +1699,7 @@ static int battle_calc_base_weapon_attack(struct block_list *src, struct status_
  *	Initial refactoring by Baalberith
  *	Refined and optimized by helvetica
  */
-static int64 battle_calc_base_damage(struct status_data *status, struct weapon_atk *wa, struct status_change *sc, unsigned short t_size, struct map_session_data *sd, uint16 skill_id, int flag)
+static int64 battle_calc_base_damage(struct block_list *src, struct status_data *status, struct weapon_atk *watk, struct status_change *sc, unsigned short t_size, struct map_session_data *sd, uint16 skill_id, int flag)
 {
 	unsigned int atkmin = 0, atkmax = 0;
 	short type = 0;
@@ -1702,14 +1710,20 @@ static int64 battle_calc_base_damage(struct status_data *status, struct weapon_a
 			atkmin = status->matk_min;
 			atkmax = status->matk_max;
 		} else {
-			atkmin = wa->atk;
-			atkmax = wa->atk2;
+			atkmin = watk->atk;
+			atkmax = watk->atk2;
+#ifdef RENEWAL
+			if(src->type == BL_MOB) {
+				atkmin = watk->atk * 80 / 100;
+				atkmax = watk->atk * 120 / 100;
+			}
+#endif
 		}
 		if(atkmin > atkmax)
 			atkmin = atkmax;
 	} else { //PCs
-		atkmax = wa->atk;
-		type = (wa == &status->lhw) ? EQI_HAND_L : EQI_HAND_R;
+		atkmax = watk->atk;
+		type = (watk == &status->lhw) ? EQI_HAND_L : EQI_HAND_R;
 
 		if(!(flag&1) || (flag&2)) { //Normal attacks
 			atkmin = status->dex;
@@ -1742,7 +1756,7 @@ static int64 battle_calc_base_damage(struct status_data *status, struct weapon_a
 		if(flag&2 && sd->bonus.arrow_atk)
 			damage += ((flag&1) ? sd->bonus.arrow_atk : rnd()%sd->bonus.arrow_atk);
 
-		//SizeFix only for players
+		//Size fix only for player
 		if(!(sd->special_state.no_sizefix || (flag&8)))
 			damage = damage * (type == EQI_HAND_L ? sd->left_weapon.atkmods[t_size] : sd->right_weapon.atkmods[t_size]) / 100;
 	}
@@ -2609,11 +2623,11 @@ static struct Damage battle_calc_element_damage(struct Damage wd, struct block_l
 			wd.damage2 = battle_attr_fix(src, target, wd.damage2, left_element, tstatus->def_ele, tstatus->ele_lv);
 		//Descriptions indicate this means adding a percent of a normal attack in another element [Skotlex]
 		if(sc && sc->data[SC_WATK_ELEMENT] && (wd.damage || wd.damage2)) {
-			int64 damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, (is_skill_using_arrow(src, skill_id) ? 2 : 0)) * sc->data[SC_WATK_ELEMENT]->val2 / 100;
+			int64 damage = battle_calc_base_damage(src, sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, (is_skill_using_arrow(src, skill_id) ? 2 : 0)) * sc->data[SC_WATK_ELEMENT]->val2 / 100;
 
 			wd.damage += battle_attr_fix(src, target, damage, sc->data[SC_WATK_ELEMENT]->val1, tstatus->def_ele, tstatus->ele_lv);
 			if(is_attack_left_handed(src, skill_id)) {
-				damage = battle_calc_base_damage(sstatus, &sstatus->lhw, sc, tstatus->size, sd, skill_id, (is_skill_using_arrow(src, skill_id) ? 2 : 0)) * sc->data[SC_WATK_ELEMENT]->val2 / 100;
+				damage = battle_calc_base_damage(src, sstatus, &sstatus->lhw, sc, tstatus->size, sd, skill_id, (is_skill_using_arrow(src, skill_id) ? 2 : 0)) * sc->data[SC_WATK_ELEMENT]->val2 / 100;
 				wd.damage2 += battle_attr_fix(src, target, damage, sc->data[SC_WATK_ELEMENT]->val1, tstatus->def_ele, tstatus->ele_lv);
 			}
 		}
@@ -2818,7 +2832,7 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 					ATK_ADD(wd.equipAtk, wd.equipAtk2, sd->inventory_data[index]->weight * 5 / 100); //50% of weight
 				wd.masteryAtk = wd.masteryAtk2 = 0; //Weapon mastery is ignored for spiral
 			} else //Monsters have no weight and use ATK instead
-				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, 0);
+				wd.damage = battle_calc_base_damage(src, sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, 0);
 			switch(tstatus->size) { //Size-fix. Is this modified by weapon perfection?
 				case SZ_SMALL:
 					RE_ALLATK_RATE(wd, 125); //Small: 125%
@@ -2841,7 +2855,7 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 					wd.damage = sd->inventory_data[index]->weight * 8 / 100; //80% of weight
 				ATK_ADDRATE(wd.damage, wd.damage2, 50 * skill_lv); //Skill modifier applies to weight only
 			} else
-				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, 0);
+				wd.damage = battle_calc_base_damage(src, sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, 0);
 			i = sstatus->str / 10;
 			i *= i;
 			ATK_ADD(wd.damage, wd.damage2, i); //Add STR bonus
@@ -2934,9 +2948,9 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 			else {
 				i = (is_attack_critical(wd, src, target, skill_id, skill_lv, false) ? 1 : 0)|
 					(!skill_id && sc && sc->data[SC_CHANGE] ? 4 : 0);
-				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, i);
+				wd.damage = battle_calc_base_damage(src, sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, i);
 				if(is_attack_left_handed(src, skill_id))
-					wd.damage2 = battle_calc_base_damage(sstatus, &sstatus->lhw, sc, tstatus->size, sd, skill_id, i);
+					wd.damage2 = battle_calc_base_damage(src, sstatus, &sstatus->lhw, sc, tstatus->size, sd, skill_id, i);
 			}
 #else
 			i = (is_attack_critical(wd, src, target, skill_id, skill_lv, false) ? 1 : 0)|
@@ -2958,9 +2972,9 @@ struct Damage battle_calc_skill_base_damage(struct Damage wd, struct block_list 
 						break;
 				}
 			}
-			wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, i);
+			wd.damage = battle_calc_base_damage(src, sstatus, &sstatus->rhw, sc, tstatus->size, sd, skill_id, i);
 			if(is_attack_left_handed(src, skill_id))
-				wd.damage2 = battle_calc_base_damage(sstatus, &sstatus->lhw, sc, tstatus->size, sd, skill_id, i);
+				wd.damage2 = battle_calc_base_damage(src, sstatus, &sstatus->lhw, sc, tstatus->size, sd, skill_id, i);
 #endif
 			if(nk&NK_SPLASHSPLIT) { //Divide ATK among targets
 				if(wd.miscflag > 0) {
@@ -4844,7 +4858,7 @@ struct Damage battle_calc_weapon_final_atk_modifiers(struct Damage wd, struct bl
 
 		if(ratio > 5000)
 			ratio = 5000; //Maximum of 5000% ATK
-		rdamage = battle_calc_base_damage(tstatus,&tstatus->rhw,tsc,sstatus->size,tsd,skill_id,0);
+		rdamage = battle_calc_base_damage(target,tstatus,&tstatus->rhw,tsc,sstatus->size,tsd,skill_id,0);
 		rdamage = rdamage * ratio / 100 + wd.damage * (10 + tsc->data[SC_CRESCENTELBOW]->val1 * 20 / 10) / 10;
 		skill_blown(target,src,skill_get_blewcount(SR_CRESCENTELBOW_AUTOSPELL,tsc->data[SC_CRESCENTELBOW]->val1),unit_getdir(src),0);
 		clif_skill_damage(target,src,gettick(),status_get_amotion(src),0,rdamage,

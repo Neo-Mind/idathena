@@ -50,13 +50,6 @@ enum e_regen {
 	RGN_SSP = 0x08,
 };
 
-// Bonus values and upgrade chances for refining equipment
-static struct {
-	int chance[MAX_REFINE]; /// Success chance
-	int bonus[MAX_REFINE]; /// Cumulative fixed bonus damage
-	int randombonus_max[MAX_REFINE]; /// Cumulative maximum random bonus damage
-} refine_info[REFINE_TYPE_MAX];
-
 static int atkmods[3][MAX_WEAPON_TYPE];	/// ATK weapon modification for size (size_fix.txt)
 
 static struct eri *sc_data_ers; /// For sc_data entries
@@ -2083,10 +2076,14 @@ static unsigned short status_base_atk(const struct block_list *bl, const struct 
 {
 	int flag = 0, str, dex, dstr;
 
+#ifdef RENEWAL
+	if (bl->type&(BL_PET|BL_ELEM))
+#else
 	if (!(bl->type&battle_config.enable_baseatk))
+#endif
 		return 0;
 	if (bl->type == BL_PC) {
-		switch(((TBL_PC*)bl)->status.weapon) {
+		switch(((TBL_PC *)bl)->status.weapon) {
 			case W_BOW:
 			case W_MUSICAL:
 			case W_WHIP:
@@ -2123,9 +2120,9 @@ static unsigned short status_base_atk(const struct block_list *bl, const struct 
 #endif
 	if (bl->type == BL_PC)
 #ifdef RENEWAL
-		str = (int)(dstr + floor((float)dex / 5) + floor((float)status->luk / 3) + floor((float)((TBL_PC*)bl)->status.base_level / 4));
+		str = (int)(dstr + floor((float)dex / 5) + floor((float)status->luk / 3) + floor((float)((TBL_PC *)bl)->status.base_level / 4));
 	else if (bl->type == BL_MOB || bl->type == BL_MER)
-		str = dstr + ((TBL_MOB*)bl)->level;
+		str = dstr + ((TBL_MOB *)bl)->level;
 #else
 		str += (int)((float)(dex + status->luk) / 5);
 #endif
@@ -2133,24 +2130,25 @@ static unsigned short status_base_atk(const struct block_list *bl, const struct 
 }
 
 #ifdef RENEWAL
-unsigned int status_weapon_atk(struct weapon_atk wa, struct status_data *status)
+unsigned int status_weapon_atk(struct weapon_atk *watk, struct status_data *status)
 {
-	int str, bonus;
+	int dstr;
+	float strdex_bonus;
 
 	//Weapon Range 1 ~ 3 is a Melee type ATK
 	//Weapon Range > 3 is a Range type ATK
-	if (wa.range > 3)
-		str = status->dex; //Range ATK count DEX as bonus
+	if (watk->range > 3)
+		dstr = status->dex; //Range ATK count DEX as bonus
 	else
-		str = status->str; //Melee ATK count STR as bonus
+		dstr = status->str; //Melee ATK count STR as bonus
 
-	//wa.atk : Base Weapon ATK
-	//Variance and Size Penalty will be calculated in battle.c
-	//bonus : STR/DEX Bonus
-	//wa.atk2 : Refinement Bonus
-	bonus = (int)((float)(wa.atk * str) / 200); //Base Weapon ATK * STR / 200
+	//watk->atk : Base Weapon ATK
+	//strdex_bonus : Base Weapon ATK * STR or DEX / 200
+	strdex_bonus = watk->atk * dstr / 200.0f;
 	//Weapon ATK = (Base Weapon ATK + Variance + STR/DEX Bonus + Refinement Bonus) * Size Penalty
-	return wa.atk + bonus + wa.atk2;
+	//Variance and Size Penalty will be calculated in battle.c
+	//watk->atk2 : Refinement Bonus	
+	return (int)(watk->atk + strdex_bonus) + watk->atk2;
 }
 
 unsigned short status_base_matk(struct block_list *bl, const struct status_data *status, int level)
@@ -2259,9 +2257,9 @@ void status_get_matk_sub(struct block_list *bl, int flag, unsigned short *matk_m
 
 #ifdef RENEWAL
 	if( sd ) {
-		short index = sd->equip_index[EQI_HAND_R], refine;
+		short index, refine;
 
-		if( index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_WEAPON &&
+		if( (index = sd->equip_index[EQI_HAND_R]) >= 0 && sd->inventory_data[index] &&
 			(refine = sd->status.inventory[index].refine) < 16 && refine ) {
 			int r = refine_info[sd->inventory_data[index]->wlv].randombonus_max[refine + (4 - sd->inventory_data[index]->wlv)] / 100;
 
@@ -2397,16 +2395,14 @@ void status_calc_misc(struct block_list *bl, struct status_data *status, int lev
 		if( bl->type == BL_MER ) {
 			status->matk_min = status->matk_max = status_base_matk_max(status);
 			stat = (int)(status->vit + ((float)level / 10) + ((float)status->vit / 5));
-		} else {
-			//Base level + (every 2 vit = +1 def) + (every 5 agi = +1 def)
+		} else { //Base level + (every 2 vit = +1 def) + (every 5 agi = +1 def)
 			stat = status->def2;
 			stat += (int)(((float)(level + status->vit) / 2) + (bl->type == BL_PC ? ((float)status->agi / 5) : 0));
 		}
 		status->def2 = cap_value(stat, 0, SHRT_MAX);
 		if( bl->type == BL_MER )
 			stat = (int)(((float)level / 10) + ((float)status->int_ / 5));
-		else {
-			//(Every 4 base level = +1 mdef) + (every 1 int = +1 mdef) + (every 5 dex = +1 mdef) + (every 5 vit = +1 mdef)
+		else { //(Every 4 base level = +1 mdef) + (every 1 int = +1 mdef) + (every 5 dex = +1 mdef) + (every 5 vit = +1 mdef)
 			stat = status->mdef2;
 			stat += (int)(bl->type == BL_PC ? (status->int_ + ((float)level / 4) + ((float)(status->dex + status->vit) / 5)) : ((float)(level + status->int_) / 4));
 		}
@@ -2498,7 +2494,7 @@ int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt)
 	//Check if we need custom base-status
 	if (battle_config.mobs_level_up && md->level > md->db->lv)
 		flag |= 1;
-	
+
 	if (md->special_state.size)
 		flag |= 2;
 
@@ -3169,29 +3165,29 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 		if(sd->inventory_data[index]->type == IT_WEAPON) {
 			int r = sd->status.inventory[index].refine, wlv = sd->inventory_data[index]->wlv;
 			struct weapon_data *wd;
-			struct weapon_atk *wa;
+			struct weapon_atk *watk;
 
 			if(wlv >= REFINE_TYPE_MAX)
 				wlv = REFINE_TYPE_MAX - 1;
 			if(i == EQI_HAND_L && sd->status.inventory[index].equip == EQP_HAND_L) {
 				wd = &sd->left_weapon; //Left-hand weapon
-				wa = &status->lhw;
+				watk = &status->lhw;
 			} else {
 				wd = &sd->right_weapon;
-				wa = &status->rhw;
+				watk = &status->rhw;
 			}
-			wa->atk += sd->inventory_data[index]->atk;
+			watk->atk += sd->inventory_data[index]->atk;
 			if(r)
-				wa->atk2 += refine_info[wlv].bonus[r - 1] / 100;
+				watk->atk2 += refine_info[wlv].bonus[r - 1] / 100;
 #ifdef RENEWAL
-			wa->matk += sd->inventory_data[index]->matk;
-			wa->wlv = wlv;
+			watk->matk += sd->inventory_data[index]->matk;
+			watk->wlv = wlv;
 			if(r && sd->weapontype1 != W_BOW) //Renewal magic attack refine bonus
-				wa->matk += refine_info[wlv].bonus[r - 1] / 100;
+				watk->matk += refine_info[wlv].bonus[r - 1] / 100;
 #endif
 			if(r) //Overrefine bonus
 				wd->overrefine = refine_info[wlv].randombonus_max[r - 1] / 100;
-			wa->range += sd->inventory_data[index]->range;
+			watk->range += sd->inventory_data[index]->range;
 			if(sd->inventory_data[index]->script && (pc_has_permission(sd,PC_PERM_USE_ALL_EQUIPMENT) ||
 				!itemdb_isNoEquip(sd->inventory_data[index],sd->bl.m))) {
 				if(wd == &sd->left_weapon) {
@@ -3209,8 +3205,8 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 					wd->star = 40; //3 Star Crumbs now give +40 dmg
 				if(pc_famerank(MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]),MAPID_BLACKSMITH))
 					wd->star += 10;
-				if(!wa->ele) //Do not overwrite element from previous bonuses.
-					wa->ele = (sd->status.inventory[index].card[1]&0x0f);
+				if(!watk->ele) //Do not overwrite element from previous bonuses
+					watk->ele = (sd->status.inventory[index].card[1]&0x0f);
 			}
 		} else if(sd->inventory_data[index]->type == IT_ARMOR) {
 			int r;
@@ -3439,8 +3435,8 @@ int status_calc_pc_(struct map_session_data* sd, enum e_status_calc_opt opt)
 	if(pc_checkskill(sd,BS_HILTBINDING) > 0)
 		status->batk += 4; //This doesn't work in RE
 #else
-	status->watk = status_weapon_atk(status->rhw,status);
-	status->watk2 = status_weapon_atk(status->lhw,status);
+	status->watk = status_weapon_atk(&status->rhw,status);
+	status->watk2 = status_weapon_atk(&status->lhw,status);
 	status->eatk = max(sd->bonus.eatk,0);
 #endif
 

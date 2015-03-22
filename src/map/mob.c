@@ -343,7 +343,7 @@ int mob_get_random_id(int type, int flag, int lv)
 		mob = mob_db(mob_id);
 	} while ((mob == mob_dummy ||
 		mob_is_clone(mob_id) ||
-		(flag&1 && mob->summonper[type] <= rnd() % 1000000) ||
+		(flag&1 && mob->summonper[type] <= rnd()%1000000) ||
 		(flag&2 && lv < mob->lv) ||
 		(flag&4 && mob->status.mode&MD_BOSS) ||
 		(flag&8 && mob->spawn[0].qty < 1)
@@ -514,14 +514,14 @@ int mob_once_spawn(struct map_session_data* sd, int16 m, int16 x, int16 y, const
 				md->guardian_data->number = MAX_GUARDIANS;
 				if (g)
 					md->guardian_data->g = g;
-				else if (gc->guild_id) //Guild not yet available, retry in 5.
+				else if (gc->guild_id) //Guild not yet available, retry in 5
 					add_timer(gettick() + 5000, mob_spawn_guardian_sub, md->bl.id, gc->guild_id);
 			}
 		}
 
 		mob_spawn(md);
 
-		//Behold Aegis's masterful decisions yet again.
+		//Behold Aegis's masterful decisions yet again
 		//"I understand the "Aggressive" part, but the "Can Move" and "Can Attack" is just stupid" - Poki#3
 		if (mob_id < 0 && battle_config.dead_branch_active)
 			sc_start4(NULL, &md->bl, SC_MODECHANGE, 100, 1, 0, MD_AGGRESSIVE|MD_CANATTACK|MD_CANMOVE|MD_ANGRY, 0, 60000);
@@ -2835,7 +2835,7 @@ int mob_warpslave_sub(struct block_list *bl,va_list ap)
 
 	master = va_arg(ap, struct block_list*);
 	range = va_arg(ap, int);
-	
+
 	if (md->master_id != master->id)
 		return 0;
 
@@ -2910,7 +2910,7 @@ int mob_summonslave(struct mob_data *md2, int *value, int amount, uint16 skill_i
 	if (count < 1) return 0;
 	if (amount > 0 && amount < count) { //Do not start on 0, pick some random sub subset [Skotlex]
 		k = rnd()%count;
-		amount += k; //Increase final value by same amount to preserve total number to summon.
+		amount += k; //Increase final value by same amount to preserve total number to summon
 	}
 
 	if (!battle_config.monster_class_change_recover &&
@@ -2918,9 +2918,9 @@ int mob_summonslave(struct mob_data *md2, int *value, int amount, uint16 skill_i
 		hp_rate = get_percentage(md2->status.hp, md2->status.max_hp);
 
 	for (; k < amount; k++) {
-		short x,y;
+		short x, y;
 
-		data.id = value[k%count]; //Summon slaves in round-robin fashion. [Skotlex]
+		data.id = value[k%count]; //Summon slaves in round-robin fashion [Skotlex]
 		if (mobdb_checkid(data.id) == 0)
 			continue;
 
@@ -2934,9 +2934,9 @@ int mob_summonslave(struct mob_data *md2, int *value, int amount, uint16 skill_i
 
 		//These two need to be loaded from the db for each slave.
 		if (battle_config.override_mob_names == 1)
-			strcpy(data.name,"--en--");
+			strcpy(data.name, "--en--");
 		else
-			strcpy(data.name,"--ja--");
+			strcpy(data.name, "--ja--");
 
 		if (!mob_parse_dataset(&data))
 			continue;
@@ -3411,7 +3411,7 @@ int mob_clone_spawn(struct map_session_data *sd, int16 m, int16 x, int16 y, cons
 	strcpy(db->jname,sd->status.name);
 	db->lv=status_get_lv(&sd->bl);
 	memcpy(status, &sd->base_status, sizeof(struct status_data));
-	status->rhw.atk2= status->dex + status->rhw.atk + status->rhw.atk2; //Max ATK
+	status->rhw.atk2 = status->dex + status->rhw.atk + status->rhw.atk2; //Max ATK
 	status->rhw.atk = status->dex; //Min ATK
 	if (status->lhw.atk) {
 		status->lhw.atk2= status->dex + status->lhw.atk + status->lhw.atk2; //Max ATK

@@ -9059,7 +9059,7 @@ BUILDIN_FUNC(monster)
 
 	if (script_hasdata(st, 9)) {
 		size = script_getnum(st, 9);
-		if (size > 3) {
+		if (!CHK_MOBSIZE(size)) {
 			ShowWarning("buildin_monster: Attempted to spawn non-existing size %d for monster class %d\n", size, class_);
 			return 1;
 		}
@@ -9150,15 +9150,15 @@ BUILDIN_FUNC(areamonster)
 		event = script_getstr(st, 10);
 		check_event(st, event);
 	}
-	
+
 	if (script_hasdata(st, 11)) {
 		size = script_getnum(st, 11);
-		if (size > 3) {
+		if (!CHK_MOBSIZE(size)) {
 			ShowWarning("buildin_monster: Attempted to spawn non-existing size %d for monster class %d\n", size, class_);
 			return 1;
 		}
 	}
-	
+
 	if (script_hasdata(st, 12)) {
 		ai = script_getnum(st, 12);
 		if (ai >= AI_MAX) {

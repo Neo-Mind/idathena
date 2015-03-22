@@ -3297,7 +3297,7 @@ static const char* npc_parse_mob(char* w1, char* w2, char* w3, char* w4, const c
 	if (mob_lv > 0 && mob_lv <= MAX_LEVEL)
 		mob.level = mob_lv;
 
-	if (size > SZ_SMALL && size <= SZ_BIG)
+	if (CHK_MOBSIZE(size))
 		mob.state.size = size;
 
 	if (ai > AI_NONE && ai <= AI_MAX)
@@ -3308,7 +3308,7 @@ static const char* npc_parse_mob(char* w1, char* w2, char* w3, char* w4, const c
 			mob.num = 1;
 	}
 
-	if (battle_config.force_random_spawn || (mob.x == 0 && mob.y == 0)) { //Force a random spawn anywhere on the map.
+	if (battle_config.force_random_spawn || (mob.x == 0 && mob.y == 0)) { //Force a random spawn anywhere on the map
 		mob.x = mob.y = 0;
 		mob.xs = mob.ys = -1;
 	}
@@ -3318,7 +3318,7 @@ static const char* npc_parse_mob(char* w1, char* w2, char* w3, char* w4, const c
 		return strchr(start, '\n'); //Skip and continue
 	}
 
-	//Use db names instead of the spawn file ones.
+	//Use db names instead of the spawn file ones
 	if (battle_config.override_mob_names == 1)
 		strcpy(mob.name, "--en--");
 	else if (battle_config.override_mob_names == 2)
@@ -3326,7 +3326,7 @@ static const char* npc_parse_mob(char* w1, char* w2, char* w3, char* w4, const c
 	else
 		safestrncpy(mob.name, mobname, sizeof(mob.name));
 
-	//Verify dataset.
+	//Verify dataset
 	if (!mob_parse_dataset(&mob)) {
 		ShowError("npc_parse_mob: Invalid dataset for monster ID %d in file '%s', line '%d'.\n", mob_id, filepath, strline(buffer, start - buffer));
 		return strchr(start, '\n'); //Skip and continue

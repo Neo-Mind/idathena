@@ -2099,6 +2099,12 @@ void status_change_clear_buffs(struct block_list* bl, int type);
 #define status_calc_elemental(ed, opt) status_calc_bl_(&(ed)->bl, SCB_ALL, opt)
 #define status_calc_npc(nd, opt) status_calc_bl_(&(nd)->bl, SCB_ALL, opt)
 
+struct s_refine_info { //Bonus values and upgrade chances for refining equipment
+	int chance[MAX_REFINE]; //Success chance
+	int bonus[MAX_REFINE]; //Cumulative fixed bonus damage
+	int randombonus_max[MAX_REFINE]; //Cumulative maximum random bonus damage
+} refine_info[REFINE_TYPE_MAX];
+
 void status_calc_bl_(struct block_list *bl, enum scb_flag flag, enum e_status_calc_opt opt);
 int status_calc_mob_(struct mob_data* md, enum e_status_calc_opt opt);
 void status_calc_pet_(struct pet_data* pd, enum e_status_calc_opt opt);
@@ -2125,7 +2131,7 @@ int status_change_spread( struct block_list *src, struct block_list *bl );
 #ifndef RENEWAL
 	unsigned short status_base_matk_min(const struct status_data *status);
 #else
-	unsigned int status_weapon_atk(struct weapon_atk wa, struct status_data *status);
+	unsigned int status_weapon_atk(struct weapon_atk *watk, struct status_data *status);
 	unsigned short status_base_matk(struct block_list *bl, const struct status_data *status, int level);
 #endif
 
