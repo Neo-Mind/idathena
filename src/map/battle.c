@@ -2065,7 +2065,7 @@ static bool is_skill_using_arrow(struct block_list *src, uint16 skill_id)
 }
 
 /*=========================================
- * Is attack right handed? By default yes.
+ * Is attack right handed? Default: Yes
  *-----------------------------------------
  * Credits:
  *	Original coder Skotlex
@@ -2085,7 +2085,7 @@ static bool is_attack_right_handed(struct block_list *src, uint16 skill_id)
 }
 
 /*=======================================
- * Is attack left handed? By default no.
+ * Is attack left handed? Default: No
  *---------------------------------------
  * Credits:
  *	Original coder Skotlex
@@ -2151,7 +2151,7 @@ static bool is_attack_critical(struct Damage wd, struct block_list *src, struct 
 		if(sc && sc->data[SC_CAMOUFLAGE])
 			cri += 100 * min(10, sc->data[SC_CAMOUFLAGE]->val3); //Max 100% (1K)
 
-		//The official equation is * 2, but that only applies when sd's do critical.
+		//The official equation is * 2, but that only applies when sd's do critical
 		//Therefore, we use the old value 3 on cases when an sd gets attacked by a mob
 		cri -= tstatus->luk * (!sd && tsd ? 3 : 2);
 
@@ -4519,6 +4519,8 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 			case NJ_KUNAI:
 			case HW_MAGICCRASHER:
 			case GS_MAGICALBULLET:
+			case RK_DRAGONBREATH:
+			case RK_DRAGONBREATH_WATER:
 				wd.damage -= (def1 + vit_def); //Total defense reduction
 				break;
 			case GN_CARTCANNON:
@@ -4534,6 +4536,8 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 			case NJ_KUNAI:
 			case HW_MAGICCRASHER:
 			case GS_MAGICALBULLET:
+			case RK_DRAGONBREATH:
+			case RK_DRAGONBREATH_WATER:
 				wd.damage2 -= (def1 + vit_def);
 				break;
 			case GN_CARTCANNON:
@@ -5268,9 +5272,8 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 	}
 
 	if(wd.damage + wd.damage2) { //Check if attack ignores DEF
-		if((!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_R) ||
-			!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L)) &&
-			!target_has_infinite_defense(target, skill_id, wd.flag))
+		if((!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_R) || (is_attack_left_handed(src, skill_id) &&
+			!attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L))) && !target_has_infinite_defense(target, skill_id, wd.flag))
 			wd = battle_calc_defense_reduction(wd, src, target, skill_id, skill_lv);
 		if(wd.dmg_lv != ATK_FLEE)
 			wd = battle_calc_attack_post_defense(wd, src, target, skill_id, skill_lv);
