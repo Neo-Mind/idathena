@@ -1258,12 +1258,12 @@ static void initDummyData(void)
 	dummy_status.adelay = 4000;
 	dummy_status.amotion = 2000;
 	dummy_status.dmotion = 2000;
-	dummy_status.ele_lv = 1; //Min elemental level.
+	dummy_status.ele_lv = 1; //Min elemental level
 	dummy_status.mode = MD_CANMOVE;
 }
 
-//For copying a status_data structure from b to a, without overwriting current Hp and Sp
-static inline void status_cpy(struct status_data* a, const struct status_data* b)
+//For copying a status_data structure from b to a, without overwriting current HP and SP
+static inline void status_cpy(struct status_data *a, const struct status_data *b)
 {
 	memcpy((void*)&a->max_hp, (const void*)&b->max_hp, sizeof(struct status_data) - (sizeof(a->hp) + sizeof(a->sp)));
 }
@@ -4259,8 +4259,9 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 	}
 
 	if( (!(bl->type&BL_REGEN)) && (!sc || !sc->count) ) { //No difference
-#ifndef RENEWAL
 		status_cpy(status, b_status);
+#ifdef RENEWAL
+		status_update_matk(bl);
 #endif
 		return;
 	}

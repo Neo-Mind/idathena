@@ -938,7 +938,7 @@ Similar to OnTouch, but will only trigger for monsters.
 
 OnUnTouch:
 
-This label will be executed if plater leave trigger area is defined for the NPC 
+This label will be executed if player leave trigger area is defined for the NPC 
 object it's in. If it isn't present, nothing will happend.
 The RID of the triggering character object will be attached.
 

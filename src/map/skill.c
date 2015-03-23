@@ -8037,9 +8037,9 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case CG_TAROTCARD: {
 				int count = -1;
 
-				if( rnd()%100 > skill_lv * 8 || (tsc && tsc->data[SC_BASILICA]) ||
-					(dstmd && ((dstmd->guardian_data && dstmd->mob_id == MOBID_EMPERIUM) || mob_is_battleground(dstmd))) ) {
-					if( sd )
+				if (rnd()%100 > skill_lv * 8 || (tsc && tsc->data[SC_BASILICA]) ||
+					(dstmd && ((dstmd->guardian_data && dstmd->mob_id == MOBID_EMPERIUM) || mob_is_battleground(dstmd)))) {
+					if (sd)
 						clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
 
 					map_freeblock_unlock();
@@ -8054,7 +8054,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						case 0:	//Heals SP to 0
 							status_percent_damage(src,bl,0,100,false);
 							break;
-						case 1:	//Matk halved
+						case 1:	//MATK -50%
 							sc_start(src,bl,SC_INCMATKRATE,100,-50,skill_get_time2(skill_id,skill_lv));
 							break;
 						case 2:	//All buffs removed
@@ -8063,29 +8063,30 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						case 3:	{ //1000 damage, random armor destroyed
 								status_fix_damage(src,bl,1000,0);
 								clif_damage(src,bl,tick,0,0,1000,0,DMG_NORMAL,0);
-								if( !status_isdead(bl) ) {
+								if (!status_isdead(bl)) {
 									int where[] = { EQP_HELM,EQP_SHIELD,EQP_ARMOR,EQP_SHOES,EQP_GARMENT };
 
 									skill_break_equip(src,bl,where[rnd()%5],10000,BCT_ENEMY);
 								}
 							}
 							break;
-						case 4:	//Atk halved
+						case 4:	//ATK -50%
 							sc_start(src,bl,SC_INCATKRATE,100,-50,skill_get_time2(skill_id,skill_lv));
 							break;
 						case 5:	//2000HP heal, random teleported
 							status_heal(src,2000,0,0);
-							if( !map_flag_vs(bl->m) )
+							if (!map_flag_vs(bl->m))
 								unit_warp(bl,-1,-1,-1,CLR_TELEPORT);
 							break;
 						case 6:	//Random 2 other effects
 							if (count == -1)
 								count = 3;
 							else
-								count++; //Should not retrigger this one.
+								count++; //Should not retrigger this one
 							break;
 						case 7:	{ //Stop freeze or stoned
 								enum sc_type sc[] = { SC_STOP,SC_FREEZE,SC_STONE };
+
 								sc_start(src,bl,sc[rnd()%3],100,skill_lv,skill_get_time2(skill_id,skill_lv));
 							}
 							break;
@@ -8097,7 +8098,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						case 9:	//Confusion
 							sc_start(src,bl,SC_CONFUSION,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 							break;
-						case 10: //6666 damage, atk matk halved, cursed
+						case 10: //6666 damage, ATK and MATK -50%, cursed
 							status_fix_damage(src,bl,6666,0);
 							clif_damage(src,bl,tick,0,0,6666,0,DMG_NORMAL,0);
 							sc_start(src,bl,SC_INCATKRATE,100,-50,skill_get_time2(skill_id,skill_lv));
@@ -8111,7 +8112,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						case 12: //Stun
 							sc_start(src,bl,SC_STUN,100,skill_lv,5000);
 							break;
-						case 13: //Atk,matk,hit,flee,def reduced
+						case 13: //ATK, MATK, HIT, FLEE, DEF -20%
 							sc_start(src,bl,SC_INCATKRATE,100,-20,skill_get_time2(skill_id,skill_lv));
 							sc_start(src,bl,SC_INCMATKRATE,100,-20,skill_get_time2(skill_id,skill_lv));
 							sc_start(src,bl,SC_INCHITRATE,100,-20,skill_get_time2(skill_id,skill_lv));
@@ -10586,10 +10587,9 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 		case RL_C_MARKER:
 			if( sd ) {
-				//If marked by someone else, failed
-				if( tsc && tsc->data[SC_C_MARKER] && tsc->data[SC_C_MARKER]->val2 != src->id ) {
+				if( tsce && tsce->val2 != src->id ) {
 					clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
-					break;
+					break; //If marked by someone else, failed
 				}
 				//Check if marked before
 				ARR_FIND(0,MAX_SKILL_CRIMSON_MARKER,i,sd->c_marker[i] == bl->id);
