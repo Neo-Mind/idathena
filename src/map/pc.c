@@ -4514,7 +4514,7 @@ bool pc_isUseitem(struct map_session_data *sd, int n)
 
 	//Prevent mass item usage [Skotlex]
 	if( DIFF_TICK(sd->canuseitem_tick,gettick()) > 0 ||
-		(itemdb_iscashfood(nameid) && DIFF_TICK(sd->canusecashfood_tick,gettick()) > 0) )
+		(itemdb_is_cashfood(nameid) && DIFF_TICK(sd->canusecashfood_tick,gettick()) > 0) )
 		return false;
 
 	if( (item->item_usage.flag&INR_SITTING) && (pc_issit(sd) == 1) && (pc_get_group_level(sd) < item->item_usage.override) ) {
@@ -4706,7 +4706,7 @@ int pc_useitem(struct map_session_data *sd, int n)
 	if( nameid != ITEMID_NAUTHIZ && sd->sc.opt1 > 0 && sd->sc.opt1 != OPT1_STONEWAIT && sd->sc.opt1 != OPT1_BURNING )
 		return 0;
 
-	//Items with delayed consume are not meant to work while in mounts except reins of mount(12622)
+	//Items with delayed consume are not meant to work while in mounts except ITEMID_BOARDING_HALTER
 	if( id->flag.delay_consume ) {
 		if( sd->sc.data[SC_ALL_RIDING] && nameid != ITEMID_BOARDING_HALTER )
 			return 0;
@@ -4793,7 +4793,7 @@ int pc_useitem(struct map_session_data *sd, int n)
 
 	//Update item use time
 	sd->canuseitem_tick = tick + battle_config.item_use_interval;
-	if( itemdb_iscashfood(nameid) )
+	if( itemdb_is_cashfood(nameid) )
 		sd->canusecashfood_tick = tick + battle_config.cashfood_use_interval;
 
 	run_script(script,0,sd->bl.id,fake_nd->bl.id);

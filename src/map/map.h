@@ -773,14 +773,16 @@ void map_reqnickdb(struct map_session_data* sd,int charid);
 const char* map_charid2nick(int charid);
 struct map_session_data* map_charid2sd(int charid);
 
-struct map_session_data * map_id2sd(int id);
-struct mob_data * map_id2md(int id);
-struct npc_data * map_id2nd(int id);
+struct map_session_data* map_id2sd(int id);
+struct mob_data* map_id2md(int id);
+struct npc_data* map_id2nd(int id);
 struct homun_data* map_id2hd(int id);
 struct mercenary_data* map_id2mc(int id);
+struct pet_data* map_id2pd(int id);
+struct elemental_data* map_id2ed(int id);
 struct chat_data* map_id2cd(int id);
-struct block_list * map_id2bl(int id);
-bool map_blid_exists( int id );
+struct block_list* map_id2bl(int id);
+bool map_blid_exists(int id);
 
 #define map_id2index(id) map[(id)].index
 const char* map_mapid2mapname(int m);

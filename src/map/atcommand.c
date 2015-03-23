@@ -3750,7 +3750,7 @@ ACMD_FUNC(reload)
 		do_reload_quest();
 		clif_displaymessage(fd, msg_txt(1377)); // Quest database has been reloaded.
 	} else if (strstr(command, "packetdb") || strncmp(message, "packetdb", 4) == 0) {
-		packetdb_readdb();
+		packetdb_readdb(true);
 		clif_displaymessage(fd, msg_txt(1478)); // Packet database has been reloaded.
 	} else if (strstr(command, "instancedb") || strncmp(message, "instancedb", 4) == 0) {
 		instance_readdb();

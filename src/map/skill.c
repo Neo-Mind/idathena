@@ -9983,7 +9983,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				sd->itemid = ammo_id;
 				//Thrower's BaseLv affects HP and SP increase potions when thrown
 				baselv = status_get_lv(src);
-				if( itemid_is_sling_atk(ammo_id) ) { //If thrown item is a bomb or a lump, then its a attack type ammo
+				if( itemdb_is_slingatk(ammo_id) ) { //If thrown item is a bomb or a lump, then its a attack type ammo
 					if( battle_check_target(src,bl,BCT_ENEMY ) > 0) { //Only allow throwing attacks at enemies
 						if( ammo_id == ITEMID_PINEAPPLE_BOMB ) //Pineapple Bombs deal 5x5 splash damage on targeted enemy
 							map_foreachinrange(skill_area_sub,bl,2,BL_CHAR,src,GN_SLINGITEM_RANGEMELEEATK,skill_lv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
@@ -9991,7 +9991,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 							skill_attack(BF_WEAPON,src,src,bl,GN_SLINGITEM_RANGEMELEEATK,skill_lv,tick,flag);
 					} else //Otherwise, it fails, shows animation and removes items
 						clif_skill_fail(sd,GN_SLINGITEM_RANGEMELEEATK,USESKILL_FAIL,0,0);
-				} else if( itemid_is_sling_buff(ammo_id) ) { //If thrown item is a potion, food, powder, or overcooked food, then its a buff type ammo
+				} else if( itemdb_is_slingbuff(ammo_id) ) { //If thrown item is a potion, food, powder, or overcooked food, then its a buff type ammo
 					switch( ammo_id ) {
 						case ITEMID_MYSTERIOUS_POWDER: //MaxHP -2%
 							sc_start(src,bl,SC_MYSTERIOUS_POWDER,100,2,10000);
@@ -15514,7 +15514,7 @@ void skill_consume_requirement(struct map_session_data *sd, uint16 skill_id, uin
 			if( !require.itemid[i] )
 				continue;
 
-			if( itemid_isgemstone(require.itemid[i]) && skill_id != HW_GANBANTEIN &&
+			if( itemdb_is_gemstone(require.itemid[i]) && skill_id != HW_GANBANTEIN &&
 				sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_WIZARD )
 				continue; //Gemstones are checked, but not substracted from inventory
 
@@ -15697,12 +15697,12 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 								continue;
 							break;
 						case AB_ADORAMUS:
-							if( itemid_isgemstone(skill_db[idx].require.itemid[i]) &&
+							if( itemdb_is_gemstone(skill_db[idx].require.itemid[i]) &&
 								(sd->special_state.no_gemstone == 2 || skill_check_pc_partner(sd,skill_id,&skill_lv,1,2)) )
 								continue;
 							break;
 						case WL_COMET:
-							if( itemid_isgemstone(skill_db[idx].require.itemid[i]) &&
+							if( itemdb_is_gemstone(skill_db[idx].require.itemid[i]) &&
 								(sd->special_state.no_gemstone == 2 || skill_check_pc_partner(sd,skill_id,&skill_lv,1,0)) )
 								continue;
 							break;
@@ -15724,7 +15724,7 @@ struct skill_condition skill_get_requirement(struct map_session_data* sd, uint16
 				}
 
 				//Check requirement for gemstone
-				if( itemid_isgemstone(req.itemid[i]) ) {
+				if( itemdb_is_gemstone(req.itemid[i]) ) {
 					if( sd->special_state.no_gemstone == 2 ) //Remove all Magic Stone required for all skills for VIP
 						req.itemid[i] = req.amount[i] = 0;
 					else {

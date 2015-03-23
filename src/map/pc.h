@@ -627,6 +627,9 @@ struct map_session_data {
 
 	short last_addeditem_index; //Index of latest item added
 	int autotrade_tid;
+#ifdef PACKET_OBFUSCATION
+	unsigned int cryptKey; //Packet obfuscation key to be used for the next received packet
+#endif
 };
 
 struct eri *pc_sc_display_ers; //Player's SC display table

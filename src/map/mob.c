@@ -1325,7 +1325,8 @@ int mob_randomwalk(struct mob_data *md, unsigned int tick)
 
 	nullpo_ret(md);
 
-	if(DIFF_TICK(md->next_walktime,tick) > 0 || !unit_can_move(&md->bl) || !(status_get_mode(&md->bl)&MD_CANMOVE))
+	if(DIFF_TICK(md->next_walktime,tick) > 0 || (status_get_mode(&md->bl)&MD_NORANDOM_WALK) ||
+		!unit_can_move(&md->bl) || !(status_get_mode(&md->bl)&MD_CANMOVE))
 		return 0;
 
 	d = 12 - md->move_fail_count;
@@ -2971,6 +2972,9 @@ int mob_summonslave(struct mob_data *md2, int *value, int amount, uint16 skill_i
 			}
 		}
 
+		if (md2->state.copy_master_mode)
+			md->status.mode = md2->status.mode;
+
 		clif_skill_nodamage(&md->bl, &md->bl, skill_id, amount, 1);
 	}
 
@@ -3101,7 +3105,7 @@ struct mob_data *mob_getfriendstatus(struct mob_data *md,int cond1,int cond2)
 int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 {
 	struct mob_skill *ms;
-	struct block_list *fbl = NULL; //Friend bl, which can either be a BL_PC or BL_MOB depending on the situation. [Skotlex]
+	struct block_list *fbl = NULL; //Friend bl, which can either be a BL_PC or BL_MOB depending on the situation [Skotlex]
 	struct block_list *bl;
 	struct mob_data *fmd = NULL;
 	int i, j, n;
@@ -3110,13 +3114,13 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 	nullpo_ret(md);
 	nullpo_ret(ms = md->db->skill);
 
-	if (!battle_config.mob_skill_rate || md->ud.skilltimer != INVALID_TIMER || !md->db->maxskill)
+	if (!battle_config.mob_skill_rate || md->ud.skilltimer != INVALID_TIMER || !md->db->maxskill || (status_get_mode(&md->bl)&MD_NOCAST_SKILL))
 		return 0;
 
 	if (event == -1 && DIFF_TICK(md->ud.canact_tick, tick) > 0)
-		return 0; //Skill act delay only affects non-event skills.
+		return 0; //Skill act delay only affects non-event skills
 
-	//Pick a starting position and loop from that.
+	//Pick a starting position and loop from that
 	i = (battle_config.mob_ai&0x100) ? rnd()%md->db->maxskill : 0;
 	for (n = 0; n < md->db->maxskill; i++, n++) {
 		int c2, flag = 0;
@@ -3132,7 +3136,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 		if (ms[i].state != md->state.skillstate) {
 			if (md->state.skillstate != MSS_DEAD && (ms[i].state == MSS_ANY ||
 				(ms[i].state == MSS_ANYTARGET && md->target_id && md->state.skillstate != MSS_LOOT)
-			)) //ANYTARGET works with any state as long as there's a target. [Skotlex]
+			)) //ANYTARGET works with any state as long as there's a target [Skotlex]
 				;
 			else
 				continue;
@@ -3142,11 +3146,11 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 			continue;
 
 		if (ms[i].cond1 == event)
-			flag = 1; //Trigger skill.
+			flag = 1; //Trigger skill
 		else if (ms[i].cond1 == MSC_SKILLUSED)
 			flag = ((event & 0xffff) == MSC_SKILLUSED && ((event >> 16) == c2 || c2 == 0));
 		else if (event == -1) {
-			//Avoid entering on defined events to avoid "hyper-active skill use" due to the overflow of calls to this function in battle.
+			//Avoid entering on defined events to avoid "hyper-active skill use" due to the overflow of calls to this function in battle
 			switch (ms[i].cond1) {
 				case MSC_ALWAYS:
 					flag = 1;

@@ -32,8 +32,9 @@ struct quest;
 struct party_booking_ad_info;
 #include <stdarg.h>
 
-enum { //packet_db
-	MAX_PACKET_DB  = 0xF00,
+enum { // packet_db
+	MIN_PACKET_DB = 0x0064,
+	MAX_PACKET_DB = 0xF00,
 	MAX_PACKET_VER = 46,
 	MAX_PACKET_POS = 20,
 };
@@ -49,8 +50,8 @@ enum e_packet_ack {
 	ZC_C_MARKERINFO,
 	ZC_NOTIFY_BIND_ON_EQUIP,
 	ZC_WEAR_EQUIP_ACK,
-	//Add other here
-	MAX_ACK_FUNC //Auto upd len
+	// Add other here
+	MAX_ACK_FUNC // Auto upd len
 };
 
 struct s_packet_db {
@@ -58,6 +59,13 @@ struct s_packet_db {
 	void (*func)(int, struct map_session_data *);
 	short pos[MAX_PACKET_POS];
 };
+
+#ifdef PACKET_OBFUSCATION
+	// Keys based on packet versions
+	struct s_packet_keys {
+		unsigned int keys[3]; // 3-Keys
+	};
+#endif
 
 // packet_db[SERVER] is reserved for server use
 #define SERVER 0
@@ -427,7 +435,7 @@ void clif_setport(uint16 port);
 uint32 clif_getip(void);
 uint32 clif_refresh_ip(void);
 uint16 clif_getport(void);
-void packetdb_readdb(void);
+void packetdb_readdb(bool reload);
 
 void clif_authok(struct map_session_data *sd);
 void clif_authrefuse(int fd, uint8 error_code);

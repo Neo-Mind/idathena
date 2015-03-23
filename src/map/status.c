@@ -6483,7 +6483,9 @@ const char* status_get_name(struct block_list *bl) {
 		case BL_MOB: return ((TBL_MOB*)bl)->name;
 		case BL_PET: return ((TBL_PET*)bl)->pet.name;
 		case BL_HOM: return ((TBL_HOM*)bl)->homunculus.name;
+		//case BL_MER: //They only have database names which are global, not specific to GID
 		case BL_NPC: return ((TBL_NPC*)bl)->name;
+		//case BL_ELEM: //They only have database names which are global, not specific to GID
 	}
 	return "Unknown";
 }

@@ -835,8 +835,15 @@ enum bound_type {
 #if (MIN_CHARS + MAX_CHAR_VIP + MAX_CHAR_BILLING) > MAX_CHARS
 	#error "Config of MAX_CHARS is invalid"
 #endif
+
 #if MIN_STORAGE > MAX_STORAGE
 	#error "Config of MIN_STORAGE is invalid"
+#endif
+
+#ifdef PACKET_OBFUSCATION
+	#if PACKETVER < 20110817
+		#undef PACKET_OBFUSCATION
+	#endif
 #endif
 
 #endif /* _MMO_H_ */

@@ -1638,6 +1638,8 @@ enum e_mode
 	MD_MVP			= 0x080000, //MVP - instant kill / coma-like skills don't work
 	MD_IGNOREMISC		= 0x100000, //Takes 1 HP damage from "none" attack type
 	MD_KNOCKBACK_IMMUNE	= 0x200000, //Can't be knocked back
+	MD_NORANDOM_WALK		= 0x400000,
+	MD_NOCAST_SKILL			= 0x800000,
 };
 #define MD_MASK 0x00FFFF
 #define ATR_MASK 0xFF0000
