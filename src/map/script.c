@@ -1201,7 +1201,7 @@ const char* parse_variable(const char* p) {
  * followed by a hexadecimal or decimal number literal literal and is NOT
  * followed by a underscore or letter.
  *
- * @author : Hercules.ws
+ * @author : Ind
  * @param p Pointer to the string to check
  * @return Whether the string is a number literal
  */
@@ -16502,7 +16502,6 @@ BUILDIN_FUNC(setunitname)
 	}
 
 	clif_charnameack(0, bl); //Send update to client
-
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -16534,6 +16533,7 @@ BUILDIN_FUNC(unitwalk)
 		} else if( script_pushint(st,unit_can_reach_bl(bl, tbl, distance_bl(bl, tbl) + 1,0,NULL,NULL)) )
 			add_timer(gettick() + 50, unit_delay_walktobl_timer, bl->id, tbl->id); //Need timer to avoid mismatches
 	}
+
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -16815,6 +16815,7 @@ BUILDIN_FUNC(sleep)
 		st->state = RUN;
 		st->sleep.tick = 0;
 	}
+
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -16837,6 +16838,7 @@ BUILDIN_FUNC(sleep2)
 		st->sleep.tick = 0;
 		script_pushint(st,(map_id2sd(st->rid) != NULL));
 	}
+
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -16878,6 +16880,7 @@ BUILDIN_FUNC(awake)
 		} else
 			node = node->next;
 	}
+
 	return SCRIPT_CMD_SUCCESS;
 }
 

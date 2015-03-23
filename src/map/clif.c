@@ -17953,7 +17953,7 @@ void clif_ShowScript(struct block_list* bl, const char* message) {
  * @param fd
  * @param sd
  * @param packet_ver
- * Orig author [Ind/Hercules]
+ * Orig author [Ind]
  **/
 static unsigned short clif_parse_cmd(int fd, struct map_session_data *sd) {
 #ifdef PACKET_OBFUSCATION
