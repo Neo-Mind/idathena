@@ -283,13 +283,13 @@ int8 vending_openvending(struct map_session_data* sd, const char* message, const
 
 	//Skill level and cart check
 	if( !vending_skill_lvl || !pc_iscarton(sd) ) {
-		clif_skill_fail(sd, MC_VENDING, USESKILL_FAIL_LEVEL, 0);
+		clif_skill_fail(sd, MC_VENDING, USESKILL_FAIL_LEVEL, 0, 0);
 		return 2;
 	}
 
 	//Check number of items in shop
 	if( count < 1 || count > MAX_VENDING || count > 2 + vending_skill_lvl ) { //Invalid item count
-		clif_skill_fail(sd, MC_VENDING, USESKILL_FAIL_LEVEL, 0);
+		clif_skill_fail(sd, MC_VENDING, USESKILL_FAIL_LEVEL, 0, 0);
 		return 3;
 	}
 
@@ -326,7 +326,7 @@ int8 vending_openvending(struct map_session_data* sd, const char* message, const
 		clif_displaymessage(sd->fd, msg_txt(266)); // "Some of your items cannot be vended and were removed from the shop."
 
 	if( i == 0 ) { //No valid item found
-		clif_skill_fail(sd, MC_VENDING, USESKILL_FAIL_LEVEL, 0); //Custom reply packet
+		clif_skill_fail(sd, MC_VENDING, USESKILL_FAIL_LEVEL, 0, 0); //Custom reply packet
 		return 4;
 	}
 

@@ -5240,7 +5240,7 @@ void clif_skillcastcancel(struct block_list* bl)
 /// if(result != 0) doesn't display any of the previous messages
 /// NOTE: when this packet is received an unknown flag is always set to 0,
 /// suggesting this is an ACK packet for the UseSkill packets and should be sent on success too [FlavioJS]
-void clif_skill_fail(struct map_session_data *sd,uint16 skill_id,enum useskill_fail_cause cause,int btype)
+void clif_skill_fail(struct map_session_data *sd,uint16 skill_id,enum useskill_fail_cause cause,int btype,int val)
 {
 	int fd;
 
@@ -5269,6 +5269,7 @@ void clif_skill_fail(struct map_session_data *sd,uint16 skill_id,enum useskill_f
 	WFIFOW(fd,0) = 0x110;
 	WFIFOW(fd,2) = skill_id;
 	WFIFOL(fd,4) = btype;
+	WFIFOW(fd,6) = val;
 	WFIFOB(fd,8) = 0; //Success
 	WFIFOB(fd,9) = cause;
 	WFIFOSET(fd,packet_len(0x110));
@@ -6351,7 +6352,7 @@ void clif_item_repair_list(struct map_session_data *sd, struct map_session_data 
 		sd->menuskill_val = dstsd->bl.id;
 		sd->menuskill_val2 = lv;
 	} else
-		clif_skill_fail(sd,sd->ud.skill_id,USESKILL_FAIL_LEVEL,0);
+		clif_skill_fail(sd,sd->ud.skill_id,USESKILL_FAIL_LEVEL,0,0);
 }
 
 
@@ -10602,13 +10603,13 @@ void clif_parse_Emotion(int fd, struct map_session_data *sd)
 
 	if (battle_config.basic_skill_check == 0 || pc_checkskill(sd, NV_BASIC) >= 2) {
 		if (emoticon == E_MUTE) { // Prevent use of the mute emote [Valaris]
-			clif_skill_fail(sd, 1, USESKILL_FAIL_LEVEL, 1);
+			clif_skill_fail(sd, 1, USESKILL_FAIL_LEVEL, 1, 0);
 			return;
 		}
 		// Fix flood of emotion icon (ro-proxy): flood only the hacker player
 		if (sd->emotionlasttime + 1 >= time(NULL)) { // Not more than 1 per second
 			sd->emotionlasttime = time(NULL);
-			clif_skill_fail(sd, 1, USESKILL_FAIL_LEVEL, 1);
+			clif_skill_fail(sd, 1, USESKILL_FAIL_LEVEL, 1, 0);
 			return;
 		}
 		sd->emotionlasttime = time(NULL);
@@ -10618,7 +10619,7 @@ void clif_parse_Emotion(int fd, struct map_session_data *sd)
 
 		clif_emotion(&sd->bl, emoticon);
 	} else
-		clif_skill_fail(sd, 1, USESKILL_FAIL_LEVEL, 1);
+		clif_skill_fail(sd, 1, USESKILL_FAIL_LEVEL, 1, 0);
 }
 
 /// Amount of currently online players, reply to /w /who (ZC_USER_COUNT).
@@ -10683,7 +10684,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 
 			if( !battle_config.sdelay_attack_enable && !pc_checkskill(sd, SA_FREECAST) ) {
 				if( DIFF_TICK(tick, sd->ud.canact_tick) < 0 ) {
-					clif_skill_fail(sd, 1, USESKILL_FAIL_SKILLINTERVAL, 0);
+					clif_skill_fail(sd, 1, USESKILL_FAIL_SKILLINTERVAL, 0, 0);
 					return;
 				}
 			}
@@ -10694,7 +10695,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 			break;
 		case 0x02: // Sitdown
 			if( battle_config.basic_skill_check && pc_checkskill(sd, NV_BASIC) < 3 ) {
-				clif_skill_fail(sd, 1, USESKILL_FAIL_LEVEL, 2);
+				clif_skill_fail(sd, 1, USESKILL_FAIL_LEVEL, 2, 0);
 				break;
 			}
 
@@ -11252,7 +11253,7 @@ void clif_parse_CreateChatRoom(int fd, struct map_session_data* sd)
 	if (sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOROOM)
 		return;
 	if (battle_config.basic_skill_check && pc_checkskill(sd,NV_BASIC) < 4) {
-		clif_skill_fail(sd,1,USESKILL_FAIL_LEVEL,3);
+		clif_skill_fail(sd,1,USESKILL_FAIL_LEVEL,3,0);
 		return;
 	}
 	if (npc_isnear(&sd->bl)) {
@@ -11260,7 +11261,7 @@ void clif_parse_CreateChatRoom(int fd, struct map_session_data* sd)
 		//char output[150];
 		//sprintf(output,msg_txt(662),battle_config.min_npc_vendchat_distance);
 		//clif_displaymessage(sd->fd,output);
-		clif_skill_fail(sd,1,USESKILL_FAIL_THERE_ARE_NPC_AROUND,0);
+		clif_skill_fail(sd,1,USESKILL_FAIL_THERE_ARE_NPC_AROUND,0,0);
 		return;
 	}
 
@@ -11374,7 +11375,7 @@ void clif_parse_TradeRequest(int fd,struct map_session_data *sd)
 	}
 
 	if( battle_config.basic_skill_check && pc_checkskill(sd,NV_BASIC) < 1) {
-		clif_skill_fail(sd,1,USESKILL_FAIL_LEVEL,0);
+		clif_skill_fail(sd,1,USESKILL_FAIL_LEVEL,0,0);
 		return;
 	}
 	
@@ -11559,7 +11560,7 @@ static void clif_parse_UseSkillToId_homun(struct homun_data *hd, struct map_sess
 	} else if( DIFF_TICK(tick, hd->ud.canact_tick) < 0 ) {
 		clif_emotion(&hd->bl, E_DOTS);
 		if( hd->master )
-			clif_skill_fail(hd->master, skill_id, USESKILL_FAIL_SKILLINTERVAL, 0);
+			clif_skill_fail(hd->master, skill_id, USESKILL_FAIL_SKILLINTERVAL, 0, 0);
 		return;
 	}
 	lv = hom_checkskill(hd, skill_id);
@@ -11585,7 +11586,7 @@ static void clif_parse_UseSkillToPos_homun(struct homun_data *hd, struct map_ses
 	} else if( DIFF_TICK(tick, hd->ud.canact_tick) < 0 ) {
 		clif_emotion(&hd->bl, E_DOTS);
 		if( hd->master )
-			clif_skill_fail(hd->master, skill_id, USESKILL_FAIL_SKILLINTERVAL, 0);
+			clif_skill_fail(hd->master, skill_id, USESKILL_FAIL_SKILLINTERVAL, 0, 0);
 		return;
 	}
 	if( hd->sc.data[SC_BASILICA] )
@@ -11630,7 +11631,7 @@ static void clif_parse_UseSkillToPos_mercenary(struct mercenary_data *md, struct
 	if( md->ud.skilltimer != INVALID_TIMER )
 		return;
 	if( DIFF_TICK(tick, md->ud.canact_tick) < 0 ) {
-		clif_skill_fail(md->master, skill_id, USESKILL_FAIL_SKILLINTERVAL, 0);
+		clif_skill_fail(md->master, skill_id, USESKILL_FAIL_SKILLINTERVAL, 0, 0);
 		return;
 	}
 
@@ -11711,7 +11712,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 			return;
 	} else if( DIFF_TICK(tick, sd->ud.canact_tick) < 0 ) {
 		if( sd->skillitem != skill_id ) {
-			clif_skill_fail(sd, skill_id, USESKILL_FAIL_SKILLINTERVAL, 0);
+			clif_skill_fail(sd, skill_id, USESKILL_FAIL_SKILLINTERVAL, 0, 0);
 			return;
 		}
 	}
@@ -11784,7 +11785,7 @@ static void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, uin
 		return;
 	if( skillmoreinfo != -1 ) {
 		if( pc_issit(sd) ) {
-			clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
+			clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0, 0);
 			return;
 		}
 		//You can't use Graffiti/TalkieBox AND have a vending open, so this is safe
@@ -11796,7 +11797,7 @@ static void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, uin
 
 	if( DIFF_TICK(tick, sd->ud.canact_tick) < 0 ) {
 		if( sd->skillitem != skill_id ) {
-			clif_skill_fail(sd, skill_id, USESKILL_FAIL_SKILLINTERVAL, 0);
+			clif_skill_fail(sd, skill_id, USESKILL_FAIL_SKILLINTERVAL, 0, 0);
 			return;
 		}
 	}
@@ -11931,7 +11932,7 @@ void clif_parse_ProduceMix(int fd, struct map_session_data *sd)
 	}
 	if (pc_istrading(sd)) {
 		//Make it fail to avoid shop exploits where you sell something different than you see.
-		clif_skill_fail(sd,sd->ud.skill_id,USESKILL_FAIL_LEVEL,0);
+		clif_skill_fail(sd,sd->ud.skill_id,USESKILL_FAIL_LEVEL,0,0);
 		clif_menuskill_clear(sd);
 		return;
 	}
@@ -11961,7 +11962,7 @@ void clif_parse_Cooking(int fd, struct map_session_data *sd) {
 
 	if (pc_istrading(sd)) {
 		//Make it fail to avoid shop exploits where you sell something different than you see.
-		clif_skill_fail(sd,sd->ud.skill_id,USESKILL_FAIL_LEVEL,0);
+		clif_skill_fail(sd,sd->ud.skill_id,USESKILL_FAIL_LEVEL,0,0);
 		clif_menuskill_clear(sd);
 		return;
 	}
@@ -11981,7 +11982,7 @@ void clif_parse_RepairItem(int fd, struct map_session_data *sd)
 		return;
 	if (pc_istrading(sd)) {
 		//Make it fail to avoid shop exploits where you sell something different than you see.
-		clif_skill_fail(sd,sd->ud.skill_id,USESKILL_FAIL_LEVEL,0);
+		clif_skill_fail(sd,sd->ud.skill_id,USESKILL_FAIL_LEVEL,0,0);
 		clif_menuskill_clear(sd);
 		return;
 	}
@@ -12004,7 +12005,7 @@ void clif_parse_WeaponRefine(int fd, struct map_session_data *sd)
 		return;
 	if (pc_istrading(sd)) {
 		//Make it fail to avoid shop exploits where you sell something different than you see
-		clif_skill_fail(sd,sd->ud.skill_id,USESKILL_FAIL_LEVEL,0);
+		clif_skill_fail(sd,sd->ud.skill_id,USESKILL_FAIL_LEVEL,0,0);
 		clif_menuskill_clear(sd);
 		return;
 	}
@@ -12120,7 +12121,7 @@ void clif_parse_SelectArrow(int fd, struct map_session_data *sd)
 
 	if (pc_istrading(sd)) {
 		//Make it fail to avoid shop exploits where you sell something different than you see.
-		clif_skill_fail(sd,sd->ud.skill_id,USESKILL_FAIL_LEVEL,0);
+		clif_skill_fail(sd,sd->ud.skill_id,USESKILL_FAIL_LEVEL,0,0);
 		clif_menuskill_clear(sd);
 		return;
 	}
@@ -12393,7 +12394,7 @@ void clif_parse_CreateParty(int fd, struct map_session_data *sd)
 		return;
 	}
 	if( battle_config.basic_skill_check && pc_checkskill(sd,NV_BASIC) < 7 ) {
-		clif_skill_fail(sd,1,USESKILL_FAIL_LEVEL,4);
+		clif_skill_fail(sd,1,USESKILL_FAIL_LEVEL,4,0);
 		return;
 	}
 
@@ -12414,7 +12415,7 @@ void clif_parse_CreateParty2(int fd, struct map_session_data *sd)
 		return;
 	}
 	if( battle_config.basic_skill_check && pc_checkskill(sd,NV_BASIC) < 7 ) {
-		clif_skill_fail(sd,1,USESKILL_FAIL_LEVEL,4);
+		clif_skill_fail(sd,1,USESKILL_FAIL_LEVEL,4,0);
 		return;
 	}
 
@@ -17181,7 +17182,7 @@ int clif_spellbook_list(struct map_session_data *sd)
 		sd->menuskill_val = c;
 	} else {
 		status_change_end(&sd->bl,SC_STOP,INVALID_TIMER);
-		clif_skill_fail(sd,WL_READING_SB,USESKILL_FAIL_SPELLBOOK,0);
+		clif_skill_fail(sd,WL_READING_SB,USESKILL_FAIL_SPELLBOOK,0,0);
 	}
 
 	return 1;
@@ -17215,7 +17216,7 @@ int clif_magicdecoy_list(struct map_session_data *sd, uint16 skill_lv, short x, 
 		WFIFOW(fd,2) = c * 2 + 4;
 		WFIFOSET(fd, WFIFOW(fd, 2));
 	} else {
-		clif_skill_fail(sd,NC_MAGICDECOY,USESKILL_FAIL_LEVEL,0);
+		clif_skill_fail(sd,NC_MAGICDECOY,USESKILL_FAIL_LEVEL,0,0);
 		return 0;
 	}
 
@@ -17248,7 +17249,7 @@ int clif_poison_list(struct map_session_data *sd, uint16 skill_lv) {
 		WFIFOW(fd,2) = c * 2 + 4;
 		WFIFOSET(fd, WFIFOW(fd, 2));
 	} else {
-		clif_skill_fail(sd,GC_POISONINGWEAPON,USESKILL_FAIL_GUILLONTINE_POISON,0);
+		clif_skill_fail(sd,GC_POISONINGWEAPON,USESKILL_FAIL_GUILLONTINE_POISON,0,0);
 		return 0;
 	}
 
@@ -17288,7 +17289,7 @@ int clif_autoshadowspell_list(struct map_session_data *sd) {
 		sd->menuskill_val = c;
 	} else {
 		status_change_end(&sd->bl,SC_STOP,INVALID_TIMER);
-		clif_skill_fail(sd,SC_AUTOSHADOWSPELL,USESKILL_FAIL_IMITATION_SKILL_NONE,0);
+		clif_skill_fail(sd,SC_AUTOSHADOWSPELL,USESKILL_FAIL_IMITATION_SKILL_NONE,0,0);
 	}
 
 	return 1;
@@ -17358,7 +17359,7 @@ void clif_parse_SkillSelectMenu(int fd, struct map_session_data *sd) {
 		return;
 
 	if( pc_istrading(sd) ) {
-		clif_skill_fail(sd,sd->ud.skill_id,0,0);
+		clif_skill_fail(sd,sd->ud.skill_id,0,0,0);
 		clif_menuskill_clear(sd);
 		return;
 	}

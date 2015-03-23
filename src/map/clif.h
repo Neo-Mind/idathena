@@ -279,8 +279,8 @@ enum useskill_fail_cause
 	USESKILL_FAIL_ANCILLA_NUMOVER = 12,
 	USESKILL_FAIL_ANCILLA_NUMOVER2 = 13,
 	USESKILL_FAIL_HOLYWATER = 14,
-	USESKILL_FAIL_DUPLICATE_RANGEIN = 15,
-	USESKILL_FAIL_NEED_OTHER_SKILL = 16,
+	USESKILL_FAIL_ANCILLA = 15,
+	USESKILL_FAIL_DUPLICATE_RANGEIN = 16,
 	USESKILL_FAIL_NEED_HELPER = 17,
 	USESKILL_FAIL_INVALID_DIR = 18,
 	USESKILL_FAIL_SUMMON = 19,
@@ -300,8 +300,8 @@ enum useskill_fail_cause
 	USESKILL_FAIL_MADOGEAR = 33,
 	USESKILL_FAIL_NEED_EQUIPMENT_KUNAI = 34,
 	USESKILL_FAIL_TOTARGET_PLAYER = 35,
-	USESKILL_FAIL_SIZE = 36,
-	USESKILL_FAIL_CANONBALL = 37,
+	USESKILL_FAIL_SIEGE = 36,
+	USESKILL_FAIL_NEED_CANONBALL = 37,
 	//XXX_USESKILL_FAIL_II_MADOGEAR_ACCELERATION = 38,
 	//XXX_USESKILL_FAIL_II_MADOGEAR_HOVERING_BOOSTER = 39,
 	USESKILL_FAIL_MADOGEAR_HOVERING = 40,
@@ -541,7 +541,7 @@ void clif_deleteskill(struct map_session_data *sd, int id);
 
 void clif_skillcasting(struct block_list* bl, int src_id, int dst_id, int dst_x, int dst_y, uint16 skill_id, int property, int casttime);
 void clif_skillcastcancel(struct block_list* bl);
-void clif_skill_fail(struct map_session_data *sd,uint16 skill_id,enum useskill_fail_cause cause,int btype);
+void clif_skill_fail(struct map_session_data *sd,uint16 skill_id,enum useskill_fail_cause cause,int btype,int val);
 void clif_skill_cooldown(struct map_session_data *sd, uint16 skill_id, unsigned int tick);
 void clif_skill_cooldown_list(struct map_session_data *sd, uint16 skill_id, unsigned int tick);
 int clif_skill_damage(struct block_list *src,struct block_list *dst,unsigned int tick,int sdelay,int ddelay,int64 damage,int div,uint16 skill_id,uint16 skill_lv,int type);

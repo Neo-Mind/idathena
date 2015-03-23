@@ -487,14 +487,14 @@ void pc_inventory_rental_clear(struct map_session_data *sd)
 	}
 }
 
-/* Assumes I is valid (from default areas where it is called, it is) */
+//Assumes I is valid (from default areas where it is called, it is)
 void pc_rental_expire(struct map_session_data *sd, int i)
 {
 	unsigned short nameid = sd->status.inventory[i].nameid;
 
-	/* Soon to be dropped, we got plans to integrate it with item db */
+	//Soon to be dropped, we got plans to integrate it with item db
 	switch( nameid ) {
-		case ITEMID_REINS_OF_MOUNT:
+		case ITEMID_BOARDING_HALTER:
 			if( sd->sc.data[SC_ALL_RIDING] )
 				status_change_end(&sd->bl, SC_ALL_RIDING, INVALID_TIMER);
 			break;
@@ -4708,11 +4708,12 @@ int pc_useitem(struct map_session_data *sd, int n)
 
 	//Items with delayed consume are not meant to work while in mounts except reins of mount(12622)
 	if( id->flag.delay_consume ) {
-		if( sd->sc.data[SC_ALL_RIDING] && nameid != ITEMID_REINS_OF_MOUNT )
+		if( sd->sc.data[SC_ALL_RIDING] && nameid != ITEMID_BOARDING_HALTER )
 			return 0;
 		else if( pc_issit(sd) )
 			return 0;
 	}
+
 	//Since most delay-consume items involve using a "skill-type" target cursor,
 	//perform a skill-use check before going through [Skotlex]
 	//resurrection was picked as testing skill, as a non-offensive, generic skill, it will do
@@ -4743,7 +4744,7 @@ int pc_useitem(struct map_session_data *sd, int n)
 				}
 			} else //Not yet used item (all slots are initially empty)
 				sd->item_delay[i].nameid = nameid;
-			if( !(nameid == ITEMID_REINS_OF_MOUNT && sd->sc.option&(OPTION_WUGRIDER|OPTION_RIDING|OPTION_DRAGON|OPTION_MADOGEAR)) )
+			if( !(nameid == ITEMID_BOARDING_HALTER && sd->sc.option&(OPTION_WUGRIDER|OPTION_RIDING|OPTION_DRAGON|OPTION_MADOGEAR)) )
 				sd->item_delay[i].tick = tick + id->delay;
 		} else //Should not happen
 			ShowError("pc_useitem: Exceeded item delay array capacity! (nameid=%hu, char_id=%d)\n", nameid, sd->status.char_id);
@@ -4778,7 +4779,7 @@ int pc_useitem(struct map_session_data *sd, int n)
 	if( id->flag.delay_consume )
 		clif_useitemack(sd,n,amount,true);
 	else {
-		if( item.expire_time == 0 && nameid != ITEMID_REINS_OF_MOUNT ) {
+		if( item.expire_time == 0 && nameid != ITEMID_BOARDING_HALTER ) {
 			clif_useitemack(sd,n,amount - 1,true);
 			pc_delitem(sd,n,1,1,0,LOG_TYPE_CONSUME); //Rental Usable Items are not deleted until expiration
 		} else
@@ -7843,7 +7844,7 @@ void pc_heal(struct map_session_data *sd,unsigned int hp,unsigned int sp, int ty
  *------------------------------------------*/
 int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 {
-	int bonus, tmp;
+	int bonus, tmp, penalty;
 
 	if(hp) {
 		int i;
@@ -7885,28 +7886,33 @@ int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 		if(bonus != 100 && tmp > sp)
 			sp = tmp;
 	}
-	if(sd->sc.count) {
-		if(sd->sc.data[SC_CRITICALWOUND]) {
-			hp -= hp * sd->sc.data[SC_CRITICALWOUND]->val2 / 100;
-			sp -= sp * sd->sc.data[SC_CRITICALWOUND]->val2 / 100;
-		}
-		if(sd->sc.data[SC_DEATHHURT]) {
-			hp -= hp * 20 / 100;
-			sp -= sp * 20 / 100;
-		}
-		if(sd->sc.data[SC_VITALITYACTIVATION]) {
-			hp += hp / 2; // 1.5 times
-			sp -= sp / 2;
-		}
-		if(sd->sc.data[SC_WATER_INSIGNIA] && sd->sc.data[SC_WATER_INSIGNIA]->val1 == 2) {
-			hp += hp / 10;
-			sp += sp / 10;
-		}
-#ifdef RENEWAL
-		if(sd->sc.data[SC_EXTREMITYFIST2])
-			sp = 0;
-#endif
+	if(sd->sc.data[SC_VITALITYACTIVATION]) {
+		hp += hp * 50 / 100;
+		sp -= sp * 50 / 100;
 	}
+	if(sd->sc.data[SC_EXTRACT_WHITE_POTION_Z])
+		hp += hp * sd->sc.data[SC_EXTRACT_WHITE_POTION_Z]->val1 / 100;
+	if(sd->sc.data[SC_VITATA_500])
+		sp += sp * sd->sc.data[SC_VITATA_500]->val1 / 100;
+	if(sd->sc.data[SC_WATER_INSIGNIA] && sd->sc.data[SC_WATER_INSIGNIA]->val1 == 2) {
+		hp += hp / 10;
+		sp += sp / 10;
+	}
+	//Critical Wound and Death Hurt stacks with each other
+	penalty = 0;
+	if(sd->sc.data[SC_CRITICALWOUND])
+		penalty += sd->sc.data[SC_CRITICALWOUND]->val2;
+	if(sd->sc.data[SC_DEATHHURT])
+		penalty += 20;
+	//Apply a penalty to recovery if there is one
+	if(penalty > 0) {
+		hp -= hp * penalty / 100;
+		sp -= sp * penalty / 100;
+	}
+#ifdef RENEWAL
+	if(sd->sc.data[SC_EXTREMITYFIST2])
+		sp = 0;
+#endif
 	return status_heal(&sd->bl,hp,sp,1);
 }
 

@@ -1169,7 +1169,7 @@ int guild_change_emblem(struct map_session_data *sd,int len,const char *data)
 	nullpo_ret(sd);
 
 	if(battle_config.require_glory_guild && !((g = sd->guild) && guild_checkskill(g,GD_GLORYGUILD) > 0)) {
-		clif_skill_fail(sd,GD_GLORYGUILD,USESKILL_FAIL_LEVEL,0);
+		clif_skill_fail(sd,GD_GLORYGUILD,USESKILL_FAIL_LEVEL,0,0);
 		return 0;
 	}
 

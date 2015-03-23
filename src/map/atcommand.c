@@ -7571,8 +7571,7 @@ ACMD_FUNC(version)
  * @mutearea by MouseJstr
  *------------------------------------------*/
 static int atcommand_mutearea_sub(struct block_list *bl,va_list ap)
-{
-	
+{	
 	int time, id;
 	struct map_session_data *pl_sd = (struct map_session_data *)bl;
 

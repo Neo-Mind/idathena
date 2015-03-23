@@ -18,17 +18,16 @@
 12210,60000	// Bubble_Gum
 14538,300000	// Glass_Of_Illusion
 
-// Bifrost Items
 11522,1000	// Red_Raffle_Sap
 11523,2000	// Yellow_Raffle_Sap
 11524,3000	// White_Raffle_Sap
 11525,5000	// Mora_Hip_Tea
 
-12725,120000	// Runstone_Nosiege,Nauthiz Rune
-12726,30000	// Runstone_Rhydo,Raido Rune
-12727,60000	// Runstone_Verkana,Berkana Rune
-12732,1000	// Runstone_Pertz,Wyrd Rune
-22540,60000	// Runstone_Luxanima,Lux Anima Rune
+12725,120000	// Runstone_Nosiege
+12726,30000	// Runstone_Rhydo
+12727,60000	// Runstone_Verkana
+12732,1000	// Runstone_Pertz
+22540,60000	// Runstone_Luxanima
 
 12968,300000	// Emergency_Scroll1
 12969,300000	// Emergency_Scroll2

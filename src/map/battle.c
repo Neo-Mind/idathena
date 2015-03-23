@@ -3882,15 +3882,17 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 			if(sd) {
 				switch(sd->itemid) {
 					case ITEMID_APPLE_BOMB:
-						skillratio += sstatus->str + sstatus->dex + 200;
-						break;
-					case ITEMID_MELON_BOMB:
-						skillratio += sstatus->str + sstatus->dex + 400;
+						skillratio += 200 + sstatus->str + sstatus->dex;
 						break;
 					case ITEMID_COCONUT_BOMB:
 					case ITEMID_PINEAPPLE_BOMB:
+						skillratio += 700 + sstatus->str + sstatus->dex;
+						break;
+					case ITEMID_MELON_BOMB:
+						skillratio += 400 + sstatus->str + sstatus->dex;
+						break;
 					case ITEMID_BANANA_BOMB:
-						skillratio += sstatus->str + sstatus->dex + 700;
+						skillratio += 777 + sstatus->str + sstatus->dex;
 						break;
 					case ITEMID_BLACK_LUMP:
 						skillratio += -100 + (sstatus->str + sstatus->agi + sstatus->dex) / 3;
@@ -3902,6 +3904,7 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 						skillratio += -100 + sstatus->str + sstatus->agi + sstatus->dex;
 						break;
 				}
+				RE_LVL_DMOD(100);
 			}
 			break;
 		case SO_VARETYR_SPEAR:
@@ -7121,7 +7124,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 
 			if (index < 0) {
 				if (sd->weapontype1 > W_KATAR || sd->weapontype1 < W_HUUMA)
-					clif_skill_fail(sd,0,USESKILL_FAIL_NEED_MORE_BULLET,0);
+					clif_skill_fail(sd,0,USESKILL_FAIL_NEED_MORE_BULLET,0,0);
 				else
 					clif_arrow_fail(sd,0);
 				return ATK_NONE;
@@ -7140,13 +7143,13 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 					case W_GATLING:
 					case W_SHOTGUN:
 						if (sd->inventory_data[index]->look != A_BULLET) {
-							clif_skill_fail(sd,0,USESKILL_FAIL_NEED_MORE_BULLET,0);
+							clif_skill_fail(sd,0,USESKILL_FAIL_NEED_MORE_BULLET,0,0);
 							return ATK_NONE;
 						}
 						break;
 					case W_GRENADE:
 						if (sd->inventory_data[index]->look != A_GRENADE) {
-							clif_skill_fail(sd,0,USESKILL_FAIL_NEED_MORE_BULLET,0);
+							clif_skill_fail(sd,0,USESKILL_FAIL_NEED_MORE_BULLET,0,0);
 							return ATK_NONE;
 						}
 						break;
@@ -7452,7 +7455,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 							type = -1;
 					}
 					if (type != CAST_GROUND) {
-						clif_skill_fail(sd,r_skill,USESKILL_FAIL_LEVEL,0);
+						clif_skill_fail(sd,r_skill,USESKILL_FAIL_LEVEL,0,0);
 						map_freeblock_unlock();
 						return wd.dmg_lv;
 					}

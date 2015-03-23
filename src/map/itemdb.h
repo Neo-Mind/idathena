@@ -98,7 +98,7 @@ enum item_itemid {
 	ITEMID_FRAGMENT_OF_CRYSTAL = 7321,
 	ITEMID_SKULL_ = 7420,
 	ITEMID_TOKEN_OF_SIEGFRIED = 7621,
-	ITEMID_TRAP_ALLOY = 7940,
+	ITEMID_SPECIAL_ALLOY_TRAP = 7940,
 	ITEMID_MERCENARY_RED_POTION = 12184,
 	ITEMID_MERCENARY_BLUE_POTION,
 	ITEMID_BATTLE_MANUAL = 12208,
@@ -126,7 +126,7 @@ enum item_itemid {
 	ITEMID_KID,
 	ITEMID_MAGIC_CASTLE,
 	ITEMID_BULGING_HEAD,
-	ITEMID_REINS_OF_MOUNT = 12622,
+	ITEMID_BOARDING_HALTER = 12622,
 	ITEMID_DUN_TELE_SCROLL1 = 14527,
 	ITEMID_BATTLE_MANUAL25 = 14532,
 	ITEMID_BATTLE_MANUAL100,
@@ -211,7 +211,7 @@ enum genetic_item_list {
 	ITEMID_SP_INCREASE_POTION_SMALL,
 	ITEMID_SP_INCREASE_POTION_MEDIUM,
 	ITEMID_SP_INCREASE_POTION_LARGE,
-	ITEMID_CONCENTRATED_WHITE_POTION_Z,
+	ITEMID_ENRICH_WHITE_POTION_Z,
 	ITEMID_SAVAGE_FULL_ROAST,
 	ITEMID_COCKTAIL_WARG_BLOOD,
 	ITEMID_MINOR_STEW,
@@ -220,7 +220,7 @@ enum genetic_item_list {
 	ITEMID_PETITE_TAIL_NOODLES,
 	ITEMID_BLACK_MASS,
 	ITEMID_VITATA500,
-	ITEMID_CONCENTRATED_CEROMAIN_SOUP,
+	ITEMID_ENRICH_CELERMINE_JUICE,
 	ITEMID_CURE_FREE = 12475,
 	ITEMID_APPLE_BOMB = 13260,
 	ITEMID_COCONUT_BOMB,
@@ -462,14 +462,14 @@ struct item_data* itemdb_exists(unsigned short nameid);
 #define itemdb_traderight(n) (itemdb_search(n)->flag.trade_restriction)
 #define itemdb_viewid(n) (itemdb_search(n)->view_id)
 #define itemdb_autoequip(n) (itemdb_search(n)->flag.autoequip)
-#define itemdb_is_rune(n) ((n >= ITEMID_NAUTHIZ && n <= ITEMID_HAGALAZ) || n == ITEMID_LUX_ANIMA)
-#define itemdb_is_element(n) (n >= ITEMID_SCARLET_PTS && n <= ITEMID_LIME_GREEN_PTS)
-#define itemdb_is_spellbook(n) (n >= ITEMID_MAGIC_BOOK_FB && n <= ITEMID_MAGIC_BOOK_DL)
-#define itemdb_is_poison(n) (n >= ITEMID_PARALYSE && n <= ITEMID_VENOMBLEED)
-#define itemid_isgemstone(id) ((id) >= ITEMID_YELLOW_GEMSTONE && (id) <= ITEMID_BLUE_GEMSTONE)
-#define itemdb_iscashfood(id) ((id) >= ITEMID_STR_DISH10_ && (id) <= ITEMID_VIT_DISH10_)
-#define itemdb_is_GNbomb(n) (n >= ITEMID_APPLE_BOMB && n <= ITEMID_VERY_HARD_LUMP)
-#define itemdb_is_GNthrowable(n) (n >= ITEMID_MYSTERIOUS_POWDER && n <= ITEMID_BLACK_THING_TO_THROW)
+#define itemdb_is_rune(n) (((n) >= ITEMID_NAUTHIZ && (n) <= ITEMID_HAGALAZ) || (n) == ITEMID_LUX_ANIMA)
+#define itemdb_is_element(n) ((n) >= ITEMID_SCARLET_PTS && (n) <= ITEMID_LIME_GREEN_PTS)
+#define itemdb_is_spellbook(n) ((n) >= ITEMID_MAGIC_BOOK_FB && (n) <= ITEMID_MAGIC_BOOK_DL)
+#define itemdb_is_poison(n) ((n) >= ITEMID_PARALYSE && (n) <= ITEMID_VENOMBLEED)
+#define itemid_isgemstone(n) ((n) >= ITEMID_YELLOW_GEMSTONE && (n) <= ITEMID_BLUE_GEMSTONE)
+#define itemdb_iscashfood(n) ((n) >= ITEMID_STR_DISH10_ && (n) <= ITEMID_VIT_DISH10_)
+#define itemid_is_sling_atk(n) ((n) >= ITEMID_APPLE_BOMB && (n) <= ITEMID_VERY_HARD_LUMP)
+#define itemid_is_sling_buff(n) ((n) >= ITEMID_MYSTERIOUS_POWDER && (n) <= ITEMID_BLACK_THING_TO_THROW)
 const char* itemdb_typename(enum item_types type);
 const char *itemdb_typename_ammo (enum e_item_ammo ammo);
 bool itemdb_is_spellbook2(unsigned short nameid);
