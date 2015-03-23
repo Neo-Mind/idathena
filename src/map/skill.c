@@ -15171,7 +15171,7 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 			if( !reqeqit )
 				break; //No more required item get out of here
 			if( !pc_checkequip2(sd,reqeqit,EQI_ACC_L,EQI_MAX) ) {
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_EQUIPMENT,itemdb_jname(reqeqit),0);
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_NEED_EQUIPMENT,0,reqeqit);
 				return false;
 			}
 		}
