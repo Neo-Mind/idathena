@@ -3753,7 +3753,7 @@ ACMD_FUNC(reload)
 		packetdb_readdb(true);
 		clif_displaymessage(fd, msg_txt(1478)); // Packet database has been reloaded.
 	} else if (strstr(command, "instancedb") || strncmp(message, "instancedb", 4) == 0) {
-		instance_readdb();
+		instance_reload();
 		clif_displaymessage(fd, msg_txt(516)); // Instance database has been reloaded.
 	}
 
