@@ -5604,7 +5604,7 @@ int char_config_read(const char* cfgName)
 			safestrncpy(timestamp_format, w2, sizeof(timestamp_format));
 		else if(strcmpi(w1,"console_silent") == 0) {
 			msg_silent = atoi(w2);
-			if(msg_silent) /* Only bother if its actually enabled */
+			if(msg_silent) //Only bother if its actually enabled
 				ShowInfo("Console Silent Setting: %d\n", atoi(w2));
 		} else if(strcmpi(w1, "stdout_with_ansisequence") == 0)
 			stdout_with_ansisequence = config_switch(w2);
@@ -5838,7 +5838,7 @@ void do_shutdown(void)
 
 		runflag = CHARSERVER_ST_SHUTDOWN;
 		ShowStatus("Shutting down...\n");
-		//TODO proper shutdown procedure; wait for acks?, kick all characters, ... [FlavoJS]
+		//TODO: Proper shutdown procedure; wait for acks?, kick all characters, ... [FlavoJS]
 		for(id = 0; id < ARRAYLENGTH(server); ++id)
 			mapif_server_reset(id);
 		loginif_check_shutdown();
