@@ -5720,12 +5720,12 @@ int pc_mapid2jobid(unsigned short class_, int sex)
 		case MAPID_ASSASSIN:              return JOB_ASSASSIN;
 		case MAPID_STAR_GLADIATOR:        return JOB_STAR_GLADIATOR;
 		case MAPID_REBELLION:             return JOB_REBELLION;
-		case MAPID_KAGEROUOBORO:          return sex ? JOB_KAGEROU : JOB_OBORO;
+		case MAPID_KAGEROUOBORO:          return (sex ? JOB_KAGEROU : JOB_OBORO);
 		case MAPID_DEATH_KNIGHT:          return JOB_DEATH_KNIGHT;
 		//2-2 Jobs
 		case MAPID_CRUSADER:              return JOB_CRUSADER;
 		case MAPID_SAGE:                  return JOB_SAGE;
-		case MAPID_BARDDANCER:            return sex ? JOB_BARD : JOB_DANCER;
+		case MAPID_BARDDANCER:            return (sex ? JOB_BARD : JOB_DANCER);
 		case MAPID_MONK:                  return JOB_MONK;
 		case MAPID_ALCHEMIST:             return JOB_ALCHEMIST;
 		case MAPID_ROGUE:                 return JOB_ROGUE;
@@ -5749,7 +5749,7 @@ int pc_mapid2jobid(unsigned short class_, int sex)
 		//Trans 2-2 Jobs
 		case MAPID_PALADIN:               return JOB_PALADIN;
 		case MAPID_PROFESSOR:             return JOB_PROFESSOR;
-		case MAPID_CLOWNGYPSY:            return sex ? JOB_CLOWN : JOB_GYPSY;
+		case MAPID_CLOWNGYPSY:            return (sex ? JOB_CLOWN : JOB_GYPSY);
 		case MAPID_CHAMPION:              return JOB_CHAMPION;
 		case MAPID_CREATOR:               return JOB_CREATOR;
 		case MAPID_STALKER:               return JOB_STALKER;
@@ -5772,7 +5772,7 @@ int pc_mapid2jobid(unsigned short class_, int sex)
 		//Baby 2-2 Jobs
 		case MAPID_BABY_CRUSADER:         return JOB_BABY_CRUSADER;
 		case MAPID_BABY_SAGE:             return JOB_BABY_SAGE;
-		case MAPID_BABY_BARDDANCER:       return sex ? JOB_BABY_BARD : JOB_BABY_DANCER;
+		case MAPID_BABY_BARDDANCER:       return (sex ? JOB_BABY_BARD : JOB_BABY_DANCER);
 		case MAPID_BABY_MONK:             return JOB_BABY_MONK;
 		case MAPID_BABY_ALCHEMIST:        return JOB_BABY_ALCHEMIST;
 		case MAPID_BABY_ROGUE:            return JOB_BABY_ROGUE;
@@ -5787,7 +5787,7 @@ int pc_mapid2jobid(unsigned short class_, int sex)
 		//3-2 Jobs
 		case MAPID_ROYAL_GUARD:           return JOB_ROYAL_GUARD;
 		case MAPID_SORCERER:              return JOB_SORCERER;
-		case MAPID_MINSTRELWANDERER:      return sex ? JOB_MINSTREL : JOB_WANDERER;
+		case MAPID_MINSTRELWANDERER:      return (sex ? JOB_MINSTREL : JOB_WANDERER);
 		case MAPID_SURA:                  return JOB_SURA;
 		case MAPID_GENETIC:               return JOB_GENETIC;
 		case MAPID_SHADOW_CHASER:         return JOB_SHADOW_CHASER;
@@ -5801,7 +5801,7 @@ int pc_mapid2jobid(unsigned short class_, int sex)
 		//Trans 3-2 Jobs
 		case MAPID_ROYAL_GUARD_T:         return JOB_ROYAL_GUARD_T;
 		case MAPID_SORCERER_T:            return JOB_SORCERER_T;
-		case MAPID_MINSTRELWANDERER_T:    return sex ? JOB_MINSTREL_T : JOB_WANDERER_T;
+		case MAPID_MINSTRELWANDERER_T:    return (sex ? JOB_MINSTREL_T : JOB_WANDERER_T);
 		case MAPID_SURA_T:                return JOB_SURA_T;
 		case MAPID_GENETIC_T:             return JOB_GENETIC_T;
 		case MAPID_SHADOW_CHASER_T:       return JOB_SHADOW_CHASER_T;
@@ -5816,7 +5816,7 @@ int pc_mapid2jobid(unsigned short class_, int sex)
 		//Baby 3-2 Jobs
 		case MAPID_BABY_GUARD:            return JOB_BABY_GUARD;
 		case MAPID_BABY_SORCERER:         return JOB_BABY_SORCERER;
-		case MAPID_BABY_MINSTRELWANDERER: return sex ? JOB_BABY_MINSTREL : JOB_BABY_WANDERER;
+		case MAPID_BABY_MINSTRELWANDERER: return (sex ? JOB_BABY_MINSTREL : JOB_BABY_WANDERER);
 		case MAPID_BABY_SURA:             return JOB_BABY_SURA;
 		case MAPID_BABY_GENETIC:          return JOB_BABY_GENETIC;
 		case MAPID_BABY_CHASER:           return JOB_BABY_CHASER;
