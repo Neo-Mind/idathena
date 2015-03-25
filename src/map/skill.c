@@ -2982,7 +2982,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 			if (src->type == BL_PC)
 				dmg.blewcount = 10;
 			dmg.amotion = 0; //Disable delay or attack will do no damage since source is dead by the time it takes effect [Skotlex]
-			//Fall through
+		//Fall through
 		case KN_AUTOCOUNTER:
 		case NPC_CRITICALSLASH:
 		case TF_DOUBLE:
@@ -3011,29 +3011,15 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 		case WL_TETRAVORTEX_FIRE:
 			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, WL_TETRAVORTEX_WIND, -1, DMG_SPLASH);
 			break;
+		case MG_FIREBALL:
 		case WL_TETRAVORTEX_WATER:
 		case WL_TETRAVORTEX_WIND:
 		case WL_TETRAVORTEX_GROUND:
-			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, DMG_SPLASH);
-			break;
-		case SC_FEINTBOMB:
-			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, DMG_SPLASH);
-			break;
-		case GN_FIRE_EXPANSION_ACID:
-			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, CR_ACIDDEMONSTRATION, skill_lv, DMG_MULTI_HIT);
-			break;
-		case GN_SLINGITEM_RANGEMELEEATK: //Server sends a skill level of 65534 and type 6. Interesting [Rytech]
-			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, 65534, DMG_SKILL);
-			break;
-		case LG_OVERBRAND:
-		case LG_OVERBRAND_BRANDISH:
-			dmg.amotion = status_get_amotion(src) * 2;
-		case LG_OVERBRAND_PLUSATK:
-		case RL_R_TRIP_PLUSATK:
-		case RL_S_STORM:
-		case RL_SLUGSHOT:
-			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, status_get_amotion(src), dmg.dmotion, damage, dmg.div_, skill_id, -1, DMG_SPLASH);
-			break;
+		case NC_ARMSCANNON:
+		case NC_MAGMA_ERUPTION:
+		case GN_CARTCANNON:
+		case GN_CRAZYWEED_ATK:
+		case GN_ILLUSIONDOPING:
 		case EL_FIRE_BOMB:
 		case EL_FIRE_BOMB_ATK:
 		case EL_FIRE_WAVE:
@@ -3052,13 +3038,27 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 		case EL_HURRICANE_ATK:
 		case EL_TYPOON_MIS:
 		case EL_TYPOON_MIS_ATK:
-		case NC_ARMSCANNON:
-		case GN_CARTCANNON:
-		case GN_CRAZYWEED_ATK:
 		case KO_BAKURETSU:
-		case NC_MAGMA_ERUPTION:
-		case GN_ILLUSIONDOPING:
 			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, DMG_SPLASH);
+			break;
+		case SC_FEINTBOMB:
+			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, DMG_SPLASH);
+			break;
+		case GN_FIRE_EXPANSION_ACID:
+			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, CR_ACIDDEMONSTRATION, skill_lv, DMG_MULTI_HIT);
+			break;
+		case GN_SLINGITEM_RANGEMELEEATK: //Interesting, server sends a skill level of 65534 and DMG_SKILL type [Rytech]
+			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, 65534, DMG_SKILL);
+			break;
+		case LG_OVERBRAND:
+		case LG_OVERBRAND_BRANDISH:
+			dmg.amotion = status_get_amotion(src) * 2;
+		//Fall through
+		case LG_OVERBRAND_PLUSATK:
+		case RL_R_TRIP_PLUSATK:
+		case RL_S_STORM:
+		case RL_SLUGSHOT:
+			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, status_get_amotion(src), dmg.dmotion, damage, dmg.div_, skill_id, -1, DMG_SPLASH);
 			break;
 		case EL_STONE_RAIN:
 			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, (flag&1) ? DMG_MULTI_HIT : DMG_SPLASH);
@@ -3070,6 +3070,7 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 		case WM_REVERBERATION_MAGIC:
 			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, WM_REVERBERATION, -2, DMG_SKILL);
 			break;
+		case WZ_SIGHTBLASTER:
 		case HT_CLAYMORETRAP:
 		case HT_BLASTMINE:
 		case HT_FLASHER:
@@ -3083,12 +3084,10 @@ int skill_attack(int attack_type, struct block_list* src, struct block_list *dsr
 		case HT_LANDMINE:
 			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, type);
 			break;
-		case WZ_SIGHTBLASTER:
-			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, (flag&SD_LEVEL) ? -1 : skill_lv, DMG_SPLASH);
-			break;
 		case AB_DUPLELIGHT_MELEE:
 		case AB_DUPLELIGHT_MAGIC:
 			dmg.amotion = 300; //Makes the damage value not overlap with previous damage (when displayed by the client)
+		//Fall through
 		default:
 			if ((flag&SD_ANIMATION) && dmg.div_ < 2) //Disabling skill animation doesn't works on multi-hit
 				type = DMG_SPLASH;
@@ -4357,6 +4356,8 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 					sflag |= SD_ANIMATION; //Original target gets no animation (as well as all NPC skills)
 				if (tsc && tsc->data[SC_HOVERING] && (skill_id == LG_MOONSLASHER || skill_id == SR_WINDMILL))
 					break;
+				if (skill_id == MG_FIREBALL)
+					sflag |= distance_xy(bl->x,bl->y,skill_area_temp[4],skill_area_temp[5]);
 				heal = (int)skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,sflag);
 				if (skill_id == NPC_VAMPIRE_GIFT && heal > 0) {
 					clif_skill_nodamage(NULL,src,AL_HEAL,heal,1);
@@ -4379,7 +4380,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 				skill_area_temp[0] = 0;
 				skill_area_temp[1] = bl->id;
 				skill_area_temp[2] = 0;
-				if (skill_id == WL_CRIMSONROCK) {
+				if (skill_id == MG_FIREBALL || skill_id == WL_CRIMSONROCK) {
 					skill_area_temp[4] = bl->x;
 					skill_area_temp[5] = bl->y;
 				}
@@ -8969,7 +8970,6 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			if( flag&1 ) {
 				if( bl->id == skill_area_temp[1] )
 					break; //Already work on this target
-
 				if( tsc->data[SC_STONE] )
 					status_change_end(bl,SC_STONE,INVALID_TIMER);
 				else
@@ -11258,6 +11258,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 					return 0; //Don't consume gems if cast on LP
 				}
 			}
+		//Fall through
 		case MG_FIREWALL:
 		case MG_THUNDERSTORM:
 		case AL_PNEUMA:
@@ -12499,8 +12500,8 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 			break;
 		case WL_COMET:
 			if( sc ) {
-				sc->comet_x = x;
-				sc->comet_y = y;
+				sc->pos_x = x;
+				sc->pos_y = y;
 			}
 			break;
 		case SC_CHAOSPANIC:
@@ -14169,13 +14170,11 @@ int skill_check_condition_char_sub(struct block_list *bl, va_list ap)
 					p_sd[(*c)++] = tsd->bl.id;
 				return 1;
 			}
-			case AB_ADORAMUS:
-				//Adoramus does not consume Blue Gemstone when there is at least 1 Priest class next to the caster
+			case AB_ADORAMUS: //Doesn't consume Blue Gemstone when there is at least 1 Priest class next to the caster
 				if( (tsd->class_&MAPID_UPPERMASK) == MAPID_PRIEST )
 					p_sd[(*c)++] = tsd->bl.id;
 				return 1;
-			case WL_COMET:
-				//Comet does not consume Red Gemstones when there is at least 1 Warlock class next to the caster
+			case WL_COMET: //Doesn't consume Red Gemstones when there is at least 1 Warlock class next to the caster
 				if( (tsd->class_&MAPID_THIRDMASK) == MAPID_WARLOCK )
 					p_sd[(*c)++] = tsd->bl.id;
 				return 1;
@@ -19179,9 +19178,9 @@ int skill_magicdecoy(struct map_session_data *sd, unsigned short nameid) {
 
 	//Spawn Position
 	pc_delitem(sd,i,1,0,0,LOG_TYPE_CONSUME);
-	x = sd->sc.comet_x;
-	y = sd->sc.comet_y;
-	sd->sc.comet_x = sd->sc.comet_y = 0;
+	x = sd->sc.pos_x;
+	y = sd->sc.pos_y;
+	sd->sc.pos_x = sd->sc.pos_y = 0;
 
 	//Item picked decides the mob class
 	switch( nameid ) {

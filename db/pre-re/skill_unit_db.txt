@@ -11,9 +11,9 @@
 //      0x0004(UF_NOFOOTSET)		Spell cannot be cast near/on targets
 //      0x0008(UF_NOOVERLAP)		Spell effects do not overlap
 //      0x0010(UF_PATHCHECK)		Only cells with a shootable path will be placed
-//      0x0020(UF_NOPC)			Spell cannot affect players.
-//      0x0040(UF_NOMOB)		Spell cannot affect mobs.
-//      0x0080(UF_SKILL)		Spell can affect skills.
+//      0x0020(UF_NOPC)			Spell cannot affect players
+//      0x0040(UF_NOMOB)		Spell cannot affect mobs
+//      0x0080(UF_SKILL)		Spell can affect skills
 //      0x0100(UF_DANCE)		Dance skill
 //      0x0200(UF_ENSEMBLE)		Ensemble skill
 //      0x0400(UF_SONG)			Song skill

@@ -1976,7 +1976,7 @@ struct status_change {
 		unsigned char chat;
 	} cant; //Status change state flags
 	//int sg_id; //ID of the previous Storm gust that hit you
-	short comet_x, comet_y; //Point where src casted Comet - required to calculate damage from this point
+	short pos_x, pos_y; //Point where src casted
 
 //The Storm Gust counter was dropped in renewal
 #ifndef RENEWAL

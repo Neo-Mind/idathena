@@ -5021,7 +5021,7 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 				break;
 		}
 	} else
-		wd.flag |= is_skill_using_arrow(src,skill_id) ? BF_LONG : BF_SHORT;
+		wd.flag |= (is_skill_using_arrow(src,skill_id) ? BF_LONG : BF_SHORT);
 
 	return wd;
 }
@@ -5524,6 +5524,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	ad.amotion = (skill_get_inf(skill_id)&INF_GROUND_SKILL ? 0 : sstatus->amotion);
 	ad.dmotion = tstatus->dmotion;
 	ad.blewcount = skill_get_blewcount(skill_id, skill_lv);
+	ad.miscflag = mflag;
 	ad.flag = BF_MAGIC|BF_SKILL;
 	ad.dmg_lv = ATK_DEF;
 	nk = skill_get_nk(skill_id);
@@ -5656,7 +5657,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				ad.damage = tstatus->sp * 2;
 				break;
 			case NPC_EARTHQUAKE: {
-					struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, mflag);
+					struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, ad.miscflag);
 
 					ad.damage = wd.damage;
 				}
@@ -5678,8 +5679,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 				//Divide MATK in case of multiple targets skill
 				if(nk&NK_SPLASHSPLIT) {
-					if(mflag > 0)
-						ad.damage /= mflag;
+					if(ad.miscflag > 0)
+						ad.damage /= ad.miscflag;
 					else
 						ShowError("0 enemies targeted by %d:%s, divide per 0 avoided!\n", skill_id, skill_get_name(skill_id));
 				}
@@ -5690,10 +5691,12 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						break;
 					case MG_FIREBALL:
 #ifdef RENEWAL
-						skillratio += 20 * skill_lv;
+						skillratio += 40 + 20 * skill_lv;
 #else
 						skillratio += -30 + 10 * skill_lv;
 #endif
+						if(ad.miscflag == 2) //Enemies at the edge of the area will take 75% of the damage
+							skillratio = skillratio * 3 / 4;
 						break;
 					case MG_SOULSTRIKE:
 						if(battle_check_undead(tstatus->race,tstatus->def_ele))
@@ -5705,7 +5708,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					case MG_FIREBOLT:
 					case MG_COLDBOLT:
 					case MG_LIGHTNINGBOLT:
-						if(sc && sc->data[SC_SPELLFIST] && mflag&BF_SHORT) {
+						if(sc && sc->data[SC_SPELLFIST] && ad.miscflag&BF_SHORT) {
 							//val1 = used spellfist level, val4 = used bolt level [Rytech]
 							skillratio += -100 + (sc->data[SC_SPELLFIST]->val1 * 50) + (sc->data[SC_SPELLFIST]->val4 * 100);
 							ad.div_ = 1; //ad mods, to make it work similar to regular hits [Xazax]
@@ -5714,7 +5717,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						}
 						break;
 					case MG_THUNDERSTORM:
-						//In Renewal Thunder Storm boost is 100% (in pre-re, 80%)
+						//In renewal Thunder Storm boost is 100% (in pre-re, 80%)
 #ifndef RENEWAL
 						skillratio -= 20;
 #endif
@@ -5855,25 +5858,25 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						RE_LVL_DMOD(100);
 						//Shadow: MATK [{( Skill Level x 300 ) x ( Caster's Base Level / 100 ) x 4/5 }] %
 						//Fire : MATK [{( Skill Level x 300 ) x ( Caster's Base Level / 100 ) /5 }] %
-						if(mflag&ELE_DARK) {
+						if(ad.miscflag&ELE_DARK) {
 							skillratio *= 4;
 							s_ele = ELE_DARK;
 						}
 						skillratio /= 5;
 						break;
 					case WL_COMET:
-						i = (sc ? distance_xy(target->x, target->y, sc->comet_x, sc->comet_y) : 8);
-						if(i <= 3) 
+						i = (sc ? distance_xy(target->x, target->y, sc->pos_x, sc->pos_y) : 8);
+						if(i <= 3)
 							skillratio += 2400 + 500 * skill_lv; //7 x 7 cell
-						else if(i <= 5) 
+						else if(i <= 5)
 							skillratio += 1900 + 500 * skill_lv; //11 x 11 cell
-						else if(i <= 7) 
+						else if(i <= 7)
 							skillratio += 1400 + 500 * skill_lv; //15 x 15 cell
 						else
 							skillratio += 900 + 500 * skill_lv; //19 x 19 cell
 
 						if(sd && sd->status.party_id) {
-							struct map_session_data* psd;
+							struct map_session_data *psd;
 							int p_sd[5] = {0, 0, 0, 0, 0}, c; //Just limit it to 5
 
 							c = 0;
@@ -5893,8 +5896,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					case WL_CHAINLIGHTNING_ATK:
 						skillratio += 400 + 100 * skill_lv;
 						RE_LVL_DMOD(100);
-						if(mflag > 0)
-							skillratio += 100 * (9 - mflag);
+						if(ad.miscflag > 0)
+							skillratio += 100 * (9 - ad.miscflag);
 						break;
 					case WL_EARTHSTRAIN:
 						skillratio += 1900 + 100 * skill_lv;
@@ -6285,7 +6288,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			case CR_GRANDCROSS:
 			case NPC_GRANDDARKNESS:
 				{
-					struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, mflag);
+					struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, ad.miscflag);
 
 					ad.damage = battle_attr_fix(src, target, wd.damage + ad.damage, s_ele, tstatus->def_ele, tstatus->ele_lv) * (100 + 40 * skill_lv) / 100;
 					if(src == target) {
@@ -6297,7 +6300,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				}
 				break;
 			case SO_VARETYR_SPEAR: {
-					struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, mflag);
+					struct Damage wd = battle_calc_weapon_attack(src, target, skill_id, skill_lv, ad.miscflag);
 
 					ad.damage += wd.damage;
 				}
@@ -6377,9 +6380,9 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	md.dmotion = tstatus->dmotion;
 	md.div_ = skill_get_num(skill_id,skill_lv);
 	md.blewcount = skill_get_blewcount(skill_id,skill_lv);
-	md.dmg_lv = ATK_DEF;
+	md.miscflag = mflag;
 	md.flag = BF_MISC|BF_SKILL;
-
+	md.dmg_lv = ATK_DEF;
 	nk = skill_get_nk(skill_id);
 
 	sd = BL_CAST(BL_PC,src);
@@ -6438,7 +6441,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				if(!sd || !(skill = pc_checkskill(sd,HT_STEELCROW)))
 					skill = 0;
 				md.damage = (sstatus->dex / 10 + sstatus->int_ / 2 + skill * 3 + 40) * 2;
-				if(mflag > 1) //Autocasted Blitz
+				if(md.miscflag > 1) //Autocasted Blitz
 					nk |= NK_SPLASHSPLIT;
 				if(skill_id == SN_FALCONASSAULT) {
 					//Div fix of Blitzbeat
@@ -6480,8 +6483,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				//Damage = 7 * ((atk + matk) / skill level) * (target vit / 100)
 				struct Damage atk, matk;
 
-				atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
-				matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,mflag);
+				atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,md.miscflag);
+				matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,md.miscflag);
 				md.damage = (int64)(7 * ((atk.damage / skill_lv + matk.damage / skill_lv) * tstatus->vit / 100));
 			}
 #else
@@ -6512,7 +6515,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				//Official Renewal formula [helvetica]
 				//Base damage = currenthp + ((atk * currenthp * skill level) / maxhp)
 				//Final damage = base damage + ((mirror image count + 1) / 5 * base damage) - (edef + sdef)
-				struct Damage atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
+				struct Damage atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,md.miscflag);
 				struct status_change *sc = status_get_sc(src);
 				short totaldef;
 
@@ -6551,9 +6554,9 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				short totaldef, totalmdef;
 				struct Damage atk, matk;
 
-				atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
+				atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,md.miscflag);
 				nk |= NK_NO_ELEFIX; //Atk part takes on weapon element, matk part is non-elemental
-				matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,mflag);
+				matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,md.miscflag);
 				//(Atk + Matk) * (3 + (.5 * skill level))
 				md.damage = ((30 + (5 * skill_lv)) * (atk.damage + matk.damage)) / 10;
 				//Modified def reduction, final damage = base damage - (edef + sdef + emdef + smdef)
@@ -6625,8 +6628,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	}
 
 	if(nk&NK_SPLASHSPLIT) { //Divide ATK among targets
-		if(mflag > 0)
-			md.damage /= mflag;
+		if(md.miscflag > 0)
+			md.damage /= md.miscflag;
 		else
 			ShowError("0 enemies targeted by %d:%s, divide per 0 avoided!\n",skill_id,skill_get_name(skill_id));
 	}
@@ -6737,7 +6740,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		//Fall through
 		case RA_CLUSTERBOMB:
 			{
-				struct Damage wd = battle_calc_weapon_attack(src,target,skill_id,skill_lv,mflag);
+				struct Damage wd = battle_calc_weapon_attack(src,target,skill_id,skill_lv,md.miscflag);
 
 				md.damage += wd.damage;
 			}

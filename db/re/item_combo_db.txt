@@ -61,8 +61,8 @@
 1745:18541,{ if(getequiprefinerycnt(EQI_HAND_R) > 9) bonus2 bVariableCastRate,"SN_SHARPSHOOTING",-50; }
 1746:1773,{ bonus bLongAtkRate,50; }
 1764:18541,{ bonus bCritAtkRate,5; if(getequiprefinerycnt(EQI_HEAD_TOP) > 6) bonus bCritAtkRate,5; }
-1775:18114,{ bonus bLongAtkRate,40; }
-1776:18114,{ bonus bLongAtkRate,70; }
+1775:18114,{ bonus bLongAtkRate,70; }
+1776:18114,{ bonus bLongAtkRate,40; }
 1990:2989,{ bonus2 bSkillAtk,"CG_ARROWVULCAN",200; }
 2001:2677,{ bonus bMatkRate,10; bonus bDex,2; bonus2 bSubRace,RC_Demon,10; bonus2 bSubRace,RC_Undead,10; }
 2001:2711,{ bonus bMatkRate,10; bonus bDex,2; bonus2 bSubRace,RC_Demon,10; bonus2 bSubRace,RC_Undead,10; }

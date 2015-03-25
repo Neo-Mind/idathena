@@ -10526,8 +10526,8 @@ int status_change_clear(struct block_list* bl,int type)
 	sc->opt3 = 0;
 
 	//Cleaning all extras vars
-	sc->comet_x = 0;
-	sc->comet_y = 0;
+	sc->pos_x = 0;
+	sc->pos_y = 0;
 #ifndef RENEWAL
 	sc->sg_counter = 0;
 #endif
@@ -12543,8 +12543,8 @@ void status_change_clear_buffs(struct block_list* bl, int type)
 	}
 
 	//Cleaning all extras vars
-	sc->comet_x = 0;
-	sc->comet_y = 0;
+	sc->pos_x = 0;
+	sc->pos_y = 0;
 #ifndef RENEWAL
 	sc->sg_counter = 0;
 #endif
