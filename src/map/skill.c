@@ -4356,8 +4356,10 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 					sflag |= SD_ANIMATION; //Original target gets no animation (as well as all NPC skills)
 				if (tsc && tsc->data[SC_HOVERING] && (skill_id == LG_MOONSLASHER || skill_id == SR_WINDMILL))
 					break;
+#ifdef RENEWAL
 				if (skill_id == MG_FIREBALL)
 					sflag |= distance_xy(bl->x,bl->y,skill_area_temp[4],skill_area_temp[5]);
+#endif
 				heal = (int)skill_attack(skill_get_type(skill_id),src,src,bl,skill_id,skill_lv,tick,sflag);
 				if (skill_id == NPC_VAMPIRE_GIFT && heal > 0) {
 					clif_skill_nodamage(NULL,src,AL_HEAL,heal,1);
@@ -4380,7 +4382,12 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 				skill_area_temp[0] = 0;
 				skill_area_temp[1] = bl->id;
 				skill_area_temp[2] = 0;
-				if (skill_id == MG_FIREBALL || skill_id == WL_CRIMSONROCK) {
+				if (
+#ifdef RENEWAL
+					skill_id == MG_FIREBALL ||
+#endif
+					skill_id == WL_CRIMSONROCK)
+				{
 					skill_area_temp[4] = bl->x;
 					skill_area_temp[5] = bl->y;
 				}
