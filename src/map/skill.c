@@ -10429,7 +10429,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 						if( sum_md->deletetimer != INVALID_TIMER )
 							delete_timer(sum_md->deletetimer,mob_timer_delete);
 						sum_md->deletetimer = add_timer(gettick() + skill_get_time(skill_id,skill_lv),mob_timer_delete,sum_md->bl.id,0);
-						mob_spawn(sum_md); //Now it is ready for spawning.
+						mob_spawn(sum_md); //Now it is ready for spawning
 						sc_start4(&sum_md->bl,&sum_md->bl,SC_MODECHANGE,100,1,0,MD_CANATTACK|MD_AGGRESSIVE,0,60000);
 					}
 				}
@@ -11482,7 +11482,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 					if( md->deletetimer != INVALID_TIMER )
 						delete_timer(md->deletetimer,mob_timer_delete);
 					md->deletetimer = add_timer(gettick() + skill_get_time(skill_id,skill_lv),mob_timer_delete,md->bl.id,0);
-					mob_spawn(md); //Now it is ready for spawning.
+					mob_spawn(md); //Now it is ready for spawning
 				}
 			}
 			break;

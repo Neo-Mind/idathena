@@ -314,7 +314,7 @@ int mercenary_delete(struct mercenary_data *md, int reply)
 	}
 
 	switch( reply ) {
-		case 0: mercenary_set_faith(md, 1); break; // +1 Loyalty on Contract ends.
+		case 0: mercenary_set_faith(md, 1); break; // +1 Loyalty on Contract ends
 		case 1: mercenary_set_faith(md, -1); break; // -1 Loyalty on Mercenary killed
 	}
 

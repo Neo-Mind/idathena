@@ -13879,7 +13879,7 @@ BUILDIN_FUNC(summon)
 		if( md->deletetimer != INVALID_TIMER )
 			delete_timer(md->deletetimer,mob_timer_delete);
 		md->deletetimer = add_timer(tick + (timeout > 0 ? timeout : 60000),mob_timer_delete,md->bl.id,0);
-		mob_spawn(md); //Now it is ready for spawning.
+		mob_spawn(md); //Now it is ready for spawning
 		clif_specialeffect(&md->bl,344,AREA);
 		sc_start4(NULL,&md->bl,SC_MODECHANGE,100,1,0,MD_AGGRESSIVE,0,60000);
 		script_pushint(st,md->bl.id);
@@ -17061,8 +17061,6 @@ BUILDIN_FUNC(mercenary_create)
 
 	contract_time = script_getnum(st,3);
 	mercenary_create(sd, class_, contract_time);
-	if( sd->md )
-		script_pushint(st,sd->md->bl.id);
 
 	return SCRIPT_CMD_SUCCESS;
 }
