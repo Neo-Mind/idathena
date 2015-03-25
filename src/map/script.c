@@ -13839,7 +13839,7 @@ BUILDIN_FUNC(logmes)
 	TBL_PC* sd;
 
 	sd = script_rid2sd(st);
-	if( sd == NULL )
+	if( !sd )
 		return 1;
 
 	str = script_getstr(st,2);
@@ -13849,8 +13849,8 @@ BUILDIN_FUNC(logmes)
 
 BUILDIN_FUNC(summon)
 {
-	int _class, timeout = 0;
-	const char *str,*event = "";
+	int class_, lv, timeout = 0;
+	const char *str, *event = "";
 	TBL_PC *sd;
 	struct mob_data *md;
 	int tick = gettick();
@@ -13860,7 +13860,7 @@ BUILDIN_FUNC(summon)
 		return 0;
 
 	str	= script_getstr(st,2);
-	_class = script_getnum(st,3);
+	class_ = script_getnum(st,3);
 	if( script_hasdata(st,4) )
 		timeout = script_getnum(st,4);
 	if( script_hasdata(st,5) ) {
@@ -13870,7 +13870,9 @@ BUILDIN_FUNC(summon)
 
 	clif_skill_poseffect(&sd->bl,AM_CALLHOMUN,1,sd->bl.x,sd->bl.y,tick);
 
-	md = mob_once_spawn_sub(&sd->bl,sd->bl.m,sd->bl.x,sd->bl.y,str,_class,event,SZ_SMALL,AI_NONE);
+	lv = sd->status.base_level;
+	class_ = (class_ >= 0 ? class_ : mob_get_random_id(-class_ - 1,(battle_config.random_monster_checklv ? 3 : 1),lv));
+	md = mob_once_spawn_sub(&sd->bl,sd->bl.m,sd->bl.x,sd->bl.y,str,class_,event,SZ_SMALL,AI_NONE);
 	if( md ) {
 		md->master_id = sd->bl.id;
 		md->special_state.ai = AI_ATTACK;
@@ -13880,9 +13882,9 @@ BUILDIN_FUNC(summon)
 		mob_spawn(md); //Now it is ready for spawning.
 		clif_specialeffect(&md->bl,344,AREA);
 		sc_start4(NULL,&md->bl,SC_MODECHANGE,100,1,0,MD_AGGRESSIVE,0,60000);
+		script_pushint(st,md->bl.id);
 	}
 
-	script_pushint(st,md->bl.id);
 	return SCRIPT_CMD_SUCCESS;
 }
 
@@ -17059,7 +17061,8 @@ BUILDIN_FUNC(mercenary_create)
 
 	contract_time = script_getnum(st,3);
 	mercenary_create(sd, class_, contract_time);
-	script_pushint(st,sd->md->bl.id);
+	if( sd->md )
+		script_pushint(st,sd->md->bl.id);
 
 	return SCRIPT_CMD_SUCCESS;
 }

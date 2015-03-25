@@ -3413,7 +3413,7 @@ int mob_clone_spawn(struct map_session_data *sd, int16 m, int16 x, int16 y, cons
 	strcpy(db->sprite,sd->status.name);
 	strcpy(db->name,sd->status.name);
 	strcpy(db->jname,sd->status.name);
-	db->lv=status_get_lv(&sd->bl);
+	db->lv = status_get_lv(&sd->bl);
 	memcpy(status, &sd->base_status, sizeof(struct status_data));
 	status->rhw.atk2 = status->dex + status->rhw.atk + status->rhw.atk2; //Max ATK
 	status->rhw.atk = status->dex; //Min ATK
@@ -3423,15 +3423,15 @@ int mob_clone_spawn(struct map_session_data *sd, int16 m, int16 x, int16 y, cons
 	}
 	if (mode) //User provided mode.
 		status->mode = (enum e_mode)mode;
-	else if (flag&1) //Friendly Character, remove looting.
+	else if (flag&1) //Friendly Character, remove looting
 		status->mode &= ~MD_LOOTER;
 	status->hp = status->max_hp;
 	status->sp = status->max_sp;
 	memcpy(&db->vd, &sd->vd, sizeof(struct view_data));
 	db->base_exp = 1;
 	db->job_exp = 1;
-	db->range2 = AREA_SIZE; //Let them have the same view-range as players.
-	db->range3 = AREA_SIZE; //Min chase of a screen.
+	db->range2 = AREA_SIZE; //Let them have the same view-range as players
+	db->range3 = AREA_SIZE; //Min chase of a screen
 	db->option = sd->sc.option;
 
 	//Skill copy [Skotlex]
@@ -3505,31 +3505,31 @@ int mob_clone_spawn(struct map_session_data *sd, int16 m, int16 x, int16 y, cons
 				ms[i].cond1 = MSC_MYHPLTMAXRATE;
 				ms[i].cond2 = 90;
 				ms[i].permillage = 2000;
-				//Delay: Remove the stock 5 secs and add half of the support time.
+				//Delay: Remove the stock 5 secs and add half of the support time
 				ms[i].delay += -5000 + (skill_get_time(skill_id, ms[i].skill_lv) + skill_get_time2(skill_id, ms[i].skill_lv)) / 2;
 				if (ms[i].delay < 5000)
-					ms[i].delay = 5000; //With a minimum of 5 secs.
+					ms[i].delay = 5000; //With a minimum of 5 secs
 			}
 		} else if (inf&INF_SUPPORT_SKILL) {
 			ms[i].target = MST_FRIEND;
 			ms[i].cond1 = MSC_FRIENDHPLTMAXRATE;
 			ms[i].cond2 = 90;
 			if (skill_id == AL_HEAL)
-				ms[i].permillage = 5000; //Higher skill rate usage for heal.
+				ms[i].permillage = 5000; //Higher skill rate usage for heal
 			else if (skill_id == ALL_RESURRECTION)
 				ms[i].cond2 = 1;
-			//Delay: Remove the stock 5 secs and add half of the support time.
+			//Delay: Remove the stock 5 secs and add half of the support time
 			ms[i].delay += -5000 + (skill_get_time(skill_id, ms[i].skill_lv) + skill_get_time2(skill_id, ms[i].skill_lv)) / 2;
 			if (ms[i].delay < 2000)
-				ms[i].delay = 2000; //With a minimum of 2 secs.
-			if (i + 1 < MAX_MOBSKILL) { //Duplicate this so it also triggers on self.
+				ms[i].delay = 2000; //With a minimum of 2 secs
+			if (i + 1 < MAX_MOBSKILL) { //Duplicate this so it also triggers on self
 				memcpy(&ms[i + 1], &ms[i], sizeof(struct mob_skill));
 				db->maxskill = ++i;
 				ms[i].target = MST_SELF;
 				ms[i].cond1 = MSC_MYHPLTMAXRATE;
 			}
 		} else {
-			switch (skill_id) { //Certain Special skills that are passive, and thus, never triggered.
+			switch (skill_id) { //Certain Special skills that are passive, and thus, never triggered
 				case MO_TRIPLEATTACK:
 				case TF_DOUBLE:
 				case GS_CHAINACTION:
@@ -3537,7 +3537,7 @@ int mob_clone_spawn(struct map_session_data *sd, int16 m, int16 x, int16 y, cons
 					ms[i].target = MST_TARGET;
 					ms[i].cond1 = MSC_ALWAYS;
 					ms[i].permillage = skill_id == MO_TRIPLEATTACK ? (3000 - ms[i].skill_lv * 100) : (ms[i].skill_lv * 500);
-					ms[i].delay -= 5000; //Remove the added delay as these could trigger on "all hits".
+					ms[i].delay -= 5000; //Remove the added delay as these could trigger on "all hits"
 					break;
 				default: //Untreated Skill
 					continue;
@@ -3551,22 +3551,22 @@ int mob_clone_spawn(struct map_session_data *sd, int16 m, int16 x, int16 y, cons
 		db->maxskill = ++i;
 	}
 
-	//We grant the session it's fd value back.
+	//We grant the session it's fd value back
 	sd->fd = fd;
 
-	//Finally, spawn it.
+	//Finally, spawn it
 	md = mob_once_spawn_sub(&sd->bl, m, x, y, "--en--", mob_id, event, SZ_SMALL, AI_NONE);
 	if (!md)
 		return 0; //Failed?
 
 	md->special_state.clone = 1;
 
-	if (master_id || flag || duration) { //Further manipulate crafted char.
+	if (master_id || flag || duration) { //Further manipulate crafted char
 		if (flag&1) //Friendly Character
 			md->special_state.ai = AI_ATTACK;
 		if (master_id) //Attach to Master
 			md->master_id = master_id;
-		if (duration) { //Auto Delete after a while.
+		if (duration) { //Auto Delete after a while
 			if (md->deletetimer != INVALID_TIMER)
 				delete_timer(md->deletetimer, mob_timer_delete);
 			md->deletetimer = add_timer (gettick() + duration, mob_timer_delete, md->bl.id, 0);
