@@ -7598,8 +7598,7 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				struct unit_data *ud = unit_bl2ud(bl);
 
 				//Disable attacking/acting/moving for skill's duration
-				if(clif_skill_nodamage(src,bl,skill_id,skill_lv,
-					sc_start(src,bl,type,100,skill_lv,skill_time)) && ud)
+				if(clif_skill_nodamage(src,bl,skill_id,skill_lv,sc_start(src,bl,type,100,skill_lv,skill_time)) && ud)
 					ud->attackabletime = ud->canact_tick = ud->canmove_tick = tick + skill_time;
 			}
 			break;

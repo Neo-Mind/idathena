@@ -10620,6 +10620,13 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 			if (bl->type == BL_PC)
 				skill_break_equip(bl,bl,EQP_WEAPON,10000,BCT_SELF);
 			break;
+		case SC_KEEPING: {
+				struct unit_data *ud = unit_bl2ud(bl);
+
+				if (ud) //Need to reset these here for mob_class_change [exneval]
+					ud->attackabletime = ud->canact_tick = ud->canmove_tick = gettick();
+			}
+			break;
 		case SC_RUN: {
 				struct unit_data *ud = unit_bl2ud(bl);
 				bool begin_spurt = true;

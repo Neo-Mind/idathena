@@ -2779,7 +2779,8 @@ int mob_class_change(struct mob_data *md, int mob_id)
 		md->tdmg = 0;
 	} else {
 		md->status.hp = md->status.max_hp * hp_rate / 100;
-		if( md->status.hp < 1 ) md->status.hp = 1;
+		if( md->status.hp < 1 )
+			md->status.hp = 1;
 	}
 
 	for( i = 0, c = tick - MOB_MAX_DELAY; i < MAX_MOBSKILL; i++ )
@@ -2791,7 +2792,7 @@ int mob_class_change(struct mob_data *md, int mob_id)
 	//Targets should be cleared no morph
 	md->target_id = md->attacked_id = 0;
 
-	//Need to update name display.
+	//Need to update name display
 	clif_charnameack(0,&md->bl);
 	status_change_end(&md->bl,SC_KEEPING,INVALID_TIMER);
 	return 0;
