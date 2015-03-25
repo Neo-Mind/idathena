@@ -4382,19 +4382,23 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 				skill_area_temp[0] = 0;
 				skill_area_temp[1] = bl->id;
 				skill_area_temp[2] = 0;
-				if (
+				switch (skill_id) {
 #ifdef RENEWAL
-					skill_id == MG_FIREBALL ||
+					case MG_FIREBALL:
 #endif
-					skill_id == WL_CRIMSONROCK)
-				{
-					skill_area_temp[4] = bl->x;
-					skill_area_temp[5] = bl->y;
+					case WL_CRIMSONROCK:
+						skill_area_temp[4] = bl->x;
+						skill_area_temp[5] = bl->y;
+						break;
+					case NC_VULCANARM:
+						if (sd)
+							pc_overheat(sd,1);
+						break;
+					case WM_REVERBERATION_MELEE:
+					case WM_REVERBERATION_MAGIC:
+						skill_area_temp[1] = 0;
+						break;
 				}
-				if (skill_id == WM_REVERBERATION_MELEE || skill_id == WM_REVERBERATION_MAGIC)
-					skill_area_temp[1] = 0;
-				if (skill_id == NC_VULCANARM && sd)
-					pc_overheat(sd,1);
 				//If skill damage should be split among targets, count them
 				//SD_LEVEL -> Forced splash damage for Auto Blitz-Beat -> count targets
 				//Special case: Venom Splasher uses a different range for searching than for splashing
