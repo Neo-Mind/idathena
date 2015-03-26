@@ -178,17 +178,19 @@ static int pc_spiritball_timer(int tid, unsigned int tick, int id, intptr_t data
 		return 0;
 	}
 
-	ARR_FIND(0, sd->spiritball, i, sd->spirit_timer[i] == tid);
+	ARR_FIND(0, sd->spiritball, i, sd->spiritball_timer[i] == tid);
+
 	if( i == sd->spiritball ) {
 		ShowError("pc_spiritball_timer: timer not found (aid=%d cid=%d tid=%d)\n", sd->status.account_id, sd->status.char_id, tid);
 		return 0;
 	}
 
 	sd->spiritball--;
-	if( i != sd->spiritball )
-		memmove(sd->spirit_timer+i, sd->spirit_timer+i+1, (sd->spiritball-i)*sizeof(int));
-	sd->spirit_timer[sd->spiritball] = INVALID_TIMER;
 
+	if( i != sd->spiritball )
+		memmove(sd->spiritball_timer + i, sd->spiritball_timer + i + 1, (sd->spiritball - i) * sizeof(int));
+
+	sd->spiritball_timer[sd->spiritball] = INVALID_TIMER;
 	clif_spiritball(&sd->bl);
 
 	return 0;
@@ -209,24 +211,28 @@ void pc_addspiritball(struct map_session_data *sd,int interval,int max)
 
 	if( max > MAX_SPIRITBALL )
 		max = MAX_SPIRITBALL;
+
 	if( sd->spiritball < 0 )
 		sd->spiritball = 0;
 
 	if( sd->spiritball && sd->spiritball >= max ) {
-		if(sd->spirit_timer[0] != INVALID_TIMER)
-			delete_timer(sd->spirit_timer[0],pc_spiritball_timer);
+		if(sd->spiritball_timer[0] != INVALID_TIMER)
+			delete_timer(sd->spiritball_timer[0],pc_spiritball_timer);
 		sd->spiritball--;
 		if( sd->spiritball != 0 )
-			memmove(sd->spirit_timer + 0, sd->spirit_timer + 1, (sd->spiritball) * sizeof(int));
-		sd->spirit_timer[sd->spiritball] = INVALID_TIMER;
+			memmove(sd->spiritball_timer + 0, sd->spiritball_timer + 1, (sd->spiritball) * sizeof(int));
+		sd->spiritball_timer[sd->spiritball] = INVALID_TIMER;
 	}
 
 	tid = add_timer(gettick() + interval, pc_spiritball_timer, sd->bl.id, 0);
-	ARR_FIND(0, sd->spiritball, i, sd->spirit_timer[i] == INVALID_TIMER || DIFF_TICK(get_timer(tid)->tick, get_timer(sd->spirit_timer[i])->tick) < 0);
+	ARR_FIND(0, sd->spiritball, i, sd->spiritball_timer[i] == INVALID_TIMER || DIFF_TICK(get_timer(tid)->tick, get_timer(sd->spiritball_timer[i])->tick) < 0);
+
 	if( i != sd->spiritball )
-		memmove(sd->spirit_timer + i + 1, sd->spirit_timer + i, (sd->spiritball - i) * sizeof(int));
-	sd->spirit_timer[i] = tid;
+		memmove(sd->spiritball_timer + i + 1, sd->spiritball_timer + i, (sd->spiritball - i) * sizeof(int));
+
+	sd->spiritball_timer[i] = tid;
 	sd->spiritball++;
+
 	if( (sd->class_&MAPID_THIRDMASK) == MAPID_ROYAL_GUARD )
 		clif_millenniumshield(&sd->bl,sd->spiritball);
 	else
@@ -249,23 +255,30 @@ void pc_delspiritball(struct map_session_data *sd,int count,int type)
 		sd->spiritball = 0;
 		return;
 	}
+
 	if( !count )
 		return;
+
 	if( count > sd->spiritball )
 		count = sd->spiritball;
+
 	sd->spiritball -= count;
+
 	if( count > MAX_SPIRITBALL )
 		count = MAX_SPIRITBALL;
+
 	for( i = 0; i < count; i++ ) {
-		if( sd->spirit_timer[i] != INVALID_TIMER ) {
-			delete_timer(sd->spirit_timer[i],pc_spiritball_timer);
-			sd->spirit_timer[i] = INVALID_TIMER;
+		if( sd->spiritball_timer[i] != INVALID_TIMER ) {
+			delete_timer(sd->spiritball_timer[i],pc_spiritball_timer);
+			sd->spiritball_timer[i] = INVALID_TIMER;
 		}
 	}
+
 	for( i = count; i < MAX_SPIRITBALL; i++ ) {
-		sd->spirit_timer[i-count] = sd->spirit_timer[i];
-		sd->spirit_timer[i] = INVALID_TIMER;
+		sd->spiritball_timer[i - count] = sd->spiritball_timer[i];
+		sd->spiritball_timer[i] = INVALID_TIMER;
 	}
+
 	if( !type ) {
 		if( (sd->class_&MAPID_THIRDMASK) == MAPID_ROYAL_GUARD )
 			clif_millenniumshield(&sd->bl,sd->spiritball);
@@ -1181,7 +1194,7 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	sd->cansendmail_tick = tick;
 
 	for (i = 0; i < MAX_SPIRITBALL; i++)
-		sd->spirit_timer[i] = INVALID_TIMER;
+		sd->spiritball_timer[i] = INVALID_TIMER;
 	for (i = 0; i < ARRAYLENGTH(sd->autobonus); i++)
 		sd->autobonus[i].active = INVALID_TIMER;
 	for (i = 0; i < ARRAYLENGTH(sd->autobonus2); i++)
@@ -7161,7 +7174,7 @@ void pc_close_npc(struct map_session_data *sd, int flag) {
  *------------------------------------------*/
 int pc_dead(struct map_session_data *sd,struct block_list *src)
 {
-	int i = 0, k = 0;
+	int k = 0;
 	unsigned int tick = gettick();
 
 	nullpo_retr(0,sd);
@@ -7210,9 +7223,8 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			pet_unlocktarget(sd->pd);
 	}
 
-	if( sd->status.hom_id > 0 )
-		if( battle_config.homunculus_auto_vapor && sd->hd )
-			hom_vaporize(sd,HOM_ST_REST);
+	if( sd->status.hom_id > 0 && battle_config.homunculus_auto_vapor && sd->hd )
+		hom_vaporize(sd,HOM_ST_REST);
 
 	if( sd->md )
 		mercenary_delete(sd->md,3); //Your mercenary soldier has ran away
@@ -7244,14 +7256,14 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		sd->skillitem = sd->skillitemlv = 0;
 	if( (sd->menuskill_id) != 0 )
 		sd->menuskill_id = sd->menuskill_val = 0;
-	//Reset ticks.
+	//Reset ticks
 	sd->hp_loss.tick = sd->sp_loss.tick = sd->hp_regen.tick = sd->sp_regen.tick = 0;
 
-	if( sd->spiritball != 0 )
+	if( sd->spiritball > 0 )
 		pc_delspiritball(sd,sd->spiritball,0);
 
-	for( i = 1; i < 5; i++ )
-		pc_del_talisman(sd,sd->talisman[i],i);
+	if( sd->spiritcharm_type != CHARM_TYPE_NONE && sd->spiritcharm > 0 )
+		pc_delspiritcharm(sd,sd->spiritcharm,sd->spiritcharm_type);
 
 	if( src ) {
 		switch( src->type ) {
@@ -7395,6 +7407,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			int id = map[sd->bl.m].drop_list[j].drop_id;
 			int type = map[sd->bl.m].drop_list[j].drop_type;
 			int per = map[sd->bl.m].drop_list[j].drop_per;
+			int i;
 
 			if( id == 0 )
 				continue;
@@ -10009,102 +10022,138 @@ bool pc_should_log_commands(struct map_session_data *sd)
 	return pc_group_should_log_commands(pc_get_group_id(sd));
 }
 
-static int pc_talisman_timer(int tid, unsigned int tick, int id, intptr_t data)
+/**
+ * Spirit Charm expiration timer.
+ * @see TimerFunc
+ */
+static int pc_spiritcharm_timer(int tid, unsigned int tick, int id, intptr_t data)
 {
 	struct map_session_data *sd;
-	int i, type;
+	int i;
 
 	if( (sd = (struct map_session_data *)map_id2sd(id)) == NULL || sd->bl.type != BL_PC )
 		return 1;
 
-	ARR_FIND(1, 5, type, sd->talisman[type] > 0);
-	if( sd->talisman[type] <= 0 ) {
-		ShowError("pc_talisman_timer: %d talisman's available. (aid=%d cid=%d tid=%d)\n", sd->talisman[type], sd->status.account_id, sd->status.char_id, tid);
-		sd->talisman[type] = 0;
+	if( sd->spiritcharm <= 0 ) {
+		ShowError("pc_spiritcharm_timer: %d spiritcharm's available. (aid=%d cid=%d tid=%d)\n", sd->spiritcharm, sd->status.account_id, sd->status.char_id, tid);
+		sd->spiritcharm = 0;
+		sd->spiritcharm_type = CHARM_TYPE_NONE;
 		return 0;
 	}
 
-	ARR_FIND(0, sd->talisman[type], i, sd->talisman_timer[type][i] == tid);
-	if( i == sd->talisman[type] ) {
-		ShowError("pc_talisman_timer: timer not found (aid=%d cid=%d tid=%d)\n", sd->status.account_id, sd->status.char_id, tid);
+	ARR_FIND(0, sd->spiritcharm, i, sd->spiritcharm_timer[i] == tid);
+
+	if( i == sd->spiritcharm ) {
+		ShowError("pc_spiritcharm_timer: timer not found (aid=%d cid=%d tid=%d)\n", sd->status.account_id, sd->status.char_id, tid);
 		return 0;
 	}
 
-	sd->talisman[type]--;
-	if( i != sd->talisman[type] )
-		memmove(sd->talisman_timer[type] + i, sd->talisman_timer[type] + i + 1, (sd->talisman[type] - i) * sizeof(int));
+	sd->spiritcharm--;
 
-	sd->talisman_timer[type][sd->talisman[type]] = INVALID_TIMER;
-	clif_talisman(sd, type);
+	if( i != sd->spiritcharm )
+		memmove(sd->spiritcharm_timer + i, sd->spiritcharm_timer + i + 1, (sd->spiritcharm - i) * sizeof(int));
+
+	sd->spiritcharm_timer[sd->spiritcharm] = INVALID_TIMER;
+
+	if( sd->spiritcharm <= 0 )
+		sd->spiritcharm_type = CHARM_TYPE_NONE;
+
+	clif_spiritcharm(sd);
 
 	return 0;
 }
 
-void pc_add_talisman(struct map_session_data *sd, int interval, int max, int type)
+/**
+ * Adds a spirit charm.
+ * @param sd       Target character.
+ * @param interval Duration.
+ * @param max      Maximum amount of charms to add.
+ * @param type     Charm type (@see spirit_charm_types)
+ */
+void pc_addspiritcharm(struct map_session_data *sd, int interval, int max, int type)
 {
 	int tid, i;
 
 	nullpo_retv(sd);
 
-	if( max > 10 )
-		max = 10;
+	if( sd->spiritcharm_type != CHARM_TYPE_NONE && type != sd->spiritcharm_type )
+		pc_delspiritcharm(sd, sd->spiritcharm, sd->spiritcharm_type);
 
-	if( sd->talisman[type] < 0 )
-		sd->talisman[type] = 0;
+	if( max > MAX_SPIRITCHARM )
+		max = MAX_SPIRITCHARM;
 
-	if( sd->talisman[type] && sd->talisman[type] >= max ) {
-		if( sd->talisman_timer[type][0] != INVALID_TIMER )
-			delete_timer(sd->talisman_timer[type][0], pc_talisman_timer);
-		sd->talisman[type]--;
-		if( sd->talisman[type] != 0 )
-			memmove(sd->talisman_timer[type] + 0, sd->talisman_timer[type] + 1, (sd->talisman[type]) * sizeof(int));
-		sd->talisman_timer[type][sd->talisman[type]] = INVALID_TIMER;
+	if( sd->spiritcharm < 0 )
+		sd->spiritcharm = 0;
+
+	if( sd->spiritcharm && sd->spiritcharm >= max ) {
+		if( sd->spiritcharm_timer[0] != INVALID_TIMER )
+			delete_timer(sd->spiritcharm_timer[0], pc_spiritcharm_timer);
+		sd->spiritcharm--;
+		if( sd->spiritcharm != 0 )
+			memmove(sd->spiritcharm_timer + 0, sd->spiritcharm_timer + 1, (sd->spiritcharm) * sizeof(int));
+		sd->spiritcharm_timer[sd->spiritcharm] = INVALID_TIMER;
 	}
 
-	tid = add_timer(gettick() + interval, pc_talisman_timer, sd->bl.id, 0);
-	ARR_FIND(0, sd->talisman[type], i, sd->talisman_timer[type][i] == INVALID_TIMER || DIFF_TICK(get_timer(tid)->tick, get_timer(sd->talisman_timer[type][i])->tick) < 0);
-	if( i != sd->talisman[type] )
-		memmove(sd->talisman_timer[type] + i + 1, sd->talisman_timer[type] + i, (sd->talisman[type] - i) * sizeof(int));
+	tid = add_timer(gettick() + interval, pc_spiritcharm_timer, sd->bl.id, 0);
+	ARR_FIND(0, sd->spiritcharm, i, sd->spiritcharm_timer[i] == INVALID_TIMER || DIFF_TICK(get_timer(tid)->tick, get_timer(sd->spiritcharm_timer[i])->tick) < 0);
 
-	sd->talisman_timer[type][i] = tid;
-	sd->talisman[type]++;
-	clif_talisman(sd, type);
+	if( i != sd->spiritcharm )
+		memmove(sd->spiritcharm_timer + i + 1, sd->spiritcharm_timer + i, (sd->spiritcharm - i) * sizeof(int));
+
+	sd->spiritcharm_timer[i] = tid;
+	sd->spiritcharm++;
+	sd->spiritcharm_type = type;
+
+	clif_spiritcharm(sd);
 }
 
-void pc_del_talisman(struct map_session_data *sd, int count, int type)
+/**
+ * Removes one or more spirit charms.
+ * @param sd    The target character.
+ * @param count Amount of charms to remove.
+ * @param type  Type of charm to remove.
+ */
+void pc_delspiritcharm(struct map_session_data *sd, int count, int type)
 {
 	int i;
 
 	nullpo_retv(sd);
 
-	if( sd->talisman[type] <= 0 ) {
-		sd->talisman[type] = 0;
+	if( sd->spiritcharm_type != type )
+		return;
+
+	if( sd->spiritcharm <= 0 ) {
+		sd->spiritcharm = 0;
 		return;
 	}
 
 	if( count <= 0 )
 		return;
 
-	if( count > sd->talisman[type] )
-		count = sd->talisman[type];
+	if( count > sd->spiritcharm )
+		count = sd->spiritcharm;
 
-	sd->talisman[type] -= count;
-	if( count > 10 )
-		count = 10;
+	sd->spiritcharm -= count;
+
+	if( count > MAX_SPIRITCHARM )
+		count = MAX_SPIRITCHARM;
 
 	for( i = 0; i < count; i++ ) {
-		if( sd->talisman_timer[type][i] != INVALID_TIMER ) {
-			delete_timer(sd->talisman_timer[type][i], pc_talisman_timer);
-			sd->talisman_timer[type][i] = INVALID_TIMER;
+		if( sd->spiritcharm_timer[i] != INVALID_TIMER ) {
+			delete_timer(sd->spiritcharm_timer[i], pc_spiritcharm_timer);
+			sd->spiritcharm_timer[i] = INVALID_TIMER;
 		}
 	}
 
-	for( i = count; i < 10; i++ ) {
-		sd->talisman_timer[type][i - count] = sd->talisman_timer[type][i];
-		sd->talisman_timer[type][i] = INVALID_TIMER;
+	for( i = count; i < MAX_SPIRITCHARM; i++ ) {
+		sd->spiritcharm_timer[i - count] = sd->spiritcharm_timer[i];
+		sd->spiritcharm_timer[i] = INVALID_TIMER;
 	}
 
-	clif_talisman(sd, type);
+	if( sd->spiritcharm <= 0 )
+		sd->spiritcharm_type = CHARM_TYPE_NONE;
+
+	clif_spiritcharm(sd);
 }
 
 #if defined(RENEWAL_DROP) || defined(RENEWAL_EXP)
@@ -11348,7 +11397,7 @@ void do_init_pc(void) {
 	add_timer_func_list(pc_spiritball_timer, "pc_spiritball_timer");
 	add_timer_func_list(pc_follow_timer, "pc_follow_timer");
 	add_timer_func_list(pc_endautobonus, "pc_endautobonus");
-	add_timer_func_list(pc_talisman_timer, "pc_talisman_timer");
+	add_timer_func_list(pc_spiritcharm_timer, "pc_spiritcharm_timer");
 	add_timer_func_list(pc_global_expiration_timer, "pc_global_expiration_timer");
 	add_timer_func_list(pc_expiration_timer, "pc_expiration_timer");
 	add_timer_func_list(pc_autotrade_timer, "pc_autotrade_timer");

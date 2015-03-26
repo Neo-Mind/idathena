@@ -1411,16 +1411,17 @@ static void clif_spiritball_single(int fd, struct map_session_data *sd) {
 	WFIFOSET(fd,packet_len(0x1e1));
 }
 
+
 /*==========================================
  * Kagerou/Oboro amulet spirit
  *------------------------------------------*/
-static void clif_talisman_single(int fd, struct map_session_data *sd, short type)
+static void clif_spiritcharm_single(int fd, struct map_session_data *sd)
 {
 	WFIFOHEAD(fd,packet_len(0x08cf));
 	WFIFOW(fd,0) = 0x08cf;
 	WFIFOL(fd,2) = sd->bl.id;
-	WFIFOW(fd,6) = type;
-	WFIFOW(fd,8) = sd->talisman[type];
+	WFIFOW(fd,6) = sd->spiritcharm_type;
+	WFIFOW(fd,8) = sd->spiritcharm;
 	WFIFOSET(fd,packet_len(0x08cf));
 }
 
@@ -1522,10 +1523,8 @@ int clif_spawn(struct block_list *bl)
 					clif_sendbgemblem_area(sd);
 				if (sd->spiritball > 0)
 					clif_spiritball(&sd->bl);
-				for (i = 1; i < 5; i++) {
-					if (sd->talisman[i] > 0)
-						clif_talisman(sd,i);
-				}
+				if (sd->spiritcharm_type != CHARM_TYPE_NONE && sd->spiritcharm > 0)
+					clif_spiritcharm(sd);
 				for (i = 0; i < sd->sc_display_count; i++) {
 					clif_efst_status_change(&sd->bl,sd->bl.id,AREA,StatusIconChangeTable[sd->sc_display[i]->type],
 						sd->sc_display[i]->val1,sd->sc_display[i]->val2,sd->sc_display[i]->val3);
@@ -4349,10 +4348,8 @@ static void clif_getareachar_pc(struct map_session_data* sd,struct map_session_d
 		clif_buyingstore_entry_single(sd, dstsd);
 	if( dstsd->spiritball > 0 )
 		clif_spiritball_single(sd->fd, dstsd);
-	for( i = 1; i < 5; i++ ) {
-		if( dstsd->talisman[i] > 0 )
-			clif_talisman_single(sd->fd, dstsd, i);
-	}
+	if( dstsd->spiritcharm_type != CHARM_TYPE_NONE && dstsd->spiritcharm > 0 )
+		clif_spiritcharm_single(sd->fd, dstsd);
 	for( i = 0; i < dstsd->sc_display_count; i++ ) {
 		if( (dstsd->sc.option&OPTION_INVISIBLE) ||
 			(pc_ishiding(dstsd) && !sd->special_state.intravision && !sd->sc.data[SC_INTRAVISION]) )
@@ -8974,18 +8971,18 @@ void clif_messagecolor2(struct map_session_data *sd, unsigned long color, const 
  * storage window without server's consent
  */
 void clif_refresh_storagewindow(struct map_session_data *sd) {
-	// Notify the client that the storage is open
+	//Notify the client that the storage is open
 	if( sd->state.storage_flag == 1 ) {
 		storage_sortitem(sd->status.storage.items, ARRAYLENGTH(sd->status.storage.items));
 		clif_storagelist(sd, sd->status.storage.items, ARRAYLENGTH(sd->status.storage.items));
 		clif_updatestorageamount(sd, sd->status.storage.storage_amount, MAX_STORAGE);
 	}
-	// Notify the client that the gstorage is open otherwise it will
-	// remain locked forever and nobody will be able to access it
+	//Notify the client that the gstorage is open otherwise it will
+	//remain locked forever and nobody will be able to access it
 	if( sd->state.storage_flag == 2 ) {
 		struct guild_storage *gstor = gstorage_get_storage(sd->status.guild_id);
 
-		if( !gstor ) // Shouldn't happen. The information should already be at the map-server
+		if( !gstor ) //Shouldn't happen. The information should already be at the map-server
 			intif_request_guild_storage(sd->status.account_id, sd->status.guild_id);
 		else {
 			storage_sortitem(gstor->items, ARRAYLENGTH(gstor->items));
@@ -8999,8 +8996,6 @@ void clif_refresh_storagewindow(struct map_session_data *sd) {
 // Refresh the client's screen, getting rid of any effects
 void clif_refresh(struct map_session_data *sd)
 {
-	int i;
-
 	nullpo_retv(sd);
 
 	clif_changemap(sd, sd->bl.m, sd->bl.x, sd->bl.y);
@@ -9019,9 +9014,8 @@ void clif_refresh(struct map_session_data *sd)
 	clif_updatestatus(sd, SP_LUK);
 	if( sd->spiritball )
 		clif_spiritball_single(sd->fd, sd);
-	for( i = 1; i < 5; i++ )
-		if( sd->talisman[i] > 0 )
-			clif_talisman_single(sd->fd, sd, i);
+	if( sd->spiritcharm_type != CHARM_TYPE_NONE && sd->spiritcharm > 0 )
+		clif_spiritcharm_single(sd->fd, sd);
 	if( sd->vd.cloth_color )
 		clif_refreshlook(&sd->bl, sd->bl.id, LOOK_CLOTHES_COLOR, sd->vd.cloth_color, SELF);
 	if( hom_is_active(sd->hd) )
@@ -9039,15 +9033,15 @@ void clif_refresh(struct map_session_data *sd)
 	if( sd->state.vending )
 		clif_openvending(sd, sd->bl.id, sd->vending);
 	if( pc_issit(sd) )
-		clif_sitting(&sd->bl); // FIXME: Just send to self, not area
-	if( pc_isdead(sd) ) // When you refresh, resend the death packet.
+		clif_sitting(&sd->bl); //FIXME: Just send to self, not area
+	if( pc_isdead(sd) ) //When you refresh, resend the death packet
 		clif_clearunit_single(sd->bl.id, CLR_DEAD, sd->fd);
 	else
 		clif_changed_dir(&sd->bl, SELF);
-	// Unlike vending, resuming buyingstore crashes the client.
+	//Unlike vending, resuming buyingstore crashes the client
 	buyingstore_close(sd);
 	mail_clear(sd);
-	if( disguised(&sd->bl) ) { /* Refresh-da */
+	if( disguised(&sd->bl) ) { //Refresh-da
 		short disguise = sd->disguise;
 
 		pc_disguise(sd, 0);
@@ -17367,9 +17361,9 @@ void clif_msgtable_num(int fd, int line, int num) {
 void clif_parse_SkillSelectMenu(int fd, struct map_session_data *sd) {
 	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
 	//int type = RFIFOL(fd,info->pos[0]); //WHY_LOWERVER_COMPATIBILITY = 0x0, WHY_SC_AUTOSHADOWSPELL = 0x1,
+
 	if( sd->menuskill_id != SC_AUTOSHADOWSPELL )
 		return;
-
 	if( pc_istrading(sd) ) {
 		clif_skill_fail(sd,sd->ud.skill_id,0,0,0);
 		clif_menuskill_clear(sd);
@@ -17385,15 +17379,15 @@ void clif_parse_SkillSelectMenu(int fd, struct map_session_data *sd) {
 /*==========================================
  * Kagerou/Oboro amulet spirit
  *------------------------------------------*/
-void clif_talisman(struct map_session_data *sd,short type) {
+void clif_spiritcharm(struct map_session_data *sd) {
 	unsigned char buf[10];
 
 	nullpo_retv(sd);
 
 	WBUFW(buf,0) = 0x8cf;
 	WBUFL(buf,2) = sd->bl.id;
-	WBUFW(buf,6) = type;
-	WBUFW(buf,8) = sd->talisman[type];
+	WBUFW(buf,6) = sd->spiritcharm_type;
+	WBUFW(buf,8) = sd->spiritcharm;
 	clif_send(buf,packet_len(0x8cf),&sd->bl,AREA);
 }
 
@@ -17411,7 +17405,7 @@ void clif_parse_MoveItem(int fd, struct map_session_data *sd) {
 	int index = RFIFOW(fd,info->pos[0]) - 2;
 	int type = RFIFOB(fd,info->pos[1]);
 
-	/* Can't move while dead. */
+	//Can't move while dead
 	if( pc_isdead(sd) )
 		return;
 
@@ -17423,7 +17417,7 @@ void clif_parse_MoveItem(int fd, struct map_session_data *sd) {
 	else if( type == 0 )
 		sd->status.inventory[index].favorite = 1;
 	else
-		return; /* Nothing to do. */
+		return; //Nothing to do
 
 	clif_favorite_item(sd,index);
 #endif

@@ -3252,7 +3252,7 @@ ACMD_FUNC(spiritball)
 	int number;
 	nullpo_retr(-1, sd);
 	
-	max_spiritballs = min(ARRAYLENGTH(sd->spirit_timer), 0x7FFF);
+	max_spiritballs = min(ARRAYLENGTH(sd->spiritball_timer), 0x7FFF);
 	
 	if( !message || !*message || (number = atoi(message)) < 0 || number > max_spiritballs ) {
 		char msg[CHAT_SIZE_MAX];

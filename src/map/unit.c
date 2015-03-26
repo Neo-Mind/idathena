@@ -945,12 +945,11 @@ int unit_movepos(struct block_list *bl, short dst_x, short dst_y, int easy, bool
 
 			if( !checkpath && !path_search(NULL, bl->m, bl->x, bl->y, dst_x, dst_y, 0, CELL_CHKNOPASS) )
 				flag = 1;
-			else if (!check_distance_bl(&sd->bl, bl, AREA_SIZE)) //Too far, teleport.
+			else if( !check_distance_bl(&sd->bl, bl, AREA_SIZE) ) //Too far, teleport
 				flag = 2;
 			if( flag ) {
 				unit_movepos(bl, sd->bl.x, sd->bl.y, 0, 0);
-				clif_slide(bl, bl->x, bl->y);
-				clif_fixpos(bl);
+				clif_blown(bl, bl);
 			}
 		}
 	}
@@ -3000,8 +2999,7 @@ int unit_free(struct block_list *bl, clr_type clrtype)
 				pc_cleareventtimer(sd);
 				pc_inventory_rental_clear(sd);
 				pc_delspiritball(sd, sd->spiritball, 1);
-				for( i = 1; i < 5; i++ )
-					pc_del_talisman(sd, sd->talisman[i], i);
+				pc_delspiritcharm(sd, sd->spiritcharm, sd->spiritcharm_type);
 				if( sd->reg ) { //Double logout already freed pointer fix [Skotlex]
 					aFree(sd->reg);
 					sd->reg = NULL;

@@ -4785,26 +4785,23 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 			skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
 			break;
 
-		case GC_DARKILLUSION: {
+		case GC_DARKILLUSION:
+		case KO_JYUMONJIKIRI:
+			{
 				short x, y;
-				short dir = map_calc_dir(src,bl->x,bl->y);
+				short dir = map_calc_dir(bl,src->x,src->y);
 
-				if (dir > 0 && dir < 4)
-					x = 2;
-				else if (dir > 4)
-					x = -2;
-				else
-					x = 0;
-				if (dir > 2 && dir < 6)
-					y = 2;
-				else if (dir == 7 || dir < 2)
-					y = -2;
-				else
-					y = 0;
-				if (unit_movepos(src,bl->x + x,bl->y + y,1,1)) {
+				if (dir < 4) {
+					x = bl->x + 2 * (dir > 0) - 3 * (dir > 0);
+					y = bl->y + 1 - (dir / 2) - (dir > 2);
+				} else {
+					x = bl->x + 2 * (dir > 4) - 1 * (dir > 4);
+					y = bl->y + (dir / 6) - 1 + (dir > 6);
+				}
+				if (unit_movepos(src,x,y,1,1)) {
 					clif_blown(src,bl);
 					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
-					if (rnd()%100 < 4 * skill_lv)
+					if (rnd()%100 < 4 * skill_lv && skill_id == GC_DARKILLUSION)
 						skill_castend_damage_id(src,bl,GC_CROSSIMPACT,skill_lv,tick,flag);
 				}
 			}
@@ -5217,29 +5214,6 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 			else {
 				clif_skill_nodamage(src,bl,skill_id,0,1);
 				skill_addtimerskill(src,gettick() + skill_get_time(skill_id,skill_lv),bl->id,0,0,skill_id,skill_lv,0,0);
-			}
-			break;
-
-		case KO_JYUMONJIKIRI: {
-				short x, y;
-				short dir = map_calc_dir(src,bl->x,bl->y);
-
-				if (dir > 0 && dir < 4)
-					x = 2;
-				else if (dir > 4)
-					x = -2;
-				else
-					x = 0;
-				if (dir > 2 && dir < 6)
-					y = 2;
-				else if (dir == 7 || dir < 2)
-					y = -2;
-				else
-					y = 0;
-				if (unit_movepos(src,bl->x + x,bl->y + y,1,1)) {
-					clif_blown(src,bl);
-					skill_attack(BF_WEAPON,src,src,bl,skill_id,skill_lv,tick,flag);
-				}
 			}
 			break;
 
@@ -6468,18 +6442,12 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 			if (dstsd && (sd == dstsd || map_flag_vs(src->m) || (sd && sd->duel_group && sd->duel_group == dstsd->duel_group)) &&
 				((dstsd->class_&MAPID_BASEMASK) != MAPID_GUNSLINGER || (dstsd->class_&MAPID_UPPERMASK) != MAPID_REBELLION)) {
 				//Split the if for readability, and included gunslingers in the check so that their coins cannot be removed [Reddozen]
-				if (dstsd->spiritball) {
+				if (dstsd->spiritball > 0) {
 					i = dstsd->spiritball * 7;
 					pc_delspiritball(dstsd,dstsd->spiritball,0);
-				} else {
-					uint8 j;
-
-					for (j = 1; j < 5; j++) {
-						if (dstsd->talisman[j]) {
-							i += dstsd->talisman[j] * 7;
-							pc_del_talisman(dstsd,dstsd->talisman[j],j);
-						}
-					}
+				} else if (dstsd->spiritcharm_type != CHARM_TYPE_NONE && dstsd->spiritcharm > 0) {
+					i += dstsd->spiritcharm * 7;
+					pc_delspiritcharm(dstsd,dstsd->spiritcharm,dstsd->spiritcharm_type);
 				}
 			} else if (dstmd && !(tstatus->mode&MD_BOSS) && rnd()%100 < 20) {
 				//Check if target is a monster and not a Boss, for the 20% chance to absorb 2 SP per monster's level [Reddozen]
@@ -9462,24 +9430,17 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 
 				if( dstsd && (sd == dstsd || map_flag_vs(src->m)) &&
 					((dstsd->class_&MAPID_BASEMASK) != MAPID_GUNSLINGER || (dstsd->class_&MAPID_UPPERMASK) != MAPID_REBELLION) ) {
-					if( dstsd->spiritball ) {
+					if( dstsd->spiritball > 0 ) {
 						sp = dstsd->spiritball;
 						pc_delspiritball(dstsd,dstsd->spiritball,0);
-						status_percent_heal(src,0,sp); //1% SP per spiritball
-					} else {
-						uint8 j;
-
-						for( j = 1; j < 5; j++ ) {
-							if( dstsd->talisman[j] ) {
-								sp += dstsd->talisman[j];
-								pc_del_talisman(dstsd,dstsd->talisman[j],j);
-							}
-						}
-						if( sp )
-							status_percent_heal(src,0,sp);
+					} else if( dstsd->spiritcharm_type != CHARM_TYPE_NONE && dstsd->spiritcharm > 0 ) {
+						sp += dstsd->spiritcharm;
+						pc_delspiritcharm(dstsd,dstsd->spiritcharm,dstsd->spiritcharm_type);
 					}
+					if( sp )
+						status_percent_heal(src,0,sp); //1% SP per spiritball
 				}
-				clif_skill_nodamage(src,bl,skill_id,skill_lv,sp ? 1 : 0);
+				clif_skill_nodamage(src,bl,skill_id,skill_lv,(sp ? 1 : 0));
 			} else {
 				clif_skill_damage(src,src,tick,status_get_amotion(src),0,-30000,1,skill_id,skill_lv,DMG_SKILL);
 				map_foreachinrange(skill_area_sub,bl,skill_get_splash(skill_id,skill_lv),splash_target(src),src,skill_id,skill_lv,tick,flag|BCT_ENEMY|BCT_SELF|SD_SPLASH|1,skill_castend_nodamage_id);
@@ -10182,14 +10143,10 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 		case KO_KAZEHU_SEIRAN:
 		case KO_DOHU_KOUKAI:
 			if( sd ) {
-				uint8 i;
 				int type = skill_get_ele(skill_id,skill_lv);
 
 				clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
-				ARR_FIND(1,6,i,sd->talisman[i] > 0 && type != i);
-				if( i < 6 )
-					pc_del_talisman(sd,sd->talisman[i],i); //Replace talisman
-				pc_add_talisman(sd,skill_get_time(skill_id,skill_lv),10,type);
+				pc_addspiritcharm(sd,skill_get_time(skill_id,skill_lv),MAX_SPIRITCHARM,type);
 			}
 			break;
 
@@ -12556,15 +12513,12 @@ struct skill_unit_group *skill_unitsetting(struct block_list *src, uint16 skill_
 			limit = ((sd ? pc_checkskill(sd,GN_DEMONIC_FIRE) : 1) + 1) * limit;
 			break;
 		case KO_ZENKAI:
-			if( sd ) {
-				ARR_FIND(1,6,i,sd->talisman[i] > 0);
-				if( i < 5 ) {
-					val1 = sd->talisman[i]; //No. of aura
-					val2 = i; //Aura type
-					limit = 6000 * val1;
-					subunt = i - 1;
-					pc_del_talisman(sd,sd->talisman[i],i);
-				}
+			if( sd && sd->spiritcharm_type != CHARM_TYPE_NONE && sd->spiritcharm > 0 ) {
+				val1 = sd->spiritcharm;
+				val2 = sd->spiritcharm_type;
+				limit = 6000 * val1;
+				subunt = sd->spiritcharm_type - 1;
+				pc_delspiritcharm(sd,sd->spiritcharm,sd->spiritcharm_type);
 			}
 			break;
 		case NPC_EARTHQUAKE:
@@ -15047,21 +15001,15 @@ bool skill_check_condition_castbegin(struct map_session_data* sd, uint16 skill_i
 		case KO_HYOUHU_HUBUKI:
 		case KO_KAZEHU_SEIRAN:
 		case KO_DOHU_KOUKAI:
-			{
-				int type = skill_get_ele(skill_id,skill_lv);
-
-				ARR_FIND(1,5,i,sd->talisman[i] > 0 && i != type);
-				if( sd->talisman[type] >= 10 ) {
-					clif_skill_fail(sd,skill_id,USESKILL_FAIL_SUMMON,0,0);
-					return false;
-				}
+			if( sd->spiritcharm_type == skill_get_ele(skill_id,skill_lv) && sd->spiritcharm >= MAX_SPIRITCHARM ) {
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_SUMMON,0,0);
+				return false;
 			}
 			break;
 		case KO_KAIHOU:
 		case KO_ZENKAI:
-			ARR_FIND(1,6,i,sd->talisman[i] > 0);
-			if( i > 4 ) {
-				clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0,0);
+			if( sd->spiritcharm_type == CHARM_TYPE_NONE || sd->spiritcharm <= 0 ) {
+				clif_skill_fail(sd,skill_id,USESKILL_FAIL_SUMMON_NONE,0,0);
 				return false;
 			}
 			break;

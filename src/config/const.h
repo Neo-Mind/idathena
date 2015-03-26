@@ -50,14 +50,14 @@
 	#define DEFTYPE_MAX CHAR_MAX
 #endif
 
-/* Pointer size fix which fixes several gcc warnings */
+// Pointer size fix which fixes several gcc warnings
 #ifdef __64BIT__
 	#define __64BPRTSIZE(y) (intptr)y
 #else
 	#define __64BPRTSIZE(y) y
 #endif
 
-/* ATCMD_FUNC(mobinfo) */
+// ATCMD_FUNC(mobinfo)
 #ifdef RENEWAL
 	#define MOB_FLEE(mob) ( (mob)->lv + (mob)->status.agi + 100 )
 	#define MOB_HIT(mob)  ( (mob)->lv + (mob)->status.dex + 150 )
@@ -70,25 +70,24 @@
 	#define MOB_HIT(mob)  ( (mob)->lv + (mob)->status.dex )
 #endif
 
-/* Renewal's dmg level modifier, used as a macro for a easy way to turn off */
+// Renewal's dmg level modifier, used as a macro for a easy way to turn off
 #ifdef RENEWAL_LVDMG
 	#define RE_LVL_DMOD(val) \
-		if( status_get_lv(src) > 100 && val > 0 ) \
+		if( (val) > 0 ) \
 			skillratio = skillratio * status_get_lv(src) / val;
 	#define RE_LVL_MDMOD(val) \
-		if( status_get_lv(src) > 100 && val > 0) \
+		if( (val) > 0 ) \
 			md.damage = md.damage * status_get_lv(src) / val;
-	/* Ranger traps special */
+	// Ranger traps special
 	#define RE_LVL_TMDMOD() \
-		if( status_get_lv(src) > 100 ) \
-			md.damage = md.damage * 150 / 100 + md.damage * status_get_lv(src) / 100;
+		md.damage = md.damage * 150 / 100 + md.damage * status_get_lv(src) / 100;
 #else
 	#define RE_LVL_DMOD(val) 
 	#define RE_LVL_MDMOD(val)
 	#define RE_LVL_TMDMOD()
 #endif
 
-/* Feb 1st 2012 */
+// Feb 1st 2012
 #if PACKETVER >= 20120201
 	#define NEW_CARTS
 	#define MAX_CARTS 9

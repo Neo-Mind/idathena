@@ -21,6 +21,11 @@
 #define MAX_SPIRITBALL 15
 
 /**
+ * Spirit Charm Limitation
+ **/
+#define MAX_SPIRITCHARM 10
+
+/**
  * No settings past this point
  **/
 
