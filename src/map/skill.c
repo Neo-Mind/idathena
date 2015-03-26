@@ -6445,7 +6445,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 				if (dstsd->spiritball > 0) {
 					i = dstsd->spiritball * 7;
 					pc_delspiritball(dstsd,dstsd->spiritball,0);
-				} else if (dstsd->spiritcharm_type != CHARM_TYPE_NONE && dstsd->spiritcharm > 0) {
+				}
+				if (dstsd->spiritcharm_type != CHARM_TYPE_NONE && dstsd->spiritcharm > 0) {
 					i += dstsd->spiritcharm * 7;
 					pc_delspiritcharm(dstsd,dstsd->spiritcharm,dstsd->spiritcharm_type);
 				}
@@ -9433,7 +9434,8 @@ int skill_castend_nodamage_id(struct block_list *src, struct block_list *bl, uin
 					if( dstsd->spiritball > 0 ) {
 						sp = dstsd->spiritball;
 						pc_delspiritball(dstsd,dstsd->spiritball,0);
-					} else if( dstsd->spiritcharm_type != CHARM_TYPE_NONE && dstsd->spiritcharm > 0 ) {
+					}
+					if( dstsd->spiritcharm_type != CHARM_TYPE_NONE && dstsd->spiritcharm > 0 ) {
 						sp += dstsd->spiritcharm;
 						pc_delspiritcharm(dstsd,dstsd->spiritcharm,dstsd->spiritcharm_type);
 					}
