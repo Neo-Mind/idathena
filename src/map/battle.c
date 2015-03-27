@@ -3867,13 +3867,11 @@ static int battle_calc_attack_skill_ratio(struct Damage wd,struct block_list *sr
 			break;
 		case GN_CART_TORNADO: {
 				//ATK [( Skill Level x 50 ) + ( Cart Weight / ( 150 - Caster's Base STR ))] + ( Cart Remodeling Skill Level x 50 )] %
-				int strbonus = status_get_base_status(src)->str; //Only using base STR
+				short strbonus = status_get_base_status(src)->str; //Only using base STR
 
-				if(strbonus > 120)
-					strbonus = 120;
 				skillratio += -100 + 50 * skill_lv;
 				if(sd && sd->cart_weight)
-					skillratio += sd->cart_weight / 10 / (150 - strbonus) + pc_checkskill(sd,GN_REMODELING_CART) * 50;
+					skillratio += sd->cart_weight / 10 / (150 - min(strbonus,120)) + pc_checkskill(sd,GN_REMODELING_CART) * 50;
 			}
 			break;
 		case GN_CARTCANNON: //ATK [{( Cart Remodeling Skill Level x 50 ) x ( INT / 40 )} + ( Cart Cannon Skill Level x 60 )] %
@@ -6469,13 +6467,14 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				//Official renewal formula [exneval]
 				//Damage = [Skill level * (([(ATK + MATK) * .7 * target's VIT] - [(eDEF + sDEF) / 2 + (eMDEF + sMDEF) / 2]) / 10)]
 				short totaldef, totalmdef;
+				short targetVit = min(tstatus->vit,120);
 				struct Damage atk, matk;
 
 				atk = battle_calc_weapon_attack(src,target,skill_id,skill_lv,md.miscflag);
 				matk = battle_calc_magic_attack(src,target,skill_id,skill_lv,md.miscflag);
 				totaldef = (short)status_get_def(target) + tstatus->def2;
 				totalmdef = tstatus->mdef + tstatus->mdef2;
-				md.damage = (int64)(skill_lv * ((((atk.damage + matk.damage) * 7 / 10 * tstatus->vit) - (totaldef / 2 + totalmdef / 2)) / 10));
+				md.damage = (int64)(skill_lv * ((((atk.damage + matk.damage) * 7 / 10 * targetVit) - (totaldef / 2 + totalmdef / 2)) / 10));
 			}
 #else
 			if(tstatus->vit + sstatus->int_) //Crash fix
