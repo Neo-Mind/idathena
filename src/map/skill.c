@@ -4065,7 +4065,9 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 		case TK_COUNTER:
 		case GS_CHAINACTION:
 		case GS_TRIPLEACTION:
+#ifndef RENEWAL
 		case GS_MAGICALBULLET:
+#endif
 		case GS_TRACKING:
 		case GS_PIERCINGSHOT:
 		case GS_RAPIDSHOWER:
@@ -4679,6 +4681,7 @@ int skill_castend_damage_id(struct block_list* src, struct block_list *bl, uint1
 		case TF_THROWSTONE:
 #ifdef RENEWAL
 		case AM_ACIDTERROR:
+		case GS_MAGICALBULLET:
 		case HW_MAGICCRASHER:
 		case ASC_BREAKER:
 #endif

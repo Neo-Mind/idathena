@@ -4073,13 +4073,11 @@ static int64 battle_calc_skill_constant_addition(struct Damage wd,struct block_l
 		case MO_EXTREMITYFIST:
 			atk = 250 + 150 * skill_lv;
 			break;
-		case GS_MAGICALBULLET:
 #ifndef RENEWAL
+		case GS_MAGICALBULLET:
 			atk = status_get_matk(src,2);
-#else
-			atk = battle_calc_magic_attack(src,target,skill_id,skill_lv,wd.miscflag).damage;
-#endif
 			break;
+#endif
 		case NJ_SYURIKEN:
 			atk = 4 * skill_lv;
 			break;
@@ -4516,7 +4514,6 @@ struct Damage battle_calc_defense_reduction(struct Damage wd, struct block_list 
 		return wd;
 	switch(skill_id) {
 		case NJ_KUNAI:
-		case GS_MAGICALBULLET:
 		case RK_DRAGONBREATH:
 		case RK_DRAGONBREATH_WATER:
 		case NC_SELFDESTRUCTION:
@@ -5343,6 +5340,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 			case AM_DEMONSTRATION:
 			case AM_ACIDTERROR:
 			case NJ_ISSEN:
+			case GS_MAGICALBULLET:
 			case HW_MAGICCRASHER:
 			case ASC_BREAKER:
 			case CR_ACIDDEMONSTRATION:
@@ -5432,6 +5430,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		case AM_DEMONSTRATION:
 		case AM_ACIDTERROR:
 		case NJ_ISSEN:
+		case GS_MAGICALBULLET:
 		case HW_MAGICCRASHER:
 		case ASC_BREAKER:
 		case CR_ACIDDEMONSTRATION:
@@ -6365,6 +6364,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 #ifdef RENEWAL
 		case AM_DEMONSTRATION:
 		case AM_ACIDTERROR:
+		case GS_MAGICALBULLET:
 			{
 				//Official renewal formula [exneval]
 				//Damage = (Final ATK + Final MATK) * Skill modifiers - (eDEF + sDEF + eMDEF + sMDEF)
@@ -6380,6 +6380,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				if(skill_id == AM_ACIDTERROR && tstatus->mode&MD_BOSS)
 					md.damage >>= 1;
 				md.flag |= BF_WEAPON;
+				if(skill_id == GS_MAGICALBULLET)
+					nk |= NK_IGNORE_FLEE; //Flee already checked in battle_calc_weapon_attack, so don't do it again here [exneval]
 			}
 			break;
 #endif
@@ -6637,7 +6639,15 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		}
 	}
 
-	md.damage += battle_calc_cardfix(BF_MISC,src,target,skill_id,nk,s_ele,0,md.damage,0,md.flag);
+	switch(skill_id) {
+#ifdef RENEWAL
+		case GS_MAGICALBULLET:
+			break; //Already done
+#endif
+		default:
+			md.damage += battle_calc_cardfix(BF_MISC,src,target,skill_id,nk,s_ele,0,md.damage,0,md.flag);
+			break;
+	}
 
 	if(sd) {
 		uint16 skill;
@@ -6709,11 +6719,19 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			break;
 	}
 
-	md.damage = battle_calc_damage(src,target,&md,md.damage,skill_id,skill_lv);
-	if(map_flag_gvg2(target->m))
-		md.damage = battle_calc_gvg_damage(src,target,md.damage,skill_id,md.flag);
-	else if(map[target->m].flag.battleground)
-		md.damage = battle_calc_bg_damage(src,target,md.damage,skill_id,md.flag);
+	switch(skill_id) {
+#ifdef RENEWAL
+		case GS_MAGICALBULLET:
+			break; //Already done
+#endif
+		default:
+			md.damage = battle_calc_damage(src,target,&md,md.damage,skill_id,skill_lv);
+			if(map_flag_gvg2(target->m))
+				md.damage = battle_calc_gvg_damage(src,target,md.damage,skill_id,md.flag);
+			else if(map[target->m].flag.battleground)
+				md.damage = battle_calc_bg_damage(src,target,md.damage,skill_id,md.flag);
+			break;
+	}
 
 	//Skill damage adjustment
 #ifdef ADJUST_SKILL_DAMAGE
