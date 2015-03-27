@@ -2611,7 +2611,7 @@ static struct Damage battle_calc_element_damage(struct Damage wd, struct block_l
 					wd.damage = battle_attr_fix(src, target, wd.damage, (sd && sd->bonus.arrow_ele) ? sd->bonus.arrow_ele : ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 					break;
 				default:
-#ifndef RENEWAL //This skill will do a attribute fix later
+#ifndef RENEWAL //Do attribute fix later
 					if(skill_id != NPC_EARTHQUAKE)
 #endif
 						wd.damage = battle_attr_fix(src, target, wd.damage, right_element, tstatus->def_ele, tstatus->ele_lv);
@@ -5348,7 +5348,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 #endif
 			case NPC_EARTHQUAKE:
 			case SO_VARETYR_SPEAR:
-				break; //These skills will do a card fix later
+				break; //Do card fix later
 			default:
 				wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, skill_id, nk, right_element, left_element, wd.damage, 0, wd.flag);
 				if(is_attack_left_handed(src, skill_id))
@@ -5441,7 +5441,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 		case RA_FIRINGTRAP:
  		case RA_ICEBOUNDTRAP:
 		case SO_VARETYR_SPEAR:
-			return wd; //These skills will do a GVG fix later
+			return wd; //Do GVG fix later
 		default:
 			wd = battle_calc_attack_gvg_bg(wd, src, target, skill_id, skill_lv);
 			break;
@@ -5450,7 +5450,7 @@ struct Damage battle_calc_weapon_attack(struct block_list *src, struct block_lis
 	wd = battle_calc_weapon_final_atk_modifiers(wd, src, target, skill_id, skill_lv);
 
 	if(!skill_id && sc && (sc->data[SC_CRUSHSTRIKE] || sc->data[SC_EXEEDBREAK] || sc->data[SC_SPELLFIST]))
-		return wd; //Damage will be reflected later
+		return wd; //Reflected later
 	else //Skill reflect gets calculated after all attack modifier
 		battle_do_reflect(BF_WEAPON, &wd, src, target, skill_id, skill_lv); //WIP [lighta]
 
@@ -6043,7 +6043,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			case ASC_BREAKER:
 			case CR_ACIDDEMONSTRATION:
 			case GN_FIRE_EXPANSION_ACID:
-				break; //These skills will do a card fix later
+				break; //Do card fix later
 			default:
 				ad.damage += battle_calc_cardfix(BF_MAGIC, src, target, skill_id, nk, s_ele, 0, ad.damage, 0, ad.flag);
 				break;
@@ -6228,7 +6228,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		case ASC_BREAKER:
 		case CR_ACIDDEMONSTRATION:
 		case GN_FIRE_EXPANSION_ACID:
-			return ad; //These skills will do a GVG fix later
+			return ad; //Do GVG fix later
 #endif
 		default:
 			ad.damage = battle_calc_damage(src, target, &ad, ad.damage, skill_id, skill_lv);
@@ -6642,7 +6642,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	switch(skill_id) {
 #ifdef RENEWAL
 		case GS_MAGICALBULLET:
-			break; //Already done
+			break; //Card fix already done
 #endif
 		default:
 			md.damage += battle_calc_cardfix(BF_MISC,src,target,skill_id,nk,s_ele,0,md.damage,0,md.flag);
@@ -6722,7 +6722,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 	switch(skill_id) {
 #ifdef RENEWAL
 		case GS_MAGICALBULLET:
-			break; //Already done
+			break; //GVG fix already done
 #endif
 		default:
 			md.damage = battle_calc_damage(src,target,&md,md.damage,skill_id,skill_lv);
